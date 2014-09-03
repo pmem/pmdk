@@ -1,0 +1,6 @@
+highlighter: pygments
+
+gems:
+  - jekyll-mentions
+
+exclude: ['LICENSE', 'README.md']
