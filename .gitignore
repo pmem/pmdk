@@ -1,0 +1,9 @@
+*.swp
+*.o
+make.out
+core
+a.out
+.cproject
+.project
+.settings/
+nbproject/
