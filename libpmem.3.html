@@ -1,0 +1,1198 @@
+<!-- Creator     : groff version 1.21 -->
+<!-- CreationDate: Wed Sep  3 15:14:59 2014 -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="groff -Thtml, see www.gnu.org">
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta name="Content-Style" content="text/css">
+<style type="text/css">
+       p       { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       pre     { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       table   { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       h1      { text-align: center }
+</style>
+<title>libpmem</title>
+
+</head>
+<body>
+
+<h1 align="center">libpmem</h1>
+
+<a href="#NAME">NAME</a><br>
+<a href="#SYNOPSIS">SYNOPSIS</a><br>
+<a href="#DESCRIPTION">DESCRIPTION</a><br>
+<a href="#FLUSH-TO-PERSISTENCE">FLUSH-TO-PERSISTENCE</a><br>
+<a href="#PERSISTENT MEMORY TRANSACTIONS">PERSISTENT MEMORY TRANSACTIONS</a><br>
+<a href="#ATOMIC ARRAYS">ATOMIC ARRAYS</a><br>
+<a href="#PERSISTENT MEMORY LOGS">PERSISTENT MEMORY LOGS</a><br>
+<a href="#MANAGING LIBRARY BEHAVIOR">MANAGING LIBRARY BEHAVIOR</a><br>
+<a href="#DEBUGGING">DEBUGGING</a><br>
+<a href="#BASIC PERSISTENT MEMORY EXAMPLE">BASIC PERSISTENT MEMORY EXAMPLE</a><br>
+<a href="#ATOMIC ARRAYS EXAMPLE">ATOMIC ARRAYS EXAMPLE</a><br>
+<a href="#PERSISTENT MEMORY LOG EXAMPLE">PERSISTENT MEMORY LOG EXAMPLE</a><br>
+<a href="#BUGS">BUGS</a><br>
+<a href="#ACKNOWLEDGEMENTS">ACKNOWLEDGEMENTS</a><br>
+<a href="#SEE ALSO">SEE ALSO</a><br>
+
+<hr>
+
+
+<h2>NAME
+<a name="NAME"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">libpmem &minus;
+persistent memory library</p>
+
+<h2>SYNOPSIS
+<a name="SYNOPSIS"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>#include
+&lt;libpmem.h&gt;</b></p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>cc ...
+-lpmem</b></p>
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>Flush-to-persistence
+support:</b></p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>int
+pmem_is_pmem(void *</b><i>addr</i><b>, size_t</b>
+<i>len</i><b>); <br>
+void pmem_persist(void *</b><i>addr</i><b>, size_t</b>
+<i>len</i><b>, int</b> <i>flags</i><b>); <br>
+void pmem_flush(void *</b><i>addr</i><b>, size_t</b>
+<i>len</i><b>, int</b> <i>flags</i><b>); <br>
+void pmem_fence(void); <br>
+void pmem_drain(void);</b></p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>Support for
+Persistent Memory Transactions:</b></p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>PMEMtrn
+*pmemtrn_map(int</b> <i>fd</i><b>); <br>
+void pmemtrn_unmap(PMEMtrn *</b><i>ptp</i><b>); <br>
+XXX REST OF TRANSACTION SECTION NOT READY FOR REVIEW</b></p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>Support for
+Atomic Arrays:</b></p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>PMEMblk
+*pmemblk_map(int</b> <i>fd</i><b>, size_t</b>
+<i>bsize</i><b>); <br>
+void pmemblk_unmap(PMEMblk *</b><i>pbp</i><b>); <br>
+size_t pmemblk_nblock(PMEMblk *</b><i>pbp</i><b>); <br>
+int pmemblk_read(PMEMblk *</b><i>pbp</i><b>, void
+*</b><i>buf</i><b>, off_t</b> <i>blockno</i><b>); <br>
+int pmemblk_write(PMEMblk *</b><i>pbp</i><b>, const void
+*</b><i>buf</i><b>, off_t</b> <i>blockno</i><b>); <br>
+int pmemblk_set_zero(PMEMblk *</b><i>pbp</i><b>, off_t</b>
+<i>blockno</i><b>); <br>
+int pmemblk_set_error(PMEMblk *</b><i>pbp</i><b>, off_t</b>
+<i>blockno</i><b>);</b></p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>Support for
+Persistent Memory Logs:</b></p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>PMEMlog
+*pmemlog_map(int</b> <i>fd</i><b>); <br>
+void pmemlog_unmap(PMEMlog *</b><i>plp</i><b>); <br>
+size_t pmemlog_nbyte(PMEMlog *</b><i>plp</i><b>); <br>
+int pmemlog_append(PMEMlog *</b><i>plp</i><b>, const void
+*</b><i>buf</i><b>, size_t</b> <i>count</i><b>); <br>
+int pmemlog_appendv(PMEMlog *</b><i>plp</i><b>, const struct
+iovec *</b><i>iov</i><b>, int</b> <i>iovcnt</i><b>); <br>
+off_t pmemlog_tell(PMEMlog *</b><i>plp</i><b>); <br>
+void pmemlog_rewind(PMEMlog *</b><i>plp</i><b>); <br>
+void pmemlog_walk(PMEMlog *</b><i>plp</i><b>, size_t</b>
+<i>chunksize</i><b>, <br>
+int (*</b><i>process_chunk</i><b>)(const void
+*</b><i>buf</i><b>, size_t</b> <i>len</i><b>, void
+*</b><i>arg</i><b>), <br>
+void *</b><i>arg</i><b>);</b></p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>Managing
+overall library behavior:</b></p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>const char
+*pmem_check_version( <br>
+unsigned</b> <i>major_required</i><b>, <br>
+unsigned</b> <i>minor_required</i><b>); <br>
+void pmem_set_funcs( <br>
+void *(*</b><i>malloc_func</i><b>)(size_t</b>
+<i>size</i><b>), <br>
+void (*</b><i>free_func</i><b>)(void *</b><i>ptr</i><b>),
+<br>
+void *(*</b><i>realloc_func</i><b>)(void *</b><i>ptr</i><b>,
+size_t</b> <i>size</i><b>), <br>
+char *(*</b><i>strdup_func</i><b>)(const char
+*</b><i>s</i><b>), <br>
+void (*</b><i>print_func</i><b>)(const char
+*</b><i>s</i><b>), <br>
+void (*</b><i>persist_func</i><b>)(void *</b><i>addr</i><b>,
+size_t</b> <i>len&quot;</i><b>,</b><i>int</i> <b>flags ));
+<br>
+int pmemtrn_check(const char *</b><i>path</i><b>); <br>
+int pmemblk_check(const char *</b><i>path</i><b>); <br>
+int pmemlog_check(const char *</b><i>path</i><b>);</b></p>
+
+<h2>DESCRIPTION
+<a name="DESCRIPTION"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>libpmem</b>
+provides several interfaces to persistent memory pools built
+on memory-mapped files. The interfaces are divided into
+categories, each described in a section below. All the
+interfaces may be used concurrently, however memory from
+different memory pools must not be mixed. For example,
+memory allocated from a transactional memory pool created
+with <b>pmemtrn_map</b>() must not be freed to any other
+memory pool.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>libpmem</b>
+uses the <b>mmap</b>(2) system call to access memory pools.
+The library is most useful when used with <i>Direct
+Access</i> storage (DAX), which is memory-addressable
+persistent storage that supports load/store access without
+being paged via the system page cache. A Persistent
+Memory-aware file system is typically used to provide this
+type of access. Memory-mapping a file from a Persistent
+Memory-aware file system provides the raw memory pools, and
+this library supplies additional semantics like
+<i>transactions</i> on top of those pools.</p>
+
+<p style="margin-left:11%; margin-top: 1em">Under normal
+usage, <b>libpmem</b> will never print messages or
+intentionally cause the process to exit. The only exception
+to this is the debugging information, when enabled, as
+described under <b>DEBUGGING</b> below. The library uses
+<b>pthreads</b>(7) to be fully MT-safe, but never creates or
+destroys threads itself. The library does not make use of
+any signals, networking, and never calls <b>select</b>() or
+<b>poll</b>(). The system memory allocation routines like
+<b>malloc</b>() and <b>free</b>() are used by <b>libpmem</b>
+for managing a small amount of run-time state, but
+applications are allowed to override these calls if
+necessary (see the description of <b>pmem_set_funcs</b>()
+below).</p>
+
+<h2>FLUSH-TO-PERSISTENCE
+<a name="FLUSH-TO-PERSISTENCE"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">These
+interfaces are meant for fairly raw access to persistent
+memory, where a persistent memory file has been memory
+mapped (see <b>mmap</b>(2)) and the application takes on
+full responsibility to storing data to the mapped area and
+flushing those stores to make them persistent.
+Traditionally, forcing memory mapped changes to persistence
+is done using <b>msync</b>(2), and that will work as
+expected with Persistent Memory as well. However, platforms
+may have more optimal ways to flush changes in a range of
+memory. These functions are provided for the case where a
+range is known to be true Persistent Memory (not paged from
+storage).</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>int
+pmem_is_pmem(void *</b><i>addr</i><b>, size_t</b>
+<i>len</i><b>);</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">The
+<b>pmem_is_pmem</b>() function returns true only if the
+entire range [<i>addr</i>, <i>addr</i>+<i>len</i>) consists
+entirely of Persistent Memory. A true return from
+<b>pmem_is_pmem</b>() means it is safe to use
+<b>pmem_persist</b>() and the related functions below to
+make changes durable for that memory range.</p>
+
+<p style="margin-left:22%; margin-top: 1em">The
+implementation of <b>pmem_is_pmem</b>() requires a
+non-trivial amount of work to determine if the given range
+is entirely Persistent Memory. For this reason, it is better
+to call <b>pmem_is_pmem</b>() once when a range of memory is
+first encountered, save the result, and use the saved result
+to determine whether <b>pmem_persist</b>() or
+<b>msync</b>(2) is called when flushing changes to
+persistence. Calling <b>pmem_is_pmem</b>() each time changes
+are flushed to persistence will not perform well.</p>
+
+<p style="margin-left:22%; margin-top: 1em">WARNING: Using
+<b>pmem_persist</b>() on a range where <b>pmem_is_pmem</b>()
+returns false may not do anything useful -- use
+<b>msync</b>(2) instead.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>void
+pmem_persist(void *</b><i>addr</i><b>, size_t</b>
+<i>len</i><b>, int</b> <i>flags</i><b>);</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">Force any
+changes in the range [<i>addr</i>, <i>addr</i>+<i>len</i>)
+to be stored durably in Persistent Memory. This is
+equivalent to calling <b>msync</b>(2) as described above,
+but may be more optimal and will avoid calling into the
+kernel if possible. There are no alignment restrictions on
+the range described by <i>addr</i> and <i>len</i>, but
+<b>pmem_persist</b>() may expand the range as necessary to
+meet platform alignment requirements. Zero should be passed
+in for <i>flags</i> since no flags have been defined for
+this call yet.</p>
+
+<p style="margin-left:22%; margin-top: 1em">WARNING: Like
+<b>msync</b>(2), there is nothing atomic or transactional
+about this call. Any unwritten stores in the given range
+will be written, but some stores may have already been
+written by virtue of normal cache eviction/replacement
+policies. Correctly written code must not depend on stores
+waiting until <b>pmem_persist</b>() is called to become
+persistent -- they can become persistent at any time before
+<b>pmem_persist</b>() is called.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>void
+pmem_flush(void *</b><i>addr</i><b>, size_t</b>
+<i>len</i><b>, int</b> <i>flags</i><b>); <br>
+void pmem_fence(void); <br>
+void pmem_drain(void);</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">These three
+functions provide partial versions of the
+<b>pmem_persist</b>() function described above.
+<b>pmem_persist</b>() can be thought of as this:</p>
+
+<p style="margin-left:22%; margin-top: 1em">void
+pmem_persist(void *addr, size_t len, int flags) <br>
+{ <br>
+/* flush the processor caches */ <br>
+pmem_flush(addr, len, flags);</p>
+
+<p style="margin-left:22%; margin-top: 1em">/* Persistent
+Memory store barrier */ <br>
+pmem_fence();</p>
+
+<p style="margin-left:22%; margin-top: 1em">/* wait for any
+PM stores to drain from HW buffers */ <br>
+pmem_drain(); <br>
+}</p>
+
+<p style="margin-left:22%; margin-top: 1em">These functions
+allow advanced programs to create their own variations of
+<b>pmem_persist</b>(). For example, a program that needs to
+flush several discontiguous ranges can call
+<b>pmem_flush</b>() for each range and then follow up by
+calling the <b>pmem_fence</b>() and <b>pmem_drain</b>()
+once.</p>
+
+<h2>PERSISTENT MEMORY TRANSACTIONS
+<a name="PERSISTENT MEMORY TRANSACTIONS"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">To use the
+transactions supplied by <b>libpmem</b>, a <i>memory
+pool</i> is first created. This is done with the
+<b>pmemtrn_map</b>() function described in this section. The
+other functions described in this section then operate on
+the transaction-based memory pool.</p>
+
+<p style="margin-left:11%; margin-top: 1em">Once created,
+the memory pool is represented by an opaque handle, of type
+<i>PMEMtrn *</i>, which is passed to most of the other
+functions in this section. Internally, <b>libpmem</b> will
+use either <b>pmem_persist ()</b> or <b>msync (2)</b> when
+it needs to flush changes, depending on whether the memory
+pool appears to be Persistent Memory or a regular file (see
+<b>pmem_is_pmem</b>() above for more information). There is
+no need for applications to flush changes directly when
+using the transactional memory API described in this
+section.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>PMEMtrn
+*pmemtrn_map(int</b> <i>fd</i><b>);</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">The
+<b>pmemtrn_map</b>() function maps a transactional memory
+pool into memory, creating a new pool in the file referenced
+by <i>fd</i> if an existing pool is not found.
+<b>pmemtrn_map</b>() returns a memory pool handle used with
+most of the functions in this section. <i>fd</i> must be a
+file descriptor for a file opened for both reading and
+writing, and the file size must already be set appropriately
+(for example, by calling <b>posix_fallocate</b>() the first
+time the file is used). <b>pmemtrn_map</b>() will map the
+file using <b>mmap</b>(2), and detect if the file already
+contains a <b>libpmem</b> memory pool from an earlier use of
+the file with <b>pmemtrn_map</b>(). If a memory pool is not
+found, a new pool is created, overwriting any data contained
+in the file. The minimum file size allowed by the library
+for a transactional memory pool is defined in
+<b>&lt;libpmem.h&gt;</b> as <b>PMEMTRN_MIN_POOL</b>. After
+<b>pmemtrn_map</b>() returns the memory pool handle, the
+file descriptor <i>fd</i> may be closed by the caller
+without impacting the use of <b>libpmem</b> on the memory
+pool. <b>pmemtrn_map</b>() returns NULL on error, setting
+errno appropriately. It is an error to use
+<b>pmemtrn_map</b>() on a file with a different type of
+memory pool in it. The library will return EINVAL for this
+case. To switch the type of memory pool in a file, it is
+best to delete the file and recreate it.</p>
+
+<p style="margin-left:22%; margin-top: 1em">Each time a
+transactional memory pool is mapped using
+<b>pmemtrn_map</b>(), a brief consistency check is
+performed, similar to the check done by
+<b>pmemtrn_check</b>() described below, but less extensive.
+If a consistency issue is discovered, the severity of the
+pool corruption is evaluated to determine if read-only
+access is still viable. If so, <b>pmemtrn_map</b>() succeeds
+but any subsequent calls to change the pool will return the
+error EROFS. If the memory pool is not viable for read-only
+access, <b>pmemtrn_map</b>() will return the error EINVAL.
+In either case, see <b>pmemtrn_check</b>() below for a
+description of how to determine the details of the memory
+pool corruption.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>void
+pmemtrn_unmap(PMEMtrn *</b><i>ptp</i><b>);</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">The
+<b>pmemtrn_unmap</b>() function unmaps the memory pool
+indicated by <i>ptp</i> and deletes the memory pool handle.
+The transactional memory pool itself lives on in the file
+that contains it and may be re-opened at a later time using
+<b>pmemtrn_map</b>() as described above. Any in-progress
+(incomplete) transactions in outstanding at the time
+<b>pmemtrn_unmap</b>() is called are discarded in the same
+manner as if the program had terminated before completed
+those transactions.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>XXX REST OF
+TRANSACTION SECTION NOT READY FOR REVIEW</b></p>
+
+<h2>ATOMIC ARRAYS
+<a name="ATOMIC ARRAYS"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">To use the
+atomic block arrays supplied by <b>libpmem</b>, a <i>memory
+pool</i> is first created. This is done with the
+<b>pmemblk_map</b>() function described in this section. The
+other functions described in this section then operate on
+the resulting block memory pool.</p>
+
+<p style="margin-left:11%; margin-top: 1em">Once created,
+the memory pool is represented by an opaque handle, of type
+<i>PMEMblk *</i>, which is passed to most of the other
+functions in this section. Internally, <b>libpmem</b> will
+use either <b>pmem_persist ()</b> or <b>msync (2)</b> when
+it needs to flush changes, depending on whether the memory
+pool appears to be Persistent Memory or a regular file (see
+<b>pmem_is_pmem</b>() above for more information). There is
+no need for applications to flush changes directly when
+using the block memory API described in this section.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>PMEMblk
+*pmemblk_map(int</b> <i>fd</i><b>, size_t</b>
+<i>bsize</i><b>);</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">The
+<b>pmemblk_map ()</b> function maps a block memory pool into
+memory (an array of blocks that support atomic update at the
+block level), returning a memory pool handle used with most
+of the functions in this section. <i>fd</i> must be a file
+descriptor for a file opened for both reading and writing,
+and the file size must already be set appropriately (for
+example, by calling <b>posix_fallocate</b>() the first time
+the file is used). <i>bsize</i> is the block size of each
+element in the pool. <b>pmemblk_map ()</b> will map the file
+using <b>mmap</b>(2), and detect if the file already
+contains a <b>libpmem</b> memory pool from an earlier use of
+the file with <b>pmemblk_map</b>(). If a memory pool is not
+found, a new pool is created, overwriting any data contained
+in the file. <b>pmemblk_map</b>() will fit as many blocks as
+possible in the given file, but some space will be used by
+the library for metadata. See <b>pmemblk_nblock</b>() below
+for a way to determine the resulting number of usable
+blocks. The minimum file size allowed by the library for a
+block pool is defined in <b>&lt;libpmem.h&gt;</b> as
+<b>PMEMBLK_MIN_POOL</b>. There are no restrictions on the
+block size <i>bsize</i>, however <b>libpmem</b> will
+silently round up the given size to <b>PMEMBLK_MIN_BLK</b>,
+as defined in <b>&lt;libpmem.h&gt;</b>. After
+<b>pmemblk_map</b>() returns the memory pool handle, the
+file descriptor <i>fd</i> may be closed by the caller
+without impacting the use of <b>libpmem</b> on the memory
+pool. <b>pmemblk_map</b>() returns NULL on error, setting
+errno appropriately. It is an error to use
+<b>pmemblk_map</b>() on a file with a different type of
+memory pool in it. The library will return EINVAL for this
+case. To switch the type of memory pool in a file, it is
+best to delete the file and recreate it.</p>
+
+<p style="margin-left:22%; margin-top: 1em">Each time a
+block memory pool is mapped using <b>pmemblk_map</b>(), a
+brief consistency check is performed, similar to the check
+done by <b>pmemblk_check</b>() described below, but less
+extensive. If a consistency issue is discovered, the
+severity of the pool corruption is evaluated to determine if
+read-only access is still viable. If so,
+<b>pmemblk_map</b>() succeeds but any subsequent calls to
+change the pool will return the error EROFS. If the memory
+pool is not viable for read-only access,
+<b>pmemblk_map</b>() will return the error EINVAL. In either
+case, see <b>pmemblk_check</b>() below for a description of
+how to determine the details of the memory pool
+corruption.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>void
+pmemblk_unmap(PMEMblk *</b><i>pbp</i><b>);</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">The
+<b>pmemblk_unmap</b>() function unmaps the memory pool
+indicated by <i>pbp</i> and deletes the memory pool handle.
+The block memory pool itself lives on in the file that
+contains it and may be re-opened at a later time using
+<b>pmemblk_map</b>() as described above.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>size_t
+pmemblk_nblock(PMEMblk *</b><i>pbp</i><b>);</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">The
+<b>pmemblk_nblock</b>() function returns the usable space in
+the block memory pool, expressed as the number of blocks
+available. <i>pbp</i> must be a block memory pool as
+returned by <b>pmemblk_map</b>().</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>int
+pmemblk_read(PMEMblk *</b><i>pbp</i><b>, void
+*</b><i>buf</i><b>, off_t</b> <i>blockno</i><b>);</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">The
+<b>pmemblk_read</b>() function reads a block from memory
+pool <i>pbp</i>, block number <i>blockno</i>, into the
+buffer <i>buf</i>. On success, zero is returned. On error,
+-1 is returned and errno is set. Reading a block that has
+never been written by <b>pmemblk_write</b>() since the
+creation of block memory pool will return a block of zeroes,
+as that is the initial state of all blocks when the memory
+pool is created.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>int
+pmemblk_write(PMEMblk *</b><i>pbp</i><b>, const void
+*</b><i>buf</i><b>, off_t</b> <i>blockno</i><b>);</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">The
+<b>pmemblk_write</b>() function writes a block from
+<i>buf</i> to block number <i>blockno</i> in the memory pool
+<i>pbp</i>. The write is atomic with respect to other reads
+and writes. In addition, the write cannot be torn by program
+failure or system crashes; on recovery the block is
+guaranteed to contain either the old data or the new data,
+never a mixture of both. On success, zero is returned. On
+error, -1 is returned and errno is set.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>int
+pmemblk_set_zero(PMEMblk *</b><i>pbp</i><b>, off_t</b>
+<i>blockno</i><b>);</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">The
+<b>pmemblk_set_zero</b>() function writes zeros to block
+number <i>blockno</i> in memory pool <i>pbp</i>. Using this
+function is faster than actually writing a block of zeros
+since <b>libpmem</b> uses metadata to indicate the block
+should read back as zero. On success, zero is returned. On
+error, -1 is returned and errno is set.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>int
+pmemblk_set_error(PMEMblk *</b><i>pbp</i><b>, off_t</b>
+<i>blockno</i><b>);</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">The
+<b>pmemblk_set_error</b>() function sets the error state for
+block number <i>blockno</i> in memory pool <i>pbp</i>. A
+block in the error state returns errno EIO when read.
+Writing the block clears the error state and returns the
+block to normal use. On success, zero is returned. On error,
+-1 is returned and errno is set.</p>
+
+<h2>PERSISTENT MEMORY LOGS
+<a name="PERSISTENT MEMORY LOGS"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">To use the
+persistent memory logs supplied by <b>libpmem</b>, a
+<i>memory pool</i> is first created. This is done with the
+<b>pmemlog_map</b>() function described in this section. The
+other functions described in this section then operate on
+the resulting log memory pool.</p>
+
+<p style="margin-left:11%; margin-top: 1em">Once created,
+the memory pool is represented by an opaque handle, of type
+<i>PMEMlog *</i>, which is passed to most of the other
+functions in this section. Internally, <b>libpmem</b> will
+use either <b>pmem_persist ()</b> or <b>msync (2)</b> when
+it needs to flush changes, depending on whether the memory
+pool appears to be Persistent Memory or a regular file (see
+<b>pmem_is_pmem</b>() above for more information). There is
+no need for applications to flush changes directly when
+using the log memory API described in this section.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>PMEMlog
+*pmemlog_map(int</b> <i>fd</i><b>);</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">The
+<b>pmemlog_map ()</b> function maps a log memory pool into
+memory (a persistent memory resident log file), returning a
+memory pool handle used with most of the functions in this
+section. <i>fd</i> must be a file descriptor for a file
+opened for both reading and writing, and the file size must
+already be set appropriately (for example, by calling
+<b>posix_fallocate</b>() the first time the file is used).
+<b>pmemlog_map ()</b> will map the file using
+<b>mmap</b>(2), and detect if the file already contains a
+<b>libpmem</b> memory pool from an earlier use of the file
+with <b>pmemlog_map</b>(). If a memory pool is not found, a
+new pool is created, overwriting any data contained in the
+file. <b>pmemlog_map</b>() will create as large a log as
+possible in the given file, but some space will be used by
+the library for metadata. See <b>pmemlog_nbyte</b>() below
+for a way to determine the resulting usable space. The
+minimum file size allowed by the library for a log memory
+pool is defined in <b>&lt;libpmem.h&gt;</b> as
+<b>PMEMLOG_MIN_POOL</b>. After <b>pmemlog_map</b>() returns
+the memory pool handle, the file descriptor <i>fd</i> may be
+closed by the caller without impacting the use of
+<b>libpmem</b> on the memory pool. <b>pmemlog_map</b>()
+returns NULL on error, setting errno appropriately. It is an
+error to use <b>pmemlog_map</b>() on a file with a different
+type of memory pool in it. The library will return EINVAL
+for this case. To switch the type of memory pool in a file,
+it is best to delete the file and recreate it.</p>
+
+<p style="margin-left:22%; margin-top: 1em">Each time a log
+memory pool is mapped using <b>pmemlog_map</b>(), a brief
+consistency check is performed, similar to the check done by
+<b>pmemlog_check</b>() described below, but less extensive.
+If a consistency issue is discovered, the severity of the
+pool corruption is evaluated to determine if read-only
+access is still viable. If so, <b>pmemlog_map</b>() succeeds
+but any subsequent calls to change the pool will return the
+error EROFS. If the memory pool is not viable for read-only
+access, <b>pmemlog_map</b>() will return the error EINVAL.
+In either case, see <b>pmemlog_check</b>() below for a
+description of how to determine the details of the memory
+pool corruption.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>void
+pmemlog_unmap(PMEMlog *</b><i>plp</i><b>);</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">The
+<b>pmemlog_unmap</b>() function unmaps the memory pool
+indicated by <i>plp</i> and deletes the memory pool handle.
+The log memory pool itself lives on in the file that
+contains it and may be re-opened at a later time using
+<b>pmemlog_map</b>() as described above.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>size_t
+pmemlog_nbyte(PMEMlog *</b><i>plp</i><b>);</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">The
+<b>pmemlog_nbyte</b>() function returns the amount of usable
+space in the log <i>plp</i>. This function may be used on a
+log to determine how much usable space is available after
+<b>libpmem</b> has added its metadata to the memory
+pool.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>int
+pmemlog_append(PMEMlog *</b><i>plp</i><b>, const void
+*</b><i>buf</i><b>, size_t</b> <i>count</i><b>);</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">The
+<b>pmemlog_append</b>() function appends <i>count</i> bytes
+from <i>buf</i> to the current write offset in the log
+memory pool <i>plp</i>. Calling this function is analogous
+to appending to a file. The append is atomic and cannot be
+torn by a program failure or system crash. On success, zero
+is returned. On error, -1 is returned and errno is set.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>int
+pmemlog_appendv(PMEMlog *</b><i>plp</i><b>, const struct
+iovec *</b><i>iov</i><b>, int</b> <i>iovcnt</i><b>);</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">The
+<b>pmemlog_appendv</b>() function appends to the log
+<i>plp</i> just like <b>pmemlog_append</b>() above, but this
+function takes a scatter/gather list in a manner similar to
+<b>writev</b>(2). In this case, the entire list of buffers
+is appended atomically. On success, zero is returned. On
+error, -1 is returned and errno is set.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>off_t
+pmemlog_tell(PMEMlog *</b><i>plp</i><b>);</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">The
+<b>pmemlog_tell</b>() function returns the current write
+point for the log, expressed as a byte offset into the
+usable log space in the memory pool. This offset starts off
+as zero on a newly-created log, and is incremented by each
+successful append operation. This function can be used to
+determine how much data is currently in the log.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>void
+pmemlog_rewind(PMEMlog *</b><i>plp</i><b>);</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">The
+<b>pmemlog_rewind</b>() function resets the current write
+point for the log to zero. After this call, the next append
+adds to the beginning of the log.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>void
+pmemlog_walk(PMEMlog *</b><i>plp</i><b>, size_t chunksize ,
+<br>
+int (*</b><i>process_chunk</i><b>)(const void
+*</b><i>buf</i><b>, size_t</b> <i>len</i><b>, void
+*</b><i>arg</i><b>), <br>
+void *</b><i>arg</i><b>);</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">The
+<b>pmemlog_walk</b>() function walks through the log
+<i>plp</i>, from beginning to end, calling the callback
+function <i>process_chunk</i> for each <i>chunksize</i>
+block of data found. The argument <i>arg</i> is also passed
+to the callback to help avoid the need for global state. The
+<i>chunksize</i> argument is useful for logs with
+fixed-length records and may be specified as 0 to cause a
+single call to the callback with the entire log contents
+passed as the <i>buf</i> argument. The <i>len</i> argument
+tells the <i>process_chunk</i> function how much data buf is
+holding. The callback function should return true if
+<b>pmemlog_walk</b>() should continue walking through the
+log, or false to terminate the walk. The callback function
+is called while holding <b>libpmem</b> internal locks that
+make calls atomic, so the callback function must not try to
+append to the log itself or deadlock will occur.</p>
+
+<h2>MANAGING LIBRARY BEHAVIOR
+<a name="MANAGING LIBRARY BEHAVIOR"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">The library
+entry points described in this section are less commonly
+used than the previous section. These entry points expose
+library information or alter the default library
+behavior.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>const char
+*pmem_check_version( <br>
+unsigned</b> <i>major_required</i><b>, <br>
+unsigned</b> <i>minor_required</i><b>);</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">The
+<b>pmem_check_version</b>() function is used to see if the
+installed <b>libpmem</b> supports the version of the library
+API required by an application. The easiest way to do this
+is for the application to supply the compile-time version
+information, supplied by defines in
+<b>&lt;libpmem.h&gt;</b>, like this:</p>
+
+<p style="margin-left:22%; margin-top: 1em">reason =
+pmem_check_version(PMEM_MAJOR_VERSION, <br>
+PMEM_MINOR_VERSION); <br>
+if (reason != NULL {</p>
+
+<table width="100%" border="0" rules="none" frame="void"
+       cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="8%"></td>
+<td width="7%"></td>
+<td width="85%">
+
+
+<p>/* version check failed, reason string tells you why
+*/</p> </td></tr>
+</table>
+
+<p style="margin-left:22%;">}</p>
+
+<p style="margin-left:22%; margin-top: 1em">Any mismatch in
+the major version number is considered a failure, but a
+library with a newer minor version number will pass this
+check since increasing minor versions imply backwards
+compatibility.</p>
+
+<p style="margin-left:22%; margin-top: 1em">An application
+can also check specifically for the existence of an
+interface by checking for the version where that interface
+was introduced. These versions are documented in this man
+page as follows: unless otherwise specified, all interfaces
+described here are available in version 1.0 of the library.
+Interfaces added after version 1.0 will contain the text
+<i>introduced in version x.y</i> in the section of this
+manual describing the feature.</p>
+
+<p style="margin-left:22%; margin-top: 1em">When the
+version check performed by <b>pmem_check_version</b>() is
+successful, the return value is NULL. Otherwise the return
+value is a static string describing the reason for failing
+the version check. The string returned by
+<b>pmem_check_version</b>() must not be modified or
+freed.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>void
+pmem_set_funcs( <br>
+void *(*</b><i>malloc_func</i><b>)(size_t</b>
+<i>size</i><b>), <br>
+void (*</b><i>free_func</i><b>)(void *</b><i>ptr</i><b>),
+<br>
+void *(*</b><i>realloc_func</i><b>)(void *</b><i>ptr</i><b>,
+size_t</b> <i>size</i><b>), <br>
+char *(*</b><i>strdup_func</i><b>)(const char
+*</b><i>s</i><b>), <br>
+void (*</b><i>print_func</i><b>)(const char
+*</b><i>s</i><b>), <br>
+void (*</b><i>persist_func</i><b>)(void *</b><i>addr</i><b>,
+size_t</b> <i>len</i><b>, int</b> <i>flags</i><b>));</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">The
+<b>pmem_set_funcs</b>() function allows an application to
+override some interfaces used internally by <b>libpmem</b>.
+Passing in NULL for any of the handlers will cause the
+<b>libpmem</b> default function to be used. The library does
+not make heavy use of the system malloc functions, but it
+does allocate approximately 4-8 kilobytes for each memory
+pool in use. The only functions in the malloc family used by
+the library are represented by the first four arguments to
+<b>pmem_set_funcs</b>(). The <i>print_func</i> function is
+called by <b>libpmem</b> when additional tracing is enabled
+in the debug version of the library as described in the
+<b>DEBUGGING</b> section below. The default
+<i>print_func</i> used by the library prints to the file
+specified by the <b>PMEM_LOG_FILE</b> environment variable,
+or to <b>stderr</b> if that variable is not set. The
+<i>persist_func</i> is called by <b>libpmem</b> to make
+changes to Persistent Memory persistent. The default
+<i>persist_func</i> used by the library is
+<b>pmem_persist</b>(), described in this manual.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>int
+pmemtrn_check(const char *</b><i>path</i><b>); <br>
+int pmemblk_check(const char *</b><i>path</i><b>); <br>
+int pmemlog_check(const char *</b><i>path</i><b>);</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">These functions
+perform a consistency check of the file indicated by
+<i>path</i>. They return true if the memory pool is found to
+be consistent. In the event of inconsistencies, continued
+use of the file with <b>libpmem</b> will result in undefined
+behavior. The debug version of <b>libpmem</b> will provide
+additional details on inconsistencies when
+<b>PMEM_LOG_LEVEL</b> is at least 1, as described in the
+<b>DEBUGGING</b> section below. These functions open the
+given <i>path</i> read-only so they never make any changes
+to the file. Although these functions are mostly used during
+the development of <b>libpmem</b> itself, they are
+potentially useful for determining the type of memory pool
+contained in a file (only the appropriate check function
+will return true).</p>
+
+<h2>DEBUGGING
+<a name="DEBUGGING"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">Two versions of
+<b>libpmem</b> are typically available on a development
+system. The normal version, accessed when a program is
+linked using the <b>-lpmem</b> option, is optimized for
+performance. That version skips checks that impact
+performance and never logs any trace information or performs
+any run-time assertions. A second version, accessed when a
+program uses the libraries under <b>/usr/lib/nvml_debug</b>,
+contains run-time assertions and trace points. The typical
+way to access the debug version is to set the environment
+variable <b>LD_LIBRARY_PATH</b> to
+<b>/usr/lib/nvml_debug</b> or <b>/usr/lib64/nvml_debug</b>
+depending on where the debug libraries are installed on the
+system. The trace points in the debug version of the library
+are enabled using the environment variable
+<b>PMEM_LOG_LEVEL</b>, which can be set to the following
+values:</p>
+
+<table width="100%" border="0" rules="none" frame="void"
+       cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="1%">
+
+
+<p>0</p></td>
+<td width="10%"></td>
+<td width="78%">
+
+
+<p>This is the default level when <b>PMEM_LOG_LEVEL</b> is
+not set. No log messages are emitted at this level.</p></td></tr>
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="1%">
+
+
+<p>1</p></td>
+<td width="10%"></td>
+<td width="78%">
+
+
+<p>Additional details on any errors detected are logged (in
+addition to returning the errno-based errors as usual).</p></td></tr>
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="1%">
+
+
+<p>2</p></td>
+<td width="10%"></td>
+<td width="78%">
+
+
+<p>A trace of basic operations including allocations and
+deallocations is logged.</p></td></tr>
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="1%">
+
+
+<p>3</p></td>
+<td width="10%"></td>
+<td width="78%">
+
+
+<p>This level enables a very verbose amount of function
+call tracing in the library.</p></td></tr>
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="1%">
+
+
+<p>4</p></td>
+<td width="10%"></td>
+<td width="78%">
+
+
+<p>This level enables voluminous and fairly obscure tracing
+information that is likely only useful to the <b>libpmem</b>
+developers.</p> </td></tr>
+</table>
+
+<p style="margin-left:11%; margin-top: 1em">The environment
+variable <b>PMEM_LOG_FILE</b> specifies a file name where
+all logging information should be written, and if
+<b>PMEM_LOG_FILE</b> is not set, output goes to stderr. All
+prints are done using the <i>print_func</i> function in
+<b>libpmem</b> (see <b>pmem_set_funcs</b>() above for
+details on how to override that function).</p>
+
+<p style="margin-left:11%; margin-top: 1em">Setting the
+environment variable <b>PMEM_LOG_LEVEL</b> has no effect on
+the non-debug version of <b>libpmem</b>.</p>
+
+<h2>BASIC PERSISTENT MEMORY EXAMPLE
+<a name="BASIC PERSISTENT MEMORY EXAMPLE"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">The follow
+example uses <b>libpmem</b> to flush changes made to raw,
+memory-mapped persistent memory.</p>
+
+<p style="margin-left:22%; margin-top: 1em">#include
+&lt;sys/mman.h&gt; <br>
+#include &lt;fcntl.h&gt; <br>
+#include &lt;stdio.h&gt; <br>
+#include &lt;stdlib.h&gt; <br>
+#include &lt;unistd.h&gt; <br>
+#include &lt;string.h&gt; <br>
+#include &lt;libpmem.h&gt;</p>
+
+<p style="margin-left:22%; margin-top: 1em">int <br>
+main(int argc, char *argv[]) <br>
+{ <br>
+int fd; <br>
+char *pmaddr;</p>
+
+<p style="margin-left:22%; margin-top: 1em">/* memory map
+some persistent memory */ <br>
+if ((fd = open(&quot;/my/pmem-aware/fs/myfile&quot;,
+O_RDWR)) &lt; 0) { <br>
+perror(&quot;open&quot;); <br>
+exit(1); <br>
+}</p>
+
+<p style="margin-left:22%; margin-top: 1em">/* just map 4k
+for this example */ <br>
+if ((pmaddr = mmap(NULL, 4096, PROT_READ|PROT_WRITE, <br>
+MAP_SHARED, fd, 0)) == MAP_FAILED) { <br>
+perror(&quot;mmap&quot;); <br>
+exit(1); <br>
+} <br>
+close(fd);</p>
+
+<p style="margin-left:22%; margin-top: 1em">/* store a
+string to the persistent memory */ <br>
+strcpy(pmaddr, &quot;hello, persistent memory&quot;);</p>
+
+<p style="margin-left:22%; margin-top: 1em">/* <br>
+* The above stores may or may not be sitting in cache at
+<br>
+* this point, depending on other system activity causing
+<br>
+* cache pressure. Now force the change to be durable <br>
+* (flushed all the say to the persistent memory). If <br>
+* unsure whether the file is really persistent memory, <br>
+* use pmem_is_pmem() to decide whether pmem_persist() can
+<br>
+* be used, or whether msync() must be used. <br>
+*/ <br>
+if (pmem_is_pmem(pmaddr, 4096)) <br>
+pmem_persist(pmaddr, 4096, 0); <br>
+else <br>
+msync(pmaddr, 4096, MS_SYNC); <br>
+}</p>
+
+<h2>ATOMIC ARRAYS EXAMPLE
+<a name="ATOMIC ARRAYS EXAMPLE"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">The follow
+example shows how the <i>pmemblk</i> entry points to
+<b>libpmem</b> are used to provide atomic arrays.</p>
+
+<p style="margin-left:22%; margin-top: 1em">#include
+&lt;stdio.h&gt; <br>
+#include &lt;fcntl.h&gt; <br>
+#include &lt;errno.h&gt; <br>
+#include &lt;stdlib.h&gt; <br>
+#include &lt;unistd.h&gt; <br>
+#include &lt;string.h&gt; <br>
+#include &lt;libpmem.h&gt;</p>
+
+<p style="margin-left:22%; margin-top: 1em">/* size of each
+element in the PMEM pool (bytes) */ <br>
+#define ELEMENT_SIZE ((size_t)1024)</p>
+
+<p style="margin-left:22%; margin-top: 1em">int <br>
+main(int argc, char *argv[]) <br>
+{ <br>
+int fd; <br>
+PMEMblk *pbp; <br>
+size_t nelements; <br>
+char buf[ELEMENT_SIZE];</p>
+
+<p style="margin-left:22%; margin-top: 1em">/* create file
+on PMEM-aware file system */ <br>
+if ((fd = open(&quot;/my/pmem-aware/fs/myfile&quot;, <br>
+O_CREAT|O_RDWR, 0666)) &lt; 0) { <br>
+perror(&quot;open&quot;); <br>
+exit(1); <br>
+}</p>
+
+<p style="margin-left:22%; margin-top: 1em">/* pre-allocate
+2GB of persistent memory */ <br>
+if ((errno = posix_fallocate(fd, (off_t)0, <br>
+(size_t)1024 * 1024 * 1024 * 2)) != 0) { <br>
+perror(&quot;posix_fallocate&quot;); <br>
+exit(1); <br>
+}</p>
+
+<p style="margin-left:22%; margin-top: 1em">/* create an
+array of atomically writable elements */ <br>
+if ((pbp = pmemblk_map(fd, ELEMENT_SIZE)) == NULL) { <br>
+perror(&quot;pmemblk_map&quot;); <br>
+exit(1); <br>
+}</p>
+
+<p style="margin-left:22%; margin-top: 1em">/* how many
+elements fit into the PMEM pool? */ <br>
+nelements = pmemblk_nblock(pbp); <br>
+printf(&quot;file holds %zu elements0, nelements);</p>
+
+<p style="margin-left:22%; margin-top: 1em">/* store a
+block at index 5 */ <br>
+strcpy(buf, &quot;hello, world&quot;); <br>
+if (pmemblk_write(pbp, buf, 5) &lt; 0) { <br>
+perror(&quot;pmemblk_write&quot;); <br>
+exit(1); <br>
+}</p>
+
+<p style="margin-left:22%; margin-top: 1em">/* read the
+block at index 10 (reads as zeros initially) */ <br>
+if (pmemblk_read(pbp, buf, 10) &lt; 0) { <br>
+perror(&quot;pmemblk_write&quot;); <br>
+exit(1); <br>
+}</p>
+
+<p style="margin-left:22%; margin-top: 1em">/* zero out the
+block at index 5 */ <br>
+if (pmemblk_set_zero(pbp, 5) &lt; 0) { <br>
+perror(&quot;pmemblk_set_zero&quot;); <br>
+exit(1); <br>
+}</p>
+
+<p style="margin-left:22%; margin-top: 1em">/* ... */</p>
+
+
+<p style="margin-left:22%; margin-top: 1em">pmemblk_unmap(pbp);
+<br>
+close(fd); <br>
+}</p>
+
+<h2>PERSISTENT MEMORY LOG EXAMPLE
+<a name="PERSISTENT MEMORY LOG EXAMPLE"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">The follow
+example shows how the <i>pmemlog</i> entry points to
+<b>libpmem</b> are used to provide a persistent memory
+resident log file.</p>
+
+<p style="margin-left:22%; margin-top: 1em">#include
+&lt;stdio.h&gt; <br>
+#include &lt;fcntl.h&gt; <br>
+#include &lt;errno.h&gt; <br>
+#include &lt;stdlib.h&gt; <br>
+#include &lt;unistd.h&gt; <br>
+#include &lt;string.h&gt; <br>
+#include &lt;libpmem.h&gt;</p>
+
+<p style="margin-left:22%; margin-top: 1em">/* log
+processing callback for use with pmemlog_walk() */ <br>
+int <br>
+printit(const void *buf, size_t len, void *arg) <br>
+{ <br>
+fwrite(buf, len, 1, stdout); <br>
+return 0; <br>
+}</p>
+
+<p style="margin-left:22%; margin-top: 1em">int <br>
+main(int argc, char *argv[]) <br>
+{ <br>
+int fd; <br>
+PMEMlog *plp; <br>
+size_t nbyte; <br>
+char *str;</p>
+
+<p style="margin-left:22%; margin-top: 1em">/* create file
+on PMEM-aware file system */ <br>
+if ((fd = open(&quot;/my/pmem-aware/fs/myfile&quot;, <br>
+O_CREAT|O_RDWR, 0666)) &lt; 0) { <br>
+perror(&quot;open&quot;); <br>
+exit(1); <br>
+}</p>
+
+<p style="margin-left:22%; margin-top: 1em">/* pre-allocate
+2GB of persistent memory */ <br>
+if ((errno = posix_fallocate(fd, (off_t)0, <br>
+(size_t)1024 * 1024 * 1024 * 2)) != 0) { <br>
+perror(&quot;posix_fallocate&quot;); <br>
+exit(1); <br>
+}</p>
+
+<p style="margin-left:22%; margin-top: 1em">/* create a
+persistent memory resident log */ <br>
+if ((plp = pmemlog_map(fd)) == NULL) { <br>
+perror(&quot;pmemlog_map&quot;); <br>
+exit(1); <br>
+}</p>
+
+<p style="margin-left:22%; margin-top: 1em">/* how many
+bytes does the log hold? */ <br>
+nbyte = pmemlog_nbyte(plp); <br>
+printf(&quot;log holds %zu bytes0, nbyte);</p>
+
+<p style="margin-left:22%; margin-top: 1em">/* append to
+the log... */ <br>
+str = &quot;This is the first string appended0; <br>
+if (pmemlog_append(plp, str, strlen(str)) &lt; 0) { <br>
+perror(&quot;pmemlog_append&quot;); <br>
+exit(1); <br>
+} <br>
+str = &quot;This is the second string appended0; <br>
+if (pmemlog_append(plp, str, strlen(str)) &lt; 0) { <br>
+perror(&quot;pmemlog_append&quot;); <br>
+exit(1); <br>
+}</p>
+
+<p style="margin-left:22%; margin-top: 1em">/* print the
+log contents */ <br>
+printf(&quot;log contains:0); <br>
+pmemlog_walk(plp, 0, printit, NULL);</p>
+
+
+<p style="margin-left:22%; margin-top: 1em">pmemlog_unmap(plp);
+<br>
+close(fd); <br>
+}</p>
+
+<h2>BUGS
+<a name="BUGS"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">XXX</p>
+
+<h2>ACKNOWLEDGEMENTS
+<a name="ACKNOWLEDGEMENTS"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>libpmem</b>
+leverages persistent memory research from the community and
+especially from these notable academic works:</p>
+
+<p style="margin-left:22%; margin-top: 1em">J. Coburn, et
+al.: <i>NV-Heaps: Making Persistent Objects Fast and Safe
+with Next Generation, Non-Volatile Memories</i>, The 16th
+ACM Conference on Architectural Support for Programming
+Languages and Operating Systems (ASPLOS 2011), March 2011,
+Newport Beach, Ca.</p>
+
+<p style="margin-left:22%; margin-top: 1em">Haris Volos,
+Andres Jaan Tack, Michael M. Swift: <i>Mnemosyne:
+Lightweight Persistent Memory</i>, The 16th ACM Conference
+on Architectural Support for Programming Languages and
+Operating Systems (ASPLOS 2011), March 2011, Newport Beach,
+California.
+http://research.cs.wisc.edu/sonar/projects/mnemosyne/</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>libpmem</b>
+builds on the persistent memory programming model
+recommended by the SNIA NVM Programming Technical Work
+Group:</p>
+
+
+<p style="margin-left:22%; margin-top: 1em">http://snia.org/nvmp</p>
+
+<h2>SEE ALSO
+<a name="SEE ALSO"></a>
+</h2>
+
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>malloc</b>(3),
+<b>posix_memalign</b>(3), <b>strdup</b>(3), <b>mmap</b>(2),
+<b>msync</b>(2), <b>libvmem</b>(3).</p>
+<hr>
+</body>
+</html>
