@@ -16,6 +16,7 @@ The NVM Library is current delivered as two actual libraries:
 
 The **libpmem** library provides persistent memory aware APIs for
 some common tasks.  The APIs cover these areas:
+
 * pmem basics: identifying pmem and APIs to flush it
 * pmem transactions: **API still being designed -- stay tuned**
 * pmem block: support arrays of atomically writable blocks
