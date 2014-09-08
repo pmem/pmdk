@@ -2,15 +2,16 @@
 #include "jemalloc/internal/jemalloc_internal.h"
 
 rtree_t *
-rtree_new(unsigned bits, rtree_alloc_t *alloc, rtree_dalloc_t *dalloc)
+rtree_new(unsigned bits, rtree_alloc_t *alloc, rtree_dalloc_t *dalloc,
+	pool_t *pool)
 {
 	rtree_t *ret;
 	unsigned bits_per_level, bits_in_leaf, height, i;
 
 	assert(bits > 0 && bits <= (sizeof(uintptr_t) << 3));
 
-	bits_per_level = ffs(pow2_ceil((RTREE_NODESIZE / sizeof(void *)))) - 1;
-	bits_in_leaf = ffs(pow2_ceil((RTREE_NODESIZE / sizeof(uint8_t)))) - 1;
+	bits_per_level = jemalloc_ffs(pow2_ceil((RTREE_NODESIZE / sizeof(void *)))) - 1;
+	bits_in_leaf = jemalloc_ffs(pow2_ceil((RTREE_NODESIZE / sizeof(uint8_t)))) - 1;
 	if (bits > bits_in_leaf) {
 		height = 1 + (bits - bits_in_leaf) / bits_per_level;
 		if ((height-1) * bits_per_level + bits_in_leaf != bits)
@@ -20,7 +21,7 @@ rtree_new(unsigned bits, rtree_alloc_t *alloc, rtree_dalloc_t *dalloc)
 	}
 	assert((height-1) * bits_per_level + bits_in_leaf >= bits);
 
-	ret = (rtree_t*)alloc(offsetof(rtree_t, level2bits) +
+	ret = (rtree_t*)alloc(pool, offsetof(rtree_t, level2bits) +
 	    (sizeof(unsigned) * height));
 	if (ret == NULL)
 		return (NULL);
@@ -29,9 +30,10 @@ rtree_new(unsigned bits, rtree_alloc_t *alloc, rtree_dalloc_t *dalloc)
 
 	ret->alloc = alloc;
 	ret->dalloc = dalloc;
+	ret->pool = pool;
 	if (malloc_mutex_init(&ret->mutex)) {
 		if (dalloc != NULL)
-			dalloc(ret);
+			dalloc(pool, ret);
 		return (NULL);
 	}
 	ret->height = height;
@@ -47,10 +49,10 @@ rtree_new(unsigned bits, rtree_alloc_t *alloc, rtree_dalloc_t *dalloc)
 	} else
 		ret->level2bits[0] = bits;
 
-	ret->root = (void**)alloc(sizeof(void *) << ret->level2bits[0]);
+	ret->root = (void**)alloc(pool, sizeof(void *) << ret->level2bits[0]);
 	if (ret->root == NULL) {
 		if (dalloc != NULL)
-			dalloc(ret);
+			dalloc(pool, ret);
 		return (NULL);
 	}
 	memset(ret->root, 0, sizeof(void *) << ret->level2bits[0]);
@@ -72,7 +74,7 @@ rtree_delete_subtree(rtree_t *rtree, void **node, unsigned level)
 				rtree_delete_subtree(rtree, child, level + 1);
 		}
 	}
-	rtree->dalloc(node);
+	rtree->dalloc(rtree->pool, node);
 }
 
 void
@@ -80,7 +82,7 @@ rtree_delete(rtree_t *rtree)
 {
 
 	rtree_delete_subtree(rtree, rtree->root, 0);
-	rtree->dalloc(rtree);
+	rtree->dalloc(rtree->pool, rtree);
 }
 
 void

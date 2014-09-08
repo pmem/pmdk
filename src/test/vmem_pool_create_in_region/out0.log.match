@@ -1,0 +1,3 @@
+vmem_pool_create_in_region/TEST0: START: vmem_pool_create_in_region
+ ./vmem_pool_create_in_region$(*)
+vmem_pool_create_in_region/TEST0: Done

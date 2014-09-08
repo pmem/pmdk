@@ -1,49 +1,26 @@
 #define	JEMALLOC_BASE_C_
 #include "jemalloc/internal/jemalloc_internal.h"
 
-/******************************************************************************/
-/* Data. */
-
-static malloc_mutex_t	base_mtx;
-
-/*
- * Current pages that are being used for internal memory allocations.  These
- * pages are carved up in cacheline-size quanta, so that there is no chance of
- * false cache line sharing.
- */
-static void		*base_pages;
-static void		*base_next_addr;
-static void		*base_past_addr; /* Addr immediately past base_pages. */
-static extent_node_t	*base_nodes;
-
-/******************************************************************************/
-/* Function prototypes for non-inline static functions. */
-
-static bool	base_pages_alloc(size_t minsize);
-
-/******************************************************************************/
 
 static bool
-base_pages_alloc(size_t minsize)
+base_pages_alloc(pool_t *pool, size_t minsize)
 {
 	size_t csize;
-	bool zero;
+	void* base_pages;
 
 	assert(minsize != 0);
 	csize = CHUNK_CEILING(minsize);
-	zero = false;
-	base_pages = chunk_alloc(csize, chunksize, true, &zero,
-	    chunk_dss_prec_get());
+	base_pages = chunk_alloc_base(pool, csize);
 	if (base_pages == NULL)
 		return (true);
-	base_next_addr = base_pages;
-	base_past_addr = (void *)((uintptr_t)base_pages + csize);
+	pool->base_next_addr = base_pages;
+	pool->base_past_addr = (void *)((uintptr_t)base_pages + csize);
 
 	return (false);
 }
 
 void *
-base_alloc(size_t size)
+base_alloc(pool_t *pool, size_t size)
 {
 	void *ret;
 	size_t csize;
@@ -51,27 +28,27 @@ base_alloc(size_t size)
 	/* Round size up to nearest multiple of the cacheline size. */
 	csize = CACHELINE_CEILING(size);
 
-	malloc_mutex_lock(&base_mtx);
+	malloc_mutex_lock(&pool->base_mtx);
 	/* Make sure there's enough space for the allocation. */
-	if ((uintptr_t)base_next_addr + csize > (uintptr_t)base_past_addr) {
-		if (base_pages_alloc(csize)) {
-			malloc_mutex_unlock(&base_mtx);
+	if ((uintptr_t)pool->base_next_addr + csize > (uintptr_t)pool->base_past_addr) {
+		if (base_pages_alloc(pool, csize)) {
+			malloc_mutex_unlock(&pool->base_mtx);
 			return (NULL);
 		}
 	}
 	/* Allocate. */
-	ret = base_next_addr;
-	base_next_addr = (void *)((uintptr_t)base_next_addr + csize);
-	malloc_mutex_unlock(&base_mtx);
-	VALGRIND_MAKE_MEM_UNDEFINED(ret, csize);
+	ret = pool->base_next_addr;
+	pool->base_next_addr = (void *)((uintptr_t)pool->base_next_addr + csize);
+	malloc_mutex_unlock(&pool->base_mtx);
+	JEMALLOC_VALGRIND_MAKE_MEM_UNDEFINED(ret, csize);
 
 	return (ret);
 }
 
 void *
-base_calloc(size_t number, size_t size)
+base_calloc(pool_t *pool, size_t number, size_t size)
 {
-	void *ret = base_alloc(number * size);
+	void *ret = base_alloc(pool, number * size);
 
 	if (ret != NULL)
 		memset(ret, 0, number * size);
@@ -80,63 +57,88 @@ base_calloc(size_t number, size_t size)
 }
 
 extent_node_t *
-base_node_alloc(void)
+base_node_alloc(pool_t *pool)
 {
 	extent_node_t *ret;
 
-	malloc_mutex_lock(&base_mtx);
-	if (base_nodes != NULL) {
-		ret = base_nodes;
-		base_nodes = *(extent_node_t **)ret;
-		malloc_mutex_unlock(&base_mtx);
-		VALGRIND_MAKE_MEM_UNDEFINED(ret, sizeof(extent_node_t));
+	malloc_mutex_lock(&pool->base_node_mtx);
+	if (pool->base_nodes != NULL) {
+		ret = pool->base_nodes;
+		pool->base_nodes = *(extent_node_t **)ret;
+		JEMALLOC_VALGRIND_MAKE_MEM_UNDEFINED(ret,
+			sizeof(extent_node_t));
 	} else {
-		malloc_mutex_unlock(&base_mtx);
-		ret = (extent_node_t *)base_alloc(sizeof(extent_node_t));
+		/* preallocated nodes for pools other than 0 */
+		if (pool->pool_id == 0) {
+			ret = (extent_node_t *)base_alloc(pool, sizeof(extent_node_t));
+		} else {
+			ret = NULL;
+		}
 	}
-
+	malloc_mutex_unlock(&pool->base_node_mtx);
 	return (ret);
 }
 
 void
-base_node_dealloc(extent_node_t *node)
+base_node_dalloc(pool_t *pool, extent_node_t *node)
 {
 
-	VALGRIND_MAKE_MEM_UNDEFINED(node, sizeof(extent_node_t));
-	malloc_mutex_lock(&base_mtx);
-	*(extent_node_t **)node = base_nodes;
-	base_nodes = node;
-	malloc_mutex_unlock(&base_mtx);
+	JEMALLOC_VALGRIND_MAKE_MEM_UNDEFINED(node, sizeof(extent_node_t));
+	malloc_mutex_lock(&pool->base_node_mtx);
+	*(extent_node_t **)node = pool->base_nodes;
+	pool->base_nodes = node;
+	malloc_mutex_unlock(&pool->base_node_mtx);
+}
+
+size_t
+base_node_prealloc(pool_t *pool, size_t number)
+{
+	extent_node_t *node;
+	malloc_mutex_lock(&pool->base_node_mtx);
+	for (; number > 0; --number) {
+		node = (extent_node_t *)base_alloc(pool, sizeof(extent_node_t));
+		if (node == NULL)
+			break;
+		JEMALLOC_VALGRIND_MAKE_MEM_UNDEFINED(node, sizeof(extent_node_t));
+		*(extent_node_t **)node = pool->base_nodes;
+		pool->base_nodes = node;
+	}
+	malloc_mutex_unlock(&pool->base_node_mtx);
+
+	/* return number of nodes that couldn't be allocated */
+	return number;
 }
 
 bool
-base_boot(void)
+base_boot(pool_t *pool)
 {
+	pool->base_nodes = NULL;
+	if (malloc_mutex_init(&pool->base_mtx))
+		return (true);
 
-	base_nodes = NULL;
-	if (malloc_mutex_init(&base_mtx))
+	if (malloc_mutex_init(&pool->base_node_mtx))
 		return (true);
 
 	return (false);
 }
 
 void
-base_prefork(void)
+base_prefork(pool_t *pool)
 {
 
-	malloc_mutex_prefork(&base_mtx);
+	malloc_mutex_prefork(&pool->base_mtx);
 }
 
 void
-base_postfork_parent(void)
+base_postfork_parent(pool_t *pool)
 {
 
-	malloc_mutex_postfork_parent(&base_mtx);
+	malloc_mutex_postfork_parent(&pool->base_mtx);
 }
 
 void
-base_postfork_child(void)
+base_postfork_child(pool_t *pool)
 {
 
-	malloc_mutex_postfork_child(&base_mtx);
+	malloc_mutex_postfork_child(&pool->base_mtx);
 }

@@ -16,8 +16,8 @@ typedef struct rtree_s rtree_t;
  */
 #define	RTREE_NODESIZE (1U << 16)
 
-typedef void *(rtree_alloc_t)(size_t);
-typedef void (rtree_dalloc_t)(void *);
+typedef void *(rtree_alloc_t)(pool_t *, size_t);
+typedef void (rtree_dalloc_t)(pool_t *, void *);
 
 #endif /* JEMALLOC_H_TYPES */
 /******************************************************************************/
@@ -26,6 +26,7 @@ typedef void (rtree_dalloc_t)(void *);
 struct rtree_s {
 	rtree_alloc_t	*alloc;
 	rtree_dalloc_t	*dalloc;
+	pool_t          *pool;
 	malloc_mutex_t	mutex;
 	void		**root;
 	unsigned	height;
@@ -36,7 +37,8 @@ struct rtree_s {
 /******************************************************************************/
 #ifdef JEMALLOC_H_EXTERNS
 
-rtree_t	*rtree_new(unsigned bits, rtree_alloc_t *alloc, rtree_dalloc_t *dalloc);
+rtree_t	*rtree_new(unsigned bits, rtree_alloc_t *alloc, rtree_dalloc_t *dalloc,
+	pool_t *pool);
 void	rtree_delete(rtree_t *rtree);
 void	rtree_prefork(rtree_t *rtree);
 void	rtree_postfork_parent(rtree_t *rtree);
@@ -145,7 +147,7 @@ rtree_set(rtree_t *rtree, uintptr_t key, uint8_t val)
 		if (child == NULL) {
 			size_t size = ((i + 1 < height - 1) ? sizeof(void *)
 			    : (sizeof(uint8_t))) << rtree->level2bits[i+1];
-			child = (void**)rtree->alloc(size);
+			child = (void**)rtree->alloc(rtree->pool, size);
 			if (child == NULL) {
 				malloc_mutex_unlock(&rtree->mutex);
 				return (true);

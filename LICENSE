@@ -34,3 +34,5 @@ with the following exceptions:
 
 * src/jemalloc has its own (somewhat similar) license contained in
   src/jemalloc/COPYING.
+
+* utils/cstyle (used only during development) licensed under CDDL.

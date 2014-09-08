@@ -1,0 +1,8 @@
+Linux NVM Library
+
+This is examples/README.
+
+This directory contains brief educational examples illustrating the use
+of the NVM libraries.  For many of these examples, the Makefile rules
+are here just to check that the example compiles, loads against the
+appropriate library, and passes cstyle.

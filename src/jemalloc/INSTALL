@@ -71,10 +71,10 @@ any of the following arguments (not a definitive list) to 'configure':
     versions of jemalloc can coexist in the same installation directory.  For
     example, libjemalloc.so.0 becomes libjemalloc<suffix>.so.0.
 
---enable-cc-silence
-    Enable code that silences non-useful compiler warnings.  This is helpful
-    when trying to tell serious warnings from those due to compiler
-    limitations, but it potentially incurs a performance penalty.
+--disable-cc-silence
+    Disable code that silences non-useful compiler warnings.  This is mainly
+    useful during development when auditing the set of warnings that are being
+    silenced.
 
 --enable-debug
     Enable assertions and validation code.  This incurs a substantial
@@ -132,22 +132,12 @@ any of the following arguments (not a definitive list) to 'configure':
     released in bulk, thus reducing the total number of mutex operations.  See
     the "opt.tcache" option for usage details.
 
---enable-mremap
-    Enable huge realloc() via mremap(2).  mremap() is disabled by default
-    because the flavor used is specific to Linux, which has a quirk in its
-    virtual memory allocation algorithm that causes semi-permanent VM map holes
-    under normal jemalloc operation.
-
 --disable-munmap
     Disable virtual memory deallocation via munmap(2); instead keep track of
     the virtual memory for later use.  munmap() is disabled by default (i.e.
     --disable-munmap is implied) on Linux, which has a quirk in its virtual
     memory allocation algorithm that causes semi-permanent VM map holes under
     normal jemalloc operation.
-
---enable-dss
-    Enable support for page allocation/deallocation via sbrk(2), in addition to
-    mmap(2).
 
 --disable-fill
     Disable support for junk/zero filling of memory, quarantine, and redzones.
@@ -156,9 +146,6 @@ any of the following arguments (not a definitive list) to 'configure':
 
 --disable-valgrind
     Disable support for Valgrind.
-
---disable-experimental
-    Disable support for the experimental API (*allocm()).
 
 --disable-zone-allocator
     Disable zone allocator for Darwin. This means jemalloc won't be hooked as

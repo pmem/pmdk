@@ -1,0 +1,3 @@
+vmem_pool_create_error/TEST0: START: vmem_pool_create_error
+ ./vmem_pool_create_error$(*)
+vmem_pool_create_error/TEST0: Done

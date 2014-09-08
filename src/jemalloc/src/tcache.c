@@ -3,8 +3,8 @@
 
 /******************************************************************************/
 /* Data. */
-
-malloc_tsd_data(, tcache, tcache_t *, NULL)
+#define ARR_INITIALIZER JEMALLOC_ARG_CONCAT({0})
+malloc_tsd_data(, tcache, tsd_tcache_t, TSD_TCACHE_INITIALIZER)
 malloc_tsd_data(, tcache_enabled, tcache_enabled_t, tcache_enabled_default)
 
 bool	opt_tcache = true;
@@ -266,11 +266,55 @@ tcache_arena_dissociate(tcache_t *tcache)
 }
 
 tcache_t *
+tcache_get_hard(tcache_t *tcache, pool_t *pool, bool create)
+{
+	arena_t dummy;
+	DUMMY_ARENA_INITIALIZE(dummy, pool);
+	if (tcache == NULL) {
+		if (create == false) {
+			/*
+			 * Creating a tcache here would cause
+			 * allocation as a side effect of free().
+			 * Ordinarily that would be okay since
+			 * tcache_create() failure is a soft failure
+			 * that doesn't propagate.  However, if TLS
+			 * data are freed via free() as in glibc,
+			 * subtle corruption could result from setting
+			 * a TLS variable after its backing memory is
+			 * freed.
+			 */
+			return (NULL);
+		}
+		if (tcache_enabled_get() == false) {
+			tcache_enabled_set(false); /* Memoize. */
+			return (NULL);
+		}
+		return (tcache_create(choose_arena(&dummy)));
+	}
+	if (tcache == TCACHE_STATE_PURGATORY) {
+		/*
+		 * Make a note that an allocator function was called
+		 * after tcache_thread_cleanup() was called.
+		 */
+		tsd_tcache_t *tsd = tcache_tsd_get();
+		tcache = TCACHE_STATE_REINCARNATED;
+		tsd->seqno[pool->pool_id] = pool->seqno;
+		tsd->tcaches[pool->pool_id] = tcache;
+		return (NULL);
+	}
+	if (tcache == TCACHE_STATE_REINCARNATED)
+		return (NULL);
+	not_reached();
+	return (NULL);
+}
+
+tcache_t *
 tcache_create(arena_t *arena)
 {
 	tcache_t *tcache;
 	size_t size, stack_offset;
 	unsigned i;
+	tsd_tcache_t *tsd = tcache_tsd_get();
 
 	size = offsetof(tcache_t, tbins) + (sizeof(tcache_bin_t) * nhbins);
 	/* Naturally align the pointer stacks. */
@@ -307,7 +351,8 @@ tcache_create(arena_t *arena)
 		stack_offset += tcache_bin_info[i].ncached_max * sizeof(void *);
 	}
 
-	tcache_tsd_set(&tcache);
+	tsd->seqno[arena->pool->pool_id] = arena->pool->seqno;
+	tsd->tcaches[arena->pool->pool_id] = tcache;
 
 	return (tcache);
 }
@@ -372,31 +417,39 @@ tcache_destroy(tcache_t *tcache)
 void
 tcache_thread_cleanup(void *arg)
 {
-	tcache_t *tcache = *(tcache_t **)arg;
+	int i;
+	tsd_tcache_t *tsd_array = arg;
 
-	if (tcache == TCACHE_STATE_DISABLED) {
-		/* Do nothing. */
-	} else if (tcache == TCACHE_STATE_REINCARNATED) {
-		/*
-		 * Another destructor called an allocator function after this
-		 * destructor was called.  Reset tcache to
-		 * TCACHE_STATE_PURGATORY in order to receive another callback.
-		 */
-		tcache = TCACHE_STATE_PURGATORY;
-		tcache_tsd_set(&tcache);
-	} else if (tcache == TCACHE_STATE_PURGATORY) {
-		/*
-		 * The previous time this destructor was called, we set the key
-		 * to TCACHE_STATE_PURGATORY so that other destructors wouldn't
-		 * cause re-creation of the tcache.  This time, do nothing, so
-		 * that the destructor will not be called again.
-		 */
-	} else if (tcache != NULL) {
-		assert(tcache != TCACHE_STATE_PURGATORY);
-		tcache_destroy(tcache);
-		tcache = TCACHE_STATE_PURGATORY;
-		tcache_tsd_set(&tcache);
+	malloc_mutex_lock(&pools_lock);
+	for (i = 0; i < POOLS_MAX; ++i) {
+		tcache_t *tcache = tsd_array->tcaches[i];
+		if (tcache != NULL) {
+			if (tcache == TCACHE_STATE_DISABLED) {
+				/* Do nothing. */
+			} else if (tcache == TCACHE_STATE_REINCARNATED) {
+				/*
+				 * Another destructor called an allocator function after this
+				 * destructor was called.  Reset tcache to
+				 * TCACHE_STATE_PURGATORY in order to receive another callback.
+				 */
+				tsd_array->tcaches[i] = TCACHE_STATE_PURGATORY;
+			} else if (tcache == TCACHE_STATE_PURGATORY) {
+				/*
+				 * The previous time this destructor was called, we set the key
+				 * to TCACHE_STATE_PURGATORY so that other destructors wouldn't
+				 * cause re-creation of the tcache.  This time, do nothing, so
+				 * that the destructor will not be called again.
+				 */
+			} else if (tcache != NULL) {
+				assert(tcache != TCACHE_STATE_PURGATORY);
+				if (pools[i] != NULL && tsd_array->seqno[i] == pools[i]->seqno)
+					tcache_destroy(tcache);
+
+				tsd_array->tcaches[i] = TCACHE_STATE_PURGATORY;
+			}
+		}
 	}
+	malloc_mutex_unlock(&pools_lock);
 }
 
 /* Caller must own arena->lock. */
@@ -431,6 +484,10 @@ tcache_boot0(void)
 {
 	unsigned i;
 
+	/* Array still initialized */
+	if (tcache_bin_info != NULL)
+		return (false);
+
 	/*
 	 * If necessary, clamp opt_lg_tcache_max, now that arena_maxclass is
 	 * known.
@@ -445,8 +502,9 @@ tcache_boot0(void)
 	nhbins = NBINS + (tcache_maxclass >> LG_PAGE);
 
 	/* Initialize tcache_bin_info. */
-	tcache_bin_info = (tcache_bin_info_t *)base_alloc(nhbins *
-	    sizeof(tcache_bin_info_t));
+	tcache_bin_info = (tcache_bin_info_t *)je_base_malloc(nhbins *
+		sizeof(tcache_bin_info_t));
+
 	if (tcache_bin_info == NULL)
 		return (true);
 	stack_nelms = 0;

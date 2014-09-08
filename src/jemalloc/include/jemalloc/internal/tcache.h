@@ -4,6 +4,7 @@
 typedef struct tcache_bin_info_s tcache_bin_info_t;
 typedef struct tcache_bin_s tcache_bin_t;
 typedef struct tcache_s tcache_t;
+typedef struct tsd_tcache_s tsd_tcache_t;
 
 /*
  * tcache pointers close to NULL are used to encode state information that is
@@ -40,6 +41,8 @@ typedef struct tcache_s tcache_t;
 /* Number of tcache allocation/deallocation events between incremental GCs. */
 #define	TCACHE_GC_INCR							\
     ((TCACHE_GC_SWEEP / NBINS) + ((TCACHE_GC_SWEEP / NBINS == 0) ? 0 : 1))
+
+#define	TSD_TCACHE_INITIALIZER	JEMALLOC_ARG_CONCAT({.tcaches = {0}})
 
 #endif /* JEMALLOC_H_TYPES */
 /******************************************************************************/
@@ -82,6 +85,11 @@ struct tcache_s {
 	 */
 };
 
+struct tsd_tcache_s {
+	unsigned seqno[POOLS_MAX]; /* Sequence number of pool */
+	tcache_t* tcaches[POOLS_MAX];
+};
+
 #endif /* JEMALLOC_H_STRUCTS */
 /******************************************************************************/
 #ifdef JEMALLOC_H_EXTERNS
@@ -110,6 +118,7 @@ void	tcache_bin_flush_large(tcache_bin_t *tbin, size_t binind, unsigned rem,
     tcache_t *tcache);
 void	tcache_arena_associate(tcache_t *tcache, arena_t *arena);
 void	tcache_arena_dissociate(tcache_t *tcache);
+tcache_t *tcache_get_hard(tcache_t *tcache, pool_t *pool, bool create);
 tcache_t *tcache_create(arena_t *arena);
 void	tcache_destroy(tcache_t *tcache);
 void	tcache_thread_cleanup(void *arg);
@@ -122,13 +131,13 @@ bool	tcache_boot1(void);
 #ifdef JEMALLOC_H_INLINES
 
 #ifndef JEMALLOC_ENABLE_INLINE
-malloc_tsd_protos(JEMALLOC_ATTR(unused), tcache, tcache_t *)
+malloc_tsd_protos(JEMALLOC_ATTR(unused), tcache, tsd_tcache_t)
 malloc_tsd_protos(JEMALLOC_ATTR(unused), tcache_enabled, tcache_enabled_t)
 
 void	tcache_event(tcache_t *tcache);
-void	tcache_flush(void);
+void	tcache_flush(pool_t *pool);
 bool	tcache_enabled_get(void);
-tcache_t *tcache_get(bool create);
+tcache_t *tcache_get(pool_t *pool, bool create);
 void	tcache_enabled_set(bool enabled);
 void	*tcache_alloc_easy(tcache_bin_t *tbin);
 void	*tcache_alloc_small(tcache_t *tcache, size_t size, bool zero);
@@ -139,8 +148,8 @@ void	tcache_dalloc_large(tcache_t *tcache, void *ptr, size_t size);
 
 #if (defined(JEMALLOC_ENABLE_INLINE) || defined(JEMALLOC_TCACHE_C_))
 /* Map of thread-specific caches. */
-malloc_tsd_externs(tcache, tcache_t *)
-malloc_tsd_funcs(JEMALLOC_ALWAYS_INLINE, tcache, tcache_t *, NULL,
+malloc_tsd_externs(tcache, tsd_tcache_t)
+malloc_tsd_funcs(JEMALLOC_ALWAYS_INLINE, tcache, tsd_tcache_t, NULL,
     tcache_thread_cleanup)
 /* Per thread flag that allows thread caches to be disabled. */
 malloc_tsd_externs(tcache_enabled, tcache_enabled_t)
@@ -148,18 +157,20 @@ malloc_tsd_funcs(JEMALLOC_ALWAYS_INLINE, tcache_enabled, tcache_enabled_t,
     tcache_enabled_default, malloc_tsd_no_cleanup)
 
 JEMALLOC_INLINE void
-tcache_flush(void)
+tcache_flush(pool_t *pool)
 {
-	tcache_t *tcache;
+	tsd_tcache_t *tsd = tcache_tsd_get();
 
-	cassert(config_tcache);
+	tcache_t *tcache = tsd->tcaches[pool->pool_id];
 
-	tcache = *tcache_tsd_get();
-	if ((uintptr_t)tcache <= (uintptr_t)TCACHE_STATE_MAX)
-		return;
-	tcache_destroy(tcache);
-	tcache = NULL;
-	tcache_tsd_set(&tcache);
+	if (tsd->seqno[pool->pool_id] == pool->seqno) {
+		cassert(config_tcache);
+
+		if ((uintptr_t)tcache <= (uintptr_t)TCACHE_STATE_MAX)
+			return;
+		tcache_destroy(tcache);
+	}
+	tsd->tcaches[pool->pool_id] = NULL;
 }
 
 JEMALLOC_INLINE bool
@@ -182,77 +193,66 @@ JEMALLOC_INLINE void
 tcache_enabled_set(bool enabled)
 {
 	tcache_enabled_t tcache_enabled;
+	tsd_tcache_t *tsd;
 	tcache_t *tcache;
+	int i;
 
 	cassert(config_tcache);
 
 	tcache_enabled = (tcache_enabled_t)enabled;
 	tcache_enabled_tsd_set(&tcache_enabled);
-	tcache = *tcache_tsd_get();
-	if (enabled) {
-		if (tcache == TCACHE_STATE_DISABLED) {
-			tcache = NULL;
-			tcache_tsd_set(&tcache);
-		}
-	} else /* disabled */ {
-		if (tcache > TCACHE_STATE_MAX) {
-			tcache_destroy(tcache);
-			tcache = NULL;
-		}
-		if (tcache == NULL) {
-			tcache = TCACHE_STATE_DISABLED;
-			tcache_tsd_set(&tcache);
+	tsd = tcache_tsd_get();
+
+	malloc_mutex_lock(&pools_lock);
+	for (i = 0; i < POOLS_MAX; i++) {
+		tcache = tsd->tcaches[i];
+		if (tcache != NULL) {
+			if (enabled) {
+				if (tcache == TCACHE_STATE_DISABLED) {
+					tsd->tcaches[i] = NULL;
+				}
+			} else /* disabled */ {
+				if (tcache > TCACHE_STATE_MAX) {
+					if (pools[i] != NULL && tsd->seqno[i] == pools[i]->seqno)
+						tcache_destroy(tcache);
+
+					tcache = NULL;
+				}
+				if (tcache == NULL) {
+					tsd->tcaches[i] = TCACHE_STATE_DISABLED;
+				}
+			}
 		}
 	}
+	malloc_mutex_unlock(&pools_lock);
 }
 
 JEMALLOC_ALWAYS_INLINE tcache_t *
-tcache_get(bool create)
+tcache_get(pool_t *pool, bool create)
 {
 	tcache_t *tcache;
+	tsd_tcache_t *tsd;
 
 	if (config_tcache == false)
 		return (NULL);
 	if (config_lazy_lock && isthreaded == false)
 		return (NULL);
 
-	tcache = *tcache_tsd_get();
+	tsd = tcache_tsd_get();
+
+	/*
+	 * All subsequent pools with the same id have to cleanup tcache before
+	 * calling tcache_get_hard.
+	 */
+	if (tsd->seqno[pool->pool_id] != pool->seqno) {
+		tsd->tcaches[pool->pool_id] = NULL;
+	}
+
+	tcache = tsd->tcaches[pool->pool_id];
 	if ((uintptr_t)tcache <= (uintptr_t)TCACHE_STATE_MAX) {
 		if (tcache == TCACHE_STATE_DISABLED)
 			return (NULL);
-		if (tcache == NULL) {
-			if (create == false) {
-				/*
-				 * Creating a tcache here would cause
-				 * allocation as a side effect of free().
-				 * Ordinarily that would be okay since
-				 * tcache_create() failure is a soft failure
-				 * that doesn't propagate.  However, if TLS
-				 * data are freed via free() as in glibc,
-				 * subtle corruption could result from setting
-				 * a TLS variable after its backing memory is
-				 * freed.
-				 */
-				return (NULL);
-			}
-			if (tcache_enabled_get() == false) {
-				tcache_enabled_set(false); /* Memoize. */
-				return (NULL);
-			}
-			return (tcache_create(choose_arena(NULL)));
-		}
-		if (tcache == TCACHE_STATE_PURGATORY) {
-			/*
-			 * Make a note that an allocator function was called
-			 * after tcache_thread_cleanup() was called.
-			 */
-			tcache = TCACHE_STATE_REINCARNATED;
-			tcache_tsd_set(&tcache);
-			return (NULL);
-		}
-		if (tcache == TCACHE_STATE_REINCARNATED)
-			return (NULL);
-		not_reached();
+		tcache = tcache_get_hard(tcache, pool, create);
 	}
 
 	return (tcache);
@@ -294,17 +294,17 @@ tcache_alloc_small(tcache_t *tcache, size_t size, bool zero)
 	size_t binind;
 	tcache_bin_t *tbin;
 
-	binind = SMALL_SIZE2BIN(size);
+	binind = small_size2bin(size);
 	assert(binind < NBINS);
 	tbin = &tcache->tbins[binind];
-	size = arena_bin_info[binind].reg_size;
+	size = small_bin2size(binind);
 	ret = tcache_alloc_easy(tbin);
 	if (ret == NULL) {
 		ret = tcache_alloc_small_hard(tcache, tbin, binind);
 		if (ret == NULL)
 			return (NULL);
 	}
-	assert(tcache_salloc(ret) == arena_bin_info[binind].reg_size);
+	assert(tcache_salloc(ret) == size);
 
 	if (zero == false) {
 		if (config_fill) {
@@ -314,20 +314,18 @@ tcache_alloc_small(tcache_t *tcache, size_t size, bool zero)
 			} else if (opt_zero)
 				memset(ret, 0, size);
 		}
-		VALGRIND_MAKE_MEM_UNDEFINED(ret, size);
 	} else {
 		if (config_fill && opt_junk) {
 			arena_alloc_junk_small(ret, &arena_bin_info[binind],
 			    true);
 		}
-		VALGRIND_MAKE_MEM_UNDEFINED(ret, size);
 		memset(ret, 0, size);
 	}
 
 	if (config_stats)
 		tbin->tstats.nrequests++;
 	if (config_prof)
-		tcache->prof_accumbytes += arena_bin_info[binind].reg_size;
+		tcache->prof_accumbytes += size;
 	tcache_event(tcache);
 	return (ret);
 }
@@ -354,7 +352,7 @@ tcache_alloc_large(tcache_t *tcache, size_t size, bool zero)
 		if (ret == NULL)
 			return (NULL);
 	} else {
-		if (config_prof && prof_promote && size == PAGE) {
+		if (config_prof && size == PAGE) {
 			arena_chunk_t *chunk =
 			    (arena_chunk_t *)CHUNK_ADDR2BASE(ret);
 			size_t pageind = (((uintptr_t)ret - (uintptr_t)chunk) >>
@@ -369,11 +367,8 @@ tcache_alloc_large(tcache_t *tcache, size_t size, bool zero)
 				else if (opt_zero)
 					memset(ret, 0, size);
 			}
-			VALGRIND_MAKE_MEM_UNDEFINED(ret, size);
-		} else {
-			VALGRIND_MAKE_MEM_UNDEFINED(ret, size);
+		} else
 			memset(ret, 0, size);
-		}
 
 		if (config_stats)
 			tbin->tstats.nrequests++;

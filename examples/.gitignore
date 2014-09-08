@@ -1,0 +1,5 @@
+*.o
+pmem_example
+pmemblk_example
+pmemlog_example
+vmem_example

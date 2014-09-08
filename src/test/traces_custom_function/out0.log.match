@@ -1,0 +1,19 @@
+traces_custom_function/TEST0: START: traces_custom_function
+ ./traces_custom_function$(*)
+CUSTOM_PRINT:$(*)
+
+CUSTOM_PRINT:$(*)
+
+CUSTOM_PRINT:$(*)
+
+CUSTOM_PRINT:$(*)Log level NONE
+
+CUSTOM_PRINT:$(*)Log level ERROR
+
+CUSTOM_PRINT:$(*)Log level WARNING
+
+CUSTOM_PRINT:$(*)Log level INFO
+
+CUSTOM_PRINT:$(*)Log level DEBUG
+
+traces_custom_function/TEST0: Done

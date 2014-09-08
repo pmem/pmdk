@@ -49,19 +49,11 @@ struct ctl_arena_stats_s {
 };
 
 struct ctl_stats_s {
-	size_t			allocated;
-	size_t			active;
-	size_t			mapped;
 	struct {
 		size_t		current;	/* stats_chunks.curchunks */
 		uint64_t	total;		/* stats_chunks.nchunks */
 		size_t		high;		/* stats_chunks.highchunks */
 	} chunks;
-	struct {
-		size_t		allocated;	/* huge_allocated */
-		uint64_t	nmalloc;	/* huge_nmalloc */
-		uint64_t	ndalloc;	/* huge_ndalloc */
-	} huge;
 	unsigned		narenas;
 	ctl_arena_stats_t	*arenas;	/* (narenas + 1) elements. */
 };

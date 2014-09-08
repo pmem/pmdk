@@ -44,7 +44,7 @@ AC_CACHE_CHECK([whether $1 is compilable],
 dnl ============================================================================
 
 dnl Library revision.
-rev=1
+rev=2
 AC_SUBST([rev])
 
 srcroot=$srcdir
@@ -141,7 +141,8 @@ if test "x$CFLAGS" = "x" ; then
     JE_CFLAGS_APPEND([-Zi])
     JE_CFLAGS_APPEND([-MT])
     JE_CFLAGS_APPEND([-W3])
-    CPPFLAGS="$CPPFLAGS -I${srcroot}/include/msvc_compat"
+    JE_CFLAGS_APPEND([-FS])
+    CPPFLAGS="$CPPFLAGS -I${srcdir}/include/msvc_compat"
   fi
 fi
 dnl Append EXTRA_CFLAGS to CFLAGS, if defined.
@@ -153,6 +154,10 @@ AC_PROG_CPP
 AC_C_BIGENDIAN([ac_cv_big_endian=1], [ac_cv_big_endian=0])
 if test "x${ac_cv_big_endian}" = "x1" ; then
   AC_DEFINE_UNQUOTED([JEMALLOC_BIG_ENDIAN], [ ])
+fi
+
+if test "x${je_cv_msvc}" = "xyes" -a "x${ac_cv_header_inttypes_h}" = "xno"; then
+  CPPFLAGS="$CPPFLAGS -I${srcdir}/include/msvc_compat/C99"
 fi
 
 AC_CHECK_SIZEOF([void *])
@@ -258,9 +263,8 @@ dnl Define cpp macros in CPPFLAGS, rather than doing AC_DEFINE(macro), since the
 dnl definitions need to be seen before any headers are included, which is a pain
 dnl to make happen otherwise.
 default_munmap="1"
-JEMALLOC_USABLE_SIZE_CONST="const"
 case "${host}" in
-  *-*-darwin*)
+  *-*-darwin* | *-*-ios*)
 	CFLAGS="$CFLAGS"
 	abi="macho"
 	AC_DEFINE([JEMALLOC_PURGE_MADVISE_FREE], [ ])
@@ -286,7 +290,6 @@ case "${host}" in
 	AC_DEFINE([JEMALLOC_HAS_ALLOCA_H])
 	AC_DEFINE([JEMALLOC_PURGE_MADVISE_DONTNEED], [ ])
 	AC_DEFINE([JEMALLOC_THREADED_INIT], [ ])
-	JEMALLOC_USABLE_SIZE_CONST=""
 	default_munmap="0"
 	;;
   *-*-netbsd*)
@@ -351,6 +354,22 @@ case "${host}" in
 	abi="elf"
 	;;
 esac
+
+JEMALLOC_USABLE_SIZE_CONST=const
+AC_CHECK_HEADERS([malloc.h], [
+  AC_MSG_CHECKING([whether malloc_usable_size definition can use const argument])
+  AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+    [#include <malloc.h>
+     #include <stddef.h>
+    size_t malloc_usable_size(const void *ptr);
+    ],
+    [])],[
+                AC_MSG_RESULT([yes])
+         ],[
+                JEMALLOC_USABLE_SIZE_CONST=
+                AC_MSG_RESULT([no])
+         ])
+])
 AC_DEFINE_UNQUOTED([JEMALLOC_USABLE_SIZE_CONST], [$JEMALLOC_USABLE_SIZE_CONST])
 AC_SUBST([abi])
 AC_SUBST([RPATH])
@@ -428,7 +447,7 @@ AC_PROG_RANLIB
 AC_PATH_PROG([LD], [ld], [false], [$PATH])
 AC_PATH_PROG([AUTOCONF], [autoconf], [false], [$PATH])
 
-public_syms="malloc_conf malloc_message malloc calloc posix_memalign aligned_alloc realloc free mallocx rallocx xallocx sallocx dallocx nallocx mallctl mallctlnametomib mallctlbymib malloc_stats_print malloc_usable_size"
+public_syms="pool_create pool_delete pool_malloc pool_calloc pool_ralloc pool_aligned_alloc pool_free pool_malloc_stats_print pool_extend pool_set_alloc_funcs malloc_conf malloc_message malloc calloc posix_memalign aligned_alloc realloc free mallocx rallocx xallocx sallocx dallocx nallocx mallctl mallctlnametomib mallctlbymib malloc_stats_print malloc_usable_size"
 
 dnl Check for allocator-related functions that should be wrapped.
 AC_CHECK_FUNC([memalign],
@@ -437,24 +456,6 @@ AC_CHECK_FUNC([memalign],
 AC_CHECK_FUNC([valloc],
 	      [AC_DEFINE([JEMALLOC_OVERRIDE_VALLOC], [ ])
 	       public_syms="${public_syms} valloc"])
-
-dnl Support the experimental API by default.
-AC_ARG_ENABLE([experimental],
-  [AS_HELP_STRING([--disable-experimental],
-   [Disable support for the experimental API])],
-[if test "x$enable_experimental" = "xno" ; then
-  enable_experimental="0"
-else
-  enable_experimental="1"
-fi
-],
-[enable_experimental="1"]
-)
-if test "x$enable_experimental" = "x1" ; then
-  AC_DEFINE([JEMALLOC_EXPERIMENTAL], [ ])
-  public_syms="${public_syms} allocm dallocm nallocm rallocm sallocm"
-fi
-AC_SUBST([enable_experimental])
 
 dnl Do not compute test code coverage by default.
 GCOV_FLAGS=
@@ -595,18 +596,17 @@ cfghdrs_tup="include/jemalloc/jemalloc_defs.h:include/jemalloc/jemalloc_defs.h.i
 cfghdrs_tup="${cfghdrs_tup} include/jemalloc/internal/jemalloc_internal_defs.h:${srcroot}include/jemalloc/internal/jemalloc_internal_defs.h.in"
 cfghdrs_tup="${cfghdrs_tup} test/include/test/jemalloc_test_defs.h:${srcroot}test/include/test/jemalloc_test_defs.h.in"
 
-dnl Do not silence irrelevant compiler warnings by default, since enabling this
-dnl option incurs a performance penalty.
+dnl Silence irrelevant compiler warnings by default.
 AC_ARG_ENABLE([cc-silence],
-  [AS_HELP_STRING([--enable-cc-silence],
-                  [Silence irrelevant compiler warnings])],
+  [AS_HELP_STRING([--disable-cc-silence],
+                  [Do not silence irrelevant compiler warnings])],
 [if test "x$enable_cc_silence" = "xno" ; then
   enable_cc_silence="0"
 else
   enable_cc_silence="1"
 fi
 ],
-[enable_cc_silence="0"]
+[enable_cc_silence="1"]
 )
 if test "x$enable_cc_silence" = "x1" ; then
   AC_DEFINE([JEMALLOC_CC_SILENCE], [ ])
@@ -721,7 +721,7 @@ fi,
 if test "x$backtrace_method" = "x" -a "x$enable_prof_libunwind" = "x1" ; then
   AC_CHECK_HEADERS([libunwind.h], , [enable_prof_libunwind="0"])
   if test "x$LUNWIND" = "x-lunwind" ; then
-    AC_CHECK_LIB([unwind], [backtrace], [LIBS="$LIBS $LUNWIND"],
+    AC_CHECK_LIB([unwind], [unw_backtrace], [LIBS="$LIBS $LUNWIND"],
                  [enable_prof_libunwind="0"])
   else
     LIBS="$LIBS $LUNWIND"
@@ -812,33 +812,6 @@ if test "x$enable_tcache" = "x1" ; then
 fi
 AC_SUBST([enable_tcache])
 
-dnl Disable mremap() for huge realloc() by default.
-AC_ARG_ENABLE([mremap],
-  [AS_HELP_STRING([--enable-mremap], [Enable mremap(2) for huge realloc()])],
-[if test "x$enable_mremap" = "xno" ; then
-  enable_mremap="0"
-else
-  enable_mremap="1"
-fi
-],
-[enable_mremap="0"]
-)
-if test "x$enable_mremap" = "x1" ; then
-  JE_COMPILABLE([mremap(...MREMAP_FIXED...)], [
-#define	_GNU_SOURCE
-#include <sys/mman.h>
-], [
-void *p = mremap((void *)0, 0, 0, MREMAP_MAYMOVE|MREMAP_FIXED, (void *)0);
-], [je_cv_mremap_fixed])
-  if test "x${je_cv_mremap_fixed}" = "xno" ; then
-    enable_mremap="0"
-  fi
-fi
-if test "x$enable_mremap" = "x1" ; then
-  AC_DEFINE([JEMALLOC_MREMAP], [ ])
-fi
-AC_SUBST([enable_mremap])
-
 dnl Enable VM deallocation via munmap() by default.
 AC_ARG_ENABLE([munmap],
   [AS_HELP_STRING([--disable-munmap], [Disable VM deallocation via munmap(2)])],
@@ -855,34 +828,22 @@ if test "x$enable_munmap" = "x1" ; then
 fi
 AC_SUBST([enable_munmap])
 
-dnl Do not enable allocation from DSS by default.
-AC_ARG_ENABLE([dss],
-  [AS_HELP_STRING([--enable-dss], [Enable allocation from DSS])],
-[if test "x$enable_dss" = "xno" ; then
-  enable_dss="0"
-else
-  enable_dss="1"
-fi
-],
-[enable_dss="0"]
-)
+dnl Enable allocation from DSS if supported by the OS.
+have_dss="1"
 dnl Check whether the BSD/SUSv1 sbrk() exists.  If not, disable DSS support.
 AC_CHECK_FUNC([sbrk], [have_sbrk="1"], [have_sbrk="0"])
 if test "x$have_sbrk" = "x1" ; then
   if test "x$sbrk_deprecated" == "x1" ; then
     AC_MSG_RESULT([Disabling dss allocation because sbrk is deprecated])
-    enable_dss="0"
-  else
-    AC_DEFINE([JEMALLOC_HAVE_SBRK], [ ])
+    have_dss="0"
   fi
 else
-  enable_dss="0"
+  have_dss="0"
 fi
 
-if test "x$enable_dss" = "x1" ; then
+if test "x$have_dss" = "x1" ; then
   AC_DEFINE([JEMALLOC_DSS], [ ])
 fi
-AC_SUBST([enable_dss])
 
 dnl Support the junk/zero filling option by default.
 AC_ARG_ENABLE([fill],
@@ -974,6 +935,44 @@ if test "x$enable_xmalloc" = "x1" ; then
 fi
 AC_SUBST([enable_xmalloc])
 
+dnl ============================================================================
+dnl Check for  __builtin_ffsl(), then ffsl(3), and fail if neither are found.
+dnl One of those two functions should (theoretically) exist on all platforms
+dnl that jemalloc currently has a chance of functioning on without modification.
+dnl We additionally assume ffs() or __builtin_ffs() are defined if
+dnl ffsl() or __builtin_ffsl() are defined, respectively.
+JE_COMPILABLE([a program using __builtin_ffsl], [
+#include <stdio.h>
+#include <strings.h>
+#include <string.h>
+], [
+	{
+		int rv = __builtin_ffsl(0x08);
+		printf("%d\n", rv);
+	}
+], [je_cv_gcc_builtin_ffsl])
+if test "x${je_cv_gcc_builtin_ffsl}" == "xyes" ; then
+  AC_DEFINE([JEMALLOC_INTERNAL_FFSL], [__builtin_ffsl])
+  AC_DEFINE([JEMALLOC_INTERNAL_FFS], [__builtin_ffs])
+else
+  JE_COMPILABLE([a program using ffsl], [
+  #include <stdio.h>
+  #include <strings.h>
+  #include <string.h>
+  ], [
+	{
+		int rv = ffsl(0x08);
+		printf("%d\n", rv);
+	}
+  ], [je_cv_function_ffsl])
+  if test "x${je_cv_function_ffsl}" == "xyes" ; then
+    AC_DEFINE([JEMALLOC_INTERNAL_FFSL], [ffsl])
+    AC_DEFINE([JEMALLOC_INTERNAL_FFS], [ffs])
+  else
+    AC_MSG_ERROR([Cannot build without ffsl(3) or __builtin_ffsl()])
+  fi
+fi
+
 AC_CACHE_CHECK([STATIC_PAGE_SHIFT],
                [je_cv_static_page_shift],
                AC_RUN_IFELSE([AC_LANG_PROGRAM(
@@ -1000,7 +999,7 @@ AC_CACHE_CHECK([STATIC_PAGE_SHIFT],
     if (result == -1) {
 	return 1;
     }
-    result = ffsl(result) - 1;
+    result = JEMALLOC_INTERNAL_FFSL(result) - 1;
 
     f = fopen("conftest.out", "w");
     if (f == NULL) {
@@ -1012,7 +1011,8 @@ AC_CACHE_CHECK([STATIC_PAGE_SHIFT],
     return 0;
 ]])],
                              [je_cv_static_page_shift=`cat conftest.out`],
-                             [je_cv_static_page_shift=undefined]))
+                             [je_cv_static_page_shift=undefined],
+                             [je_cv_static_page_shift=12]))
 
 if test "x$je_cv_static_page_shift" != "xundefined"; then
    AC_DEFINE_UNQUOTED([STATIC_PAGE_SHIFT], [$je_cv_static_page_shift])
@@ -1147,24 +1147,6 @@ elif test "x${force_tls}" = "x1" ; then
 fi
 
 dnl ============================================================================
-dnl Check for ffsl(3), and fail if not found.  This function exists on all
-dnl platforms that jemalloc currently has a chance of functioning on without
-dnl modification.
-JE_COMPILABLE([a program using ffsl], [
-#include <stdio.h>
-#include <strings.h>
-#include <string.h>
-], [
-	{
-		int rv = ffsl(0x08);
-		printf("%d\n", rv);
-	}
-], [je_cv_function_ffsl])
-if test "x${je_cv_function_ffsl}" != "xyes" ; then
-   AC_MSG_ERROR([Cannot build without ffsl(3)])
-fi
-
-dnl ============================================================================
 dnl Check for atomic(9) operations as provided on FreeBSD.
 
 JE_COMPILABLE([atomic(9)], [
@@ -1210,6 +1192,20 @@ if test "x${je_cv_osatomic}" = "xyes" ; then
 fi
 
 dnl ============================================================================
+dnl Check for madvise(2).
+
+JE_COMPILABLE([madvise(2)], [
+#include <sys/mman.h>
+], [
+	{
+		madvise((void *)0, 0, 0);
+	}
+], [je_cv_madvise])
+if test "x${je_cv_madvise}" = "xyes" ; then
+  AC_DEFINE([JEMALLOC_HAVE_MADVISE], [ ])
+fi
+
+dnl ============================================================================
 dnl Check whether __sync_{add,sub}_and_fetch() are available despite
 dnl __GCC_HAVE_SYNC_COMPARE_AND_SWAP_n macros being undefined.
 
@@ -1241,6 +1237,29 @@ AC_DEFUN([JE_SYNC_COMPARE_AND_SWAP_CHECK],[
 if test "x${je_cv_atomic9}" != "xyes" -a "x${je_cv_osatomic}" != "xyes" ; then
   JE_SYNC_COMPARE_AND_SWAP_CHECK(32, 4)
   JE_SYNC_COMPARE_AND_SWAP_CHECK(64, 8)
+fi
+
+dnl ============================================================================
+dnl Check for __builtin_clz() and __builtin_clzl().
+
+AC_CACHE_CHECK([for __builtin_clz],
+               [je_cv_builtin_clz],
+               [AC_LINK_IFELSE([AC_LANG_PROGRAM([],
+                                                [
+                                                {
+                                                        unsigned x = 0;
+                                                        int y = __builtin_clz(x);
+                                                }
+                                                {
+                                                        unsigned long x = 0;
+                                                        int y = __builtin_clzl(x);
+                                                }
+                                                ])],
+                               [je_cv_builtin_clz=yes],
+                               [je_cv_builtin_clz=no])])
+
+if test "x${je_cv_builtin_clz}" = "xyes" ; then
+  AC_DEFINE([JEMALLOC_HAVE_BUILTIN_CLZ], [ ])
 fi
 
 dnl ============================================================================
@@ -1465,7 +1484,6 @@ AC_MSG_RESULT([JEMALLOC_PRIVATE_NAMESPACE])
 AC_MSG_RESULT([                   : ${JEMALLOC_PRIVATE_NAMESPACE}])
 AC_MSG_RESULT([install_suffix     : ${install_suffix}])
 AC_MSG_RESULT([autogen            : ${enable_autogen}])
-AC_MSG_RESULT([experimental       : ${enable_experimental}])
 AC_MSG_RESULT([cc-silence         : ${enable_cc_silence}])
 AC_MSG_RESULT([debug              : ${enable_debug}])
 AC_MSG_RESULT([code-coverage      : ${enable_code_coverage}])
@@ -1479,9 +1497,7 @@ AC_MSG_RESULT([fill               : ${enable_fill}])
 AC_MSG_RESULT([utrace             : ${enable_utrace}])
 AC_MSG_RESULT([valgrind           : ${enable_valgrind}])
 AC_MSG_RESULT([xmalloc            : ${enable_xmalloc}])
-AC_MSG_RESULT([mremap             : ${enable_mremap}])
 AC_MSG_RESULT([munmap             : ${enable_munmap}])
-AC_MSG_RESULT([dss                : ${enable_dss}])
 AC_MSG_RESULT([lazy_lock          : ${enable_lazy_lock}])
 AC_MSG_RESULT([tls                : ${enable_tls}])
 AC_MSG_RESULT([===============================================================================])

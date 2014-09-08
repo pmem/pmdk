@@ -101,6 +101,11 @@ struct arena_stats_s {
 	uint64_t	ndalloc_large;
 	uint64_t	nrequests_large;
 
+	size_t		allocated_huge;
+	uint64_t	nmalloc_huge;
+	uint64_t	ndalloc_huge;
+	uint64_t	nrequests_huge;
+
 	/*
 	 * One element for each possible size class, including sizes that
 	 * overlap with bin size classes.  This is necessary because ipalloc()
@@ -131,9 +136,7 @@ struct chunk_stats_s {
 
 extern bool	opt_stats_print;
 
-extern size_t	stats_cactive;
-
-void	stats_print(void (*write)(void *, const char *), void *cbopaque,
+void	stats_print(pool_t *pool, void (*write)(void *, const char *), void *cbopaque,
     const char *opts);
 
 #endif /* JEMALLOC_H_EXTERNS */
@@ -141,31 +144,31 @@ void	stats_print(void (*write)(void *, const char *), void *cbopaque,
 #ifdef JEMALLOC_H_INLINES
 
 #ifndef JEMALLOC_ENABLE_INLINE
-size_t	stats_cactive_get(void);
-void	stats_cactive_add(size_t size);
-void	stats_cactive_sub(size_t size);
+size_t	stats_cactive_get(pool_t *pool);
+void	stats_cactive_add(pool_t *pool, size_t size);
+void	stats_cactive_sub(pool_t *pool, size_t size);
 #endif
 
 #if (defined(JEMALLOC_ENABLE_INLINE) || defined(JEMALLOC_STATS_C_))
 JEMALLOC_INLINE size_t
-stats_cactive_get(void)
+stats_cactive_get(pool_t *pool)
 {
 
-	return (atomic_read_z(&stats_cactive));
+	return (atomic_read_z(&(pool->stats_cactive)));
 }
 
 JEMALLOC_INLINE void
-stats_cactive_add(size_t size)
+stats_cactive_add(pool_t *pool, size_t size)
 {
 
-	atomic_add_z(&stats_cactive, size);
+	atomic_add_z(&(pool->stats_cactive), size);
 }
 
 JEMALLOC_INLINE void
-stats_cactive_sub(size_t size)
+stats_cactive_sub(pool_t *pool, size_t size)
 {
 
-	atomic_sub_z(&stats_cactive, size);
+	atomic_sub_z(&(pool->stats_cactive), size);
 }
 #endif
 

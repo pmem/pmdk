@@ -1,0 +1,4 @@
+vmem_pool_create/TEST0: START: vmem_pool_create
+ ./vmem_pool_create$(*)
+signal: Segmentation fault
+vmem_pool_create/TEST0: Done

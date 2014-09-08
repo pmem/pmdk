@@ -48,6 +48,16 @@
 #undef JE_FORCE_SYNC_COMPARE_AND_SWAP_8
 
 /*
+ * Defined if __builtin_clz() and __builtin_clzl() are available.
+ */
+#undef JEMALLOC_HAVE_BUILTIN_CLZ
+
+/*
+ * Defined if madvise(2) is available.
+ */
+#undef JEMALLOC_HAVE_MADVISE
+
+/*
  * Defined if OSSpin*() functions are available, as provided by Darwin, and
  * documented in the spinlock(3) manual page.
  */
@@ -75,9 +85,6 @@
  * to avoid recursive allocation during mutex initialization.
  */
 #undef JEMALLOC_MUTEX_INIT_CB
-
-/* Defined if sbrk() is supported. */
-#undef JEMALLOC_HAVE_SBRK
 
 /* Non-empty if the tls_model attribute is supported. */
 #undef JEMALLOC_TLS_MODEL
@@ -147,15 +154,15 @@
  */
 #undef JEMALLOC_MUNMAP
 
-/*
- * If defined, use mremap(...MREMAP_FIXED...) for huge realloc().  This is
- * disabled by default because it is Linux-specific and it will cause virtual
- * memory map holes, much like munmap(2) does.
- */
-#undef JEMALLOC_MREMAP
-
 /* TLS is used to map arenas and magazine caches to threads. */
 #undef JEMALLOC_TLS
+
+/*
+ * ffs()/ffsl() functions to use for bitmapping.  Don't use these directly;
+ * instead, use jemalloc_ffs() or jemalloc_ffsl() from util.h.
+ */
+#undef JEMALLOC_INTERNAL_FFSL
+#undef JEMALLOC_INTERNAL_FFS
 
 /*
  * JEMALLOC_IVSALLOC enables ivsalloc(), which verifies that pointers reside

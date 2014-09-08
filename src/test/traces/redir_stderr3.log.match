@@ -1,0 +1,6 @@
+$(*)
+$(*)
+$(*)
+$(*)Log level NONE
+$(*)Log level ERROR
+$(*)Log level WARNING

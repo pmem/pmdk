@@ -393,6 +393,42 @@ a_name##_tsd_set(a_type *val)						\
 }
 #endif
 
+
+
+/*
+ * Vector data container implemented as TSD/TLS macros.
+ * These functions behave exactly like the regular version,
+ * except for the fact that they take an index argument in accessor functions.
+ */
+
+/* malloc_tsd_vector_protos(). */
+#define	malloc_tsd_vector_protos(a_attr, a_name)			\
+malloc_tsd_protos(a_attr, a_name, vector_t)
+
+#define	malloc_tsd_vector_externs(a_name)				\
+malloc_tsd_externs(a_name, vector_t)
+
+#define	malloc_tsd_vector_data(a_attr, a_name)				\
+malloc_tsd_data(a_attr, a_name, vector_t, VECTOR_INITIALIZER)
+
+#define	malloc_tsd_vector_funcs(a_attr, a_name, a_type, a_cleanup)	\
+malloc_tsd_funcs(a_attr, a_name, vector_t, VECTOR_INITIALIZER,		\
+	a_cleanup)							\
+									\
+a_attr a_type *								\
+a_name##_vec_tsd_get(uint32_t index)					\
+{									\
+	vector_t *v = a_name##_tsd_get();				\
+	return (a_type *)vec_get(v, index);				\
+}									\
+									\
+a_attr void								\
+a_name##_vec_tsd_set(uint32_t index, a_type *val)			\
+{									\
+	vector_t *v = a_name##_tsd_get();				\
+	vec_set(v, index, (void *)val);					\
+}									\
+
 #endif /* JEMALLOC_H_TYPES */
 /******************************************************************************/
 #ifdef JEMALLOC_H_STRUCTS

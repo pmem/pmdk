@@ -109,12 +109,35 @@ void	malloc_printf(const char *format, ...)
 #ifdef JEMALLOC_H_INLINES
 
 #ifndef JEMALLOC_ENABLE_INLINE
+int	jemalloc_ffsl(long bitmap);
+int	jemalloc_ffs(int bitmap);
 size_t	pow2_ceil(size_t x);
+size_t	lg_floor(size_t x);
 void	set_errno(int errnum);
 int	get_errno(void);
 #endif
 
 #if (defined(JEMALLOC_ENABLE_INLINE) || defined(JEMALLOC_UTIL_C_))
+
+/* Sanity check: */
+#if !defined(JEMALLOC_INTERNAL_FFSL) || !defined(JEMALLOC_INTERNAL_FFS)
+#  error Both JEMALLOC_INTERNAL_FFSL && JEMALLOC_INTERNAL_FFS should have been defined by configure
+#endif
+
+JEMALLOC_ALWAYS_INLINE int
+jemalloc_ffsl(long bitmap)
+{
+
+        return (JEMALLOC_INTERNAL_FFSL(bitmap));
+}
+
+JEMALLOC_ALWAYS_INLINE int
+jemalloc_ffs(int bitmap)
+{
+
+        return (JEMALLOC_INTERNAL_FFS(bitmap));
+}
+
 /* Compute the smallest power of 2 that is >= x. */
 JEMALLOC_INLINE size_t
 pow2_ceil(size_t x)
@@ -132,6 +155,58 @@ pow2_ceil(size_t x)
 	x++;
 	return (x);
 }
+
+#if (defined(__i386__) || defined(__amd64__) || defined(__x86_64__))
+JEMALLOC_INLINE size_t
+lg_floor(size_t x)
+{
+	size_t ret;
+
+	asm ("bsr %1, %0"
+	    : "=r"(ret) // Outputs.
+	    : "r"(x)    // Inputs.
+	    );
+	return (ret);
+}
+#elif (defined(JEMALLOC_HAVE_BUILTIN_CLZ))
+JEMALLOC_INLINE size_t
+lg_floor(size_t x)
+{
+
+#if (LG_SIZEOF_PTR == LG_SIZEOF_INT)
+	return (((8 << LG_SIZEOF_PTR) - 1) - __builtin_clz(x));
+#elif (LG_SIZEOF_PTR == LG_SIZEOF_LONG)
+	return (((8 << LG_SIZEOF_PTR) - 1) - __builtin_clzl(x));
+#else
+#  error "Unsupported type sizes for lg_floor()"
+#endif
+}
+#else
+JEMALLOC_INLINE size_t
+lg_floor(size_t x)
+{
+
+	x |= (x >> 1);
+	x |= (x >> 2);
+	x |= (x >> 4);
+	x |= (x >> 8);
+	x |= (x >> 16);
+#if (LG_SIZEOF_PTR == 3 && LG_SIZEOF_PTR == LG_SIZEOF_LONG)
+	x |= (x >> 32);
+	if (x == KZU(0xffffffffffffffff))
+		return (63);
+	x++;
+	return (jemalloc_ffsl(x) - 2);
+#elif (LG_SIZEOF_PTR == 2)
+	if (x == KZU(0xffffffff))
+		return (31);
+	x++;
+	return (jemalloc_ffs(x) - 2);
+#else
+#  error "Unsupported type sizes for lg_floor()"
+#endif
+}
+#endif
 
 /* Sets error code */
 JEMALLOC_INLINE void

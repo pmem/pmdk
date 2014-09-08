@@ -32,7 +32,6 @@ char		opt_prof_prefix[
     1];
 
 uint64_t	prof_interval = 0;
-bool		prof_promote;
 
 /*
  * Table of mutexes that are shared among ctx's.  These are leaf locks, so
@@ -159,38 +158,18 @@ prof_leave(prof_tdata_t *prof_tdata)
 
 #ifdef JEMALLOC_PROF_LIBUNWIND
 void
-prof_backtrace(prof_bt_t *bt, unsigned nignore)
+prof_backtrace(prof_bt_t *bt)
 {
-	unw_context_t uc;
-	unw_cursor_t cursor;
-	unsigned i;
-	int err;
+	int nframes;
 
 	cassert(config_prof);
 	assert(bt->len == 0);
 	assert(bt->vec != NULL);
 
-	unw_getcontext(&uc);
-	unw_init_local(&cursor, &uc);
-
-	/* Throw away (nignore+1) stack frames, if that many exist. */
-	for (i = 0; i < nignore + 1; i++) {
-		err = unw_step(&cursor);
-		if (err <= 0)
-			return;
-	}
-
-	/*
-	 * Iterate over stack frames until there are no more, or until no space
-	 * remains in bt.
-	 */
-	for (i = 0; i < PROF_BT_MAX; i++) {
-		unw_get_reg(&cursor, UNW_REG_IP, (unw_word_t *)&bt->vec[i]);
-		bt->len++;
-		err = unw_step(&cursor);
-		if (err <= 0)
-			break;
-	}
+	nframes = unw_backtrace(bt->vec, PROF_BT_MAX);
+	if (nframes <= 0)
+		return;
+	bt->len = nframes;
 }
 #elif (defined(JEMALLOC_PROF_LIBGCC))
 static _Unwind_Reason_Code
@@ -206,25 +185,25 @@ static _Unwind_Reason_Code
 prof_unwind_callback(struct _Unwind_Context *context, void *arg)
 {
 	prof_unwind_data_t *data = (prof_unwind_data_t *)arg;
+	void *ip;
 
 	cassert(config_prof);
 
-	if (data->nignore > 0)
-		data->nignore--;
-	else {
-		data->bt->vec[data->bt->len] = (void *)_Unwind_GetIP(context);
-		data->bt->len++;
-		if (data->bt->len == data->max)
-			return (_URC_END_OF_STACK);
-	}
+	ip = (void *)_Unwind_GetIP(context);
+	if (ip == NULL)
+		return (_URC_END_OF_STACK);
+	data->bt->vec[data->bt->len] = ip;
+	data->bt->len++;
+	if (data->bt->len == data->max)
+		return (_URC_END_OF_STACK);
 
 	return (_URC_NO_REASON);
 }
 
 void
-prof_backtrace(prof_bt_t *bt, unsigned nignore)
+prof_backtrace(prof_bt_t *bt)
 {
-	prof_unwind_data_t data = {bt, nignore, PROF_BT_MAX};
+	prof_unwind_data_t data = {bt, PROF_BT_MAX};
 
 	cassert(config_prof);
 
@@ -232,25 +211,22 @@ prof_backtrace(prof_bt_t *bt, unsigned nignore)
 }
 #elif (defined(JEMALLOC_PROF_GCC))
 void
-prof_backtrace(prof_bt_t *bt, unsigned nignore)
+prof_backtrace(prof_bt_t *bt)
 {
 #define	BT_FRAME(i)							\
-	if ((i) < nignore + PROF_BT_MAX) {				\
+	if ((i) < PROF_BT_MAX) {					\
 		void *p;						\
 		if (__builtin_frame_address(i) == 0)			\
 			return;						\
 		p = __builtin_return_address(i);			\
 		if (p == NULL)						\
 			return;						\
-		if (i >= nignore) {					\
-			bt->vec[(i) - nignore] = p;			\
-			bt->len = (i) - nignore + 1;			\
-		}							\
+		bt->vec[(i)] = p;					\
+		bt->len = (i) + 1;					\
 	} else								\
 		return;
 
 	cassert(config_prof);
-	assert(nignore <= 3);
 
 	BT_FRAME(0)
 	BT_FRAME(1)
@@ -392,16 +368,11 @@ prof_backtrace(prof_bt_t *bt, unsigned nignore)
 	BT_FRAME(125)
 	BT_FRAME(126)
 	BT_FRAME(127)
-
-	/* Extras to compensate for nignore. */
-	BT_FRAME(128)
-	BT_FRAME(129)
-	BT_FRAME(130)
 #undef BT_FRAME
 }
 #else
 void
-prof_backtrace(prof_bt_t *bt, unsigned nignore)
+prof_backtrace(prof_bt_t *bt)
 {
 
 	cassert(config_prof);
@@ -645,6 +616,66 @@ prof_lookup(prof_bt_t *bt)
 
 	return (ret.p);
 }
+
+
+void
+prof_sample_threshold_update(prof_tdata_t *prof_tdata)
+{
+	/*
+	 * The body of this function is compiled out unless heap profiling is
+	 * enabled, so that it is possible to compile jemalloc with floating
+	 * point support completely disabled.  Avoiding floating point code is
+	 * important on memory-constrained systems, but it also enables a
+	 * workaround for versions of glibc that don't properly save/restore
+	 * floating point registers during dynamic lazy symbol loading (which
+	 * internally calls into whatever malloc implementation happens to be
+	 * integrated into the application).  Note that some compilers (e.g.
+	 * gcc 4.8) may use floating point registers for fast memory moves, so
+	 * jemalloc must be compiled with such optimizations disabled (e.g.
+	 * -mno-sse) in order for the workaround to be complete.
+	 */
+#ifdef JEMALLOC_PROF
+	uint64_t r;
+	double u;
+
+	if (!config_prof)
+		return;
+
+	if (prof_tdata == NULL)
+		prof_tdata = prof_tdata_get(false);
+
+	if (opt_lg_prof_sample == 0) {
+		prof_tdata->bytes_until_sample = 0;
+		return;
+	}
+
+	/*
+	 * Compute sample threshold as a geometrically distributed random
+	 * variable with mean (2^opt_lg_prof_sample).
+	 *
+	 *                         __        __
+	 *                         |  log(u)  |                     1
+	 * prof_tdata->threshold = | -------- |, where p = -------------------
+	 *                         | log(1-p) |             opt_lg_prof_sample
+	 *                                                 2
+	 *
+	 * For more information on the math, see:
+	 *
+	 *   Non-Uniform Random Variate Generation
+	 *   Luc Devroye
+	 *   Springer-Verlag, New York, 1986
+	 *   pp 500
+	 *   (http://luc.devroye.org/rnbookindex.html)
+	 */
+	prng64(r, 53, prof_tdata->prng_state,
+	    UINT64_C(6364136223846793005), UINT64_C(1442695040888963407));
+	u = (double)r * (1.0/9007199254740992.0L);
+	prof_tdata->bytes_until_sample = (uint64_t)(log(u) /
+	    log(1.0 - (1.0 / (double)((uint64_t)1U << opt_lg_prof_sample))))
+	    + (uint64_t)1U;
+#endif
+}
+
 
 #ifdef JEMALLOC_JET
 size_t
@@ -1062,7 +1093,7 @@ label_open_close_error:
 #define	DUMP_FILENAME_BUFSIZE	(PATH_MAX + 1)
 #define	VSEQ_INVALID		UINT64_C(0xffffffffffffffff)
 static void
-prof_dump_filename(char *filename, char v, int64_t vseq)
+prof_dump_filename(char *filename, char v, uint64_t vseq)
 {
 
 	cassert(config_prof);
@@ -1070,7 +1101,7 @@ prof_dump_filename(char *filename, char v, int64_t vseq)
 	if (vseq != VSEQ_INVALID) {
 	        /* "<prefix>.<pid>.<seq>.v<vseq>.heap" */
 		malloc_snprintf(filename, DUMP_FILENAME_BUFSIZE,
-		    "%s.%d.%"PRIu64".%c%"PRId64".heap",
+		    "%s.%d.%"PRIu64".%c%"PRIu64".heap",
 		    opt_prof_prefix, (int)getpid(), prof_dump_seq, v, vseq);
 	} else {
 	        /* "<prefix>.<pid>.<seq>.<v>.heap" */
@@ -1225,9 +1256,8 @@ prof_tdata_init(void)
 		return (NULL);
 	}
 
-	prof_tdata->prng_state = 0;
-	prof_tdata->threshold = 0;
-	prof_tdata->accum = 0;
+	prof_tdata->prng_state = (uint64_t)(uintptr_t)prof_tdata;
+	prof_sample_threshold_update(prof_tdata);
 
 	prof_tdata->enq = false;
 	prof_tdata->enq_idump = false;
@@ -1300,8 +1330,8 @@ prof_boot1(void)
 	cassert(config_prof);
 
 	/*
-	 * opt_prof and prof_promote must be in their final state before any
-	 * arenas are initialized, so this function must be executed early.
+	 * opt_prof must be in its final state before any arenas are
+	 * initialized, so this function must be executed early.
 	 */
 
 	if (opt_prof_leak && opt_prof == false) {
@@ -1317,14 +1347,11 @@ prof_boot1(void)
 			    opt_lg_prof_interval);
 		}
 	}
-
-	prof_promote = (opt_prof && opt_lg_prof_sample > LG_PAGE);
 }
 
 bool
 prof_boot2(void)
 {
-
 	cassert(config_prof);
 
 	if (opt_prof) {
@@ -1351,8 +1378,7 @@ prof_boot2(void)
 			if (opt_abort)
 				abort();
 		}
-
-		ctx_locks = (malloc_mutex_t *)base_alloc(PROF_NCTX_LOCKS *
+		ctx_locks = (malloc_mutex_t *)je_base_malloc(PROF_NCTX_LOCKS *
 		    sizeof(malloc_mutex_t));
 		if (ctx_locks == NULL)
 			return (true);

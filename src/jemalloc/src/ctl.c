@@ -1,5 +1,6 @@
 #define	JEMALLOC_CTL_C_
 #include "jemalloc/internal/jemalloc_internal.h"
+#include "jemalloc/internal/pool.h"
 
 /******************************************************************************/
 /* Data. */
@@ -9,10 +10,8 @@
  * - ctl_stats.*
  * - opt_prof_active
  */
-static malloc_mutex_t	ctl_mtx;
-static bool		ctl_initialized;
+static malloc_mutex_t	ctl_mtx; /* XXX seperate mutex for each pool? */
 static uint64_t		ctl_epoch;
-static ctl_stats_t	ctl_stats;
 
 /******************************************************************************/
 /* Helpers for named and indexed nodes. */
@@ -58,14 +57,17 @@ static void	ctl_arena_stats_amerge(ctl_arena_stats_t *cstats,
 static void	ctl_arena_stats_smerge(ctl_arena_stats_t *sstats,
     ctl_arena_stats_t *astats);
 static void	ctl_arena_refresh(arena_t *arena, unsigned i);
-static bool	ctl_grow(void);
+static bool	ctl_grow(pool_t *pool);
+static void	ctl_refresh_pool(pool_t *pool);
 static void	ctl_refresh(void);
+static bool	ctl_init_pool(pool_t *pool);
 static bool	ctl_init(void);
 static int	ctl_lookup(const char *name, ctl_node_t const **nodesp,
     size_t *mibp, size_t *depthp);
 
 CTL_PROTO(version)
 CTL_PROTO(epoch)
+INDEX_PROTO(thread_pool_i)
 CTL_PROTO(thread_tcache_enabled)
 CTL_PROTO(thread_tcache_flush)
 CTL_PROTO(thread_arena)
@@ -74,10 +76,8 @@ CTL_PROTO(thread_allocatedp)
 CTL_PROTO(thread_deallocated)
 CTL_PROTO(thread_deallocatedp)
 CTL_PROTO(config_debug)
-CTL_PROTO(config_dss)
 CTL_PROTO(config_fill)
 CTL_PROTO(config_lazy_lock)
-CTL_PROTO(config_mremap)
 CTL_PROTO(config_munmap)
 CTL_PROTO(config_prof)
 CTL_PROTO(config_prof_libgcc)
@@ -99,7 +99,6 @@ CTL_PROTO(opt_zero)
 CTL_PROTO(opt_quarantine)
 CTL_PROTO(opt_redzone)
 CTL_PROTO(opt_utrace)
-CTL_PROTO(opt_valgrind)
 CTL_PROTO(opt_xmalloc)
 CTL_PROTO(opt_tcache)
 CTL_PROTO(opt_lg_tcache_max)
@@ -113,8 +112,10 @@ CTL_PROTO(opt_prof_final)
 CTL_PROTO(opt_prof_leak)
 CTL_PROTO(opt_prof_accum)
 CTL_PROTO(arena_i_purge)
-static void	arena_purge(unsigned arena_ind);
+static void	arena_purge(pool_t *pool, unsigned arena_ind);
 CTL_PROTO(arena_i_dss)
+CTL_PROTO(arena_i_chunk_alloc)
+CTL_PROTO(arena_i_chunk_dalloc)
 INDEX_PROTO(arena_i)
 CTL_PROTO(arenas_bin_i_size)
 CTL_PROTO(arenas_bin_i_nregs)
@@ -130,7 +131,6 @@ CTL_PROTO(arenas_tcache_max)
 CTL_PROTO(arenas_nbins)
 CTL_PROTO(arenas_nhbins)
 CTL_PROTO(arenas_nlruns)
-CTL_PROTO(arenas_purge)
 CTL_PROTO(arenas_extend)
 CTL_PROTO(prof_active)
 CTL_PROTO(prof_dump)
@@ -138,9 +138,6 @@ CTL_PROTO(prof_interval)
 CTL_PROTO(stats_chunks_current)
 CTL_PROTO(stats_chunks_total)
 CTL_PROTO(stats_chunks_high)
-CTL_PROTO(stats_huge_allocated)
-CTL_PROTO(stats_huge_nmalloc)
-CTL_PROTO(stats_huge_ndalloc)
 CTL_PROTO(stats_arenas_i_small_allocated)
 CTL_PROTO(stats_arenas_i_small_nmalloc)
 CTL_PROTO(stats_arenas_i_small_ndalloc)
@@ -149,6 +146,10 @@ CTL_PROTO(stats_arenas_i_large_allocated)
 CTL_PROTO(stats_arenas_i_large_nmalloc)
 CTL_PROTO(stats_arenas_i_large_ndalloc)
 CTL_PROTO(stats_arenas_i_large_nrequests)
+CTL_PROTO(stats_arenas_i_huge_allocated)
+CTL_PROTO(stats_arenas_i_huge_nmalloc)
+CTL_PROTO(stats_arenas_i_huge_ndalloc)
+CTL_PROTO(stats_arenas_i_huge_nrequests)
 CTL_PROTO(stats_arenas_i_bins_j_allocated)
 CTL_PROTO(stats_arenas_i_bins_j_nmalloc)
 CTL_PROTO(stats_arenas_i_bins_j_ndalloc)
@@ -177,12 +178,16 @@ CTL_PROTO(stats_cactive)
 CTL_PROTO(stats_allocated)
 CTL_PROTO(stats_active)
 CTL_PROTO(stats_mapped)
+INDEX_PROTO(pool_i)
+CTL_PROTO(pools_npools)
+CTL_PROTO(pool_i_base)
+CTL_PROTO(pool_i_size)
 
 /******************************************************************************/
 /* mallctl tree. */
 
 /* Maximum tree depth. */
-#define	CTL_MAX_DEPTH	6
+#define	CTL_MAX_DEPTH	8
 
 #define	NAME(n)	{true},	n
 #define	CHILD(t, c)							\
@@ -201,9 +206,21 @@ static const ctl_named_node_t	tcache_node[] = {
 	{NAME("enabled"),	CTL(thread_tcache_enabled)},
 	{NAME("flush"),		CTL(thread_tcache_flush)}
 };
+static const ctl_named_node_t thread_pool_i_node[] = {
+	{NAME("arena"),		CTL(thread_arena)},
+};
+
+static const ctl_named_node_t super_thread_pool_i_node[] = {
+	{NAME(""),                      CHILD(named, thread_pool_i)}
+};
+
+static const ctl_indexed_node_t thread_pool_node[] = {
+	{INDEX(thread_pool_i)}
+};
+
 
 static const ctl_named_node_t	thread_node[] = {
-	{NAME("arena"),		CTL(thread_arena)},
+	{NAME("pool"),		CHILD(indexed, thread_pool)},
 	{NAME("allocated"),	CTL(thread_allocated)},
 	{NAME("allocatedp"),	CTL(thread_allocatedp)},
 	{NAME("deallocated"),	CTL(thread_deallocated)},
@@ -213,10 +230,8 @@ static const ctl_named_node_t	thread_node[] = {
 
 static const ctl_named_node_t	config_node[] = {
 	{NAME("debug"),			CTL(config_debug)},
-	{NAME("dss"),			CTL(config_dss)},
 	{NAME("fill"),			CTL(config_fill)},
 	{NAME("lazy_lock"),		CTL(config_lazy_lock)},
-	{NAME("mremap"),		CTL(config_mremap)},
 	{NAME("munmap"),		CTL(config_munmap)},
 	{NAME("prof"),			CTL(config_prof)},
 	{NAME("prof_libgcc"),		CTL(config_prof_libgcc)},
@@ -241,7 +256,6 @@ static const ctl_named_node_t opt_node[] = {
 	{NAME("quarantine"),		CTL(opt_quarantine)},
 	{NAME("redzone"),		CTL(opt_redzone)},
 	{NAME("utrace"),		CTL(opt_utrace)},
-	{NAME("valgrind"),		CTL(opt_valgrind)},
 	{NAME("xmalloc"),		CTL(opt_xmalloc)},
 	{NAME("tcache"),		CTL(opt_tcache)},
 	{NAME("lg_tcache_max"),		CTL(opt_lg_tcache_max)},
@@ -256,9 +270,15 @@ static const ctl_named_node_t opt_node[] = {
 	{NAME("prof_accum"),		CTL(opt_prof_accum)}
 };
 
+static const ctl_named_node_t chunk_node[] = {
+	{NAME("alloc"),			CTL(arena_i_chunk_alloc)},
+	{NAME("dalloc"),		CTL(arena_i_chunk_dalloc)}
+};
+
 static const ctl_named_node_t arena_i_node[] = {
 	{NAME("purge"),			CTL(arena_i_purge)},
-	{NAME("dss"),			CTL(arena_i_dss)}
+	{NAME("dss"),			CTL(arena_i_dss)},
+	{NAME("chunk"),			CHILD(named, chunk)},
 };
 static const ctl_named_node_t super_arena_i_node[] = {
 	{NAME(""),			CHILD(named, arena_i)}
@@ -303,7 +323,6 @@ static const ctl_named_node_t arenas_node[] = {
 	{NAME("bin"),			CHILD(indexed, arenas_bin)},
 	{NAME("nlruns"),		CTL(arenas_nlruns)},
 	{NAME("lrun"),			CHILD(indexed, arenas_lrun)},
-	{NAME("purge"),			CTL(arenas_purge)},
 	{NAME("extend"),		CTL(arenas_extend)}
 };
 
@@ -319,12 +338,6 @@ static const ctl_named_node_t stats_chunks_node[] = {
 	{NAME("high"),			CTL(stats_chunks_high)}
 };
 
-static const ctl_named_node_t stats_huge_node[] = {
-	{NAME("allocated"),		CTL(stats_huge_allocated)},
-	{NAME("nmalloc"),		CTL(stats_huge_nmalloc)},
-	{NAME("ndalloc"),		CTL(stats_huge_ndalloc)}
-};
-
 static const ctl_named_node_t stats_arenas_i_small_node[] = {
 	{NAME("allocated"),		CTL(stats_arenas_i_small_allocated)},
 	{NAME("nmalloc"),		CTL(stats_arenas_i_small_nmalloc)},
@@ -337,6 +350,13 @@ static const ctl_named_node_t stats_arenas_i_large_node[] = {
 	{NAME("nmalloc"),		CTL(stats_arenas_i_large_nmalloc)},
 	{NAME("ndalloc"),		CTL(stats_arenas_i_large_ndalloc)},
 	{NAME("nrequests"),		CTL(stats_arenas_i_large_nrequests)}
+};
+
+static const ctl_named_node_t stats_arenas_i_huge_node[] = {
+	{NAME("allocated"),		CTL(stats_arenas_i_huge_allocated)},
+	{NAME("nmalloc"),		CTL(stats_arenas_i_huge_nmalloc)},
+	{NAME("ndalloc"),		CTL(stats_arenas_i_huge_ndalloc)},
+	{NAME("nrequests"),		CTL(stats_arenas_i_huge_nrequests)},
 };
 
 static const ctl_named_node_t stats_arenas_i_bins_j_node[] = {
@@ -383,9 +403,11 @@ static const ctl_named_node_t stats_arenas_i_node[] = {
 	{NAME("purged"),		CTL(stats_arenas_i_purged)},
 	{NAME("small"),			CHILD(named, stats_arenas_i_small)},
 	{NAME("large"),			CHILD(named, stats_arenas_i_large)},
+	{NAME("huge"),			CHILD(named, stats_arenas_i_huge)},
 	{NAME("bins"),			CHILD(indexed, stats_arenas_i_bins)},
 	{NAME("lruns"),			CHILD(indexed, stats_arenas_i_lruns)}
 };
+
 static const ctl_named_node_t super_stats_arenas_i_node[] = {
 	{NAME(""),			CHILD(named, stats_arenas_i)}
 };
@@ -394,14 +416,33 @@ static const ctl_indexed_node_t stats_arenas_node[] = {
 	{INDEX(stats_arenas_i)}
 };
 
-static const ctl_named_node_t stats_node[] = {
+static const ctl_named_node_t pool_stats_node[] = {
+	{NAME("chunks"),		CHILD(named, stats_chunks)},
+	{NAME("arenas"),		CHILD(indexed, stats_arenas)},
 	{NAME("cactive"),		CTL(stats_cactive)},
 	{NAME("allocated"),		CTL(stats_allocated)},
 	{NAME("active"),		CTL(stats_active)},
-	{NAME("mapped"),		CTL(stats_mapped)},
-	{NAME("chunks"),		CHILD(named, stats_chunks)},
-	{NAME("huge"),			CHILD(named, stats_huge)},
-	{NAME("arenas"),		CHILD(indexed, stats_arenas)}
+	{NAME("mapped"),		CTL(stats_mapped)}
+};
+
+static const ctl_named_node_t pools_node[] = {
+	{NAME("npools"),               CTL(pools_npools)},
+};
+
+static const ctl_named_node_t pool_i_node[] = {
+	{NAME("mem_base"),      CTL(pool_i_base)},
+	{NAME("mem_size"),	CTL(pool_i_size)},
+	{NAME("arena"),		CHILD(indexed, arena)},
+	{NAME("arenas"),	CHILD(named, arenas)},
+	{NAME("stats"),		CHILD(named, pool_stats)}
+};
+
+static const ctl_named_node_t super_pool_i_node[] = {
+	{NAME(""),                      CHILD(named, pool_i)}
+};
+
+static const ctl_indexed_node_t pool_node[] = {
+	{INDEX(pool_i)}
 };
 
 static const ctl_named_node_t	root_node[] = {
@@ -410,10 +451,9 @@ static const ctl_named_node_t	root_node[] = {
 	{NAME("thread"),	CHILD(named, thread)},
 	{NAME("config"),	CHILD(named, config)},
 	{NAME("opt"),		CHILD(named, opt)},
-	{NAME("arena"),		CHILD(indexed, arena)},
-	{NAME("arenas"),	CHILD(named, arenas)},
-	{NAME("prof"),		CHILD(named, prof)},
-	{NAME("stats"),		CHILD(named, stats)}
+	{NAME("pool"),		CHILD(indexed, pool)},
+	{NAME("pools"),		CHILD(named, pools)},
+	{NAME("prof"),		CHILD(named, prof)}
 };
 static const ctl_named_node_t super_root_node[] = {
 	{NAME(""),		CHILD(named, root)}
@@ -429,9 +469,9 @@ static const ctl_named_node_t super_root_node[] = {
 static bool
 ctl_arena_init(ctl_arena_stats_t *astats)
 {
-
+	pool_t *pool = pools[0];
 	if (astats->lstats == NULL) {
-		astats->lstats = (malloc_large_stats_t *)base_alloc(nlclasses *
+		astats->lstats = (malloc_large_stats_t *)base_alloc(pool, nlclasses *
 		    sizeof(malloc_large_stats_t));
 		if (astats->lstats == NULL)
 			return (true);
@@ -498,6 +538,11 @@ ctl_arena_stats_smerge(ctl_arena_stats_t *sstats, ctl_arena_stats_t *astats)
 	sstats->astats.ndalloc_large += astats->astats.ndalloc_large;
 	sstats->astats.nrequests_large += astats->astats.nrequests_large;
 
+	sstats->astats.allocated_huge += astats->astats.allocated_huge;
+	sstats->astats.nmalloc_huge += astats->astats.nmalloc_huge;
+	sstats->astats.ndalloc_huge += astats->astats.ndalloc_huge;
+	sstats->astats.nrequests_huge += astats->astats.nrequests_huge;
+
 	for (i = 0; i < nlclasses; i++) {
 		sstats->lstats[i].nmalloc += astats->lstats[i].nmalloc;
 		sstats->lstats[i].ndalloc += astats->lstats[i].ndalloc;
@@ -524,8 +569,9 @@ ctl_arena_stats_smerge(ctl_arena_stats_t *sstats, ctl_arena_stats_t *astats)
 static void
 ctl_arena_refresh(arena_t *arena, unsigned i)
 {
-	ctl_arena_stats_t *astats = &ctl_stats.arenas[i];
-	ctl_arena_stats_t *sstats = &ctl_stats.arenas[ctl_stats.narenas];
+	pool_t *pool = arena->pool;
+	ctl_arena_stats_t *astats = &pool->ctl_stats.arenas[i];
+	ctl_arena_stats_t *sstats = &pool->ctl_stats.arenas[pool->ctl_stats.narenas];
 
 	ctl_arena_clear(astats);
 
@@ -544,17 +590,17 @@ ctl_arena_refresh(arena_t *arena, unsigned i)
 }
 
 static bool
-ctl_grow(void)
+ctl_grow(pool_t *pool)
 {
 	ctl_arena_stats_t *astats;
 	arena_t **tarenas;
 
 	/* Allocate extended arena stats and arenas arrays. */
-	astats = (ctl_arena_stats_t *)imalloc((ctl_stats.narenas + 2) *
+	astats = (ctl_arena_stats_t *)imalloc((pool->ctl_stats.narenas + 2) *
 	    sizeof(ctl_arena_stats_t));
 	if (astats == NULL)
 		return (true);
-	tarenas = (arena_t **)imalloc((ctl_stats.narenas + 1) *
+	tarenas = (arena_t **)imalloc((pool->ctl_stats.narenas + 1) *
 	    sizeof(arena_t *));
 	if (tarenas == NULL) {
 		idalloc(astats);
@@ -562,10 +608,10 @@ ctl_grow(void)
 	}
 
 	/* Initialize the new astats element. */
-	memcpy(astats, ctl_stats.arenas, (ctl_stats.narenas + 1) *
+	memcpy(astats, pool->ctl_stats.arenas, (pool->ctl_stats.narenas + 1) *
 	    sizeof(ctl_arena_stats_t));
-	memset(&astats[ctl_stats.narenas + 1], 0, sizeof(ctl_arena_stats_t));
-	if (ctl_arena_init(&astats[ctl_stats.narenas + 1])) {
+	memset(&astats[pool->ctl_stats.narenas + 1], 0, sizeof(ctl_arena_stats_t));
+	if (ctl_arena_init(&astats[pool->ctl_stats.narenas + 1])) {
 		idalloc(tarenas);
 		idalloc(astats);
 		return (true);
@@ -573,17 +619,17 @@ ctl_grow(void)
 	/* Swap merged stats to their new location. */
 	{
 		ctl_arena_stats_t tstats;
-		memcpy(&tstats, &astats[ctl_stats.narenas],
+		memcpy(&tstats, &astats[pool->ctl_stats.narenas],
 		    sizeof(ctl_arena_stats_t));
-		memcpy(&astats[ctl_stats.narenas],
-		    &astats[ctl_stats.narenas + 1], sizeof(ctl_arena_stats_t));
-		memcpy(&astats[ctl_stats.narenas + 1], &tstats,
+		memcpy(&astats[pool->ctl_stats.narenas],
+		    &astats[pool->ctl_stats.narenas + 1], sizeof(ctl_arena_stats_t));
+		memcpy(&astats[pool->ctl_stats.narenas + 1], &tstats,
 		    sizeof(ctl_arena_stats_t));
 	}
 	/* Initialize the new arenas element. */
-	tarenas[ctl_stats.narenas] = NULL;
+	tarenas[pool->ctl_stats.narenas] = NULL;
 	{
-		arena_t **arenas_old = arenas;
+		arena_t **arenas_old = pool->arenas;
 		/*
 		 * Swap extended arenas array into place.  Although ctl_mtx
 		 * protects this function from other threads extending the
@@ -592,128 +638,150 @@ ctl_grow(void)
 		 * point to them).  Therefore, array copying must happen under
 		 * the protection of arenas_lock.
 		 */
-		malloc_mutex_lock(&arenas_lock);
-		arenas = tarenas;
-		memcpy(arenas, arenas_old, ctl_stats.narenas *
+		malloc_mutex_lock(&pool->arenas_lock);
+		pool->arenas = tarenas;
+		memcpy(pool->arenas, arenas_old, pool->ctl_stats.narenas *
 		    sizeof(arena_t *));
-		narenas_total++;
-		arenas_extend(narenas_total - 1);
-		malloc_mutex_unlock(&arenas_lock);
+		pool->narenas_total++;
+		arenas_extend(pool, pool->narenas_total - 1);
+		malloc_mutex_unlock(&pool->arenas_lock);
 		/*
 		 * Deallocate arenas_old only if it came from imalloc() (not
 		 * base_alloc()).
 		 */
-		if (ctl_stats.narenas != narenas_auto)
+		if (pool->ctl_stats.narenas != pool->narenas_auto)
 			idalloc(arenas_old);
 	}
-	ctl_stats.arenas = astats;
-	ctl_stats.narenas++;
+	pool->ctl_stats.arenas = astats;
+	pool->ctl_stats.narenas++;
 
 	return (false);
 }
 
 static void
-ctl_refresh(void)
+ctl_refresh_pool(pool_t *pool)
 {
 	unsigned i;
-	VARIABLE_ARRAY(arena_t *, tarenas, ctl_stats.narenas);
+	VARIABLE_ARRAY(arena_t *, tarenas, pool->ctl_stats.narenas);
 
 	if (config_stats) {
-		malloc_mutex_lock(&chunks_mtx);
-		ctl_stats.chunks.current = stats_chunks.curchunks;
-		ctl_stats.chunks.total = stats_chunks.nchunks;
-		ctl_stats.chunks.high = stats_chunks.highchunks;
-		malloc_mutex_unlock(&chunks_mtx);
-
-		malloc_mutex_lock(&huge_mtx);
-		ctl_stats.huge.allocated = huge_allocated;
-		ctl_stats.huge.nmalloc = huge_nmalloc;
-		ctl_stats.huge.ndalloc = huge_ndalloc;
-		malloc_mutex_unlock(&huge_mtx);
+		malloc_mutex_lock(&pool->chunks_mtx);
+		pool->ctl_stats.chunks.current = pool->stats_chunks.curchunks;
+		pool->ctl_stats.chunks.total = pool->stats_chunks.nchunks;
+		pool->ctl_stats.chunks.high = pool->stats_chunks.highchunks;
+		malloc_mutex_unlock(&pool->chunks_mtx);
 	}
 
 	/*
 	 * Clear sum stats, since they will be merged into by
 	 * ctl_arena_refresh().
 	 */
-	ctl_stats.arenas[ctl_stats.narenas].nthreads = 0;
-	ctl_arena_clear(&ctl_stats.arenas[ctl_stats.narenas]);
+	pool->ctl_stats.arenas[pool->ctl_stats.narenas].nthreads = 0;
+	ctl_arena_clear(&pool->ctl_stats.arenas[pool->ctl_stats.narenas]);
 
-	malloc_mutex_lock(&arenas_lock);
-	memcpy(tarenas, arenas, sizeof(arena_t *) * ctl_stats.narenas);
-	for (i = 0; i < ctl_stats.narenas; i++) {
-		if (arenas[i] != NULL)
-			ctl_stats.arenas[i].nthreads = arenas[i]->nthreads;
+	malloc_mutex_lock(&pool->arenas_lock);
+	memcpy(tarenas, pool->arenas, sizeof(arena_t *) * pool->ctl_stats.narenas);
+	for (i = 0; i < pool->ctl_stats.narenas; i++) {
+		if (pool->arenas[i] != NULL)
+			pool->ctl_stats.arenas[i].nthreads = pool->arenas[i]->nthreads;
 		else
-			ctl_stats.arenas[i].nthreads = 0;
+			pool->ctl_stats.arenas[i].nthreads = 0;
 	}
-	malloc_mutex_unlock(&arenas_lock);
-	for (i = 0; i < ctl_stats.narenas; i++) {
+	malloc_mutex_unlock(&pool->arenas_lock);
+	for (i = 0; i < pool->ctl_stats.narenas; i++) {
 		bool initialized = (tarenas[i] != NULL);
 
-		ctl_stats.arenas[i].initialized = initialized;
+		pool->ctl_stats.arenas[i].initialized = initialized;
 		if (initialized)
 			ctl_arena_refresh(tarenas[i], i);
 	}
 
 	if (config_stats) {
-		ctl_stats.allocated =
-		    ctl_stats.arenas[ctl_stats.narenas].allocated_small
-		    + ctl_stats.arenas[ctl_stats.narenas].astats.allocated_large
-		    + ctl_stats.huge.allocated;
-		ctl_stats.active =
-		    (ctl_stats.arenas[ctl_stats.narenas].pactive << LG_PAGE)
-		    + ctl_stats.huge.allocated;
-		ctl_stats.mapped = (ctl_stats.chunks.current << opt_lg_chunk);
+		pool->ctl_stats_allocated =
+		    pool->ctl_stats.arenas[pool->ctl_stats.narenas].allocated_small
+		    + pool->ctl_stats.arenas[pool->ctl_stats.narenas].astats.allocated_large
+		    + pool->ctl_stats.arenas[pool->ctl_stats.narenas].astats.allocated_huge;
+		pool->ctl_stats_active =
+		    (pool->ctl_stats.arenas[pool->ctl_stats.narenas].pactive << LG_PAGE);
+		pool->ctl_stats_mapped = (pool->ctl_stats.chunks.current << opt_lg_chunk);
 	}
 
 	ctl_epoch++;
+}
+
+static void
+ctl_refresh(void)
+{
+	for (int i = 0; i < POOLS_MAX; ++i) {
+		if (pools[i] != NULL) {
+			ctl_refresh_pool(pools[i]);
+		}
+	}
+}
+
+static bool
+ctl_init_pool(pool_t *pool)
+{
+	bool ret;
+
+	/*
+	 * Allocate space for one extra arena stats element, which
+	 * contains summed stats across all arenas.
+	 */
+	assert(pool->narenas_auto == narenas_total_get(pool));
+	pool->ctl_stats.narenas = pool->narenas_auto;
+	pool->ctl_stats.arenas = (ctl_arena_stats_t *)base_alloc(pool,
+	    (pool->ctl_stats.narenas + 1) * sizeof(ctl_arena_stats_t));
+
+	if (pool->ctl_stats.arenas == NULL) {
+		ret = true;
+		goto label_return;
+	}
+	memset(pool->ctl_stats.arenas, 0, (pool->ctl_stats.narenas + 1) *
+	    sizeof(ctl_arena_stats_t));
+
+	/*
+	 * Initialize all stats structures, regardless of whether they
+	 * ever get used.  Lazy initialization would allow errors to
+	 * cause inconsistent state to be viewable by the application.
+	 */
+	if (config_stats) {
+		unsigned i;
+		for (i = 0; i <= pool->ctl_stats.narenas; i++) {
+			if (ctl_arena_init(&pool->ctl_stats.arenas[i])) {
+				ret = true;
+				goto label_return;
+			}
+		}
+	}
+	pool->ctl_stats.arenas[pool->ctl_stats.narenas].initialized = true;
+
+	ctl_epoch = 0;
+	ctl_refresh_pool(pool);
+	pool->ctl_initialized = true;
+
+	ret = false;
+label_return:
+	malloc_mutex_unlock(&ctl_mtx);
+	return (ret);
 }
 
 static bool
 ctl_init(void)
 {
 	bool ret;
-
 	malloc_mutex_lock(&ctl_mtx);
-	if (ctl_initialized == false) {
-		/*
-		 * Allocate space for one extra arena stats element, which
-		 * contains summed stats across all arenas.
-		 */
-		assert(narenas_auto == narenas_total_get());
-		ctl_stats.narenas = narenas_auto;
-		ctl_stats.arenas = (ctl_arena_stats_t *)base_alloc(
-		    (ctl_stats.narenas + 1) * sizeof(ctl_arena_stats_t));
-		if (ctl_stats.arenas == NULL) {
-			ret = true;
-			goto label_return;
-		}
-		memset(ctl_stats.arenas, 0, (ctl_stats.narenas + 1) *
-		    sizeof(ctl_arena_stats_t));
-
-		/*
-		 * Initialize all stats structures, regardless of whether they
-		 * ever get used.  Lazy initialization would allow errors to
-		 * cause inconsistent state to be viewable by the application.
-		 */
-		if (config_stats) {
-			unsigned i;
-			for (i = 0; i <= ctl_stats.narenas; i++) {
-				if (ctl_arena_init(&ctl_stats.arenas[i])) {
-					ret = true;
-					goto label_return;
-				}
+	for (int i = 0; i < POOLS_MAX; ++i) {
+		if (pools[i] != NULL && pools[i]->ctl_initialized == false) {
+			if (ctl_init_pool(pools[i])) {
+				ret = true;
+				goto label_return;
 			}
 		}
-		ctl_stats.arenas[ctl_stats.narenas].initialized = true;
-
-		ctl_epoch = 0;
-		ctl_refresh();
-		ctl_initialized = true;
 	}
-
+	/* false means that functions ends with success */
 	ret = false;
+
 label_return:
 	malloc_mutex_unlock(&ctl_mtx);
 	return (ret);
@@ -826,7 +894,7 @@ ctl_byname(const char *name, void *oldp, size_t *oldlenp, void *newp,
 	size_t mib[CTL_MAX_DEPTH];
 	const ctl_named_node_t *node;
 
-	if (ctl_initialized == false && ctl_init()) {
+	if (ctl_init()) {
 		ret = EAGAIN;
 		goto label_return;
 	}
@@ -853,7 +921,7 @@ ctl_nametomib(const char *name, size_t *mibp, size_t *miblenp)
 {
 	int ret;
 
-	if (ctl_initialized == false && ctl_init()) {
+	if (ctl_init()) {
 		ret = EAGAIN;
 		goto label_return;
 	}
@@ -871,7 +939,7 @@ ctl_bymib(const size_t *mib, size_t miblen, void *oldp, size_t *oldlenp,
 	const ctl_named_node_t *node;
 	size_t i;
 
-	if (ctl_initialized == false && ctl_init()) {
+	if (ctl_init()) {
 		ret = EAGAIN;
 		goto label_return;
 	}
@@ -919,8 +987,6 @@ ctl_boot(void)
 
 	if (malloc_mutex_init(&ctl_mtx))
 		return (true);
-
-	ctl_initialized = false;
 
 	return (false);
 }
@@ -1136,10 +1202,8 @@ label_return:
 /******************************************************************************/
 
 CTL_RO_BOOL_CONFIG_GEN(config_debug)
-CTL_RO_BOOL_CONFIG_GEN(config_dss)
 CTL_RO_BOOL_CONFIG_GEN(config_fill)
 CTL_RO_BOOL_CONFIG_GEN(config_lazy_lock)
-CTL_RO_BOOL_CONFIG_GEN(config_mremap)
 CTL_RO_BOOL_CONFIG_GEN(config_munmap)
 CTL_RO_BOOL_CONFIG_GEN(config_prof)
 CTL_RO_BOOL_CONFIG_GEN(config_prof_libgcc)
@@ -1164,7 +1228,6 @@ CTL_RO_NL_CGEN(config_fill, opt_quarantine, opt_quarantine, size_t)
 CTL_RO_NL_CGEN(config_fill, opt_redzone, opt_redzone, bool)
 CTL_RO_NL_CGEN(config_fill, opt_zero, opt_zero, bool)
 CTL_RO_NL_CGEN(config_utrace, opt_utrace, opt_utrace, bool)
-CTL_RO_NL_CGEN(config_valgrind, opt_valgrind, opt_valgrind, bool)
 CTL_RO_NL_CGEN(config_xmalloc, opt_xmalloc, opt_xmalloc, bool)
 CTL_RO_NL_CGEN(config_tcache, opt_tcache, opt_tcache, bool)
 CTL_RO_NL_CGEN(config_tcache, opt_lg_tcache_max, opt_lg_tcache_max, ssize_t)
@@ -1186,43 +1249,60 @@ thread_arena_ctl(const size_t *mib, size_t miblen, void *oldp, size_t *oldlenp,
 {
 	int ret;
 	unsigned newind, oldind;
+	unsigned pool_ind = mib[1];
+	pool_t *pool;
+	arena_t dummy;
+	if (pool_ind >= POOLS_MAX) {
+		ret = ENOENT;
+		goto label_return;
+	}
+	pool = pools[pool_ind];
+	DUMMY_ARENA_INITIALIZE(dummy, pool);
+	tsd_tcache_t *tcache_tsd = tcache_tsd_get();
 
 	malloc_mutex_lock(&ctl_mtx);
-	newind = oldind = choose_arena(NULL)->ind;
+	newind = oldind = choose_arena(&dummy)->ind;
 	WRITE(newind, unsigned);
 	READ(oldind, unsigned);
 	if (newind != oldind) {
 		arena_t *arena;
+		tsd_pool_t *tsd;
 
-		if (newind >= ctl_stats.narenas) {
+		if (newind >= pool->ctl_stats.narenas) {
 			/* New arena index is out of range. */
 			ret = EFAULT;
 			goto label_return;
 		}
 
 		/* Initialize arena if necessary. */
-		malloc_mutex_lock(&arenas_lock);
-		if ((arena = arenas[newind]) == NULL && (arena =
-		    arenas_extend(newind)) == NULL) {
-			malloc_mutex_unlock(&arenas_lock);
+		malloc_mutex_lock(&pool->arenas_lock);
+		if ((arena = pool->arenas[newind]) == NULL && (arena =
+		    arenas_extend(pool, newind)) == NULL) {
+			malloc_mutex_unlock(&pool->arenas_lock);
 			ret = EAGAIN;
 			goto label_return;
 		}
-		assert(arena == arenas[newind]);
-		arenas[oldind]->nthreads--;
-		arenas[newind]->nthreads++;
-		malloc_mutex_unlock(&arenas_lock);
+		assert(arena == pool->arenas[newind]);
+		pool->arenas[oldind]->nthreads--;
+		pool->arenas[newind]->nthreads++;
+		malloc_mutex_unlock(&pool->arenas_lock);
 
 		/* Set new arena association. */
 		if (config_tcache) {
-			tcache_t *tcache;
-			if ((uintptr_t)(tcache = *tcache_tsd_get()) >
-			    (uintptr_t)TCACHE_STATE_MAX) {
-				tcache_arena_dissociate(tcache);
+			tcache_t *tcache = tcache_tsd->tcaches[pool->pool_id];
+			if ((uintptr_t)(tcache) > (uintptr_t)TCACHE_STATE_MAX) {
+
+				if(tcache_tsd->seqno[pool->pool_id] == pool->seqno)
+					tcache_arena_dissociate(tcache);
+
 				tcache_arena_associate(tcache, arena);
+				tcache_tsd->seqno[pool->pool_id] = pool->seqno;
 			}
 		}
-		arenas_tsd_set(&arena);
+
+		tsd = arenas_tsd_get();
+		tsd->seqno[0] = pool->seqno;
+		tsd->arenas[0] = arena;
 	}
 
 	ret = 0;
@@ -1271,13 +1351,15 @@ thread_tcache_flush_ctl(const size_t *mib, size_t miblen, void *oldp,
 {
 	int ret;
 
+	pool_t *pool = pools[0];
+
 	if (config_tcache == false)
 		return (ENOENT);
 
 	READONLY();
 	WRITEONLY();
 
-	tcache_flush();
+	tcache_flush(pool);
 
 	ret = 0;
 label_return:
@@ -1288,22 +1370,22 @@ label_return:
 
 /* ctl_mutex must be held during execution of this function. */
 static void
-arena_purge(unsigned arena_ind)
+arena_purge(pool_t *pool, unsigned arena_ind)
 {
-	VARIABLE_ARRAY(arena_t *, tarenas, ctl_stats.narenas);
+	VARIABLE_ARRAY(arena_t *, tarenas, pool->ctl_stats.narenas);
 
-	malloc_mutex_lock(&arenas_lock);
-	memcpy(tarenas, arenas, sizeof(arena_t *) * ctl_stats.narenas);
-	malloc_mutex_unlock(&arenas_lock);
+	malloc_mutex_lock(&pool->arenas_lock);
+	memcpy(tarenas, pool->arenas, sizeof(arena_t *) * pool->ctl_stats.narenas);
+	malloc_mutex_unlock(&pool->arenas_lock);
 
-	if (arena_ind == ctl_stats.narenas) {
+	if (arena_ind == pool->ctl_stats.narenas) {
 		unsigned i;
-		for (i = 0; i < ctl_stats.narenas; i++) {
+		for (i = 0; i < pool->ctl_stats.narenas; i++) {
 			if (tarenas[i] != NULL)
 				arena_purge_all(tarenas[i]);
 		}
 	} else {
-		assert(arena_ind < ctl_stats.narenas);
+		assert(arena_ind < pool->ctl_stats.narenas);
 		if (tarenas[arena_ind] != NULL)
 			arena_purge_all(tarenas[arena_ind]);
 	}
@@ -1315,10 +1397,15 @@ arena_i_purge_ctl(const size_t *mib, size_t miblen, void *oldp, size_t *oldlenp,
 {
 	int ret;
 
+	if (mib[1] >= POOLS_MAX) {
+		ret = ENOENT;
+		goto label_return;
+	}
+
 	READONLY();
 	WRITEONLY();
 	malloc_mutex_lock(&ctl_mtx);
-	arena_purge(mib[1]);
+	arena_purge(pools[mib[1]], mib[3]);
 	malloc_mutex_unlock(&ctl_mtx);
 
 	ret = 0;
@@ -1333,11 +1420,19 @@ arena_i_dss_ctl(const size_t *mib, size_t miblen, void *oldp, size_t *oldlenp,
 	int ret, i;
 	bool match, err;
 	const char *dss;
-	unsigned arena_ind = mib[1];
+	unsigned pool_ind = mib[1];
+	unsigned arena_ind = mib[3];
 	dss_prec_t dss_prec_old = dss_prec_limit;
 	dss_prec_t dss_prec = dss_prec_limit;
+	pool_t *pool;
+
+	if (pool_ind >= POOLS_MAX) {
+		ret = ENOENT;
+		goto label_return;
+	}
 
 	malloc_mutex_lock(&ctl_mtx);
+	pool = pools[pool_ind];
 	WRITE(dss, const char *);
 	match = false;
 	for (i = 0; i < dss_prec_limit; i++) {
@@ -1352,12 +1447,11 @@ arena_i_dss_ctl(const size_t *mib, size_t miblen, void *oldp, size_t *oldlenp,
 		goto label_return;
 	}
 
-	if (arena_ind < ctl_stats.narenas) {
-		arena_t *arena = arenas[arena_ind];
+	if (arena_ind < pool->ctl_stats.narenas) {
+		arena_t *arena = pool->arenas[arena_ind];
 		if (arena != NULL) {
 			dss_prec_old = arena_dss_prec_get(arena);
-			arena_dss_prec_set(arena, dss_prec);
-			err = false;
+			err = arena_dss_prec_set(arena, dss_prec);
 		} else
 			err = true;
 	} else {
@@ -1377,13 +1471,80 @@ label_return:
 	return (ret);
 }
 
+static int
+arena_i_chunk_alloc_ctl(const size_t *mib, size_t miblen, void *oldp,
+    size_t *oldlenp, void *newp, size_t newlen)
+{
+	int ret;
+	unsigned pool_ind = mib[1];
+	unsigned arena_ind = mib[3];
+	arena_t *arena;
+	pool_t *pool;
+
+	if (pool_ind >= POOLS_MAX) {
+		ret = ENOENT;
+		goto label_outer_return;
+	}
+
+	malloc_mutex_lock(&ctl_mtx);
+	pool = pools[pool_ind];
+	if (arena_ind < pool->narenas_total && (arena = pool->arenas[arena_ind]) != NULL) {
+		malloc_mutex_lock(&arena->lock);
+		READ(arena->chunk_alloc, chunk_alloc_t *);
+		WRITE(arena->chunk_alloc, chunk_alloc_t *);
+	} else {
+		ret = EFAULT;
+		goto label_outer_return;
+	}
+	ret = 0;
+label_return:
+	malloc_mutex_unlock(&arena->lock);
+label_outer_return:
+	malloc_mutex_unlock(&ctl_mtx);
+	return (ret);
+}
+
+static int
+arena_i_chunk_dalloc_ctl(const size_t *mib, size_t miblen, void *oldp,
+    size_t *oldlenp, void *newp, size_t newlen)
+{
+
+	int ret;
+	unsigned pool_ind = mib[1];
+	unsigned arena_ind = mib[3];
+	arena_t *arena;
+	pool_t *pool;
+
+	if (pool_ind >= POOLS_MAX) {
+		ret = ENOENT;
+		goto label_outer_return;
+	}
+
+	malloc_mutex_lock(&ctl_mtx);
+	pool = pools[pool_ind];
+	if (arena_ind < pool->narenas_total && (arena = pool->arenas[arena_ind]) != NULL) {
+		malloc_mutex_lock(&arena->lock);
+		READ(arena->chunk_dalloc, chunk_dalloc_t *);
+		WRITE(arena->chunk_dalloc, chunk_dalloc_t *);
+	} else {
+		ret = EFAULT;
+		goto label_outer_return;
+	}
+	ret = 0;
+label_return:
+	malloc_mutex_unlock(&arena->lock);
+label_outer_return:
+	malloc_mutex_unlock(&ctl_mtx);
+	return (ret);
+}
+
 static const ctl_named_node_t *
 arena_i_index(const size_t *mib, size_t miblen, size_t i)
 {
 	const ctl_named_node_t * ret;
 
 	malloc_mutex_lock(&ctl_mtx);
-	if (i > ctl_stats.narenas) {
+	if (i > pools[mib[1]]->ctl_stats.narenas) {
 		ret = NULL;
 		goto label_return;
 	}
@@ -1409,7 +1570,7 @@ arenas_narenas_ctl(const size_t *mib, size_t miblen, void *oldp,
 		ret = EINVAL;
 		goto label_return;
 	}
-	narenas = ctl_stats.narenas;
+	narenas = pools[mib[1]]->ctl_stats.narenas;
 	READ(narenas, unsigned);
 
 	ret = 0;
@@ -1424,20 +1585,22 @@ arenas_initialized_ctl(const size_t *mib, size_t miblen, void *oldp,
 {
 	int ret;
 	unsigned nread, i;
+	pool_t *pool;
 
 	malloc_mutex_lock(&ctl_mtx);
 	READONLY();
-	if (*oldlenp != ctl_stats.narenas * sizeof(bool)) {
+	pool = pools[mib[1]];
+	if (*oldlenp != pool->ctl_stats.narenas * sizeof(bool)) {
 		ret = EINVAL;
-		nread = (*oldlenp < ctl_stats.narenas * sizeof(bool))
-		    ? (*oldlenp / sizeof(bool)) : ctl_stats.narenas;
+		nread = (*oldlenp < pool->ctl_stats.narenas * sizeof(bool))
+		    ? (*oldlenp / sizeof(bool)) : pool->ctl_stats.narenas;
 	} else {
 		ret = 0;
-		nread = ctl_stats.narenas;
+		nread = pool->ctl_stats.narenas;
 	}
 
 	for (i = 0; i < nread; i++)
-		((bool *)oldp)[i] = ctl_stats.arenas[i].initialized;
+		((bool *)oldp)[i] = pool->ctl_stats.arenas[i].initialized;
 
 label_return:
 	malloc_mutex_unlock(&ctl_mtx);
@@ -1449,9 +1612,9 @@ CTL_RO_NL_GEN(arenas_page, PAGE, size_t)
 CTL_RO_NL_CGEN(config_tcache, arenas_tcache_max, tcache_maxclass, size_t)
 CTL_RO_NL_GEN(arenas_nbins, NBINS, unsigned)
 CTL_RO_NL_CGEN(config_tcache, arenas_nhbins, nhbins, unsigned)
-CTL_RO_NL_GEN(arenas_bin_i_size, arena_bin_info[mib[2]].reg_size, size_t)
-CTL_RO_NL_GEN(arenas_bin_i_nregs, arena_bin_info[mib[2]].nregs, uint32_t)
-CTL_RO_NL_GEN(arenas_bin_i_run_size, arena_bin_info[mib[2]].run_size, size_t)
+CTL_RO_NL_GEN(arenas_bin_i_size, arena_bin_info[mib[4]].reg_size, size_t)
+CTL_RO_NL_GEN(arenas_bin_i_nregs, arena_bin_info[mib[4]].nregs, uint32_t)
+CTL_RO_NL_GEN(arenas_bin_i_run_size, arena_bin_info[mib[4]].run_size, size_t)
 static const ctl_named_node_t *
 arenas_bin_i_index(const size_t *mib, size_t miblen, size_t i)
 {
@@ -1462,7 +1625,7 @@ arenas_bin_i_index(const size_t *mib, size_t miblen, size_t i)
 }
 
 CTL_RO_NL_GEN(arenas_nlruns, nlclasses, size_t)
-CTL_RO_NL_GEN(arenas_lrun_i_size, ((mib[2]+1) << LG_PAGE), size_t)
+CTL_RO_NL_GEN(arenas_lrun_i_size, ((mib[4]+1) << LG_PAGE), size_t)
 static const ctl_named_node_t *
 arenas_lrun_i_index(const size_t *mib, size_t miblen, size_t i)
 {
@@ -1473,44 +1636,27 @@ arenas_lrun_i_index(const size_t *mib, size_t miblen, size_t i)
 }
 
 static int
-arenas_purge_ctl(const size_t *mib, size_t miblen, void *oldp, size_t *oldlenp,
-    void *newp, size_t newlen)
-{
-	int ret;
-	unsigned arena_ind;
-
-	malloc_mutex_lock(&ctl_mtx);
-	WRITEONLY();
-	arena_ind = UINT_MAX;
-	WRITE(arena_ind, unsigned);
-	if (newp != NULL && arena_ind >= ctl_stats.narenas)
-		ret = EFAULT;
-	else {
-		if (arena_ind == UINT_MAX)
-			arena_ind = ctl_stats.narenas;
-		arena_purge(arena_ind);
-		ret = 0;
-	}
-
-label_return:
-	malloc_mutex_unlock(&ctl_mtx);
-	return (ret);
-}
-
-static int
 arenas_extend_ctl(const size_t *mib, size_t miblen, void *oldp, size_t *oldlenp,
     void *newp, size_t newlen)
 {
 	int ret;
 	unsigned narenas;
+	unsigned pool_ind = mib[1];
+	pool_t *pool;
+
+	if (pool_ind >= POOLS_MAX) {
+		ret = ENOENT;
+		goto label_return;
+	}
+	pool = pools[pool_ind];
 
 	malloc_mutex_lock(&ctl_mtx);
 	READONLY();
-	if (ctl_grow()) {
+	if (ctl_grow(pool)) {
 		ret = EAGAIN;
 		goto label_return;
 	}
-	narenas = ctl_stats.narenas - 1;
+	narenas = pool->ctl_stats.narenas - 1;
 	READ(narenas, unsigned);
 
 	ret = 0;
@@ -1518,6 +1664,92 @@ label_return:
 	malloc_mutex_unlock(&ctl_mtx);
 	return (ret);
 }
+
+/**
+ * @stub
+ */
+static int
+pools_npools_ctl(const size_t *mib, size_t miblen, void *oldp, size_t *oldlenp,
+    void *newp, size_t newlen)
+{
+       int ret;
+       unsigned _npools;
+
+       malloc_mutex_lock(&ctl_mtx);
+       READONLY();
+       if (*oldlenp != sizeof(unsigned)) {
+               ret = EINVAL;
+               goto label_return;
+       }
+       _npools = npools;
+       READ(_npools, unsigned);
+
+       ret = 0;
+label_return:
+       malloc_mutex_unlock(&ctl_mtx);
+       return (ret);
+}
+
+/**
+ * @stub
+ */
+static int
+pool_i_base_ctl(const size_t *mib, size_t miblen, void *oldp, size_t *oldlenp,
+    void *newp, size_t newlen)
+{
+       int ret;
+
+       READONLY();
+       WRITEONLY();
+       malloc_mutex_lock(&ctl_mtx);
+       //TODO
+       malloc_mutex_unlock(&ctl_mtx);
+
+       ret = 0;
+label_return:
+       return (ret);
+}
+
+/**
+ * @stub
+ */
+static int
+pool_i_size_ctl(const size_t *mib, size_t miblen, void *oldp, size_t *oldlenp,
+    void *newp, size_t newlen)
+{
+       int ret;
+
+       READONLY();
+       WRITEONLY();
+       malloc_mutex_lock(&ctl_mtx);
+       //TODO
+       malloc_mutex_unlock(&ctl_mtx);
+
+       ret = 0;
+label_return:
+       return (ret);
+}
+
+/**
+ * @stub
+ */
+static const ctl_named_node_t *
+pool_i_index(const size_t *mib, size_t miblen, size_t i)
+{
+       const ctl_named_node_t * ret;
+
+       malloc_mutex_lock(&ctl_mtx);
+       if (i > POOLS_MAX) {
+               ret = NULL;
+               goto label_return;
+       }
+
+       ret = super_pool_i_node;
+label_return:
+       malloc_mutex_unlock(&ctl_mtx);
+       return (ret);
+}
+
 
 /******************************************************************************/
 
@@ -1576,68 +1808,75 @@ label_return:
 CTL_RO_NL_CGEN(config_prof, prof_interval, prof_interval, uint64_t)
 
 /******************************************************************************/
+/*
+ * @TODO remember to split up stats to arena-related and th rest
+ */
 
-CTL_RO_CGEN(config_stats, stats_cactive, &stats_cactive, size_t *)
-CTL_RO_CGEN(config_stats, stats_allocated, ctl_stats.allocated, size_t)
-CTL_RO_CGEN(config_stats, stats_active, ctl_stats.active, size_t)
-CTL_RO_CGEN(config_stats, stats_mapped, ctl_stats.mapped, size_t)
-
-CTL_RO_CGEN(config_stats, stats_chunks_current, ctl_stats.chunks.current,
+CTL_RO_CGEN(config_stats, stats_cactive, &(pools[mib[1]]->stats_cactive), size_t *)
+CTL_RO_CGEN(config_stats, stats_allocated, pools[mib[1]]->ctl_stats_allocated, size_t)
+CTL_RO_CGEN(config_stats, stats_active, pools[mib[1]]->ctl_stats_active, size_t)
+CTL_RO_CGEN(config_stats, stats_mapped, pools[mib[1]]->ctl_stats_mapped, size_t)
+CTL_RO_CGEN(config_stats, stats_chunks_current, pools[mib[1]]->ctl_stats.chunks.current,
     size_t)
-CTL_RO_CGEN(config_stats, stats_chunks_total, ctl_stats.chunks.total, uint64_t)
-CTL_RO_CGEN(config_stats, stats_chunks_high, ctl_stats.chunks.high, size_t)
-CTL_RO_CGEN(config_stats, stats_huge_allocated, huge_allocated, size_t)
-CTL_RO_CGEN(config_stats, stats_huge_nmalloc, huge_nmalloc, uint64_t)
-CTL_RO_CGEN(config_stats, stats_huge_ndalloc, huge_ndalloc, uint64_t)
+CTL_RO_CGEN(config_stats, stats_chunks_total, pools[mib[1]]->ctl_stats.chunks.total, uint64_t)
+CTL_RO_CGEN(config_stats, stats_chunks_high, pools[mib[1]]->ctl_stats.chunks.high, size_t)
 
-CTL_RO_GEN(stats_arenas_i_dss, ctl_stats.arenas[mib[2]].dss, const char *)
-CTL_RO_GEN(stats_arenas_i_nthreads, ctl_stats.arenas[mib[2]].nthreads, unsigned)
-CTL_RO_GEN(stats_arenas_i_pactive, ctl_stats.arenas[mib[2]].pactive, size_t)
-CTL_RO_GEN(stats_arenas_i_pdirty, ctl_stats.arenas[mib[2]].pdirty, size_t)
+CTL_RO_GEN(stats_arenas_i_dss, pools[mib[1]]->ctl_stats.arenas[mib[4]].dss, const char *)
+CTL_RO_GEN(stats_arenas_i_nthreads, pools[mib[1]]->ctl_stats.arenas[mib[4]].nthreads, unsigned)
+CTL_RO_GEN(stats_arenas_i_pactive, pools[mib[1]]->ctl_stats.arenas[mib[4]].pactive, size_t)
+CTL_RO_GEN(stats_arenas_i_pdirty, pools[mib[1]]->ctl_stats.arenas[mib[4]].pdirty, size_t)
 CTL_RO_CGEN(config_stats, stats_arenas_i_mapped,
-    ctl_stats.arenas[mib[2]].astats.mapped, size_t)
+    pools[mib[1]]->ctl_stats.arenas[mib[4]].astats.mapped, size_t)
 CTL_RO_CGEN(config_stats, stats_arenas_i_npurge,
-    ctl_stats.arenas[mib[2]].astats.npurge, uint64_t)
+    pools[mib[1]]->ctl_stats.arenas[mib[4]].astats.npurge, uint64_t)
 CTL_RO_CGEN(config_stats, stats_arenas_i_nmadvise,
-    ctl_stats.arenas[mib[2]].astats.nmadvise, uint64_t)
+    pools[mib[1]]->ctl_stats.arenas[mib[4]].astats.nmadvise, uint64_t)
 CTL_RO_CGEN(config_stats, stats_arenas_i_purged,
-    ctl_stats.arenas[mib[2]].astats.purged, uint64_t)
+    pools[mib[1]]->ctl_stats.arenas[mib[4]].astats.purged, uint64_t)
 
 CTL_RO_CGEN(config_stats, stats_arenas_i_small_allocated,
-    ctl_stats.arenas[mib[2]].allocated_small, size_t)
+    pools[mib[1]]->ctl_stats.arenas[mib[4]].allocated_small, size_t)
 CTL_RO_CGEN(config_stats, stats_arenas_i_small_nmalloc,
-    ctl_stats.arenas[mib[2]].nmalloc_small, uint64_t)
+    pools[mib[1]]->ctl_stats.arenas[mib[4]].nmalloc_small, uint64_t)
 CTL_RO_CGEN(config_stats, stats_arenas_i_small_ndalloc,
-    ctl_stats.arenas[mib[2]].ndalloc_small, uint64_t)
+    pools[mib[1]]->ctl_stats.arenas[mib[4]].ndalloc_small, uint64_t)
 CTL_RO_CGEN(config_stats, stats_arenas_i_small_nrequests,
-    ctl_stats.arenas[mib[2]].nrequests_small, uint64_t)
+    pools[mib[1]]->ctl_stats.arenas[mib[4]].nrequests_small, uint64_t)
 CTL_RO_CGEN(config_stats, stats_arenas_i_large_allocated,
-    ctl_stats.arenas[mib[2]].astats.allocated_large, size_t)
+    pools[mib[1]]->ctl_stats.arenas[mib[4]].astats.allocated_large, size_t)
 CTL_RO_CGEN(config_stats, stats_arenas_i_large_nmalloc,
-    ctl_stats.arenas[mib[2]].astats.nmalloc_large, uint64_t)
+    pools[mib[1]]->ctl_stats.arenas[mib[4]].astats.nmalloc_large, uint64_t)
 CTL_RO_CGEN(config_stats, stats_arenas_i_large_ndalloc,
-    ctl_stats.arenas[mib[2]].astats.ndalloc_large, uint64_t)
+    pools[mib[1]]->ctl_stats.arenas[mib[4]].astats.ndalloc_large, uint64_t)
 CTL_RO_CGEN(config_stats, stats_arenas_i_large_nrequests,
-    ctl_stats.arenas[mib[2]].astats.nrequests_large, uint64_t)
+    pools[mib[1]]->ctl_stats.arenas[mib[4]].astats.nrequests_large, uint64_t)
+CTL_RO_CGEN(config_stats, stats_arenas_i_huge_allocated,
+    pools[mib[1]]->ctl_stats.arenas[mib[4]].astats.allocated_huge, size_t)
+CTL_RO_CGEN(config_stats, stats_arenas_i_huge_nmalloc,
+    pools[mib[1]]->ctl_stats.arenas[mib[4]].astats.nmalloc_huge, uint64_t)
+CTL_RO_CGEN(config_stats, stats_arenas_i_huge_ndalloc,
+    pools[mib[1]]->ctl_stats.arenas[mib[4]].astats.ndalloc_huge, uint64_t)
+CTL_RO_CGEN(config_stats, stats_arenas_i_huge_nrequests,
+    pools[mib[1]]->ctl_stats.arenas[mib[4]].astats.nrequests_huge, uint64_t)
 
 CTL_RO_CGEN(config_stats, stats_arenas_i_bins_j_allocated,
-    ctl_stats.arenas[mib[2]].bstats[mib[4]].allocated, size_t)
+    pools[mib[1]]->ctl_stats.arenas[mib[4]].bstats[mib[6]].allocated, size_t)
 CTL_RO_CGEN(config_stats, stats_arenas_i_bins_j_nmalloc,
-    ctl_stats.arenas[mib[2]].bstats[mib[4]].nmalloc, uint64_t)
+    pools[mib[1]]->ctl_stats.arenas[mib[4]].bstats[mib[6]].nmalloc, uint64_t)
 CTL_RO_CGEN(config_stats, stats_arenas_i_bins_j_ndalloc,
-    ctl_stats.arenas[mib[2]].bstats[mib[4]].ndalloc, uint64_t)
+    pools[mib[1]]->ctl_stats.arenas[mib[4]].bstats[mib[6]].ndalloc, uint64_t)
 CTL_RO_CGEN(config_stats, stats_arenas_i_bins_j_nrequests,
-    ctl_stats.arenas[mib[2]].bstats[mib[4]].nrequests, uint64_t)
+    pools[mib[1]]->ctl_stats.arenas[mib[4]].bstats[mib[6]].nrequests, uint64_t)
 CTL_RO_CGEN(config_stats && config_tcache, stats_arenas_i_bins_j_nfills,
-    ctl_stats.arenas[mib[2]].bstats[mib[4]].nfills, uint64_t)
+    pools[mib[1]]->ctl_stats.arenas[mib[4]].bstats[mib[6]].nfills, uint64_t)
 CTL_RO_CGEN(config_stats && config_tcache, stats_arenas_i_bins_j_nflushes,
-    ctl_stats.arenas[mib[2]].bstats[mib[4]].nflushes, uint64_t)
+    pools[mib[1]]->ctl_stats.arenas[mib[4]].bstats[mib[6]].nflushes, uint64_t)
 CTL_RO_CGEN(config_stats, stats_arenas_i_bins_j_nruns,
-    ctl_stats.arenas[mib[2]].bstats[mib[4]].nruns, uint64_t)
+    pools[mib[1]]->ctl_stats.arenas[mib[4]].bstats[mib[6]].nruns, uint64_t)
 CTL_RO_CGEN(config_stats, stats_arenas_i_bins_j_nreruns,
-    ctl_stats.arenas[mib[2]].bstats[mib[4]].reruns, uint64_t)
+    pools[mib[1]]->ctl_stats.arenas[mib[4]].bstats[mib[6]].reruns, uint64_t)
 CTL_RO_CGEN(config_stats, stats_arenas_i_bins_j_curruns,
-    ctl_stats.arenas[mib[2]].bstats[mib[4]].curruns, size_t)
+    pools[mib[1]]->ctl_stats.arenas[mib[4]].bstats[mib[6]].curruns, size_t)
 
 static const ctl_named_node_t *
 stats_arenas_i_bins_j_index(const size_t *mib, size_t miblen, size_t j)
@@ -1649,13 +1888,13 @@ stats_arenas_i_bins_j_index(const size_t *mib, size_t miblen, size_t j)
 }
 
 CTL_RO_CGEN(config_stats, stats_arenas_i_lruns_j_nmalloc,
-    ctl_stats.arenas[mib[2]].lstats[mib[4]].nmalloc, uint64_t)
+    pools[mib[1]]->ctl_stats.arenas[mib[4]].lstats[mib[6]].nmalloc, uint64_t)
 CTL_RO_CGEN(config_stats, stats_arenas_i_lruns_j_ndalloc,
-    ctl_stats.arenas[mib[2]].lstats[mib[4]].ndalloc, uint64_t)
+    pools[mib[1]]->ctl_stats.arenas[mib[4]].lstats[mib[6]].ndalloc, uint64_t)
 CTL_RO_CGEN(config_stats, stats_arenas_i_lruns_j_nrequests,
-    ctl_stats.arenas[mib[2]].lstats[mib[4]].nrequests, uint64_t)
+    pools[mib[1]]->ctl_stats.arenas[mib[4]].lstats[mib[6]].nrequests, uint64_t)
 CTL_RO_CGEN(config_stats, stats_arenas_i_lruns_j_curruns,
-    ctl_stats.arenas[mib[2]].lstats[mib[4]].curruns, size_t)
+    pools[mib[1]]->ctl_stats.arenas[mib[4]].lstats[mib[6]].curruns, size_t)
 
 static const ctl_named_node_t *
 stats_arenas_i_lruns_j_index(const size_t *mib, size_t miblen, size_t j)
@@ -1669,15 +1908,33 @@ stats_arenas_i_lruns_j_index(const size_t *mib, size_t miblen, size_t j)
 static const ctl_named_node_t *
 stats_arenas_i_index(const size_t *mib, size_t miblen, size_t i)
 {
-	const ctl_named_node_t * ret;
+	const ctl_named_node_t *ret;
 
 	malloc_mutex_lock(&ctl_mtx);
-	if (i > ctl_stats.narenas || ctl_stats.arenas[i].initialized == false) {
+	if (i > pools[mib[1]]->ctl_stats.narenas ||
+			pools[mib[1]]->ctl_stats.arenas[i].initialized == false) {
 		ret = NULL;
 		goto label_return;
 	}
 
 	ret = super_stats_arenas_i_node;
+label_return:
+	malloc_mutex_unlock(&ctl_mtx);
+	return (ret);
+}
+
+static const ctl_named_node_t *
+thread_pool_i_index(const size_t *mib, size_t miblen, size_t i)
+{
+	const ctl_named_node_t *ret;
+
+	malloc_mutex_lock(&ctl_mtx);
+	if (i > POOLS_MAX) {
+		ret = NULL;
+		goto label_return;
+	}
+
+	ret = super_thread_pool_i_node;
 label_return:
 	malloc_mutex_unlock(&ctl_mtx);
 	return (ret);

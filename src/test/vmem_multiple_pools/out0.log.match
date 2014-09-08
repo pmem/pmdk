@@ -1,0 +1,3 @@
+vmem_multiple_pools/TEST0: START: vmem_multiple_pools
+ ./vmem_multiple_pools$(*)
+vmem_multiple_pools/TEST0: Done

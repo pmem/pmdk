@@ -1,0 +1,31 @@
+<libvmem>: $(*)
+<libvmem>: $(*)
+<libvmem>: $(*)
+<libvmem>: $(*)
+<libvmem>: $(*)
+<libvmem>: $(*)
+<libvmem>: $(*)
+<libvmem>: $(*)
+<libvmem>: $(*)
+<libvmem>: $(*)
+<libvmem>: $(*)
+___ Begin jemalloc statistics ___
+Allocated: $(*), active: $(*), mapped: $(*)
+Current active ceiling: $(*)
+chunks: nchunks   highchunks    curchunks
+              $(*)            $(*)            $(*)
+
+Merged arenas stats:
+assigned threads: $(*)
+dss allocation precedence: $(*)
+dirty pages: $(*):$(*) active:dirty, $(*) sweeps, $(*) madvises, $(*) purged
+            allocated      nmalloc      ndalloc    nrequests
+small:          $(*)           $(*)            $(*)            $(*)
+large:          $(*)            $(*)            $(*)            $(*)
+huge:               $(*)            $(*)            $(*)            $(*)
+total:          $(*)           $(*)            $(*)            $(*)
+active:         $(*)
+mapped:       $(*)
+--- End jemalloc statistics ---
+<libvmem>: $(*)
+<libvmem>: $(*)

@@ -1,0 +1,19 @@
+<libvmem>: $(*)
+<libvmem>: $(*)
+<libvmem>: $(*)
+<libvmem>: $(*)
+<libvmem>: $(*)
+<libvmem>: $(*)
+<libvmem>: $(*)
+<libvmem>: $(*)
+<libvmem>: $(*)
+<libvmem>: $(*)
+<libvmem>: $(*)
+___ Begin jemalloc statistics ___
+Allocated: $(*), active: $(*), mapped: $(*)
+Current active ceiling: $(*)
+chunks: nchunks   highchunks    curchunks
+              $(*)            $(*)            $(*)
+--- End jemalloc statistics ---
+<libvmem>: $(*)
+<libvmem>: $(*)

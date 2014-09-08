@@ -1,0 +1,1216 @@
+.\"
+.\" Copyright (c) 2014, Intel Corporation
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\"
+.\"     * Redistributions of source code must retain the above copyright
+.\"       notice, this list of conditions and the following disclaimer.
+.\"
+.\"     * Redistributions in binary form must reproduce the above copyright
+.\"       notice, this list of conditions and the following disclaimer in
+.\"       the documentation and/or other materials provided with the
+.\"       distribution.
+.\"
+.\"     * Neither the name of Intel Corporation nor the names of its
+.\"       contributors may be used to endorse or promote products derived
+.\"       from this software without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+.\" "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+.\" LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+.\" A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+.\" OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+.\" SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+.\" LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+.\" DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+.\" THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+.\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+.\" OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+.\"
+.\"
+.\" libpmem.3 -- man page for libpmem
+.\"
+.\" Format this man page with:
+.\"	man -l libpmem.3
+.\" or
+.\"	groff -man -Tascii libpmem.3
+.\"
+.TH libpmem 3 "pmem API version 0.48" "NVM Library"
+.SH NAME
+libpmem \- persistent memory library
+.SH SYNOPSIS
+.nf
+.B #include <libpmem.h>
+.sp
+.B cc ... -lpmem
+.sp
+.B Flush-to-persistence support:
+.sp
+.BI "int pmem_is_pmem(void *" addr ", size_t " len );
+.BI "void pmem_persist(void *" addr ", size_t " len ", int " flags );
+.BI "void pmem_flush(void *" addr ", size_t " len ", int " flags );
+.BI "void pmem_fence(void);"
+.BI "void pmem_drain(void);"
+.sp
+.B Support for Persistent Memory Transactions:
+.sp
+.BI "PMEMtrn *pmemtrn_map(int " fd );
+.BI "void pmemtrn_unmap(PMEMtrn *" ptp );
+.B XXX REST OF TRANSACTION SECTION NOT READY FOR REVIEW
+.sp
+.B Support for Atomic Arrays:
+.sp
+.BI "PMEMblk *pmemblk_map(int " fd ", size_t " bsize );
+.BI "void pmemblk_unmap(PMEMblk *" pbp );
+.BI "size_t pmemblk_nblock(PMEMblk *" pbp );
+.BI "int pmemblk_read(PMEMblk *" pbp ", void *" buf ", off_t " blockno );
+.BI "int pmemblk_write(PMEMblk *" pbp ", const void *" buf ", off_t " blockno );
+.BI "int pmemblk_set_zero(PMEMblk *" pbp ", off_t " blockno );
+.BI "int pmemblk_set_error(PMEMblk *" pbp ", off_t " blockno );
+.sp
+.B Support for Persistent Memory Logs:
+.sp
+.BI "PMEMlog *pmemlog_map(int " fd );
+.BI "void pmemlog_unmap(PMEMlog *" plp );
+.BI "size_t pmemlog_nbyte(PMEMlog *" plp );
+.BI "int pmemlog_append(PMEMlog *" plp ", const void *" buf ", size_t " count );
+.BI "int pmemlog_appendv(PMEMlog *" plp ", const struct iovec *" iov ", int " iovcnt );
+.BI "off_t pmemlog_tell(PMEMlog *" plp );
+.BI "void pmemlog_rewind(PMEMlog *" plp );
+.BI "void pmemlog_walk(PMEMlog *" plp ", size_t " chunksize ,
+.BI "           int (*" process_chunk ")(const void *" buf ", size_t " len ", void *" arg ),
+.BI "           void *" arg );
+.sp
+.B Managing overall library behavior:
+.sp
+.BI "const char *pmem_check_version("
+.BI "           unsigned " major_required ,
+.BI "           unsigned " minor_required );
+.BI "void pmem_set_funcs("
+.BI "           void *(*" malloc_func ")(size_t " size ),
+.BI "           void (*" free_func ")(void *" ptr ),
+.BI "           void *(*" realloc_func ")(void *" ptr ", size_t " size ),
+.BI "           char *(*" strdup_func ")(const char *" s ),
+.BI "           void (*" print_func ")(const char *" s ),
+.BI "           void (*" persist_func ")(void *" addr ", size_t " len" , int " flags ));
+.BI "int pmemtrn_check(const char *" path );
+.BI "int pmemblk_check(const char *" path );
+.BI "int pmemlog_check(const char *" path );
+.fi
+.sp
+.SH DESCRIPTION
+.PP
+.B libpmem
+provides several
+interfaces to persistent memory pools built on memory-mapped files.
+The interfaces are divided into categories, each described in a section
+below.
+All the interfaces may be used concurrently, however memory from
+different memory pools must not be mixed.  For example, memory allocated
+from a transactional memory pool created with
+.BR pmemtrn_map ()
+must not be freed to any other memory pool.
+.PP
+.B libpmem
+uses the
+.BR mmap (2)
+system call to access memory pools.  The library
+is most useful when used with
+.I Direct Access
+storage (DAX), which is memory-addressable persistent storage
+that supports load/store access without being paged via the system page cache.
+A Persistent Memory-aware file system is typically used to provide this
+type of access.  Memory-mapping a file from a Persistent
+Memory-aware file system provides the raw memory pools, and this library
+supplies additional semantics like
+.I transactions
+on top of those pools.
+.PP
+Under normal usage,
+.B libpmem
+will never print messages or intentionally cause the process to exit.
+The only exception to this is the debugging information, when enabled, as
+described under
+.B DEBUGGING
+below.
+The library uses
+.BR pthreads (7)
+to be fully MT-safe, but never creates or destroys threads itself.
+The library does not make use of any signals, networking, and
+never calls
+.BR select ()
+or
+.BR poll ().
+The system memory allocation routines like
+.BR malloc ()
+and
+.BR free ()
+are used by
+.B libpmem
+for managing a small amount of run-time state, but applications
+are allowed to override these calls if necessary (see the description
+of
+.BR pmem_set_funcs ()
+below).
+.SH FLUSH-TO-PERSISTENCE
+.PP
+These interfaces are meant for fairly raw access to persistent
+memory, where a persistent memory file has been memory mapped (see
+.BR mmap (2))
+and the application takes on full responsibility to storing data to
+the mapped area and flushing those stores to make them persistent.
+Traditionally, forcing memory mapped changes to persistence is done
+using
+.BR msync (2),
+and that will work as expected with Persistent Memory as well.
+However, platforms may have more optimal ways to flush changes
+in a range of memory.  These functions are provided
+for the case where a range is known to be true Persistent Memory
+(not paged from storage).
+.PP
+.BI "int pmem_is_pmem(void *" addr ", size_t " len );
+.IP
+The
+.BR pmem_is_pmem ()
+function returns true only if the entire range
+.IR "" [ addr ", " addr + len )
+consists entirely of Persistent Memory.  A true return from
+.BR pmem_is_pmem ()
+means it is safe to use
+.BR pmem_persist ()
+and the related functions below to make changes durable for that
+memory range.
+.IP
+The implementation of
+.BR pmem_is_pmem ()
+requires a non-trivial amount of work to determine if the given range
+is entirely Persistent Memory.  For this reason, it is better to call
+.BR pmem_is_pmem ()
+once when a range of memory is first encountered, save the result, and
+use the saved result to determine whether
+.BR pmem_persist ()
+or
+.BR msync (2)
+is called when flushing changes to persistence.  Calling
+.BR pmem_is_pmem ()
+each time changes are flushed to persistence will not perform well.
+.IP
+WARNING: Using
+.BR pmem_persist ()
+on a range where
+.BR pmem_is_pmem ()
+returns false may not do anything useful -- use
+.BR msync (2)
+instead.
+.PP
+.BI "void pmem_persist(void *" addr ", size_t " len ", int " flags );
+.IP
+Force any changes in the range
+.IR "" [ addr ", " addr + len )
+to be stored
+durably in Persistent Memory.  This is equivalent to calling
+.BR msync (2)
+as described above, but may be more optimal and will
+avoid calling into the kernel if possible.
+There are no alignment restrictions on
+the range described by
+.I addr
+and
+.IR len ,
+but
+.BR pmem_persist ()
+may expand the range as necessary
+to meet platform alignment requirements.
+Zero should be passed in for
+.I flags
+since no flags have been defined for this call yet.
+.IP
+WARNING: Like
+.BR msync (2),
+there is nothing
+atomic or transactional about this call.  Any
+unwritten stores in the given range will be written,
+but some stores may have already been written by
+virtue of normal cache eviction/replacement policies.
+Correctly written code must not depend on stores
+waiting until
+.BR pmem_persist ()
+is called to become
+persistent -- they can become persistent at any time
+before
+.BR pmem_persist ()
+is called.
+.PP
+.nf
+.BI "void pmem_flush(void *" addr ", size_t " len ", int " flags );
+.BI "void pmem_fence(void);"
+.BI "void pmem_drain(void);"
+.fi
+.IP
+These three functions provide partial versions of the
+.BR pmem_persist ()
+function described above.
+.BR pmem_persist ()
+can be thought of as this:
+.IP
+.nf
+void pmem_persist(void *addr, size_t len, int flags)
+{
+    /* flush the processor caches */
+    pmem_flush(addr, len, flags);
+
+    /* Persistent Memory store barrier */
+    pmem_fence();
+
+    /* wait for any PM stores to drain from HW buffers */
+    pmem_drain();
+}
+.fi
+.IP
+These functions allow advanced programs to create their
+own variations of
+.BR pmem_persist ().
+For example, a program
+that needs to flush several discontiguous ranges can call
+.BR pmem_flush ()
+for each range and then follow up by
+calling the
+.BR pmem_fence ()
+and
+.BR pmem_drain ()
+once.
+.SH PERSISTENT MEMORY TRANSACTIONS
+.PP
+To use the transactions supplied by
+.BR libpmem ,
+a
+.I memory pool
+is first created.  This is done with the
+.BR pmemtrn_map ()
+function described in this section.
+The other functions
+described in this section then operate on the transaction-based
+memory pool.
+.PP
+Once created, the memory pool is represented by an opaque handle,
+of type
+.IR "PMEMtrn *" ,
+which is passed to most of the other functions in this section.
+Internally,
+.B libpmem
+will use either
+.B pmem_persist ()
+or
+.B msync (2)
+when it needs to flush changes, depending on whether
+the memory pool appears to be Persistent Memory or a regular file
+(see
+.BR pmem_is_pmem ()
+above for more information).
+There is no need for applications to flush changes directly
+when using the transactional memory API described in this section.
+.PP
+.BI "PMEMtrn *pmemtrn_map(int " fd );
+.IP
+The
+.BR pmemtrn_map ()
+function maps a transactional memory pool into memory, creating
+a new pool in the file referenced by
+.I fd
+if an existing pool is not found.
+.BR pmemtrn_map ()
+returns a memory
+pool handle used with most of the functions in this section.
+.I fd
+must be a file descriptor for a file opened for both reading and writing,
+and the file size must already be set appropriately
+(for example, by calling
+.BR posix_fallocate ()
+the first time the file is used).
+.BR pmemtrn_map ()
+will map the file using
+.BR mmap (2),
+and detect if the file already contains a
+.B libpmem
+memory pool from an earlier use of the file with
+.BR pmemtrn_map ().
+If a memory pool is not found, a new pool is created,
+overwriting any data contained in the file.
+The minimum
+file size allowed by the library for a transactional memory
+pool is defined in
+.B <libpmem.h>
+as
+.BR PMEMTRN_MIN_POOL .
+After
+.BR pmemtrn_map ()
+returns the memory pool handle, the file descriptor
+.I fd
+may be closed by the caller without impacting the use
+of
+.B libpmem
+on the memory pool.
+.BR pmemtrn_map ()
+returns NULL on error, setting errno appropriately.
+It is an error to use
+.BR pmemtrn_map ()
+on a file with a different type of memory pool in it.  The library
+will return EINVAL for this case.  To switch the type of memory pool
+in a file, it is best to delete the file and recreate it.
+.IP
+Each time a transactional memory pool is mapped using
+.BR pmemtrn_map (),
+a brief consistency check is performed, similar to the check done by
+.BR pmemtrn_check ()
+described below, but less extensive.  If a consistency issue is
+discovered, the severity of the pool corruption is evaluated to
+determine if read-only access is still viable.  If so,
+.BR pmemtrn_map ()
+succeeds but any subsequent calls to change the pool will
+return the error EROFS.  If the memory pool is not viable
+for read-only access,
+.BR pmemtrn_map ()
+will return the error EINVAL.  In either case, see
+.BR pmemtrn_check ()
+below for a description of how to determine the details of the
+memory pool corruption.
+.PP
+.BI "void pmemtrn_unmap(PMEMtrn *" ptp );
+.IP
+The
+.BR pmemtrn_unmap ()
+function unmaps the memory pool indicated by
+.I ptp
+and deletes the memory pool handle.  The transactional memory pool
+itself lives on in the file that contains it and may be re-opened
+at a later time using
+.BR pmemtrn_map ()
+as described above.
+Any in-progress (incomplete) transactions in outstanding at the time
+.BR pmemtrn_unmap ()
+is called are discarded in the same manner as if the program had terminated
+before completed those transactions.
+.PP
+.B XXX REST OF TRANSACTION SECTION NOT READY FOR REVIEW
+.SH ATOMIC ARRAYS
+.PP
+To use the atomic block arrays supplied by
+.BR libpmem ,
+a
+.I memory pool
+is first created.  This is done with the
+.BR pmemblk_map ()
+function described in this section.
+The other functions
+described in this section then operate on the resulting block
+memory pool.
+.PP
+Once created, the memory pool is represented by an opaque handle,
+of type
+.IR "PMEMblk *" ,
+which is passed to most of the other functions in this section.
+Internally,
+.B libpmem
+will use either
+.B pmem_persist ()
+or
+.B msync (2)
+when it needs to flush changes, depending on whether
+the memory pool appears to be Persistent Memory or a regular file
+(see
+.BR pmem_is_pmem ()
+above for more information).
+There is no need for applications to flush changes directly
+when using the block memory API described in this section.
+.PP
+.BI "PMEMblk *pmemblk_map(int " fd ", size_t " bsize );
+.IP
+The
+.B pmemblk_map ()
+function maps a block memory pool into memory (an array of
+blocks that support atomic update at the block level), returning a memory
+pool handle used with most of the functions in this section.
+.I fd
+must be a file descriptor for a file opened for both reading and writing,
+and the file size must already be set appropriately
+(for example, by calling
+.BR posix_fallocate ()
+the first time the file is used).
+.I bsize
+is the block size of each element in the pool.
+.B pmemblk_map ()
+will map the file using
+.BR mmap (2),
+and detect if the file already contains a
+.B libpmem
+memory pool from an earlier use of the file with
+.BR pmemblk_map ().
+If a memory pool is not found, a new pool is created,
+overwriting any data contained in the file.
+.BR pmemblk_map ()
+will fit as many blocks as possible in the given file, but some
+space will be used by the library for metadata.  See
+.BR pmemblk_nblock ()
+below for a way to determine the resulting number of usable blocks.
+The minimum
+file size allowed by the library for a block pool is defined in
+.B <libpmem.h>
+as
+.BR PMEMBLK_MIN_POOL .
+There are no restrictions on the block size
+.IR bsize ,
+however
+.B libpmem
+will silently round up the given size to
+.BR PMEMBLK_MIN_BLK ,
+as defined in
+.BR <libpmem.h> .
+After
+.BR pmemblk_map ()
+returns the memory pool handle, the file descriptor
+.I fd
+may be closed by the caller without impacting the use
+of
+.B libpmem
+on the memory pool.
+.BR pmemblk_map ()
+returns NULL on error, setting errno appropriately.
+It is an error to use
+.BR pmemblk_map ()
+on a file with a different type of memory pool in it.  The library
+will return EINVAL for this case.  To switch the type of memory pool
+in a file, it is best to delete the file and recreate it.
+.IP
+Each time a block memory pool is mapped using
+.BR pmemblk_map (),
+a brief consistency check is performed, similar to the check done by
+.BR pmemblk_check ()
+described below, but less extensive.  If a consistency issue is
+discovered, the severity of the pool corruption is evaluated to
+determine if read-only access is still viable.  If so,
+.BR pmemblk_map ()
+succeeds but any subsequent calls to change the pool will
+return the error EROFS.  If the memory pool is not viable
+for read-only access,
+.BR pmemblk_map ()
+will return the error EINVAL.  In either case, see
+.BR pmemblk_check ()
+below for a description of how to determine the details of the
+memory pool corruption.
+.PP
+.BI "void pmemblk_unmap(PMEMblk *" pbp );
+.IP
+The
+.BR pmemblk_unmap ()
+function unmaps the memory pool indicated by
+.I pbp
+and deletes the memory pool handle.  The block memory pool
+itself lives on in the file that contains it and may be re-opened
+at a later time using
+.BR pmemblk_map ()
+as described above.
+.PP
+.BI "size_t pmemblk_nblock(PMEMblk *" pbp );
+.IP
+The
+.BR pmemblk_nblock ()
+function returns the usable space in the block memory pool,
+expressed as the number of blocks available.
+.I pbp
+must be a block memory pool as returned by
+.BR pmemblk_map ().
+.PP
+.BI "int pmemblk_read(PMEMblk *" pbp ", void *" buf ", off_t " blockno );
+.IP
+The
+.BR pmemblk_read ()
+function reads a block from memory pool
+.IR pbp ,
+block number
+.IR blockno ,
+into the buffer
+.IR buf .
+On success, zero is returned.  On error, -1 is returned and errno is set.
+Reading a block that has never been written by
+.BR pmemblk_write ()
+since the creation of block memory pool will return a block of zeroes, as
+that is the initial state of all blocks when the memory pool is created.
+.PP
+.BI "int pmemblk_write(PMEMblk *" pbp ", const void *" buf ", off_t " blockno );
+.IP
+The
+.BR pmemblk_write ()
+function writes a block from
+.I buf
+to block number
+.I blockno
+in the memory pool
+.IR pbp .
+The write is atomic with respect to other reads and writes.  In addition,
+the write cannot be torn by program failure or system crashes; on recovery
+the block is guaranteed to contain either the old data or the new data,
+never a mixture of both.
+On success, zero is returned.  On error, -1 is returned and errno is set.
+.PP
+.BI "int pmemblk_set_zero(PMEMblk *" pbp ", off_t " blockno );
+.IP
+The
+.BR pmemblk_set_zero ()
+function writes zeros to block number
+.I blockno
+in memory pool
+.IR pbp .
+Using this function is faster than actually writing a block of zeros
+since
+.B libpmem
+uses metadata to indicate the block should read back as zero.
+On success, zero is returned.  On error, -1 is returned and errno is set.
+.PP
+.BI "int pmemblk_set_error(PMEMblk *" pbp ", off_t " blockno );
+.IP
+The
+.BR pmemblk_set_error ()
+function sets the error state for block number
+.I blockno
+in memory pool
+.IR pbp .
+A block in the error state returns errno EIO when read.  Writing the
+block clears the error state and returns the block to normal use.
+On success, zero is returned.  On error, -1 is returned and errno is set.
+.SH PERSISTENT MEMORY LOGS
+.PP
+To use the persistent memory logs supplied by
+.BR libpmem ,
+a
+.I memory pool
+is first created.  This is done with the
+.BR pmemlog_map ()
+function described in this section.
+The other functions
+described in this section then operate on the resulting log
+memory pool.
+.PP
+Once created, the memory pool is represented by an opaque handle,
+of type
+.IR "PMEMlog *" ,
+which is passed to most of the other functions in this section.
+Internally,
+.B libpmem
+will use either
+.B pmem_persist ()
+or
+.B msync (2)
+when it needs to flush changes, depending on whether
+the memory pool appears to be Persistent Memory or a regular file
+(see
+.BR pmem_is_pmem ()
+above for more information).
+There is no need for applications to flush changes directly
+when using the log memory API described in this section.
+.PP
+.BI "PMEMlog *pmemlog_map(int " fd );
+.IP
+The
+.B pmemlog_map ()
+function maps a log memory pool into memory (a persistent memory
+resident log file), returning a memory
+pool handle used with most of the functions in this section.
+.I fd
+must be a file descriptor for a file opened for both reading and writing,
+and the file size must already be set appropriately
+(for example, by calling
+.BR posix_fallocate ()
+the first time the file is used).
+.B pmemlog_map ()
+will map the file using
+.BR mmap (2),
+and detect if the file already contains a
+.B libpmem
+memory pool from an earlier use of the file with
+.BR pmemlog_map ().
+If a memory pool is not found, a new pool is created,
+overwriting any data contained in the file.
+.BR pmemlog_map ()
+will create as large a log as possible in the given file, but some
+space will be used by the library for metadata.  See
+.BR pmemlog_nbyte ()
+below for a way to determine the resulting usable space.
+The minimum
+file size allowed by the library for a log memory pool is defined in
+.B <libpmem.h>
+as
+.BR PMEMLOG_MIN_POOL .
+After
+.BR pmemlog_map ()
+returns the memory pool handle, the file descriptor
+.I fd
+may be closed by the caller without impacting the use
+of
+.B libpmem
+on the memory pool.
+.BR pmemlog_map ()
+returns NULL on error, setting errno appropriately.
+It is an error to use
+.BR pmemlog_map ()
+on a file with a different type of memory pool in it.  The library
+will return EINVAL for this case.  To switch the type of memory pool
+in a file, it is best to delete the file and recreate it.
+.IP
+Each time a log memory pool is mapped using
+.BR pmemlog_map (),
+a brief consistency check is performed, similar to the check done by
+.BR pmemlog_check ()
+described below, but less extensive.  If a consistency issue is
+discovered, the severity of the pool corruption is evaluated to
+determine if read-only access is still viable.  If so,
+.BR pmemlog_map ()
+succeeds but any subsequent calls to change the pool will
+return the error EROFS.  If the memory pool is not viable
+for read-only access,
+.BR pmemlog_map ()
+will return the error EINVAL.  In either case, see
+.BR pmemlog_check ()
+below for a description of how to determine the details of the
+memory pool corruption.
+.PP
+.BI "void pmemlog_unmap(PMEMlog *" plp );
+.IP
+The
+.BR pmemlog_unmap ()
+function unmaps the memory pool indicated by
+.I plp
+and deletes the memory pool handle.  The log memory pool
+itself lives on in the file that contains it and may be re-opened
+at a later time using
+.BR pmemlog_map ()
+as described above.
+.PP
+.BI "size_t pmemlog_nbyte(PMEMlog *" plp );
+.IP
+The
+.BR pmemlog_nbyte ()
+function returns the
+amount of usable space in the log
+.IR plp .
+This function may be used on a log to determine how much
+usable space is available after
+.B libpmem
+has added its metadata to the memory pool.
+.PP
+.BI "int pmemlog_append(PMEMlog *" plp ", const void *" buf ", size_t " count );
+.IP
+The
+.BR pmemlog_append ()
+function appends
+.I count
+bytes from
+.I buf
+to the current write offset in the log memory pool
+.IR plp .
+Calling this function is analogous to appending to a file.  The append
+is atomic and cannot be torn by a program failure or system crash.
+On success, zero is returned.  On error, -1 is returned and errno is set.
+.PP
+.BI "int pmemlog_appendv(PMEMlog *" plp ", const struct iovec *" iov ", int " iovcnt );
+.IP
+The
+.BR pmemlog_appendv ()
+function appends to the log
+.I plp
+just like
+.BR pmemlog_append ()
+above, but this function takes a scatter/gather list in a manner
+similar to
+.BR writev (2).
+In this case, the entire list of buffers is appended atomically.
+On success, zero is returned.  On error, -1 is returned and errno is set.
+.PP
+.BI "off_t pmemlog_tell(PMEMlog *" plp );
+.IP
+The
+.BR pmemlog_tell ()
+function returns the current write point for the log, expressed as a byte
+offset into the usable log space in the memory pool.  This offset starts
+off as zero on a newly-created log, and is incremented by each successful
+append operation.  This function can be used to determine how much data
+is currently in the log.
+.PP
+.BI "void pmemlog_rewind(PMEMlog *" plp );
+.IP
+The
+.BR pmemlog_rewind ()
+function resets the current write point for the log to zero.  After this
+call, the next append adds to the beginning of the log.
+.PP
+.nf
+.BI "void pmemlog_walk(PMEMlog *" plp ", size_t chunksize ,
+.BI "           int (*" process_chunk ")(const void *" buf ", size_t " len ", void *" arg ),
+.BI "           void *" arg );
+.fi
+.IP
+The
+.BR pmemlog_walk ()
+function walks through the log
+.IR plp ,
+from beginning to end, calling the callback function
+.I process_chunk
+for each
+.I chunksize
+block of data found.
+The argument
+.I arg
+is also passed to the callback to help avoid the need for global state.
+The
+.I chunksize
+argument is useful for logs with fixed-length records and may be specified
+as 0 to cause a single call to the callback with the entire log contents
+passed as the
+.I buf
+argument.  The
+.I len
+argument tells the
+.I process_chunk
+function how much data buf is holding.
+The callback function should return true if
+.BR pmemlog_walk ()
+should continue walking through the log, or false to
+terminate the walk.
+The callback function is called while holding
+.B libpmem
+internal locks that make calls atomic, so the callback function
+must not try to append to the log itself or deadlock will occur.
+.SH MANAGING LIBRARY BEHAVIOR
+.PP
+The library entry points described in this section are less
+commonly used than the previous section.
+These entry points expose library information or alter
+the default library behavior.
+.PP
+.nf
+.BI "const char *pmem_check_version("
+.BI "           unsigned " major_required ,
+.BI "           unsigned " minor_required );
+.fi
+.IP
+The
+.BR pmem_check_version ()
+function is used to see if the installed
+.B libpmem
+supports the version of the library API required by an application.
+The easiest way to do this is for the application to supply the
+compile-time version information, supplied by defines in
+.BR <libpmem.h> ,
+like this:
+.IP
+.nf
+reason = pmem_check_version(PMEM_MAJOR_VERSION,
+                            PMEM_MINOR_VERSION);
+if (reason != NULL {
+	/*  version check failed, reason string tells you why */
+}
+.fi
+.IP
+Any mismatch in the major version number is considered a failure,
+but a library with a newer minor version number will pass this
+check since increasing minor versions imply backwards compatibility.
+.IP
+An application can also check specifically for the existence of
+an interface by checking for the version where that interface was
+introduced.  These versions are documented in this man page as follows:
+unless otherwise specified, all interfaces described here are available
+in version 1.0 of the library.  Interfaces added after version 1.0
+will contain the text
+.I introduced in version x.y
+in the section of this manual describing the feature.
+.IP
+When the version check performed by
+.BR pmem_check_version ()
+is successful, the return value is NULL.  Otherwise the return value
+is a static string describing the reason for failing the version check.
+The string returned by
+.BR pmem_check_version ()
+must not be modified or freed.
+.PP
+.nf
+.BI "void pmem_set_funcs("
+.BI "           void *(*" malloc_func ")(size_t " size ),
+.BI "           void (*" free_func ")(void *" ptr ),
+.BI "           void *(*" realloc_func ")(void *" ptr ", size_t " size ),
+.BI "           char *(*" strdup_func ")(const char *" s ),
+.BI "           void (*" print_func ")(const char *" s ),
+.BI "           void (*" persist_func ")(void *" addr ", size_t " len ", int " flags ));
+.fi
+.IP
+The
+.BR pmem_set_funcs ()
+function allows an application to override some
+interfaces used internally by
+.BR libpmem .
+Passing in NULL for any of the handlers will cause the
+.B libpmem
+default function to be used.
+The library does not make heavy use of the system malloc functions, but
+it does allocate approximately 4-8 kilobytes for each memory pool in use.
+The only functions in the malloc family used by the library are represented
+by the first four arguments to
+.BR pmem_set_funcs ().
+The
+.I print_func
+function is called by
+.B libpmem
+when additional tracing is enabled
+in the debug version of the library as described in the
+.B DEBUGGING
+section below.
+The default
+.I print_func
+used by the library prints to
+the file specified by the
+.B PMEM_LOG_FILE
+environment variable, or to
+.B stderr
+if that variable is not set.
+The
+.I persist_func
+is called by
+.B libpmem
+to make changes to Persistent Memory persistent.  The default
+.I persist_func
+used by the library is
+.BR pmem_persist (),
+described in this manual.
+.PP
+.nf
+.BI "int pmemtrn_check(const char *" path );
+.BI "int pmemblk_check(const char *" path );
+.BI "int pmemlog_check(const char *" path );
+.fi
+.IP
+These functions perform a consistency check of the file
+indicated by
+.IR path .
+They return true if the memory pool is found to be consistent.  In
+the event of inconsistencies, continued use of the file
+with
+.B libpmem
+will result in undefined behavior.  The debug version of
+.B libpmem
+will provide additional details on inconsistencies when
+.B PMEM_LOG_LEVEL
+is at least 1, as described in the
+.B DEBUGGING
+section below.
+These functions open the given
+.I path
+read-only so they never make any changes to the file.
+Although these functions are mostly used during the development of
+.B libpmem
+itself, they are potentially useful for determining the type of
+memory pool contained in a file (only the appropriate check function
+will return true).
+.SH DEBUGGING
+.PP
+Two versions of
+.B libpmem
+are typically available on a development system.
+The normal version, accessed when a program is
+linked using the
+.B -lpmem
+option, is optimized for performance.  That version skips checks
+that impact performance and never logs any trace information or performs
+any run-time assertions.  A second version, accessed when a program
+uses the libraries under
+.BR /usr/lib/nvml_debug ,
+contains run-time assertions and trace points.
+The typical way to access the debug version is to set the environment variable
+.B LD_LIBRARY_PATH
+to
+.BR /usr/lib/nvml_debug
+or
+.BR /usr/lib64/nvml_debug
+depending on where the debug libraries are installed on the system.
+The trace points in the debug version of the library
+are enabled using the environment variable
+.BR PMEM_LOG_LEVEL ,
+which can be set to the following values:
+.IP 0
+This is the default level when
+.B PMEM_LOG_LEVEL
+is not set.  No log messages are emitted at this level.
+.IP 1
+Additional details on any errors detected are logged (in addition
+to returning the errno-based errors as usual).
+.IP 2
+A trace of basic operations including allocations and deallocations
+is logged.
+.IP 3
+This level enables a very verbose amount of function call tracing
+in the library.
+.IP 4
+This level enables voluminous and fairly obscure tracing information
+that is likely only useful to the
+.B libpmem
+developers.
+.PP
+The environment variable
+.B PMEM_LOG_FILE
+specifies a file name where
+all logging information should be written, and if
+.B PMEM_LOG_FILE
+is not set, output goes to stderr.
+All prints are done using the
+.I print_func
+function in
+.B libpmem
+(see
+.BR pmem_set_funcs ()
+above for details on how to override that function).
+.PP
+Setting the environment variable
+.B PMEM_LOG_LEVEL
+has no effect on the non-debug version of
+.BR libpmem .
+.SH BASIC PERSISTENT MEMORY EXAMPLE
+.PP
+The follow example uses
+.B libpmem
+to flush changes made to raw, memory-mapped persistent memory.
+.IP
+.\" run source through expand -4 before inserting...
+.nf
+#include <sys/mman.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <libpmem.h>
+
+int
+main(int argc, char *argv[])
+{
+    int fd;
+    char *pmaddr;
+
+    /* memory map some persistent memory */
+    if ((fd = open("/my/pmem-aware/fs/myfile", O_RDWR)) < 0) {
+        perror("open");
+        exit(1);
+    }
+
+    /* just map 4k for this example */
+    if ((pmaddr = mmap(NULL, 4096, PROT_READ|PROT_WRITE,
+                MAP_SHARED, fd, 0)) == MAP_FAILED) {
+        perror("mmap");
+        exit(1);
+    }
+    close(fd);
+
+    /* store a string to the persistent memory */
+    strcpy(pmaddr, "hello, persistent memory");
+
+    /*
+     * The above stores may or may not be sitting in cache at
+     * this point, depending on other system activity causing
+     * cache pressure.  Now force the change to be durable
+     * (flushed all the say to the persistent memory).  If
+     * unsure whether the file is really persistent memory,
+     * use pmem_is_pmem() to decide whether pmem_persist() can
+     * be used, or whether msync() must be used.
+     */
+    if (pmem_is_pmem(pmaddr, 4096))
+        pmem_persist(pmaddr, 4096, 0);
+    else
+        msync(pmaddr, 4096, MS_SYNC);
+}
+.fi
+.SH ATOMIC ARRAYS EXAMPLE
+.PP
+The follow example shows how the
+.I pmemblk
+entry points to
+.B libpmem
+are used to provide atomic arrays.
+.IP
+.\" run source through expand -4 before inserting...
+.nf
+#include <stdio.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <libpmem.h>
+
+/* size of each element in the PMEM pool (bytes) */
+#define ELEMENT_SIZE ((size_t)1024)
+
+int
+main(int argc, char *argv[])
+{
+    int fd;
+    PMEMblk *pbp;
+    size_t nelements;
+    char buf[ELEMENT_SIZE];
+
+    /* create file on PMEM-aware file system */
+    if ((fd = open("/my/pmem-aware/fs/myfile",
+                    O_CREAT|O_RDWR, 0666)) < 0) {
+        perror("open");
+        exit(1);
+    }
+
+    /* pre-allocate 2GB of persistent memory */
+    if ((errno = posix_fallocate(fd, (off_t)0,
+                    (size_t)1024 * 1024 * 1024 * 2)) != 0) {
+        perror("posix_fallocate");
+        exit(1);
+    }
+
+    /* create an array of atomically writable elements */
+    if ((pbp = pmemblk_map(fd, ELEMENT_SIZE)) == NULL) {
+        perror("pmemblk_map");
+        exit(1);
+    }
+
+    /* how many elements fit into the PMEM pool? */
+    nelements = pmemblk_nblock(pbp);
+    printf("file holds %zu elements\n", nelements);
+
+    /* store a block at index 5 */
+    strcpy(buf, "hello, world");
+    if (pmemblk_write(pbp, buf, 5) < 0) {
+        perror("pmemblk_write");
+        exit(1);
+    }
+
+    /* read the block at index 10 (reads as zeros initially) */
+    if (pmemblk_read(pbp, buf, 10) < 0) {
+        perror("pmemblk_write");
+        exit(1);
+    }
+
+    /* zero out the block at index 5 */
+    if (pmemblk_set_zero(pbp, 5) < 0) {
+        perror("pmemblk_set_zero");
+        exit(1);
+    }
+
+    /* ... */
+
+    pmemblk_unmap(pbp);
+    close(fd);
+}
+.fi
+.SH PERSISTENT MEMORY LOG EXAMPLE
+.PP
+The follow example shows how the
+.I pmemlog
+entry points to
+.B libpmem
+are used to provide a persistent memory resident log file.
+.IP
+.\" run source through expand -4 before inserting...
+.nf
+#include <stdio.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <libpmem.h>
+
+/* log processing callback for use with pmemlog_walk() */
+int
+printit(const void *buf, size_t len, void *arg)
+{
+    fwrite(buf, len, 1, stdout);
+    return 0;
+}
+
+int
+main(int argc, char *argv[])
+{
+    int fd;
+    PMEMlog *plp;
+    size_t nbyte;
+    char *str;
+
+    /* create file on PMEM-aware file system */
+    if ((fd = open("/my/pmem-aware/fs/myfile",
+                    O_CREAT|O_RDWR, 0666)) < 0) {
+        perror("open");
+        exit(1);
+    }
+
+    /* pre-allocate 2GB of persistent memory */
+    if ((errno = posix_fallocate(fd, (off_t)0,
+                    (size_t)1024 * 1024 * 1024 * 2)) != 0) {
+        perror("posix_fallocate");
+        exit(1);
+    }
+
+    /* create a persistent memory resident log */
+    if ((plp = pmemlog_map(fd)) == NULL) {
+        perror("pmemlog_map");
+        exit(1);
+    }
+
+    /* how many bytes does the log hold? */
+    nbyte = pmemlog_nbyte(plp);
+    printf("log holds %zu bytes\n", nbyte);
+
+    /* append to the log... */
+    str = "This is the first string appended\n";
+    if (pmemlog_append(plp, str, strlen(str)) < 0) {
+        perror("pmemlog_append");
+        exit(1);
+    }
+    str = "This is the second string appended\n";
+    if (pmemlog_append(plp, str, strlen(str)) < 0) {
+        perror("pmemlog_append");
+        exit(1);
+    }
+
+    /* print the log contents */
+    printf("log contains:\n");
+    pmemlog_walk(plp, 0, printit, NULL);
+
+    pmemlog_unmap(plp);
+    close(fd);
+}
+.fi
+.SH BUGS
+XXX
+.SH ACKNOWLEDGEMENTS
+.B libpmem
+leverages persistent memory research from the
+community and especially from these notable academic works:
+.IP
+J. Coburn, et al.:
+.IR "NV-Heaps: Making Persistent Objects Fast and Safe with Next Generation, Non-Volatile Memories" ,
+The 16th ACM Conference
+on Architectural Support for Programming Languages and Operating
+Systems (ASPLOS 2011), March 2011, Newport Beach, Ca.
+.IP
+Haris Volos, Andres Jaan Tack, Michael M. Swift:
+.IR "Mnemosyne: Lightweight Persistent Memory" ,
+The 16th ACM Conference on
+Architectural Support for Programming Languages and Operating
+Systems (ASPLOS 2011), March 2011, Newport Beach, California.
+http://research.cs.wisc.edu/sonar/projects/mnemosyne/
+.PP
+.B libpmem
+builds on the persistent memory programming model
+recommended by the SNIA NVM Programming Technical Work Group:
+.IP
+http://snia.org/nvmp
+.SH "SEE ALSO"
+.BR malloc (3),
+.BR posix_memalign (3),
+.BR strdup (3),
+.BR mmap (2),
+.BR msync (2),
+.BR libvmem (3).

@@ -101,16 +101,32 @@ TEST_END
 
 TEST_BEGIN(test_mallctlnametomib_short_mib)
 {
-	size_t mib[4];
+	size_t mib[6];
 	size_t miblen;
+	void *mem;
+	pool_t *pool;
+	unsigned npools;
+	size_t sz = sizeof(npools);
 
-	miblen = 3;
-	mib[3] = 42;
-	assert_d_eq(mallctlnametomib("arenas.bin.0.nregs", mib, &miblen), 0,
+	mem = calloc(1, POOL_MINIMAL_SIZE);
+	assert_ptr_ne(mem, NULL, "Unexpected calloc() failure");
+	pool = je_pool_create(mem, POOL_MINIMAL_SIZE, 1);
+
+	assert_ptr_ne((void*)pool, NULL, "Unexpected je_pool_create() failure");
+	assert_d_eq(mallctl("pools.npools", &npools, &sz, NULL, 0), 0,
+	    "Unexpected mallctl() failure");
+	assert_u_eq(npools, 2, "Unexpected number of pools");
+
+	miblen = 5;
+	mib[5] = 42;
+	assert_d_eq(mallctlnametomib("pool.1.arenas.bin.0.nregs", mib, &miblen), 0,
 	    "Unexpected mallctlnametomib() failure");
-	assert_zu_eq(miblen, 3, "Unexpected mib output length");
-	assert_zu_eq(mib[3], 42,
+	assert_zu_eq(miblen, 5, "Unexpected mib output length");
+	assert_zu_eq(mib[5], 42,
 	    "mallctlnametomib() wrote past the end of the input mib");
+
+	je_pool_delete(pool);
+	free(mem);
 }
 TEST_END
 
@@ -127,10 +143,8 @@ TEST_BEGIN(test_mallctl_config)
 } while (0)
 
 	TEST_MALLCTL_CONFIG(debug);
-	TEST_MALLCTL_CONFIG(dss);
 	TEST_MALLCTL_CONFIG(fill);
 	TEST_MALLCTL_CONFIG(lazy_lock);
-	TEST_MALLCTL_CONFIG(mremap);
 	TEST_MALLCTL_CONFIG(munmap);
 	TEST_MALLCTL_CONFIG(prof);
 	TEST_MALLCTL_CONFIG(prof_libgcc);
@@ -171,7 +185,6 @@ TEST_BEGIN(test_mallctl_opt)
 	TEST_MALLCTL_OPT(bool, redzone, fill);
 	TEST_MALLCTL_OPT(bool, zero, fill);
 	TEST_MALLCTL_OPT(bool, utrace, utrace);
-	TEST_MALLCTL_OPT(bool, valgrind, valgrind);
 	TEST_MALLCTL_OPT(bool, xmalloc, xmalloc);
 	TEST_MALLCTL_OPT(bool, tcache, tcache);
 	TEST_MALLCTL_OPT(size_t, lg_tcache_max, tcache);
@@ -189,23 +202,74 @@ TEST_BEGIN(test_mallctl_opt)
 }
 TEST_END
 
+
+/*
+ * create a couple of pools and check their size
+ * using mib feature
+ */
+TEST_BEGIN(test_mallctl_with_multiple_pools)
+{
+#define NPOOLS 4
+	pool_t *pools[NPOOLS];
+	void *mem;
+	unsigned npools;
+	int i;
+	size_t sz = sizeof(npools);
+	size_t mib[4], miblen;
+
+	mem = calloc(NPOOLS, POOL_MINIMAL_SIZE);
+	assert_ptr_ne(mem, NULL, "Unexpected calloc() failure");
+
+	for (i = 0; i < NPOOLS; ++i) {
+		pools[i] = je_pool_create( mem + (i*POOL_MINIMAL_SIZE), POOL_MINIMAL_SIZE, 1);
+		assert_ptr_ne( (void*)pools[i], NULL, "Unexpected je_pool_create() failure");
+	}
+
+	assert_d_eq(mallctl("pools.npools", &npools, &sz, NULL, 0), 0,
+	    "Unexpected mallctl() failure");
+	assert_u_eq(npools, NPOOLS+1, "Unexpected number of pools");
+
+	miblen = 4;
+	assert_d_eq(mallctlnametomib("pool.0.arenas.narenas", mib, &miblen), 0,
+	    "Unexpected mallctlnametomib() failure");
+
+	/*
+	 * This loop does not use local variable pools.
+	 * Moreover we ommit pool[0].
+	 */
+	for (i = 1; i <= NPOOLS; ++i) {
+		unsigned narenas;
+		mib[1] = i;
+		sz = sizeof(narenas);
+		assert_d_eq(mallctlbymib(mib, miblen, &narenas, &sz, NULL, 0),
+		    0, "Unexpected mallctlbymib() failure");
+	}
+
+	for (i = 0; i < NPOOLS; ++i) {
+		je_pool_delete( pools[i]);
+	}
+	free(mem);
+#undef NPOOLS
+}
+TEST_END
+
 TEST_BEGIN(test_manpage_example)
 {
 	unsigned nbins, i;
-	size_t mib[4];
+	size_t mib[6];
 	size_t len, miblen;
 
 	len = sizeof(nbins);
-	assert_d_eq(mallctl("arenas.nbins", &nbins, &len, NULL, 0), 0,
+	assert_d_eq(mallctl("pool.0.arenas.nbins", &nbins, &len, NULL, 0), 0,
 	    "Unexpected mallctl() failure");
 
-	miblen = 4;
-	assert_d_eq(mallctlnametomib("arenas.bin.0.size", mib, &miblen), 0,
+	miblen = 6;
+	assert_d_eq(mallctlnametomib("pool.0.arenas.bin.0.size", mib, &miblen), 0,
 	    "Unexpected mallctlnametomib() failure");
 	for (i = 0; i < nbins; i++) {
 		size_t bin_size;
 
-		mib[2] = i;
+		mib[4] = i;
 		len = sizeof(bin_size);
 		assert_d_eq(mallctlbymib(mib, miblen, &bin_size, &len, NULL, 0),
 		    0, "Unexpected mallctlbymib() failure");
@@ -219,14 +283,14 @@ TEST_BEGIN(test_thread_arena)
 	unsigned arena_old, arena_new, narenas;
 	size_t sz = sizeof(unsigned);
 
-	assert_d_eq(mallctl("arenas.narenas", &narenas, &sz, NULL, 0), 0,
+	assert_d_eq(mallctl("pool.0.arenas.narenas", &narenas, &sz, NULL, 0), 0,
 	    "Unexpected mallctl() failure");
 	assert_u_eq(narenas, opt_narenas, "Number of arenas incorrect");
 	arena_new = narenas - 1;
-	assert_d_eq(mallctl("thread.arena", &arena_old, &sz, &arena_new,
+	assert_d_eq(mallctl("thread.pool.0.arena", &arena_old, &sz, &arena_new,
 	    sizeof(unsigned)), 0, "Unexpected mallctl() failure");
 	arena_new = 0;
-	assert_d_eq(mallctl("thread.arena", &arena_old, &sz, &arena_new,
+	assert_d_eq(mallctl("thread.pool.0.arena", &arena_old, &sz, &arena_new,
 	    sizeof(unsigned)), 0, "Unexpected mallctl() failure");
 }
 TEST_END
@@ -234,20 +298,35 @@ TEST_END
 TEST_BEGIN(test_arena_i_purge)
 {
 	unsigned narenas;
+	unsigned npools;
 	size_t sz = sizeof(unsigned);
-	size_t mib[3];
-	size_t miblen = 3;
+	size_t mib[5];
+	size_t miblen = 5;
+	void *mem;
+	pool_t *pool;
 
-	assert_d_eq(mallctl("arena.0.purge", NULL, NULL, NULL, 0), 0,
+	mem = calloc(1, POOL_MINIMAL_SIZE);
+	assert_ptr_ne(mem, NULL, "Unexpected calloc() failure");
+	pool = je_pool_create(mem, POOL_MINIMAL_SIZE, 1);
+
+	assert_ptr_ne( (void*)pool, NULL, "Unexpected je_pool_create() failure");
+	assert_d_eq(mallctl("pools.npools", &npools, &sz, NULL, 0), 0,
+	    "Unexpected mallctl() failure");
+	assert_u_eq(npools, 2, "Unexpected number of pools");
+
+	assert_d_eq(mallctl("pool.1.arena.0.purge", NULL, NULL, NULL, 0), 0,
+	    "Unexpected mallctl() failure");
+	assert_d_eq(mallctl("pool.1.arenas.narenas", &narenas, &sz, NULL, 0), 0,
 	    "Unexpected mallctl() failure");
 
-	assert_d_eq(mallctl("arenas.narenas", &narenas, &sz, NULL, 0), 0,
-	    "Unexpected mallctl() failure");
-	assert_d_eq(mallctlnametomib("arena.0.purge", mib, &miblen), 0,
+	assert_d_eq(mallctlnametomib("pool.1.arena.0.purge", mib, &miblen), 0,
 	    "Unexpected mallctlnametomib() failure");
-	mib[1] = narenas;
+	mib[3] = narenas;
 	assert_d_eq(mallctlbymib(mib, miblen, NULL, NULL, NULL, 0), 0,
 	    "Unexpected mallctlbymib() failure");
+
+	je_pool_delete(pool);
+	free(mem);
 }
 TEST_END
 
@@ -255,27 +334,28 @@ TEST_BEGIN(test_arena_i_dss)
 {
 	const char *dss_prec_old, *dss_prec_new;
 	size_t sz = sizeof(dss_prec_old);
+	size_t mib[5];
+	size_t miblen;
 
-	dss_prec_new = "primary";
-	assert_d_eq(mallctl("arena.0.dss", &dss_prec_old, &sz, &dss_prec_new,
+	miblen = sizeof(mib)/sizeof(size_t);
+	assert_d_eq(mallctlnametomib("pool.0.arena.0.dss", mib, &miblen), 0,
+	    "Unexpected mallctlnametomib() error");
+
+	dss_prec_new = "disabled";
+	assert_d_eq(mallctlbymib(mib, miblen, &dss_prec_old, &sz, &dss_prec_new,
 	    sizeof(dss_prec_new)), 0, "Unexpected mallctl() failure");
 	assert_str_ne(dss_prec_old, "primary",
 	    "Unexpected default for dss precedence");
 
-	assert_d_eq(mallctl("arena.0.dss", &dss_prec_new, &sz, &dss_prec_old,
+	assert_d_eq(mallctlbymib(mib, miblen, &dss_prec_new, &sz, &dss_prec_old,
 	    sizeof(dss_prec_old)), 0, "Unexpected mallctl() failure");
-}
-TEST_END
 
-TEST_BEGIN(test_arenas_purge)
-{
-	unsigned arena = 0;
-
-	assert_d_eq(mallctl("arenas.purge", NULL, NULL, &arena, sizeof(arena)),
-	    0, "Unexpected mallctl() failure");
-
-	assert_d_eq(mallctl("arenas.purge", NULL, NULL, NULL, 0), 0,
-	    "Unexpected mallctl() failure");
+	mib[3] = narenas_total_get(pools[0]);
+	dss_prec_new = "disabled";
+	assert_d_eq(mallctlbymib(mib, miblen, &dss_prec_old, &sz, &dss_prec_new,
+	    sizeof(dss_prec_new)), 0, "Unexpected mallctl() failure");
+	assert_str_ne(dss_prec_old, "primary",
+	    "Unexpected default for dss precedence");
 }
 TEST_END
 
@@ -284,13 +364,13 @@ TEST_BEGIN(test_arenas_initialized)
 	unsigned narenas;
 	size_t sz = sizeof(narenas);
 
-	assert_d_eq(mallctl("arenas.narenas", &narenas, &sz, NULL, 0), 0,
+	assert_d_eq(mallctl("pool.0.arenas.narenas", &narenas, &sz, NULL, 0), 0,
 	    "Unexpected mallctl() failure");
 	{
-		bool initialized[narenas];
+		VARIABLE_ARRAY(bool, initialized, narenas);
 
 		sz = narenas * sizeof(bool);
-		assert_d_eq(mallctl("arenas.initialized", initialized, &sz,
+		assert_d_eq(mallctl("pool.0.arenas.initialized", initialized, &sz,
 		    NULL, 0), 0, "Unexpected mallctl() failure");
 	}
 }
@@ -302,7 +382,7 @@ TEST_BEGIN(test_arenas_constants)
 #define	TEST_ARENAS_CONSTANT(t, name, expected) do {			\
 	t name;								\
 	size_t sz = sizeof(t);						\
-	assert_d_eq(mallctl("arenas."#name, &name, &sz, NULL, 0), 0,	\
+	assert_d_eq(mallctl("pool.0.arenas."#name, &name, &sz, NULL, 0), 0,	\
 	    "Unexpected mallctl() failure");				\
 	assert_zu_eq(name, expected, "Incorrect "#name" size");		\
 } while (0)
@@ -322,11 +402,10 @@ TEST_BEGIN(test_arenas_bin_constants)
 #define	TEST_ARENAS_BIN_CONSTANT(t, name, expected) do {		\
 	t name;								\
 	size_t sz = sizeof(t);						\
-	assert_d_eq(mallctl("arenas.bin.0."#name, &name, &sz, NULL, 0),	\
+	assert_d_eq(mallctl("pool.0.arenas.bin.0."#name, &name, &sz, NULL, 0),	\
 	    0, "Unexpected mallctl() failure");				\
 	assert_zu_eq(name, expected, "Incorrect "#name" size");		\
 } while (0)
-
 	TEST_ARENAS_BIN_CONSTANT(size_t, size, arena_bin_info[0].reg_size);
 	TEST_ARENAS_BIN_CONSTANT(uint32_t, nregs, arena_bin_info[0].nregs);
 	TEST_ARENAS_BIN_CONSTANT(size_t, run_size, arena_bin_info[0].run_size);
@@ -341,32 +420,71 @@ TEST_BEGIN(test_arenas_lrun_constants)
 #define	TEST_ARENAS_LRUN_CONSTANT(t, name, expected) do {		\
 	t name;								\
 	size_t sz = sizeof(t);						\
-	assert_d_eq(mallctl("arenas.lrun.0."#name, &name, &sz, NULL,	\
+	assert_d_eq(mallctl("pool.0.arenas.lrun.0."#name, &name, &sz, NULL,	\
 	    0), 0, "Unexpected mallctl() failure");			\
 	assert_zu_eq(name, expected, "Incorrect "#name" size");		\
 } while (0)
-
 	TEST_ARENAS_LRUN_CONSTANT(size_t, size, (1 << LG_PAGE));
 
 #undef TEST_ARENAS_LRUN_CONSTANT
 }
 TEST_END
 
+/*
+ * create a couple of pools and extend their arenas
+ */
 TEST_BEGIN(test_arenas_extend)
 {
-	unsigned narenas_before, arena, narenas_after;
-	size_t sz = sizeof(unsigned);
+#define NPOOLS 4
+	pool_t *pools[NPOOLS];
+	void *mem;
+	unsigned npools, narenas_before, arena, narenas_after;
+	int i;
+	size_t mib_narenas[4],
+	       mib_extend[4],
+	       miblen	= sizeof(mib_narenas),
+	       sz	= sizeof(unsigned);
 
-	assert_d_eq(mallctl("arenas.narenas", &narenas_before, &sz, NULL, 0), 0,
-	    "Unexpected mallctl() failure");
-	assert_d_eq(mallctl("arenas.extend", &arena, &sz, NULL, 0), 0,
-	    "Unexpected mallctl() failure");
-	assert_d_eq(mallctl("arenas.narenas", &narenas_after, &sz, NULL, 0), 0,
-	    "Unexpected mallctl() failure");
+	mem = calloc(NPOOLS, POOL_MINIMAL_SIZE);
+	assert_ptr_ne(mem, NULL, "Unexpected calloc() failure");
 
-	assert_u_eq(narenas_before+1, narenas_after,
-	    "Unexpected number of arenas before versus after extension");
-	assert_u_eq(arena, narenas_after-1, "Unexpected arena index");
+	for (i = 0; i < NPOOLS; ++i) {
+		pools[i] = je_pool_create(mem + (i*POOL_MINIMAL_SIZE), POOL_MINIMAL_SIZE, 0);
+		assert_ptr_ne((void *)pools[i], NULL, "Unexpected je_pool_create() failure");
+	}
+
+	assert_d_eq(mallctl("pools.npools", &npools, &sz, NULL, 0), 0,
+	    "Unexpected mallctl() failure");
+	assert_u_eq(npools, NPOOLS+1, "Unexpected number of pools");
+
+	assert_d_eq(mallctlnametomib("pool.0.arenas.narenas", mib_narenas, &miblen), 0,
+	    "Unexpected mallctlnametomib() failure");
+	assert_d_eq(mallctlnametomib("pool.0.arenas.extend", mib_extend, &miblen), 0,
+	    "Unexpected mallctlnametomib() failure");
+
+	/*
+	 * This loop does not use local variable pools.
+	 * Moreover we ommit pool[0].
+	 */
+	for (i = 1; i <= NPOOLS; ++i) {
+		mib_narenas[1] = i;
+		mib_extend[1] = i;
+		assert_d_eq(mallctlbymib(mib_narenas, miblen, &narenas_before, &sz, NULL, 0),
+		    0, "Unexpected mallctlbymib() failure");
+		assert_d_eq(mallctlbymib(mib_extend, miblen, &arena, &sz, NULL, 0),
+		    0, "Unexpected mallctlbymib() failure");
+		assert_d_eq(mallctlbymib(mib_narenas, miblen, &narenas_after, &sz, NULL, 0),
+		    0, "Unexpected mallctlbymib() failure");
+
+		assert_u_eq(narenas_before+1, narenas_after,
+		    "Unexpected number of arenas before versus after extension");
+		assert_u_eq(arena, narenas_after-1, "Unexpected arena index");
+	}
+	for (i = 0; i < NPOOLS; ++i) {
+		je_pool_delete( pools[i]);
+	}
+	free(mem);
+#undef NPOOLS
 }
 TEST_END
 
@@ -376,7 +494,7 @@ TEST_BEGIN(test_stats_arenas)
 #define	TEST_STATS_ARENAS(t, name) do {					\
 	t name;								\
 	size_t sz = sizeof(t);						\
-	assert_d_eq(mallctl("stats.arenas.0."#name, &name, &sz, NULL,	\
+	assert_d_eq(mallctl("pool.0.stats.arenas.0."#name, &name, &sz, NULL,	\
 	    0), 0, "Unexpected mallctl() failure");			\
 } while (0)
 
@@ -401,11 +519,11 @@ main(void)
 	    test_mallctlnametomib_short_mib,
 	    test_mallctl_config,
 	    test_mallctl_opt,
+	    test_mallctl_with_multiple_pools,
 	    test_manpage_example,
 	    test_thread_arena,
 	    test_arena_i_purge,
 	    test_arena_i_dss,
-	    test_arenas_purge,
 	    test_arenas_initialized,
 	    test_arenas_constants,
 	    test_arenas_bin_constants,

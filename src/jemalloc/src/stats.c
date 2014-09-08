@@ -6,31 +6,45 @@
 	xmallctl(n, v, &sz, NULL, 0);					\
 } while (0)
 
-#define	CTL_I_GET(n, v, t) do {						\
-	size_t mib[6];							\
+#define	CTL_P_GET_ARRAY(n, v, t, c) do {				\
+	size_t mib[8];							\
 	size_t miblen = sizeof(mib) / sizeof(size_t);			\
-	size_t sz = sizeof(t);						\
+	size_t sz = sizeof(t) * c;					\
 	xmallctlnametomib(n, mib, &miblen);				\
-	mib[2] = i;							\
+	mib[1] = p;							\
 	xmallctlbymib(mib, miblen, v, &sz, NULL, 0);			\
 } while (0)
 
-#define	CTL_J_GET(n, v, t) do {						\
-	size_t mib[6];							\
+#define	CTL_P_GET(n, v, t) CTL_P_GET_ARRAY(n, v, t, 1)
+
+#define	CTL_PI_GET(n, v, t) do {					\
+	size_t mib[8];							\
 	size_t miblen = sizeof(mib) / sizeof(size_t);			\
 	size_t sz = sizeof(t);						\
 	xmallctlnametomib(n, mib, &miblen);				\
-	mib[2] = j;							\
+	mib[1] = p;							\
+	mib[4] = i;							\
 	xmallctlbymib(mib, miblen, v, &sz, NULL, 0);			\
 } while (0)
 
-#define	CTL_IJ_GET(n, v, t) do {					\
-	size_t mib[6];							\
+#define	CTL_PJ_GET(n, v, t) do {					\
+	size_t mib[8];							\
 	size_t miblen = sizeof(mib) / sizeof(size_t);			\
 	size_t sz = sizeof(t);						\
 	xmallctlnametomib(n, mib, &miblen);				\
-	mib[2] = i;							\
+	mib[1] = p;							\
 	mib[4] = j;							\
+	xmallctlbymib(mib, miblen, v, &sz, NULL, 0);			\
+} while (0)
+
+#define	CTL_PIJ_GET(n, v, t) do {					\
+	size_t mib[8];							\
+	size_t miblen = sizeof(mib) / sizeof(size_t);			\
+	size_t sz = sizeof(t);						\
+	xmallctlnametomib(n, mib, &miblen);				\
+	mib[1] = p;							\
+	mib[4] = i;							\
+	mib[6] = j;							\
 	xmallctlbymib(mib, miblen, v, &sz, NULL, 0);			\
 } while (0)
 
@@ -39,31 +53,29 @@
 
 bool	opt_stats_print = false;
 
-size_t	stats_cactive = 0;
-
 /******************************************************************************/
 /* Function prototypes for non-inline static functions. */
 
 static void	stats_arena_bins_print(void (*write_cb)(void *, const char *),
-    void *cbopaque, unsigned i);
+    void *cbopaque, unsigned p, unsigned i);
 static void	stats_arena_lruns_print(void (*write_cb)(void *, const char *),
-    void *cbopaque, unsigned i);
+    void *cbopaque, unsigned p, unsigned i);
 static void	stats_arena_print(void (*write_cb)(void *, const char *),
-    void *cbopaque, unsigned i, bool bins, bool large);
+    void *cbopaque, unsigned p, unsigned i, bool bins, bool large);
 
 /******************************************************************************/
 
 static void
 stats_arena_bins_print(void (*write_cb)(void *, const char *), void *cbopaque,
-    unsigned i)
+    unsigned p, unsigned i)
 {
 	size_t page;
 	bool config_tcache;
 	unsigned nbins, j, gap_start;
 
-	CTL_GET("arenas.page", &page, size_t);
+	CTL_P_GET("pool.0.arenas.page", &page, size_t);
 
-	CTL_GET("config.tcache", &config_tcache, bool);
+	CTL_P_GET("config.tcache", &config_tcache, bool);
 	if (config_tcache) {
 		malloc_cprintf(write_cb, cbopaque,
 		    "bins:     bin  size regs pgs    allocated      nmalloc"
@@ -74,11 +86,11 @@ stats_arena_bins_print(void (*write_cb)(void *, const char *), void *cbopaque,
 		    "bins:     bin  size regs pgs    allocated      nmalloc"
 		    "      ndalloc      newruns       reruns      curruns\n");
 	}
-	CTL_GET("arenas.nbins", &nbins, unsigned);
+	CTL_P_GET("pool.0.arenas.nbins", &nbins, unsigned);
 	for (j = 0, gap_start = UINT_MAX; j < nbins; j++) {
 		uint64_t nruns;
 
-		CTL_IJ_GET("stats.arenas.0.bins.0.nruns", &nruns, uint64_t);
+		CTL_PIJ_GET("pool.0.stats.arenas.0.bins.0.nruns", &nruns, uint64_t);
 		if (nruns == 0) {
 			if (gap_start == UINT_MAX)
 				gap_start = j;
@@ -102,26 +114,26 @@ stats_arena_bins_print(void (*write_cb)(void *, const char *), void *cbopaque,
 				}
 				gap_start = UINT_MAX;
 			}
-			CTL_J_GET("arenas.bin.0.size", &reg_size, size_t);
-			CTL_J_GET("arenas.bin.0.nregs", &nregs, uint32_t);
-			CTL_J_GET("arenas.bin.0.run_size", &run_size, size_t);
-			CTL_IJ_GET("stats.arenas.0.bins.0.allocated",
+			CTL_PJ_GET("pool.0.arenas.bin.0.size", &reg_size, size_t);
+			CTL_PJ_GET("pool.0.arenas.bin.0.nregs", &nregs, uint32_t);
+			CTL_PJ_GET("pool.0.arenas.bin.0.run_size", &run_size, size_t);
+			CTL_PIJ_GET("pool.0.stats.arenas.0.bins.0.allocated",
 			    &allocated, size_t);
-			CTL_IJ_GET("stats.arenas.0.bins.0.nmalloc",
+			CTL_PIJ_GET("pool.0.stats.arenas.0.bins.0.nmalloc",
 			    &nmalloc, uint64_t);
-			CTL_IJ_GET("stats.arenas.0.bins.0.ndalloc",
+			CTL_PIJ_GET("pool.0.stats.arenas.0.bins.0.ndalloc",
 			    &ndalloc, uint64_t);
 			if (config_tcache) {
-				CTL_IJ_GET("stats.arenas.0.bins.0.nrequests",
+				CTL_PIJ_GET("pool.0.stats.arenas.0.bins.0.nrequests",
 				    &nrequests, uint64_t);
-				CTL_IJ_GET("stats.arenas.0.bins.0.nfills",
+				CTL_PIJ_GET("pool.0.stats.arenas.0.bins.0.nfills",
 				    &nfills, uint64_t);
-				CTL_IJ_GET("stats.arenas.0.bins.0.nflushes",
+				CTL_PIJ_GET("pool.0.stats.arenas.0.bins.0.nflushes",
 				    &nflushes, uint64_t);
 			}
-			CTL_IJ_GET("stats.arenas.0.bins.0.nreruns", &reruns,
+			CTL_PIJ_GET("pool.0.stats.arenas.0.bins.0.nreruns", &reruns,
 			    uint64_t);
-			CTL_IJ_GET("stats.arenas.0.bins.0.curruns", &curruns,
+			CTL_PIJ_GET("pool.0.stats.arenas.0.bins.0.curruns", &curruns,
 			    size_t);
 			if (config_tcache) {
 				malloc_cprintf(write_cb, cbopaque,
@@ -157,33 +169,33 @@ stats_arena_bins_print(void (*write_cb)(void *, const char *), void *cbopaque,
 
 static void
 stats_arena_lruns_print(void (*write_cb)(void *, const char *), void *cbopaque,
-    unsigned i)
+    unsigned p, unsigned i)
 {
 	size_t page, nlruns, j;
 	ssize_t gap_start;
 
-	CTL_GET("arenas.page", &page, size_t);
+	CTL_P_GET("pool.0.arenas.page", &page, size_t);
 
 	malloc_cprintf(write_cb, cbopaque,
 	    "large:   size pages      nmalloc      ndalloc    nrequests"
 	    "      curruns\n");
-	CTL_GET("arenas.nlruns", &nlruns, size_t);
+	CTL_P_GET("pool.0.arenas.nlruns", &nlruns, size_t);
 	for (j = 0, gap_start = -1; j < nlruns; j++) {
 		uint64_t nmalloc, ndalloc, nrequests;
 		size_t run_size, curruns;
 
-		CTL_IJ_GET("stats.arenas.0.lruns.0.nmalloc", &nmalloc,
+		CTL_PIJ_GET("pool.0.stats.arenas.0.lruns.0.nmalloc", &nmalloc,
 		    uint64_t);
-		CTL_IJ_GET("stats.arenas.0.lruns.0.ndalloc", &ndalloc,
+		CTL_PIJ_GET("pool.0.stats.arenas.0.lruns.0.ndalloc", &ndalloc,
 		    uint64_t);
-		CTL_IJ_GET("stats.arenas.0.lruns.0.nrequests", &nrequests,
+		CTL_PIJ_GET("pool.0.stats.arenas.0.lruns.0.nrequests", &nrequests,
 		    uint64_t);
 		if (nrequests == 0) {
 			if (gap_start == -1)
 				gap_start = j;
 		} else {
-			CTL_J_GET("arenas.lrun.0.size", &run_size, size_t);
-			CTL_IJ_GET("stats.arenas.0.lruns.0.curruns", &curruns,
+			CTL_PJ_GET("pool.0.arenas.lrun.0.size", &run_size, size_t);
+			CTL_PIJ_GET("pool.0.stats.arenas.0.lruns.0.curruns", &curruns,
 			    size_t);
 			if (gap_start != -1) {
 				malloc_cprintf(write_cb, cbopaque, "[%zu]\n",
@@ -203,7 +215,7 @@ stats_arena_lruns_print(void (*write_cb)(void *, const char *), void *cbopaque,
 
 static void
 stats_arena_print(void (*write_cb)(void *, const char *), void *cbopaque,
-    unsigned i, bool bins, bool large)
+    unsigned p, unsigned i, bool bins, bool large)
 {
 	unsigned nthreads;
 	const char *dss;
@@ -213,20 +225,22 @@ stats_arena_print(void (*write_cb)(void *, const char *), void *cbopaque,
 	uint64_t small_nmalloc, small_ndalloc, small_nrequests;
 	size_t large_allocated;
 	uint64_t large_nmalloc, large_ndalloc, large_nrequests;
+	size_t huge_allocated;
+	uint64_t huge_nmalloc, huge_ndalloc, huge_nrequests;
 
-	CTL_GET("arenas.page", &page, size_t);
+	CTL_P_GET("pool.0.arenas.page", &page, size_t);
 
-	CTL_I_GET("stats.arenas.0.nthreads", &nthreads, unsigned);
+	CTL_PI_GET("pool.0.stats.arenas.0.nthreads", &nthreads, unsigned);
 	malloc_cprintf(write_cb, cbopaque,
 	    "assigned threads: %u\n", nthreads);
-	CTL_I_GET("stats.arenas.0.dss", &dss, const char *);
+	CTL_PI_GET("pool.0.stats.arenas.0.dss", &dss, const char *);
 	malloc_cprintf(write_cb, cbopaque, "dss allocation precedence: %s\n",
 	    dss);
-	CTL_I_GET("stats.arenas.0.pactive", &pactive, size_t);
-	CTL_I_GET("stats.arenas.0.pdirty", &pdirty, size_t);
-	CTL_I_GET("stats.arenas.0.npurge", &npurge, uint64_t);
-	CTL_I_GET("stats.arenas.0.nmadvise", &nmadvise, uint64_t);
-	CTL_I_GET("stats.arenas.0.purged", &purged, uint64_t);
+	CTL_PI_GET("pool.0.stats.arenas.0.pactive", &pactive, size_t);
+	CTL_PI_GET("pool.0.stats.arenas.0.pdirty", &pdirty, size_t);
+	CTL_PI_GET("pool.0.stats.arenas.0.npurge", &npurge, uint64_t);
+	CTL_PI_GET("pool.0.stats.arenas.0.nmadvise", &nmadvise, uint64_t);
+	CTL_PI_GET("pool.0.stats.arenas.0.purged", &purged, uint64_t);
 	malloc_cprintf(write_cb, cbopaque,
 	    "dirty pages: %zu:%zu active:dirty, %"PRIu64" sweep%s,"
 	    " %"PRIu64" madvise%s, %"PRIu64" purged\n",
@@ -235,38 +249,45 @@ stats_arena_print(void (*write_cb)(void *, const char *), void *cbopaque,
 
 	malloc_cprintf(write_cb, cbopaque,
 	    "            allocated      nmalloc      ndalloc    nrequests\n");
-	CTL_I_GET("stats.arenas.0.small.allocated", &small_allocated, size_t);
-	CTL_I_GET("stats.arenas.0.small.nmalloc", &small_nmalloc, uint64_t);
-	CTL_I_GET("stats.arenas.0.small.ndalloc", &small_ndalloc, uint64_t);
-	CTL_I_GET("stats.arenas.0.small.nrequests", &small_nrequests, uint64_t);
+	CTL_PI_GET("pool.0.stats.arenas.0.small.allocated", &small_allocated, size_t);
+	CTL_PI_GET("pool.0.stats.arenas.0.small.nmalloc", &small_nmalloc, uint64_t);
+	CTL_PI_GET("pool.0.stats.arenas.0.small.ndalloc", &small_ndalloc, uint64_t);
+	CTL_PI_GET("pool.0.stats.arenas.0.small.nrequests", &small_nrequests, uint64_t);
 	malloc_cprintf(write_cb, cbopaque,
 	    "small:   %12zu %12"PRIu64" %12"PRIu64" %12"PRIu64"\n",
 	    small_allocated, small_nmalloc, small_ndalloc, small_nrequests);
-	CTL_I_GET("stats.arenas.0.large.allocated", &large_allocated, size_t);
-	CTL_I_GET("stats.arenas.0.large.nmalloc", &large_nmalloc, uint64_t);
-	CTL_I_GET("stats.arenas.0.large.ndalloc", &large_ndalloc, uint64_t);
-	CTL_I_GET("stats.arenas.0.large.nrequests", &large_nrequests, uint64_t);
+	CTL_PI_GET("pool.0.stats.arenas.0.large.allocated", &large_allocated, size_t);
+	CTL_PI_GET("pool.0.stats.arenas.0.large.nmalloc", &large_nmalloc, uint64_t);
+	CTL_PI_GET("pool.0.stats.arenas.0.large.ndalloc", &large_ndalloc, uint64_t);
+	CTL_PI_GET("pool.0.stats.arenas.0.large.nrequests", &large_nrequests, uint64_t);
 	malloc_cprintf(write_cb, cbopaque,
 	    "large:   %12zu %12"PRIu64" %12"PRIu64" %12"PRIu64"\n",
 	    large_allocated, large_nmalloc, large_ndalloc, large_nrequests);
+	CTL_PI_GET("pool.0.stats.arenas.0.huge.allocated", &huge_allocated, size_t);
+	CTL_PI_GET("pool.0.stats.arenas.0.huge.nmalloc", &huge_nmalloc, uint64_t);
+	CTL_PI_GET("pool.0.stats.arenas.0.huge.ndalloc", &huge_ndalloc, uint64_t);
+	CTL_PI_GET("pool.0.stats.arenas.0.huge.nrequests", &huge_nrequests, uint64_t);
+	malloc_cprintf(write_cb, cbopaque,
+	    "huge:    %12zu %12"PRIu64" %12"PRIu64" %12"PRIu64"\n",
+	    huge_allocated, huge_nmalloc, huge_ndalloc, huge_nrequests);
 	malloc_cprintf(write_cb, cbopaque,
 	    "total:   %12zu %12"PRIu64" %12"PRIu64" %12"PRIu64"\n",
-	    small_allocated + large_allocated,
-	    small_nmalloc + large_nmalloc,
-	    small_ndalloc + large_ndalloc,
-	    small_nrequests + large_nrequests);
+	    small_allocated + large_allocated + huge_allocated,
+	    small_nmalloc + large_nmalloc + huge_nmalloc,
+	    small_ndalloc + large_ndalloc + huge_ndalloc,
+	    small_nrequests + large_nrequests + huge_nrequests);
 	malloc_cprintf(write_cb, cbopaque, "active:  %12zu\n", pactive * page);
-	CTL_I_GET("stats.arenas.0.mapped", &mapped, size_t);
+	CTL_PI_GET("pool.0.stats.arenas.0.mapped", &mapped, size_t);
 	malloc_cprintf(write_cb, cbopaque, "mapped:  %12zu\n", mapped);
 
 	if (bins)
-		stats_arena_bins_print(write_cb, cbopaque, i);
+		stats_arena_bins_print(write_cb, cbopaque, p, i);
 	if (large)
-		stats_arena_lruns_print(write_cb, cbopaque, i);
+		stats_arena_lruns_print(write_cb, cbopaque, p, i);
 }
 
 void
-stats_print(void (*write_cb)(void *, const char *), void *cbopaque,
+stats_print(pool_t *pool, void (*write_cb)(void *, const char *), void *cbopaque,
     const char *opts)
 {
 	int err;
@@ -277,6 +298,7 @@ stats_print(void (*write_cb)(void *, const char *), void *cbopaque,
 	bool unmerged = true;
 	bool bins = true;
 	bool large = true;
+	unsigned p = pool->pool_id;
 
 	/*
 	 * Refresh stats, in case mallctl() was called by the application.
@@ -404,19 +426,19 @@ stats_print(void (*write_cb)(void *, const char *), void *cbopaque,
 
 		malloc_cprintf(write_cb, cbopaque, "CPUs: %u\n", ncpus);
 
-		CTL_GET("arenas.narenas", &uv, unsigned);
+		CTL_P_GET("pool.0.arenas.narenas", &uv, unsigned);
 		malloc_cprintf(write_cb, cbopaque, "Arenas: %u\n", uv);
 
 		malloc_cprintf(write_cb, cbopaque, "Pointer size: %zu\n",
 		    sizeof(void *));
 
-		CTL_GET("arenas.quantum", &sv, size_t);
+		CTL_P_GET("pool.0.arenas.quantum", &sv, size_t);
 		malloc_cprintf(write_cb, cbopaque, "Quantum size: %zu\n", sv);
 
-		CTL_GET("arenas.page", &sv, size_t);
+		CTL_P_GET("pool.0.arenas.page", &sv, size_t);
 		malloc_cprintf(write_cb, cbopaque, "Page size: %zu\n", sv);
 
-		CTL_GET("opt.lg_dirty_mult", &ssv, ssize_t);
+		CTL_P_GET("opt.lg_dirty_mult", &ssv, ssize_t);
 		if (ssv >= 0) {
 			malloc_cprintf(write_cb, cbopaque,
 			    "Min active:dirty page ratio per arena: %u:1\n",
@@ -458,13 +480,11 @@ stats_print(void (*write_cb)(void *, const char *), void *cbopaque,
 		size_t allocated, active, mapped;
 		size_t chunks_current, chunks_high;
 		uint64_t chunks_total;
-		size_t huge_allocated;
-		uint64_t huge_nmalloc, huge_ndalloc;
 
-		CTL_GET("stats.cactive", &cactive, size_t *);
-		CTL_GET("stats.allocated", &allocated, size_t);
-		CTL_GET("stats.active", &active, size_t);
-		CTL_GET("stats.mapped", &mapped, size_t);
+		CTL_P_GET("pool.0.stats.cactive", &cactive, size_t *);
+		CTL_P_GET("pool.0.stats.allocated", &allocated, size_t);
+		CTL_P_GET("pool.0.stats.active", &active, size_t);
+		CTL_P_GET("pool.0.stats.mapped", &mapped, size_t);
 		malloc_cprintf(write_cb, cbopaque,
 		    "Allocated: %zu, active: %zu, mapped: %zu\n",
 		    allocated, active, mapped);
@@ -472,36 +492,26 @@ stats_print(void (*write_cb)(void *, const char *), void *cbopaque,
 		    "Current active ceiling: %zu\n", atomic_read_z(cactive));
 
 		/* Print chunk stats. */
-		CTL_GET("stats.chunks.total", &chunks_total, uint64_t);
-		CTL_GET("stats.chunks.high", &chunks_high, size_t);
-		CTL_GET("stats.chunks.current", &chunks_current, size_t);
+		CTL_P_GET("pool.0.stats.chunks.total", &chunks_total, uint64_t);
+		CTL_P_GET("pool.0.stats.chunks.high", &chunks_high, size_t);
+		CTL_P_GET("pool.0.stats.chunks.current", &chunks_current, size_t);
 		malloc_cprintf(write_cb, cbopaque, "chunks: nchunks   "
 		    "highchunks    curchunks\n");
 		malloc_cprintf(write_cb, cbopaque,
 		    "  %13"PRIu64" %12zu %12zu\n",
 		    chunks_total, chunks_high, chunks_current);
 
-		/* Print huge stats. */
-		CTL_GET("stats.huge.nmalloc", &huge_nmalloc, uint64_t);
-		CTL_GET("stats.huge.ndalloc", &huge_ndalloc, uint64_t);
-		CTL_GET("stats.huge.allocated", &huge_allocated, size_t);
-		malloc_cprintf(write_cb, cbopaque,
-		    "huge: nmalloc      ndalloc    allocated\n");
-		malloc_cprintf(write_cb, cbopaque,
-		    " %12"PRIu64" %12"PRIu64" %12zu\n",
-		    huge_nmalloc, huge_ndalloc, huge_allocated);
-
 		if (merged) {
 			unsigned narenas;
 
-			CTL_GET("arenas.narenas", &narenas, unsigned);
+			CTL_P_GET("pool.0.arenas.narenas", &narenas, unsigned);
 			{
 				VARIABLE_ARRAY(bool, initialized, narenas);
 				size_t isz;
 				unsigned i, ninitialized;
 
 				isz = sizeof(bool) * narenas;
-				xmallctl("arenas.initialized", initialized,
+				xmallctl("pool.0.arenas.initialized", initialized,
 				    &isz, NULL, 0);
 				for (i = ninitialized = 0; i < narenas; i++) {
 					if (initialized[i])
@@ -513,7 +523,7 @@ stats_print(void (*write_cb)(void *, const char *), void *cbopaque,
 					malloc_cprintf(write_cb, cbopaque,
 					    "\nMerged arenas stats:\n");
 					stats_arena_print(write_cb, cbopaque,
-					    narenas, bins, large);
+					    p, narenas, bins, large);
 				}
 			}
 		}
@@ -523,15 +533,13 @@ stats_print(void (*write_cb)(void *, const char *), void *cbopaque,
 
 			/* Print stats for each arena. */
 
-			CTL_GET("arenas.narenas", &narenas, unsigned);
+			CTL_P_GET("pool.0.arenas.narenas", &narenas, unsigned);
 			{
 				VARIABLE_ARRAY(bool, initialized, narenas);
-				size_t isz;
 				unsigned i;
 
-				isz = sizeof(bool) * narenas;
-				xmallctl("arenas.initialized", initialized,
-				    &isz, NULL, 0);
+				CTL_P_GET_ARRAY("pool.0.arenas.initialized",
+					initialized, bool, narenas);
 
 				for (i = 0; i < narenas; i++) {
 					if (initialized[i]) {
@@ -539,7 +547,7 @@ stats_print(void (*write_cb)(void *, const char *), void *cbopaque,
 						    cbopaque,
 						    "\narenas[%u]:\n", i);
 						stats_arena_print(write_cb,
-						    cbopaque, i, bins, large);
+						    cbopaque, p, i, bins, large);
 					}
 				}
 			}
