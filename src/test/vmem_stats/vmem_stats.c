@@ -39,7 +39,7 @@
 #include "unittest.h"
 
 static char mem_pool[VMEM_MIN_POOL];
-#define TEST_VALUE 1234
+#define	TEST_VALUE 1234
 
 int
 main(int argc, char *argv[])
