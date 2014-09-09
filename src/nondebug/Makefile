@@ -34,4 +34,6 @@
 # src/nondebug/Makefile -- build the nondebug versions of the NVM Library
 #
 
+JEMALLOC_OBJROOT = nondebug
+
 include ../Makefile.inc
