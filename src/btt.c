@@ -814,9 +814,18 @@ write_layout(struct btt *bttp, int lane, int write)
 		for (int i = 0; i < external_nlba; i++) {
 			if (remaining == 0) {
 				/* flush previous mapped area */
-				if (mapp != NULL)
+				if (mapp != NULL) {
+					/*
+					 * Protect the memory again
+					 * (debug version only).
+					 * If (mapp != NULL) it had to be
+					 * unprotected earlier.
+					 */
+					RANGE_RO(mapp, mlen);
+
 					(*bttp->ns_cbp->nssync)(bttp->ns,
 						lane, mapp, mlen);
+				}
 				/* request a mapping of remaining map area */
 				mlen = (*bttp->ns_cbp->nsmap)(bttp->ns,
 					lane, (void **)&mapp,
@@ -826,12 +835,19 @@ write_layout(struct btt *bttp, int lane, int write)
 				if (mlen < 0)
 					return -1;
 
+				/* unprotect the memory (debug version only) */
+				RANGE_RW(mapp, mlen);
+
 				remaining = mlen;
 				next_index = 0;
 			}
 			mapp[next_index++] = htole32(i | BTT_MAP_ENTRY_ZERO);
 			remaining -= sizeof (uint32_t);
 		}
+
+		/* protect the memory again (debug version only) */
+		RANGE_RO(mapp, mlen);
+
 		/* flush previous mapped area */
 		if (mapp != NULL)
 			(*bttp->ns_cbp->nssync)(bttp->ns, lane, mapp, mlen);

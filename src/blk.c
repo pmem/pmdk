@@ -150,7 +150,27 @@ nswrite(void *ns, int lane, const void *buf, size_t count, off_t off)
 	}
 
 	void *dest = pbp->data + off;
+
+#ifdef DEBUG
+	/* grab debug write lock */
+	if (pthread_mutex_lock(&pbp->write_lock))
+		LOG(1, "!pthread_mutex_lock");
+#endif
+
+	/* unprotect the memory (debug version only) */
+	RANGE_RW(dest, count);
+
 	memcpy(dest, buf, count);
+
+	/* protect the memory again (debug version only) */
+	RANGE_RO(dest, count);
+
+#ifdef DEBUG
+	/* release debug write lock */
+	if (pthread_mutex_unlock(&pbp->write_lock))
+		LOG(1, "!pthread_mutex_unlock");
+#endif
+
 	libpmem_persist(pbp->is_pmem, dest, count);
 
 	return 0;
@@ -374,6 +394,14 @@ pmemblk_map_common(int fd, size_t bsize, int rdonly)
 
 	pbp->locks = locks;
 
+#ifdef DEBUG
+	/* initialize debug lock */
+	if (pthread_mutex_init(&pbp->write_lock, NULL) < 0) {
+		LOG(1, "!pthread_mutex_init");
+		goto err;
+	}
+#endif
+
 	/*
 	 * If possible, turn off all permissions on the pool header page.
 	 *
@@ -382,12 +410,8 @@ pmemblk_map_common(int fd, size_t bsize, int rdonly)
 	 */
 	util_range_none(addr, sizeof (struct pool_hdr));
 
-#ifdef	notdef
-	/* XXX not ready to protect the pool just yet */
-	/* the rest should be kept read-only for debug version */
-	RANGE_RO(addr + sizeof (struct pool_hdr),
-			stbuf.st_size - sizeof (struct pool_hdr));
-#endif	/* notdef */
+	/* the data area should be kept read-only for debug version */
+	RANGE_RO(pbp->data, pbp->datasize);
 
 	LOG(3, "pbp %p", pbp);
 	return pbp;
@@ -429,6 +453,12 @@ pmemblk_unmap(PMEMblk *pbp)
 			pthread_mutex_destroy(&pbp->locks[i]);
 		Free((void *)pbp->locks);
 	}
+
+#ifdef DEBUG
+	/* destroy debug lock */
+	pthread_mutex_destroy(&pbp->write_lock);
+#endif
+
 	util_unmap(pbp->addr, pbp->size);
 }
 
