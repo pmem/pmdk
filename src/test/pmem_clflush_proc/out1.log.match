@@ -1,0 +1,4 @@
+pmem_clflush_proc/TEST1: START: pmem_clflush_proc
+ ./pmem_clflush_proc$(*)
+redirected /proc/cpuinfo to cpuinfo_clflushopt
+pmem_clflush_proc/TEST1: Done

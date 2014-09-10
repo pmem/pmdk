@@ -79,17 +79,73 @@ pmem_drain(void)
 }
 
 /*
+ * flush_clflush -- (internal) flush the CPU cache, using clflush
+ */
+static void
+flush_clflush(void *addr, size_t len, int flags)
+{
+	uintptr_t uptr;
+
+	/*
+	 * Loop through cache-line-size (typically 64B) aligned chunks
+	 * covering the given range.
+	 */
+	for (uptr = (uintptr_t)addr & ~(FLUSH_ALIGN - 1);
+		uptr < (uintptr_t)addr + len; uptr += FLUSH_ALIGN)
+		__builtin_ia32_clflush((char *)uptr);
+}
+
+/*
+ * flush_clflushopt -- (internal) flush the CPU cache, using clflushopt
+ */
+static void
+flush_clflushopt(void *addr, size_t len, int flags)
+{
+	uintptr_t uptr;
+
+	/*
+	 * Loop through cache-line-size (typically 64B) aligned chunks
+	 * covering the given range.
+	 */
+	__builtin_ia32_sfence();
+	for (uptr = (uintptr_t)addr & ~(FLUSH_ALIGN - 1);
+		uptr < (uintptr_t)addr + len; uptr += FLUSH_ALIGN) {
+		/*
+		 * __builtin_ia32_clflushopt((char *)uptr);
+		 *
+		 * ...but that intrinsic isn't in all compilers yet,
+		 * so insert the clflushopt instruction by adding the 0x66
+		 * prefix byte to clflush.
+		 */
+		__asm__ volatile(".byte 0x66; clflush %P0" : "+m" (uptr));
+	}
+}
+
+/*
+ * pmem_flush() calls through Func_flush to do the work.  Although
+ * initialized to flush_clflush(), once the existence of the clflushopt
+ * feature is confirmed by pmem_init() at library initialization time,
+ * Func_flush is set to flush_clflushopt().  That's the most common case
+ * on modern hardware that supports persistent memory.
+ */
+static void (*Func_flush)(void *, size_t, int) = flush_clflush;
+
+/*
  * pmem_flush -- flush processor cache for the given range
  */
 void
 pmem_flush(void *addr, size_t len, int flags)
 {
-	uintptr_t uptr;
+	(*Func_flush)(addr, len, flags);
+}
 
-	/* loop through 64B-aligned chunks covering the given range */
-	for (uptr = (uintptr_t)addr & ~(FLUSH_ALIGN - 1);
-			uptr < (uintptr_t)addr + len; uptr += 64)
-		__builtin_ia32_clflush((void *)uptr);
+/*
+ * pmem_fence -- persistent memory store barrier
+ */
+void
+pmem_fence(void)
+{
+	__builtin_ia32_sfence();
 }
 
 /*
@@ -104,7 +160,7 @@ pmem_persist(void *addr, size_t len, int flags)
 }
 
 /*
- * is_pmem_always -- debug/test version of pmem_is_pmem(), always true
+ * is_pmem_always -- (internal) always true version of pmem_is_pmem()
  */
 static int
 is_pmem_always(void *addr, size_t len)
@@ -114,7 +170,7 @@ is_pmem_always(void *addr, size_t len)
 }
 
 /*
- * is_pmem_never -- debug/test version of pmem_is_pmem(), never true
+ * is_pmem_never -- (internal) never true version of pmem_is_pmem()
  */
 static int
 is_pmem_never(void *addr, size_t len)
@@ -124,7 +180,7 @@ is_pmem_never(void *addr, size_t len)
 }
 
 /*
- * is_pmem_proc -- use /proc to implement pmem_is_pmem()
+ * is_pmem_proc -- (internal) use /proc to implement pmem_is_pmem()
  *
  * This function returns true only if the entire range can be confirmed
  * as being direct access persistent memory.  Finding any part of the
@@ -217,8 +273,14 @@ is_pmem_proc(void *addr, size_t len)
 	return retval;
 }
 
-/* pmem_is_pmem() calls this function to do the work */
-static int (*is_pmem_func)(void *addr, size_t len) = is_pmem_proc;
+/*
+ * pmem_is_pmem() calls through Func_is_pmem to do the work.  Although
+ * initialized to is_pmem_never(), once the existence of the clflush
+ * feature is confirmed by pmem_init() at library initialization time,
+ * Func_is_pmem is set to is_pmem_proc().  That's the most common case
+ * on modern hardware.
+ */
+static int (*Func_is_pmem)(void *addr, size_t len) = is_pmem_never;
 
 /*
  * pmem_init -- load-time initialization for pmem.c
@@ -232,6 +294,44 @@ pmem_init(void)
 	out_init(LOG_PREFIX, LOG_LEVEL_VAR, LOG_FILE_VAR);
 	LOG(3, NULL);
 	util_init();
+
+	/* detect supported cache flush features */
+	FILE *fp;
+	if ((fp = fopen("/proc/cpuinfo", "r")) == NULL) {
+		LOG(1, "!/proc/cpuinfo");
+	} else {
+		char line[PROCMAXLEN];	/* for fgets() */
+
+		while (fgets(line, PROCMAXLEN, fp) != NULL) {
+			static const char flags[] = "flags\t\t: ";
+			static const char clflush[] = " clflush ";
+			static const char clflushopt[] = " clflushopt ";
+
+			if (strncmp(flags, line, sizeof (flags) - 1) == 0) {
+
+				/* change ending newline to space delimiter */
+				char *nl = strrchr(line, '\n');
+				if (nl)
+					*nl = ' ';
+
+				if (strstr(&line[sizeof (flags) - 1],
+							clflush) != NULL) {
+					Func_is_pmem = is_pmem_proc;
+					LOG(3, "clflush supported");
+				}
+
+				if (strstr(&line[sizeof (flags) - 1],
+							clflushopt) != NULL) {
+					Func_flush = flush_clflushopt;
+					LOG(3, "clflushopt supported");
+				}
+
+				break;
+			}
+		}
+
+		fclose(fp);
+	}
 
 	/*
 	 * For debugging/testing, allow pmem_is_pmem() to be forced
@@ -248,9 +348,9 @@ pmem_init(void)
 		int val = atoi(ptr);
 
 		if (val == 0)
-			is_pmem_func = is_pmem_never;
+			Func_is_pmem = is_pmem_never;
 		else if (val == 1)
-			is_pmem_func = is_pmem_always;
+			Func_is_pmem = is_pmem_always;
 	}
 }
 
@@ -262,7 +362,7 @@ pmem_is_pmem(void *addr, size_t len)
 {
 	LOG(3, "addr %p len %zu", addr, len);
 
-	return (*is_pmem_func)(addr, len);
+	return (*Func_is_pmem)(addr, len);
 }
 
 /*

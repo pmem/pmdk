@@ -31,57 +31,15 @@
 #
 
 #
-# src/test/Makefile -- build all unit tests
+# src/test/pmem_clflush_proc/Makefile -- build pmem_clflush_proc unit test
 #
-# Makefile -- build all unit tests
-#
-TEST = blk_nblock\
-       blk_recovery\
-       blk_rw\
-       blk_rw_mt\
-       checksum\
-       log_basic\
-       log_recovery\
-       log_walker\
-       pmem_clflush_proc\
-       pmem_is_pmem\
-       pmem_is_pmem_proc\
-       pmem_map\
-       pmem_map_raw\
-       scope\
-       traces\
-       traces_custom_function\
-       util_map_proc\
-       vmem_aligned_alloc\
-       vmem_calloc\
-       vmem_check_allocations\
-       vmem_check_version\
-       vmem_custom_alloc\
-       vmem_freespace\
-       vmem_malloc\
-       vmem_mix_allocations\
-       vmem_multiple_pools\
-       vmem_out_of_memory\
-       vmem_pool_create\
-       vmem_pool_create_error\
-       vmem_pool_create_in_region\
-       vmem_realloc\
-       vmem_stats\
-       vmem_strdup\
-       vmem_valgrind
+TARGET = pmem_clflush_proc
+OBJS = pmem_clflush_proc.o
 
-all     : TARGET = all
-clean   : TARGET = clean
-clobber : TARGET = clobber
-test    : TARGET = test
-cstyle  : TARGET = cstyle
+include ../Makefile.inc
 
-all clean clobber test cstyle: $(TEST)
+LIBS += -lpmem -ldl
+STATIC_DEBUG_LIBS += -ldl
+STATIC_NONDEBUG_LIBS += -ldl
 
-$(TEST): unittest
-	$(MAKE) -C $@ $(TARGET)
-
-unittest:
-	$(MAKE) -C $@ $(TARGET)
-
-.PHONY: all clean clobber test cstyle unittest $(TEST)
+pmem_clflush_proc.o: pmem_clflush_proc.c

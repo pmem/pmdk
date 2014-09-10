@@ -1,0 +1,11 @@
+Linux NVM Library
+
+This is src/test/pmem_clflush_proc/README.
+
+This directory contains a unit test for the pmem clflush/clflushopt checks.
+
+The program in pmem_clflush_proc.c takes a fake /proc/cpuinfo file via
+the environment variable "PFILE".  It arranges for libpmem to open the
+fake /proc file.
+
+	usage: PFILE=cpuinfo-file pmem_clflush_proc
