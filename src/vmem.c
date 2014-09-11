@@ -230,8 +230,7 @@ vmem_pool_freespace(VMEM *vmp)
 {
 	LOG(3, "vmp %p", vmp);
 
-	/* XXX stub */
-	return vmp->size;
+	return je_vmem_pool_freespace((pool_t *)((uintptr_t)vmp + Header_size));
 }
 
 /*

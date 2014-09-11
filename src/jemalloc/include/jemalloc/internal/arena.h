@@ -383,6 +383,10 @@ struct arena_s {
 	arena_bin_t		bins[NBINS];
 };
 
+arena_chunk_map_t *
+arena_runs_avail_tree_iter(arena_t *arena, arena_chunk_map_t *(*cb)
+		(arena_avail_tree_t *, arena_chunk_map_t *, void *), void *arg);
+
 #endif /* JEMALLOC_H_STRUCTS */
 /******************************************************************************/
 #ifdef JEMALLOC_H_EXTERNS

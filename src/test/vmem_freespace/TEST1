@@ -32,24 +32,22 @@
 #
 
 #
-# src/test/vmem_check_allocations/TEST0 -- unit test for vmem_check_allocations
+# src/test/vmem_freespace/TEST1 -- unit test for vmem_freespace
 #
-export UNITTEST_NAME=vmem_check_allocations/TEST0
-export UNITTEST_NUM=0
+export UNITTEST_NAME=vmem_freespace/TEST1
+export UNITTEST_NUM=1
 
 # standard unit test setup
 . ../unittest/unittest.sh
 
-require_fs_type local
+require_fs_type pmem
 require_build_type debug nondebug
 
 setup
 
-# limit output for file vmem*.log to reduce time of execution test
+# limit output for file vmem*.log to reduce time of test execution
 export VMEM_LOG_LEVEL=2
 
-expect_normal_exit ./vmem_check_allocations$EXESUFFIX
-
-check
+expect_normal_exit ./vmem_freespace$EXESUFFIX $DIR
 
 pass

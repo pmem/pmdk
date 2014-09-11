@@ -45,7 +45,7 @@ require_build_type debug nondebug
 
 setup
 
-#limit output for file vmem*.log to reduce time of test execution
+# limit output for file vmem*.log to reduce time of test execution
 export VMEM_LOG_LEVEL=2
 
 expect_normal_exit ./vmem_check_allocations$EXESUFFIX $DIR

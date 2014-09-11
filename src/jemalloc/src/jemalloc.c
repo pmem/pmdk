@@ -1539,6 +1539,52 @@ je_pool_delete(pool_t *pool)
 	malloc_mutex_unlock(&pools_lock);
 }
 
+static extent_node_t *
+tree_binary_iter_cb(extent_tree_t *tree, extent_node_t *node, void *arg)
+{
+	size_t *size = (size_t *)arg;
+	assert(node->size != 0);
+	*size += node->size;
+	return (NULL);
+}
+
+static arena_chunk_map_t *
+tree_chunks_avail_iter_cb(arena_avail_tree_t *tree, arena_chunk_map_t *map, void *arg)
+{
+	size_t *navail = (size_t *)arg;
+	assert((map->bits & (CHUNK_MAP_LARGE|CHUNK_MAP_ALLOCATED)) == 0);
+	assert((map->bits & ~PAGE_MASK) != 0);
+	*navail += (map->bits & ~PAGE_MASK);
+	return (NULL);
+}
+
+size_t
+je_pool_freespace(pool_t *pool)
+{
+	size_t size = 0;
+	malloc_mutex_lock(&pool->chunks_mtx);
+	malloc_mutex_lock(&pool->arenas_lock);
+	extent_tree_szad_iter(&pool->chunks_szad_mmap, NULL, tree_binary_iter_cb, (void *)&size);
+
+	for (size_t i = 0; i < pool->narenas_total; ++i) {
+		arena_t *arena = pool->arenas[i];
+		if (arena != NULL) {
+			malloc_mutex_lock(&arena->lock);
+			arena_runs_avail_tree_iter(arena, tree_chunks_avail_iter_cb, (void *)&size);
+
+			arena_chunk_t *spare = arena->spare;
+			if (spare != NULL) {
+				size += arena_mapbits_unallocated_size_get(spare, map_bias);
+			}
+			malloc_mutex_unlock(&arena->lock);
+		}
+	}
+
+	malloc_mutex_unlock(&pool->arenas_lock);
+	malloc_mutex_unlock(&pool->chunks_mtx);
+	return size;
+}
+
 /*
  * add more memory to a pool
  */

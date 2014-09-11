@@ -430,6 +430,63 @@ TEST_BEGIN(test_pool_extend_after_out_of_memory) {
 }
 TEST_END
 
+TEST_BEGIN(test_pool_freespace) {
+	pool_t *pool;
+	custom_allocs = 0;
+	memset(mem_pool, 0, TEST_POOL_SIZE);
+	pool = pool_create(mem_pool, TEST_POOL_SIZE, 1);
+
+	size_t total_space = je_pool_freespace(pool);
+	memset(mem_extend_ok, 0, TEST_POOL_SIZE);
+	size_t usable_size = pool_extend(pool, mem_extend_ok, TEST_POOL_SIZE, 0);
+	assert_zu_ne(usable_size, 0, "pool_extend() should add some free space ");
+	assert_lu_gt(je_pool_freespace(pool), total_space,
+					"pool_extend() should increase free space");
+	total_space = je_pool_freespace(pool);
+
+	size_t free_space = total_space;
+	void *prev = NULL;
+	void **next;
+	while ((next = pool_malloc(pool, 128)) != NULL) {
+		*next = prev;
+		prev = next;
+		size_t space = je_pool_freespace(pool);
+		assert_lu_le(space, free_space, "free space can only decrease");
+		assert_lu_lt(free_space - space, chunksize,
+			"calculate free space in steps smaller than chunksize");
+		free_space = space;
+	}
+
+	assert_lu_eq(free_space, 0, "all memory should be used");
+
+	while (prev != NULL) {
+		void **act = prev;
+		prev = *act;
+		pool_free(pool, act);
+
+		size_t space = je_pool_freespace(pool);
+		assert_lu_ge(space, free_space, "free space can only increase");
+		assert_lu_lt(space - free_space, chunksize,
+			"calculate free space in steps smaller than chunksize");
+
+		free_space = space;
+	}
+
+	free_space = je_pool_freespace(pool);
+	assert_lu_gt(free_space, (total_space * 9) / 10,
+		"max 10%% of memory can be wasted on internal data");
+
+	pool_delete(pool);
+
+	assert_d_eq(custom_allocs, 0, "memory leak when use custom allocator");
+	if (exp_base_pool) {
+		assert_ptr_not_null(pools[0], "not create base pool");
+	} else {
+		assert_ptr_null(pools[0], "create base pool");
+	}
+}
+TEST_END
+
 #define	POOL_TEST_CASES\
 	test_pool_create_errors,	\
 	test_pool_create,	\
@@ -443,6 +500,7 @@ TEST_END
 	test_pool_use_all_memory,	\
 	test_pool_extend_errors,	\
 	test_pool_extend,	\
-	test_pool_extend_after_out_of_memory
+	test_pool_extend_after_out_of_memory,	\
+	test_pool_freespace
 
 
