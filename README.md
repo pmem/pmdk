@@ -8,7 +8,7 @@ For more information, see http://pmem.io.
 
 Please see the file LICENSE for information on how this library is licensed.
 
-This tree contains libaries for using Non-Volatile Memory (NVM).
+This tree contains libraries for using Non-Volatile Memory (NVM).
 Here you'll find:
 
 * **doc** -- man pages describing each library contained here
@@ -51,6 +51,19 @@ To install a complete copy of the source tree to $(DESTDIR)/nvml:
 ```
 	$ make source DESTDIR=some_path
 ```
+
+To build rpm packages on rpm-based distributions:
+```
+	$ make rpm
+```
+**Prerequisites:** rpmbuild
+
+To build dpkg packages on Debian-based distributions:
+```
+	$ make dpkg
+```
+**Prerequisites:** devscripts
+
 
 For more information on this library,
 contact Andy Rudoff (andy.rudoff@intel.com).

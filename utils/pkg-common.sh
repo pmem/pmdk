@@ -1,3 +1,4 @@
+#!/bin/bash
 #
 # Copyright (c) 2014, Intel Corporation
 #
@@ -28,14 +29,88 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
 
 #
-# src/nondebug/Makefile -- build the nondebug versions of the NVM Library
+# pkg-common.sh - common functions and variables for building packages
 #
 
-JEMALLOC_OBJROOT = nondebug
 
-include ../Makefile.inc
+function error() {
+	echo -e "error: $@"
+}
 
-CFLAGS += -O2 -D_FORTIFY_SOURCE=2
+function check_dir() {
+	if [ ! -d $1 ]
+	then
+		error "Directory '$1' does not exist."
+		exit 1
+	fi
+}
+
+function check_file() {
+	if [ ! -f $1 ]
+	then
+		error "File '$1' does not exist."
+		exit 1
+	fi
+}
+
+function check_tool() {
+	local tool=$1
+	if [ -z "$(which $tool 2>/dev/null)" ]
+	then
+		error "'${tool}' not installed or not in PATH"
+		exit 1
+	fi
+}
+
+function format_version () {
+	echo $1 | sed 's|0*\([0-9]\+\)|\1|g'
+}
+
+function get_version_item() {
+	local INPUT=$1
+	local TARGET=$2
+	local REGEX="([^0-9]*)(([0-9]+\.){,2}[0-9]+)([.+-]?.*)"
+
+	if [[ $INPUT =~ $REGEX ]]
+	then
+		local VERSION="${BASH_REMATCH[2]}"
+		local RELEASE="${BASH_REMATCH[4]}"
+
+		case $TARGET in
+			version)
+				echo -n $VERSION
+				;;
+			release)
+				echo -n $RELEASE
+				;;
+			*)
+				error "Wrong target"
+				exit 1
+				;;
+		esac
+	else
+		error "Wrong tag format"
+		exit 1
+	fi
+}
+
+function get_version() {
+	local VERSION=$(get_version_item $1 version)
+	local RELEASE=$(get_version_item $1 release)
+
+	VERSION=$(format_version $VERSION)
+
+	if [ -z $RELEASE ]
+	then
+		echo -n $VERSION
+	else
+		RELEASE=${RELEASE//[-:_.]/"~"}
+		echo -n ${VERSION}${RELEASE}
+	fi
+}
+
+REGEX_DATE_AUTHOR="([a-zA-Z]{3} [a-zA-Z]{3} [0-9]{2} [0-9]{4})\s*(.*)"
+REGEX_MESSAGE_START="\s*\*\s*(.*)"
+REGEX_MESSAGE="\s*(\S.*)"
