@@ -59,6 +59,7 @@ arena_ralloc_junk_large
 arena_ralloc_no_move
 arena_redzone_corruption
 arena_run_regind
+arena_runs_avail_tree_iter
 arena_salloc
 arena_stats_merge
 arena_tcache_fill_small

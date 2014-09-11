@@ -1,4 +1,3 @@
-#!/bin/bash -e
 #
 # Copyright (c) 2014, Intel Corporation
 #
@@ -32,24 +31,15 @@
 #
 
 #
-# src/test/vmem_check_allocations/TEST0 -- unit test for vmem_check_allocations
+# src/test/vmem_freespace/Makefile -- build vmem_freespace unit test
 #
-export UNITTEST_NAME=vmem_check_allocations/TEST0
-export UNITTEST_NUM=0
+TARGET = vmem_freespace
+OBJS = vmem_freespace.o
 
-# standard unit test setup
-. ../unittest/unittest.sh
+include ../Makefile.inc
+STATIC_DEBUG_LIBS = ../unittest/libut.a ../../debug/libvmem.a -luuid -pthread
+STATIC_NONDEBUG_LIBS = ../unittest/libut.a ../../nondebug/libvmem.a -luuid -pthread
 
-require_fs_type local
-require_build_type debug nondebug
+LIBS += -lvmem
 
-setup
-
-# limit output for file vmem*.log to reduce time of execution test
-export VMEM_LOG_LEVEL=2
-
-expect_normal_exit ./vmem_check_allocations$EXESUFFIX
-
-check
-
-pass
+vmem_freespace.o: vmem_freespace.c

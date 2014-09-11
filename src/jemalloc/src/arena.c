@@ -117,6 +117,13 @@ arena_avail_comp(arena_chunk_map_t *a, arena_chunk_map_t *b)
 rb_gen(static UNUSED, arena_avail_tree_, arena_avail_tree_t, arena_chunk_map_t,
     u.rb_link, arena_avail_comp)
 
+arena_chunk_map_t *
+arena_runs_avail_tree_iter(arena_t *arena, arena_chunk_map_t *(*cb)
+		(arena_avail_tree_t *, arena_chunk_map_t *, void *), void *arg)
+{
+	return arena_avail_tree_iter(&arena->runs_avail, NULL, cb, arg);
+}
+
 static inline int
 arena_chunk_dirty_comp(arena_chunk_t *a, arena_chunk_t *b)
 {

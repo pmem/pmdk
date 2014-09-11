@@ -51,6 +51,7 @@ TEST = blk_nblock\
        pmem_map\
        vmem_check_version\
        vmem_custom_alloc\
+       vmem_freespace\
        vmem_malloc\
        vmem_calloc\
        vmem_realloc\
