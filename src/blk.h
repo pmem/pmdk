@@ -60,6 +60,11 @@ struct pmemblk {
 	int nlane;			/* number of lanes */
 	unsigned next_lane;		/* used to rotate through lanes */
 	pthread_mutex_t *locks;		/* one per lane */
+
+#ifdef DEBUG
+	/* held during read/write mprotected sections */
+	pthread_mutex_t write_lock;
+#endif
 };
 
 /* data area starts at this alignement after the struct pmemblk above */

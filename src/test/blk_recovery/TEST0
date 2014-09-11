@@ -42,6 +42,7 @@ export UNITTEST_NUM=0
 
 # doesn't make sense to run in local directory
 require_fs_type pmem non-pmem
+require_build_type nondebug static-nondebug
 
 setup
 

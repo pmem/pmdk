@@ -2,7 +2,8 @@ Linux NVM Library
 
 This is src/test/blk_recovery/README.
 
-This directory contains a unit test for pmemblk recovery
+This directory contains a unit test for pmemblk recovery. It works only
+in non-debug mode.
 
 The program in blk_recovery.c takes a block size, file and two LBAs.
 A write to the first LBA is performed, then the arena map data structure
