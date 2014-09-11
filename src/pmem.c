@@ -36,6 +36,7 @@
 
 #include <sys/types.h>
 #include <sys/mman.h>
+#include <sys/stat.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -47,6 +48,8 @@
 #include "out.h"
 
 #define	FLUSH_ALIGN 64
+
+#define	PROCMAXLEN 2048 /* maximum expected line length in /proc files */
 
 /* default persist function is pmem_persist() */
 Persist_func Persist = pmem_persist;
@@ -152,12 +155,11 @@ is_pmem_proc(void *addr, size_t len)
 	}
 
 	int retval = 0;		/* assume false until proven otherwise */
-	char *line = NULL;	/* for getline() */
-	size_t linelen;		/* for getline() */
+	char line[PROCMAXLEN];	/* for fgets() */
 	char *lo = NULL;	/* beginning of current range in smaps file */
 	char *hi = NULL;	/* end of current range in smaps file */
 	int needmm = 0;		/* looking for mm flag for current range */
-	while (getline(&line, &linelen, fp) != -1) {
+	while (fgets(line, PROCMAXLEN, fp) != NULL) {
 		static const char vmflags[] = "VmFlags:";
 		static const char mm[] = " mm";
 
@@ -209,7 +211,6 @@ is_pmem_proc(void *addr, size_t len)
 		}
 	}
 
-	Free(line);
 	fclose(fp);
 
 	LOG(3, "returning %d", retval);
@@ -262,4 +263,26 @@ pmem_is_pmem(void *addr, size_t len)
 	LOG(3, "addr %p len %zu", addr, len);
 
 	return (*is_pmem_func)(addr, len);
+}
+
+/*
+ * pmem_map -- map the entire file for read/write access
+ */
+void *
+pmem_map(int fd)
+{
+	LOG(3, "fd %d", fd);
+
+	struct stat stbuf;
+	if (fstat(fd, &stbuf) < 0) {
+		LOG(1, "!fstat");
+		return NULL;
+	}
+
+	void *addr;
+	if ((addr = util_map(fd, stbuf.st_size, 0)) == NULL)
+		return NULL;    /* util_map() set errno, called LOG */
+
+	LOG(3, "returning %p", addr);
+	return addr;
 }

@@ -1,3 +1,4 @@
+#!/bin/bash -e
 #
 # Copyright (c) 2014, Intel Corporation
 #
@@ -31,57 +32,26 @@
 #
 
 #
-# src/test/Makefile -- build all unit tests
+# src/test/pmem_map_raw/TEST1 -- unit test for pmem_map
 #
-# Makefile -- build all unit tests
-#
-TEST = blk_nblock\
-       blk_recovery\
-       blk_rw\
-       blk_rw_mt\
-       checksum\
-       log_basic\
-       log_recovery\
-       log_walker\
-       scope\
-       traces\
-       traces_custom_function\
-       pmem_is_pmem\
-       pmem_is_pmem_proc\
-       pmem_map\
-       pmem_map_raw\
-       util_map_proc\
-       vmem_check_version\
-       vmem_custom_alloc\
-       vmem_freespace\
-       vmem_malloc\
-       vmem_calloc\
-       vmem_realloc\
-       vmem_aligned_alloc\
-       vmem_mix_allocations\
-       vmem_strdup\
-       vmem_multiple_pools\
-       vmem_out_of_memory\
-       vmem_check_allocations\
-       vmem_pool_create_error\
-       vmem_pool_create\
-       vmem_pool_create_in_region\
-       vmem_valgrind\
-       vmem_stats
+export UNITTEST_NAME=pmem_map_raw/TEST1
+export UNITTEST_NUM=1
 
+# standard unit test setup
+. ../unittest/unittest.sh
 
-all     : TARGET = all
-clean   : TARGET = clean
-clobber : TARGET = clobber
-test    : TARGET = test
-cstyle  : TARGET = cstyle
+require_fs_type local
 
-all clean clobber test cstyle: $(TEST)
+setup
 
-$(TEST): unittest
-	$(MAKE) -C $@ $(TARGET)
+rm -f $DIR/testfile1
+touch $DIR/testfile1
 
-unittest:
-	$(MAKE) -C $@ $(TARGET)
+# pass the file of zero length
+expect_normal_exit ./pmem_map_raw$EXESUFFIX $DIR/testfile1
 
-.PHONY: all clean clobber test cstyle unittest $(TEST)
+rm $DIR/testfile1
+
+check
+
+pass

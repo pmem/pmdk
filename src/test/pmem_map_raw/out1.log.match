@@ -1,0 +1,4 @@
+pmem_map_raw/TEST1: START: pmem_map_raw
+ ./pmem_map_raw$(*) $(*)/testfile1
+pmem_map: Invalid argument
+pmem_map_raw/TEST1: Done

@@ -1,0 +1,3 @@
+pmem_map_raw/TEST0: START: pmem_map_raw
+ ./pmem_map_raw$(*) $(*)/testfile1
+pmem_map_raw/TEST0: Done
