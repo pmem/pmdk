@@ -118,13 +118,13 @@ $(JEMALLOC_CFG): $(JEMALLOC_CFG_AC)
 $(VMEMOBJS): $(JEMALLOC_LIB)
 
 $(JEMALLOC_LIB): $(JEMALLOC_CFG_OUT_FILES)
-	make objroot=$(JEMALLOC_OBJROOT)/ -f $(JEMALLOC_MAKE_NAME) -C $(JEMALLOC_DIR) all
+	$(MAKE) objroot=$(JEMALLOC_OBJROOT)/ -f $(JEMALLOC_MAKE_NAME) -C $(JEMALLOC_DIR) all
 
 jemalloc-tests: jemalloc
-	make objroot=$(JEMALLOC_OBJROOT)/ -f $(JEMALLOC_MAKE_NAME) -C $(JEMALLOC_DIR) tests
+	$(MAKE) objroot=$(JEMALLOC_OBJROOT)/ -f $(JEMALLOC_MAKE_NAME) -C $(JEMALLOC_DIR) tests
 
 jemalloc-check: jemalloc-tests
-	make objroot=$(JEMALLOC_OBJROOT)/ -f $(JEMALLOC_MAKE_NAME) -C $(JEMALLOC_DIR) check
+	$(MAKE) objroot=$(JEMALLOC_OBJROOT)/ -f $(JEMALLOC_MAKE_NAME) -C $(JEMALLOC_DIR) check
 
 $(LIBPMEMAR): $(PMEMOBJS)
 	$(LD) -o $*_unscoped.o -r $(PMEMOBJS)
@@ -164,14 +164,14 @@ clean:
 	$(RM) *.o core a.out
 	@if [ -f $(JEMALLOC_MAKE) ];\
 	then\
-		make objroot=$(JEMALLOC_OBJROOT)/ -f $(JEMALLOC_MAKE_NAME) -C $(JEMALLOC_DIR) clean;\
+		$(MAKE) objroot=$(JEMALLOC_OBJROOT)/ -f $(JEMALLOC_MAKE_NAME) -C $(JEMALLOC_DIR) clean;\
 	fi
 
 clobber: clean
 	$(RM) $(TARGETS)
 	@if [ -f $(JEMALLOC_MAKE) ];\
 	then\
-		make cfgoutputs_out+=$(JEMALLOC_MAKE) objroot=$(JEMALLOC_OBJROOT)/ -f $(JEMALLOC_MAKE_NAME) -C $(JEMALLOC_DIR) distclean;\
+		$(MAKE) cfgoutputs_out+=$(JEMALLOC_MAKE) objroot=$(JEMALLOC_OBJROOT)/ -f $(JEMALLOC_MAKE_NAME) -C $(JEMALLOC_DIR) distclean;\
 	fi
 	$(RM) $(JEMALLOC_CFG)
 	$(RM) -r $(JEMALLOC_CFG_GEN_FILES)
