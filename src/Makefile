@@ -43,7 +43,11 @@ HEADERS_INSTALL = include/libpmem.h include/libvmem.h
 
 SCOPEFILES = *.[ch] include/*.[ch] jemalloc/src/*.[ch]\
 	     $(JEMALLOC_DIR)/include/jemalloc/*.h\
-	     $(JEMALLOC_DIR)/include/jemalloc/internal/*.h
+	     $(JEMALLOC_DIR)/include/jemalloc/internal/*.h\
+	     $(JEMALLOC_DIR)/debug/include/jemalloc/*.h\
+	     $(JEMALLOC_DIR)/debug/include/jemalloc/internal/*.h\
+	     $(JEMALLOC_DIR)/nondebug/include/jemalloc/*.h\
+	     $(JEMALLOC_DIR)/nondebug/include/jemalloc/internal/*.h
 
 all     : TARGET = all
 clean   : TARGET = clean
@@ -66,11 +70,11 @@ clobber:
 
 test: $(VARIANTS)
 	$(MAKE) -C test all
-	$(MAKE) -C $(JEMALLOC_DIR) tests
+	$(MAKE) -C nondebug jemalloc-tests
 
 check: test
 	cd test && ./RUNTESTS
-	$(MAKE) -C $(JEMALLOC_DIR) check
+	$(MAKE) -C nondebug jemalloc-check
 
 cscope:
 	cscope -q -b $(SCOPEFILES)

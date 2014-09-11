@@ -17,8 +17,8 @@
 
 /lib/
 
-/Makefile
-/Makefile_debug
+/debug/
+/nondebug/
 
 /include/jemalloc/internal/jemalloc_internal.h
 /include/jemalloc/internal/jemalloc_internal_defs.h
@@ -71,5 +71,3 @@ test/include/test/jemalloc_test_defs.h
 /test/unit/*.out
 
 /VERSION
-
-/debugsrc/*

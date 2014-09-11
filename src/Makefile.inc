@@ -32,13 +32,19 @@
 # src/Makefile.inc -- common Makefile rules for NVM library
 #
 
-JEMALLOC_MAKE_NAME ?= Makefile
 JEMALLOC_OBJROOT ?=
+JEMALLOC_MAKE_NAME = $(JEMALLOC_OBJROOT)/Makefile
 JEMALLOC_MAKE = $(JEMALLOC_DIR)/$(JEMALLOC_MAKE_NAME)
 JEMALLOC_CFG = $(JEMALLOC_DIR)/configure
 JEMALLOC_CFG_AC = $(JEMALLOC_DIR)/configure.ac
 JEMALLOC_LIB_NAME = libjemalloc_pic.a
-JEMALLOC_LIB = $(JEMALLOC_DIR)/$(JEMALLOC_OBJROOT)lib/$(JEMALLOC_LIB_NAME)
+JEMALLOC_LIB = $(JEMALLOC_DIR)/$(JEMALLOC_OBJROOT)/lib/$(JEMALLOC_LIB_NAME)
+
+JEMALLOC_CFG_IN_FILES = $(shell find $(JEMALLOC_DIR) -name "*.in")
+JEMALLOC_CFG_GEN_FILES = $(JEMALLOC_CFG_IN_FILES:.in=)
+JEMALLOC_CFG_OUT_FILES = $(patsubst $(JEMALLOC_DIR)/%, $(JEMALLOC_DIR)/$(JEMALLOC_OBJROOT)/%, $(JEMALLOC_CFG_GEN_FILES))
+JEMALLOC_CFG_OUT_FILES_REL = $(patsubst $(JEMALLOC_DIR)/%, %, $(JEMALLOC_CFG_GEN_FILES))
+.NOTPARALLEL: $(JEMALLOC_CFG_OUT_FILES)
 
 JECONFIG_FILE = ../jemalloc.cfg
 JECONFIG = $(shell cat $(JECONFIG_FILE))
@@ -82,10 +88,14 @@ all: $(TARGETS)
 
 jemalloc: $(JEMALLOC_LIB)
 
-jeconfig $(JEMALLOC_MAKE): $(JEMALLOC_CFG) $(JECONFIG_FILE)
+jeconfig $(JEMALLOC_CFG_OUT_FILES): $(JEMALLOC_CFG) $(JECONFIG_FILE)
 	cd $(JEMALLOC_DIR) && \
 	    ./configure $(JECONFIG) $(EXTRA_JECONFIG)
-	-mv -f $(JEMALLOC_DIR)/Makefile $(JEMALLOC_MAKE)
+	@for FILE in $(JEMALLOC_CFG_OUT_FILES_REL);\
+	do\
+		mkdir -p $$(dirname $(JEMALLOC_DIR)/$(JEMALLOC_OBJROOT)/$$FILE);\
+		mv -vf $(JEMALLOC_DIR)/$$FILE $(JEMALLOC_DIR)/$(JEMALLOC_OBJROOT)/$$FILE;\
+	done
 
 $(JEMALLOC_CFG): $(JEMALLOC_CFG_AC)
 	cd $(JEMALLOC_DIR) && \
@@ -93,8 +103,14 @@ $(JEMALLOC_CFG): $(JEMALLOC_CFG_AC)
 
 $(VMEMOBJS): $(JEMALLOC_LIB)
 
-$(JEMALLOC_LIB): $(JEMALLOC_MAKE)
-	make objroot=$(JEMALLOC_OBJROOT) -f $(JEMALLOC_MAKE_NAME) -C $(JEMALLOC_DIR) all
+$(JEMALLOC_LIB): $(JEMALLOC_CFG_OUT_FILES)
+	make objroot=$(JEMALLOC_OBJROOT)/ -f $(JEMALLOC_MAKE_NAME) -C $(JEMALLOC_DIR) all
+
+jemalloc-tests: jemalloc
+	make objroot=$(JEMALLOC_OBJROOT)/ -f $(JEMALLOC_MAKE_NAME) -C $(JEMALLOC_DIR) tests
+
+jemalloc-check: jemalloc-tests
+	make objroot=$(JEMALLOC_OBJROOT)/ -f $(JEMALLOC_MAKE_NAME) -C $(JEMALLOC_DIR) check
 
 libpmem.a: $(PMEMOBJS)
 	$(LD) -o $*_unscoped.o -r $(PMEMOBJS)
@@ -126,20 +142,26 @@ clean:
 	$(RM) *.o core a.out
 	@if [ -f $(JEMALLOC_MAKE) ];\
 	then\
-		make objroot=$(JEMALLOC_OBJROOT) -f $(JEMALLOC_MAKE_NAME) -C $(JEMALLOC_DIR) clean;\
+		make objroot=$(JEMALLOC_OBJROOT)/ -f $(JEMALLOC_MAKE_NAME) -C $(JEMALLOC_DIR) clean;\
 	fi
 
 clobber: clean
 	$(RM) $(TARGETS) *.so.[0-9]*
-	-make cfgoutputs_out+=$(JEMALLOC_MAKE) objroot=$(JEMALLOC_OBJROOT) -f $(JEMALLOC_MAKE_NAME) -C $(JEMALLOC_DIR) distclean
-	rm -rf $(JEMALLOC_CFG)
+	@if [ -f $(JEMALLOC_MAKE) ];\
+	then\
+		make cfgoutputs_out+=$(JEMALLOC_MAKE) objroot=$(JEMALLOC_OBJROOT)/ -f $(JEMALLOC_MAKE_NAME) -C $(JEMALLOC_DIR) distclean;\
+	fi
+	$(RM) $(JEMALLOC_CFG)
+	$(RM) -r $(JEMALLOC_CFG_GEN_FILES)
+	$(RM) -r $(JEMALLOC_CFG_OUT_FILES)
+	$(RM) -r $(JEMALLOC_DIR)/$(JEMALLOC_OBJROOT)
 
 install: $(TARGETS) $(INSTALL_LINKS)
 	install -d $(LIBS_DESTDIR)
 	install -p -m 0755 $(TARGETS) $(LIBS_DESTDIR)
 	cp -d $(INSTALL_LINKS) $(LIBS_DESTDIR)
 
-.PHONY: all clean clobber jeconfig jemalloc install
+.PHONY: all clean clobber jeconfig jemalloc install jemalloc-tests jemalloc-check
 
 libpmem.o: libpmem.c libpmem.h pmem.h util.h out.h
 blk.o: blk.c libpmem.h pmem.h blk.h util.h out.h

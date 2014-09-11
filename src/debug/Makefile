@@ -34,7 +34,6 @@
 # src/debug/Makefile -- build the debug versions of the NVM Library
 #
 
-JEMALLOC_MAKE_NAME = Makefile_debug
 JEMALLOC_OBJROOT = debug
 
 VARIANT_DESTDIR = nvml_debug
