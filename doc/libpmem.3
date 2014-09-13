@@ -191,8 +191,8 @@ likely.  On success,
 returns a pointer to mapped area.  On error, NULL is returned, and
 errno is set appropriately.  To delete mapping created with
 .BR pmem_map (),
-.BR munmap (2)
-system call shall be used.
+use
+.BR munmap (2).
 .IP
 NOTE: Using
 .BR pmem_map ()
