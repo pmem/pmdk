@@ -37,7 +37,7 @@
 .\" or
 .\"	groff -man -Tascii libpmem.3
 .\"
-.TH libpmem 3 "pmem API version 0.48" "NVM Library"
+.TH libpmem 3 "pmem API version 0.49" "NVM Library"
 .SH NAME
 libpmem \- persistent memory library
 .SH SYNOPSIS
@@ -48,6 +48,7 @@ libpmem \- persistent memory library
 .sp
 .B Flush-to-persistence support:
 .sp
+.BI "void *pmem_map(int " fd );
 .BI "int pmem_is_pmem(void *" addr ", size_t " len );
 .BI "void pmem_persist(void *" addr ", size_t " len ", int " flags );
 .BI "void pmem_flush(void *" addr ", size_t " len ", int " flags );
@@ -169,6 +170,41 @@ However, platforms may have more optimal ways to flush changes
 in a range of memory.  These functions are provided
 for the case where a range is known to be true Persistent Memory
 (not paged from storage).
+.PP
+.BI "void *pmem_map(int " fd );
+.IP
+The
+.BR pmem_map ()
+function creates a new read/write mapping for the entire file
+referred by to file descriptor
+.IR fd,
+where
+.IR fd
+must be a file descriptor for a file opened for both reading
+and writing.
+.BR pmem_map ()
+will map the file using
+.BR mmap (2),
+but it also takes extra steps to make large page mappings more
+likely.  On success,
+.BR pmem_map ()
+returns a pointer to mapped area.  On error, NULL is returned, and
+errno is set appropriately.  To delete mapping created with
+.BR pmem_map (),
+.BR munmap (2)
+system call shall be used.
+.IP
+NOTE: Using
+.BR pmem_map ()
+is not required when working with
+.I memory pools,
+as they map files internally (see the description of
+.BR pmemtrn_map (),
+.BR pmemblk_map ()
+and
+.BR pmemlog_map ()
+below). This is just a convenience function for applications using
+Persistent Memory as a raw range of memory.
 .PP
 .BI "int pmem_is_pmem(void *" addr ", size_t " len );
 .IP
@@ -1212,5 +1248,6 @@ http://snia.org/nvmp
 .BR posix_memalign (3),
 .BR strdup (3),
 .BR mmap (2),
+.BR munmap (2),
 .BR msync (2),
 .BR libvmem (3).

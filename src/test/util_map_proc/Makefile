@@ -31,57 +31,23 @@
 #
 
 #
-# src/test/Makefile -- build all unit tests
+# src/test/util_map_proc/Makefile -- build util_map_proc unit test
 #
-# Makefile -- build all unit tests
-#
-TEST = blk_nblock\
-       blk_recovery\
-       blk_rw\
-       blk_rw_mt\
-       checksum\
-       log_basic\
-       log_recovery\
-       log_walker\
-       scope\
-       traces\
-       traces_custom_function\
-       pmem_is_pmem\
-       pmem_is_pmem_proc\
-       pmem_map\
-       pmem_map_raw\
-       util_map_proc\
-       vmem_check_version\
-       vmem_custom_alloc\
-       vmem_freespace\
-       vmem_malloc\
-       vmem_calloc\
-       vmem_realloc\
-       vmem_aligned_alloc\
-       vmem_mix_allocations\
-       vmem_strdup\
-       vmem_multiple_pools\
-       vmem_out_of_memory\
-       vmem_check_allocations\
-       vmem_pool_create_error\
-       vmem_pool_create\
-       vmem_pool_create_in_region\
-       vmem_valgrind\
-       vmem_stats
+vpath %.c ../..
+vpath %.h ../..
+TARGET = util_map_proc
+OBJS = util_map_proc.o util_wrap.o out.o
 
+out.o: CFLAGS += -DSRCVERSION=\"utversion\"
 
-all     : TARGET = all
-clean   : TARGET = clean
-clobber : TARGET = clobber
-test    : TARGET = test
-cstyle  : TARGET = cstyle
+include ../Makefile.inc
+INCS += -I../..
+LIBS += -ldl
+STATIC_DEBUG_LIBS += -ldl
+STATIC_NONDEBUG_LIBS += -ldl
 
-all clean clobber test cstyle: $(TEST)
+util_map_proc.o: util_map_proc.c
 
-$(TEST): unittest
-	$(MAKE) -C $@ $(TARGET)
+util_wrap.o: util_wrap.c util_wrap.h util.c util.h out.h
 
-unittest:
-	$(MAKE) -C $@ $(TARGET)
-
-.PHONY: all clean clobber test cstyle unittest $(TEST)
+out.o: out.c out.h

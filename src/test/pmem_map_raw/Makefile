@@ -31,57 +31,13 @@
 #
 
 #
-# src/test/Makefile -- build all unit tests
+# src/test/pmem_map_raw/Makefile -- build pmem_map() unit test
 #
-# Makefile -- build all unit tests
-#
-TEST = blk_nblock\
-       blk_recovery\
-       blk_rw\
-       blk_rw_mt\
-       checksum\
-       log_basic\
-       log_recovery\
-       log_walker\
-       scope\
-       traces\
-       traces_custom_function\
-       pmem_is_pmem\
-       pmem_is_pmem_proc\
-       pmem_map\
-       pmem_map_raw\
-       util_map_proc\
-       vmem_check_version\
-       vmem_custom_alloc\
-       vmem_freespace\
-       vmem_malloc\
-       vmem_calloc\
-       vmem_realloc\
-       vmem_aligned_alloc\
-       vmem_mix_allocations\
-       vmem_strdup\
-       vmem_multiple_pools\
-       vmem_out_of_memory\
-       vmem_check_allocations\
-       vmem_pool_create_error\
-       vmem_pool_create\
-       vmem_pool_create_in_region\
-       vmem_valgrind\
-       vmem_stats
+TARGET = pmem_map_raw
+OBJS = pmem_map_raw.o
 
+include ../Makefile.inc
 
-all     : TARGET = all
-clean   : TARGET = clean
-clobber : TARGET = clobber
-test    : TARGET = test
-cstyle  : TARGET = cstyle
+LIBS += -lpmem
 
-all clean clobber test cstyle: $(TEST)
-
-$(TEST): unittest
-	$(MAKE) -C $@ $(TARGET)
-
-unittest:
-	$(MAKE) -C $@ $(TARGET)
-
-.PHONY: all clean clobber test cstyle unittest $(TEST)
+pmem_map_raw.o: pmem_map_raw.c

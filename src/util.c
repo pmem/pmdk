@@ -39,12 +39,18 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/mman.h>
+#include <sys/param.h>
 #include <unistd.h>
 #include <stdint.h>
 #include <endian.h>
 #include <errno.h>
 #include "util.h"
 #include "out.h"
+
+#define	PROCMAXLEN 2048 /* maximum expected line length in /proc files */
+
+#define	GIGABYTE ((uintptr_t)1 << 30)
+#define	TERABYTE ((uintptr_t)1 << 40)
 
 /* library-wide page size */
 unsigned long Pagesize;
@@ -89,6 +95,78 @@ util_set_alloc_funcs(void *(*malloc_func)(size_t size),
 }
 
 /*
+ * util_map_hint -- (internal) use /proc to determine a hint address for mmap()
+ *
+ * This is a helper function for util_map().  It opens up /proc/self/maps
+ * and looks for the first unused address in the process address space that is:
+ * - greater or equal 1TB,
+ * - large enough to hold range of given length,
+ * - 1GB aligned.
+ *
+ * Asking for aligned address like this will allow the DAX code to use large
+ * mappings.  It is not an error if mmap() ignores the hint and chooses
+ * different address.
+ */
+static char *
+util_map_hint(size_t len)
+{
+	FILE *fp;
+	if ((fp = fopen("/proc/self/maps", "r")) == NULL) {
+		LOG(1, "!/proc/self/maps");
+		return NULL;
+	}
+
+	char line[PROCMAXLEN];	/* for fgets() */
+	char *lo = NULL;	/* beginning of current range in maps file */
+	char *hi = NULL;	/* end of current range in maps file */
+	char *raddr = (char *)TERABYTE;	/* ignore regions below 1TB */
+
+	while (fgets(line, PROCMAXLEN, fp) != NULL) {
+		/* check for range line */
+		if (sscanf(line, "%p-%p", &lo, &hi) == 2) {
+			LOG(4, "%p-%p", lo, hi);
+			if (lo > raddr) {
+				if (lo - raddr >= len) {
+					LOG(4, "unused region of size %zu "
+							"found at %p",
+							lo - raddr, raddr);
+					break;
+				} else {
+					LOG(4, "region is too small: %zu < %zu",
+							lo - raddr, len);
+				}
+			}
+
+			if (hi > raddr) {
+				/* align to 1GB */
+				raddr = (char *)roundup((uintptr_t)hi,
+						GIGABYTE);
+				LOG(4, "nearest aligned addr %p", raddr);
+			}
+
+			if (raddr == 0) {
+				LOG(4, "end of address space reached");
+				break;
+			}
+		}
+	}
+
+	/*
+	 * Check for a case when this is the last unused range in the address
+	 * space, but is not large enough. (very unlikely)
+	 */
+	if ((raddr != NULL) && (UINTPTR_MAX - (uintptr_t)raddr < len)) {
+		LOG(4, "end of address space reached");
+		raddr = NULL;
+	}
+
+	fclose(fp);
+
+	LOG(3, "returning %p", raddr);
+	return raddr;
+}
+
+/*
  * util_map -- memory map a file
  *
  * This is just a convenience function that calls mmap() with the
@@ -103,7 +181,9 @@ util_map(int fd, size_t len, int cow)
 
 	LOG(3, "fd %d len %zu cow %d", fd, len, cow);
 
-	if ((base = mmap(NULL, len, PROT_READ|PROT_WRITE,
+	void *addr = util_map_hint(len);
+
+	if ((base = mmap(addr, len, PROT_READ|PROT_WRITE,
 			(cow) ? MAP_PRIVATE|MAP_NORESERVE : MAP_SHARED,
 					fd, 0)) == MAP_FAILED) {
 		LOG(1, "!mmap %zu bytes", len);

@@ -65,6 +65,7 @@ typedef struct pmemlog PMEMlog;
 /*
  * basic PMEM flush-to-durability support...
  */
+void *pmem_map(int fd);
 int pmem_is_pmem(void *addr, size_t len);
 void pmem_persist(void *addr, size_t len, int flags);
 void pmem_flush(void *addr, size_t len, int flags);
