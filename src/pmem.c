@@ -78,18 +78,53 @@ pmem_drain(void)
 	 */
 }
 
+static void flush_clflush(void *addr, size_t len, int flags)
+{
+	uintptr_t uptr;
+
+	/*
+	 * Loop through cache-line-size (typically 64B) aligned chunks
+	 * covering the given range.
+	 */
+	for (uptr = (uintptr_t)addr & ~(FLUSH_ALIGN - 1);
+		uptr < (uintptr_t)addr + len; uptr += FLUSH_ALIGN)
+		__builtin_ia32_clflush((char *)uptr);
+}
+
+static void flush_clflushopt(void *addr, size_t len, int flags)
+{
+	uintptr_t uptr;
+
+	/*
+	 * Loop through cache-line-size (typically 64B) aligned chunks
+	 * covering the given range.
+	 */
+	__builtin_ia32_sfence();
+	for (uptr = (uintptr_t)addr & ~(FLUSH_ALIGN - 1);
+		uptr < (uintptr_t)addr + len; uptr += FLUSH_ALIGN) {
+		__asm__ volatile(".byte 0x66; clflush %P0" : "+m" (uptr));
+	}
+}
+
+/* pmem_flush() calls this function to do the work */
+static void (*flush_func)(void *, size_t, int) = flush_clflush;
+
 /*
  * pmem_flush -- flush processor cache for the given range
  */
 void
 pmem_flush(void *addr, size_t len, int flags)
 {
-	uintptr_t uptr;
+	(*flush_func)(addr, len, flags);
+}
 
-	/* loop through 64B-aligned chunks covering the given range */
-	for (uptr = (uintptr_t)addr & ~(FLUSH_ALIGN - 1);
-			uptr < (uintptr_t)addr + len; uptr += 64)
-		__builtin_ia32_clflush((void *)uptr);
+/*
+ * pmem_fence -- persistent memory store barrier
+ */
+void
+pmem_fence(void)
+{
+	__builtin_ia32_sfence();
 }
 
 /*
@@ -99,7 +134,7 @@ void
 pmem_persist(void *addr, size_t len, int flags)
 {
 	pmem_flush(addr, len, flags);
-	__builtin_ia32_sfence();
+	pmem_fence();
 	pmem_drain();
 }
 
@@ -232,6 +267,34 @@ pmem_init(void)
 	out_init(LOG_PREFIX, LOG_LEVEL_VAR, LOG_FILE_VAR);
 	LOG(3, NULL);
 	util_init();
+
+	/* Detect if the clflushopt instruction is supported. */
+	FILE *fp;
+	if ((fp = fopen("/proc/cpuinfo", "r")) == NULL) {
+		LOG(1, "!/proc/cpuinfo");
+	} else {
+		char *line = NULL;	/* for getline() */
+		size_t linelen;		/* for getline() */
+
+		/*
+		 * This is assuming that we have a homogeneous CPU architecture.
+		 */
+		while (getline(&line, &linelen, fp) != -1) {
+			static const char flags_tag[] = "flags\t\t: ";
+
+			if ((strncmp(flags_tag, line,
+				    sizeof (flags_tag) - 1) == 0)) {
+				if (strstr(line, "clflushopt")) {
+					flush_func = flush_clflushopt;
+					LOG(3, "use clflushopt");
+				}
+				break;
+			}
+		}
+
+		Free(line);
+		fclose(fp);
+	}
 
 	/*
 	 * For debugging/testing, allow pmem_is_pmem() to be forced

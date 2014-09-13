@@ -1,5 +1,6 @@
 pmem_check_version
 pmem_drain
+pmem_fence
 pmem_flush
 pmem_is_pmem
 pmem_map
