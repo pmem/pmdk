@@ -38,14 +38,14 @@
 #include <valgrind/valgrind.h>
 #include <valgrind/memcheck.h>
 
-/* check valgrind version required by jemalloc */
-#if !defined(VALGRIND_RESIZEINPLACE_BLOCK)
-#error "Incompatible Valgrind version"
+
+#if defined(VALGRIND_RESIZEINPLACE_BLOCK)
+VALGRIND_VERSION_3_7_OR_LATER
 #endif
 
-int
-main()
-{
-	;
-	return 0;
-}
+#if defined(__VALGRIND_MAJOR__) && defined(__VALGRIND_MINOR__)
+#if (__VALGRIND_MAJOR__ > 3) || \
+	((__VALGRIND_MAJOR__ == 3) && (__VALGRIND_MINOR__ >= 8))
+VALGRIND_VERSION_3_8_OR_LATER
+#endif
+#endif

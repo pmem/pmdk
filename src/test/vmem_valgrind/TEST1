@@ -44,7 +44,7 @@ export UNITTEST_NUM=1
 
 require_fs_type local pmem
 require_build_type debug nondebug
-require_valgrind_dev
+require_valgrind_dev_3_7
 
 setup
 
