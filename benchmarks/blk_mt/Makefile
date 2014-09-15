@@ -31,18 +31,17 @@
 #
 
 #
-# Makefile -- build all benchmarks
+# benchmarks/blk/Makefile -- build multi-threading scaling benchmark
 #
-BENCHMARK = mt blk_mt
+TARGET = blk_mt
+PMEM_PATH=../../src/nondebug/
 
-all     : TARGET = all
-clean   : TARGET = clean
-clobber : TARGET = clobber
-cstyle  : TARGET = cstyle
+OBJS = blk_mt.o workers.o
 
-all clean clobber cstyle: $(BENCHMARK)
+include ../Makefile.inc
 
-$(BENCHMARK):
-	$(MAKE) -C $@ $(TARGET)
+LIBS := -Wl,-rpath=$(PMEM_PATH) -L$(PMEM_PATH) -lpmem -lpthread -lrt
+INCS := -I../../src/include/ -I.
 
-.PHONY: all clean clobber cstyle $(BENCHMARK)
+blk_mt.o: blk_mt.h blk_mt.c
+workers.o: workers.h workers.c
