@@ -31,11 +31,23 @@
 #
 
 #
-# require_valgrind_dev -- continue script execution only if correct version
-#	of valgrind-devel package is installed
+# require_valgrind_dev_3_7 -- continue script execution only if
+#	version 3.7 (or later) of valgrind-devel package is installed
 #
-function require_valgrind_dev() {
-	gcc valgrind_check.c -o /dev/null 1>/dev/null 2>/dev/null && return
+function require_valgrind_dev_3_7() {
+	gcc -E valgrind_check.c | \
+		grep -q "VALGRIND_VERSION_3_7_OR_LATER" && return
+	echo "$UNITTEST_NAME: SKIP valgrind-devel package required"
+	exit 0
+}
+
+#
+# require_valgrind_dev_3_8 -- continue script execution only if
+#	version 3.8 (or later) of valgrind-devel package is installed
+#
+function require_valgrind_dev_3_8() {
+	gcc -E valgrind_check.c | \
+		grep -q "VALGRIND_VERSION_3_8_OR_LATER" && return
 	echo "$UNITTEST_NAME: SKIP valgrind-devel package required"
 	exit 0
 }
