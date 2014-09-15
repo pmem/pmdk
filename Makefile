@@ -44,6 +44,10 @@
 #
 # Use "make cstyle" to run cstyle on all C source files
 #
+# Use "make rpm" to build rpm packages
+#
+# Use "make dpkg" to build dpkg packages
+#
 # Use "make source DESTDIR=path_to_dir" to copy source files
 # from HEAD to 'path_to_dir/nvml' directory.
 #
@@ -52,10 +56,29 @@
 # You can provide custom directory prefix for installation using
 # DESTDIR variable e.g.: "make install DESTDIR=/opt"
 
-all clean clobber:
+export SRCVERSION = $(shell git describe 2>/dev/null || cat .version)
+
+RPM_BUILDDIR=rpmbuild
+DPKG_BUILDDIR=dpkgbuild
+rpm : override DESTDIR=$(CURDIR)/$(RPM_BUILDDIR)
+dpkg: override DESTDIR=$(CURDIR)/$(DPKG_BUILDDIR)
+
+all:
 	$(MAKE) -C src $@
 	$(MAKE) -C examples $@
 	$(MAKE) -C doc $@
+
+clean:
+	$(MAKE) -C src $@
+	$(MAKE) -C examples $@
+	$(MAKE) -C doc $@
+	$(RM) -r $(RPM_BUILDDIR) $(DPKG_BUILDDIR)
+
+clobber:
+	$(MAKE) -C src $@
+	$(MAKE) -C examples $@
+	$(MAKE) -C doc $@
+	$(RM) -r $(RPM_BUILDDIR) $(DPKG_BUILDDIR) rpm dpkg
 
 test check:
 	$(MAKE) -C src $@
@@ -69,10 +92,17 @@ source:
 	$(if $(shell git status --porcelain), $(error Working directory is dirty))
 	$(if $(DESTDIR), , $(error Please provide DESTDIR variable))
 	mkdir -p $(DESTDIR)/nvml
+	echo -n $(SRCVERSION) > $(DESTDIR)/nvml/.version
 	git archive HEAD | tar -x -C $(DESTDIR)/nvml
+
+pkg-clean:
+	$(RM) -r $(DESTDIR)
+
+rpm dpkg: pkg-clean source
+	utils/build-$@.sh $(SRCVERSION) $(DESTDIR)/nvml $(DESTDIR) $(CURDIR)/$@
 
 install:
 	$(MAKE) -C src $@
 	$(MAKE) -C doc $@
 
-.PHONY: all clean clobber test check cstyle install source $(SUBDIRS)
+.PHONY: all clean clobber test check cstyle install source rpm dpkg pkg-clean $(SUBDIRS)

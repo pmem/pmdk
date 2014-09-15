@@ -7,3 +7,7 @@ a.out
 .project
 .settings/
 nbproject/
+rpmbuild/
+dpkgbuild/
+rpm/
+dpkg/
