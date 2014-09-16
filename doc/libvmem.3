@@ -326,8 +326,8 @@ string can either be NULL or it can contain a list of options
 that change the stats printed.
 General information that never changes during execution can be
 omitted by specifying "g" as a character within the opts string.
-The characters “m” and “a” can be specified to omit merged arena
-and per arena statistics, respectively; “b” and “l” can be specified
+The characters "m" and "a" can be specified to omit merged arena
+and per arena statistics, respectively; "b" and "l" can be specified
 to omit per size class statistics for bins and large objects, respectively.
 Unrecognized characters are silently ignored.
 Note that thread caching may prevent some statistics from being
@@ -540,8 +540,8 @@ like this:
 .nf
 reason = vmem_check_version(VMEM_MAJOR_VERSION,
                             VMEM_MINOR_VERSION);
-if (reason != NULL {
-	/*  version check failed, reason string tells you why */
+if (reason != NULL) {
+    /*  version check failed, reason string tells you why */
 }
 .fi
 .IP
@@ -680,29 +680,29 @@ the string "hello, world", and then frees that memory.
 #include <stdlib.h>
 #include <string.h>
 #include <libvmem.h>
-
+	
 main()
 {
     VMEM *vmp;
     char *ptr;
-
+	
     /* create minimum size pool of memory */
     if ((vmp = vmem_pool_create("/my/pmem-aware/fs",
                                 VMEM_MIN_POOL)) == NULL) {
         perror("vmem_pool_create");
         exit(1);
     }
-
+	
     if ((ptr = vmem_malloc(vmp, 100)) == NULL) {
         perror("vmem_malloc");
         exit(1);
     }
-
+	
     strcpy(ptr, "hello, world");
-
+	
     /* give the memory back */
     vmem_free(vmp, ptr);
-
+	
     /* ... */
 }
 .fi

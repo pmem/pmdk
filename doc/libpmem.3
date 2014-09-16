@@ -296,10 +296,10 @@ void pmem_persist(void *addr, size_t len, int flags)
 {
     /* flush the processor caches */
     pmem_flush(addr, len, flags);
-
+	
     /* Persistent Memory store barrier */
     pmem_fence();
-
+	
     /* wait for any PM stores to drain from HW buffers */
     pmem_drain();
 }
@@ -844,7 +844,7 @@ like this:
 reason = pmem_check_version(PMEM_MAJOR_VERSION,
                             PMEM_MINOR_VERSION);
 if (reason != NULL {
-	/*  version check failed, reason string tells you why */
+    /*  version check failed, reason string tells you why */
 }
 .fi
 .IP
@@ -1023,19 +1023,19 @@ to flush changes made to raw, memory-mapped persistent memory.
 #include <unistd.h>
 #include <string.h>
 #include <libpmem.h>
-
+	
 int
 main(int argc, char *argv[])
 {
     int fd;
     char *pmaddr;
-
+	
     /* memory map some persistent memory */
     if ((fd = open("/my/pmem-aware/fs/myfile", O_RDWR)) < 0) {
         perror("open");
         exit(1);
     }
-
+	
     /* just map 4k for this example */
     if ((pmaddr = mmap(NULL, 4096, PROT_READ|PROT_WRITE,
                 MAP_SHARED, fd, 0)) == MAP_FAILED) {
@@ -1043,10 +1043,10 @@ main(int argc, char *argv[])
         exit(1);
     }
     close(fd);
-
+	
     /* store a string to the persistent memory */
     strcpy(pmaddr, "hello, persistent memory");
-
+	
     /*
      * The above stores may or may not be sitting in cache at
      * this point, depending on other system activity causing
@@ -1079,10 +1079,10 @@ are used to provide atomic arrays.
 #include <unistd.h>
 #include <string.h>
 #include <libpmem.h>
-
+	
 /* size of each element in the PMEM pool (bytes) */
 #define ELEMENT_SIZE ((size_t)1024)
-
+	
 int
 main(int argc, char *argv[])
 {
@@ -1090,52 +1090,52 @@ main(int argc, char *argv[])
     PMEMblk *pbp;
     size_t nelements;
     char buf[ELEMENT_SIZE];
-
+	
     /* create file on PMEM-aware file system */
     if ((fd = open("/my/pmem-aware/fs/myfile",
                     O_CREAT|O_RDWR, 0666)) < 0) {
         perror("open");
         exit(1);
     }
-
+	
     /* pre-allocate 2GB of persistent memory */
     if ((errno = posix_fallocate(fd, (off_t)0,
                     (size_t)1024 * 1024 * 1024 * 2)) != 0) {
         perror("posix_fallocate");
         exit(1);
     }
-
+	
     /* create an array of atomically writable elements */
     if ((pbp = pmemblk_map(fd, ELEMENT_SIZE)) == NULL) {
         perror("pmemblk_map");
         exit(1);
     }
-
+	
     /* how many elements fit into the PMEM pool? */
     nelements = pmemblk_nblock(pbp);
     printf("file holds %zu elements\n", nelements);
-
+	
     /* store a block at index 5 */
     strcpy(buf, "hello, world");
     if (pmemblk_write(pbp, buf, 5) < 0) {
         perror("pmemblk_write");
         exit(1);
     }
-
+	
     /* read the block at index 10 (reads as zeros initially) */
     if (pmemblk_read(pbp, buf, 10) < 0) {
         perror("pmemblk_write");
         exit(1);
     }
-
+	
     /* zero out the block at index 5 */
     if (pmemblk_set_zero(pbp, 5) < 0) {
         perror("pmemblk_set_zero");
         exit(1);
     }
-
+	
     /* ... */
-
+	
     pmemblk_unmap(pbp);
     close(fd);
 }
@@ -1157,7 +1157,7 @@ are used to provide a persistent memory resident log file.
 #include <unistd.h>
 #include <string.h>
 #include <libpmem.h>
-
+	
 /* log processing callback for use with pmemlog_walk() */
 int
 printit(const void *buf, size_t len, void *arg)
@@ -1165,7 +1165,7 @@ printit(const void *buf, size_t len, void *arg)
     fwrite(buf, len, 1, stdout);
     return 0;
 }
-
+	
 int
 main(int argc, char *argv[])
 {
@@ -1173,31 +1173,31 @@ main(int argc, char *argv[])
     PMEMlog *plp;
     size_t nbyte;
     char *str;
-
+	
     /* create file on PMEM-aware file system */
     if ((fd = open("/my/pmem-aware/fs/myfile",
                     O_CREAT|O_RDWR, 0666)) < 0) {
         perror("open");
         exit(1);
     }
-
+	
     /* pre-allocate 2GB of persistent memory */
     if ((errno = posix_fallocate(fd, (off_t)0,
                     (size_t)1024 * 1024 * 1024 * 2)) != 0) {
         perror("posix_fallocate");
         exit(1);
     }
-
+	
     /* create a persistent memory resident log */
     if ((plp = pmemlog_map(fd)) == NULL) {
         perror("pmemlog_map");
         exit(1);
     }
-
+	
     /* how many bytes does the log hold? */
     nbyte = pmemlog_nbyte(plp);
     printf("log holds %zu bytes\n", nbyte);
-
+	
     /* append to the log... */
     str = "This is the first string appended\n";
     if (pmemlog_append(plp, str, strlen(str)) < 0) {
@@ -1209,11 +1209,11 @@ main(int argc, char *argv[])
         perror("pmemlog_append");
         exit(1);
     }
-
+	
     /* print the log contents */
     printf("log contains:\n");
     pmemlog_walk(plp, 0, printit, NULL);
-
+	
     pmemlog_unmap(plp);
     close(fd);
 }

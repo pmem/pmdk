@@ -47,7 +47,7 @@ all: $(TXTFILES)
 html: $(HTMLFILES)
 
 %.3.html: %.3
-	groff -mandoc -Thtml ./$< > $@
+	/usr/local/bin/groff -mandoc -Thtml ./$< > $@
 
 compress: $(GZFILES)
 
