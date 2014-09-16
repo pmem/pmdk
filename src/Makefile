@@ -34,7 +34,7 @@
 # src/Makefile -- build the NVM Library
 #
 VARIANTS = debug nondebug
-
+.NOTPARALLEL: $(VARIANTS)
 JEMALLOC_DIR = $(CURDIR)/jemalloc
 export JEMALLOC_DIR
 
