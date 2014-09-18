@@ -38,6 +38,7 @@ arena_mapbits_unzeroed_set
 arena_mapbitsp_get
 arena_mapbitsp_read
 arena_mapbitsp_write
+arena_mapelm_to_pageind
 arena_mapp_get
 arena_maxclass
 arena_new

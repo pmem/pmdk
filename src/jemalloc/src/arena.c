@@ -61,15 +61,6 @@ static void	arena_bin_lower_run(arena_t *arena, arena_chunk_t *chunk,
 /******************************************************************************/
 
 JEMALLOC_INLINE_C size_t
-arena_mapelm_to_pageind(arena_chunk_map_t *mapelm)
-{
-	uintptr_t map_offset =
-	    CHUNK_ADDR2OFFSET(mapelm) - offsetof(arena_chunk_t, map);
-
-	return ((map_offset / sizeof(arena_chunk_map_t)) + map_bias);
-}
-
-JEMALLOC_INLINE_C size_t
 arena_mapelm_to_bits(arena_chunk_map_t *mapelm)
 {
 

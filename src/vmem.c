@@ -138,7 +138,7 @@ vmem_pool_create(const char *dir, size_t size)
 	 * If possible, turn off all permissions on the pool header page.
 	 *
 	 * The prototype PMFS doesn't allow this when large pages are in
-	 * use not it is not considered an error if this fails.
+	 * use. It is not considered an error if this fails.
 	 */
 	util_range_none(addr, sizeof (struct pool_hdr));
 
@@ -160,8 +160,12 @@ vmem_pool_create_in_region(void *addr, size_t size)
 		return NULL;
 	}
 
+	/* align address to Pagesize */
+	void *addr_align = (void *)roundup((uintptr_t)addr, Pagesize);
+	size_t size_align = size - ((uintptr_t)addr_align - (uintptr_t)addr);
+
 	/* store opaque info at beginning of mapped area */
-	struct vmem *vmp = addr;
+	struct vmem *vmp = addr_align;
 	memset(&vmp->hdr, '\0', sizeof (vmp->hdr));
 	strncpy(vmp->hdr.signature, VMEM_HDR_SIG, POOL_HDR_SIG_LEN);
 	vmp->addr = addr;
@@ -169,24 +173,19 @@ vmem_pool_create_in_region(void *addr, size_t size)
 	vmp->caller_mapped = 1;
 
 	/* Prepare pool for jemalloc */
-	if (je_vmem_pool_create((void *)((uintptr_t)addr + Header_size),
-				size - Header_size, 0) == NULL) {
+	if (je_vmem_pool_create((void *)((uintptr_t)addr_align + Header_size),
+			size_align - Header_size, 0) == NULL) {
 		LOG(1, "return NULL");
 		return NULL;
 	}
 
-#ifdef	notdef
 	/*
-	 * XXX not ready to call aligned util_range_none() yet,
-	 * addr should be aligned to do that.
-	 *
 	 * If possible, turn off all permissions on the pool header page.
 	 *
 	 * The prototype PMFS doesn't allow this when large pages are in
-	 * use not it is not considered an error if this fails.
+	 * use. It is not considered an error if this fails.
 	 */
-	util_range_none(addr, sizeof (struct pool_hdr));
-#endif	/* notdef */
+	util_range_none(addr_align, sizeof (struct pool_hdr));
 
 	LOG(3, "vmp %p", vmp);
 	return vmp;
@@ -201,7 +200,7 @@ vmem_pool_delete(VMEM *vmp)
 	LOG(3, "vmp %p", vmp);
 
 	je_vmem_pool_delete((pool_t *)((uintptr_t)vmp + Header_size));
-
+	util_range_rw(vmp, sizeof (struct pool_hdr));
 	if (vmp->caller_mapped == 0)
 		util_unmap(vmp->addr, vmp->size);
 }
@@ -214,12 +213,31 @@ vmem_pool_check(VMEM *vmp)
 {
 	LOG(3, "vmp %p", vmp);
 
-	if (strncmp(vmp->hdr.signature, VMEM_HDR_SIG, POOL_HDR_SIG_LEN) != 0) {
-		return 0;
+	if (vmp == NULL) {
+		LOG(1, "pool is NULL");
+		errno = EINVAL;
+		return -1;
 	}
 
-	/* XXX stub */
-	return 1;
+	if (vmp->addr == NULL) {
+		LOG(1, "pool address is NULL");
+		errno = EINVAL;
+		return -1;
+	}
+
+	if (vmp->size < VMEM_MIN_POOL - Pagesize) {
+		LOG(1, "wrong pool size");
+		errno = EINVAL;
+		return -1;
+	}
+
+	if (je_vmem_pool_check((pool_t *)((uintptr_t)vmp + Header_size))) {
+		LOG(1, "pool corrupted");
+		errno = EINVAL;
+		return -1;
+	}
+
+	return 0;
 }
 
 /*

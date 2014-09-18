@@ -110,6 +110,13 @@ typedef struct {
 #  define UTRACE(a, b, c)
 #endif
 
+/* data structures for callbacks used in je_pool_check() to browse trees */
+typedef struct {
+	pool_memory_range_node_t *list;
+	size_t size;
+	int error;
+} check_data_cb_t;
+
 /******************************************************************************/
 /*
  * Function prototypes for static functions that are referenced prior to
@@ -1496,6 +1503,8 @@ je_pool_create(void *addr, size_t size, int zeroed)
 	npools++;
 	malloc_mutex_unlock(&pools_lock);
 
+	pool->memory_range_list = base_alloc(pool, sizeof (*pool->memory_range_list));
+
 	/* pointer to the address of chunks, align the address to chunksize */
 	void *usable_addr = (void*)CHUNK_CEILING((uintptr_t)pool->base_next_addr);
 
@@ -1507,6 +1516,12 @@ je_pool_create(void *addr, size_t size, int zeroed)
 		& ~chunksize_mask;
 
 	assert(usable_size > 0);
+
+	pool->memory_range_list->next = NULL;
+	pool->memory_range_list->addr = (uintptr_t)addr;
+	pool->memory_range_list->addr_end = (uintptr_t)addr + size;
+	pool->memory_range_list->usable_addr = (uintptr_t)usable_addr;
+	pool->memory_range_list->usable_addr_end = (uintptr_t)usable_addr + usable_size;
 
 	/* register the usable pool space as a single big chunk */
 	chunk_record(pool,
@@ -1585,6 +1600,244 @@ je_pool_freespace(pool_t *pool)
 	return size;
 }
 
+static int
+check_is_unzeroed(void *ptr, size_t size)
+{
+	size_t i;
+	size_t *p = (size_t *)ptr;
+	size /= sizeof(size_t);
+	for (i = 0; i < size; i++) {
+		if (p[i])
+			return 1;
+	}
+	return 0;
+}
+
+static extent_node_t *
+check_tree_binary_iter_cb(extent_tree_t *tree, extent_node_t *node, void *arg)
+{
+	check_data_cb_t *arg_cb = arg;
+
+	if (node->size == 0) {
+		arg_cb->error += 1;
+		malloc_printf("<jemalloc>: Error in pool_check(): "
+			"chunk 0x%p size is zero\n", node);
+		/* terminate iteration */
+		return (void *)1;
+	}
+
+	arg_cb->size += node->size;
+
+	if (node->zeroed && check_is_unzeroed(node->addr, node->size)) {
+		arg_cb->error += 1;
+		malloc_printf("<jemalloc>: Error in pool_check(): "
+			"chunk 0x%p, is marked as zeroed, but is dirty\n",
+			node->addr);
+		/* terminate iteration */
+		return (void *)1;
+	}
+
+	/* check chunks address is inside pool memory */
+	pool_memory_range_node_t *list = arg_cb->list;
+	uintptr_t addr = (uintptr_t)node->addr;
+	uintptr_t addr_end = (uintptr_t)node->addr + node->size;
+	while (list != NULL) {
+		if ((list->usable_addr <= addr) &&
+			(addr < list->usable_addr_end) &&
+			(list->usable_addr < addr_end) &&
+			(addr_end <= list->usable_addr_end)) {
+				return (NULL);
+		}
+		list = list->next;
+	}
+
+	arg_cb->error += 1;
+	malloc_printf("<jemalloc>: Error in pool_check(): "
+			"incorrect address chunk 0x%p, out of memory pool\n",
+			node->addr);
+
+	/* terminate iteration */
+	return (void *)1;
+}
+
+static arena_chunk_map_t *
+check_tree_chunks_avail_iter_cb(arena_avail_tree_t *tree, arena_chunk_map_t *map, void *arg)
+{
+	check_data_cb_t *arg_cb = arg;
+
+	if ((map->bits & (CHUNK_MAP_LARGE|CHUNK_MAP_ALLOCATED)) != 0) {
+		arg_cb->error += 1;
+		malloc_printf("<jemalloc>: Error in pool_check(): "
+			"flags in map->bits %zu are incorrect\n", map->bits);
+		/* terminate iteration */
+		return (void *)1;
+	}
+
+	if ((map->bits & ~PAGE_MASK) == 0) {
+		arg_cb->error += 1;
+		malloc_printf("<jemalloc>: Error in pool_check(): "
+			"chunk_map 0x%p size is zero\n", map);
+		/* terminate iteration */
+		return (void *)1;
+	}
+
+	size_t chunk_size = (map->bits & ~PAGE_MASK);
+	arg_cb->size += chunk_size;
+
+	arena_chunk_t *run_chunk = CHUNK_ADDR2BASE(map);
+	size_t pageind = arena_mapelm_to_pageind(map);
+	void *chunk_addr = (void *)((uintptr_t)run_chunk + (pageind << LG_PAGE));
+
+	if (((map->bits & (CHUNK_MAP_UNZEROED | CHUNK_MAP_DIRTY)) == 0) &&
+			check_is_unzeroed(chunk_addr, chunk_size)) {
+		arg_cb->error += 1;
+		malloc_printf("<jemalloc>: Error in pool_check(): "
+			"chunk_map 0x%p, is marked as zeroed, but is dirty\n",
+			map);
+		/* terminate iteration */
+		return (void *)1;
+	}
+
+	/* check chunks address is inside pool memory */
+	pool_memory_range_node_t *list = arg_cb->list;
+	uintptr_t addr = (uintptr_t)chunk_addr;
+	uintptr_t addr_end = (uintptr_t)chunk_addr +  chunk_size;
+	while (list != NULL) {
+		if ((list->usable_addr <= addr) &&
+			(addr < list->usable_addr_end) &&
+			(list->usable_addr < addr_end) &&
+			(addr_end <= list->usable_addr_end)) {
+				return (NULL);
+		}
+		list = list->next;
+	}
+
+	arg_cb->error += 1;
+	malloc_printf("<jemalloc>: Error in pool_check(): "
+			"incorrect address chunk_map 0x%p, out of memory pool\n",
+			chunk_addr);
+
+	/* terminate iteration */
+	return (void *)1;
+}
+
+int
+je_pool_check(pool_t *pool)
+{
+	size_t total_size = 0;
+	pool_memory_range_node_t *node;
+
+	if ((pool->pool_id == 0) || (pool->pool_id >= POOLS_MAX)) {
+		malloc_write("<jemalloc>: Error in pool_check(): "
+			"incorrect pool ID\n");
+		return -1;
+	}
+
+	if (pools[pool->pool_id] != pool) {
+		malloc_write("<jemalloc>: Error in pool_check(): "
+				"incorrect pool handle, probably pool was deleted\n");
+		return -1;
+	}
+
+	malloc_mutex_lock(&pool->memory_range_mtx);
+
+	/* check memory regions defined correct */
+	node = pool->memory_range_list;
+	while (node != NULL) {
+		total_size += node->usable_addr_end - node->usable_addr;
+		if ((node->addr > node->usable_addr) ||
+			(node->addr_end < node->usable_addr_end) ||
+			(node->usable_addr >= node->usable_addr_end)) {
+			malloc_write("<jemalloc>: Error in pool_check(): "
+					"corrupted pool memory\n");
+			malloc_mutex_unlock(&pool->memory_range_mtx);
+			return -1;
+		}
+		node = node->next;
+	}
+
+	/* check memory collision with other pools */
+	malloc_mutex_lock(&pool_base_lock);
+	for (unsigned i = 1; i < POOLS_MAX; i++) {
+		pool_t *pool_cmp = pools[i];
+		if (pool_cmp != NULL && i != pool->pool_id) {
+			node = pool->memory_range_list;
+			while (node != NULL) {
+				pool_memory_range_node_t *node2 = pool_cmp->memory_range_list;
+				while (node2 != NULL) {
+					if ((node->addr <= node2->addr && node2->addr < node->addr_end) ||
+							(node2->addr <= node->addr && node->addr < node2->addr_end)){
+						malloc_mutex_unlock(&pool_base_lock);
+						malloc_write("<jemalloc>: Error in pool_check(): "
+							"pool uses the same memory what other pool\n");
+						malloc_mutex_unlock(&pool->memory_range_mtx);
+						return -1;
+					}
+					node2 = node2->next;
+				}
+				node = node->next;
+			}
+		}
+	}
+	malloc_mutex_unlock(&pool_base_lock);
+
+	/* check the addresses of the chunks are inside memory region */
+	check_data_cb_t arg_cb;
+	arg_cb.list = pool->memory_range_list;
+	arg_cb.size = 0;
+	arg_cb.error = 0;
+
+	malloc_mutex_lock(&pool->chunks_mtx);
+	malloc_mutex_lock(&pool->arenas_lock);
+	extent_tree_szad_iter(&pool->chunks_szad_mmap, NULL, check_tree_binary_iter_cb, &arg_cb);
+
+	for (size_t i = 0; i < pool->narenas_total && arg_cb.error == 0; ++i) {
+		arena_t *arena = pool->arenas[i];
+		if (arena != NULL) {
+			malloc_mutex_lock(&arena->lock);
+
+			arena_runs_avail_tree_iter(arena, check_tree_chunks_avail_iter_cb, &arg_cb);
+
+			arena_chunk_t *spare = arena->spare;
+			if (spare != NULL) {
+				size_t spare_size = arena_mapbits_unallocated_size_get(spare, map_bias);
+				arg_cb.size += spare_size;
+
+				/* check that spare is zeroed */
+				if ((arena_mapbits_unzeroed_get(spare, map_bias) == 0) &&
+						check_is_unzeroed(
+							(void *)((uintptr_t)spare + (map_bias << LG_PAGE)),
+							spare_size)) {
+
+					arg_cb.error += 1;
+					malloc_printf("<jemalloc>: Error in pool_check(): "
+						"spare 0x%p, is marked as zeroed, but is dirty\n",
+						spare);
+				}
+			}
+			malloc_mutex_unlock(&arena->lock);
+		}
+	}
+
+	malloc_mutex_unlock(&pool->arenas_lock);
+	malloc_mutex_unlock(&pool->chunks_mtx);
+
+	malloc_mutex_unlock(&pool->memory_range_mtx);
+
+	if (arg_cb.error != 0) {
+		return -1;
+	}
+
+	if (total_size < arg_cb.size) {
+		malloc_printf("<jemalloc>: Error in pool_check(): "
+			"size of chunks %zu are different that mapped regions %zu\n",
+			arg_cb.size, total_size);
+		return -1;
+	}
+
+	return 0;
+}
+
 /*
  * add more memory to a pool
  */
@@ -1598,7 +1851,8 @@ je_pool_extend(pool_t *pool, void *addr, size_t size, int zeroed)
 
 	/* preallocate the chunk tree nodes for the maximum possible number of chunks */
 	nodes_number = base_node_prealloc(pool, nodes_number);
-	if (nodes_number > 0) {
+	pool_memory_range_node_t *node = base_alloc(pool, sizeof (*pool->memory_range_list));
+	if (nodes_number > 0 || node == NULL) {
 		/*
 		 * If base allocation using existing chunks fails, then use the new
 		 * chunk as a source for further base allocations.
@@ -1609,8 +1863,13 @@ je_pool_extend(pool_t *pool, void *addr, size_t size, int zeroed)
 		pool->base_past_addr = (void *)((uintptr_t)addr + size);
 		malloc_mutex_unlock(&pool->base_mtx);
 
-		nodes_number = base_node_prealloc(pool, nodes_number);
+		if (nodes_number > 0)
+			nodes_number = base_node_prealloc(pool, nodes_number);
 		assert(nodes_number == 0);
+
+		if (node == NULL)
+			node = base_alloc(pool, sizeof (*pool->memory_range_list));
+		assert(node != NULL);
 
 		/* pointer to the address of chunks, align the address to chunksize */
 		usable_addr = (void*)CHUNK_CEILING((uintptr_t)pool->base_next_addr);
@@ -1618,13 +1877,21 @@ je_pool_extend(pool_t *pool, void *addr, size_t size, int zeroed)
 		pool->base_past_addr = usable_addr;
 	}
 
-
 	usable_addr = (void*)CHUNK_CEILING((uintptr_t)usable_addr);
 
 	size_t usable_size = (size - (uintptr_t)(usable_addr - addr))
 		& ~chunksize_mask;
 
 	assert(usable_size > 0);
+
+	malloc_mutex_lock(&pool->memory_range_mtx);
+	node->next = pool->memory_range_list;
+	pool->memory_range_list = node;
+	node->addr = (uintptr_t)addr;
+	node->addr_end = (uintptr_t)addr + size;
+	node->usable_addr = (uintptr_t)usable_addr;
+	node->usable_addr_end = (uintptr_t)usable_addr + usable_size;
+	malloc_mutex_unlock(&pool->memory_range_mtx);
 
 	chunk_record(pool,
 		&pool->chunks_szad_mmap, &pool->chunks_ad_mmap,

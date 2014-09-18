@@ -31,70 +31,84 @@
  */
 
 /*
- * vmem_multiple_pools.c -- unit test for vmem_multiple_pools
+ * vmem_pool_check.c -- unit test for vmem_pool_check
  *
- * usage: vmem_multiple_pools directory
+ * usage: vmem_pool_check [directory]
  */
 
 #include "unittest.h"
+#include "../../util.h"
+#include "../../vmem.h"
 
-#define	TEST_POOLS_MAX (9)
-#define	TEST_REPEAT_CREATE_POOLS (30)
-
-static char mem_pools[TEST_POOLS_MAX/2 + 1][VMEM_MIN_POOL];
-
-VMEM *pools[TEST_POOLS_MAX];
+static char Mem_pool[VMEM_MIN_POOL*2];
 
 int
 main(int argc, char *argv[])
 {
-	START(argc, argv, "vmem_multiple_pools");
+	char *dir = NULL;
+	VMEM *vmp;
 
-	if (argc < 2 || argc > 3)
-		FATAL("usage: %s directory", argv[0]);
+	START(argc, argv, "vmem_pool_check");
 
-	const char *dir = argv[1];
-
-	/* create and destroy pools multiple times */
-	size_t repeat;
-	size_t pool_id;
-	for (repeat = 0; repeat < TEST_REPEAT_CREATE_POOLS; ++repeat) {
-		for (pool_id = 0; pool_id < TEST_POOLS_MAX; ++pool_id) {
-
-			/* delete old pool with this same id if exist */
-			if (pools[pool_id] != NULL) {
-				vmem_pool_delete(pools[pool_id]);
-				pools[pool_id] = NULL;
-			}
-
-			if (pool_id % 2 == 0) {
-				/* for even pool_id, create in region */
-				pools[pool_id] = vmem_pool_create_in_region(
-					mem_pools[pool_id / 2], VMEM_MIN_POOL);
-				if (pools[pool_id] == NULL)
-					FATAL("!vmem_pool_create_in_region");
-			} else {
-				/* for odd pool_id, create in file */
-				pools[pool_id] = vmem_pool_create(dir,
-					VMEM_MIN_POOL);
-				if (pools[pool_id] == NULL)
-					FATAL("!vmem_pool_create");
-			}
-
-			void *test = vmem_malloc(pools[pool_id],
-				sizeof (void *));
-
-			ASSERTne(test, NULL);
-			vmem_free(pools[pool_id], test);
-		}
+	if (argc == 2) {
+		dir = argv[1];
+	} else if (argc > 2) {
+		FATAL("usage: %s [directory]", argv[0]);
 	}
 
-	for (pool_id = 0; pool_id < TEST_POOLS_MAX; ++pool_id) {
-		if (pools[pool_id] != NULL) {
-			vmem_pool_delete(pools[pool_id]);
-			pools[pool_id] = NULL;
-		}
+	if (dir == NULL) {
+		vmp = vmem_pool_create_in_region(Mem_pool, VMEM_MIN_POOL);
+		if (vmp == NULL)
+			FATAL("!vmem_pool_create_in_region");
+	} else {
+		vmp = vmem_pool_create(dir, VMEM_MIN_POOL);
+		if (vmp == NULL)
+			FATAL("!vmem_pool_create");
 	}
+
+	ASSERTeq(0, vmem_pool_check(vmp));
+
+	/* check null addr */
+	ASSERTeq(0, vmem_pool_check(vmp));
+	void* addr = vmp->addr;
+	vmp->addr = NULL;
+	ASSERTne(0, vmem_pool_check(vmp));
+	vmp->addr = addr;
+
+	/* check wrong size */
+	ASSERTeq(0, vmem_pool_check(vmp));
+	size_t size = vmp->size;
+	vmp->size = 1;
+	ASSERTne(0, vmem_pool_check(vmp));
+	vmp->size = size;
+
+
+	/* create pool in this same memory */
+	if (dir == NULL) {
+		VMEM *vmp2 = vmem_pool_create_in_region(
+			(void *)((uintptr_t)Mem_pool + VMEM_MIN_POOL/2),
+			VMEM_MIN_POOL);
+
+		if (vmp2 == NULL)
+			FATAL("!vmem_pool_create_in_region");
+
+		/* detect memory range collision */
+		ASSERTne(0, vmem_pool_check(vmp));
+		ASSERTne(0, vmem_pool_check(vmp2));
+
+		vmem_pool_delete(vmp2);
+
+		ASSERTne(0, vmem_pool_check(vmp2));
+
+		/* detect dirty pages after memory corruption by pool vmp2 */
+		ASSERTne(0, vmem_pool_check(vmp));
+	}
+
+	vmem_pool_delete(vmp);
+
+	/* for vmem_pool_create() memory unmapped after delete pool */
+	if (!dir)
+		ASSERTne(0, vmem_pool_check(vmp));
 
 	DONE(NULL);
 }

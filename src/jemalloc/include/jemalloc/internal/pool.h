@@ -27,6 +27,14 @@ do {						\
 /******************************************************************************/
 #ifdef JEMALLOC_H_STRUCTS
 
+typedef struct pool_memory_range_node_s {
+	uintptr_t addr;
+	uintptr_t addr_end;
+	uintptr_t usable_addr;
+	uintptr_t usable_addr_end;
+	struct pool_memory_range_node_s *next;
+} pool_memory_range_node_t;
+
 struct pool_s {
 	/* This pool's index within the pools array. */
 	unsigned pool_id;
@@ -91,6 +99,12 @@ struct pool_s {
 	size_t		ctl_stats_active;
 	size_t		ctl_stats_mapped;
 	size_t		stats_cactive;
+
+	/* Protects list of memory ranges. */
+	malloc_mutex_t	memory_range_mtx;
+
+	/* List of memory ranges inside pool, useful for pool_check(). */
+	pool_memory_range_node_t *memory_range_list;
 };
 
 struct tsd_pool_s {

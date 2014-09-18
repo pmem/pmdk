@@ -24,6 +24,7 @@ JEMALLOC_EXPORT void	@je_@pool_malloc_stats_print(pool_t *pool,
 JEMALLOC_EXPORT void	@je_@pool_set_alloc_funcs(void *(*malloc_func)(size_t),
 							void (*free_func)(void *));
 JEMALLOC_EXPORT size_t	@je_@pool_freespace(pool_t *pool);
+JEMALLOC_EXPORT int	@je_@pool_check(pool_t *pool);
 
 JEMALLOC_EXPORT void	*@je_@malloc(size_t size) JEMALLOC_ATTR(malloc);
 JEMALLOC_EXPORT void	*@je_@calloc(size_t num, size_t size)
