@@ -86,6 +86,7 @@ test check:
 cstyle:
 	$(MAKE) -C src $@
 	$(MAKE) -C examples $@
+	$(MAKE) -C benchmarks $@
 
 source:
 	$(if $(shell git rev-parse 2>&1), $(error Not a git repository))
