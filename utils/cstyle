@@ -633,6 +633,15 @@ line: while (<$filehandle>) {
 	if (/!\s*(strcmp|strncmp|bcmp)\s*\(/) {
 		err("don't use boolean ! with comparison functions");
 	}
+	if (/^\S+\([\S\s]*\)\s*{/) {
+		err("brace of function definition not at beginning of line");
+	}
+	if (/static\s+\S+\s*=\s*(0|NULL)\s*;/) {
+		err("static variable initialized with 0 or NULL");
+	}
+	if (/typedef[\S\s]+\*\s*\w+\s*;/) {
+		err("typedefed pointer type");
+	}
 
 	#
 	# We completely ignore, for purposes of indentation:
