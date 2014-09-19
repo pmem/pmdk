@@ -216,8 +216,7 @@ main(int argc, char *argv[])
 		if (result < 0) {
 			fprintf(stderr, "!%s: pmemblk_check\n",
 					arguments.file_path);
-		}
-		else if (result == 0) {
+		} else if (result == 0) {
 			fprintf(stderr, "%s: pmemblk_check: not consistent\n",
 					arguments.file_path);
 		}

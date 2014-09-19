@@ -54,6 +54,6 @@ clobber: clean
 	$(RM) $(TARGET) $(ADD_TARGETS)
 
 cstyle:
-	../../utils/cstyle -pP *.c
+	../../utils/cstyle -pP *.[ch]
 
 .PHONY: all clean clobber cstyle

@@ -67,7 +67,7 @@ clobber: clean
 	$(RM) $(TARGET) $(TARGET).static-debug $(TARGET).static-nondebug
 
 cstyle:
-	../../../utils/cstyle -pP *.c
+	../../../utils/cstyle -pP *.[ch]
 
 .PHONY: all clean clobber cstyle
 

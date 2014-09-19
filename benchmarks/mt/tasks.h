@@ -1,5 +1,5 @@
 #ifndef TASKS_H
-#define TASKS_H
+#define	TASKS_H
 
 #include <stdlib.h>
 #include <inttypes.h>
@@ -25,14 +25,14 @@ typedef struct arguments_s
 	int thread_count;
 	int pool_per_thread;
 	uint64_t ops_count;
-	uint seed;
-	uint allocation_size;
-	uint allocation_size_max;
+	uint_t seed;
+	uint_t allocation_size;
+	uint_t allocation_size_max;
 	allocation_type_t allocation_type;
 	allocator_t allocator;
 } arguments_t;
 
-typedef int (*task_f)(int, void *arg, struct random_data* rand_state);
+typedef int (*task_f)(int, void *arg, struct random_data *rand_state);
 
 enum {
 	TASK_MALLOC,
@@ -40,8 +40,8 @@ enum {
 	MAX_TASK
 };
 
-int task_malloc(int i, void *arg, struct random_data* rand_state);
-int task_free(int i, void *arg, struct random_data* rand_state);
+int task_malloc(int i, void *arg, struct random_data *rand_state);
+int task_free(int i, void *arg, struct random_data *rand_state);
 
 extern task_f tasks[MAX_TASK];
 
