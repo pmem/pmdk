@@ -34,11 +34,11 @@
 # src/debug/Makefile -- build the debug versions of the NVM Library
 #
 
+CFLAGS = -ggdb -DDEBUG
 JEMALLOC_OBJROOT = debug
 
 VARIANT_DESTDIR = nvml_debug
 
 include ../Makefile.inc
 
-CFLAGS += -DDEBUG
 EXTRA_JECONFIG += --enable-debug

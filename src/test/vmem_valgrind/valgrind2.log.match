@@ -10,7 +10,7 @@
 ==$(N)==   total heap usage: $(N) allocs, $(N) frees, $(*) bytes allocated
 ==$(N)== 
 ==$(N)== $(N) bytes in 1 blocks are definitely lost in loss record 1 of 1
-==$(N)==    at 0x$(X): je_vmem_pool_malloc (jemalloc.c:$(N))
+==$(N)==    at 0x$(X): je_vmem_pool_malloc $(*)
 $(OPT)==$(N)==    by 0x$(X): vmem_malloc (vmem.c:$(N))
 ==$(N)==    by 0x$(X): main (vmem_valgrind.c:$(N))
 ==$(N)== 
