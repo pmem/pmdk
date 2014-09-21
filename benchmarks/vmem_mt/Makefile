@@ -31,17 +31,17 @@
 #
 
 #
-# benchmarks/mt/Makefile -- build multi-threading scaling benchmark
+# benchmarks/vmem_mt/Makefile -- build multi-threading scaling benchmark
 #
-TARGET = benchmark_mt
+TARGET = vmem_mt
 VMEM_PATH=../../src/nondebug/
 
-OBJS = mt.o tasks.o
+OBJS = vmem_mt.o tasks.o
 
 include ../Makefile.inc
 
-LIBS := -Wl,-rpath,$(VMEM_PATH) -L$(VMEM_PATH) -lvmem -lpthread
+LIBS := -Wl,-rpath,$(VMEM_PATH) -L$(VMEM_PATH) -lvmem -lpthread -lrt
 INCS := -I../../src/include/ -I.
 
-mt.o: mt.c
+vmem_mt.o: vmem_mt.c
 tasks.o: tasks.c tasks.h

@@ -67,7 +67,7 @@ vpath %.c ..
 vpath %.h .. ../include
 INCS = -I.. -I../include
 
-CFLAGS = -std=gnu99 -ggdb -Wall -Werror
+CFLAGS += -std=gnu99 -Wall -Werror
 LDFLAGS = -Wl,-z,relro
 
 LN = ln
