@@ -54,7 +54,7 @@ cstyle:
 clobber: clean
 	$(RM) $(TARGET)
 
-.PHONY: clean clobber
+.PHONY: all test clean clobber cstyle
 
 ut.o: ut.c unittest.h
 
