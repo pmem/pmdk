@@ -31,7 +31,7 @@
  */
 
 /*
- * mt.c -- multi-threaded malloc benchmark
+ * vmem_mt.c -- multi-threaded malloc benchmark
  */
 
 #include <stdio.h>
@@ -39,12 +39,13 @@
 #include <ctype.h>
 #include <string.h>
 #include <argp.h>
+#include <sys/stat.h>
 #include "tasks.h"
 
 #define	MAX_THREADS 8
-#define	DEF_ALLOC 512
 #define	KB 1024
 #define	MB 1024 * KB
+#define	DEF_ALLOC 512
 
 void **allocated_mem;
 
@@ -53,15 +54,17 @@ static char doc[] = "Multithreaded allocator benchmark";
 static char args_doc[] = "THREAD_COUNT OPS_COUNT";
 
 static struct argp_option options[] = {
-	{"pool-per-thread",	'p', 0,	0,
+	{"pool-per-thread", 'p', 0, 0,
 		"Create a pool for each worker thread"},
-	{"seed",		'r', "SEED", 0,
+	{"seed", 'r', "SEED", 0,
 		"Seed for random size allocator"},
-	{"size",		's', "SIZE", 0,	"Allocation size in bytes "
+	{"size", 's', "SIZE", 0, "Allocation size in bytes "
 		"(default: 512b); single number for static allocator;"
 		" comma separated min and max allocation size for ranged"},
-	{"allocator",		'e', "NAME", 0, "Allocator to benchmark\n"
+	{"allocator", 'e', "NAME", 0, "Allocator to benchmark\n"
 		"Valid arguments: vmem (default), malloc"},
+	{"directory", 'd', "PATH", 0,
+			"Create vmem pools in the given directory"},
 	{ 0 }
 };
 
@@ -74,7 +77,7 @@ task_f tasks[MAX_TASK] = {
 };
 
 /*
- * parse_range -- parses allocation size provided by user and sets apropriate
+ * parse_range -- parses allocation size provided by user and sets appropriate
  * fields in arguments_t structure
  *
  * Syntax of input:
@@ -134,14 +137,17 @@ parse_opt(int key, char *arg, struct argp_state *state)
 	arguments_t *arguments = state->input;
 	char *endptr;
 	int i;
+	struct stat dir_stat;
 
 	switch (key) {
 	case 'p':
 		arguments->pool_per_thread = 1;
 		break;
+
 	case 's':
 		allocation_size_str = arg;
 		break;
+
 	case 'r':
 		arguments->seed = strtol(arg, &endptr, 10);
 		if (*endptr != 0) {
@@ -152,6 +158,7 @@ parse_opt(int key, char *arg, struct argp_state *state)
 			return EXIT_FAILURE;
 		}
 		break;
+
 	case 'e':
 		for (i = 0; i < MAX_ALLOCATOR; ++i) {
 			if (strncmp(arg, allocator_names[i],
@@ -167,6 +174,21 @@ parse_opt(int key, char *arg, struct argp_state *state)
 				arg);
 		}
 		break;
+
+	case 'd':
+		if (stat(arg, &dir_stat)) {
+			perror("stat");
+			return EXIT_FAILURE;
+		}
+		if (S_ISDIR(dir_stat.st_mode)) {
+			arguments->dir_path = arg;
+		} else {
+			fprintf(stderr,
+				"The given path is not a valid directory\n");
+			return EXIT_FAILURE;
+		}
+		break;
+
 	case ARGP_KEY_ARG:
 		switch (state->arg_num) {
 		case 0:
@@ -194,6 +216,7 @@ parse_opt(int key, char *arg, struct argp_state *state)
 			return ARGP_ERR_UNKNOWN;
 		}
 		break;
+
 	case ARGP_KEY_END:
 		if (state->arg_num < 2)
 			argp_usage(state);
@@ -205,6 +228,7 @@ parse_opt(int key, char *arg, struct argp_state *state)
 				arguments->allocation_type = ALLOCATION_STATIC;
 			}
 		break;
+
 	default:
 		return ARGP_ERR_UNKNOWN;
 	}
@@ -226,14 +250,24 @@ main(int argc, char *argv[])
 	uint64_t pool_size;
 	arguments_t arguments;
 	int per_thread_args = 0;
+	const int min_pool_size = 200;
 	arguments.pool_per_thread = 0;
 	arguments.allocator = ALLOCATOR_VMEM;
-	argp_parse(&argp, argc, argv, 0, 0, &arguments);
+	arguments.dir_path = NULL;
+	if (argp_parse(&argp, argc, argv, 0, 0, &arguments)) {
+		fprintf(stderr, "argp_parse error");
+		return EXIT_FAILURE;
+	}
 	int pools_count = arguments.pool_per_thread ?
 			arguments.thread_count : 1;
 	VMEM *pools[pools_count];
 	void *pools_data[pools_count];
 	allocated_mem = calloc(arguments.ops_count, sizeof (void*));
+
+	if (allocated_mem == NULL) {
+		perror("calloc");
+		return EXIT_FAILURE;
+	}
 
 	if (arguments.allocator == ALLOCATOR_VMEM) {
 		if (arguments.pool_per_thread &&
@@ -252,22 +286,29 @@ main(int argc, char *argv[])
 
 		pool_size /= pools_count;
 
-		if (pool_size < 160 * MB) {
-			pool_size = 160 * MB;
+		if (pool_size < min_pool_size * MB) {
+			pool_size = min_pool_size * MB;
 		}
-
 		for (i = 0; i < pools_count; ++i) {
-			pools_data[i] = malloc(pool_size);
-			if (pools_data[i] == NULL) {
-				free(allocated_mem);
-				fprintf(stderr,
-					"Cannot allocate memory for pool\n");
-				return EXIT_FAILURE;
+			if (arguments.dir_path == NULL) {
+				pools_data[i] = malloc(pool_size);
+				if (pools_data[i] == NULL) {
+					free(allocated_mem);
+					perror("malloc");
+					return EXIT_FAILURE;
+				}
+				/* suppress valgrind warnings */
+				memset(pools_data[i], 0xFF, pool_size);
+				pools[i] = vmem_pool_create_in_region(
+						pools_data[i], pool_size);
+			} else {
+				pools[i] = vmem_pool_create(arguments.dir_path,
+						pool_size);
 			}
-			pools[i] = vmem_pool_create_in_region(pools_data[i],
-					pool_size);
 			if (pools[i] == NULL) {
-				fprintf(stderr, "Cannot create vmem pool\n");
+				perror("vmem_pool_create");
+				free(allocated_mem);
+				return EXIT_FAILURE;
 			}
 		}
 		arg = (void **)pools;
@@ -291,7 +332,9 @@ main(int argc, char *argv[])
 	if (arguments.allocator == ALLOCATOR_VMEM) {
 		for (i = 0; i < pools_count; ++i) {
 			vmem_pool_delete(pools[i]);
-			free(pools_data[i]);
+			if (arguments.dir_path == NULL) {
+				free(pools_data[i]);
+			}
 		}
 	}
 

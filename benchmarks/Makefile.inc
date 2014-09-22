@@ -37,7 +37,7 @@
 LIBS =
 INCS =
 DEFS =
-CFLAGS = -ggdb -Wall -Werror -std=gnu99
+CFLAGS = -std=gnu99 -Wall -Werror -O3
 
 all: $(TARGET)
 
