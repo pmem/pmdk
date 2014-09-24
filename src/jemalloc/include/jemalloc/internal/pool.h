@@ -125,5 +125,17 @@ void pool_postfork_child();
 /******************************************************************************/
 #ifdef JEMALLOC_H_INLINES
 
+#ifndef JEMALLOC_ENABLE_INLINE
+bool pool_is_file_mapped(pool_t *pool);
+#endif
+
+#if (defined(JEMALLOC_ENABLE_INLINE) || defined (JEMALLOC_POOL_C_))
+JEMALLOC_INLINE bool
+pool_is_file_mapped(pool_t *pool)
+{
+	return pool->pool_id != 0;
+}
+#endif
+
 #endif /* JEMALLOC_H_INLINES */
 /******************************************************************************/
