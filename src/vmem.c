@@ -213,30 +213,10 @@ vmem_pool_check(VMEM *vmp)
 {
 	LOG(3, "vmp %p", vmp);
 
-	if (vmp == NULL) {
-		LOG(1, "pool is NULL");
-		errno = EINVAL;
-		return -1;
-	}
-
-	if (vmp->addr == NULL) {
-		LOG(1, "pool address is NULL");
-		errno = EINVAL;
-		return -1;
-	}
-
-	if (vmp->size < VMEM_MIN_POOL - Pagesize) {
-		LOG(1, "wrong pool size");
-		errno = EINVAL;
-		return -1;
-	}
-
 	if (je_vmem_pool_check((pool_t *)((uintptr_t)vmp + Header_size))) {
-		LOG(1, "pool corrupted");
 		errno = EINVAL;
 		return -1;
 	}
-
 	return 0;
 }
 

@@ -1517,11 +1517,13 @@ je_pool_create(void *addr, size_t size, int zeroed)
 
 	assert(usable_size > 0);
 
+	malloc_mutex_lock(&pool->memory_range_mtx);
 	pool->memory_range_list->next = NULL;
 	pool->memory_range_list->addr = (uintptr_t)addr;
 	pool->memory_range_list->addr_end = (uintptr_t)addr + size;
 	pool->memory_range_list->usable_addr = (uintptr_t)usable_addr;
 	pool->memory_range_list->usable_addr_end = (uintptr_t)usable_addr + usable_size;
+	malloc_mutex_unlock(&pool->memory_range_mtx);
 
 	/* register the usable pool space as a single big chunk */
 	chunk_record(pool,
@@ -1613,6 +1615,12 @@ check_is_unzeroed(void *ptr, size_t size)
 	return 0;
 }
 
+/*
+ * check_tree_binary_iter_cb - callback for ex_iter() which iterates trough the red-black tree
+ *
+ * Ret: NULL if iteration completed, or the non-NULL callback return value
+ *      that caused termination of the iteration.
+ */
 static extent_node_t *
 check_tree_binary_iter_cb(extent_tree_t *tree, extent_node_t *node, void *arg)
 {
@@ -1660,6 +1668,12 @@ check_tree_binary_iter_cb(extent_tree_t *tree, extent_node_t *node, void *arg)
 	return (void *)1;
 }
 
+/*
+ * check_tree_chunks_avail_iter_cb - callback for ex_iter() which iterates trough the red-black tree
+ *
+ * Ret: NULL if iteration completed, or the non-NULL callback return value
+ *      that caused termination of the iteration.
+ */
 static arena_chunk_map_t *
 check_tree_chunks_avail_iter_cb(arena_avail_tree_t *tree, arena_chunk_map_t *map, void *arg)
 {
@@ -1769,7 +1783,7 @@ je_pool_check(pool_t *pool)
 							(node2->addr <= node->addr && node->addr < node2->addr_end)){
 						malloc_mutex_unlock(&pool_base_lock);
 						malloc_write("<jemalloc>: Error in pool_check(): "
-							"pool uses the same memory what other pool\n");
+							"pool uses the same as another pool\n");
 						malloc_mutex_unlock(&pool->memory_range_mtx);
 						return -1;
 					}
@@ -1830,7 +1844,7 @@ je_pool_check(pool_t *pool)
 
 	if (total_size < arg_cb.size) {
 		malloc_printf("<jemalloc>: Error in pool_check(): "
-			"size of chunks %zu are different that mapped regions %zu\n",
+			"total size of all chunks: %zu is greater than associated memory range size: %zu\n",
 			arg_cb.size, total_size);
 		return -1;
 	}
@@ -1884,13 +1898,14 @@ je_pool_extend(pool_t *pool, void *addr, size_t size, int zeroed)
 
 	assert(usable_size > 0);
 
-	malloc_mutex_lock(&pool->memory_range_mtx);
-	node->next = pool->memory_range_list;
-	pool->memory_range_list = node;
 	node->addr = (uintptr_t)addr;
 	node->addr_end = (uintptr_t)addr + size;
 	node->usable_addr = (uintptr_t)usable_addr;
 	node->usable_addr_end = (uintptr_t)usable_addr + usable_size;
+
+	malloc_mutex_lock(&pool->memory_range_mtx);
+	node->next = pool->memory_range_list;
+	pool->memory_range_list = node;
 	malloc_mutex_unlock(&pool->memory_range_mtx);
 
 	chunk_record(pool,

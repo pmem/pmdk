@@ -1,0 +1,6 @@
+___ Begin jemalloc statistics ___
+Allocated: $(*), active: $(*), mapped: $(*)
+Current active ceiling: $(*)
+chunks: nchunks   highchunks    curchunks
+              $(*)            $(*)            $(*)
+--- End jemalloc statistics ---

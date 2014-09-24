@@ -37,8 +37,8 @@
  */
 
 #include "unittest.h"
-#include "../../util.h"
-#include "../../vmem.h"
+#include "util.h"
+#include "vmem.h"
 
 static char Mem_pool[VMEM_MIN_POOL*2];
 
@@ -67,21 +67,6 @@ main(int argc, char *argv[])
 	}
 
 	ASSERTeq(0, vmem_pool_check(vmp));
-
-	/* check null addr */
-	ASSERTeq(0, vmem_pool_check(vmp));
-	void* addr = vmp->addr;
-	vmp->addr = NULL;
-	ASSERTne(0, vmem_pool_check(vmp));
-	vmp->addr = addr;
-
-	/* check wrong size */
-	ASSERTeq(0, vmem_pool_check(vmp));
-	size_t size = vmp->size;
-	vmp->size = 1;
-	ASSERTne(0, vmem_pool_check(vmp));
-	vmp->size = size;
-
 
 	/* create pool in this same memory */
 	if (dir == NULL) {

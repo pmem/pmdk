@@ -1,18 +1,3 @@
-$(OPT)<libvmem>: $(*)
-$(OPT)<libvmem>: $(*)
-$(OPT)<libvmem>: $(*)
-$(OPT)<libvmem>: $(*)
-$(OPT)<libvmem>: $(*)
-$(OPT)<libvmem>: $(*)
-$(OPT)<libvmem>: $(*)
-$(OPT)<libvmem>: $(*)
-$(OPT)<libvmem>: $(*)
-$(OPT)<libvmem>: $(*)
-$(OPT)<libvmem>: $(*)
-$(OPT)<libvmem>: $(*)
-$(OPT)<libvmem>: $(*)
-$(OPT)<libvmem>: $(*)
-$(OPT)<libvmem>: $(*)
 ___ Begin jemalloc statistics ___
 Version:$(*)
 Assertions enabled
@@ -61,13 +46,3 @@ large:   size pages      nmalloc      ndalloc    nrequests      curruns
         $(*)     $(*)            $(*)            $(*)            $(*)            $(*)
 [$(*)]
 --- End jemalloc statistics ---
-$(OPT)<libvmem>: $(*)
-$(OPT)<libvmem>: $(*)
-$(OPT)<libvmem>: $(*)
-$(OPT)<libvmem>: $(*)
-$(OPT)<libvmem>: $(*)
-$(OPT)<libvmem>: $(*)
-$(OPT)<libvmem>: $(*)
-$(OPT)<libvmem>: $(*)
-$(OPT)<libvmem>: $(*)
-$(OPT)<libvmem>: $(*)
