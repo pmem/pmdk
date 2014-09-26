@@ -87,6 +87,10 @@ cstyle:
 	$(MAKE) -C src $@
 	$(MAKE) -C examples $@
 	$(MAKE) -C benchmarks $@
+	@! find . -path ./src/jemalloc -prune -o -type f \
+		\( -name 'README' -o -name 'Makefile*' -o -name 'TEST*' \) \
+		-exec grep -n -H -P '\s$$' {} + \
+		|| echo "Error: trailing whitespaces found"
 
 source:
 	$(if $(shell git rev-parse 2>&1), $(error Not a git repository))
