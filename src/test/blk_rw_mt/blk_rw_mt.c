@@ -142,7 +142,7 @@ main(int argc, char *argv[])
 
 	pmemblk_pool_close(Handle);
 
-	/* XXX not ready to pass this part of the test yet */
+	/* verify the consistency of the data */
 	int result = pmemblk_pool_check(path);
 	if (result < 0)
 		OUT("!%s: pmemblk_pool_check", path);

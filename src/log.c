@@ -173,7 +173,6 @@ pmemlog_pool_open_common(const char *path, int rdonly)
 		uuid_generate(hdrp->uuid);
 		hdrp->crtime = htole64((uint64_t)time(NULL));
 		util_checksum(hdrp, sizeof (*hdrp), &hdrp->checksum, 1);
-		hdrp->checksum = htole64(hdrp->checksum);
 
 		/* store pool's header */
 		pmem_msync(hdrp, sizeof (*hdrp));

@@ -36,7 +36,9 @@
  * usage: checksum files...
  */
 
+#include <endian.h>
 #include "unittest.h"
+
 
 #include "util.h"
 
@@ -55,11 +57,12 @@ fletcher64(void *addr, size_t len)
 	uint32_t hi32 = 0;
 
 	while (p32 < p32end) {
-		lo32 += *p32++;
+		lo32 += le32toh(*p32);
+		p32++;
 		hi32 += lo32;
 	}
 
-	return (uint64_t)hi32 << 32 | lo32;
+	return htole64((uint64_t)hi32 << 32 | lo32);
 }
 
 int
@@ -96,7 +99,7 @@ main(int argc, char *argv[])
 			uint64_t oldval = *ptr;
 
 			/* mess with it */
-			*ptr = 0x123;
+			*ptr = htole64(0x123);
 
 			/*
 			 * calc a checksum and have it installed

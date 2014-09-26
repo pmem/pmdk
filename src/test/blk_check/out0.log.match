@@ -1,0 +1,58 @@
+blk_check/TEST0: START: blk_check
+ ./blk_check$(*) $(*)/testfile1 0
+Change btt_info.checksum
+$(*)/testfile1: pmemblk_check: Invalid argument
+$(*)/testfile1: pmemblk_check: Invalid argument
+Change btt_info.sig
+$(*)/testfile1: pmemblk_check: Invalid argument
+Change btt_info.major
+$(*)/testfile1: pmemblk_check: Invalid argument
+Change btt_info.parent_uuid
+$(*)/testfile1: pmemblk_check: not consistent
+Change btt_info.flags
+$(*)/testfile1: pmemblk_check: Read-only file system
+Change btt_info.nfree
+$(*)/testfile1: pmemblk_check: not consistent
+Change btt_info.external_lbasize
+$(*)/testfile1: pmemblk_check: Invalid argument
+$(*)/testfile1: pmemblk_check: Invalid argument
+Change btt_info.internal_nlba
+$(*)/testfile1: pmemblk_check: not consistent
+Change btt_info.external_nlba
+$(*)/testfile1: pmemblk_check: not consistent
+$(*)/testfile1: pmemblk_check: Invalid argument
+Change btt_info.infoof
+$(*)/testfile1: pmemblk_check: not consistent
+$(*)/testfile1: pmemblk_check: not consistent
+Change btt_info.flogoff
+$(*)/testfile1: pmemblk_check: Invalid argument
+$(*)/testfile1: pmemblk_check: Invalid argument
+Change btt_info.mapoff
+$(*)/testfile1: pmemblk_check: not consistent
+$(*)/testfile1: pmemblk_check: Invalid argument
+Change btt_info.nextoff
+$(*)/testfile1: pmemblk_check: Invalid argument
+Change btt_info.infosize
+$(*)/testfile1: pmemblk_check: not consistent
+Revert btt_info
+$(*)/testfile1: pmemblk_check: consistent
+Invalidate map entry
+$(*)/testfile1: pmemblk_check: Invalid argument
+Revert map entry
+$(*)/testfile1: pmemblk_check: consistent
+Invalidate flog entry
+$(*)/testfile1: pmemblk_check: Invalid argument
+Revert flog entry
+$(*)/testfile1: pmemblk_check: consistent
+Change backup btt_info.nextoff
+$(*)/testfile1: pmemblk_check: not consistent
+Change btt_info.external_nlba
+$(*)/testfile1: pmemblk_check: not consistent
+Revert backup btt_info
+$(*)/testfile1: pmemblk_check: consistent
+Change pool_hdr.checksum
+$(*)/testfile1: pmemblk_check: Read-only file system
+$(*)/testfile1: pmemblk_check: Read-only file system
+Change pool_hdr.major
+$(*)/testfile1: pmemblk_check: Read-only file system
+blk_check/TEST0: Done
