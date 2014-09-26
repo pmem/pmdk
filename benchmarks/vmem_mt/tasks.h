@@ -30,8 +30,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef TASKS_H
-#define	TASKS_H
+/*
+ * tasks.h -- definitions for the thread tasks
+ */
 
 #include <stdlib.h>
 #include <inttypes.h>
@@ -57,11 +58,12 @@ typedef struct arguments_s
 	int thread_count;
 	int pool_per_thread;
 	uint64_t ops_count;
-	uint_t seed;
-	uint_t allocation_size;
-	uint_t allocation_size_max;
+	unsigned int seed;
+	unsigned int allocation_size;
+	unsigned int allocation_size_max;
 	allocation_type_t allocation_type;
 	allocator_t allocator;
+	char *dir_path;
 } arguments_t;
 
 typedef int (*task_f)(int, void *arg, struct random_data *rand_state);
@@ -87,5 +89,3 @@ extern const int allocation_sizes[];
 
 int run_threads(arguments_t *arguments, task_f task,
 	int per_thread_arg, void **arg, double *elapsed);
-
-#endif // TASKS_H

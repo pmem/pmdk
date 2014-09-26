@@ -33,7 +33,7 @@
 #
 # Makefile -- build all benchmarks
 #
-BENCHMARK = mt blk_mt
+BENCHMARK = vmem_mt blk_mt
 
 all     : TARGET = all
 clean   : TARGET = clean

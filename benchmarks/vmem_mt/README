@@ -1,8 +1,8 @@
 Linux NVM Library
 
-This is benchmarks/mt/README.
+This is benchmarks/vmem_mt/README.
 
-This directory contains the multithreaded allocations benchmark.
+This directory contains the multi-threaded allocations benchmark.
 
 mt benchmark serves as a comparison tool between any malloc library and libvmem,
 it measures the number of malloc and free operations per second.
@@ -17,7 +17,7 @@ The application itself requires two arguments: thread count and
 operations count. First, the benchmark performs mallocs in threads, then frees
 the allocated memory. Time spent doing these operations is measured separately.
 By default libvmem is used, to choose different allocator use '-e' option.
-For more informations about the application usage invoke --help ('-?').
+For more information about the application usage invoke --help ('-?').
 
 In order to compare libvmem against other allocators,
 set LD_PRELOAD environment variable before running the benchmark.
@@ -27,11 +27,12 @@ export LD_PRELOAD=$LD_PRELOAD:/path/to/jemalloc/libjemalloc.so
 will allow you to measure the performance of jemalloc.
 
 For convenience, there is a simple RUN.sh script provided that will compare
-libvmem with provided library and generate results charts. To use it simply do:
-./RUN.sh [malloc_library.so]
+libvmem with provided library and generate results charts. To display usage
+type: ./RUN.sh -h
 
 The results of the benchmark are printed to standard output, use provided
-gnuplot scripts (gnuplot_mt_free.p, gnuplot_mt_malloc.p) to visualize them.
+gnuplot script templates (gnuplot_mt_free.template,
+gnuplot_mt_malloc.template) to visualize them.
 
 Output format:
 total malloc operations time;malloc operations per second;
