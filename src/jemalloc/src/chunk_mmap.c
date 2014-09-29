@@ -114,7 +114,7 @@ pages_trim(void *addr, size_t alloc_size, size_t leadsize, size_t size)
 }
 
 bool
-pages_purge(void *addr, size_t length)
+pages_purge(void *addr, size_t length, bool file_mapped)
 {
 	bool unzeroed;
 
@@ -132,7 +132,7 @@ pages_purge(void *addr, size_t length)
 #    error "No madvise(2) flag defined for purging unused dirty pages."
 #  endif
 	int err = madvise(addr, length, JEMALLOC_MADV_PURGE);
-	unzeroed = (JEMALLOC_MADV_ZEROS == false || err != 0);
+	unzeroed = (JEMALLOC_MADV_ZEROS == false || file_mapped || err != 0);
 #  undef JEMALLOC_MADV_PURGE
 #  undef JEMALLOC_MADV_ZEROS
 #else

@@ -249,12 +249,13 @@ void
 chunk_record(pool_t *pool, extent_tree_t *chunks_szad, extent_tree_t *chunks_ad, void *chunk,
     size_t size, bool zeroed)
 {
-	bool unzeroed;
+	bool unzeroed, file_mapped;
 	extent_node_t *xnode, *node, *prev, *xprev, key;
 
-	unzeroed = pages_purge(chunk, size);
+	file_mapped = pool_is_file_mapped(pool);
+	unzeroed = pages_purge(chunk, size, file_mapped);
 	JEMALLOC_VALGRIND_MAKE_MEM_NOACCESS(chunk, size);
-	
+
 	/*
 	 * If pages_purge() returned that the pages were zeroed
 	 * as a side effect of purging we can safely do this assignment.

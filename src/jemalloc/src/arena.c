@@ -996,15 +996,16 @@ arena_chunk_purge_stashed(arena_t *arena, arena_chunk_t *chunk,
 		nmadvise = 0;
 	npurged = 0;
 	ql_foreach(mapelm, mapelms, u.ql_link) {
-		bool unzeroed;
+		bool unzeroed, file_mapped;
 		size_t flag_unzeroed, i;
 
 		pageind = arena_mapelm_to_pageind(mapelm);
 		npages = arena_mapbits_large_size_get(chunk, pageind) >>
 		    LG_PAGE;
 		assert(pageind + npages <= chunk_npages);
+		file_mapped = pool_is_file_mapped(arena->pool);
 		unzeroed = pages_purge((void *)((uintptr_t)chunk + (pageind <<
-		    LG_PAGE)), (npages << LG_PAGE));
+		    LG_PAGE)), (npages << LG_PAGE), file_mapped);
 		flag_unzeroed = unzeroed ? CHUNK_MAP_UNZEROED : 0;
 		/*
 		 * Set the unzeroed flag for all pages, now that pages_purge()

@@ -426,6 +426,7 @@ void	jemalloc_postfork_child(void);
 /******************************************************************************/
 #define	JEMALLOC_H_INLINES
 
+#include "jemalloc/internal/pool.h"
 #include "jemalloc/internal/valgrind.h"
 #include "jemalloc/internal/util.h"
 #include "jemalloc/internal/atomic.h"
