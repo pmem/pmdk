@@ -30,70 +30,62 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <stdio.h>
-#include <fcntl.h>
-#include <errno.h>
+/*
+ * tasks.h -- definitions for the thread tasks
+ */
+
 #include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <libpmem.h>
+#include <inttypes.h>
+#include <libvmem.h>
 
-/* log processing callback for use with pmemlog_walk() */
-int
-printit(const void *buf, size_t len, void *arg)
+#define	SUCCESS 0
+#define	FAILURE -1
+
+typedef enum allocator_e {
+	ALLOCATOR_VMEM,
+	ALLOCATOR_MALLOC,
+	MAX_ALLOCATOR
+} allocator_t;
+
+typedef enum allocation_type_e {
+	ALLOCATION_UNKNOWN,
+	ALLOCATION_STATIC,
+	ALLOCATION_RANGE
+} allocation_type_t;
+
+typedef struct arguments_s
 {
-	fwrite(buf, len, 1, stdout);
-	return 0;
-}
+	int thread_count;
+	int pool_per_thread;
+	uint64_t ops_count;
+	unsigned int seed;
+	unsigned int allocation_size;
+	unsigned int allocation_size_max;
+	allocation_type_t allocation_type;
+	allocator_t allocator;
+	char *dir_path;
+} arguments_t;
 
-int
-main(int argc, char *argv[])
-{
-	int fd;
-	PMEMlog *plp;
-	size_t nbyte;
-	char *str;
+typedef int (*task_f)(int, void *arg, struct random_data *rand_state);
 
-	/* create file on PMEM-aware file system */
-	if ((fd = open("/my/pmem-aware/fs/myfile",
-					O_CREAT|O_RDWR, 0666)) < 0) {
-		perror("open");
-		exit(1);
-	}
+enum {
+	TASK_MALLOC,
+	TASK_FREE,
+	MAX_TASK
+};
 
-	/* pre-allocate 2GB of persistent memory */
-	if ((errno = posix_fallocate(fd, (off_t)0,
-					(size_t)1024 * 1024 * 1024 * 2)) != 0) {
-		perror("posix_fallocate");
-		exit(1);
-	}
+int task_malloc(int i, void *arg, struct random_data *rand_state);
+int task_free(int i, void *arg, struct random_data *rand_state);
 
-	/* create a persistent memory resident log */
-	if ((plp = pmemlog_map(fd)) == NULL) {
-		perror("pmemlog_map");
-		exit(1);
-	}
+extern task_f tasks[MAX_TASK];
 
-	/* how many bytes does the log hold? */
-	nbyte = pmemlog_nbyte(plp);
-	printf("log holds %zu bytes\n", nbyte);
+extern int allocation_range_min;
+extern int allocation_range_max;
+extern allocator_t allocator;
 
-	/* append to the log... */
-	str = "This is the first string appended\n";
-	if (pmemlog_append(plp, str, strlen(str)) < 0) {
-		perror("pmemlog_append");
-		exit(1);
-	}
-	str = "This is the second string appended\n";
-	if (pmemlog_append(plp, str, strlen(str)) < 0) {
-		perror("pmemlog_append");
-		exit(1);
-	}
+extern void **allocated_mem;
 
-	/* print the log contents */
-	printf("log contains:\n");
-	pmemlog_walk(plp, 0, printit, NULL);
+extern const int allocation_sizes[];
 
-	pmemlog_unmap(plp);
-	close(fd);
-}
+int run_threads(arguments_t *arguments, task_f task,
+	int per_thread_arg, void **arg, double *elapsed);

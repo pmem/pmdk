@@ -1,8 +1,44 @@
+/*
+ * Copyright (c) 2014, Intel Corporation
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in
+ *       the documentation and/or other materials provided with the
+ *       distribution.
+ *
+ *     * Neither the name of Intel Corporation nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY LOG OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+/*
+ * tasks.c -- thread workers for the VMEM benchmark
+ */
+
 #include <tasks.h>
 #include <pthread.h>
 #include <sys/time.h>
 
-#define	USEC_IN_SEC 1000000.0
+#define	NSEC_IN_SEC 1000000000
 
 struct task_def {
 	int start;
@@ -46,7 +82,7 @@ run_threads(arguments_t *arguments, task_f task, int per_thread_arg, void **arg,
 	pthread_t threads[arguments->thread_count];
 	struct task_def t_def[arguments->thread_count];
 	char *random_statebuf;
-	struct timeval task_start, task_stop;
+	struct timespec task_start, task_stop;
 
 	allocation_type = arguments->allocation_type;
 	allocation_min = arguments->allocation_size;
@@ -55,7 +91,7 @@ run_threads(arguments_t *arguments, task_f task, int per_thread_arg, void **arg,
 	random_statebuf = (char *)calloc(arguments->thread_count, 32);
 
 	n = arguments->ops_count / arguments->thread_count;
-	gettimeofday(&task_start, NULL);
+	clock_gettime(CLOCK_MONOTONIC, &task_start);
 
 	for (i = 0; i < arguments->thread_count; ++i) {
 		t_def[i].start = i * n;
@@ -85,7 +121,7 @@ run_threads(arguments_t *arguments, task_f task, int per_thread_arg, void **arg,
 		}
 	}
 
-	gettimeofday(&task_stop, NULL);
+	clock_gettime(CLOCK_MONOTONIC, &task_stop);
 
 	free(random_statebuf);
 	for (i = 0; i < arguments->thread_count; ++i) {
@@ -94,8 +130,8 @@ run_threads(arguments_t *arguments, task_f task, int per_thread_arg, void **arg,
 
 	if (elapsed != NULL) {
 		*elapsed = (task_stop.tv_sec - task_start.tv_sec) +
-				((task_stop.tv_usec - task_start.tv_usec) /
-				USEC_IN_SEC);
+				((task_stop.tv_nsec - task_start.tv_nsec) /
+				(double)NSEC_IN_SEC);
 	}
 
 	return ret;
@@ -122,8 +158,10 @@ task_malloc(int i, void *arg, struct random_data *rand_state)
 			+ allocation_min;
 		break;
 
+	/* an unknown allocation is a failure, fall-through intentional */
 	case ALLOCATION_UNKNOWN:
-		break;
+	default:
+		return FAILURE;
 	}
 
 	if (allocator == ALLOCATOR_VMEM) {

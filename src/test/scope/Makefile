@@ -44,4 +44,4 @@ clobber: clean
 
 cstyle:
 
-.PHONY: all clean clobber
+.PHONY: all clean clobber cstyle

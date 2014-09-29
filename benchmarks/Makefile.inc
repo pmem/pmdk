@@ -37,7 +37,7 @@
 LIBS =
 INCS =
 DEFS =
-CFLAGS = -ggdb -Wall -Werror -std=gnu99
+CFLAGS = -std=gnu99 -Wall -Werror -O3
 
 all: $(TARGET)
 
@@ -54,6 +54,6 @@ clobber: clean
 	$(RM) $(TARGET) $(ADD_TARGETS)
 
 cstyle:
-	../../utils/cstyle -pP *.c
+	../../utils/cstyle -pP *.[ch]
 
 .PHONY: all clean clobber cstyle

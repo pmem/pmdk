@@ -49,12 +49,12 @@ clean:
 	$(RM) *.o core a.out
 
 cstyle:
-	../../../utils/cstyle -pP *.c *.h
+	../../../utils/cstyle -pP *.[ch]
 
 clobber: clean
 	$(RM) $(TARGET)
 
-.PHONY: clean clobber
+.PHONY: all test clean clobber cstyle
 
 ut.o: ut.c unittest.h
 
