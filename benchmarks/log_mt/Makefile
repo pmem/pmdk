@@ -31,29 +31,17 @@
 #
 
 #
-# benchmarks/Makefile.inc -- common Makefile defs for benchmarks
+# benchmarks/log_mt/Makefile -- build multi-threaded pmemlog benchmark
 #
+TARGET = log_mt
+LIBPMEM_PATH = ../../src/nondebug/
 
-LIBS =
-INCS =
-DEFS =
-CFLAGS = -std=gnu99 -Wall -Werror -O3
+OBJS = log_mt.o threads.o
 
-all: $(TARGET)
+include ../Makefile.inc
 
-$(TARGET): $(OBJS)
-	$(CC) -o $@ $(OBJS) $(LIBS)
+LIBS := -Wl,-rpath,$(LIBPMEM_PATH) -L$(LIBPMEM_PATH) -lpmem -lpthread
+INCS := -I../../src/include/ -I.
 
-%.o: %.c
-	$(CC) -c $(CFLAGS) $(INCS) $(DEFS) $< -o $@
-
-clean:
-	$(RM) *.o */*.o *.out *.png *.tmp
-
-clobber: clean
-	$(RM) $(TARGET) $(ADD_TARGETS)
-
-cstyle:
-	../../utils/cstyle -pP *.[ch]
-
-.PHONY: all clean clobber cstyle
+log_mt.o: log_mt.c log_mt.h
+threads.o: threads.c threads.h
