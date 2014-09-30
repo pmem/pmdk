@@ -479,6 +479,7 @@ size_t	small_bin2size(size_t binind);
 size_t	small_s2u_compute(size_t size);
 size_t	small_s2u_lookup(size_t size);
 size_t	small_s2u(size_t size);
+size_t	arena_mapelm_to_pageind(arena_chunk_map_t *mapelm);
 arena_chunk_map_t	*arena_mapp_get(arena_chunk_t *chunk, size_t pageind);
 size_t	*arena_mapbitsp_get(arena_chunk_t *chunk, size_t pageind);
 size_t	arena_mapbitsp_read(size_t *mapbitsp);
@@ -663,6 +664,15 @@ small_s2u(size_t size)
 #  endif /* JEMALLOC_ARENA_INLINE_A */
 
 #  ifdef JEMALLOC_ARENA_INLINE_B
+JEMALLOC_ALWAYS_INLINE size_t
+arena_mapelm_to_pageind(arena_chunk_map_t *mapelm)
+{
+	uintptr_t map_offset =
+	    CHUNK_ADDR2OFFSET(mapelm) - offsetof(arena_chunk_t, map);
+
+	return ((map_offset / sizeof(arena_chunk_map_t)) + map_bias);
+}
+
 JEMALLOC_ALWAYS_INLINE arena_chunk_map_t *
 arena_mapp_get(arena_chunk_t *chunk, size_t pageind)
 {

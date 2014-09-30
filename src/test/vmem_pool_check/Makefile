@@ -1,4 +1,3 @@
-#!/bin/bash -e
 #
 # Copyright (c) 2014, Intel Corporation
 #
@@ -32,22 +31,19 @@
 #
 
 #
-# src/test/vmem_stats/TEST4 -- unit test for vmem_stats
+# src/test/vmem_pool_check/Makefile -- build vmem_pool_check unit test
 #
-export UNITTEST_NAME=vmem_stats/TEST4
-export UNITTEST_NUM=4
 
-# standard unit test setup
-. ../unittest/unittest.sh
+vpath %.h ../..
+TARGET = vmem_pool_check
+OBJS = vmem_pool_check.o
 
-require_fs_type local
-require_build_type debug
+include ../Makefile.inc
+CFLAGS += -I../..
+STATIC_DEBUG_LIBS = ../unittest/libut.a ../../debug/libvmem.a -luuid -pthread
+STATIC_NONDEBUG_LIBS = ../unittest/libut.a ../../nondebug/libvmem.a -luuid -pthread
 
-setup
+LIBS += -lvmem
 
-expect_normal_exit ./vmem_stats$EXESUFFIX gblma
-grep -v '<libvmem>:'  vmem$UNITTEST_NUM.log > grep$UNITTEST_NUM.log
+vmem_pool_check.o: vmem_pool_check.c
 
-check
-
-pass

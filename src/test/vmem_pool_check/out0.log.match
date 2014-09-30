@@ -1,0 +1,3 @@
+vmem_pool_check/TEST0: START: vmem_pool_check
+ ./vmem_pool_check$(*)
+vmem_pool_check/TEST0: Done

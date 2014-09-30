@@ -9,6 +9,10 @@ bool pool_new(pool_t *pool, unsigned pool_id)
 {
 	pool->pool_id = pool_id;
 
+	if (malloc_mutex_init(&pool->memory_range_mtx)) {
+		return (true);
+	}
+
 	if (malloc_mutex_init(&pool->arenas_lock)) {
 		return (true);
 	}

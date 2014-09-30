@@ -32,21 +32,17 @@
 #
 
 #
-# src/test/vmem_stats/TEST4 -- unit test for vmem_stats
+# src/test/vmem_pool_check/TEST1 -- unit test for vmem_pool_check
 #
-export UNITTEST_NAME=vmem_stats/TEST4
-export UNITTEST_NUM=4
+export UNITTEST_NAME=vmem_pool_check/TEST1
+export UNITTEST_NUM=1
 
 # standard unit test setup
 . ../unittest/unittest.sh
 
-require_fs_type local
-require_build_type debug
-
 setup
 
-expect_normal_exit ./vmem_stats$EXESUFFIX gblma
-grep -v '<libvmem>:'  vmem$UNITTEST_NUM.log > grep$UNITTEST_NUM.log
+expect_normal_exit ./vmem_pool_check$EXESUFFIX $DIR
 
 check
 

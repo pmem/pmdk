@@ -1,14 +1,3 @@
-<libvmem>: $(*)
-<libvmem>: $(*)
-<libvmem>: $(*)
-<libvmem>: $(*)
-<libvmem>: $(*)
-<libvmem>: $(*)
-<libvmem>: $(*)
-<libvmem>: $(*)
-<libvmem>: $(*)
-<libvmem>: $(*)
-<libvmem>: $(*)
 ___ Begin jemalloc statistics ___
 Version:$(*)
 Assertions enabled
@@ -57,5 +46,3 @@ large:   size pages      nmalloc      ndalloc    nrequests      curruns
         $(*)     $(*)            $(*)            $(*)            $(*)            $(*)
 [$(*)]
 --- End jemalloc statistics ---
-<libvmem>: $(*)
-<libvmem>: $(*)

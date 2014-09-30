@@ -62,6 +62,7 @@ TEST = blk_nblock\
        vmem_mix_allocations\
        vmem_multiple_pools\
        vmem_out_of_memory\
+       vmem_pool_check\
        vmem_pool_create\
        vmem_pool_create_error\
        vmem_pool_create_in_region\

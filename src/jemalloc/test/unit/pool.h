@@ -458,6 +458,7 @@ TEST_BEGIN(test_pool_freespace) {
 	}
 
 	assert_lu_eq(free_space, 0, "all memory should be used");
+	assert_d_eq(je_pool_check(pool), 0, "je_pool_check() should not return error");
 
 	while (prev != NULL) {
 		void **act = prev;
@@ -471,6 +472,7 @@ TEST_BEGIN(test_pool_freespace) {
 
 		free_space = space;
 	}
+	assert_d_eq(je_pool_check(pool), 0, "je_pool_check() should not return error");
 
 	free_space = je_pool_freespace(pool);
 	assert_lu_gt(free_space, (total_space * 9) / 10,
@@ -484,6 +486,101 @@ TEST_BEGIN(test_pool_freespace) {
 	} else {
 		assert_ptr_null(pools[0], "create base pool");
 	}
+}
+TEST_END
+
+/*
+ * print_jemalloc_messages -- custom print function, for jemalloc
+ */
+static void
+print_jemalloc_messages(void* ignore, const char *s)
+{
+
+}
+
+TEST_BEGIN(test_pool_check_extend) {
+	je_malloc_message = print_jemalloc_messages;
+	pool_t *pool;
+	custom_allocs = 0;
+
+	pool = pool_create(mem_pool, TEST_POOL_SIZE, 0);
+	pool_malloc(pool, 100);
+	assert_d_eq(je_pool_check(pool), 0, "je_pool_check() should not return error");
+	pool_delete(pool);
+	assert_d_ne(je_pool_check(pool), 0, "je_pool_check() should return error");
+
+	pool = pool_create(mem_pool, TEST_POOL_SIZE, 0);
+	assert_d_eq(je_pool_check(pool), 0, "je_pool_check() should not return error");
+	size_t size_extend = pool_extend(pool, mem_extend_ok, TEST_POOL_SIZE, 1);
+	assert_zu_ne(size_extend, 0, "pool_extend() should add some free space ");
+	assert_d_eq(je_pool_check(pool), 0, "je_pool_check() should not return error");
+	pool_malloc(pool, 100);
+	pool_delete(pool);
+	assert_d_ne(je_pool_check(pool), 0, "je_pool_check() should return error");
+
+	assert_d_eq(custom_allocs, 0, "memory leak when use custom allocator");
+	if (exp_base_pool) {
+		assert_ptr_not_null(pools[0], "not create base pool");
+	} else {
+		assert_ptr_null(pools[0], "create base pool");
+	}
+
+	je_malloc_message = NULL;
+}
+TEST_END
+
+TEST_BEGIN(test_pool_check_overlaps_memory) {
+	je_malloc_message = print_jemalloc_messages;
+	pool_t *pool;
+	pool_t *pool2;
+	custom_allocs = 0;
+
+	pool = pool_create(mem_pool, TEST_POOL_SIZE, 0);
+	size_t size_extend = pool_extend(pool, mem_extend_ok, TEST_POOL_SIZE, 1);
+	assert_zu_ne(size_extend, 0, "pool_extend() should add some free space ");
+	assert_d_eq(je_pool_check(pool), 0, "je_pool_check() should not return error");
+
+	/* create pool in this same memory */
+	pool2 = pool_create(mem_extend_ok, TEST_POOL_SIZE, 0);
+	assert_d_ne(je_pool_check(pool), 0, "je_pool_check() should return error");
+	assert_d_ne(je_pool_check(pool2), 0, "je_pool_check() should return error");
+	pool_delete(pool2);
+	pool_delete(pool);
+
+	assert_d_eq(custom_allocs, 0, "memory leak when use custom allocator");
+	if (exp_base_pool) {
+		assert_ptr_not_null(pools[0], "not create base pool");
+	} else {
+		assert_ptr_null(pools[0], "create base pool");
+	}
+
+	je_malloc_message = NULL;
+}
+TEST_END
+
+TEST_BEGIN(test_pool_check_chunk_corrupted) {
+	je_malloc_message = print_jemalloc_messages;
+	pool_t *pool;
+	custom_allocs = 0;
+
+	pool = pool_create(mem_pool, TEST_POOL_SIZE, 0);
+	assert_d_eq(je_pool_check(pool), 0, "je_pool_check() should not return error");
+
+	/* inject non-zero byte to the zeroed chunk */
+	extent_node_t *node = extent_tree_szad_first(&pool->chunks_szad_mmap);
+	*(char *)(node->addr) = 'e';
+
+	assert_d_ne(je_pool_check(pool), 0, "je_pool_check() should return error");
+	pool_delete(pool);
+
+	assert_d_eq(custom_allocs, 0, "memory leak when use custom allocator");
+	if (exp_base_pool) {
+		assert_ptr_not_null(pools[0], "not create base pool");
+	} else {
+		assert_ptr_null(pools[0], "create base pool");
+	}
+
+	je_malloc_message = NULL;
 }
 TEST_END
 
@@ -501,6 +598,9 @@ TEST_END
 	test_pool_extend_errors,	\
 	test_pool_extend,	\
 	test_pool_extend_after_out_of_memory,	\
-	test_pool_freespace
+	test_pool_freespace,	\
+	test_pool_check_extend,	\
+	test_pool_check_overlaps_memory,	\
+	test_pool_check_chunk_corrupted
 
 
