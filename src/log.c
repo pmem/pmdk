@@ -218,7 +218,7 @@ pmemlog_map_common(int fd, int rdonly)
 	 * If possible, turn off all permissions on the pool header page.
 	 *
 	 * The prototype PMFS doesn't allow this when large pages are in
-	 * use not it is not considered an error if this fails.
+	 * use. It is not considered an error if this fails.
 	 */
 	util_range_none(addr, sizeof (struct pool_hdr));
 

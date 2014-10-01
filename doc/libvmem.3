@@ -37,7 +37,7 @@
 .\" or
 .\"	groff -man -Tascii libvmem.3
 .\"
-.TH libvmem 3 "vmem API version 0.53" "NVM Library"
+.TH libvmem 3 "vmem API version 0.54" "NVM Library"
 .SH NAME
 libvmem \- volatile memory allocation library
 .SH SYNOPSIS
@@ -243,6 +243,9 @@ above, the minimum
 .I size
 allowed is defined as
 .BR VMEM_MIN_POOL .
+The
+.I addr
+argument must be page aligned.
 .BR vmem_pool_create_in_region ()
 returns an opaque memory pool handle or NULL if an error occurred
 (in which case

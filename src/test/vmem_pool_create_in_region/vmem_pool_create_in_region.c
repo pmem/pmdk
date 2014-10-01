@@ -40,7 +40,6 @@
 
 #define	TEST_ALLOCATIONS (300)
 
-static char mem_pool[VMEM_MIN_POOL];
 static void *allocs[TEST_ALLOCATIONS];
 
 int
@@ -53,6 +52,10 @@ main(int argc, char *argv[])
 
 	if (argc > 1)
 		FATAL("usage: %s", argv[0]);
+
+	/* allocate memory for function vmem_pool_create_in_region() */
+	void *mem_pool = MMAP(NULL, VMEM_MIN_POOL, PROT_READ|PROT_WRITE,
+					MAP_ANONYMOUS|MAP_PRIVATE, -1, 0);
 
 	vmp = vmem_pool_create_in_region(mem_pool, VMEM_MIN_POOL);
 

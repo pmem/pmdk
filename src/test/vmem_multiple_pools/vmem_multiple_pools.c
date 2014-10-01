@@ -41,13 +41,14 @@
 #define	TEST_POOLS_MAX (9)
 #define	TEST_REPEAT_CREATE_POOLS (30)
 
-static char mem_pools[TEST_POOLS_MAX/2][VMEM_MIN_POOL];
-
-VMEM *pools[TEST_POOLS_MAX];
-
 int
 main(int argc, char *argv[])
 {
+	const unsigned mem_pools_size = TEST_POOLS_MAX/2 + TEST_POOLS_MAX%2;
+	char *mem_pools[mem_pools_size];
+	VMEM *pools[TEST_POOLS_MAX];
+	memset(pools, 0, sizeof (pools[0]) * TEST_POOLS_MAX);
+
 	START(argc, argv, "vmem_multiple_pools");
 
 	if (argc < 2 || argc > 3)
@@ -58,6 +59,13 @@ main(int argc, char *argv[])
 	/* create and destroy pools multiple times */
 	size_t repeat;
 	size_t pool_id;
+
+	for (pool_id = 0; pool_id < mem_pools_size; ++pool_id) {
+		/* allocate memory for function vmem_pool_create_in_region() */
+		mem_pools[pool_id] = MMAP(NULL, VMEM_MIN_POOL,
+			PROT_READ|PROT_WRITE, MAP_ANONYMOUS|MAP_PRIVATE, -1, 0);
+	}
+
 	for (repeat = 0; repeat < TEST_REPEAT_CREATE_POOLS; ++repeat) {
 		for (pool_id = 0; pool_id < TEST_POOLS_MAX; ++pool_id) {
 
@@ -70,7 +78,7 @@ main(int argc, char *argv[])
 			if (pool_id % 2 == 0) {
 				/* for even pool_id, create in region */
 				pools[pool_id] = vmem_pool_create_in_region(
-					mem_pools[pool_id % 2], VMEM_MIN_POOL);
+					mem_pools[pool_id / 2], VMEM_MIN_POOL);
 				if (pools[pool_id] == NULL)
 					FATAL("!vmem_pool_create_in_region");
 			} else {

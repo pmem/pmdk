@@ -38,7 +38,6 @@
 
 #include "unittest.h"
 
-static char mem_pool[VMEM_MIN_POOL];
 #define	TEST_VALUE 1234
 
 int
@@ -54,6 +53,10 @@ main(int argc, char *argv[])
 	} else if (argc > 2) {
 		FATAL("usage: %s [opts]", argv[0]);
 	}
+
+	/* allocate memory for function vmem_pool_create_in_region() */
+	void *mem_pool = MMAP(NULL, VMEM_MIN_POOL, PROT_READ|PROT_WRITE,
+				MAP_ANONYMOUS|MAP_PRIVATE, -1, 0);
 
 	vmp = vmem_pool_create_in_region(mem_pool, VMEM_MIN_POOL);
 	if (vmp == NULL)
