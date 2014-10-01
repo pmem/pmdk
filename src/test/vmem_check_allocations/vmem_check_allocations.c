@@ -41,8 +41,6 @@
 #define	TEST_MAX_ALLOCATION_SIZE (4L * 1024L * 1024L)
 #define	TEST_ALLOCS_SIZE (VMEM_MIN_POOL / 8)
 
-static char mem_pool[VMEM_MIN_POOL];
-
 /* buffer for all allocations */
 static void *allocs[TEST_ALLOCS_SIZE];
 
@@ -50,6 +48,7 @@ int
 main(int argc, char *argv[])
 {
 	char *dir = NULL;
+	void *mem_pool = NULL;
 	VMEM *vmp;
 
 	START(argc, argv, "vmem_check_allocations");
@@ -67,6 +66,10 @@ main(int argc, char *argv[])
 		size_t j;
 
 		if (dir == NULL) {
+			mem_pool = MMAP(NULL, VMEM_MIN_POOL,
+					PROT_READ|PROT_WRITE,
+					MAP_ANONYMOUS|MAP_PRIVATE, -1, 0);
+
 			vmp = vmem_pool_create_in_region(mem_pool,
 				VMEM_MIN_POOL);
 			if (vmp == NULL)

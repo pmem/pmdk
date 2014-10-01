@@ -40,9 +40,6 @@
 
 #define	MAX_ALLOCS (100)
 
-static char mem_pool[VMEM_MIN_POOL];
-
-
 static int custom_allocs;
 static int custom_alloc_calls;
 
@@ -118,6 +115,10 @@ main(int argc, char *argv[])
 	} else if (argc > 2) {
 		FATAL("usage: %s [directory]", argv[0]);
 	}
+
+	/* allocate memory for function vmem_pool_create_in_region() */
+	void *mem_pool = MMAP(NULL, VMEM_MIN_POOL, PROT_READ|PROT_WRITE,
+					MAP_ANONYMOUS|MAP_PRIVATE, -1, 0);
 
 	/* use custom alloc functions to check for memory leaks */
 	vmem_set_funcs(malloc_custom, free_custom,

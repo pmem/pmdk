@@ -138,7 +138,7 @@ vmem_pool_create(const char *dir, size_t size)
 	 * If possible, turn off all permissions on the pool header page.
 	 *
 	 * The prototype PMFS doesn't allow this when large pages are in
-	 * use not it is not considered an error if this fails.
+	 * use. It is not considered an error if this fails.
 	 */
 	util_range_none(addr, sizeof (struct pool_hdr));
 
@@ -153,6 +153,12 @@ VMEM *
 vmem_pool_create_in_region(void *addr, size_t size)
 {
 	LOG(3, "addr %p size %zu", addr, size);
+
+	if (((uintptr_t)addr & (Pagesize - 1)) != 0) {
+		LOG(1, "addr %p not aligned to pagesize %zu", addr, Pagesize);
+		errno = EINVAL;
+		return NULL;
+	}
 
 	if (size < VMEM_MIN_POOL) {
 		LOG(1, "size %zu smaller than %zu", size, VMEM_MIN_POOL);
@@ -175,18 +181,13 @@ vmem_pool_create_in_region(void *addr, size_t size)
 		return NULL;
 	}
 
-#ifdef	notdef
 	/*
-	 * XXX not ready to call aligned util_range_none() yet,
-	 * addr should be aligned to do that.
-	 *
 	 * If possible, turn off all permissions on the pool header page.
 	 *
 	 * The prototype PMFS doesn't allow this when large pages are in
-	 * use not it is not considered an error if this fails.
+	 * use. It is not considered an error if this fails.
 	 */
 	util_range_none(addr, sizeof (struct pool_hdr));
-#endif	/* notdef */
 
 	LOG(3, "vmp %p", vmp);
 	return vmp;
@@ -201,6 +202,7 @@ vmem_pool_delete(VMEM *vmp)
 	LOG(3, "vmp %p", vmp);
 
 	je_vmem_pool_delete((pool_t *)((uintptr_t)vmp + Header_size));
+	util_range_rw(vmp->addr, sizeof (struct pool_hdr));
 
 	if (vmp->caller_mapped == 0)
 		util_unmap(vmp->addr, vmp->size);

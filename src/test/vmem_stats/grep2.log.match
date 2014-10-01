@@ -1,14 +1,3 @@
-<libvmem>: $(*)
-<libvmem>: $(*)
-<libvmem>: $(*)
-<libvmem>: $(*)
-<libvmem>: $(*)
-<libvmem>: $(*)
-<libvmem>: $(*)
-<libvmem>: $(*)
-<libvmem>: $(*)
-<libvmem>: $(*)
-<libvmem>: $(*)
 ___ Begin jemalloc statistics ___
 Allocated: $(*), active: $(*), mapped: $(*)
 Current active ceiling: $(*)
@@ -26,14 +15,4 @@ huge:               $(*)            $(*)            $(*)            $(*)
 total:          $(*)           $(*)            $(*)            $(*)
 active:         $(*)
 mapped:       $(*)
-bins:     bin  size regs pgs    allocated      nmalloc      ndalloc    nrequests       nfills     nflushes      newruns       reruns      curruns
-[0..$(*)]
-           $(*)   $(*)   $(*)   $(*)        $(*)           $(*)            $(*)            $(*)            $(*)            $(*)            $(*)            $(*)            $(*)
-[$(*)..$(*)]
-large:   size pages      nmalloc      ndalloc    nrequests      curruns
-[$(*)]
-        $(*)     $(*)            $(*)            $(*)            $(*)            $(*)
-[$(*)]
 --- End jemalloc statistics ---
-<libvmem>: $(*)
-<libvmem>: $(*)
