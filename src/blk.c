@@ -117,9 +117,9 @@ nsread(void *ns, int lane, void *buf, size_t count, off_t off)
 
 	LOG(13, "pbp %p lane %d count %zu off %zu", pbp, lane, count, off);
 
-	if (off + count >= pbp->datasize) {
+	if (off + count > pbp->datasize) {
 		LOG(1, "offset + count (%zu) past end of data area (%zu)",
-				off + count, pbp->datasize - 1);
+				off + count, pbp->datasize);
 		errno = EINVAL;
 		return -1;
 	}
@@ -142,9 +142,9 @@ nswrite(void *ns, int lane, const void *buf, size_t count, off_t off)
 
 	LOG(13, "pbp %p lane %d count %zu off %zu", pbp, lane, count, off);
 
-	if (off + count >= pbp->datasize) {
+	if (off + count > pbp->datasize) {
 		LOG(1, "offset + count (%zu) past end of data area (%zu)",
-				off + count, pbp->datasize - 1);
+				off + count, pbp->datasize);
 		errno = EINVAL;
 		return -1;
 	}
