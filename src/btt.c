@@ -788,7 +788,7 @@ write_layout(struct btt *bttp, int lane, int write)
 		 * all relative to the beginning of the arena.
 		 */
 		uint64_t nextoff;
-		if (rawsize)
+		if (rawsize >= BTT_MIN_SIZE)
 			nextoff = arena_rawsize;
 		else
 			nextoff = 0;
@@ -912,7 +912,7 @@ write_layout(struct btt *bttp, int lane, int write)
 					sizeof (info), arena_off) < 0)
 			return -1;
 		if ((*bttp->ns_cbp->nswrite)(bttp->ns, lane, &info,
-					sizeof (info), arena_off + nextoff) < 0)
+					sizeof (info), arena_off + infooff) < 0)
 			return -1;
 
 		arena_off += nextoff;
