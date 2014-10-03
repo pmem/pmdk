@@ -51,3 +51,14 @@ function require_valgrind_dev_3_8() {
 	echo "$UNITTEST_NAME: SKIP valgrind-devel package required"
 	exit 0
 }
+
+#
+# require_no_bullseye -- there is no point in checking mem leaks
+# 	when we also use bullseye to check coverity.
+# 	If covc binary is in $PATH env var, skip this test
+#
+function require_no_bullseye() {
+	which covc &> /dev/null || return 0
+	echo "$UNITTEST_NAME: SKIP bullseye is used to compile this unit test. Skipping..."
+	exit 0
+}
