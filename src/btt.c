@@ -549,7 +549,8 @@ read_flogs(struct btt *bttp, int lane, struct arena *arenap)
 			return -1;
 
 		/* prepare for next time around the loop */
-		flog_off += 2 * sizeof (struct btt_flog);
+		flog_off += roundup(2 * sizeof (struct btt_flog),
+				BTT_FLOG_PAIR_ALIGN);
 		flog_runtimep++;
 	}
 
@@ -727,7 +728,8 @@ write_layout(struct btt *bttp, int lane, int write)
 		bttp->narena++;
 	LOG(4, "narena %u", bttp->narena);
 
-	int flog_size = bttp->nfree * 2 * sizeof (struct btt_flog);
+	int flog_size = bttp->nfree *
+		roundup(2 * sizeof (struct btt_flog), BTT_FLOG_PAIR_ALIGN);
 	flog_size = roundup(flog_size, BTT_ALIGNMENT);
 
 	uint32_t internal_lbasize = bttp->lbasize;
@@ -880,6 +882,8 @@ write_layout(struct btt *bttp, int lane, int write)
 					sizeof (Zflog), flog_entry_off) < 0)
 				return -1;
 			flog_entry_off += sizeof (flog);
+			flog_entry_off = roundup(flog_entry_off,
+					BTT_FLOG_PAIR_ALIGN);
 
 			next_free_lba++;
 		}

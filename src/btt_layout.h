@@ -87,8 +87,11 @@ struct btt_info {
  *
  * The "nfree" field in the BTT info block determines how many of these
  * flog entries there are, and each entry consists of two of the following
- * structs (entry updates alternate between the two structs).
+ * structs (entry updates alternate between the two structs), padded up
+ * to a cache line boundary to isolate adjacent updates.
  */
+
+#define	BTT_FLOG_PAIR_ALIGN 64
 
 struct btt_flog {
 	uint32_t lba;		/* last pre-map LBA using this entry */
@@ -104,6 +107,7 @@ struct btt_flog {
 #define	BTT_MAP_ENTRY_ZERO (1u << 31)
 #define	BTT_MAP_ENTRY_ERROR (1u << 30)
 #define	BTT_MAP_ENTRY_LBA_MASK 0x3fffffff
+#define	BTT_MAP_LOCK_ALIGN 64
 
 /*
  * BTT layout properties...
