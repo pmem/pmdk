@@ -220,7 +220,7 @@ struct btt {
 		/*
 		 * Map locking.  Indexed by pre-map LBA modulo nlane.
 		 */
-		pthread_spinlock_t *map_locks;
+		pthread_mutex_t *map_locks;
 	} *arenas;
 
 	/*
@@ -596,8 +596,7 @@ build_map_locks(struct btt *bttp, struct arena *arenap)
 		return -1;
 	}
 	for (int lane = 0; lane < bttp->nfree; lane++)
-		pthread_spin_init(&arenap->map_locks[lane],
-					PTHREAD_PROCESS_PRIVATE);
+		pthread_mutex_init(&arenap->map_locks[lane], NULL);
 
 	return 0;
 }
@@ -1275,12 +1274,24 @@ map_lock(struct btt *bttp, int lane, struct arena *arenap,
 	off_t map_entry_off = arenap->mapoff + BTT_MAP_ENTRY_SIZE * premap_lba;
 	int map_lock_num = premap_lba % bttp->nfree;
 
-	pthread_spin_lock(&arenap->map_locks[map_lock_num]);
+	/*
+	 * The perfect locking for the map would be one lock for every cache
+	 * line in the map, but obviously that's impractical so instead
+	 * map_locks[] is organized so that map_locks[n] contains the lock that
+	 * protects the nth cache line in a repeating series of nlane cache
+	 * lines.  So locking map_locks[0] locks cache line zero, cache line
+	 * nlane, cache line 2*nlane, etc.  This serializes map updates while
+	 * providing a decent chance for parallel updates to map entries in
+	 * different cache lines.
+	 */
+	int map_lock_num =
+		(premap_lba & ~(BTT_MAP_LOCK_ALIGN - 1)) % bttp->nfree;
+	pthread_mutex_lock(&arenap->map_locks[map_lock_num]);
 
 	/* read the old map entry */
 	if ((*bttp->ns_cbp->nsread)(bttp->ns, lane, entryp,
 				sizeof (uint32_t), map_entry_off) < 0) {
-		pthread_spin_unlock(&arenap->map_locks[map_lock_num]);
+		pthread_mutex_unlock(&arenap->map_locks[map_lock_num]);
 		return -1;
 	}
 
@@ -1301,8 +1312,9 @@ map_abort(struct btt *bttp, int lane, struct arena *arenap, uint32_t premap_lba)
 	LOG(3, "bttp %p lane %u arenap %p premap_lba %u",
 			bttp, lane, arenap, premap_lba);
 
-	int map_lock_num = premap_lba % bttp->nfree;
-	pthread_spin_unlock(&arenap->map_locks[map_lock_num]);
+	int map_lock_num =
+		(premap_lba & ~(BTT_MAP_LOCK_ALIGN - 1)) % bttp->nfree;
+	pthread_mutex_unlock(&arenap->map_locks[map_lock_num]);
 }
 
 /*
@@ -1322,7 +1334,9 @@ map_unlock(struct btt *bttp, int lane, struct arena *arenap,
 	int err = (*bttp->ns_cbp->nswrite)(bttp->ns, lane, &entry,
 				sizeof (uint32_t), map_entry_off);
 
-	pthread_spin_unlock(&arenap->map_locks[map_lock_num]);
+	int map_lock_num =
+		(premap_lba & ~(BTT_MAP_LOCK_ALIGN - 1)) % bttp->nfree;
+	pthread_mutex_unlock(&arenap->map_locks[map_lock_num]);
 
 	LOG(9, "unlocked map[%d]: %u%s%s", premap_lba,
 			entry & BTT_MAP_ENTRY_LBA_MASK,
