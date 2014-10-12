@@ -1,5 +1,11 @@
 ___ Begin jemalloc statistics ___
-Allocated: $(*), active: $(*), mapped: $(*)
+Allocated: 0, active: 0, mapped: $(*)
+Current active ceiling: $(*)
+chunks: nchunks   highchunks    curchunks
+              $(*)            $(*)            $(*)
+--- End jemalloc statistics ---
+___ Begin jemalloc statistics ___
+Allocated: 60992, active: 61440, mapped: $(*)
 Current active ceiling: $(*)
 chunks: nchunks   highchunks    curchunks
               $(*)            $(*)            $(*)

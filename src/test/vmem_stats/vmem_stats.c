@@ -38,13 +38,13 @@
 
 #include "unittest.h"
 
-#define	TEST_VALUE 1234
-
 int
 main(int argc, char *argv[])
 {
 	char *opts = "";
-	VMEM *vmp;
+	void *mem_pool;
+	VMEM *vmp_unused;
+	VMEM *vmp_used;
 
 	START(argc, argv, "vmem_stats");
 
@@ -54,27 +54,30 @@ main(int argc, char *argv[])
 		FATAL("usage: %s [opts]", argv[0]);
 	}
 
-	/* allocate memory for function vmem_pool_create_in_region() */
-	void *mem_pool = MMAP(NULL, VMEM_MIN_POOL, PROT_READ|PROT_WRITE,
+	mem_pool = MMAP(NULL, VMEM_MIN_POOL, PROT_READ|PROT_WRITE,
 				MAP_ANONYMOUS|MAP_PRIVATE, -1, 0);
 
-	vmp = vmem_pool_create_in_region(mem_pool, VMEM_MIN_POOL);
-	if (vmp == NULL)
+	vmp_unused = vmem_pool_create_in_region(mem_pool, VMEM_MIN_POOL);
+	if (vmp_unused == NULL)
 		FATAL("!vmem_pool_create_in_region");
 
-	int *test = vmem_malloc(vmp, sizeof (int)*100);
+	mem_pool = MMAP(NULL, VMEM_MIN_POOL, PROT_READ|PROT_WRITE,
+					MAP_ANONYMOUS|MAP_PRIVATE, -1, 0);
+
+	vmp_used = vmem_pool_create_in_region(mem_pool, VMEM_MIN_POOL);
+	if (vmp_used == NULL)
+		FATAL("!vmem_pool_create_in_region");
+
+	int *test = vmem_malloc(vmp_used, sizeof (int)*100);
 	ASSERTne(test, NULL);
 
-	*test = TEST_VALUE;
-	ASSERTeq(*test, TEST_VALUE);
+	vmem_pool_stats_print(vmp_unused, opts);
+	vmem_pool_stats_print(vmp_used, opts);
 
-	ASSERTrange(test, mem_pool, VMEM_MIN_POOL);
+	vmem_free(vmp_used, test);
 
-	vmem_pool_stats_print(vmp, opts);
-
-	vmem_free(vmp, test);
-
-	vmem_pool_delete(vmp);
+	vmem_pool_delete(vmp_unused);
+	vmem_pool_delete(vmp_used);
 
 	DONE(NULL);
 }
