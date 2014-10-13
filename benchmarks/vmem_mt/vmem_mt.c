@@ -40,6 +40,7 @@
 #include <string.h>
 #include <argp.h>
 #include <sys/stat.h>
+#include <sys/mman.h>
 #include "tasks.h"
 
 #define	MAX_THREADS 8
@@ -247,7 +248,7 @@ main(int argc, char *argv[])
 	int i, fails = 0;
 	double task_duration;
 	void **arg = NULL;
-	uint64_t pool_size;
+	uint64_t pool_size = 0;
 	arguments_t arguments;
 	int per_thread_args = 0;
 	const int min_pool_size = 200;
@@ -291,7 +292,9 @@ main(int argc, char *argv[])
 		}
 		for (i = 0; i < pools_count; ++i) {
 			if (arguments.dir_path == NULL) {
-				pools_data[i] = malloc(pool_size);
+				pools_data[i] = mmap(NULL, pool_size,
+					PROT_READ|PROT_WRITE,
+					MAP_ANONYMOUS|MAP_PRIVATE, -1, 0);
 				if (pools_data[i] == NULL) {
 					free(allocated_mem);
 					perror("malloc");
@@ -333,7 +336,8 @@ main(int argc, char *argv[])
 		for (i = 0; i < pools_count; ++i) {
 			vmem_pool_delete(pools[i]);
 			if (arguments.dir_path == NULL) {
-				free(pools_data[i]);
+				if (pools_data[i] != NULL)
+					munmap(pools_data[i], pool_size);
 			}
 		}
 	}
