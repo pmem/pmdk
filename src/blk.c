@@ -372,7 +372,7 @@ pmemblk_map_common(int fd, size_t bsize, int rdonly)
 		ncpus = 1;
 
 	bttp = btt_init(pbp->datasize, (uint32_t)bsize, pbp->hdr.uuid,
-			ncpus, pbp, &ns_cb);
+			ncpus * 2, pbp, &ns_cb);
 
 	if (bttp == NULL)
 		goto err;	/* btt_init set errno, called LOG */

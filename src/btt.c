@@ -220,7 +220,7 @@ struct btt {
 		/*
 		 * Map locking.  Indexed by pre-map LBA modulo nlane.
 		 */
-		pthread_spinlock_t *map_locks;
+		pthread_mutex_t *map_locks;
 	} *arenas;
 
 	/*
@@ -549,7 +549,8 @@ read_flogs(struct btt *bttp, int lane, struct arena *arenap)
 			return -1;
 
 		/* prepare for next time around the loop */
-		flog_off += 2 * sizeof (struct btt_flog);
+		flog_off += roundup(2 * sizeof (struct btt_flog),
+				BTT_FLOG_PAIR_ALIGN);
 		flog_runtimep++;
 	}
 
@@ -595,8 +596,7 @@ build_map_locks(struct btt *bttp, struct arena *arenap)
 		return -1;
 	}
 	for (int lane = 0; lane < bttp->nfree; lane++)
-		pthread_spin_init(&arenap->map_locks[lane],
-					PTHREAD_PROCESS_PRIVATE);
+		pthread_mutex_init(&arenap->map_locks[lane], NULL);
 
 	return 0;
 }
@@ -727,7 +727,8 @@ write_layout(struct btt *bttp, int lane, int write)
 		bttp->narena++;
 	LOG(4, "narena %u", bttp->narena);
 
-	int flog_size = bttp->nfree * 2 * sizeof (struct btt_flog);
+	int flog_size = bttp->nfree *
+		roundup(2 * sizeof (struct btt_flog), BTT_FLOG_PAIR_ALIGN);
 	flog_size = roundup(flog_size, BTT_ALIGNMENT);
 
 	uint32_t internal_lbasize = bttp->lbasize;
@@ -880,6 +881,8 @@ write_layout(struct btt *bttp, int lane, int write)
 					sizeof (Zflog), flog_entry_off) < 0)
 				return -1;
 			flog_entry_off += sizeof (flog);
+			flog_entry_off = roundup(flog_entry_off,
+					BTT_FLOG_PAIR_ALIGN);
 
 			next_free_lba++;
 		}
@@ -1269,14 +1272,23 @@ map_lock(struct btt *bttp, int lane, struct arena *arenap,
 			bttp, lane, arenap, premap_lba);
 
 	off_t map_entry_off = arenap->mapoff + BTT_MAP_ENTRY_SIZE * premap_lba;
-	int map_lock_num = premap_lba % bttp->nfree;
 
-	pthread_spin_lock(&arenap->map_locks[map_lock_num]);
+	/*
+	 * map_locks[] contains nfree locks which are used to protect the map
+	 * from concurrent access to the same cache line.  The index into
+	 * map_locks[] is calculated by looking at the byte offset into the map
+	 * (premap_lba * BTT_MAP_ENTRY_SIZE), figuring out how many cache lines
+	 * that is into the map that is (dividing by BTT_MAP_LOCK_ALIGN), and
+	 * then selecting one of nfree locks (the modulo at the end).
+	 */
+	int map_lock_num = premap_lba * BTT_MAP_ENTRY_SIZE / BTT_MAP_LOCK_ALIGN
+		% bttp->nfree;
+	pthread_mutex_lock(&arenap->map_locks[map_lock_num]);
 
 	/* read the old map entry */
 	if ((*bttp->ns_cbp->nsread)(bttp->ns, lane, entryp,
 				sizeof (uint32_t), map_entry_off) < 0) {
-		pthread_spin_unlock(&arenap->map_locks[map_lock_num]);
+		pthread_mutex_unlock(&arenap->map_locks[map_lock_num]);
 		return -1;
 	}
 
@@ -1297,8 +1309,9 @@ map_abort(struct btt *bttp, int lane, struct arena *arenap, uint32_t premap_lba)
 	LOG(3, "bttp %p lane %u arenap %p premap_lba %u",
 			bttp, lane, arenap, premap_lba);
 
-	int map_lock_num = premap_lba % bttp->nfree;
-	pthread_spin_unlock(&arenap->map_locks[map_lock_num]);
+	int map_lock_num = premap_lba * BTT_MAP_ENTRY_SIZE / BTT_MAP_LOCK_ALIGN
+		% bttp->nfree;
+	pthread_mutex_unlock(&arenap->map_locks[map_lock_num]);
 }
 
 /*
@@ -1312,13 +1325,14 @@ map_unlock(struct btt *bttp, int lane, struct arena *arenap,
 			bttp, lane, arenap, entry, premap_lba);
 
 	off_t map_entry_off = arenap->mapoff + BTT_MAP_ENTRY_SIZE * premap_lba;
-	int map_lock_num = premap_lba % bttp->nfree;
 
 	/* write the new map entry */
 	int err = (*bttp->ns_cbp->nswrite)(bttp->ns, lane, &entry,
 				sizeof (uint32_t), map_entry_off);
 
-	pthread_spin_unlock(&arenap->map_locks[map_lock_num]);
+	int map_lock_num = premap_lba * BTT_MAP_ENTRY_SIZE / BTT_MAP_LOCK_ALIGN
+		% bttp->nfree;
+	pthread_mutex_unlock(&arenap->map_locks[map_lock_num]);
 
 	LOG(9, "unlocked map[%d]: %u%s%s", premap_lba,
 			entry & BTT_MAP_ENTRY_LBA_MASK,

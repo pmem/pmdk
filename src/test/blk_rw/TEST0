@@ -54,7 +54,7 @@ truncate -s 2G $DIR/testfile1
 # Attempts to zero uninitialized blocks are nops (should succeed).
 #
 expect_normal_exit ./blk_rw$EXESUFFIX 512 $DIR/testfile1\
-	r:0 r:1 r:4161477 r:4161478 z:0 z:1 r:0
+	r:0 r:1 r:4161461 r:4161462 z:0 z:1 r:0
 rm $DIR/testfile1
 
 check
