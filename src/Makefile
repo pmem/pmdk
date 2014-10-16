@@ -72,8 +72,15 @@ test: $(VARIANTS)
 	$(MAKE) -C test all
 	$(MAKE) -C nondebug jemalloc-tests
 
-check: test
+check: test check-jemalloc
 	cd test && ./RUNTESTS
+
+check-jemalloc: check-jemalloc-debug check-jemalloc-nondebug
+
+check-jemalloc-debug:
+	$(MAKE) -C debug jemalloc-check
+
+check-jemalloc-nondebug:
 	$(MAKE) -C nondebug jemalloc-check
 
 cscope:
@@ -88,4 +95,5 @@ install:
 	install -d $(HEADERS_DESTDIR)
 	install -p -m 0644 $(HEADERS_INSTALL) $(HEADERS_DESTDIR)
 
-.PHONY: all jeconfig jemalloc clean clobber test check cscope cstyle install $(VARIANTS)
+.PHONY: all jeconfig jemalloc clean clobber test check cscope cstyle install\
+	check-jemalloc check-jemalloc-debug check-jemalloc-nondebug $(VARIANTS)
