@@ -34,7 +34,7 @@ TEST_BEGIN(test_pool_create) {
 	assert_ptr_eq(pool, mem_pool, "pool_create() should return addr with valid input");
 	pool_delete(pool);
 
-	assert_d_eq(custom_allocs, 0, "memory leak when use custom allocator");
+	assert_d_eq(custom_allocs, 0, "memory leak when using custom allocator");
 	if (exp_base_pool) {
 		assert_ptr_not_null(pools[0], "not create base pool");
 	} else {
@@ -64,7 +64,7 @@ TEST_BEGIN(test_pool_malloc) {
 
 	pool_delete(pool);
 
-	assert_d_eq(custom_allocs, 0, "memory leak when use custom allocator");
+	assert_d_eq(custom_allocs, 0, "memory leak when using custom allocator");
 	if (exp_base_pool) {
 		assert_ptr_not_null(pools[0], "not create base pool");
 	} else {
@@ -105,7 +105,7 @@ TEST_BEGIN(test_pool_free) {
 
 	pool_delete(pool);
 
-	assert_d_eq(custom_allocs, 0, "memory leak when use custom allocator");
+	assert_d_eq(custom_allocs, 0, "memory leak when using custom allocator");
 	if (exp_base_pool) {
 		assert_ptr_not_null(pools[0], "not create base pool");
 	} else {
@@ -129,7 +129,7 @@ TEST_BEGIN(test_pool_calloc) {
 
 	pool_delete(pool);
 
-	assert_d_eq(custom_allocs, 0, "memory leak when use custom allocator");
+	assert_d_eq(custom_allocs, 0, "memory leak when using custom allocator");
 	if (exp_base_pool) {
 		assert_ptr_not_null(pools[0], "not create base pool");
 	} else {
@@ -158,7 +158,7 @@ TEST_BEGIN(test_pool_realloc) {
 
 	pool_delete(pool);
 
-	assert_d_eq(custom_allocs, 0, "memory leak when use custom allocator");
+	assert_d_eq(custom_allocs, 0, "memory leak when using custom allocator");
 	if (exp_base_pool) {
 		assert_ptr_not_null(pools[0], "not create base pool");
 	} else {
@@ -189,7 +189,7 @@ TEST_BEGIN(test_pool_aligned_alloc) {
 
 	pool_delete(pool);
 
-	assert_d_eq(custom_allocs, 0, "memory leak when use custom allocator");
+	assert_d_eq(custom_allocs, 0, "memory leak when using custom allocator");
 	if (exp_base_pool) {
 		assert_ptr_not_null(pools[0], "not create base pool");
 	} else {
@@ -236,7 +236,7 @@ TEST_BEGIN(test_pool_reuse_pool) {
 		pool_delete(pool);
 	}
 
-	assert_d_eq(custom_allocs, 0, "memory leak when use custom allocator");
+	assert_d_eq(custom_allocs, 0, "memory leak when using custom allocator");
 	if (exp_base_pool) {
 		assert_ptr_not_null(pools[0], "not create base pool");
 	} else {
@@ -295,7 +295,7 @@ TEST_BEGIN(test_pool_check_memory) {
 
 		pool_delete(pool);
 
-		assert_d_eq(custom_allocs, 0, "memory leak when use custom allocator");
+		assert_d_eq(custom_allocs, 0, "memory leak when using custom allocator");
 		if (exp_base_pool) {
 			assert_ptr_not_null(pools[0], "not create base pool");
 		} else {
@@ -348,7 +348,7 @@ TEST_BEGIN(test_pool_use_all_memory) {
 
 	pool_delete(pool);
 
-	assert_d_eq(custom_allocs, 0, "memory leak when use custom allocator");
+	assert_d_eq(custom_allocs, 0, "memory leak when using custom allocator");
 	if (exp_base_pool) {
 		assert_ptr_not_null(pools[0], "not create base pool");
 	} else {
@@ -371,7 +371,7 @@ TEST_BEGIN(test_pool_extend_errors) {
 
 	pool_delete(pool);
 
-	assert_d_eq(custom_allocs, 0, "memory leak when use custom allocator");
+	assert_d_eq(custom_allocs, 0, "memory leak when using custom allocator");
 	if (exp_base_pool) {
 		assert_ptr_not_null(pools[0], "not create base pool");
 	} else {
@@ -394,7 +394,7 @@ TEST_BEGIN(test_pool_extend) {
 
 	pool_delete(pool);
 
-	assert_d_eq(custom_allocs, 0, "memory leak when use custom allocator");
+	assert_d_eq(custom_allocs, 0, "memory leak when using custom allocator");
 	if (exp_base_pool) {
 		assert_ptr_not_null(pools[0], "not create base pool");
 	} else {
@@ -421,7 +421,7 @@ TEST_BEGIN(test_pool_extend_after_out_of_memory) {
 
 	pool_delete(pool);
 
-	assert_d_eq(custom_allocs, 0, "memory leak when use custom allocator");
+	assert_d_eq(custom_allocs, 0, "memory leak when using custom allocator");
 	if (exp_base_pool) {
 		assert_ptr_not_null(pools[0], "not create base pool");
 	} else {
@@ -439,7 +439,7 @@ TEST_BEGIN(test_pool_freespace) {
 	size_t total_space = je_pool_freespace(pool);
 	memset(mem_extend_ok, 0, TEST_POOL_SIZE);
 	size_t usable_size = pool_extend(pool, mem_extend_ok, TEST_POOL_SIZE, 0);
-	assert_zu_ne(usable_size, 0, "pool_extend() should add some free space ");
+	assert_zu_ne(usable_size, 0, "pool_extend() should add some free space");
 	assert_lu_gt(je_pool_freespace(pool), total_space,
 					"pool_extend() should increase free space");
 	total_space = je_pool_freespace(pool);
@@ -458,6 +458,7 @@ TEST_BEGIN(test_pool_freespace) {
 	}
 
 	assert_lu_eq(free_space, 0, "all memory should be used");
+	assert_d_eq(je_pool_check(pool), 1, "je_pool_check() return error");
 
 	while (prev != NULL) {
 		void **act = prev;
@@ -471,6 +472,7 @@ TEST_BEGIN(test_pool_freespace) {
 
 		free_space = space;
 	}
+	assert_d_eq(je_pool_check(pool), 1, "je_pool_check() return error");
 
 	free_space = je_pool_freespace(pool);
 	assert_lu_gt(free_space, (total_space * 9) / 10,
@@ -478,7 +480,7 @@ TEST_BEGIN(test_pool_freespace) {
 
 	pool_delete(pool);
 
-	assert_d_eq(custom_allocs, 0, "memory leak when use custom allocator");
+	assert_d_eq(custom_allocs, 0, "memory leak when using custom allocator");
 	if (exp_base_pool) {
 		assert_ptr_not_null(pools[0], "not create base pool");
 	} else {
@@ -486,6 +488,109 @@ TEST_BEGIN(test_pool_freespace) {
 	}
 }
 TEST_END
+
+/*
+ * print_jemalloc_messages -- custom print function, for jemalloc
+ */
+static void
+print_jemalloc_messages(void* ignore, const char *s)
+{
+
+}
+
+TEST_BEGIN(test_pool_check_extend) {
+	je_malloc_message = print_jemalloc_messages;
+	pool_t *pool;
+	custom_allocs = 0;
+
+	pool = pool_create(mem_pool, TEST_POOL_SIZE, 0);
+	pool_malloc(pool, 100);
+	assert_d_eq(je_pool_check(pool), 1, "je_pool_check() return error");
+	pool_delete(pool);
+	assert_d_ne(je_pool_check(pool), 1, "je_pool_check() not return error");
+
+	pool = pool_create(mem_pool, TEST_POOL_SIZE, 0);
+	assert_d_eq(je_pool_check(pool), 1, "je_pool_check() return error");
+	size_t size_extend = pool_extend(pool, mem_extend_ok, TEST_POOL_SIZE, 1);
+	assert_zu_ne(size_extend, 0, "pool_extend() should add some free space");
+	assert_d_eq(je_pool_check(pool), 1, "je_pool_check() return error");
+	pool_malloc(pool, 100);
+	pool_delete(pool);
+	assert_d_ne(je_pool_check(pool), 1, "je_pool_check() not return error");
+
+	assert_d_eq(custom_allocs, 0, "memory leak when using custom allocator");
+	if (exp_base_pool) {
+		assert_ptr_not_null(pools[0], "not create base pool");
+	} else {
+		assert_ptr_null(pools[0], "create base pool");
+	}
+
+	je_malloc_message = NULL;
+}
+TEST_END
+
+TEST_BEGIN(test_pool_check_memory_out_of_range) {
+	je_malloc_message = print_jemalloc_messages;
+	pool_t *pool;
+	custom_allocs = 0;
+
+	pool = pool_create(mem_pool, TEST_POOL_SIZE, 0);
+	assert_d_eq(je_pool_check(pool), 1, "je_pool_check() return error");
+
+	void *usable_addr = (void *)CHUNK_CEILING((uintptr_t)mem_extend_ok);
+	size_t usable_size = (TEST_POOL_SIZE - (uintptr_t)(usable_addr -
+			(void *)mem_extend_ok)) & ~chunksize_mask;
+
+	chunk_record(pool,
+			&pool->chunks_szad_mmap, &pool->chunks_ad_mmap,
+			usable_addr, usable_size, 0);
+
+	assert_d_ne(je_pool_check(pool), 1, "je_pool_check() not return error");
+
+	pool_delete(pool);
+	assert_d_ne(je_pool_check(pool), 1, "je_pool_check() return error");
+
+	assert_d_eq(custom_allocs, 0, "memory leak when using custom allocator");
+	if (exp_base_pool) {
+		assert_ptr_not_null(pools[0], "not create base pool");
+	} else {
+		assert_ptr_null(pools[0], "create base pool");
+	}
+
+	je_malloc_message = NULL;
+}
+TEST_END
+
+TEST_BEGIN(test_pool_check_memory_overlap) {
+	je_malloc_message = print_jemalloc_messages;
+	pool_t *pool;
+	pool_t *pool2;
+	custom_allocs = 0;
+
+	memset(mem_pool, 0, TEST_POOL_SIZE);
+	pool = pool_create(mem_pool, TEST_POOL_SIZE, 1);
+	size_t size_extend = pool_extend(pool, mem_extend_ok, TEST_POOL_SIZE, 1);
+	assert_zu_ne(size_extend, 0, "pool_extend() should add some free space");
+	assert_d_eq(je_pool_check(pool), 1, "je_pool_check() return error");
+
+	/* create another pool in the same memory region */
+	pool2 = pool_create(mem_extend_ok, TEST_POOL_SIZE, 0);
+	assert_d_ne(je_pool_check(pool), 1, "je_pool_check() not return error");
+	assert_d_ne(je_pool_check(pool2), 1, "je_pool_check() not return error");
+	pool_delete(pool2);
+	pool_delete(pool);
+
+	assert_d_eq(custom_allocs, 0, "memory leak when using custom allocator");
+	if (exp_base_pool) {
+		assert_ptr_not_null(pools[0], "not create base pool");
+	} else {
+		assert_ptr_null(pools[0], "create base pool");
+	}
+
+	je_malloc_message = NULL;
+}
+TEST_END
+
 
 #define	POOL_TEST_CASES\
 	test_pool_create_errors,	\
@@ -501,6 +606,8 @@ TEST_END
 	test_pool_extend_errors,	\
 	test_pool_extend,	\
 	test_pool_extend_after_out_of_memory,	\
-	test_pool_freespace
-
+	test_pool_freespace,	\
+	test_pool_check_extend,	\
+	test_pool_check_memory_out_of_range,	\
+	test_pool_check_memory_overlap
 
