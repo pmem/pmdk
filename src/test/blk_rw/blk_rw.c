@@ -50,6 +50,7 @@ static size_t mapped_size;
 static uint64_t min_addr;
 static uint64_t max_addr;
 
+int blk_fd;
 /*
  * mmap -- interpose on libc mmap()
  *
@@ -58,22 +59,32 @@ static uint64_t max_addr;
  * This limit is necessary to work on machines without overcommit.
  */
 void *
-mmap(void *addr, size_t len, int prot, int flags, int fildes, off_t off)
+mmap(void *addr, size_t len, int prot, int flags, int fd, off_t off)
 {
+	void *new_addr;
+	size_t mmapped_len;
 	static void *(*mmap_ptr)(void *addr, size_t len, int prot, int flags,
-		int fildes, off_t off);
-	if (mmap_ptr == NULL)
+		int fd, off_t off);
+
+	if (mmap_ptr == NULL) {
 		mmap_ptr = dlsym(RTLD_NEXT, "mmap");
+	}
 
-	if (len > MMAP_MAX_SIZE)
-		len = MMAP_MAX_SIZE;
+	if (fd == blk_fd && len > MMAP_MAX_SIZE) {
+		mmapped_len = MMAP_MAX_SIZE;
+		ASSERTeq(mapped_addr, NULL);
+	} else {
+		mmapped_len = len;
+	}
 
-	ASSERTeq(mapped_addr, NULL);
-	mapped_addr = mmap_ptr(addr, len, prot, flags, fildes, off);
-	mapped_size = len;
-	min_addr = (uint64_t)(mapped_addr);
-	max_addr = (uint64_t)(mapped_addr + len);
-	return mapped_addr;
+	new_addr = mmap_ptr(addr, mmapped_len, prot, flags, fd, off);
+	if (fd == blk_fd && len > MMAP_MAX_SIZE) {
+		mapped_addr = new_addr;
+		mapped_size = mmapped_len;
+		min_addr = (uint64_t)(mapped_addr);
+		max_addr = (uint64_t)(mapped_addr + mmapped_len);
+	}
+	return new_addr;
 }
 
 /*
@@ -169,13 +180,13 @@ main(int argc, char *argv[])
 
 	Bsize = strtoul(argv[1], NULL, 0);
 
-	int fd = OPEN(argv[2], O_RDWR);
+	int blk_fd = OPEN(argv[2], O_RDWR);
 
 	PMEMblk *handle;
-	if ((handle = pmemblk_map(fd, Bsize)) == NULL)
+	if ((handle = pmemblk_map(blk_fd, Bsize)) == NULL)
 		FATAL("!%s: pmemblk_map", argv[2]);
 
-	close(fd);
+	close(blk_fd);
 
 	OUT("%s block size %zu usable blocks %zu",
 			argv[1], Bsize, pmemblk_nblock(handle));
