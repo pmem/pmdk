@@ -267,15 +267,13 @@ deleting it allows the space to be reclaimed.
 The
 .BR vmem_pool_check ()
 function
-performs an exhaustive consistency check of all
+performs an extensive consistency check of all
 .B libvmem
 internal data structures in memory pool
 .IR vmp .
-A return value of zero from
-.BR vmem_pool_check ()
-means that no errors were found, otherwise -1 is returned and errno
-is set to
-.BR EINVAL .
+It returns 1 if the memory pool during the check is found to be consistent
+and 0 otherwise. Cases where the check couldn't be performed,
+are indicated by a return value of -1.
 Since an error return indicates memory pool corruption, applications
 should not continue to use a pool in this state.
 Additional details about errors found are logged when the log level

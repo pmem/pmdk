@@ -216,12 +216,7 @@ vmem_pool_check(VMEM *vmp)
 {
 	LOG(3, "vmp %p", vmp);
 
-	if (strncmp(vmp->hdr.signature, VMEM_HDR_SIG, POOL_HDR_SIG_LEN) != 0) {
-		return 0;
-	}
-
-	/* XXX stub */
-	return 1;
+	return je_vmem_pool_check((pool_t *)((uintptr_t)vmp + Header_size));
 }
 
 /*
