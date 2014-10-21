@@ -52,6 +52,7 @@ void	(*je_base_free)(void *);
 
 /* Set to true once the allocator has been initialized. */
 static bool		malloc_initialized = false;
+static bool		base_pool_initialized = false;
 
 #ifdef JEMALLOC_THREADED_INIT
 /* Used to let the initializing thread recursively allocate. */
@@ -337,14 +338,14 @@ malloc_init_base_pool(void)
 {
 	pool_t *base_pool;
 
+	if (base_pool_initialized)
+		return (false);
+
 	if (malloc_initialized == false && malloc_init_hard())
 		return (true);
 
-	if (pools[0] != NULL)
-		return (false);
-
 	malloc_mutex_lock(&pool_base_lock);
-	if (pools[0] != NULL) {
+	if (base_pool_initialized) {
 		/*
 		 * Another thread initialized the base pool before this one
 		 * acquired pools_lock.
@@ -365,6 +366,7 @@ malloc_init_base_pool(void)
 		return (true);
 	}
 
+	base_pool_initialized = true;
 	malloc_mutex_unlock(&pool_base_lock);
 
 	/*
