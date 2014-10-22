@@ -43,9 +43,6 @@
 #define	MMAP_MAX_SIZE (1024L * 1024L * 1024L)
 
 static void *mapped_addr;
-static size_t mapped_size;
-static uint64_t min_addr;
-static uint64_t max_addr;
 
 /*
  * mmap -- interpose on libc mmap()
@@ -62,14 +59,12 @@ mmap(void *addr, size_t len, int prot, int flags, int fildes, off_t off)
 	if (mmap_ptr == NULL)
 		mmap_ptr = dlsym(RTLD_NEXT, "mmap");
 
-	if (len > MMAP_MAX_SIZE)
-		len = MMAP_MAX_SIZE;
+	if (len < MMAP_MAX_SIZE)
+		return mmap_ptr(addr, len, prot, flags, fildes, off);
 
+	len = MMAP_MAX_SIZE;
 	ASSERTeq(mapped_addr, NULL);
 	mapped_addr = mmap_ptr(addr, len, prot, flags, fildes, off);
-	mapped_size = len;
-	min_addr = (uint64_t)(mapped_addr);
-	max_addr = (uint64_t)(mapped_addr + len);
 	return mapped_addr;
 }
 
@@ -86,7 +81,7 @@ munmap(void *addr, size_t len)
 		munmap_ptr = dlsym(RTLD_NEXT, "munmap");
 
 	if (addr == mapped_addr) {
-		len = mapped_size;
+		len = MMAP_MAX_SIZE;
 		mapped_addr = NULL;
 	}
 
@@ -103,18 +98,20 @@ int
 mprotect(void *addr, size_t len, int prot)
 {
 	static int (*mprotect_ptr)(void *addr, size_t len, int prot);
-	uint64_t addr_int = (uint64_t)addr;
-
 	if (mprotect_ptr == NULL)
 		mprotect_ptr = dlsym(RTLD_NEXT, "mprotect");
 
-	if (addr_int >= min_addr && addr_int <= max_addr &&
-	    addr_int + len > max_addr) {
+	if (mapped_addr != NULL) {
+		uintptr_t addr_int = (uintptr_t)addr;
+		uintptr_t min_addr = (uintptr_t)mapped_addr;
+		uintptr_t max_addr = (uintptr_t)(mapped_addr) + MMAP_MAX_SIZE;
 
 		/* unit tests are not supposed to write beyond the 1GB range */
-		ASSERTeq(prot & PROT_WRITE, 0);
-
-		len = max_addr - addr_int;
+		if (addr_int >= min_addr && addr_int <= max_addr &&
+				addr_int + len > max_addr) {
+			ASSERTeq(prot & PROT_WRITE, 0);
+			len = max_addr - addr_int;
+		}
 	}
 
 	return mprotect_ptr(addr, len, prot);
@@ -152,7 +149,7 @@ main(int argc, char *argv[])
 				OUT("%s: pmemblk_check: not consistent", fname);
 		}
 
-		close(fd);
+		CLOSE(fd);
 	}
 
 	DONE(NULL);
