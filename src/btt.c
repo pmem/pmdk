@@ -1505,6 +1505,11 @@ map_entry_setf(struct btt *bttp, int lane, uint64_t lba, uint32_t setf)
 	/* create the new map entry */
 	new_entry = old_entry | setf;
 
+	/* clear error flag when setting zero flag */
+	if (setf == BTT_MAP_ENTRY_ZERO && (old_entry & BTT_MAP_ENTRY_ERROR)) {
+		new_entry = new_entry & ~BTT_MAP_ENTRY_ERROR;
+	}
+
 	if (map_unlock(bttp, lane, arenap, htole32(new_entry), premap_lba) < 0)
 		return -1;
 
