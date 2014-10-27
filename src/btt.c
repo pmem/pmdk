@@ -172,7 +172,7 @@ struct btt {
 	/* run-time state kept for each arena */
 	struct arena {
 		uint32_t flags;		/* arena flags (btt_info) */
-		uint64_t external_nlba;	/* LBAs that live in this arena */
+		uint32_t external_nlba;	/* LBAs that live in this arena */
 		uint32_t internal_lbasize;
 		uint32_t internal_nlba;
 
@@ -619,7 +619,7 @@ read_arena(struct btt *bttp, int lane, off_t arena_off, struct arena *arenap)
 		return -1;
 
 	arenap->flags = le32toh(info.flags);
-	arenap->external_nlba = le64toh(info.external_nlba);
+	arenap->external_nlba = le32toh(info.external_nlba);
 	arenap->internal_lbasize = le32toh(info.internal_lbasize);
 	arenap->internal_nlba = le32toh(info.internal_nlba);
 
