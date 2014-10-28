@@ -112,8 +112,8 @@ struct btt_flog {
 /*
  * BTT layout properties...
  */
-#define	BTT_MIN_SIZE ((size_t)(1ul << 20) * 512)
-#define	BTT_MAX_ARENA ((size_t)(1ul << 39)) /* 512GB per arena */
+#define	BTT_MIN_SIZE ((1u << 20) * 512)
+#define	BTT_MAX_ARENA (1ull << 39) /* 512GB per arena */
 #define	BTT_MIN_LBA 512
 #define	BTT_INTERNAL_LBA_ALIGNMENT 256
 #define	BTT_DEFAULT_NFREE 256
