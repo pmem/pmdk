@@ -270,10 +270,10 @@ static const unsigned Nseq[] = { 0, 2, 3, 1 };
 static int
 invalid_lba(struct btt *bttp, uint64_t lba)
 {
-	LOG(3, "bttp %p lba %zu", bttp, lba);
+	LOG(3, "bttp %p lba %ju", bttp, lba);
 
 	if (lba >= bttp->nlba) {
-		LOG(1, "lba out of range (nlba %zu)", bttp->nlba);
+		LOG(1, "lba out of range (nlba %ju)", bttp->nlba);
 		errno = EINVAL;
 		return 1;
 	}
@@ -340,8 +340,9 @@ static int
 read_flog_pair(struct btt *bttp, int lane, struct arena *arenap,
 	off_t flog_off, struct flog_runtime *flog_runtimep, int flognum)
 {
-	LOG(5, "bttp %p lane %d arenap %p flog_off %zu runtimep %p flognum %d",
-			bttp, lane, arenap, flog_off, flog_runtimep, flognum);
+	LOG(5, "bttp %p lane %d arenap %p flog_off %lld runtimep %p flognum %d",
+			bttp, lane, arenap, (long long)flog_off, flog_runtimep,
+			flognum);
 
 	flog_runtimep->entries[0] = flog_off;
 	flog_runtimep->entries[1] = flog_off + sizeof (struct btt_flog);
@@ -361,8 +362,8 @@ read_flog_pair(struct btt *bttp, int lane, struct arena *arenap,
 	flog_pair[1].new_map = le32toh(flog_pair[1].new_map);
 	flog_pair[1].seq = le32toh(flog_pair[1].seq);
 
-	LOG(6, "flog_pair[0] flog_off %zu old_map %u new_map %u seq %u",
-			flog_off, flog_pair[0].old_map,
+	LOG(6, "flog_pair[0] flog_off %lld old_map %u new_map %u seq %u",
+			(long long)flog_off, flog_pair[0].old_map,
 			flog_pair[0].new_map, flog_pair[0].seq);
 	LOG(6, "flog_pair[1] old_map %u new_map %u seq %u",
 			flog_pair[1].old_map, flog_pair[1].new_map,
@@ -609,8 +610,8 @@ build_map_locks(struct btt *bttp, struct arena *arenap)
 static int
 read_arena(struct btt *bttp, int lane, off_t arena_off, struct arena *arenap)
 {
-	LOG(3, "bttp %p lane %d arena_off %zu arenap %p",
-			bttp, lane, arena_off, arenap);
+	LOG(3, "bttp %p lane %d arena_off %lld arenap %p",
+			bttp, lane, (long long)arena_off, arenap);
 
 	struct btt_info info;
 	if ((*bttp->ns_cbp->nsread)(bttp->ns, lane, &info, sizeof (info),
@@ -765,7 +766,7 @@ write_layout(struct btt *bttp, int lane, int write)
 			(internal_lbasize + BTT_MAP_ENTRY_SIZE);
 		uint64_t external_nlba = internal_nlba - bttp->nfree;
 
-		LOG(4, "internal_nlba %zu external_nlba %zu",
+		LOG(4, "internal_nlba %ju external_nlba %ju",
 				internal_nlba, external_nlba);
 
 		total_nlba += external_nlba;
@@ -798,11 +799,11 @@ write_layout(struct btt *bttp, int lane, int write)
 		uint64_t mapoff = flogoff - mapsize;
 		uint64_t dataoff = sizeof (struct btt_info);
 
-		LOG(4, "nextoff 0x%016lx", nextoff);
-		LOG(4, "dataoff 0x%016lx", dataoff);
-		LOG(4, "mapoff  0x%016lx", mapoff);
-		LOG(4, "flogoff 0x%016lx", flogoff);
-		LOG(4, "infooff 0x%016lx", infooff);
+		LOG(4, "nextoff 0x%016jx", nextoff);
+		LOG(4, "dataoff 0x%016jx", dataoff);
+		LOG(4, "mapoff  0x%016jx", mapoff);
+		LOG(4, "flogoff 0x%016jx", flogoff);
+		LOG(4, "infooff 0x%016jx", infooff);
 
 		ASSERTeq(arena_datasize, mapoff - dataoff);
 
@@ -867,16 +868,17 @@ write_layout(struct btt *bttp, int lane, int write)
 			 * Write both btt_flog structs in the pair, writing
 			 * the second one as all zeros.
 			 */
-			LOG(6, "flog[%d] entry off %zu initial %u + zero = %u",
-					i, flog_entry_off, next_free_lba,
+			LOG(6, "flog[%d] entry off %lld initial %u + zero = %u",
+					i, (long long)flog_entry_off,
+					next_free_lba,
 					next_free_lba | BTT_MAP_ENTRY_ZERO);
 			if ((*bttp->ns_cbp->nswrite)(bttp->ns, lane, &flog,
 					sizeof (flog), flog_entry_off) < 0)
 				return -1;
 			flog_entry_off += sizeof (flog);
 
-			LOG(6, "flog[%d] entry off %zu zeros",
-					i, flog_entry_off);
+			LOG(6, "flog[%d] entry off %lld zeros",
+					i, (long long)flog_entry_off);
 			if ((*bttp->ns_cbp->nswrite)(bttp->ns, lane, &Zflog,
 					sizeof (Zflog), flog_entry_off) < 0)
 				return -1;
@@ -1046,7 +1048,7 @@ static int
 lba_to_arena_lba(struct btt *bttp, uint64_t lba,
 		struct arena **arenapp, uint32_t *premap_lbap)
 {
-	LOG(3, "bttp %p lba %zu", bttp, lba);
+	LOG(3, "bttp %p lba %ju", bttp, lba);
 
 	ASSERT(bttp->laidout);
 
@@ -1080,10 +1082,10 @@ struct btt *
 btt_init(uint64_t rawsize, uint32_t lbasize, uint8_t parent_uuid[],
 		int maxlane, void *ns, const struct ns_callback *ns_cbp)
 {
-	LOG(3, "rawsize %zu lbasize %u", rawsize, lbasize);
+	LOG(3, "rawsize %ju lbasize %u", rawsize, lbasize);
 
 	if (rawsize < BTT_MIN_SIZE) {
-		LOG(1, "rawsize smaller than BTT_MIN_SIZE %zu", BTT_MIN_SIZE);
+		LOG(1, "rawsize smaller than BTT_MIN_SIZE %u", BTT_MIN_SIZE);
 		errno = EINVAL;
 		return NULL;
 	}
@@ -1166,7 +1168,7 @@ btt_nlba(struct btt *bttp)
 int
 btt_read(struct btt *bttp, int lane, uint64_t lba, void *buf)
 {
-	LOG(3, "bttp %p lane %u lba %zu", bttp, lane, lba);
+	LOG(3, "bttp %p lane %d lba %ju", bttp, lane, lba);
 
 	if (invalid_lba(bttp, lba))
 		return -1;
@@ -1268,7 +1270,7 @@ static int
 map_lock(struct btt *bttp, int lane, struct arena *arenap,
 		uint32_t *entryp, uint32_t premap_lba)
 {
-	LOG(3, "bttp %p lane %u arenap %p premap_lba %u",
+	LOG(3, "bttp %p lane %d arenap %p premap_lba %u",
 			bttp, lane, arenap, premap_lba);
 
 	off_t map_entry_off = arenap->mapoff + BTT_MAP_ENTRY_SIZE * premap_lba;
@@ -1306,7 +1308,7 @@ map_lock(struct btt *bttp, int lane, struct arena *arenap,
 void
 map_abort(struct btt *bttp, int lane, struct arena *arenap, uint32_t premap_lba)
 {
-	LOG(3, "bttp %p lane %u arenap %p premap_lba %u",
+	LOG(3, "bttp %p lane %d arenap %p premap_lba %u",
 			bttp, lane, arenap, premap_lba);
 
 	int map_lock_num = premap_lba * BTT_MAP_ENTRY_SIZE / BTT_MAP_LOCK_ALIGN
@@ -1321,7 +1323,7 @@ static int
 map_unlock(struct btt *bttp, int lane, struct arena *arenap,
 		uint32_t entry, uint32_t premap_lba)
 {
-	LOG(3, "bttp %p lane %u arenap %p entry %u premap_lba %u",
+	LOG(3, "bttp %p lane %d arenap %p entry %u premap_lba %u",
 			bttp, lane, arenap, entry, premap_lba);
 
 	off_t map_entry_off = arenap->mapoff + BTT_MAP_ENTRY_SIZE * premap_lba;
@@ -1350,7 +1352,7 @@ map_unlock(struct btt *bttp, int lane, struct arena *arenap,
 int
 btt_write(struct btt *bttp, int lane, uint64_t lba, const void *buf)
 {
-	LOG(3, "bttp %p lane %u lba %zu", bttp, lane, lba);
+	LOG(3, "bttp %p lane %d lba %ju", bttp, lane, lba);
 
 	if (invalid_lba(bttp, lba))
 		return -1;
@@ -1443,7 +1445,7 @@ btt_write(struct btt *bttp, int lane, uint64_t lba, const void *buf)
 static int
 map_entry_setf(struct btt *bttp, int lane, uint64_t lba, uint32_t setf)
 {
-	LOG(3, "bttp %p lane %u lba %zu setf 0x%x", bttp, lane, lba, setf);
+	LOG(3, "bttp %p lane %d lba %ju setf 0x%x", bttp, lane, lba, setf);
 
 	if (invalid_lba(bttp, lba))
 		return -1;
@@ -1519,7 +1521,7 @@ map_entry_setf(struct btt *bttp, int lane, uint64_t lba, uint32_t setf)
 int
 btt_set_zero(struct btt *bttp, int lane, uint64_t lba)
 {
-	LOG(3, "bttp %p lane %u lba %zu", bttp, lane, lba);
+	LOG(3, "bttp %p lane %d lba %ju", bttp, lane, lba);
 
 	return map_entry_setf(bttp, lane, lba, BTT_MAP_ENTRY_ZERO);
 }
@@ -1532,7 +1534,7 @@ btt_set_zero(struct btt *bttp, int lane, uint64_t lba)
 int
 btt_set_error(struct btt *bttp, int lane, uint64_t lba)
 {
-	LOG(3, "bttp %p lane %u lba %zu", bttp, lane, lba);
+	LOG(3, "bttp %p lane %d lba %ju", bttp, lane, lba);
 
 	return map_entry_setf(bttp, lane, lba, BTT_MAP_ENTRY_ERROR);
 }
@@ -1625,7 +1627,7 @@ check_arena(struct btt *bttp, struct arena *arenap)
 	 */
 	for (int i = 0; i < arenap->internal_nlba; i++)
 		if (isclr(bitmap, i)) {
-			LOG(1, "unreferenced lba: %u", i);
+			LOG(1, "unreferenced lba: %d", i);
 			consistent = 0;
 		}
 

@@ -83,8 +83,8 @@ pmemtrn_map(int fd)
 	}
 
 	if (stbuf.st_size < PMEMTRN_MIN_POOL) {
-		LOG(1, "size %zu smaller than %zu",
-				stbuf.st_size, PMEMTRN_MIN_POOL);
+		LOG(1, "size %lld smaller than %zu",
+				(long long)stbuf.st_size, PMEMTRN_MIN_POOL);
 		errno = EINVAL;
 		return NULL;
 	}

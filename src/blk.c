@@ -115,11 +115,12 @@ nsread(void *ns, int lane, void *buf, size_t count, off_t off)
 {
 	struct pmemblk *pbp = (struct pmemblk *)ns;
 
-	LOG(13, "pbp %p lane %d count %zu off %zu", pbp, lane, count, off);
+	LOG(13, "pbp %p lane %d count %zu off %lld",
+			pbp, lane, count, (long long)off);
 
 	if (off + count > pbp->datasize) {
-		LOG(1, "offset + count (%zu) past end of data area (%zu)",
-				off + count, pbp->datasize);
+		LOG(1, "offset + count (%lld) past end of data area (%zu)",
+				(long long)off + count, pbp->datasize);
 		errno = EINVAL;
 		return -1;
 	}
@@ -140,11 +141,12 @@ nswrite(void *ns, int lane, const void *buf, size_t count, off_t off)
 {
 	struct pmemblk *pbp = (struct pmemblk *)ns;
 
-	LOG(13, "pbp %p lane %d count %zu off %zu", pbp, lane, count, off);
+	LOG(13, "pbp %p lane %d count %zu off %lld",
+			pbp, lane, count, (long long)off);
 
 	if (off + count > pbp->datasize) {
-		LOG(1, "offset + count (%zu) past end of data area (%zu)",
-				off + count, pbp->datasize);
+		LOG(1, "offset + count (%lld) past end of data area (%zu)",
+				(long long)off + count, pbp->datasize);
 		errno = EINVAL;
 		return -1;
 	}
@@ -191,11 +193,12 @@ nsmap(void *ns, int lane, void **addrp, size_t len, off_t off)
 {
 	struct pmemblk *pbp = (struct pmemblk *)ns;
 
-	LOG(12, "pbp %p lane %d len %zu off %zu", pbp, lane, len, off);
+	LOG(12, "pbp %p lane %d len %zu off %lld",
+			pbp, lane, len, (long long)off);
 
 	if (off + len >= pbp->datasize) {
-		LOG(1, "offset + len (%zu) past end of data area (%zu)",
-				off + len, pbp->datasize - 1);
+		LOG(1, "offset + len (%lld) past end of data area (%zu)",
+				(long long)off + len, pbp->datasize - 1);
 		errno = EINVAL;
 		return -1;
 	}
@@ -266,8 +269,8 @@ pmemblk_map_common(int fd, size_t bsize, int rdonly)
 	}
 
 	if (stbuf.st_size < PMEMBLK_MIN_POOL) {
-		LOG(1, "size %zu smaller than %zu",
-				stbuf.st_size, PMEMBLK_MIN_POOL);
+		LOG(1, "size %lld smaller than %zu",
+				(long long)stbuf.st_size, PMEMBLK_MIN_POOL);
 		errno = EINVAL;
 		return NULL;
 	}
@@ -479,7 +482,7 @@ pmemblk_nblock(PMEMblk *pbp)
 int
 pmemblk_read(PMEMblk *pbp, void *buf, off_t blockno)
 {
-	LOG(3, "pbp %p buf %p blockno %zu", pbp, buf, blockno);
+	LOG(3, "pbp %p buf %p blockno %lld", pbp, buf, (long long)blockno);
 
 	int lane = lane_enter(pbp);
 
@@ -499,7 +502,7 @@ pmemblk_read(PMEMblk *pbp, void *buf, off_t blockno)
 int
 pmemblk_write(PMEMblk *pbp, const void *buf, off_t blockno)
 {
-	LOG(3, "pbp %p buf %p blockno %zu", pbp, buf, blockno);
+	LOG(3, "pbp %p buf %p blockno %lld", pbp, buf, (long long)blockno);
 
 	if (pbp->rdonly) {
 		LOG(1, "EROFS (pool is read-only)");
@@ -525,7 +528,7 @@ pmemblk_write(PMEMblk *pbp, const void *buf, off_t blockno)
 int
 pmemblk_set_zero(PMEMblk *pbp, off_t blockno)
 {
-	LOG(3, "pbp %p blockno %zu", pbp, blockno);
+	LOG(3, "pbp %p blockno %lld", pbp, (long long)blockno);
 
 	if (pbp->rdonly) {
 		LOG(1, "EROFS (pool is read-only)");
@@ -551,7 +554,7 @@ pmemblk_set_zero(PMEMblk *pbp, off_t blockno)
 int
 pmemblk_set_error(PMEMblk *pbp, off_t blockno)
 {
-	LOG(3, "pbp %p blockno %zu", pbp, blockno);
+	LOG(3, "pbp %p blockno %lld", pbp, (long long)blockno);
 
 	if (pbp->rdonly) {
 		LOG(1, "EROFS (pool is read-only)");

@@ -88,8 +88,8 @@ pmemlog_map_common(int fd, int rdonly)
 	}
 
 	if (stbuf.st_size < PMEMLOG_MIN_POOL) {
-		LOG(1, "size %zu smaller than %zu",
-				stbuf.st_size, PMEMLOG_MIN_POOL);
+		LOG(1, "size %lld smaller than %zu",
+				(long long)stbuf.st_size, PMEMLOG_MIN_POOL);
 		errno = EINVAL;
 		return NULL;
 	}
@@ -131,22 +131,22 @@ pmemlog_map_common(int fd, int rdonly)
 		if ((hdr_start != roundup(sizeof (*plp),
 					LOG_FORMAT_DATA_ALIGN)) ||
 			(hdr_end != stbuf.st_size) || (hdr_start > hdr_end)) {
-			LOG(1, "wrong start/end offsets (start: %zu end: %zu), "
-				"pool size %zu",
-				hdr_start, hdr_end, stbuf.st_size);
+			LOG(1, "wrong start/end offsets (start: %ju end: %ju), "
+				"pool size %lld",
+				hdr_start, hdr_end, (long long)stbuf.st_size);
 			errno = EINVAL;
 			goto err;
 		}
 
 		if ((hdr_write > hdr_end) || (hdr_write < hdr_start)) {
 			LOG(1, "wrong write offset "
-				"(start: %zu end: %zu write: %zu)",
+				"(start: %ju end: %ju write: %ju)",
 				hdr_start, hdr_end, hdr_write);
 			errno = EINVAL;
 			goto err;
 		}
 
-		LOG(3, "start: %zu, end: %zu, write: %zu",
+		LOG(3, "start: %ju, end: %ju, write: %ju",
 			hdr_start, hdr_end, hdr_write);
 
 		int retval = util_feature_check(&hdr, LOG_FORMAT_INCOMPAT,
@@ -480,7 +480,7 @@ pmemlog_tell(PMEMlog *plp)
 	}
 
 	off_t wp = le64toh(plp->write_offset) - le64toh(plp->start_offset);
-	LOG(4, "write offset %zu", wp);
+	LOG(4, "write offset %lld", (long long)wp);
 
 	if (pthread_rwlock_unlock(plp->rwlockp))
 		LOG(1, "!pthread_rwlock_unlock");
