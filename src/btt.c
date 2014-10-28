@@ -1283,7 +1283,10 @@ map_lock(struct btt *bttp, int lane, struct arena *arenap,
 	 */
 	int map_lock_num = premap_lba * BTT_MAP_ENTRY_SIZE / BTT_MAP_LOCK_ALIGN
 		% bttp->nfree;
-	pthread_mutex_lock(&arenap->map_locks[map_lock_num]);
+	if ((errno = pthread_mutex_lock(&arenap->map_locks[map_lock_num]))) {
+		LOG(1, "!pthread_mutex_lock");
+		return -1;
+	}
 
 	/* read the old map entry */
 	if ((*bttp->ns_cbp->nsread)(bttp->ns, lane, entryp,
@@ -1359,7 +1362,10 @@ btt_write(struct btt *bttp, int lane, uint64_t lba, const void *buf)
 	if (!bttp->laidout) {
 		int err = 0;
 
-		pthread_mutex_lock(&bttp->layout_write_mutex);
+		if ((errno = pthread_mutex_lock(&bttp->layout_write_mutex))) {
+			LOG(1, "!pthread_mutex_lock");
+			return -1;
+		}
 		if (!bttp->laidout)
 			err = write_layout(bttp, lane, 1);
 		pthread_mutex_unlock(&bttp->layout_write_mutex);
@@ -1462,7 +1468,10 @@ map_entry_setf(struct btt *bttp, int lane, uint64_t lba, uint32_t setf)
 		 * the metadata layout at this point.
 		 */
 		int err = 0;
-		pthread_mutex_lock(&bttp->layout_write_mutex);
+		if ((errno = pthread_mutex_lock(&bttp->layout_write_mutex))) {
+			LOG(1, "!pthread_mutex_lock");
+			return -1;
+		}
 		if (!bttp->laidout)
 			err = write_layout(bttp, lane, 1);
 		pthread_mutex_unlock(&bttp->layout_write_mutex);
