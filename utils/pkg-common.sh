@@ -34,6 +34,7 @@
 # pkg-common.sh - common functions and variables for building packages
 #
 
+export LC_ALL="C"
 
 function error() {
 	echo -e "error: $@"
