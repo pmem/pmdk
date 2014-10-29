@@ -82,7 +82,7 @@ lane_enter(PMEMblk *pbp)
 	mylane = __sync_fetch_and_add(&pbp->next_lane, 1) % pbp->nlane;
 
 	/* lane selected, grab the per-lane lock */
-	if (pthread_mutex_lock(&pbp->locks[mylane]) < 0) {
+	if ((errno = pthread_mutex_lock(&pbp->locks[mylane]))) {
 		LOG(1, "!pthread_mutex_lock");
 		return -1;
 	}
@@ -93,15 +93,13 @@ lane_enter(PMEMblk *pbp)
 /*
  * lane_exit -- (internal) drop lane lock
  */
-static int
+static void
 lane_exit(PMEMblk *pbp, int mylane)
 {
-	if (pthread_mutex_unlock(&pbp->locks[mylane]) < 0) {
+	int oerrno = errno;
+	if ((errno = pthread_mutex_unlock(&pbp->locks[mylane])))
 		LOG(1, "!pthread_mutex_unlock");
-		return -1;
-	}
-
-	return 0;
+	errno = oerrno;
 }
 
 /*
@@ -155,8 +153,10 @@ nswrite(void *ns, int lane, const void *buf, size_t count, off_t off)
 
 #ifdef DEBUG
 	/* grab debug write lock */
-	if (pthread_mutex_lock(&pbp->write_lock))
+	if ((errno = pthread_mutex_lock(&pbp->write_lock))) {
 		LOG(1, "!pthread_mutex_lock");
+		return -1;
+	}
 #endif
 
 	/* unprotect the memory (debug version only) */
@@ -169,7 +169,7 @@ nswrite(void *ns, int lane, const void *buf, size_t count, off_t off)
 
 #ifdef DEBUG
 	/* release debug write lock */
-	if (pthread_mutex_unlock(&pbp->write_lock))
+	if ((errno = pthread_mutex_unlock(&pbp->write_lock)))
 		LOG(1, "!pthread_mutex_unlock");
 #endif
 
@@ -390,7 +390,7 @@ pmemblk_map_common(int fd, size_t bsize, int rdonly)
 	}
 
 	for (int i = 0; i < pbp->nlane; i++)
-		if (pthread_mutex_init(&locks[i], NULL) < 0) {
+		if ((errno = pthread_mutex_init(&locks[i], NULL))) {
 			LOG(1, "!pthread_mutex_init");
 			goto err;
 		}
@@ -399,7 +399,7 @@ pmemblk_map_common(int fd, size_t bsize, int rdonly)
 
 #ifdef DEBUG
 	/* initialize debug lock */
-	if (pthread_mutex_init(&pbp->write_lock, NULL) < 0) {
+	if ((errno = pthread_mutex_init(&pbp->write_lock, NULL))) {
 		LOG(1, "!pthread_mutex_init");
 		goto err;
 	}

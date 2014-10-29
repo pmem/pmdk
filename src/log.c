@@ -209,7 +209,7 @@ pmemlog_map_common(int fd, int rdonly)
 		goto err;
 	}
 
-	if (pthread_rwlock_init(plp->rwlockp, NULL)) {
+	if ((errno = pthread_rwlock_init(plp->rwlockp, NULL))) {
 		LOG(1, "!pthread_rwlock_init");
 		goto err_free;
 	}
@@ -258,7 +258,7 @@ pmemlog_unmap(PMEMlog *plp)
 {
 	LOG(3, "plp %p", plp);
 
-	if (pthread_rwlock_destroy(plp->rwlockp))
+	if ((errno = pthread_rwlock_destroy(plp->rwlockp)))
 		LOG(1, "!pthread_rwlock_destroy");
 	Free((void *)plp->rwlockp);
 	util_unmap(plp->addr, plp->size);
@@ -272,7 +272,7 @@ pmemlog_nbyte(PMEMlog *plp)
 {
 	LOG(3, "plp %p", plp);
 
-	if (pthread_rwlock_rdlock(plp->rwlockp)) {
+	if ((errno = pthread_rwlock_rdlock(plp->rwlockp))) {
 		LOG(1, "!pthread_rwlock_rdlock");
 		return (size_t)-1;
 	}
@@ -280,7 +280,7 @@ pmemlog_nbyte(PMEMlog *plp)
 	size_t size = le64toh(plp->end_offset) - le64toh(plp->start_offset);
 	LOG(4, "plp %p nbyte %zu", plp, size);
 
-	if (pthread_rwlock_unlock(plp->rwlockp))
+	if ((errno = pthread_rwlock_unlock(plp->rwlockp)))
 		LOG(1, "!pthread_rwlock_unlock");
 
 	return size;
@@ -336,7 +336,7 @@ pmemlog_append(PMEMlog *plp, const void *buf, size_t count)
 		return -1;
 	}
 
-	if (pthread_rwlock_wrlock(plp->rwlockp)) {
+	if ((errno = pthread_rwlock_wrlock(plp->rwlockp))) {
 		LOG(1, "!pthread_rwlock_wrlock");
 		return -1;
 	}
@@ -378,7 +378,7 @@ pmemlog_append(PMEMlog *plp, const void *buf, size_t count)
 		pmemlog_persist(plp, write_offset);
 
 	int oerrno = errno;
-	if (pthread_rwlock_unlock(plp->rwlockp))
+	if ((errno = pthread_rwlock_unlock(plp->rwlockp)))
 		LOG(1, "!pthread_rwlock_unlock");
 	errno = oerrno;
 
@@ -402,7 +402,7 @@ pmemlog_appendv(PMEMlog *plp, const struct iovec *iov, int iovcnt)
 		return -1;
 	}
 
-	if (pthread_rwlock_wrlock(plp->rwlockp)) {
+	if ((errno = pthread_rwlock_wrlock(plp->rwlockp))) {
 		LOG(1, "!pthread_rwlock_wrlock");
 		return -1;
 	}
@@ -459,7 +459,7 @@ pmemlog_appendv(PMEMlog *plp, const struct iovec *iov, int iovcnt)
 		pmemlog_persist(plp, write_offset);
 
 	int oerrno = errno;
-	if (pthread_rwlock_unlock(plp->rwlockp))
+	if ((errno = pthread_rwlock_unlock(plp->rwlockp)))
 		LOG(1, "!pthread_rwlock_unlock");
 	errno = oerrno;
 
@@ -474,7 +474,7 @@ pmemlog_tell(PMEMlog *plp)
 {
 	LOG(3, "plp %p", plp);
 
-	if (pthread_rwlock_rdlock(plp->rwlockp)) {
+	if ((errno = pthread_rwlock_rdlock(plp->rwlockp))) {
 		LOG(1, "!pthread_rwlock_rdlock");
 		return (off_t)-1;
 	}
@@ -482,7 +482,7 @@ pmemlog_tell(PMEMlog *plp)
 	off_t wp = le64toh(plp->write_offset) - le64toh(plp->start_offset);
 	LOG(4, "write offset %lld", (long long)wp);
 
-	if (pthread_rwlock_unlock(plp->rwlockp))
+	if ((errno = pthread_rwlock_unlock(plp->rwlockp)))
 		LOG(1, "!pthread_rwlock_unlock");
 
 	return wp;
@@ -502,7 +502,7 @@ pmemlog_rewind(PMEMlog *plp)
 		return;
 	}
 
-	if (pthread_rwlock_wrlock(plp->rwlockp)) {
+	if ((errno = pthread_rwlock_wrlock(plp->rwlockp))) {
 		LOG(1, "!pthread_rwlock_wrlock");
 		return;
 	}
@@ -516,7 +516,7 @@ pmemlog_rewind(PMEMlog *plp)
 	/* set the write-protection again (debug version only) */
 	RANGE_RO(plp->addr + sizeof (struct pool_hdr), LOG_FORMAT_DATA_ALIGN);
 
-	if (pthread_rwlock_unlock(plp->rwlockp))
+	if ((errno = pthread_rwlock_unlock(plp->rwlockp)))
 		LOG(1, "!pthread_rwlock_unlock");
 }
 
@@ -537,7 +537,7 @@ pmemlog_walk(PMEMlog *plp, size_t chunksize,
 	 * in place. We prevent everyone from changing the data behind our back
 	 * until we are done with processing it.
 	 */
-	if (pthread_rwlock_rdlock(plp->rwlockp)) {
+	if ((errno = pthread_rwlock_rdlock(plp->rwlockp))) {
 		LOG(1, "!pthread_rwlock_rdlock");
 		return;
 	}
@@ -565,7 +565,7 @@ pmemlog_walk(PMEMlog *plp, size_t chunksize,
 		}
 	}
 
-	if (pthread_rwlock_unlock(plp->rwlockp))
+	if ((errno = pthread_rwlock_unlock(plp->rwlockp)))
 		LOG(1, "!pthread_rwlock_unlock");
 }
 
