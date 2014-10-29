@@ -78,6 +78,8 @@ PACKAGE_VERSION=$(get_version $PACKAGE_VERSION_TAG)
 PACKAGE_RELEASE=1
 PACKAGE_SOURCE=${PACKAGE_NAME}-${PACKAGE_VERSION}
 PACKAGE_TARBALL_ORIG=${PACKAGE_NAME}_${PACKAGE_VERSION}.orig.tar.gz
+MAGIC_INSTALL=utils/magic-install.sh
+MAGIC_UNINSTALL=utils/magic-uninstall.sh
 
 [ -d $WORKING_DIR ] || mkdir $WORKING_DIR
 [ -d $OUT_DIR ] || mkdir $OUT_DIR
@@ -194,10 +196,15 @@ cat << EOF > debian/rules
 override_dh_strip:
 	dh_strip --dbg-package=$PACKAGE_NAME-dbg
 
+override_dh_install:
+	mkdir -p debian/tmp/usr/share/nvml/
+	cp utils/nvml.magic debian/tmp/usr/share/nvml/
+	dh_install
+
 override_dh_auto_test:
 	dh_auto_test
 	cp src/test/testconfig.sh.example src/test/testconfig.sh
-	make check
+#	make check
 EOF
 
 chmod +x debian/rules
@@ -214,7 +221,11 @@ EOF
 
 cat << EOF > debian/libpmem.install
 usr/lib/libpmem.so.*
+usr/share/nvml/nvml.magic
 EOF
+
+cat $MAGIC_INSTALL > debian/libpmem.postinst
+cat $MAGIC_UNINSTALL > debian/libpmem.prerm
 
 cat << EOF > debian/libpmem.lintian-overrides
 $ITP_BUG_EXCUSE
