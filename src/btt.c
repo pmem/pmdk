@@ -733,10 +733,17 @@ write_layout(struct btt *bttp, int lane, int write)
 	flog_size = roundup(flog_size, BTT_ALIGNMENT);
 
 	uint32_t internal_lbasize = bttp->lbasize;
-	if (internal_lbasize < BTT_MIN_LBA)
-		internal_lbasize = BTT_MIN_LBA;
+	if (internal_lbasize < BTT_MIN_LBA_SIZE)
+		internal_lbasize = BTT_MIN_LBA_SIZE;
 	internal_lbasize =
 		roundup(internal_lbasize, BTT_INTERNAL_LBA_ALIGNMENT);
+	/* check for overflow */
+	if (internal_lbasize < BTT_INTERNAL_LBA_ALIGNMENT) {
+		errno = EINVAL;
+		LOG(1, "!Invalid lba size after alignment: %u ",
+				internal_lbasize);
+		return -1;
+	}
 	LOG(4, "adjusted internal_lbasize %u", internal_lbasize);
 
 	uint64_t total_nlba = 0;
@@ -764,6 +771,16 @@ write_layout(struct btt *bttp, int lane, int write)
 		/* allow for map alignment padding */
 		uint64_t internal_nlba = (arena_datasize - BTT_ALIGNMENT) /
 			(internal_lbasize + BTT_MAP_ENTRY_SIZE);
+
+		/* ensure the number of blocks is at least 2*nfree */
+		if (internal_nlba < 2 * bttp->nfree) {
+			errno = EINVAL;
+			LOG(1, "!number of internal blocks: %lu "
+					"expected at least %u",
+					internal_nlba, 2 * bttp->nfree);
+			return -1;
+		}
+
 		uint64_t external_nlba = internal_nlba - bttp->nfree;
 
 		LOG(4, "internal_nlba %ju external_nlba %ju",

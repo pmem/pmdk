@@ -132,7 +132,7 @@ main(int argc, char *argv[])
 	for (int arg = 1; arg < argc; arg++) {
 		char *fname;
 		size_t bsize = strtoul(argv[arg], &fname, 0);
-		if (bsize == 0 || *fname != ':')
+		if (*fname != ':')
 			FATAL("usage: %s bsize:file...", argv[0]);
 		fname++;
 
