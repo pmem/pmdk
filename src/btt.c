@@ -1293,7 +1293,11 @@ map_lock(struct btt *bttp, int lane, struct arena *arenap,
 	/* read the old map entry */
 	if ((*bttp->ns_cbp->nsread)(bttp->ns, lane, entryp,
 				sizeof (uint32_t), map_entry_off) < 0) {
-		pthread_mutex_unlock(&arenap->map_locks[map_lock_num]);
+		int oerrno = errno;
+		if ((errno = pthread_mutex_unlock(
+					&arenap->map_locks[map_lock_num])))
+			LOG(1, "!pthread_mutex_unlock");
+		errno = oerrno;
 		return -1;
 	}
 
@@ -1316,7 +1320,10 @@ map_abort(struct btt *bttp, int lane, struct arena *arenap, uint32_t premap_lba)
 
 	int map_lock_num = premap_lba * BTT_MAP_ENTRY_SIZE / BTT_MAP_LOCK_ALIGN
 		% bttp->nfree;
-	pthread_mutex_unlock(&arenap->map_locks[map_lock_num]);
+	int oerrno = errno;
+	if ((errno = pthread_mutex_unlock(&arenap->map_locks[map_lock_num])))
+		LOG(1, "!pthread_mutex_unlock");
+	errno = oerrno;
 }
 
 /*
@@ -1337,7 +1344,11 @@ map_unlock(struct btt *bttp, int lane, struct arena *arenap,
 
 	int map_lock_num = premap_lba * BTT_MAP_ENTRY_SIZE / BTT_MAP_LOCK_ALIGN
 		% bttp->nfree;
-	pthread_mutex_unlock(&arenap->map_locks[map_lock_num]);
+
+	int oerrno = errno;
+	if ((errno = pthread_mutex_unlock(&arenap->map_locks[map_lock_num])))
+		LOG(1, "!pthread_mutex_unlock");
+	errno = oerrno;
 
 	LOG(9, "unlocked map[%d]: %u%s%s", premap_lba,
 			entry & BTT_MAP_ENTRY_LBA_MASK,
@@ -1370,7 +1381,11 @@ btt_write(struct btt *bttp, int lane, uint64_t lba, const void *buf)
 		}
 		if (!bttp->laidout)
 			err = write_layout(bttp, lane, 1);
-		pthread_mutex_unlock(&bttp->layout_write_mutex);
+
+		int oerrno = errno;
+		if ((errno = pthread_mutex_unlock(&bttp->layout_write_mutex)))
+			LOG(1, "!pthread_mutex_unlock");
+		errno = oerrno;
 
 		if (err < 0)
 			return err;
@@ -1476,7 +1491,11 @@ map_entry_setf(struct btt *bttp, int lane, uint64_t lba, uint32_t setf)
 		}
 		if (!bttp->laidout)
 			err = write_layout(bttp, lane, 1);
-		pthread_mutex_unlock(&bttp->layout_write_mutex);
+
+		int oerrno = errno;
+		if ((errno = pthread_mutex_unlock(&bttp->layout_write_mutex)))
+			LOG(1, "!pthread_mutex_unlock");
+		errno = oerrno;
 
 		if (err < 0)
 			return err;
