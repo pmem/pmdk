@@ -34,9 +34,9 @@
  * vmem.h -- internal definitions for libvmem
  */
 
-#define	LOG_PREFIX "libvmem"
-#define	LOG_LEVEL_VAR "VMEM_LOG_LEVEL"
-#define	LOG_FILE_VAR "VMEM_LOG_FILE"
+#define	VMEM_LOG_PREFIX "libvmem"
+#define	VMEM_LOG_LEVEL_VAR "VMEM_LOG_LEVEL"
+#define	VMEM_LOG_FILE_VAR "VMEM_LOG_FILE"
 
 /* attributes of the vmem memory pool format for the pool header */
 #define	VMEM_HDR_SIG "VMEM   "	/* must be 8 bytes including '\0' */

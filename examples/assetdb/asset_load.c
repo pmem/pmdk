@@ -45,17 +45,16 @@
 #include <fcntl.h>
 #include <string.h>
 #include <time.h>
-#include <libpmem.h>
+#include <libpmemblk.h>
 
 #include "asset.h"
 
 int
 main(int argc, char *argv[])
 {
-	int fd;
 	FILE *fp;
 	size_t len;
-	PMEMblk *pbp;
+	PMEMblkpool *pbp;
 	int assetid = 0;
 	size_t nelements;
 	char *line = NULL;
@@ -65,22 +64,20 @@ main(int argc, char *argv[])
 		exit(1);
 	}
 
-	if ((fd = open(argv[1], O_RDWR)) < 0) {
-		perror(argv[1]);
-		exit(1);
-	}
+	const char *path_pool = argv[1];
+	const char *path_list = argv[2];
 
 	/* create an array of atomically writable elements */
-	if ((pbp = pmemblk_map(fd, sizeof (struct asset))) == NULL) {
-		perror("pmemblk_map");
+	if ((pbp = pmemblk_pool_open(path_pool,
+			sizeof (struct asset))) == NULL) {
+		perror("pmemblk_pool_open");
 		exit(1);
 	}
-	close(fd);
 
 	nelements = pmemblk_nblock(pbp);
 
-	if ((fp = fopen(argv[2], "r")) == NULL) {
-		perror(argv[2]);
+	if ((fp = fopen(path_list, "r")) == NULL) {
+		perror(path_list);
 		exit(1);
 	}
 
@@ -95,7 +92,7 @@ main(int argc, char *argv[])
 		if (assetid >= nelements) {
 			fprintf(stderr, "%s: too many assets to fit in %s "
 					"(only %d assets loaded)\n",
-					argv[2], argv[1], assetid);
+					path_list, path_pool, assetid);
 			exit(1);
 		}
 
@@ -115,5 +112,5 @@ main(int argc, char *argv[])
 	free(line);
 	fclose(fp);
 
-	pmemblk_unmap(pbp);
+	pmemblk_pool_close(pbp);
 }

@@ -13,11 +13,11 @@ For example:
 
 	./blk_recovery 4096 file1 5 10
 
-this will call pmemblk_map() on file1, call pmemblk_write() for LBA 5
+this will call pmemblk_pool_open() on file1, call pmemblk_write() for LBA 5
 (causing all the layout to be written), then it will change the memory
 protection on the arean map area to read-only.  Next, pmemblk_write()
 is called for for LBA 10 and SIGSEGV is caught and reported.  Finally,
-pmemblk_check() is called.
+pmemblk_pool_check() is called.
 
 This is not a perfect simulation of a system interruption, but does allow
 creating a file where a write was interrupted before updating the map.

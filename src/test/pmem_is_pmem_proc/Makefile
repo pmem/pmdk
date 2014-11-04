@@ -36,10 +36,10 @@
 TARGET = pmem_is_pmem_proc
 OBJS = pmem_is_pmem_proc.o
 
+LIBPMEM=y
+
 include ../Makefile.inc
 
-LIBS += -lpmem -ldl
-STATIC_DEBUG_LIBS += -ldl
-STATIC_NONDEBUG_LIBS += -ldl
+LIBS += -ldl
 
 pmem_is_pmem_proc.o: pmem_is_pmem_proc.c

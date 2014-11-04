@@ -136,23 +136,20 @@ main(int argc, char *argv[])
 			FATAL("usage: %s bsize:file...", argv[0]);
 		fname++;
 
-		int fd = OPEN(fname, O_RDWR);
-
-		PMEMblk *handle;
-		if ((handle = pmemblk_map(fd, bsize)) == NULL)
-			OUT("!%s: pmemblk_map", fname);
+		PMEMblkpool *handle;
+		if ((handle = pmemblk_pool_open(fname, bsize)) == NULL)
+			OUT("!%s: pmemblk_pool_open", fname);
 		else {
 			OUT("%s: block size %zu usable blocks: %zu",
 					fname, bsize, pmemblk_nblock(handle));
-			pmemblk_unmap(handle);
-			int result = pmemblk_check(fname);
+			pmemblk_pool_close(handle);
+			int result = pmemblk_pool_check(fname);
 			if (result < 0)
-				OUT("!%s: pmemblk_check", fname);
+				OUT("!%s: pmemblk_pool_check", fname);
 			else if (result == 0)
-				OUT("%s: pmemblk_check: not consistent", fname);
+				OUT("%s: pmemblk_pool_check: not consistent",
+						fname);
 		}
-
-		close(fd);
 	}
 
 	DONE(NULL);

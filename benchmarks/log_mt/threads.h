@@ -32,7 +32,7 @@
 
 #include <stdlib.h>
 #include <inttypes.h>
-#include <libpmem.h>
+#include <libpmemlog.h>
 #include <stdbool.h>
 
 #include "log_mt.h"

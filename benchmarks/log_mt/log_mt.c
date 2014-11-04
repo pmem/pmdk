@@ -42,7 +42,7 @@
 #include <argp.h>
 #include <fcntl.h>
 #include <errno.h>
-#include <libpmem.h>
+#include <libpmemlog.h>
 #include <sys/mman.h>
 #include <unistd.h>
 
@@ -99,7 +99,7 @@ main(int argc, char *argv[])
 	size_t psize;
 	int fails = 0;
 	double exec_time;
-	PMEMlog *plp = NULL;
+	PMEMlogpool *plp = NULL;
 
 	/* default program settings */
 	struct prog_args args = {
@@ -134,13 +134,15 @@ main(int argc, char *argv[])
 		}
 
 		/* pre-allocate memory */
-		if ((errno = posix_fallocate(fd, (off_t)0, psize)) != 0) {
+		errno = posix_fallocate(fd, (off_t)0, psize);
+		close(fd);
+		if (errno != 0) {
 			perror("posix_fallocate");
 			exit(1);
 		}
 
-		if ((plp = pmemlog_map(fd)) == NULL) {
-			perror("pmemlog_map");
+		if ((plp = pmemlog_pool_open(args.file_name)) == NULL) {
+			perror("pmemlog_pool_open");
 			exit(1);
 		}
 		Tasks = Tasks_pmemlog;
@@ -168,10 +170,11 @@ main(int argc, char *argv[])
 
 	printf("\n");
 
-	close(fd);
-
-	if (!args.fileio_mode)
-		pmemlog_unmap(plp);
+	if (args.fileio_mode) {
+		close(fd);
+	} else {
+		pmemlog_pool_close(plp);
+	}
 
 	(fails == 0) ? exit(0) : exit(1);
 }

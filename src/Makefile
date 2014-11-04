@@ -39,7 +39,7 @@ JEMALLOC_DIR = $(CURDIR)/jemalloc
 export JEMALLOC_DIR
 
 HEADERS_DESTDIR = $(DESTDIR)/usr/include
-HEADERS_INSTALL = include/libpmem.h include/libvmem.h
+HEADERS_INSTALL = include/libpmem.h include/libvmem.h include/libpmemobj.h include/libpmemblk.h include/libpmemlog.h
 
 SCOPEFILES = *.[ch] include/*.[ch] jemalloc/src/*.[ch]\
 	     $(JEMALLOC_DIR)/include/jemalloc/*.h\

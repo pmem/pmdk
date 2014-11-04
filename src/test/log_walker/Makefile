@@ -36,8 +36,9 @@
 TARGET = log_walker
 OBJS = log_walker.o
 
-include ../Makefile.inc
+LIBPMEM=y
+LIBPMEMLOG=y
 
-LIBS += -lpmem -lpthread
+include ../Makefile.inc
 
 log_walker.o: log_walker.c

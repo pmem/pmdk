@@ -29,15 +29,22 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
 #
-# src/test/pmem_map/Makefile -- build pmem_map unit test
+# src/libpmemlog.map -- linker map file for libpmemlog
 #
-TARGET = pmem_map
-OBJS = pmem_map.o
-
-include ../Makefile.inc
-
-LIBS += -lpmem
-
-pmem_map.o: pmem_map.c
+libpmemlog.so {
+	global:
+		pmemlog_check_version;
+		pmemlog_set_funcs;
+		pmemlog_pool_open;
+		pmemlog_pool_close;
+		pmemlog_pool_check;
+		pmemlog_nbyte;
+		pmemlog_append;
+		pmemlog_appendv;
+		pmemlog_tell;
+		pmemlog_rewind;
+		pmemlog_walk;
+	local:
+		*;
+};

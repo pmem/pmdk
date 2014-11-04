@@ -36,7 +36,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include <libpmem.h>
+#include <libpmemblk.h>
 
 /* size of each element in the PMEM pool (bytes) */
 #define	ELEMENT_SIZE ((size_t)1024)
@@ -44,14 +44,14 @@
 int
 main(int argc, char *argv[])
 {
+	const char path[] = "/my/pmem-aware/fs/myfile";
 	int fd;
-	PMEMblk *pbp;
+	PMEMblkpool *pbp;
 	size_t nelements;
 	char buf[ELEMENT_SIZE];
 
 	/* create file on PMEM-aware file system */
-	if ((fd = open("/my/pmem-aware/fs/myfile",
-					O_CREAT|O_RDWR, 0666)) < 0) {
+	if ((fd = open(path, O_CREAT|O_RDWR, 0666)) < 0) {
 		perror("open");
 		exit(1);
 	}
@@ -62,10 +62,11 @@ main(int argc, char *argv[])
 		perror("posix_fallocate");
 		exit(1);
 	}
+	close(fd);
 
 	/* create an array of atomically writable elements */
-	if ((pbp = pmemblk_map(fd, ELEMENT_SIZE)) == NULL) {
-		perror("pmemblk_map");
+	if ((pbp = pmemblk_pool_open(path, ELEMENT_SIZE)) == NULL) {
+		perror("pmemblk_pool_open");
 		exit(1);
 	}
 
@@ -94,6 +95,5 @@ main(int argc, char *argv[])
 
 	/* ... */
 
-	pmemblk_unmap(pbp);
-	close(fd);
+	pmemblk_pool_close(pbp);
 }

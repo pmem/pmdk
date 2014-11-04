@@ -38,6 +38,8 @@ INCS = -I../src/include
 CFLAGS = -std=gnu99 -ggdb -Wall -Werror
 LIBS = -L../src/debug -pthread
 
+pmemblk_example: LIBS += -lpmemblk
+pmemlog_example: LIBS += -lpmemlog
 vmem_example: LIBS += -lvmem
 pmem_example pmemblk_example pmemlog_example: LIBS += -lpmem
 
