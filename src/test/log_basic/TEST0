@@ -38,9 +38,9 @@
 # - pmemlog_walk
 # - pmemlog_rewind
 # in case of empty pool and:
-# - pmemlog_check
-# - pmemlog_map
-# - pmemlog_unmap
+# - pmemlog_pool_check
+# - pmemlog_pool_open
+# - pmemlog_pool_close
 #
 export UNITTEST_NAME=log_basic/TEST0
 export UNITTEST_NUM=0

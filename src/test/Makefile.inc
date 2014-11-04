@@ -36,11 +36,42 @@
 # These defaults apply to most unit tests.  The individual Makefile
 # for each unit test overrides the defaults as necessary.
 #
-LIBS = ../unittest/libut.a -L../../debug -luuid -pthread
-STATIC_DEBUG_LIBS = ../unittest/libut.a ../../debug/libpmem.a -luuid -pthread
-STATIC_NONDEBUG_LIBS = ../unittest/libut.a ../../nondebug/libpmem.a -luuid -pthread
-STATIC_DEBUG_LIBS_DEPS = ../unittest/libut.a ../../debug/libpmem.a ../../debug/libvmem.a
-STATIC_NONDEBUG_LIBS_DEPS = ../unittest/libut.a ../../nondebug/libpmem.a ../../nondebug/libvmem.a
+
+DEBUG_DIR=../../debug
+NONDEBUG_DIR=../../nondebug
+
+LIBS = ../unittest/libut.a -L$(DEBUG_DIR) -luuid -pthread
+
+ifeq ($(LIBPMEMBLK), y)
+DYNAMIC_LIBS += -lpmemblk
+STATIC_DEBUG_LIBS += $(DEBUG_DIR)/libpmemblk.a
+STATIC_NONDEBUG_LIBS += $(NONDEBUG_DIR)/libpmemblk.a
+endif
+
+ifeq ($(LIBPMEMLOG), y)
+DYNAMIC_LIBS += -lpmemlog
+STATIC_DEBUG_LIBS += $(DEBUG_DIR)/libpmemlog.a
+STATIC_NONDEBUG_LIBS += $(NONDEBUG_DIR)/libpmemlog.a
+endif
+
+ifeq ($(LIBPMEMOBJ), y)
+DYNAMIC_LIBS += -lpmemobj
+STATIC_DEBUG_LIBS += $(DEBUG_DIR)/libpmemobj.a
+STATIC_NONDEBUG_LIBS += $(NONDEBUG_DIR)/libpmemobj.a
+endif
+
+ifeq ($(LIBPMEM),y)
+DYNAMIC_LIBS += -lpmem
+STATIC_DEBUG_LIBS += $(DEBUG_DIR)/libpmem.a
+STATIC_NONDEBUG_LIBS += $(NONDEBUG_DIR)/libpmem.a
+endif
+
+ifeq ($(LIBVMEM),y)
+DYNAMIC_LIBS += -lvmem
+STATIC_DEBUG_LIBS += $(DEBUG_DIR)/libvmem.a
+STATIC_NONDEBUG_LIBS += $(NONDEBUG_DIR)/libvmem.a
+endif
+
 INCS = -I../unittest -I../../include
 CFLAGS = -ggdb -Wall -Werror -std=gnu99
 TARGET_STATIC_DEBUG=$(TARGET).static-debug
@@ -48,14 +79,14 @@ TARGET_STATIC_NONDEBUG=$(TARGET).static-nondebug
 
 all: $(TARGET) $(TARGET_STATIC_DEBUG) $(TARGET_STATIC_NONDEBUG)
 
-$(TARGET_STATIC_DEBUG): $(OBJS) $(STATIC_DEBUG_LIBS_DEPS)
-	$(CC) -o $@ $(OBJS) $(STATIC_DEBUG_LIBS)
+$(TARGET_STATIC_DEBUG): $(OBJS) $(STATIC_DEBUG_LIBS)
+	$(CC) -o $@ $(OBJS) $(STATIC_DEBUG_LIBS) $(LIBS)
 
-$(TARGET_STATIC_NONDEBUG): $(OBJS) $(STATIC_NONDEBUG_LIBS_DEPS)
-	$(CC) -o $@ $(OBJS) $(STATIC_NONDEBUG_LIBS)
+$(TARGET_STATIC_NONDEBUG): $(OBJS) $(STATIC_NONDEBUG_LIBS)
+	$(CC) -o $@ $(OBJS) $(STATIC_NONDEBUG_LIBS) $(LIBS)
 
 $(TARGET): $(OBJS)
-	$(CC) -o $@ $(OBJS) $(LIBS)
+	$(CC) -o $@ $(OBJS) $(DYNAMIC_LIBS) $(LIBS)
 
 .c.o:
 	$(CC) -c $(CFLAGS) $(INCS) $< -o $@

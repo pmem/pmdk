@@ -36,10 +36,11 @@
 TARGET = blk_nblock
 OBJS = blk_nblock.o
 
+LIBPMEM=y
+LIBPMEMBLK=y
+
 include ../Makefile.inc
 
-LIBS += -lpmem -lpthread -ldl
-STATIC_DEBUG_LIBS += -ldl
-STATIC_NONDEBUG_LIBS += -ldl
+LIBS += -ldl
 
 blk_nblock.o: blk_nblock.c

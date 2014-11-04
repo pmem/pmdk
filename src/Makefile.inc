@@ -76,25 +76,55 @@ VMEMSOVERSION = 1
 PMEMLIBVERSION = 0.0
 VMEMLIBVERSION = 0.0
 LIBPMEMSO=libpmem.so
+LIBPMEMBLKSO=libpmemblk.so
+LIBPMEMLOGSO=libpmemlog.so
+LIBPMEMOBJSO=libpmemobj.so
 LIBVMEMSO=libvmem.so
 LIBPMEMAR=libpmem.a
+LIBPMEMBLKAR=libpmemblk.a
+LIBPMEMLOGAR=libpmemlog.a
+LIBPMEMOBJAR=libpmemobj.a
 LIBVMEMAR=libvmem.a
 LIBPMEM_SONAME=$(LIBPMEMSO).$(PMEMSOVERSION)
+LIBPMEMBLK_SONAME=$(LIBPMEMBLKSO).$(PMEMSOVERSION)
+LIBPMEMLOG_SONAME=$(LIBPMEMLOGSO).$(PMEMSOVERSION)
+LIBPMEMOBJ_SONAME=$(LIBPMEMOBJSO).$(PMEMSOVERSION)
 LIBVMEM_SONAME=$(LIBVMEMSO).$(VMEMSOVERSION)
 LIBPMEM_REALNAME=$(LIBPMEM_SONAME).$(PMEMLIBVERSION)
+LIBPMEMBLK_REALNAME=$(LIBPMEMBLK_SONAME).$(PMEMLIBVERSION)
+LIBPMEMLOG_REALNAME=$(LIBPMEMLOG_SONAME).$(PMEMLIBVERSION)
+LIBPMEMOBJ_REALNAME=$(LIBPMEMOBJ_SONAME).$(PMEMLIBVERSION)
 LIBVMEM_REALNAME=$(LIBVMEM_SONAME).$(VMEMLIBVERSION)
 
 COMMONOBJS = out.o util.o
-PMEMOBJS = libpmem.o blk.o btt.o log.o pmem.o trn.o $(COMMONOBJS)
+PMEMCOMMONOBJS = $(COMMONOBJS)
+PMEMOBJS = libpmem.o pmem.o $(COMMONOBJS)
+PMEMBLKOBJS = libpmemblk.o blk.o btt.o $(COMMONOBJS)
+PMEMLOGOBJS = libpmemlog.o log.o $(COMMONOBJS)
+PMEMOBJOBJS = libpmemobj.o obj.o $(COMMONOBJS)
 VMEMOBJS = libvmem.o vmem.o $(COMMONOBJS)
 PMEMMAPFILE = ../libpmem.map
+PMEMBLKMAPFILE = ../libpmemblk.map
+PMEMLOGMAPFILE = ../libpmemlog.map
+PMEMOBJMAPFILE = ../libpmemobj.map
 VMEMMAPFILE = ../libvmem.map
-TARGET_LIBS = $(LIBPMEMAR) $(LIBPMEM_REALNAME) $(LIBVMEMAR) $(LIBVMEM_REALNAME)
-TARGET_LINKS= $(LIBPMEMSO) $(LIBPMEM_SONAME) $(LIBVMEMSO) $(LIBVMEM_SONAME)
+TARGET_LIBS = $(LIBVMEMAR) $(LIBVMEM_REALNAME)
+TARGET_LIBS += $(LIBPMEMAR) $(LIBPMEM_REALNAME)
+TARGET_LIBS += $(LIBPMEMBLKAR) $(LIBPMEMBLK_REALNAME)
+TARGET_LIBS += $(LIBPMEMLOGAR) $(LIBPMEMLOG_REALNAME)
+TARGET_LIBS += $(LIBPMEMOBJAR) $(LIBPMEMOBJ_REALNAME)
+TARGET_LINKS = $(LIBVMEMSO) $(LIBVMEM_SONAME)
+TARGET_LINKS += $(LIBPMEMSO) $(LIBPMEM_SONAME)
+TARGET_LINKS += $(LIBPMEMBLKSO) $(LIBPMEMBLK_SONAME)
+TARGET_LINKS += $(LIBPMEMLOGSO) $(LIBPMEMLOG_SONAME)
+TARGET_LINKS += $(LIBPMEMOBJSO) $(LIBPMEMOBJ_SONAME)
 TARGETS = $(TARGET_LIBS) $(TARGET_LINKS)
 EXTRA_JECONFIG =
 
-$(LIBPMEM_AR) $(LIBPMEM_REALNAME): LIBS += -luuid
+$(LIBPMEMAR) $(LIBPMEM_REALNAME): LIBS += -luuid
+$(LIBPMEMBLKAR) $(LIBPMEMLOGAR) $(LIBPMEMOBJAR): LIBS += -luuid
+$(LIBPMEMBLK_REALNAME) $(LIBPMEMOBJ_REALNAME) $(LIBPMEMLOG_REALNAME): LIBS += -luuid -l:$(LIBPMEM_REALNAME)
+$(LIBVMEMAR) $(LIBVMEM_REALNAME): INCS += -I$(JEMALLOC_DIR)/include/jemalloc
 
 out.o: CFLAGS += -DSRCVERSION='"$(SRCVERSION)"'
 
@@ -131,6 +161,21 @@ $(LIBPMEMAR): $(PMEMOBJS)
 	objcopy --localize-hidden `sed -n 's/^	*\([a-zA-Z0-9_]*\);$$/-G \1/p' $(PMEMMAPFILE)` $*_unscoped.o $*_all.o
 	$(AR) rv $@ $*_all.o
 
+$(LIBPMEMBLKAR): $(PMEMBLKOBJS)
+	$(LD) -o $*_unscoped.o -r $(PMEMBLKOBJS)
+	objcopy --localize-hidden `sed -n 's/^	*\([a-zA-Z0-9_]*\);$$/-G \1/p' $(PMEMBLKMAPFILE)` $*_unscoped.o $*_all.o
+	$(AR) rv $@ $*_all.o
+
+$(LIBPMEMLOGAR): $(PMEMLOGOBJS)
+	$(LD) -o $*_unscoped.o -r $(PMEMLOGOBJS)
+	objcopy --localize-hidden `sed -n 's/^	*\([a-zA-Z0-9_]*\);$$/-G \1/p' $(PMEMLOGMAPFILE)` $*_unscoped.o $*_all.o
+	$(AR) rv $@ $*_all.o
+
+$(LIBPMEMOBJAR): $(PMEMOBJOBJS)
+	$(LD) -o $*_unscoped.o -r $(PMEMOBJOBJS)
+	objcopy --localize-hidden `sed -n 's/^	*\([a-zA-Z0-9_]*\);$$/-G \1/p' $(PMEMOBJMAPFILE)` $*_unscoped.o $*_all.o
+	$(AR) rv $@ $*_all.o
+
 $(LIBPMEM_REALNAME): $(PMEMOBJS)
 	$(CC) $(LDFLAGS) -shared -Wl,--version-script=$(PMEMMAPFILE),-soname,$(LIBPMEM_SONAME) -o $@ $(PMEMOBJS) $(LIBS)
 
@@ -138,10 +183,34 @@ $(LIBPMEM_SONAME): $(LIBPMEM_REALNAME)
 	$(LN) -sf $< $@
 
 $(LIBPMEMSO): $(LIBPMEM_SONAME)
-	$(LN) -s $< $@
+	$(LN) -sf $< $@
 
+$(LIBPMEMBLK_REALNAME): $(PMEMBLKOBJS)
+	$(CC) $(LDFLAGS) -shared -Wl,--version-script=$(PMEMBLKMAPFILE),-soname,$(LIBPMEMBLK_SONAME) -o $@ $(PMEMBLKOBJS) $(LIBS)
 
-$(LIBVMEMAR) $(LIBVMEM_REALNAME): INCS += -I$(JEMALLOC_DIR)/include/jemalloc
+$(LIBPMEMBLK_SONAME): $(LIBPMEMBLK_REALNAME)
+	$(LN) -sf $< $@
+
+$(LIBPMEMBLKSO): $(LIBPMEMBLK_SONAME)
+	$(LN) -sf $< $@
+
+$(LIBPMEMLOG_REALNAME): $(PMEMLOGOBJS)
+	$(CC) $(LDFLAGS) -shared -Wl,--version-script=$(PMEMLOGMAPFILE),-soname,$(LIBPMEMLOG_SONAME) -o $@ $(PMEMLOGOBJS) $(LIBS)
+
+$(LIBPMEMLOG_SONAME): $(LIBPMEMLOG_REALNAME)
+	$(LN) -sf $< $@
+
+$(LIBPMEMLOGSO): $(LIBPMEMLOG_SONAME)
+	$(LN) -sf $< $@
+
+$(LIBPMEMOBJ_REALNAME): $(PMEMOBJOBJS)
+	$(CC) $(LDFLAGS) -shared -Wl,--version-script=$(PMEMOBJMAPFILE),-soname,$(LIBPMEMOBJ_SONAME) -o $@ $(PMEMOBJOBJS) $(LIBS)
+
+$(LIBPMEMOBJ_SONAME): $(LIBPMEMOBJ_REALNAME)
+	$(LN) -sf $< $@
+
+$(LIBPMEMOBJSO): $(LIBPMEMOBJ_SONAME)
+	$(LN) -sf $< $@
 
 $(LIBVMEMAR): $(VMEMOBJS) $(JEMALLOC_LIB)
 	$(LD) -o $*_unscoped.o -r $(VMEMOBJS) $(JEMALLOC_LIB)
@@ -155,7 +224,7 @@ $(LIBVMEM_SONAME): $(LIBVMEM_REALNAME)
 	$(LN) -sf $< $@
 
 $(LIBVMEMSO): $(LIBVMEM_SONAME)
-	$(LN) -s $< $@
+	$(LN) -sf $< $@
 
 .c.o:
 	$(CC) -c -o $@ $(CFLAGS) $(INCS) -fPIC $<
@@ -190,7 +259,7 @@ blk.o: blk.c libpmem.h pmem.h blk.h util.h out.h
 btt.o: btt.c util.h btt.h btt_layout.h
 log.o: log.c libpmem.h pmem.h log.h util.h out.h
 pmem.o: pmem.c libpmem.h pmem.h out.h
-trn.o: trn.c libpmem.h pmem.h trn.h util.h out.h
+obj.o: obj.c libpmem.h pmem.h obj.h util.h out.h
 
 libvmem.o: libvmem.c libvmem.h vmem.h util.h out.h
 vmem.o: vmem.c libvmem.h util.h out.h

@@ -36,11 +36,10 @@
 TARGET = vmem_pages_purging
 OBJS = vmem_pages_purging.o
 
-include ../Makefile.inc
-STATIC_DEBUG_LIBS = ../unittest/libut.a ../../debug/libvmem.a -luuid -pthread
-STATIC_NONDEBUG_LIBS = ../unittest/libut.a ../../nondebug/libvmem.a -luuid -pthread
+LIBVMEM=y
 
-LIBS += -lvmem
+include ../Makefile.inc
+
 INCS += -I../../jemalloc/include/
 INCS += -I../../jemalloc/nondebug/include/
 

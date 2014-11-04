@@ -37,33 +37,11 @@ libpmem.so {
 		pmem_map;
 		pmem_is_pmem;
 		pmem_persist;
+		pmem_persist_msync;
 		pmem_flush;
 		pmem_fence;
 		pmem_drain;
-		pmemtrn_map;
-		pmemtrn_unmap;
-		# XXX rest of pmemtrn API goes here
-		pmemblk_map;
-		pmemblk_unmap;
-		pmemblk_nblock;
-		pmemblk_read;
-		pmemblk_write;
-		pmemblk_set_zero;
-		pmemblk_set_error;
-		pmemlog_map;
-		pmemlog_unmap;
-		pmemlog_nbyte;
-		pmemlog_append;
-		pmemlog_appendv;
-		pmemlog_tell;
-		pmemlog_rewind;
-		pmemlog_walk;
 		pmem_check_version;
-		pmem_set_funcs;
-		pmemtrn_check;
-		pmemblk_check;
-		pmemlog_check;
-
 	local:
 		*;
 };

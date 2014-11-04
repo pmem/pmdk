@@ -105,14 +105,11 @@ main(int argc, char *argv[])
 		FATAL("usage: %s bsize file first_lba lba", argv[0]);
 
 	Bsize = strtoul(argv[1], NULL, 0);
+	const char *path = argv[2];
 
-	int fd = OPEN(argv[2], O_RDWR);
-
-	PMEMblk *handle;
-	if ((handle = pmemblk_map(fd, Bsize)) == NULL)
-		FATAL("!%s: pmemblk_map", argv[2]);
-
-	close(fd);
+	PMEMblkpool *handle;
+	if ((handle = pmemblk_pool_open(path, Bsize)) == NULL)
+		FATAL("!%s: pmemblk_pool_open", path);
 
 	OUT("%s block size %zu usable blocks %zu",
 			argv[1], Bsize, pmemblk_nblock(handle));
@@ -154,15 +151,15 @@ main(int argc, char *argv[])
 			FATAL("write     lba %zu: %s", lba, ident(buf));
 	}
 
-	pmemblk_unmap(handle);
+	pmemblk_pool_close(handle);
 
-	int result = pmemblk_check(argv[2]);
+	int result = pmemblk_pool_check(path);
 	if (result < 0)
-		OUT("!%s: pmemblk_check", argv[2]);
+		OUT("!%s: pmemblk_pool_check", path);
 	else if (result == 0)
-		OUT("%s: pmemblk_check: not consistent", argv[2]);
+		OUT("%s: pmemblk_pool_check: not consistent", path);
 	else
-		OUT("%s: consistent", argv[2]);
+		OUT("%s: consistent", path);
 
 	DONE(NULL);
 }

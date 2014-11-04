@@ -37,9 +37,10 @@ vpath %.h ../..
 TARGET = log_recovery
 OBJS = log_recovery.o
 
+LIBPMEM=y
+LIBPMEMLOG=y
+
 include ../Makefile.inc
 CFLAGS += -I../..
-
-LIBS += -lpmem -lpthread
 
 log_recovery.o: log_recovery.c

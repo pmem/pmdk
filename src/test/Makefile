@@ -46,11 +46,11 @@ TEST = blk_nblock\
        pmem_clflush_proc\
        pmem_is_pmem\
        pmem_is_pmem_proc\
-       pmem_map\
        pmem_map_raw\
        scope\
        traces\
        traces_custom_function\
+       traces_pmem\
        util_map_proc\
        vmem_aligned_alloc\
        vmem_calloc\

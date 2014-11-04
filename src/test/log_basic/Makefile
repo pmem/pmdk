@@ -36,8 +36,9 @@
 TARGET = log_basic
 OBJS = log_basic.o
 
-include ../Makefile.inc
+LIBPMEM=y
+LIBPMEMLOG=y
 
-LIBS += -lpmem -lpthread
+include ../Makefile.inc
 
 log_basic.o: log_basic.c

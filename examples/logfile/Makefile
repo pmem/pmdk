@@ -38,7 +38,7 @@ INCS = -I../../src/include
 CFLAGS = -std=gnu99 -ggdb -Wall -Werror
 LIBS = -L../../src/debug -pthread
 
-addlog printlog: LIBS += -lpmem
+addlog printlog: LIBS += -lpmemlog -lpmem
 
 all: $(TARGETS)
 

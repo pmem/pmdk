@@ -32,7 +32,7 @@
 #
 
 #
-# src/test/scope/TEST3 -- scope test to check libvmem symbols (nondebug)
+# src/test/scope/TEST3 -- scope test to check libpmemblk symbols
 #
 export UNITTEST_NAME=scope/TEST3
 export UNITTEST_NUM=3
@@ -41,13 +41,23 @@ export UNITTEST_NUM=3
 . ../unittest/unittest.sh
 
 require_fs_type local
-require_build_type nondebug
+require_build_type debug
 
 setup
 
-(nm -g ../../nondebug/libvmem.so |\
-	perl -ne 'print if s/^[0-9a-z]+ T (\w+)/$1/' |\
-	sort > out3.log) 2> err3.log
+parse_lib() {
+	local lib_path=$1
+	echo "$lib_path:" >> out$UNITTEST_NUM.log
+	(nm -g $lib_path |\
+		perl -ne 'print if s/^[0-9a-z]+ T (\w+)/$1/' |\
+		sort >> out$UNITTEST_NUM.log) 2>&1
+}
+
+echo "$UNITTEST_NAME:" > out$UNITTEST_NUM.log
+parse_lib "../../debug/libpmemblk.so"
+parse_lib "../../nondebug/libpmemblk.so"
+parse_lib "../../debug/libpmemblk.a"
+parse_lib "../../nondebug/libpmemblk.a"
 
 check
 
