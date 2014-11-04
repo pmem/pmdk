@@ -43,15 +43,14 @@
 #include <fcntl.h>
 #include <string.h>
 #include <time.h>
-#include <libpmem.h>
+#include <libpmemblk.h>
 
 #include "asset.h"
 
 int
 main(int argc, char *argv[])
 {
-	int fd;
-	PMEMblk *pbp;
+	PMEMblkpool *pbp;
 	int assetid;
 	size_t nelements;
 	struct asset asset;
@@ -61,18 +60,13 @@ main(int argc, char *argv[])
 		exit(1);
 	}
 
-	if ((fd = open(argv[1], O_RDWR)) == -1) {
-		perror(argv[1]);
-		exit(1);
-	}
+	const char *path = argv[1];
 
 	/* open an array of atomically writable elements */
-	if ((pbp = pmemblk_map(fd, sizeof (struct asset))) == NULL) {
-		perror("pmemblk_map");
+	if ((pbp = pmemblk_pool_open(path, sizeof (struct asset))) == NULL) {
+		perror("pmemblk_pool_path");
 		exit(1);
 	}
-
-	close(fd);
 
 	/* how many elements do we have? */
 	nelements = pmemblk_nblock(pbp);
@@ -100,5 +94,5 @@ main(int argc, char *argv[])
 		printf("    Name: %s\n", asset.name);
 	}
 
-	pmemblk_unmap(pbp);
+	pmemblk_pool_close(pbp);
 }

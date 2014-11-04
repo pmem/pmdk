@@ -44,7 +44,7 @@
  * do_append -- call pmemlog_append() & print result
  */
 void
-do_append(PMEMlog *plp)
+do_append(PMEMlogpool *plp)
 {
 	const char *str[6] = {
 		"1st append string\n",
@@ -87,7 +87,7 @@ try_to_store(const void *buf, size_t len, void *arg)
  * do_walk -- call pmemlog_walk() & print result
  */
 void
-do_walk(PMEMlog *plp)
+do_walk(PMEMlogpool *plp)
 {
 	pmemlog_walk(plp, 0, try_to_store, NULL);
 	OUT("walk all at once");
@@ -109,24 +109,26 @@ signal_handler(int sig)
 int
 main(int argc, char *argv[])
 {
-	PMEMlog *plp;
+	PMEMlogpool *plp;
 
 	START(argc, argv, "log_walker");
 
 	if (argc != 2)
 		FATAL("usage: %s file-name", argv[0]);
 
-	int fd = OPEN(argv[1], O_RDWR);
+	const char *path = argv[1];
+
+	int fd = OPEN(path, O_RDWR);
 
 	/* pre-allocate 2MB of persistent memory */
 	errno = posix_fallocate(fd, (off_t)0, (size_t)(2 * 1024 * 1024));
 	if (errno != 0)
 		FATAL("!posix_fallocate");
 
-	if ((plp = pmemlog_map(fd)) == NULL)
-		FATAL("!pmemlog_map: %s", argv[1]);
+	CLOSE(fd);
 
-	close(fd);
+	if ((plp = pmemlog_pool_open(path)) == NULL)
+		FATAL("!pmemlog_pool_open: %s", path);
 
 	/* append some data */
 	do_append(plp);
@@ -140,7 +142,7 @@ main(int argc, char *argv[])
 		do_walk(plp);
 	}
 
-	pmemlog_unmap(plp);
+	pmemlog_pool_close(plp);
 
 	DONE(NULL);
 }

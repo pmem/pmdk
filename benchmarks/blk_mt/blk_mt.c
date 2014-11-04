@@ -150,11 +150,12 @@ main(int argc, char *argv[])
 				/ worker_params[0].block_size;
 		thread_workers = file_workers;
 	} else {
-		if ((worker_params[0].handle = pmemblk_map(
-				worker_params[0].file_desc,
+		close(worker_params[0].file_desc);
+		worker_params[0].file_desc = -1;
+		if ((worker_params[0].handle = pmemblk_pool_open(
+				arguments.file_path,
 				worker_params[0].block_size)) == NULL) {
-			fprintf(stderr, "!%s: pmemblk_map\n", argv[2]);
-			close(worker_params[0].file_desc);
+			fprintf(stderr, "!%s: pmemblk_pool_open\n", argv[2]);
 			exit(1);
 		}
 		worker_params[0].num_blocks = pmemblk_nblock(
@@ -171,7 +172,8 @@ main(int argc, char *argv[])
 
 	/* The blk mode file prep */
 	if (arguments.prep_blk_file) {
-		close(worker_params[0].file_desc);
+		if (worker_params[0].file_desc >= 0)
+			close(worker_params[0].file_desc);
 		return run_threads(prep_worker, arguments.thread_count,
 				worker_params);
 	}
@@ -184,7 +186,8 @@ main(int argc, char *argv[])
 	if (!arguments.file_io) {
 		if (run_threads(warmup_worker, arguments.thread_count,
 				worker_params) != 0) {
-			close(worker_params[0].file_desc);
+			if (worker_params[0].file_desc >= 0)
+				close(worker_params[0].file_desc);
 			exit(1);
 		}
 	}
@@ -193,7 +196,8 @@ main(int argc, char *argv[])
 		clock_gettime(CLOCK_MONOTONIC, &perf_meas.start_time);
 		if (run_threads(thread_workers[i], arguments.thread_count,
 				worker_params) != 0) {
-			close(worker_params[0].file_desc);
+			if (worker_params[0].file_desc >= 0)
+				close(worker_params[0].file_desc);
 			exit(1);
 		}
 		clock_gettime(CLOCK_MONOTONIC, &perf_meas.stop_time);
@@ -205,20 +209,22 @@ main(int argc, char *argv[])
 
 	printf("\n");
 
-	close(worker_params[0].file_desc);
+	if (worker_params[0].file_desc >= 0)
+		close(worker_params[0].file_desc);
+
 
 	/* cleanup and check pmem file */
 	if (!arguments.file_io) {
-		pmemblk_unmap(worker_params[0].handle);
+		pmemblk_pool_close(worker_params[0].handle);
 
 		/* not really necessary, but check consistency */
-		int result = pmemblk_check(arguments.file_path);
+		int result = pmemblk_pool_check(arguments.file_path);
 		if (result < 0) {
-			fprintf(stderr, "!%s: pmemblk_check\n",
+			fprintf(stderr, "!%s: pmemblk_pool_check\n",
 					arguments.file_path);
 		} else if (result == 0) {
-			fprintf(stderr, "%s: pmemblk_check: not consistent\n",
-					arguments.file_path);
+			fprintf(stderr, "%s: pmemblk_pool_check: not "
+					"consistent\n", arguments.file_path);
 		}
 	}
 

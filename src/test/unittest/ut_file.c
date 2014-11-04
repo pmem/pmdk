@@ -40,7 +40,7 @@
  * ut_open -- an open that cannot return < 0
  */
 int
-ut_open(const char *file, int line, const char *func, char *path,
+ut_open(const char *file, int line, const char *func, const char *path,
     int flags, ...)
 {
 	va_list ap;

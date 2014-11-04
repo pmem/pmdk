@@ -36,8 +36,8 @@
 TARGET = pmem_map_raw
 OBJS = pmem_map_raw.o
 
-include ../Makefile.inc
+LIBPMEM=y
 
-LIBS += -lpmem
+include ../Makefile.inc
 
 pmem_map_raw.o: pmem_map_raw.c

@@ -36,8 +36,9 @@
 TARGET = blk_rw_mt
 OBJS = blk_rw_mt.o
 
-include ../Makefile.inc
+LIBPMEM=y
+LIBPMEMBLK=y
 
-LIBS += -lpmem -lpthread
+include ../Makefile.inc
 
 blk_rw_mt.o: blk_rw_mt.c

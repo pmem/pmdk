@@ -35,7 +35,7 @@
  */
 
 #include <stdint.h>
-#include <libpmem.h>
+#include <libpmemblk.h>
 
 /*
  * Data structure for thread workers
@@ -46,7 +46,7 @@ struct worker_info {
 	unsigned int thread_index;
 	unsigned int seed;
 	unsigned int num_ops;
-	PMEMblk *handle;
+	PMEMblkpool *handle;
 	int file_desc;
 	unsigned int file_lanes;
 };

@@ -66,21 +66,24 @@ dpkg: override DESTDIR=$(CURDIR)/$(DPKG_BUILDDIR)
 all:
 	$(MAKE) -C src $@
 	$(MAKE) -C examples $@
+	$(MAKE) -C benchmarks
 	$(MAKE) -C doc $@
 
 clean:
 	$(MAKE) -C src $@
 	$(MAKE) -C examples $@
+	$(MAKE) -C benchmarks $@
 	$(MAKE) -C doc $@
 	$(RM) -r $(RPM_BUILDDIR) $(DPKG_BUILDDIR)
 
 clobber:
 	$(MAKE) -C src $@
 	$(MAKE) -C examples $@
+	$(MAKE) -C benchmarks $@
 	$(MAKE) -C doc $@
 	$(RM) -r $(RPM_BUILDDIR) $(DPKG_BUILDDIR) rpm dpkg
 
-test check:
+test check: all
 	$(MAKE) -C src $@
 
 cstyle:

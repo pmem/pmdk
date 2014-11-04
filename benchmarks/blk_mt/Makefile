@@ -40,7 +40,7 @@ OBJS = blk_mt.o workers.o
 
 include ../Makefile.inc
 
-LIBS := -Wl,-rpath=$(PMEM_PATH) -L$(PMEM_PATH) -lpmem -lpthread -lrt
+LIBS := -Wl,-rpath=$(PMEM_PATH) -L$(PMEM_PATH) -lpmemblk -lpmem -lpthread -lrt
 INCS := -I../../src/include/ -I.
 
 blk_mt.o: blk_mt.h blk_mt.c

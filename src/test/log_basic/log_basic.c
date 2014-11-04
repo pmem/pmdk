@@ -45,7 +45,7 @@
  * do_nbyte -- call pmemlog_nbyte() & print result
  */
 void
-do_nbyte(PMEMlog *plp)
+do_nbyte(PMEMlogpool *plp)
 {
 	size_t nbyte = pmemlog_nbyte(plp);
 	OUT("usable size: %zu", nbyte);
@@ -55,7 +55,7 @@ do_nbyte(PMEMlog *plp)
  * do_append -- call pmemlog_append() & print result
  */
 void
-do_append(PMEMlog *plp)
+do_append(PMEMlogpool *plp)
 {
 	const char *str[6] = {
 		"1st test string\n",
@@ -86,7 +86,7 @@ do_append(PMEMlog *plp)
  * do_appendv -- call pmemlog_appendv() & print result
  */
 void
-do_appendv(PMEMlog *plp)
+do_appendv(PMEMlogpool *plp)
 {
 	struct iovec iov[9] = {
 		{
@@ -145,7 +145,7 @@ do_appendv(PMEMlog *plp)
  * do_tell -- call pmemlog_tell() & print result
  */
 void
-do_tell(PMEMlog *plp)
+do_tell(PMEMlogpool *plp)
 {
 	off_t tell = pmemlog_tell(plp);
 	OUT("tell %zu", tell);
@@ -155,7 +155,7 @@ do_tell(PMEMlog *plp)
  * do_rewind -- call pmemlog_rewind() & print result
  */
 void
-do_rewind(PMEMlog *plp)
+do_rewind(PMEMlogpool *plp)
 {
 	pmemlog_rewind(plp);
 	OUT("rewind");
@@ -184,7 +184,7 @@ printit(const void *buf, size_t len, void *arg)
  * pmemlog_walk() is called twice: for chunk size 0 and 16
  */
 void
-do_walk(PMEMlog *plp)
+do_walk(PMEMlogpool *plp)
 {
 	pmemlog_walk(plp, 0, printit, NULL);
 	OUT("walk all at once");
@@ -195,7 +195,7 @@ do_walk(PMEMlog *plp)
 int
 main(int argc, char *argv[])
 {
-	PMEMlog *plp;
+	PMEMlogpool *plp;
 	int result;
 
 	START(argc, argv, "log_basic");
@@ -203,24 +203,25 @@ main(int argc, char *argv[])
 	if (argc < 3)
 		FATAL("usage: %s file-name op:n|a|v|t|r|w", argv[0]);
 
+	const char *path = argv[1];
 	/* check consistency */
-	result = pmemlog_check(argv[1]);
+	result = pmemlog_pool_check(path);
 	if (result < 0)
-		OUT("!%s: pmemlog_check", argv[1]);
+		OUT("!%s: pmemlog_pool_check", path);
 	else if (result == 0)
-		OUT("%s: pmemlog_check: not consistent", argv[1]);
+		OUT("%s: pmemlog_pool_check: not consistent", path);
 
-	int fd = OPEN(argv[1], O_RDWR);
+	int fd = OPEN(path, O_RDWR);
 
 	/* pre-allocate 2MB of persistent memory */
 	errno = posix_fallocate(fd, (off_t)0, (size_t)(2 * 1024 * 1024));
 	if (errno != 0)
 		FATAL("!posix_fallocate");
 
-	if ((plp = pmemlog_map(fd)) == NULL)
-		FATAL("!pmemlog_map: %s", argv[1]);
+	CLOSE(fd);
 
-	close(fd);
+	if ((plp = pmemlog_pool_open(path)) == NULL)
+		FATAL("!pmemlog_pool_open: %s", path);
 
 	/* go through all arguments one by one */
 	for (int arg = 2; arg < argc; arg++) {
@@ -256,14 +257,14 @@ main(int argc, char *argv[])
 		}
 	}
 
-	pmemlog_unmap(plp);
+	pmemlog_pool_close(plp);
 
 	/* check consistency again */
-	result = pmemlog_check(argv[1]);
+	result = pmemlog_pool_check(path);
 	if (result < 0)
-		OUT("!%s: pmemlog_check", argv[1]);
+		OUT("!%s: pmemlog_pool_check", path);
 	else if (result == 0)
-		OUT("%s: pmemlog_check: not consistent", argv[1]);
+		OUT("%s: pmemlog_pool_check: not consistent", path);
 
 	DONE(NULL);
 }

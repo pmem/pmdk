@@ -42,6 +42,44 @@
 #include <string.h>
 
 /*
+ * util_pread -- read from file at offset
+ */
+ssize_t
+util_pread(int fd, void *buf, size_t count, off_t offset)
+{
+	off_t curr = lseek(fd, 0, SEEK_CUR);
+	ssize_t nread = 0;
+
+	if (lseek(fd, offset, SEEK_SET) == offset)
+		nread = read(fd, buf, count);
+	else
+		nread = -1;
+
+	lseek(fd, curr, SEEK_SET);
+
+	return nread;
+}
+
+/*
+ * util_pwrite -- write to file at offset
+ */
+ssize_t
+util_pwrite(int fd, void *buf, size_t count, off_t offset)
+{
+	off_t curr = lseek(fd, 0, SEEK_CUR);
+	ssize_t nwrite = 0;
+
+	if (lseek(fd, offset, SEEK_SET) == offset)
+		nwrite = write(fd, buf, count);
+	else
+		nwrite = -1;
+
+	lseek(fd, curr, SEEK_SET);
+
+	return nwrite;
+}
+
+/*
  * r_worker -- read worker function
  */
 void *
@@ -145,8 +183,8 @@ rf_worker(void *arg)
 				+ (rand_r(&my_info->seed) % blocks_in_lane)
 				* my_info->block_size;
 
-		if (pread(my_info->file_desc, buf, my_info->block_size, lba)
-				!= my_info->block_size) {
+		if (util_pread(my_info->file_desc, buf, my_info->block_size,
+				lba) != my_info->block_size) {
 			fprintf(stderr, "!file read     lba %zu", lba);
 		}
 	}
@@ -174,8 +212,8 @@ wf_worker(void *arg)
 				+ (rand_r(&my_info->seed) % blocks_in_lane)
 				* my_info->block_size;
 
-		if (pwrite(my_info->file_desc, buf, my_info->block_size, lba)
-				!= my_info->block_size) {
+		if (util_pwrite(my_info->file_desc, buf, my_info->block_size,
+				lba) != my_info->block_size) {
 			fprintf(stderr, "!file write     lba %zu", lba);
 		}
 	}

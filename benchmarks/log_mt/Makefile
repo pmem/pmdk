@@ -40,7 +40,7 @@ OBJS = log_mt.o threads.o
 
 include ../Makefile.inc
 
-LIBS := -Wl,-rpath,$(LIBPMEM_PATH) -L$(LIBPMEM_PATH) -lpmem -lpthread
+LIBS := -Wl,-rpath,$(LIBPMEM_PATH) -L$(LIBPMEM_PATH) -lpmemlog -lpmem -lpthread
 INCS := -I../../src/include/ -I.
 
 log_mt.o: log_mt.c log_mt.h

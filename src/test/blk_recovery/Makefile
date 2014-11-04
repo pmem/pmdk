@@ -37,9 +37,10 @@ vpath %.h ../..
 TARGET = blk_recovery
 OBJS = blk_recovery.o
 
+LIBPMEM=y
+LIBPMEMBLK=y
+
 include ../Makefile.inc
 CFLAGS += -I../..
-
-LIBS += -lpmem -lpthread
 
 blk_recovery.o: blk_recovery.c

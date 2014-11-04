@@ -9,7 +9,7 @@ operation:LBA pairs.  For example:
 
 	./blk_rw 4096 file1 r:0 w:5 z:9 e:100
 
-this will call pmemblk_map() on file1 and then pmemblk_read() for LBA 0,
+this will call pmemblk_pool_open() on file1 and then pmemblk_read() for LBA 0,
 pmemblk_write() for LBA 5, pmemblk_set_zero() for LBA 9, and pmem_set_error()
 for LAB 100.
 

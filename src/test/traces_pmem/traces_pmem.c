@@ -31,22 +31,14 @@
  */
 
 /*
- * trn.h -- internal definitions for libpmem trn module
+ * traces_pmem.c -- unit test traces for libraries pmem
  */
 
-/* attributes of the trn memory pool format for the pool header */
-#define	TRN_HDR_SIG "PMEMTRN"	/* must be 8 bytes including '\0' */
-#define	TRN_FORMAT_MAJOR 1
-#define	TRN_FORMAT_COMPAT 0x0000
-#define	TRN_FORMAT_INCOMPAT 0x0000
-#define	TRN_FORMAT_RO_COMPAT 0x0000
+#include "unittest.h"
 
-struct pmemtrn {
-	struct pool_hdr hdr;	/* memory pool header */
-
-	/* root info for on-media format... */
-
-	/* some run-time state, allocated out of memory pool... */
-	void *addr;		/* mapped region */
-	size_t size;		/* size of mapped region */
-};
+int
+main(int argc, char *argv[])
+{
+	START(argc, argv, "traces_pmem");
+	DONE(NULL);
+}

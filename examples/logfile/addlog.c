@@ -49,15 +49,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <libpmem.h>
+#include <libpmemlog.h>
 
 #include "logentry.h"
 
 int
 main(int argc, char *argv[])
 {
-	int fd;
-	PMEMlog *plp;
+	PMEMlogpool *plp;
 	struct logentry header;
 	struct iovec *iovp;
 	struct iovec *next_iovp;
@@ -68,13 +67,10 @@ main(int argc, char *argv[])
 		exit(1);
 	}
 
-	if ((fd = open(argv[1], O_RDWR)) < 0) {
-		perror(argv[1]);
-		exit(1);
-	}
+	const char *path = argv[1];
 
-	if ((plp = pmemlog_map(fd)) == NULL) {
-		perror("pmemlog_map");
+	if ((plp = pmemlog_pool_open(path)) == NULL) {
+		perror("pmemlog_pool_open");
 		exit(1);
 	}
 
@@ -125,6 +121,5 @@ main(int argc, char *argv[])
 		exit(1);
 	}
 
-	pmemlog_unmap(plp);
-	close(fd);
+	pmemlog_pool_close(plp);
 }

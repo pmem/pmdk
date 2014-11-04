@@ -109,26 +109,78 @@ Priority: optional
 Standards-version: 3.9.4
 Build-Depends: debhelper (>= 9), uuid-dev
 
-Package: $PACKAGE_NAME
+Package: libpmem
 Architecture: any
 Depends: \${shlibs:Depends}, \${misc:Depends}
-Description: $PACKAGE_SUMMARY
-$(echo $PACKAGE_DESCRIPTION | sed 's/^/ /')
+Description: NVML libpmem library
+ NVML library for Persistent Memory support
 
-Package: $PACKAGE_NAME-dev
+Package: libpmem-dev
 Section: libdevel
 Architecture: any
-Depends: $PACKAGE_NAME (=\${binary:Version}), uuid-dev, \${shlibs:Depends}, \${misc:Depends}
-Description: Development files for $PACKAGE_NAME
-$(echo $PACKAGE_DESCRIPTION | sed 's/^/ /')
+Depends: libpmem (=\${binary:Version}), uuid-dev, \${shlibs:Depends}, \${misc:Depends}
+Description: Development files for libpmem
+ Development files for libpmem library.
+
+Package: libpmemblk
+Architecture: any
+Depends: libpmem (=\${binary:Version}), \${shlibs:Depends}, \${misc:Depends}
+Description: NVML libpmemblk library
+ NVML library for Persistent Memory support - block memory pool.
+
+Package: libpmemblk-dev
+Section: libdevel
+Architecture: any
+Depends: libpmemblk (=\${binary:Version}), uuid-dev, \${shlibs:Depends}, \${misc:Depends}
+Description: Development files for libpmemblk
+ Development files for libpmemblk library.
+
+Package: libpmemlog
+Architecture: any
+Depends: libpmem (=\${binary:Version}), \${shlibs:Depends}, \${misc:Depends}
+Description: NVML libpmemlog library
+ NVML library for Persistent Memory support - log memory pool.
+
+Package: libpmemlog-dev
+Section: libdevel
+Architecture: any
+Depends: libpmemlog (=\${binary:Version}), uuid-dev, \${shlibs:Depends}, \${misc:Depends}
+Description: Development files for libpmemlog
+ Development files for libpmemlog library.
+
+Package: libpmemobj
+Architecture: any
+Depends: libpmem (=\${binary:Version}), \${shlibs:Depends}, \${misc:Depends}
+Description: NVML libpmemobj library
+ NVML library for Persistent Memory support - transactional object store.
+
+Package: libpmemobj-dev
+Section: libdevel
+Architecture: any
+Depends: libpmemobj (=\${binary:Version}), uuid-dev, \${shlibs:Depends}, \${misc:Depends}
+Description: Development files for libpmemobj
+ Development files for libpmemobj-dev library.
+
+Package: libvmem
+Architecture: any
+Depends: \${shlibs:Depends}, \${misc:Depends}
+Description: NVML libvmem library
+ NVML library for volatile-memory support on top of Persistent Memory.
+
+Package: libvmem-dev
+Section: libdevel
+Architecture: any
+Depends: libvmem (=\${binary:Version}), uuid-dev, \${shlibs:Depends}, \${misc:Depends}
+Description: Development files for libvmem
+ Development files for libvmem library.
 
 Package: $PACKAGE_NAME-dbg
 Section: debug
 Priority: extra
 Architecture: any
-Depends: $PACKAGE_NAME (=\${binary:Version}), $PACKAGE_NAME-dev (=\${binary:Version}), uuid-dev, \${shlibs:Depends}, \${misc:Depends}
-Description: Debug symbols for $PACKAGE_NAME
-$(echo $PACKAGE_DESCRIPTION | sed 's/^/ /')
+Depends: libvmem (=\${binary:Version}), libpmem (=\${binary:Version}), libpmemblk (=\${binary:Version}), libpmemlog (=\${binary:Version}), libpmemobj (=\${binary:Version}), uuid-dev, \${misc:Depends}
+Description: Debug symbols for NVML libraries
+ Debug symbols for all NVML libraries.
 EOF
 
 cp LICENSE debian/copyright
@@ -152,44 +204,38 @@ chmod +x debian/rules
 
 mkdir debian/source
 
-cat << EOF > debian/source/format
-3.0 (quilt)
-EOF
-
-cat << EOF > debian/$PACKAGE_NAME.triggers
-interest man-db
-EOF
-
-cat << EOF > debian/$PACKAGE_NAME.install
-usr/lib/libpmem.so.*
-usr/lib/libvmem.so.*
-EOF
-
-cat << EOF > debian/$PACKAGE_NAME-dev.install
-usr/lib/nvml_debug/libpmem.a usr/lib/nvml_dbg/
-usr/lib/nvml_debug/libvmem.a usr/lib/nvml_dbg/
-usr/lib/nvml_debug/libpmem.so	usr/lib/nvml_dbg/
-usr/lib/nvml_debug/libpmem.so.* usr/lib/nvml_dbg/
-usr/lib/nvml_debug/libvmem.so	usr/lib/nvml_dbg/
-usr/lib/nvml_debug/libvmem.so.* usr/lib/nvml_dbg/
-usr/lib/libpmem.so
-usr/lib/libvmem.so
-usr/include/*
-usr/share/man/man3/*
-EOF
-
 ITP_BUG_EXCUSE="# This is our first package but we do not want to upload it yet.
 # Please refer to Debian Developer's Reference section 5.1 (New packages) for details:
 # https://www.debian.org/doc/manuals/developers-reference/pkgs.html#newpackage"
 
-cat << EOF > debian/$PACKAGE_NAME.lintian-overrides
-# We want to keep both libraries in the same package
-package-name-doesnt-match-sonames *
-$ITP_BUG_EXCUSE
-new-package-should-close-itp-bug
+cat << EOF > debian/source/format
+3.0 (quilt)
 EOF
 
-cat << EOF > debian/$PACKAGE_NAME-dev.lintian-overrides
+cat << EOF > debian/libpmem.install
+usr/lib/libpmem.so.*
+EOF
+
+cat << EOF > debian/libpmem.lintian-overrides
+$ITP_BUG_EXCUSE
+new-package-should-close-itp-bug
+libpmem: package-name-doesnt-match-sonames
+EOF
+
+cat << EOF > debian/libpmem-dev.install
+usr/lib/nvml_debug/libpmem.a usr/lib/nvml_dbg/
+usr/lib/nvml_debug/libpmem.so	usr/lib/nvml_dbg/
+usr/lib/nvml_debug/libpmem.so.* usr/lib/nvml_dbg/
+usr/lib/libpmem.so
+usr/include/libpmem.h
+usr/share/man/man3/libpmem.3.gz
+EOF
+
+cat << EOF > debian/libpmem-dev.triggers
+interest man-db
+EOF
+
+cat << EOF > debian/libpmem-dev.lintian-overrides
 $ITP_BUG_EXCUSE
 new-package-should-close-itp-bug
 # The following warnings are triggered by a bug in debhelper:
@@ -198,6 +244,142 @@ postinst-has-useless-call-to-ldconfig
 postrm-has-useless-call-to-ldconfig
 # We do not want to compile with -O2 for debug version
 hardening-no-fortify-functions usr/lib/nvml_dbg/*
+EOF
+
+cat << EOF > debian/libpmemblk.install
+usr/lib/libpmemblk.so.*
+EOF
+
+cat << EOF > debian/libpmemblk.lintian-overrides
+$ITP_BUG_EXCUSE
+new-package-should-close-itp-bug
+libpmemblk: package-name-doesnt-match-sonames
+EOF
+
+cat << EOF > debian/libpmemblk-dev.install
+usr/lib/nvml_debug/libpmemblk.a usr/lib/nvml_dbg/
+usr/lib/nvml_debug/libpmemblk.so usr/lib/nvml_dbg/
+usr/lib/nvml_debug/libpmemblk.so.* usr/lib/nvml_dbg/
+usr/lib/libpmemblk.so
+usr/include/libpmemblk.h
+#usr/share/man/man3/libpmemblk.3.gz
+EOF
+
+cat << EOF > debian/libpmemblk-dev.triggers
+interest man-db
+EOF
+
+cat << EOF > debian/libpmemblk-dev.lintian-overrides
+$ITP_BUG_EXCUSE
+new-package-should-close-itp-bug
+# The following warnings are triggered by a bug in debhelper:
+# http://bugs.debian.org/204975
+postinst-has-useless-call-to-ldconfig
+postrm-has-useless-call-to-ldconfig
+# We do not want to compile with -O2 for debug version
+hardening-no-fortify-functions usr/lib/nvml_dbg/*
+EOF
+
+cat << EOF > debian/libpmemlog.install
+usr/lib/libpmemlog.so.*
+EOF
+
+cat << EOF > debian/libpmemlog.lintian-overrides
+$ITP_BUG_EXCUSE
+new-package-should-close-itp-bug
+libpmemlog: package-name-doesnt-match-sonames
+EOF
+
+cat << EOF > debian/libpmemlog-dev.install
+usr/lib/nvml_debug/libpmemlog.a usr/lib/nvml_dbg/
+usr/lib/nvml_debug/libpmemlog.so usr/lib/nvml_dbg/
+usr/lib/nvml_debug/libpmemlog.so.* usr/lib/nvml_dbg/
+usr/lib/libpmemlog.so
+usr/include/libpmemlog.h
+#usr/share/man/man3/libpmemlog.3.gz
+EOF
+
+cat << EOF > debian/libpmemlog-dev.triggers
+interest man-db
+EOF
+
+cat << EOF > debian/libpmemlog-dev.lintian-overrides
+$ITP_BUG_EXCUSE
+new-package-should-close-itp-bug
+# The following warnings are triggered by a bug in debhelper:
+# http://bugs.debian.org/204975
+postinst-has-useless-call-to-ldconfig
+postrm-has-useless-call-to-ldconfig
+# We do not want to compile with -O2 for debug version
+hardening-no-fortify-functions usr/lib/nvml_dbg/*
+EOF
+
+cat << EOF > debian/libpmemobj.install
+usr/lib/libpmemobj.so.*
+EOF
+
+cat << EOF > debian/libpmemobj.lintian-overrides
+$ITP_BUG_EXCUSE
+new-package-should-close-itp-bug
+libpmemobj: package-name-doesnt-match-sonames
+EOF
+
+cat << EOF > debian/libpmemobj-dev.install
+usr/lib/nvml_debug/libpmemobj.a usr/lib/nvml_dbg/
+usr/lib/nvml_debug/libpmemobj.so usr/lib/nvml_dbg/
+usr/lib/nvml_debug/libpmemobj.so.* usr/lib/nvml_dbg/
+usr/lib/libpmemobj.so
+usr/include/libpmemobj.h
+#usr/share/man/man3/libpmemobj.3.gz
+EOF
+
+cat << EOF > debian/libpmemobj-dev.triggers
+interest man-db
+EOF
+
+cat << EOF > debian/libpmemobj-dev.lintian-overrides
+$ITP_BUG_EXCUSE
+new-package-should-close-itp-bug
+# The following warnings are triggered by a bug in debhelper:
+# http://bugs.debian.org/204975
+postinst-has-useless-call-to-ldconfig
+postrm-has-useless-call-to-ldconfig
+# We do not want to compile with -O2 for debug version
+hardening-no-fortify-functions usr/lib/nvml_dbg/*
+EOF
+
+cat << EOF > debian/libvmem.install
+usr/lib/libvmem.so.*
+EOF
+
+cat << EOF > debian/libvmem.lintian-overrides
+$ITP_BUG_EXCUSE
+new-package-should-close-itp-bug
+libvmem: package-name-doesnt-match-sonames
+EOF
+
+cat << EOF > debian/libvmem-dev.install
+usr/lib/nvml_debug/libvmem.a usr/lib/nvml_dbg/
+usr/lib/nvml_debug/libvmem.so	usr/lib/nvml_dbg/
+usr/lib/nvml_debug/libvmem.so.* usr/lib/nvml_dbg/
+usr/lib/libvmem.so
+usr/include/libvmem.h
+usr/share/man/man3/libvmem.3.gz
+EOF
+
+cat << EOF > debian/libvmem-dev.lintian-overrides
+$ITP_BUG_EXCUSE
+new-package-should-close-itp-bug
+# The following warnings are triggered by a bug in debhelper:
+# http://bugs.debian.org/204975
+postinst-has-useless-call-to-ldconfig
+postrm-has-useless-call-to-ldconfig
+# We do not want to compile with -O2 for debug version
+hardening-no-fortify-functions usr/lib/nvml_dbg/*
+EOF
+
+cat << EOF > debian/libvmem-dev.triggers
+interest man-db
 EOF
 
 cat << EOF > debian/$PACKAGE_NAME-dbg.lintian-overrides

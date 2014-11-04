@@ -50,40 +50,25 @@
 #include <uuid/uuid.h>
 #include <endian.h>
 #include <libpmem.h>
-
-#include "pmem.h"
+#include <libpmemlog.h>
 #include "util.h"
 #include "out.h"
 #include "log.h"
 
 /*
- * log_init -- load-time initialization for log
- *
- * Called automatically by the run-time loader.
- */
-__attribute__((constructor))
-static void
-log_init(void)
-{
-	out_init(LOG_PREFIX, LOG_LEVEL_VAR, LOG_FILE_VAR);
-	LOG(3, NULL);
-	util_init();
-}
-
-/*
- * pmemlog_map_common -- (internal) map a log memory pool
+ * pmemlog_pool_open_common -- (internal) open a log memory pool
  *
  * This routine does all the work, but takes a rdonly flag so internal
  * calls can map a read-only pool if required.
  */
-static PMEMlog *
-pmemlog_map_common(int fd, int rdonly)
+static PMEMlogpool *
+pmemlog_pool_open_common(const char *path, int rdonly)
 {
-	LOG(3, "fd %d rdonly %d", fd, rdonly);
+	LOG(3, "path %s rdonly %d", path, rdonly);
 
 	struct stat stbuf;
-	if (fstat(fd, &stbuf) < 0) {
-		LOG(1, "!fstat");
+	if (stat(path, &stbuf) < 0) {
+		LOG(1, "!stat %s", path);
 		return NULL;
 	}
 
@@ -94,9 +79,19 @@ pmemlog_map_common(int fd, int rdonly)
 		return NULL;
 	}
 
+	int fd;
+	if ((fd = open(path, O_RDWR)) < 0) {
+		LOG(1, "!open %s", path);
+		return NULL;
+	}
+
 	void *addr;
-	if ((addr = util_map(fd, stbuf.st_size, rdonly)) == NULL)
+	if ((addr = util_map(fd, stbuf.st_size, rdonly)) == NULL) {
+		close(fd);
 		return NULL;	/* util_map() set errno, called LOG */
+	}
+
+	close(fd);
 
 	/* check if the mapped region is located in persistent memory */
 	int is_pmem = pmem_is_pmem(addr, stbuf.st_size);
@@ -181,7 +176,7 @@ pmemlog_map_common(int fd, int rdonly)
 		hdrp->checksum = htole64(hdrp->checksum);
 
 		/* store pool's header */
-		libpmem_persist(is_pmem, hdrp, sizeof (*hdrp));
+		pmem_persist_msync(is_pmem, hdrp, sizeof (*hdrp));
 
 		/* create rest of required metadata */
 		plp->start_offset = htole64(roundup(sizeof (*plp),
@@ -190,7 +185,7 @@ pmemlog_map_common(int fd, int rdonly)
 		plp->write_offset = plp->start_offset;
 
 		/* store non-volatile part of pool's descriptor */
-		libpmem_persist(is_pmem, &plp->start_offset,
+		pmem_persist_msync(is_pmem, &plp->start_offset,
 							3 * sizeof (uint64_t));
 	}
 
@@ -240,21 +235,21 @@ err:
 }
 
 /*
- * pmemlog_map -- map a log memory pool
+ * pmemlog_pool_open -- open a log memory pool
  */
-PMEMlog *
-pmemlog_map(int fd)
+PMEMlogpool *
+pmemlog_pool_open(const char *path)
 {
-	LOG(3, "fd %d", fd);
+	LOG(3, "path %s", path);
 
-	return pmemlog_map_common(fd, 0);
+	return pmemlog_pool_open_common(path, 0);
 }
 
 /*
- * pmemlog_unmap -- unmap a log memory pool
+ * pmemlog_pool_close -- close a log memory pool
  */
 void
-pmemlog_unmap(PMEMlog *plp)
+pmemlog_pool_close(PMEMlogpool *plp)
 {
 	LOG(3, "plp %p", plp);
 
@@ -268,7 +263,7 @@ pmemlog_unmap(PMEMlog *plp)
  * pmemlog_nbyte -- return usable size of a log memory pool
  */
 size_t
-pmemlog_nbyte(PMEMlog *plp)
+pmemlog_nbyte(PMEMlogpool *plp)
 {
 	LOG(3, "plp %p", plp);
 
@@ -292,7 +287,7 @@ pmemlog_nbyte(PMEMlog *plp)
  * On entry, the write lock should be held.
  */
 static void
-pmemlog_persist(PMEMlog *plp, uint64_t new_write_offset)
+pmemlog_persist(PMEMlogpool *plp, uint64_t new_write_offset)
 {
 	uint64_t old_write_offset = le64toh(plp->write_offset);
 	size_t length = new_write_offset - old_write_offset;
@@ -301,7 +296,7 @@ pmemlog_persist(PMEMlog *plp, uint64_t new_write_offset)
 	RANGE_RW(plp->addr + old_write_offset, length);
 
 	/* persist the data */
-	libpmem_persist(plp->is_pmem, plp->addr + old_write_offset, length);
+	pmem_persist_msync(plp->is_pmem, plp->addr + old_write_offset, length);
 
 	/* protect the log space range (debug version only) */
 	RANGE_RO(plp->addr + old_write_offset, length);
@@ -313,7 +308,7 @@ pmemlog_persist(PMEMlog *plp, uint64_t new_write_offset)
 	plp->write_offset = htole64(new_write_offset);
 
 	/* persist the metadata */
-	libpmem_persist(plp->is_pmem, &plp->write_offset,
+	pmem_persist_msync(plp->is_pmem, &plp->write_offset,
 			sizeof (plp->write_offset));
 
 	/* set the write-protection again (debug version only) */
@@ -324,7 +319,7 @@ pmemlog_persist(PMEMlog *plp, uint64_t new_write_offset)
  * pmemlog_append -- add data to a log memory pool
  */
 int
-pmemlog_append(PMEMlog *plp, const void *buf, size_t count)
+pmemlog_append(PMEMlogpool *plp, const void *buf, size_t count)
 {
 	int ret = 0;
 
@@ -389,7 +384,7 @@ pmemlog_append(PMEMlog *plp, const void *buf, size_t count)
  * pmemlog_appendv -- add gathered data to a log memory pool
  */
 int
-pmemlog_appendv(PMEMlog *plp, const struct iovec *iov, int iovcnt)
+pmemlog_appendv(PMEMlogpool *plp, const struct iovec *iov, int iovcnt)
 {
 	LOG(3, "plp %p iovec %p iovcnt %d", plp, iov, iovcnt);
 
@@ -470,7 +465,7 @@ pmemlog_appendv(PMEMlog *plp, const struct iovec *iov, int iovcnt)
  * pmemlog_tell -- return current write point in a log memory pool
  */
 off_t
-pmemlog_tell(PMEMlog *plp)
+pmemlog_tell(PMEMlogpool *plp)
 {
 	LOG(3, "plp %p", plp);
 
@@ -492,7 +487,7 @@ pmemlog_tell(PMEMlog *plp)
  * pmemlog_rewind -- discard all data, resetting a log memory pool to empty
  */
 void
-pmemlog_rewind(PMEMlog *plp)
+pmemlog_rewind(PMEMlogpool *plp)
 {
 	LOG(3, "plp %p", plp);
 
@@ -511,7 +506,7 @@ pmemlog_rewind(PMEMlog *plp)
 	RANGE_RW(plp->addr + sizeof (struct pool_hdr), LOG_FORMAT_DATA_ALIGN);
 
 	plp->write_offset = plp->start_offset;
-	libpmem_persist(plp->is_pmem, &plp->write_offset, sizeof (uint64_t));
+	pmem_persist_msync(plp->is_pmem, &plp->write_offset, sizeof (uint64_t));
 
 	/* set the write-protection again (debug version only) */
 	RANGE_RO(plp->addr + sizeof (struct pool_hdr), LOG_FORMAT_DATA_ALIGN);
@@ -527,7 +522,7 @@ pmemlog_rewind(PMEMlog *plp)
  * as a single chunk.
  */
 void
-pmemlog_walk(PMEMlog *plp, size_t chunksize,
+pmemlog_walk(PMEMlogpool *plp, size_t chunksize,
 	int (*process_chunk)(const void *buf, size_t len, void *arg), void *arg)
 {
 	LOG(3, "plp %p chunksize %zu", plp, chunksize);
@@ -570,31 +565,21 @@ pmemlog_walk(PMEMlog *plp, size_t chunksize,
 }
 
 /*
- * pmemlog_check -- log memory pool consistency check
+ * pmemlog_pool_check -- log memory pool consistency check
  *
  * Returns true if consistent, zero if inconsistent, -1/error if checking
  * cannot happen due to other errors.
  */
 int
-pmemlog_check(const char *path)
+pmemlog_pool_check(const char *path)
 {
 	LOG(3, "path \"%s\"", path);
 
-	int fd = open(path, O_RDWR);
-
-	if (fd < 0) {
-		LOG(1, "!open");
-		return -1;
-	}
-
 	/* open the pool read-only */
-	PMEMlog *plp = pmemlog_map_common(fd, 1);
-	int oerrno = errno;
-	close(fd);
-	errno = oerrno;
+	PMEMlogpool *plp = pmemlog_pool_open_common(path, 1);
 
 	if (plp == NULL)
-		return -1;	/* errno set by pmemlog_map_common() */
+		return -1;	/* errno set by pmemlog_pool_open_common() */
 
 	int consistent = 1;
 
@@ -628,7 +613,7 @@ pmemlog_check(const char *path)
 		consistent = 0;
 	}
 
-	pmemlog_unmap(plp);
+	pmemlog_pool_close(plp);
 
 	if (consistent)
 		LOG(4, "pool consistency check OK");

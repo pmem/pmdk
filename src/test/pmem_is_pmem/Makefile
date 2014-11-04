@@ -36,8 +36,8 @@
 TARGET = pmem_is_pmem
 OBJS = pmem_is_pmem.o
 
-include ../Makefile.inc
+LIBPMEM=y
 
-LIBS += -lpmem
+include ../Makefile.inc
 
 pmem_is_pmem.o: pmem_is_pmem.c
