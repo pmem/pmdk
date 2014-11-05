@@ -1,4 +1,3 @@
-#!/bin/bash -e
 #
 # Copyright (c) 2014, Intel Corporation
 #
@@ -30,25 +29,21 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
 #
-# src/test/scope/TEST5 -- scope test to check libvmem symbols
+# src/libpmemblk.map -- linker map file for libpmemblk
 #
-export UNITTEST_NAME=scope/TEST5
-export UNITTEST_NUM=5
-
-# standard unit test setup
-. ../unittest/unittest.sh
-
-require_fs_type local
-require_build_type debug
-
-setup
-
-(nm -g ../../debug/libvmem.a |\
-	perl -ne 'print if s/^[0-9a-z]+ T (\w+)/$1/' |\
-	sort > out5.log) 2> err5.log
-
-check
-
-pass
+libpmemblk.so {
+	global:
+		pmemblk_check_version;
+		pmemblk_set_funcs;
+		pmemblk_pool_open;
+		pmemblk_pool_close;
+		pmemblk_pool_check;
+		pmemblk_nblock;
+		pmemblk_read;
+		pmemblk_write;
+		pmemblk_set_zero;
+		pmemblk_set_error;
+	local:
+		*;
+};

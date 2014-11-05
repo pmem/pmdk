@@ -48,7 +48,7 @@
  * do_append -- call pmemlog_append() & print result
  */
 void
-do_append(PMEMlog *plp)
+do_append(PMEMlogpool *plp)
 {
 	const char *str[6] = {
 		"1st append string\n",
@@ -79,7 +79,7 @@ do_append(PMEMlog *plp)
  * do_appendv -- call pmemlog_appendv() & print result
  */
 void
-do_appendv(PMEMlog *plp)
+do_appendv(PMEMlogpool *plp)
 {
 	struct iovec iov[9] = {
 		{
@@ -138,7 +138,7 @@ do_appendv(PMEMlog *plp)
  * do_tell -- call pmemlog_tell() & print result
  */
 void
-do_tell(PMEMlog *plp)
+do_tell(PMEMlogpool *plp)
 {
 	off_t tell = pmemlog_tell(plp);
 	OUT("tell %zu", tell);
@@ -165,7 +165,7 @@ printit(const void *buf, size_t len, void *arg)
  * do_walk -- call pmemlog_walk() & print result
  */
 void
-do_walk(PMEMlog *plp)
+do_walk(PMEMlogpool *plp)
 {
 	pmemlog_walk(plp, 0, printit, NULL);
 	OUT("walk all at once");
@@ -187,7 +187,7 @@ signal_handler(int sig)
 int
 main(int argc, char *argv[])
 {
-	PMEMlog *plp;
+	PMEMlogpool *plp;
 	int result;
 
 	START(argc, argv, "log_recovery");
@@ -198,15 +198,19 @@ main(int argc, char *argv[])
 	if (strchr("av", argv[2][0]) == NULL || argv[2][1] != '\0')
 		FATAL("op must be a or v");
 
-	int fd = OPEN(argv[1], O_RDWR);
+	const char *path = argv[1];
+
+	int fd = OPEN(path, O_RDWR);
 
 	/* pre-allocate 2MB of persistent memory */
 	errno = posix_fallocate(fd, (off_t)0, (size_t)(2 * 1024 * 1024));
 	if (errno != 0)
 		FATAL("!posix_fallocate");
 
-	if ((plp = pmemlog_map(fd)) == NULL)
-		FATAL("!pmemlog_map: %s", argv[1]);
+	CLOSE(fd);
+
+	if ((plp = pmemlog_pool_open(path)) == NULL)
+		FATAL("!pmemlog_pool_open: %s", path);
 
 	/* append some data */
 	if (argv[2][0] == 'a')
@@ -234,20 +238,20 @@ main(int argc, char *argv[])
 			do_appendv(plp);
 	}
 
-	pmemlog_unmap(plp);
+	pmemlog_pool_close(plp);
 
 	/* check consistency */
-	result = pmemlog_check(argv[1]);
+	result = pmemlog_pool_check(path);
 	if (result < 0)
-		OUT("!%s: pmemlog_check", argv[1]);
+		OUT("!%s: pmemlog_pool_check", path);
 	else if (result == 0)
-		OUT("%s: pmemlog_check: not consistent", argv[1]);
+		OUT("%s: pmemlog_pool_check: not consistent", path);
 	else
-		OUT("%s: consistent", argv[1]);
+		OUT("%s: consistent", path);
 
 	/* map again to print out whole log */
-	if ((plp = pmemlog_map(fd)) == NULL)
-		FATAL("!pmemlog_map: %s", argv[1]);
+	if ((plp = pmemlog_pool_open(path)) == NULL)
+		FATAL("!pmemlog_pool_open: %s", path);
 
 	/* print out current write point */
 	do_tell(plp);
@@ -255,9 +259,7 @@ main(int argc, char *argv[])
 	/* print out whole log */
 	do_walk(plp);
 
-	pmemlog_unmap(plp);
-
-	close(fd);
+	pmemlog_pool_close(plp);
 
 	DONE(NULL);
 }

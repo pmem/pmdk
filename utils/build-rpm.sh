@@ -115,7 +115,7 @@ cat << EOF > $RPM_SPEC_FILE
 
 Name:		$PACKAGE_NAME
 Version:	$PACKAGE_VERSION
-Release:        $PACKAGE_RELEASE%{?dist}
+Release:	$PACKAGE_RELEASE%{?dist}
 Summary:	$PACKAGE_SUMMARY
 Packager:	$PACKAGE_MAINTAINER
 Group:		%{package_group}/Libraries
@@ -133,14 +133,135 @@ BuildArch:	x86_64
 %description
 $PACKAGE_DESCRIPTION
 
-%package devel
-Group:         Development/Libraries
-Summary:       Development files for %{name}
-Requires:      %{name} = %{version}-%{release}
-Requires:      libuuid-devel
+%package -n libpmem
+Summary: libpmem library
+Group: %{package_group}/Libraries
+%description -n libpmem
+NVML libpmem library
 
-%description devel
-Developement files for %{name}
+%files -n libpmem
+%defattr(-,root,root,-)
+%{_libdir}/libpmem.so.*
+
+%package -n libpmem-devel
+Summary: libpmem development library
+Group: Development/Libraries
+%description -n libpmem-devel
+Development files for NVML libpmem library
+
+%files -n libpmem-devel
+%defattr(-,root,root,-)
+%{_libdir}/libpmem.so
+%{_libdir}/libpmem.a
+%{_libdir}/nvml_debug/libpmem.so
+%{_libdir}/nvml_debug/libpmem.so.*
+%{_libdir}/nvml_debug/libpmem.a
+/usr/include/libpmem.h
+/usr/share/man/man3/libpmem.3.gz
+
+%package -n libpmemblk
+Summary: libpmemblk library
+Group: %{package_group}/Libraries
+%description -n libpmemblk
+NVML libpmemblk library
+
+%files -n libpmemblk
+%defattr(-,root,root,-)
+%{_libdir}/libpmemblk.so.*
+
+%package -n libpmemblk-devel
+Summary: libpmemblk development library
+Group: Development/Libraries
+%description -n libpmemblk-devel
+Development files for NVML libpmemblk library
+
+%files -n libpmemblk-devel
+%defattr(-,root,root,-)
+%{_libdir}/libpmemblk.so
+%{_libdir}/libpmemblk.a
+%{_libdir}/nvml_debug/libpmemblk.so
+%{_libdir}/nvml_debug/libpmemblk.so.*
+%{_libdir}/nvml_debug/libpmemblk.a
+/usr/include/libpmemblk.h
+#/usr/share/man/man3/libpmemblk.3.gz
+
+%package -n libpmemlog
+Summary: libpmemlog library
+Group: %{package_group}/Libraries
+%description -n libpmemlog
+NVML libpmemlog library
+
+%files -n libpmemlog
+%defattr(-,root,root,-)
+%{_libdir}/libpmemlog.so.*
+
+%package -n libpmemlog-devel
+Summary: libpmemlog development library
+Group: Development/Libraries
+%description -n libpmemlog-devel
+Development files for NVML libpmemlog library
+
+%files -n libpmemlog-devel
+%defattr(-,root,root,-)
+%{_libdir}/libpmemlog.so
+%{_libdir}/libpmemlog.a
+%{_libdir}/nvml_debug/libpmemlog.so
+%{_libdir}/nvml_debug/libpmemlog.so.*
+%{_libdir}/nvml_debug/libpmemlog.a
+/usr/include/libpmemlog.h
+#/usr/share/man/man3/libpmemlog.3.gz
+
+%package -n libpmemobj
+Summary: libpmemobj library
+Group: %{package_group}/Libraries
+%description -n libpmemobj
+NVML libpmemobj library
+
+%files -n libpmemobj
+%defattr(-,root,root,-)
+%{_libdir}/libpmemobj.so.*
+
+%package -n libpmemobj-devel
+Summary: libpmemobj development library
+Group: Development/Libraries
+%description -n libpmemobj-devel
+Development files for NVML libpmemobj library
+
+%files -n libpmemobj-devel
+%defattr(-,root,root,-)
+%{_libdir}/libpmemobj.so
+%{_libdir}/libpmemobj.a
+%{_libdir}/nvml_debug/libpmemobj.so
+%{_libdir}/nvml_debug/libpmemobj.so.*
+%{_libdir}/nvml_debug/libpmemobj.a
+/usr/include/libpmemobj.h
+#/usr/share/man/man3/libpmemobj.3.gz
+
+%package -n libvmem
+Summary: libvmem library
+Group: %{package_group}/Libraries
+%description -n libvmem
+NVML libvmem library
+
+%files -n libvmem
+%defattr(-,root,root,-)
+%{_libdir}/libvmem.so.*
+
+%package -n libvmem-devel
+Summary: libvmem development library
+Group: Development/Libraries
+%description -n libvmem-devel
+Development files for NVML libvmem library
+
+%files -n libvmem-devel
+%defattr(-,root,root,-)
+%{_libdir}/libvmem.so
+%{_libdir}/libvmem.a
+%{_libdir}/nvml_debug/libvmem.so
+%{_libdir}/nvml_debug/libvmem.so.*
+%{_libdir}/nvml_debug/libvmem.a
+/usr/include/libvmem.h
+/usr/share/man/man3/libvmem.3.gz
 
 %prep
 %setup -q -n $PACKAGE_SOURCE
@@ -158,28 +279,6 @@ make check
 
 %clean
 make clobber
-
-%files
-%defattr(-,root,root,-)
-%{_libdir}/libpmem.so.*
-%{_libdir}/libvmem.so.*
-
-%files devel
-%defattr(-,root,root,-)
-%{_libdir}/libpmem.a
-%{_libdir}/libvmem.a
-%{_libdir}/libpmem.so
-%{_libdir}/libvmem.so
-%{_libdir}/nvml_debug/libpmem.so
-%{_libdir}/nvml_debug/libvmem.so
-%{_libdir}/nvml_debug/libpmem.so.*
-%{_libdir}/nvml_debug/libvmem.so.*
-%{_libdir}/nvml_debug/libpmem.a
-%{_libdir}/nvml_debug/libvmem.a
-/usr/include/libpmem.h
-/usr/include/libvmem.h
-/usr/share/man/man3/libpmem.3.gz
-/usr/share/man/man3/libvmem.3.gz
 
 %changelog
 EOF

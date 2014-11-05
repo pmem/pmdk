@@ -31,17 +31,15 @@
  */
 
 /*
- * libpmem.c -- basic libpmem functions
+ * libpmem.c -- pmem entry points for libpmem
  */
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/mman.h>
-#include <unistd.h>
 #include <stdint.h>
-#include <libpmem.h>
+#include <string.h>
+
+#include "libpmem.h"
 #include "pmem.h"
 #include "util.h"
 #include "out.h"
@@ -55,7 +53,7 @@ __attribute__((constructor))
 static void
 libpmem_init(void)
 {
-	out_init(LOG_PREFIX, LOG_LEVEL_VAR, LOG_FILE_VAR);
+	out_init(PMEM_LOG_PREFIX, PMEM_LOG_LEVEL_VAR, PMEM_LOG_FILE_VAR);
 	LOG(3, NULL);
 	util_init();
 }
@@ -89,57 +87,4 @@ pmem_check_version(unsigned major_required, unsigned minor_required)
 	}
 
 	return NULL;
-}
-
-/*
- * pmem_set_funcs -- allow overriding libpmem's call to malloc, etc.
- */
-void
-pmem_set_funcs(
-		void *(*malloc_func)(size_t size),
-		void (*free_func)(void *ptr),
-		void *(*realloc_func)(void *ptr, size_t size),
-		char *(*strdup_func)(const char *s),
-		void (*print_func)(const char *s),
-		void (*persist_func)(void *addr, size_t len, int flags))
-{
-	LOG(3, NULL);
-
-	util_set_alloc_funcs(malloc_func, free_func,
-			realloc_func, strdup_func);
-	out_set_print_func(print_func);
-	pmem_set_persist_func(persist_func);
-}
-
-/*
- * libpmem_persist -- libpmem's central routine for flushing to persistence
- *
- * This routine calls msync() or Persist(), depending on the is_pmem flag.
- */
-void
-libpmem_persist(int is_pmem, void *addr, size_t len)
-{
-	LOG(5, "is_pmem %d addr %p len %zu", is_pmem, addr, len);
-
-	if (is_pmem) {
-		Persist(addr, len, 0);
-		return;
-	}
-
-	uintptr_t uptr;
-
-	/*
-	 * msync requires len to be a multiple of pagesize, so
-	 * adjust addr and len to represent the full 4k chunks
-	 * covering the given range.
-	 */
-
-	/* increase len by the amount we gain when we round addr down */
-	len += (uintptr_t)addr & (Pagesize - 1);
-
-	/* round addr down to page boundary */
-	uptr = (uintptr_t)addr & ~(Pagesize - 1);
-
-	if (msync((void *)uptr, len, MS_SYNC) < 0)
-		LOG(1, "!msync");
 }

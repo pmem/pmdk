@@ -1,4 +1,3 @@
-#!/bin/bash -e
 #
 # Copyright (c) 2014, Intel Corporation
 #
@@ -32,33 +31,16 @@
 #
 
 #
-# src/test/pmem_map/TEST0 -- unit test for pmem{trn,blk,log}_map
+# src/test/traces_pmem/Makefile -- build traces for library pmem
 #
-export UNITTEST_NAME=pmem_map/TEST0
-export UNITTEST_NUM=0
+TARGET = traces_pmem
+OBJS = traces_pmem.o
 
-# standard unit test setup
-. ../unittest/unittest.sh
+LIBPMEM=y
+LIBPMEMBLK=y
+LIBPMEMLOG=y
+LIBPMEMOBJ=y
 
-require_fs_type local
+include ../Makefile.inc
 
-setup
-
-rm -f $DIR/testfile1
-truncate -s 2G $DIR/testfile1
-#
-# pass the same file multiple times
-#	the first time the file is new, so the pool is created
-#	(and the test program will report the first 4k changed)
-#	the second time the file has a pool in it
-#	(and the test program will report the first 4k didn't change)
-#	the third time we pass the pool to the wrong map function
-#	(and the test program will report the map function failed)
-#
-expect_normal_exit ./pmem_map$EXESUFFIX\
-	t:$DIR/testfile1 t:$DIR/testfile1 b:$DIR/testfile1
-rm $DIR/testfile1
-
-check
-
-pass
+traces_pmem.o: traces_pmem.c

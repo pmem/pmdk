@@ -36,7 +36,7 @@
 TARGETS = asset_load asset_list asset_checkout asset_checkin
 INCS = -I../../src/include
 CFLAGS = -std=gnu99 -ggdb -Wall -Werror
-LIBS = -L../../src/debug -lpmem -pthread
+LIBS = -L../../src/debug -lpmemblk -lpmem -pthread
 
 all: $(TARGETS)
 

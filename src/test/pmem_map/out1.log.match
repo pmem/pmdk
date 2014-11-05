@@ -1,9 +1,0 @@
-pmem_map/TEST1: START: pmem_map
- ./pmem_map$(*) b:$(*)/testfile1 b:$(*)/testfile1 l:$(*)/testfile1
-b:$(*)/testfile1: first 4096 bytes changed during map
-signal: Segmentation fault
-b:$(*)/testfile1: first 4096 bytes unchanged during map
-signal: Segmentation fault
-l:$(*)/testfile1: first 4096 bytes unchanged during map
-pmemlog_map: Invalid argument
-pmem_map/TEST1: Done

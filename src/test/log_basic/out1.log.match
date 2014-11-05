@@ -1,6 +1,6 @@
 log_basic/TEST1: START: log_basic
  ./log_basic$(*) $(*)/testfile1 a n t w r t w
-$(*)/testfile1: pmemlog_check: Invalid argument
+$(*)/testfile1: pmemlog_pool_check: Invalid argument
 append   str[0] 1st test string
 
 append   str[1] 2nd test string

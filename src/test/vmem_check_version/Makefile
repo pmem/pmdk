@@ -36,10 +36,8 @@
 TARGET = vmem_check_version
 OBJS = vmem_check_version.o
 
-include ../Makefile.inc
-STATIC_DEBUG_LIBS = ../unittest/libut.a ../../debug/libvmem.a -luuid -pthread
-STATIC_NONDEBUG_LIBS = ../unittest/libut.a ../../nondebug/libvmem.a -luuid -pthread
+LIBVMEM=y
 
-LIBS += -lvmem
+include ../Makefile.inc
 
 vmem_check_version.o: vmem_check_version.c

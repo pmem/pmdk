@@ -36,10 +36,8 @@
 TARGET = vmem_calloc
 OBJS = vmem_calloc.o
 
-include ../Makefile.inc
-STATIC_DEBUG_LIBS = ../unittest/libut.a ../../debug/libvmem.a -luuid -pthread
-STATIC_NONDEBUG_LIBS = ../unittest/libut.a ../../nondebug/libvmem.a -luuid -pthread
+LIBVMEM=y
 
-LIBS += -lvmem
+include ../Makefile.inc
 
 vmem_calloc.o: vmem_calloc.c

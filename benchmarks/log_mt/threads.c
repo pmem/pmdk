@@ -166,7 +166,7 @@ task_pmemlog_append(void *arg)
 	struct thread_info *thread_info = arg;
 	size_t vec_size = thread_info->vec_size;
 	size_t el_size = thread_info->el_size;
-	PMEMlog *plp = (PMEMlog *)thread_info->hndl;
+	PMEMlogpool *plp = (PMEMlogpool *)thread_info->hndl;
 
 	if (thread_info->rand_state != NULL) {
 		random_r(thread_info->rand_state, &rand_number);
@@ -243,7 +243,7 @@ task_pmemlog_read(void *arg)
 	struct thread_info *thread_info = arg;
 	size_t vec_size = thread_info->vec_size;
 	size_t el_size = thread_info->el_size;
-	PMEMlog *plp = (PMEMlog *)thread_info->hndl;
+	PMEMlogpool *plp = (PMEMlogpool *)thread_info->hndl;
 
 	thread_info->buf_ptr = 0;
 
@@ -278,7 +278,8 @@ task_fileiolog_read(void *arg)
 
 	thread_info->buf_ptr = 0;
 	char buf[vec_size * el_size];
-	while (pread(fd, buf, vec_size * el_size, thread_info->buf_ptr) != 0) {
+	while (pread(fd, buf, vec_size * el_size,
+			thread_info->buf_ptr) != 0) {
 		process_data(buf, vec_size * el_size, thread_info);
 	}
 

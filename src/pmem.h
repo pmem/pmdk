@@ -34,17 +34,8 @@
  * pmem.h -- internal definitions for libpmem
  */
 
-#define	LOG_PREFIX "libpmem"
-#define	LOG_LEVEL_VAR "PMEM_LOG_LEVEL"
-#define	LOG_FILE_VAR "PMEM_LOG_FILE"
+#define	PMEM_LOG_PREFIX "libpmem"
+#define	PMEM_LOG_LEVEL_VAR "PMEM_LOG_LEVEL"
+#define	PMEM_LOG_FILE_VAR "PMEM_LOG_FILE"
 
 extern unsigned long Pagesize;
-
-typedef void (*Persist_func)(void *addr, size_t len, int flags);
-
-Persist_func Persist;
-
-void pmem_set_persist_func(void (*persist_func)(void *addr,
-			size_t len, int flags));
-
-void libpmem_persist(int is_pmem, void *addr, size_t len);

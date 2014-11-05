@@ -43,8 +43,6 @@ out.o: CFLAGS += -DSRCVERSION=\"utversion\"
 include ../Makefile.inc
 INCS += -I../..
 LIBS += -ldl
-STATIC_DEBUG_LIBS += -ldl
-STATIC_NONDEBUG_LIBS += -ldl
 
 util_map_proc.o: util_map_proc.c
 

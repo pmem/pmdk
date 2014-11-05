@@ -57,7 +57,7 @@ __attribute__((constructor))
 static void
 libvmem_init(void)
 {
-	out_init(LOG_PREFIX, LOG_LEVEL_VAR, LOG_FILE_VAR);
+	out_init(VMEM_LOG_PREFIX, VMEM_LOG_LEVEL_VAR, VMEM_LOG_FILE_VAR);
 	LOG(3, NULL);
 	util_init();
 }

@@ -34,6 +34,10 @@
  * log.h -- internal definitions for libpmem log module
  */
 
+#define	PMEMLOG_LOG_PREFIX "libpmemlog"
+#define	PMEMLOG_LOG_LEVEL_VAR "PMEMLOG_LOG_LEVEL"
+#define	PMEMLOG_LOG_FILE_VAR "PMEMLOG_LOG_FILE"
+
 /* attributes of the log memory pool format for the pool header */
 #define	LOG_HDR_SIG "PMEMLOG"	/* must be 8 bytes including '\0' */
 #define	LOG_FORMAT_MAJOR 1

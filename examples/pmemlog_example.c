@@ -36,7 +36,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include <libpmem.h>
+#include <libpmemlog.h>
 
 /* log processing callback for use with pmemlog_walk() */
 int
@@ -49,14 +49,14 @@ printit(const void *buf, size_t len, void *arg)
 int
 main(int argc, char *argv[])
 {
+	const char path[] = "/my/pmem-aware/fs/myfile";
 	int fd;
-	PMEMlog *plp;
+	PMEMlogpool *plp;
 	size_t nbyte;
 	char *str;
 
 	/* create file on PMEM-aware file system */
-	if ((fd = open("/my/pmem-aware/fs/myfile",
-					O_CREAT|O_RDWR, 0666)) < 0) {
+	if ((fd = open(path, O_CREAT|O_RDWR, 0666)) < 0) {
 		perror("open");
 		exit(1);
 	}
@@ -67,10 +67,11 @@ main(int argc, char *argv[])
 		perror("posix_fallocate");
 		exit(1);
 	}
+	close(fd);
 
 	/* create a persistent memory resident log */
-	if ((plp = pmemlog_map(fd)) == NULL) {
-		perror("pmemlog_map");
+	if ((plp = pmemlog_pool_open(path)) == NULL) {
+		perror("pmemlog_pool_open");
 		exit(1);
 	}
 
@@ -94,6 +95,5 @@ main(int argc, char *argv[])
 	printf("log contains:\n");
 	pmemlog_walk(plp, 0, printit, NULL);
 
-	pmemlog_unmap(plp);
-	close(fd);
+	pmemlog_pool_close(plp);
 }

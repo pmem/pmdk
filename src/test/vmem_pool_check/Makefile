@@ -38,12 +38,9 @@ vpath %.h ../..
 TARGET = vmem_pool_check
 OBJS = vmem_pool_check.o
 
-include ../Makefile.inc
-CFLAGS += -I../..
-STATIC_DEBUG_LIBS = ../unittest/libut.a ../../debug/libvmem.a -luuid -pthread
-STATIC_NONDEBUG_LIBS = ../unittest/libut.a ../../nondebug/libvmem.a -luuid -pthread
+LIBVMEM=y
 
-LIBS += -lvmem
+include ../Makefile.inc
 
 vmem_pool_check.o: vmem_pool_check.c
 

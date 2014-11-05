@@ -44,7 +44,7 @@ size_t Nblock = 100;	/* all I/O below this LBA (increases collisions) */
 unsigned Seed;
 unsigned Nthread;
 unsigned Nops;
-PMEMblk *Handle;
+PMEMblkpool *Handle;
 
 /*
  * construct -- build a buffer for writing
@@ -117,12 +117,10 @@ main(int argc, char *argv[])
 
 	Bsize = strtoul(argv[1], NULL, 0);
 
-	int fd = OPEN(argv[2], O_RDWR);
+	const char *path = argv[2];
 
-	if ((Handle = pmemblk_map(fd, Bsize)) == NULL)
-		FATAL("!%s: pmemblk_map", argv[2]);
-
-	close(fd);
+	if ((Handle = pmemblk_pool_open(path, Bsize)) == NULL)
+		FATAL("!%s: pmemblk_pool_open", path);
 
 	if (Nblock == 0)
 		Nblock = pmemblk_nblock(Handle);
@@ -142,14 +140,14 @@ main(int argc, char *argv[])
 	for (int i = 0; i < Nthread; i++)
 		PTHREAD_JOIN(threads[i], NULL);
 
-	pmemblk_unmap(Handle);
+	pmemblk_pool_close(Handle);
 
 	/* XXX not ready to pass this part of the test yet */
-	int result = pmemblk_check(argv[2]);
+	int result = pmemblk_pool_check(path);
 	if (result < 0)
-		OUT("!%s: pmemblk_check", argv[2]);
+		OUT("!%s: pmemblk_pool_check", path);
 	else if (result == 0)
-		OUT("%s: pmemblk_check: not consistent", argv[2]);
+		OUT("%s: pmemblk_pool_check: not consistent", path);
 
 	DONE(NULL);
 }

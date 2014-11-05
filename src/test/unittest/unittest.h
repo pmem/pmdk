@@ -107,6 +107,9 @@
 #include <pthread.h>
 
 #include <libpmem.h>
+#include <libpmemblk.h>
+#include <libpmemlog.h>
+#include <libpmemobj.h>
 #include <libvmem.h>
 
 
@@ -236,7 +239,7 @@ void *ut_memalign(const char *file, int line, const char *func,
 /*
  * file operations
  */
-int ut_open(const char *file, int line, const char *func, char *path,
+int ut_open(const char *file, int line, const char *func, const char *path,
     int flags, ...);
 
 int ut_close(const char *file, int line, const char *func, int fd);
