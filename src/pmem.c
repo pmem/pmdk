@@ -68,7 +68,7 @@ pmem_drain(void)
  * flush_clflush -- (internal) flush the CPU cache, using clflush
  */
 static void
-flush_clflush(void *addr, size_t len, int flags)
+flush_clflush(void *addr, size_t len)
 {
 	uintptr_t uptr;
 
@@ -85,7 +85,7 @@ flush_clflush(void *addr, size_t len, int flags)
  * flush_clflushopt -- (internal) flush the CPU cache, using clflushopt
  */
 static void
-flush_clflushopt(void *addr, size_t len, int flags)
+flush_clflushopt(void *addr, size_t len)
 {
 	uintptr_t uptr;
 
@@ -114,15 +114,15 @@ flush_clflushopt(void *addr, size_t len, int flags)
  * Func_flush is set to flush_clflushopt().  That's the most common case
  * on modern hardware that supports persistent memory.
  */
-static void (*Func_flush)(void *, size_t, int) = flush_clflush;
+static void (*Func_flush)(void *, size_t) = flush_clflush;
 
 /*
  * pmem_flush -- flush processor cache for the given range
  */
 void
-pmem_flush(void *addr, size_t len, int flags)
+pmem_flush(void *addr, size_t len)
 {
-	(*Func_flush)(addr, len, flags);
+	(*Func_flush)(addr, len);
 }
 
 /*
@@ -135,33 +135,27 @@ pmem_fence(void)
 }
 
 /*
- * pmem_persist -- make any cached changes to a range of PMEM persistent
+ * pmem_persist -- make any cached changes to a range of pmem persistent
  */
 void
-pmem_persist(void *addr, size_t len, int flags)
+pmem_persist(void *addr, size_t len)
 {
-	pmem_flush(addr, len, flags);
+	pmem_flush(addr, len);
 	__builtin_ia32_sfence();
 	pmem_drain();
 }
 
 /*
- * pmem_persist_msync -- routine for flushing to persistence
+ * pmem_msync -- flush to persistence via msync
  *
- * This routine calls msync() or pmem_persist(), depending on the is_pmem flag.
+ * Using msync() means this routine is less optimal for pmem (but it
+ * still works) but it also works for any memory mapped file, unlike
+ * pmem_persist() which is only safe where pmem_is_pmem() returns true.
  */
 int
-pmem_persist_msync(int is_pmem, void *addr, size_t len)
+pmem_msync(void *addr, size_t len)
 {
-	LOG(5, "is_pmem %d addr %p len %zu", is_pmem, addr, len);
-
-	if (is_pmem) {
-		pmem_persist(addr, len, 0);
-		return 0;
-	}
-
-	uintptr_t uptr;
-	int ret;
+	LOG(5, "addr %p len %zu", addr, len);
 
 	/*
 	 * msync requires len to be a multiple of pagesize, so
@@ -173,8 +167,9 @@ pmem_persist_msync(int is_pmem, void *addr, size_t len)
 	len += (uintptr_t)addr & (Pagesize - 1);
 
 	/* round addr down to page boundary */
-	uptr = (uintptr_t)addr & ~(Pagesize - 1);
+	uintptr_t uptr = (uintptr_t)addr & ~(Pagesize - 1);
 
+	int ret;
 	if ((ret = msync((void *)uptr, len, MS_SYNC)) < 0)
 		LOG(1, "!msync");
 

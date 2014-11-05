@@ -6,8 +6,8 @@ pmem_fence
 pmem_flush
 pmem_is_pmem
 pmem_map
+pmem_msync
 pmem_persist
-pmem_persist_msync
 ../../nondebug/libpmem.so:
 pmem_check_version
 pmem_drain
@@ -15,8 +15,8 @@ pmem_fence
 pmem_flush
 pmem_is_pmem
 pmem_map
+pmem_msync
 pmem_persist
-pmem_persist_msync
 ../../debug/libpmem.a:
 pmem_check_version
 pmem_drain
@@ -24,8 +24,8 @@ pmem_fence
 pmem_flush
 pmem_is_pmem
 pmem_map
+pmem_msync
 pmem_persist
-pmem_persist_msync
 ../../nondebug/libpmem.a:
 pmem_check_version
 pmem_drain
@@ -33,5 +33,5 @@ pmem_fence
 pmem_flush
 pmem_is_pmem
 pmem_map
+pmem_msync
 pmem_persist
-pmem_persist_msync

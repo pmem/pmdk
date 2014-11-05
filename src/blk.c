@@ -158,7 +158,10 @@ nswrite(void *ns, int lane, const void *buf, size_t count, off_t off)
 		LOG(1, "!pthread_mutex_unlock");
 #endif
 
-	pmem_persist_msync(pbp->is_pmem, dest, count);
+	if (pbp->is_pmem)
+		pmem_persist(dest, count);
+	else
+		pmem_msync(dest, count);
 
 	return 0;
 }
@@ -217,7 +220,10 @@ nssync(void *ns, int lane, void *addr, size_t len)
 
 	LOG(12, "pbp %p lane %d addr %p len %zu", pbp, lane, addr, len);
 
-	pmem_persist_msync(pbp->is_pmem, addr, len);
+	if (pbp->is_pmem)
+		pmem_persist(addr, len);
+	else
+		pmem_msync(addr, len);
 }
 
 /* callbacks for btt_init() */
@@ -343,11 +349,11 @@ pmemblk_pool_open_common(const char *path, size_t bsize, int rdonly)
 		hdrp->checksum = htole64(hdrp->checksum);
 
 		/* store pool's header */
-		pmem_persist_msync(is_pmem, hdrp, sizeof (*hdrp));
+		pmem_msync(hdrp, sizeof (*hdrp));
 
 		/* create rest of required metadata */
 		pbp->bsize = htole32(bsize);
-		pmem_persist_msync(is_pmem, &pbp->bsize, sizeof (bsize));
+		pmem_msync(&pbp->bsize, sizeof (bsize));
 	}
 
 	/*

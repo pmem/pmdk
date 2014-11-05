@@ -51,9 +51,9 @@ extern "C" {
 
 void *pmem_map(int fd);
 int pmem_is_pmem(void *addr, size_t len);
-void pmem_persist(void *addr, size_t len, int flags);
-int pmem_persist_msync(int is_pmem, void *addr, size_t len);
-void pmem_flush(void *addr, size_t len, int flags);
+void pmem_persist(void *addr, size_t len);
+int pmem_msync(void *addr, size_t len);
+void pmem_flush(void *addr, size_t len);
 void pmem_fence(void);
 void pmem_drain(void);
 /*

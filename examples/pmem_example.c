@@ -71,7 +71,7 @@ main(int argc, char *argv[])
 	 * be used, or whether msync() must be used.
 	 */
 	if (pmem_is_pmem(pmaddr, 4096))
-		pmem_persist(pmaddr, 4096, 0);
+		pmem_persist(pmaddr, 4096);
 	else
 		msync(pmaddr, 4096, MS_SYNC);
 }

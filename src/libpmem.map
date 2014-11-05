@@ -37,7 +37,7 @@ libpmem.so {
 		pmem_map;
 		pmem_is_pmem;
 		pmem_persist;
-		pmem_persist_msync;
+		pmem_msync;
 		pmem_flush;
 		pmem_fence;
 		pmem_drain;
