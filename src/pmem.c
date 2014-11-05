@@ -403,3 +403,65 @@ pmem_map(int fd)
 	LOG(3, "returning %p", addr);
 	return addr;
 }
+
+/*
+ * pmem_memmove_nodrain -- memmove to pmem without hw drain
+ */
+void *
+pmem_memmove_nodrain(void *pmemdest, const void *src, size_t len)
+{
+	/* XXX stub version */
+	return memmove(pmemdest, src, len);
+}
+
+/*
+ * pmem_memcpy_nodrain -- memcpy to pmem without hw drain
+ */
+void *
+pmem_memcpy_nodrain(void *pmemdest, const void *src, size_t len)
+{
+	return pmem_memmove_nodrain(pmemdest, src, len);
+}
+
+/*
+ * pmem_memset_nodrain -- memset to pmem without hw drain
+ */
+void *
+pmem_memset_nodrain(void *pmemdest, int c, size_t len)
+{
+	/* XXX stub version */
+	return memset(pmemdest, c, len);
+}
+
+/*
+ * pmem_memmove -- memmove to pmem
+ */
+void *
+pmem_memmove(void *pmemdest, const void *src, size_t len)
+{
+	void *retval = pmem_memmove_nodrain(pmemdest, src, len);
+	pmem_drain();
+	return retval;
+}
+
+/*
+ * pmem_memcpy -- memcpy to pmem
+ */
+void *
+pmem_memcpy(void *pmemdest, const void *src, size_t len)
+{
+	void *retval = pmem_memcpy_nodrain(pmemdest, src, len);
+	pmem_drain();
+	return retval;
+}
+
+/*
+ * pmem_memset -- memset to pmem
+ */
+void *
+pmem_memset(void *pmemdest, int c, size_t len)
+{
+	void *retval = pmem_memset_nodrain(pmemdest, c, len);
+	pmem_drain();
+	return retval;
+}

@@ -42,6 +42,12 @@ libpmem.so {
 		pmem_fence;
 		pmem_drain;
 		pmem_check_version;
+		pmem_memmove;
+		pmem_memcpy;
+		pmem_memset;
+		pmem_memmove_nodrain;
+		pmem_memcpy_nodrain;
+		pmem_memset_nodrain;
 	local:
 		*;
 };
