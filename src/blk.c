@@ -351,6 +351,12 @@ pmemblk_pool_open_common(const char *path, size_t bsize, int rdonly)
 		/* store pool's header */
 		pmem_msync(hdrp, sizeof (*hdrp));
 
+		/* check if bsize is valid */
+		if (bsize == 0) {
+			LOG(1, "Invalid block size %lu", bsize);
+			errno = EINVAL;
+			goto err;
+		}
 		/* create rest of required metadata */
 		pbp->bsize = htole32(bsize);
 		pmem_msync(&pbp->bsize, sizeof (bsize));
