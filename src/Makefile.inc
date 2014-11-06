@@ -67,8 +67,8 @@ vpath %.c ..
 vpath %.h .. ../include
 INCS = -I.. -I../include
 
-CFLAGS += -std=gnu99 -Wall -Werror
-LDFLAGS = -Wl,-z,relro
+CFLAGS += -std=gnu99 -Wall -Werror $(EXTRA_CFLAGS)
+LDFLAGS += -Wl,-z,relro $(EXTRA_LDFLAGS)
 
 LN = ln
 PMEMSOVERSION = 1
