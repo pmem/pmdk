@@ -38,8 +38,10 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <string.h>
+
+#define	__USE_UNIX98
+#include <unistd.h>
 
 /*
  * r_worker -- read worker function

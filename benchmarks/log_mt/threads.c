@@ -34,10 +34,13 @@
 #include <sys/time.h>
 #include <stdio.h>
 #include <string.h>
-#include <unistd.h>
+
 #include <sys/stat.h>
 
 #include "threads.h"
+
+#define	__USE_UNIX98
+#include <unistd.h>
 
 #define	STATE_BUF_LEN 32
 
