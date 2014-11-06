@@ -52,7 +52,9 @@ export VMEM_LOG_LEVEL=0
 unset VMEM_LOG_FILE
 [ "$FS" == "pmem" ] && DIR_WORK=$DIR
 
-expect_normal_exit valgrind --leak-check=full --show-reachable=yes --log-file=valgrind$UNITTEST_NUM.log ./vmem_valgrind$EXESUFFIX 5
+expect_normal_exit valgrind --suppressions=excluded-errors.supp --leak-check=full\
+	--show-reachable=yes --log-file=valgrind$UNITTEST_NUM.log\
+	./vmem_valgrind$EXESUFFIX 5
 
 check
 
