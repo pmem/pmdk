@@ -128,13 +128,27 @@ $(LIBVMEMAR) $(LIBVMEM_REALNAME): INCS += -I$(JEMALLOC_DIR)/include/jemalloc
 
 out.o: CFLAGS += -DSRCVERSION='"$(SRCVERSION)"'
 
+define arch32_error_msg
+
+##################################################
+###  32-bit builds of NVML are not supported!  ###
+###  Please, use 64-bit platform/compiler.     ###
+##################################################
+
+endef
+
+LP64 := $(shell $(CC) $(CFLAGS) -dM -E -x c /dev/null | grep -Ec "__SIZEOF_LONG__.+8|__SIZEOF_POINTER__.+8" )
+ifneq ($(LP64), 2)
+$(error $(arch32_error_msg))
+endif
+
 all: $(TARGETS)
 
 jemalloc: $(JEMALLOC_LIB)
 
 jeconfig $(JEMALLOC_CFG_OUT_FILES): $(JEMALLOC_CFG) $(JECONFIG_FILE)
 	cd $(JEMALLOC_DIR) && \
-	CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)" ./configure $(JECONFIG) $(EXTRA_JECONFIG)
+		CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)" ./configure $(JECONFIG) $(EXTRA_JECONFIG)
 	@for FILE in $(JEMALLOC_CFG_OUT_FILES_REL);\
 	do\
 		mkdir -p $$(dirname $(JEMALLOC_DIR)/$(JEMALLOC_OBJROOT)/$$FILE);\
