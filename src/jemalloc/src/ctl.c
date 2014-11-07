@@ -762,7 +762,6 @@ ctl_init_pool(pool_t *pool)
 
 	ret = false;
 label_return:
-	malloc_mutex_unlock(&ctl_mtx);
 	return (ret);
 }
 
