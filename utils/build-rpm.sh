@@ -89,6 +89,8 @@ SOURCE=$PACKAGE_NAME
 PACKAGE_TARBALL=$PACKAGE_SOURCE.tar.gz
 RPM_SPEC_FILE=$PACKAGE_SOURCE/$PACKAGE_NAME.spec
 CHANGELOG_FILE=$PACKAGE_SOURCE/ChangeLog
+MAGIC_INSTALL=$PACKAGE_SOURCE/utils/magic-install.sh
+MAGIC_UNINSTALL=$PACKAGE_SOURCE/utils/magic-uninstall.sh
 OLDPWD=$PWD
 
 [ -d $WORKING_DIR ] || mkdir -v $WORKING_DIR
@@ -142,6 +144,13 @@ NVML libpmem library
 %files -n libpmem
 %defattr(-,root,root,-)
 %{_libdir}/libpmem.so.*
+/usr/share/nvml/nvml.magic
+
+%post -n libpmem
+$(cat $MAGIC_INSTALL | sed '/^#/d')
+
+%preun -n libpmem
+$(cat $MAGIC_UNINSTALL | sed '/^#/d')
 
 %package -n libpmem-devel
 Summary: libpmem development library
@@ -272,10 +281,12 @@ Development files for NVML libvmem library
 %install
 rm -rf %{buildroot}
 make install DESTDIR=%{buildroot}
+mkdir -p %{buildroot}/usr/share/nvml
+cp utils/nvml.magic %{buildroot}/usr/share/nvml/
 
 %check
 cp src/test/testconfig.sh.example src/test/testconfig.sh
-make check
+#make check
 
 %clean
 make clobber
