@@ -318,7 +318,6 @@ read_info(struct btt_info *infop)
 	infop->mapoff = le64toh(infop->mapoff);
 	infop->flogoff = le64toh(infop->flogoff);
 	infop->infooff = le64toh(infop->infooff);
-	infop->checksum = le64toh(infop->checksum);
 
 	/* and to be valid, the fields must checksum correctly */
 	if (!util_checksum(infop, sizeof (*infop), &infop->checksum, 0)) {
