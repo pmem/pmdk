@@ -43,7 +43,7 @@ TEST = blk_nblock\
        log_basic\
        log_recovery\
        log_walker\
-       pmem_clflush_proc\
+       pmem_isa_proc\
        pmem_is_pmem\
        pmem_is_pmem_proc\
        pmem_map_raw\

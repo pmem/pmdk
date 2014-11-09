@@ -31,9 +31,9 @@
  */
 
 /*
- * pmem_clflush_proc.c -- unit test for libpmem clflush /proc parsing
+ * pmem_isa_proc.c -- unit test for libpmem isa /proc parsing
  *
- * usage: PFILE=file pmem_clflush_proc
+ * usage: PFILE=file pmem_isa_proc
  */
 
 #define	_GNU_SOURCE
@@ -68,11 +68,11 @@ fopen(const char *path, const char *mode)
 int
 main(int argc, char *argv[])
 {
-	START(argc, argv, "pmem_clflush_proc");
+	START(argc, argv, "pmem_isa_proc");
 
 	OUT("redirected /proc/cpuinfo to %s", Pfile);
 
-	pmem_fence();	/* just to make sure the library gets loaded */
+	OUT("has_hw_drain: %d", pmem_has_hw_drain());
 
 	DONE(NULL);
 }

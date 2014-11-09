@@ -32,6 +32,163 @@
 
 /*
  * pmem.c -- pmem entry points for libpmem
+ *
+ *
+ * PERSISTENT MEMORY INSTRUCTIONS ON X86
+ *
+ * The primary feature of this library is to provide a way to flush
+ * changes to persistent memory as outlined below (note that many
+ * of the decisions below are made at initialization time, and not
+ * repeated every time a flush is requested).
+ *
+ * To flush a range to pmem when CLWB is available:
+ *
+ *	CLWB for each cache line in the given range.
+ *
+ *	SFENCE to ensure the CLWBs above have completed.
+ *
+ *	PCOMMIT to mark pmem stores in the memory subsystem.
+ *
+ *	SFENCE to ensure the stores marked by PCOMMIT above have completed.
+ *
+ * To flush a range to pmem when CLFLUSHOPT is available and CLWB is not
+ * (same as above but issue CLFLUSHOPT instead of CLWB):
+ *
+ *	CLFLUSHOPT for each cache line in the given range.
+ *
+ *	SFENCE to ensure the CLWBs above have completed.
+ *
+ *	PCOMMIT to mark pmem stores in the memory subsystem.
+ *
+ *	SFENCE to ensure the stores marked by PCOMMIT above have completed.
+ *
+ * To flush a range to pmem when neither CLFLUSHOPT or CLWB are available
+ * (same as above but fences surrounding CLFLUSH are not required):
+ *
+ *	CLFLUSH for each cache line in the given range.
+ *
+ *	PCOMMIT to mark pmem stores in the memory subsystem.
+ *
+ *	SFENCE to ensure the stores marked by PCOMMIT above have completed.
+ *
+ * To flush a range to pmem when the caller has explicitly assumed
+ * responsibility for draining HW stores in the memory subsystem
+ * (by choosing to depend on ADR, or by assuming responsibility to issue
+ * PCOMMIT/SFENCE at some point):
+ *
+ * 	Same as above flows but omit the final PCOMMIT and SFENCE.
+ *
+ * To memcpy a range of memory to pmem when MOVNT is available:
+ *
+ *	Copy any non-64-byte portion of the destination using MOV.
+ *
+ *	Use the non-PCOMMIT flush flow above for the copied portion.
+ *
+ *	Copy using MOVNTDQ, up to any non-64-byte aligned end portion.
+ *	(The MOVNT instructions bypass the cache, so no flush is required.)
+ *
+ *	Copy any unaligned end portion using MOV.
+ *
+ *	Use the flush flow above for the copied portion (including PCOMMIT).
+ *
+ * To memcpy a range of memory to pmem when MOVNT is not available:
+ *
+ *	Just pass the call to the normal memcpy() followed by pmem_persist().
+ *
+ * To memset a non-trivial sized range of memory to pmem:
+ *
+ *	Same as the memcpy cases above but store the given value instead
+ *	of reading values from the source.
+ *
+ *
+ * INTERFACES FOR FLUSHING TO PERSISTENT MEMORY
+ *
+ * Given the flows above, three interfaces are provided for flushing a range
+ * so that the caller has the ability to separate the steps when necessary,
+ * but otherwise leaves the detection of available instructions to the libpmem:
+ *
+ * pmem_persist(addr, len)
+ *
+ *	This is the common case, which just calls the two other functions:
+ *
+ *		pmem_flush(addr, len);
+ *		pmem_drain();
+ *
+ * pmem_flush(addr, len)
+ *
+ *	CLWB or CLFLUSHOPT or CLFLUSH for each cache line
+ *
+ * pmem_drain()
+ *
+ *	SFENCE unless using CLFLUSH
+ *
+ *	PCOMMIT
+ *
+ *	SFENCE
+ *
+ * When PCOMMIT is unavailable, either because the platform doesn't support it
+ * or because it has been inhibited by the caller by setting PMEM_NO_PCOMMIT=1,
+ * the pmem_drain() function degenerates into this:
+ *
+ * pmem_drain()
+ *
+ *	SFENCE unless using CLFLUSH
+ *
+ *
+ * INTERFACES FOR COPYING/SETTING RANGES OF MEMORY
+ *
+ * Given the flows above, the following interfaces are provided for the
+ * memmove/memcpy/memset operations to persistent memory:
+ *
+ * pmem_memmove_nodrain()
+ *
+ * 	Checks for overlapped ranges to determine whether to copy from
+ * 	the beginning of the range or the from the end.  If MOVNT instructions
+ * 	are available, uses the memory copy flow described above, otherwise
+ * 	calls the libc memmove() followed by pmem_flush().
+ *
+ * pmem_memcpy_nodrain()
+ *
+ * 	Just calls pmem_memmove_nodrain().
+ *
+ * pmem_memset_nodrain()
+ *
+ * 	If MOVNT instructions are available, uses the memset flow described
+ * 	above, otherwise calls the libc memset() followed by pmem_flush().
+ *
+ * pmem_memmove()
+ * pmem_memcpy()
+ * pmem_memset()
+ *
+ * 	Calls the appropriate _nodrain() function followed by pmem_drain().
+ *
+ *
+ * DECISIONS MADE AT INITIALIZATION TIME
+ *
+ * As much as possible, all decisions described above are made at library
+ * initialization time.  This is achieved using function pointers that are
+ * setup by pmem_init() when the library loads.
+ *
+ * 	Func_predrain_fence is used by pmem_drain() to call one of:
+ * 		predrain_fence_empty()
+ * 		predrain_fence_sfence()
+ *
+ *	Func_drain is used by pmem_drain() to call one of:
+ *		drain_no_pcommit()
+ *		drain_pcommit()
+ *
+ *	Func_flush is used by pmem_flush() to call one of:
+ *		flush_clwb()
+ *		flush_clflushopt()
+ *		flush_clflush()
+ *
+ *	Func_memmove_nodrain is used by memmove_nodrain() to call one of:
+ *		memmove_nodrain_normal()
+ *		memmove_nodrain_movnt()
+ *
+ *	Func_memset_nodrain is used by memset_nodrain() to call one of:
+ *		memset_nodrain_normal()
+ *		memset_nodrain_movnt()
  */
 
 #include <sys/types.h>
@@ -41,15 +198,109 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#include <xmmintrin.h>
 
 #include "libpmem.h"
 #include "pmem.h"
 #include "util.h"
 #include "out.h"
 
+/*
+ * The x86 memory instructions are new enough that the compiler
+ * intrinsic functions are not always available.  The intrinsic
+ * functions are defined here in terms of asm statements for now.
+ */
+#define	_mm_clflushopt(addr)\
+	asm volatile(".byte 0x66; clflush %0" : "+m" (*(volatile char *)addr));
+#define	_mm_clwb(addr)\
+	asm volatile(".byte 0x66; xsaveopt %0" : "+m" (*(volatile char *)addr));
+#define	_mm_pcommit()\
+	asm volatile(".byte 0x66, 0x0f, 0xae, 0xf8");
+
 #define	FLUSH_ALIGN 64
 
 #define	PROCMAXLEN 2048 /* maximum expected line length in /proc files */
+
+static int Has_hw_drain;
+
+/*
+ * pmem_has_hw_drain -- return whether or not HW drain (PCOMMIT) was found
+ */
+int
+pmem_has_hw_drain(void)
+{
+	return Has_hw_drain;
+}
+
+/*
+ * predrain_fence_empty -- (internal) issue the pre-drain fence instruction
+ */
+static void
+predrain_fence_empty(void)
+{
+	/* way too chatty for LOG level 3 */
+	LOG(15, NULL);
+
+	/* nothing to do (because CLFLUSH did it for us) */
+}
+
+/*
+ * predrain_fence_sfence -- (internal) issue the pre-drain fence instruction
+ */
+static void
+predrain_fence_sfence(void)
+{
+	/* way too chatty for LOG level 3 */
+	LOG(15, NULL);
+
+	_mm_sfence();	/* ensure CLWB or CLFLUSHOPT completes before PCOMMIT */
+}
+
+/*
+ * pmem_drain() calls through Func_predrain_fence to do the fence.  Although
+ * initialized to predrain_fence_empty(), once the existence of the CLWB or
+ * CLFLUSHOPT feature is confirmed by pmem_init() at library initialization
+ * time, Func_predrain_fence is set to predrain_fence_sfence().  That's the
+ * most common case on modern hardware that supports persistent memory.
+ */
+static void (*Func_predrain_fence)(void) = predrain_fence_empty;
+
+/*
+ * drain_no_pcommit -- (internal) wait for PM stores to drain, empty version
+ */
+static void
+drain_no_pcommit(void)
+{
+	/* way too chatty for LOG level 3 */
+	LOG(15, NULL);
+
+	Func_predrain_fence();
+
+	/* caller assumed responsibility for the rest */
+}
+
+/*
+ * drain_pcommit -- (internal) wait for PM stores to drain, pcommit version
+ */
+static void
+drain_pcommit(void)
+{
+	/* way too chatty for LOG level 3 */
+	LOG(15, NULL);
+
+	Func_predrain_fence();
+	_mm_pcommit();
+	_mm_sfence();
+}
+
+/*
+ * pmem_drain() calls through Func_drain to do the work.  Although
+ * initialized to drain_no_pcommit(), once the existence of the pcommit
+ * feature is confirmed by pmem_init() at library initialization time,
+ * Func_drain is set to drain_pcommit().  That's the most common case
+ * on modern hardware that supports persistent memory.
+ */
+static void (*Func_drain)(void) = drain_no_pcommit;
 
 /*
  * pmem_drain -- wait for any PM stores to drain from HW buffers
@@ -57,11 +308,7 @@
 void
 pmem_drain(void)
 {
-	/*
-	 * Nothing to do here -- assumes an auto-drain feature like ADR.
-	 *
-	 * XXX handle drain for other platforms
-	 */
+	Func_drain();
 }
 
 /*
@@ -70,6 +317,9 @@ pmem_drain(void)
 static void
 flush_clflush(void *addr, size_t len)
 {
+	/* way too chatty for LOG level 3 */
+	LOG(15, "addr %p len %zu", addr, len);
+
 	uintptr_t uptr;
 
 	/*
@@ -78,7 +328,28 @@ flush_clflush(void *addr, size_t len)
 	 */
 	for (uptr = (uintptr_t)addr & ~(FLUSH_ALIGN - 1);
 		uptr < (uintptr_t)addr + len; uptr += FLUSH_ALIGN)
-		__builtin_ia32_clflush((char *)uptr);
+		_mm_clflush((char *)uptr);
+}
+
+/*
+ * flush_clwb -- (internal) flush the CPU cache, using clwb
+ */
+static void
+flush_clwb(void *addr, size_t len)
+{
+	/* way too chatty for LOG level 3 */
+	LOG(15, "addr %p len %zu", addr, len);
+
+	uintptr_t uptr;
+
+	/*
+	 * Loop through cache-line-size (typically 64B) aligned chunks
+	 * covering the given range.
+	 */
+	for (uptr = (uintptr_t)addr & ~(FLUSH_ALIGN - 1);
+		uptr < (uintptr_t)addr + len; uptr += FLUSH_ALIGN) {
+		_mm_clwb((char *)uptr);
+	}
 }
 
 /*
@@ -87,23 +358,18 @@ flush_clflush(void *addr, size_t len)
 static void
 flush_clflushopt(void *addr, size_t len)
 {
+	/* way too chatty for LOG level 3 */
+	LOG(15, "addr %p len %zu", addr, len);
+
 	uintptr_t uptr;
 
 	/*
 	 * Loop through cache-line-size (typically 64B) aligned chunks
 	 * covering the given range.
 	 */
-	__builtin_ia32_sfence();
 	for (uptr = (uintptr_t)addr & ~(FLUSH_ALIGN - 1);
 		uptr < (uintptr_t)addr + len; uptr += FLUSH_ALIGN) {
-		/*
-		 * __builtin_ia32_clflushopt((char *)uptr);
-		 *
-		 * ...but that intrinsic isn't in all compilers yet,
-		 * so insert the clflushopt instruction by adding the 0x66
-		 * prefix byte to clflush.
-		 */
-		__asm__ volatile(".byte 0x66; clflush %P0" : "+m" (uptr));
+		_mm_clflushopt((char *)uptr);
 	}
 }
 
@@ -122,16 +388,7 @@ static void (*Func_flush)(void *, size_t) = flush_clflush;
 void
 pmem_flush(void *addr, size_t len)
 {
-	(*Func_flush)(addr, len);
-}
-
-/*
- * pmem_fence -- persistent memory store barrier
- */
-void
-pmem_fence(void)
-{
-	__builtin_ia32_sfence();
+	Func_flush(addr, len);
 }
 
 /*
@@ -140,8 +397,10 @@ pmem_fence(void)
 void
 pmem_persist(void *addr, size_t len)
 {
+	/* way too chatty for LOG level 3 */
+	LOG(15, "addr %p len %zu", addr, len);
+
 	pmem_flush(addr, len);
-	__builtin_ia32_sfence();
 	pmem_drain();
 }
 
@@ -155,7 +414,8 @@ pmem_persist(void *addr, size_t len)
 int
 pmem_msync(void *addr, size_t len)
 {
-	LOG(5, "addr %p len %zu", addr, len);
+	/* way too chatty for LOG level 3 */
+	LOG(15, "addr %p len %zu", addr, len);
 
 	/*
 	 * msync requires len to be a multiple of pagesize, so
@@ -182,7 +442,8 @@ pmem_msync(void *addr, size_t len)
 static int
 is_pmem_always(void *addr, size_t len)
 {
-	LOG(3, "always true");
+	LOG(3, NULL);
+
 	return 1;
 }
 
@@ -192,7 +453,8 @@ is_pmem_always(void *addr, size_t len)
 static int
 is_pmem_never(void *addr, size_t len)
 {
-	LOG(3, "never true");
+	LOG(3, NULL);
+
 	return 0;
 }
 
@@ -300,6 +562,179 @@ is_pmem_proc(void *addr, size_t len)
 static int (*Func_is_pmem)(void *addr, size_t len) = is_pmem_never;
 
 /*
+ * pmem_is_pmem -- return true if entire range is persistent Memory
+ */
+int
+pmem_is_pmem(void *addr, size_t len)
+{
+	return Func_is_pmem(addr, len);
+}
+
+/*
+ * pmem_map -- map the entire file for read/write access
+ */
+void *
+pmem_map(int fd)
+{
+	LOG(3, "fd %d", fd);
+
+	struct stat stbuf;
+	if (fstat(fd, &stbuf) < 0) {
+		LOG(1, "!fstat");
+		return NULL;
+	}
+
+	void *addr;
+	if ((addr = util_map(fd, stbuf.st_size, 0)) == NULL)
+		return NULL;    /* util_map() set errno, called LOG */
+
+	LOG(3, "returning %p", addr);
+	return addr;
+}
+
+/*
+ * memmove_nodrain_normal -- (internal) memmove to pmem without hw drain
+ */
+static void *
+memmove_nodrain_normal(void *pmemdest, const void *src, size_t len)
+{
+	/* way too chatty for LOG level 3 */
+	LOG(15, "pmemdest %p src %p len %zu", pmemdest, src, len);
+
+	return memmove(pmemdest, src, len);
+
+}
+/*
+ * memmove_nodrain_movnt -- (internal) memmove to pmem without hw drain, movnt
+ */
+static void *
+memmove_nodrain_movnt(void *pmemdest, const void *src, size_t len)
+{
+	/* way too chatty for LOG level 3 */
+	LOG(15, "pmemdest %p src %p len %zu", pmemdest, src, len);
+
+	/* XXX stub version */
+	return memmove(pmemdest, src, len);
+}
+
+/*
+ * pmem_memmove_nodrain() calls through Func_memmove_nodrain to do the work.
+ * Although initialized to memmove_nodrain_normal(), once the existence of the
+ * sse2 feature is confirmed by pmem_init() at library initialization time,
+ * Func_memmove_nodrain is set to memmove_nodrain_movnt().  That's the most
+ * common case on modern hardware that supports persistent memory.
+ */
+static void *(*Func_memmove_nodrain)
+	(void *pmemdest, const void *src, size_t len) = memmove_nodrain_normal;
+
+/*
+ * pmem_memmove_nodrain -- memmove to pmem without hw drain
+ */
+void *
+pmem_memmove_nodrain(void *pmemdest, const void *src, size_t len)
+{
+	return Func_memmove_nodrain(pmemdest, src, len);
+}
+
+/*
+ * pmem_memcpy_nodrain -- memcpy to pmem without hw drain
+ */
+void *
+pmem_memcpy_nodrain(void *pmemdest, const void *src, size_t len)
+{
+	/* way too chatty for LOG level 3 */
+	LOG(15, "pmemdest %p src %p len %zu", pmemdest, src, len);
+
+	return pmem_memmove_nodrain(pmemdest, src, len);
+}
+
+/*
+ * pmem_memmove -- memmove to pmem
+ */
+void *
+pmem_memmove(void *pmemdest, const void *src, size_t len)
+{
+	/* way too chatty for LOG level 3 */
+	LOG(15, "pmemdest %p src %p len %zu", pmemdest, src, len);
+
+	void *retval = pmem_memmove_nodrain(pmemdest, src, len);
+	pmem_drain();
+	return retval;
+}
+
+/*
+ * pmem_memcpy -- memcpy to pmem
+ */
+void *
+pmem_memcpy(void *pmemdest, const void *src, size_t len)
+{
+	/* way too chatty for LOG level 3 */
+	LOG(15, "pmemdest %p src %p len %zu", pmemdest, src, len);
+
+	void *retval = pmem_memcpy_nodrain(pmemdest, src, len);
+	pmem_drain();
+	return retval;
+}
+
+/*
+ * memset_nodrain_normal -- (internal) memset to pmem without hw drain, normal
+ */
+static void *
+memset_nodrain_normal(void *pmemdest, int c, size_t len)
+{
+	/* way too chatty for LOG level 3 */
+	LOG(15, "pmemdest %p c 0x%x len %zu", pmemdest, c, len);
+
+	return memset(pmemdest, c, len);
+}
+
+/*
+ * memset_nodrain_movnt -- (internal) memset to pmem without hw drain, movnt
+ */
+static void *
+memset_nodrain_movnt(void *pmemdest, int c, size_t len)
+{
+	/* way too chatty for LOG level 3 */
+	LOG(15, "pmemdest %p c 0x%x len %zu", pmemdest, c, len);
+
+	/* XXX stub version */
+	return memset(pmemdest, c, len);
+}
+
+/*
+ * pmem_memset_nodrain() calls through Func_memset_nodrain to do the work.
+ * Although initialized to memset_nodrain_normal(), once the existence of the
+ * sse2 feature is confirmed by pmem_init() at library initialization time,
+ * Func_memset_nodrain is set to memset_nodrain_movnt().  That's the most
+ * common case on modern hardware that supports persistent memory.
+ */
+static void *(*Func_memset_nodrain)
+	(void *pmemdest, int c, size_t len) = memset_nodrain_normal;
+
+/*
+ * pmem_memset_nodrain -- memset to pmem without hw drain
+ */
+void *
+pmem_memset_nodrain(void *pmemdest, int c, size_t len)
+{
+	return Func_memset_nodrain(pmemdest, c, len);
+}
+
+/*
+ * pmem_memset -- memset to pmem
+ */
+void *
+pmem_memset(void *pmemdest, int c, size_t len)
+{
+	/* way too chatty for LOG level 3 */
+	LOG(15, "pmemdest %p c 0x%x len %zu", pmemdest, c, len);
+
+	void *retval = pmem_memset_nodrain(pmemdest, c, len);
+	pmem_drain();
+	return retval;
+}
+
+/*
  * pmem_init -- load-time initialization for pmem.c
  *
  * Called automatically by the run-time loader.
@@ -322,25 +757,79 @@ pmem_init(void)
 		while (fgets(line, PROCMAXLEN, fp) != NULL) {
 			static const char flags[] = "flags\t\t: ";
 			static const char clflush[] = " clflush ";
+			static const char clwb[] = " clwb ";
 			static const char clflushopt[] = " clflushopt ";
+			static const char pcommit[] = " pcommit ";
+			static const char sse2[] = " sse2 ";
 
 			if (strncmp(flags, line, sizeof (flags) - 1) == 0) {
+				/* start of list of flags */
+				char *flags = &line[sizeof (flags) - 1];
 
 				/* change ending newline to space delimiter */
 				char *nl = strrchr(line, '\n');
 				if (nl)
 					*nl = ' ';
 
-				if (strstr(&line[sizeof (flags) - 1],
-							clflush) != NULL) {
+				if (strstr(flags, clflush) != NULL) {
 					Func_is_pmem = is_pmem_proc;
 					LOG(3, "clflush supported");
 				}
 
-				if (strstr(&line[sizeof (flags) - 1],
-							clflushopt) != NULL) {
-					Func_flush = flush_clflushopt;
+				if (strstr(flags, clwb) != NULL) {
+					LOG(3, "clwb supported");
+
+					char *e = getenv("PMEM_NO_CLWB");
+					if (e && strcmp(e, "1") == 0)
+						LOG(3, "PMEM_NO_CLWB "
+							"forced no clwb");
+					else {
+						Func_flush = flush_clwb;
+						Func_predrain_fence =
+							predrain_fence_sfence;
+					}
+				}
+
+				if (strstr(flags, clflushopt) != NULL) {
 					LOG(3, "clflushopt supported");
+
+					char *e = getenv("PMEM_NO_CLFLUSHOPT");
+					if (e && strcmp(e, "1") == 0)
+						LOG(3, "PMEM_NO_CLFLUSHOPT "
+							"forced no clflushopt");
+					else {
+						Func_flush = flush_clflushopt;
+						Func_predrain_fence =
+							predrain_fence_sfence;
+					}
+				}
+
+				if (strstr(flags, pcommit) != NULL) {
+					LOG(3, "pcommit supported");
+
+					char *e = getenv("PMEM_NO_PCOMMIT");
+					if (e && strcmp(e, "1") == 0)
+						LOG(3, "PMEM_NO_PCOMMIT "
+							"forced no pcommit");
+					else {
+						Func_drain = drain_pcommit;
+						Has_hw_drain = 1;
+					}
+				}
+
+				if (strstr(flags, sse2) != NULL) {
+					LOG(3, "movnt supported");
+
+					char *e = getenv("PMEM_NO_MOVNT");
+					if (e && strcmp(e, "1") == 0)
+						LOG(3, "PMEM_NO_MOVNT "
+							"forced no movnt");
+					else {
+						Func_memmove_nodrain =
+							memmove_nodrain_movnt;
+						Func_memset_nodrain =
+							memset_nodrain_movnt;
+					}
 				}
 
 				break;
@@ -369,99 +858,4 @@ pmem_init(void)
 		else if (val == 1)
 			Func_is_pmem = is_pmem_always;
 	}
-}
-
-/*
- * pmem_is_pmem -- return true if entire range is persistent Memory
- */
-int
-pmem_is_pmem(void *addr, size_t len)
-{
-	LOG(3, "addr %p len %zu", addr, len);
-
-	return (*Func_is_pmem)(addr, len);
-}
-
-/*
- * pmem_map -- map the entire file for read/write access
- */
-void *
-pmem_map(int fd)
-{
-	LOG(3, "fd %d", fd);
-
-	struct stat stbuf;
-	if (fstat(fd, &stbuf) < 0) {
-		LOG(1, "!fstat");
-		return NULL;
-	}
-
-	void *addr;
-	if ((addr = util_map(fd, stbuf.st_size, 0)) == NULL)
-		return NULL;    /* util_map() set errno, called LOG */
-
-	LOG(3, "returning %p", addr);
-	return addr;
-}
-
-/*
- * pmem_memmove_nodrain -- memmove to pmem without hw drain
- */
-void *
-pmem_memmove_nodrain(void *pmemdest, const void *src, size_t len)
-{
-	/* XXX stub version */
-	return memmove(pmemdest, src, len);
-}
-
-/*
- * pmem_memcpy_nodrain -- memcpy to pmem without hw drain
- */
-void *
-pmem_memcpy_nodrain(void *pmemdest, const void *src, size_t len)
-{
-	return pmem_memmove_nodrain(pmemdest, src, len);
-}
-
-/*
- * pmem_memset_nodrain -- memset to pmem without hw drain
- */
-void *
-pmem_memset_nodrain(void *pmemdest, int c, size_t len)
-{
-	/* XXX stub version */
-	return memset(pmemdest, c, len);
-}
-
-/*
- * pmem_memmove -- memmove to pmem
- */
-void *
-pmem_memmove(void *pmemdest, const void *src, size_t len)
-{
-	void *retval = pmem_memmove_nodrain(pmemdest, src, len);
-	pmem_drain();
-	return retval;
-}
-
-/*
- * pmem_memcpy -- memcpy to pmem
- */
-void *
-pmem_memcpy(void *pmemdest, const void *src, size_t len)
-{
-	void *retval = pmem_memcpy_nodrain(pmemdest, src, len);
-	pmem_drain();
-	return retval;
-}
-
-/*
- * pmem_memset -- memset to pmem
- */
-void *
-pmem_memset(void *pmemdest, int c, size_t len)
-{
-	void *retval = pmem_memset_nodrain(pmemdest, c, len);
-	pmem_drain();
-	return retval;
 }

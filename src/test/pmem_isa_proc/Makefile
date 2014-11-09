@@ -29,25 +29,17 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+
 #
-# src/libpmem.map -- linker map file for libpmem
+# src/test/pmem_isa_proc/Makefile -- build pmem_isa_proc unit test
 #
-libpmem.so {
-	global:
-		pmem_map;
-		pmem_is_pmem;
-		pmem_persist;
-		pmem_msync;
-		pmem_flush;
-		pmem_drain;
-		pmem_has_hw_drain;
-		pmem_check_version;
-		pmem_memmove;
-		pmem_memcpy;
-		pmem_memset;
-		pmem_memmove_nodrain;
-		pmem_memcpy_nodrain;
-		pmem_memset_nodrain;
-	local:
-		*;
-};
+TARGET = pmem_isa_proc
+OBJS = pmem_isa_proc.o
+
+LIBPMEM=y
+
+include ../Makefile.inc
+
+LIBS += -ldl
+
+pmem_isa_proc.o: pmem_isa_proc.c
