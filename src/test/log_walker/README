@@ -5,7 +5,7 @@ This is src/test/log_walker/README.
 This directory contains a unit test to verify pool's write-protection
 in debug mode. It works only in debug mode.
 
-The program in log_walker.c takes only a filename as an arugment. For example:
+The program in log_walker.c takes only a file name as an argument. For example:
 
 	./log_walker file1
 

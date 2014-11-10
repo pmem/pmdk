@@ -14,8 +14,8 @@ This directory contains a unit test for:
 - pmemlog_pool_check
 
 
-The program in pmemlog.c takes a filename and a list of
-operations encoded as characters as arugments. For example:
+The program in pmemlog.c takes a file name and a list of
+operations encoded as characters as arguments. For example:
 
 	./log_basic file1 a v r w t n
 

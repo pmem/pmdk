@@ -29,6 +29,6 @@ example, follow these steps:
 	$ printlog /pmem/logfile
 
 4. The printlog command will throw away the current log file contents
-   aftert printing it if given the -t argument:
+   after printing it if given the -t argument:
 
    	$ printlog -t /pmem/logfile
