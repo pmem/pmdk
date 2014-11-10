@@ -34,7 +34,7 @@
 # src/nondebug/Makefile -- build the nondebug versions of the NVM Library
 #
 
-CFLAGS = -O2 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2
+CFLAGS += -O2 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2
 JEMALLOC_OBJROOT = nondebug
 
 include ../Makefile.inc
