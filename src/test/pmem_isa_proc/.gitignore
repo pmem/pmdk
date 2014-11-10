@@ -1,2 +1,2 @@
-pmem_clflush_proc
+pmem_isa_proc
 grep*.log
