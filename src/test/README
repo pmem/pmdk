@@ -56,7 +56,7 @@ file system type, and build type to test.
 
 RUNTESTS takes options to limit what it runs.  The usage is:
 
- RUNTEST [ -nv ] [ -b build-type ] [ -t test-type ] [ -f fs-type ] [test...]
+ RUNTESTS [ -nv ] [ -b build-type ] [ -t test-type ] [ -f fs-type ] [test...]
 
  Build types are: debug, nondebug, static-debug, static-nondebug, all (default)
  Test types are: check (default), short, long
@@ -117,7 +117,7 @@ unit test framework also looks for several other variables:
 DETAILS ON HOW TO WRITE UNIT TESTS
 
 A minimal unit test consists of a sub-directory here with an executable called
-TEST0 in it that exits normally when the test passes.  Mosts tests, however,
+TEST0 in it that exits normally when the test passes.  Most tests, however,
 source the file unittest/unittest.sh to use the utility functions for setting
 up and checking tests.  Additionally, most unit tests build a local test
 program and call it from the TEST* scripts.

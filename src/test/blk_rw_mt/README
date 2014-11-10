@@ -6,7 +6,7 @@ This directory contains a unit test for MT reads & writes.
 
 The program in blk_rw_mt.c takes a block size, a file, a random number
 generator seed (to make the results repeatable), a thread count, and the
-numer of I/Os to do per thread.  For example:
+number of I/Os to do per thread.  For example:
 
 	./blk_rw_mt 4096 file1 123 300 500
 
