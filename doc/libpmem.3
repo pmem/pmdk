@@ -56,7 +56,6 @@ libpmem \- persistent memory support library
 .B Partial flushing operations:
 .sp
 .BI "void pmem_flush(void *" addr ", size_t " len );
-.BI "void pmem_fence(void);"
 .BI "void pmem_drain(void);"
 .BI "int pmem_has_hw_drain(void);"
 .sp
@@ -286,11 +285,10 @@ function described above.
 .PP
 .nf
 .BI "void pmem_flush(void *" addr ", size_t " len );
-.BI "void pmem_fence(void);"
 .BI "void pmem_drain(void);"
 .fi
 .IP
-These three functions provide partial versions of the
+These functions provide partial versions of the
 .BR pmem_persist ()
 function described above.
 .BR pmem_persist ()
@@ -302,9 +300,6 @@ pmem_persist(void *addr, size_t len)
 {
     /* flush the processor caches */
     pmem_flush(addr, len);
-	
-    /* persistent memory store barrier */
-    pmem_fence();
 	
     /* wait for any pmem stores to drain from HW buffers */
     pmem_drain();
@@ -318,11 +313,25 @@ For example, a program
 that needs to flush several discontiguous ranges can call
 .BR pmem_flush ()
 for each range and then follow up by
-calling the
-.BR pmem_fence ()
-and
+calling
 .BR pmem_drain ()
 once.
+.IP
+NOTE: Some software is designed for custom platforms that obviate the
+need for using PCOMMIT (perhaps the platform issues PCOMMIT on shutdown
+or something similar).  Even in such cases, it is recommended that
+applications using
+.B libpmem
+do not skip the step of calling
+.BR pmem_drain (),
+either directly or by using
+.BR pmem_persist ().
+The recommended way to inhibit use of the PCOMMIT instruction is
+by setting the
+.B PMEM_NO_PCOMMIT
+environment variable as described in the
+.B ENVIRONMENT VARIABLES
+section.
 .PP
 .BI "int pmem_has_hw_drain(void);"
 .IP
@@ -426,11 +435,9 @@ when copying several ranges of memory to pmem:
     /* ... write several ranges to pmem ... */
     pmem_memcpy_nodrain(pmemdest1, src1, len1);
     pmem_memcpy_nodrain(pmemdest2, src2, len2);
+
     /* ... */
 
-    /* persistent memory store barrier */
-    pmem_fence();
-	
     /* wait for any pmem stores to drain from HW buffers */
     pmem_drain();
 .fi

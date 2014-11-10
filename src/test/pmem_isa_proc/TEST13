@@ -32,10 +32,10 @@
 #
 
 #
-# src/test/pmem_clflush_proc/TEST3 -- unit test for pmem clflush /proc parsing
+# src/test/pmem_isa_proc/TEST13 -- unit test for pmem isa /proc parsing
 #
-export UNITTEST_NAME=pmem_clflush_proc/TEST3
-export UNITTEST_NUM=3
+export UNITTEST_NAME=pmem_isa_proc/TEST13
+export UNITTEST_NUM=13
 
 # standard unit test setup
 . ../unittest/unittest.sh
@@ -44,9 +44,15 @@ require_fs_type local
 
 setup
 
-export PFILE=cpuinfo_unexp1
-expect_normal_exit ./pmem_clflush_proc$EXESUFFIX
-grep 'clflush.*supported' pmem$UNITTEST_NUM.log > grep$UNITTEST_NUM.log
+export PMEM_NO_MOVNT=1
+export PMEM_NO_PCOMMIT=1
+export PMEM_NO_CLFLUSHOPT=1
+export PMEM_NO_CLWB=1
+export PFILE=cpuinfo_all
+expect_normal_exit ./pmem_isa_proc$EXESUFFIX
+set +e
+egrep 'pcommit|clwb|clflush|clflushopt|movnt' pmem$UNITTEST_NUM.log > grep$UNITTEST_NUM.log
+set -e
 
 check
 

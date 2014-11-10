@@ -1,3 +1,4 @@
+#!/bin/bash -e
 #
 # Copyright (c) 2014, Intel Corporation
 #
@@ -31,15 +32,25 @@
 #
 
 #
-# src/test/pmem_clflush_proc/Makefile -- build pmem_clflush_proc unit test
+# src/test/pmem_isa_proc/TEST12 -- unit test for pmem isa /proc parsing
 #
-TARGET = pmem_clflush_proc
-OBJS = pmem_clflush_proc.o
+export UNITTEST_NAME=pmem_isa_proc/TEST12
+export UNITTEST_NUM=12
 
-LIBPMEM=y
+# standard unit test setup
+. ../unittest/unittest.sh
 
-include ../Makefile.inc
+require_fs_type local
 
-LIBS += -ldl
+setup
 
-pmem_clflush_proc.o: pmem_clflush_proc.c
+export PMEM_NO_MOVNT=1
+export PFILE=cpuinfo_all
+expect_normal_exit ./pmem_isa_proc$EXESUFFIX
+set +e
+egrep 'pcommit|clwb|clflush|clflushopt|movnt' pmem$UNITTEST_NUM.log > grep$UNITTEST_NUM.log
+set -e
+
+check
+
+pass

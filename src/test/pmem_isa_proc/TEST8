@@ -1,3 +1,4 @@
+#!/bin/bash -e
 #
 # Copyright (c) 2014, Intel Corporation
 #
@@ -29,25 +30,27 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+
 #
-# src/libpmem.map -- linker map file for libpmem
+# src/test/pmem_isa_proc/TEST8 -- unit test for pmem isa /proc parsing
 #
-libpmem.so {
-	global:
-		pmem_map;
-		pmem_is_pmem;
-		pmem_persist;
-		pmem_msync;
-		pmem_flush;
-		pmem_drain;
-		pmem_has_hw_drain;
-		pmem_check_version;
-		pmem_memmove;
-		pmem_memcpy;
-		pmem_memset;
-		pmem_memmove_nodrain;
-		pmem_memcpy_nodrain;
-		pmem_memset_nodrain;
-	local:
-		*;
-};
+export UNITTEST_NAME=pmem_isa_proc/TEST8
+export UNITTEST_NUM=8
+
+# standard unit test setup
+. ../unittest/unittest.sh
+
+require_fs_type local
+
+setup
+
+export PMEM_NO_CLWB=1
+export PFILE=cpuinfo_all
+expect_normal_exit ./pmem_isa_proc$EXESUFFIX
+set +e
+egrep 'pcommit|clwb|clflush|clflushopt|movnt' pmem$UNITTEST_NUM.log > grep$UNITTEST_NUM.log
+set -e
+
+check
+
+pass
