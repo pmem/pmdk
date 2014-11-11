@@ -10,19 +10,43 @@ optimized specifically for _persistent memory_.  The source is in this
 **Note: The NVM Library is still under development and is not
 yet ready for production use.**
 
-The NVM Library is current delivered as two actual libraries:
+The NVM Library is actually five separate libraries:
+
+#### libpmemobj
+
+The **libpmemobj** library provides a transactional object store,
+providing memory allocation, transactions, and general facilities
+for persistent memory programming.  Developers new to persistent
+memory probably want to start with this library.
+
+See the [libpmemobj page](libpmemobj) for documentation and examples.
+
+#### libpmemblk
+
+The **libpmemblk** library supports arrays of pmem-resident blocks,
+all the same size, that are atomically updated.  For example, a
+program keeping a cache of fixed-size objects in pmem might find
+this library useful.
+
+See the [libpmemblk page](libpmemblk) for documentation and examples.
+
+#### libpmemlog
+
+The **libpmemlog** library provides a pmem-resident log file.
+This is useful for programs like databases that append frequently
+to a log file.
+
+See the [libpmemlog page](libpmemlog) for documentation and examples.
 
 #### libpmem
 
-The **libpmem** library provides persistent memory aware APIs for
-some common tasks.  The APIs cover these areas:
+The **libpmem** library provides low level persistent memory support.
+The libraries above are implemented using **libpmem**.  Developers
+wishing to _roll their own_ persistent memory algorithms will find
+this library useful, but most developers will likely use **libpmemobj**
+above and let that library call **libpmem** for them.
 
-* pmem basics: identifying pmem and APIs to flush it
-* pmem transactions: **API still being designed -- stay tuned**
-* pmem block: support arrays of atomically writable blocks
-* pmem log: support pmem-resident log files
-
-See the [man page](libpmem.3.html) for the current API descriptions.
+See the [libpmem page](libpmem) for documentation and examples.
 
 #### libvmem
 
@@ -30,6 +54,4 @@ The **libvmem** library turns a pool of persistent memory into a
 volatile memory pool, similar to the system heap but kept separate
 and with its own malloc-style API.
 
-See the [man page](libvmem.3.html) for details.
-
-#### More coming soon...
+See the [libvmem page](libvmem) for documentation and examples.
