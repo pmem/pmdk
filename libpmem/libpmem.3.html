@@ -1,5 +1,5 @@
 <!-- Creator     : groff version 1.18.1.4 -->
-<!-- CreationDate: Mon Nov 10 19:48:13 2014 -->
+<!-- CreationDate: Mon Nov 10 22:09:42 2014 -->
 <html>
 <head>
 <meta name="generator" content="groff -Thtml, see www.gnu.org">
@@ -56,7 +56,6 @@ void *pmem_map(int</b> <i>fd</i><b>);
 Partial flushing operations:
 
 void pmem_flush(void *</b><i>addr</i><b>, size_t</b> <i>len</i><b>);
-void pmem_fence(void);
 void pmem_drain(void);
 int pmem_has_hw_drain(void);
 
@@ -307,9 +306,7 @@ operations than the <b>pmem_persist</b>() function described
 above.</p>
 <!-- INDENTATION -->
 <p><b>void pmem_flush(void *</b><i>addr</i><b>, size_t</b>
-<i>len</i><b>);<br>
-void pmem_fence(void);<br>
-void pmem_drain(void);</b></p>
+<i>len</i><b>); void pmem_drain(void);</b></p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -318,7 +315,7 @@ void pmem_drain(void);</b></p>
 <tr valign="top" align="left">
 <td width="20%"></td>
 <td width="79%">
-<p>These three functions provide partial versions of the
+<p>These functions provide partial versions of the
 <b>pmem_persist</b>() function described above.
 <b>pmem_persist</b>() can be thought of as this:</p>
 <!-- INDENTATION -->
@@ -327,9 +324,6 @@ pmem_persist(void *addr, size_t len)
 {
     /* flush the processor caches */
     pmem_flush(addr, len);
-
-    /* persistent memory store barrier */
-    pmem_fence();
 
     /* wait for any pmem stores to drain from HW buffers */
     pmem_drain();
@@ -340,8 +334,18 @@ pmem_persist(void *addr, size_t len)
 own variations of <b>pmem_persist</b>(). For example, a
 program that needs to flush several discontiguous ranges can
 call <b>pmem_flush</b>() for each range and then follow up
-by calling the <b>pmem_fence</b>() and <b>pmem_drain</b>()
-once.</p>
+by calling <b>pmem_drain</b>() once.</p>
+<!-- INDENTATION -->
+<p>NOTE: Some software is designed for custom platforms that
+obviate the need for using PCOMMIT (perhaps the platform
+issues PCOMMIT on shutdown or something similar). Even in
+such cases, it is recommended that applications using
+<b>libpmem</b> do not skip the step of calling
+<b>pmem_drain</b>(), either directly or by using
+<b>pmem_persist</b>(). The recommended way to inhibit use of
+the PCOMMIT instruction is by setting the
+<b>PMEM_NO_PCOMMIT</b> environment variable as described in
+the <b>ENVIRONMENT VARIABLES</b> section.</p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -469,12 +473,10 @@ pmem:</p>
 <pre>    /* ... write several ranges to pmem ... */
     pmem_memcpy_nodrain(pmemdest1, src1, len1);
     pmem_memcpy_nodrain(pmemdest2, src2, len2);
-    /* ... */
 
-   /* persistent memory store barrier */
-    pmem_fence();
+   /* ... */
 
-    /* wait for any pmem stores to drain from HW buffers */
+   /* wait for any pmem stores to drain from HW buffers */
     pmem_drain();
 </pre>
 <!-- INDENTATION -->
