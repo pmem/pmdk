@@ -283,10 +283,8 @@ than the
 .BR pmem_persist ()
 function described above.
 .PP
-.nf
 .BI "void pmem_flush(void *" addr ", size_t " len );
 .BI "void pmem_drain(void);"
-.fi
 .IP
 These functions provide partial versions of the
 .BR pmem_persist ()
@@ -357,11 +355,11 @@ features such as Asynchronous DRAM Refresh (ADR) or something similar.
 The functions in this section provide optimized copying to
 persistent memory.
 .PP
-.nf
 .BI "void *pmem_memmove(void *" pmemdest ", const void *" src ", size_t " len );
+.br
 .BI "void *pmem_memcpy(void *" pmemdest ", const void *" src ", size_t " len );
+.br
 .BI "void *pmem_memset(void *" pmemdest ", int " c ", size_t " len );
-.fi
 .IP
 The
 .BR pmem_memmove (),
@@ -404,11 +402,11 @@ WARNING: Using these functions where
 returns false may not do anything useful.
 Use the normal libc functions in that case.
 .PP
-.nf
 .BI "void *pmem_memmove_nodrain(void *" pmemdest ", const void *" src ", size_t " len );
+.br
 .BI "void *pmem_memcpy_nodrain(void *" pmemdest ", const void *" src ", size_t " len );
+.br
 .BI "void *pmem_memset_nodrain(void *" pmemdest ", int " c ", size_t " len );
-.fi
 .IP
 The
 .BR pmem_memmove_nodrain (),
@@ -455,11 +453,11 @@ returns false may not do anything useful.
 This section describes how the library API is versioned,
 allowing applications to work with an evolving API.
 .PP
-.nf
 .BI "const char *pmem_check_version("
+.br
 .BI "           unsigned " major_required ,
+.br
 .BI "           unsigned " minor_required );
-.fi
 .IP
 The
 .BR pmem_check_version ()
@@ -644,7 +642,7 @@ This variable is intended for use
 during library testing.
 .SH EXAMPLES
 .PP
-See http://pmem.io/nvml/examples/pmem for examples
+See http://pmem.io/nvml/libpmem for examples
 using the
 .B libpmem
 API.
