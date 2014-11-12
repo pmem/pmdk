@@ -1251,10 +1251,10 @@ thread_arena_ctl(const size_t *mib, size_t miblen, void *oldp, size_t *oldlenp,
 	unsigned pool_ind = mib[1];
 	pool_t *pool;
 	arena_t dummy;
-	if (pool_ind >= POOLS_MAX) {
-		ret = ENOENT;
-		goto label_return;
-	}
+
+	if (pool_ind >= POOLS_MAX)
+		return (ENOENT);
+
 	pool = pools[pool_ind];
 	DUMMY_ARENA_INITIALIZE(dummy, pool);
 	tsd_tcache_t *tcache_tsd = tcache_tsd_get();
@@ -1396,10 +1396,8 @@ arena_i_purge_ctl(const size_t *mib, size_t miblen, void *oldp, size_t *oldlenp,
 {
 	int ret;
 
-	if (mib[1] >= POOLS_MAX) {
-		ret = ENOENT;
-		goto label_return;
-	}
+	if (mib[1] >= POOLS_MAX)
+		return (ENOENT);
 
 	READONLY();
 	WRITEONLY();
@@ -1425,10 +1423,8 @@ arena_i_dss_ctl(const size_t *mib, size_t miblen, void *oldp, size_t *oldlenp,
 	dss_prec_t dss_prec = dss_prec_limit;
 	pool_t *pool;
 
-	if (pool_ind >= POOLS_MAX) {
-		ret = ENOENT;
-		goto label_return;
-	}
+	if (pool_ind >= POOLS_MAX)
+		return (ENOENT);
 
 	malloc_mutex_lock(&ctl_mtx);
 	pool = pools[pool_ind];
@@ -1480,10 +1476,8 @@ arena_i_chunk_alloc_ctl(const size_t *mib, size_t miblen, void *oldp,
 	arena_t *arena;
 	pool_t *pool;
 
-	if (pool_ind >= POOLS_MAX) {
-		ret = ENOENT;
-		goto label_outer_return;
-	}
+	if (pool_ind >= POOLS_MAX)
+		return (ENOENT);
 
 	malloc_mutex_lock(&ctl_mtx);
 	pool = pools[pool_ind];
@@ -1491,14 +1485,13 @@ arena_i_chunk_alloc_ctl(const size_t *mib, size_t miblen, void *oldp,
 		malloc_mutex_lock(&arena->lock);
 		READ(arena->chunk_alloc, chunk_alloc_t *);
 		WRITE(arena->chunk_alloc, chunk_alloc_t *);
+		malloc_mutex_unlock(&arena->lock);
 	} else {
 		ret = EFAULT;
-		goto label_outer_return;
+		goto label_return;
 	}
 	ret = 0;
 label_return:
-	malloc_mutex_unlock(&arena->lock);
-label_outer_return:
 	malloc_mutex_unlock(&ctl_mtx);
 	return (ret);
 }
@@ -1507,17 +1500,14 @@ static int
 arena_i_chunk_dalloc_ctl(const size_t *mib, size_t miblen, void *oldp,
     size_t *oldlenp, void *newp, size_t newlen)
 {
-
 	int ret;
 	unsigned pool_ind = mib[1];
 	unsigned arena_ind = mib[3];
 	arena_t *arena;
 	pool_t *pool;
 
-	if (pool_ind >= POOLS_MAX) {
-		ret = ENOENT;
-		goto label_outer_return;
-	}
+	if (pool_ind >= POOLS_MAX)
+		return (ENOENT);
 
 	malloc_mutex_lock(&ctl_mtx);
 	pool = pools[pool_ind];
@@ -1525,14 +1515,13 @@ arena_i_chunk_dalloc_ctl(const size_t *mib, size_t miblen, void *oldp,
 		malloc_mutex_lock(&arena->lock);
 		READ(arena->chunk_dalloc, chunk_dalloc_t *);
 		WRITE(arena->chunk_dalloc, chunk_dalloc_t *);
+		malloc_mutex_unlock(&arena->lock);
 	} else {
 		ret = EFAULT;
-		goto label_outer_return;
+		goto label_return;
 	}
 	ret = 0;
 label_return:
-	malloc_mutex_unlock(&arena->lock);
-label_outer_return:
 	malloc_mutex_unlock(&ctl_mtx);
 	return (ret);
 }
@@ -1643,10 +1632,9 @@ arenas_extend_ctl(const size_t *mib, size_t miblen, void *oldp, size_t *oldlenp,
 	unsigned pool_ind = mib[1];
 	pool_t *pool;
 
-	if (pool_ind >= POOLS_MAX) {
-		ret = ENOENT;
-		goto label_return;
-	}
+	if (pool_ind >= POOLS_MAX)
+		return (ENOENT);
+
 	pool = pools[pool_ind];
 
 	malloc_mutex_lock(&ctl_mtx);
