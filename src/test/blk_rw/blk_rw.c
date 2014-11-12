@@ -175,6 +175,8 @@ main(int argc, char *argv[])
 	OUT("%s block size %zu usable blocks %zu",
 			argv[1], Bsize, pmemblk_nblock(handle));
 
+	int check_pool = 0;
+
 	/* map each file argument with the given map type */
 	for (int arg = 3; arg < argc; arg++) {
 		if (strchr("rwze", argv[arg][0]) == NULL || argv[arg][1] != ':')
@@ -193,10 +195,12 @@ main(int argc, char *argv[])
 
 		case 'w':
 			construct(buf);
-			if (pmemblk_write(handle, buf, lba) < 0)
+			if (pmemblk_write(handle, buf, lba) < 0) {
 				OUT("!write     lba %zu", lba);
-			else
+			} else {
 				OUT("write     lba %zu: %s", lba, ident(buf));
+				check_pool = 1;
+			}
 			break;
 
 		case 'z':
@@ -207,21 +211,28 @@ main(int argc, char *argv[])
 			break;
 
 		case 'e':
-			if (pmemblk_set_error(handle, lba) < 0)
+			if (pmemblk_set_error(handle, lba) < 0) {
 				OUT("!set_error lba %zu", lba);
-			else
+			} else {
 				OUT("set_error lba %zu", lba);
+				check_pool = 0;
+			}
 			break;
 		}
 	}
 
 	pmemblk_pool_close(handle);
 
-	int result = pmemblk_pool_check(path);
-	if (result < 0)
-		OUT("!%s: pmemblk_pool_check", path);
-	else if (result == 0)
-		OUT("%s: pmemblk_pool_check: not consistent", path);
+	/*
+	 * Do not perform checks if there were no writes to the pool.
+	 */
+	if (check_pool) {
+		int result = pmemblk_pool_check(path);
+		if (result < 0)
+			OUT("!%s: pmemblk_pool_check", path);
+		else if (result == 0)
+			OUT("%s: pmemblk_pool_check: not consistent", path);
+	}
 
 	DONE(NULL);
 }

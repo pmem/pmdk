@@ -218,8 +218,9 @@ util_unmap(void *addr, size_t len)
  * util_checksum -- compute Fletcher64 checksum
  *
  * csump points to where the checksum lives, so that location
- * is treated as zeros while calculating the checksum.  If
- * insert is true, the calculated checksum is inserted into
+ * is treated as zeros while calculating the checksum. The
+ * checksummed data is assumed to be in little endian order.
+ * If insert is true, the calculated checksum is inserted into
  * the range at *csump.  Otherwise the calculated checksum is
  * checked against *csump and the result returned (true means
  * the range checksummed correctly).
@@ -242,18 +243,19 @@ util_checksum(void *addr, size_t len, uint64_t *csump, int insert)
 			p32++;
 			hi32 += lo32;
 		} else {
-			lo32 += *p32++;
+			lo32 += le32toh(*p32);
+			++p32;
 			hi32 += lo32;
 		}
 
 	csum = (uint64_t)hi32 << 32 | lo32;
 
 	if (insert) {
-		*csump = csum;
+		*csump = htole64(csum);
 		return 1;
 	}
 
-	return *csump == csum;
+	return *csump == htole64(csum);
 }
 
 /*

@@ -1,0 +1,13 @@
+Linux NVM Library
+
+This is src/test/blk_check/README.
+
+This directory contains a unit test for pmemblk_check.
+
+The program in blk_check.c takes a file name and a list test ids
+as argument. For example:
+
+	./blk_check file1
+
+this will perform a pemmblk_check on the file named file1 and
+inject hard-wired error conditions.

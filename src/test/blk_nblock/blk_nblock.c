@@ -140,12 +140,6 @@ main(int argc, char *argv[])
 			OUT("%s: block size %zu usable blocks: %zu",
 					fname, bsize, pmemblk_nblock(handle));
 			pmemblk_pool_close(handle);
-			int result = pmemblk_pool_check(fname);
-			if (result < 0)
-				OUT("!%s: pmemblk_pool_check", fname);
-			else if (result == 0)
-				OUT("%s: pmemblk_pool_check: not consistent",
-						fname);
 		}
 	}
 

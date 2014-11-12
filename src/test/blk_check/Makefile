@@ -31,60 +31,20 @@
 #
 
 #
-# src/test/Makefile -- build all unit tests
+# src/test/blk_check/Makefile -- build blk_check unit test
 #
-# Makefile -- build all unit tests
-#
-TEST = blk_nblock\
-       blk_recovery\
-       blk_rw\
-       blk_rw_mt\
-       blk_check\
-       checksum\
-       log_basic\
-       log_recovery\
-       log_walker\
-       pmem_isa_proc\
-       pmem_is_pmem\
-       pmem_is_pmem_proc\
-       pmem_map_raw\
-       scope\
-       traces\
-       traces_custom_function\
-       traces_pmem\
-       util_map_proc\
-       vmem_aligned_alloc\
-       vmem_calloc\
-       vmem_check_allocations\
-       vmem_check_version\
-       vmem_custom_alloc\
-       vmem_freespace\
-       vmem_malloc\
-       vmem_mix_allocations\
-       vmem_multiple_pools\
-       vmem_out_of_memory\
-       vmem_pool_check\
-       vmem_pool_create\
-       vmem_pool_create_error\
-       vmem_pool_create_in_region\
-       vmem_realloc\
-       vmem_stats\
-       vmem_strdup\
-       vmem_valgrind\
-       vmem_pages_purging
+vpath %.c ../..
+vpath %.h ../.. ../../include
+TARGET = blk_check
+OBJS = blk_check.o util.o
 
-all     : TARGET = all
-clean   : TARGET = clean
-clobber : TARGET = clobber
-test    : TARGET = test
-cstyle  : TARGET = cstyle
+LIBPMEM=y
+LIBPMEMBLK=y
 
-all clean clobber test cstyle: $(TEST)
+include ../Makefile.inc
 
-$(TEST): unittest
-	$(MAKE) -C $@ $(TARGET)
+INCS += -I../../
 
-unittest:
-	$(MAKE) -C $@ $(TARGET)
+blk_check.o: blk_check.c util.h
 
-.PHONY: all clean clobber test cstyle unittest $(TEST)
+util.o: util.c util.h

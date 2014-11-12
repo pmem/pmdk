@@ -346,7 +346,6 @@ pmemblk_pool_open_common(const char *path, size_t bsize, int rdonly)
 		uuid_generate(hdrp->uuid);
 		hdrp->crtime = htole64((uint64_t)time(NULL));
 		util_checksum(hdrp, sizeof (*hdrp), &hdrp->checksum, 1);
-		hdrp->checksum = htole64(hdrp->checksum);
 
 		/* store pool's header */
 		pmem_msync(hdrp, sizeof (*hdrp));
@@ -382,7 +381,7 @@ pmemblk_pool_open_common(const char *path, size_t bsize, int rdonly)
 		ncpus = 1;
 
 	bttp = btt_init(pbp->datasize, (uint32_t)bsize, pbp->hdr.uuid,
-			ncpus * 2, pbp, &ns_cb);
+			ncpus * 2, pbp, &ns_cb, rdonly);
 
 	if (bttp == NULL)
 		goto err;	/* btt_init set errno, called LOG */
@@ -494,7 +493,7 @@ pmemblk_read(PMEMblkpool *pbp, void *buf, off_t blockno)
 	int lane = lane_enter(pbp);
 
 	if (lane < 0)
-		return -1;
+		return -1;	/* errno set by lane_enter() */
 
 	int err = btt_read(pbp->bttp, lane, blockno, buf);
 
@@ -520,7 +519,7 @@ pmemblk_write(PMEMblkpool *pbp, const void *buf, off_t blockno)
 	int lane = lane_enter(pbp);
 
 	if (lane < 0)
-		return -1;
+		return -1;	/* errno set by lane_enter() */
 
 	int err = btt_write(pbp->bttp, lane, blockno, buf);
 
@@ -546,7 +545,7 @@ pmemblk_set_zero(PMEMblkpool *pbp, off_t blockno)
 	int lane = lane_enter(pbp);
 
 	if (lane < 0)
-		return -1;
+		return -1;	/* errno set by lane_enter() */
 
 	int err = btt_set_zero(pbp->bttp, lane, blockno);
 
@@ -572,7 +571,7 @@ pmemblk_set_error(PMEMblkpool *pbp, off_t blockno)
 	int lane = lane_enter(pbp);
 
 	if (lane < 0)
-		return -1;
+		return -1;	/* errno set by lane_enter() */
 
 	int err = btt_set_error(pbp->bttp, lane, blockno);
 

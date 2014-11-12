@@ -1,3 +1,4 @@
+#!/bin/bash -e
 #
 # Copyright (c) 2014, Intel Corporation
 #
@@ -31,60 +32,24 @@
 #
 
 #
-# src/test/Makefile -- build all unit tests
+# src/test/blk_check/TEST0 -- unit test for pmemblk_check
 #
-# Makefile -- build all unit tests
-#
-TEST = blk_nblock\
-       blk_recovery\
-       blk_rw\
-       blk_rw_mt\
-       blk_check\
-       checksum\
-       log_basic\
-       log_recovery\
-       log_walker\
-       pmem_isa_proc\
-       pmem_is_pmem\
-       pmem_is_pmem_proc\
-       pmem_map_raw\
-       scope\
-       traces\
-       traces_custom_function\
-       traces_pmem\
-       util_map_proc\
-       vmem_aligned_alloc\
-       vmem_calloc\
-       vmem_check_allocations\
-       vmem_check_version\
-       vmem_custom_alloc\
-       vmem_freespace\
-       vmem_malloc\
-       vmem_mix_allocations\
-       vmem_multiple_pools\
-       vmem_out_of_memory\
-       vmem_pool_check\
-       vmem_pool_create\
-       vmem_pool_create_error\
-       vmem_pool_create_in_region\
-       vmem_realloc\
-       vmem_stats\
-       vmem_strdup\
-       vmem_valgrind\
-       vmem_pages_purging
+export UNITTEST_NAME=blk_check/TEST0
+export UNITTEST_NUM=0
 
-all     : TARGET = all
-clean   : TARGET = clean
-clobber : TARGET = clobber
-test    : TARGET = test
-cstyle  : TARGET = cstyle
+# standard unit test setup
+. ../unittest/unittest.sh
 
-all clean clobber test cstyle: $(TEST)
+# doesn't make sense to run in local directory
+require_fs_type pmem non-pmem
 
-$(TEST): unittest
-	$(MAKE) -C $@ $(TARGET)
+setup
 
-unittest:
-	$(MAKE) -C $@ $(TARGET)
+rm -f $DIR/testfile1
+truncate -s 1G $DIR/testfile1
+expect_normal_exit ./blk_check$EXESUFFIX $DIR/testfile1 0
+rm $DIR/testfile1
 
-.PHONY: all clean clobber test cstyle unittest $(TEST)
+check
+
+pass

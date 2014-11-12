@@ -45,7 +45,8 @@ struct ns_callback {
 };
 
 struct btt *btt_init(uint64_t rawsize, uint32_t lbasize, uint8_t parent_uuid[],
-		int maxlane, void *ns, const struct ns_callback *ns_cbp);
+		int maxlane, void *ns, const struct ns_callback *ns_cbp,
+		int rdonly);
 int btt_nlane(struct btt *bttp);
 size_t btt_nlba(struct btt *bttp);
 int btt_read(struct btt *bttp, int lane, uint64_t lba, void *buf);
