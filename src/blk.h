@@ -60,7 +60,6 @@ struct pmemblk {
 	size_t datasize;		/* size of data area */
 	size_t nlba;			/* number of LBAs in pool */
 	struct btt *bttp;		/* btt handle */
-	struct ns_callback *ns_cbp;	/* callbacks for btt_init() */
 	int nlane;			/* number of lanes */
 	unsigned next_lane;		/* used to rotate through lanes */
 	pthread_mutex_t *locks;		/* one per lane */
