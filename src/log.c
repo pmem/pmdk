@@ -56,53 +56,44 @@
 #include "log.h"
 
 /*
- * pmemlog_pool_open_common -- (internal) open a log memory pool
+ * pmemlog_pool_map_common -- (internal) map a log memory pool
  *
  * This routine does all the work, but takes a rdonly flag so internal
  * calls can map a read-only pool if required.
+ *
+ * If empty flag is set, the file is assumed to be a new memory pool, and
+ * a new pool header is created.  Otherwise, a valid header must exist.
  */
 static PMEMlogpool *
-pmemlog_pool_open_common(const char *path, int rdonly)
+pmemlog_pool_map_common(int fd, size_t poolsize, int rdonly, int empty)
 {
-	LOG(3, "path %s rdonly %d", path, rdonly);
-
-	struct stat stbuf;
-	if (stat(path, &stbuf) < 0) {
-		LOG(1, "!stat %s", path);
-		return NULL;
-	}
-
-	if (stbuf.st_size < PMEMLOG_MIN_POOL) {
-		LOG(1, "size %lld smaller than %zu",
-				(long long)stbuf.st_size, PMEMLOG_MIN_POOL);
-		errno = EINVAL;
-		return NULL;
-	}
-
-	int fd;
-	if ((fd = open(path, O_RDWR)) < 0) {
-		LOG(1, "!open %s", path);
-		return NULL;
-	}
+	LOG(3, "fd %d poolsize %zu rdonly %d empty %d",
+			fd, poolsize, rdonly, empty);
 
 	void *addr;
-	if ((addr = util_map(fd, stbuf.st_size, rdonly)) == NULL) {
-		close(fd);
+	if ((addr = util_map(fd, poolsize, rdonly)) == NULL) {
+		(void) close(fd);
 		return NULL;	/* util_map() set errno, called LOG */
 	}
 
-	close(fd);
+	(void) close(fd);
 
 	/* check if the mapped region is located in persistent memory */
-	int is_pmem = pmem_is_pmem(addr, stbuf.st_size);
+	int is_pmem = pmem_is_pmem(addr, poolsize);
 
 	/* opaque info lives at the beginning of mapped memory pool */
 	struct pmemlog *plp = addr;
-	struct pool_hdr hdr;
 
-	memcpy(&hdr, &plp->hdr, sizeof (hdr));
+	if (!empty) {
+		struct pool_hdr hdr;
 
-	if (util_convert_hdr(&hdr)) {
+		memcpy(&hdr, &plp->hdr, sizeof (hdr));
+
+		if (!util_convert_hdr(&hdr)) {
+			errno = EINVAL;
+			goto err;
+		}
+
 		/*
 		 * valid header found
 		 */
@@ -125,10 +116,10 @@ pmemlog_pool_open_common(const char *path, int rdonly)
 
 		if ((hdr_start != roundup(sizeof (*plp),
 					LOG_FORMAT_DATA_ALIGN)) ||
-			(hdr_end != stbuf.st_size) || (hdr_start > hdr_end)) {
+			(hdr_end != poolsize) || (hdr_start > hdr_end)) {
 			LOG(1, "wrong start/end offsets (start: %ju end: %ju), "
-				"pool size %lld",
-				hdr_start, hdr_end, (long long)stbuf.st_size);
+				"pool size %zu",
+				hdr_start, hdr_end, poolsize);
 			errno = EINVAL;
 			goto err;
 		}
@@ -152,19 +143,29 @@ pmemlog_pool_open_common(const char *path, int rdonly)
 		else if (retval == 0)
 		    rdonly = 1;
 	} else {
-		/*
-		 * no valid header was found
-		 */
-		if (rdonly) {
-			LOG(1, "read-only and no header found");
-			errno = EROFS;
-			goto err;
-		}
 		LOG(3, "creating new log memory pool");
+
+		ASSERTeq(rdonly, 0);
 
 		struct pool_hdr *hdrp = &plp->hdr;
 
-		memset(hdrp, '\0', sizeof (*hdrp));
+		/* check if the pool header is all zero */
+		if (!util_is_zeroed(hdrp, sizeof (*hdrp))) {
+			LOG(1, "Non-empty file detected");
+			errno = EINVAL;
+			goto err;
+		}
+
+		/* create required metadata first */
+		plp->start_offset = htole64(roundup(sizeof (*plp),
+						LOG_FORMAT_DATA_ALIGN));
+		plp->end_offset = htole64(poolsize);
+		plp->write_offset = plp->start_offset;
+
+		/* store non-volatile part of pool's descriptor */
+		pmem_msync(&plp->start_offset, 3 * sizeof (uint64_t));
+
+		/* create pool header */
 		strncpy(hdrp->signature, LOG_HDR_SIG, POOL_HDR_SIG_LEN);
 		hdrp->major = htole32(LOG_FORMAT_MAJOR);
 		hdrp->compat_features = htole32(LOG_FORMAT_COMPAT);
@@ -176,15 +177,6 @@ pmemlog_pool_open_common(const char *path, int rdonly)
 
 		/* store pool's header */
 		pmem_msync(hdrp, sizeof (*hdrp));
-
-		/* create rest of required metadata */
-		plp->start_offset = htole64(roundup(sizeof (*plp),
-						LOG_FORMAT_DATA_ALIGN));
-		plp->end_offset = htole64(stbuf.st_size);
-		plp->write_offset = plp->start_offset;
-
-		/* store non-volatile part of pool's descriptor */
-		pmem_msync(&plp->start_offset, 3 * sizeof (uint64_t));
 	}
 
 	/*
@@ -193,7 +185,7 @@ pmemlog_pool_open_common(const char *path, int rdonly)
 	 * created here, so no need to worry about byte-order.
 	 */
 	plp->addr = addr;
-	plp->size = stbuf.st_size;
+	plp->size = poolsize;
 	plp->rdonly = rdonly;
 	plp->is_pmem = is_pmem;
 
@@ -217,7 +209,7 @@ pmemlog_pool_open_common(const char *path, int rdonly)
 
 	/* the rest should be kept read-only (debug version only) */
 	RANGE_RO(addr + sizeof (struct pool_hdr),
-			stbuf.st_size - sizeof (struct pool_hdr));
+			poolsize - sizeof (struct pool_hdr));
 
 	LOG(3, "plp %p", plp);
 	return plp;
@@ -227,20 +219,48 @@ err_free:
 err:
 	LOG(4, "error clean up");
 	int oerrno = errno;
-	util_unmap(addr, stbuf.st_size);
+	util_unmap(addr, poolsize);
 	errno = oerrno;
 	return NULL;
 }
 
 /*
- * pmemlog_pool_open -- open a log memory pool
+ * pmemlog_pool_create -- create a log memory pool
+ */
+PMEMlogpool *
+pmemlog_pool_create(const char *path, size_t poolsize, mode_t mode)
+{
+	LOG(3, "path %s poolsize %zu mode %d", path, poolsize, mode);
+
+	int fd;
+	if (poolsize != 0) {
+		/* create a new memory pool file */
+		fd = util_pool_create(path, poolsize, PMEMLOG_MIN_POOL, mode);
+	} else {
+		/* open an existing file */
+		fd = util_pool_open(path, &poolsize, PMEMLOG_MIN_POOL);
+	}
+	if (fd == -1)
+		return NULL;	/* errno set by util_pool_create/open() */
+
+	return pmemlog_pool_map_common(fd, poolsize, 0, 1);
+}
+
+/*
+ * pmemlog_pool_open -- open an existing log memory pool
  */
 PMEMlogpool *
 pmemlog_pool_open(const char *path)
 {
 	LOG(3, "path %s", path);
 
-	return pmemlog_pool_open_common(path, 0);
+	size_t poolsize = 0;
+	int fd;
+
+	if ((fd = util_pool_open(path, &poolsize, PMEMLOG_MIN_POOL)) == -1)
+		return NULL;	/* errno set by util_pool_open() */
+
+	return pmemlog_pool_map_common(fd, poolsize, 0, 0);
 }
 
 /*
@@ -581,11 +601,17 @@ pmemlog_pool_check(const char *path)
 {
 	LOG(3, "path \"%s\"", path);
 
-	/* open the pool read-only */
-	PMEMlogpool *plp = pmemlog_pool_open_common(path, 1);
+	size_t poolsize = 0;
+	int fd;
+
+	if ((fd = util_pool_open(path, &poolsize, PMEMLOG_MIN_POOL)) == -1)
+		return -1;	/* errno set by util_pool_open() */
+
+	/* map the pool read-only */
+	PMEMlogpool *plp = pmemlog_pool_map_common(fd, poolsize, 1, 0);
 
 	if (plp == NULL)
-		return -1;	/* errno set by pmemlog_pool_open_common() */
+		return -1;	/* errno set by pmemlog_pool_map_common() */
 
 	int consistent = 1;
 

@@ -4,6 +4,7 @@ pmemblk_check_version
 pmemblk_nblock
 pmemblk_pool_check
 pmemblk_pool_close
+pmemblk_pool_create
 pmemblk_pool_open
 pmemblk_read
 pmemblk_set_error
@@ -15,6 +16,7 @@ pmemblk_check_version
 pmemblk_nblock
 pmemblk_pool_check
 pmemblk_pool_close
+pmemblk_pool_create
 pmemblk_pool_open
 pmemblk_read
 pmemblk_set_error
@@ -26,6 +28,7 @@ pmemblk_check_version
 pmemblk_nblock
 pmemblk_pool_check
 pmemblk_pool_close
+pmemblk_pool_create
 pmemblk_pool_open
 pmemblk_read
 pmemblk_set_error
@@ -37,6 +40,7 @@ pmemblk_check_version
 pmemblk_nblock
 pmemblk_pool_check
 pmemblk_pool_close
+pmemblk_pool_create
 pmemblk_pool_open
 pmemblk_read
 pmemblk_set_error

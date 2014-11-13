@@ -33,8 +33,9 @@
 /*
  * blk_rw.c -- unit test for pmemblk_read/write/set_zero/set_error
  *
- * usage: blk_rw bsize file operation:lba...
+ * usage: blk_rw bsize file func operation:lba...
  *
+ * func is 'c' or 'o' (create or open)
  * operations are 'r' or 'w' or 'z' or 'e'
  *
  */
@@ -161,22 +162,32 @@ main(int argc, char *argv[])
 {
 	START(argc, argv, "blk_rw");
 
-	if (argc < 4)
-		FATAL("usage: %s bsize file op:lba...", argv[0]);
+	if (argc < 5)
+		FATAL("usage: %s bsize file func op:lba...", argv[0]);
 
 	Bsize = strtoul(argv[1], NULL, 0);
 
 	const char *path = argv[2];
 
 	PMEMblkpool *handle;
-	if ((handle = pmemblk_pool_open(path, Bsize)) == NULL)
-		FATAL("!%s: pmemblk_pool_open", path);
+	switch (*argv[3]) {
+		case 'c':
+			handle = pmemblk_pool_create(path, Bsize, 0, S_IWUSR);
+			if (handle == NULL)
+				FATAL("!%s: pmemblk_pool_create", path);
+			break;
+		case 'o':
+			handle = pmemblk_pool_open(path, Bsize);
+			if (handle == NULL)
+				FATAL("!%s: pmemblk_pool_open", path);
+			break;
+	}
 
 	OUT("%s block size %zu usable blocks %zu",
 			argv[1], Bsize, pmemblk_nblock(handle));
 
 	/* map each file argument with the given map type */
-	for (int arg = 3; arg < argc; arg++) {
+	for (int arg = 4; arg < argc; arg++) {
 		if (strchr("rwze", argv[arg][0]) == NULL || argv[arg][1] != ':')
 			FATAL("op must be r: or w: or z: or e:");
 		off_t lba = strtoul(&argv[arg][2], NULL, 0);

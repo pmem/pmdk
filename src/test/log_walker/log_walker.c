@@ -127,8 +127,8 @@ main(int argc, char *argv[])
 
 	CLOSE(fd);
 
-	if ((plp = pmemlog_pool_open(path)) == NULL)
-		FATAL("!pmemlog_pool_open: %s", path);
+	if ((plp = pmemlog_pool_create(path, 0, S_IWUSR)) == NULL)
+		FATAL("!pmemlog_pool_create: %s", path);
 
 	/* append some data */
 	do_append(plp);

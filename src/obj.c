@@ -42,21 +42,202 @@
 #include <stdint.h>
 #include <inttypes.h>
 #include <uuid/uuid.h>
+#include <time.h>
+#include <pthread.h>
+#include <endian.h>
+#include <libpmem.h>
 #include <libpmemobj.h>
 #include "util.h"
 #include "out.h"
 #include "obj.h"
 
 /*
+ * pmemobj_pool_map_common -- (internal) map a transactional memory pool
+ *
+ * This routine does all the work, but takes a rdonly flag so internal
+ * calls can map a read-only pool if required.
+ *
+ * If empty flag is set, the file is assumed to be a new memory pool, and
+ * new pool header is created.  Otherwise, a valid header must exist.
+ */
+static PMEMobjpool *
+pmemobj_pool_map_common(int fd, const char *layout, size_t poolsize, int rdonly,
+		int empty)
+{
+	LOG(3, "fd %d layout %s poolsize %zu rdonly %d empty %d",
+			fd, layout, poolsize, rdonly, empty);
+
+	void *addr;
+	if ((addr = util_map(fd, poolsize, rdonly)) == NULL) {
+		(void) close(fd);
+		return NULL;	/* util_map() set errno, called LOG */
+	}
+
+	(void) close(fd);
+
+	/* check if the mapped region is located in persistent memory */
+	int is_pmem = pmem_is_pmem(addr, poolsize);
+
+	/* opaque info lives at the beginning of mapped memory pool */
+	struct pmemobjpool *pop = addr;
+	struct pool_hdr hdr;
+
+	if (!empty) {
+		memcpy(&hdr, &pop->hdr, sizeof (hdr));
+
+		if (!util_convert_hdr(&hdr)) {
+			errno = EINVAL;
+			goto err;
+		}
+
+		/*
+		 * valid header found
+		 */
+		if (strncmp(hdr.signature, OBJ_HDR_SIG, POOL_HDR_SIG_LEN)) {
+			LOG(1, "wrong pool type: \"%s\"", hdr.signature);
+			errno = EINVAL;
+			goto err;
+		}
+
+		if (hdr.major != OBJ_FORMAT_MAJOR) {
+			LOG(1, "obj pool version %d (library expects %d)",
+				hdr.major, OBJ_FORMAT_MAJOR);
+			errno = EINVAL;
+			goto err;
+		}
+
+		if (layout &&
+		    strncmp(pop->layout, layout, PMEMOBJ_LAYOUT_MAX)) {
+			LOG(1, "wrong layout (\"%s\"), "
+				"pool created with layout \"%s\"",
+				layout, pop->layout);
+			errno = EINVAL;
+			goto err;
+		}
+
+		/* XXX check rest of required metadata */
+
+		int retval = util_feature_check(&hdr, OBJ_FORMAT_INCOMPAT,
+							OBJ_FORMAT_RO_COMPAT,
+							OBJ_FORMAT_COMPAT);
+		if (retval < 0)
+		    goto err;
+		else if (retval == 0)
+		    rdonly = 1;
+	} else {
+		LOG(3, "creating new transactional memory pool");
+
+		ASSERTeq(rdonly, 0);
+
+		struct pool_hdr *hdrp = &pop->hdr;
+
+		/* check if the pool header is all zeros */
+		if (!util_is_zeroed(hdrp, sizeof (*hdrp))) {
+			LOG(1, "Non-empty file detected");
+			errno = EINVAL;
+			goto err;
+		}
+
+		/* create the required metadata first */
+		if (layout) {
+			if (strlen(layout) >= PMEMOBJ_LAYOUT_MAX) {
+				LOG(1, "Layout too long");
+				errno = EINVAL;
+				goto err;
+			}
+			strncpy(pop->layout, layout, PMEMOBJ_LAYOUT_MAX - 1);
+			pmem_msync(pop->layout, sizeof (pop->layout));
+		}
+
+		/* XXX create remaining metadata */
+
+		strncpy(hdrp->signature, OBJ_HDR_SIG, POOL_HDR_SIG_LEN);
+		hdrp->major = htole32(OBJ_FORMAT_MAJOR);
+		hdrp->compat_features = htole32(OBJ_FORMAT_COMPAT);
+		hdrp->incompat_features = htole32(OBJ_FORMAT_INCOMPAT);
+		hdrp->ro_compat_features = htole32(OBJ_FORMAT_RO_COMPAT);
+		uuid_generate(hdrp->uuid);
+		hdrp->crtime = htole64((uint64_t)time(NULL));
+		util_checksum(hdrp, sizeof (*hdrp), &hdrp->checksum, 1);
+
+		/* store pool's header */
+		pmem_msync(hdrp, sizeof (*hdrp));
+	}
+
+	/*
+	 * Use some of the memory pool area for run-time info.  This
+	 * run-time state is never loaded from the file, it is always
+	 * created here, so no need to worry about byte-order.
+	 */
+	pop->addr = addr;
+	pop->size = poolsize;
+	pop->rdonly = rdonly;
+	pop->is_pmem = is_pmem;
+
+	/* XXX the rest of run-time info */
+
+	/*
+	 * If possible, turn off all permissions on the pool header page.
+	 *
+	 * The prototype PMFS doesn't allow this when large pages are in
+	 * use. It is not considered an error if this fails.
+	 */
+	util_range_none(addr, sizeof (struct pool_hdr));
+
+	/* the rest should be kept read-only (debug version only) */
+	RANGE_RO(addr + sizeof (struct pool_hdr),
+			poolsize - sizeof (struct pool_hdr));
+
+	LOG(3, "pop %p", pop);
+	return pop;
+
+err:
+	LOG(4, "error clean up");
+	int oerrno = errno;
+	util_unmap(addr, poolsize);
+	errno = oerrno;
+	return NULL;
+}
+
+/*
+ * pmemobj_pool_create -- create a transactional memory pool
+ */
+PMEMobjpool *
+pmemobj_pool_create(const char *path, const char *layout, size_t poolsize,
+		mode_t mode)
+{
+	LOG(3, "path %s layout %s poolsize %zu mode %d",
+			path, layout, poolsize, mode);
+
+	int fd;
+	if (poolsize != 0) {
+		/* create a new memory pool file */
+		fd = util_pool_create(path, poolsize, PMEMOBJ_MIN_POOL, mode);
+	} else {
+		/* open an existing file */
+		fd = util_pool_open(path, &poolsize, PMEMOBJ_MIN_POOL);
+	}
+	if (fd == -1)
+		return NULL;	/* errno set by util_pool_create/open() */
+
+	return pmemobj_pool_map_common(fd, layout, poolsize, 0, 1);
+}
+
+/*
  * pmemobj_pool_open -- open a transactional memory pool
  */
 PMEMobjpool *
-pmemobj_pool_open(const char *path)
+pmemobj_pool_open(const char *path, const char *layout)
 {
-	LOG(3, "path \"%s\"", path);
+	LOG(3, "path %s layout %s", path, layout);
 
-	/* XXX stub */
-	return NULL;
+	size_t poolsize = 0;
+	int fd;
+
+	if ((fd = util_pool_open(path, &poolsize, PMEMOBJ_MIN_POOL)) == -1)
+		return NULL;	/* errno set by util_pool_open() */
+
+	return pmemobj_pool_map_common(fd, layout, poolsize, 0, 0);
 }
 
 /*
@@ -68,16 +249,38 @@ pmemobj_pool_close(PMEMobjpool *pop)
 	LOG(3, "pop %p", pop);
 
 	/* XXX stub */
+
+	util_unmap(pop->addr, pop->size);
 }
 
 /*
  * pmemobj_pool_check -- transactional memory pool consistency check
  */
 int
-pmemobj_pool_check(const char *path)
+pmemobj_pool_check(const char *path, const char *layout)
 {
-	LOG(3, "path \"%s\"", path);
+	LOG(3, "path %s layout %s", path, layout);
 
-	/* XXX stub */
-	return 0;
+	size_t poolsize = 0;
+	int fd;
+
+	if ((fd = util_pool_open(path, &poolsize, PMEMOBJ_MIN_POOL)) == -1)
+		return -1;	/* errno set by util_pool_open() */
+
+	/* map the pool read-only */
+	PMEMobjpool *pop = pmemobj_pool_map_common(fd, layout, poolsize, 1, 0);
+
+	if (pop == NULL)
+		return -1;	/* errno set by pmemobj_pool_map_common() */
+
+	int consistent = 1;
+
+	/* XXX validate metadata */
+
+	pmemobj_pool_close(pop);
+
+	if (consistent)
+		LOG(4, "pool consistency check OK");
+
+	return consistent;
 }

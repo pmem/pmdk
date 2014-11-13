@@ -235,60 +235,52 @@ static const struct ns_callback ns_cb = {
 };
 
 /*
- * pmemblk_pool_open_common -- (internal) open a block memory pool
+ * pmemblk_pool_map_common -- (internal) map a block memory pool
  *
  * This routine does all the work, but takes a rdonly flag so internal
  * calls can map a read-only pool if required.
+ *
+ * If empty flag is set, the file is assumed to be a new memory pool, and
+ * a new pool header is created.  Otherwise, a valid pool header must exist.
  *
  * Passing in bsize == 0 means a valid pool header must exist (which
  * will supply the block size).
  */
 static PMEMblkpool *
-pmemblk_pool_open_common(const char *path, size_t bsize, int rdonly)
+pmemblk_pool_map_common(int fd, size_t poolsize, size_t bsize, int rdonly,
+		int empty)
 {
-	LOG(3, "path %s bsize %zu rdonly %d", path, bsize, rdonly);
+	LOG(3, "fd %d poolsize %zu bsize %zu rdonly %d empty %d",
+			fd, poolsize, bsize, rdonly, empty);
 
 	/* things free by "goto err" if not NULL */
 	struct btt *bttp = NULL;
 	pthread_mutex_t *locks = NULL;
 
-	struct stat stbuf;
-	if (stat(path, &stbuf) < 0) {
-		LOG(1, "!stat %s", path);
-		return NULL;
-	}
-
-	if (stbuf.st_size < PMEMBLK_MIN_POOL) {
-		LOG(1, "size %lld smaller than %zu",
-				(long long)stbuf.st_size, PMEMBLK_MIN_POOL);
-		errno = EINVAL;
-		return NULL;
-	}
-
-	int fd;
-	if ((fd = open(path, O_RDWR)) < 0) {
-		LOG(1, "!open %s", path);
-		return NULL;
-	}
-
 	void *addr;
-	if ((addr = util_map(fd, stbuf.st_size, rdonly)) == NULL) {
-		close(fd);
+	if ((addr = util_map(fd, poolsize, rdonly)) == NULL) {
+		(void) close(fd);
 		return NULL;	/* util_map() set errno, called LOG */
 	}
 
-	close(fd);
+	(void) close(fd);
 
 	/* check if the mapped region is located in persistent memory */
-	int is_pmem = pmem_is_pmem(addr, stbuf.st_size);
+	int is_pmem = pmem_is_pmem(addr, poolsize);
 
 	/* opaque info lives at the beginning of mapped memory pool */
 	struct pmemblk *pbp = addr;
 
-	struct pool_hdr hdr;
-	memcpy(&hdr, &pbp->hdr, sizeof (hdr));
+	if (!empty) {
+		struct pool_hdr hdr;
 
-	if (util_convert_hdr(&hdr)) {
+		memcpy(&hdr, &pbp->hdr, sizeof (hdr));
+
+		if (!util_convert_hdr(&hdr)) {
+			errno = EINVAL;
+			goto err;
+		}
+
 		/*
 		 * valid header found
 		 */
@@ -325,19 +317,31 @@ pmemblk_pool_open_common(const char *path, size_t bsize, int rdonly)
 		else if (retval == 0)
 		    rdonly = 1;
 	} else {
-		/*
-		 * no valid header was found
-		 */
-		if (rdonly) {
-			LOG(1, "read-only and no header found");
-			errno = EROFS;
-			goto err;
-		}
 		LOG(3, "creating new blk memory pool");
+
+		ASSERTeq(rdonly, 0);
 
 		struct pool_hdr *hdrp = &pbp->hdr;
 
-		memset(hdrp, '\0', sizeof (*hdrp));
+		/* check if the pool header is all zero */
+		if (!util_is_zeroed(hdrp, sizeof (*hdrp))) {
+			LOG(1, "Non-empty file detected");
+			errno = EINVAL;
+			goto err;
+		}
+
+		/* check if bsize is valid */
+		if (bsize == 0) {
+			LOG(1, "Invalid block size %zu", bsize);
+			errno = EINVAL;
+			goto err;
+		}
+
+		/* create the required metadata first */
+		pbp->bsize = htole32(bsize);
+		pmem_msync(&pbp->bsize, sizeof (bsize));
+
+		/* create pool header */
 		strncpy(hdrp->signature, BLK_HDR_SIG, POOL_HDR_SIG_LEN);
 		hdrp->major = htole32(BLK_FORMAT_MAJOR);
 		hdrp->compat_features = htole32(BLK_FORMAT_COMPAT);
@@ -349,16 +353,6 @@ pmemblk_pool_open_common(const char *path, size_t bsize, int rdonly)
 
 		/* store pool's header */
 		pmem_msync(hdrp, sizeof (*hdrp));
-
-		/* check if bsize is valid */
-		if (bsize == 0) {
-			LOG(1, "Invalid block size %lu", bsize);
-			errno = EINVAL;
-			goto err;
-		}
-		/* create rest of required metadata */
-		pbp->bsize = htole32(bsize);
-		pmem_msync(&pbp->bsize, sizeof (bsize));
 	}
 
 	/*
@@ -367,7 +361,7 @@ pmemblk_pool_open_common(const char *path, size_t bsize, int rdonly)
 	 * created here, so no need to worry about byte-order.
 	 */
 	pbp->addr = addr;
-	pbp->size = stbuf.st_size;
+	pbp->size = poolsize;
 	pbp->rdonly = rdonly;
 	pbp->is_pmem = is_pmem;
 	pbp->data = addr + roundup(sizeof (*pbp), BLK_FORMAT_DATA_ALIGN);
@@ -432,9 +426,33 @@ err:
 		Free((void *)locks);
 	if (bttp)
 		btt_fini(bttp);
-	util_unmap(addr, stbuf.st_size);
+	util_unmap(addr, poolsize);
 	errno = oerrno;
 	return NULL;
+}
+
+/*
+ * pmemblk_pool_create -- create a block memory pool
+ */
+PMEMblkpool *
+pmemblk_pool_create(const char *path, size_t bsize, size_t poolsize,
+		mode_t mode)
+{
+	LOG(3, "path %s bsize %zu poolsize %zu mode %d",
+			path, bsize, poolsize, mode);
+
+	int fd;
+	if (poolsize != 0) {
+		/* create a new memory pool file */
+		fd = util_pool_create(path, poolsize, PMEMBLK_MIN_POOL, mode);
+	} else {
+		/* open an existing file */
+		fd = util_pool_open(path, &poolsize, PMEMBLK_MIN_POOL);
+	}
+	if (fd == -1)
+		return NULL;	/* errno set by util_pool_create/open() */
+
+	return pmemblk_pool_map_common(fd, poolsize, bsize, 0, 1);
 }
 
 /*
@@ -445,7 +463,13 @@ pmemblk_pool_open(const char *path, size_t bsize)
 {
 	LOG(3, "path %s bsize %zu", path, bsize);
 
-	return pmemblk_pool_open_common(path, bsize, 0);
+	size_t poolsize = 0;
+	int fd;
+
+	if ((fd = util_pool_open(path, &poolsize, PMEMBLK_MIN_POOL)) == -1)
+		return NULL;	/* errno set by util_pool_open() */
+
+	return pmemblk_pool_map_common(fd, poolsize, bsize, 0, 0);
 }
 
 /*
@@ -588,11 +612,17 @@ pmemblk_pool_check(const char *path)
 {
 	LOG(3, "path \"%s\"", path);
 
-	/* open the pool read-only */
-	PMEMblkpool *pbp = pmemblk_pool_open_common(path, 0, 1);
+	size_t poolsize = 0;
+	int fd;
+
+	if ((fd = util_pool_open(path, &poolsize, PMEMBLK_MIN_POOL)) == -1)
+		return -1;	/* errno set by util_pool_open() */
+
+	/* map the pool read-only */
+	PMEMblkpool *pbp = pmemblk_pool_map_common(fd, poolsize, 0, 1, 0);
 
 	if (pbp == NULL)
-		return -1;	/* errno set by pmemblk_pool_open_common() */
+		return -1;	/* errno set by pmemblk_pool_map_common() */
 
 	int retval = btt_check(pbp->bttp);
 	int oerrno = errno;

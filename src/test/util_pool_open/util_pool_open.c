@@ -31,74 +31,39 @@
  */
 
 /*
- * libpmemobj.c -- pmem entry points for libpmemobj
- */
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
-
-#include "libpmemobj.h"
-#include "util.h"
-#include "out.h"
-#include "obj.h"
-
-/*
- * libpmemobj_init -- load-time initialization for obj
+ * util_pool_open.c -- unit test for util_pool_open()
  *
- * Called automatically by the run-time loader.
+ * usage: util_pool_open minlen path [path]...
  */
-__attribute__((constructor))
-static void
-libpmemobj_init(void)
+
+#define	_GNU_SOURCE
+
+#include <dlfcn.h>
+#include "unittest.h"
+#include "util.h"
+
+
+int
+main(int argc, char *argv[])
 {
-	out_init(PMEMOBJ_LOG_PREFIX, PMEMOBJ_LOG_LEVEL_VAR,
-		PMEMOBJ_LOG_FILE_VAR);
-	LOG(3, NULL);
-	util_init();
-}
+	START(argc, argv, "util_pool_open");
 
-/*
- * pmemobj_check_version -- see if lib meets application version requirements
- */
-const char *
-pmemobj_check_version(unsigned major_required, unsigned minor_required)
-{
-	LOG(3, "major_required %u minor_required %u",
-			major_required, minor_required);
+	if (argc < 3)
+		FATAL("usage: %s minlen path...", argv[0]);
 
-	static char errstr[] =
-		"libpmemobj major version mismatch (need XXXX, found YYYY)";
+	char *fname;
+	size_t minsize = strtoul(argv[1], &fname, 0);
 
-	if (major_required != PMEMOBJ_MAJOR_VERSION) {
-		sprintf(errstr,
-			"libpmemobj major version mismatch (need %d, found %d)",
-			major_required, PMEMOBJ_MAJOR_VERSION);
-		LOG(1, "%s", errstr);
-		return errstr;
+	for (int arg = 2; arg < argc; arg++) {
+		size_t size = 0;
+		int fd;
+		if ((fd = util_pool_open(argv[arg], &size, minsize)) == -1)
+			OUT("!%s: util_pool_open", argv[arg]);
+		else {
+			OUT("%s: open, len %zu", argv[arg], size);
+			close(fd);
+		}
 	}
 
-	if (minor_required > PMEMOBJ_MINOR_VERSION) {
-		sprintf(errstr,
-			"libpmemobj minor version mismatch (need %d, found %d)",
-			minor_required, PMEMOBJ_MINOR_VERSION);
-		LOG(1, "%s", errstr);
-		return errstr;
-	}
-
-	return NULL;
-}
-
-/*
- * pmemobj_set_funcs -- allow overriding libpmemobj's call to malloc, etc.
- */
-void
-pmemobj_set_funcs(
-		void *(*malloc_func)(size_t size),
-		void (*free_func)(void *ptr))
-{
-	LOG(3, NULL);
-
-	util_set_alloc_funcs(malloc_func, free_func, NULL, NULL);
+	DONE(NULL);
 }

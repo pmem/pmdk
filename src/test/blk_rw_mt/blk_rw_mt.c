@@ -119,8 +119,8 @@ main(int argc, char *argv[])
 
 	const char *path = argv[2];
 
-	if ((Handle = pmemblk_pool_open(path, Bsize)) == NULL)
-		FATAL("!%s: pmemblk_pool_open", path);
+	if ((Handle = pmemblk_pool_create(path, Bsize, 0, S_IWUSR)) == NULL)
+		FATAL("!%s: pmemblk_pool_create", path);
 
 	if (Nblock == 0)
 		Nblock = pmemblk_nblock(Handle);
