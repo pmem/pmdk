@@ -61,7 +61,7 @@ main(int argc, char *argv[])
 	size_t pool_id;
 
 	for (pool_id = 0; pool_id < mem_pools_size; ++pool_id) {
-		/* allocate memory for function vmem_pool_create_in_region() */
+		/* allocate memory for function vmem_create_in_region() */
 		mem_pools[pool_id] = MMAP(NULL, VMEM_MIN_POOL,
 			PROT_READ|PROT_WRITE, MAP_ANONYMOUS|MAP_PRIVATE, -1, 0);
 	}
@@ -71,22 +71,22 @@ main(int argc, char *argv[])
 
 			/* delete old pool with this same id if exist */
 			if (pools[pool_id] != NULL) {
-				vmem_pool_delete(pools[pool_id]);
+				vmem_delete(pools[pool_id]);
 				pools[pool_id] = NULL;
 			}
 
 			if (pool_id % 2 == 0) {
 				/* for even pool_id, create in region */
-				pools[pool_id] = vmem_pool_create_in_region(
+				pools[pool_id] = vmem_create_in_region(
 					mem_pools[pool_id / 2], VMEM_MIN_POOL);
 				if (pools[pool_id] == NULL)
-					FATAL("!vmem_pool_create_in_region");
+					FATAL("!vmem_create_in_region");
 			} else {
 				/* for odd pool_id, create in file */
-				pools[pool_id] = vmem_pool_create(dir,
+				pools[pool_id] = vmem_create(dir,
 					VMEM_MIN_POOL);
 				if (pools[pool_id] == NULL)
-					FATAL("!vmem_pool_create");
+					FATAL("!vmem_create");
 			}
 
 			void *test = vmem_malloc(pools[pool_id],
@@ -99,7 +99,7 @@ main(int argc, char *argv[])
 
 	for (pool_id = 0; pool_id < TEST_POOLS_MAX; ++pool_id) {
 		if (pools[pool_id] != NULL) {
-			vmem_pool_delete(pools[pool_id]);
+			vmem_delete(pools[pool_id]);
 			pools[pool_id] = NULL;
 		}
 	}

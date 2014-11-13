@@ -12,9 +12,9 @@ pmemlog_appendv() will be used to do that. For example:
 
 	./log_recovery file1 a
 
-this will call pmemlog_pool_open() on file1, call pmemlog_append() to append
+this will call pmemlog_open() on file1, call pmemlog_append() to append
 six strings to the log and pmemlog_tell() to check the current write point,
 then it will change the memory protection on the metadata area to read-only.
 Next, pmemlog_append() is called again and SIGSEGV is caught and reported.
-Finally, pmemblk_pool_check() and pmemlog_tell() are called to make sure
-there are no partial log entries.
+Finally, pmemblk_check() and pmemlog_tell() are called to make sure there are
+no partial log entries.

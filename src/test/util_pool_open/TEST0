@@ -57,12 +57,12 @@ rm -f $DIR/testlink4
 rm -f $DIR/testlink5
 rm -fr $DIR/testdir1
 
-truncate -s 16M $DIR/testfile1
+truncate -s 32K $DIR/testfile1
 chmod -rw $DIR/testfile1
-truncate -s 16M $DIR/testfile2
+truncate -s 32K $DIR/testfile2
 chmod -w $DIR/testfile2
 truncate -s 1K $DIR/testfile3
-truncate -s 16M $DIR/testfile4
+truncate -s 32K $DIR/testfile4
 mkdir $DIR/testdir1
 ln -s $DIR/testfile0 $DIR/testlink1
 ln -s $DIR/testfile1 $DIR/testlink2

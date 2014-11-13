@@ -134,17 +134,17 @@ main(int argc, char *argv[])
 	}
 
 	if (dir == NULL) {
-		/* allocate memory for function vmem_pool_create_in_region() */
+		/* allocate memory for function vmem_create_in_region() */
 		void *mem_pool = MMAP(NULL, VMEM_MIN_POOL, PROT_READ|PROT_WRITE,
 					MAP_ANONYMOUS|MAP_PRIVATE, -1, 0);
 
-		vmp = vmem_pool_create_in_region(mem_pool, VMEM_MIN_POOL);
+		vmp = vmem_create_in_region(mem_pool, VMEM_MIN_POOL);
 		if (vmp == NULL)
-			FATAL("!vmem_pool_create_in_region");
+			FATAL("!vmem_create_in_region");
 	} else {
-		vmp = vmem_pool_create(dir, VMEM_MIN_POOL);
+		vmp = vmem_create(dir, VMEM_MIN_POOL);
 		if (vmp == NULL)
-			FATAL("!vmem_pool_create");
+			FATAL("!vmem_create");
 	}
 
 	switch (test_case) {
@@ -155,7 +155,7 @@ main(int argc, char *argv[])
 				FATAL("!vmem_malloc");
 
 			vmem_free(vmp, ptr);
-			vmem_pool_delete(vmp);
+			vmem_delete(vmp);
 			break;
 		}
 		case 1: {
@@ -173,7 +173,7 @@ main(int argc, char *argv[])
 			if (ptr == NULL)
 				FATAL("!vmem_malloc");
 
-			vmem_pool_delete(vmp);
+			vmem_delete(vmp);
 
 			/* prevent reporting leaked memory as still reachable */
 			ptr = NULL;
@@ -199,7 +199,7 @@ main(int argc, char *argv[])
 			ptr[12] = 7;
 
 			vmem_free(vmp, ptr);
-			vmem_pool_delete(vmp);
+			vmem_delete(vmp);
 			break;
 		}
 		default: {

@@ -69,11 +69,11 @@ const char *pmemblk_check_version(
 #define	PMEMBLK_MIN_POOL ((size_t)(1 << 30))	/* min pool size: 1GB */
 #define	PMEMBLK_MIN_BLK ((size_t)512)
 
-PMEMblkpool *pmemblk_pool_open(const char *path, size_t bsize);
-PMEMblkpool *pmemblk_pool_create(const char *path, size_t bsize,
+PMEMblkpool *pmemblk_open(const char *path, size_t bsize);
+PMEMblkpool *pmemblk_create(const char *path, size_t bsize,
 		size_t poolsize, mode_t mode);
-void pmemblk_pool_close(PMEMblkpool *pbp);
-int pmemblk_pool_check(const char *path);
+void pmemblk_close(PMEMblkpool *pbp);
+int pmemblk_check(const char *path);
 size_t pmemblk_nblock(PMEMblkpool *pbp);
 int pmemblk_read(PMEMblkpool *pbp, void *buf, off_t blockno);
 int pmemblk_write(PMEMblkpool *pbp, const void *buf, off_t blockno);

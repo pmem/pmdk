@@ -134,19 +134,18 @@ main(int argc, char *argv[])
 		fname++;
 
 		PMEMblkpool *handle;
-		handle = pmemblk_pool_create(fname, bsize, 0, S_IWUSR);
+		handle = pmemblk_create(fname, bsize, 0, S_IWUSR);
 		if (handle == NULL) {
-			OUT("!%s: pmemblk_pool_create", fname);
+			OUT("!%s: pmemblk_create", fname);
 		} else {
 			OUT("%s: block size %zu usable blocks: %zu",
 					fname, bsize, pmemblk_nblock(handle));
-			pmemblk_pool_close(handle);
-			int result = pmemblk_pool_check(fname);
+			pmemblk_close(handle);
+			int result = pmemblk_check(fname);
 			if (result < 0)
-				OUT("!%s: pmemblk_pool_check", fname);
+				OUT("!%s: pmemblk_check", fname);
 			else if (result == 0)
-				OUT("%s: pmemblk_pool_check: not consistent",
-						fname);
+				OUT("%s: pmemblk_check: not consistent", fname);
 		}
 	}
 

@@ -55,12 +55,12 @@ typedef struct vmem VMEM;	/* opaque type internal to libvmem */
 
 #define	VMEM_MIN_POOL ((size_t)(1024 * 1024 * 14)) /* min pool size: 14MB */
 
-VMEM *vmem_pool_create(const char *dir, size_t size);
-VMEM *vmem_pool_create_in_region(void *addr, size_t size);
-void vmem_pool_delete(VMEM *vmp);
-int vmem_pool_check(VMEM *vmp);
-size_t vmem_pool_freespace(VMEM *vmp);
-void vmem_pool_stats_print(VMEM *vmp, const char *opts);
+VMEM *vmem_create(const char *dir, size_t size);
+VMEM *vmem_create_in_region(void *addr, size_t size);
+void vmem_delete(VMEM *vmp);
+int vmem_check(VMEM *vmp);
+size_t vmem_freespace(VMEM *vmp);
+void vmem_stats_print(VMEM *vmp, const char *opts);
 
 /*
  * support for malloc and friends...
@@ -96,7 +96,7 @@ const char *vmem_check_version(
  *
  * The print_func is called by libvmem based on the environment
  * variable VMEM_LOG_LEVEL:
- * 	0 or unset: print_func is only called for vmem_pool_stats_print()
+ * 	0 or unset: print_func is only called for vmem_stats_print()
  * 	1:          additional details are logged when errors are returned
  * 	2:          basic operations (allocations/frees) are logged
  * 	3:          produce very verbose tracing of function calls in libvmem

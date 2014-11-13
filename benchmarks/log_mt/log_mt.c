@@ -141,8 +141,8 @@ main(int argc, char *argv[])
 			exit(1);
 		}
 
-		if ((plp = pmemlog_pool_open(args.file_name)) == NULL) {
-			perror("pmemlog_pool_open");
+		if ((plp = pmemlog_open(args.file_name)) == NULL) {
+			perror("pmemlog_open");
 			exit(1);
 		}
 		Tasks = Tasks_pmemlog;
@@ -173,7 +173,7 @@ main(int argc, char *argv[])
 	if (args.fileio_mode) {
 		close(fd);
 	} else {
-		pmemlog_pool_close(plp);
+		pmemlog_close(plp);
 	}
 
 	(fails == 0) ? exit(0) : exit(1);

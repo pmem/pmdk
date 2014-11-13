@@ -302,14 +302,14 @@ main(int argc, char *argv[])
 				}
 				/* suppress valgrind warnings */
 				memset(pools_data[i], 0xFF, pool_size);
-				pools[i] = vmem_pool_create_in_region(
+				pools[i] = vmem_create_in_region(
 						pools_data[i], pool_size);
 			} else {
-				pools[i] = vmem_pool_create(arguments.dir_path,
+				pools[i] = vmem_create(arguments.dir_path,
 						pool_size);
 			}
 			if (pools[i] == NULL) {
-				perror("vmem_pool_create");
+				perror("vmem_create");
 				free(allocated_mem);
 				return EXIT_FAILURE;
 			}
@@ -334,7 +334,7 @@ main(int argc, char *argv[])
 
 	if (arguments.allocator == ALLOCATOR_VMEM) {
 		for (i = 0; i < pools_count; ++i) {
-			vmem_pool_delete(pools[i]);
+			vmem_delete(pools[i]);
 			if (arguments.dir_path == NULL) {
 				if (pools_data[i] != NULL)
 					munmap(pools_data[i], pool_size);

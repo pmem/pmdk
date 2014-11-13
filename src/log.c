@@ -56,7 +56,7 @@
 #include "log.h"
 
 /*
- * pmemlog_pool_map_common -- (internal) map a log memory pool
+ * pmemlog_map_common -- (internal) map a log memory pool
  *
  * This routine does all the work, but takes a rdonly flag so internal
  * calls can map a read-only pool if required.
@@ -65,7 +65,7 @@
  * a new pool header is created.  Otherwise, a valid header must exist.
  */
 static PMEMlogpool *
-pmemlog_pool_map_common(int fd, size_t poolsize, int rdonly, int empty)
+pmemlog_map_common(int fd, size_t poolsize, int rdonly, int empty)
 {
 	LOG(3, "fd %d poolsize %zu rdonly %d empty %d",
 			fd, poolsize, rdonly, empty);
@@ -225,10 +225,10 @@ err:
 }
 
 /*
- * pmemlog_pool_create -- create a log memory pool
+ * pmemlog_create -- create a log memory pool
  */
 PMEMlogpool *
-pmemlog_pool_create(const char *path, size_t poolsize, mode_t mode)
+pmemlog_create(const char *path, size_t poolsize, mode_t mode)
 {
 	LOG(3, "path %s poolsize %zu mode %d", path, poolsize, mode);
 
@@ -243,14 +243,14 @@ pmemlog_pool_create(const char *path, size_t poolsize, mode_t mode)
 	if (fd == -1)
 		return NULL;	/* errno set by util_pool_create/open() */
 
-	return pmemlog_pool_map_common(fd, poolsize, 0, 1);
+	return pmemlog_map_common(fd, poolsize, 0, 1);
 }
 
 /*
- * pmemlog_pool_open -- open an existing log memory pool
+ * pmemlog_open -- open an existing log memory pool
  */
 PMEMlogpool *
-pmemlog_pool_open(const char *path)
+pmemlog_open(const char *path)
 {
 	LOG(3, "path %s", path);
 
@@ -260,14 +260,14 @@ pmemlog_pool_open(const char *path)
 	if ((fd = util_pool_open(path, &poolsize, PMEMLOG_MIN_POOL)) == -1)
 		return NULL;	/* errno set by util_pool_open() */
 
-	return pmemlog_pool_map_common(fd, poolsize, 0, 0);
+	return pmemlog_map_common(fd, poolsize, 0, 0);
 }
 
 /*
- * pmemlog_pool_close -- close a log memory pool
+ * pmemlog_close -- close a log memory pool
  */
 void
-pmemlog_pool_close(PMEMlogpool *plp)
+pmemlog_close(PMEMlogpool *plp)
 {
 	LOG(3, "plp %p", plp);
 
@@ -591,13 +591,13 @@ pmemlog_walk(PMEMlogpool *plp, size_t chunksize,
 }
 
 /*
- * pmemlog_pool_check -- log memory pool consistency check
+ * pmemlog_check -- log memory pool consistency check
  *
  * Returns true if consistent, zero if inconsistent, -1/error if checking
  * cannot happen due to other errors.
  */
 int
-pmemlog_pool_check(const char *path)
+pmemlog_check(const char *path)
 {
 	LOG(3, "path \"%s\"", path);
 
@@ -608,10 +608,10 @@ pmemlog_pool_check(const char *path)
 		return -1;	/* errno set by util_pool_open() */
 
 	/* map the pool read-only */
-	PMEMlogpool *plp = pmemlog_pool_map_common(fd, poolsize, 1, 0);
+	PMEMlogpool *plp = pmemlog_map_common(fd, poolsize, 1, 0);
 
 	if (plp == NULL)
-		return -1;	/* errno set by pmemlog_pool_map_common() */
+		return -1;	/* errno set by pmemlog_map_common() */
 
 	int consistent = 1;
 
@@ -645,7 +645,7 @@ pmemlog_pool_check(const char *path)
 		consistent = 0;
 	}
 
-	pmemlog_pool_close(plp);
+	pmemlog_close(plp);
 
 	if (consistent)
 		LOG(4, "pool consistency check OK");

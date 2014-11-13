@@ -57,27 +57,27 @@ main(int argc, char *argv[])
 	mem_pool = MMAP(NULL, VMEM_MIN_POOL, PROT_READ|PROT_WRITE,
 				MAP_ANONYMOUS|MAP_PRIVATE, -1, 0);
 
-	vmp_unused = vmem_pool_create_in_region(mem_pool, VMEM_MIN_POOL);
+	vmp_unused = vmem_create_in_region(mem_pool, VMEM_MIN_POOL);
 	if (vmp_unused == NULL)
-		FATAL("!vmem_pool_create_in_region");
+		FATAL("!vmem_create_in_region");
 
 	mem_pool = MMAP(NULL, VMEM_MIN_POOL, PROT_READ|PROT_WRITE,
 					MAP_ANONYMOUS|MAP_PRIVATE, -1, 0);
 
-	vmp_used = vmem_pool_create_in_region(mem_pool, VMEM_MIN_POOL);
+	vmp_used = vmem_create_in_region(mem_pool, VMEM_MIN_POOL);
 	if (vmp_used == NULL)
-		FATAL("!vmem_pool_create_in_region");
+		FATAL("!vmem_create_in_region");
 
 	int *test = vmem_malloc(vmp_used, sizeof (int)*100);
 	ASSERTne(test, NULL);
 
-	vmem_pool_stats_print(vmp_unused, opts);
-	vmem_pool_stats_print(vmp_used, opts);
+	vmem_stats_print(vmp_unused, opts);
+	vmem_stats_print(vmp_used, opts);
 
 	vmem_free(vmp_used, test);
 
-	vmem_pool_delete(vmp_unused);
-	vmem_pool_delete(vmp_used);
+	vmem_delete(vmp_unused);
+	vmem_delete(vmp_used);
 
 	DONE(NULL);
 }

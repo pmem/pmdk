@@ -36,10 +36,10 @@ libpmemblk.so {
 	global:
 		pmemblk_check_version;
 		pmemblk_set_funcs;
-		pmemblk_pool_create;
-		pmemblk_pool_open;
-		pmemblk_pool_close;
-		pmemblk_pool_check;
+		pmemblk_create;
+		pmemblk_open;
+		pmemblk_close;
+		pmemblk_check;
 		pmemblk_nblock;
 		pmemblk_read;
 		pmemblk_write;

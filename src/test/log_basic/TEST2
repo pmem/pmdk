@@ -40,9 +40,9 @@
 # - pmemlog_walk
 # - pmemlog_rewind
 # in case of non-empty pool and
-# - pmemlog_pool_check
-# - pmemlog_pool_open
-# - pmemlog_pool_close
+# - pmemlog_check
+# - pmemlog_open
+# - pmemlog_close
 #
 export UNITTEST_NAME=log_basic/TEST2
 export UNITTEST_NUM=2

@@ -79,9 +79,9 @@ main(int argc, char *argv[])
 		usage(argv[0]);
 	}
 
-	vmp = vmem_pool_create(dir, VMEM_MIN_POOL);
+	vmp = vmem_create(dir, VMEM_MIN_POOL);
 	if (vmp == NULL)
-		FATAL("!vmem_pool_create");
+		FATAL("!vmem_create");
 
 	for (i = 0; i < n; i++) {
 		int *test = NULL;
@@ -104,7 +104,7 @@ main(int argc, char *argv[])
 		vmem_free(vmp, test);
 	}
 
-	vmem_pool_delete(vmp);
+	vmem_delete(vmp);
 
 	DONE(NULL);
 }

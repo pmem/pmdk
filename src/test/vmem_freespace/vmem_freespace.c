@@ -54,20 +54,20 @@ main(int argc, char *argv[])
 	}
 
 	if (dir == NULL) {
-		/* allocate memory for function vmem_pool_create_in_region() */
+		/* allocate memory for function vmem_create_in_region() */
 		void *mem_pool = MMAP(NULL, VMEM_MIN_POOL, PROT_READ|PROT_WRITE,
 					MAP_ANONYMOUS|MAP_PRIVATE, -1, 0);
 
-		vmp = vmem_pool_create_in_region(mem_pool, VMEM_MIN_POOL);
+		vmp = vmem_create_in_region(mem_pool, VMEM_MIN_POOL);
 		if (vmp == NULL)
-			FATAL("!vmem_pool_create_in_region");
+			FATAL("!vmem_create_in_region");
 	} else {
-		vmp = vmem_pool_create(dir, VMEM_MIN_POOL);
+		vmp = vmem_create(dir, VMEM_MIN_POOL);
 		if (vmp == NULL)
-			FATAL("!vmem_pool_create");
+			FATAL("!vmem_create");
 	}
 
-	size_t total_space = vmem_pool_freespace(vmp);
+	size_t total_space = vmem_freespace(vmp);
 	size_t free_space = total_space;
 
 	/* allocate all memory */
@@ -76,7 +76,7 @@ main(int argc, char *argv[])
 	while ((next = vmem_malloc(vmp, 128)) != NULL) {
 		*next = prev;
 		prev = next;
-		size_t space = vmem_pool_freespace(vmp);
+		size_t space = vmem_freespace(vmp);
 		/* free space can only decrease */
 		ASSERT(space <= free_space);
 		free_space = space;
@@ -90,13 +90,13 @@ main(int argc, char *argv[])
 		void **act = prev;
 		prev = *act;
 		vmem_free(vmp, act);
-		size_t space = vmem_pool_freespace(vmp);
+		size_t space = vmem_freespace(vmp);
 		/* free space can only increase */
 		ASSERT(space >= free_space);
 		free_space = space;
 	}
 
-	free_space = vmem_pool_freespace(vmp);
+	free_space = vmem_freespace(vmp);
 
 	/*
 	 * Depending on the distance of the 'mem_pool' from the
@@ -106,7 +106,7 @@ main(int argc, char *argv[])
 	 */
 	ASSERT(free_space > ((total_space - 4L * MB) * 9) / 10);
 
-	vmem_pool_delete(vmp);
+	vmem_delete(vmp);
 
 	DONE(NULL);
 }
