@@ -1,0 +1,14 @@
+POOL Header:
+Signature                : PMEMBLK
+Major                    : $(*)
+Mandatory features       : $(*)
+Not mandatory features   : $(*)
+Forced RO                : $(*)
+UUID                     : $(*)
+Creation Time            : $(*)
+Checksum                 : $(*) [OK]
+
+PMEM BLK Header:
+Block size               : $(*)
+
+<No BTT layout>

@@ -55,3 +55,5 @@ MANPAGES = ../../../doc/pmempool.1\
 BASH_COMP_FILES = pmempool.sh
 
 include ../Makefile.inc
+
+.PHONY: test check

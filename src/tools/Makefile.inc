@@ -54,7 +54,7 @@ clean:
 	$(RM) $(OBJS)
 
 clobber: clean
-	$(RM) $(TARGET) $(TARGET_AR)
+	$(RM) $(TARGET)
 ifneq ($(MANPAGES),)
 	$(RM) $(MANPAGES_GZ)
 	$(RM) $(MANPAGES_TXT)
@@ -84,9 +84,6 @@ endif
 
 %.txt: %
 	man ./$< > $@
-
-$(TARGET_AR): $(OBJS)
-	$(AR) rv $@ $(OBJS)
 
 $(TARGET): $(OBJS)
 	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)

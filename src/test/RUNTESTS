@@ -137,6 +137,7 @@ EOF
 buildtype=all
 testtype=check
 fstype=all
+testconfig="./testconfig.sh"
 
 #
 # command-line argument processing...

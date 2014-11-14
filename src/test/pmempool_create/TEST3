@@ -1,3 +1,5 @@
+#!/bin/bash -e
+#
 # Copyright (c) 2014-2015, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
@@ -28,33 +30,44 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# Makefile -- top Makefile for tools
 #
+# pmempool_create/TEST3 -- test for inheriting pools
+#
+export UNITTEST_NAME=pmempool_create/TEST3
+export UNITTEST_NUM=3
 
-TARGETS = pmempool
-SCOPEDIRS=$(TARGETS)
-SCOPEFILES=$(foreach dir, $(SCOPEDIRS), $(shell find $(dir) -name *.[ch] ))
+. ../unittest/unittest.sh
 
-all    : TARGET = all
-check  : TARGET = check
-test   : TARGET = test
-clean  : TARGET = clean
-clobber: TARGET = clobber
-cstyle : TARGET = cstyle
-install: TARGET = install
+require_fs_type pmem non-pmem
+require_build_type nondebug
 
-all clean clobber cstyle install check test: $(TARGETS)
+setup
 
-$(TARGETS):
-	$(MAKE) -C $@ $(TARGET)
+POOL=$DIR/file.pool
+INHERIT=$DIR/inherit.pool
 
-clean:
-	$(RM) TAGS cscope.in.out cscope.out cscope.po.out
+# PMEMBLK
+rm -rf $POOL
+rm -rf $INHERIT
+expect_normal_exit $PMEMPOOL create blk 512 $POOL
+check_file $POOL
+check_signature PMEMBLK $POOL
+SIZE=$(get_size $POOL)
+expect_normal_exit $PMEMPOOL create --inherit $POOL $INHERIT
+check_file $INHERIT
+check_signature PMEMBLK $INHERIT
+check_size $SIZE $INHERIT
 
-clobber: clean
+# PMEMLOG
+rm -rf $POOL
+rm -rf $INHERIT
+expect_normal_exit $PMEMPOOL create log $POOL
+check_file $POOL
+check_signature PMEMLOG $POOL
+SIZE=$(get_size $POOL)
+expect_normal_exit $PMEMPOOL create --inherit $POOL $INHERIT
+check_file $INHERIT
+check_signature PMEMLOG $INHERIT
+check_size $SIZE $INHERIT
 
-cscope:
-	cscope -q -b $(SCOPEFILES)
-	ctags -e $(SCOPEFILES)
-
-.PHONY: all clean clobber cstyle install common cscope $(TARGETS)
+pass

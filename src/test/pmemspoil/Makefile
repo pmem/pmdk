@@ -28,33 +28,23 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# Makefile -- top Makefile for tools
+# Makefile -- Makefile for pmemspoil tool
 #
 
-TARGETS = pmempool
-SCOPEDIRS=$(TARGETS)
-SCOPEFILES=$(foreach dir, $(SCOPEDIRS), $(shell find $(dir) -name *.[ch] ))
+vpath %.c ../../
+vpath %.c ../../tools/pmempool
+vpath %.c ../../common
+CSTYLE = ../../../utils/cstyle
 
-all    : TARGET = all
-check  : TARGET = check
-test   : TARGET = test
-clean  : TARGET = clean
-clobber: TARGET = clobber
-cstyle : TARGET = cstyle
-install: TARGET = install
+TARGET = pmemspoil
 
-all clean clobber cstyle install check test: $(TARGETS)
+OBJS = common.o output.o util.o spoil.o
 
-$(TARGETS):
-	$(MAKE) -C $@ $(TARGET)
+LIBS += -luuid -pthread
+LDFLAGS += -L../../nondebug/
+CFLAGS += -I../../tools/pmempool
+CFLAGS += -I../../common
+CFLAGS += -I../../libpmemlog
+CFLAGS += -I../../libpmemblk
 
-clean:
-	$(RM) TAGS cscope.in.out cscope.out cscope.po.out
-
-clobber: clean
-
-cscope:
-	cscope -q -b $(SCOPEFILES)
-	ctags -e $(SCOPEFILES)
-
-.PHONY: all clean clobber cstyle install common cscope $(TARGETS)
+include ../../tools/Makefile.inc

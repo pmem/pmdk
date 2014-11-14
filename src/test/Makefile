@@ -89,7 +89,15 @@ TEST = blk_nblock\
        vmmalloc_out_of_memory\
        vmmalloc_realloc\
        vmmalloc_valgrind\
-       vmmalloc_valloc
+       vmmalloc_valloc\
+       pmemspoil\
+       pmemwrite\
+       pmempool_check\
+       pmempool_info\
+       pmempool_dump\
+       pmempool_create\
+       pmempool_help\
+       magic
 
 all     : TARGET = all
 clean   : TARGET = clean

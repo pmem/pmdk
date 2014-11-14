@@ -1,3 +1,5 @@
+#!/bin/bash -e
+#
 # Copyright (c) 2014-2015, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
@@ -28,33 +30,29 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# Makefile -- top Makefile for tools
 #
+# pmempool_dump/TEST4 -- test for dump command
+#
+export UNITTEST_NAME=pmempool_dump/TEST4
+export UNITTEST_NUM=4
 
-TARGETS = pmempool
-SCOPEDIRS=$(TARGETS)
-SCOPEFILES=$(foreach dir, $(SCOPEDIRS), $(shell find $(dir) -name *.[ch] ))
+. ../unittest/unittest.sh
 
-all    : TARGET = all
-check  : TARGET = check
-test   : TARGET = test
-clean  : TARGET = clean
-clobber: TARGET = clobber
-cstyle : TARGET = cstyle
-install: TARGET = install
+require_fs_type pmem non-pmem
+require_build_type nondebug
 
-all clean clobber cstyle install check test: $(TARGETS)
+setup
 
-$(TARGETS):
-	$(MAKE) -C $@ $(TARGET)
+POOL=$DIR/file.pool
+LOG=out${UNITTEST_NUM}.log
+rm -rf $LOG && touch $LOG
 
-clean:
-	$(RM) TAGS cscope.in.out cscope.out cscope.po.out
+rm -rf $POOL
+expect_normal_exit $PMEMPOOL create log $POOL
+expect_normal_exit $PMEMWRITE $POOL TEST1TEST2TEST3TEST4
+expect_normal_exit $PMEMPOOL dump -c5 -o $LOG $POOL
+expect_normal_exit $PMEMPOOL dump -c5 $POOL >> $LOG
 
-clobber: clean
+check
 
-cscope:
-	cscope -q -b $(SCOPEFILES)
-	ctags -e $(SCOPEFILES)
-
-.PHONY: all clean clobber cstyle install common cscope $(TARGETS)
+pass

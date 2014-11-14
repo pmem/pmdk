@@ -1,3 +1,5 @@
+#!/bin/bash -e
+#
 # Copyright (c) 2014-2015, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
@@ -28,33 +30,33 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# Makefile -- top Makefile for tools
 #
+# pmempool_create/TEST1 -- test for creating pmemblk pool with btt layout
+#
+export UNITTEST_NAME=pmempool_create/TEST1
+export UNITTEST_NUM=1
 
-TARGETS = pmempool
-SCOPEDIRS=$(TARGETS)
-SCOPEFILES=$(foreach dir, $(SCOPEDIRS), $(shell find $(dir) -name *.[ch] ))
+. ../unittest/unittest.sh
 
-all    : TARGET = all
-check  : TARGET = check
-test   : TARGET = test
-clean  : TARGET = clean
-clobber: TARGET = clobber
-cstyle : TARGET = cstyle
-install: TARGET = install
+require_fs_type pmem non-pmem
+require_build_type nondebug
 
-all clean clobber cstyle install check test: $(TARGETS)
+setup
 
-$(TARGETS):
-	$(MAKE) -C $@ $(TARGET)
+POOL=$DIR/file.pool
 
-clean:
-	$(RM) TAGS cscope.in.out cscope.out cscope.po.out
+# PMEMBLK with layout
+rm -rf $POOL
+expect_normal_exit $PMEMPOOL create -l blk 512 $POOL
+check_file $POOL
+check_signature PMEMBLK $POOL
+check_arena $POOL
 
-clobber: clean
+# PMEMBLK with layout using block number 10
+rm -rf $POOL
+expect_normal_exit $PMEMPOOL create -l10 blk 512 $POOL
+check_file $POOL
+check_signature PMEMBLK $POOL
+check_arena $POOL
 
-cscope:
-	cscope -q -b $(SCOPEFILES)
-	ctags -e $(SCOPEFILES)
-
-.PHONY: all clean clobber cstyle install common cscope $(TARGETS)
+pass

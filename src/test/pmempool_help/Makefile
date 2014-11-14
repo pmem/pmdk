@@ -1,4 +1,5 @@
-# Copyright (c) 2014-2015, Intel Corporation
+#
+# Copyright (c) 2015, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -28,33 +29,8 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# Makefile -- top Makefile for tools
+
 #
-
-TARGETS = pmempool
-SCOPEDIRS=$(TARGETS)
-SCOPEFILES=$(foreach dir, $(SCOPEDIRS), $(shell find $(dir) -name *.[ch] ))
-
-all    : TARGET = all
-check  : TARGET = check
-test   : TARGET = test
-clean  : TARGET = clean
-clobber: TARGET = clobber
-cstyle : TARGET = cstyle
-install: TARGET = install
-
-all clean clobber cstyle install check test: $(TARGETS)
-
-$(TARGETS):
-	$(MAKE) -C $@ $(TARGET)
-
-clean:
-	$(RM) TAGS cscope.in.out cscope.out cscope.po.out
-
-clobber: clean
-
-cscope:
-	cscope -q -b $(SCOPEFILES)
-	ctags -e $(SCOPEFILES)
-
-.PHONY: all clean clobber cstyle install common cscope $(TARGETS)
+# src/test/pmempool_help/Makefile -- build pmempool help unittest
+#
+include ../Makefile.inc
