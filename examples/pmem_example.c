@@ -30,48 +30,54 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <sys/mman.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <fcntl.h>
 #include <stdio.h>
+#include <errno.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
 #include <libpmem.h>
 
+/* using 4k of pmem for this example */
+#define	PMEM_LEN 4096
+
 int
 main(int argc, char *argv[])
 {
 	int fd;
-	char *pmaddr;
+	char *pmemaddr;
+	int is_pmem;
 
-	/* memory map some persistent memory */
-	if ((fd = open("/my/pmem-aware/fs/myfile", O_RDWR)) < 0) {
+	/* create a pmem file */
+	if ((fd = open("/pmem-fs/myfile", O_CREAT|O_RDWR, 0666)) < 0) {
 		perror("open");
 		exit(1);
 	}
 
-	/* just map 4k for this example */
-	if ((pmaddr = mmap(NULL, 4096, PROT_READ|PROT_WRITE,
-				MAP_SHARED, fd, 0)) == MAP_FAILED) {
-		perror("mmap");
+	/* allocate the pmem */
+	if ((errno = posix_fallocate(fd, 0, PMEM_LEN)) != 0) {
+		perror("posix_fallocate");
+		exit(1);
+	}
+
+	/* memory map it */
+	if ((pmemaddr = pmem_map(fd)) == NULL) {
+		perror("pmem_map");
 		exit(1);
 	}
 	close(fd);
 
-	/* store a string to the persistent memory */
-	strcpy(pmaddr, "hello, persistent memory");
+	/* determine if range is true pmem */
+	is_pmem = pmem_is_pmem(pmemaddr, PMEM_LEN);
 
-	/*
-	 * The above stores may or may not be sitting in cache at
-	 * this point, depending on other system activity causing
-	 * cache pressure.  Now force the change to be durable
-	 * (flushed all the say to the persistent memory).  If
-	 * unsure whether the file is really persistent memory,
-	 * use pmem_is_pmem() to decide whether pmem_persist() can
-	 * be used, or whether msync() must be used.
-	 */
-	if (pmem_is_pmem(pmaddr, 4096))
-		pmem_persist(pmaddr, 4096);
+	/* store a string to the persistent memory */
+	strcpy(pmemaddr, "hello, persistent memory");
+
+	/* flush above strcpy to persistence */
+	if (is_pmem)
+		pmem_persist(pmemaddr, PMEM_LEN);
 	else
-		msync(pmaddr, 4096, MS_SYNC);
+		pmem_msync(pmemaddr, PMEM_LEN);
 }
