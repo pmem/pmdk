@@ -61,5 +61,5 @@ struct pmemlog {
 	pthread_rwlock_t *rwlockp;	/* pointer to RW lock */
 };
 
-/* data area starts at this alignement after the struct pmemlog above */
+/* data area starts at this alignment after the struct pmemlog above */
 #define	LOG_FORMAT_DATA_ALIGN 4096

@@ -71,5 +71,5 @@ struct pmemblk {
 #endif
 };
 
-/* data area starts at this alignement after the struct pmemblk above */
+/* data area starts at this alignment after the struct pmemblk above */
 #define	BLK_FORMAT_DATA_ALIGN 4096
