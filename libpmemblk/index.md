@@ -20,4 +20,6 @@ interfaces provided.
 
 #### libpmemblk Examples
 
-**Coming Soon**
+**More Detail Coming Soon**
+
+<code data-gist-id='andyrudoff/b3e569c479c3b7120875' data-gist-file='manpage.c' data-gist-line='37-96' data-gist-highlight-line='43' data-gist-hide-footer='true'></code>

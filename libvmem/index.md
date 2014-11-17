@@ -17,4 +17,6 @@ interfaces provided.
 
 #### libvmem Examples
 
-**Coming Soon**
+**More Detail Coming Soon**
+
+<code data-gist-id='andyrudoff/02a10ca6b9ab7d07922b' data-gist-file='manpage.c' data-gist-line='37-66' data-gist-highlight-line='40' data-gist-hide-footer='true'></code>

@@ -17,4 +17,6 @@ interfaces provided.
 
 #### libpmemlog Examples
 
-**Coming Soon**
+**More Detail Coming Soon**
+
+<code data-gist-id='andyrudoff/9f0aee99c7b046fdb974' data-gist-file='manpage.c' data-gist-line='37-98' data-gist-highlight-line='43' data-gist-hide-footer='true'></code>

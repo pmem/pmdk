@@ -14,4 +14,6 @@ interfaces provided.
 
 #### libpmemobj Examples
 
-**Coming Soon**
+**More Detail Coming Soon**
+
+<code data-gist-id='andyrudoff/b61e97186beffb1b0bea' data-gist-file='manpage.c' data-gist-line='37-71' data-gist-highlight-line='43' data-gist-hide-footer='true'></code>
