@@ -1,5 +1,5 @@
 <!-- Creator     : groff version 1.18.1.4 -->
-<!-- CreationDate: Tue Sep 16 12:38:28 2014 -->
+<!-- CreationDate: Sun Nov 16 20:46:05 2014 -->
 <html>
 <head>
 <meta name="generator" content="groff -Thtml, see www.gnu.org">
@@ -47,12 +47,12 @@ cc ... -lvmem
 
 Memory pool management:
 
-VMEM *vmem_pool_create(const char *</b><i>dir</i><b>, size_t</b> <i>size</i><b>);
-VMEM *vmem_pool_create_in_region(void *</b><i>addr</i><b>, size_t</b> <i>size</i><b>);
-void vmem_pool_delete(VMEM *</b><i>vmp</i><b>);
-int vmem_pool_check(VMEM *</b><i>vmp</i><b>);
-int vmem_pool_freespace(VMEM *</b><i>vmp</i><b>);
-void vmem_pool_stats_print(VMEM *</b><i>vmp</i><b>, const char *</b><i>opts</i><b>);
+VMEM *vmem_create(const char *</b><i>dir</i><b>, size_t</b> <i>size</i><b>);
+VMEM *vmem_create_in_region(void *</b><i>addr</i><b>, size_t</b> <i>size</i><b>);
+void vmem_delete(VMEM *</b><i>vmp</i><b>);
+int vmem_check(VMEM *</b><i>vmp</i><b>);
+int vmem_freespace(VMEM *</b><i>vmp</i><b>);
+void vmem_stats_print(VMEM *</b><i>vmp</i><b>, const char *</b><i>opts</i><b>);
 
 Memory allocation related functions:
 
@@ -215,7 +215,8 @@ arguments. Any data in the region is lost by calling
 <b>vmem_pool_create_in_region</b>(), which will immediately
 store its own data structures for managing the pool there.
 Like <b>vmem_pool_create</b>() above, the minimum
-<i>size</i> allowed is defined as <b>VMEM_MIN_POOL</b>.
+<i>size</i> allowed is defined as <b>VMEM_MIN_POOL</b>. The
+<i>addr</i> argument must be page aligned.
 <b>vmem_pool_create_in_region</b>() returns an opaque memory
 pool handle or NULL if an error occurred (in which case
 <i>errno</i> is set appropriately).</p>
@@ -259,19 +260,19 @@ be reclaimed.</p>
 <td width="20%"></td>
 <td width="79%">
 <p>The <b>vmem_pool_check</b>() function performs an
-exhaustive consistency check of all <b>libvmem</b> internal
-data structures in memory pool <i>vmp</i>. A return value of
-zero from <b>vmem_pool_check</b>() means that no errors were
-found, otherwise -1 is returned and errno is set to
-<b>EINVAL</b>. Since an error return indicates memory pool
-corruption, applications should not continue to use a pool
-in this state. Additional details about errors found are
-logged when the log level is at least 1 (see
-<b>DEBUGGING</b> below). During the consistency check
-performed by <b>vmem_pool_check</b>(), other operations on
-the same memory pool are locked out. The checks are all
-read-only; <b>vmem_pool_check</b>() never modifies the
-memory pool. This function is mostly useful for
+extensive consistency check of all <b>libvmem</b> internal
+data structures in memory pool <i>vmp</i>. It returns 1 if
+the memory pool during the check is found to be consistent
+and 0 otherwise. Cases where the check couldn&rsquo;t be
+performed, are indicated by a return value of -1. Since an
+error return indicates memory pool corruption, applications
+should not continue to use a pool in this state. Additional
+details about errors found are logged when the log level is
+at least 1 (see <b>DEBUGGING</b> below). During the
+consistency check performed by <b>vmem_pool_check</b>(),
+other operations on the same memory pool are locked out. The
+checks are all read-only; <b>vmem_pool_check</b>() never
+modifies the memory pool. This function is mostly useful for
 <b>libvmem</b> developers during testing/debugging.</p>
 </td>
 </table>
@@ -770,7 +771,7 @@ main()
     char *ptr;
 
     /* create minimum size pool of memory */
-    if ((vmp = vmem_pool_create(&quot;/my/pmem-aware/fs&quot;,
+    if ((vmp = vmem_pool_create(&quot;/pmem-fs&quot;,
                                 VMEM_MIN_POOL)) == NULL) {
         perror(&quot;vmem_pool_create&quot;);
         exit(1);
@@ -791,10 +792,20 @@ main()
 </pre>
 </td>
 </table>
+<!-- INDENTATION -->
+
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>See http://pmem.io/nvml/libvmem for more examples using
+the <b>libvmem</b> API.</p>
+</td>
+</table>
 <a name="BUGS"></a>
 <h2>BUGS</h2>
 <!-- INDENTATION -->
-
 <table width="100%" border=0 rules="none" frame="void"
        cols="2" cellspacing="0" cellpadding="0">
 <tr valign="top" align="left">
