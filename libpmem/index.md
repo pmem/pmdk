@@ -140,3 +140,56 @@ the arguments are aligned, as requirement of POSIX.
 Buildable source for the
 [libpmem manpage.c](https://github.com/pmem/nvml/tree/master/examples/libpmem)
 example above is available in the NVML repository.
+
+**Copying to Persistent Memory**
+
+Another feature of libpmem is a set of routines for optimally copying
+to persistent memory.  These functions perform the same functions as
+the _libc_ functions `memcpy()`, `memset()`, and `memmove()`, but they
+are optimized for copying to pmem.  On the Intel platform, this is done
+using the _non-temporal_ store instructions which bypass the processor
+caches (eliminating the need to flush that portion of the data path).
+
+The first copy example, called *simple_copy*, illustrates how
+`pmem_memcpy()` is used.
+
+<code data-gist-id='andyrudoff/15bda69da7fe77e8469b' data-gist-file='simple_copy.c' data-gist-line='97-109' data-gist-highlight-line='105' data-gist-hide-footer='true'></code>
+
+The highlighted line, line 105 above, shows how `pmem_memcpy()` is
+used just like `memcpy(3)` except that when the destination is pmem,
+libpmem handles flushing the data to persistence as part of the copy.
+
+Buildable source for the
+[libpmem simple_copy.c](https://github.com/pmem/nvml/tree/master/examples/libpmem)
+example above is available in the NVML repository.
+
+**Separating the Flush Steps**
+
+There are two steps in flushing to persistence.  The first
+step is to flush the processor caches, or bypass them entirely
+as explained in the previous example.  The second step is to
+wait for any hardware buffers to drain, to ensure writes have
+reached the media.  These steps are performed together when
+`pmem_persist()` is called, or they can be called individually
+by calling `pmem_flush()` for the first step and `pmem_drain()`
+for the second.
+
+When does it make sense to break flushing into steps?  This example,
+called *full_copy* illustrates one reason you might do this.  Since
+the example copies data using multiple calls to `memcpy()`, it
+uses the version of libpmem copy that only performs the flush, postponing
+the final drain step to the end.  This works because unlike the flush
+step, the drain step does not take an address range -- it is a system-wide
+drain operation so can happen at the end of the loop that copies
+individual blocks of data.
+
+<code data-gist-id='andyrudoff/15bda69da7fe77e8469b' data-gist-file='full_copy.c' data-gist-line='54-76' data-gist-highlight-line='65,75' data-gist-hide-footer='true'></code>
+
+As each block is copied, line 65 in the above example copies a block of
+data to pmem, effectively flushing it from the processor caches.  But
+rather than waiting for the hardware queues to drain each time, that
+step is saved until the end, as shown on line 75 above.
+
+Buildable source for the
+[libpmem full_copy.c](https://github.com/pmem/nvml/tree/master/examples/libpmem)
+example above is available in the NVML repository.
