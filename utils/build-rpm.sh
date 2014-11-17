@@ -192,7 +192,7 @@ Development files for NVML libpmemblk library
 %{_libdir}/nvml_debug/libpmemblk.so.*
 %{_libdir}/nvml_debug/libpmemblk.a
 /usr/include/libpmemblk.h
-#/usr/share/man/man3/libpmemblk.3.gz
+/usr/share/man/man3/libpmemblk.3.gz
 
 %package -n libpmemlog
 Summary: libpmemlog library
@@ -218,7 +218,7 @@ Development files for NVML libpmemlog library
 %{_libdir}/nvml_debug/libpmemlog.so.*
 %{_libdir}/nvml_debug/libpmemlog.a
 /usr/include/libpmemlog.h
-#/usr/share/man/man3/libpmemlog.3.gz
+/usr/share/man/man3/libpmemlog.3.gz
 
 %package -n libpmemobj
 Summary: libpmemobj library
@@ -244,7 +244,7 @@ Development files for NVML libpmemobj library
 %{_libdir}/nvml_debug/libpmemobj.so.*
 %{_libdir}/nvml_debug/libpmemobj.a
 /usr/include/libpmemobj.h
-#/usr/share/man/man3/libpmemobj.3.gz
+/usr/share/man/man3/libpmemobj.3.gz
 
 %package -n libvmem
 Summary: libvmem library
@@ -286,7 +286,7 @@ cp utils/nvml.magic %{buildroot}/usr/share/nvml/
 
 %check
 cp src/test/testconfig.sh.example src/test/testconfig.sh
-#make check
+make check
 
 %clean
 make clobber

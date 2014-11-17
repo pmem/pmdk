@@ -204,7 +204,7 @@ override_dh_install:
 override_dh_auto_test:
 	dh_auto_test
 	cp src/test/testconfig.sh.example src/test/testconfig.sh
-#	make check
+	make check
 EOF
 
 chmod +x debian/rules
@@ -273,7 +273,7 @@ usr/lib/nvml_debug/libpmemblk.so usr/lib/nvml_dbg/
 usr/lib/nvml_debug/libpmemblk.so.* usr/lib/nvml_dbg/
 usr/lib/libpmemblk.so
 usr/include/libpmemblk.h
-#usr/share/man/man3/libpmemblk.3.gz
+usr/share/man/man3/libpmemblk.3.gz
 EOF
 
 cat << EOF > debian/libpmemblk-dev.triggers
@@ -307,7 +307,7 @@ usr/lib/nvml_debug/libpmemlog.so usr/lib/nvml_dbg/
 usr/lib/nvml_debug/libpmemlog.so.* usr/lib/nvml_dbg/
 usr/lib/libpmemlog.so
 usr/include/libpmemlog.h
-#usr/share/man/man3/libpmemlog.3.gz
+usr/share/man/man3/libpmemlog.3.gz
 EOF
 
 cat << EOF > debian/libpmemlog-dev.triggers
@@ -341,7 +341,7 @@ usr/lib/nvml_debug/libpmemobj.so usr/lib/nvml_dbg/
 usr/lib/nvml_debug/libpmemobj.so.* usr/lib/nvml_dbg/
 usr/lib/libpmemobj.so
 usr/include/libpmemobj.h
-#usr/share/man/man3/libpmemobj.3.gz
+usr/share/man/man3/libpmemobj.3.gz
 EOF
 
 cat << EOF > debian/libpmemobj-dev.triggers
