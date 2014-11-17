@@ -1,32 +1,30 @@
 Linux NVM Library
 
-This is examples/asset/README.
+This is examples/libpmemblk/assetdb/README.
 
 This example illustrates how a very simple database can be built using the
-atomic arrays provided by libpmem (pmemblk).  An array of records is created to
-track a list of assets (like books or computers for example).  Each asset is
-represented by a fixed-length record in the asset database.  Since updates to a
-single record are atomic, the file remains consistent even if interrupted
+atomic arrays provided by libpmemblk.  An array of records is created to
+track a list of assets (like books or computers, for example).  Each asset is
+represented by a fixed-length record in the asset database.  Since updates to
+a single record are atomic, the file remains consistent even if interrupted
 during an update.  To run this example, follow these steps:
 
-0. Build the example with "make".  libpmem must be built first (i.e.
-   by running "make" in ../../src).  To allow the example to find
-   libpmem, you can set the environment variable:
-   	$ export LD_LIBRARY_PATH=../../src/debug
+0. Build the example with "make".  The libraries must be built first (i.e.
+   by running "make" in ../../../src).
 
 1. Create the assetdb file.  This can be anywhere but the point is it
-   will be a much faster database file if it is created on a PMEM-aware
+   will be a much faster database file if it is created on a pmem-aware
    file system.  For example, if /pmem is the mount point for a
-   PMEM-aware file system:
+   pmem-aware file system:
 
-   	$ truncate -s 1G /pmem/assetdb
+   	$ fallocate -l 1G /pmem/assetdb
 
 2. Load up the assets from a list of assets, which is just a simple text
    file containing asset description strings, one per line:
 
 	$ asset_load /pmem/assetdb assetlist
 
-3. Print the assets any time using:
+3. Print the assets using:
 
 	$ asset_list /pmem/assetdb
 
@@ -44,4 +42,4 @@ during an update.  To run this example, follow these steps:
 As this is just an example to illustrate how pmemblk works, it may take
 some trial-and-error to find the best size for the assetdb -- the file
 must be large enough to hold about 512 bytes for each asset record, plus
-about 1% overhead used by libpmem to provide the atomicity.
+about 1% overhead used by libpmemblk to provide the atomicity.

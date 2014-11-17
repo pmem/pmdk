@@ -31,36 +31,42 @@
 #
 
 #
-# doc/Makefile -- Makefile for NVM library man pages
+# examples/libpmemblk/assetdb/Makefile -- build the assetdb example
 #
-MANPAGES = libpmem.3 libpmemblk.3 libpmemlog.3 libpmemobj.3 libvmem.3
-TXTFILES = $(MANPAGES:=.txt)
-HTMLFILES = $(MANPAGES:=.html)
-GZFILES = $(MANPAGES:=.gz)
-MANPAGES_DESTDIR = $(DESTDIR)/usr/share/man/man3
+PROGS = asset_load asset_list asset_checkout asset_checkin
 
-all: $(TXTFILES)
+INCDIR ?= ../../../src/include
+LIBDIR ?= ../../../src/debug
 
-%.3.txt: %.3
-	man ./$< > $@
+INCS = -I$(INCDIR)
+LIBS = -Wl,-rpath=$(LIBDIR) -L$(LIBDIR) -lpmemblk -lpmem -pthread
+CFLAGS = -std=gnu99 -ggdb -Wall -Werror
 
-html: $(HTMLFILES)
-
-%.3.html: %.3
-	/usr/local/bin/groff -mandoc -Thtml ./$< > $@
-
-compress: $(GZFILES)
-
-%.3.gz: %.3
-	gzip -c ./$< > $@
+all: $(PROGS)
 
 clean:
+	$(RM) *.o core a.out
 
 clobber: clean
-	$(RM) -f $(TXTFILES) $(HTMLFILES) $(GZFILES)
+	$(RM) $(PROGS)
 
-install: compress
-	install -d $(MANPAGES_DESTDIR)
-	install -p -m 0644 $(GZFILES) $(MANPAGES_DESTDIR)
+cstyle:
+	../../../utils/cstyle -pP *.[ch]
 
-.PHONY: all html clean compress clobber cstyle install
+.c.o:
+	$(CC) -c -o $@ $(CFLAGS) $(INCS) $<
+
+$(PROGS):
+	$(CC) -o $@ $< $(LIBS)
+
+asset_load: asset_load.o
+
+asset_list: asset_list.o
+
+asset_checkout: asset_checkout.o
+
+asset_checkin: asset_checkin.o
+
+asset_load.o asset_list.o asset_checkout.o asset_checkin.o: asset.h
+
+.PHONY: all clean clobber cstyle

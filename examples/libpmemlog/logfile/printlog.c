@@ -31,16 +31,12 @@
  */
 
 /*
- * addlog -- given a log file, append a log entry
+ * printlog -- given a log file, print the entries
  *
  * Usage:
- *	truncate -s 1G /path/to/pm-aware/file	# before first use
+ *	printlog [-t] /path/to/pm-aware/file
  *
- *	addlog /path/to/pm-aware/file "first line of entry" "second line"
- *
- *	addlog ...		# appends to the log
- *
- *	addlog ...		# appends to the log
+ * -t option means truncate the file after printing it.
  */
 
 #include <stdio.h>
@@ -53,73 +49,67 @@
 
 #include "logentry.h"
 
+/*
+ * printlog -- callback function called when walking the log
+ */
+int
+printlog(const void *buf, size_t len, void *arg)
+{
+	const void *endp = buf + len;	/* first byte after log contents */
+
+	/* for each entry in the log... */
+	while (buf < endp) {
+		struct logentry *headerp = (struct logentry *)buf;
+		buf += sizeof (struct logentry);
+
+		/* print the header */
+		printf("Entry from pid: %ld\n", (long)headerp->pid);
+		printf("       Created: %s", ctime(&headerp->timestamp));
+		printf("      Contents:\n");
+
+		/* print the log data itself */
+		fwrite(buf, headerp->len, 1, stdout);
+		buf += headerp->len;
+	}
+
+	return 0;
+}
+
 int
 main(int argc, char *argv[])
 {
+	int opt;
+	int tflag = 0;
 	PMEMlogpool *plp;
-	struct logentry header;
-	struct iovec *iovp;
-	struct iovec *next_iovp;
-	int iovcnt;
 
-	if (argc < 3) {
-		fprintf(stderr, "usage: %s filename lines...\n", argv[0]);
+	while ((opt = getopt(argc, argv, "t")) != -1)
+		switch (opt) {
+		case 't':
+			tflag = 1;
+			break;
+
+		default:
+			fprintf(stderr, "usage: %s [-t] file\n", argv[0]);
+			exit(1);
+		}
+
+	if (optind >= argc) {
+		fprintf(stderr, "usage: %s [-t] file\n", argv[0]);
 		exit(1);
 	}
 
-	const char *path = argv[1];
+	const char *path = argv[optind];
 
-	if ((plp = pmemlog_pool_open(path)) == NULL) {
-		perror("pmemlog_pool_open");
+	if ((plp = pmemlog_open(path)) == NULL) {
+		perror(path);
 		exit(1);
 	}
 
-	/* fill in the header */
-	time(&header.timestamp);
-	header.pid = getpid();
+	/* the rest of the work happens in printlog() above */
+	pmemlog_walk(plp, 0, printlog, NULL);
 
-	/*
-	 * Create an iov for pmemlog_appendv().  For each argument given,
-	 * allocate two entries (one for the string, one for the newline
-	 * appended to the string).  Allocate 1 additional entry for the
-	 * header that gets prepended to the entry.
-	 */
-	iovcnt = (argc - 2) * 2 + 1;
-	if ((iovp = malloc(sizeof (*iovp) * iovcnt)) == NULL) {
-		perror("malloc");
-		exit(1);
-	}
-	next_iovp = iovp;
+	if (tflag)
+		pmemlog_rewind(plp);
 
-	/* put the header into iov first */
-	next_iovp->iov_base = &header;
-	next_iovp->iov_len = sizeof (header);
-	next_iovp++;
-
-	/*
-	 * Now put each arg in, following it with the string "\n".
-	 * Calculate a total character count in header.len along the way.
-	 */
-	header.len = 0;
-	for (int arg = 2; arg < argc; arg++) {
-		/* add the string given */
-		next_iovp->iov_base = argv[arg];
-		next_iovp->iov_len = strlen(argv[arg]);
-		header.len += next_iovp->iov_len;
-		next_iovp++;
-
-		/* add the newline */
-		next_iovp->iov_base = "\n";
-		next_iovp->iov_len = 1;
-		header.len += 1;
-		next_iovp++;
-	}
-
-	/* atomically add it all to the log */
-	if (pmemlog_appendv(plp, iovp, iovcnt) < 0) {
-		perror("pmemlog_appendv");
-		exit(1);
-	}
-
-	pmemlog_pool_close(plp);
+	pmemlog_close(plp);
 }

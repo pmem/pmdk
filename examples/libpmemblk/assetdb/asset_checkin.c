@@ -30,70 +30,66 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/*
+ * asset_checkin -- mark an asset as no longer checked out
+ *
+ * Usage:
+ *	asset_checkin /path/to/pm-aware/file asset-ID
+ */
+
 #include <stdio.h>
-#include <fcntl.h>
-#include <errno.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include <string.h>
-#include <libpmemlog.h>
+#include <time.h>
+#include <libpmemblk.h>
 
-/* log processing callback for use with pmemlog_walk() */
-int
-printit(const void *buf, size_t len, void *arg)
-{
-	fwrite(buf, len, 1, stdout);
-	return 0;
-}
+#include "asset.h"
 
 int
 main(int argc, char *argv[])
 {
-	const char path[] = "/my/pmem-aware/fs/myfile";
-	int fd;
-	PMEMlogpool *plp;
-	size_t nbyte;
-	char *str;
+	PMEMblkpool *pbp;
+	struct asset asset;
+	int assetid;
 
-	/* create file on PMEM-aware file system */
-	if ((fd = open(path, O_CREAT|O_RDWR, 0666)) < 0) {
-		perror("open");
+	if (argc < 3) {
+		fprintf(stderr, "usage: %s assetdb asset-ID\n", argv[0]);
 		exit(1);
 	}
 
-	/* pre-allocate 2GB of persistent memory */
-	if ((errno = posix_fallocate(fd, (off_t)0,
-					(size_t)1024 * 1024 * 1024 * 2)) != 0) {
-		perror("posix_fallocate");
-		exit(1);
-	}
-	close(fd);
+	const char *path = argv[1];
+	assetid = atoi(argv[2]);
 
-	/* create a persistent memory resident log */
-	if ((plp = pmemlog_pool_open(path)) == NULL) {
-		perror("pmemlog_pool_open");
+	/* open an array of atomically writable elements */
+	if ((pbp = pmemblk_open(path, sizeof (struct asset))) == NULL) {
+		perror(path);
 		exit(1);
 	}
 
-	/* how many bytes does the log hold? */
-	nbyte = pmemlog_nbyte(plp);
-	printf("log holds %zu bytes\n", nbyte);
-
-	/* append to the log... */
-	str = "This is the first string appended\n";
-	if (pmemlog_append(plp, str, strlen(str)) < 0) {
-		perror("pmemlog_append");
-		exit(1);
-	}
-	str = "This is the second string appended\n";
-	if (pmemlog_append(plp, str, strlen(str)) < 0) {
-		perror("pmemlog_append");
+	/* read a required element in */
+	if (pmemblk_read(pbp, &asset, (off_t)assetid) < 0) {
+		perror("pmemblk_read");
 		exit(1);
 	}
 
-	/* print the log contents */
-	printf("log contains:\n");
-	pmemlog_walk(plp, 0, printit, NULL);
+	/* check if it contains any data */
+	if ((asset.state != ASSET_FREE) &&
+		(asset.state != ASSET_CHECKED_OUT)) {
+		fprintf(stderr, "Asset ID %d not found\n", assetid);
+		exit(1);
+	}
 
-	pmemlog_pool_close(plp);
+	/* change state to free, clear user name and timestamp */
+	asset.state = ASSET_FREE;
+	asset.user[0] = '\0';
+	asset.time = 0;
+
+	if (pmemblk_write(pbp, &asset, (off_t)assetid) < 0) {
+		perror("pmemblk_write");
+		exit(1);
+	}
+
+	pmemblk_close(pbp);
 }

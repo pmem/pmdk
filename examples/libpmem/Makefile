@@ -31,36 +31,38 @@
 #
 
 #
-# doc/Makefile -- Makefile for NVM library man pages
+# examples/libpmem/Makefile -- build the libpmem examples
 #
-MANPAGES = libpmem.3 libpmemblk.3 libpmemlog.3 libpmemobj.3 libvmem.3
-TXTFILES = $(MANPAGES:=.txt)
-HTMLFILES = $(MANPAGES:=.html)
-GZFILES = $(MANPAGES:=.gz)
-MANPAGES_DESTDIR = $(DESTDIR)/usr/share/man/man3
+PROGS = manpage simple_copy full_copy
 
-all: $(TXTFILES)
+INCDIR ?= ../../src/include
+LIBDIR ?= ../../src/debug
 
-%.3.txt: %.3
-	man ./$< > $@
+INCS = -I$(INCDIR)
+LIBS = -Wl,-rpath=$(LIBDIR) -L$(LIBDIR) -lpmem -pthread
+CFLAGS = -std=gnu99 -ggdb -Wall -Werror
 
-html: $(HTMLFILES)
-
-%.3.html: %.3
-	/usr/local/bin/groff -mandoc -Thtml ./$< > $@
-
-compress: $(GZFILES)
-
-%.3.gz: %.3
-	gzip -c ./$< > $@
+all: $(PROGS)
 
 clean:
+	$(RM) *.o core a.out
 
 clobber: clean
-	$(RM) -f $(TXTFILES) $(HTMLFILES) $(GZFILES)
+	$(RM) $(PROGS)
 
-install: compress
-	install -d $(MANPAGES_DESTDIR)
-	install -p -m 0644 $(GZFILES) $(MANPAGES_DESTDIR)
+cstyle:
+	../../utils/cstyle -pP *.[ch]
 
-.PHONY: all html clean compress clobber cstyle install
+.c.o:
+	$(CC) -c -o $@ $(CFLAGS) $(INCS) $<
+
+$(PROGS):
+	$(CC) -o $@ $< $(LIBS)
+
+manpage: manpage.o
+
+simple_copy: simple_copy.o
+
+full_copy: full_copy.o
+
+.PHONY: all clean clobber cstyle

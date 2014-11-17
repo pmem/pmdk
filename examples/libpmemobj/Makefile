@@ -31,36 +31,43 @@
 #
 
 #
-# examples/logfile/Makefile -- build the NVM Library examples
+# examples/libpmemobj/Makefile -- build the libpmemobj examples
 #
-TARGETS = addlog printlog
-INCS = -I../../src/include
+PROGS = manpage
+DIRS =
+
+INCDIR ?= ../../src/include
+LIBDIR ?= ../../src/debug
+
+INCS = -I$(INCDIR)
+LIBS = -Wl,-rpath=$(LIBDIR) -L$(LIBDIR) -lpmemobj -lpmem -pthread
 CFLAGS = -std=gnu99 -ggdb -Wall -Werror
-LIBS = -L../../src/debug -pthread
 
-addlog printlog: LIBS += -lpmemlog -lpmem
+all:     TARGET = all
+clean:   TARGET = clean
+clobber: TARGET = clobber
+cstyle:  TARGET = cstyle
 
-all: $(TARGETS)
+all: $(PROGS) $(DIRS)
 
-clean:
+clean: $(DIRS)
 	$(RM) *.o core a.out
 
-clobber: clean
-	$(RM) $(TARGETS)
+clobber: clean $(DIRS)
+	$(RM) $(PROGS)
 
-cstyle:
+cstyle: $(DIRS)
 	../../utils/cstyle -pP *.[ch]
 
 .c.o:
 	$(CC) -c -o $@ $(CFLAGS) $(INCS) $<
 
-$(TARGETS):
+$(PROGS):
 	$(CC) -o $@ $< $(LIBS)
 
-addlog: addlog.o
+manpage: manpage.o
 
-printlog: printlog.o
+$(DIRS):
+	$(MAKE) -C $@ $(TARGET)
 
-addlog.o printlog.o: logentry.h
-
-.PHONY: all clean clobber cstyle
+.PHONY: all clean clobber cstyle $(DIRS)

@@ -31,36 +31,44 @@
 #
 
 #
-# doc/Makefile -- Makefile for NVM library man pages
+# examples/libvmem/Makefile -- build the libvmem examples
 #
-MANPAGES = libpmem.3 libpmemblk.3 libpmemlog.3 libpmemobj.3 libvmem.3
-TXTFILES = $(MANPAGES:=.txt)
-HTMLFILES = $(MANPAGES:=.html)
-GZFILES = $(MANPAGES:=.gz)
-MANPAGES_DESTDIR = $(DESTDIR)/usr/share/man/man3
+PROGS = manpage
+DIRS =
 
-all: $(TXTFILES)
+INCDIR ?= ../../src/include
+LIBDIR ?= ../../src/debug
 
-%.3.txt: %.3
-	man ./$< > $@
+INCS = -I$(INCDIR)
+LIBS = -Wl,-rpath=$(LIBDIR) -L$(LIBDIR) -lvmem -pthread
+CFLAGS = -std=gnu99 -ggdb -Wall -Werror
 
-html: $(HTMLFILES)
+all:     TARGET = all
+clean:   TARGET = clean
+clobber: TARGET = clobber
+cstyle:  TARGET = cstyle
 
-%.3.html: %.3
-	/usr/local/bin/groff -mandoc -Thtml ./$< > $@
+all: $(PROGS) $(DIRS)
 
-compress: $(GZFILES)
+clean: $(DIRS)
+	$(RM) *.o core a.out
 
-%.3.gz: %.3
-	gzip -c ./$< > $@
+clobber: clean $(DIRS)
+	$(RM) $(PROGS)
 
-clean:
+cstyle: $(DIRS)
+	../../utils/cstyle -pP *.[ch]
 
-clobber: clean
-	$(RM) -f $(TXTFILES) $(HTMLFILES) $(GZFILES)
+.c.o:
+	$(CC) -c -o $@ $(CFLAGS) $(INCS) $<
 
-install: compress
-	install -d $(MANPAGES_DESTDIR)
-	install -p -m 0644 $(GZFILES) $(MANPAGES_DESTDIR)
+$(PROGS):
+	$(CC) -o $@ $< $(LIBS)
 
-.PHONY: all html clean compress clobber cstyle install
+manpage: manpage.o
+
+$(DIRS):
+	$(MAKE) -C $@ $(TARGET)
+
+.PHONY: all clean clobber cstyle $(DIRS)
+

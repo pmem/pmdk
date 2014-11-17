@@ -37,7 +37,7 @@
 .\" or
 .\"	groff -man -Tascii libvmem.3
 .\"
-.TH libvmem 3 "vmem API version 0.54" "NVM Library"
+.TH libvmem 3 "vmem API version 0.8" "NVM Library"
 .SH NAME
 libvmem \- volatile memory allocation library
 .SH SYNOPSIS
@@ -48,12 +48,12 @@ libvmem \- volatile memory allocation library
 .sp
 .B Memory pool management:
 .sp
-.BI "VMEM *vmem_pool_create(const char *" dir ", size_t " size );
-.BI "VMEM *vmem_pool_create_in_region(void *" addr ", size_t " size );
-.BI "void vmem_pool_delete(VMEM *" vmp );
-.BI "int vmem_pool_check(VMEM *" vmp );
-.BI "int vmem_pool_freespace(VMEM *" vmp );
-.BI "void vmem_pool_stats_print(VMEM *" vmp ", const char *" opts );
+.BI "VMEM *vmem_create(const char *" dir ", size_t " size );
+.BI "VMEM *vmem_create_in_region(void *" addr ", size_t " size );
+.BI "void vmem_delete(VMEM *" vmp );
+.BI "int vmem_check(VMEM *" vmp );
+.BI "int vmem_freespace(VMEM *" vmp );
+.BI "void vmem_stats_print(VMEM *" vmp ", const char *" opts );
 .sp
 .B Memory allocation related functions:
 .sp
@@ -673,7 +673,7 @@ has no effect on the non-debug version of
 .BR libvmem .
 .SH EXAMPLE
 .PP
-The follow example creates a memory pool, allocates some memory to contain
+The following example creates a memory pool, allocates some memory to contain
 the string "hello, world", and then frees that memory.
 .IP
 .nf
@@ -688,7 +688,7 @@ main()
     char *ptr;
 	
     /* create minimum size pool of memory */
-    if ((vmp = vmem_pool_create("/my/pmem-aware/fs",
+    if ((vmp = vmem_pool_create("/pmem-fs",
                                 VMEM_MIN_POOL)) == NULL) {
         perror("vmem_pool_create");
         exit(1);
@@ -707,6 +707,11 @@ main()
     /* ... */
 }
 .fi
+.PP
+See http://pmem.io/nvml/libvmem for more examples
+using the
+.B libvmem
+API.
 .SH BUGS
 Unlike the normal
 .BR malloc (),

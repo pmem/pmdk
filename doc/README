@@ -7,7 +7,7 @@ If you're looking for documentation to get you started using NVML,
 start here: http://pmem.io/nvml and follow the links to examples and
 man pages.  Developers new to NVML are probably looking for libpmemobj.
 
-libpmem(3) -- low level persistent memory support
+libpmem(3) -- low-level persistent memory support
     Man page source is in: libpmem.3
     HTML formatted version: http://pmem.io/nvml/libpmem/libpmem.3.html
 

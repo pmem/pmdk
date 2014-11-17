@@ -31,72 +31,84 @@
  */
 
 /*
- * asset_checkout -- mark an asset as checked out to someone
+ * simple_copy.c -- show how to use pmem_memcpy()
  *
- * Usage:
- *	asset_checkin /path/to/pm-aware/file asset-ID name
+ * usage: simple_copy src-file dst-file
+ *
+ * Reads 4k from src-file and writes it to dst-file.
  */
 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include <stdio.h>
+#include <errno.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <fcntl.h>
 #include <string.h>
-#include <time.h>
-#include <libpmemblk.h>
+#include <libpmem.h>
 
-#include "asset.h"
+/* just copying 4k to pmem for this example */
+#define	BUF_LEN 4096
 
 int
 main(int argc, char *argv[])
 {
-	PMEMblkpool *pbp;
-	struct asset asset;
-	int assetid;
+	int srcfd;
+	int dstfd;
+	char buf[BUF_LEN];
+	char *pmemaddr;
+	int is_pmem;
+	int cc;
 
-	if (argc < 4) {
-		fprintf(stderr, "usage: %s assetdb asset-ID name\n", argv[0]);
+	if (argc != 3) {
+		fprintf(stderr, "usage: %s src-file dst-file\n", argv[0]);
 		exit(1);
 	}
 
-	const char *path = argv[1];
-	assetid = atoi(argv[2]);
-
-	/* open an array of atomically writable elements */
-	if ((pbp = pmemblk_pool_open(path, sizeof (struct asset))) == NULL) {
-		perror("pmemblk_pool_open");
+	/* open src-file */
+	if ((srcfd = open(argv[1], O_RDONLY)) < 0) {
+		perror(argv[1]);
 		exit(1);
 	}
 
-	/* read a required element in */
-	if (pmemblk_read(pbp, &asset, (off_t)assetid) < 0) {
-		perror("pmemblk_read");
+	/* create a pmem file */
+	if ((dstfd = open(argv[2], O_CREAT|O_EXCL|O_RDWR, 0666)) < 0) {
+		perror(argv[2]);
 		exit(1);
 	}
 
-	/* check if it contains any data */
-	if ((asset.state != ASSET_FREE) &&
-		(asset.state != ASSET_CHECKED_OUT)) {
-		fprintf(stderr, "Asset ID %d not found", assetid);
+	/* allocate the pmem */
+	if ((errno = posix_fallocate(dstfd, 0, BUF_LEN)) != 0) {
+		perror("posix_fallocate");
 		exit(1);
 	}
 
-	if (asset.state == ASSET_CHECKED_OUT) {
-		fprintf(stderr, "Asset ID %d already checked out\n", assetid);
+	/* memory map it */
+	if ((pmemaddr = pmem_map(dstfd)) == NULL) {
+		perror("pmem_map");
+		exit(1);
+	}
+	close(dstfd);
+
+	/* determine if range is true pmem */
+	is_pmem = pmem_is_pmem(pmemaddr, BUF_LEN);
+
+	/* read up to BUF_LEN from srcfd */
+	if ((cc = read(srcfd, buf, BUF_LEN)) < 0) {
+		perror("read");
 		exit(1);
 	}
 
-	/* update user name, set checked out state, and take timestamp */
-	strncpy(asset.user, argv[3], ASSET_USER_NAME_MAX - 1);
-	asset.user[ASSET_USER_NAME_MAX - 1] = '\0';
-	asset.state = ASSET_CHECKED_OUT;
-	time(&asset.time);
-
-	/* put it back in the block */
-	if (pmemblk_write(pbp, &asset, assetid) < 0) {
-		perror("pmemblk_write");
-		exit(1);
+	/* write it to the pmem */
+	if (is_pmem) {
+		pmem_memcpy(pmemaddr, buf, cc);
+	} else {
+		memcpy(pmemaddr, buf, cc);
+		pmem_msync(pmemaddr, cc);
 	}
 
-	pmemblk_pool_close(pbp);
+	close(srcfd);
+
+	exit(0);
 }

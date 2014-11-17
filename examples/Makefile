@@ -33,47 +33,18 @@
 #
 # examples/Makefile -- build the NVM Library examples
 #
-TARGETS = pmem_example pmemblk_example pmemlog_example vmem_example
-INCS = -I../src/include
-CFLAGS = -std=gnu99 -ggdb -Wall -Werror
-LIBS = -L../src/debug -pthread
+# XXX will enable building all examples when library re-org is finished
+#DIRS = libpmem libpmemblk libpmemlog libpmemobj libvmem
+DIRS = libpmem
 
-pmemblk_example: LIBS += -lpmemblk
-pmemlog_example: LIBS += -lpmemlog
-vmem_example: LIBS += -lvmem
-pmem_example pmemblk_example pmemlog_example: LIBS += -lpmem
+all:     TARGET = all
+clean:   TARGET = clean
+clobber: TARGET = clobber
+cstyle:  TARGET = cstyle
 
-all: $(TARGETS)
-	$(MAKE) -C logfile $@
-	$(MAKE) -C assetdb $@
+all clean clobber cstyle: $(DIRS)
 
-clean:
-	$(RM) *.o core a.out
-	$(MAKE) -C logfile $@
-	$(MAKE) -C assetdb $@
+$(DIRS):
+	$(MAKE) -C $@ $(TARGET)
 
-clobber: clean
-	$(RM) $(TARGETS)
-	$(MAKE) -C logfile $@
-	$(MAKE) -C assetdb $@
-
-cstyle:
-	../utils/cstyle -pP *.[ch]
-	$(MAKE) -C logfile $@
-	$(MAKE) -C assetdb $@
-
-.c.o:
-	$(CC) -c -o $@ $(CFLAGS) $(INCS) $<
-
-$(TARGETS):
-	$(CC) -o $@ $< $(LIBS)
-
-pmem_example: pmem_example.o
-
-pmemblk_example: pmemblk_example.o
-
-pmemlog_example: pmemlog_example.o
-
-vmem_example: vmem_example.o
-
-.PHONY: all clean clobber cstyle
+.PHONY: all clean clobber cstyle $(DIRS)

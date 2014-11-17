@@ -31,68 +31,66 @@
  */
 
 /*
- * asset_list -- list all assets in an assetdb file
- *
- * Usage:
- *	asset_list /path/to/pm-aware/file
+ * manpage.c -- simple example for the libpmemblk man page
  */
 
 #include <stdio.h>
+#include <fcntl.h>
+#include <errno.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <fcntl.h>
 #include <string.h>
-#include <time.h>
 #include <libpmemblk.h>
 
-#include "asset.h"
+/* size of the pmemblk pool -- 1 GB */
+#define	POOL_SIZE ((off_t)(1 << 30))
+
+/* size of each element in the pmem pool */
+#define	ELEMENT_SIZE 1024
 
 int
 main(int argc, char *argv[])
 {
+	const char path[] = "/pmem-fs/myfile";
 	PMEMblkpool *pbp;
-	int assetid;
 	size_t nelements;
-	struct asset asset;
+	char buf[ELEMENT_SIZE];
 
-	if (argc < 2) {
-		fprintf(stderr, "usage: %s assetdb\n", argv[0]);
+	/* create the pmemblk pool or open it if it already exists */
+	pbp = pmemblk_create(path, ELEMENT_SIZE, POOL_SIZE, 0666);
+
+	if (pbp == NULL)
+	    pbp = pmemblk_open(path, ELEMENT_SIZE);
+
+	if (pbp == NULL) {
+		perror(path);
 		exit(1);
 	}
 
-	const char *path = argv[1];
-
-	/* open an array of atomically writable elements */
-	if ((pbp = pmemblk_pool_open(path, sizeof (struct asset))) == NULL) {
-		perror("pmemblk_pool_path");
-		exit(1);
-	}
-
-	/* how many elements do we have? */
+	/* how many elements fit into the file? */
 	nelements = pmemblk_nblock(pbp);
+	printf("file holds %zu elements\n", nelements);
 
-	/* print out all the elements that contain assets data */
-	for (assetid = 0; assetid < nelements; ++assetid) {
-		if (pmemblk_read(pbp, &asset, (off_t)assetid) < 0) {
-			perror("pmemblk_read");
-			exit(1);
-		}
-
-		if ((asset.state != ASSET_FREE) &&
-			(asset.state != ASSET_CHECKED_OUT)) {
-			break;
-		}
-
-		printf("Asset ID: %d\n", (int)assetid);
-		if (asset.state == ASSET_FREE)
-			printf("   State: Free\n");
-		else {
-			printf("   State: Checked out\n");
-			printf("    User: %s\n", asset.user);
-			printf("    Time: %s", ctime(&asset.time));
-		}
-		printf("    Name: %s\n", asset.name);
+	/* store a block at index 5 */
+	strcpy(buf, "hello, world");
+	if (pmemblk_write(pbp, buf, 5) < 0) {
+		perror("pmemblk_write");
+		exit(1);
 	}
 
-	pmemblk_pool_close(pbp);
+	/* read the block at index 10 (reads as zeros initially) */
+	if (pmemblk_read(pbp, buf, 10) < 0) {
+		perror("pmemblk_read");
+		exit(1);
+	}
+
+	/* zero out the block at index 5 */
+	if (pmemblk_set_zero(pbp, 5) < 0) {
+		perror("pmemblk_set_zero");
+		exit(1);
+	}
+
+	/* ... */
+
+	pmemblk_close(pbp);
 }

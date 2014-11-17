@@ -31,38 +31,43 @@
 #
 
 #
-# examples/asset/Makefile -- build the NVM Library examples
+# examples/libpmemlog/Makefile -- build the libpmemlog examples
 #
-TARGETS = asset_load asset_list asset_checkout asset_checkin
-INCS = -I../../src/include
+PROGS = manpage
+DIRS = logfile
+
+INCDIR ?= ../../src/include
+LIBDIR ?= ../../src/debug
+
+INCS = -I$(INCDIR)
+LIBS = -Wl,-rpath=$(LIBDIR) -L$(LIBDIR) -lpmemlog -lpmem -pthread
 CFLAGS = -std=gnu99 -ggdb -Wall -Werror
-LIBS = -L../../src/debug -lpmemblk -lpmem -pthread
 
-all: $(TARGETS)
+all:     TARGET = all
+clean:   TARGET = clean
+clobber: TARGET = clobber
+cstyle:  TARGET = cstyle
 
-clean:
+all: $(PROGS) $(DIRS)
+
+clean: $(DIRS)
 	$(RM) *.o core a.out
 
-clobber: clean
-	$(RM) $(TARGETS)
+clobber: clean $(DIRS)
+	$(RM) $(PROGS)
 
-cstyle:
+cstyle: $(DIRS)
 	../../utils/cstyle -pP *.[ch]
 
 .c.o:
 	$(CC) -c -o $@ $(CFLAGS) $(INCS) $<
 
-$(TARGETS):
+$(PROGS):
 	$(CC) -o $@ $< $(LIBS)
 
-asset_load: asset_load.o
+manpage: manpage.o
 
-asset_list: asset_list.o
+$(DIRS):
+	$(MAKE) -C $@ $(TARGET)
 
-asset_checkout: asset_checkout.o
-
-asset_checkin: asset_checkin.o
-
-asset_load.o asset_list.o asset_checkout.o asset_checkin.o: asset.h
-
-.PHONY: all clean clobber cstyle
+.PHONY: all clean clobber cstyle $(DIRS)

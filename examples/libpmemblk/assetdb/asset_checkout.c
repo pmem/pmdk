@@ -30,70 +30,73 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/*
+ * asset_checkout -- mark an asset as checked out to someone
+ *
+ * Usage:
+ *	asset_checkin /path/to/pm-aware/file asset-ID name
+ */
+
 #include <stdio.h>
-#include <fcntl.h>
-#include <errno.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include <string.h>
+#include <time.h>
 #include <libpmemblk.h>
 
-/* size of each element in the PMEM pool (bytes) */
-#define	ELEMENT_SIZE ((size_t)1024)
+#include "asset.h"
 
 int
 main(int argc, char *argv[])
 {
-	const char path[] = "/my/pmem-aware/fs/myfile";
-	int fd;
 	PMEMblkpool *pbp;
-	size_t nelements;
-	char buf[ELEMENT_SIZE];
+	struct asset asset;
+	int assetid;
 
-	/* create file on PMEM-aware file system */
-	if ((fd = open(path, O_CREAT|O_RDWR, 0666)) < 0) {
-		perror("open");
+	if (argc < 4) {
+		fprintf(stderr, "usage: %s assetdb asset-ID name\n", argv[0]);
 		exit(1);
 	}
 
-	/* pre-allocate 2GB of persistent memory */
-	if ((errno = posix_fallocate(fd, (off_t)0,
-					(size_t)1024 * 1024 * 1024 * 2)) != 0) {
-		perror("posix_fallocate");
-		exit(1);
-	}
-	close(fd);
+	const char *path = argv[1];
+	assetid = atoi(argv[2]);
 
-	/* create an array of atomically writable elements */
-	if ((pbp = pmemblk_pool_open(path, ELEMENT_SIZE)) == NULL) {
+	/* open an array of atomically writable elements */
+	if ((pbp = pmemblk_open(path, sizeof (struct asset))) == NULL) {
 		perror("pmemblk_pool_open");
 		exit(1);
 	}
 
-	/* how many elements fit into the PMEM pool? */
-	nelements = pmemblk_nblock(pbp);
-	printf("file holds %zu elements\n", nelements);
+	/* read a required element in */
+	if (pmemblk_read(pbp, &asset, (off_t)assetid) < 0) {
+		perror("pmemblk_read");
+		exit(1);
+	}
 
-	/* store a block at index 5 */
-	strcpy(buf, "hello, world");
-	if (pmemblk_write(pbp, buf, 5) < 0) {
+	/* check if it contains any data */
+	if ((asset.state != ASSET_FREE) &&
+		(asset.state != ASSET_CHECKED_OUT)) {
+		fprintf(stderr, "Asset ID %d not found", assetid);
+		exit(1);
+	}
+
+	if (asset.state == ASSET_CHECKED_OUT) {
+		fprintf(stderr, "Asset ID %d already checked out\n", assetid);
+		exit(1);
+	}
+
+	/* update user name, set checked out state, and take timestamp */
+	strncpy(asset.user, argv[3], ASSET_USER_NAME_MAX - 1);
+	asset.user[ASSET_USER_NAME_MAX - 1] = '\0';
+	asset.state = ASSET_CHECKED_OUT;
+	time(&asset.time);
+
+	/* put it back in the block */
+	if (pmemblk_write(pbp, &asset, assetid) < 0) {
 		perror("pmemblk_write");
 		exit(1);
 	}
 
-	/* read the block at index 10 (reads as zeros initially) */
-	if (pmemblk_read(pbp, buf, 10) < 0) {
-		perror("pmemblk_write");
-		exit(1);
-	}
-
-	/* zero out the block at index 5 */
-	if (pmemblk_set_zero(pbp, 5) < 0) {
-		perror("pmemblk_set_zero");
-		exit(1);
-	}
-
-	/* ... */
-
-	pmemblk_pool_close(pbp);
+	pmemblk_close(pbp);
 }

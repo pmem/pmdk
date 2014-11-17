@@ -30,33 +30,88 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/*
+ * asset_load -- given pre-allocated assetdb file, load it up with assets
+ *
+ * Usage:
+ *	fallocate -l 1G /path/to/pm-aware/file
+ *	asset_load /path/to/pm-aware/file asset-file
+ *
+ * The asset-file should contain the names of the assets, one per line.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <fcntl.h>
 #include <string.h>
-#include <libvmem.h>
+#include <time.h>
+#include <libpmemblk.h>
+
+#include "asset.h"
 
 int
 main(int argc, char *argv[])
 {
-	VMEM *vmp;
-	char *ptr;
+	FILE *fp;
+	size_t len;
+	PMEMblkpool *pbp;
+	int assetid = 0;
+	size_t nelements;
+	char *line = NULL;
 
-	/* create minimum size pool of memory */
-	if ((vmp = vmem_pool_create("/my/pmem-aware/fs",
-					VMEM_MIN_POOL)) == NULL) {
-		perror("vmem_pool_create");
+	if (argc < 3) {
+		fprintf(stderr, "usage: %s assetdb assetlist\n", argv[0]);
 		exit(1);
 	}
 
-	if ((ptr = vmem_malloc(vmp, 100)) == NULL) {
-		perror("vmem_malloc");
+	const char *path_pool = argv[1];
+	const char *path_list = argv[2];
+
+	/* create pmemblk pool in existing (but as yet unmodified) file */
+	if ((pbp = pmemblk_create(path_pool,
+			sizeof (struct asset), 0, 0)) == NULL) {
+		perror(path_pool);
 		exit(1);
 	}
 
-	strcpy(ptr, "hello, world");
+	nelements = pmemblk_nblock(pbp);
 
-	/* give the memory back */
-	vmem_free(vmp, ptr);
+	if ((fp = fopen(path_list, "r")) == NULL) {
+		perror(path_list);
+		exit(1);
+	}
 
-	/* ... */
+	/*
+	 * Read in all the assets from the assetfile and put them in the
+	 * array, if a name of the asset is longer than ASSET_NAME_SIZE_MAX,
+	 * truncate it.
+	 */
+	while (getline(&line, &len, fp) != -1) {
+		struct asset asset;
+
+		if (assetid >= nelements) {
+			fprintf(stderr, "%s: too many assets to fit in %s "
+					"(only %d assets loaded)\n",
+					path_list, path_pool, assetid);
+			exit(1);
+		}
+
+		memset(&asset, '\0', sizeof (asset));
+		asset.state = ASSET_FREE;
+		strncpy(asset.name, line, ASSET_NAME_MAX - 1);
+		asset.name[ASSET_NAME_MAX - 1] = '\0';
+
+		if (pmemblk_write(pbp, &asset, (off_t)assetid) < 0) {
+			perror("pmemblk_write");
+			exit(1);
+		}
+
+		assetid++;
+	}
+
+	free(line);
+	fclose(fp);
+
+	pmemblk_pool_close(pbp);
 }

@@ -31,85 +31,41 @@
  */
 
 /*
- * printlog -- given a log file, print the entries
- *
- * Usage:
- *	printlog [-t] /path/to/pm-aware/file
- *
- * -t option means truncate the file after printing it.
+ * manpage.c -- simple example for the libpmemobj man page
  */
 
 #include <stdio.h>
 #include <fcntl.h>
-#include <time.h>
+#include <errno.h>
 #include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
-#include <libpmemlog.h>
+#include <string.h>
+#include <libpmemblk.h>
 
-#include "logentry.h"
+/* size of the pmemobj pool -- 1 GB */
+#define	POOL_SIZE ((off_t)(1 << 30))
 
-/*
- * printlog -- callback function called when walking the log
- */
-int
-printlog(const void *buf, size_t len, void *arg)
-{
-	const void *endp = buf + len;	/* first byte after log contents */
-
-	/* for each entry in the log... */
-	while (buf < endp) {
-		struct logentry *headerp = (struct logentry *)buf;
-		buf += sizeof (struct logentry);
-
-		/* print the header */
-		printf("Entry from pid: %ld\n", (long)headerp->pid);
-		printf("       Created: %s", ctime(&headerp->timestamp));
-		printf("      Contents:\n");
-
-		/* print the log data itself */
-		fwrite(buf, headerp->len, 1, stdout);
-		buf += headerp->len;
-	}
-
-	return 0;
-}
+/* name of our layout in the pool */
+#define	LAYOUT_NAME "example_layout"
 
 int
 main(int argc, char *argv[])
 {
-	int opt;
-	int tflag = 0;
-	PMEMlogpool *plp;
+	const char path[] = "/pmem-fs/myfile";
+	PMEMobjpool *pop;
 
-	while ((opt = getopt(argc, argv, "t")) != -1)
-		switch (opt) {
-		case 't':
-			tflag = 1;
-			break;
+	/* create the pmemobj pool or open it if it already exists */
+	pop = pmemobj_create(path, LAYOUT_NAME, POOL_SIZE, 0666);
 
-		default:
-			fprintf(stderr, "usage: %s [-t] file\n", argv[0]);
-			exit(1);
-		}
+	if (pop == NULL)
+	    pop = pmemobj_open(path, LAYOUT_NAME);
 
-	if (optind >= argc) {
-		fprintf(stderr, "usage: %s [-t] file\n", argv[0]);
+	if (pop == NULL) {
+		perror(path);
 		exit(1);
 	}
 
-	const char *path = argv[optind];
+	/* ... */
 
-	if ((plp = pmemlog_pool_open(path)) == NULL) {
-		perror("pmemlog_pool_open");
-		exit(1);
-	}
-
-	/* the rest of the work happens in printlog() above */
-	pmemlog_walk(plp, 0, printlog, NULL);
-
-	if (tflag)
-		pmemlog_rewind(plp);
-
-	pmemlog_pool_close(plp);
+	pmemobj_close(pop);
 }

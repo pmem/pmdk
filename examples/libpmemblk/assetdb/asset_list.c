@@ -31,12 +31,10 @@
  */
 
 /*
- * asset_load -- given an assetdb file, an asset list file, load up the assets
+ * asset_list -- list all assets in an assetdb file
  *
  * Usage:
- *	truncate -s 1G /path/to/pm-aware/file	# before first use
- *
- *	asset_load /path/to/pm-aware/file assetlist
+ *	asset_list /path/to/pm-aware/file
  */
 
 #include <stdio.h>
@@ -52,65 +50,49 @@
 int
 main(int argc, char *argv[])
 {
-	FILE *fp;
-	size_t len;
 	PMEMblkpool *pbp;
-	int assetid = 0;
+	int assetid;
 	size_t nelements;
-	char *line = NULL;
+	struct asset asset;
 
-	if (argc < 3) {
-		fprintf(stderr, "usage: %s assetdb assetlist\n", argv[0]);
+	if (argc < 2) {
+		fprintf(stderr, "usage: %s assetdb\n", argv[0]);
 		exit(1);
 	}
 
-	const char *path_pool = argv[1];
-	const char *path_list = argv[2];
+	const char *path = argv[1];
 
-	/* create an array of atomically writable elements */
-	if ((pbp = pmemblk_pool_open(path_pool,
-			sizeof (struct asset))) == NULL) {
-		perror("pmemblk_pool_open");
+	/* open an array of atomically writable elements */
+	if ((pbp = pmemblk_open(path, sizeof (struct asset))) == NULL) {
+		perror(path);
 		exit(1);
 	}
 
+	/* how many elements do we have? */
 	nelements = pmemblk_nblock(pbp);
 
-	if ((fp = fopen(path_list, "r")) == NULL) {
-		perror(path_list);
-		exit(1);
-	}
-
-	/*
-	 * Read in all the assets from the assetfile and put them in the
-	 * array, if a name of the asset is longer than ASSET_NAME_SIZE_MAX,
-	 * truncate it.
-	 */
-	while (getline(&line, &len, fp) != -1) {
-		struct asset asset;
-
-		if (assetid >= nelements) {
-			fprintf(stderr, "%s: too many assets to fit in %s "
-					"(only %d assets loaded)\n",
-					path_list, path_pool, assetid);
+	/* print out all the elements that contain assets data */
+	for (assetid = 0; assetid < nelements; ++assetid) {
+		if (pmemblk_read(pbp, &asset, (off_t)assetid) < 0) {
+			perror("pmemblk_read");
 			exit(1);
 		}
 
-		memset(&asset, '\0', sizeof (asset));
-		asset.state = ASSET_FREE;
-		strncpy(asset.name, line, ASSET_NAME_MAX - 1);
-		asset.name[ASSET_NAME_MAX - 1] = '\0';
-
-		if (pmemblk_write(pbp, &asset, (off_t)assetid) < 0) {
-			perror("pmemblk_write");
-			exit(1);
+		if ((asset.state != ASSET_FREE) &&
+			(asset.state != ASSET_CHECKED_OUT)) {
+			break;
 		}
 
-		assetid++;
+		printf("Asset ID: %d\n", assetid);
+		if (asset.state == ASSET_FREE)
+			printf("   State: Free\n");
+		else {
+			printf("   State: Checked out\n");
+			printf("    User: %s\n", asset.user);
+			printf("    Time: %s", ctime(&asset.time));
+		}
+		printf("    Name: %s\n", asset.name);
 	}
 
-	free(line);
-	fclose(fp);
-
-	pmemblk_pool_close(pbp);
+	pmemblk_close(pbp);
 }
