@@ -1,5 +1,5 @@
 <!-- Creator     : groff version 1.18.1.4 -->
-<!-- CreationDate: Tue Nov 11 21:56:22 2014 -->
+<!-- CreationDate: Sun Nov 16 21:20:58 2014 -->
 <html>
 <head>
 <meta name="generator" content="groff -Thtml, see www.gnu.org">
@@ -47,10 +47,10 @@ cc ... -lpmemlog -lpmem
 
 Most commonly used functions:
 
-PMEMlogpool *pmemlog_pool_open(const char *</b><i>path</i><b>);
-PMEMlogpool *pmemlog_pool_create(const char *</b><i>path</i><b>,
+PMEMlogpool *pmemlog_open(const char *</b><i>path</i><b>);
+PMEMlogpool *pmemlog_create(const char *</b><i>path</i><b>,
     size_t</b> <i>poolsize</i><b>, mode_t</b> <i>mode</i><b>);
-void pmemlog_pool_close(PMEMlogpool *</b><i>plp</i><b>);
+void pmemlog_close(PMEMlogpool *</b><i>plp</i><b>);
 size_t pmemlog_nbyte(PMEMlogpool *</b><i>plp</i><b>);
 int pmemlog_append(PMEMlogpool *</b><i>plp</i><b>, const void *</b><i>buf</i><b>, size_t</b> <i>count</i><b>);
 int pmemlog_appendv(PMEMlogpool *</b><i>plp</i><b>,
@@ -72,7 +72,7 @@ Managing library behavior:
 void pmemlog_set_funcs(
     void *(*</b><i>malloc_func</i><b>)(size_t</b> <i>size</i><b>),
     void (*</b><i>free_func</i><b>)(void *</b><i>ptr</i><b>));
-int pmemlog_pool_check(const char *</b><i>path</i><b>);
+int pmemlog_check(const char *</b><i>path</i><b>);
 </b></pre>
 </td>
 </table>
@@ -134,7 +134,7 @@ support.</p>
 <tr valign="top" align="left">
 <td width="10%"></td>
 <td width="89%">
-<p>Under normal usage, <b>libpmem</b> will never print
+<p>Under normal usage, <b>libpmemlog</b> will never print
 messages or intentionally cause the process to exit. The
 only exception to this is the debugging information, when
 enabled, as described under <b>DEBUGGING</b> below.</p>
@@ -150,7 +150,7 @@ enabled, as described under <b>DEBUGGING</b> below.</p>
 <td width="89%">
 <p>To use the pmem-resident log file provided by
 <b>libpmemlog</b>, a <i>memory pool</i> is first created.
-This is done with the <b>pmemlog_pool_create</b>() function
+This is done with the <b>pmemlog_create</b>() function
 described in this section. The other functions described in
 this section then operate on the resulting log memory
 pool.</p>
@@ -166,7 +166,7 @@ regular file (see the <b>pmem_is_pmem</b>() function in
 for applications to flush changes directly when using the
 log memory API provided by <b>libpmemlog</b>.</p>
 <!-- INDENTATION -->
-<p><b>PMEMlogpool *pmemlog_pool_open(const char
+<p><b>PMEMlogpool *pmemlog_open(const char
 *</b><i>path</i><b>);</b></p>
 </td>
 </table>
@@ -176,15 +176,15 @@ log memory API provided by <b>libpmemlog</b>.</p>
 <tr valign="top" align="left">
 <td width="20%"></td>
 <td width="79%">
-<p>The <b>pmemlog_pool_open ()</b> function opens an
-existing log memory pool, returning a memory pool handle
-used with most of the functions in this section. <i>path</i>
-must be an existing file containing a log memory pool as
-created by <b>pmemlog_pool_create</b>(). The application
-must have permission to open the file and memory map it with
+<p>The <b>pmemlog_open ()</b> function opens an existing log
+memory pool, returning a memory pool handle used with most
+of the functions in this section. <i>path</i> must be an
+existing file containing a log memory pool as created by
+<b>pmemlog_create</b>(). The application must have
+permission to open the file and memory map it with
 read/write permissions. If an error prevents the pool from
-being opened, <b>pmemlog_pool_open</b>() returns NULL and
-sets errno appropriately.</p>
+being opened, <b>pmemlog_open</b>() returns NULL and sets
+errno appropriately.</p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -193,7 +193,7 @@ sets errno appropriately.</p>
 <tr valign="top" align="left">
 <td width="10%"></td>
 <td width="89%">
-<p><b>PMEMlogpool *pmemlog_pool_create(const char
+<p><b>PMEMlogpool *pmemlog_create(const char
 *</b><i>path</i><b>,<br>
 size_t</b> <i>poolsize</i><b>, mode_t</b>
 <i>mode</i><b>);</b></p>
@@ -205,8 +205,8 @@ size_t</b> <i>poolsize</i><b>, mode_t</b>
 <tr valign="top" align="left">
 <td width="20%"></td>
 <td width="79%">
-<p>The <b>pmemlog_pool_create</b>() function creates a log
-memory pool with the given total <i>poolsize</i>. Since the
+<p>The <b>pmemlog_create</b>() function creates a log memory
+pool with the given total <i>poolsize</i>. Since the
 transactional nature of a log memory pool requires some
 space overhead in the memory pool, the resulting available
 log size is less than <i>poolsize</i>, and is made available
@@ -218,14 +218,13 @@ permissions to use when creating the file as described by
 the size <i>poolsize</i> using <b>posix_fallocate</b>(3).
 The caller may choose to take responsibility for creating
 the memory pool file by creating it before calling
-<b>pmemlog_pool_create</b>() and then specifying
-<i>poolsize</i> as zero. In this case
-<b>pmemlog_pool_create</b>() will take the pool size from
-the size of the existing file and will verify that the file
-appears to be empty by searching for any non-zero data in
-the pool header at the beginning of the file. The minimum
-file size allowed by the library for a log pool is defined
-in <b>&lt;libpmemlog.h&gt;</b> as
+<b>pmemlog_create</b>() and then specifying <i>poolsize</i>
+as zero. In this case <b>pmemlog_create</b>() will take the
+pool size from the size of the existing file and will verify
+that the file appears to be empty by searching for any
+non-zero data in the pool header at the beginning of the
+file. The minimum file size allowed by the library for a log
+pool is defined in <b>&lt;libpmemlog.h&gt;</b> as
 <b>PMEMLOG_MIN_POOL</b>.</p>
 </td>
 </table>
@@ -235,7 +234,7 @@ in <b>&lt;libpmemlog.h&gt;</b> as
 <tr valign="top" align="left">
 <td width="10%"></td>
 <td width="89%">
-<p><b>void pmemlog_pool_close(PMEMlogpool
+<p><b>void pmemlog_close(PMEMlogpool
 *</b><i>plp</i><b>);</b></p>
 </td>
 </table>
@@ -245,11 +244,11 @@ in <b>&lt;libpmemlog.h&gt;</b> as
 <tr valign="top" align="left">
 <td width="20%"></td>
 <td width="79%">
-<p>The <b>pmemlog_pool_close</b>() function closes the
-memory pool indicated by <i>plp</i> and deletes the memory
-pool handle. The log memory pool itself lives on in the file
-that contains it and may be re-opened at a later time using
-<b>pmemlog_pool_open</b>() as described above.</p>
+<p>The <b>pmemlog_close</b>() function closes the memory
+pool indicated by <i>plp</i> and deletes the memory pool
+handle. The log memory pool itself lives on in the file that
+contains it and may be re-opened at a later time using
+<b>pmemlog_open</b>() as described above.</p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -271,8 +270,8 @@ that contains it and may be re-opened at a later time using
 <p>The <b>pmemlog_nbyte</b>() function returns the amount of
 usable space in the log <i>plp</i>. This function may be
 used on a log to determine how much usable space is
-available after <b>libpmem</b> has added its metadata to the
-memory pool.</p>
+available after <b>libpmemlog</b> has added its metadata to
+the memory pool.</p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -322,7 +321,8 @@ const struct iovec *</b><i>iov</i><b>, int</b>
 <i>plp</i> just like <b>pmemlog_append</b>() above, but this
 function takes a scatter/gather list in a manner similar to
 <b>writev</b>(2). In this case, the entire list of buffers
-is appended atomically. On success, zero is returned. On
+is appended atomically, as if the buffers in <i>iov</i> were
+concatenated in order. On success, zero is returned. On
 error, -1 is returned and errno is set.</p>
 </td>
 </table>
@@ -401,11 +401,11 @@ fixed-length records and may be specified as 0 to cause a
 single call to the callback with the entire log contents
 passed as the <i>buf</i> argument. The <i>len</i> argument
 tells the <i>process_chunk</i> function how much data buf is
-holding. The callback function should return true if
+holding. The callback function should return 1 if
 <b>pmemlog_walk</b>() should continue walking through the
-log, or false to terminate the walk. The callback function
-is called while holding <b>libpmem</b> internal locks that
-make calls atomic, so the callback function must not try to
+log, or 0 to terminate the walk. The callback function is
+called while holding <b>libpmem</b> internal locks that make
+calls atomic, so the callback function must not try to
 append to the log itself or deadlock will occur.</p>
 </td>
 </table>
@@ -506,7 +506,7 @@ approximately 4-8 kilobytes for each memory pool in use.</p>
 <tr valign="top" align="left">
 <td width="10%"></td>
 <td width="89%">
-<p><b>int pmemlog_pool_check(const char
+<p><b>int pmemlog_check(const char
 *</b><i>path</i><b>);</b></p>
 </td>
 </table>
@@ -516,17 +516,19 @@ approximately 4-8 kilobytes for each memory pool in use.</p>
 <tr valign="top" align="left">
 <td width="20%"></td>
 <td width="79%">
-<p>The <b>pmemlog_pool_check</b>() function performs a
-consistency check of the file indicated by <i>path</i>. It
-returns true if the memory pool is found to be consistent.
-In the event of inconsistencies, continued use of the file
-with <b>libpmemlog</b> will result in undefined behavior.
-The debug version of <b>libpmemlog</b> will provide
-additional details on inconsistencies when
-<b>PMEMLOG_LOG_LEVEL</b> is at least 1, as described in the
-<b>DEBUGGING</b> section below. <b>pmemlog_pool_check</b>()
-opens the given <i>path</i> read-only so it never makes any
-changes to the file.</p>
+<p>The <b>pmemlog_check</b>() function performs a
+consistency check of the file indicated by <i>path</i> and
+returns 1 if the memory pool is found to be consistent. Any
+inconsistencies found will cause <b>pmemlog_check</b>() to
+return 0, in which case the use of the file with
+<b>libpmemlog</b> will result in undefined behavior. The
+debug version of <b>libpmemlog</b> will provide additional
+details on inconsistencies when <b>PMEMLOG_LOG_LEVEL</b> is
+at least 1, as described in the <b>DEBUGGING</b> section
+below. <b>pmemlog_check</b>() will return -1 and set errno
+if it cannot perform the consistency check due to other
+errors. <b>pmemlog_check</b>() opens the given <i>path</i>
+read-only so it never makes any changes to the file.</p>
 </td>
 </table>
 <a name="DEBUGGING"></a>
@@ -643,8 +645,90 @@ has no effect on the non-debug version of
 <tr valign="top" align="left">
 <td width="10%"></td>
 <td width="89%">
-<p>See http://pmem.io/nvml/libpmemlog for examples using the
-<b>libpmemlog</b> API.</p>
+<p>The following example illustrates how the
+<b>libpmemlog</b> API is used.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="20%"></td>
+<td width="79%">
+<pre>#include &lt;stdio.h&gt;
+#include &lt;fcntl.h&gt;
+#include &lt;errno.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;unistd.h&gt;
+#include &lt;string.h&gt;
+#include &lt;libpmemlog.h&gt;
+
+/* size of the pmemlog pool -- 1 GB */
+#define POOL_SIZE ((off_t)(1 &lt;&lt; 30))
+
+/*
+ * printit -- log processing callback for use with pmemlog_walk()
+ */
+int
+printit(const void *buf, size_t len, void *arg)
+{
+    fwrite(buf, len, 1, stdout);
+    return 0;
+}
+
+int
+main(int argc, char *argv[])
+{
+    const char path[] = &quot;/pmem-fs/myfile&quot;;
+    PMEMlogpool *plp;
+    size_t nbyte;
+    char *str;
+
+   /* create the pmemlog pool or open it if it already exists */
+    plp = pmemlog_create(path, POOL_SIZE, 0666);
+
+   if (plp == NULL)
+        plp = pmemlog_open(path);
+
+   if (plp == NULL) {
+        perror(path);
+        exit(1);
+    }
+
+   /* how many bytes does the log hold? */
+    nbyte = pmemlog_nbyte(plp);
+    printf(&quot;log holds %zu bytes0, nbyte);
+
+   /* append to the log... */
+    str = &quot;This is the first string appended0;
+    if (pmemlog_append(plp, str, strlen(str)) &lt; 0) {
+        perror(&quot;pmemlog_append&quot;);
+        exit(1);
+    }
+    str = &quot;This is the second string appended0;
+    if (pmemlog_append(plp, str, strlen(str)) &lt; 0) {
+        perror(&quot;pmemlog_append&quot;);
+        exit(1);
+    }
+
+   /* print the log contents */
+    printf(&quot;log contains:0);
+    pmemlog_walk(plp, 0, printit, NULL);
+
+   pmemlog_close(plp);
+}
+</pre>
+</td>
+</table>
+<!-- INDENTATION -->
+
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>See http://pmem.io/nvml/libpmemlog for more examples
+using the <b>libpmemlog</b> API.</p>
 </td>
 </table>
 <a name="ACKNOWLEDGEMENTS"></a>

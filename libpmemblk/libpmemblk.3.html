@@ -1,5 +1,5 @@
 <!-- Creator     : groff version 1.18.1.4 -->
-<!-- CreationDate: Tue Nov 11 21:56:22 2014 -->
+<!-- CreationDate: Sun Nov 16 20:55:26 2014 -->
 <html>
 <head>
 <meta name="generator" content="groff -Thtml, see www.gnu.org">
@@ -47,10 +47,10 @@ cc ... -lpmemblk -lpmem
 
 Most commonly used functions:
 
-PMEMblkpool *pmemblk_pool_open(const char *</b><i>path</i><b>, size_t</b> <i>bsize</i><b>);
-PMEMblkpool *pmemblk_pool_create(const char *</b><i>path</i><b>, size_t</b> <i>bsize</i><b>,
+PMEMblkpool *pmemblk_open(const char *</b><i>path</i><b>, size_t</b> <i>bsize</i><b>);
+PMEMblkpool *pmemblk_create(const char *</b><i>path</i><b>, size_t</b> <i>bsize</i><b>,
     size_t</b> <i>poolsize</i><b>, mode_t</b> <i>mode</i><b>);
-void pmemblk_pool_close(PMEMblkpool *</b><i>pbp</i><b>);
+void pmemblk_close(PMEMblkpool *</b><i>pbp</i><b>);
 size_t pmemblk_nblock(PMEMblkpool *</b><i>pbp</i><b>);
 int pmemblk_read(PMEMblkpool *</b><i>pbp</i><b>, void *</b><i>buf</i><b>, off_t</b> <i>blockno</i><b>);
 int pmemblk_write(PMEMblkpool *</b><i>pbp</i><b>, const void *</b><i>buf</i><b>, off_t</b> <i>blockno</i><b>);
@@ -68,7 +68,7 @@ Managing library behavior:
 void pmemblk_set_funcs(
     void *(*</b><i>malloc_func</i><b>)(size_t</b> <i>size</i><b>),
     void (*</b><i>free_func</i><b>)(void *</b><i>ptr</i><b>));
-int pmemblk_pool_check(const char *</b><i>path</i><b>);
+int pmemblk_check(const char *</b><i>path</i><b>);
 </b></pre>
 </td>
 </table>
@@ -131,7 +131,7 @@ support.</p>
 <tr valign="top" align="left">
 <td width="10%"></td>
 <td width="89%">
-<p>Under normal usage, <b>libpmem</b> will never print
+<p>Under normal usage, <b>libpmemblk</b> will never print
 messages or intentionally cause the process to exit. The
 only exception to this is the debugging information, when
 enabled, as described under <b>DEBUGGING</b> below.</p>
@@ -147,7 +147,7 @@ enabled, as described under <b>DEBUGGING</b> below.</p>
 <td width="89%">
 <p>To use the atomic block arrays supplied by
 <b>libpmemblk</b>, a <i>memory pool</i> is first created.
-This is done with the <b>pmemblk_pool_create</b>() function
+This is done with the <b>pmemblk_create</b>() function
 described in this section. The other functions described in
 this section then operate on the resulting block memory
 pool.</p>
@@ -163,7 +163,7 @@ regular file (see the <b>pmem_is_pmem</b>() function in
 for applications to flush changes directly when using the
 block memory API provided by <b>libpmemblk</b>.</p>
 <!-- INDENTATION -->
-<p><b>PMEMblkpool *pmemblk_pool_open(const char
+<p><b>PMEMblkpool *pmemblk_open(const char
 *</b><i>path</i><b>, size_t</b> <i>bsize</i><b>);</b></p>
 </td>
 </table>
@@ -173,17 +173,17 @@ block memory API provided by <b>libpmemblk</b>.</p>
 <tr valign="top" align="left">
 <td width="20%"></td>
 <td width="79%">
-<p>The <b>pmemblk_pool_open ()</b> function opens an
-existing block memory pool, returning a memory pool handle
-used with most of the functions in this section. <i>path</i>
-must be an existing file containing a block memory pool as
-created by <b>pmemblk_pool_create</b>(). The application
-must have permission to open the file and memory map it with
+<p>The <b>pmemblk_open ()</b> function opens an existing
+block memory pool, returning a memory pool handle used with
+most of the functions in this section. <i>path</i> must be
+an existing file containing a block memory pool as created
+by <b>pmemblk_create</b>(). The application must have
+permission to open the file and memory map it with
 read/write permissions. If the <i>bsize</i> provided is
-non-zero, <b>pmemblk_pool_open</b>() will verify the given
-block size matches the block size used when the pool was
-created. If an error prevents the pool from being opened,
-<b>pmemblk_pool_open</b>() returns NULL and sets errno
+non-zero, <b>pmemblk_open</b>() will verify the given block
+size matches the block size used when the pool was created.
+If an error prevents the pool from being opened,
+<b>pmemblk_open</b>() returns NULL and sets errno
 appropriately. A block size mismatch with the <i>bsize</i>
 argument passed in results in errno being set to EINVAL.</p>
 </td>
@@ -194,7 +194,7 @@ argument passed in results in errno being set to EINVAL.</p>
 <tr valign="top" align="left">
 <td width="10%"></td>
 <td width="89%">
-<p><b>PMEMblkpool *pmemblk_pool_create(const char
+<p><b>PMEMblkpool *pmemblk_create(const char
 *</b><i>path</i><b>, size_t</b> <i>bsize</i><b>,<br>
 size_t</b> <i>poolsize</i><b>, mode_t</b>
 <i>mode</i><b>);</b></p>
@@ -206,7 +206,7 @@ size_t</b> <i>poolsize</i><b>, mode_t</b>
 <tr valign="top" align="left">
 <td width="20%"></td>
 <td width="79%">
-<p>The <b>pmemblk_pool_create</b>() function creates a block
+<p>The <b>pmemblk_create</b>() function creates a block
 memory pool with the given total <i>poolsize</i> divided up
 into as many elements of size <i>bsize</i> as will fit in
 the pool. Since the transactional nature of a block memory
@@ -221,17 +221,16 @@ memory pool file is fully allocated to the size
 <i>poolsize</i> using <b>posix_fallocate</b>(3). The caller
 may choose to take responsibility for creating the memory
 pool file by creating it before calling
-<b>pmemblk_pool_create</b>() and then specifying
-<i>poolsize</i> as zero. In this case
-<b>pmemblk_pool_create</b>() will take the pool size from
-the size of the existing file and will verify that the file
-appears to be empty by searching for any non-zero data in
-the pool header at the beginning of the file. The minimum
-file size allowed by the library for a block pool is defined
-in <b>&lt;libpmemblk.h&gt;</b> as <b>PMEMBLK_MIN_POOL</b>.
-There are no restrictions on the block size <i>bsize</i>,
-however <b>libpmemblk</b> will silently round up the given
-size to <b>PMEMBLK_MIN_BLK</b>, as defined in
+<b>pmemblk_create</b>() and then specifying <i>poolsize</i>
+as zero. In this case <b>pmemblk_create</b>() will take the
+pool size from the size of the existing file and will verify
+that the file appears to be empty by searching for any
+non-zero data in the pool header at the beginning of the
+file. The minimum file size allowed by the library for a
+block pool is defined in <b>&lt;libpmemblk.h&gt;</b> as
+<b>PMEMBLK_MIN_POOL</b>. <i>bsize</i> can be any non-zero
+value, however <b>libpmemblk</b> will silently round up the
+given size to <b>PMEMBLK_MIN_BLK</b>, as defined in
 <b>&lt;libpmemblk.h&gt;</b>.</p>
 </td>
 </table>
@@ -241,7 +240,7 @@ size to <b>PMEMBLK_MIN_BLK</b>, as defined in
 <tr valign="top" align="left">
 <td width="10%"></td>
 <td width="89%">
-<p><b>void pmemblk_pool_close(PMEMblkpool
+<p><b>void pmemblk_close(PMEMblkpool
 *</b><i>pbp</i><b>);</b></p>
 </td>
 </table>
@@ -251,11 +250,11 @@ size to <b>PMEMBLK_MIN_BLK</b>, as defined in
 <tr valign="top" align="left">
 <td width="20%"></td>
 <td width="79%">
-<p>The <b>pmemblk_pool_close</b>() function closes the
-memory pool indicated by <i>pbp</i> and deletes the memory
-pool handle. The block memory pool itself lives on in the
-file that contains it and may be re-opened at a later time
-using <b>pmemblk_pool_open</b>() as described above.</p>
+<p>The <b>pmemblk_close</b>() function closes the memory
+pool indicated by <i>pbp</i> and deletes the memory pool
+handle. The block memory pool itself lives on in the file
+that contains it and may be re-opened at a later time using
+<b>pmemblk_open</b>() as described above.</p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -276,8 +275,9 @@ using <b>pmemblk_pool_open</b>() as described above.</p>
 <td width="79%">
 <p>The <b>pmemblk_nblock</b>() function returns the usable
 space in the block memory pool, expressed as the number of
-blocks available. <i>pbp</i> must be a block memory pool as
-returned by <b>pmemblk_pool_open</b>().</p>
+blocks available. <i>pbp</i> must be a block memory pool
+handle as returned by <b>pmemblk_open</b>() or
+<b>pmemblk_create</b>().</p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -300,10 +300,8 @@ returned by <b>pmemblk_pool_open</b>().</p>
 memory pool <i>pbp</i>, block number <i>blockno</i>, into
 the buffer <i>buf</i>. On success, zero is returned. On
 error, -1 is returned and errno is set. Reading a block that
-has never been written by <b>pmemblk_write</b>() since the
-creation of block memory pool will return a block of zeroes,
-as that is the initial state of all blocks when the memory
-pool is created.</p>
+has never been written by <b>pmemblk_write</b>() will return
+a block of zeroes.</p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -478,7 +476,7 @@ approximately 4-8 kilobytes for each memory pool in use.</p>
 <tr valign="top" align="left">
 <td width="10%"></td>
 <td width="89%">
-<p><b>int pmemblk_pool_check(const char
+<p><b>int pmemblk_check(const char
 *</b><i>path</i><b>);</b></p>
 </td>
 </table>
@@ -488,17 +486,19 @@ approximately 4-8 kilobytes for each memory pool in use.</p>
 <tr valign="top" align="left">
 <td width="20%"></td>
 <td width="79%">
-<p>The <b>pmemblk_pool_check</b>() function performs a
-consistency check of the file indicated by <i>path</i>. It
-returns true if the memory pool is found to be consistent.
-In the event of inconsistencies, continued use of the file
-with <b>libpmemblk</b> will result in undefined behavior.
-The debug version of <b>libpmemblk</b> will provide
-additional details on inconsistencies when
-<b>PMEMBLK_LOG_LEVEL</b> is at least 1, as described in the
-<b>DEBUGGING</b> section below. <b>pmemblk_pool_check</b>()
-opens the given <i>path</i> read-only so it never makes any
-changes to the file.</p>
+<p>The <b>pmemblk_check</b>() function performs a
+consistency check of the file indicated by <i>path</i> and
+returns 1 if the memory pool is found to be consistent. Any
+inconsistencies found will cause <b>pmemblk_check</b>() to
+return 0, in which case the use of the file with
+<b>libpmemblk</b> will result in undefined behavior. The
+debug version of <b>libpmemblk</b> will provide additional
+details on inconsistencies when <b>PMEMBLK_LOG_LEVEL</b> is
+at least 1, as described in the <b>DEBUGGING</b> section
+below. <b>pmemblk_check</b>() will return -1 and set errno
+if it cannot perform the consistency check due to other
+errors. <b>pmemblk_check</b>() opens the given <i>path</i>
+read-only so it never makes any changes to the file.</p>
 </td>
 </table>
 <a name="DEBUGGING"></a>
@@ -615,8 +615,88 @@ has no effect on the non-debug version of
 <tr valign="top" align="left">
 <td width="10%"></td>
 <td width="89%">
-<p>See http://pmem.io/nvml/libpmemblk for examples using the
-<b>libpmemblk</b> API.</p>
+<p>The following example illustrates how the
+<b>libpmemblk</b> API is used.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="20%"></td>
+<td width="79%">
+<pre>#include &lt;stdio.h&gt;
+#include &lt;fcntl.h&gt;
+#include &lt;errno.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;unistd.h&gt;
+#include &lt;string.h&gt;
+#include &lt;libpmemblk.h&gt;
+
+/* size of the pmemblk pool -- 1 GB */
+#define POOL_SIZE ((off_t)(1 &lt;&lt; 30))
+
+/* size of each element in the pmem pool */
+#define ELEMENT_SIZE 1024
+
+int
+main(int argc, char *argv[])
+{
+    const char path[] = &quot;/pmem-fs/myfile&quot;;
+    PMEMblkpool *pbp;
+    size_t nelements;
+    char buf[ELEMENT_SIZE];
+
+   /* create the pmemblk pool or open it if it already exists */
+    pbp = pmemblk_create(path, ELEMENT_SIZE, POOL_SIZE, 0666);
+
+   if (pbp == NULL)
+        pbp = pmemblk_open(path, ELEMENT_SIZE);
+
+   if (pbp == NULL) {
+        perror(path);
+        exit(1);
+    }
+
+   /* how many elements fit into the file? */
+    nelements = pmemblk_nblock(pbp);
+    printf(&quot;file holds %zu elements0, nelements);
+
+   /* store a block at index 5 */
+    strcpy(buf, &quot;hello, world&quot;);
+    if (pmemblk_write(pbp, buf, 5) &lt; 0) {
+        perror(&quot;pmemblk_write&quot;);
+        exit(1);
+    }
+
+   /* read the block at index 10 (reads as zeros initially) */
+    if (pmemblk_read(pbp, buf, 10) &lt; 0) {
+        perror(&quot;pmemblk_read&quot;);
+        exit(1);
+    }
+
+   /* zero out the block at index 5 */
+    if (pmemblk_set_zero(pbp, 5) &lt; 0) {
+        perror(&quot;pmemblk_set_zero&quot;);
+        exit(1);
+    }
+
+   /* ... */
+
+   pmemblk_close(pbp);
+}
+</pre>
+</td>
+</table>
+<!-- INDENTATION -->
+
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>See http://pmem.io/nvml/libpmemblk for more examples
+using the <b>libpmemblk</b> API.</p>
 </td>
 </table>
 <a name="ACKNOWLEDGEMENTS"></a>
