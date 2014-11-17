@@ -799,7 +799,10 @@ malloc_init_hard(void)
 	je_base_malloc = base_malloc_default;
 	je_base_free = base_free_default;
 
-	chunk_global_boot();
+	if (chunk_global_boot()) {
+		malloc_mutex_unlock(&init_lock);
+		return (true);
+	}
 
 	if (ctl_boot()) {
 		malloc_mutex_unlock(&init_lock);

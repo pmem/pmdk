@@ -396,13 +396,16 @@ chunk_dalloc_default(void *chunk, size_t size, unsigned arena_ind, pool_t *pool)
 	return (false);
 }
 
-void
+bool
 chunk_global_boot() {
+	if (have_dss && chunk_dss_boot())
+		return (true);
 	/* Set variables according to the value of opt_lg_chunk. */
 	chunksize = (ZU(1) << opt_lg_chunk);
 	assert(chunksize >= PAGE);
 	chunksize_mask = chunksize - 1;
 	chunk_npages = (chunksize >> LG_PAGE);	
+	return (false);
 }
 
 bool
@@ -413,8 +416,6 @@ chunk_boot(pool_t *pool)
 			return (true);
 		memset(&pool->stats_chunks, 0, sizeof(chunk_stats_t));
 	}
-	if (have_dss && chunk_dss_boot())
-		return (true);
 	extent_tree_szad_new(&pool->chunks_szad_mmap);
 	extent_tree_ad_new(&pool->chunks_ad_mmap);
 	extent_tree_szad_new(&pool->chunks_szad_dss);
