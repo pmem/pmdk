@@ -1,5 +1,5 @@
 <!-- Creator     : groff version 1.18.1.4 -->
-<!-- CreationDate: Sun Nov 16 20:53:33 2014 -->
+<!-- CreationDate: Tue Nov 18 07:16:09 2014 -->
 <html>
 <head>
 <meta name="generator" content="groff -Thtml, see www.gnu.org">
@@ -112,7 +112,7 @@ memory pools, and this library supplies the more familiar
 <p>Under normal usage, <b>libvmem</b> will never print
 messages or intentionally cause the process to exit.
 Exceptions to this are prints caused by calls to
-<b>vmem_pool_stats_print</b>(), or by enabling debugging as
+<b>vmem_stats_print</b>(), or by enabling debugging as
 described under <b>DEBUGGING</b> below. The library uses
 <b>pthreads</b>(7) to be fully MT-safe, but never creates or
 destroys threads itself. The library does not make use of
@@ -142,17 +142,17 @@ following three sections.</p>
 <td width="89%">
 <p>To use <b>libvmem</b>, a <i>memory pool</i> is first
 created. This is most commonly done with the
-<b>vmem_pool_create</b>() function described in this
-section. The other functions described in this section are
-for less common cases, where applications have special needs
-for creating pools or examining library state.</p>
+<b>vmem_create</b>() function described in this section. The
+other functions described in this section are for less
+common cases, where applications have special needs for
+creating pools or examining library state.</p>
 <!-- INDENTATION -->
 <p>Once created, a memory pool is represented by an opaque
 pool handle, of type <i>VMEM *</i>, which is passed to the
 functions for memory allocation described in the next
 section.</p>
 <!-- INDENTATION -->
-<p><b>VMEM *vmem_pool_create(const char *</b><i>dir</i><b>,
+<p><b>VMEM *vmem_create(const char *</b><i>dir</i><b>,
 size_t</b> <i>size</i><b>);</b></p>
 </td>
 </table>
@@ -162,25 +162,25 @@ size_t</b> <i>size</i><b>);</b></p>
 <tr valign="top" align="left">
 <td width="20%"></td>
 <td width="79%">
-<p>The <b>vmem_pool_create</b>() function creates a memory
-pool. The resulting pool is then used with functions like
+<p>The <b>vmem_create</b>() function creates a memory pool.
+The resulting pool is then used with functions like
 <b>vmem_malloc</b>() and <b>vmem_free</b>() to provide the
 familiar <i>malloc-like</i> programming model for the memory
-pool. <b>vmem_pool_create</b>() creates the pool by
-allocating a temporary file in the given directory
-<i>dir</i>. The file is created in a fashion similar to
-<b>tmpfile</b>(3), so that the file name does not appear
-when the directory is listed and the space is automatically
-freed when the program terminates. <i>size</i> bytes are
-allocated and the resulting space is memory-mapped. The
-minimum <i>size</i> value allowed by the library is defined
-in <b>&lt;libvmem.h&gt;</b> as <b>VMEM_MIN_POOL</b>. Calling
-<b>vmem_pool_create</b>() with a size smaller than that will
+pool. <b>vmem_create</b>() creates the pool by allocating a
+temporary file in the given directory <i>dir</i>. The file
+is created in a fashion similar to <b>tmpfile</b>(3), so
+that the file name does not appear when the directory is
+listed and the space is automatically freed when the program
+terminates. <i>size</i> bytes are allocated and the
+resulting space is memory-mapped. The minimum <i>size</i>
+value allowed by the library is defined in
+<b>&lt;libvmem.h&gt;</b> as <b>VMEM_MIN_POOL</b>. Calling
+<b>vmem_create</b>() with a size smaller than that will
 return an error. The maximum allowed size is not limited by
 <b>libvmem</b>, but by the file system specified by the
 <i>dir</i> argument. The <i>size</i> passed in is the raw
 size of the memory pool and <b>libvmem</b> will use some of
-that space for its own metadata. <b>vmem_pool_create</b>()
+that space for its own metadata. <b>vmem_create</b>()
 returns an opaque memory pool handle or NULL if an error
 occurred (in which case <i>errno</i> is set appropriately).
 The opaque memory pool handle is then used with the other
@@ -194,8 +194,8 @@ specific memory pool.</p>
 <tr valign="top" align="left">
 <td width="10%"></td>
 <td width="89%">
-<p><b>VMEM *vmem_pool_create_in_region(void
-*</b><i>addr</i><b>, size_t</b> <i>size</i><b>);</b></p>
+<p><b>VMEM *vmem_create_in_region(void *</b><i>addr</i><b>,
+size_t</b> <i>size</i><b>);</b></p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -204,22 +204,21 @@ specific memory pool.</p>
 <tr valign="top" align="left">
 <td width="20%"></td>
 <td width="79%">
-<p>The <b>vmem_pool_create_in_region</b>() is an alternate
+<p>The <b>vmem_create_in_region</b>() is an alternate
 <b>libvmem</b> entry point for creating a memory pool. It is
 for the rare case where an application needs to create a
 memory pool from an already memory-mapped region. Instead of
 allocating space from a given file system,
-<b>vmem_pool_create_in_region</b>() is given the memory
-region explicitly via the <i>addr</i> and <i>size</i>
-arguments. Any data in the region is lost by calling
-<b>vmem_pool_create_in_region</b>(), which will immediately
-store its own data structures for managing the pool there.
-Like <b>vmem_pool_create</b>() above, the minimum
-<i>size</i> allowed is defined as <b>VMEM_MIN_POOL</b>. The
-<i>addr</i> argument must be page aligned.
-<b>vmem_pool_create_in_region</b>() returns an opaque memory
-pool handle or NULL if an error occurred (in which case
-<i>errno</i> is set appropriately).</p>
+<b>vmem_create_in_region</b>() is given the memory region
+explicitly via the <i>addr</i> and <i>size</i> arguments.
+Any data in the region is lost by calling
+<b>vmem_create_in_region</b>(), which will immediately store
+its own data structures for managing the pool there. Like
+<b>vmem_create</b>() above, the minimum <i>size</i> allowed
+is defined as <b>VMEM_MIN_POOL</b>. The <i>addr</i> argument
+must be page aligned. <b>vmem_create_in_region</b>() returns
+an opaque memory pool handle or NULL if an error occurred
+(in which case <i>errno</i> is set appropriately).</p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -228,8 +227,7 @@ pool handle or NULL if an error occurred (in which case
 <tr valign="top" align="left">
 <td width="10%"></td>
 <td width="89%">
-<p><b>void vmem_pool_delete(VMEM
-*</b><i>vmp</i><b>);</b></p>
+<p><b>void vmem_delete(VMEM *</b><i>vmp</i><b>);</b></p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -238,8 +236,8 @@ pool handle or NULL if an error occurred (in which case
 <tr valign="top" align="left">
 <td width="20%"></td>
 <td width="79%">
-<p>The <b>vmem_pool_delete</b>() function releases the
-memory pool <i>vmp</i>. If the memory pool was created using
+<p>The <b>vmem_delete</b>() function releases the memory
+pool <i>vmp</i>. If the memory pool was created using
 <b>vmem_create_pool</b>(), deleting it allows the space to
 be reclaimed.</p>
 </td>
@@ -250,7 +248,7 @@ be reclaimed.</p>
 <tr valign="top" align="left">
 <td width="10%"></td>
 <td width="89%">
-<p><b>int vmem_pool_check(VMEM *</b><i>vmp</i><b>);</b></p>
+<p><b>int vmem_check(VMEM *</b><i>vmp</i><b>);</b></p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -259,20 +257,20 @@ be reclaimed.</p>
 <tr valign="top" align="left">
 <td width="20%"></td>
 <td width="79%">
-<p>The <b>vmem_pool_check</b>() function performs an
-extensive consistency check of all <b>libvmem</b> internal
-data structures in memory pool <i>vmp</i>. It returns 1 if
-the memory pool during the check is found to be consistent
-and 0 otherwise. Cases where the check couldn&rsquo;t be
+<p>The <b>vmem_check</b>() function performs an extensive
+consistency check of all <b>libvmem</b> internal data
+structures in memory pool <i>vmp</i>. It returns 1 if the
+memory pool during the check is found to be consistent and 0
+otherwise. Cases where the check couldn&rsquo;t be
 performed, are indicated by a return value of -1. Since an
 error return indicates memory pool corruption, applications
 should not continue to use a pool in this state. Additional
 details about errors found are logged when the log level is
 at least 1 (see <b>DEBUGGING</b> below). During the
-consistency check performed by <b>vmem_pool_check</b>(),
-other operations on the same memory pool are locked out. The
-checks are all read-only; <b>vmem_pool_check</b>() never
-modifies the memory pool. This function is mostly useful for
+consistency check performed by <b>vmem_check</b>(), other
+operations on the same memory pool are locked out. The
+checks are all read-only; <b>vmem_check</b>() never modifies
+the memory pool. This function is mostly useful for
 <b>libvmem</b> developers during testing/debugging.</p>
 </td>
 </table>
@@ -282,8 +280,7 @@ modifies the memory pool. This function is mostly useful for
 <tr valign="top" align="left">
 <td width="10%"></td>
 <td width="89%">
-<p><b>int vmem_pool_freespace(VMEM
-*</b><i>vmp</i><b>);</b></p>
+<p><b>int vmem_freespace(VMEM *</b><i>vmp</i><b>);</b></p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -292,8 +289,8 @@ modifies the memory pool. This function is mostly useful for
 <tr valign="top" align="left">
 <td width="20%"></td>
 <td width="79%">
-<p>The <b>vmem_pool_freespace</b>() function returns the
-amount of unallocated space available in the memory pool
+<p>The <b>vmem_freespace</b>() function returns the amount
+of unallocated space available in the memory pool
 <i>vmp</i>. This return value is in bytes, and should be
 considered an approximation since different allocation
 patterns will require <b>libvmem</b> to use up different
@@ -306,8 +303,8 @@ amounts of space for internal metadata.</p>
 <tr valign="top" align="left">
 <td width="10%"></td>
 <td width="89%">
-<p><b>void vmem_pool_stats_print(VMEM *</b><i>vmp</i><b>,
-const char *</b><i>opts</i><b>);</b></p>
+<p><b>void vmem_stats_print(VMEM *</b><i>vmp</i><b>, const
+char *</b><i>opts</i><b>);</b></p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -316,9 +313,9 @@ const char *</b><i>opts</i><b>);</b></p>
 <tr valign="top" align="left">
 <td width="20%"></td>
 <td width="79%">
-<p>The <b>vmem_pool_stats_print</b>() function produces
-messages containing statistics about the given memory pool.
-The output is printed using <b>libvmem</b>&rsquo;s internal
+<p>The <b>vmem_stats_print</b>() function produces messages
+containing statistics about the given memory pool. The
+output is printed using <b>libvmem</b>&rsquo;s internal
 <i>print_func</i> function (see <b>vmem_set_funcs</b>()
 below). That means the output typically appears on
 <b>stderr</b> unless the caller supplies a replacement
@@ -622,13 +619,13 @@ for each memory pool in use. The only functions in the
 malloc family used by the library are represented by the
 first four arguments to <b>vmem_set_funcs</b>(). The
 <i>print_func</i> function is called by <b>libvmem</b> when
-the <b>vmem_pool_stats_print</b>() entry point is used, or
-when additional tracing is enabled in the debug version of
-the library as described in the <b>DEBUGGING</b> section
-below. The default <i>print_func</i> used by the library
-prints to the file specified by the <b>VMEM_LOG_FILE</b>
-environment variable, or to <b>stderr</b> if that variable
-is not set.</p>
+the <b>vmem_stats_print</b>() entry point is used, or when
+additional tracing is enabled in the debug version of the
+library as described in the <b>DEBUGGING</b> section below.
+The default <i>print_func</i> used by the library prints to
+the file specified by the <b>VMEM_LOG_FILE</b> environment
+variable, or to <b>stderr</b> if that variable is not
+set.</p>
 </td>
 </table>
 <a name="DEBUGGING"></a>
@@ -671,7 +668,7 @@ values:</p>
 
 <p>This is the default level when <b>VMEM_LOG_LEVEL</b> is
 not set. Only statistics are logged, and then only in
-response to a call to <b>vmem_pool_stats_print</b>().</p>
+response to a call to <b>vmem_stats_print</b>().</p>
 </td>
 <tr valign="top" align="left">
 <td width="11%"></td>
@@ -771,9 +768,9 @@ main()
     char *ptr;
 
     /* create minimum size pool of memory */
-    if ((vmp = vmem_pool_create(&quot;/pmem-fs&quot;,
+    if ((vmp = vmem_create(&quot;/pmem-fs&quot;,
                                 VMEM_MIN_POOL)) == NULL) {
-        perror(&quot;vmem_pool_create&quot;);
+        perror(&quot;vmem_create&quot;);
         exit(1);
     }
 
