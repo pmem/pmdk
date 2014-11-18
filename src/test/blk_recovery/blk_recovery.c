@@ -108,8 +108,8 @@ main(int argc, char *argv[])
 	const char *path = argv[2];
 
 	PMEMblkpool *handle;
-	if ((handle = pmemblk_pool_create(path, Bsize, 0, S_IWUSR)) == NULL)
-		FATAL("!%s: pmemblk_pool_create", path);
+	if ((handle = pmemblk_create(path, Bsize, 0, S_IWUSR)) == NULL)
+		FATAL("!%s: pmemblk_create", path);
 
 	OUT("%s block size %zu usable blocks %zu",
 			argv[1], Bsize, pmemblk_nblock(handle));
@@ -151,13 +151,13 @@ main(int argc, char *argv[])
 			FATAL("write     lba %zu: %s", lba, ident(buf));
 	}
 
-	pmemblk_pool_close(handle);
+	pmemblk_close(handle);
 
-	int result = pmemblk_pool_check(path);
+	int result = pmemblk_check(path);
 	if (result < 0)
-		OUT("!%s: pmemblk_pool_check", path);
+		OUT("!%s: pmemblk_check", path);
 	else if (result == 0)
-		OUT("%s: pmemblk_pool_check: not consistent", path);
+		OUT("%s: pmemblk_check: not consistent", path);
 	else
 		OUT("%s: consistent", path);
 

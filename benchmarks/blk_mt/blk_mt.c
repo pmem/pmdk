@@ -152,10 +152,10 @@ main(int argc, char *argv[])
 	} else {
 		close(worker_params[0].file_desc);
 		worker_params[0].file_desc = -1;
-		if ((worker_params[0].handle = pmemblk_pool_open(
+		if ((worker_params[0].handle = pmemblk_open(
 				arguments.file_path,
 				worker_params[0].block_size)) == NULL) {
-			fprintf(stderr, "!%s: pmemblk_pool_open\n", argv[2]);
+			fprintf(stderr, "!%s: pmemblk_open\n", argv[2]);
 			exit(1);
 		}
 		worker_params[0].num_blocks = pmemblk_nblock(
@@ -215,15 +215,15 @@ main(int argc, char *argv[])
 
 	/* cleanup and check pmem file */
 	if (!arguments.file_io) {
-		pmemblk_pool_close(worker_params[0].handle);
+		pmemblk_close(worker_params[0].handle);
 
 		/* not really necessary, but check consistency */
-		int result = pmemblk_pool_check(arguments.file_path);
+		int result = pmemblk_check(arguments.file_path);
 		if (result < 0) {
-			fprintf(stderr, "!%s: pmemblk_pool_check\n",
+			fprintf(stderr, "!%s: pmemblk_check\n",
 					arguments.file_path);
 		} else if (result == 0) {
-			fprintf(stderr, "%s: pmemblk_pool_check: not "
+			fprintf(stderr, "%s: pmemblk_check: not "
 					"consistent\n", arguments.file_path);
 		}
 	}

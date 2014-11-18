@@ -125,13 +125,13 @@ pool_test(const char *dir)
 	VMEM *vmp = NULL;
 
 	if (dir != NULL) {
-		vmp = vmem_pool_create(dir, VMEM_MIN_POOL);
+		vmp = vmem_create(dir, VMEM_MIN_POOL);
 	} else {
-		/* allocate memory for function vmem_pool_create_in_region() */
+		/* allocate memory for function vmem_create_in_region() */
 		void *mem_pool = MMAP(NULL, VMEM_MIN_POOL, PROT_READ|PROT_WRITE,
 					MAP_ANONYMOUS|MAP_PRIVATE, -1, 0);
 
-		vmp = vmem_pool_create_in_region(mem_pool, VMEM_MIN_POOL);
+		vmp = vmem_create_in_region(mem_pool, VMEM_MIN_POOL);
 	}
 
 	if (expect_create_pool == 0) {
@@ -140,9 +140,9 @@ pool_test(const char *dir)
 	} else {
 		if (vmp == NULL) {
 			if (dir == NULL) {
-				FATAL("!vmem_pool_create_in_region");
+				FATAL("!vmem_create_in_region");
 			} else {
-				FATAL("!vmem_pool_create");
+				FATAL("!vmem_create");
 			}
 		}
 	}
@@ -155,7 +155,7 @@ pool_test(const char *dir)
 
 	vmem_free(vmp, test);
 
-	vmem_pool_delete(vmp);
+	vmem_delete(vmp);
 }
 
 int

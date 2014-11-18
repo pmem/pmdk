@@ -46,7 +46,7 @@ TEST = blk_nblock\
        pmem_isa_proc\
        pmem_is_pmem\
        pmem_is_pmem_proc\
-       pmem_map_raw\
+       pmem_map\
        scope\
        traces\
        traces_custom_function\
@@ -64,10 +64,10 @@ TEST = blk_nblock\
        vmem_mix_allocations\
        vmem_multiple_pools\
        vmem_out_of_memory\
-       vmem_pool_check\
-       vmem_pool_create\
-       vmem_pool_create_error\
-       vmem_pool_create_in_region\
+       vmem_check\
+       vmem_create\
+       vmem_create_error\
+       vmem_create_in_region\
        vmem_realloc\
        vmem_stats\
        vmem_strdup\

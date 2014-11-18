@@ -64,7 +64,7 @@ main(int argc, char *argv[])
 
 	/* open an array of atomically writable elements */
 	if ((pbp = pmemblk_open(path, sizeof (struct asset))) == NULL) {
-		perror("pmemblk_pool_open");
+		perror("pmemblk_open");
 		exit(1);
 	}
 

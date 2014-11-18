@@ -205,11 +205,11 @@ main(int argc, char *argv[])
 
 	const char *path = argv[1];
 	/* check consistency */
-	result = pmemlog_pool_check(path);
+	result = pmemlog_check(path);
 	if (result < 0)
-		OUT("!%s: pmemlog_pool_check", path);
+		OUT("!%s: pmemlog_check", path);
 	else if (result == 0)
-		OUT("%s: pmemlog_pool_check: not consistent", path);
+		OUT("%s: pmemlog_check: not consistent", path);
 
 	int fd = OPEN(path, O_RDWR);
 
@@ -220,8 +220,8 @@ main(int argc, char *argv[])
 
 	CLOSE(fd);
 
-	if ((plp = pmemlog_pool_create(path, 0, S_IWUSR)) == NULL)
-		FATAL("!pmemlog_pool_create: %s", path);
+	if ((plp = pmemlog_create(path, 0, S_IWUSR)) == NULL)
+		FATAL("!pmemlog_create: %s", path);
 
 	/* go through all arguments one by one */
 	for (int arg = 2; arg < argc; arg++) {
@@ -257,14 +257,14 @@ main(int argc, char *argv[])
 		}
 	}
 
-	pmemlog_pool_close(plp);
+	pmemlog_close(plp);
 
 	/* check consistency again */
-	result = pmemlog_pool_check(path);
+	result = pmemlog_check(path);
 	if (result < 0)
-		OUT("!%s: pmemlog_pool_check", path);
+		OUT("!%s: pmemlog_check", path);
 	else if (result == 0)
-		OUT("%s: pmemlog_pool_check: not consistent", path);
+		OUT("%s: pmemlog_check: not consistent", path);
 
 	DONE(NULL);
 }

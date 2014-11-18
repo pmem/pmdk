@@ -57,7 +57,7 @@ rm -f $DIR/testlink4
 rm -fr $DIR/testdir1
 rm -fr $DIR/testdir2
 
-truncate -s 16M $DIR/testfile1
+truncate -s 32K $DIR/testfile1
 mkdir $DIR/testdir1
 mkdir $DIR/testdir2
 chmod -w $DIR/testdir2

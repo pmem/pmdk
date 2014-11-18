@@ -172,14 +172,14 @@ main(int argc, char *argv[])
 	PMEMblkpool *handle;
 	switch (*argv[3]) {
 		case 'c':
-			handle = pmemblk_pool_create(path, Bsize, 0, S_IWUSR);
+			handle = pmemblk_create(path, Bsize, 0, S_IWUSR);
 			if (handle == NULL)
-				FATAL("!%s: pmemblk_pool_create", path);
+				FATAL("!%s: pmemblk_create", path);
 			break;
 		case 'o':
-			handle = pmemblk_pool_open(path, Bsize);
+			handle = pmemblk_open(path, Bsize);
 			if (handle == NULL)
-				FATAL("!%s: pmemblk_pool_open", path);
+				FATAL("!%s: pmemblk_open", path);
 			break;
 	}
 
@@ -226,13 +226,13 @@ main(int argc, char *argv[])
 		}
 	}
 
-	pmemblk_pool_close(handle);
+	pmemblk_close(handle);
 
-	int result = pmemblk_pool_check(path);
+	int result = pmemblk_check(path);
 	if (result < 0)
-		OUT("!%s: pmemblk_pool_check", path);
+		OUT("!%s: pmemblk_check", path);
 	else if (result == 0)
-		OUT("%s: pmemblk_pool_check: not consistent", path);
+		OUT("%s: pmemblk_check: not consistent", path);
 
 	DONE(NULL);
 }

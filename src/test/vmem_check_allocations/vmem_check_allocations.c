@@ -70,14 +70,14 @@ main(int argc, char *argv[])
 					PROT_READ|PROT_WRITE,
 					MAP_ANONYMOUS|MAP_PRIVATE, -1, 0);
 
-			vmp = vmem_pool_create_in_region(mem_pool,
+			vmp = vmem_create_in_region(mem_pool,
 				VMEM_MIN_POOL);
 			if (vmp == NULL)
-				FATAL("!vmem_pool_create_in_region");
+				FATAL("!vmem_create_in_region");
 		} else {
-			vmp = vmem_pool_create(dir, VMEM_MIN_POOL);
+			vmp = vmem_create(dir, VMEM_MIN_POOL);
 			if (vmp == NULL)
-				FATAL("!vmem_pool_create");
+				FATAL("!vmem_create");
 		}
 
 		memset(allocs, 0, TEST_ALLOCS_SIZE);
@@ -113,7 +113,7 @@ main(int argc, char *argv[])
 			}
 		}
 
-		vmem_pool_delete(vmp);
+		vmem_delete(vmp);
 	}
 
 	DONE(NULL);

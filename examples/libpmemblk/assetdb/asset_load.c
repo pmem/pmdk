@@ -113,5 +113,5 @@ main(int argc, char *argv[])
 	free(line);
 	fclose(fp);
 
-	pmemblk_pool_close(pbp);
+	pmemblk_close(pbp);
 }

@@ -9,5 +9,5 @@ For example:
 
 	./blk_nblock 4096:file1
 
-this will call pmemblk_pool_open() on file1 and then report what pmemblk_nblock()
+this will call pmemblk_open() on file1 and then report what pmemblk_nblock()
 reports back as the usable size.

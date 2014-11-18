@@ -51,7 +51,7 @@ rm -f $DIR/testfile1
 truncate -s 2G $DIR/testfile1
 
 #
-# Simple case, one write interrupted.  pmemblk_pool_check() should note
+# Simple case, one write interrupted.  pmemblk_check() should note
 # that testfile1 is consistent (after recovery steps were taken).
 #
 expect_normal_exit ./blk_recovery$EXESUFFIX 4096 $DIR/testfile1 5 10

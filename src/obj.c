@@ -52,7 +52,7 @@
 #include "obj.h"
 
 /*
- * pmemobj_pool_map_common -- (internal) map a transactional memory pool
+ * pmemobj_map_common -- (internal) map a transactional memory pool
  *
  * This routine does all the work, but takes a rdonly flag so internal
  * calls can map a read-only pool if required.
@@ -61,7 +61,7 @@
  * new pool header is created.  Otherwise, a valid header must exist.
  */
 static PMEMobjpool *
-pmemobj_pool_map_common(int fd, const char *layout, size_t poolsize, int rdonly,
+pmemobj_map_common(int fd, const char *layout, size_t poolsize, int rdonly,
 		int empty)
 {
 	LOG(3, "fd %d layout %s poolsize %zu rdonly %d empty %d",
@@ -200,10 +200,10 @@ err:
 }
 
 /*
- * pmemobj_pool_create -- create a transactional memory pool
+ * pmemobj_create -- create a transactional memory pool
  */
 PMEMobjpool *
-pmemobj_pool_create(const char *path, const char *layout, size_t poolsize,
+pmemobj_create(const char *path, const char *layout, size_t poolsize,
 		mode_t mode)
 {
 	LOG(3, "path %s layout %s poolsize %zu mode %d",
@@ -220,14 +220,14 @@ pmemobj_pool_create(const char *path, const char *layout, size_t poolsize,
 	if (fd == -1)
 		return NULL;	/* errno set by util_pool_create/open() */
 
-	return pmemobj_pool_map_common(fd, layout, poolsize, 0, 1);
+	return pmemobj_map_common(fd, layout, poolsize, 0, 1);
 }
 
 /*
- * pmemobj_pool_open -- open a transactional memory pool
+ * pmemobj_open -- open a transactional memory pool
  */
 PMEMobjpool *
-pmemobj_pool_open(const char *path, const char *layout)
+pmemobj_open(const char *path, const char *layout)
 {
 	LOG(3, "path %s layout %s", path, layout);
 
@@ -237,14 +237,14 @@ pmemobj_pool_open(const char *path, const char *layout)
 	if ((fd = util_pool_open(path, &poolsize, PMEMOBJ_MIN_POOL)) == -1)
 		return NULL;	/* errno set by util_pool_open() */
 
-	return pmemobj_pool_map_common(fd, layout, poolsize, 0, 0);
+	return pmemobj_map_common(fd, layout, poolsize, 0, 0);
 }
 
 /*
- * pmemobj_pool_close -- close a transactional memory pool
+ * pmemobj_close -- close a transactional memory pool
  */
 void
-pmemobj_pool_close(PMEMobjpool *pop)
+pmemobj_close(PMEMobjpool *pop)
 {
 	LOG(3, "pop %p", pop);
 
@@ -254,10 +254,10 @@ pmemobj_pool_close(PMEMobjpool *pop)
 }
 
 /*
- * pmemobj_pool_check -- transactional memory pool consistency check
+ * pmemobj_check -- transactional memory pool consistency check
  */
 int
-pmemobj_pool_check(const char *path, const char *layout)
+pmemobj_check(const char *path, const char *layout)
 {
 	LOG(3, "path %s layout %s", path, layout);
 
@@ -268,16 +268,16 @@ pmemobj_pool_check(const char *path, const char *layout)
 		return -1;	/* errno set by util_pool_open() */
 
 	/* map the pool read-only */
-	PMEMobjpool *pop = pmemobj_pool_map_common(fd, layout, poolsize, 1, 0);
+	PMEMobjpool *pop = pmemobj_map_common(fd, layout, poolsize, 1, 0);
 
 	if (pop == NULL)
-		return -1;	/* errno set by pmemobj_pool_map_common() */
+		return -1;	/* errno set by pmemobj_map_common() */
 
 	int consistent = 1;
 
 	/* XXX validate metadata */
 
-	pmemobj_pool_close(pop);
+	pmemobj_close(pop);
 
 	if (consistent)
 		LOG(4, "pool consistency check OK");

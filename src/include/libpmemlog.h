@@ -73,11 +73,10 @@ const char *pmemlog_check_version(
  */
 #define	PMEMLOG_MIN_POOL ((size_t)(1024 * 1024 * 2)) /* min pool size: 2MB */
 
-PMEMlogpool *pmemlog_pool_open(const char *path);
-PMEMlogpool *pmemlog_pool_create(const char *path, size_t poolsize,
-		mode_t mode);
-void pmemlog_pool_close(PMEMlogpool *plp);
-int pmemlog_pool_check(const char *path);
+PMEMlogpool *pmemlog_open(const char *path);
+PMEMlogpool *pmemlog_create(const char *path, size_t poolsize, mode_t mode);
+void pmemlog_close(PMEMlogpool *plp);
+int pmemlog_check(const char *path);
 size_t pmemlog_nbyte(PMEMlogpool *plp);
 int pmemlog_append(PMEMlogpool *plp, const void *buf, size_t count);
 int pmemlog_appendv(PMEMlogpool *plp, const struct iovec *iov, int iovcnt);

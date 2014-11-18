@@ -98,10 +98,10 @@ vmem_init(void)
 }
 
 /*
- * vmem_pool_create -- create a memory pool in a temp file
+ * vmem_create -- create a memory pool in a temp file
  */
 VMEM *
-vmem_pool_create(const char *dir, size_t size)
+vmem_create(const char *dir, size_t size)
 {
 	LOG(3, "dir \"%s\" size %zu", dir, size);
 
@@ -147,10 +147,10 @@ vmem_pool_create(const char *dir, size_t size)
 }
 
 /*
- * vmem_pool_create_in_region -- create a memory pool in a given range
+ * vmem_create_in_region -- create a memory pool in a given range
  */
 VMEM *
-vmem_pool_create_in_region(void *addr, size_t size)
+vmem_create_in_region(void *addr, size_t size)
 {
 	LOG(3, "addr %p size %zu", addr, size);
 
@@ -194,10 +194,10 @@ vmem_pool_create_in_region(void *addr, size_t size)
 }
 
 /*
- * vmem_pool_delete -- delete a memory pool
+ * vmem_delete -- delete a memory pool
  */
 void
-vmem_pool_delete(VMEM *vmp)
+vmem_delete(VMEM *vmp)
 {
 	LOG(3, "vmp %p", vmp);
 
@@ -209,10 +209,10 @@ vmem_pool_delete(VMEM *vmp)
 }
 
 /*
- * vmem_pool_check -- memory pool consistency check
+ * vmem_check -- memory pool consistency check
  */
 int
-vmem_pool_check(VMEM *vmp)
+vmem_check(VMEM *vmp)
 {
 	LOG(3, "vmp %p", vmp);
 
@@ -220,10 +220,10 @@ vmem_pool_check(VMEM *vmp)
 }
 
 /*
- * vmem_pool_freespace -- return current freespace in memory pool
+ * vmem_freespace -- return current freespace in memory pool
  */
 size_t
-vmem_pool_freespace(VMEM *vmp)
+vmem_freespace(VMEM *vmp)
 {
 	LOG(3, "vmp %p", vmp);
 
@@ -231,10 +231,10 @@ vmem_pool_freespace(VMEM *vmp)
 }
 
 /*
- * vmem_pool_stats_print -- spew memory allocator stats for a pool
+ * vmem_stats_print -- spew memory allocator stats for a pool
  */
 void
-vmem_pool_stats_print(VMEM *vmp, const char *opts)
+vmem_stats_print(VMEM *vmp, const char *opts)
 {
 	LOG(3, "vmp %p opts \"%s\"", vmp, opts);
 

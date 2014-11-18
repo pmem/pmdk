@@ -36,10 +36,10 @@ libpmemobj.so {
 	global:
 		pmemobj_check_version;
 		pmemobj_set_funcs;
-		pmemobj_pool_create;
-		pmemobj_pool_open;
-		pmemobj_pool_close;
-		pmemobj_pool_check;
+		pmemobj_create;
+		pmemobj_open;
+		pmemobj_close;
+		pmemobj_check;
 	local:
 		*;
 };

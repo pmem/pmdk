@@ -57,17 +57,17 @@ main(int argc, char *argv[])
 	}
 
 	if (dir == NULL) {
-		/* allocate memory for function vmem_pool_create_in_region() */
+		/* allocate memory for function vmem_create_in_region() */
 		mem_pool = MMAP(NULL, VMEM_MIN_POOL, PROT_READ|PROT_WRITE,
 					MAP_ANONYMOUS|MAP_PRIVATE, -1, 0);
 
-		vmp = vmem_pool_create_in_region(mem_pool, VMEM_MIN_POOL);
+		vmp = vmem_create_in_region(mem_pool, VMEM_MIN_POOL);
 		if (vmp == NULL)
-			FATAL("!vmem_pool_create_in_region");
+			FATAL("!vmem_create_in_region");
 	} else {
-		vmp = vmem_pool_create(dir, VMEM_MIN_POOL);
+		vmp = vmem_create(dir, VMEM_MIN_POOL);
 		if (vmp == NULL)
-			FATAL("!vmem_pool_create");
+			FATAL("!vmem_create");
 	}
 
 	/* test with multiple size of allocations from 4MB to 2B */
@@ -89,7 +89,7 @@ main(int argc, char *argv[])
 	/* allocate more than half of pool size */
 	ASSERT(sum_alloc * 2 > VMEM_MIN_POOL);
 
-	vmem_pool_delete(vmp);
+	vmem_delete(vmp);
 
 	DONE(NULL);
 }

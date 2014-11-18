@@ -209,8 +209,8 @@ main(int argc, char *argv[])
 
 	CLOSE(fd);
 
-	if ((plp = pmemlog_pool_create(path, 0, S_IWUSR)) == NULL)
-		FATAL("!pmemlog_pool_create: %s", path);
+	if ((plp = pmemlog_create(path, 0, S_IWUSR)) == NULL)
+		FATAL("!pmemlog_create: %s", path);
 
 	/* append some data */
 	if (argv[2][0] == 'a')
@@ -238,20 +238,20 @@ main(int argc, char *argv[])
 			do_appendv(plp);
 	}
 
-	pmemlog_pool_close(plp);
+	pmemlog_close(plp);
 
 	/* check consistency */
-	result = pmemlog_pool_check(path);
+	result = pmemlog_check(path);
 	if (result < 0)
-		OUT("!%s: pmemlog_pool_check", path);
+		OUT("!%s: pmemlog_check", path);
 	else if (result == 0)
-		OUT("%s: pmemlog_pool_check: not consistent", path);
+		OUT("%s: pmemlog_check: not consistent", path);
 	else
 		OUT("%s: consistent", path);
 
 	/* map again to print out whole log */
-	if ((plp = pmemlog_pool_open(path)) == NULL)
-		FATAL("!pmemlog_pool_open: %s", path);
+	if ((plp = pmemlog_open(path)) == NULL)
+		FATAL("!pmemlog_open: %s", path);
 
 	/* print out current write point */
 	do_tell(plp);
@@ -259,7 +259,7 @@ main(int argc, char *argv[])
 	/* print out whole log */
 	do_walk(plp);
 
-	pmemlog_pool_close(plp);
+	pmemlog_close(plp);
 
 	DONE(NULL);
 }

@@ -1,8 +1,8 @@
 blk_nblock/TEST0: START: blk_nblock
  ./blk_nblock$(*) 512:$(*)/testfile1 512:$(*)/testfile2.512 4096:$(*)/testfile2.512 520:$(*)/testfile2.520 528:$(*)/testfile2.528 4096:$(*)/testfile2.4096 4160:$(*)/testfile2.4160 4224:$(*)/testfile2.4224 512:$(*)/testfile3.512 520:$(*)/testfile3.520 528:$(*)/testfile3.528 4096:$(*)/testfile3.4096 4160:$(*)/testfile3.4160 4224:$(*)/testfile3.4224 512:$(*)/testfile4.512 520:$(*)/testfile4.520 528:$(*)/testfile4.528 4096:$(*)/testfile4.4096 4160:$(*)/testfile4.4160 4224:$(*)/testfile4.4224 512:$(*)/testfile5.512 520:$(*)/testfile5.520 528:$(*)/testfile5.528 4096:$(*)/testfile5.4096 4160:$(*)/testfile5.4160 4224:$(*)/testfile5.4224 512:$(*)/testfile6.512 520:$(*)/testfile6.520 528:$(*)/testfile6.528 4096:$(*)/testfile6.4096 4160:$(*)/testfile6.4160 4224:$(*)/testfile6.4224
-$(*)/testfile1: pmemblk_pool_create: Invalid argument
+$(*)/testfile1: pmemblk_create: Invalid argument
 $(*)/testfile2.512: block size 512 usable blocks: 4161462
-$(*)/testfile2.512: pmemblk_pool_create: Invalid argument
+$(*)/testfile2.512: pmemblk_create: Invalid argument
 $(*)/testfile2.520: block size 520 usable blocks: 2781410
 $(*)/testfile2.528: block size 528 usable blocks: 2781410
 $(*)/testfile2.4096: block size 4096 usable blocks: 523511

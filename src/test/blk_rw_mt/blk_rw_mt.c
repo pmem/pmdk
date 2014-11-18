@@ -119,8 +119,8 @@ main(int argc, char *argv[])
 
 	const char *path = argv[2];
 
-	if ((Handle = pmemblk_pool_create(path, Bsize, 0, S_IWUSR)) == NULL)
-		FATAL("!%s: pmemblk_pool_create", path);
+	if ((Handle = pmemblk_create(path, Bsize, 0, S_IWUSR)) == NULL)
+		FATAL("!%s: pmemblk_create", path);
 
 	if (Nblock == 0)
 		Nblock = pmemblk_nblock(Handle);
@@ -140,14 +140,14 @@ main(int argc, char *argv[])
 	for (int i = 0; i < Nthread; i++)
 		PTHREAD_JOIN(threads[i], NULL);
 
-	pmemblk_pool_close(Handle);
+	pmemblk_close(Handle);
 
 	/* XXX not ready to pass this part of the test yet */
-	int result = pmemblk_pool_check(path);
+	int result = pmemblk_check(path);
 	if (result < 0)
-		OUT("!%s: pmemblk_pool_check", path);
+		OUT("!%s: pmemblk_check", path);
 	else if (result == 0)
-		OUT("%s: pmemblk_pool_check: not consistent", path);
+		OUT("%s: pmemblk_check: not consistent", path);
 
 	DONE(NULL);
 }

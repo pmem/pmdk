@@ -34,12 +34,12 @@
 #
 libvmem.so {
 	global:
-		vmem_pool_create;
-		vmem_pool_create_in_region;
-		vmem_pool_delete;
-		vmem_pool_check;
-		vmem_pool_freespace;
-		vmem_pool_stats_print;
+		vmem_create;
+		vmem_create_in_region;
+		vmem_delete;
+		vmem_check;
+		vmem_freespace;
+		vmem_stats_print;
 		vmem_malloc;
 		vmem_free;
 		vmem_calloc;

@@ -235,7 +235,7 @@ static const struct ns_callback ns_cb = {
 };
 
 /*
- * pmemblk_pool_map_common -- (internal) map a block memory pool
+ * pmemblk_map_common -- (internal) map a block memory pool
  *
  * This routine does all the work, but takes a rdonly flag so internal
  * calls can map a read-only pool if required.
@@ -247,7 +247,7 @@ static const struct ns_callback ns_cb = {
  * will supply the block size).
  */
 static PMEMblkpool *
-pmemblk_pool_map_common(int fd, size_t poolsize, size_t bsize, int rdonly,
+pmemblk_map_common(int fd, size_t poolsize, size_t bsize, int rdonly,
 		int empty)
 {
 	LOG(3, "fd %d poolsize %zu bsize %zu rdonly %d empty %d",
@@ -432,10 +432,10 @@ err:
 }
 
 /*
- * pmemblk_pool_create -- create a block memory pool
+ * pmemblk_create -- create a block memory pool
  */
 PMEMblkpool *
-pmemblk_pool_create(const char *path, size_t bsize, size_t poolsize,
+pmemblk_create(const char *path, size_t bsize, size_t poolsize,
 		mode_t mode)
 {
 	LOG(3, "path %s bsize %zu poolsize %zu mode %d",
@@ -452,14 +452,14 @@ pmemblk_pool_create(const char *path, size_t bsize, size_t poolsize,
 	if (fd == -1)
 		return NULL;	/* errno set by util_pool_create/open() */
 
-	return pmemblk_pool_map_common(fd, poolsize, bsize, 0, 1);
+	return pmemblk_map_common(fd, poolsize, bsize, 0, 1);
 }
 
 /*
- * pmemblk_pool_open -- open a block memory pool
+ * pmemblk_open -- open a block memory pool
  */
 PMEMblkpool *
-pmemblk_pool_open(const char *path, size_t bsize)
+pmemblk_open(const char *path, size_t bsize)
 {
 	LOG(3, "path %s bsize %zu", path, bsize);
 
@@ -469,14 +469,14 @@ pmemblk_pool_open(const char *path, size_t bsize)
 	if ((fd = util_pool_open(path, &poolsize, PMEMBLK_MIN_POOL)) == -1)
 		return NULL;	/* errno set by util_pool_open() */
 
-	return pmemblk_pool_map_common(fd, poolsize, bsize, 0, 0);
+	return pmemblk_map_common(fd, poolsize, bsize, 0, 0);
 }
 
 /*
- * pmemblk_pool_close -- close a block memory pool
+ * pmemblk_close -- close a block memory pool
  */
 void
-pmemblk_pool_close(PMEMblkpool *pbp)
+pmemblk_close(PMEMblkpool *pbp)
 {
 	LOG(3, "pbp %p", pbp);
 
@@ -605,10 +605,10 @@ pmemblk_set_error(PMEMblkpool *pbp, off_t blockno)
 }
 
 /*
- * pmemblk_pool_check -- block memory pool consistency check
+ * pmemblk_check -- block memory pool consistency check
  */
 int
-pmemblk_pool_check(const char *path)
+pmemblk_check(const char *path)
 {
 	LOG(3, "path \"%s\"", path);
 
@@ -619,14 +619,14 @@ pmemblk_pool_check(const char *path)
 		return -1;	/* errno set by util_pool_open() */
 
 	/* map the pool read-only */
-	PMEMblkpool *pbp = pmemblk_pool_map_common(fd, poolsize, 0, 1, 0);
+	PMEMblkpool *pbp = pmemblk_map_common(fd, poolsize, 0, 1, 0);
 
 	if (pbp == NULL)
-		return -1;	/* errno set by pmemblk_pool_map_common() */
+		return -1;	/* errno set by pmemblk_map_common() */
 
 	int retval = btt_check(pbp->bttp);
 	int oerrno = errno;
-	pmemblk_pool_close(pbp);
+	pmemblk_close(pbp);
 	errno = oerrno;
 
 	return retval;

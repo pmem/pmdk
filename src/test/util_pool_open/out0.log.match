@@ -11,5 +11,5 @@ $(*)/testfile0: util_pool_open: No such file or directory
 $(*)/testfile1: util_pool_open: Permission denied
 $(*)/testfile2: util_pool_open: Permission denied
 $(*)/testfile3: util_pool_open: Invalid argument
-$(*)/testfile4: open, len 16777216
+$(*)/testfile4: open, len 32768
 util_pool_open/TEST0: Done
