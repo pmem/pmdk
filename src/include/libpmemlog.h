@@ -74,6 +74,8 @@ const char *pmemlog_check_version(
 #define	PMEMLOG_MIN_POOL ((size_t)(1024 * 1024 * 2)) /* min pool size: 2MB */
 
 PMEMlogpool *pmemlog_pool_open(const char *path);
+PMEMlogpool *pmemlog_pool_create(const char *path, size_t poolsize,
+		mode_t mode);
 void pmemlog_pool_close(PMEMlogpool *plp);
 int pmemlog_pool_check(const char *path);
 size_t pmemlog_nbyte(PMEMlogpool *plp);
@@ -92,10 +94,7 @@ void pmemlog_walk(PMEMlogpool *plp, size_t chunksize,
  */
 void pmemlog_set_funcs(
 		void *(*malloc_func)(size_t size),
-		void (*free_func)(void *ptr),
-		void *(*realloc_func)(void *ptr, size_t size),
-		char *(*strdup_func)(const char *s));
-
+		void (*free_func)(void *ptr));
 
 #ifdef __cplusplus
 }

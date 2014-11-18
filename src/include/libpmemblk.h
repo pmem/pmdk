@@ -70,6 +70,8 @@ const char *pmemblk_check_version(
 #define	PMEMBLK_MIN_BLK ((size_t)512)
 
 PMEMblkpool *pmemblk_pool_open(const char *path, size_t bsize);
+PMEMblkpool *pmemblk_pool_create(const char *path, size_t bsize,
+		size_t poolsize, mode_t mode);
 void pmemblk_pool_close(PMEMblkpool *pbp);
 int pmemblk_pool_check(const char *path);
 size_t pmemblk_nblock(PMEMblkpool *pbp);
@@ -85,9 +87,7 @@ int pmemblk_set_error(PMEMblkpool *pbp, off_t blockno);
  */
 void pmemblk_set_funcs(
 		void *(*malloc_func)(size_t size),
-		void (*free_func)(void *ptr),
-		void *(*realloc_func)(void *ptr, size_t size),
-		char *(*strdup_func)(const char *s));
+		void (*free_func)(void *ptr));
 
 #ifdef __cplusplus
 }

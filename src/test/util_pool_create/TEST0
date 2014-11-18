@@ -1,3 +1,4 @@
+#!/bin/bash -e
 #
 # Copyright (c) 2014, Intel Corporation
 #
@@ -31,61 +32,57 @@
 #
 
 #
-# src/test/Makefile -- build all unit tests
+# src/test/util_pool_create/TEST0 -- unit test for util_pool_create()
 #
-# Makefile -- build all unit tests
-#
-TEST = blk_nblock\
-       blk_recovery\
-       blk_rw\
-       blk_rw_mt\
-       checksum\
-       log_basic\
-       log_recovery\
-       log_walker\
-       pmem_isa_proc\
-       pmem_is_pmem\
-       pmem_is_pmem_proc\
-       pmem_map_raw\
-       scope\
-       traces\
-       traces_custom_function\
-       traces_pmem\
-       util_map_proc\
-       util_pool_create\
-       util_pool_open\
-       vmem_aligned_alloc\
-       vmem_calloc\
-       vmem_check_allocations\
-       vmem_check_version\
-       vmem_custom_alloc\
-       vmem_freespace\
-       vmem_malloc\
-       vmem_mix_allocations\
-       vmem_multiple_pools\
-       vmem_out_of_memory\
-       vmem_pool_check\
-       vmem_pool_create\
-       vmem_pool_create_error\
-       vmem_pool_create_in_region\
-       vmem_realloc\
-       vmem_stats\
-       vmem_strdup\
-       vmem_valgrind\
-       vmem_pages_purging
+export UNITTEST_NAME=util_pool_create/TEST0
+export UNITTEST_NUM=0
 
-all     : TARGET = all
-clean   : TARGET = clean
-clobber : TARGET = clobber
-test    : TARGET = test
-cstyle  : TARGET = cstyle
+# standard unit test setup
+. ../unittest/unittest.sh
 
-all clean clobber test cstyle: $(TEST)
+require_fs_type local
 
-$(TEST): unittest
-	$(MAKE) -C $@ $(TARGET)
+setup
 
-unittest:
-	$(MAKE) -C $@ $(TARGET)
+MIN_POOL=0x4000
 
-.PHONY: all clean clobber test cstyle unittest $(TEST)
+rm -f $DIR/testfile1
+rm -f $DIR/testfile2
+rm -f $DIR/testfile3
+rm -f $DIR/testfile4
+rm -f $DIR/testlink1
+rm -f $DIR/testlink2
+rm -f $DIR/testlink3
+rm -f $DIR/testlink4
+rm -fr $DIR/testdir1
+rm -fr $DIR/testdir2
+
+truncate -s 16M $DIR/testfile1
+mkdir $DIR/testdir1
+mkdir $DIR/testdir2
+chmod -w $DIR/testdir2
+ln -s $DIR/testfile0 $DIR/testlink1
+ln -s $DIR/testfile1 $DIR/testlink2
+ln -s $DIR/testdir1 $DIR/testlink3
+ln -s /dev/zero $DIR/testlink4
+
+expect_normal_exit ./util_pool_create$EXESUFFIX $MIN_POOL \
+    $MIN_POOL:$DIR/testdir1\
+    $MIN_POOL:/dev/zero\
+    $MIN_POOL:$DIR/testlink1\
+    $MIN_POOL:$DIR/testlink2\
+    $MIN_POOL:$DIR/testlink3\
+    $MIN_POOL:$DIR/testlink4\
+    $MIN_POOL:$DIR/testfile1\
+    0x1000:$DIR/testfile2\
+    0x7FFFFFFFFFFFFFFF:$DIR/testfile3\
+    $MIN_POOL:$DIR/testdir2/testfile\
+    $MIN_POOL:$DIR/testfile4
+
+rm -f $DIR/testfile[1234]
+rm -f $DIR/testlink[1234]
+rmdir $DIR/testdir[12]
+
+check
+
+pass

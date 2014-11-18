@@ -134,9 +134,10 @@ main(int argc, char *argv[])
 		fname++;
 
 		PMEMblkpool *handle;
-		if ((handle = pmemblk_pool_open(fname, bsize)) == NULL)
-			OUT("!%s: pmemblk_pool_open", fname);
-		else {
+		handle = pmemblk_pool_create(fname, bsize, 0, S_IWUSR);
+		if (handle == NULL) {
+			OUT("!%s: pmemblk_pool_create", fname);
+		} else {
 			OUT("%s: block size %zu usable blocks: %zu",
 					fname, bsize, pmemblk_nblock(handle));
 			pmemblk_pool_close(handle);

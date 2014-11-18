@@ -48,7 +48,8 @@ setup
 # single arena write case
 rm -f $DIR/testfile1
 truncate -s 1G $DIR/testfile1
-expect_normal_exit ./blk_rw$EXESUFFIX 512 $DIR/testfile1 w:0 r:1 r:0 w:1 r:0 r:1 r:2
+expect_normal_exit ./blk_rw$EXESUFFIX 512 $DIR/testfile1 c\
+	w:0 r:1 r:0 w:1 r:0 r:1 r:2
 rm $DIR/testfile1
 
 check

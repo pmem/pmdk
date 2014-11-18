@@ -40,6 +40,8 @@
 #include <sys/types.h>
 #include <sys/mman.h>
 #include <sys/param.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include <unistd.h>
 #include <stdint.h>
 #include <endian.h>
@@ -380,6 +382,20 @@ util_range_none(void *addr, size_t len)
 }
 
 /*
+ * util_is_zeroed -- check if given memory range is all zero
+ */
+int
+util_is_zeroed(void *addr, size_t len)
+{
+	/* XXX optimize */
+	char *a = addr;
+	while (len-- > 0)
+		if (*a++)
+			return 0;
+	return 1;
+}
+
+/*
  * util_feature_check -- check features masks
  */
 int
@@ -419,4 +435,75 @@ util_feature_check(struct pool_hdr *hdrp, uint32_t incompat,
 #undef	GET_NOT_MASKED_BITS
 
 	return 1;
+}
+
+/*
+ * util_pool_create -- create a new memory pool file
+ */
+int
+util_pool_create(const char *path, size_t size, size_t minsize, mode_t mode)
+{
+	LOG(3, "path %s size %zu minsize %zu mode %d",
+			path, size, minsize, mode);
+
+	ASSERTne(size, 0);
+
+	if (size < minsize) {
+		LOG(1, "size %zu smaller than %zu", size, minsize);
+		errno = EINVAL;
+		return -1;
+	}
+
+	int fd;
+	if ((fd = open(path, O_RDWR|O_CREAT|O_EXCL, mode)) < 0) {
+		LOG(1, "!open %s", path);
+		return -1;
+	}
+
+	if ((errno = posix_fallocate(fd, 0, size)) != 0) {
+		LOG(1, "!posix_fallocate");
+		goto err;
+	}
+
+	return fd;
+err:
+	LOG(4, "error clean up");
+	int oerrno = errno;
+	if (fd != -1)
+		(void) close(fd);
+	errno = oerrno;
+	return -1;
+}
+
+/*
+ * util_pool_open -- open a memory pool file
+ */
+int
+util_pool_open(const char *path, size_t *size, size_t minsize)
+{
+	LOG(3, "path %s minsize %zu", path, minsize);
+
+	ASSERTeq(*size, 0);
+
+	struct stat stbuf;
+	if (stat(path, &stbuf) < 0) {
+		LOG(1, "!stat %s", path);
+		return -1;
+	}
+
+	if (stbuf.st_size < minsize) {
+		LOG(1, "size %lld smaller than %zu",
+				(long long)stbuf.st_size, minsize);
+		errno = EINVAL;
+		return -1;
+	}
+	*size = stbuf.st_size;
+
+	int fd;
+	if ((fd = open(path, O_RDWR)) < 0) {
+		LOG(1, "!open %s", path);
+		return -1;
+	}
+
+	return fd;
 }

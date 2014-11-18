@@ -67,10 +67,13 @@ const char *pmemobj_check_version(
 		unsigned minor_required);
 
 #define	PMEMOBJ_MIN_POOL ((size_t)(1 << 21))	/* min pool size: 2MB */
+#define	PMEMOBJ_LAYOUT_MAX ((size_t)1024)
 
-PMEMobjpool *pmemobj_pool_open(const char *path);
+PMEMobjpool *pmemobj_pool_open(const char *path, const char *layout);
+PMEMobjpool *pmemobj_pool_create(const char *path, const char *layout,
+		size_t poolsize, mode_t mode);
 void pmemobj_pool_close(PMEMobjpool *pop);
-int pmemobj_pool_check(const char *path);
+int pmemobj_pool_check(const char *path, const char *layout);
 
 /*
  * Passing NULL to pmemobj_set_funcs() tells libpmemobj to continue to use the
@@ -79,9 +82,7 @@ int pmemobj_pool_check(const char *path);
  */
 void pmemobj_set_funcs(
 		void *(*malloc_func)(size_t size),
-		void (*free_func)(void *ptr),
-		void *(*realloc_func)(void *ptr, size_t size),
-		char *(*strdup_func)(const char *s));
+		void (*free_func)(void *ptr));
 
 #ifdef __cplusplus
 }

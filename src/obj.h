@@ -48,7 +48,12 @@
 struct pmemobjpool {
 	struct pool_hdr hdr;	/* memory pool header */
 
+	/* root info for on-media format... */
+	char layout[PMEMOBJ_LAYOUT_MAX];
+
 	/* some run-time state, allocated out of memory pool... */
 	void *addr;		/* mapped region */
 	size_t size;		/* size of mapped region */
+	int is_pmem;		/* true if pool is PMEM */
+	int rdonly;		/* true if pool is opened read-only */
 };

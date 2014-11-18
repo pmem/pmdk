@@ -66,7 +66,7 @@ libpmemobj \- persistent memory transactional object store
 .BI "void pmemobj_set_funcs("
 .BI "    void *(*" malloc_func ")(size_t " size ),
 .BI "    void (*" free_func ")(void *" ptr ));
-.BI "int pmemobj_check(const char *" path );
+.BI "int pmemobj_check(const char *" path ", const char *" layout );
 .fi
 .sp
 .SH DESCRIPTION
@@ -306,7 +306,7 @@ default function to be used.
 The library does not make heavy use of the system malloc functions, but
 it does allocate approximately 4-8 kilobytes for each memory pool in use.
 .PP
-.BI "int pmemobj_check(const char *" path );
+.BI "int pmemobj_check(const char *" path ", const char *" layout );
 .IP
 The
 .BR pmemobj_check ()
