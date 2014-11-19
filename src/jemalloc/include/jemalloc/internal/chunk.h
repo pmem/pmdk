@@ -46,7 +46,7 @@ void	chunk_unmap(pool_t *pool, void *chunk, size_t size);
 bool	chunk_dalloc_default(void *chunk, size_t size, unsigned arena_ind, pool_t *pool);
 void	chunk_record(pool_t *pool, extent_tree_t *chunks_szad,
 	extent_tree_t *chunks_ad, void *chunk, size_t size, bool zeroed);
-void	chunk_global_boot();
+bool	chunk_global_boot();
 bool	chunk_boot(pool_t *pool);
 void	chunk_prefork(pool_t *pool);
 void	chunk_postfork_parent(pool_t *pool);
