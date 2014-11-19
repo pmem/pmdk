@@ -69,11 +69,12 @@ pmemlog_check_version(unsigned major_required, unsigned minor_required)
 			major_required, minor_required);
 
 	static char errstr[] =
-		"libpmemlog major version mismatch (need XXXX, found YYYY)";
+		"libpmemlog major version mismatch "
+		"(need AAAAAAAAAA, found BBBBBBBBBB)";
 
 	if (major_required != PMEMLOG_MAJOR_VERSION) {
 		sprintf(errstr,
-			"libpmemlog major version mismatch (need %d, found %d)",
+			"libpmemlog major version mismatch (need %u, found %u)",
 			major_required, PMEMLOG_MAJOR_VERSION);
 		LOG(1, "%s", errstr);
 		return errstr;
@@ -81,7 +82,7 @@ pmemlog_check_version(unsigned major_required, unsigned minor_required)
 
 	if (minor_required > PMEMLOG_MINOR_VERSION) {
 		sprintf(errstr,
-			"libpmemlog minor version mismatch (need %d, found %d)",
+			"libpmemlog minor version mismatch (need %u, found %u)",
 			minor_required, PMEMLOG_MINOR_VERSION);
 		LOG(1, "%s", errstr);
 		return errstr;
