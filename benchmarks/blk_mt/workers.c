@@ -35,10 +35,10 @@
  */
 
 #include <workers.h>
-#include <stdio.h>
 #include <pthread.h>
 #include <stdlib.h>
 #include <string.h>
+#include <err.h>
 
 #define	__USE_UNIX98
 #include <unistd.h>
@@ -57,7 +57,7 @@ r_worker(void *arg)
 
 		/* read */
 		if (pmemblk_read(my_info->handle, buf, lba) < 0) {
-			fprintf(stderr, "!read      lba %zu", lba);
+			warn("read      lba %zu", lba);
 		}
 	}
 	return NULL;
@@ -77,7 +77,7 @@ w_worker(void *arg)
 		off_t lba = rand_r(&my_info->seed) % my_info->num_blocks;
 
 		if (pmemblk_write(my_info->handle, buf, lba) < 0) {
-			fprintf(stderr, "!write     lba %zu", lba);
+			warn("write     lba %zu", lba);
 		}
 	}
 	return NULL;
@@ -100,7 +100,7 @@ prep_worker(void *arg)
 
 	for (off_t lba = start_lba; lba < stop_lba; ++lba) {
 		if (pmemblk_write(my_info->handle, buf, lba) < 0) {
-			fprintf(stderr, "!write     lba %zu", lba);
+			warn("write     lba %zu", lba);
 		}
 	}
 	return NULL;
@@ -122,7 +122,7 @@ warmup_worker(void *arg)
 
 	for (off_t lba = start_lba; lba < stop_lba; ++lba) {
 		if (pmemblk_read(my_info->handle, buf, lba) < 0) {
-			fprintf(stderr, "!read     lba %zu", lba);
+			warn("read     lba %zu", lba);
 		}
 	}
 	return NULL;
@@ -149,7 +149,7 @@ rf_worker(void *arg)
 
 		if (pread(my_info->file_desc, buf, my_info->block_size, lba)
 				!= my_info->block_size) {
-			fprintf(stderr, "!file read     lba %zu", lba);
+			warn("file read     lba %zu", lba);
 		}
 	}
 
@@ -178,7 +178,7 @@ wf_worker(void *arg)
 
 		if (pwrite(my_info->file_desc, buf, my_info->block_size, lba)
 				!= my_info->block_size) {
-			fprintf(stderr, "!file write     lba %zu", lba);
+			warn("file write     lba %zu", lba);
 		}
 	}
 

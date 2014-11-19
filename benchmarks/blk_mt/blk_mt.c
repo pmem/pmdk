@@ -39,13 +39,13 @@
 
 #include <pthread.h>
 #include <time.h>
-#include <stdio.h>
 #include <fcntl.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
 #include <argp.h>
+#include <err.h>
 
 #include <libpmem.h>
 #include "blk_mt.h"
@@ -131,7 +131,7 @@ main(int argc, char *argv[])
 	/* pre-allocate file_size MB of persistent memory */
 	if ((errno = posix_fallocate(worker_params[0].file_desc, (off_t)0,
 			(off_t)file_size_bytes)) != 0) {
-		perror("posix_fallocate\n");
+		warn("posix_fallocate");
 		close(worker_params[0].file_desc);
 		exit(1);
 	}
@@ -155,8 +155,7 @@ main(int argc, char *argv[])
 		if ((worker_params[0].handle = pmemblk_open(
 				arguments.file_path,
 				worker_params[0].block_size)) == NULL) {
-			fprintf(stderr, "!%s: pmemblk_open\n", argv[2]);
-			exit(1);
+			err(1, "%s: pmemblk_open", argv[2]);
 		}
 		worker_params[0].num_blocks = pmemblk_nblock(
 				worker_params[0].handle);
@@ -220,11 +219,11 @@ main(int argc, char *argv[])
 		/* not really necessary, but check consistency */
 		int result = pmemblk_check(arguments.file_path);
 		if (result < 0) {
-			fprintf(stderr, "!%s: pmemblk_check\n",
+			warn("%s: pmemblk_check",
 					arguments.file_path);
 		} else if (result == 0) {
-			fprintf(stderr, "%s: pmemblk_check: not "
-					"consistent\n", arguments.file_path);
+			warnx("%s: pmemblk_check: not consistent",
+					arguments.file_path);
 		}
 	}
 
@@ -242,17 +241,17 @@ run_threads(worker thread_worker, uint32_t Nthreads,
 
 	/* kick off nthread threads */
 	for (int i = 0; i < Nthreads; ++i) {
-		if (pthread_create(&threads[i], NULL, thread_worker,
-				&worker_params[i]) != 0) {
-			fprintf(stderr, "pthread_create failed\n");
+		if ((errno = pthread_create(&threads[i], NULL, thread_worker,
+				&worker_params[i])) != 0) {
+			warn("pthread_create failed");
 			return FAILURE;
 		}
 	}
 
 	/* wait for all the threads to complete */
 	for (int i = 0; i < Nthreads; ++i) {
-		if (pthread_join(threads[i], NULL) != 0) {
-			fprintf(stderr, "pthread_join failed\n");
+		if ((errno = pthread_join(threads[i], NULL)) != 0) {
+			warn("pthread_join failed");
 			return FAILURE;
 		}
 	}
@@ -294,40 +293,40 @@ parse_opt(int key, char *arg, struct argp_state *state)
 	case 'b':
 		arguments->block_size = strtoul(arg, NULL, 0);
 		if (arguments->block_size < 512) {
-			fprintf(stderr, "The provided block size is to "
-					"small(min 512)\n");
+			warnx("The provided block size is to "
+					"small(min 512)");
 			ret = FAILURE;
 		}
 		break;
 	case 's':
 		arguments->file_size = strtoul(arg, NULL, 0);
 		if (arguments->file_size < min_pool_mb) {
-			fprintf(stderr, "The provided file size is to "
-					"small(min 1024)\n");
+			warnx("The provided file size is to "
+					"small(min 1024)");
 			ret = FAILURE;
 		}
 		break;
 	case 'i':
 		arguments->file_io = 1;
 		if (arguments->prep_blk_file) {
-			fprintf(stderr, "The -c and -i options cannot "
-					"be chosen simultaneously\n");
+			warnx("The -c and -i options cannot "
+					"be chosen simultaneously");
 			ret = FAILURE;
 		}
 		break;
 	case 'c':
 		arguments->prep_blk_file = 1;
 		if (arguments->file_io) {
-			fprintf(stderr, "The -c and -i options cannot "
-					"be chosen simultaneously\n");
+			warnx("The -c and -i options cannot "
+					"be chosen simultaneously");
 			ret = FAILURE;
 		}
 		break;
 	case 'o':
 		arguments->num_ops = strtoul(arg, NULL, 0);
 		if (arguments->num_ops < 50) {
-			fprintf(stderr, "The provided number of "
-					"operations is to small(min 50)\n");
+			warnx("The provided number of "
+					"operations is to small(min 50)");
 			ret = FAILURE;
 		}
 		break;
@@ -336,8 +335,8 @@ parse_opt(int key, char *arg, struct argp_state *state)
 		case 0:
 			arguments->thread_count = strtoul(arg, NULL, 0);
 			if (arguments->thread_count == 0) {
-				fprintf(stderr, "The provided number of"
-						" threads is invalid\n");
+				warnx("The provided number of"
+						" threads is invalid");
 				ret = FAILURE;
 			}
 			break;
