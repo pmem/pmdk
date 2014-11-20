@@ -1,3 +1,4 @@
+#!/bin/bash -e
 #
 # Copyright (c) 2014, Intel Corporation
 #
@@ -31,15 +32,29 @@
 #
 
 #
-# src/test/blk_rw/Makefile -- build blk_rw unit test
+# src/test/blk_layout/TEST0 -- unit test for the extended read_layout
+# functionality
 #
+export UNITTEST_NAME=blk_layout/TEST0
+export UNITTEST_NUM=0
 
-TARGET = blk_rw
-OBJS = blk_rw.o
+# standard unit test setup
+. ../unittest/unittest.sh
 
-LIBPMEM=y
-LIBPMEMBLK=y
+# doesn't make sense to run in local directory
+require_fs_type non-pmem pmem
+require_unlimited_vm
 
-include ../Makefile.inc
+setup
 
-blk_rw.o: blk_rw.c
+rm -f $DIR/testfile1
+truncate -s 500G $DIR/testfile1
+
+expect_normal_exit ./blk_layout$EXESUFFIX $((512*1024*1024)) $DIR/testfile1\
+	f s d b
+
+rm $DIR/testfile1
+
+check
+
+pass

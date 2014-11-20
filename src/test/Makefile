@@ -35,7 +35,8 @@
 #
 # Makefile -- build all unit tests
 #
-TEST = blk_nblock\
+TEST = blk_layout\
+       blk_nblock\
        blk_recovery\
        blk_rw\
        blk_rw_mt\

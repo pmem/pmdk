@@ -1,0 +1,43 @@
+blk_layout/TEST2: START: blk_layout
+ ./blk_layout$(nW) 536870912 $(nW)/testfile1 f s d b
+Testing arena 0
+Testing op f
+$(nW)/testfile1: pmemblk_check: consistent
+read lba 0 failed: Input/output error
+Testing op s
+$(nW)/testfile1: pmemblk_check: consistent
+read lba 0 failed: Input/output error
+Testing op d
+$(nW)/testfile1: pmemblk_check: consistent
+read lba 0 failed: Input/output error
+Testing op b
+$(nW)/testfile1: pmemblk_check: consistent
+read lba 0 failed: Input/output error
+write failed: Input/output error
+Testing arena 1
+Testing op f
+$(nW)/testfile1: pmemblk_check: consistent
+read lba 0 failed: Input/output error
+Testing op s
+$(nW)/testfile1: pmemblk_check: consistent
+read lba 0 failed: Input/output error
+Testing op d
+$(nW)/testfile1: pmemblk_check: consistent
+read lba 0 failed: Input/output error
+Testing op b
+$(nW)/testfile1: pmemblk_check: consistent
+read lba 0 failed: Input/output error
+write failed: Input/output error
+Testing arena 2
+Testing op f
+$(nW)/testfile1: pmemblk_check: consistent
+read lba 0 failed: Input/output error
+Testing op s
+$(nW)/testfile1: pmemblk_check: consistent
+read lba 0 failed: Input/output error
+Testing op d
+$(nW)/testfile1: pmemblk_check: consistent
+read lba 0 failed: Input/output error
+Testing op b
+$(nW)/testfile1: pmemblk_check: consistent
+blk_layout/TEST2: Done

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright (c) 2014-2015, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -370,8 +370,16 @@ pmemblk_map_common(int fd, size_t poolsize, size_t bsize, int rdonly,
 	if (ncpus < 1)
 		ncpus = 1;
 
+#ifdef DEBUG
+	/* initialize debug lock */
+	if ((errno = pthread_mutex_init(&pbp->write_lock, NULL))) {
+		LOG(1, "!pthread_mutex_init");
+		goto err;
+	}
+#endif
+
 	bttp = btt_init(pbp->datasize, (uint32_t)bsize, pbp->hdr.uuid,
-			ncpus * 2, pbp, &ns_cb);
+			ncpus * 2, pbp, &ns_cb, empty);
 
 	if (bttp == NULL)
 		goto err;	/* btt_init set errno, called LOG */
@@ -392,14 +400,6 @@ pmemblk_map_common(int fd, size_t poolsize, size_t bsize, int rdonly,
 		}
 
 	pbp->locks = locks;
-
-#ifdef DEBUG
-	/* initialize debug lock */
-	if ((errno = pthread_mutex_init(&pbp->write_lock, NULL))) {
-		LOG(1, "!pthread_mutex_init");
-		goto err;
-	}
-#endif
 
 	/*
 	 * If possible, turn off all permissions on the pool header page.

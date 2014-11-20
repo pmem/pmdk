@@ -33,6 +33,7 @@
 #
 # src/test/blk_nblock/Makefile -- build blk_nblock unit test
 #
+
 TARGET = blk_nblock
 OBJS = blk_nblock.o
 
@@ -40,7 +41,5 @@ LIBPMEM=y
 LIBPMEMBLK=y
 
 include ../Makefile.inc
-
-LIBS += -ldl
 
 blk_nblock.o: blk_nblock.c

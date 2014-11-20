@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright (c) 2014-2015, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -250,6 +250,50 @@ static const char Sig[] = "BTT_ARENA_INFO\0";
  * Zeroed out flog entry, used when initializing the flog.
  */
 static const struct btt_flog Zflog;
+
+/*
+ * A structure describing an arena.
+ */
+struct arena_info {
+
+	/*
+	 * All allowable states of an arena in regards to info blocks.
+	 * BOTH_CORRUPTED - neither info block passed the initial check
+	 * SECOND_CORRUPTED - primary info passed the check, backup didn't
+	 * FIRST_CORRUPTED - primary info failed the check, backup passed
+	 * BOTH_OK_IDENT - default state, both info blocks are ok and identical
+	 * BOTH_OK_DIFF - both info blocks passed check, but are different
+	 */
+	enum arena_btt_infos_state {
+		BOTH_CORRUPTED = 0,
+		SECOND_CORRUPTED,
+		FIRST_CORRUPTED,
+		BOTH_OK_IDENT,
+		BOTH_OK_DIFF
+	} btt_info_state;
+	off_t primary_info_off;
+	off_t backup_info_off;
+	size_t size;
+};
+
+/*
+ * Type of action to be taken depending on the state of arenas.
+ * AR_NONE - if all arenas are ok, no repair actions are taken.
+ * AR_REPAIR - at least one arena in BOTH_CORRUPTED state was found.
+ *	All repairable arenas will be repaired and the BOTH_CORRUPTED
+ *	arenas will have default btt_info blocks written with the
+ *	error flag set.
+ * AR_GENERATE - no layout or trailing arenas in BOTH_CORRUPTED state
+ *	found. This indicates an interrupted initial layout write. A new
+ *	layout will be generated.
+ * AR_ERROR - an error occurred during the analysis of an arena.
+ */
+enum repair_action_type {
+	AR_NONE,
+	AR_REPAIR,
+	AR_GENERATE,
+	AR_ERROR
+};
 
 /*
  * Lookup table and macro for looking up sequence numbers.  These are
@@ -802,6 +846,132 @@ err:
 }
 
 /*
+ * calculate_btt_data -- (internal) calculate some essential pool data
+ *
+ * This function calculates the internal lbasize and flog size depending on
+ * the values available in the bttp.
+ */
+static int
+calculate_btt_data(struct btt *bttp, uint32_t *internal_lbasize,
+		int *flog_size)
+{
+	LOG(3, "bttp %p", bttp);
+
+	*flog_size = bttp->nfree *
+			roundup(2 * sizeof (struct btt_flog),
+					BTT_FLOG_PAIR_ALIGN);
+	*flog_size = roundup(*flog_size, BTT_ALIGNMENT);
+
+	*internal_lbasize = bttp->lbasize;
+	if (*internal_lbasize < BTT_MIN_LBA_SIZE)
+		*internal_lbasize = BTT_MIN_LBA_SIZE;
+	*internal_lbasize =
+			roundup(*internal_lbasize, BTT_INTERNAL_LBA_ALIGNMENT);
+	/* check for overflow */
+	if (*internal_lbasize < BTT_INTERNAL_LBA_ALIGNMENT) {
+		errno = EINVAL;
+		LOG(1, "!invalid lba size after alignment: %u ",
+				*internal_lbasize);
+		return -1;
+	}
+
+	return 0;
+}
+
+/*
+ * calculate_arena_data -- (internal) calculate some essential arena data
+ *
+ * This function calculates some essential values of an arena such as the
+ * rawsize of the arena, the available datasize in the arena and the
+ * internal and external number of blocks.
+ */
+static int
+calculate_arena_data(struct btt *bttp, uint32_t internal_lbasize, int flog_size,
+		uint64_t *arena_rawsize, uint64_t *arena_datasize,
+		uint64_t *internal_nlba, uint64_t *external_nlba)
+{
+	LOG(3, "bttp %p", bttp);
+
+	if (*arena_rawsize > BTT_MAX_ARENA) {
+		*arena_rawsize = BTT_MAX_ARENA;
+	}
+
+	*arena_datasize = *arena_rawsize;
+	*arena_datasize -= 2 * sizeof (struct btt_info);
+	*arena_datasize -= flog_size;
+
+	/* allow for map alignment padding */
+	*internal_nlba = (*arena_datasize - BTT_ALIGNMENT) /
+			(internal_lbasize + BTT_MAP_ENTRY_SIZE);
+
+	/* ensure the number of blocks is at least 2*nfree */
+	if (*internal_nlba < 2 * bttp->nfree) {
+		errno = EINVAL;
+		LOG(1, "!number of internal blocks: %ju expected at least %u",
+				*internal_nlba, 2 * bttp->nfree);
+		return -1;
+	}
+	*external_nlba = *internal_nlba - bttp->nfree;
+
+	return 0;
+}
+
+/*
+ * construct_btt_info -- (internal) prepare a little endian btt_info
+ *
+ * This function depends on the bttp->parent_uuid, bttp->lbasize
+ * and bttp->nfree being set beforehand. The other fields are either set
+ * based on default or supplied values. The resulting btt_info is in little
+ * endian form with a correct checksum.
+ */
+static void
+construct_btt_info(struct btt *bttp, uint64_t nextoff, uint64_t mapoff,
+		uint64_t flogoff, uint64_t infooff, uint64_t dataoff,
+		uint32_t flags, uint32_t internal_lbasize,
+		uint32_t external_nlba, uint32_t internal_nlba,
+		struct btt_info *info)
+{
+	LOG(3, "bttp %p", bttp);
+	memset(info, '\0', sizeof (*info));
+
+	/* create btt_info */
+	memcpy(info->sig, Sig, BTTINFO_SIG_LEN);
+	memcpy(info->parent_uuid, bttp->parent_uuid, BTTINFO_UUID_LEN);
+	info->major = htole16(BTTINFO_MAJOR_VERSION);
+	info->minor = htole16(BTTINFO_MINOR_VERSION);
+	info->external_lbasize = htole32(bttp->lbasize);
+	info->external_nlba = htole32(external_nlba);
+	info->internal_lbasize = htole32(internal_lbasize);
+	info->internal_nlba = htole32(internal_nlba);
+	info->nfree = htole32(bttp->nfree);
+	info->infosize = htole32(sizeof (*info));
+	info->nextoff = htole64(nextoff);
+	info->dataoff = htole64(dataoff);
+	info->mapoff = htole64(mapoff);
+	info->flogoff = htole64(flogoff);
+	info->infooff = htole64(infooff);
+	info->flags = htole32(flags);
+
+	util_checksum(info, sizeof (*info), &info->checksum, 1);
+}
+
+/*
+ * calculate_num_arenas -- (internal) returns the number of arenas for a rawsize
+ */
+static inline int
+calculate_num_arenas(uint64_t rawsize)
+{
+	/*
+	 * The number of arenas is the number of full arenas of
+	 * size BTT_MAX_ARENA that fit into rawsize and then, if
+	 * the remainder is at least BTT_MIN_SIZE in size, then
+	 * that adds one more arena.
+	 */
+	return rawsize / BTT_MAX_ARENA + (rawsize % BTT_MAX_ARENA >=
+			BTT_MIN_SIZE);
+}
+
+/*
  * write_layout -- (internal) write out the initial btt metadata layout
  *
  * Called with write == 1 only once in the life time of a btt namespace, when
@@ -825,33 +995,13 @@ write_layout(struct btt *bttp, int lane, int write)
 	ASSERT(bttp->rawsize >= BTT_MIN_SIZE);
 	ASSERT(bttp->nfree);
 
-	/*
-	 * The number of arenas is the number of full arena of
-	 * size BTT_MAX_ARENA that fit into rawsize and then, if
-	 * the remainder is at least BTT_MIN_SIZE in size, then
-	 * that adds one more arena.
-	 */
-	bttp->narena = bttp->rawsize / BTT_MAX_ARENA;
-	if (bttp->rawsize % BTT_MAX_ARENA >= BTT_MIN_SIZE)
-		bttp->narena++;
+	bttp->narena = calculate_num_arenas(bttp->rawsize);
 	LOG(4, "narena %u", bttp->narena);
 
-	int flog_size = bttp->nfree *
-		roundup(2 * sizeof (struct btt_flog), BTT_FLOG_PAIR_ALIGN);
-	flog_size = roundup(flog_size, BTT_ALIGNMENT);
-
-	uint32_t internal_lbasize = bttp->lbasize;
-	if (internal_lbasize < BTT_MIN_LBA_SIZE)
-		internal_lbasize = BTT_MIN_LBA_SIZE;
-	internal_lbasize =
-		roundup(internal_lbasize, BTT_INTERNAL_LBA_ALIGNMENT);
-	/* check for overflow */
-	if (internal_lbasize < BTT_INTERNAL_LBA_ALIGNMENT) {
-		errno = EINVAL;
-		LOG(1, "!Invalid lba size after alignment: %u ",
-				internal_lbasize);
+	uint32_t internal_lbasize;
+	int flog_size;
+	if (calculate_btt_data(bttp, &internal_lbasize, &flog_size))
 		return -1;
-	}
 	LOG(4, "adjusted internal_lbasize %u", internal_lbasize);
 
 	uint64_t total_nlba = 0;
@@ -866,33 +1016,19 @@ write_layout(struct btt *bttp, int lane, int write)
 		LOG(4, "layout arena %u", arena_num);
 
 		uint64_t arena_rawsize = rawsize;
-		if (arena_rawsize > BTT_MAX_ARENA) {
-			arena_rawsize = BTT_MAX_ARENA;
-		}
-		rawsize -= arena_rawsize;
-		arena_num++;
-
-		uint64_t arena_datasize = arena_rawsize;
-		arena_datasize -= 2 * sizeof (struct btt_info);
-		arena_datasize -= flog_size;
-
-		/* allow for map alignment padding */
-		uint64_t internal_nlba = (arena_datasize - BTT_ALIGNMENT) /
-			(internal_lbasize + BTT_MAP_ENTRY_SIZE);
-
-		/* ensure the number of blocks is at least 2*nfree */
-		if (internal_nlba < 2 * bttp->nfree) {
-			errno = EINVAL;
-			LOG(1, "!number of internal blocks: %lu "
-					"expected at least %u",
-					internal_nlba, 2 * bttp->nfree);
+		uint64_t arena_datasize;
+		uint64_t internal_nlba;
+		uint64_t external_nlba;
+		if (calculate_arena_data(bttp, internal_lbasize, flog_size,
+				&arena_rawsize,	&arena_datasize,
+				&internal_nlba, &external_nlba))
 			return -1;
-		}
-
-		uint64_t external_nlba = internal_nlba - bttp->nfree;
 
 		LOG(4, "internal_nlba %ju external_nlba %ju",
 				internal_nlba, external_nlba);
+
+		rawsize -= arena_rawsize;
+		arena_num++;
 
 		total_nlba += external_nlba;
 
@@ -1019,24 +1155,9 @@ write_layout(struct btt *bttp, int lane, int write)
 		 * at both the beginning and end of the arena.
 		 */
 		struct btt_info info;
-		memset(&info, '\0', sizeof (info));
-		memcpy(info.sig, Sig, BTTINFO_SIG_LEN);
-		memcpy(info.parent_uuid, bttp->parent_uuid, BTTINFO_UUID_LEN);
-		info.major = htole16(BTTINFO_MAJOR_VERSION);
-		info.minor = htole16(BTTINFO_MINOR_VERSION);
-		info.external_lbasize = htole32(bttp->lbasize);
-		info.external_nlba = htole32(external_nlba);
-		info.internal_lbasize = htole32(internal_lbasize);
-		info.internal_nlba = htole32(internal_nlba);
-		info.nfree = htole32(bttp->nfree);
-		info.infosize = htole32(sizeof (info));
-		info.nextoff = htole64(nextoff);
-		info.dataoff = htole64(dataoff);
-		info.mapoff = htole64(mapoff);
-		info.flogoff = htole64(flogoff);
-		info.infooff = htole64(infooff);
-
-		util_checksum(&info, sizeof (info), &info.checksum, 1);
+		construct_btt_info(bttp, nextoff, mapoff, flogoff, infooff,
+				dataoff, 0, internal_lbasize, external_nlba,
+				internal_nlba, &info);
 
 		if ((*bttp->ns_cbp->nswrite)(bttp->ns, lane, &info,
 					sizeof (info), arena_off) < 0)
@@ -1063,10 +1184,212 @@ write_layout(struct btt *bttp, int lane, int write)
 }
 
 /*
+ * load_arena_state -- (internal) reads and analyzes the info blocks of arenas
+ *
+ * Depending on the state of the info blocks, an arena can be in these states:
+ * - SECOND_CORRUPTED - the first info is ok, the second is invalid
+ * - FIRST_CORRUPTED - the first info is invalid, the second is ok
+ * - BOTH_OK_IDENT - both info are ok and are identical
+ * - BOTH_OK_DIFF - both info ok, but are different
+ * - BOTH_CORRUPTED - neither info block is valid
+ */
+static int
+load_arena_state(struct btt *bttp, int lane, struct arena_info *state)
+{
+	LOG(3, "bttp %p lane %d", bttp, lane);
+
+	int num_arenas = calculate_num_arenas(bttp->rawsize);
+	off_t arena_off = 0;
+
+	/* go through arenas */
+	for (int i = 0; i < num_arenas; ++i) {
+		state[i].size = BTT_MAX_ARENA;
+		if (i == (num_arenas - 1)) {
+			state[i].size = bttp->rawsize % BTT_MAX_ARENA ? :
+					BTT_MAX_ARENA;
+		}
+
+		/* assume both infos are corrupted */
+		state[i].btt_info_state = BOTH_CORRUPTED;
+
+		/* read primary info */
+		struct btt_info info;
+		state[i].primary_info_off = arena_off;
+		if ((*bttp->ns_cbp->nsread)(bttp->ns, lane, &info,
+					sizeof (info), arena_off) < 0)
+			return -1;
+
+		if (read_info(bttp, &info))
+			state[i].btt_info_state = SECOND_CORRUPTED;
+
+		/* read backup info */
+		struct btt_info backup_info;
+		state[i].backup_info_off = arena_off + state[i].size -
+				sizeof (struct btt_info);
+
+		if ((*bttp->ns_cbp->nsread)(bttp->ns, lane, &backup_info,
+			sizeof (backup_info), state[i].backup_info_off) < 0)
+			return -1;
+
+		if (read_info(bttp, &backup_info)) {
+			if (state[i].btt_info_state == SECOND_CORRUPTED) {
+				if (!memcmp(&info, &backup_info, sizeof (info)))
+					state[i].btt_info_state = BOTH_OK_IDENT;
+				else
+					state[i].btt_info_state = BOTH_OK_DIFF;
+			} else {
+				state[i].btt_info_state = FIRST_CORRUPTED;
+			}
+		}
+
+		LOG(3, "arena %d state %d", i, state[i].btt_info_state);
+		arena_off += state[i].size;
+	}
+
+	return 0;
+}
+
+/*
+ * copy_info -- (internal) copy src btt_info onto dst
+ *
+ * This function is used only during the initialization of the pool. As such
+ * it does not employ any synchronization mechanism and is not multi-thread
+ * safe.
+ */
+int
+copy_info(struct btt *bttp, int lane, off_t src_off, off_t dst_off)
+{
+	LOG(3, "bttp %p lane %d src_off %lu dst_off %lu", bttp, lane,
+			src_off, dst_off);
+
+	struct btt_info info;
+	if ((*bttp->ns_cbp->nsread)(bttp->ns, lane, &info, sizeof (info),
+			src_off) < 0)
+		return -1;
+	if ((*bttp->ns_cbp->nswrite)(bttp->ns, lane, &info, sizeof (info),
+			dst_off) < 0)
+		return -1;
+	return 0;
+}
+
+/*
+ * fix_arena -- (internal) attempt to repair the arena
+ *
+ * Depending on the state of the arena, there are a few ways to repair an arena.
+ * If an arena is in the SECOND_CORRUPTED or BOTH_OK_DIFF state,
+ * the primary info data is copied onto the backup info.  If an arena is in
+ * the FIRST_CORRUPTED state, the backup info data is copied onto the primary
+ * info. If an arena is in the BOTH_CORRUPTED state, a default info layout with
+ * the BTTINFO_FLAG_ERROR set is written out as both primary and backup info.
+ * Arenas in the BOTH_OK_IDENT state do not require any action.
+ */
+static int
+fix_arena(struct btt *bttp, int lane, const struct arena_info *arena)
+{
+	LOG(3, "bttp %p lane %d", bttp, lane);
+	struct btt_info info;
+	/* necessary for default layout calculation */
+	uint32_t internal_lbasize;
+	int flog_size;
+	uint64_t arena_rawsize = arena->size;
+	uint64_t arena_datasize;
+	uint64_t internal_nlba;
+	uint64_t external_nlba;
+	uint64_t mapsize;
+	uint64_t infooff = arena->size - sizeof (info);
+	uint64_t flogoff;
+	uint64_t mapoff;
+
+	switch (arena->btt_info_state) {
+		case BOTH_OK_IDENT:
+			break;
+		case SECOND_CORRUPTED:
+		case BOTH_OK_DIFF:
+			/* copy primary onto backup */
+			if (copy_info(bttp, lane, arena->primary_info_off,
+					arena->backup_info_off) < 0)
+				goto err;
+			break;
+		case FIRST_CORRUPTED:
+			/* copy backup onto primary */
+			if (copy_info(bttp, lane, arena->backup_info_off,
+					arena->primary_info_off) < 0)
+				goto err;
+			break;
+		case BOTH_CORRUPTED:
+			/* write default layout with error flag */
+			if (calculate_btt_data(bttp, &internal_lbasize,
+					&flog_size))
+				goto err;
+
+			if (calculate_arena_data(bttp, internal_lbasize,
+					flog_size, &arena_rawsize,
+					&arena_datasize, &internal_nlba,
+					&external_nlba))
+				goto err;
+
+			mapsize = roundup(external_nlba * BTT_MAP_ENTRY_SIZE,
+					BTT_ALIGNMENT);
+			flogoff = infooff - flog_size;
+			mapoff = flogoff - mapsize;
+
+			/* create btt_info */
+			construct_btt_info(bttp, arena->size, mapoff, flogoff,
+					infooff, sizeof (info),
+					BTTINFO_FLAG_ERROR, internal_lbasize,
+					external_nlba, internal_nlba, &info);
+
+			if ((*bttp->ns_cbp->nswrite)(bttp->ns, lane, &info,
+					sizeof (info),
+					arena->primary_info_off) < 0)
+				goto err;
+			if ((*bttp->ns_cbp->nswrite)(bttp->ns, lane, &info,
+					sizeof (info),
+					arena->backup_info_off) < 0)
+				goto err;
+			break;
+		default:
+			/* illegal state */
+			ASSERT(0);
+	}
+	return 0;
+
+err:
+	LOG(1, "error while fixing arena");
+	return -1;
+}
+
+/*
+ * fix_all_arenas -- (internal) fix all arenas
+ *
+ * Fixing arenas has to be made in reverse order - consecutive
+ * interruptions during this process might leave the pool in a state
+ * with trailing arenas in the BOTH_CORRUPTED state. For example, given
+ * a pool with three arenas 1|0|1, where '1' indicates the
+ * BOTH_CORRUPTED state, if the repair process is interrupted after
+ * fixing the first arena, the pool is treated as irrepairable
+ * (0|0|1 - trailing unfixable arena).
+ */
+static int
+fix_all_arenas(struct btt *bttp, int lane, struct arena_info *arenas_state)
+{
+	LOG(3, "bttp %p lane %d", bttp, lane);
+	int narenas = calculate_num_arenas(bttp->rawsize);
+
+	for (int i = narenas - 1; i >= 0; --i) {
+		if (fix_arena(bttp, lane, &arenas_state[i]) < 0) {
+			LOG(1, "unable to fix arena %d", i);
+			return -1;
+		}
+	}
+	return 0;
+}
+
+/*
  * read_layout -- (internal) load up layout info from btt namespace
  *
- * Called once when the btt namespace is opened for use.
- * Sets bttp->layout to 0 if no valid layout is found, 1 otherwise.
+ * Called once when the btt namespace is opened for use with a valid layout
+ * on persistence.
  *
  * Any recovery actions required (as indicated by the flog state) are
  * performed by this routine.
@@ -1075,10 +1398,8 @@ write_layout(struct btt *bttp, int lane, int write)
  * (quick enough to be done each time a BTT area is opened for use, not
  * like the slow consistency checks done by btt_check()).
  *
- * Returns 0 if no errors are encountered accessing the namespace (in this
- * context, detecting there's no layout is not an error if the nsread function
- * didn't have any problems doing the reads).  Otherwise, -1 is returned
- * and errno is set.
+ * Returns 0 if no errors are encountered accessing the namespace. It expects
+ * a valid layout to be present. Otherwise, -1 is returned and errno is set.
  */
 static int
 read_layout(struct btt *bttp, int lane)
@@ -1093,11 +1414,7 @@ read_layout(struct btt *bttp, int lane)
 	uint64_t total_nlba = 0;
 	off_t arena_off = 0;
 
-	bttp->nfree = BTT_DEFAULT_NFREE;
-
-	/*
-	 * For each arena, see if there's a valid info block
-	 */
+	/* for each arena, verify some basic values */
 	while (rawsize >= BTT_MIN_SIZE) {
 		narena++;
 
@@ -1107,15 +1424,10 @@ read_layout(struct btt *bttp, int lane)
 			return -1;
 
 		if (!read_info(bttp, &info)) {
-			/*
-			 * Failed to find complete BTT metadata.  Just
-			 * calculate the narena and nlba values that will
-			 * result when write_layout() gets called.  This
-			 * allows checks against nlba to work correctly
-			 * even before the layout is written.
-			 */
-			return write_layout(bttp, lane, 0);
+			errno = EINVAL;
+			return -1;
 		}
+
 		if (info.external_lbasize != bttp->lbasize) {
 			/* can't read it assuming the wrong block size */
 			LOG(1, "inconsistent lbasize");
@@ -1148,6 +1460,7 @@ read_layout(struct btt *bttp, int lane)
 		arena_off += info.nextoff;
 		if (info.nextoff == 0)
 			break;
+
 		if (info.nextoff > rawsize) {
 			LOG(1, "invalid next arena offset");
 			errno = EINVAL;
@@ -1224,6 +1537,55 @@ lba_to_arena_lba(struct btt *bttp, uint64_t lba,
 }
 
 /*
+ * check_arenas_state -- (internal) check arenas' state and decide on action
+ *
+ * If all arenas are valid, the layout is considered valid
+ *
+ * If all arenas are invalid, the BTT is considered non-laidout and contains
+ * the (valid) read-as-zeros initial layout.
+ *
+ * If all invalid arenas appear higher in the namespace than the valid arenas,
+ * then we can assume an interruption during initial layout and revert to the
+ * no-layout case.
+ *
+ * If an invalid arena appears lower in the namespace than a valid arena,
+ * then we can assume BTT corruption. The corrupt arena should be marked with
+ * an error flag that prevents both reads and writes. The other arenas are
+ * still usable.
+ */
+static enum repair_action_type
+check_arenas_state(struct btt *bttp, int lane, struct arena_info *state)
+{
+	LOG(3, "bttp %p ", bttp);
+
+	if (load_arena_state(bttp, lane, state) < 0)
+		return AR_ERROR;
+
+	int default_arenas_num = calculate_num_arenas(bttp->rawsize);
+
+	enum repair_action_type action = AR_NONE;
+	/* inspect arenas and decide on action */
+	for (int i = 0; i < default_arenas_num; ++i) {
+		/* at least one repairable arena found */
+		if (state[i].btt_info_state != BOTH_OK_IDENT &&
+				state[i].btt_info_state != BOTH_CORRUPTED &&
+				action == AR_NONE)
+			action = AR_REPAIR;
+		/* an arena with both invalid infos found, could be trailing */
+		else if ((state[i].btt_info_state == BOTH_CORRUPTED) &&
+				((action == AR_REPAIR) ||
+						action == AR_NONE))
+			action = AR_GENERATE;
+		/* at least one repairable arena after an erroneous arena */
+		else if ((action == AR_GENERATE) &&
+				(state[i].btt_info_state != BOTH_CORRUPTED))
+			action = AR_REPAIR;
+	}
+
+	return action;
+}
+
+/*
  * btt_init -- prepare a btt namespace for use, returning an opaque handle
  *
  * Returns handle on success, otherwise NULL/errno.
@@ -1236,7 +1598,8 @@ lba_to_arena_lba(struct btt *bttp, uint64_t lba,
  */
 struct btt *
 btt_init(uint64_t rawsize, uint32_t lbasize, uint8_t parent_uuid[],
-		int maxlane, void *ns, const struct ns_callback *ns_cbp)
+		int maxlane, void *ns, const struct ns_callback *ns_cbp,
+		int empty)
 {
 	LOG(3, "rawsize %ju lbasize %u", rawsize, lbasize);
 
@@ -1262,19 +1625,44 @@ btt_init(uint64_t rawsize, uint32_t lbasize, uint8_t parent_uuid[],
 	bttp->ns = ns;
 	bttp->ns_cbp = ns_cbp;
 
+	int narenas = calculate_num_arenas(bttp->rawsize);
+	struct arena_info arenas_state[narenas];
+	memset(arenas_state, 0, sizeof (struct arena_info) *
+			narenas);
+
+	enum repair_action_type action = AR_GENERATE;
+
+	if (!empty)
+		action = check_arenas_state(bttp, 0, arenas_state);
+
 	/*
-	 * Load up layout, if it exists.
-	 *
-	 * Whether read_layout() finds a valid layout or not, it finishes
-	 * updating these layout-related fields:
+	 * Whether there is a valid layout or not, these layout-related
+	 * fields are updated:
 	 * 	bttp->nfree
 	 * 	bttp->nlba
 	 * 	bttp->narena
 	 * since these fields are used even before a valid layout it written.
 	 */
-	if (read_layout(bttp, 0) < 0) {
-		btt_fini(bttp);		/* free up any allocations */
-		return NULL;
+	bttp->nfree = BTT_DEFAULT_NFREE;
+	switch (action) {
+		case AR_GENERATE:
+			if (write_layout(bttp, 0, 0) < 0)
+				goto err;
+			break;
+		case AR_REPAIR:
+			if (fix_all_arenas(bttp, 0, arenas_state) < 0)
+				goto err;
+			/* fallthrough intentional */
+		case AR_NONE:
+			if (read_layout(bttp, 0) < 0)
+				goto err;
+			break;
+		case AR_ERROR:
+			LOG(1, "unable to check arena state");
+			goto err;
+		default:
+			/* illegal action */
+			ASSERT(0);
 	}
 
 	bttp->nlane = bttp->nfree;
@@ -1285,6 +1673,9 @@ btt_init(uint64_t rawsize, uint32_t lbasize, uint8_t parent_uuid[],
 
 	LOG(3, "success, bttp %p nlane %d", bttp, bttp->nlane);
 	return bttp;
+err:
+	btt_fini(bttp);		/* free up any allocations */
+	return NULL;
 }
 
 /*
