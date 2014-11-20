@@ -75,9 +75,9 @@ expect_normal_exit ./util_pool_create$EXESUFFIX $MIN_POOL \
     $MIN_POOL:$DIR/testlink4\
     $MIN_POOL:$DIR/testfile1\
     0x1000:$DIR/testfile2\
-    0x7FFFFFFFFFFFFFFF:$DIR/testfile3\
     $MIN_POOL:$DIR/testdir2/testfile\
-    $MIN_POOL:$DIR/testfile4
+    $MIN_POOL:$DIR/testfile4\
+    0x7FFFFFFFFFFFFFFF:$DIR/testfile3
 
 rm -f $DIR/testfile[1234]
 rm -f $DIR/testlink[1234]
