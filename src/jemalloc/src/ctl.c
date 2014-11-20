@@ -1485,13 +1485,19 @@ arena_i_chunk_alloc_ctl(const size_t *mib, size_t miblen, void *oldp,
 		malloc_mutex_lock(&arena->lock);
 		READ(arena->chunk_alloc, chunk_alloc_t *);
 		WRITE(arena->chunk_alloc, chunk_alloc_t *);
-		malloc_mutex_unlock(&arena->lock);
+		/*
+		 * There could be direct jump to label_return from inside
+		 * of READ/WRITE macros. This is why unlocking the arena mutex
+		 * must be moved there.
+		 */
 	} else {
 		ret = EFAULT;
-		goto label_return;
+		goto label_outer_return;
 	}
 	ret = 0;
 label_return:
+	malloc_mutex_unlock(&arena->lock);
+label_outer_return:
 	malloc_mutex_unlock(&ctl_mtx);
 	return (ret);
 }
@@ -1515,13 +1521,19 @@ arena_i_chunk_dalloc_ctl(const size_t *mib, size_t miblen, void *oldp,
 		malloc_mutex_lock(&arena->lock);
 		READ(arena->chunk_dalloc, chunk_dalloc_t *);
 		WRITE(arena->chunk_dalloc, chunk_dalloc_t *);
-		malloc_mutex_unlock(&arena->lock);
+		/*
+		 * There could be direct jump to label_return from inside
+		 * of READ/WRITE macros. This is why unlocking the arena mutex
+		 * must be moved there.
+		 */
 	} else {
 		ret = EFAULT;
-		goto label_return;
+		goto label_outer_return;
 	}
 	ret = 0;
 label_return:
+	malloc_mutex_unlock(&arena->lock);
+label_outer_return:
 	malloc_mutex_unlock(&ctl_mtx);
 	return (ret);
 }
