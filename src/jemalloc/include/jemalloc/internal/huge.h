@@ -21,6 +21,7 @@ extern huge_dalloc_junk_t *huge_dalloc_junk;
 #endif
 void	huge_dalloc(pool_t *pool, void *ptr);
 size_t	huge_salloc(const void *ptr);
+size_t	huge_pool_salloc(pool_t *pool, const void *ptr);
 prof_ctx_t	*huge_prof_ctx_get(const void *ptr);
 void	huge_prof_ctx_set(const void *ptr, prof_ctx_t *ctx);
 bool	huge_boot(pool_t *pool);

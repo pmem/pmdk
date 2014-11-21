@@ -71,6 +71,7 @@ void *vmem_calloc(VMEM *vmp, size_t nmemb, size_t size);
 void *vmem_realloc(VMEM *vmp, void *ptr, size_t size);
 void *vmem_aligned_alloc(VMEM *vmp, size_t alignment, size_t size);
 char *vmem_strdup(VMEM *vmp, const char *s);
+size_t vmem_malloc_usable_size(VMEM *vmp, void *ptr);
 
 /*
  * managing overall library behavior...

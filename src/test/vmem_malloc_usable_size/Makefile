@@ -29,27 +29,15 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-#
-# src/libvmem.map -- linker map file for libvmem
-#
-libvmem.so {
-	global:
-		vmem_create;
-		vmem_create_in_region;
-		vmem_delete;
-		vmem_check;
-		vmem_freespace;
-		vmem_stats_print;
-		vmem_malloc;
-		vmem_free;
-		vmem_calloc;
-		vmem_realloc;
-		vmem_aligned_alloc;
-		vmem_strdup;
-		vmem_malloc_usable_size;
-		vmem_check_version;
-		vmem_set_funcs;
 
-	local:
-		*;
-};
+#
+# src/test/vmem_malloc_usable_size/Makefile -- build vmem_malloc_usable_size unit test
+#
+TARGET = vmem_malloc_usable_size
+OBJS =vmem_malloc_usable_size.o
+
+LIBVMEM=y
+
+include ../Makefile.inc
+
+vmem_malloc_usable_size.o: vmem_malloc_usable_size.c

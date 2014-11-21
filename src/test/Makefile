@@ -61,6 +61,7 @@ TEST = blk_nblock\
        vmem_custom_alloc\
        vmem_freespace\
        vmem_malloc\
+       vmem_malloc_usable_size\
        vmem_mix_allocations\
        vmem_multiple_pools\
        vmem_out_of_memory\

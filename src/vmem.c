@@ -322,6 +322,18 @@ vmem_strdup(VMEM *vmp, const char *s)
 }
 
 /*
+ * vmem_malloc_usable_size -- get usable size of allocation
+ */
+size_t
+vmem_malloc_usable_size(VMEM *vmp, void *ptr)
+{
+	LOG(3, "vmp %p ptr %p", vmp, ptr);
+
+	return je_vmem_pool_malloc_usable_size(
+			(pool_t *)((uintptr_t)vmp + Header_size), ptr);
+}
+
+/*
  * vmem_tmpfile -- reserve space in an unlinked file and memory-map it
  *
  * size must be multiple of page size.
