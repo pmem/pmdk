@@ -126,7 +126,6 @@ typedef struct {
 
 static bool	malloc_init_hard(void);
 static bool	malloc_init_base_pool(void);
-static bool	pools_shared_data_create(void);
 static void	*base_malloc_default(size_t size);
 static void	base_free_default(void *ptr);
 
@@ -358,8 +357,6 @@ malloc_init_base_pool(void)
 	npools++;
 	pools[0] = base_pool;
 	pools[0]->seqno = ++pool_seqno;
-
-	pools_shared_data_create();
 
 	if (pool_new(base_pool, 0)) {
 		malloc_mutex_unlock(&pool_base_lock);
@@ -1407,7 +1404,7 @@ base_free_default(void *ptr)
 
 }
 
-static bool
+bool
 pools_shared_data_create(void)
 {
 	if (malloc_initialized == false && malloc_init_hard())
@@ -1474,11 +1471,6 @@ je_pool_create(void *addr, size_t size, int zeroed)
 	if (pool_id == POOLS_MAX) {
 		malloc_mutex_unlock(&pools_lock);
 		malloc_printf("<jemalloc>: Too many pools\n");
-		return NULL;
-	}
-
-	if (pools_shared_data_create()) {
-		malloc_mutex_unlock(&pools_lock);
 		return NULL;
 	}
 
