@@ -38,6 +38,8 @@
 # make sure we have a well defined locale for string operations here
 export LC_ALL="C"
 
+export script_dir=$(dirname $(readlink -f $0))
+
 #
 # usage -- print usage message and exit
 #
@@ -45,10 +47,13 @@ usage()
 {
 	[ "$1" ] && echo Error: $1
 	cat <<EOF
-Usage: $0 [ -nv ] [ -b build-type ] [ -t test-type ] [ -f fs-type ] [tests...]
+Usage: $0 [ -nv ] [ -b build-type ] [ -t test-type ] [ -f fs-type ] [ -c config-file ] [tests...]
     build-types: debug, nondebug, static-debug, static-nondebug, all (default)
      test-types: check (default), short, long
        fs-types: local, pmem, non-pmem, all (default)
+    config-file: configuration file for unittests
+             -n: don't execute, just show what would be done
+	     -v: be verbose
 EOF
 	exit 1
 }
@@ -119,29 +124,18 @@ runtest() {
 	cd ..
 }
 
-[ -f testconfig.sh ] || {
-	cat <<EOF
-RUNTESTS: stopping because no testconfig.sh is found.
-          to create one:
-               cp testconfig.sh.example testconfig.sh
-          and edit testconfig.sh to describe the local machine configuration.
-EOF
-	exit 1
-}
-
-. ./testconfig.sh
-
 #
 # defaults...
 #
 buildtype=all
 testtype=check
 fstype=all
+testconfig="./testconfig.sh"
 
 #
 # command-line argument processing...
 #
-args=`getopt nvb:t:f: $*`
+args=`getopt nvb:t:f:c: $*`
 [ $? != 0 ] && usage
 set -- $args
 for arg
@@ -193,12 +187,33 @@ do
 			;;
 		esac
 		;;
+	-c)
+		testconfig="$2"
+		shift 2
+		;;
 	--)
 		shift
 		break
 		;;
 	esac
 done
+
+[ -f $testconfig ] || {
+	cat <<EOF
+RUNTESTS: stopping because no testconfig.sh is found.
+          to create one:
+               cp testconfig.sh.example testconfig.sh
+          and edit testconfig.sh to describe the local machine configuration.
+EOF
+	exit 1
+}
+
+testconfig=$(readlink -f $testconfig)
+export testconfig
+
+. $testconfig
+
+
 [ "$verbose" ] && {
 	echo -n Options:
 	[ "$dryrun" ] && echo -n ' -n'

@@ -30,7 +30,17 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-. ../testconfig.sh
+if [ -z "$testconfig" ]
+then
+	testconfig=../testconfig.sh
+fi
+
+if [ -z "$script_dir" ]
+then
+	script_dir=..
+fi
+
+. $testconfig
 
 # defaults
 [ "$TEST" ] || export TEST=check
@@ -210,7 +220,13 @@ function setup() {
 # check -- check test results (using .match files)
 #
 function check() {
-	../match $(find . -regex "[^0-9]*${UNITTEST_NUM}\.log\.match" | xargs)
+	local matches=$(find . -regex "[^0-9]*${UNITTEST_NUM}\.log\.match" | xargs)
+	if [ "$matches" == "" ]
+	then
+		echo "No *.match files found"
+	else
+		${script_dir}/match $(find . -regex "[^0-9]*${UNITTEST_NUM}\.log\.match" | xargs)
+	fi
 }
 
 #
