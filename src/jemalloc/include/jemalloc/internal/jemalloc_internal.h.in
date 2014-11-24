@@ -643,8 +643,10 @@ size_t	ivsalloc(const void *ptr, bool demote);
 size_t	u2rz(size_t usize);
 size_t	p2rz(const void *ptr);
 void	idalloct(void *ptr, bool try_tcache);
+void	pool_idalloct(pool_t *pool, void *ptr, bool try_tcache);
 void	idalloc(void *ptr);
 void	iqalloct(void *ptr, bool try_tcache);
+void	pool_iqalloct(pool_t *pool, void *ptr, bool try_tcache);
 void	iqalloc(void *ptr);
 void	*iralloct_realign(void *ptr, size_t oldsize, size_t size, size_t extra,
     size_t alignment, bool zero, bool try_tcache_alloc, bool try_tcache_dalloc,
@@ -860,6 +862,20 @@ idalloct(void *ptr, bool try_tcache)
 }
 
 JEMALLOC_ALWAYS_INLINE void
+pool_idalloct(pool_t *pool, void *ptr, bool try_tcache)
+{
+	arena_chunk_t *chunk;
+
+	assert(ptr != NULL);
+
+	chunk = (arena_chunk_t *)CHUNK_ADDR2BASE(ptr);
+	if (chunk != ptr)
+		arena_dalloc(chunk, ptr, try_tcache);
+	else
+		huge_dalloc(pool, ptr);
+}
+
+JEMALLOC_ALWAYS_INLINE void
 idalloc(void *ptr)
 {
 
@@ -874,6 +890,16 @@ iqalloct(void *ptr, bool try_tcache)
 		quarantine(ptr);
 	else
 		idalloct(ptr, try_tcache);
+}
+
+JEMALLOC_ALWAYS_INLINE void
+pool_iqalloct(pool_t *pool, void *ptr, bool try_tcache)
+{
+
+	if (config_fill && opt_quarantine)
+		quarantine(ptr);
+	else
+		pool_idalloct(pool, ptr, try_tcache);
 }
 
 JEMALLOC_ALWAYS_INLINE void
@@ -912,7 +938,7 @@ iralloct_realign(void *ptr, size_t oldsize, size_t size, size_t extra,
 	 */
 	copysize = (size < oldsize) ? size : oldsize;
 	memcpy(p, ptr, copysize);
-	iqalloct(ptr, try_tcache_dalloc);
+	pool_iqalloct(arena->pool, ptr, try_tcache_dalloc);
 	return (p);
 }
 
