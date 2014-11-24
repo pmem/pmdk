@@ -40,7 +40,8 @@ struct ns_callback {
 		void *buf, size_t count, off_t off);
 	int (*nswrite)(void *ns, int lane,
 		const void *buf, size_t count, off_t off);
-	int (*nsmap)(void *ns, int lane, void **addrp, size_t len, off_t off);
+	ssize_t (*nsmap)(void *ns, int lane, void **addrp,
+			size_t len, off_t off);
 	void (*nssync)(void *ns, int lane, void *addr, size_t len);
 };
 
