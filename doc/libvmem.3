@@ -37,7 +37,7 @@
 .\" or
 .\"	groff -man -Tascii libvmem.3
 .\"
-.TH libvmem 3 "vmem API version 0.8" "NVM Library"
+.TH libvmem 3 "vmem API version 0.81" "NVM Library"
 .SH NAME
 libvmem \- volatile memory allocation library
 .SH SYNOPSIS
@@ -63,6 +63,7 @@ libvmem \- volatile memory allocation library
 .BI "void *vmem_realloc(VMEM *" vmp ", void *" ptr ", size_t " size );
 .BI "void *vmem_aligned_alloc(VMEM *" vmp ", size_t " alignment ", size_t " size );
 .BI "char *vmem_strdup(VMEM *" vmp ", const char *" s );
+.BI "size_t vmem_malloc_usable_size(VMEM *" vmp ", void *" ptr );
 .sp
 .B Managing overall library behavior:
 .sp
@@ -515,6 +516,23 @@ If
 .BR vmem_strdup ()
 is unable to satisfy the allocation request, a NULL pointer is
 returned and errno is set appropriately.
+.PP
+.BI "size_t vmem_malloc_usable_size(VMEM *" vmp ", void *" ptr );
+.IP
+The
+.BR vmem_malloc_usable_size ()
+function provides the same semantics as
+.BR malloc_usable_size (3),
+but operates on the memory pool
+.I vmp
+instead of the process heap supplied by the system.
+It returns the number of usable bytes in the block of allocated memory pointed to by
+.IR ptr ,
+a pointer to a block of memory allocated by
+.BR vmem_malloc ()
+or a related function. If
+.I ptr
+is NULL, 0 is returned.
 .SH MANAGING LIBRARY BEHAVIOR
 .PP
 The library entry points described in this section are less

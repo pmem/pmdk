@@ -2340,6 +2340,21 @@ je_pool_set_alloc_funcs(void *(*malloc_func)(size_t),
 }
 
 
+size_t
+je_pool_malloc_usable_size(pool_t *pool, void *ptr)
+{
+	assert(malloc_initialized || IS_INITIALIZER);
+	malloc_thread_init();
+
+	if (config_ivsalloc) {
+		/* Return 0 if ptr is not within a chunk managed by jemalloc. */
+		if (rtree_get(pool->chunks_rtree, (uintptr_t)CHUNK_ADDR2BASE(ptr)) == 0)
+			return 0;
+	}
+
+	return (ptr != NULL) ? pool_isalloc(pool, ptr, config_prof) : 0;
+}
+
 JEMALLOC_ALWAYS_INLINE_C void *
 imallocx(size_t usize, size_t alignment, bool zero, bool try_tcache,
     arena_t *arena)
@@ -2842,7 +2857,6 @@ je_malloc_usable_size(JEMALLOC_USABLE_SIZE_CONST void *ptr)
 	size_t ret;
 
 	assert(malloc_initialized || IS_INITIALIZER);
-	assert(pools[0] != NULL);
 	malloc_thread_init();
 
 	if (config_ivsalloc)

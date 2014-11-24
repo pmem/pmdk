@@ -194,6 +194,23 @@ huge_salloc(const void *ptr)
 	return (ret);
 }
 
+size_t
+huge_pool_salloc(pool_t *pool, const void *ptr)
+{
+	size_t ret = 0;
+	extent_node_t *node, key;
+	malloc_mutex_lock(&pool->huge_mtx);
+
+	/* Extract from tree of huge allocations. */
+	key.addr = __DECONST(void *, ptr);
+	node = extent_tree_ad_search(&pool->huge, &key);
+	if (node != NULL)
+		ret = node->size;
+
+	malloc_mutex_unlock(&pool->huge_mtx);
+	return (ret);
+}
+
 prof_ctx_t *
 huge_prof_ctx_get(const void *ptr)
 {

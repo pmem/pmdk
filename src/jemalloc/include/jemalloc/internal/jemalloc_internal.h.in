@@ -638,6 +638,7 @@ void	*ipalloct(size_t usize, size_t alignment, bool zero, bool try_tcache,
 void	*ipalloc(size_t usize, size_t alignment, bool zero);
 void	*pool_ipalloc(pool_t *pool, size_t usize, size_t alignment, bool zero);
 size_t	isalloc(const void *ptr, bool demote);
+size_t	pool_isalloc(pool_t *pool, const void *ptr, bool demote);
 size_t	ivsalloc(const void *ptr, bool demote);
 size_t	u2rz(size_t usize);
 size_t	p2rz(const void *ptr);
@@ -773,6 +774,30 @@ isalloc(const void *ptr, bool demote)
 		ret = arena_salloc(ptr, demote);
 	else
 		ret = huge_salloc(ptr);
+
+	return (ret);
+}
+
+/*
+ * Typical usage:
+ *   void *ptr = [...]
+ *   size_t sz = isalloc(ptr, config_prof);
+ */
+JEMALLOC_ALWAYS_INLINE size_t
+pool_isalloc(pool_t *pool, const void *ptr, bool demote)
+{
+	size_t ret;
+	arena_chunk_t *chunk;
+
+	assert(ptr != NULL);
+	/* Demotion only makes sense if config_prof is true. */
+	assert(config_prof || demote == false);
+
+	chunk = (arena_chunk_t *)CHUNK_ADDR2BASE(ptr);
+	if (chunk != ptr)
+		ret = arena_salloc(ptr, demote);
+	else
+		ret = huge_pool_salloc(pool, ptr);
 
 	return (ret);
 }

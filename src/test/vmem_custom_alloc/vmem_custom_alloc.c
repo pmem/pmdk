@@ -153,6 +153,8 @@ pool_test(const char *dir)
 	strcpy(test, TEST_STRING_VALUE);
 	ASSERTeq(strcmp(test, TEST_STRING_VALUE), 0);
 
+	ASSERT(vmem_malloc_usable_size(vmp, test) > 0);
+
 	vmem_free(vmp, test);
 
 	vmem_delete(vmp);

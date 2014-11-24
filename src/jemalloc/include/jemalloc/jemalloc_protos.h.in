@@ -18,6 +18,7 @@ JEMALLOC_EXPORT void	*@je_@pool_calloc(pool_t *pool, size_t nmemb, size_t size);
 JEMALLOC_EXPORT void	*@je_@pool_ralloc(pool_t *pool, void *ptr, size_t size);
 JEMALLOC_EXPORT void	*@je_@pool_aligned_alloc(pool_t *pool,  size_t alignment, size_t size);
 JEMALLOC_EXPORT void	@je_@pool_free(pool_t *pool, void *ptr);
+JEMALLOC_EXPORT size_t	@je_@pool_malloc_usable_size(pool_t *pool, void *ptr);
 JEMALLOC_EXPORT void	@je_@pool_malloc_stats_print(pool_t *pool,
 							void (*write_cb)(void *, const char *),
 							void *cbopaque, const char *opts);
