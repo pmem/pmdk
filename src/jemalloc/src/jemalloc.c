@@ -2429,7 +2429,9 @@ je_mallocx(size_t size, int flags)
 		goto label_oom;
 
 	if (arena_ind != UINT_MAX) {
+		malloc_rwlock_rdlock(&pool->arenas_lock);
 		arena = pool->arenas[arena_ind];
+		malloc_rwlock_unlock(&pool->arenas_lock);
 		try_tcache = false;
 	} else {
 		arena = &dummy_arena;
