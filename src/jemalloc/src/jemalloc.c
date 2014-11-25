@@ -172,7 +172,7 @@ choose_arena_hard(pool_t *pool)
 
 		choose = 0;
 		first_null = pool->narenas_auto;
-		malloc_mutex_lock(&pool->arenas_lock);
+		malloc_rwlock_wrlock(&pool->arenas_lock);
 		assert(pool->arenas[0] != NULL);
 		for (i = 1; i < pool->narenas_auto; i++) {
 			if (pool->arenas[i] != NULL) {
@@ -209,12 +209,12 @@ choose_arena_hard(pool_t *pool)
 			ret = arenas_extend(pool, first_null);
 		}
 		ret->nthreads++;
-		malloc_mutex_unlock(&pool->arenas_lock);
+		malloc_rwlock_unlock(&pool->arenas_lock);
 	} else {
 		ret = pool->arenas[0];
-		malloc_mutex_lock(&pool->arenas_lock);
+		malloc_rwlock_wrlock(&pool->arenas_lock);
 		ret->nthreads++;
-		malloc_mutex_unlock(&pool->arenas_lock);
+		malloc_rwlock_unlock(&pool->arenas_lock);
 	}
 
 	tsd = arenas_tsd_get();
@@ -303,9 +303,9 @@ arenas_cleanup(void *arg)
 		pool = pools[i];
 		if (pool != NULL) {
 			if (pool->seqno == tsd->seqno[i] && tsd->arenas[i] != NULL) {
-				malloc_mutex_lock(&pool->arenas_lock);
+				malloc_rwlock_wrlock(&pool->arenas_lock);
 				tsd->arenas[i]->nthreads--;
-				malloc_mutex_unlock(&pool->arenas_lock);
+				malloc_rwlock_unlock(&pool->arenas_lock);
 			}
 		}
 	}
@@ -1580,7 +1580,7 @@ je_pool_freespace(pool_t *pool)
 {
 	size_t size = 0;
 	malloc_mutex_lock(&pool->chunks_mtx);
-	malloc_mutex_lock(&pool->arenas_lock);
+	malloc_rwlock_wrlock(&pool->arenas_lock);
 	extent_tree_szad_iter(&pool->chunks_szad_mmap, NULL, tree_binary_iter_cb, (void *)&size);
 
 	for (size_t i = 0; i < pool->narenas_total; ++i) {
@@ -1597,7 +1597,7 @@ je_pool_freespace(pool_t *pool)
 		}
 	}
 
-	malloc_mutex_unlock(&pool->arenas_lock);
+	malloc_rwlock_unlock(&pool->arenas_lock);
 	malloc_mutex_unlock(&pool->chunks_mtx);
 	return size;
 }
@@ -1797,7 +1797,7 @@ je_pool_check(pool_t *pool)
 	arg_cb.error = 0;
 
 	malloc_mutex_lock(&pool->chunks_mtx);
-	malloc_mutex_lock(&pool->arenas_lock);
+	malloc_rwlock_wrlock(&pool->arenas_lock);
 	extent_tree_szad_iter(&pool->chunks_szad_mmap, NULL,
 		check_tree_binary_iter_cb, &arg_cb);
 
@@ -1832,7 +1832,7 @@ je_pool_check(pool_t *pool)
 		}
 	}
 
-	malloc_mutex_unlock(&pool->arenas_lock);
+	malloc_rwlock_unlock(&pool->arenas_lock);
 	malloc_mutex_unlock(&pool->chunks_mtx);
 
 	malloc_mutex_unlock(&pool->memory_range_mtx);

@@ -248,9 +248,9 @@ chunk_alloc_default(size_t size, size_t alignment, bool *zero,
 				     &pool->chunks_ad_mmap, size,
 				     alignment, false, zero));
 	} else {
-		malloc_mutex_lock(&pool->arenas_lock);
+		malloc_rwlock_rdlock(&pool->arenas_lock);
 		dss_prec_t dss_prec = pool->arenas[arena_ind]->dss_prec;
-		malloc_mutex_unlock(&pool->arenas_lock);
+		malloc_rwlock_unlock(&pool->arenas_lock);
 		return (chunk_alloc_core(pool, size, alignment,
 					 false, zero, dss_prec));
 	}
