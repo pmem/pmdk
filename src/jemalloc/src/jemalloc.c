@@ -2108,7 +2108,7 @@ pool_ifree(pool_t *pool, void *ptr)
 
 	chunk = (arena_chunk_t *)CHUNK_ADDR2BASE(ptr);
 	if (chunk != ptr)
-		arena_dalloc(chunk, ptr, false);
+		arena_dalloc(chunk, ptr, true);
 	else
 		huge_dalloc(pool, ptr);
 
