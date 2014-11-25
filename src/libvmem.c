@@ -49,25 +49,12 @@
 
 
 /*
- * libvmem_init -- load-time initialization for libvmem
- *
- * Called automatically by the run-time loader.
- */
-__attribute__((constructor))
-static void
-libvmem_init(void)
-{
-	out_init(VMEM_LOG_PREFIX, VMEM_LOG_LEVEL_VAR, VMEM_LOG_FILE_VAR);
-	LOG(3, NULL);
-	util_init();
-}
-
-/*
  * vmem_check_version -- see if library meets application version requirements
  */
 const char *
 vmem_check_version(unsigned major_required, unsigned minor_required)
 {
+	vmem_init();
 	LOG(3, "major_required %u minor_required %u",
 			major_required, minor_required);
 
@@ -105,6 +92,7 @@ vmem_set_funcs(
 		char *(*strdup_func)(const char *s),
 		void (*print_func)(const char *s))
 {
+	vmem_init();
 	LOG(3, NULL);
 
 	util_set_alloc_funcs(malloc_func, free_func,

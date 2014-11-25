@@ -44,6 +44,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <stdint.h>
+#include <pthread.h>
 #include <libvmem.h>
 #include "jemalloc.h"
 #include "util.h"
@@ -80,21 +81,54 @@ print_jemalloc_stats(void* ignore, const char *s)
 }
 
 /*
- * vmem_init -- load-time initialization for vmem
+ * vmem_init -- initialization for vmem
+ *
+ * Called automatically by the run-time loader or on the first use of vmem.
+ */
+void
+vmem_init(void)
+{
+	static bool initialized = false;
+	static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
+	int oerrno;
+
+	if (initialized)
+		return;
+
+	if ((errno = pthread_mutex_lock(&lock))) {
+		FATAL("!pthread_mutex_lock");
+		return;
+	}
+
+	if (!initialized) {
+		out_init(VMEM_LOG_PREFIX, VMEM_LOG_LEVEL_VAR,
+				VMEM_LOG_FILE_VAR);
+		LOG(3, NULL);
+		util_init();
+		Header_size = roundup(sizeof (VMEM), Pagesize);
+
+		/* Set up jemalloc messages to a custom print function */
+		je_vmem_malloc_message = print_jemalloc_messages;
+
+		initialized = true;
+	}
+
+	oerrno = errno;
+	if ((errno = pthread_mutex_unlock(&lock)))
+		LOG(1, "!pthread_mutex_unlock");
+	errno = oerrno;
+}
+
+/*
+ * vmem_construct -- load-time initialization for vmem
  *
  * Called automatically by the run-time loader.
  */
 __attribute__((constructor))
 static void
-vmem_init(void)
+vmem_construct(void)
 {
-	out_init(VMEM_LOG_PREFIX, VMEM_LOG_LEVEL_VAR, VMEM_LOG_FILE_VAR);
-	LOG(3, NULL);
-	util_init();
-	Header_size = roundup(sizeof (VMEM), Pagesize);
-
-	/* Set up jemalloc to forward messages to a custom print function */
-	je_vmem_malloc_message = print_jemalloc_messages;
+	vmem_init();
 }
 
 /*
@@ -103,6 +137,7 @@ vmem_init(void)
 VMEM *
 vmem_create(const char *dir, size_t size)
 {
+	vmem_init();
 	LOG(3, "dir \"%s\" size %zu", dir, size);
 
 	if (size < VMEM_MIN_POOL) {
@@ -152,6 +187,7 @@ vmem_create(const char *dir, size_t size)
 VMEM *
 vmem_create_in_region(void *addr, size_t size)
 {
+	vmem_init();
 	LOG(3, "addr %p size %zu", addr, size);
 
 	if (((uintptr_t)addr & (Pagesize - 1)) != 0) {
@@ -214,6 +250,7 @@ vmem_delete(VMEM *vmp)
 int
 vmem_check(VMEM *vmp)
 {
+	vmem_init();
 	LOG(3, "vmp %p", vmp);
 
 	return je_vmem_pool_check((pool_t *)((uintptr_t)vmp + Header_size));

@@ -341,7 +341,7 @@ malloc_init_base_pool(void)
 	if (base_pool_initialized)
 		return (false);
 
-	if (malloc_initialized == false && malloc_init_hard())
+	if (malloc_init())
 		return (true);
 
 	malloc_mutex_lock(&pool_base_lock);
@@ -1410,7 +1410,7 @@ base_free_default(void *ptr)
 static bool
 pools_shared_data_create(void)
 {
-	if (malloc_initialized == false && malloc_init_hard())
+	if (malloc_init())
 		return (true);
 
 	assert(je_base_malloc != base_malloc_default || pools[0] != NULL);
@@ -1441,6 +1441,9 @@ void pools_shared_data_destroy(void)
 pool_t *
 je_pool_create(void *addr, size_t size, int zeroed)
 {
+	if (malloc_init())
+		return (NULL);
+
 	if (addr == NULL || size < POOL_MINIMAL_SIZE)
 		return NULL;
 

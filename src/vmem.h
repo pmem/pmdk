@@ -54,3 +54,5 @@ struct vmem {
 	size_t size;	/* size of mapped region */
 	int caller_mapped;
 };
+
+void vmem_init(void);
