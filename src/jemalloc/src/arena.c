@@ -1685,6 +1685,7 @@ arena_quarantine_junk_small(void *ptr, size_t usize)
 	assert(usize <= SMALL_MAXCLASS);
 
 	binind = small_size2bin(usize);
+	assert(binind < NBINS);
 	bin_info = &arena_bin_info[binind];
 	arena_redzones_validate(ptr, bin_info, true);
 }
@@ -2241,6 +2242,7 @@ arena_ralloc_no_move(void *ptr, size_t oldsize, size_t size, size_t extra,
 	 */
 	if (oldsize <= arena_maxclass) {
 		if (oldsize <= SMALL_MAXCLASS) {
+			assert(small_size2bin(oldsize) < NBINS);
 			assert(arena_bin_info[small_size2bin(oldsize)].reg_size
 			    == oldsize);
 			if ((size + extra <= SMALL_MAXCLASS &&
