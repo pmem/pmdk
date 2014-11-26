@@ -832,6 +832,7 @@ u2rz(size_t usize)
 
 	if (usize <= SMALL_MAXCLASS) {
 		size_t binind = small_size2bin(usize);
+		assert(binind < NBINS);
 		ret = arena_bin_info[binind].redzone_size;
 	} else
 		ret = 0;
