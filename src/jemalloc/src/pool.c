@@ -29,6 +29,10 @@ bool pool_new(pool_t *pool, unsigned pool_id)
 		return (true);
 	}
 
+	if (pools_shared_data_create()) {
+		return (true);
+	}
+
 	pool->stats_cactive = 0;
 	pool->ctl_stats_active = 0;
 	pool->ctl_stats_allocated = 0;

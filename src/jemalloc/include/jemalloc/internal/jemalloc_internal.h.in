@@ -389,6 +389,7 @@ extern pool_t	*pools[POOLS_MAX];
 extern malloc_mutex_t	pools_lock;
 extern void	*(*je_base_malloc)(size_t);
 extern void	(*je_base_free)(void *);
+extern bool	pools_shared_data_create(void);
 
 arena_t	*arenas_extend(pool_t *pool, unsigned ind);
 void	arenas_cleanup(void *arg);
