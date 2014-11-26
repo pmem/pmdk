@@ -932,9 +932,9 @@ write_layout(struct btt *bttp, int lane, int write)
 		/* write out the initial map, identity style */
 		off_t map_entry_off = arena_off + mapoff;
 		uint32_t *mapp = NULL;
-		int mlen = 0;
+		ssize_t mlen = 0;
 		int next_index = 0;
-		int remaining = 0;
+		ssize_t remaining = 0;
 		for (int i = 0; i < external_nlba; i++) {
 			if (remaining == 0) {
 				/* flush previous mapped area */
@@ -1750,9 +1750,9 @@ check_arena(struct btt *bttp, struct arena *arenap)
 	 * been seen so far.
 	 */
 	uint32_t *mapp = NULL;
-	int mlen;
+	ssize_t mlen;
 	int next_index = 0;
-	int remaining = 0;
+	ssize_t remaining = 0;
 	for (int i = 0; i < arenap->external_nlba; i++) {
 		uint32_t entry;
 

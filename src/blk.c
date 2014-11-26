@@ -176,7 +176,7 @@ nswrite(void *ns, int lane, const void *buf, size_t count, off_t off)
  * This routine is provided to btt_init() to allow the btt module to
  * do I/O on the memory pool containing the BTT layout.
  */
-static int
+static ssize_t
 nsmap(void *ns, int lane, void **addrp, size_t len, off_t off)
 {
 	struct pmemblk *pbp = (struct pmemblk *)ns;
