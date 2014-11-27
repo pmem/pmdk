@@ -2812,20 +2812,12 @@ int
 je_mallctl(const char *name, void *oldp, size_t *oldlenp, void *newp,
     size_t newlen)
 {
-
-	if (malloc_init_base_pool())
-		return (EAGAIN);
-
 	return (ctl_byname(name, oldp, oldlenp, newp, newlen));
 }
 
 int
 je_mallctlnametomib(const char *name, size_t *mibp, size_t *miblenp)
 {
-
-	if (malloc_init_base_pool())
-		return (EAGAIN);
-
 	return (ctl_nametomib(name, mibp, miblenp));
 }
 
@@ -2833,10 +2825,6 @@ int
 je_mallctlbymib(const size_t *mib, size_t miblen, void *oldp, size_t *oldlenp,
   void *newp, size_t newlen)
 {
-
-	if (malloc_init_base_pool())
-		return (EAGAIN);
-
 	return (ctl_bymib(mib, miblen, oldp, oldlenp, newp, newlen));
 }
 

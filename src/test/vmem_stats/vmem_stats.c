@@ -33,14 +33,73 @@
 /*
  * vmem_stats.c -- unit test for vmem_stats
  *
- * usage: vmem_stats [opts]
+ * usage: vmem_stats 0|1 [opts]
  */
 
 #include "unittest.h"
 
+static int custom_allocs;
+static int custom_alloc_calls;
+
+/*
+ * malloc_custom -- custom malloc function
+ *
+ * This function updates statistics about custom alloc functions,
+ * and returns allocated memory.
+ */
+void *
+malloc_custom(size_t size)
+{
+	++custom_alloc_calls;
+	++custom_allocs;
+	return malloc(size);
+}
+
+/*
+ * free_custom -- custom free function
+ *
+ * This function updates statistics about custom alloc functions,
+ * and frees allocated memory.
+ */
+void
+free_custom(void *ptr)
+{
+	++custom_alloc_calls;
+	--custom_allocs;
+	free(ptr);
+}
+
+/*
+ * realloc_custom -- custom realloc function
+ *
+ * This function updates statistics about custom alloc functions,
+ * and returns reallocated memory.
+ */
+void *
+realloc_custom(void *ptr, size_t size)
+{
+	++custom_alloc_calls;
+	return realloc(ptr, size);
+}
+
+/*
+ * strdup_custom -- custom strdup function
+ *
+ * This function updates statistics about custom alloc functions,
+ * and returns allocated memory with a duplicated string.
+ */
+char *
+strdup_custom(const char *s)
+{
+	++custom_alloc_calls;
+	++custom_allocs;
+	return strdup(s);
+}
+
 int
 main(int argc, char *argv[])
 {
+	int expect_custom_alloc = 0;
 	char *opts = "";
 	void *mem_pool;
 	VMEM *vmp_unused;
@@ -48,11 +107,17 @@ main(int argc, char *argv[])
 
 	START(argc, argv, "vmem_stats");
 
-	if (argc == 2) {
-		opts = argv[1];
-	} else if (argc > 2) {
-		FATAL("usage: %s [opts]", argv[0]);
+	if (argc > 3 || argc < 2) {
+		FATAL("usage: %s 0|1 [opts]", argv[0]);
+	} else {
+		expect_custom_alloc = atoi(argv[1]);
+		if (argc > 2)
+			opts = argv[2];
 	}
+
+	if (expect_custom_alloc)
+		vmem_set_funcs(malloc_custom, free_custom,
+				realloc_custom, strdup_custom, NULL);
 
 	mem_pool = MMAP(NULL, VMEM_MIN_POOL, PROT_READ|PROT_WRITE,
 				MAP_ANONYMOUS|MAP_PRIVATE, -1, 0);
@@ -78,6 +143,14 @@ main(int argc, char *argv[])
 
 	vmem_delete(vmp_unused);
 	vmem_delete(vmp_used);
+
+	/* check memory leak in custom allocator */
+	ASSERTeq(custom_allocs, 0);
+	if (expect_custom_alloc == 0) {
+		ASSERTeq(custom_alloc_calls, 0);
+	} else {
+		ASSERTne(custom_alloc_calls, 0);
+	}
 
 	DONE(NULL);
 }

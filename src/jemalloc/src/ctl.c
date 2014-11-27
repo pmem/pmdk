@@ -50,7 +50,7 @@ static int	n##_ctl(const size_t *mib, size_t miblen, void *oldp,	\
 static const ctl_named_node_t	*n##_index(const size_t *mib,		\
     size_t miblen, size_t i);
 
-static bool	ctl_arena_init(ctl_arena_stats_t *astats);
+static bool	ctl_arena_init(pool_t *pool, ctl_arena_stats_t *astats);
 static void	ctl_arena_clear(ctl_arena_stats_t *astats);
 static void	ctl_arena_stats_amerge(ctl_arena_stats_t *cstats,
     arena_t *arena);
@@ -467,9 +467,8 @@ static const ctl_named_node_t super_root_node[] = {
 /******************************************************************************/
 
 static bool
-ctl_arena_init(ctl_arena_stats_t *astats)
+ctl_arena_init(pool_t *pool, ctl_arena_stats_t *astats)
 {
-	pool_t *pool = pools[0];
 	if (astats->lstats == NULL) {
 		astats->lstats = (malloc_large_stats_t *)base_alloc(pool, nlclasses *
 		    sizeof(malloc_large_stats_t));
@@ -611,7 +610,7 @@ ctl_grow(pool_t *pool)
 	memcpy(astats, pool->ctl_stats.arenas, (pool->ctl_stats.narenas + 1) *
 	    sizeof(ctl_arena_stats_t));
 	memset(&astats[pool->ctl_stats.narenas + 1], 0, sizeof(ctl_arena_stats_t));
-	if (ctl_arena_init(&astats[pool->ctl_stats.narenas + 1])) {
+	if (ctl_arena_init(pool, &astats[pool->ctl_stats.narenas + 1])) {
 		idalloc(tarenas);
 		idalloc(astats);
 		return (true);
@@ -748,7 +747,7 @@ ctl_init_pool(pool_t *pool)
 	if (config_stats) {
 		unsigned i;
 		for (i = 0; i <= pool->ctl_stats.narenas; i++) {
-			if (ctl_arena_init(&pool->ctl_stats.arenas[i])) {
+			if (ctl_arena_init(pool, &pool->ctl_stats.arenas[i])) {
 				ret = true;
 				goto label_return;
 			}
