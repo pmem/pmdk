@@ -71,6 +71,7 @@ clobber:
 test: $(VARIANTS)
 	$(MAKE) -C test all
 	$(MAKE) -C nondebug jemalloc-tests
+	$(MAKE) -C debug jemalloc-tests
 
 check: test check-jemalloc
 	cd test && ./RUNTESTS
