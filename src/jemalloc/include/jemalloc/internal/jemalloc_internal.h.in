@@ -576,9 +576,9 @@ JEMALLOC_INLINE unsigned
 narenas_total_get(pool_t *pool)
 {
 	unsigned narenas;
-	malloc_mutex_lock(&pool->arenas_lock);
+	malloc_rwlock_rdlock(&pool->arenas_lock);
 	narenas = pool->narenas_total;
-	malloc_mutex_unlock(&pool->arenas_lock);
+	malloc_rwlock_unlock(&pool->arenas_lock);
 
 	return (narenas);
 }

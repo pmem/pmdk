@@ -638,13 +638,13 @@ ctl_grow(pool_t *pool)
 		 * point to them).  Therefore, array copying must happen under
 		 * the protection of arenas_lock.
 		 */
-		malloc_mutex_lock(&pool->arenas_lock);
+		malloc_rwlock_wrlock(&pool->arenas_lock);
 		pool->arenas = tarenas;
 		memcpy(pool->arenas, arenas_old, pool->ctl_stats.narenas *
 		    sizeof(arena_t *));
 		pool->narenas_total++;
 		arenas_extend(pool, pool->narenas_total - 1);
-		malloc_mutex_unlock(&pool->arenas_lock);
+		malloc_rwlock_unlock(&pool->arenas_lock);
 		/*
 		 * Deallocate arenas_old only if it came from imalloc() (not
 		 * base_alloc()).
@@ -679,7 +679,7 @@ ctl_refresh_pool(pool_t *pool)
 	pool->ctl_stats.arenas[pool->ctl_stats.narenas].nthreads = 0;
 	ctl_arena_clear(&pool->ctl_stats.arenas[pool->ctl_stats.narenas]);
 
-	malloc_mutex_lock(&pool->arenas_lock);
+	malloc_rwlock_wrlock(&pool->arenas_lock);
 	memcpy(tarenas, pool->arenas, sizeof(arena_t *) * pool->ctl_stats.narenas);
 	for (i = 0; i < pool->ctl_stats.narenas; i++) {
 		if (pool->arenas[i] != NULL)
@@ -687,7 +687,7 @@ ctl_refresh_pool(pool_t *pool)
 		else
 			pool->ctl_stats.arenas[i].nthreads = 0;
 	}
-	malloc_mutex_unlock(&pool->arenas_lock);
+	malloc_rwlock_unlock(&pool->arenas_lock);
 	for (i = 0; i < pool->ctl_stats.narenas; i++) {
 		bool initialized = (tarenas[i] != NULL);
 
@@ -1274,17 +1274,17 @@ thread_arena_ctl(const size_t *mib, size_t miblen, void *oldp, size_t *oldlenp,
 		}
 
 		/* Initialize arena if necessary. */
-		malloc_mutex_lock(&pool->arenas_lock);
+		malloc_rwlock_wrlock(&pool->arenas_lock);
 		if ((arena = pool->arenas[newind]) == NULL && (arena =
 		    arenas_extend(pool, newind)) == NULL) {
-			malloc_mutex_unlock(&pool->arenas_lock);
+			malloc_rwlock_unlock(&pool->arenas_lock);
 			ret = EAGAIN;
 			goto label_return;
 		}
 		assert(arena == pool->arenas[newind]);
 		pool->arenas[oldind]->nthreads--;
 		pool->arenas[newind]->nthreads++;
-		malloc_mutex_unlock(&pool->arenas_lock);
+		malloc_rwlock_unlock(&pool->arenas_lock);
 
 		/* Set new arena association. */
 		if (config_tcache) {
@@ -1373,9 +1373,9 @@ arena_purge(pool_t *pool, unsigned arena_ind)
 {
 	VARIABLE_ARRAY(arena_t *, tarenas, pool->ctl_stats.narenas);
 
-	malloc_mutex_lock(&pool->arenas_lock);
+	malloc_rwlock_wrlock(&pool->arenas_lock);
 	memcpy(tarenas, pool->arenas, sizeof(arena_t *) * pool->ctl_stats.narenas);
-	malloc_mutex_unlock(&pool->arenas_lock);
+	malloc_rwlock_unlock(&pool->arenas_lock);
 
 	if (arena_ind == pool->ctl_stats.narenas) {
 		unsigned i;

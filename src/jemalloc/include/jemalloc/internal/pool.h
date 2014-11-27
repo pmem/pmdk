@@ -44,7 +44,7 @@ struct pool_s {
 	 */
 	unsigned seqno;
 	/* Protects arenas initialization (arenas, arenas_total). */
-	malloc_mutex_t	arenas_lock;
+	malloc_rwlock_t	arenas_lock;
 	/*
 	 * Arenas that are used to service external requests.  Not all elements of the
 	 * arenas array are necessarily used; arenas are created lazily as needed.

@@ -247,6 +247,11 @@ malloc_mutex_postfork_child
 malloc_mutex_postfork_parent
 malloc_mutex_prefork
 malloc_mutex_unlock
+malloc_rwlock_init
+malloc_rwlock_rdlock
+malloc_rwlock_wrlock
+malloc_rwlock_unlock
+malloc_rwlock_destroy
 malloc_printf
 malloc_snprintf
 malloc_strtoumax
