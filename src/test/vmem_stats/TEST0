@@ -45,7 +45,7 @@ require_build_type debug
 
 setup
 
-expect_normal_exit ./vmem_stats$EXESUFFIX
+expect_normal_exit ./vmem_stats$EXESUFFIX 0
 grep -v '<libvmem>:'  vmem$UNITTEST_NUM.log > grep$UNITTEST_NUM.log
 
 check
