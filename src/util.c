@@ -471,6 +471,7 @@ err:
 	int oerrno = errno;
 	if (fd != -1)
 		(void) close(fd);
+	unlink(path);
 	errno = oerrno;
 	return -1;
 }
