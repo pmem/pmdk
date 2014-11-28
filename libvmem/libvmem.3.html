@@ -1,5 +1,5 @@
 <!-- Creator     : groff version 1.18.1.4 -->
-<!-- CreationDate: Tue Nov 18 07:16:09 2014 -->
+<!-- CreationDate: Fri Nov 28 10:03:53 2014 -->
 <html>
 <head>
 <meta name="generator" content="groff -Thtml, see www.gnu.org">
@@ -62,6 +62,7 @@ void *vmem_calloc(VMEM *</b><i>vmp</i><b>, size_t</b> <i>nmemb</i><b>, size_t</b
 void *vmem_realloc(VMEM *</b><i>vmp</i><b>, void *</b><i>ptr</i><b>, size_t</b> <i>size</i><b>);
 void *vmem_aligned_alloc(VMEM *</b><i>vmp</i><b>, size_t</b> <i>alignment</i><b>, size_t</b> <i>size</i><b>);
 char *vmem_strdup(VMEM *</b><i>vmp</i><b>, const char *</b><i>s</i><b>);
+size_t vmem_malloc_usable_size(VMEM *</b><i>vmp</i><b>, void *</b><i>ptr</i><b>);
 
 Managing overall library behavior:
 
@@ -523,6 +524,32 @@ pool, and can be freed with <b>vmem_free</b>() on the same
 memory pool. If <b>vmem_strdup</b>() is unable to satisfy
 the allocation request, a NULL pointer is returned and errno
 is set appropriately.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>size_t vmem_malloc_usable_size(VMEM
+*</b><i>vmp</i><b>, void *</b><i>ptr</i><b>);</b></p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="20%"></td>
+<td width="79%">
+<p>The <b>vmem_malloc_usable_size</b>() function provides
+the same semantics as <b>malloc_usable_size</b>(3), but
+operates on the memory pool <i>vmp</i> instead of the
+process heap supplied by the system. It returns the number
+of usable bytes in the block of allocated memory pointed to
+by <i>ptr</i>, a pointer to a block of memory allocated by
+<b>vmem_malloc</b>() or a related function. If <i>ptr</i> is
+NULL, 0 is returned.</p>
 </td>
 </table>
 <a name="MANAGING LIBRARY BEHAVIOR"></a>
