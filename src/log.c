@@ -414,6 +414,8 @@ pmemlog_appendv(PMEMlogpool *plp, const struct iovec *iov, int iovcnt)
 	int ret = 0; // success
 	int i;
 
+	ASSERT(iovcnt > 0);
+
 	if (plp->rdonly) {
 		LOG(1, "can't append to read-only log");
 		errno = EROFS;
