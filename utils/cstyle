@@ -621,7 +621,7 @@ line: while (<$filehandle>) {
 	if (/\b_VOID\b|\bVOID\b|\bSTATIC\b/) {
 		err("obsolete use of VOID or STATIC");
 	}
-	if (/\b$typename\*/o) {
+	if (/\b($typename|void)\*/o) {
 		err("missing space between type name and *");
 	}
 	if (/^\s+#/) {
@@ -661,8 +661,8 @@ line: while (<$filehandle>) {
 		    !/\($typename( \*+)?\)\s+=[^=]/o) {
 			err("space after cast");
 		}
-		if (/\b$typename\s*\*\s/o &&
-		    !/\b$typename\s*\*\s+const\b/o) {
+		if (/\b($typename|void)\s*\*\s/o &&
+		    !/\b($typename|void)\s*\*\s+const\b/o) {
 			err("unary * followed by space");
 		}
 	}

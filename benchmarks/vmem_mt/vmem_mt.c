@@ -263,7 +263,7 @@ main(int argc, char *argv[])
 			arguments.thread_count : 1;
 	VMEM *pools[pools_count];
 	void *pools_data[pools_count];
-	allocated_mem = calloc(arguments.ops_count, sizeof (void*));
+	allocated_mem = calloc(arguments.ops_count, sizeof (void *));
 
 	if (allocated_mem == NULL) {
 		perror("calloc");
