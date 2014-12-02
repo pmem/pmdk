@@ -98,11 +98,11 @@ void pool_prefork()
 void pool_postfork_parent()
 {
 	malloc_mutex_postfork_parent(&pools_lock);
-	malloc_mutex_prefork(&pool_base_lock);
+	malloc_mutex_postfork_parent(&pool_base_lock);
 }
 
 void pool_postfork_child()
 {
 	malloc_mutex_postfork_child(&pools_lock);
-	malloc_mutex_prefork(&pool_base_lock);
+	malloc_mutex_postfork_child(&pool_base_lock);
 }

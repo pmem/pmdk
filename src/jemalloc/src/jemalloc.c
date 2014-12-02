@@ -2924,6 +2924,7 @@ _malloc_prefork(void)
 	}
 
 	FOREACH_POOL(chunk_prefork);
+	chunk_dss_prefork();
 
 	FOREACH_POOL(base_prefork);
 
@@ -2952,6 +2953,7 @@ _malloc_postfork(void)
 
 	FOREACH_POOL(base_postfork_parent);
 
+	chunk_dss_postfork_parent();
 	FOREACH_POOL(chunk_postfork_parent);
 
 	for (i = 0; i < POOLS_MAX; i++) {
@@ -2981,6 +2983,7 @@ jemalloc_postfork_child(void)
 
 	FOREACH_POOL(base_postfork_child);
 
+	chunk_dss_postfork_child();
 	FOREACH_POOL(chunk_postfork_child);
 
 	for (i = 0; i < POOLS_MAX; i++) {
@@ -2995,6 +2998,22 @@ jemalloc_postfork_child(void)
 	pool_postfork_child();
 	prof_postfork_child();
 	ctl_postfork_child();
+
+	/* In child process remove pools which don't support copy-on-write */
+	memset(&pools[1], 0, sizeof(pool_t *) * (POOLS_MAX - 1));
+
+	if (pools[0]) {
+		npools = 1;
+	} else {
+		npools = 0;
+		/*
+		 * Delete allocations from data shared for case when custom allocator
+		 * is used, and we want to avoid memory leak.
+		 */
+		if (pools_shared_data_initialized)
+			pools_shared_data_destroy();
+	}
+
 }
 
 /******************************************************************************/
