@@ -72,7 +72,7 @@ main(int argc, char *argv[])
 	/* create pool in this same memory region */
 	if (dir == NULL) {
 		unsigned long Pagesize = (unsigned long) sysconf(_SC_PAGESIZE);
-		void *mem_pool2 = (void*)(((uintptr_t)mem_pool +
+		void *mem_pool2 = (void *)(((uintptr_t)mem_pool +
 			VMEM_MIN_POOL/2) & ~(Pagesize-1));
 
 		VMEM *vmp2 = vmem_create_in_region(mem_pool2,

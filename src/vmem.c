@@ -64,7 +64,7 @@ static void *vmem_tmpfile(const char *dir, size_t size);
  * are considered as error messages.
  */
 static void
-print_jemalloc_messages(void* ignore, const char *s)
+print_jemalloc_messages(void *ignore, const char *s)
 {
 	LOG_NONL(1, "%s", s);
 }
@@ -75,7 +75,7 @@ print_jemalloc_messages(void* ignore, const char *s)
  * Prints statistics from jemalloc. All statistics are printed with level 0.
  */
 static void
-print_jemalloc_stats(void* ignore, const char *s)
+print_jemalloc_stats(void *ignore, const char *s)
 {
 	LOG_NONL(0, "%s", s);
 }
