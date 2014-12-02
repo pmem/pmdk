@@ -1,0 +1,5 @@
+vmem_fork/TEST2: START: vmem_fork
+ ./vmem_fork$(*)
+Finish Child
+Finish Parent
+vmem_fork/TEST2: Done

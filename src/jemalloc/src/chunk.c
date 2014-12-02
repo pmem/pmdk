@@ -437,14 +437,11 @@ chunk_prefork(pool_t *pool)
 	malloc_mutex_prefork(&pool->chunks_mtx);
 	if (config_ivsalloc)
 		rtree_prefork(pool->chunks_rtree);
-	chunk_dss_prefork();
 }
 
 void
 chunk_postfork_parent(pool_t *pool)
 {
-
-	chunk_dss_postfork_parent();
 	if (config_ivsalloc)
 		rtree_postfork_parent(pool->chunks_rtree);
 	malloc_mutex_postfork_parent(&pool->chunks_mtx);
@@ -453,8 +450,6 @@ chunk_postfork_parent(pool_t *pool)
 void
 chunk_postfork_child(pool_t *pool)
 {
-
-	chunk_dss_postfork_child();
 	if (config_ivsalloc)
 		rtree_postfork_child(pool->chunks_rtree);
 	malloc_mutex_postfork_child(&pool->chunks_mtx);
