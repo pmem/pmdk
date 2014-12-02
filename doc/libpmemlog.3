@@ -278,6 +278,17 @@ the buffers in
 were concatenated in order.
 On success, zero is returned.  On error, -1 is returned and errno is set.
 .PP
+.IP
+NOTE: Since
+.BR libpmemlog
+is designed as a low-latency code path, many of the
+checks routinely done by the operating system for
+.BR writev (2)
+are not practical in the library's implementation of
+.BR pmemlog_appendv ().
+No attempt is made to detect NULL or incorrect pointers,
+or illegal count values, for example.
+.PP
 .BI "off_t pmemlog_tell(PMEMlogpool *" plp );
 .IP
 The
