@@ -164,6 +164,21 @@ function expect_abnormal_exit() {
 }
 
 #
+# require_unlimited_vm -- require unlimited virtual memory
+#
+# This implies requirements for:
+# - overcommit_memory enabled (/proc/sys/vm/overcommit_memory is 0 or 1)
+# - unlimited virtual memory (ulimit -v is unlimited)
+#
+function require_unlimited_vm() {
+	local overcommit=$(cat /proc/sys/vm/overcommit_memory)
+	local vm_limit=$(ulimit -v)
+	[ "$overcommit" != "2" ] && [ "$vm_limit" = "unlimited" ] && return
+	echo "$UNITTEST_NAME: SKIP required: overcommit_memory enabled and unlimited virtual memory"
+	exit 0
+}
+
+#
 # require_test_type -- only allow script to continue for a certain test type
 #
 function require_test_type() {
