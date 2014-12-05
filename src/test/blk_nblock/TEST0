@@ -85,6 +85,14 @@ truncate -s 514G $DIR/testfile6.528
 truncate -s 514G $DIR/testfile6.4096
 truncate -s 514G $DIR/testfile6.4160
 truncate -s 514G $DIR/testfile6.4224
+# MINIMUM POOL SIZE = 16MB + 8KB
+MIN_POOL_SIZE=$((16*1024*1024 + 8*1024))
+truncate -s $MIN_POOL_SIZE $DIR/testfile7.512
+truncate -s $MIN_POOL_SIZE $DIR/testfile7.520
+truncate -s $MIN_POOL_SIZE $DIR/testfile7.528
+truncate -s $MIN_POOL_SIZE $DIR/testfile7.4096
+truncate -s $MIN_POOL_SIZE $DIR/testfile7.4160
+truncate -s $MIN_POOL_SIZE $DIR/testfile7.4224
 
 # should fail:
 #	512:$DIR/testfile1 (file is too small)
@@ -121,8 +129,14 @@ expect_normal_exit ./blk_nblock$EXESUFFIX\
 	528:$DIR/testfile6.528\
 	4096:$DIR/testfile6.4096\
 	4160:$DIR/testfile6.4160\
-	4224:$DIR/testfile6.4224
-rm $DIR/testfile1 $DIR/testfile[23456].*
+	4224:$DIR/testfile6.4224\
+	512:$DIR/testfile7.512\
+	520:$DIR/testfile7.520\
+	528:$DIR/testfile7.528\
+	4096:$DIR/testfile7.4096\
+	4160:$DIR/testfile7.4160\
+	4224:$DIR/testfile7.4224
+rm $DIR/testfile1 $DIR/testfile[234567].*
 
 check
 
