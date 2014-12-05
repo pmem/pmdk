@@ -1,10 +1,10 @@
 blk_rw/TEST0: START: blk_rw
- ./blk_rw$(*) 512 $(*)/testfile1 c r:0 r:1 r:4161461 r:4161462 z:0 z:1 r:0
-512 block size 512 usable blocks 4161462
+ ./blk_rw$(*) 512 $(*)/testfile1 c r:0 r:1 r:32201 r:32202 z:0 z:1 r:0
+512 block size 512 usable blocks 32202
 read      lba 0: {0}
 read      lba 1: {0}
-read      lba 4161461: {0}
-read      lba 4161462: Invalid argument
+read      lba 32201: {0}
+read      lba 32202: Invalid argument
 set_zero  lba 0
 set_zero  lba 1
 read      lba 0: {0}

@@ -45,16 +45,17 @@ require_fs_type pmem non-pmem
 
 setup
 
-# single arena case
+# single arena and minimum pmemblk pool file case
+MIN_POOL_SIZE=$((16*1024*1024 + 8*1024))
 rm -f $DIR/testfile1
-truncate -s 2G $DIR/testfile1
+truncate -s $MIN_POOL_SIZE $DIR/testfile1
 #
 # All reads to an unwritten block pool should return zeros.
-# Block 4161478 is out of range and should return EINVAL.
+# Block 32202 is out of range and should return EINVAL.
 # Attempts to zero uninitialized blocks are nops (should succeed).
 #
 expect_normal_exit ./blk_rw$EXESUFFIX 512 $DIR/testfile1 c\
-	r:0 r:1 r:4161461 r:4161462 z:0 z:1 r:0
+	r:0 r:1 r:32201 r:32202 z:0 z:1 r:0
 rm $DIR/testfile1
 
 check

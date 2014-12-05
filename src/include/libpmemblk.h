@@ -66,7 +66,9 @@ const char *pmemblk_check_version(
 		unsigned major_required,
 		unsigned minor_required);
 
-#define	PMEMBLK_MIN_POOL ((size_t)(1 << 30))	/* min pool size: 1GB */
+/* minimum pool size: 16MB + 8KB (minimum BTT size + header size) */
+#define	PMEMBLK_MIN_POOL ((size_t)((1u << 20) * 16 + (1u << 10) * 8))
+
 #define	PMEMBLK_MIN_BLK ((size_t)512)
 
 PMEMblkpool *pmemblk_open(const char *path, size_t bsize);
