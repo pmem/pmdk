@@ -67,7 +67,7 @@ vpath %.c ..
 vpath %.h .. ../include
 INCS = -I.. -I../include
 
-CFLAGS += -std=gnu99 -Wall -Werror $(EXTRA_CFLAGS)
+CFLAGS += -std=gnu99 -Wall -Werror -pthread $(EXTRA_CFLAGS)
 LDFLAGS += -Wl,-z,relro $(EXTRA_LDFLAGS)
 
 LN = ln
@@ -122,9 +122,10 @@ TARGETS = $(TARGET_LIBS) $(TARGET_LINKS)
 EXTRA_JECONFIG =
 
 $(LIBPMEMAR) $(LIBPMEM_REALNAME): LIBS += -luuid
-$(LIBPMEMBLKAR) $(LIBPMEMLOGAR) $(LIBPMEMOBJAR): LIBS += -luuid
-$(LIBPMEMBLK_REALNAME) $(LIBPMEMOBJ_REALNAME) $(LIBPMEMLOG_REALNAME): LIBS += -luuid -l:$(LIBPMEM_REALNAME) -L.
+$(LIBPMEMBLKAR) $(LIBPMEMLOGAR) $(LIBPMEMOBJAR): LIBS += -pthread -luuid
+$(LIBPMEMBLK_REALNAME) $(LIBPMEMOBJ_REALNAME) $(LIBPMEMLOG_REALNAME): LIBS += -pthread -luuid -l:$(LIBPMEM_REALNAME) -L.
 $(LIBVMEMAR) $(LIBVMEM_REALNAME): INCS += -I$(JEMALLOC_DIR)/include/jemalloc
+$(LIBVMEMAR) $(LIBVMEM_REALNAME): LIBS += -pthread
 
 out.o: CFLAGS += -DSRCVERSION='"$(SRCVERSION)"'
 
@@ -232,7 +233,7 @@ $(LIBVMEMAR): $(VMEMOBJS) $(JEMALLOC_LIB)
 	$(AR) rv $@ $*_all.o
 
 $(LIBVMEM_REALNAME): $(VMEMOBJS) $(JEMALLOC_LIB)
-	$(CC) $(LDFLAGS) -shared -Wl,--version-script=$(VMEMMAPFILE),-soname,$(LIBVMEM_SONAME) -o $@ $(VMEMOBJS) $(JEMALLOC_LIB)
+	$(CC) $(LDFLAGS) -shared -Wl,--version-script=$(VMEMMAPFILE),-soname,$(LIBVMEM_SONAME) -o $@ $(VMEMOBJS) $(LIBS) $(JEMALLOC_LIB)
 
 $(LIBVMEM_SONAME): $(LIBVMEM_REALNAME)
 	$(LN) -sf $< $@
