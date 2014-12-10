@@ -266,7 +266,7 @@ install: $(TARGETS)
 	install -p -m 0755 $(TARGET_LIBS) $(LIBS_DESTDIR)
 	cp -d $(TARGET_LINKS) $(LIBS_DESTDIR)
 
-.PHONY: all clean clobber jeconfig jemalloc install jemalloc-tests jemalloc-check
+.PHONY: all clean clobber jeconfig jemalloc install jemalloc-tests jemalloc-check $(JEMALLOC_LIB)
 
 libpmem.o: libpmem.c libpmem.h pmem.h util.h out.h
 blk.o: blk.c libpmem.h pmem.h blk.h util.h out.h
