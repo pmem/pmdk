@@ -1,15 +1,11 @@
 util_pool_open/TEST0: START: util_pool_open
- ./util_pool_open$(*) 0x4000 $(*)/testdir1 /dev/zero $(*)/testlink1 $(*)/testlink2 $(*)/testlink3 $(*)/testlink4 $(*)/testlink5 $(*)/testfile0 $(*)/testfile1 $(*)/testfile2 $(*)/testfile3 $(*)/testfile4
+ ./util_pool_open$(*) 0x4000 $(*)/testdir1 /dev/zero $(*)/testlink0 $(*)/testlink1 $(*)/testlink2 $(*)/testfile0 $(*)/testfile1 $(*)/testfile2
 $(*)/testdir1: util_pool_open: Invalid argument
 /dev/zero: util_pool_open: Invalid argument
-$(*)/testlink1: util_pool_open: No such file or directory
-$(*)/testlink2: util_pool_open: Permission denied
-$(*)/testlink3: util_pool_open: Permission denied
-$(*)/testlink4: util_pool_open: Invalid argument
-$(*)/testlink5: util_pool_open: Invalid argument
+$(*)/testlink0: util_pool_open: No such file or directory
+$(*)/testlink1: util_pool_open: Invalid argument
+$(*)/testlink2: util_pool_open: Invalid argument
 $(*)/testfile0: util_pool_open: No such file or directory
-$(*)/testfile1: util_pool_open: Permission denied
-$(*)/testfile2: util_pool_open: Permission denied
-$(*)/testfile3: util_pool_open: Invalid argument
-$(*)/testfile4: open, len 32768
+$(*)/testfile1: util_pool_open: Invalid argument
+$(*)/testfile2: open, len 32768
 util_pool_open/TEST0: Done
