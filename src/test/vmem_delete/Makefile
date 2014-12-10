@@ -31,64 +31,13 @@
 #
 
 #
-# src/test/Makefile -- build all unit tests
+# src/test/vmem_delete/Makefile -- build vmem_delete unit test
 #
-# Makefile -- build all unit tests
-#
-TEST = blk_nblock\
-       blk_recovery\
-       blk_rw\
-       blk_rw_mt\
-       checksum\
-       log_basic\
-       log_recovery\
-       log_walker\
-       pmem_isa_proc\
-       pmem_is_pmem\
-       pmem_is_pmem_proc\
-       pmem_map\
-       scope\
-       traces\
-       traces_custom_function\
-       traces_pmem\
-       util_map_proc\
-       util_pool_create\
-       util_pool_open\
-       vmem_aligned_alloc\
-       vmem_calloc\
-       vmem_check_allocations\
-       vmem_check_version\
-       vmem_custom_alloc\
-       vmem_freespace\
-       vmem_malloc\
-       vmem_malloc_usable_size\
-       vmem_mix_allocations\
-       vmem_multiple_pools\
-       vmem_out_of_memory\
-       vmem_check\
-       vmem_create\
-       vmem_create_error\
-       vmem_create_in_region\
-       vmem_delete\
-       vmem_realloc\
-       vmem_stats\
-       vmem_strdup\
-       vmem_fork\
-       vmem_valgrind\
-       vmem_pages_purging
+TARGET = vmem_delete
+OBJS = vmem_delete.o
 
-all     : TARGET = all
-clean   : TARGET = clean
-clobber : TARGET = clobber
-test    : TARGET = test
-cstyle  : TARGET = cstyle
+LIBVMEM=y
 
-all clean clobber test cstyle: $(TEST)
+include ../Makefile.inc
 
-$(TEST): unittest
-	$(MAKE) -C $@ $(TARGET)
-
-unittest:
-	$(MAKE) -C $@ $(TARGET)
-
-.PHONY: all clean clobber test cstyle unittest $(TEST)
+vmem_delete.o: vmem_delete.c
