@@ -54,6 +54,7 @@ void util_set_alloc_funcs(
 		char *(*strdup_func)(const char *s));
 void *util_map(int fd, size_t len, int cow);
 int util_unmap(void *addr, size_t len);
+void *util_map_tmpfile(const char *dir, size_t size);
 
 /*
  * header used at the beginning of all types of memory pools

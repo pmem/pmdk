@@ -47,7 +47,8 @@ main(int argc, char *argv[])
 	const unsigned mem_pools_size = TEST_POOLS_MAX/2 + TEST_POOLS_MAX%2;
 	char *mem_pools[mem_pools_size];
 	VMEM *pools[TEST_POOLS_MAX];
-	memset(pools, 0, sizeof (pools[0]) * TEST_POOLS_MAX);
+
+	memset(pools, 0, sizeof (pools));
 
 	START(argc, argv, "vmem_multiple_pools");
 

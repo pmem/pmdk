@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright (c) 2014-2015, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -111,7 +111,7 @@ out_init(const char *log_prefix, const char *log_level_var,
 		fprintf(stderr, "Error: %s=%s: %s\n",
 				log_file_var, log_file, strerror(errno));
 		exit(1);
-	}
+ 	}
 #endif	/* DEBUG */
 
 	if (Out_fp == NULL)
@@ -120,7 +120,7 @@ out_init(const char *log_prefix, const char *log_level_var,
 		setlinebuf(Out_fp);
 
 	LOG(1, "pid %d: program: %s", getpid(), getexecname());
-	LOG(1, "version %d.%d",	VMEM_MAJOR_VERSION, VMEM_MINOR_VERSION);
+	LOG(1, "version %d.%d", VMEM_MAJOR_VERSION, VMEM_MINOR_VERSION);
 	LOG(1, "src version %s", nvml_src_version);
 }
 
@@ -151,7 +151,10 @@ out_print_func(const char *s)
  * calling Print(s) calls the current print_func...
  */
 typedef void (*Print_func)(const char *s);
+typedef int (*Vsnprintf_func)(char *str, size_t size, const char *format,
+		va_list ap);
 static Print_func Print = out_print_func;
+static Vsnprintf_func Vsnprintf = vsnprintf;
 
 /*
  * out_set_print_func -- allow override of print_func used by out module
@@ -162,6 +165,35 @@ out_set_print_func(void (*print_func)(const char *s))
 	LOG(3, "print %p", print_func);
 
 	Print = (print_func == NULL) ? out_print_func : print_func;
+}
+
+/*
+ * out_set_vsnprintf_func -- allow override of vsnprintf_func used by out module
+ */
+void
+out_set_vsnprintf_func(int (*vsnprintf_func)(char *str, size_t size,
+				const char *format, va_list ap))
+{
+	LOG(3, "vsnprintf %p", vsnprintf_func);
+
+	Vsnprintf = (vsnprintf_func == NULL) ? vsnprintf : vsnprintf_func;
+}
+
+/*
+ * out_snprintf -- (internal) custom snprintf implementation
+ */
+__attribute__((format(printf, 3, 4)))
+static int
+out_snprintf(char *str, size_t size, const char *format, ...)
+{
+	int ret;
+	va_list ap;
+
+	va_start(ap, format);
+	ret = Vsnprintf(str, size, format, ap);
+	va_end(ap);
+
+	return (ret);
 }
 
 /*
@@ -179,7 +211,7 @@ out_common(const char *file, int line, const char *func, int level,
 	const char *errstr = "";
 
 	if (file)
-		cc += snprintf(&buf[cc], MAXPRINT - cc,
+		cc += out_snprintf(&buf[cc], MAXPRINT - cc,
 				"<%s>: <%d> [%s:%d %s] ",
 				Log_prefix, level, file, line, func);
 
@@ -189,10 +221,10 @@ out_common(const char *file, int line, const char *func, int level,
 			sep = ": ";
 			errstr = strerror(errno);
 		}
-		cc += vsnprintf(&buf[cc], MAXPRINT - cc, fmt, ap);
+		cc += Vsnprintf(&buf[cc], MAXPRINT - cc, fmt, ap);
 	}
 
-	snprintf(&buf[cc], MAXPRINT - cc, "%s%s%s", sep, errstr, suffix);
+	out_snprintf(&buf[cc], MAXPRINT - cc, "%s%s%s", sep, errstr, suffix);
 
 	Print(buf);
 	errno = oerrno;
@@ -219,8 +251,11 @@ void
 out_nonl(int level, const char *fmt, ...)
 {
 	va_list ap;
-	va_start(ap, fmt);
 
+	if (Log_level < level)
+			return;
+
+	va_start(ap, fmt);
 	out_common(NULL, 0, NULL, level, "", fmt, ap);
 
 	va_end(ap);

@@ -27,6 +27,10 @@ libvmem(3) -- volatile memory allocation library
     Man page source is in libvmem.3
     HTML formatted version: http://pmem.io/nvml/libvmem/libvmem.3.html
 
+libvmmalloc(3) -- general purpose volatile memory allocation library
+    Man page source is in libvmmalloc.3
+    HTML formatted version: http://pmem.io/nvml/libvmem/libvmmalloc.3.html
+
 These man pages provide the API specification for the corresponding libraries
 in this source tree, so any updates to one should be tested, reviewed, and
 committed with changes to the other.

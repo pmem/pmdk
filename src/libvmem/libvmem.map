@@ -48,7 +48,6 @@ libvmem.so {
 		vmem_malloc_usable_size;
 		vmem_check_version;
 		vmem_set_funcs;
-
 	local:
 		*;
 };

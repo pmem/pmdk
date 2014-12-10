@@ -2288,7 +2288,6 @@ je_pool_set_alloc_funcs(void *(*malloc_func)(size_t),
 	}
 }
 
-
 size_t
 je_pool_malloc_usable_size(pool_t *pool, void *ptr)
 {
@@ -2780,6 +2779,12 @@ je_mallctlbymib(const size_t *mib, size_t miblen, void *oldp, size_t *oldlenp,
   void *newp, size_t newlen)
 {
 	return (ctl_bymib(mib, miblen, oldp, oldlenp, newp, newlen));
+}
+
+int
+je_navsnprintf(char *str, size_t size, const char *format, va_list ap)
+{
+	return malloc_vsnprintf(str, size, format, ap);
 }
 
 void

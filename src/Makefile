@@ -33,15 +33,17 @@
 #
 
 CSTYLE = ../utils/cstyle
-TARGETS = libpmem libvmem libpmemblk libpmemlog libpmemobj
+TARGETS = libpmem libvmem libpmemblk libpmemlog libpmemobj libvmmalloc
 ALL_TARGETS = $(TARGETS) examples benchmarks
-CLEAN_TARGETS = $(ALL_TARGETS) test
-CLOBBER_TARGETS = $(ALL_TARGETS) test
+CLEAN_TARGETS = $(ALL_TARGETS) test jemalloc
+CLOBBER_TARGETS = $(ALL_TARGETS) test jemalloc
 CSTYLE_TARGETS = $(ALL_TARGETS) test
 INSTALL_TARGETS = $(TARGETS)
 
 HEADERS_DESTDIR = $(DESTDIR)/usr/include
-HEADERS_INSTALL = include/libpmem.h include/libvmem.h include/libpmemobj.h include/libpmemblk.h include/libpmemlog.h
+HEADERS_INSTALL = include/libpmem.h include/libvmem.h\
+		include/libpmemobj.h include/libpmemblk.h\
+		include/libpmemlog.h include/libvmmalloc.h
 
 SCOPE_SRC_DIRS = $(TARGETS) include jemalloc/src
 SCOPE_HDR_DIRS = $(TARGETS) include jemalloc/src\
@@ -65,6 +67,7 @@ examples benchmarks: $(TARGETS)
 
 custom_build = $(DEBUG)$(OBJDIR)
 
+libvmmalloc libvmem: jemalloc
 
 %-install:
 	$(MAKE) -C $* install
@@ -102,9 +105,9 @@ check: test jemalloc-check
 	cd test && ./RUNTESTS
 
 jemalloc jemalloc-clean jemalloc-clobber jemalloc-test jemalloc-check:
-	$(MAKE) -C libvmem $@
+	$(MAKE) -C jemalloc -f Makefile.nvml $@
 ifeq ($(custom_build),)
-	$(MAKE) -C libvmem $@ DEBUG=1
+	$(MAKE) -C jemalloc -f Makefile.nvml $@ DEBUG=1
 endif
 
 install:

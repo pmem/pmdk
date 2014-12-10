@@ -272,6 +272,32 @@ Development files for NVML libvmem library
 /usr/include/libvmem.h
 /usr/share/man/man3/libvmem.3.gz
 
+%package -n libvmmalloc
+Summary: libvmmalloc library
+Group: %{package_group}/Libraries
+%description -n libvmmalloc
+NVML libvmmalloc library
+
+%files -n libvmmalloc
+%defattr(-,root,root,-)
+%{_libdir}/libvmmalloc.so.*
+
+%package -n libvmmalloc-devel
+Summary: libvmmalloc development library
+Group: Development/Libraries
+%description -n libvmmalloc-devel
+Development files for NVML libvmmalloc library
+
+%files -n libvmmalloc-devel
+%defattr(-,root,root,-)
+%{_libdir}/libvmmalloc.so
+%{_libdir}/libvmmalloc.a
+%{_libdir}/nvml_debug/libvmmalloc.so
+%{_libdir}/nvml_debug/libvmmalloc.so.*
+%{_libdir}/nvml_debug/libvmmalloc.a
+/usr/include/libvmmalloc.h
+/usr/share/man/man3/libvmmalloc.3.gz
+
 %prep
 %setup -q -n $PACKAGE_SOURCE
 

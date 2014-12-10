@@ -98,14 +98,10 @@ libdir = $(objdir)/..
 
 ifneq ($(SOURCE),)
 OBJS += $(addprefix $(objdir)/, $(patsubst $(COMMON)/%, %, $(SOURCE:.c=.o)))
-else
-$(error SOURCE not set)
 endif
 
 ifneq ($(LIBRARY_NAME),)
 LIB_NAME = lib$(LIBRARY_NAME)
-else
-$(error LIBRARY_NAME not set)
 endif
 
 ifneq ($(LIBRARY_SO_VERSION),)

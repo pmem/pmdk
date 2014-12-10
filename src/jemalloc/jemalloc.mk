@@ -1,4 +1,4 @@
-# Copyright (c) 2014, Intel Corporation
+# Copyright (c) 2014-2015, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -29,7 +29,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #
-# src/libvmem/jemalloc.inc -- rules for jemalloc
+# src/deps/jemalloc.mk -- rules for jemalloc
 #
 
 JEMALLOC_DIR = $(realpath ../jemalloc)
@@ -47,7 +47,7 @@ JEMALLOC_CFG_IN_FILES = $(shell find $(JEMALLOC_DIR) -name "*.in")
 JEMALLOC_CFG_GEN_FILES = $(JEMALLOC_CFG_IN_FILES:.in=)
 JEMALLOC_CFG_OUT_FILES = $(patsubst $(JEMALLOC_DIR)/%, $(JEMALLOC_OBJDIR)/%, $(JEMALLOC_CFG_GEN_FILES))
 .NOTPARALLEL: $(JEMALLOC_CFG_OUT_FILES)
-JEMALLOC_CONFIG_FILE = jemalloc.cfg
+JEMALLOC_CONFIG_FILE = $(JEMALLOC_DIR)/jemalloc.cfg
 JEMALLOC_CONFIG = $(shell cat $(JEMALLOC_CONFIG_FILE))
 
 jemalloc $(JEMALLOC_LIB): $(JEMALLOC_CFG_OUT_FILES)

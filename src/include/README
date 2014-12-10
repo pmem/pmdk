@@ -21,3 +21,5 @@ libpmemlog.h -- definitions of libpmemlog entry points (see libpmemlog(3))
 libpmemobj.h -- definitions of libpmemobj entry points (see libpmemobj(3))
 
 libvmem.h -- definitions of libvmem entry points (see libvmem(3))
+
+libvmmalloc.h -- definitions of libvmmalloc entry points (see libvmmalloc(3))
