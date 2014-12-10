@@ -300,7 +300,6 @@ vmem_free(VMEM *vmp, void *ptr)
 {
 	LOG(3, "vmp %p ptr %p", vmp, ptr);
 
-	ASSERT(ptr != NULL);
 	je_vmem_pool_free((pool_t *)((uintptr_t)vmp + Header_size), ptr);
 }
 
