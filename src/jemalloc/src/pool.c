@@ -73,6 +73,12 @@ void pool_destroy(pool_t *pool)
 			arena_purge_all(pool->arenas[i]);
 		}
 	}
+	/*
+	 * Set 'pool_id' to an incorrect value
+	 * so that the pool cannot be used
+	 * after being deleted.
+	 */
+	pool->pool_id = UINT_MAX;
 	malloc_rwlock_destroy(&pool->arenas_lock);
 }
 
