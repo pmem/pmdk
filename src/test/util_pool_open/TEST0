@@ -48,45 +48,31 @@ MIN_POOL=0x4000
 
 rm -f $DIR/testfile1
 rm -f $DIR/testfile2
-rm -f $DIR/testfile3
-rm -f $DIR/testfile4
+rm -f $DIR/testlink0
 rm -f $DIR/testlink1
 rm -f $DIR/testlink2
-rm -f $DIR/testlink3
-rm -f $DIR/testlink4
-rm -f $DIR/testlink5
 rm -fr $DIR/testdir1
 
-truncate -s 32K $DIR/testfile1
-chmod -rw $DIR/testfile1
+truncate -s 1K $DIR/testfile1
 truncate -s 32K $DIR/testfile2
-chmod -w $DIR/testfile2
-truncate -s 1K $DIR/testfile3
-truncate -s 32K $DIR/testfile4
 mkdir $DIR/testdir1
-ln -s $DIR/testfile0 $DIR/testlink1
-ln -s $DIR/testfile1 $DIR/testlink2
-ln -s $DIR/testfile2 $DIR/testlink3
-ln -s $DIR/testdir1 $DIR/testlink4
-ln -s /dev/zero $DIR/testlink5
+ln -s $DIR/testfile0 $DIR/testlink0
+ln -s $DIR/testdir1 $DIR/testlink1
+ln -s /dev/zero $DIR/testlink2
 
 expect_normal_exit ./util_pool_open$EXESUFFIX $MIN_POOL \
     $DIR/testdir1\
     /dev/zero\
+    $DIR/testlink0\
     $DIR/testlink1\
     $DIR/testlink2\
-    $DIR/testlink3\
-    $DIR/testlink4\
-    $DIR/testlink5\
     $DIR/testfile0\
     $DIR/testfile1\
-    $DIR/testfile2\
-    $DIR/testfile3\
-    $DIR/testfile4
+    $DIR/testfile2
 
-rm -f $DIR/testfile[1234]
-rm -f $DIR/testlink[12345]
-rmdir $DIR/testdir1
+rm -f $DIR/testfile[12]
+rm -f $DIR/testlink[012]
+rm -fr $DIR/testdir1
 
 check
 

@@ -179,6 +179,16 @@ function require_unlimited_vm() {
 }
 
 #
+# require_no_superuser -- require user without superuser rights
+#
+function require_no_superuser() {
+	local user_id=$(id -u)
+	[ "$user_id" != "0" ] && return
+	echo "$UNITTEST_NAME: SKIP required: run without superuser rights"
+	exit 0
+}
+
+#
 # require_test_type -- only allow script to continue for a certain test type
 #
 function require_test_type() {

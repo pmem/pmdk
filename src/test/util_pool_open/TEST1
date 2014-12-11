@@ -32,15 +32,16 @@
 #
 
 #
-# src/test/util_pool_create/TEST0 -- unit test for util_pool_create()
+# src/test/util_pool_open/TEST1 -- unit test for util_pool_open()
 #
-export UNITTEST_NAME=util_pool_create/TEST0
-export UNITTEST_NUM=0
+export UNITTEST_NAME=util_pool_open/TEST1
+export UNITTEST_NUM=1
 
 # standard unit test setup
 . ../unittest/unittest.sh
 
 require_fs_type local
+require_no_superuser
 
 setup
 
@@ -48,36 +49,24 @@ MIN_POOL=0x4000
 
 rm -f $DIR/testfile1
 rm -f $DIR/testfile2
-rm -f $DIR/testfile3
-rm -f $DIR/testfile4
 rm -f $DIR/testlink1
 rm -f $DIR/testlink2
-rm -f $DIR/testlink3
-rm -f $DIR/testlink4
-rm -fr $DIR/testdir1
 
 truncate -s 32K $DIR/testfile1
-mkdir $DIR/testdir1
-ln -s $DIR/testfile0 $DIR/testlink1
-ln -s $DIR/testfile1 $DIR/testlink2
-ln -s $DIR/testdir1 $DIR/testlink3
-ln -s /dev/zero $DIR/testlink4
+chmod -rw $DIR/testfile1
+truncate -s 32K $DIR/testfile2
+chmod -w $DIR/testfile2
+ln -s $DIR/testfile1 $DIR/testlink1
+ln -s $DIR/testfile2 $DIR/testlink2
 
-expect_normal_exit ./util_pool_create$EXESUFFIX $MIN_POOL \
-    $MIN_POOL:$DIR/testdir1\
-    $MIN_POOL:/dev/zero\
-    $MIN_POOL:$DIR/testlink1\
-    $MIN_POOL:$DIR/testlink2\
-    $MIN_POOL:$DIR/testlink3\
-    $MIN_POOL:$DIR/testlink4\
-    $MIN_POOL:$DIR/testfile1\
-    0x1000:$DIR/testfile2\
-    $MIN_POOL:$DIR/testfile4\
-    0x7FFFFFFFFFFFFFFF:$DIR/testfile3
+expect_normal_exit ./util_pool_open$EXESUFFIX $MIN_POOL \
+    $DIR/testlink1\
+    $DIR/testlink2\
+    $DIR/testfile1\
+    $DIR/testfile2\
 
-rm -f $DIR/testfile[1234]
-rm -f $DIR/testlink[1234]
-rm -fr $DIR/testdir1
+rm -f $DIR/testfile[12]
+rm -f $DIR/testlink[12]
 
 check
 
