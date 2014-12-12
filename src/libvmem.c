@@ -33,18 +33,12 @@
 /*
  * libvmem.c -- basic libvmem functions
  */
-
-#include <stdbool.h>
-#include <stdint.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/types.h>
-#include <unistd.h>
+#include <stdint.h>
 #include <libvmem.h>
 #include "jemalloc.h"
-#include "util.h"
 #include "out.h"
+#include "util.h"
 #include "vmem.h"
 
 

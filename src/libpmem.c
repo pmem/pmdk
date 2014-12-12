@@ -35,9 +35,7 @@
  */
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <stdint.h>
-#include <string.h>
 
 #include "libpmem.h"
 #include "pmem.h"

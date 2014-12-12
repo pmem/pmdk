@@ -39,7 +39,6 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
-#include <sys/types.h>
 #include <unistd.h>
 #include <dirent.h>
 #include <string.h>
