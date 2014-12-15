@@ -90,11 +90,11 @@ runtest() {
 			continue
 		}
 
-		[ "$verbose"] && echo RUNTESTS: Testing fs-type: $fs...
+		[ "$verbose" ] && echo RUNTESTS: Testing fs-type: $fs...
 		# for each build-type being tested...
 		for build in $builds
 		do
-			[ "$verbose"] && echo RUNTESTS: Testing build-type: $build...
+			[ "$verbose" ] && echo RUNTESTS: Testing build-type: $build...
 			# for each TEST script found...
 			for runscript in `ls -1 TEST* | sort -V`
 			do
@@ -102,7 +102,7 @@ runtest() {
 				then
 					echo "(in ./$1) TEST=$testtype FS=$fs BUILD=$build ./$runscript"
 				else
-					[ "$verbose"] && echo "RUNTESTS: Running: (in ./$1) TEST=$testtype FS=$fs BUILD=$build ./$runscript"
+					[ "$verbose" ] && echo "RUNTESTS: Running: (in ./$1) TEST=$testtype FS=$fs BUILD=$build ./$runscript"
 					TEST=$testtype FS=$fs BUILD=$build ./$runscript
 				fi
 
