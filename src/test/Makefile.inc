@@ -37,39 +37,40 @@
 # for each unit test overrides the defaults as necessary.
 #
 
-DEBUG_DIR=../../debug
-NONDEBUG_DIR=../../nondebug
+LIBS_DIR=../..
 
-LIBS = ../unittest/libut.a -L$(DEBUG_DIR) -luuid -pthread
+LIBS = ../unittest/libut.a
+LIBS += -L$(LIBS_DIR)/debug
+LIBS += -luuid -pthread
 
 ifeq ($(LIBPMEMBLK), y)
 DYNAMIC_LIBS += -lpmemblk
-STATIC_DEBUG_LIBS += $(DEBUG_DIR)/libpmemblk.a
-STATIC_NONDEBUG_LIBS += $(NONDEBUG_DIR)/libpmemblk.a
+STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libpmemblk.a
+STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/libpmemblk.a
 endif
 
 ifeq ($(LIBPMEMLOG), y)
 DYNAMIC_LIBS += -lpmemlog
-STATIC_DEBUG_LIBS += $(DEBUG_DIR)/libpmemlog.a
-STATIC_NONDEBUG_LIBS += $(NONDEBUG_DIR)/libpmemlog.a
+STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libpmemlog.a
+STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/libpmemlog.a
 endif
 
 ifeq ($(LIBPMEMOBJ), y)
 DYNAMIC_LIBS += -lpmemobj
-STATIC_DEBUG_LIBS += $(DEBUG_DIR)/libpmemobj.a
-STATIC_NONDEBUG_LIBS += $(NONDEBUG_DIR)/libpmemobj.a
+STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libpmemobj.a
+STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/libpmemobj.a
 endif
 
 ifeq ($(LIBPMEM),y)
 DYNAMIC_LIBS += -lpmem
-STATIC_DEBUG_LIBS += $(DEBUG_DIR)/libpmem.a
-STATIC_NONDEBUG_LIBS += $(NONDEBUG_DIR)/libpmem.a
+STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libpmem.a
+STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/libpmem.a
 endif
 
 ifeq ($(LIBVMEM),y)
 DYNAMIC_LIBS += -lvmem
-STATIC_DEBUG_LIBS += $(DEBUG_DIR)/libvmem.a
-STATIC_NONDEBUG_LIBS += $(NONDEBUG_DIR)/libvmem.a
+STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libvmem.a
+STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/libvmem.a
 endif
 
 INCS = -I../unittest -I../../include

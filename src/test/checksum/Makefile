@@ -33,15 +33,16 @@
 #
 # src/test/checksum/Makefile -- build checksum unit test
 #
-vpath %.c ../..
+vpath %.c ../../common
 vpath %.h ../.. ../../include
+vpath %.h ../.. ../../common
 TARGET = checksum
 OBJS = checksum.o util.o out.o
 
 out.o: CFLAGS += -DSRCVERSION=\"utversion\"
 
 include ../Makefile.inc
-INCS += -I../.. -I../../include
+INCS += -I../../include -I../../common/
 
 checksum.o: checksum.c util.h out.h
 

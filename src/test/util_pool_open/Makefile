@@ -33,15 +33,15 @@
 #
 # src/test/util_pool_open/Makefile -- build util_pool_open unit test
 #
-vpath %.c ../..
-vpath %.h ../..
+vpath %.c ../../common
+vpath %.h ../../common
 TARGET = util_pool_open
 OBJS = util_pool_open.o util.o out.o
 
 out.o: CFLAGS += -DSRCVERSION=\"utversion\"
 
 include ../Makefile.inc
-INCS += -I../..
+INCS += -I../../common
 LIBS += -ldl
 
 util_pool_open.o: util_pool_open.c
