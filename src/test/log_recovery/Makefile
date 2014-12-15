@@ -41,6 +41,6 @@ LIBPMEM=y
 LIBPMEMLOG=y
 
 include ../Makefile.inc
-CFLAGS += -I../..
+CFLAGS += -I../../common -I../../libpmemlog
 
 log_recovery.o: log_recovery.c

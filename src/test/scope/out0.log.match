@@ -1,5 +1,5 @@
 scope/TEST0:
-../../debug/libvmem.so:
+$(*)debug/libvmem.so:
 vmem_aligned_alloc
 vmem_calloc
 vmem_check
@@ -14,7 +14,7 @@ vmem_realloc
 vmem_set_funcs
 vmem_stats_print
 vmem_strdup
-../../nondebug/libvmem.so:
+$(*)nondebug/libvmem.so:
 vmem_aligned_alloc
 vmem_calloc
 vmem_check
@@ -29,7 +29,7 @@ vmem_realloc
 vmem_set_funcs
 vmem_stats_print
 vmem_strdup
-../../debug/libvmem.a:
+$(*)debug/libvmem.a:
 vmem_aligned_alloc
 vmem_calloc
 vmem_check
@@ -44,7 +44,7 @@ vmem_realloc
 vmem_set_funcs
 vmem_stats_print
 vmem_strdup
-../../nondebug/libvmem.a:
+$(*)nondebug/libvmem.a:
 vmem_aligned_alloc
 vmem_calloc
 vmem_check

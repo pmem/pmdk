@@ -49,7 +49,7 @@ clean:
 	$(RM) *.o core a.out
 
 cstyle:
-	../../../utils/cstyle -pP *.[ch]
+	$(CSTYLE) -pP *.[ch]
 
 clobber: clean
 	$(RM) $(TARGET)

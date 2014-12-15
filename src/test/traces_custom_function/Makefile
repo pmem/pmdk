@@ -33,8 +33,8 @@
 #
 # src/test/traces_custom_function/Makefile -- build traces unit test
 #
-vpath %.c ../..
-vpath %.h ../..
+vpath %.c ../../common
+vpath %.h ../../common
 
 TARGET = traces_custom_function
 OBJS = traces_custom_function.o out.o
@@ -44,7 +44,7 @@ out.o: CFLAGS += -DSRCVERSION=\"utversion\"
 include ../Makefile.inc
 
 #Test debug output
-CFLAGS += -DDEBUG -I../..
+CFLAGS += -DDEBUG -I../../common
 
 traces_custom_function.o: traces_custom_function.c
 

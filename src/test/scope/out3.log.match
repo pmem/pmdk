@@ -1,5 +1,5 @@
 scope/TEST3:
-../../debug/libpmemblk.so:
+$(*)debug/libpmemblk.so:
 pmemblk_check
 pmemblk_check_version
 pmemblk_close
@@ -11,7 +11,7 @@ pmemblk_set_error
 pmemblk_set_funcs
 pmemblk_set_zero
 pmemblk_write
-../../nondebug/libpmemblk.so:
+$(*)nondebug/libpmemblk.so:
 pmemblk_check
 pmemblk_check_version
 pmemblk_close
@@ -23,7 +23,7 @@ pmemblk_set_error
 pmemblk_set_funcs
 pmemblk_set_zero
 pmemblk_write
-../../debug/libpmemblk.a:
+$(*)debug/libpmemblk.a:
 pmemblk_check
 pmemblk_check_version
 pmemblk_close
@@ -35,7 +35,7 @@ pmemblk_set_error
 pmemblk_set_funcs
 pmemblk_set_zero
 pmemblk_write
-../../nondebug/libpmemblk.a:
+$(*)nondebug/libpmemblk.a:
 pmemblk_check
 pmemblk_check_version
 pmemblk_close
