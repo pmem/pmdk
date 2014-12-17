@@ -191,7 +191,6 @@
  *		memset_nodrain_movnt()
  */
 
-#include <sys/types.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <stdio.h>
@@ -200,7 +199,6 @@
 #include <string.h>
 #include <xmmintrin.h>
 
-#include "libpmem.h"
 #include "pmem.h"
 #include "util.h"
 #include "out.h"
