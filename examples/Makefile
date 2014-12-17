@@ -33,9 +33,7 @@
 #
 # examples/Makefile -- build the NVM Library examples
 #
-# XXX will enable building all examples when library re-org is finished
-#DIRS = libpmem libpmemblk libpmemlog libpmemobj libvmem
-DIRS = libpmem
+DIRS = libpmem libpmemblk libpmemlog libpmemobj libvmem
 
 all:     TARGET = all
 clean:   TARGET = clean
