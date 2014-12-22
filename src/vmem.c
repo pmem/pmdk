@@ -272,7 +272,7 @@ vmem_freespace(VMEM *vmp)
 void
 vmem_stats_print(VMEM *vmp, const char *opts)
 {
-	LOG(3, "vmp %p opts \"%s\"", vmp, opts);
+	LOG(3, "vmp %p opts \"%s\"", vmp, opts ? opts : "");
 
 	je_vmem_pool_malloc_stats_print(
 			(pool_t *)((uintptr_t)vmp + Header_size),
