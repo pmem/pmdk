@@ -1,5 +1,5 @@
 blk_nblock/TEST1: START: blk_nblock
- ./blk_nblock$(*) 2096896:$(*)/testfile1.2096896 2096897:$(*)/testfile1.2096897 0:$(*)/testfile2.0 1:$(*)/testfile2.1 17:$(*)/testfile2.17 511:$(*)/testfile2.511 1048576:$(*)/testfile2.1048576 2097152:$(*)/testfile2.2097152 4194304:$(*)/testfile2.4194304 8388608:$(*)/testfile2.8388608 16777216:$(*)/testfile2.16777216 33554432:$(*)/testfile2.33554432 67108864:$(*)/testfile2.67108864 134217728:$(*)/testfile2.134217728 268435456:$(*)/testfile2.268435456 536870912:$(*)/testfile2.536870912 1073741824:$(*)/testfile2.1073741824 2147483648:$(*)/testfile2.2147483648 -1:$(*)/testfile2.-1
+ ./blk_nblock$(nW) 2096896:$(*)/testfile1.2096896 2096897:$(*)/testfile1.2096897 0:$(*)/testfile2.0 1:$(*)/testfile2.1 17:$(*)/testfile2.17 511:$(*)/testfile2.511 1048576:$(*)/testfile2.1048576 2097152:$(*)/testfile2.2097152 4194304:$(*)/testfile2.4194304 8388608:$(*)/testfile2.8388608 16777216:$(*)/testfile2.16777216 33554432:$(*)/testfile2.33554432 67108864:$(*)/testfile2.67108864 134217728:$(*)/testfile2.134217728 268435456:$(*)/testfile2.268435456 536870912:$(*)/testfile2.536870912 1073741824:$(*)/testfile2.1073741824 2147483648:$(*)/testfile2.2147483648 -1:$(*)/testfile2.-1
 $(*)/testfile1.2096896: block size 2096896 usable blocks: 256
 $(*)/testfile1.2096897: pmemblk_create: Invalid argument
 $(*)/testfile2.0: pmemblk_create: Invalid argument

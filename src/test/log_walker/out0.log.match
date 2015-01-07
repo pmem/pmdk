@@ -1,5 +1,5 @@
 log_walker/TEST0: START: log_walker
- ./log_walker$(*) $(*)/testfile1
+ ./log_walker$(nW) $(*)/testfile1
 append   str[0] 1st append string
 
 append   str[1] 2nd append string
