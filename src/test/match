@@ -50,6 +50,7 @@
 #	$(S)	ascii string
 #	$(X)	hex number
 #	$(W)	whitespace
+#	$(nW)	non-whitespace
 #	$(*)	any string
 #	$(DD)	output of a "dd" run
 #	$(OPT)	line is optional (may be missing, matched if found)
@@ -159,6 +160,7 @@ sub match {
 		s/\\\$\\\(S\\\)/\\P{IsC}+/g;
 		s/\\\$\\\(X\\\)/\\p{IsXDigit}+/g;
 		s/\\\$\\\(W\\\)/\\s*[^\n]/g;
+		s/\\\$\\\(nW\\\)/\\S*/g;
 		s/\\\$\\\(DD\\\)/\\d+\\+\\d+ records in\n\\d+\\+\\d+ records out\n\\d+ bytes \\\(\\d+ .B\\\) copied, [.0-9e-]+[^,]*, [.0-9]+ .B.s/g;
 		if (s/\\\$\\\(OPT\\\)//) {
 			$opt = 1;
