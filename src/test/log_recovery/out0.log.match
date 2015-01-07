@@ -1,5 +1,5 @@
 log_recovery/TEST0: START: log_recovery
- ./log_recovery$(*) $(*)/testfile1 a
+ ./log_recovery$(nW) $(*)/testfile1 a
 append   str[0] 1st append string
 
 append   str[1] 2nd append string

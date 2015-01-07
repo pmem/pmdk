@@ -1,5 +1,5 @@
 checksum/TEST0: START: checksum
- ./checksum$(*) ./file1 ./file2 ./file3 ./file4 ./file5
+ ./checksum$(nW) ./file1 ./file2 ./file3 ./file4 ./file5
 ./file1:0 0xe8f920bff5e5614
 ./file1:8 0x4c94b804f80e1857
 ./file1:16 0x44fa7461bd0b58fd

@@ -1,5 +1,5 @@
 log_basic/TEST0: START: log_basic
- ./log_basic$(*) $(*)/testfile1 n t w r
+ ./log_basic$(nW) $(*)/testfile1 n t w r
 $(*)/testfile1: pmemlog_check: Invalid argument
 usable size: 2088960
 tell 0

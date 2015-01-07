@@ -1,5 +1,5 @@
 traces_custom_function/TEST0: START: traces_custom_function
- ./traces_custom_function$(*)
+ ./traces_custom_function$(nW)
 CUSTOM_PRINT:$(*)
 
 CUSTOM_PRINT:$(*)

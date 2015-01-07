@@ -1,5 +1,5 @@
 vmem_delete/TEST0: START: vmem_delete
- ./vmem_delete$(*) h f m c r a s d
+ ./vmem_delete$(nW) h f m c r a s d
 Testing vmem_check...
 	vmem_check returned -1
 Testing vmem_free...
