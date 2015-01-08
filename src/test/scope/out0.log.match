@@ -8,7 +8,6 @@ vmem_create
 vmem_create_in_region
 vmem_delete
 vmem_free
-vmem_freespace
 vmem_malloc
 vmem_malloc_usable_size
 vmem_realloc
@@ -24,7 +23,6 @@ vmem_create
 vmem_create_in_region
 vmem_delete
 vmem_free
-vmem_freespace
 vmem_malloc
 vmem_malloc_usable_size
 vmem_realloc
@@ -40,7 +38,6 @@ vmem_create
 vmem_create_in_region
 vmem_delete
 vmem_free
-vmem_freespace
 vmem_malloc
 vmem_malloc_usable_size
 vmem_realloc
@@ -56,7 +53,6 @@ vmem_create
 vmem_create_in_region
 vmem_delete
 vmem_free
-vmem_freespace
 vmem_malloc
 vmem_malloc_usable_size
 vmem_realloc

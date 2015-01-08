@@ -38,7 +38,6 @@ libvmem.so {
 		vmem_create_in_region;
 		vmem_delete;
 		vmem_check;
-		vmem_freespace;
 		vmem_stats_print;
 		vmem_malloc;
 		vmem_free;

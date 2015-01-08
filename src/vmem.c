@@ -256,17 +256,6 @@ vmem_check(VMEM *vmp)
 }
 
 /*
- * vmem_freespace -- return current freespace in memory pool
- */
-size_t
-vmem_freespace(VMEM *vmp)
-{
-	LOG(3, "vmp %p", vmp);
-
-	return je_vmem_pool_freespace((pool_t *)((uintptr_t)vmp + Header_size));
-}
-
-/*
  * vmem_stats_print -- spew memory allocator stats for a pool
  */
 void
