@@ -1,5 +1,5 @@
 blk_rw/TEST3: START: blk_rw
- ./blk_rw$(nW) 512 $(*)/testfile1 c w:0 r:1 r:0 w:1 r:0 r:1 r:2
+ ./blk_rw$(nW) 512 $(nW)/testfile1 c w:0 r:1 r:0 w:1 r:0 r:1 r:2
 512 block size 512 usable blocks 2080567
 write     lba 0: {1}
 read      lba 1: {0}
