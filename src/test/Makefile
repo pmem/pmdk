@@ -59,7 +59,6 @@ TEST = blk_nblock\
        vmem_check_allocations\
        vmem_check_version\
        vmem_custom_alloc\
-       vmem_freespace\
        vmem_malloc\
        vmem_malloc_usable_size\
        vmem_mix_allocations\

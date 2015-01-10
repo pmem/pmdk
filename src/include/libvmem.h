@@ -59,7 +59,6 @@ VMEM *vmem_create(const char *dir, size_t size);
 VMEM *vmem_create_in_region(void *addr, size_t size);
 void vmem_delete(VMEM *vmp);
 int vmem_check(VMEM *vmp);
-size_t vmem_freespace(VMEM *vmp);
 void vmem_stats_print(VMEM *vmp, const char *opts);
 
 /*

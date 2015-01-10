@@ -447,7 +447,7 @@ AC_PROG_RANLIB
 AC_PATH_PROG([LD], [ld], [false], [$PATH])
 AC_PATH_PROG([AUTOCONF], [autoconf], [false], [$PATH])
 
-public_syms="pool_create pool_delete pool_malloc pool_calloc pool_ralloc pool_aligned_alloc pool_free pool_malloc_usable_size pool_malloc_stats_print pool_extend pool_set_alloc_funcs pool_freespace pool_check malloc_conf malloc_message malloc calloc posix_memalign aligned_alloc realloc free mallocx rallocx xallocx sallocx dallocx nallocx mallctl mallctlnametomib mallctlbymib malloc_stats_print malloc_usable_size"
+public_syms="pool_create pool_delete pool_malloc pool_calloc pool_ralloc pool_aligned_alloc pool_free pool_malloc_usable_size pool_malloc_stats_print pool_extend pool_set_alloc_funcs pool_check malloc_conf malloc_message malloc calloc posix_memalign aligned_alloc realloc free mallocx rallocx xallocx sallocx dallocx nallocx mallctl mallctlnametomib mallctlbymib malloc_stats_print malloc_usable_size"
 
 dnl Check for allocator-related functions that should be wrapped.
 AC_CHECK_FUNC([memalign],

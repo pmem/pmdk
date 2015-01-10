@@ -52,7 +52,6 @@ libvmem \- volatile memory allocation library
 .BI "VMEM *vmem_create_in_region(void *" addr ", size_t " size );
 .BI "void vmem_delete(VMEM *" vmp );
 .BI "int vmem_check(VMEM *" vmp );
-.BI "int vmem_freespace(VMEM *" vmp );
 .BI "void vmem_stats_print(VMEM *" vmp ", const char *" opts );
 .sp
 .B Memory allocation related functions:
@@ -290,18 +289,6 @@ never modifies the memory pool.
 This function is mostly useful for
 .B libvmem
 developers during testing/debugging.
-.PP
-.BI "int vmem_freespace(VMEM *" vmp );
-.IP
-The
-.BR vmem_freespace ()
-function returns the amount of unallocated space available
-in the memory pool
-.IR vmp .
-This return value is in bytes, and should be considered
-an approximation since different allocation patterns will require
-.B libvmem
-to use up different amounts of space for internal metadata.
 .PP
 .BI "void vmem_stats_print(VMEM *" vmp ", const char *" opts );
 .IP
