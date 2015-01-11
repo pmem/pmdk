@@ -1,5 +1,5 @@
 <!-- Creator     : groff version 1.18.1.4 -->
-<!-- CreationDate: Sat Nov 15 10:09:37 2014 -->
+<!-- CreationDate: Wed Feb 11 09:40:52 2015 -->
 <html>
 <head>
 <meta name="generator" content="groff -Thtml, see www.gnu.org">
@@ -61,9 +61,9 @@ int pmem_has_hw_drain(void);
 
 Copying to persistent memory:
 
-void *pmem_memmove(void *</b><i>pmemdest</i><b>, const void *</b><i>src</i><b>, size_t</b> <i>len</i><b>);
-void *pmem_memcpy(void *</b><i>pmemdest</i><b>, const void *</b><i>src</i><b>, size_t</b> <i>len</i><b>);
-void *pmem_memset(void *</b><i>pmemdest</i><b>, int</b> <i>c</i><b>, size_t</b> <i>len</i><b>);
+void *pmem_memmove_persist(void *</b><i>pmemdest</i><b>, const void *</b><i>src</i><b>, size_t</b> <i>len</i><b>);
+void *pmem_memcpy_persist(void *</b><i>pmemdest</i><b>, const void *</b><i>src</i><b>, size_t</b> <i>len</i><b>);
+void *pmem_memset_persist(void *</b><i>pmemdest</i><b>, int</b> <i>c</i><b>, size_t</b> <i>len</i><b>);
 void *pmem_memmove_nodrain(void *</b><i>pmemdest</i><b>, const void *</b><i>src</i><b>, size_t</b> <i>len</i><b>);
 void *pmem_memcpy_nodrain(void *</b><i>pmemdest</i><b>, const void *</b><i>src</i><b>, size_t</b> <i>len</i><b>);
 void *pmem_memset_nodrain(void *</b><i>pmemdest</i><b>, int</b> <i>c</i><b>, size_t</b> <i>len</i><b>);
@@ -390,12 +390,14 @@ Asynchronous DRAM Refresh (ADR) or something similar.</p>
 <p>The functions in this section provide optimized copying
 to persistent memory.</p>
 <!-- INDENTATION -->
-<p><b>void *pmem_memmove(void *</b><i>pmemdest</i><b>, const
-void *</b><i>src</i><b>, size_t</b> <i>len</i><b>);<br>
-void *pmem_memcpy(void *</b><i>pmemdest</i><b>, const void
-*</b><i>src</i><b>, size_t</b> <i>len</i><b>);<br>
-void *pmem_memset(void *</b><i>pmemdest</i><b>, int</b>
-<i>c</i><b>, size_t</b> <i>len</i><b>);</b></p>
+<p><b>void *pmem_memmove_persist(void
+*</b><i>pmemdest</i><b>, const void *</b><i>src</i><b>,
+size_t</b> <i>len</i><b>);<br>
+void *pmem_memcpy_persist(void *</b><i>pmemdest</i><b>,
+const void *</b><i>src</i><b>, size_t</b>
+<i>len</i><b>);<br>
+void *pmem_memset_persist(void *</b><i>pmemdest</i><b>,
+int</b> <i>c</i><b>, size_t</b> <i>len</i><b>);</b></p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -404,16 +406,17 @@ void *pmem_memset(void *</b><i>pmemdest</i><b>, int</b>
 <tr valign="top" align="left">
 <td width="20%"></td>
 <td width="79%">
-<p>The <b>pmem_memmove</b>(), <b>pmem_memcpy</b>(), and
-<b>pmem_memset</b>(), functions provide the same memory
-copying as their namesakes <b>memmove(3) memcpy(3),</b> and
-<b>memset(3),</b> and ensure that the result has been
-flushed to persistence before returning. For example, the
-following code is functionally equivalent to
-<b>pmem_memmove</b>():</p>
+<p>The <b>pmem_memmove_persist</b>(),
+<b>pmem_memcpy_persist</b>(), and
+<b>pmem_memset_persist</b>(), functions provide the same
+memory copying as their namesakes <b>memmove(3)
+memcpy(3),</b> and <b>memset(3),</b> and ensure that the
+result has been flushed to persistence before returning. For
+example, the following code is functionally equivalent to
+<b>pmem_memmove_persist</b>():</p>
 <!-- INDENTATION -->
 <pre>void *
-pmem_memmove(void *pmemdest, const void *src, size_t len)
+pmem_memmove_persist(void *pmemdest, const void *src, size_t len)
 {
     void *retval = memmove(pmemdest, src, len);
 
@@ -423,9 +426,9 @@ pmem_memmove(void *pmemdest, const void *src, size_t len)
 }
 </pre>
 <!-- INDENTATION -->
-<p>Calling <b>pmem_memmove</b>() may out-perform the above
-code, however, since the <b>libpmem</b> implementation may
-take advantage of the fact that <i>pmemdest</i> is
+<p>Calling <b>pmem_memmove_persist</b>() may out-perform the
+above code, however, since the <b>libpmem</b> implementation
+may take advantage of the fact that <i>pmemdest</i> is
 persistent memory and use instructions such as
 <i>non-temporal</i> stores to avoid the need to flush
 processor caches.</p>
@@ -460,13 +463,13 @@ int</b> <i>c</i><b>, size_t</b> <i>len</i><b>);</b></p>
 <p>The <b>pmem_memmove_nodrain</b>(),
 <b>pmem_memcpy_nodrain</b>() and
 <b>pmem_memset_nodrain</b>() functions are similar to
-<b>pmem_memmove</b>(), <b>pmem_memcpy</b>(), and
-<b>pmem_memset</b>() described above, except they skip the
-final <b>pmem_drain</b>() step. This allows applications to
-optimize cases where several ranges are being copied to
-persistent memory, followed by a single call to
-<b>pmem_drain</b>(). The following example illustrates how
-these functions might be used to avoid multiple calls to
+<b>pmem_memmove_persist</b>(), <b>pmem_memcpy_persist</b>(),
+and <b>pmem_memset_persist</b>() described above, except
+they skip the final <b>pmem_drain</b>() step. This allows
+applications to optimize cases where several ranges are
+being copied to persistent memory, followed by a single call
+to <b>pmem_drain</b>(). The following example illustrates
+how these functions might be used to avoid multiple calls to
 <b>pmem_drain</b>() when copying several ranges of memory to
 pmem:</p>
 <!-- INDENTATION -->
@@ -642,8 +645,10 @@ developers.</p>
 <td width="89%">
 <p>The environment variable <b>PMEM_LOG_FILE</b> specifies a
 file name where all logging information should be written.
-If <b>PMEM_LOG_FILE</b> is not set, the logging output goes
-to stderr.</p>
+If the last character in the name is &quot;-&quot;, the PID
+of the current process will be appended to the file name
+when the log file is created. If <b>PMEM_LOG_FILE</b> is not
+set, the logging output goes to stderr.</p>
 <!-- INDENTATION -->
 <p>Setting the environment variable <b>PMEM_LOG_LEVEL</b>
 has no effect on the non-debug version of
@@ -790,8 +795,8 @@ intended for use during library testing.</p>
 <tr valign="top" align="left">
 <td width="10%"></td>
 <td width="89%">
-<p>The follow example uses <b>libpmem</b> to flush changes
-made to raw, memory-mapped persistent memory.</p>
+<p>The following example uses <b>libpmem</b> to flush
+changes made to raw, memory-mapped persistent memory.</p>
 <!-- INDENTATION -->
 <p>WARNING: there is nothing transactional about the
 <b>pmem_persist</b>() or <b>pmem_msync</b>() calls in this

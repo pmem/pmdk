@@ -1,5 +1,5 @@
 <!-- Creator     : groff version 1.18.1.4 -->
-<!-- CreationDate: Sun Nov 16 20:55:26 2014 -->
+<!-- CreationDate: Wed Feb 11 09:40:53 2015 -->
 <html>
 <head>
 <meta name="generator" content="groff -Thtml, see www.gnu.org">
@@ -599,8 +599,11 @@ information that is likely only useful to the
 <td width="89%">
 <p>The environment variable <b>PMEMBLK_LOG_FILE</b>
 specifies a file name where all logging information should
-be written. If <b>PMEMBLK_LOG_FILE</b> is not set, the
-logging output goes to stderr.</p>
+be written. If the last character in the name is
+&quot;-&quot;, the PID of the current process will be
+appended to the file name when the log file is created. If
+<b>PMEMBLK_LOG_FILE</b> is not set, the logging output goes
+to stderr.</p>
 <!-- INDENTATION -->
 <p>Setting the environment variable <b>PMEMBLK_LOG_LEVEL</b>
 has no effect on the non-debug version of
