@@ -1,0 +1,15 @@
+Linux NVM Library
+
+This is src/test/pmem_memmove/README.
+
+This directory contains a unit test for pmem_memmove().
+
+The program in pmem_memmove.c takes a file name and a block size as
+required arguments. The optional arguments are:
+	d: destination offset
+	s: source offset
+	o: overlap, 1 == src overlap, 2 == dest overlap
+	S: with o, overlap amount(in bytes)
+
+In all cases it sets a pattern of Z's and T's of 1/2 the block size specified. It
+then tests for success by doing a memcmp and reading the file directly.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright (c) 2014-2015, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -149,7 +149,7 @@
  *
  * pmem_memcpy_nodrain()
  *
- * 	Just calls pmem_memmove_nodrain().
+ * 	Calls pmem_memset_nodrain().
  *
  * pmem_memset_nodrain()
  *
@@ -215,9 +215,21 @@
 #define	_mm_pcommit()\
 	asm volatile(".byte 0x66, 0x0f, 0xae, 0xf8");
 
-#define	FLUSH_ALIGN 64
+#define	FLUSH_ALIGN 64 /* 64B cache line size */
 
-#define	PROCMAXLEN 2048 /* maximum expected line length in /proc files */
+#define	ALIGN_SHIFT	6
+#define	ALIGN_MASK	(FLUSH_ALIGN - 1)
+
+#define	CHUNK_SIZE	128 /* 16*8 */
+#define	CHUNK_SHIFT	7
+#define	CHUNK_MASK	(CHUNK_SIZE - 1)
+
+#define	DWORD_SIZE	4
+#define	DWORD_SHIFT	2
+#define	DWORD_MASK	(DWORD_SIZE - 1)
+
+
+#define	PROCMAXLEN	2048 /* maximum expected line length in /proc files */
 
 static int Has_hw_drain;
 
@@ -435,6 +447,45 @@ pmem_msync(void *addr, size_t len)
 }
 
 /*
+ * pmem_align -- align destination address on 16 byte boundary.
+ */
+static void
+pmem_align(void **dest, const void *src, size_t *cnt, int direction)
+{
+
+	int i;
+
+	if ((*cnt = ((uint64_t)*dest & MOVNT_MASK)) == 0) {
+		return;
+	}
+	if (direction == UP)
+		*cnt = MOVNT_SIZE - *cnt;
+
+	if (*cnt != 0 && direction == UP) {
+		/* dest is unaligned */
+		uint8_t	*d8 = (uint8_t *)*dest;
+		const uint8_t *s8 = (uint8_t *)src;
+		for (i = 0; i < *cnt; i++) {
+			*d8 = *s8;
+			d8++;
+			s8++;
+		}
+		*dest += *cnt;
+		pmem_flush(*dest, *cnt);
+	} else {
+		uint8_t	*d8 = (uint8_t *)*dest;
+		const uint8_t *s8 = (uint8_t *)src;
+		for (i = 0; i < *cnt; i++) {
+			d8--;
+			s8--;
+			*d8 = *s8;
+		}
+		*dest -= *cnt;
+		pmem_flush(*dest, *cnt);
+	}
+}
+
+/*
  * is_pmem_always -- (internal) always true version of pmem_is_pmem()
  */
 static int
@@ -602,17 +653,243 @@ memmove_nodrain_normal(void *pmemdest, const void *src, size_t len)
 	return memmove(pmemdest, src, len);
 
 }
+
+/*
+ * memcpy_nodrain_normal -- (internal) memmcpy to pmem without hw drain
+ */
+static void *
+memcpy_nodrain_normal(void *pmemdest, const void *src, size_t len)
+{
+	return memcpy(pmemdest, src, len);
+}
+
+/*
+ * nodrain_movnt -- (internal) memXXX worker function without hw drain, movnt
+ */
+
+static void *
+nodrain_movnt(void *pmemdest, void *src, size_t len)
+{
+	/* way too chatty for LOG level 3 */
+	LOG(15, "pmemdest %p src %p len %zu", pmemdest, src, len);
+
+	__m128i xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
+	size_t i;
+	__m128i *d;
+	__m128i *s;
+	void *tempdest = pmemdest;
+	size_t cnt;
+
+	if (len == 0)
+		return NULL;
+
+	if (src == pmemdest)
+		return pmemdest;
+
+	d = (__m128i *)pmemdest;
+	s = (__m128i *)src;
+
+	cnt = len >> CHUNK_SHIFT;
+	for (i = 0; i < cnt; i++) {
+		xmm0 = _mm_loadu_si128(s);
+		xmm1 = _mm_loadu_si128(s + 1);
+		xmm2 = _mm_loadu_si128(s + 2);
+		xmm3 = _mm_loadu_si128(s + 3);
+		xmm4 = _mm_loadu_si128(s + 4);
+		xmm5 = _mm_loadu_si128(s + 5);
+		xmm6 = _mm_loadu_si128(s + 6);
+		xmm7 = _mm_loadu_si128(s + 7);
+		s += 8;
+		/* Store double quadword with non-temporal hint */
+		_mm_stream_si128(d,	xmm0);
+		_mm_stream_si128(d + 1,	xmm1);
+		_mm_stream_si128(d + 2,	xmm2);
+		_mm_stream_si128(d + 3,	xmm3);
+		_mm_stream_si128(d + 4,	xmm4);
+		_mm_stream_si128(d + 5,	xmm5);
+		_mm_stream_si128(d + 6,	xmm6);
+		_mm_stream_si128(d + 7,	xmm7);
+		d += 8;
+	}
+
+	/* Copy the tail (<128 bytes) in 16 bytes chunks */
+	len &= CHUNK_MASK;
+	if (len != 0) {
+		cnt = len >> MOVNT_SHIFT;
+		for (i = 0; i < cnt; i++) {
+			xmm0 = _mm_loadu_si128(s);
+			_mm_stream_si128(d, xmm0);
+			s++;
+			d++;
+		}
+	}
+
+	/* Copy the last bytes (<16). First dwords then bytes */
+	len &= MOVNT_MASK;
+	if (len != 0) {
+		cnt = len >> DWORD_SHIFT;
+		int32_t	*d32 = (int32_t *)d;
+		int32_t	*s32 = (int32_t *)s;
+
+		for (i = 0; i < cnt; i++) {
+			_mm_stream_si32(d32, *s32);
+			d32++;
+			s32++;
+		}
+
+		cnt =	len & DWORD_MASK;
+		uint8_t	*d8 = (uint8_t *)d32;
+		const uint8_t	*s8 = (uint8_t *)s32;
+
+		for (i = 0; i < cnt; i++) {
+			*d8 = *s8;
+			d8++;
+			s8++;
+		}
+		pmem_flush(d8, cnt);
+	}
+	return tempdest;
+}
+
 /*
  * memmove_nodrain_movnt -- (internal) memmove to pmem without hw drain, movnt
  */
 static void *
 memmove_nodrain_movnt(void *pmemdest, const void *src, size_t len)
 {
+
+	int	i;
+	uint64_t chunk_size;
+	uint64_t num_chunks;
+	size_t cnt = 0;
+	void *dest1 = pmemdest;
+	void *src1 = (void *)src;
+	int mod = 0;
+
 	/* way too chatty for LOG level 3 */
 	LOG(15, "pmemdest %p src %p len %zu", pmemdest, src, len);
 
-	/* XXX stub version */
-	return memmove(pmemdest, src, len);
+	/*
+	 * The way this works is:
+	 * 	Calculate the non-overlapping size
+	 * 	Break the memmove into these chunk sizes
+	 *	Determine if we are copying forward/backward
+	 * This handles all cases, including overlap. Consider the following:
+	 *
+	 * 	src
+	 * high addr				dest
+	 *					high addr
+	 * ------
+	 * |	|s3-----------------------------------------------V
+	 * ------						--------
+	 * |	|s2-----------------------------|		|	|d3
+	 * ------				|-------|	--------
+	 * |	|s1---------------------------- 	|------>|	|d2
+	 * ------				|		--------
+	 *					|-------------->|	|d1
+	 * **** 						--------
+	 *
+	 * In this case we copy down, starting with s1 to d1, so that we
+	 * never overwrite the source before moving it. Any leftover
+	 * bytes are handled after moving the chunk size data.
+	 * This works similarly when src < dest.
+	 */
+	if (src > pmemdest)
+		chunk_size = util_nonoverlap_range((void *)src1, dest1, len);
+	else
+		chunk_size = util_nonoverlap_range(dest1, src1, len);
+
+	/*
+	 * The most common case is non-overlapping addresses.
+	 */
+	if (chunk_size == len) {
+		pmem_align(&dest1, src1, &cnt, UP);
+		src1 += cnt;
+		len -= cnt;
+		return (pmemdest = (nodrain_movnt(dest1, src1, len)));
+	}
+
+	/* overlapping addresses, possible unaligned dest. */
+	if ((uint64_t)src1 > (uint64_t)dest1) {
+		pmem_align(&dest1, src1, &cnt, UP);
+		len -= cnt;
+		src1 += cnt;
+
+		/* Align the chunk size */
+		if (chunk_size > MOVNT_SIZE) {
+			if ((mod = (chunk_size % MOVNT_SIZE)) != 0)
+				chunk_size -= mod;
+		}
+		num_chunks = len/chunk_size;
+
+		for (i = 0; i < num_chunks; i ++) {
+			nodrain_movnt(dest1, src1, chunk_size);
+			src1 += chunk_size;
+			len -= chunk_size;
+			dest1 += chunk_size;
+		}
+
+		if (len != 0)
+			dest1 = nodrain_movnt(dest1, src1, len);
+	} else {
+
+
+		if (chunk_size	> MOVNT_SIZE) {
+			if ((mod = (chunk_size % MOVNT_SIZE)) != 0)
+				chunk_size -= mod;
+		}
+
+		dest1 = dest1 + len;
+		src1 = src1 + len;
+		pmem_align(&dest1, src1, &cnt, DOWN);
+		src1 -= cnt;
+		len -= cnt;
+
+		/* Reduce len by 1 to not exceed the mapped memory. */
+		len -= 1;
+
+		/* Start at the 1st chunk address so we can copy up */
+		dest1 -= chunk_size;
+		src1 -= chunk_size;
+
+		num_chunks = len/chunk_size;
+
+		for (i = 0; i < num_chunks - 1; i ++) {
+			nodrain_movnt(dest1, src1, chunk_size);
+			src1 -= chunk_size;
+			dest1 -= chunk_size;
+			len -= chunk_size;
+		}
+
+		if (len != 0)
+			dest1 = nodrain_movnt(dest1, src1, len);
+	}
+	return pmemdest;
+}
+
+/*
+ * memcpy_nodrain_movnt -- (internal) memcpy to pmem without hw drain, movnt
+ */
+static void *
+memcpy_nodrain_movnt(void *pmemdest, const void *src, size_t len)
+{
+
+	size_t cnt;
+	void *dest1 = pmemdest;
+
+	/* way too chatty for LOG level 3 */
+	LOG(15, "pmemdest %p src %p len %zu", pmemdest, src, len);
+
+	pmem_align(&dest1, src, &cnt, UP);
+	src += cnt;
+	len -= cnt;
+
+	/*
+	 * If the pmemdest and src addresses overlap the behavior
+	 * is undefined.
+	 */
+	dest1 = nodrain_movnt(dest1, (void *)src, len);
+	return (pmemdest);
 }
 
 /*
@@ -624,6 +901,16 @@ memmove_nodrain_movnt(void *pmemdest, const void *src, size_t len)
  */
 static void *(*Func_memmove_nodrain)
 	(void *pmemdest, const void *src, size_t len) = memmove_nodrain_normal;
+
+/*
+ * pmem_memcpy_nodrain() calls through Func_memcpy_nodrain to do the work.
+ * Although initialized to memcpy_nodrain_normal(), once the existence of the
+ * sse2 feature is confirmed by pmem_init() at library initialization time,
+ * Func_memcpy_nodrain is set to memcpy_nodrain_movnt().  That's the most
+ * common case on modern hardware that supports persistent memory.
+ */
+static void *(*Func_memcpy_nodrain)
+	(void *pmemdest, const void *src, size_t len) = memcpy_nodrain_normal;
 
 /*
  * pmem_memmove_nodrain -- memmove to pmem without hw drain
@@ -642,8 +929,7 @@ pmem_memcpy_nodrain(void *pmemdest, const void *src, size_t len)
 {
 	/* way too chatty for LOG level 3 */
 	LOG(15, "pmemdest %p src %p len %zu", pmemdest, src, len);
-
-	return pmem_memmove_nodrain(pmemdest, src, len);
+	return Func_memcpy_nodrain(pmemdest, src, len);
 }
 
 /*
@@ -692,11 +978,36 @@ memset_nodrain_normal(void *pmemdest, int c, size_t len)
 static void *
 memset_nodrain_movnt(void *pmemdest, int c, size_t len)
 {
+	int i;
+	char buf[CHUNK_SIZE];
+	void *dest1 = pmemdest;
+	size_t cnt = 0;
+	int num_chunks;
+
 	/* way too chatty for LOG level 3 */
 	LOG(15, "pmemdest %p c 0x%x len %zu", pmemdest, c, len);
 
-	/* XXX stub version */
-	return memset(pmemdest, c, len);
+	/*
+	 * Align initial address. From there on set data in CHUNK_SIZE
+	 * bytes.
+	 */
+	memset_nodrain_normal(buf, c, CHUNK_SIZE);
+	pmem_align(&dest1, buf, &cnt, UP);
+	len -= cnt;
+
+	/* 128 byte chunks */
+	num_chunks = len/CHUNK_SIZE;
+
+	for (i = 0; i < num_chunks; i++) {
+		nodrain_movnt(dest1, buf, CHUNK_SIZE);
+		dest1 += CHUNK_SIZE;
+		len -= CHUNK_SIZE;
+	}
+
+	if (len != 0)
+		nodrain_movnt(dest1, buf, len);
+
+	return pmemdest;
 }
 
 /*
@@ -713,7 +1024,8 @@ static void *(*Func_memset_nodrain)
  * pmem_memset_nodrain -- memset to pmem without hw drain
  */
 void *
-pmem_memset_nodrain(void *pmemdest, int c, size_t len)
+pmem_memset_nodrain(void *pmemdest, int c
+, size_t len)
 {
 	return Func_memset_nodrain(pmemdest, c, len);
 }
@@ -827,6 +1139,8 @@ pmem_init(void)
 							memmove_nodrain_movnt;
 						Func_memset_nodrain =
 							memset_nodrain_movnt;
+						Func_memcpy_nodrain =
+							memcpy_nodrain_movnt;
 					}
 				}
 

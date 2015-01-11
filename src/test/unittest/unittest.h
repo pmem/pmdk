@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright (c) 2014-2015, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -99,6 +99,7 @@
 #include <sys/mman.h>
 #include <sys/file.h>
 #include <sys/mount.h>
+#include <sys/param.h>
 #include <uuid/uuid.h>
 #include <fcntl.h>
 #include <signal.h>
@@ -281,6 +282,8 @@ void *ut_mmap(const char *file, int line, const char *func, void *addr,
 int ut_munmap(const char *file, int line, const char *func, void *addr,
     size_t length);
 
+void *ut_anon_mmap(const char *file, int line, const char *func, int len);
+
 int ut_mprotect(const char *file, int line, const char *func, void *addr,
     size_t len, int prot);
 
@@ -382,6 +385,10 @@ int ut_closedir(const char *file, int line, const char *func, DIR *dirp);
 /* a mmap() that can't return MAP_FAILED */
 #define	MMAP(addr, len, prot, flags, fd, offset)\
     ut_mmap(__FILE__, __LINE__, __func__, addr, len, prot, flags, fd, offset);
+
+/* an mmap of anonymous memory that can't return MAP_FAILED */
+#define	ANON_MMAP(length)\
+    ut_anon_mmap(__FILE__, __LINE__, __func__, length);
 
 /* a munmap() that can't return -1 */
 #define	MUNMAP(addr, length)\

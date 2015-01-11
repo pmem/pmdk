@@ -1,0 +1,13 @@
+Linux NVM Library
+
+This is src/test/pmem_memset/README.
+
+This directory contains a unit test for pmem_memset().
+
+The program in pmem_memset.c takes a file name as an argument. It
+tests two cases, aligned dest addr and unaligned dest addr.
+
+Initially the program maps the file to be used as the dest addr for the test.
+It fills in the buffer used for setting the destination file with Z's and T's.
+
+The file is read after processing the memset to ensure contains the correct values.
