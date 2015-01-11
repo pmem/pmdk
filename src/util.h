@@ -34,6 +34,22 @@
  * util.h -- internal definitions for util module
  */
 
+#include <stdbool.h>
+
+/*
+ * Compiler aligns __m128, __m128d and __m128i local and global
+ * data 16 byte boundaries. MOVNT values below represent this alignment.
+ * MOVNTx is the assembly language command for moving data using
+ * non-temporal location.
+ */
+
+#define	MOVNT_SIZE	16
+#define	MOVNT_MASK	(MOVNT_SIZE -1)
+#define	MOVNT_SHIFT	4
+
+#define	UP	1
+#define	DOWN	0
+
 /*
  * overridable names for malloc & friends used by this library
  */
@@ -47,14 +63,16 @@ Free_func Free;
 Realloc_func Realloc;
 Strdup_func Strdup;
 
-void util_set_alloc_funcs(
+void	util_set_alloc_funcs(
 		void *(*malloc_func)(size_t size),
 		void (*free_func)(void *ptr),
 		void *(*realloc_func)(void *ptr, size_t size),
 		char *(*strdup_func)(const char *s));
-void *util_map(int fd, size_t len, int cow);
-int util_unmap(void *addr, size_t len);
-
+void	*util_map(int fd, size_t len, int cow);
+int	util_unmap(void *addr, size_t len);
+bool	util_overlap(const void *start1, void *end1, const void *start2,
+		void *end2);
+size_t	util_nonoverlap_range(void *start, void *end, size_t len);
 /*
  * header used at the beginning of all types of memory pools
  *
