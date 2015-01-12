@@ -48,6 +48,11 @@ extern ssize_t readlinkat(int, const char *restrict, char *restrict, size_t);
 #define	MAXLOGNAME 100		/* maximum expected .log file name length */
 #define	MAXPRINT 8192		/* maximum expected single print length */
 
+#define	PROCMAXLEN 2048 /* maximum expected line length in /proc files */
+
+#define	GIGABYTE ((uintptr_t)1 << 30)
+#define	TERABYTE ((uintptr_t)1 << 40)
+
 /*
  * output gets replicated to these files
  */
@@ -306,6 +311,64 @@ check_open_files()
 }
 
 /*
+ * ut_map_hint -- (internal) use /proc to determine a hint address for anon_mmap
+ *
+ * This is a helper function for ut_anon_mmap().  It opens up /proc/self/maps
+ * and looks for the first unused address in the process address space that is:
+ * - greater or equal 1TB,
+ * - large enough to hold range of given length,
+ * - 1GB aligned.
+ *
+ * Asking for aligned address like this will allow the DAX code to use large
+ * mappings.  It is not an error if anon_mmap() ignores the hint and chooses
+ * different address.
+ */
+char *
+ut_map_hint(size_t len)
+{
+	FILE *fp;
+	if ((fp = fopen("/proc/self/maps", "r")) == NULL) {
+		return NULL;
+	}
+
+	char line[PROCMAXLEN];	/* for fgets() */
+	char *lo = NULL;	/* beginning of current range in maps file */
+	char *hi = NULL;	/* end of current range in maps file */
+	char *raddr = (char *)TERABYTE; /* ignore regions below 1TB */
+	while (fgets(line, PROCMAXLEN, fp) != NULL) {
+		/* check for range line */
+		if (sscanf(line, "%p-%p", &lo, &hi) == 2) {
+			if (lo > raddr) {
+				if (lo - raddr >= len) {
+					break;
+				}
+			}
+
+			if (hi > raddr) {
+				/* align to 1GB */
+				raddr = (char *)roundup((uintptr_t)hi,
+				    GIGABYTE);
+			}
+
+			if (raddr == 0) {
+				break;
+			}
+		}
+	}
+	/*
+	 * Check for a case when this is the last unused range in the address
+	 * space, but is not large enough. (very unlikely)
+	 */
+	if ((raddr != NULL) && (UINTPTR_MAX - (uintptr_t)raddr < len)) {
+		raddr = NULL;
+	}
+
+	fclose(fp);
+
+	return raddr;
+}
+
+/*
  * ut_start -- initialize unit test framework, indicate test started
  */
 void
@@ -465,4 +528,20 @@ ut_err(const char *file, int line, const char *func,
 	va_end(ap);
 
 	errno = saveerrno;
+}
+
+void *
+ut_anon_mmap(const char *file, int line, const char *func, int len)
+{
+	void *base;
+
+	void *dest = ut_map_hint(len);
+
+	if ((base = mmap(dest, len, PROT_READ|PROT_WRITE,
+		MAP_SHARED | MAP_FIXED | MAP_ANONYMOUS, -1, 0))
+			== MAP_FAILED) {
+		ut_fatal(file, line, func, "!anonymous mmap: %d", len);
+	}
+
+	return base;
 }
