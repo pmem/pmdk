@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright (c) 2014-2015, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -40,9 +40,12 @@ struct ns_callback {
 		void *buf, size_t count, off_t off);
 	int (*nswrite)(void *ns, int lane,
 		const void *buf, size_t count, off_t off);
+	int (*nszero)(void *ns, int lane, size_t count, off_t off);
 	ssize_t (*nsmap)(void *ns, int lane, void **addrp,
 			size_t len, off_t off);
 	void (*nssync)(void *ns, int lane, void *addr, size_t len);
+
+	int ns_is_zeroed;
 };
 
 struct btt *btt_init(uint64_t rawsize, uint32_t lbasize, uint8_t parent_uuid[],
