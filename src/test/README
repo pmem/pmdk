@@ -181,6 +181,7 @@ variation in the test output:
 	$(S)	ascii string
 	$(X)	hex number
 	$(W)	whitespace
+	$(nW)	non-whitespace
 	$(*)	any string
  	$(DD)	output of a "dd" run
 	$(OPT)	the entire line is optional
