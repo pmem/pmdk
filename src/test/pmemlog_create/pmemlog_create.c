@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright (c) 2015, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,75 +31,42 @@
  */
 
 /*
- * pmem_map.c -- unit test for mapping persistent memory for raw access
+ * pmemlog_create.c -- unit test for creating a log memory pool
  *
- * usage: pmem_map file
+ * usage: pmemlog_create path
  */
 
 #include "unittest.h"
 
-#define	CHECK_BYTES 4096	/* bytes to compare before/after map call */
+#define	SIZEOF_TESTFILE	(64 * 1024 * 1024)
+#define	CREATE_MODE		(0664)
 
 int
 main(int argc, char *argv[])
 {
-	START(argc, argv, "pmem_map");
+	START(argc, argv, "pmemlog_create");
 
 	if (argc != 2)
-		FATAL("usage: %s file", argv[0]);
+		FATAL("usage: %s path", argv[0]);
 
-	int fd;
-	void *addr;
+	PMEMlogpool *handle;
+	const char *path = argv[1];
 
-	fd = OPEN(argv[1], O_RDWR);
-
-	struct stat stbuf;
-	FSTAT(fd, &stbuf);
-
-	char pat[CHECK_BYTES];
-	char buf[CHECK_BYTES];
-
-	addr = pmem_map(fd);
-	if (addr == NULL) {
-		OUT("!pmem_map");
-		goto err;
-	}
-
-	/* write some pattern to the file */
-	memset(pat, 0x5A, CHECK_BYTES);
-	WRITE(fd, pat, CHECK_BYTES);
-
-
-	if (memcmp(pat, addr, CHECK_BYTES))
-		OUT("%s: first %d bytes do not match",
-			argv[1], CHECK_BYTES);
-
-	/* fill up mapped region with new pattern */
-	memset(pat, 0xA5, CHECK_BYTES);
-	memcpy(addr, pat, CHECK_BYTES);
-
-	MUNMAP(addr, stbuf.st_size);
-
-	LSEEK(fd, (off_t)0, SEEK_SET);
-	if (READ(fd, buf, CHECK_BYTES) == CHECK_BYTES) {
-		if (memcmp(pat, buf, CHECK_BYTES))
-			OUT("%s: first %d bytes do not match",
-				argv[1], CHECK_BYTES);
-	}
-
-	CLOSE(fd);
-
-	/* re-open the file with read-only access */
-	fd = OPEN(argv[1], O_RDONLY);
-
-	addr = pmem_map(fd);
-	if (addr != NULL) {
-		MUNMAP(addr, stbuf.st_size);
-		OUT("unexpected pmem_map failure");
+	if (strcmp(path, "NULLFILE") == 0) {
+		if ((handle = pmemlog_create("./testfile",
+				SIZEOF_TESTFILE, CREATE_MODE)) == NULL) {
+			OUT("!./testfile: pmemlog_create");
+			goto err;
+		}
+	} else {
+		if ((handle = pmemlog_create(path,
+				0, CREATE_MODE)) == NULL) {
+			OUT("!%s: pmemlog_create", path);
+			goto err;
+		}
 	}
 
 err:
-	CLOSE(fd);
 
 	DONE(NULL);
 }

@@ -1,0 +1,3 @@
+pmemblk_open/TEST0: START: pmemblk_open
+ ./pmemblk_open$(nW) $(nW)/testfile 512 512
+pmemblk_open/TEST0: Done

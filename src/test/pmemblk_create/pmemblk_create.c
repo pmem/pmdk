@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright (c) 2015, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,27 +31,68 @@
  */
 
 /*
- * pmem_map.c -- unit test for mapping persistent memory for raw access
+ * pmemblk_create.c -- unit test for creating a block memory pool
  *
- * usage: pmem_map file
+ * usage: pmemblk_create path bsize
  */
 
 #include "unittest.h"
 
-#define	CHECK_BYTES 4096	/* bytes to compare before/after map call */
+#define	SIZEOF_TESTFILE	(64 * 1024 * 1024)
+#define	CREATE_MODE		(0664)
+#define	CHECK_BYTES		(4096)
 
 int
 main(int argc, char *argv[])
 {
-	START(argc, argv, "pmem_map");
+	START(argc, argv, "pmemblk_create");
 
-	if (argc != 2)
-		FATAL("usage: %s file", argv[0]);
+	if (argc != 3)
+		FATAL("usage: %s path bsize", argv[0]);
+
+	PMEMblkpool *handle;
+	const char *path = argv[1];
+	size_t bsize = strtoul(argv[2], NULL, 0);
 
 	int fd;
-	void *addr;
 
-	fd = OPEN(argv[1], O_RDWR);
+	if (strcmp(path, "NULLFILE") == 0) {
+
+		if ((handle = pmemblk_create("./testfile", bsize,
+				SIZEOF_TESTFILE, CREATE_MODE)) == NULL) {
+			OUT("!./testfile: pmemblk_create");
+			goto err;
+		}
+
+		int result = pmemblk_check("./testfile");
+
+		if (result < 0)
+			OUT("!%s: pmemblk_check", "./testfile");
+		else if (result == 0)
+			OUT("%s: pmemblk_check: not consistent", "./testfile");
+
+		fd = OPEN("./testfile", O_RDWR);
+
+	} else {
+
+		if ((handle = pmemblk_create(path, bsize,
+				0, CREATE_MODE)) == NULL) {
+			OUT("!%s: pmemblk_create", path);
+			goto err;
+		}
+
+		int result = pmemblk_check(path);
+
+		if (result < 0)
+			OUT("!%s: pmemblk_check", path);
+		else if (result == 0)
+			OUT("%s: pmemblk_check: not consistent", path);
+
+		fd = OPEN(path, O_RDWR);
+
+	}
+
+	void *addr;
 
 	struct stat stbuf;
 	FSTAT(fd, &stbuf);
@@ -62,6 +103,7 @@ main(int argc, char *argv[])
 	addr = pmem_map(fd);
 	if (addr == NULL) {
 		OUT("!pmem_map");
+		CLOSE(fd);
 		goto err;
 	}
 
@@ -69,10 +111,9 @@ main(int argc, char *argv[])
 	memset(pat, 0x5A, CHECK_BYTES);
 	WRITE(fd, pat, CHECK_BYTES);
 
-
 	if (memcmp(pat, addr, CHECK_BYTES))
-		OUT("%s: first %d bytes do not match",
-			argv[1], CHECK_BYTES);
+		OUT("first %d bytes of file do not match",
+			CHECK_BYTES);
 
 	/* fill up mapped region with new pattern */
 	memset(pat, 0xA5, CHECK_BYTES);
@@ -83,23 +124,13 @@ main(int argc, char *argv[])
 	LSEEK(fd, (off_t)0, SEEK_SET);
 	if (READ(fd, buf, CHECK_BYTES) == CHECK_BYTES) {
 		if (memcmp(pat, buf, CHECK_BYTES))
-			OUT("%s: first %d bytes do not match",
-				argv[1], CHECK_BYTES);
+			OUT("first %d bytes of file do not match",
+				CHECK_BYTES);
 	}
 
 	CLOSE(fd);
-
-	/* re-open the file with read-only access */
-	fd = OPEN(argv[1], O_RDONLY);
-
-	addr = pmem_map(fd);
-	if (addr != NULL) {
-		MUNMAP(addr, stbuf.st_size);
-		OUT("unexpected pmem_map failure");
-	}
 
 err:
-	CLOSE(fd);
 
 	DONE(NULL);
 }

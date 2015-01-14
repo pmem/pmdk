@@ -1,0 +1,11 @@
+Linux NVM Library
+
+This is src/test/pmemlog_open/README.
+
+This directory contains a unit test for pmemlog_open().
+
+The program in pmemlog_open.c takes a file name as an argument.
+If the file name is set to "NULLFILE", the program will create
+its own 64 MB pool.  This serves to test two code paths in
+pmemblk_create, the path where an external file is supplied, and
+the path where one is not.

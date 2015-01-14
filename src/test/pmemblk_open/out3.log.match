@@ -1,0 +1,4 @@
+pmemblk_open/TEST3: START: pmemblk_open
+ ./pmemblk_open$(nW) NULLFILE 512 520
+./testfile: pmemblk_open: Invalid argument
+pmemblk_open/TEST3: Done

@@ -1,0 +1,3 @@
+pmemlog_open/TEST0: START: pmemlog_open
+ ./pmemlog_open$(nW) $(nW)/testfile
+pmemlog_open/TEST0: Done

@@ -1,0 +1,3 @@
+pmemlog_create/TEST2: START: pmemlog_create
+ ./pmemlog_create$(nW) NULLFILE
+pmemlog_create/TEST2: Done

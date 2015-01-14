@@ -14,4 +14,5 @@ verifies its content once again.
 
 Finally, the program re-opens the file with read-only access then
 tries to map the file and prints an error message if pmem_map()
-fails (which it should).
+does not fail (it should fail when the file is opened with
+read-only access).

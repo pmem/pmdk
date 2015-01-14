@@ -1,0 +1,4 @@
+pmemlog_open/TEST1: START: pmemlog_open
+ ./pmemlog_open$(nW) $(nW)/testfile
+./testfile: pmemlog_create: Invalid argument
+pmemlog_open/TEST1: Done
