@@ -293,12 +293,17 @@ invalid_lba(struct btt *bttp, uint64_t lba)
  * unknown state.
  */
 static int
-read_info(struct btt_info *infop)
+read_info(struct btt *bttp, struct btt_info *infop)
 {
 	LOG(3, "infop %p", infop);
 
 	if (memcmp(infop->sig, Sig, BTTINFO_SIG_LEN)) {
 		LOG(3, "signature invalid");
+		return 0;
+	}
+
+	if (memcmp(infop->parent_uuid, bttp->parent_uuid, BTTINFO_UUID_LEN)) {
+		LOG(3, "parent UUID mismatch");
 		return 0;
 	}
 
@@ -1101,7 +1106,7 @@ read_layout(struct btt *bttp, int lane)
 					sizeof (info), arena_off) < 0)
 			return -1;
 
-		if (!read_info(&info)) {
+		if (!read_info(bttp, &info)) {
 			/*
 			 * Failed to find complete BTT metadata.  Just
 			 * calculate the narena and nlba values that will
