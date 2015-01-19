@@ -1,0 +1,21 @@
+Linux NVM Library
+
+This is src/test/blk_layout/README.
+
+This directory contains a unit test for the extended read_layout functionality.
+
+The program in blk_layout.c takes a block size, file and a list of
+operations.  For example:
+
+	./blk_layout 4096 file1 f s d b
+
+this will call pmemblk_create() on file1 and then will invalidate for each arena
+the first info block, then the second, then both will be valid but different
+and finally both will be invalid. After each invalidation, a consistency check,
+a read to an error block, a read of a normal block and in case of b an
+attempt to write to an arena in error state will be made.
+
+This test takes a long time to execute, because it uses multiple arenas. At the
+same time it uses a considerate amount of memory. Please make sure you have
+enough space on persistent memory to execute this test. The block size has
+been set to a large value to somewhat address these issues.

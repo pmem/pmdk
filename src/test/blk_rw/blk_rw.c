@@ -41,7 +41,6 @@
  */
 #define	_GNU_SOURCE
 #include "unittest.h"
-#include <dlfcn.h>
 
 size_t Bsize;
 

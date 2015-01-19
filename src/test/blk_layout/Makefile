@@ -31,15 +31,22 @@
 #
 
 #
-# src/test/blk_rw/Makefile -- build blk_rw unit test
+# src/test/blk_layout/Makefile -- build blk_layout unit test
 #
+vpath %.c ../..
+vpath %.h ../.. ../../include
 
-TARGET = blk_rw
-OBJS = blk_rw.o
+TARGET = blk_layout
+OBJS = blk_layout.o util.o
 
 LIBPMEM=y
 LIBPMEMBLK=y
 
 include ../Makefile.inc
+INCS += -I../.. -I../../include
 
-blk_rw.o: blk_rw.c
+LIBS += -ldl
+
+blk_layout.o: blk_layout.c
+
+util.o: util.c util.h
