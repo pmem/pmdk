@@ -33,15 +33,15 @@
 #
 # src/test/util_map_proc/Makefile -- build util_map_proc unit test
 #
-vpath %.c ../..
-vpath %.h ../..
+vpath %.c ../../common
+vpath %.h ../../common
 TARGET = util_map_proc
 OBJS = util_map_proc.o util_wrap.o out.o
 
 out.o: CFLAGS += -DSRCVERSION=\"utversion\"
 
 include ../Makefile.inc
-INCS += -I../..
+INCS += -I../../common
 LIBS += -ldl
 
 util_map_proc.o: util_map_proc.c

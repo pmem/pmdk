@@ -65,21 +65,15 @@ dpkg: override DESTDIR=$(CURDIR)/$(DPKG_BUILDDIR)
 
 all:
 	$(MAKE) -C src $@
-	$(MAKE) -C examples $@
-	$(MAKE) -C benchmarks
 	$(MAKE) -C doc $@
 
 clean:
 	$(MAKE) -C src $@
-	$(MAKE) -C examples $@
-	$(MAKE) -C benchmarks $@
 	$(MAKE) -C doc $@
 	$(RM) -r $(RPM_BUILDDIR) $(DPKG_BUILDDIR)
 
 clobber:
 	$(MAKE) -C src $@
-	$(MAKE) -C examples $@
-	$(MAKE) -C benchmarks $@
 	$(MAKE) -C doc $@
 	$(RM) -r $(RPM_BUILDDIR) $(DPKG_BUILDDIR) rpm dpkg
 
@@ -88,8 +82,6 @@ test check: all
 
 cstyle:
 	$(MAKE) -C src $@
-	$(MAKE) -C examples $@
-	$(MAKE) -C benchmarks $@
 	@echo Checking files for trailing spaces...
 	@! find . -path ./src/jemalloc -prune -o -type f\
 		\( -name 'README' -o -name 'Makefile*' -o -name 'TEST*' \)\

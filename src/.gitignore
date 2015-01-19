@@ -6,3 +6,5 @@ TAGS
 cscope.in.out
 cscope.out
 cscope.po.out
+debug/
+nondebug/

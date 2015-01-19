@@ -1,4 +1,3 @@
-#
 # Copyright (c) 2014, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
@@ -28,73 +27,93 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
 
 #
-# src/Makefile -- build the NVM Library
+# src/Makefile -- Makefile for NVML
 #
-VARIANTS = debug nondebug
-.NOTPARALLEL: $(VARIANTS)
-JEMALLOC_DIR = $(CURDIR)/jemalloc
-export JEMALLOC_DIR
+
+export CSTYLE = $(abspath ../utils/cstyle)
+
+TARGETS = libpmem libvmem libpmemblk libpmemlog libpmemobj
+ALL_TARGETS = $(TARGETS) examples benchmarks
 
 HEADERS_DESTDIR = $(DESTDIR)/usr/include
 HEADERS_INSTALL = include/libpmem.h include/libvmem.h include/libpmemobj.h include/libpmemblk.h include/libpmemlog.h
 
-SCOPEFILES = *.[ch] include/*.[ch] jemalloc/src/*.[ch]\
-	     $(JEMALLOC_DIR)/include/jemalloc/*.h\
-	     $(JEMALLOC_DIR)/include/jemalloc/internal/*.h\
-	     $(JEMALLOC_DIR)/debug/include/jemalloc/*.h\
-	     $(JEMALLOC_DIR)/debug/include/jemalloc/internal/*.h\
-	     $(JEMALLOC_DIR)/nondebug/include/jemalloc/*.h\
-	     $(JEMALLOC_DIR)/nondebug/include/jemalloc/internal/*.h
+SCOPE_SRC_DIRS = $(TARGETS) include jemalloc/src
+SCOPE_HDR_DIRS = $(TARGETS) include jemalloc/src\
+		jemalloc/include/jemalloc\
+		jemalloc/include/jemalloc/internal\
+		debug/jemalloc/include/jemalloc\
+		debug/jemalloc/include/jemalloc/internal\
+		nondebug/jemalloc/include/jemalloc\
+		nondebug/jemalloc/include/jemalloc/internal
 
-all     : TARGET = all
-clean   : TARGET = clean
-clobber : TARGET = clobber
-jeconfig: TARGET = jeconfig
-jemalloc: TARGET = jemalloc
-install : TARGET = install
+SCOPE_SRC_FILES = $(foreach d, $(SCOPE_SRC_DIRS), $(wildcard $(d)/*.c))
+SCOPE_HDR_FILES = $(foreach d, $(SCOPE_HDR_DIRS), $(wildcard $(D)/*.h))
+SCOPEFILES = $(SCOPE_SRC_FILES) $(SCOPE_HDR_FILES)
 
-all jeconfig jemalloc clean clobber install: $(VARIANTS)
+all: $(ALL_TARGETS)
+install: $(TARGETS:=-install)
+clean: $(ALL_TARGETS:=-clean)
+clobber: $(ALL_TARGETS:=-clobber)
+cstyle: $(ALL_TARGETS:=-cstyle)
+examples benchmarks: $(TARGETS)
 
-$(VARIANTS):
-	$(MAKE) -C $@ $(TARGET)
+custom_build = $(DEBUG)$(OBJDIR)
 
-clean:
-	$(MAKE) -C test clean
-	$(RM) tags cscope.in.out cscope.out cscope.po.out
 
-clobber:
-	$(MAKE) -C test clobber
+%-install:
+	$(MAKE) -C $* install
+ifeq ($(custom_build),)
+	$(MAKE) -C $* install DEBUG=1
+endif
 
-test: $(VARIANTS)
+%-clean:
+	$(MAKE) -C $* clean
+ifeq ($(custom_build),)
+	$(MAKE) -C $* clean DEBUG=1
+endif
+
+%-clobber:
+	$(MAKE) -C $* clobber
+ifeq ($(custom_build),)
+	$(MAKE) -C $* clobber DEBUG=1
+endif
+
+%-cstyle:
+	$(MAKE) -C $* cstyle
+
+$(ALL_TARGETS):
+	$(MAKE) -C $@
+ifeq ($(custom_build),)
+	$(MAKE) -C $@ DEBUG=1
+endif
+
+jemalloc-check: jemalloc-test
+
+test: all jemalloc-test
 	$(MAKE) -C test all
-	$(MAKE) -C nondebug jemalloc-tests
-	$(MAKE) -C debug jemalloc-tests
 
-check: test check-jemalloc
+check: test jemalloc-check
 	cd test && ./RUNTESTS
 
-check-jemalloc: check-jemalloc-debug check-jemalloc-nondebug
-
-check-jemalloc-debug:
-	$(MAKE) -C debug jemalloc-check
-
-check-jemalloc-nondebug:
-	$(MAKE) -C nondebug jemalloc-check
-
-cscope:
-	cscope -q -b $(SCOPEFILES)
-	ctags -e $(SCOPEFILES)
-
-cstyle:
-	../utils/cstyle -pP *.[ch] include/*.[ch]
-	$(MAKE) -C test cstyle
+jemalloc jemalloc-clean jemalloc-clobber jemalloc-test jemalloc-check:
+	$(MAKE) -C libvmem $@
+ifeq ($(custom_build),)
+	$(MAKE) -C libvmem $@ DEBUG=1
+endif
 
 install:
 	install -d $(HEADERS_DESTDIR)
 	install -p -m 0644 $(HEADERS_INSTALL) $(HEADERS_DESTDIR)
 
-.PHONY: all jeconfig jemalloc clean clobber test check cscope cstyle install\
-	check-jemalloc check-jemalloc-debug check-jemalloc-nondebug $(VARIANTS)
+cscope:
+	cscope -q -b $(SCOPEFILES)
+	ctags -e $(SCOPEFILES)
+
+clean:
+	$(RM) tags cscope.in.out cscope.out cscope.po.out
+
+.PHONY: all install clean clobber cstyle test check\
+	jemalloc jemalloc-clean jemalloc-test jemalloc-check cscope $(ALL_TARGETS)

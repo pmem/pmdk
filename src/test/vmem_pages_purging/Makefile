@@ -41,6 +41,6 @@ LIBVMEM=y
 include ../Makefile.inc
 
 INCS += -I../../jemalloc/include/
-INCS += -I../../jemalloc/nondebug/include/
+INCS += -I../../nondebug/jemalloc/include/
 
 vmem_pages_purging.o: vmem_pages_purging.c
