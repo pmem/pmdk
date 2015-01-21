@@ -12,8 +12,10 @@ This tree contains libraries for using Non-Volatile Memory (NVM).
 Here you'll find:
 
 * **doc** -- man pages describing each library contained here
-* **examples** -- brief example programs using these libraries
 * **src** -- the source for the libraries
+* **src/benchmarks** -- benchmarks used by development team
+* **src/examples** -- brief example programs using these libraries
+* **src/test** -- unit tests used by development team
 * **utils** -- utilities used during build & test
 * **CONTRIBUTING.md** -- instructions for people wishing to contribute
 
