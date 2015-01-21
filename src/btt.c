@@ -40,10 +40,11 @@
  * To use this module, the caller must provide three routines for
  * accessing the namespace containing the data (in this context,
  * "namespace" refers to the storage containing the BTT layout, such
- * as a file).  All namespace I/O is done by these three calls:
+ * as a file).  All namespace I/O is done by these callbacks:
  *
  * 	nsread	Read count bytes from namespace at offset off
  * 	nswrite	Write count bytes to namespace at offset off
+ * 	nszero	Zero count bytes in namespace at offset off
  * 	nsmap	Return direct access to a range of a namespace
  * 	nssync	Flush changes made to an nsmap'd range
  *

@@ -222,7 +222,7 @@ nssync(void *ns, int lane, void *addr, size_t len)
 }
 
 /*
- * nswrite -- (internal) zero data in the namespace encapsulating the BTT
+ * nszero -- (internal) zero data in the namespace encapsulating the BTT
  *
  * This routine is provided to btt_init() to allow the btt module to
  * zero the memory pool containing the BTT layout.
@@ -257,12 +257,12 @@ nszero(void *ns, int lane, size_t count, off_t off)
 
 /* callbacks for btt_init() */
 static struct ns_callback ns_cb = {
-	nsread,
-	nswrite,
-	nszero,
-	nsmap,
-	nssync,
-	0
+	.nsread = nsread,
+	.nswrite = nswrite,
+	.nszero = nszero,
+	.nsmap = nsmap,
+	.nssync = nssync,
+	.ns_is_zeroed = 0
 };
 
 /*
