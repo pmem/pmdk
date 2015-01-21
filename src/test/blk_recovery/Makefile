@@ -41,6 +41,6 @@ LIBPMEM=y
 LIBPMEMBLK=y
 
 include ../Makefile.inc
-CFLAGS += -I../..
+CFLAGS += -I../../common -I../../libpmemblk
 
 blk_recovery.o: blk_recovery.c

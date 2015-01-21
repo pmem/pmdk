@@ -1,5 +1,5 @@
 scope/TEST2:
-../../debug/libpmemlog.so:
+$(*)debug/libpmemlog.so:
 pmemlog_append
 pmemlog_appendv
 pmemlog_check
@@ -12,7 +12,7 @@ pmemlog_rewind
 pmemlog_set_funcs
 pmemlog_tell
 pmemlog_walk
-../../nondebug/libpmemlog.so:
+$(*)nondebug/libpmemlog.so:
 pmemlog_append
 pmemlog_appendv
 pmemlog_check
@@ -25,7 +25,7 @@ pmemlog_rewind
 pmemlog_set_funcs
 pmemlog_tell
 pmemlog_walk
-../../debug/libpmemlog.a:
+$(*)debug/libpmemlog.a:
 pmemlog_append
 pmemlog_appendv
 pmemlog_check
@@ -38,7 +38,7 @@ pmemlog_rewind
 pmemlog_set_funcs
 pmemlog_tell
 pmemlog_walk
-../../nondebug/libpmemlog.a:
+$(*)nondebug/libpmemlog.a:
 pmemlog_append
 pmemlog_appendv
 pmemlog_check

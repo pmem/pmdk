@@ -1,9 +1,0 @@
-Linux NVM Library
-
-This is src/debug/README.
-
-This directory is where debug versions of the object files and
-the targets end up.  To build just the debug version of the
-library, use "make all" from this directory.  To build both
-the debug and nondebug version, use "make all" from the parent
-directory.

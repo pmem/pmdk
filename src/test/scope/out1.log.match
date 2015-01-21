@@ -1,5 +1,5 @@
 scope/TEST1:
-../../debug/libpmem.so:
+$(*)debug/libpmem.so:
 pmem_check_version
 pmem_drain
 pmem_flush
@@ -14,7 +14,7 @@ pmem_memset
 pmem_memset_nodrain
 pmem_msync
 pmem_persist
-../../nondebug/libpmem.so:
+$(*)nondebug/libpmem.so:
 pmem_check_version
 pmem_drain
 pmem_flush
@@ -29,7 +29,7 @@ pmem_memset
 pmem_memset_nodrain
 pmem_msync
 pmem_persist
-../../debug/libpmem.a:
+$(*)debug/libpmem.a:
 pmem_check_version
 pmem_drain
 pmem_flush
@@ -44,7 +44,7 @@ pmem_memset
 pmem_memset_nodrain
 pmem_msync
 pmem_persist
-../../nondebug/libpmem.a:
+$(*)nondebug/libpmem.a:
 pmem_check_version
 pmem_drain
 pmem_flush
