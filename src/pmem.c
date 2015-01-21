@@ -143,7 +143,7 @@
  * pmem_memmove_nodrain()
  *
  * 	Checks for overlapped ranges to determine whether to copy from
- * 	the beginning of the range or the from the end.  If MOVNT instructions
+ * 	the beginning of the range or from the end.  If MOVNT instructions
  * 	are available, uses the memory copy flow described above, otherwise
  * 	calls the libc memmove() followed by pmem_flush().
  *
