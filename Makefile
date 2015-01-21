@@ -83,7 +83,9 @@ test check: all
 cstyle:
 	$(MAKE) -C src $@
 	@echo Checking files for trailing spaces...
-	@! find . -path ./src/jemalloc -prune -o -type f\
+	@! find . -path ./src/jemalloc -prune -o\
+		-path ./src/debug -prune -o\
+		-path ./src/nondebug -prune -o -type f\
 		\( -name 'README' -o -name 'Makefile*' -o -name 'TEST*' \)\
 		-exec grep -n -H -P '\s$$' {} +\
 		|| (echo Error: trailing whitespaces found && exit 1)
