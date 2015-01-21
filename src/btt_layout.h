@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright (c) 2014-2015, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -104,8 +104,9 @@ struct btt_flog {
  * Layout of a BTT "map" entry.  4-byte internal LBA offset, little-endian.
  */
 #define	BTT_MAP_ENTRY_SIZE 4
-#define	BTT_MAP_ENTRY_ZERO (1u << 31)
-#define	BTT_MAP_ENTRY_ERROR (1u << 30)
+#define	BTT_MAP_ENTRY_ERROR 0x40000000
+#define	BTT_MAP_ENTRY_ZERO 0x80000000
+#define	BTT_MAP_ENTRY_NORMAL 0xC0000000
 #define	BTT_MAP_ENTRY_LBA_MASK 0x3fffffff
 #define	BTT_MAP_LOCK_ALIGN 64
 

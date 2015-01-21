@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright (c) 2014-2015, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -50,6 +50,9 @@ struct pmemblk {
 
 	/* root info for on-media format... */
 	uint32_t bsize;			/* block size */
+
+	/* flag indicating if the pool was zero-initialized */
+	unsigned char is_zeroed;
 
 	/* some run-time state, allocated out of memory pool... */
 	void *addr;			/* mapped region */

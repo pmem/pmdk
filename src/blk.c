@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright (c) 2014-2015, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -44,7 +44,6 @@
 #include <stdint.h>
 #include <uuid/uuid.h>
 #include <pthread.h>
-#include <endian.h>
 #include <libpmem.h>
 #include <libpmemblk.h>
 #include "util.h"
@@ -222,12 +221,48 @@ nssync(void *ns, int lane, void *addr, size_t len)
 		pmem_msync(addr, len);
 }
 
+/*
+ * nswrite -- (internal) zero data in the namespace encapsulating the BTT
+ *
+ * This routine is provided to btt_init() to allow the btt module to
+ * zero the memory pool containing the BTT layout.
+ */
+static int
+nszero(void *ns, int lane, size_t count, off_t off)
+{
+	struct pmemblk *pbp = (struct pmemblk *)ns;
+
+	LOG(13, "pbp %p lane %d count %zu off %lld",
+			pbp, lane, count, (long long)off);
+
+	if (off + count > pbp->datasize) {
+		LOG(1, "offset + count (%lld) past end of data area (%zu)",
+				(long long)off + count, pbp->datasize);
+		errno = EINVAL;
+		return -1;
+	}
+
+	void *dest = pbp->data + off;
+
+	/* unprotect the memory (debug version only) */
+	RANGE_RW(dest, count);
+
+	pmem_memset(dest, 0, count);
+
+	/* protect the memory again (debug version only) */
+	RANGE_RO(dest, count);
+
+	return 0;
+}
+
 /* callbacks for btt_init() */
-static const struct ns_callback ns_cb = {
+static struct ns_callback ns_cb = {
 	nsread,
 	nswrite,
+	nszero,
 	nsmap,
-	nssync
+	nssync,
+	0
 };
 
 /*
@@ -244,10 +279,10 @@ static const struct ns_callback ns_cb = {
  */
 static PMEMblkpool *
 pmemblk_map_common(int fd, size_t poolsize, size_t bsize, int rdonly,
-		int empty)
+		int initialize, int zeroed)
 {
-	LOG(3, "fd %d poolsize %zu bsize %zu rdonly %d empty %d",
-			fd, poolsize, bsize, rdonly, empty);
+	LOG(3, "fd %d poolsize %zu bsize %zu rdonly %d initialize %d zeroed %d",
+			fd, poolsize, bsize, rdonly, initialize, zeroed);
 
 	/* things free by "goto err" if not NULL */
 	struct btt *bttp = NULL;
@@ -267,7 +302,7 @@ pmemblk_map_common(int fd, size_t poolsize, size_t bsize, int rdonly,
 	/* opaque info lives at the beginning of mapped memory pool */
 	struct pmemblk *pbp = addr;
 
-	if (!empty) {
+	if (!initialize) {
 		struct pool_hdr hdr;
 
 		memcpy(&hdr, &pbp->hdr, sizeof (hdr));
@@ -321,7 +356,7 @@ pmemblk_map_common(int fd, size_t poolsize, size_t bsize, int rdonly,
 
 		/* check if the pool header is all zero */
 		if (!util_is_zeroed(hdrp, sizeof (*hdrp))) {
-			LOG(1, "Non-empty file detected");
+			LOG(1, "Non-zero pool header detected");
 			errno = EINVAL;
 			goto err;
 		}
@@ -336,6 +371,9 @@ pmemblk_map_common(int fd, size_t poolsize, size_t bsize, int rdonly,
 		/* create the required metadata first */
 		pbp->bsize = htole32(bsize);
 		pmem_msync(&pbp->bsize, sizeof (bsize));
+
+		pbp->is_zeroed = zeroed;
+		pmem_msync(&pbp->is_zeroed, sizeof (pbp->is_zeroed));
 
 		/* create pool header */
 		strncpy(hdrp->signature, BLK_HDR_SIG, POOL_HDR_SIG_LEN);
@@ -369,6 +407,8 @@ pmemblk_map_common(int fd, size_t poolsize, size_t bsize, int rdonly,
 	int ncpus = sysconf(_SC_NPROCESSORS_ONLN);
 	if (ncpus < 1)
 		ncpus = 1;
+
+	ns_cb.ns_is_zeroed = pbp->is_zeroed;
 
 	bttp = btt_init(pbp->datasize, (uint32_t)bsize, pbp->hdr.uuid,
 			ncpus * 2, pbp, &ns_cb);
@@ -437,10 +477,12 @@ pmemblk_create(const char *path, size_t bsize, size_t poolsize,
 	LOG(3, "path %s bsize %zu poolsize %zu mode %d",
 			path, bsize, poolsize, mode);
 
+	int created = 0;
 	int fd;
 	if (poolsize != 0) {
 		/* create a new memory pool file */
 		fd = util_pool_create(path, poolsize, PMEMBLK_MIN_POOL, mode);
+		created = 1;
 	} else {
 		/* open an existing file */
 		fd = util_pool_open(path, &poolsize, PMEMBLK_MIN_POOL);
@@ -448,7 +490,7 @@ pmemblk_create(const char *path, size_t bsize, size_t poolsize,
 	if (fd == -1)
 		return NULL;	/* errno set by util_pool_create/open() */
 
-	return pmemblk_map_common(fd, poolsize, bsize, 0, 1);
+	return pmemblk_map_common(fd, poolsize, bsize, 0, 1, created);
 }
 
 /*
@@ -465,7 +507,7 @@ pmemblk_open(const char *path, size_t bsize)
 	if ((fd = util_pool_open(path, &poolsize, PMEMBLK_MIN_POOL)) == -1)
 		return NULL;	/* errno set by util_pool_open() */
 
-	return pmemblk_map_common(fd, poolsize, bsize, 0, 0);
+	return pmemblk_map_common(fd, poolsize, bsize, 0, 0, 0);
 }
 
 /*
@@ -615,7 +657,7 @@ pmemblk_check(const char *path)
 		return -1;	/* errno set by util_pool_open() */
 
 	/* map the pool read-only */
-	PMEMblkpool *pbp = pmemblk_map_common(fd, poolsize, 0, 1, 0);
+	PMEMblkpool *pbp = pmemblk_map_common(fd, poolsize, 0, 1, 0, 0);
 
 	if (pbp == NULL)
 		return -1;	/* errno set by pmemblk_map_common() */
