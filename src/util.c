@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright (c) 2014-2015, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -52,6 +52,7 @@
 
 #define	GIGABYTE ((uintptr_t)1 << 30)
 #define	TERABYTE ((uintptr_t)1 << 40)
+
 
 /* library-wide page size */
 unsigned long Pagesize;
@@ -378,6 +379,29 @@ util_range_none(void *addr, size_t len)
 		LOG(1, "!mprotect: PROT_NONE");
 
 	return retval;
+}
+
+/*
+ * Calculate if there is overlap in with the addresses and length
+ */
+bool
+util_overlap(const void *start1, void *end1, const void *start2, void *end2)
+{
+	return (end1 >= start2 && end2 >= start1);
+}
+
+/*
+ * Calculate the non-overlap chunk size
+ */
+size_t
+util_nonoverlap_range(void *start1, void *start2, size_t len)
+{
+	if (util_overlap(start1, start1 + len, start2, start2 + len)) {
+		/* Return size of chunk of non-overlapped data */
+		return (start1 - start2);
+	} else {
+		return len;
+	}
 }
 
 /*

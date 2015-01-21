@@ -1,5 +1,6 @@
+#!/bin/bash -e
 #
-# Copyright (c) 2014-2015, Intel Corporation
+# Copyright (c) 2015, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,67 +32,29 @@
 #
 
 #
-# src/test/Makefile -- build all unit tests
+# src/test/pmem_memcpy/TEST3 -- unit test for pmem_memcpy
 #
-# Makefile -- build all unit tests
-#
-TEST = blk_nblock\
-       blk_non_zero\
-       blk_recovery\
-       blk_rw\
-       blk_rw_mt\
-       checksum\
-       log_basic\
-       log_recovery\
-       log_walker\
-       pmem_isa_proc\
-       pmem_is_pmem\
-       pmem_is_pmem_proc\
-       pmem_map\
-       pmem_memcpy\
-       pmem_memmove\
-       pmem_memset\
-       scope\
-       traces\
-       traces_custom_function\
-       traces_pmem\
-       util_map_proc\
-       util_pool_create\
-       util_pool_open\
-       vmem_aligned_alloc\
-       vmem_calloc\
-       vmem_check_allocations\
-       vmem_check_version\
-       vmem_custom_alloc\
-       vmem_malloc\
-       vmem_malloc_usable_size\
-       vmem_mix_allocations\
-       vmem_multiple_pools\
-       vmem_out_of_memory\
-       vmem_check\
-       vmem_create\
-       vmem_create_error\
-       vmem_create_in_region\
-       vmem_delete\
-       vmem_realloc\
-       vmem_stats\
-       vmem_strdup\
-       vmem_fork\
-       vmem_valgrind\
-       vmem_pages_purging
+export UNITTEST_NAME=pmem_memcpy/TEST3
+export UNITTEST_NUM=3
 
-all     : TARGET = all
-clean   : TARGET = clean
-clobber : TARGET = clobber
-test    : TARGET = test
-cstyle  : TARGET = cstyle
+# standard unit test setup
+. ../unittest/unittest.sh
 
-all clean clobber test cstyle: $(TEST)
+require_fs_type local
 
-$(TEST): unittest
-	$(MAKE) -C $@ $(TARGET)
+setup
 
-unittest:
-	$(MAKE) -C $@ $(TARGET)
+rm -f $DIR/testfile1
+truncate -s 2G $DIR/testfile1
 
-.PHONY: all clean clobber test cstyle unittest $(TEST)
+# Parameters are: offset from start address for dest(1) and src(2) and
+# and size of mmap'd file/anonymous memory.
+
+# aligned dest, unaligned src
+expect_normal_exit ./pmem_memcpy$EXESUFFIX $DIR/testfile1 0 9 4096
+
+rm $DIR/testfile1
+
+check
+
+pass
