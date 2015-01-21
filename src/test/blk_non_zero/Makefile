@@ -41,6 +41,6 @@ LIBPMEMBLK=y
 
 include ../Makefile.inc
 
-INCS += -I../.. -I../../include
+INCS += -I../../common -I../../libpmemblk -I../../include
 
 blk_non_zero.o: blk_non_zero.c
