@@ -247,7 +247,7 @@ nszero(void *ns, int lane, size_t count, off_t off)
 	/* unprotect the memory (debug version only) */
 	RANGE_RW(dest, count);
 
-	pmem_memset(dest, 0, count);
+	pmem_memset_persist(dest, 0, count);
 
 	/* protect the memory again (debug version only) */
 	RANGE_RO(dest, count);

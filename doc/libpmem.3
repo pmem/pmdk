@@ -1,5 +1,5 @@
 .\"
-.\" Copyright (c) 2014, Intel Corporation
+.\" Copyright (c) 2014-2015, Intel Corporation
 .\"
 .\" Redistribution and use in source and binary forms, with or without
 .\" modification, are permitted provided that the following conditions
@@ -61,9 +61,9 @@ libpmem \- persistent memory support library
 .sp
 .B Copying to persistent memory:
 .sp
-.BI "void *pmem_memmove(void *" pmemdest ", const void *" src ", size_t " len );
-.BI "void *pmem_memcpy(void *" pmemdest ", const void *" src ", size_t " len );
-.BI "void *pmem_memset(void *" pmemdest ", int " c ", size_t " len );
+.BI "void *pmem_memmove_persist(void *" pmemdest ", const void *" src ", size_t " len );
+.BI "void *pmem_memcpy_persist(void *" pmemdest ", const void *" src ", size_t " len );
+.BI "void *pmem_memset_persist(void *" pmemdest ", int " c ", size_t " len );
 .BI "void *pmem_memmove_nodrain(void *" pmemdest ", const void *" src ", size_t " len );
 .BI "void *pmem_memcpy_nodrain(void *" pmemdest ", const void *" src ", size_t " len );
 .BI "void *pmem_memset_nodrain(void *" pmemdest ", int " c ", size_t " len );
@@ -355,17 +355,17 @@ features such as Asynchronous DRAM Refresh (ADR) or something similar.
 The functions in this section provide optimized copying to
 persistent memory.
 .PP
-.BI "void *pmem_memmove(void *" pmemdest ", const void *" src ", size_t " len );
+.BI "void *pmem_memmove_persist(void *" pmemdest ", const void *" src ", size_t " len );
 .br
-.BI "void *pmem_memcpy(void *" pmemdest ", const void *" src ", size_t " len );
+.BI "void *pmem_memcpy_persist(void *" pmemdest ", const void *" src ", size_t " len );
 .br
-.BI "void *pmem_memset(void *" pmemdest ", int " c ", size_t " len );
+.BI "void *pmem_memset_persist(void *" pmemdest ", int " c ", size_t " len );
 .IP
 The
-.BR pmem_memmove (),
-.BR pmem_memcpy (),
+.BR pmem_memmove_persist (),
+.BR pmem_memcpy_persist (),
 and
-.BR pmem_memset (),
+.BR pmem_memset_persist (),
 functions provide the same memory copying as their namesakes
 .BR memmove(3)
 .BR memcpy(3),
@@ -373,11 +373,11 @@ and
 .BR memset(3),
 and ensure that the result has been flushed to persistence before
 returning.  For example, the following code is functionally equivalent to 
-.BR pmem_memmove ():
+.BR pmem_memmove_persist ():
 .IP
 .nf
 void *
-pmem_memmove(void *pmemdest, const void *src, size_t len)
+pmem_memmove_persist(void *pmemdest, const void *src, size_t len)
 {
     void *retval = memmove(pmemdest, src, len);
 
@@ -388,7 +388,7 @@ pmem_memmove(void *pmemdest, const void *src, size_t len)
 .fi
 .IP
 Calling
-.BR pmem_memmove ()
+.BR pmem_memmove_persist ()
 may out-perform the above code, however, since the
 .B libpmem
 implementation may take advantage of the fact that
@@ -414,10 +414,10 @@ The
 and
 .BR pmem_memset_nodrain ()
 functions are similar to
-.BR pmem_memmove (),
-.BR pmem_memcpy (),
+.BR pmem_memmove_persist (),
+.BR pmem_memcpy_persist (),
 and
-.BR pmem_memset ()
+.BR pmem_memset_persist ()
 described above, except they skip the final
 .BR pmem_drain ()
 step.  This allows applications to optimize

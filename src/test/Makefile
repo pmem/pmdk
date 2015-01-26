@@ -48,6 +48,9 @@ TEST = blk_nblock\
        pmem_is_pmem\
        pmem_is_pmem_proc\
        pmem_map\
+       pmem_memmove\
+       pmem_memcpy\
+       pmem_memset\
        scope\
        traces\
        traces_custom_function\
