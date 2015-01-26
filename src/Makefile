@@ -1,4 +1,4 @@
-# Copyright (c) 2014, Intel Corporation
+# Copyright (c) 2014-2015, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -36,6 +36,10 @@ export CSTYLE = $(abspath ../utils/cstyle)
 
 TARGETS = libpmem libvmem libpmemblk libpmemlog libpmemobj
 ALL_TARGETS = $(TARGETS) examples benchmarks
+CLEAN_TARGETS = $(ALL_TARGETS) test
+CLOBBER_TARGETS = $(ALL_TARGETS) test
+CSTYLE_TARGETS = $(ALL_TARGETS) test
+INSTALL_TARGETS = $(TARGETS)
 
 HEADERS_DESTDIR = $(DESTDIR)/usr/include
 HEADERS_INSTALL = include/libpmem.h include/libvmem.h include/libpmemobj.h include/libpmemblk.h include/libpmemlog.h
@@ -54,10 +58,10 @@ SCOPE_HDR_FILES = $(foreach d, $(SCOPE_HDR_DIRS), $(wildcard $(D)/*.h))
 SCOPEFILES = $(SCOPE_SRC_FILES) $(SCOPE_HDR_FILES)
 
 all: $(ALL_TARGETS)
-install: $(TARGETS:=-install)
-clean: $(ALL_TARGETS:=-clean)
-clobber: $(ALL_TARGETS:=-clobber)
-cstyle: $(ALL_TARGETS:=-cstyle)
+install: $(INSTALL_TARGETS:=-install)
+clean: $(CLEAN_TARGETS:=-clean)
+clobber: $(CLOBBER_TARGETS:=-clobber)
+cstyle: $(CSTYLE_TARGETS:=-cstyle)
 examples benchmarks: $(TARGETS)
 
 custom_build = $(DEBUG)$(OBJDIR)

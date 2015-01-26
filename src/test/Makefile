@@ -83,7 +83,10 @@ clobber : TARGET = clobber
 test    : TARGET = test
 cstyle  : TARGET = cstyle
 
-all clean clobber test cstyle: $(TEST)
+all test cstyle: $(TEST)
+
+clean clobber: $(TEST)
+	$(MAKE) -C unittest $@
 
 $(TEST): unittest
 	$(MAKE) -C $@ $(TARGET)
