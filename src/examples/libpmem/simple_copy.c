@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright (c) 2014-2015, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,7 +31,7 @@
  */
 
 /*
- * simple_copy.c -- show how to use pmem_memcpy()
+ * simple_copy.c -- show how to use pmem_memcpy_persist()
  *
  * usage: simple_copy src-file dst-file
  *
@@ -102,7 +102,7 @@ main(int argc, char *argv[])
 
 	/* write it to the pmem */
 	if (is_pmem) {
-		pmem_memcpy(pmemaddr, buf, cc);
+		pmem_memcpy_persist(pmemaddr, buf, cc);
 	} else {
 		memcpy(pmemaddr, buf, cc);
 		pmem_msync(pmemaddr, cc);

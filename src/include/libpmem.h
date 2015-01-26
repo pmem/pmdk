@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright (c) 2014-2015, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -56,9 +56,9 @@ int pmem_msync(void *addr, size_t len);
 void pmem_flush(void *addr, size_t len);
 void pmem_drain(void);
 int pmem_has_hw_drain(void);
-void *pmem_memmove(void *pmemdest, const void *src, size_t len);
-void *pmem_memcpy(void *pmemdest, const void *src, size_t len);
-void *pmem_memset(void *pmemdest, int c, size_t len);
+void *pmem_memmove_persist(void *pmemdest, const void *src, size_t len);
+void *pmem_memcpy_persist(void *pmemdest, const void *src, size_t len);
+void *pmem_memset_persist(void *pmemdest, int c, size_t len);
 void *pmem_memmove_nodrain(void *pmemdest, const void *src, size_t len);
 void *pmem_memcpy_nodrain(void *pmemdest, const void *src, size_t len);
 void *pmem_memset_nodrain(void *pmemdest, int c, size_t len);
