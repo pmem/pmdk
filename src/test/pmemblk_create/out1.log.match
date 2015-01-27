@@ -1,0 +1,4 @@
+pmemblk_create/TEST1: START: pmemblk_create
+ ./pmemblk_create$(nW) $(nW)/testfile 512
+./testfile: pmemblk_create: Invalid argument
+pmemblk_create/TEST1: Done

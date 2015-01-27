@@ -1,0 +1,3 @@
+pmemblk_create/TEST2: START: pmemblk_create
+ ./pmemblk_create$(nW) NULLFILE 512
+pmemblk_create/TEST2: Done

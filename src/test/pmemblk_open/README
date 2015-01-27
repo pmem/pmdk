@@ -1,0 +1,14 @@
+Linux NVM Library
+
+This is src/test/pmemblk_open/README.
+
+This directory contains a unit test for pmemblk_open().
+
+The program in pmemblk_open.c takes a file name and two block size
+arguments.  If the file name is set to "NULLFILE", the program
+will create its own 64 MB pool.  This serves to test two code paths
+in pmemblk_create, the path where an external file is supplied, and
+the path where one is not.  The two block size arguments are passed
+to the pmemblk_create() and pmemblk_open() routines.  This allows
+the code path that is taken when the two block sizes are different
+to be tested.
