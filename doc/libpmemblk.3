@@ -1,5 +1,5 @@
 .\"
-.\" Copyright (c) 2014, Intel Corporation
+.\" Copyright (c) 2014-2015, Intel Corporation
 .\"
 .\" Redistribution and use in source and binary forms, with or without
 .\" modification, are permitted provided that the following conditions
@@ -459,8 +459,9 @@ developers.
 .PP
 The environment variable
 .B PMEMBLK_LOG_FILE
-specifies a file name where
-all logging information should be written.  If
+specifies a file name where all logging information should be written.
+If the last character in the name is "-", the PID of the current process
+will be appended to the file name when the log file is created.  If
 .B PMEMBLK_LOG_FILE
 is not set, the logging output goes to stderr.
 .PP
