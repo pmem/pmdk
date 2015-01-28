@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2014, Intel Corporation
+# Copyright (c) 2014-2015, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -36,6 +36,7 @@
 TARGET = libut.a
 OBJS = ut.o ut_alloc.o ut_file.o ut_pthread.o ut_signal.o
 CFLAGS = -I../../include -ggdb -Wall -Werror -std=gnu99
+CSTYLE = ../../../utils/cstyle
 
 all test: $(TARGET)
 
