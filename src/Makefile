@@ -32,8 +32,7 @@
 # src/Makefile -- Makefile for NVML
 #
 
-export CSTYLE = $(abspath ../utils/cstyle)
-
+CSTYLE = ../utils/cstyle
 TARGETS = libpmem libvmem libpmemblk libpmemlog libpmemobj
 ALL_TARGETS = $(TARGETS) examples benchmarks
 CLEAN_TARGETS = $(ALL_TARGETS) test
@@ -111,6 +110,9 @@ endif
 install:
 	install -d $(HEADERS_DESTDIR)
 	install -p -m 0644 $(HEADERS_INSTALL) $(HEADERS_DESTDIR)
+
+cstyle:
+	$(CSTYLE) -pP include/*.h
 
 cscope:
 	cscope -q -b $(SCOPEFILES)

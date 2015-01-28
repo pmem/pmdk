@@ -36,6 +36,7 @@ OBJCOPY = objcopy
 MKDIR = mkdir
 INSTALL = install
 CP = cp
+CSTYLE = ../../utils/cstyle
 
 INCLUDE = ../include
 
@@ -171,7 +172,7 @@ clobber: clean $(EXTRA_TARGETS_CLOBBER)
 	$(RM) $(LIB_AR) $(LIB_SO_SONAME) $(LIB_SO_REAL) $(LIB_SO)
 
 cstyle:
-	$(CSTYLE) -pP *.[ch] include/*.[ch]
+	$(CSTYLE) -pP *.[ch]
 
 $(objdir)/%.o: %.c $(DEPS)
 	$(CC) -c -o $@ $(CFLAGS) $(INCS) -fPIC $<

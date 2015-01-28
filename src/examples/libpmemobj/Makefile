@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2014, Intel Corporation
+# Copyright (c) 2014-2015, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -42,6 +42,7 @@ LIBDIR ?= ../../debug
 INCS = -I$(INCDIR)
 LIBS = -Wl,-rpath=$(LIBDIR) -L$(LIBDIR) -lpmemobj -lpmem -pthread
 CFLAGS = -std=gnu99 -ggdb -Wall -Werror
+CSTYLE = ../../../utils/cstyle
 
 all:     TARGET = all
 clean:   TARGET = clean
