@@ -37,11 +37,13 @@
 #
 TEST = blk_nblock\
        blk_non_zero\
+       blk_pool\
        blk_recovery\
        blk_rw\
        blk_rw_mt\
        checksum\
        log_basic\
+       log_pool\
        log_recovery\
        log_walker\
        pmem_isa_proc\
@@ -102,10 +104,10 @@ TEST = blk_nblock\
        pmempool_help\
        magic\
        arch_flags\
-       obj_basic\
        obj_redo_log\
        obj_basic_integration\
        obj_pmalloc_basic\
+       obj_pool\
        obj_lane\
        obj_sync\
        obj_direct\
