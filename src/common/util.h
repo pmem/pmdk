@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright (c) 2014-2015, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,6 +34,8 @@
  * util.h -- internal definitions for util module
  */
 
+#include <stdbool.h>
+
 /*
  * overridable names for malloc & friends used by this library
  */
@@ -54,6 +56,8 @@ void util_set_alloc_funcs(
 		char *(*strdup_func)(const char *s));
 void *util_map(int fd, size_t len, int cow);
 int util_unmap(void *addr, size_t len);
+bool util_overlap(const void *start1, const void *end1, void *start2,
+                void *end2);
 
 /*
  * header used at the beginning of all types of memory pools

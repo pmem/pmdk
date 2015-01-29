@@ -1,0 +1,15 @@
+Linux NVM Library
+
+This is src/test/pmem_memcpy/README.
+
+This directory contains a unit test for pmem_memcpy().
+
+The program in pmem_memcpy.c requires 4 arguments to be specified:
+	file name
+	dest off
+	src off
+	num bytes
+
+A zero for the dest offset and src offset are valid.
+
+This test performs tests for dest > src, and src > dest.

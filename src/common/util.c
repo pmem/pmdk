@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright (c) 2014-2015, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -378,6 +378,18 @@ util_range_none(void *addr, size_t len)
 		LOG(1, "!mprotect: PROT_NONE");
 
 	return retval;
+}
+
+/*
+ * Calculate if there is overlap in with the addresses and length
+ */
+bool
+util_overlap(const void *start1, const void *end1, void *start2, void *end2)
+{
+        if (start1 > start2)
+                return (end1 >= start2 && end2 >= start1);
+        else
+                return (end2 >= start1 && end1 >= start2);
 }
 
 /*
