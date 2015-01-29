@@ -1,0 +1,34 @@
+Linux NVM Library
+
+This is src/test/log_create/README.
+
+This directory contains a unit test for pmemlog_create().
+
+The program in log_create.c takes: path, poolsize, mode
+
+For example:
+
+	./log_create /my/file 20 0640
+
+This calls pmemlog_create() with the given arguments.  Note that poolsize
+is given in megabytes.
+
+Test cases:
+
+- expected to be successful
+	TEST0 non-existing file, poolsize > 0
+	TEST1 existing file, file length >= min required size, poolsize == 0
+	TEST8 existing file, file length >= min required size, poolsize == 0
+	(file contains garbage, except for header)
+
+- expected to fail
+	TEST2 non-existing file, poolsize == 0
+	TEST3 existing file, file length >= min required size, poolsize > 0
+	TEST4 existing file, file length < min required size, poolsize == 0
+	TEST[56] two success cases above, but path is invalid (directory not exist)
+	TEST7 existing file, file length >= min required size, poolsize == 0
+	(file contains garbage)
+
+- each case outputs:
+	- error, if error happened
+	- resulting file size, mode, consistency check results

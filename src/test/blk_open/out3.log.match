@@ -1,0 +1,5 @@
+blk_open/TEST3: START: blk_open
+ ./blk_open$(nW) $(nW)/testfile 0
+$(nW)/testfile: file size 20971520 usable blocks 4850 mode 0640
+$(nW)/testfile: pmemblk_open: Invalid argument
+blk_open/TEST3: Done

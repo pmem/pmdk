@@ -1,0 +1,5 @@
+blk_open/TEST0: START: blk_open
+ ./blk_open$(nW) $(nW)/testfile 4096
+$(nW)/testfile: pmemblk_create: File exists
+$(nW)/testfile: pmemblk_open: Success
+blk_open/TEST0: Done

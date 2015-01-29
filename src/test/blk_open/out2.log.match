@@ -1,0 +1,6 @@
+blk_open/TEST2: START: blk_open
+ ./blk_open$(nW) $(nW)/testfile 4096
+$(nW)/testfile: pmemblk_create: File exists
+$(nW)/testfile: pmemblk_check: Permission denied
+$(nW)/testfile: pmemblk_open: Permission denied
+blk_open/TEST2: Done
