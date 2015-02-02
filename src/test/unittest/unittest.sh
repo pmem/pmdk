@@ -73,7 +73,7 @@ in
 esac
 
 #
-# The variable DIR is constructed so the test uss that directory when
+# The variable DIR is constructed so the test uses that directory when
 # constructing test files.  DIR is chosen based on the fs-type for
 # this test, and if the appropriate fs-type doesn't have a directory
 # defined in testconfig.sh, the test is skipped.
@@ -114,6 +114,11 @@ export PMEMLOG_LOG_LEVEL=3
 export PMEMLOG_LOG_FILE=pmemlog$UNITTEST_NUM.log
 export PMEMOBJ_LOG_LEVEL=3
 export PMEMOBJ_LOG_FILE=pmemobj$UNITTEST_NUM.log
+
+export VMMALLOC_POOL_DIR="$DIR"
+export VMMALLOC_POOL_SIZE=$((16 * 1024 * 1024))
+export VMMALLOC_LOG_LEVEL=3
+export VMMALLOC_LOG_FILE=vmmalloc$UNITTEST_NUM.log
 
 #
 # create_file -- create zeroed out files of a given length in megs

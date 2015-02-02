@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright (c) 2014-2015, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -33,6 +33,8 @@
 /*
  * out.h -- definitions for "out" module
  */
+
+#include <stdarg.h>
 
 #ifdef	DEBUG
 
@@ -100,3 +102,5 @@ void out_fatal(const char *file, int line, const char *func,
 	const char *fmt, ...)
 	__attribute__((format(printf, 4, 5)));
 void out_set_print_func(void (*print_func)(const char *s));
+void out_set_vsnprintf_func(int (*vsnprintf_func)(char *str, size_t size,
+	const char *format, va_list ap));

@@ -37,15 +37,9 @@ LIBRARY_SO_VERSION = 1
 LIBRARY_VERSION = 0.0
 SOURCE = libvmem.c vmem.c $(COMMON)/util.c $(COMMON)/out.c
 
-EXTRA_TARGETS = jemalloc
-
 include ../Makefile.inc
 
-include jemalloc.mk
-
-ifeq ($(DEBUG),1)
-JEMALLOC_CONFIG += --enable-debug
-endif
+include ../jemalloc/jemalloc.mk
 
 INCS += -I$(JEMALLOC_DIR)/include/jemalloc
 INCS += -I$(JEMALLOC_OBJDIR)/include/jemalloc

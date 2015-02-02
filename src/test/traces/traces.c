@@ -38,6 +38,8 @@
 #define	LOG_LEVEL_VAR "TRACE_LOG_LEVEL"
 #define	LOG_FILE_VAR "TRACE_LOG_FILE"
 
+#include <sys/types.h>
+#include <stdarg.h>
 #include "out.h"
 #undef FATAL
 #undef ASSERT

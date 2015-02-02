@@ -80,7 +80,7 @@ main(int argc, char *argv[])
 				FATAL("!vmem_create");
 		}
 
-		memset(allocs, 0, TEST_ALLOCS_SIZE);
+		memset(allocs, 0, sizeof (allocs));
 
 		for (i = 0; i < TEST_ALLOCS_SIZE; ++i) {
 			allocs[i] =  vmem_malloc(vmp, object_size);

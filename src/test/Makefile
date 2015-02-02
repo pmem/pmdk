@@ -75,7 +75,18 @@ TEST = blk_nblock\
        vmem_strdup\
        vmem_fork\
        vmem_valgrind\
-       vmem_pages_purging
+       vmem_pages_purging\
+       vmmalloc_calloc\
+       vmmalloc_check_allocations\
+       vmmalloc_init\
+       vmmalloc_malloc\
+       vmmalloc_malloc_hooks\
+       vmmalloc_malloc_usable_size\
+       vmmalloc_memalign\
+       vmmalloc_out_of_memory\
+       vmmalloc_realloc\
+       vmmalloc_valgrind\
+       vmmalloc_valloc
 
 all     : TARGET = all
 clean   : TARGET = clean

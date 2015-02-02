@@ -41,6 +41,7 @@
 #include <sys/param.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <signal.h>
 #include <unistd.h>
 #include <stdint.h>
 #include <endian.h>
@@ -213,6 +214,57 @@ util_unmap(void *addr, size_t len)
 		LOG(1, "!munmap");
 
 	return retval;
+}
+
+/*
+ * util_map_tmpfile -- reserve space in an unlinked file and memory-map it
+ *
+ * size must be multiple of page size.
+ */
+void *
+util_map_tmpfile(const char *dir, size_t size)
+{
+	static char template[] = "/vmem.XXXXXX";
+
+	char fullname[strlen(dir) + sizeof (template)];
+	(void) strcpy(fullname, dir);
+	(void) strcat(fullname, template);
+
+	sigset_t set, oldset;
+	sigfillset(&set);
+	(void) sigprocmask(SIG_BLOCK, &set, &oldset);
+
+	int fd;
+	if ((fd = mkstemp(fullname)) < 0) {
+		LOG(1, "!mkstemp");
+		goto err;
+	}
+
+	(void) unlink(fullname);
+	(void) sigprocmask(SIG_SETMASK, &oldset, NULL);
+
+	LOG(3, "unlinked file is \"%s\"", fullname);
+
+	if ((errno = posix_fallocate(fd, 0, size)) != 0) {
+		LOG(1, "!posix_fallocate");
+		goto err;
+	}
+
+	void *base;
+	if ((base = util_map(fd, size, 0)) == NULL)
+		goto err;
+
+	(void) close(fd);
+	return base;
+
+err:
+	LOG(1, "return NULL");
+	int oerrno = errno;
+	(void) sigprocmask(SIG_SETMASK, &oldset, NULL);
+	if (fd != -1)
+		(void) close(fd);
+	errno = oerrno;
+	return NULL;
 }
 
 /*

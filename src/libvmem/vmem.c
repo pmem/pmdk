@@ -38,9 +38,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/param.h>
-#include <signal.h>
-#include <fcntl.h>
-#include <unistd.h>
 #include <errno.h>
 #include <stdint.h>
 #include <pthread.h>
@@ -54,7 +51,6 @@
  * private to this file...
  */
 static unsigned Header_size;
-static void *vmem_tmpfile(const char *dir, size_t size);
 
 /*
  * print_jemalloc_messages -- custom print function, for jemalloc
@@ -102,6 +98,7 @@ vmem_init(void)
 	if (!initialized) {
 		out_init(VMEM_LOG_PREFIX, VMEM_LOG_LEVEL_VAR,
 				VMEM_LOG_FILE_VAR);
+		out_set_vsnprintf_func(je_vmem_navsnprintf);
 		LOG(3, NULL);
 		util_init();
 		Header_size = roundup(sizeof (VMEM), Pagesize);
@@ -149,7 +146,7 @@ vmem_create(const char *dir, size_t size)
 	size = roundup(size, Pagesize);
 
 	void *addr;
-	if ((addr = vmem_tmpfile(dir, size)) == NULL)
+	if ((addr = util_map_tmpfile(dir, size)) == NULL)
 		return NULL;
 
 	/* store opaque info at beginning of mapped area */
@@ -355,55 +352,4 @@ vmem_malloc_usable_size(VMEM *vmp, void *ptr)
 
 	return je_vmem_pool_malloc_usable_size(
 			(pool_t *)((uintptr_t)vmp + Header_size), ptr);
-}
-
-/*
- * vmem_tmpfile -- reserve space in an unlinked file and memory-map it
- *
- * size must be multiple of page size.
- */
-static void *
-vmem_tmpfile(const char *dir, size_t size)
-{
-	static char template[] = "/vmem.XXXXXX";
-
-	char fullname[strlen(dir) + sizeof (template)];
-	(void) strcpy(fullname, dir);
-	(void) strcat(fullname, template);
-
-	sigset_t set, oldset;
-	sigfillset(&set);
-	(void) sigprocmask(SIG_BLOCK, &set, &oldset);
-
-	int fd;
-	if ((fd = mkstemp(fullname)) < 0) {
-		LOG(1, "!mkstemp");
-		goto err;
-	}
-
-	(void) unlink(fullname);
-	(void) sigprocmask(SIG_SETMASK, &oldset, NULL);
-
-	LOG(3, "unlinked file is \"%s\"", fullname);
-
-	if ((errno = posix_fallocate(fd, 0, size)) != 0) {
-		LOG(1, "!posix_fallocate");
-		goto err;
-	}
-
-	void *base;
-	if ((base = util_map(fd, size, 0)) == NULL)
-		goto err;
-
-	(void) close(fd);
-	return base;
-
-err:
-	LOG(1, "return NULL");
-	int oerrno = errno;
-	(void) sigprocmask(SIG_SETMASK, &oldset, NULL);
-	if (fd != -1)
-		(void) close(fd);
-	errno = oerrno;
-	return NULL;
 }

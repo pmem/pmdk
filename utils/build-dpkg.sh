@@ -176,11 +176,24 @@ Depends: libvmem (=\${binary:Version}), uuid-dev, \${shlibs:Depends}, \${misc:De
 Description: Development files for libvmem
  Development files for libvmem library.
 
+Package: libvmmalloc
+Architecture: any
+Depends: \${shlibs:Depends}, \${misc:Depends}
+Description: NVML libvmmalloc library
+ NVML general purpose volatile-memory allocation library on top of Persistent Memory.
+
+Package: libvmmalloc-dev
+Section: libdevel
+Architecture: any
+Depends: libvmmalloc (=\${binary:Version}), uuid-dev, \${shlibs:Depends}, \${misc:Depends}
+Description: Development files for libvmmalloc
+ Development files for libvmmalloc library.
+
 Package: $PACKAGE_NAME-dbg
 Section: debug
 Priority: extra
 Architecture: any
-Depends: libvmem (=\${binary:Version}), libpmem (=\${binary:Version}), libpmemblk (=\${binary:Version}), libpmemlog (=\${binary:Version}), libpmemobj (=\${binary:Version}), uuid-dev, \${misc:Depends}
+Depends: libvmem (=\${binary:Version}), libvmmalloc (=\${binary:Version}), libpmem (=\${binary:Version}), libpmemblk (=\${binary:Version}), libpmemlog (=\${binary:Version}), libpmemobj (=\${binary:Version}), uuid-dev, \${misc:Depends}
 Description: Debug symbols for NVML libraries
  Debug symbols for all NVML libraries.
 EOF
@@ -390,6 +403,40 @@ hardening-no-fortify-functions usr/lib/nvml_dbg/*
 EOF
 
 cat << EOF > debian/libvmem-dev.triggers
+interest man-db
+EOF
+
+cat << EOF > debian/libvmmalloc.install
+usr/lib/libvmmalloc.so.*
+EOF
+
+cat << EOF > debian/libvmmalloc.lintian-overrides
+$ITP_BUG_EXCUSE
+new-package-should-close-itp-bug
+libvmem: package-name-doesnt-match-sonames
+EOF
+
+cat << EOF > debian/libvmmalloc-dev.install
+usr/lib/nvml_debug/libvmmalloc.a   usr/lib/nvml_dbg/
+usr/lib/nvml_debug/libvmmalloc.so   usr/lib/nvml_dbg/
+usr/lib/nvml_debug/libvmmalloc.so.* usr/lib/nvml_dbg/
+usr/lib/libvmmalloc.so
+usr/include/libvmmalloc.h
+usr/share/man/man3/libvmmalloc.3.gz
+EOF
+
+cat << EOF > debian/libvmmalloc-dev.lintian-overrides
+$ITP_BUG_EXCUSE
+new-package-should-close-itp-bug
+# The following warnings are triggered by a bug in debhelper:
+# http://bugs.debian.org/204975
+postinst-has-useless-call-to-ldconfig
+postrm-has-useless-call-to-ldconfig
+# We do not want to compile with -O2 for debug version
+hardening-no-fortify-functions usr/lib/nvml_dbg/*
+EOF
+
+cat << EOF > debian/libvmmalloc-dev.triggers
 interest man-db
 EOF
 

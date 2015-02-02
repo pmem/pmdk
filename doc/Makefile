@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2014, Intel Corporation
+# Copyright (c) 2014-2015, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -33,7 +33,8 @@
 #
 # doc/Makefile -- Makefile for NVM library man pages
 #
-MANPAGES = libpmem.3 libpmemblk.3 libpmemlog.3 libpmemobj.3 libvmem.3
+MANPAGES = libpmem.3 libpmemblk.3 libpmemlog.3 libpmemobj.3 libvmem.3 \
+	libvmmalloc.3
 TXTFILES = $(MANPAGES:=.txt)
 HTMLFILES = $(MANPAGES:=.html)
 GZFILES = $(MANPAGES:=.gz)
@@ -47,7 +48,7 @@ all: $(TXTFILES)
 html: $(HTMLFILES)
 
 %.3.html: %.3
-	/usr/local/bin/groff -mandoc -Thtml ./$< > $@
+	groff -mandoc -Thtml ./$< > $@
 
 compress: $(GZFILES)
 

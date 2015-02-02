@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright (c) 2014-2015, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,13 +31,19 @@
  */
 
 /*
- * traces_custom_function.c -- unit test for traces with custom print function
+ * traces_custom_function.c -- unit test for traces with custom print or
+ * vsnprintf functions
+ *
+ * usage: traces_custom_function [v|p]
+ *
  */
 
 #define	LOG_PREFIX "trace_func"
 #define	LOG_LEVEL_VAR "TRACE_LOG_LEVEL"
 #define	LOG_FILE_VAR "TRACE_LOG_FILE"
 
+#include <sys/types.h>
+#include <stdarg.h>
 #include "out.h"
 #undef FATAL
 #undef ASSERT
@@ -61,21 +67,64 @@ print_custom_function(const char *s)
 	}
 }
 
+/*
+ * vsnprintf_custom_function -- Custom vsnprintf implementation
+ *
+ * It modifies format by adding @@ in front of each conversion specification.
+ */
+int
+vsnprintf_custom_function(char *str, size_t size, const char *format,
+		va_list ap)
+{
+	char format2[strlen(format) * 2];
+	int i = 0;
+
+	while (*format != '\0') {
+		if (*format == '%') {
+			format2[i++] = '@';
+			format2[i++] = '@';
+		}
+		format2[i++] = *format++;
+	}
+	format2[i++] = '\0';
+
+	return vsnprintf(str, size, format2, ap);
+}
+
 int
 main(int argc, char *argv[])
 {
 	START(argc, argv, "traces_custom_function");
 
-	/* Prepare environment */
+	if (argc != 2)
+		FATAL("usage: %s [v|p]", argv[0]);
+
 	out_set_print_func(print_custom_function);
 
-	/* Execute test */
 	out_init(LOG_PREFIX, LOG_LEVEL_VAR, LOG_FILE_VAR);
-	LOG(0, "Log level NONE");
-	LOG(1, "Log level ERROR");
-	LOG(2, "Log level WARNING");
-	LOG(3, "Log level INFO");
-	LOG(4, "Log level DEBUG");
+
+	switch (argv[1][0]) {
+	case 'p': {
+		LOG(0, "Log level NONE");
+		LOG(1, "Log level ERROR");
+		LOG(2, "Log level WARNING");
+		LOG(3, "Log level INFO");
+		LOG(4, "Log level DEBUG");
+	}
+		break;
+	case 'v':
+		out_set_vsnprintf_func(vsnprintf_custom_function);
+
+		LOG(0, "no format");
+		LOG(0, "pointer: %p", (void *)0x12345678);
+		LOG(0, "string: %s", "Hello world!");
+		LOG(0, "number: %u", 12345678);
+		errno = EINVAL;
+		LOG(0, "!error");
+		break;
+	default:
+		FATAL("usage: %s [v|p]", argv[0]);
+	}
 
 	/* Cleanup */
 	out_fini();
