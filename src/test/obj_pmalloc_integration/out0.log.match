@@ -1,0 +1,2 @@
+obj_pmalloc_integration/TEST0: START: obj_pmalloc_integration
+ ./obj_pmalloc_integration$(nW)

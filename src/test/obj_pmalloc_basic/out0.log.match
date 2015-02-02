@@ -1,0 +1,24 @@
+obj_pmalloc_basic/TEST0: START: obj_pmalloc_basic
+ ./obj_pmalloc_basic$(nW)
+wrapper function pool_select_arena
+wrapper function arena_guard_up
+wrapper function arena_select_bucket
+wrapper function bucket_calc_units
+wrapper function bucket_find_object
+wrapper function bucket_remove_object
+wrapper function arena_guard_down
+wrapper function bucket_object_init
+wrapper function pool_select_arena
+wrapper function arena_guard_up
+wrapper function arena_select_bucket
+wrapper function bucket_calc_units
+wrapper function bucket_find_object
+wrapper function bucket_remove_object
+wrapper function pool_recycle_object
+wrapper function arena_guard_down
+wrapper function pool_select_arena
+wrapper function bucket_object_init
+wrapper function arena_guard_up
+wrapper function pool_recycle_object
+wrapper function arena_guard_down
+obj_pmalloc_basic/TEST0: Done

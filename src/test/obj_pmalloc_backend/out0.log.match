@@ -1,0 +1,3 @@
+obj_pmalloc_backend/TEST0: START: obj_pmalloc_backend
+ ./obj_pmalloc_backend$(nW)
+obj_pmalloc_backend/TEST0: Done

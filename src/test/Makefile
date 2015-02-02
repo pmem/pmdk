@@ -97,7 +97,13 @@ TEST = blk_nblock\
        pmempool_dump\
        pmempool_create\
        pmempool_help\
-       magic
+       magic\
+       obj_pmalloc_basic\
+       obj_pmalloc_backend\
+       obj_pmalloc_arena\
+       obj_pmalloc_pool\
+       obj_pmalloc_bucket\
+       obj_pmalloc_integration
 
 all     : TARGET = all
 clean   : TARGET = clean
