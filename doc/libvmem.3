@@ -660,8 +660,9 @@ developers.
 .PP
 The environment variable
 .B VMEM_LOG_FILE
-specifies a file name where
-all logging information should be written, and if
+specifies a file name where all logging information should be written.
+If the last character in the name is "-", the PID of the current process
+will be appended to the file name when the log file is created.  If
 .B VMEM_LOG_FILE
 is not set, output goes to stderr.
 All prints are done using the

@@ -106,12 +106,24 @@ out_init(const char *log_prefix, const char *log_level_var,
 		}
 	}
 
-	if ((log_file = getenv(log_file_var)) != NULL &&
-				((Out_fp = fopen(log_file, "w")) == NULL)) {
-		fprintf(stderr, "Error: %s=%s: %s\n",
-				log_file_var, log_file, strerror(errno));
-		exit(1);
- 	}
+	if ((log_file = getenv(log_file_var)) != NULL) {
+		int cc = strlen(log_file);
+
+		/* reserve more than enough space for a PID + '\0' */
+		char log_file_pid[cc + 30];
+
+		if (cc > 0 && log_file[cc - 1] == '-') {
+			snprintf(log_file_pid, cc + 30, "%s%d",
+				log_file, getpid());
+			log_file = log_file_pid;
+		}
+		if ((Out_fp = fopen(log_file, "w")) == NULL) {
+			fprintf(stderr, "Error: %s=%s: %s\n",
+				log_file_var,
+				log_file, strerror(errno));
+			exit(1);
+		}
+	}
 #endif	/* DEBUG */
 
 	if (Out_fp == NULL)
