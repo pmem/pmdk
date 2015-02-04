@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2014, Intel Corporation
+# Copyright (c) 2014-2015, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,10 +31,21 @@
 #
 
 #
+# require_valgrind -- continue script execution only if
+#       valgrind package is installed
+#
+function require_valgrind() {
+	VALGRINDEXE=`which valgrind 2>/dev/null` && return
+	echo "$UNITTEST_NAME: SKIP valgrind package required"
+	exit 0
+}
+
+#
 # require_valgrind_dev_3_7 -- continue script execution only if
 #	version 3.7 (or later) of valgrind-devel package is installed
 #
 function require_valgrind_dev_3_7() {
+	require_valgrind
 	gcc -E valgrind_check.c 2>&1 | \
 		grep -q "VALGRIND_VERSION_3_7_OR_LATER" && return
 	echo "$UNITTEST_NAME: SKIP valgrind-devel package (ver 3.7 or later) required"
@@ -46,6 +57,7 @@ function require_valgrind_dev_3_7() {
 #	version 3.8 (or later) of valgrind-devel package is installed
 #
 function require_valgrind_dev_3_8() {
+	require_valgrind
 	gcc -E valgrind_check.c 2>&1 | \
 		grep -q "VALGRIND_VERSION_3_8_OR_LATER" && return
 	echo "$UNITTEST_NAME: SKIP valgrind-devel package (ver 3.8 or later) required"

@@ -46,6 +46,7 @@ require_fs_type local pmem
 # there's no point in testing statically linked builds
 require_build_type debug nondebug
 require_valgrind_dev_3_7
+set_valgrind_exe_name
 
 setup
 
