@@ -64,7 +64,7 @@ dd if=/dev/urandom of=$DIR/testfile1 bs=1K count=$(($MIN_POOL_SIZE / 1024 - \
 # Attempts to zero uninitialized blocks are nops (should succeed).
 #
 expect_normal_exit ./blk_non_zero$EXESUFFIX 512 $DIR/testfile1 c 0\
-	r:0 r:1 r:32201 r:32202 z:0 z:1 r:0
+	r:0 r:1 r:32201 r:32202 z:0 z:1 r:0 e:3 r:4
 
 rm $DIR/testfile1
 
