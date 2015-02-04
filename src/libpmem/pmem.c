@@ -156,9 +156,9 @@
  * 	If MOVNT instructions are available, uses the memset flow described
  * 	above, otherwise calls the libc memset() followed by pmem_flush().
  *
- * pmem_memmove()
- * pmem_memcpy()
- * pmem_memset()
+ * pmem_memmove_persist()
+ * pmem_memcpy_persist()
+ * pmem_memset_persist()
  *
  * 	Calls the appropriate _nodrain() function followed by pmem_drain().
  *
@@ -216,6 +216,21 @@
 	asm volatile(".byte 0x66, 0x0f, 0xae, 0xf8");
 
 #define	FLUSH_ALIGN 64
+
+#define	ALIGN_SHIFT	6
+#define	ALIGN_MASK	(FLUSH_ALIGN - 1)
+
+#define	CHUNK_SIZE	128 /* 16*8 */
+#define	CHUNK_SHIFT	7
+#define	CHUNK_MASK	(CHUNK_SIZE - 1)
+
+#define	DWORD_SIZE	4
+#define	DWORD_SHIFT	2
+#define	DWORD_MASK	(DWORD_SIZE - 1)
+
+#define	MOVNT_SIZE	16
+#define	MOVNT_MASK	(MOVNT_SIZE -1)
+#define	MOVNT_SHIFT	4
 
 #define	PROCMAXLEN 2048 /* maximum expected line length in /proc files */
 
@@ -611,8 +626,183 @@ memmove_nodrain_movnt(void *pmemdest, const void *src, size_t len)
 	/* way too chatty for LOG level 3 */
 	LOG(15, "pmemdest %p src %p len %zu", pmemdest, src, len);
 
-	/* XXX stub version */
-	return memmove(pmemdest, src, len);
+	__m128i xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
+	size_t i;
+	__m128i *d;
+	__m128i *s;
+	void *dest1 = pmemdest;
+	size_t cnt;
+
+	if (len == 0)
+		return NULL;
+
+	if (src == pmemdest)
+		return pmemdest;
+
+	if ((uintptr_t)dest1 - (uintptr_t)src >= len) {
+		/* align bytes on 64-byte boundary */
+		cnt = (uint64_t)dest1 & ALIGN_MASK;
+		if (cnt > 0) {
+			cnt = FLUSH_ALIGN - cnt;
+			/* never try to copy more the len bytes */
+			if (cnt > len)
+				cnt = len;
+
+			uint8_t *d8 = (uint8_t *)dest1;
+			const uint8_t *s8 = (uint8_t *)src;
+			for (i = 0; i < cnt; i++) {
+				*d8 = *s8;
+				d8++;
+				s8++;
+			}
+			pmem_flush(d8, cnt);
+			dest1 += cnt;
+			src += cnt;
+			len -= cnt;
+		}
+
+		d = (__m128i *)dest1;
+		s = (__m128i *)src;
+
+		cnt = len >> CHUNK_SHIFT;
+		for (i = 0; i < cnt; i++) {
+			xmm0 = _mm_loadu_si128(s);
+			xmm1 = _mm_loadu_si128(s + 1);
+			xmm2 = _mm_loadu_si128(s + 2);
+			xmm3 = _mm_loadu_si128(s + 3);
+			xmm4 = _mm_loadu_si128(s + 4);
+			xmm5 = _mm_loadu_si128(s + 5);
+			xmm6 = _mm_loadu_si128(s + 6);
+			xmm7 = _mm_loadu_si128(s + 7);
+			s += 8;
+			_mm_stream_si128(d,	xmm0);
+			_mm_stream_si128(d + 1,	xmm1);
+			_mm_stream_si128(d + 2,	xmm2);
+			_mm_stream_si128(d + 3,	xmm3);
+			_mm_stream_si128(d + 4,	xmm4);
+			_mm_stream_si128(d + 5, xmm5);
+			_mm_stream_si128(d + 6,	xmm6);
+			_mm_stream_si128(d + 7,	xmm7);
+			d += 8;
+		}
+
+		/* copy the tail (<128 bytes) in 16 bytes chunks */
+		len &= CHUNK_MASK;
+		if (len != 0) {
+			cnt = len >> MOVNT_SHIFT;
+			for (i = 0; i < cnt; i++) {
+				xmm0 = _mm_loadu_si128(s);
+				_mm_stream_si128(d, xmm0);
+				s++;
+				d++;
+			}
+		}
+		/* copy the last bytes (<16). First dwords then bytes */
+		len &= MOVNT_MASK;
+		if (len != 0) {
+			cnt = len >> DWORD_SHIFT;
+			int32_t *d32 = (int32_t *)d;
+			int32_t *s32 = (int32_t *)s;
+			for (i = 0; i < cnt; i++) {
+				_mm_stream_si32(d32, *s32);
+				d32++;
+				s32++;
+			}
+			cnt = len & DWORD_MASK;
+			uint8_t *d8 = (uint8_t *)d32;
+			const uint8_t   *s8 = (uint8_t *)s32;
+
+			for (i = 0; i < cnt; i++) {
+				*d8 = *s8;
+				d8++;
+				s8++;
+			}
+			pmem_flush(d8, cnt);
+		}
+	} else {
+		dest1 = dest1 + len;
+		src = src + len;
+
+		cnt = (uint64_t)dest1 & ALIGN_MASK;
+		if (cnt > 0) {
+			/* never try to copy more the len bytes */
+			if (cnt > len)
+				cnt = len;
+			uint8_t *d8 = (uint8_t *)dest1;
+			const uint8_t *s8 = (uint8_t *)src;
+			for (i = 0; i < cnt; i++) {
+				d8--;
+				s8--;
+				*d8 = *s8;
+			}
+			pmem_flush(d8, cnt);
+			dest1 -= cnt;
+			src -= cnt;
+			len -= cnt;
+		}
+
+		d = (__m128i *)dest1;
+		s = (__m128i *)src;
+
+		cnt = len >> CHUNK_SHIFT;
+		for (i = 0; i < cnt; i++) {
+			xmm0 = _mm_loadu_si128(s - 1);
+			xmm1 = _mm_loadu_si128(s - 2);
+			xmm2 = _mm_loadu_si128(s - 3);
+			xmm3 = _mm_loadu_si128(s - 4);
+			xmm4 = _mm_loadu_si128(s - 5);
+			xmm5 = _mm_loadu_si128(s - 6);
+			xmm6 = _mm_loadu_si128(s - 7);
+			xmm7 = _mm_loadu_si128(s - 8);
+			s -= 8;
+			_mm_stream_si128(d - 1, xmm0);
+			_mm_stream_si128(d - 2, xmm1);
+			_mm_stream_si128(d - 3, xmm2);
+			_mm_stream_si128(d - 4, xmm3);
+			_mm_stream_si128(d - 5, xmm4);
+			_mm_stream_si128(d - 6, xmm5);
+			_mm_stream_si128(d - 7, xmm6);
+			_mm_stream_si128(d - 8, xmm7);
+			d -= 8;
+		}
+		/* copy the tail (<128 bytes) in 16 bytes chunks */
+		len &= CHUNK_MASK;
+		if (len != 0) {
+		cnt = len >> MOVNT_SHIFT;
+			for (i = 0; i < cnt; i++) {
+				d--;
+				s--;
+				xmm0 = _mm_loadu_si128(s);
+				_mm_stream_si128(d, xmm0);
+			}
+		}
+
+		/* copy the last bytes (<16). First dwords then bytes */
+		len &= MOVNT_MASK;
+		if (len != 0) {
+			cnt = len >> DWORD_SHIFT;
+			int32_t *d32 = (int32_t *)d;
+			int32_t *s32 = (int32_t *)s;
+			for (i = 0; i < cnt; i++) {
+				d32--;
+				s32--;
+				_mm_stream_si32(d32, *s32);
+			}
+
+			cnt = len & DWORD_MASK;
+			uint8_t *d8 = (uint8_t *)d32;
+			const uint8_t   *s8 = (uint8_t *)s32;
+
+			for (i = 0; i < cnt; i++) {
+				d8--;
+				s8--;
+				*d8 = *s8;
+			}
+			pmem_flush(d8, cnt);
+
+		}
+	}
+	return pmemdest;
 }
 
 /*
@@ -647,10 +837,10 @@ pmem_memcpy_nodrain(void *pmemdest, const void *src, size_t len)
 }
 
 /*
- * pmem_memmove -- memmove to pmem
+ * pmem_memmove_persist -- memmove to pmem
  */
 void *
-pmem_memmove(void *pmemdest, const void *src, size_t len)
+pmem_memmove_persist(void *pmemdest, const void *src, size_t len)
 {
 	/* way too chatty for LOG level 3 */
 	LOG(15, "pmemdest %p src %p len %zu", pmemdest, src, len);
@@ -661,10 +851,10 @@ pmem_memmove(void *pmemdest, const void *src, size_t len)
 }
 
 /*
- * pmem_memcpy -- memcpy to pmem
+ * pmem_memcpy_persist -- memcpy to pmem
  */
 void *
-pmem_memcpy(void *pmemdest, const void *src, size_t len)
+pmem_memcpy_persist(void *pmemdest, const void *src, size_t len)
 {
 	/* way too chatty for LOG level 3 */
 	LOG(15, "pmemdest %p src %p len %zu", pmemdest, src, len);
@@ -695,8 +885,76 @@ memset_nodrain_movnt(void *pmemdest, int c, size_t len)
 	/* way too chatty for LOG level 3 */
 	LOG(15, "pmemdest %p c 0x%x len %zu", pmemdest, c, len);
 
-	/* XXX stub version */
-	return memset(pmemdest, c, len);
+	int i;
+	void *dest1 = pmemdest;
+	size_t cnt;
+	__m128i xmm0;
+	__m128i *d;
+
+	/* align on 64 byte boundary */
+	cnt = (uint64_t)dest1 & ALIGN_MASK;
+	if (cnt != 0) {
+		cnt = FLUSH_ALIGN - cnt;
+		if (cnt > len)
+			cnt = len;
+
+		memset(dest1, c, cnt);
+		pmem_flush(dest1, cnt);
+		len -= cnt;
+		dest1 += cnt;
+	}
+
+	xmm0 = _mm_set_epi8(c, c, c, c,
+		c, c, c, c,
+		c, c, c, c,
+		c, c, c, c);
+
+	d = (__m128i *)dest1;
+	cnt = len/CHUNK_SIZE;
+	if (cnt != 0) {
+		for (i = 0; i < cnt; i++) {
+			_mm_stream_si128(d, xmm0);
+			_mm_stream_si128(d + 1, xmm0);
+			_mm_stream_si128(d + 2, xmm0);
+			_mm_stream_si128(d + 3, xmm0);
+			_mm_stream_si128(d + 4, xmm0);
+			_mm_stream_si128(d + 5, xmm0);
+			_mm_stream_si128(d + 6, xmm0);
+			_mm_stream_si128(d + 7, xmm0);
+			d += 8;
+		}
+	}
+	/* copy the tail (<128 bytes) in 16 bytes chunks */
+	len &= CHUNK_MASK;
+	if (len != 0) {
+		cnt = len >> MOVNT_SHIFT;
+		for (i = 0; i < cnt; i++) {
+			_mm_stream_si128(d, xmm0);
+			d++;
+		}
+	}
+
+	/* copy the last bytes (<16). First dwords then bytes */
+	len &= MOVNT_MASK;
+	if (len != 0) {
+		i = 0;
+		int32_t *d32 = (int32_t *)d;
+		cnt = len >> DWORD_SHIFT;
+		if (cnt != 0) {
+			for (i = 0; i < cnt; i++) {
+				_mm_stream_si32((int32_t *)d32,
+					_mm_cvtsi128_si32(xmm0));
+				d32++;
+			}
+		}
+		/* at this point the cnt < 16 so use memset */
+		cnt = len & DWORD_MASK;
+		if (cnt != 0) {
+			memset((void *)d32, c, cnt);
+			pmem_flush(d32, cnt);
+		}
+	}
+	return pmemdest;
 }
 
 /*
@@ -719,10 +977,10 @@ pmem_memset_nodrain(void *pmemdest, int c, size_t len)
 }
 
 /*
- * pmem_memset -- memset to pmem
+ * pmem_memset_persist -- memset to pmem
  */
 void *
-pmem_memset(void *pmemdest, int c, size_t len)
+pmem_memset_persist(void *pmemdest, int c, size_t len)
 {
 	/* way too chatty for LOG level 3 */
 	LOG(15, "pmemdest %p c 0x%x len %zu", pmemdest, c, len);
