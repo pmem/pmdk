@@ -77,7 +77,8 @@ static VMEM *Vmp = NULL;
 /*
  * malloc -- allocate a block of size bytes
  */
-__attribute__((malloc, alloc_size(1)))
+__ATTR_MALLOC__
+__ATTR_ALLOC_SIZE__(1)
 void *
 malloc(size_t size)
 {
@@ -93,7 +94,8 @@ malloc(size_t size)
 /*
  * calloc -- allocate a block of nmemb * size bytes and set its contents to zero
  */
-__attribute__((malloc, alloc_size(1, 2)))
+__ATTR_MALLOC__
+__ATTR_ALLOC_SIZE__(1, 2)
 void *
 calloc(size_t nmemb, size_t size)
 {
@@ -109,7 +111,7 @@ calloc(size_t nmemb, size_t size)
 /*
  * realloc -- resize a block previously allocated by malloc
  */
-__attribute__((alloc_size(2)))
+__ATTR_ALLOC_SIZE__(2)
 void *
 realloc(void *ptr, size_t size)
 {
@@ -157,7 +159,9 @@ cfree(void *ptr)
  * memalign -- allocate a block of size bytes, starting on an address
  * that is a multiple of boundary
  */
-__attribute__((malloc, alloc_size(2)))
+__ATTR_MALLOC__
+__ATTR_ALLOC_ALIGN__(1)
+__ATTR_ALLOC_SIZE__(2)
 void *
 memalign(size_t boundary, size_t size)
 {
@@ -179,7 +183,9 @@ memalign(size_t boundary, size_t size)
  *
  * size must be a multiple of alignment
  */
-__attribute__((malloc, alloc_size(2)))
+__ATTR_MALLOC__
+__ATTR_ALLOC_ALIGN__(1)
+__ATTR_ALLOC_SIZE__(2)
 void *
 aligned_alloc(size_t alignment, size_t size)
 {
@@ -200,7 +206,7 @@ aligned_alloc(size_t alignment, size_t size)
  * posix_memalign -- allocate a block of size bytes, starting on an address
  * that is a multiple of alignment
  */
-__attribute__((nonnull(1)))
+__ATTR_NONNULL__(1)
 int
 posix_memalign(void **memptr, size_t alignment, size_t size)
 {
@@ -228,7 +234,8 @@ posix_memalign(void **memptr, size_t alignment, size_t size)
 /*
  * valloc -- allocate a block of size bytes, starting on a page boundary
  */
-__attribute__((malloc, alloc_size(1)))
+__ATTR_MALLOC__
+__ATTR_ALLOC_SIZE__(1)
 void *
 valloc(size_t size)
 {
@@ -243,7 +250,8 @@ valloc(size_t size)
 			Pagesize, size);
 }
 
-__attribute__((malloc, alloc_size(1)))
+__ATTR_MALLOC__
+__ATTR_ALLOC_SIZE__(1)
 void *
 pvalloc(size_t size)
 {

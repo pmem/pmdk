@@ -53,34 +53,97 @@ extern "C" {
 #define	VMMALLOC_OVERRIDE_VALLOC
 #define	VMMALLOC_OVERRIDE_MEMALIGN
 
-extern void *malloc(size_t size) __attribute__((malloc, alloc_size(1)));
+/*
+ * check compiler support for various function attributes
+ */
+#if defined __GNUC__
+
+#define	GCC_VER (__GNUC__ * 100 + __GNUC_MINOR__)
+
+#if GCC_VER >= 296
+#define	__ATTR_MALLOC__ __attribute__((malloc))
+#else
+#define	__ATTR_MALLOC__
+#endif
+
+#if GCC_VER >= 303
+#define	__ATTR_NONNULL__(x) __attribute__((nonnull(x)))
+#else
+#define	__ATTR_NONNULL__(x)
+#endif
+
+#if GCC_VER >= 403
+#define	__ATTR_ALLOC_SIZE__(...) __attribute__((alloc_size(__VA_ARGS__)))
+#else
+#define	__ATTR_ALLOC_SIZE__(...)
+#endif
+
+#if GCC_VER >= 409
+#define	__ATTR_ALLOC_ALIGN__(x) __attribute__((alloc_align(x)))
+#else
+#define	__ATTR_ALLOC_ALIGN__(x)
+#endif
+
+#else /* clang and other compilers */
+
+#ifndef __has_attribute
+#define	__has_attribute(x) 0
+#endif
+
+#if __has_attribute(malloc)
+#define	__ATTR_MALLOC__ __attribute__((malloc))
+#else
+#define	__ATTR_MALLOC__
+#endif
+
+#if __has_attribute(nonnull)
+#define	__ATTR_NONNULL__(x) __attribute__((nonnull(x)))
+#else
+#define	__ATTR_NONNULL__(x)
+#endif
+
+#if __has_attribute(alloc_size)
+#define	__ATTR_ALLOC_SIZE__(...) __attribute__((alloc_size(__VA_ARGS__)))
+#else
+#define	__ATTR_ALLOC_SIZE__(...)
+#endif
+
+#if __has_attribute(alloc_align)
+#define	__ATTR_ALLOC_ALIGN__(x) __attribute__((alloc_align(x)))
+#else
+#define	__ATTR_ALLOC_ALIGN__(x)
+#endif
+
+#endif /* __GNUC__ */
+
+extern void *malloc(size_t size) __ATTR_MALLOC__ __ATTR_ALLOC_SIZE__(1);
 
 extern void *calloc(size_t nmemb, size_t size)
-	__attribute__((malloc, alloc_size(1, 2)));
+	__ATTR_MALLOC__ __ATTR_ALLOC_SIZE__(1, 2);
 
-extern void *realloc(void *ptr, size_t size) __attribute__((alloc_size(2)));
+extern void *realloc(void *ptr, size_t size) __ATTR_ALLOC_SIZE__(2);
 
 extern void free(void *ptr);
 
 extern void cfree(void *ptr);
 
 extern int posix_memalign(void **memptr, size_t alignment, size_t size)
-	__attribute__((nonnull(1)));
+	__ATTR_NONNULL__(1);
 
 #ifdef	VMMALLOC_OVERRIDE_MEMALIGN
 extern void *memalign(size_t boundary, size_t size)
-	__attribute__((malloc, alloc_size(2)));
+	__ATTR_MALLOC__ __ATTR_ALLOC_ALIGN__(1) __ATTR_ALLOC_SIZE__(2);
 #endif
 
 #ifdef	VMMALLOC_OVERRIDE_ALIGNED_ALLOC
 extern void *aligned_alloc(size_t alignment, size_t size)
-	__attribute__((malloc, alloc_size(2)));
+	__ATTR_MALLOC__ __ATTR_ALLOC_ALIGN__(1) __ATTR_ALLOC_SIZE__(2);
 #endif
 
 #ifdef	VMMALLOC_OVERRIDE_VALLOC
-extern void *valloc(size_t size) __attribute__((malloc, alloc_size(1)));
+extern void *valloc(size_t size) __ATTR_MALLOC__ __ATTR_ALLOC_SIZE__(1);
 
-extern void *pvalloc(size_t size) __attribute__((malloc, alloc_size(1)));
+extern void *pvalloc(size_t size) __ATTR_MALLOC__ __ATTR_ALLOC_SIZE__(1);
 #endif
 
 extern size_t malloc_usable_size(void *ptr);
@@ -88,4 +151,4 @@ extern size_t malloc_usable_size(void *ptr);
 #ifdef __cplusplus
 }
 #endif
-#endif	/* libvmem.h */
+#endif	/* libvmmalloc.h */
