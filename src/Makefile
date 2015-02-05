@@ -68,6 +68,7 @@ examples benchmarks: $(TARGETS)
 custom_build = $(DEBUG)$(OBJDIR)
 
 libvmmalloc libvmem: jemalloc
+tools: libpmem libpmemblk libpmemlog
 
 %-install:
 	$(MAKE) -C $* install
@@ -110,7 +111,7 @@ ifeq ($(custom_build),)
 	$(MAKE) -C jemalloc -f Makefile.nvml $@ DEBUG=1
 endif
 
-install:
+install: all
 	install -d $(HEADERS_DESTDIR)
 	install -p -m 0644 $(HEADERS_INSTALL) $(HEADERS_DESTDIR)
 
