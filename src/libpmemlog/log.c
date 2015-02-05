@@ -313,7 +313,7 @@ pmemlog_persist(PMEMlogpool *plp, uint64_t new_write_offset)
 
 	/* persist the data */
 	if (plp->is_pmem)
-		pmem_persist(plp->addr + old_write_offset, length);
+		pmem_drain(); /* data already flushed */
 	else
 		pmem_msync(plp->addr + old_write_offset, length);
 
@@ -380,7 +380,11 @@ pmemlog_append(PMEMlogpool *plp, const void *buf, size_t count)
 			 */
 			RANGE_RW(&data[write_offset], count);
 
-			memcpy(&data[write_offset], buf, count);
+			if (plp->is_pmem)
+				pmem_memcpy_nodrain(&data[write_offset],
+					buf, count);
+			else
+				memcpy(&data[write_offset], buf, count);
 
 			/* protect the log space range (debug version only) */
 			RANGE_RO(&data[write_offset], count);
@@ -459,7 +463,11 @@ pmemlog_appendv(PMEMlogpool *plp, const struct iovec *iov, int iovcnt)
 				 */
 				RANGE_RW(&data[write_offset], count);
 
-				memcpy(&data[write_offset], buf, count);
+				if (plp->is_pmem)
+					pmem_memcpy_nodrain(&data[write_offset],
+						buf, count);
+				else
+					memcpy(&data[write_offset], buf, count);
 
 				/*
 				 * protect the log space range
