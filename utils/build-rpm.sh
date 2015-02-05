@@ -298,6 +298,23 @@ Development files for NVML libvmmalloc library
 /usr/include/libvmmalloc.h
 /usr/share/man/man3/libvmmalloc.3.gz
 
+%package tools
+Group:		%{package_group}
+Summary:	Tools for %{name}
+Requires:	libuuid-devel
+
+%description tools
+Usefull applications for administration and diagnostic purposes.
+
+%files tools
+/usr/bin/pmempool
+/usr/share/man/man1/pmempool.1.gz
+/usr/share/man/man1/pmempool-info.1.gz
+/usr/share/man/man1/pmempool-create.1.gz
+/usr/share/man/man1/pmempool-dump.1.gz
+/usr/share/man/man1/pmempool-check.1.gz
+/etc/bash_completion.d/pmempool.sh
+
 %prep
 %setup -q -n $PACKAGE_SOURCE
 

@@ -249,3 +249,111 @@ function check() {
 function pass() {
 	echo $UNITTEST_NAME: PASS
 }
+
+# Paths to some useful tools
+[ -n "$PMEMPOOL" ] || PMEMPOOL=../../tools/pmempool/pmempool
+[ -n "$PMEMSPOIL" ] || PMEMSPOIL=../pmemspoil/pmemspoil
+[ -n "$PMEMWRITE" ] || PMEMWRITE=../pmemwrite/pmemwrite
+
+# Length of pool file's signature
+SIG_LEN=8
+
+# Length of arena's signature
+ARENA_SIG_LEN=16
+
+# Signature of BTT Arena
+ARENA_SIG="BTT_ARENA_INFO"
+
+# Offset to first arena
+ARENA_OFF=8192
+
+#
+# check_file -- check if file exists and print error message if not
+#
+check_file()
+{
+	if [ ! -f $1 ]
+	then
+		echo "Missing file: ${1}"
+		exit 1
+	fi
+}
+
+#
+# get_size -- return size of file
+#
+get_size()
+{
+	stat -c%s $1
+}
+
+#
+# get_mode -- return mode of file
+#
+get_mode()
+{
+	stat -c%a $1
+}
+
+#
+# check_size -- validate file size
+#
+check_size()
+{
+	local size=$1
+	local file=$2
+	local file_size=$(get_size $file)
+
+	if [[ $size != $file_size ]]
+	then
+		echo "error: wrong size ${file_size} != ${size}"
+		exit 1
+	fi
+}
+
+#
+# check_mode -- validate file mode
+#
+check_mode()
+{
+	local mode=$1
+	local file=$2
+	local file_mode=$(get_mode $file)
+
+	if [[ $mode != $file_mode ]]
+	then
+		echo "error: wrong mode ${file_mode} != ${mode}"
+		exit 1
+	fi
+}
+
+#
+# check_signature -- check if file contains specified signature
+#
+check_signature()
+{
+	local sig=$1
+	local file=$2
+	local file_sig=$(dd if=$file bs=1 count=$SIG_LEN 2>/dev/null)
+
+	if [[ $sig != $file_sig ]]
+	then
+		echo "error: signature doesn't match ${file_sig} != ${sig}"
+		exit 1
+	fi
+}
+
+#
+# check_arena -- check if file contains specified arena signature
+#
+check_arena()
+{
+	local file=$1
+	local sig=$(dd if=$file bs=1 skip=$ARENA_OFF count=$ARENA_SIG_LEN 2>/dev/null)
+
+	if [[ $sig != $ARENA_SIG ]]
+	then
+		echo "error: can't find arena signature"
+		exit 1
+	fi
+}

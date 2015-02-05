@@ -1,0 +1,401 @@
+.\"
+.\" Copyright (c) 2014-2015, Intel Corporation
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\"
+.\"     * Redistributions of source code must retain the above copyright
+.\"       notice, this list of conditions and the following disclaimer.
+.\"
+.\"     * Redistributions in binary form must reproduce the above copyright
+.\"       notice, this list of conditions and the following disclaimer in
+.\"       the documentation and/or other materials provided with the
+.\"       distribution.
+.\"
+.\"     * Neither the name of Intel Corporation nor the names of its
+.\"       contributors may be used to endorse or promote products derived
+.\"       from this software without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+.\" "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+.\" LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+.\" A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+.\" OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+.\" SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+.\" LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+.\" DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+.\" THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+.\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+.\" OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+.\"
+.\"
+.\" pmempool-info.1 -- man page for pmempool info command
+.\"
+.TH pmempool-info 1
+.SH NAME
+pmempool-info \- Print basic information about Persistent Memory Pool file.
+.SH SYNOPSIS
+.B pmempool info
+[<options>] <file>
+.SH DESCRIPTION
+The
+.B pmempool
+invoked with
+.B info
+command analyzes an existing pool created by
+.B NVML
+libraries. The main task of this command is to print all usable information from
+pool headers and user data in human readable format.
+It automatically recognizes pool type by parsing and analyzing pool header.
+The recognition is done by checking the signature in pool header. The main job
+of
+.B info
+command is to present internal data structures as they are stored in file but
+.I not
+for checking consistency. For this purpose there is the
+.B pmempool-check(1)
+command available.
+
+The
+.B pmempool
+with
+.B info
+command analyzes pool file as long as it is possible regarding
+.I correctness
+of internal meta-data (correct offsets, sizes etc.). If it is
+.I not
+possible to
+analyze the rest of the file,
+.B pmempool
+exits with error code and prints appropriate error message.
+
+Currently there is lack of interprocess synchronization for pool files, so the
+.B info
+command should be invoked off-line. Using
+.B pmempool
+on pool file which may be modified by another process may lead to unexpected
+errors in pool file.
+
+.B pmempool info
+opens pool file in
+.I read-only
+mode so the file will remain untouched after processing.
+
+The
+.B info
+command may collect and print basic statistics about data usage.
+The statistics are specific to the type of pool. See
+.B STATISTICS
+section for details.
+
+Although the pool consistency is
+.I not
+checked by the
+.B info
+command, it prints information about checksum errors and/or offsets errors.
+
+.SS "Common options:"
+.LP
+By default the
+.B info
+command of
+.B pmempool
+prints information about the most important internal data structures from pool.
+The particular set of headers and meta-data depend on pool type. The pool type
+is recognized automatically and appropriate information is displayed in
+human-readable format.
+
+To force processing specified file(s) as desired pool type use
+.B -f
+option with appropriate name of pool type. The valid names off pool types are
+.I blk
+or
+.I log.
+This option may be useful when the pool header is corrupted and automatic
+recognition of pool type fails.
+
+.PP
+.B -f, --force
+blk|log
+.RS 8
+Force parsing pool as specified pool type.
+.RE
+.LP
+By default only pool headers and internal meta-data are displayed.
+To display user data use
+.B -d
+option. Using
+.B -r
+option you can specify number of blocks/bytes/data chunks using special text
+format. See
+.B RANGE
+section for details.
+The range refers to
+.I block numbers
+in case of pmem blk pool type or to
+.I chunk numbers
+in case of pmem log pool type. See
+.B EXAMPLES
+section for an example of usage of these options.
+.PP
+.B -d, --data
+.RS 8
+Dump user data in hexadecimal format. In case of pmem
+.I blk
+pool type data is
+dumped in
+.I blocks.
+In case of pmem
+.I log
+pool type data is dumped as a whole or in
+.I chunks
+if
+.B -w
+option is used (See
+.B Options for PMEMLOG
+section for details).
+.RE
+.PP
+.B -F, --first
+<num>
+.RS 8
+First block/data chunk.
+.RE
+.PP
+.B -L, --last
+<num>
+.RS 8
+Last block/data chunk.
+.RE
+.PP
+.B -c, --count
+<num>
+.RS 8
+Number of blocks/data chunks.
+.RE
+.PP
+.B -r, --range
+<range>
+.RS 8
+Range of blocks/data chunks. See
+.B RANGE
+section for details about valid format.
+.RE
+.PP
+.B -h, --human
+.RS 8
+Print sizes in human-readable format with appropriate units (e.g. 4k, 8M, 16G).
+.RE
+.PP
+.B -x, --headers-hex
+.RS 8
+Print pool's internal data in mixed format which consists of hexadecimal dump of
+header's data and parsed format displayed in human-readable format. This allows
+to see how data is stored in file.
+.RE
+.PP
+.B -s, --stats
+.RS 8
+Print pool's statistics. See
+.B STATISTICS
+section for details.
+.RE
+.PP
+.B -v, --verbose
+.RS 8
+Increase verbosity level.
+.RE
+.PP
+.B -?, --help
+.RS 8
+Display help message and exit.
+.RE
+
+.SS "Options for PMEMLOG:"
+.PP
+.B -w, --walk
+<size>
+.RS 8
+Use this option to walk through used data with fixed data chunk size.
+See
+.B pmemlog_walk()
+in
+.B libpmemlog(3)
+for details.
+.RE
+
+.SS "Options for PMEMBLK:"
+.LP
+By default the
+.B info
+command displays the pmem blk header and BTT (Block Translation Table) Info
+header in case of pmem blk pool type.
+
+To display BTT Map and/or BTT FLOG (Free List and Log) use
+.B -m
+and
+.B -g
+options respectively or increase verbosity level.
+
+In order to display BTT Info header backup use
+.B -B
+option.
+.PP
+.B -m, --map
+.RS 8
+Print BTT Map entries.
+.RE
+.PP
+.B -g, --flog
+.RS 8
+Print BTT FLOG entries.
+.RE
+.PP
+.B -B, --backup
+.RS 8
+Print BTT Info header backup.
+.RE
+.LP
+By default the
+.B info
+command displays all data blocks when
+.B -d
+options is used. However it is possible to skip blocks marked with
+.I zero
+and/or
+.I error
+flags. It is also possible to skip blocks which are
+.I not
+marked with any flag. Skipping blocks has impact on blocks ranges
+(e.g. display 10 blocks marked with error flag in the range from 0 to 10000)
+and statistics.
+.PP
+.B -z, --skip-zeros
+.RS 8
+Skip blocks marked with
+.I zero
+flag.
+.RE
+.PP
+.B -e, --skip-error
+.RS 8
+Skip blocks marked with
+.I error
+flag.
+.RE
+.PP
+.B -u, --skip-no-flag
+.RS 8
+Skip blocks
+.I not
+marked with any flag.
+.RE
+.SH RANGE
+Using
+.B -r, --range
+option it is possible to dump only a range of user data. This section describes
+valid format of
+.I <range>
+string.
+
+You can specify multipla ranges separated by commas.
+.PP
+.B <first>-<last>
+.RS 8
+All blocks/bytes/data chunks from
+.B <first>
+to
+.B <last>
+will be dumped.
+.RE
+.PP
+.B -<last>
+.RS 8
+All blocks/bytes/data chunks up to
+.B <last>
+will be dumped.
+.RE
+.PP
+.B <first>-
+.RS 8
+All blocks/bytes/data chunks starting from
+.B <first>
+will be dumped.
+.RE
+.PP
+.B <number>
+.RS 8
+Only
+.B <number>
+block/byte/data chunk will be dumped.
+.RE
+.SH STATISTICS
+Below is the description of statistical measures for specific pool types.
+.SS PMEMLOG
+.TP
+.B Total
+Total space in pool.
+.TP
+.B Available
+Size and percentage of available space.
+.TP
+.B Used
+Size and percentage of used space.
+.SS PMEMBLK
+.TP
+.B Total blocks
+Total number of blocks in pool.
+.TP
+.B Zeroed blocks
+Number and percentage of blocks marked with
+.I zero
+flag.
+.TP
+.B Error blocks
+Number and percentage of blocks marked with
+.I error
+flag.
+.TP
+.B Blocks without any flag
+Number and percentage of blocks
+.I not
+marked with any flag.
+.SS NOTE:
+In case of pmemblk, statistics are evaluated for blocks which meet requirements
+regarding:
+.LP
+.I range
+of blocks (
+.B -F, -L
+options),
+.LP
+.I number
+of blocks (
+.B -c
+option),
+.LP
+.I skipped
+types of blocks (
+.B -z, -e, -u
+options).
+.SH EXAMPLES
+.TP
+pmempool info ./pmemblk
+# Parse and print information about pmem blk file.
+.TP
+pmempool info -f blk ./pmemblk
+# Force parsing pmemblk file as PMEM BLK pool type.
+.TP
+pmempool info -d ./pmemlog
+# Print information and data in hexadecimal dump format for file pmem log.
+.TP
+pmempool info -d -r10-100 -eu ./pmemblk
+# Print information from pmemblk file. Dump data blocks from 10 to 100,
+skip blocks marked with error flag and not marked with any flag.
+.SH "SEE ALSO"
+.B libpmemblk(3) libpmemlog(3) pmempool(1)
+.SH "PMEMPOOL"
+Part of the
+.B pmempool(1)
+suite.

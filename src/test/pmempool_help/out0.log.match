@@ -1,0 +1,17 @@
+usage: pmempool [--version] [--help] <command> [<args>]
+pmempool $(*)
+usage: pmempool [--version] [--help] <command> [<args>]
+pmempool $(*)
+
+$(*)
+  -V, --version        $(*)
+  -?, --help           $(*)
+
+$(*)
+info	- $(*)
+create	- $(*)
+dump	- $(*)
+check	- $(*)
+help	- $(*)
+
+$(*) pmempool(1) $(*)

@@ -196,6 +196,14 @@ Architecture: any
 Depends: libvmem (=\${binary:Version}), libvmmalloc (=\${binary:Version}), libpmem (=\${binary:Version}), libpmemblk (=\${binary:Version}), libpmemlog (=\${binary:Version}), libpmemobj (=\${binary:Version}), uuid-dev, \${misc:Depends}
 Description: Debug symbols for NVML libraries
  Debug symbols for all NVML libraries.
+
+Package: $PACKAGE_NAME-tools
+Section: misc
+Architecture: any
+Priority: optional
+Depends: \${shlibs:Depends}, \${misc:Depends}
+Description: Tools for $PACKAGE_NAME
+ Utilities for $PACKAGE_NAME.
 EOF
 
 cp LICENSE debian/copyright
@@ -441,6 +449,25 @@ interest man-db
 EOF
 
 cat << EOF > debian/$PACKAGE_NAME-dbg.lintian-overrides
+$ITP_BUG_EXCUSE
+new-package-should-close-itp-bug
+EOF
+
+cat << EOF > debian/$PACKAGE_NAME-tools.install
+usr/bin/pmempool
+usr/share/man/man1/pmempool.1.gz
+usr/share/man/man1/pmempool-create.1.gz
+usr/share/man/man1/pmempool-info.1.gz
+usr/share/man/man1/pmempool-dump.1.gz
+usr/share/man/man1/pmempool-check.1.gz
+etc/bash_completion.d/pmempool.sh
+EOF
+
+cat << EOF > debian/$PACKAGE_NAME-tools.triggers
+interest man-db
+EOF
+
+cat << EOF > debian/$PACKAGE_NAME-tools.lintian-overrides
 $ITP_BUG_EXCUSE
 new-package-should-close-itp-bug
 EOF

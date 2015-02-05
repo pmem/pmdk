@@ -75,8 +75,11 @@ endif
 
 INCS = -I../unittest -I../../include
 CFLAGS = -ggdb -Wall -Werror -std=gnu99
+
+ifneq ($(TARGET),)
 TARGET_STATIC_DEBUG=$(TARGET).static-debug
 TARGET_STATIC_NONDEBUG=$(TARGET).static-nondebug
+endif
 
 all: $(TARGET) $(TARGET_STATIC_DEBUG) $(TARGET_STATIC_NONDEBUG)
 
