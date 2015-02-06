@@ -41,7 +41,9 @@
 #include <errno.h>
 #include <stdint.h>
 #include <pthread.h>
-#include <libvmem.h>
+
+#include "libvmem.h"
+
 #include "jemalloc.h"
 #include "util.h"
 #include "out.h"

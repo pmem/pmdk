@@ -42,7 +42,6 @@ out.o: CFLAGS += -DSRCVERSION=\"utversion\"
 
 include ../Makefile.inc
 INCS += -I../../common
-LIBS += -ldl
 
 util_pool_open.o: util_pool_open.c
 util.o: util.c util.h

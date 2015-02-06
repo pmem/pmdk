@@ -43,7 +43,9 @@
 #include <dirent.h>
 #include <string.h>
 #include <errno.h>
-#include <libvmem.h>
+
+#include "libvmem.h"
+
 #include "out.h"
 
 char nvml_src_version[] = "SRCVERSION:" SRCVERSION;

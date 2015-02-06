@@ -38,11 +38,6 @@
  */
 
 #include "unittest.h"
-#include "libpmem.h"
-#include <stdio.h>
-#include <string.h>
-#include <sys/stat.h>
-#include <fcntl.h>
 
 /*
  * swap_mappings - given to mmapped regions swap them.

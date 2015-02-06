@@ -38,6 +38,7 @@
 #include <stdint.h>
 
 #include "libpmemlog.h"
+
 #include "util.h"
 #include "out.h"
 #include "log.h"

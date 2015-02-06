@@ -38,6 +38,7 @@
 #include <stdint.h>
 
 #include "libpmem.h"
+
 #include "pmem.h"
 #include "util.h"
 #include "out.h"

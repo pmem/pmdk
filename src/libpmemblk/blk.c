@@ -44,8 +44,10 @@
 #include <stdint.h>
 #include <uuid/uuid.h>
 #include <pthread.h>
-#include <libpmem.h>
-#include <libpmemblk.h>
+
+#include "libpmem.h"
+#include "libpmemblk.h"
+
 #include "util.h"
 #include "out.h"
 #include "btt.h"

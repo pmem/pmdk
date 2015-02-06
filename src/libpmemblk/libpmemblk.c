@@ -38,6 +38,7 @@
 #include <stdint.h>
 
 #include "libpmemblk.h"
+
 #include "util.h"
 #include "out.h"
 #include "blk.h"

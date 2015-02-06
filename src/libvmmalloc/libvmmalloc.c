@@ -52,14 +52,17 @@
  *    malloc(3) functions in case the application uses dlopen with
  *    RTLD_DEEPBIND flag.
  */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/param.h>
 #include <errno.h>
 #include <stdint.h>
-#include <libvmem.h>
-#include <libvmmalloc.h>
+
+#include "libvmem.h"
+#include "libvmmalloc.h"
+
 #include "jemalloc.h"
 #include "util.h"
 #include "vmem.h"

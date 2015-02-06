@@ -38,6 +38,7 @@
 #include <stdint.h>
 
 #include "libpmemobj.h"
+
 #include "util.h"
 #include "out.h"
 #include "obj.h"

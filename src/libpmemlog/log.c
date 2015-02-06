@@ -45,8 +45,10 @@
 #include <pthread.h>
 #include <uuid/uuid.h>
 #include <endian.h>
-#include <libpmem.h>
-#include <libpmemlog.h>
+
+#include "libpmem.h"
+#include "libpmemlog.h"
+
 #include "util.h"
 #include "out.h"
 #include "log.h"

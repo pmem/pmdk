@@ -39,9 +39,8 @@
  * operations are 'r' or 'w' or 'z' or 'e'
  *
  */
-#define	_GNU_SOURCE
+
 #include "unittest.h"
-#include <dlfcn.h>
 
 size_t Bsize;
 

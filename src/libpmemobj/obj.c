@@ -42,8 +42,10 @@
 #include <uuid/uuid.h>
 #include <time.h>
 #include <endian.h>
-#include <libpmem.h>
-#include <libpmemobj.h>
+
+#include "libpmem.h"
+#include "libpmemobj.h"
+
 #include "util.h"
 #include "out.h"
 #include "obj.h"
