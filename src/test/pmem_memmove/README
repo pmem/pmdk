@@ -5,7 +5,7 @@ This is src/test/pmem_memmove/README.
 This directory contains a unit test for pmem_memmove().
 
 SYNOPSIS:
-pmem_memmove file b:length [d {offset}] [s offset] [o {1|2} S {overlap}]
+pmem_memmove file b:length [d:{offset}] [s:offset] [o:{1|2} S:{overlap}]
 
 DESCRIPTION:
 pmem_memmove is the unit test for verifying the functionality of

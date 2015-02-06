@@ -41,6 +41,4 @@ LIBPMEMBLK=y
 
 include ../Makefile.inc
 
-LIBS += -ldl
-
 blk_nblock.o: blk_nblock.c

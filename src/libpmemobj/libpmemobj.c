@@ -38,6 +38,7 @@
 #include <stdint.h>
 
 #include "libpmemobj.h"
+
 #include "util.h"
 #include "out.h"
 #include "obj.h"
@@ -52,7 +53,8 @@ static void
 libpmemobj_init(void)
 {
 	out_init(PMEMOBJ_LOG_PREFIX, PMEMOBJ_LOG_LEVEL_VAR,
-		PMEMOBJ_LOG_FILE_VAR);
+			PMEMOBJ_LOG_FILE_VAR, PMEMOBJ_MAJOR_VERSION,
+			PMEMOBJ_MINOR_VERSION);
 	LOG(3, NULL);
 	util_init();
 }

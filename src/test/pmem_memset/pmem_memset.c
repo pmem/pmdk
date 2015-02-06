@@ -37,11 +37,6 @@
  */
 
 #include "unittest.h"
-#include "libpmem.h"
-#include <stdio.h>
-#include <string.h>
-#include <sys/stat.h>
-#include <fcntl.h>
 
 int
 main(int argc, char *argv[])

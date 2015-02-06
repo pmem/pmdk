@@ -38,6 +38,7 @@
 #include <stdint.h>
 
 #include "libpmem.h"
+
 #include "pmem.h"
 #include "util.h"
 #include "out.h"
@@ -51,7 +52,8 @@ __attribute__((constructor))
 static void
 libpmem_init(void)
 {
-	out_init(PMEM_LOG_PREFIX, PMEM_LOG_LEVEL_VAR, PMEM_LOG_FILE_VAR);
+	out_init(PMEM_LOG_PREFIX, PMEM_LOG_LEVEL_VAR, PMEM_LOG_FILE_VAR,
+			PMEM_MAJOR_VERSION, PMEM_MINOR_VERSION);
 	LOG(3, NULL);
 	util_init();
 }

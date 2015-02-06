@@ -45,6 +45,9 @@
 extern "C" {
 #endif
 
+#define	VMMALLOC_MAJOR_VERSION 1
+#define	VMMALLOC_MINOR_VERSION 0
+
 #include <sys/types.h>
 
 #define	VMMALLOC_MIN_POOL ((size_t)(1024 * 1024 * 14)) /* min pool size: 14MB */

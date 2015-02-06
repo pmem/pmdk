@@ -189,6 +189,12 @@
  *	Func_memset_nodrain is used by memset_nodrain() to call one of:
  *		memset_nodrain_normal()
  *		memset_nodrain_movnt()
+ *
+ * DEBUG LOGGING
+ *
+ * Many of the functions here get called hundreds of times from loops
+ * iterating over ranges, making the usual LOG() calls at level 3
+ * impractical.  The call tracing log for those functions is set at 15.
  */
 
 #include <sys/mman.h>
@@ -198,6 +204,8 @@
 #include <stdint.h>
 #include <string.h>
 #include <xmmintrin.h>
+
+#include "libpmem.h"
 
 #include "pmem.h"
 #include "util.h"
@@ -251,7 +259,6 @@ pmem_has_hw_drain(void)
 static void
 predrain_fence_empty(void)
 {
-	/* way too chatty for LOG level 3 */
 	LOG(15, NULL);
 
 	/* nothing to do (because CLFLUSH did it for us) */
@@ -263,7 +270,6 @@ predrain_fence_empty(void)
 static void
 predrain_fence_sfence(void)
 {
-	/* way too chatty for LOG level 3 */
 	LOG(15, NULL);
 
 	_mm_sfence();	/* ensure CLWB or CLFLUSHOPT completes before PCOMMIT */
@@ -284,7 +290,6 @@ static void (*Func_predrain_fence)(void) = predrain_fence_empty;
 static void
 drain_no_pcommit(void)
 {
-	/* way too chatty for LOG level 3 */
 	LOG(15, NULL);
 
 	Func_predrain_fence();
@@ -298,7 +303,6 @@ drain_no_pcommit(void)
 static void
 drain_pcommit(void)
 {
-	/* way too chatty for LOG level 3 */
 	LOG(15, NULL);
 
 	Func_predrain_fence();
@@ -330,7 +334,6 @@ pmem_drain(void)
 static void
 flush_clflush(void *addr, size_t len)
 {
-	/* way too chatty for LOG level 3 */
 	LOG(15, "addr %p len %zu", addr, len);
 
 	uintptr_t uptr;
@@ -350,7 +353,6 @@ flush_clflush(void *addr, size_t len)
 static void
 flush_clwb(void *addr, size_t len)
 {
-	/* way too chatty for LOG level 3 */
 	LOG(15, "addr %p len %zu", addr, len);
 
 	uintptr_t uptr;
@@ -371,7 +373,6 @@ flush_clwb(void *addr, size_t len)
 static void
 flush_clflushopt(void *addr, size_t len)
 {
-	/* way too chatty for LOG level 3 */
 	LOG(15, "addr %p len %zu", addr, len);
 
 	uintptr_t uptr;
@@ -410,7 +411,6 @@ pmem_flush(void *addr, size_t len)
 void
 pmem_persist(void *addr, size_t len)
 {
-	/* way too chatty for LOG level 3 */
 	LOG(15, "addr %p len %zu", addr, len);
 
 	pmem_flush(addr, len);
@@ -427,7 +427,6 @@ pmem_persist(void *addr, size_t len)
 int
 pmem_msync(void *addr, size_t len)
 {
-	/* way too chatty for LOG level 3 */
 	LOG(15, "addr %p len %zu", addr, len);
 
 	/*
@@ -611,19 +610,18 @@ pmem_map(int fd)
 static void *
 memmove_nodrain_normal(void *pmemdest, const void *src, size_t len)
 {
-	/* way too chatty for LOG level 3 */
 	LOG(15, "pmemdest %p src %p len %zu", pmemdest, src, len);
 
 	return memmove(pmemdest, src, len);
 
 }
+
 /*
  * memmove_nodrain_movnt -- (internal) memmove to pmem without hw drain, movnt
  */
 static void *
 memmove_nodrain_movnt(void *pmemdest, const void *src, size_t len)
 {
-	/* way too chatty for LOG level 3 */
 	LOG(15, "pmemdest %p src %p len %zu", pmemdest, src, len);
 
 	__m128i xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
@@ -640,10 +638,18 @@ memmove_nodrain_movnt(void *pmemdest, const void *src, size_t len)
 		return pmemdest;
 
 	if ((uintptr_t)dest1 - (uintptr_t)src >= len) {
-		/* align bytes on 64-byte boundary */
+		/*
+		 * Copy the range in the forward direction.
+		 *
+		 * This is the most common, most optimized case, used unless
+		 * the overlap specifically prevents it.
+		 */
+
+		/* copy up to FLUSH_ALIGN boundary */
 		cnt = (uint64_t)dest1 & ALIGN_MASK;
 		if (cnt > 0) {
 			cnt = FLUSH_ALIGN - cnt;
+
 			/* never try to copy more the len bytes */
 			if (cnt > len)
 				cnt = len;
@@ -697,7 +703,8 @@ memmove_nodrain_movnt(void *pmemdest, const void *src, size_t len)
 				d++;
 			}
 		}
-		/* copy the last bytes (<16). First dwords then bytes */
+
+		/* copy the last bytes (<16), first dwords then bytes */
 		len &= MOVNT_MASK;
 		if (len != 0) {
 			cnt = len >> DWORD_SHIFT;
@@ -720,6 +727,13 @@ memmove_nodrain_movnt(void *pmemdest, const void *src, size_t len)
 			pmem_flush(d8, cnt);
 		}
 	} else {
+		/*
+		 * Copy the range in the backward direction.
+		 *
+		 * This prevents overwriting source data due to an
+		 * overlapped destination range.
+		 */
+
 		dest1 = dest1 + len;
 		src = src + len;
 
@@ -728,6 +742,7 @@ memmove_nodrain_movnt(void *pmemdest, const void *src, size_t len)
 			/* never try to copy more the len bytes */
 			if (cnt > len)
 				cnt = len;
+
 			uint8_t *d8 = (uint8_t *)dest1;
 			const uint8_t *s8 = (uint8_t *)src;
 			for (i = 0; i < cnt; i++) {
@@ -765,6 +780,7 @@ memmove_nodrain_movnt(void *pmemdest, const void *src, size_t len)
 			_mm_stream_si128(d - 8, xmm7);
 			d -= 8;
 		}
+
 		/* copy the tail (<128 bytes) in 16 bytes chunks */
 		len &= CHUNK_MASK;
 		if (len != 0) {
@@ -777,7 +793,7 @@ memmove_nodrain_movnt(void *pmemdest, const void *src, size_t len)
 			}
 		}
 
-		/* copy the last bytes (<16). First dwords then bytes */
+		/* copy the last bytes (<16), first dwords then bytes */
 		len &= MOVNT_MASK;
 		if (len != 0) {
 			cnt = len >> DWORD_SHIFT;
@@ -802,6 +818,7 @@ memmove_nodrain_movnt(void *pmemdest, const void *src, size_t len)
 
 		}
 	}
+
 	return pmemdest;
 }
 
@@ -830,7 +847,6 @@ pmem_memmove_nodrain(void *pmemdest, const void *src, size_t len)
 void *
 pmem_memcpy_nodrain(void *pmemdest, const void *src, size_t len)
 {
-	/* way too chatty for LOG level 3 */
 	LOG(15, "pmemdest %p src %p len %zu", pmemdest, src, len);
 
 	return pmem_memmove_nodrain(pmemdest, src, len);
@@ -842,7 +858,6 @@ pmem_memcpy_nodrain(void *pmemdest, const void *src, size_t len)
 void *
 pmem_memmove_persist(void *pmemdest, const void *src, size_t len)
 {
-	/* way too chatty for LOG level 3 */
 	LOG(15, "pmemdest %p src %p len %zu", pmemdest, src, len);
 
 	void *retval = pmem_memmove_nodrain(pmemdest, src, len);
@@ -856,7 +871,6 @@ pmem_memmove_persist(void *pmemdest, const void *src, size_t len)
 void *
 pmem_memcpy_persist(void *pmemdest, const void *src, size_t len)
 {
-	/* way too chatty for LOG level 3 */
 	LOG(15, "pmemdest %p src %p len %zu", pmemdest, src, len);
 
 	void *retval = pmem_memcpy_nodrain(pmemdest, src, len);
@@ -870,7 +884,6 @@ pmem_memcpy_persist(void *pmemdest, const void *src, size_t len)
 static void *
 memset_nodrain_normal(void *pmemdest, int c, size_t len)
 {
-	/* way too chatty for LOG level 3 */
 	LOG(15, "pmemdest %p c 0x%x len %zu", pmemdest, c, len);
 
 	return memset(pmemdest, c, len);
@@ -882,7 +895,6 @@ memset_nodrain_normal(void *pmemdest, int c, size_t len)
 static void *
 memset_nodrain_movnt(void *pmemdest, int c, size_t len)
 {
-	/* way too chatty for LOG level 3 */
 	LOG(15, "pmemdest %p c 0x%x len %zu", pmemdest, c, len);
 
 	int i;
@@ -891,10 +903,11 @@ memset_nodrain_movnt(void *pmemdest, int c, size_t len)
 	__m128i xmm0;
 	__m128i *d;
 
-	/* align on 64 byte boundary */
+	/* memset up to the next FLUSH_ALIGN boundary */
 	cnt = (uint64_t)dest1 & ALIGN_MASK;
 	if (cnt != 0) {
 		cnt = FLUSH_ALIGN - cnt;
+
 		if (cnt > len)
 			cnt = len;
 
@@ -924,7 +937,7 @@ memset_nodrain_movnt(void *pmemdest, int c, size_t len)
 			d += 8;
 		}
 	}
-	/* copy the tail (<128 bytes) in 16 bytes chunks */
+	/* memset the tail (<128 bytes) in 16 bytes chunks */
 	len &= CHUNK_MASK;
 	if (len != 0) {
 		cnt = len >> MOVNT_SHIFT;
@@ -934,7 +947,7 @@ memset_nodrain_movnt(void *pmemdest, int c, size_t len)
 		}
 	}
 
-	/* copy the last bytes (<16). First dwords then bytes */
+	/* memset the last bytes (<16), first dwords then bytes */
 	len &= MOVNT_MASK;
 	if (len != 0) {
 		i = 0;
@@ -947,6 +960,7 @@ memset_nodrain_movnt(void *pmemdest, int c, size_t len)
 				d32++;
 			}
 		}
+
 		/* at this point the cnt < 16 so use memset */
 		cnt = len & DWORD_MASK;
 		if (cnt != 0) {
@@ -954,6 +968,7 @@ memset_nodrain_movnt(void *pmemdest, int c, size_t len)
 			pmem_flush(d32, cnt);
 		}
 	}
+
 	return pmemdest;
 }
 
@@ -982,7 +997,6 @@ pmem_memset_nodrain(void *pmemdest, int c, size_t len)
 void *
 pmem_memset_persist(void *pmemdest, int c, size_t len)
 {
-	/* way too chatty for LOG level 3 */
 	LOG(15, "pmemdest %p c 0x%x len %zu", pmemdest, c, len);
 
 	void *retval = pmem_memset_nodrain(pmemdest, c, len);
@@ -999,7 +1013,8 @@ __attribute__((constructor))
 static void
 pmem_init(void)
 {
-	out_init(PMEM_LOG_PREFIX, PMEM_LOG_LEVEL_VAR, PMEM_LOG_FILE_VAR);
+	out_init(PMEM_LOG_PREFIX, PMEM_LOG_LEVEL_VAR, PMEM_LOG_FILE_VAR,
+			PMEM_MAJOR_VERSION, PMEM_MINOR_VERSION);
 	LOG(3, NULL);
 	util_init();
 

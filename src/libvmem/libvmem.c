@@ -35,7 +35,9 @@
  */
 #include <stdio.h>
 #include <stdint.h>
-#include <libvmem.h>
+
+#include "libvmem.h"
+
 #include "jemalloc.h"
 #include "out.h"
 #include "util.h"

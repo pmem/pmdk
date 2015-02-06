@@ -38,6 +38,7 @@
 #include <stdint.h>
 
 #include "libpmemlog.h"
+
 #include "util.h"
 #include "out.h"
 #include "log.h"
@@ -52,7 +53,8 @@ static void
 libpmemlog_init(void)
 {
 	out_init(PMEMLOG_LOG_PREFIX, PMEMLOG_LOG_LEVEL_VAR,
-			PMEMLOG_LOG_FILE_VAR);
+			PMEMLOG_LOG_FILE_VAR, PMEMLOG_MAJOR_VERSION,
+			PMEMLOG_MINOR_VERSION);
 	LOG(3, NULL);
 	util_init();
 }

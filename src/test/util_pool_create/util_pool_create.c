@@ -36,12 +36,9 @@
  * usage: util_pool_create minlen len:path [len:path]...
  */
 
-#define	_GNU_SOURCE
-
-#include <dlfcn.h>
 #include "unittest.h"
-#include "util.h"
 
+#include "util.h"
 
 int
 main(int argc, char *argv[])
