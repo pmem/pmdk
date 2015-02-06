@@ -381,7 +381,8 @@ libvmmalloc_init(void)
 	size_t size = 0;
 
 	out_init(VMMALLOC_LOG_PREFIX, VMMALLOC_LOG_LEVEL_VAR,
-			VMMALLOC_LOG_FILE_VAR);
+			VMMALLOC_LOG_FILE_VAR, VMMALLOC_MAJOR_VERSION,
+			VMMALLOC_MINOR_VERSION);
 	out_set_vsnprintf_func(je_vmem_navsnprintf);
 	LOG(3, NULL);
 	util_init();
@@ -392,24 +393,24 @@ libvmmalloc_init(void)
 	Header_size = roundup(sizeof (VMEM), Pagesize);
 
 	if ((dir = getenv(VMMALLOC_POOL_DIR_VAR)) == NULL) {
-		out_log(NULL, 0, NULL, 0,
-			"Error: environment variable %s not specified!\n",
-			VMMALLOC_POOL_DIR_VAR);
+		out_log(NULL, 0, NULL, 0, "Error (libvmmalloc): "
+				"environment variable %s not specified",
+				VMMALLOC_POOL_DIR_VAR);
 		exit(1);
 	}
 
 	if ((size_str = getenv(VMMALLOC_POOL_SIZE_VAR)) == NULL) {
-		out_log(NULL, 0, NULL, 0,
-			"Error: environment variable %s not specified!\n",
-			VMMALLOC_POOL_SIZE_VAR);
+		out_log(NULL, 0, NULL, 0, "Error (libvmmalloc): "
+				"environment variable %s not specified",
+				VMMALLOC_POOL_SIZE_VAR);
 		exit(1);
 	} else {
 		size = atoll(size_str);
 	}
 
 	if (size < VMMALLOC_MIN_POOL) {
-		out_log(NULL, 0, NULL, 0,
-			"Error: %s value is less than minimum (%zu < %zu)!\n",
+		out_log(NULL, 0, NULL, 0, "Error (libvmmalloc): "
+			"%s value is less than minimum (%zu < %zu)",
 			VMMALLOC_POOL_SIZE_VAR, size, VMMALLOC_MIN_POOL);
 		exit(1);
 	}
@@ -420,8 +421,8 @@ libvmmalloc_init(void)
 	 */
 	Vmp = libvmmalloc_create(dir, size);
 	if (Vmp == NULL) {
-		out_log(NULL, 0, NULL, 0,
-			"Error: vmem pool creation failed!\n");
+		out_log(NULL, 0, NULL, 0, "!Error (libvmmalloc): "
+				"vmem pool creation failed");
 		exit(1);
 	}
 	LOG(2, "initialization completed");

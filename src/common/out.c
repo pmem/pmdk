@@ -84,7 +84,8 @@ getexecname(void)
  */
 void
 out_init(const char *log_prefix, const char *log_level_var,
-		const char *log_file_var)
+		const char *log_file_var, int major_version,
+		int minor_version)
 {
 	static int once;
 
@@ -118,9 +119,9 @@ out_init(const char *log_prefix, const char *log_level_var,
 			log_file = log_file_pid;
 		}
 		if ((Out_fp = fopen(log_file, "w")) == NULL) {
-			fprintf(stderr, "Error: %s=%s: %s\n",
-				log_file_var,
-				log_file, strerror(errno));
+			fprintf(stderr, "Error (%s): %s=%s: %s\n",
+					log_prefix, log_file_var,
+					log_file, strerror(errno));
 			exit(1);
 		}
 	}
@@ -132,7 +133,7 @@ out_init(const char *log_prefix, const char *log_level_var,
 		setlinebuf(Out_fp);
 
 	LOG(1, "pid %d: program: %s", getpid(), getexecname());
-	LOG(1, "version %d.%d", VMEM_MAJOR_VERSION, VMEM_MINOR_VERSION);
+	LOG(1, "%s version %d.%d", log_prefix, major_version, minor_version);
 	LOG(1, "src version %s", nvml_src_version);
 }
 

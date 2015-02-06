@@ -97,7 +97,8 @@ vmem_init(void)
 
 	if (!initialized) {
 		out_init(VMEM_LOG_PREFIX, VMEM_LOG_LEVEL_VAR,
-				VMEM_LOG_FILE_VAR);
+				VMEM_LOG_FILE_VAR, VMEM_MAJOR_VERSION,
+				VMEM_MINOR_VERSION);
 		out_set_vsnprintf_func(je_vmem_navsnprintf);
 		LOG(3, NULL);
 		util_init();

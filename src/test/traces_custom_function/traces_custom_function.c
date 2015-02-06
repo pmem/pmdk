@@ -41,6 +41,8 @@
 #define	LOG_PREFIX "trace_func"
 #define	LOG_LEVEL_VAR "TRACE_LOG_LEVEL"
 #define	LOG_FILE_VAR "TRACE_LOG_FILE"
+#define	MAJOR_VERSION 1
+#define	MINOR_VERSION 0
 
 #include <sys/types.h>
 #include <stdarg.h>
@@ -101,7 +103,8 @@ main(int argc, char *argv[])
 
 	out_set_print_func(print_custom_function);
 
-	out_init(LOG_PREFIX, LOG_LEVEL_VAR, LOG_FILE_VAR);
+	out_init(LOG_PREFIX, LOG_LEVEL_VAR, LOG_FILE_VAR,
+			MAJOR_VERSION, MINOR_VERSION);
 
 	switch (argv[1][0]) {
 	case 'p': {

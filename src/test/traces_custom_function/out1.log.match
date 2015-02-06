@@ -2,7 +2,7 @@ traces_custom_function/TEST1: START: traces_custom_function
  ./traces_custom_function$(nW) v
 CUSTOM_PRINT: <trace_func>: <1> [$(nW):$(N) out_init] pid $(N): program: $(nW)
 
-CUSTOM_PRINT: <trace_func>: <1> [$(nW):$(N) out_init] version $(S)
+CUSTOM_PRINT: <trace_func>: <1> [$(nW):$(N) out_init] trace_func version $(S)
 
 CUSTOM_PRINT: <trace_func>: <1> [$(nW):$(N) out_init] src version SRCVERSION:utversion
 

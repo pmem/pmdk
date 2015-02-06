@@ -1,1 +1,1 @@
-Error: environment variable VMMALLOC_POOL_SIZE not specified!
+Error (libvmmalloc): environment variable VMMALLOC_POOL_SIZE not specified
