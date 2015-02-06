@@ -35,10 +35,9 @@
 #
 TARGET = vmmalloc_memalign
 OBJS = vmmalloc_memalign.o
+EXTRA_DEPS = libaa.so
 
 include ../Makefile.inc
-
-$(TARGET): libaa.so
 
 libaa.so: aligned_alloc.c
 	$(CC) $(CFLAGS) -fPIC -shared -Wl,-soname,libaa.so -o $@ $^
