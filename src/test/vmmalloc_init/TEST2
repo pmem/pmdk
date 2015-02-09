@@ -42,7 +42,7 @@ export UNITTEST_NUM=2
 
 require_fs_type local
 # there's no point in testing statically linked builds
-require_build_type debug nondebug
+require_build_type debug
 
 setup
 
@@ -50,7 +50,7 @@ export VMMALLOC_LOG_LEVEL=4
 export VMMALLOC_POOL_SIZE=$((1024*1024))
 
 expect_abnormal_exit LD_PRELOAD=$TEST_LD_LIBRARY_PATH/libvmmalloc.so \
-    ./vmmalloc_init$EXESUFFIX 2> stderr$UNITTEST_NUM.log
+    ./vmmalloc_init$EXESUFFIX
 
 egrep 'VMMALLOC_POOL_SIZE|VMMALLOC_POOL_DIR|TMPDIR|mkstemp|size\ 4321' \
     vmmalloc$UNITTEST_NUM.log > grep$UNITTEST_NUM.log
