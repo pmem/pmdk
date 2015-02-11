@@ -29,7 +29,7 @@ libvmem(3) -- volatile memory allocation library
 
 libvmmalloc(3) -- general purpose volatile memory allocation library
     Man page source is in libvmmalloc.3
-    HTML formatted version: http://pmem.io/nvml/libvmem/libvmmalloc.3.html
+    HTML formatted version: http://pmem.io/nvml/libvmmalloc/libvmmalloc.3.html
 
 pmempool(1) -- Persistent Memory Pool Management Tool
     Man page source is in pmempool.1
