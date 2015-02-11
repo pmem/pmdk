@@ -1,5 +1,5 @@
 <!-- Creator     : groff version 1.18.1.4 -->
-<!-- CreationDate: Fri Nov 28 10:03:53 2014 -->
+<!-- CreationDate: Wed Feb 11 09:40:53 2015 -->
 <html>
 <head>
 <meta name="generator" content="groff -Thtml, see www.gnu.org">
@@ -51,7 +51,6 @@ VMEM *vmem_create(const char *</b><i>dir</i><b>, size_t</b> <i>size</i><b>);
 VMEM *vmem_create_in_region(void *</b><i>addr</i><b>, size_t</b> <i>size</i><b>);
 void vmem_delete(VMEM *</b><i>vmp</i><b>);
 int vmem_check(VMEM *</b><i>vmp</i><b>);
-int vmem_freespace(VMEM *</b><i>vmp</i><b>);
 void vmem_stats_print(VMEM *</b><i>vmp</i><b>, const char *</b><i>opts</i><b>);
 
 Memory allocation related functions:
@@ -273,29 +272,6 @@ operations on the same memory pool are locked out. The
 checks are all read-only; <b>vmem_check</b>() never modifies
 the memory pool. This function is mostly useful for
 <b>libvmem</b> developers during testing/debugging.</p>
-</td>
-</table>
-<!-- INDENTATION -->
-<table width="100%" border=0 rules="none" frame="void"
-       cols="2" cellspacing="0" cellpadding="0">
-<tr valign="top" align="left">
-<td width="10%"></td>
-<td width="89%">
-<p><b>int vmem_freespace(VMEM *</b><i>vmp</i><b>);</b></p>
-</td>
-</table>
-<!-- INDENTATION -->
-<table width="100%" border=0 rules="none" frame="void"
-       cols="2" cellspacing="0" cellpadding="0">
-<tr valign="top" align="left">
-<td width="20%"></td>
-<td width="79%">
-<p>The <b>vmem_freespace</b>() function returns the amount
-of unallocated space available in the memory pool
-<i>vmp</i>. This return value is in bytes, and should be
-considered an approximation since different allocation
-patterns will require <b>libvmem</b> to use up different
-amounts of space for internal metadata.</p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -754,11 +730,14 @@ developers.</p>
 <td width="10%"></td>
 <td width="89%">
 <p>The environment variable <b>VMEM_LOG_FILE</b> specifies a
-file name where all logging information should be written,
-and if <b>VMEM_LOG_FILE</b> is not set, output goes to
-stderr. All prints are done using the <i>print_func</i>
-function in <b>libvmem</b> (see <b>vmem_set_funcs</b>()
-above for details on how to override that function).</p>
+file name where all logging information should be written.
+If the last character in the name is &quot;-&quot;, the PID
+of the current process will be appended to the file name
+when the log file is created. If <b>VMEM_LOG_FILE</b> is not
+set, output goes to stderr. All prints are done using the
+<i>print_func</i> function in <b>libvmem</b> (see
+<b>vmem_set_funcs</b>() above for details on how to override
+that function).</p>
 <!-- INDENTATION -->
 <p>Setting the environment variable <b>VMEM_LOG_LEVEL</b>
 has no effect on the non-debug version of

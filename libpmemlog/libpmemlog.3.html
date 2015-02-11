@@ -1,5 +1,5 @@
 <!-- Creator     : groff version 1.18.1.4 -->
-<!-- CreationDate: Sun Nov 16 21:20:58 2014 -->
+<!-- CreationDate: Wed Feb 11 09:40:53 2015 -->
 <html>
 <head>
 <meta name="generator" content="groff -Thtml, see www.gnu.org">
@@ -330,6 +330,21 @@ error, -1 is returned and errno is set.</p>
 <table width="100%" border=0 rules="none" frame="void"
        cols="2" cellspacing="0" cellpadding="0">
 <tr valign="top" align="left">
+<td width="20%"></td>
+<td width="79%">
+<p>NOTE: Since <b>libpmemlog</b> is designed as a
+low-latency code path, many of the checks routinely done by
+the operating system for <b>writev</b>(2) are not practical
+in the library&rsquo;s implementation of
+<b>pmemlog_appendv</b>(). No attempt is made to detect NULL
+or incorrect pointers, or illegal count values, for
+example.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
 <td width="10%"></td>
 <td width="89%">
 <p><b>off_t pmemlog_tell(PMEMlogpool
@@ -629,8 +644,11 @@ information that is likely only useful to the
 <td width="89%">
 <p>The environment variable <b>PMEMLOG_LOG_FILE</b>
 specifies a file name where all logging information should
-be written. If <b>PMEMLOG_LOG_FILE</b> is not set, the
-logging output goes to stderr.</p>
+be written. If the last character in the name is
+&quot;-&quot;, the PID of the current process will be
+appended to the file name when the log file is created. If
+<b>PMEMLOG_LOG_FILE</b> is not set, the logging output goes
+to stderr.</p>
 <!-- INDENTATION -->
 <p>Setting the environment variable <b>PMEMLOG_LOG_LEVEL</b>
 has no effect on the non-debug version of

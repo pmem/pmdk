@@ -55,3 +55,12 @@ volatile memory pool, similar to the system heap but kept separate
 and with its own malloc-style API.
 
 See the [libvmem page](libvmem) for documentation and examples.
+
+#### libvmmalloc
+
+The **libvmmalloc** library **transparently** converts all the dynamic
+memory allocations into persistent memory allocations.  This allows the use
+of persistent memory as volatile memory without modifying the target
+application.
+
+See the [libvmmalloc page](libvmmalloc) for documentation and examples.
