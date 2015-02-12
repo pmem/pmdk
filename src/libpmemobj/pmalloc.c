@@ -161,7 +161,7 @@ pfree(struct pmalloc_pool *p, uint64_t *ptr)
 		return;
 	}
 
-	struct bucket_object obj;
+	struct bucket_object obj = {0};
 	bucket_object_init(&obj, p, *ptr);
 
 	if (!arena_guard_up(arena, ptr, GUARD_TYPE_FREE)) {
@@ -184,7 +184,7 @@ error_recycle_object:
 }
 
 /*
- * prealloc - resizes or reacuqires an object from the pool
+ * prealloc - resizes or acquires an object from the pool
  */
 void
 prealloc(struct pmalloc_pool *p, uint64_t *ptr, size_t size)
@@ -201,7 +201,7 @@ prealloc(struct pmalloc_pool *p, uint64_t *ptr, size_t size)
 		return;
 	}
 
-	struct bucket_object obj;
+	struct bucket_object obj = {0};
 	bucket_object_init(&obj, p, *ptr);
 
 	if (obj.real_size >= size) {

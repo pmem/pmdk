@@ -71,7 +71,7 @@ arena_new(struct pmalloc_pool *p, int arena_id)
 	arena->associated_threads = 0;
 	arena->pool = p;
 	arena->a_ops = p->backend->a_ops;
-	memset(arena->buckets, 0, sizeof (*arena->buckets) * MAX_BUCKETS);
+	memset(arena->buckets, 0, sizeof (arena->buckets));
 
 	return arena;
 error_lock_init:
@@ -110,6 +110,8 @@ arena_guard_up(struct arena *arena, uint64_t *ptr, enum guard_type type)
 	if (pthread_mutex_lock(arena->lock) != 0)
 		return false;
 
+	/* XXX */
+
 	return true;
 }
 
@@ -121,6 +123,8 @@ arena_guard_down(struct arena *arena, uint64_t *ptr, enum guard_type type)
 {
 	if (pthread_mutex_unlock(arena->lock) != 0)
 		return false;
+
+	/* XXX */
 
 	return true;
 }

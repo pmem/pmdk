@@ -68,9 +68,10 @@ struct backend {
 	struct pool_backend_operations *p_ops;
 };
 
-void backend_open(struct backend *backend, enum backend_type type,
+struct backend *backend_open(enum backend_type type, void *ptr, size_t size);
+void backend_close(struct backend *backend);
+
+void backend_init(struct backend *backend, enum backend_type type,
 	struct bucket_backend_operations *b_ops,
 	struct arena_backend_operations *a_ops,
 	struct pool_backend_operations *p_ops);
-
-void backend_close(struct backend *backend);

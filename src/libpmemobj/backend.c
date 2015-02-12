@@ -40,13 +40,45 @@
 #include "bucket.h"
 #include "arena.h"
 #include "backend.h"
+#include "backend_persistent.h"
+#include "backend_noop.h"
 #include "pool.h"
 
+struct backend *(*backend_open_by_type[MAX_BACKEND])
+	(void *ptr, size_t size) = {
+	backend_noop_open,
+	backend_persistent_open
+};
+
+void (*backend_close_by_type[MAX_BACKEND])
+	(struct backend *b) = {
+	backend_noop_close,
+	backend_persistent_close
+};
+
 /*
- * backend_open -- initializes a backend
+ * backend_open -- opens a backend of desired type
+ */
+struct backend *
+backend_open(enum backend_type type, void *ptr, size_t size)
+{
+	return backend_open_by_type[type](ptr, size);
+}
+
+/*
+ * backend_close -- closes a backend based on its type
  */
 void
-backend_open(struct backend *backend, enum backend_type type,
+backend_close(struct backend *backend)
+{
+	backend_close_by_type[backend->type](backend);
+}
+
+/*
+ * backend_init -- initializes a backend
+ */
+void
+backend_init(struct backend *backend, enum backend_type type,
 	struct bucket_backend_operations *b_ops,
 	struct arena_backend_operations *a_ops,
 	struct pool_backend_operations *p_ops)
@@ -56,13 +88,4 @@ backend_open(struct backend *backend, enum backend_type type,
 	backend->b_ops = b_ops;
 	backend->a_ops = a_ops;
 	backend->p_ops = p_ops;
-}
-
-/*
- * backend_close -- deinitializes a backend
- */
-void
-backend_close(struct backend *backend)
-{
-
 }

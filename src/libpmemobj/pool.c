@@ -45,22 +45,8 @@
 #include "arena.h"
 #include "backend.h"
 #include "pool.h"
-#include "persistent_backend.h"
-#include "noop_backend.h"
 
 __thread int arena_id = -1;
-
-struct backend *(*pool_open_backend[MAX_BACKEND])
-	(void *ptr, size_t size) = {
-	noop_backend_open,
-	persistent_backend_open
-};
-
-void (*pool_close_backend[MAX_BACKEND])
-	(struct backend *b) = {
-	noop_backend_close,
-	persistent_backend_close
-};
 
 /*
  * pool_new -- allocate and initialize new pool object
@@ -73,7 +59,7 @@ pool_new(void *ptr, size_t size, enum backend_type type)
 		goto error_pool_malloc;
 	}
 
-	pool->backend = pool_open_backend[type](ptr, size);
+	pool->backend = backend_open(type, ptr, size);
 	if (pool->backend == NULL) {
 		goto error_backend_new;
 	}
@@ -87,7 +73,7 @@ pool_new(void *ptr, size_t size, enum backend_type type)
 		goto error_lock_init;
 	}
 
-	memset(pool->buckets, 0, sizeof (*pool->buckets) * MAX_BUCKETS);
+	memset(pool->buckets, 0, sizeof (pool->buckets));
 	pool->p_ops = pool->backend->p_ops;
 
 	return pool;
@@ -95,7 +81,7 @@ pool_new(void *ptr, size_t size, enum backend_type type)
 error_lock_init:
 	Free(pool->lock);
 error_lock_malloc:
-	pool_close_backend[type](pool->backend);
+	backend_close(pool->backend);
 error_backend_new:
 	Free(pool);
 error_pool_malloc:
@@ -123,7 +109,7 @@ pool_delete(struct pmalloc_pool *p)
 		LOG(4, "Failed to destroy pool lock");
 	}
 
-	pool_close_backend[p->backend->type](p->backend);
+	backend_close(p->backend);
 
 	Free(p);
 }

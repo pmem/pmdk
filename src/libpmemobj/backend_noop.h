@@ -31,15 +31,15 @@
  */
 
 /*
- * noop_backend.h -- internal definitions for noop backend
+ * backend_noop.h -- internal definitions for noop backend
  */
 
-struct noop_backend {
+struct backend_noop {
 	struct backend super;
 };
 
-struct backend *noop_backend_open(void *ptr, size_t size);
-void noop_backend_close(struct backend *backend);
+struct backend *backend_noop_open(void *ptr, size_t size);
+void backend_noop_close(struct backend *backend);
 
 void noop_set_alloc_ptr(struct arena *arena, uint64_t *ptr,
 	uint64_t value);

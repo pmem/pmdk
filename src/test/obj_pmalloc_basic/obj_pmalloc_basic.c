@@ -43,7 +43,7 @@
 #include "arena.h"
 #include "backend.h"
 #include "pool.h"
-#include "noop_backend.h"
+#include "backend_noop.h"
 #include "util.h"
 
 #define	TEST_ALLOC_SIZE 1024

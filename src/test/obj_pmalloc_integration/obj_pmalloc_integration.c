@@ -41,7 +41,6 @@
 #include "arena.h"
 #include "backend.h"
 #include "pool.h"
-#include "persistent_backend.h"
 #include "util.h"
 
 #define	TEST_ALLOC_SIZE 1024

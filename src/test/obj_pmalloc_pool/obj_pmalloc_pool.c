@@ -42,7 +42,7 @@
 #include "arena.h"
 #include "backend.h"
 #include "pool.h"
-#include "noop_backend.h"
+#include "backend_noop.h"
 #include "util.h"
 
 struct pool_backend_operations mock_pool_ops;
@@ -54,8 +54,8 @@ struct backend mock_backend = {
 
 FUNC_WILL_RETURN(pthread_mutex_init, 0);
 FUNC_WILL_RETURN(pthread_mutex_destroy, 0);
-FUNC_WILL_RETURN(noop_backend_open, &mock_backend)
-FUNC_WILL_RETURN(noop_backend_close, NULL);
+FUNC_WILL_RETURN(backend_noop_open, &mock_backend)
+FUNC_WILL_RETURN(backend_noop_close, NULL);
 
 void
 pool_test_create_delete()

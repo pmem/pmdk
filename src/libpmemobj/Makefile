@@ -35,7 +35,8 @@ LIBRARY_NAME = pmemobj
 LIBRARY_SO_VERSION = 1
 LIBRARY_VERSION = 0.0
 SOURCE = libpmemobj.c obj.c arena.c backend.c bucket.c pmalloc.c pool.c \
-   persistent_backend.c noop_backend.c $(COMMON)/util.c $(COMMON)/out.c
+   backend_persistent.c backend_noop.c $(COMMON)/util.c \
+   $(COMMON)/out.c
 
 include ../Makefile.inc
 

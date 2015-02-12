@@ -50,6 +50,7 @@
 int
 get_bucket_class_id_by_size(struct pmalloc_pool *p, size_t size)
 {
+	/* XXX */
 	return 0;
 }
 
@@ -132,6 +133,7 @@ bucket_delete(struct bucket *bucket)
 struct bucket_object **
 bucket_transfer_objects(struct bucket *bucket)
 {
+	/* XXX */
 	return NULL;
 }
 
@@ -142,7 +144,7 @@ void
 bucket_object_init(struct bucket_object *obj, struct pmalloc_pool *p,
 	uint64_t ptr)
 {
-
+	/* XXX */
 }
 
 /*
@@ -151,6 +153,7 @@ bucket_object_init(struct bucket_object *obj, struct pmalloc_pool *p,
 uint64_t
 bucket_calc_units(struct bucket *bucket, size_t size)
 {
+	/* XXX */
 	return 0;
 }
 
@@ -160,6 +163,7 @@ bucket_calc_units(struct bucket *bucket, size_t size)
 struct bucket_object *
 bucket_find_object(struct bucket *bucket, uint64_t units)
 {
+	/* XXX */
 	return NULL;
 }
 
@@ -169,6 +173,7 @@ bucket_find_object(struct bucket *bucket, uint64_t units)
 bool
 bucket_remove_object(struct bucket *bucket, struct bucket_object *obj)
 {
+	/* XXX */
 	return false;
 }
 
@@ -178,5 +183,6 @@ bucket_remove_object(struct bucket *bucket, struct bucket_object *obj)
 bool
 bucket_add_object(struct bucket *bucket, struct bucket_object *obj)
 {
+	/* XXX */
 	return false;
 }

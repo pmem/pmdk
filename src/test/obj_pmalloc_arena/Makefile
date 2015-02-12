@@ -40,7 +40,7 @@ vpath %.h ../.. ../../common
 
 TARGET = obj_pmalloc_arena
 OBJS = obj_pmalloc_arena.o out.o util.o pmalloc.o bucket.o pool.o backend.o\
-	persistent_backend.o noop_backend.o arena.o
+	backend_persistent.o backend_noop.o arena.o
 
 out.o: CFLAGS += -DSRCVERSION=\"utversion\"
 
