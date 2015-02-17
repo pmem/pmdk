@@ -96,6 +96,8 @@ endif
 
 libdir = $(objdir)/..
 
+LDFLAGS += -L$(libdir)
+
 ifneq ($(SOURCE),)
 OBJS += $(addprefix $(objdir)/, $(patsubst $(COMMON)/%, %, $(SOURCE:.c=.o)))
 endif

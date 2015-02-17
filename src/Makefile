@@ -69,6 +69,7 @@ custom_build = $(DEBUG)$(OBJDIR)
 
 libvmmalloc libvmem: jemalloc
 tools: libpmem libpmemblk libpmemlog
+libpmemblk libpmemlog libpmemobj: libpmem
 
 %-install: %
 	$(MAKE) -C $* install
