@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright (c) 2014, Intel Corporation
+# Copyright (c) 2014-2015, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -41,6 +41,7 @@ PMEMBLK_OUT=benchmark_mt_pmemblk.out
 FILEIOBLK_OUT=benchmark_mt_fileio.out
 
 rm -f $IO_FILE;
+rm -f $BLK_FILE;
 
 ./blk_mt -b $BLK_SIZE -s $FILE_SIZE -c -o $OPERATIONS_PER_THREAD $MAX_THREADS $BLK_FILE;
 
