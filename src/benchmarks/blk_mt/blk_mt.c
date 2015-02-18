@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright (c) 2014-2015, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -55,6 +55,7 @@
 #define	WORKER_COUNT_MAX 2
 #define	SUCCESS 0
 #define	FAILURE 1
+#define	FILE_MODE 0666
 
 /* typedef for the worker function */
 typedef void *(*worker)(void *);
@@ -109,56 +110,61 @@ main(int argc, char *argv[])
 		exit(1);
 	}
 
-	/* prepare open flags */
-	int flags = O_RDWR | O_CREAT;
-	if (arguments.file_io) {
-		flags |= O_SYNC;
-	}
-
 	struct worker_info worker_params[arguments.thread_count];
 	memset(worker_params, 0, sizeof (struct worker_info));
-
-	/* create file on PMEM-aware file system */
-	if ((worker_params[0].file_desc = open(arguments.file_path, flags,
-			0666)) < 0) {
-		perror(arguments.file_path);
-		exit(1);
-	}
-
-	/* file_size is provided in MB */
-	unsigned long long file_size_bytes = arguments.file_size * 1024 * 1024;
-
-	/* pre-allocate file_size MB of persistent memory */
-	if ((errno = posix_fallocate(worker_params[0].file_desc, (off_t)0,
-			(off_t)file_size_bytes)) != 0) {
-		warn("posix_fallocate");
-		close(worker_params[0].file_desc);
-		exit(1);
-	}
 
 	/* set common values */
 	worker_params[0].block_size = arguments.block_size;
 	worker_params[0].num_ops = arguments.num_ops;
 	worker_params[0].file_lanes = arguments.thread_count;
 
-	/* the pmem workers are the default workers */
-	worker *thread_workers = pmem_workers;
+	/* file_size is provided in MB */
+	unsigned long long file_size_bytes = arguments.file_size * 1024 * 1024;
+
+	worker *thread_workers = NULL;
 
 	/* prepare parameters specific for file/pmem */
 	if (arguments.file_io) {
+		/* prepare open flags */
+		int flags = O_RDWR | O_CREAT | O_SYNC;
+		/* create file on PMEM-aware file system */
+		if ((worker_params[0].file_desc = open(arguments.file_path,
+			flags, FILE_MODE)) < 0) {
+			perror(arguments.file_path);
+			exit(1);
+		}
+
+		/* pre-allocate file_size MB of persistent memory */
+		if ((errno = posix_fallocate(worker_params[0].file_desc,
+			(off_t)0, (off_t)file_size_bytes)) != 0) {
+			warn("posix_fallocate");
+			close(worker_params[0].file_desc);
+			exit(1);
+		}
+
 		worker_params[0].num_blocks = file_size_bytes
 				/ worker_params[0].block_size;
 		thread_workers = file_workers;
 	} else {
-		close(worker_params[0].file_desc);
 		worker_params[0].file_desc = -1;
-		if ((worker_params[0].handle = pmemblk_open(
+		if (arguments.prep_blk_file) {
+			if ((worker_params[0].handle = pmemblk_create(
 				arguments.file_path,
-				worker_params[0].block_size)) == NULL) {
-			err(1, "%s: pmemblk_open", argv[2]);
+				worker_params[0].block_size,
+				(off_t)file_size_bytes, FILE_MODE)) == NULL) {
+				err(1, "%s: pmemblk_open", argv[2]);
+			}
+		} else {
+			if ((worker_params[0].handle = pmemblk_open(
+					arguments.file_path,
+					worker_params[0].block_size)) == NULL) {
+				err(1, "%s: pmemblk_open", argv[2]);
+			}
+
 		}
 		worker_params[0].num_blocks = pmemblk_nblock(
 				worker_params[0].handle);
+		thread_workers = pmem_workers;
 	}
 
 	/* propagate params to each info_t */
@@ -210,7 +216,6 @@ main(int argc, char *argv[])
 
 	if (worker_params[0].file_desc >= 0)
 		close(worker_params[0].file_desc);
-
 
 	/* cleanup and check pmem file */
 	if (!arguments.file_io) {

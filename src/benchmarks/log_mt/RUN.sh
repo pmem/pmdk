@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright (c) 2014, Intel Corporation
+# Copyright (c) 2014-2015, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -38,13 +38,17 @@ PMEMLOG_OUT=pmemlog_mt.out
 FILEIOLOG_OUT=fileiolog_mt.out
 
 rm -f $FILEIOLOG_OUT
+rm -f $LOG_IN
+
 for i in $RUNS ; do
+	echo ./log_mt -i -v 1 -e 8192 $i $OPS_COUNT $LOG_IN;
 	./log_mt -i -v 1 -e 8192 $i $OPS_COUNT $LOG_IN >> $FILEIOLOG_OUT;
 	rm -f $LOG_IN
 done
 
 rm -f $PMEMLOG_OUT
 for i in $RUNS ; do
+	echo ./log_mt -v 1 -e 8192 $i $OPS_COUNT $LOG_IN;
 	./log_mt -v 1 -e 8192 $i $OPS_COUNT $LOG_IN >> $PMEMLOG_OUT;
 	rm -f $LOG_IN
 done

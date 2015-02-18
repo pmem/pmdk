@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright (c) 2014-2015, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -47,6 +47,8 @@
 #include <unistd.h>
 
 #include "threads.h"
+
+#define	FILE_MODE 0666
 
 /* command line arguments parsing function */
 static error_t parse_opt(int key, char *arg, struct argp_state *state);
@@ -115,16 +117,6 @@ main(int argc, char *argv[])
 		exit(1);
 	}
 
-	flags = O_CREAT | O_RDWR;
-	if (args.fileio_mode) {
-		flags |= O_APPEND | O_SYNC;
-	}
-
-	/* create a file if it does not exist */
-	if ((fd = open(args.file_name, flags, 0666)) < 0) {
-		perror(args.file_name);
-		exit(1);
-	}
 
 	if (!args.fileio_mode) {
 		/* Calculate a required pool size */
@@ -133,15 +125,8 @@ main(int argc, char *argv[])
 			psize = PMEMLOG_MIN_POOL;
 		}
 
-		/* pre-allocate memory */
-		errno = posix_fallocate(fd, (off_t)0, psize);
-		close(fd);
-		if (errno != 0) {
-			perror("posix_fallocate");
-			exit(1);
-		}
-
-		if ((plp = pmemlog_open(args.file_name)) == NULL) {
+		if ((plp = pmemlog_create(args.file_name, psize, FILE_MODE))
+				== NULL) {
 			perror("pmemlog_open");
 			exit(1);
 		}
@@ -153,13 +138,16 @@ main(int argc, char *argv[])
 			fails = run_threads(&args, Tasks[i], arg, &exec_time);
 		}
 	} else {
+		flags = O_CREAT | O_RDWR | O_APPEND | O_SYNC;
+
+		/* create a file if it does not exist */
+		if ((fd = open(args.file_name, flags, FILE_MODE)) < 0) {
+			perror(args.file_name);
+			exit(1);
+		}
 		Tasks = Tasks_fileiolog;
 		arg = &fd;
 	}
-
-	/* rewind a log pool */
-	if (!args.fileio_mode)
-		pmemlog_rewind(plp);
 
 	/* actual benchmark execution */
 	for (int i = 0; i < TASKS_COUNT_MAX; ++i) {
