@@ -105,7 +105,7 @@ util_parse_size(char *str, uint64_t *sizep)
 	char unit = '\0';
 	int shift = 0;
 	int ret = sscanf(str, "%lu%c", &size, &unit);
-	if (ret == 0)
+	if (ret <= 0)
 		return -1;
 
 	if (ret == 2) {

@@ -261,7 +261,7 @@ static int
 pmempool_create_parse_args(struct pmempool_create *pcp, char *appname,
 		int argc, char *argv[])
 {
-	int opt;
+	int opt, ret;
 	while ((opt = getopt_long(argc, argv, "hvi:s:Mm:l::",
 			long_options, NULL)) != -1) {
 		switch (opt) {
@@ -272,8 +272,10 @@ pmempool_create_parse_args(struct pmempool_create *pcp, char *appname,
 			pmempool_create_help(appname);
 			exit(EXIT_SUCCESS);
 		case 's':
-			if (util_parse_size(optarg, &pcp->size)) {
-				out_err("cannot parse '%s' as size\n", optarg);
+			ret = util_parse_size(optarg, &pcp->size);
+			if (ret || pcp->size == 0) {
+				out_err("invalid size value specified '%s'\n",
+						optarg);
 				return -1;
 			}
 			break;
