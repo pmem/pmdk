@@ -373,7 +373,9 @@ pmempool_create_func(char *appname, int argc, char *argv[])
 		outv(1, "Parsing '%s' file:\n", pc.inherit_fname);
 		pc.type = pmem_pool_parse_params(pc.inherit_fname, &pc.size,
 				&pc.bsize);
-		if (PMEM_POOL_TYPE_UNKNWON == pc.type) {
+		if (PMEM_POOL_TYPE_NONE == pc.type) {
+			err(1, "%s", pc.inherit_fname);
+		} else if (PMEM_POOL_TYPE_UNKNWON == pc.type) {
 			out_err("'%s' -- unknown pool type\n",
 					pc.inherit_fname);
 			return -1;
@@ -441,6 +443,7 @@ pmempool_create_func(char *appname, int argc, char *argv[])
 		ret = pmempool_create_log(&pc);
 		break;
 	default:
+		ret = -1;
 		break;
 	}
 
