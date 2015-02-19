@@ -70,7 +70,7 @@ custom_build = $(DEBUG)$(OBJDIR)
 libvmmalloc libvmem: jemalloc
 tools: libpmem libpmemblk libpmemlog
 
-%-install:
+%-install: %
 	$(MAKE) -C $* install
 ifeq ($(custom_build),)
 	$(MAKE) -C $* install DEBUG=1
