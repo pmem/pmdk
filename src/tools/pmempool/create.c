@@ -293,10 +293,16 @@ pmempool_create_parse_args(struct pmempool_create *pcp, char *appname,
 			pcp->inherit_fname = optarg;
 			break;
 		case 'l':
-			if (optarg)
+			if (optarg) {
 				pcp->layout = atoll(optarg);
-			else
+				if (pcp->layout < 0) {
+					out_err("invalid layout value "
+						"specified '%s'\n", optarg);
+					return -1;
+				}
+			} else {
 				pcp->layout = 0;
+			}
 			break;
 		default:
 			print_usage(appname);
@@ -395,6 +401,22 @@ pmempool_create_func(char *appname, int argc, char *argv[])
 		/* neither pool type string nor --inherit options passed */
 		print_usage(appname);
 		return -1;
+	}
+
+	/*
+	 * Validate options specific for pool type.
+	 */
+	if (PMEM_POOL_TYPE_LOG == pc.type) {
+		if (pc.layout != -1) {
+			out_err("invalid option specified for log pool type"
+					" -- layout\n");
+			return -1;
+		}
+		if (pc.str_bsize != NULL) {
+			out_err("invalid option specified for log pool type"
+					" -- block size\n");
+			return -1;
+		}
 	}
 
 	if (pc.size && pc.max_size) {
