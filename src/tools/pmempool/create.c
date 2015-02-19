@@ -283,8 +283,9 @@ pmempool_create_parse_args(struct pmempool_create *pcp, char *appname,
 			pcp->max_size = 1;
 			break;
 		case 'm':
-			if (sscanf(optarg, "%o", &pcp->mode) != 1) {
-				out_err("cannot parse mode\n");
+			if (util_parse_mode(optarg, &pcp->mode)) {
+				out_err("invalid mode value specified '%s'\n",
+						optarg);
 				return -1;
 			}
 			break;

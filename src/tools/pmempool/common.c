@@ -137,6 +137,30 @@ util_parse_size(char *str, uint64_t *sizep)
 }
 
 /*
+ * util_parse_mode -- parse file mode from octal string
+ */
+int
+util_parse_mode(char *str, mode_t *mode)
+{
+	int digits = 0;
+	int zero = *str == '0';
+	*mode = 0;
+	while (*str != '\0') {
+		if (digits == 3)
+			return -1;
+		if (*str < '0' || *str > '7')
+			return -1;
+		if (digits || *str != '0') {
+			*mode = (*mode << 3) | (*str - '0');
+			digits++;
+		}
+		str++;
+	}
+
+	return digits || zero ? 0 : -1;
+}
+
+/*
  * util_parse_range_from_to -- parse range string as interval
  */
 static int
