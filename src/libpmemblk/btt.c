@@ -337,6 +337,7 @@ read_info(struct btt *bttp, struct btt_info *infop)
 	return 1;
 }
 
+#ifdef DEBUG
 /*
  * map_entry_is_zero -- (internal) checks if map_entry is in zero state
  */
@@ -345,6 +346,7 @@ map_entry_is_zero(uint32_t map_entry)
 {
 	return (map_entry & ~BTT_MAP_ENTRY_LBA_MASK) == BTT_MAP_ENTRY_ZERO;
 }
+#endif
 
 /*
  * map_entry_is_error -- (internal) checks if map_entry is in error state
@@ -362,6 +364,17 @@ static inline int
 map_entry_is_initial(uint32_t map_entry)
 {
 	return (map_entry & ~BTT_MAP_ENTRY_LBA_MASK) == 0;
+}
+
+/*
+ * map_entry_is_zero_or_initial -- (internal) checks if map_entry is in initial
+ * or zero state
+ */
+static inline int
+map_entry_is_zero_or_initial(uint32_t map_entry)
+{
+	int entry_flags = map_entry & ~BTT_MAP_ENTRY_LBA_MASK;
+	return ((entry_flags == 0) || (entry_flags == BTT_MAP_ENTRY_ZERO));
 }
 
 /*
@@ -456,14 +469,16 @@ read_flog_pair(struct btt *bttp, int lane, struct arena *arenap,
 	/* copy current flog into run-time flog state */
 	flog_runtimep->flog = *currentp;
 
-	LOG(9, "read flog[%d]: lba %u old %u%s%s new %u%s%s", flognum,
+	LOG(9, "read flog[%d]: lba %u old %u%s%s%s new %u%s%s%s", flognum,
 		currentp->lba,
 		currentp->old_map & BTT_MAP_ENTRY_LBA_MASK,
 		(map_entry_is_error(currentp->old_map)) ? " ERROR" : "",
 		(map_entry_is_zero(currentp->old_map)) ? " ZERO" : "",
+		(map_entry_is_initial(currentp->old_map)) ? " INIT" : "",
 		currentp->new_map & BTT_MAP_ENTRY_LBA_MASK,
 		(map_entry_is_error(currentp->new_map)) ? " ERROR" : "",
-		(map_entry_is_zero(currentp->new_map)) ? " ZERO" : "");
+		(map_entry_is_zero(currentp->new_map)) ? " ZERO" : "",
+		(map_entry_is_initial(currentp->new_map)) ? " INIT" : "");
 
 	/*
 	 * Decide if the current flog info represents a completed
@@ -566,13 +581,15 @@ flog_update(struct btt *bttp, int lane, struct arena *arenap,
 	arenap->flogs[lane].flog.new_map = new_map;
 	arenap->flogs[lane].flog.seq = NSEQ(arenap->flogs[lane].flog.seq);
 
-	LOG(9, "update flog[%d]: lba %u old %u%s%s new %u%s%s", lane, lba,
+	LOG(9, "update flog[%d]: lba %u old %u%s%s%s new %u%s%s%s", lane, lba,
 			old_map & BTT_MAP_ENTRY_LBA_MASK,
 			(map_entry_is_error(old_map)) ? " ERROR" : "",
 			(map_entry_is_zero(old_map)) ? " ZERO" : "",
+			(map_entry_is_initial(old_map)) ? " INIT" : "",
 			new_map & BTT_MAP_ENTRY_LBA_MASK,
 			(map_entry_is_error(new_map)) ? " ERROR" : "",
-			(map_entry_is_zero(new_map)) ? " ZERO" : "");
+			(map_entry_is_zero(new_map)) ? " ZERO" : "",
+			(map_entry_is_initial(new_map)) ? " INIT" : "");
 
 	return 0;
 }
@@ -1359,7 +1376,7 @@ btt_read(struct btt *bttp, int lane, uint64_t lba, void *buf)
 			return -1;
 		}
 
-		if (map_entry_is_zero(entry))
+		if (map_entry_is_zero_or_initial(entry))
 			return zero_block(bttp, buf);
 
 		/*
@@ -1685,7 +1702,8 @@ map_entry_setf(struct btt *bttp, int lane, uint64_t lba, uint32_t setf)
 
 	old_entry = le32toh(old_entry);
 
-	if (setf == BTT_MAP_ENTRY_ZERO && map_entry_is_zero(old_entry)) {
+	if (setf == BTT_MAP_ENTRY_ZERO &&
+			map_entry_is_zero_or_initial(old_entry)) {
 		map_abort(bttp, lane, arenap, premap_lba);
 		return 0;	/* block already zero, nothing to do */
 	}
@@ -1772,11 +1790,10 @@ check_arena(struct btt *bttp, struct arena *arenap)
 		entry = le32toh(mapp[next_index]);
 
 		/* for debug, dump non-zero map entries at log level 11 */
-		if (map_entry_is_zero(entry) == 0)
-			LOG(11, "map[%d]: %u%s%s", i,
+		if (map_entry_is_zero_or_initial(entry) == 0)
+			LOG(11, "map[%d]: %u%s", i,
 				entry &	BTT_MAP_ENTRY_LBA_MASK,
-				(map_entry_is_error(entry)) ? " ERROR" : "",
-				(map_entry_is_zero(entry)) ? " ZERO" : "");
+				(map_entry_is_error(entry)) ? " ERROR" : "");
 
 		/* this is an uninitialized map entry, set the default value */
 		if (map_entry_is_initial(entry))
