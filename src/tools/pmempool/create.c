@@ -361,7 +361,7 @@ pmempool_create_func(char *appname, int argc, char *argv[])
 	if (pc.str_type) {
 		/* parse pool type string if passed in command line arguments */
 		pc.type = pmem_pool_type_parse_str(pc.str_type);
-		if (PMEM_POOL_TYPE_UNKNWON == pc.type) {
+		if (PMEM_POOL_TYPE_UNKNOWN == pc.type) {
 			out_err("'%s' -- unknown pool type\n", pc.str_type);
 			return -1;
 		}
@@ -388,7 +388,7 @@ pmempool_create_func(char *appname, int argc, char *argv[])
 				&pc.bsize);
 		if (PMEM_POOL_TYPE_NONE == pc.type) {
 			err(1, "%s", pc.inherit_fname);
-		} else if (PMEM_POOL_TYPE_UNKNWON == pc.type) {
+		} else if (PMEM_POOL_TYPE_UNKNOWN == pc.type) {
 			out_err("'%s' -- unknown pool type\n",
 					pc.inherit_fname);
 			return -1;

@@ -272,7 +272,7 @@ parse_args(char *appname, int argc, char *argv[],
 			break;
 		case 'f':
 			argsp->type = pmem_pool_type_parse_str(optarg);
-			if (argsp->type == PMEM_POOL_TYPE_UNKNWON) {
+			if (argsp->type == PMEM_POOL_TYPE_UNKNOWN) {
 				out_err("'%s' -- unknown pool type\n", optarg);
 				return -1;
 			}
@@ -1067,7 +1067,7 @@ pmempool_info_get_pool_type(struct pmem_info *pip)
 
 	if (pmempool_info_read(pip, hdrp, sizeof (*hdrp), 0)) {
 		out_err("cannot read pool header\n");
-		ret = PMEM_POOL_TYPE_UNKNWON;
+		ret = PMEM_POOL_TYPE_UNKNOWN;
 		goto error;
 	}
 
@@ -1108,7 +1108,7 @@ pmempool_info_file(struct pmem_info *pip, const char *file_name)
 	 */
 	pmem_pool_type_t type = pmempool_info_get_pool_type(pip);
 
-	if (PMEM_POOL_TYPE_UNKNWON == type) {
+	if (PMEM_POOL_TYPE_UNKNOWN == type) {
 		/*
 		 * This means don't know what pool type should be parsed
 		 * this happens when can't determine pool type of file
@@ -1135,7 +1135,7 @@ pmempool_info_file(struct pmem_info *pip, const char *file_name)
 		case PMEM_POOL_TYPE_BLK:
 			ret = pmempool_info_blk(pip, 1);
 			break;
-		case PMEM_POOL_TYPE_UNKNWON:
+		case PMEM_POOL_TYPE_UNKNOWN:
 		default:
 			ret = -1;
 			break;

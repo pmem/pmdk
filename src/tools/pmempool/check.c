@@ -101,6 +101,7 @@ struct pmempool_check {
 typedef enum
 {
 	CHECK_RESULT_CONSISTENT,
+	CHECK_RESULT_CONSISTENT_BREAK,
 	CHECK_RESULT_NOT_CONSISTENT,
 	CHECK_RESULT_REPAIRED,
 	CHECK_RESULT_CANNOT_REPAIR,
@@ -291,7 +292,7 @@ const struct pmempool_check pmempool_check_default = {
 	.repair		= false,
 	.backup		= false,
 	.exec		= true,
-	.ptype		= PMEM_POOL_TYPE_UNKNWON,
+	.ptype		= PMEM_POOL_TYPE_UNKNOWN,
 	.narenas	= 0,
 	.ans		= '?',
 };
@@ -610,7 +611,7 @@ pmempool_check_pool_hdr(struct pmempool_check *pcp)
 
 	struct pool_hdr default_hdr;
 
-	if (pcp->ptype == PMEM_POOL_TYPE_UNKNWON) {
+	if (pcp->ptype == PMEM_POOL_TYPE_UNKNOWN) {
 		/*
 		 * We can scan pool file for valid BTT Info header
 		 * if found it means this is pmem blk pool.
@@ -1184,6 +1185,12 @@ pmempool_check_btt_info(struct pmempool_check *pcp)
 		off_t advanced_repair_endoff = 0;
 		bool advanced_repair = false;
 
+		if (util_check_memory((const uint8_t *)&arenap->btt_info,
+				sizeof (arenap->btt_info), 0) == 0) {
+			outv(2, "BTT Layout not written\n");
+			free(arenap);
+			return CHECK_RESULT_CONSISTENT_BREAK;
+		}
 		/* check consistency of BTT Info */
 		int ret = pmempool_check_check_btt(&arenap->btt_info);
 
@@ -1793,7 +1800,7 @@ pmempool_check_write_blk(struct pmempool_check *pcp)
  */
 static const struct pmempool_check_step pmempool_check_steps[] = {
 	{
-		.type	= PMEM_POOL_TYPE_ALL|PMEM_POOL_TYPE_UNKNWON,
+		.type	= PMEM_POOL_TYPE_ALL|PMEM_POOL_TYPE_UNKNOWN,
 		.func	= pmempool_check_pool_hdr,
 	},
 	{
@@ -1826,6 +1833,47 @@ static const struct pmempool_check_step pmempool_check_steps[] = {
 };
 
 /*
+ * pmempool_check_single_step -- run single step
+ *
+ * Returns non-zero if processing should be stopped, otherwise
+ * returns zero.
+ */
+static int
+pmempool_check_single_step(struct pmempool_check *pcp,
+		const struct pmempool_check_step *step, check_result_t *resp)
+{
+	if (step->func == NULL)
+		return 1;
+
+	if (!(step->type & pcp->ptype))
+		return 0;
+
+	check_result_t ret = step->func(pcp);
+
+	switch (ret) {
+	case CHECK_RESULT_CONSISTENT:
+		return 0;
+	case CHECK_RESULT_REPAIRED:
+		*resp = ret;
+		return 0;
+	case CHECK_RESULT_NOT_CONSISTENT:
+		*resp = ret;
+		/*
+		 * don't continue if pool is not consistent
+		 * and we don't want to repair
+		 */
+		return !pcp->repair;
+	case CHECK_RESULT_CONSISTENT_BREAK:
+	case CHECK_RESULT_CANNOT_REPAIR:
+	case CHECK_RESULT_ERROR:
+		*resp = ret;
+		return 1;
+	default:
+		return 1;
+	}
+}
+
+/*
  * pmempool_check_repair -- run all repair steps
  */
 static check_result_t
@@ -1846,33 +1894,9 @@ pmempool_check_all_steps(struct pmempool_check *pcp)
 
 	check_result_t ret = CHECK_RESULT_CONSISTENT;
 	int i = 0;
-	while (pmempool_check_steps[i].func != NULL) {
-		if (pmempool_check_steps[i].type & pcp->ptype) {
-			check_result_t ret_step =
-				pmempool_check_steps[i].func(pcp);
-			switch (ret_step) {
-			case CHECK_RESULT_CONSISTENT:
-				break;
-			case CHECK_RESULT_REPAIRED:
-				ret = ret_step;
-				break;
-			case CHECK_RESULT_NOT_CONSISTENT:
-				ret = CHECK_RESULT_NOT_CONSISTENT;
-				if (!pcp->repair) {
-					ret = ret_step;
-					goto out;
-				}
-				break;
-			case CHECK_RESULT_CANNOT_REPAIR:
-			case CHECK_RESULT_ERROR:
-				ret = ret_step;
-				goto out;
-			}
-		}
+	while (!pmempool_check_single_step(pcp,
+			&pmempool_check_steps[i++], &ret));
 
-		i++;
-	}
-out:
 	close(pcp->fd);
 
 	return ret;
@@ -1911,6 +1935,7 @@ pmempool_check_func(char *appname, int argc, char *argv[])
 		res = pmempool_check_all_steps(&pc);
 		switch (res) {
 		case CHECK_RESULT_CONSISTENT:
+		case CHECK_RESULT_CONSISTENT_BREAK:
 			outv(2, "%s: consistent\n", pc.fname);
 			ret = 0;
 			break;

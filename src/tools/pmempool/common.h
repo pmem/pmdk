@@ -53,7 +53,7 @@ typedef enum {
 	PMEM_POOL_TYPE_BLK	= 0x02,
 	PMEM_POOL_TYPE_OBJ	= 0x04,
 	PMEM_POOL_TYPE_ALL	= 0x0f,
-	PMEM_POOL_TYPE_UNKNWON	= 0x80,
+	PMEM_POOL_TYPE_UNKNOWN	= 0x80,
 } pmem_pool_type_t;
 
 struct range {

@@ -63,7 +63,7 @@ pmem_pool_type_parse_hdr(struct pool_hdr *hdrp)
 	else if (strncmp(hdrp->signature, BLK_HDR_SIG, POOL_HDR_SIG_LEN) == 0)
 		return PMEM_POOL_TYPE_BLK;
 	else
-		return PMEM_POOL_TYPE_UNKNWON;
+		return PMEM_POOL_TYPE_UNKNOWN;
 }
 
 /*
@@ -77,7 +77,7 @@ pmem_pool_type_parse_str(char *str)
 	} else if (strcmp(str, "log") == 0) {
 		return PMEM_POOL_TYPE_LOG;
 	} else {
-		return PMEM_POOL_TYPE_UNKNWON;
+		return PMEM_POOL_TYPE_UNKNOWN;
 	}
 }
 
@@ -144,22 +144,30 @@ util_parse_size(char *str, uint64_t *sizep)
 int
 util_parse_mode(char *str, mode_t *mode)
 {
+	mode_t m = 0;
 	int digits = 0;
-	int zero = *str == '0';
-	*mode = 0;
-	while (*str != '\0') {
-		if (digits == 3)
-			return -1;
+
+	/* skip leading zeros */
+	while (*str == '0')
+		str++;
+
+	/* parse at most 3 octal digits */
+	while (digits < 3 && *str != '\0') {
 		if (*str < '0' || *str > '7')
 			return -1;
-		if (digits || *str != '0') {
-			*mode = (*mode << 3) | (*str - '0');
-			digits++;
-		}
+		m = (m << 3) | (*str - '0');
+		digits++;
 		str++;
 	}
 
-	return digits || zero ? 0 : -1;
+	/* more than 3 octal digits */
+	if (digits == 3 && *str != '\0')
+		return -1;
+
+	if (mode)
+		*mode = m;
+
+	return 0;
 }
 
 /*
@@ -432,7 +440,7 @@ pmem_pool_parse_params(char *fname, uint64_t *sizep, uint64_t *bsizep)
 
 	int fd;
 	if ((fd = open(fname, O_RDONLY)) >= 0) {
-		ret = PMEM_POOL_TYPE_UNKNWON;
+		ret = PMEM_POOL_TYPE_UNKNOWN;
 		/* read pool_hdr */
 		if (pread(fd, &pbp->hdr, sizeof (pbp->hdr), 0) ==
 				sizeof (pbp->hdr))

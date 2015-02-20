@@ -197,7 +197,7 @@ pmempool_dump_log(struct pmempool_dump *pdp)
 
 	struct range entire;
 	entire.first = 0;
-	entire.last = pmemlog_nbyte(plp)-1;
+	entire.last = pmemlog_nbyte(plp) - 1;
 
 	if (pdp->str_ranges) {
 		if (util_parse_ranges(pdp->str_ranges, &pdp->ranges, &entire)
@@ -232,7 +232,7 @@ pmempool_dump_blk(struct pmempool_dump *pdp)
 
 	struct range entire;
 	entire.first = 0;
-	entire.last = pmemblk_nblock(pbp);
+	entire.last = pmemblk_nblock(pbp) - 1;
 
 	if (pdp->str_ranges) {
 		if (util_parse_ranges(pdp->str_ranges, &pdp->ranges, &entire)
