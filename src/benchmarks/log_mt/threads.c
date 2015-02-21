@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright (c) 2014-2015, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -105,16 +105,16 @@ run_threads(struct prog_args *args, thread_f task, void *arg, double *exec_time)
 		};
 
 		if ((thread_info[i].buf = (char *)
-				calloc(args->el_size *
-					args->vec_size * args->ops_count,
-					sizeof (char))) == NULL) {
+				malloc(args->el_size *
+				args->vec_size *
+				sizeof (char))) == NULL) {
 			return EXIT_FAILURE;
 		}
 
-		thread_info[i].buf_size = args->el_size * args->vec_size
-				* args->ops_count;
+		thread_info[i].buf_size = args->el_size * args->vec_size;
 
-		if ((thread_info[i].iov = (struct iovec *)calloc(args->vec_size,
+		if ((thread_info[i].iov = (struct iovec *)
+				malloc(args->vec_size *
 				sizeof (struct iovec))) == NULL) {
 			return EXIT_FAILURE;
 		}
@@ -297,8 +297,8 @@ process_data(const void *buf, size_t len, void *arg)
 {
 	struct thread_info *thread_info = arg;
 
-	if ((thread_info->buf_ptr + len) <= thread_info->buf_size) {
-		memcpy(&thread_info->buf[thread_info->buf_ptr], buf, len);
+	if (len <= thread_info->buf_size) {
+		memcpy(thread_info->buf, buf, len);
 		thread_info->buf_ptr += len;
 
 		return 1;

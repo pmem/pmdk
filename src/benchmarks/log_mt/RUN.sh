@@ -33,9 +33,12 @@
 OPS_COUNT=100
 MAX_THREADS=32
 RUNS=`seq $MAX_THREADS`
-LOG_IN="./log_mt.tmp"
+DIR="."
 PMEMLOG_OUT=pmemlog_mt.out
 FILEIOLOG_OUT=fileiolog_mt.out
+[ -n "$1" ] && DIR=$1
+[ -n "$2" ] && OPS_COUNT=$2
+LOG_IN="${DIR}/log_mt.tmp"
 
 rm -f $FILEIOLOG_OUT
 rm -f $LOG_IN

@@ -42,6 +42,7 @@
 #include <argp.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <err.h>
 #include <libpmemlog.h>
 #include <sys/mman.h>
 #include <unistd.h>
@@ -49,6 +50,8 @@
 #include "threads.h"
 
 #define	FILE_MODE 0666
+/* size of pool header and pool descriptor */
+#define	POOL_HDR_SIZE (2 * 4096)
 
 /* command line arguments parsing function */
 static error_t parse_opt(int key, char *arg, struct argp_state *state);
@@ -120,7 +123,8 @@ main(int argc, char *argv[])
 
 	if (!args.fileio_mode) {
 		/* Calculate a required pool size */
-		psize = args.ops_count * args.vec_size * args.el_size;
+		psize = POOL_HDR_SIZE + args.ops_count *
+			args.vec_size * args.el_size;
 		if (psize < PMEMLOG_MIN_POOL) {
 			psize = PMEMLOG_MIN_POOL;
 		}
@@ -137,6 +141,7 @@ main(int argc, char *argv[])
 		for (int i = 0; i < TASKS_COUNT_MAX; ++i) {
 			fails = run_threads(&args, Tasks[i], arg, &exec_time);
 		}
+		pmemlog_rewind(plp);
 	} else {
 		flags = O_CREAT | O_RDWR | O_APPEND | O_SYNC;
 
@@ -152,6 +157,8 @@ main(int argc, char *argv[])
 	/* actual benchmark execution */
 	for (int i = 0; i < TASKS_COUNT_MAX; ++i) {
 		fails = run_threads(&args, Tasks[i], arg, &exec_time);
+		if (fails)
+			err(1, "Tasks execution failed");
 		printf("%f;%f;",
 				exec_time, args.ops_count / exec_time);
 	}
