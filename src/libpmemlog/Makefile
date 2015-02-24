@@ -39,4 +39,4 @@ SOURCE = libpmemlog.c log.c $(COMMON)/util.c $(COMMON)/out.c
 
 include ../Makefile.inc
 
-LIBS += -luuid -pthread
+LIBS += -luuid -pthread -lpmem

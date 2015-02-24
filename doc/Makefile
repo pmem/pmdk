@@ -33,26 +33,32 @@
 #
 # doc/Makefile -- Makefile for NVM library man pages
 #
-MANPAGES = libpmem.3 libpmemblk.3 libpmemlog.3 libpmemobj.3 libvmem.3 \
+MANPAGES_3 = libpmem.3 libpmemblk.3 libpmemlog.3 libpmemobj.3 libvmem.3 \
 	libvmmalloc.3
+MANPAGES_1 = pmempool.1 pmempool-info.1 pmempool-create.1 \
+	pmempool-check.1 pmempool-dump.1
+MANPAGES = $(MANPAGES_1) $(MANPAGES_3)
 TXTFILES = $(MANPAGES:=.txt)
 HTMLFILES = $(MANPAGES:=.html)
-GZFILES = $(MANPAGES:=.gz)
-MANPAGES_DESTDIR = $(DESTDIR)/usr/share/man/man3
+GZFILES_1 = $(MANPAGES_1:=.gz)
+GZFILES_3 = $(MANPAGES_3:=.gz)
+GZFILES = $(GZFILES_1) $(GZFILES_3)
+INSTALL_SECTIONS = install-1 install-3
+MANPAGES_DESTDIR = $(DESTDIR)/usr/share/man/man
 
 all: $(TXTFILES)
 
-%.3.txt: %.3
+%.txt: %
 	man ./$< > $@
 
 html: $(HTMLFILES)
 
-%.3.html: %.3
+%.html: %
 	groff -mandoc -Thtml ./$< > $@
 
 compress: $(GZFILES)
 
-%.3.gz: %.3
+%.gz: %
 	gzip -c ./$< > $@
 
 clean:
@@ -60,8 +66,10 @@ clean:
 clobber: clean
 	$(RM) -f $(TXTFILES) $(HTMLFILES) $(GZFILES)
 
-install: compress
-	install -d $(MANPAGES_DESTDIR)
-	install -p -m 0644 $(GZFILES) $(MANPAGES_DESTDIR)
+install-%:
+	install -d $(MANPAGES_DESTDIR)$*
+	install -p -m 0644 $(GZFILES_$*) $(MANPAGES_DESTDIR)$*
+
+install: compress $(INSTALL_SECTIONS)
 
 .PHONY: all html clean compress clobber cstyle install

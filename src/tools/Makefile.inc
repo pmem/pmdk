@@ -40,39 +40,25 @@ CFLAGS += -DSRCVERSION='"$(SRCVERSION)"'
 LDFLAGS += -Wl,-z,relro
 TOOLSDIR=/usr/bin
 TARGET_DIR=$(DESTDIR)$(TOOLSDIR)
-MANPAGES ?=
-MANPAGES_DIR=$(DESTDIR)/usr/share/man/man1
-MANPAGES_GZ = $(addsuffix .gz, $(MANPAGES))
-MANPAGES_TXT = $(addsuffix .txt, $(MANPAGES))
 BASH_COMP_FILES ?=
 BASH_COMP_DIR =$(DESTDIR)/etc/bash_completion.d/
 CSTYLE=../../../utils/cstyle
 
-all: $(TARGET) $(MANPAGES_TXT)
+all: $(TARGET)
 
 clean:
 	$(RM) $(OBJS)
 
 clobber: clean
 	$(RM) $(TARGET)
-ifneq ($(MANPAGES),)
-	$(RM) $(MANPAGES_GZ)
-	$(RM) $(MANPAGES_TXT)
-endif
 
 cstyle:
 	$(CSTYLE) -pP *.[ch]
 
-compress: $(MANPAGES_GZ)
-
-install: all compress
+install: all
 ifneq ($(TARGET),)
 	install -d $(TARGET_DIR)
 	install -p -m 0755 $(TARGET) $(TARGET_DIR)
-endif
-ifneq ($(MANPAGES_GZ),)
-	install -d $(MANPAGES_DIR)
-	install -p -m 0644 $(MANPAGES_GZ) $(MANPAGES_DIR)
 endif
 ifneq ($(BASH_COMP_FILES),)
 	install -d $(BASH_COMP_DIR)
