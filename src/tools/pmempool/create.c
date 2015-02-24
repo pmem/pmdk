@@ -262,15 +262,19 @@ pmempool_create_parse_args(struct pmempool_create *pcp, char *appname,
 		int argc, char *argv[])
 {
 	int opt, ret;
-	while ((opt = getopt_long(argc, argv, "hvi:s:Mm:l::",
+	while ((opt = getopt_long(argc, argv, "?vi:s:Mm:l::",
 			long_options, NULL)) != -1) {
 		switch (opt) {
 		case 'v':
 			pcp->verbose = 1;
 			break;
 		case '?':
-			pmempool_create_help(appname);
-			exit(EXIT_SUCCESS);
+			if (optopt == '\0') {
+				pmempool_create_help(appname);
+				exit(EXIT_SUCCESS);
+			}
+			print_usage(appname);
+			return -1;
 		case 's':
 			ret = util_parse_size(optarg, &pcp->size);
 			if (ret || pcp->size == 0) {
@@ -306,7 +310,7 @@ pmempool_create_parse_args(struct pmempool_create *pcp, char *appname,
 			break;
 		default:
 			print_usage(appname);
-			exit(EXIT_FAILURE);
+			return -1;
 		}
 	}
 
@@ -323,7 +327,7 @@ pmempool_create_parse_args(struct pmempool_create *pcp, char *appname,
 		pcp->str_type = NULL;
 	} else {
 		print_usage(appname);
-		exit(EXIT_FAILURE);
+		return -1;
 	}
 
 	return 0;
@@ -341,7 +345,7 @@ pmempool_create_func(char *appname, int argc, char *argv[])
 	/* parse command line arguments */
 	ret = pmempool_create_parse_args(&pc, appname, argc, argv);
 	if (ret)
-		return ret;
+		exit(EXIT_FAILURE);
 
 	/* set verbosity level */
 	out_set_vlevel(pc.verbose);

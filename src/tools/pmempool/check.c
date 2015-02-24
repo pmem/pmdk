@@ -387,8 +387,12 @@ pmempool_check_parse_args(struct pmempool_check *pcp, char *appname,
 			pcp->verbose = 2;
 			break;
 		case '?':
-			pmempool_check_help(appname);
-			exit(EXIT_SUCCESS);
+			if (optopt == '\0') {
+				pmempool_check_help(appname);
+				exit(EXIT_SUCCESS);
+			}
+			print_usage(appname);
+			exit(EXIT_FAILURE);
 		default:
 			print_usage(appname);
 			exit(EXIT_FAILURE);

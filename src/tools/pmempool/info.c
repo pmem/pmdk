@@ -160,6 +160,7 @@ static const struct option long_options[] = {
 	{"force",	required_argument,	0,	'f'},
 	{"skip-zeros",	no_argument,		0,	'z'},
 	{"skip-error",	no_argument,		0,	'e'},
+	{"skip-no-flag", no_argument,		0,	'u'},
 	{"range",	required_argument,	0,	'r'},
 	{"data",	no_argument,		0,	'd'},
 	{"map",		no_argument,		0,	'm'},
@@ -257,8 +258,12 @@ parse_args(char *appname, int argc, char *argv[],
 			print_version(appname);
 			exit(EXIT_SUCCESS);
 		case '?':
-			pmempool_info_help(appname);
-			exit(EXIT_SUCCESS);
+			if (optopt == '\0') {
+				pmempool_info_help(appname);
+				exit(EXIT_SUCCESS);
+			}
+			print_usage(appname);
+			exit(EXIT_FAILURE);
 		case 'v':
 			argsp->vlevel = VERBOSE_MAX;
 			break;

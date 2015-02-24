@@ -310,8 +310,12 @@ pmempool_dump_func(char *appname, int argc, char *argv[])
 			pd.chunksize = atoll(optarg);
 			break;
 		case '?':
-			pmempool_dump_help(appname);
-			exit(EXIT_SUCCESS);
+			if (optopt == '\0') {
+				pmempool_dump_help(appname);
+				exit(EXIT_SUCCESS);
+			}
+			print_usage(appname);
+			exit(EXIT_FAILURE);
 		default:
 			print_usage(appname);
 			exit(EXIT_FAILURE);

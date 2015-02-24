@@ -208,15 +208,19 @@ main(int argc, char *argv[])
 		return 0;
 	}
 
-	while ((opt = getopt_long(2, argv, "hV",
+	while ((opt = getopt_long(2, argv, "?V",
 			long_options, &option_index)) != -1) {
 		switch (opt) {
 		case 'V':
 			print_version(appname);
 			return 0;
 		case '?':
-			print_help(appname);
-			return 0;
+			if (optopt == '\0') {
+				print_help(appname);
+				return 0;
+			}
+			print_usage(appname);
+			return -1;
 		default:
 			print_usage(appname);
 			return -1;

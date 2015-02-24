@@ -102,14 +102,16 @@ int
 util_parse_size(char *str, uint64_t *sizep)
 {
 	uint64_t size = 0;
-	char unit = '\0';
 	int shift = 0;
-	int ret = sscanf(str, "%lu%c", &size, &unit);
+	char unit[3] = {0};
+	int ret = sscanf(str, "%lu%3s", &size, unit);
 	if (ret <= 0)
 		return -1;
-
 	if (ret == 2) {
-		switch (unit) {
+		if ((unit[1] != '\0' && unit[1] != 'B') ||
+			unit[2] != '\0')
+			return -1;
+		switch (unit[0]) {
 		case 'K':
 			shift = 10;
 			break;
