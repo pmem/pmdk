@@ -14,5 +14,5 @@ set title "PMEMBLK mode read operations thread scaling"
 set xlabel "Threads"
 set ylabel "Operations per second"
 set key inside right bottom
-plot "benchmark_mt_pmemblk.out" using ($0+1):4 title "pmemblk" with linespoints, \
-"benchmark_mt_fileio.out" using ($0+1):4 title "fileio" with linespoints
+plot "benchmark_mt_pmemblk.out" using 6:8 title "pmemblk" with linespoints, \
+"benchmark_mt_fileio.out" using 6:8 title "fileio" with linespoints

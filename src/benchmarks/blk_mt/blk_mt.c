@@ -36,7 +36,7 @@
  * usage: For usage type blk_mt --help.
  *
  */
-
+#define	_GNU_SOURCE
 #include <pthread.h>
 #include <time.h>
 #include <fcntl.h>
@@ -119,14 +119,14 @@ main(int argc, char *argv[])
 	worker_params[0].file_lanes = arguments.thread_count;
 
 	/* file_size is provided in MB */
-	unsigned long long file_size_bytes = arguments.file_size * 1024 * 1024;
+	size_t file_size_bytes = arguments.file_size * 1024 * 1024;
 
 	worker *thread_workers = NULL;
 
 	/* prepare parameters specific for file/pmem */
 	if (arguments.file_io) {
 		/* prepare open flags */
-		int flags = O_RDWR | O_CREAT | O_SYNC;
+		int flags = O_RDWR | O_CREAT | O_SYNC | O_NOATIME;
 		/* create file on PMEM-aware file system */
 		if ((worker_params[0].file_desc = open(arguments.file_path,
 			flags, FILE_MODE)) < 0) {
@@ -208,8 +208,10 @@ main(int argc, char *argv[])
 		clock_gettime(CLOCK_MONOTONIC, &perf_meas.stop_time);
 
 		calculate_stats(&perf_meas);
-		printf("%f;%f;", perf_meas.total_run_time,
-				perf_meas.ops_per_second);
+		printf("%d;%lu;%f;%f;", arguments.thread_count,
+			arguments.block_size,
+			perf_meas.total_run_time,
+			perf_meas.ops_per_second);
 	}
 
 	printf("\n");
