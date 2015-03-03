@@ -612,8 +612,9 @@ memmove_nodrain_normal(void *pmemdest, const void *src, size_t len)
 {
 	LOG(15, "pmemdest %p src %p len %zu", pmemdest, src, len);
 
-	return memmove(pmemdest, src, len);
-
+	void *retval = memmove(pmemdest, src, len);
+	pmem_flush(pmemdest, len);
+	return retval;
 }
 
 /*
@@ -886,7 +887,9 @@ memset_nodrain_normal(void *pmemdest, int c, size_t len)
 {
 	LOG(15, "pmemdest %p c 0x%x len %zu", pmemdest, c, len);
 
-	return memset(pmemdest, c, len);
+	void *retval = memset(pmemdest, c, len);
+	pmem_flush(pmemdest, len);
+	return retval;
 }
 
 /*
