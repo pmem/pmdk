@@ -53,7 +53,7 @@ typedef enum {
 	PMEM_POOL_TYPE_BLK	= 0x02,
 	PMEM_POOL_TYPE_OBJ	= 0x04,
 	PMEM_POOL_TYPE_ALL	= 0x0f,
-	PMEM_POOL_TYPE_UNKNWON	= 0x80,
+	PMEM_POOL_TYPE_UNKNOWN	= 0x80,
 } pmem_pool_type_t;
 
 struct range {
@@ -73,6 +73,7 @@ pmem_pool_type_t pmem_pool_parse_params(char *fname, uint64_t *sizep,
 		uint64_t *bsizep);
 int util_validate_checksum(void *addr, size_t len, uint64_t *csum);
 int util_parse_size(char *str, uint64_t *sizep);
+int util_parse_mode(char *str, mode_t *mode);
 int util_parse_ranges(char *str, struct ranges *rangesp, struct range *entirep);
 int util_ranges_add(struct ranges *rangesp, uint64_t first, uint64_t last);
 void util_ranges_clear(struct ranges *rangesp);

@@ -261,19 +261,25 @@ static int
 pmempool_create_parse_args(struct pmempool_create *pcp, char *appname,
 		int argc, char *argv[])
 {
-	int opt;
-	while ((opt = getopt_long(argc, argv, "hvi:s:Mm:l::",
+	int opt, ret;
+	while ((opt = getopt_long(argc, argv, "?vi:s:Mm:l::",
 			long_options, NULL)) != -1) {
 		switch (opt) {
 		case 'v':
 			pcp->verbose = 1;
 			break;
 		case '?':
-			pmempool_create_help(appname);
-			exit(EXIT_SUCCESS);
+			if (optopt == '\0') {
+				pmempool_create_help(appname);
+				exit(EXIT_SUCCESS);
+			}
+			print_usage(appname);
+			return -1;
 		case 's':
-			if (util_parse_size(optarg, &pcp->size)) {
-				out_err("cannot parse '%s' as size\n", optarg);
+			ret = util_parse_size(optarg, &pcp->size);
+			if (ret || pcp->size == 0) {
+				out_err("invalid size value specified '%s'\n",
+						optarg);
 				return -1;
 			}
 			break;
@@ -281,8 +287,9 @@ pmempool_create_parse_args(struct pmempool_create *pcp, char *appname,
 			pcp->max_size = 1;
 			break;
 		case 'm':
-			if (sscanf(optarg, "%o", &pcp->mode) != 1) {
-				out_err("cannot parse mode\n");
+			if (util_parse_mode(optarg, &pcp->mode)) {
+				out_err("invalid mode value specified '%s'\n",
+						optarg);
 				return -1;
 			}
 			break;
@@ -290,14 +297,20 @@ pmempool_create_parse_args(struct pmempool_create *pcp, char *appname,
 			pcp->inherit_fname = optarg;
 			break;
 		case 'l':
-			if (optarg)
+			if (optarg) {
 				pcp->layout = atoll(optarg);
-			else
+				if (pcp->layout < 0) {
+					out_err("invalid layout value "
+						"specified '%s'\n", optarg);
+					return -1;
+				}
+			} else {
 				pcp->layout = 0;
+			}
 			break;
 		default:
 			print_usage(appname);
-			exit(EXIT_FAILURE);
+			return -1;
 		}
 	}
 
@@ -314,7 +327,7 @@ pmempool_create_parse_args(struct pmempool_create *pcp, char *appname,
 		pcp->str_type = NULL;
 	} else {
 		print_usage(appname);
-		exit(EXIT_FAILURE);
+		return -1;
 	}
 
 	return 0;
@@ -332,7 +345,7 @@ pmempool_create_func(char *appname, int argc, char *argv[])
 	/* parse command line arguments */
 	ret = pmempool_create_parse_args(&pc, appname, argc, argv);
 	if (ret)
-		return ret;
+		exit(EXIT_FAILURE);
 
 	/* set verbosity level */
 	out_set_vlevel(pc.verbose);
@@ -348,7 +361,7 @@ pmempool_create_func(char *appname, int argc, char *argv[])
 	if (pc.str_type) {
 		/* parse pool type string if passed in command line arguments */
 		pc.type = pmem_pool_type_parse_str(pc.str_type);
-		if (PMEM_POOL_TYPE_UNKNWON == pc.type) {
+		if (PMEM_POOL_TYPE_UNKNOWN == pc.type) {
 			out_err("'%s' -- unknown pool type\n", pc.str_type);
 			return -1;
 		}
@@ -373,7 +386,9 @@ pmempool_create_func(char *appname, int argc, char *argv[])
 		outv(1, "Parsing '%s' file:\n", pc.inherit_fname);
 		pc.type = pmem_pool_parse_params(pc.inherit_fname, &pc.size,
 				&pc.bsize);
-		if (PMEM_POOL_TYPE_UNKNWON == pc.type) {
+		if (PMEM_POOL_TYPE_NONE == pc.type) {
+			err(1, "%s", pc.inherit_fname);
+		} else if (PMEM_POOL_TYPE_UNKNOWN == pc.type) {
 			out_err("'%s' -- unknown pool type\n",
 					pc.inherit_fname);
 			return -1;
@@ -390,6 +405,22 @@ pmempool_create_func(char *appname, int argc, char *argv[])
 		/* neither pool type string nor --inherit options passed */
 		print_usage(appname);
 		return -1;
+	}
+
+	/*
+	 * Validate options specific for pool type.
+	 */
+	if (PMEM_POOL_TYPE_LOG == pc.type) {
+		if (pc.layout != -1) {
+			out_err("invalid option specified for log pool type"
+					" -- layout\n");
+			return -1;
+		}
+		if (pc.str_bsize != NULL) {
+			out_err("invalid option specified for log pool type"
+					" -- block size\n");
+			return -1;
+		}
 	}
 
 	if (pc.size && pc.max_size) {
@@ -441,6 +472,7 @@ pmempool_create_func(char *appname, int argc, char *argv[])
 		ret = pmempool_create_log(&pc);
 		break;
 	default:
+		ret = -1;
 		break;
 	}
 

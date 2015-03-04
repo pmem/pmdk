@@ -63,7 +63,7 @@ pmem_pool_type_parse_hdr(struct pool_hdr *hdrp)
 	else if (strncmp(hdrp->signature, BLK_HDR_SIG, POOL_HDR_SIG_LEN) == 0)
 		return PMEM_POOL_TYPE_BLK;
 	else
-		return PMEM_POOL_TYPE_UNKNWON;
+		return PMEM_POOL_TYPE_UNKNOWN;
 }
 
 /*
@@ -77,7 +77,7 @@ pmem_pool_type_parse_str(char *str)
 	} else if (strcmp(str, "log") == 0) {
 		return PMEM_POOL_TYPE_LOG;
 	} else {
-		return PMEM_POOL_TYPE_UNKNWON;
+		return PMEM_POOL_TYPE_UNKNOWN;
 	}
 }
 
@@ -102,14 +102,16 @@ int
 util_parse_size(char *str, uint64_t *sizep)
 {
 	uint64_t size = 0;
-	char unit = '\0';
 	int shift = 0;
-	int ret = sscanf(str, "%lu%c", &size, &unit);
-	if (ret == 0)
+	char unit[3] = {0};
+	int ret = sscanf(str, "%lu%3s", &size, unit);
+	if (ret <= 0)
 		return -1;
-
 	if (ret == 2) {
-		switch (unit) {
+		if ((unit[1] != '\0' && unit[1] != 'B') ||
+			unit[2] != '\0')
+			return -1;
+		switch (unit[0]) {
 		case 'K':
 			shift = 10;
 			break;
@@ -132,6 +134,38 @@ util_parse_size(char *str, uint64_t *sizep)
 
 	if (sizep)
 		*sizep = size << shift;
+
+	return 0;
+}
+
+/*
+ * util_parse_mode -- parse file mode from octal string
+ */
+int
+util_parse_mode(char *str, mode_t *mode)
+{
+	mode_t m = 0;
+	int digits = 0;
+
+	/* skip leading zeros */
+	while (*str == '0')
+		str++;
+
+	/* parse at most 3 octal digits */
+	while (digits < 3 && *str != '\0') {
+		if (*str < '0' || *str > '7')
+			return -1;
+		m = (m << 3) | (*str - '0');
+		digits++;
+		str++;
+	}
+
+	/* more than 3 octal digits */
+	if (digits == 3 && *str != '\0')
+		return -1;
+
+	if (mode)
+		*mode = m;
 
 	return 0;
 }
@@ -406,7 +440,7 @@ pmem_pool_parse_params(char *fname, uint64_t *sizep, uint64_t *bsizep)
 
 	int fd;
 	if ((fd = open(fname, O_RDONLY)) >= 0) {
-		ret = PMEM_POOL_TYPE_UNKNWON;
+		ret = PMEM_POOL_TYPE_UNKNOWN;
 		/* read pool_hdr */
 		if (pread(fd, &pbp->hdr, sizeof (pbp->hdr), 0) ==
 				sizeof (pbp->hdr))
