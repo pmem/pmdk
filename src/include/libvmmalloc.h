@@ -59,7 +59,7 @@ extern "C" {
 /*
  * check compiler support for various function attributes
  */
-#if defined __GNUC__
+#if defined(__GNUC__) && !defined(__clang__)
 
 #define	GCC_VER (__GNUC__ * 100 + __GNUC_MINOR__)
 
