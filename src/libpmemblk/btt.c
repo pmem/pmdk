@@ -485,8 +485,8 @@ read_flog_pair(struct btt *bttp, int lane, struct arena *arenap,
 	 * operation or an incomplete operation.  If completed, the
 	 * old_map field will contain the free block to be used for
 	 * the next write.  But if the operation didn't complete (indicated
-	 * by the map entry not being updated), then new_map is the free
-	 * block since it never became active according to the map.
+	 * by the map entry not being updated), then the operation is
+	 * completed now by updating the map entry.
 	 *
 	 * A special case, used by flog entries when first created, is
 	 * when old_map == new_map.  This counts as a complete entry
