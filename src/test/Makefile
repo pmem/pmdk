@@ -52,6 +52,7 @@ TEST = blk_nblock\
        pmem_memcpy\
        pmem_memset\
        pmem_valgr_simple\
+       pmem_movnt\
        scope\
        traces\
        traces_custom_function\

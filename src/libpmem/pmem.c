@@ -241,8 +241,11 @@
 #define	MOVNT_MASK	(MOVNT_SIZE -1)
 #define	MOVNT_SHIFT	4
 
+#define	MOVNT_THRESHOLD	256
+
 #define	PROCMAXLEN 2048 /* maximum expected line length in /proc files */
 
+static size_t Movnt_threshold = MOVNT_THRESHOLD;
 static int Has_hw_drain;
 
 /*
@@ -332,6 +335,8 @@ static void (*Func_drain)(void) = drain_no_pcommit;
 void
 pmem_drain(void)
 {
+	LOG(10, NULL);
+
 	Func_drain();
 }
 
@@ -415,6 +420,8 @@ static void (*Func_flush)(void *, size_t) = flush_clflush;
 void
 pmem_flush(void *addr, size_t len)
 {
+	LOG(10, "addr %p len %zu", addr, len);
+
 	Func_flush(addr, len);
 }
 
@@ -597,6 +604,8 @@ static int (*Func_is_pmem)(void *addr, size_t len) = is_pmem_never;
 int
 pmem_is_pmem(void *addr, size_t len)
 {
+	LOG(10, "addr %p len %zu", addr, len);
+
 	return Func_is_pmem(addr, len);
 }
 
@@ -633,9 +642,9 @@ memmove_nodrain_normal(void *pmemdest, const void *src, size_t len)
 {
 	LOG(15, "pmemdest %p src %p len %zu", pmemdest, src, len);
 
-	void *retval = memmove(pmemdest, src, len);
+	memmove(pmemdest, src, len);
 	pmem_flush(pmemdest, len);
-	return retval;
+	return pmemdest;
 }
 
 /*
@@ -655,6 +664,12 @@ memmove_nodrain_movnt(void *pmemdest, const void *src, size_t len)
 
 	if (len == 0 || src == pmemdest)
 		return pmemdest;
+
+	if (len < Movnt_threshold) {
+		memmove(pmemdest, src, len);
+		pmem_flush(pmemdest, len);
+		return pmemdest;
+	}
 
 	if ((uintptr_t)dest1 - (uintptr_t)src >= len) {
 		/*
@@ -739,7 +754,7 @@ memmove_nodrain_movnt(void *pmemdest, const void *src, size_t len)
 			}
 			cnt = len & DWORD_MASK;
 			uint8_t *d8 = (uint8_t *)d32;
-			const uint8_t   *s8 = (uint8_t *)s32;
+			const uint8_t *s8 = (uint8_t *)s32;
 
 			for (i = 0; i < cnt; i++) {
 				*d8 = *s8;
@@ -807,7 +822,7 @@ memmove_nodrain_movnt(void *pmemdest, const void *src, size_t len)
 		/* copy the tail (<128 bytes) in 16 bytes chunks */
 		len &= CHUNK_MASK;
 		if (len != 0) {
-		cnt = len >> MOVNT_SHIFT;
+			cnt = len >> MOVNT_SHIFT;
 			for (i = 0; i < cnt; i++) {
 				d--;
 				s--;
@@ -832,7 +847,7 @@ memmove_nodrain_movnt(void *pmemdest, const void *src, size_t len)
 
 			cnt = len & DWORD_MASK;
 			uint8_t *d8 = (uint8_t *)d32;
-			const uint8_t   *s8 = (uint8_t *)s32;
+			const uint8_t *s8 = (uint8_t *)s32;
 
 			for (i = 0; i < cnt; i++) {
 				d8--;
@@ -840,7 +855,6 @@ memmove_nodrain_movnt(void *pmemdest, const void *src, size_t len)
 				*d8 = *s8;
 			}
 			pmem_flush(d8, cnt);
-
 		}
 	}
 
@@ -885,9 +899,9 @@ pmem_memmove_persist(void *pmemdest, const void *src, size_t len)
 {
 	LOG(15, "pmemdest %p src %p len %zu", pmemdest, src, len);
 
-	void *retval = pmem_memmove_nodrain(pmemdest, src, len);
+	pmem_memmove_nodrain(pmemdest, src, len);
 	pmem_drain();
-	return retval;
+	return pmemdest;
 }
 
 /*
@@ -898,9 +912,9 @@ pmem_memcpy_persist(void *pmemdest, const void *src, size_t len)
 {
 	LOG(15, "pmemdest %p src %p len %zu", pmemdest, src, len);
 
-	void *retval = pmem_memcpy_nodrain(pmemdest, src, len);
+	pmem_memcpy_nodrain(pmemdest, src, len);
 	pmem_drain();
-	return retval;
+	return pmemdest;
 }
 
 /*
@@ -911,9 +925,9 @@ memset_nodrain_normal(void *pmemdest, int c, size_t len)
 {
 	LOG(15, "pmemdest %p c 0x%x len %zu", pmemdest, c, len);
 
-	void *retval = memset(pmemdest, c, len);
+	memset(pmemdest, c, len);
 	pmem_flush(pmemdest, len);
-	return retval;
+	return pmemdest;
 }
 
 /*
@@ -929,6 +943,12 @@ memset_nodrain_movnt(void *pmemdest, int c, size_t len)
 	size_t cnt;
 	__m128i xmm0;
 	__m128i *d;
+
+	if (len < Movnt_threshold) {
+		memset(pmemdest, c, len);
+		pmem_flush(pmemdest, len);
+		return pmemdest;
+	}
 
 	/* memset up to the next FLUSH_ALIGN boundary */
 	cnt = (uint64_t)dest1 & ALIGN_MASK;
@@ -950,7 +970,7 @@ memset_nodrain_movnt(void *pmemdest, int c, size_t len)
 		c, c, c, c);
 
 	d = (__m128i *)dest1;
-	cnt = len/CHUNK_SIZE;
+	cnt = len / CHUNK_SIZE;
 	if (cnt != 0) {
 		for (i = 0; i < cnt; i++) {
 			_mm_stream_si128(d, xmm0);
@@ -1029,9 +1049,9 @@ pmem_memset_persist(void *pmemdest, int c, size_t len)
 {
 	LOG(15, "pmemdest %p c 0x%x len %zu", pmemdest, c, len);
 
-	void *retval = pmem_memset_nodrain(pmemdest, c, len);
+	pmem_memset_nodrain(pmemdest, c, len);
 	pmem_drain();
-	return retval;
+	return pmemdest;
 }
 
 /*
@@ -1141,6 +1161,24 @@ pmem_init(void)
 	}
 
 	/*
+	 * For testing, allow overriding the default threshold
+	 * for using non-temporal stores in pmem_memcpy_*(), pmem_memmove_*()
+	 * and pmem_memset_*().
+	 * It has no effect if movnt is not supported or disabled.
+	 */
+	char *ptr = getenv("PMEM_MOVNT_THRESHOLD");
+	if (ptr) {
+		long long val = atoll(ptr);
+
+		if (val < 0)
+			LOG(3, "Invalid PMEM_MOVNT_THRESHOLD");
+		else {
+			LOG(3, "PMEM_MOVNT_THRESHOLD set to %lld", val);
+			Movnt_threshold = val;
+		}
+	}
+
+	/*
 	 * For debugging/testing, allow pmem_is_pmem() to be forced
 	 * to always true or never true using environment variable
 	 * PMEM_IS_PMEM_FORCE values of zero or one.
@@ -1150,7 +1188,7 @@ pmem_init(void)
 	 * systems where pmem_is_pmem() isn't correctly detecting true
 	 * persistent memory.
 	 */
-	char *ptr = getenv("PMEM_IS_PMEM_FORCE");
+	ptr = getenv("PMEM_IS_PMEM_FORCE");
 	if (ptr) {
 		int val = atoi(ptr);
 
