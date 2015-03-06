@@ -632,10 +632,7 @@ memmove_nodrain_movnt(void *pmemdest, const void *src, size_t len)
 	void *dest1 = pmemdest;
 	size_t cnt;
 
-	if (len == 0)
-		return NULL;
-
-	if (src == pmemdest)
+	if (len == 0 || src == pmemdest)
 		return pmemdest;
 
 	if ((uintptr_t)dest1 - (uintptr_t)src >= len) {
