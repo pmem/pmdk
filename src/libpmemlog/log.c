@@ -242,10 +242,12 @@ pmemlog_create(const char *path, size_t poolsize, mode_t mode)
 {
 	LOG(3, "path %s poolsize %zu mode %d", path, poolsize, mode);
 
+	int created = 0;
 	int fd;
 	if (poolsize != 0) {
 		/* create a new memory pool file */
 		fd = util_pool_create(path, poolsize, PMEMLOG_MIN_POOL, mode);
+		created = 1;
 	} else {
 		/* open an existing file */
 		fd = util_pool_open(path, &poolsize, PMEMLOG_MIN_POOL);
@@ -253,7 +255,11 @@ pmemlog_create(const char *path, size_t poolsize, mode_t mode)
 	if (fd == -1)
 		return NULL;	/* errno set by util_pool_create/open() */
 
-	return pmemlog_map_common(fd, poolsize, 0, 1);
+	PMEMlogpool *plp = pmemlog_map_common(fd, poolsize, 0, 1);
+	if (plp == NULL && created)
+		unlink(path);	/* delete file if pool creation failed */
+
+	return plp;
 }
 
 /*
