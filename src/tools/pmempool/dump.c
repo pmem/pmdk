@@ -149,7 +149,8 @@ pmempool_dump_log_process_chunk(const void *buf, size_t len, void *arg)
 	if (pdp->chunksize) {
 		LIST_FOREACH(curp, &pdp->ranges.head, next) {
 			if (pdp->chunkcnt >= curp->first &&
-			    pdp->chunkcnt <= curp->last) {
+			    pdp->chunkcnt <= curp->last &&
+			    pdp->chunksize <= len) {
 				if (pdp->hex) {
 					outv_hexdump(0, buf, pdp->chunksize,
 						pdp->chunksize * pdp->chunkcnt,
@@ -197,7 +198,9 @@ pmempool_dump_log(struct pmempool_dump *pdp)
 
 	struct range entire;
 	entire.first = 0;
-	entire.last = pmemlog_nbyte(plp) - 1;
+	entire.last = pmemlog_tell(plp) - 1;
+	if (pdp->chunksize)
+		entire.last = entire.last / pdp->chunksize;
 
 	if (pdp->str_ranges) {
 		if (util_parse_ranges(pdp->str_ranges, &pdp->ranges, &entire)
@@ -293,6 +296,7 @@ pmempool_dump_func(char *appname, int argc, char *argv[])
 	out_set_vlevel(0);
 
 	int ret = 0;
+	long long chunksize;
 	int opt;
 	while ((opt = getopt_long(argc, argv, "?o:br:c:",
 				long_options, NULL)) != -1) {
@@ -307,7 +311,13 @@ pmempool_dump_func(char *appname, int argc, char *argv[])
 			pd.str_ranges = optarg;
 			break;
 		case 'c':
-			pd.chunksize = atoll(optarg);
+			chunksize = atoll(optarg);
+			if (chunksize <= 0) {
+				out_err("invalid chunk size specified '%s'\n",
+						optarg);
+				exit(EXIT_FAILURE);
+			}
+			pd.chunksize = (size_t)chunksize;
 			break;
 		case '?':
 			if (optopt == '\0') {
