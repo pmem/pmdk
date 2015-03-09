@@ -45,6 +45,7 @@ main(int argc, char *argv[])
 	struct stat stbuf;
 	void *dest;
 	void *dest1;
+	void *ret;
 
 	START(argc, argv, "pmem_memset");
 
@@ -76,11 +77,18 @@ main(int argc, char *argv[])
 	memset(dest1 + dest_off, 0x5A, bytes/4);
 	memset(dest1 + dest_off  + (bytes/4), 0x46, bytes/4);
 
+	/* Test the corner cases */
+	ret = pmem_memset_persist(dest + dest_off, 0x5A, 0);
+	ASSERTeq(ret, dest + dest_off);
+	ASSERTeq(*(char *)(dest + dest_off), 0);
+
 	/*
 	 * Do the actual memset with persistence.
 	 */
-	pmem_memset_persist(dest + dest_off, 0x5A, bytes/4);
-	pmem_memset_persist(dest + dest_off  + (bytes/4), 0x46, bytes/4);
+	ret = pmem_memset_persist(dest + dest_off, 0x5A, bytes/4);
+	ASSERTeq(ret, dest + dest_off);
+	ret = pmem_memset_persist(dest + dest_off  + (bytes/4), 0x46, bytes/4);
+	ASSERTeq(ret, dest + dest_off + (bytes/4));
 
 	if (memcmp(dest, dest1, bytes/2))
 		ERR("%s: first %zu bytes do not match",

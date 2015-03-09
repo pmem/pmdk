@@ -82,6 +82,7 @@ void
 do_memcpy(int fd, void *dest, int dest_off, void *src, int src_off,
     size_t bytes, char *file_name)
 {
+	void *ret;
 	char buf[bytes];
 
 	memset(buf, 0, bytes);
@@ -90,7 +91,19 @@ do_memcpy(int fd, void *dest, int dest_off, void *src, int src_off,
 
 	memset(src, 0x5A, bytes/4);
 	memset(src + bytes/4, 0x46, bytes/4);
-	pmem_memcpy_persist(dest + dest_off, src + src_off, bytes/2);
+
+	/* dest == src */
+	ret = pmem_memcpy_persist(dest + dest_off, dest + dest_off, bytes/2);
+	ASSERTeq(ret, dest + dest_off);
+	ASSERTeq(*(char *)(dest + dest_off), 0);
+
+	/* len == 0 */
+	ret = pmem_memcpy_persist(dest + dest_off, src, 0);
+	ASSERTeq(ret, dest + dest_off);
+	ASSERTeq(*(char *)(dest + dest_off), 0);
+
+	ret = pmem_memcpy_persist(dest + dest_off, src + src_off, bytes/2);
+	ASSERTeq(ret, dest + dest_off);
 
 	/* memcmp will validate that what I expect in memory. */
 	if (memcmp(src + src_off, dest + dest_off, bytes/2))

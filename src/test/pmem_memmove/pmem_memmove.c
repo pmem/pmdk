@@ -84,13 +84,27 @@ void
 do_memmove(int fd, void *dest, void *src, char *file_name, off_t dest_off,
 	off_t src_off, off_t off, off_t bytes)
 {
+	void *ret;
 	void *src1 = malloc(bytes);
 	void *buf = malloc(bytes);
+	char old;
 
 	memset(buf, 0, bytes);
 	memset(src1, 0, bytes);
 	memset(src, 0x5A, bytes/4);
 	memset(src + bytes/4, 0x54, bytes/4);
+
+	/* dest == src */
+	old = *(char *)(dest + dest_off);
+	ret = pmem_memmove_persist(dest + dest_off, dest + dest_off, bytes/2);
+	ASSERTeq(ret, dest + dest_off);
+	ASSERTeq(*(char *)(dest + dest_off), old);
+
+	/* len == 0 */
+	old = *(char *)(dest + dest_off);
+	ret = pmem_memmove_persist(dest + dest_off, src + src_off, 0);
+	ASSERTeq(ret, dest + dest_off);
+	ASSERTeq(*(char *)(dest + dest_off), old);
 
 	/*
 	 * A side affect of the memmove call is that
@@ -98,7 +112,8 @@ do_memmove(int fd, void *dest, void *src, char *file_name, off_t dest_off,
 	 * addresses.
 	 */
 	memcpy(src1, src, bytes/2);
-	pmem_memmove_persist(dest + dest_off, src + src_off, bytes/2);
+	ret = pmem_memmove_persist(dest + dest_off, src + src_off, bytes/2);
+	ASSERTeq(ret, dest + dest_off);
 
 	/* memcmp will validate that what I expect in memory. */
 	if (memcmp(src1 + src_off, dest + dest_off, bytes/2))
