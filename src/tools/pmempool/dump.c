@@ -57,7 +57,6 @@ struct pmempool_dump {
 	int hex;
 	uint64_t bsize;
 	struct ranges ranges;
-	char *str_ranges;
 	size_t chunksize;
 	uint64_t chunkcnt;
 };
@@ -72,7 +71,6 @@ static const struct pmempool_dump pmempool_dump_default = {
 	.ofh		= NULL,
 	.hex		= 1,
 	.bsize		= 0,
-	.str_ranges	= NULL,
 	.chunksize	= 0,
 	.chunkcnt	= 0,
 };
@@ -196,20 +194,12 @@ pmempool_dump_log(struct pmempool_dump *pdp)
 		return -1;
 	}
 
-	struct range entire;
-	entire.first = 0;
-	entire.last = pmemlog_tell(plp) - 1;
-	if (pdp->chunksize)
-		entire.last = entire.last / pdp->chunksize;
-
-	if (pdp->str_ranges) {
-		if (util_parse_ranges(pdp->str_ranges, &pdp->ranges, &entire)
-				!= 0) {
-			out_err("Cannot parse range\n");
-			pmemlog_close(plp);
-			return -1;
-		}
-	} else {
+	if (LIST_EMPTY(&pdp->ranges.head)) {
+		struct range entire;
+		entire.first = 0;
+		entire.last = pmemlog_tell(plp) - 1;
+		if (pdp->chunksize)
+			entire.last = entire.last / pdp->chunksize;
 		util_ranges_add(&pdp->ranges, entire.first, entire.last);
 	}
 
@@ -237,14 +227,7 @@ pmempool_dump_blk(struct pmempool_dump *pdp)
 	entire.first = 0;
 	entire.last = pmemblk_nblock(pbp) - 1;
 
-	if (pdp->str_ranges) {
-		if (util_parse_ranges(pdp->str_ranges, &pdp->ranges, &entire)
-				!= 0) {
-			out_err("Cannot parse range\n");
-			pmemblk_close(pbp);
-			return -1;
-		}
-	} else {
+	if (LIST_EMPTY(&pdp->ranges.head)) {
 		util_ranges_add(&pdp->ranges, entire.first, entire.last);
 	}
 
@@ -257,7 +240,8 @@ pmempool_dump_blk(struct pmempool_dump *pdp)
 	uint64_t i;
 	struct range *curp = NULL;
 	LIST_FOREACH(curp, &pdp->ranges.head, next) {
-		for (i = curp->first; i <= curp->last; i++) {
+		for (i = curp->first;
+				i <= curp->last && i <= entire.last; i++) {
 			if (pmemblk_read(pbp, buff, i)) {
 				ret = -1;
 				out_err("reading block number %lu failed\n", i);
@@ -297,6 +281,10 @@ pmempool_dump_func(char *appname, int argc, char *argv[])
 
 	int ret = 0;
 	long long chunksize;
+	struct range max = {
+		.first = 0,
+		.last = ~0
+	};
 	int opt;
 	while ((opt = getopt_long(argc, argv, "?o:br:c:",
 				long_options, NULL)) != -1) {
@@ -308,7 +296,11 @@ pmempool_dump_func(char *appname, int argc, char *argv[])
 			pd.hex = 0;
 			break;
 		case 'r':
-			pd.str_ranges = optarg;
+			if (util_parse_ranges(optarg, &pd.ranges, &max)) {
+				out_err("invalid range value specified"
+						" -- '%s'\n", optarg);
+				exit(EXIT_FAILURE);
+			}
 			break;
 		case 'c':
 			chunksize = atoll(optarg);
