@@ -137,6 +137,12 @@ pmemobj_map_common(int fd, const char *layout, size_t poolsize, int rdonly,
 			goto err;
 		}
 
+		if (util_check_arch_flags(&hdr.arch_flags)) {
+			LOG(1, "wrong architecture flags");
+			errno = EINVAL;
+			goto err;
+		}
+
 		if (layout &&
 		    strncmp(pop->layout, layout, PMEMOBJ_MAX_LAYOUT)) {
 			LOG(1, "wrong layout (\"%s\"), "
@@ -190,6 +196,18 @@ pmemobj_map_common(int fd, const char *layout, size_t poolsize, int rdonly,
 		hdrp->ro_compat_features = htole32(OBJ_FORMAT_RO_COMPAT);
 		uuid_generate(hdrp->uuid);
 		hdrp->crtime = htole64((uint64_t)time(NULL));
+
+		if (util_get_arch_flags(&hdrp->arch_flags)) {
+			LOG(1, "Reading architecture flags failed\n");
+			errno = EINVAL;
+			goto err;
+		}
+
+		hdrp->arch_flags.alignment_desc =
+			htole64(hdrp->arch_flags.alignment_desc);
+		hdrp->arch_flags.e_machine =
+			htole16(hdrp->arch_flags.e_machine);
+
 		util_checksum(hdrp, sizeof (*hdrp), &hdrp->checksum, 1);
 
 		/* store pool's header */

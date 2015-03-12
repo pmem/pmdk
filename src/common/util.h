@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright (c) 2014-2015, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -57,6 +57,45 @@ int util_unmap(void *addr, size_t len);
 void *util_map_tmpfile(const char *dir, size_t size);
 
 /*
+ * architecture identification flags
+ *
+ * These flags allow to unambiguously determine the architecture
+ * on which the pool was created.
+ *
+ * The alignment_desc field contains information about alignment
+ * of the following basic types:
+ * - char
+ * - short
+ * - int
+ * - long
+ * - long long
+ * - size_t
+ * - off_t
+ * - float
+ * - double
+ * - long double
+ * - void *
+ *
+ * The alignment of each type is computer as an offset of field
+ * of specific type in the following structure:
+ * struct {
+ *	char byte;
+ *	type field;
+ * };
+ *
+ * The value is decremented by 1 and masked by 4 bits.
+ * Multiple alignment are stored on consecutive 4 bits of each
+ * type in order specified above.
+ */
+struct arch_flags {
+	uint64_t alignment_desc;	/* alignment descriptor */
+	uint8_t ei_class;		/* ELF format file class */
+	uint8_t ei_data;		/* ELF format data encoding */
+	uint8_t reserved[4];
+	uint16_t e_machine;		/* required architecture */
+};
+
+/*
  * header used at the beginning of all types of memory pools
  *
  * for pools build on persistent memory, the integer types
@@ -72,12 +111,15 @@ struct pool_hdr {
 	uint32_t ro_compat_features;	/* mask: force RO if unsupported */
 	unsigned char uuid[POOL_HDR_UUID_LEN];
 	uint64_t crtime;		/* when created (seconds since epoch) */
-	unsigned char unused[4040];	/* must be zero */
+	struct arch_flags arch_flags;	/* architecture identification flags */
+	unsigned char unused[4024];	/* must be zero */
 	uint64_t checksum;		/* checksum of above fields */
 };
 
 int util_checksum(void *addr, size_t len, uint64_t *csump, int insert);
 int util_convert_hdr(struct pool_hdr *hdrp);
+int util_get_arch_flags(struct arch_flags *arch_flags);
+int util_check_arch_flags(const struct arch_flags *arch_flags);
 
 /*
  * macros for micromanaging range protections for the debug version
