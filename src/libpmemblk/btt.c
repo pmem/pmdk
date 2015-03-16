@@ -37,7 +37,7 @@
  * single block powerfail write atomicity, as described by:
  * 	The NVDIMM Namespace Specification
  *
- * To use this module, the caller must provide three routines for
+ * To use this module, the caller must provide five routines for
  * accessing the namespace containing the data (in this context,
  * "namespace" refers to the storage containing the BTT layout, such
  * as a file).  All namespace I/O is done by these callbacks:
