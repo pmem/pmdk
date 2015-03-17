@@ -42,6 +42,7 @@
 #include <uuid/uuid.h>
 #include <time.h>
 #include <endian.h>
+#include <setjmp.h>
 
 #include "libpmem.h"
 #include "libpmemobj.h"
@@ -118,7 +119,7 @@ pmemobj_map_common(int fd, const char *layout, size_t poolsize, int rdonly,
 		}
 
 		if (layout &&
-		    strncmp(pop->layout, layout, PMEMOBJ_LAYOUT_MAX)) {
+		    strncmp(pop->layout, layout, PMEMOBJ_MAX_LAYOUT)) {
 			LOG(1, "wrong layout (\"%s\"), "
 				"pool created with layout \"%s\"",
 				layout, pop->layout);
@@ -156,7 +157,7 @@ pmemobj_map_common(int fd, const char *layout, size_t poolsize, int rdonly,
 		}
 
 		/* check length of layout */
-		if (layout && (strlen(layout) >= PMEMOBJ_LAYOUT_MAX)) {
+		if (layout && (strlen(layout) >= PMEMOBJ_MAX_LAYOUT)) {
 				LOG(1, "Layout too long");
 				errno = EINVAL;
 				goto err;
@@ -188,7 +189,7 @@ pmemobj_map_common(int fd, const char *layout, size_t poolsize, int rdonly,
 		/* create the persistent part of pool's descriptor */
 		memset(dscp, 0, OBJ_DSC_P_SIZE);
 		if (layout)
-			strncpy(pop->layout, layout, PMEMOBJ_LAYOUT_MAX - 1);
+			strncpy(pop->layout, layout, PMEMOBJ_MAX_LAYOUT - 1);
 		pop->lanes_offset = OBJ_LANES_OFFSET;
 		pop->nlanes = OBJ_NLANES;
 		pop->obj_store_offset = pop->lanes_offset +
@@ -295,6 +296,18 @@ pmemobj_open(const char *path, const char *layout)
 }
 
 /*
+ * pmemobj_create_part -- XXX
+ */
+PMEMobjpool *
+pmemobj_create_part(const char *path, const char *layout, size_t partsize,
+	mode_t mode, int part_index, int nparts, int replica_index,
+	int nreplica)
+{
+	/* XXX */
+	return NULL;
+}
+
+/*
  * pmemobj_close -- close a transactional memory pool
  */
 void
@@ -337,4 +350,542 @@ pmemobj_check(const char *path, const char *layout)
 		LOG(4, "pool consistency check OK");
 
 	return consistent;
+}
+
+/*
+ * pmemobj_mutex_zero --
+ */
+int
+pmemobj_mutex_zero(PMEMmutex *mutexp)
+{
+	/* XXX */
+	return 0;
+}
+
+/*
+ * pmemobj_mutex_lock --
+ */
+int
+pmemobj_mutex_lock(PMEMobjpool *pop, PMEMmutex *mutexp)
+{
+	/* XXX */
+	return 0;
+}
+
+/*
+ * pmemobj_mutex_trylock --
+ */
+int
+pmemobj_mutex_trylock(PMEMobjpool *pop, PMEMmutex *mutexp)
+{
+	/* XXX */
+	return 0;
+}
+
+/*
+ * pmemobj_mutex_unlock --
+ */
+int
+pmemobj_mutex_unlock(PMEMobjpool *pop, PMEMmutex *mutexp)
+{
+	/* XXX */
+	return 0;
+}
+
+/*
+ * pmemobj_rwlock_zero --
+ */
+int
+pmemobj_rwlock_zero(PMEMrwlock *rwlockp)
+{
+	/* XXX */
+	return 0;
+}
+
+/*
+ * pmemobj_rwlock_rdlock --
+ */
+int
+pmemobj_rwlock_rdlock(PMEMobjpool *pop, PMEMrwlock *rwlockp)
+{
+	/* XXX */
+	return 0;
+}
+
+/*
+ * pmemobj_rwlock_wrlock --
+ */
+int
+pmemobj_rwlock_wrlock(PMEMobjpool *pop, PMEMrwlock *rwlockp)
+{
+	/* XXX */
+	return 0;
+}
+
+/*
+ * pmemobj_rwlock_timedrdlock --
+ */
+int
+pmemobj_rwlock_timedrdlock(PMEMobjpool *pop, PMEMrwlock *restrict rwlockp,
+	const struct timespec *restrict abs_timeout)
+{
+	/* XXX */
+	return 0;
+}
+
+/*
+ * pmemobj_rwlock_timedwrlock --
+ */
+int
+pmemobj_rwlock_timedwrlock(PMEMobjpool *pop, PMEMrwlock *restrict rwlockp,
+	const struct timespec *restrict abs_timeout)
+{
+	/* XXX */
+	return 0;
+}
+
+/*
+ * pmemobj_rwlock_tryrdlock --
+ */
+int
+pmemobj_rwlock_tryrdlock(PMEMobjpool *pop, PMEMrwlock *rwlockp)
+{
+	/* XXX */
+	return 0;
+}
+
+/*
+ * pmemobj_rwlock_trywrlock --
+ */
+int
+pmemobj_rwlock_trywrlock(PMEMobjpool *pop, PMEMrwlock *rwlockp)
+{
+	/* XXX */
+	return 0;
+}
+
+/*
+ * pmemobj_rwlock_unlock --
+ */
+int
+pmemobj_rwlock_unlock(PMEMobjpool *pop, PMEMrwlock *rwlockp)
+{
+	/* XXX */
+	return 0;
+}
+
+/*
+ * pmemobj_cond_zero --
+ */
+int
+pmemobj_cond_zero(PMEMcond *condp)
+{
+	/* XXX */
+	return 0;
+}
+
+/*
+ * pmemobj_cond_broadcast --
+ */
+int
+pmemobj_cond_broadcast(PMEMobjpool *pop, PMEMcond *condp)
+{
+	/* XXX */
+	return 0;
+}
+
+/*
+ * pmemobj_cond_signal --
+ */
+int
+pmemobj_cond_signal(PMEMobjpool *pop, PMEMcond *condp)
+{
+	/* XXX */
+	return 0;
+}
+
+/*
+ * pmemobj_cond_timedwait --
+ */
+int
+pmemobj_cond_timedwait(PMEMobjpool *pop, PMEMcond *restrict condp,
+	PMEMmutex *restrict mutexp, const struct timespec *restrict abstime)
+{
+	/* XXX */
+	return 0;
+}
+
+/*
+ * pmemobj_cond_wait --
+ */
+int
+pmemobj_cond_wait(PMEMobjpool *pop, PMEMcond *condp,
+	PMEMmutex *restrict mutexp)
+{
+	/* XXX */
+	return 0;
+}
+
+/*
+ * pmemobj_off_by_uuid_lo -- (internal) returns offset of pool
+ */
+static uint64_t
+pmemobj_off_by_uuid_lo(uint64_t uuid_lo)
+{
+	/* XXX */
+
+	return 0;
+}
+
+/*
+ * pmemobj_direct -- calculates the direct pointer of an object
+ */
+void *
+pmemobj_direct(PMEMoid oid)
+{
+	return (void *)(pmemobj_off_by_uuid_lo(oid.pool_uuid_lo) + oid.off);
+}
+
+/*
+ * pmemobj_alloc -- allocates a new object
+ */
+PMEMoid
+pmemobj_alloc(PMEMobjpool *pop, size_t size, int type_num)
+{
+	PMEMoid poid = OID_NULL;
+
+	/* XXX */
+
+	return poid;
+}
+
+/*
+ * pmemobj_zalloc -- allocates a new zeroed object
+ */
+PMEMoid
+pmemobj_zalloc(PMEMobjpool *pop, size_t size, int type_num)
+{
+	PMEMoid poid = OID_NULL;
+
+	/* XXX */
+
+	return poid;
+}
+
+/*
+ * pmemobj_alloc_construct -- allocates a new object with constructor
+ */
+PMEMoid
+pmemobj_alloc_construct(PMEMobjpool *pop, size_t size, int type_num,
+	void (*constructor)(void *ptr, void *arg), void *arg)
+{
+	PMEMoid poid = OID_NULL;
+
+	/* XXX */
+
+	return poid;
+}
+
+/*
+ * pmemobj_realloc -- resizes an existing object
+ */
+PMEMoid
+pmemobj_realloc(PMEMobjpool *pop, PMEMoid oid, size_t size, int type_num)
+{
+	PMEMoid poid = OID_NULL;
+
+	/* XXX */
+
+	return poid;
+}
+
+
+/*
+ * pmemobj_zrealloc -- resizes an existing object, any new space is zeroed.
+ */
+PMEMoid
+pmemobj_zrealloc(PMEMobjpool *pop, PMEMoid oid, size_t size, int type_num)
+{
+	PMEMoid poid = OID_NULL;
+
+	/* XXX */
+
+	return poid;
+}
+
+/*
+ * pmemobj_strndup -- allocates a new object with duplicate of the string s.
+ */
+PMEMoid
+pmemobj_strdup(PMEMobjpool *pop, const char *s, int type_num)
+{
+	PMEMoid poid = OID_NULL;
+
+	/* XXX */
+
+	return poid;
+}
+
+/*
+ * pmemobj_free -- frees an existing object
+ */
+void
+pmemobj_free(PMEMoid oid)
+{
+	/* XXX */
+}
+
+/*
+ * pmemobj_alloc_usable_size -- returns usable size of object
+ */
+size_t
+pmemobj_alloc_usable_size(PMEMoid oid)
+{
+	/* XXX */
+
+	return 0;
+}
+
+/*
+ * pmemobj_sizeof_root -- returns size of the root object
+ */
+size_t
+pmemobj_root_size(PMEMobjpool *pop)
+{
+	/* XXX */
+
+	return 0;
+}
+
+/*
+ * pmemobj_root -- returns root object
+ */
+PMEMoid
+pmemobj_root(PMEMobjpool *pop, size_t size)
+{
+	PMEMoid poid = OID_NULL;
+
+	/* XXX */
+
+	return poid;
+}
+
+/*
+ * pmemobj_first - returns first object of specified type
+ */
+PMEMoid
+pmemobj_first(PMEMobjpool *pop, int type_num)
+{
+	PMEMoid poid = OID_NULL;
+
+	/* XXX */
+
+	return poid;
+}
+
+/*
+ * pmemobj_next - returns next object of specified type
+ */
+PMEMoid
+pmemobj_next(PMEMoid oid)
+{
+	PMEMoid poid = OID_NULL;
+
+	/* XXX */
+
+	return poid;
+}
+
+/*
+ * pmemobj_list_insert -- adds object to a list
+ */
+int
+pmemobj_list_insert(PMEMobjpool *pop, size_t pe_offset, PMEMoid dest,
+	void *head, int before, PMEMoid oid)
+{
+	/* XXX */
+
+	return 0;
+}
+
+/*
+ * pmemobj_list_insert -- adds new object to a list
+ */
+int
+pmemobj_list_insert_new(PMEMobjpool *pop, size_t pe_offset, PMEMoid dest,
+	void *head, int before, size_t size, int type_num)
+{
+	/* XXX */
+
+	return 0;
+}
+
+/*
+ * pmemobj_list_insert -- removes object from a list
+ */
+int
+pmemobj_list_remove(PMEMobjpool *pop, size_t pe_offset, PMEMoid oid,
+	void *head, int free)
+{
+	/* XXX */
+
+	return 0;
+}
+
+/*
+ * pmemobj_list_insert -- moves object between lists
+ */
+int
+pmemobj_list_move(PMEMobjpool *pop, size_t pe_old_offset,
+	size_t pe_new_offset, PMEMoid dest, void *head_old,
+	void *head_new, int before, PMEMoid oid)
+{
+	/* XXX */
+
+	return 0;
+}
+
+/*
+ * pmemobj_tx_begin -- initializes new transaction
+ */
+int
+pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...)
+{
+	/* XXX */
+	return 0;
+}
+
+/*
+ * pmemobj_tx_stage -- returns current transaction stage
+ */
+enum pobj_tx_stage
+pmemobj_tx_stage()
+{
+	/* XXX */
+	return TX_STAGE_NONE;
+}
+
+/*
+ * pmemobj_tx_abort -- aborts current transaction
+ */
+void
+pmemobj_tx_abort(int errnum)
+{
+	/* XXX */
+}
+
+/*
+ * pmemobj_tx_commit -- commits current transaction
+ */
+int
+pmemobj_tx_commit()
+{
+	/* XXX */
+	return 0;
+}
+
+/*
+ * pmemobj_tx_end -- ends current transaction
+ */
+void
+pmemobj_tx_end()
+{
+	/* XXX */
+}
+
+/*
+ * pmemobj_tx_process -- processes current transaction stage
+ */
+int
+pmemobj_tx_process()
+{
+	/* XXX */
+	return 0;
+}
+
+/*
+ * pmemobj_tx_add_range -- adds persistent memory range into the transaction
+ */
+int
+pmemobj_tx_add_range(uint64_t hoff, size_t size)
+{
+	/* XXX */
+	return 0;
+}
+
+/*
+ * pmemobj_tx_alloc -- allocates a new object
+ */
+PMEMoid
+pmemobj_tx_alloc(size_t size, int type_num)
+{
+	PMEMoid poid = OID_NULL;
+
+	/* XXX */
+
+	return poid;
+}
+
+/*
+ * pmemobj_tx_zalloc -- allocates a new zeroed object
+ */
+PMEMoid
+pmemobj_tx_zalloc(size_t size, int type_num)
+{
+	PMEMoid poid = OID_NULL;
+
+	/* XXX */
+
+	return poid;
+}
+
+/*
+ * pmemobj_tx_realloc -- resizes an existing object
+ */
+PMEMoid
+pmemobj_tx_realloc(PMEMoid oid, size_t size, int type_num)
+{
+	PMEMoid poid = OID_NULL;
+
+	/* XXX */
+
+	return poid;
+}
+
+
+/*
+ * pmemobj_zrealloc -- resizes an existing object, any new space is zeroed.
+ */
+PMEMoid
+pmemobj_tx_zrealloc(PMEMoid oid, size_t size, int type_num)
+{
+	PMEMoid poid = OID_NULL;
+
+	/* XXX */
+
+	return poid;
+}
+
+/*
+ * pmemobj_tx_strdup -- allocates a new object with duplicate of the string s.
+ */
+PMEMoid
+pmemobj_tx_strdup(const char *s, int type_num)
+{
+	PMEMoid poid = OID_NULL;
+
+	/* XXX */
+
+	return poid;
+}
+
+/*
+ * pmemobj_tx_free -- frees an existing object
+ */
+int
+pmemobj_tx_free(PMEMoid oid)
+{
+	/* XXX */
+
+	return 0;
 }

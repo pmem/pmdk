@@ -36,6 +36,7 @@
 
 #include <stdio.h>
 #include <stdint.h>
+#include <setjmp.h>
 
 #include "libpmemobj.h"
 
