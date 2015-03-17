@@ -361,7 +361,7 @@ main(int argc, char *argv[])
 
 	if (access(path, F_OK) != 0) {
 		if ((pop = pmemobj_create(path, POBJ_LAYOUT_NAME(pminvaders),
-			PMINVADERS_POOL_SIZE, S_IRWXU)) == NULL) {
+		    PMINVADERS_POOL_SIZE, S_IWUSR | S_IRUSR)) == NULL) {
 			printf("failed to create pool\n");
 			return 1;
 		}

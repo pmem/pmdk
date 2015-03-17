@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright (c) 2014-2015, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -38,6 +38,7 @@
  *	addlog /path/to/pm-aware/file "first line of entry" "second line"
  */
 
+#include <sys/stat.h>
 #include <stdio.h>
 #include <fcntl.h>
 #include <time.h>
@@ -65,7 +66,7 @@ main(int argc, char *argv[])
 	const char *path = argv[1];
 
 	/* create the log in the given file, or open it if already created */
-	if ((plp = pmemlog_create(path, 0, 0)) == NULL &&
+	if ((plp = pmemlog_create(path, 0, S_IWUSR | S_IRUSR)) == NULL &&
 	    (plp = pmemlog_open(path)) == NULL) {
 		perror(path);
 		exit(1);

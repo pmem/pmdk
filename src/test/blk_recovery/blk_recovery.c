@@ -108,7 +108,8 @@ main(int argc, char *argv[])
 	const char *path = argv[2];
 
 	PMEMblkpool *handle;
-	if ((handle = pmemblk_create(path, Bsize, 0, S_IWUSR)) == NULL)
+	if ((handle = pmemblk_create(path, Bsize, 0,
+			S_IWUSR | S_IRUSR)) == NULL)
 		FATAL("!%s: pmemblk_create", path);
 
 	OUT("%s block size %zu usable blocks %zu",

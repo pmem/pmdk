@@ -251,7 +251,7 @@ main(int argc, char *argv[])
 	PMEMobjpool *pop = NULL;
 
 	if ((pop = pmemobj_create(path, POBJ_LAYOUT_NAME(basic),
-			PMEMOBJ_MIN_POOL, S_IRWXU)) == NULL)
+			PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR)) == NULL)
 		FATAL("!pmemobj_create: %s", path);
 
 	test_alloc_api(pop);
