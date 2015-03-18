@@ -1,0 +1,4 @@
+log_create/TEST4: START: log_create
+ ./log_create$(nW) $(nW)/testfile 0 0640
+$(nW)/testfile: pmemlog_create: Invalid argument
+log_create/TEST4: Done

@@ -1,0 +1,4 @@
+log_create/TEST1: START: log_create
+ ./log_create$(nW) $(nW)/testfile 0 0640
+$(nW)/testfile: file size 2147483648 mode 0640
+log_create/TEST1: Done

@@ -1,0 +1,4 @@
+blk_create/TEST0: START: blk_create
+ ./blk_create$(nW) $(nW)/testfile 4096 20 0640
+$(nW)/testfile: file size 20971520 usable blocks 4850 mode 0640
+blk_create/TEST0: Done

@@ -1,0 +1,5 @@
+blk_open/TEST1: START: blk_open
+ ./blk_open$(nW) $(nW)/testfile 4096
+$(nW)/testfile: file size 20971520 usable blocks 4850 mode 0640
+$(nW)/testfile: pmemblk_open: Success
+blk_open/TEST1: Done

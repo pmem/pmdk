@@ -1,0 +1,27 @@
+Linux NVM Library
+
+This is src/test/blk_open/README.
+
+This directory contains a unit test for pmemblk_open().
+
+The program in blk_open.c takes: path, bsize
+
+For example:
+
+	./blk_open /my/file 4096
+
+This calls pmemblk_open() with the given arguments.
+
+Test cases:
+
+- expected to be successful
+	TEST0 existing file
+	TEST1 non-existing file, the file will be created with the given bsize
+
+- expected to fail
+	TEST2 existing file, but it has read-only permissions
+	TEST3 non-existing file, but bsize does not match
+
+- each case outputs:
+	- error, if error happened
+	- resulting file size, nblocks, mode, consistency check results

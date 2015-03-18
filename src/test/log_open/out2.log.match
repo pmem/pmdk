@@ -1,0 +1,6 @@
+log_open/TEST2: START: log_open
+ ./log_open$(nW) $(nW)/testfile
+$(nW)/testfile: pmemlog_create: File exists
+$(nW)/testfile: pmemlog_check: Permission denied
+$(nW)/testfile: pmemlog_open: Permission denied
+log_open/TEST2: Done

@@ -1,0 +1,4 @@
+blk_create/TEST2: START: blk_create
+ ./blk_create$(nW) $(nW)/testfile 4096 0 0640
+$(nW)/testfile: pmemblk_create: No such file or directory
+blk_create/TEST2: Done

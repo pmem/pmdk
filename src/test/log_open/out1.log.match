@@ -1,0 +1,5 @@
+log_open/TEST1: START: log_open
+ ./log_open$(nW) $(nW)/testfile
+$(nW)/testfile: file size 20971520 mode 0640
+$(nW)/testfile: pmemlog_open: Success
+log_open/TEST1: Done

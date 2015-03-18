@@ -35,13 +35,17 @@
 #
 # Makefile -- build all unit tests
 #
-TEST = blk_nblock\
+TEST = blk_create\
+       blk_nblock\
        blk_non_zero\
+       blk_open\
        blk_recovery\
        blk_rw\
        blk_rw_mt\
        checksum\
        log_basic\
+       log_create\
+       log_open\
        log_recovery\
        log_walker\
        pmem_isa_proc\

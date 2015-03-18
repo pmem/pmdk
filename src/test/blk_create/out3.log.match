@@ -1,0 +1,4 @@
+blk_create/TEST3: START: blk_create
+ ./blk_create$(nW) $(nW)/testfile 4096 20 0640
+$(nW)/testfile: pmemblk_create: File exists
+blk_create/TEST3: Done
