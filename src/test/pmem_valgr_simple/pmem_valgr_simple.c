@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright (c) 2015, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,21 +31,59 @@
  */
 
 /*
- * valgrind_check.c -- compile this to check that we have the correct version
- * of Valgrind headers
+ * pmem_valgr_simple.c -- simple unit test using pmemcheck
+ *
+ * usage: pmem_valgr_simple file
  */
 
-#include <valgrind/valgrind.h>
-#include <valgrind/memcheck.h>
+#include "unittest.h"
 
+int
+main(int argc, char *argv[])
+{
+	int fd;
+	struct stat stbuf;
+	void *dest;
 
-#if defined(VALGRIND_RESIZEINPLACE_BLOCK)
-VALGRIND_VERSION_3_7_OR_LATER
-#endif
+	START(argc, argv, "pmem_valgr_simple");
 
-#if defined(__VALGRIND_MAJOR__) && defined(__VALGRIND_MINOR__)
-#if (__VALGRIND_MAJOR__ > 3) || \
-	((__VALGRIND_MAJOR__ == 3) && (__VALGRIND_MINOR__ >= 8))
-VALGRIND_VERSION_3_8_OR_LATER
-#endif
-#endif
+	if (argc != 4)
+		FATAL("usage: %s file offset length", argv[0]);
+
+	fd = OPEN(argv[1], O_RDWR);
+	int dest_off = atoi(argv[2]);
+	size_t bytes = strtoul(argv[3], NULL, 0);
+
+	FSTAT(fd, &stbuf);
+
+	dest = pmem_map(fd);
+	if (dest == NULL)
+		FATAL("!Could not mmap %s\n", argv[1]);
+
+	/* these will not be made persistent */
+	*(int *)dest = 4;
+
+	/* this will be made persistent */
+	uint64_t *tmp64dst = (void *)((uintptr_t)dest + 4096);
+	*tmp64dst = 50;
+
+	if (pmem_is_pmem(dest, sizeof (*tmp64dst))) {
+		pmem_persist(tmp64dst, sizeof (*tmp64dst));
+	} else {
+		pmem_msync(tmp64dst, sizeof (*tmp64dst));
+	}
+
+	uint16_t *tmp16dst = (void *)((uintptr_t)dest + 1024);
+	*tmp16dst = 21;
+	/* will appear as flushed in valgrind log */
+	pmem_flush(tmp16dst, sizeof (*tmp16dst));
+
+	/* shows strange behavior of memset in some cases */
+	memset(dest + dest_off, 0, bytes);
+
+	munmap(dest, (size_t)stbuf.st_size);
+
+	CLOSE(fd);
+
+	DONE(NULL);
+}

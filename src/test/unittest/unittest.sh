@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2014, Intel Corporation
+# Copyright (c) 2014-2015, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -226,6 +226,78 @@ function require_build_type() {
 		[ "$type" = "$BUILD" ] && return
 	done
 	[ "$UNITTEST_QUIET" ] || echo "$UNITTEST_NAME: SKIP build-type $BUILD ($* required)"
+	exit 0
+}
+
+#
+# require_valgrind -- continue script execution only if
+#	valgrind package is installed
+#
+function require_valgrind() {
+	VALGRINDEXE=`which valgrind 2>/dev/null` && return
+	echo "$UNITTEST_NAME: SKIP valgrind package required"
+	exit 0
+}
+
+#
+# require_valgrind_pmemcheck -- continue script execution only if
+#	valgrind with pmemcheck is installed
+#
+function require_valgrind_pmemcheck() {
+	require_valgrind
+	valgrind --tool=pmemcheck --help 2>&1 | \
+		grep -q "pmemcheck is Copyright (c)" && return
+	echo "$UNITTEST_NAME: SKIP valgrind package with pmemcheck required"
+	exit 0
+}
+
+#
+# set_valgrind_exe_name -- set the actual Valgrind executable name
+#
+# On some systems (Ubuntu), "valgrind" is a shell script that calls
+# the actual executable "valgrind.bin".
+# The wrapper script doesn't work well with LD_PRELOAD, so we want
+# to call Valgrind directly.
+#
+function set_valgrind_exe_name() {
+	VALGRINDDIR=`dirname $VALGRINDEXE`
+	if [ -x $VALGRINDDIR/valgrind.bin ]; then
+		VALGRINDEXE=$VALGRINDDIR/valgrind.bin
+	fi
+}
+
+#
+# require_valgrind_dev_3_7 -- continue script execution only if
+#	version 3.7 (or later) of valgrind-devel package is installed
+#
+function require_valgrind_dev_3_7() {
+	require_valgrind
+	echo "
+        #include <valgrind/valgrind.h>
+        #if defined (VALGRIND_RESIZEINPLACE_BLOCK)
+        VALGRIND_VERSION_3_7_OR_LATER
+        #endif" | gcc -E - 2>&1 | \
+		grep -q "VALGRIND_VERSION_3_7_OR_LATER" && return
+	echo "$UNITTEST_NAME: SKIP valgrind-devel package (ver 3.7 or later) required"
+	exit 0
+}
+
+#
+# require_valgrind_dev_3_8 -- continue script execution only if
+#	version 3.8 (or later) of valgrind-devel package is installed
+#
+function require_valgrind_dev_3_8() {
+	require_valgrind
+	echo "
+        #include <valgrind/valgrind.h>
+        #if defined (__VALGRIND_MAJOR__) && defined (__VALGRIND_MINOR__)
+        #if (__VALGRIND_MINOR__ > 3) || \
+             ((__VALGRIND_MAJOR__ == 3) && (__VALGRIND_MINOR__ >= 8))
+        VALGRIND_VERSION_3_8_OR_LATER
+        #endif
+        #endif" | gcc -E - 2>&1 | \
+		grep -q "VALGRIND_VERSION_3_8_OR_LATER" && return
+	echo "$UNITTEST_NAME: SKIP valgrind-devel package (ver 3.8 or later) required"
 	exit 0
 }
 
