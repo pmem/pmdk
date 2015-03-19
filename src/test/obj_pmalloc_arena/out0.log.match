@@ -1,0 +1,12 @@
+obj_pmalloc_arena/TEST0: START: obj_pmalloc_arena
+ ./obj_pmalloc_arena$(nW)
+wrapper function pthread_mutex_init
+wrapper function pthread_mutex_destroy
+wrapper function pthread_mutex_lock
+wrapper function pthread_mutex_unlock
+wrapper function pthread_mutex_lock
+wrapper function arena_new
+wrapper function pthread_mutex_unlock
+wrapper function get_bucket_class_id_by_size
+wrapper function bucket_new
+obj_pmalloc_arena/TEST0: Done

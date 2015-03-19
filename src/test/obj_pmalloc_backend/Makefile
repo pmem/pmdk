@@ -1,4 +1,5 @@
-# Copyright (c) 2014-2015, Intel Corporation
+#
+# Copyright (c) 2015, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -27,17 +28,29 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
 
 #
-# src/libpmemobj/Makefile -- Makefile for libpmemobj
+# src/test/obj_pmalloc_backend/Makefile -- build obj_pmalloc_backend unit test
 #
-LIBRARY_NAME = pmemobj
-LIBRARY_SO_VERSION = 1
-LIBRARY_VERSION = 0.0
-SOURCE = libpmemobj.c obj.c arena.c backend.c bucket.c pmalloc.c pool.c \
-   backend_persistent.c backend_noop.c $(COMMON)/util.c \
-   $(COMMON)/out.c
+vpath %.c ../../libpmemobj
+vpath %.c ../../common
+vpath %.h ../.. ../../include
+vpath %.h ../.. ../../common
+
+TARGET = obj_pmalloc_backend
+OBJS = obj_pmalloc_backend.o out.o util.o pmalloc.o bucket.o pool.o backend.o\
+	backend_persistent.o backend_noop.o arena.o
+
+out.o: CFLAGS += -DSRCVERSION=\"utversion\"
+
+LIBPMEM=y
 
 include ../Makefile.inc
+INCS += -I../../libpmemobj/ -I../../common/
 
-LIBS += -luuid -pthread -lpmem
+obj_pmalloc_backend.o: obj_pmalloc_backend.c
+
+util.o: util.c util.h out.h
+
+out.o: out.c out.h

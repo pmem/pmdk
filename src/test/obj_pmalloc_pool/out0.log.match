@@ -1,0 +1,10 @@
+obj_pmalloc_pool/TEST0: START: obj_pmalloc_pool
+ ./obj_pmalloc_pool$(nW)
+wrapper function backend_noop_open
+wrapper function pthread_mutex_init
+wrapper function pthread_mutex_destroy
+wrapper function backend_noop_close
+wrapper function get_bucket_class_id_by_size
+wrapper function bucket_new
+wrapper function bucket_add_object
+obj_pmalloc_pool/TEST0: Done

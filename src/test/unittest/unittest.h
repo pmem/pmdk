@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright (c) 2014-2015, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -468,5 +468,34 @@ int ut_pthread_join(const char *file, int line, const char *func,
 /* a pthread_join() that can't return an error */
 #define	PTHREAD_JOIN(thread, value_ptr)\
     ut_pthread_join(__FILE__, __LINE__, __func__, thread, value_ptr)
+
+/*
+ * wrappers...
+ */
+
+#define	FUNC_WRAP_BEGIN(name, ret_type, ...)\
+	ret_type __wrap_##name(__VA_ARGS__) { OUT("wrapper function %s", #name);
+
+#define	FUNC_WRAP_ARG_EQ(arg, value)\
+	ASSERT(arg == value);
+
+#define	FUNC_WRAP_ARG_NE(arg, value)\
+	ASSERT(arg != value);
+
+#define	FUNC_WRAP_END(ret)\
+	return (ret); }
+
+#define	FUNC_WRAP_END_NO_RET\
+	}
+
+#define	FUNC_WILL_RETURN(name, ret)\
+	FUNC_WRAP_BEGIN(name, typeof(ret), void)\
+	FUNC_WRAP_END(ret)
+
+#define	FUNC_REAL(name)\
+	__real_##name
+
+#define	FUNC_REAL_DECL(name, ret_type, ...)\
+	ret_type __real_##name(__VA_ARGS__);
 
 #endif	/* unittest.h */

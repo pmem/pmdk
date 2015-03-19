@@ -1,0 +1,3 @@
+obj_pmalloc_bucket/TEST0: START: obj_pmalloc_bucket
+ ./obj_pmalloc_bucket$(nW)
+obj_pmalloc_bucket/TEST0: Done

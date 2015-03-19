@@ -1,4 +1,6 @@
-# Copyright (c) 2014-2015, Intel Corporation
+#!/bin/bash -e
+#
+# Copyright (c) 2015, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -27,17 +29,22 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
 
 #
-# src/libpmemobj/Makefile -- Makefile for libpmemobj
+# src/test/obj_pmalloc_bucket/TEST0
 #
-LIBRARY_NAME = pmemobj
-LIBRARY_SO_VERSION = 1
-LIBRARY_VERSION = 0.0
-SOURCE = libpmemobj.c obj.c arena.c backend.c bucket.c pmalloc.c pool.c \
-   backend_persistent.c backend_noop.c $(COMMON)/util.c \
-   $(COMMON)/out.c
 
-include ../Makefile.inc
+export UNITTEST_NAME=obj_pmalloc_bucket/TEST0
+export UNITTEST_NUM=0
 
-LIBS += -luuid -pthread -lpmem
+# standard unit test setup
+. ../unittest/unittest.sh
+
+setup
+
+expect_normal_exit ./obj_pmalloc_bucket$EXESUFFIX
+
+check
+
+pass
