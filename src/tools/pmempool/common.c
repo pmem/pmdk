@@ -177,19 +177,18 @@ static int
 util_parse_range_from_to(char *str, struct range *rangep, struct range *entirep)
 {
 	char *str1 = NULL;
-	char sep = '\0';
+	char sep;
 	char *str2 = NULL;
 
 	int ret = 0;
 	if (sscanf(str, "%m[^-]%c%m[^-]", &str1, &sep, &str2) == 3 &&
-			sep == '-') {
+			sep == '-' &&
+			strlen(str) == (strlen(str1) + 1 + strlen(str2))) {
 		if (util_parse_size(str1, &rangep->first) != 0)
 			ret = -1;
 		else if (util_parse_size(str2, &rangep->last) != 0)
 			ret = -1;
-		if (rangep->first > entirep->last ||
-		    rangep->last > entirep->last)
-			return -1;
+
 		if (rangep->first > rangep->last) {
 			uint64_t tmp = rangep->first;
 			rangep->first = rangep->last;
@@ -214,10 +213,12 @@ static int
 util_parse_range_from(char *str, struct range *rangep, struct range *entirep)
 {
 	char *str1 = NULL;
-	char sep = '\0';
+	char sep;
 
 	int ret = 0;
-	if (sscanf(str, "%m[^-]%c", &str1, &sep) == 2 && sep == '-') {
+	if (sscanf(str, "%m[^-]%c", &str1, &sep) == 2 &&
+			sep == '-' &&
+			strlen(str) == (strlen(str1) + 1)) {
 		if (util_parse_size(str1, &rangep->first) == 0)
 			rangep->last = entirep->last;
 		else
@@ -239,17 +240,16 @@ static int
 util_parse_range_to(char *str, struct range *rangep, struct range *entirep)
 {
 	char *str1 = NULL;
-	char sep = '\0';
+	char sep;
 
 	int ret = 0;
-	if (sscanf(str, "%c%m[^-]", &sep, &str1) == 2 && sep == '-') {
-		if (util_parse_size(str1, &rangep->last) == 0) {
+	if (sscanf(str, "%c%m[^-]", &sep, &str1) == 2 &&
+			sep == '-' &&
+			strlen(str) == (1 + strlen(str1))) {
+		if (util_parse_size(str1, &rangep->last) == 0)
 			rangep->first = entirep->first;
-			if (rangep->last > entirep->last)
-				return -1;
-		} else {
+		else
 			ret = -1;
-		}
 	} else {
 		ret = -1;
 	}
@@ -266,7 +266,8 @@ util_parse_range_to(char *str, struct range *rangep, struct range *entirep)
 static int
 util_parse_range_number(char *str, struct range *rangep, struct range *entirep)
 {
-	util_parse_size(str, &rangep->first);
+	if (util_parse_size(str, &rangep->first) != 0)
+		return -1;
 	if (rangep->first > entirep->last ||
 	    rangep->last > entirep->last)
 		return -1;

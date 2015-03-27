@@ -683,14 +683,15 @@ pmempool_info_btt_data(struct pmem_info *pip, int v,
 			continue;
 		for (i = range.first; i <= range.last; i++) {
 			uint32_t map_entry = le32toh(map[i]);
+			int is_init = (map_entry & ~BTT_MAP_ENTRY_LBA_MASK)
+				== 0;
+			int is_zero = (map_entry & ~BTT_MAP_ENTRY_LBA_MASK)
+				== BTT_MAP_ENTRY_ZERO || is_init;
+			int is_error = (map_entry & ~BTT_MAP_ENTRY_LBA_MASK)
+				== BTT_MAP_ENTRY_ERROR;
 
-			int is_zero = (map_entry & ~BTT_MAP_ENTRY_LBA_MASK) ==
-				BTT_MAP_ENTRY_ZERO ||
-				(map_entry & ~BTT_MAP_ENTRY_LBA_MASK) == 0;
-			int is_error = (map_entry & ~BTT_MAP_ENTRY_LBA_MASK) ==
-				BTT_MAP_ENTRY_ERROR;
-
-			map_entry &= BTT_MAP_ENTRY_LBA_MASK;
+			uint32_t blockno = is_init ? i :
+					map_entry & BTT_MAP_ENTRY_LBA_MASK;
 
 			if (pmempool_info_blk_skip_block(pip,
 						is_zero, is_error))
@@ -698,7 +699,7 @@ pmempool_info_btt_data(struct pmem_info *pip, int v,
 
 			/* compute block's data address */
 			off_t block_off = arena_off + infop->dataoff +
-				map_entry * infop->internal_lbasize;
+				blockno * infop->internal_lbasize;
 
 			if (pmempool_info_read(pip, block_buff,
 					infop->external_lbasize, block_off)) {
@@ -716,7 +717,7 @@ pmempool_info_btt_data(struct pmem_info *pip, int v,
 			 */
 			outv(v, "Block %10d: offset: %s\n",
 				offset + i,
-				out_get_btt_map_entry(le32toh(map[i])));
+				out_get_btt_map_entry(map_entry));
 
 			/* dump block's data */
 			outv_hexdump(v, block_buff, infop->external_lbasize,
