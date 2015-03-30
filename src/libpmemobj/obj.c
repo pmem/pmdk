@@ -272,7 +272,7 @@ pmemobj_map_common(int fd, const char *layout, size_t poolsize, int rdonly,
 		/* initialization of the obj_store */
 		uint64_t obj_store_offset = OBJ_LANES_OFFSET +
 			OBJ_NLANES * sizeof (struct lane_layout);
-		uint64_t obj_store_size = (_POBJ_MAX_OID_TYPE_NUM + 1) *
+		uint64_t obj_store_size = (PMEMOBJ_NUM_OID_TYPES + 1) *
 			sizeof (struct object_store_item);
 			/* + 1 - for root object */
 		void *store = (void *)((uintptr_t)pop + obj_store_offset);
@@ -310,7 +310,6 @@ pmemobj_map_common(int fd, const char *layout, size_t poolsize, int rdonly,
 
 	VALGRIND_REMOVE_PMEM_MAPPING(&pop->addr,
 			sizeof (struct pmemobjpool) - OBJ_DSC_P_SIZE);
-
 
 	/*
 	 * Use some of the memory pool area for run-time info.  This
@@ -600,9 +599,9 @@ pmemobj_alloc_construct(PMEMobjpool *pop, size_t size, int type_num,
 	LOG(3, "pop %p size %zu type_num %d constructor %p arg %p",
 		pop, size, type_num, constructor, arg);
 
-	if (type_num < 0 || type_num >= _POBJ_MAX_OID_TYPE_NUM) {
-		LOG(2, "type_num has to be in range [0, %i]",
-			_POBJ_MAX_OID_TYPE_NUM - 1);
+	if (type_num < 0 || type_num >= PMEMOBJ_NUM_OID_TYPES) {
+		LOG(2, "type_num has to be in range [0, %u]",
+			PMEMOBJ_NUM_OID_TYPES - 1);
 		errno = EINVAL;
 		return OID_NULL;
 	}
@@ -631,11 +630,11 @@ obj_realloc_construct(PMEMobjpool *pop, struct object_store *store,
 	struct oob_header *pobj = OOB_HEADER_FROM_OID(pop, oid);
 	uint16_t user_type_old = pobj->user_type;
 
-	ASSERT(user_type_old < _POBJ_MAX_OID_TYPE_NUM);
+	ASSERT(user_type_old < PMEMOBJ_NUM_OID_TYPES);
 
-	if (type_num < 0 || type_num >= _POBJ_MAX_OID_TYPE_NUM) {
-		LOG(2, "type_num has to be in range [0, %i]",
-		    _POBJ_MAX_OID_TYPE_NUM - 1);
+	if (type_num < 0 || type_num >= PMEMOBJ_NUM_OID_TYPES) {
+		LOG(2, "type_num has to be in range [0, %u]",
+		    PMEMOBJ_NUM_OID_TYPES - 1);
 		errno = EINVAL;
 		return OID_NULL;
 	}
@@ -765,9 +764,9 @@ pmemobj_strdup(PMEMobjpool *pop, const char *s, int type_num)
 {
 	LOG(3, "pop %p string %s type_num %d", pop, s, type_num);
 
-	if (type_num < 0 || type_num >= _POBJ_MAX_OID_TYPE_NUM) {
+	if (type_num < 0 || type_num >= PMEMOBJ_NUM_OID_TYPES) {
 		LOG(2, "type_num has to be in range [0, %i]",
-		    _POBJ_MAX_OID_TYPE_NUM - 1);
+		    PMEMOBJ_NUM_OID_TYPES - 1);
 		errno = EINVAL;
 		return OID_NULL;
 	}
@@ -799,7 +798,7 @@ pmemobj_free(PMEMoid oid)
 
 	struct oob_header *pobj = OOB_HEADER_FROM_OID(pop, oid);
 
-	ASSERT(pobj->user_type < _POBJ_MAX_OID_TYPE_NUM);
+	ASSERT(pobj->user_type < PMEMOBJ_NUM_OID_TYPES);
 
 	void *lhead = &pop->store->bytype[pobj->user_type].head;
 	if (list_remove_free(pop, lhead, 0, NULL, oid)) {
@@ -936,9 +935,9 @@ pmemobj_first(PMEMobjpool *pop, int type_num)
 {
 	LOG(3, "pop %p type_num %d", pop, type_num);
 
-	if (type_num < 0 || type_num >= _POBJ_MAX_OID_TYPE_NUM) {
+	if (type_num < 0 || type_num >= PMEMOBJ_NUM_OID_TYPES) {
 		LOG(2, "type_num has to be in range [0, %i]",
-		    _POBJ_MAX_OID_TYPE_NUM - 1);
+		    PMEMOBJ_NUM_OID_TYPES - 1);
 		errno = EINVAL;
 		return OID_NULL;
 	}
@@ -964,7 +963,7 @@ pmemobj_next(PMEMoid oid)
 	struct oob_header *pobj = OOB_HEADER_FROM_OID(pop, oid);
 	uint16_t user_type = pobj->user_type;
 
-	ASSERT(user_type < _POBJ_MAX_OID_TYPE_NUM);
+	ASSERT(user_type < PMEMOBJ_NUM_OID_TYPES);
 
 	if (pobj->oob.pe_next.off !=
 			pop->store->bytype[user_type].head.pe_first.off)
@@ -999,9 +998,9 @@ pmemobj_list_insert_new(PMEMobjpool *pop, size_t pe_offset, void *head,
 	    " size %zu type_num %d",
 	    pop, pe_offset, head, dest.off, before, size, type_num);
 
-	if (type_num < 0 || type_num >= _POBJ_MAX_OID_TYPE_NUM) {
+	if (type_num < 0 || type_num >= PMEMOBJ_NUM_OID_TYPES) {
 		LOG(2, "type_num has to be in range [0, %i]",
-		    _POBJ_MAX_OID_TYPE_NUM - 1);
+		    PMEMOBJ_NUM_OID_TYPES - 1);
 		errno = EINVAL;
 		return OID_NULL;
 	}
@@ -1032,7 +1031,7 @@ pmemobj_list_remove(PMEMobjpool *pop, size_t pe_offset, void *head,
 	if (free) {
 		struct oob_header *pobj = OOB_HEADER_FROM_OID(pop, oid);
 
-		ASSERT(pobj->user_type < _POBJ_MAX_OID_TYPE_NUM);
+		ASSERT(pobj->user_type < PMEMOBJ_NUM_OID_TYPES);
 
 		void *lhead = &pop->store->bytype[pobj->user_type].head;
 		return list_remove_free(pop, lhead, pe_offset, head, oid);

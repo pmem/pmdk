@@ -74,6 +74,7 @@ const char *pmemobj_check_version(
 
 #define	PMEMOBJ_MIN_POOL ((size_t)(1024 * 1024 * 8)) /* 8 MB */
 #define	PMEMOBJ_MAX_LAYOUT ((size_t)1024)
+#define	PMEMOBJ_NUM_OID_TYPES ((unsigned)1024)
 
 /*
  * Error information...
@@ -185,7 +186,6 @@ __builtin_choose_expr(\
 	(lhs._type = rhs._type))
 
 #define	OID_NULL		((PMEMoid) {0, 0})
-#define	_POBJ_MAX_OID_TYPE_NUM	1024
 
 #define	OID_IS_NULL(o)	((o).oid.off == 0)
 
@@ -300,7 +300,7 @@ PMEMoid pmemobj_next(PMEMoid oid);
  * Iterates through every existing allocated object.
  */
 #define	POBJ_FOREACH(pop, varoid, vartype_num)\
-for (vartype_num = 0; vartype_num < _POBJ_MAX_OID_TYPE_NUM; ++vartype_num)\
+for (vartype_num = 0; vartype_num < PMEMOBJ_NUM_OID_TYPES; ++vartype_num)\
 	for (varoid = pmemobj_first(pop, vartype_num);\
 		(varoid).off != 0; varoid = pmemobj_next(varoid))
 
@@ -308,7 +308,7 @@ for (vartype_num = 0; vartype_num < _POBJ_MAX_OID_TYPE_NUM; ++vartype_num)\
  * Safe variant of POBJ_FOREACH in which pmemobj_free on varoid is allowed
  */
 #define	POBJ_FOREACH_SAFE(pop, varoid, nvaroid, vartype_num)\
-for (vartype_num = 0; vartype_num < _POBJ_MAX_OID_TYPE_NUM; ++vartype_num)\
+for (vartype_num = 0; vartype_num < PMEMOBJ_NUM_OID_TYPES; ++vartype_num)\
 	for (varoid = pmemobj_first(pop, vartype_num);\
 		(varoid).off != 0 && (nvaroid = pmemobj_next(varoid), 1);\
 		varoid = nvaroid)
