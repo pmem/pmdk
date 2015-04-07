@@ -51,6 +51,15 @@
 #include "obj.h"
 
 /*
+ * drain_empty -- (internal) empty function for drain on non-pmem memory
+ */
+static void
+drain_empty(void)
+{
+	/* do nothing */
+}
+
+/*
  * pmemobj_map_common -- (internal) map a transactional memory pool
  *
  * This routine does all the work, but takes a rdonly flag so internal
@@ -208,6 +217,16 @@ pmemobj_map_common(int fd, const char *layout, size_t poolsize, int rdonly,
 	pop->size = poolsize;
 	pop->rdonly = rdonly;
 	pop->is_pmem = is_pmem;
+
+	if (pop->is_pmem) {
+		pop->persist = pmem_persist;
+		pop->flush = pmem_flush;
+		pop->drain = pmem_drain;
+	} else {
+		pop->persist = (persist_fn)pmem_msync;
+		pop->flush = (flush_fn)pmem_msync;
+		pop->drain = drain_empty;
+	}
 
 	/* XXX the rest of run-time info */
 
