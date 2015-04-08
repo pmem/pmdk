@@ -14,5 +14,5 @@ set title "pmemlog thread scaling"
 set xlabel "Threads count"
 set ylabel "Vector appends per second"
 set key inside right bottom
-plot "pmemlog_mt.out" using ($0+1):2 title "pmemlog" with linespoints, \
-"fileiolog_mt.out" using ($0+1):2 title "fileiolog" with linespoints
+plot "pmemlog_mt.out" using 1:4 title "pmemlog" with linespoints, \
+"fileiolog_mt.out" using 1:4 title "fileiolog" with linespoints

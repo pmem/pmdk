@@ -143,7 +143,7 @@ main(int argc, char *argv[])
 		}
 		pmemlog_rewind(plp);
 	} else {
-		flags = O_CREAT | O_RDWR | O_APPEND | O_SYNC;
+		flags = O_CREAT | O_RDWR | O_SYNC;
 
 		/* create a file if it does not exist */
 		if ((fd = open(args.file_name, flags, FILE_MODE)) < 0) {
@@ -152,6 +152,11 @@ main(int argc, char *argv[])
 		}
 		Tasks = Tasks_fileiolog;
 		arg = &fd;
+
+		for (int i = 0; i < TASKS_COUNT_MAX; ++i) {
+			fails = run_threads(&args, Tasks[i], arg, &exec_time);
+		}
+		lseek(fd, 0, SEEK_SET);
 	}
 
 	/* actual benchmark execution */
@@ -159,7 +164,7 @@ main(int argc, char *argv[])
 		fails = run_threads(&args, Tasks[i], arg, &exec_time);
 		if (fails)
 			err(1, "Tasks execution failed");
-		printf("%f;%f;",
+		printf("%d;%lu;%f;%f;", args.threads_count, args.el_size,
 				exec_time, args.ops_count / exec_time);
 	}
 
