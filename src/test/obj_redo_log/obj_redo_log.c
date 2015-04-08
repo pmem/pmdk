@@ -58,6 +58,7 @@
 #include "util.h"
 #include "obj.h"
 #include "redo.h"
+#include "valgrind_internal.h"
 
 #include "unittest.h"
 
@@ -100,6 +101,7 @@ pmemobj_open_mock(const char *fname)
 	close(fd);
 
 	PMEMobjpool *pop = (PMEMobjpool *)addr;
+	VALGRIND_REMOVE_PMEM_MAPPING(addr + sizeof (pop->hdr), 4096);
 	pop->addr = addr;
 	pop->size = stbuf.st_size;
 	pop->is_pmem = pmem_is_pmem(addr, stbuf.st_size);
