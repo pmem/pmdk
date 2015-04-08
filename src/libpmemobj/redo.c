@@ -107,19 +107,11 @@ redo_log_store_last(PMEMobjpool *pop, struct redo_log *redo, size_t index,
 	redo[index].value = value;
 
 	/* persist all redo log entries */
-	/* XXX function pointer from pop */
-	if (pop->is_pmem)
-		pmem_persist(redo, index * sizeof (struct redo_log));
-	else
-		pmem_msync(redo, index * sizeof (struct redo_log));
+	pop->persist(redo, index * sizeof (struct redo_log));
 
 	/* store and persist offset of last entry */
 	redo[index].offset = offset | REDO_FINISH_FLAG;
-	/* XXX function pointer from pop */
-	if (pop->is_pmem)
-		pmem_persist(&redo[index].offset, sizeof (redo[index].offset));
-	else
-		pmem_msync(&redo[index].offset, sizeof (redo[index].offset));
+	pop->persist(&redo[index].offset, sizeof (redo[index].offset));
 }
 
 /*
@@ -138,11 +130,7 @@ redo_log_process(PMEMobjpool *pop, struct redo_log *redo,
 		val = (uint64_t *)((uintptr_t)pop->addr + redo->offset);
 		*val = redo->value;
 
-		/* XXX function pointer from pop */
-		if (pop->is_pmem)
-			pmem_flush(val, sizeof (uint64_t));
-		else
-			pmem_msync(val, sizeof (uint64_t));
+		pop->flush(val, sizeof (uint64_t));
 
 		redo++;
 	}
@@ -151,23 +139,12 @@ redo_log_process(PMEMobjpool *pop, struct redo_log *redo,
 	val = (uint64_t *)((uintptr_t)pop->addr + offset);
 	*val = redo->value;
 
-	/* XXX function pointer from pop */
-	if (pop->is_pmem)
-		pmem_flush(val, sizeof (uint64_t));
-	else
-		pmem_msync(val, sizeof (uint64_t));
-
-	/* XXX function pointer from pop */
-	if (pop->is_pmem)
-		pmem_drain();
+	pop->flush(val, sizeof (uint64_t));
+	pop->drain();
 
 	redo->offset = 0;
 
-	/* XXX function pointer from pop */
-	if (pop->is_pmem)
-		pmem_persist(&redo->offset, sizeof (redo->offset));
-	else
-		pmem_msync(&redo->offset, sizeof (redo->offset));
+	pop->persist(&redo->offset, sizeof (redo->offset));
 }
 
 /*

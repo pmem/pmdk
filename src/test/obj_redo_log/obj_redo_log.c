@@ -66,6 +66,11 @@
 
 #define	PMEMOBJ_POOL_HDR_SIZE	8192
 
+static void
+pmem_drain_nop(void)
+{
+}
+
 PMEMobjpool *
 pmemobj_open_mock(const char *fname)
 {
@@ -99,6 +104,16 @@ pmemobj_open_mock(const char *fname)
 	pop->size = stbuf.st_size;
 	pop->is_pmem = pmem_is_pmem(addr, stbuf.st_size);
 	pop->rdonly = 0;
+
+	if (pop->is_pmem) {
+		pop->persist = pmem_persist;
+		pop->flush = pmem_flush;
+		pop->drain = pmem_drain;
+	} else {
+		pop->persist = (persist_fn)pmem_msync;
+		pop->flush = (persist_fn)pmem_msync;
+		pop->drain = pmem_drain_nop;
+	}
 
 	return pop;
 }
