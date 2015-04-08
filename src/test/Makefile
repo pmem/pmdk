@@ -103,7 +103,8 @@ TEST = blk_nblock\
        obj_basic\
        obj_redo_log\
        obj_basic_integration\
-       obj_pmalloc_basic
+       obj_pmalloc_basic\
+       obj_lane
 
 all     : TARGET = all
 clean   : TARGET = clean

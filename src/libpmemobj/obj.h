@@ -80,14 +80,11 @@ struct pmemobjpool {
 	int is_pmem;		/* true if pool is PMEM */
 	int rdonly;		/* true if pool is opened read-only */
 	struct pmalloc_heap *heap; /* allocator heap */
+	struct lane *lanes;
+
 	persist_fn persist;	/* persist function */
 	flush_fn flush;		/* flush function */
 	drain_fn drain;		/* drain function */
-};
-
-/* single lane */
-struct lane {
-	/* XXX stub */
 };
 
 /* single object store item */

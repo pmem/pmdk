@@ -46,6 +46,7 @@
 
 #include "libpmem.h"
 #include "libpmemobj.h"
+#include "lane.h"
 
 #include "pmalloc.h"
 #include "util.h"
@@ -181,7 +182,13 @@ pmemobj_map_common(int fd, const char *layout, size_t poolsize, int rdonly,
 		pop->run_id = 0;
 		pmem_msync(&pop->run_id, sizeof (pop->run_id));
 
-		/* XXX add initialization of the lanes */
+		/* zero all lanes */
+		void *lanes_layout = (void *)pop + OBJ_LANES_OFFSET;
+
+		memset(lanes_layout, 0,
+			OBJ_NLANES * sizeof (struct lane_layout));
+		pmem_msync(lanes_layout, OBJ_NLANES *
+			sizeof (struct lane_layout));
 
 		/* XXX add initialization of the obj_store */
 
@@ -197,11 +204,11 @@ pmemobj_map_common(int fd, const char *layout, size_t poolsize, int rdonly,
 		pop->lanes_offset = OBJ_LANES_OFFSET;
 		pop->nlanes = OBJ_NLANES;
 		pop->obj_store_offset = pop->lanes_offset +
-					OBJ_NLANES * sizeof (struct lane);
+			OBJ_NLANES * sizeof (struct lane_layout);
 		pop->obj_store_size = _POBJ_MAX_OID_TYPE_NUM *
-					sizeof (struct object_store_item);
+			sizeof (struct object_store_item);
 		pop->heap_offset = pop->obj_store_offset +
-					pop->obj_store_size;
+			pop->obj_store_size;
 		pop->heap_size = poolsize - pop->heap_offset;
 		util_checksum(dscp, OBJ_DSC_P_SIZE, &pop->checksum, 1);
 
@@ -222,6 +229,7 @@ pmemobj_map_common(int fd, const char *layout, size_t poolsize, int rdonly,
 	pop->size = poolsize;
 	pop->rdonly = rdonly;
 	pop->is_pmem = is_pmem;
+	pop->lanes = NULL;
 
 	if (pop->is_pmem) {
 		pop->persist = pmem_persist;
@@ -231,6 +239,11 @@ pmemobj_map_common(int fd, const char *layout, size_t poolsize, int rdonly,
 		pop->persist = (persist_fn)pmem_msync;
 		pop->flush = (flush_fn)pmem_msync;
 		pop->drain = drain_empty;
+	}
+
+	if ((errno = lane_boot(pop)) != 0) {
+		LOG(1, "!lane_boot");
+		goto err;
 	}
 
 	if ((errno = heap_boot(pop)) != 0) {
@@ -247,10 +260,6 @@ pmemobj_map_common(int fd, const char *layout, size_t poolsize, int rdonly,
 	 * use. It is not considered an error if this fails.
 	 */
 	util_range_none(addr, sizeof (struct pool_hdr));
-
-	/* the rest should be kept read-only (debug version only) */
-	RANGE_RO(addr + sizeof (struct pool_hdr),
-			poolsize - sizeof (struct pool_hdr));
 
 	LOG(3, "pop %p", pop);
 	return pop;
@@ -329,6 +338,10 @@ pmemobj_close(PMEMobjpool *pop)
 	if ((errno = heap_cleanup(pop)) != 0)
 		LOG(1, "heap_cleanup");
 
+	/* cleanup run-time state */
+	if ((errno = lane_cleanup(pop)) != 0)
+		LOG(1, "!lane_cleanup");
+
 	util_unmap(pop->addr, pop->size);
 }
 
@@ -356,6 +369,11 @@ pmemobj_check(const char *path, const char *layout)
 
 	if ((errno = heap_check(pop)) != 0) {
 		LOG(1, "!heap_check");
+		consistent = 0;
+	}
+
+	if ((errno = lane_check(pop)) != 0) {
+		LOG(1, "!lane_check");
 		consistent = 0;
 	}
 
@@ -906,3 +924,168 @@ pmemobj_tx_free(PMEMoid oid)
 
 	return 0;
 }
+
+/*
+ * lane_allocator_construct -- create allocator lane section
+ */
+static int
+lane_allocator_construct(struct lane_section *section)
+{
+	/* XXX */
+
+	return 0;
+}
+
+/*
+ * lane_allocator_destruct -- destroy allocator lane section
+ */
+static int
+lane_allocator_destruct(struct lane_section *section)
+{
+	/* XXX */
+
+	return 0;
+}
+
+/*
+ * lane_allocator_recovery -- recovery of allocator lane section
+ */
+static int
+lane_allocator_recovery(PMEMobjpool *pop, struct lane_section_layout *section)
+{
+	/* XXX */
+
+	return 0;
+}
+
+/*
+ * lane_allocator_check -- consistency check of allocator lane section
+ */
+static int
+lane_allocator_check(PMEMobjpool *pop, struct lane_section_layout *section)
+{
+	/* XXX */
+
+	return 0;
+}
+
+struct section_operations allocator_ops = {
+	.construct = lane_allocator_construct,
+	.destruct = lane_allocator_destruct,
+	.recover = lane_allocator_recovery,
+	.check = lane_allocator_check
+};
+
+SECTION_PARM(LANE_SECTION_ALLOCATOR, &allocator_ops);
+
+/*
+ * lane_list_construct -- create list lane section
+ */
+static int
+lane_list_construct(struct lane_section *section)
+{
+	/* XXX */
+
+	return 0;
+}
+
+/*
+ * lane_list_destruct -- destroy list lane section
+ */
+static int
+lane_list_destruct(struct lane_section *section)
+{
+	/* XXX */
+
+	return 0;
+}
+
+/*
+ * lane_list_recovery -- recovery of list lane section
+ */
+static int
+lane_list_recovery(PMEMobjpool *pop, struct lane_section_layout *section)
+
+{
+	/* XXX */
+
+	return 0;
+}
+
+/*
+ * lane_list_check -- consistency check of list lane section
+ */
+static int
+lane_list_check(PMEMobjpool *pop, struct lane_section_layout *section)
+
+{
+	/* XXX */
+
+	return 0;
+}
+
+struct section_operations list_ops = {
+	.construct = lane_list_construct,
+	.destruct = lane_list_destruct,
+	.recover = lane_list_recovery,
+	.check = lane_list_check
+};
+
+SECTION_PARM(LANE_SECTION_LIST, &list_ops);
+
+/*
+ * lane_transaction_construct -- create transaction lane section
+ */
+static int
+lane_transaction_construct(struct lane_section *section)
+
+
+{
+	/* XXX */
+
+	return 0;
+}
+
+/*
+ * lane_transaction_destruct -- destroy transaction lane section
+ */
+static int
+lane_transaction_destruct(struct lane_section *section)
+{
+	/* XXX */
+
+	return 0;
+}
+
+/*
+ * lane_transaction_recovery -- recovery of transaction lane section
+ */
+static int
+lane_transaction_recovery(PMEMobjpool *pop,
+	struct lane_section_layout *section)
+{
+	/* XXX */
+
+	return 0;
+}
+
+/*
+ * lane_transaction_check -- consistency check of transaction lane section
+ */
+static int
+lane_transaction_check(PMEMobjpool *pop,
+	struct lane_section_layout *section)
+{
+	/* XXX */
+
+	return 0;
+}
+
+struct section_operations transaction_ops = {
+	.construct = lane_transaction_construct,
+	.destruct = lane_transaction_destruct,
+	.recover = lane_transaction_recovery,
+	.check = lane_transaction_check
+};
+
+SECTION_PARM(LANE_SECTION_TRANSACTION, &transaction_ops);
