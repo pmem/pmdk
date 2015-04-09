@@ -44,7 +44,6 @@ TEST = blk_nblock\
        log_basic\
        log_recovery\
        log_walker\
-       obj_basic\
        pmem_isa_proc\
        pmem_is_pmem\
        pmem_is_pmem_proc\
@@ -100,8 +99,10 @@ TEST = blk_nblock\
        pmempool_create\
        pmempool_help\
        magic\
+       obj_basic\
        obj_redo_log\
-       obj_basic_integration
+       obj_basic_integration\
+       obj_pmalloc_basic
 
 all     : TARGET = all
 clean   : TARGET = clean

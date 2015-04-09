@@ -47,6 +47,7 @@
 #include "libpmem.h"
 #include "libpmemobj.h"
 
+#include "pmalloc.h"
 #include "util.h"
 #include "out.h"
 #include "obj.h"
@@ -184,7 +185,10 @@ pmemobj_map_common(int fd, const char *layout, size_t poolsize, int rdonly,
 
 		/* XXX add initialization of the obj_store */
 
-		/* XXX add initialization of the heap */
+		if ((errno = heap_init(pop)) != 0) {
+			LOG(1, "!heap_init");
+			goto err;
+		}
 
 		/* create the persistent part of pool's descriptor */
 		memset(dscp, 0, OBJ_DSC_P_SIZE);
@@ -227,6 +231,11 @@ pmemobj_map_common(int fd, const char *layout, size_t poolsize, int rdonly,
 		pop->persist = (persist_fn)pmem_msync;
 		pop->flush = (flush_fn)pmem_msync;
 		pop->drain = drain_empty;
+	}
+
+	if ((errno = heap_boot(pop)) != 0) {
+		LOG(1, "heap_boot");
+		goto err;
 	}
 
 	/* XXX the rest of run-time info */
@@ -317,6 +326,9 @@ pmemobj_close(PMEMobjpool *pop)
 
 	/* XXX stub */
 
+	if ((errno = heap_cleanup(pop)) != 0)
+		LOG(1, "heap_cleanup");
+
 	util_unmap(pop->addr, pop->size);
 }
 
@@ -341,6 +353,11 @@ pmemobj_check(const char *path, const char *layout)
 		return -1;	/* errno set by pmemobj_map_common() */
 
 	int consistent = 1;
+
+	if ((errno = heap_check(pop)) != 0) {
+		LOG(1, "!heap_check");
+		consistent = 0;
+	}
 
 	/* XXX validate metadata */
 
