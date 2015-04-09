@@ -74,7 +74,7 @@ STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/libvmem.a
 endif
 
 INCS = -I../unittest -I../../include
-CFLAGS = -ggdb -Wall -Werror -std=gnu99
+CFLAGS = -ggdb -Wall -Werror -std=gnu99 $(EXTRA_CFLAGS)
 
 ifneq ($(TARGET),)
 TARGET_STATIC_DEBUG=$(TARGET).static-debug
