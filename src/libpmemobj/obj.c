@@ -81,6 +81,9 @@ pmemobj_map_common(int fd, const char *layout, size_t poolsize, int rdonly,
 	struct pmemobjpool *pop = addr;
 	struct pool_hdr hdr;
 
+	/* pointer to pool descriptor */
+	void *dscp = (void *)(&pop->hdr) + sizeof (struct pool_hdr);
+
 	if (!empty) {
 		memcpy(&hdr, &pop->hdr, sizeof (hdr));
 
@@ -114,6 +117,12 @@ pmemobj_map_common(int fd, const char *layout, size_t poolsize, int rdonly,
 			goto err;
 		}
 
+		if (!util_checksum(dscp, OBJ_DSC_P_SIZE, &pop->checksum, 0)) {
+			LOG(1, "invalid checksum of pool descriptor");
+			errno = EINVAL;
+			goto err;
+		}
+
 		/* XXX check rest of required metadata */
 
 		int retval = util_feature_check(&hdr, OBJ_FORMAT_INCOMPAT,
@@ -137,19 +146,14 @@ pmemobj_map_common(int fd, const char *layout, size_t poolsize, int rdonly,
 			goto err;
 		}
 
-		/* create the required metadata first */
-		if (layout) {
-			if (strlen(layout) >= PMEMOBJ_LAYOUT_MAX) {
+		/* check length of layout */
+		if (layout && (strlen(layout) >= PMEMOBJ_LAYOUT_MAX)) {
 				LOG(1, "Layout too long");
 				errno = EINVAL;
 				goto err;
-			}
-			strncpy(pop->layout, layout, PMEMOBJ_LAYOUT_MAX - 1);
-			pmem_msync(pop->layout, sizeof (pop->layout));
 		}
 
-		/* XXX create remaining metadata */
-
+		/* create pool's header */
 		strncpy(hdrp->signature, OBJ_HDR_SIG, POOL_HDR_SIG_LEN);
 		hdrp->major = htole32(OBJ_FORMAT_MAJOR);
 		hdrp->compat_features = htole32(OBJ_FORMAT_COMPAT);
@@ -161,7 +165,39 @@ pmemobj_map_common(int fd, const char *layout, size_t poolsize, int rdonly,
 
 		/* store pool's header */
 		pmem_msync(hdrp, sizeof (*hdrp));
+
+		/* initialize run_id, it will be incremented later */
+		pop->run_id = 0;
+		pmem_msync(&pop->run_id, sizeof (pop->run_id));
+
+		/* XXX add initialization of the lanes */
+
+		/* XXX add initialization of the obj_store */
+
+		/* XXX add initialization of the heap */
+
+		/* create the persistent part of pool's descriptor */
+		memset(dscp, 0, OBJ_DSC_P_SIZE);
+		if (layout)
+			strncpy(pop->layout, layout, PMEMOBJ_LAYOUT_MAX - 1);
+		pop->lanes_offset = OBJ_LANES_OFFSET;
+		pop->nlanes = OBJ_NLANES;
+		pop->obj_store_offset = pop->lanes_offset +
+					OBJ_NLANES * sizeof (struct lane);
+		pop->obj_store_size = _POBJ_MAX_OID_TYPE_NUM *
+					sizeof (struct object_store_item);
+		pop->heap_offset = pop->obj_store_offset +
+					pop->obj_store_size;
+		pop->heap_size = poolsize - pop->heap_offset;
+		util_checksum(dscp, OBJ_DSC_P_SIZE, &pop->checksum, 1);
+
+		/* store the persistent part of pool's descriptor (2kB) */
+		pmem_msync(dscp, OBJ_DSC_P_SIZE);
 	}
+
+	/* run_id is made unique by incrementing the previous value */
+	pop->run_id++;
+	pmem_msync(&pop->run_id, sizeof (pop->run_id));
 
 	/*
 	 * Use some of the memory pool area for run-time info.  This

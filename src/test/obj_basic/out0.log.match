@@ -1,0 +1,3 @@
+obj_basic/TEST0: START: obj_basic
+ ./obj_basic$(nW) $(nW)/testfile1 c
+obj_basic/TEST0: Done

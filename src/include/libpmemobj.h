@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright (c) 2014-2015, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -68,6 +68,8 @@ const char *pmemobj_check_version(
 
 #define	PMEMOBJ_MIN_POOL ((size_t)(1 << 21))	/* min pool size: 2MB */
 #define	PMEMOBJ_LAYOUT_MAX ((size_t)1024)
+
+#define	_POBJ_MAX_OID_TYPE_NUM 1024 /* XXX will be added by the initial API */
 
 PMEMobjpool *pmemobj_open(const char *path, const char *layout);
 PMEMobjpool *pmemobj_create(const char *path, const char *layout,
