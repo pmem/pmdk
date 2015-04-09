@@ -37,7 +37,7 @@
 LIBS =
 INCS =
 DEFS =
-CFLAGS = -std=gnu99 -Wall -Werror -O3
+CFLAGS = -std=gnu99 -Wall -Werror -O3 $(EXTRA_CFLAGS)
 CSTYLE = ../../../utils/cstyle
 
 all: $(TARGET)
