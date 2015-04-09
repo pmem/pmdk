@@ -1,0 +1,16 @@
+Linux NVM Library
+
+This is src/test/obj_basic/README.
+
+This directory contains a unit test for:
+- pmemobj_create
+- pmemobj_open
+
+The program in obj_basic.c takes a file name and an operation encoded
+by a character as arguments. For example:
+
+	./obj_basic file1 c
+
+The following characters and operations can be used:
+	c - pmemobj_create
+	o - pmemobj_open

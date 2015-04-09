@@ -44,6 +44,7 @@ TEST = blk_nblock\
        log_basic\
        log_recovery\
        log_walker\
+       obj_basic\
        pmem_isa_proc\
        pmem_is_pmem\
        pmem_is_pmem_proc\
