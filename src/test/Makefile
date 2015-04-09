@@ -100,6 +100,7 @@ TEST = blk_nblock\
        pmempool_create\
        pmempool_help\
        magic\
+       arch_flags\
        obj_basic\
        obj_redo_log\
        obj_basic_integration\

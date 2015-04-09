@@ -393,13 +393,13 @@ util_get_arch_flags(struct arch_flags *arch_flags)
 	memset(arch_flags, 0, sizeof (*arch_flags));
 
 	if ((fd = open(path, O_RDONLY)) < 0) {
-		LOG(3, "!open %s", path);
+		LOG(1, "!open %s", path);
 		ret = -1;
 		goto out;
 	}
 
 	if (read(fd, &elf, sizeof (elf)) != sizeof(elf)) {
-		LOG(3, "!read %s", path);
+		LOG(1, "!read %s", path);
 		ret = -1;
 		goto out_close;
 	}
@@ -408,7 +408,7 @@ util_get_arch_flags(struct arch_flags *arch_flags)
 	    elf.e_ident[EI_MAG1] != ELFMAG1 ||
 	    elf.e_ident[EI_MAG2] != ELFMAG2 ||
 	    elf.e_ident[EI_MAG3] != ELFMAG3) {
-		LOG(3, "invalid ELF magic");
+		LOG(1, "invalid ELF magic");
 		ret = -1;
 		goto out_close;
 	}
@@ -435,34 +435,35 @@ util_check_arch_flags(const struct arch_flags *arch_flags)
 	if (util_get_arch_flags(&cur_af))
 		return -1;
 
+	int ret = 0;
+
 	if (!util_is_zeroed(&arch_flags->reserved,
 				sizeof (arch_flags->reserved))) {
-		LOG(3, "invalid reserved values");
-		return -1;
+		LOG(1, "invalid reserved values");
+		ret = -1;
 	}
 
 	if (arch_flags->e_machine != cur_af.e_machine) {
-		LOG(3, "invalid e_machine value");
-		return -1;
+		LOG(1, "invalid e_machine value");
+		ret = -1;
 	}
 
 	if (arch_flags->ei_data != cur_af.ei_data) {
-		LOG(3, "invalid ei_data value");
-		return -1;
+		LOG(1, "invalid ei_data value");
+		ret = -1;
 	}
 
 	if (arch_flags->ei_class != cur_af.ei_class) {
-		LOG(3, "invalid ei_class value");
-		return -1;
+		LOG(1, "invalid ei_class value");
+		ret = -1;
 	}
 
 	if (arch_flags->alignment_desc != cur_af.alignment_desc) {
-		LOG(3, "invalid alignment_desc value");
-		return -1;
+		LOG(1, "invalid alignment_desc value");
+		ret= -1;
 	}
 
-
-	return 0;
+	return ret;
 }
 
 /*
