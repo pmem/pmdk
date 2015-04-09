@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright (c) 2014-2015, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -45,15 +45,44 @@
 #define	OBJ_FORMAT_INCOMPAT 0x0000
 #define	OBJ_FORMAT_RO_COMPAT 0x0000
 
+/* size of the persistent part of PMEMOBJ pool descriptor (2kB) */
+#define	OBJ_DSC_P_SIZE		2048
+/* size of unused part of the persistent part of PMEMOBJ pool descriptor */
+#define	OBJ_DSC_P_UNUSED	(OBJ_DSC_P_SIZE - PMEMOBJ_LAYOUT_MAX - 56)
+
+#define	OBJ_LANES_OFFSET	8192	/* lanes offset (8kB) */
+#define	OBJ_NLANES		1024	/* number of lanes */
+
 struct pmemobjpool {
 	struct pool_hdr hdr;	/* memory pool header */
 
-	/* root info for on-media format... */
+	/* persistent part of PMEMOBJ pool descriptor (2kB) */
 	char layout[PMEMOBJ_LAYOUT_MAX];
+	uint64_t lanes_offset;
+	uint64_t nlanes;
+	uint64_t obj_store_offset;
+	uint64_t obj_store_size;
+	uint64_t heap_offset;
+	uint64_t heap_size;
+	unsigned char unused[OBJ_DSC_P_UNUSED]; /* must be zero */
+	uint64_t checksum;	/* checksum of above fields */
+
+	/* unique runID for this program run - persistent, but not checksumed */
+	uint64_t run_id;
 
 	/* some run-time state, allocated out of memory pool... */
 	void *addr;		/* mapped region */
 	size_t size;		/* size of mapped region */
 	int is_pmem;		/* true if pool is PMEM */
 	int rdonly;		/* true if pool is opened read-only */
+};
+
+/* single lane */
+struct lane {
+	/* XXX stub */
+};
+
+/* single object store item */
+struct object_store_item {
+	/* XXX stub */
 };
