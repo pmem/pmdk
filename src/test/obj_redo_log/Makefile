@@ -1,4 +1,5 @@
-# Copyright (c) 2014-2015, Intel Corporation
+#
+# Copyright (c) 2015, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -27,16 +28,21 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-#
-# src/libpmemobj/Makefile -- Makefile for libpmemobj
 #
 
-LIBRARY_NAME = pmemobj
-LIBRARY_SO_VERSION = 1
-LIBRARY_VERSION = 0.0
-SOURCE = libpmemobj.c obj.c redo.c $(COMMON)/util.c $(COMMON)/out.c
+#
+# src/test/obj_redo_log/Makefile -- build obj_redo_log unit test
+#
+vpath %.c ../../libpmemobj
+vpath %.c ../../common
+
+TARGET = obj_redo_log
+OBJS = obj_redo_log.o redo.o util.o out.o
+
+out.o: CFLAGS += -DSRCVERSION=\"utversion\"
+
+LIBPMEM=y
 
 include ../Makefile.inc
 
-LIBS += -luuid -pthread -lpmem
+INCS += -I../../libpmemobj/ -I../../common/

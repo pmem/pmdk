@@ -1,4 +1,6 @@
-# Copyright (c) 2014-2015, Intel Corporation
+#!/bin/bash -e
+#
+# Copyright (c) 2015, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -27,16 +29,72 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-#
-# src/libpmemobj/Makefile -- Makefile for libpmemobj
 #
 
-LIBRARY_NAME = pmemobj
-LIBRARY_SO_VERSION = 1
-LIBRARY_VERSION = 0.0
-SOURCE = libpmemobj.c obj.c redo.c $(COMMON)/util.c $(COMMON)/out.c
+#
+# src/test/obj_redo_log/TEST2 -- unit test for redo_log_check function
+#
+export UNITTEST_NAME=obj_redo_log/TEST2
+export UNITTEST_NUM=2
 
-include ../Makefile.inc
+# standard unit test setup
+. ../unittest/unittest.sh
 
-LIBS += -luuid -pthread -lpmem
+setup
+
+FILE=${DIR}/pool
+AREASIZE=4096
+FSIZE=$(($AREASIZE + 8192))
+RSIZE=$(($AREASIZE / 16))
+
+rm -f $FILE
+truncate -s $FSIZE $FILE
+
+expect_normal_exit ./obj_redo_log$EXESUFFIX $FILE $RSIZE\
+	C\
+	s:0:0x00002010:0xabcdabcd\
+	C\
+	s:4:0x00002020:0xabcdabcd\
+	C\
+	f:0:0x00002030:0xffffaaaa\
+	C\
+	s:0:0x00002040:0xaaaaffff\
+	f:1:0x00002050:0xbbbbeeee\
+	C\
+	s:1:0x00002060:0xbbbbeeee\
+	C\
+	f:2:0x00002070:0xccccdddd\
+	f:3:0x00002080:0xddddcccc\
+	C\
+	f:0:0x00002090:0x99999999\
+	f:1:0x000020a0:0xaaaaaaaa\
+	f:4:0x000020b0:0xbbbbbbbb\
+	C\
+	s:0:0x00002010:0x11111111\
+	s:1:0x00002020:0x22222222\
+	s:2:0x00002030:0x33333333\
+	s:3:0x00002040:0x44444444\
+	f:4:0x10002050:0x55555555\
+	C\
+	s:0:0x00002010:0x66666666\
+	s:1:0x00002020:0x77777777\
+	s:2:0x00002030:0x88888888\
+	s:3:0x10002040:0x99999999\
+	f:4:0x00002050:0xaaaaaaaa\
+	C\
+	s:0:0x00000010:0x11111111\
+	s:1:0x00002020:0x22222222\
+	s:2:0x00002030:0x33333333\
+	s:3:0x00002040:0x44444444\
+	f:4:0x00002050:0x55555555\
+	C\
+	s:0:0x00002010:0x66666666\
+	s:1:0x00002020:0x77777777\
+	s:2:0x00002030:0x88888888\
+	s:3:0x00002040:0x99999999\
+	f:4:0x00000050:0xaaaaaaaa\
+	C
+
+check
+
+pass

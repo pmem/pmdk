@@ -98,7 +98,8 @@ TEST = blk_nblock\
        pmempool_dump\
        pmempool_create\
        pmempool_help\
-       magic
+       magic\
+       obj_redo_log
 
 all     : TARGET = all
 clean   : TARGET = clean

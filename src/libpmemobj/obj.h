@@ -53,6 +53,10 @@
 #define	OBJ_LANES_OFFSET	8192	/* lanes offset (8kB) */
 #define	OBJ_NLANES		1024	/* number of lanes */
 
+typedef void (*persist_fn)(void *, size_t);
+typedef void (*flush_fn)(void *, size_t);
+typedef void (*drain_fn)(void);
+
 struct pmemobjpool {
 	struct pool_hdr hdr;	/* memory pool header */
 
@@ -75,6 +79,9 @@ struct pmemobjpool {
 	size_t size;		/* size of mapped region */
 	int is_pmem;		/* true if pool is PMEM */
 	int rdonly;		/* true if pool is opened read-only */
+	persist_fn persist;	/* persist function */
+	flush_fn flush;		/* flush function */
+	drain_fn drain;		/* drain function */
 };
 
 /* single lane */
