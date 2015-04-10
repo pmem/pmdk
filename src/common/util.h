@@ -101,7 +101,7 @@ int util_range_ro(void *addr, size_t len);
 int util_range_rw(void *addr, size_t len);
 int util_range_none(void *addr, size_t len);
 
-int util_is_zeroed(void *addr, size_t len);
+int util_is_zeroed(const void *addr, size_t len);
 
 int util_feature_check(struct pool_hdr *hdrp, uint32_t incompat,
 				uint32_t ro_compat, uint32_t compat);

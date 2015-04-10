@@ -443,10 +443,10 @@ util_range_none(void *addr, size_t len)
  * util_is_zeroed -- check if given memory range is all zero
  */
 int
-util_is_zeroed(void *addr, size_t len)
+util_is_zeroed(const void *addr, size_t len)
 {
 	/* XXX optimize */
-	char *a = addr;
+	const char *a = addr;
 	while (len-- > 0)
 		if (*a++)
 			return 0;
