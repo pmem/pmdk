@@ -119,7 +119,7 @@ pmalloc(struct pmalloc_heap *heap, uint64_t *off, size_t size)
  */
 int
 pmalloc_construct(struct pmalloc_heap *heap, uint64_t *off, size_t size,
-	void (*constructor)(void *ptr, void *arg))
+	void (*constructor)(void *ptr, void *arg), void *arg, uint64_t data_off)
 {
 	/* XXX */
 
@@ -151,7 +151,7 @@ prealloc(struct pmalloc_heap *heap, uint64_t *off, size_t size)
  */
 int
 prealloc_construct(struct pmalloc_heap *heap, uint64_t *off, size_t size,
-	void (*constructor)(void *ptr, void *arg))
+	void (*constructor)(void *ptr, void *arg), void *arg, uint64_t data_off)
 {
 	/* XXX */
 

@@ -114,7 +114,9 @@ clobber: clean
 	$(RM) $(TARGET) $(TARGET_STATIC_DEBUG) $(TARGET_STATIC_NONDEBUG)
 
 cstyle:
+ifneq ($(TARGET),)
 	../../../utils/cstyle -pP *.[ch]
+endif
 
 .PHONY: all clean clobber cstyle
 

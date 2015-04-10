@@ -31,28 +31,63 @@
  */
 
 /*
- * pmalloc.h -- internal definitions for persistent malloc
+ * list.h -- internal definitions for persistent atomic lists module
  */
 
-struct pmalloc_heap {
-	/* XXX */
+struct list_entry {
+	PMEMoid pe_next;
+	PMEMoid pe_prev;
 };
 
-int heap_boot(PMEMobjpool *pop);
-int heap_init(PMEMobjpool *pop);
-int heap_cleanup(PMEMobjpool *pop);
-int heap_check(PMEMobjpool *pop);
+struct list_head {
+	PMEMoid pe_first;
+	PMEMmutex lock;
+};
 
-int pmalloc(struct pmalloc_heap *heap, uint64_t *off, size_t size);
-int pmalloc_construct(struct pmalloc_heap *heap, uint64_t *off, size_t size,
+/*
+ * XXX move to other file, change size etc.
+ */
+struct oob_header {
+	struct list_entry oob;
+	uint16_t internal_type;
+	uint16_t user_type;
+	uint8_t padding[12];
+};
+
+PMEMoid list_insert_new(PMEMobjpool *pop, struct list_head *oob_head,
+	size_t pe_offset, struct list_head *head, PMEMoid dest, int before,
+	size_t size, void (*constructor)(void *ptr, void *arg), void *arg);
+
+int list_realloc(PMEMobjpool *pop, struct list_head *oob_head,
+	size_t pe_offset, struct list_head *head,
+	size_t size, void (*constructor)(void *ptr, void *arg), void *arg,
+	uint64_t field_offset, uint64_t field_value,
+	PMEMoid *oid);
+
+int list_realloc_move(PMEMobjpool *pop, struct list_head *oob_head_old,
+	struct list_head *oob_head_new, size_t pe_offset,
+	struct list_head *head, size_t size,
 	void (*constructor)(void *ptr, void *arg), void *arg,
-	uint64_t data_off);
+	uint64_t field_offset, uint64_t field_value,
+	PMEMoid *oid);
 
-int prealloc(struct pmalloc_heap *heap, uint64_t *off, size_t size);
-int prealloc_construct(struct pmalloc_heap *heap, uint64_t *off, size_t size,
-	void (*constructor)(void *ptr, void *arg), void *arg,
-	uint64_t data_off);
+int list_insert(PMEMobjpool *pop,
+	size_t pe_offset, struct list_head *head, PMEMoid dest, int before,
+	PMEMoid oid);
 
-size_t pmalloc_usable_size(struct pmalloc_heap *heap, uint64_t off);
-int pfree(struct pmalloc_heap *heap, uint64_t *off);
-int pgrow(struct pmalloc_heap *heap, uint64_t off, size_t size);
+int list_remove_free(PMEMobjpool *pop, struct list_head *oob_head,
+	size_t pe_offset, struct list_head *head,
+	PMEMoid oid);
+
+int list_remove(PMEMobjpool *pop,
+	size_t pe_offset, struct list_head *head,
+	PMEMoid oid);
+
+int list_move(PMEMobjpool *pop,
+	size_t pe_offset_old, struct list_head *head_old,
+	size_t pe_offset_new, struct list_head *head_new,
+	PMEMoid dest, int before, PMEMoid oid);
+
+int list_move_oob(PMEMobjpool *pop,
+	struct list_head *head_old, struct list_head *head_new,
+	PMEMoid oid);

@@ -1,4 +1,6 @@
-# Copyright (c) 2014-2015, Intel Corporation
+#!/bin/bash -e
+#
+# Copyright (c) 2015, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -27,17 +29,31 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-#
-# src/libpmemobj/Makefile -- Makefile for libpmemobj
 #
 
-LIBRARY_NAME = pmemobj
-LIBRARY_SO_VERSION = 1
-LIBRARY_VERSION = 0.0
-SOURCE = libpmemobj.c obj.c redo.c pmalloc.c lane.c list.c\
-	cuckoo.c sync.c $(COMMON)/util.c $(COMMON)/out.c
+#
+# src/test/obj_list_move/TEST1 -- unit test for list_move
+#
+export UNITTEST_NAME=obj_list_move/TEST1
+export UNITTEST_NUM=1
 
-include ../Makefile.inc
+# standard unit test setup
+. ../unittest/unittest.sh
 
-LIBS += -luuid -pthread -lpmem
+setup
+
+rm -f $DIR/testfile
+truncate -s1M $DIR/testfile
+expect_abnormal_exit ../obj_list/obj_list$EXESUFFIX $DIR/testfile\
+	i:0:0 i:0:0 i:0:-1 i:0:-1 P:2 R:2 P:4 R:4\
+	m:0:1:0 P:2 R:2 P:4 R:4\
+	m:-1:1:0 P:2 R:2 P:4 R:4\
+	m:1:1:1 P:2 R:2 P:4 R:4\
+	m:0:1:-1 P:2 R:2 P:4 R:4
+
+
+rm -f $DIR/testfile
+
+check
+
+pass
