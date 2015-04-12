@@ -52,6 +52,7 @@ void redo_log_store(PMEMobjpool *pop, struct redo_log *redo, size_t index,
 		uint64_t offset, uint64_t value);
 void redo_log_store_last(PMEMobjpool *pop, struct redo_log *redo, size_t index,
 		uint64_t offset, uint64_t value);
+void redo_log_set_last(PMEMobjpool *pop, struct redo_log *redo, size_t index);
 void redo_log_process(PMEMobjpool *pop, struct redo_log *redo,
 		size_t nentries);
 void redo_log_recover(PMEMobjpool *pop, struct redo_log *redo,
