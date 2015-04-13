@@ -210,6 +210,7 @@
 #include "pmem.h"
 #include "util.h"
 #include "out.h"
+#include "valgrind_internal.h"
 
 /*
  * The x86 memory instructions are new enough that the compiler
@@ -261,6 +262,7 @@ predrain_fence_empty(void)
 {
 	LOG(15, NULL);
 
+	VALGRIND_DO_FENCE;
 	/* nothing to do (because CLFLUSH did it for us) */
 }
 
@@ -273,6 +275,7 @@ predrain_fence_sfence(void)
 	LOG(15, NULL);
 
 	_mm_sfence();	/* ensure CLWB or CLFLUSHOPT completes before PCOMMIT */
+	VALGRIND_DO_FENCE;
 }
 
 /*
@@ -294,6 +297,8 @@ drain_no_pcommit(void)
 
 	Func_predrain_fence();
 
+	VALGRIND_DO_COMMIT;
+	VALGRIND_DO_FENCE;
 	/* caller assumed responsibility for the rest */
 }
 
@@ -307,7 +312,9 @@ drain_pcommit(void)
 
 	Func_predrain_fence();
 	_mm_pcommit();
+	VALGRIND_DO_COMMIT;
 	_mm_sfence();
+	VALGRIND_DO_FENCE;
 }
 
 /*
@@ -345,6 +352,8 @@ flush_clflush(void *addr, size_t len)
 	for (uptr = (uintptr_t)addr & ~(FLUSH_ALIGN - 1);
 		uptr < (uintptr_t)addr + len; uptr += FLUSH_ALIGN)
 		_mm_clflush((char *)uptr);
+
+	VALGRIND_DO_FLUSH(addr, len);
 }
 
 /*
@@ -365,6 +374,8 @@ flush_clwb(void *addr, size_t len)
 		uptr < (uintptr_t)addr + len; uptr += FLUSH_ALIGN) {
 		_mm_clwb((char *)uptr);
 	}
+
+	VALGRIND_DO_FLUSH(addr, len);
 }
 
 /*
@@ -385,6 +396,8 @@ flush_clflushopt(void *addr, size_t len)
 		uptr < (uintptr_t)addr + len; uptr += FLUSH_ALIGN) {
 		_mm_clflushopt((char *)uptr);
 	}
+
+	VALGRIND_DO_FLUSH(addr, len);
 }
 
 /*
@@ -428,7 +441,6 @@ int
 pmem_msync(void *addr, size_t len)
 {
 	LOG(15, "addr %p len %zu", addr, len);
-
 	/*
 	 * msync requires len to be a multiple of pagesize, so
 	 * adjust addr and len to represent the full 4k chunks
@@ -444,6 +456,12 @@ pmem_msync(void *addr, size_t len)
 	int ret;
 	if ((ret = msync((void *)uptr, len, MS_SYNC)) < 0)
 		LOG(1, "!msync");
+
+	/* full flush, commit */
+	VALGRIND_DO_FLUSH(uptr, len);
+	VALGRIND_DO_FENCE;
+	VALGRIND_DO_COMMIT;
+	VALGRIND_DO_FENCE;
 
 	return ret;
 }
@@ -601,6 +619,9 @@ pmem_map(int fd)
 		return NULL;    /* util_map() set errno, called LOG */
 
 	LOG(3, "returning %p", addr);
+
+	VALGRIND_REGISTER_PMEM_MAPPING(addr, stbuf.st_size);
+	VALGRIND_REGISTER_PMEM_FILE(fd, addr, stbuf.st_size, 0);
 	return addr;
 }
 
@@ -687,6 +708,7 @@ memmove_nodrain_movnt(void *pmemdest, const void *src, size_t len)
 			_mm_stream_si128(d + 5, xmm5);
 			_mm_stream_si128(d + 6,	xmm6);
 			_mm_stream_si128(d + 7,	xmm7);
+			VALGRIND_DO_FLUSH(d, 8 * sizeof (*d));
 			d += 8;
 		}
 
@@ -697,6 +719,7 @@ memmove_nodrain_movnt(void *pmemdest, const void *src, size_t len)
 			for (i = 0; i < cnt; i++) {
 				xmm0 = _mm_loadu_si128(s);
 				_mm_stream_si128(d, xmm0);
+				VALGRIND_DO_FLUSH(d, sizeof (*d));
 				s++;
 				d++;
 			}
@@ -710,6 +733,7 @@ memmove_nodrain_movnt(void *pmemdest, const void *src, size_t len)
 			int32_t *s32 = (int32_t *)s;
 			for (i = 0; i < cnt; i++) {
 				_mm_stream_si32(d32, *s32);
+				VALGRIND_DO_FLUSH(d32, sizeof (*d32));
 				d32++;
 				s32++;
 			}
@@ -777,6 +801,7 @@ memmove_nodrain_movnt(void *pmemdest, const void *src, size_t len)
 			_mm_stream_si128(d - 7, xmm6);
 			_mm_stream_si128(d - 8, xmm7);
 			d -= 8;
+			VALGRIND_DO_FLUSH(d, 8 * sizeof (*d));
 		}
 
 		/* copy the tail (<128 bytes) in 16 bytes chunks */
@@ -788,6 +813,7 @@ memmove_nodrain_movnt(void *pmemdest, const void *src, size_t len)
 				s--;
 				xmm0 = _mm_loadu_si128(s);
 				_mm_stream_si128(d, xmm0);
+				VALGRIND_DO_FLUSH(d, sizeof (*d));
 			}
 		}
 
@@ -801,6 +827,7 @@ memmove_nodrain_movnt(void *pmemdest, const void *src, size_t len)
 				d32--;
 				s32--;
 				_mm_stream_si32(d32, *s32);
+				VALGRIND_DO_FLUSH(d32, sizeof (*d32));
 			}
 
 			cnt = len & DWORD_MASK;
@@ -934,6 +961,7 @@ memset_nodrain_movnt(void *pmemdest, int c, size_t len)
 			_mm_stream_si128(d + 5, xmm0);
 			_mm_stream_si128(d + 6, xmm0);
 			_mm_stream_si128(d + 7, xmm0);
+			VALGRIND_DO_FLUSH(d, 8 * sizeof (*d));
 			d += 8;
 		}
 	}
@@ -943,6 +971,7 @@ memset_nodrain_movnt(void *pmemdest, int c, size_t len)
 		cnt = len >> MOVNT_SHIFT;
 		for (i = 0; i < cnt; i++) {
 			_mm_stream_si128(d, xmm0);
+			VALGRIND_DO_FLUSH(d, sizeof (*d));
 			d++;
 		}
 	}
@@ -955,8 +984,9 @@ memset_nodrain_movnt(void *pmemdest, int c, size_t len)
 		cnt = len >> DWORD_SHIFT;
 		if (cnt != 0) {
 			for (i = 0; i < cnt; i++) {
-				_mm_stream_si32((int32_t *)d32,
+				_mm_stream_si32(d32,
 					_mm_cvtsi128_si32(xmm0));
+				VALGRIND_DO_FLUSH(d32, sizeof (*d32));
 				d32++;
 			}
 		}
