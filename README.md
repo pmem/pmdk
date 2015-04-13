@@ -16,6 +16,7 @@ Here you'll find:
 * **src/benchmarks** -- benchmarks used by development team
 * **src/examples** -- brief example programs using these libraries
 * **src/test** -- unit tests used by development team
+* **src/tools** -- various tools developed for NVML
 * **utils** -- utilities used during build & test
 * **CONTRIBUTING.md** -- instructions for people wishing to contribute
 
@@ -34,6 +35,13 @@ this command at the top level:
 To build and run the unit tests:
 ```
 	$ make check
+```
+
+To compile this library with enabled support for the PM-aware version
+of [Vaglrind](https://github.com/pmem/valgrind), supply the compiler
+with the **USE_VALGRIND** flag, for example:
+```
+	$ make EXTRA_CFLAGS=-DUSE_VALGRIND
 ```
 
 To install this library into the standard locations
