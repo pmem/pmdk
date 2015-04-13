@@ -97,6 +97,8 @@ expect_normal_exit ./obj_redo_log$EXESUFFIX $FILE $RSIZE\
 	e:3\
 	C
 
+rm -f $FILE
+
 check
 
 pass
