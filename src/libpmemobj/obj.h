@@ -48,7 +48,7 @@
 /* size of the persistent part of PMEMOBJ pool descriptor (2kB) */
 #define	OBJ_DSC_P_SIZE		2048
 /* size of unused part of the persistent part of PMEMOBJ pool descriptor */
-#define	OBJ_DSC_P_UNUSED	(OBJ_DSC_P_SIZE - PMEMOBJ_LAYOUT_MAX - 56)
+#define	OBJ_DSC_P_UNUSED	(OBJ_DSC_P_SIZE - PMEMOBJ_MAX_LAYOUT - 56)
 
 #define	OBJ_LANES_OFFSET	8192	/* lanes offset (8kB) */
 #define	OBJ_NLANES		1024	/* number of lanes */
@@ -61,7 +61,7 @@ struct pmemobjpool {
 	struct pool_hdr hdr;	/* memory pool header */
 
 	/* persistent part of PMEMOBJ pool descriptor (2kB) */
-	char layout[PMEMOBJ_LAYOUT_MAX];
+	char layout[PMEMOBJ_MAX_LAYOUT];
 	uint64_t lanes_offset;
 	uint64_t nlanes;
 	uint64_t obj_store_offset;
