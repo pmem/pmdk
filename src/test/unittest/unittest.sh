@@ -291,7 +291,7 @@ function require_valgrind_dev_3_8() {
 	echo "
         #include <valgrind/valgrind.h>
         #if defined (__VALGRIND_MAJOR__) && defined (__VALGRIND_MINOR__)
-        #if (__VALGRIND_MINOR__ > 3) || \
+        #if (__VALGRIND_MAJOR__ > 3) || \
              ((__VALGRIND_MAJOR__ == 3) && (__VALGRIND_MINOR__ >= 8))
         VALGRIND_VERSION_3_8_OR_LATER
         #endif
