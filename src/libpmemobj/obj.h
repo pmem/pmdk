@@ -79,6 +79,7 @@ struct pmemobjpool {
 	size_t size;		/* size of mapped region */
 	int is_pmem;		/* true if pool is PMEM */
 	int rdonly;		/* true if pool is opened read-only */
+	struct pmalloc_heap *heap; /* allocator heap */
 	persist_fn persist;	/* persist function */
 	flush_fn flush;		/* flush function */
 	drain_fn drain;		/* drain function */
