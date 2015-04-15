@@ -144,7 +144,10 @@ nswrite(void *ns, int lane, const void *buf, size_t count, off_t off)
 	/* unprotect the memory (debug version only) */
 	RANGE_RW(dest, count);
 
-	memcpy(dest, buf, count);
+	if (pbp->is_pmem)
+		pmem_memcpy_nodrain(dest, buf, count);
+	else
+		memcpy(dest, buf, count);
 
 	/* protect the memory again (debug version only) */
 	RANGE_RO(dest, count);
@@ -156,7 +159,7 @@ nswrite(void *ns, int lane, const void *buf, size_t count, off_t off)
 #endif
 
 	if (pbp->is_pmem)
-		pmem_persist(dest, count);
+		pmem_drain();
 	else
 		pmem_msync(dest, count);
 
