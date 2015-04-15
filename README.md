@@ -38,7 +38,7 @@ To build and run the unit tests:
 ```
 
 To compile this library with enabled support for the PM-aware version
-of [Vaglrind](https://github.com/pmem/valgrind), supply the compiler
+of [Valgrind](https://github.com/pmem/valgrind), supply the compiler
 with the **USE_VALGRIND** flag, for example:
 ```
 	$ make EXTRA_CFLAGS=-DUSE_VALGRIND
@@ -55,7 +55,7 @@ DESTDIR variable, e.g.:
 ```
 	$ make install DESTDIR=/tmp
 ```
-This will install files to /tmp/lib, /tmp/include /tmp/usr/share/man.
+This will install files to /tmp/usr/lib, /tmp/usr/include /tmp/usr/share/man.
 
 To install a complete copy of the source tree to $(DESTDIR)/nvml:
 ```
