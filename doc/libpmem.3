@@ -284,6 +284,7 @@ than the
 function described above.
 .PP
 .BI "void pmem_flush(void *" addr ", size_t " len );
+.br
 .BI "void pmem_drain(void);"
 .IP
 These functions provide partial versions of the
@@ -641,6 +642,28 @@ persistent memory on platforms that
 support the instructions.
 This variable is intended for use
 during library testing.
+.PP
+.BI PMEM_MOVNT_THRESHOLD= val
+.IP
+This environment variable allows overriding the minimal length of
+.BR pmem_memcpy_* () ,
+.BR pmem_memmove_* ()
+or
+.BR pmem_memset_* ()
+operations, for which
+.B libpmem
+uses
+.I non-temporal
+move instructions.
+Setting this environment variable to 0 forces
+.B libpmem
+to always use the
+.I non-temporal
+move instructions if available.
+It has no effect if
+.BI PMEM_NO_MOVNT
+variable is set to 1.
+This variable is intended for use during library testing.
 .SH EXAMPLES
 .PP
 The following example uses
