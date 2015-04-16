@@ -42,6 +42,7 @@
 
 #include "util.h"
 #include "out.h"
+#include "lane.h"
 #include "obj.h"
 
 /*
