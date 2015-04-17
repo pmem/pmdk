@@ -842,7 +842,7 @@ pmemobj_tx_process()
  * pmemobj_tx_add_range -- adds persistent memory range into the transaction
  */
 int
-pmemobj_tx_add_range(uint64_t hoff, size_t size)
+pmemobj_tx_add_range(PMEMoid oid, uint64_t hoff, size_t size)
 {
 	/* XXX */
 	return 0;

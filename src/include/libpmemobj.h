@@ -565,7 +565,7 @@ _POBJ_TX_BEGIN(pop, ##__VA_ARGS__)
 
 /*
  * Takes a "snapshot" of the memory block of given size and located at given
- * offset, and saves it in the undo log.
+ * offset in the object, and saves it in the undo log.
  * The application is then free to directly modify the object in that memory
  * range. In case of failure or abort, all the changes within this range will
  * be rolled-back automatically.
@@ -573,7 +573,7 @@ _POBJ_TX_BEGIN(pop, ##__VA_ARGS__)
  * If successful and called during TX_STAGE_WORK, function returns zero.
  * Otherwise, state changes to TX_STAGE_ONABORT and an error number is returned.
  */
-int pmemobj_tx_add_range(uint64_t off, size_t size);
+int pmemobj_tx_add_range(PMEMoid oid, uint64_t off, size_t size);
 
 /*
  * Transactionally allocates a new object.
@@ -623,14 +623,11 @@ PMEMoid pmemobj_tx_strdup(const char *s, int type_num);
  */
 int pmemobj_tx_free(PMEMoid oid);
 
-#define	TX_ADD_RANGE(start_offset, size)\
-pmemobj_tx_add_range(start_offset, size);
-
 #define	TX_ADD(o)\
-TX_ADD_RANGE((o).oid.off, sizeof (*(o)._type));
+pmemobj_tx_add_range((o).oid, 0, sizeof (*(o)._type));
 
 #define	TX_ADD_FIELD(o, field)\
-TX_ADD_RANGE((o).oid.off + offsetof(typeof(*(o)._type), field),\
+pmemobj_tx_add_range((o).oid, offsetof(typeof(*(o)._type), field),\
 		sizeof (D_RO(o)->field));\
 
 /*
