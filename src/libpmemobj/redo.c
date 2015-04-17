@@ -108,10 +108,26 @@ redo_log_store_last(PMEMobjpool *pop, struct redo_log *redo, size_t index,
 	redo[index].value = value;
 
 	/* persist all redo log entries */
-	pop->persist(redo, index * sizeof (struct redo_log));
+	pop->persist(redo, (index + 1) * sizeof (struct redo_log));
 
 	/* store and persist offset of last entry */
 	redo[index].offset = offset | REDO_FINISH_FLAG;
+	pop->persist(&redo[index].offset, sizeof (redo[index].offset));
+}
+
+/*
+ * redo_log_set_last -- (internal) set finish flag in specified entry
+ */
+void
+redo_log_set_last(PMEMobjpool *pop, struct redo_log *redo, size_t index)
+{
+	LOG(15, "redo %p index %zu", redo, index);
+
+	/* persist all redo log entries */
+	pop->persist(redo, (index + 1) * sizeof (struct redo_log));
+
+	/* set finish flag of last entry and persist */
+	redo[index].offset |= REDO_FINISH_FLAG;
 	pop->persist(&redo[index].offset, sizeof (redo[index].offset));
 }
 

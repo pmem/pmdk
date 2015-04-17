@@ -37,6 +37,7 @@
  *
  * s:<index>:<offset>:<value> - store <value> at <offset>
  * f:<index>:<offset>:<value> - store last <value> at <offset>
+ * F:<index>                  - set <index> entry as the last one
  * r:<offset>                 - read at <offset>
  * e:<index>                  - read redo log entry at <index>
  * P                          - process redo log
@@ -64,7 +65,7 @@
 #include "unittest.h"
 
 #define	FATAL_USAGE()	FATAL("usage: obj_redo_log <fname> <redo_log_size> "\
-		"[sfrePRC][<index>:<offset>:<value>]\n")
+		"[sfFrePRC][<index>:<offset>:<value>]\n")
 
 #define	PMEMOBJ_POOL_HDR_SIZE	8192
 
@@ -175,6 +176,12 @@ main(int argc, char *argv[])
 			OUT("f:%ld:0x%08lx:0x%08lx", index, offset, value);
 			redo_log_store_last(pop, redo, index, offset,
 					value);
+			break;
+		case 'F':
+			if (sscanf(arg, "F:%ld", &index) != 1)
+				FATAL_USAGE();
+			OUT("F:%ld", index);
+			redo_log_set_last(pop, redo, index);
 			break;
 		case 'r':
 			if (sscanf(arg, "r:0x%lx", &offset) != 1)
