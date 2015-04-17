@@ -37,6 +37,14 @@ To build and run the unit tests:
 	$ make check
 ```
 
+To run a specific subset of tests, run for example:
+```
+	$ make check TEST_TYPE=short TEST_BUILD=debug TEST_FS=pmem
+```
+
+Please refer to the **src/test/README** for more details on how to
+run different types of tests.
+
 To compile this library with enabled support for the PM-aware version
 of [Valgrind](https://github.com/pmem/valgrind), supply the compiler
 with the **USE_VALGRIND** flag, for example:
