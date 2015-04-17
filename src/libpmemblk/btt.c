@@ -129,6 +129,7 @@
 #include <stdint.h>
 #include <pthread.h>
 #include <endian.h>
+#include <uuid/uuid.h>
 
 #include "out.h"
 #include "util.h"
@@ -153,6 +154,11 @@ struct btt {
 	 */
 	pthread_mutex_t layout_write_mutex;
 	int laidout;
+
+	/*
+	 * UUID of the BTT
+	 */
+	uint8_t uuid[BTTINFO_UUID_LEN];
 
 	/*
 	 * UUID of the containing namespace, used to validate BTT metadata.
@@ -876,6 +882,12 @@ write_layout(struct btt *bttp, int lane, int write)
 	ASSERT(bttp->nfree);
 
 	/*
+	 * If a new layout is being written, generate the BTT's UUID.
+	 */
+	if (write)
+		uuid_generate(bttp->uuid);
+
+	/*
 	 * The number of arenas is the number of full arena of
 	 * size BTT_MAX_ARENA that fit into rawsize and then, if
 	 * the remainder is at least BTT_MIN_SIZE in size, then
@@ -1031,6 +1043,7 @@ write_layout(struct btt *bttp, int lane, int write)
 		struct btt_info info;
 		memset(&info, '\0', sizeof (info));
 		memcpy(info.sig, Sig, BTTINFO_SIG_LEN);
+		memcpy(info.uuid, bttp->uuid, BTTINFO_UUID_LEN);
 		memcpy(info.parent_uuid, bttp->parent_uuid, BTTINFO_UUID_LEN);
 		info.major = htole16(BTTINFO_MAJOR_VERSION);
 		info.minor = htole16(BTTINFO_MINOR_VERSION);

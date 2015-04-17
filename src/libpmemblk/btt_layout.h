@@ -44,6 +44,7 @@
 
 struct btt_info {
 	char sig[BTTINFO_SIG_LEN];	/* must be "BTT_ARENA_INFO\0\0" */
+	uint8_t uuid[BTTINFO_UUID_LEN];	/* BTT UUID */
 	uint8_t parent_uuid[BTTINFO_UUID_LEN];	/* UUID of container */
 	uint32_t flags;			/* see flag bits below */
 	uint16_t major;			/* major version */
@@ -65,7 +66,7 @@ struct btt_info {
 	uint64_t flogoff;		/* offset to area flog */
 	uint64_t infooff;		/* offset to backup info block */
 
-	char unused[3984];		/* must be zero */
+	char unused[3968];		/* must be zero */
 
 	uint64_t checksum;		/* Fletcher64 of all fields */
 };
