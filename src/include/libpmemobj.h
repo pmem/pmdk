@@ -434,6 +434,7 @@ pmemobj_list_move((pop),\
 
 #define	POBJ_LIST_MOVE_ELEMENT_AFTER(pop,\
 	head, head_new, listelm, elm, field, field_new)\
+pmemobj_list_move((pop),\
 	offsetof(typeof (*(POBJ_LIST_FIRST(head)._type)), field),\
 	offsetof(typeof (*(POBJ_LIST_FIRST(head_new)._type)), field_new),\
 	(listelm).oid,\
@@ -443,6 +444,7 @@ pmemobj_list_move((pop),\
 
 #define	POBJ_LIST_MOVE_ELEMENT_BEFORE(pop,\
 	head, head_new, listelm, elm, field, field_new)\
+pmemobj_list_move((pop),\
 	offsetof(typeof (*(POBJ_LIST_FIRST(head)._type)), field),\
 	offsetof(typeof (*(POBJ_LIST_FIRST(head_new)._type)), field_new),\
 	(listelm).oid,\
