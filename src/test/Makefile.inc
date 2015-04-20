@@ -73,8 +73,20 @@ STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libvmem.a
 STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/libvmem.a
 endif
 
+#
+# This is a helper function to be combined with usage of macros available
+# in the unittest framework. It scans the code for functions that should be
+# wrapped and adds required linker flags.
+#
+WRAPPER_FUNCS=FUNC_MOCK_RET_ALWAYS|FUNC_MOCK
+PAREN=(
+extract_funcs = $(shell \
+    grep -Po '($(WRAPPER_FUNCS))\$(PAREN)\K[^,]*' $(1) | \
+    awk '{print "-Wl,--wrap="$$0}')
+
 INCS = -I../unittest -I../../include
 CFLAGS = -ggdb -Wall -Werror -std=gnu99 $(EXTRA_CFLAGS)
+LDFLAGS =
 
 ifneq ($(TARGET),)
 TARGET_STATIC_DEBUG=$(TARGET).static-debug
@@ -84,13 +96,13 @@ endif
 all: $(TARGET) $(TARGET_STATIC_DEBUG) $(TARGET_STATIC_NONDEBUG)
 
 $(TARGET_STATIC_DEBUG): $(OBJS) $(STATIC_DEBUG_LIBS) $(EXTRA_DEPS)
-	$(CC) -o $@ $(OBJS) $(STATIC_DEBUG_LIBS) $(LIBS)
+	$(CC) -o $@ $(OBJS) $(STATIC_DEBUG_LIBS) $(LIBS) $(LDFLAGS)
 
 $(TARGET_STATIC_NONDEBUG): $(OBJS) $(STATIC_NONDEBUG_LIBS) $(EXTRA_DEPS)
-	$(CC) -o $@ $(OBJS) $(STATIC_NONDEBUG_LIBS) $(LIBS)
+	$(CC) -o $@ $(OBJS) $(STATIC_NONDEBUG_LIBS) $(LIBS) $(LDFLAGS)
 
 $(TARGET): $(OBJS) $(EXTRA_DEPS)
-	$(CC) -o $@ $(OBJS) $(DYNAMIC_LIBS) $(LIBS)
+	$(CC) -o $@ $(OBJS) $(DYNAMIC_LIBS) $(LIBS) $(LDFLAGS)
 
 .c.o:
 	$(CC) -c $(CFLAGS) $(INCS) $< -o $@

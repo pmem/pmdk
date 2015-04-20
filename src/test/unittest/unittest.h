@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright (c) 2014-2015, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -468,5 +468,43 @@ int ut_pthread_join(const char *file, int line, const char *func,
 /* a pthread_join() that can't return an error */
 #define	PTHREAD_JOIN(thread, value_ptr)\
     ut_pthread_join(__FILE__, __LINE__, __func__, thread, value_ptr)
+
+/*
+ * mocks...
+ */
+#define	_FUNC_REAL_DECL(name, ret_type, ...)\
+	ret_type __real_##name(__VA_ARGS__);
+
+#define	_FUNC_REAL(name)\
+	__real_##name
+
+#define	FUNC_MOCK(name, ret_type, ...)\
+	_FUNC_REAL_DECL(name, ret_type, ##__VA_ARGS__);\
+	ret_type __wrap_##name(__VA_ARGS__) {\
+		static int __rcounter = 0;\
+		switch (__rcounter++) {
+
+#define	FUNC_MOCK_END\
+	}}
+
+#define	FUNC_MOCK_RUN(run)\
+	case run:
+
+#define	FUNC_MOCK_RUN_DEFAULT\
+	default:
+
+#define	FUNC_MOCK_RUN_RET(run, ret)\
+	case run: return (ret);
+
+#define	FUNC_MOCK_RUN_RET_DEFAULT_REAL(name, ...)\
+	default: return _FUNC_REAL(name)(##__VA_ARGS__);
+
+#define	FUNC_MOCK_RUN_RET_DEFAULT(ret)\
+	default: return (ret);
+
+#define	FUNC_MOCK_RET_ALWAYS(name, ret_type, ret)\
+	FUNC_MOCK(name, ret_type) {\
+		FUNC_MOCK_RUN_RET_DEFAULT(ret);\
+	} FUNC_MOCK_END
 
 #endif	/* unittest.h */
