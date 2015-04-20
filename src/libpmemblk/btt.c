@@ -1398,8 +1398,12 @@ btt_read(struct btt *bttp, int lane, uint64_t lba, void *buf)
 		 * table before allocating a block for a write, waiting for
 		 * outstanding reads on that block to complete.
 		 *
-		 * No need to mask off ERROR and ZERO bits since the above
-		 * checks make sure they are clear at this point.
+		 * Since we already checked for error, zero, and initial
+		 * states above, the entry must have both error and zero
+		 * bits set at this point (BTT_MAP_ENTRY_NORMAL).  We store
+		 * the entry that way, with those bits set, in the rtt and
+		 * btt_write() will check for it the same way, with the bits
+		 * both set.
 		 */
 		arenap->rtt[lane] = entry;
 		__sync_synchronize();
@@ -1432,7 +1436,8 @@ btt_read(struct btt *bttp, int lane, uint64_t lba, void *buf)
 	 * block from getting re-allocated to something else by a write.
 	 */
 	off_t data_block_off =
-		arenap->dataoff + entry * arenap->internal_lbasize;
+		arenap->dataoff + (off_t)(entry & BTT_MAP_ENTRY_LBA_MASK) *
+		arenap->internal_lbasize;
 	int readret = (*bttp->ns_cbp->nsread)(bttp->ns, lane, buf,
 					bttp->lbasize, data_block_off);
 
@@ -1609,8 +1614,9 @@ btt_write(struct btt *bttp, int lane, uint64_t lba, const void *buf)
 			;
 
 	/* it is now safe to perform write to the free block */
-	off_t data_block_off = arenap->dataoff + (free_entry &
-			BTT_MAP_ENTRY_LBA_MASK) * arenap->internal_lbasize;
+	off_t data_block_off = arenap->dataoff +
+		(off_t)(free_entry & BTT_MAP_ENTRY_LBA_MASK) *
+		arenap->internal_lbasize;
 	if ((*bttp->ns_cbp->nswrite)(bttp->ns, lane, buf,
 				bttp->lbasize, data_block_off) < 0)
 		return -1;
