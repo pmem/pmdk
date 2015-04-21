@@ -478,11 +478,17 @@ int ut_pthread_join(const char *file, int line, const char *func,
 #define	_FUNC_REAL(name)\
 	__real_##name
 
+#define	RCOUNTER(name)\
+	_rcounter##name
+
+#define	FUNC_MOCK_RCOUNTER_SET(name, val)\
+    RCOUNTER(name) = val;
+
 #define	FUNC_MOCK(name, ret_type, ...)\
 	_FUNC_REAL_DECL(name, ret_type, ##__VA_ARGS__);\
+	static int RCOUNTER(name);\
 	ret_type __wrap_##name(__VA_ARGS__) {\
-		static int __rcounter = 0;\
-		switch (__rcounter++) {
+		switch (__sync_fetch_and_add(&RCOUNTER(name), 1)) {
 
 #define	FUNC_MOCK_END\
 	}}
@@ -497,7 +503,7 @@ int ut_pthread_join(const char *file, int line, const char *func,
 	case run: return (ret);
 
 #define	FUNC_MOCK_RUN_RET_DEFAULT_REAL(name, ...)\
-	default: return _FUNC_REAL(name)(##__VA_ARGS__);
+	default: return _FUNC_REAL(name)(__VA_ARGS__);
 
 #define	FUNC_MOCK_RUN_RET_DEFAULT(ret)\
 	default: return (ret);

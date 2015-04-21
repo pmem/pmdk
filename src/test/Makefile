@@ -104,7 +104,8 @@ TEST = blk_nblock\
        obj_redo_log\
        obj_basic_integration\
        obj_pmalloc_basic\
-       obj_lane
+       obj_lane\
+       obj_sync
 
 all     : TARGET = all
 clean   : TARGET = clean

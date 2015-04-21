@@ -217,7 +217,9 @@ pmemobj_map_common(int fd, const char *layout, size_t poolsize, int rdonly,
 	}
 
 	/* run_id is made unique by incrementing the previous value */
-	pop->run_id++;
+	pop->run_id += 2;
+	if (pop->run_id == 0)
+		pop->run_id += 2;
 	pmem_msync(&pop->run_id, sizeof (pop->run_id));
 
 	/*
@@ -367,6 +369,11 @@ pmemobj_check(const char *path, const char *layout)
 
 	int consistent = 1;
 
+	if (pop->run_id % 2) {
+		LOG(1, "invalid run_id %ju", pop->run_id);
+		consistent = 0;
+	}
+
 	if ((errno = heap_check(pop)) != 0) {
 		LOG(1, "!heap_check");
 		consistent = 0;
@@ -387,179 +394,7 @@ pmemobj_check(const char *path, const char *layout)
 	return consistent;
 }
 
-/*
- * pmemobj_mutex_zero --
- */
-int
-pmemobj_mutex_zero(PMEMmutex *mutexp)
-{
-	/* XXX */
-	return 0;
-}
 
-/*
- * pmemobj_mutex_lock --
- */
-int
-pmemobj_mutex_lock(PMEMobjpool *pop, PMEMmutex *mutexp)
-{
-	/* XXX */
-	return 0;
-}
-
-/*
- * pmemobj_mutex_trylock --
- */
-int
-pmemobj_mutex_trylock(PMEMobjpool *pop, PMEMmutex *mutexp)
-{
-	/* XXX */
-	return 0;
-}
-
-/*
- * pmemobj_mutex_unlock --
- */
-int
-pmemobj_mutex_unlock(PMEMobjpool *pop, PMEMmutex *mutexp)
-{
-	/* XXX */
-	return 0;
-}
-
-/*
- * pmemobj_rwlock_zero --
- */
-int
-pmemobj_rwlock_zero(PMEMrwlock *rwlockp)
-{
-	/* XXX */
-	return 0;
-}
-
-/*
- * pmemobj_rwlock_rdlock --
- */
-int
-pmemobj_rwlock_rdlock(PMEMobjpool *pop, PMEMrwlock *rwlockp)
-{
-	/* XXX */
-	return 0;
-}
-
-/*
- * pmemobj_rwlock_wrlock --
- */
-int
-pmemobj_rwlock_wrlock(PMEMobjpool *pop, PMEMrwlock *rwlockp)
-{
-	/* XXX */
-	return 0;
-}
-
-/*
- * pmemobj_rwlock_timedrdlock --
- */
-int
-pmemobj_rwlock_timedrdlock(PMEMobjpool *pop, PMEMrwlock *restrict rwlockp,
-	const struct timespec *restrict abs_timeout)
-{
-	/* XXX */
-	return 0;
-}
-
-/*
- * pmemobj_rwlock_timedwrlock --
- */
-int
-pmemobj_rwlock_timedwrlock(PMEMobjpool *pop, PMEMrwlock *restrict rwlockp,
-	const struct timespec *restrict abs_timeout)
-{
-	/* XXX */
-	return 0;
-}
-
-/*
- * pmemobj_rwlock_tryrdlock --
- */
-int
-pmemobj_rwlock_tryrdlock(PMEMobjpool *pop, PMEMrwlock *rwlockp)
-{
-	/* XXX */
-	return 0;
-}
-
-/*
- * pmemobj_rwlock_trywrlock --
- */
-int
-pmemobj_rwlock_trywrlock(PMEMobjpool *pop, PMEMrwlock *rwlockp)
-{
-	/* XXX */
-	return 0;
-}
-
-/*
- * pmemobj_rwlock_unlock --
- */
-int
-pmemobj_rwlock_unlock(PMEMobjpool *pop, PMEMrwlock *rwlockp)
-{
-	/* XXX */
-	return 0;
-}
-
-/*
- * pmemobj_cond_zero --
- */
-int
-pmemobj_cond_zero(PMEMcond *condp)
-{
-	/* XXX */
-	return 0;
-}
-
-/*
- * pmemobj_cond_broadcast --
- */
-int
-pmemobj_cond_broadcast(PMEMobjpool *pop, PMEMcond *condp)
-{
-	/* XXX */
-	return 0;
-}
-
-/*
- * pmemobj_cond_signal --
- */
-int
-pmemobj_cond_signal(PMEMobjpool *pop, PMEMcond *condp)
-{
-	/* XXX */
-	return 0;
-}
-
-/*
- * pmemobj_cond_timedwait --
- */
-int
-pmemobj_cond_timedwait(PMEMobjpool *pop, PMEMcond *restrict condp,
-	PMEMmutex *restrict mutexp, const struct timespec *restrict abstime)
-{
-	/* XXX */
-	return 0;
-}
-
-/*
- * pmemobj_cond_wait --
- */
-int
-pmemobj_cond_wait(PMEMobjpool *pop, PMEMcond *condp,
-	PMEMmutex *restrict mutexp)
-{
-	/* XXX */
-	return 0;
-}
 
 /*
  * pmemobj_off_by_uuid_lo -- (internal) returns offset of pool
