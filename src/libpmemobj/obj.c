@@ -735,8 +735,8 @@ pmemobj_next(PMEMoid oid)
  * pmemobj_list_insert -- adds object to a list
  */
 int
-pmemobj_list_insert(PMEMobjpool *pop, size_t pe_offset, PMEMoid dest,
-	void *head, int before, PMEMoid oid)
+pmemobj_list_insert(PMEMobjpool *pop, size_t pe_offset, void *head,
+	PMEMoid dest, int before, PMEMoid oid)
 {
 	/* XXX */
 
@@ -747,8 +747,8 @@ pmemobj_list_insert(PMEMobjpool *pop, size_t pe_offset, PMEMoid dest,
  * pmemobj_list_insert_new -- adds new object to a list
  */
 int
-pmemobj_list_insert_new(PMEMobjpool *pop, size_t pe_offset, PMEMoid dest,
-	void *head, int before, size_t size, int type_num)
+pmemobj_list_insert_new(PMEMobjpool *pop, size_t pe_offset, void *head,
+	PMEMoid dest, int before, size_t size, int type_num)
 {
 	/* XXX */
 
@@ -759,8 +759,8 @@ pmemobj_list_insert_new(PMEMobjpool *pop, size_t pe_offset, PMEMoid dest,
  * pmemobj_list_remove -- removes object from a list
  */
 int
-pmemobj_list_remove(PMEMobjpool *pop, size_t pe_offset, PMEMoid oid,
-	void *head, int free)
+pmemobj_list_remove(PMEMobjpool *pop, size_t pe_offset, void *head,
+	PMEMoid oid, int free)
 {
 	/* XXX */
 
@@ -772,8 +772,8 @@ pmemobj_list_remove(PMEMobjpool *pop, size_t pe_offset, PMEMoid oid,
  */
 int
 pmemobj_list_move(PMEMobjpool *pop, size_t pe_old_offset,
-	size_t pe_new_offset, PMEMoid dest, void *head_old,
-	void *head_new, int before, PMEMoid oid)
+	size_t pe_new_offset, void *head_old, void *head_new,
+	PMEMoid dest, int before, PMEMoid oid)
 {
 	/* XXX */
 
