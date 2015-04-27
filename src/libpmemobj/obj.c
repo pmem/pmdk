@@ -606,8 +606,8 @@ pmemobj_list_remove(PMEMobjpool *pop, size_t pe_offset, void *head,
  * pmemobj_list_move -- moves object between lists
  */
 int
-pmemobj_list_move(PMEMobjpool *pop, size_t pe_old_offset,
-	size_t pe_new_offset, void *head_old, void *head_new,
+pmemobj_list_move(PMEMobjpool *pop, size_t pe_old_offset, void *head_old,
+	size_t pe_new_offset, void *head_new,
 	PMEMoid dest, int before, PMEMoid oid)
 {
 	/* XXX */

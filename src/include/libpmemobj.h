@@ -355,7 +355,7 @@ int pmemobj_list_remove(PMEMobjpool *pop, size_t pe_offset, void *head,
 	PMEMoid oid, int free);
 
 int pmemobj_list_move(PMEMobjpool *pop, size_t pe_old_offset,
-	size_t pe_new_offset, void *head_old, void *head_new,
+	void *head_old, size_t pe_new_offset, void *head_new,
 	PMEMoid dest, int before, PMEMoid oid);
 
 #define	POBJ_LIST_FIRST(head)	((head)->pe_first)
@@ -435,8 +435,8 @@ pmemobj_list_remove((pop),\
 #define	POBJ_LIST_MOVE_ELEMENT_HEAD(pop, head, head_new, elm, field, field_new)\
 pmemobj_list_move((pop),\
 	offsetof(typeof (*(POBJ_LIST_FIRST(head)._type)), field),\
-	offsetof(typeof (*(POBJ_LIST_FIRST(head_new)._type)), field_new),\
 	&POBJ_LIST_FIRST((head)),\
+	offsetof(typeof (*(POBJ_LIST_FIRST(head_new)._type)), field_new),\
 	&POBJ_LIST_FIRST((head_new)),\
 	POBJ_LIST_FIRST((head)).oid,\
 	1 /* before */, (elm).oid);
@@ -444,8 +444,8 @@ pmemobj_list_move((pop),\
 #define	POBJ_LIST_MOVE_ELEMENT_TAIL(pop, head, head_new, elm, field, field_new)\
 pmemobj_list_move((pop),\
 	offsetof(typeof (*(POBJ_LIST_FIRST(head)._type)), field),\
-	offsetof(typeof (*(POBJ_LIST_FIRST(head_new)._type)), field_new),\
 	&POBJ_LIST_FIRST((head)),\
+	offsetof(typeof (*(POBJ_LIST_FIRST(head_new)._type)), field_new),\
 	&POBJ_LIST_FIRST((head_new)),\
 	POBJ_LIST_LAST((head)).oid,\
 	0 /* after */, (elm).oid);
@@ -454,8 +454,8 @@ pmemobj_list_move((pop),\
 	head, head_new, listelm, elm, field, field_new)\
 pmemobj_list_move((pop),\
 	offsetof(typeof (*(POBJ_LIST_FIRST(head)._type)), field),\
-	offsetof(typeof (*(POBJ_LIST_FIRST(head_new)._type)), field_new),\
 	&POBJ_LIST_FIRST((head)),\
+	offsetof(typeof (*(POBJ_LIST_FIRST(head_new)._type)), field_new),\
 	&POBJ_LIST_FIRST((head_new)),\
 	(listelm).oid,\
 	0 /* after */, (elm).oid);
@@ -464,8 +464,8 @@ pmemobj_list_move((pop),\
 	head, head_new, listelm, elm, field, field_new)\
 pmemobj_list_move((pop),\
 	offsetof(typeof (*(POBJ_LIST_FIRST(head)._type)), field),\
-	offsetof(typeof (*(POBJ_LIST_FIRST(head_new)._type)), field_new),\
 	&POBJ_LIST_FIRST((head)),\
+	offsetof(typeof (*(POBJ_LIST_FIRST(head_new)._type)), field_new),\
 	&POBJ_LIST_FIRST((head_new)),\
 	(listelm).oid,\
 	1 /* before */, (elm).oid);
