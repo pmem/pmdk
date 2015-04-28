@@ -78,7 +78,7 @@ PMEMobjpool *
 pmemobj_open_mock(const char *fname)
 {
 	int fd = open(fname, O_RDWR);
-	if (fd < -1) {
+	if (fd == -1) {
 		OUT("!%s: open", fname);
 
 		return NULL;
@@ -125,7 +125,7 @@ pmemobj_open_mock(const char *fname)
 void
 pmemobj_close_mock(PMEMobjpool *pop)
 {
-	munmap(pop, pop->size + PMEMOBJ_POOL_HDR_SIZE);
+	munmap(pop, pop->size);
 }
 
 int
