@@ -474,8 +474,8 @@ pmemobj_list_move((pop),\
  * Transactions
  *
  * Stages are changed only by the pmemobj_tx_* functions, each transition
- * to the next stage is followed by a longjmp to the jmp_buf provided in the
- * pmemobj_tx_begin function.
+ * to the TX_STAGE_ONABORT is followed by a longjmp to the jmp_buf provided in
+ * the pmemobj_tx_begin function.
  */
 enum pobj_tx_stage {
 	TX_STAGE_NONE,		/* no transaction in this thread */
@@ -548,10 +548,12 @@ int pmemobj_tx_process();
 #define	_POBJ_TX_BEGIN(pop, ...)\
 {\
 	jmp_buf _tx_env;\
+	int _stage;\
 	pmemobj_tx_begin(pop, _tx_env, __VA_ARGS__, TX_LOCK_NONE);\
 	setjmp(_tx_env);\
-	switch ((int)pmemobj_tx_stage()) {\
-		case TX_STAGE_WORK:
+	while ((_stage = pmemobj_tx_stage()) != TX_STAGE_NONE) {\
+		switch (_stage) {\
+			case TX_STAGE_WORK:
 
 #define	TX_BEGIN_LOCK(pop, ...)\
 _POBJ_TX_BEGIN(pop, ##__VA_ARGS__)
@@ -559,26 +561,27 @@ _POBJ_TX_BEGIN(pop, ##__VA_ARGS__)
 #define	TX_BEGIN(pop) _POBJ_TX_BEGIN(pop, TX_LOCK_NONE)
 
 #define	TX_ONABORT\
-			pmemobj_tx_process();\
-			break;\
-		case TX_STAGE_ONABORT:
+				pmemobj_tx_process();\
+				break;\
+			case TX_STAGE_ONABORT:
 
 #define	TX_ONCOMMIT\
-			pmemobj_tx_process();\
-			break;\
-		case TX_STAGE_ONCOMMIT:
+				pmemobj_tx_process();\
+				break;\
+			case TX_STAGE_ONCOMMIT:
 
 #define	TX_FINALLY\
-			pmemobj_tx_process();\
-			break;\
-		case TX_STAGE_FINALLY:
+				pmemobj_tx_process();\
+				break;\
+			case TX_STAGE_FINALLY:
 
 #define	TX_END\
-			pmemobj_tx_process();\
-			break;\
-		default:\
-			pmemobj_tx_process();\
-			break;\
+				pmemobj_tx_process();\
+				break;\
+			default:\
+				pmemobj_tx_process();\
+				break;\
+		}\
 	}\
 	pmemobj_tx_end();\
 }
