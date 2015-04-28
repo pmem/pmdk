@@ -105,7 +105,9 @@ TEST = blk_nblock\
        obj_basic_integration\
        obj_pmalloc_basic\
        obj_lane\
-       obj_sync
+       obj_sync\
+       obj_direct\
+       obj_cuckoo
 
 all     : TARGET = all
 clean   : TARGET = clean

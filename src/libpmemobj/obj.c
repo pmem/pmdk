@@ -42,6 +42,7 @@
 #include <uuid/uuid.h>
 #include <time.h>
 #include <endian.h>
+#include <stdlib.h>
 #include <setjmp.h>
 
 #include "libpmem.h"
@@ -49,9 +50,25 @@
 #include "lane.h"
 
 #include "pmalloc.h"
+#include "cuckoo.h"
 #include "util.h"
 #include "out.h"
 #include "obj.h"
+
+static struct cuckoo *pools;
+
+/*
+ * obj_init -- initialization of obj
+ *
+ * Called by constructor.
+ */
+void
+obj_init(void)
+{
+	pools = cuckoo_new();
+	if (pools == NULL)
+		FATAL("!cuckoo_new");
+}
 
 /*
  * drain_empty -- (internal) empty function for drain on non-pmem memory
@@ -232,6 +249,7 @@ pmemobj_map_common(int fd, const char *layout, size_t poolsize, int rdonly,
 	pop->rdonly = rdonly;
 	pop->is_pmem = is_pmem;
 	pop->lanes = NULL;
+	memcpy(&pop->uuid_lo, &pop->hdr.uuid[8], sizeof (pop->uuid_lo));
 
 	if (pop->is_pmem) {
 		pop->persist = pmem_persist;
@@ -262,6 +280,11 @@ pmemobj_map_common(int fd, const char *layout, size_t poolsize, int rdonly,
 	 * use. It is not considered an error if this fails.
 	 */
 	util_range_none(addr, sizeof (struct pool_hdr));
+
+	if ((errno = cuckoo_insert(pools, pop->uuid_lo, pop)) != 0) {
+		LOG(1, "!cuckoo_insert");
+		goto err;
+	}
 
 	LOG(3, "pop %p", pop);
 	return pop;
@@ -335,6 +358,10 @@ pmemobj_close(PMEMobjpool *pop)
 {
 	LOG(3, "pop %p", pop);
 
+	if (cuckoo_remove(pools, pop->uuid_lo) != pop) {
+		LOG(1, "!cuckoo_remove");
+	}
+
 	/* XXX stub */
 
 	if ((errno = heap_cleanup(pop)) != 0)
@@ -397,23 +424,12 @@ pmemobj_check(const char *path, const char *layout)
 
 
 /*
- * pmemobj_off_by_uuid_lo -- (internal) returns offset of pool
- */
-static uint64_t
-pmemobj_off_by_uuid_lo(uint64_t uuid_lo)
-{
-	/* XXX */
-
-	return 0;
-}
-
-/*
  * pmemobj_direct -- calculates the direct pointer of an object
  */
 void *
 pmemobj_direct(PMEMoid oid)
 {
-	return (void *)(pmemobj_off_by_uuid_lo(oid.pool_uuid_lo) + oid.off);
+	return cuckoo_get(pools, oid.pool_uuid_lo) + oid.off;
 }
 
 /*

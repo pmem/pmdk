@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2015, Intel Corporation
+ * Copyright (c) 2015, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,78 +31,79 @@
  */
 
 /*
- * libpmemobj.c -- pmem entry points for libpmemobj
+ * obj_cuckoo.c -- unit test for cuckoo hash table
  */
 
-#include <stdio.h>
-#include <stdint.h>
-#include <setjmp.h>
+#include <errno.h>
 
+#include "unittest.h"
+#include "cuckoo.h"
 #include "libpmemobj.h"
-
 #include "util.h"
-#include "out.h"
-#include "lane.h"
-#include "obj.h"
 
-/*
- * libpmemobj_init -- load-time initialization for obj
- *
- * Called automatically by the run-time loader.
- */
-__attribute__((constructor))
-static void
-libpmemobj_init(void)
+#define	TEST_INSERTS 100
+#define	TEST_VAL(x) ((void *)((uintptr_t)(x)))
+
+FUNC_MOCK(malloc, void *, size_t size)
 {
-	out_init(PMEMOBJ_LOG_PREFIX, PMEMOBJ_LOG_LEVEL_VAR,
-			PMEMOBJ_LOG_FILE_VAR, PMEMOBJ_MAJOR_VERSION,
-			PMEMOBJ_MINOR_VERSION);
-	LOG(3, NULL);
-	util_init();
-	obj_init();
-}
-
-/*
- * pmemobj_check_version -- see if lib meets application version requirements
- */
-const char *
-pmemobj_check_version(unsigned major_required, unsigned minor_required)
-{
-	LOG(3, "major_required %u minor_required %u",
-			major_required, minor_required);
-
-	static char errstr[] =
-		"libpmemobj major version mismatch "
-		"(need AAAAAAAAAA, found BBBBBBBBBB)";
-
-	if (major_required != PMEMOBJ_MAJOR_VERSION) {
-		sprintf(errstr,
-			"libpmemobj major version mismatch (need %u, found %u)",
-			major_required, PMEMOBJ_MAJOR_VERSION);
-		LOG(1, "%s", errstr);
-		return errstr;
+	FUNC_MOCK_RUN_RET_DEFAULT_REAL(malloc, size)
+	FUNC_MOCK_RUN(1) /* cuckoo malloc */
+	FUNC_MOCK_RUN(0) { /* tab malloc */
+		return NULL;
 	}
+} FUNC_MOCK_END
 
-	if (minor_required > PMEMOBJ_MINOR_VERSION) {
-		sprintf(errstr,
-			"libpmemobj minor version mismatch (need %u, found %u)",
-			minor_required, PMEMOBJ_MINOR_VERSION);
-		LOG(1, "%s", errstr);
-		return errstr;
-	}
-
-	return NULL;
-}
-
-/*
- * pmemobj_set_funcs -- allow overriding libpmemobj's call to malloc, etc.
- */
 void
-pmemobj_set_funcs(
-		void *(*malloc_func)(size_t size),
-		void (*free_func)(void *ptr))
+test_cuckoo_new_delete()
 {
-	LOG(3, NULL);
+	struct cuckoo *c = NULL;
 
-	util_set_alloc_funcs(malloc_func, free_func, NULL, NULL);
+	/* cuckoo malloc fail */
+	c = cuckoo_new();
+	ASSERT(c == NULL);
+
+	/* tab malloc fail */
+	c = cuckoo_new();
+	ASSERT(c == NULL);
+
+	/* all ok */
+	c = cuckoo_new();
+	ASSERT(c != NULL);
+
+	cuckoo_delete(c);
+}
+
+void
+test_insert_get_remove()
+{
+	struct cuckoo *c = cuckoo_new();
+	ASSERT(c != NULL);
+
+	for (int i = 0; i < TEST_INSERTS; ++i)
+		ASSERT(cuckoo_insert(c, i, TEST_VAL(i)) == 0);
+
+	for (int i = 0; i < TEST_INSERTS; ++i)
+		ASSERT(cuckoo_get(c, i) == TEST_VAL(i));
+
+	for (int i = 0; i < TEST_INSERTS; ++i)
+		ASSERT(cuckoo_remove(c, i) == TEST_VAL(i));
+
+	for (int i = 0; i < TEST_INSERTS; ++i)
+		ASSERT(cuckoo_remove(c, i) == NULL);
+
+	for (int i = 0; i < TEST_INSERTS; ++i)
+		ASSERT(cuckoo_get(c, i) == NULL);
+
+	cuckoo_delete(c);
+}
+
+int
+main(int argc, char *argv[])
+{
+	START(argc, argv, "obj_cuckoo");
+
+	test_cuckoo_new_delete();
+	test_insert_get_remove();
+
+	DONE(NULL);
 }

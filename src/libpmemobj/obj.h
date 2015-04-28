@@ -81,6 +81,7 @@ struct pmemobjpool {
 	int rdonly;		/* true if pool is opened read-only */
 	struct pmalloc_heap *heap; /* allocator heap */
 	struct lane *lanes;
+	uint64_t uuid_lo;
 
 	persist_fn persist;	/* persist function */
 	flush_fn flush;		/* flush function */
@@ -91,3 +92,5 @@ struct pmemobjpool {
 struct object_store_item {
 	/* XXX stub */
 };
+
+void obj_init(void);
