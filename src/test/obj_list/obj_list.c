@@ -285,7 +285,7 @@ FUNC_MOCK_END
  * Allocates the memory using linear allocator.
  * Prints the id of allocated struct oob_item for tracking purposes.
  */
-FUNC_MOCK(pmalloc, int, struct pmalloc_heap *heap, uint64_t *ptr, size_t size)
+FUNC_MOCK(pmalloc, int, PMEMobjpool *pop, uint64_t *ptr, size_t size)
 	FUNC_MOCK_RUN_DEFAULT {
 		size = 2 * (size - OOB_OFF) + OOB_OFF;
 		uint64_t *alloc_size = (uint64_t *)((uintptr_t)Pop
@@ -318,7 +318,7 @@ FUNC_MOCK_END
  *
  * Just prints freeing struct oob_item id. Doesn't free the memory.
  */
-FUNC_MOCK(pfree, int, struct pmalloc_heap *heap, uint64_t *ptr)
+FUNC_MOCK(pfree, int, PMEMobjpool *pop, uint64_t *ptr)
 	FUNC_MOCK_RUN_DEFAULT {
 		struct oob_item *item =
 			(struct oob_item *)((uintptr_t)Pop + *ptr);
@@ -336,7 +336,7 @@ FUNC_MOCK_END
  * Allocates the memory using linear allocator and invokes the constructor.
  * Prints the id of allocated struct oob_item for tracking purposes.
  */
-FUNC_MOCK(pmalloc_construct, int, struct pmalloc_heap *heap, uint64_t *off,
+FUNC_MOCK(pmalloc_construct, int, PMEMobjpool *pop, uint64_t *off,
 	size_t size, void (*constructor)(void *ptr, void *arg), void *arg,
 	uint64_t data_off)
 	FUNC_MOCK_RUN_DEFAULT {
@@ -362,7 +362,7 @@ FUNC_MOCK_END
 /*
  * pgrow -- pgrow mock
  */
-FUNC_MOCK(pgrow, int, struct pmalloc_heap *heap, uint64_t off, size_t size)
+FUNC_MOCK(pgrow, int, PMEMobjpool *pop, uint64_t off, size_t size)
 	FUNC_MOCK_RUN_DEFAULT {
 		uint64_t *alloc_size = (uint64_t *)((uintptr_t)Pop +
 				off - sizeof (uint64_t));
@@ -393,7 +393,7 @@ FUNC_MOCK_RET_ALWAYS(prealloc, int, 0);
 /*
  * prealloc_construct -- prealloc_construct mock
  */
-FUNC_MOCK(prealloc_construct, int, struct pmalloc_heap *heap, uint64_t *off,
+FUNC_MOCK(prealloc_construct, int, PMEMobjpool *pop, uint64_t *off,
 	size_t size, void (*constructor)(void *ptr, void *arg), void *arg,
 	uint64_t data_off)
 	FUNC_MOCK_RUN_DEFAULT {
@@ -406,7 +406,7 @@ FUNC_MOCK_END
 /*
  * pmalloc_usable_size -- pmalloc_usable_size mock
  */
-FUNC_MOCK(pmalloc_usable_size, size_t, struct pmalloc_heap *heap, uint64_t off)
+FUNC_MOCK(pmalloc_usable_size, size_t, PMEMobjpool *pop, uint64_t off)
 	FUNC_MOCK_RUN_DEFAULT {
 		uint64_t *alloc_size = (uint64_t *)((uintptr_t)Pop +
 				off - sizeof (uint64_t));

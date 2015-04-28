@@ -37,7 +37,8 @@ vpath %.c ../../libpmemobj
 vpath %.c ../../common
 
 TARGET = obj_pmalloc_basic
-OBJS = obj_pmalloc_basic.o pmalloc.o
+OBJS = obj_pmalloc_basic.o pmalloc.o bucket.o redo.o heap.o lane.o ctree.o\
+    util.o obj.o cuckoo.o list.o sync.o tx.o
 
 LIBPMEM=y
 

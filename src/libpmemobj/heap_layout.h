@@ -31,24 +31,79 @@
  */
 
 /*
- * pmalloc.h -- internal definitions for persistent malloc
+ * heap_layout.h -- internal definitions for heap layout
  */
 
-int heap_boot(PMEMobjpool *pop);
-int heap_init(PMEMobjpool *pop);
-int heap_cleanup(PMEMobjpool *pop);
-int heap_check(PMEMobjpool *pop);
+#define	HEAP_MAJOR 1
+#define	HEAP_MINOR 0
 
-int pmalloc(PMEMobjpool *pop, uint64_t *off, size_t size);
-int pmalloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
-	void (*constructor)(void *ptr, void *arg), void *arg,
-	uint64_t data_off);
+#define	MAX_CHUNK UINT16_MAX
+#define	CHUNKSIZE (1024L * 256)	/* 256 kilobytes */
+#define	HEAP_SIGNATURE_LEN 16
+#define	HEAP_SIGNATURE "MEMORY_HEAP_HDR\0"
+#define	ZONE_HEADER_MAGIC 0xC3F0A2D2
+#define	ZONE_MIN_SIZE (sizeof (struct zone) + CHUNKSIZE)
+#define	ZONE_MAX_SIZE (sizeof (struct zone) + MAX_CHUNK * CHUNKSIZE)
+#define	HEAP_MIN_SIZE (sizeof (struct heap_layout) + ZONE_MIN_SIZE)
+#define	REDO_LOG_SIZE	4
 
-int prealloc(PMEMobjpool *pop, uint64_t *off, size_t size);
-int prealloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
-	void (*constructor)(void *ptr, void *arg), void *arg,
-	uint64_t data_off);
+enum chunk_flags {
+	CHUNK_FLAG_ZEROED	=	0x0001,
+};
 
-size_t pmalloc_usable_size(PMEMobjpool *pop, uint64_t off);
-int pfree(PMEMobjpool *pop, uint64_t *off);
-int pgrow(PMEMobjpool *pop, uint64_t off, size_t size);
+enum chunk_type {
+	CHUNK_TYPE_UNKNOWN,
+	CHUNK_TYPE_FREE,
+	CHUNK_TYPE_USED,
+	CHUNK_TYPE_RUN,
+
+	MAX_CHUNK_TYPE
+};
+
+struct chunk {
+	char data[CHUNKSIZE];
+};
+
+struct chunk_header {
+	uint16_t type;
+	uint16_t flags;
+	uint32_t size_idx;
+};
+
+struct zone_header {
+	uint32_t magic;
+	uint32_t size_idx;
+	char reserved[56];
+};
+
+struct zone {
+	struct zone_header header;
+	struct chunk_header chunk_headers[MAX_CHUNK];
+	struct chunk chunks[];
+};
+
+struct heap_header {
+	char signature[HEAP_SIGNATURE_LEN];
+	uint64_t major;
+	uint64_t minor;
+	uint64_t size;
+	uint64_t chunksize;
+	uint64_t chunks_per_zone;
+	char reserved[960];
+	uint64_t checksum;
+};
+
+struct heap_layout {
+	struct heap_header header;
+	struct zone zones[];
+};
+
+struct allocation_header {
+	uint32_t zone_id;
+	uint32_t chunk_id;
+	uint64_t size;
+};
+
+struct allocator_lane_section {
+	struct redo_log redo[REDO_LOG_SIZE];
+};

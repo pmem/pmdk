@@ -31,24 +31,13 @@
  */
 
 /*
- * pmalloc.h -- internal definitions for persistent malloc
+ * heap.h -- internal definitions for heap
  */
 
-int heap_boot(PMEMobjpool *pop);
-int heap_init(PMEMobjpool *pop);
-int heap_cleanup(PMEMobjpool *pop);
-int heap_check(PMEMobjpool *pop);
-
-int pmalloc(PMEMobjpool *pop, uint64_t *off, size_t size);
-int pmalloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
-	void (*constructor)(void *ptr, void *arg), void *arg,
-	uint64_t data_off);
-
-int prealloc(PMEMobjpool *pop, uint64_t *off, size_t size);
-int prealloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
-	void (*constructor)(void *ptr, void *arg), void *arg,
-	uint64_t data_off);
-
-size_t pmalloc_usable_size(PMEMobjpool *pop, uint64_t off);
-int pfree(PMEMobjpool *pop, uint64_t *off);
-int pgrow(PMEMobjpool *pop, uint64_t off, size_t size);
+struct bucket *heap_get_best_bucket(PMEMobjpool *pop, size_t size);
+void heap_resize_chunk(PMEMobjpool *pop,
+	uint32_t chunk_id, uint32_t zone_id, uint32_t new_size_idx);
+struct chunk_header *heap_get_chunk_header(PMEMobjpool *pop,
+	uint32_t chunk_id, uint32_t zone_id);
+void *heap_get_chunk_data(PMEMobjpool *pop,
+	uint32_t chunk_id, uint32_t zone_id);

@@ -244,11 +244,6 @@ pmemobj_map_common(int fd, const char *layout, size_t poolsize, int rdonly,
 
 		/* XXX add initialization of the obj_store */
 
-		if ((errno = heap_init(pop)) != 0) {
-			LOG(1, "!heap_init");
-			goto err;
-		}
-
 		/* create the persistent part of pool's descriptor */
 		memset(dscp, 0, OBJ_DSC_P_SIZE);
 		if (layout)
@@ -262,6 +257,12 @@ pmemobj_map_common(int fd, const char *layout, size_t poolsize, int rdonly,
 		pop->heap_offset = pop->obj_store_offset +
 			pop->obj_store_size;
 		pop->heap_size = poolsize - pop->heap_offset;
+
+		if ((errno = heap_init(pop)) != 0) {
+			LOG(1, "!heap_init");
+			goto err;
+		}
+
 		util_checksum(dscp, OBJ_DSC_P_SIZE, &pop->checksum, 1);
 
 		/* store the persistent part of pool's descriptor (2kB) */
@@ -282,8 +283,8 @@ pmemobj_map_common(int fd, const char *layout, size_t poolsize, int rdonly,
 	pop->addr = addr;
 	pop->size = poolsize;
 	pop->rdonly = rdonly;
-	pop->is_pmem = is_pmem;
 	pop->lanes = NULL;
+	pop->is_pmem = is_pmem;
 
 	pop->uuid_lo = pmemobj_get_uuid_lo(pop);
 
@@ -303,7 +304,7 @@ pmemobj_map_common(int fd, const char *layout, size_t poolsize, int rdonly,
 	}
 
 	if ((errno = heap_boot(pop)) != 0) {
-		LOG(1, "heap_boot");
+		LOG(1, "!heap_boot");
 		goto err;
 	}
 
@@ -401,7 +402,7 @@ pmemobj_close(PMEMobjpool *pop)
 	/* XXX stub */
 
 	if ((errno = heap_cleanup(pop)) != 0)
-		LOG(1, "heap_cleanup");
+		LOG(1, "!heap_cleanup");
 
 	/* cleanup run-time state */
 	if ((errno = lane_cleanup(pop)) != 0)
@@ -666,56 +667,3 @@ pmemobj_list_move(PMEMobjpool *pop, size_t pe_old_offset, void *head_old,
 
 	return 0;
 }
-
-/*
- * lane_allocator_construct -- create allocator lane section
- */
-static int
-lane_allocator_construct(struct lane_section *section)
-{
-	/* XXX */
-
-	return 0;
-}
-
-/*
- * lane_allocator_destruct -- destroy allocator lane section
- */
-static int
-lane_allocator_destruct(struct lane_section *section)
-{
-	/* XXX */
-
-	return 0;
-}
-
-/*
- * lane_allocator_recovery -- recovery of allocator lane section
- */
-static int
-lane_allocator_recovery(PMEMobjpool *pop, struct lane_section_layout *section)
-{
-	/* XXX */
-
-	return 0;
-}
-
-/*
- * lane_allocator_check -- consistency check of allocator lane section
- */
-static int
-lane_allocator_check(PMEMobjpool *pop, struct lane_section_layout *section)
-{
-	/* XXX */
-
-	return 0;
-}
-
-struct section_operations allocator_ops = {
-	.construct = lane_allocator_construct,
-	.destruct = lane_allocator_destruct,
-	.recover = lane_allocator_recovery,
-	.check = lane_allocator_check
-};
-
-SECTION_PARM(LANE_SECTION_ALLOCATOR, &allocator_ops);

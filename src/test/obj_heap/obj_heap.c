@@ -31,91 +31,80 @@
  */
 
 /*
- * obj_pmalloc_basic.c -- unit test for pmalloc interface
+ * obj_heap.c -- unit test for bucket
  */
-#include <stdint.h>
-
+#include "libpmem.h"
 #include "libpmemobj.h"
-#include "pmalloc.h"
 #include "util.h"
-#include "obj.h"
+#include "redo.h"
+#include "heap_layout.h"
+#include "bucket.h"
 #include "lane.h"
-
+#include "obj.h"
+#include "heap.h"
+#include "pmalloc.h"
 #include "unittest.h"
 
+#define	MOCK_BUCKET ((void *)0xABC)
+
+FUNC_MOCK_RET_ALWAYS(bucket_new, struct bucket *, MOCK_BUCKET);
+FUNC_MOCK_RET_ALWAYS(bucket_delete, void *, NULL);
+FUNC_MOCK_RET_ALWAYS(bucket_insert_block, int, 0);
+
 #define	MOCK_POOL_SIZE PMEMOBJ_MIN_POOL
-#define	MAX_ALLOCS 20
-#define	TEST_ALLOC_SIZE 256
-#define	TEST_VALUE 5
+
+#define	CHUNK_FIRST	1
+#define	CHUNK_SECOND	2
+#define	CHUNK_FIRST_NEW_SIZE_IDX 1
 
 struct mock_pop {
 	PMEMobjpool p;
-	char lanes[LANE_SECTION_LEN];
-	uint64_t ptr;
+	void *heap;
 };
 
-/*
- * drain_empty -- (internal) empty function for drain on non-pmem memory
- */
-static void
-drain_empty(void)
+void
+test_heap()
 {
-	/* do nothing */
-}
+	struct mock_pop *pop = Malloc(MOCK_POOL_SIZE);
+	memset(pop, 0, MOCK_POOL_SIZE);
+	pop->p.heap_size = MOCK_POOL_SIZE - sizeof (PMEMobjpool);
+	pop->p.heap_offset = (uint64_t)((uint64_t)&pop->heap - (uint64_t)pop);
+	pop->p.persist = (persist_fn)pmem_msync;
 
-struct foo {
-	uintptr_t bar;
-};
+	ASSERT(heap_check(&pop->p) != 0);
+	ASSERT(heap_init(&pop->p) == 0);
+	ASSERT(heap_boot(&pop->p) == 0);
+	ASSERT(pop->p.heap != NULL);
 
-void test_constructor(void *ptr, void *arg) {
-	struct foo *f = ptr;
-	f->bar = (uintptr_t)arg;
+	ASSERT(heap_get_best_bucket(&pop->p, 1) == MOCK_BUCKET);
+
+	struct chunk_header *hdr;
+	ASSERT((hdr = heap_get_chunk_header(&pop->p, CHUNK_FIRST, 1)) != NULL);
+	uint32_t csize = hdr->size_idx;
+
+	heap_resize_chunk(&pop->p, CHUNK_FIRST, 1, CHUNK_FIRST_NEW_SIZE_IDX);
+	ASSERT(heap_check(&pop->p) == 0);
+	ASSERT((hdr = heap_get_chunk_header(&pop->p, CHUNK_FIRST, 1)) != NULL);
+	ASSERT(hdr->size_idx == CHUNK_FIRST_NEW_SIZE_IDX);
+	ASSERT((hdr = heap_get_chunk_header(&pop->p, CHUNK_SECOND, 1)) != NULL);
+	ASSERT(hdr->size_idx == (csize - CHUNK_FIRST_NEW_SIZE_IDX));
+
+	ASSERT(heap_get_chunk_data(&pop->p, CHUNK_FIRST, 1) != NULL);
+	ASSERT(heap_get_chunk_data(&pop->p, CHUNK_SECOND, 1) != NULL);
+
+	ASSERT(heap_check(&pop->p) == 0);
+	ASSERT(heap_cleanup(&pop->p) == 0);
+	ASSERT(pop->p.heap == NULL);
+
+	Free(pop);
 }
 
 int
 main(int argc, char *argv[])
 {
-	START(argc, argv, "obj_pmalloc_basic");
+	START(argc, argv, "obj_heap");
 
-	struct mock_pop *addr = MALLOC(MOCK_POOL_SIZE);
-	PMEMobjpool *mock_pop = &addr->p;
-	mock_pop->addr = addr;
-	mock_pop->size = MOCK_POOL_SIZE;
-	mock_pop->rdonly = 0;
-	mock_pop->is_pmem = 0;
-	mock_pop->heap_offset = sizeof (struct mock_pop);
-	mock_pop->heap_size = MOCK_POOL_SIZE - mock_pop->heap_offset;
-	mock_pop->persist = (persist_fn)pmem_msync;
-	mock_pop->nlanes = 1;
-	mock_pop->lanes_offset = sizeof (PMEMobjpool);
-	mock_pop->flush = (flush_fn)pmem_msync;
-	mock_pop->drain = drain_empty;
-
-	lane_boot(mock_pop);
-
-	heap_init(mock_pop);
-	heap_boot(mock_pop);
-
-	ASSERTne(mock_pop->heap, NULL);
-	uint64_t addrs[MAX_ALLOCS];
-	for (int i = 0; i < MAX_ALLOCS; ++i) {
-		ASSERT(pmalloc(mock_pop, &addr->ptr, sizeof (struct foo)) == 0);
-		addrs[i] = addr->ptr;
-		ASSERT(addrs[i] != 0);
-	}
-
-	for (int i = 0; i < MAX_ALLOCS; ++i) {
-		addr->ptr = addrs[i];
-		ASSERT(pfree(mock_pop, &addr->ptr) == 0);
-	}
-
-	ASSERT(pmalloc_construct(mock_pop, &addr->ptr, sizeof (struct foo),
-		test_constructor, (void *)TEST_VALUE, 0) == 0);
-
-	struct foo *f = (void *)mock_pop + addr->ptr;
-	ASSERT(f->bar == TEST_VALUE);
-
-	FREE(addr);
+	test_heap();
 
 	DONE(NULL);
 }
