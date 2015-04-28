@@ -299,18 +299,36 @@ PMEMoid pmemobj_next(PMEMoid oid);
 /*
  * Iterates through every existing allocated object.
  */
-#define	POBJ_FOREACH(varoid, vartype_num, pop)\
+#define	POBJ_FOREACH(pop, varoid, vartype_num)\
 for (vartype_num = 0; vartype_num < _POBJ_MAX_OID_TYPE_NUM; ++vartype_num)\
 	for (varoid = pmemobj_first(pop, vartype_num);\
 		(varoid).off != 0; varoid = pmemobj_next(varoid))
 
 /*
+ * Safe variant of POBJ_FOREACH in which pmemobj_free on varoid is allowed
+ */
+#define	POBJ_FOREACH_SAFE(pop, varoid, nvaroid, vartype_num)\
+for (vartype_num = 0; vartype_num < _POBJ_MAX_OID_TYPE_NUM; ++vartype_num)\
+	for (varoid = pmemobj_first(pop, vartype_num);\
+		(varoid).off != 0 && (nvaroid = pmemobj_next(varoid), 1);\
+		varoid = nvaroid)
+
+/*
  * Iterates through every object of the specified type number.
  */
-#define	POBJ_FOREACH_TYPE(var, pop, type_num)\
+#define	POBJ_FOREACH_TYPE(pop, var, type_num)\
 for (OID_ASSIGN(var, pmemobj_first(pop, type_num));\
 		OID_IS_NULL(var) == 0;\
 		OID_ASSIGN(var, pmemobj_next((var).oid)))
+
+/*
+ * Safe variant of POBJ_FOREACH_TYPE in which pmemobj_free on var is allowed
+ */
+#define	POBJ_FOREACH_SAFE_TYPE(pop, var, nvar, type_num)\
+for (OID_ASSIGN(var, pmemobj_first(pop, type_num));\
+		OID_IS_NULL(var) == 0 &&\
+		(OID_ASSIGN(nvar, pmemobj_next((var).oid)), 1);\
+		OID_ASSIGN_TYPED(var, nvar))
 
 /*
  * Non-transactional persistent atomic circular doubly-linked list
