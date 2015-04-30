@@ -130,12 +130,12 @@ typedef union padded_pmemcond {
 	} pmemcond;
 } PMEMcond;
 
-int pmemobj_mutex_zero(PMEMmutex *mutexp);
+void pmemobj_mutex_zero(PMEMobjpool *pop, PMEMmutex *mutexp);
 int pmemobj_mutex_lock(PMEMobjpool *pop, PMEMmutex *mutexp);
 int pmemobj_mutex_trylock(PMEMobjpool *pop, PMEMmutex *mutexp);
 int pmemobj_mutex_unlock(PMEMobjpool *pop, PMEMmutex *mutexp);
 
-int pmemobj_rwlock_zero(PMEMrwlock *rwlockp);
+void pmemobj_rwlock_zero(PMEMobjpool *pop, PMEMrwlock *rwlockp);
 int pmemobj_rwlock_rdlock(PMEMobjpool *pop, PMEMrwlock *rwlockp);
 int pmemobj_rwlock_wrlock(PMEMobjpool *pop, PMEMrwlock *rwlockp);
 int pmemobj_rwlock_timedrdlock(PMEMobjpool *pop,
@@ -148,7 +148,7 @@ int pmemobj_rwlock_tryrdlock(PMEMobjpool *pop, PMEMrwlock *rwlockp);
 int pmemobj_rwlock_trywrlock(PMEMobjpool *pop, PMEMrwlock *rwlockp);
 int pmemobj_rwlock_unlock(PMEMobjpool *pop, PMEMrwlock *rwlockp);
 
-int pmemobj_cond_zero(PMEMcond *condp);
+void pmemobj_cond_zero(PMEMobjpool *pop, PMEMcond *condp);
 int pmemobj_cond_broadcast(PMEMobjpool *pop, PMEMcond *condp);
 int pmemobj_cond_signal(PMEMobjpool *pop, PMEMcond *condp);
 int pmemobj_cond_timedwait(PMEMobjpool *pop, PMEMcond *restrict condp,
