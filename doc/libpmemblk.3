@@ -201,7 +201,8 @@ pool, the resulting number of available blocks is less than
 .IR "poolsize / bsize" ,
 and is made available to the caller via the
 .BR pmemblk_nblock ()
-function described below.
+function described below.  Given the specifics of the implementation,
+the number of available blocks for the user cannot be less than 256.
 .I path
 specifies the name of the memory pool file to be created.
 .I mode
