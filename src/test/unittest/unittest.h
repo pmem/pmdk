@@ -443,12 +443,12 @@ int ut_closedir(const char *file, int line, const char *func, DIR *dirp);
 /*
  * signals...
  */
-int ut_sigvec(const char *file, int line, const char *func,
-		int sig, struct sigvec *vec, struct sigvec *ovec);
+int ut_sigaction(const char *file, int line, const char *func,
+		int signum, struct sigaction *act, struct sigaction *oldact);
 
-/* a sigvec() that can't return an error */
-#define	SIGVEC(sig, vec, ovec)\
-    ut_sigvec(__FILE__, __LINE__, __func__, sig, vec, ovec)
+/* a sigaction() that can't return an error */
+#define	SIGACTION(signum, act, oldact)\
+    ut_sigaction(__FILE__, __LINE__, __func__, signum, act, oldact)
 
 /*
  * pthreads...

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright (c) 2014-2015, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -66,11 +66,12 @@ main(int argc, char *argv[])
 	if (Vmp == NULL)
 		OUT("!vmem_create");
 	else {
-		struct sigvec v = { 0 };
-
-		v.sv_handler = signal_handler;
-		if (sigvec(SIGSEGV, &v, NULL) < 0)
-			FATAL("!sigvec");
+		struct sigaction v;
+		sigemptyset(&v.sa_mask);
+		v.sa_flags = 0;
+		v.sa_handler = signal_handler;
+		if (sigaction(SIGSEGV, &v, NULL) < 0)
+			FATAL("!sigaction");
 
 		/* try to deref the opaque handle */
 		char x = *(char *)Vmp;
