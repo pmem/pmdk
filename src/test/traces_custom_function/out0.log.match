@@ -6,8 +6,8 @@ CUSTOM_PRINT: <trace_func>: <1> [$(nW):$(N) out_init] trace_func version $(S)
 
 CUSTOM_PRINT: <trace_func>: <1> [$(nW):$(N) out_init] src version SRCVERSION:utversion
 
-CUSTOM_PRINT: <trace_func>: <1> [$(nW):$(N) out_init] compiled with support for Valgrind
-
+$(OPT)CUSTOM_PRINT: <trace_func>: <1> [$(nW):$(N) out_init] compiled with support for Valgrind
+$(OPT)
 CUSTOM_PRINT: <trace_func>: <0> [$(nW):$(N) main] Log level NONE
 
 CUSTOM_PRINT: <trace_func>: <1> [$(nW):$(N) main] Log level ERROR
