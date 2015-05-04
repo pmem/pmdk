@@ -245,10 +245,21 @@ function require_valgrind() {
 #
 function require_valgrind_pmemcheck() {
 	require_valgrind
+        strings *.static-debug 2>&1 | \
+            grep -q "compiled with support for Valgrind" && true
+        if [ $? -ne 0 ]; then
+            echo "$UNITTEST_NAME: SKIP not compiled with support for Valgrind"
+            exit 0
+        fi
+
 	valgrind --tool=pmemcheck --help 2>&1 | \
-		grep -q "pmemcheck is Copyright (c)" && return
-	echo "$UNITTEST_NAME: SKIP valgrind package with pmemcheck required"
-	exit 0
+		grep -q "pmemcheck is Copyright (c)" && true
+        if [ $? -ne 0 ]; then
+            echo "$UNITTEST_NAME: SKIP valgrind package with pmemcheck required"
+            exit 0;
+        fi
+
+        return
 }
 
 #

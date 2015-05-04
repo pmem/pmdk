@@ -6,6 +6,8 @@ CUSTOM_PRINT: <trace_func>: <1> [$(nW):$(N) out_init] trace_func version $(S)
 
 CUSTOM_PRINT: <trace_func>: <1> [$(nW):$(N) out_init] src version SRCVERSION:utversion
 
+CUSTOM_PRINT: <trace_func>: <1> [$(nW):$(N) out_init] compiled with support for Valgrind
+
 CUSTOM_PRINT: <trace_func>: <3> [$(nW):$(N) out_set_vsnprintf_func] vsnprintf 0x$(X)
 
 CUSTOM_PRINT: <@@trace_func>: <@@0> [@@$(nW):@@$(N) @@main] no format@@@@@@
