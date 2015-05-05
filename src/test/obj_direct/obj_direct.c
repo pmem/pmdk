@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2015, Intel Corporation
+ * Copyright (c) 2015, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,78 +31,52 @@
  */
 
 /*
- * libpmemobj.c -- pmem entry points for libpmemobj
+ * obj_direct.c -- unit test for direct
  */
-
-#include <stdio.h>
-#include <stdint.h>
-#include <setjmp.h>
-
-#include "libpmemobj.h"
-
+#include "unittest.h"
 #include "util.h"
-#include "out.h"
-#include "lane.h"
 #include "obj.h"
 
-/*
- * libpmemobj_init -- load-time initialization for obj
- *
- * Called automatically by the run-time loader.
- */
-__attribute__((constructor))
-static void
-libpmemobj_init(void)
+#define	MAX_PATH_LEN 255
+#define	LAYOUT_NAME "direct"
+
+int
+main(int argc, char *argv[])
 {
-	out_init(PMEMOBJ_LOG_PREFIX, PMEMOBJ_LOG_LEVEL_VAR,
-			PMEMOBJ_LOG_FILE_VAR, PMEMOBJ_MAJOR_VERSION,
-			PMEMOBJ_MINOR_VERSION);
-	LOG(3, NULL);
-	util_init();
-	obj_init();
-}
+	START(argc, argv, "obj_direct");
 
-/*
- * pmemobj_check_version -- see if lib meets application version requirements
- */
-const char *
-pmemobj_check_version(unsigned major_required, unsigned minor_required)
-{
-	LOG(3, "major_required %u minor_required %u",
-			major_required, minor_required);
+	if (argc != 3)
+		FATAL("usage: %s [directory] [# of pools]", argv[0]);
 
-	static char errstr[] =
-		"libpmemobj major version mismatch "
-		"(need AAAAAAAAAA, found BBBBBBBBBB)";
+	int npools = atoi(argv[2]);
+	const char *dir = argv[1];
 
-	if (major_required != PMEMOBJ_MAJOR_VERSION) {
-		sprintf(errstr,
-			"libpmemobj major version mismatch (need %u, found %u)",
-			major_required, PMEMOBJ_MAJOR_VERSION);
-		LOG(1, "%s", errstr);
-		return errstr;
+	PMEMobjpool *pops[npools];
+
+	char path[MAX_PATH_LEN];
+	for (int i = 0; i < npools; ++i) {
+		snprintf(path, MAX_PATH_LEN, "%s/testfile%d", dir, i);
+		pops[i] = pmemobj_create(path, LAYOUT_NAME, PMEMOBJ_MIN_POOL,
+			S_IRWXU);
+
+		if (pops[i] == NULL)
+			FATAL("!obj_direct");
 	}
 
-	if (minor_required > PMEMOBJ_MINOR_VERSION) {
-		sprintf(errstr,
-			"libpmemobj minor version mismatch (need %u, found %u)",
-			minor_required, PMEMOBJ_MINOR_VERSION);
-		LOG(1, "%s", errstr);
-		return errstr;
+	PMEMoid oids[npools];
+
+	for (int i = 0; i < npools; ++i) {
+		oids[i] = (PMEMoid) {pops[i]->uuid_lo, 0};
+		ASSERT(pmemobj_direct(oids[i]) == pops[i]);
 	}
 
-	return NULL;
-}
+	for (int i = 0; i < npools; ++i) {
+		pmemobj_close(pops[i]);
+	}
 
-/*
- * pmemobj_set_funcs -- allow overriding libpmemobj's call to malloc, etc.
- */
-void
-pmemobj_set_funcs(
-		void *(*malloc_func)(size_t size),
-		void (*free_func)(void *ptr))
-{
-	LOG(3, NULL);
+	for (int i = 0; i < npools; ++i) {
+		ASSERT(pmemobj_direct(oids[i]) == NULL);
+	}
 
-	util_set_alloc_funcs(malloc_func, free_func, NULL, NULL);
+	DONE(NULL);
 }
