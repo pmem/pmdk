@@ -245,7 +245,9 @@ function require_valgrind() {
 #
 function require_valgrind_pmemcheck() {
 	require_valgrind
-        strings *.static-debug 2>&1 | \
+	local binary=$1
+	[ -n "$binary" ] || binary=*
+        strings ${binary}.static-debug 2>&1 | \
             grep -q "compiled with support for Valgrind" && true
         if [ $? -ne 0 ]; then
             echo "$UNITTEST_NAME: SKIP not compiled with support for Valgrind"
