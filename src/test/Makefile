@@ -119,7 +119,8 @@ TEST = blk_nblock\
        obj_list_realloc\
        obj_list_realloc_move\
        obj_list_valgrind\
-       obj_list_recovery
+       obj_list_recovery\
+       obj_tx_flow
 
 all     : TARGET = all
 clean   : TARGET = clean

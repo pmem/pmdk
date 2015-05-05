@@ -548,9 +548,10 @@ int pmemobj_tx_process();
 #define	_POBJ_TX_BEGIN(pop, ...)\
 {\
 	jmp_buf _tx_env;\
-	int _stage;\
-	pmemobj_tx_begin(pop, _tx_env, __VA_ARGS__, TX_LOCK_NONE);\
+	int _stage = TX_STAGE_NONE;\
 	setjmp(_tx_env);\
+	if (_stage == TX_STAGE_NONE)\
+		pmemobj_tx_begin(pop, _tx_env, __VA_ARGS__, TX_LOCK_NONE);\
 	while ((_stage = pmemobj_tx_stage()) != TX_STAGE_NONE) {\
 		switch (_stage) {\
 			case TX_STAGE_WORK:
