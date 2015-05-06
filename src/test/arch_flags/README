@@ -7,4 +7,4 @@ This directory contains a unit test for:
  - util_check_arch_flags()
 
 Usage:
-$ arch_flags <file>:<err>:<alignemnt_desc>:<reserved> <file>
+$ arch_flags <file>:<err>:<alignment_desc>:<reserved> <file>
