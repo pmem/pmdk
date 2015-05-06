@@ -80,6 +80,23 @@ drain_empty(void)
 }
 
 /*
+ * pmemobj_get_uuid_lo -- (internal) evaluates XOR sum of least significant
+ * 8 bytes with most significant 8 bytes.
+ */
+static uint64_t
+pmemobj_get_uuid_lo(PMEMobjpool *pop)
+{
+	uint64_t uuid_lo = 0;
+
+	for (int i = 0; i < 8; i++) {
+		uuid_lo = (uuid_lo << 8) |
+			(pop->hdr.uuid[i] ^ pop->hdr.uuid[8 + i]);
+	}
+
+	return uuid_lo;
+}
+
+/*
  * pmemobj_map_common -- (internal) map a transactional memory pool
  *
  * This routine does all the work, but takes a rdonly flag so internal
@@ -267,7 +284,8 @@ pmemobj_map_common(int fd, const char *layout, size_t poolsize, int rdonly,
 	pop->rdonly = rdonly;
 	pop->is_pmem = is_pmem;
 	pop->lanes = NULL;
-	memcpy(&pop->uuid_lo, &pop->hdr.uuid[8], sizeof (pop->uuid_lo));
+
+	pop->uuid_lo = pmemobj_get_uuid_lo(pop);
 
 	if (pop->is_pmem) {
 		pop->persist = pmem_persist;
@@ -846,61 +864,6 @@ struct section_operations allocator_ops = {
 };
 
 SECTION_PARM(LANE_SECTION_ALLOCATOR, &allocator_ops);
-
-/*
- * lane_list_construct -- create list lane section
- */
-static int
-lane_list_construct(struct lane_section *section)
-{
-	/* XXX */
-
-	return 0;
-}
-
-/*
- * lane_list_destruct -- destroy list lane section
- */
-static int
-lane_list_destruct(struct lane_section *section)
-{
-	/* XXX */
-
-	return 0;
-}
-
-/*
- * lane_list_recovery -- recovery of list lane section
- */
-static int
-lane_list_recovery(PMEMobjpool *pop, struct lane_section_layout *section)
-
-{
-	/* XXX */
-
-	return 0;
-}
-
-/*
- * lane_list_check -- consistency check of list lane section
- */
-static int
-lane_list_check(PMEMobjpool *pop, struct lane_section_layout *section)
-
-{
-	/* XXX */
-
-	return 0;
-}
-
-struct section_operations list_ops = {
-	.construct = lane_list_construct,
-	.destruct = lane_list_destruct,
-	.recover = lane_list_recovery,
-	.check = lane_list_check
-};
-
-SECTION_PARM(LANE_SECTION_LIST, &list_ops);
 
 /*
  * lane_transaction_construct -- create transaction lane section

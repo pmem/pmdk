@@ -108,7 +108,18 @@ TEST = blk_nblock\
        obj_lane\
        obj_sync\
        obj_direct\
-       obj_cuckoo
+       obj_cuckoo\
+       obj_list\
+       obj_list_insert\
+       obj_list_insert_new\
+       obj_list_remove\
+       obj_list_remove_free\
+       obj_list_move\
+       obj_list_move_oob\
+       obj_list_realloc\
+       obj_list_realloc_move\
+       obj_list_valgrind\
+       obj_list_recovery
 
 all     : TARGET = all
 clean   : TARGET = clean

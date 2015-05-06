@@ -1,4 +1,6 @@
-# Copyright (c) 2014-2015, Intel Corporation
+#!/bin/bash -e
+#
+# Copyright (c) 2015, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -27,17 +29,40 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-#
-# src/libpmemobj/Makefile -- Makefile for libpmemobj
 #
 
-LIBRARY_NAME = pmemobj
-LIBRARY_SO_VERSION = 1
-LIBRARY_VERSION = 0.0
-SOURCE = libpmemobj.c obj.c redo.c pmalloc.c lane.c list.c\
-	cuckoo.c sync.c $(COMMON)/util.c $(COMMON)/out.c
+#
+# src/test/obj_list_valgrind/TEST4 -- unit test for list module with valgrind
+# pmemcheck tool
+#
+export UNITTEST_NAME=obj_list_valgrind/TEST4
+export UNITTEST_NUM=4
 
-include ../Makefile.inc
+# standard unit test setup
+. ../unittest/unittest.sh
 
-LIBS += -luuid -pthread -lpmem
+require_fs_type pmem non-pmem
+require_valgrind_pmemcheck ../obj_list/obj_list
+
+setup
+
+rm -f $DIR/testfile
+truncate -s1M $DIR/testfile
+
+expect_normal_exit valgrind --tool=pmemcheck\
+	--log-file=valgrind$UNITTEST_NUM.log\
+	--mult-stores=yes\
+	../obj_list/obj_list$EXESUFFIX $DIR/testfile\
+		n:1:0:10\
+		n:0:0:11\
+		n:1:-1:12\
+		n:0:-1:13\
+		n:1:2:14\
+		n:0:1:15\
+		P:1 R:1 P:2 R:2
+
+rm -f $DIR/testfile
+
+check
+
+pass
