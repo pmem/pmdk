@@ -137,16 +137,14 @@ mutex_check_worker(void *arg)
 static void *
 cond_write_worker(void *arg)
 {
-	if (pmemobj_mutex_lock(&Mock_pop, &Test_obj->mutex)) {
-		ERR("pmemobj_mutex_lock");
+	if (pmemobj_mutex_lock(&Mock_pop, &Test_obj->mutex))
 		return NULL;
-	}
+
 	memset(Test_obj->data, (int)(uintptr_t)arg, DATA_SIZE);
 	Test_obj->check_data = 1;
 	if (pmemobj_cond_signal(&Mock_pop, &Test_obj->cond))
 		ERR("pmemobj_cond_signal");
-	if (pmemobj_mutex_unlock(&Mock_pop, &Test_obj->mutex))
-		ERR("pmemobj_mutex_unlock");
+	pmemobj_mutex_unlock(&Mock_pop, &Test_obj->mutex);
 
 	return NULL;
 }
@@ -157,10 +155,9 @@ cond_write_worker(void *arg)
 static void *
 cond_check_worker(void *arg)
 {
-	if (pmemobj_mutex_lock(&Mock_pop, &Test_obj->mutex)) {
-		ERR("pmemobj_mutex_lock");
+	if (pmemobj_mutex_lock(&Mock_pop, &Test_obj->mutex))
 		return NULL;
-	}
+
 	while (Test_obj->check_data != 1) {
 		if (pmemobj_cond_wait(&Mock_pop, &Test_obj->cond,
 					&Test_obj->mutex))
@@ -169,8 +166,7 @@ cond_check_worker(void *arg)
 	uint8_t val = Test_obj->data[0];
 	for (int i = 1; i < DATA_SIZE; i++)
 		ASSERTeq(Test_obj->data[i], val);
-	if (pmemobj_mutex_unlock(&Mock_pop, &Test_obj->mutex))
-		ERR("pmemobj_mutex_unlock");
+	pmemobj_mutex_unlock(&Mock_pop, &Test_obj->mutex);
 
 	return NULL;
 }

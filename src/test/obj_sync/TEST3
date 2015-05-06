@@ -51,4 +51,11 @@ expect_normal_exit valgrind --log-file=valgrind$UNITTEST_NUM.log --tool=drd\
 
 check
 
+ERR_FILE=err3.log
+if [ `wc -l < $ERR_FILE` -ne 1 ];
+    then
+        echo "error: $CHECK_LOG_FILE match failed"
+        exit 1
+fi
+
 pass
