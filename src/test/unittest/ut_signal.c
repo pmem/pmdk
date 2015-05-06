@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright (c) 2014-2015, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -37,16 +37,16 @@
 #include "unittest.h"
 
 /*
- * ut_sigvec -- a sigvec that cannot return < 0
+ * ut_sigaction -- a sigaction that cannot return < 0
  */
 int
-ut_sigvec(const char *file, int line, const char *func,
-		int sig, struct sigvec *vec, struct sigvec *ovec)
+ut_sigaction(const char *file, int line, const char *func,
+		int signum, struct sigaction *act, struct sigaction *oldact)
 {
-	int retval = sigvec(sig, vec, ovec);
+	int retval = sigaction(signum, act, oldact);
 
 	if (retval != 0)
-		ut_fatal(file, line, func, "!sigvec: %s", strsignal(sig));
+		ut_fatal(file, line, func, "!sigaction: %s", strsignal(signum));
 
 	return retval;
 }

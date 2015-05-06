@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright (c) 2014-2015, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -79,9 +79,11 @@ main(int argc, char *argv[])
 	vmem_delete(vmp);
 
 	/* arrange to catch SEGV */
-	struct sigvec v = { 0 };
-	v.sv_handler = signal_handler;
-	SIGVEC(SIGSEGV, &v, NULL);
+	struct sigaction v;
+	sigemptyset(&v.sa_mask);
+	v.sa_flags = 0;
+	v.sa_handler = signal_handler;
+	SIGACTION(SIGSEGV, &v, NULL);
 
 	/* go through all arguments one by one */
 	for (int arg = 1; arg < argc; arg++) {
