@@ -46,6 +46,9 @@
 #include <stdint.h>
 #include <endian.h>
 #include <errno.h>
+#include <stddef.h>
+#include <elf.h>
+#include <link.h>
 
 #include "util.h"
 #include "out.h"
@@ -55,6 +58,26 @@
 
 #define	GIGABYTE ((uintptr_t)1 << 30)
 #define	TERABYTE ((uintptr_t)1 << 40)
+
+/*
+ * set of macros for determining the alignment descriptor
+ */
+#define	DESC_BITS		4
+#define DESC_MASK		((1 << DESC_BITS) - 1)
+#define	alignment_of(t)		offsetof(struct { char c; t x; }, x)
+#define alignment_desc_of(t)	(((uint64_t)alignment_of(t) - 1) & DESC_MASK)
+#define alignment_desc()\
+	(alignment_desc_of(char)        <<  0 * DESC_BITS) |\
+	(alignment_desc_of(short)       <<  1 * DESC_BITS) |\
+	(alignment_desc_of(int)         <<  2 * DESC_BITS) |\
+	(alignment_desc_of(long)        <<  3 * DESC_BITS) |\
+	(alignment_desc_of(long long)   <<  4 * DESC_BITS) |\
+	(alignment_desc_of(size_t)      <<  5 * DESC_BITS) |\
+	(alignment_desc_of(off_t)       <<  6 * DESC_BITS) |\
+	(alignment_desc_of(float)       <<  7 * DESC_BITS) |\
+	(alignment_desc_of(double)      <<  8 * DESC_BITS) |\
+	(alignment_desc_of(long double) <<  9 * DESC_BITS) |\
+	(alignment_desc_of(void *)      << 10 * DESC_BITS)
 
 /* library-wide page size */
 unsigned long Pagesize;
@@ -340,6 +363,10 @@ util_convert_hdr(struct pool_hdr *hdrp)
 	hdrp->incompat_features = le32toh(hdrp->incompat_features);
 	hdrp->ro_compat_features = le32toh(hdrp->ro_compat_features);
 	hdrp->crtime = le64toh(hdrp->crtime);
+	hdrp->arch_flags.e_machine =
+		le16toh(hdrp->arch_flags.e_machine);
+	hdrp->arch_flags.alignment_desc =
+		le64toh(hdrp->arch_flags.alignment_desc);
 	hdrp->checksum = le64toh(hdrp->checksum);
 
 	/* and to be valid, the fields must checksum correctly */
@@ -350,6 +377,93 @@ util_convert_hdr(struct pool_hdr *hdrp)
 
 	LOG(3, "valid header, signature \"%s\"", hdrp->signature);
 	return 1;
+}
+
+/*
+ * util_get_arch_flags -- get architecture identification flags
+ */
+int
+util_get_arch_flags(struct arch_flags *arch_flags)
+{
+	char *path = "/proc/self/exe";
+	int fd;
+	ElfW(Ehdr) elf;
+	int ret = 0;
+
+	memset(arch_flags, 0, sizeof (*arch_flags));
+
+	if ((fd = open(path, O_RDONLY)) < 0) {
+		LOG(1, "!open %s", path);
+		ret = -1;
+		goto out;
+	}
+
+	if (read(fd, &elf, sizeof (elf)) != sizeof(elf)) {
+		LOG(1, "!read %s", path);
+		ret = -1;
+		goto out_close;
+	}
+
+	if (elf.e_ident[EI_MAG0] != ELFMAG0 ||
+	    elf.e_ident[EI_MAG1] != ELFMAG1 ||
+	    elf.e_ident[EI_MAG2] != ELFMAG2 ||
+	    elf.e_ident[EI_MAG3] != ELFMAG3) {
+		LOG(1, "invalid ELF magic");
+		ret = -1;
+		goto out_close;
+	}
+
+	arch_flags->e_machine = elf.e_machine;
+	arch_flags->ei_class = elf.e_ident[EI_CLASS];
+	arch_flags->ei_data = elf.e_ident[EI_DATA];
+	arch_flags->alignment_desc = alignment_desc();
+
+out_close:
+	close(fd);
+out:
+	return ret;
+}
+
+/*
+ * util_arch_flags_check -- validates arch_flags
+ */
+int
+util_check_arch_flags(const struct arch_flags *arch_flags)
+{
+	struct arch_flags cur_af;
+
+	if (util_get_arch_flags(&cur_af))
+		return -1;
+
+	int ret = 0;
+
+	if (!util_is_zeroed(&arch_flags->reserved,
+				sizeof (arch_flags->reserved))) {
+		LOG(1, "invalid reserved values");
+		ret = -1;
+	}
+
+	if (arch_flags->e_machine != cur_af.e_machine) {
+		LOG(1, "invalid e_machine value");
+		ret = -1;
+	}
+
+	if (arch_flags->ei_data != cur_af.ei_data) {
+		LOG(1, "invalid ei_data value");
+		ret = -1;
+	}
+
+	if (arch_flags->ei_class != cur_af.ei_class) {
+		LOG(1, "invalid ei_class value");
+		ret = -1;
+	}
+
+	if (arch_flags->alignment_desc != cur_af.alignment_desc) {
+		LOG(1, "invalid alignment_desc value");
+		ret= -1;
+	}
+
+	return ret;
 }
 
 /*
@@ -443,10 +557,10 @@ util_range_none(void *addr, size_t len)
  * util_is_zeroed -- check if given memory range is all zero
  */
 int
-util_is_zeroed(void *addr, size_t len)
+util_is_zeroed(const void *addr, size_t len)
 {
 	/* XXX optimize */
-	char *a = addr;
+	const char *a = addr;
 	while (len-- > 0)
 		if (*a++)
 			return 0;

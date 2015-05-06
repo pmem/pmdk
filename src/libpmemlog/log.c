@@ -171,6 +171,18 @@ pmemlog_map_common(int fd, size_t poolsize, int rdonly, int empty)
 		hdrp->ro_compat_features = htole32(LOG_FORMAT_RO_COMPAT);
 		uuid_generate(hdrp->uuid);
 		hdrp->crtime = htole64((uint64_t)time(NULL));
+
+		if (util_get_arch_flags(&hdrp->arch_flags)) {
+			LOG(1, "Reading architecture flags failed\n");
+			errno = EINVAL;
+			goto err;
+		}
+
+		hdrp->arch_flags.alignment_desc =
+			htole64(hdrp->arch_flags.alignment_desc);
+		hdrp->arch_flags.e_machine =
+			htole16(hdrp->arch_flags.e_machine);
+
 		util_checksum(hdrp, sizeof (*hdrp), &hdrp->checksum, 1);
 
 		/* store pool's header */
