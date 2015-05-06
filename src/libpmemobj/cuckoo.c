@@ -169,23 +169,38 @@ cuckoo_grow(struct cuckoo *c)
 {
 	int oldsize = c->size;
 	struct cuckoo_slot *oldtab = c->tab;
-	size_t tab_rawsize = oldsize * 2 * sizeof (struct cuckoo_slot);
-	c->tab = Malloc(tab_rawsize);
-	if (c->tab == NULL) {
-		c->tab = oldtab;
-		return ENOMEM;
-	}
-	memset(c->tab, 0, tab_rawsize);
 
-	c->size *= 2;
-	for (int i = 0; i < oldsize; ++i) {
-		struct cuckoo_slot s = oldtab[i];
-		if (s.value != NULL)
-			cuckoo_insert_try(c, &s);
+	int n;
+	for (n = 0; n < MAX_GROWS; ++n) {
+		size_t tab_rawsize = c->size * 2 * sizeof (struct cuckoo_slot);
+		c->tab = Malloc(tab_rawsize);
+		if (c->tab == NULL) {
+			c->tab = oldtab;
+			return ENOMEM;
+		}
+		memset(c->tab, 0, tab_rawsize);
+
+		c->size *= 2;
+		int i;
+		for (i = 0; i < oldsize; ++i) {
+			struct cuckoo_slot s = oldtab[i];
+			if (s.value != NULL && (cuckoo_insert_try(c, &s) != 0))
+				break;
+		}
+
+		if (i == oldsize)
+			break;
+		else
+			Free(c->tab);
+	}
+
+	if (n == MAX_GROWS) {
+		c->tab = oldtab;
+		c->size = oldsize;
+		return EINVAL;
 	}
 
 	Free(oldtab);
-
 	return 0;
 }
 
