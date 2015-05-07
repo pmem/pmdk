@@ -135,7 +135,7 @@ pmemobj_tx_abort(int errnum)
 	struct lane_tx_runtime *lane = tx.section->runtime;
 	struct tx_data *txd = SLIST_FIRST(&lane->tx_entries);
 	txd->errnum = errnum;
-	if (txd->env != NULL)
+	if (!util_is_zeroed(txd->env, sizeof (jmp_buf)))
 		longjmp(txd->env, errnum);
 }
 
