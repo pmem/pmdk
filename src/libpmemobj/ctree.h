@@ -31,24 +31,13 @@
  */
 
 /*
- * pmalloc.h -- internal definitions for persistent malloc
+ * ctree.h -- internal definitions for crit-bit tree
  */
 
-int heap_boot(PMEMobjpool *pop);
-int heap_init(PMEMobjpool *pop);
-int heap_cleanup(PMEMobjpool *pop);
-int heap_check(PMEMobjpool *pop);
+struct ctree;
 
-int pmalloc(PMEMobjpool *pop, uint64_t *off, size_t size);
-int pmalloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
-	void (*constructor)(void *ptr, void *arg), void *arg,
-	uint64_t data_off);
-
-int prealloc(PMEMobjpool *pop, uint64_t *off, size_t size);
-int prealloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
-	void (*constructor)(void *ptr, void *arg), void *arg,
-	uint64_t data_off);
-
-size_t pmalloc_usable_size(PMEMobjpool *pop, uint64_t off);
-int pfree(PMEMobjpool *pop, uint64_t *off);
-int pgrow(PMEMobjpool *pop, uint64_t off, size_t size);
+struct ctree *ctree_new();
+void ctree_delete(struct ctree *t);
+int ctree_insert(struct ctree *t, uint64_t key);
+uint64_t ctree_find(struct ctree *t, uint64_t key);
+uint64_t ctree_remove(struct ctree *t, uint64_t key, int eq);

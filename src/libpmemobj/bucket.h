@@ -31,24 +31,20 @@
  */
 
 /*
- * pmalloc.h -- internal definitions for persistent malloc
+ * bucket.h -- internal definitions for bucket
  */
 
-int heap_boot(PMEMobjpool *pop);
-int heap_init(PMEMobjpool *pop);
-int heap_cleanup(PMEMobjpool *pop);
-int heap_check(PMEMobjpool *pop);
+struct bucket;
 
-int pmalloc(PMEMobjpool *pop, uint64_t *off, size_t size);
-int pmalloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
-	void (*constructor)(void *ptr, void *arg), void *arg,
-	uint64_t data_off);
+struct bucket *bucket_new(size_t unit_size, int unit_max);
+void bucket_delete(struct bucket *b);
 
-int prealloc(PMEMobjpool *pop, uint64_t *off, size_t size);
-int prealloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
-	void (*constructor)(void *ptr, void *arg), void *arg,
-	uint64_t data_off);
-
-size_t pmalloc_usable_size(PMEMobjpool *pop, uint64_t off);
-int pfree(PMEMobjpool *pop, uint64_t *off);
-int pgrow(PMEMobjpool *pop, uint64_t off, size_t size);
+int bucket_is_small(struct bucket *b);
+uint32_t bucket_calc_units(struct bucket *b, size_t size);
+size_t bucket_unit_size(struct bucket *b);
+int bucket_insert_block(struct bucket *b, uint32_t chunk_id, uint32_t zone_id,
+	uint32_t size_idx, uint16_t block_off);
+int bucket_get_block(struct bucket *b, uint32_t *chunk_id, uint32_t *zone_id,
+	uint32_t *size_idx, uint16_t *block_off);
+int bucket_lock(struct bucket *b);
+void bucket_unlock(struct bucket *b);

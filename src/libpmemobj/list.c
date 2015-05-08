@@ -719,14 +719,14 @@ list_insert_new(PMEMobjpool *pop, struct list_head *oob_head,
 	uint64_t sec_off_off = PTR_TO_OFF(pop, &section->obj_offset);
 
 	if (constructor) {
-		if ((errno = pmalloc_construct(pop->heap,
+		if ((errno = pmalloc_construct(pop,
 				&section->obj_offset, size,
 				constructor, arg, DATA_OFFSET))) {
 			LOG(1, "!pmalloc_construct");
 			goto err_pmalloc;
 		}
 	} else {
-		if ((errno = pmalloc(pop->heap, &section->obj_offset,
+		if ((errno = pmalloc(pop, &section->obj_offset,
 				size))) {
 			LOG(1, "!pmalloc");
 			goto err_pmalloc;
@@ -1006,7 +1006,7 @@ list_remove_free(PMEMobjpool *pop, struct list_head *oob_head,
 	 * Don't need to fill next and prev offsets of removing element
 	 * because the element is freed.
 	 */
-	if ((errno = pfree(pop->heap, &section->obj_offset))) {
+	if ((errno = pfree(pop, &section->obj_offset))) {
 		LOG(1, "!pfree");
 		ret = -1;
 	}
@@ -1388,10 +1388,10 @@ list_realloc(PMEMobjpool *pop, struct list_head *oob_head,
 	size_t redo_index = 0;
 	uint64_t obj_doffset = oid->off;
 	uint64_t obj_offset = obj_doffset - DATA_OFFSET;
-	uint64_t old_size = pmalloc_usable_size(pop->heap, obj_offset);
+	uint64_t old_size = pmalloc_usable_size(pop, obj_offset);
 	uint64_t sec_off_off = PTR_TO_OFF(pop, &section->obj_offset);
 
-	if (pgrow(pop->heap, obj_offset, size)) {
+	if (pgrow(pop, obj_offset, size)) {
 		/*
 		 * Realloc in place is not possible so we need to perform
 		 * the following steps:
@@ -1406,7 +1406,7 @@ list_realloc(PMEMobjpool *pop, struct list_head *oob_head,
 		 * 7. Process the redo log.
 		 * 8. Free the old allocation.
 		 */
-		if ((errno = pmalloc(pop->heap, &section->obj_offset, size))) {
+		if ((errno = pmalloc(pop, &section->obj_offset, size))) {
 			LOG(1, "!pmalloc");
 			ret = -1;
 			goto err_unlock;
@@ -1465,7 +1465,7 @@ list_realloc(PMEMobjpool *pop, struct list_head *oob_head,
 		oid->off = new_obj_doffset;
 
 		/* free the old object */
-		if ((errno = pfree(pop->heap, &section->obj_offset))) {
+		if ((errno = pfree(pop, &section->obj_offset))) {
 			LOG(1, "!pfree");
 			ret = -1;
 			goto err_unlock;
@@ -1495,7 +1495,7 @@ list_realloc(PMEMobjpool *pop, struct list_head *oob_head,
 			 * old area when reallocating in place won't be
 			 * made atomically.
 			 */
-			if ((errno = prealloc_construct(pop->heap,
+			if ((errno = prealloc_construct(pop,
 					&section->obj_offset, size,
 					constructor, arg, DATA_OFFSET))) {
 				LOG(1, "!prealloc_construct");
@@ -1503,7 +1503,7 @@ list_realloc(PMEMobjpool *pop, struct list_head *oob_head,
 				goto err_unlock;
 			}
 		} else {
-			if ((errno = prealloc(pop->heap,
+			if ((errno = prealloc(pop,
 					&section->obj_offset, size))) {
 				LOG(1, "!prealloc");
 				ret = -1;
@@ -1618,11 +1618,11 @@ list_realloc_move(PMEMobjpool *pop, struct list_head *oob_head_old,
 	uint64_t obj_offset = obj_doffset - DATA_OFFSET;
 	uint64_t new_obj_doffset = obj_doffset;
 	uint64_t new_obj_offset = obj_offset;
-	uint64_t old_size = pmalloc_usable_size(pop->heap, obj_offset);
+	uint64_t old_size = pmalloc_usable_size(pop, obj_offset);
 	uint64_t sec_off_off = PTR_TO_OFF(pop, &section->obj_offset);
 	int in_place = 0;
 
-	if (pgrow(pop->heap, obj_offset, size)) {
+	if (pgrow(pop, obj_offset, size)) {
 		/*
 		 * Realloc in place is not possible so we need to perform
 		 * the following steps:
@@ -1637,7 +1637,7 @@ list_realloc_move(PMEMobjpool *pop, struct list_head *oob_head_old,
 		 * 7. Process the redo log.
 		 * 8. Free the old allocation.
 		 */
-		if ((errno = pmalloc(pop->heap, &section->obj_offset, size))) {
+		if ((errno = pmalloc(pop, &section->obj_offset, size))) {
 			LOG(1, "!pmalloc");
 			ret = -1;
 			goto err_unlock;
@@ -1683,7 +1683,7 @@ list_realloc_move(PMEMobjpool *pop, struct list_head *oob_head_old,
 			 * old area when reallocating in place won't be
 			 * made atomically.
 			 */
-			if ((errno = prealloc_construct(pop->heap,
+			if ((errno = prealloc_construct(pop,
 					&section->obj_offset, size,
 					constructor, arg, DATA_OFFSET))) {
 				LOG(1, "!prealloc_construct");
@@ -1691,7 +1691,7 @@ list_realloc_move(PMEMobjpool *pop, struct list_head *oob_head_old,
 				goto err_unlock;
 			}
 		} else {
-			if ((errno = prealloc(pop->heap,
+			if ((errno = prealloc(pop,
 					&section->obj_offset, size))) {
 				LOG(1, "!prealloc");
 				ret = -1;
@@ -1768,7 +1768,7 @@ list_realloc_move(PMEMobjpool *pop, struct list_head *oob_head_old,
 		ASSERTne(section->obj_offset, 0);
 
 		/* realloc not in place so free the old object */
-		if ((errno = pfree(pop->heap, &section->obj_offset))) {
+		if ((errno = pfree(pop, &section->obj_offset))) {
 			LOG(1, "!pfree");
 			ret = -1;
 			goto err_unlock;
@@ -1814,7 +1814,7 @@ lane_list_recovery(PMEMobjpool *pop, struct lane_section_layout *section_layout)
 	if (section->obj_size) {
 		/* realloc recovery */
 		if (section->obj_offset) {
-			size_t size = pmalloc_usable_size(pop->heap,
+			size_t size = pmalloc_usable_size(pop,
 					section->obj_offset);
 			if (size != section->obj_size) {
 				/*
@@ -1824,7 +1824,7 @@ lane_list_recovery(PMEMobjpool *pop, struct lane_section_layout *section_layout)
 				 * was performed but the finish flag was not set
 				 * so we need to rollback the realloc.
 				 */
-				if ((ret = prealloc(pop->heap,
+				if ((ret = prealloc(pop,
 						&section->obj_offset, size)))
 					goto err;
 
@@ -1846,7 +1846,7 @@ lane_list_recovery(PMEMobjpool *pop, struct lane_section_layout *section_layout)
 
 	} else if (section->obj_offset) {
 		/* alloc or free recovery */
-		if ((errno = pfree(pop->heap, &section->obj_offset))) {
+		if ((errno = pfree(pop, &section->obj_offset))) {
 			LOG(1, "!pfree");
 			ret = -1;
 		}

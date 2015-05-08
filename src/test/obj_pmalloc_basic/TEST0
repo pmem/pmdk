@@ -42,6 +42,6 @@ export UNITTEST_NUM=0
 
 setup
 
-expect_abnormal_exit ./obj_pmalloc_basic$EXESUFFIX
+expect_normal_exit ./obj_pmalloc_basic$EXESUFFIX
 
 pass
