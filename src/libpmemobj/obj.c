@@ -80,6 +80,28 @@ drain_empty(void)
 }
 
 /*
+ * nopmem_memcpy_persist -- (internal) memcpy followed by an msync
+ */
+static void *
+nopmem_memcpy_persist(void *dest, const void *src, size_t len)
+{
+	memcpy(dest, src, len);
+	pmem_msync(dest, len);
+	return dest;
+}
+
+/*
+ * nopmem_memset_persist -- (internal) memset followed by an msync
+ */
+static void *
+nopmem_memset_persist(void *dest, int c, size_t len)
+{
+	memset(dest, c, len);
+	pmem_msync(dest, len);
+	return dest;
+}
+
+/*
  * pmemobj_get_uuid_lo -- (internal) evaluates XOR sum of least significant
  * 8 bytes with most significant 8 bytes.
  */
@@ -292,10 +314,14 @@ pmemobj_map_common(int fd, const char *layout, size_t poolsize, int rdonly,
 		pop->persist = pmem_persist;
 		pop->flush = pmem_flush;
 		pop->drain = pmem_drain;
+		pop->memcpy = pmem_memcpy_persist;
+		pop->memset = pmem_memset_persist;
 	} else {
 		pop->persist = (persist_fn)pmem_msync;
 		pop->flush = (flush_fn)pmem_msync;
 		pop->drain = drain_empty;
+		pop->memcpy = nopmem_memcpy_persist;
+		pop->memset = nopmem_memset_persist;
 	}
 
 	if ((errno = lane_boot(pop)) != 0) {
