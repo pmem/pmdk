@@ -56,6 +56,8 @@
 typedef void (*persist_fn)(void *, size_t);
 typedef void (*flush_fn)(void *, size_t);
 typedef void (*drain_fn)(void);
+typedef void *(*memcpy_fn)(void *dest, const void *src, size_t len);
+typedef void *(*memset_fn)(void *dest, int c, size_t len);
 
 struct pmemobjpool {
 	struct pool_hdr hdr;	/* memory pool header */
@@ -86,6 +88,8 @@ struct pmemobjpool {
 	persist_fn persist;	/* persist function */
 	flush_fn flush;		/* flush function */
 	drain_fn drain;		/* drain function */
+	memcpy_fn memcpy;	/* memcpy function */
+	memset_fn memset;	/* memset function */
 };
 
 /* single object store item */
