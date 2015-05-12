@@ -41,3 +41,9 @@ struct chunk_header *heap_get_chunk_header(PMEMobjpool *pop,
 	uint32_t chunk_id, uint32_t zone_id);
 void *heap_get_chunk_data(PMEMobjpool *pop,
 	uint32_t chunk_id, uint32_t zone_id);
+struct chunk_header *heap_coalesce(PMEMobjpool *pop,
+	struct chunk_header *chunks[], int n);
+struct chunk_header *heap_get_prev_chunk(PMEMobjpool *pop,
+	uint32_t *chunk_id, uint32_t zone_id);
+struct chunk_header *heap_get_next_chunk(PMEMobjpool *pop,
+	uint32_t *chunk_id, uint32_t zone_id);

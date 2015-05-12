@@ -154,19 +154,39 @@ test_bucket_insert_get()
 	uint16_t block_off = TEST_BLOCK_OFF;
 
 	/* get from empty */
-	ASSERT(bucket_get_block(b, &chunk_id, &zone_id,
+	ASSERT(bucket_get_rm_block_bestfit(b, &chunk_id, &zone_id,
 		&size_idx, &block_off) != 0);
 
 	ASSERT(bucket_insert_block(b, chunk_id, zone_id,
 		size_idx, block_off) == 0);
 
-	ASSERT(bucket_get_block(b, &chunk_id, &zone_id,
+	ASSERT(bucket_get_rm_block_bestfit(b, &chunk_id, &zone_id,
 		&size_idx, &block_off) == 0);
 
 	ASSERT(chunk_id == TEST_CHUNK_ID);
 	ASSERT(zone_id == TEST_ZONE_ID);
 	ASSERT(size_idx == TEST_SIZE_IDX);
 	ASSERT(block_off == TEST_BLOCK_OFF);
+
+	bucket_delete(b);
+}
+
+void
+test_bucket_remove()
+{
+	struct bucket *b = bucket_new(TEST_UNIT_SIZE, TEST_MAX_UNIT);
+	ASSERT(b != NULL);
+
+	uint32_t chunk_id = TEST_CHUNK_ID;
+	uint32_t zone_id = TEST_ZONE_ID;
+	uint32_t size_idx = TEST_SIZE_IDX;
+	uint16_t block_off = TEST_BLOCK_OFF;
+
+	ASSERT(bucket_insert_block(b, chunk_id, zone_id,
+		size_idx, block_off) == 0);
+
+	ASSERT(bucket_get_rm_block_exact(b, chunk_id, zone_id,
+		size_idx, block_off) == 0);
 
 	bucket_delete(b);
 }
@@ -179,6 +199,7 @@ main(int argc, char *argv[])
 	test_new_delete_bucket();
 	test_bucket();
 	test_bucket_insert_get();
+	test_bucket_remove();
 
 	DONE(NULL);
 }
