@@ -121,6 +121,9 @@ TEST = blk_nblock\
        obj_list_valgrind\
        obj_list_recovery\
        obj_tx_flow\
+       obj_tx_alloc\
+       obj_tx_free\
+       obj_tx_add_range\
        obj_ctree\
        obj_bucket\
        obj_heap\

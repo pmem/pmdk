@@ -48,6 +48,7 @@
 #include "obj.h"
 #include "lane.h"
 #include "out.h"
+#include "pmalloc.h"
 
 struct tx_data {
 	SLIST_ENTRY(tx_data) tx_entry;
@@ -74,6 +75,415 @@ struct lane_tx_runtime {
 	SLIST_HEAD(txd, tx_data) tx_entries;
 	SLIST_HEAD(txl, tx_lock_data) tx_locks;
 };
+
+enum tx_state {
+	TX_STATE_NONE = 0,
+	TX_STATE_COMMITTED = 1,
+};
+
+struct lane_tx_layout {
+	uint64_t state;
+	struct list_head undo_alloc;
+	struct list_head undo_free;
+	struct list_head undo_set;
+};
+
+struct tx_alloc_args {
+	PMEMobjpool *pop;
+	int type_num;
+	size_t size;
+};
+
+struct tx_add_range_args {
+	PMEMobjpool *pop;
+	uint64_t offset;
+	uint64_t size;
+};
+
+struct tx_range {
+	uint64_t offset;
+	uint64_t size;
+	uint8_t data[];
+};
+
+/*
+ * constructor_tx_alloc -- (internal) constructor for normal alloc
+ */
+static void
+constructor_tx_alloc(void *ptr, void *arg)
+{
+	LOG(3, NULL);
+
+	ASSERTne(ptr, NULL);
+	ASSERTne(arg, NULL);
+
+	struct tx_alloc_args *args = arg;
+
+	struct oob_header *oobh = OOB_HEADER_FROM_PTR(ptr);
+
+	/*
+	 * no need to flush and persist because this
+	 * will be done in pre commit phase
+	 */
+	oobh->internal_type = 0;
+	oobh->user_type = args->type_num;
+}
+
+/*
+ * constructor_tx_zalloc -- (internal) constructor for zalloc
+ */
+static void
+constructor_tx_zalloc(void *ptr, void *arg)
+{
+	LOG(3, NULL);
+
+	ASSERTne(ptr, NULL);
+	ASSERTne(arg, NULL);
+
+	struct tx_alloc_args *args = arg;
+
+	struct oob_header *oobh = OOB_HEADER_FROM_PTR(ptr);
+
+	/*
+	 * no need to flush and persist because this
+	 * will be done in pre commit phase
+	 */
+	oobh->internal_type = 0;
+	oobh->user_type = args->type_num;
+
+	memset(ptr, 0, args->size);
+}
+
+/*
+ * constructor_tx_add_range -- (internal) constructor for add_range
+ */
+static void
+constructor_tx_add_range(void *ptr, void *arg)
+{
+	LOG(3, NULL);
+
+	ASSERTne(ptr, NULL);
+	ASSERTne(arg, NULL);
+
+	struct tx_add_range_args *args = arg;
+	struct tx_range *range = ptr;
+
+	range->offset = args->offset;
+	range->size = args->size;
+
+	void *src = OBJ_OFF_TO_PTR(args->pop, args->offset);
+
+	/* flush offset and size */
+	args->pop->flush(range, sizeof (struct tx_range));
+	/* memcpy data and persist */
+	args->pop->memcpy_persist(range->data, src, args->size);
+}
+
+/*
+ * tx_set_state -- (internal) set transaction state
+ */
+static inline void
+tx_set_state(PMEMobjpool *pop, struct lane_tx_layout *layout, uint64_t state)
+{
+	layout->state = state;
+	pop->persist(&layout->state, sizeof (layout->state));
+}
+
+/*
+ * tx_clear_undo_log -- (internal) clear undo log pointed by head
+ */
+static int
+tx_clear_undo_log(PMEMobjpool *pop, struct list_head *head)
+{
+	LOG(3, NULL);
+
+	int ret;
+	PMEMoid obj;
+	while (!OBJ_LIST_EMPTY(head)) {
+		obj = head->pe_first;
+
+		/* remove and free all elements from undo log */
+		ret = list_remove_free(pop, head,
+				0, NULL, obj);
+
+		ASSERTeq(ret, 0);
+		if (ret) {
+			LOG(2, "list_remove_free failed");
+			return ret;
+		}
+	}
+
+	return 0;
+}
+
+/*
+ * tx_abort_alloc -- (internal) abort all allocated objects
+ */
+static int
+tx_abort_alloc(PMEMobjpool *pop, struct lane_tx_layout *layout)
+{
+	LOG(3, NULL);
+
+	return tx_clear_undo_log(pop, &layout->undo_alloc);
+}
+
+/*
+ * tx_abort_free -- (internal) abort all freeing objects
+ */
+static int
+tx_abort_free(PMEMobjpool *pop, struct lane_tx_layout *layout)
+{
+	LOG(3, NULL);
+
+	int ret;
+	PMEMoid obj;
+	while (!OBJ_LIST_EMPTY(&layout->undo_free)) {
+		obj = layout->undo_free.pe_first;
+
+		struct oob_header *oobh = OOB_HEADER_FROM_OID(pop, obj);
+		ASSERT(oobh->user_type < _POBJ_MAX_OID_TYPE_NUM);
+
+		struct object_store_item *obj_list =
+			&pop->store->bytype[oobh->user_type];
+
+		/* move all objects back to object store */
+		ret = list_move_oob(pop,
+				&layout->undo_free, &obj_list->head, obj);
+
+		ASSERTeq(ret, 0);
+		if (ret) {
+			LOG(2, "list_move_oob failed");
+			return ret;
+		}
+	}
+
+	return 0;
+}
+
+/*
+ * tx_abort_set -- (internal) abort all set operations
+ */
+static int
+tx_abort_set(PMEMobjpool *pop, struct lane_tx_layout *layout)
+{
+	LOG(3, NULL);
+
+	int ret;
+	PMEMoid obj;
+	while (!OBJ_OID_IS_NULL((obj = oob_list_last(pop,
+					&layout->undo_set)))) {
+		struct tx_range *range = OBJ_OFF_TO_PTR(pop, obj.off);
+		void *dst_ptr = OBJ_OFF_TO_PTR(pop, range->offset);
+
+		/* restore data from snapshot */
+		pop->memcpy_persist(dst_ptr, range->data, range->size);
+
+		/* remove snapshot from undo log */
+		ret = list_remove_free(pop, &layout->undo_set, 0, NULL, obj);
+
+		ASSERTeq(ret, 0);
+		if (ret) {
+			LOG(2, "list_remove_free failed");
+			return ret;
+		}
+	}
+
+	return 0;
+}
+
+/*
+ * tx_pre_commit_alloc -- (internal) do pre commit operations for
+ * allocated objects
+ */
+static void
+tx_pre_commit_alloc(PMEMobjpool *pop, struct lane_tx_layout *layout)
+{
+	LOG(3, NULL);
+
+	PMEMoid iter;
+	for (iter = layout->undo_alloc.pe_first; !OBJ_OID_IS_NULL(iter);
+		iter = oob_list_next(pop,
+			&layout->undo_alloc, iter)) {
+
+		struct oob_header *oobh = OOB_HEADER_FROM_OID(pop, iter);
+
+		/*
+		 * Set object as allocated.
+		 * This must be done in pre commit phase instead of at
+		 * allocation time in order to handle properly the case when
+		 * the object is allocated and freed in the same transaction.
+		 * In such case we need to know that the object
+		 * is on undo log list and not in object store.
+		 */
+		oobh->internal_type = OP_ALLOC;
+
+		size_t size = pmalloc_usable_size(pop,
+				iter.off - OBJ_OOB_OFFSET);
+
+		/* flush and persist the whole allocated area and oob header */
+		pop->persist(oobh, size);
+	}
+}
+
+/*
+ * tx_pre_commit_set -- (internal) do pre commit operations for
+ * set operations
+ */
+static void
+tx_pre_commit_set(PMEMobjpool *pop, struct lane_tx_layout *layout)
+{
+	LOG(3, NULL);
+
+	PMEMoid iter;
+	for (iter = layout->undo_set.pe_first; !OBJ_OID_IS_NULL(iter);
+		iter = oob_list_next(pop, &layout->undo_set, iter)) {
+
+		struct tx_range *range = OBJ_OFF_TO_PTR(pop, iter.off);
+		void *ptr = OBJ_OFF_TO_PTR(pop, range->offset);
+
+		/* flush and persist modified area */
+		pop->persist(ptr, range->size);
+	}
+}
+
+/*
+ * tx_post_commit_alloc -- (internal) do post commit operations for
+ * allocated objects
+ */
+static int
+tx_post_commit_alloc(PMEMobjpool *pop, struct lane_tx_layout *layout)
+{
+	LOG(3, NULL);
+
+	PMEMoid obj;
+	int ret;
+	while (!OBJ_LIST_EMPTY(&layout->undo_alloc)) {
+		obj = layout->undo_alloc.pe_first;
+
+		struct oob_header *oobh = OOB_HEADER_FROM_OID(pop, obj);
+		ASSERT(oobh->user_type < _POBJ_MAX_OID_TYPE_NUM);
+
+		struct object_store_item *obj_list =
+			&pop->store->bytype[oobh->user_type];
+
+		/* move object to object store */
+		ret = list_move_oob(pop,
+				&layout->undo_alloc, &obj_list->head, obj);
+
+		ASSERTeq(ret, 0);
+		if (ret) {
+			LOG(2, "list_move_oob failed");
+			return ret;
+		}
+	}
+
+	return 0;
+}
+
+/*
+ * tx_post_commit_free -- (internal) do post commit operations for
+ * freeing objects
+ */
+static int
+tx_post_commit_free(PMEMobjpool *pop, struct lane_tx_layout *layout)
+{
+	LOG(3, NULL);
+
+	return tx_clear_undo_log(pop, &layout->undo_free);
+}
+
+/*
+ * tx_post_commit_set -- (internal) do post commit operations for
+ * add range
+ */
+static int
+tx_post_commit_set(PMEMobjpool *pop, struct lane_tx_layout *layout)
+{
+	LOG(3, NULL);
+
+	return tx_clear_undo_log(pop, &layout->undo_set);
+}
+
+/*
+ * tx_pre_commit -- (internal) do pre commit operations
+ */
+static void
+tx_pre_commit(PMEMobjpool *pop, struct lane_tx_layout *layout)
+{
+	LOG(3, NULL);
+
+	tx_pre_commit_set(pop, layout);
+	tx_pre_commit_alloc(pop, layout);
+}
+
+/*
+ * tx_post_commit -- (internal) do post commit operations
+ */
+static int
+tx_post_commit(PMEMobjpool *pop, struct lane_tx_layout *layout)
+{
+	LOG(3, NULL);
+
+	int ret;
+
+	ret = tx_post_commit_set(pop, layout);
+	ASSERTeq(ret, 0);
+	if (ret) {
+		LOG(2, "tx_post_commit_set failed");
+		return ret;
+	}
+
+	ret = tx_post_commit_alloc(pop, layout);
+	ASSERTeq(ret, 0);
+	if (ret) {
+		LOG(2, "tx_post_commit_alloc failed");
+		return ret;
+	}
+
+	ret = tx_post_commit_free(pop, layout);
+	ASSERTeq(ret, 0);
+	if (ret) {
+		LOG(2, "tx_post_commit_free failed");
+		return ret;
+	}
+
+	return 0;
+}
+
+
+/*
+ * tx_abort -- (internal) abort all allocated objects
+ */
+static int
+tx_abort(PMEMobjpool *pop, struct lane_tx_layout *layout)
+{
+	LOG(3, NULL);
+
+	int ret;
+
+	ret = tx_abort_set(pop, layout);
+	ASSERTeq(ret, 0);
+	if (ret) {
+		LOG(2, "tx_abort_set failed");
+		return ret;
+	}
+
+	ret = tx_abort_alloc(pop, layout);
+	ASSERTeq(ret, 0);
+	if (ret) {
+		LOG(2, "tx_abort_alloc failed");
+		return ret;
+	}
+
+	ret = tx_abort_free(pop, layout);
+	ASSERTeq(ret, 0);
+	if (ret) {
+		LOG(2, "tx_abort_free failed");
+		return ret;
+	}
+
+	return 0;
+}
 
 /*
  * add_to_tx_and_lock -- (internal) add lock to the transaction and acquire it
@@ -149,6 +559,54 @@ release_and_free_tx_locks(struct lane_tx_runtime *lane)
 		}
 		Free(tx_lock);
 	}
+}
+
+/*
+ * tx_alloc_common -- (internal) common function for alloc and zalloc
+ */
+static PMEMoid
+tx_alloc_common(size_t size, int type_num,
+	void (*constructor)(void *ptr, void *arg))
+{
+	LOG(3, NULL);
+
+	if (tx.stage != TX_STAGE_WORK) {
+		LOG(1, "invalid stage");
+		errno = EINVAL;
+		return OID_NULL;
+	}
+
+	if (type_num < 0 || type_num >= _POBJ_MAX_OID_TYPE_NUM) {
+		LOG(1, "invalid type_num %d", type_num);
+		errno = EINVAL;
+		pmemobj_tx_abort(EINVAL);
+		return OID_NULL;
+	}
+
+	struct lane_tx_runtime *lane =
+		(struct lane_tx_runtime *)tx.section->runtime;
+
+	struct lane_tx_layout *layout =
+		(struct lane_tx_layout *)tx.section->layout;
+
+	struct tx_alloc_args args = {
+		.pop = lane->pop,
+		.type_num = type_num,
+		.size = size,
+	};
+
+	/* allocate object to undo log */
+	PMEMoid ret = list_insert_new(lane->pop, &layout->undo_alloc,
+			0, NULL, OID_NULL, 0,
+			size, constructor, &args);
+
+	if (OBJ_OID_IS_NULL(ret)) {
+		LOG(1, "out of memory");
+		errno = ENOMEM;
+		pmemobj_tx_abort(ENOMEM);
+	}
+
+	return ret;
 }
 
 /*
@@ -238,11 +696,20 @@ pmemobj_tx_abort(int errnum)
 	ASSERT(tx.section != NULL);
 	ASSERT(tx.stage == TX_STAGE_WORK);
 
-	/* XXX undo log */
-
 	tx.stage = TX_STAGE_ONABORT;
 	struct lane_tx_runtime *lane = tx.section->runtime;
 	struct tx_data *txd = SLIST_FIRST(&lane->tx_entries);
+
+	if (SLIST_NEXT(txd, tx_entry) == NULL) {
+		/* this is the outermost transaction */
+
+		struct lane_tx_layout *layout =
+			(struct lane_tx_layout *)tx.section->layout;
+
+		/* process the undo log */
+		tx_abort(lane->pop, layout);
+	}
+
 	txd->errnum = errnum;
 	if (!util_is_zeroed(txd->env, sizeof (jmp_buf)))
 		longjmp(txd->env, errnum);
@@ -255,14 +722,43 @@ int
 pmemobj_tx_commit()
 {
 	LOG(3, NULL);
+	int ret = 0;
 
 	ASSERT(tx.section != NULL);
 	ASSERT(tx.stage == TX_STAGE_WORK);
 
-	/* XXX undo log */
+	struct lane_tx_runtime *lane =
+		(struct lane_tx_runtime *)tx.section->runtime;
+	struct tx_data *txd = SLIST_FIRST(&lane->tx_entries);
+
+	if (SLIST_NEXT(txd, tx_entry) == NULL) {
+		/* this is the outermost transaction */
+
+		struct lane_tx_layout *layout =
+			(struct lane_tx_layout *)tx.section->layout;
+
+		/* pre commit phase */
+		tx_pre_commit(lane->pop, layout);
+
+		/* set transaction state as committed */
+		tx_set_state(lane->pop, layout, TX_STATE_COMMITTED);
+
+		/* post commit phase */
+		ret = tx_post_commit(lane->pop, layout);
+		ASSERTeq(ret, 0);
+
+		if (!ret) {
+			/* clear transaction state */
+			tx_set_state(lane->pop, layout, TX_STATE_NONE);
+		} else {
+			/* XXX need to handle this case somehow */
+			LOG(2, "tx_post_commit failed");
+		}
+	}
 
 	tx.stage = TX_STAGE_ONCOMMIT;
-	return 0;
+
+	return ret;
 }
 
 /*
@@ -284,8 +780,20 @@ pmemobj_tx_end()
 	SLIST_REMOVE_HEAD(&lane->tx_entries, tx_entry);
 	int errnum = txd->errnum;
 	Free(txd);
+
 	if (SLIST_EMPTY(&lane->tx_entries)) {
 		/* this is the outermost transaction */
+		struct lane_tx_layout *layout =
+			(struct lane_tx_layout *)tx.section->layout;
+
+		/* the transaction state and undo log should be clear */
+		ASSERTeq(layout->state, TX_STATE_NONE);
+		if (layout->state != TX_STATE_NONE)
+			LOG(2, "invalid transaction state");
+
+		ASSERT(OBJ_LIST_EMPTY(&layout->undo_alloc));
+		if (!OBJ_LIST_EMPTY(&layout->undo_alloc))
+			LOG(2, "allocations undo log is not empty");
 
 		tx.stage = TX_STAGE_NONE;
 		release_and_free_tx_locks(lane);
@@ -344,7 +852,44 @@ pmemobj_tx_add_range(PMEMoid oid, uint64_t hoff, size_t size)
 		return EINVAL;
 	}
 
-	/* XXX */
+	struct lane_tx_runtime *lane =
+		(struct lane_tx_runtime *)tx.section->runtime;
+
+	if (oid.pool_uuid_lo != lane->pop->uuid_lo) {
+		LOG(1, "invalid pool uuid");
+		pmemobj_tx_abort(EINVAL);
+
+		return EINVAL;
+	}
+
+	struct oob_header *oobh = OOB_HEADER_FROM_OID(lane->pop, oid);
+
+	/*
+	 * If internal type is not equal to OP_ALLOC it means
+	 * the object was allocated within this transaction
+	 * and there is no need to create a snapshot.
+	 */
+	if (oobh->internal_type == OP_ALLOC) {
+		struct lane_tx_layout *layout =
+			(struct lane_tx_layout *)tx.section->layout;
+
+		struct tx_add_range_args args = {
+			.pop = lane->pop,
+			.offset = oid.off + hoff,
+			.size = size
+		};
+
+		/* insert snapshot to undo log */
+		PMEMoid snapshot = list_insert_new(lane->pop, &layout->undo_set,
+				0, NULL, OID_NULL, 0,
+				size + sizeof (struct tx_range),
+				constructor_tx_add_range, &args);
+
+		ASSERT(!OBJ_OID_IS_NULL(snapshot));
+
+		return OBJ_OID_IS_NULL(snapshot);
+	}
+
 	return 0;
 }
 
@@ -356,17 +901,7 @@ pmemobj_tx_alloc(size_t size, int type_num)
 {
 	LOG(3, NULL);
 
-	if (tx.stage != TX_STAGE_WORK) {
-		LOG(1, "invalid stage");
-		errno = EINVAL;
-		return OID_NULL;
-	}
-
-	PMEMoid poid = OID_NULL;
-
-	/* XXX */
-
-	return poid;
+	return tx_alloc_common(size, type_num, constructor_tx_alloc);
 }
 
 /*
@@ -377,17 +912,7 @@ pmemobj_tx_zalloc(size_t size, int type_num)
 {
 	LOG(3, NULL);
 
-	if (tx.stage != TX_STAGE_WORK) {
-		LOG(1, "invalid stage");
-		errno = EINVAL;
-		return OID_NULL;
-	}
-
-	PMEMoid poid = OID_NULL;
-
-	/* XXX */
-
-	return poid;
+	return tx_alloc_common(size, type_num, constructor_tx_zalloc);
 }
 
 /*
@@ -464,12 +989,45 @@ pmemobj_tx_free(PMEMoid oid)
 
 	if (tx.stage != TX_STAGE_WORK) {
 		LOG(1, "invalid stage");
+		errno = EINVAL;
 		return EINVAL;
 	}
 
-	/* XXX */
+	if (OBJ_OID_IS_NULL(oid))
+		return 0;
 
-	return 0;
+	struct lane_tx_runtime *lane =
+		(struct lane_tx_runtime *)tx.section->runtime;
+
+	if (lane->pop->uuid_lo != oid.pool_uuid_lo) {
+		LOG(1, "invalid pool uuid");
+		errno = EINVAL;
+		pmemobj_tx_abort(EINVAL);
+		return EINVAL;
+	}
+
+	struct lane_tx_layout *layout =
+		(struct lane_tx_layout *)tx.section->layout;
+
+	struct oob_header *oobh = OOB_HEADER_FROM_OID(lane->pop, oid);
+	ASSERT(oobh->user_type < _POBJ_MAX_OID_TYPE_NUM);
+
+	if (oobh->internal_type == OP_ALLOC) {
+		/* the object is in object store */
+		struct object_store_item *obj_list =
+			&lane->pop->store->bytype[oobh->user_type];
+
+		return list_move_oob(lane->pop, &obj_list->head,
+				&layout->undo_free, oid);
+	} else {
+		ASSERTeq(oobh->internal_type, 0);
+		/*
+		 * The object has been allocated within the same transaction
+		 * so we can just remove and free the object from undo log.
+		 */
+		return list_remove_free(lane->pop, &layout->undo_alloc,
+				0, NULL, oid);
+	}
 }
 
 /*
@@ -503,9 +1061,27 @@ static int
 lane_transaction_recovery(PMEMobjpool *pop,
 	struct lane_section_layout *section)
 {
-	/* XXX */
+	struct lane_tx_layout *layout = (struct lane_tx_layout *)section;
+	int ret = 0;
 
-	return 0;
+	if (layout->state == TX_STATE_COMMITTED) {
+		/*
+		 * The transaction has been committed so we have to
+		 * process the undo log, do the post commit phase
+		 * and clear the transaction state.
+		 */
+		ret = tx_post_commit(pop, layout);
+		if (!ret) {
+			tx_set_state(pop, layout, TX_STATE_NONE);
+		} else {
+			LOG(1, "tx_post_commit failed");
+		}
+	} else {
+		/* process undo log and restore all operations */
+		tx_abort(pop, layout);
+	}
+
+	return ret;
 }
 
 /*
@@ -516,7 +1092,6 @@ lane_transaction_check(PMEMobjpool *pop,
 	struct lane_section_layout *section)
 {
 	/* XXX */
-
 	return 0;
 }
 
