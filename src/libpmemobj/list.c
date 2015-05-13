@@ -47,16 +47,13 @@
 #include "obj.h"
 #include "out.h"
 
-#define	DATA_OFFSET	(sizeof (struct oob_header))
 #define	REDO_NUM_ENTRIES \
 ((LANE_SECTION_LEN - 2 * sizeof (uint64_t)) / sizeof (struct redo_log))
-#define	PTR_TO_OFF(pop, ptr)	((uintptr_t)(ptr) - (uintptr_t)(pop))
-#define	OFF_TO_PTR(pop, off)	((void *)((uintptr_t)(pop) + (off)))
 #define	PREV_OFF (offsetof(struct list_entry, pe_prev) + offsetof(PMEMoid, off))
 #define	NEXT_OFF (offsetof(struct list_entry, pe_next) + offsetof(PMEMoid, off))
 #define	OOB_ENTRY_OFF (offsetof(struct oob_header, oob))
 #define	OOB_ENTRY_OFF_REV \
-((ssize_t)offsetof(struct oob_header, oob) - DATA_OFFSET)
+((ssize_t)offsetof(struct oob_header, oob) - OBJ_OOB_OFFSET)
 
 /*
  * lane_list_section -- structure of list section in lane
@@ -198,7 +195,7 @@ list_get_dest(PMEMobjpool *pop, struct list_head *head, PMEMoid dest,
 	if (head->pe_first.off == 0 || before)
 		return head->pe_first;
 
-	struct list_entry *first_ptr = (struct list_entry *)OFF_TO_PTR(pop,
+	struct list_entry *first_ptr = (struct list_entry *)OBJ_OFF_TO_PTR(pop,
 			head->pe_first.off + pe_offset);
 
 	return first_ptr->pe_prev;
@@ -214,13 +211,13 @@ list_update_head(PMEMobjpool *pop,
 {
 	LOG(15, NULL);
 
-	uint64_t pe_first_off_off = PTR_TO_OFF(pop, &head->pe_first.off);
+	uint64_t pe_first_off_off = OBJ_PTR_TO_OFF(pop, &head->pe_first.off);
 
 	redo_log_store(pop, redo, redo_index + 0,
 			pe_first_off_off, first_offset);
 
 	if (head->pe_first.pool_uuid_lo == 0) {
-		uint64_t pe_first_uuid_off = PTR_TO_OFF(pop,
+		uint64_t pe_first_uuid_off = OBJ_PTR_TO_OFF(pop,
 				&head->pe_first.pool_uuid_lo);
 
 		redo_log_store(pop, redo, redo_index + 1,
@@ -321,7 +318,7 @@ list_set_user_field(PMEMobjpool *pop,
 		uint64_t new_field_offset = field_offset -
 			old_offset + new_offset;
 
-		uint64_t *field = OFF_TO_PTR(pop, new_field_offset);
+		uint64_t *field = OBJ_OFF_TO_PTR(pop, new_field_offset);
 		*field = field_value;
 
 		return redo_index;
@@ -554,18 +551,18 @@ list_insert_oob(PMEMobjpool *pop, struct redo_log *redo, size_t redo_index,
 	} else {
 		/* inserting at the last position */
 		struct list_entry *first_ptr =
-			(struct list_entry *)OFF_TO_PTR(pop,
+			(struct list_entry *)OBJ_OFF_TO_PTR(pop,
 					oob_head->pe_first.off -
-					DATA_OFFSET + OOB_ENTRY_OFF);
+					OBJ_OOB_OFFSET + OOB_ENTRY_OFF);
 
 		/* current->next = first and current->prev = first->prev */
 		*next_offset = oob_head->pe_first.off;
 		*prev_offset = first_ptr->pe_prev.off;
 
 		uint64_t first_prev_off = oob_head->pe_first.off -
-			DATA_OFFSET + OOB_ENTRY_OFF + PREV_OFF;
+			OBJ_OOB_OFFSET + OOB_ENTRY_OFF + PREV_OFF;
 		uint64_t first_prev_next_off = first_ptr->pe_prev.off -
-			DATA_OFFSET + OOB_ENTRY_OFF + NEXT_OFF;
+			OBJ_OOB_OFFSET + OOB_ENTRY_OFF + NEXT_OFF;
 
 		redo_log_store(pop, redo, redo_index + 0,
 				first_prev_off, obj_offset);
@@ -588,16 +585,16 @@ list_realloc_replace(PMEMobjpool *pop,
 	void (*constructor)(void *ptr, void *arg), void *arg,
 	uint64_t field_offset, uint64_t field_value)
 {
-	uint64_t obj_doffset = obj_offset + DATA_OFFSET;
-	uint64_t new_obj_doffset = new_obj_offset + DATA_OFFSET;
+	uint64_t obj_doffset = obj_offset + OBJ_OOB_OFFSET;
+	uint64_t new_obj_doffset = new_obj_offset + OBJ_OOB_OFFSET;
 
 	/* copy old data */
-	memcpy(OFF_TO_PTR(pop, new_obj_offset),
-		OFF_TO_PTR(pop, obj_offset), old_size);
+	memcpy(OBJ_OFF_TO_PTR(pop, new_obj_offset),
+		OBJ_OFF_TO_PTR(pop, obj_offset), old_size);
 
 	if (constructor) {
 		/* call the constructor manually */
-		void *ptr = OFF_TO_PTR(pop, new_obj_doffset);
+		void *ptr = OBJ_OFF_TO_PTR(pop, new_obj_doffset);
 		constructor(ptr, arg);
 	}
 
@@ -619,15 +616,15 @@ list_realloc_replace(PMEMobjpool *pop,
 	 * Persist the copied and modified data. The caller
 	 * is responsible to persist modified data in extended area.
 	 */
-	pop->persist(OFF_TO_PTR(pop, new_obj_offset), old_size);
+	pop->persist(OBJ_OFF_TO_PTR(pop, new_obj_offset), old_size);
 
 	if (head) {
 		struct list_entry *entry_ptr =
-			(struct list_entry *)OFF_TO_PTR(pop,
+			(struct list_entry *)OBJ_OFF_TO_PTR(pop,
 					obj_doffset + pe_offset);
 
 		struct list_entry *new_entry_ptr =
-			(struct list_entry *)OFF_TO_PTR(pop,
+			(struct list_entry *)OBJ_OFF_TO_PTR(pop,
 					new_obj_doffset + pe_offset);
 
 		struct list_args_reinsert args_reinsert = {
@@ -667,7 +664,7 @@ list_realloc_replace(PMEMobjpool *pop,
  * head        - user list head
  * dest        - destination on user list
  * before      - insert before/after destination on user list
- * size        - size of allocation, will be increased by DATA_OFFSET
+ * size        - size of allocation, will be increased by OBJ_OOB_OFFSET
  * constructor - object's constructor
  * arg         - argument for object's constructor
  */
@@ -711,17 +708,17 @@ list_insert_new(PMEMobjpool *pop, struct list_head *oob_head,
 	}
 
 	/* increase allocation size by oob header size */
-	size += DATA_OFFSET;
+	size += OBJ_OOB_OFFSET;
 	struct lane_list_section *section =
 		(struct lane_list_section *)lane_section->layout;
 	struct redo_log *redo = section->redo;
 	size_t redo_index = 0;
-	uint64_t sec_off_off = PTR_TO_OFF(pop, &section->obj_offset);
+	uint64_t sec_off_off = OBJ_PTR_TO_OFF(pop, &section->obj_offset);
 
 	if (constructor) {
 		if ((errno = pmalloc_construct(pop,
 				&section->obj_offset, size,
-				constructor, arg, DATA_OFFSET))) {
+				constructor, arg, OBJ_OOB_OFFSET))) {
 			LOG(1, "!pmalloc_construct");
 			goto err_pmalloc;
 		}
@@ -734,9 +731,10 @@ list_insert_new(PMEMobjpool *pop, struct list_head *oob_head,
 	}
 
 	uint64_t obj_offset = section->obj_offset;
-	uint64_t obj_doffset = obj_offset + DATA_OFFSET;
+	uint64_t obj_doffset = obj_offset + OBJ_OOB_OFFSET;
 
-	struct list_entry *oob_entry_ptr = (struct list_entry *)OFF_TO_PTR(pop,
+	struct list_entry *oob_entry_ptr =
+		(struct list_entry *)OBJ_OFF_TO_PTR(pop,
 			obj_offset + OOB_ENTRY_OFF);
 
 	uint64_t oob_next_off;
@@ -753,11 +751,11 @@ list_insert_new(PMEMobjpool *pop, struct list_head *oob_head,
 		dest = list_get_dest(pop, head, dest, pe_offset, before);
 
 		struct list_entry *entry_ptr =
-			(struct list_entry *)OFF_TO_PTR(pop,
+			(struct list_entry *)OBJ_OFF_TO_PTR(pop,
 					obj_doffset + pe_offset);
 
 		struct list_entry *dest_entry_ptr =
-			(struct list_entry *)OFF_TO_PTR(pop,
+			(struct list_entry *)OBJ_OFF_TO_PTR(pop,
 					dest.off + pe_offset);
 
 		struct list_args_insert args = {
@@ -861,11 +859,11 @@ list_insert(PMEMobjpool *pop,
 	dest = list_get_dest(pop, head, dest, pe_offset, before);
 
 	struct list_entry *entry_ptr =
-		(struct list_entry *)OFF_TO_PTR(pop,
+		(struct list_entry *)OBJ_OFF_TO_PTR(pop,
 				oid.off + pe_offset);
 
 	struct list_entry *dest_entry_ptr =
-		(struct list_entry *)OFF_TO_PTR(pop,
+		(struct list_entry *)OBJ_OFF_TO_PTR(pop,
 				dest.off + pe_offset);
 
 	struct list_args_insert args = {
@@ -960,15 +958,15 @@ list_remove_free(PMEMobjpool *pop, struct list_head *oob_head,
 
 	struct lane_list_section *section =
 		(struct lane_list_section *)lane_section->layout;
-	uint64_t sec_off_off = PTR_TO_OFF(pop, &section->obj_offset);
+	uint64_t sec_off_off = OBJ_PTR_TO_OFF(pop, &section->obj_offset);
 	struct redo_log *redo = section->redo;
 	size_t redo_index = 0;
 
 	uint64_t obj_doffset = oid.off;
-	uint64_t obj_offset = obj_doffset - DATA_OFFSET;
+	uint64_t obj_offset = obj_doffset - OBJ_OOB_OFFSET;
 
 	struct list_entry *oob_entry_ptr =
-		(struct list_entry *)OFF_TO_PTR(pop,
+		(struct list_entry *)OBJ_OFF_TO_PTR(pop,
 				obj_offset + OOB_ENTRY_OFF);
 
 	struct list_args_remove oob_args = {
@@ -983,7 +981,7 @@ list_remove_free(PMEMobjpool *pop, struct list_head *oob_head,
 
 	if (head) {
 		struct list_entry *entry_ptr =
-			(struct list_entry *)OFF_TO_PTR(pop,
+			(struct list_entry *)OBJ_OFF_TO_PTR(pop,
 					obj_doffset + pe_offset);
 
 		struct list_args_remove args = {
@@ -1071,7 +1069,7 @@ list_remove(PMEMobjpool *pop,
 	size_t redo_index = 0;
 
 	struct list_entry *entry_ptr =
-		(struct list_entry *)OFF_TO_PTR(pop,
+		(struct list_entry *)OBJ_OFF_TO_PTR(pop,
 				oid.off + pe_offset);
 
 	struct list_args_remove args = {
@@ -1158,10 +1156,10 @@ list_move_oob(PMEMobjpool *pop,
 	size_t redo_index = 0;
 
 	uint64_t obj_doffset = oid.off;
-	uint64_t obj_offset = obj_doffset - DATA_OFFSET;
+	uint64_t obj_offset = obj_doffset - OBJ_OOB_OFFSET;
 
 	struct list_entry *entry_ptr =
-		(struct list_entry *)OFF_TO_PTR(pop, obj_offset
+		(struct list_entry *)OBJ_OFF_TO_PTR(pop, obj_offset
 				+ OOB_ENTRY_OFF);
 
 	struct list_args_remove args_remove = {
@@ -1262,15 +1260,15 @@ list_move(PMEMobjpool *pop,
 	dest = list_get_dest(pop, head_new, dest, pe_offset_new, before);
 
 	struct list_entry *entry_ptr_old =
-		(struct list_entry *)OFF_TO_PTR(pop,
+		(struct list_entry *)OBJ_OFF_TO_PTR(pop,
 				oid.off + pe_offset_old);
 
 	struct list_entry *entry_ptr_new =
-		(struct list_entry *)OFF_TO_PTR(pop,
+		(struct list_entry *)OBJ_OFF_TO_PTR(pop,
 				oid.off + pe_offset_new);
 
 	struct list_entry *dest_entry_ptr =
-		(struct list_entry *)OFF_TO_PTR(pop,
+		(struct list_entry *)OBJ_OFF_TO_PTR(pop,
 				dest.off + pe_offset_new);
 
 	struct list_args_remove args_remove = {
@@ -1332,7 +1330,7 @@ err:
  * oob_head     - oob list head
  * pe_offset    - offset to list entry on user list relative to user data
  * head         - user list head
- * size         - size of allocation, will be increased by DATA_OFFSET
+ * size         - size of allocation, will be increased by OBJ_OOB_OFFSET
  * constructor  - object's constructor
  * arg          - argument for object's constructor
  * field_offset - offset to user's field
@@ -1381,15 +1379,15 @@ list_realloc(PMEMobjpool *pop, struct list_head *oob_head,
 	}
 
 	/* increase allocation size by oob header size */
-	size += DATA_OFFSET;
+	size += OBJ_OOB_OFFSET;
 	struct lane_list_section *section =
 		(struct lane_list_section *)lane_section->layout;
 	struct redo_log *redo = section->redo;
 	size_t redo_index = 0;
 	uint64_t obj_doffset = oid->off;
-	uint64_t obj_offset = obj_doffset - DATA_OFFSET;
+	uint64_t obj_offset = obj_doffset - OBJ_OOB_OFFSET;
 	uint64_t old_size = pmalloc_usable_size(pop, obj_offset);
-	uint64_t sec_off_off = PTR_TO_OFF(pop, &section->obj_offset);
+	uint64_t sec_off_off = OBJ_PTR_TO_OFF(pop, &section->obj_offset);
 
 	if (pgrow(pop, obj_offset, size)) {
 		/*
@@ -1413,7 +1411,7 @@ list_realloc(PMEMobjpool *pop, struct list_head *oob_head,
 		}
 
 		uint64_t new_obj_offset = section->obj_offset;
-		uint64_t new_obj_doffset = new_obj_offset + DATA_OFFSET;
+		uint64_t new_obj_doffset = new_obj_offset + OBJ_OOB_OFFSET;
 
 		redo_index = list_realloc_replace(pop,
 				redo, redo_index,
@@ -1423,11 +1421,11 @@ list_realloc(PMEMobjpool *pop, struct list_head *oob_head,
 				field_offset, field_value);
 
 		struct list_entry *oob_entry_ptr =
-			(struct list_entry *)OFF_TO_PTR(pop,
+			(struct list_entry *)OBJ_OFF_TO_PTR(pop,
 					obj_offset + OOB_ENTRY_OFF);
 
 		struct list_entry *oob_new_entry_ptr =
-			(struct list_entry *)OFF_TO_PTR(pop,
+			(struct list_entry *)OBJ_OFF_TO_PTR(pop,
 					new_obj_offset + OOB_ENTRY_OFF);
 
 		struct list_args_reinsert oob_args_reinsert = {
@@ -1497,7 +1495,7 @@ list_realloc(PMEMobjpool *pop, struct list_head *oob_head,
 			 */
 			if ((errno = prealloc_construct(pop,
 					&section->obj_offset, size,
-					constructor, arg, DATA_OFFSET))) {
+					constructor, arg, OBJ_OOB_OFFSET))) {
 				LOG(1, "!prealloc_construct");
 				ret = -1;
 				goto err_unlock;
@@ -1511,7 +1509,7 @@ list_realloc(PMEMobjpool *pop, struct list_head *oob_head,
 			}
 		}
 
-		uint64_t sec_size_off = PTR_TO_OFF(pop, &section->obj_size);
+		uint64_t sec_size_off = OBJ_PTR_TO_OFF(pop, &section->obj_size);
 
 		/* clear offset and size field in lane section */
 		redo_log_store(pop, redo, 0, sec_size_off, 0);
@@ -1556,7 +1554,7 @@ err_oob_lock:
  * oob_head_new - new oob list head
  * pe_offset    - offset to list entry on user list relative to user data
  * head         - user list head
- * size         - size of allocation, will be increased by DATA_OFFSET
+ * size         - size of allocation, will be increased by OBJ_OOB_OFFSET
  * constructor  - object's constructor
  * arg          - argument for object's constructor
  * field_offset - offset to user's field
@@ -1590,7 +1588,7 @@ list_realloc_move(PMEMobjpool *pop, struct list_head *oob_head_old,
 	ASSERTne(lane_section->layout, NULL);
 
 	/* increase allocation size by oob header size */
-	size += DATA_OFFSET;
+	size += OBJ_OOB_OFFSET;
 	struct lane_list_section *section =
 		(struct lane_list_section *)lane_section->layout;
 	struct redo_log *redo = section->redo;
@@ -1615,11 +1613,11 @@ list_realloc_move(PMEMobjpool *pop, struct list_head *oob_head_old,
 	}
 
 	uint64_t obj_doffset = oid->off;
-	uint64_t obj_offset = obj_doffset - DATA_OFFSET;
+	uint64_t obj_offset = obj_doffset - OBJ_OOB_OFFSET;
 	uint64_t new_obj_doffset = obj_doffset;
 	uint64_t new_obj_offset = obj_offset;
 	uint64_t old_size = pmalloc_usable_size(pop, obj_offset);
-	uint64_t sec_off_off = PTR_TO_OFF(pop, &section->obj_offset);
+	uint64_t sec_off_off = OBJ_PTR_TO_OFF(pop, &section->obj_offset);
 	int in_place = 0;
 
 	if (pgrow(pop, obj_offset, size)) {
@@ -1644,7 +1642,7 @@ list_realloc_move(PMEMobjpool *pop, struct list_head *oob_head_old,
 		}
 
 		new_obj_offset = section->obj_offset;
-		new_obj_doffset = new_obj_offset + DATA_OFFSET;
+		new_obj_doffset = new_obj_offset + OBJ_OOB_OFFSET;
 
 		redo_index = list_realloc_replace(pop,
 				redo, redo_index,
@@ -1685,7 +1683,7 @@ list_realloc_move(PMEMobjpool *pop, struct list_head *oob_head_old,
 			 */
 			if ((errno = prealloc_construct(pop,
 					&section->obj_offset, size,
-					constructor, arg, DATA_OFFSET))) {
+					constructor, arg, OBJ_OOB_OFFSET))) {
 				LOG(1, "!prealloc_construct");
 				ret = -1;
 				goto err_unlock;
@@ -1699,7 +1697,7 @@ list_realloc_move(PMEMobjpool *pop, struct list_head *oob_head_old,
 			}
 		}
 
-		uint64_t sec_size_off = PTR_TO_OFF(pop, &section->obj_size);
+		uint64_t sec_size_off = OBJ_PTR_TO_OFF(pop, &section->obj_size);
 
 		/* clear offset and size field in lane section */
 		redo_log_store(pop, redo, redo_index + 0, sec_size_off, 0);
@@ -1717,10 +1715,10 @@ list_realloc_move(PMEMobjpool *pop, struct list_head *oob_head_old,
 	}
 
 	struct list_entry *entry_ptr_old =
-		(struct list_entry *)OFF_TO_PTR(pop,
+		(struct list_entry *)OBJ_OFF_TO_PTR(pop,
 				obj_offset + OOB_ENTRY_OFF);
 	struct list_entry *entry_ptr_new =
-		(struct list_entry *)OFF_TO_PTR(pop,
+		(struct list_entry *)OBJ_OFF_TO_PTR(pop,
 				new_obj_offset + OOB_ENTRY_OFF);
 
 	struct list_args_remove args_remove = {
