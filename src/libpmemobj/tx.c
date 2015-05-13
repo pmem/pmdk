@@ -39,6 +39,7 @@
 #include <string.h>
 #include <errno.h>
 #include <sys/queue.h>
+#include <stdarg.h>
 
 #include "libpmem.h"
 #include "libpmemobj.h"
@@ -59,10 +60,96 @@ static __thread struct {
 	struct lane_section *section;
 } tx;
 
+struct tx_lock_data {
+	union {
+		PMEMmutex *mutex;
+		PMEMrwlock *rwlock;
+	} lock;
+	enum pobj_tx_lock lock_type;
+	SLIST_ENTRY(tx_lock_data) tx_lock;
+};
+
 struct lane_tx_runtime {
 	PMEMobjpool *pop;
 	SLIST_HEAD(txd, tx_data) tx_entries;
+	SLIST_HEAD(txl, tx_lock_data) tx_locks;
 };
+
+/*
+ * add_to_tx_and_lock -- (internal) add lock to the transaction and acquire it
+ */
+static int
+add_to_tx_and_lock(struct lane_tx_runtime *lane, enum pobj_tx_lock type,
+	void *lock)
+{
+	LOG(15, NULL);
+	int retval = 0;
+	struct tx_lock_data *txl;
+	/* check if the lock is already on the list */
+	SLIST_FOREACH(txl, &(lane->tx_locks), tx_lock) {
+		if (memcmp(&txl->lock, &lock, sizeof (lock)) == 0)
+			return retval;
+	}
+
+	txl = Malloc(sizeof (*txl));
+	if (txl == NULL)
+		return ENOMEM;
+
+	txl->lock_type = type;
+	switch (txl->lock_type) {
+		case TX_LOCK_MUTEX:
+			txl->lock.mutex = lock;
+			retval = pmemobj_mutex_lock(lane->pop,
+				txl->lock.mutex);
+			break;
+		case TX_LOCK_RWLOCK:
+			txl->lock.rwlock = lock;
+			retval = pmemobj_rwlock_wrlock(lane->pop,
+				txl->lock.rwlock);
+			break;
+		default:
+			LOG(1, "Unrecognized lock type");
+			ASSERT(0);
+			break;
+	}
+
+	SLIST_INSERT_HEAD(&lane->tx_locks, txl, tx_lock);
+
+	return retval;
+}
+
+/*
+ * release_and_free_tx_locks -- (internal) release and remove all locks from the
+ *				transaction
+ */
+static void
+release_and_free_tx_locks(struct lane_tx_runtime *lane)
+{
+	LOG(15, NULL);
+	/* no locks taken */
+	if (SLIST_EMPTY(&lane->tx_locks))
+		return;
+
+	while (!SLIST_EMPTY(&lane->tx_locks)) {
+		struct tx_lock_data *tx_lock = SLIST_FIRST(&lane->tx_locks);
+		SLIST_REMOVE_HEAD(&lane->tx_locks, tx_lock);
+		switch (tx_lock->lock_type) {
+			case TX_LOCK_MUTEX:
+				pmemobj_mutex_unlock(lane->pop,
+					tx_lock->lock.mutex);
+				break;
+			case TX_LOCK_RWLOCK:
+				pmemobj_rwlock_unlock(lane->pop,
+					tx_lock->lock.rwlock);
+				break;
+			default:
+				LOG(1, "Unrecognized lock type");
+				ASSERT(0);
+				break;
+		}
+		Free(tx_lock);
+	}
+}
 
 /*
  * pmemobj_tx_begin -- initializes new transaction
@@ -79,21 +166,24 @@ pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...)
 		lane = tx.section->runtime;
 	} else if (tx.stage == TX_STAGE_NONE) {
 		if ((err = lane_hold(pop, &tx.section,
-			LANE_SECTION_TRANSACTION)) != 0) {
-			tx.stage = TX_STAGE_ONABORT;
-			return err;
-		}
+			LANE_SECTION_TRANSACTION)) != 0)
+			goto err_abort;
+
 		lane = tx.section->runtime;
 		SLIST_INIT(&lane->tx_entries);
+		SLIST_INIT(&lane->tx_locks);
 
 		lane->pop = pop;
 	} else {
-		return EINVAL;
+		err = EINVAL;
+		goto err_abort;
 	}
 
 	struct tx_data *txd = Malloc(sizeof (*txd));
-	if (txd == NULL)
-		return ENOMEM;
+	if (txd == NULL) {
+		err = ENOMEM;
+		goto err_abort;
+	}
 
 	txd->errnum = 0;
 	if (env != NULL)
@@ -103,8 +193,26 @@ pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...)
 
 	SLIST_INSERT_HEAD(&lane->tx_entries, txd, tx_entry);
 
-	tx.stage = TX_STAGE_WORK;
+	/* handle locks */
+	va_list argp;
+	va_start(argp, env);
+	enum pobj_tx_lock lock_type;
 
+	while ((lock_type = va_arg(argp, enum pobj_tx_lock)) != TX_LOCK_NONE) {
+		if ((err = add_to_tx_and_lock(lane,
+				lock_type, va_arg(argp, void *))) != 0) {
+			va_end(argp);
+			goto err_abort;
+		}
+	}
+	va_end(argp);
+
+	tx.stage = TX_STAGE_WORK;
+	ASSERT(err == 0);
+	return 0;
+
+err_abort:
+	tx.stage = TX_STAGE_ONABORT;
 	return err;
 }
 
@@ -180,6 +288,7 @@ pmemobj_tx_end()
 		/* this is the outermost transaction */
 
 		tx.stage = TX_STAGE_NONE;
+		release_and_free_tx_locks(lane);
 		lane_release(lane->pop);
 		tx.section = NULL;
 	} else {
