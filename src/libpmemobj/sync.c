@@ -44,52 +44,60 @@
 #include "list.h"
 #include "obj.h"
 #include "out.h"
+#include "valgrind_internal.h"
 
 #define	GET_MUTEX(pop, mutexp)\
 get_lock((pop)->run_id,\
 	&(mutexp)->pmemmutex.runid,\
 	&(mutexp)->pmemmutex.mutex,\
-	(void *)pthread_mutex_init)
+	(void *)pthread_mutex_init,\
+	sizeof ((mutexp)->pmemmutex.mutex))
 
 #define	GET_RWLOCK(pop, rwlockp)\
 get_lock((pop)->run_id,\
 	&(rwlockp)->pmemrwlock.runid,\
 	&(rwlockp)->pmemrwlock.rwlock,\
-	(void *)pthread_rwlock_init)
+	(void *)pthread_rwlock_init,\
+	sizeof ((rwlockp)->pmemrwlock.rwlock))
 
 
 #define	GET_COND(pop, condp)\
 get_lock((pop)->run_id,\
 	&(condp)->pmemcond.runid,\
 	&(condp)->pmemcond.cond,\
-	(void *)pthread_cond_init)
+	(void *)pthread_cond_init,\
+	sizeof ((condp)->pmemcond.cond))
 
 /*
  * get_lock -- (internal) atomically initialize and return a lock
  */
 static void *
 get_lock(uint64_t pop_runid, uint64_t *runid, void *lock,
-				int (*init_lock)(void *lock, void *arg))
+	int (*init_lock)(void *lock, void *arg), size_t size)
 {
 	LOG(15, "pop_runid %ju runid %ju lock %p init_lock %p", pop_runid,
 		*runid, lock, init_lock);
 
 	uint64_t tmp_runid;
 	while ((tmp_runid = *runid) != pop_runid) {
-		if ((tmp_runid != (pop_runid - 1)) &&
-			__sync_bool_compare_and_swap(runid,
-						tmp_runid, (pop_runid - 1))) {
-			if (init_lock(lock, NULL)) {
-				LOG(1, "error initializing lock");
-				__sync_fetch_and_and(runid, 0);
-				return NULL;
-			}
+		if ((tmp_runid != (pop_runid - 1))) {
+			VALGRIND_REMOVE_PMEM_MAPPING(runid, sizeof (*runid));
+			VALGRIND_REMOVE_PMEM_MAPPING(lock, size);
 
-			if (__sync_bool_compare_and_swap(
-					runid, (pop_runid - 1),
-					pop_runid) == 0) {
-				LOG(1, "error setting lock runid");
-				return NULL;
+			if (__sync_bool_compare_and_swap(runid,
+					tmp_runid, (pop_runid - 1))) {
+				if (init_lock(lock, NULL)) {
+					LOG(1, "error initializing lock");
+					__sync_fetch_and_and(runid, 0);
+					return NULL;
+				}
+
+				if (__sync_bool_compare_and_swap(
+						runid, (pop_runid - 1),
+						pop_runid) == 0) {
+					LOG(1, "error setting lock runid");
+					return NULL;
+				}
 			}
 		}
 	}
