@@ -367,11 +367,17 @@ int pmemobj_list_move(PMEMobjpool *pop, size_t pe_old_offset,
 #define	POBJ_LIST_FOREACH(var, head, field)\
 for (OID_ASSIGN_TYPED((var), POBJ_LIST_FIRST((head)));\
 	OID_IS_NULL((var)) == 0;\
+	OID_EQUALS(POBJ_LIST_NEXT((var), field),\
+	POBJ_LIST_FIRST((head))) ?\
+	OID_ASSIGN((var), OID_NULL) :\
 	OID_ASSIGN_TYPED((var), POBJ_LIST_NEXT((var), field)))
 
 #define	POBJ_LIST_FOREACH_REVERSE(var, head, field)\
 for (OID_ASSIGN_TYPED((var), POBJ_LIST_LAST((head), field));\
 	OID_IS_NULL((var)) == 0;\
+	OID_EQUALS(POBJ_LIST_PREV((var), field),\
+	POBJ_LIST_LAST((head), field)) ?\
+	OID_ASSIGN((var), OID_NULL) :\
 	OID_ASSIGN_TYPED((var), POBJ_LIST_PREV((var), field)))
 
 #define	POBJ_LIST_INSERT_HEAD(pop, head, elm, field)\
