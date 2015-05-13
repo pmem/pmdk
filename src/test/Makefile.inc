@@ -86,7 +86,7 @@ extract_funcs = $(shell \
 
 INCS = -I../unittest -I../../include
 CFLAGS = -ggdb -Wall -Werror -std=gnu99 $(EXTRA_CFLAGS)
-LDFLAGS =
+LDFLAGS = $(EXTRA_LDFLAGS)
 
 ifneq ($(TARGET),)
 TARGET_STATIC_DEBUG=$(TARGET).static-debug
@@ -96,13 +96,13 @@ endif
 all: $(TARGET) $(TARGET_STATIC_DEBUG) $(TARGET_STATIC_NONDEBUG)
 
 $(TARGET_STATIC_DEBUG): $(OBJS) $(STATIC_DEBUG_LIBS) $(EXTRA_DEPS)
-	$(CC) -o $@ $(OBJS) $(STATIC_DEBUG_LIBS) $(LIBS) $(LDFLAGS)
+	$(CC) -o $@ $(LDFLAGS) $(OBJS) $(STATIC_DEBUG_LIBS) $(LIBS)
 
 $(TARGET_STATIC_NONDEBUG): $(OBJS) $(STATIC_NONDEBUG_LIBS) $(EXTRA_DEPS)
-	$(CC) -o $@ $(OBJS) $(STATIC_NONDEBUG_LIBS) $(LIBS) $(LDFLAGS)
+	$(CC) -o $@ $(LDFLAGS) $(OBJS) $(STATIC_NONDEBUG_LIBS) $(LIBS)
 
 $(TARGET): $(OBJS) $(EXTRA_DEPS)
-	$(CC) -o $@ $(OBJS) $(DYNAMIC_LIBS) $(LIBS) $(LDFLAGS)
+	$(CC) -o $@ $(LDFLAGS) $(OBJS) $(DYNAMIC_LIBS) $(LIBS)
 
 .c.o:
 	$(CC) -c $(CFLAGS) $(INCS) $< -o $@
