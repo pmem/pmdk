@@ -50,6 +50,7 @@
 #include "heap_layout.h"
 #include "bucket.h"
 #include "ctree.h"
+#include "heap.h"
 
 /*
  * The elements in the tree are sorted by the key and it's vital that the
@@ -169,11 +170,11 @@ bucket_insert_block(struct bucket *b, uint32_t chunk_id, uint32_t zone_id,
 }
 
 /*
- * bucket_get_block -- removes and returns the best-fit memory block for size
+ * bucket_get_rm_block -- removes and returns the best-fit memory block for size
  */
 int
-bucket_get_block(struct bucket *b, uint32_t *chunk_id, uint32_t *zone_id,
-	uint32_t *size_idx, uint16_t *block_off)
+bucket_get_rm_block_bestfit(struct bucket *b, uint32_t *chunk_id,
+	uint32_t *zone_id, uint32_t *size_idx, uint16_t *block_off)
 {
 	uint64_t key = CHUNK_KEY_PACK(0, 0, 0, *size_idx);
 	if ((key = ctree_remove(b->tree, key, 0)) == 0)
@@ -181,8 +182,21 @@ bucket_get_block(struct bucket *b, uint32_t *chunk_id, uint32_t *zone_id,
 
 	*chunk_id = CHUNK_KEY_GET_CHUNK_ID(key);
 	*zone_id = CHUNK_KEY_GET_ZONE_ID(key);
-	*size_idx = CHUNK_KEY_GET_SIZE_IDX(key);
 	*block_off = CHUNK_KEY_GET_BLOCK_OFF(key);
+	*size_idx = CHUNK_KEY_GET_SIZE_IDX(key);
+
+	return 0;
+}
+
+/*
+ * bucket_get_rm_block_exact -- removes exact match memory block
+ */
+int bucket_get_rm_block_exact(struct bucket *b, uint32_t chunk_id,
+	uint32_t zone_id, uint32_t size_idx, uint16_t block_off)
+{
+	uint64_t key = CHUNK_KEY_PACK(chunk_id, zone_id, block_off, size_idx);
+	if ((key = ctree_remove(b->tree, key, 1)) == 0)
+		return ENOMEM;
 
 	return 0;
 }

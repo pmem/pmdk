@@ -38,6 +38,7 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "libpmemobj.h"
 #include "util.h"
@@ -101,6 +102,21 @@ pop_offset(PMEMobjpool *pop, void *ptr)
 }
 
 /*
+ * chunk_get_hdr_value -- (internal) get value of a header for redo log
+ */
+static uint64_t
+chunk_get_hdr_value(struct chunk_header hdr, uint16_t type)
+{
+	ASSERT(sizeof (struct chunk_header) == sizeof (uint64_t));
+
+	uint64_t val;
+	hdr.type = type;
+	memcpy(&val, &hdr, sizeof (val));
+
+	return val;
+}
+
+/*
  * pmalloc_huge -- (internal) allocates huge memory block
  */
 static int
@@ -119,8 +135,8 @@ pmalloc_huge(PMEMobjpool *pop, struct bucket *b, uint64_t *off, size_t size,
 	if (bucket_lock(b) != 0)
 		return EAGAIN;
 
-	if (bucket_get_block(b, &chunk_id, &zone_id, &size_idx, &block_off)
-		!= 0) {
+	if (bucket_get_rm_block_bestfit(b, &chunk_id, &zone_id, &size_idx,
+		&block_off) != 0) {
 		bucket_unlock(b);
 		return ENOMEM;
 	}
@@ -152,7 +168,8 @@ pmalloc_huge(PMEMobjpool *pop, struct bucket *b, uint64_t *off, size_t size,
 	redo_log_store(pop, sec->redo, PMALLOC_REDO_PTR_OFFSET,
 		pop_offset(pop, off), pop_offset(pop, datap));
 	redo_log_store_last(pop, sec->redo, PMALLOC_REDO_HEADER,
-		pop_offset(pop, &hdr->type), CHUNK_TYPE_USED);
+		pop_offset(pop, hdr),
+		chunk_get_hdr_value(*hdr, CHUNK_TYPE_USED));
 
 	redo_log_process(pop, sec->redo, MAX_PMALLOC_REDO);
 
@@ -267,8 +284,10 @@ pfree_huge(PMEMobjpool *pop, struct bucket *b,
 	struct allocation_header *alloc, uint64_t *off)
 {
 	int err = 0;
+	uint32_t zone_id = alloc->zone_id;
+	uint32_t chunk_id = alloc->chunk_id;
 	struct chunk_header *hdr =
-		heap_get_chunk_header(pop, alloc->chunk_id, alloc->zone_id);
+		heap_get_chunk_header(pop, chunk_id, zone_id);
 
 	struct lane_section *lane;
 	if ((err = lane_hold(pop, &lane, LANE_SECTION_ALLOCATOR) != 0))
@@ -280,23 +299,45 @@ pfree_huge(PMEMobjpool *pop, struct bucket *b,
 	redo_log_store(pop, sec->redo, PFREE_REDO_PTR_OFFSET,
 		pop_offset(pop, off), 0);
 	redo_log_store_last(pop, sec->redo, PFREE_REDO_HEADER,
-		pop_offset(pop, &hdr->type), CHUNK_TYPE_FREE);
+		pop_offset(pop, hdr),
+		chunk_get_hdr_value(*hdr, CHUNK_TYPE_FREE));
 
 	redo_log_process(pop, sec->redo, MAX_PFREE_REDO);
 
 	if (lane_release(pop) != 0) /* fail silently, just log the error */
 		LOG(1, "Failed to release the lane");
 
-	uint32_t units = bucket_calc_units(b, alloc->size);
+
+	struct chunk_header *chunks[3] = {NULL, hdr, NULL};
+
+	uint32_t prev_id = alloc->chunk_id;
+	struct chunk_header *prev =
+		heap_get_prev_chunk(pop, &prev_id, zone_id);
+	if (prev != NULL && prev->type == CHUNK_TYPE_FREE &&
+		bucket_get_rm_block_exact(b, prev_id, zone_id,
+			prev->size_idx, 0) == 0) {
+		chunks[0] = prev;
+		chunk_id = prev_id;
+	}
+
+	uint32_t next_id = alloc->chunk_id;
+	struct chunk_header *next =
+		heap_get_next_chunk(pop, &next_id, zone_id);
+	if (next != NULL && next->type == CHUNK_TYPE_FREE &&
+		bucket_get_rm_block_exact(b, next_id, zone_id,
+					next->size_idx, 0) == 0) {
+		chunks[2] = next;
+	}
+
+	if (chunks[0] || chunks[2])
+		hdr = heap_coalesce(pop, chunks, 3);
 
 	/*
 	 * There's no point of rolling back redo log changes because the
 	 * volatile errors don't break the persistent state.
 	 */
-	if (bucket_insert_block(b, alloc->chunk_id, alloc->zone_id, units, 0)
-		!= 0) {
+	if (bucket_insert_block(b, chunk_id, zone_id, hdr->size_idx, 0) != 0)
 		LOG(1, "Failed to update the heap volatile state");
-	}
 
 	return 0;
 }

@@ -106,18 +106,36 @@ get_zone_size_idx(uint32_t zone_id, int max_zone, size_t heap_size)
 }
 
 /*
+ * heap_chunk_write_footer -- (internal) writes a chunk footer
+ */
+static void
+heap_chunk_write_footer(struct chunk_header *hdr)
+{
+	if (hdr->size_idx == 1) /* that would overwrite the header */
+		return;
+
+	struct chunk_header f = *hdr;
+	f.type = CHUNK_TYPE_FOOTER;
+	*(hdr + hdr->size_idx - 1) = f;
+	/* no need to persist, footers are recreated in heap_populate_buckets */
+}
+
+/*
  * heap_chunk_init -- (internal) writes chunk header
  */
 static void
-heap_chunk_init(PMEMobjpool *pop, struct chunk_header *hdr, uint32_t size_idx)
+heap_chunk_init(PMEMobjpool *pop, struct chunk_header *hdr,
+	uint16_t type, uint32_t size_idx)
 {
 	struct chunk_header nhdr = {
-		.type = CHUNK_TYPE_FREE,
+		.type = type,
 		.flags = 0,
 		.size_idx = size_idx
 	};
 	*hdr = nhdr; /* write the entire header (8 bytes) at once */
 	pop->persist(hdr, sizeof (*hdr));
+
+	heap_chunk_write_footer(hdr);
 }
 
 /*
@@ -130,7 +148,7 @@ heap_zone_init(PMEMobjpool *pop, uint32_t zone_id)
 	uint32_t size_idx = get_zone_size_idx(zone_id, pop->heap->max_zone,
 			pop->heap_size);
 
-	heap_chunk_init(pop, &z->chunk_headers[0], size_idx);
+	heap_chunk_init(pop, &z->chunk_headers[0], CHUNK_TYPE_FREE, size_idx);
 
 	struct zone_header nhdr = {
 		.size_idx = size_idx,
@@ -158,6 +176,7 @@ heap_populate_buckets(PMEMobjpool *pop)
 
 	for (uint32_t i = 0; i < z->header.size_idx; ) {
 		struct chunk_header *hdr = &z->chunk_headers[i];
+		heap_chunk_write_footer(hdr);
 
 		if (hdr->type == CHUNK_TYPE_RUN) {
 			/* XXX */
@@ -210,8 +229,8 @@ heap_resize_chunk(PMEMobjpool *pop,
 	struct chunk_header *new_hdr = &z->chunk_headers[new_chunk_id];
 
 	uint32_t rem_size_idx = old_hdr->size_idx - new_size_idx;
-	heap_chunk_init(pop, new_hdr, rem_size_idx);
-	heap_chunk_init(pop, old_hdr, new_size_idx);
+	heap_chunk_init(pop, new_hdr, CHUNK_TYPE_FREE, rem_size_idx);
+	heap_chunk_init(pop, old_hdr, CHUNK_TYPE_FREE, new_size_idx);
 
 	struct bucket *def_bucket = pop->heap->buckets[DEFAULT_BUCKET];
 	if (bucket_insert_block(def_bucket, new_chunk_id, zone_id,
@@ -238,6 +257,60 @@ heap_get_chunk_data(PMEMobjpool *pop,
 	uint32_t chunk_id, uint32_t zone_id)
 {
 	return &pop->heap->layout->zones[zone_id].chunks[chunk_id].data;
+}
+
+/*
+ * heap_get_prev_chunk -- returns the header of the previous chunk
+ */
+struct chunk_header *
+heap_get_prev_chunk(PMEMobjpool *pop, uint32_t *chunk_id,
+	uint32_t zone_id)
+{
+	if (*chunk_id == 0)
+		return NULL;
+
+	struct zone *z = &pop->heap->layout->zones[zone_id];
+
+	struct chunk_header *hdr = &z->chunk_headers[*chunk_id - 1];
+	*chunk_id = *chunk_id - hdr->size_idx;
+
+	return &z->chunk_headers[*chunk_id];
+}
+
+/*
+ * heap_get_next_chunk -- returns the header of the next chunk
+ */
+struct chunk_header *
+heap_get_next_chunk(PMEMobjpool *pop, uint32_t *chunk_id,
+	uint32_t zone_id)
+{
+	struct zone *z = &pop->heap->layout->zones[zone_id];
+
+	struct chunk_header *hdr = &z->chunk_headers[*chunk_id];
+	if (*chunk_id + hdr->size_idx == z->header.size_idx)
+		return NULL;
+
+	*chunk_id = *chunk_id + hdr->size_idx;
+
+	return &z->chunk_headers[*chunk_id];
+}
+
+/*
+ * heap_coalesce -- merges neighbouring chunks into one
+ */
+struct chunk_header *
+heap_coalesce(PMEMobjpool *pop, struct chunk_header *chunks[], int n)
+{
+	struct chunk_header *hdr = NULL;
+	uint32_t size_idx = 0;
+	for (int i = 0; i < n; ++i) {
+		hdr = hdr ? : chunks[i];
+		size_idx += chunks[i] ? chunks[i]->size_idx : 0;
+	}
+
+	heap_chunk_init(pop, hdr, CHUNK_TYPE_FREE, size_idx);
+
+	return hdr;
 }
 
 /*

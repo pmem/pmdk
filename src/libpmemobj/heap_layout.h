@@ -53,6 +53,7 @@ enum chunk_flags {
 
 enum chunk_type {
 	CHUNK_TYPE_UNKNOWN,
+	CHUNK_TYPE_FOOTER, /* not actual chunk type */
 	CHUNK_TYPE_FREE,
 	CHUNK_TYPE_USED,
 	CHUNK_TYPE_RUN,

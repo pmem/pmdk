@@ -54,9 +54,10 @@ FUNC_MOCK_RET_ALWAYS(bucket_insert_block, int, 0);
 
 #define	MOCK_POOL_SIZE PMEMOBJ_MIN_POOL
 
-#define	CHUNK_FIRST	1
-#define	CHUNK_SECOND	2
-#define	CHUNK_FIRST_NEW_SIZE_IDX 1
+#define	CHUNK_FIRST	0
+#define	CHUNK_SECOND	1
+#define	CHUNK_THIRD	2
+#define	CHUNK_NEW_SIZE_IDX 1
 
 struct mock_pop {
 	PMEMobjpool p;
@@ -77,21 +78,37 @@ test_heap()
 	ASSERT(heap_boot(&pop->p) == 0);
 	ASSERT(pop->p.heap != NULL);
 
-	ASSERT(heap_get_best_bucket(&pop->p, 1) == MOCK_BUCKET);
+	ASSERT(heap_get_best_bucket(&pop->p, 0) == MOCK_BUCKET);
 
 	struct chunk_header *hdr;
-	ASSERT((hdr = heap_get_chunk_header(&pop->p, CHUNK_FIRST, 1)) != NULL);
+	ASSERT((hdr = heap_get_chunk_header(&pop->p, CHUNK_FIRST, 0)) != NULL);
 	uint32_t csize = hdr->size_idx;
 
-	heap_resize_chunk(&pop->p, CHUNK_FIRST, 1, CHUNK_FIRST_NEW_SIZE_IDX);
+	heap_resize_chunk(&pop->p, CHUNK_FIRST, 0, CHUNK_NEW_SIZE_IDX);
 	ASSERT(heap_check(&pop->p) == 0);
-	ASSERT((hdr = heap_get_chunk_header(&pop->p, CHUNK_FIRST, 1)) != NULL);
-	ASSERT(hdr->size_idx == CHUNK_FIRST_NEW_SIZE_IDX);
-	ASSERT((hdr = heap_get_chunk_header(&pop->p, CHUNK_SECOND, 1)) != NULL);
-	ASSERT(hdr->size_idx == (csize - CHUNK_FIRST_NEW_SIZE_IDX));
+	ASSERT((hdr = heap_get_chunk_header(&pop->p, CHUNK_FIRST, 0)) != NULL);
+	ASSERT(hdr->size_idx == CHUNK_NEW_SIZE_IDX);
+	ASSERT((hdr = heap_get_chunk_header(&pop->p, CHUNK_SECOND, 0)) != NULL);
+	ASSERT(hdr->size_idx == (csize - CHUNK_NEW_SIZE_IDX));
 
-	ASSERT(heap_get_chunk_data(&pop->p, CHUNK_FIRST, 1) != NULL);
-	ASSERT(heap_get_chunk_data(&pop->p, CHUNK_SECOND, 1) != NULL);
+	ASSERT(heap_get_chunk_data(&pop->p, CHUNK_FIRST, 0) != NULL);
+	ASSERT(heap_get_chunk_data(&pop->p, CHUNK_SECOND, 0) != NULL);
+	heap_resize_chunk(&pop->p, CHUNK_SECOND, 0, CHUNK_NEW_SIZE_IDX);
+	ASSERT(heap_get_chunk_data(&pop->p, CHUNK_THIRD, 0) != NULL);
+
+	uint32_t prev_id = CHUNK_SECOND;
+	uint32_t next_id = CHUNK_SECOND;
+	struct chunk_header *c[] = {
+		heap_get_prev_chunk(&pop->p, &prev_id, 0),
+		heap_get_chunk_header(&pop->p, CHUNK_SECOND, 0),
+		heap_get_next_chunk(&pop->p, &next_id, 0)};
+
+	ASSERT(heap_get_chunk_header(&pop->p, CHUNK_FIRST, 0) == c[0]);
+	ASSERT(heap_get_chunk_header(&pop->p, CHUNK_THIRD, 0) == c[2]);
+
+	heap_coalesce(&pop->p, c, 3);
+	ASSERT(heap_get_chunk_header(&pop->p, CHUNK_FIRST, 0)->size_idx
+		== csize);
 
 	ASSERT(heap_check(&pop->p) == 0);
 	ASSERT(heap_cleanup(&pop->p) == 0);
