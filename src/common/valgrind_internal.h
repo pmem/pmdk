@@ -59,6 +59,13 @@
 
 #define	VALGRIND_DO_COMMIT VALGRIND_PMC_DO_COMMIT
 
+#define VALGRIND_DO_PERSIST(addr, len) do {\
+	VALGRIND_PMC_DO_FLUSH((addr), (len));\
+	VALGRIND_PMC_DO_FENCE;\
+	VALGRIND_PMC_DO_COMMIT;\
+	VALGRIND_PMC_DO_FENCE;\
+} while (0)
+
 #define	VALGRIND_WRITE_STATS VALGRIND_PMC_WRITE_STATS
 
 #define	VALGRIND_LOG_STORES VALGRIND_PMC_LOG_STORES
@@ -96,6 +103,8 @@
 #define	VALGRIND_DO_FENCE do {} while(0)
 
 #define	VALGRIND_DO_COMMIT do {} while(0)
+
+#define VALGRIND_DO_PERSIST(addr, len) do {} while(0)
 
 #define	VALGRIND_WRITE_STATS do {} while(0)
 
