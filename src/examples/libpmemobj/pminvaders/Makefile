@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2014-2015, Intel Corporation
+# Copyright (c) 2015, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,36 +31,32 @@
 #
 
 #
-# examples/libpmemobj/Makefile -- build the libpmemobj examples
+# examples/libpmemobj/pminvaders/Makefile -- build the non-tx example
 #
-PROGS = manpage
-DIRS_EXTRA = pminvaders
-DIRS =
+PROGS = pminvaders
 
-INCDIR ?= ../../include
-LIBDIR ?= ../../debug
+INCDIR ?= ../../../include
+LIBDIR ?= ../../../debug
 
 INCS = -I$(INCDIR)
-LIBS = -Wl,-rpath=$(LIBDIR) -L$(LIBDIR) -lpmemobj -lpmem -pthread
+LIBS = -Wl,-rpath=$(LIBDIR) -L$(LIBDIR) -lpmemobj -lpmem -pthread -lncurses
 CFLAGS = -std=gnu99 -ggdb -Wall -Werror
-CSTYLE = ../../../utils/cstyle
+CSTYLE = ../../../../utils/cstyle
 
 all:     TARGET = all
 clean:   TARGET = clean
 clobber: TARGET = clobber
 cstyle:  TARGET = cstyle
 
-all: $(PROGS) $(DIRS)
+all: $(PROGS)
 
-extra: $(DIRS_EXTRA)
-
-clean: $(DIRS) $(DIRS_EXTRA)
+clean: $(DIRS)
 	$(RM) *.o core a.out
 
-clobber: clean $(DIRS) $(DIRS_EXTRA)
+clobber: clean $(DIRS)
 	$(RM) $(PROGS)
 
-cstyle: $(DIRS) $(DIRS_EXTRA)
+cstyle: $(DIRS)
 	$(CSTYLE) -pP *.[ch]
 
 .c.o:
@@ -69,12 +65,9 @@ cstyle: $(DIRS) $(DIRS_EXTRA)
 $(PROGS):
 	$(CC) -o $@ $< $(LIBS)
 
-manpage: manpage.o
+pminvaders: pminvaders.o
 
 $(DIRS):
 	$(MAKE) -C $@ $(TARGET)
 
-$(DIRS_EXTRA):
-	$(MAKE) -C $@ $(TARGET)
-
-.PHONY: all clean clobber cstyle $(DIRS) $(DIRS_EXTRA)
+.PHONY: all clean clobber cstyle $(DIRS)

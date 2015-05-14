@@ -11,6 +11,9 @@ manpage.c is the example used in the libpmemblk man page.
 To build these examples:
 	make
 
+There are also examples that require external libraries, to build these:
+	make extra
+
 These examples can be built against an installed system using:
 	make LIBDIR=/usr/lib INCDIR=/usr/include
 
