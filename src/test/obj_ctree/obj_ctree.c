@@ -111,6 +111,8 @@ test_ctree_insert()
 	FUNC_MOCK_RCOUNTER_SET(pthread_mutex_init, TEST_INSERT);
 	FUNC_MOCK_RCOUNTER_SET(pthread_mutex_lock, TEST_INSERT);
 
+	ASSERT(ctree_is_empty(t));
+
 	/* pthread_mutex_lock fail */
 	ASSERT(ctree_insert(t, TEST_VAL_A) != 0);
 
@@ -128,6 +130,8 @@ test_ctree_insert()
 
 	/* all OK second */
 	ASSERT(ctree_insert(t, TEST_VAL_A) == 0);
+
+	ASSERT(!ctree_is_empty(t));
 
 	ctree_delete(t);
 }

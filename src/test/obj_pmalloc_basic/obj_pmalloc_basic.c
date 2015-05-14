@@ -41,19 +41,24 @@
 #include "list.h"
 #include "obj.h"
 #include "lane.h"
-
+#include "redo.h"
+#include "heap_layout.h"
 #include "unittest.h"
 
 #define	MOCK_POOL_SIZE PMEMOBJ_MIN_POOL
 #define	MAX_ALLOCS 20
-#define	TEST_ALLOC_SIZE 256
-#define	TEST_VALUE 5
+#define	TEST_HUGE_ALLOC_SIZE (255 * 1024)
+#define	TEST_SMALL_ALLOC_SIZE (200)
+#define	TEST_TINY_ALLOC_SIZE (64)
 
 struct mock_pop {
 	PMEMobjpool p;
 	char lanes[LANE_SECTION_LEN];
 	uint64_t ptr;
 };
+
+static struct mock_pop *addr;
+static PMEMobjpool *mock_pop;
 
 /*
  * drain_empty -- (internal) empty function for drain on non-pmem memory
@@ -68,9 +73,35 @@ struct foo {
 	uintptr_t bar;
 };
 
-void test_constructor(void *ptr, void *arg) {
+void
+test_constructor(void *ptr, void *arg)
+{
 	struct foo *f = ptr;
 	f->bar = (uintptr_t)arg;
+}
+
+void
+test_oom_allocs(size_t size)
+{
+	uint64_t max_allocs = MOCK_POOL_SIZE / size;
+	uint64_t *allocs = CALLOC(max_allocs, sizeof (*allocs));
+
+	size_t count = 0;
+	for (;;) {
+		if (pmalloc(mock_pop, &addr->ptr, size)) {
+			break;
+		}
+		ASSERT(addr->ptr != 0);
+		allocs[count++] = addr->ptr;
+	}
+	for (int i = 0; i < count; ++i) {
+		addr->ptr = allocs[i];
+		pfree(mock_pop, &addr->ptr);
+		ASSERT(addr->ptr == 0);
+	}
+	ASSERT(count != 0);
+
+	FREE(allocs);
 }
 
 int
@@ -78,8 +109,8 @@ main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_pmalloc_basic");
 
-	struct mock_pop *addr = MALLOC(MOCK_POOL_SIZE);
-	PMEMobjpool *mock_pop = &addr->p;
+	addr = MALLOC(MOCK_POOL_SIZE);
+	mock_pop = &addr->p;
 	mock_pop->addr = addr;
 	mock_pop->size = MOCK_POOL_SIZE;
 	mock_pop->rdonly = 0;
@@ -98,23 +129,14 @@ main(int argc, char *argv[])
 	heap_boot(mock_pop);
 
 	ASSERTne(mock_pop->heap, NULL);
-	uint64_t addrs[MAX_ALLOCS];
-	for (int i = 0; i < MAX_ALLOCS; ++i) {
-		ASSERT(pmalloc(mock_pop, &addr->ptr, sizeof (struct foo)) == 0);
-		addrs[i] = addr->ptr;
-		ASSERT(addrs[i] != 0);
-	}
 
-	for (int i = 0; i < MAX_ALLOCS; ++i) {
-		addr->ptr = addrs[i];
-		ASSERT(pfree(mock_pop, &addr->ptr) == 0);
-	}
-
-	ASSERT(pmalloc_construct(mock_pop, &addr->ptr, sizeof (struct foo),
-		test_constructor, (void *)TEST_VALUE, 0) == 0);
-
-	struct foo *f = (void *)mock_pop + addr->ptr;
-	ASSERT(f->bar == TEST_VALUE);
+	/*
+	 * Allocating till OOM and freeing the objects in a loop for different
+	 * buckets covers basically all code paths except error cases.
+	 */
+	test_oom_allocs(TEST_HUGE_ALLOC_SIZE);
+	test_oom_allocs(TEST_SMALL_ALLOC_SIZE);
+	test_oom_allocs(TEST_TINY_ALLOC_SIZE);
 
 	FREE(addr);
 

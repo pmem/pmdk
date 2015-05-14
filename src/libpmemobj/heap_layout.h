@@ -46,6 +46,11 @@
 #define	ZONE_MAX_SIZE (sizeof (struct zone) + MAX_CHUNK * CHUNKSIZE)
 #define	HEAP_MIN_SIZE (sizeof (struct heap_layout) + ZONE_MIN_SIZE)
 #define	REDO_LOG_SIZE	4
+#define	BITS_PER_VALUE 64
+#define	MAX_BITMAP_VALUES 39 /* five cachelines - 8 bytes */
+#define	RUN_BITMAP_SIZE (BITS_PER_VALUE * MAX_BITMAP_VALUES)
+#define	RUNSIZE (CHUNKSIZE - ((MAX_BITMAP_VALUES + 1) * 8))
+#define	MIN_RUN_SIZE 128
 
 enum chunk_flags {
 	CHUNK_FLAG_ZEROED	=	0x0001,
@@ -62,7 +67,13 @@ enum chunk_type {
 };
 
 struct chunk {
-	char data[CHUNKSIZE];
+	uint8_t data[CHUNKSIZE];
+};
+
+struct chunk_run {
+	uint64_t block_size;
+	uint64_t bitmap[MAX_BITMAP_VALUES];
+	uint8_t data[RUNSIZE];
 };
 
 struct chunk_header {
@@ -74,7 +85,7 @@ struct chunk_header {
 struct zone_header {
 	uint32_t magic;
 	uint32_t size_idx;
-	char reserved[56];
+	uint8_t reserved[56];
 };
 
 struct zone {
@@ -90,7 +101,7 @@ struct heap_header {
 	uint64_t size;
 	uint64_t chunksize;
 	uint64_t chunks_per_zone;
-	char reserved[960];
+	uint8_t reserved[960];
 	uint64_t checksum;
 };
 

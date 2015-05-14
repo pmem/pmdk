@@ -43,7 +43,7 @@
 
 #define	LAYOUT_NAME "tx_free"
 
-#define	OBJ_SIZE	1024
+#define	OBJ_SIZE	(200 * 1024)
 #define	TEST_VALUE_1	1
 
 enum type_number {

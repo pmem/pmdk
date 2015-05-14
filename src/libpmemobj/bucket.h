@@ -42,6 +42,7 @@ void bucket_delete(struct bucket *b);
 int bucket_is_small(struct bucket *b);
 uint32_t bucket_calc_units(struct bucket *b, size_t size);
 size_t bucket_unit_size(struct bucket *b);
+size_t bucket_unit_max(struct bucket *b);
 int bucket_insert_block(struct bucket *b, uint32_t chunk_id, uint32_t zone_id,
 	uint32_t size_idx, uint16_t block_off);
 int bucket_get_rm_block_bestfit(struct bucket *b, uint32_t *chunk_id,
@@ -49,4 +50,5 @@ int bucket_get_rm_block_bestfit(struct bucket *b, uint32_t *chunk_id,
 int bucket_get_rm_block_exact(struct bucket *b, uint32_t chunk_id,
 	uint32_t zone_id, uint32_t size_idx, uint16_t block_off);
 int bucket_lock(struct bucket *b);
+int bucket_is_empty(struct bucket *b);
 void bucket_unlock(struct bucket *b);

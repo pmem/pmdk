@@ -57,19 +57,19 @@
  * order is by size, hence the order of the pack arguments.
  */
 #define	CHUNK_KEY_PACK(c, z, b, s)\
-((uint64_t)(c) << 16 | (uint64_t)(z) << 32 | (uint64_t)(b) << 48 | (s))
+((uint64_t)(s) << 48 | (uint64_t)(b) << 32 | (uint64_t)(z) << 16 | (c))
 
 #define	CHUNK_KEY_GET_CHUNK_ID(k)\
-((uint16_t)((k & 0xFFFF0000) >> 16))
+((uint16_t)((k & 0xFFFF)))
 
 #define	CHUNK_KEY_GET_ZONE_ID(k)\
-((uint16_t)((k & 0xFFFF00000000) >> 32))
+((uint16_t)((k & 0xFFFF0000) >> 16))
 
 #define	CHUNK_KEY_GET_BLOCK_OFF(k)\
-((uint16_t)((k & 0xFFFF000000000000) >> 48))
+((uint16_t)((k & 0xFFFF00000000) >> 32))
 
 #define	CHUNK_KEY_GET_SIZE_IDX(k)\
-((uint16_t)((k & 0xFFFF)))
+((uint16_t)((k & 0xFFFF000000000000) >> 48))
 
 struct bucket {
 	size_t unit_size;
@@ -132,6 +132,15 @@ size_t
 bucket_unit_size(struct bucket *b)
 {
 	return b->unit_size;
+}
+
+/*
+ * bucket_unit_max -- returns unit max of a bucket
+ */
+size_t
+bucket_unit_max(struct bucket *b)
+{
+	return b->unit_max;
 }
 
 /*
@@ -199,6 +208,15 @@ int bucket_get_rm_block_exact(struct bucket *b, uint32_t chunk_id,
 		return ENOMEM;
 
 	return 0;
+}
+
+/*
+ * bucket_is_empty -- checks whether the bucket is empty
+ */
+int
+bucket_is_empty(struct bucket *b)
+{
+	return ctree_is_empty(b->tree);
 }
 
 /*
