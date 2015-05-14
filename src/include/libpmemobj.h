@@ -348,7 +348,7 @@ struct name {\
 int pmemobj_list_insert(PMEMobjpool *pop, size_t pe_offset, void *head,
 	PMEMoid dest, int before, PMEMoid oid);
 
-int pmemobj_list_insert_new(PMEMobjpool *pop, size_t pe_offset, void *head,
+PMEMoid pmemobj_list_insert_new(PMEMobjpool *pop, size_t pe_offset, void *head,
 	PMEMoid dest, int before, size_t size, int type_num);
 
 int pmemobj_list_remove(PMEMobjpool *pop, size_t pe_offset, void *head,

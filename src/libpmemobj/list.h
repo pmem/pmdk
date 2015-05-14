@@ -44,16 +44,6 @@ struct list_head {
 	PMEMmutex lock;
 };
 
-/*
- * XXX move to other file, change size etc.
- */
-struct oob_header {
-	struct list_entry oob;
-	uint16_t internal_type;
-	uint16_t user_type;
-	uint8_t padding[12];
-};
-
 PMEMoid list_insert_new(PMEMobjpool *pop, struct list_head *oob_head,
 	size_t pe_offset, struct list_head *head, PMEMoid dest, int before,
 	size_t size, void (*constructor)(void *ptr, void *arg), void *arg);

@@ -38,9 +38,9 @@
 
 #include "unittest.h"
 #include "util.h"
+#include "list.h"
 #include "obj.h"
 #include "lane.h"
-#include "list.h"
 #include "redo.h"
 #include "pmalloc.h"
 #include "valgrind_internal.h"

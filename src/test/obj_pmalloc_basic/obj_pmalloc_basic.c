@@ -38,6 +38,7 @@
 #include "libpmemobj.h"
 #include "pmalloc.h"
 #include "util.h"
+#include "list.h"
 #include "obj.h"
 #include "lane.h"
 

@@ -43,6 +43,7 @@
 #include "util.h"
 #include "out.h"
 #include "lane.h"
+#include "list.h"
 #include "obj.h"
 
 /*

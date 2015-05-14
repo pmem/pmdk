@@ -34,6 +34,8 @@
  * obj.h -- internal definitions for obj module
  */
 
+#include <stddef.h>
+
 #define	PMEMOBJ_LOG_PREFIX "libpmemobj"
 #define	PMEMOBJ_LOG_LEVEL_VAR "PMEMOBJ_LOG_LEVEL"
 #define	PMEMOBJ_LOG_FILE_VAR "PMEMOBJ_LOG_FILE"
@@ -52,6 +54,17 @@
 
 #define	OBJ_LANES_OFFSET	8192	/* lanes offset (8kB) */
 #define	OBJ_NLANES		1024	/* number of lanes */
+
+#define	OBJ_OOB_OFFSET		(sizeof (struct oob_header))
+
+#define	OOB_HEADER_FROM_OID(pop, oid)\
+	((struct oob_header *)((uintptr_t)(pop) + (oid).off - OBJ_OOB_OFFSET))
+
+#define	OOB_HEADER_FROM_PTR(ptr)\
+	((struct oob_header *)((uintptr_t)(ptr) - OBJ_OOB_OFFSET))
+
+#define	OOB_OFFSET_OF(oid, field)\
+	((oid).off - OBJ_OOB_OFFSET + offsetof(struct oob_header, field))
 
 typedef void (*persist_fn)(void *, size_t);
 typedef void (*flush_fn)(void *, size_t);
@@ -83,18 +96,46 @@ struct pmemobjpool {
 	int rdonly;		/* true if pool is opened read-only */
 	struct pmalloc_heap *heap; /* allocator heap */
 	struct lane *lanes;
+	struct object_store *store; /* object store */
 	uint64_t uuid_lo;
 
 	persist_fn persist;	/* persist function */
 	flush_fn flush;		/* flush function */
 	drain_fn drain;		/* drain function */
-	memcpy_fn memcpy;	/* memcpy function */
-	memset_fn memset;	/* memset function */
+	memcpy_fn memcpy_persist; /* persistent memcpy function */
+	memset_fn memset_persist; /* persistent memset function */
+
+	PMEMmutex rootlock;	/* root object lock */
+};
+
+/*
+ * Out-Of-Band Header - it is padded to 48B to fit one cache line (64B)
+ * together with allocator's header (of size 16B) located just before it.
+ */
+struct oob_header {
+	struct list_entry oob;
+	size_t size;		/* used only in root object */
+	uint16_t internal_type;
+	uint16_t user_type;
+	uint8_t padding[4];
+};
+
+enum internal_type {
+	OP_ALLOC = 1,
+	OP_FREE,
+	OP_SET,
+
+	MAX_INTERNAL_TYPE
 };
 
 /* single object store item */
 struct object_store_item {
-	/* XXX stub */
+	struct list_head head;
+};
+
+struct object_store {
+	struct object_store_item root;
+	struct object_store_item bytype[_POBJ_MAX_OID_TYPE_NUM];
 };
 
 void obj_init(void);

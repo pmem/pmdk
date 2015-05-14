@@ -58,6 +58,7 @@
 #include "libpmemobj.h"
 #include "util.h"
 #include "lane.h"
+#include "list.h"
 #include "obj.h"
 #include "redo.h"
 #include "valgrind_internal.h"

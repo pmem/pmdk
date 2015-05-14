@@ -50,6 +50,7 @@
 #include "bucket.h"
 #include "lane.h"
 #include "out.h"
+#include "list.h"
 #include "obj.h"
 
 #define	DEFAULT_BUCKET 0

@@ -49,6 +49,7 @@
 #include "lane.h"
 #include "util.h"
 #include "out.h"
+#include "list.h"
 #include "obj.h"
 
 static __thread int lane_idx = -1;

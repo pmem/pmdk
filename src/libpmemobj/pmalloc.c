@@ -42,6 +42,7 @@
 #include "libpmemobj.h"
 #include "util.h"
 #include "pmalloc.h"
+#include "list.h"
 #include "obj.h"
 #include "out.h"
 #include "heap.h"

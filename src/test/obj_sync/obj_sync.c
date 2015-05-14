@@ -38,6 +38,7 @@
 #include "unittest.h"
 #include "libpmemobj.h"
 #include "util.h"
+#include "list.h"
 #include "obj.h"
 
 #define	DATA_SIZE 128

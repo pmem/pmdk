@@ -43,6 +43,7 @@
 #include "libpmem.h"
 #include "libpmemobj.h"
 #include "util.h"
+#include "list.h"
 #include "obj.h"
 #include "lane.h"
 #include "out.h"
