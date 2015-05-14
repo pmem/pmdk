@@ -35,6 +35,7 @@
  */
 #include "unittest.h"
 #include "util.h"
+#include "list.h"
 #include "obj.h"
 
 #define	MAX_PATH_LEN 255

@@ -40,6 +40,7 @@
 #include "heap_layout.h"
 #include "bucket.h"
 #include "lane.h"
+#include "list.h"
 #include "obj.h"
 #include "heap.h"
 #include "pmalloc.h"

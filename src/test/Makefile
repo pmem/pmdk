@@ -123,7 +123,8 @@ TEST = blk_nblock\
        obj_tx_flow\
        obj_ctree\
        obj_bucket\
-       obj_heap
+       obj_heap\
+       obj_store
 
 all     : TARGET = all
 clean   : TARGET = clean

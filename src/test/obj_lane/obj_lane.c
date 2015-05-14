@@ -44,6 +44,7 @@
 #include "libpmemobj.h"
 #include "util.h"
 #include "lane.h"
+#include "list.h"
 #include "obj.h"
 
 #define	MAX_MOCK_LANES 5
