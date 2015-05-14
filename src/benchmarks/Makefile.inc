@@ -37,13 +37,14 @@
 LIBS =
 INCS =
 DEFS =
+LDFLAGS = $(EXTRA_LDFLAGS)
 CFLAGS = -std=gnu99 -Wall -Werror -O3 $(EXTRA_CFLAGS)
 CSTYLE = ../../../utils/cstyle
 
 all: $(TARGET)
 
 $(TARGET): $(OBJS)
-	$(CC) -o $@ $(OBJS) $(LIBS)
+	$(CC) -o $@ $(LDFLAGS) $(OBJS) $(LIBS)
 
 %.o: %.c
 	$(CC) -c $(CFLAGS) $(INCS) $(DEFS) $< -o $@
