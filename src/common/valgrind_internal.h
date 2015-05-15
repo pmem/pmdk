@@ -66,6 +66,9 @@
 	VALGRIND_PMC_DO_FENCE;\
 } while (0)
 
+/* XXX change definition to VALGRIND_PMC_SET_CLEAN */
+#define	VALGRIND_SET_CLEAN(addr, len) VALGRIND_DO_PERSIST(addr, len)
+
 #define	VALGRIND_WRITE_STATS VALGRIND_PMC_WRITE_STATS
 
 #define	VALGRIND_LOG_STORES VALGRIND_PMC_LOG_STORES
@@ -106,6 +109,8 @@
 #define	VALGRIND_DO_COMMIT do {} while (0)
 
 #define	VALGRIND_DO_PERSIST(addr, len) do {} while (0)
+
+#define	VALGRIND_SET_CLEAN(addr, len) do {} while (0)
 
 #define	VALGRIND_WRITE_STATS do {} while (0)
 
