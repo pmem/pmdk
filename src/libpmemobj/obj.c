@@ -790,7 +790,12 @@ pmemobj_free(PMEMoid oid)
 {
 	LOG(3, "oid.off 0x%016jx", oid.off);
 
+	if (oid.off == 0)
+		return;
+
 	PMEMobjpool *pop = cuckoo_get(pools, oid.pool_uuid_lo);
+
+	ASSERTne(pop, NULL);
 
 	struct oob_header *pobj = OOB_HEADER_FROM_OID(pop, oid);
 
@@ -810,7 +815,12 @@ pmemobj_alloc_usable_size(PMEMoid oid)
 {
 	LOG(3, "oid.off 0x%016jx", oid.off);
 
+	if (oid.off == 0)
+		return 0;
+
 	PMEMobjpool *pop = cuckoo_get(pools, oid.pool_uuid_lo);
+
+	ASSERTne(pop, NULL);
 
 	return (pmalloc_usable_size(pop, oid.off - OBJ_OOB_OFFSET) -
 								OBJ_OOB_OFFSET);
@@ -944,7 +954,12 @@ pmemobj_next(PMEMoid oid)
 {
 	LOG(3, "oid.off 0x%016jx", oid.off);
 
+	if (oid.off == 0)
+		return OID_NULL;
+
 	PMEMobjpool *pop = cuckoo_get(pools, oid.pool_uuid_lo);
+
+	ASSERTne(pop, NULL);
 
 	struct oob_header *pobj = OOB_HEADER_FROM_OID(pop, oid);
 	uint16_t user_type = pobj->user_type;

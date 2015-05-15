@@ -35,7 +35,7 @@
  *
  * usage: obj_store file operation:...
  *
- * operations are 'r' or 'a' or 'f' or 'u'
+ * operations are 'r' or 'a' or 'f' or 'u' or 'n'
  *
  */
 #include <stddef.h>
@@ -386,18 +386,29 @@ test_user_lists(const char *path)
 	pmemobj_close(pop);
 }
 
+void
+test_null_oids(void)
+{
+	pmemobj_free(OID_NULL);
+
+	ASSERTeq(pmemobj_alloc_usable_size(OID_NULL), 0);
+
+	PMEMoid next = pmemobj_next(OID_NULL);
+	ASSERT(next.off == 0 && next.pool_uuid_lo == 0);
+}
+
 int
 main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_store");
 
 	if (argc != 3)
-		FATAL("usage: %s file-name op:r|a|f|u", argv[0]);
+		FATAL("usage: %s file-name op:r|a|f|u|n", argv[0]);
 
 	const char *path = argv[1];
 
-	if (strchr("rafu", argv[2][0]) == NULL || argv[2][1] != '\0')
-		FATAL("op must be r or a or f or u");
+	if (strchr("rafun", argv[2][0]) == NULL || argv[2][1] != '\0')
+		FATAL("op must be r or a or f or u or n");
 
 	switch (argv[2][0]) {
 		case 'r':
@@ -411,6 +422,9 @@ main(int argc, char *argv[])
 			break;
 		case 'u':
 			test_user_lists(path);
+			break;
+		case 'n':
+			test_null_oids();
 			break;
 	}
 
