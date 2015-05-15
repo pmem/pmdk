@@ -26,3 +26,7 @@ The following characters and operations can be used:
 		- POBJ_LIST_INSERT_NEW_HEAD
 		- POBJ_LIST_FOREACH
 		- POBJ_LIST_FOREACH_REVERSE
+	n - test handling OID_NULL by 3 pmemobj functions:
+		- pmemobj_free
+		- pmemobj_alloc_usable_size
+		- pmemobj_next
