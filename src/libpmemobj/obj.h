@@ -56,6 +56,10 @@
 #define	OBJ_NLANES		1024	/* number of lanes */
 
 #define	OBJ_OOB_OFFSET		(sizeof (struct oob_header))
+#define	OBJ_OFF_TO_PTR(pop, off) ((void *)((uintptr_t)(pop) + (off)))
+#define	OBJ_PTR_TO_OFF(pop, ptr) ((uintptr_t)(ptr) - (uintptr_t)(pop))
+#define	OBJ_OID_IS_NULL(oid)	((oid).off == 0)
+#define	OBJ_LIST_EMPTY(head)	OBJ_OID_IS_NULL((head)->pe_first)
 
 #define	OOB_HEADER_FROM_OID(pop, oid)\
 	((struct oob_header *)((uintptr_t)(pop) + (oid).off - OBJ_OOB_OFFSET))
@@ -137,5 +141,25 @@ struct object_store {
 	struct object_store_item root;
 	struct object_store_item bytype[_POBJ_MAX_OID_TYPE_NUM];
 };
+
+static inline PMEMoid
+oob_list_next(PMEMobjpool *pop, struct list_head *head, PMEMoid oid)
+{
+	struct oob_header *oobh = OOB_HEADER_FROM_OID(pop, oid);
+	if (head->pe_first.off == oobh->oob.pe_next.off)
+		return OID_NULL;
+
+	return oobh->oob.pe_next;
+}
+
+static inline PMEMoid
+oob_list_last(PMEMobjpool *pop, struct list_head *head)
+{
+	if (OBJ_OID_IS_NULL(head->pe_first))
+		return OID_NULL;
+
+	struct oob_header *oobh = OOB_HEADER_FROM_OID(pop, head->pe_first);
+	return oobh->oob.pe_prev;
+}
 
 void obj_init(void);
