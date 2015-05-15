@@ -49,6 +49,7 @@
 #include "lane.h"
 #include "out.h"
 #include "pmalloc.h"
+#include "valgrind_internal.h"
 
 struct tx_data {
 	SLIST_ENTRY(tx_data) tx_entry;
@@ -201,6 +202,14 @@ tx_clear_undo_log(PMEMobjpool *pop, struct list_head *head)
 	PMEMoid obj;
 	while (!OBJ_LIST_EMPTY(head)) {
 		obj = head->pe_first;
+
+#ifdef USE_VALGRIND
+		struct oob_header *oobh = OOB_HEADER_FROM_OID(pop, obj);
+		size_t size = pmalloc_usable_size(pop,
+				obj.off - OBJ_OOB_OFFSET);
+
+		VALGRIND_SET_CLEAN(oobh, size);
+#endif
 
 		/* remove and free all elements from undo log */
 		ret = list_remove_free(pop, head,
@@ -1021,6 +1030,13 @@ pmemobj_tx_free(PMEMoid oid)
 				&layout->undo_free, oid);
 	} else {
 		ASSERTeq(oobh->internal_type, 0);
+
+#ifdef USE_VALGRIND
+		size_t size = pmalloc_usable_size(lane->pop,
+				oid.off - OBJ_OOB_OFFSET);
+
+		VALGRIND_SET_CLEAN(oobh, size);
+#endif
 		/*
 		 * The object has been allocated within the same transaction
 		 * so we can just remove and free the object from undo log.

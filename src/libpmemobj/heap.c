@@ -52,6 +52,7 @@
 #include "out.h"
 #include "list.h"
 #include "obj.h"
+#include "valgrind_internal.h"
 
 #define	DEFAULT_BUCKET 0
 #define	MAX_BUCKETS 1 /* XXX */
@@ -118,6 +119,7 @@ heap_chunk_write_footer(struct chunk_header *hdr)
 	f.type = CHUNK_TYPE_FOOTER;
 	*(hdr + hdr->size_idx - 1) = f;
 	/* no need to persist, footers are recreated in heap_populate_buckets */
+	VALGRIND_SET_CLEAN((hdr + hdr->size_idx - 1), sizeof (f));
 }
 
 /*
