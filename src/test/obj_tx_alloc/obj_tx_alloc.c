@@ -39,6 +39,7 @@
 #include "unittest.h"
 #include "libpmemobj.h"
 #include "util.h"
+#include "valgrind_internal.h"
 
 #define	LAYOUT_NAME "tx_alloc"
 
@@ -358,12 +359,19 @@ main(int argc, char *argv[])
 		FATAL("!pmemobj_create");
 
 	do_tx_alloc_no_tx(pop);
+	VALGRIND_WRITE_STATS;
 	do_tx_alloc_commit(pop);
+	VALGRIND_WRITE_STATS;
 	do_tx_alloc_abort(pop);
+	VALGRIND_WRITE_STATS;
 	do_tx_alloc_commit_nested(pop);
+	VALGRIND_WRITE_STATS;
 	do_tx_alloc_abort_nested(pop);
+	VALGRIND_WRITE_STATS;
 	do_tx_alloc_abort_after_nested(pop);
+	VALGRIND_WRITE_STATS;
 	do_tx_alloc_oom(pop);
+	VALGRIND_WRITE_STATS;
 
 	pmemobj_close(pop);
 
