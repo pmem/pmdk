@@ -1,5 +1,5 @@
 <!-- Creator     : groff version 1.18.1.4 -->
-<!-- CreationDate: Wed Feb 11 09:40:53 2015 -->
+<!-- CreationDate: Fri May 15 18:02:31 2015 -->
 <html>
 <head>
 <meta name="generator" content="groff -Thtml, see www.gnu.org">
@@ -214,6 +214,8 @@ pool requires some space overhead in the memory pool, the
 resulting number of available blocks is less than
 <i>poolsize / bsize</i>, and is made available to the caller
 via the <b>pmemblk_nblock</b>() function described below.
+Given the specifics of the implementation, the number of
+available blocks for the user cannot be less than 256.
 <i>path</i> specifies the name of the memory pool file to be
 created. <i>mode</i> specifies the permissions to use when
 creating the file as described by <b>creat</b>(2). The
