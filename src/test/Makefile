@@ -124,7 +124,8 @@ TEST = blk_nblock\
        obj_ctree\
        obj_bucket\
        obj_heap\
-       obj_store
+       obj_store\
+       obj_tx_locks
 
 all     : TARGET = all
 clean   : TARGET = clean

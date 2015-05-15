@@ -158,7 +158,7 @@ main(int argc, char *argv[])
 	b = 0;
 	c = 0;
 
-	pmemobj_tx_begin(pop, NULL);
+	pmemobj_tx_begin(pop, NULL, TX_LOCK_NONE);
 	pmemobj_tx_abort(EINVAL);
 	ASSERT(pmemobj_tx_stage() == TX_STAGE_ONABORT);
 	a = TEST_VALUE_A;
