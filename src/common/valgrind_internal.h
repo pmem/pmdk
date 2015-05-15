@@ -59,7 +59,7 @@
 
 #define	VALGRIND_DO_COMMIT VALGRIND_PMC_DO_COMMIT
 
-#define VALGRIND_DO_PERSIST(addr, len) do {\
+#define	VALGRIND_DO_PERSIST(addr, len) do {\
 	VALGRIND_PMC_DO_FLUSH((addr), (len));\
 	VALGRIND_PMC_DO_FENCE;\
 	VALGRIND_PMC_DO_COMMIT;\
@@ -88,40 +88,41 @@
 
 #else
 
-#define	VALGRIND_REGISTER_PMEM_MAPPING(addr, len) do {} while(0)
+#define	VALGRIND_REGISTER_PMEM_MAPPING(addr, len) do {} while (0)
 
-#define	VALGRIND_REGISTER_PMEM_FILE(desc, base_addr, size, offset) do {} while(0)
+#define	VALGRIND_REGISTER_PMEM_FILE(desc, base_addr, size, offset)\
+	do {} while (0)
 
-#define	VALGRIND_REMOVE_PMEM_MAPPING(addr, len) do {} while(0)
+#define	VALGRIND_REMOVE_PMEM_MAPPING(addr, len) do {} while (0)
 
-#define	VALGRIND_CHECK_IS_PMEM_MAPPING(addr, len) do {} while(0)
+#define	VALGRIND_CHECK_IS_PMEM_MAPPING(addr, len) do {} while (0)
 
-#define	VALGRIND_PRINT_PMEM_MAPPINGS do {} while(0)
+#define	VALGRIND_PRINT_PMEM_MAPPINGS do {} while (0)
 
-#define	VALGRIND_DO_FLUSH(addr, len) do {} while(0)
+#define	VALGRIND_DO_FLUSH(addr, len) do {} while (0)
 
-#define	VALGRIND_DO_FENCE do {} while(0)
+#define	VALGRIND_DO_FENCE do {} while (0)
 
-#define	VALGRIND_DO_COMMIT do {} while(0)
+#define	VALGRIND_DO_COMMIT do {} while (0)
 
-#define VALGRIND_DO_PERSIST(addr, len) do {} while(0)
+#define	VALGRIND_DO_PERSIST(addr, len) do {} while (0)
 
-#define	VALGRIND_WRITE_STATS do {} while(0)
+#define	VALGRIND_WRITE_STATS do {} while (0)
 
-#define	VALGRIND_LOG_STORES do {} while(0)
+#define	VALGRIND_LOG_STORES do {} while (0)
 
-#define	VALGRIND_NO_LOG_STORES do {} while(0)
+#define	VALGRIND_NO_LOG_STORES do {} while (0)
 
-#define	VALGRIND_ADD_LOG_REGION(addr, len) do {} while(0)
+#define	VALGRIND_ADD_LOG_REGION(addr, len) do {} while (0)
 
-#define	VALGRIND_REMOVE_LOG_REGION(addr, len) do {} while(0)
+#define	VALGRIND_REMOVE_LOG_REGION(addr, len) do {} while (0)
 
-#define	VALGRIND_FULL_REORDER do {} while(0)
+#define	VALGRIND_FULL_REORDER do {} while (0)
 
-#define	VALGRIND_PARTIAL_REORDER do {} while(0)
+#define	VALGRIND_PARTIAL_REORDER do {} while (0)
 
-#define	VALGRIND_ONLY_FAULT do {} while(0)
+#define	VALGRIND_ONLY_FAULT do {} while (0)
 
-#define	VALGRIND_STOP_REORDER_FAULT do {} while(0)
+#define	VALGRIND_STOP_REORDER_FAULT do {} while (0)
 
 #endif

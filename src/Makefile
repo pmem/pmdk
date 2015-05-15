@@ -37,7 +37,7 @@ TARGETS = libpmem libvmem libpmemblk libpmemlog libpmemobj libvmmalloc tools
 ALL_TARGETS = $(TARGETS) examples benchmarks
 CLEAN_TARGETS = $(ALL_TARGETS) test jemalloc
 CLOBBER_TARGETS = $(ALL_TARGETS) test jemalloc
-CSTYLE_TARGETS = $(ALL_TARGETS) test
+CSTYLE_TARGETS = $(ALL_TARGETS) common test
 INSTALL_TARGETS = $(TARGETS)
 
 HEADERS_DESTDIR = $(DESTDIR)/usr/include
