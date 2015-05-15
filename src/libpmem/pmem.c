@@ -465,10 +465,7 @@ pmem_msync(void *addr, size_t len)
 		LOG(1, "!msync");
 
 	/* full flush, commit */
-	VALGRIND_DO_FLUSH(uptr, len);
-	VALGRIND_DO_FENCE;
-	VALGRIND_DO_COMMIT;
-	VALGRIND_DO_FENCE;
+	VALGRIND_DO_PERSIST(uptr, len);
 
 	return ret;
 }

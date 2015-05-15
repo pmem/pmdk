@@ -56,6 +56,7 @@
 #include "pmalloc.h"
 #include "cuckoo.h"
 #include "obj.h"
+#include "valgrind_internal.h"
 
 static struct cuckoo *pools;
 
@@ -306,6 +307,10 @@ pmemobj_map_common(int fd, const char *layout, size_t poolsize, int rdonly,
 	if (pop->run_id == 0)
 		pop->run_id += 2;
 	pmem_msync(&pop->run_id, sizeof (pop->run_id));
+
+	VALGRIND_REMOVE_PMEM_MAPPING(&pop->addr,
+			sizeof (struct pmemobjpool) - OBJ_DSC_P_SIZE);
+
 
 	/*
 	 * Use some of the memory pool area for run-time info.  This
