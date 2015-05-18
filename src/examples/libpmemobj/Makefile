@@ -33,7 +33,7 @@
 #
 # examples/libpmemobj/Makefile -- build the libpmemobj examples
 #
-PROGS = manpage
+PROGS = manpage btree
 DIRS = pminvaders pmemlog pmemblk string_store string_store_tx\
 	string_store_tx_type
 
@@ -69,6 +69,7 @@ $(PROGS):
 	$(CC) -o $@ $< $(LIBS)
 
 manpage: manpage.o
+btree: btree.o
 
 $(DIRS):
 	$(MAKE) -C $@ $(TARGET)
