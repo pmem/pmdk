@@ -139,7 +139,7 @@ struct object_store_item {
 
 struct object_store {
 	struct object_store_item root;
-	struct object_store_item bytype[_POBJ_MAX_OID_TYPE_NUM];
+	struct object_store_item bytype[PMEMOBJ_NUM_OID_TYPES];
 };
 
 static inline PMEMoid

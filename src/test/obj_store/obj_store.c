@@ -165,7 +165,7 @@ test_store_alloc_free(const char *path)
 		FATAL("!pmemobj_create: %s", path);
 
 	/* object store should be empty */
-	for (type_num = 0; type_num < _POBJ_MAX_OID_TYPE_NUM; type_num++) {
+	for (type_num = 0; type_num < PMEMOBJ_NUM_OID_TYPES; type_num++) {
 		poid = pmemobj_first(pop, type_num);
 		ASSERTeq(poid.off, 0);
 	}

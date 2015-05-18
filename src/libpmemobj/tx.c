@@ -241,7 +241,7 @@ tx_abort_free(PMEMobjpool *pop, struct lane_tx_layout *layout)
 		obj = layout->undo_free.pe_first;
 
 		struct oob_header *oobh = OOB_HEADER_FROM_OID(pop, obj);
-		ASSERT(oobh->user_type < _POBJ_MAX_OID_TYPE_NUM);
+		ASSERT(oobh->user_type < PMEMOBJ_NUM_OID_TYPES);
 
 		struct object_store_item *obj_list =
 			&pop->store->bytype[oobh->user_type];
@@ -361,7 +361,7 @@ tx_post_commit_alloc(PMEMobjpool *pop, struct lane_tx_layout *layout)
 		obj = layout->undo_alloc.pe_first;
 
 		struct oob_header *oobh = OOB_HEADER_FROM_OID(pop, obj);
-		ASSERT(oobh->user_type < _POBJ_MAX_OID_TYPE_NUM);
+		ASSERT(oobh->user_type < PMEMOBJ_NUM_OID_TYPES);
 
 		struct object_store_item *obj_list =
 			&pop->store->bytype[oobh->user_type];
@@ -576,7 +576,7 @@ tx_alloc_common(size_t size, int type_num,
 		return OID_NULL;
 	}
 
-	if (type_num < 0 || type_num >= _POBJ_MAX_OID_TYPE_NUM) {
+	if (type_num < 0 || type_num >= PMEMOBJ_NUM_OID_TYPES) {
 		LOG(1, "invalid type_num %d", type_num);
 		errno = EINVAL;
 		pmemobj_tx_abort(EINVAL);
@@ -1010,7 +1010,7 @@ pmemobj_tx_free(PMEMoid oid)
 		(struct lane_tx_layout *)tx.section->layout;
 
 	struct oob_header *oobh = OOB_HEADER_FROM_OID(lane->pop, oid);
-	ASSERT(oobh->user_type < _POBJ_MAX_OID_TYPE_NUM);
+	ASSERT(oobh->user_type < PMEMOBJ_NUM_OID_TYPES);
 
 	if (oobh->internal_type == OP_ALLOC) {
 		/* the object is in object store */
