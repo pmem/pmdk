@@ -50,6 +50,7 @@ extern "C" {
 #include <sys/types.h>
 #include <setjmp.h>
 #include <stdint.h>
+#include <stddef.h>
 
 /*
  * opaque type internal to libpmemobj
@@ -198,8 +199,8 @@ __builtin_choose_expr(\
  */
 void *pmemobj_direct(PMEMoid oid);
 
-#define	DIRECT_RW(o) ((typeof (*(o)._type)*)pmemobj_direct(o.oid))
-#define	DIRECT_RO(o) ((const typeof (*(o)._type)*)pmemobj_direct(o.oid))
+#define	DIRECT_RW(o) ((typeof (*(o)._type)*)pmemobj_direct((o).oid))
+#define	DIRECT_RO(o) ((const typeof (*(o)._type)*)pmemobj_direct((o).oid))
 
 #define	D_RW	DIRECT_RW
 #define	D_RO	DIRECT_RO
