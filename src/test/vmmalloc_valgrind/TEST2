@@ -50,7 +50,7 @@ set_valgrind_exe_name
 
 setup
 
-export VMMALLOC_LOG_LEVEL=0
+unset VMMALLOC_LOG_LEVEL
 unset VMMALLOC_LOG_FILE
 
 expect_normal_exit LD_PRELOAD=libvmmalloc.so $VALGRINDEXE\
