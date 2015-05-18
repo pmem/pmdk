@@ -1,5 +1,5 @@
 <!-- Creator     : groff version 1.18.1.4 -->
-<!-- CreationDate: Wed Feb 11 09:40:52 2015 -->
+<!-- CreationDate: Fri May 15 18:02:31 2015 -->
 <html>
 <head>
 <meta name="generator" content="groff -Thtml, see www.gnu.org">
@@ -306,7 +306,8 @@ operations than the <b>pmem_persist</b>() function described
 above.</p>
 <!-- INDENTATION -->
 <p><b>void pmem_flush(void *</b><i>addr</i><b>, size_t</b>
-<i>len</i><b>); void pmem_drain(void);</b></p>
+<i>len</i><b>);<br>
+void pmem_drain(void);</b></p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -785,6 +786,32 @@ variable, <b>libpmem</b> will use the non-temporal
 instructions for copying larger ranges to persistent memory
 on platforms that support the instructions. This variable is
 intended for use during library testing.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>PMEM_MOVNT_THRESHOLD=</b><i>val</i></p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="20%"></td>
+<td width="79%">
+<p>This environment variable allows overriding the minimal
+length of <b>pmem_memcpy_*</b>()<b>, pmem_memmove_*</b>() or
+<b>pmem_memset_*</b>() operations, for which <b>libpmem</b>
+uses <i>non-temporal</i> move instructions. Setting this
+environment variable to 0 forces <b>libpmem</b> to always
+use the <i>non-temporal</i> move instructions if available.
+It has no effect if <b>PMEM_NO_MOVNT</b> variable is set to
+1. This variable is intended for use during library
+testing.</p>
 </td>
 </table>
 <a name="EXAMPLES"></a>
