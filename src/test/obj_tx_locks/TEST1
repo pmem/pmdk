@@ -40,6 +40,11 @@ export UNITTEST_NUM=1
 # standard unit test setup
 . ../unittest/unittest.sh
 
+unset PMEM_LOG_LEVEL
+unset PMEM_LOG_FILE
+unset PMEMOBJ_LOG_LEVEL
+unset PMEMOBJ_LOG_FILE
+
 require_fs_type local
 require_build_type debug nondebug
 require_valgrind

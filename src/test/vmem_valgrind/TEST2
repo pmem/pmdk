@@ -46,7 +46,7 @@ require_valgrind_dev_3_7
 
 setup
 
-export VMEM_LOG_LEVEL=0
+unset VMEM_LOG_LEVEL
 unset VMEM_LOG_FILE
 [ "$FS" == "pmem" ] && DIR_WORK=$DIR
 
