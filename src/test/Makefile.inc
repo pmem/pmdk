@@ -88,9 +88,18 @@ INCS = -I../unittest -I../../include
 CFLAGS = -ggdb -Wall -Werror -std=gnu99 $(EXTRA_CFLAGS)
 LDFLAGS = $(EXTRA_LDFLAGS)
 
+#
+# By default debug and non-debug static versions are built.
+# It can be changed by setting BUILD_STATIC_DEBUG
+# or BUILD_STATIC_NONDEBUG to 'n'.
+#
 ifneq ($(TARGET),)
+ifneq ($(BUILD_STATIC_DEBUG),n)
 TARGET_STATIC_DEBUG=$(TARGET).static-debug
+endif
+ifneq ($(BUILD_STATIC_NONDEBUG),n)
 TARGET_STATIC_NONDEBUG=$(TARGET).static-nondebug
+endif
 endif
 
 all: $(TARGET) $(TARGET_STATIC_DEBUG) $(TARGET_STATIC_NONDEBUG)
