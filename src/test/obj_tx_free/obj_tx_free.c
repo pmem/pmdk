@@ -39,6 +39,7 @@
 #include "unittest.h"
 #include "libpmemobj.h"
 #include "util.h"
+#include "valgrind_internal.h"
 
 #define	LAYOUT_NAME "tx_free"
 
@@ -381,16 +382,27 @@ main(int argc, char *argv[])
 		FATAL("!pmemobj_create");
 
 	do_tx_free_no_tx(pop);
+	VALGRIND_WRITE_STATS;
 	do_tx_free_wrong_uuid(pop);
+	VALGRIND_WRITE_STATS;
 	do_tx_free_null_oid(pop);
+	VALGRIND_WRITE_STATS;
 	do_tx_free_commit(pop);
+	VALGRIND_WRITE_STATS;
 	do_tx_free_abort(pop);
+	VALGRIND_WRITE_STATS;
 	do_tx_free_commit_nested(pop);
+	VALGRIND_WRITE_STATS;
 	do_tx_free_abort_nested(pop);
+	VALGRIND_WRITE_STATS;
 	do_tx_free_abort_after_nested(pop);
+	VALGRIND_WRITE_STATS;
 	do_tx_free_alloc_commit(pop);
+	VALGRIND_WRITE_STATS;
 	do_tx_free_alloc_abort(pop);
+	VALGRIND_WRITE_STATS;
 	do_tx_free_oom(pop);
+	VALGRIND_WRITE_STATS;
 
 	pmemobj_close(pop);
 

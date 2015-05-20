@@ -692,7 +692,7 @@ memmove_nodrain_movnt(void *pmemdest, const void *src, size_t len)
 				d8++;
 				s8++;
 			}
-			pmem_flush(d8, cnt);
+			pmem_flush(dest1, cnt);
 			dest1 += cnt;
 			src += cnt;
 			len -= cnt;
@@ -758,7 +758,7 @@ memmove_nodrain_movnt(void *pmemdest, const void *src, size_t len)
 				d8++;
 				s8++;
 			}
-			pmem_flush(d8, cnt);
+			pmem_flush(d32, cnt);
 		}
 	} else {
 		/*

@@ -39,6 +39,7 @@
 #include "unittest.h"
 #include "libpmemobj.h"
 #include "util.h"
+#include "valgrind_internal.h"
 
 #define	LAYOUT_NAME "tx_add_range"
 
@@ -397,15 +398,25 @@ main(int argc, char *argv[])
 		FATAL("!pmemobj_create");
 
 	do_tx_add_range_no_tx(pop);
+	VALGRIND_WRITE_STATS;
 	do_tx_add_range_commit(pop);
+	VALGRIND_WRITE_STATS;
 	do_tx_add_range_abort(pop);
+	VALGRIND_WRITE_STATS;
 	do_tx_add_range_commit_nested(pop);
+	VALGRIND_WRITE_STATS;
 	do_tx_add_range_abort_nested(pop);
+	VALGRIND_WRITE_STATS;
 	do_tx_add_range_abort_after_nested(pop);
+	VALGRIND_WRITE_STATS;
 	do_tx_add_range_twice_commit(pop);
+	VALGRIND_WRITE_STATS;
 	do_tx_add_range_twice_abort(pop);
+	VALGRIND_WRITE_STATS;
 	do_tx_add_range_alloc_commit(pop);
+	VALGRIND_WRITE_STATS;
 	do_tx_add_range_alloc_abort(pop);
+	VALGRIND_WRITE_STATS;
 
 	pmemobj_close(pop);
 
