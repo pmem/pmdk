@@ -50,6 +50,7 @@ TEST = blk_nblock\
        pmem_map\
        pmem_memmove\
        pmem_memcpy\
+       pmem_movnt_align\
        pmem_memset\
        pmem_valgr_simple\
        pmem_movnt\
