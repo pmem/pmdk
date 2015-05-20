@@ -132,8 +132,15 @@ test_list_api(PMEMobjpool *pop)
 
 	ASSERTeq(nodes_count, 0);
 
-	POBJ_LIST_INSERT_NEW_HEAD(pop, &D_RW(root)->dummies, 0, plist);
-	POBJ_LIST_INSERT_NEW_TAIL(pop, &D_RW(root)->dummies, 0, plist);
+	int *test_val = MALLOC(sizeof (*test_val));
+	*test_val = TEST_VALUE;
+
+	POBJ_LIST_INSERT_NEW_HEAD(pop, &D_RW(root)->dummies, 0, plist,
+			dummy_node_constructor, test_val);
+	POBJ_LIST_INSERT_NEW_TAIL(pop, &D_RW(root)->dummies, 0, plist,
+			dummy_node_constructor, test_val);
+
+	FREE(test_val);
 
 	OID_TYPE(struct dummy_node) node;
 	OID_ASSIGN(node, pmemobj_zalloc(pop, sizeof (struct dummy_root), 0));

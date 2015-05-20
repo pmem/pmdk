@@ -80,7 +80,7 @@ test_FOREACH(const char *path)
 		FATAL("!pmemobj_create: %s", path);
 
 	OID_ASSIGN(root, pmemobj_root(pop, sizeof (struct root)));
-	POBJ_LIST_INSERT_NEW_HEAD(pop, &D_RW(root)->lhead, 0, next);
+	POBJ_LIST_INSERT_NEW_HEAD(pop, &D_RW(root)->lhead, 0, next, NULL, NULL);
 
 	COMMANDS_FOREACH;
 	TX_BEGIN(pop) {
@@ -100,7 +100,8 @@ test_lists(const char *path)
 
 #define	COMMANDS_LISTS\
 	do {\
-	POBJ_LIST_INSERT_NEW_HEAD(pop, &D_RW(root)->lhead, TYPE, next);\
+	POBJ_LIST_INSERT_NEW_HEAD(pop, &D_RW(root)->lhead, TYPE, next,\
+			NULL, NULL);\
 	OID_ASSIGN(elm, pmemobj_alloc(pop, sizeof (struct tobj), TYPE));\
 	POBJ_LIST_INSERT_AFTER(pop, &D_RW(root)->lhead,\
 			POBJ_LIST_FIRST(&D_RW(root)->lhead), elm, next);\

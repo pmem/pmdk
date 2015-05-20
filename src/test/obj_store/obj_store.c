@@ -73,6 +73,16 @@ struct tobject {
 	PLIST_ENTRY(struct tobject) next;
 };
 
+static void
+tobject_construct(void *ptr, void *arg)
+{
+	struct tobject *tobj = ptr;
+	uint8_t *valp = arg;
+	tobj->value = *valp;
+	pmem_msync(tobj, sizeof (*tobj));
+}
+
+
 void
 test_root_object(const char *path)
 {
@@ -333,14 +343,13 @@ test_user_lists(const char *path)
 
 	/* add _N_OBJECTS elements to the user list */
 	for (i = 0; i < _N_OBJECTS; i++) {
-		OID_ASSIGN(tobj, POBJ_LIST_INSERT_NEW_HEAD(pop,
-				&D_RW(root)->lhead, _USER_TYPE, next));
-		ASSERT(OID_IS_NULL(tobj) == 0);
 		value = i + 1;
 		ASSERT(isclr(bitmap, value));
 		setbit(bitmap, value);
-		D_RW(tobj)->value = value;
-		pop->persist(&D_RW(tobj)->value, sizeof (uint8_t));
+		OID_ASSIGN(tobj, POBJ_LIST_INSERT_NEW_HEAD(pop,
+				&D_RW(root)->lhead, _USER_TYPE, next,
+				tobject_construct, &value));
+		ASSERT(OID_IS_NULL(tobj) == 0);
 	}
 
 	/* re-open the pool */

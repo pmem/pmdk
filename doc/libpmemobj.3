@@ -133,7 +133,8 @@ libpmemobj \- persistent memory transactional object store
 .BI "int pmemobj_list_insert(PMEMobjpool *" pop ", size_t " pe_offset ", PMEMoid " dest ,
 .BI "    PMEMoid *" head ", int " before ", PMEMoid " oid );
 .BI "PMEMoid pmemobj_list_insert_new(PMEMobjpool *" pop ", size_t " pe_offset ", PMEMoid " dest ,
-.BI "    PMEMoid *" head ", int " before ", size_t " size ", int " type_num );
+.BI "    PMEMoid *" head ", int " before ", size_t " size ", int " type_num ,
+.BI "    void (*" constructor ")(void *" ptr ", void *" arg "), void *" arg );
 .BI "int pmemobj_list_remove(PMEMobjpool *" pop ", size_t " pe_offset ", PMEMoid " oid ,
 .BI "    PMEMoid *" head ", int " free );
 .BI "int pmemobj_list_move(PMEMobjpool *" pop ,
@@ -161,13 +162,17 @@ libpmemobj \- persistent memory transactional object store
 .BI "POBJ_LIST_INSERT_BEFORE(PMEMobjpool *" pop ", POBJ_LIST_HEAD *" head ",
 .BI "    OID_TYPE " listelm ", OID_TYPE " elm ", POBJ_LIST_ENTRY " FIELD )
 .BI "POBJ_LIST_INSERT_NEW_HEAD(PMEMobjpool *" pop ", POBJ_LIST_HEAD *" head ",
-.BI "    int " type_num ", POBJ_LIST_ENTRY " FIELD )
+.BI "    int " type_num ", POBJ_LIST_ENTRY " FIELD ,
+.BI "    void (*" constructor ")(void *" ptr ", void *" arg "), void *" arg );
 .BI "POBJ_LIST_INSERT_NEW_TAIL(PMEMobjpool *" pop ", POBJ_LIST_HEAD *" head ",
-.BI "    int " type_num ", POBJ_LIST_ENTRY " FIELD )
+.BI "    int " type_num ", POBJ_LIST_ENTRY " FIELD ,
+.BI "    void (*" constructor ")(void *" ptr ", void *" arg "), void *" arg );
 .BI "POBJ_LIST_INSERT_NEW_AFTER(PMEMobjpool *" pop ", POBJ_LIST_HEAD *" head ",
-.BI "    OID_TYPE " listelm ", int " type_num ", POBJ_LIST_ENTRY " FIELD )
+.BI "    OID_TYPE " listelm ", int " type_num ", POBJ_LIST_ENTRY " FIELD ,
+.BI "    void (*" constructor ")(void *" ptr ", void *" arg "), void *" arg );
 .BI "POBJ_LIST_INSERT_NEW_BEFORE(PMEMobjpool *" pop ", POBJ_LIST_HEAD *" head ",
-.BI "    OID_TYPE " listelm ", int " type_num ", POBJ_LIST_ENTRY " FIELD )
+.BI "    OID_TYPE " listelm ", int " type_num ", POBJ_LIST_ENTRY " FIELD ,
+.BI "    void (*" constructor ")(void *" ptr ", void *" arg "), void *" arg );
 .BI "POBJ_LIST_REMOVE(PMEMobjpool *" pop ", POBJ_LIST_HEAD *" head ",
 .BI "    OID_TYPE " elm ", POBJ_LIST_ENTRY " FIELD )
 .BI "POBJ_LIST_REMOVE_FREE(PMEMobjpool *" pop ", POBJ_LIST_HEAD *" head ",
@@ -1419,7 +1424,7 @@ On success, zero is returned. On error, -1 is returned and errno is set.
 .br
 .BI "    PMEMoid " dest ", PMEMoid *" head ", int " before ", size_t " size ",
 .br
-.BI "    int " type_num );
+.BI "    int " type_num ", void (*" constructor ")(void *" ptr ", void *" arg "), void *" arg );
 .IP
 The
 .BR pmemobj_list_insert_new
@@ -1447,6 +1452,16 @@ All the handles
 .I dest
 must point to the objects allocated from the same memory pool
 .IR pop .
+Before returning, it calls the
+.BR constructor
+function passing the pointer to the newly allocated object in
+.I ptr
+along with the
+.I arg
+argument.
+It is guaranteed that allocated object is either
+properly initialized or, if the allocation is interrupted before the constructor
+completes, the memory space reserved for the object is reclaimed.
 The
 .I head
 cannot be OID_NULL.
@@ -1716,7 +1731,9 @@ before the element
 .PP
 .BI "POBJ_LIST_INSERT_NEW_HEAD(PMEMobjpool *" pop ", POBJ_LIST_HEAD *" head ",
 .br
-.BI "    int " type_num ", POBJ_LIST_ENTRY " FIELD )
+.BI "    int " type_num ", POBJ_LIST_ENTRY " FIELD ,
+.br
+.BI "    void (*" constructor ")(void *" ptr ", void *" arg "), void *" arg );
 .IP
 The macro
 .BR POBJ_LIST_INSERT_NEW_HEAD
@@ -1730,7 +1747,9 @@ container associated with
 .PP
 .BI "POBJ_LIST_INSERT_NEW_TAIL(PMEMobjpool *" pop ", POBJ_LIST_HEAD *" head ",
 .br
-.BI "    int " type_num ", POBJ_LIST_ENTRY " FIELD )
+.BI "    int " type_num ", POBJ_LIST_ENTRY " FIELD ,
+.br
+.BI "    void (*" constructor ")(void *" ptr ", void *" arg "), void *" arg );
 .IP
 The macro
 .BR POBJ_LIST_INSERT_NEW_TAIL
@@ -1744,7 +1763,9 @@ container associated with
 .PP
 .BI "POBJ_LIST_INSERT_NEW_AFTER(PMEMobjpool *" pop ", POBJ_LIST_HEAD *" head ",
 .br
-.BI "    OID_TYPE " listelm ", int " type_num ", POBJ_LIST_ENTRY " FIELD )
+.BI "    OID_TYPE " listelm ", int " type_num ", POBJ_LIST_ENTRY " FIELD ,
+.br
+.BI "    void (*" constructor ")(void *" ptr ", void *" arg "), void *" arg );
 .IP
 The macro
 .BR POBJ_LIST_INSERT_NEW_AFTER
@@ -1760,7 +1781,9 @@ container associated with
 .PP
 .BI "POBJ_LIST_INSERT_NEW_BEFORE(PMEMobjpool *" pop ", POBJ_LIST_HEAD *" head ",
 .br
-.BI "    OID_TYPE " listelm ", int " type_num ", POBJ_LIST_ENTRY " FIELD )
+.BI "    OID_TYPE " listelm ", int " type_num ", POBJ_LIST_ENTRY " FIELD ,
+.br
+.BI "    void (*" constructor ")(void *" ptr ", void *" arg "), void *" arg );
 .IP
 The macro
 .BR POBJ_LIST_INSERT_NEW_BEFORE

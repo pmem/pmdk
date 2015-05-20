@@ -388,7 +388,8 @@ int pmemobj_list_insert(PMEMobjpool *pop, size_t pe_offset, void *head,
 	PMEMoid dest, int before, PMEMoid oid);
 
 PMEMoid pmemobj_list_insert_new(PMEMobjpool *pop, size_t pe_offset, void *head,
-	PMEMoid dest, int before, size_t size, int type_num);
+	PMEMoid dest, int before, size_t size, int type_num,
+	void (*constructor)(void *ptr, void *arg), void *arg);
 
 int pmemobj_list_remove(PMEMobjpool *pop, size_t pe_offset, void *head,
 	PMEMoid oid, int free);
@@ -454,29 +455,35 @@ pmemobj_list_insert((pop), offsetof(typeof (*D_RO((elm))),\
 	(head), (listelm).oid,\
 	1 /* before */, (elm).oid)
 
-#define	POBJ_LIST_INSERT_NEW_HEAD(pop, head, type_num, field)\
+#define	POBJ_LIST_INSERT_NEW_HEAD(pop, head, type_num, field, constr, arg)\
 pmemobj_list_insert_new((pop),\
 	offsetof(typeof (*((head)->pe_first._type)), field),\
 	(head), POBJ_LIST_FIRST((head)).oid,\
-	1 /* before */,	sizeof (*(POBJ_LIST_FIRST(head)._type)), type_num)
+	1 /* before */,	sizeof (*(POBJ_LIST_FIRST(head)._type)), type_num,\
+	(constr), (arg))
 
-#define	POBJ_LIST_INSERT_NEW_TAIL(pop, head, type_num, field)\
+#define	POBJ_LIST_INSERT_NEW_TAIL(pop, head, type_num, field, constr, arg)\
 pmemobj_list_insert_new((pop),\
 	offsetof(typeof (*((head)->pe_first._type)), field),\
 	(head), POBJ_LIST_LAST((head), field).oid,\
-	0 /* after */, sizeof (*(POBJ_LIST_FIRST(head)._type)), type_num)
+	0 /* after */, sizeof (*(POBJ_LIST_FIRST(head)._type)), type_num,\
+	(constr), (arg))
 
-#define	POBJ_LIST_INSERT_NEW_AFTER(pop, head, listelm, type_num, field)\
+#define	POBJ_LIST_INSERT_NEW_AFTER(pop, head, listelm, type_num, field,\
+	constr, arg)\
 pmemobj_list_insert_new((pop),\
 	offsetof(typeof (*((head)->pe_first._type)), field),\
 	(head), (listelm).oid, 0 /* after */,\
-	sizeof (*(POBJ_LIST_FIRST(head)._type)), type_num)
+	sizeof (*(POBJ_LIST_FIRST(head)._type)), type_num,\
+	(constr), (arg))
 
-#define	POBJ_LIST_INSERT_NEW_BEFORE(pop, head, listelm, type_num, field)\
+#define	POBJ_LIST_INSERT_NEW_BEFORE(pop, head, listelm, type_num, field,\
+	constr, arg)\
 pmemobj_list_insert_new((pop),\
 	offsetof(typeof (*(POBJ_LIST_FIRST(head)._type)), field),\
 	(head), (listelm).oid, 1 /* before */,\
-	sizeof (*(POBJ_LIST_FIRST(head)._type)), type_num)
+	sizeof (*(POBJ_LIST_FIRST(head)._type)), type_num,\
+	(constr), (arg))
 
 #define	POBJ_LIST_REMOVE(pop, head, elm, field)\
 pmemobj_list_remove((pop),\
