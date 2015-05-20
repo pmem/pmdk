@@ -134,7 +134,7 @@ constructor_tx_alloc(void *ptr, void *arg)
 	 * no need to flush and persist because this
 	 * will be done in pre commit phase
 	 */
-	oobh->internal_type = 0;
+	oobh->internal_type = TYPE_NONE;
 	oobh->user_type = args->type_num;
 }
 
@@ -157,7 +157,7 @@ constructor_tx_zalloc(void *ptr, void *arg)
 	 * no need to flush and persist because this
 	 * will be done in pre commit phase
 	 */
-	oobh->internal_type = 0;
+	oobh->internal_type = TYPE_NONE;
 	oobh->user_type = args->type_num;
 
 	memset(ptr, 0, args->size);
@@ -206,7 +206,7 @@ constructor_tx_copy(void *ptr, void *arg)
 	 * no need to flush and persist because this
 	 * will be done in pre commit phase
 	 */
-	oobh->internal_type = 0;
+	oobh->internal_type = TYPE_NONE;
 	oobh->user_type = args->type_num;
 
 	memcpy(ptr, args->ptr, args->copy_size);
@@ -231,7 +231,7 @@ constructor_tx_copy_zero(void *ptr, void *arg)
 	 * no need to flush and persist because this
 	 * will be done in pre commit phase
 	 */
-	oobh->internal_type = 0;
+	oobh->internal_type = TYPE_NONE;
 	oobh->user_type = args->type_num;
 
 	memcpy(ptr, args->ptr, args->copy_size);
@@ -386,7 +386,7 @@ tx_pre_commit_alloc(PMEMobjpool *pop, struct lane_tx_layout *layout)
 		 * In such case we need to know that the object
 		 * is on undo log list and not in object store.
 		 */
-		oobh->internal_type = OP_ALLOC;
+		oobh->internal_type = TYPE_ALLOCATED;
 
 		size_t size = pmalloc_usable_size(pop,
 				iter.off - OBJ_OOB_OFFSET);
@@ -1047,7 +1047,7 @@ pmemobj_tx_add_range(PMEMoid oid, uint64_t hoff, size_t size)
 	 * the object was allocated within this transaction
 	 * and there is no need to create a snapshot.
 	 */
-	if (oobh->internal_type == OP_ALLOC) {
+	if (oobh->internal_type == TYPE_ALLOCATED) {
 		struct lane_tx_layout *layout =
 			(struct lane_tx_layout *)tx.section->layout;
 
@@ -1183,7 +1183,7 @@ pmemobj_tx_free(PMEMoid oid)
 	struct oob_header *oobh = OOB_HEADER_FROM_OID(lane->pop, oid);
 	ASSERT(oobh->user_type < PMEMOBJ_NUM_OID_TYPES);
 
-	if (oobh->internal_type == OP_ALLOC) {
+	if (oobh->internal_type == TYPE_ALLOCATED) {
 		/* the object is in object store */
 		struct object_store_item *obj_list =
 			&lane->pop->store->bytype[oobh->user_type];
@@ -1191,8 +1191,7 @@ pmemobj_tx_free(PMEMoid oid)
 		return list_move_oob(lane->pop, &obj_list->head,
 				&layout->undo_free, oid);
 	} else {
-		ASSERTeq(oobh->internal_type, 0);
-
+		ASSERTeq(oobh->internal_type, TYPE_NONE);
 #ifdef USE_VALGRIND
 		size_t size = pmalloc_usable_size(lane->pop,
 				oid.off - OBJ_OOB_OFFSET);
