@@ -509,6 +509,62 @@ pmemobj_direct(PMEMoid oid)
 	return cuckoo_get(pools, oid.pool_uuid_lo) + oid.off;
 }
 
+/* arguments for constructor_alloc_bytype */
+struct carg_bytype {
+	PMEMobjpool *pop; /* saved to call pop->persist */
+	uint16_t user_type;
+	void (*constructor)(void *ptr, void *arg);
+	void *arg;
+};
+
+/*
+ * constructor_alloc_bytype -- (internal) constructor for obj_alloc_construct
+ */
+static void
+constructor_alloc_bytype(void *ptr, void *arg)
+{
+	LOG(3, "ptr %p arg %p", ptr, arg);
+
+	ASSERTne(ptr, NULL);
+	ASSERTne(arg, NULL);
+
+	struct oob_header *pobj = OOB_HEADER_FROM_PTR(ptr);
+	struct carg_bytype *carg = arg;
+
+	pobj->internal_type = OP_ALLOC;
+	pobj->user_type = carg->user_type;
+	carg->pop->persist(pobj, OBJ_OOB_OFFSET);
+
+	if (carg->constructor)
+		carg->constructor(ptr, carg->arg);
+}
+
+/*
+ * obj_alloc_construct -- (internal) allocates a new object with constructor
+ */
+static PMEMoid
+obj_alloc_construct(PMEMobjpool *pop, size_t size, int type_num,
+	void (*constructor)(void *ptr, void *arg), void *arg)
+{
+	if (type_num < 0 || type_num >= PMEMOBJ_NUM_OID_TYPES) {
+		LOG(2, "type_num has to be in range [0, %i]",
+			PMEMOBJ_NUM_OID_TYPES - 1);
+		errno = EINVAL;
+		return OID_NULL;
+	}
+
+	struct list_head *lhead = &pop->store->bytype[type_num].head;
+	struct carg_bytype carg;
+
+	carg.pop = pop;
+	carg.user_type = type_num;
+	carg.constructor = constructor;
+	carg.arg = arg;
+
+	return list_insert_new(pop, lhead, 0, NULL, OID_NULL, 0, size,
+				constructor_alloc_bytype, &carg);
+}
+
 /*
  * pmemobj_alloc -- allocates a new object
  */
@@ -517,7 +573,7 @@ pmemobj_alloc(PMEMobjpool *pop, size_t size, int type_num)
 {
 	LOG(3, "pop %p size %zu type_num %d", pop, size, type_num);
 
-	return pmemobj_alloc_construct(pop, size, type_num, NULL, NULL);
+	return obj_alloc_construct(pop, size, type_num, NULL, NULL);
 }
 
 /* arguments for constructor_zalloc */
@@ -554,39 +610,8 @@ pmemobj_zalloc(PMEMobjpool *pop, size_t size, int type_num)
 	carg.pop = pop;
 	carg.len = size;
 
-	return pmemobj_alloc_construct(pop, size, type_num,
-						constructor_zalloc, &carg);
-}
-
-/* arguments for constructor_alloc_bytype */
-struct carg_bytype {
-	PMEMobjpool *pop; /* saved to call pop->persist */
-	uint16_t user_type;
-	void (*constructor)(void *ptr, void *arg);
-	void *arg;
-};
-
-/*
- * constructor_alloc_bytype -- (internal) constructor for
- *                             pmemobj_alloc_construct
- */
-static void
-constructor_alloc_bytype(void *ptr, void *arg)
-{
-	LOG(3, "ptr %p arg %p", ptr, arg);
-
-	ASSERTne(ptr, NULL);
-	ASSERTne(arg, NULL);
-
-	struct oob_header *pobj = OOB_HEADER_FROM_PTR(ptr);
-	struct carg_bytype *carg = arg;
-
-	pobj->internal_type = OP_ALLOC;
-	pobj->user_type = carg->user_type;
-	carg->pop->persist(pobj, OBJ_OOB_OFFSET);
-
-	if (carg->constructor)
-		carg->constructor(ptr, carg->arg);
+	return obj_alloc_construct(pop, size, type_num,
+					constructor_zalloc, &carg);
 }
 
 /*
@@ -599,23 +624,7 @@ pmemobj_alloc_construct(PMEMobjpool *pop, size_t size, int type_num,
 	LOG(3, "pop %p size %zu type_num %d constructor %p arg %p",
 		pop, size, type_num, constructor, arg);
 
-	if (type_num < 0 || type_num >= PMEMOBJ_NUM_OID_TYPES) {
-		LOG(2, "type_num has to be in range [0, %u]",
-			PMEMOBJ_NUM_OID_TYPES - 1);
-		errno = EINVAL;
-		return OID_NULL;
-	}
-
-	struct list_head *lhead = &pop->store->bytype[type_num].head;
-	struct carg_bytype carg;
-
-	carg.pop = pop;
-	carg.user_type = type_num;
-	carg.constructor = constructor;
-	carg.arg = arg;
-
-	return list_insert_new(pop, lhead, 0, NULL, OID_NULL, 0, size,
-				constructor_alloc_bytype, &carg);
+	return obj_alloc_construct(pop, size, type_num, constructor, arg);
 }
 
 /*
@@ -777,7 +786,7 @@ pmemobj_strdup(PMEMobjpool *pop, const char *s, int type_num)
 	carg.len = strlen(s);
 	carg.s = s;
 
-	return pmemobj_alloc_construct(pop, carg.len, type_num,
+	return obj_alloc_construct(pop, carg.len, type_num,
 					constructor_strdup, &carg);
 }
 
