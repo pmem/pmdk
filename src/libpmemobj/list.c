@@ -491,7 +491,6 @@ list_insert_user(PMEMobjpool *pop,
 	LOG(15, NULL);
 	if (args->dest.off == 0) {
 		/* inserting the first element on list */
-		ASSERTeq(args->dest.pool_uuid_lo, 0);
 		ASSERTeq(args->head->pe_first.off, 0);
 
 		/* set loop on current element */
