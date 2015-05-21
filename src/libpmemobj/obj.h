@@ -125,9 +125,8 @@ struct oob_header {
 };
 
 enum internal_type {
-	OP_ALLOC = 1,
-	OP_FREE,
-	OP_SET,
+	TYPE_NONE,
+	TYPE_ALLOCATED,
 
 	MAX_INTERNAL_TYPE
 };

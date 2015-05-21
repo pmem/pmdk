@@ -531,7 +531,7 @@ constructor_alloc_bytype(void *ptr, void *arg)
 	struct oob_header *pobj = OOB_HEADER_FROM_PTR(ptr);
 	struct carg_bytype *carg = arg;
 
-	pobj->internal_type = OP_ALLOC;
+	pobj->internal_type = TYPE_ALLOCATED;
 	pobj->user_type = carg->user_type;
 	carg->pop->persist(pobj, OBJ_OOB_OFFSET);
 
@@ -757,7 +757,7 @@ constructor_strdup(void *ptr, void *arg)
 	struct oob_header *pobj = OOB_HEADER_FROM_PTR(ptr);
 	struct carg_strdup *carg = arg;
 
-	pobj->internal_type = OP_ALLOC;
+	pobj->internal_type = TYPE_ALLOCATED;
 	pobj->user_type = carg->user_type;
 	carg->pop->persist(pobj, OBJ_OOB_OFFSET);
 
@@ -854,7 +854,7 @@ constructor_alloc_root(void *ptr, void *arg)
 	struct oob_header *ro = OOB_HEADER_FROM_PTR(ptr);
 	struct carg_root *carg = arg;
 
-	ro->internal_type = OP_ALLOC;
+	ro->internal_type = TYPE_ALLOCATED;
 	ro->user_type = UINT16_MAX;
 	ro->size = carg->size;
 	carg->pop->persist(ro, OBJ_OOB_OFFSET);
