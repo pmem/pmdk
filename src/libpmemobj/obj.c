@@ -738,7 +738,6 @@ pmemobj_zrealloc(PMEMobjpool *pop, PMEMoid oid, size_t size, int type_num)
 /* arguments for constructor_strdup */
 struct carg_strdup {
 	PMEMobjpool *pop; /* saved to call pop->persist */
-	uint16_t user_type;
 	size_t size;
 	const char *s;
 };
@@ -754,12 +753,7 @@ constructor_strdup(void *ptr, void *arg)
 	ASSERTne(ptr, NULL);
 	ASSERTne(arg, NULL);
 
-	struct oob_header *pobj = OOB_HEADER_FROM_PTR(ptr);
 	struct carg_strdup *carg = arg;
-
-	pobj->internal_type = TYPE_ALLOCATED;
-	pobj->user_type = carg->user_type;
-	carg->pop->persist(pobj, OBJ_OOB_OFFSET);
 
 	/* copy string */
 	carg->pop->memcpy_persist(ptr, carg->s, carg->size);
@@ -780,10 +774,14 @@ pmemobj_strdup(PMEMobjpool *pop, const char *s, int type_num)
 		return OID_NULL;
 	}
 
+	if (NULL == s) {
+		errno = EINVAL;
+		return OID_NULL;
+	}
+
 	struct carg_strdup carg;
 	carg.pop = pop;
-	carg.user_type = type_num;
-	carg.size = strlen(s);
+	carg.size = (strlen(s) + 1) * sizeof (char);
 	carg.s = s;
 
 	return obj_alloc_construct(pop, carg.size, type_num,
