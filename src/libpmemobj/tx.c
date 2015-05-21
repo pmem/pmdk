@@ -607,9 +607,6 @@ static void
 release_and_free_tx_locks(struct lane_tx_runtime *lane)
 {
 	LOG(15, NULL);
-	/* no locks taken */
-	if (SLIST_EMPTY(&lane->tx_locks))
-		return;
 
 	while (!SLIST_EMPTY(&lane->tx_locks)) {
 		struct tx_lock_data *tx_lock = SLIST_FIRST(&lane->tx_locks);
