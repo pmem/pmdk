@@ -72,7 +72,7 @@ get_lock((pop)->run_id,\
  * get_lock -- (internal) atomically initialize and return a lock
  */
 static void *
-get_lock(uint64_t pop_runid, uint64_t *runid, void *lock,
+get_lock(uint64_t pop_runid, volatile uint64_t *runid, void *lock,
 	int (*init_lock)(void *lock, void *arg), size_t size)
 {
 	LOG(15, "pop_runid %ju runid %ju lock %p init_lock %p", pop_runid,
