@@ -30,12 +30,15 @@ pgrow(id = 0, size = 3) = false
 pmalloc(id = 4)
 constructor(id = 0, arg = 10)
 pfree(id = 0)
+realloc_move(id = 10)
 pgrow(id = 3, size = 3) = false
 pmalloc(id = 5)
 pfree(id = 3)
+realloc_move(id = 11)
 pgrow(id = 2, size = 3) = false
 pmalloc(id = 6)
 pfree(id = 2)
+realloc_move(id = 12)
 oob list:
 id = 1
 oob list reverse:

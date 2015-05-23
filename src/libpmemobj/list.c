@@ -1655,6 +1655,9 @@ list_realloc_move(PMEMobjpool *pop, struct list_head *oob_head_old,
 		redo_log_store(pop, redo, redo_index,
 				sec_off_off, obj_offset);
 		redo_index += 1;
+
+		/* return new oid */
+		oid->off = new_obj_doffset;
 	} else {
 		/*
 		 * The following steps may be in consistency with the recovery
