@@ -521,7 +521,6 @@ tx_post_commit(PMEMobjpool *pop, struct lane_tx_layout *layout)
 	return 0;
 }
 
-
 /*
  * tx_abort -- (internal) abort all allocated objects
  */

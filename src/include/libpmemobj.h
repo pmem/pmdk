@@ -384,86 +384,86 @@ for (OID_ASSIGN_TYPED((var), POBJ_LIST_LAST((head), field));\
 #define	POBJ_LIST_INSERT_HEAD(pop, head, elm, field)\
 pmemobj_list_insert((pop),\
 	offsetof(typeof (*(POBJ_LIST_FIRST(head)._type)), field),\
-	&POBJ_LIST_FIRST((head)), POBJ_LIST_FIRST((head)).oid,\
+	(head), POBJ_LIST_FIRST((head)).oid,\
 	1 /* before */, (elm).oid)
 
 #define	POBJ_LIST_INSERT_TAIL(pop, head, elm, field)\
 pmemobj_list_insert((pop),\
 	offsetof(typeof (*(POBJ_LIST_FIRST(head)._type)), field),\
-	&POBJ_LIST_FIRST((head)), POBJ_LIST_LAST((head), field).oid,\
+	(head), POBJ_LIST_LAST((head), field).oid,\
 	0 /* after */, (elm).oid)
 
 #define	POBJ_LIST_INSERT_AFTER(pop, head, listelm, elm, field)\
 pmemobj_list_insert((pop),\
 	offsetof(typeof (*(POBJ_LIST_FIRST(head)._type)), field),\
-	&POBJ_LIST_FIRST((head)), (listelm).oid,\
+	(head), (listelm).oid,\
 	0 /* after */, (elm).oid)
 
 #define	POBJ_LIST_INSERT_BEFORE(pop, head, listelm, elm, field)\
 pmemobj_list_insert((pop), offsetof(typeof (*D_RO((elm))),\
 	offsetof(typeof (*(POBJ_LIST_FIRST(head)._type)), field),\
-	&POBJ_LIST_FIRST((head)), (listelm).oid,\
+	(head), (listelm).oid,\
 	1 /* before */, (elm).oid)
 
 #define	POBJ_LIST_INSERT_NEW_HEAD(pop, head, type_num, field)\
 pmemobj_list_insert_new((pop),\
 	offsetof(typeof (*((head)->pe_first._type)), field),\
-	&POBJ_LIST_FIRST((head)), POBJ_LIST_FIRST((head)).oid,\
+	(head), POBJ_LIST_FIRST((head)).oid,\
 	1 /* before */,	sizeof (*(POBJ_LIST_FIRST(head)._type)), type_num)
 
 #define	POBJ_LIST_INSERT_NEW_TAIL(pop, head, type_num, field)\
 pmemobj_list_insert_new((pop),\
 	offsetof(typeof (*((head)->pe_first._type)), field),\
-	&POBJ_LIST_FIRST((head)), POBJ_LIST_LAST((head), field).oid,\
+	(head), POBJ_LIST_LAST((head), field).oid,\
 	0 /* after */, sizeof (*(POBJ_LIST_FIRST(head)._type)), type_num)
 
 #define	POBJ_LIST_INSERT_NEW_AFTER(pop, head, listelm, type_num, field)\
 pmemobj_list_insert_new((pop),\
 	offsetof(typeof (*((head)->pe_first._type)), field),\
-	&POBJ_LIST_FIRST((head)), (listelm).oid, 0 /* after */,\
+	(head), (listelm).oid, 0 /* after */,\
 	sizeof (*(POBJ_LIST_FIRST(head)._type)), type_num)
 
 #define	POBJ_LIST_INSERT_NEW_BEFORE(pop, head, listelm, type_num, field)\
 pmemobj_list_insert_new((pop),\
 	offsetof(typeof (*(POBJ_LIST_FIRST(head)._type)), field),\
-	&POBJ_LIST_FIRST((head)), (listelm).oid, 1 /* before */,\
+	(head), (listelm).oid, 1 /* before */,\
 	sizeof (*(POBJ_LIST_FIRST(head)._type)), type_num)
 
 #define	POBJ_LIST_REMOVE(pop, head, elm, field)\
 pmemobj_list_remove((pop),\
 	offsetof(typeof (*(POBJ_LIST_FIRST(head)._type)), field),\
-	&POBJ_LIST_FIRST((head)), (elm).oid, 0 /* no free */)
+	(head), (elm).oid, 0 /* no free */)
 
 #define	POBJ_LIST_REMOVE_FREE(pop, head, elm, field)\
 pmemobj_list_remove((pop),\
 	offsetof(typeof (*(POBJ_LIST_FIRST(head)._type)), field),\
-	&POBJ_LIST_FIRST((head)), (elm).oid, 1 /* free */)
+	(head), (elm).oid, 1 /* free */)
 
 #define	POBJ_LIST_MOVE_ELEMENT_HEAD(pop, head, head_new, elm, field, field_new)\
 pmemobj_list_move((pop),\
 	offsetof(typeof (*(POBJ_LIST_FIRST(head)._type)), field),\
-	&POBJ_LIST_FIRST((head)),\
+	(head),\
 	offsetof(typeof (*(POBJ_LIST_FIRST(head_new)._type)), field_new),\
-	&POBJ_LIST_FIRST((head_new)),\
-	POBJ_LIST_FIRST((head)).oid,\
+	(head_new),\
+	POBJ_LIST_FIRST((head_new)).oid,\
 	1 /* before */, (elm).oid)
 
 #define	POBJ_LIST_MOVE_ELEMENT_TAIL(pop, head, head_new, elm, field, field_new)\
 pmemobj_list_move((pop),\
 	offsetof(typeof (*(POBJ_LIST_FIRST(head)._type)), field),\
-	&POBJ_LIST_FIRST((head)),\
+	(head),\
 	offsetof(typeof (*(POBJ_LIST_FIRST(head_new)._type)), field_new),\
-	&POBJ_LIST_FIRST((head_new)),\
-	POBJ_LIST_LAST((head)).oid,\
+	(head_new),\
+	POBJ_LIST_LAST((head_new)).oid,\
 	0 /* after */, (elm).oid)
 
 #define	POBJ_LIST_MOVE_ELEMENT_AFTER(pop,\
 	head, head_new, listelm, elm, field, field_new)\
 pmemobj_list_move((pop),\
 	offsetof(typeof (*(POBJ_LIST_FIRST(head)._type)), field),\
-	&POBJ_LIST_FIRST((head)),\
+	(head),\
 	offsetof(typeof (*(POBJ_LIST_FIRST(head_new)._type)), field_new),\
-	&POBJ_LIST_FIRST((head_new)),\
+	(head_new),\
 	(listelm).oid,\
 	0 /* after */, (elm).oid)
 
@@ -471,9 +471,9 @@ pmemobj_list_move((pop),\
 	head, head_new, listelm, elm, field, field_new)\
 pmemobj_list_move((pop),\
 	offsetof(typeof (*(POBJ_LIST_FIRST(head)._type)), field),\
-	&POBJ_LIST_FIRST((head)),\
+	(head),\
 	offsetof(typeof (*(POBJ_LIST_FIRST(head_new)._type)), field_new),\
-	&POBJ_LIST_FIRST((head_new)),\
+	(head_new),\
 	(listelm).oid,\
 	1 /* before */, (elm).oid)
 
