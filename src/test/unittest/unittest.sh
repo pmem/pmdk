@@ -315,6 +315,25 @@ function require_valgrind_dev_3_8() {
 }
 
 #
+# require_valgrind_dev_3_10 -- continue script execution only if
+#	version 3.10 (or later) of valgrind-devel package is installed
+#
+function require_valgrind_dev_3_10() {
+	require_valgrind
+	echo "
+        #include <valgrind/valgrind.h>
+        #if defined (__VALGRIND_MAJOR__) && defined (__VALGRIND_MINOR__)
+        #if (__VALGRIND_MAJOR__ > 3) || \
+             ((__VALGRIND_MAJOR__ == 3) && (__VALGRIND_MINOR__ >= 10))
+        VALGRIND_VERSION_3_10_OR_LATER
+        #endif
+        #endif" | gcc -E - 2>&1 | \
+		grep -q "VALGRIND_VERSION_3_10_OR_LATER" && return
+	echo "$UNITTEST_NAME: SKIP valgrind-devel package (ver 3.10 or later) required"
+	exit 0
+}
+
+#
 # setup -- print message that test setup is commencing
 #
 function setup() {

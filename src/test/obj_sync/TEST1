@@ -42,7 +42,7 @@ export UNITTEST_NUM=1
 
 require_fs_type local
 require_build_type debug nondebug
-require_valgrind
+require_valgrind_dev_3_10
 
 setup
 
