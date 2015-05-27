@@ -1014,6 +1014,62 @@ pmemobj_tx_process()
 }
 
 /*
+ * pmemobj_tx_add_common -- (internal) common code for adding persistent memory
+ *				into the transaction
+ */
+static int
+pmemobj_tx_add_common(struct tx_add_range_args *args)
+{
+	LOG(15, NULL);
+
+	struct lane_tx_layout *layout =
+			(struct lane_tx_layout *)tx.section->layout;
+
+	if (args->offset < args->pop->heap_offset ||
+		(args->offset + args->size) >
+		(args->pop->heap_offset + args->pop->heap_size)) {
+		LOG(1, "object outside of heap");
+		return EINVAL;
+	}
+
+	/* insert snapshot to undo log */
+	PMEMoid snapshot = list_insert_new(args->pop, &layout->undo_set, 0,
+			NULL, OID_NULL, 0,
+			args->size + sizeof (struct tx_range),
+			constructor_tx_add_range, args);
+
+	ASSERT(!OBJ_OID_IS_NULL(snapshot));
+
+	return OBJ_OID_IS_NULL(snapshot);
+}
+
+/*
+ * pmemobj_tx_add_range_direct -- adds persistent memory range into the
+ *					transaction
+ */
+int
+pmemobj_tx_add_range_direct(void *ptr, size_t size)
+{
+	LOG(3, NULL);
+
+	if (tx.stage != TX_STAGE_WORK) {
+		LOG(1, "invalid stage");
+		return EINVAL;
+	}
+
+	struct lane_tx_runtime *lane =
+		(struct lane_tx_runtime *)tx.section->runtime;
+
+	struct tx_add_range_args args = {
+		.pop = lane->pop,
+		.offset = ptr - (void *)lane->pop,
+		.size = size
+	};
+
+	return pmemobj_tx_add_common(&args);
+}
+
+/*
  * pmemobj_tx_add_range -- adds persistent memory range into the transaction
  */
 int
@@ -1038,31 +1094,19 @@ pmemobj_tx_add_range(PMEMoid oid, uint64_t hoff, size_t size)
 
 	struct oob_header *oobh = OOB_HEADER_FROM_OID(lane->pop, oid);
 
+	struct tx_add_range_args args = {
+		.pop = lane->pop,
+		.offset = oid.off + hoff,
+		.size = size
+	};
+
 	/*
-	 * If internal type is not equal to OP_ALLOC it means
+	 * If internal type is not equal to TYPE_ALLOCATED it means
 	 * the object was allocated within this transaction
 	 * and there is no need to create a snapshot.
 	 */
-	if (oobh->internal_type == TYPE_ALLOCATED) {
-		struct lane_tx_layout *layout =
-			(struct lane_tx_layout *)tx.section->layout;
-
-		struct tx_add_range_args args = {
-			.pop = lane->pop,
-			.offset = oid.off + hoff,
-			.size = size
-		};
-
-		/* insert snapshot to undo log */
-		PMEMoid snapshot = list_insert_new(lane->pop, &layout->undo_set,
-				0, NULL, OID_NULL, 0,
-				size + sizeof (struct tx_range),
-				constructor_tx_add_range, &args);
-
-		ASSERT(!OBJ_OID_IS_NULL(snapshot));
-
-		return OBJ_OID_IS_NULL(snapshot);
-	}
+	if (oobh->internal_type == TYPE_ALLOCATED)
+		return pmemobj_tx_add_common(&args);
 
 	return 0;
 }
