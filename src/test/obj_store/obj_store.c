@@ -35,7 +35,7 @@
  *
  * usage: obj_store file operation:...
  *
- * operations are 'r' or 'a' or 'f' or 'u' or 'n'
+ * operations are 'r' or 'a' or 'f' or 'u' or 'n' or 's'
  *
  */
 #include <stddef.h>
@@ -148,7 +148,7 @@ test_root_object(const char *path)
 }
 
 void
-test_store_alloc_free(const char *path)
+test_alloc_free(const char *path)
 {
 #define	_N_TEST_TYPES 3 /* number of types to test */
 
@@ -222,7 +222,7 @@ test_store_alloc_free(const char *path)
 }
 
 void
-test_store_for_each(const char *path)
+test_FOREACH(const char *path)
 {
 #define	_MAX_TYPES	3	/* number of types to test */
 #define	_MAX_ELEMENTS	4	/* number of elements in each type to test */
@@ -397,34 +397,67 @@ test_null_oids(void)
 	ASSERT(next.off == 0 && next.pool_uuid_lo == 0);
 }
 
+void
+test_strdup(const char *path)
+{
+	PMEMobjpool *pop = NULL;
+	PMEMoid stroid;
+
+#define	TEST_STRING(str)\
+	do {\
+	stroid = pmemobj_strdup(pop, str, 0);\
+	ASSERTne(stroid.off, 0);\
+	ASSERTeq(memcmp(pmemobj_direct(stroid), str, strlen(str) + 1), 0);\
+	} while (0)
+
+	if ((pop = pmemobj_create(path, LAYOUT_NAME,
+					PMEMOBJ_MIN_POOL,
+					S_IRWXU)) == NULL)
+		FATAL("!pmemobj_create: %s", path);
+
+	/* test NULL argument */
+	stroid = pmemobj_strdup(pop, NULL, 0);
+	ASSERTeq(stroid.off, 0);
+
+	TEST_STRING("");
+	TEST_STRING("Test non-empty string");
+
+	pmemobj_close(pop);
+
+#undef TEST_STRING
+}
+
 int
 main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_store");
 
 	if (argc != 3)
-		FATAL("usage: %s file-name op:r|a|f|u|n", argv[0]);
+		FATAL("usage: %s file-name op:r|a|f|u|n|s", argv[0]);
 
 	const char *path = argv[1];
 
-	if (strchr("rafun", argv[2][0]) == NULL || argv[2][1] != '\0')
-		FATAL("op must be r or a or f or u or n");
+	if (strchr("rafuns", argv[2][0]) == NULL || argv[2][1] != '\0')
+		FATAL("op must be r or a or f or u or n or s");
 
 	switch (argv[2][0]) {
 		case 'r':
 			test_root_object(path);
 			break;
 		case 'a':
-			test_store_alloc_free(path);
+			test_alloc_free(path);
 			break;
 		case 'f':
-			test_store_for_each(path);
+			test_FOREACH(path);
 			break;
 		case 'u':
 			test_user_lists(path);
 			break;
 		case 'n':
 			test_null_oids();
+			break;
+		case 's':
+			test_strdup(path);
 			break;
 	}
 
