@@ -573,6 +573,9 @@ pmemobj_alloc(PMEMobjpool *pop, size_t size, int type_num)
 {
 	LOG(3, "pop %p size %zu type_num %d", pop, size, type_num);
 
+	/* log notice message if used inside a transaction */
+	_POBJ_DEBUG_NOTICE_IN_TX();
+
 	return obj_alloc_construct(pop, size, type_num, NULL, NULL);
 }
 
@@ -606,6 +609,9 @@ pmemobj_zalloc(PMEMobjpool *pop, size_t size, int type_num)
 {
 	LOG(3, "pop %p size %zu type_num %d", pop, size, type_num);
 
+	/* log notice message if used inside a transaction */
+	_POBJ_DEBUG_NOTICE_IN_TX();
+
 	struct carg_zalloc carg;
 	carg.pop = pop;
 	carg.size = size;
@@ -623,6 +629,9 @@ pmemobj_alloc_construct(PMEMobjpool *pop, size_t size, int type_num,
 {
 	LOG(3, "pop %p size %zu type_num %d constructor %p arg %p",
 		pop, size, type_num, constructor, arg);
+
+	/* log notice message if used inside a transaction */
+	_POBJ_DEBUG_NOTICE_IN_TX();
 
 	return obj_alloc_construct(pop, size, type_num, constructor, arg);
 }
@@ -708,6 +717,9 @@ pmemobj_realloc(PMEMobjpool *pop, PMEMoid oid, size_t size, int type_num)
 	LOG(3, "pop %p oid.off 0x%016jx size %zu type_num %d",
 		pop, oid.off, size, type_num);
 
+	/* log notice message if used inside a transaction */
+	_POBJ_DEBUG_NOTICE_IN_TX();
+
 	return obj_realloc_construct(pop, pop->store, oid, size, type_num,
 					NULL, NULL);
 }
@@ -720,6 +732,9 @@ pmemobj_zrealloc(PMEMobjpool *pop, PMEMoid oid, size_t size, int type_num)
 {
 	LOG(3, "pop %p oid.off 0x%016jx size %zu type_num %d",
 		pop, oid.off, size, type_num);
+
+	/* log notice message if used inside a transaction */
+	_POBJ_DEBUG_NOTICE_IN_TX();
 
 	struct carg_zrealloc carg;
 
@@ -767,6 +782,9 @@ pmemobj_strdup(PMEMobjpool *pop, const char *s, int type_num)
 {
 	LOG(3, "pop %p string %s type_num %d", pop, s, type_num);
 
+	/* log notice message if used inside a transaction */
+	_POBJ_DEBUG_NOTICE_IN_TX();
+
 	if (type_num < 0 || type_num >= PMEMOBJ_NUM_OID_TYPES) {
 		LOG(2, "type_num has to be in range [0, %i]",
 		    PMEMOBJ_NUM_OID_TYPES - 1);
@@ -795,6 +813,9 @@ void
 pmemobj_free(PMEMoid oid)
 {
 	LOG(3, "oid.off 0x%016jx", oid.off);
+
+	/* log notice message if used inside a transaction */
+	_POBJ_DEBUG_NOTICE_IN_TX();
 
 	if (oid.off == 0)
 		return;
@@ -991,6 +1012,9 @@ pmemobj_list_insert(PMEMobjpool *pop, size_t pe_offset, void *head,
 	    " oid.off 0x%016jx",
 	    pop, pe_offset, head, dest.off, before, oid.off);
 
+	/* log notice message if used inside a transaction */
+	_POBJ_DEBUG_NOTICE_IN_TX();
+
 	return list_insert(pop, pe_offset, head, dest, before, oid);
 }
 
@@ -1004,6 +1028,9 @@ pmemobj_list_insert_new(PMEMobjpool *pop, size_t pe_offset, void *head,
 	LOG(3, "pop %p pe_offset %zu head %p dest.off 0x%016jx before %d"
 	    " size %zu type_num %d",
 	    pop, pe_offset, head, dest.off, before, size, type_num);
+
+	/* log notice message if used inside a transaction */
+	_POBJ_DEBUG_NOTICE_IN_TX();
 
 	if (type_num < 0 || type_num >= PMEMOBJ_NUM_OID_TYPES) {
 		LOG(2, "type_num has to be in range [0, %i]",
@@ -1035,6 +1062,9 @@ pmemobj_list_remove(PMEMobjpool *pop, size_t pe_offset, void *head,
 	LOG(3, "pop %p pe_offset %zu head %p oid.off 0x%016jx free %d",
 	    pop, pe_offset, head, oid.off, free);
 
+	/* log notice message if used inside a transaction */
+	_POBJ_DEBUG_NOTICE_IN_TX();
+
 	if (free) {
 		struct oob_header *pobj = OOB_HEADER_FROM_OID(pop, oid);
 
@@ -1060,7 +1090,29 @@ pmemobj_list_move(PMEMobjpool *pop, size_t pe_old_offset, void *head_old,
 	    pop, pe_old_offset, pe_new_offset,
 	    head_old, head_new, dest.off, before, oid.off);
 
+	/* log notice message if used inside a transaction */
+	_POBJ_DEBUG_NOTICE_IN_TX();
+
 	return list_move(pop, pe_old_offset, head_old,
 				pe_new_offset, head_new,
 				dest, before, oid);
+}
+
+/*
+ * _pobj_debug_notice -- logs notice message if used inside a transaction
+ */
+void
+_pobj_debug_notice(const char *api_name, const char *file, int line)
+{
+#ifdef	DEBUG
+	if (pmemobj_tx_stage() != TX_STAGE_NONE) {
+		if (file)
+			LOG(4, "Notice: non-transactional API"
+				" used inside a transaction (%s in %s:%d)",
+				api_name, file, line);
+		else
+			LOG(4, "Notice: non-transactional API"
+				" used inside a transaction (%s)", api_name);
+	}
+#endif /* DEBUG */
 }
