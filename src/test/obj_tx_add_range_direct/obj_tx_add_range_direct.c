@@ -50,6 +50,8 @@ enum type_number {
 	TYPE_OBJ_ABORT,
 };
 
+TOID_DECLARE(struct object, 0);
+
 struct object {
 	size_t value;
 	char data[OBJ_SIZE - sizeof (size_t)];
@@ -85,10 +87,10 @@ static void
 do_tx_add_range_alloc_commit(PMEMobjpool *pop)
 {
 	int ret;
-	OID_TYPE(struct object) obj;
+	TOID(struct object) obj;
 	TX_BEGIN(pop) {
-		OID_ASSIGN(obj, do_tx_zalloc(pop, TYPE_OBJ));
-		ASSERT(!OID_IS_NULL(obj));
+		TOID_ASSIGN(obj, do_tx_zalloc(pop, TYPE_OBJ));
+		ASSERT(!TOID_IS_NULL(obj));
 
 		void *ptr = pmemobj_direct(obj.oid);
 		ret = pmemobj_tx_add_range_direct(ptr + VALUE_OFF,
@@ -122,10 +124,10 @@ static void
 do_tx_add_range_alloc_abort(PMEMobjpool *pop)
 {
 	int ret;
-	OID_TYPE(struct object) obj;
+	TOID(struct object) obj;
 	TX_BEGIN(pop) {
-		OID_ASSIGN(obj, do_tx_zalloc(pop, TYPE_OBJ_ABORT));
-		ASSERT(!OID_IS_NULL(obj));
+		TOID_ASSIGN(obj, do_tx_zalloc(pop, TYPE_OBJ_ABORT));
+		ASSERT(!TOID_IS_NULL(obj));
 
 		void *ptr = pmemobj_direct(obj.oid);
 		ret = pmemobj_tx_add_range_direct(ptr + VALUE_OFF,
@@ -146,8 +148,8 @@ do_tx_add_range_alloc_abort(PMEMobjpool *pop)
 		ASSERT(0);
 	} TX_END
 
-	OID_ASSIGN(obj, pmemobj_first(pop, TYPE_OBJ_ABORT));
-	ASSERT(OID_IS_NULL(obj));
+	TOID_ASSIGN(obj, pmemobj_first(pop, TYPE_OBJ_ABORT));
+	ASSERT(TOID_IS_NULL(obj));
 }
 
 /*
@@ -158,10 +160,10 @@ static void
 do_tx_add_range_twice_commit(PMEMobjpool *pop)
 {
 	int ret;
-	OID_TYPE(struct object) obj;
+	TOID(struct object) obj;
 
-	OID_ASSIGN(obj, do_tx_zalloc(pop, TYPE_OBJ));
-	ASSERT(!OID_IS_NULL(obj));
+	TOID_ASSIGN(obj, do_tx_zalloc(pop, TYPE_OBJ));
+	ASSERT(!TOID_IS_NULL(obj));
 
 	TX_BEGIN(pop) {
 		void *ptr = pmemobj_direct(obj.oid);
@@ -191,10 +193,10 @@ static void
 do_tx_add_range_twice_abort(PMEMobjpool *pop)
 {
 	int ret;
-	OID_TYPE(struct object) obj;
+	TOID(struct object) obj;
 
-	OID_ASSIGN(obj, do_tx_zalloc(pop, TYPE_OBJ));
-	ASSERT(!OID_IS_NULL(obj));
+	TOID_ASSIGN(obj, do_tx_zalloc(pop, TYPE_OBJ));
+	ASSERT(!TOID_IS_NULL(obj));
 
 	TX_BEGIN(pop) {
 		void *ptr = pmemobj_direct(obj.oid);
@@ -226,10 +228,10 @@ static void
 do_tx_add_range_abort_after_nested(PMEMobjpool *pop)
 {
 	int ret;
-	OID_TYPE(struct object) obj1;
-	OID_TYPE(struct object) obj2;
-	OID_ASSIGN(obj1, do_tx_zalloc(pop, TYPE_OBJ));
-	OID_ASSIGN(obj2, do_tx_zalloc(pop, TYPE_OBJ));
+	TOID(struct object) obj1;
+	TOID(struct object) obj2;
+	TOID_ASSIGN(obj1, do_tx_zalloc(pop, TYPE_OBJ));
+	TOID_ASSIGN(obj2, do_tx_zalloc(pop, TYPE_OBJ));
 
 	TX_BEGIN(pop) {
 		void *ptr1 = pmemobj_direct(obj1.oid);
@@ -271,10 +273,10 @@ static void
 do_tx_add_range_abort_nested(PMEMobjpool *pop)
 {
 	int ret;
-	OID_TYPE(struct object) obj1;
-	OID_TYPE(struct object) obj2;
-	OID_ASSIGN(obj1, do_tx_zalloc(pop, TYPE_OBJ));
-	OID_ASSIGN(obj2, do_tx_zalloc(pop, TYPE_OBJ));
+	TOID(struct object) obj1;
+	TOID(struct object) obj2;
+	TOID_ASSIGN(obj1, do_tx_zalloc(pop, TYPE_OBJ));
+	TOID_ASSIGN(obj2, do_tx_zalloc(pop, TYPE_OBJ));
 
 	TX_BEGIN(pop) {
 		void *ptr1 = pmemobj_direct(obj1.oid);
@@ -315,10 +317,10 @@ static void
 do_tx_add_range_commit_nested(PMEMobjpool *pop)
 {
 	int ret;
-	OID_TYPE(struct object) obj1;
-	OID_TYPE(struct object) obj2;
-	OID_ASSIGN(obj1, do_tx_zalloc(pop, TYPE_OBJ));
-	OID_ASSIGN(obj2, do_tx_zalloc(pop, TYPE_OBJ));
+	TOID(struct object) obj1;
+	TOID(struct object) obj2;
+	TOID_ASSIGN(obj1, do_tx_zalloc(pop, TYPE_OBJ));
+	TOID_ASSIGN(obj2, do_tx_zalloc(pop, TYPE_OBJ));
 
 	TX_BEGIN(pop) {
 		void *ptr1 = pmemobj_direct(obj1.oid);
@@ -357,8 +359,8 @@ static void
 do_tx_add_range_abort(PMEMobjpool *pop)
 {
 	int ret;
-	OID_TYPE(struct object) obj;
-	OID_ASSIGN(obj, do_tx_zalloc(pop, TYPE_OBJ));
+	TOID(struct object) obj;
+	TOID_ASSIGN(obj, do_tx_zalloc(pop, TYPE_OBJ));
 
 	TX_BEGIN(pop) {
 		void *ptr = pmemobj_direct(obj.oid);
@@ -383,8 +385,8 @@ static void
 do_tx_add_range_commit(PMEMobjpool *pop)
 {
 	int ret;
-	OID_TYPE(struct object) obj;
-	OID_ASSIGN(obj, do_tx_zalloc(pop, TYPE_OBJ));
+	TOID(struct object) obj;
+	TOID_ASSIGN(obj, do_tx_zalloc(pop, TYPE_OBJ));
 
 	TX_BEGIN(pop) {
 		void *ptr = pmemobj_direct(obj.oid);
@@ -407,8 +409,8 @@ static void
 do_tx_add_range_no_tx(PMEMobjpool *pop)
 {
 	int ret;
-	OID_TYPE(struct object) obj;
-	OID_ASSIGN(obj, do_tx_zalloc(pop, TYPE_OBJ));
+	TOID(struct object) obj;
+	TOID_ASSIGN(obj, do_tx_zalloc(pop, TYPE_OBJ));
 
 	void *ptr = pmemobj_direct(obj.oid);
 	ret = pmemobj_tx_add_range_direct(ptr + VALUE_OFF, VALUE_SIZE);

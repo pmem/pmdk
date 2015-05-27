@@ -202,6 +202,32 @@ list_get_dest(PMEMobjpool *pop, struct list_head *head, PMEMoid dest,
 }
 
 /*
+ * list_set_oid_redo_log -- (internal) set PMEMoid value using redo log
+ */
+static size_t
+list_set_oid_redo_log(PMEMobjpool *pop,
+	struct redo_log *redo, size_t redo_index,
+	PMEMoid *oidp, uint64_t obj_doffset)
+{
+	ASSERT(OBJ_PTR_IS_VALID(pop, oidp));
+
+	if (oidp->pool_uuid_lo != pop->uuid_lo) {
+		ASSERTeq(oidp->pool_uuid_lo, 0);
+		uint64_t oid_uuid_off = OBJ_PTR_TO_OFF(pop,
+				&oidp->pool_uuid_lo);
+		redo_log_store(pop, redo, redo_index, oid_uuid_off,
+				pop->uuid_lo);
+		redo_index += 1;
+	}
+
+	uint64_t oid_off_off = OBJ_PTR_TO_OFF(pop, &oidp->off);
+	redo_log_store(pop, redo, redo_index, oid_off_off, obj_doffset);
+
+	return redo_index + 1;
+}
+
+
+/*
  * list_update_head -- (internal) update pe_first entry in list head
  */
 static size_t
@@ -666,23 +692,25 @@ list_realloc_replace(PMEMobjpool *pop,
  * size        - size of allocation, will be increased by OBJ_OOB_OFFSET
  * constructor - object's constructor
  * arg         - argument for object's constructor
+ * oidp        - pointer to target object ID
  */
-PMEMoid
+int
 list_insert_new(PMEMobjpool *pop, struct list_head *oob_head,
 	size_t pe_offset, struct list_head *head, PMEMoid dest, int before,
-	size_t size, void (*constructor)(void *ptr, void *arg), void *arg)
+	size_t size, void (*constructor)(void *ptr, void *arg), void *arg,
+	PMEMoid *oidp)
 {
 	LOG(3, NULL);
 	ASSERTne(oob_head, NULL);
 
 	int ret;
-	PMEMoid retoid = OID_NULL;
+	int out_ret;
 
 	struct lane_section *lane_section;
 
-	if (lane_hold(pop, &lane_section, LANE_SECTION_LIST)) {
+	if ((ret = lane_hold(pop, &lane_section, LANE_SECTION_LIST))) {
 		LOG(2, "lane_hold failed");
-		return OID_NULL;
+		return ret;
 	}
 
 	ASSERTne(lane_section, NULL);
@@ -694,13 +722,13 @@ list_insert_new(PMEMobjpool *pop, struct list_head *oob_head,
 	 *
 	 * XXX performance improvement: initialize oob locks at pool opening
 	 */
-	if (pmemobj_mutex_lock(pop, &oob_head->lock)) {
+	if ((ret = pmemobj_mutex_lock(pop, &oob_head->lock))) {
 		LOG(2, "pmemobj_mutex_lock failed");
 		goto err_oob_lock;
 	}
 
 	if (head) {
-		if (pmemobj_mutex_lock(pop, &head->lock)) {
+		if ((ret = pmemobj_mutex_lock(pop, &head->lock))) {
 			LOG(2, "pmemobj_mutex_lock failed");
 			goto err_lock;
 		}
@@ -719,12 +747,14 @@ list_insert_new(PMEMobjpool *pop, struct list_head *oob_head,
 				&section->obj_offset, size,
 				constructor, arg, OBJ_OOB_OFFSET))) {
 			LOG(1, "!pmalloc_construct");
+			ret = -1;
 			goto err_pmalloc;
 		}
 	} else {
 		if ((errno = pmalloc(pop, &section->obj_offset,
 				size))) {
 			LOG(1, "!pmalloc");
+			ret = -1;
 			goto err_pmalloc;
 		}
 	}
@@ -783,34 +813,42 @@ list_insert_new(PMEMobjpool *pop, struct list_head *oob_head,
 				next_offset, prev_offset);
 	}
 
+	if (oidp != NULL) {
+		if (OBJ_PTR_IS_VALID(pop, oidp))
+			redo_index = list_set_oid_redo_log(pop, redo,
+					redo_index, oidp, obj_doffset);
+		else {
+			oidp->off = obj_doffset;
+			oidp->pool_uuid_lo = pop->uuid_lo;
+		}
+	}
+
 	/* clear the obj_offset in lane section */
 	redo_log_store_last(pop, redo, redo_index, sec_off_off, 0);
 
 	ASSERT(redo_index <= REDO_NUM_ENTRIES);
 	redo_log_process(pop, redo, REDO_NUM_ENTRIES);
 
-	retoid.pool_uuid_lo = pop->uuid_lo;
-	retoid.off = obj_doffset;
-
+	ret = 0;
 err_pmalloc:
 	if (head) {
-		ret = pmemobj_mutex_unlock(pop, &head->lock);
-		ASSERTeq(ret, 0);
-		if (ret)
+		out_ret = pmemobj_mutex_unlock(pop, &head->lock);
+		ASSERTeq(out_ret, 0);
+		if (out_ret)
 			LOG(2, "pmemobj_mutex_unlock failed");
 	}
 err_lock:
-	ret = pmemobj_mutex_unlock(pop, &oob_head->lock);
-	ASSERTeq(ret, 0);
-	if (ret)
+	out_ret = pmemobj_mutex_unlock(pop, &oob_head->lock);
+	ASSERTeq(out_ret, 0);
+	if (out_ret)
 		LOG(2, "pmemobj_mutex_unlock failed");
 err_oob_lock:
-	ret = lane_release(pop);
-	ASSERTeq(ret, 0);
-	if (ret)
+	out_ret = lane_release(pop);
+	ASSERTeq(out_ret, 0);
+	if (out_ret)
 		LOG(2, "lane_release failed");
 
-	return retoid;
+	return ret;
 }
 
 /*
@@ -914,12 +952,12 @@ err:
  * oob_head    - oob list head
  * pe_offset   - offset to list entry on user list relative to user data
  * head        - user list head
- * oid         - target object ID
+ * oidp        - pointer to target object ID
  */
 int
 list_remove_free(PMEMobjpool *pop, struct list_head *oob_head,
 	size_t pe_offset, struct list_head *head,
-	PMEMoid oid)
+	PMEMoid *oidp)
 {
 	LOG(3, NULL);
 	ASSERTne(oob_head, NULL);
@@ -961,7 +999,7 @@ list_remove_free(PMEMobjpool *pop, struct list_head *oob_head,
 	struct redo_log *redo = section->redo;
 	size_t redo_index = 0;
 
-	uint64_t obj_doffset = oid.off;
+	uint64_t obj_doffset = oidp->off;
 	uint64_t obj_offset = obj_doffset - OBJ_OOB_OFFSET;
 
 	struct list_entry *oob_entry_ptr =
@@ -994,6 +1032,13 @@ list_remove_free(PMEMobjpool *pop, struct list_head *oob_head,
 		redo_index = list_remove_single(pop, redo, redo_index, &args);
 	}
 
+	/* clear the oid */
+	if (OBJ_PTR_IS_VALID(pop, oidp))
+		redo_index = list_set_oid_redo_log(pop, redo, redo_index,
+				oidp, 0);
+	else
+		oidp->off = 0;
+
 	redo_log_store_last(pop, redo, redo_index, sec_off_off, obj_offset);
 
 	ASSERT(redo_index <= REDO_NUM_ENTRIES);
@@ -1006,6 +1051,8 @@ list_remove_free(PMEMobjpool *pop, struct list_head *oob_head,
 	if ((errno = pfree(pop, &section->obj_offset))) {
 		LOG(1, "!pfree");
 		ret = -1;
+	} else {
+		ret = 0;
 	}
 
 	if (head) {
@@ -1334,17 +1381,18 @@ err:
  * arg          - argument for object's constructor
  * field_offset - offset to user's field
  * field_value  - user's field value
- * oid          - target object ID
+ * oidp         - pointer to target object ID
  */
 int
 list_realloc(PMEMobjpool *pop, struct list_head *oob_head,
 	size_t pe_offset, struct list_head *head,
 	size_t size, void (*constructor)(void *ptr, void *arg), void *arg,
 	uint64_t field_offset, uint64_t field_value,
-	PMEMoid *oid)
+	PMEMoid *oidp)
 {
 	LOG(3, NULL);
 	ASSERTne(oob_head, NULL);
+	ASSERTne(oidp, NULL);
 
 	int ret;
 	int out_ret;
@@ -1383,7 +1431,7 @@ list_realloc(PMEMobjpool *pop, struct list_head *oob_head,
 		(struct lane_list_section *)lane_section->layout;
 	struct redo_log *redo = section->redo;
 	size_t redo_index = 0;
-	uint64_t obj_doffset = oid->off;
+	uint64_t obj_doffset = oidp->off;
 	uint64_t obj_offset = obj_doffset - OBJ_OOB_OFFSET;
 	uint64_t old_size = pmalloc_usable_size(pop, obj_offset);
 	uint64_t sec_off_off = OBJ_PTR_TO_OFF(pop, &section->obj_offset);
@@ -1458,8 +1506,11 @@ list_realloc(PMEMobjpool *pop, struct list_head *oob_head,
 		ASSERT(redo_index <= REDO_NUM_ENTRIES);
 		redo_log_process(pop, redo, REDO_NUM_ENTRIES);
 
-		/* return new oid */
-		oid->off = new_obj_doffset;
+		if (OBJ_PTR_IS_VALID(pop, oidp))
+			redo_index = list_set_oid_redo_log(pop, redo,
+					redo_index, oidp, obj_doffset);
+		else
+			oidp->off = new_obj_doffset;
 
 		/* free the old object */
 		if ((errno = pfree(pop, &section->obj_offset))) {
@@ -1524,6 +1575,7 @@ list_realloc(PMEMobjpool *pop, struct list_head *oob_head,
 		redo_log_process(pop, redo, REDO_NUM_ENTRIES);
 	}
 
+	ret = 0;
 err_unlock:
 	if (head) {
 		out_ret = pmemobj_mutex_unlock(pop, &head->lock);
@@ -1558,7 +1610,7 @@ err_oob_lock:
  * arg          - argument for object's constructor
  * field_offset - offset to user's field
  * field_value  - user's field value
- * oid          - target object ID
+ * oidp         - pointer to target object ID
  */
 int
 list_realloc_move(PMEMobjpool *pop, struct list_head *oob_head_old,
@@ -1566,7 +1618,7 @@ list_realloc_move(PMEMobjpool *pop, struct list_head *oob_head_old,
 	struct list_head *head, size_t size,
 	void (*constructor)(void *ptr, void *arg), void *arg,
 	uint64_t field_offset, uint64_t field_value,
-	PMEMoid *oid)
+	PMEMoid *oidp)
 {
 	LOG(3, NULL);
 
@@ -1611,7 +1663,7 @@ list_realloc_move(PMEMobjpool *pop, struct list_head *oob_head_old,
 		}
 	}
 
-	uint64_t obj_doffset = oid->off;
+	uint64_t obj_doffset = oidp->off;
 	uint64_t obj_offset = obj_doffset - OBJ_OOB_OFFSET;
 	uint64_t new_obj_doffset = obj_doffset;
 	uint64_t new_obj_offset = obj_offset;
@@ -1655,8 +1707,11 @@ list_realloc_move(PMEMobjpool *pop, struct list_head *oob_head_old,
 				sec_off_off, obj_offset);
 		redo_index += 1;
 
-		/* return new oid */
-		oid->off = new_obj_doffset;
+		if (OBJ_PTR_IS_VALID(pop, oidp))
+			redo_index = list_set_oid_redo_log(pop, redo,
+					redo_index, oidp, obj_doffset);
+		else
+			oidp->off = new_obj_doffset;
 	} else {
 		/*
 		 * The following steps may be in consistency with the recovery
@@ -1775,6 +1830,7 @@ list_realloc_move(PMEMobjpool *pop, struct list_head *oob_head_old,
 		}
 	}
 
+	ret = 0;
 err_unlock:
 	if (head) {
 		out_ret = pmemobj_mutex_unlock(pop, &head->lock);

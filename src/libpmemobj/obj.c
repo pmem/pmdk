@@ -548,15 +548,16 @@ constructor_alloc_bytype(void *ptr, void *arg)
 /*
  * obj_alloc_construct -- (internal) allocates a new object with constructor
  */
-static PMEMoid
-obj_alloc_construct(PMEMobjpool *pop, size_t size, unsigned int type_num,
-	void (*constructor)(void *ptr, void *arg), void *arg)
+static int
+obj_alloc_construct(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
+	unsigned int type_num, void (*constructor)(void *ptr, void *arg),
+	void *arg)
 {
 	if (type_num >= PMEMOBJ_NUM_OID_TYPES) {
 		LOG(2, "type_num has to be in range [0, %i]",
 			PMEMOBJ_NUM_OID_TYPES - 1);
 		errno = EINVAL;
-		return OID_NULL;
+		return -1;
 	}
 
 	struct list_head *lhead = &pop->store->bytype[type_num].head;
@@ -568,21 +569,24 @@ obj_alloc_construct(PMEMobjpool *pop, size_t size, unsigned int type_num,
 	carg.arg = arg;
 
 	return list_insert_new(pop, lhead, 0, NULL, OID_NULL, 0, size,
-				constructor_alloc_bytype, &carg);
+				constructor_alloc_bytype, &carg, oidp);
 }
 
 /*
  * pmemobj_alloc -- allocates a new object
  */
-PMEMoid
-pmemobj_alloc(PMEMobjpool *pop, size_t size, unsigned int type_num)
+int
+pmemobj_alloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
+	unsigned int type_num, void (*constructor)(void *ptr, void *arg),
+	void *arg)
 {
-	LOG(3, "pop %p size %zu type_num %u", pop, size, type_num);
+	LOG(3, "pop %p oidp %p size %zu type_num %u constructor %p arg %p",
+		pop, oidp, size, type_num, constructor, arg);
 
 	/* log notice message if used inside a transaction */
 	_POBJ_DEBUG_NOTICE_IN_TX();
 
-	return obj_alloc_construct(pop, size, type_num, NULL, NULL);
+	return obj_alloc_construct(pop, oidp, size, type_num, constructor, arg);
 }
 
 /* arguments for constructor_zalloc */
@@ -610,10 +614,12 @@ constructor_zalloc(void *ptr, void *arg)
 /*
  * pmemobj_zalloc -- allocates a new zeroed object
  */
-PMEMoid
-pmemobj_zalloc(PMEMobjpool *pop, size_t size, unsigned int type_num)
+int
+pmemobj_zalloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
+		unsigned int type_num)
 {
-	LOG(3, "pop %p size %zu type_num %u", pop, size, type_num);
+	LOG(3, "pop %p oidp %p size %zu type_num %u",
+			pop, oidp, size, type_num);
 
 	/* log notice message if used inside a transaction */
 	_POBJ_DEBUG_NOTICE_IN_TX();
@@ -622,36 +628,20 @@ pmemobj_zalloc(PMEMobjpool *pop, size_t size, unsigned int type_num)
 	carg.pop = pop;
 	carg.size = size;
 
-	return obj_alloc_construct(pop, size, type_num,
+	return obj_alloc_construct(pop, oidp, size, type_num,
 					constructor_zalloc, &carg);
-}
-
-/*
- * pmemobj_alloc_construct -- allocates a new object with constructor
- */
-PMEMoid
-pmemobj_alloc_construct(PMEMobjpool *pop, size_t size, unsigned int type_num,
-	void (*constructor)(void *ptr, void *arg), void *arg)
-{
-	LOG(3, "pop %p size %zu type_num %u constructor %p arg %p",
-		pop, size, type_num, constructor, arg);
-
-	/* log notice message if used inside a transaction */
-	_POBJ_DEBUG_NOTICE_IN_TX();
-
-	return obj_alloc_construct(pop, size, type_num, constructor, arg);
 }
 
 /*
  * obj_realloc_construct -- (internal) common routine for resizing
  *                          existing objects
  */
-static PMEMoid
+static int
 obj_realloc_construct(PMEMobjpool *pop, struct object_store *store,
-		PMEMoid oid, size_t size, unsigned int type_num,
+		PMEMoid *oidp, size_t size, unsigned int type_num,
 		void (*constructor)(void *ptr, void *arg), void *arg)
 {
-	struct oob_header *pobj = OOB_HEADER_FROM_OID(pop, oid);
+	struct oob_header *pobj = OOB_HEADER_FROM_OID(pop, *oidp);
 	uint16_t user_type_old = pobj->user_type;
 
 	ASSERT(user_type_old < PMEMOBJ_NUM_OID_TYPES);
@@ -660,29 +650,27 @@ obj_realloc_construct(PMEMobjpool *pop, struct object_store *store,
 		LOG(2, "type_num has to be in range [0, %u]",
 		    PMEMOBJ_NUM_OID_TYPES - 1);
 		errno = EINVAL;
-		return OID_NULL;
+		return -1;
 	}
 
 	struct list_head *lhead_old = &store->bytype[user_type_old].head;
-
 	if (type_num == user_type_old) {
-		if (list_realloc(pop, lhead_old, 0, NULL, size,
-				constructor, arg, 0, 0, &oid)) {
+		int ret = list_realloc(pop, lhead_old, 0, NULL, size,
+				constructor, arg, 0, 0, oidp);
+		if (ret)
 			LOG(2, "list_realloc failed");
-			return OID_NULL;
-		} else
-			return oid;
+
+		return ret;
 	} else {
 		struct list_head *lhead_new = &store->bytype[type_num].head;
-		uint64_t user_type_offset = OOB_OFFSET_OF(oid, user_type);
-
-		if (list_realloc_move(pop, lhead_old, lhead_new, 0, NULL, size,
-					constructor, arg, user_type_offset,
-					type_num, &oid)) {
+		uint64_t user_type_offset = OOB_OFFSET_OF(*oidp, user_type);
+		int ret = list_realloc_move(pop, lhead_old, lhead_new, 0, NULL,
+				size, constructor, arg, user_type_offset,
+				type_num, oidp);
+		if (ret)
 			LOG(2, "list_realloc_move failed");
-			return OID_NULL;
-		} else
-			return oid;
+
+		return ret;
 	}
 }
 
@@ -717,29 +705,29 @@ constructor_zrealloc(void *ptr, void *arg)
 /*
  * pmemobj_realloc -- resizes an existing object
  */
-PMEMoid
-pmemobj_realloc(PMEMobjpool *pop, PMEMoid oid, size_t size,
+int
+pmemobj_realloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 		unsigned int type_num)
 {
 	LOG(3, "pop %p oid.off 0x%016jx size %zu type_num %u",
-		pop, oid.off, size, type_num);
+		pop, oidp->off, size, type_num);
 
 	/* log notice message if used inside a transaction */
 	_POBJ_DEBUG_NOTICE_IN_TX();
 
-	return obj_realloc_construct(pop, pop->store, oid, size, type_num,
+	return obj_realloc_construct(pop, pop->store, oidp, size, type_num,
 					NULL, NULL);
 }
 
 /*
  * pmemobj_zrealloc -- resizes an existing object, any new space is zeroed.
  */
-PMEMoid
-pmemobj_zrealloc(PMEMobjpool *pop, PMEMoid oid, size_t size,
-			unsigned int type_num)
+int
+pmemobj_zrealloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
+		unsigned int type_num)
 {
 	LOG(3, "pop %p oid.off 0x%016jx size %zu type_num %u",
-		pop, oid.off, size, type_num);
+		pop, oidp->off, size, type_num);
 
 	/* log notice message if used inside a transaction */
 	_POBJ_DEBUG_NOTICE_IN_TX();
@@ -748,13 +736,13 @@ pmemobj_zrealloc(PMEMobjpool *pop, PMEMoid oid, size_t size,
 
 	carg.pop = pop;
 	carg.new_size = size;
-	carg.old_size = pmemobj_alloc_usable_size(oid);
+	carg.old_size = pmemobj_alloc_usable_size(*oidp);
 
 	if (carg.new_size > carg.old_size)
-		return obj_realloc_construct(pop, pop->store, oid, size,
+		return obj_realloc_construct(pop, pop->store, oidp, size,
 					type_num, constructor_zrealloc, &carg);
 	else
-		return obj_realloc_construct(pop, pop->store, oid, size,
+		return obj_realloc_construct(pop, pop->store, oidp, size,
 					type_num, NULL, NULL);
 }
 
@@ -785,10 +773,11 @@ constructor_strdup(void *ptr, void *arg)
 /*
  * pmemobj_strndup -- allocates a new object with duplicate of the string s.
  */
-PMEMoid
-pmemobj_strdup(PMEMobjpool *pop, const char *s, unsigned int type_num)
+int
+pmemobj_strdup(PMEMobjpool *pop, PMEMoid *oidp, const char *s,
+		unsigned int type_num)
 {
-	LOG(3, "pop %p string %s type_num %u", pop, s, type_num);
+	LOG(3, "pop %p oidp %p string %s type_num %u", pop, oidp, s, type_num);
 
 	/* log notice message if used inside a transaction */
 	_POBJ_DEBUG_NOTICE_IN_TX();
@@ -797,12 +786,12 @@ pmemobj_strdup(PMEMobjpool *pop, const char *s, unsigned int type_num)
 		LOG(2, "type_num has to be in range [0, %i]",
 		    PMEMOBJ_NUM_OID_TYPES - 1);
 		errno = EINVAL;
-		return OID_NULL;
+		return -1;
 	}
 
 	if (NULL == s) {
 		errno = EINVAL;
-		return OID_NULL;
+		return -1;
 	}
 
 	struct carg_strdup carg;
@@ -810,7 +799,7 @@ pmemobj_strdup(PMEMobjpool *pop, const char *s, unsigned int type_num)
 	carg.size = (strlen(s) + 1) * sizeof (char);
 	carg.s = s;
 
-	return obj_alloc_construct(pop, carg.size, type_num,
+	return obj_alloc_construct(pop, oidp, carg.size, type_num,
 					constructor_strdup, &carg);
 }
 
@@ -818,28 +807,27 @@ pmemobj_strdup(PMEMobjpool *pop, const char *s, unsigned int type_num)
  * pmemobj_free -- frees an existing object
  */
 void
-pmemobj_free(PMEMoid oid)
+pmemobj_free(PMEMoid *oidp)
 {
-	LOG(3, "oid.off 0x%016jx", oid.off);
+	LOG(3, "oid.off 0x%016jx", oidp->off);
 
 	/* log notice message if used inside a transaction */
 	_POBJ_DEBUG_NOTICE_IN_TX();
 
-	if (oid.off == 0)
+	if (oidp->off == 0)
 		return;
 
-	PMEMobjpool *pop = cuckoo_get(pools, oid.pool_uuid_lo);
+	PMEMobjpool *pop = cuckoo_get(pools, oidp->pool_uuid_lo);
 
 	ASSERTne(pop, NULL);
 
-	struct oob_header *pobj = OOB_HEADER_FROM_OID(pop, oid);
+	struct oob_header *pobj = OOB_HEADER_FROM_OID(pop, *oidp);
 
 	ASSERT(pobj->user_type < PMEMOBJ_NUM_OID_TYPES);
 
 	void *lhead = &pop->store->bytype[pobj->user_type].head;
-	if (list_remove_free(pop, lhead, 0, NULL, oid)) {
+	if (list_remove_free(pop, lhead, 0, NULL, oidp))
 		LOG(2, "list_remove_free failed");
-	}
 }
 
 /*
@@ -907,6 +895,24 @@ pmemobj_drain(PMEMobjpool *pop)
 	pop->drain();
 }
 
+/*
+ * pmemobj_type_num -- returns type number of object
+ */
+unsigned int
+pmemobj_type_num(PMEMoid oid)
+{
+	LOG(3, "oid.off 0x%016jx", oid.off);
+
+	if (OBJ_OID_IS_NULL(oid))
+		return -1;
+
+	PMEMobjpool *pop = cuckoo_get(pools, oid.pool_uuid_lo);
+	ASSERTne(pop, NULL);
+
+	struct oob_header *oobh = OOB_HEADER_FROM_OID(pop, oid);
+	return oobh->user_type;
+}
+
 /* arguments for constructor_alloc_root */
 struct carg_root {
 	PMEMobjpool *pop; /* saved to call pop->persist */
@@ -928,7 +934,7 @@ constructor_alloc_root(void *ptr, void *arg)
 	struct carg_root *carg = arg;
 
 	ro->internal_type = TYPE_ALLOCATED;
-	ro->user_type = UINT16_MAX;
+	ro->user_type = POBJ_ROOT_TYPE_NUM;
 	ro->size = carg->size;
 	carg->pop->persist(ro, OBJ_OOB_OFFSET);
 }
@@ -936,7 +942,7 @@ constructor_alloc_root(void *ptr, void *arg)
 /*
  * obj_alloc_root -- (internal) allocate root object
  */
-static PMEMoid
+static int
 obj_alloc_root(PMEMobjpool *pop, struct object_store *store, size_t size)
 {
 	LOG(3, "pop %p store %p size %zu", pop, store, size);
@@ -948,7 +954,7 @@ obj_alloc_root(PMEMobjpool *pop, struct object_store *store, size_t size)
 	carg.size = size;
 
 	return list_insert_new(pop, lhead, 0, NULL, OID_NULL, 0,
-				size, constructor_alloc_root, &carg);
+				size, constructor_alloc_root, &carg, NULL);
 }
 
 /*
@@ -1103,9 +1109,11 @@ pmemobj_list_insert_new(PMEMobjpool *pop, size_t pe_offset, void *head,
 	carg.constructor = constructor;
 	carg.arg = arg;
 
-	return list_insert_new(pop, lhead,
-				pe_offset, head, dest, before,
-				size, constructor_alloc_bytype, &carg);
+	PMEMoid retoid = OID_NULL;
+	list_insert_new(pop, lhead,
+			pe_offset, head, dest, before,
+			size, constructor_alloc_bytype, &carg, &retoid);
+	return retoid;
 }
 
 /*
@@ -1127,7 +1135,7 @@ pmemobj_list_remove(PMEMobjpool *pop, size_t pe_offset, void *head,
 		ASSERT(pobj->user_type < PMEMOBJ_NUM_OID_TYPES);
 
 		void *lhead = &pop->store->bytype[pobj->user_type].head;
-		return list_remove_free(pop, lhead, pe_offset, head, oid);
+		return list_remove_free(pop, lhead, pe_offset, head, &oid);
 	} else
 		return list_remove(pop, pe_offset, head, oid);
 }

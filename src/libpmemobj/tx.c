@@ -275,7 +275,7 @@ tx_clear_undo_log(PMEMobjpool *pop, struct list_head *head)
 
 		/* remove and free all elements from undo log */
 		ret = list_remove_free(pop, head,
-				0, NULL, obj);
+				0, NULL, &obj);
 
 		ASSERTeq(ret, 0);
 		if (ret) {
@@ -350,7 +350,7 @@ tx_abort_set(PMEMobjpool *pop, struct lane_tx_layout *layout)
 		pop->memcpy_persist(dst_ptr, range->data, range->size);
 
 		/* remove snapshot from undo log */
-		ret = list_remove_free(pop, &layout->undo_set, 0, NULL, obj);
+		ret = list_remove_free(pop, &layout->undo_set, 0, NULL, &obj);
 
 		ASSERTeq(ret, 0);
 		if (ret) {
@@ -663,17 +663,15 @@ tx_alloc_common(size_t size, unsigned int type_num,
 	};
 
 	/* allocate object to undo log */
-	PMEMoid ret = list_insert_new(lane->pop, &layout->undo_alloc,
+	PMEMoid retoid = OID_NULL;
+	list_insert_new(lane->pop, &layout->undo_alloc,
 			0, NULL, OID_NULL, 0,
-			size, constructor, &args);
+			size, constructor, &args, &retoid);
 
-	if (OBJ_OID_IS_NULL(ret)) {
-		LOG(1, "out of memory");
-		errno = ENOMEM;
+	if (OBJ_OID_IS_NULL(retoid))
 		pmemobj_tx_abort(ENOMEM);
-	}
 
-	return ret;
+	return retoid;
 }
 
 /*
@@ -707,17 +705,15 @@ tx_alloc_copy_common(size_t size, unsigned int type_num, const void *ptr,
 	};
 
 	/* allocate object to undo log */
-	PMEMoid ret = list_insert_new(lane->pop, &layout->undo_alloc,
+	PMEMoid retoid;
+	int ret = list_insert_new(lane->pop, &layout->undo_alloc,
 			0, NULL, OID_NULL, 0,
-			size, constructor, &args);
+			size, constructor, &args, &retoid);
 
-	if (OBJ_OID_IS_NULL(ret)) {
-		LOG(1, "out of memory");
-		errno = ENOMEM;
+	if (ret || OBJ_OID_IS_NULL(retoid))
 		pmemobj_tx_abort(ENOMEM);
-	}
 
-	return ret;
+	return retoid;
 }
 
 /*
@@ -770,7 +766,7 @@ tx_realloc_common(PMEMoid oid, size_t size, unsigned int type_num,
 				(struct lane_tx_layout *)tx.section->layout;
 			int ret = list_remove_free(lane->pop,
 					&layout->undo_alloc,
-					0, NULL, new_obj);
+					0, NULL, &new_obj);
 			/* XXX fatal error */
 			ASSERTeq(ret, 0);
 			if (ret)
@@ -1064,14 +1060,15 @@ pmemobj_tx_add_common(struct tx_add_range_args *args)
 #endif /* DEBUG */
 
 	/* insert snapshot to undo log */
-	PMEMoid snapshot = list_insert_new(args->pop, &layout->undo_set, 0,
+	PMEMoid snapshot;
+	int ret = list_insert_new(args->pop, &layout->undo_set, 0,
 			NULL, OID_NULL, 0,
 			args->size + sizeof (struct tx_range),
-			constructor_tx_add_range, args);
+			constructor_tx_add_range, args, &snapshot);
 
-	ASSERT(!OBJ_OID_IS_NULL(snapshot));
+	ASSERTeq(ret, 0);
 
-	return OBJ_OID_IS_NULL(snapshot);
+	return ret;
 }
 
 /*
@@ -1274,7 +1271,7 @@ pmemobj_tx_free(PMEMoid oid)
 		 * so we can just remove and free the object from undo log.
 		 */
 		return list_remove_free(lane->pop, &layout->undo_alloc,
-				0, NULL, oid);
+				0, NULL, &oid);
 	}
 }
 

@@ -44,22 +44,23 @@ struct list_head {
 	PMEMmutex lock;
 };
 
-PMEMoid list_insert_new(PMEMobjpool *pop, struct list_head *oob_head,
+int list_insert_new(PMEMobjpool *pop, struct list_head *oob_head,
 	size_t pe_offset, struct list_head *head, PMEMoid dest, int before,
-	size_t size, void (*constructor)(void *ptr, void *arg), void *arg);
+	size_t size, void (*constructor)(void *ptr, void *arg), void *arg,
+	PMEMoid *oidp);
 
 int list_realloc(PMEMobjpool *pop, struct list_head *oob_head,
 	size_t pe_offset, struct list_head *head,
 	size_t size, void (*constructor)(void *ptr, void *arg), void *arg,
 	uint64_t field_offset, uint64_t field_value,
-	PMEMoid *oid);
+	PMEMoid *oidp);
 
 int list_realloc_move(PMEMobjpool *pop, struct list_head *oob_head_old,
 	struct list_head *oob_head_new, size_t pe_offset,
 	struct list_head *head, size_t size,
 	void (*constructor)(void *ptr, void *arg), void *arg,
 	uint64_t field_offset, uint64_t field_value,
-	PMEMoid *oid);
+	PMEMoid *oidp);
 
 int list_insert(PMEMobjpool *pop,
 	size_t pe_offset, struct list_head *head, PMEMoid dest, int before,
@@ -67,7 +68,7 @@ int list_insert(PMEMobjpool *pop,
 
 int list_remove_free(PMEMobjpool *pop, struct list_head *oob_head,
 	size_t pe_offset, struct list_head *head,
-	PMEMoid oid);
+	PMEMoid *oidp);
 
 int list_remove(PMEMobjpool *pop,
 	size_t pe_offset, struct list_head *head,

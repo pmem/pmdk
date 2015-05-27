@@ -39,13 +39,27 @@
 
 #include "unittest.h"
 
-#define	LAYOUT_NAME "basic"
-
 #define	TEST_STR "abcdefgh"
 #define	TEST_STR_LEN 8
 #define	TEST_VALUE 5
 
+/*
+ * Layout definition
+ */
+POBJ_LAYOUT_BEGIN(basic);
+POBJ_LAYOUT_ROOT(basic, struct dummy_root);
+POBJ_LAYOUT_TOID(basic, struct dummy_node);
+POBJ_LAYOUT_TOID(basic, struct dummy_node_c);
+POBJ_LAYOUT_END(basic);
+
 struct dummy_node {
+	int value;
+	char teststr[TEST_STR_LEN];
+	PLIST_ENTRY(struct dummy_node) plist;
+	PLIST_ENTRY(struct dummy_node) plist_m;
+};
+
+struct dummy_node_c {
 	int value;
 	char teststr[TEST_STR_LEN];
 	PLIST_ENTRY(struct dummy_node) plist;
@@ -55,7 +69,7 @@ struct dummy_node {
 struct dummy_root {
 	int value;
 	PMEMmutex lock;
-	OID_TYPE(struct dummy_node) node;
+	TOID(struct dummy_node) node;
 	PLIST_HEAD(dummy_list, struct dummy_node) dummies;
 	PLIST_HEAD(moved_list, struct dummy_node) moved;
 };
@@ -68,47 +82,41 @@ dummy_node_constructor(void *ptr, void *arg)
 	n->value = *test_val;
 }
 
-#define	NODE_ZEROED_TYPE 0
-#define	NODE_CONSTRUCTED_TYPE 1
-
 void
 test_alloc_api(PMEMobjpool *pop)
 {
-	OID_TYPE(struct dummy_node) node_zeroed;
-	OID_TYPE(struct dummy_node) node_constructed;
+	TOID(struct dummy_node) node_zeroed;
+	TOID(struct dummy_node_c) node_constructed;
 
-	OID_ASSIGN(node_zeroed,
-		pmemobj_zalloc(pop, sizeof (struct dummy_root),
-		NODE_ZEROED_TYPE));
+	POBJ_ZNEW(pop, &node_zeroed, struct dummy_node);
 
 	int *test_val = MALLOC(sizeof (*test_val));
 	*test_val = TEST_VALUE;
-
-	OID_ASSIGN(node_constructed,
-		pmemobj_alloc_construct(pop, sizeof (struct dummy_root),
-		NODE_CONSTRUCTED_TYPE, dummy_node_constructor, test_val));
+	POBJ_NEW(pop, &node_constructed, struct dummy_node_c,
+			dummy_node_constructor, test_val);
 
 	FREE(test_val);
 
-	OID_TYPE(struct dummy_node) iter;
+	TOID(struct dummy_node) iter;
 
-	POBJ_FOREACH_TYPE(pop, iter, NODE_ZEROED_TYPE) {
+	POBJ_FOREACH_TYPE(pop, iter) {
 		ASSERTeq(D_RO(iter)->value, 0);
 	}
 
-	POBJ_FOREACH_TYPE(pop, iter, NODE_CONSTRUCTED_TYPE) {
-		ASSERTeq(D_RO(iter)->value, TEST_VALUE);
+	TOID(struct dummy_node_c) iter_c;
+	POBJ_FOREACH_TYPE(pop, iter_c) {
+		ASSERTeq(D_RO(iter_c)->value, TEST_VALUE);
 	}
 
 	PMEMoid oid_iter;
 	int type_iter;
 	POBJ_FOREACH(pop, oid_iter, type_iter) {
-		ASSERT(type_iter == NODE_ZEROED_TYPE ||
-			type_iter == NODE_CONSTRUCTED_TYPE);
+		ASSERT(type_iter == TOID_TYPE_NUM(struct dummy_node) ||
+			type_iter == TOID_TYPE_NUM(struct dummy_node_c));
 	}
 
-	pmemobj_free(node_zeroed.oid);
-	pmemobj_free(node_constructed.oid);
+	POBJ_FREE(&node_zeroed);
+	POBJ_FREE(&node_constructed);
 
 	int nodes_count = 0;
 	POBJ_FOREACH(pop, oid_iter, type_iter) {
@@ -120,11 +128,11 @@ test_alloc_api(PMEMobjpool *pop)
 void
 test_list_api(PMEMobjpool *pop)
 {
-	OID_TYPE(struct dummy_root) root;
-	OID_ASSIGN(root, pmemobj_root(pop, sizeof (struct dummy_root)));
+	TOID(struct dummy_root) root;
+	root = POBJ_ROOT(pop, struct dummy_root);
 	int nodes_count = 0;
 
-	OID_TYPE(struct dummy_node) iter;
+	TOID(struct dummy_node) iter;
 	POBJ_LIST_FOREACH_REVERSE(iter, &D_RO(root)->dummies, plist) {
 		OUT("dummy_node %d", D_RO(iter)->value);
 		nodes_count++;
@@ -135,15 +143,17 @@ test_list_api(PMEMobjpool *pop)
 	int *test_val = MALLOC(sizeof (*test_val));
 	*test_val = TEST_VALUE;
 
-	POBJ_LIST_INSERT_NEW_HEAD(pop, &D_RW(root)->dummies, 0, plist,
-			dummy_node_constructor, test_val);
-	POBJ_LIST_INSERT_NEW_TAIL(pop, &D_RW(root)->dummies, 0, plist,
-			dummy_node_constructor, test_val);
+	POBJ_LIST_INSERT_NEW_HEAD(pop, &D_RW(root)->dummies, plist,
+			sizeof (struct dummy_node), dummy_node_constructor,
+			test_val);
+	POBJ_LIST_INSERT_NEW_TAIL(pop, &D_RW(root)->dummies, plist,
+			sizeof (struct dummy_node), dummy_node_constructor,
+			test_val);
 
 	FREE(test_val);
 
-	OID_TYPE(struct dummy_node) node;
-	OID_ASSIGN(node, pmemobj_zalloc(pop, sizeof (struct dummy_root), 0));
+	TOID(struct dummy_node) node;
+	POBJ_ZNEW(pop, &node, struct dummy_node);
 
 	POBJ_LIST_INSERT_HEAD(pop, &D_RW(root)->dummies, node, plist);
 
@@ -179,8 +189,8 @@ test_list_api(PMEMobjpool *pop)
 void
 test_tx_api(PMEMobjpool *pop)
 {
-	OID_TYPE(struct dummy_root) root;
-	OID_ASSIGN(root, pmemobj_root(pop, sizeof (struct dummy_root)));
+	TOID(struct dummy_root) root;
+	TOID_ASSIGN(root, pmemobj_root(pop, sizeof (struct dummy_root)));
 
 	int *vstate = NULL; /* volatile state */
 
@@ -189,7 +199,7 @@ test_tx_api(PMEMobjpool *pop)
 		*vstate = TEST_VALUE;
 		TX_ADD(root);
 		D_RW(root)->value = *vstate;
-		OID_ASSIGN(D_RW(root)->node, TX_ZALLOC(struct dummy_node, 0));
+		D_RW(root)->node = TX_ZNEW(struct dummy_node);
 		TX_MEMSET(D_RW(root)->node, teststr, 'a', TEST_STR_LEN);
 		TX_MEMCPY(D_RW(root)->node, teststr, TEST_STR, TEST_STR_LEN);
 		TX_SET(D_RW(root)->node, value, TEST_VALUE);
@@ -202,9 +212,9 @@ test_tx_api(PMEMobjpool *pop)
 	ASSERTeq(D_RW(root)->value, TEST_VALUE);
 
 	TX_BEGIN_LOCK(pop, TX_LOCK_MUTEX, &D_RW(root)->lock) {
-		ASSERT(!OID_IS_NULL(D_RW(root)->node));
+		ASSERT(!TOID_IS_NULL(D_RW(root)->node));
 		TX_FREE(D_RW(root)->node);
-		OID_ASSIGN(D_RW(root)->node, OID_NULL);
+		TOID_ASSIGN(D_RW(root)->node, OID_NULL);
 	} TX_END
 }
 
@@ -220,8 +230,8 @@ main(int argc, char *argv[])
 
 	PMEMobjpool *pop = NULL;
 
-	if ((pop = pmemobj_create(path, LAYOUT_NAME, PMEMOBJ_MIN_POOL,
-			S_IRWXU)) == NULL)
+	if ((pop = pmemobj_create(path, POBJ_LAYOUT_NAME(basic),
+			PMEMOBJ_MIN_POOL, S_IRWXU)) == NULL)
 		FATAL("!pmemobj_create: %s", path);
 
 	test_alloc_api(pop);

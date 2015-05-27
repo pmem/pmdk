@@ -61,12 +61,12 @@ libpmemobj.so {
 		pmemobj_direct;
 		pmemobj_alloc;
 		pmemobj_zalloc;
-		pmemobj_alloc_construct;
 		pmemobj_realloc;
 		pmemobj_zrealloc;
 		pmemobj_strndup;
 		pmemobj_free;
 		pmemobj_alloc_usable_size;
+		pmemobj_type_num;
 		pmemobj_root;
 		pmemobj_root_size;
 		pmemobj_first;

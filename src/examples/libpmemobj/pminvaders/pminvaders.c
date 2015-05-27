@@ -64,16 +64,6 @@
 #define	MAX_PLAYER_TIMER 1000
 #define	MAX_BULLET_TIMER 500
 
-enum alloc_type {
-	ALLOC_UNKNOWN,
-	ALLOC_GAME_STATE,
-	ALLOC_PLAYER,
-	ALLOC_ALIEN,
-	ALLOC_BULLET,
-
-	MAX_ALLOC
-};
-
 enum colors {
 	C_UNKNOWN,
 	C_PLAYER,
@@ -106,6 +96,17 @@ struct bullet {
 	uint16_t y;
 	uint32_t timer; /* movement timer */
 };
+
+/*
+ * Layout definition
+ */
+POBJ_LAYOUT_BEGIN(pminvaders);
+POBJ_LAYOUT_ROOT(pminvaders, struct game_state);
+POBJ_LAYOUT_TOID(pminvaders, struct player);
+POBJ_LAYOUT_TOID(pminvaders, struct alien);
+POBJ_LAYOUT_TOID(pminvaders, struct bullet);
+POBJ_LAYOUT_END(pminvaders);
+
 
 static PMEMobjpool *pop;
 static struct game_state *gstate;
@@ -171,21 +172,21 @@ draw_border()
 }
 
 void
-draw_alien(const struct alien *a)
+draw_alien(const TOID(struct alien) a)
 {
-	mvaddch(a->y, a->x, ACS_DIAMOND|COLOR_PAIR(C_ALIEN));
+	mvaddch(D_RO(a)->y, D_RO(a)->x, ACS_DIAMOND|COLOR_PAIR(C_ALIEN));
 }
 
 void
-draw_player(const struct player *p)
+draw_player(const TOID(struct player) p)
 {
-	mvaddch(PLAYER_Y, p->x, ACS_DIAMOND|COLOR_PAIR(C_PLAYER));
+	mvaddch(PLAYER_Y, D_RO(p)->x, ACS_DIAMOND|COLOR_PAIR(C_PLAYER));
 }
 
 void
-draw_bullet(const struct bullet *b)
+draw_bullet(const TOID(struct bullet) b)
 {
-	mvaddch(b->y, b->x, ACS_BULLET|COLOR_PAIR(C_BULLET));
+	mvaddch(D_RO(b)->y, D_RO(b)->x, ACS_BULLET|COLOR_PAIR(C_BULLET));
 }
 
 void
@@ -237,22 +238,21 @@ process_aliens()
 	if (timer_tick(&gstate->timer)) {
 		gstate->timer = RRAND(MIN_GSTATE_TIMER, MAX_GSTATE_TIMER);
 		pmemobj_persist(pop, gstate, sizeof (*gstate));
-		pmemobj_alloc_construct(pop, sizeof (struct alien), ALLOC_ALIEN,
-			create_alien, NULL);
+		POBJ_NEW(pop, NULL, struct alien, create_alien, NULL);
 	}
 
-	OID_TYPE(struct alien) iter, next;
-	POBJ_FOREACH_SAFE_TYPE(pop, iter, next, ALLOC_ALIEN) {
+	TOID(struct alien) iter, next;
+	POBJ_FOREACH_SAFE_TYPE(pop, iter, next) {
 		if (timer_tick(&D_RW(iter)->timer)) {
 			D_RW(iter)->timer = MAX_ALIEN_TIMER;
 			D_RW(iter)->y++;
 		}
 		pmemobj_persist(pop, D_RW(iter), sizeof (struct alien));
-		draw_alien(D_RO(iter));
+		draw_alien(iter);
 
 		/* decrease the score if the ship wasn't intercepted */
 		if (D_RO(iter)->y > GAME_HEIGHT - 1) {
-			pmemobj_free(iter.oid);
+			POBJ_FREE(&iter);
 			update_score(-1);
 			pmemobj_persist(pop, gstate, sizeof (*gstate));
 		}
@@ -263,14 +263,14 @@ process_aliens()
  * process_collision -- search for any aliens on the position of the bullet
  */
 int
-process_collision(const struct bullet *b)
+process_collision(const TOID(struct bullet) b)
 {
-	OID_TYPE(struct alien) iter;
-
-	POBJ_FOREACH_TYPE(pop, iter, ALLOC_ALIEN) {
-		if (b->x == D_RO(iter)->x && b->y == D_RO(iter)->y) {
+	TOID(struct alien) iter;
+	POBJ_FOREACH_TYPE(pop, iter) {
+		if (D_RO(b)->x == D_RO(iter)->x &&
+			D_RO(b)->y == D_RO(iter)->y) {
 			update_score(1);
-			pmemobj_free(iter.oid);
+			POBJ_FREE(&iter);
 			return 1;
 		}
 	}
@@ -284,9 +284,9 @@ process_collision(const struct bullet *b)
 void
 process_bullets()
 {
-	OID_TYPE(struct bullet) iter, next;
+	TOID(struct bullet) iter, next;
 
-	POBJ_FOREACH_SAFE_TYPE(pop, iter, next, ALLOC_BULLET) {
+	POBJ_FOREACH_SAFE_TYPE(pop, iter, next) {
 		/* bullet movement timer */
 		if (timer_tick(&D_RW(iter)->timer)) {
 			D_RW(iter)->timer = MAX_BULLET_TIMER;
@@ -294,9 +294,9 @@ process_bullets()
 		}
 		pmemobj_persist(pop, D_RW(iter), sizeof (struct bullet));
 
-		draw_bullet(D_RO(iter));
-		if (D_RO(iter)->y == 0 || process_collision(D_RO(iter)))
-			pmemobj_free(iter.oid);
+		draw_bullet(iter);
+		if (D_RO(iter)->y == 0 || process_collision(iter))
+			POBJ_FREE(&iter);
 	}
 }
 
@@ -306,8 +306,7 @@ process_bullets()
 void
 process_player(int input)
 {
-	OID_TYPE(struct player) plr;
-	OID_ASSIGN(plr, pmemobj_first(pop, ALLOC_PLAYER));
+	TOID(struct player) plr = POBJ_FIRST(pop, struct player);
 
 	/* weapon cooldown tick */
 	timer_tick(&D_RW(plr)->timer);
@@ -322,13 +321,12 @@ process_player(int input)
 			D_RW(plr)->x = dstx;
 	} else if (input == ' ' && D_RO(plr)->timer == 0) {
 		D_RW(plr)->timer = MAX_PLAYER_TIMER;
-		pmemobj_alloc_construct(pop, sizeof (struct bullet),
-			ALLOC_BULLET, create_bullet, D_RW(plr));
+		POBJ_NEW(pop, NULL, struct bullet, create_bullet, D_RW(plr));
 	}
 
 	pmemobj_persist(pop, D_RW(plr), sizeof (struct player));
 
-	draw_player(D_RO(plr));
+	draw_player(plr);
 }
 
 /*
@@ -362,16 +360,14 @@ main(int argc, char *argv[])
 	srand(time(NULL));
 
 	if (access(path, F_OK) != 0) {
-		if ((pop = pmemobj_create(path, LAYOUT_NAME,
+		if ((pop = pmemobj_create(path, POBJ_LAYOUT_NAME(pminvaders),
 			PMINVADERS_POOL_SIZE, S_IRWXU)) == NULL) {
 			printf("failed to create pool\n");
 			return 1;
 		}
 
 		/* create the player and initialize with a constructor */
-		pmemobj_alloc_construct(pop, sizeof (struct player),
-			ALLOC_PLAYER, create_player, NULL);
-
+		POBJ_NEW(pop, NULL, struct player, create_player, NULL);
 	} else {
 		if ((pop = pmemobj_open(path, LAYOUT_NAME)) == NULL) {
 			printf("failed to open pool\n");
@@ -380,7 +376,34 @@ main(int argc, char *argv[])
 	}
 
 	/* global state of the game is kept in the root object */
-	gstate = pmemobj_direct(pmemobj_root(pop, sizeof (struct game_state)));
+	TOID(struct game_state) game_state = POBJ_ROOT(pop, struct game_state);
+	if (!TOID_VALID(game_state)) {
+		printf("failed to get root object\n");
+		return 1;
+	}
+
+	TOID(struct alien) alien;
+	POBJ_FOREACH_TYPE(pop, alien) {
+		if (!TOID_VALID(alien)) {
+			printf("invalid alien found\n");
+			return 1;
+		}
+	}
+
+	TOID(struct bullet) bullet;
+	POBJ_FOREACH_TYPE(pop, bullet) {
+		if (!TOID_VALID(bullet)) {
+			printf("invalid bullet found\n");
+			return 1;
+		}
+	}
+
+	if (!TOID_VALID(POBJ_FIRST(pop, struct player))) {
+		printf("invalid player found\n");
+		return 1;
+	}
+
+	gstate = D_RW(game_state);
 
 	initscr();
 	start_color();

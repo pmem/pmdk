@@ -61,19 +61,21 @@ struct object {
 	char data[OBJ_SIZE - sizeof (size_t)];
 };
 
+TOID_DECLARE(struct object, 0);
+
 /*
  * do_tx_alloc -- do tx allocation with specified type number
  */
 static PMEMoid
 do_tx_alloc(PMEMobjpool *pop, int type_num, size_t value)
 {
-	OID_TYPE(struct object) obj;
-	OID_ASSIGN(obj, OID_NULL);
+	TOID(struct object) obj;
+	TOID_ASSIGN(obj, OID_NULL);
 
 	TX_BEGIN(pop) {
-		OID_ASSIGN(obj, pmemobj_tx_alloc(
+		TOID_ASSIGN(obj, pmemobj_tx_alloc(
 				sizeof (struct object), type_num));
-		if (!OID_IS_NULL(obj)) {
+		if (!TOID_IS_NULL(obj)) {
 			D_RW(obj)->value = value;
 		}
 	} TX_END
@@ -87,14 +89,14 @@ do_tx_alloc(PMEMobjpool *pop, int type_num, size_t value)
 static void
 do_tx_realloc_no_tx(PMEMobjpool *pop)
 {
-	OID_TYPE(struct object) obj;
-	OID_ASSIGN(obj, do_tx_alloc(pop, TYPE_NO_TX, TEST_VALUE_1));
-	ASSERT(!OID_IS_NULL(obj));
+	TOID(struct object) obj;
+	TOID_ASSIGN(obj, do_tx_alloc(pop, TYPE_NO_TX, TEST_VALUE_1));
+	ASSERT(!TOID_IS_NULL(obj));
 
-	OID_TYPE(struct object) obj_r;
-	OID_ASSIGN(obj_r, pmemobj_tx_realloc(obj.oid,
+	TOID(struct object) obj_r;
+	TOID_ASSIGN(obj_r, pmemobj_tx_realloc(obj.oid,
 			2 * sizeof (struct object), TYPE_NO_TX));
-	ASSERT(OID_IS_NULL(obj_r));
+	ASSERT(TOID_IS_NULL(obj_r));
 }
 
 /*
@@ -103,26 +105,26 @@ do_tx_realloc_no_tx(PMEMobjpool *pop)
 static void
 do_tx_realloc_commit(PMEMobjpool *pop)
 {
-	OID_TYPE(struct object) obj;
-	OID_ASSIGN(obj, do_tx_alloc(pop, TYPE_COMMIT, TEST_VALUE_1));
+	TOID(struct object) obj;
+	TOID_ASSIGN(obj, do_tx_alloc(pop, TYPE_COMMIT, TEST_VALUE_1));
 	size_t new_size = 2 * pmemobj_alloc_usable_size(obj.oid);
 
 	TX_BEGIN(pop) {
-		OID_ASSIGN(obj, pmemobj_tx_realloc(obj.oid,
+		TOID_ASSIGN(obj, pmemobj_tx_realloc(obj.oid,
 			new_size, TYPE_COMMIT));
-		ASSERT(!OID_IS_NULL(obj));
+		ASSERT(!TOID_IS_NULL(obj));
 		ASSERT(pmemobj_alloc_usable_size(obj.oid) >= new_size);
 	} TX_ONABORT {
 		ASSERT(0);
 	} TX_END
 
-	OID_ASSIGN(obj, pmemobj_first(pop, TYPE_COMMIT));
-	ASSERT(!OID_IS_NULL(obj));
+	TOID_ASSIGN(obj, pmemobj_first(pop, TYPE_COMMIT));
+	ASSERT(!TOID_IS_NULL(obj));
 	ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
 	ASSERT(pmemobj_alloc_usable_size(obj.oid) >= new_size);
 
-	OID_ASSIGN(obj, pmemobj_next(obj.oid));
-	ASSERT(OID_IS_NULL(obj));
+	TOID_ASSIGN(obj, pmemobj_next(obj.oid));
+	ASSERT(TOID_IS_NULL(obj));
 }
 
 /*
@@ -131,14 +133,14 @@ do_tx_realloc_commit(PMEMobjpool *pop)
 static void
 do_tx_realloc_abort(PMEMobjpool *pop)
 {
-	OID_TYPE(struct object) obj;
-	OID_ASSIGN(obj, do_tx_alloc(pop, TYPE_ABORT, TEST_VALUE_1));
+	TOID(struct object) obj;
+	TOID_ASSIGN(obj, do_tx_alloc(pop, TYPE_ABORT, TEST_VALUE_1));
 	size_t new_size = 2 * pmemobj_alloc_usable_size(obj.oid);
 
 	TX_BEGIN(pop) {
-		OID_ASSIGN(obj, pmemobj_tx_realloc(obj.oid,
+		TOID_ASSIGN(obj, pmemobj_tx_realloc(obj.oid,
 			new_size, TYPE_ABORT));
-		ASSERT(!OID_IS_NULL(obj));
+		ASSERT(!TOID_IS_NULL(obj));
 		ASSERT(pmemobj_alloc_usable_size(obj.oid) >= new_size);
 
 		pmemobj_tx_abort(-1);
@@ -146,13 +148,13 @@ do_tx_realloc_abort(PMEMobjpool *pop)
 		ASSERT(0);
 	} TX_END
 
-	OID_ASSIGN(obj, pmemobj_first(pop, TYPE_ABORT));
-	ASSERT(!OID_IS_NULL(obj));
+	TOID_ASSIGN(obj, pmemobj_first(pop, TYPE_ABORT));
+	ASSERT(!TOID_IS_NULL(obj));
 	ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
 	ASSERT(pmemobj_alloc_usable_size(obj.oid) < new_size);
 
-	OID_ASSIGN(obj, pmemobj_next(obj.oid));
-	ASSERT(OID_IS_NULL(obj));
+	TOID_ASSIGN(obj, pmemobj_next(obj.oid));
+	ASSERT(TOID_IS_NULL(obj));
 }
 
 /*
@@ -161,15 +163,15 @@ do_tx_realloc_abort(PMEMobjpool *pop)
 static void
 do_tx_zrealloc_commit(PMEMobjpool *pop)
 {
-	OID_TYPE(struct object) obj;
-	OID_ASSIGN(obj, do_tx_alloc(pop, TYPE_COMMIT_ZERO, TEST_VALUE_1));
+	TOID(struct object) obj;
+	TOID_ASSIGN(obj, do_tx_alloc(pop, TYPE_COMMIT_ZERO, TEST_VALUE_1));
 	size_t old_size = pmemobj_alloc_usable_size(obj.oid);
 	size_t new_size = 2 * old_size;
 
 	TX_BEGIN(pop) {
-		OID_ASSIGN(obj, pmemobj_tx_realloc(obj.oid,
+		TOID_ASSIGN(obj, pmemobj_tx_realloc(obj.oid,
 			new_size, TYPE_COMMIT_ZERO));
-		ASSERT(!OID_IS_NULL(obj));
+		ASSERT(!TOID_IS_NULL(obj));
 		ASSERT(pmemobj_alloc_usable_size(obj.oid) >= new_size);
 		void *new_ptr = (void *)((uintptr_t)D_RW(obj) + old_size);
 		ASSERT(util_is_zeroed(new_ptr, new_size - old_size));
@@ -177,16 +179,16 @@ do_tx_zrealloc_commit(PMEMobjpool *pop)
 		ASSERT(0);
 	} TX_END
 
-	OID_ASSIGN(obj, pmemobj_first(pop, TYPE_COMMIT_ZERO));
-	ASSERT(!OID_IS_NULL(obj));
+	TOID_ASSIGN(obj, pmemobj_first(pop, TYPE_COMMIT_ZERO));
+	ASSERT(!TOID_IS_NULL(obj));
 	ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
 	ASSERT(pmemobj_alloc_usable_size(obj.oid) >= new_size);
 	void *new_ptr = (void *)((uintptr_t)D_RW(obj) + old_size);
 	ASSERT(util_is_zeroed(new_ptr, new_size - old_size));
 
 
-	OID_ASSIGN(obj, pmemobj_next(obj.oid));
-	ASSERT(OID_IS_NULL(obj));
+	TOID_ASSIGN(obj, pmemobj_next(obj.oid));
+	ASSERT(TOID_IS_NULL(obj));
 }
 
 /*
@@ -195,15 +197,15 @@ do_tx_zrealloc_commit(PMEMobjpool *pop)
 static void
 do_tx_zrealloc_abort(PMEMobjpool *pop)
 {
-	OID_TYPE(struct object) obj;
-	OID_ASSIGN(obj, do_tx_alloc(pop, TYPE_ABORT_ZERO, TEST_VALUE_1));
+	TOID(struct object) obj;
+	TOID_ASSIGN(obj, do_tx_alloc(pop, TYPE_ABORT_ZERO, TEST_VALUE_1));
 	size_t old_size = pmemobj_alloc_usable_size(obj.oid);
 	size_t new_size = 2 * old_size;
 
 	TX_BEGIN(pop) {
-		OID_ASSIGN(obj, pmemobj_tx_realloc(obj.oid,
+		TOID_ASSIGN(obj, pmemobj_tx_realloc(obj.oid,
 			new_size, TYPE_ABORT_ZERO));
-		ASSERT(!OID_IS_NULL(obj));
+		ASSERT(!TOID_IS_NULL(obj));
 		ASSERT(pmemobj_alloc_usable_size(obj.oid) >= new_size);
 		void *new_ptr = (void *)((uintptr_t)D_RW(obj) + old_size);
 		ASSERT(util_is_zeroed(new_ptr, new_size - old_size));
@@ -213,13 +215,13 @@ do_tx_zrealloc_abort(PMEMobjpool *pop)
 		ASSERT(0);
 	} TX_END
 
-	OID_ASSIGN(obj, pmemobj_first(pop, TYPE_ABORT_ZERO));
-	ASSERT(!OID_IS_NULL(obj));
+	TOID_ASSIGN(obj, pmemobj_first(pop, TYPE_ABORT_ZERO));
+	ASSERT(!TOID_IS_NULL(obj));
 	ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
 	ASSERT(pmemobj_alloc_usable_size(obj.oid) < new_size);
 
-	OID_ASSIGN(obj, pmemobj_next(obj.oid));
-	ASSERT(OID_IS_NULL(obj));
+	TOID_ASSIGN(obj, pmemobj_next(obj.oid));
+	ASSERT(TOID_IS_NULL(obj));
 }
 
 /*
@@ -229,29 +231,29 @@ do_tx_zrealloc_abort(PMEMobjpool *pop)
 static void
 do_tx_realloc_alloc_commit(PMEMobjpool *pop)
 {
-	OID_TYPE(struct object) obj;
+	TOID(struct object) obj;
 	size_t new_size = 0;
 
 	TX_BEGIN(pop) {
-		OID_ASSIGN(obj, do_tx_alloc(pop, TYPE_COMMIT_ALLOC,
+		TOID_ASSIGN(obj, do_tx_alloc(pop, TYPE_COMMIT_ALLOC,
 					TEST_VALUE_1));
-		ASSERT(!OID_IS_NULL(obj));
+		ASSERT(!TOID_IS_NULL(obj));
 		new_size = 2 * pmemobj_alloc_usable_size(obj.oid);
-		OID_ASSIGN(obj, pmemobj_tx_realloc(obj.oid,
+		TOID_ASSIGN(obj, pmemobj_tx_realloc(obj.oid,
 			new_size, TYPE_COMMIT_ALLOC));
-		ASSERT(!OID_IS_NULL(obj));
+		ASSERT(!TOID_IS_NULL(obj));
 		ASSERT(pmemobj_alloc_usable_size(obj.oid) >= new_size);
 	} TX_ONABORT {
 		ASSERT(0);
 	} TX_END
 
-	OID_ASSIGN(obj, pmemobj_first(pop, TYPE_COMMIT_ALLOC));
-	ASSERT(!OID_IS_NULL(obj));
+	TOID_ASSIGN(obj, pmemobj_first(pop, TYPE_COMMIT_ALLOC));
+	ASSERT(!TOID_IS_NULL(obj));
 	ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
 	ASSERT(pmemobj_alloc_usable_size(obj.oid) >= new_size);
 
-	OID_ASSIGN(obj, pmemobj_next(obj.oid));
-	ASSERT(OID_IS_NULL(obj));
+	TOID_ASSIGN(obj, pmemobj_next(obj.oid));
+	ASSERT(TOID_IS_NULL(obj));
 }
 
 /*
@@ -261,17 +263,17 @@ do_tx_realloc_alloc_commit(PMEMobjpool *pop)
 static void
 do_tx_realloc_alloc_abort(PMEMobjpool *pop)
 {
-	OID_TYPE(struct object) obj;
+	TOID(struct object) obj;
 	size_t new_size = 0;
 
 	TX_BEGIN(pop) {
-		OID_ASSIGN(obj, do_tx_alloc(pop, TYPE_ABORT_ALLOC,
+		TOID_ASSIGN(obj, do_tx_alloc(pop, TYPE_ABORT_ALLOC,
 					TEST_VALUE_1));
-		ASSERT(!OID_IS_NULL(obj));
+		ASSERT(!TOID_IS_NULL(obj));
 		new_size = 2 * pmemobj_alloc_usable_size(obj.oid);
-		OID_ASSIGN(obj, pmemobj_tx_realloc(obj.oid,
+		TOID_ASSIGN(obj, pmemobj_tx_realloc(obj.oid,
 			new_size, TYPE_ABORT_ALLOC));
-		ASSERT(!OID_IS_NULL(obj));
+		ASSERT(!TOID_IS_NULL(obj));
 		ASSERT(pmemobj_alloc_usable_size(obj.oid) >= new_size);
 
 		pmemobj_tx_abort(-1);
@@ -279,8 +281,8 @@ do_tx_realloc_alloc_abort(PMEMobjpool *pop)
 		ASSERT(0);
 	} TX_END
 
-	OID_ASSIGN(obj, pmemobj_first(pop, TYPE_ABORT_ALLOC));
-	ASSERT(OID_IS_NULL(obj));
+	TOID_ASSIGN(obj, pmemobj_first(pop, TYPE_ABORT_ALLOC));
+	ASSERT(TOID_IS_NULL(obj));
 }
 
 int
