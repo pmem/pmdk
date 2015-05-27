@@ -1051,6 +1051,7 @@ main(int argc, char *argv[])
 
 	const char *path = argv[1];
 
+	ASSERTeq(OOB_OFF, 48);
 	PMEMobjpool *pop = pmemobj_open(path, NULL);
 	ASSERTne(pop, NULL);
 
