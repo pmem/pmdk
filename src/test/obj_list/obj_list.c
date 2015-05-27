@@ -981,6 +981,9 @@ do_realloc(PMEMobjpool *pop, const char *arg)
 	} else {
 		FATAL_USAGE_REALLOC();
 	}
+	OID_TYPE(struct item) item;
+	OID_ASSIGN(item, oid);
+	OUT("realloc(id = %d)", D_RO(item)->id);
 }
 
 /*
@@ -1017,6 +1020,9 @@ do_realloc_move(PMEMobjpool *pop, const char *arg)
 		&oid)) {
 		FATAL("list_realloc_move(List_oob, List_oob_sec) failed");
 	}
+	OID_TYPE(struct item) item;
+	OID_ASSIGN(item, oid);
+	OUT("realloc_move(id = %d)", D_RO(item)->id);
 }
 
 /*

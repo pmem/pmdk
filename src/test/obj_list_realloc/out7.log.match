@@ -17,6 +17,7 @@ id = 1
 pgrow(id = 0, size = 3) = false
 pmalloc(id = 2)
 pfree(id = 0)
+realloc(id = 4)
 oob list:
 id = 4
 id = 1
@@ -33,6 +34,7 @@ pgrow(id = 1, size = 3) = false
 pmalloc(id = 3)
 constructor(id = 1, arg = 5)
 pfree(id = 1)
+realloc(id = 5)
 oob list:
 id = 4
 id = 5

@@ -10,6 +10,7 @@ id = 0
 list reverse:
 id = 0
 pgrow(id = 0, size = 2) = true
+realloc(id = 1)
 oob list:
 id = 1
 oob list reverse:

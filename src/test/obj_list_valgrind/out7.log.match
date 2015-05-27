@@ -4,9 +4,12 @@ pmalloc(id = 0)
 pmalloc(id = 1)
 pmalloc(id = 2)
 pgrow(id = 0, size = 2) = true
+realloc(id = 10)
 pgrow(id = 1, size = 2) = true
 constructor(id = 1, arg = 11)
+realloc(id = 11)
 pgrow(id = 2, size = 2) = true
+realloc(id = 12)
 oob list:
 id = 10
 id = 11
@@ -26,13 +29,16 @@ id = 10
 pgrow(id = 10, size = 3) = false
 pmalloc(id = 3)
 pfree(id = 10)
+realloc(id = 20)
 pgrow(id = 11, size = 3) = false
 pmalloc(id = 4)
 constructor(id = 11, arg = 21)
 pfree(id = 11)
+realloc(id = 21)
 pgrow(id = 12, size = 3) = false
 pmalloc(id = 5)
 pfree(id = 12)
+realloc(id = 22)
 oob list:
 id = 20
 id = 21
