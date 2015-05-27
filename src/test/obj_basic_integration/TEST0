@@ -39,7 +39,7 @@ export UNITTEST_NUM=0
 
 setup
 
-expect_abnormal_exit\
+expect_normal_exit\
     ./obj_basic_integration$EXESUFFIX $DIR/testfile1 2> /dev/null
 
 rm -rf $DIR/testfile1

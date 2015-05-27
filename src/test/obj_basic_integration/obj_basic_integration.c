@@ -179,15 +179,14 @@ test_tx_api(PMEMobjpool *pop)
 		TX_MEMCPY(D_RW(root)->node, teststr, TEST_STR, TEST_STR_LEN);
 		TX_SET(D_RW(root)->node, value, TEST_VALUE);
 	} TX_FINALLY {
-		if (vstate)
-			FREE(vstate);
+		FREE(vstate);
 		vstate = NULL;
 	} TX_END
 
 	ASSERTeq(vstate, NULL);
 	ASSERTeq(D_RW(root)->value, TEST_VALUE);
 
-	TX_BEGIN_LOCK(pop, &D_RW(root)->lock) {
+	TX_BEGIN_LOCK(pop, TX_LOCK_MUTEX, &D_RW(root)->lock) {
 		ASSERT(!OID_IS_NULL(D_RW(root)->node));
 		TX_FREE(D_RW(root)->node);
 		OID_ASSIGN(D_RW(root)->node, OID_NULL);
