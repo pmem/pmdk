@@ -229,8 +229,8 @@ pmemobj_rwlock_wrlock(PMEMobjpool *pop, PMEMrwlock *rwlockp)
  * its POSIX counterpart.
  */
 int
-pmemobj_rwlock_timedrdlock(PMEMobjpool *pop, PMEMrwlock *restrict rwlockp,
-			const struct timespec *restrict abs_timeout)
+pmemobj_rwlock_timedrdlock(PMEMobjpool *pop, PMEMrwlock *__restrict rwlockp,
+			const struct timespec *__restrict abs_timeout)
 {
 	LOG(3, "pop %p rwlock %p timeout sec %ld nsec %ld", pop, rwlockp,
 		abs_timeout->tv_sec, abs_timeout->tv_nsec);
@@ -249,8 +249,8 @@ pmemobj_rwlock_timedrdlock(PMEMobjpool *pop, PMEMrwlock *restrict rwlockp,
  * its POSIX counterpart.
  */
 int
-pmemobj_rwlock_timedwrlock(PMEMobjpool *pop, PMEMrwlock *restrict rwlockp,
-			const struct timespec *restrict abs_timeout)
+pmemobj_rwlock_timedwrlock(PMEMobjpool *pop, PMEMrwlock *__restrict rwlockp,
+			const struct timespec *__restrict abs_timeout)
 {
 	LOG(3, "pop %p rwlock %p timeout sec %ld nsec %ld", pop, rwlockp,
 		abs_timeout->tv_sec, abs_timeout->tv_nsec);
@@ -371,9 +371,9 @@ pmemobj_cond_signal(PMEMobjpool *pop, PMEMcond *condp)
  * POSIX counterpart.
  */
 int
-pmemobj_cond_timedwait(PMEMobjpool *pop, PMEMcond *restrict condp,
-			PMEMmutex *restrict mutexp,
-			const struct timespec *restrict abstime)
+pmemobj_cond_timedwait(PMEMobjpool *pop, PMEMcond *__restrict condp,
+			PMEMmutex *__restrict mutexp,
+			const struct timespec *__restrict abstime)
 {
 	LOG(3, "pop %p cond %p mutex %p abstime sec %ld nsec %ld", pop, condp,
 		mutexp, abstime->tv_sec, abstime->tv_nsec);
@@ -393,7 +393,8 @@ pmemobj_cond_timedwait(PMEMobjpool *pop, PMEMcond *restrict condp,
  * POSIX counterpart.
  */
 int
-pmemobj_cond_wait(PMEMobjpool *pop, PMEMcond *condp, PMEMmutex *restrict mutexp)
+pmemobj_cond_wait(PMEMobjpool *pop, PMEMcond *condp,
+			PMEMmutex *__restrict mutexp)
 {
 	LOG(3, "pop %p cond %p mutex %p", pop, condp, mutexp);
 
