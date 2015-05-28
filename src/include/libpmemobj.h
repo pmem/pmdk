@@ -141,11 +141,11 @@ void pmemobj_rwlock_zero(PMEMobjpool *pop, PMEMrwlock *rwlockp);
 int pmemobj_rwlock_rdlock(PMEMobjpool *pop, PMEMrwlock *rwlockp);
 int pmemobj_rwlock_wrlock(PMEMobjpool *pop, PMEMrwlock *rwlockp);
 int pmemobj_rwlock_timedrdlock(PMEMobjpool *pop,
-	PMEMrwlock *restrict rwlockp,
-	const struct timespec *restrict abs_timeout);
+	PMEMrwlock *__restrict rwlockp,
+	const struct timespec *__restrict abs_timeout);
 int pmemobj_rwlock_timedwrlock(PMEMobjpool *pop,
-	PMEMrwlock *restrict rwlockp,
-	const struct timespec *restrict abs_timeout);
+	PMEMrwlock *__restrict rwlockp,
+	const struct timespec *__restrict abs_timeout);
 int pmemobj_rwlock_tryrdlock(PMEMobjpool *pop, PMEMrwlock *rwlockp);
 int pmemobj_rwlock_trywrlock(PMEMobjpool *pop, PMEMrwlock *rwlockp);
 int pmemobj_rwlock_unlock(PMEMobjpool *pop, PMEMrwlock *rwlockp);
@@ -153,10 +153,11 @@ int pmemobj_rwlock_unlock(PMEMobjpool *pop, PMEMrwlock *rwlockp);
 void pmemobj_cond_zero(PMEMobjpool *pop, PMEMcond *condp);
 int pmemobj_cond_broadcast(PMEMobjpool *pop, PMEMcond *condp);
 int pmemobj_cond_signal(PMEMobjpool *pop, PMEMcond *condp);
-int pmemobj_cond_timedwait(PMEMobjpool *pop, PMEMcond *restrict condp,
-	PMEMmutex *restrict mutexp, const struct timespec *restrict abstime);
+int pmemobj_cond_timedwait(PMEMobjpool *pop, PMEMcond *__restrict condp,
+	PMEMmutex *__restrict mutexp,
+	const struct timespec *__restrict abstime);
 int pmemobj_cond_wait(PMEMobjpool *pop, PMEMcond *condp,
-	PMEMmutex *restrict mutexp);
+	PMEMmutex *__restrict mutexp);
 
 /*
  * Persistent memory object
