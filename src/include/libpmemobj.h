@@ -178,6 +178,10 @@ union {\
 
 #define	OID_ASSIGN(o, value) ((o).oid = value)
 
+#ifdef __cplusplus
+#define	OID_ASSIGN_TYPED(lhs, rhs)\
+	((lhs).oid = (rhs).oid)
+#else
 #define	OID_ASSIGN_TYPED(lhs, rhs)\
 __builtin_choose_expr(\
 	__builtin_types_compatible_p(\
@@ -185,6 +189,7 @@ __builtin_choose_expr(\
 		typeof((rhs)._type)),\
 	(void) ((lhs).oid = (rhs).oid),\
 	(lhs._type = rhs._type))
+#endif /* __cplusplus */
 
 #define	OID_NULL		((PMEMoid) {0, 0})
 
