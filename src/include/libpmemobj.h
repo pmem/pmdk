@@ -360,7 +360,16 @@ int pmemobj_list_move(PMEMobjpool *pop, size_t pe_old_offset,
 	PMEMoid dest, int before, PMEMoid oid);
 
 #define	POBJ_LIST_FIRST(head)	((head)->pe_first)
-#define	POBJ_LIST_LAST(head, field)	(D_RO((head)->pe_first)->field.pe_prev)
+#define	POBJ_LIST_LAST(head, field)	(\
+{\
+	OID_TYPE(typeof(*(head)->pe_first._type)) t;\
+	if (OID_IS_NULL((head)->pe_first))\
+		OID_ASSIGN_TYPED(t, (head)->pe_first);\
+	else\
+		OID_ASSIGN_TYPED(t, D_RO((head)->pe_first)->field.pe_prev);\
+	t;\
+})
+
 #define	POBJ_LIST_EMPTY(head)	(OID_IS_NULL((head)->pe_first))
 #define	POBJ_LIST_NEXT(elm, field)	(D_RO(elm)->field.pe_next)
 #define	POBJ_LIST_PREV(elm, field)	(D_RO(elm)->field.pe_prev)

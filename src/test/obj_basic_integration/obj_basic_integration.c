@@ -122,6 +122,15 @@ test_list_api(PMEMobjpool *pop)
 {
 	OID_TYPE(struct dummy_root) root;
 	OID_ASSIGN(root, pmemobj_root(pop, sizeof (struct dummy_root)));
+	int nodes_count = 0;
+
+	OID_TYPE(struct dummy_node) iter;
+	POBJ_LIST_FOREACH_REVERSE(iter, &D_RO(root)->dummies, plist) {
+		OUT("dummy_node %d", D_RO(iter)->value);
+		nodes_count++;
+	}
+
+	ASSERTeq(nodes_count, 0);
 
 	POBJ_LIST_INSERT_NEW_HEAD(pop, &D_RW(root)->dummies, 0, plist);
 	POBJ_LIST_INSERT_NEW_TAIL(pop, &D_RW(root)->dummies, 0, plist);
@@ -131,8 +140,7 @@ test_list_api(PMEMobjpool *pop)
 
 	POBJ_LIST_INSERT_HEAD(pop, &D_RW(root)->dummies, node, plist);
 
-	OID_TYPE(struct dummy_node) iter;
-	int nodes_count = 0;
+	nodes_count = 0;
 
 	POBJ_LIST_FOREACH(iter, &D_RO(root)->dummies, plist) {
 		OUT("dummy_node %d", D_RO(iter)->value);
