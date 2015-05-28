@@ -1,0 +1,4 @@
+pmem_persist_msync
+*.out
+*.png
+*.tmp
