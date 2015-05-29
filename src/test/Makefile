@@ -131,7 +131,8 @@ TEST = blk_nblock\
        obj_bucket\
        obj_heap\
        obj_store\
-       obj_tx_locks
+       obj_tx_locks\
+       obj_debug
 
 all     : TARGET = all
 clean   : TARGET = clean

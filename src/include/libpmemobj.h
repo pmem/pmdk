@@ -304,10 +304,39 @@ PMEMoid pmemobj_first(PMEMobjpool *pop, int type_num);
 PMEMoid pmemobj_next(PMEMoid oid);
 
 /*
+ * Debug helper function and macros
+ */
+#ifdef	DEBUG
+
+/*
+ * (debug helper function) logs notice message if used inside a transaction
+ */
+void _pobj_debug_notice(const char *func_name, const char *file, int line);
+
+/*
+ * (debug helper macro) logs notice message if used inside a transaction
+ */
+#define	_POBJ_DEBUG_NOTICE_IN_TX()\
+	_pobj_debug_notice(__func__, NULL, 0)
+
+/*
+ * (debug helper macro) logs notice message if used inside a transaction
+ *                      - to be used only in FOREACH macros
+ */
+#define	_POBJ_DEBUG_NOTICE_IN_TX_FOR(macro_name)\
+	_pobj_debug_notice(macro_name, __FILE__, __LINE__),
+
+#else
+#define	_POBJ_DEBUG_NOTICE_IN_TX() do {} while (0)
+#define	_POBJ_DEBUG_NOTICE_IN_TX_FOR(macro_name)
+#endif /* DEBUG */
+
+/*
  * Iterates through every existing allocated object.
  */
 #define	POBJ_FOREACH(pop, varoid, vartype_num)\
-for (vartype_num = 0; vartype_num < PMEMOBJ_NUM_OID_TYPES; ++vartype_num)\
+for (_POBJ_DEBUG_NOTICE_IN_TX_FOR("POBJ_FOREACH")\
+	vartype_num = 0; vartype_num < PMEMOBJ_NUM_OID_TYPES; ++vartype_num)\
 	for (varoid = pmemobj_first(pop, vartype_num);\
 		(varoid).off != 0; varoid = pmemobj_next(varoid))
 
@@ -315,7 +344,8 @@ for (vartype_num = 0; vartype_num < PMEMOBJ_NUM_OID_TYPES; ++vartype_num)\
  * Safe variant of POBJ_FOREACH in which pmemobj_free on varoid is allowed
  */
 #define	POBJ_FOREACH_SAFE(pop, varoid, nvaroid, vartype_num)\
-for (vartype_num = 0; vartype_num < PMEMOBJ_NUM_OID_TYPES; ++vartype_num)\
+for (_POBJ_DEBUG_NOTICE_IN_TX_FOR("POBJ_FOREACH_SAFE")\
+	vartype_num = 0; vartype_num < PMEMOBJ_NUM_OID_TYPES; ++vartype_num)\
 	for (varoid = pmemobj_first(pop, vartype_num);\
 		(varoid).off != 0 && (nvaroid = pmemobj_next(varoid), 1);\
 		varoid = nvaroid)
@@ -324,18 +354,20 @@ for (vartype_num = 0; vartype_num < PMEMOBJ_NUM_OID_TYPES; ++vartype_num)\
  * Iterates through every object of the specified type number.
  */
 #define	POBJ_FOREACH_TYPE(pop, var, type_num)\
-for (OID_ASSIGN(var, pmemobj_first(pop, type_num));\
-		OID_IS_NULL(var) == 0;\
-		OID_ASSIGN(var, pmemobj_next((var).oid)))
+for (_POBJ_DEBUG_NOTICE_IN_TX_FOR("POBJ_FOREACH_TYPE")\
+	OID_ASSIGN(var, pmemobj_first(pop, type_num));\
+	OID_IS_NULL(var) == 0;\
+	OID_ASSIGN(var, pmemobj_next((var).oid)))
 
 /*
  * Safe variant of POBJ_FOREACH_TYPE in which pmemobj_free on var is allowed
  */
 #define	POBJ_FOREACH_SAFE_TYPE(pop, var, nvar, type_num)\
-for (OID_ASSIGN(var, pmemobj_first(pop, type_num));\
-		OID_IS_NULL(var) == 0 &&\
-		(OID_ASSIGN(nvar, pmemobj_next((var).oid)), 1);\
-		OID_ASSIGN_TYPED(var, nvar))
+for (_POBJ_DEBUG_NOTICE_IN_TX_FOR("POBJ_FOREACH_SAFE_TYPE")\
+	OID_ASSIGN(var, pmemobj_first(pop, type_num));\
+	OID_IS_NULL(var) == 0 &&\
+	(OID_ASSIGN(nvar, pmemobj_next((var).oid)), 1);\
+	OID_ASSIGN_TYPED(var, nvar))
 
 /*
  * Non-transactional persistent atomic circular doubly-linked list
@@ -381,7 +413,8 @@ int pmemobj_list_move(PMEMobjpool *pop, size_t pe_old_offset,
 #define	POBJ_LIST_PREV(elm, field)	(D_RO(elm)->field.pe_prev)
 
 #define	POBJ_LIST_FOREACH(var, head, field)\
-for (OID_ASSIGN_TYPED((var), POBJ_LIST_FIRST((head)));\
+for (_POBJ_DEBUG_NOTICE_IN_TX_FOR("POBJ_LIST_FOREACH")\
+	OID_ASSIGN_TYPED((var), POBJ_LIST_FIRST((head)));\
 	OID_IS_NULL((var)) == 0;\
 	OID_EQUALS(POBJ_LIST_NEXT((var), field),\
 	POBJ_LIST_FIRST((head))) ?\
@@ -389,7 +422,8 @@ for (OID_ASSIGN_TYPED((var), POBJ_LIST_FIRST((head)));\
 	OID_ASSIGN_TYPED((var), POBJ_LIST_NEXT((var), field)))
 
 #define	POBJ_LIST_FOREACH_REVERSE(var, head, field)\
-for (OID_ASSIGN_TYPED((var), POBJ_LIST_LAST((head), field));\
+for (_POBJ_DEBUG_NOTICE_IN_TX_FOR("POBJ_LIST_FOREACH_REVERSE")\
+	OID_ASSIGN_TYPED((var), POBJ_LIST_LAST((head), field));\
 	OID_IS_NULL((var)) == 0;\
 	OID_EQUALS(POBJ_LIST_PREV((var), field),\
 	POBJ_LIST_LAST((head), field)) ?\

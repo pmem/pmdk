@@ -1,5 +1,6 @@
 scope/TEST4:
 $(*)debug/libpmemobj.so:
+_pobj_debug_notice
 pmemobj_alloc
 pmemobj_alloc_construct
 pmemobj_alloc_usable_size
@@ -54,6 +55,7 @@ pmemobj_tx_zrealloc
 pmemobj_zalloc
 pmemobj_zrealloc
 $(*)nondebug/libpmemobj.so:
+_pobj_debug_notice
 pmemobj_alloc
 pmemobj_alloc_construct
 pmemobj_alloc_usable_size
@@ -108,6 +110,7 @@ pmemobj_tx_zrealloc
 pmemobj_zalloc
 pmemobj_zrealloc
 $(*)debug/libpmemobj.a:
+_pobj_debug_notice
 pmemobj_alloc
 pmemobj_alloc_construct
 pmemobj_alloc_usable_size
@@ -162,6 +165,7 @@ pmemobj_tx_zrealloc
 pmemobj_zalloc
 pmemobj_zrealloc
 $(*)nondebug/libpmemobj.a:
+_pobj_debug_notice
 pmemobj_alloc
 pmemobj_alloc_construct
 pmemobj_alloc_usable_size
