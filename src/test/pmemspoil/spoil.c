@@ -55,7 +55,7 @@
 /*
  * Useful macros for pmemspoil_process_* set of functions.
  * These macros take the struct and field name as an argument
- * and transforms it to addres, size and string.
+ * and transforms it to address, size and string.
  * Example:
  *	struct my_struct {
  *		uint16_t field;

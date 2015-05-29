@@ -801,7 +801,7 @@ static int
 heap_verify_zone(struct zone *zone)
 {
 	if (zone->header.magic != ZONE_HEADER_MAGIC)
-		return 0; /* not initialized, and thats OK */
+		return 0; /* not initialized, and that is OK */
 
 	if (heap_verify_zone_header(&zone->header))
 		return 1;

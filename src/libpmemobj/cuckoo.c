@@ -58,7 +58,7 @@ struct cuckoo_slot {
 };
 
 struct cuckoo {
-	int size; /* number of hashtable slots */
+	int size; /* number of hash table slots */
 	struct cuckoo_slot *tab;
 };
 
@@ -76,7 +76,7 @@ hash_mod(struct cuckoo *c, uint64_t key)
 /*
  * hash_mixer -- (internal) second hash function
  *
- * Based on Austin Appleby MurmurHash3 64-bit finializer.
+ * Based on Austin Appleby MurmurHash3 64-bit finalizer.
  */
 static int
 hash_mixer(struct cuckoo *c, uint64_t key)

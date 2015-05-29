@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright (c) 2014-2015, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -101,7 +101,7 @@ main(int argc, char *argv[])
 			*ptr = htole64(0x123);
 
 			/*
-			 * calc a checksum and have it installed
+			 * calculate a checksum and have it installed
 			 */
 			util_checksum(addr, stbuf.st_size, ptr, 1);
 

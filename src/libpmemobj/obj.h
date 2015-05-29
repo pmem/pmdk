@@ -90,7 +90,7 @@ struct pmemobjpool {
 	unsigned char unused[OBJ_DSC_P_UNUSED]; /* must be zero */
 	uint64_t checksum;	/* checksum of above fields */
 
-	/* unique runID for this program run - persistent, but not checksumed */
+	/* unique runID for this program run - persistent but not checksummed */
 	uint64_t run_id;
 
 	/* some run-time state, allocated out of memory pool... */

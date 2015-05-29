@@ -47,7 +47,7 @@ setup
 rm -f $DIR/testfile1
 truncate -s 4MB $DIR/testfile1
 
-# aligned destt, no overlap, small length
+# aligned dest, no overlap, small length
 expect_normal_exit ./pmem_memmove$EXESUFFIX $DIR/testfile1 b:8
 
 rm $DIR/testfile1
