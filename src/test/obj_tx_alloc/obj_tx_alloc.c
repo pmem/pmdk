@@ -33,6 +33,7 @@
 /*
  * obj_tx_alloc.c -- unit test for pmemobj_tx_alloc and pmemobj_tx_zalloc
  */
+#include <assert.h>
 #include <sys/param.h>
 #include <string.h>
 
@@ -45,7 +46,7 @@
 
 #define	TEST_VALUE_1	1
 #define	TEST_VALUE_2	2
-#define	OBJ_SIZE	1024
+#define	OBJ_SIZE	(200 * 1024)
 
 enum type_number {
 	TYPE_NO_TX,

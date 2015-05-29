@@ -40,7 +40,6 @@
  * This structure is used to store and retrieve best-fit memory blocks for
  * allocations of certain sizes.
  */
-
 #include <stdint.h>
 #include <stdlib.h>
 #include <pthread.h>
@@ -50,6 +49,8 @@
 #include "ctree.h"
 
 #define	BIT_IS_SET(n, i) (!!((n) & (1L << (i))))
+
+#define	KEY_LEN 64
 
 /* internal nodes have LSB of the pointer set, leafs do not */
 #define	NODE_IS_INTERNAL(node) (BIT_IS_SET((uintptr_t)(node), 0))
@@ -221,6 +222,9 @@ ctree_remove(struct ctree *t, uint64_t key, int eq)
 	int d = 0; /* last taken direction */
 	struct node *a = NULL; /* internal node */
 
+	struct node *path[KEY_LEN] = {NULL};
+	int psize = 0;
+
 	if ((errno = pthread_mutex_lock(&t->lock)) != 0) {
 		LOG(1, "!pthread_mutex_lock");
 		return 0;
@@ -233,12 +237,31 @@ ctree_remove(struct ctree *t, uint64_t key, int eq)
 	/* find the key */
 	while (NODE_IS_INTERNAL(*dst)) {
 		a = NODE_INTERNAL_GET(*dst);
+		path[psize++] = a;
 		p = dst;
 		dst = &a->slots[(d = BIT_IS_SET(key, a->diff))];
 	}
 
 	k = **(uint64_t **)dst;
-	if ((k < key) || (eq && k != key)) {
+	if (eq && k != key) {
+		k = 0;
+		goto out;
+	}
+
+	/* search again, but this time always go right */
+	while (k < key && (--psize) >= 0) {
+		d = 1;
+		dst = &(path[psize]->slots[d]);
+		while (NODE_IS_INTERNAL(*dst)) {
+			a = NODE_INTERNAL_GET(*dst);
+			path[psize++] = a;
+			p = dst;
+			dst = &a->slots[(d = BIT_IS_SET(key, a->diff))];
+		}
+		k = **(uint64_t **)dst;
+	}
+
+	if (k < key) {
 		k = 0;
 		goto out;
 	}
@@ -264,4 +287,13 @@ out:
 		LOG(1, "!pthread_mutex_unlock");
 
 	return k;
+}
+
+/*
+ * ctree_is_empty -- checks whether the tree is empty
+ */
+int
+ctree_is_empty(struct ctree *t)
+{
+	return t->root == NULL;
 }

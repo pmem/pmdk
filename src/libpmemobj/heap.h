@@ -34,16 +34,30 @@
  * heap.h -- internal definitions for heap
  */
 
+enum heap_op {
+	HEAP_OP_ALLOC,
+	HEAP_OP_FREE,
+
+	MAX_HEAP_OP
+};
+
 struct bucket *heap_get_best_bucket(PMEMobjpool *pop, size_t size);
-void heap_resize_chunk(PMEMobjpool *pop,
-	uint32_t chunk_id, uint32_t zone_id, uint32_t new_size_idx);
-struct chunk_header *heap_get_chunk_header(PMEMobjpool *pop,
-	uint32_t chunk_id, uint32_t zone_id);
-void *heap_get_chunk_data(PMEMobjpool *pop,
-	uint32_t chunk_id, uint32_t zone_id);
+struct bucket *heap_get_default_bucket(PMEMobjpool *pop);
+void *heap_get_block_header(PMEMobjpool *pop, uint32_t chunk_id,
+	uint32_t zone_id, uint32_t size_idx, uint16_t block_off,
+	enum heap_op op, uint64_t *op_result);
+void *heap_get_block_data(PMEMobjpool *pop,
+	uint32_t chunk_id, uint32_t zone_id, uint16_t block_off);
 struct chunk_header *heap_coalesce(PMEMobjpool *pop,
 	struct chunk_header *chunks[], int n);
 struct chunk_header *heap_get_prev_chunk(PMEMobjpool *pop,
 	uint32_t *chunk_id, uint32_t zone_id);
 struct chunk_header *heap_get_next_chunk(PMEMobjpool *pop,
 	uint32_t *chunk_id, uint32_t zone_id);
+
+int heap_lock_if_run(PMEMobjpool *pop, uint32_t chunk_id, uint32_t zone_id);
+int heap_unlock_if_run(PMEMobjpool *pop, uint32_t chunk_id, uint32_t zone_id);
+
+int heap_get_block_from_bucket(PMEMobjpool *pop, struct bucket *b,
+	uint32_t *chunk_id, uint32_t *zone_id, uint32_t size_idx,
+	uint16_t *block_off);

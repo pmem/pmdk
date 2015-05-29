@@ -46,18 +46,13 @@
 #include "pmalloc.h"
 #include "unittest.h"
 
-#define	MOCK_BUCKET ((void *)0xABC)
-
-FUNC_MOCK_RET_ALWAYS(bucket_new, struct bucket *, MOCK_BUCKET);
-FUNC_MOCK_RET_ALWAYS(bucket_delete, void *, NULL);
-FUNC_MOCK_RET_ALWAYS(bucket_insert_block, int, 0);
-
 #define	MOCK_POOL_SIZE PMEMOBJ_MIN_POOL
 
 #define	CHUNK_FIRST	0
 #define	CHUNK_SECOND	1
 #define	CHUNK_THIRD	2
 #define	CHUNK_NEW_SIZE_IDX 1
+#define	MAX_BLOCKS 3
 
 struct mock_pop {
 	PMEMobjpool p;
@@ -67,54 +62,64 @@ struct mock_pop {
 void
 test_heap()
 {
-	struct mock_pop *pop = Malloc(MOCK_POOL_SIZE);
+	struct mock_pop *mpop = Malloc(MOCK_POOL_SIZE);
+	PMEMobjpool *pop = &mpop->p;
 	memset(pop, 0, MOCK_POOL_SIZE);
-	pop->p.heap_size = MOCK_POOL_SIZE - sizeof (PMEMobjpool);
-	pop->p.heap_offset = (uint64_t)((uint64_t)&pop->heap - (uint64_t)pop);
-	pop->p.persist = (persist_fn)pmem_msync;
+	pop->heap_size = MOCK_POOL_SIZE - sizeof (PMEMobjpool);
+	pop->heap_offset = (uint64_t)((uint64_t)&mpop->heap - (uint64_t)mpop);
+	pop->persist = (persist_fn)pmem_msync;
 
-	ASSERT(heap_check(&pop->p) != 0);
-	ASSERT(heap_init(&pop->p) == 0);
-	ASSERT(heap_boot(&pop->p) == 0);
-	ASSERT(pop->p.heap != NULL);
+	ASSERT(heap_check(pop) != 0);
+	ASSERT(heap_init(pop) == 0);
+	ASSERT(heap_boot(pop) == 0);
+	ASSERT(pop->heap != NULL);
 
-	ASSERT(heap_get_best_bucket(&pop->p, 0) == MOCK_BUCKET);
+	struct bucket *b_small = heap_get_best_bucket(pop, 0);
+	struct bucket *b_big = heap_get_best_bucket(pop, 1024);
 
-	struct chunk_header *hdr;
-	ASSERT((hdr = heap_get_chunk_header(&pop->p, CHUNK_FIRST, 0)) != NULL);
-	uint32_t csize = hdr->size_idx;
+	ASSERT(bucket_unit_size(b_small) < bucket_unit_size(b_big));
 
-	heap_resize_chunk(&pop->p, CHUNK_FIRST, 0, CHUNK_NEW_SIZE_IDX);
-	ASSERT(heap_check(&pop->p) == 0);
-	ASSERT((hdr = heap_get_chunk_header(&pop->p, CHUNK_FIRST, 0)) != NULL);
-	ASSERT(hdr->size_idx == CHUNK_NEW_SIZE_IDX);
-	ASSERT((hdr = heap_get_chunk_header(&pop->p, CHUNK_SECOND, 0)) != NULL);
-	ASSERT(hdr->size_idx == (csize - CHUNK_NEW_SIZE_IDX));
+	struct bucket *b_def = heap_get_default_bucket(pop);
+	ASSERT(bucket_unit_size(b_def) == CHUNKSIZE);
 
-	ASSERT(heap_get_chunk_data(&pop->p, CHUNK_FIRST, 0) != NULL);
-	ASSERT(heap_get_chunk_data(&pop->p, CHUNK_SECOND, 0) != NULL);
-	heap_resize_chunk(&pop->p, CHUNK_SECOND, 0, CHUNK_NEW_SIZE_IDX);
-	ASSERT(heap_get_chunk_data(&pop->p, CHUNK_THIRD, 0) != NULL);
+	ASSERT(!bucket_is_empty(b_small));
+	ASSERT(!bucket_is_empty(b_big));
+	ASSERT(!bucket_is_empty(b_def));
 
-	uint32_t prev_id = CHUNK_SECOND;
-	uint32_t next_id = CHUNK_SECOND;
-	struct chunk_header *c[] = {
-		heap_get_prev_chunk(&pop->p, &prev_id, 0),
-		heap_get_chunk_header(&pop->p, CHUNK_SECOND, 0),
-		heap_get_next_chunk(&pop->p, &next_id, 0)};
+	uint32_t zone_id[MAX_BLOCKS] = {0};
+	uint32_t chunk_id[MAX_BLOCKS] = {0};
+	uint32_t size_idx[MAX_BLOCKS] = {1, 1, 1};
+	uint16_t block_off[MAX_BLOCKS] = {0};
 
-	ASSERT(heap_get_chunk_header(&pop->p, CHUNK_FIRST, 0) == c[0]);
-	ASSERT(heap_get_chunk_header(&pop->p, CHUNK_THIRD, 0) == c[2]);
+	struct chunk_header *hdr[MAX_BLOCKS] = {NULL, NULL, NULL};
+	for (int i = 0; i < MAX_BLOCKS; ++i) {
+		heap_get_block_from_bucket(pop, b_def, &chunk_id[i],
+			&zone_id[i], size_idx[i], &block_off[i]);
+		ASSERT(block_off[i] == 0);
+		ASSERT(chunk_id[i] != 0);
+	}
 
-	heap_coalesce(&pop->p, c, 3);
-	ASSERT(heap_get_chunk_header(&pop->p, CHUNK_FIRST, 0)->size_idx
-		== csize);
+	uint32_t prev = chunk_id[1];
+	hdr[0] = heap_get_prev_chunk(pop, &prev, 0);
+	ASSERT(prev == chunk_id[0]);
 
-	ASSERT(heap_check(&pop->p) == 0);
-	ASSERT(heap_cleanup(&pop->p) == 0);
-	ASSERT(pop->p.heap == NULL);
+	uint32_t mid = chunk_id[0];
+	hdr[1] = heap_get_next_chunk(pop, &mid, 0);
+	ASSERT(mid == chunk_id[1]);
 
-	Free(pop);
+	uint32_t next = chunk_id[1];
+	hdr[2] = heap_get_next_chunk(pop, &next, 0);
+	ASSERT(next == chunk_id[2]);
+
+	heap_coalesce(pop, hdr, MAX_BLOCKS);
+
+	ASSERT(hdr[0]->size_idx == MAX_BLOCKS);
+
+	ASSERT(heap_check(pop) == 0);
+	ASSERT(heap_cleanup(pop) == 0);
+	ASSERT(pop->heap == NULL);
+
+	Free(mpop);
 }
 
 int
