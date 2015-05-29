@@ -72,7 +72,7 @@ swap_mappings(void **dest, void **src, size_t size, int fd)
 }
 
 /*
- * do_memmove: Worker function for memove.
+ * do_memmove: Worker function for memmove.
  *
  * Always work within the boundary of bytes. Fill in 1/2 of the src
  * memory with the pattern we want to write. This allows us to check

@@ -31,7 +31,7 @@
  */
 
 /*
- * obj_list.c -- unittests for list module
+ * obj_list.c -- unit tests for list module
  */
 
 #include <stddef.h>
@@ -526,7 +526,7 @@ oob_get_prev(PMEMoid oid)
 }
 
 /*
- * oob_get_next -- get next of elelement from oob list
+ * oob_get_next -- get next of element from oob list
  */
 static PMEMoid
 oob_get_next(PMEMoid oid)
@@ -743,7 +743,7 @@ item_constructor(void *ptr, void *arg)
 }
 
 /*
- * realloc_constrcutor -- constructor which prints only the item's
+ * realloc_constructor -- constructor which prints only the item's
  * id and argument value
  */
 static void

@@ -73,7 +73,7 @@ main(int argc, char *argv[])
 		if (sigaction(SIGSEGV, &v, NULL) < 0)
 			FATAL("!sigaction");
 
-		/* try to deref the opaque handle */
+		/* try to dereference the opaque handle */
 		char x = *(char *)Vmp;
 		OUT("x = %c", x);
 	}

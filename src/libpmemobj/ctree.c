@@ -33,9 +33,9 @@
 /*
  * ctree.c -- crit-bit tree implementation
  *
- * Crit-bit trees can efficently store sparse key-value sets in a sorted manner.
- * They usually perform better for relatively small collections than the popular
- * AVL or RB trees because they are more cache-friendly.
+ * Crit-bit trees can efficiently store sparse key-value sets in a sorted
+ * manner. They usually perform better for relatively small collections
+ * than the popular AVL or RB trees because they are more cache-friendly.
  *
  * This structure is used to store and retrieve best-fit memory blocks for
  * allocations of certain sizes.
@@ -58,7 +58,7 @@
 
 struct node {
 	void *slots[2]; /* slots for either internal or leaf nodes */
-	int diff;	/* most siginificant differing bit */
+	int diff;	/* most significant differing bit */
 };
 
 struct ctree {
@@ -67,7 +67,7 @@ struct ctree {
 };
 
 /*
- * find_crit_bit -- (internal) finds the most siginificant differing bit
+ * find_crit_bit -- (internal) finds the most significant differing bit
  */
 static int
 find_crit_bit(uint64_t lhs, uint64_t rhs)

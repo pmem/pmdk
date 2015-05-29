@@ -95,7 +95,7 @@ struct pmempool_check {
 	struct arena bttc;	/* arena cache */
 	TAILQ_HEAD(arenashead, arena) arenas;
 	uint32_t narenas;	/* number of arenas */
-	char ans;		/* defult answer on all questions or '?' */
+	char ans;		/* default answer on all questions or '?' */
 };
 
 typedef enum

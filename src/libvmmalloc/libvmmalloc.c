@@ -48,7 +48,7 @@
  *    initialization (vmem pool creation) is completed.  This is to avoid
  *    recursive calls to malloc, leading to stack overflow.
  *
- * 3) Malloc hooks in glibc are overriden to prevent any references to glibc's
+ * 3) Malloc hooks in glibc are overridden to prevent any references to glibc's
  *    malloc(3) functions in case the application uses dlopen with
  *    RTLD_DEEPBIND flag.
  */

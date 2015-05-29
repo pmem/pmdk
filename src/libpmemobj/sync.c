@@ -163,7 +163,7 @@ pmemobj_mutex_unlock(PMEMobjpool *pop, PMEMmutex *mutexp)
 {
 	LOG(3, "pop %p mutex %p", pop, mutexp);
 
-	/* XXX potential perf improvement - move GET to debug version */
+	/* XXX potential performance improvement - move GET to debug version */
 	pthread_mutex_t *mutex = GET_MUTEX(pop, mutexp);
 	if (mutex == NULL)
 		return EINVAL;
@@ -306,7 +306,7 @@ pmemobj_rwlock_unlock(PMEMobjpool *pop, PMEMrwlock *rwlockp)
 {
 	LOG(3, "pop %p rwlock %p", pop, rwlockp);
 
-	/* XXX potential perf improvement - move GET to debug version */
+	/* XXX potential performance improvement - move GET to debug version */
 	pthread_rwlock_t *rwlock = GET_RWLOCK(pop, rwlockp);
 	if (rwlock == NULL)
 		return EINVAL;

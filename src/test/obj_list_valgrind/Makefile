@@ -31,7 +31,7 @@
 #
 
 #
-# src/test/obj_list_valgrind/Makefile -- unitesest for list module with
+# src/test/obj_list_valgrind/Makefile -- unit test for list module with
 # valgrind pmemcheck tool
 #
 

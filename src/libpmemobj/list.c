@@ -885,7 +885,7 @@ list_insert(PMEMobjpool *pop,
 	redo_index = list_insert_user(pop, redo, redo_index,
 			&args, &args_common, &next_offset, &prev_offset);
 
-	/* fill entry of exisitng element using redo log */
+	/* fill entry of existing element using redo log */
 	redo_index = list_fill_entry_redo_log(pop, redo, redo_index,
 			&args_common, next_offset, prev_offset);
 

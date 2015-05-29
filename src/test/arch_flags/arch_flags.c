@@ -71,7 +71,7 @@ int Open_fake_path;
 
 /*
  * Declaration of out_init and out_fini functions because it is not
- * possible to inclue both unittest.h and out.h headers due to
+ * possible to include both unittest.h and out.h headers due to
  * redeclaration of some macros.
  */
 void out_init(const char *log_prefix, const char *log_level_var,

@@ -132,7 +132,7 @@ constructor_tx_alloc(void *ptr, void *arg)
 
 	/*
 	 * no need to flush and persist because this
-	 * will be done in pre commit phase
+	 * will be done in pre-commit phase
 	 */
 	oobh->internal_type = TYPE_NONE;
 	oobh->user_type = args->type_num;
@@ -155,7 +155,7 @@ constructor_tx_zalloc(void *ptr, void *arg)
 
 	/*
 	 * no need to flush and persist because this
-	 * will be done in pre commit phase
+	 * will be done in pre-commit phase
 	 */
 	oobh->internal_type = TYPE_NONE;
 	oobh->user_type = args->type_num;
@@ -204,7 +204,7 @@ constructor_tx_copy(void *ptr, void *arg)
 
 	/*
 	 * no need to flush and persist because this
-	 * will be done in pre commit phase
+	 * will be done in pre-commit phase
 	 */
 	oobh->internal_type = TYPE_NONE;
 	oobh->user_type = args->type_num;
@@ -229,7 +229,7 @@ constructor_tx_copy_zero(void *ptr, void *arg)
 
 	/*
 	 * no need to flush and persist because this
-	 * will be done in pre commit phase
+	 * will be done in pre-commit phase
 	 */
 	oobh->internal_type = TYPE_NONE;
 	oobh->user_type = args->type_num;
@@ -363,7 +363,7 @@ tx_abort_set(PMEMobjpool *pop, struct lane_tx_layout *layout)
 }
 
 /*
- * tx_pre_commit_alloc -- (internal) do pre commit operations for
+ * tx_pre_commit_alloc -- (internal) do pre-commit operations for
  * allocated objects
  */
 static void
@@ -380,7 +380,7 @@ tx_pre_commit_alloc(PMEMobjpool *pop, struct lane_tx_layout *layout)
 
 		/*
 		 * Set object as allocated.
-		 * This must be done in pre commit phase instead of at
+		 * This must be done in pre-commit phase instead of at
 		 * allocation time in order to handle properly the case when
 		 * the object is allocated and freed in the same transaction.
 		 * In such case we need to know that the object
@@ -397,7 +397,7 @@ tx_pre_commit_alloc(PMEMobjpool *pop, struct lane_tx_layout *layout)
 }
 
 /*
- * tx_pre_commit_set -- (internal) do pre commit operations for
+ * tx_pre_commit_set -- (internal) do pre-commit operations for
  * set operations
  */
 static void
@@ -476,7 +476,7 @@ tx_post_commit_set(PMEMobjpool *pop, struct lane_tx_layout *layout)
 }
 
 /*
- * tx_pre_commit -- (internal) do pre commit operations
+ * tx_pre_commit -- (internal) do pre-commit operations
  */
 static void
 tx_pre_commit(PMEMobjpool *pop, struct lane_tx_layout *layout)
@@ -911,7 +911,7 @@ pmemobj_tx_commit()
 		struct lane_tx_layout *layout =
 			(struct lane_tx_layout *)tx.section->layout;
 
-		/* pre commit phase */
+		/* pre-commit phase */
 		tx_pre_commit(lane->pop, layout);
 
 		/* set transaction state as committed */
