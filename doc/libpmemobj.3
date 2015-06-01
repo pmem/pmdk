@@ -189,7 +189,7 @@ libpmemobj \- persistent memory transactional object store
 .BI "void pmemobj_tx_end();
 .BI "int pmemobj_tx_process();
 .sp
-.BI "int pmemobj_tx_add_range(uint64_t " off ", size_t " size );
+.BI "int pmemobj_tx_add_range(PMEMoid " oid ", uint64_t " off ", size_t " size );
 .BI "PMEMoid pmemobj_tx_alloc(size_t " size ", int " type_num );
 .BI "PMEMoid pmemobj_tx_zalloc(size_t " size ", int " type_num );
 .BI "PMEMoid pmemobj_tx_realloc(PMEMoid " oid ", size_t " size ", int " type_num );
@@ -2041,14 +2041,16 @@ be obtained by a call to
 .BR pmemobj_tx_get_stage ().
 If successful, function returns zero.  Otherwise, an error number is returned.
 .PP
-.BI "int pmemobj_tx_add_range(uint64_t " off ", size_t " size );
+.BI "int pmemobj_tx_add_range(PMEMoid " oid ", uint64_t " off ", size_t " size );
 .IP
 The
 .BR pmemobj_tx_add_range ()
 takes a "snapshot" of the memory block of given
-.I size
-and located at given offset in the object specified by
-.IR off ,
+.IR size ,
+located at given offset
+.I off
+in the object specified by
+.I oid
 and saves it to the undo log.  The application is then free to directly modify
 the object in that memory range.  In case of a failure or abort, all the changes
 within this range will be rolled-back.
