@@ -91,13 +91,13 @@ struct lane_tx_layout {
 
 struct tx_alloc_args {
 	PMEMobjpool *pop;
-	int type_num;
+	unsigned int type_num;
 	size_t size;
 };
 
 struct tx_alloc_copy_args {
 	PMEMobjpool *pop;
-	int type_num;
+	unsigned int type_num;
 	size_t size;
 	const void *ptr;
 	size_t copy_size;
@@ -632,7 +632,7 @@ release_and_free_tx_locks(struct lane_tx_runtime *lane)
  * tx_alloc_common -- (internal) common function for alloc and zalloc
  */
 static PMEMoid
-tx_alloc_common(size_t size, int type_num,
+tx_alloc_common(size_t size, unsigned int type_num,
 	void (*constructor)(void *ptr, void *arg))
 {
 	LOG(3, NULL);
@@ -643,7 +643,7 @@ tx_alloc_common(size_t size, int type_num,
 		return OID_NULL;
 	}
 
-	if (type_num < 0 || type_num >= PMEMOBJ_NUM_OID_TYPES) {
+	if (type_num >= PMEMOBJ_NUM_OID_TYPES) {
 		LOG(1, "invalid type_num %d", type_num);
 		errno = EINVAL;
 		pmemobj_tx_abort(EINVAL);
@@ -680,12 +680,12 @@ tx_alloc_common(size_t size, int type_num,
  * tx_alloc_copy_common -- (internal) common function for alloc with data copy
  */
 static PMEMoid
-tx_alloc_copy_common(size_t size, int type_num, const void *ptr,
+tx_alloc_copy_common(size_t size, unsigned int type_num, const void *ptr,
 	size_t copy_size, void (*constructor)(void *ptr, void *arg))
 {
 	LOG(3, NULL);
 
-	if (type_num < 0 || type_num >= PMEMOBJ_NUM_OID_TYPES) {
+	if (type_num >= PMEMOBJ_NUM_OID_TYPES) {
 		LOG(1, "invalid type_num %d", type_num);
 		errno = EINVAL;
 		pmemobj_tx_abort(EINVAL);
@@ -724,7 +724,7 @@ tx_alloc_copy_common(size_t size, int type_num, const void *ptr,
  * tx_realloc_common -- (internal) common function for tx realloc
  */
 static PMEMoid
-tx_realloc_common(PMEMoid oid, size_t size, int type_num,
+tx_realloc_common(PMEMoid oid, size_t size, unsigned int type_num,
 	void (*constructor_alloc)(void *ptr, void *arg),
 	void (*constructor_realloc)(void *ptr, void *arg))
 {
@@ -1071,7 +1071,7 @@ pmemobj_tx_add_range(PMEMoid oid, uint64_t hoff, size_t size)
  * pmemobj_tx_alloc -- allocates a new object
  */
 PMEMoid
-pmemobj_tx_alloc(size_t size, int type_num)
+pmemobj_tx_alloc(size_t size, unsigned int type_num)
 {
 	LOG(3, NULL);
 
@@ -1082,7 +1082,7 @@ pmemobj_tx_alloc(size_t size, int type_num)
  * pmemobj_tx_zalloc -- allocates a new zeroed object
  */
 PMEMoid
-pmemobj_tx_zalloc(size_t size, int type_num)
+pmemobj_tx_zalloc(size_t size, unsigned int type_num)
 {
 	LOG(3, NULL);
 
@@ -1093,7 +1093,7 @@ pmemobj_tx_zalloc(size_t size, int type_num)
  * pmemobj_tx_realloc -- resizes an existing object
  */
 PMEMoid
-pmemobj_tx_realloc(PMEMoid oid, size_t size, int type_num)
+pmemobj_tx_realloc(PMEMoid oid, size_t size, unsigned int type_num)
 {
 	LOG(3, NULL);
 
@@ -1106,7 +1106,7 @@ pmemobj_tx_realloc(PMEMoid oid, size_t size, int type_num)
  * pmemobj_zrealloc -- resizes an existing object, any new space is zeroed.
  */
 PMEMoid
-pmemobj_tx_zrealloc(PMEMoid oid, size_t size, int type_num)
+pmemobj_tx_zrealloc(PMEMoid oid, size_t size, unsigned int type_num)
 {
 	LOG(3, NULL);
 
@@ -1118,7 +1118,7 @@ pmemobj_tx_zrealloc(PMEMoid oid, size_t size, int type_num)
  * pmemobj_tx_strdup -- allocates a new object with duplicate of the string s.
  */
 PMEMoid
-pmemobj_tx_strdup(const char *s, int type_num)
+pmemobj_tx_strdup(const char *s, unsigned int type_num)
 {
 	LOG(3, NULL);
 

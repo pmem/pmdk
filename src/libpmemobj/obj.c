@@ -543,10 +543,10 @@ constructor_alloc_bytype(void *ptr, void *arg)
  * obj_alloc_construct -- (internal) allocates a new object with constructor
  */
 static PMEMoid
-obj_alloc_construct(PMEMobjpool *pop, size_t size, int type_num,
+obj_alloc_construct(PMEMobjpool *pop, size_t size, unsigned int type_num,
 	void (*constructor)(void *ptr, void *arg), void *arg)
 {
-	if (type_num < 0 || type_num >= PMEMOBJ_NUM_OID_TYPES) {
+	if (type_num >= PMEMOBJ_NUM_OID_TYPES) {
 		LOG(2, "type_num has to be in range [0, %i]",
 			PMEMOBJ_NUM_OID_TYPES - 1);
 		errno = EINVAL;
@@ -569,9 +569,9 @@ obj_alloc_construct(PMEMobjpool *pop, size_t size, int type_num,
  * pmemobj_alloc -- allocates a new object
  */
 PMEMoid
-pmemobj_alloc(PMEMobjpool *pop, size_t size, int type_num)
+pmemobj_alloc(PMEMobjpool *pop, size_t size, unsigned int type_num)
 {
-	LOG(3, "pop %p size %zu type_num %d", pop, size, type_num);
+	LOG(3, "pop %p size %zu type_num %u", pop, size, type_num);
 
 	/* log notice message if used inside a transaction */
 	_POBJ_DEBUG_NOTICE_IN_TX();
@@ -605,9 +605,9 @@ constructor_zalloc(void *ptr, void *arg)
  * pmemobj_zalloc -- allocates a new zeroed object
  */
 PMEMoid
-pmemobj_zalloc(PMEMobjpool *pop, size_t size, int type_num)
+pmemobj_zalloc(PMEMobjpool *pop, size_t size, unsigned int type_num)
 {
-	LOG(3, "pop %p size %zu type_num %d", pop, size, type_num);
+	LOG(3, "pop %p size %zu type_num %u", pop, size, type_num);
 
 	/* log notice message if used inside a transaction */
 	_POBJ_DEBUG_NOTICE_IN_TX();
@@ -624,10 +624,10 @@ pmemobj_zalloc(PMEMobjpool *pop, size_t size, int type_num)
  * pmemobj_alloc_construct -- allocates a new object with constructor
  */
 PMEMoid
-pmemobj_alloc_construct(PMEMobjpool *pop, size_t size, int type_num,
+pmemobj_alloc_construct(PMEMobjpool *pop, size_t size, unsigned int type_num,
 	void (*constructor)(void *ptr, void *arg), void *arg)
 {
-	LOG(3, "pop %p size %zu type_num %d constructor %p arg %p",
+	LOG(3, "pop %p size %zu type_num %u constructor %p arg %p",
 		pop, size, type_num, constructor, arg);
 
 	/* log notice message if used inside a transaction */
@@ -642,7 +642,7 @@ pmemobj_alloc_construct(PMEMobjpool *pop, size_t size, int type_num,
  */
 static PMEMoid
 obj_realloc_construct(PMEMobjpool *pop, struct object_store *store,
-		PMEMoid oid, size_t size, int type_num,
+		PMEMoid oid, size_t size, unsigned int type_num,
 		void (*constructor)(void *ptr, void *arg), void *arg)
 {
 	struct oob_header *pobj = OOB_HEADER_FROM_OID(pop, oid);
@@ -650,7 +650,7 @@ obj_realloc_construct(PMEMobjpool *pop, struct object_store *store,
 
 	ASSERT(user_type_old < PMEMOBJ_NUM_OID_TYPES);
 
-	if (type_num < 0 || type_num >= PMEMOBJ_NUM_OID_TYPES) {
+	if (type_num >= PMEMOBJ_NUM_OID_TYPES) {
 		LOG(2, "type_num has to be in range [0, %u]",
 		    PMEMOBJ_NUM_OID_TYPES - 1);
 		errno = EINVAL;
@@ -712,9 +712,10 @@ constructor_zrealloc(void *ptr, void *arg)
  * pmemobj_realloc -- resizes an existing object
  */
 PMEMoid
-pmemobj_realloc(PMEMobjpool *pop, PMEMoid oid, size_t size, int type_num)
+pmemobj_realloc(PMEMobjpool *pop, PMEMoid oid, size_t size,
+		unsigned int type_num)
 {
-	LOG(3, "pop %p oid.off 0x%016jx size %zu type_num %d",
+	LOG(3, "pop %p oid.off 0x%016jx size %zu type_num %u",
 		pop, oid.off, size, type_num);
 
 	/* log notice message if used inside a transaction */
@@ -728,9 +729,10 @@ pmemobj_realloc(PMEMobjpool *pop, PMEMoid oid, size_t size, int type_num)
  * pmemobj_zrealloc -- resizes an existing object, any new space is zeroed.
  */
 PMEMoid
-pmemobj_zrealloc(PMEMobjpool *pop, PMEMoid oid, size_t size, int type_num)
+pmemobj_zrealloc(PMEMobjpool *pop, PMEMoid oid, size_t size,
+			unsigned int type_num)
 {
-	LOG(3, "pop %p oid.off 0x%016jx size %zu type_num %d",
+	LOG(3, "pop %p oid.off 0x%016jx size %zu type_num %u",
 		pop, oid.off, size, type_num);
 
 	/* log notice message if used inside a transaction */
@@ -778,14 +780,14 @@ constructor_strdup(void *ptr, void *arg)
  * pmemobj_strndup -- allocates a new object with duplicate of the string s.
  */
 PMEMoid
-pmemobj_strdup(PMEMobjpool *pop, const char *s, int type_num)
+pmemobj_strdup(PMEMobjpool *pop, const char *s, unsigned int type_num)
 {
-	LOG(3, "pop %p string %s type_num %d", pop, s, type_num);
+	LOG(3, "pop %p string %s type_num %u", pop, s, type_num);
 
 	/* log notice message if used inside a transaction */
 	_POBJ_DEBUG_NOTICE_IN_TX();
 
-	if (type_num < 0 || type_num >= PMEMOBJ_NUM_OID_TYPES) {
+	if (type_num >= PMEMOBJ_NUM_OID_TYPES) {
 		LOG(2, "type_num has to be in range [0, %i]",
 		    PMEMOBJ_NUM_OID_TYPES - 1);
 		errno = EINVAL;
@@ -959,11 +961,11 @@ pmemobj_root(PMEMobjpool *pop, size_t size)
  * pmemobj_first - returns first object of specified type
  */
 PMEMoid
-pmemobj_first(PMEMobjpool *pop, int type_num)
+pmemobj_first(PMEMobjpool *pop, unsigned int type_num)
 {
-	LOG(3, "pop %p type_num %d", pop, type_num);
+	LOG(3, "pop %p type_num %u", pop, type_num);
 
-	if (type_num < 0 || type_num >= PMEMOBJ_NUM_OID_TYPES) {
+	if (type_num >= PMEMOBJ_NUM_OID_TYPES) {
 		LOG(2, "type_num has to be in range [0, %i]",
 		    PMEMOBJ_NUM_OID_TYPES - 1);
 		errno = EINVAL;
@@ -1023,17 +1025,18 @@ pmemobj_list_insert(PMEMobjpool *pop, size_t pe_offset, void *head,
  */
 PMEMoid
 pmemobj_list_insert_new(PMEMobjpool *pop, size_t pe_offset, void *head,
-			PMEMoid dest, int before, size_t size, int type_num,
+			PMEMoid dest, int before, size_t size,
+			unsigned int type_num,
 			void (*constructor)(void *ptr, void *arg), void *arg)
 {
 	LOG(3, "pop %p pe_offset %zu head %p dest.off 0x%016jx before %d"
-	    " size %zu type_num %d",
+	    " size %zu type_num %u",
 	    pop, pe_offset, head, dest.off, before, size, type_num);
 
 	/* log notice message if used inside a transaction */
 	_POBJ_DEBUG_NOTICE_IN_TX();
 
-	if (type_num < 0 || type_num >= PMEMOBJ_NUM_OID_TYPES) {
+	if (type_num >= PMEMOBJ_NUM_OID_TYPES) {
 		LOG(2, "type_num has to be in range [0, %i]",
 		    PMEMOBJ_NUM_OID_TYPES - 1);
 		errno = EINVAL;

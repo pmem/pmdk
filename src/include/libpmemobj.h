@@ -221,12 +221,12 @@ void *pmemobj_direct(PMEMoid oid);
 /*
  * Allocates a new object from the pool.
  */
-PMEMoid pmemobj_alloc(PMEMobjpool *pop, size_t size, int type_num);
+PMEMoid pmemobj_alloc(PMEMobjpool *pop, size_t size, unsigned int type_num);
 
 /*
  * Allocates a new zeroed object from the pool.
  */
-PMEMoid pmemobj_zalloc(PMEMobjpool *pop, size_t size, int type_num);
+PMEMoid pmemobj_zalloc(PMEMobjpool *pop, size_t size, unsigned int type_num);
 
 /*
  * Allocates a new object from the pool and calls a constructor function before
@@ -234,25 +234,26 @@ PMEMoid pmemobj_zalloc(PMEMobjpool *pop, size_t size, int type_num);
  * initialized, or if it's interrupted before the constructor completes, the
  * memory reserved for the object is automatically reclaimed.
  */
-PMEMoid pmemobj_alloc_construct(PMEMobjpool *pop, size_t size, int type_num,
+PMEMoid pmemobj_alloc_construct(PMEMobjpool *pop, size_t size,
+	unsigned int type_num,
 	void (*constructor)(void *ptr, void *arg), void *arg);
 
 /*
  * Resizes an existing object.
  */
 PMEMoid pmemobj_realloc(PMEMobjpool *pop, PMEMoid oid, size_t size,
-	int type_num);
+	unsigned int type_num);
 
 /*
  * Resizes an existing object, if extended new space is zeroed.
  */
 PMEMoid pmemobj_zrealloc(PMEMobjpool *pop, PMEMoid oid, size_t size,
-	int type_num);
+	unsigned int type_num);
 
 /*
  * Allocates a new object with duplicate of the string s.
  */
-PMEMoid pmemobj_strdup(PMEMobjpool *pop, const char *s, int type_num);
+PMEMoid pmemobj_strdup(PMEMobjpool *pop, const char *s, unsigned int type_num);
 
 /*
  * Frees an existing object.
@@ -296,7 +297,7 @@ size_t pmemobj_root_size(PMEMobjpool *pop);
 /*
  * Returns the first object of the specified type number.
  */
-PMEMoid pmemobj_first(PMEMobjpool *pop, int type_num);
+PMEMoid pmemobj_first(PMEMobjpool *pop, unsigned int type_num);
 
 /*
  * Returns the next object (in order of allocations) of the same type.
@@ -388,7 +389,7 @@ int pmemobj_list_insert(PMEMobjpool *pop, size_t pe_offset, void *head,
 	PMEMoid dest, int before, PMEMoid oid);
 
 PMEMoid pmemobj_list_insert_new(PMEMobjpool *pop, size_t pe_offset, void *head,
-	PMEMoid dest, int before, size_t size, int type_num,
+	PMEMoid dest, int before, size_t size, unsigned int type_num,
 	void (*constructor)(void *ptr, void *arg), void *arg);
 
 int pmemobj_list_remove(PMEMobjpool *pop, size_t pe_offset, void *head,
@@ -668,7 +669,7 @@ int pmemobj_tx_add_range(PMEMoid oid, uint64_t off, size_t size);
  * If successful and called during TX_STAGE_WORK, function returns zero.
  * Otherwise, state changes to TX_STAGE_ONABORT and an error number is returned.
  */
-PMEMoid pmemobj_tx_alloc(size_t size, int type_num);
+PMEMoid pmemobj_tx_alloc(size_t size, unsigned int type_num);
 
 /*
  * Transactionally allocates new zeroed object.
@@ -676,7 +677,7 @@ PMEMoid pmemobj_tx_alloc(size_t size, int type_num);
  * If successful and called during TX_STAGE_WORK, function returns zero.
  * Otherwise, state changes to TX_STAGE_ONABORT and an error number is returned.
  */
-PMEMoid pmemobj_tx_zalloc(size_t size, int type_num);
+PMEMoid pmemobj_tx_zalloc(size_t size, unsigned int type_num);
 
 /*
  * Transactionally resizes an existing object.
@@ -684,7 +685,7 @@ PMEMoid pmemobj_tx_zalloc(size_t size, int type_num);
  * If successful and called during TX_STAGE_WORK, function returns zero.
  * Otherwise, state changes to TX_STAGE_ONABORT and an error number is returned.
  */
-PMEMoid pmemobj_tx_realloc(PMEMoid oid, size_t size, int type_num);
+PMEMoid pmemobj_tx_realloc(PMEMoid oid, size_t size, unsigned int type_num);
 
 /*
  * Transactionally resizes an existing object, if extended new space is zeroed.
@@ -692,7 +693,7 @@ PMEMoid pmemobj_tx_realloc(PMEMoid oid, size_t size, int type_num);
  * If successful and called during TX_STAGE_WORK, function returns zero.
  * Otherwise, state changes to TX_STAGE_ONABORT and an error number is returned.
  */
-PMEMoid pmemobj_tx_zrealloc(PMEMoid oid, size_t size, int type_num);
+PMEMoid pmemobj_tx_zrealloc(PMEMoid oid, size_t size, unsigned int type_num);
 
 /*
  * Transactionally allocates a new object with duplicate of the string s.
@@ -700,7 +701,7 @@ PMEMoid pmemobj_tx_zrealloc(PMEMoid oid, size_t size, int type_num);
  * If successful and called during TX_STAGE_WORK, function returns zero.
  * Otherwise, state changes to TX_STAGE_ONABORT and an error number is returned.
  */
-PMEMoid pmemobj_tx_strdup(const char *s, int type_num);
+PMEMoid pmemobj_tx_strdup(const char *s, unsigned int type_num);
 
 /*
  * Transactionally frees an existing object.
