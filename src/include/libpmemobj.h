@@ -645,7 +645,7 @@ _POBJ_TX_BEGIN(pop, ##__VA_ARGS__)
 
 /*
  * Takes a "snapshot" of the memory block of given size and located at given
- * offset in the object, and saves it in the undo log.
+ * offset 'off' in the object 'oid' and saves it in the undo log.
  * The application is then free to directly modify the object in that memory
  * range. In case of failure or abort, all the changes within this range will
  * be rolled-back automatically.
