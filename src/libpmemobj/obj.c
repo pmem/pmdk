@@ -1023,7 +1023,8 @@ pmemobj_list_insert(PMEMobjpool *pop, size_t pe_offset, void *head,
  */
 PMEMoid
 pmemobj_list_insert_new(PMEMobjpool *pop, size_t pe_offset, void *head,
-			PMEMoid dest, int before, size_t size, int type_num)
+			PMEMoid dest, int before, size_t size, int type_num,
+			void (*constructor)(void *ptr, void *arg), void *arg)
 {
 	LOG(3, "pop %p pe_offset %zu head %p dest.off 0x%016jx before %d"
 	    " size %zu type_num %d",
@@ -1044,8 +1045,8 @@ pmemobj_list_insert_new(PMEMobjpool *pop, size_t pe_offset, void *head,
 
 	carg.pop = pop;
 	carg.user_type = type_num;
-	carg.constructor = NULL;
-	carg.arg = NULL;
+	carg.constructor = constructor;
+	carg.arg = arg;
 
 	return list_insert_new(pop, lhead,
 				pe_offset, head, dest, before,
