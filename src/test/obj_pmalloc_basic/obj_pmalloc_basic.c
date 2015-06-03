@@ -50,6 +50,7 @@
 #define	TEST_HUGE_ALLOC_SIZE (255 * 1024)
 #define	TEST_SMALL_ALLOC_SIZE (200)
 #define	TEST_TINY_ALLOC_SIZE (64)
+#define	TEST_RUNS 2
 
 struct mock_pop {
 	PMEMobjpool p;
@@ -104,11 +105,9 @@ test_oom_allocs(size_t size)
 	FREE(allocs);
 }
 
-int
-main(int argc, char *argv[])
+void
+test_mock_pool_allocs()
 {
-	START(argc, argv, "obj_pmalloc_basic");
-
 	addr = MALLOC(MOCK_POOL_SIZE);
 	mock_pop = &addr->p;
 	mock_pop->addr = addr;
@@ -139,6 +138,15 @@ main(int argc, char *argv[])
 	test_oom_allocs(TEST_TINY_ALLOC_SIZE);
 
 	FREE(addr);
+}
+
+int
+main(int argc, char *argv[])
+{
+	START(argc, argv, "obj_pmalloc_basic");
+
+	for (int i = 0; i < TEST_RUNS; ++i)
+		test_mock_pool_allocs();
 
 	DONE(NULL);
 }

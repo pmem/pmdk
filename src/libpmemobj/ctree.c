@@ -222,7 +222,7 @@ ctree_remove(struct ctree *t, uint64_t key, int eq)
 	int d = 0; /* last taken direction */
 	struct node *a = NULL; /* internal node */
 
-	struct node *path[KEY_LEN] = {NULL};
+	void **path[KEY_LEN] = {NULL, };
 	int psize = 0;
 
 	if ((errno = pthread_mutex_lock(&t->lock)) != 0) {
@@ -237,8 +237,8 @@ ctree_remove(struct ctree *t, uint64_t key, int eq)
 	/* find the key */
 	while (NODE_IS_INTERNAL(*dst)) {
 		a = NODE_INTERNAL_GET(*dst);
-		path[psize++] = a;
 		p = dst;
+		path[psize++] = p;
 		dst = &a->slots[(d = BIT_IS_SET(key, a->diff))];
 	}
 
@@ -251,11 +251,13 @@ ctree_remove(struct ctree *t, uint64_t key, int eq)
 	/* search again, but this time always go right */
 	while (k < key && (--psize) >= 0) {
 		d = 1;
-		dst = &(path[psize]->slots[d]);
+		p = path[psize];
+		a = NODE_INTERNAL_GET(*p);
+		dst = &(a->slots[d]);
 		while (NODE_IS_INTERNAL(*dst)) {
 			a = NODE_INTERNAL_GET(*dst);
-			path[psize++] = a;
 			p = dst;
+			path[psize++] = p;
 			dst = &a->slots[(d = BIT_IS_SET(key, a->diff))];
 		}
 		k = **(uint64_t **)dst;
