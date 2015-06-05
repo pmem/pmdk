@@ -37,7 +37,7 @@
 .\" or
 .\"	groff -man -Tascii libvmem.3
 .\"
-.TH libvmem 3 "vmem API version 0.81" "NVM Library"
+.TH libvmem 3 "vmem API version 0.8.2" "NVM Library"
 .SH NAME
 libvmem \- volatile memory allocation library
 .SH SYNOPSIS
@@ -251,6 +251,13 @@ returns an opaque memory pool handle or NULL if an error occurred
 (in which case
 .I errno
 is set appropriately).
+Undefined behavior occurs if
+.I addr
+does not point to the contiguous memory region in the virtual address
+space of the calling process, or if the
+.I size
+is larger than the actual size of the memory region pointed by
+.IR addr .
 .PP
 .BI "void vmem_delete(VMEM *" vmp );
 .IP
