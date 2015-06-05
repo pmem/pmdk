@@ -491,8 +491,8 @@ pmemobj_check(const char *path, const char *layout)
 		consistent = 0;
 	}
 
-	if ((errno = lane_check(pop)) != 0) {
-		LOG(1, "!lane_check");
+	if (lane_check(pop) != 1) {
+		LOG(1, "lane_check");
 		consistent = 0;
 	}
 
