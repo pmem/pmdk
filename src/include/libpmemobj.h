@@ -664,6 +664,18 @@ _POBJ_TX_BEGIN(pop, ##__VA_ARGS__)
 int pmemobj_tx_add_range(PMEMoid oid, uint64_t off, size_t size);
 
 /*
+ * Takes a "snapshot" of the given memory region and saves it in the undo log.
+ * The application is then free to directly modify the object in that memory
+ * range. In case of failure or abort, all the changes within this range will
+ * be rolled-back automatically. The supplied block of memory has to be within
+ * the given pool.
+ *
+ * If successful and called during TX_STAGE_WORK, function returns zero.
+ * Otherwise, state changes to TX_STAGE_ONABORT and an error number is returned.
+ */
+int pmemobj_tx_add_range_direct(void *ptr, size_t size);
+
+/*
  * Transactionally allocates a new object.
  *
  * If successful and called during TX_STAGE_WORK, function returns zero.

@@ -125,6 +125,7 @@ TEST = blk_nblock\
        obj_tx_alloc\
        obj_tx_free\
        obj_tx_add_range\
+       obj_tx_add_range_direct\
        obj_tx_strdup\
        obj_tx_realloc\
        obj_ctree\

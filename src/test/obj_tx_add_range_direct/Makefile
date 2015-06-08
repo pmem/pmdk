@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2014-2015, Intel Corporation
+# Copyright (c) 2015, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -29,67 +29,20 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+
 #
-# src/libpmemobj.map -- linker map file for libpmemobj
+# src/test/obj_tx_add_range_direct/Makefile -- build obj_tx_add_range_direct
+# unit test
 #
-libpmemobj.so {
-	global:
-		pmemobj_check_version;
-		pmemobj_set_funcs;
-		pmemobj_create;
-		pmemobj_create_part;
-		pmemobj_open;
-		pmemobj_close;
-		pmemobj_check;
-		pmemobj_mutex_zero;
-		pmemobj_mutex_lock;
-		pmemobj_mutex_trylock;
-		pmemobj_mutex_unlock;
-		pmemobj_rwlock_zero;
-		pmemobj_rwlock_rdlock;
-		pmemobj_rwlock_wrlock;
-		pmemobj_rwlock_timedrdlock;
-		pmemobj_rwlock_timedwrlock;
-		pmemobj_rwlock_tryrdlock;
-		pmemobj_rwlock_trywrlock;
-		pmemobj_rwlock_unlock;
-		pmemobj_cond_zero;
-		pmemobj_cond_broadcast;
-		pmemobj_cond_signal;
-		pmemobj_cond_timedwait;
-		pmemobj_cond_wait;
-		pmemobj_direct;
-		pmemobj_alloc;
-		pmemobj_zalloc;
-		pmemobj_alloc_construct;
-		pmemobj_realloc;
-		pmemobj_zrealloc;
-		pmemobj_strndup;
-		pmemobj_free;
-		pmemobj_alloc_usable_size;
-		pmemobj_root;
-		pmemobj_root_size;
-		pmemobj_first;
-		pmemobj_next;
-		pmemobj_list_insert;
-		pmemobj_list_insert_new;
-		pmemobj_list_remove;
-		pmemobj_list_move;
-		pmemobj_tx_begin;
-		pmemobj_tx_stage;
-		pmemobj_tx_abort;
-		pmemobj_tx_commit;
-		pmemobj_tx_end;
-		pmemobj_tx_process;
-		pmemobj_tx_add_range;
-		pmemobj_tx_add_range_direct;
-		pmemobj_tx_alloc;
-		pmemobj_tx_zalloc;
-		pmemobj_tx_realloc;
-		pmemobj_tx_zrealloc;
-		pmemobj_tx_strdup;
-		pmemobj_tx_free;
-		_pobj_debug_notice;
-	local:
-		*;
-};
+vpath %.c ../../libpmemobj
+vpath %.c ../../common
+
+TARGET = obj_tx_add_range_direct
+OBJS = obj_tx_add_range_direct.o
+
+LIBPMEM=y
+LIBPMEMOBJ=y
+
+include ../Makefile.inc
+
+INCS += -I../../libpmemobj/ -I../../common/

@@ -41,6 +41,7 @@ pmemobj_rwlock_zero
 pmemobj_set_funcs
 pmemobj_tx_abort
 pmemobj_tx_add_range
+pmemobj_tx_add_range_direct
 pmemobj_tx_alloc
 pmemobj_tx_begin
 pmemobj_tx_commit
@@ -96,6 +97,7 @@ pmemobj_rwlock_zero
 pmemobj_set_funcs
 pmemobj_tx_abort
 pmemobj_tx_add_range
+pmemobj_tx_add_range_direct
 pmemobj_tx_alloc
 pmemobj_tx_begin
 pmemobj_tx_commit
@@ -151,6 +153,7 @@ pmemobj_rwlock_zero
 pmemobj_set_funcs
 pmemobj_tx_abort
 pmemobj_tx_add_range
+pmemobj_tx_add_range_direct
 pmemobj_tx_alloc
 pmemobj_tx_begin
 pmemobj_tx_commit
@@ -206,6 +209,7 @@ pmemobj_rwlock_zero
 pmemobj_set_funcs
 pmemobj_tx_abort
 pmemobj_tx_add_range
+pmemobj_tx_add_range_direct
 pmemobj_tx_alloc
 pmemobj_tx_begin
 pmemobj_tx_commit
