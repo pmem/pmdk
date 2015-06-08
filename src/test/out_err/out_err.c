@@ -31,62 +31,59 @@
  */
 
 /*
- * libpmem.c -- pmem entry points for libpmem
+ * traces.c -- unit test for traces
  */
 
-#include <stdio.h>
-#include <stdint.h>
+#define	LOG_PREFIX "trace"
+#define	LOG_LEVEL_VAR "TRACE_LOG_LEVEL"
+#define	LOG_FILE_VAR "TRACE_LOG_FILE"
+#define	MAJOR_VERSION 1
+#define	MINOR_VERSION 0
 
-#include "libpmem.h"
-
-#include "pmem.h"
-#include "util.h"
+#include <sys/types.h>
+#include <stdarg.h>
+#include "unittest.h"
+#undef ERR
+#undef FATAL
+#undef ASSERT
+#undef ASSERTinfo
+#undef ASSERTeq
+#undef ASSERTne
 #include "out.h"
 
-/*
- * libpmem_init -- load-time initialization for libpmem
- *
- * Called automatically by the run-time loader.
- */
-__attribute__((constructor))
-static void
-libpmem_init(void)
+int
+main(int argc, char *argv[])
 {
-	out_init(PMEM_LOG_PREFIX, PMEM_LOG_LEVEL_VAR, PMEM_LOG_FILE_VAR,
-			PMEM_MAJOR_VERSION, PMEM_MINOR_VERSION);
-	LOG(3, NULL);
-	util_init();
-}
+	START(argc, argv, "out_err");
 
-/*
- * pmem_check_version -- see if library meets application version requirements
- */
-const char *
-pmem_check_version(unsigned major_required, unsigned minor_required)
-{
-	LOG(3, "major_required %u minor_required %u",
-			major_required, minor_required);
+	/* Execute test */
+	out_init(LOG_PREFIX, LOG_LEVEL_VAR, LOG_FILE_VAR,
+			MAJOR_VERSION, MINOR_VERSION);
 
-	if (major_required != PMEM_MAJOR_VERSION) {
-		ERR("libpmem major version mismatch (need %u, found %u)",
-			major_required, PMEM_MAJOR_VERSION);
-		return out_get_errormsg();
-	}
+	errno = 0;
+	ERR("ERR #%d", 1);
+	OUT("%s", out_get_errormsg());
 
-	if (minor_required > PMEM_MINOR_VERSION) {
-		ERR("libpmem minor version mismatch (need %u, found %u)",
-			minor_required, PMEM_MINOR_VERSION);
-		return out_get_errormsg();
-	}
+	errno = 0;
+	ERR("!ERR #%d", 2);
+	OUT("%s", out_get_errormsg());
 
-	return NULL;
-}
+	errno = EINVAL;
+	ERR("!ERR #%d", 3);
+	OUT("%s", out_get_errormsg());
 
-/*
- * pmem_errormsg -- return last error message
- */
-const char *
-pmem_errormsg(void)
-{
-	return out_get_errormsg();
+	errno = EBADF;
+	out_err(__FILE__, 100, __func__,
+		"ERR1: %s:%d", strerror(errno), 1234);
+	OUT("%s", out_get_errormsg());
+
+	errno = EBADF;
+	out_err(NULL, 0, NULL,
+		"ERR2: %s:%d", strerror(errno), 1234);
+	OUT("%s", out_get_errormsg());
+
+	/* Cleanup */
+	out_fini();
+
+	DONE(NULL);
 }

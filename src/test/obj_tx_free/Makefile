@@ -37,10 +37,12 @@ vpath %.c ../../libpmemobj
 vpath %.c ../../common
 
 TARGET = obj_tx_free
-OBJS = obj_tx_free.o util.o
+OBJS = obj_tx_free.o util.o out.o
 
 LIBPMEM=y
 LIBPMEMOBJ=y
+
+out.o: CFLAGS += -DSRCVERSION=\"utversion\"
 
 include ../Makefile.inc
 

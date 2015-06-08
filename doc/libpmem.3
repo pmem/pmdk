@@ -37,7 +37,7 @@
 .\" or
 .\"	groff -man -Tascii libpmem.3
 .\"
-.TH libpmem 3 "pmem API version 0.8.1" "NVM Library"
+.TH libpmem 3 "pmem API version 0.8.2" "NVM Library"
 .SH NAME
 libpmem \- persistent memory support library
 .SH SYNOPSIS
@@ -73,6 +73,11 @@ libpmem \- persistent memory support library
 .BI "const char *pmem_check_version("
 .BI "    unsigned " major_required ,
 .BI "    unsigned " minor_required );
+.fi
+.sp
+.B Error handling:
+.sp
+.BI "const char *pmem_errormsg(void);
 .fi
 .sp
 .SH DESCRIPTION
@@ -117,7 +122,7 @@ Under normal usage,
 will never print messages or intentionally cause the process to exit.
 The only exception to this is the debugging information, when enabled, as
 described under
-.B DEBUGGING
+.B "DEBUGGING AND ERROR HANDLING"
 below.
 .SH MOST COMMONLY USED FUNCTIONS
 .PP
@@ -498,7 +503,7 @@ is a static string describing the reason for failing the version check.
 The string returned by
 .BR pmem_check_version ()
 must not be modified or freed.
-.SH DEBUGGING
+.SH DEBUGGING AND ERROR HANDLING
 .PP
 Two versions of
 .B libpmem
@@ -508,8 +513,31 @@ linked using the
 .B -lpmem
 option, is optimized for performance.  That version skips checks
 that impact performance and never logs any trace information or performs
-any run-time assertions.  A second version, accessed when a program
-uses the libraries under
+any run-time assertions.  If an error is detected during the call to
+.B libpmem
+function, an application may retrieve an error message describing the
+reason of failure using the following function:
+.PP
+.BI "const char *pmem_errormsg(void);
+.IP
+The
+.BR pmem_errormsg ()
+function returns a pointer to a static buffer containing the last error
+message logged for current thread.  The error message may include
+description of the corresponding error code (if errno was set), as returned by
+.BR strerror (3).
+The error message buffer is thread-local; errors encountered in one thread
+do not affect its value in other threads.
+The buffer is never cleared by any library function; its content is
+significant only when the return value of the immediately preceding call to
+.B libpmem
+function indicated an error, or if errno was set.
+The application must not modify or free the error message string,
+but it may be modified by subsequent calls to other library functions.
+.PP
+A second version of
+.BR libpmem ,
+accessed when a program uses the libraries under
 .BR /usr/lib/nvml_debug ,
 contains run-time assertions and trace points.
 The typical way to access the debug version is to set the environment variable
@@ -529,7 +557,9 @@ This is the default level when
 is not set.  No log messages are emitted at this level.
 .IP 1
 Additional details on any errors detected are logged (in addition
-to returning the errno-based errors as usual).
+to returning the errno-based errors as usual).  The same information
+may be retrieved using
+.BR pmem_errormsg ().
 .IP 2
 A trace of basic operations is logged.
 .IP 3
@@ -750,6 +780,7 @@ http://snia.org/nvmp
 .BR mmap (2),
 .BR munmap (2),
 .BR msync (2),
+.BR strerror (3),
 .BR libpmemobj (3),
 .BR libpmemblk (3),
 .BR libpmemlog (3),

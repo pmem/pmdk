@@ -47,6 +47,7 @@
 #include <sys/types.h>
 #include <stdarg.h>
 #include "out.h"
+#undef ERR
 #undef FATAL
 #undef ASSERT
 #undef ASSERTinfo

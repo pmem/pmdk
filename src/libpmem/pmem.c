@@ -462,7 +462,7 @@ pmem_msync(void *addr, size_t len)
 
 	int ret;
 	if ((ret = msync((void *)uptr, len, MS_SYNC)) < 0)
-		LOG(1, "!msync");
+		ERR("!msync");
 
 	/* full flush, commit */
 	VALGRIND_DO_PERSIST(uptr, len);
@@ -519,7 +519,7 @@ is_pmem_proc(void *addr, size_t len)
 
 	FILE *fp;
 	if ((fp = fopen("/proc/self/smaps", "r")) == NULL) {
-		LOG(1, "!/proc/self/smaps");
+		ERR("!/proc/self/smaps");
 		return 0;
 	}
 
@@ -616,7 +616,7 @@ pmem_map(int fd)
 
 	struct stat stbuf;
 	if (fstat(fd, &stbuf) < 0) {
-		LOG(1, "!fstat");
+		ERR("!fstat");
 		return NULL;
 	}
 
@@ -1068,7 +1068,7 @@ pmem_init(void)
 	/* detect supported cache flush features */
 	FILE *fp;
 	if ((fp = fopen("/proc/cpuinfo", "r")) == NULL) {
-		LOG(1, "!/proc/cpuinfo");
+		ERR("!/proc/cpuinfo");
 	} else {
 		char line[PROCMAXLEN];	/* for fgets() */
 

@@ -89,6 +89,9 @@
 
 #endif	/* DEBUG */
 
+#define	ERR(...)\
+	out_err(__FILE__, __LINE__, __func__, __VA_ARGS__)
+
 void out_init(const char *log_prefix, const char *log_level_var,
 		const char *log_file_var, int major_version,
 		int minor_version);
@@ -99,9 +102,13 @@ void out_nonl(int level, const char *fmt,
 void out_log(const char *file, int line, const char *func, int level,
 	const char *fmt, ...)
 	__attribute__((format(printf, 5, 6)));
+void out_err(const char *file, int line, const char *func,
+	const char *fmt, ...)
+	__attribute__((format(printf, 4, 5)));
 void out_fatal(const char *file, int line, const char *func,
 	const char *fmt, ...)
 	__attribute__((format(printf, 4, 5)));
 void out_set_print_func(void (*print_func)(const char *s));
 void out_set_vsnprintf_func(int (*vsnprintf_func)(char *str, size_t size,
 	const char *format, va_list ap));
+const char *out_get_errormsg(void);

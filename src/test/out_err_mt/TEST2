@@ -1,3 +1,4 @@
+#!/bin/bash -e
 #
 # Copyright (c) 2015, Intel Corporation
 #
@@ -31,19 +32,38 @@
 #
 
 #
-# src/test/obj_tx_realloc/Makefile -- build obj_tx_realloc unit test
+# src/test/out_err_mt/TEST2 -- unit test for error messages
 #
-vpath %.c ../../libpmemobj
-vpath %.c ../../common
+export UNITTEST_NAME=out_err_mt/TEST2
+export UNITTEST_NUM=2
 
-TARGET = obj_tx_realloc
-OBJS = obj_tx_realloc.o util.o out.o
+# standard unit test setup
+. ../unittest/unittest.sh
 
-LIBPMEM=y
-LIBPMEMOBJ=y
+require_fs_type local
+require_valgrind_dev_3_7
 
-out.o: CFLAGS += -DSRCVERSION=\"utversion\"
+setup
 
-include ../Makefile.inc
+unset PMEM_LOG_LEVEL
+unset PMEMLOG_LOG_LEVEL
+unset PMEMBLK_LOG_LEVEL
+unset PMEMOBJ_LOG_LEVEL
 
-INCS += -I../../libpmemobj/ -I../../common/
+unset PMEM_LOG_FILE
+unset PMEMLOG_LOG_FILE
+unset PMEMBLK_LOG_FILE
+unset PMEMOBJ_LOG_FILE
+
+rm -f $DIR/testfile1
+rm -f $DIR/testfile2
+rm -f $DIR/testfile3
+
+expect_normal_exit valgrind --log-file=valgrind$UNITTEST_NUM.log --tool=helgrind\
+    ./out_err_mt$EXESUFFIX $DIR/testfile1 $DIR/testfile2 $DIR/testfile3
+
+rm -f $DIR/testfile[123]
+
+check
+
+pass

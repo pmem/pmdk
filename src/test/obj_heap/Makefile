@@ -37,9 +37,11 @@ vpath %.c ../../libpmemobj
 vpath %.c ../../common
 
 TARGET = obj_heap
-OBJS = obj_heap.o heap.o util.o bucket.o ctree.o
+OBJS = obj_heap.o heap.o util.o bucket.o ctree.o out.o
 
 LIBPMEM=y
+
+out.o: CFLAGS += -DSRCVERSION=\"utversion\"
 
 include ../Makefile.inc
 

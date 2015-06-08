@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright (c) 2014-2015, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -94,6 +94,8 @@ void pmemlog_walk(PMEMlogpool *plp, size_t chunksize,
 void pmemlog_set_funcs(
 		void *(*malloc_func)(size_t size),
 		void (*free_func)(void *ptr));
+
+const char *pmemlog_errormsg(void);
 
 #ifdef __cplusplus
 }

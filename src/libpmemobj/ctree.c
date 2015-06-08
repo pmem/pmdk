@@ -109,7 +109,7 @@ ctree_delete(struct ctree *t)
 		ctree_remove(t, 0, 0);
 
 	if ((errno = pthread_mutex_destroy(&t->lock)) != 0)
-		LOG(1, "!pthread_mutex_destroy");
+		ERR("!pthread_mutex_destroy");
 
 	Free(t);
 }
@@ -180,7 +180,7 @@ ctree_insert(struct ctree *t, uint64_t key)
 
 out:
 	if ((errno = pthread_mutex_unlock(&t->lock)) != 0)
-		LOG(1, "!pthread_mutex_unlock");
+		ERR("!pthread_mutex_unlock");
 
 	return err;
 
@@ -190,7 +190,7 @@ error_duplicate:
 	Free(n);
 error_leaf_malloc:
 	if ((errno = pthread_mutex_unlock(&t->lock)) != 0)
-		LOG(1, "!pthread_mutex_unlock");
+		ERR("!pthread_mutex_unlock");
 
 	return err;
 }
@@ -226,7 +226,7 @@ ctree_remove(struct ctree *t, uint64_t key, int eq)
 	int psize = 0;
 
 	if ((errno = pthread_mutex_lock(&t->lock)) != 0) {
-		LOG(1, "!pthread_mutex_lock");
+		ERR("!pthread_mutex_lock");
 		return 0;
 	}
 
@@ -286,7 +286,7 @@ ctree_remove(struct ctree *t, uint64_t key, int eq)
 
 out:
 	if ((errno = pthread_mutex_unlock(&t->lock)) != 0)
-		LOG(1, "!pthread_mutex_unlock");
+		ERR("!pthread_mutex_unlock");
 
 	return k;
 }

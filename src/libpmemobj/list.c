@@ -746,14 +746,14 @@ list_insert_new(PMEMobjpool *pop, struct list_head *oob_head,
 		if ((errno = pmalloc_construct(pop,
 				&section->obj_offset, size,
 				constructor, arg, OBJ_OOB_SIZE))) {
-			LOG(1, "!pmalloc_construct");
+			ERR("!pmalloc_construct");
 			ret = -1;
 			goto err_pmalloc;
 		}
 	} else {
 		if ((errno = pmalloc(pop, &section->obj_offset,
 					size))) {
-			LOG(1, "!pmalloc");
+			ERR("!pmalloc");
 			ret = -1;
 			goto err_pmalloc;
 		}
@@ -1049,7 +1049,7 @@ list_remove_free(PMEMobjpool *pop, struct list_head *oob_head,
 	 * because the element is freed.
 	 */
 	if ((errno = pfree(pop, &section->obj_offset))) {
-		LOG(1, "!pfree");
+		ERR("!pfree");
 		ret = -1;
 	} else {
 		ret = 0;
@@ -1452,7 +1452,7 @@ list_realloc(PMEMobjpool *pop, struct list_head *oob_head,
 		 * 8. Free the old allocation.
 		 */
 		if ((errno = pmalloc(pop, &section->obj_offset, size))) {
-			LOG(1, "!pmalloc");
+			ERR("!pmalloc");
 			ret = -1;
 			goto err_unlock;
 		}
@@ -1514,7 +1514,7 @@ list_realloc(PMEMobjpool *pop, struct list_head *oob_head,
 
 		/* free the old object */
 		if ((errno = pfree(pop, &section->obj_offset))) {
-			LOG(1, "!pfree");
+			ERR("!pfree");
 			ret = -1;
 			goto err_unlock;
 		}
@@ -1546,14 +1546,14 @@ list_realloc(PMEMobjpool *pop, struct list_head *oob_head,
 			if ((errno = prealloc_construct(pop,
 					&section->obj_offset, size,
 					constructor, arg, OBJ_OOB_SIZE))) {
-				LOG(1, "!prealloc_construct");
+				ERR("!prealloc_construct");
 				ret = -1;
 				goto err_unlock;
 			}
 		} else {
 			if ((errno = prealloc(pop,
 					&section->obj_offset, size))) {
-				LOG(1, "!prealloc");
+				ERR("!prealloc");
 				ret = -1;
 				goto err_unlock;
 			}
@@ -1687,7 +1687,7 @@ list_realloc_move(PMEMobjpool *pop, struct list_head *oob_head_old,
 		 * 8. Free the old allocation.
 		 */
 		if ((errno = pmalloc(pop, &section->obj_offset, size))) {
-			LOG(1, "!pmalloc");
+			ERR("!pmalloc");
 			ret = -1;
 			goto err_unlock;
 		}
@@ -1741,14 +1741,14 @@ list_realloc_move(PMEMobjpool *pop, struct list_head *oob_head_old,
 			if ((errno = prealloc_construct(pop,
 					&section->obj_offset, size,
 					constructor, arg, OBJ_OOB_SIZE))) {
-				LOG(1, "!prealloc_construct");
+				ERR("!prealloc_construct");
 				ret = -1;
 				goto err_unlock;
 			}
 		} else {
 			if ((errno = prealloc(pop,
 					&section->obj_offset, size))) {
-				LOG(1, "!prealloc");
+				ERR("!prealloc");
 				ret = -1;
 				goto err_unlock;
 			}
@@ -1824,7 +1824,7 @@ list_realloc_move(PMEMobjpool *pop, struct list_head *oob_head_old,
 
 		/* realloc not in place so free the old object */
 		if ((errno = pfree(pop, &section->obj_offset))) {
-			LOG(1, "!pfree");
+			ERR("!pfree");
 			ret = -1;
 			goto err_unlock;
 		}
@@ -1903,7 +1903,7 @@ lane_list_recovery(PMEMobjpool *pop, struct lane_section_layout *section_layout)
 	} else if (section->obj_offset) {
 		/* alloc or free recovery */
 		if ((errno = pfree(pop, &section->obj_offset))) {
-			LOG(1, "!pfree");
+			ERR("!pfree");
 			ret = -1;
 		}
 	}
@@ -1923,13 +1923,13 @@ lane_list_check(PMEMobjpool *pop, struct lane_section_layout *section_layout)
 		(struct lane_list_section *)section_layout;
 
 	if (redo_log_check(pop, section->redo, REDO_NUM_ENTRIES) == 0) {
-		LOG(1, "list lane %p redo log check failed", section);
+		ERR("list lane %p redo log check failed", section);
 
 		return 0;
 	}
 
 	if (section->obj_offset && section->obj_offset < pop->heap_offset) {
-		LOG(1, "list lane %p invalid offset 0x%jx",
+		ERR("list lane %p invalid offset 0x%jx",
 				section, section->obj_offset);
 
 		return 0;
