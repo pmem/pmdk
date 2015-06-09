@@ -1032,6 +1032,37 @@ pmemobj_tx_add_common(struct tx_add_range_args *args)
 		return EINVAL;
 	}
 
+#ifdef DEBUG
+	/* verify if the range is already added to the undo log */
+	PMEMoid iter = layout->undo_set.pe_first;
+	while (!OBJ_OID_IS_NULL(iter)) {
+		struct tx_range *range =
+			OBJ_OFF_TO_PTR(args->pop, iter.off);
+
+		if (args->offset >= range->offset &&
+				args->offset + args->size <=
+				range->offset + range->size) {
+			LOG(4, "Notice: range: offset = 0x%jx"
+			    " size = %zu is already in undo log"
+			    " as range: offset = 0x%jx size = %zu",
+			    args->offset, args->size,
+			    range->offset, range->size);
+			break;
+		} else if (args->offset <= range->offset + range->size &&
+				args->offset + args->size >=
+				range->offset) {
+			LOG(4, "Notice: a part of range: offset = 0x%jx"
+			    " size = %zu is already in undo log"
+			    " as range: offset = 0x%jx size = %zu",
+			    args->offset, args->size,
+			    range->offset, range->size);
+			break;
+		}
+		iter = oob_list_next(args->pop, &layout->undo_set, iter);
+	}
+
+#endif /* DEBUG */
+
 	/* insert snapshot to undo log */
 	PMEMoid snapshot = list_insert_new(args->pop, &layout->undo_set, 0,
 			NULL, OID_NULL, 0,
