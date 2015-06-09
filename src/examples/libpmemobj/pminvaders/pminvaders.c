@@ -121,7 +121,7 @@ create_alien(void *ptr, void *arg)
 	a->x = RRAND(2, GAME_WIDTH - 2);
 	a->timer = 1;
 
-	pmem_persist(a, sizeof (*a));
+	pmemobj_persist(pop, a, sizeof (*a));
 }
 
 /*
@@ -134,7 +134,7 @@ create_player(void *ptr, void *arg)
 	p->x = GAME_WIDTH / 2;
 	p->timer = 1;
 
-	pmem_persist(p, sizeof (*p));
+	pmemobj_persist(pop, p, sizeof (*p));
 }
 
 /*
@@ -150,7 +150,7 @@ create_bullet(void *ptr, void *arg)
 	b->y = PLAYER_Y - 1;
 	b->timer = 1;
 
-	pmem_persist(b, sizeof (*b));
+	pmemobj_persist(pop, b, sizeof (*b));
 }
 
 void
@@ -201,7 +201,7 @@ int
 timer_tick(uint32_t *timer)
 {
 	int ret = *timer == 0 || ((*timer)--) == 0;
-	pmem_persist(timer, sizeof (*timer));
+	pmemobj_persist(pop, timer, sizeof (*timer));
 	return ret;
 }
 
@@ -224,7 +224,7 @@ update_score(int m)
 	};
 
 	*gstate = s;
-	pmem_persist(gstate, sizeof (*gstate));
+	pmemobj_persist(pop, gstate, sizeof (*gstate));
 }
 
 /*
@@ -236,7 +236,7 @@ process_aliens()
 	/* alien spawn timer */
 	if (timer_tick(&gstate->timer)) {
 		gstate->timer = RRAND(MIN_GSTATE_TIMER, MAX_GSTATE_TIMER);
-		pmem_persist(gstate, sizeof (*gstate));
+		pmemobj_persist(pop, gstate, sizeof (*gstate));
 		pmemobj_alloc_construct(pop, sizeof (struct alien), ALLOC_ALIEN,
 			create_alien, NULL);
 	}
@@ -247,14 +247,14 @@ process_aliens()
 			D_RW(iter)->timer = MAX_ALIEN_TIMER;
 			D_RW(iter)->y++;
 		}
-		pmem_persist(D_RW(iter), sizeof (struct alien));
+		pmemobj_persist(pop, D_RW(iter), sizeof (struct alien));
 		draw_alien(D_RO(iter));
 
 		/* decrease the score if the ship wasn't intercepted */
 		if (D_RO(iter)->y > GAME_HEIGHT - 1) {
 			pmemobj_free(iter.oid);
 			update_score(-1);
-			pmem_persist(gstate, sizeof (*gstate));
+			pmemobj_persist(pop, gstate, sizeof (*gstate));
 		}
 	}
 }
@@ -292,7 +292,7 @@ process_bullets()
 			D_RW(iter)->timer = MAX_BULLET_TIMER;
 			D_RW(iter)->y--;
 		}
-		pmem_persist(D_RW(iter), sizeof (struct bullet));
+		pmemobj_persist(pop, D_RW(iter), sizeof (struct bullet));
 
 		draw_bullet(D_RO(iter));
 		if (D_RO(iter)->y == 0 || process_collision(D_RO(iter)))
@@ -326,7 +326,7 @@ process_player(int input)
 			ALLOC_BULLET, create_bullet, D_RW(plr));
 	}
 
-	pmem_persist(D_RW(plr), sizeof (struct player));
+	pmemobj_persist(pop, D_RW(plr), sizeof (struct player));
 
 	draw_player(D_RO(plr));
 }

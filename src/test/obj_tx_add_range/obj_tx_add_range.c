@@ -98,7 +98,8 @@ do_tx_add_range_alloc_commit(PMEMobjpool *pop)
 		ret = pmemobj_tx_add_range(obj.oid, DATA_OFF, DATA_SIZE);
 		ASSERTeq(ret, 0);
 
-		memset(D_RW(obj)->data, TEST_VALUE_2, DATA_SIZE);
+		pmemobj_memset_persist(pop, D_RW(obj)->data, TEST_VALUE_2,
+			DATA_SIZE);
 	} TX_ONABORT {
 		ASSERT(0);
 	} TX_END
@@ -131,7 +132,8 @@ do_tx_add_range_alloc_abort(PMEMobjpool *pop)
 		ret = pmemobj_tx_add_range(obj.oid, DATA_OFF, DATA_SIZE);
 		ASSERTeq(ret, 0);
 
-		memset(D_RW(obj)->data, TEST_VALUE_2, DATA_SIZE);
+		pmemobj_memset_persist(pop, D_RW(obj)->data, TEST_VALUE_2,
+			DATA_SIZE);
 
 		pmemobj_tx_abort(-1);
 	} TX_ONCOMMIT {
@@ -228,7 +230,8 @@ do_tx_add_range_abort_after_nested(PMEMobjpool *pop)
 					DATA_OFF, DATA_SIZE);
 			ASSERTeq(ret, 0);
 
-			memset(D_RW(obj2)->data, TEST_VALUE_2, DATA_SIZE);
+			pmemobj_memset_persist(pop, D_RW(obj2)->data,
+				TEST_VALUE_2, DATA_SIZE);
 		} TX_ONABORT {
 			ASSERT(0);
 		} TX_END
@@ -269,7 +272,8 @@ do_tx_add_range_abort_nested(PMEMobjpool *pop)
 					DATA_OFF, DATA_SIZE);
 			ASSERTeq(ret, 0);
 
-			memset(D_RW(obj2)->data, TEST_VALUE_2, DATA_SIZE);
+			pmemobj_memset_persist(pop, D_RW(obj2)->data,
+				TEST_VALUE_2, DATA_SIZE);
 
 			pmemobj_tx_abort(-1);
 		} TX_ONCOMMIT {
@@ -309,7 +313,8 @@ do_tx_add_range_commit_nested(PMEMobjpool *pop)
 					DATA_OFF, DATA_SIZE);
 			ASSERTeq(ret, 0);
 
-			memset(D_RW(obj2)->data, TEST_VALUE_2, DATA_SIZE);
+			pmemobj_memset_persist(pop, D_RW(obj2)->data,
+				TEST_VALUE_2, DATA_SIZE);
 		} TX_ONABORT {
 			ASSERT(0);
 		} TX_END
