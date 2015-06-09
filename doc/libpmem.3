@@ -37,7 +37,7 @@
 .\" or
 .\"	groff -man -Tascii libpmem.3
 .\"
-.TH libpmem 3 "pmem API version 0.8" "NVM Library"
+.TH libpmem 3 "pmem API version 0.8.1" "NVM Library"
 .SH NAME
 libpmem \- persistent memory support library
 .SH SYNOPSIS
@@ -203,7 +203,7 @@ before
 .BR pmem_persist ()
 is called.
 .PP
-.BI "void pmem_msync(void *" addr ", size_t " len " );
+.BI "int pmem_msync(void *" addr ", size_t " len " );
 .IP
 The function
 .BR pmem_msync ()
