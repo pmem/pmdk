@@ -35,7 +35,7 @@
  *
  * usage: obj_debug file operation:...
  *
- * operations are 'f' or 'l'
+ * operations are 'f' or 'l' or 'r'
  *
  */
 #include <stddef.h>
@@ -49,10 +49,17 @@
 
 struct root {
 	PLIST_HEAD(listhead, struct tobj) lhead, lhead2;
+	uint32_t val;
 };
 
 struct tobj {
 	PLIST_ENTRY(struct tobj) next;
+};
+
+struct int3_s {
+	uint32_t i1;
+	uint32_t i2;
+	uint32_t i3;
 };
 
 void
@@ -64,7 +71,7 @@ test_FOREACH(const char *path)
 	OID_TYPE(struct tobj) var, nvar;
 	int type = 0;
 
-#define	COMMANDS_FOREACH\
+#define	COMMANDS_FOREACH()\
 	do {\
 	POBJ_FOREACH(pop, varoid, type) {}\
 	POBJ_FOREACH_SAFE(pop, varoid, nvaroid, type) {}\
@@ -82,11 +89,13 @@ test_FOREACH(const char *path)
 	OID_ASSIGN(root, pmemobj_root(pop, sizeof (struct root)));
 	POBJ_LIST_INSERT_NEW_HEAD(pop, &D_RW(root)->lhead, 0, next, NULL, NULL);
 
-	COMMANDS_FOREACH;
+	COMMANDS_FOREACH();
 	TX_BEGIN(pop) {
-		COMMANDS_FOREACH;
+		COMMANDS_FOREACH();
+	} TX_ONABORT {
+		ASSERT(0);
 	} TX_END
-	COMMANDS_FOREACH;
+	COMMANDS_FOREACH();
 
 	pmemobj_close(pop);
 }
@@ -98,7 +107,7 @@ test_lists(const char *path)
 	OID_TYPE(struct root) root;
 	OID_TYPE(struct tobj) elm;
 
-#define	COMMANDS_LISTS\
+#define	COMMANDS_LISTS()\
 	do {\
 	POBJ_LIST_INSERT_NEW_HEAD(pop, &D_RW(root)->lhead, TYPE, next,\
 			NULL, NULL);\
@@ -118,11 +127,48 @@ test_lists(const char *path)
 
 	OID_ASSIGN(root, pmemobj_root(pop, sizeof (struct root)));
 
-	COMMANDS_LISTS;
+	COMMANDS_LISTS();
 	TX_BEGIN(pop) {
-		COMMANDS_LISTS;
+		COMMANDS_LISTS();
+	} TX_ONABORT {
+		ASSERT(0);
 	} TX_END
-	COMMANDS_LISTS;
+	COMMANDS_LISTS();
+
+	pmemobj_close(pop);
+}
+
+void
+test_add_range(const char *path)
+{
+	PMEMobjpool *pop = NULL;
+	OID_TYPE(struct root) root;
+	OID_TYPE(struct int3_s) obj;
+
+#define	ANY_VALUE 0
+#define	COMMANDS_ADD_RANGE()\
+	do {\
+		TX_SET(root, val, ANY_VALUE);\
+		TX_SET(root, val, ANY_VALUE + 1);\
+		TX_SET(obj, i2, ANY_VALUE);\
+		TX_ADD(obj);\
+	} while (0)
+
+	if ((pop = pmemobj_create(path, LAYOUT_NAME,
+					PMEMOBJ_MIN_POOL,
+					S_IRWXU)) == NULL)
+			FATAL("!pmemobj_create: %s", path);
+
+	OID_ASSIGN(root, pmemobj_root(pop, sizeof (struct root)));
+	OID_ASSIGN(obj, pmemobj_alloc(pop, sizeof (struct int3_s), TYPE));
+
+	COMMANDS_ADD_RANGE();
+	TX_BEGIN(pop) {
+		COMMANDS_ADD_RANGE();
+	} TX_ONABORT {
+		ASSERT(0);
+	} TX_END
+	COMMANDS_ADD_RANGE();
 
 	pmemobj_close(pop);
 }
@@ -133,12 +179,12 @@ main(int argc, char *argv[])
 	START(argc, argv, "obj_debug");
 
 	if (argc != 3)
-		FATAL("usage: %s file-name op:f|l", argv[0]);
+		FATAL("usage: %s file-name op:f|l|r", argv[0]);
 
 	const char *path = argv[1];
 
-	if (strchr("fl", argv[2][0]) == NULL || argv[2][1] != '\0')
-		FATAL("op must be f or l");
+	if (strchr("flr", argv[2][0]) == NULL || argv[2][1] != '\0')
+		FATAL("op must be f or l or r");
 
 	switch (argv[2][0]) {
 		case 'f':
@@ -146,6 +192,9 @@ main(int argc, char *argv[])
 			break;
 		case 'l':
 			test_lists(path);
+			break;
+		case 'r':
+			test_add_range(path);
 			break;
 	}
 
