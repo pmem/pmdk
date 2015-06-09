@@ -386,10 +386,12 @@ pmemobj_create(const char *path, const char *layout, size_t poolsize,
 	LOG(3, "path %s layout %s poolsize %zu mode %d",
 			path, layout, poolsize, mode);
 
+	int created = 0;
 	int fd;
 	if (poolsize != 0) {
 		/* create a new memory pool file */
 		fd = util_pool_create(path, poolsize, PMEMOBJ_MIN_POOL, mode);
+		created = 1;
 	} else {
 		/* open an existing file */
 		fd = util_pool_open(path, &poolsize, PMEMOBJ_MIN_POOL);
@@ -397,7 +399,11 @@ pmemobj_create(const char *path, const char *layout, size_t poolsize,
 	if (fd == -1)
 		return NULL;	/* errno set by util_pool_create/open() */
 
-	return pmemobj_map_common(fd, layout, poolsize, 0, 1);
+	PMEMobjpool *pop = pmemobj_map_common(fd, layout, poolsize, 0, 1);
+	if (pop == NULL && created)
+		unlink(path);	/* delete file if pool creation failed */
+
+	return pop;
 }
 
 /*
@@ -485,8 +491,8 @@ pmemobj_check(const char *path, const char *layout)
 		consistent = 0;
 	}
 
-	if ((errno = lane_check(pop)) != 0) {
-		LOG(1, "!lane_check");
+	if (lane_check(pop) != 1) {
+		LOG(1, "lane_check");
 		consistent = 0;
 	}
 

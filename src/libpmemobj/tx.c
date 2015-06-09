@@ -1339,8 +1339,10 @@ static int
 lane_transaction_check(PMEMobjpool *pop,
 	struct lane_section_layout *section)
 {
+	LOG(3, "tx lane %p", section);
+
 	/* XXX */
-	return 0;
+	return 1;
 }
 
 struct section_operations transaction_ops = {

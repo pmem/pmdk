@@ -406,6 +406,8 @@ lane_allocator_recovery(PMEMobjpool *pop, struct lane_section_layout *section)
 static int
 lane_allocator_check(PMEMobjpool *pop, struct lane_section_layout *section)
 {
+	LOG(3, "allocator lane %p", section);
+
 	struct allocator_lane_section *sec =
 		(struct allocator_lane_section *)section;
 

@@ -507,7 +507,12 @@ pmemblk_create(const char *path, size_t bsize, size_t poolsize,
 	if (fd == -1)
 		return NULL;	/* errno set by util_pool_create/open() */
 
-	return pmemblk_map_common(fd, poolsize, bsize, 0, 1, created);
+	PMEMblkpool *pbp;
+	pbp = pmemblk_map_common(fd, poolsize, bsize, 0, 1, created);
+	if (pbp == NULL && created)
+		unlink(path);	/* delete file if pool creation failed */
+
+	return pbp;
 }
 
 /*

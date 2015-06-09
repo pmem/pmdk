@@ -1,3 +1,0 @@
-obj_basic/TEST1: START: obj_basic
- ./obj_basic$(nW) $(nW)/testfile1 o
-obj_basic/TEST1: Done
