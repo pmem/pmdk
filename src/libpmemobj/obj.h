@@ -82,6 +82,9 @@
 #define	OOB_OFFSET_OF(oid, field)\
 	((oid).off - OBJ_OOB_SIZE + offsetof(struct oob_header, field))
 
+#define	OBJ_STORE_ITEM_PADDING\
+	(_POBJ_CL_ALIGNMENT - (sizeof (struct list_head) % _POBJ_CL_ALIGNMENT))
+
 typedef void (*persist_fn)(void *, size_t);
 typedef void (*flush_fn)(void *, size_t);
 typedef void (*drain_fn)(void);
@@ -146,6 +149,7 @@ enum internal_type {
 /* single object store item */
 struct object_store_item {
 	struct list_head head;
+	uint8_t padding[OBJ_STORE_ITEM_PADDING];
 };
 
 struct object_store {

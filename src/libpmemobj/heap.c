@@ -111,7 +111,7 @@ static uint32_t
 get_zone_size_idx(uint32_t zone_id, int max_zone, size_t heap_size)
 {
 	if (zone_id < max_zone - 1)
-		return MAX_CHUNK;
+		return MAX_CHUNK - 1;
 
 	size_t zone_raw_size = heap_size - zone_id * ZONE_MAX_SIZE;
 
@@ -124,16 +124,17 @@ get_zone_size_idx(uint32_t zone_id, int max_zone, size_t heap_size)
  * heap_chunk_write_footer -- (internal) writes a chunk footer
  */
 static void
-heap_chunk_write_footer(struct chunk_header *hdr)
+heap_chunk_write_footer(struct chunk_header *hdr, uint32_t size_idx)
 {
-	if (hdr->size_idx == 1) /* that would overwrite the header */
+	if (size_idx == 1) /* that would overwrite the header */
 		return;
 
 	struct chunk_header f = *hdr;
 	f.type = CHUNK_TYPE_FOOTER;
-	*(hdr + hdr->size_idx - 1) = f;
+	f.size_idx = size_idx;
+	*(hdr + size_idx - 1) = f;
 	/* no need to persist, footers are recreated in heap_populate_buckets */
-	VALGRIND_SET_CLEAN((hdr + hdr->size_idx - 1), sizeof (f));
+	VALGRIND_SET_CLEAN((hdr + size_idx - 1), sizeof (f));
 }
 
 /*
@@ -151,7 +152,7 @@ heap_chunk_init(PMEMobjpool *pop, struct chunk_header *hdr,
 	*hdr = nhdr; /* write the entire header (8 bytes) at once */
 	pop->persist(hdr, sizeof (*hdr));
 
-	heap_chunk_write_footer(hdr);
+	heap_chunk_write_footer(hdr, size_idx);
 }
 
 /*
@@ -186,18 +187,7 @@ heap_init_run(PMEMobjpool *pop, struct bucket *b, struct chunk_header *hdr,
 
 	ASSERT(hdr->type == CHUNK_TYPE_FREE);
 	memset(run->bitmap, 0, sizeof (run->bitmap));
-	int max_allocs = RUNSIZE / run->block_size;
-	int unused_bits = RUN_BITMAP_SIZE - max_allocs;
-	int unused_values = unused_bits / BITS_PER_VALUE;
-	for (int i = MAX_BITMAP_VALUES - unused_values;
-		i < MAX_BITMAP_VALUES; ++i)
-		run->bitmap[i] = ~0L;
-
-	unused_bits -= (unused_values * BITS_PER_VALUE);
-
-	if (unused_bits != 0)
-		run->bitmap[MAX_BITMAP_VALUES - unused_values - 1] |=
-			(((1L << unused_bits) - 1L) << (64 - unused_bits));
+	run->bitmap[bucket_bitmap_nval(b) - 1] = bucket_bitmap_lastval(b);
 
 	pop->persist(run->bitmap, sizeof (run->bitmap));
 
@@ -213,14 +203,17 @@ heap_run_insert(struct bucket *b, uint32_t chunk_id, uint32_t zone_id,
 		uint32_t size_idx, uint16_t block_off)
 {
 	size_t unit_max = bucket_unit_max(b);
-	uint32_t off = 0;
-	uint32_t size;
+	struct memory_block m = {chunk_id, zone_id,
+		unit_max - (block_off % 4), block_off};
+
+	if (m.size_idx > size_idx)
+		m.size_idx = size_idx;
+
 	do {
-		size = size_idx > unit_max ? unit_max : size_idx;
-		bucket_insert_block(b, chunk_id, zone_id, size,
-							block_off + off);
-		off += size;
-		size_idx -= size;
+		bucket_insert_block(b, m);
+		m.block_off += m.size_idx;
+		size_idx -= m.size_idx;
+		m.size_idx = size_idx > unit_max ? unit_max : size_idx;
 	} while (size_idx != 0);
 }
 
@@ -246,6 +239,7 @@ heap_populate_run_bucket(PMEMobjpool *pop, struct bucket *b,
 	ASSERT(run_bits < (MAX_BITMAP_VALUES * BITS_PER_VALUE));
 	uint16_t block_off = 0;
 	uint16_t block_size_idx = 0;
+
 	for (int i = 0; i < MAX_BITMAP_VALUES; ++i) {
 		uint64_t v = run->bitmap[i];
 		block_off = BITS_PER_VALUE * i;
@@ -272,6 +266,11 @@ heap_populate_run_bucket(PMEMobjpool *pop, struct bucket *b,
 				break;
 			}
 		}
+
+		if (block_size_idx != 0) {
+			heap_run_insert(b, chunk_id, zone_id, block_size_idx,
+				block_off - block_size_idx);
+		}
 	}
 }
 
@@ -296,7 +295,7 @@ heap_populate_buckets(PMEMobjpool *pop)
 
 	for (uint32_t i = 0; i < z->header.size_idx; ) {
 		struct chunk_header *hdr = &z->chunk_headers[i];
-		heap_chunk_write_footer(hdr);
+		heap_chunk_write_footer(hdr, hdr->size_idx);
 
 		if (hdr->type == CHUNK_TYPE_RUN) {
 			struct chunk_run *run =
@@ -304,8 +303,8 @@ heap_populate_buckets(PMEMobjpool *pop)
 			heap_populate_run_bucket(pop,
 				h->bucket_map[run->block_size], i, zone_id);
 		} else if (hdr->type == CHUNK_TYPE_FREE) {
-			bucket_insert_block(def_bucket, i, zone_id,
-				hdr->size_idx, 0);
+			struct memory_block m = {i, zone_id, hdr->size_idx, 0};
+			bucket_insert_block(def_bucket, m);
 		}
 
 		i += hdr->size_idx;
@@ -329,17 +328,13 @@ heap_ensure_bucket_filled(PMEMobjpool *pop, struct bucket *b, int force)
 
 	struct bucket *def_bucket = heap_get_default_bucket(pop);
 
-	uint32_t chunk_id = 0;
-	uint32_t zone_id = 0;
-	uint32_t size_idx = 1;
-	uint16_t block_off = 0;
-	if (heap_get_block_from_bucket(pop, def_bucket, &chunk_id, &zone_id,
-		size_idx, &block_off) != 0)
+	struct memory_block m = {0, 0, 1, 0};
+	if (heap_get_bestfit_block(pop, def_bucket, &m) != 0)
 		return; /* OOM */
 
-	ASSERT(block_off == 0);
+	ASSERT(m.block_off == 0);
 
-	heap_populate_run_bucket(pop, b, chunk_id, zone_id);
+	heap_populate_run_bucket(pop, b, m.chunk_id, m.zone_id);
 }
 
 /*
@@ -358,13 +353,15 @@ heap_get_default_bucket(PMEMobjpool *pop)
  * heap_get_best_bucket -- returns the bucket that best fits the requested size
  */
 struct bucket *
-heap_get_best_bucket(PMEMobjpool *pop, size_t size)
+heap_get_best_bucket(PMEMobjpool *pop, size_t size, int populated)
 {
 	struct bucket *b = size < pop->heap->last_run_max_size ?
 		pop->heap->bucket_map[size] :
 		pop->heap->buckets[DEFAULT_BUCKET];
 
-	heap_ensure_bucket_filled(pop, b, 0);
+	if (populated)
+		heap_ensure_bucket_filled(pop, b, 0);
+
 	return b;
 }
 
@@ -420,7 +417,7 @@ heap_buckets_init(PMEMobjpool *pop)
 			 * of buckets in the map is better.
 			 */
 			if ((bucket_proto[j].unit_size *
-				((bucket_proto[j].unit_max - 1))) > i) {
+				((bucket_proto[j].unit_max - 1))) >= i) {
 				h->bucket_map[i] = h->buckets[j];
 				break;
 			}
@@ -459,28 +456,45 @@ heap_resize_chunk(PMEMobjpool *pop,
 	heap_chunk_init(pop, old_hdr, CHUNK_TYPE_FREE, new_size_idx);
 
 	struct bucket *def_bucket = pop->heap->buckets[DEFAULT_BUCKET];
-	if (bucket_insert_block(def_bucket, new_chunk_id, zone_id,
-		rem_size_idx, 0) != 0) {
+	struct memory_block m = {new_chunk_id, zone_id, rem_size_idx, 0};
+	if (bucket_insert_block(def_bucket, m) != 0) {
 		ERR("bucket_insert_block failed during resize");
 	}
 }
 
 /*
- * heap_get_block_from_bucket -- extracts a memory block of equal size index
+ * heap_recycle_block -- (internal) recycles unused part of the memory block
+ */
+static void
+heap_recycle_block(PMEMobjpool *pop, struct bucket *b, struct memory_block *m,
+	uint32_t units)
+{
+	if (bucket_is_small(b)) {
+		struct memory_block r = {m->chunk_id, m->zone_id,
+			m->size_idx - units, m->block_off + units};
+		bucket_insert_block(b, r);
+	} else {
+		heap_resize_chunk(pop, m->chunk_id, m->zone_id, units);
+	}
+
+	m->size_idx = units;
+}
+
+/*
+ * heap_get_bestfit_block --
+ *	extracts a memory block of equal size index
  */
 int
-heap_get_block_from_bucket(PMEMobjpool *pop, struct bucket *b,
-	uint32_t *chunk_id, uint32_t *zone_id, uint32_t size_idx,
-	uint16_t *block_off)
+heap_get_bestfit_block(PMEMobjpool *pop, struct bucket *b,
+	struct memory_block *m)
 {
 	if (bucket_lock(b) != 0)
 		return EAGAIN;
 
 	int i;
-	uint32_t units = size_idx;
+	uint32_t units = m->size_idx;
 	for (i = 0; i < MAX_BUCKET_REFILL; ++i) {
-		if (bucket_get_rm_block_bestfit(b, chunk_id, zone_id, &size_idx,
-			block_off) != 0)
+		if (bucket_get_rm_block_bestfit(b, m) != 0)
 			heap_ensure_bucket_filled(pop, b, 1);
 		else
 			break;
@@ -491,13 +505,31 @@ heap_get_block_from_bucket(PMEMobjpool *pop, struct bucket *b,
 		return ENOMEM;
 	}
 
-	if (units != size_idx) {
-		if (bucket_is_small(b))
-			bucket_insert_block(b, *chunk_id, *zone_id,
-				size_idx - units, *block_off + units);
-		else
-			heap_resize_chunk(pop, *chunk_id, *zone_id, units);
+	if (units != m->size_idx)
+		heap_recycle_block(pop, b, m, units);
+
+	bucket_unlock(b);
+
+	return 0;
+}
+
+/*
+ * heap_get_exact_block --
+ *	extracts exactly this memory block and cuts it accordingly
+ */
+int
+heap_get_exact_block(PMEMobjpool *pop, struct bucket *b,
+	struct memory_block *m, uint32_t units)
+{
+	if (bucket_lock(b) != 0)
+		return EAGAIN;
+
+	if (bucket_get_rm_block_exact(b, *m) != 0) {
+		return ENOMEM;
 	}
+
+	if (units != m->size_idx)
+		heap_recycle_block(pop, b, m, units);
 
 	bucket_unlock(b);
 
@@ -508,12 +540,14 @@ heap_get_block_from_bucket(PMEMobjpool *pop, struct bucket *b,
  * chunk_get_chunk_hdr_value -- (internal) get value of a header for redo log
  */
 static uint64_t
-chunk_get_chunk_hdr_value(struct chunk_header hdr, uint16_t type)
+chunk_get_chunk_hdr_value(struct chunk_header hdr, uint16_t type,
+	uint32_t size_idx)
 {
 	uint64_t val;
 	ASSERT(sizeof (struct chunk_header) == sizeof (uint64_t));
 
 	hdr.type = type;
+	hdr.size_idx = size_idx;
 	memcpy(&val, &hdr, sizeof (val));
 
 	return val;
@@ -523,29 +557,31 @@ chunk_get_chunk_hdr_value(struct chunk_header hdr, uint16_t type)
  * heap_get_block_header -- returns the header of the memory block
  */
 void *
-heap_get_block_header(PMEMobjpool *pop, uint32_t chunk_id,
-	uint32_t zone_id, uint32_t size_idx, uint16_t block_off,
+heap_get_block_header(PMEMobjpool *pop, struct memory_block m,
 	enum heap_op op, uint64_t *op_result)
 {
-	struct zone *z = &pop->heap->layout->zones[zone_id];
-	struct chunk_header *hdr = &z->chunk_headers[chunk_id];
+	struct zone *z = &pop->heap->layout->zones[m.zone_id];
+	struct chunk_header *hdr = &z->chunk_headers[m.chunk_id];
 
 	if (hdr->type != CHUNK_TYPE_RUN) {
-		*op_result = chunk_get_chunk_hdr_value(*hdr, op == HEAP_OP_ALLOC
-					? CHUNK_TYPE_USED : CHUNK_TYPE_FREE);
+		*op_result = chunk_get_chunk_hdr_value(*hdr,
+			op == HEAP_OP_ALLOC ? CHUNK_TYPE_USED : CHUNK_TYPE_FREE,
+			m.size_idx);
+
+		heap_chunk_write_footer(hdr, m.size_idx);
+
 		return hdr;
 	}
 
-	struct chunk_run *r = (struct chunk_run *)&z->chunks[chunk_id];
-	uint64_t bmask = ((1L << size_idx) - 1L) <<
-			(block_off % BITS_PER_VALUE);
+	struct chunk_run *r = (struct chunk_run *)&z->chunks[m.chunk_id];
+	uint64_t bmask = ((1L << m.size_idx) - 1L) <<
+			(m.block_off % BITS_PER_VALUE);
 
-	int bpos = block_off / BITS_PER_VALUE;
-	if (op == HEAP_OP_FREE) {
+	int bpos = m.block_off / BITS_PER_VALUE;
+	if (op == HEAP_OP_FREE)
 		*op_result = r->bitmap[bpos] & ~bmask;
-	} else {
+	else
 		*op_result = r->bitmap[bpos] | bmask;
-	}
 
 	return &r->bitmap[bpos];
 }
@@ -554,102 +590,272 @@ heap_get_block_header(PMEMobjpool *pop, uint32_t chunk_id,
  * heap_get_block_data -- returns pointer to the data of a block
  */
 void *
-heap_get_block_data(PMEMobjpool *pop,
-	uint32_t chunk_id, uint32_t zone_id, uint16_t block_off)
+heap_get_block_data(PMEMobjpool *pop, struct memory_block m)
 {
-	struct zone *z = &pop->heap->layout->zones[zone_id];
-	struct chunk_header *hdr = &z->chunk_headers[chunk_id];
+	struct zone *z = &pop->heap->layout->zones[m.zone_id];
+	struct chunk_header *hdr = &z->chunk_headers[m.chunk_id];
 
-	void *data = &z->chunks[chunk_id].data;
+	void *data = &z->chunks[m.chunk_id].data;
 	if (hdr->type != CHUNK_TYPE_RUN)
 		return data;
 
 	struct chunk_run *run = data;
 	ASSERT(run->block_size != 0);
 
-	return (void *)&run->data + (run->block_size * block_off);
+	return (void *)&run->data + (run->block_size * m.block_off);
 }
 
 /*
- * heap_get_prev_chunk -- returns the header of the previous chunk
+ * heap_run_get_block -- (internal) returns next/prev memory block from run
  */
-struct chunk_header *
-heap_get_prev_chunk(PMEMobjpool *pop, uint32_t *chunk_id,
-	uint32_t zone_id)
+static int
+heap_run_get_block(PMEMobjpool *pop, struct chunk_run *r,
+	struct memory_block *mblock, uint16_t size_idx, uint16_t block_off,
+	int prev)
 {
-	if (*chunk_id == 0)
-		return NULL;
+	int v = block_off / BITS_PER_VALUE;
+	int b = block_off % BITS_PER_VALUE;
 
-	struct zone *z = &pop->heap->layout->zones[zone_id];
+	if (prev) {
+		int i;
+		for (i = b - 1;
+			(i + 1) % RUN_UNIT_MAX && BIT_IS_CLR(r->bitmap[v], i);
+			--i);
 
-	struct chunk_header *hdr = &z->chunk_headers[*chunk_id - 1];
-	*chunk_id = *chunk_id - hdr->size_idx;
+		mblock->block_off = (v * BITS_PER_VALUE) + (i + 1);
+		mblock->size_idx = block_off - mblock->block_off;
+	} else { /* next */
+		int i;
+		for (i = b + size_idx;
+			i % RUN_UNIT_MAX && BIT_IS_CLR(r->bitmap[v], i);
+			++i);
 
-	return &z->chunk_headers[*chunk_id];
-}
-
-/*
- * heap_get_next_chunk -- returns the header of the next chunk
- */
-struct chunk_header *
-heap_get_next_chunk(PMEMobjpool *pop, uint32_t *chunk_id,
-	uint32_t zone_id)
-{
-	struct zone *z = &pop->heap->layout->zones[zone_id];
-
-	struct chunk_header *hdr = &z->chunk_headers[*chunk_id];
-	if (*chunk_id + hdr->size_idx == z->header.size_idx)
-		return NULL;
-
-	*chunk_id = *chunk_id + hdr->size_idx;
-
-	return &z->chunk_headers[*chunk_id];
-}
-
-/*
- * heap_coalesce -- merges neighbouring chunks into one
- */
-struct chunk_header *
-heap_coalesce(PMEMobjpool *pop, struct chunk_header *chunks[], int n)
-{
-	struct chunk_header *hdr = NULL;
-	uint32_t size_idx = 0;
-	for (int i = 0; i < n; ++i) {
-		hdr = hdr ? : chunks[i];
-		size_idx += chunks[i] ? chunks[i]->size_idx : 0;
+		mblock->block_off = block_off + size_idx;
+		mblock->size_idx = i - (b + size_idx);
 	}
 
-	heap_chunk_init(pop, hdr, CHUNK_TYPE_FREE, size_idx);
+	if (mblock->size_idx == 0)
+		return ENOENT;
 
-	return hdr;
+	return 0;
+}
+
+/*
+ * heap_get_chunk -- (internal) returns next/prev chunk from zone
+ */
+static int
+heap_get_chunk(PMEMobjpool *pop, struct zone *z, struct chunk_header *hdr,
+	struct memory_block *m, uint32_t chunk_id, int prev)
+{
+	if (prev) {
+		if (chunk_id == 0)
+			return ENOENT;
+
+		struct chunk_header *hdr = &z->chunk_headers[chunk_id - 1];
+		m->chunk_id = chunk_id - hdr->size_idx;
+
+		if (z->chunk_headers[m->chunk_id].type != CHUNK_TYPE_FREE)
+			return ENOENT;
+
+		m->size_idx = z->chunk_headers[m->chunk_id].size_idx;
+	} else { /* next */
+		if (chunk_id + hdr->size_idx == z->header.size_idx)
+			return ENOENT;
+
+		m->chunk_id = chunk_id + hdr->size_idx;
+
+		if (z->chunk_headers[m->chunk_id].type != CHUNK_TYPE_FREE)
+			return ENOENT;
+
+		m->size_idx = z->chunk_headers[m->chunk_id].size_idx;
+	}
+
+	return 0;
+}
+
+/*
+ * heap_get_adjacent_free_block -- locates adjacent free memory block in heap
+ */
+int heap_get_adjacent_free_block(PMEMobjpool *pop, struct memory_block *m,
+	struct memory_block cnt, int prev)
+{
+	struct zone *z = &pop->heap->layout->zones[cnt.zone_id];
+	struct chunk_header *hdr = &z->chunk_headers[cnt.chunk_id];
+	m->zone_id = cnt.zone_id;
+
+	if (hdr->type == CHUNK_TYPE_RUN) {
+		m->chunk_id = cnt.chunk_id;
+		struct chunk_run *r =
+				(struct chunk_run *)&z->chunks[cnt.chunk_id];
+		return heap_run_get_block(pop, r, m, cnt.size_idx,
+				cnt.block_off, prev);
+	} else {
+		return heap_get_chunk(pop, z, hdr, m, cnt.chunk_id, prev);
+	}
+}
+
+/*
+ * heap_get_run_lock -- (internal) returns the lock associated with memory block
+ */
+static pthread_mutex_t *
+heap_get_run_lock(PMEMobjpool *pop, struct memory_block m)
+{
+	return &pop->heap->run_locks[m.chunk_id % MAX_RUN_LOCKS];
 }
 
 /*
  * heap_lock_if_run -- acquire a run lock
  */
 int
-heap_lock_if_run(PMEMobjpool *pop, uint32_t chunk_id, uint32_t zone_id)
+heap_lock_if_run(PMEMobjpool *pop, struct memory_block m)
 {
 	struct chunk_header *hdr =
-		&pop->heap->layout->zones[zone_id].chunk_headers[chunk_id];
+		&pop->heap->layout->zones[m.zone_id].chunk_headers[m.chunk_id];
 
 	return hdr->type == CHUNK_TYPE_RUN ?
-		pthread_mutex_lock(&pop->heap->run_locks[chunk_id %
-						MAX_RUN_LOCKS]) : 0;
+		pthread_mutex_lock(heap_get_run_lock(pop, m)) : 0;
 }
 
 /*
  * heap_unlock_if_run -- release a run lock
  */
 int
-heap_unlock_if_run(PMEMobjpool *pop, uint32_t chunk_id, uint32_t zone_id)
+heap_unlock_if_run(PMEMobjpool *pop, struct memory_block m)
 {
 	struct chunk_header *hdr =
-		&pop->heap->layout->zones[zone_id].chunk_headers[chunk_id];
+		&pop->heap->layout->zones[m.zone_id].chunk_headers[m.chunk_id];
 
 	return hdr->type == CHUNK_TYPE_RUN ?
-		pthread_mutex_unlock(&pop->heap->run_locks[chunk_id %
-						MAX_RUN_LOCKS]) : 0;
+		pthread_mutex_unlock(heap_get_run_lock(pop, m)) : 0;
+}
+
+/*
+ * heap_coalesce -- merges adjacent memory blocks
+ */
+struct memory_block
+heap_coalesce(PMEMobjpool *pop,
+	struct memory_block *blocks[], int n, enum heap_op op,
+	void **hdr, uint64_t *op_result)
+{
+	struct memory_block ret;
+	struct memory_block *b = NULL;
+	ret.size_idx = 0;
+	for (int i = 0; i < n; ++i) {
+		if (blocks[i] == NULL)
+			continue;
+		b = b ? : blocks[i];
+		ret.size_idx += blocks[i] ? blocks[i]->size_idx : 0;
+	}
+
+	ret.chunk_id = b->chunk_id;
+	ret.zone_id = b->zone_id;
+	ret.block_off = b->block_off;
+
+	*hdr = heap_get_block_header(pop, ret, op, op_result);
+
+	return ret;
+}
+
+/*
+ * heap_free_block -- creates free persistent state of a memory block
+ */
+struct memory_block
+heap_free_block(PMEMobjpool *pop, struct bucket *b,
+	struct memory_block m, void *hdr, uint64_t *op_result)
+{
+	struct memory_block *blocks[3] = {NULL, &m, NULL};
+
+	struct memory_block prev = {0};
+	if (heap_get_adjacent_free_block(pop, &prev, m, 1) == 0 &&
+		bucket_get_rm_block_exact(b, prev) == 0) {
+		blocks[0] = &prev;
+	}
+
+	struct memory_block next = {0};
+	if (heap_get_adjacent_free_block(pop, &next, m, 0) == 0 &&
+		bucket_get_rm_block_exact(b, next) == 0) {
+		blocks[2] = &next;
+	}
+
+	struct memory_block res = heap_coalesce(pop, blocks, 3, HEAP_OP_FREE,
+		hdr, op_result);
+
+	return res;
+}
+
+/*
+ * heap_degrade_run_if_empty -- makes a chunk out of an empty run
+ */
+int
+heap_degrade_run_if_empty(PMEMobjpool *pop, struct bucket *b,
+	struct memory_block m)
+{
+	struct zone *z = &pop->heap->layout->zones[m.zone_id];
+	struct chunk_header *hdr = &z->chunk_headers[m.chunk_id];
+	ASSERT(hdr->type == CHUNK_TYPE_RUN);
+
+	struct chunk_run *run = (struct chunk_run *)&z->chunks[m.chunk_id];
+
+	int err = 0;
+	if ((err = pthread_mutex_lock(heap_get_run_lock(pop, m))) != 0)
+		return err;
+
+	int i;
+	for (i = 0; i < bucket_bitmap_nval(b) - 1; ++i)
+		if (run->bitmap[i] != 0)
+			goto out;
+
+	if (run->bitmap[i] != bucket_bitmap_lastval(b))
+		goto out;
+
+	m.block_off = 0;
+	m.size_idx = RUN_UNIT_MAX;
+	uint32_t size_idx_sum = 0;
+	while (size_idx_sum != bucket_bitmap_nallocs(b)) {
+		if (bucket_get_rm_block_exact(b, m) != 0) {
+			ERR("persistent and volatile state mismatched");
+			ASSERT(0);
+		}
+
+		size_idx_sum += m.size_idx;
+
+		m.block_off += RUN_UNIT_MAX;
+		if (m.block_off + RUN_UNIT_MAX > bucket_bitmap_nallocs(b))
+			m.size_idx = bucket_bitmap_nallocs(b) - m.block_off;
+		else
+			m.size_idx = RUN_UNIT_MAX;
+	}
+
+	struct bucket *defb = pop->heap->buckets[DEFAULT_BUCKET];
+	if ((err = bucket_lock(defb)) != 0) {
+		ERR("Failed to lock default bucket");
+		ASSERT(0);
+	}
+
+	m.block_off = 0;
+	m.size_idx = 1;
+	heap_chunk_init(pop, hdr, CHUNK_TYPE_FREE, m.size_idx);
+
+	uint64_t *mhdr;
+	uint64_t op_result;
+	struct memory_block fm =
+			heap_free_block(pop, defb, m, &mhdr, &op_result);
+	*mhdr = op_result;
+	pop->persist(mhdr, sizeof (*mhdr));
+
+	if ((err = bucket_insert_block(defb, fm)) != 0) {
+		ERR("Failed to update heap volatile state");
+	}
+
+	bucket_unlock(defb);
+
+out:
+	if (pthread_mutex_unlock(heap_get_run_lock(pop, m)) != 0) {
+		ERR("Failed to release run lock");
+		ASSERT(0);
+	}
+
+	return err;
 }
 
 /*

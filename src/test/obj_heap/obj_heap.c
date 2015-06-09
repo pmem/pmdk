@@ -38,11 +38,11 @@
 #include "util.h"
 #include "redo.h"
 #include "heap_layout.h"
+#include "heap.h"
 #include "bucket.h"
 #include "lane.h"
 #include "list.h"
 #include "obj.h"
-#include "heap.h"
 #include "pmalloc.h"
 #include "unittest.h"
 
@@ -74,8 +74,8 @@ test_heap()
 	ASSERT(heap_boot(pop) == 0);
 	ASSERT(pop->heap != NULL);
 
-	struct bucket *b_small = heap_get_best_bucket(pop, 0);
-	struct bucket *b_big = heap_get_best_bucket(pop, 1024);
+	struct bucket *b_small = heap_get_best_bucket(pop, 0, 1);
+	struct bucket *b_big = heap_get_best_bucket(pop, 1024, 1);
 
 	ASSERT(bucket_unit_size(b_small) < bucket_unit_size(b_big));
 
@@ -86,34 +86,43 @@ test_heap()
 	ASSERT(!bucket_is_empty(b_big));
 	ASSERT(!bucket_is_empty(b_def));
 
-	uint32_t zone_id[MAX_BLOCKS] = {0};
-	uint32_t chunk_id[MAX_BLOCKS] = {0};
-	uint32_t size_idx[MAX_BLOCKS] = {1, 1, 1};
-	uint16_t block_off[MAX_BLOCKS] = {0};
+	struct memory_block blocks[MAX_BLOCKS] = {
+		{0, 0, 1, 0},
+		{0, 0, 1, 0},
+		{0, 0, 1, 0}
+	};
 
-	struct chunk_header *hdr[MAX_BLOCKS] = {NULL, NULL, NULL};
 	for (int i = 0; i < MAX_BLOCKS; ++i) {
-		heap_get_block_from_bucket(pop, b_def, &chunk_id[i],
-			&zone_id[i], size_idx[i], &block_off[i]);
-		ASSERT(block_off[i] == 0);
-		ASSERT(chunk_id[i] != 0);
+		heap_get_bestfit_block(pop, b_def, &blocks[i]);
+		ASSERT(blocks[i].block_off == 0);
+		ASSERT(blocks[i].chunk_id != 0);
 	}
 
-	uint32_t prev = chunk_id[1];
-	hdr[0] = heap_get_prev_chunk(pop, &prev, 0);
-	ASSERT(prev == chunk_id[0]);
+	struct memory_block *blocksp[MAX_BLOCKS] = {NULL};
 
-	uint32_t mid = chunk_id[0];
-	hdr[1] = heap_get_next_chunk(pop, &mid, 0);
-	ASSERT(mid == chunk_id[1]);
+	struct memory_block prev;
+	heap_get_adjacent_free_block(pop, &prev, blocks[1], 1);
+	ASSERT(prev.chunk_id == blocks[0].chunk_id);
+	blocksp[0] = &prev;
 
-	uint32_t next = chunk_id[1];
-	hdr[2] = heap_get_next_chunk(pop, &next, 0);
-	ASSERT(next == chunk_id[2]);
+	struct memory_block cnt;
+	heap_get_adjacent_free_block(pop, &cnt, blocks[0], 0);
+	ASSERT(cnt.chunk_id == blocks[1].chunk_id);
+	blocksp[1] = &cnt;
 
-	heap_coalesce(pop, hdr, MAX_BLOCKS);
+	struct memory_block next;
+	heap_get_adjacent_free_block(pop, &next, blocks[1], 0);
+	ASSERT(next.chunk_id == blocks[2].chunk_id);
+	blocksp[2] = &next;
 
-	ASSERT(hdr[0]->size_idx == MAX_BLOCKS);
+	void *hdr;
+	uint64_t op_result;
+	struct memory_block result =
+		heap_coalesce(pop, blocksp, MAX_BLOCKS, HEAP_OP_FREE, &hdr,
+			&op_result);
+
+	ASSERT(result.size_idx == 3);
+	ASSERT(result.chunk_id == prev.chunk_id);
 
 	ASSERT(heap_check(pop) == 0);
 	ASSERT(heap_cleanup(pop) == 0);

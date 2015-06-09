@@ -47,8 +47,10 @@
 
 #define	MOCK_POOL_SIZE PMEMOBJ_MIN_POOL
 #define	MAX_ALLOCS 20
+#define	TEST_MEGA_ALLOC_SIZE (1024 * 1024)
 #define	TEST_HUGE_ALLOC_SIZE (255 * 1024)
 #define	TEST_SMALL_ALLOC_SIZE (200)
+#define	TEST_MEDIUM_ALLOC_SIZE (300)
 #define	TEST_TINY_ALLOC_SIZE (64)
 #define	TEST_RUNS 2
 
@@ -98,13 +100,13 @@ test_oom_allocs(size_t size)
 		ASSERT(addr->ptr != 0);
 		allocs[count++] = addr->ptr;
 	}
+
 	for (int i = 0; i < count; ++i) {
 		addr->ptr = allocs[i];
 		pfree(mock_pop, &addr->ptr);
 		ASSERT(addr->ptr == 0);
 	}
 	ASSERT(count != 0);
-
 	FREE(allocs);
 }
 
@@ -117,6 +119,20 @@ test_malloc_free_loop(size_t size)
 		ASSERTeq(err, 0);
 		pfree(mock_pop, &addr->ptr);
 	}
+}
+
+void
+test_realloc(size_t org, size_t dest)
+{
+	int err;
+	err = pmalloc(mock_pop, &addr->ptr, org);
+	ASSERTeq(err, 0);
+	ASSERT(pmalloc_usable_size(mock_pop, addr->ptr) >= org);
+	err = prealloc(mock_pop, &addr->ptr, dest);
+	ASSERTeq(err, 0);
+	ASSERT(pmalloc_usable_size(mock_pop, addr->ptr) >= dest);
+	err = pfree(mock_pop, &addr->ptr);
+	ASSERTeq(err, 0);
 }
 
 void
@@ -150,8 +166,13 @@ test_mock_pool_allocs()
 	 * buckets covers basically all code paths except error cases.
 	 */
 	test_oom_allocs(TEST_HUGE_ALLOC_SIZE);
-	test_oom_allocs(TEST_SMALL_ALLOC_SIZE);
 	test_oom_allocs(TEST_TINY_ALLOC_SIZE);
+	test_oom_allocs(TEST_HUGE_ALLOC_SIZE);
+	test_oom_allocs(TEST_SMALL_ALLOC_SIZE);
+	test_oom_allocs(TEST_MEGA_ALLOC_SIZE);
+
+	test_realloc(TEST_SMALL_ALLOC_SIZE, TEST_MEDIUM_ALLOC_SIZE);
+	test_realloc(TEST_HUGE_ALLOC_SIZE, TEST_MEGA_ALLOC_SIZE);
 
 	FREE(addr);
 }

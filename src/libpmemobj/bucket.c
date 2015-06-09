@@ -48,21 +48,21 @@
 #include "out.h"
 #include "redo.h"
 #include "heap_layout.h"
+#include "heap.h"
 #include "bucket.h"
 #include "ctree.h"
-#include "heap.h"
 
 /*
  * The elements in the tree are sorted by the key and it's vital that the
  * order is by size, hence the order of the pack arguments.
  */
-#define	CHUNK_KEY_PACK(c, z, b, s)\
-((uint64_t)(s) << 48 | (uint64_t)(b) << 32 | (uint64_t)(z) << 16 | (c))
-
-#define	CHUNK_KEY_GET_CHUNK_ID(k)\
-((uint16_t)((k & 0xFFFF)))
+#define	CHUNK_KEY_PACK(z, c, b, s)\
+((uint64_t)(s) << 48 | (uint64_t)(b) << 32 | (uint64_t)(c) << 16 | (z))
 
 #define	CHUNK_KEY_GET_ZONE_ID(k)\
+((uint16_t)((k & 0xFFFF)))
+
+#define	CHUNK_KEY_GET_CHUNK_ID(k)\
 ((uint16_t)((k & 0xFFFF0000) >> 16))
 
 #define	CHUNK_KEY_GET_BLOCK_OFF(k)\
@@ -76,6 +76,9 @@ struct bucket {
 	int unit_max;
 	struct ctree *tree;
 	pthread_mutex_t lock;
+	uint64_t bitmap_lastval;
+	int bitmap_nval;
+	int bitmap_nallocs;
 };
 
 /*
@@ -102,6 +105,19 @@ bucket_new(size_t unit_size, int unit_max)
 	b->unit_size = unit_size;
 	b->unit_max = unit_max;
 
+	if (bucket_is_small(b)) {
+		b->bitmap_nallocs = RUNSIZE / unit_size;
+		int unused_bits = RUN_BITMAP_SIZE - b->bitmap_nallocs;
+		int unused_values = unused_bits / BITS_PER_VALUE;
+		b->bitmap_nval = MAX_BITMAP_VALUES - unused_values;
+		unused_bits -= (unused_values * BITS_PER_VALUE);
+		b->bitmap_lastval = (((1L << unused_bits) - 1L) <<
+					(BITS_PER_VALUE - unused_bits));
+	} else {
+		b->bitmap_nval = 0;
+		b->bitmap_lastval = 0;
+		b->bitmap_nallocs = 0;
+	}
 	return b;
 
 error_mutex_init:
@@ -113,7 +129,7 @@ error_bucket_malloc:
 }
 
 /*
- * bucket_delete -- cleanup and deallocate bucket instance
+ * bucket_delete -- cleanups and deallocates bucket instance
  */
 void
 bucket_delete(struct bucket *b)
@@ -123,6 +139,33 @@ bucket_delete(struct bucket *b)
 
 	ctree_delete(b->tree);
 	Free(b);
+}
+
+/*
+ * bucket_bitmap_nallocs -- returns maximum number of allocations per run
+ */
+int
+bucket_bitmap_nallocs(struct bucket *b)
+{
+	return b->bitmap_nallocs;
+}
+
+/*
+ * bucket_bitmap_nval -- returns maximum number of bitmap u64 values
+ */
+int
+bucket_bitmap_nval(struct bucket *b)
+{
+	return b->bitmap_nval;
+}
+
+/*
+ * bucket_bitmap_lastval -- returns the last value of an empty run bitmap
+ */
+uint64_t
+bucket_bitmap_lastval(struct bucket *b)
+{
+	return b->bitmap_lastval;
 }
 
 /*
@@ -166,33 +209,35 @@ bucket_calc_units(struct bucket *b, size_t size)
  * bucket_insert_block -- inserts a new memory block into the container
  */
 int
-bucket_insert_block(struct bucket *b, uint32_t chunk_id, uint32_t zone_id,
-	uint32_t size_idx, uint16_t block_off)
+bucket_insert_block(struct bucket *b, struct memory_block m)
 {
-	ASSERT(chunk_id < MAX_CHUNK);
-	ASSERT(zone_id < MAX_CHUNK);
-	ASSERT(size_idx < MAX_CHUNK);
+	ASSERT(m.chunk_id < MAX_CHUNK);
+	ASSERT(m.zone_id < UINT16_MAX);
+	ASSERT(m.size_idx != 0);
 
-	uint64_t key = CHUNK_KEY_PACK(chunk_id, zone_id, block_off, size_idx);
+	uint64_t key = CHUNK_KEY_PACK(m.zone_id, m.chunk_id, m.block_off,
+				m.size_idx);
 
 	return ctree_insert(b->tree, key);
 }
 
 /*
- * bucket_get_rm_block -- removes and returns the best-fit memory block for size
+ * bucket_get_rm_block_bestfit --
+ *	removes and returns the best-fit memory block for size
  */
 int
-bucket_get_rm_block_bestfit(struct bucket *b, uint32_t *chunk_id,
-	uint32_t *zone_id, uint32_t *size_idx, uint16_t *block_off)
+bucket_get_rm_block_bestfit(struct bucket *b, struct memory_block *m)
 {
-	uint64_t key = CHUNK_KEY_PACK(0, 0, 0, *size_idx);
+	uint64_t key = CHUNK_KEY_PACK(m->zone_id, m->chunk_id, m->block_off,
+			m->size_idx);
+
 	if ((key = ctree_remove(b->tree, key, 0)) == 0)
 		return ENOMEM;
 
-	*chunk_id = CHUNK_KEY_GET_CHUNK_ID(key);
-	*zone_id = CHUNK_KEY_GET_ZONE_ID(key);
-	*block_off = CHUNK_KEY_GET_BLOCK_OFF(key);
-	*size_idx = CHUNK_KEY_GET_SIZE_IDX(key);
+	m->chunk_id = CHUNK_KEY_GET_CHUNK_ID(key);
+	m->zone_id = CHUNK_KEY_GET_ZONE_ID(key);
+	m->block_off = CHUNK_KEY_GET_BLOCK_OFF(key);
+	m->size_idx = CHUNK_KEY_GET_SIZE_IDX(key);
 
 	return 0;
 }
@@ -200,10 +245,12 @@ bucket_get_rm_block_bestfit(struct bucket *b, uint32_t *chunk_id,
 /*
  * bucket_get_rm_block_exact -- removes exact match memory block
  */
-int bucket_get_rm_block_exact(struct bucket *b, uint32_t chunk_id,
-	uint32_t zone_id, uint32_t size_idx, uint16_t block_off)
+int
+bucket_get_rm_block_exact(struct bucket *b, struct memory_block m)
 {
-	uint64_t key = CHUNK_KEY_PACK(chunk_id, zone_id, block_off, size_idx);
+	uint64_t key = CHUNK_KEY_PACK(m.zone_id, m.chunk_id, m.block_off,
+			m.size_idx);
+
 	if ((key = ctree_remove(b->tree, key, 1)) == 0)
 		return ENOMEM;
 
@@ -225,7 +272,7 @@ bucket_is_empty(struct bucket *b)
 int
 bucket_lock(struct bucket *b)
 {
-	return pthread_mutex_lock(&b->lock);
+	return bucket_is_small(b) ? 0 : pthread_mutex_lock(&b->lock);
 }
 
 /*
@@ -234,6 +281,9 @@ bucket_lock(struct bucket *b)
 void
 bucket_unlock(struct bucket *b)
 {
+	if (bucket_is_small(b))
+		return;
+
 	if ((errno = pthread_mutex_unlock(&b->lock)) != 0)
 		ERR("!pthread_mutex_unlock");
 }

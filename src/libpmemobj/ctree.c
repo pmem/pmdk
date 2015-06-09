@@ -248,16 +248,16 @@ ctree_remove(struct ctree *t, uint64_t key, int eq)
 		goto out;
 	}
 
+	int asize = 0;
 	/* search again, but this time always go right */
-	while (k < key && (--psize) >= 0) {
+	while (k < key && (asize != psize)) {
 		d = 1;
-		p = path[psize];
+		p = path[asize++];
 		a = NODE_INTERNAL_GET(*p);
 		dst = &(a->slots[d]);
 		while (NODE_IS_INTERNAL(*dst)) {
 			a = NODE_INTERNAL_GET(*dst);
 			p = dst;
-			path[psize++] = p;
 			dst = &a->slots[(d = BIT_IS_SET(key, a->diff))];
 		}
 		k = **(uint64_t **)dst;
@@ -297,5 +297,15 @@ out:
 int
 ctree_is_empty(struct ctree *t)
 {
-	return t->root == NULL;
+	if ((errno = pthread_mutex_lock(&t->lock)) != 0) {
+		ERR("!pthread_mutex_lock");
+		return errno;
+	}
+
+	int ret = t->root == NULL;
+
+	if ((errno = pthread_mutex_unlock(&t->lock)) != 0)
+		ERR("!pthread_mutex_unlock");
+
+	return ret;
 }

@@ -139,7 +139,8 @@ TEST = blk_nblock\
        obj_debug\
        obj_recovery\
        out_err\
-       out_err_mt
+       out_err_mt\
+       obj_pmalloc_mt
 
 all     : TARGET = all
 clean   : TARGET = clean

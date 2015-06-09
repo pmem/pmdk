@@ -41,23 +41,35 @@ enum heap_op {
 	MAX_HEAP_OP
 };
 
-struct bucket *heap_get_best_bucket(PMEMobjpool *pop, size_t size);
+struct memory_block {
+	uint32_t chunk_id;
+	uint32_t zone_id;
+	uint32_t size_idx;
+	uint16_t block_off;
+};
+
+struct bucket *heap_get_best_bucket(PMEMobjpool *pop, size_t size,
+	int populated);
 struct bucket *heap_get_default_bucket(PMEMobjpool *pop);
-void *heap_get_block_header(PMEMobjpool *pop, uint32_t chunk_id,
-	uint32_t zone_id, uint32_t size_idx, uint16_t block_off,
+void *heap_get_block_data(PMEMobjpool *pop, struct memory_block m);
+void *heap_get_block_header(PMEMobjpool *pop, struct memory_block m,
 	enum heap_op op, uint64_t *op_result);
-void *heap_get_block_data(PMEMobjpool *pop,
-	uint32_t chunk_id, uint32_t zone_id, uint16_t block_off);
-struct chunk_header *heap_coalesce(PMEMobjpool *pop,
-	struct chunk_header *chunks[], int n);
-struct chunk_header *heap_get_prev_chunk(PMEMobjpool *pop,
-	uint32_t *chunk_id, uint32_t zone_id);
-struct chunk_header *heap_get_next_chunk(PMEMobjpool *pop,
-	uint32_t *chunk_id, uint32_t zone_id);
+struct memory_block heap_coalesce(PMEMobjpool *pop,
+	struct memory_block *blocks[], int n, enum heap_op op,
+	void **hdr, uint64_t *op_result);
 
-int heap_lock_if_run(PMEMobjpool *pop, uint32_t chunk_id, uint32_t zone_id);
-int heap_unlock_if_run(PMEMobjpool *pop, uint32_t chunk_id, uint32_t zone_id);
+int heap_get_adjacent_free_block(PMEMobjpool *pop, struct memory_block *m,
+	struct memory_block cnt, int prev);
 
-int heap_get_block_from_bucket(PMEMobjpool *pop, struct bucket *b,
-	uint32_t *chunk_id, uint32_t *zone_id, uint32_t size_idx,
-	uint16_t *block_off);
+int heap_lock_if_run(PMEMobjpool *pop, struct memory_block m);
+int heap_unlock_if_run(PMEMobjpool *pop, struct memory_block m);
+
+int heap_get_bestfit_block(PMEMobjpool *pop, struct bucket *b,
+	struct memory_block *m);
+int heap_get_exact_block(PMEMobjpool *pop, struct bucket *b,
+	struct memory_block *m, uint32_t new_size_idx);
+int heap_degrade_run_if_empty(PMEMobjpool *pop, struct bucket *b,
+	struct memory_block m);
+
+struct memory_block heap_free_block(PMEMobjpool *pop, struct bucket *b,
+	struct memory_block m, void *hdr, uint64_t *op_result);
