@@ -33,15 +33,21 @@
 #
 # examples/libpmemobj/pminvaders/Makefile -- build the non-tx example
 #
+
+NCURSES := $(shell pkg-config ncurses && echo "y" || echo "n")
+ifeq ($(NCURSES),y)
 PROGS = pminvaders
+endif
 
 INCDIR ?= ../../../include
 LIBDIR ?= ../../../debug
 
 INCS = -I$(INCDIR)
-LIBS = -Wl,-rpath=$(LIBDIR) -L$(LIBDIR) -lpmemobj -lpmem -pthread -lncurses
+LIBS = -Wl,-rpath=$(LIBDIR) -L$(LIBDIR) -lpmemobj -lpmem -pthread
+LIBS+= $(shell pkg-config --libs ncurses)
 CFLAGS = -std=gnu99 -ggdb -Wall -Werror
 CSTYLE = ../../../../utils/cstyle
+
 
 all:     TARGET = all
 clean:   TARGET = clean
