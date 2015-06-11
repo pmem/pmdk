@@ -231,14 +231,14 @@ lane_recover(PMEMobjpool *pop)
 	int section_err;
 	int i; /* lane index */
 	int j; /* section index */
-	struct lane_layout *layout = NULL;
+	struct lane_layout *layout;
 
 	FOREACH_LANE_SECTION(pop, layout, i, j) {
 		section_err = section_ops[j]->recover(pop,
 				&layout->sections[j]);
-		if (section_err != 0) {
+		if (section_err) {
 			LOG(1, "!section_ops->recover %d %d %d",
-				i, j, section_err);
+					i, j, section_err);
 			err = section_err;
 		}
 	}
@@ -252,23 +252,23 @@ lane_recover(PMEMobjpool *pop)
 int
 lane_check(PMEMobjpool *pop)
 {
-	int ret = 1;
-	int section_ret;
+	int err = 0;
+	int section_err;
 	int i; /* lane index */
 	int j; /* section index */
-	struct lane_layout *layout = NULL;
+	struct lane_layout *layout;
 
 	FOREACH_LANE_SECTION(pop, layout, i, j) {
-		section_ret = section_ops[j]->check(pop,
+		section_err = section_ops[j]->check(pop,
 				&layout->sections[j]);
-		if (section_ret != 1) {
+		if (section_err) {
 			LOG(1, "!section_ops->check %d %d %d",
-				i, j, section_ret);
-			ret = section_ret;
+					i, j, section_err);
+			err = section_err;
 		}
 	}
 
-	return ret;
+	return err;
 }
 
 /*

@@ -55,7 +55,7 @@
 #define	OBJ_LANES_OFFSET	8192	/* lanes offset (8kB) */
 #define	OBJ_NLANES		1024	/* number of lanes */
 
-#define	OBJ_OOB_OFFSET		(sizeof (struct oob_header))
+#define	OBJ_OOB_SIZE		(sizeof (struct oob_header))
 #define	OBJ_OFF_TO_PTR(pop, off) ((void *)((uintptr_t)(pop) + (off)))
 #define	OBJ_PTR_TO_OFF(pop, ptr) ((uintptr_t)(ptr) - (uintptr_t)(pop))
 #define	OBJ_OID_IS_NULL(oid)	((oid).off == 0)
@@ -66,13 +66,13 @@
 
 
 #define	OOB_HEADER_FROM_OID(pop, oid)\
-	((struct oob_header *)((uintptr_t)(pop) + (oid).off - OBJ_OOB_OFFSET))
+	((struct oob_header *)((uintptr_t)(pop) + (oid).off - OBJ_OOB_SIZE))
 
 #define	OOB_HEADER_FROM_PTR(ptr)\
-	((struct oob_header *)((uintptr_t)(ptr) - OBJ_OOB_OFFSET))
+	((struct oob_header *)((uintptr_t)(ptr) - OBJ_OOB_SIZE))
 
 #define	OOB_OFFSET_OF(oid, field)\
-	((oid).off - OBJ_OOB_OFFSET + offsetof(struct oob_header, field))
+	((oid).off - OBJ_OOB_SIZE + offsetof(struct oob_header, field))
 
 typedef void (*persist_fn)(void *, size_t);
 typedef void (*flush_fn)(void *, size_t);

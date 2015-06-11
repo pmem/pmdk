@@ -130,6 +130,8 @@ TEST = blk_nblock\
        obj_tx_add_range_direct\
        obj_tx_strdup\
        obj_tx_realloc\
+       obj_tx_locks\
+       obj_tx_locks_abort\
        obj_ctree\
        obj_bucket\
        obj_heap\
