@@ -1879,7 +1879,7 @@ pmempool_check_single_step(struct pmempool_check *pcp,
 static check_result_t
 pmempool_check_all_steps(struct pmempool_check *pcp)
 {
-	if (pcp->repair && pcp->backup) {
+	if (pcp->repair && pcp->backup && pcp->exec) {
 		if (pmempool_check_create_backup(pcp)) {
 			out_err("unable to create backup file\n");
 			return -1;
