@@ -155,7 +155,6 @@ struct pmem_blk_stats {
 static const struct option long_options[] = {
 	{"version",	no_argument,		0,	'V'},
 	{"help",	no_argument,		0,	'?'},
-	{"verbose",	no_argument,		0,	'v'},
 	{"human",	no_argument,		0,	'h'},
 	{"force",	required_argument,	0,	'f'},
 	{"skip-zeros",	no_argument,		0,	'z'},
@@ -185,7 +184,6 @@ static const char *help_str =
 "  -d, --data           dump log data and blocks\n"
 "  -s, --stats          print statistics\n"
 "  -r, --range <range>  range of blocks/chunks to dump\n"
-"  -v, --verbose        increase verbosity level\n"
 "  -V, --version        display version and exit\n"
 "  -?, --help           display this help and exit\n"
 "\n"
@@ -251,7 +249,7 @@ parse_args(char *appname, int argc, char *argv[],
 		return -1;
 	}
 
-	while ((opt = getopt_long(argc, argv, "hvf:ezuF:L:c:dmxV?w:gBsr:",
+	while ((opt = getopt_long(argc, argv, "hf:ezuF:L:c:dmxV?w:gBsr:",
 				long_options, &option_index)) != -1) {
 		switch (opt) {
 		case 'V':
@@ -264,9 +262,6 @@ parse_args(char *appname, int argc, char *argv[],
 			}
 			print_usage(appname);
 			exit(EXIT_FAILURE);
-		case 'v':
-			argsp->vlevel = VERBOSE_MAX;
-			break;
 		case 'h':
 			argsp->human = true;
 			break;
@@ -569,9 +564,6 @@ pmempool_info_log(struct pmem_info *pip, int v)
 	outv_field(v, "Write offset", "0x%lx [%s]", plp->write_offset,
 			write_offset_valid ? "OK":"ERROR");
 	outv_field(v, "End offset", "0x%lx", plp->end_offset);
-	outv_field(v + 1, "Mapped size", "0x%lx", plp->size);
-	outv_field(v + 1, "is_pmem", "%s", plp->is_pmem ? "True" : "False");
-	outv_field(v + 1, "Read-only", "%s", plp->rdonly ? "True" : "False");
 
 	if (write_offset_valid) {
 		pmempool_info_log_stats(pip, pip->args.vstats, plp);
@@ -1035,14 +1027,7 @@ pmempool_info_blk(struct pmem_info *pip, int v)
 		sizeof (*pbp) - sizeof (pbp->hdr), sizeof (pbp->hdr), 1);
 	outv_field(v, "Block size", "%s",
 			out_get_size_str(pbp->bsize, pip->args.human));
-	outv_field(v + 1, "is_pmem", "%s", pbp->is_pmem ? "True" : "False");
-	outv_field(v + 1, "Read-only", "%s", pbp->rdonly ? "True" : "False");
-	outv_field(v + 1, "Data size", "%s",
-			out_get_size_str(pbp->datasize, pip->args.human));
-	outv_field(v + 1, "Number of LBAs", "%ld", pbp->nlba);
-	outv_field(v + 1, "Number of lanes", "%d", pbp->nlane);
-	outv_field(v + 1, "Next lane", "%u", pbp->next_lane);
-	outv_field(v + 1, "Data offset", "0x%x", pbp->data - pbp->addr);
+	outv_field(v, "Is zeroed", pbp->is_zeroed ? "true" : "false");
 
 	ssize_t btt_off = pbp->data - pbp->addr;
 	ret = pmempool_info_btt_layout(pip, pbp, btt_off);

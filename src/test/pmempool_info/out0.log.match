@@ -10,5 +10,6 @@ Checksum                 : $(*) [OK]
 
 PMEM BLK Header:
 Block size               : $(*)
+Is zeroed                : $(*)
 
 <No BTT layout>
