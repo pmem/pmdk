@@ -335,7 +335,7 @@ static const struct option long_options[] = {
 static void
 print_usage(char *appname)
 {
-	printf("Usage: %s check [<args>] <blk|log> <file>\n", appname);
+	printf("Usage: %s check [<args>] <file>\n", appname);
 }
 
 /*
