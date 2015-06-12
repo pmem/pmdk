@@ -37,7 +37,7 @@
 .\" or
 .\"	groff -man -Tascii libpmemobj.3
 .\"
-.TH libpmemobj 3 "pmemobj API version 0.4.3" "NVM Library"
+.TH libpmemobj 3 "pmemobj API version 0.4.4" "NVM Library"
 .SH NAME
 libpmemobj \- persistent memory transactional object store
 .SH SYNOPSIS
@@ -367,6 +367,9 @@ The layout name, including the null termination, cannot be longer than
 .B PMEMOBJ_MAX_LAYOUT
 as defined in
 .BR <libpmemobj.h> .
+It is allowed to pass NULL as
+.IR layout ,
+which is equivalent for using an empty string as a layout name.
 .I mode
 specifies the permissions to use when creating the file
 as described by
