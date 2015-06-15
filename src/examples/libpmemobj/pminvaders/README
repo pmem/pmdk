@@ -21,3 +21,5 @@ This game demonstrates the usage of the very basics of the pmemobj library,
 that includes the pool management (open/create/close), type-safety macros,
 non-transactional allocations and internal collections.
 
+If you want to run this demo on non-pmem storage, set the PMEM_IS_PMEM_FORCE
+environment variable, so that the library does not issue msync calls.

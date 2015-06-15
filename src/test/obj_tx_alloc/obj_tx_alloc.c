@@ -93,7 +93,7 @@ do_tx_alloc_oom(PMEMobjpool *pop)
 
 	size_t bitmap_size = howmany(alloc_cnt, 8);
 	char *bitmap = malloc(bitmap_size);
-	memset(bitmap, 0, bitmap_size);
+	pmemobj_memset_persist(pop, bitmap, 0, bitmap_size);
 
 	size_t obj_cnt = 0;
 	OID_TYPE(struct object) i;

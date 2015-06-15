@@ -56,6 +56,14 @@ libpmemobj \- persistent memory transactional object store
 .BI "    int " replica_index ", int " nreplica );
 .BI "void pmemobj_close(PMEMobjpool *" pop );
 .sp
+.B Low-level memory manipulation:
+.sp
+.BI "void *pmemobj_memcpy_persist(PMEMobjpool *" pop ", void *" dest ", const void *" src ", size_t " len );
+.BI "void *pmemobj_memset_persist(PMEMobjpool *" pop ", void *" dest ", int " c ", size_t " len );
+.BI "void pmemobj_persist(PMEMobjpool *" pop ", void *" addr ", size_t " len );
+.BI "void pmemobj_flush(PMEMobjpool *" pop ", void *" addr ", size_t " len );
+.BI "void pmemobj_drain(PMEMobjpool *" pop );
+.sp
 .B Locking:
 .sp
 .BI "void pmemobj_mutex_zero(PMEMobjpool *" pop ", PMEMmutex *" mutexp );
@@ -405,6 +413,117 @@ itself lives on in the file that contains it and may be re-opened
 at a later time using
 .BR pmemobj_open ()
 as described above.
+.SH LOW-LEVEL MEMORY MANIPULATION
+.PP
+The
+.B libpmemobj
+specific low-level memory manipulation functions leverage the knowledge
+of the additional configuration options available for
+.B libpmemobj
+pools, such as replication.  They also take advantage of the type of storage
+behind the pool and use appropriate flush/drain functions.  It is advised
+to use these functions in conjunction with
+.B libpmemobj
+objects, instead of using low-level memory manipulations functions from
+.BR libpmem .
+.PP
+.BI "void pmemobj_persist(PMEMobjpool *" pop ", void *" addr ", size_t " len );
+.IP
+Forces any changes in the range
+.IR "" [ addr ", " addr + len )
+to be stored
+durably in persistent memory.  Internally this may call either
+.BR pmem_msync ()
+or
+.BR pmem_persist ().
+There are no alignment restrictions on
+the range described by
+.I addr
+and
+.IR len ,
+but
+.BR pmemobj_persist ()
+may expand the range as necessary
+to meet platform alignment requirements.
+.IP
+WARNING: Like
+.BR msync (2),
+there is nothing
+atomic or transactional about this call.  Any
+unwritten stores in the given range will be written,
+but some stores may have already been written by
+virtue of normal cache eviction/replacement policies.
+Correctly written code must not depend on stores
+waiting until
+.BR pmemobj_persist ()
+is called to become
+persistent -- they can become persistent at any time
+before
+.BR pmemobj_persist ()
+is called.
+.PP
+.BI "void pmemobj_flush(PMEMobjpool *" pop ", void *" addr ", size_t " len );
+.br
+.BI "void pmemobj_drain(PMEMobjpool *" pop );
+.IP
+These functions provide partial versions of the
+.BR pmemobj_persist ()
+function described above.
+.BR pmemobj_persist ()
+can be thought of as this:
+.IP
+.nf
+void
+pmemobj_persist(PMEMobjpool *" pop ", void *addr, size_t len)
+{
+    /* flush the processor caches */
+    pmemobj_flush(pop, addr, len);
+
+    /* wait for any pmem stores to drain from HW buffers */
+    pmemobj_drain(pop);
+}
+.fi
+.IP
+These functions allow advanced programs to create their
+own variations of
+.BR pmemobj_persist ().
+For example, a program
+that needs to flush several discontiguous ranges can call
+.BR pmemobj_flush ()
+for each range and then follow up by
+calling
+.BR pmemobj_drain ()
+once.  For more information on partial flushing operations see the
+.B libpmem
+manpage.
+.PP
+.BI "void *pmemobj_memcpy_persist(PMEMobjpool *" pop ", void *" dest ", const void *" src ", size_t " len );
+.br
+.BI "void *pmemobj_memset_persist(PMEMobjpool *" pop ", void *" dest ", int " c ", size_t " len );
+.IP
+The
+.BR pmemobj_memcpy_persist (),
+and
+.BR pmemobj_memset_persist (),
+functions provide the same memory copying as their namesakes
+.BR memcpy (3),
+and
+.BR memset (3),
+and ensure that the result has been flushed to persistence before
+returning.  For example, the following code is functionally equivalent to
+.BR pmemobj_memcpy_persist ():
+.IP
+.nf
+void *
+pmemobj_memcpy_persist(PMEMobjpool *pop, void *dest, const void *src, size_t len)
+{
+    void *retval = memcpy(pop, dest, src, len);
+
+    pmemobj_persist(pop, dest, len);
+
+    return retval;
+}
+.fi
 .SH POOL SETS AND REPLICAS
 .PP
 Depending on the configuration of the system, the available space of
@@ -523,6 +642,7 @@ pmemobj_create_part("/mountpoint3/mymirror.part0", "mylayout",
 pmemobj_create_part("/mountpoint4/mymirror.part1", "mylayout",
                         200 * SZ_1G, 0666, 1, 2, 1, 2);
 .fi
+
 .SH LOCKING
 .PP
 .B libpmemobj

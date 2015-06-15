@@ -286,6 +286,41 @@ PMEMoid pmemobj_root(PMEMobjpool *pop, size_t size);
 size_t pmemobj_root_size(PMEMobjpool *pop);
 
 /*
+ * Pmemobj specific low-level memory manipulation functions.
+ *
+ * These functions are meant to be used with pmemobj pools, because they provide
+ * additional functionality specific to this type of pool. These may include
+ * for example replication support. They also take advantage of the knowledge
+ * of the type of memory in the pool (pmem/non-pmem) to assure persistence.
+ */
+
+/*
+ * Pmemobj version of memcpy. Data copied is made persistent.
+ */
+void *pmemobj_memcpy_persist(PMEMobjpool *pop, void *dest, const void *src,
+	size_t len);
+
+/*
+ * Pmemobj version of memset. Data range set is made persistent.
+ */
+void *pmemobj_memset_persist(PMEMobjpool *pop, void *dest, int c, size_t len);
+
+/*
+ * Pmemobj version of pmem_persist.
+ */
+void pmemobj_persist(PMEMobjpool *pop, void *addr, size_t len);
+
+/*
+ * Pmemobj version of pmem_flush.
+ */
+void pmemobj_flush(PMEMobjpool *pop, void *addr, size_t len);
+
+/*
+ * Pmemobj version of pmem_drain.
+ */
+void pmemobj_drain(PMEMobjpool *pop);
+
+/*
  * The following set of macros and functions allow access to the entire
  * collection of objects, or objects of given type.
  *

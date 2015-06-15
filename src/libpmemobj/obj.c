@@ -861,6 +861,52 @@ pmemobj_alloc_usable_size(PMEMoid oid)
 								OBJ_OOB_OFFSET);
 }
 
+/*
+ * pmemobj_memcpy_persist -- pmemobj version of memcpy
+ */
+void *
+pmemobj_memcpy_persist(PMEMobjpool *pop, void *dest, const void *src,
+	size_t len)
+{
+	return pop->memcpy_persist(dest, src, len);
+}
+
+/*
+ * pmemobj_memset_persist -- pmemobj version of memset
+ */
+void *
+pmemobj_memset_persist(PMEMobjpool *pop, void *dest, int c, size_t len)
+{
+	return pop->memset_persist(dest, c, len);
+}
+
+/*
+ * pmemobj_persist -- pmemobj version of pmem_persist
+ */
+void
+pmemobj_persist(PMEMobjpool *pop, void *addr, size_t len)
+{
+	pop->persist(addr, len);
+}
+
+/*
+ * pmemobj_flush -- pmemobj version of pmem_flush
+ */
+void
+pmemobj_flush(PMEMobjpool *pop, void *addr, size_t len)
+{
+	pop->flush(addr, len);
+}
+
+/*
+ * pmemobj_drain -- pmemobj version of pmem_drain
+ */
+void
+pmemobj_drain(PMEMobjpool *pop)
+{
+	pop->drain();
+}
+
 /* arguments for constructor_alloc_root */
 struct carg_root {
 	PMEMobjpool *pop; /* saved to call pop->persist */
