@@ -200,8 +200,9 @@ test_tx_api(PMEMobjpool *pop)
 		TX_ADD(root);
 		D_RW(root)->value = *vstate;
 		D_RW(root)->node = TX_ZNEW(struct dummy_node);
-		TX_MEMSET(D_RW(root)->node, teststr, 'a', TEST_STR_LEN);
-		TX_MEMCPY(D_RW(root)->node, teststr, TEST_STR, TEST_STR_LEN);
+		TX_MEMSET(D_RW(D_RW(root)->node)->teststr, 'a', TEST_STR_LEN);
+		TX_MEMCPY(D_RW(D_RW(root)->node)->teststr, TEST_STR,
+			TEST_STR_LEN);
 		TX_SET(D_RW(root)->node, value, TEST_VALUE);
 	} TX_FINALLY {
 		FREE(vstate);
