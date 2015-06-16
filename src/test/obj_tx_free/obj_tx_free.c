@@ -61,6 +61,7 @@ enum type_number {
 	TYPE_FREE_ALLOC,
 };
 
+TOID_DECLARE(struct object, 0);
 
 struct object {
 	size_t value;
@@ -94,9 +95,9 @@ do_tx_free_no_tx(PMEMobjpool *pop)
 	ret = pmemobj_tx_free(oid);
 	ASSERTne(ret, 0);
 
-	OID_TYPE(struct object) obj;
-	OID_ASSIGN(obj, pmemobj_first(pop, TYPE_FREE_NO_TX));
-	ASSERT(!OID_IS_NULL(obj));
+	TOID(struct object) obj;
+	TOID_ASSIGN(obj, pmemobj_first(pop, TYPE_FREE_NO_TX));
+	ASSERT(!TOID_IS_NULL(obj));
 }
 
 /*
@@ -118,9 +119,9 @@ do_tx_free_wrong_uuid(PMEMobjpool *pop)
 
 	ASSERTeq(ret, -1);
 
-	OID_TYPE(struct object) obj;
-	OID_ASSIGN(obj, pmemobj_first(pop, TYPE_FREE_WRONG_UUID));
-	ASSERT(!OID_IS_NULL(obj));
+	TOID(struct object) obj;
+	TOID_ASSIGN(obj, pmemobj_first(pop, TYPE_FREE_WRONG_UUID));
+	ASSERT(!TOID_IS_NULL(obj));
 }
 
 /*
@@ -157,9 +158,9 @@ do_tx_free_commit(PMEMobjpool *pop)
 		ASSERT(0);
 	} TX_END
 
-	OID_TYPE(struct object) obj;
-	OID_ASSIGN(obj, pmemobj_first(pop, TYPE_FREE_COMMIT));
-	ASSERT(OID_IS_NULL(obj));
+	TOID(struct object) obj;
+	TOID_ASSIGN(obj, pmemobj_first(pop, TYPE_FREE_COMMIT));
+	ASSERT(TOID_IS_NULL(obj));
 }
 
 /*
@@ -180,9 +181,9 @@ do_tx_free_abort(PMEMobjpool *pop)
 		ASSERT(0);
 	} TX_END
 
-	OID_TYPE(struct object) obj;
-	OID_ASSIGN(obj, pmemobj_first(pop, TYPE_FREE_ABORT));
-	ASSERT(!OID_IS_NULL(obj));
+	TOID(struct object) obj;
+	TOID_ASSIGN(obj, pmemobj_first(pop, TYPE_FREE_ABORT));
+	ASSERT(!TOID_IS_NULL(obj));
 }
 
 /*
@@ -210,13 +211,13 @@ do_tx_free_commit_nested(PMEMobjpool *pop)
 		ASSERT(0);
 	} TX_END
 
-	OID_TYPE(struct object) obj;
+	TOID(struct object) obj;
 
-	OID_ASSIGN(obj, pmemobj_first(pop, TYPE_FREE_COMMIT_NESTED1));
-	ASSERT(OID_IS_NULL(obj));
+	TOID_ASSIGN(obj, pmemobj_first(pop, TYPE_FREE_COMMIT_NESTED1));
+	ASSERT(TOID_IS_NULL(obj));
 
-	OID_ASSIGN(obj, pmemobj_first(pop, TYPE_FREE_COMMIT_NESTED2));
-	ASSERT(OID_IS_NULL(obj));
+	TOID_ASSIGN(obj, pmemobj_first(pop, TYPE_FREE_COMMIT_NESTED2));
+	ASSERT(TOID_IS_NULL(obj));
 }
 
 /*
@@ -245,13 +246,13 @@ do_tx_free_abort_nested(PMEMobjpool *pop)
 		ASSERT(0);
 	} TX_END
 
-	OID_TYPE(struct object) obj;
+	TOID(struct object) obj;
 
-	OID_ASSIGN(obj, pmemobj_first(pop, TYPE_FREE_ABORT_NESTED1));
-	ASSERT(!OID_IS_NULL(obj));
+	TOID_ASSIGN(obj, pmemobj_first(pop, TYPE_FREE_ABORT_NESTED1));
+	ASSERT(!TOID_IS_NULL(obj));
 
-	OID_ASSIGN(obj, pmemobj_first(pop, TYPE_FREE_ABORT_NESTED2));
-	ASSERT(!OID_IS_NULL(obj));
+	TOID_ASSIGN(obj, pmemobj_first(pop, TYPE_FREE_ABORT_NESTED2));
+	ASSERT(!TOID_IS_NULL(obj));
 }
 
 /*
@@ -279,13 +280,13 @@ do_tx_free_abort_after_nested(PMEMobjpool *pop)
 		ASSERT(0);
 	} TX_END
 
-	OID_TYPE(struct object) obj;
+	TOID(struct object) obj;
 
-	OID_ASSIGN(obj, pmemobj_first(pop, TYPE_FREE_ABORT_AFTER_NESTED1));
-	ASSERT(!OID_IS_NULL(obj));
+	TOID_ASSIGN(obj, pmemobj_first(pop, TYPE_FREE_ABORT_AFTER_NESTED1));
+	ASSERT(!TOID_IS_NULL(obj));
 
-	OID_ASSIGN(obj, pmemobj_first(pop, TYPE_FREE_ABORT_AFTER_NESTED2));
-	ASSERT(!OID_IS_NULL(obj));
+	TOID_ASSIGN(obj, pmemobj_first(pop, TYPE_FREE_ABORT_AFTER_NESTED2));
+	ASSERT(!TOID_IS_NULL(obj));
 }
 
 /*
@@ -314,9 +315,9 @@ do_tx_free_oom(PMEMobjpool *pop)
 
 	ASSERTeq(alloc_cnt, free_cnt);
 
-	OID_TYPE(struct object) obj;
-	OID_ASSIGN(obj, pmemobj_first(pop, TYPE_FREE_OOM));
-	ASSERT(OID_IS_NULL(obj));
+	TOID(struct object) obj;
+	TOID_ASSIGN(obj, pmemobj_first(pop, TYPE_FREE_OOM));
+	ASSERT(TOID_IS_NULL(obj));
 }
 
 /*
@@ -327,12 +328,12 @@ static void
 do_tx_free_alloc_abort(PMEMobjpool *pop)
 {
 	int ret;
-	OID_TYPE(struct object) obj;
+	TOID(struct object) obj;
 
 	TX_BEGIN(pop) {
-		OID_ASSIGN(obj, pmemobj_tx_alloc(
+		TOID_ASSIGN(obj, pmemobj_tx_alloc(
 				sizeof (struct object), TYPE_FREE_ALLOC));
-		ASSERT(!OID_IS_NULL(obj));
+		ASSERT(!TOID_IS_NULL(obj));
 		ret = pmemobj_tx_free(obj.oid);
 		ASSERTeq(ret, 0);
 		pmemobj_tx_abort(-1);
@@ -340,8 +341,8 @@ do_tx_free_alloc_abort(PMEMobjpool *pop)
 		ASSERT(0);
 	} TX_END
 
-	OID_ASSIGN(obj, pmemobj_first(pop, TYPE_FREE_ALLOC));
-	ASSERT(OID_IS_NULL(obj));
+	TOID_ASSIGN(obj, pmemobj_first(pop, TYPE_FREE_ALLOC));
+	ASSERT(TOID_IS_NULL(obj));
 }
 
 /*
@@ -352,20 +353,20 @@ static void
 do_tx_free_alloc_commit(PMEMobjpool *pop)
 {
 	int ret;
-	OID_TYPE(struct object) obj;
+	TOID(struct object) obj;
 
 	TX_BEGIN(pop) {
-		OID_ASSIGN(obj, pmemobj_tx_alloc(
+		TOID_ASSIGN(obj, pmemobj_tx_alloc(
 				sizeof (struct object), TYPE_FREE_ALLOC));
-		ASSERT(!OID_IS_NULL(obj));
+		ASSERT(!TOID_IS_NULL(obj));
 		ret = pmemobj_tx_free(obj.oid);
 		ASSERTeq(ret, 0);
 	} TX_ONABORT {
 		ASSERT(0);
 	} TX_END
 
-	OID_ASSIGN(obj, pmemobj_first(pop, TYPE_FREE_ALLOC));
-	ASSERT(OID_IS_NULL(obj));
+	TOID_ASSIGN(obj, pmemobj_first(pop, TYPE_FREE_ALLOC));
+	ASSERT(TOID_IS_NULL(obj));
 }
 
 int

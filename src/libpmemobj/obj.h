@@ -60,6 +60,10 @@
 #define	OBJ_PTR_TO_OFF(pop, ptr) ((uintptr_t)(ptr) - (uintptr_t)(pop))
 #define	OBJ_OID_IS_NULL(oid)	((oid).off == 0)
 #define	OBJ_LIST_EMPTY(head)	OBJ_OID_IS_NULL((head)->pe_first)
+#define	OBJ_PTR_IS_VALID(pop, ptr)\
+	(OBJ_PTR_TO_OFF(pop, ptr) >= (pop)->heap_offset &&\
+	OBJ_PTR_TO_OFF(pop, ptr) < (pop)->heap_offset + (pop)->heap_size)
+
 
 #define	OOB_HEADER_FROM_OID(pop, oid)\
 	((struct oob_header *)((uintptr_t)(pop) + (oid).off - OBJ_OOB_OFFSET))

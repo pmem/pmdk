@@ -45,7 +45,10 @@
 #include "libpmemobj.h"
 
 #define	LAYOUT_NAME "layout_obj_debug"
-#define	TYPE 0
+
+TOID_DECLARE_ROOT(struct root);
+TOID_DECLARE(struct tobj, 0);
+TOID_DECLARE(struct int3_s, 1);
 
 struct root {
 	PLIST_HEAD(listhead, struct tobj) lhead, lhead2;
@@ -67,16 +70,16 @@ test_FOREACH(const char *path)
 {
 	PMEMobjpool *pop = NULL;
 	PMEMoid varoid, nvaroid;
-	OID_TYPE(struct root) root;
-	OID_TYPE(struct tobj) var, nvar;
+	TOID(struct root) root;
+	TOID(struct tobj) var, nvar;
 	int type = 0;
 
 #define	COMMANDS_FOREACH()\
 	do {\
 	POBJ_FOREACH(pop, varoid, type) {}\
 	POBJ_FOREACH_SAFE(pop, varoid, nvaroid, type) {}\
-	POBJ_FOREACH_TYPE(pop, var, type) {}\
-	POBJ_FOREACH_SAFE_TYPE(pop, var, nvar, type) {}\
+	POBJ_FOREACH_TYPE(pop, var) {}\
+	POBJ_FOREACH_SAFE_TYPE(pop, var, nvar) {}\
 	POBJ_LIST_FOREACH(var, &D_RW(root)->lhead, next) {}\
 	POBJ_LIST_FOREACH_REVERSE(var, &D_RW(root)->lhead, next) {}\
 	} while (0)
@@ -86,8 +89,9 @@ test_FOREACH(const char *path)
 					S_IRWXU)) == NULL)
 		FATAL("!pmemobj_create: %s", path);
 
-	OID_ASSIGN(root, pmemobj_root(pop, sizeof (struct root)));
-	POBJ_LIST_INSERT_NEW_HEAD(pop, &D_RW(root)->lhead, 0, next, NULL, NULL);
+	TOID_ASSIGN(root, pmemobj_root(pop, sizeof (struct root)));
+	POBJ_LIST_INSERT_NEW_HEAD(pop, &D_RW(root)->lhead, next,
+			sizeof (struct tobj), NULL, NULL);
 
 	COMMANDS_FOREACH();
 	TX_BEGIN(pop) {
@@ -104,20 +108,20 @@ void
 test_lists(const char *path)
 {
 	PMEMobjpool *pop = NULL;
-	OID_TYPE(struct root) root;
-	OID_TYPE(struct tobj) elm;
+	TOID(struct root) root;
+	TOID(struct tobj) elm;
 
 #define	COMMANDS_LISTS()\
 	do {\
-	POBJ_LIST_INSERT_NEW_HEAD(pop, &D_RW(root)->lhead, TYPE, next,\
-			NULL, NULL);\
-	OID_ASSIGN(elm, pmemobj_alloc(pop, sizeof (struct tobj), TYPE));\
+	POBJ_LIST_INSERT_NEW_HEAD(pop, &D_RW(root)->lhead, next,\
+			sizeof (struct tobj), NULL, NULL);\
+	POBJ_NEW(pop, &elm, struct tobj, NULL, NULL);\
 	POBJ_LIST_INSERT_AFTER(pop, &D_RW(root)->lhead,\
 			POBJ_LIST_FIRST(&D_RW(root)->lhead), elm, next);\
 	POBJ_LIST_MOVE_ELEMENT_HEAD(pop, &D_RW(root)->lhead,\
 			&D_RW(root)->lhead2, elm, next, next);\
 	POBJ_LIST_REMOVE(pop, &D_RW(root)->lhead2, elm, next);\
-	pmemobj_free(elm.oid);\
+	POBJ_FREE(&elm);\
 	} while (0)
 
 	if ((pop = pmemobj_create(path, LAYOUT_NAME,
@@ -125,7 +129,7 @@ test_lists(const char *path)
 					S_IRWXU)) == NULL)
 		FATAL("!pmemobj_create: %s", path);
 
-	OID_ASSIGN(root, pmemobj_root(pop, sizeof (struct root)));
+	TOID_ASSIGN(root, pmemobj_root(pop, sizeof (struct root)));
 
 	COMMANDS_LISTS();
 	TX_BEGIN(pop) {
@@ -142,8 +146,8 @@ void
 test_add_range(const char *path)
 {
 	PMEMobjpool *pop = NULL;
-	OID_TYPE(struct root) root;
-	OID_TYPE(struct int3_s) obj;
+	TOID(struct root) root;
+	TOID(struct int3_s) obj;
 
 #define	ANY_VALUE 0
 #define	COMMANDS_ADD_RANGE()\
@@ -159,8 +163,8 @@ test_add_range(const char *path)
 					S_IRWXU)) == NULL)
 			FATAL("!pmemobj_create: %s", path);
 
-	OID_ASSIGN(root, pmemobj_root(pop, sizeof (struct root)));
-	OID_ASSIGN(obj, pmemobj_alloc(pop, sizeof (struct int3_s), TYPE));
+	root = POBJ_ROOT(pop, struct root);
+	POBJ_NEW(pop, &obj, struct int3_s, NULL, NULL);
 
 	COMMANDS_ADD_RANGE();
 	TX_BEGIN(pop) {

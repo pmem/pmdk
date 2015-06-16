@@ -37,14 +37,14 @@
 .\" or
 .\"	groff -man -Tascii libpmemobj.3
 .\"
-.TH libpmemobj 3 "pmemobj API version 0.4.4" "NVM Library"
+.TH libpmemobj 3 "pmemobj API version 0.4.5" "NVM Library"
 .SH NAME
 libpmemobj \- persistent memory transactional object store
 .SH SYNOPSIS
 .nf
 .B #include <libpmemobj.h>
 .sp
-.B cc ... -lpmemobj -lpmem
+.B cc -std=gnu99 ... -lpmemobj -lpmem
 .sp
 .B Most commonly used functions:
 .sp
@@ -80,7 +80,7 @@ libpmemobj \- persistent memory transactional object store
 .BI "int pmemobj_rwlock_timedwrlock(PMEMobjpool *" pop ,
 .BI "    PMEMrwlock *restrict " rwlockp ,
 .BI "    const struct timespec *restrict " abstime );
-.BI "int pmemobj_rwlock_tryrdlock(PMEMobjpool *" pop ", PMEMrwlock * "rwlockp );
+.BI "int pmemobj_rwlock_tryrdlock(PMEMobjpool *" pop ", PMEMrwlock *"rwlockp );
 .BI "int pmemobj_rwlock_trywrlock(PMEMobjpool *" pop ", PMEMrwlock *" rwlockp );
 .BI "int pmemobj_rwlock_unlock(PMEMobjpool *" pop ", PMEMrwlock *" rwlockp );
 .sp
@@ -92,49 +92,87 @@ libpmemobj \- persistent memory transactional object store
 .BI "int pmemobj_cond_wait(PMEMobjpool *" pop ", PMEMcond *" condp ,
 .BI "    PMEMmutex *restrict " mutexp );
 .sp
+.B Persistent object identifier:
+.sp
+.BI "OID_IS_NULL(PMEMoid " oid )
+.BI "OID_EQUALS(PMEMoid " lhs ", PMEMoid "  rhs )
+.sp
+.B Type-safety:
+.sp
+.BI "TOID(" TYPE )
+.BI "TOID_DECLARE(" TYPE ", unsigned int " type_num )
+.BI "TOID_DECLARE_ROOT(" ROOT_TYPE )
+.sp
+.BI "TOID_TYPE_NUM(" TYPE )
+.BI "TOID_TYPE_NUM_OF(TOID " oid ")
+.BI "TOID_VALID(TOID " oid ")
+.sp
+.BI "TOID_ASSIGN(TOID " oid ", " VALUE )
+.sp
+.BI "TOID_IS_NULL(TOID " oid )
+.BI "TOID_EQUALS(TOID " lhs ", TOID " rhs )
+.BI "DIRECT_RW(TOID " oid )
+.BI "DIRECT_RO(TOID " oid )
+.BI "D_RW(TOID " oid )
+.BI "D_RO(TOID " oid )
+.sp
+.B Layout declaration:
+.sp
+.BI "POBJ_LAYOUT_BEGIN(" layout )
+.BI "POBJ_LAYOUT_TOID(" layout ", " type )
+.BI "POBJ_LAYOUT_ROOT(" layout ", " root_type )
+.BI "POBJ_LAYOUT_END(" layout )
+.BI "POBJ_LAYOUT_NAME(" layout )
+.BI "POBJ_LAYOUT_TYPES_NUM(" layout )
+.sp
 .B Non-transactional atomic allocations:
 .sp
-.BI "PMEMoid pmemobj_alloc(PMEMobjpool *" pop ", size_t " size ", unsigned int " type_num );
-.BI "PMEMoid pmemobj_alloc_construct(PMEMobjpool *" pop ", size_t " size ", unsigned int " type_num ,
-.BI "    void (*" constructor ")(void *" ptr ", void *" arg "), void *" arg );
-.BI "PMEMoid pmemobj_zalloc(PMEMobjpool *" pop ", size_t " size ", unsigned int " type_num );
-.BI "PMEMoid pmemobj_realloc(PMEMobjpool *" pop ", PMEMoid " oid ", size_t " size ,
+.BI "int pmemobj_alloc(PMEMobjpool *" pop ", PMEMoid *" oidp ", size_t " size ",
+.BI "    unsigned int " type_num ", void (*" constructor ")(void *" ptr ", void *" arg "),
+.BI "    void *" arg );
+.BI "int pmemobj_zalloc(PMEMobjpool *" pop ", PMEMoid *" oidp ", size_t " size ", "
 .BI "    unsigned int " type_num );
-.BI "PMEMoid pmemobj_zrealloc(PMEMobjpool *" pop ", PMEMoid " oid ", size_t " size ,
+.BI "int pmemobj_realloc(PMEMobjpool *" pop ", PMEMoid *" oidp ", size_t " size ,
 .BI "    unsigned int " type_num );
-.BI "PMEMoid pmemobj_strdup(PMEMobjpool *" pop ", const char *" s ", unsigned int " type_num );
-.BI "void pmemobj_free(PMEMoid " oid );
+.BI "int pmemobj_zrealloc(PMEMobjpool *" pop ", PMEMoid *" oidp ", size_t " size ,
+.BI "    unsigned int " type_num );
+.BI "int pmemobj_strdup(PMEMobjpool *" pop ", PMEMoid *" oidp ", const char *" s ", "
+.BI "    unsigned int " type_num );
+.BI "void pmemobj_free(PMEMoid *" oidp );
 .BI "size_t pmemobj_alloc_usable_size(PMEMoid " oid );
 .BI "void *pmemobj_direct(PMEMoid " oid );
+.BI "unsigned int pmemobj_type_num(PMEMoid" oid );
 .sp
-.B Type-safety
-.sp
-.BI "OID_TYPE(" TYPE )
-.sp
-.BI "OID_ASSIGN(OID_TYPE " oid ", " VALUE )
-.BI "OID_ASSIGN_TYPED(OID_TYPE " lhs ", OID_TYPE " rhs )
-.sp
-.BI "OID_IS_NULL(OID_TYPE " oid )
-.BI "OID_EQUALS(OID_TYPE " lhs ", OID_TYPE " rhs )
-.BI "DIRECT_RW(OID_TYPE " oid )
-.BI "DIRECT_RO(OID_TYPE " oid )
-.BI "D_RW(OID_TYPE " oid )
-.BI "D_RO(OID_TYPE " oid )
+.BI "POBJ_NEW(PMEMobjpool *" pop ", TOID(TYPE) *" oidp ", TYPE, "
+.BI "    void (*" constructor ")(void *" ptr ", void *" arg "), void *" arg )
+.BI "POBJ_ALLOC(PMEMobjpool *" pop ", TOID(TYPE) *" oidp ", TYPE, size_t " size ", "
+.BI "    void (*" constructor ")(void *" ptr ", void *" arg "), void *" arg )
+.BI "POBJ_ZNEW(PMEMobjpool *" pop ", TOID(TYPE) *" oidp ", TYPE, "
+.BI "    void (*" constructor ")(void *" ptr ", void *" arg "), void *" arg )
+.BI "POBJ_ZALLOC(PMEMobjpool *" pop ", TOID(TYPE) *" oidp ", TYPE, size_t " size ")
+.BI "POBJ_REALLOC(PMEMobjpool *" pop ", TOID(TYPE) *" oidp ", TYPE, size_t " size )
+.BI "POBJ_ZREALLOC(PMEMobjpool *" pop ", TOID(TYPE) *" oidp ", TYPE, size_t " size )
+.BI "POBJ_FREE(PMEMobjpool *" pop ", TOID(TYPE) *" oidp " )
 .sp
 .B Root object management:
 .sp
 .BI "PMEMoid pmemobj_root(PMEMobjpool *" pop ", size_t " size );
 .BI "size_t pmemobj_root_size(PMEMobjpool *" pop );
 .sp
+.BI "POBJ_ROOT(PMEMobjpool *" pop ", " TYPE )
+.sp
 .B Object containers:
 .sp
 .BI "PMEMoid pmemobj_first(PMEMobjpool *" pop ", unsigned int " type_num );
 .BI "PMEMoid pmemobj_next(PMEMoid " oid );
 .sp
-.BI "PMEMOBJ_FOREACH(PMEMobjpool *" pop ", PMEMoid " varoid ", int " vartype_num );
-.BI "PMEMOBJ_FOREACH_SAFE(PMEMobjpool *" pop ", PMEMoid " varoid ", PMEMoid " nvaroid ", int " vartype_num );
-.BI "PMEMOBJ_FOREACH_TYPE(PMEMobjpool *" pop ", OID_TYPE " var ", unsigned int " type_num );
-.BI "PMEMOBJ_FOREACH_SAFE_TYPE(PMEMobjpool *" pop ", OID_TYPE " var ", OID_TYPE " nvar ", unsigned int " type_num );
+.BI "POBJ_FIRST(PMEMobjpool *" pop ", " TYPE )
+.BI "POBJ_NEXT(TOID " oid )
+.sp
+.BI "PMEMOBJ_FOREACH(PMEMobjpool *" pop ", PMEMoid " varoid ", int " vartype_num )
+.BI "PMEMOBJ_FOREACH_SAFE(PMEMobjpool *" pop ", PMEMoid " varoid ", PMEMoid " nvaroid ", int " vartype_num )
+.BI "PMEMOBJ_FOREACH_TYPE(PMEMobjpool *" pop ", TOID " var )
+.BI "PMEMOBJ_FOREACH_SAFE_TYPE(PMEMobjpool *" pop ", TOID " var ", TOID " nvar )
 .sp
 .B Non-transactional persistent atomic circular doubly-linked list:
 .sp
@@ -155,41 +193,41 @@ libpmemobj \- persistent memory transactional object store
 .BI "POBJ_LIST_FIRST(POBJ_LIST_HEAD *" head )
 .BI "POBJ_LIST_LAST(POBJ_LIST_HEAD *" head ", POBJ_LIST_ENTRY " FIELD )
 .BI "POBJ_LIST_EMPTY(POBJ_LIST_HEAD *" head )
-.BI "POBJ_LIST_NEXT(OID_TYPE " elm ", POBJ_LIST_ENTRY " FIELD )
-.BI "POBJ_LIST_PREV(OID_TYPE " elm ", POBJ_LIST_ENTRY " FIELD )
+.BI "POBJ_LIST_NEXT(TOID " elm ", POBJ_LIST_ENTRY " FIELD )
+.BI "POBJ_LIST_PREV(TOID " elm ", POBJ_LIST_ENTRY " FIELD )
 .sp
-.BI "POBJ_LIST_FOREACH(OID_TYPE " var ", POBJ_LIST_HEAD *" head ", POBJ_LIST_ENTRY " FIELD )
-.BI "POBJ_LIST_FOREACH_REVERSE(OID_TYPE " var ", POBJ_LIST_HEAD *" head ", POBJ_LIST_ENTRY " FIELD )
+.BI "POBJ_LIST_FOREACH(TOID " var ", POBJ_LIST_HEAD *" head ", POBJ_LIST_ENTRY " FIELD )
+.BI "POBJ_LIST_FOREACH_REVERSE(TOID " var ", POBJ_LIST_HEAD *" head ", POBJ_LIST_ENTRY " FIELD )
 .sp
 .BI "POBJ_LIST_INSERT_HEAD(PMEMobjpool *" pop ", POBJ_LIST_HEAD *" head ",
-.BI "    OID_TYPE " elm ", POBJ_LIST_ENTRY " FIELD )
+.BI "    TOID " elm ", POBJ_LIST_ENTRY " FIELD )
 .BI "POBJ_LIST_INSERT_TAIL(PMEMobjpool *" pop ", POBJ_LIST_HEAD *" head ",
-.BI "    OID_TYPE " elm ", POBJ_LIST_ENTRY " FIELD )
+.BI "    TOID " elm ", POBJ_LIST_ENTRY " FIELD )
 .BI "POBJ_LIST_INSERT_AFTER(PMEMobjpool *" pop ", POBJ_LIST_HEAD *" head ",
-.BI "    OID_TYPE " listelm ", OID_TYPE " elm ", POBJ_LIST_ENTRY " FIELD )
+.BI "    TOID " listelm ", TOID " elm ", POBJ_LIST_ENTRY " FIELD )
 .BI "POBJ_LIST_INSERT_BEFORE(PMEMobjpool *" pop ", POBJ_LIST_HEAD *" head ",
-.BI "    OID_TYPE " listelm ", OID_TYPE " elm ", POBJ_LIST_ENTRY " FIELD )
+.BI "    TOID " listelm ", TOID " elm ", POBJ_LIST_ENTRY " FIELD )
 .BI "POBJ_LIST_INSERT_NEW_HEAD(PMEMobjpool *" pop ", POBJ_LIST_HEAD *" head ",
-.BI "    unsigned int " type_num ", POBJ_LIST_ENTRY " FIELD ,
-.BI "    void (*" constructor ")(void *" ptr ", void *" arg "), void *" arg );
+.BI "    POBJ_LIST_ENTRY " FIELD ", size_t " size ",
+.BI "    void (*" constructor ")(void *" ptr ", void *" arg "), void *" arg )
 .BI "POBJ_LIST_INSERT_NEW_TAIL(PMEMobjpool *" pop ", POBJ_LIST_HEAD *" head ",
-.BI "    unsigned int " type_num ", POBJ_LIST_ENTRY " FIELD ,
-.BI "    void (*" constructor ")(void *" ptr ", void *" arg "), void *" arg );
+.BI "    POBJ_LIST_ENTRY " FIELD ", size_t " size ",
+.BI "    void (*" constructor ")(void *" ptr ", void *" arg "), void *" arg )
 .BI "POBJ_LIST_INSERT_NEW_AFTER(PMEMobjpool *" pop ", POBJ_LIST_HEAD *" head ",
-.BI "    OID_TYPE " listelm ", unsigned int " type_num ", POBJ_LIST_ENTRY " FIELD ,
-.BI "    void (*" constructor ")(void *" ptr ", void *" arg "), void *" arg );
+.BI "    TOID " listelm ", POBJ_LIST_ENTRY " FIELD ", size_t " size ",
+.BI "    void (*" constructor ")(void *" ptr ", void *" arg "), void *" arg )
 .BI "POBJ_LIST_INSERT_NEW_BEFORE(PMEMobjpool *" pop ", POBJ_LIST_HEAD *" head ",
-.BI "    OID_TYPE " listelm ", unsigned int " type_num ", POBJ_LIST_ENTRY " FIELD ,
-.BI "    void (*" constructor ")(void *" ptr ", void *" arg "), void *" arg );
+.BI "    TOID " listelm ", POBJ_LIST_ENTRY " FIELD ", size_t " size ",
+.BI "    void (*" constructor ")(void *" ptr ", void *" arg "), void *" arg )
 .BI "POBJ_LIST_REMOVE(PMEMobjpool *" pop ", POBJ_LIST_HEAD *" head ",
-.BI "    OID_TYPE " elm ", POBJ_LIST_ENTRY " FIELD )
+.BI "    TOID " elm ", POBJ_LIST_ENTRY " FIELD )
 .BI "POBJ_LIST_REMOVE_FREE(PMEMobjpool *" pop ", POBJ_LIST_HEAD *" head ",
-.BI "    OID_TYPE " elm ", POBJ_LIST_ENTRY " FIELD )
+.BI "    TOID " elm ", POBJ_LIST_ENTRY " FIELD )
 .BI "POBJ_LIST_MOVE_ELEMENT_HEAD(PMEMobjpool *" pop ", POBJ_LIST_HEAD *" head ",
-.BI "    POBJ_LIST_HEAD *" head_new ", OID_TYPE " elm ", POBJ_LIST_ENTRY " FIELD ",
+.BI "    POBJ_LIST_HEAD *" head_new ", TOID " elm ", POBJ_LIST_ENTRY " FIELD ",
 .BI "    POBJ_LIST_ENTRY " field_new )
 .BI "POBJ_LIST_MOVE_ELEMENT_TAIL(PMEMobjpool *" pop ", POBJ_LIST_HEAD *" head ",
-.BI "    POBJ_LIST_HEAD *" head_new ", OID_TYPE " elm ",POBJ_LIST_ENTRY " FIELD ",
+.BI "    POBJ_LIST_HEAD *" head_new ", TOID " elm ", POBJ_LIST_ENTRY " FIELD ",
 .BI "    POBJ_LIST_ENTRY " field_new )
 .sp
 .B Transactional object manipulation:
@@ -218,19 +256,21 @@ libpmemobj \- persistent memory transactional object store
 .BI "TX_FINALLY
 .BI "TX_END
 .sp
-.BI "TX_ADD(OID_TYPE " o )
-.BI "TX_ADD_FIELD(OID_TYPE " o ", " FIELD )
+.BI "TX_ADD(TOID " o )
+.BI "TX_ADD_FIELD(TOID " o ", " FIELD )
 .sp
-.BI "TX_ALLOC(" TYPE ", unsigned int " type_num )
-.BI "TX_ZALLOC(" TYPE ", unsigned int " type_num )
-.BI "TX_REALLOC(OID_TYPE " o ", size_t " size ", unsigned int " type_num )
-.BI "TX_ZREALLOC(OID_TYPE " o ", size_t " size ", unsigned int " type_num )
+.BI "TX_NEW(" TYPE )
+.BI "TX_ALLOC(" TYPE ", size_t " size ")
+.BI "TX_ZNEW(" TYPE )
+.BI "TX_ZALLOC(" TYPE ", size_t " size ")
+.BI "TX_REALLOC(TOID " o ", size_t " size )
+.BI "TX_ZREALLOC(TOID " o ", size_t " size )
 .BI "TX_STRDUP(const char *" s ", unsigned int " type_num )
-.BI "TX_FREE(OID_TYPE " o )
+.BI "TX_FREE(TOID " o )
 .sp
-.BI "TX_SET(OID_TYPE " o ", " FIELD ", " VALUE )
-.BI "TX_MEMCPY(OID_TYPE " o ", " FIELD ", const void *" src ", size_t " num )
-.BI "TX_MEMSET(OID_TYPE " o ", " FIELD ", int " c ", size_t " num )
+.BI "TX_SET(TOID " o ", " FIELD ", " VALUE )
+.BI "TX_MEMCPY(TOID " o ", " FIELD ", const void *" src ", size_t " num )
+.BI "TX_MEMSET(TOID " o ", " FIELD ", int " c ", size_t " num )
 .sp
 .B Library API versioning:
 .sp
@@ -270,6 +310,11 @@ builds on this type of memory mapped file.
 .PP
 This library is for applications that need a transactions
 and persistent memory management.
+The
+.BR libpmemobj
+requires a
+.B -std=gnu99
+compilation flag to build properly.
 This library builds on the low-level pmem support provided by
 .BR libpmem ,
 handling the transactional updates, flushing changes to
@@ -940,6 +985,18 @@ section for more details.
 The
 .BR PMEMOBJ_NUM_OID_TYPES
 macro defines the limit of valid type numbers.
+.PP
+The
+.BR OID_IS_NULL
+macro checks if given
+.IR "PMEMoid"
+represents a NULL object.
+.PP
+The
+.BR OID_EQUALS
+macro compares two
+.IR "PMEMoid"
+objects.
 .SH TYPE-SAFETY
 .PP
 Operating on untyped object handles, as well as on direct untyped object
@@ -952,62 +1009,93 @@ For example, a compile-time error is generated when an attempt is made
 to assign a handle to an object of one type to the object handle variable
 of another type of object.
 .PP
-.BI "OID_TYPE(" TYPE )
+.BI "TOID_DECLARE(" TYPE ", unsigned int " type_num)
 .IP
 The
-.B OID_TYPE
+.B TOID_DECLARE
+macro declares a typed OID of user-defined type specified by argument
+.IR TYPE ,
+and with type number specified by argument
+.IR type_num .
+.PP
+.BI "TOID_DECLARE_ROOT(" ROOT_TYPE )
+.IP
+The
+.B TOID_DECLARE_ROOT
+macro declares a typed OID of user-defined type specified by argument
+.IR ROOT_TYPE ,
+and with type number for root object
+.BR POBJ_ROOT_TYPE_NUM .
+.PP
+.BI "TOID(" TYPE )
+.IP
+The
+.B TOID
 macro declares a handle to an object of type specified by argument
 .IR TYPE ,
 where
 .I TYPE
-is the name of a user-defined structure.
+is the name of a user-defined structure. The typed OID must be declared first
+using the
+.BR TOID_DECLARE ,
+.BR TOID_DECLARE_ROOT ,
+.BR POBJ_LAYOUT_TOID
+or
+.BR POBJ_LAYOUT_ROOT
+macros.
 .PP
-.BI "OID_ASSIGN(OID_TYPE " o ", " VALUE )
+.BI "TOID_TYPE_NUM(" TYPE )
 .IP
 The
-.B OID_ASSIGN
+.B TOID_TYPE_NUM
+macro returns a type number of the type specified by argument
+.IR TYPE .
+.PP
+.BI "TOID_TYPE_NUM_OF(TOID " oid ")
+.IP
+The
+.B TOID_TYPE_NUM_OF
+macro returns a type number of the object specified by argument
+.IR oid .
+The type number is read from the typed OID.
+.PP
+.BI "TOID_VALID(TOID " oid ")
+.IP
+The
+.B TOID_VALID
+macro validates whether the type number stored in object's metadata
+is equal to the type number read from typed OID.
+.PP
+.BI "TOID_ASSIGN(TOID " o ", " VALUE )
+.IP
+The
+.B TOID_ASSIGN
 macro assigns an object handle specified by
 .I VALUE
 to the variable
 .IR o .
 .PP
-.BI "OID_ASSIGN_TYPED(OID_TYPE " lhs ", OID_TYPE " rhs )
+.BI "TOID_IS_NULL(TOID " o )
 .IP
 The
-.B OID_ASSIGN_TYPED
-macro assigns an object handle specified by
-.I rhs
-to the object handle variable
-.I lhs
-with the static type checking.
-Both
-.I lhs
-and
-.I rhs
-must be the object handles of the same type.  Otherwise a compile-time error
-is generated.
-.PP
-.BI "OID_IS_NULL(OID_TYPE " o )
-.IP
-The
-.B OID_IS_NULL
+.B TOID_IS_NULL
 macro evaluates to true if the object handle represented by argument
 .I o
 has OID_NULL value.
 .PP
-.BI "OID_EQUALS(OID_TYPE " lhs ", OID_TYPE " rhs )
+.BI "TOID_EQUALS(TOID " lhs ", TOID " rhs )
 .IP
 The
-.B OID_EQUALS
+.B TOID_EQUALS
 macro evaluates to true if both
 .I lhs
 and
 .I rhs
 object handles are referencing the same persistent object.
 .PP
-.BI "DIRECT_RW(OID_TYPE " oid )
+.BI "DIRECT_RW(TOID " oid )
 .sp
-.BI "D_RW(OID_TYPE " oid )
+.BI "D_RW(TOID " oid )
 .IP
 The
 .BR DIRECT_RW ()
@@ -1018,9 +1106,9 @@ represented by
 .IR oid .
 If OID_NULL is passed as an argument, the macro evaluates to NULL.
 .PP
-.BI "DIRECT_RO(OID_TYPE " oid )
+.BI "DIRECT_RO(TOID " oid )
 .sp
-.BI "D_RO(OID_TYPE " oid )
+.BI "D_RO(TOID " oid )
 .IP
 The
 .BR DIRECT_RO ()
@@ -1030,6 +1118,99 @@ return a typed read-only (const) pointer (TYPE *) to an object
 represented by
 .IR oid .
 If OID_NULL is passed as an argument, the macro evaluates to NULL.
+.SH LAYOUT DECLARATION
+.PP
+The
+.I libpmemobj
+defines a set of macros for convenient declaration of pool's layout.
+The declaration of layout consist of declaration of number of used types.
+The declared types will be assigned consecutive type numbers. Declared
+types may be used in conjunction with type safety macros.
+Once created the layout declaration shall not be changed unless the new types
+are added at the end of the existing layout declaration. Modifying any of existing declaration
+may lead to changes in type numbers of declared types which in consequence may cause
+data corruption.
+.PP
+.BI "POBJ_LAYOUT_BEGIN(" LAYOUT )
+.IP
+The
+.B POBJ_LAYOUT_BEGIN
+macro indicates a begin of declaration of layout. The
+.I LAYOUT
+argument is a name of layout. This argument must be passed to all macros related
+to the declaration of layout.
+.PP
+.BI "POBJ_LAYOUT_TOID(" LAYOUT ", " TYPE )
+.IP
+The
+.B POBJ_LAYOUT_TOID
+macro declares a typed OID for type passed as
+.I TYPE
+argument inside the declaration of layout. All types declared
+using this macro are assigned with consecutive type numbers. This macro must be used between
+the
+.B POBJ_LAYOUT_BEGIN
+and
+.B POBJ_LAYOUT_END
+macros, with the same name passed as
+.I LAYOUT
+argument.
+.PP
+.BI "POBJ_LAYOUT_ROOT(" LAYOUT ", " ROOT_TYPE )
+.IP
+The
+.B POBJ_LAYOUT_ROOT
+macro declares a typed OID for type passed as
+.I ROOT_TYPE
+argument inside the declaration of layout. The typed OID will be assigned
+with type number for root object
+.BR POBJ_ROOT_TYPE_NUM .
+.PP
+.BI "POBJ_LAYOUT_END(" LAYOUT )
+.IP
+The
+.B POBJ_LAYOUT_END
+macro ends the declaration of layout.
+.PP
+.BI "POBJ_LAYOUT_NAME(" LAYOUT )
+.IP
+The
+.B POBJ_LAYOUT_NAME
+macro returns the name of layout as a NULL-terminated string.
+.PP
+.BI "POBJ_LAYOUT_TYPES_NUM(" LAYOUT )
+.IP
+The
+.B POBJ_LAYOUT_TYPES_NUM
+macro returns number of types declared using the
+.B POBH_LAYOUT_TOID
+macro within the layout declaration.
+.PP
+This is an example of layout declaration:
+.IP
+.nf
+POBJ_LAYOUT_BEGIN(mylayout);
+POBJ_LAYOUT_ROOT(mylayout, struct root);
+POBJ_LAYOUT_TOID(mylayout, struct node);
+POBJ_LAYOUT_TOID(mylayout, struct foo);
+POBJ_LAYOUT_END(mylayout);
+
+struct root {
+	TOID(struct node) node;
+};
+
+struct node {
+	TOID(struct node) next;
+	TOID(struct foo) foo;
+};
+.fi
+.PP
+The name of layout and the number of declared types can be retrieved using the following code:
+.IP
+.nf
+const char *layout_name = POBJ_LAYOUT_NAME(mylayout);
+int num_of_types = POBJ_LAYOUT_TYPES_NUM(mylayout);
+.fi
 .SH OBJECT CONTAINERS
 .PP
 All the objects in the persistent memory pool are organized by their
@@ -1059,6 +1240,13 @@ If the value of
 argument exceeds the limit, an OID_NULL is returned and errno is
 set appropriately.
 .PP
+.BI "POBJ_FIRST(PMEMobjpool *" pop ", " TYPE )
+.IP
+The
+.B POBJ_FIRST
+macro returns the first object from the collection specified by the name of type
+.IR TYPE .
+.PP
 .BI "PMEMoid pmemobj_next(PMEMoid " oid );
 .IP
 The
@@ -1070,6 +1258,19 @@ If an object referenced by
 .I oid
 is the last object in the collection, or if the OID_NULL is passed as
 an argument, function returns OID_NULL.
+.PP
+.BI "POBJ_NEXT(TOID " oid )
+.IP
+The
+.B POBJ_NEXT
+macro returns the next object from the same collection as the object
+referenced by
+.IR oid .
+This macro works the same way as
+.B pmemobj_next()
+function with the difference that it takes typed OID instead of
+.B PMEMoid
+as an argument.
 .PP
 The following two macros provide more convenient way to iterate through
 the internal collections, performing a specific operation on each object.
@@ -1088,12 +1289,12 @@ and its type number to
 .I vartype_num
 variable.
 .PP
-.BI "PMEMOBJ_FOREACH_TYPE(PMEMobjpool *" pop ", OID_TYPE " var ", unsigned int " type_num )
+.BI "PMEMOBJ_FOREACH_TYPE(PMEMobjpool *" pop ", OID_TYPE " var )
 .IP
 .BR PMEMOBJ_FOREACH_TYPE ()
-macro allows to perform a specific operation on each allocated object
-of the type specified by
-.I type_num
+macro allows to perform a specific operation on each allocated object of the
+same type as object passed as
+.I var
 argument, stored in the persistent memory pool pointed by
 .IR pop .
 It traverses the internal collection of all the objects of the specified type,
@@ -1161,6 +1362,17 @@ is larger than the maximum allocation size supported for given pool,
 or if there is not enough free space in the pool to satisfy the reallocation
 of the root object.  In such case, OID_NULL is returned.
 .PP
+.BI "PMEMOBJ_ROOT(PMEMobjpool *" pop ", " TYPE )
+.IP
+The
+.B PMEMOBJ_ROOT
+macro works the same way as the
+.BR pmemobj_root ()
+function except it returns a typed OID of type
+.I TYPE
+instead of
+.BR PMEMoid .
+.PP
 .BI "size_t pmemobj_root_size(PMEMobjpool *" pop );
 .IP
 The
@@ -1188,70 +1400,28 @@ will not be rolled-back if the transaction is aborted or interrupted.
 .PP
 The allocations are always aligned to the cache-line boundary.
 .PP
-.BI "PMEMoid pmemobj_alloc(PMEMobjpool *" pop ", size_t " size ", unsigned int " type_num );
-.IP
-The
-.BR pmemobj_alloc ()
-function allocates a new object of given
-.I size
-from the persistent memory heap associated with memory pool
-.IR pop .
-The memory is
-.I not
-initialized.
-The allocated object is added to the internal container associated with given
-.IR type_num .
-The
-.I size
-can be any non-zero value, however due to internal padding and object metadata,
-the actual size of the allocation will differ from the requested one by at least
-64 bytes.  For this reason, making the allocations of
-a size less than 64 bytes is extremely inefficient and discouraged.
-.IP
-In contrast to POSIX
-.BR malloc (3),
-the
-.BR pmemobj_alloc ()
-always return
-.I OID_NULL
-when called with
-.I size
-equal 0.
-.PP
-.BI "PMEMoid pmemobj_zalloc(PMEMobjpool *" pop ", size_t " size ", unsigned int " type_num );
-.IP
-The
-.BR pmemobj_zalloc ()
-function allocates a new zeroed object from the the persistent memory heap
-associated with memory pool
-.IR pop .
-The
-.I size
-can be any non-zero value, however due to internal padding and object metadata,
-the actual size of the allocation will differ from the requested one by at least
-64 bytes.  For this reason, making the allocations of a size
-less than 64 bytes is extremely inefficient and discouraged.
-If
-.I size
-is 0, then
-.BR pmemobj_zalloc ()
-returns
-.IR OID_NULL .
-The allocated object is added to the internal container associated with given
-.I type_num.
-.PP
-.BI "PMEMoid pmemobj_alloc_construct(PMEMobjpool *" pop ", size_t " size ",
+.BI "int pmemobj_alloc(PMEMobjpool *" pop ", PMEMoid *" oidp ", size_t " size ",
 .br
-.BI "    unsigned int " type_num ,
+.BI "    unsigned int " type_num ", void (*" constructor ")(void *" ptr ", void *" arg "),
 .br
-.BI "    void (*" constructor ")(void *" ptr ", void *" arg "), void *" arg );
+.BI "    void *" arg );
 .IP
 The
-.BR pmemobj_alloc_construct
+.BR pmemobj_alloc
 function allocates a new object from the persistent memory heap
 associated with memory pool
 .IR pop .
-Before returning, it calls the
+The
+.B PMEMoid
+of allocated object is stored in
+.IR oidp .
+If the
+.I oidp
+points to memory location from the
+.B pmemobj
+heap the
+.I oidp
+is modified atomically. Before returning, it calls the
 .BR constructor
 function passing the pointer to the newly allocated object in
 .I ptr
@@ -1270,13 +1440,48 @@ less than 64 bytes is extremely inefficient and discouraged.
 If
 .I size
 is 0, then
-.BR pmemobj_alloc_construct ()
+.BR pmemobj_alloc ()
 returns
 .IR OID_NULL .
 The allocated object is added to the internal container associated with given
 .IR type_num .
 .PP
-.BI "void pmemobj_free(PMEMoid " oid );
+.BI "int pmemobj_zalloc(PMEMobjpool *" pop ", PMEMoid *" oidp ", size_t " size ", "
+.br
+.BI "    unsigned int " type_num );
+.IP
+The
+.BR pmemobj_zalloc ()
+function allocates a new zeroed object from the the persistent memory heap
+associated with memory pool
+.IR pop .
+The
+.B PMEMoid
+of allocated object is stored in
+.IR oidp .
+If the
+.I oidp
+points to memory location from the
+.B pmemobj
+heap the
+.I oidp
+is modified atomically.
+The
+.I size
+can be any non-zero value, however due to internal padding and object metadata,
+the actual size of the allocation will differ from the requested one by at least
+64 bytes.  For this reason, making the allocations of a size
+less than 64 bytes is extremely inefficient and discouraged.
+If
+.I size
+is 0, then
+.BR pmemobj_zalloc ()
+returns
+.IR OID_NULL .
+The allocated object is added to the internal container associated with given
+.I type_num.
+.PP
+.BI "void pmemobj_free(PMEMoid *" oidp );
 .IP
 The
 .BR pmemobj_free ()
@@ -1285,7 +1490,7 @@ function provides the same semantics as
 but instead of the process heap supplied by the system, it operates on the
 persistent memory heap.
 It frees the memory space represented by
-.IR oid ,
+.IR oidp ,
 which must have been returned by a previous call to
 .BR pmemobj_alloc (),
 .BR pmemobj_alloc_construct (),
@@ -1294,10 +1499,22 @@ which must have been returned by a previous call to
 or
 .BR pmemobj_zrealloc ().
 If
-.I oid
-is OID_NULL, no operation is performed.
+.I oidp
+points to
+.IR OID_NULL ,
+no operation is performed. It sets the
+.I oidp
+to
+.IR OID_NULL
+value after freeing the memory. If the
+.I oidp
+points to memory location from the
+.B pmemobj
+heap the
+.I oidp
+is changed atomically.
 .PP
-.BI "PMEMoid pmemobj_realloc(PMEMobjpool *" pop ", PMEMoid " oid ", size_t " size ,
+.BI "int pmemobj_realloc(PMEMobjpool *" pop ", PMEMoid *" oidp ", size_t " size ,
 .br
 .BI "    unsigned int " type_num );
 .IP
@@ -1308,7 +1525,7 @@ function provide similar semantics to
 but operates on the persistent memory heap associated with memory pool
 .IR pop .
 It changes the size of the object represented by
-.IR oid ,
+.IR oidp ,
 to
 .I size
 bytes.  The resized object is also added or moved to the internal
@@ -1320,22 +1537,24 @@ If the new size is larger than the old size, the added memory will
 .I not
 be initialized.
 If
-.I oid
-is
+.I oidp
+points to
 .IR OID_NULL ,
 then the call is equivalent to
 .IR "pmemobj_alloc(pop, size, type_num)".
 If
 .I size
 is equal to zero, and
-.I oid
+.I oidp
 is not
 .IR OID_NULL ,
 then the call is equivalent to
 .IR "pmemobj_free(oid)".
 Unless
-.I oid
-is OID_NULL, it must have been returned by an earlier call to
+.I oidp
+is
+.IR OID_NULL ,
+it must have been returned by an earlier call to
 .BR pmemobj_alloc (),
 .BR pmemobj_alloc_construct (),
 .BR pmemobj_zalloc (),
@@ -1345,13 +1564,19 @@ or
 Note that the object handle value may change in result of reallocation.
 If the object was moved, a memory space represented by
 .I oid
-is reclaimed.
+is reclaimed. If
+.I oidp
+points to memory location from the
+.B pmemobj
+heap the
+.I oidp
+is changed atomically.
 If
 .BR pmemobj_realloc ()
-is unable to satisfy the allocation request, a OID_NULL is
-returned and errno is set appropriately.
+is unable to satisfy the allocation request, a non-zero value is returned and
+errno is set appropriately.
 .PP
-.BI "PMEMoid pmemobj_zrealloc(PMEMobjpool *" pop ", PMEMoid " oid ", size_t " size ,
+.BI "int pmemobj_zrealloc(PMEMobjpool *" pop ", PMEMoid *" oidp ", size_t " size ,
 .br
 .BI "    unsigned int " type_num );
 .IP
@@ -1367,27 +1592,29 @@ to
 .I size
 bytes.  The resized object is also added or moved to the internal
 container associated with given
-.I type_num .
+.IR type_num .
 The contents will be unchanged in the range from the start of the region
 up to the minimum of the old and new sizes.
 If the new size is larger than the old size, the added memory will be zeroed.
 If
-.I oid
-is
+.I oidp
+points to
 .I OID_NULL,
 then the call is equivalent to
 .IR "pmemobj_zalloc(poop, size, type_num)".
 If
 .I size
 is equal to zero, and
-.I oid
-is not
+.I oidp
+doesn't point to
 .IR OID_NULL ,
 then the call is equivalent to
 .IR "pmemobj_free(pop, oid)".
 Unless
-.I oid
-is OID_NULL, it must have been returned by an earlier call to
+.I oidp
+points to
+.IR OID_NULL ,
+it must have been returned by an earlier call to
 .BR pmemobj_alloc (),
 .BR pmemobj_alloc_construct (),
 .BR pmemobj_zalloc (),
@@ -1396,14 +1623,22 @@ or
 .BR pmemobj_zrealloc ().
 Note that the object handle value may change in result of reallocation.
 If the object was moved, a memory space represented by
-.I oid
-is reclaimed.
+.I oidp
+is reclaimed. If
+.I oidp
+points to memory location from the
+.B pmemobj
+heap the
+.I oidp
+is changed atomically.
 If
 .BR pmemobj_zrealloc ()
-is unable to satisfy the allocation request, a OID_NULL is
+is unable to satisfy the allocation request, OID_NULL is
 returned and errno is set appropriately.
 .PP
-.BI "PMEMoid pmemobj_strdup(PMEMobjpool *" pop ", const char *" s ", unsigned int " type_num );
+.BI "int pmemobj_strdup(PMEMobjpool *" pop ", PMEMoid *" oidp ", const char *" s ", "
+.br
+.BI "    unsigned int " type_num );
 .IP
 The
 .BR pmemobj_strdup ()
@@ -1411,8 +1646,17 @@ function provides the same semantics as
 .BR strdup (3),
 but operates on the persistent memory heap associated with memory pool
 .IR pop .
-It returns a handle to a new object which is a duplicate of the string
+It stores a handle to a new object in
+.I oidp
+which is a duplicate of the string
 .IR s .
+If the
+.I oidp
+points to memory location from the
+.B pmemobj
+heap the
+.I oidp
+is changed atomically.
 The allocated string object is also added to the internal
 container associated with given
 .IR type_num .
@@ -1424,7 +1668,7 @@ on the given memory pool, and can be freed with
 on the same memory pool.
 If
 .BR pmemobj_strdup ()
-is unable to satisfy the allocation request, a OID_NULL is
+is unable to satisfy the allocation request, OID_NULL is
 returned and errno is set appropriately.
 .PP
 .BI "size_t pmemobj_alloc_usable_size(PMEMoid " oid );
@@ -1439,11 +1683,127 @@ It returns the number of usable bytes in the object represented
 by
 .IR oid ,
 a handle to an object allocated by
-.BR pmemobj_malloc ()
+.BR pmemobj_alloc ()
 or a related function.
 If
 .I oid
 is OID_NULL, 0 is returned.
+.PP
+.BI "POBJ_NEW(PMEMobjpool *" pop ", TOID(TYPE) *" oidp ", TYPE, "
+.br
+.BI "    void (*" constructor ")(void *" ptr ", void *" arg "), void *" arg )
+.IP
+The
+.B POBJ_NEW
+macro is a wrapper around the
+.BR pmemobj_alloc ()
+function which takes the type name
+.B TYPE
+and passes the size and type number to the
+.BR pmemobj_alloc ()
+function from the typed OID.
+Instead of taking a pointer to
+.B PMEMoid
+it takes a pointer to typed OID of
+.BR TYPE .
+.PP
+.BI "POBJ_ALLOC(PMEMobjpool *" pop ", TOID(TYPE) *" oidp ", TYPE, size_t " size "
+.br
+.BI "    void (*" constructor ")(void *" ptr ", void *" arg "), void *" arg )
+.IP
+The
+.B POBJ_ALLOC
+macro is a wrapper around the
+.BR pmemobj_alloc ()
+function which takes the type name
+.BR TYPE ,
+the size of allocation
+.IR size
+and passes the type number to the
+.BR pmemobj_alloc ()
+function from the typed OID.
+Instead of taking a pointer to
+.B PMEMoid
+it takes a pointer to typed OID of
+.BR TYPE .
+.PP
+.BI "POBJ_ZNEW(PMEMobjpool *" pop ", TOID(TYPE) *" oidp ", TYPE )
+.IP
+The
+.B POBJ_ZNEW
+macro is a wrapper around the
+.BR pmemobj_zalloc ()
+function which takes the type name
+.BR TYPE
+and passes the size and type number to
+the
+.BR pmemobj_zalloc ()
+function from the typed OID.
+Instead of taking a pointer to
+.B PMEMoid
+it takes a pointer to typed OID of
+.BR TYPE .
+.PP
+.BI "POBJ_ZALLOC(PMEMobjpool *" pop ", TOID(TYPE) *" oidp ", TYPE, size_t " size ")
+.IP
+The
+.B POBJ_ZALLOC
+macro is a wrapper around the
+.BR pmemobj_zalloc ()
+function which takes the type name
+.BR TYPE ,
+the size of allocation
+.IR size
+and passes the type number to the
+.BR pmemobj_zalloc ()
+function from the typed OID.
+Instead of taking a pointer to
+.B PMEMoid
+it takes a pointer to typed OID of
+.BR TYPE .
+.PP
+.BI "POBJ_REALLOC(PMEMobjpool *" pop ", TOID(TYPE) *" oidp ", TYPE, size_t " size )
+.IP
+The
+.B POBJ_REALLOC
+macro is a wrapper around the
+.BR pmemobj_realloc ()
+function which takes the type name
+.BR TYPE
+and passes the type number to the
+.BR pmemobj_realloc ()
+function from the typed OID.
+Instead of taking a pointer to
+.B PMEMoid
+it takes a pointer to typed OID of
+.BR TYPE .
+.PP
+.BI "POBJ_ZREALLOC(PMEMobjpool *" pop ", TOID(TYPE) *" oidp ", TYPE, size_t " size )
+.IP
+The
+.B POBJ_ZREALLOC
+macro is a wrapper around the
+.BR pmemobj_zrealloc ()
+function which takes the type name
+.BR TYPE
+and passes the type number to the
+.BR pmemobj_zrealloc ()
+function from the typed OID.
+Instead of taking a pointer to
+.B PMEMoid
+it takes a pointer to typed OID of
+.BR TYPE .
+.PP
+.BI "POBJ_FREE(PMEMobjpool *" pop ", TOID(TYPE) *" oidp " )
+.IP
+The
+.B POBJ_FREE
+macro is a wrapper around the
+.BR pmemobj_free ()
+function which takes pointer to typed OID
+.I oidp
+as an argument instead of
+.BR PMEMoid .
 .SH NON-TRANSACTIONAL PERSISTENT ATOMIC LISTS
 .PP
 Besides the internal objects collections described in section
@@ -1855,71 +2215,71 @@ before the element
 .PP
 .BI "POBJ_LIST_INSERT_NEW_HEAD(PMEMobjpool *" pop ", POBJ_LIST_HEAD *" head ",
 .br
-.BI "    unsigned int " type_num ", POBJ_LIST_ENTRY " FIELD ,
+.BI "    POBJ_LIST_ENTRY " FIELD ", size_t " size ",
 .br
-.BI "    void (*" constructor ")(void *" ptr ", void *" arg "), void *" arg );
+.BI "    void (*" constructor ")(void *" ptr ", void *" arg "), void *" arg )
 .IP
 The macro
 .BR POBJ_LIST_INSERT_NEW_HEAD
-atomically allocates a new object of type
-.I type_num
+atomically allocates a new object of size
+.I size
 and inserts it at the head of the list referenced by
 .IR head .
 The newly allocated object is also added to the internal object
-container associated with
-.IR type_num .
+container associated with a type number which is retrieved from the typed OID of
+the first element on list.
 .PP
 .BI "POBJ_LIST_INSERT_NEW_TAIL(PMEMobjpool *" pop ", POBJ_LIST_HEAD *" head ",
 .br
-.BI "    unsigned int " type_num ", POBJ_LIST_ENTRY " FIELD ,
+.BI "    POBJ_LIST_ENTRY " FIELD ", size_t " size ",
 .br
-.BI "    void (*" constructor ")(void *" ptr ", void *" arg "), void *" arg );
+.BI "    void (*" constructor ")(void *" ptr ", void *" arg "), void *" arg )
 .IP
 The macro
 .BR POBJ_LIST_INSERT_NEW_TAIL
-atomically allocates a new object of type
-.I type_num
+atomically allocates a new object of size
+.I size
 and inserts it at the tail of the list referenced by
 .IR head .
 The newly allocated object is also added to the internal object
-container associated with
-.IR type_num .
+container associated with with a type number which is retrieved from the typed OID of
+the first element on list.
 .PP
 .BI "POBJ_LIST_INSERT_NEW_AFTER(PMEMobjpool *" pop ", POBJ_LIST_HEAD *" head ",
 .br
-.BI "    OID_TYPE " listelm ", unsigned int " type_num ", POBJ_LIST_ENTRY " FIELD ,
+.BI "    TOID " listelm ", POBJ_LIST_ENTRY " FIELD ", size_t " size ",
 .br
-.BI "    void (*" constructor ")(void *" ptr ", void *" arg "), void *" arg );
+.BI "    void (*" constructor ")(void *" ptr ", void *" arg "), void *" arg )
 .IP
 The macro
 .BR POBJ_LIST_INSERT_NEW_AFTER
-atomically allocates a new object of type
-.I type_num
+atomically allocates a new object of size
+.I size
 and inserts it into the list referenced by
 .I head
 after the element
 .IR listelm .
 The newly allocated object is also added to the internal object
-container associated with
-.IR type_num .
+container associated with with a type number which is retrieved from the typed OID of
+the first element on list.
 .PP
 .BI "POBJ_LIST_INSERT_NEW_BEFORE(PMEMobjpool *" pop ", POBJ_LIST_HEAD *" head ",
 .br
-.BI "    OID_TYPE " listelm ", unsigned int " type_num ", POBJ_LIST_ENTRY " FIELD ,
+.BI "    TOID " listelm ", POBJ_LIST_ENTRY " FIELD ", size_t " size ",
 .br
-.BI "    void (*" constructor ")(void *" ptr ", void *" arg "), void *" arg );
+.BI "    void (*" constructor ")(void *" ptr ", void *" arg "), void *" arg )
 .IP
 The macro
 .BR POBJ_LIST_INSERT_NEW_BEFORE
-atomically allocates a new object of type
-.I type_num
+atomically allocates a new object of size
+.I size
 and inserts it into the list referenced by
 .I head
 before the element
 .IR listelm .
 The newly allocated object is also added to the internal object
-container associated with
-.IR type_num .
+container associated with with a type number which is retrieved from the typed OID of
+the first element on list.
 .PP
 .BI "POBJ_LIST_REMOVE(PMEMobjpool *" pop ", POBJ_LIST_HEAD *" head ",
 .br
@@ -2501,26 +2861,16 @@ bytes of its memory area with the constant byte
 .IR c .
 In case of a failure or abort, the saved value will be restored.
 .PP
-.BI "TX_ALLOC(" TYPE ", unsigned int " type_num )
+.BI "TX_NEW(" TYPE )
 .IP
 The
-.BR TX_ALLOC ()
+.BR TX_NEW ()
 macro transactionally allocates an new object of given
 .I TYPE
-and assigns it a type number
-.IR type_num .
+and assigns it a type number read from the typed OID.
 The allocation size is determined from the size of the
 user-defined structure
 .IR TYPE .
-This macro may only be called from inside the
-.BR OID_ASSIGN
-macro, like in the following example:
-.IP
-.nf
-OID_TYPE(struct mytype) o;
-OID_ASSIGN(o, TX_ALLOC(struct mytype, MYTYPE_NUM));
-.fi
-.IP
 If successful and called during
 .I TX_STAGE_WORK
 it returns a handle to the newly allocated object.  Otherwise, stage
@@ -2528,23 +2878,49 @@ changes to
 .IR TX_STAGE_ONABORT ,
 OID_NULL is returned, and errno is set appropriately.
 .PP
-.BI "TX_ZALLOC(" TYPE ", unsigned int " type_num )
+.BI "TX_ALLOC(" TYPE , size_t " size ")
+.IP
+The
+.BR TX_ALLOC ()
+macro transactionally allocates an new object of given
+.I TYPE
+and assigns it a type number read from the typed OID.
+The allocation size is passed by
+.IR size
+parameter. If successful and called during
+.I TX_STAGE_WORK
+it returns a handle to the newly allocated object.  Otherwise, stage
+changes to
+.IR TX_STAGE_ONABORT ,
+OID_NULL is returned, and errno is set appropriately.
+.PP
+.BI "TX_NEW(" TYPE  )
+.IP
+The
+.BR TX_NEW ()
+macro transactionally allocates a new zeroed object of given
+.I TYPE
+and assigns it a type number read from the typed OID.
+The allocation size is determined from the size of the
+user-defined structure
+.IR TYPE .
+If successful and called during
+.I TX_STAGE_WORK
+it returns a handle to the newly allocated object.  Otherwise, stage
+changes to
+.IR TX_STAGE_ONABORT ,
+OID_NULL is returned, and errno is set appropriately.
+.PP
+.BI "TX_ZALLOC(" TYPE  )
 .IP
 The
 .BR TX_ZALLOC ()
 macro transactionally allocates a new zeroed object of given
 .I TYPE
-and assigns it a type number
-.IR type_num .
-The allocation size is determined from the size of the
-user-defined structure
-.IR TYPE .
-Similarly to
-.BR TX_ALLOC (),
-this macro may only be called from inside the
-.BR OID_ASSIGN
-macro.
-If successful and called during
+and assigns it a type number read from the typed OID.
+The allocation size is passed by
+.IR size
+argument. If successful and called during
 .I TX_STAGE_WORK
 it returns a handle to the newly allocated object.  Otherwise, stage
 changes to
@@ -2558,14 +2934,7 @@ The
 macro transactionally resizes an existing object referenced by a handle
 .I o
 to the given
-.I size
-and changes its type to
-.IR type_num .
-Similarly to
-.BR TX_ALLOC (),
-this macro may only be called from inside the
-.BR OID_ASSIGN
-macro.
+.I size .
 If successful and called during
 .I TX_STAGE_WORK
 it returns a handle to the reallocated object.  Otherwise, stage
@@ -2580,15 +2949,8 @@ The
 macro transactionally resizes an existing object referenced by a handle
 .I o
 to the given
-.I size
-and changes its type to
-.IR type_num .
+.I size .
 If the new size is larger than the old size, the extended new space is zeroed.
-Similarly to
-.BR TX_ALLOC (),
-this macro may only be called from inside the
-.BR OID_ASSIGN
-macro.
 If successful and called during
 .I TX_STAGE_WORK
 it returns a handle to the reallocated object.  Otherwise, stage
@@ -2605,11 +2967,6 @@ string
 .I s
 and assigns it a type
 .IR type_num .
-Similarly to
-.BR TX_ALLOC (),
-this macro may only be called from inside the
-.BR OID_ASSIGN
-macro.
 If successful and called during
 .I TX_STAGE_WORK
 it returns a handle to the newly allocated object.  Otherwise, stage

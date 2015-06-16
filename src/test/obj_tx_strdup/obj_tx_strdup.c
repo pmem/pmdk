@@ -42,6 +42,8 @@
 
 #define	LAYOUT_NAME "tx_strdup"
 
+TOID_DECLARE(char, 0);
+
 enum type_number {
 	TYPE_NO_TX,
 	TYPE_COMMIT,
@@ -65,12 +67,12 @@ enum type_number {
 static void
 do_tx_strdup_no_tx(PMEMobjpool *pop)
 {
-	OID_TYPE(char) str;
-	OID_ASSIGN(str, pmemobj_tx_strdup(TEST_STR_1, TYPE_NO_TX));
-	ASSERT(OID_IS_NULL(str));
+	TOID(char) str;
+	TOID_ASSIGN(str, pmemobj_tx_strdup(TEST_STR_1, TYPE_NO_TX));
+	ASSERT(TOID_IS_NULL(str));
 
-	OID_ASSIGN(str, pmemobj_first(pop, TYPE_NO_TX));
-	ASSERT(OID_IS_NULL(str));
+	TOID_ASSIGN(str, pmemobj_first(pop, TYPE_NO_TX));
+	ASSERT(TOID_IS_NULL(str));
 }
 
 /*
@@ -79,16 +81,16 @@ do_tx_strdup_no_tx(PMEMobjpool *pop)
 static void
 do_tx_strdup_commit(PMEMobjpool *pop)
 {
-	OID_TYPE(char) str;
+	TOID(char) str;
 	TX_BEGIN(pop) {
-		OID_ASSIGN(str, pmemobj_tx_strdup(TEST_STR_1, TYPE_COMMIT));
-		ASSERT(!OID_IS_NULL(str));
+		TOID_ASSIGN(str, pmemobj_tx_strdup(TEST_STR_1, TYPE_COMMIT));
+		ASSERT(!TOID_IS_NULL(str));
 	} TX_ONABORT {
 		ASSERT(0);
 	} TX_END
 
-	OID_ASSIGN(str, pmemobj_first(pop, TYPE_COMMIT));
-	ASSERT(!OID_IS_NULL(str));
+	TOID_ASSIGN(str, pmemobj_first(pop, TYPE_COMMIT));
+	ASSERT(!TOID_IS_NULL(str));
 	ASSERTeq(strcmp(TEST_STR_1, D_RO(str)), 0);
 }
 
@@ -98,17 +100,17 @@ do_tx_strdup_commit(PMEMobjpool *pop)
 static void
 do_tx_strdup_abort(PMEMobjpool *pop)
 {
-	OID_TYPE(char) str;
+	TOID(char) str;
 	TX_BEGIN(pop) {
-		OID_ASSIGN(str, pmemobj_tx_strdup(TEST_STR_1, TYPE_ABORT));
-		ASSERT(!OID_IS_NULL(str));
+		TOID_ASSIGN(str, pmemobj_tx_strdup(TEST_STR_1, TYPE_ABORT));
+		ASSERT(!TOID_IS_NULL(str));
 		pmemobj_tx_abort(-1);
 	} TX_ONCOMMIT {
 		ASSERT(0);
 	} TX_END
 
-	OID_ASSIGN(str, pmemobj_first(pop, TYPE_ABORT));
-	ASSERT(OID_IS_NULL(str));
+	TOID_ASSIGN(str, pmemobj_first(pop, TYPE_ABORT));
+	ASSERT(TOID_IS_NULL(str));
 }
 
 /*
@@ -118,19 +120,19 @@ do_tx_strdup_abort(PMEMobjpool *pop)
 static void
 do_tx_strdup_free_commit(PMEMobjpool *pop)
 {
-	OID_TYPE(char) str;
+	TOID(char) str;
 	TX_BEGIN(pop) {
-		OID_ASSIGN(str, pmemobj_tx_strdup(TEST_STR_1,
+		TOID_ASSIGN(str, pmemobj_tx_strdup(TEST_STR_1,
 					TYPE_FREE_COMMIT));
-		ASSERT(!OID_IS_NULL(str));
+		ASSERT(!TOID_IS_NULL(str));
 		int ret = pmemobj_tx_free(str.oid);
 		ASSERTeq(ret, 0);
 	} TX_ONABORT {
 		ASSERT(0);
 	} TX_END
 
-	OID_ASSIGN(str, pmemobj_first(pop, TYPE_FREE_COMMIT));
-	ASSERT(OID_IS_NULL(str));
+	TOID_ASSIGN(str, pmemobj_first(pop, TYPE_FREE_COMMIT));
+	ASSERT(TOID_IS_NULL(str));
 }
 
 /*
@@ -140,10 +142,11 @@ do_tx_strdup_free_commit(PMEMobjpool *pop)
 static void
 do_tx_strdup_free_abort(PMEMobjpool *pop)
 {
-	OID_TYPE(char) str;
+	TOID(char) str;
 	TX_BEGIN(pop) {
-		OID_ASSIGN(str, pmemobj_tx_strdup(TEST_STR_1, TYPE_FREE_ABORT));
-		ASSERT(!OID_IS_NULL(str));
+		TOID_ASSIGN(str,
+			pmemobj_tx_strdup(TEST_STR_1, TYPE_FREE_ABORT));
+		ASSERT(!TOID_IS_NULL(str));
 		int ret = pmemobj_tx_free(str.oid);
 		ASSERTeq(ret, 0);
 		pmemobj_tx_abort(-1);
@@ -151,8 +154,8 @@ do_tx_strdup_free_abort(PMEMobjpool *pop)
 		ASSERT(0);
 	} TX_END
 
-	OID_ASSIGN(str, pmemobj_first(pop, TYPE_FREE_ABORT));
-	ASSERT(OID_IS_NULL(str));
+	TOID_ASSIGN(str, pmemobj_first(pop, TYPE_FREE_ABORT));
+	ASSERT(TOID_IS_NULL(str));
 }
 
 /*
@@ -162,17 +165,17 @@ do_tx_strdup_free_abort(PMEMobjpool *pop)
 static void
 do_tx_strdup_commit_nested(PMEMobjpool *pop)
 {
-	OID_TYPE(char) str1;
-	OID_TYPE(char) str2;
+	TOID(char) str1;
+	TOID(char) str2;
 
 	TX_BEGIN(pop) {
-		OID_ASSIGN(str1, pmemobj_tx_strdup(TEST_STR_1,
+		TOID_ASSIGN(str1, pmemobj_tx_strdup(TEST_STR_1,
 				TYPE_COMMIT_NESTED1));
-		ASSERT(!OID_IS_NULL(str1));
+		ASSERT(!TOID_IS_NULL(str1));
 		TX_BEGIN(pop) {
-			OID_ASSIGN(str2, pmemobj_tx_strdup(TEST_STR_2,
+			TOID_ASSIGN(str2, pmemobj_tx_strdup(TEST_STR_2,
 					TYPE_COMMIT_NESTED2));
-			ASSERT(!OID_IS_NULL(str2));
+			ASSERT(!TOID_IS_NULL(str2));
 		} TX_ONABORT {
 			ASSERT(0);
 		} TX_END
@@ -180,12 +183,12 @@ do_tx_strdup_commit_nested(PMEMobjpool *pop)
 		ASSERT(0);
 	} TX_END
 
-	OID_ASSIGN(str1, pmemobj_first(pop, TYPE_COMMIT_NESTED1));
-	ASSERT(!OID_IS_NULL(str1));
+	TOID_ASSIGN(str1, pmemobj_first(pop, TYPE_COMMIT_NESTED1));
+	ASSERT(!TOID_IS_NULL(str1));
 	ASSERTeq(strcmp(TEST_STR_1, D_RO(str1)), 0);
 
-	OID_ASSIGN(str2, pmemobj_first(pop, TYPE_COMMIT_NESTED2));
-	ASSERT(!OID_IS_NULL(str2));
+	TOID_ASSIGN(str2, pmemobj_first(pop, TYPE_COMMIT_NESTED2));
+	ASSERT(!TOID_IS_NULL(str2));
 	ASSERTeq(strcmp(TEST_STR_2, D_RO(str2)), 0);
 }
 
@@ -196,17 +199,17 @@ do_tx_strdup_commit_nested(PMEMobjpool *pop)
 static void
 do_tx_strdup_abort_nested(PMEMobjpool *pop)
 {
-	OID_TYPE(char) str1;
-	OID_TYPE(char) str2;
+	TOID(char) str1;
+	TOID(char) str2;
 
 	TX_BEGIN(pop) {
-		OID_ASSIGN(str1, pmemobj_tx_strdup(TEST_STR_1,
+		TOID_ASSIGN(str1, pmemobj_tx_strdup(TEST_STR_1,
 				TYPE_ABORT_NESTED1));
-		ASSERT(!OID_IS_NULL(str1));
+		ASSERT(!TOID_IS_NULL(str1));
 		TX_BEGIN(pop) {
-			OID_ASSIGN(str2, pmemobj_tx_strdup(TEST_STR_2,
+			TOID_ASSIGN(str2, pmemobj_tx_strdup(TEST_STR_2,
 					TYPE_ABORT_NESTED2));
-			ASSERT(!OID_IS_NULL(str2));
+			ASSERT(!TOID_IS_NULL(str2));
 			pmemobj_tx_abort(-1);
 		} TX_ONCOMMIT {
 			ASSERT(0);
@@ -215,11 +218,11 @@ do_tx_strdup_abort_nested(PMEMobjpool *pop)
 		ASSERT(0);
 	} TX_END
 
-	OID_ASSIGN(str1, pmemobj_first(pop, TYPE_ABORT_NESTED1));
-	ASSERT(OID_IS_NULL(str1));
+	TOID_ASSIGN(str1, pmemobj_first(pop, TYPE_ABORT_NESTED1));
+	ASSERT(TOID_IS_NULL(str1));
 
-	OID_ASSIGN(str2, pmemobj_first(pop, TYPE_ABORT_NESTED2));
-	ASSERT(OID_IS_NULL(str2));
+	TOID_ASSIGN(str2, pmemobj_first(pop, TYPE_ABORT_NESTED2));
+	ASSERT(TOID_IS_NULL(str2));
 }
 
 /*
@@ -229,17 +232,17 @@ do_tx_strdup_abort_nested(PMEMobjpool *pop)
 static void
 do_tx_strdup_abort_after_nested(PMEMobjpool *pop)
 {
-	OID_TYPE(char) str1;
-	OID_TYPE(char) str2;
+	TOID(char) str1;
+	TOID(char) str2;
 
 	TX_BEGIN(pop) {
-		OID_ASSIGN(str1, pmemobj_tx_strdup(TEST_STR_1,
+		TOID_ASSIGN(str1, pmemobj_tx_strdup(TEST_STR_1,
 				TYPE_ABORT_AFTER_NESTED1));
-		ASSERT(!OID_IS_NULL(str1));
+		ASSERT(!TOID_IS_NULL(str1));
 		TX_BEGIN(pop) {
-			OID_ASSIGN(str2, pmemobj_tx_strdup(TEST_STR_2,
+			TOID_ASSIGN(str2, pmemobj_tx_strdup(TEST_STR_2,
 					TYPE_ABORT_AFTER_NESTED2));
-			ASSERT(!OID_IS_NULL(str2));
+			ASSERT(!TOID_IS_NULL(str2));
 		} TX_ONABORT {
 			ASSERT(0);
 		} TX_END
@@ -249,11 +252,11 @@ do_tx_strdup_abort_after_nested(PMEMobjpool *pop)
 		ASSERT(0);
 	} TX_END
 
-	OID_ASSIGN(str1, pmemobj_first(pop, TYPE_ABORT_AFTER_NESTED1));
-	ASSERT(OID_IS_NULL(str1));
+	TOID_ASSIGN(str1, pmemobj_first(pop, TYPE_ABORT_AFTER_NESTED1));
+	ASSERT(TOID_IS_NULL(str1));
 
-	OID_ASSIGN(str2, pmemobj_first(pop, TYPE_ABORT_AFTER_NESTED2));
-	ASSERT(OID_IS_NULL(str2));
+	TOID_ASSIGN(str2, pmemobj_first(pop, TYPE_ABORT_AFTER_NESTED2));
+	ASSERT(TOID_IS_NULL(str2));
 }
 
 int
