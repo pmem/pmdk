@@ -1147,6 +1147,12 @@ pmemobj_tx_alloc(size_t size, unsigned int type_num)
 {
 	LOG(3, NULL);
 
+	if (size == 0) {
+		LOG(1, "allocation with size 0");
+		errno = EINVAL;
+		return OID_NULL;
+	}
+
 	return tx_alloc_common(size, type_num, constructor_tx_alloc);
 }
 
@@ -1157,6 +1163,12 @@ PMEMoid
 pmemobj_tx_zalloc(size_t size, unsigned int type_num)
 {
 	LOG(3, NULL);
+
+	if (size == 0) {
+		LOG(1, "allocation with size 0");
+		errno = EINVAL;
+		return OID_NULL;
+	}
 
 	return tx_alloc_common(size, type_num, constructor_tx_zalloc);
 }

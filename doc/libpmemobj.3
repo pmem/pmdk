@@ -1439,10 +1439,11 @@ the actual size of the allocation will differ from the requested one by at least
 less than 64 bytes is extremely inefficient and discouraged.
 If
 .I size
-is 0, then
+equals 0, then
 .BR pmemobj_alloc ()
-returns
-.IR OID_NULL .
+returns non-zero value, sets the errno and leaves the
+.I oidp
+untouched.
 The allocated object is added to the internal container associated with given
 .IR type_num .
 .PP
@@ -1474,10 +1475,11 @@ the actual size of the allocation will differ from the requested one by at least
 less than 64 bytes is extremely inefficient and discouraged.
 If
 .I size
-is 0, then
+equals 0, then
 .BR pmemobj_zalloc ()
-returns
-.IR OID_NULL .
+returns non-zero value, sets the errno and leaves the
+.I oidp
+untouched.
 The allocated object is added to the internal container associated with given
 .I type_num.
 .PP
@@ -2612,7 +2614,7 @@ changes to
 OID_NULL is returned, and errno is set appropriately.
 If
 .I size
-is 0, OID_NULL is returned.
+equals 0, OID_NULL is returned and errno is set appropriately.
 .PP
 .BI "PMEMoid pmemobj_tx_zalloc(size_t " size ", unsigned int " type_num );
 .IP
@@ -2628,6 +2630,9 @@ function returns a handle to the newly allocated object.  Otherwise, stage
 changes to
 .IR TX_STAGE_ONABORT ,
 OID_NULL is returned, and errno is set appropriately.
+If
+.I size
+equals 0, OID_NULL is returned and errno is set appropriately.
 .PP
 .BI "PMEMoid pmemobj_tx_realloc(PMEMoid " oid ", size_t " size ", unsigned int " type_num );
 .IP
