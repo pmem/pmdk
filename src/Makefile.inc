@@ -139,8 +139,8 @@ all: $(objdir) $(libdir) $(EXTRA_TARGETS) $(LIB_AR) $(LIB_SO_SONAME) $(LIB_SO_RE
 $(objdir) $(libdir):
 	$(MKDIR) -p $@
 
-$(LIB_SO_REAL): $(OBJS)
-	$(CC) $(LDFLAGS) -shared -Wl,--version-script=$(LIB_MAP),-soname,$(LIB_SONAME) -o $@ $(OBJS) $(LIBS)
+$(LIB_SO_REAL): $(OBJS) $(EXTRA_OBJS)
+	$(CC) $(LDFLAGS) -shared -Wl,--version-script=$(LIB_MAP),-soname,$(LIB_SONAME) -o $@ $(OBJS) $(EXTRA_OBJS) $(LIBS)
 
 $(LIB_SO_SONAME): $(LIB_SO_REAL)
 	$(LN) -sf $(shell basename $<) $@
@@ -154,8 +154,8 @@ $(LIB_AR): $(LIB_AR_ALL)
 $(LIB_AR_ALL): $(LIB_AR_UNSCOPED) $(LIB_MAP)
 	$(OBJCOPY) --localize-hidden `sed -n 's/^	*\([a-zA-Z0-9_]*\);$$/-G \1/p' $(LIB_MAP)` $< $@
 
-$(LIB_AR_UNSCOPED): $(OBJS)
-	$(LD) -o $@ -r $(OBJS)
+$(LIB_AR_UNSCOPED): $(OBJS) $(EXTRA_OBJS)
+	$(LD) -o $@ -r $(OBJS) $(EXTRA_OBJS)
 
 install: all
 	$(INSTALL) -d $(LIBS_DESTDIR)
