@@ -105,8 +105,9 @@ pkg-clean:
 rpm dpkg: pkg-clean source
 	utils/build-$@.sh $(SRCVERSION) $(DESTDIR)/nvml $(DESTDIR) $(CURDIR)/$@
 
-install:
+install uninstall:
 	$(MAKE) -C src $@
 	$(MAKE) -C doc $@
 
-.PHONY: all clean clobber test check cstyle install source rpm dpkg pkg-clean $(SUBDIRS)
+.PHONY: all clean clobber test check cstyle install uninstall\
+	source rpm dpkg pkg-clean $(SUBDIRS)

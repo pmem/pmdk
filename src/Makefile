@@ -64,6 +64,7 @@ TEST_FS = all
 
 all: $(ALL_TARGETS)
 install: $(INSTALL_TARGETS:=-install)
+uninstall: $(INSTALL_TARGETS:=-uninstall)
 clean: $(CLEAN_TARGETS:=-clean)
 clobber: $(CLOBBER_TARGETS:=-clobber)
 cstyle: $(CSTYLE_TARGETS:=-cstyle)
@@ -79,6 +80,12 @@ libpmemblk libpmemlog libpmemobj: libpmem
 	$(MAKE) -C $* install
 ifeq ($(custom_build),)
 	$(MAKE) -C $* install DEBUG=1
+endif
+
+%-uninstall: %
+	$(MAKE) -C $* uninstall
+ifeq ($(custom_build),)
+	$(MAKE) -C $* uninstall DEBUG=1
 endif
 
 %-clean:
@@ -120,6 +127,9 @@ install: all
 	install -d $(HEADERS_DESTDIR)
 	install -p -m 0644 $(HEADERS_INSTALL) $(HEADERS_DESTDIR)
 
+uninstall:
+	$(foreach f, $(HEADERS_INSTALL), $(RM) $(HEADERS_DESTDIR)/$(notdir $(f)))
+
 cstyle:
 	$(CSTYLE) -pP include/*.h
 
@@ -130,5 +140,5 @@ cscope:
 clean:
 	$(RM) tags cscope.in.out cscope.out cscope.po.out
 
-.PHONY: all install clean clobber cstyle test check\
+.PHONY: all install uninstall clean clobber cstyle test check\
 	jemalloc jemalloc-clean jemalloc-test jemalloc-check cscope $(ALL_TARGETS)
