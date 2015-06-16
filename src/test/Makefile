@@ -79,6 +79,7 @@ TEST = blk_nblock\
        vmem_create_in_region\
        vmem_delete\
        vmem_realloc\
+       vmem_realloc_inplace\
        vmem_stats\
        vmem_strdup\
        vmem_fork\
