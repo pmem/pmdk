@@ -1104,7 +1104,9 @@ macro and its shortened form
 return a typed write pointer (TYPE *) to an object
 represented by
 .IR oid .
-If OID_NULL is passed as an argument, the macro evaluates to NULL.
+If
+.IR oid
+holds OID_NULL value, the macro evaluates to NULL.
 .PP
 .BI "DIRECT_RO(TOID " oid )
 .sp
@@ -1117,7 +1119,9 @@ macro and its shortened form
 return a typed read-only (const) pointer (TYPE *) to an object
 represented by
 .IR oid .
-If OID_NULL is passed as an argument, the macro evaluates to NULL.
+If
+.IR oid
+holds OID_NULL value, the macro evaluates to NULL.
 .SH LAYOUT DECLARATION
 .PP
 The
