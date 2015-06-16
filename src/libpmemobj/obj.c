@@ -586,6 +586,12 @@ pmemobj_alloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 	/* log notice message if used inside a transaction */
 	_POBJ_DEBUG_NOTICE_IN_TX();
 
+	if (size == 0) {
+		LOG(1, "allocation with size 0");
+		errno = EINVAL;
+		return -1;
+	}
+
 	return obj_alloc_construct(pop, oidp, size, type_num, constructor, arg);
 }
 
@@ -623,6 +629,12 @@ pmemobj_zalloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 
 	/* log notice message if used inside a transaction */
 	_POBJ_DEBUG_NOTICE_IN_TX();
+
+	if (size == 0) {
+		LOG(1, "allocation with size 0");
+		errno = EINVAL;
+		return -1;
+	}
 
 	struct carg_zalloc carg;
 	carg.pop = pop;
