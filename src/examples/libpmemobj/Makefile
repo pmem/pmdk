@@ -34,8 +34,7 @@
 # examples/libpmemobj/Makefile -- build the libpmemobj examples
 #
 PROGS = manpage
-DIRS_EXTRA = pminvaders
-DIRS =
+DIRS = pminvaders
 
 INCDIR ?= ../../include
 LIBDIR ?= ../../debug
@@ -52,15 +51,14 @@ cstyle:  TARGET = cstyle
 
 all: $(PROGS) $(DIRS)
 
-extra: $(DIRS_EXTRA)
 
-clean: $(DIRS) $(DIRS_EXTRA)
+clean: $(DIRS)
 	$(RM) *.o core a.out
 
-clobber: clean $(DIRS) $(DIRS_EXTRA)
+clobber: clean $(DIRS)
 	$(RM) $(PROGS)
 
-cstyle: $(DIRS) $(DIRS_EXTRA)
+cstyle: $(DIRS)
 	$(CSTYLE) -pP *.[ch]
 
 .c.o:
@@ -74,7 +72,4 @@ manpage: manpage.o
 $(DIRS):
 	$(MAKE) -C $@ $(TARGET)
 
-$(DIRS_EXTRA):
-	$(MAKE) -C $@ $(TARGET)
-
-.PHONY: all clean clobber cstyle $(DIRS) $(DIRS_EXTRA)
+.PHONY: all clean clobber cstyle $(DIRS)
