@@ -65,6 +65,15 @@ ifneq ($(BASH_COMP_FILES),)
 	install -p -m 0644 $(BASH_COMP_FILES) $(BASH_COMP_DIR)
 endif
 
+uninstall:
+ifneq ($(TARGET),)
+	$(RM) $(TARGET_DIR)/$(TARGET)
+endif
+ifneq ($(BASH_COMP_FILES),)
+	$(RM) $(BASH_COMP_DIR)/$(BASH_COMP_FILES)
+endif
+
+
 %.gz: %
 	gzip -c ./$< > $@
 
@@ -77,4 +86,4 @@ $(TARGET): $(OBJS)
 %.o: %.c
 	$(CC) $(CFLAGS) $(INCS) -c -o $@ $<
 
-.PHONY: all clean clobber cstyle install
+.PHONY: all clean clobber cstyle install uninstall

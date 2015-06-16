@@ -162,6 +162,10 @@ install: all
 	$(INSTALL) -p -m 0755 $(TARGET_LIBS) $(LIBS_DESTDIR)
 	$(CP) -d $(TARGET_LINKS) $(LIBS_DESTDIR)
 
+uninstall:
+	$(foreach f, $(TARGET_LIBS), $(RM) $(LIBS_DESTDIR)/$(notdir $(f)))
+	$(foreach f, $(TARGET_LINKS), $(RM) $(LIBS_DESTDIR)/$(notdir $(f)))
+
 clean: $(EXTRA_TARGETS_CLEAN)
 	$(RM) $(OBJS)
 	$(RM) $(LIB_AR_ALL) $(LIB_AR_UNSCOPED)
@@ -175,4 +179,4 @@ cstyle:
 $(objdir)/%.o: %.c $(DEPS)
 	$(CC) -c -o $@ $(CFLAGS) $(INCS) -fPIC $<
 
-.PHONY: all clean clobber install cstyle
+.PHONY: all clean clobber install uninstall cstyle

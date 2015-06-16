@@ -44,6 +44,7 @@ GZFILES_1 = $(MANPAGES_1:=.gz)
 GZFILES_3 = $(MANPAGES_3:=.gz)
 GZFILES = $(GZFILES_1) $(GZFILES_3)
 INSTALL_SECTIONS = install-1 install-3
+UNINSTALL_SECTIONS = uninstall-1 uninstall-3
 MANPAGES_DESTDIR = $(DESTDIR)/usr/share/man/man
 
 all: $(TXTFILES)
@@ -70,6 +71,11 @@ install-%:
 	install -d $(MANPAGES_DESTDIR)$*
 	install -p -m 0644 $(GZFILES_$*) $(MANPAGES_DESTDIR)$*
 
-install: compress $(INSTALL_SECTIONS)
+uninstall-%:
+	$(foreach f, $(GZFILES_$*), $(RM) $(MANPAGES_DESTDIR)$*/$(f))
 
-.PHONY: all html clean compress clobber cstyle install
+install: compress $(INSTALL_SECTIONS)
+uninstall: $(UNINSTALL_SECTIONS)
+
+.PHONY: all html clean compress clobber cstyle install uninstall\
+	install-1 install-3 uninstall-1 uninstall-3
