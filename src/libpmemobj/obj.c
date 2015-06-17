@@ -350,6 +350,11 @@ pmemobj_map_common(int fd, const char *layout, size_t poolsize, int rdonly,
 		goto err;
 	}
 
+	if ((errno = lane_recover(pop)) != 0) {
+		LOG(1, "!lane_recover");
+		goto err;
+	}
+
 	/* XXX the rest of run-time info */
 
 	/*

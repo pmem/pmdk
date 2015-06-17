@@ -135,7 +135,8 @@ TEST = blk_nblock\
        obj_heap\
        obj_store\
        obj_tx_locks\
-       obj_debug
+       obj_debug\
+       obj_recovery
 
 all     : TARGET = all
 clean   : TARGET = clean
