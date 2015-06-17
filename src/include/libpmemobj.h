@@ -919,11 +919,11 @@ TOID_TYPE_NUM(t)); ret; })
 TOID_TYPE_NUM(t)); ret; })
 
 #define	TX_REALLOC(o, size) (\
-{ TOID(t) ret = (TOID(t))pmemobj_tx_realloc(sizeof (t),\
+{ typeof((o)) ret = (typeof((o)))pmemobj_tx_realloc((size),\
 TOID_TYPE_NUM_OF(o)); ret; })
 
-#define	TX_ZREALLOC(o, size, type_num) (\
-{ TOID(t) ret = (TOID(t))pmemobj_tx_zrealloc(sizeof (t),\
+#define	TX_ZREALLOC(o, size) (\
+{ typeof((o)) ret = (typeof((o)))pmemobj_tx_zrealloc((size),\
 TOID_TYPE_NUM_OF(o)); ret; })
 
 #define	TX_STRDUP(s, type_num)\
