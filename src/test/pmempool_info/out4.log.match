@@ -10,6 +10,7 @@ Checksum                 : $(*) [OK]
 
 PMEM BLK Header:
 Block size               : $(*)
+Is zeroed                : $(*)
 
 [ARENA 0]
 PMEM BLK BTT Info Header:

@@ -12,28 +12,7 @@ PMEM LOG header:
 Start offset             : $(*)
 Write offset             : $(*) [OK]
 End offset               : $(*)
-Mapped size              : $(*)
-is_pmem                  : $(*)
-Read-only                : $(*)
 
-POOL Header:
-Signature                : PMEMBLK
-Major                    : $(*)
-Mandatory features       : $(*)
-Not mandatory features   : $(*)
-Forced RO                : $(*)
-UUID                     : $(*)
-Creation Time            : $(*)
-Checksum                 : $(*) [OK]
-
-PMEM BLK Header:
-Block size               : $(*)
-is_pmem                  : $(*)
-Read-only                : $(*)
-Data size                : $(*)
-Number of LBAs           : $(*)
-Number of lanes          : $(*)
-Next lane                : $(*)
-Data offset              : $(*)
-
-<No BTT layout>
+PMEMLOG data:
+00002000  54 45 53 54                                       |TEST            |
+------------------------------------------------------------------------------

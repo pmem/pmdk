@@ -31,7 +31,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# pmempool_info/TEST6 -- test for info command with increased verbosity level
+# pmempool_info/TEST6 -- test for info command
 #
 export UNITTEST_NAME=pmempool_info/TEST6
 export UNITTEST_NUM=6
@@ -49,13 +49,8 @@ rm -rf $LOG && touch $LOG
 
 rm -rf $POOL
 expect_normal_exit $PMEMPOOL create log $POOL
-expect_normal_exit $PMEMPOOL info -v $POOL >> $LOG
-
-echo >> $LOG
-
-rm -rf $POOL
-expect_normal_exit $PMEMPOOL create blk 512 $POOL
-expect_normal_exit $PMEMPOOL info -v $POOL >> $LOG
+expect_normal_exit $PMEMWRITE $POOL TEST
+expect_normal_exit $PMEMPOOL info -d $POOL >> $LOG
 
 check
 

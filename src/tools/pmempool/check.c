@@ -80,6 +80,7 @@ struct pmempool_check {
 	int fd;			/* file descriptor */
 	bool repair;		/* do repair */
 	bool backup;		/* do backup */
+	char *backup_fname;	/* backup file name */
 	bool exec;		/* do execute */
 	pmem_pool_type_t ptype; /* pool type */
 	union {
@@ -291,6 +292,7 @@ const struct pmempool_check pmempool_check_default = {
 	.fd		= -1,
 	.repair		= false,
 	.backup		= false,
+	.backup_fname	= NULL,
 	.exec		= true,
 	.ptype		= PMEM_POOL_TYPE_UNKNOWN,
 	.narenas	= 0,
@@ -307,7 +309,7 @@ static const char *help_str =
 "  -r, --repair         try to repair a pool file if possible\n"
 "  -y, --yes            answer yes to all questions\n"
 "  -N, --no-exec        don't execute, just show what would be done\n"
-"  -b, --backup         create backup of a pool file before executing\n"
+"  -b, --backup <file>  create backup of a pool file before executing\n"
 "  -q, --quiet          be quiet and don't print any messages\n"
 "  -v, --verbose        increase verbosity level\n"
 "  -?, --help           display this help and exit\n"
@@ -322,7 +324,7 @@ static const struct option long_options[] = {
 	{"repair",	no_argument,		0,	'r'},
 	{"yes",		no_argument,		0,	'y'},
 	{"no-exec",	no_argument,		0,	'N'},
-	{"backup",	no_argument,		0,	'b'},
+	{"backup",	required_argument,	0,	'b'},
 	{"quiet",	no_argument,		0,	'q'},
 	{"verbose",	no_argument,		0,	'v'},
 	{"help",	no_argument,		0,	'?'},
@@ -335,7 +337,7 @@ static const struct option long_options[] = {
 static void
 print_usage(char *appname)
 {
-	printf("Usage: %s check [<args>] <blk|log> <file>\n", appname);
+	printf("Usage: %s check [<args>] <file>\n", appname);
 }
 
 /*
@@ -366,7 +368,7 @@ pmempool_check_parse_args(struct pmempool_check *pcp, char *appname,
 		int argc, char *argv[])
 {
 	int opt;
-	while ((opt = getopt_long(argc, argv, "v?rNbqy",
+	while ((opt = getopt_long(argc, argv, "v?rNb:qy",
 			long_options, NULL)) != -1) {
 		switch (opt) {
 		case 'r':
@@ -380,6 +382,7 @@ pmempool_check_parse_args(struct pmempool_check *pcp, char *appname,
 			break;
 		case 'b':
 			pcp->backup = true;
+			pcp->backup_fname = optarg;
 			break;
 		case 'q':
 			pcp->verbose = 0;
@@ -461,24 +464,8 @@ pmempool_check_cp(char *fsrc, char *fdst)
 static int
 pmempool_check_create_backup(struct pmempool_check *pcp)
 {
-	/* add BACKUP_SUFFIX to file name */
-	size_t flen = strlen(pcp->fname);
-	size_t slen = strlen(BACKUP_SUFFIX);
-	size_t tlen = flen + slen + 1;
-	char *backup_fname = malloc(tlen);
-	if (!backup_fname)
-		err(1, "Cannot allocate memory for backup file name");
-
-	memcpy(backup_fname, pcp->fname, flen);
-	memcpy(backup_fname + flen, BACKUP_SUFFIX, slen);
-	backup_fname[tlen-1] = '\0';
-
-	outv(1, "creating backup file: %s\n", backup_fname);
-	int ret = pmempool_check_cp(pcp->fname, backup_fname);
-
-	free(backup_fname);
-
-	return ret;
+	outv(1, "creating backup file: %s\n", pcp->backup_fname);
+	return pmempool_check_cp(pcp->fname, pcp->backup_fname);
 }
 
 /*
@@ -1879,7 +1866,7 @@ pmempool_check_single_step(struct pmempool_check *pcp,
 static check_result_t
 pmempool_check_all_steps(struct pmempool_check *pcp)
 {
-	if (pcp->repair && pcp->backup) {
+	if (pcp->repair && pcp->backup && pcp->exec) {
 		if (pmempool_check_create_backup(pcp)) {
 			out_err("unable to create backup file\n");
 			return -1;
