@@ -258,6 +258,11 @@ TOID(t)\
 #define	TOID_VALID(o) (TOID_TYPE_NUM_OF(o) == pmemobj_type_num((o).oid))
 
 /*
+ * Checks whether the object is of a given type
+ */
+#define	OID_INSTANCEOF(o, t) (TOID_TYPE_NUM(t) == pmemobj_type_num(o))
+
+/*
  * Begin of layout declaration
  */
 #define	POBJ_LAYOUT_BEGIN(name)\
