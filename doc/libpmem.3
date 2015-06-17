@@ -225,7 +225,7 @@ It calls
 .BR msync ()
 with the
 .I MS_SYNC
-flag as described in 
+flag as described in
 .BR msync (2).
 Typically the application only checks for the existence of
 persistent memory once, and then uses that result throughout
@@ -373,7 +373,7 @@ functions provide the same memory copying as their namesakes
 and
 .BR memset(3),
 and ensure that the result has been flushed to persistence before
-returning.  For example, the following code is functionally equivalent to 
+returning.  For example, the following code is functionally equivalent to
 .BR pmem_memmove_persist ():
 .IP
 .nf
