@@ -67,15 +67,14 @@ clean:
 clobber: clean
 	$(RM) -f $(TXTFILES) $(HTMLFILES) $(GZFILES)
 
-install-%:
-	install -d $(MANPAGES_DESTDIR)$*
-	install -p -m 0644 $(GZFILES_$*) $(MANPAGES_DESTDIR)$*
+install: compress
+	install -d $(MANPAGES_DESTDIR)1
+	install -p -m 0644 $(GZFILES_1) $(MANPAGES_DESTDIR)1
+	install -d $(MANPAGES_DESTDIR)3
+	install -p -m 0644 $(GZFILES_3) $(MANPAGES_DESTDIR)3
 
-uninstall-%:
-	$(foreach f, $(GZFILES_$*), $(RM) $(MANPAGES_DESTDIR)$*/$(f))
+uninstall:
+	$(foreach f, $(GZFILES_1), $(RM) $(MANPAGES_DESTDIR)1/$(f))
+	$(foreach f, $(GZFILES_3), $(RM) $(MANPAGES_DESTDIR)3/$(f))
 
-install: compress $(INSTALL_SECTIONS)
-uninstall: $(UNINSTALL_SECTIONS)
-
-.PHONY: all html clean compress clobber cstyle install uninstall\
-	install-1 install-3 uninstall-1 uninstall-3
+.PHONY: all html clean compress clobber cstyle install uninstall
