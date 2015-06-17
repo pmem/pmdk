@@ -35,10 +35,12 @@
 
 EXTRA_TARGETS = jemalloc
 
-include ../Makefile.inc
+default: all
 
 include ./jemalloc.mk
 
 ifeq ($(DEBUG),1)
 JEMALLOC_CONFIG += --enable-debug
 endif
+
+include ../Makefile.inc

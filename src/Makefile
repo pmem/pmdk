@@ -140,5 +140,7 @@ cscope:
 clean:
 	$(RM) tags cscope.in.out cscope.out cscope.po.out
 
+.NOTPARALLEL: libvmem libvmmalloc
+
 .PHONY: all install uninstall clean clobber cstyle test check\
 	jemalloc jemalloc-clean jemalloc-test jemalloc-check cscope $(ALL_TARGETS)

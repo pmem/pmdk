@@ -32,6 +32,12 @@
 # src/deps/jemalloc.mk -- rules for jemalloc
 #
 
+ifeq ($(DEBUG),1)
+OBJDIR = debug
+else
+OBJDIR = nondebug
+endif
+
 JEMALLOC_DIR = $(realpath ../jemalloc)
 ifeq ($(OBJDIR),$(abspath $(OBJDIR)))
 JEMALLOC_OBJDIR = $(OBJDIR)/jemalloc

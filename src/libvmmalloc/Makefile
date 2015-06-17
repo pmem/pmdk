@@ -37,12 +37,14 @@ LIBRARY_SO_VERSION = 1
 LIBRARY_VERSION = 0.0
 SOURCE = libvmmalloc.c $(COMMON)/util.c $(COMMON)/out.c
 
-include ../Makefile.inc
+default: all
 
 include ../jemalloc/jemalloc.mk
 
 INCS += -I$(JEMALLOC_DIR)/include/jemalloc
 INCS += -I$(JEMALLOC_OBJDIR)/include/jemalloc
 INCS += -I../libvmem
-OBJS += $(JEMALLOC_LIB)
+EXTRA_OBJS += $(JEMALLOC_LIB)
 LIBS += -pthread
+
+include ../Makefile.inc
