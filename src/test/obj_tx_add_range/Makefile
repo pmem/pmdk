@@ -37,10 +37,12 @@ vpath %.c ../../libpmemobj
 vpath %.c ../../common
 
 TARGET = obj_tx_add_range
-OBJS = obj_tx_add_range.o
+OBJS = obj_tx_add_range.o util.o out.o
 
 LIBPMEM=y
 LIBPMEMOBJ=y
+
+out.o: CFLAGS += -DSRCVERSION=\"utversion\"
 
 include ../Makefile.inc
 

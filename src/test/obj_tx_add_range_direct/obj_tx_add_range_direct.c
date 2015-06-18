@@ -421,6 +421,7 @@ int
 main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_tx_add_range_direct");
+	util_init();
 
 	if (argc != 2)
 		FATAL("usage: %s [file]", argv[0]);
