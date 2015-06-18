@@ -98,6 +98,9 @@ main(int argc, char *argv[])
 	test = vmem_realloc(vmp, test, 6 * 1024 * 1024);
 	ASSERTne(test, NULL);
 
+	test = vmem_realloc(vmp, test, 12 * 1024 * 1024);
+	ASSERTne(test, NULL);
+
 	vmem_free(vmp, test);
 
 	vmem_delete(vmp);
