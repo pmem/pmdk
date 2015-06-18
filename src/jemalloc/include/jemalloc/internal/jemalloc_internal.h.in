@@ -1010,7 +1010,7 @@ ixalloc(void *ptr, size_t size, size_t extra, size_t alignment, bool zero)
 	if (size <= arena_maxclass)
 		return (arena_ralloc_no_move(ptr, oldsize, size, extra, zero));
 	else
-		return (huge_ralloc_no_move(ptr, oldsize, size, extra));
+		return (huge_ralloc_no_move(pools[0], ptr, oldsize, size, extra));
 }
 
 malloc_tsd_externs(thread_allocated, thread_allocated_t)
