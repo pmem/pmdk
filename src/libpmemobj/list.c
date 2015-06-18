@@ -53,7 +53,7 @@
 #define	NEXT_OFF (offsetof(struct list_entry, pe_next) + offsetof(PMEMoid, off))
 #define	OOB_ENTRY_OFF (offsetof(struct oob_header, oob))
 #define	OOB_ENTRY_OFF_REV \
-((ssize_t)offsetof(struct oob_header, oob) - OBJ_OOB_OFFSET)
+((ssize_t)offsetof(struct oob_header, oob) - OBJ_OOB_SIZE)
 
 /*
  * lane_list_section -- structure of list section in lane
@@ -578,16 +578,16 @@ list_insert_oob(PMEMobjpool *pop, struct redo_log *redo, size_t redo_index,
 		struct list_entry *first_ptr =
 			(struct list_entry *)OBJ_OFF_TO_PTR(pop,
 					oob_head->pe_first.off -
-					OBJ_OOB_OFFSET + OOB_ENTRY_OFF);
+					OBJ_OOB_SIZE + OOB_ENTRY_OFF);
 
 		/* current->next = first and current->prev = first->prev */
 		*next_offset = oob_head->pe_first.off;
 		*prev_offset = first_ptr->pe_prev.off;
 
 		uint64_t first_prev_off = oob_head->pe_first.off -
-			OBJ_OOB_OFFSET + OOB_ENTRY_OFF + PREV_OFF;
+				OBJ_OOB_SIZE + OOB_ENTRY_OFF + PREV_OFF;
 		uint64_t first_prev_next_off = first_ptr->pe_prev.off -
-			OBJ_OOB_OFFSET + OOB_ENTRY_OFF + NEXT_OFF;
+				OBJ_OOB_SIZE + OOB_ENTRY_OFF + NEXT_OFF;
 
 		redo_log_store(pop, redo, redo_index + 0,
 				first_prev_off, obj_offset);
@@ -610,8 +610,8 @@ list_realloc_replace(PMEMobjpool *pop,
 	void (*constructor)(void *ptr, void *arg), void *arg,
 	uint64_t field_offset, uint64_t field_value)
 {
-	uint64_t obj_doffset = obj_offset + OBJ_OOB_OFFSET;
-	uint64_t new_obj_doffset = new_obj_offset + OBJ_OOB_OFFSET;
+	uint64_t obj_doffset = obj_offset + OBJ_OOB_SIZE;
+	uint64_t new_obj_doffset = new_obj_offset + OBJ_OOB_SIZE;
 
 	/* copy old data */
 	memcpy(OBJ_OFF_TO_PTR(pop, new_obj_offset),
@@ -689,7 +689,7 @@ list_realloc_replace(PMEMobjpool *pop,
  * head        - user list head
  * dest        - destination on user list
  * before      - insert before/after destination on user list
- * size        - size of allocation, will be increased by OBJ_OOB_OFFSET
+ * size        - size of allocation, will be increased by OBJ_OOB_SIZE
  * constructor - object's constructor
  * arg         - argument for object's constructor
  * oidp        - pointer to target object ID
@@ -735,7 +735,7 @@ list_insert_new(PMEMobjpool *pop, struct list_head *oob_head,
 	}
 
 	/* increase allocation size by oob header size */
-	size += OBJ_OOB_OFFSET;
+	size += OBJ_OOB_SIZE;
 	struct lane_list_section *section =
 		(struct lane_list_section *)lane_section->layout;
 	struct redo_log *redo = section->redo;
@@ -745,14 +745,14 @@ list_insert_new(PMEMobjpool *pop, struct list_head *oob_head,
 	if (constructor) {
 		if ((errno = pmalloc_construct(pop,
 				&section->obj_offset, size,
-				constructor, arg, OBJ_OOB_OFFSET))) {
+				constructor, arg, OBJ_OOB_SIZE))) {
 			LOG(1, "!pmalloc_construct");
 			ret = -1;
 			goto err_pmalloc;
 		}
 	} else {
 		if ((errno = pmalloc(pop, &section->obj_offset,
-				size))) {
+					size))) {
 			LOG(1, "!pmalloc");
 			ret = -1;
 			goto err_pmalloc;
@@ -760,7 +760,7 @@ list_insert_new(PMEMobjpool *pop, struct list_head *oob_head,
 	}
 
 	uint64_t obj_offset = section->obj_offset;
-	uint64_t obj_doffset = obj_offset + OBJ_OOB_OFFSET;
+	uint64_t obj_doffset = obj_offset + OBJ_OOB_SIZE;
 
 	struct list_entry *oob_entry_ptr =
 		(struct list_entry *)OBJ_OFF_TO_PTR(pop,
@@ -1000,7 +1000,7 @@ list_remove_free(PMEMobjpool *pop, struct list_head *oob_head,
 	size_t redo_index = 0;
 
 	uint64_t obj_doffset = oidp->off;
-	uint64_t obj_offset = obj_doffset - OBJ_OOB_OFFSET;
+	uint64_t obj_offset = obj_doffset - OBJ_OOB_SIZE;
 
 	struct list_entry *oob_entry_ptr =
 		(struct list_entry *)OBJ_OFF_TO_PTR(pop,
@@ -1202,7 +1202,7 @@ list_move_oob(PMEMobjpool *pop,
 	size_t redo_index = 0;
 
 	uint64_t obj_doffset = oid.off;
-	uint64_t obj_offset = obj_doffset - OBJ_OOB_OFFSET;
+	uint64_t obj_offset = obj_doffset - OBJ_OOB_SIZE;
 
 	struct list_entry *entry_ptr =
 		(struct list_entry *)OBJ_OFF_TO_PTR(pop, obj_offset
@@ -1376,7 +1376,7 @@ err:
  * oob_head     - oob list head
  * pe_offset    - offset to list entry on user list relative to user data
  * head         - user list head
- * size         - size of allocation, will be increased by OBJ_OOB_OFFSET
+ * size         - size of allocation, will be increased by OBJ_OOB_SIZE
  * constructor  - object's constructor
  * arg          - argument for object's constructor
  * field_offset - offset to user's field
@@ -1426,13 +1426,13 @@ list_realloc(PMEMobjpool *pop, struct list_head *oob_head,
 	}
 
 	/* increase allocation size by oob header size */
-	size += OBJ_OOB_OFFSET;
+	size += OBJ_OOB_SIZE;
 	struct lane_list_section *section =
 		(struct lane_list_section *)lane_section->layout;
 	struct redo_log *redo = section->redo;
 	size_t redo_index = 0;
 	uint64_t obj_doffset = oidp->off;
-	uint64_t obj_offset = obj_doffset - OBJ_OOB_OFFSET;
+	uint64_t obj_offset = obj_doffset - OBJ_OOB_SIZE;
 	uint64_t old_size = pmalloc_usable_size(pop, obj_offset);
 	uint64_t sec_off_off = OBJ_PTR_TO_OFF(pop, &section->obj_offset);
 
@@ -1458,7 +1458,7 @@ list_realloc(PMEMobjpool *pop, struct list_head *oob_head,
 		}
 
 		uint64_t new_obj_offset = section->obj_offset;
-		uint64_t new_obj_doffset = new_obj_offset + OBJ_OOB_OFFSET;
+		uint64_t new_obj_doffset = new_obj_offset + OBJ_OOB_SIZE;
 
 		redo_index = list_realloc_replace(pop,
 				redo, redo_index,
@@ -1545,7 +1545,7 @@ list_realloc(PMEMobjpool *pop, struct list_head *oob_head,
 			 */
 			if ((errno = prealloc_construct(pop,
 					&section->obj_offset, size,
-					constructor, arg, OBJ_OOB_OFFSET))) {
+					constructor, arg, OBJ_OOB_SIZE))) {
 				LOG(1, "!prealloc_construct");
 				ret = -1;
 				goto err_unlock;
@@ -1605,7 +1605,7 @@ err_oob_lock:
  * oob_head_new - new oob list head
  * pe_offset    - offset to list entry on user list relative to user data
  * head         - user list head
- * size         - size of allocation, will be increased by OBJ_OOB_OFFSET
+ * size         - size of allocation, will be increased by OBJ_OOB_SIZE
  * constructor  - object's constructor
  * arg          - argument for object's constructor
  * field_offset - offset to user's field
@@ -1639,7 +1639,7 @@ list_realloc_move(PMEMobjpool *pop, struct list_head *oob_head_old,
 	ASSERTne(lane_section->layout, NULL);
 
 	/* increase allocation size by oob header size */
-	size += OBJ_OOB_OFFSET;
+	size += OBJ_OOB_SIZE;
 	struct lane_list_section *section =
 		(struct lane_list_section *)lane_section->layout;
 	struct redo_log *redo = section->redo;
@@ -1664,7 +1664,7 @@ list_realloc_move(PMEMobjpool *pop, struct list_head *oob_head_old,
 	}
 
 	uint64_t obj_doffset = oidp->off;
-	uint64_t obj_offset = obj_doffset - OBJ_OOB_OFFSET;
+	uint64_t obj_offset = obj_doffset - OBJ_OOB_SIZE;
 	uint64_t new_obj_doffset = obj_doffset;
 	uint64_t new_obj_offset = obj_offset;
 	uint64_t old_size = pmalloc_usable_size(pop, obj_offset);
@@ -1693,7 +1693,7 @@ list_realloc_move(PMEMobjpool *pop, struct list_head *oob_head_old,
 		}
 
 		new_obj_offset = section->obj_offset;
-		new_obj_doffset = new_obj_offset + OBJ_OOB_OFFSET;
+		new_obj_doffset = new_obj_offset + OBJ_OOB_SIZE;
 
 		redo_index = list_realloc_replace(pop,
 				redo, redo_index,
@@ -1740,7 +1740,7 @@ list_realloc_move(PMEMobjpool *pop, struct list_head *oob_head_old,
 			 */
 			if ((errno = prealloc_construct(pop,
 					&section->obj_offset, size,
-					constructor, arg, OBJ_OOB_OFFSET))) {
+					constructor, arg, OBJ_OOB_SIZE))) {
 				LOG(1, "!prealloc_construct");
 				ret = -1;
 				goto err_unlock;
@@ -1923,14 +1923,14 @@ lane_list_check(PMEMobjpool *pop, struct lane_section_layout *section_layout)
 		(struct lane_list_section *)section_layout;
 
 	if (redo_log_check(pop, section->redo, REDO_NUM_ENTRIES) == 0) {
-		LOG(1, "list lane %p redo log check failed", section_layout);
+		LOG(1, "list lane %p redo log check failed", section);
 
 		return 0;
 	}
 
 	if (section->obj_offset && section->obj_offset < pop->heap_offset) {
 		LOG(1, "list lane %p invalid offset 0x%jx",
-				section_layout, section->obj_offset);
+				section, section->obj_offset);
 
 		return 0;
 	}

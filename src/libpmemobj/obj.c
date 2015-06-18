@@ -544,7 +544,7 @@ constructor_alloc_bytype(void *ptr, void *arg)
 
 	pobj->internal_type = TYPE_ALLOCATED;
 	pobj->user_type = carg->user_type;
-	carg->pop->persist(pobj, OBJ_OOB_OFFSET);
+	carg->pop->persist(pobj, OBJ_OOB_SIZE);
 
 	if (carg->constructor)
 		carg->constructor(ptr, carg->arg);
@@ -862,8 +862,8 @@ pmemobj_alloc_usable_size(PMEMoid oid)
 
 	ASSERTne(pop, NULL);
 
-	return (pmalloc_usable_size(pop, oid.off - OBJ_OOB_OFFSET) -
-								OBJ_OOB_OFFSET);
+	return (pmalloc_usable_size(pop, oid.off - OBJ_OOB_SIZE) -
+			OBJ_OOB_SIZE);
 }
 
 /*
@@ -953,7 +953,7 @@ constructor_alloc_root(void *ptr, void *arg)
 	ro->internal_type = TYPE_ALLOCATED;
 	ro->user_type = POBJ_ROOT_TYPE_NUM;
 	ro->size = carg->size;
-	carg->pop->persist(ro, OBJ_OOB_OFFSET);
+	carg->pop->persist(ro, OBJ_OOB_SIZE);
 }
 
 /*

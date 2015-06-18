@@ -40,6 +40,7 @@
 #include <errno.h>
 #include <sys/queue.h>
 #include <stdarg.h>
+#include <stdlib.h>
 
 #include "libpmem.h"
 #include "libpmemobj.h"
@@ -268,7 +269,7 @@ tx_clear_undo_log(PMEMobjpool *pop, struct list_head *head)
 #ifdef USE_VALGRIND
 		struct oob_header *oobh = OOB_HEADER_FROM_OID(pop, obj);
 		size_t size = pmalloc_usable_size(pop,
-				obj.off - OBJ_OOB_OFFSET);
+				obj.off - OBJ_OOB_SIZE);
 
 		VALGRIND_SET_CLEAN(oobh, size);
 #endif
@@ -331,23 +332,141 @@ tx_abort_free(PMEMobjpool *pop, struct lane_tx_layout *layout)
 	return 0;
 }
 
+struct tx_range_data {
+	void *begin;
+	void *end;
+	SLIST_ENTRY(tx_range_data) tx_range;
+};
+
+/*
+ * tx_restore_range -- (internal) restore a single range from undo log
+ *
+ * If the snapshot contains any PMEM locks that are held by the current
+ * transaction, they won't be overwritten with the saved data to avoid changing
+ * their state.  Those locks will be released in tx_end().
+ */
+static void
+tx_restore_range(PMEMobjpool *pop, struct tx_range *range)
+{
+	/* XXX - change to compile-time check */
+	ASSERTeq(sizeof (PMEMmutex), _POBJ_CL_ALIGNMENT);
+	ASSERTeq(sizeof (PMEMrwlock), _POBJ_CL_ALIGNMENT);
+	ASSERTeq(sizeof (PMEMcond), _POBJ_CL_ALIGNMENT);
+
+	struct lane_tx_runtime *runtime =
+			(struct lane_tx_runtime *)tx.section->runtime;
+	ASSERTne(runtime, NULL);
+
+	SLIST_HEAD(txr, tx_range_data) tx_ranges;
+	SLIST_INIT(&tx_ranges);
+
+	struct tx_range_data *txr;
+	txr = Malloc(sizeof (*txr));
+	if (txr == NULL) {
+		FATAL("!Malloc");
+	}
+
+	txr->begin = OBJ_OFF_TO_PTR(pop, range->offset);
+	txr->end = txr->begin + range->size;
+	SLIST_INSERT_HEAD(&tx_ranges, txr, tx_range);
+
+	struct tx_lock_data *txl;
+	struct tx_range_data *txrn;
+
+	/* check if there are any locks within given memory range */
+	SLIST_FOREACH(txl, &(runtime->tx_locks), tx_lock) {
+		void *lock_begin = txl->lock.mutex;
+		/* all PMEM locks have the same size */
+		void *lock_end = lock_begin + _POBJ_CL_ALIGNMENT;
+
+		SLIST_FOREACH(txr, &tx_ranges, tx_range) {
+			if ((lock_begin >= txr->begin &&
+				lock_begin < txr->end) ||
+				(lock_end >= txr->begin &&
+				lock_end < txr->end)) {
+				LOG(4, "detected PMEM lock"
+					"in undo log; "
+					"range %p-%p, lock %p-%p",
+					txr->begin, txr->end,
+					lock_begin, lock_end);
+
+				/* split the range into new ones */
+				if (lock_begin > txr->begin) {
+					txrn = Malloc(sizeof (*txrn));
+					if (txrn == NULL) {
+						FATAL("!Malloc");
+					}
+					txrn->begin = txr->begin;
+					txrn->end = lock_begin;
+					LOG(4, "range split; %p-%p",
+						txrn->begin, txrn->end);
+					SLIST_INSERT_HEAD(&tx_ranges,
+							txrn, tx_range);
+				}
+
+				if (lock_end < txr->end) {
+					txrn = Malloc(sizeof (*txrn));
+					if (txrn == NULL) {
+						FATAL("!Malloc");
+					}
+					txrn->begin = lock_end;
+					txrn->end = txr->end;
+					LOG(4, "range split; %p-%p",
+						txrn->begin, txrn->end);
+					SLIST_INSERT_HEAD(&tx_ranges,
+							txrn, tx_range);
+				}
+
+				/*
+				 * remove the original range
+				 * from the list
+				 */
+				SLIST_REMOVE(&tx_ranges, txr,
+						tx_range_data, tx_range);
+				Free(txr);
+				break;
+			}
+		}
+	}
+
+	ASSERT(!SLIST_EMPTY(&tx_ranges));
+
+	void *dst_ptr = OBJ_OFF_TO_PTR(pop, range->offset);
+
+	while (!SLIST_EMPTY(&tx_ranges)) {
+		struct tx_range_data *txr = SLIST_FIRST(&tx_ranges);
+		SLIST_REMOVE_HEAD(&tx_ranges, tx_range);
+		/* restore partial range data from snapshot */
+		pop->memcpy_persist(txr->begin,
+				&range->data[txr->begin - dst_ptr],
+				txr->end - txr->begin);
+		Free(txr);
+	}
+}
+
 /*
  * tx_abort_set -- (internal) abort all set operations
  */
 static int
-tx_abort_set(PMEMobjpool *pop, struct lane_tx_layout *layout)
+tx_abort_set(PMEMobjpool *pop, struct lane_tx_layout *layout, int recovery)
 {
 	LOG(3, NULL);
 
 	int ret;
 	PMEMoid obj;
+
 	while (!OBJ_OID_IS_NULL((obj = oob_list_last(pop,
 					&layout->undo_set)))) {
 		struct tx_range *range = OBJ_OFF_TO_PTR(pop, obj.off);
-		void *dst_ptr = OBJ_OFF_TO_PTR(pop, range->offset);
 
-		/* restore data from snapshot */
-		pop->memcpy_persist(dst_ptr, range->data, range->size);
+		if (recovery) {
+			/* lane recovery */
+			pop->memcpy_persist(OBJ_OFF_TO_PTR(pop, range->offset),
+					range->data, range->size);
+		} else {
+			/* aborted transaction */
+			tx_restore_range(pop, range);
+		}
 
 		/* remove snapshot from undo log */
 		ret = list_remove_free(pop, &layout->undo_set, 0, NULL, &obj);
@@ -389,7 +508,7 @@ tx_pre_commit_alloc(PMEMobjpool *pop, struct lane_tx_layout *layout)
 		oobh->internal_type = TYPE_ALLOCATED;
 
 		size_t size = pmalloc_usable_size(pop,
-				iter.off - OBJ_OOB_OFFSET);
+				iter.off - OBJ_OOB_SIZE);
 
 		/* flush and persist the whole allocated area and oob header */
 		pop->persist(oobh, size);
@@ -525,13 +644,13 @@ tx_post_commit(PMEMobjpool *pop, struct lane_tx_layout *layout)
  * tx_abort -- (internal) abort all allocated objects
  */
 static int
-tx_abort(PMEMobjpool *pop, struct lane_tx_layout *layout)
+tx_abort(PMEMobjpool *pop, struct lane_tx_layout *layout, int recovery)
 {
 	LOG(3, NULL);
 
 	int ret;
 
-	ret = tx_abort_set(pop, layout);
+	ret = tx_abort_set(pop, layout, recovery);
 	ASSERTeq(ret, 0);
 	if (ret) {
 		LOG(2, "tx_abort_set failed");
@@ -752,7 +871,7 @@ tx_realloc_common(PMEMoid oid, size_t size, unsigned int type_num,
 	/* oid is not NULL and size is not 0 so do realloc by alloc and free */
 	void *ptr = OBJ_OFF_TO_PTR(lane->pop, oid.off);
 	size_t old_size = pmalloc_usable_size(lane->pop,
-			oid.off - OBJ_OOB_OFFSET) - OBJ_OOB_OFFSET;
+			oid.off - OBJ_OOB_SIZE) - OBJ_OOB_SIZE;
 
 	size_t copy_size = old_size < size ? old_size : size;
 
@@ -874,10 +993,10 @@ pmemobj_tx_abort(int errnum)
 		/* this is the outermost transaction */
 
 		struct lane_tx_layout *layout =
-			(struct lane_tx_layout *)tx.section->layout;
+				(struct lane_tx_layout *)tx.section->layout;
 
 		/* process the undo log */
-		tx_abort(lane->pop, layout);
+		tx_abort(lane->pop, layout, 0 /* abort */);
 	}
 
 	txd->errnum = errnum;
@@ -1274,7 +1393,7 @@ pmemobj_tx_free(PMEMoid oid)
 		ASSERTeq(oobh->internal_type, TYPE_NONE);
 #ifdef USE_VALGRIND
 		size_t size = pmalloc_usable_size(lane->pop,
-				oid.off - OBJ_OOB_OFFSET);
+				oid.off - OBJ_OOB_SIZE);
 
 		VALGRIND_SET_CLEAN(oobh, size);
 #endif
@@ -1296,6 +1415,7 @@ lane_transaction_construct(struct lane_section *section)
 	section->runtime = Malloc(sizeof (struct lane_tx_runtime));
 	if (section->runtime == NULL)
 		return ENOMEM;
+	memset(section->runtime, 0, sizeof (struct lane_tx_runtime));
 
 	return 0;
 }
@@ -1335,7 +1455,7 @@ lane_transaction_recovery(PMEMobjpool *pop,
 		}
 	} else {
 		/* process undo log and restore all operations */
-		tx_abort(pop, layout);
+		tx_abort(pop, layout, 1 /* recovery */);
 	}
 
 	return ret;
