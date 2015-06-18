@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (c) 2014, Intel Corporation
+# Copyright (c) 2014-2015, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -45,10 +45,14 @@ usage()
 {
 	[ "$1" ] && echo Error: $1
 	cat <<EOF
-Usage: $0 [ -nv ] [ -b build-type ] [ -t test-type ] [ -f fs-type ] [tests...]
+Usage: $0 [ -nv ] [ -b build-type ] [ -t test-type ] [ -f fs-type ]
+	    [ -o timeout ] [tests...]
     build-types: debug, nondebug, static-debug, static-nondebug, all (default)
      test-types: check (default), short, long
        fs-types: local, pmem, non-pmem, all (default)
+        timeout: floating point number with an optional suffix: 's' for seconds
+		 (the default), 'm' for minutes, 'h' for hours or 'd' for days.
+		 Default value is 3 minutes.
 EOF
 	exit 1
 }
@@ -101,14 +105,23 @@ runtest() {
 				if [ "$dryrun" ]
 				then
 					echo "(in ./$1) TEST=$testtype FS=$fs BUILD=$build ./$runscript"
+				# set timeout for "check" tests
+				elif [ "$testtype" = "check" ]
+				then
+					[ "$verbose" ] && echo "RUNTESTS: Running: (in ./$1) TEST=$testtype FS=$fs BUILD=$build ./$runscript"
+					TEST=$testtype FS=$fs BUILD=$build timeout -k 10s $time ./$runscript
 				else
 					[ "$verbose" ] && echo "RUNTESTS: Running: (in ./$1) TEST=$testtype FS=$fs BUILD=$build ./$runscript"
 					TEST=$testtype FS=$fs BUILD=$build ./$runscript
 				fi
 
-				[ $? != 0 ] && {
+				retval=$?
+				errmsg='failed'
+				[ $retval = 124 -o $retval = 137 ] && errmsg='timed out'
+
+				[ $retval != 0 ] && {
 					echo RUNTESTS: stopping:
-					echo "    $1/$runscript failed"
+					echo "    $1/$runscript $errmsg"
 					echo "    TEST=$testtype FS=$fs BUILD=$build"
 					exit 1
 				}
@@ -138,11 +151,12 @@ buildtype=all
 testtype=check
 fstype=all
 testconfig="./testconfig.sh"
+time='3m'
 
 #
 # command-line argument processing...
 #
-args=`getopt nvb:t:f: $*`
+args=`getopt nvb:t:f:o: $*`
 [ $? != 0 ] && usage
 set -- $args
 for arg
@@ -193,6 +207,10 @@ do
 			usage "bad fs-type: $fstype"
 			;;
 		esac
+		;;
+	-o)
+		time="$2"
+		shift 2
 		;;
 	--)
 		shift

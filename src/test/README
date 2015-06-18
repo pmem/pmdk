@@ -56,11 +56,15 @@ file system type, and build type to test.
 
 RUNTESTS takes options to limit what it runs.  The usage is:
 
- RUNTESTS [ -nv ] [ -b build-type ] [ -t test-type ] [ -f fs-type ] [test...]
+ RUNTESTS [ -nv ] [ -b build-type ] [ -t test-type ] [ -f fs-type ]
+	  [ -o timeout ] [test...]
 
  Build types are: debug, nondebug, static-debug, static-nondebug, all (default)
  Test types are: check (default), short, long
  File system types are: local, pmem, non-pmem, all (default)
+ Timeout is: a floating point number with an optional suffix: 's' for seconds
+		 (the default), 'm' for minutes, 'h' for hours or 'd' for days.
+		 Default value is 3 minutes.
 
 For example:
 

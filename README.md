@@ -42,6 +42,12 @@ To run a specific subset of tests, run for example:
 	$ make check TEST_TYPE=short TEST_BUILD=debug TEST_FS=pmem
 ```
 
+To modify the timeout which is available for **check** type tests, run:
+```
+	$ make check TEST_TIME=1m
+```
+This will set the timeout to 1 minute.
+
 Please refer to the **src/test/README** for more details on how to
 run different types of tests.
 
