@@ -136,7 +136,6 @@ TEST = blk_nblock\
        obj_bucket\
        obj_heap\
        obj_store\
-       obj_tx_locks\
        obj_debug\
        obj_recovery
 
