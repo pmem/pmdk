@@ -937,15 +937,15 @@ pmemobj_tx_free((o).oid)
 	TX_ADD_FIELD(o, field);\
 	D_RW(o)->field = value; })
 
-#define	TX_MEMCPY(o, destf, src, num) (\
+#define	TX_MEMCPY(dest, src, num) (\
 {\
-	TX_ADD_FIELD(o, destf);\
-	pmem_memcpy_persist((void *)&D_RO(o)->destf, src, num); })
+	pmemobj_tx_add_range_direct(dest, num);\
+	memcpy(dest, src, num); })
 
-#define	TX_MEMSET(o, destf, c, num) (\
+#define	TX_MEMSET(dest, c, num) (\
 {\
-	TX_ADD_FIELD(o, destf);\
-	pmem_memset_persist((void *)&D_RO(o)->destf, c, num); })
+	pmemobj_tx_add_range_direct(dest, num);\
+	memset(dest, c, num); })
 
 #ifdef __cplusplus
 }

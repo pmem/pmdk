@@ -269,8 +269,8 @@ libpmemobj \- persistent memory transactional object store
 .BI "TX_FREE(TOID " o )
 .sp
 .BI "TX_SET(TOID " o ", " FIELD ", " VALUE )
-.BI "TX_MEMCPY(TOID " o ", " FIELD ", const void *" src ", size_t " num )
-.BI "TX_MEMSET(TOID " o ", " FIELD ", int " c ", size_t " num )
+.BI "TX_MEMCPY(const void *" dest ", const void *" src ", size_t " num )
+.BI "TX_MEMSET(const void *" dest ", int " c ", size_t " num )
 .sp
 .B Library API versioning:
 .sp
@@ -2842,29 +2842,25 @@ and then set its new
 .IR VALUE .
 In case of a failure or abort, the saved value will be restored.
 .PP
-.BI "TX_MEMCPY(OID_TYPE " o ", " FIELD ", const void *" src ", size_t " num )
+.BI "TX_MEMCPY(const void *" dest ", const void *" src ", size_t " num )
 .IP
 The
 .BR TX_MEMCPY
-macro saves in the undo log the current value of given
-.I FIELD
-of the object referenced by a handle
-.IR o ,
-and then overwrites the first
+macro saves in the undo log the current content of
+.I dest
+buffer and then overwrites the first
 .I num
 bytes of its memory area with the data copied from the buffer pointed by
 .IR src .
 In case of a failure or abort, the saved value will be restored.
 .PP
-.BI "TX_MEMSET(OID_TYPE " o ", " FIELD ", int " c ", size_t " num )
+.BI "TX_MEMSET(const void *" dest ", int " c ", size_t " num )
 .IP
 The
 .BR TX_MEMSET
-macro saves in the undo log the current value of given
-.I FIELD
-of the object referenced by a handle
-.IR o ,
-and then fills the first
+macro saves in the undo log the current content of
+.I dest
+buffer and then fills the first
 .I num
 bytes of its memory area with the constant byte
 .IR c .
