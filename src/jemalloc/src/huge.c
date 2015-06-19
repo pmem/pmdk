@@ -37,7 +37,7 @@ huge_palloc(arena_t *arena, size_t size, size_t alignment, bool zero)
 	if (node == NULL)
 		return (NULL);
 
-	ret = arena_chunk_alloc_huge(arena, csize, alignment, &is_zeroed);
+	ret = arena_chunk_alloc_huge(arena, NULL, csize, alignment, &is_zeroed);
 	if (ret == NULL) {
 		base_node_dalloc(pool, node);
 		return (NULL);
@@ -85,8 +85,67 @@ huge_dalloc_junk(void *ptr, size_t usize)
 huge_dalloc_junk_t *huge_dalloc_junk = JEMALLOC_N(huge_dalloc_junk_impl);
 #endif
 
+static bool
+huge_ralloc_no_move_expand(pool_t *pool, void *ptr, size_t oldsize, size_t size, bool zero) {
+	size_t csize;
+	void *expand_addr;
+	size_t expand_size;
+	extent_node_t *node, key;
+	arena_t *arena;
+	bool is_zeroed;
+	void *ret;
+
+	csize = CHUNK_CEILING(size);
+	if (csize == 0) {
+		/* size is large enough to cause size_t wrap-around. */
+		return (true);
+	}
+
+	expand_addr = ptr + oldsize;
+	expand_size = csize - oldsize;
+
+	malloc_mutex_lock(&pool->huge_mtx);
+
+	key.addr = ptr;
+	node = extent_tree_ad_search(&pool->huge, &key);
+	assert(node != NULL);
+	assert(node->addr == ptr);
+
+	/* Find the current arena. */
+	arena = node->arena;
+
+	malloc_mutex_unlock(&pool->huge_mtx);
+
+	/*
+	 * Copy zero into is_zeroed and pass the copy to chunk_alloc(), so that
+	 * it is possible to make correct junk/zero fill decisions below.
+	 */
+	is_zeroed = zero;
+	ret = arena_chunk_alloc_huge(arena, expand_addr, expand_size, chunksize,
+				     &is_zeroed);
+	if (ret == NULL)
+		return (true);
+
+	assert(ret == expand_addr);
+
+	malloc_mutex_lock(&pool->huge_mtx);
+	/* Update the size of the huge allocation. */
+	node->size = csize;
+	malloc_mutex_unlock(&pool->huge_mtx);
+
+	if (config_fill && !zero) {
+		if (unlikely(opt_junk))
+			memset(expand_addr, 0xa5, expand_size);
+		else if (unlikely(opt_zero) && !is_zeroed)
+			memset(expand_addr, 0, expand_size);
+	}
+	return (false);
+}
+
+
 bool
-huge_ralloc_no_move(pool_t *pool, void *ptr, size_t oldsize, size_t size, size_t extra)
+huge_ralloc_no_move(pool_t *pool, void *ptr, size_t oldsize, size_t size,
+    size_t extra, bool zero)
 {
 
 	/* Both allocations must be huge to avoid a move. */
@@ -135,7 +194,15 @@ huge_ralloc_no_move(pool_t *pool, void *ptr, size_t oldsize, size_t size, size_t
 		return (false);
 	}
 
-	return (true);
+	/* Attempt to expand the allocation in-place. */
+	if (huge_ralloc_no_move_expand(pool, ptr, oldsize, size + extra, zero)) {
+		if (extra == 0)
+			return (true);
+
+		/* Try again, this time without extra. */
+		return (huge_ralloc_no_move_expand(pool, ptr, oldsize, size, zero));
+	}
+	return (false);
 }
 
 void *
@@ -146,7 +213,7 @@ huge_ralloc(arena_t *arena, void *ptr, size_t oldsize, size_t size,
 	size_t copysize;
 
 	/* Try to avoid moving the allocation. */
-	if (huge_ralloc_no_move(arena->pool, ptr, oldsize, size, extra) == false)
+	if (huge_ralloc_no_move(arena->pool, ptr, oldsize, size, extra, zero) == false)
 		return (ptr);
 
 	/*
