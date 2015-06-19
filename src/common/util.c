@@ -55,7 +55,6 @@
 
 #include "util.h"
 #include "out.h"
-#include "valgrind_internal.h"
 
 #define	PROCMAXLEN 2048 /* maximum expected line length in /proc files */
 
@@ -229,9 +228,6 @@ util_map(int fd, size_t len, int cow)
 		return NULL;
 	}
 
-	VALGRIND_REGISTER_PMEM_MAPPING(addr, len);
-	VALGRIND_REGISTER_PMEM_FILE(fd, base, len, 0);
-
 	LOG(3, "mapped at %p", base);
 
 	return base;
@@ -252,8 +248,6 @@ util_unmap(void *addr, size_t len)
 
 	if (retval < 0)
 		ERR("!munmap");
-	else
-		VALGRIND_REMOVE_PMEM_MAPPING(addr, len);
 
 	return retval;
 }

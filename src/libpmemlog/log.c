@@ -52,6 +52,7 @@
 #include "util.h"
 #include "out.h"
 #include "log.h"
+#include "valgrind_internal.h"
 
 /*
  * pmemlog_map_common -- (internal) map a log memory pool
@@ -73,6 +74,9 @@ pmemlog_map_common(int fd, size_t poolsize, int rdonly, int empty)
 		(void) close(fd);
 		return NULL;	/* util_map() set errno, called LOG */
 	}
+
+	VALGRIND_REGISTER_PMEM_MAPPING(addr, poolsize);
+	VALGRIND_REGISTER_PMEM_FILE(fd, addr, poolsize, 0);
 
 	(void) close(fd);
 
@@ -229,6 +233,7 @@ err_free:
 err:
 	LOG(4, "error clean up");
 	int oerrno = errno;
+	VALGRIND_REMOVE_PMEM_MAPPING(addr, poolsize);
 	util_unmap(addr, poolsize);
 	errno = oerrno;
 	return NULL;
@@ -290,6 +295,8 @@ pmemlog_close(PMEMlogpool *plp)
 	if ((errno = pthread_rwlock_destroy(plp->rwlockp)))
 		ERR("!pthread_rwlock_destroy");
 	Free((void *)plp->rwlockp);
+
+	VALGRIND_REMOVE_PMEM_MAPPING(plp->addr, plp->size);
 	util_unmap(plp->addr, plp->size);
 }
 

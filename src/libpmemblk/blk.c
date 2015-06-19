@@ -52,6 +52,7 @@
 #include "out.h"
 #include "btt.h"
 #include "blk.h"
+#include "valgrind_internal.h"
 
 /*
  * lane_enter -- (internal) acquire a unique lane number
@@ -299,6 +300,9 @@ pmemblk_map_common(int fd, size_t poolsize, size_t bsize, int rdonly,
 		return NULL;	/* util_map() set errno, called LOG */
 	}
 
+	VALGRIND_REGISTER_PMEM_MAPPING(addr, poolsize);
+	VALGRIND_REGISTER_PMEM_FILE(fd, addr, poolsize, 0);
+
 	(void) close(fd);
 
 	/* check if the mapped region is located in persistent memory */
@@ -479,6 +483,7 @@ err:
 		Free((void *)locks);
 	if (bttp)
 		btt_fini(bttp);
+	VALGRIND_REMOVE_PMEM_MAPPING(addr, poolsize);
 	util_unmap(addr, poolsize);
 	errno = oerrno;
 	return NULL;
@@ -552,6 +557,7 @@ pmemblk_close(PMEMblkpool *pbp)
 	pthread_mutex_destroy(&pbp->write_lock);
 #endif
 
+	VALGRIND_REMOVE_PMEM_MAPPING(pbp->addr, pbp->size);
 	util_unmap(pbp->addr, pbp->size);
 }
 
