@@ -55,23 +55,23 @@ POBJ_LAYOUT_END(basic);
 struct dummy_node {
 	int value;
 	char teststr[TEST_STR_LEN];
-	PLIST_ENTRY(struct dummy_node) plist;
-	PLIST_ENTRY(struct dummy_node) plist_m;
+	POBJ_LIST_ENTRY(struct dummy_node) plist;
+	POBJ_LIST_ENTRY(struct dummy_node) plist_m;
 };
 
 struct dummy_node_c {
 	int value;
 	char teststr[TEST_STR_LEN];
-	PLIST_ENTRY(struct dummy_node) plist;
-	PLIST_ENTRY(struct dummy_node) plist_m;
+	POBJ_LIST_ENTRY(struct dummy_node) plist;
+	POBJ_LIST_ENTRY(struct dummy_node) plist_m;
 };
 
 struct dummy_root {
 	int value;
 	PMEMmutex lock;
 	TOID(struct dummy_node) node;
-	PLIST_HEAD(dummy_list, struct dummy_node) dummies;
-	PLIST_HEAD(moved_list, struct dummy_node) moved;
+	POBJ_LIST_HEAD(dummy_list, struct dummy_node) dummies;
+	POBJ_LIST_HEAD(moved_list, struct dummy_node) moved;
 };
 
 void

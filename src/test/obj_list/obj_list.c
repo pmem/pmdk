@@ -57,7 +57,7 @@ TOID_DECLARE(struct oob_item, 3);
 
 struct item {
 	int id;
-	PLIST_ENTRY(struct item) next;
+	POBJ_LIST_ENTRY(struct item) next;
 };
 
 struct oob_item {
@@ -70,7 +70,7 @@ struct oob_list {
 };
 
 struct list {
-	PLIST_HEAD(listhead, struct item) head;
+	POBJ_LIST_HEAD(listhead, struct item) head;
 };
 
 enum redo_fail

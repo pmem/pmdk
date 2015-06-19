@@ -552,13 +552,13 @@ for (_POBJ_DEBUG_NOTICE_IN_TX_FOR("POBJ_FOREACH_SAFE_TYPE")\
 /*
  * Non-transactional persistent atomic circular doubly-linked list
  */
-#define	PLIST_ENTRY(type)\
+#define	POBJ_LIST_ENTRY(type)\
 struct {\
 	TOID(type) pe_next;\
 	TOID(type) pe_prev;\
 }
 
-#define	PLIST_HEAD(name, type)\
+#define	POBJ_LIST_HEAD(name, type)\
 struct name {\
 	TOID(type) pe_first;\
 	PMEMmutex lock;\
