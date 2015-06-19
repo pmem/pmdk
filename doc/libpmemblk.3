@@ -206,7 +206,8 @@ pool, the resulting number of available blocks is less than
 and is made available to the caller via the
 .BR pmemblk_nblock ()
 function described below.  Given the specifics of the implementation,
-the number of available blocks for the user cannot be less than 256.
+the number of available blocks for the user cannot be less than 256.  This
+translates to at least 512 internal blocks.
 .I path
 specifies the name of the memory pool file to be created.
 .I mode
