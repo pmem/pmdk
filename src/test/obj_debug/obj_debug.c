@@ -51,12 +51,12 @@ TOID_DECLARE(struct tobj, 0);
 TOID_DECLARE(struct int3_s, 1);
 
 struct root {
-	PLIST_HEAD(listhead, struct tobj) lhead, lhead2;
+	POBJ_LIST_HEAD(listhead, struct tobj) lhead, lhead2;
 	uint32_t val;
 };
 
 struct tobj {
-	PLIST_ENTRY(struct tobj) next;
+	POBJ_LIST_ENTRY(struct tobj) next;
 };
 
 struct int3_s {

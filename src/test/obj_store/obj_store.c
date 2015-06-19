@@ -57,7 +57,7 @@ TOID_DECLARE_ROOT(struct root);
 TOID_DECLARE(struct tobject, 0);
 TOID_DECLARE(struct root_grown, 1);
 
-PLIST_HEAD(listhead, struct tobject);
+POBJ_LIST_HEAD(listhead, struct tobject);
 
 struct root {
 	char name[MAX_ROOT_NAME];
@@ -75,7 +75,7 @@ struct root_grown {
 
 struct tobject {
 	uint8_t value;
-	PLIST_ENTRY(struct tobject) next;
+	POBJ_LIST_ENTRY(struct tobject) next;
 };
 
 static void
