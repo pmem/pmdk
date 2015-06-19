@@ -95,7 +95,7 @@ bucket_new(size_t unit_size, int unit_max)
 		goto error_tree_new;
 
 	if ((errno = pthread_mutex_init(&b->lock, NULL)) != 0) {
-		LOG(1, "!pthread_mutex_init");
+		ERR("!pthread_mutex_init");
 		goto error_mutex_init;
 	}
 
@@ -119,7 +119,7 @@ void
 bucket_delete(struct bucket *b)
 {
 	if ((errno = pthread_mutex_destroy(&b->lock)) != 0)
-		LOG(1, "!pthread_mutex_destroy");
+		ERR("!pthread_mutex_destroy");
 
 	ctree_delete(b->tree);
 	Free(b);
@@ -235,5 +235,5 @@ void
 bucket_unlock(struct bucket *b)
 {
 	if ((errno = pthread_mutex_unlock(&b->lock)) != 0)
-		LOG(1, "!pthread_mutex_unlock");
+		ERR("!pthread_mutex_unlock");
 }

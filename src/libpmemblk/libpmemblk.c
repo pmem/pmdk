@@ -68,24 +68,16 @@ pmemblk_check_version(unsigned major_required, unsigned minor_required)
 	LOG(3, "major_required %u minor_required %u",
 			major_required, minor_required);
 
-	static char errstr[] =
-		"libpmemblk major version mismatch "
-		"(need AAAAAAAAAA, found BBBBBBBBBB)";
-
 	if (major_required != PMEMBLK_MAJOR_VERSION) {
-		sprintf(errstr,
-			"libpmemblk major version mismatch (need %u, found %u)",
+		ERR("libpmemblk major version mismatch (need %u, found %u)",
 			major_required, PMEMBLK_MAJOR_VERSION);
-		LOG(1, "%s", errstr);
-		return errstr;
+		return out_get_errormsg();
 	}
 
 	if (minor_required > PMEMBLK_MINOR_VERSION) {
-		sprintf(errstr,
-			"libpmemblk minor version mismatch (need %u, found %u)",
+		ERR("libpmemblk minor version mismatch (need %u, found %u)",
 			minor_required, PMEMBLK_MINOR_VERSION);
-		LOG(1, "%s", errstr);
-		return errstr;
+		return out_get_errormsg();
 	}
 
 	return NULL;
@@ -102,4 +94,13 @@ pmemblk_set_funcs(
 	LOG(3, NULL);
 
 	util_set_alloc_funcs(malloc_func, free_func, NULL, NULL);
+}
+
+/*
+ * pmemblk_errormsg -- return last error message
+ */
+const char *
+pmemblk_errormsg(void)
+{
+	return out_get_errormsg();
 }

@@ -707,7 +707,7 @@ add_to_tx_and_lock(struct lane_tx_runtime *lane, enum pobj_tx_lock type,
 				txl->lock.rwlock);
 			break;
 		default:
-			LOG(1, "Unrecognized lock type");
+			ERR("Unrecognized lock type");
 			ASSERT(0);
 			break;
 	}
@@ -739,7 +739,7 @@ release_and_free_tx_locks(struct lane_tx_runtime *lane)
 					tx_lock->lock.rwlock);
 				break;
 			default:
-				LOG(1, "Unrecognized lock type");
+				ERR("Unrecognized lock type");
 				ASSERT(0);
 				break;
 		}
@@ -757,13 +757,13 @@ tx_alloc_common(size_t size, unsigned int type_num,
 	LOG(3, NULL);
 
 	if (tx.stage != TX_STAGE_WORK) {
-		LOG(1, "invalid stage");
+		ERR("invalid tx stage");
 		errno = EINVAL;
 		return OID_NULL;
 	}
 
 	if (type_num >= PMEMOBJ_NUM_OID_TYPES) {
-		LOG(1, "invalid type_num %d", type_num);
+		ERR("invalid type_num %d", type_num);
 		errno = EINVAL;
 		pmemobj_tx_abort(EINVAL);
 		return OID_NULL;
@@ -787,8 +787,11 @@ tx_alloc_common(size_t size, unsigned int type_num,
 			0, NULL, OID_NULL, 0,
 			size, constructor, &args, &retoid);
 
-	if (OBJ_OID_IS_NULL(retoid))
+	if (OBJ_OID_IS_NULL(retoid)) {
+		ERR("out of memory");
+		errno = ENOMEM;
 		pmemobj_tx_abort(ENOMEM);
+	}
 
 	return retoid;
 }
@@ -803,7 +806,7 @@ tx_alloc_copy_common(size_t size, unsigned int type_num, const void *ptr,
 	LOG(3, NULL);
 
 	if (type_num >= PMEMOBJ_NUM_OID_TYPES) {
-		LOG(1, "invalid type_num %d", type_num);
+		ERR("invalid type_num %d", type_num);
 		errno = EINVAL;
 		pmemobj_tx_abort(EINVAL);
 		return OID_NULL;
@@ -829,8 +832,11 @@ tx_alloc_copy_common(size_t size, unsigned int type_num, const void *ptr,
 			0, NULL, OID_NULL, 0,
 			size, constructor, &args, &retoid);
 
-	if (ret || OBJ_OID_IS_NULL(retoid))
+	if (ret || OBJ_OID_IS_NULL(retoid)) {
+		ERR("out of memory");
+		errno = ENOMEM;
 		pmemobj_tx_abort(ENOMEM);
+	}
 
 	return retoid;
 }
@@ -846,7 +852,7 @@ tx_realloc_common(PMEMoid oid, size_t size, unsigned int type_num,
 	LOG(3, NULL);
 
 	if (tx.stage != TX_STAGE_WORK) {
-		LOG(1, "invalid stage");
+		ERR("invalid tx stage");
 		errno = EINVAL;
 		return OID_NULL;
 	}
@@ -861,7 +867,7 @@ tx_realloc_common(PMEMoid oid, size_t size, unsigned int type_num,
 	/* if size is 0 just free */
 	if (size == 0) {
 		if (pmemobj_tx_free(oid)) {
-			LOG(1, "pmemobj_tx_free failed");
+			ERR("pmemobj_tx_free failed");
 			return oid;
 		} else {
 			return OID_NULL;
@@ -880,7 +886,7 @@ tx_realloc_common(PMEMoid oid, size_t size, unsigned int type_num,
 
 	if (!OBJ_OID_IS_NULL(new_obj)) {
 		if (pmemobj_tx_free(oid)) {
-			LOG(1, "pmemobj_tx_free failed");
+			ERR("pmemobj_tx_free failed");
 			struct lane_tx_layout *layout =
 				(struct lane_tx_layout *)tx.section->layout;
 			int ret = list_remove_free(lane->pop,
@@ -889,7 +895,7 @@ tx_realloc_common(PMEMoid oid, size_t size, unsigned int type_num,
 			/* XXX fatal error */
 			ASSERTeq(ret, 0);
 			if (ret)
-				LOG(1, "list_remove_free failed");
+				ERR("list_remove_free failed");
 
 			return OID_NULL;
 		}
@@ -1143,7 +1149,7 @@ pmemobj_tx_add_common(struct tx_add_range_args *args)
 	if (args->offset < args->pop->heap_offset ||
 		(args->offset + args->size) >
 		(args->pop->heap_offset + args->pop->heap_size)) {
-		LOG(1, "object outside of heap");
+		ERR("object outside of heap");
 		return EINVAL;
 	}
 
@@ -1200,7 +1206,7 @@ pmemobj_tx_add_range_direct(void *ptr, size_t size)
 	LOG(3, NULL);
 
 	if (tx.stage != TX_STAGE_WORK) {
-		LOG(1, "invalid stage");
+		ERR("invalid tx stage");
 		return EINVAL;
 	}
 
@@ -1225,7 +1231,7 @@ pmemobj_tx_add_range(PMEMoid oid, uint64_t hoff, size_t size)
 	LOG(3, NULL);
 
 	if (tx.stage != TX_STAGE_WORK) {
-		LOG(1, "invalid stage");
+		ERR("invalid tx stage");
 		return EINVAL;
 	}
 
@@ -1233,7 +1239,7 @@ pmemobj_tx_add_range(PMEMoid oid, uint64_t hoff, size_t size)
 		(struct lane_tx_runtime *)tx.section->runtime;
 
 	if (oid.pool_uuid_lo != lane->pop->uuid_lo) {
-		LOG(1, "invalid pool uuid");
+		ERR("invalid pool uuid");
 		pmemobj_tx_abort(EINVAL);
 
 		return EINVAL;
@@ -1267,7 +1273,7 @@ pmemobj_tx_alloc(size_t size, unsigned int type_num)
 	LOG(3, NULL);
 
 	if (size == 0) {
-		LOG(1, "allocation with size 0");
+		ERR("allocation with size 0");
 		errno = EINVAL;
 		return OID_NULL;
 	}
@@ -1284,7 +1290,7 @@ pmemobj_tx_zalloc(size_t size, unsigned int type_num)
 	LOG(3, NULL);
 
 	if (size == 0) {
-		LOG(1, "allocation with size 0");
+		ERR("allocation with size 0");
 		errno = EINVAL;
 		return OID_NULL;
 	}
@@ -1326,7 +1332,7 @@ pmemobj_tx_strdup(const char *s, unsigned int type_num)
 	LOG(3, NULL);
 
 	if (tx.stage != TX_STAGE_WORK) {
-		LOG(1, "invalid stage");
+		ERR("invalid tx stage");
 		errno = EINVAL;
 		return OID_NULL;
 	}
@@ -1358,7 +1364,7 @@ pmemobj_tx_free(PMEMoid oid)
 	LOG(3, NULL);
 
 	if (tx.stage != TX_STAGE_WORK) {
-		LOG(1, "invalid stage");
+		ERR("invalid tx stage");
 		errno = EINVAL;
 		return EINVAL;
 	}
@@ -1370,7 +1376,7 @@ pmemobj_tx_free(PMEMoid oid)
 		(struct lane_tx_runtime *)tx.section->runtime;
 
 	if (lane->pop->uuid_lo != oid.pool_uuid_lo) {
-		LOG(1, "invalid pool uuid");
+		ERR("invalid pool uuid");
 		errno = EINVAL;
 		pmemobj_tx_abort(EINVAL);
 		return EINVAL;
@@ -1451,7 +1457,7 @@ lane_transaction_recovery(PMEMobjpool *pop,
 		if (!ret) {
 			tx_set_state(pop, layout, TX_STATE_NONE);
 		} else {
-			LOG(1, "tx_post_commit failed");
+			ERR("tx_post_commit failed");
 		}
 	} else {
 		/* process undo log and restore all operations */

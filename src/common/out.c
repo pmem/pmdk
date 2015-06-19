@@ -54,6 +54,9 @@ static const char *Log_prefix;
 static int Log_level;
 static FILE *Out_fp;
 
+#define	MAXPRINT 8192	/* maximum expected log line */
+static __thread char Last_errormsg[MAXPRINT];
+
 #ifdef	DEBUG
 /*
  * getexecname -- return name of current executable
@@ -217,7 +220,6 @@ out_snprintf(char *str, size_t size, const char *format, ...)
 /*
  * out_common -- common output code, all output goes through here
  */
-#define	MAXPRINT 8192	/* maximum expected log line */
 static void
 out_common(const char *file, int line, const char *func, int level,
 		const char *suffix, const char *fmt, va_list ap)
@@ -245,6 +247,50 @@ out_common(const char *file, int line, const char *func, int level,
 	out_snprintf(&buf[cc], MAXPRINT - cc, "%s%s%s", sep, errstr, suffix);
 
 	Print(buf);
+
+	errno = oerrno;
+}
+
+/*
+ * out_error -- common error output code, all error messages go through here
+ */
+static void
+out_error(const char *file, int line, const char *func,
+		const char *suffix, const char *fmt, va_list ap)
+{
+	int oerrno = errno;
+	int cc = 0;
+	const char *sep = "";
+	const char *errstr = "";
+
+	if (fmt) {
+		if (*fmt == '!') {
+			fmt++;
+			sep = ": ";
+			errstr = strerror(errno);
+		}
+		cc += Vsnprintf(&Last_errormsg[cc], MAXPRINT, fmt, ap);
+		out_snprintf(&Last_errormsg[cc], MAXPRINT - cc, "%s%s",
+				sep, errstr);
+	}
+
+#ifdef DEBUG
+	if (Log_level >= 1) {
+		char buf[MAXPRINT];
+		cc = 0;
+
+		if (file)
+			cc += out_snprintf(&buf[cc], MAXPRINT,
+					"<%s>: <1> [%s:%d %s] ",
+					Log_prefix, file, line, func);
+
+		out_snprintf(&buf[cc], MAXPRINT - cc, "%s%s", Last_errormsg,
+				suffix);
+
+		Print(buf);
+	}
+#endif
+
 	errno = oerrno;
 }
 
@@ -312,4 +358,28 @@ out_fatal(const char *file, int line, const char *func,
 	va_end(ap);
 
 	exit(1);
+}
+
+/*
+ * out_err -- output an error message
+ */
+void
+out_err(const char *file, int line, const char *func,
+		const char *fmt, ...)
+{
+	va_list ap;
+	va_start(ap, fmt);
+
+	out_error(file, line, func, "\n", fmt, ap);
+
+	va_end(ap);
+}
+
+/*
+ * out_get_errormsg -- get the last error message
+ */
+const char *
+out_get_errormsg(void)
+{
+	return Last_errormsg;
 }

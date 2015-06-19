@@ -96,13 +96,13 @@ pmemlog_map_common(int fd, size_t poolsize, int rdonly, int empty)
 		 * valid header found
 		 */
 		if (strncmp(hdr.signature, LOG_HDR_SIG, POOL_HDR_SIG_LEN)) {
-			LOG(1, "wrong pool type: \"%s\"", hdr.signature);
+			ERR("wrong pool type: \"%s\"", hdr.signature);
 			errno = EINVAL;
 			goto err;
 		}
 
 		if (hdr.major != LOG_FORMAT_MAJOR) {
-			LOG(1, "log pool version %d (library expects %d)",
+			ERR("log pool version %d (library expects %d)",
 				hdr.major, LOG_FORMAT_MAJOR);
 			errno = EINVAL;
 			goto err;
@@ -115,7 +115,7 @@ pmemlog_map_common(int fd, size_t poolsize, int rdonly, int empty)
 		if ((hdr_start != roundup(sizeof (*plp),
 					LOG_FORMAT_DATA_ALIGN)) ||
 			(hdr_end != poolsize) || (hdr_start > hdr_end)) {
-			LOG(1, "wrong start/end offsets (start: %ju end: %ju), "
+			ERR("wrong start/end offsets (start: %ju end: %ju), "
 				"pool size %zu",
 				hdr_start, hdr_end, poolsize);
 			errno = EINVAL;
@@ -123,7 +123,7 @@ pmemlog_map_common(int fd, size_t poolsize, int rdonly, int empty)
 		}
 
 		if ((hdr_write > hdr_end) || (hdr_write < hdr_start)) {
-			LOG(1, "wrong write offset "
+			ERR("wrong write offset "
 				"(start: %ju end: %ju write: %ju)",
 				hdr_start, hdr_end, hdr_write);
 			errno = EINVAL;
@@ -149,7 +149,7 @@ pmemlog_map_common(int fd, size_t poolsize, int rdonly, int empty)
 
 		/* check if the pool header is all zero */
 		if (!util_is_zeroed(hdrp, sizeof (*hdrp))) {
-			LOG(1, "Non-empty file detected");
+			ERR("Non-empty file detected");
 			errno = EINVAL;
 			goto err;
 		}
@@ -173,7 +173,7 @@ pmemlog_map_common(int fd, size_t poolsize, int rdonly, int empty)
 		hdrp->crtime = htole64((uint64_t)time(NULL));
 
 		if (util_get_arch_flags(&hdrp->arch_flags)) {
-			LOG(1, "Reading architecture flags failed\n");
+			ERR("Reading architecture flags failed\n");
 			errno = EINVAL;
 			goto err;
 		}
@@ -200,12 +200,12 @@ pmemlog_map_common(int fd, size_t poolsize, int rdonly, int empty)
 	plp->is_pmem = is_pmem;
 
 	if ((plp->rwlockp = Malloc(sizeof (*plp->rwlockp))) == NULL) {
-		LOG(1, "!Malloc for a RW lock");
+		ERR("!Malloc for a RW lock");
 		goto err;
 	}
 
 	if ((errno = pthread_rwlock_init(plp->rwlockp, NULL))) {
-		LOG(1, "!pthread_rwlock_init");
+		ERR("!pthread_rwlock_init");
 		goto err_free;
 	}
 
@@ -288,7 +288,7 @@ pmemlog_close(PMEMlogpool *plp)
 	LOG(3, "plp %p", plp);
 
 	if ((errno = pthread_rwlock_destroy(plp->rwlockp)))
-		LOG(1, "!pthread_rwlock_destroy");
+		ERR("!pthread_rwlock_destroy");
 	Free((void *)plp->rwlockp);
 	util_unmap(plp->addr, plp->size);
 }
@@ -302,7 +302,7 @@ pmemlog_nbyte(PMEMlogpool *plp)
 	LOG(3, "plp %p", plp);
 
 	if ((errno = pthread_rwlock_rdlock(plp->rwlockp))) {
-		LOG(1, "!pthread_rwlock_rdlock");
+		ERR("!pthread_rwlock_rdlock");
 		return (size_t)-1;
 	}
 
@@ -310,7 +310,7 @@ pmemlog_nbyte(PMEMlogpool *plp)
 	LOG(4, "plp %p nbyte %zu", plp, size);
 
 	if ((errno = pthread_rwlock_unlock(plp->rwlockp)))
-		LOG(1, "!pthread_rwlock_unlock");
+		ERR("!pthread_rwlock_unlock");
 
 	return size;
 }
@@ -365,13 +365,13 @@ pmemlog_append(PMEMlogpool *plp, const void *buf, size_t count)
 	LOG(3, "plp %p buf %p count %zu", plp, buf, count);
 
 	if (plp->rdonly) {
-		LOG(1, "can't append to read-only log");
+		ERR("can't append to read-only log");
 		errno = EROFS;
 		return -1;
 	}
 
 	if ((errno = pthread_rwlock_wrlock(plp->rwlockp))) {
-		LOG(1, "!pthread_rwlock_wrlock");
+		ERR("!pthread_rwlock_wrlock");
 		return -1;
 	}
 
@@ -382,11 +382,13 @@ pmemlog_append(PMEMlogpool *plp, const void *buf, size_t count)
 	if (write_offset >= end_offset) {
 		/* no space left */
 		errno = ENOSPC;
+		ERR("!pmemlog_append");
 		ret = -1;
 	} else {
 		/* make sure we don't write past the available space */
 		if (count > (end_offset - write_offset)) {
 			errno = ENOSPC;
+			ERR("!pmemlog_append");
 			ret = -1;
 		} else {
 			char *data = plp->addr;
@@ -417,7 +419,7 @@ pmemlog_append(PMEMlogpool *plp, const void *buf, size_t count)
 
 	int oerrno = errno;
 	if ((errno = pthread_rwlock_unlock(plp->rwlockp)))
-		LOG(1, "!pthread_rwlock_unlock");
+		ERR("!pthread_rwlock_unlock");
 	errno = oerrno;
 
 	return ret;
@@ -437,13 +439,13 @@ pmemlog_appendv(PMEMlogpool *plp, const struct iovec *iov, int iovcnt)
 	ASSERT(iovcnt > 0);
 
 	if (plp->rdonly) {
-		LOG(1, "can't append to read-only log");
+		ERR("can't append to read-only log");
 		errno = EROFS;
 		return -1;
 	}
 
 	if ((errno = pthread_rwlock_wrlock(plp->rwlockp))) {
-		LOG(1, "!pthread_rwlock_wrlock");
+		ERR("!pthread_rwlock_wrlock");
 		return -1;
 	}
 
@@ -454,6 +456,7 @@ pmemlog_appendv(PMEMlogpool *plp, const struct iovec *iov, int iovcnt)
 	if (write_offset >= end_offset) {
 		/* no space left */
 		errno = ENOSPC;
+		ERR("!pmemlog_appendv");
 		ret = -1;
 	} else {
 		char *data = plp->addr;
@@ -504,7 +507,7 @@ pmemlog_appendv(PMEMlogpool *plp, const struct iovec *iov, int iovcnt)
 
 	int oerrno = errno;
 	if ((errno = pthread_rwlock_unlock(plp->rwlockp)))
-		LOG(1, "!pthread_rwlock_unlock");
+		ERR("!pthread_rwlock_unlock");
 	errno = oerrno;
 
 	return ret;
@@ -519,7 +522,7 @@ pmemlog_tell(PMEMlogpool *plp)
 	LOG(3, "plp %p", plp);
 
 	if ((errno = pthread_rwlock_rdlock(plp->rwlockp))) {
-		LOG(1, "!pthread_rwlock_rdlock");
+		ERR("!pthread_rwlock_rdlock");
 		return (off_t)-1;
 	}
 
@@ -527,7 +530,7 @@ pmemlog_tell(PMEMlogpool *plp)
 	LOG(4, "write offset %lld", (long long)wp);
 
 	if ((errno = pthread_rwlock_unlock(plp->rwlockp)))
-		LOG(1, "!pthread_rwlock_unlock");
+		ERR("!pthread_rwlock_unlock");
 
 	return wp;
 }
@@ -541,13 +544,13 @@ pmemlog_rewind(PMEMlogpool *plp)
 	LOG(3, "plp %p", plp);
 
 	if (plp->rdonly) {
-		LOG(1, "can't rewind read-only log");
+		ERR("can't rewind read-only log");
 		errno = EROFS;
 		return;
 	}
 
 	if ((errno = pthread_rwlock_wrlock(plp->rwlockp))) {
-		LOG(1, "!pthread_rwlock_wrlock");
+		ERR("!pthread_rwlock_wrlock");
 		return;
 	}
 
@@ -564,7 +567,7 @@ pmemlog_rewind(PMEMlogpool *plp)
 	RANGE_RO(plp->addr + sizeof (struct pool_hdr), LOG_FORMAT_DATA_ALIGN);
 
 	if ((errno = pthread_rwlock_unlock(plp->rwlockp)))
-		LOG(1, "!pthread_rwlock_unlock");
+		ERR("!pthread_rwlock_unlock");
 }
 
 /*
@@ -585,7 +588,7 @@ pmemlog_walk(PMEMlogpool *plp, size_t chunksize,
 	 * until we are done with processing it.
 	 */
 	if ((errno = pthread_rwlock_rdlock(plp->rwlockp))) {
-		LOG(1, "!pthread_rwlock_rdlock");
+		ERR("!pthread_rwlock_rdlock");
 		return;
 	}
 
@@ -613,7 +616,7 @@ pmemlog_walk(PMEMlogpool *plp, size_t chunksize,
 	}
 
 	if ((errno = pthread_rwlock_unlock(plp->rwlockp)))
-		LOG(1, "!pthread_rwlock_unlock");
+		ERR("!pthread_rwlock_unlock");
 }
 
 /*
@@ -647,27 +650,27 @@ pmemlog_check(const char *path)
 	uint64_t hdr_write = le64toh(plp->write_offset);
 
 	if (hdr_start != roundup(sizeof (*plp), LOG_FORMAT_DATA_ALIGN)) {
-		LOG(1, "wrong value of start_offset");
+		ERR("wrong value of start_offset");
 		consistent = 0;
 	}
 
 	if (hdr_end != plp->size) {
-		LOG(1, "wrong value of end_offset");
+		ERR("wrong value of end_offset");
 		consistent = 0;
 	}
 
 	if (hdr_start > hdr_end) {
-		LOG(1, "start_offset greater than end_offset");
+		ERR("start_offset greater than end_offset");
 		consistent = 0;
 	}
 
 	if (hdr_start > hdr_write) {
-		LOG(1, "start_offset greater than write_offset");
+		ERR("start_offset greater than write_offset");
 		consistent = 0;
 	}
 
 	if (hdr_write > hdr_end) {
-		LOG(1, "write_offset greater than end_offset");
+		ERR("write_offset greater than end_offset");
 		consistent = 0;
 	}
 

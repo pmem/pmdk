@@ -65,7 +65,7 @@ lane_enter(PMEMblkpool *pbp)
 
 	/* lane selected, grab the per-lane lock */
 	if ((errno = pthread_mutex_lock(&pbp->locks[mylane]))) {
-		LOG(1, "!pthread_mutex_lock");
+		ERR("!pthread_mutex_lock");
 		return -1;
 	}
 
@@ -80,7 +80,7 @@ lane_exit(PMEMblkpool *pbp, int mylane)
 {
 	int oerrno = errno;
 	if ((errno = pthread_mutex_unlock(&pbp->locks[mylane])))
-		LOG(1, "!pthread_mutex_unlock");
+		ERR("!pthread_mutex_unlock");
 	errno = oerrno;
 }
 
@@ -99,7 +99,7 @@ nsread(void *ns, int lane, void *buf, size_t count, off_t off)
 			pbp, lane, count, (long long)off);
 
 	if (off + count > pbp->datasize) {
-		LOG(1, "offset + count (%lld) past end of data area (%zu)",
+		ERR("offset + count (%lld) past end of data area (%zu)",
 				(long long)off + count, pbp->datasize);
 		errno = EINVAL;
 		return -1;
@@ -125,7 +125,7 @@ nswrite(void *ns, int lane, const void *buf, size_t count, off_t off)
 			pbp, lane, count, (long long)off);
 
 	if (off + count > pbp->datasize) {
-		LOG(1, "offset + count (%lld) past end of data area (%zu)",
+		ERR("offset + count (%lld) past end of data area (%zu)",
 				(long long)off + count, pbp->datasize);
 		errno = EINVAL;
 		return -1;
@@ -136,7 +136,7 @@ nswrite(void *ns, int lane, const void *buf, size_t count, off_t off)
 #ifdef DEBUG
 	/* grab debug write lock */
 	if ((errno = pthread_mutex_lock(&pbp->write_lock))) {
-		LOG(1, "!pthread_mutex_lock");
+		ERR("!pthread_mutex_lock");
 		return -1;
 	}
 #endif
@@ -155,7 +155,7 @@ nswrite(void *ns, int lane, const void *buf, size_t count, off_t off)
 #ifdef DEBUG
 	/* release debug write lock */
 	if ((errno = pthread_mutex_unlock(&pbp->write_lock)))
-		LOG(1, "!pthread_mutex_unlock");
+		ERR("!pthread_mutex_unlock");
 #endif
 
 	if (pbp->is_pmem)
@@ -185,7 +185,7 @@ nsmap(void *ns, int lane, void **addrp, size_t len, off_t off)
 			pbp, lane, len, (long long)off);
 
 	if (off + len >= pbp->datasize) {
-		LOG(1, "offset + len (%lld) past end of data area (%zu)",
+		ERR("offset + len (%lld) past end of data area (%zu)",
 				(long long)off + len, pbp->datasize - 1);
 		errno = EINVAL;
 		return -1;
@@ -241,7 +241,7 @@ nszero(void *ns, int lane, size_t count, off_t off)
 			pbp, lane, count, (long long)off);
 
 	if (off + count > pbp->datasize) {
-		LOG(1, "offset + count (%lld) past end of data area (%zu)",
+		ERR("offset + count (%lld) past end of data area (%zu)",
 				(long long)off + count, pbp->datasize);
 		errno = EINVAL;
 		return -1;
@@ -321,14 +321,14 @@ pmemblk_map_common(int fd, size_t poolsize, size_t bsize, int rdonly,
 		 * valid header found
 		 */
 		if (strncmp(hdr.signature, BLK_HDR_SIG, POOL_HDR_SIG_LEN)) {
-			LOG(1, "wrong pool type: \"%s\"", hdr.signature);
+			ERR("wrong pool type: \"%s\"", hdr.signature);
 
 			errno = EINVAL;
 			goto err;
 		}
 
 		if (hdr.major != BLK_FORMAT_MAJOR) {
-			LOG(1, "blk pool version %d (library expects %d)",
+			ERR("blk pool version %d (library expects %d)",
 				hdr.major, BLK_FORMAT_MAJOR);
 
 			errno = EINVAL;
@@ -337,7 +337,7 @@ pmemblk_map_common(int fd, size_t poolsize, size_t bsize, int rdonly,
 
 		size_t hdr_bsize = le32toh(pbp->bsize);
 		if (bsize && bsize != hdr_bsize) {
-			LOG(1, "wrong bsize (%zu), pool created with bsize %zu",
+			ERR("wrong bsize (%zu), pool created with bsize %zu",
 					bsize, hdr_bsize);
 			errno = EINVAL;
 			goto err;
@@ -361,14 +361,14 @@ pmemblk_map_common(int fd, size_t poolsize, size_t bsize, int rdonly,
 
 		/* check if the pool header is all zero */
 		if (!util_is_zeroed(hdrp, sizeof (*hdrp))) {
-			LOG(1, "Non-zero pool header detected");
+			ERR("Non-zero pool header detected");
 			errno = EINVAL;
 			goto err;
 		}
 
 		/* check if bsize is valid */
 		if (bsize == 0) {
-			LOG(1, "Invalid block size %zu", bsize);
+			ERR("Invalid block size %zu", bsize);
 			errno = EINVAL;
 			goto err;
 		}
@@ -390,7 +390,7 @@ pmemblk_map_common(int fd, size_t poolsize, size_t bsize, int rdonly,
 		hdrp->crtime = htole64((uint64_t)time(NULL));
 
 		if (util_get_arch_flags(&hdrp->arch_flags)) {
-			LOG(1, "Reading architecture flags failed\n");
+			ERR("Reading architecture flags failed\n");
 			errno = EINVAL;
 			goto err;
 		}
@@ -438,13 +438,13 @@ pmemblk_map_common(int fd, size_t poolsize, size_t bsize, int rdonly,
 	pbp->nlane = btt_nlane(pbp->bttp);
 	pbp->next_lane = 0;
 	if ((locks = Malloc(pbp->nlane * sizeof (*locks))) == NULL) {
-		LOG(1, "!Malloc for lane locks");
+		ERR("!Malloc for lane locks");
 		goto err;
 	}
 
 	for (int i = 0; i < pbp->nlane; i++)
 		if ((errno = pthread_mutex_init(&locks[i], NULL))) {
-			LOG(1, "!pthread_mutex_init");
+			ERR("!pthread_mutex_init");
 			goto err;
 		}
 
@@ -453,7 +453,7 @@ pmemblk_map_common(int fd, size_t poolsize, size_t bsize, int rdonly,
 #ifdef DEBUG
 	/* initialize debug lock */
 	if ((errno = pthread_mutex_init(&pbp->write_lock, NULL))) {
-		LOG(1, "!pthread_mutex_init");
+		ERR("!pthread_mutex_init");
 		goto err;
 	}
 #endif
@@ -595,7 +595,7 @@ pmemblk_write(PMEMblkpool *pbp, const void *buf, off_t blockno)
 	LOG(3, "pbp %p buf %p blockno %lld", pbp, buf, (long long)blockno);
 
 	if (pbp->rdonly) {
-		LOG(1, "EROFS (pool is read-only)");
+		ERR("EROFS (pool is read-only)");
 		errno = EROFS;
 		return -1;
 	}
@@ -621,7 +621,7 @@ pmemblk_set_zero(PMEMblkpool *pbp, off_t blockno)
 	LOG(3, "pbp %p blockno %lld", pbp, (long long)blockno);
 
 	if (pbp->rdonly) {
-		LOG(1, "EROFS (pool is read-only)");
+		ERR("EROFS (pool is read-only)");
 		errno = EROFS;
 		return -1;
 	}
@@ -647,7 +647,7 @@ pmemblk_set_error(PMEMblkpool *pbp, off_t blockno)
 	LOG(3, "pbp %p blockno %lld", pbp, (long long)blockno);
 
 	if (pbp->rdonly) {
-		LOG(1, "EROFS (pool is read-only)");
+		ERR("EROFS (pool is read-only)");
 		errno = EROFS;
 		return -1;
 	}

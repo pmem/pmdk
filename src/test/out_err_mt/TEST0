@@ -1,3 +1,4 @@
+#!/bin/bash -e
 #
 # Copyright (c) 2015, Intel Corporation
 #
@@ -31,19 +32,27 @@
 #
 
 #
-# src/test/obj_tx_realloc/Makefile -- build obj_tx_realloc unit test
+# src/test/out_err_mt/TEST0 -- unit test for error messages
 #
-vpath %.c ../../libpmemobj
-vpath %.c ../../common
+export UNITTEST_NAME=out_err_mt/TEST0
+export UNITTEST_NUM=0
 
-TARGET = obj_tx_realloc
-OBJS = obj_tx_realloc.o util.o out.o
+# standard unit test setup
+. ../unittest/unittest.sh
 
-LIBPMEM=y
-LIBPMEMOBJ=y
+require_fs_type local
 
-out.o: CFLAGS += -DSRCVERSION=\"utversion\"
+setup
 
-include ../Makefile.inc
+rm -f $DIR/testfile1
+rm -f $DIR/testfile2
+rm -f $DIR/testfile3
 
-INCS += -I../../libpmemobj/ -I../../common/
+expect_normal_exit ./out_err_mt$EXESUFFIX \
+	$DIR/testfile1 $DIR/testfile2 $DIR/testfile3
+
+rm -f $DIR/testfile[123]
+
+check
+
+pass

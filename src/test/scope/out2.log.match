@@ -6,6 +6,7 @@ pmemlog_check
 pmemlog_check_version
 pmemlog_close
 pmemlog_create
+pmemlog_errormsg
 pmemlog_nbyte
 pmemlog_open
 pmemlog_rewind
@@ -19,6 +20,7 @@ pmemlog_check
 pmemlog_check_version
 pmemlog_close
 pmemlog_create
+pmemlog_errormsg
 pmemlog_nbyte
 pmemlog_open
 pmemlog_rewind
@@ -32,6 +34,7 @@ pmemlog_check
 pmemlog_check_version
 pmemlog_close
 pmemlog_create
+pmemlog_errormsg
 pmemlog_nbyte
 pmemlog_open
 pmemlog_rewind
@@ -45,6 +48,7 @@ pmemlog_check
 pmemlog_check_version
 pmemlog_close
 pmemlog_create
+pmemlog_errormsg
 pmemlog_nbyte
 pmemlog_open
 pmemlog_rewind

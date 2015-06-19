@@ -103,7 +103,7 @@ cuckoo_new()
 {
 	struct cuckoo *c = Malloc(sizeof (struct cuckoo));
 	if (c == NULL) {
-		LOG(1, "!Malloc");
+		ERR("!Malloc");
 		goto error_cuckoo_malloc;
 	}
 

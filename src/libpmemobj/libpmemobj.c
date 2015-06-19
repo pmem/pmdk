@@ -72,24 +72,16 @@ pmemobj_check_version(unsigned major_required, unsigned minor_required)
 	LOG(3, "major_required %u minor_required %u",
 			major_required, minor_required);
 
-	static char errstr[] =
-		"libpmemobj major version mismatch "
-		"(need AAAAAAAAAA, found BBBBBBBBBB)";
-
 	if (major_required != PMEMOBJ_MAJOR_VERSION) {
-		sprintf(errstr,
-			"libpmemobj major version mismatch (need %u, found %u)",
+		ERR("libpmemobj major version mismatch (need %u, found %u)",
 			major_required, PMEMOBJ_MAJOR_VERSION);
-		LOG(1, "%s", errstr);
-		return errstr;
+		return out_get_errormsg();
 	}
 
 	if (minor_required > PMEMOBJ_MINOR_VERSION) {
-		sprintf(errstr,
-			"libpmemobj minor version mismatch (need %u, found %u)",
+		ERR("libpmemobj minor version mismatch (need %u, found %u)",
 			minor_required, PMEMOBJ_MINOR_VERSION);
-		LOG(1, "%s", errstr);
-		return errstr;
+		return out_get_errormsg();
 	}
 
 	return NULL;
@@ -106,4 +98,13 @@ pmemobj_set_funcs(
 	LOG(3, NULL);
 
 	util_set_alloc_funcs(malloc_func, free_func, NULL, NULL);
+}
+
+/*
+ * pmemobj_errormsg -- return last error message
+ */
+const char *
+pmemobj_errormsg(void)
+{
+	return out_get_errormsg();
 }

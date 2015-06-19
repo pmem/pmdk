@@ -4,6 +4,7 @@ pmemblk_check
 pmemblk_check_version
 pmemblk_close
 pmemblk_create
+pmemblk_errormsg
 pmemblk_nblock
 pmemblk_open
 pmemblk_read
@@ -16,6 +17,7 @@ pmemblk_check
 pmemblk_check_version
 pmemblk_close
 pmemblk_create
+pmemblk_errormsg
 pmemblk_nblock
 pmemblk_open
 pmemblk_read
@@ -28,6 +30,7 @@ pmemblk_check
 pmemblk_check_version
 pmemblk_close
 pmemblk_create
+pmemblk_errormsg
 pmemblk_nblock
 pmemblk_open
 pmemblk_read
@@ -40,6 +43,7 @@ pmemblk_check
 pmemblk_check_version
 pmemblk_close
 pmemblk_create
+pmemblk_errormsg
 pmemblk_nblock
 pmemblk_open
 pmemblk_read

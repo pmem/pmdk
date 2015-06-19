@@ -87,7 +87,7 @@ get_lock(uint64_t pop_runid, volatile uint64_t *runid, void *lock,
 			if (__sync_bool_compare_and_swap(runid,
 					tmp_runid, (pop_runid - 1))) {
 				if (init_lock(lock, NULL)) {
-					LOG(1, "error initializing lock");
+					ERR("error initializing lock");
 					__sync_fetch_and_and(runid, 0);
 					return NULL;
 				}
@@ -95,7 +95,7 @@ get_lock(uint64_t pop_runid, volatile uint64_t *runid, void *lock,
 				if (__sync_bool_compare_and_swap(
 						runid, (pop_runid - 1),
 						pop_runid) == 0) {
-					LOG(1, "error setting lock runid");
+					ERR("error setting lock runid");
 					return NULL;
 				}
 			}

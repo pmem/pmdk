@@ -456,7 +456,7 @@ heap_resize_chunk(PMEMobjpool *pop,
 	struct bucket *def_bucket = pop->heap->buckets[DEFAULT_BUCKET];
 	if (bucket_insert_block(def_bucket, new_chunk_id, zone_id,
 		rem_size_idx, 0) != 0) {
-		LOG(1, "bucket_insert_block failed during resize");
+		ERR("bucket_insert_block failed during resize");
 	}
 }
 

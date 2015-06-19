@@ -1,3 +1,4 @@
+#!/bin/bash -e
 #
 # Copyright (c) 2015, Intel Corporation
 #
@@ -31,19 +32,23 @@
 #
 
 #
-# src/test/obj_tx_realloc/Makefile -- build obj_tx_realloc unit test
+# src/test/out_err/TEST0 -- unit test for out_err()
 #
-vpath %.c ../../libpmemobj
-vpath %.c ../../common
+export UNITTEST_NAME=out_err/TEST0
+export UNITTEST_NUM=0
 
-TARGET = obj_tx_realloc
-OBJS = obj_tx_realloc.o util.o out.o
+# standard unit test setup
+. ../unittest/unittest.sh
 
-LIBPMEM=y
-LIBPMEMOBJ=y
+require_fs_type local
 
-out.o: CFLAGS += -DSRCVERSION=\"utversion\"
+setup
 
-include ../Makefile.inc
+export TRACE_LOG_LEVEL=1
+export TRACE_LOG_FILE=./traces$UNITTEST_NUM.log
 
-INCS += -I../../libpmemobj/ -I../../common/
+expect_normal_exit ./out_err$EXESUFFIX
+
+check
+
+pass

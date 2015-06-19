@@ -83,11 +83,6 @@ const char *pmemobj_check_version(
 #define	PMEMOBJ_NUM_OID_TYPES ((unsigned)1024)
 
 /*
- * Error information...
- */
-const char *pmemobj_strerror(void);
-
-/*
  * Pool management...
  */
 PMEMobjpool *pmemobj_open(const char *path, const char *layout);
@@ -107,6 +102,8 @@ int pmemobj_check(const char *path, const char *layout);
 void pmemobj_set_funcs(
 		void *(*malloc_func)(size_t size),
 		void (*free_func)(void *ptr));
+
+const char *pmemobj_errormsg(void);
 
 /*
  * Locking...

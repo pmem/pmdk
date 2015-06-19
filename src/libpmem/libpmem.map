@@ -42,6 +42,7 @@ libpmem.so {
 		pmem_drain;
 		pmem_has_hw_drain;
 		pmem_check_version;
+		pmem_errormsg;
 		pmem_memmove_persist;
 		pmem_memcpy_persist;
 		pmem_memset_persist;

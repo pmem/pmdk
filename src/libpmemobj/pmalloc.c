@@ -176,12 +176,12 @@ pmalloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
 	redo_log_process(pop, sec->redo, MAX_PMALLOC_REDO);
 
 	if (lane_release(pop) != 0) {
-		LOG(1, "Failed to release the lane");
+		ERR("Failed to release the lane");
 		ASSERT(0);
 	}
 
 	if (heap_unlock_if_run(pop, chunk_id, zone_id) != 0) {
-		LOG(1, "Failed to release run lock");
+		ERR("Failed to release run lock");
 		ASSERT(0);
 	}
 
@@ -189,12 +189,12 @@ pmalloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
 
 err_lane_hold:
 	if (heap_unlock_if_run(pop, chunk_id, zone_id) != 0) {
-		LOG(1, "Failed to release run lock");
+		ERR("Failed to release run lock");
 		ASSERT(0);
 	}
 
 	if (bucket_insert_block(b, chunk_id, zone_id, units, block_off) != 0) {
-		LOG(1, "Failed to recover heap volatile state");
+		ERR("Failed to recover heap volatile state");
 		ASSERT(0);
 	}
 
@@ -294,12 +294,12 @@ pfree(PMEMobjpool *pop, uint64_t *off)
 	redo_log_process(pop, sec->redo, MAX_PFREE_REDO);
 
 	if (lane_release(pop) != 0) {
-		LOG(1, "Failed to release the lane");
+		ERR("Failed to release the lane");
 		ASSERT(0);
 	}
 
 	if (heap_unlock_if_run(pop, chunk_id, zone_id) != 0) {
-		LOG(1, "Failed to release run lock");
+		ERR("Failed to release run lock");
 		ASSERT(0);
 	}
 
@@ -339,7 +339,7 @@ pfree(PMEMobjpool *pop, uint64_t *off)
 	 */
 	if (bucket_insert_block(b, chunk_id, zone_id, size_idx, block_off)
 		!= 0) {
-		LOG(1, "Failed to update the heap volatile state");
+		ERR("Failed to update the heap volatile state");
 		ASSERT(0);
 	}
 
@@ -347,7 +347,7 @@ pfree(PMEMobjpool *pop, uint64_t *off)
 
 error_lane_hold:
 	if (heap_unlock_if_run(pop, chunk_id, zone_id) != 0) {
-		LOG(1, "Failed to release run lock");
+		ERR("Failed to release run lock");
 		ASSERT(0);
 	}
 

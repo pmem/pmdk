@@ -75,6 +75,8 @@ const char *pmem_check_version(
 		unsigned major_required,
 		unsigned minor_required);
 
+const char *pmem_errormsg(void);
+
 #ifdef __cplusplus
 }
 #endif

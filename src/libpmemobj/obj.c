@@ -168,27 +168,27 @@ pmemobj_map_common(int fd, const char *layout, size_t poolsize, int rdonly,
 		 * valid header found
 		 */
 		if (strncmp(hdr.signature, OBJ_HDR_SIG, POOL_HDR_SIG_LEN)) {
-			LOG(1, "wrong pool type: \"%s\"", hdr.signature);
+			ERR("wrong pool type: \"%s\"", hdr.signature);
 			errno = EINVAL;
 			goto err;
 		}
 
 		if (hdr.major != OBJ_FORMAT_MAJOR) {
-			LOG(1, "obj pool version %d (library expects %d)",
+			ERR("obj pool version %d (library expects %d)",
 				hdr.major, OBJ_FORMAT_MAJOR);
 			errno = EINVAL;
 			goto err;
 		}
 
 		if (util_check_arch_flags(&hdr.arch_flags)) {
-			LOG(1, "wrong architecture flags");
+			ERR("wrong architecture flags");
 			errno = EINVAL;
 			goto err;
 		}
 
 		if (layout &&
 		    strncmp(pop->layout, layout, PMEMOBJ_MAX_LAYOUT)) {
-			LOG(1, "wrong layout (\"%s\"), "
+			ERR("wrong layout (\"%s\"), "
 				"pool created with layout \"%s\"",
 				layout, pop->layout);
 			errno = EINVAL;
@@ -196,7 +196,7 @@ pmemobj_map_common(int fd, const char *layout, size_t poolsize, int rdonly,
 		}
 
 		if (!util_checksum(dscp, OBJ_DSC_P_SIZE, &pop->checksum, 0)) {
-			LOG(1, "invalid checksum of pool descriptor");
+			ERR("invalid checksum of pool descriptor");
 			errno = EINVAL;
 			goto err;
 		}
@@ -219,14 +219,14 @@ pmemobj_map_common(int fd, const char *layout, size_t poolsize, int rdonly,
 
 		/* check if the pool header is all zeros */
 		if (!util_is_zeroed(hdrp, sizeof (*hdrp))) {
-			LOG(1, "Non-empty file detected");
+			ERR("Non-empty file detected");
 			errno = EINVAL;
 			goto err;
 		}
 
 		/* check length of layout */
 		if (layout && (strlen(layout) >= PMEMOBJ_MAX_LAYOUT)) {
-				LOG(1, "Layout too long");
+				ERR("Layout too long");
 				errno = EINVAL;
 				goto err;
 		}
@@ -241,7 +241,7 @@ pmemobj_map_common(int fd, const char *layout, size_t poolsize, int rdonly,
 		hdrp->crtime = htole64((uint64_t)time(NULL));
 
 		if (util_get_arch_flags(&hdrp->arch_flags)) {
-			LOG(1, "Reading architecture flags failed\n");
+			ERR("Reading architecture flags failed\n");
 			errno = EINVAL;
 			goto err;
 		}
@@ -292,7 +292,7 @@ pmemobj_map_common(int fd, const char *layout, size_t poolsize, int rdonly,
 		pop->heap_size = poolsize - pop->heap_offset;
 
 		if ((errno = heap_init(pop)) != 0) {
-			LOG(1, "!heap_init");
+			ERR("!heap_init");
 			goto err;
 		}
 
@@ -341,17 +341,17 @@ pmemobj_map_common(int fd, const char *layout, size_t poolsize, int rdonly,
 	}
 
 	if ((errno = lane_boot(pop)) != 0) {
-		LOG(1, "!lane_boot");
+		ERR("!lane_boot");
 		goto err;
 	}
 
 	if ((errno = heap_boot(pop)) != 0) {
-		LOG(1, "!heap_boot");
+		ERR("!heap_boot");
 		goto err;
 	}
 
 	if ((errno = lane_recover(pop)) != 0) {
-		LOG(1, "!lane_recover");
+		ERR("!lane_recover");
 		goto err;
 	}
 
@@ -366,7 +366,7 @@ pmemobj_map_common(int fd, const char *layout, size_t poolsize, int rdonly,
 	util_range_none(addr, sizeof (struct pool_hdr));
 
 	if ((errno = cuckoo_insert(pools, pop->uuid_lo, pop)) != 0) {
-		LOG(1, "!cuckoo_insert");
+		ERR("!cuckoo_insert");
 		goto err;
 	}
 
@@ -449,17 +449,17 @@ pmemobj_close(PMEMobjpool *pop)
 	LOG(3, "pop %p", pop);
 
 	if (cuckoo_remove(pools, pop->uuid_lo) != pop) {
-		LOG(1, "!cuckoo_remove");
+		ERR("!cuckoo_remove");
 	}
 
 	/* XXX stub */
 
 	if ((errno = heap_cleanup(pop)) != 0)
-		LOG(1, "!heap_cleanup");
+		ERR("!heap_cleanup");
 
 	/* cleanup run-time state */
 	if ((errno = lane_cleanup(pop)) != 0)
-		LOG(1, "!lane_cleanup");
+		ERR("!lane_cleanup");
 
 	util_unmap(pop->addr, pop->size);
 }
@@ -487,17 +487,17 @@ pmemobj_check(const char *path, const char *layout)
 	int consistent = 1;
 
 	if (pop->run_id % 2) {
-		LOG(1, "invalid run_id %ju", pop->run_id);
+		ERR("invalid run_id %ju", pop->run_id);
 		consistent = 0;
 	}
 
 	if ((errno = heap_check(pop)) != 0) {
-		LOG(1, "!heap_check");
+		ERR("!heap_check");
 		consistent = 0;
 	}
 
 	if (lane_check(pop) != 1) {
-		LOG(1, "lane_check");
+		ERR("lane_check");
 		consistent = 0;
 	}
 
@@ -559,9 +559,10 @@ obj_alloc_construct(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 	void *arg)
 {
 	if (type_num >= PMEMOBJ_NUM_OID_TYPES) {
+		errno = EINVAL;
+		ERR("!obj_alloc_construct");
 		LOG(2, "type_num has to be in range [0, %i]",
 			PMEMOBJ_NUM_OID_TYPES - 1);
-		errno = EINVAL;
 		return -1;
 	}
 
@@ -592,7 +593,7 @@ pmemobj_alloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 	_POBJ_DEBUG_NOTICE_IN_TX();
 
 	if (size == 0) {
-		LOG(1, "allocation with size 0");
+		ERR("allocation with size 0");
 		errno = EINVAL;
 		return -1;
 	}
@@ -636,7 +637,7 @@ pmemobj_zalloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 	_POBJ_DEBUG_NOTICE_IN_TX();
 
 	if (size == 0) {
-		LOG(1, "allocation with size 0");
+		ERR("allocation with size 0");
 		errno = EINVAL;
 		return -1;
 	}
@@ -664,9 +665,10 @@ obj_realloc_construct(PMEMobjpool *pop, struct object_store *store,
 	ASSERT(user_type_old < PMEMOBJ_NUM_OID_TYPES);
 
 	if (type_num >= PMEMOBJ_NUM_OID_TYPES) {
+		errno = EINVAL;
+		ERR("!obj_realloc_construct");
 		LOG(2, "type_num has to be in range [0, %u]",
 		    PMEMOBJ_NUM_OID_TYPES - 1);
-		errno = EINVAL;
 		return -1;
 	}
 
@@ -800,9 +802,10 @@ pmemobj_strdup(PMEMobjpool *pop, PMEMoid *oidp, const char *s,
 	_POBJ_DEBUG_NOTICE_IN_TX();
 
 	if (type_num >= PMEMOBJ_NUM_OID_TYPES) {
+		errno = EINVAL;
+		ERR("!pmemobj_strdup");
 		LOG(2, "type_num has to be in range [0, %i]",
 		    PMEMOBJ_NUM_OID_TYPES - 1);
-		errno = EINVAL;
 		return -1;
 	}
 
@@ -1041,9 +1044,10 @@ pmemobj_first(PMEMobjpool *pop, unsigned int type_num)
 	LOG(3, "pop %p type_num %u", pop, type_num);
 
 	if (type_num >= PMEMOBJ_NUM_OID_TYPES) {
+		errno = EINVAL;
+		ERR("!pmemobj_first");
 		LOG(2, "type_num has to be in range [0, %i]",
 		    PMEMOBJ_NUM_OID_TYPES - 1);
-		errno = EINVAL;
 		return OID_NULL;
 	}
 
@@ -1112,9 +1116,10 @@ pmemobj_list_insert_new(PMEMobjpool *pop, size_t pe_offset, void *head,
 	_POBJ_DEBUG_NOTICE_IN_TX();
 
 	if (type_num >= PMEMOBJ_NUM_OID_TYPES) {
+		errno = EINVAL;
+		ERR("!pmemobj_list_insert_new");
 		LOG(2, "type_num has to be in range [0, %i]",
 		    PMEMOBJ_NUM_OID_TYPES - 1);
-		errno = EINVAL;
 		return OID_NULL;
 	}
 

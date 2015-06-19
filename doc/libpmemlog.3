@@ -37,7 +37,7 @@
 .\" or
 .\"	groff -man -Tascii libpmemlog.3
 .\"
-.TH libpmemlog 3 "pmemlog API version 0.8" "NVM Library"
+.TH libpmemlog 3 "pmemlog API version 0.8.1" "NVM Library"
 .SH NAME
 libpmemlog \- persistent memory resident log file
 .SH SYNOPSIS
@@ -74,6 +74,10 @@ libpmemlog \- persistent memory resident log file
 .BI "    void *(*" malloc_func ")(size_t " size ),
 .BI "    void (*" free_func ")(void *" ptr ));
 .BI "int pmemlog_check(const char *" path );
+.sp
+.B Error handling:
+.sp
+.BI "const char *pmemlog_errormsg(void);
 .fi
 .sp
 .SH DESCRIPTION
@@ -128,7 +132,7 @@ Under normal usage,
 will never print messages or intentionally cause the process to exit.
 The only exception to this is the debugging information, when enabled, as
 described under
-.B DEBUGGING
+.B "DEBUGGING AND ERROR HANDLING"
 below.
 .SH MOST COMMONLY USED FUNCTIONS
 .PP
@@ -432,7 +436,7 @@ will result in undefined behavior.  The debug version of
 will provide additional details on inconsistencies when
 .B PMEMLOG_LOG_LEVEL
 is at least 1, as described in the
-.B DEBUGGING
+.B "DEBUGGING AND ERROR HANDLING"
 section below.
 .BR pmemlog_check ()
 will return -1 and set errno if it cannot perform the
@@ -441,7 +445,7 @@ consistency check due to other errors.
 opens the given
 .I path
 read-only so it never makes any changes to the file.
-.SH DEBUGGING
+.SH DEBUGGING AND ERROR HANDLING
 .PP
 Two versions of
 .B libpmemlog
@@ -451,8 +455,31 @@ linked using the
 .B -lpmemlog
 option, is optimized for performance.  That version skips checks
 that impact performance and never logs any trace information or performs
-any run-time assertions.  A second version, accessed when a program
-uses the libraries under
+any run-time assertions.  If an error is detected during the call to
+.B libpmemlog
+function, an application may retrieve an error message describing the
+reason of failure using the following function:
+.PP
+.BI "const char *pmemlog_errormsg(void);
+.IP
+The
+.BR pmemlog_errormsg ()
+function returns a pointer to a static buffer containing the last error
+message logged for current thread.  The error message may include
+description of the corresponding error code (if errno was set), as returned by
+.BR strerror (3).
+The error message buffer is thread-local; errors encountered in one thread
+do not affect its value in other threads.
+The buffer is never cleared by any library function; its content is
+significant only when the return value of the immediately preceding call to
+.B libpmemlog
+function indicated an error, or if errno was set.
+The application must not modify or free the error message string,
+but it may be modified by subsequent calls to other library functions.
+.PP
+A second version of
+.BR libpmemlog ,
+accessed when a program uses the libraries under
 .BR /usr/lib/nvml_debug ,
 contains run-time assertions and trace points.
 The typical way to access the debug version is to set the environment variable
@@ -472,7 +499,9 @@ This is the default level when
 is not set.  No log messages are emitted at this level.
 .IP 1
 Additional details on any errors detected are logged (in addition
-to returning the errno-based errors as usual).
+to returning the errno-based errors as usual).  The same information
+may be retrieved using
+.BR pmemlog_errormsg ().
 .IP 2
 A trace of basic operations is logged.
 .IP 3
@@ -583,6 +612,7 @@ http://snia.org/nvmp
 .BR mmap (2),
 .BR munmap (2),
 .BR msync (2),
+.BR strerror (3),
 .BR libpmemobj (3),
 .BR libpmemblk (3),
 .BR libpmem (3),

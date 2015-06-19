@@ -139,7 +139,7 @@ util_map_hint(size_t len)
 {
 	FILE *fp;
 	if ((fp = fopen("/proc/self/maps", "r")) == NULL) {
-		LOG(1, "!/proc/self/maps");
+		ERR("!/proc/self/maps");
 		return NULL;
 	}
 
@@ -213,7 +213,7 @@ util_map(int fd, size_t len, int cow)
 	if ((base = mmap(addr, len, PROT_READ|PROT_WRITE,
 			(cow) ? MAP_PRIVATE|MAP_NORESERVE : MAP_SHARED,
 					fd, 0)) == MAP_FAILED) {
-		LOG(1, "!mmap %zu bytes", len);
+		ERR("!mmap %zu bytes", len);
 		return NULL;
 	}
 
@@ -239,7 +239,7 @@ util_unmap(void *addr, size_t len)
 	int retval = munmap(addr, len);
 
 	if (retval < 0)
-		LOG(1, "!munmap");
+		ERR("!munmap");
 	else
 		VALGRIND_REMOVE_PMEM_MAPPING(addr, len);
 
@@ -266,7 +266,7 @@ util_map_tmpfile(const char *dir, size_t size)
 
 	int fd;
 	if ((fd = mkstemp(fullname)) < 0) {
-		LOG(1, "!mkstemp");
+		ERR("!mkstemp");
 		goto err;
 	}
 
@@ -276,7 +276,7 @@ util_map_tmpfile(const char *dir, size_t size)
 	LOG(3, "unlinked file is \"%s\"", fullname);
 
 	if ((errno = posix_fallocate(fd, 0, size)) != 0) {
-		LOG(1, "!posix_fallocate");
+		ERR("!posix_fallocate");
 		goto err;
 	}
 
@@ -288,7 +288,7 @@ util_map_tmpfile(const char *dir, size_t size)
 	return base;
 
 err:
-	LOG(1, "return NULL");
+	ERR("cannot mmap temporary file");
 	int oerrno = errno;
 	(void) sigprocmask(SIG_SETMASK, &oldset, NULL);
 	if (fd != -1)
@@ -393,13 +393,13 @@ util_get_arch_flags(struct arch_flags *arch_flags)
 	memset(arch_flags, 0, sizeof (*arch_flags));
 
 	if ((fd = open(path, O_RDONLY)) < 0) {
-		LOG(1, "!open %s", path);
+		ERR("!open %s", path);
 		ret = -1;
 		goto out;
 	}
 
 	if (read(fd, &elf, sizeof (elf)) != sizeof (elf)) {
-		LOG(1, "!read %s", path);
+		ERR("!read %s", path);
 		ret = -1;
 		goto out_close;
 	}
@@ -408,7 +408,7 @@ util_get_arch_flags(struct arch_flags *arch_flags)
 	    elf.e_ident[EI_MAG1] != ELFMAG1 ||
 	    elf.e_ident[EI_MAG2] != ELFMAG2 ||
 	    elf.e_ident[EI_MAG3] != ELFMAG3) {
-		LOG(1, "invalid ELF magic");
+		ERR("invalid ELF magic");
 		ret = -1;
 		goto out_close;
 	}
@@ -439,27 +439,27 @@ util_check_arch_flags(const struct arch_flags *arch_flags)
 
 	if (!util_is_zeroed(&arch_flags->reserved,
 				sizeof (arch_flags->reserved))) {
-		LOG(1, "invalid reserved values");
+		ERR("invalid reserved values");
 		ret = -1;
 	}
 
 	if (arch_flags->e_machine != cur_af.e_machine) {
-		LOG(1, "invalid e_machine value");
+		ERR("invalid e_machine value");
 		ret = -1;
 	}
 
 	if (arch_flags->ei_data != cur_af.ei_data) {
-		LOG(1, "invalid ei_data value");
+		ERR("invalid ei_data value");
 		ret = -1;
 	}
 
 	if (arch_flags->ei_class != cur_af.ei_class) {
-		LOG(1, "invalid ei_class value");
+		ERR("invalid ei_class value");
 		ret = -1;
 	}
 
 	if (arch_flags->alignment_desc != cur_af.alignment_desc) {
-		LOG(1, "invalid alignment_desc value");
+		ERR("invalid alignment_desc value");
 		ret = -1;
 	}
 
@@ -490,7 +490,7 @@ util_range_ro(void *addr, size_t len)
 	uptr = (uintptr_t)addr & ~(Pagesize - 1);
 
 	if ((retval = mprotect((void *)uptr, len, PROT_READ)) < 0)
-		LOG(1, "!mprotect: PROT_READ");
+		ERR("!mprotect: PROT_READ");
 
 	return retval;
 }
@@ -519,7 +519,7 @@ util_range_rw(void *addr, size_t len)
 	uptr = (uintptr_t)addr & ~(Pagesize - 1);
 
 	if ((retval = mprotect((void *)uptr, len, PROT_READ|PROT_WRITE)) < 0)
-		LOG(1, "!mprotect: PROT_READ|PROT_WRITE");
+		ERR("!mprotect: PROT_READ|PROT_WRITE");
 
 	return retval;
 }
@@ -548,7 +548,7 @@ util_range_none(void *addr, size_t len)
 	uptr = (uintptr_t)addr & ~(Pagesize - 1);
 
 	if ((retval = mprotect((void *)uptr, len, PROT_NONE)) < 0)
-		LOG(1, "!mprotect: PROT_NONE");
+		ERR("!mprotect: PROT_NONE");
 
 	return retval;
 }
@@ -584,7 +584,7 @@ util_feature_check(struct pool_hdr *hdrp, uint32_t incompat,
 	/* check incompatible ("must support") features */
 	ubits = GET_NOT_MASKED_BITS(hdrp->incompat_features, incompat);
 	if (ubits) {
-		LOG(1, "unsafe to continue due to unknown incompat "\
+		ERR("unsafe to continue due to unknown incompat "\
 							"features: %#x", ubits);
 		errno = EINVAL;
 		return -1;
@@ -593,7 +593,7 @@ util_feature_check(struct pool_hdr *hdrp, uint32_t incompat,
 	/* check RO-compatible features (force RO if unsupported) */
 	ubits = GET_NOT_MASKED_BITS(hdrp->ro_compat_features, ro_compat);
 	if (ubits) {
-		LOG(1, "switching to read-only mode due to unknown ro_compat "\
+		ERR("switching to read-only mode due to unknown ro_compat "\
 							"features: %#x", ubits);
 		return 0;
 	}
@@ -621,19 +621,19 @@ util_pool_create(const char *path, size_t size, size_t minsize, mode_t mode)
 	ASSERTne(size, 0);
 
 	if (size < minsize) {
-		LOG(1, "size %zu smaller than %zu", size, minsize);
+		ERR("size %zu smaller than %zu", size, minsize);
 		errno = EINVAL;
 		return -1;
 	}
 
 	int fd;
 	if ((fd = open(path, O_RDWR|O_CREAT|O_EXCL, mode)) < 0) {
-		LOG(1, "!open %s", path);
+		ERR("!open %s", path);
 		return -1;
 	}
 
 	if ((errno = posix_fallocate(fd, 0, size)) != 0) {
-		LOG(1, "!posix_fallocate");
+		ERR("!posix_fallocate");
 		goto err;
 	}
 
@@ -660,12 +660,12 @@ util_pool_open(const char *path, size_t *size, size_t minsize)
 
 	struct stat stbuf;
 	if (stat(path, &stbuf) < 0) {
-		LOG(1, "!stat %s", path);
+		ERR("!stat %s", path);
 		return -1;
 	}
 
 	if (stbuf.st_size < minsize) {
-		LOG(1, "size %lld smaller than %zu",
+		ERR("size %lld smaller than %zu",
 				(long long)stbuf.st_size, minsize);
 		errno = EINVAL;
 		return -1;
@@ -674,7 +674,7 @@ util_pool_open(const char *path, size_t *size, size_t minsize)
 
 	int fd;
 	if ((fd = open(path, O_RDWR)) < 0) {
-		LOG(1, "!open %s", path);
+		ERR("!open %s", path);
 		return -1;
 	}
 

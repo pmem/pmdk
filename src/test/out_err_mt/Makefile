@@ -31,19 +31,19 @@
 #
 
 #
-# src/test/obj_tx_realloc/Makefile -- build obj_tx_realloc unit test
+# src/test/out_err_mt/Makefile -- build unit test for error messages
 #
-vpath %.c ../../libpmemobj
 vpath %.c ../../common
+vpath %.h ../../common
 
-TARGET = obj_tx_realloc
-OBJS = obj_tx_realloc.o util.o out.o
+TARGET = out_err_mt
+OBJS = out_err_mt.o
 
 LIBPMEM=y
+LIBPMEMLOG=y
+LIBPMEMBLK=y
 LIBPMEMOBJ=y
-
-out.o: CFLAGS += -DSRCVERSION=\"utversion\"
 
 include ../Makefile.inc
 
-INCS += -I../../libpmemobj/ -I../../common/
+out_err_mt.o: out_err_mt.c

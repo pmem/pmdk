@@ -36,6 +36,7 @@ libpmemblk.so {
 	global:
 		pmemblk_check_version;
 		pmemblk_set_funcs;
+		pmemblk_errormsg;
 		pmemblk_create;
 		pmemblk_open;
 		pmemblk_close;
