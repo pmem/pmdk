@@ -174,6 +174,7 @@ typedef struct pmemoid {
 } PMEMoid;
 
 #define	OID_NULL	((PMEMoid) {0, 0})
+#define	TOID_NULL(t)	((TOID(t))OID_NULL)
 #define	OID_IS_NULL(o)	((o).off == 0)
 #define	OID_EQUALS(lhs, rhs)\
 ((lhs).off == (rhs).off &&\

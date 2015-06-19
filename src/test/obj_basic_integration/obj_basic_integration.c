@@ -217,6 +217,7 @@ test_tx_api(PMEMobjpool *pop)
 	TX_BEGIN_LOCK(pop, TX_LOCK_MUTEX, &D_RW(root)->lock) {
 		ASSERT(!TOID_IS_NULL(D_RW(root)->node));
 		TX_FREE(D_RW(root)->node);
+		D_RW(root)->node = TOID_NULL(struct dummy_node);
 		TOID_ASSIGN(D_RW(root)->node, OID_NULL);
 	} TX_END
 }
