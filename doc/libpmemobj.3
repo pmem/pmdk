@@ -106,6 +106,7 @@ libpmemobj \- persistent memory transactional object store
 .BI "TOID_TYPE_NUM(" TYPE )
 .BI "TOID_TYPE_NUM_OF(TOID " oid ")
 .BI "TOID_VALID(TOID " oid ")
+.BI "OID_INSTANCEOF(PMEMoid " oid ", " TYPE )
 .sp
 .BI "TOID_ASSIGN(TOID " oid ", " VALUE )
 .sp
@@ -1070,6 +1071,15 @@ The
 .B TOID_VALID
 macro validates whether the type number stored in object's metadata
 is equal to the type number read from typed OID.
+.PP
+.BI "OID_INSTANCEOF(PMEMoid " oid ", " TYPE )
+.IP
+The
+.B OID_INSTANCEOF
+macro checks whether the
+.I oid
+is of the type specified by argument
+.IR TYPE .
 .PP
 .BI "TOID_ASSIGN(TOID " o ", " VALUE )
 .IP

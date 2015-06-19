@@ -377,31 +377,6 @@ main(int argc, char *argv[])
 
 	/* global state of the game is kept in the root object */
 	TOID(struct game_state) game_state = POBJ_ROOT(pop, struct game_state);
-	if (!TOID_VALID(game_state)) {
-		printf("failed to get root object\n");
-		return 1;
-	}
-
-	TOID(struct alien) alien;
-	POBJ_FOREACH_TYPE(pop, alien) {
-		if (!TOID_VALID(alien)) {
-			printf("invalid alien found\n");
-			return 1;
-		}
-	}
-
-	TOID(struct bullet) bullet;
-	POBJ_FOREACH_TYPE(pop, bullet) {
-		if (!TOID_VALID(bullet)) {
-			printf("invalid bullet found\n");
-			return 1;
-		}
-	}
-
-	if (!TOID_VALID(POBJ_FIRST(pop, struct player))) {
-		printf("invalid player found\n");
-		return 1;
-	}
 
 	gstate = D_RW(game_state);
 

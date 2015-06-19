@@ -90,6 +90,8 @@ test_alloc_api(PMEMobjpool *pop)
 
 	POBJ_ZNEW(pop, &node_zeroed, struct dummy_node);
 
+	ASSERT(OID_INSTANCEOF(node_zeroed.oid, struct dummy_node));
+
 	int *test_val = MALLOC(sizeof (*test_val));
 	*test_val = TEST_VALUE;
 	POBJ_NEW(pop, &node_constructed, struct dummy_node_c,
