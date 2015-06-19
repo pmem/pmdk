@@ -37,7 +37,7 @@
 .\" or
 .\"	groff -man -Tascii libpmemobj.3
 .\"
-.TH libpmemobj 3 "pmemobj API version 0.4.5" "NVM Library"
+.TH libpmemobj 3 "pmemobj API version 0.4.6" "NVM Library"
 .SH NAME
 libpmemobj \- persistent memory transactional object store
 .SH SYNOPSIS
@@ -176,16 +176,17 @@ libpmemobj \- persistent memory transactional object store
 .sp
 .B Non-transactional persistent atomic circular doubly-linked list:
 .sp
-.BI "int pmemobj_list_insert(PMEMobjpool *" pop ", size_t " pe_offset ", PMEMoid " dest ,
-.BI "    PMEMoid *" head ", int " before ", PMEMoid " oid );
-.BI "PMEMoid pmemobj_list_insert_new(PMEMobjpool *" pop ", size_t " pe_offset ", PMEMoid " dest ,
-.BI "    PMEMoid *" head ", int " before ", size_t " size ", unsigned int " type_num ,
+.BI "int pmemobj_list_insert(PMEMobjpool *" pop ", size_t " pe_offset ", void *" head ,
+.BI "    PMEMoid " dest ", int " before ", PMEMoid " oid );
+.BI "PMEMoid pmemobj_list_insert_new(PMEMobjpool *" pop ", size_t " pe_offset ", void *" head ,
+.BI "    PMEMoid " dest ", int " before ", size_t " size ", unsigned int " type_num ,
 .BI "    void (*" constructor ")(void *" ptr ", void *" arg "), void *" arg );
-.BI "int pmemobj_list_remove(PMEMobjpool *" pop ", size_t " pe_offset ", PMEMoid " oid ,
-.BI "    PMEMoid *" head ", int " free );
+.BI "int pmemobj_list_remove(PMEMobjpool *" pop ", size_t " pe_offset ", void *" head ,
+.BI "    PMEMoid " oid ", int " free );
 .BI "int pmemobj_list_move(PMEMobjpool *" pop ,
-.BI "    size_t " pe_old_offset ", size_t " pe_new_offset ,
-.BI "    PMEMoid *" head_old ", PMEMoid *" head_new ", int " tail ", PMEMoid " oid );
+.BI "    size_t " pe_old_offset ", void *" head_old ,
+.BI "    size_t " pe_new_offset ", void *" head_new ,
+.BI "    PMEMoid " dest ", int " before ", PMEMoid " oid );
 .sp
 .BI "POBJ_LIST_ENTRY(" TYPE )
 .BI "POBJ_LIST_HEAD(" HEADNAME ", " TYPE )
@@ -1879,7 +1880,7 @@ will not be rolled-back if such a transaction is aborted or interrupted.
 .PP
 .BI "int pmemobj_list_insert(PMEMobjpool *" pop ", size_t " pe_offset ",
 .br
-.BI "     PMEMoid " dest ", PMEMoid *" head ", int " before ", PMEMoid " oid );
+.BI "     void *" head ", PMEMoid " dest ", int " before ", PMEMoid " oid );
 .IP
 The
 .BR pmemobj_list_insert
@@ -1916,7 +1917,7 @@ On success, zero is returned. On error, -1 is returned and errno is set.
 .PP
 .BI "PMEMoid pmemobj_list_insert_new(PMEMobjpool *" pop ", size_t " pe_offset ",
 .br
-.BI "    PMEMoid " dest ", PMEMoid *" head ", int " before ", size_t " size ",
+.BI "    void *" head ", PMEMoid " dest ", int " before ", size_t " size ",
 .br
 .BI "    unsigned int " type_num ", void (*" constructor ")(void *" ptr ", void *" arg "), void *" arg );
 .IP
@@ -1969,7 +1970,7 @@ On error, OID_NULL is returned and errno is set.
 .PP
 .BI "int pmemobj_list_remove(PMEMobjpool *" pop ", size_t " pe_offset ",
 .br
-.BI "     PMEMoid " oid ", PMEMoid *" head ", int " free );
+.BI "     void *" head ", PMEMoid " oid ", int " free );
 .IP
 The
 .BR pmemobj_list_remove
@@ -1995,9 +1996,11 @@ On success, zero is returned. On error, -1 is returned and errno is set.
 .PP
 .BI "int pmemobj_list_move(PMEMobjpool *" pop ,
 .br
-.BI "    size_t " pe_old_offset ", size_t " pe_new_offset ,
+.BI "    size_t " pe_old_offset ", void *" head_old ,
 .br
-.BI "    PMEMoid *" head_old ", PMEMoid *" head_new ", int " tail ", PMEMoid " oid );
+.BI "    size_t " pe_new_offset ", void *" head_new ,
+.br
+.BI "    PMEMoid " dest ", int " before ", PMEMoid " oid );
 .IP
 The
 .BR pmemobj_list_move
