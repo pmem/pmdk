@@ -1,5 +1,5 @@
 <!-- Creator     : groff version 1.18.1.4 -->
-<!-- CreationDate: Wed Feb 11 09:40:53 2015 -->
+<!-- CreationDate: Mon Jun 22 07:57:24 2015 -->
 <html>
 <head>
 <meta name="generator" content="groff -Thtml, see www.gnu.org">
@@ -218,7 +218,11 @@ its own data structures for managing the pool there. Like
 is defined as <b>VMEM_MIN_POOL</b>. The <i>addr</i> argument
 must be page aligned. <b>vmem_create_in_region</b>() returns
 an opaque memory pool handle or NULL if an error occurred
-(in which case <i>errno</i> is set appropriately).</p>
+(in which case <i>errno</i> is set appropriately). Undefined
+behavior occurs if <i>addr</i> does not point to the
+contiguous memory region in the virtual address space of the
+calling process, or if the <i>size</i> is larger than the
+actual size of the memory region pointed by <i>addr</i>.</p>
 </td>
 </table>
 <!-- INDENTATION -->

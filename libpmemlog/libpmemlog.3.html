@@ -1,5 +1,5 @@
 <!-- Creator     : groff version 1.18.1.4 -->
-<!-- CreationDate: Wed Feb 11 09:40:53 2015 -->
+<!-- CreationDate: Mon Jun 22 07:57:24 2015 -->
 <html>
 <head>
 <meta name="generator" content="groff -Thtml, see www.gnu.org">
@@ -15,7 +15,7 @@
 <a href="#MOST COMMONLY USED FUNCTIONS">MOST COMMONLY USED FUNCTIONS</a><br>
 <a href="#LIBRARY API VERSIONING">LIBRARY API VERSIONING</a><br>
 <a href="#MANAGING LIBRARY BEHAVIOR">MANAGING LIBRARY BEHAVIOR</a><br>
-<a href="#DEBUGGING">DEBUGGING</a><br>
+<a href="#DEBUGGING AND ERROR HANDLING">DEBUGGING AND ERROR HANDLING</a><br>
 <a href="#EXAMPLES">EXAMPLES</a><br>
 <a href="#ACKNOWLEDGEMENTS">ACKNOWLEDGEMENTS</a><br>
 <a href="#SEE ALSO">SEE ALSO</a><br>
@@ -73,6 +73,10 @@ void pmemlog_set_funcs(
     void *(*</b><i>malloc_func</i><b>)(size_t</b> <i>size</i><b>),
     void (*</b><i>free_func</i><b>)(void *</b><i>ptr</i><b>));
 int pmemlog_check(const char *</b><i>path</i><b>);
+
+Error handling:
+
+const char *pmemlog_errormsg(void);
 </b></pre>
 </td>
 </table>
@@ -137,7 +141,8 @@ support.</p>
 <p>Under normal usage, <b>libpmemlog</b> will never print
 messages or intentionally cause the process to exit. The
 only exception to this is the debugging information, when
-enabled, as described under <b>DEBUGGING</b> below.</p>
+enabled, as described under <b>DEBUGGING AND ERROR
+HANDLING</b> below.</p>
 </td>
 </table>
 <a name="MOST COMMONLY USED FUNCTIONS"></a>
@@ -539,15 +544,16 @@ return 0, in which case the use of the file with
 <b>libpmemlog</b> will result in undefined behavior. The
 debug version of <b>libpmemlog</b> will provide additional
 details on inconsistencies when <b>PMEMLOG_LOG_LEVEL</b> is
-at least 1, as described in the <b>DEBUGGING</b> section
-below. <b>pmemlog_check</b>() will return -1 and set errno
-if it cannot perform the consistency check due to other
-errors. <b>pmemlog_check</b>() opens the given <i>path</i>
-read-only so it never makes any changes to the file.</p>
+at least 1, as described in the <b>DEBUGGING AND ERROR
+HANDLING</b> section below. <b>pmemlog_check</b>() will
+return -1 and set errno if it cannot perform the consistency
+check due to other errors. <b>pmemlog_check</b>() opens the
+given <i>path</i> read-only so it never makes any changes to
+the file.</p>
 </td>
 </table>
-<a name="DEBUGGING"></a>
-<h2>DEBUGGING</h2>
+<a name="DEBUGGING AND ERROR HANDLING"></a>
+<h2>DEBUGGING AND ERROR HANDLING</h2>
 <!-- INDENTATION -->
 <table width="100%" border=0 rules="none" frame="void"
        cols="2" cellspacing="0" cellpadding="0">
@@ -559,11 +565,46 @@ on a development system. The normal version, accessed when a
 program is linked using the <b>-lpmemlog</b> option, is
 optimized for performance. That version skips checks that
 impact performance and never logs any trace information or
-performs any run-time assertions. A second version, accessed
-when a program uses the libraries under
-<b>/usr/lib/nvml_debug</b>, contains run-time assertions and
-trace points. The typical way to access the debug version is
-to set the environment variable <b>LD_LIBRARY_PATH</b> to
+performs any run-time assertions. If an error is detected
+during the call to <b>libpmemlog</b> function, an
+application may retrieve an error message describing the
+reason of failure using the following function:</p>
+<!-- INDENTATION -->
+<p><b>const char *pmemlog_errormsg(void);</b></p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="20%"></td>
+<td width="79%">
+<p>The <b>pmemlog_errormsg</b>() function returns a pointer
+to a static buffer containing the last error message logged
+for current thread. The error message may include
+description of the corresponding error code (if errno was
+set), as returned by <b>strerror</b>(3). The error message
+buffer is thread-local; errors encountered in one thread do
+not affect its value in other threads. The buffer is never
+cleared by any library function; its content is significant
+only when the return value of the immediately preceding call
+to <b>libpmemlog</b> function indicated an error, or if
+errno was set. The application must not modify or free the
+error message string, but it may be modified by subsequent
+calls to other library functions.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>A second version of <b>libpmemlog</b>, accessed when a
+program uses the libraries under <b>/usr/lib/nvml_debug</b>,
+contains run-time assertions and trace points. The typical
+way to access the debug version is to set the environment
+variable <b>LD_LIBRARY_PATH</b> to
 <b>/usr/lib/nvml_debug</b> or <b>/usr/lib64/nvml_debug</b>
 depending on where the debug libraries are installed on the
 system. The trace points in the debug version of the library
@@ -597,7 +638,9 @@ is not set. No log messages are emitted at this level.</p>
 <td width="77%">
 
 <p>Additional details on any errors detected are logged (in
-addition to returning the errno-based errors as usual).</p>
+addition to returning the errno-based errors as usual). The
+same information may be retrieved using
+<b>pmemlog_errormsg</b>().</p>
 </td>
 <tr valign="top" align="left">
 <td width="11%"></td>
@@ -780,9 +823,9 @@ Technical Work Group:</p>
 <td width="10%"></td>
 <td width="89%">
 <p><b>mmap</b>(2), <b>munmap</b>(2), <b>msync</b>(2),
-<b>libpmemobj</b>(3), <b>libpmemblk</b>(3),
-<b>libpmem</b>(3), <b>libvmem</b>(3) and
-<b>http://pmem.io</b>.</p>
+<b>strerror</b>(3), <b>libpmemobj</b>(3),
+<b>libpmemblk</b>(3), <b>libpmem</b>(3), <b>libvmem</b>(3)
+and <b>http://pmem.io</b>.</p>
 </td>
 </table>
 <hr>

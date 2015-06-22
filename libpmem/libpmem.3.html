@@ -1,5 +1,5 @@
 <!-- Creator     : groff version 1.18.1.4 -->
-<!-- CreationDate: Fri May 15 18:02:31 2015 -->
+<!-- CreationDate: Mon Jun 22 07:57:24 2015 -->
 <html>
 <head>
 <meta name="generator" content="groff -Thtml, see www.gnu.org">
@@ -16,7 +16,7 @@
 <a href="#PARTIAL FLUSHING OPERATIONS">PARTIAL FLUSHING OPERATIONS</a><br>
 <a href="#COPYING TO PERSISTENT MEMORY">COPYING TO PERSISTENT MEMORY</a><br>
 <a href="#LIBRARY API VERSIONING">LIBRARY API VERSIONING</a><br>
-<a href="#DEBUGGING">DEBUGGING</a><br>
+<a href="#DEBUGGING AND ERROR HANDLING">DEBUGGING AND ERROR HANDLING</a><br>
 <a href="#ENVIRONMENT VARIABLES">ENVIRONMENT VARIABLES</a><br>
 <a href="#EXAMPLES">EXAMPLES</a><br>
 <a href="#ACKNOWLEDGEMENTS">ACKNOWLEDGEMENTS</a><br>
@@ -74,12 +74,15 @@ const char *pmem_check_version(
     unsigned</b> <i>major_required</i><b>,
     unsigned</b> <i>minor_required</i><b>);
 </b></pre>
+<!-- INDENTATION -->
+<p><b>Error handling:</b></p>
+<!-- INDENTATION -->
+<p><b>const char *pmem_errormsg(void);</b></p>
 </td>
 </table>
 <a name="DESCRIPTION"></a>
 <h2>DESCRIPTION</h2>
 <!-- INDENTATION -->
-
 <table width="100%" border=0 rules="none" frame="void"
        cols="2" cellspacing="0" cellpadding="0">
 <tr valign="top" align="left">
@@ -129,7 +132,8 @@ file.</p>
 <p>Under normal usage, <b>libpmem</b> will never print
 messages or intentionally cause the process to exit. The
 only exception to this is the debugging information, when
-enabled, as described under <b>DEBUGGING</b> below.</p>
+enabled, as described under <b>DEBUGGING AND ERROR
+HANDLING</b> below.</p>
 </td>
 </table>
 <a name="MOST COMMONLY USED FUNCTIONS"></a>
@@ -222,7 +226,7 @@ any time before <b>pmem_persist</b>() is called.</p>
 <tr valign="top" align="left">
 <td width="10%"></td>
 <td width="89%">
-<p><b>void pmem_msync(void *</b><i>addr</i><b>, size_t</b>
+<p><b>int pmem_msync(void *</b><i>addr</i><b>, size_t</b>
 <i>len</i> <b>);</b></p>
 </td>
 </table>
@@ -548,8 +552,8 @@ string returned by <b>pmem_check_version</b>() must not be
 modified or freed.</p>
 </td>
 </table>
-<a name="DEBUGGING"></a>
-<h2>DEBUGGING</h2>
+<a name="DEBUGGING AND ERROR HANDLING"></a>
+<h2>DEBUGGING AND ERROR HANDLING</h2>
 <!-- INDENTATION -->
 <table width="100%" border=0 rules="none" frame="void"
        cols="2" cellspacing="0" cellpadding="0">
@@ -561,11 +565,46 @@ a development system. The normal version, accessed when a
 program is linked using the <b>-lpmem</b> option, is
 optimized for performance. That version skips checks that
 impact performance and never logs any trace information or
-performs any run-time assertions. A second version, accessed
-when a program uses the libraries under
-<b>/usr/lib/nvml_debug</b>, contains run-time assertions and
-trace points. The typical way to access the debug version is
-to set the environment variable <b>LD_LIBRARY_PATH</b> to
+performs any run-time assertions. If an error is detected
+during the call to <b>libpmem</b> function, an application
+may retrieve an error message describing the reason of
+failure using the following function:</p>
+<!-- INDENTATION -->
+<p><b>const char *pmem_errormsg(void);</b></p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="20%"></td>
+<td width="79%">
+<p>The <b>pmem_errormsg</b>() function returns a pointer to
+a static buffer containing the last error message logged for
+current thread. The error message may include description of
+the corresponding error code (if errno was set), as returned
+by <b>strerror</b>(3). The error message buffer is
+thread-local; errors encountered in one thread do not affect
+its value in other threads. The buffer is never cleared by
+any library function; its content is significant only when
+the return value of the immediately preceding call to
+<b>libpmem</b> function indicated an error, or if errno was
+set. The application must not modify or free the error
+message string, but it may be modified by subsequent calls
+to other library functions.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>A second version of <b>libpmem</b>, accessed when a
+program uses the libraries under <b>/usr/lib/nvml_debug</b>,
+contains run-time assertions and trace points. The typical
+way to access the debug version is to set the environment
+variable <b>LD_LIBRARY_PATH</b> to
 <b>/usr/lib/nvml_debug</b> or <b>/usr/lib64/nvml_debug</b>
 depending on where the debug libraries are installed on the
 system. The trace points in the debug version of the library
@@ -599,7 +638,9 @@ not set. No log messages are emitted at this level.</p>
 <td width="77%">
 
 <p>Additional details on any errors detected are logged (in
-addition to returning the errno-based errors as usual).</p>
+addition to returning the errno-based errors as usual). The
+same information may be retrieved using
+<b>pmem_errormsg</b>().</p>
 </td>
 <tr valign="top" align="left">
 <td width="11%"></td>
@@ -935,9 +976,9 @@ Technical Work Group:</p>
 <td width="10%"></td>
 <td width="89%">
 <p><b>mmap</b>(2), <b>munmap</b>(2), <b>msync</b>(2),
-<b>libpmemobj</b>(3), <b>libpmemblk</b>(3),
-<b>libpmemlog</b>(3), <b>libvmem</b>(3) and
-<b>http://pmem.io</b>.</p>
+<b>strerror</b>(3), <b>libpmemobj</b>(3),
+<b>libpmemblk</b>(3), <b>libpmemlog</b>(3),
+<b>libvmem</b>(3) and <b>http://pmem.io</b>.</p>
 </td>
 </table>
 <hr>
