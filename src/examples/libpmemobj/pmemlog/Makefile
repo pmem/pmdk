@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2014-2015, Intel Corporation
+# Copyright (c) 2015, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,26 +31,24 @@
 #
 
 #
-# examples/libpmemobj/Makefile -- build the libpmemobj examples
+# examples/libpmemobj/pmemlog/Makefile -- build obj implementations of pmemlog
 #
-PROGS = manpage
-DIRS = pminvaders pmemlog pmemblk
+PROGS = obj_pmemlog obj_pmemlog_macros obj_pmemlog_minimal obj_pmemlog_simple
 
-INCDIR ?= ../../include
-LIBDIR ?= ../../debug
+INCDIR ?= ../../../include
+LIBDIR ?= ../../../debug
 
 INCS = -I$(INCDIR)
 LIBS = -Wl,-rpath=$(LIBDIR) -L$(LIBDIR) -lpmemobj -lpmem -pthread
 CFLAGS = -std=gnu99 -ggdb -Wall -Werror
-CSTYLE = ../../../utils/cstyle
+CSTYLE = ../../../../utils/cstyle
 
 all:     TARGET = all
 clean:   TARGET = clean
 clobber: TARGET = clobber
 cstyle:  TARGET = cstyle
 
-all: $(PROGS) $(DIRS)
-
+all: $(PROGS)
 
 clean: $(DIRS)
 	$(RM) *.o core a.out
@@ -67,7 +65,13 @@ cstyle: $(DIRS)
 $(PROGS):
 	$(CC) -o $@ $< $(LIBS)
 
-manpage: manpage.o
+obj_pmemlog: obj_pmemlog.o
+
+obj_pmemlog_macros: obj_pmemlog_macros.o
+
+obj_pmemlog_minimal: obj_pmemlog_minimal.o
+
+obj_pmemlog_simple: obj_pmemlog_simple.o
 
 $(DIRS):
 	$(MAKE) -C $@ $(TARGET)
