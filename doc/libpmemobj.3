@@ -148,8 +148,7 @@ libpmemobj \- persistent memory transactional object store
 .BI "    void (*" constructor ")(void *" ptr ", void *" arg "), void *" arg )
 .BI "POBJ_ALLOC(PMEMobjpool *" pop ", TOID(TYPE) *" oidp ", TYPE, size_t " size ", "
 .BI "    void (*" constructor ")(void *" ptr ", void *" arg "), void *" arg )
-.BI "POBJ_ZNEW(PMEMobjpool *" pop ", TOID(TYPE) *" oidp ", TYPE, "
-.BI "    void (*" constructor ")(void *" ptr ", void *" arg "), void *" arg )
+.BI "POBJ_ZNEW(PMEMobjpool *" pop ", TOID(TYPE) *" oidp ", TYPE)
 .BI "POBJ_ZALLOC(PMEMobjpool *" pop ", TOID(TYPE) *" oidp ", TYPE, size_t " size ")
 .BI "POBJ_REALLOC(PMEMobjpool *" pop ", TOID(TYPE) *" oidp ", TYPE, size_t " size )
 .BI "POBJ_ZREALLOC(PMEMobjpool *" pop ", TOID(TYPE) *" oidp ", TYPE, size_t " size )
@@ -1748,7 +1747,7 @@ Instead of taking a pointer to
 it takes a pointer to typed OID of
 .BR TYPE .
 .PP
-.BI "POBJ_ZNEW(PMEMobjpool *" pop ", TOID(TYPE) *" oidp ", TYPE )
+.BI "POBJ_ZNEW(PMEMobjpool *" pop ", TOID(TYPE) *" oidp ", TYPE)
 .IP
 The
 .B POBJ_ZNEW
