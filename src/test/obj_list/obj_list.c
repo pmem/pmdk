@@ -295,7 +295,8 @@ FUNC_MOCK_RET_ALWAYS(lane_release, int, 0);
  */
 FUNC_MOCK(pmemobj_alloc, PMEMoid, PMEMobjpool *pop, PMEMoid *oidp,
 		size_t size, int type_num,
-		void (*constructor)(void *ptr, void *arg), void *arg)
+		void (*constructor)(PMEMobjpool *pop, void *ptr, void *arg),
+		void *arg)
 	FUNC_MOCK_RUN_DEFAULT {
 		PMEMoid oid = {0, 0};
 		oid.pool_uuid_lo = 0;
@@ -366,8 +367,8 @@ FUNC_MOCK_END
  * Prints the id of allocated struct oob_item for tracking purposes.
  */
 FUNC_MOCK(pmalloc_construct, int, PMEMobjpool *pop, uint64_t *off,
-	size_t size, void (*constructor)(void *ptr, void *arg), void *arg,
-	uint64_t data_off)
+	size_t size, void (*constructor)(PMEMobjpool *pop, void *ptr,
+	void *arg), void *arg, uint64_t data_off)
 	FUNC_MOCK_RUN_DEFAULT {
 		size = 2 * (size - OOB_OFF) + OOB_OFF;
 		uint64_t *alloc_size = (uint64_t *)((uintptr_t)Pop +
@@ -382,7 +383,7 @@ FUNC_MOCK(pmalloc_construct, int, PMEMobjpool *pop, uint64_t *off,
 		Pop->persist(Heap_offset, sizeof (*Heap_offset));
 
 		void *ptr = (void *)((uintptr_t)Pop + *off + data_off);
-		constructor(ptr, arg);
+		constructor(pop, ptr, arg);
 
 		return 0;
 	}
@@ -423,11 +424,11 @@ FUNC_MOCK_RET_ALWAYS(prealloc, int, 0);
  * prealloc_construct -- prealloc_construct mock
  */
 FUNC_MOCK(prealloc_construct, int, PMEMobjpool *pop, uint64_t *off,
-	size_t size, void (*constructor)(void *ptr, void *arg), void *arg,
-	uint64_t data_off)
+	size_t size, void (*constructor)(PMEMobjpool *pop, void *ptr,
+	void *arg), void *arg, uint64_t data_off)
 	FUNC_MOCK_RUN_DEFAULT {
 		void *ptr = (void *)((uintptr_t)Pop + *off + data_off);
-		constructor(ptr, arg);
+		constructor(pop, ptr, arg);
 		return 0;
 	}
 FUNC_MOCK_END
@@ -762,12 +763,12 @@ do_print_reverse(PMEMobjpool *pop, const char *arg)
  * new value
  */
 static void
-item_constructor(void *ptr, void *arg)
+item_constructor(PMEMobjpool *pop, void *ptr, void *arg)
 {
 	int id = *(int *)arg;
 	struct item *item = (struct item *)ptr;
 	item->id = id;
-	Pop->persist(&item->id, sizeof (item->id));
+	pop->persist(&item->id, sizeof (item->id));
 	OUT("constructor(id = %d)", id);
 }
 
@@ -776,7 +777,7 @@ item_constructor(void *ptr, void *arg)
  * id and argument value
  */
 static void
-realloc_constructor(void *ptr, void *arg)
+realloc_constructor(PMEMobjpool *pop, void *ptr, void *arg)
 {
 	int id = *(int *)arg;
 	struct item *item = (struct item *)ptr;

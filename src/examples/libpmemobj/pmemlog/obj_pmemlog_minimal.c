@@ -76,20 +76,19 @@ struct log {
 struct create_args {
 	size_t size;
 	const void *src;
-	PMEMobjpool *pop;
 };
 
 /*
  * create_log_entry -- (internal) constructor for the log entry
  */
 static void
-create_log_entry(void *ptr, void *arg)
+create_log_entry(PMEMobjpool *pop, void *ptr, void *arg)
 {
 	struct log *logptr = ptr;
 	struct create_args *carg = arg;
 	logptr->size = carg->size;
-	pmemobj_persist(carg->pop, &logptr->size, sizeof (logptr->size));
-	pmemobj_memcpy_persist(carg->pop, logptr->data, carg->src, carg->size);
+	pmemobj_persist(pop, &logptr->size, sizeof (logptr->size));
+	pmemobj_memcpy_persist(pop, logptr->data, carg->src, carg->size);
 }
 
 /*
@@ -140,7 +139,7 @@ pmemlog_append(PMEMlogpool *plp, const void *buf, size_t count)
 {
 	PMEMobjpool *pop = (PMEMobjpool *)plp;
 
-	struct create_args args = { count, buf, pop };
+	struct create_args args = { count, buf };
 	size_t obj_size = sizeof (size_t) + count;
 	/* alloc-construct to an internal list */
 	PMEMoid obj;
@@ -162,8 +161,7 @@ pmemlog_appendv(PMEMlogpool *plp, const struct iovec *iov, int iovcnt)
 	/* append the data */
 	for (int i = 0; i < iovcnt; ++i) {
 
-		struct create_args args = { iov[i].iov_len, iov[i].iov_base,
-						pop };
+		struct create_args args = { iov[i].iov_len, iov[i].iov_base };
 		size_t obj_size = sizeof (size_t) + args.size;
 		/* alloc-construct to an internal list */
 		pmemobj_alloc(pop, NULL, obj_size,

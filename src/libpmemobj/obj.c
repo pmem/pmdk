@@ -522,9 +522,8 @@ pmemobj_direct(PMEMoid oid)
 
 /* arguments for constructor_alloc_bytype */
 struct carg_bytype {
-	PMEMobjpool *pop; /* saved to call pop->persist */
 	uint16_t user_type;
-	void (*constructor)(void *ptr, void *arg);
+	void (*constructor)(PMEMobjpool *pop, void *ptr, void *arg);
 	void *arg;
 };
 
@@ -532,9 +531,9 @@ struct carg_bytype {
  * constructor_alloc_bytype -- (internal) constructor for obj_alloc_construct
  */
 static void
-constructor_alloc_bytype(void *ptr, void *arg)
+constructor_alloc_bytype(PMEMobjpool *pop, void *ptr, void *arg)
 {
-	LOG(3, "ptr %p arg %p", ptr, arg);
+	LOG(3, "pop %p ptr %p arg %p", pop, ptr, arg);
 
 	ASSERTne(ptr, NULL);
 	ASSERTne(arg, NULL);
@@ -544,10 +543,10 @@ constructor_alloc_bytype(void *ptr, void *arg)
 
 	pobj->internal_type = TYPE_ALLOCATED;
 	pobj->user_type = carg->user_type;
-	carg->pop->persist(pobj, OBJ_OOB_SIZE);
+	pop->persist(pobj, OBJ_OOB_SIZE);
 
 	if (carg->constructor)
-		carg->constructor(ptr, carg->arg);
+		carg->constructor(pop, ptr, carg->arg);
 }
 
 /*
@@ -555,8 +554,8 @@ constructor_alloc_bytype(void *ptr, void *arg)
  */
 static int
 obj_alloc_construct(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
-	unsigned int type_num, void (*constructor)(void *ptr, void *arg),
-	void *arg)
+	unsigned int type_num, void (*constructor)(PMEMobjpool *pop, void *ptr,
+	void *arg), void *arg)
 {
 	if (type_num >= PMEMOBJ_NUM_OID_TYPES) {
 		errno = EINVAL;
@@ -569,7 +568,6 @@ obj_alloc_construct(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 	struct list_head *lhead = &pop->store->bytype[type_num].head;
 	struct carg_bytype carg;
 
-	carg.pop = pop;
 	carg.user_type = type_num;
 	carg.constructor = constructor;
 	carg.arg = arg;
@@ -583,8 +581,8 @@ obj_alloc_construct(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
  */
 int
 pmemobj_alloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
-	unsigned int type_num, void (*constructor)(void *ptr, void *arg),
-	void *arg)
+	unsigned int type_num, void (*constructor)(PMEMobjpool *pop, void *ptr,
+	void *arg), void *arg)
 {
 	LOG(3, "pop %p oidp %p size %zu type_num %u constructor %p arg %p",
 		pop, oidp, size, type_num, constructor, arg);
@@ -603,7 +601,6 @@ pmemobj_alloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 
 /* arguments for constructor_zalloc */
 struct carg_zalloc {
-	PMEMobjpool *pop; /* saved to call pop->persist */
 	size_t size;
 };
 
@@ -611,16 +608,16 @@ struct carg_zalloc {
  * constructor_zalloc -- (internal) constructor for pmemobj_zalloc
  */
 static void
-constructor_zalloc(void *ptr, void *arg)
+constructor_zalloc(PMEMobjpool *pop, void *ptr, void *arg)
 {
-	LOG(3, "ptr %p arg %p", ptr, arg);
+	LOG(3, "pop %p ptr %p arg %p", pop, ptr, arg);
 
 	ASSERTne(ptr, NULL);
 	ASSERTne(arg, NULL);
 
 	struct carg_zalloc *carg = arg;
 
-	carg->pop->memset_persist(ptr, 0, carg->size);
+	pop->memset_persist(ptr, 0, carg->size);
 }
 
 /*
@@ -643,7 +640,6 @@ pmemobj_zalloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 	}
 
 	struct carg_zalloc carg;
-	carg.pop = pop;
 	carg.size = size;
 
 	return obj_alloc_construct(pop, oidp, size, type_num,
@@ -657,7 +653,8 @@ pmemobj_zalloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 static int
 obj_realloc_construct(PMEMobjpool *pop, struct object_store *store,
 		PMEMoid *oidp, size_t size, unsigned int type_num,
-		void (*constructor)(void *ptr, void *arg), void *arg)
+		void (*constructor)(PMEMobjpool *pop, void *ptr, void *arg),
+		void *arg)
 {
 	struct oob_header *pobj = OOB_HEADER_FROM_OID(pop, *oidp);
 	uint16_t user_type_old = pobj->user_type;
@@ -695,7 +692,6 @@ obj_realloc_construct(PMEMobjpool *pop, struct object_store *store,
 
 /* arguments for constructor_zrealloc */
 struct carg_zrealloc {
-	PMEMobjpool *pop; /* saved to call pop->persist */
 	size_t old_size;
 	size_t new_size;
 };
@@ -704,9 +700,9 @@ struct carg_zrealloc {
  * constructor_zrealloc -- (internal) constructor for pmemobj_zrealloc
  */
 static void
-constructor_zrealloc(void *ptr, void *arg)
+constructor_zrealloc(PMEMobjpool *pop, void *ptr, void *arg)
 {
-	LOG(3, "ptr %p arg %p", ptr, arg);
+	LOG(3, "pop %p ptr %p arg %p", pop, ptr, arg);
 
 	ASSERTne(ptr, NULL);
 	ASSERTne(arg, NULL);
@@ -718,7 +714,7 @@ constructor_zrealloc(void *ptr, void *arg)
 	size_t grow_len = carg->new_size - carg->old_size;
 	void *new_data_ptr = (void *)((uintptr_t)ptr + carg->old_size);
 
-	carg->pop->memset_persist(new_data_ptr, 0, grow_len);
+	pop->memset_persist(new_data_ptr, 0, grow_len);
 }
 
 /*
@@ -753,7 +749,6 @@ pmemobj_zrealloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 
 	struct carg_zrealloc carg;
 
-	carg.pop = pop;
 	carg.new_size = size;
 	carg.old_size = pmemobj_alloc_usable_size(*oidp);
 
@@ -767,7 +762,6 @@ pmemobj_zrealloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 
 /* arguments for constructor_strdup */
 struct carg_strdup {
-	PMEMobjpool *pop; /* saved to call pop->persist */
 	size_t size;
 	const char *s;
 };
@@ -776,9 +770,9 @@ struct carg_strdup {
  * constructor_strdup -- (internal) constructor of pmemobj_strndup
  */
 static void
-constructor_strdup(void *ptr, void *arg)
+constructor_strdup(PMEMobjpool *pop, void *ptr, void *arg)
 {
-	LOG(3, "ptr %p arg %p", ptr, arg);
+	LOG(3, "pop %p ptr %p arg %p", pop, ptr, arg);
 
 	ASSERTne(ptr, NULL);
 	ASSERTne(arg, NULL);
@@ -786,7 +780,7 @@ constructor_strdup(void *ptr, void *arg)
 	struct carg_strdup *carg = arg;
 
 	/* copy string */
-	carg->pop->memcpy_persist(ptr, carg->s, carg->size);
+	pop->memcpy_persist(ptr, carg->s, carg->size);
 }
 
 /*
@@ -815,7 +809,6 @@ pmemobj_strdup(PMEMobjpool *pop, PMEMoid *oidp, const char *s,
 	}
 
 	struct carg_strdup carg;
-	carg.pop = pop;
 	carg.size = (strlen(s) + 1) * sizeof (char);
 	carg.s = s;
 
@@ -935,7 +928,6 @@ pmemobj_type_num(PMEMoid oid)
 
 /* arguments for constructor_alloc_root */
 struct carg_root {
-	PMEMobjpool *pop; /* saved to call pop->persist */
 	size_t size;
 };
 
@@ -943,9 +935,9 @@ struct carg_root {
  * constructor_alloc_root -- (internal) constructor for obj_alloc_root
  */
 static void
-constructor_alloc_root(void *ptr, void *arg)
+constructor_alloc_root(PMEMobjpool *pop, void *ptr, void *arg)
 {
-	LOG(3, "ptr %p arg %p", ptr, arg);
+	LOG(3, "pop %p ptr %p arg %p", pop, ptr, arg);
 
 	ASSERTne(ptr, NULL);
 	ASSERTne(arg, NULL);
@@ -956,7 +948,7 @@ constructor_alloc_root(void *ptr, void *arg)
 	ro->internal_type = TYPE_ALLOCATED;
 	ro->user_type = POBJ_ROOT_TYPE_NUM;
 	ro->size = carg->size;
-	carg->pop->persist(ro, OBJ_OOB_SIZE);
+	pop->persist(ro, OBJ_OOB_SIZE);
 }
 
 /*
@@ -970,7 +962,6 @@ obj_alloc_root(PMEMobjpool *pop, struct object_store *store, size_t size)
 	struct list_head *lhead = &store->root.head;
 	struct carg_root carg;
 
-	carg.pop = pop;
 	carg.size = size;
 
 	return list_insert_new(pop, lhead, 0, NULL, OID_NULL, 0,
@@ -1106,7 +1097,8 @@ PMEMoid
 pmemobj_list_insert_new(PMEMobjpool *pop, size_t pe_offset, void *head,
 			PMEMoid dest, int before, size_t size,
 			unsigned int type_num,
-			void (*constructor)(void *ptr, void *arg), void *arg)
+			void (*constructor)(PMEMobjpool *pop, void *ptr,
+			void *arg), void *arg)
 {
 	LOG(3, "pop %p pe_offset %zu head %p dest.off 0x%016jx before %d"
 	    " size %zu type_num %u",
@@ -1126,7 +1118,6 @@ pmemobj_list_insert_new(PMEMobjpool *pop, size_t pe_offset, void *head,
 	struct list_head *lhead = &pop->store->bytype[type_num].head;
 	struct carg_bytype carg;
 
-	carg.pop = pop;
 	carg.user_type = type_num;
 	carg.constructor = constructor;
 	carg.arg = arg;

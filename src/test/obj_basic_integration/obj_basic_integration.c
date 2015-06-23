@@ -75,7 +75,7 @@ struct dummy_root {
 };
 
 void
-dummy_node_constructor(void *ptr, void *arg)
+dummy_node_constructor(PMEMobjpool *pop, void *ptr, void *arg)
 {
 	struct dummy_node *n = ptr;
 	int *test_val = arg;

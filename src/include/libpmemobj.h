@@ -323,8 +323,8 @@ void *pmemobj_direct(PMEMoid oid);
  * memory reserved for the object is automatically reclaimed.
  */
 int pmemobj_alloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
-	unsigned int type_num, void (*constructor)(void *ptr, void *arg),
-	void *arg);
+	unsigned int type_num, void (*constructor)(PMEMobjpool *pop, void *ptr,
+	void *arg), void *arg);
 
 /*
  * Allocates a new zeroed object from the pool.
@@ -572,7 +572,7 @@ int pmemobj_list_insert(PMEMobjpool *pop, size_t pe_offset, void *head,
 
 PMEMoid pmemobj_list_insert_new(PMEMobjpool *pop, size_t pe_offset, void *head,
 	PMEMoid dest, int before, size_t size, unsigned int type_num,
-	void (*constructor)(void *ptr, void *arg), void *arg);
+	void (*constructor)(PMEMobjpool *pop, void *ptr, void *arg), void *arg);
 
 int pmemobj_list_remove(PMEMobjpool *pop, size_t pe_offset, void *head,
 	PMEMoid oid, int free);

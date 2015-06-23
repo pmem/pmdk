@@ -607,7 +607,7 @@ list_realloc_replace(PMEMobjpool *pop,
 	struct list_head *head, uint64_t pe_offset,
 	size_t old_size,
 	uint64_t obj_offset, uint64_t new_obj_offset,
-	void (*constructor)(void *ptr, void *arg), void *arg,
+	void (*constructor)(PMEMobjpool *pop, void *ptr, void *arg), void *arg,
 	uint64_t field_offset, uint64_t field_value)
 {
 	uint64_t obj_doffset = obj_offset + OBJ_OOB_SIZE;
@@ -620,7 +620,7 @@ list_realloc_replace(PMEMobjpool *pop,
 	if (constructor) {
 		/* call the constructor manually */
 		void *ptr = OBJ_OFF_TO_PTR(pop, new_obj_doffset);
-		constructor(ptr, arg);
+		constructor(pop, ptr, arg);
 	}
 
 	if (field_offset) {
@@ -697,8 +697,8 @@ list_realloc_replace(PMEMobjpool *pop,
 int
 list_insert_new(PMEMobjpool *pop, struct list_head *oob_head,
 	size_t pe_offset, struct list_head *head, PMEMoid dest, int before,
-	size_t size, void (*constructor)(void *ptr, void *arg), void *arg,
-	PMEMoid *oidp)
+	size_t size, void (*constructor)(PMEMobjpool *pop, void *ptr,
+	void *arg), void *arg,	PMEMoid *oidp)
 {
 	LOG(3, NULL);
 	ASSERTne(oob_head, NULL);
@@ -1386,8 +1386,8 @@ err:
 int
 list_realloc(PMEMobjpool *pop, struct list_head *oob_head,
 	size_t pe_offset, struct list_head *head,
-	size_t size, void (*constructor)(void *ptr, void *arg), void *arg,
-	uint64_t field_offset, uint64_t field_value,
+	size_t size, void (*constructor)(PMEMobjpool *pop, void *ptr,
+	void *arg), void *arg, uint64_t field_offset, uint64_t field_value,
 	PMEMoid *oidp)
 {
 	LOG(3, NULL);
@@ -1616,7 +1616,7 @@ int
 list_realloc_move(PMEMobjpool *pop, struct list_head *oob_head_old,
 	struct list_head *oob_head_new, size_t pe_offset,
 	struct list_head *head, size_t size,
-	void (*constructor)(void *ptr, void *arg), void *arg,
+	void (*constructor)(PMEMobjpool *pop, void *ptr, void *arg), void *arg,
 	uint64_t field_offset, uint64_t field_value,
 	PMEMoid *oidp)
 {

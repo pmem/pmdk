@@ -79,12 +79,12 @@ struct tobject {
 };
 
 static void
-tobject_construct(void *ptr, void *arg)
+tobject_construct(PMEMobjpool *pop, void *ptr, void *arg)
 {
 	struct tobject *tobj = ptr;
 	uint8_t *valp = arg;
 	tobj->value = *valp;
-	pmem_msync(tobj, sizeof (*tobj));
+	pmemobj_persist(pop, tobj, sizeof (*tobj));
 }
 
 

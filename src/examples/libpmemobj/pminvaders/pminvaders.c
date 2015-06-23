@@ -115,7 +115,7 @@ static struct game_state *gstate;
  * create_alien -- constructor for aliens, spawn at random position
  */
 void
-create_alien(void *ptr, void *arg)
+create_alien(PMEMobjpool *pop, void *ptr, void *arg)
 {
 	struct alien *a = ptr;
 	a->y = 1;
@@ -129,7 +129,7 @@ create_alien(void *ptr, void *arg)
  * create_player -- constructor for the player, spawn in the middle of the map
  */
 void
-create_player(void *ptr, void *arg)
+create_player(PMEMobjpool *pop, void *ptr, void *arg)
 {
 	struct player *p = ptr;
 	p->x = GAME_WIDTH / 2;
@@ -142,7 +142,7 @@ create_player(void *ptr, void *arg)
  * create_bullet -- constructor for bullets, spawn at the position of the player
  */
 void
-create_bullet(void *ptr, void *arg)
+create_bullet(PMEMobjpool *pop, void *ptr, void *arg)
 {
 	struct bullet *b = ptr;
 	struct player *p = arg;

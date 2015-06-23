@@ -91,13 +91,11 @@ struct lane_tx_layout {
 };
 
 struct tx_alloc_args {
-	PMEMobjpool *pop;
 	unsigned int type_num;
 	size_t size;
 };
 
 struct tx_alloc_copy_args {
-	PMEMobjpool *pop;
 	unsigned int type_num;
 	size_t size;
 	const void *ptr;
@@ -120,7 +118,7 @@ struct tx_range {
  * constructor_tx_alloc -- (internal) constructor for normal alloc
  */
 static void
-constructor_tx_alloc(void *ptr, void *arg)
+constructor_tx_alloc(PMEMobjpool *pop, void *ptr, void *arg)
 {
 	LOG(3, NULL);
 
@@ -143,7 +141,7 @@ constructor_tx_alloc(void *ptr, void *arg)
  * constructor_tx_zalloc -- (internal) constructor for zalloc
  */
 static void
-constructor_tx_zalloc(void *ptr, void *arg)
+constructor_tx_zalloc(PMEMobjpool *pop, void *ptr, void *arg)
 {
 	LOG(3, NULL);
 
@@ -168,7 +166,7 @@ constructor_tx_zalloc(void *ptr, void *arg)
  * constructor_tx_add_range -- (internal) constructor for add_range
  */
 static void
-constructor_tx_add_range(void *ptr, void *arg)
+constructor_tx_add_range(PMEMobjpool *pop, void *ptr, void *arg)
 {
 	LOG(3, NULL);
 
@@ -184,16 +182,16 @@ constructor_tx_add_range(void *ptr, void *arg)
 	void *src = OBJ_OFF_TO_PTR(args->pop, args->offset);
 
 	/* flush offset and size */
-	args->pop->flush(range, sizeof (struct tx_range));
+	pop->flush(range, sizeof (struct tx_range));
 	/* memcpy data and persist */
-	args->pop->memcpy_persist(range->data, src, args->size);
+	pop->memcpy_persist(range->data, src, args->size);
 }
 
 /*
  * constructor_tx_copy -- (internal) copy constructor
  */
 static void
-constructor_tx_copy(void *ptr, void *arg)
+constructor_tx_copy(PMEMobjpool *pop, void *ptr, void *arg)
 {
 	LOG(3, NULL);
 
@@ -218,7 +216,7 @@ constructor_tx_copy(void *ptr, void *arg)
  * the non-copied area
  */
 static void
-constructor_tx_copy_zero(void *ptr, void *arg)
+constructor_tx_copy_zero(PMEMobjpool *pop, void *ptr, void *arg)
 {
 	LOG(3, NULL);
 
@@ -752,7 +750,7 @@ release_and_free_tx_locks(struct lane_tx_runtime *lane)
  */
 static PMEMoid
 tx_alloc_common(size_t size, unsigned int type_num,
-	void (*constructor)(void *ptr, void *arg))
+	void (*constructor)(PMEMobjpool *pop, void *ptr, void *arg))
 {
 	LOG(3, NULL);
 
@@ -776,7 +774,6 @@ tx_alloc_common(size_t size, unsigned int type_num,
 		(struct lane_tx_layout *)tx.section->layout;
 
 	struct tx_alloc_args args = {
-		.pop = lane->pop,
 		.type_num = type_num,
 		.size = size,
 	};
@@ -801,7 +798,8 @@ tx_alloc_common(size_t size, unsigned int type_num,
  */
 static PMEMoid
 tx_alloc_copy_common(size_t size, unsigned int type_num, const void *ptr,
-	size_t copy_size, void (*constructor)(void *ptr, void *arg))
+	size_t copy_size, void (*constructor)(PMEMobjpool *pop, void *ptr,
+	void *arg))
 {
 	LOG(3, NULL);
 
@@ -819,7 +817,6 @@ tx_alloc_copy_common(size_t size, unsigned int type_num, const void *ptr,
 		(struct lane_tx_layout *)tx.section->layout;
 
 	struct tx_alloc_copy_args args = {
-		.pop = lane->pop,
 		.type_num = type_num,
 		.size = size,
 		.ptr = ptr,
@@ -846,8 +843,8 @@ tx_alloc_copy_common(size_t size, unsigned int type_num, const void *ptr,
  */
 static PMEMoid
 tx_realloc_common(PMEMoid oid, size_t size, unsigned int type_num,
-	void (*constructor_alloc)(void *ptr, void *arg),
-	void (*constructor_realloc)(void *ptr, void *arg))
+	void (*constructor_alloc)(PMEMobjpool *pop, void *ptr, void *arg),
+	void (*constructor_realloc)(PMEMobjpool *pop, void *ptr, void *arg))
 {
 	LOG(3, NULL);
 
