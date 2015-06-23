@@ -61,6 +61,7 @@ SCOPEFILES = $(SCOPE_SRC_FILES) $(SCOPE_HDR_FILES)
 TEST_TYPE = check
 TEST_BUILD = all
 TEST_FS = all
+TEST_TIME = 3m
 
 all: $(ALL_TARGETS)
 install: $(INSTALL_TARGETS:=-install)
@@ -115,7 +116,7 @@ test: all jemalloc-test
 	$(MAKE) -C test all
 
 check: test jemalloc-check
-	cd test && ./RUNTESTS -b $(TEST_BUILD) -t $(TEST_TYPE) -f $(TEST_FS)
+	cd test && ./RUNTESTS -b $(TEST_BUILD) -t $(TEST_TYPE) -f $(TEST_FS) -o $(TEST_TIME)
 
 jemalloc jemalloc-clean jemalloc-clobber jemalloc-test jemalloc-check:
 	$(MAKE) -C jemalloc -f Makefile.nvml $@
