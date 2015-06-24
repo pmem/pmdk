@@ -1,5 +1,5 @@
 <!-- Creator     : groff version 1.18.1.4 -->
-<!-- CreationDate: Mon Jun 22 07:57:24 2015 -->
+<!-- CreationDate: Wed Jun 24 06:55:15 2015 -->
 <html>
 <head>
 <meta name="generator" content="groff -Thtml, see www.gnu.org">
@@ -62,9 +62,9 @@ Most commonly used functions:
 PMEMobjpool *pmemobj_open(const char *</b><i>path</i><b>, const char *</b><i>layout</i><b>);
 PMEMobjpool *pmemobj_create(const char *</b><i>path</i><b>, const char *</b><i>layout</i><b>,
     size_t</b> <i>poolsize</i><b>, mode_t</b> <i>mode</i><b>);
-PMEMobjpool *pmemobj_create_part(const char *</b><i>path</i><b>, const char *</b><i>layout,
-</i><b>    size_t</b> <i>partsize</i><b>, mode_t</b> <i>mode</i><b>, int</b> <i>part_index</i><b>, int</b> <i>nparts,
-</i><b>    int</b> <i>replica_index</i><b>, int</b> <i>nreplica</i><b>);
+PMEMobjpool *pmemobj_create_part(const char *</b><i>path</i><b>, const char *</b><i>layout</i><b>,
+    size_t</b> <i>partsize</i><b>, mode_t</b> <i>mode</i><b>, int</b> <i>part_index</i><b>, int</b> <i>nparts</i><b>,
+    int</b> <i>replica_index</i><b>, int</b> <i>nreplica</i><b>);
 void pmemobj_close(PMEMobjpool *</b><i>pop</i><b>);
 
 Low-level memory manipulation:
@@ -85,8 +85,8 @@ int pmemobj_mutex_unlock(PMEMobjpool *</b><i>pop</i><b>, PMEMmutex *</b><i>mutex
 void pmemobj_rwlock_zero(PMEMobjpool *</b><i>pop</i><b>, PMEMrwlock *</b><i>rwlockp</i><b>);
 int pmemobj_rwlock_rdlock(PMEMobjpool *</b><i>pop</i><b>, PMEMrwlock *</b><i>rwlockp</i><b>);
 int pmemobj_rwlock_wrlock(PMEMobjpool *</b><i>pop</i><b>, PMEMrwlock *</b><i>rwlockp</i><b>);
-int pmemobj_rwlock_timedrdlock(PMEMobjpool *</b><i>pop,
-</i><b>    PMEMrwlock *restrict</b> <i>rwlockp</i><b>,
+int pmemobj_rwlock_timedrdlock(PMEMobjpool *</b><i>pop</i><b>,
+    PMEMrwlock *restrict</b> <i>rwlockp</i><b>,
     const struct timespec *restrict</b> <i>abstime</i><b>);
 int pmemobj_rwlock_timedwrlock(PMEMobjpool *</b><i>pop</i><b>,
     PMEMrwlock *restrict</b> <i>rwlockp</i><b>,
@@ -153,18 +153,17 @@ int pmemobj_strdup(PMEMobjpool *</b><i>pop</i><b>, PMEMoid *</b><i>oidp</i><b>, 
 void pmemobj_free(PMEMoid *</b><i>oidp</i><b>);
 size_t pmemobj_alloc_usable_size(PMEMoid</b> <i>oid</i><b>);
 void *pmemobj_direct(PMEMoid</b> <i>oid</i><b>);
-unsigned int pmemobj_type_num(PMEMoid</b><i>oid</i><b>);
+unsigned int pmemobj_type_num(PMEMoid</b> <i>oid</i><b>);
 
-POBJ_NEW(PMEMobjpool *</b><i>pop</i><b>, TOID(TYPE) *</b><i>oidp</i><b>, TYPE,
+POBJ_NEW(PMEMobjpool *</b><i>pop</i><b>, TOID(TYPE) *</b><i>oidp</i><b>,</b> <i>TYPE</i><b>,
     void (*</b><i>constructor</i><b>)(void *</b><i>ptr</i><b>, void *</b><i>arg</i><b>), void *</b><i>arg</i><b>)
-POBJ_ALLOC(PMEMobjpool *</b><i>pop</i><b>, TOID(TYPE) *</b><i>oidp</i><b>, TYPE, size_t</b> <i>size</i><b>,
+POBJ_ALLOC(PMEMobjpool *</b><i>pop</i><b>, TOID(TYPE) *</b><i>oidp</i><b>,</b> <i>TYPE</i><b>, size_t</b> <i>size</i><b>,
     void (*</b><i>constructor</i><b>)(void *</b><i>ptr</i><b>, void *</b><i>arg</i><b>), void *</b><i>arg</i><b>)
-POBJ_ZNEW(PMEMobjpool *</b><i>pop</i><b>, TOID(TYPE) *</b><i>oidp</i><b>, TYPE,
-    void (*</b><i>constructor</i><b>)(void *</b><i>ptr</i><b>, void *</b><i>arg</i><b>), void *</b><i>arg</i><b>)
-POBJ_ZALLOC(PMEMobjpool *</b><i>pop</i><b>, TOID(TYPE) *</b><i>oidp</i><b>, TYPE, size_t</b> <i>size</i><b>)
-POBJ_REALLOC(PMEMobjpool *</b><i>pop</i><b>, TOID(TYPE) *</b><i>oidp</i><b>, TYPE, size_t</b> <i>size</i><b>)
-POBJ_ZREALLOC(PMEMobjpool *</b><i>pop</i><b>, TOID(TYPE) *</b><i>oidp</i><b>, TYPE, size_t</b> <i>size</i><b>)
-POBJ_FREE(PMEMobjpool *</b><i>pop</i><b>, TOID(TYPE) *</b><i>oidp</i> <b>)
+POBJ_ZNEW(PMEMobjpool *</b><i>pop</i><b>, TOID(TYPE) *</b><i>oidp</i><b>,</b> <i>TYPE</i><b>)
+POBJ_ZALLOC(PMEMobjpool *</b><i>pop</i><b>, TOID(TYPE) *</b><i>oidp</i><b>,</b> <i>TYPE</i><b>, size_t</b> <i>size</i><b>)
+POBJ_REALLOC(PMEMobjpool *</b><i>pop</i><b>, TOID(TYPE) *</b><i>oidp</i><b>,</b> <i>TYPE</i><b>, size_t</b> <i>size</i><b>)
+POBJ_ZREALLOC(PMEMobjpool *</b><i>pop</i><b>, TOID(TYPE) *</b><i>oidp</i><b>,</b> <i>TYPE</i><b>, size_t</b> <i>size</i><b>)
+POBJ_FREE(PMEMobjpool *</b><i>pop</i><b>, TOID(TYPE) *</b><i>oidp</i><b>)
 
 Root object management:
 
@@ -653,9 +652,9 @@ replicas is to do it by using the <b>pmempool</b>(1)
 utility.</p>
 <!-- INDENTATION -->
 <p><b>PMEMobjpool *pmemobj_create_part(const char
-*</b><i>path</i><b>, const char *</b><i>layout,</i><b><br>
+*</b><i>path</i><b>, const char *</b><i>layout</i><b>,<br>
 size_t</b> <i>partsize</i><b>, mode_t</b> <i>mode</i><b>,
-int</b> <i>part_index</i><b>, int</b> <i>nparts,</i><b><br>
+int</b> <i>part_index</i><b>, int</b> <i>nparts</i><b>,<br>
 int</b> <i>replica_index</i><b>, int</b>
 <i>nreplica</i><b>);</b></p>
 </td>
@@ -967,7 +966,7 @@ reinitialized and then acquired.</p>
 <td width="10%"></td>
 <td width="89%">
 <p><b>int pmemobj_rwlock_timedrdlock(PMEMobjpool
-*</b><i>pop,</i><b><br>
+*</b><i>pop</i><b>,<br>
 PMEMrwlock *restrict</b> <i>rwlockp</i><b>,<br>
 const struct timespec *restrict</b>
 <i>abstime</i><b>);</b></p>
@@ -2188,14 +2187,13 @@ semantics as <b>free</b>(3), but instead of the process heap
 supplied by the system, it operates on the persistent memory
 heap. It frees the memory space represented by <i>oidp</i>,
 which must have been returned by a previous call to
-<b>pmemobj_alloc</b>(), <b>pmemobj_alloc_construct</b>(),
-<b>pmemobj_zalloc</b>(), <b>pmemobj_realloc</b>(), or
-<b>pmemobj_zrealloc</b>(). If <i>oidp</i> points to
-<i>OID_NULL</i>, no operation is performed. It sets the
-<i>oidp</i> to <i>OID_NULL</i> value after freeing the
-memory. If the <i>oidp</i> points to memory location from
-the <b>pmemobj</b> heap the <i>oidp</i> is changed
-atomically.</p>
+<b>pmemobj_alloc</b>(), <b>pmemobj_zalloc</b>(),
+<b>pmemobj_realloc</b>(), or <b>pmemobj_zrealloc</b>(). If
+<i>oidp</i> points to <i>OID_NULL</i>, no operation is
+performed. It sets the <i>oidp</i> to <i>OID_NULL</i> value
+after freeing the memory. If the <i>oidp</i> points to
+memory location from the <b>pmemobj</b> heap the <i>oidp</i>
+is changed atomically.</p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -2226,13 +2224,13 @@ in the range from the start of the region up to the minimum
 of the old and new sizes. If the new size is larger than the
 old size, the added memory will <i>not</i> be initialized.
 If <i>oidp</i> points to <i>OID_NULL</i>, then the call is
-equivalent to <i>pmemobj_alloc(pop, size, type_num)</i>. If
-<i>size</i> is equal to zero, and <i>oidp</i> is not
-<i>OID_NULL</i>, then the call is equivalent to
-<i>pmemobj_free(oid)</i>. Unless <i>oidp</i> is
-<i>OID_NULL</i>, it must have been returned by an earlier
-call to <b>pmemobj_alloc</b>(),
-<b>pmemobj_alloc_construct</b>(), <b>pmemobj_zalloc</b>(),
+equivalent to <b>pmemobj_alloc(</b><i>pop</i><b>,</b>
+<i>size</i><b>,</b> <i>type_num</i><b>).</b> If <i>size</i>
+is equal to zero, and <i>oidp</i> is not <i>OID_NULL</i>,
+then the call is equivalent to
+<b>pmemobj_free(</b><i>oid</i><b>).</b> Unless <i>oidp</i>
+is <i>OID_NULL</i>, it must have been returned by an earlier
+call to <b>pmemobj_alloc</b>(), <b>pmemobj_zalloc</b>(),
 <b>pmemobj_realloc</b>(), or <b>pmemobj_zrealloc</b>(). Note
 that the object handle value may change in result of
 reallocation. If the object was moved, a memory space
@@ -2272,20 +2270,20 @@ range from the start of the region up to the minimum of the
 old and new sizes. If the new size is larger than the old
 size, the added memory will be zeroed. If <i>oidp</i> points
 to <i>OID_NULL,</i> then the call is equivalent to
-<i>pmemobj_zalloc(poop, size, type_num)</i>. If <i>size</i>
-is equal to zero, and <i>oidp</i> doesn&rsquo;t point to
-<i>OID_NULL</i>, then the call is equivalent to
-<i>pmemobj_free(pop, oid)</i>. Unless <i>oidp</i> points to
-<i>OID_NULL</i>, it must have been returned by an earlier
-call to <b>pmemobj_alloc</b>(),
-<b>pmemobj_alloc_construct</b>(), <b>pmemobj_zalloc</b>(),
-<b>pmemobj_realloc</b>(), or <b>pmemobj_zrealloc</b>(). Note
-that the object handle value may change in result of
-reallocation. If the object was moved, a memory space
-represented by <i>oidp</i> is reclaimed. If <i>oidp</i>
-points to memory location from the <b>pmemobj</b> heap the
-<i>oidp</i> is changed atomically. If
-<b>pmemobj_zrealloc</b>() is unable to satisfy the
+<b>pmemobj_zalloc(</b><i>pop</i><b>,</b> <i>size</i><b>,</b>
+<i>type_num</i><b>).</b> If <i>size</i> is equal to zero,
+and <i>oidp</i> doesn&rsquo;t point to <i>OID_NULL</i>, then
+the call is equivalent to
+<b>pmemobj_free(</b><i>pop</i><b>,</b> <i>oid</i><b>).</b>
+Unless <i>oidp</i> points to <i>OID_NULL</i>, it must have
+been returned by an earlier call to <b>pmemobj_alloc</b>(),
+<b>pmemobj_zalloc</b>(), <b>pmemobj_realloc</b>(), or
+<b>pmemobj_zrealloc</b>(). Note that the object handle value
+may change in result of reallocation. If the object was
+moved, a memory space represented by <i>oidp</i> is
+reclaimed. If <i>oidp</i> points to memory location from the
+<b>pmemobj</b> heap the <i>oidp</i> is changed atomically.
+If <b>pmemobj_zrealloc</b>() is unable to satisfy the
 allocation request, OID_NULL is returned and errno is set
 appropriately.</p>
 </td>
@@ -2358,7 +2356,7 @@ is OID_NULL, 0 is returned.</p>
 <td width="10%"></td>
 <td width="89%">
 <p><b>POBJ_NEW(PMEMobjpool *</b><i>pop</i><b>, TOID(TYPE)
-*</b><i>oidp</i><b>, TYPE,<br>
+*</b><i>oidp</i><b>,</b> <i>TYPE</i><b>,<br>
 void (*</b><i>constructor</i><b>)(void *</b><i>ptr</i><b>,
 void *</b><i>arg</i><b>), void *</b><i>arg</i><b>)</b></p>
 </td>
@@ -2384,7 +2382,8 @@ typed OID of <b>TYPE</b>.</p>
 <td width="10%"></td>
 <td width="89%">
 <p><b>POBJ_ALLOC(PMEMobjpool *</b><i>pop</i><b>, TOID(TYPE)
-*</b><i>oidp</i><b>, TYPE, size_t</b> <i>size</i><b><br>
+*</b><i>oidp</i><b>,</b> <i>TYPE</i><b>, size_t</b>
+<i>size</i><b>,<br>
 void (*</b><i>constructor</i><b>)(void *</b><i>ptr</i><b>,
 void *</b><i>arg</i><b>), void *</b><i>arg</i><b>)</b></p>
 </td>
@@ -2410,7 +2409,7 @@ it takes a pointer to typed OID of <b>TYPE</b>.</p>
 <td width="10%"></td>
 <td width="89%">
 <p><b>POBJ_ZNEW(PMEMobjpool *</b><i>pop</i><b>, TOID(TYPE)
-*</b><i>oidp</i><b>, TYPE )</b></p>
+*</b><i>oidp</i><b>,</b> <i>TYPE</i><b>)</b></p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -2434,7 +2433,7 @@ typed OID of <b>TYPE</b>.</p>
 <td width="10%"></td>
 <td width="89%">
 <p><b>POBJ_ZALLOC(PMEMobjpool *</b><i>pop</i><b>, TOID(TYPE)
-*</b><i>oidp</i><b>, TYPE, size_t</b>
+*</b><i>oidp</i><b>,</b> <i>TYPE</i><b>, size_t</b>
 <i>size</i><b>)</b></p>
 </td>
 </table>
@@ -2459,8 +2458,8 @@ it takes a pointer to typed OID of <b>TYPE</b>.</p>
 <td width="10%"></td>
 <td width="89%">
 <p><b>POBJ_REALLOC(PMEMobjpool *</b><i>pop</i><b>,
-TOID(TYPE) *</b><i>oidp</i><b>, TYPE, size_t</b>
-<i>size</i><b>)</b></p>
+TOID(TYPE) *</b><i>oidp</i><b>,</b> <i>TYPE</i><b>,
+size_t</b> <i>size</i><b>)</b></p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -2484,8 +2483,8 @@ pointer to typed OID of <b>TYPE</b>.</p>
 <td width="10%"></td>
 <td width="89%">
 <p><b>POBJ_ZREALLOC(PMEMobjpool *</b><i>pop</i><b>,
-TOID(TYPE) *</b><i>oidp</i><b>, TYPE, size_t</b>
-<i>size</i><b>)</b></p>
+TOID(TYPE) *</b><i>oidp</i><b>,</b> <i>TYPE</i><b>,
+size_t</b> <i>size</i><b>)</b></p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -2509,7 +2508,7 @@ pointer to typed OID of <b>TYPE</b>.</p>
 <td width="10%"></td>
 <td width="89%">
 <p><b>POBJ_FREE(PMEMobjpool *</b><i>pop</i><b>, TOID(TYPE)
-*</b><i>oidp</i> <b>)</b></p>
+*</b><i>oidp</i><b>)</b></p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -3712,10 +3711,12 @@ size_t</b> <i>size</i><b>, unsigned int</b>
 resizes an existing object to the given <i>size</i> and
 changes its type to <i>type_num</i>. If <i>oid</i> is
 OID_NULL, then the call is equivalent to
-<i>pmemobj_tx_alloc(pop, size, type_num)</i>; if <i>size</i>
-is equal to zero, and <i>oid</i> is not OID_NULL, then the
-call is equivalent to <i>pmemobj_tx_free(oid)</i>. If the
-new size is larger than the old size, the added memory will
+<b>pmemobj_tx_alloc(</b><i>pop</i><b>,</b>
+<i>size</i><b>,</b> <i>type_num</i><b>).</b> If <i>size</i>
+is equal to zero and <i>oid</i> is not OID_NULL, then the
+call is equivalent to
+<b>pmemobj_tx_free(</b><i>oid</i><b>).</b> If the new size
+is larger than the old size, the added memory will
 <i>not</i> be initialized. If successful and called during
 <i>TX_STAGE_WORK</i> function returns returns a handle to
 the resized object. Otherwise, stage changes to
@@ -4228,8 +4229,8 @@ and errno is set appropriately.</p>
 <tr valign="top" align="left">
 <td width="10%"></td>
 <td width="89%">
-<p><b>TX_ALLOC(</b><i>TYPE</i><b>,</b><i>size_t</i>
-<b>size</b> <i>)</i></p>
+<p><b>TX_ALLOC(</b><i>TYPE</i><b>, size_t</b>
+<i>size</i><b>)</b></p>
 </td>
 </table>
 <!-- INDENTATION -->

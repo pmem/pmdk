@@ -1,5 +1,5 @@
 <!-- Creator     : groff version 1.18.1.4 -->
-<!-- CreationDate: Mon Jun 22 07:57:24 2015 -->
+<!-- CreationDate: Wed Jun 24 06:55:15 2015 -->
 <html>
 <head>
 <meta name="generator" content="groff -Thtml, see www.gnu.org">
@@ -220,24 +220,25 @@ resulting number of available blocks is less than
 <i>poolsize / bsize</i>, and is made available to the caller
 via the <b>pmemblk_nblock</b>() function described below.
 Given the specifics of the implementation, the number of
-available blocks for the user cannot be less than 256.
-<i>path</i> specifies the name of the memory pool file to be
-created. <i>mode</i> specifies the permissions to use when
-creating the file as described by <b>creat</b>(2). The
-memory pool file is fully allocated to the size
-<i>poolsize</i> using <b>posix_fallocate</b>(3). The caller
-may choose to take responsibility for creating the memory
-pool file by creating it before calling
-<b>pmemblk_create</b>() and then specifying <i>poolsize</i>
-as zero. In this case <b>pmemblk_create</b>() will take the
-pool size from the size of the existing file and will verify
-that the file appears to be empty by searching for any
-non-zero data in the pool header at the beginning of the
-file. The minimum file size allowed by the library for a
-block pool is defined in <b>&lt;libpmemblk.h&gt;</b> as
-<b>PMEMBLK_MIN_POOL</b>. <i>bsize</i> can be any non-zero
-value, however <b>libpmemblk</b> will silently round up the
-given size to <b>PMEMBLK_MIN_BLK</b>, as defined in
+available blocks for the user cannot be less than 256. This
+translates to at least 512 internal blocks. <i>path</i>
+specifies the name of the memory pool file to be created.
+<i>mode</i> specifies the permissions to use when creating
+the file as described by <b>creat</b>(2). The memory pool
+file is fully allocated to the size <i>poolsize</i> using
+<b>posix_fallocate</b>(3). The caller may choose to take
+responsibility for creating the memory pool file by creating
+it before calling <b>pmemblk_create</b>() and then
+specifying <i>poolsize</i> as zero. In this case
+<b>pmemblk_create</b>() will take the pool size from the
+size of the existing file and will verify that the file
+appears to be empty by searching for any non-zero data in
+the pool header at the beginning of the file. The minimum
+file size allowed by the library for a block pool is defined
+in <b>&lt;libpmemblk.h&gt;</b> as <b>PMEMBLK_MIN_POOL</b>.
+<i>bsize</i> can be any non-zero value, however
+<b>libpmemblk</b> will silently round up the given size to
+<b>PMEMBLK_MIN_BLK</b>, as defined in
 <b>&lt;libpmemblk.h&gt;</b>.</p>
 </td>
 </table>
