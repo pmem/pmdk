@@ -37,7 +37,7 @@
 .\" or
 .\"	groff -man -Tascii libpmemobj.3
 .\"
-.TH libpmemobj 3 "pmemobj API version 0.4.6" "NVM Library"
+.TH libpmemobj 3 "pmemobj API version 0.4.7" "NVM Library"
 .SH NAME
 libpmemobj \- persistent memory transactional object store
 .SH SYNOPSIS
@@ -51,8 +51,8 @@ libpmemobj \- persistent memory transactional object store
 .BI "PMEMobjpool *pmemobj_open(const char *" path ", const char *" layout );
 .BI "PMEMobjpool *pmemobj_create(const char *" path ", const char *" layout ,
 .BI "    size_t " poolsize ", mode_t " mode );
-.BI "PMEMobjpool *pmemobj_create_part(const char *" path ", const char *" layout,
-.BI "    size_t " partsize ", mode_t " mode ", int " part_index ", int " nparts,
+.BI "PMEMobjpool *pmemobj_create_part(const char *" path ", const char *" layout ,
+.BI "    size_t " partsize ", mode_t " mode ", int " part_index ", int " nparts ,
 .BI "    int " replica_index ", int " nreplica );
 .BI "void pmemobj_close(PMEMobjpool *" pop );
 .sp
@@ -74,7 +74,7 @@ libpmemobj \- persistent memory transactional object store
 .BI "void pmemobj_rwlock_zero(PMEMobjpool *" pop ", PMEMrwlock *" rwlockp );
 .BI "int pmemobj_rwlock_rdlock(PMEMobjpool *" pop ", PMEMrwlock *" rwlockp );
 .BI "int pmemobj_rwlock_wrlock(PMEMobjpool *" pop ", PMEMrwlock *" rwlockp );
-.BI "int pmemobj_rwlock_timedrdlock(PMEMobjpool *" pop,
+.BI "int pmemobj_rwlock_timedrdlock(PMEMobjpool *" pop ,
 .BI "    PMEMrwlock *restrict " rwlockp ",
 .BI "    const struct timespec *restrict "abstime );
 .BI "int pmemobj_rwlock_timedwrlock(PMEMobjpool *" pop ,
@@ -142,18 +142,17 @@ libpmemobj \- persistent memory transactional object store
 .BI "void pmemobj_free(PMEMoid *" oidp );
 .BI "size_t pmemobj_alloc_usable_size(PMEMoid " oid );
 .BI "void *pmemobj_direct(PMEMoid " oid );
-.BI "unsigned int pmemobj_type_num(PMEMoid" oid );
+.BI "unsigned int pmemobj_type_num(PMEMoid " oid );
 .sp
-.BI "POBJ_NEW(PMEMobjpool *" pop ", TOID(TYPE) *" oidp ", TYPE, "
+.BI "POBJ_NEW(PMEMobjpool *" pop ", TOID(TYPE) *" oidp ", " TYPE ", "
 .BI "    void (*" constructor ")(void *" ptr ", void *" arg "), void *" arg )
-.BI "POBJ_ALLOC(PMEMobjpool *" pop ", TOID(TYPE) *" oidp ", TYPE, size_t " size ", "
+.BI "POBJ_ALLOC(PMEMobjpool *" pop ", TOID(TYPE) *" oidp ", " TYPE ", size_t " size ", "
 .BI "    void (*" constructor ")(void *" ptr ", void *" arg "), void *" arg )
-.BI "POBJ_ZNEW(PMEMobjpool *" pop ", TOID(TYPE) *" oidp ", TYPE, "
-.BI "    void (*" constructor ")(void *" ptr ", void *" arg "), void *" arg )
-.BI "POBJ_ZALLOC(PMEMobjpool *" pop ", TOID(TYPE) *" oidp ", TYPE, size_t " size ")
-.BI "POBJ_REALLOC(PMEMobjpool *" pop ", TOID(TYPE) *" oidp ", TYPE, size_t " size )
-.BI "POBJ_ZREALLOC(PMEMobjpool *" pop ", TOID(TYPE) *" oidp ", TYPE, size_t " size )
-.BI "POBJ_FREE(PMEMobjpool *" pop ", TOID(TYPE) *" oidp " )
+.BI "POBJ_ZNEW(PMEMobjpool *" pop ", TOID(TYPE) *" oidp ", " TYPE ")
+.BI "POBJ_ZALLOC(PMEMobjpool *" pop ", TOID(TYPE) *" oidp ", " TYPE ", size_t " size ")
+.BI "POBJ_REALLOC(PMEMobjpool *" pop ", TOID(TYPE) *" oidp ", " TYPE ", size_t " size )
+.BI "POBJ_ZREALLOC(PMEMobjpool *" pop ", TOID(TYPE) *" oidp ", " TYPE ", size_t " size )
+.BI "POBJ_FREE(PMEMobjpool *" pop ", TOID(TYPE) *" oidp ")
 .sp
 .B Root object management:
 .sp
@@ -606,9 +605,9 @@ is to do it by using the
 .BR pmempool (1)
 utility.
 .PP
-.BI "PMEMobjpool *pmemobj_create_part(const char *" path ", const char *" layout,
+.BI "PMEMobjpool *pmemobj_create_part(const char *" path ", const char *" layout ,
 .br
-.BI "    size_t " partsize ", mode_t " mode ", int " part_index ", int " nparts,
+.BI "    size_t " partsize ", mode_t " mode ", int " part_index ", int " nparts ,
 .br
 .BI "    int " replica_index ", int " nreplica );
 .IP
@@ -813,7 +812,7 @@ If this is the first use of the lock since opening of the pool
 .IR pop ,
 the lock is automatically reinitialized and then acquired.
 .PP
-.BI "int pmemobj_rwlock_timedrdlock(PMEMobjpool *" pop,
+.BI "int pmemobj_rwlock_timedrdlock(PMEMobjpool *" pop ,
 .br
 .BI "    PMEMrwlock *restrict " rwlockp ",
 .br
@@ -1514,7 +1513,6 @@ It frees the memory space represented by
 .IR oidp ,
 which must have been returned by a previous call to
 .BR pmemobj_alloc (),
-.BR pmemobj_alloc_construct (),
 .BR pmemobj_zalloc (),
 .BR pmemobj_realloc (),
 or
@@ -1562,7 +1560,7 @@ If
 points to
 .IR OID_NULL ,
 then the call is equivalent to
-.IR "pmemobj_alloc(pop, size, type_num)".
+.BI "pmemobj_alloc(" pop ", " size ", " type_num ")."
 If
 .I size
 is equal to zero, and
@@ -1570,14 +1568,13 @@ is equal to zero, and
 is not
 .IR OID_NULL ,
 then the call is equivalent to
-.IR "pmemobj_free(oid)".
+.BI "pmemobj_free(" oid ")."
 Unless
 .I oidp
 is
 .IR OID_NULL ,
 it must have been returned by an earlier call to
 .BR pmemobj_alloc (),
-.BR pmemobj_alloc_construct (),
 .BR pmemobj_zalloc (),
 .BR pmemobj_realloc (),
 or
@@ -1622,7 +1619,7 @@ If
 points to
 .I OID_NULL,
 then the call is equivalent to
-.IR "pmemobj_zalloc(poop, size, type_num)".
+.BI "pmemobj_zalloc(" pop ", " size ", " type_num ")."
 If
 .I size
 is equal to zero, and
@@ -1630,14 +1627,13 @@ is equal to zero, and
 doesn't point to
 .IR OID_NULL ,
 then the call is equivalent to
-.IR "pmemobj_free(pop, oid)".
+.BI "pmemobj_free(" pop ", " oid ")."
 Unless
 .I oidp
 points to
 .IR OID_NULL ,
 it must have been returned by an earlier call to
 .BR pmemobj_alloc (),
-.BR pmemobj_alloc_construct (),
 .BR pmemobj_zalloc (),
 .BR pmemobj_realloc (),
 or
@@ -1710,7 +1706,7 @@ If
 .I oid
 is OID_NULL, 0 is returned.
 .PP
-.BI "POBJ_NEW(PMEMobjpool *" pop ", TOID(TYPE) *" oidp ", TYPE, "
+.BI "POBJ_NEW(PMEMobjpool *" pop ", TOID(TYPE) *" oidp ", " TYPE ", "
 .br
 .BI "    void (*" constructor ")(void *" ptr ", void *" arg "), void *" arg )
 .IP
@@ -1728,7 +1724,7 @@ Instead of taking a pointer to
 it takes a pointer to typed OID of
 .BR TYPE .
 .PP
-.BI "POBJ_ALLOC(PMEMobjpool *" pop ", TOID(TYPE) *" oidp ", TYPE, size_t " size "
+.BI "POBJ_ALLOC(PMEMobjpool *" pop ", TOID(TYPE) *" oidp ", " TYPE ", size_t " size ", "
 .br
 .BI "    void (*" constructor ")(void *" ptr ", void *" arg "), void *" arg )
 .IP
@@ -1748,7 +1744,7 @@ Instead of taking a pointer to
 it takes a pointer to typed OID of
 .BR TYPE .
 .PP
-.BI "POBJ_ZNEW(PMEMobjpool *" pop ", TOID(TYPE) *" oidp ", TYPE )
+.BI "POBJ_ZNEW(PMEMobjpool *" pop ", TOID(TYPE) *" oidp ", " TYPE ")
 .IP
 The
 .B POBJ_ZNEW
@@ -1765,7 +1761,7 @@ Instead of taking a pointer to
 it takes a pointer to typed OID of
 .BR TYPE .
 .PP
-.BI "POBJ_ZALLOC(PMEMobjpool *" pop ", TOID(TYPE) *" oidp ", TYPE, size_t " size ")
+.BI "POBJ_ZALLOC(PMEMobjpool *" pop ", TOID(TYPE) *" oidp ", " TYPE ", size_t " size ")
 .IP
 The
 .B POBJ_ZALLOC
@@ -1783,7 +1779,7 @@ Instead of taking a pointer to
 it takes a pointer to typed OID of
 .BR TYPE .
 .PP
-.BI "POBJ_REALLOC(PMEMobjpool *" pop ", TOID(TYPE) *" oidp ", TYPE, size_t " size )
+.BI "POBJ_REALLOC(PMEMobjpool *" pop ", TOID(TYPE) *" oidp ", " TYPE ", size_t " size )
 .IP
 The
 .B POBJ_REALLOC
@@ -1799,7 +1795,7 @@ Instead of taking a pointer to
 it takes a pointer to typed OID of
 .BR TYPE .
 .PP
-.BI "POBJ_ZREALLOC(PMEMobjpool *" pop ", TOID(TYPE) *" oidp ", TYPE, size_t " size )
+.BI "POBJ_ZREALLOC(PMEMobjpool *" pop ", TOID(TYPE) *" oidp ", " TYPE ", size_t " size )
 .IP
 The
 .B POBJ_ZREALLOC
@@ -1815,7 +1811,7 @@ Instead of taking a pointer to
 it takes a pointer to typed OID of
 .BR TYPE .
 .PP
-.BI "POBJ_FREE(PMEMobjpool *" pop ", TOID(TYPE) *" oidp " )
+.BI "POBJ_FREE(PMEMobjpool *" pop ", TOID(TYPE) *" oidp ")
 .IP
 The
 .B POBJ_FREE
@@ -2666,13 +2662,13 @@ and changes its type to
 If
 .I oid
 is OID_NULL, then the call is equivalent to
-.IR "pmemobj_tx_alloc(pop, size, type_num)" ;
-if
+.BI "pmemobj_tx_alloc(" pop ", " size ", " type_num ")."
+If
 .I size
-is equal to zero, and
+is equal to zero and
 .I oid
 is not OID_NULL, then the call is equivalent to
-.IR "pmemobj_tx_free(oid)" .
+.BI "pmemobj_tx_free(" oid ")."
 If the new size is larger than the old size, the added memory will
 .I not
 be initialized.
@@ -2900,7 +2896,7 @@ changes to
 .IR TX_STAGE_ONABORT ,
 OID_NULL is returned, and errno is set appropriately.
 .PP
-.BI "TX_ALLOC(" TYPE , size_t " size ")
+.BI "TX_ALLOC(" TYPE ", size_t " size ")
 .IP
 The
 .BR TX_ALLOC ()
