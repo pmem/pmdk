@@ -50,7 +50,7 @@
 
 #define	INITIAL_SIZE 8
 #define	MAX_INSERTS 8
-#define	MAX_GROWS 4
+#define	MAX_GROWS 32
 
 struct cuckoo_slot {
 	uint64_t key;
