@@ -52,6 +52,9 @@
 #define	TEST_TINY_ALLOC_SIZE (64)
 #define	TEST_RUNS 2
 
+#define	MAX_MALLOC_FREE_LOOP 1000
+#define	MALLOC_FREE_SIZE 8000
+
 struct mock_pop {
 	PMEMobjpool p;
 	char lanes[LANE_SECTION_LEN];
@@ -106,6 +109,17 @@ test_oom_allocs(size_t size)
 }
 
 void
+test_malloc_free_loop(size_t size)
+{
+	int err;
+	for (int i = 0; i < MAX_MALLOC_FREE_LOOP; ++i) {
+		err = pmalloc(mock_pop, &addr->ptr, size);
+		ASSERTeq(err, 0);
+		pfree(mock_pop, &addr->ptr);
+	}
+}
+
+void
 test_mock_pool_allocs()
 {
 	addr = MALLOC(MOCK_POOL_SIZE);
@@ -128,6 +142,8 @@ test_mock_pool_allocs()
 	heap_boot(mock_pop);
 
 	ASSERTne(mock_pop->heap, NULL);
+
+	test_malloc_free_loop(MALLOC_FREE_SIZE);
 
 	/*
 	 * Allocating till OOM and freeing the objects in a loop for different
