@@ -43,7 +43,6 @@
 #include "lane.h"
 #include "redo.h"
 #include "pmalloc.h"
-#include "valgrind_internal.h"
 
 /* offset to "in band" item */
 #define	OOB_OFF	 (sizeof (struct oob_header))

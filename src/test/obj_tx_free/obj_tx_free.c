@@ -373,6 +373,7 @@ int
 main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_tx_free");
+	util_init();
 
 	if (argc != 2)
 		FATAL("usage: %s [file]", argv[0]);

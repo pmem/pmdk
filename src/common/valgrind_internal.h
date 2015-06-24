@@ -38,56 +38,108 @@
 
 #include <valgrind/pmemcheck.h>
 
-#define	VALGRIND_REGISTER_PMEM_MAPPING(addr, len) \
-		VALGRIND_PMC_REGISTER_PMEM_MAPPING((addr), (len))
+extern int On_valgrind;
 
-#define	VALGRIND_REGISTER_PMEM_FILE(desc, base_addr, size, offset) \
+#define	VALGRIND_REGISTER_PMEM_MAPPING(addr, len) do {\
+	if (On_valgrind)\
+		VALGRIND_PMC_REGISTER_PMEM_MAPPING((addr), (len));\
+} while (0)
+
+#define	VALGRIND_REGISTER_PMEM_FILE(desc, base_addr, size, offset) do {\
+	if (On_valgrind)\
 		VALGRIND_PMC_REGISTER_PMEM_FILE((desc), (base_addr), (size), \
-		(offset))
+		(offset));\
+} while (0)
 
-#define	VALGRIND_REMOVE_PMEM_MAPPING(addr, len) \
-		VALGRIND_PMC_REMOVE_PMEM_MAPPING((addr), (len))
+#define	VALGRIND_REMOVE_PMEM_MAPPING(addr, len) do {\
+	if (On_valgrind)\
+		VALGRIND_PMC_REMOVE_PMEM_MAPPING((addr), (len));\
+} while (0)
 
-#define	VALGRIND_CHECK_IS_PMEM_MAPPING(addr, len) \
-		VALGRIND_PMC_CHECK_IS_PMEM_MAPPING((addr), (len))
+#define	VALGRIND_CHECK_IS_PMEM_MAPPING(addr, len) do {\
+	if (On_valgrind)\
+		VALGRIND_PMC_CHECK_IS_PMEM_MAPPING((addr), (len));\
+} while (0)
 
-#define	VALGRIND_PRINT_PMEM_MAPPINGS VALGRIND_PMC_PRINT_PMEM_MAPPINGS
+#define	VALGRIND_PRINT_PMEM_MAPPINGS do {\
+	if (On_valgrind)\
+		VALGRIND_PMC_PRINT_PMEM_MAPPINGS;\
+} while (0)
 
-#define	VALGRIND_DO_FLUSH(addr, len) VALGRIND_PMC_DO_FLUSH((addr), (len))
+#define	VALGRIND_DO_FLUSH(addr, len) do {\
+	if (On_valgrind)\
+		VALGRIND_PMC_DO_FLUSH((addr), (len));\
+} while (0)
 
-#define	VALGRIND_DO_FENCE VALGRIND_PMC_DO_FENCE
+#define	VALGRIND_DO_FENCE do {\
+	if (On_valgrind)\
+		VALGRIND_PMC_DO_FENCE;\
+} while (0)
 
-#define	VALGRIND_DO_COMMIT VALGRIND_PMC_DO_COMMIT
+#define	VALGRIND_DO_COMMIT do {\
+	if (On_valgrind)\
+		VALGRIND_PMC_DO_COMMIT;\
+} while (0)
 
 #define	VALGRIND_DO_PERSIST(addr, len) do {\
-	VALGRIND_PMC_DO_FLUSH((addr), (len));\
-	VALGRIND_PMC_DO_FENCE;\
-	VALGRIND_PMC_DO_COMMIT;\
-	VALGRIND_PMC_DO_FENCE;\
+	if (On_valgrind) {\
+		VALGRIND_PMC_DO_FLUSH((addr), (len));\
+		VALGRIND_PMC_DO_FENCE;\
+		VALGRIND_PMC_DO_COMMIT;\
+		VALGRIND_PMC_DO_FENCE;\
+	}\
 } while (0)
 
 /* XXX change definition to VALGRIND_PMC_SET_CLEAN */
-#define	VALGRIND_SET_CLEAN(addr, len) VALGRIND_DO_PERSIST(addr, len)
+#define	VALGRIND_SET_CLEAN(addr, len) do {\
+	if (On_valgrind)\
+		VALGRIND_DO_PERSIST(addr, len);\
+} while (0)
 
-#define	VALGRIND_WRITE_STATS VALGRIND_PMC_WRITE_STATS
+#define	VALGRIND_WRITE_STATS do {\
+	if (On_valgrind)\
+		VALGRIND_PMC_WRITE_STATS;\
+} while (0)
 
-#define	VALGRIND_LOG_STORES VALGRIND_PMC_LOG_STORES
+#define	VALGRIND_LOG_STORES do {\
+	if (On_valgrind)\
+		VALGRIND_PMC_LOG_STORES;\
+} while (0)
 
-#define	VALGRIND_NO_LOG_STORES VALGRIND_PMC_NO_LOG_STORES
+#define	VALGRIND_NO_LOG_STORES do {\
+	if (On_valgrind)\
+		VALGRIND_PMC_NO_LOG_STORES;\
+} while (0)
 
-#define	VALGRIND_ADD_LOG_REGION(addr, len) \
-		VALGRIND_PMC_ADD_LOG_REGION((addr), (len))
+#define	VALGRIND_ADD_LOG_REGION(addr, len) do {\
+	if (On_valgrind)\
+		VALGRIND_PMC_ADD_LOG_REGION((addr), (len));\
+} while (0)
 
-#define	VALGRIND_REMOVE_LOG_REGION(addr, len) \
-		VALGRIND_PMC_REMOVE_LOG_REGION((addr), (len))
+#define	VALGRIND_REMOVE_LOG_REGION(addr, len) do {\
+	if (On_valgrind)\ \
+		VALGRIND_PMC_REMOVE_LOG_REGION((addr), (len));\
+} while (0)
 
-#define	VALGRIND_FULL_REORDER VALGRIND_PMC_FULL_REORDER
+#define	VALGRIND_FULL_REORDER do {\
+	if (On_valgrind)\
+		VALGRIND_PMC_FULL_REORDER;\
+} while (0)
 
-#define	VALGRIND_PARTIAL_REORDER VALGRIND_PMC_PARTIAL_REORDER
+#define	VALGRIND_PARTIAL_REORDER do {\
+	if (On_valgrind)\
+		VALGRIND_PMC_PARTIAL_REORDER;\
+} while (0)
 
-#define	VALGRIND_ONLY_FAULT VALGRIND_PMC_ONLY_FAULT
+#define	VALGRIND_ONLY_FAULT do {\
+	if (On_valgrind)\
+		VALGRIND_PMC_ONLY_FAULT;\
+} while (0)
 
-#define	VALGRIND_STOP_REORDER_FAULT VALGRIND_PMC_STOP_REORDER_FAULT
+#define	VALGRIND_STOP_REORDER_FAULT do {\
+	if (On_valgrind)\
+		VALGRIND_PMC_STOP_REORDER_FAULT;\
+} while (0)
 
 #else
 
