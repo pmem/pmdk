@@ -87,8 +87,8 @@ struct alien {
 
 struct player {
 	uint16_t x;
-	uint32_t timer; /* weapon cooldown */
 	uint16_t padding; /* to 8 bytes */
+	uint32_t timer; /* weapon cooldown */
 };
 
 struct bullet {
