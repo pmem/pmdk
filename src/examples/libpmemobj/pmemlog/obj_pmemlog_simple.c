@@ -400,18 +400,18 @@ main(int argc, char *argv[])
 	for (int i = 3; i < argc; i++) {
 		switch (*argv[i]) {
 			case 'a': {
-				printf("append: %s\n", argv[i]+2);
-				pmemlog_append(plp, argv[i]+2,
-					strlen(argv[i]+2));
+				printf("append: %s\n", argv[i] + 2);
+				pmemlog_append(plp, argv[i] + 2,
+					strlen(argv[i] + 2));
 				break;
 			}
 			case 'v': {
-				printf("appendv: %s\n", argv[i]+2);
-				int count = count_iovec(argv[i]+2);
+				printf("appendv: %s\n", argv[i] + 2);
+				int count = count_iovec(argv[i] + 2);
 				struct iovec *iov = malloc(count
 						* sizeof (struct iovec));
 				assert(iov != NULL);
-				fill_iovec(iov, argv[i]+2);
+				fill_iovec(iov, argv[i] + 2);
 				pmemlog_appendv(plp, iov, count);
 				free(iov);
 				break;
@@ -423,7 +423,7 @@ main(int argc, char *argv[])
 			}
 			case 'w': {
 				printf("walk\n");
-				unsigned long walksize = strtoul(argv[i]+2,
+				unsigned long walksize = strtoul(argv[i] + 2,
 					NULL, 10);
 				pmemlog_walk(plp, walksize, process_chunk,
 					NULL);

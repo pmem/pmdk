@@ -292,8 +292,9 @@ main(int argc, char *argv[])
 	for (int i = 4; i < argc; i++) {
 		switch (*argv[i]) {
 			case 'w': {
-				printf("write: %s\n", argv[i]+2);
-				const char *block_str = strtok(argv[i]+2, ":");
+				printf("write: %s\n", argv[i] + 2);
+				const char *block_str = strtok(argv[i] + 2,
+							":");
 				const char *data = strtok(NULL, ":");
 				assert(block_str != NULL);
 				assert(data != NULL);
@@ -303,10 +304,11 @@ main(int argc, char *argv[])
 				break;
 			}
 			case 'r': {
-				printf("read: %s\n", argv[i]+2);
+				printf("read: %s\n", argv[i] + 2);
 				char *buf = malloc(bsize + 1);
 				assert(buf != NULL);
-				const char *block_str = strtok(argv[i]+2, ":");
+				const char *block_str = strtok(argv[i] + 2,
+							":");
 				assert(block_str != NULL);
 				pmemblk_read(pbp, buf, strtoul(block_str, NULL,
 							10));
@@ -316,9 +318,12 @@ main(int argc, char *argv[])
 				break;
 			}
 			case 'z': {
-				printf("zero: %s\n, ", argv[i]+2);
-				pmemblk_set_zero(pbp, strtoul(strtok(argv[i]+2,
-					":"), NULL, 10));
+				printf("zero: %s\n", argv[i] + 2);
+				const char *block_str = strtok(argv[i] + 2,
+							":");
+				assert(block_str != NULL);
+				pmemblk_set_zero(pbp, strtoul(block_str, NULL,
+							10));
 				break;
 			}
 			case 'n': {
