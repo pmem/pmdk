@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2014-2015, Intel Corporation
+# Copyright (c) 2015, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,28 +30,23 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-#
-# examples/libpmemobj/Makefile -- build the libpmemobj examples
-#
-PROGS = manpage btree pi
-DIRS = pminvaders pmemlog pmemblk string_store string_store_tx\
-	string_store_tx_type hashset
+PROGS = hashset_atomic hashset_tx
 
-INCDIR ?= ../../include
-LIBDIR ?= ../../debug
+INCDIR ?= ../../../include
+LIBDIR ?= ../../../debug
 
 INCS = -I$(INCDIR)
-LIBS = -Wl,-rpath=$(LIBDIR) -L$(LIBDIR) -lpmemobj -lpmem -pthread -lm
+LIBS = -Wl,-rpath=$(LIBDIR) -L$(LIBDIR) -lpmemobj -lpmem -pthread
 CFLAGS = -std=gnu99 -ggdb -Wall -Werror
-CSTYLE = ../../../utils/cstyle
+CSTYLE = ../../../../utils/cstyle
+
 
 all:     TARGET = all
 clean:   TARGET = clean
 clobber: TARGET = clobber
 cstyle:  TARGET = cstyle
 
-all: $(PROGS) $(DIRS)
-
+all: $(PROGS)
 
 clean: $(DIRS)
 	$(RM) *.o core a.out
@@ -66,11 +61,11 @@ cstyle: $(DIRS)
 	$(CC) -c -o $@ $(CFLAGS) $(INCS) $<
 
 $(PROGS):
-	$(CC) -o $@ $< $(LIBS)
+	$(CC) -o $@ $< main.o $(LIBS)
 
-manpage: manpage.o
-btree: btree.o
-pi: pi.o
+hashset_atomic: hashset_atomic.o main.o
+
+hashset_tx: hashset_tx.o main.o
 
 $(DIRS):
 	$(MAKE) -C $@ $(TARGET)
