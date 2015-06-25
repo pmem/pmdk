@@ -41,12 +41,12 @@ int heap_check(PMEMobjpool *pop);
 
 int pmalloc(PMEMobjpool *pop, uint64_t *off, size_t size);
 int pmalloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
-	void (*constructor)(void *ptr, void *arg), void *arg,
+	void (*constructor)(PMEMobjpool *pop, void *ptr, void *arg), void *arg,
 	uint64_t data_off);
 
 int prealloc(PMEMobjpool *pop, uint64_t *off, size_t size);
 int prealloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
-	void (*constructor)(void *ptr, void *arg), void *arg,
+	void (*constructor)(PMEMobjpool *pop, void *ptr, void *arg), void *arg,
 	uint64_t data_off);
 
 size_t pmalloc_usable_size(PMEMobjpool *pop, uint64_t off);

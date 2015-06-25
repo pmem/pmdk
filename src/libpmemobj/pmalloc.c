@@ -125,7 +125,8 @@ pmalloc(PMEMobjpool *pop, uint64_t *off, size_t size)
  */
 int
 pmalloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
-	void (*constructor)(void *ptr, void *arg), void *arg, uint64_t data_off)
+	void (*constructor)(PMEMobjpool *pop, void *ptr, void *arg),
+	void *arg, uint64_t data_off)
 {
 	size_t sizeh = size + sizeof (struct allocation_header);
 
@@ -149,7 +150,7 @@ pmalloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
 				block_off);
 	void *datap = block_data + sizeof (struct allocation_header);
 	if (constructor != NULL)
-		constructor(datap + data_off, arg);
+		constructor(pop, datap + data_off, arg);
 
 	if ((err = heap_lock_if_run(pop, chunk_id, zone_id)) != 0)
 		return err;
@@ -226,7 +227,7 @@ prealloc(PMEMobjpool *pop, uint64_t *off, size_t size)
  */
 int
 prealloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
-	void (*constructor)(void *ptr, void *arg), void *arg,
+	void (*constructor)(PMEMobjpool *pop, void *ptr, void *arg), void *arg,
 	uint64_t data_off)
 {
 	/* XXX */

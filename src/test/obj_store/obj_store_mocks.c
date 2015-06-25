@@ -113,14 +113,15 @@ FUNC_MOCK_END
  * pmalloc_construct -- pmalloc_construct mock
  */
 FUNC_MOCK(pmalloc_construct, int, PMEMobjpool *pop, uint64_t *off,
-	size_t size, void (*constructor)(void *ptr, void *arg), void *arg,
-	uint64_t data_off)
+	size_t size, void (*constructor)(PMEMobjpool *pop, void *ptr,
+	void *arg), void *arg, uint64_t data_off)
 FUNC_MOCK_RUN_DEFAULT {
 	struct heap_header *hheader = (struct heap_header *)pop->heap;
 	if (pmalloc(pop, off, size))
 		return ENOMEM;
 	else {
-		(*constructor)((void *)(hheader->pop + *off + data_off), arg);
+		(*constructor)(pop, (void *)(hheader->pop + *off + data_off),
+			arg);
 		return 0;
 	}
 }
@@ -142,14 +143,15 @@ FUNC_MOCK_END
  * prealloc_construct -- prealloc_construct mock
  */
 FUNC_MOCK(prealloc_construct, int, PMEMobjpool *pop, uint64_t *off,
-	size_t size, void (*constructor)(void *ptr, void *arg), void *arg,
-	uint64_t data_off)
+	size_t size, void (*constructor)(PMEMobjpool *pop, void *ptr,
+	void *arg), void *arg, uint64_t data_off)
 FUNC_MOCK_RUN_DEFAULT {
 	struct heap_header *hheader = (struct heap_header *)pop->heap;
 	if (prealloc(pop, off, size))
 		return ENOMEM;
 	else {
-		(*constructor)((void *)(hheader->pop + *off + data_off), arg);
+		(*constructor)(pop, (void *)(hheader->pop + *off + data_off),
+			arg);
 		return 0;
 	}
 }
