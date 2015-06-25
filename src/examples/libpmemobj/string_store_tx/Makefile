@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2014-2015, Intel Corporation
+# Copyright (c) 2015, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,27 +31,24 @@
 #
 
 #
-# examples/libpmemobj/Makefile -- build the libpmemobj examples
+# examples/libpmemobj/string_store_tx/Makefile -- build the intro 2 example
 #
-PROGS = manpage
-DIRS = pminvaders pmemlog pmemblk string_store string_store_tx\
-	string_store_tx_type
+PROGS = writer reader
 
-INCDIR ?= ../../include
-LIBDIR ?= ../../debug
+INCDIR ?= ../../../include
+LIBDIR ?= ../../../debug
 
 INCS = -I$(INCDIR)
 LIBS = -Wl,-rpath=$(LIBDIR) -L$(LIBDIR) -lpmemobj -lpmem -pthread
 CFLAGS = -std=gnu99 -ggdb -Wall -Werror
-CSTYLE = ../../../utils/cstyle
+CSTYLE = ../../../../utils/cstyle
 
 all:     TARGET = all
 clean:   TARGET = clean
 clobber: TARGET = clobber
 cstyle:  TARGET = cstyle
 
-all: $(PROGS) $(DIRS)
-
+all: $(PROGS)
 
 clean: $(DIRS)
 	$(RM) *.o core a.out
@@ -68,7 +65,8 @@ cstyle: $(DIRS)
 $(PROGS):
 	$(CC) -o $@ $< $(LIBS)
 
-manpage: manpage.o
+writer: writer.o
+reader: reader.o
 
 $(DIRS):
 	$(MAKE) -C $@ $(TARGET)
