@@ -109,7 +109,7 @@ runtest() {
 				elif [ "$testtype" = "check" ]
 				then
 					[ "$verbose" ] && echo "RUNTESTS: Running: (in ./$1) TEST=$testtype FS=$fs BUILD=$build ./$runscript"
-					TEST=$testtype FS=$fs BUILD=$build timeout -k 10s $time ./$runscript
+					TEST=$testtype FS=$fs BUILD=$build timeout $killopt $time ./$runscript
 				else
 					[ "$verbose" ] && echo "RUNTESTS: Running: (in ./$1) TEST=$testtype FS=$fs BUILD=$build ./$runscript"
 					TEST=$testtype FS=$fs BUILD=$build ./$runscript
@@ -151,6 +151,7 @@ buildtype=all
 testtype=check
 fstype=all
 testconfig="./testconfig.sh"
+killopt="-k 10s"
 time='3m'
 
 #
@@ -230,6 +231,12 @@ done
 }
 
 echo RUNTESTS: test-type: $testtype
+
+# check if timeout supports "-k" option
+timeout -k 0s echo 2>/dev/null
+if [ $? ]; then
+	unset killopt
+fi
 
 if [ "$1" ]; then
 	for test in $*
