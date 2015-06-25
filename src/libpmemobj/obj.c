@@ -143,6 +143,9 @@ pmemobj_map_common(int fd, const char *layout, size_t poolsize, int rdonly,
 		return NULL;	/* util_map() set errno, called LOG */
 	}
 
+	VALGRIND_REGISTER_PMEM_MAPPING(addr, poolsize);
+	VALGRIND_REGISTER_PMEM_FILE(fd, addr, poolsize, 0);
+
 	(void) close(fd);
 
 	/* check if the mapped region is located in persistent memory */
@@ -376,6 +379,7 @@ pmemobj_map_common(int fd, const char *layout, size_t poolsize, int rdonly,
 err:
 	LOG(4, "error clean up");
 	int oerrno = errno;
+	VALGRIND_REMOVE_PMEM_MAPPING(addr, poolsize);
 	util_unmap(addr, poolsize);
 	errno = oerrno;
 	return NULL;
@@ -461,6 +465,7 @@ pmemobj_close(PMEMobjpool *pop)
 	if ((errno = lane_cleanup(pop)) != 0)
 		ERR("!lane_cleanup");
 
+	VALGRIND_REMOVE_PMEM_MAPPING(pop->addr, pop->size);
 	util_unmap(pop->addr, pop->size);
 }
 
