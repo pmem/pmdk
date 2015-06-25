@@ -106,10 +106,10 @@ runtest() {
 				then
 					echo "(in ./$1) TEST=$testtype FS=$fs BUILD=$build ./$runscript"
 				# set timeout for "check" tests
-				elif [ "$testtype" = "check" ]
+				elif [ "$use_timeout" -a "$testtype" = "check" ]
 				then
 					[ "$verbose" ] && echo "RUNTESTS: Running: (in ./$1) TEST=$testtype FS=$fs BUILD=$build ./$runscript"
-					TEST=$testtype FS=$fs BUILD=$build timeout $killopt $time ./$runscript
+					TEST=$testtype FS=$fs BUILD=$build timeout --foreground $killopt $time ./$runscript
 				else
 					[ "$verbose" ] && echo "RUNTESTS: Running: (in ./$1) TEST=$testtype FS=$fs BUILD=$build ./$runscript"
 					TEST=$testtype FS=$fs BUILD=$build ./$runscript
@@ -153,6 +153,7 @@ fstype=all
 testconfig="./testconfig.sh"
 killopt="-k 10s"
 time='3m'
+use_timeout="ok"
 
 #
 # command-line argument processing...
@@ -233,9 +234,15 @@ done
 echo RUNTESTS: test-type: $testtype
 
 # check if timeout supports "-k" option
-timeout -k 0s echo 2>/dev/null
-if [ $? ]; then
+timeout -k 1s 1s true &>/dev/null
+if [ $? != 0 ]; then
 	unset killopt
+fi
+
+# check if timeout can be run in the foreground
+timeout --foreground 1s true &>/dev/null
+if [ $? != 0 ]; then
+	unset use_timeout
 fi
 
 if [ "$1" ]; then
