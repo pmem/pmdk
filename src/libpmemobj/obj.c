@@ -522,7 +522,14 @@ pmemobj_check(const char *path, const char *layout)
 void *
 pmemobj_direct(PMEMoid oid)
 {
-	return cuckoo_get(pools, oid.pool_uuid_lo) + oid.off;
+	if (oid.off == 0)
+		return NULL;
+
+	void *p = cuckoo_get(pools, oid.pool_uuid_lo);
+	if (p == NULL)
+		return NULL;
+
+	return p + oid.off;
 }
 
 /* arguments for constructor_alloc_bytype */

@@ -51,6 +51,7 @@ main(int argc, char *argv[])
 
 	int npools = atoi(argv[2]);
 	const char *dir = argv[1];
+	int r;
 
 	PMEMobjpool *pops[npools];
 
@@ -65,18 +66,32 @@ main(int argc, char *argv[])
 	}
 
 	PMEMoid oids[npools];
+	PMEMoid tmpoids[npools];
+
+	oids[0] = OID_NULL;
+	ASSERTeq(pmemobj_direct(oids[0]), NULL);
 
 	for (int i = 0; i < npools; ++i) {
 		oids[i] = (PMEMoid) {pops[i]->uuid_lo, 0};
-		ASSERT(pmemobj_direct(oids[i]) == pops[i]);
+		ASSERTeq(pmemobj_direct(oids[i]), NULL);
+
+		oids[i] = (PMEMoid) {pops[i]->uuid_lo, 1};
+		ASSERTeq(pmemobj_direct(oids[i]) - 1, pops[i]);
+
+		r = pmemobj_alloc(pops[i], &tmpoids[i], 100, 1, NULL, NULL);
+		ASSERTeq(r, 0);
 	}
 
 	for (int i = 0; i < npools; ++i) {
+		ASSERTne(pmemobj_direct(tmpoids[i]), NULL);
+
+		pmemobj_free(&tmpoids[i]);
+
+		ASSERTeq(pmemobj_direct(tmpoids[i]), NULL);
+
 		pmemobj_close(pops[i]);
-	}
 
-	for (int i = 0; i < npools; ++i) {
-		ASSERT(pmemobj_direct(oids[i]) == NULL);
+		ASSERTeq(pmemobj_direct(oids[i]), NULL);
 	}
 
 	DONE(NULL);
