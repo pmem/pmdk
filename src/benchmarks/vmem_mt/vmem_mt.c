@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright (c) 2014-2015, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -327,7 +327,7 @@ main(int argc, char *argv[])
 		fails += run_threads(&arguments, tasks[i],
 			per_thread_args, arg, &task_duration);
 		printf("%f;%f;",
-			task_duration, arguments.ops_count/task_duration);
+			task_duration, arguments.ops_count / task_duration);
 	}
 
 	printf("\n");

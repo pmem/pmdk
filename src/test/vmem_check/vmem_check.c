@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright (c) 2014-2015, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -55,7 +55,7 @@ main(int argc, char *argv[])
 
 	if (dir == NULL) {
 		/* allocate memory for function vmem_create_in_region() */
-		mem_pool = MMAP(NULL, VMEM_MIN_POOL*2, PROT_READ|PROT_WRITE,
+		mem_pool = MMAP(NULL, VMEM_MIN_POOL * 2, PROT_READ|PROT_WRITE,
 					MAP_ANONYMOUS|MAP_PRIVATE, -1, 0);
 
 		vmp = vmem_create_in_region(mem_pool, VMEM_MIN_POOL);
@@ -73,7 +73,7 @@ main(int argc, char *argv[])
 	if (dir == NULL) {
 		unsigned long Pagesize = (unsigned long) sysconf(_SC_PAGESIZE);
 		void *mem_pool2 = (void *)(((uintptr_t)mem_pool +
-			VMEM_MIN_POOL/2) & ~(Pagesize-1));
+			VMEM_MIN_POOL / 2) & ~(Pagesize - 1));
 
 		VMEM *vmp2 = vmem_create_in_region(mem_pool2,
 			VMEM_MIN_POOL);

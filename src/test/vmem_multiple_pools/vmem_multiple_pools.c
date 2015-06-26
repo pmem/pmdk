@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright (c) 2014-2015, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -44,7 +44,7 @@
 int
 main(int argc, char *argv[])
 {
-	const unsigned mem_pools_size = TEST_POOLS_MAX/2 + TEST_POOLS_MAX%2;
+	const unsigned mem_pools_size = TEST_POOLS_MAX / 2 + TEST_POOLS_MAX % 2;
 	char *mem_pools[mem_pools_size];
 	VMEM *pools[TEST_POOLS_MAX];
 

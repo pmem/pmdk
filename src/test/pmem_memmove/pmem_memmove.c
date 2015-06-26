@@ -91,12 +91,12 @@ do_memmove(int fd, void *dest, void *src, char *file_name, off_t dest_off,
 
 	memset(buf, 0, bytes);
 	memset(src1, 0, bytes);
-	memset(src, 0x5A, bytes/4);
-	memset(src + bytes/4, 0x54, bytes/4);
+	memset(src, 0x5A, bytes / 4);
+	memset(src + bytes / 4, 0x54, bytes / 4);
 
 	/* dest == src */
 	old = *(char *)(dest + dest_off);
-	ret = pmem_memmove_persist(dest + dest_off, dest + dest_off, bytes/2);
+	ret = pmem_memmove_persist(dest + dest_off, dest + dest_off, bytes / 2);
 	ASSERTeq(ret, dest + dest_off);
 	ASSERTeq(*(char *)(dest + dest_off), old);
 
@@ -111,14 +111,14 @@ do_memmove(int fd, void *dest, void *src, char *file_name, off_t dest_off,
 	 * src contents will be changed in the case of overlapping
 	 * addresses.
 	 */
-	memcpy(src1, src, bytes/2);
-	ret = pmem_memmove_persist(dest + dest_off, src + src_off, bytes/2);
+	memcpy(src1, src, bytes / 2);
+	ret = pmem_memmove_persist(dest + dest_off, src + src_off, bytes / 2);
 	ASSERTeq(ret, dest + dest_off);
 
 	/* memcmp will validate that what I expect in memory. */
-	if (memcmp(src1 + src_off, dest + dest_off, bytes/2))
+	if (memcmp(src1 + src_off, dest + dest_off, bytes / 2))
 		ERR("%s: %zu bytes do not match with memcmp",
-			file_name, bytes/2);
+			file_name, bytes / 2);
 
 	/*
 	 * This is a special case. An overlapping dest means that
@@ -131,17 +131,17 @@ do_memmove(int fd, void *dest, void *src, char *file_name, off_t dest_off,
 	 */
 	if (dest > src && off != 0) {
 		LSEEK(fd, (off_t)dest_off + off, SEEK_SET);
-		if (READ(fd, buf, bytes/2) == bytes/2) {
-			if (memcmp(src1 + src_off, buf, bytes/2))
+		if (READ(fd, buf, bytes / 2) == bytes / 2) {
+			if (memcmp(src1 + src_off, buf, bytes / 2))
 				ERR("%s: first %zu bytes do not match",
-					file_name, bytes/2);
+					file_name, bytes / 2);
 		}
 	} else {
 		LSEEK(fd, (off_t)dest_off, SEEK_SET);
-		if (READ(fd, buf, bytes/2) == bytes/2) {
-			if (memcmp(src1 + src_off, buf, bytes/2))
+		if (READ(fd, buf, bytes / 2) == bytes / 2) {
+			if (memcmp(src1 + src_off, buf, bytes / 2))
 				ERR("%s: first %zu bytes do not match",
-					file_name, bytes/2);
+					file_name, bytes / 2);
 		}
 	}
 }

@@ -198,7 +198,7 @@ pmemspoil_parse_field(char *str, struct field *fieldp)
 		if (secstr)
 			free(secstr);
 
-		return f+1;
+		return f + 1;
 	}
 
 	return NULL;

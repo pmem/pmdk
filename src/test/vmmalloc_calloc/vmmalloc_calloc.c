@@ -40,7 +40,7 @@
 #include "jemalloc/internal/jemalloc_internal.h"
 #include "jemalloc/internal/size_classes.h"
 
-#define	DEFAULT_COUNT	(SMALL_MAXCLASS/4)
+#define	DEFAULT_COUNT	(SMALL_MAXCLASS / 4)
 #define	DEFAULT_N	100
 
 int
