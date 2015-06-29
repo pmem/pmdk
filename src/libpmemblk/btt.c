@@ -35,18 +35,18 @@
  *
  * This is a user-space implementation of the BTT mechanism providing
  * single block powerfail write atomicity, as described by:
- * 	The NVDIMM Namespace Specification
+ *	The NVDIMM Namespace Specification
  *
  * To use this module, the caller must provide five routines for
  * accessing the namespace containing the data (in this context,
  * "namespace" refers to the storage containing the BTT layout, such
  * as a file).  All namespace I/O is done by these callbacks:
  *
- * 	nsread	Read count bytes from namespace at offset off
- * 	nswrite	Write count bytes to namespace at offset off
- * 	nszero	Zero count bytes in namespace at offset off
- * 	nsmap	Return direct access to a range of a namespace
- * 	nssync	Flush changes made to an nsmap'd range
+ *	nsread	Read count bytes from namespace at offset off
+ *	nswrite	Write count bytes to namespace at offset off
+ *	nszero	Zero count bytes in namespace at offset off
+ *	nsmap	Return direct access to a range of a namespace
+ *	nssync	Flush changes made to an nsmap'd range
  *
  * Data written by the nswrite callback is flushed out to the media
  * (made durable) when the call returns.  Data written directly via
@@ -90,13 +90,13 @@
  *				read_flogs
  *				read_flog_pair
  *
- * 	write_layout	Generates a new BTT layout when one doesn't exist.
- * 			Once a new layout is written, write_layout uses
- * 			the same helper functions above to construct the
- * 			run-time state.
+ *	write_layout	Generates a new BTT layout when one doesn't exist.
+ *			Once a new layout is written, write_layout uses
+ *			the same helper functions above to construct the
+ *			run-time state.
  *
- * 	invalid_lba	Range check done by each entry point that takes
- * 			an LBA.
+ *	invalid_lba	Range check done by each entry point that takes
+ *			an LBA.
  *
  *	lba_to_arena_lba
  *			Find the arena and LBA in that arena for a given
@@ -263,7 +263,7 @@ static const struct btt_flog Zflog;
  * the 2-bit numbers that cycle between 01, 10, and 11.
  *
  * To advance a sequence number to the next number, use something like:
- * 	seq = NSEQ(seq);
+ *	seq = NSEQ(seq);
  */
 static const unsigned Nseq[] = { 0, 2, 3, 1 };
 #define	NSEQ(seq) (Nseq[(seq) & 3])
@@ -441,10 +441,10 @@ read_flog_pair(struct btt *bttp, int lane, struct arena *arenap,
 
 	/*
 	 * Interesting cases:
-	 * 	- no valid seq numbers:  layout consistency error
-	 * 	- one valid seq number:  that's the current entry
-	 * 	- two valid seq numbers: higher number is current entry
-	 * 	- identical seq numbers: layout consistency error
+	 *	- no valid seq numbers:  layout consistency error
+	 *	- one valid seq number:  that's the current entry
+	 *	- two valid seq numbers: higher number is current entry
+	 *	- identical seq numbers: layout consistency error
 	 */
 	struct btt_flog *currentp;
 	if (flog_pair[0].seq == flog_pair[1].seq) {
@@ -1290,9 +1290,9 @@ btt_init(uint64_t rawsize, uint32_t lbasize, uint8_t parent_uuid[],
 	 *
 	 * Whether read_layout() finds a valid layout or not, it finishes
 	 * updating these layout-related fields:
-	 * 	bttp->nfree
-	 * 	bttp->nlba
-	 * 	bttp->narena
+	 *	bttp->nfree
+	 *	bttp->nlba
+	 *	bttp->narena
 	 * since these fields are used even before a valid layout it written.
 	 */
 	if (read_layout(bttp, 0) < 0) {

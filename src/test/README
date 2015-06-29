@@ -180,14 +180,14 @@ author creates a file called out0.log.match and commits that into the repo.
 The match script provides several pattern-matching macros that allow for normal
 variation in the test output:
 
- 	$(N)	an integer (i.e. one or more decimal digits)
- 	$(FP)	a floating point number
+	$(N)	an integer (i.e. one or more decimal digits)
+	$(FP)	a floating point number
 	$(S)	ascii string
 	$(X)	hex number
 	$(W)	whitespace
 	$(nW)	non-whitespace
 	$(*)	any string
- 	$(DD)	output of a "dd" run
+	$(DD)	output of a "dd" run
 	$(OPT)	the entire line is optional
 
 The small C programs used for unit testing are designed to not worry about the

@@ -17,7 +17,7 @@ during an update.  To run this example, follow these steps:
    file system.  For example, if /pmem is the mount point for a
    pmem-aware file system:
 
-   	$ fallocate -l 1G /pmem/assetdb
+	$ fallocate -l 1G /pmem/assetdb
 
 2. Load up the assets from a list of assets, which is just a simple text
    file containing asset description strings, one per line:

@@ -76,7 +76,7 @@
  * (by choosing to depend on ADR, or by assuming responsibility to issue
  * PCOMMIT/SFENCE at some point):
  *
- * 	Same as above flows but omit the final PCOMMIT and SFENCE.
+ *	Same as above flows but omit the final PCOMMIT and SFENCE.
  *
  * To memcpy a range of memory to pmem when MOVNT is available:
  *
@@ -142,25 +142,25 @@
  *
  * pmem_memmove_nodrain()
  *
- * 	Checks for overlapped ranges to determine whether to copy from
- * 	the beginning of the range or from the end.  If MOVNT instructions
- * 	are available, uses the memory copy flow described above, otherwise
- * 	calls the libc memmove() followed by pmem_flush().
+ *	Checks for overlapped ranges to determine whether to copy from
+ *	the beginning of the range or from the end.  If MOVNT instructions
+ *	are available, uses the memory copy flow described above, otherwise
+ *	calls the libc memmove() followed by pmem_flush().
  *
  * pmem_memcpy_nodrain()
  *
- * 	Just calls pmem_memmove_nodrain().
+ *	Just calls pmem_memmove_nodrain().
  *
  * pmem_memset_nodrain()
  *
- * 	If MOVNT instructions are available, uses the memset flow described
- * 	above, otherwise calls the libc memset() followed by pmem_flush().
+ *	If MOVNT instructions are available, uses the memset flow described
+ *	above, otherwise calls the libc memset() followed by pmem_flush().
  *
  * pmem_memmove_persist()
  * pmem_memcpy_persist()
  * pmem_memset_persist()
  *
- * 	Calls the appropriate _nodrain() function followed by pmem_drain().
+ *	Calls the appropriate _nodrain() function followed by pmem_drain().
  *
  *
  * DECISIONS MADE AT INITIALIZATION TIME
@@ -169,9 +169,9 @@
  * initialization time.  This is achieved using function pointers that are
  * setup by pmem_init() when the library loads.
  *
- * 	Func_predrain_fence is used by pmem_drain() to call one of:
- * 		predrain_fence_empty()
- * 		predrain_fence_sfence()
+ *	Func_predrain_fence is used by pmem_drain() to call one of:
+ *		predrain_fence_empty()
+ *		predrain_fence_sfence()
  *
  *	Func_drain is used by pmem_drain() to call one of:
  *		drain_no_pcommit()

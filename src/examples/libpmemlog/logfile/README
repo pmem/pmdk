@@ -13,7 +13,7 @@ simple log file using libpmemlog.  To run this example, follow these steps:
    file system.  For example, if /pmem is the mount point for a
    pmem-aware file system:
 
-   	$ fallocate -l 1G /pmem/logfile
+	$ fallocate -l 1G /pmem/logfile
 
 2. Append to the log file as many times as you like:
 
@@ -28,4 +28,4 @@ simple log file using libpmemlog.  To run this example, follow these steps:
 4. The printlog command will throw away the current log file contents
    after printing it if given the -t argument:
 
-   	$ printlog -t /pmem/logfile
+	$ printlog -t /pmem/logfile

@@ -96,11 +96,11 @@ const char *vmem_check_version(
  *
  * The print_func is called by libvmem based on the environment
  * variable VMEM_LOG_LEVEL:
- * 	0 or unset: print_func is only called for vmem_stats_print()
- * 	1:          additional details are logged when errors are returned
- * 	2:          basic operations (allocations/frees) are logged
- * 	3:          produce very verbose tracing of function calls in libvmem
- * 	4:          also log obscure stuff used to debug the library itself
+ *	0 or unset: print_func is only called for vmem_stats_print()
+ *	1:          additional details are logged when errors are returned
+ *	2:          basic operations (allocations/frees) are logged
+ *	3:          produce very verbose tracing of function calls in libvmem
+ *	4:          also log obscure stuff used to debug the library itself
  *
  * The default print_func prints to stderr.  Applications can override this
  * by setting the environment variable VMEM_LOG_FILE, or by supplying a

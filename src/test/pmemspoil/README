@@ -10,7 +10,7 @@ single field in all structures used by NVML library.
 Usage:
 	$ pmemspoil <file> <field>=<value>...
 
-<file> 		- pool file
+<file>		- pool file
 <field>		- name of field in structure to modify
 <value>		- new value, for numerical fields you can use either decimal or
 		  hexadecimal format with 0x prefix.
