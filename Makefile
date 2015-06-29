@@ -82,7 +82,9 @@ test check: all
 
 cstyle:
 	$(MAKE) -C src $@
-	@utils/check_whitespace.sh
+	@echo Checking files for whitespace issues...
+	@utils/check_whitespace
+	@echo Done.
 
 source:
 	$(if $(shell git rev-parse 2>&1), $(error Not a git repository))
