@@ -175,3 +175,15 @@ ut_mmap_anon_aligned(const char *file, int line, const char *func,
 
 	return d_aligned;
 }
+
+/*
+ * ut_munmap_anon_aligned -- unmaps anonymous memory allocated by
+ *                           ut_mmap_anon_aligned
+ */
+int
+ut_munmap_anon_aligned(const char *file, int line, const char *func,
+    void *start, size_t size)
+{
+	return ut_munmap(file, line, func, start - Pagesize,
+			size + 2 * Pagesize);
+}

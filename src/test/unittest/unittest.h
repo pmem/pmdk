@@ -205,6 +205,8 @@ void *ut_memalign(const char *file, int line, const char *func,
     size_t alignment, size_t size);
 void *ut_mmap_anon_aligned(const char *file, int line, const char *func,
     size_t alignment, size_t size);
+int ut_munmap_anon_aligned(const char *file, int line, const char *func,
+    void *start, size_t size);
 
 /* a malloc() that can't return NULL */
 #define	MALLOC(size)\
@@ -243,6 +245,9 @@ void *ut_mmap_anon_aligned(const char *file, int line, const char *func,
  */
 #define	MMAP_ANON_ALIGNED(size, alignment)\
     ut_mmap_anon_aligned(__FILE__, __LINE__, __func__, alignment, size)
+
+#define	MUNMAP_ANON_ALIGNED(start, size)\
+    ut_munmap_anon_aligned(__FILE__, __LINE__, __func__, start, size)
 
 /*
  * file operations
