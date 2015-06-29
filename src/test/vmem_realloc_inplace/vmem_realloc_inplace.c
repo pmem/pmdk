@@ -38,31 +38,6 @@
 
 #include "unittest.h"
 
-static void *
-allocate_aligned(size_t size, size_t alignment)
-{
-	void *d = MMAP(NULL, size + 2 * alignment, PROT_READ|PROT_WRITE,
-				MAP_ANONYMOUS|MAP_PRIVATE, -1, 0);
-	uintptr_t di = (uintptr_t)d;
-	uintptr_t di_aligned = (di + alignment - 1) & ~(alignment - 1);
-	int r;
-	size_t sz;
-
-	sz = di_aligned - di;
-	if (sz) {
-		r = MUNMAP(d, sz);
-		ASSERTeq(r, 0);
-	}
-
-	sz = di + size + 2 * alignment - (di_aligned + size);
-	if (sz) {
-		r = MUNMAP((void *)di_aligned + size, sz);
-		ASSERTeq(r, 0);
-	}
-
-	return (void *)di_aligned;
-}
-
 #define	POOL_SIZE 16 * 1024 * 1024
 
 int
@@ -82,7 +57,7 @@ main(int argc, char *argv[])
 
 	if (dir == NULL) {
 		/* allocate memory for function vmem_create_in_region() */
-		mem_pool = allocate_aligned(POOL_SIZE, 4 << 20);
+		mem_pool = MMAP_ANON_ALIGNED(POOL_SIZE, 4 << 20);
 		vmp = vmem_create_in_region(mem_pool, POOL_SIZE);
 		if (vmp == NULL)
 			FATAL("!vmem_create_in_region");

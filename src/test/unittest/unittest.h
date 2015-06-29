@@ -203,6 +203,8 @@ void *ut_pagealignmalloc(const char *file, int line, const char *func,
     size_t size);
 void *ut_memalign(const char *file, int line, const char *func,
     size_t alignment, size_t size);
+void *ut_mmap_anon_aligned(const char *file, int line, const char *func,
+    size_t alignment, size_t size);
 
 /* a malloc() that can't return NULL */
 #define	MALLOC(size)\
@@ -235,6 +237,12 @@ void *ut_memalign(const char *file, int line, const char *func,
 #define	MEMALIGN(alignment, size)\
     ut_memalign(__FILE__, __LINE__, __func__, alignment, size)
 
+/*
+ * A mmap() that returns anonymous memory with given alignment and guard
+ * pages.
+ */
+#define	MMAP_ANON_ALIGNED(size, alignment)\
+    ut_mmap_anon_aligned(__FILE__, __LINE__, __func__, alignment, size)
 
 /*
  * file operations
