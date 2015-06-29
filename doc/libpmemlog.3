@@ -37,7 +37,7 @@
 .\" or
 .\"	groff -man -Tascii libpmemlog.3
 .\"
-.TH libpmemlog 3 "pmemlog API version 0.8.1" "NVM Library"
+.TH libpmemlog 3 "pmemlog API version 0.8.2" "NVM Library"
 .SH NAME
 libpmemlog \- persistent memory resident log file
 .SH SYNOPSIS
@@ -171,7 +171,7 @@ when using the log memory API provided by
 .BI "PMEMlogpool *pmemlog_open(const char *" path );
 .IP
 The
-.B pmemlog_open ()
+.BR pmemlog_open ()
 function opens an existing log memory pool,
 returning a memory pool handle used with most of the functions in this section.
 .I path

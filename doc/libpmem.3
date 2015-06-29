@@ -37,7 +37,7 @@
 .\" or
 .\"	groff -man -Tascii libpmem.3
 .\"
-.TH libpmem 3 "pmem API version 0.8.3" "NVM Library"
+.TH libpmem 3 "pmem API version 0.8.4" "NVM Library"
 .SH NAME
 libpmem \- persistent memory support library
 .SH SYNOPSIS
@@ -173,7 +173,7 @@ returns false may not do anything useful -- use
 .BR msync (2)
 instead.
 .PP
-.BI "void pmem_persist(void *" addr ", size_t " len " );
+.BI "void pmem_persist(void *" addr ", size_t " len );
 .IP
 Force any changes in the range
 .IR "" [ addr ", " addr + len )
@@ -208,7 +208,7 @@ before
 .BR pmem_persist ()
 is called.
 .PP
-.BI "int pmem_msync(void *" addr ", size_t " len " );
+.BI "int pmem_msync(void *" addr ", size_t " len );
 .IP
 The function
 .BR pmem_msync ()
@@ -361,7 +361,9 @@ features such as Asynchronous DRAM Refresh (ADR) or something similar.
 The functions in this section provide optimized copying to
 persistent memory.
 .PP
-.BI "void *pmem_memmove_persist(void *" pmemdest ", const void *" src ", size_t " len );
+.BI "void *pmem_memmove_persist(void *" pmemdest ", const void *" src ,
+.br
+.BI "    size_t " len );
 .br
 .BI "void *pmem_memcpy_persist(void *" pmemdest ", const void *" src ", size_t " len );
 .br
@@ -373,10 +375,10 @@ The
 and
 .BR pmem_memset_persist (),
 functions provide the same memory copying as their namesakes
-.BR memmove(3)
-.BR memcpy(3),
+.BR memmove (3)
+.BR memcpy (3),
 and
-.BR memset(3),
+.BR memset (3),
 and ensure that the result has been flushed to persistence before
 returning.  For example, the following code is functionally equivalent to
 .BR pmem_memmove_persist ():
@@ -408,7 +410,9 @@ WARNING: Using these functions where
 returns false may not do anything useful.
 Use the normal libc functions in that case.
 .PP
-.BI "void *pmem_memmove_nodrain(void *" pmemdest ", const void *" src ", size_t " len );
+.BI "void *pmem_memmove_nodrain(void *" pmemdest ", const void *" src ,
+.br
+.BI "    size_t " len );
 .br
 .BI "void *pmem_memcpy_nodrain(void *" pmemdest ", const void *" src ", size_t " len );
 .br
@@ -676,7 +680,7 @@ during library testing.
 .BI PMEM_MOVNT_THRESHOLD= val
 .IP
 This environment variable allows overriding the minimal length of
-.BR pmem_memcpy_* () ,
+.BR pmem_memcpy_* (),
 .BR pmem_memmove_* ()
 or
 .BR pmem_memset_* ()
