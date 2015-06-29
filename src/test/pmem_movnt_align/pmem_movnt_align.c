@@ -158,7 +158,7 @@ main(int argc, char *argv[])
 
 		/* check memmove in backward direction with unaligned begin */
 		for (s = 0; s < CACHELINE; s++)
-			check_memcpy(dst + s, src, N_BYTES - s);
+			check_memmove(dst + s, src, N_BYTES - s);
 
 		/*
 		 * check memmove in backward direction with unaligned begin
@@ -185,7 +185,7 @@ main(int argc, char *argv[])
 
 		/* check memmove in forward direction with unaligned begin */
 		for (s = 0; s < CACHELINE; s++)
-			check_memcpy(dst + s, src, N_BYTES - s);
+			check_memmove(dst + s, src, N_BYTES - s);
 
 		/*
 		 * check memmove in forward direction with unaligned begin
