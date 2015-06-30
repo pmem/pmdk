@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright (c) 2014-2015, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -40,7 +40,7 @@
 #include "jemalloc/internal/jemalloc_internal.h"
 #include "jemalloc/internal/size_classes.h"
 
-#define	DEFAULT_COUNT	(SMALL_MAXCLASS/4)
+#define	DEFAULT_COUNT	(SMALL_MAXCLASS / 4)
 #define	DEFAULT_N	100
 
 void

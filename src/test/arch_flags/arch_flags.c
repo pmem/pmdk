@@ -172,7 +172,7 @@ main(int argc, char *argv[])
 		FATAL_USAGE();
 
 	int i;
-	for (i = 1; i < argc-1; i += 2) {
+	for (i = 1; i < argc - 1; i += 2) {
 		char *arg1 = argv[i];
 		char *arg2 = argv[i + 1];
 		int ret;

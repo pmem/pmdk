@@ -517,6 +517,33 @@ line: while (<$filehandle>) {
 
 	# following checks do not apply to text in comments.
 
+	if (/[^ \t\+]\+[^\+=]/ || /[^\+]\+[^ \+=]/) {
+		err("missing space around + operator");
+	}
+	if (/[^ \t]\+=/ || /\+=[^ ]/) {
+		err("missing space around += operator");
+	}
+	if (/[^ \t\-]\-[^\->]/ && !/\(\w+\)\-\w/ && !/\(\-\w+.*\)/) {
+		err("missing space before - operator");
+	}
+	if (/[^\-]\-[^ \-=>\d]/ && !/\(\-\w+\)/) {
+		err("missing space after - operator");
+	}
+	if (/[^ \t]\-=/ || /\-=[^ ]/) {
+		err("missing space around -= operator");
+	}
+	if (/[^ \t][\%\/]/ || /[\%\/][^ =]/ || /[\%\/]=[^ ]/) {
+		err("missing space around one of operators: % %= / /=");
+	}
+	if (/[^ \t]\*=/ || /\*=[^ ]/) {
+		err("missing space around *= operator");
+	}
+	if (/[^ \t\(\)\*\[]\*/) {
+		err("missing space before * operator");
+	}
+	if (/\*[^ =\*\w\(,]/ && !/\(.+ \*+\)/ && !/\*\[\]/) {
+		err("missing space after * operator");
+	}
 	if (/[^<>\s][!<>=]=/ || /[^<>][!<>=]=[^\s,]/ ||
 	    (/[^->]>[^,=>\s]/ && !/[^->]>$/) ||
 	    (/[^<]<[^,=<\s]/ && !/[^<]<$/) ||

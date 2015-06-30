@@ -326,7 +326,7 @@ pmemlog_walk(PMEMlogpool *plp, size_t chunksize,
 static int
 process_chunk(const void *buf, size_t len, void *arg)
 {
-	char tmp[len+1];
+	char tmp[len + 1];
 
 	memcpy(tmp, buf, len);
 	tmp[len] = '\0';

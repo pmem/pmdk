@@ -1631,9 +1631,9 @@ pmempool_check_arena_map_flog(struct pmempool_check *pcp,
 		}
 
 		struct btt_flog *flog_alpha = (struct btt_flog *)(arenap->flog +
-				inval*BTT_FLOG_PAIR_ALIGN);
+				inval * BTT_FLOG_PAIR_ALIGN);
 		struct btt_flog *flog_beta = (struct btt_flog *)(arenap->flog +
-				inval*BTT_FLOG_PAIR_ALIGN +
+				inval * BTT_FLOG_PAIR_ALIGN +
 				sizeof (struct btt_flog));
 		memset(flog_beta, 0, sizeof (*flog_beta));
 		uint32_t entry = unmap | BTT_MAP_ENTRY_ERROR;

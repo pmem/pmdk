@@ -238,7 +238,7 @@
 #define	DWORD_MASK	(DWORD_SIZE - 1)
 
 #define	MOVNT_SIZE	16
-#define	MOVNT_MASK	(MOVNT_SIZE -1)
+#define	MOVNT_MASK	(MOVNT_SIZE - 1)
 #define	MOVNT_SHIFT	4
 
 #define	MOVNT_THRESHOLD	256

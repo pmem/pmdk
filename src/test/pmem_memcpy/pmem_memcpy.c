@@ -89,11 +89,11 @@ do_memcpy(int fd, void *dest, int dest_off, void *src, int src_off,
 	memset(dest, 0, bytes);
 	memset(src, 0, bytes);
 
-	memset(src, 0x5A, bytes/4);
-	memset(src + bytes/4, 0x46, bytes/4);
+	memset(src, 0x5A, bytes / 4);
+	memset(src + bytes / 4, 0x46, bytes / 4);
 
 	/* dest == src */
-	ret = pmem_memcpy_persist(dest + dest_off, dest + dest_off, bytes/2);
+	ret = pmem_memcpy_persist(dest + dest_off, dest + dest_off, bytes / 2);
 	ASSERTeq(ret, dest + dest_off);
 	ASSERTeq(*(char *)(dest + dest_off), 0);
 
@@ -102,20 +102,20 @@ do_memcpy(int fd, void *dest, int dest_off, void *src, int src_off,
 	ASSERTeq(ret, dest + dest_off);
 	ASSERTeq(*(char *)(dest + dest_off), 0);
 
-	ret = pmem_memcpy_persist(dest + dest_off, src + src_off, bytes/2);
+	ret = pmem_memcpy_persist(dest + dest_off, src + src_off, bytes / 2);
 	ASSERTeq(ret, dest + dest_off);
 
 	/* memcmp will validate that what I expect in memory. */
-	if (memcmp(src + src_off, dest + dest_off, bytes/2))
+	if (memcmp(src + src_off, dest + dest_off, bytes / 2))
 		ERR("%s: first %zu bytes do not match",
-			file_name, bytes/2);
+			file_name, bytes / 2);
 
 	/* Now validate the contents of the file */
 	LSEEK(fd, (off_t)dest_off, SEEK_SET);
-	if (READ(fd, buf, bytes/2) == bytes/2) {
-		if (memcmp(src + src_off, buf, bytes/2))
+	if (READ(fd, buf, bytes / 2) == bytes / 2) {
+		if (memcmp(src + src_off, buf, bytes / 2))
 			ERR("%s: first %zu bytes do not match",
-				file_name, bytes/2);
+				file_name, bytes / 2);
 	}
 }
 

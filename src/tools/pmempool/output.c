@@ -316,12 +316,12 @@ out_get_hex_str(char *str, size_t str_len, const uint8_t *datap, size_t len)
 	int c = 0;
 	int i;
 
-	if (str_len < (3*len + 1))
+	if (str_len < (3 * len + 1))
 		return -1;
 
 	for (i = 0; i < len; i++) {
 		/* add space after n*8 byte */
-		if (i && (i%8) == 0)
+		if (i && (i % 8) == 0)
 			c += snprintf(str + c, str_len - c, " ");
 		c += snprintf(str + c, str_len - c, "%02x ", datap[i]);
 	}
@@ -377,7 +377,7 @@ outv_hexdump(int vlevel, const void *addr, size_t len, size_t offset, int sep)
 
 			if (ra && rh)
 				n = fprintf(out_fh, "%08lx  %-*s|%-*s|\n",
-					curr+offset,
+					curr + offset,
 					HEXDUMP_ROW_HEX_LEN, row_hex_str,
 					HEXDUMP_ROW_WIDTH, row_ascii_str);
 			prev = curr;

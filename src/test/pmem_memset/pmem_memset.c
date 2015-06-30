@@ -74,8 +74,8 @@ main(int argc, char *argv[])
 	 * persistent memset will match the file but may not be the
 	 * correct or expected value.
 	 */
-	memset(dest1 + dest_off, 0x5A, bytes/4);
-	memset(dest1 + dest_off  + (bytes/4), 0x46, bytes/4);
+	memset(dest1 + dest_off, 0x5A, bytes / 4);
+	memset(dest1 + dest_off  + (bytes / 4), 0x46, bytes / 4);
 
 	/* Test the corner cases */
 	ret = pmem_memset_persist(dest + dest_off, 0x5A, 0);
@@ -85,20 +85,21 @@ main(int argc, char *argv[])
 	/*
 	 * Do the actual memset with persistence.
 	 */
-	ret = pmem_memset_persist(dest + dest_off, 0x5A, bytes/4);
+	ret = pmem_memset_persist(dest + dest_off, 0x5A, bytes / 4);
 	ASSERTeq(ret, dest + dest_off);
-	ret = pmem_memset_persist(dest + dest_off  + (bytes/4), 0x46, bytes/4);
-	ASSERTeq(ret, dest + dest_off + (bytes/4));
+	ret = pmem_memset_persist(dest + dest_off  + (bytes / 4),
+					0x46, bytes / 4);
+	ASSERTeq(ret, dest + dest_off + (bytes / 4));
 
-	if (memcmp(dest, dest1, bytes/2))
+	if (memcmp(dest, dest1, bytes / 2))
 		ERR("%s: first %zu bytes do not match",
-			argv[1], bytes/2);
+			argv[1], bytes / 2);
 
 	LSEEK(fd, (off_t)0, SEEK_SET);
-	if (READ(fd, buf, bytes/2) == bytes/2) {
-		if (memcmp(buf, dest, bytes/2))
+	if (READ(fd, buf, bytes / 2) == bytes / 2) {
+		if (memcmp(buf, dest, bytes / 2))
 			ERR("%s: first %zu bytes do not match",
-				argv[1], bytes/2);
+				argv[1], bytes / 2);
 	}
 	MUNMAP(dest, stbuf.st_size);
 

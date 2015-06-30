@@ -468,7 +468,7 @@ pmempool_info_log_data(struct pmem_info *pip, int v, struct pmemlog *plp)
 		LIST_FOREACH(curp, &pip->args.ranges.head, next) {
 			uint8_t *ptr = addr + curp->first;
 			if (curp->last >= size_used)
-				curp->last = size_used-1;
+				curp->last = size_used - 1;
 			uint64_t count = curp->last - curp->first + 1;
 			outv_hexdump(v, ptr, count, curp->first +
 					plp->start_offset, 1);
@@ -1148,7 +1148,7 @@ pmempool_info_file_all(struct pmem_info *pip)
 
 	for (i = 0; i < pip->args.n_files; i++) {
 		int fret = pmempool_info_file(pip, pip->args.files[i]);
-		if (pip->args.n_files > 1 && i != pip->args.n_files-1)
+		if (pip->args.n_files > 1 && i != pip->args.n_files - 1)
 			outv(1, "\n");
 		if (fret)
 			ret = -1;

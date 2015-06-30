@@ -303,8 +303,8 @@ void *pmemobj_direct(PMEMoid oid);
 
 #define	DIRECT_RW(o) (\
 {typeof((o)) _o; _o.oid = _o.oid;\
-(typeof(*(o)._type)*)pmemobj_direct((o).oid); })
-#define	DIRECT_RO(o) ((const typeof (*(o)._type)*)pmemobj_direct((o).oid))
+(typeof(*(o)._type) *)pmemobj_direct((o).oid); })
+#define	DIRECT_RO(o) ((const typeof(*(o)._type) *)pmemobj_direct((o).oid))
 
 #define	D_RW	DIRECT_RW
 #define	D_RO	DIRECT_RO

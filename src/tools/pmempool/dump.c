@@ -167,7 +167,7 @@ pmempool_dump_log_process_chunk(const void *buf, size_t len, void *arg)
 				continue;
 			uint8_t *ptr = (uint8_t *)buf + curp->first;
 			if (curp->last >= len)
-				curp->last = len-1;
+				curp->last = len - 1;
 			uint64_t count = curp->last - curp->first + 1;
 			if (pdp->hex) {
 				outv_hexdump(0, ptr, count, curp->first, 0);

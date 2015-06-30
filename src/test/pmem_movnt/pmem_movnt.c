@@ -70,7 +70,7 @@ main(int argc, char *argv[])
 		memset(dst, 0, 4096);
 		pmem_memset_nodrain(dst, 0x77, size);
 		ASSERTeq(dst[0], 0x77);
-		ASSERTeq(dst[size-1], 0x77);
+		ASSERTeq(dst[size - 1], 0x77);
 		ASSERTeq(dst[size], 0);
 	}
 
