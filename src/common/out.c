@@ -127,7 +127,7 @@ out_init(const char *log_prefix, const char *log_level_var,
 			fprintf(stderr, "Error (%s): %s=%s: %s\n",
 					log_prefix, log_file_var,
 					log_file, strerror(errno));
-			exit(1);
+			abort();
 		}
 	}
 #endif	/* DEBUG */
@@ -357,7 +357,7 @@ out_fatal(const char *file, int line, const char *func,
 
 	va_end(ap);
 
-	exit(1);
+	abort();
 }
 
 /*
