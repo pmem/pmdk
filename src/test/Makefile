@@ -82,7 +82,6 @@ TEST = blk_nblock\
        vmem_realloc_inplace\
        vmem_stats\
        vmem_strdup\
-       vmem_fork\
        vmem_valgrind\
        vmem_pages_purging\
        vmmalloc_calloc\
