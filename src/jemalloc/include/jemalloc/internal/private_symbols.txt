@@ -248,6 +248,9 @@ malloc_mutex_postfork_parent
 malloc_mutex_prefork
 malloc_mutex_unlock
 malloc_rwlock_init
+malloc_rwlock_postfork_child
+malloc_rwlock_postfork_parent
+malloc_rwlock_prefork
 malloc_rwlock_rdlock
 malloc_rwlock_wrlock
 malloc_rwlock_unlock
