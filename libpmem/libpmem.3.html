@@ -1,5 +1,5 @@
 <!-- Creator     : groff version 1.18.1.4 -->
-<!-- CreationDate: Wed Jun 24 06:55:15 2015 -->
+<!-- CreationDate: Tue Jun 30 07:14:47 2015 -->
 <html>
 <head>
 <meta name="generator" content="groff -Thtml, see www.gnu.org">
@@ -192,7 +192,7 @@ useful -- use <b>msync</b>(2) instead.</p>
 <td width="10%"></td>
 <td width="89%">
 <p><b>void pmem_persist(void *</b><i>addr</i><b>, size_t</b>
-<i>len</i> <b>);</b></p>
+<i>len</i><b>);</b></p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -227,7 +227,7 @@ any time before <b>pmem_persist</b>() is called.</p>
 <td width="10%"></td>
 <td width="89%">
 <p><b>int pmem_msync(void *</b><i>addr</i><b>, size_t</b>
-<i>len</i> <b>);</b></p>
+<i>len</i><b>);</b></p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -396,7 +396,7 @@ Asynchronous DRAM Refresh (ADR) or something similar.</p>
 to persistent memory.</p>
 <!-- INDENTATION -->
 <p><b>void *pmem_memmove_persist(void
-*</b><i>pmemdest</i><b>, const void *</b><i>src</i><b>,
+*</b><i>pmemdest</i><b>, const void *</b><i>src</i><b>,<br>
 size_t</b> <i>len</i><b>);<br>
 void *pmem_memcpy_persist(void *</b><i>pmemdest</i><b>,
 const void *</b><i>src</i><b>, size_t</b>
@@ -414,8 +414,8 @@ int</b> <i>c</i><b>, size_t</b> <i>len</i><b>);</b></p>
 <p>The <b>pmem_memmove_persist</b>(),
 <b>pmem_memcpy_persist</b>(), and
 <b>pmem_memset_persist</b>(), functions provide the same
-memory copying as their namesakes <b>memmove(3)
-memcpy(3),</b> and <b>memset(3),</b> and ensure that the
+memory copying as their namesakes <b>memmove</b>(3)
+<b>memcpy</b>(3), and <b>memset</b>(3), and ensure that the
 result has been flushed to persistence before returning. For
 example, the following code is functionally equivalent to
 <b>pmem_memmove_persist</b>():</p>
@@ -450,7 +450,7 @@ useful. Use the normal libc functions in that case.</p>
 <td width="10%"></td>
 <td width="89%">
 <p><b>void *pmem_memmove_nodrain(void
-*</b><i>pmemdest</i><b>, const void *</b><i>src</i><b>,
+*</b><i>pmemdest</i><b>, const void *</b><i>src</i><b>,<br>
 size_t</b> <i>len</i><b>);<br>
 void *pmem_memcpy_nodrain(void *</b><i>pmemdest</i><b>,
 const void *</b><i>src</i><b>, size_t</b>
@@ -845,7 +845,7 @@ intended for use during library testing.</p>
 <td width="20%"></td>
 <td width="79%">
 <p>This environment variable allows overriding the minimal
-length of <b>pmem_memcpy_*</b>()<b>, pmem_memmove_*</b>() or
+length of <b>pmem_memcpy_*</b>(), <b>pmem_memmove_*</b>() or
 <b>pmem_memset_*</b>() operations, for which <b>libpmem</b>
 uses <i>non-temporal</i> move instructions. Setting this
 environment variable to 0 forces <b>libpmem</b> to always
