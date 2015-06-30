@@ -312,7 +312,9 @@ pmemobj_map_common(int fd, const char *layout, size_t poolsize, int rdonly,
 	pmem_msync(&pop->run_id, sizeof (pop->run_id));
 
 	VALGRIND_REMOVE_PMEM_MAPPING(&pop->addr,
-			sizeof (struct pmemobjpool) - OBJ_DSC_P_SIZE);
+			sizeof (struct pmemobjpool) -
+			sizeof (struct pool_hdr) -
+			OBJ_DSC_P_SIZE);
 
 	/*
 	 * Use some of the memory pool area for run-time info.  This
