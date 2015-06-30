@@ -974,14 +974,14 @@ do_realloc(PMEMobjpool *pop, const char *arg)
 	if (sscanf(arg, "s:%d:%d:%d:%d:%d:%d", &n, &L, &N, &s, &id, &c) != 6)
 		FATAL_USAGE_REALLOC();
 
-	PMEMoid oid;
 	if (L == 1) {
-		oid = get_item_oob_list(List_oob.oid, n);
+		Item->oid = get_item_oob_list(List_oob.oid, n);
 	} else if (L == 2) {
-		oid = get_item_list(List.oid, n);
+		Item->oid = get_item_list(List.oid, n);
 	} else {
 		FATAL_USAGE_REALLOC();
 	}
+	Pop->persist(Item, sizeof (*Item));
 
 	if (N == 1) {
 		if (list_realloc(pop,
@@ -991,9 +991,9 @@ do_realloc(PMEMobjpool *pop, const char *arg)
 			s * sizeof (struct item),
 			c ? realloc_constructor : NULL,
 			c ? &id : NULL,
-			oid.off + offsetof(struct item, id),
+			Item->oid.off + offsetof(struct item, id),
 			id,
-			&oid)) {
+			(PMEMoid *)Item)) {
 			FATAL("list_realloc(List) failed");
 		}
 	} else if (N == 2) {
@@ -1004,16 +1004,16 @@ do_realloc(PMEMobjpool *pop, const char *arg)
 			s * sizeof (struct item),
 			c ? realloc_constructor : NULL,
 			c ? &id : NULL,
-			oid.off + offsetof(struct item, id),
+			Item->oid.off + offsetof(struct item, id),
 			id,
-			&oid)) {
+			(PMEMoid *)Item)) {
 			FATAL("list_realloc(List, List_oob) failed");
 		}
 	} else {
 		FATAL_USAGE_REALLOC();
 	}
 	TOID(struct item) item;
-	TOID_ASSIGN(item, oid);
+	TOID_ASSIGN(item, Item->oid);
 	OUT("realloc(id = %d)", D_RO(item)->id);
 }
 
@@ -1037,7 +1037,9 @@ do_realloc_move(PMEMobjpool *pop, const char *arg)
 		pe_offset = offsetof(struct item, next);
 		head = (struct list_head *)&D_RW(List)->head;
 	}
-	PMEMoid oid = get_item_oob_list(List_oob.oid, n);
+	Item->oid = get_item_oob_list(List_oob.oid, n);
+	Pop->persist(Item, sizeof (*Item));
+
 	if (list_realloc_move(pop,
 		(struct list_head *)&D_RW(List_oob)->head,
 		(struct list_head *)&D_RW(List_oob_sec)->head,
@@ -1046,13 +1048,13 @@ do_realloc_move(PMEMobjpool *pop, const char *arg)
 		s * sizeof (struct item),
 		c ? realloc_constructor : NULL,
 		c ? &id : NULL,
-		oid.off + offsetof(struct item, id),
+		Item->oid.off + offsetof(struct item, id),
 		id,
-		&oid)) {
+		(PMEMoid *)Item)) {
 		FATAL("list_realloc_move(List_oob, List_oob_sec) failed");
 	}
 	TOID(struct item) item;
-	TOID_ASSIGN(item, oid);
+	TOID_ASSIGN(item, Item->oid);
 	OUT("realloc_move(id = %d)", D_RO(item)->id);
 }
 
