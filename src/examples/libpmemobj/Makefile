@@ -33,7 +33,7 @@
 #
 # examples/libpmemobj/Makefile -- build the libpmemobj examples
 #
-PROGS = manpage btree
+PROGS = manpage btree pi
 DIRS = pminvaders pmemlog pmemblk string_store string_store_tx\
 	string_store_tx_type
 
@@ -41,7 +41,7 @@ INCDIR ?= ../../include
 LIBDIR ?= ../../debug
 
 INCS = -I$(INCDIR)
-LIBS = -Wl,-rpath=$(LIBDIR) -L$(LIBDIR) -lpmemobj -lpmem -pthread
+LIBS = -Wl,-rpath=$(LIBDIR) -L$(LIBDIR) -lpmemobj -lpmem -pthread -lm
 CFLAGS = -std=gnu99 -ggdb -Wall -Werror
 CSTYLE = ../../../utils/cstyle
 
@@ -70,6 +70,7 @@ $(PROGS):
 
 manpage: manpage.o
 btree: btree.o
+pi: pi.o
 
 $(DIRS):
 	$(MAKE) -C $@ $(TARGET)
