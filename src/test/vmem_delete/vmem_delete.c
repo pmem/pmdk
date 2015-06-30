@@ -66,8 +66,7 @@ main(int argc, char *argv[])
 		FATAL("usage: %s op:h|f|m|c|r|a|s|d", argv[0]);
 
 	/* allocate memory for function vmem_create_in_region() */
-	void *mem_pool = MMAP(NULL, VMEM_MIN_POOL, PROT_READ|PROT_WRITE,
-					MAP_ANONYMOUS|MAP_PRIVATE, -1, 0);
+	void *mem_pool = MMAP_ANON_ALIGNED(VMEM_MIN_POOL, 4 << 20);
 
 	vmp = vmem_create_in_region(mem_pool, VMEM_MIN_POOL);
 	if (vmp == NULL)

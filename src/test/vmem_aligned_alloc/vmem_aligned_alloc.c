@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright (c) 2014-2015, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -117,8 +117,7 @@ main(int argc, char *argv[])
 	}
 
 	/* allocate memory for function vmem_create_in_region() */
-	void *mem_pool = MMAP(NULL, VMEM_MIN_POOL, PROT_READ|PROT_WRITE,
-					MAP_ANONYMOUS|MAP_PRIVATE, -1, 0);
+	void *mem_pool = MMAP_ANON_ALIGNED(VMEM_MIN_POOL, 4 << 20);
 
 	/* use custom alloc functions to check for memory leaks */
 	vmem_set_funcs(malloc_custom, free_custom,

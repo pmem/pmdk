@@ -63,8 +63,7 @@ main(int argc, char *argv[])
 
 	for (pool_id = 0; pool_id < mem_pools_size; ++pool_id) {
 		/* allocate memory for function vmem_create_in_region() */
-		mem_pools[pool_id] = MMAP(NULL, VMEM_MIN_POOL,
-			PROT_READ|PROT_WRITE, MAP_ANONYMOUS|MAP_PRIVATE, -1, 0);
+		mem_pools[pool_id] = MMAP_ANON_ALIGNED(VMEM_MIN_POOL, 4 << 20);
 	}
 
 	for (repeat = 0; repeat < TEST_REPEAT_CREATE_POOLS; ++repeat) {
