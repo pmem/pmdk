@@ -14,6 +14,14 @@ interfaces provided.
 
 #### libpmemobj Examples
 
-**More Detail Coming Soon**
+The following series of blog articles provides a tutorial introduction
+to **libpmemobj**:
 
-<code data-gist-id='andyrudoff/b61e97186beffb1b0bea' data-gist-file='manpage.c' data-gist-line='37-71' data-gist-highlight-line='43' data-gist-hide-footer='true'></code>
+* [Part 0 - new programming model](http://pmem.io/2015/06/12/pmem-model.html)
+* [Part 1 - accessing the persistent memory](http://pmem.io/2015/06/13/accessing-pmem.html)
+* [Part 2 - transactions](http://pmem.io/2015/06/15/transactions.html)
+* [Part 3 - types](http://pmem.io/2015/06/16/types.html)
+* [Part 4 - transactional dynamic memory allocation](http://pmem.io/2015/06/17/tx-alloc.html)
+* [Part 5 - atomic dynamic memory allocation](http://pmem.io/2015/06/18/ntx-alloc.html)
+* [Part 6 - threading](http://pmem.io/2015/06/18/threads.html)
+* [Part 7 - persistent lists](http://pmem.io/2015/06/19/lists.html)
