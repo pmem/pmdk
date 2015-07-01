@@ -59,4 +59,6 @@ check_file $POOL
 check_signature PMEMLOG $POOL
 check_mode 555 $POOL
 
+rm -f $POOL
+
 pass

@@ -70,4 +70,7 @@ check_file $INHERIT
 check_signature PMEMLOG $INHERIT
 check_size $SIZE $INHERIT
 
+rm -f $POOL
+rm -f $INHERIT
+
 pass

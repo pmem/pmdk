@@ -54,6 +54,8 @@ NFLOG=$(expect_normal_exit $PMEMPOOL info -g $POOL | grep -o '^[0-9]\+:' | wc -l
 
 [[ $INFO_NFLOG == $NFLOG ]] || exit 1
 
+rm -f $POOL
+
 check
 
 pass

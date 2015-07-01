@@ -57,6 +57,8 @@ rm -rf $POOL
 expect_normal_exit $PMEMPOOL create blk 512 $POOL
 expect_normal_exit $PMEMPOOL info -x $POOL >> $LOG
 
+rm -f $POOL
+
 check
 
 pass

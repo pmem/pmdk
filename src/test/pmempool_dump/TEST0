@@ -55,6 +55,8 @@ echo >> $LOG
 expect_normal_exit $PMEMPOOL dump -b $POOL >> $LOG
 echo >> $LOG
 
+rm -f $POOL
+
 check
 
 pass

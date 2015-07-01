@@ -68,6 +68,8 @@ check_file $POOL
 $PMEMSPOIL -v $POOL pool_hdr.signature=ERROR >> $LOG
 expect_normal_exit $PMEMPOOL check $POOL >> $LOG || true
 
+rm -f $POOL
+
 check
 
 pass

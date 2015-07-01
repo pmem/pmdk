@@ -57,4 +57,6 @@ expect_normal_exit $PMEMPOOL create log $POOL
 check_file $POOL
 check_signature PMEMLOG $POOL
 
+rm -f $POOL
+
 pass

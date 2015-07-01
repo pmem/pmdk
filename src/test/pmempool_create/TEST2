@@ -60,4 +60,6 @@ check_file $POOL
 check_signature PMEMLOG $POOL
 check_size $SIZE $POOL
 
+rm -f $POOL
+
 pass

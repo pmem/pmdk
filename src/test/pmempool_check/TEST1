@@ -86,6 +86,8 @@ $PMEMSPOIL -v $POOL pool_hdr.signature=ERROR\
 			pmemblk.bsize=0 >> $LOG
 expect_normal_exit $PMEMPOOL check -vry $POOL >> $LOG
 
+rm -f $POOL
+
 check
 
 pass

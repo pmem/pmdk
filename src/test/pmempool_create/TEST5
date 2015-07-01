@@ -49,6 +49,8 @@ POOL=$DIR/file.pool
 rm -rf $POOL
 expect_abnormal_exit $PMEMPOOL create blk $POOL 2> err5.log
 
+rm -f $POOL
+
 check
 
 pass

@@ -59,4 +59,6 @@ check_file $POOL
 check_signature PMEMBLK $POOL
 check_arena $POOL
 
+rm -f $POOL
+
 pass
