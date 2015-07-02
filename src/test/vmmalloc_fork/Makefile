@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2014-2015, Intel Corporation
+# Copyright (c) 2015, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,38 +31,9 @@
 #
 
 #
-# src/test/unittest/Makefile -- build unittest support library
+# src/test/vmmalloc_fork/Makefile -- build vmmalloc_fork unit test
 #
-TARGET = libut.a
-OBJS = ut.o ut_alloc.o ut_file.o ut_pthread.o ut_signal.o
-CFLAGS = -I../../include -ggdb -Wall -Werror -std=gnu99 -pthread
-CSTYLE = ../../../utils/cstyle
+TARGET = vmmalloc_fork
+OBJS = vmmalloc_fork.o
 
-all test: $(TARGET)
-
-$(TARGET): $(OBJS)
-	$(AR) rv $@ $(OBJS)
-
-.c.o:
-	$(CC) -c $(CFLAGS) $(INCS) $(COMMONINCS) $< -o $@
-
-clean:
-	$(RM) *.o core a.out
-
-cstyle:
-	$(CSTYLE) -pP *.[ch]
-
-clobber: clean
-	$(RM) $(TARGET)
-
-.PHONY: all test clean clobber cstyle
-
-ut.o: ut.c unittest.h
-
-ut_alloc.o: ut_alloc.c unittest.h
-
-ut_file.o: ut_file.c unittest.h
-
-ut_pthread.o: ut_pthread.c unittest.h
-
-ut_signal.o: ut_file.c unittest.h
+include ../Makefile.inc

@@ -86,6 +86,7 @@ TEST = blk_nblock\
        vmem_pages_purging\
        vmmalloc_calloc\
        vmmalloc_check_allocations\
+       vmmalloc_fork\
        vmmalloc_init\
        vmmalloc_malloc\
        vmmalloc_malloc_hooks\

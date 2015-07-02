@@ -1,5 +1,6 @@
+#!/bin/bash -e
 #
-# Copyright (c) 2014-2015, Intel Corporation
+# Copyright (c) 2015, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,38 +32,27 @@
 #
 
 #
-# src/test/unittest/Makefile -- build unittest support library
+# src/test/vmmalloc_fork/TEST2 -- unit test for libvmmalloc fork() support
 #
-TARGET = libut.a
-OBJS = ut.o ut_alloc.o ut_file.o ut_pthread.o ut_signal.o
-CFLAGS = -I../../include -ggdb -Wall -Werror -std=gnu99 -pthread
-CSTYLE = ../../../utils/cstyle
+export UNITTEST_NAME=vmmalloc_fork/TEST2
+export UNITTEST_NUM=2
 
-all test: $(TARGET)
+# standard unit test setup
+. ../unittest/unittest.sh
 
-$(TARGET): $(OBJS)
-	$(AR) rv $@ $(OBJS)
+require_fs_type local
+# there's no point in testing statically linked builds
+require_build_type debug nondebug
 
-.c.o:
-	$(CC) -c $(CFLAGS) $(INCS) $(COMMONINCS) $< -o $@
+setup
 
-clean:
-	$(RM) *.o core a.out
+export VMMALLOC_POOL_SIZE=$((64 * 1024 * 1024))
+export VMMALLOC_LOG_LEVEL=3
+export VMMALLOC_FORK=2
 
-cstyle:
-	$(CSTYLE) -pP *.[ch]
+expect_normal_exit LD_PRELOAD=$TEST_LD_LIBRARY_PATH/libvmmalloc.so \
+    ./vmmalloc_fork$EXESUFFIX c 4 2
 
-clobber: clean
-	$(RM) $(TARGET)
+check
 
-.PHONY: all test clean clobber cstyle
-
-ut.o: ut.c unittest.h
-
-ut_alloc.o: ut_alloc.c unittest.h
-
-ut_file.o: ut_file.c unittest.h
-
-ut_pthread.o: ut_pthread.c unittest.h
-
-ut_signal.o: ut_file.c unittest.h
+pass
