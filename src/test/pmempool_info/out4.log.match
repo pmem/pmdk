@@ -5,6 +5,11 @@ Mandatory features       : $(*)
 Not mandatory features   : $(*)
 Forced RO                : $(*)
 UUID                     : $(*)
+Parent UUID              : $(*)
+Previous part UUID       : $(*)
+Next part UUID           : $(*)
+Previous replica UUID    : $(*)
+Next replica UUID        : $(*)
 Creation Time            : $(*)
 Checksum                 : $(*) [OK]
 
@@ -45,6 +50,11 @@ Mandatory features       : $(*)
 Not mandatory features   : $(*)
 Forced RO                : $(*)
 UUID                     : $(*)
+Parent UUID              : $(*)
+Previous part UUID       : $(*)
+Next part UUID           : $(*)
+Previous replica UUID    : $(*)
+Next replica UUID        : $(*)
 Creation Time            : $(*)
 Checksum                 : $(*) [OK]
 
