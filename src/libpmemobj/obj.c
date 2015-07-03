@@ -983,6 +983,8 @@ constructor_alloc_root(PMEMobjpool *pop, void *ptr, void *arg)
 	struct oob_header *ro = OOB_HEADER_FROM_PTR(ptr);
 	struct carg_root *carg = arg;
 
+	pop->memset_persist(ptr, 0, carg->size);
+
 	ro->internal_type = TYPE_ALLOCATED;
 	ro->user_type = POBJ_ROOT_TYPE_NUM;
 	ro->size = carg->size;
@@ -1010,14 +1012,21 @@ obj_alloc_root(PMEMobjpool *pop, struct object_store *store, size_t size)
  * obj_realloc_root -- (internal) reallocate root object
  */
 static int
-obj_realloc_root(PMEMobjpool *pop, struct object_store *store, size_t size)
+obj_realloc_root(PMEMobjpool *pop, struct object_store *store, size_t size,
+	size_t old_size)
 {
-	LOG(3, "pop %p store %p size %zu", pop, store, size);
+	LOG(3, "pop %p store %p size %zu old_size %zu",
+		pop, store, size, old_size);
 
 	struct list_head *lhead = &store->root.head;
 	uint64_t size_offset = OOB_OFFSET_OF(lhead->pe_first, size);
+	struct carg_zrealloc carg;
 
-	return list_realloc(pop, lhead, 0, NULL, size, NULL, NULL,
+	carg.old_size = old_size;
+	carg.new_size = size;
+
+	return list_realloc(pop, lhead, 0, NULL, size,
+				constructor_zrealloc, &carg,
 				size_offset, size, &lhead->pe_first);
 }
 
@@ -1052,8 +1061,9 @@ pmemobj_root(PMEMobjpool *pop, size_t size)
 		/* root object list is empty */
 		obj_alloc_root(pop, pop->store, size);
 	else {
-		if (size > pmemobj_root_size(pop))
-			if (obj_realloc_root(pop, pop->store, size)) {
+		size_t old_size = pmemobj_root_size(pop);
+		if (size > old_size)
+			if (obj_realloc_root(pop, pop->store, size, old_size)) {
 				pmemobj_mutex_unlock(pop, &pop->rootlock);
 				LOG(2, "obj_realloc_root failed");
 				return OID_NULL;

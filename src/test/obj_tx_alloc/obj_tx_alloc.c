@@ -52,6 +52,8 @@ enum type_number {
 	TYPE_NO_TX,
 	TYPE_COMMIT,
 	TYPE_ABORT,
+	TYPE_ZEROED_COMMIT,
+	TYPE_ZEROED_ABORT,
 	TYPE_COMMIT_NESTED1,
 	TYPE_COMMIT_NESTED2,
 	TYPE_ABORT_NESTED1,
@@ -336,6 +338,64 @@ do_tx_alloc_commit(PMEMobjpool *pop)
 }
 
 /*
+ * do_tx_zalloc_abort -- allocates a zeroed object and aborts the transaction
+ */
+static void
+do_tx_zalloc_abort(PMEMobjpool *pop)
+{
+	TOID(struct object) obj;
+	TX_BEGIN(pop) {
+		TOID_ASSIGN(obj, pmemobj_tx_zalloc(sizeof (struct object),
+				TYPE_ZEROED_ABORT));
+		ASSERT(!TOID_IS_NULL(obj));
+		ASSERT(util_is_zeroed(D_RO(obj), sizeof (struct object)));
+
+		D_RW(obj)->value = TEST_VALUE_1;
+		pmemobj_tx_abort(-1);
+	} TX_ONCOMMIT {
+		ASSERT(0);
+	} TX_ONABORT {
+		TOID_ASSIGN(obj, OID_NULL);
+	} TX_END
+
+	ASSERT(TOID_IS_NULL(obj));
+
+	TOID(struct object) first;
+	TOID_ASSIGN(first, pmemobj_first(pop, TYPE_ZEROED_ABORT));
+	ASSERT(TOID_IS_NULL(first));
+}
+
+/*
+ * do_tx_zalloc_commit -- allocates zeroed object
+ */
+static void
+do_tx_zalloc_commit(PMEMobjpool *pop)
+{
+	TOID(struct object) obj;
+	TX_BEGIN(pop) {
+		TOID_ASSIGN(obj, pmemobj_tx_zalloc(sizeof (struct object),
+				TYPE_ZEROED_COMMIT));
+		ASSERT(!TOID_IS_NULL(obj));
+		ASSERT(util_is_zeroed(D_RO(obj), sizeof (struct object)));
+
+		D_RW(obj)->value = TEST_VALUE_1;
+	} TX_ONCOMMIT {
+		ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
+	} TX_ONABORT {
+		ASSERT(0);
+	} TX_END
+
+	TOID(struct object) first;
+	TOID_ASSIGN(first, pmemobj_first(pop, TYPE_ZEROED_COMMIT));
+	ASSERT(TOID_EQUALS(first, obj));
+	ASSERTeq(D_RO(first)->value, D_RO(obj)->value);
+
+	TOID(struct object) next;
+	TOID_ASSIGN(next, pmemobj_next(first.oid));
+	ASSERT(TOID_IS_NULL(next));
+}
+
+/*
  * do_tx_alloc_no_tx -- allocates object without transaction
  */
 static void
@@ -356,8 +416,8 @@ main(int argc, char *argv[])
 		FATAL("usage: %s [file]", argv[0]);
 
 	PMEMobjpool *pop;
-	if ((pop = pmemobj_create(argv[1], LAYOUT_NAME, PMEMOBJ_MIN_POOL,
-	    S_IWUSR | S_IRUSR)) == NULL)
+	if ((pop = pmemobj_create(argv[1], LAYOUT_NAME, 0,
+				S_IWUSR | S_IRUSR)) == NULL)
 		FATAL("!pmemobj_create");
 
 	do_tx_alloc_no_tx(pop);
@@ -365,6 +425,10 @@ main(int argc, char *argv[])
 	do_tx_alloc_commit(pop);
 	VALGRIND_WRITE_STATS;
 	do_tx_alloc_abort(pop);
+	VALGRIND_WRITE_STATS;
+	do_tx_zalloc_commit(pop);
+	VALGRIND_WRITE_STATS;
+	do_tx_zalloc_abort(pop);
 	VALGRIND_WRITE_STATS;
 	do_tx_alloc_commit_nested(pop);
 	VALGRIND_WRITE_STATS;

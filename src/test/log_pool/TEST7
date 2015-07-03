@@ -43,11 +43,9 @@ export UNITTEST_NUM=7
 setup
 umask 0
 
-MIN_POOL_SIZE=$((2*1024*1024))
 rm -f $DIR/testfile
-truncate -s $MIN_POOL_SIZE $DIR/testfile
-dd if=/dev/urandom of=$DIR/testfile bs=1K \
-   count=$(($MIN_POOL_SIZE / 1024 - 8)) seek=8 &> /dev/null
+
+create_nonzeroed_file 2 8 $DIR/testfile
 chmod 0640 $DIR/testfile
 
 #

@@ -136,6 +136,25 @@ function create_file() {
 }
 
 #
+# create_nonzeroed_file -- create non-zeroed files of a given length in megs
+#
+# A given first kilobytes of the file is zeroed out.
+#
+# example, to create two files, each 1GB in size, with first 4K zeroed
+#	create_file_rand 1024 4 testfile1 testfile2
+#
+function create_nonzeroed_file() {
+	offset=$2
+	size=$(($1 * 1024 - $offset))
+	shift 2
+	for file in $*
+	do
+		truncate -s ${offset}K $file
+		dd if=/dev/zero bs=1K count=${size} 2>/dev/null | tr '\0' '\132' >> $file
+	done
+}
+
+#
 # create_holey_file -- create holey files of a given length in megs
 #
 # example, to create two files, each 1GB in size:
