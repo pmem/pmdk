@@ -59,6 +59,14 @@ check_file $POOL
 check_signature PMEMLOG $POOL
 check_mode 555 $POOL
 
+# PMEMOBJ
+rm -rf $POOL
+expect_normal_exit $PMEMPOOL create -m 0556 --layout=LAYOUT_NAME obj $POOL
+check_file $POOL
+check_signature OBJPOOL $POOL
+check_layout LAYOUT_NAME $POOL
+check_mode 556 $POOL
+
 rm -f $POOL
 
 pass

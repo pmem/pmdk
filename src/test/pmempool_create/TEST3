@@ -70,6 +70,20 @@ check_file $INHERIT
 check_signature PMEMLOG $INHERIT
 check_size $SIZE $INHERIT
 
+# PMEMOBJ
+rm -rf $POOL
+rm -rf $INHERIT
+expect_normal_exit $PMEMPOOL create --layout=LAYOUT_NAME obj $POOL
+check_file $POOL
+check_signature OBJPOOL $POOL
+check_layout LAYOUT_NAME $POOL
+SIZE=$(get_size $POOL)
+expect_normal_exit $PMEMPOOL create --inherit $POOL $INHERIT
+check_file $INHERIT
+check_signature OBJPOOL $INHERIT
+check_layout LAYOUT_NAME $POOL
+check_size $SIZE $INHERIT
+
 rm -f $POOL
 rm -f $INHERIT
 
