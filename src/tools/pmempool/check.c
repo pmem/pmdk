@@ -230,10 +230,10 @@ list_alloc(void)
 }
 
 /*
- * list_insert -- insert new element to the list
+ * list_push -- insert new element to the list
  */
 static void
-list_insert(struct list *list, uint32_t val)
+list_push(struct list *list, uint32_t val)
 {
 	struct list_item *item = malloc(sizeof (*item));
 	if (!item)
@@ -1512,14 +1512,14 @@ pmempool_check_arena_map_flog(struct pmempool_check *pcp,
 			if (isset(bitmap, entry)) {
 				outv(1, "arena %u: map entry %u duplicated "
 					"at %u\n", arenap->id, entry, i);
-				list_insert(list_inval, i);
+				list_push(list_inval, i);
 			} else {
 				setbit(bitmap, entry);
 			}
 		} else {
 			outv(1, "arena %u: invalid map entry at %u\n",
 				arenap->id, i);
-			list_insert(list_inval, i);
+			list_push(list_inval, i);
 		}
 	}
 
@@ -1547,14 +1547,14 @@ pmempool_check_arena_map_flog(struct pmempool_check *pcp,
 			if (isset(bitmap, entry)) {
 				outv(1, "arena %u: duplicated flog entry "
 					"at %u\n", arenap->id, entry, i);
-				list_insert(list_flog_inval, i);
+				list_push(list_flog_inval, i);
 			} else {
 				setbit(bitmap, entry);
 			}
 		} else {
 			outv(1, "arena %u: invalid flog entry at %u\n",
 				arenap->id, i);
-			list_insert(list_flog_inval, i);
+			list_push(list_flog_inval, i);
 		}
 
 		ptr += BTT_FLOG_PAIR_ALIGN;
@@ -1564,7 +1564,7 @@ pmempool_check_arena_map_flog(struct pmempool_check *pcp,
 	for (i = 0; i < arenap->btt_info.internal_nlba; i++) {
 		if (!isset(bitmap, i)) {
 			outv(1, "arena %u: unmapped block %u\n", arenap->id, i);
-			list_insert(list_unmap, i);
+			list_push(list_unmap, i);
 		}
 	}
 
@@ -1908,7 +1908,13 @@ pmempool_check_func(char *appname, int argc, char *argv[])
 	/* set verbosity level */
 	out_set_vlevel(pc.verbose);
 
-	pc.ptype = pmem_pool_parse_params(pc.fname, NULL, NULL);
+	struct pmem_pool_params params;
+	if (pmem_pool_parse_params(pc.fname, &params)) {
+		perror(pc.fname);
+		return -1;
+	}
+
+	pc.ptype = params.type;
 
 	/*
 	 * The PMEM_POOL_TYPE_NONE means no such file or

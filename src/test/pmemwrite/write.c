@@ -183,11 +183,11 @@ main(int argc, char *argv[])
 
 	out_set_vlevel(1);
 
+	struct pmem_pool_params params;
 	/* parse pool type from file */
-	pmem_pool_type_t type = pmem_pool_parse_params(pwrite.fname,
-					NULL, NULL);
+	pmem_pool_parse_params(pwrite.fname, &params);
 
-	switch (type) {
+	switch (params.type) {
 	case PMEM_POOL_TYPE_BLK:
 		return pmemwrite_blk(&pwrite);
 	case PMEM_POOL_TYPE_LOG:

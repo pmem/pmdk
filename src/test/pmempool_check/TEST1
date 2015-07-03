@@ -68,7 +68,7 @@ expect_normal_exit $PMEMPOOL check -vry $POOL >> $LOG
 
 echo "PMEMBLK: pool_hdr" >> $LOG
 rm -rf $POOL
-expect_normal_exit $PMEMPOOL create -l blk 512 $POOL
+expect_normal_exit $PMEMPOOL create -w blk 512 $POOL
 check_file $POOL
 $PMEMSPOIL -v $POOL pool_hdr.signature=ERROR\
 			pool_hdr.major=0xff\
@@ -80,7 +80,7 @@ expect_normal_exit $PMEMPOOL check -vry $POOL >> $LOG
 
 echo "PMEMBLK: pmemblk" >> $LOG
 rm -rf $POOL
-expect_normal_exit $PMEMPOOL create -l blk 512 $POOL
+expect_normal_exit $PMEMPOOL create -w blk 512 $POOL
 check_file $POOL
 $PMEMSPOIL -v $POOL pool_hdr.signature=ERROR\
 			pmemblk.bsize=0 >> $LOG

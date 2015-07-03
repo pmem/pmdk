@@ -350,22 +350,31 @@ pmempool_dump_func(char *appname, int argc, char *argv[])
 	/* set output stream - stdout or file passed by -o option */
 	out_set_stream(pd.ofh);
 
+	struct pmem_pool_params params;
 	/* parse pool type and block size for pmem blk pool */
-	pmem_pool_type_t type = pmem_pool_parse_params(pd.fname, NULL,
-			&pd.bsize);
+	if (pmem_pool_parse_params(pd.fname, &params)) {
+		ret = -1;
+		goto out;
+	}
 
-	switch (type) {
+	switch (params.type) {
 	case PMEM_POOL_TYPE_LOG:
 		ret = pmempool_dump_log(&pd);
 		break;
 	case PMEM_POOL_TYPE_BLK:
+		pd.bsize = params.blk.bsize;
 		ret = pmempool_dump_blk(&pd);
+		break;
+	case PMEM_POOL_TYPE_OBJ:
+		out_err("obj pool file not supported\n");
+		ret = -1;
 		break;
 	default:
 		out_err("%s: pool file corrupted\n", pd.fname);
 		ret = -1;
 	}
 
+out:
 	if (ret)
 		out_err("dumping pool file failed\n");
 

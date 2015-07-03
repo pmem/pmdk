@@ -62,6 +62,8 @@ pmem_pool_type_parse_hdr(struct pool_hdr *hdrp)
 		return PMEM_POOL_TYPE_LOG;
 	else if (strncmp(hdrp->signature, BLK_HDR_SIG, POOL_HDR_SIG_LEN) == 0)
 		return PMEM_POOL_TYPE_BLK;
+	else if (strncmp(hdrp->signature, OBJ_HDR_SIG, POOL_HDR_SIG_LEN) == 0)
+		return PMEM_POOL_TYPE_OBJ;
 	else
 		return PMEM_POOL_TYPE_UNKNOWN;
 }
@@ -76,6 +78,8 @@ pmem_pool_type_parse_str(char *str)
 		return PMEM_POOL_TYPE_BLK;
 	} else if (strcmp(str, "log") == 0) {
 		return PMEM_POOL_TYPE_LOG;
+	} else if (strcmp(str, "obj") == 0) {
+		return PMEM_POOL_TYPE_OBJ;
 	} else {
 		return PMEM_POOL_TYPE_UNKNOWN;
 	}
@@ -418,6 +422,8 @@ pmem_pool_get_min_size(pmem_pool_type_t type)
 		return PMEMLOG_MIN_POOL;
 	case PMEM_POOL_TYPE_BLK:
 		return PMEMBLK_MIN_POOL;
+	case PMEM_POOL_TYPE_OBJ:
+		return PMEMOBJ_MIN_POOL;
 	default:
 		break;
 	}
@@ -428,42 +434,61 @@ pmem_pool_get_min_size(pmem_pool_type_t type)
 /*
  * pmem_pool_parse_params -- parse pool type, file size and block size
  */
-pmem_pool_type_t
-pmem_pool_parse_params(char *fname, uint64_t *sizep, uint64_t *bsizep)
+int
+pmem_pool_parse_params(char *fname, struct pmem_pool_params *paramsp)
 {
-	pmem_pool_type_t ret = PMEM_POOL_TYPE_NONE;
 	struct stat stat_buf;
+	struct pool_hdr hdr;
 
-	/* use pmemblk as wee need pool_hdr only or pmemblk */
-	struct pmemblk *pbp = malloc(sizeof (struct pmemblk));
-	if (!pbp)
-		err(1, "Cannot allocate memory for pmemblk structure\n");
+	paramsp->type = PMEM_POOL_TYPE_NONE;
 
-	int fd;
-	if ((fd = open(fname, O_RDONLY)) >= 0) {
-		ret = PMEM_POOL_TYPE_UNKNOWN;
-		/* read pool_hdr */
-		if (pread(fd, &pbp->hdr, sizeof (pbp->hdr), 0) ==
-				sizeof (pbp->hdr))
-			ret = pmem_pool_type_parse_hdr(&pbp->hdr);
-		if (ret == PMEM_POOL_TYPE_BLK) {
-			/*
-			 * For pmem blk pool type we need block size,
-			 * so read pmemblk struct.
-			 */
-			if (bsizep && pread(fd, pbp, sizeof (*pbp), 0) ==
-				sizeof (*pbp))
-				*bsizep = le32toh(pbp->bsize);
-		}
+	int fd = open(fname, O_RDONLY);
+	if (fd < 0)
+		return -1;
 
-		/* get file size */
-		if (sizep && fstat(fd, &stat_buf) == 0)
-			*sizep = stat_buf.st_size;
+	int ret = 0;
+	paramsp->type = PMEM_POOL_TYPE_UNKNOWN;
 
-		close(fd);
+	/* read pool_hdr */
+	if (pread(fd, &hdr, sizeof (hdr), 0) ==
+			sizeof (hdr)) {
+		paramsp->type = pmem_pool_type_parse_hdr(&hdr);
+	} else {
+		ret = -1;
+		goto out;
 	}
 
-	free(pbp);
+
+	/* get file size and mode */
+	if (fstat(fd, &stat_buf) == 0) {
+		paramsp->size = stat_buf.st_size;
+		paramsp->mode = stat_buf.st_mode;
+	} else {
+		ret = -1;
+		goto out;
+	}
+
+	if (paramsp->type == PMEM_POOL_TYPE_BLK) {
+		struct pmemblk pbp;
+		if (pread(fd, &pbp, sizeof (pbp), 0) == sizeof (pbp)) {
+			paramsp->blk.bsize = le32toh(pbp.bsize);
+		} else {
+			ret = -1;
+			goto out;
+		}
+	} else if (paramsp->type == PMEM_POOL_TYPE_OBJ) {
+		struct pmemobjpool pop;
+		if (pread(fd, &pop, sizeof (pop), 0) == sizeof (pop)) {
+			memcpy(paramsp->obj.layout, pop.layout,
+					PMEMOBJ_MAX_LAYOUT);
+		} else {
+			ret = -1;
+			goto out;
+		}
+	}
+out:
+	close(fd);
+
 	return ret;
 }
 

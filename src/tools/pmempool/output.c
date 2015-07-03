@@ -457,6 +457,8 @@ out_get_pool_type_str(pmem_pool_type_t type)
 		return "log";
 	case PMEM_POOL_TYPE_BLK:
 		return "blk";
+	case PMEM_POOL_TYPE_OBJ:
+		return "obj";
 	default:
 		return "unknown";
 	}
