@@ -37,7 +37,7 @@
 .\" or
 .\"	groff -man -Tascii libpmemobj.3
 .\"
-.TH libpmemobj 3 "pmemobj API version 0.4.9" "NVM Library"
+.TH libpmemobj 3 "pmemobj API version 0.4.10" "NVM Library"
 .SH NAME
 libpmemobj \- persistent memory transactional object store
 .SH SYNOPSIS
@@ -173,11 +173,11 @@ libpmemobj \- persistent memory transactional object store
 .BI "POBJ_FIRST(PMEMobjpool *" pop ", " TYPE )
 .BI "POBJ_NEXT(TOID " oid )
 .sp
-.BI "PMEMOBJ_FOREACH(PMEMobjpool *" pop ", PMEMoid " varoid ", unsigned int " vartype_num )
-.BI "PMEMOBJ_FOREACH_SAFE(PMEMobjpool *" pop ", PMEMoid " varoid ", PMEMoid " nvaroid ,
+.BI "POBJ_FOREACH(PMEMobjpool *" pop ", PMEMoid " varoid ", unsigned int " vartype_num )
+.BI "POBJ_FOREACH_SAFE(PMEMobjpool *" pop ", PMEMoid " varoid ", PMEMoid " nvaroid ,
 .BI "    unsigned int " vartype_num )
-.BI "PMEMOBJ_FOREACH_TYPE(PMEMobjpool *" pop ", TOID " var )
-.BI "PMEMOBJ_FOREACH_SAFE_TYPE(PMEMobjpool *" pop ", TOID " var ", TOID " nvar )
+.BI "POBJ_FOREACH_TYPE(PMEMobjpool *" pop ", TOID " var )
+.BI "POBJ_FOREACH_SAFE_TYPE(PMEMobjpool *" pop ", TOID " var ", TOID " nvar )
 .sp
 .B Non-transactional persistent atomic circular doubly-linked list:
 .sp
@@ -1304,12 +1304,12 @@ as an argument.
 The following two macros provide more convenient way to iterate through
 the internal collections, performing a specific operation on each object.
 .PP
-.BI "PMEMOBJ_FOREACH(PMEMobjpool *" pop ", PMEMoid " varoid ,
+.BI "POBJ_FOREACH(PMEMobjpool *" pop ", PMEMoid " varoid ,
 .br
 .BI "    unsigned int " vartype_num )
 .IP
 The
-.BR PMEMOBJ_FOREACH ()
+.BR POBJ_FOREACH ()
 macro allows to perform a specific operation on each allocated object stored in
 the persistent memory pool pointed by
 .IR pop .
@@ -1320,9 +1320,9 @@ and its type number to
 .I vartype_num
 variable.
 .PP
-.BI "PMEMOBJ_FOREACH_TYPE(PMEMobjpool *" pop ", TOID " var )
+.BI "POBJ_FOREACH_TYPE(PMEMobjpool *" pop ", TOID " var )
 .IP
-.BR PMEMOBJ_FOREACH_TYPE ()
+.BR POBJ_FOREACH_TYPE ()
 macro allows to perform a specific operation on each allocated object of the
 same type as object passed as
 .I var
@@ -1333,22 +1333,22 @@ assigning a handle to each element in turn to
 .I var
 variable.
 .PP
-.BI "PMEMOBJ_FOREACH_SAFE(PMEMobjpool *" pop ", PMEMoid " varoid ,
+.BI "POBJ_FOREACH_SAFE(PMEMobjpool *" pop ", PMEMoid " varoid ,
 .br
 .BI "    PMEMoid " nvaroid ", unsigned int " vartype_num )
 .sp
-.BI "PMEMOBJ_FOREACH_SAFE_TYPE(PMEMobjpool *" pop ", TOID " var ,
+.BI "POBJ_FOREACH_SAFE_TYPE(PMEMobjpool *" pop ", TOID " var ,
 .br
 .BI "    PMEMoid " nvar ", unsigned int " type_num )
 .IP
 The macros
 .BR POBJ_FOREACH_SAFE ()
 and
-.BR PMEMOBJ_FOREACH_SAFE_TYPE ()
+.BR POBJ_FOREACH_SAFE_TYPE ()
 work in a similar fashion as
-.BR PMEMOBJ_FOREACH ()
+.BR POBJ_FOREACH ()
 and
-.BR PMEMOBJ_FOREACH_TYPE ()
+.BR POBJ_FOREACH_TYPE ()
 except that prior to performing the operation on the object, they preserve
 a handle to the next object in the collection by assigning it to
 .I nvaroid
@@ -1393,10 +1393,10 @@ is larger than the maximum allocation size supported for given pool,
 or if there is not enough free space in the pool to satisfy the reallocation
 of the root object.  In such case, OID_NULL is returned.
 .PP
-.BI "PMEMOBJ_ROOT(PMEMobjpool *" pop ", " TYPE )
+.BI "POBJ_ROOT(PMEMobjpool *" pop ", " TYPE )
 .IP
 The
-.B PMEMOBJ_ROOT
+.B POBJ_ROOT
 macro works the same way as the
 .BR pmemobj_root ()
 function except it returns a typed OID of type
@@ -2652,7 +2652,7 @@ In contrast to the non-transactional allocations, the objects are
 added to the internal object containers of given
 .I type_num
 only after the transaction is committed, making the objects visible to the
-.BR PMEMOBJ_FOREACH_*
+.BR POBJ_FOREACH_*
 macros.
 If successful and called during
 .I TX_STAGE_WORK
