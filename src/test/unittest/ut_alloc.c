@@ -135,8 +135,9 @@ ut_memalign(const char *file, int line, const char *func, size_t alignment,
 }
 
 /*
- * ut_mmap_anon_aligned -- mmaps anonymous memory with specified alignment
- *                         and adds guard pages around it
+ * ut_mmap_anon_aligned -- mmaps anonymous memory with specified (power of two,
+ *                         multiple of page size) alignment and adds guard
+ *                         pages around it
  */
 void *
 ut_mmap_anon_aligned(const char *file, int line, const char *func,
@@ -148,6 +149,14 @@ ut_mmap_anon_aligned(const char *file, int line, const char *func,
 
 	if (alignment == 0)
 		alignment = Pagesize;
+
+	/* alignment must be a multiple of page size */
+	if (alignment & (Pagesize - 1))
+		return NULL;
+
+	/* power of two */
+	if (alignment & (alignment - 1))
+		return NULL;
 
 	d = ut_mmap(file, line, func, NULL, size + 2 * alignment,
 			PROT_READ|PROT_WRITE, MAP_ANONYMOUS|MAP_PRIVATE, -1, 0);
