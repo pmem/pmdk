@@ -56,4 +56,7 @@ $PMEMSPOIL $POOL pool_hdr.signature=ERROR
 expect_normal_exit $PMEMPOOL check -b $POOL_BACKUP -r $POOL >/dev/null || true
 check_file ${POOL_BACKUP}
 
+rm -f $POOL
+rm -f $POOL_BACKUP
+
 pass

@@ -53,6 +53,8 @@ expect_normal_exit $PMEMWRITE $POOL TEST1TEST2TEST3TEST4
 expect_normal_exit $PMEMPOOL dump -c5 -o $LOG $POOL
 expect_normal_exit $PMEMPOOL dump -c5 $POOL >> $LOG
 
+rm -f $POOL
+
 check
 
 pass

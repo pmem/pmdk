@@ -54,6 +54,8 @@ $PMEMSPOIL -v $POOL pool_hdr.checksum=0x0 >> $LOG
 
 expect_normal_exit $PMEMPOOL check -vry $POOL >> $LOG
 
+rm -f $POOL
+
 check
 
 pass

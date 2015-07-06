@@ -54,6 +54,8 @@ expect_normal_exit $PMEMPOOL dump -r-1 -o dump.log $POOL
 cat dump.log | grep "^00000000" >> $LOG
 expect_normal_exit $PMEMPOOL dump -r0 $POOL | grep "^00000000" >> $LOG
 
+rm -f $POOL
+
 check
 
 pass

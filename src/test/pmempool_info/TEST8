@@ -69,6 +69,8 @@ NSUM=$(($NZER + $NERR + $NNON))
 
 expect_normal_exit $PMEMPOOL info -dz $POOL >> $LOG
 
+rm -f $POOL
+
 check
 
 pass
