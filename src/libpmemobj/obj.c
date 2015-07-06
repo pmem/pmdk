@@ -850,7 +850,11 @@ constructor_zrealloc_root(PMEMobjpool *pop, void *ptr, void *arg)
 	ASSERTne(ptr, NULL);
 	ASSERTne(arg, NULL);
 
+	VALGRIND_ADD_TO_TX(OOB_HEADER_FROM_PTR(ptr),
+		((struct carg_realloc *)arg)->new_size + OBJ_OOB_SIZE);
 	constructor_zrealloc(pop, ptr, arg);
+	VALGRIND_REMOVE_FROM_TX(OOB_HEADER_FROM_PTR(ptr),
+		((struct carg_realloc *)arg)->new_size + OBJ_OOB_SIZE);
 }
 
 /*
@@ -1069,11 +1073,17 @@ constructor_alloc_root(PMEMobjpool *pop, void *ptr, void *arg)
 	struct oob_header *ro = OOB_HEADER_FROM_PTR(ptr);
 	struct carg_root *carg = arg;
 
+	/* temporarily add atomic root allocation to pmemcheck transaction */
+	VALGRIND_ADD_TO_TX(ro, OBJ_OOB_SIZE + carg->size);
+
 	pop->memset_persist(ptr, 0, carg->size);
 
 	ro->internal_type = TYPE_ALLOCATED;
 	ro->user_type = POBJ_ROOT_TYPE_NUM;
 	ro->size = carg->size;
+
+	VALGRIND_REMOVE_FROM_TX(ro, OBJ_OOB_SIZE + carg->size);
+
 	pop->persist(ro, OBJ_OOB_SIZE);
 }
 

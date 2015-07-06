@@ -148,28 +148,95 @@ extern int On_valgrind;
 		VALGRIND_PMC_STOP_REORDER_FAULT;\
 } while (0)
 
+#define	VALGRIND_START_TX do {\
+	if (On_valgrind)\
+		VALGRIND_PMC_START_TX;\
+} while (0)
+
+#define	VALGRIND_START_TX_N(txn) do {\
+	if (On_valgrind)\
+		VALGRIND_PMC_START_TX_N(txn);\
+} while (0)
+
+#define	VALGRIND_END_TX do {\
+	if (On_valgrind)\
+		VALGRIND_PMC_END_TX;\
+} while (0)
+
+#define	VALGRIND_END_TX_N(txn) do {\
+	if (On_valgrind)\
+		VALGRIND_PMC_END_TX_N(txn);\
+} while (0)
+
+#define	VALGRIND_ADD_TO_TX(addr, len) do {\
+	if (On_valgrind)\
+		VALGRIND_PMC_ADD_TO_TX(addr, len);\
+} while (0)
+
+#define	VALGRIND_ADD_TO_TX_N(txn, addr, len) do {\
+	if (On_valgrind)\
+		VALGRIND_PMC_ADD_TO_TX_N(txn, addr, len);\
+} while (0)
+
+#define	VALGRIND_REMOVE_FROM_TX(addr, len) do {\
+	if (On_valgrind)\
+		VALGRIND_PMC_REMOVE_FROM_TX(addr, len);\
+} while (0)
+
+#define	VALGRIND_REMOVE_FROM_TX_N(txn, addr, len) do {\
+	if (On_valgrind)\
+		VALGRIND_PMC_REMOVE_FROM_TX_N(txn, addr, len);\
+} while (0)
+
+#define	VALGRIND_ADD_TO_GLOBAL_TX_IGNORE(addr, len) do {\
+	if (On_valgrind)\
+		VALGRIND_PMC_ADD_TO_GLOBAL_TX_IGNORE(addr, len);\
+} while (0)
+
 #else
 
-#define	VALGRIND_REGISTER_PMEM_MAPPING(addr, len) do {} while (0)
+#define	VALGRIND_REGISTER_PMEM_MAPPING(addr, len) do {\
+	(void) (addr);\
+	(void) (len);\
+} while (0)
 
-#define	VALGRIND_REGISTER_PMEM_FILE(desc, base_addr, size, offset)\
-	do {} while (0)
+#define	VALGRIND_REGISTER_PMEM_FILE(desc, base_addr, size, offset) do {\
+	(void) (desc);\
+	(void) (base_addr);\
+	(void) (size);\
+	(void) (offset);\
+} while (0)
 
-#define	VALGRIND_REMOVE_PMEM_MAPPING(addr, len) do {} while (0)
+#define	VALGRIND_REMOVE_PMEM_MAPPING(addr, len) do {\
+	(void) (addr);\
+	(void) (len);\
+} while (0)
 
-#define	VALGRIND_CHECK_IS_PMEM_MAPPING(addr, len) do {} while (0)
+#define	VALGRIND_CHECK_IS_PMEM_MAPPING(addr, len) do {\
+	(void) (addr);\
+	(void) (len);\
+} while (0)
 
 #define	VALGRIND_PRINT_PMEM_MAPPINGS do {} while (0)
 
-#define	VALGRIND_DO_FLUSH(addr, len) do {} while (0)
+#define	VALGRIND_DO_FLUSH(addr, len) do {\
+	(void) (addr);\
+	(void) (len);\
+} while (0)
 
 #define	VALGRIND_DO_FENCE do {} while (0)
 
 #define	VALGRIND_DO_COMMIT do {} while (0)
 
-#define	VALGRIND_DO_PERSIST(addr, len) do {} while (0)
+#define	VALGRIND_DO_PERSIST(addr, len) do {\
+	(void) (addr);\
+	(void) (len);\
+} while (0)
 
-#define	VALGRIND_SET_CLEAN(addr, len) do {} while (0)
+#define	VALGRIND_SET_CLEAN(addr, len) do {\
+	(void) (addr);\
+	(void) (len);\
+} while (0)
 
 #define	VALGRIND_WRITE_STATS do {} while (0)
 
@@ -177,9 +244,15 @@ extern int On_valgrind;
 
 #define	VALGRIND_NO_LOG_STORES do {} while (0)
 
-#define	VALGRIND_ADD_LOG_REGION(addr, len) do {} while (0)
+#define	VALGRIND_ADD_LOG_REGION(addr, len) do {\
+	(void) (addr);\
+	(void) (len);\
+} while (0)
 
-#define	VALGRIND_REMOVE_LOG_REGION(addr, len) do {} while (0)
+#define	VALGRIND_REMOVE_LOG_REGION(addr, len) do {\
+	(void) (addr);\
+	(void) (len);\
+} while (0)
 
 #define	VALGRIND_FULL_REORDER do {} while (0)
 
@@ -188,5 +261,42 @@ extern int On_valgrind;
 #define	VALGRIND_ONLY_FAULT do {} while (0)
 
 #define	VALGRIND_STOP_REORDER_FAULT do {} while (0)
+
+#define	VALGRIND_START_TX do {} while (0)
+
+#define	VALGRIND_START_TX_N(txn) do {} while (0)
+
+#define	VALGRIND_END_TX do {} while (0)
+
+#define	VALGRIND_END_TX_N(txn) do {\
+	(void) (txn);\
+} while (0)
+
+#define	VALGRIND_ADD_TO_TX(addr, len) do {\
+	(void) (addr);\
+	(void) (len);\
+} while (0)
+
+#define	VALGRIND_ADD_TO_TX_N(txn, addr, len) do {\
+	(void) (txn);\
+	(void) (addr);\
+	(void) (len);\
+} while (0)
+
+#define	VALGRIND_REMOVE_FROM_TX(addr, len) do {\
+	(void) (addr);\
+	(void) (len);\
+} while (0)
+
+#define	VALGRIND_REMOVE_FROM_TX_N(txn, addr, len) do {\
+	(void) (txn);\
+	(void) (addr);\
+	(void) (len);\
+} while (0)
+
+#define	VALGRIND_ADD_TO_GLOBAL_TX_IGNORE(addr, len) do {\
+	(void) (addr);\
+	(void) (len);\
+} while (0)
 
 #endif

@@ -26,3 +26,5 @@ The following characters and operations can be used:
 		- pmemobj_list_remove
 	r - tests notice messages for the function:
 		- pmemobj_tx_add_common
+	a - tests notice of atomic allocation in tx:
+		- pmemobj_alloc

@@ -240,6 +240,7 @@ test_tx_api(PMEMobjpool *pop)
 	ASSERTeq(D_RW(root)->value, TEST_VALUE);
 
 	TX_BEGIN_LOCK(pop, TX_LOCK_MUTEX, &D_RW(root)->lock) {
+		TX_ADD(root);
 		ASSERT(!TOID_IS_NULL(D_RW(root)->node));
 		TX_FREE(D_RW(root)->node);
 		D_RW(root)->node = TOID_NULL(struct dummy_node);
