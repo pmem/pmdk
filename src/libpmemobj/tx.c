@@ -861,6 +861,8 @@ tx_realloc_common(PMEMoid oid, size_t size, unsigned int type_num,
 	if (OBJ_OID_IS_NULL(oid))
 		return tx_alloc_common(size, type_num, constructor_alloc);
 
+	ASSERT(OBJ_OID_IS_VALID(lane->pop, oid));
+
 	/* if size is 0 just free */
 	if (size == 0) {
 		if (pmemobj_tx_free(oid)) {
@@ -1241,6 +1243,7 @@ pmemobj_tx_add_range(PMEMoid oid, uint64_t hoff, size_t size)
 
 		return EINVAL;
 	}
+	ASSERT(OBJ_OID_IS_VALID(lane->pop, oid));
 
 	struct oob_header *oobh = OOB_HEADER_FROM_OID(lane->pop, oid);
 
@@ -1378,6 +1381,7 @@ pmemobj_tx_free(PMEMoid oid)
 		pmemobj_tx_abort(EINVAL);
 		return EINVAL;
 	}
+	ASSERT(OBJ_OID_IS_VALID(lane->pop, oid));
 
 	struct lane_tx_layout *layout =
 		(struct lane_tx_layout *)tx.section->layout;

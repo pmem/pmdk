@@ -531,6 +531,8 @@ pmemobj_direct(PMEMoid oid)
 	if (p == NULL)
 		return NULL;
 
+	ASSERT(OBJ_OID_IS_VALID((PMEMobjpool *)p, oid));
+
 	return p + oid.off;
 }
 
@@ -743,6 +745,7 @@ pmemobj_realloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 
 	/* log notice message if used inside a transaction */
 	_POBJ_DEBUG_NOTICE_IN_TX();
+	ASSERT(OBJ_OID_IS_VALID(pop, *oidp));
 
 	return obj_realloc_construct(pop, pop->store, oidp, size, type_num,
 					NULL, NULL);
@@ -760,6 +763,7 @@ pmemobj_zrealloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 
 	/* log notice message if used inside a transaction */
 	_POBJ_DEBUG_NOTICE_IN_TX();
+	ASSERT(OBJ_OID_IS_VALID(pop, *oidp));
 
 	struct carg_zrealloc carg;
 
@@ -847,6 +851,7 @@ pmemobj_free(PMEMoid *oidp)
 	PMEMobjpool *pop = cuckoo_get(pools, oidp->pool_uuid_lo);
 
 	ASSERTne(pop, NULL);
+	ASSERT(OBJ_OID_IS_VALID(pop, *oidp));
 
 	struct oob_header *pobj = OOB_HEADER_FROM_OID(pop, *oidp);
 
@@ -871,6 +876,7 @@ pmemobj_alloc_usable_size(PMEMoid oid)
 	PMEMobjpool *pop = cuckoo_get(pools, oid.pool_uuid_lo);
 
 	ASSERTne(pop, NULL);
+	ASSERT(OBJ_OID_IS_VALID(pop, oid));
 
 	return (pmalloc_usable_size(pop, oid.off - OBJ_OOB_SIZE) -
 			OBJ_OOB_SIZE);
@@ -935,6 +941,7 @@ pmemobj_type_num(PMEMoid oid)
 
 	PMEMobjpool *pop = cuckoo_get(pools, oid.pool_uuid_lo);
 	ASSERTne(pop, NULL);
+	ASSERT(OBJ_OID_IS_VALID(pop, oid));
 
 	struct oob_header *oobh = OOB_HEADER_FROM_OID(pop, oid);
 	return oobh->user_type;
@@ -1073,6 +1080,7 @@ pmemobj_next(PMEMoid oid)
 	PMEMobjpool *pop = cuckoo_get(pools, oid.pool_uuid_lo);
 
 	ASSERTne(pop, NULL);
+	ASSERT(OBJ_OID_IS_VALID(pop, oid));
 
 	struct oob_header *pobj = OOB_HEADER_FROM_OID(pop, oid);
 	uint16_t user_type = pobj->user_type;
@@ -1100,6 +1108,8 @@ pmemobj_list_insert(PMEMobjpool *pop, size_t pe_offset, void *head,
 
 	/* log notice message if used inside a transaction */
 	_POBJ_DEBUG_NOTICE_IN_TX();
+	ASSERT(OBJ_OID_IS_VALID(pop, oid));
+	ASSERT(OBJ_OID_IS_VALID(pop, dest));
 
 	return list_insert(pop, pe_offset, head, dest, before, oid);
 }
@@ -1120,6 +1130,7 @@ pmemobj_list_insert_new(PMEMobjpool *pop, size_t pe_offset, void *head,
 
 	/* log notice message if used inside a transaction */
 	_POBJ_DEBUG_NOTICE_IN_TX();
+	ASSERT(OBJ_OID_IS_VALID(pop, dest));
 
 	if (type_num >= PMEMOBJ_NUM_OID_TYPES) {
 		errno = EINVAL;
@@ -1155,6 +1166,7 @@ pmemobj_list_remove(PMEMobjpool *pop, size_t pe_offset, void *head,
 
 	/* log notice message if used inside a transaction */
 	_POBJ_DEBUG_NOTICE_IN_TX();
+	ASSERT(OBJ_OID_IS_VALID(pop, oid));
 
 	if (free) {
 		struct oob_header *pobj = OOB_HEADER_FROM_OID(pop, oid);
@@ -1183,6 +1195,9 @@ pmemobj_list_move(PMEMobjpool *pop, size_t pe_old_offset, void *head_old,
 
 	/* log notice message if used inside a transaction */
 	_POBJ_DEBUG_NOTICE_IN_TX();
+
+	ASSERT(OBJ_OID_IS_VALID(pop, oid));
+	ASSERT(OBJ_OID_IS_VALID(pop, dest));
 
 	return list_move(pop, pe_old_offset, head_old,
 				pe_new_offset, head_new,

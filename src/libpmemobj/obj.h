@@ -64,6 +64,14 @@
 	(OBJ_PTR_TO_OFF(pop, ptr) >= (pop)->heap_offset &&\
 	OBJ_PTR_TO_OFF(pop, ptr) < (pop)->heap_offset + (pop)->heap_size)
 
+#define	OBJ_OID_IS_VALID(pop, oid) (\
+	{\
+		PMEMoid o = (oid);\
+		OBJ_OID_IS_NULL(o) ||\
+		(o.pool_uuid_lo == (pop)->uuid_lo &&\
+		o.off >= (pop)->heap_offset &&\
+		o.off < (pop)->heap_offset + (pop)->heap_size);\
+	})
 
 #define	OOB_HEADER_FROM_OID(pop, oid)\
 	((struct oob_header *)((uintptr_t)(pop) + (oid).off - OBJ_OOB_SIZE))

@@ -75,8 +75,9 @@ main(int argc, char *argv[])
 		oids[i] = (PMEMoid) {pops[i]->uuid_lo, 0};
 		ASSERTeq(pmemobj_direct(oids[i]), NULL);
 
-		oids[i] = (PMEMoid) {pops[i]->uuid_lo, 1};
-		ASSERTeq(pmemobj_direct(oids[i]) - 1, pops[i]);
+		uint64_t off = pops[i]->heap_offset;
+		oids[i] = (PMEMoid) {pops[i]->uuid_lo, off};
+		ASSERTeq(pmemobj_direct(oids[i]) - off, pops[i]);
 
 		r = pmemobj_alloc(pops[i], &tmpoids[i], 100, 1, NULL, NULL);
 		ASSERTeq(r, 0);
