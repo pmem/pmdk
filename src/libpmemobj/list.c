@@ -1499,18 +1499,18 @@ list_realloc(PMEMobjpool *pop, struct list_head *oob_head,
 		list_fill_entry_persist(pop, oob_new_entry_ptr,
 				next_offset, prev_offset);
 
+		if (OBJ_PTR_IS_VALID(pop, oidp))
+			redo_index = list_set_oid_redo_log(pop, redo,
+					redo_index, oidp, new_obj_doffset);
+		else
+			oidp->off = new_obj_doffset;
+
 		/* set offset for pfree */
 		redo_log_store_last(pop, redo, redo_index,
 				sec_off_off, obj_offset);
 
 		ASSERT(redo_index <= REDO_NUM_ENTRIES);
 		redo_log_process(pop, redo, REDO_NUM_ENTRIES);
-
-		if (OBJ_PTR_IS_VALID(pop, oidp))
-			redo_index = list_set_oid_redo_log(pop, redo,
-					redo_index, oidp, obj_doffset);
-		else
-			oidp->off = new_obj_doffset;
 
 		/* free the old object */
 		if ((errno = pfree(pop, &section->obj_offset))) {
@@ -1709,7 +1709,7 @@ list_realloc_move(PMEMobjpool *pop, struct list_head *oob_head_old,
 
 		if (OBJ_PTR_IS_VALID(pop, oidp))
 			redo_index = list_set_oid_redo_log(pop, redo,
-					redo_index, oidp, obj_doffset);
+					redo_index, oidp, new_obj_doffset);
 		else
 			oidp->off = new_obj_doffset;
 	} else {
