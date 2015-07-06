@@ -85,8 +85,7 @@ test_FOREACH(const char *path)
 	} while (0)
 
 	if ((pop = pmemobj_create(path, LAYOUT_NAME,
-					PMEMOBJ_MIN_POOL,
-					S_IRWXU)) == NULL)
+			PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR)) == NULL)
 		FATAL("!pmemobj_create: %s", path);
 
 	TOID_ASSIGN(root, pmemobj_root(pop, sizeof (struct root)));
@@ -125,8 +124,7 @@ test_lists(const char *path)
 	} while (0)
 
 	if ((pop = pmemobj_create(path, LAYOUT_NAME,
-					PMEMOBJ_MIN_POOL,
-					S_IRWXU)) == NULL)
+			PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR)) == NULL)
 		FATAL("!pmemobj_create: %s", path);
 
 	TOID_ASSIGN(root, pmemobj_root(pop, sizeof (struct root)));
@@ -159,9 +157,8 @@ test_add_range(const char *path)
 	} while (0)
 
 	if ((pop = pmemobj_create(path, LAYOUT_NAME,
-					PMEMOBJ_MIN_POOL,
-					S_IRWXU)) == NULL)
-			FATAL("!pmemobj_create: %s", path);
+			PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR)) == NULL)
+		FATAL("!pmemobj_create: %s", path);
 
 	root = POBJ_ROOT(pop, struct root);
 	POBJ_NEW(pop, &obj, struct int3_s, NULL, NULL);

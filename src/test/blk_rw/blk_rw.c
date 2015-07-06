@@ -95,7 +95,8 @@ main(int argc, char *argv[])
 	PMEMblkpool *handle;
 	switch (*argv[3]) {
 		case 'c':
-			handle = pmemblk_create(path, Bsize, 0, S_IWUSR);
+			handle = pmemblk_create(path, Bsize, 0,
+					S_IWUSR | S_IRUSR);
 			if (handle == NULL)
 				FATAL("!%s: pmemblk_create", path);
 			break;

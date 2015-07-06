@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright (c) 2014-2015, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -40,6 +40,7 @@
  * The asset-file should contain the names of the assets, one per line.
  */
 
+#include <sys/stat.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -70,7 +71,7 @@ main(int argc, char *argv[])
 
 	/* create pmemblk pool in existing (but as yet unmodified) file */
 	if ((pbp = pmemblk_create(path_pool,
-			sizeof (struct asset), 0, 0)) == NULL) {
+			sizeof (struct asset), 0, S_IWUSR | S_IRUSR)) == NULL) {
 		perror(path_pool);
 		exit(1);
 	}

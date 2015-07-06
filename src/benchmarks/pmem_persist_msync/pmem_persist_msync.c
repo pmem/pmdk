@@ -83,8 +83,7 @@ main(int argc, char *argv[])
 	double exec_time_pmem_persist, exec_time_pmem_msync;
 
 	if (argc < 4) {
-		printf("Usage %s <file_name> <data_size> <iterations>\n",
-			argv[0]);
+		printf("Usage %s <file_name> <data_size> <iterations>\n", argv[0]);
 		return 0;
 	}
 
@@ -93,7 +92,7 @@ main(int argc, char *argv[])
 	iterations = atoi(argv[3]);
 	pool_size = data_size * iterations;
 
-	if ((fd = open(path, O_RDWR|O_CREAT|O_EXCL, S_IRWXU)) < 0) {
+	if ((fd = open(path, O_RDWR|O_CREAT|O_EXCL, S_IWUSR|S_IRUSR)) < 0) {
 		perror("open");
 		return -1;
 	}

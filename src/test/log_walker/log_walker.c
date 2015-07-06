@@ -127,7 +127,7 @@ main(int argc, char *argv[])
 
 	CLOSE(fd);
 
-	if ((plp = pmemlog_create(path, 0, S_IWUSR)) == NULL)
+	if ((plp = pmemlog_create(path, 0, S_IWUSR | S_IRUSR)) == NULL)
 		FATAL("!pmemlog_create: %s", path);
 
 	/* append some data */

@@ -128,8 +128,8 @@ main(int argc, char *argv[])
 	switch (*argv[read_arg++]) {
 		case 'c': {
 			size_t fsize = strtoul(argv[read_arg++], NULL, 0);
-			handle = pmemblk_create(path, Bsize, fsize, S_IRUSR |
-			S_IWUSR);
+			handle = pmemblk_create(path, Bsize, fsize,
+					S_IRUSR | S_IWUSR);
 			if (handle == NULL)
 				FATAL("!%s: pmemblk_create", path);
 			break;

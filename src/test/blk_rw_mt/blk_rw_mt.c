@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright (c) 2014-2015, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -119,7 +119,8 @@ main(int argc, char *argv[])
 
 	const char *path = argv[2];
 
-	if ((Handle = pmemblk_create(path, Bsize, 0, S_IWUSR)) == NULL)
+	if ((Handle = pmemblk_create(path, Bsize, 0,
+			S_IWUSR | S_IRUSR)) == NULL)
 		FATAL("!%s: pmemblk_create", path);
 
 	if (Nblock == 0)

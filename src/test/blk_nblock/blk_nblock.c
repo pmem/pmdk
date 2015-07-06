@@ -56,7 +56,7 @@ main(int argc, char *argv[])
 		fname++;
 
 		PMEMblkpool *handle;
-		handle = pmemblk_create(fname, bsize, 0, S_IWUSR);
+		handle = pmemblk_create(fname, bsize, 0, S_IWUSR | S_IRUSR);
 		if (handle == NULL) {
 			OUT("!%s: pmemblk_create", fname);
 		} else {

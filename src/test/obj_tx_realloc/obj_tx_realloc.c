@@ -295,7 +295,7 @@ main(int argc, char *argv[])
 
 	PMEMobjpool *pop;
 	if ((pop = pmemobj_create(argv[1], LAYOUT_NAME, PMEMOBJ_MIN_POOL,
-			S_IRWXU)) == NULL)
+	    S_IWUSR | S_IRUSR)) == NULL)
 		FATAL("!pmemobj_create");
 
 	do_tx_realloc_no_tx(pop);

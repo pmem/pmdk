@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright (c) 2014-2015, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -220,7 +220,7 @@ main(int argc, char *argv[])
 
 	CLOSE(fd);
 
-	if ((plp = pmemlog_create(path, 0, S_IWUSR)) == NULL)
+	if ((plp = pmemlog_create(path, 0, S_IWUSR | S_IRUSR)) == NULL)
 		FATAL("!pmemlog_create: %s", path);
 
 	/* go through all arguments one by one */
