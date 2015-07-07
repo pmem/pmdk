@@ -45,8 +45,6 @@
 #include <errno.h>
 #include <pthread.h>
 
-#include "libvmem.h"
-
 #include "out.h"
 #include "valgrind_internal.h"
 

@@ -51,16 +51,14 @@
 #include <elf.h>
 #include <link.h>
 
-#include "libpmem.h"
-
 #include "util.h"
 #include "out.h"
 #include "valgrind_internal.h"
 
 #define	PROCMAXLEN 2048 /* maximum expected line length in /proc files */
 
+#define	MEGABYTE ((uintptr_t)1 << 20)
 #define	GIGABYTE ((uintptr_t)1 << 30)
-#define	TERABYTE ((uintptr_t)1 << 40)
 
 /*
  * set of macros for determining the alignment descriptor
@@ -98,6 +96,9 @@ Strdup_func Strdup = strdup;
 int On_valgrind;
 #endif
 
+static int Mmap_no_random;
+static void *Mmap_hint;
+
 /*
  * util_init -- initialize the utils
  *
@@ -109,6 +110,25 @@ util_init(void)
 	LOG(3, NULL);
 	if (Pagesize == 0)
 		Pagesize = (unsigned long) sysconf(_SC_PAGESIZE);
+
+	/*
+	 * For testing, allow overriding the default mmap() hint address.
+	 * If hint address is defined, it also disables address randomization.
+	 */
+	char *e = getenv("PMEM_MMAP_HINT");
+	if (e) {
+		char *endp;
+		errno = 0;
+		unsigned long long val = strtoull(e, &endp, 16);
+
+		if (errno || endp == e) {
+			LOG(2, "Invalid PMEM_MMAP_HINT");
+		} else {
+			Mmap_hint = (void *)val;
+			Mmap_no_random = 1;
+			LOG(3, "PMEM_MMAP_HINT set to %p", Mmap_hint);
+		}
+	}
 
 #if defined(USE_VG_PMEMCHECK) || defined(USE_VG_HELGRIND) ||\
 	defined(USE_VG_MEMCHECK)
@@ -135,22 +155,25 @@ util_set_alloc_funcs(void *(*malloc_func)(size_t size),
 }
 
 /*
- * util_map_hint -- use /proc to determine a hint address for mmap()
+ * util_map_hint_unused -- use /proc to determine a hint address for mmap()
  *
- * This is a helper function for util_map().  It opens up /proc/self/maps
- * and looks for the first unused address in the process address space that is:
- * - greater or equal 1TB,
+ * This is a helper function for util_map_hint().
+ * It opens up /proc/self/maps and looks for the first unused address
+ * in the process address space that is:
+ * - greater or equal 'minaddr' argument,
  * - large enough to hold range of given length,
- * - 1GB aligned.
+ * - aligned to the specified unit.
  *
  * Asking for aligned address like this will allow the DAX code to use large
  * mappings.  It is not an error if mmap() ignores the hint and chooses
  * different address.
  */
 char *
-util_map_hint(size_t len)
+util_map_hint_unused(void *minaddr, size_t len, size_t align)
 {
-	LOG(3, "len %zu", len);
+	LOG(3, "minaddr %p len %zu align %zu", minaddr, len, align);
+
+	ASSERT(align > 0);
 
 	FILE *fp;
 	if ((fp = fopen("/proc/self/maps", "r")) == NULL) {
@@ -161,7 +184,12 @@ util_map_hint(size_t len)
 	char line[PROCMAXLEN];	/* for fgets() */
 	char *lo = NULL;	/* beginning of current range in maps file */
 	char *hi = NULL;	/* end of current range in maps file */
-	char *raddr = (char *)TERABYTE;	/* ignore regions below 1TB */
+	char *raddr = minaddr;	/* ignore regions below 'minaddr' */
+
+	if (raddr == NULL)
+		raddr += Pagesize;
+
+	raddr = (char *)roundup((uintptr_t)raddr, align);
 
 	while (fgets(line, PROCMAXLEN, fp) != NULL) {
 		/* check for range line */
@@ -180,9 +208,7 @@ util_map_hint(size_t len)
 			}
 
 			if (hi > raddr) {
-				/* align to 1GB */
-				raddr = (char *)roundup((uintptr_t)hi,
-						GIGABYTE);
+				raddr = (char *)roundup((uintptr_t)hi, align);
 				LOG(4, "nearest aligned addr %p", raddr);
 			}
 
@@ -209,6 +235,67 @@ util_map_hint(size_t len)
 }
 
 /*
+ * util_map_hint -- determine hint address for mmap()
+ *
+ * If PMEM_MMAP_HINT environment variable is not set, we let the system to pick
+ * the randomized mapping address.  Otherwise, a user-defined hint address
+ * is used.
+ *
+ * ALSR in 64-bit Linux kernel uses 28-bit of randomness for mmap
+ * (bit positions 12-39), which means the base mapping address is randomized
+ * within [0..1024GB] range, with 4KB granularity.  Assuming additional
+ * 1GB alignment, it results in 1024 possible locations.
+ *
+ * Configuring the hint address via PMEM_MMAP_HINT environment variable
+ * disables address randomization.  In such case, the function will search for
+ * the first unused, properly aligned region of given size, above the specified
+ * address.
+ */
+char *
+util_map_hint(size_t len)
+{
+	LOG(3, "len %zu", len);
+
+	char *addr;
+
+	/*
+	 * Choose the desired alignment based on the requested length.
+	 * Use 2MB/1GB page alignment only if the mapping length is at least
+	 * twice as big as the page size.
+	 */
+	size_t align = Pagesize;
+	if (len >= 2 * GIGABYTE)
+		align = GIGABYTE;
+	else if (len >= 4 * MEGABYTE)
+		align = 2 * MEGABYTE;
+
+	if (Mmap_no_random) {
+		LOG(4, "user-defined hint %p", (void *)Mmap_hint);
+		addr = util_map_hint_unused((void *)Mmap_hint, len, align);
+	} else {
+		/*
+		 * Create dummy mapping to find an unused region of given size.
+		 * Request for increased size for later address alignment.
+		 * Use MAP_PRIVATE with read-only access to simulate
+		 * zero cost for overcommit accounting.  Note: MAP_NORESERVE
+		 * flag is ignored if overcommit is disabled (mode 2).
+		 */
+		addr = mmap(NULL, len + align, PROT_READ,
+					MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
+		if (addr == MAP_FAILED) {
+			addr = NULL;
+		} else {
+			LOG(4, "system choice %p", addr);
+			munmap(addr, len + align);
+			addr = (char *)roundup((uintptr_t)addr, align);
+		}
+	}
+	LOG(4, "hint %p", addr);
+
+	return addr;
+}
+
+/*
  * util_map -- memory map a file
  *
  * This is just a convenience function that calls mmap() with the
@@ -222,8 +309,8 @@ util_map(int fd, size_t len, int cow)
 	LOG(3, "fd %d len %zu cow %d", fd, len, cow);
 
 	void *base;
-
 	void *addr = util_map_hint(len);
+
 	if ((base = mmap(addr, len, PROT_READ|PROT_WRITE,
 			(cow) ? MAP_PRIVATE|MAP_NORESERVE : MAP_SHARED,
 					fd, 0)) == MAP_FAILED) {
