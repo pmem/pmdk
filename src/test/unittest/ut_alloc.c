@@ -115,12 +115,7 @@ void *
 ut_pagealignmalloc(const char *file, int line, const char *func,
     size_t size)
 {
-	static long pagesize;
-
-	if (pagesize == 0)
-		pagesize = sysconf(_SC_PAGESIZE);
-
-	return ut_memalign(file, line, func, (size_t)pagesize, size);
+	return ut_memalign(file, line, func, (size_t)Pagesize, size);
 }
 
 /*
@@ -140,8 +135,9 @@ ut_memalign(const char *file, int line, const char *func, size_t alignment,
 }
 
 /*
- * ut_mmap_anon_aligned -- mmaps anonymous memory with specified alignment
- *                         and adds guard pages around it
+ * ut_mmap_anon_aligned -- mmaps anonymous memory with specified (power of two,
+ *                         multiple of page size) alignment and adds guard
+ *                         pages around it
  */
 void *
 ut_mmap_anon_aligned(const char *file, int line, const char *func,
@@ -151,13 +147,16 @@ ut_mmap_anon_aligned(const char *file, int line, const char *func,
 	uintptr_t di, di_aligned;
 	size_t sz;
 
-	static long pagesize;
-
-	if (pagesize == 0)
-		pagesize = sysconf(_SC_PAGESIZE);
-
 	if (alignment == 0)
-		alignment = pagesize;
+		alignment = Pagesize;
+
+	/* alignment must be a multiple of page size */
+	if (alignment & (Pagesize - 1))
+		return NULL;
+
+	/* power of two */
+	if (alignment & (alignment - 1))
+		return NULL;
 
 	d = ut_mmap(file, line, func, NULL, size + 2 * alignment,
 			PROT_READ|PROT_WRITE, MAP_ANONYMOUS|MAP_PRIVATE, -1, 0);
@@ -169,19 +168,31 @@ ut_mmap_anon_aligned(const char *file, int line, const char *func,
 	d_aligned = (void *)di_aligned;
 
 	sz = di_aligned - di;
-	if (sz - pagesize)
-		ut_munmap(file, line, func, d, sz - pagesize);
+	if (sz - Pagesize)
+		ut_munmap(file, line, func, d, sz - Pagesize);
 
 	/* guard page before */
-	ut_mprotect(file, line, func, d_aligned - pagesize, pagesize,
+	ut_mprotect(file, line, func, d_aligned - Pagesize, Pagesize,
 			PROT_NONE);
 
 	/* guard page after */
-	ut_mprotect(file, line, func, d_aligned + size, pagesize, PROT_NONE);
+	ut_mprotect(file, line, func, d_aligned + size, Pagesize, PROT_NONE);
 
-	sz = di + size + 2 * alignment - (di_aligned + size) - pagesize;
+	sz = di + size + 2 * alignment - (di_aligned + size) - Pagesize;
 	if (sz)
-		ut_munmap(file, line, func, d_aligned + size + pagesize, sz);
+		ut_munmap(file, line, func, d_aligned + size + Pagesize, sz);
 
 	return d_aligned;
+}
+
+/*
+ * ut_munmap_anon_aligned -- unmaps anonymous memory allocated by
+ *                           ut_mmap_anon_aligned
+ */
+int
+ut_munmap_anon_aligned(const char *file, int line, const char *func,
+    void *start, size_t size)
+{
+	return ut_munmap(file, line, func, start - Pagesize,
+			size + 2 * Pagesize);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright (c) 2014-2015, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -57,6 +57,7 @@ static FILE *Tracefp;
 
 static int Quiet;		/* set by UNITTEST_QUIET env variable */
 static char *Testname;		/* set by UNITTEST_NAME env variable */
+unsigned long Pagesize;
 
 /*
  * flags that control output
@@ -365,6 +366,8 @@ ut_start(const char *file, int line, const char *func,
 	uuid_generate(u);
 
 	record_open_files();
+
+	Pagesize = sysconf(_SC_PAGESIZE);
 
 	errno = saveerrno;
 }

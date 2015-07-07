@@ -48,8 +48,7 @@
 #include "unittest.h"
 
 #define	CACHELINE 64
-#define	SEPARATOR 4096
-#define	N_BYTES (4 * 1024 * 1024)
+#define	N_BYTES 8192
 
 typedef void *(*mem_fn)(void *, const void *, size_t);
 
@@ -113,31 +112,16 @@ main(int argc, char *argv[])
 
 	char type = argv[1][0];
 
-	/*
-	 * mmap twice the number of bytes to transfer and
-	 * separators after each region
-	 */
-	size_t mmap_size = N_BYTES * 2 + SEPARATOR * 2;
+	void *src, *dst;
 
-	void *buff = MMAP(NULL, mmap_size,
-			PROT_READ|PROT_WRITE,
-			MAP_ANONYMOUS|MAP_PRIVATE, -1, 0);
-	if (buff == NULL)
-		FATAL("!mmap");
-
-
-	void *src;
-	void *dst;
 	size_t s;
 	switch (type) {
 	case 'C': /* memcpy */
-		src = buff + N_BYTES + SEPARATOR;
-		dst = buff;
-
-		/* unmap separators */
-		MUNMAP(dst + N_BYTES, SEPARATOR);
-		MUNMAP(src + N_BYTES, SEPARATOR);
-
+		/* mmap with guard pages */
+		src = MMAP_ANON_ALIGNED(N_BYTES, 0);
+		dst = MMAP_ANON_ALIGNED(N_BYTES, 0);
+		if (src == NULL || dst == NULL)
+			FATAL("!mmap");
 
 		/* check memcpy with 0 size */
 		check_memcpy(dst, src, 0);
@@ -154,13 +138,16 @@ main(int argc, char *argv[])
 		for (s = 0; s < CACHELINE; s++)
 			check_memcpy(dst + s, src + s, N_BYTES - 2 * s);
 
+		MUNMAP_ANON_ALIGNED(src, N_BYTES);
+		MUNMAP_ANON_ALIGNED(dst, N_BYTES);
+
 		break;
 	case 'B': /* memmove backward */
-		MUNMAP(buff, SEPARATOR);
-		MUNMAP(buff + 2 * N_BYTES, 2 * SEPARATOR);
-		src = buff + SEPARATOR;
-		dst = buff + N_BYTES;
-
+		/* mmap with guard pages */
+		src = MMAP_ANON_ALIGNED(2 * N_BYTES - 4096, 0);
+		dst = src + N_BYTES - 4096;
+		if (src == NULL)
+			FATAL("!mmap");
 
 		/* check memmove in backward direction with 0 size */
 		check_memmove(dst, src, 0);
@@ -171,7 +158,7 @@ main(int argc, char *argv[])
 
 		/* check memmove in backward direction with unaligned begin */
 		for (s = 0; s < CACHELINE; s++)
-			check_memcpy(dst + s, src, N_BYTES - s);
+			check_memmove(dst + s, src, N_BYTES - s);
 
 		/*
 		 * check memmove in backward direction with unaligned begin
@@ -180,12 +167,14 @@ main(int argc, char *argv[])
 		for (s = 0; s < CACHELINE; s++)
 			check_memmove(dst + s, src + s, N_BYTES - 2 * s);
 
+		MUNMAP_ANON_ALIGNED(src, 2 * N_BYTES - 4096);
 		break;
 	case 'F': /* memmove forward */
-		MUNMAP(buff, SEPARATOR);
-		MUNMAP(buff + 2 * N_BYTES, 2 * SEPARATOR);
-		src = buff + N_BYTES;
-		dst = buff + SEPARATOR;
+		/* mmap with guard pages */
+		dst = MMAP_ANON_ALIGNED(2 * N_BYTES - 4096, 0);
+		src = dst + N_BYTES - 4096;
+		if (src == NULL)
+			FATAL("!mmap");
 
 		/* check memmove in forward direction with 0 size */
 		check_memmove(dst, src, 0);
@@ -196,7 +185,7 @@ main(int argc, char *argv[])
 
 		/* check memmove in forward direction with unaligned begin */
 		for (s = 0; s < CACHELINE; s++)
-			check_memcpy(dst + s, src, N_BYTES - s);
+			check_memmove(dst + s, src, N_BYTES - s);
 
 		/*
 		 * check memmove in forward direction with unaligned begin
@@ -205,11 +194,14 @@ main(int argc, char *argv[])
 		for (s = 0; s < CACHELINE; s++)
 			check_memmove(dst + s, src + s, N_BYTES - 2 * s);
 
+		MUNMAP_ANON_ALIGNED(dst, 2 * N_BYTES - 4096);
+
 		break;
 	case 'S': /* memset */
-		MUNMAP(buff, SEPARATOR);
-		MUNMAP(buff + N_BYTES + SEPARATOR, N_BYTES + SEPARATOR);
-		dst = buff + SEPARATOR;
+		/* mmap with guard pages */
+		dst = MMAP_ANON_ALIGNED(N_BYTES, 0);
+		if (dst == NULL)
+			FATAL("!mmap");
 
 		/* check memset with 0 size */
 		check_memset(dst, 0);
@@ -226,13 +218,13 @@ main(int argc, char *argv[])
 		for (s = 0; s < CACHELINE; s++)
 			check_memset(dst + s, N_BYTES - 2 * s);
 
+		MUNMAP_ANON_ALIGNED(dst, N_BYTES);
+
 		break;
 	default:
 		FATAL("!wrong type of test");
 		break;
 	}
-
-	MUNMAP(buff,  mmap_size);
 
 	DONE(NULL);
 }
