@@ -942,13 +942,17 @@ pmemobj_tx_free((o).oid)
 
 #define	TX_MEMCPY(dest, src, num) (\
 {\
-	pmemobj_tx_add_range_direct(dest, num);\
-	memcpy(dest, src, num); })
+	void *d = (dest);\
+	size_t n = (num);\
+	pmemobj_tx_add_range_direct(d, n);\
+	memcpy(d, src, n); })
 
 #define	TX_MEMSET(dest, c, num) (\
 {\
-	pmemobj_tx_add_range_direct(dest, num);\
-	memset(dest, c, num); })
+	void *d = (dest);\
+	size_t n = (num);\
+	pmemobj_tx_add_range_direct(d, n);\
+	memset(d, c, n); })
 
 #ifdef __cplusplus
 }
