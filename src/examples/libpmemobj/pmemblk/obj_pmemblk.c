@@ -57,7 +57,7 @@
 #include "libpmem.h"
 #include "libpmemblk.h"
 
-#define	USABLE_SIZE ((float)(9 / 10))
+#define	USABLE_SIZE (9.0 / 10)
 #define	POOL_SIZE ((size_t)(1024 * 1024 * 50))
 #define	MAX_POOL_SIZE ((size_t)(1024L * 1024 * 1024 * 16))
 #define	MAX_THREADS 256
