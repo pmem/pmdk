@@ -2875,6 +2875,7 @@ _malloc_prefork(void)
 	for (i = 0; i < POOLS_MAX; i++) {
 		pool = pools[i];
 		if (pool != NULL) {
+			malloc_rwlock_prefork(&pool->arenas_lock);
 			for (j = 0; j < pool->narenas_total; j++) {
 				if (pool->arenas[j] != NULL)
 					arena_prefork(pool->arenas[j]);
@@ -2922,6 +2923,7 @@ _malloc_postfork(void)
 				if (pool->arenas[j] != NULL)
 					arena_postfork_parent(pool->arenas[j]);
 			}
+			malloc_rwlock_postfork_parent(&pool->arenas_lock);
 		}
 	}
 	pool_postfork_parent();
@@ -2952,27 +2954,12 @@ jemalloc_postfork_child(void)
 				if (pool->arenas[j] != NULL)
 					arena_postfork_child(pool->arenas[j]);
 			}
+			malloc_rwlock_postfork_child(&pool->arenas_lock);
 		}
 	}
 	pool_postfork_child();
 	prof_postfork_child();
 	ctl_postfork_child();
-
-	/* In child process remove pools which don't support copy-on-write */
-	memset(&pools[1], 0, sizeof(pool_t *) * (POOLS_MAX - 1));
-
-	if (pools[0]) {
-		npools = 1;
-	} else {
-		npools = 0;
-		/*
-		 * Delete allocations from data shared for case when custom allocator
-		 * is used, and we want to avoid memory leak.
-		 */
-		if (pools_shared_data_initialized)
-			pools_shared_data_destroy();
-	}
-
 }
 
 /******************************************************************************/

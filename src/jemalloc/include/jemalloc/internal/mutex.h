@@ -69,6 +69,9 @@ bool	mutex_boot(void);
 #if (defined(_WIN32) || defined(JEMALLOC_OSSPIN) || defined(JEMALLOC_MUTEX_INIT_CB))
 #define malloc_rwlock_init malloc_mutex_init
 #endif
+void	malloc_rwlock_prefork(malloc_rwlock_t *rwlock);
+void	malloc_rwlock_postfork_parent(malloc_rwlock_t *rwlock);
+void	malloc_rwlock_postfork_child(malloc_rwlock_t *rwlock);
 
 #endif /* JEMALLOC_H_EXTERNS */
 /******************************************************************************/
@@ -186,8 +189,6 @@ malloc_rwlock_destroy(malloc_rwlock_t *rwlock)
 	}
 #endif
 }
-
-/* TODO: add malloc_rwlock_prefork/postfork_parnet/postfork_child */
 
 #endif
 

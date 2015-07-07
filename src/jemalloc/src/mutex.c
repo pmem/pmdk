@@ -116,6 +116,22 @@ malloc_mutex_postfork_parent(malloc_mutex_t *mutex)
 	malloc_mutex_unlock(mutex);
 }
 
+bool
+mutex_boot(void)
+{
+
+#ifdef JEMALLOC_MUTEX_INIT_CB
+	postpone_init = false;
+	while (postponed_mutexes != NULL) {
+		if (_pthread_mutex_init_calloc_cb(&postponed_mutexes->lock,
+		    base_calloc) != 0)
+			return (true);
+		postponed_mutexes = postponed_mutexes->postponed_next;
+	}
+#endif
+	return (false);
+}
+
 void
 malloc_mutex_postfork_child(malloc_mutex_t *mutex)
 {
@@ -132,18 +148,32 @@ malloc_mutex_postfork_child(malloc_mutex_t *mutex)
 #endif
 }
 
-bool
-mutex_boot(void)
+void
+malloc_rwlock_prefork(malloc_rwlock_t *rwlock)
+{
+
+	malloc_rwlock_wrlock(rwlock);
+}
+
+void
+malloc_rwlock_postfork_parent(malloc_rwlock_t *rwlock)
+{
+
+	malloc_rwlock_unlock(rwlock);
+}
+
+void
+malloc_rwlock_postfork_child(malloc_rwlock_t *rwlock)
 {
 
 #ifdef JEMALLOC_MUTEX_INIT_CB
-	postpone_init = false;
-	while (postponed_mutexes != NULL) {
-		if (_pthread_mutex_init_calloc_cb(&postponed_mutexes->lock,
-		    base_calloc) != 0)
-			return (true);
-		postponed_mutexes = postponed_mutexes->postponed_next;
+	malloc_rwlock_unlock(rwlock);
+#else
+	if (malloc_rwlock_init(rwlock)) {
+		malloc_printf("<jemalloc>: Error re-initializing rwlock in "
+		    "child\n");
+		if (opt_abort)
+			abort();
 	}
 #endif
-	return (false);
 }
