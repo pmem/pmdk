@@ -242,16 +242,16 @@ test_tx_api(PMEMobjpool *pop)
 }
 
 void
-test_open_close(PMEMobjpool *pop, const char *path)
+test_open_close(PMEMobjpool **pop, const char *path)
 {
 	PMEMoid oid;
-	pmemobj_alloc(pop, &oid, TEST_ALLOC_SIZE, 1, NULL, NULL);
+	pmemobj_alloc(*pop, &oid, TEST_ALLOC_SIZE, 1, NULL, NULL);
 
-	pmemobj_close(pop);
+	pmemobj_close(*pop);
 
 	ASSERT(pmemobj_check(path, POBJ_LAYOUT_NAME(basic)) == 1);
 
-	ASSERT((pop = pmemobj_open(path, POBJ_LAYOUT_NAME(basic))) != NULL);
+	ASSERT((*pop = pmemobj_open(path, POBJ_LAYOUT_NAME(basic))) != NULL);
 
 	pmemobj_free(&oid);
 }
@@ -275,7 +275,7 @@ main(int argc, char *argv[])
 	test_alloc_api(pop);
 	test_list_api(pop);
 	test_tx_api(pop);
-	test_open_close(pop, path);
+	test_open_close(&pop, path);
 
 	pmemobj_close(pop);
 

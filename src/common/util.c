@@ -219,7 +219,17 @@ util_map(int fd, size_t len, int cow)
 
 	LOG(3, "fd %d len %zu cow %d", fd, len, cow);
 
+#ifndef DEBUG
+	/* try to randomize the mapping address */
+	off_t off = rand() % 16 * GIGABYTE;
+	void *addr = util_map_hint(len + off);
+	if (addr == NULL)
+		addr = util_map_hint(len);
+	else
+		addr += off;
+#else
 	void *addr = util_map_hint(len);
+#endif
 
 	if ((base = mmap(addr, len, PROT_READ|PROT_WRITE,
 			(cow) ? MAP_PRIVATE|MAP_NORESERVE : MAP_SHARED,

@@ -71,7 +71,6 @@ FUNC_MOCK_RUN_DEFAULT {
 		(struct heap_header *)((uint64_t)pop + pop->heap_offset);
 	hheader->pop = (uint64_t)pop;
 	pop->heap = (struct pmalloc_heap *)hheader;
-	pop->uuid_lo = (uint64_t)pop;
 	return 0;
 }
 FUNC_MOCK_END
