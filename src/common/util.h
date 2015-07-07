@@ -109,10 +109,15 @@ struct pool_hdr {
 	uint32_t compat_features;	/* mask: compatible "may" features */
 	uint32_t incompat_features;	/* mask: "must support" features */
 	uint32_t ro_compat_features;	/* mask: force RO if unsupported */
-	unsigned char uuid[POOL_HDR_UUID_LEN];
+	unsigned char uuid[POOL_HDR_UUID_LEN]; /* UUID of this file */
+	unsigned char parent_uuid[POOL_HDR_UUID_LEN]; /* UUID of the pool set */
+	unsigned char prev_part_uuid[POOL_HDR_UUID_LEN]; /* prev part */
+	unsigned char next_part_uuid[POOL_HDR_UUID_LEN]; /* next part */
+	unsigned char prev_repl_uuid[POOL_HDR_UUID_LEN]; /* prev replica */
+	unsigned char next_repl_uuid[POOL_HDR_UUID_LEN]; /* next replica */
 	uint64_t crtime;		/* when created (seconds since epoch) */
 	struct arch_flags arch_flags;	/* architecture identification flags */
-	unsigned char unused[4024];	/* must be zero */
+	unsigned char unused[3944];	/* must be zero */
 	uint64_t checksum;		/* checksum of above fields */
 };
 
@@ -136,6 +141,12 @@ int util_check_arch_flags(const struct arch_flags *arch_flags);
 #define	RANGE_RW(addr, len)
 
 #endif	/* DEBUG */
+
+/*
+ * pool sets & replicas
+ */
+#define	POOLSET_HDR_SIG "PMEMPOOLSET"	/* must be 12 bytes including '\0' */
+#define	POOLSET_HDR_SIG_LEN 12
 
 void util_init(void);
 

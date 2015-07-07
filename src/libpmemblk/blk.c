@@ -339,6 +339,17 @@ pmemblk_map_common(int fd, size_t poolsize, size_t bsize, int rdonly,
 			goto err;
 		}
 
+		/* XXX - pools sets / replicas */
+		if (memcmp(hdr.uuid, hdr.parent_uuid, POOL_HDR_UUID_LEN) ||
+		    memcmp(hdr.uuid, hdr.prev_part_uuid, POOL_HDR_UUID_LEN) ||
+		    memcmp(hdr.uuid, hdr.next_part_uuid, POOL_HDR_UUID_LEN) ||
+		    memcmp(hdr.uuid, hdr.prev_repl_uuid, POOL_HDR_UUID_LEN) ||
+		    memcmp(hdr.uuid, hdr.next_repl_uuid, POOL_HDR_UUID_LEN)) {
+			ERR("wrong UUID");
+			errno = EINVAL;
+			goto err;
+		}
+
 		size_t hdr_bsize = le32toh(pbp->bsize);
 		if (bsize && bsize != hdr_bsize) {
 			ERR("wrong bsize (%zu), pool created with bsize %zu",
@@ -391,6 +402,12 @@ pmemblk_map_common(int fd, size_t poolsize, size_t bsize, int rdonly,
 		hdrp->incompat_features = htole32(BLK_FORMAT_INCOMPAT);
 		hdrp->ro_compat_features = htole32(BLK_FORMAT_RO_COMPAT);
 		uuid_generate(hdrp->uuid);
+		/* XXX - pools sets / replicas */
+		memcpy(hdrp->parent_uuid, hdrp->uuid, POOL_HDR_UUID_LEN);
+		memcpy(hdrp->prev_part_uuid, hdrp->uuid, POOL_HDR_UUID_LEN);
+		memcpy(hdrp->next_part_uuid, hdrp->uuid, POOL_HDR_UUID_LEN);
+		memcpy(hdrp->prev_repl_uuid, hdrp->uuid, POOL_HDR_UUID_LEN);
+		memcpy(hdrp->next_repl_uuid, hdrp->uuid, POOL_HDR_UUID_LEN);
 		hdrp->crtime = htole64((uint64_t)time(NULL));
 
 		if (util_get_arch_flags(&hdrp->arch_flags)) {
