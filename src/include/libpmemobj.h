@@ -899,11 +899,11 @@ PMEMoid pmemobj_tx_strdup(const char *s, unsigned int type_num);
 int pmemobj_tx_free(PMEMoid oid);
 
 #define	TX_ADD(o)\
-pmemobj_tx_add_range((o).oid, 0, sizeof (*(o)._type));
+pmemobj_tx_add_range((o).oid, 0, sizeof (*(o)._type))
 
 #define	TX_ADD_FIELD(o, field)\
 pmemobj_tx_add_range((o).oid, offsetof(typeof(*(o)._type), field),\
-		sizeof (D_RO(o)->field));\
+		sizeof (D_RO(o)->field))
 
 #define	TX_NEW(t) (\
 { TOID(t) ret = (TOID(t))pmemobj_tx_alloc(sizeof (t),\
