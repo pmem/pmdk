@@ -335,7 +335,7 @@ if [ -f $TEST_CONFIG_FILE ]; then
 else
 	cp src/test/testconfig.sh.example src/test/testconfig.sh
 fi
-make check
+make -s pcheck
 
 %clean
 make clobber

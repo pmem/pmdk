@@ -61,6 +61,10 @@ clobber: clean
 	$(RM) $(TARGET)
 	$(RM) -r .deps
 
-.PHONY: all test clean clobber cstyle
+check:
+
+pcheck:
+
+.PHONY: all test check clean clobber cstyle pcheck
 
 -include .deps/*.P
