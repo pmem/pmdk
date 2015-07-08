@@ -55,6 +55,7 @@ extern "C" {
 #include <setjmp.h>
 #include <stdint.h>
 #include <stddef.h>
+#include <string.h>
 #include <pthread.h>
 
 /*
@@ -940,19 +941,19 @@ pmemobj_tx_free((o).oid)
 	TX_ADD_FIELD(o, field);\
 	D_RW(o)->field = value; })
 
-#define	TX_MEMCPY(dest, src, num) (\
-{\
-	void *d = (dest);\
-	size_t n = (num);\
-	pmemobj_tx_add_range_direct(d, n);\
-	memcpy(d, src, n); })
+static inline void *
+TX_MEMCPY(void *dest, const void *src, size_t num)
+{
+	pmemobj_tx_add_range_direct(dest, num);
+	return memcpy(dest, src, num);
+}
 
-#define	TX_MEMSET(dest, c, num) (\
-{\
-	void *d = (dest);\
-	size_t n = (num);\
-	pmemobj_tx_add_range_direct(d, n);\
-	memset(d, c, n); })
+static inline void *
+TX_MEMSET(void *dest, int c, size_t num)
+{
+	pmemobj_tx_add_range_direct(dest, num);
+	return memset(dest, c, num);
+}
 
 #ifdef __cplusplus
 }
