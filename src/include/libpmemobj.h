@@ -476,7 +476,7 @@ pmemobj_realloc((pop), oidp, (size), TOID_TYPE_NUM(t)); })
 #define	POBJ_ZREALLOC(pop, o, t, size) (\
 { TOID(t) *tmp = (o);\
 PMEMoid *oidp = tmp ? &tmp->oid : NULL;\
-pmemobj_zrealloc((pop), (PMEMoid *)(o), (size), TOID_TYPE_NUM_OF(*(o))); })
+pmemobj_zrealloc((pop), oidp, (size), TOID_TYPE_NUM_OF(*(o))); })
 
 #define	POBJ_FREE(o) pmemobj_free((PMEMoid *)(o))
 
