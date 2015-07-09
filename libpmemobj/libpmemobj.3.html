@@ -1,5 +1,5 @@
 <!-- Creator     : groff version 1.18.1.4 -->
-<!-- CreationDate: Tue Jun 30 07:14:47 2015 -->
+<!-- CreationDate: Thu Jul  9 07:30:26 2015 -->
 <html>
 <head>
 <meta name="generator" content="groff -Thtml, see www.gnu.org">
@@ -184,11 +184,11 @@ PMEMoid pmemobj_next(PMEMoid</b> <i>oid</i><b>);
 POBJ_FIRST(PMEMobjpool *</b><i>pop</i><b>,</b> <i>TYPE</i><b>)
 POBJ_NEXT(TOID</b> <i>oid</i><b>)
 
-PMEMOBJ_FOREACH(PMEMobjpool *</b><i>pop</i><b>, PMEMoid</b> <i>varoid</i><b>, unsigned int</b> <i>vartype_num</i><b>)
-PMEMOBJ_FOREACH_SAFE(PMEMobjpool *</b><i>pop</i><b>, PMEMoid</b> <i>varoid</i><b>, PMEMoid</b> <i>nvaroid</i><b>,
+POBJ_FOREACH(PMEMobjpool *</b><i>pop</i><b>, PMEMoid</b> <i>varoid</i><b>, unsigned int</b> <i>vartype_num</i><b>)
+POBJ_FOREACH_SAFE(PMEMobjpool *</b><i>pop</i><b>, PMEMoid</b> <i>varoid</i><b>, PMEMoid</b> <i>nvaroid</i><b>,
     unsigned int</b> <i>vartype_num</i><b>)
-PMEMOBJ_FOREACH_TYPE(PMEMobjpool *</b><i>pop</i><b>, TOID</b> <i>var</i><b>)
-PMEMOBJ_FOREACH_SAFE_TYPE(PMEMobjpool *</b><i>pop</i><b>, TOID</b> <i>var</i><b>, TOID</b> <i>nvar</i><b>)
+POBJ_FOREACH_TYPE(PMEMobjpool *</b><i>pop</i><b>, TOID</b> <i>var</i><b>)
+POBJ_FOREACH_SAFE_TYPE(PMEMobjpool *</b><i>pop</i><b>, TOID</b> <i>var</i><b>, TOID</b> <i>nvar</i><b>)
 
 Non-transactional persistent atomic circular doubly-linked list:
 
@@ -1902,7 +1902,7 @@ of <b>PMEMoid</b> as an argument.</p>
 iterate through the internal collections, performing a
 specific operation on each object.</p>
 <!-- INDENTATION -->
-<p><b>PMEMOBJ_FOREACH(PMEMobjpool *</b><i>pop</i><b>,
+<p><b>POBJ_FOREACH(PMEMobjpool *</b><i>pop</i><b>,
 PMEMoid</b> <i>varoid</i><b>,<br>
 unsigned int</b> <i>vartype_num</i><b>)</b></p>
 </td>
@@ -1913,7 +1913,7 @@ unsigned int</b> <i>vartype_num</i><b>)</b></p>
 <tr valign="top" align="left">
 <td width="20%"></td>
 <td width="79%">
-<p>The <b>PMEMOBJ_FOREACH</b>() macro allows to perform a
+<p>The <b>POBJ_FOREACH</b>() macro allows to perform a
 specific operation on each allocated object stored in the
 persistent memory pool pointed by <i>pop</i>. It traverses
 the internal collection of all the objects, assigning a
@@ -1927,7 +1927,7 @@ number to <i>vartype_num</i> variable.</p>
 <tr valign="top" align="left">
 <td width="10%"></td>
 <td width="89%">
-<p><b>PMEMOBJ_FOREACH_TYPE(PMEMobjpool *</b><i>pop</i><b>,
+<p><b>POBJ_FOREACH_TYPE(PMEMobjpool *</b><i>pop</i><b>,
 TOID</b> <i>var</i><b>)</b></p>
 </td>
 </table>
@@ -1937,7 +1937,7 @@ TOID</b> <i>var</i><b>)</b></p>
 <tr valign="top" align="left">
 <td width="20%"></td>
 <td width="79%">
-<p><b>PMEMOBJ_FOREACH_TYPE</b>() macro allows to perform a
+<p><b>POBJ_FOREACH_TYPE</b>() macro allows to perform a
 specific operation on each allocated object of the same type
 as object passed as <i>var</i> argument, stored in the
 persistent memory pool pointed by <i>pop</i>. It traverses
@@ -1952,13 +1952,13 @@ type, assigning a handle to each element in turn to
 <tr valign="top" align="left">
 <td width="10%"></td>
 <td width="89%">
-<p><b>PMEMOBJ_FOREACH_SAFE(PMEMobjpool *</b><i>pop</i><b>,
+<p><b>POBJ_FOREACH_SAFE(PMEMobjpool *</b><i>pop</i><b>,
 PMEMoid</b> <i>varoid</i><b>,<br>
 PMEMoid</b> <i>nvaroid</i><b>, unsigned int</b>
 <i>vartype_num</i><b>)</b></p>
 <!-- INDENTATION -->
-<p><b>PMEMOBJ_FOREACH_SAFE_TYPE(PMEMobjpool
-*</b><i>pop</i><b>, TOID</b> <i>var</i><b>,<br>
+<p><b>POBJ_FOREACH_SAFE_TYPE(PMEMobjpool *</b><i>pop</i><b>,
+TOID</b> <i>var</i><b>,<br>
 PMEMoid</b> <i>nvar</i><b>, unsigned int</b>
 <i>type_num</i><b>)</b></p>
 </td>
@@ -1970,14 +1970,13 @@ PMEMoid</b> <i>nvar</i><b>, unsigned int</b>
 <td width="20%"></td>
 <td width="79%">
 <p>The macros <b>POBJ_FOREACH_SAFE</b>() and
-<b>PMEMOBJ_FOREACH_SAFE_TYPE</b>() work in a similar fashion
-as <b>PMEMOBJ_FOREACH</b>() and
-<b>PMEMOBJ_FOREACH_TYPE</b>() except that prior to
-performing the operation on the object, they preserve a
-handle to the next object in the collection by assigning it
-to <i>nvaroid</i> or <i>nvar</i> variable. This allows safe
-deletion of selected objects while iterating through the
-collection.</p>
+<b>POBJ_FOREACH_SAFE_TYPE</b>() work in a similar fashion as
+<b>POBJ_FOREACH</b>() and <b>POBJ_FOREACH_TYPE</b>() except
+that prior to performing the operation on the object, they
+preserve a handle to the next object in the collection by
+assigning it to <i>nvaroid</i> or <i>nvar</i> variable. This
+allows safe deletion of selected objects while iterating
+through the collection.</p>
 </td>
 </table>
 <a name="ROOT OBJECT MANAGEMENT"></a>
@@ -2034,7 +2033,7 @@ returned.</p>
 <tr valign="top" align="left">
 <td width="10%"></td>
 <td width="89%">
-<p><b>PMEMOBJ_ROOT(PMEMobjpool *</b><i>pop</i><b>,</b>
+<p><b>POBJ_ROOT(PMEMobjpool *</b><i>pop</i><b>,</b>
 <i>TYPE</i><b>)</b></p>
 </td>
 </table>
@@ -2044,7 +2043,7 @@ returned.</p>
 <tr valign="top" align="left">
 <td width="20%"></td>
 <td width="79%">
-<p>The <b>PMEMOBJ_ROOT</b> macro works the same way as the
+<p>The <b>POBJ_ROOT</b> macro works the same way as the
 <b>pmemobj_root</b>() function except it returns a typed OID
 of type <i>TYPE</i> instead of <b>PMEMoid</b>.</p>
 </td>
@@ -2562,11 +2561,11 @@ support the following functionality:</p>
        cols="4" cellspacing="0" cellpadding="0">
 <tr valign="top" align="left">
 <td width="11%"></td>
-<td width="2%">
+<td width="1%">
 
 <p>*</p>
 </td>
-<td width="2%"></td>
+<td width="4%"></td>
 <td width="82%">
 
 <p>Insertion of an object at the head of the list, or at
@@ -2574,11 +2573,11 @@ the end of the list.</p>
 </td>
 <tr valign="top" align="left">
 <td width="11%"></td>
-<td width="2%">
+<td width="1%">
 
 <p>*</p>
 </td>
-<td width="2%"></td>
+<td width="4%"></td>
 <td width="82%">
 
 <p>Insertion of an object before or after any element in
@@ -2586,11 +2585,11 @@ the list.</p>
 </td>
 <tr valign="top" align="left">
 <td width="11%"></td>
-<td width="2%">
+<td width="1%">
 
 <p>*</p>
 </td>
-<td width="2%"></td>
+<td width="4%"></td>
 <td width="82%">
 
 <p>Atomic allocation and insertion of a new object at the
@@ -2598,11 +2597,11 @@ head of the list, or at the end of the list.</p>
 </td>
 <tr valign="top" align="left">
 <td width="11%"></td>
-<td width="2%">
+<td width="1%">
 
 <p>*</p>
 </td>
-<td width="2%"></td>
+<td width="4%"></td>
 <td width="82%">
 
 <p>Atomic allocation and insertion of a new object before
@@ -2610,11 +2609,11 @@ or after any element in the list.</p>
 </td>
 <tr valign="top" align="left">
 <td width="11%"></td>
-<td width="2%">
+<td width="1%">
 
 <p>*</p>
 </td>
-<td width="2%"></td>
+<td width="4%"></td>
 <td width="82%">
 
 <p>Atomic moving of an element from one list to the
@@ -2622,22 +2621,22 @@ specific location on another list.</p>
 </td>
 <tr valign="top" align="left">
 <td width="11%"></td>
-<td width="2%">
+<td width="1%">
 
 <p>*</p>
 </td>
-<td width="2%"></td>
+<td width="4%"></td>
 <td width="82%">
 
 <p>Removal of any object in the list.</p>
 </td>
 <tr valign="top" align="left">
 <td width="11%"></td>
-<td width="2%">
+<td width="1%">
 
 <p>*</p>
 </td>
-<td width="2%"></td>
+<td width="4%"></td>
 <td width="82%">
 
 <p>Atomic removal and freeing of any object in the
@@ -2645,11 +2644,11 @@ list.</p>
 </td>
 <tr valign="top" align="left">
 <td width="11%"></td>
-<td width="2%">
+<td width="1%">
 
 <p>*</p>
 </td>
-<td width="2%"></td>
+<td width="4%"></td>
 <td width="82%">
 
 <p>Forward or backward traversal through the list.</p>
@@ -3739,7 +3738,7 @@ new object of given <i>size</i> and <i>type_num</i>. In
 contrast to the non-transactional allocations, the objects
 are added to the internal object containers of given
 <i>type_num</i> only after the transaction is committed,
-making the objects visible to the <b>PMEMOBJ_FOREACH_*</b>
+making the objects visible to the <b>POBJ_FOREACH_*</b>
 macros. If successful and called during <i>TX_STAGE_WORK</i>
 function returns a handle to the newly allocated object.
 Otherwise, stage changes to <i>TX_STAGE_ONABORT</i>,
