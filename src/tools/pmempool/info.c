@@ -428,8 +428,9 @@ pmempool_info_pool_hdr(struct pmem_info *pip, int v)
 	outv_field(v, "Mandatory features", "0x%x", hdr->incompat_features);
 	outv_field(v, "Not mandatory features", "0x%x", hdr->compat_features);
 	outv_field(v, "Forced RO", "0x%x", hdr->ro_compat_features);
+	outv_field(v, "Pool set UUID", "%s",
+				out_get_uuid_str(hdr->poolset_uuid));
 	outv_field(v, "UUID", "%s", out_get_uuid_str(hdr->uuid));
-	outv_field(v, "Parent UUID", "%s", out_get_uuid_str(hdr->parent_uuid));
 	outv_field(v, "Previous part UUID", "%s",
 				out_get_uuid_str(hdr->prev_part_uuid));
 	outv_field(v, "Next part UUID", "%s",

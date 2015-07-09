@@ -340,8 +340,7 @@ pmemblk_map_common(int fd, size_t poolsize, size_t bsize, int rdonly,
 		}
 
 		/* XXX - pools sets / replicas */
-		if (memcmp(hdr.uuid, hdr.parent_uuid, POOL_HDR_UUID_LEN) ||
-		    memcmp(hdr.uuid, hdr.prev_part_uuid, POOL_HDR_UUID_LEN) ||
+		if (memcmp(hdr.uuid, hdr.prev_part_uuid, POOL_HDR_UUID_LEN) ||
 		    memcmp(hdr.uuid, hdr.next_part_uuid, POOL_HDR_UUID_LEN) ||
 		    memcmp(hdr.uuid, hdr.prev_repl_uuid, POOL_HDR_UUID_LEN) ||
 		    memcmp(hdr.uuid, hdr.next_repl_uuid, POOL_HDR_UUID_LEN)) {
@@ -403,7 +402,7 @@ pmemblk_map_common(int fd, size_t poolsize, size_t bsize, int rdonly,
 		hdrp->ro_compat_features = htole32(BLK_FORMAT_RO_COMPAT);
 		uuid_generate(hdrp->uuid);
 		/* XXX - pools sets / replicas */
-		memcpy(hdrp->parent_uuid, hdrp->uuid, POOL_HDR_UUID_LEN);
+		uuid_generate(hdrp->poolset_uuid);
 		memcpy(hdrp->prev_part_uuid, hdrp->uuid, POOL_HDR_UUID_LEN);
 		memcpy(hdrp->next_part_uuid, hdrp->uuid, POOL_HDR_UUID_LEN);
 		memcpy(hdrp->prev_repl_uuid, hdrp->uuid, POOL_HDR_UUID_LEN);
