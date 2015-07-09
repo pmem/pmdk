@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright (c) 2014, Intel Corporation
+# Copyright (c) 2014-2015, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -37,9 +37,10 @@
 SCRIPT_DIR=$(dirname $0)
 source $SCRIPT_DIR/pkg-common.sh
 
-if [ "$#" != "4" ]
+if [ $# -lt 4 -o $# -gt 5 ]
 then
-	echo "Usage: $(basename $0) VERSION_TAG SOURCE_DIR WORKING_DIR OUT_DIR"
+	echo "Usage: $(basename $0) VERSION_TAG SOURCE_DIR WORKING_DIR"\
+					"OUT_DIR [TEST_CONFIG_FILE]"
 	exit 1
 fi
 
@@ -47,6 +48,7 @@ PACKAGE_VERSION_TAG=$1
 SOURCE=$2
 WORKING_DIR=$3
 OUT_DIR=$4
+TEST_CONFIG_FILE=$5
 
 function convert_changelog() {
 	while read line
@@ -224,7 +226,11 @@ override_dh_install:
 
 override_dh_auto_test:
 	dh_auto_test
-	cp src/test/testconfig.sh.example src/test/testconfig.sh
+	if [ -f $TEST_CONFIG_FILE ]; then
+		cp $TEST_CONFIG_FILE src/test/testconfig.sh
+	else
+	        cp src/test/testconfig.sh.example src/test/testconfig.sh
+	fi
 	make check
 EOF
 

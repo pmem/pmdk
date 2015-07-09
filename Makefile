@@ -98,7 +98,8 @@ pkg-clean:
 	$(RM) -r $(DESTDIR)
 
 rpm dpkg: pkg-clean source
-	utils/build-$@.sh $(SRCVERSION) $(DESTDIR)/nvml $(DESTDIR) $(CURDIR)/$@
+	utils/build-$@.sh $(SRCVERSION) $(DESTDIR)/nvml $(DESTDIR) $(CURDIR)/$@\
+			$(CURDIR)/src/test/testconfig.sh
 
 install uninstall:
 	$(MAKE) -C src $@
