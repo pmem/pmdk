@@ -47,16 +47,9 @@ require_fs_type pmem non-pmem
 setup
 
 # single arena and minimum pmemblk pool file case
-MIN_POOL_SIZE=$((16*1024*1024 + 8*1024))
 rm -f $DIR/testfile1
-rm -f ./random-seed
 
-truncate -s $MIN_POOL_SIZE $DIR/testfile1
-#save random seed
-dd if=/dev/urandom of=./random-seed count=1 &> /dev/null
-# randomize most of the pool, leave the header intact
-dd if=/dev/urandom of=$DIR/testfile1 bs=1K count=$(($MIN_POOL_SIZE / 1024 - \
-8)) seek=8 &> /dev/null
+create_nonzeroed_file 17 8 $DIR/testfile1
 
 #
 # All reads to an unwritten block pool should return zeros.
@@ -64,7 +57,7 @@ dd if=/dev/urandom of=$DIR/testfile1 bs=1K count=$(($MIN_POOL_SIZE / 1024 - \
 # Attempts to zero uninitialized blocks are nops (should succeed).
 #
 expect_normal_exit ./blk_non_zero$EXESUFFIX 512 $DIR/testfile1 c 0\
-	r:0 r:1 r:32201 r:32202 z:0 z:1 r:0 e:3 r:4
+	r:0 r:1 r:34217 r:34218 z:0 z:1 r:0 e:3 r:4
 
 rm $DIR/testfile1
 
