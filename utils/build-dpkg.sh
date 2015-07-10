@@ -226,10 +226,10 @@ override_dh_install:
 
 override_dh_auto_test:
 	dh_auto_test
-	if [ -f $TEST_CONFIG_FILE ]; then
-		cp $TEST_CONFIG_FILE src/test/testconfig.sh
-	else
-	        cp src/test/testconfig.sh.example src/test/testconfig.sh
+	if [ -f $TEST_CONFIG_FILE ]; then\
+		cp $TEST_CONFIG_FILE src/test/testconfig.sh;\
+	else\
+	        cp src/test/testconfig.sh.example src/test/testconfig.sh;\
 	fi
 	make check
 EOF
