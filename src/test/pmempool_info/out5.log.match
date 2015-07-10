@@ -2,6 +2,7 @@ POOL Header:
 00000000$(*)|PMEMLOG.$(*)|
 00000010$(*)|$(*)|
 00000020$(*)|$(*)|
+00000030$(*)|$(*)|
 *
 00000070$(*)|$(*)|
 00000080$(*)|$(*)|
@@ -14,8 +15,8 @@ Major                    : $(*)
 Mandatory features       : $(*)
 Not mandatory features   : $(*)
 Forced RO                : $(*)
+Pool set UUID            : $(*)
 UUID                     : $(*)
-Parent UUID              : $(*)
 Previous part UUID       : $(*)
 Next part UUID           : $(*)
 Previous replica UUID    : $(*)
@@ -37,6 +38,7 @@ POOL Header:
 00000000$(*)|PMEMBLK.$(*)|
 00000010$(*)|$(*)|
 00000020$(*)|$(*)|
+00000030$(*)|$(*)|
 *
 00000070$(*)|$(*)|
 00000080$(*)|$(*)|
@@ -49,8 +51,8 @@ Major                    : $(*)
 Mandatory features       : $(*)
 Not mandatory features   : $(*)
 Forced RO                : $(*)
+Pool set UUID            : $(*)
 UUID                     : $(*)
-Parent UUID              : $(*)
 Previous part UUID       : $(*)
 Next part UUID           : $(*)
 Previous replica UUID    : $(*)

@@ -109,8 +109,8 @@ struct pool_hdr {
 	uint32_t compat_features;	/* mask: compatible "may" features */
 	uint32_t incompat_features;	/* mask: "must support" features */
 	uint32_t ro_compat_features;	/* mask: force RO if unsupported */
+	unsigned char poolset_uuid[POOL_HDR_UUID_LEN]; /* pool set UUID */
 	unsigned char uuid[POOL_HDR_UUID_LEN]; /* UUID of this file */
-	unsigned char parent_uuid[POOL_HDR_UUID_LEN]; /* UUID of the pool set */
 	unsigned char prev_part_uuid[POOL_HDR_UUID_LEN]; /* prev part */
 	unsigned char next_part_uuid[POOL_HDR_UUID_LEN]; /* next part */
 	unsigned char prev_repl_uuid[POOL_HDR_UUID_LEN]; /* prev replica */

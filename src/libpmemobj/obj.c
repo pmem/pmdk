@@ -115,7 +115,8 @@ pmemobj_get_uuid_lo(PMEMobjpool *pop)
 
 	for (int i = 0; i < 8; i++) {
 		uuid_lo = (uuid_lo << 8) |
-			(pop->hdr.uuid[i] ^ pop->hdr.uuid[8 + i]);
+			(pop->hdr.poolset_uuid[i] ^
+				pop->hdr.poolset_uuid[8 + i]);
 	}
 
 	return uuid_lo;
@@ -184,8 +185,7 @@ pmemobj_map_common(int fd, const char *layout, size_t poolsize, int rdonly,
 		}
 
 		/* XXX - pools sets / replicas */
-		if (memcmp(hdr.uuid, hdr.parent_uuid, POOL_HDR_UUID_LEN) ||
-		    memcmp(hdr.uuid, hdr.prev_part_uuid, POOL_HDR_UUID_LEN) ||
+		if (memcmp(hdr.uuid, hdr.prev_part_uuid, POOL_HDR_UUID_LEN) ||
 		    memcmp(hdr.uuid, hdr.next_part_uuid, POOL_HDR_UUID_LEN) ||
 		    memcmp(hdr.uuid, hdr.prev_repl_uuid, POOL_HDR_UUID_LEN) ||
 		    memcmp(hdr.uuid, hdr.next_repl_uuid, POOL_HDR_UUID_LEN)) {
@@ -253,7 +253,7 @@ pmemobj_map_common(int fd, const char *layout, size_t poolsize, int rdonly,
 		hdrp->ro_compat_features = htole32(OBJ_FORMAT_RO_COMPAT);
 		uuid_generate(hdrp->uuid);
 		/* XXX - pools sets / replicas */
-		memcpy(hdrp->parent_uuid, hdrp->uuid, POOL_HDR_UUID_LEN);
+		uuid_generate(hdrp->poolset_uuid);
 		memcpy(hdrp->prev_part_uuid, hdrp->uuid, POOL_HDR_UUID_LEN);
 		memcpy(hdrp->next_part_uuid, hdrp->uuid, POOL_HDR_UUID_LEN);
 		memcpy(hdrp->prev_repl_uuid, hdrp->uuid, POOL_HDR_UUID_LEN);
