@@ -55,6 +55,7 @@ extern "C" {
 #include <setjmp.h>
 #include <stdint.h>
 #include <stddef.h>
+#include <string.h>
 #include <pthread.h>
 
 /*
@@ -440,48 +441,49 @@ PMEMoid pmemobj_first(PMEMobjpool *pop, unsigned int type_num);
 PMEMoid pmemobj_next(PMEMoid oid);
 
 #define	POBJ_FIRST(pop, t) (\
-{ TOID(t) ret = (TOID(t))pmemobj_first((pop), TOID_TYPE_NUM(t));\
-ret; })
+{ TOID(t) _pobj_ret = (TOID(t))pmemobj_first((pop), TOID_TYPE_NUM(t));\
+_pobj_ret; })
 
 #define	POBJ_NEXT(o) (\
-{ typeof((o)) ret = (typeof((o)))pmemobj_next((o).oid);\
-ret; })
+{ typeof((o)) _pobj_ret = (typeof((o)))pmemobj_next((o).oid);\
+_pobj_ret; })
 
 #define	POBJ_NEW(pop, o, t, constr, arg) (\
-{ TOID(t) *tmp = (o);\
-PMEMoid *oidp = tmp ? &tmp->oid : NULL;\
-pmemobj_alloc((pop), oidp, sizeof (t), TOID_TYPE_NUM(t), (constr), (arg)); })
+{ TOID(t) *_pobj_tmp = (o);\
+PMEMoid *_pobj_oidp = _pobj_tmp ? &_pobj_tmp->oid : NULL;\
+pmemobj_alloc((pop), _pobj_oidp, sizeof (t), TOID_TYPE_NUM(t), (constr),\
+		(arg)); })
 
 #define	POBJ_ALLOC(pop, o, t, size, constr, arg) (\
-{ TOID(t) *tmp = (o);\
-PMEMoid *oidp = tmp ? &tmp->oid : NULL;\
-pmemobj_alloc((pop), oidp, (size), TOID_TYPE_NUM(t), (constr), (arg)); })
+{ TOID(t) *_pobj_tmp = (o);\
+PMEMoid *_pobj_oidp = _pobj_tmp ? &_pobj_tmp->oid : NULL;\
+pmemobj_alloc((pop), _pobj_oidp, (size), TOID_TYPE_NUM(t), (constr), (arg)); })
 
 #define	POBJ_ZNEW(pop, o, t) (\
-{ TOID(t) *tmp = (o);\
-PMEMoid *oidp = tmp ? &tmp->oid : NULL;\
-pmemobj_zalloc((pop), oidp, sizeof (t), TOID_TYPE_NUM(t)); })
+{ TOID(t) *_pobj_tmp = (o);\
+PMEMoid *_pobj_oidp = _pobj_tmp ? &_pobj_tmp->oid : NULL;\
+pmemobj_zalloc((pop), _pobj_oidp, sizeof (t), TOID_TYPE_NUM(t)); })
 
 #define	POBJ_ZALLOC(pop, o, t, size) (\
-{ TOID(t) *tmp = (o);\
-PMEMoid *oidp = tmp ? &tmp->oid : NULL;\
-pmemobj_zalloc((pop), oidp, (size), TOID_TYPE_NUM(t)); })
+{ TOID(t) *_pobj_tmp = (o);\
+PMEMoid *_pobj_oidp = _pobj_tmp ? &_pobj_tmp->oid : NULL;\
+pmemobj_zalloc((pop), _pobj_oidp, (size), TOID_TYPE_NUM(t)); })
 
 #define	POBJ_REALLOC(pop, o, t, size) (\
-{ TOID(t) *tmp = (o);\
-PMEMoid *oidp = tmp ? &tmp->oid : NULL;\
-pmemobj_realloc((pop), oidp, (size), TOID_TYPE_NUM(t)); })
+{ TOID(t) *_pobj_tmp = (o);\
+PMEMoid *_pobj_oidp = _pobj_tmp ? &_pobj_tmp->oid : NULL;\
+pmemobj_realloc((pop), _pobj_oidp, (size), TOID_TYPE_NUM(t)); })
 
 #define	POBJ_ZREALLOC(pop, o, t, size) (\
-{ TOID(t) *tmp = (o);\
-PMEMoid *oidp = tmp ? &tmp->oid : NULL;\
-pmemobj_zrealloc((pop), (PMEMoid *)(o), (size), TOID_TYPE_NUM_OF(*(o))); })
+{ TOID(t) *_pobj_tmp = (o);\
+PMEMoid *_pobj_oidp = _pobj_tmp ? &_pobj_tmp->oid : NULL;\
+pmemobj_zrealloc((pop), _pobj_oidp, (size), TOID_TYPE_NUM_OF(*(o))); })
 
 #define	POBJ_FREE(o) pmemobj_free((PMEMoid *)(o))
 
 #define	POBJ_ROOT(pop, t) (\
-{ TOID(t) ret = (TOID(t))pmemobj_root((pop), sizeof (t));\
-ret; })
+{ TOID(t) _pobj_ret = (TOID(t))pmemobj_root((pop), sizeof (t));\
+_pobj_ret; })
 
 /*
  * Debug helper function and macros
@@ -906,28 +908,28 @@ pmemobj_tx_add_range((o).oid, offsetof(typeof(*(o)._type), field),\
 		sizeof (D_RO(o)->field))
 
 #define	TX_NEW(t) (\
-{ TOID(t) ret = (TOID(t))pmemobj_tx_alloc(sizeof (t),\
-TOID_TYPE_NUM(t)); ret; })
+{ TOID(t) _pobj_ret = (TOID(t))pmemobj_tx_alloc(sizeof (t),\
+TOID_TYPE_NUM(t)); _pobj_ret; })
 
 #define	TX_ALLOC(t, size) (\
-{ TOID(t) ret = (TOID(t))pmemobj_tx_alloc((size),\
-TOID_TYPE_NUM(t)); ret; })
+{ TOID(t) _pobj_ret = (TOID(t))pmemobj_tx_alloc((size),\
+TOID_TYPE_NUM(t)); _pobj_ret; })
 
 #define	TX_ZNEW(t) (\
-{ TOID(t) ret = (TOID(t))pmemobj_tx_zalloc(sizeof (t),\
-TOID_TYPE_NUM(t)); ret; })
+{ TOID(t) _pobj_ret = (TOID(t))pmemobj_tx_zalloc(sizeof (t),\
+TOID_TYPE_NUM(t)); _pobj_ret; })
 
 #define	TX_ZALLOC(t, size) (\
-{ TOID(t) ret = (TOID(t))pmemobj_tx_zalloc((size),\
-TOID_TYPE_NUM(t)); ret; })
+{ TOID(t) _pobj_ret = (TOID(t))pmemobj_tx_zalloc((size),\
+TOID_TYPE_NUM(t)); _pobj_ret; })
 
 #define	TX_REALLOC(o, size) (\
-{ typeof((o)) ret = (typeof((o)))pmemobj_tx_realloc((size),\
-TOID_TYPE_NUM_OF(o)); ret; })
+{ typeof((o)) _pobj_ret = (typeof((o)))pmemobj_tx_realloc((size),\
+TOID_TYPE_NUM_OF(o)); _pobj_ret; })
 
 #define	TX_ZREALLOC(o, size) (\
-{ typeof((o)) ret = (typeof((o)))pmemobj_tx_zrealloc((size),\
-TOID_TYPE_NUM_OF(o)); ret; })
+{ typeof((o)) _pobj_ret = (typeof((o)))pmemobj_tx_zrealloc((size),\
+TOID_TYPE_NUM_OF(o)); _pobj_ret; })
 
 #define	TX_STRDUP(s, type_num)\
 pmemobj_tx_strdup(s, type_num)
@@ -940,19 +942,19 @@ pmemobj_tx_free((o).oid)
 	TX_ADD_FIELD(o, field);\
 	D_RW(o)->field = value; })
 
-#define	TX_MEMCPY(dest, src, num) (\
-{\
-	void *d = (dest);\
-	size_t n = (num);\
-	pmemobj_tx_add_range_direct(d, n);\
-	memcpy(d, src, n); })
+static inline void *
+TX_MEMCPY(void *dest, const void *src, size_t num)
+{
+	pmemobj_tx_add_range_direct(dest, num);
+	return memcpy(dest, src, num);
+}
 
-#define	TX_MEMSET(dest, c, num) (\
-{\
-	void *d = (dest);\
-	size_t n = (num);\
-	pmemobj_tx_add_range_direct(d, n);\
-	memset(d, c, n); })
+static inline void *
+TX_MEMSET(void *dest, int c, size_t num)
+{
+	pmemobj_tx_add_range_direct(dest, num);
+	return memset(dest, c, num);
+}
 
 #ifdef __cplusplus
 }

@@ -126,6 +126,24 @@ test_alloc_api(PMEMobjpool *pop)
 		nodes_count++;
 	}
 	ASSERTeq(nodes_count, 0);
+
+	int val = 10;
+	POBJ_ALLOC(pop, &node_constructed, struct dummy_node_c,
+			sizeof (struct dummy_node_c),
+			dummy_node_constructor, &val);
+
+	POBJ_REALLOC(pop, &node_constructed, struct dummy_node_c,
+			sizeof (struct dummy_node_c) + 10);
+
+	POBJ_ZREALLOC(pop, &node_constructed, struct dummy_node_c,
+			sizeof (struct dummy_node_c) + 20);
+
+	POBJ_FREE(&node_constructed);
+
+	POBJ_ZALLOC(pop, &node_zeroed, struct dummy_node,
+			sizeof (struct dummy_node));
+
+	POBJ_FREE(&node_zeroed);
 }
 
 void
