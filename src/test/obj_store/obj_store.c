@@ -96,8 +96,8 @@ test_root_object(const char *path)
 	TOID(struct root_grown) rootg;
 
 	/* create a pool */
-	if ((pop = pmemobj_create(path, LAYOUT_NAME, PMEMOBJ_MIN_POOL,
-	    S_IWUSR | S_IRUSR)) == NULL)
+	if ((pop = pmemobj_create(path, LAYOUT_NAME, 0,
+					S_IWUSR | S_IRUSR)) == NULL)
 		FATAL("!pmemobj_create: %s", path);
 
 	/* there should be no root object */
@@ -107,6 +107,7 @@ test_root_object(const char *path)
 	TOID_ASSIGN(root, pmemobj_root(pop, sizeof (struct root)));
 	ASSERT(TOID_IS_NULL(root) == 0);
 	ASSERTeq(pmemobj_root_size(pop), sizeof (struct root));
+	ASSERT(util_is_zeroed(D_RO(root), sizeof (struct root)));
 
 	/* fill in root object */
 	strncpy(D_RW(root)->name, ROOT_NAME, MAX_ROOT_NAME);
@@ -130,6 +131,8 @@ test_root_object(const char *path)
 
 	/* resize root object */
 	TOID_ASSIGN(rootg, pmemobj_root(pop, sizeof (struct root_grown)));
+	ASSERT(util_is_zeroed((char *)D_RO(rootg) + sizeof (struct root),
+		sizeof (struct root_grown) - sizeof (struct root)));
 
 	/* check offset and size of resized root object */
 	ASSERT(TOID_IS_NULL(rootg) == 0);
@@ -173,8 +176,8 @@ test_alloc_free(const char *path)
 	int type_num;
 
 	/* create a pool */
-	if ((pop = pmemobj_create(path, LAYOUT_NAME, PMEMOBJ_MIN_POOL,
-	    S_IWUSR | S_IRUSR)) == NULL)
+	if ((pop = pmemobj_create(path, LAYOUT_NAME, 0,
+					S_IWUSR | S_IRUSR)) == NULL)
 		FATAL("!pmemobj_create: %s", path);
 
 	/* object store should be empty */
@@ -185,10 +188,10 @@ test_alloc_free(const char *path)
 
 	/* write to object store */
 	for (type_num = 0; type_num < _N_TEST_TYPES; type_num++) {
-		pmemobj_alloc(pop, &tobj.oid,
-			sizeof (struct tobject),
-			type_num, NULL, NULL);
+		pmemobj_zalloc(pop, &tobj.oid,
+			sizeof (struct tobject), type_num);
 		ASSERT(TOID_IS_NULL(tobj) == 0);
+		ASSERT(util_is_zeroed(D_RO(tobj), sizeof (struct tobject)));
 
 		/* save offset to check it later */
 		offsets[type_num] = tobj.oid.off;
@@ -250,8 +253,8 @@ test_FOREACH(const char *path)
 	memset(bitmap, 0, sizeof (bitmap));
 
 	/* create a pool */
-	if ((pop = pmemobj_create(path, LAYOUT_NAME, PMEMOBJ_MIN_POOL,
-	    S_IWUSR | S_IRUSR)) == NULL)
+	if ((pop = pmemobj_create(path, LAYOUT_NAME, 0,
+					S_IWUSR | S_IRUSR)) == NULL)
 		FATAL("!pmemobj_create: %s", path);
 
 	/* write to object store */
@@ -329,14 +332,15 @@ test_user_lists(const char *path)
 	memset(bitmap, 0, sizeof (bitmap));
 
 	/* create a pool */
-	if ((pop = pmemobj_create(path, LAYOUT_NAME, PMEMOBJ_MIN_POOL,
-	    S_IWUSR | S_IRUSR)) == NULL)
+	if ((pop = pmemobj_create(path, LAYOUT_NAME, 0,
+					S_IWUSR | S_IRUSR)) == NULL)
 		FATAL("!pmemobj_create: %s", path);
 
 	/* create root object */
 	TOID_ASSIGN(root, pmemobj_root(pop, sizeof (struct root)));
 	ASSERT(TOID_IS_NULL(root) == 0);
 	ASSERTeq(pmemobj_root_size(pop), sizeof (struct root));
+	ASSERT(util_is_zeroed(D_RW(root), sizeof (struct root)));
 
 	/* fill in root object */
 	strncpy(D_RW(root)->name, ROOT_NAME, MAX_ROOT_NAME);
@@ -423,8 +427,8 @@ test_strdup(const char *path)
 	ASSERTeq(memcmp(pmemobj_direct(stroid), str, strlen(str) + 1), 0);\
 	} while (0)
 
-	if ((pop = pmemobj_create(path, LAYOUT_NAME, PMEMOBJ_MIN_POOL,
-	    S_IWUSR | S_IRUSR)) == NULL)
+	if ((pop = pmemobj_create(path, LAYOUT_NAME, 0,
+					S_IWUSR | S_IRUSR)) == NULL)
 		FATAL("!pmemobj_create: %s", path);
 
 	/* test NULL argument */
