@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright (c) 2014, Intel Corporation
+# Copyright (c) 2014-2015, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -56,8 +56,8 @@ truncate -s 32K $DIR/testfile1
 chmod -rw $DIR/testfile1
 truncate -s 32K $DIR/testfile2
 chmod -w $DIR/testfile2
-ln -s $DIR/testfile1 $DIR/testlink1
-ln -s $DIR/testfile2 $DIR/testlink2
+ln -s testfile1 $DIR/testlink1
+ln -s testfile2 $DIR/testlink2
 
 expect_normal_exit ./util_pool_open$EXESUFFIX $MIN_POOL \
     $DIR/testlink1\
