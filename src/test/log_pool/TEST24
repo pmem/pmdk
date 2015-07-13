@@ -43,8 +43,6 @@ export UNITTEST_NUM=24
 setup
 umask 0
 
-rm -f $DIR/testfile
-
 #
 # TEST24 existing file, file size >= min required size
 #        (no read permissions)
@@ -53,8 +51,6 @@ expect_normal_exit ./log_pool$EXESUFFIX c $DIR/testfile 20 0640
 chmod -r $DIR/testfile
 
 expect_normal_exit ./log_pool$EXESUFFIX o $DIR/testfile
-
-rm $DIR/testfile
 
 check
 

@@ -43,8 +43,6 @@ export UNITTEST_NUM=25
 setup
 umask 0
 
-rm -f $DIR/testfile
-
 #
 # TEST25 existing file, file size >= min required size, bsize == 0
 #        (no read permissions)
@@ -53,8 +51,6 @@ expect_normal_exit ./blk_pool$EXESUFFIX c $DIR/testfile 512 20 0640
 chmod -r $DIR/testfile
 
 expect_normal_exit ./blk_pool$EXESUFFIX o $DIR/testfile 0
-
-rm $DIR/testfile
 
 check
 

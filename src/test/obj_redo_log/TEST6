@@ -49,7 +49,6 @@ FILE=${DIR}/pool
 FSIZE=$((1024*1024))
 RSIZE=4
 
-rm -f $FILE
 truncate -s $FSIZE $FILE
 
 expect_normal_exit valgrind --tool=pmemcheck\
@@ -77,8 +76,6 @@ expect_normal_exit valgrind --tool=pmemcheck\
 	r:0x00000310\
 	r:0x00000318\
 	C
-
-rm -f $FILE
 
 check
 

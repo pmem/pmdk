@@ -48,7 +48,6 @@ setup
 
 # single arena and minimum pmemblk pool file case
 MIN_POOL_SIZE=$((16*1024*1024 + 8*1024))
-rm -f $DIR/testfile1
 
 #
 # All reads to an unwritten block pool should return zeros.
@@ -57,8 +56,6 @@ rm -f $DIR/testfile1
 #
 expect_normal_exit ./blk_non_zero$EXESUFFIX 512 $DIR/testfile1 c $MIN_POOL_SIZE\
 	r:0 r:1 r:32201 r:32202 z:0 z:1 r:0
-
-rm $DIR/testfile1
 
 check
 

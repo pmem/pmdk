@@ -46,7 +46,6 @@ setup
 POOL=$DIR/file.pool
 
 # PMEMBLK
-rm -rf $POOL
 expect_normal_exit $PMEMPOOL create -m 0666 blk 512 $POOL
 check_file $POOL
 check_signature PMEMBLK $POOL
@@ -66,7 +65,5 @@ check_file $POOL
 check_signature OBJPOOL $POOL
 check_layout LAYOUT_NAME $POOL
 check_mode 556 $POOL
-
-rm -f $POOL
 
 pass

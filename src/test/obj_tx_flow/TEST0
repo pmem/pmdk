@@ -44,6 +44,4 @@ setup
 
 expect_normal_exit ./obj_tx_flow$EXESUFFIX $DIR/testfile1
 
-rm -f $DIR/testfile1
-
 pass

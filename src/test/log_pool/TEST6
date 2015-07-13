@@ -43,8 +43,6 @@ export UNITTEST_NUM=6
 setup
 umask 0
 
-rm -f $DIR/testfile
-
 create_nonzeroed_file 2 0 $DIR/testfile
 chmod 0640 $DIR/testfile
 
@@ -58,8 +56,6 @@ expect_normal_exit ./log_pool$EXESUFFIX c $DIR/testfile 0 0640
     echo "error: $DIR/testfile deleted"
     exit 1
 }
-
-rm $DIR/testfile
 
 check
 

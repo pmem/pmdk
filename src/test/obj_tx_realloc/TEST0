@@ -42,13 +42,9 @@ export UNITTEST_NUM=0
 
 setup
 
-rm -f $DIR/testfile1
-
 create_nonzeroed_file 8 8 $DIR/testfile1
 
 expect_normal_exit ./obj_tx_realloc$EXESUFFIX $DIR/testfile1
-
-rm -f $DIR/testfile1
 
 check
 

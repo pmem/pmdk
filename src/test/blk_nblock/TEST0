@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright (c) 2014, Intel Corporation
+# Copyright (c) 2014-2015, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -54,7 +54,6 @@ setup
 # These are holey files, so they actually don't take up
 # any significant space.
 #
-rm -f $DIR/testfile1
 truncate -s 2M $DIR/testfile1
 truncate -s 2G $DIR/testfile2.512
 truncate -s 2G $DIR/testfile2.520
@@ -137,7 +136,6 @@ expect_normal_exit ./blk_nblock$EXESUFFIX\
 	4096:$DIR/testfile7.4096\
 	4160:$DIR/testfile7.4160\
 	4224:$DIR/testfile7.4224
-rm $DIR/testfile1 $DIR/testfile[234567].*
 
 check
 

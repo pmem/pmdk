@@ -46,8 +46,6 @@ require_valgrind_pmemcheck
 
 setup
 
-rm -f $DIR/testfile1
-
 create_nonzeroed_file 8 8 $DIR/testfile1
 
 expect_normal_exit valgrind --tool=pmemcheck\
@@ -55,7 +53,6 @@ expect_normal_exit valgrind --tool=pmemcheck\
 	--mult-stores=no\
 	./obj_tx_alloc$EXESUFFIX $DIR/testfile1
 
-rm -f $DIR/testfile1
 check
 
 pass

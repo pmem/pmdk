@@ -46,13 +46,9 @@ export UNITTEST_NUM=4
 
 setup
 
-rm -f $DIR/testfile1
-
 create_nonzeroed_file 8 4 $DIR/testfile1
 
 expect_normal_exit ./obj_store$EXESUFFIX $DIR/testfile1 n
-
-rm -f $DIR/testfile1
 
 check
 

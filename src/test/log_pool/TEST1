@@ -43,7 +43,6 @@ export UNITTEST_NUM=1
 setup
 umask 0
 
-rm -f $DIR/testfile
 truncate -s 2G $DIR/testfile
 chmod 0640 $DIR/testfile
 
@@ -56,8 +55,6 @@ expect_normal_exit ./log_pool$EXESUFFIX c $DIR/testfile 0 0640
     echo "error: $DIR/testfile doesn't exist"
     exit 1
 }
-
-rm $DIR/testfile
 
 check
 

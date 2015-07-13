@@ -46,7 +46,6 @@ require_valgrind_pmemcheck ../obj_list/obj_list
 
 setup
 
-rm -f $DIR/testfile
 truncate -s1M $DIR/testfile
 
 expect_normal_exit valgrind --tool=pmemcheck\

@@ -43,8 +43,6 @@ export UNITTEST_NUM=9
 setup
 umask 0
 
-rm -f $DIR/testfile
-
 #
 # TEST9 non-existing file, poolsize < min required size
 #

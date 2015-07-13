@@ -47,8 +47,6 @@ require_fs_type pmem non-pmem
 setup
 
 # mix writes with set_zero and set_error and check results
-rm -f $DIR/testfile1
-
 FILE_SIZE=$((1024*1024*1024))
 
 expect_normal_exit ./blk_non_zero$EXESUFFIX 512 $DIR/testfile1 c $FILE_SIZE\
@@ -58,8 +56,6 @@ expect_normal_exit ./blk_non_zero$EXESUFFIX 512 $DIR/testfile1 c $FILE_SIZE\
 		e:4 z:4 r:4\
 		w:5 e:5 z:5 r:5\
 		w:6 z:6 e:6 r:6
-
-rm $DIR/testfile1
 
 check
 

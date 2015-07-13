@@ -45,14 +45,11 @@ require_valgrind_pmemcheck
 
 setup
 
-rm -f $DIR/testfile1
 truncate -s 4MB $DIR/testfile1
 
 expect_normal_exit valgrind --log-file=valgrind$UNITTEST_NUM.log\
  --tool=pmemcheck --mult-stores=yes ./pmem_valgr_simple$EXESUFFIX\
   $DIR/testfile1 60 8
-
-rm $DIR/testfile1
 
 check
 

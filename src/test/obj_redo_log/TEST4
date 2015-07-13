@@ -46,7 +46,6 @@ FILE=${DIR}/pool
 FSIZE=$((1024*1024))
 RSIZE=4
 
-rm -f $FILE
 truncate -s $FSIZE $FILE
 
 expect_normal_exit ./obj_redo_log$EXESUFFIX $FILE $RSIZE\
@@ -96,8 +95,6 @@ expect_normal_exit ./obj_redo_log$EXESUFFIX $FILE $RSIZE\
 	e:2\
 	e:3\
 	C
-
-rm -f $FILE
 
 check
 
