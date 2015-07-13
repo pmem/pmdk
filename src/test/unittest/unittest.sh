@@ -381,6 +381,10 @@ function pass() {
 # Length of pool file's signature
 SIG_LEN=8
 
+# Offset and length of pmemobj layout
+LAYOUT_OFFSET=4096
+LAYOUT_LEN=1024
+
 # Length of arena's signature
 ARENA_SIG_LEN=16
 
@@ -462,6 +466,23 @@ check_signature()
 	if [[ $sig != $file_sig ]]
 	then
 		echo "error: signature doesn't match ${file_sig} != ${sig}"
+		exit 1
+	fi
+}
+
+#
+# check_layout -- check if pmemobj pool contains specified layout
+#
+check_layout()
+{
+	local layout=$1
+	local file=$2
+	local file_layout=$(dd if=$file bs=1\
+		skip=$LAYOUT_OFFSET count=$LAYOUT_LEN 2>/dev/null)
+
+	if [[ $layout != $file_layout ]]
+	then
+		echo "error: layout doesn't match ${file_layout} != ${layout}"
 		exit 1
 	fi
 }

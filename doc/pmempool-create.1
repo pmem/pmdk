@@ -52,32 +52,37 @@ command creates a pool file of specified type. Depending on a pool type it is
 possible to provide more properties of pool.
 
 Valid pool types are:
-.B blk
+.BR blk ,
+.BR log
 and
-.B log
+.BR obj
 which stands for
-.I pmem blk
+.IR pmem blk ,
+.IR pmem log
 and
-.I pmem log
+.IR pmem obj
 pools respectively.
 By default the pool file is created with
 .I minimum
 allowed size for specified pool type. The minimum sizes for
-.B blk
+.BR blk ,
+.BR log
 and
-.B log
+.BR obj
 pool types are
-.B PMEMBLK_MIN_POOL
+.BR PMEMBLK_MIN_POOL ,
+.BR PMEMLOG_MIN_POOL
 and
-.B PMEMLOG_MIN_POOL
+.BR PMEMOBJ_MIN_POOL
 respectively. See
-.B libpmemblk(3)
+.BR libpmemblk (3) ,
+.BR libpmemlog (3)
 and
-.B libpmemlog(3)
+.BR libpmemobj (3)
 for details.
 
 For
-.I pmem blk
+.IR pmem blk
 pool type block size
 .B <bsize>
 is a required argument.
@@ -129,7 +134,7 @@ Display help message and exit.
 .RE
 .SS "Options for PMEMBLK:"
 .LP
-By default when creating pmem
+By default when creating a pmem
 .B blk
 pool, the
 .B BTT
@@ -138,7 +143,7 @@ layout is
 written until the first
 .I write operation
 of block entry is performed. Using
-.B -l
+.B -w
 option you can force writing
 .B BTT
 layout by writing zero data to specified block number. By default the
@@ -146,10 +151,10 @@ layout by writing zero data to specified block number. By default the
 is performed to block number
 .BR 0 .
 Please refer to
-.B libpmemblk(3)
+.BR libpmemblk (3)
 for details.
 .PP
-.B -l, --layout [<blockno>]
+.B -w, --write-layout [<blockno>]
 .RS 8
 Force writing
 .B BTT
@@ -158,6 +163,23 @@ layout by performing
 to
 .B <blockno>
 block. Default is 0.
+.RE
+.SS "Options for PMEMOBJ:"
+.LP
+By default when creating a pmem
+.B obj
+pool, the layout name provided to the
+.B libpmemobj
+library is an empty string.
+Please refer to
+.BR libpmemobj (3)
+for details.
+.PP
+.B -l, --layout <layout>
+.RS 8
+Layout name of the
+.B pmemobj
+pool.
 .RE
 .SH EXAMPLES
 .TP
@@ -170,6 +192,9 @@ pmempool create log -M pool.log
 pmempool create blk --size=4G --layout=1 1K pool.blk
 # Create a blk pool file of size 4G, block size 1K and write BTT layout using
 write operation to the block number 1
+.TP
+pmempool create --layout my_layout obj pool.obj
+# Create an obj pool file of minimum allowed size and layout 'my_layout'
 .TP
 pmempool create --inherit=pool.log new_pool.log
 # Create a pool file based on pool.log file

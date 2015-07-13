@@ -40,6 +40,9 @@
 #include "util.h"
 #include "log.h"
 #include "blk.h"
+#include "libpmemobj.h"
+#include "list.h"
+#include "obj.h"
 #include "btt_layout.h"
 
 #define	min(a, b) ((a) < (b) ? (a) : (b))
@@ -56,6 +59,20 @@ typedef enum {
 	PMEM_POOL_TYPE_UNKNOWN	= 0x80,
 } pmem_pool_type_t;
 
+struct pmem_pool_params {
+	pmem_pool_type_t type;
+	uint64_t size;
+	mode_t mode;
+	union {
+		struct {
+			uint64_t bsize;
+		} blk;
+		struct {
+			char layout[PMEMOBJ_MAX_LAYOUT];
+		} obj;
+	};
+};
+
 struct range {
 	LIST_ENTRY(range) next;
 	uint64_t first;
@@ -69,8 +86,7 @@ struct ranges {
 pmem_pool_type_t pmem_pool_type_parse_hdr(struct pool_hdr *hdrp);
 pmem_pool_type_t pmem_pool_type_parse_str(char *str);
 uint64_t pmem_pool_get_min_size(pmem_pool_type_t type);
-pmem_pool_type_t pmem_pool_parse_params(char *fname, uint64_t *sizep,
-		uint64_t *bsizep);
+int pmem_pool_parse_params(char *fname, struct pmem_pool_params *paramsp);
 int util_validate_checksum(void *addr, size_t len, uint64_t *csum);
 int util_parse_size(char *str, uint64_t *sizep);
 int util_parse_mode(char *str, mode_t *mode);
