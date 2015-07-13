@@ -81,24 +81,40 @@ esac
 # This behavior can be overridden by setting DIR.  For example:
 #	DIR=/force/test/dir ./TEST0
 #
-[ "$DIR" ] || {
+curtestdir=`basename $PWD`
+
+# just in case
+if [ ! -n "$curtestdir" ]; then
+	exit 1
+fi
+
+curtestdir=test_$curtestdir
+
+if [ ! -n "$UNITTEST_NUM" ]; then
+	echo "UNITTEST_NUM does not have a value"
+	exit 1
+fi
+
+if [ "$DIR" ]; then
+	 DIR=$DIR/$curtestdir$UNITTEST_NUM
+else
 	case "$FS"
 	in
 	local)
-		DIR=$LOCAL_FS_DIR
+		DIR=$LOCAL_FS_DIR/$curtestdir$UNITTEST_NUM
 		;;
 	pmem)
-		DIR=$PMEM_FS_DIR
+		DIR=$PMEM_FS_DIR/$curtestdir$UNITTEST_NUM
 		;;
 	non-pmem)
-		DIR=$NON_PMEM_FS_DIR
+		DIR=$NON_PMEM_FS_DIR/$curtestdir$UNITTEST_NUM
 		;;
 	esac
 	[ "$DIR" ] || {
 		[ "$UNITTEST_QUIET" ] || echo "$UNITTEST_NAME: SKIP fs-type $FS (not configured)"
 		exit 0
 	}
-}
+fi
 
 #
 # The default is to turn on library logging to level 3 and save it to local files.
@@ -357,6 +373,10 @@ function require_valgrind_dev_3_10() {
 #
 function setup() {
 	echo "$UNITTEST_NAME: SETUP ($TEST/$FS/$BUILD)"
+	if [ -d "$DIR" ]; then
+		rm --one-file-system -rf -- $DIR
+	fi
+	mkdir $DIR
 }
 
 #
@@ -371,6 +391,7 @@ function check() {
 #
 function pass() {
 	echo $UNITTEST_NAME: PASS
+	rm --one-file-system -rf -- $DIR
 }
 
 # Paths to some useful tools
