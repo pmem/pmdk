@@ -36,8 +36,9 @@
 #include <stdint.h>
 #include <pthread.h>
 
-#include "bucket.h"
 #include "unittest.h"
+#include "heap.h"
+#include "bucket.h"
 
 #define	TEST_UNIT_SIZE 1
 #define	TEST_MAX_UNIT 1
@@ -111,19 +112,19 @@ test_new_delete_bucket()
 	struct bucket *b = NULL;
 
 	/* b malloc fail */
-	b = bucket_new(0, 0);
+	b = bucket_new(1, 1);
 	ASSERT(b == NULL);
 
 	/* b->ctree fail */
-	b = bucket_new(0, 0);
+	b = bucket_new(1, 1);
 	ASSERT(b == NULL);
 
 	/* b->lock init fail */
-	b = bucket_new(0, 0);
+	b = bucket_new(1, 1);
 	ASSERT(b == NULL);
 
 	/* all ok */
-	b = bucket_new(0, 0);
+	b = bucket_new(1, 1);
 	ASSERT(b != NULL);
 
 	bucket_delete(b);
@@ -138,7 +139,7 @@ test_bucket()
 	ASSERT(bucket_unit_size(b) == TEST_UNIT_SIZE);
 	ASSERT(bucket_is_small(b));
 	ASSERT(bucket_calc_units(b, TEST_SIZE) == TEST_SIZE);
-	ASSERT(bucket_lock(b));
+	ASSERT(bucket_lock(b) == 0);
 	bucket_unlock(b);
 }
 
@@ -148,25 +149,20 @@ test_bucket_insert_get()
 	struct bucket *b = bucket_new(TEST_UNIT_SIZE, TEST_MAX_UNIT);
 	ASSERT(b != NULL);
 
-	uint32_t chunk_id = TEST_CHUNK_ID;
-	uint32_t zone_id = TEST_ZONE_ID;
-	uint32_t size_idx = TEST_SIZE_IDX;
-	uint16_t block_off = TEST_BLOCK_OFF;
+	struct memory_block m = {TEST_CHUNK_ID, TEST_ZONE_ID,
+		TEST_SIZE_IDX, TEST_BLOCK_OFF};
 
 	/* get from empty */
-	ASSERT(bucket_get_rm_block_bestfit(b, &chunk_id, &zone_id,
-		&size_idx, &block_off) != 0);
+	ASSERT(bucket_get_rm_block_bestfit(b, &m) != 0);
 
-	ASSERT(bucket_insert_block(b, chunk_id, zone_id,
-		size_idx, block_off) == 0);
+	ASSERT(bucket_insert_block(b, m) == 0);
 
-	ASSERT(bucket_get_rm_block_bestfit(b, &chunk_id, &zone_id,
-		&size_idx, &block_off) == 0);
+	ASSERT(bucket_get_rm_block_bestfit(b, &m) == 0);
 
-	ASSERT(chunk_id == TEST_CHUNK_ID);
-	ASSERT(zone_id == TEST_ZONE_ID);
-	ASSERT(size_idx == TEST_SIZE_IDX);
-	ASSERT(block_off == TEST_BLOCK_OFF);
+	ASSERT(m.chunk_id == TEST_CHUNK_ID);
+	ASSERT(m.zone_id == TEST_ZONE_ID);
+	ASSERT(m.size_idx == TEST_SIZE_IDX);
+	ASSERT(m.block_off == TEST_BLOCK_OFF);
 
 	bucket_delete(b);
 }
@@ -177,16 +173,12 @@ test_bucket_remove()
 	struct bucket *b = bucket_new(TEST_UNIT_SIZE, TEST_MAX_UNIT);
 	ASSERT(b != NULL);
 
-	uint32_t chunk_id = TEST_CHUNK_ID;
-	uint32_t zone_id = TEST_ZONE_ID;
-	uint32_t size_idx = TEST_SIZE_IDX;
-	uint16_t block_off = TEST_BLOCK_OFF;
+	struct memory_block m = {TEST_CHUNK_ID, TEST_ZONE_ID,
+		TEST_SIZE_IDX, TEST_BLOCK_OFF};
 
-	ASSERT(bucket_insert_block(b, chunk_id, zone_id,
-		size_idx, block_off) == 0);
+	ASSERT(bucket_insert_block(b, m) == 0);
 
-	ASSERT(bucket_get_rm_block_exact(b, chunk_id, zone_id,
-		size_idx, block_off) == 0);
+	ASSERT(bucket_get_rm_block_exact(b, m) == 0);
 
 	bucket_delete(b);
 }

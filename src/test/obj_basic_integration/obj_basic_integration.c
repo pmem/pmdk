@@ -42,7 +42,7 @@
 #define	TEST_STR "abcdefgh"
 #define	TEST_STR_LEN 8
 #define	TEST_VALUE 5
-#define	TEST_ALLOC_SIZE 8000
+#define	TEST_ALLOC_SIZE 2048
 
 /*
  * Layout definition
@@ -244,8 +244,9 @@ test_tx_api(PMEMobjpool *pop)
 void
 test_open_close(PMEMobjpool *pop, const char *path)
 {
-	PMEMoid oid;
-	pmemobj_alloc(pop, &oid, TEST_ALLOC_SIZE, 1, NULL, NULL);
+	PMEMoid oid[TEST_ALLOC_SIZE];
+	for (int i = 0; i < TEST_ALLOC_SIZE; ++i)
+		pmemobj_alloc(pop, &oid[i], i, 0, NULL, NULL);
 
 	pmemobj_close(pop);
 
@@ -253,7 +254,8 @@ test_open_close(PMEMobjpool *pop, const char *path)
 
 	ASSERT((pop = pmemobj_open(path, POBJ_LAYOUT_NAME(basic))) != NULL);
 
-	pmemobj_free(&oid);
+	for (int i = 0; i < TEST_ALLOC_SIZE; ++i)
+		pmemobj_free(&oid[i]);
 }
 
 int

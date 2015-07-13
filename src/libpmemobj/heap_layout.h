@@ -37,7 +37,7 @@
 #define	HEAP_MAJOR 1
 #define	HEAP_MINOR 0
 
-#define	MAX_CHUNK UINT16_MAX
+#define	MAX_CHUNK (UINT16_MAX - 7) /* has to be multiple of 8 */
 #define	CHUNKSIZE (1024L * 256)	/* 256 kilobytes */
 #define	HEAP_SIGNATURE_LEN 16
 #define	HEAP_SIGNATURE "MEMORY_HEAP_HDR\0"
@@ -45,7 +45,7 @@
 #define	ZONE_MIN_SIZE (sizeof (struct zone) + CHUNKSIZE)
 #define	ZONE_MAX_SIZE (sizeof (struct zone) + MAX_CHUNK * CHUNKSIZE)
 #define	HEAP_MIN_SIZE (sizeof (struct heap_layout) + ZONE_MIN_SIZE)
-#define	REDO_LOG_SIZE	4
+#define	REDO_LOG_SIZE 4
 #define	BITS_PER_VALUE 64
 #define	MAX_BITMAP_VALUES 39 /* five cachelines - 8 bytes */
 #define	RUN_BITMAP_SIZE (BITS_PER_VALUE * MAX_BITMAP_VALUES)

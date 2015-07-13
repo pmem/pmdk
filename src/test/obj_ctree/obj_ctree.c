@@ -72,7 +72,7 @@ FUNC_MOCK(pthread_mutex_lock, int, pthread_mutex_t *mutex)
 {
 	FUNC_MOCK_RUN_RET_DEFAULT_REAL(pthread_mutex_lock, mutex)
 	FUNC_MOCK_RUN(TEST_REMOVE + 0)
-	FUNC_MOCK_RUN(TEST_INSERT + 0) {
+	FUNC_MOCK_RUN(TEST_INSERT + 1) {
 		return -1;
 	}
 } FUNC_MOCK_END
