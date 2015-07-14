@@ -47,6 +47,7 @@
 #include "libvmem.h"
 
 #include "out.h"
+#include "valgrind_internal.h"
 
 char nvml_src_version[] = "SRCVERSION:" SRCVERSION;
 
@@ -140,9 +141,9 @@ out_init(const char *log_prefix, const char *log_level_var,
 	LOG(1, "pid %d: program: %s", getpid(), getexecname());
 	LOG(1, "%s version %d.%d", log_prefix, major_version, minor_version);
 	LOG(1, "src version %s", nvml_src_version);
-#ifdef USE_VALGRIND
-	LOG(1, "compiled with support for Valgrind");
-#endif /* USE_VALGRIND */
+#ifdef USE_VG_PMEMCHECK
+	LOG(1, "compiled with support for Valgrind pmemcheck");
+#endif /* USE_VG_PMEMCHECK */
 }
 
 /*

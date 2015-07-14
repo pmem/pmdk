@@ -49,10 +49,8 @@
 #include <stddef.h>
 #include <elf.h>
 #include <link.h>
-#ifdef USE_VALGRIND
-#include <valgrind/valgrind.h>
-#endif
 
+#include "valgrind_internal.h"
 #include "util.h"
 #include "out.h"
 
@@ -92,7 +90,7 @@ Free_func Free = free;
 Realloc_func Realloc = realloc;
 Strdup_func Strdup = strdup;
 
-#ifdef USE_VALGRIND
+#if defined(USE_VG_PMEMCHECK)
 /* initialized to true if the process is running inside Valgrind */
 int On_valgrind;
 #endif
@@ -109,7 +107,7 @@ util_init(void)
 	if (Pagesize == 0)
 		Pagesize = (unsigned long) sysconf(_SC_PAGESIZE);
 
-#ifdef USE_VALGRIND
+#if defined(USE_VG_PMEMCHECK)
 	On_valgrind = RUNNING_ON_VALGRIND;
 #endif
 }
