@@ -38,7 +38,6 @@ libpmemobj.so {
 		pmemobj_set_funcs;
 		pmemobj_errormsg;
 		pmemobj_create;
-		pmemobj_create_part;
 		pmemobj_open;
 		pmemobj_close;
 		pmemobj_check;

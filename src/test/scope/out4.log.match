@@ -13,7 +13,6 @@ pmemobj_cond_timedwait
 pmemobj_cond_wait
 pmemobj_cond_zero
 pmemobj_create
-pmemobj_create_part
 pmemobj_drain
 pmemobj_errormsg
 pmemobj_first
@@ -77,7 +76,6 @@ pmemobj_cond_timedwait
 pmemobj_cond_wait
 pmemobj_cond_zero
 pmemobj_create
-pmemobj_create_part
 pmemobj_drain
 pmemobj_errormsg
 pmemobj_first
@@ -141,7 +139,6 @@ pmemobj_cond_timedwait
 pmemobj_cond_wait
 pmemobj_cond_zero
 pmemobj_create
-pmemobj_create_part
 pmemobj_drain
 pmemobj_errormsg
 pmemobj_first
@@ -205,7 +202,6 @@ pmemobj_cond_timedwait
 pmemobj_cond_wait
 pmemobj_cond_zero
 pmemobj_create
-pmemobj_create_part
 pmemobj_drain
 pmemobj_errormsg
 pmemobj_first

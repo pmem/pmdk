@@ -89,9 +89,6 @@ const char *pmemobj_check_version(
 PMEMobjpool *pmemobj_open(const char *path, const char *layout);
 PMEMobjpool *pmemobj_create(const char *path, const char *layout,
 	size_t poolsize, mode_t mode);
-PMEMobjpool *pmemobj_create_part(const char *path, const char *layout,
-	size_t partsize, mode_t mode, int part_index, int nparts,
-	int replica_index, int nreplica);
 void pmemobj_close(PMEMobjpool *pop);
 int pmemobj_check(const char *path, const char *layout);
 
