@@ -75,6 +75,17 @@ obj_init(void)
 }
 
 /*
+ * obj_fini -- cleanup of obj
+ *
+ * Called by destructor.
+ */
+void
+obj_fini(void)
+{
+	cuckoo_delete(pools);
+}
+
+/*
  * drain_empty -- (internal) empty function for drain on non-pmem memory
  */
 static void

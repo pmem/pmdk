@@ -668,4 +668,5 @@ libvmmalloc_fini(void)
 	je_vmem_pool_malloc_stats_print(
 		(pool_t *)((uintptr_t)Vmp + Header_size),
 		print_jemalloc_stats, NULL, "gba");
+	out_fini();
 }

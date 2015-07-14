@@ -197,3 +197,4 @@ oob_list_last(PMEMobjpool *pop, struct list_head *head)
 }
 
 void obj_init(void);
+void obj_fini(void);

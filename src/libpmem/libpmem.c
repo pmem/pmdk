@@ -59,6 +59,18 @@ libpmem_init(void)
 }
 
 /*
+ * libpmem_fini -- libpmem cleanup routine
+ *
+ * Called automatically when the process terminates.
+ */
+__attribute__((destructor))
+static void
+libpmem_fini(void)
+{
+	out_fini();
+}
+
+/*
  * pmem_check_version -- see if library meets application version requirements
  */
 const char *
