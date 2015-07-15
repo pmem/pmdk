@@ -593,9 +593,6 @@ pmempool_check_pool_hdr(struct pmempool_check *pcp)
 	 * pool_hdr structure by writing some default values.
 	 */
 
-	/* determine pool type */
-	pcp->ptype = pmem_pool_type_parse_hdr(&pcp->hdr.pool);
-
 	struct pool_hdr default_hdr;
 
 	if (pcp->ptype == PMEM_POOL_TYPE_UNKNOWN) {
@@ -634,6 +631,10 @@ pmempool_check_pool_hdr(struct pmempool_check *pcp)
 		default_hdr.compat_features = BLK_FORMAT_COMPAT;
 		default_hdr.incompat_features = BLK_FORMAT_INCOMPAT;
 		default_hdr.ro_compat_features = BLK_FORMAT_RO_COMPAT;
+	} else {
+		out_err("Unsupported pool type '%s'",
+				out_get_pool_type_str(pcp->ptype));
+		return CHECK_RESULT_ERROR;
 	}
 
 	if (pcp->hdr.pool.major != default_hdr.major) {
@@ -1787,7 +1788,9 @@ pmempool_check_write_blk(struct pmempool_check *pcp)
  */
 static const struct pmempool_check_step pmempool_check_steps[] = {
 	{
-		.type	= PMEM_POOL_TYPE_ALL|PMEM_POOL_TYPE_UNKNOWN,
+		.type	= PMEM_POOL_TYPE_BLK
+				| PMEM_POOL_TYPE_LOG
+				| PMEM_POOL_TYPE_UNKNOWN,
 		.func	= pmempool_check_pool_hdr,
 	},
 	{
