@@ -460,7 +460,7 @@ libvmmalloc_prefork(void)
 		if (Forkopt == 2) {
 			out_log(NULL, 0, NULL, 0, "Error (libvmmalloc): "
 					"pool cloning failed\n");
-			exit(1);
+			abort();
 		}
 		/* cloning failed; fall-thru to remapping */
 
@@ -473,13 +473,13 @@ libvmmalloc_prefork(void)
 		if (Vmp == MAP_FAILED) {
 			out_log(NULL, 0, NULL, 0, "Error (libvmmalloc): "
 					"remapping failed\n");
-			exit(1);
+			abort();
 		}
 
 		if (Vmp != addr) {
 			out_log(NULL, 0, NULL, 0, "Error (libvmmalloc): "
 					"wrong address\n");
-			exit(1);
+			abort();
 		}
 
 		Private = 1;
@@ -544,13 +544,13 @@ libvmmalloc_postfork_child(void)
 		if (Vmp == MAP_FAILED) {
 			out_log(NULL, 0, NULL, 0, "Error (libvmmalloc): "
 					"mapping failed\n");
-			exit(1);
+			abort();
 		}
 
 		if (Vmp != addr) {
 			out_log(NULL, 0, NULL, 0, "Error (libvmmalloc): "
 					"wrong address\n");
-			exit(1);
+			abort();
 		}
 	}
 
@@ -581,8 +581,8 @@ libvmmalloc_init(void)
 	if (pthread_atfork(libvmmalloc_prefork,
 			libvmmalloc_postfork_parent,
 			libvmmalloc_postfork_child) != 0) {
-		perror("pthread_atfork");
-		exit(1);
+		perror("Error (libvmmalloc): pthread_atfork");
+		abort();
 	}
 
 	out_init(VMMALLOC_LOG_PREFIX, VMMALLOC_LOG_LEVEL_VAR,
@@ -601,14 +601,14 @@ libvmmalloc_init(void)
 		out_log(NULL, 0, NULL, 0, "Error (libvmmalloc): "
 				"environment variable %s not specified",
 				VMMALLOC_POOL_DIR_VAR);
-		exit(1);
+		abort();
 	}
 
 	if ((env_str = getenv(VMMALLOC_POOL_SIZE_VAR)) == NULL) {
 		out_log(NULL, 0, NULL, 0, "Error (libvmmalloc): "
 				"environment variable %s not specified",
 				VMMALLOC_POOL_SIZE_VAR);
-		exit(1);
+		abort();
 	} else {
 		size = atoll(env_str);
 	}
@@ -618,7 +618,7 @@ libvmmalloc_init(void)
 				"%s value is less than minimum (%zu < %zu)",
 				VMMALLOC_POOL_SIZE_VAR, size,
 				VMMALLOC_MIN_POOL);
-		exit(1);
+		abort();
 	}
 
 	if ((env_str = getenv(VMMALLOC_FORK_VAR)) != NULL) {
@@ -627,7 +627,7 @@ libvmmalloc_init(void)
 			out_log(NULL, 0, NULL, 0, "Error (libvmmalloc): "
 					"incorrect %s value (%d)",
 					VMMALLOC_FORK_VAR, Forkopt);
-			exit(1);
+				abort();
 		}
 		LOG(4, "Fork action %d", Forkopt);
 	}
@@ -640,7 +640,7 @@ libvmmalloc_init(void)
 	if (Vmp == NULL) {
 		out_log(NULL, 0, NULL, 0, "!Error (libvmmalloc): "
 				"vmem pool creation failed");
-		exit(1);
+		abort();
 	}
 
 	LOG(2, "initialization completed");

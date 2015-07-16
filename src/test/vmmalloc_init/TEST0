@@ -49,7 +49,7 @@ setup
 export VMMALLOC_LOG_LEVEL=4
 
 expect_normal_exit LD_PRELOAD=$TEST_LD_LIBRARY_PATH/libvmmalloc.so \
-    ./vmmalloc_init$EXESUFFIX
+    ./vmmalloc_init$EXESUFFIX 2> stderr$UNITTEST_NUM.log
 
 egrep 'VMMALLOC_POOL_SIZE|VMMALLOC_POOL_DIR|TMPDIR|mkstemp|size\ 4321' \
     vmmalloc$UNITTEST_NUM.log > grep$UNITTEST_NUM.log
