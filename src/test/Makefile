@@ -140,7 +140,8 @@ TEST = blk_nblock\
        obj_recovery\
        out_err\
        out_err_mt\
-       obj_pmalloc_mt
+       obj_pmalloc_mt\
+       obj_many_size_allocs
 
 all     : TARGET = all
 clean   : TARGET = clean

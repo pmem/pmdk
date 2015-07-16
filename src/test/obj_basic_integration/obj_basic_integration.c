@@ -241,23 +241,6 @@ test_tx_api(PMEMobjpool *pop)
 	} TX_END
 }
 
-void
-test_open_close(PMEMobjpool *pop, const char *path)
-{
-	PMEMoid oid[TEST_ALLOC_SIZE];
-	for (int i = 0; i < TEST_ALLOC_SIZE; ++i)
-		pmemobj_alloc(pop, &oid[i], i, 0, NULL, NULL);
-
-	pmemobj_close(pop);
-
-	ASSERT(pmemobj_check(path, POBJ_LAYOUT_NAME(basic)) == 1);
-
-	ASSERT((pop = pmemobj_open(path, POBJ_LAYOUT_NAME(basic))) != NULL);
-
-	for (int i = 0; i < TEST_ALLOC_SIZE; ++i)
-		pmemobj_free(&oid[i]);
-}
-
 int
 main(int argc, char *argv[])
 {
@@ -277,7 +260,6 @@ main(int argc, char *argv[])
 	test_alloc_api(pop);
 	test_list_api(pop);
 	test_tx_api(pop);
-	test_open_close(pop, path);
 
 	pmemobj_close(pop);
 

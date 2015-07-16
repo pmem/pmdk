@@ -132,9 +132,6 @@ main(int argc, char *argv[])
 		args[i].idx = i;
 	}
 
-	pmalloc(pop, &r->offs[0][0], 1);
-	pfree(pop, &r->offs[0][0]);
-
 	run_worker(alloc_worker, args);
 	run_worker(realloc_worker, args);
 	run_worker(free_worker, args);
