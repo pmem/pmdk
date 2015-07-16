@@ -398,6 +398,7 @@ function pass() {
 [ -n "$PMEMPOOL" ] || PMEMPOOL=../../tools/pmempool/pmempool
 [ -n "$PMEMSPOIL" ] || PMEMSPOIL=../pmemspoil/pmemspoil
 [ -n "$PMEMWRITE" ] || PMEMWRITE=../pmemwrite/pmemwrite
+[ -n "$PMEMALLOC" ] || PMEMALLOC=../pmemalloc/pmemalloc
 
 # Length of pool file's signature
 SIG_LEN=8

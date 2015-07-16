@@ -97,6 +97,7 @@ TEST = blk_nblock\
        vmmalloc_valloc\
        pmemspoil\
        pmemwrite\
+       pmemalloc\
        pmempool_check\
        pmempool_info\
        pmempool_dump\
