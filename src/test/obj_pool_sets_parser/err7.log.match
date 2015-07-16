@@ -1,0 +1,1 @@
+obj_pool_sets_parser/TEST7: Error: pmemobj_open: ./myobjpool7.set: Invalid argument

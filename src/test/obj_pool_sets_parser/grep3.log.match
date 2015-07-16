@@ -1,0 +1,2 @@
+<libpmemobj>: <4> [../common/parser.c:$(N) parser_parse_set_file] parsing file ./myobjpool3.set
+<libpmemobj>: <1> [../common/parser.c:$(N) parser_parse_set_file] the first line must be exactly 'PMEMPOOLSET' [./myobjpool3.set:1]

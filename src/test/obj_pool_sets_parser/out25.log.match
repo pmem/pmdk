@@ -1,0 +1,2 @@
+obj_pool_sets_parser/TEST25: START: obj_pool_sets_parser
+ ./obj_pool_sets_parser$(nW) ./myobjpool25.set

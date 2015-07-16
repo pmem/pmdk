@@ -1,0 +1,2 @@
+<libpmemobj>: <4> [../common/parser.c:$(N) parser_parse_set_file] parsing file ./myobjpool7.set
+<libpmemobj>: <1> [../common/parser.c:$(N) parser_parse_set_file] no replica parts [./myobjpool7.set:4]
