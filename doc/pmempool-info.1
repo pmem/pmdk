@@ -114,15 +114,16 @@ human-readable format.
 To force processing specified file(s) as desired pool type use
 .B -f
 option with appropriate name of pool type. The valid names off pool types are
-.I blk
+.I blk ,
+.I log
 or
-.I log.
+.I obj.
 This option may be useful when the pool header is corrupted and automatic
 recognition of pool type fails.
 
 .PP
 .B -f, --force
-blk|log
+blk|log|obj
 .RS 8
 Force parsing pool as specified pool type.
 .RE
@@ -132,15 +133,17 @@ To display user data use
 .B -d
 option. Using
 .B -r
-option you can specify number of blocks/bytes/data chunks using special text
-format. See
+option you can specify number of blocks/bytes/data chunks or objects using
+special text format. See
 .B RANGE
 section for details.
 The range refers to
 .I block numbers
-in case of pmem blk pool type or to
+in case of pmem blk pool type, to
 .I chunk numbers
-in case of pmem log pool type. See
+in case of pmem log pool type and to
+.I object numbers
+in case of pmem obj pool type. See
 .B EXAMPLES
 section for an example of usage of these options.
 .PP
@@ -165,9 +168,9 @@ section for details).
 .B -r, --range
 <range>
 .RS 8
-Range of blocks/data chunks. See
+Range of blocks/data chunks/objects. See
 .B RANGE
-section for details about valid format.
+section for details about range format.
 .RE
 .PP
 .B -h, --human
@@ -273,6 +276,165 @@ Skip blocks
 .I not
 marked with any flag.
 .RE
+
+.SS "Options for PMEMOBJ:"
+.LP
+By default the
+.B info
+command displays pool header and
+.B pmem obj
+pool descriptor. In order to print information about other data structures
+one of the following options may be used.
+.PP
+.B -l, --lanes [<range>]
+.RS 8
+Print information about lanes. If range is not specified all lanes are
+displayed. See
+.B RANGE
+section for details about range format.
+.RE
+.PP
+.B -R, --recovery
+.RS 8
+Print information about only those lanes which require recovery process.
+This option requires
+.B -l, --lanes
+option.
+.RE
+.PP
+.B -S, --section tx,allocator,list
+.RS 8
+Print information only about specified sections from lane. The section
+types may be separated by comma. This option requires
+.B -l, --lanes
+option.
+.RE
+.PP
+.B -O, --object-store
+.RS 8
+Print information about all allocated objects.
+.RE
+.PP
+.B -t, --types <range>
+.RS 8
+Print information about allocated objects only from specified range of type
+numbers. If
+.B -s, --stats
+option is specified the objects statistics refer to objects from specified
+range of type numbers. This option requires
+.B -O, --object-store
+or
+.B -s, --stats
+options. See
+.B RANGE
+section for details about range format.
+.RE
+.PP
+.B -E, --no-empty
+.RS 8
+Ignore empty lists of objects. This option requires
+.B -O, --object-store
+option.
+.RE
+.PP
+.B -o, --root
+.RS 8
+Print information about a root object.
+.RE
+.PP
+.B -A, --alloc-header
+.RS 8
+Print object's allocation header. This option requires
+.B -O, --object-store
+or
+.B -l, --lanes
+or
+.B -o, --root
+options.
+.B
+.RE
+.PP
+.B -a, --oob-header
+.RS 8
+Print object's out of band header. This option requires
+.B -O, --object-store
+or
+.B -l, --lanes
+or
+.B -o, --root
+options.
+.B
+.RE
+.PP
+.B -H, --heap
+.RS 8
+Print information about
+.B pmemobj
+heap. By default only a heap header is displayed.
+.RE
+.PP
+.B -Z, --zones [<range>]
+.RS 8
+If the
+.B -H, --heap
+option is used, print information about zones from specified range.
+If the
+.B -O, --object-store
+option is used, print information about objects only from specified range
+of zones. This option requires
+.B -O, --object-store
+,
+.B -H, --heap
+or
+.B -s, --stats
+options. See
+.B RANGE
+section for details about range format.
+.RE
+.PP
+.B -C, --chunks [<range>]
+.RS 8
+If the
+.B -H, --heap
+option is used, print information about chunks from specified range. By default
+information about chunks of types
+.B used ,
+.B free
+and
+.B run
+are displayed. If the
+.B -O, --object-store
+option is used, print information about objects from specified range of chunks
+within a zone. This option requires
+.B -O, --object-store
+,
+.B -H, --heap
+or
+.B -s, --stats
+options. See
+.B RANGE
+section for details about range format.
+.RE
+.PP
+.B -T, --chunk-type used,free,run,unknown,footer
+.RS 8
+Print only specified type(s) of chunks. The multiple types may be specified
+separated by comma. This option requires
+.B -H, --heap
+and
+.B -C, --chunks
+options.
+.RE
+.PP
+.B -b, --bitmap
+Print bitmap of used blocks in chunks of type run. This option requires
+.B -H, --heap
+and
+.B -C, --chunks
+options.
+.RS 8
+.RE
+
 .SH RANGE
 Using
 .B -r, --range
@@ -343,7 +505,8 @@ flag.
 Number and percentage of blocks
 .I not
 marked with any flag.
-.SS NOTE:
+.TP
+.B NOTE:
 In case of pmemblk, statistics are evaluated for blocks which meet requirements
 regarding:
 .LP
@@ -356,6 +519,62 @@ option),
 types of blocks (
 .B -z, -e, -u
 options).
+.SS PMEMOBJ
+.TP
+.B Object store
+.RS
+.TP
+.B Number of objects
+Total number of objects and number of objects per type number.
+.TP
+.B Number of bytes
+Total number of bytes and number of bytes per type number.
+.RE
+.TP
+.B Heap
+.RS
+.TP
+.B Number of zones
+Total number of zones in the pool.
+.TP
+.B Number of used zones
+Number of used zones in the pool.
+.RE
+.TP
+.B Zone
+The zone's statistics are presented for each zone separately and the aggregated
+results from all zones.
+.RS
+.TP
+.B Number of chunks
+Total number of chunks in the zone and number of chunks of specified type.
+.TP
+.B Chunks size
+Total size of all chunks in the zone and sum of sizes of chunks of specified
+type.
+.RE
+.TP
+.B Allocation classes
+.RS
+.TP
+.B Units
+Total number of units of specified class.
+.TP
+.B Used units
+Number of used units of specified class.
+.TP
+.B Bytes
+Total number of bytes of specified class.
+.TP
+.B Used bytes
+Number of used bytes of specified class.
+.TP
+.B Total bytes
+Total number of bytes of all classes.
+.TP
+.B Total used bytes
+Total number of used bytes of all classes.
+.RE
 .SH EXAMPLES
 .TP
 pmempool info ./pmemblk
