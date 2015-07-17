@@ -207,12 +207,13 @@ list_get_dest(PMEMobjpool *pop, struct list_head *head, PMEMoid dest,
 static size_t
 list_set_oid_redo_log(PMEMobjpool *pop,
 	struct redo_log *redo, size_t redo_index,
-	PMEMoid *oidp, uint64_t obj_doffset)
+	PMEMoid *oidp, uint64_t obj_doffset, int oidp_inited)
 {
 	ASSERT(OBJ_PTR_IS_VALID(pop, oidp));
 
-	if (oidp->pool_uuid_lo != pop->uuid_lo) {
-		ASSERTeq(oidp->pool_uuid_lo, 0);
+	if (!oidp_inited || oidp->pool_uuid_lo != pop->uuid_lo) {
+		if (oidp_inited)
+			ASSERTeq(oidp->pool_uuid_lo, 0);
 		uint64_t oid_uuid_off = OBJ_PTR_TO_OFF(pop,
 				&oidp->pool_uuid_lo);
 		redo_log_store(pop, redo, redo_index, oid_uuid_off,
@@ -816,7 +817,7 @@ list_insert_new(PMEMobjpool *pop, struct list_head *oob_head,
 	if (oidp != NULL) {
 		if (OBJ_PTR_IS_VALID(pop, oidp))
 			redo_index = list_set_oid_redo_log(pop, redo,
-					redo_index, oidp, obj_doffset);
+					redo_index, oidp, obj_doffset, 0);
 		else {
 			oidp->off = obj_doffset;
 			oidp->pool_uuid_lo = pop->uuid_lo;
@@ -1035,7 +1036,7 @@ list_remove_free(PMEMobjpool *pop, struct list_head *oob_head,
 	/* clear the oid */
 	if (OBJ_PTR_IS_VALID(pop, oidp))
 		redo_index = list_set_oid_redo_log(pop, redo, redo_index,
-				oidp, 0);
+				oidp, 0, 1);
 	else
 		oidp->off = 0;
 
@@ -1501,7 +1502,7 @@ list_realloc(PMEMobjpool *pop, struct list_head *oob_head,
 
 		if (OBJ_PTR_IS_VALID(pop, oidp))
 			redo_index = list_set_oid_redo_log(pop, redo,
-					redo_index, oidp, new_obj_doffset);
+					redo_index, oidp, new_obj_doffset, 1);
 		else
 			oidp->off = new_obj_doffset;
 
@@ -1709,7 +1710,7 @@ list_realloc_move(PMEMobjpool *pop, struct list_head *oob_head_old,
 
 		if (OBJ_PTR_IS_VALID(pop, oidp))
 			redo_index = list_set_oid_redo_log(pop, redo,
-					redo_index, oidp, new_obj_doffset);
+					redo_index, oidp, new_obj_doffset, 1);
 		else
 			oidp->off = new_obj_doffset;
 	} else {
