@@ -40,9 +40,9 @@
 #include "libpmemobj.h"
 #include "util.h"
 #include "lane.h"
+#include "redo.h"
 #include "list.h"
 #include "obj.h"
-#include "redo.h"
 #include "out.h"
 
 #define	_POBJ_REDO_MIN_OFFSET	8192

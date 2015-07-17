@@ -40,33 +40,18 @@
 
 #include "libpmemobj.h"
 #include "lane.h"
-#include "list.h"
 #include "redo.h"
+#include "list.h"
 #include "pmalloc.h"
 #include "util.h"
 #include "obj.h"
 #include "out.h"
 
-#define	REDO_NUM_ENTRIES \
-((LANE_SECTION_LEN - 2 * sizeof (uint64_t)) / sizeof (struct redo_log))
 #define	PREV_OFF (offsetof(struct list_entry, pe_prev) + offsetof(PMEMoid, off))
 #define	NEXT_OFF (offsetof(struct list_entry, pe_next) + offsetof(PMEMoid, off))
 #define	OOB_ENTRY_OFF (offsetof(struct oob_header, oob))
 #define	OOB_ENTRY_OFF_REV \
 ((ssize_t)offsetof(struct oob_header, oob) - OBJ_OOB_SIZE)
-
-/*
- * lane_list_section -- structure of list section in lane
- *
- * obj_offset - offset to object which should be freed
- * obj_size   - size of object which was reallocated
- * redo       - redo log
- */
-struct lane_list_section {
-	uint64_t obj_offset;
-	uint64_t obj_size;
-	struct redo_log redo[REDO_NUM_ENTRIES];
-};
 
 /*
  * list_args_common -- common arguments for operations on list

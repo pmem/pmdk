@@ -56,9 +56,6 @@
 #include "valgrind_internal.h"
 
 #define	MAX_BUCKET_REFILL 2
-#define	MAX_BUCKETS 6
-#define	DEFAULT_BUCKET 5
-#define	RUN_UNIT_MAX 4
 #define	MAX_RUN_LOCKS 1024
 
 struct {

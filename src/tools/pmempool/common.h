@@ -41,6 +41,8 @@
 #include "log.h"
 #include "blk.h"
 #include "libpmemobj.h"
+#include "lane.h"
+#include "redo.h"
 #include "list.h"
 #include "obj.h"
 #include "btt_layout.h"

@@ -34,6 +34,10 @@
  * heap.h -- internal definitions for heap
  */
 
+#define	MAX_BUCKETS 6
+#define	DEFAULT_BUCKET 5
+#define	RUN_UNIT_MAX 4
+
 enum heap_op {
 	HEAP_OP_ALLOC,
 	HEAP_OP_FREE,

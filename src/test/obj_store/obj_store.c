@@ -44,6 +44,8 @@
 #include "unittest.h"
 #include "libpmemobj.h"
 #include "util.h"
+#include "lane.h"
+#include "redo.h"
 #include "list.h"
 #include "obj.h"
 

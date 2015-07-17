@@ -49,6 +49,7 @@
 #include "lane.h"
 #include "util.h"
 #include "out.h"
+#include "redo.h"
 #include "list.h"
 #include "obj.h"
 
