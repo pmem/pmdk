@@ -51,6 +51,16 @@
 #include "output.h"
 #include "info.h"
 
+#define	DEFAULT_CHUNK_TYPES\
+	((1<<CHUNK_TYPE_FREE)|\
+	(1<<CHUNK_TYPE_USED)|\
+	(1<<CHUNK_TYPE_RUN))
+
+#define	DEFAULT_LANE_SECTIONS\
+	((1<<LANE_SECTION_ALLOCATOR)|\
+	(1<<LANE_SECTION_TRANSACTION)|\
+	(1<<LANE_SECTION_LIST))
+
 #define	ENTIRE_TYPE_NUM (\
 {\
 struct range ret = {\
@@ -88,6 +98,21 @@ static const struct pmempool_info_args pmempool_info_args_default = {
 		.skip_error	= false,
 		.skip_no_flag	= false,
 	},
+	.obj		= {
+		.vlanes		= VERBOSE_SILENT,
+		.vroot		= VERBOSE_SILENT,
+		.vobjects	= VERBOSE_SILENT,
+		.valloc		= VERBOSE_SILENT,
+		.voobhdr	= VERBOSE_SILENT,
+		.vheap		= VERBOSE_SILENT,
+		.vzonehdr	= VERBOSE_SILENT,
+		.vchunkhdr	= VERBOSE_SILENT,
+		.vbitmap	= VERBOSE_SILENT,
+		.lane_sections	= DEFAULT_LANE_SECTIONS,
+		.lanes_recovery	= false,
+		.ignore_empty_obj = false,
+		.chunk_types	= DEFAULT_CHUNK_TYPES,
+	},
 };
 
 /*
@@ -110,6 +135,20 @@ static const struct option long_options[] = {
 	{"map",		no_argument,		0, 'm' | OPT_BLK},
 	{"flog",	no_argument,		0, 'g' | OPT_BLK},
 	{"backup",	no_argument,		0, 'B' | OPT_BLK},
+	{"lanes",	optional_argument,	0, 'l' | OPT_OBJ},
+	{"recovery",	no_argument,		0, 'R' | OPT_OBJ},
+	{"section",	required_argument,	0, 'S' | OPT_OBJ},
+	{"object-store", no_argument,		0, 'O' | OPT_OBJ},
+	{"types",	required_argument,	0, 't' | OPT_OBJ},
+	{"no-empty",	no_argument,		0, 'E' | OPT_OBJ},
+	{"alloc-header", no_argument,		0, 'A' | OPT_OBJ},
+	{"oob-header",	no_argument,		0, 'a' | OPT_OBJ},
+	{"root",	no_argument,		0, 'o' | OPT_OBJ},
+	{"heap",	no_argument,		0, 'H' | OPT_OBJ},
+	{"zones",	optional_argument,	0, 'Z' | OPT_OBJ},
+	{"chunks",	optional_argument,	0, 'C' | OPT_OBJ},
+	{"chunk-type",	required_argument,	0, 'T' | OPT_OBJ},
+	{"bitmap",	no_argument,		0, 'b' | OPT_OBJ},
 	{NULL,		0,			0,  0 },
 };
 
@@ -139,6 +178,66 @@ static const struct option_requirement option_requirements[] = {
 		.type	= PMEM_POOL_TYPE_BLK,
 		.req	= OPT_REQ0('d') | OPT_REQ1('m')
 	},
+	{
+		.opt	= 'r',
+		.type	= PMEM_POOL_TYPE_OBJ,
+		.req	= OPT_REQ0('O'),
+	},
+	{
+		.opt	= 'r',
+		.type	= PMEM_POOL_TYPE_OBJ,
+		.req	= OPT_REQ0('a') | OPT_REQ1('A')
+	},
+	{
+		.opt	= 'R',
+		.type	= PMEM_POOL_TYPE_OBJ,
+		.req	= OPT_REQ0('l')
+	},
+	{
+		.opt	= 'S',
+		.type	= PMEM_POOL_TYPE_OBJ,
+		.req	= OPT_REQ0('l')
+	},
+	{
+		.opt	= 'E',
+		.type	= PMEM_POOL_TYPE_OBJ,
+		.req	= OPT_REQ0('O')
+	},
+	{
+		.opt	= 'T',
+		.type	= PMEM_POOL_TYPE_OBJ,
+		.req	= OPT_REQ0('C')
+	},
+	{
+		.opt	= 'b',
+		.type	= PMEM_POOL_TYPE_OBJ,
+		.req	= OPT_REQ0('C')
+	},
+	{
+		.opt	= 'A',
+		.type	= PMEM_POOL_TYPE_OBJ,
+		.req	= OPT_REQ0('O') | OPT_REQ1('l') | OPT_REQ2('o')
+	},
+	{
+		.opt	= 'a',
+		.type	= PMEM_POOL_TYPE_OBJ,
+		.req	= OPT_REQ0('O') | OPT_REQ1('l') | OPT_REQ2('o')
+	},
+	{
+		.opt	= 't',
+		.type	= PMEM_POOL_TYPE_OBJ,
+		.req	= OPT_REQ0('O') | OPT_REQ1('s'),
+	},
+	{
+		.opt	= 'C',
+		.type	= PMEM_POOL_TYPE_OBJ,
+		.req	= OPT_REQ0('O') | OPT_REQ1('H') | OPT_REQ2('s'),
+	},
+	{
+		.opt	= 'Z',
+		.type	= PMEM_POOL_TYPE_OBJ,
+		.req	= OPT_REQ0('O') | OPT_REQ1('H') | OPT_REQ2('s'),
+	},
 	{ 0,  0 }
 };
 
@@ -152,7 +251,7 @@ static const char *help_str =
 "  -?, --help                      Print this help and exit.\n"
 "  -V, --version                   Print version and exit.\n"
 "  -v, --verbose                   Increase verbisity level.\n"
-"  -f, --force blk|log             Force parsing a pool of specified type.\n"
+"  -f, --force blk|log|obj         Force parsing a pool of specified type.\n"
 "  -h, --human                     Print sizes in human readable format.\n"
 "  -x, --headers-hex               Hexdump all headers.\n"
 "  -d, --data                      Dump log data and blocks.\n"
@@ -170,6 +269,29 @@ static const char *help_str =
 "  -e, --skip-error                Skip blocks marked with error flag.\n"
 "  -u, --skip-no-flag              Skip blocks not marked with any flag.\n"
 "\n"
+"Options for PMEMOBJ:\n"
+"  -l, --lanes [<range>]           Print lanes from specified range.\n"
+"  -R, --recovery                  Print only lanes which need recovery.\n"
+"  -S, --section tx,allocator,list Print only specified sections.\n"
+"  -O, --object-store              Print object store.\n"
+"  -t, --types <range>             Specify objects' type numbers range.\n"
+"  -E, --no-empty                  Print only non-empty object store lists.\n"
+"  -o, --root                      Print root object information\n"
+"  -A, --alloc-header              Print allocation header for objects in\n"
+"                                  object store.\n"
+"  -a, --oob-header                Print OOB header\n"
+"  -H, --heap                      Print heap header.\n"
+"  -Z, --zones [<range>]           Print zones header. If range is specified\n"
+"                                  and --object|-O option is specified prints\n"
+"                                  objects from specified zones only.\n"
+"  -C, --chunks [<range>]          Print zones header. If range is specified\n"
+"                                  and --object|-O option is specified prints\n"
+"                                  objects from specified zones only.\n"
+"  -T, --chunk-type used,free,run,unknown,footer\n"
+"                                  Print only specified type(s) of chunk.\n"
+"                                  [requires --chunks|-C]\n"
+"  -b, --bitmap                    Print chunk run's bitmap in graphical\n"
+"                                  format. [requires --chunks|-C]\n"
 "For complete documentation see %s-info(1) manual page.\n"
 ;
 
@@ -221,7 +343,7 @@ parse_args(char *appname, int argc, char *argv[],
 		return -1;
 	}
 	while ((opt = util_options_getopt(argc, argv,
-			"vhf:ezuF:L:c:dmxV?w:gBsr:",
+			"vhf:ezuF:L:c:dmxV?w:gBsr:l::RS:OEC::Z::HT:bot:aA",
 			opts)) != -1) {
 
 
@@ -294,6 +416,83 @@ parse_args(char *appname, int argc, char *argv[],
 				return -1;
 			}
 			break;
+		case 'l':
+			argsp->obj.vlanes = VERBOSE_DEFAULT;
+			if (util_parse_ranges(optarg, &argsp->obj.lane_ranges,
+						ENTIRE_UINT64)) {
+				out_err("%s -- cannot parse lanes range(s)\n",
+						optarg);
+				return -1;
+			}
+			break;
+		case 'R':
+			argsp->obj.lanes_recovery = true;
+			break;
+		case 'S':
+			argsp->obj.lane_sections = 0;
+			if (util_parse_lane_sections(optarg,
+						&argsp->obj.lane_sections)) {
+				out_err("'%s' -- cannot parse"
+					" lane section(s)\n", optarg);
+				return -1;
+			}
+			break;
+		case 'O':
+			argsp->obj.vobjects = VERBOSE_DEFAULT;
+			break;
+		case 'a':
+			argsp->obj.valloc = VERBOSE_DEFAULT;
+			break;
+		case 'A':
+			argsp->obj.voobhdr = VERBOSE_DEFAULT;
+			break;
+		case 'E':
+			argsp->obj.ignore_empty_obj = true;
+			break;
+		case 'Z':
+			argsp->obj.vzonehdr = VERBOSE_DEFAULT;
+			if (util_parse_ranges(optarg, &argsp->obj.zone_ranges,
+						ENTIRE_UINT64)) {
+				out_err("'%s' -- cannot parse zones range(s)\n",
+						optarg);
+				return -1;
+			}
+			break;
+		case 'C':
+			argsp->obj.vchunkhdr = VERBOSE_DEFAULT;
+			if (util_parse_ranges(optarg, &argsp->obj.chunk_ranges,
+						ENTIRE_UINT64)) {
+				out_err("'%s' -- cannot parse"
+					" chunks range(s)\n", optarg);
+				return -1;
+			}
+			break;
+		case 'H':
+			argsp->obj.vheap = VERBOSE_DEFAULT;
+			break;
+		case 'T':
+			argsp->obj.chunk_types = 0;
+			if (util_parse_chunk_types(optarg,
+						&argsp->obj.chunk_types)) {
+				out_err("'%s' -- cannot parse chunk type(s)\n",
+						optarg);
+				return -1;
+			}
+			break;
+		case 'o':
+			argsp->obj.vroot = VERBOSE_DEFAULT;
+			break;
+		case 't':
+			if (util_parse_ranges(optarg,
+				&argsp->obj.object_ranges, ENTIRE_TYPE_NUM)) {
+				out_err("'%s' -- cannot parse range(s)\n",
+						optarg);
+				return -1;
+			}
+			break;
+		case 'b':
+			argsp->obj.vbitmap = VERBOSE_DEFAULT;
+			break;
 		default:
 			print_usage(appname);
 			return -1;
@@ -307,6 +506,18 @@ parse_args(char *appname, int argc, char *argv[],
 
 	if (!argsp->use_range)
 		util_ranges_add(&argsp->ranges, ENTIRE_UINT64);
+
+	if (util_ranges_empty(&argsp->obj.object_ranges))
+		util_ranges_add(&argsp->obj.object_ranges, ENTIRE_TYPE_NUM);
+
+	if (util_ranges_empty(&argsp->obj.lane_ranges))
+		util_ranges_add(&argsp->obj.lane_ranges, ENTIRE_UINT64);
+
+	if (util_ranges_empty(&argsp->obj.zone_ranges))
+		util_ranges_add(&argsp->obj.zone_ranges, ENTIRE_UINT64);
+
+	if (util_ranges_empty(&argsp->obj.chunk_ranges))
+		util_ranges_add(&argsp->obj.chunk_ranges, ENTIRE_UINT64);
 
 	return 0;
 }
@@ -457,6 +668,8 @@ pmempool_info_file(struct pmem_info *pip, const char *file_name)
 			ret = pmempool_info_blk(pip);
 			break;
 		case PMEM_POOL_TYPE_OBJ:
+			ret = pmempool_info_obj(pip);
+			break;
 		case PMEM_POOL_TYPE_UNKNOWN:
 		default:
 			ret = -1;
@@ -491,6 +704,10 @@ pmempool_info_alloc(void)
 				option_requirements);
 
 		LIST_INIT(&pip->args.ranges.head);
+		LIST_INIT(&pip->args.obj.object_ranges.head);
+		LIST_INIT(&pip->args.obj.lane_ranges.head);
+		LIST_INIT(&pip->args.obj.zone_ranges.head);
+		LIST_INIT(&pip->args.obj.chunk_ranges.head);
 	}
 
 	return pip;
@@ -502,8 +719,14 @@ pmempool_info_alloc(void)
 static void
 pmempool_info_free(struct pmem_info *pip)
 {
+	if (pip->obj.stats.zone_stats)
+		free(pip->obj.stats.zone_stats);
 	util_options_free(pip->opts);
 	util_ranges_clear(&pip->args.ranges);
+	util_ranges_clear(&pip->args.obj.object_ranges);
+	util_ranges_clear(&pip->args.obj.zone_ranges);
+	util_ranges_clear(&pip->args.obj.chunk_ranges);
+	util_ranges_clear(&pip->args.obj.lane_ranges);
 	free(pip);
 }
 

@@ -82,6 +82,25 @@ struct pmempool_info_args {
 		bool skip_error; /* skip blocks marked with error flag */
 		bool skip_no_flag; /* skip blocks not marked with any flag */
 	} blk;
+	struct {
+		int vlanes;		/* verbosity level for lanes */
+		int vroot;
+		int vobjects;
+		int valloc;
+		int voobhdr;
+		int vheap;
+		int vzonehdr;
+		int vchunkhdr;
+		int vbitmap;
+		uint64_t lane_sections;
+		bool lanes_recovery;
+		bool ignore_empty_obj;
+		uint64_t chunk_types;
+		struct ranges lane_ranges;
+		struct ranges object_ranges;
+		struct ranges zone_ranges;
+		struct ranges chunk_ranges;
+	} obj;
 };
 
 /*
@@ -92,6 +111,29 @@ struct pmem_blk_stats {
 	uint32_t zeros;		/* number of blocks marked by zero flag */
 	uint32_t errors;	/* number of blocks marked by error flag */
 	uint32_t noflag;	/* number of blocks not marked with any flag */
+};
+
+struct pmem_obj_class_stats {
+	uint64_t n_units;
+	uint64_t n_used;
+};
+
+struct pmem_obj_zone_stats {
+	uint64_t n_chunks;
+	uint64_t n_chunks_type[MAX_CHUNK_TYPE];
+	uint64_t size_chunks;
+	uint64_t size_chunks_type[MAX_CHUNK_TYPE];
+	struct pmem_obj_class_stats class_stats[MAX_BUCKETS];
+};
+
+struct pmem_obj_stats {
+	uint64_t n_total_objects;
+	uint64_t n_total_bytes;
+	uint64_t n_type_objects[PMEMOBJ_NUM_OID_TYPES];
+	uint64_t n_type_bytes[PMEMOBJ_NUM_OID_TYPES];
+	uint64_t n_zones;
+	uint64_t n_zones_used;
+	struct pmem_obj_zone_stats *zone_stats;
 };
 
 /*
@@ -105,6 +147,10 @@ struct pmem_info {
 	struct {
 		struct pmem_blk_stats stats;
 	} blk;
+	struct {
+		void *addr;		/* mapped file */
+		struct pmem_obj_stats stats;
+	} obj;
 };
 
 int pmempool_info_func(char *appname, int argc, char *argv[]);
@@ -114,3 +160,4 @@ int pmempool_info_read(struct pmem_info *pip, void *buff,
 		size_t nbytes, off_t off);
 int pmempool_info_blk(struct pmem_info *pip);
 int pmempool_info_log(struct pmem_info *pip);
+int pmempool_info_obj(struct pmem_info *pip);

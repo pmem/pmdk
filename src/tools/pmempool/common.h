@@ -45,14 +45,16 @@
 #include "redo.h"
 #include "list.h"
 #include "obj.h"
+#include "heap.h"
 #include "btt_layout.h"
+#include "heap_layout.h"
 
 #define	OPT_SHIFT 12
 #define	OPT_MASK (~((1 << OPT_SHIFT) - 1))
 #define	OPT_LOG (1 << (PMEM_POOL_TYPE_LOG + OPT_SHIFT))
 #define	OPT_BLK (1 << (PMEM_POOL_TYPE_BLK + OPT_SHIFT))
 #define	OPT_OBJ (1 << (PMEM_POOL_TYPE_OBJ + OPT_SHIFT))
-#define	OPT_ALL (OPT_LOG | OPT_BLK)
+#define	OPT_ALL (OPT_LOG | OPT_BLK | OPT_OBJ)
 
 #define	OPT_REQ_SHIFT	8
 #define	OPT_REQ_MASK	((1 << OPT_REQ_SHIFT) - 1)
@@ -155,7 +157,15 @@ void util_convert2le_pmemlog(struct pmemlog *plp);
 int util_check_memory(const uint8_t *buff, size_t len, uint8_t val);
 int util_check_bsize(uint32_t bsize, uint64_t fsize);
 uint32_t util_get_max_bsize(uint64_t fsize);
+int util_parse_chunk_types(const char *str, uint64_t *types);
+int util_parse_lane_sections(const char *str, uint64_t *types);
 char ask(char op, char *answers, char def_ans, const char *fmt, va_list ap);
 char ask_yn(char op, char def_ans, const char *fmt, va_list ap);
 char ask_Yn(char op, const char *fmt, ...);
 char ask_yN(char op, const char *fmt, ...);
+
+static inline uint32_t
+util_count_ones(uint64_t val)
+{
+	return __builtin_popcountll(val);
+}

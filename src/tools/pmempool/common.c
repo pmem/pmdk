@@ -51,11 +51,15 @@
 #include "output.h"
 #include "libpmemblk.h"
 #include "libpmemlog.h"
+#include "libpmemobj.h"
 
 #define	__USE_UNIX98
 #include <unistd.h>
 
 #define	REQ_BUFF_SIZE	2048
+
+typedef const char *(*enum_to_str_fn)(int);
+
 /*
  * pmem_pool_type_parse -- return pool type based on pool header data
  */
@@ -772,6 +776,78 @@ ask_yN(char op, const char *fmt, ...)
 }
 
 /*
+ * util_parse_enum -- parse single enum and store to bitmap
+ */
+static int
+util_parse_enum(const char *str, int first, int max, uint64_t *bitmap,
+		enum_to_str_fn enum_to_str)
+{
+	for (int i = first; i < max; i++) {
+		if (strcmp(str, enum_to_str(i)) == 0) {
+			*bitmap |= (1<<i);
+			return 0;
+		}
+	}
+
+	return -1;
+}
+
+/*
+ * util_parse_enums -- parse enums and store to bitmap
+ */
+static int
+util_parse_enums(const char *str, int first, int max, uint64_t *bitmap,
+		enum_to_str_fn enum_to_str)
+{
+	char *dup = strdup(str);
+	if (!dup)
+		err(1, "Cannot allocate memory for enum str");
+
+	char *ptr = dup;
+	int ret = 0;
+	char *comma;
+	do {
+		comma = strchr(ptr, ',');
+		if (comma) {
+			*comma = '\0';
+			comma++;
+		}
+
+		if ((ret = util_parse_enum(ptr, first, max,
+				bitmap, enum_to_str))) {
+			goto out;
+		}
+
+		ptr = comma;
+	} while (ptr);
+out:
+	free(dup);
+	return ret;
+}
+
+/*
+ * util_parse_chunk_types -- parse chunk types strings
+ */
+int
+util_parse_chunk_types(const char *str, uint64_t *types)
+{
+	assert(MAX_CHUNK_TYPE < 8 * sizeof (*types));
+	return util_parse_enums(str, 0, MAX_CHUNK_TYPE, types,
+			(enum_to_str_fn)out_get_chunk_type_str);
+}
+
+/*
+ * util_parse_lane_section -- parse lane section strings
+ */
+int
+util_parse_lane_sections(const char *str, uint64_t *types)
+{
+	assert(MAX_LANE_SECTION < 8 * sizeof (*types));
+	return util_parse_enums(str, 0, MAX_LANE_SECTION, types,
+			(enum_to_str_fn)out_get_lane_section_str);
+}
+
+/*
  * util_options_alloc -- allocate and initialize options structure
  */
 struct options *
@@ -804,7 +880,8 @@ util_options_free(struct options *opts)
 }
 
 /*
- * opt_get_index -- return index of specified option in global array of options
+ * util_opt_get_index -- return index of specified option in global
+ * array of options
  */
 static int
 util_opt_get_index(const struct options *opts, int opt)
@@ -821,7 +898,7 @@ util_opt_get_index(const struct options *opts, int opt)
 }
 
 /*
- * opt_get_req -- get required option for specified option
+ * util_opt_get_req -- get required option for specified option
  */
 static struct option_requirement *
 util_opt_get_req(const struct options *opts, int opt, pmem_pool_type_t type)
