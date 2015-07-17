@@ -38,7 +38,8 @@ vpath %.c ../../libpmemblk
 
 TARGET = pmempool
 
-OBJS = pmempool.o info.o create.o dump.o common.o output.o util.o check.o btt.o
+OBJS = pmempool.o info.o info_blk.o info_log.o create.o dump.o common.o\
+       output.o util.o check.o btt.o
 
 LIBS += -lpmemobj -lpmemblk -lpmemlog -lpmem -luuid -pthread
 INCS += -I../../common

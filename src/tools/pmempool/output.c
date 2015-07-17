@@ -40,6 +40,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <ctype.h>
+
 #include "common.h"
 #include "output.h"
 
@@ -54,7 +55,11 @@
 /* 1 printable char per byte + terminating NULL */
 #define	HEXDUMP_ROW_ASCII_LEN (HEXDUMP_ROW_WIDTH + 1)
 #define	SEPARATOR_CHAR '-'
+#define	MAX_INDENT 32
+#define	INDENT_CHAR ' '
 
+static char out_indent_str[MAX_INDENT + 1];
+static int out_indent_level;
 static int out_vlevel;
 static unsigned int out_column_width = 20;
 static FILE *out_fh;
@@ -68,7 +73,7 @@ static const char *out_prefix;
 int
 outv_check(int vlevel)
 {
-	return (out_vlevel >= vlevel);
+	return vlevel && (out_vlevel >= vlevel);
 }
 
 /*
@@ -109,6 +114,8 @@ void
 out_set_stream(FILE *stream)
 {
 	out_fh = stream;
+
+	memset(out_indent_str, INDENT_CHAR, MAX_INDENT);
 }
 
 /*
@@ -125,6 +132,22 @@ out_err(const char *fmt, ...)
 }
 
 /*
+ * out_indent -- change indentation level by factor
+ */
+void
+out_indent(int i)
+{
+	out_indent_str[out_indent_level] = INDENT_CHAR;
+	out_indent_level += i;
+	if (out_indent_level < 0)
+		out_indent_level = 0;
+	if (out_indent_level > MAX_INDENT)
+		out_indent_level = MAX_INDENT;
+
+	out_indent_str[out_indent_level] = '\0';
+}
+
+/*
  * _out_prefix -- print prefix if defined
  */
 static void
@@ -132,6 +155,15 @@ _out_prefix(void)
 {
 	if (out_prefix)
 		fprintf(out_fh, "%s: ", out_prefix);
+}
+
+/*
+ * _out_indent -- print indent
+ */
+static void
+_out_indent(void)
+{
+	fprintf(out_fh, "%s", out_indent_str);
 }
 
 /*
@@ -144,9 +176,37 @@ outv(int vlevel, const char *fmt, ...)
 
 	if (outv_check(vlevel)) {
 		_out_prefix();
+		_out_indent();
 		va_start(ap, fmt);
 		vfprintf(out_fh, fmt, ap);
 		va_end(ap);
+	}
+}
+
+/*
+ * outv_nl -- print new line without indentation
+ */
+void
+outv_nl(int vlevel)
+{
+	if (outv_check(vlevel)) {
+		_out_prefix();
+		fprintf(out_fh, "\n");
+	}
+}
+
+void
+outv_title(int vlevel, const char *fmt, ...)
+{
+	va_list ap;
+	if (outv_check(vlevel)) {
+		_out_prefix();
+		_out_indent();
+		fprintf(out_fh, "\n");
+		va_start(ap, fmt);
+		vfprintf(out_fh, fmt, ap);
+		va_end(ap);
+		fprintf(out_fh, ":\n");
 	}
 }
 
@@ -166,6 +226,7 @@ outv_field(int vlevel, const char *field, const char *fmt, ...)
 
 	if (outv_check(vlevel)) {
 		_out_prefix();
+		_out_indent();
 		va_start(ap, fmt);
 		fprintf(out_fh, "%-*s : ", out_column_width, field);
 		vfprintf(out_fh, fmt, ap);

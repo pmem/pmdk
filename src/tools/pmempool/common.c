@@ -45,18 +45,22 @@
 #include <err.h>
 #include <sys/param.h>
 #include <ctype.h>
+#include <assert.h>
+#include <getopt.h>
 #include "common.h"
+#include "output.h"
 #include "libpmemblk.h"
 #include "libpmemlog.h"
 
 #define	__USE_UNIX98
 #include <unistd.h>
 
+#define	REQ_BUFF_SIZE	2048
 /*
  * pmem_pool_type_parse -- return pool type based on pool header data
  */
 pmem_pool_type_t
-pmem_pool_type_parse_hdr(struct pool_hdr *hdrp)
+pmem_pool_type_parse_hdr(const struct pool_hdr *hdrp)
 {
 	if (strncmp(hdrp->signature, LOG_HDR_SIG, POOL_HDR_SIG_LEN) == 0)
 		return PMEM_POOL_TYPE_LOG;
@@ -72,7 +76,7 @@ pmem_pool_type_parse_hdr(struct pool_hdr *hdrp)
  * pmempool_info_parse_type -- returns pool type from command line arg
  */
 pmem_pool_type_t
-pmem_pool_type_parse_str(char *str)
+pmem_pool_type_parse_str(const char *str)
 {
 	if (strcmp(str, "blk") == 0) {
 		return PMEM_POOL_TYPE_BLK;
@@ -103,7 +107,7 @@ util_validate_checksum(void *addr, size_t len, uint64_t *csum)
  * util_parse_size -- parse size from string
  */
 int
-util_parse_size(char *str, uint64_t *sizep)
+util_parse_size(const char *str, uint64_t *sizep)
 {
 	uint64_t size = 0;
 	int shift = 0;
@@ -146,7 +150,7 @@ util_parse_size(char *str, uint64_t *sizep)
  * util_parse_mode -- parse file mode from octal string
  */
 int
-util_parse_mode(char *str, mode_t *mode)
+util_parse_mode(const char *str, mode_t *mode)
 {
 	mode_t m = 0;
 	int digits = 0;
@@ -174,11 +178,20 @@ util_parse_mode(char *str, mode_t *mode)
 	return 0;
 }
 
+static void
+util_range_limit(struct range *rangep, struct range limit)
+{
+	if (rangep->first < limit.first)
+		rangep->first = limit.first;
+	if (rangep->last > limit.last)
+		rangep->last = limit.last;
+}
+
 /*
  * util_parse_range_from_to -- parse range string as interval
  */
 static int
-util_parse_range_from_to(char *str, struct range *rangep, struct range *entirep)
+util_parse_range_from_to(char *str, struct range *rangep, struct range entire)
 {
 	char *str1 = NULL;
 	char sep;
@@ -198,6 +211,8 @@ util_parse_range_from_to(char *str, struct range *rangep, struct range *entirep)
 			rangep->first = rangep->last;
 			rangep->last = tmp;
 		}
+
+		util_range_limit(rangep, entire);
 	} else {
 		ret = -1;
 	}
@@ -214,7 +229,7 @@ util_parse_range_from_to(char *str, struct range *rangep, struct range *entirep)
  * util_parse_range_from -- parse range string as interval from specified number
  */
 static int
-util_parse_range_from(char *str, struct range *rangep, struct range *entirep)
+util_parse_range_from(char *str, struct range *rangep, struct range entire)
 {
 	char *str1 = NULL;
 	char sep;
@@ -223,10 +238,12 @@ util_parse_range_from(char *str, struct range *rangep, struct range *entirep)
 	if (sscanf(str, "%m[^-]%c", &str1, &sep) == 2 &&
 			sep == '-' &&
 			strlen(str) == (strlen(str1) + 1)) {
-		if (util_parse_size(str1, &rangep->first) == 0)
-			rangep->last = entirep->last;
-		else
+		if (util_parse_size(str1, &rangep->first) == 0) {
+			rangep->last = entire.last;
+			util_range_limit(rangep, entire);
+		} else {
 			ret = -1;
+		}
 	} else {
 		ret = -1;
 	}
@@ -241,7 +258,7 @@ util_parse_range_from(char *str, struct range *rangep, struct range *entirep)
  * util_parse_range_to -- parse range string as interval to specified number
  */
 static int
-util_parse_range_to(char *str, struct range *rangep, struct range *entirep)
+util_parse_range_to(char *str, struct range *rangep, struct range entire)
 {
 	char *str1 = NULL;
 	char sep;
@@ -250,10 +267,12 @@ util_parse_range_to(char *str, struct range *rangep, struct range *entirep)
 	if (sscanf(str, "%c%m[^-]", &sep, &str1) == 2 &&
 			sep == '-' &&
 			strlen(str) == (1 + strlen(str1))) {
-		if (util_parse_size(str1, &rangep->last) == 0)
-			rangep->first = entirep->first;
-		else
+		if (util_parse_size(str1, &rangep->last) == 0) {
+			rangep->first = entire.first;
+			util_range_limit(rangep, entire);
+		} else {
 			ret = -1;
+		}
 	} else {
 		ret = -1;
 	}
@@ -268,14 +287,15 @@ util_parse_range_to(char *str, struct range *rangep, struct range *entirep)
  * util_parse_range_number -- parse range string as a single number
  */
 static int
-util_parse_range_number(char *str, struct range *rangep, struct range *entirep)
+util_parse_range_number(char *str, struct range *rangep, struct range entire)
 {
 	if (util_parse_size(str, &rangep->first) != 0)
 		return -1;
-	if (rangep->first > entirep->last ||
-	    rangep->last > entirep->last)
-		return -1;
 	rangep->last = rangep->first;
+	if (rangep->first > entire.last ||
+	    rangep->last > entire.last)
+		return -1;
+	util_range_limit(rangep, entire);
 	return 0;
 }
 
@@ -283,15 +303,15 @@ util_parse_range_number(char *str, struct range *rangep, struct range *entirep)
  * util_parse_range -- parse single range string
  */
 static int
-util_parse_range(char *str, struct range *rangep, struct range *entirep)
+util_parse_range(char *str, struct range *rangep, struct range entire)
 {
-	if (util_parse_range_from_to(str, rangep, entirep) == 0)
+	if (util_parse_range_from_to(str, rangep, entire) == 0)
 		return 0;
-	if (util_parse_range_from(str, rangep, entirep) == 0)
+	if (util_parse_range_from(str, rangep, entire) == 0)
 		return 0;
-	if (util_parse_range_to(str, rangep, entirep) == 0)
+	if (util_parse_range_to(str, rangep, entire) == 0)
 		return 0;
-	if (util_parse_range_number(str, rangep, entirep) == 0)
+	if (util_parse_range_number(str, rangep, entire) == 0)
 		return 0;
 	return -1;
 }
@@ -310,11 +330,16 @@ util_ranges_overlap(struct range *rangep1, struct range *rangep2)
 }
 
 /*
- * util_ranges_add_range -- merge overlapping ranges and add to list
+ * util_ranges_add -- create and add range
  */
-static int
-util_ranges_add_range(struct ranges *rangesp, struct range *rangep)
+int
+util_ranges_add(struct ranges *rangesp, struct range range)
 {
+	struct range *rangep = malloc(sizeof (struct range));
+	if (!rangep)
+		err(1, "Cannot allocate memory for range\n");
+	memcpy(rangep, &range, sizeof (*rangep));
+
 	struct range *curp  = NULL;
 	uint64_t first = rangep->first;
 	uint64_t last = rangep->last;
@@ -345,17 +370,27 @@ util_ranges_add_range(struct ranges *rangesp, struct range *rangep)
 }
 
 /*
- * util_ranges_add -- create and add range
+ * util_ranges_contain -- return 1 if ranges contain the number n
  */
 int
-util_ranges_add(struct ranges *rangesp, uint64_t first, uint64_t last)
+util_ranges_contain(const struct ranges *rangesp, uint64_t n)
 {
-	struct range *rangep = malloc(sizeof (struct range));
-	if (!rangep)
-		err(1, "Cannot allocate memory for range\n");
-	rangep->first = first;
-	rangep->last = last;
-	return util_ranges_add_range(rangesp, rangep);
+	struct range *curp  = NULL;
+	LIST_FOREACH(curp, &rangesp->head, next) {
+		if (curp->first <= n && n <= curp->last)
+			return 1;
+	}
+
+	return 0;
+}
+
+/*
+ * util_ranges_empty -- return 1 if ranges are empty
+ */
+int
+util_ranges_empty(const struct ranges *rangesp)
+{
+	return LIST_EMPTY(&rangesp->head);
 }
 
 /*
@@ -383,8 +418,16 @@ util_ranges_clear(struct ranges *rangesp)
  * 'n1-m1,n2-,-m3,n4'
  */
 int
-util_parse_ranges(char *str, struct ranges *rangesp, struct range *entirep)
+util_parse_ranges(const char *ptr, struct ranges *rangesp, struct range entire)
 {
+	if (ptr == NULL)
+		return util_ranges_add(rangesp, entire);
+
+	char *dup = strdup(ptr);
+	if (!dup)
+		err(1, "Cannot allocate memory for ranges");
+	char *str = dup;
+	int ret = 0;
 	char *next = str;
 	do {
 		str = next;
@@ -393,22 +436,18 @@ util_parse_ranges(char *str, struct ranges *rangesp, struct range *entirep)
 			*next = '\0';
 			next++;
 		}
-		struct range *rangep = malloc(sizeof (struct range));
-		if (!rangep)
-			err(1, "Cannot allocate memory for range\n");
-
-		if (util_parse_range(str, rangep, entirep)) {
-			free(rangep);
-			return -1;
-		} else {
-			if (util_ranges_add_range(rangesp, rangep)) {
-				free(rangep);
-				return -1;
-			}
+		struct range range;
+		if (util_parse_range(str, &range, entire)) {
+			ret = -1;
+			goto out;
+		} else if (util_ranges_add(rangesp, range)) {
+			ret = -1;
+			goto out;
 		}
 	} while (next != NULL);
-
-	return 0;
+out:
+	free(dup);
+	return ret;
 }
 
 /*
@@ -435,7 +474,7 @@ pmem_pool_get_min_size(pmem_pool_type_t type)
  * pmem_pool_parse_params -- parse pool type, file size and block size
  */
 int
-pmem_pool_parse_params(char *fname, struct pmem_pool_params *paramsp)
+pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp)
 {
 	struct stat stat_buf;
 	struct pool_hdr hdr;
@@ -730,4 +769,247 @@ ask_yN(char op, const char *fmt, ...)
 	char ret = ask_yn(op, 'n', fmt, ap);
 	va_end(ap);
 	return ret;
+}
+
+/*
+ * util_options_alloc -- allocate and initialize options structure
+ */
+struct options *
+util_options_alloc(const struct option *options,
+		size_t nopts, const struct option_requirement *req)
+{
+	struct options *opts = calloc(1, sizeof (*opts));
+	if (!opts)
+		err(1, "Cannot allocate memory for options structure");
+
+	opts->options = options;
+	opts->noptions = nopts;
+	opts->req = req;
+	size_t bitmap_size = howmany(nopts, 8);
+	opts->bitmap = calloc(bitmap_size, 1);
+	if (!opts->bitmap)
+		err(1, "Cannot allocate memory for options bitmap");
+
+	return opts;
+}
+
+/*
+ * util_options_free -- free options structure
+ */
+void
+util_options_free(struct options *opts)
+{
+	free(opts->bitmap);
+	free(opts);
+}
+
+/*
+ * opt_get_index -- return index of specified option in global array of options
+ */
+static int
+util_opt_get_index(const struct options *opts, int opt)
+{
+	const struct option *lopt = &opts->options[0];
+	int ret = 0;
+	while (lopt->name) {
+		if ((lopt->val & ~OPT_MASK) == opt)
+			return ret;
+		lopt++;
+		ret++;
+	}
+	return -1;
+}
+
+/*
+ * opt_get_req -- get required option for specified option
+ */
+static struct option_requirement *
+util_opt_get_req(const struct options *opts, int opt, pmem_pool_type_t type)
+{
+	size_t n = 0;
+	struct option_requirement *ret = NULL;
+	const struct option_requirement *req = &opts->req[0];
+	while (req->opt) {
+		if (req->opt == opt && (req->type & type)) {
+			n++;
+			ret = realloc(ret, n * sizeof (*ret));
+			if (!ret)
+				err(1, "Cannot allocate memory for"
+					" option requirements");
+			ret[n - 1] = *req;
+		}
+		req++;
+	}
+
+	if (ret) {
+		ret = realloc(ret, (n + 1) * sizeof (*ret));
+		if (!ret)
+			err(1, "Cannot allocate memory for"
+				" option requirements");
+		memset(&ret[n], 0, sizeof (*ret));
+	}
+
+	return ret;
+}
+
+/*
+ * util_opt_check_requirements -- check if requirements has been fulfilled
+ */
+static int
+util_opt_check_requirements(const struct options *opts,
+		const struct option_requirement *req)
+{
+	int count = 0;
+	int set = 0;
+	uint64_t tmp;
+	while ((tmp = req->req) != 0) {
+		while (tmp) {
+			int req_idx =
+				util_opt_get_index(opts, tmp & OPT_REQ_MASK);
+
+			if (isset(opts->bitmap, req_idx)) {
+				set++;
+				break;
+			}
+
+			tmp >>= OPT_REQ_SHIFT;
+		}
+		req++;
+		count++;
+	}
+
+	return count != set;
+}
+
+/*
+ * util_opt_print_requirements -- print requirements for specified option
+ */
+static void
+util_opt_print_requirements(const struct options *opts,
+		const struct option_requirement *req)
+{
+	char buff[REQ_BUFF_SIZE];
+	int n = 0;
+	uint64_t tmp;
+	const struct option *opt =
+		&opts->options[util_opt_get_index(opts, req->opt)];
+	n += snprintf(&buff[n], REQ_BUFF_SIZE - n,
+			"option [-%c|--%s] requires: ", opt->val, opt->name);
+	size_t rc = 0;
+	while ((tmp = req->req) != 0) {
+		if (rc != 0)
+			n += snprintf(&buff[n], REQ_BUFF_SIZE - n, " and ");
+
+		size_t c = 0;
+		while (tmp) {
+			if (c == 0)
+				n += snprintf(&buff[n], REQ_BUFF_SIZE - n, "[");
+			else
+				n += snprintf(&buff[n], REQ_BUFF_SIZE - n, "|");
+
+			int req_opt_ind =
+				util_opt_get_index(opts, tmp & OPT_REQ_MASK);
+			const struct option *req_option =
+				&opts->options[req_opt_ind];
+
+			n += snprintf(&buff[n], REQ_BUFF_SIZE - n,
+				"-%c|--%s", req_option->val, req_option->name);
+
+			tmp >>= OPT_REQ_SHIFT;
+			c++;
+		}
+		n += snprintf(&buff[n], REQ_BUFF_SIZE - n, "]");
+
+		req++;
+		rc++;
+	}
+
+	out_err("%s\n", buff);
+}
+
+/*
+ * util_opt_verify_requirements -- verify specified requirements for options
+ */
+static int
+util_opt_verify_requirements(const struct options *opts, size_t index,
+		pmem_pool_type_t type)
+{
+	const struct option *opt = &opts->options[index];
+	int val = opt->val & ~OPT_MASK;
+	struct option_requirement *req;
+
+	if ((req = util_opt_get_req(opts, val, type)) == NULL)
+		return 0;
+
+	int ret = 0;
+
+	if (util_opt_check_requirements(opts, req)) {
+		ret = -1;
+		util_opt_print_requirements(opts, req);
+	}
+
+	free(req);
+	return ret;
+}
+
+/*
+ * util_opt_verify_type -- check if used option matches pool type
+ */
+static int
+util_opt_verify_type(const struct options *opts, pmem_pool_type_t type,
+		size_t index)
+{
+	const struct option *opt = &opts->options[index];
+	int val = opt->val & ~OPT_MASK;
+	int opt_type = opt->val;
+	opt_type >>= OPT_SHIFT;
+	if (!(opt_type & (1<<type))) {
+		out_err("'--%s|-%c' -- invalid option specified"
+			" for pool type '%s'\n",
+			opt->name, val,
+			out_get_pool_type_str(type));
+		return -1;
+	}
+
+	return 0;
+}
+
+/*
+ * util_options_getopt -- wrapper for getopt_long which sets bitmap
+ */
+int
+util_options_getopt(int argc, char *argv[], const char *optstr,
+		const struct options *opts)
+{
+	int opt = getopt_long(argc, argv, optstr, opts->options, NULL);
+	if (opt == -1)
+		return opt;
+
+	opt &= ~OPT_MASK;
+	int option_index = util_opt_get_index(opts, opt);
+	assert(option_index >= 0);
+
+	setbit(opts->bitmap, option_index);
+
+	return opt;
+}
+
+/*
+ * util_options_verify -- verify options
+ */
+int
+util_options_verify(const struct options *opts, pmem_pool_type_t type)
+{
+	for (size_t i = 0; i < opts->noptions; i++) {
+		if (isset(opts->bitmap, i)) {
+			if (util_opt_verify_type(opts, type, i))
+				return -1;
+
+			if (opts->req)
+				if (util_opt_verify_requirements(opts, i, type))
+					return -1;
+		}
+	}
+
+	return 0;
 }

@@ -44,8 +44,11 @@ void out_set_stream(FILE *stream);
 void out_set_prefix(const char *prefix);
 void out_set_col_width(unsigned int col_width);
 void out_err(const char *fmt, ...);
+void out_indent(int i);
 void outv(int vlevel, const char *fmt, ...);
+void outv_nl(int vlevel);
 int outv_check(int vlevel);
+void outv_title(int vlevel, const char *fmt, ...);
 void outv_field(int vlevel, const char *field, const char *fmt, ...);
 void outv_hexdump(int vlevel, const void *addr, size_t len, size_t offset,
 		int sep);
