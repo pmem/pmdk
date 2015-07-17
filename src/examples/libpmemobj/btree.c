@@ -56,6 +56,7 @@ struct btree {
 };
 
 struct btree_node_arg {
+	size_t size;
 	int64_t key;
 	const char *value;
 };
@@ -74,7 +75,7 @@ btree_node_construct(PMEMobjpool *pop, void *ptr, void *arg)
 	node->slots[0] = TOID_NULL(struct btree_node);
 	node->slots[1] = TOID_NULL(struct btree_node);
 
-	pmemobj_persist(pop, node, sizeof (*node));
+	pmemobj_persist(pop, node, a->size);
 }
 
 /*
@@ -90,9 +91,14 @@ btree_insert(PMEMobjpool *pop, int64_t key, const char *value)
 		dst = &D_RW(*dst)->slots[key > D_RO(*dst)->key];
 	}
 
-	struct btree_node_arg args = {key, value};
+	struct btree_node_arg args = {
+		.size = sizeof (struct btree_node) + strlen(value) + 1,
+		.key = key,
+		.value = value
+	};
 
-	POBJ_NEW(pop, dst, struct btree_node, btree_node_construct, &args);
+	POBJ_ALLOC(pop, dst, struct btree_node, args.size,
+		btree_node_construct, &args);
 }
 
 /*
