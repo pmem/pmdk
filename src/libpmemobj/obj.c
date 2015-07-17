@@ -45,6 +45,7 @@
 #include <stdlib.h>
 #include <setjmp.h>
 #include <inttypes.h>
+#include <sys/queue.h>
 
 #include "libpmem.h"
 #include "libpmemobj.h"
@@ -56,6 +57,7 @@
 #include "pmalloc.h"
 #include "cuckoo.h"
 #include "obj.h"
+#include "parser.h"
 #include "valgrind_internal.h"
 
 static struct cuckoo *pools;
@@ -404,6 +406,52 @@ err:
 	return NULL;
 }
 
+/* return values of pmemobj_open_and_check_type */
+enum check_file_type {
+	FILE_TYPE_ERROR    = -1,	/* an error occurred */
+	FILE_TYPE_SET_FILE =  0,	/* set file */
+	FILE_TYPE_OBJ_POOL =  1		/* transactional memory pool */
+};
+
+/*
+ * pmemobj_open_and_check_type -- (internal) open a file and check if it is
+ *                                a set file or a transactional memory pool
+ */
+static enum check_file_type
+pmemobj_open_and_check_type(const char *path, int *fd, size_t *size)
+{
+	char buf[POOLSET_HDR_SIG_LEN] = "";
+	int fdsc;
+
+	*fd = -1;
+	*size = 0;
+	fdsc = util_pool_open(path, size, POOLSET_HDR_SIG_LEN);
+	if (fdsc == -1)
+		return FILE_TYPE_ERROR;	/* errno set by util_pool_open() */
+
+	if (read(fdsc, buf, POOLSET_HDR_SIG_LEN) == -1) {
+		ERR("!read %s", path);
+		close(fdsc);
+		return FILE_TYPE_ERROR;
+	}
+
+	/* rewind file to the beginning */
+	if (lseek(fdsc, 0, SEEK_SET) != 0) {
+		ERR("!lseek %s", path);
+		close(fdsc);
+		return FILE_TYPE_ERROR;
+	}
+
+	*fd = fdsc;
+
+	/* check if it is a set file or a transactional memory pool */
+	if (strncmp(buf, POOLSET_HDR_SIG, POOLSET_HDR_SIG_LEN) == 0) {
+		return FILE_TYPE_SET_FILE;
+	} else {
+		return FILE_TYPE_OBJ_POOL;
+	}
+}
+
 /*
  * pmemobj_create -- create a transactional memory pool
  */
@@ -414,41 +462,112 @@ pmemobj_create(const char *path, const char *layout, size_t poolsize,
 	LOG(3, "path %s layout %s poolsize %zu mode %d",
 			path, layout, poolsize, mode);
 
-	int created = 0;
+	PMEMobjpool *pop = NULL;
+	struct poolset ps;
 	int fd;
+
 	if (poolsize != 0) {
 		/* create a new memory pool file */
 		fd = util_pool_create(path, poolsize, PMEMOBJ_MIN_POOL, mode);
-		created = 1;
+		if (fd == -1)
+			return NULL; /* errno set by util_pool_create() */
+
+		pop = pmemobj_map_common(fd, layout, poolsize, 0, 1);
+		if (pop == NULL)
+			unlink(path); /* delete file if pool creation failed */
 	} else {
 		/* open an existing file */
-		fd = util_pool_open(path, &poolsize, PMEMOBJ_MIN_POOL);
+		switch (pmemobj_open_and_check_type(path, &fd, &poolsize)) {
+		case FILE_TYPE_ERROR:
+			/* errno set by pmemobj_open_and_check_type() */
+			pop = NULL;
+			break;
+
+		case FILE_TYPE_SET_FILE:
+			parser_init_poolset(&ps);
+
+			/* parse a pool set file */
+			if (parser_parse_set_file(path, fd, &ps) == 0) {
+				/* correct format */
+
+				/* XXX add creating and mapping pool files */
+				pop = NULL;
+
+				/* XXX pool sets are not supported yet */
+				errno = ENOTSUP;
+			} else {
+				/* wrong format */
+				pop = NULL;
+				errno = EINVAL;
+			}
+			parser_free_poolset(&ps);
+			break;
+
+		case FILE_TYPE_OBJ_POOL:
+			if (poolsize >= PMEMOBJ_MIN_POOL) {
+				pop = pmemobj_map_common(fd, layout, poolsize,
+									0, 1);
+			} else {
+				close(fd);
+				ERR("size %zu smaller than %zu",
+				    poolsize, PMEMOBJ_MIN_POOL);
+				errno = EINVAL;
+				pop = NULL;
+			}
+			break;
+		}
 	}
-	if (fd == -1)
-		return NULL;	/* errno set by util_pool_create/open() */
-
-	PMEMobjpool *pop = pmemobj_map_common(fd, layout, poolsize, 0, 1);
-	if (pop == NULL && created)
-		unlink(path);	/* delete file if pool creation failed */
-
 	return pop;
 }
 
 /*
- * pmemobj_open -- open a transactional memory pool
+ * pmemobj_open -- open a set file or a transactional memory pool
  */
 PMEMobjpool *
 pmemobj_open(const char *path, const char *layout)
 {
 	LOG(3, "path %s layout %s", path, layout);
 
-	size_t poolsize = 0;
+	PMEMobjpool *pop = NULL;
+	struct poolset ps;
+	size_t filesize;
 	int fd;
 
-	if ((fd = util_pool_open(path, &poolsize, PMEMOBJ_MIN_POOL)) == -1)
-		return NULL;	/* errno set by util_pool_open() */
+	switch (pmemobj_open_and_check_type(path, &fd, &filesize)) {
+	case FILE_TYPE_ERROR:
+		/* errno set by pmemobj_open_and_check_type() */
+		break;
 
-	return pmemobj_map_common(fd, layout, poolsize, 0, 0);
+	case FILE_TYPE_SET_FILE:
+		parser_init_poolset(&ps);
+
+		/* parse a pool set file */
+		if (parser_parse_set_file(path, fd, &ps) == 0) {
+			/* correct format */
+
+			/* XXX add opening and mapping pool files */
+
+			/* XXX pool sets are not supported yet */
+			errno = ENOTSUP;
+		} else {
+			/* wrong format */
+			errno = EINVAL;
+		}
+		parser_free_poolset(&ps);
+		break;
+
+	case FILE_TYPE_OBJ_POOL:
+		if (filesize >= PMEMOBJ_MIN_POOL) {
+			pop = pmemobj_map_common(fd, layout, filesize, 0, 0);
+		} else {
+			close(fd);
+			ERR("size %zu smaller than %zu",
+			    filesize, PMEMOBJ_MIN_POOL);
+			errno = EINVAL;
+		}
+		break;
+	}
+	return pop;
 }
 
 /*

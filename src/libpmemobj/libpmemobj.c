@@ -93,11 +93,13 @@ pmemobj_check_version(unsigned major_required, unsigned minor_required)
 void
 pmemobj_set_funcs(
 		void *(*malloc_func)(size_t size),
-		void (*free_func)(void *ptr))
+		void (*free_func)(void *ptr),
+		void *(*realloc_func)(void *ptr, size_t size),
+		char *(*strdup_func)(const char *s))
 {
 	LOG(3, NULL);
 
-	util_set_alloc_funcs(malloc_func, free_func, NULL, NULL);
+	util_set_alloc_funcs(malloc_func, free_func, realloc_func, strdup_func);
 }
 
 /*

@@ -145,8 +145,8 @@ int util_check_arch_flags(const struct arch_flags *arch_flags);
 /*
  * pool sets & replicas
  */
-#define	POOLSET_HDR_SIG "PMEMPOOLSET"	/* must be 12 bytes including '\0' */
-#define	POOLSET_HDR_SIG_LEN 12
+#define	POOLSET_HDR_SIG "PMEMPOOLSET"
+#define	POOLSET_HDR_SIG_LEN 11
 
 void util_init(void);
 
