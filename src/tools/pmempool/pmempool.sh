@@ -33,36 +33,84 @@
 # pmempool.sh -- bash completion script for pmempool
 #
 
+#
+# _pmempool_gen -- generates result for completion
+# Arguments:
+# $1 - values
+# $2 - current string
+# $3 - prefix for results
 _pmempool_gen()
 {
-	COMPREPLY=($(compgen -W "${1}" -- ${cur}))
+	COMPREPLAY=()
+	local values=$1
+	local cur=$2
+	local prefix=$3
+	local i=${#COMPREPLY[@]}
+	for v in $values
+	do
+		[[ "$v" == "$cur"* ]] && COMPREPLY[i++]="$prefix$v"
+	done
 }
 
+#
+# _pmempool_get_cmds -- returns available pmempool commands
+#
 _pmempool_get_cmds()
 {
 	echo -n $(pmempool --help | grep -e '^\S\+\s\+-' |\
 			grep -o '^\S\+' | sed '/help/d')
 }
 
+#
+# _pmempool_get_opts -- returns available options for specified command
+# Arguments:
+# $1 - command
+#
 _pmempool_get_opts()
 {
 	local c=$1
 	local opts=$(pmempool ${c} --help | grep -o -e "-., --\S\+" |\
 			grep -o -e "--\S\+")
-	_pmempool_gen "${opts}"
+	echo "$opts"
 }
 
+#
+# _pmempool_get_values -- returns available values for specified option
+# Arguments:
+# $1 - command
+# $2 - option
+# $3 - values delimiter
+# $4 - current values, will be removed from result
+#
 _pmempool_get_values()
 {
 	local cmd=$1
 	local opt=$2
+	local delim=$3
+	local curvals=$4
 	local vals=$(pmempool ${cmd} --help |\
-			grep -o -e "${opt}\s\+\S\+|\S\+" |\
-			sed "s/${opt}\s\+\(\S\+|\S\+\)/\1/" |\
-			sed "s/|/ /")
-	_pmempool_gen "${vals}"
+			grep -o -e "${opt}\s\+\S\+${delim}\S\+" |\
+			sed "s/${opt}\s\+\(\S\+${delim}\S\+\)/\1/" |\
+			sed "s/${delim}/ /g")
+	if [ -n "$curvals" ]
+	then
+		local OLD_IFS=$IFS
+		IFS=","
+		for v in $curvals
+		do
+			vals=$(echo $vals | sed "s/$v//g")
+		done
+		IFS=$OLD_IFS
+	fi
+	echo "${vals}"
 }
 
+#
+# _pmempool_get_cmd -- returns command name if exist in specified array
+# Arguments:
+# $1 - command name
+# $2 - list of available commands
+#
 _pmempool_get_cmd()
 {
 	local cmd=$1
@@ -71,40 +119,77 @@ _pmempool_get_cmd()
 	[[ ${cmds} =~ ${cmd} ]] && echo -n ${cmd}
 }
 
+#
+# _pmempool_get_used_values -- returns already used values
+# Arguments:
+# $1 - current string
+# $2 - values delimiter
+#
+_pmempool_get_used_values()
+{
+	local cur=$1
+	local delim=$2
+	local used=$(echo $cur | rev | cut -d $delim -s -f1 --complement | rev)
+	[ -n "$used" ] && used="$used$delim"
+	echo "$used"
+}
+
+#
+# _pmempool_get_current_value -- returns current value string
+# Arguments:
+# $1 - current string
+# $2 - values delimiter
+#
+_pmempool_get_current_value()
+{
+	local cur=$1
+	local delim=$2
+	echo $cur | rev | cut -d $delim -f1 | rev
+}
+
 _pmempool()
 {
 	local cur prev opts
-	COMPREPLY=()
-
 	cur="${COMP_WORDS[COMP_CWORD]}"
 	prev="${COMP_WORDS[COMP_CWORD-1]}"
 	cmds=$(_pmempool_get_cmds)
-	cmds_all="${cmds} help"
-	opts_pool_types="blk log"
-	cmd=$(_pmempool_get_cmd "${COMP_WORDS[1]}" "${cmds_all}")
+	cmds_all="$cmds help"
+	opts_pool_types="blk log obj"
+	cmd=$(_pmempool_get_cmd "${COMP_WORDS[1]}" "$cmds_all")
 
 	if [[ ${cur} == -* ]]
 	then
-		_pmempool_get_opts "${cmd}"
+		local opts=$(_pmempool_get_opts $cmd)
+		_pmempool_gen "$opts" "$cur"
 	elif [[ ${prev} == --* ]]
 	then
-		_pmempool_get_values ${cmd} ${prev}
-	elif [[ ${cmd} == create ]]
+		local used=$(_pmempool_get_used_values "$cur" ",")
+		local _cur=$(_pmempool_get_current_value "$cur" ",")
+		local values=$(_pmempool_get_values ${cmd} ${prev} "," $used)
+		if [ -n "${values}" ]
+		then
+			# values separated by ',' may contain multiple values
+			_pmempool_gen "$values" "$_cur" "$used"
+		else
+			# values separated by '|' may contain only one value
+			values=$(_pmempool_get_values $cmd $prev "|")
+			_pmempool_gen "$values" "$cur"
+		fi
+	elif [[ $cmd == create ]]
 	then
 		case "${COMP_WORDS[@]}" in
-			*blk*|*log*|*--inherit*)
-				COMPREPLY=()
+			*blk*|*log*|*obj*|*--inherit*)
 				;;
 			*)
-				_pmempool_gen "${opts_pool_types}"
+				_pmempool_gen "$opts_pool_types" "$cur"
 				;;
 		esac
 	elif [[ ${prev} == help ]]
 	then
-		_pmempool_gen "${cmds}"
+		_pmempool_gen "$cmds" "$cur"
 	elif [[ ${prev} == pmempool ]]
 	then
-		_pmempool_gen "${cmds_all}"
+		_pmempool_gen "$cmds_all" "$cur"
 	fi
 }
 
