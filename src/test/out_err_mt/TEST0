@@ -44,14 +44,8 @@ require_fs_type local
 
 setup
 
-rm -f $DIR/testfile1
-rm -f $DIR/testfile2
-rm -f $DIR/testfile3
-
 expect_normal_exit ./out_err_mt$EXESUFFIX \
 	$DIR/testfile1 $DIR/testfile2 $DIR/testfile3
-
-rm -f $DIR/testfile[123]
 
 check
 

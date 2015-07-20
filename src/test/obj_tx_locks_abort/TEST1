@@ -54,8 +54,6 @@ setup
 expect_normal_exit valgrind --log-file=valgrind$UNITTEST_NUM.log --tool=drd\
  ./obj_tx_locks_abort$EXESUFFIX $DIR/testfile1
 
-rm -f $DIR/testfile1
-
 check
 
 pass

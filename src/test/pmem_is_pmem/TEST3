@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright (c) 2014, Intel Corporation
+# Copyright (c) 2014-2015, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -44,11 +44,9 @@ require_fs_type pmem
 
 setup
 
-rm -f $DIR/testfile1
 truncate -s 2G $DIR/testfile1
 export PMEM_IS_PMEM_FORCE=0
 expect_normal_exit ./pmem_is_pmem$EXESUFFIX $DIR/testfile1
-rm $DIR/testfile1
 
 check
 

@@ -42,7 +42,6 @@ export UNITTEST_NUM=6
 
 setup
 
-rm -f $DIR/testfile
 truncate -s1M $DIR/testfile
 
 rm -f log${UNITTEST_NUM}.log
@@ -155,8 +154,6 @@ expect_normal_exit\
 		P:1 R:1 P:2 R:2
 
 concat_log
-
-rm -f $DIR/testfile
 
 check
 

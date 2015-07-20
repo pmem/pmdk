@@ -45,7 +45,6 @@ export UNITTEST_NUM=0
 
 setup
 
-rm -f $DIR/testfile
 truncate -s1M $DIR/testfile
 expect_abnormal_exit ../obj_list/obj_list$EXESUFFIX $DIR/testfile\
 	n n n n P:1 R:1\
@@ -53,8 +52,6 @@ expect_abnormal_exit ../obj_list/obj_list$EXESUFFIX $DIR/testfile\
 	f:1:0:1 P:1 R:1\
 	f:1:0:1 P:1 R:1\
 	f:1:0:1 P:1 R:1
-
-rm -f $DIR/testfile
 
 check
 

@@ -47,11 +47,6 @@ setup
 
 MIN_POOL=0x4000
 
-rm -f $DIR/testfile1
-rm -f $DIR/testfile2
-rm -f $DIR/testlink1
-rm -f $DIR/testlink2
-
 truncate -s 32K $DIR/testfile1
 chmod -rw $DIR/testfile1
 truncate -s 32K $DIR/testfile2
@@ -64,9 +59,6 @@ expect_normal_exit ./util_pool_open$EXESUFFIX $MIN_POOL \
     $DIR/testlink2\
     $DIR/testfile1\
     $DIR/testfile2\
-
-rm -f $DIR/testfile[12]
-rm -f $DIR/testlink[12]
 
 check
 

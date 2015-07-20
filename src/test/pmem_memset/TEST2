@@ -44,12 +44,9 @@ require_fs_type pmem non-pmem
 
 setup
 
-rm -f $DIR/testfile1
 truncate -s 4MB $DIR/testfile1
 
 expect_normal_exit ./pmem_memset$EXESUFFIX $DIR/testfile1 62 8
-
-rm $DIR/testfile1
 
 check
 

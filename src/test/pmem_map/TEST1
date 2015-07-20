@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright (c) 2014, Intel Corporation
+# Copyright (c) 2014-2015, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -44,13 +44,10 @@ require_fs_type local
 
 setup
 
-rm -f $DIR/testfile1
 touch $DIR/testfile1
 
 # pass the file of zero length
 expect_normal_exit ./pmem_map$EXESUFFIX $DIR/testfile1
-
-rm $DIR/testfile1
 
 check
 

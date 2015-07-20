@@ -47,7 +47,6 @@ POOL=$DIR/file.pool
 LOG=out${UNITTEST_NUM}.log
 rm -rf $LOG && touch $LOG
 
-rm -rf $POOL
 expect_normal_exit $PMEMPOOL create -w blk 512 $POOL
 expect_normal_exit $PMEMPOOL info -s $POOL >> $LOG
 
@@ -56,8 +55,6 @@ echo >> $LOG
 rm -rf $POOL
 expect_normal_exit $PMEMPOOL create log $POOL
 expect_normal_exit $PMEMPOOL info -s $POOL >> $LOG
-
-rm -f $POOL
 
 check
 

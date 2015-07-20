@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright (c) 2014, Intel Corporation
+# Copyright (c) 2014-2015, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -91,7 +91,6 @@ expect_normal_exit ./blk_nblock$EXESUFFIX\
 	1073741824:$DIR/testfile2.1073741824\
 	2147483648:$DIR/testfile2.2147483648\
 	-1:$DIR/testfile2.-1
-rm $DIR/testfile[1,2].*
 
 check
 

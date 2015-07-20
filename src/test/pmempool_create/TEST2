@@ -47,7 +47,6 @@ POOL=$DIR/file.pool
 SIZE=$(((1024 + 512) * 1024 * 1024))
 
 # PMEMBLK
-rm -rf $POOL
 expect_normal_exit $PMEMPOOL create -s $SIZE blk 512 $POOL
 check_file $POOL
 check_signature PMEMBLK $POOL
@@ -67,7 +66,5 @@ check_file $POOL
 check_signature OBJPOOL $POOL
 check_layout "" $POOL
 check_size $SIZE $POOL
-
-rm -f $POOL
 
 pass

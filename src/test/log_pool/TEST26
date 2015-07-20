@@ -43,16 +43,12 @@ export UNITTEST_NUM=26
 setup
 umask 0
 
-rm -f $DIR/testfile
-
 #
 # TEST26 existing file, file size >= min required size
 #
 expect_normal_exit ./log_pool$EXESUFFIX c $DIR/testfile 20 0640
 
 expect_normal_exit ./log_pool$EXESUFFIX o $DIR/testfile
-
-rm -f $DIR/testfile
 
 check
 

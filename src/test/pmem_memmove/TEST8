@@ -44,13 +44,10 @@ require_fs_type pmem non-pmem
 
 setup
 
-rm -f $DIR/testfile1
 truncate -s 4MB $DIR/testfile1
 
 # dest overlaps src, unaligned dest, aligned src
 expect_normal_exit ./pmem_memmove$EXESUFFIX $DIR/testfile1 b:2048 d:13 o:2 S:20
-
-rm $DIR/testfile1
 
 check
 

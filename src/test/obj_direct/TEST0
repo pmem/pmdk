@@ -46,6 +46,4 @@ setup
 
 expect_normal_exit ./obj_direct$EXESUFFIX $DIR 9
 
-rm -f $DIR/testfile*
-
 pass

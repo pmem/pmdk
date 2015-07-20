@@ -44,14 +44,11 @@ export UNITTEST_NUM=3
 
 setup
 
-rm -f $DIR/testfile
 truncate -s1M $DIR/testfile
 expect_normal_exit ../obj_list/obj_list$EXESUFFIX $DIR/testfile\
 	n:1:-1 P:1 R:1 P:2 R:2\
 	n:1:-1 P:1 R:1 P:2 R:2\
 	n:1:-1 P:1 R:1 P:2 R:2
-
-rm -f $DIR/testfile
 
 check
 

@@ -44,12 +44,8 @@ require_build_type debug
 
 setup
 
-rm -f $DIR/testfile1
-
 export PMEMOBJ_LOG_LEVEL=4
 expect_normal_exit ./obj_debug$EXESUFFIX $DIR/testfile1 r
-
-rm -f $DIR/testfile1
 
 grep "is already in undo log" ./pmemobj$UNITTEST_NUM.log > grep$UNITTEST_NUM.log
 

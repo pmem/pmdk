@@ -47,7 +47,6 @@ AREASIZE=4096
 FSIZE=$(($AREASIZE + 8192))
 RSIZE=$(($AREASIZE / 16))
 
-rm -f $FILE
 truncate -s $FSIZE $FILE
 
 expect_normal_exit ./obj_redo_log$EXESUFFIX $FILE $RSIZE\
@@ -94,8 +93,6 @@ expect_normal_exit ./obj_redo_log$EXESUFFIX $FILE $RSIZE\
 	s:3:0x00002040:0x99999999\
 	f:4:0x00000050:0xaaaaaaaa\
 	C
-
-rm -f $FILE
 
 check
 

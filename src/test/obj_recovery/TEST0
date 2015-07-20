@@ -45,6 +45,4 @@ setup
 expect_normal_exit ./obj_recovery$EXESUFFIX $DIR/testfile
 expect_normal_exit ./obj_recovery$EXESUFFIX $DIR/testfile
 
-rm -f $DIR/testfile
-
 pass
