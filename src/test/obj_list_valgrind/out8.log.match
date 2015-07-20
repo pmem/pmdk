@@ -26,18 +26,18 @@ id = 2
 id = 3
 oob list sec:
 oob list sec reverse:
-pgrow(id = 3, size = 3) = false
+prealloc(id = 3, size = 3) = false
 pmalloc(id = 4)
 pfree(id = 3)
 realloc_move(id = 10)
-pgrow(id = 1, size = 2) = true
+prealloc(id = 1, size = 2) = true
 realloc_move(id = 11)
-pgrow(id = 0, size = 3) = false
+prealloc(id = 0, size = 3) = false
 pmalloc(id = 5)
 constructor(id = 0, arg = 12)
 pfree(id = 0)
 realloc_move(id = 12)
-pgrow(id = 2, size = 2) = true
+prealloc(id = 2, size = 2) = true
 constructor(id = 2, arg = 13)
 realloc_move(id = 13)
 oob list:

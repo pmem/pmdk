@@ -390,24 +390,24 @@ FUNC_MOCK(pmalloc_construct, int, PMEMobjpool *pop, uint64_t *off,
 FUNC_MOCK_END
 
 /*
- * pgrow -- pgrow mock
+ * prealloc -- prealloc mock
  */
-FUNC_MOCK(pgrow, int, PMEMobjpool *pop, uint64_t off, size_t size)
+FUNC_MOCK(prealloc, int, PMEMobjpool *pop, uint64_t *off, size_t size)
 	FUNC_MOCK_RUN_DEFAULT {
 		uint64_t *alloc_size = (uint64_t *)((uintptr_t)Pop +
-				off - sizeof (uint64_t));
+				*off - sizeof (uint64_t));
 		struct item *item = (struct item *)((uintptr_t)Pop +
-				off + OOB_OFF);
+				*off + OOB_OFF);
 		if (*alloc_size >= size) {
 			*alloc_size = size;
 			Pop->persist(alloc_size, sizeof (*alloc_size));
 
-			OUT("pgrow(id = %d, size = %zu) = true",
+			OUT("prealloc(id = %d, size = %zu) = true",
 				item->id,
 				(size - OOB_OFF) / sizeof (struct item));
 			return 0;
 		} else {
-			OUT("pgrow(id = %d, size = %zu) = false",
+			OUT("prealloc(id = %d, size = %zu) = false",
 				item->id,
 				(size - OOB_OFF) / sizeof (struct item));
 			return -1;
@@ -416,20 +416,18 @@ FUNC_MOCK(pgrow, int, PMEMobjpool *pop, uint64_t off, size_t size)
 FUNC_MOCK_END
 
 /*
- * prealloc -- prealloc mock
- */
-FUNC_MOCK_RET_ALWAYS(prealloc, int, 0);
-
-/*
  * prealloc_construct -- prealloc_construct mock
  */
 FUNC_MOCK(prealloc_construct, int, PMEMobjpool *pop, uint64_t *off,
 	size_t size, void (*constructor)(PMEMobjpool *pop, void *ptr,
 	void *arg), void *arg, uint64_t data_off)
 	FUNC_MOCK_RUN_DEFAULT {
-		void *ptr = (void *)((uintptr_t)Pop + *off + data_off);
-		constructor(pop, ptr, arg);
-		return 0;
+		int ret = prealloc(pop, off, size);
+		if (!ret) {
+			void *ptr = (void *)((uintptr_t)Pop + *off + data_off);
+			constructor(pop, ptr, arg);
+		}
+		return ret;
 	}
 FUNC_MOCK_END
 

@@ -14,7 +14,7 @@ id = 0
 list reverse:
 id = 0
 id = 1
-pgrow(id = 0, size = 2) = true
+prealloc(id = 0, size = 2) = true
 realloc(id = 2)
 oob list:
 id = 2
@@ -28,7 +28,7 @@ id = 2
 list reverse:
 id = 2
 id = 1
-pgrow(id = 1, size = 2) = true
+prealloc(id = 1, size = 2) = true
 constructor(id = 1, arg = 3)
 realloc(id = 3)
 oob list:

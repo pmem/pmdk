@@ -419,16 +419,6 @@ error_lane_hold:
 }
 
 /*
- * pgrow -- checks whether the reallocation in-place can be performed
- */
-int
-pgrow(PMEMobjpool *pop, uint64_t off, size_t size)
-{
-	/* deprecated */
-	return ENOSYS;
-}
-
-/*
  * lane_allocator_construct -- create allocator lane section
  */
 static int

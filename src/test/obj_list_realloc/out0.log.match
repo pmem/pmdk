@@ -5,7 +5,7 @@ oob list:
 id = 0
 oob list reverse:
 id = 0
-pgrow(id = 0, size = 2) = true
+prealloc(id = 0, size = 2) = true
 constructor(id = 0, arg = 1)
 realloc(id = 1)
 oob list:

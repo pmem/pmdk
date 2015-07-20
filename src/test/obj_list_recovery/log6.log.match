@@ -2,7 +2,7 @@ obj_list_recovery/TEST6: START: obj_list
  ../obj_list/obj_list$(nW) $(nW)testfile n:1:0 n:1:0 F:after_finish s:0:1:2:2:10:1
 pmalloc(id = 0)
 pmalloc(id = 1)
-pgrow(id = 0, size = 2) = true
+prealloc(id = 0, size = 2) = true
 constructor(id = 0, arg = 10)
 obj_list_recovery/TEST6: Done
 obj_list_recovery/TEST6: START: obj_list
@@ -34,7 +34,7 @@ id = 1
 obj_list_recovery/TEST6: Done
 obj_list_recovery/TEST6: START: obj_list
  ../obj_list/obj_list$(nW) $(nW)testfile F:before_finish s:0:1:2:2:11:1
-pgrow(id = 10, size = 2) = true
+prealloc(id = 10, size = 2) = true
 constructor(id = 10, arg = 11)
 obj_list_recovery/TEST6: Done
 obj_list_recovery/TEST6: START: obj_list
@@ -66,7 +66,7 @@ id = 1
 obj_list_recovery/TEST6: Done
 obj_list_recovery/TEST6: START: obj_list
  ../obj_list/obj_list$(nW) $(nW)testfile F:after_process s:0:1:2:2:12:1
-pgrow(id = 10, size = 2) = true
+prealloc(id = 10, size = 2) = true
 constructor(id = 10, arg = 12)
 obj_list_recovery/TEST6: Done
 obj_list_recovery/TEST6: START: obj_list
@@ -98,7 +98,7 @@ id = 1
 obj_list_recovery/TEST6: Done
 obj_list_recovery/TEST6: START: obj_list
  ../obj_list/obj_list$(nW) $(nW)testfile F:before_finish s:0:1:2:3:13:1
-pgrow(id = 12, size = 3) = false
+prealloc(id = 12, size = 3) = false
 pmalloc(id = 2)
 constructor(id = 12, arg = 13)
 obj_list_recovery/TEST6: Done
@@ -132,7 +132,7 @@ id = 1
 obj_list_recovery/TEST6: Done
 obj_list_recovery/TEST6: START: obj_list
  ../obj_list/obj_list$(nW) $(nW)testfile F:after_finish s:0:1:2:3:14:1
-pgrow(id = 12, size = 3) = false
+prealloc(id = 12, size = 3) = false
 pmalloc(id = 3)
 constructor(id = 12, arg = 14)
 obj_list_recovery/TEST6: Done
@@ -166,7 +166,7 @@ id = 1
 obj_list_recovery/TEST6: Done
 obj_list_recovery/TEST6: START: obj_list
  ../obj_list/obj_list$(nW) $(nW)testfile F:after_process s:1:1:2:3:15:1
-pgrow(id = 1, size = 3) = false
+prealloc(id = 1, size = 3) = false
 pmalloc(id = 4)
 constructor(id = 1, arg = 15)
 obj_list_recovery/TEST6: Done

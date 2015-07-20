@@ -1437,7 +1437,62 @@ list_realloc(PMEMobjpool *pop, struct list_head *oob_head,
 	uint64_t old_size = pmalloc_usable_size(pop, obj_offset);
 	uint64_t sec_off_off = OBJ_PTR_TO_OFF(pop, &section->obj_offset);
 
-	if (pgrow(pop, obj_offset, size)) {
+	/*
+	 * The following steps must be in consistency with the recovery
+	 * process:
+	 *
+	 * 1. Set the old size field in lane section.
+	 * 2. Set the allocation's offset field in lane section.
+	 * 3. Perform realloc.
+	 * 4. Clear the size field using redo log
+	 * 5. Clear the offset field using redo log.
+	 * 6. Process the redo log.
+	 */
+	section->obj_size = old_size;
+	pop->persist(&section->obj_size, sizeof (section->obj_size));
+
+	section->obj_offset = obj_offset;
+	pop->persist(&section->obj_offset, sizeof (section->obj_offset));
+
+	if (constructor) {
+		/*
+		 * The user must be aware that any changes in
+		 * old area when reallocating in place won't be
+		 * made atomically.
+		 */
+		ret = prealloc_construct(pop,
+				&section->obj_offset, size,
+				constructor, arg, OBJ_OOB_SIZE);
+	} else {
+		ret = prealloc(pop, &section->obj_offset, size);
+	}
+
+	if (!ret) {
+		uint64_t sec_size_off = OBJ_PTR_TO_OFF(pop, &section->obj_size);
+
+		/* clear offset and size field in lane section */
+		redo_log_store(pop, redo, 0, sec_size_off, 0);
+		redo_log_store(pop, redo, 1, sec_off_off, 0);
+
+		if (field_offset)
+			/* set user's field */
+			redo_log_store_last(pop, redo, 2,
+					field_offset, field_value);
+		else
+			redo_log_set_last(pop, redo, 1);
+
+		redo_log_process(pop, redo, REDO_NUM_ENTRIES);
+	} else {
+		/*
+		 * If realloc in-place failed clear the obj_offset and obj_size.
+		 */
+		section->obj_offset = 0;
+		pop->persist(&section->obj_offset,
+				sizeof (section->obj_offset));
+
+		section->obj_size = 0;
+		pop->persist(&section->obj_size, sizeof (section->obj_size));
+
 		/*
 		 * Realloc in place is not possible so we need to perform
 		 * the following steps:
@@ -1519,61 +1574,6 @@ list_realloc(PMEMobjpool *pop, struct list_head *oob_head,
 			ret = -1;
 			goto err_unlock;
 		}
-	} else {
-		/*
-		 * The following steps may be in consistency with the recovery
-		 * process:
-		 *
-		 * 1. Set the old size field in lane section.
-		 * 2. Set the allocation's offset field in lane section.
-		 * 3. Perform realloc.
-		 * 4. Clear the size field using redo log
-		 * 5. Clear the offset field using redo log.
-		 * 6. Process the redo log.
-		 */
-		section->obj_size = old_size;
-		pop->persist(&section->obj_size, sizeof (section->obj_size));
-
-		section->obj_offset = obj_offset;
-		pop->persist(&section->obj_offset,
-				sizeof (section->obj_offset));
-
-		if (constructor) {
-			/*
-			 * The user must be aware that any changes in
-			 * old area when reallocating in place won't be
-			 * made atomically.
-			 */
-			if ((errno = prealloc_construct(pop,
-					&section->obj_offset, size,
-					constructor, arg, OBJ_OOB_SIZE))) {
-				ERR("!prealloc_construct");
-				ret = -1;
-				goto err_unlock;
-			}
-		} else {
-			if ((errno = prealloc(pop,
-					&section->obj_offset, size))) {
-				ERR("!prealloc");
-				ret = -1;
-				goto err_unlock;
-			}
-		}
-
-		uint64_t sec_size_off = OBJ_PTR_TO_OFF(pop, &section->obj_size);
-
-		/* clear offset and size field in lane section */
-		redo_log_store(pop, redo, 0, sec_size_off, 0);
-		redo_log_store(pop, redo, 1, sec_off_off, 0);
-
-		if (field_offset)
-			/* set user's field */
-			redo_log_store_last(pop, redo, 2,
-					field_offset, field_value);
-		else
-			redo_log_set_last(pop, redo, 1);
-
-		redo_log_process(pop, redo, REDO_NUM_ENTRIES);
 	}
 
 	ret = 0;
@@ -1672,7 +1672,66 @@ list_realloc_move(PMEMobjpool *pop, struct list_head *oob_head_old,
 	uint64_t sec_off_off = OBJ_PTR_TO_OFF(pop, &section->obj_offset);
 	int in_place = 0;
 
-	if (pgrow(pop, obj_offset, size)) {
+	/*
+	 * The following steps may be in consistency with the recovery
+	 * process:
+	 *
+	 * 1. Set the old size field in lane section.
+	 * 2. Set the allocation's offset field in lane section.
+	 * 3. Perform realloc.
+	 * 4. Clear the size field using redo log
+	 * 5. Clear the offset field using redo log.
+	 * 6. Process the redo log.
+	 */
+	section->obj_size = old_size;
+	pop->persist(&section->obj_size, sizeof (section->obj_size));
+
+	section->obj_offset = obj_offset;
+	pop->persist(&section->obj_offset, sizeof (section->obj_offset));
+
+	if (constructor) {
+		/*
+		 * The user must be aware that any changes in
+		 * old area when reallocating in place won't be
+		 * made atomically.
+		 */
+		ret = prealloc_construct(pop,
+				&section->obj_offset, size,
+				constructor, arg, OBJ_OOB_SIZE);
+	} else {
+		ret = prealloc(pop,
+				&section->obj_offset, size);
+	}
+
+	if (!ret) {
+		in_place = 1;
+
+		uint64_t sec_size_off = OBJ_PTR_TO_OFF(pop, &section->obj_size);
+
+		/* clear offset and size field in lane section */
+		redo_log_store(pop, redo, redo_index + 0, sec_size_off, 0);
+		redo_log_store(pop, redo, redo_index + 1, sec_off_off, 0);
+		redo_index += 2;
+
+		/* set user's field */
+		if (field_offset) {
+			redo_log_store(pop, redo, redo_index + 0,
+					field_offset, field_value);
+			redo_index += 1;
+		}
+
+		in_place = 1;
+	} else {
+		/*
+		 * If realloc in-place failed clear the obj_offset and obj_size.
+		 */
+		section->obj_offset = 0;
+		pop->persist(&section->obj_offset,
+				sizeof (section->obj_offset));
+
+		section->obj_size = 0;
+		pop->persist(&section->obj_size, sizeof (section->obj_size));
+
 		/*
 		 * Realloc in place is not possible so we need to perform
 		 * the following steps:
@@ -1713,63 +1772,6 @@ list_realloc_move(PMEMobjpool *pop, struct list_head *oob_head_old,
 					redo_index, oidp, new_obj_doffset, 1);
 		else
 			oidp->off = new_obj_doffset;
-	} else {
-		/*
-		 * The following steps may be in consistency with the recovery
-		 * process:
-		 *
-		 * 1. Set the old size field in lane section.
-		 * 2. Set the allocation's offset field in lane section.
-		 * 3. Perform realloc.
-		 * 4. Clear the size field using redo log
-		 * 5. Clear the offset field using redo log.
-		 * 6. Process the redo log.
-		 */
-
-		section->obj_size = old_size;
-		pop->persist(&section->obj_size, sizeof (section->obj_size));
-
-		section->obj_offset = obj_offset;
-		pop->persist(&section->obj_offset,
-				sizeof (section->obj_offset));
-
-		if (constructor) {
-			/*
-			 * The user must be aware that any changes in
-			 * old area when reallocating in place won't be
-			 * made atomically.
-			 */
-			if ((errno = prealloc_construct(pop,
-					&section->obj_offset, size,
-					constructor, arg, OBJ_OOB_SIZE))) {
-				ERR("!prealloc_construct");
-				ret = -1;
-				goto err_unlock;
-			}
-		} else {
-			if ((errno = prealloc(pop,
-					&section->obj_offset, size))) {
-				ERR("!prealloc");
-				ret = -1;
-				goto err_unlock;
-			}
-		}
-
-		uint64_t sec_size_off = OBJ_PTR_TO_OFF(pop, &section->obj_size);
-
-		/* clear offset and size field in lane section */
-		redo_log_store(pop, redo, redo_index + 0, sec_size_off, 0);
-		redo_log_store(pop, redo, redo_index + 1, sec_off_off, 0);
-		redo_index += 2;
-
-		/* set user's field */
-		if (field_offset) {
-			redo_log_store(pop, redo, redo_index + 0,
-					field_offset, field_value);
-			redo_index += 1;
-		}
-
-		in_place = 1;
 	}
 
 	struct list_entry *entry_ptr_old =

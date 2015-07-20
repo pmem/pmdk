@@ -132,10 +132,7 @@ FUNC_MOCK_END
  */
 FUNC_MOCK(prealloc, int, PMEMobjpool *pop, uint64_t *off, size_t size)
 FUNC_MOCK_RUN_DEFAULT {
-	if (pgrow(pop, *off, size) == 0)
-		return 0;
-	else
-		return pmalloc(pop, off, size);
+	return ENOSYS;
 }
 FUNC_MOCK_END
 
@@ -181,15 +178,5 @@ FUNC_MOCK_RUN_DEFAULT {
 	*sizep = 0;
 	pop->persist(sizep, sizeof (uint64_t));
 	return 0;
-}
-FUNC_MOCK_END
-
-/*
- * pgrow -- pgrow mock
- */
-FUNC_MOCK(pgrow, int, PMEMobjpool *pop, uint64_t off, size_t size)
-FUNC_MOCK_RUN_DEFAULT {
-	/* pgrow always fails */
-	return ENOSYS;
 }
 FUNC_MOCK_END

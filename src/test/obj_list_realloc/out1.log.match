@@ -5,7 +5,7 @@ oob list:
 id = 0
 oob list reverse:
 id = 0
-pgrow(id = 0, size = 3) = false
+prealloc(id = 0, size = 3) = false
 pmalloc(id = 1)
 constructor(id = 0, arg = 2)
 pfree(id = 0)
