@@ -202,6 +202,8 @@ static void
 heap_run_insert(struct bucket *b, uint32_t chunk_id, uint32_t zone_id,
 		uint32_t size_idx, uint16_t block_off)
 {
+	ASSERT(size_idx <= BITS_PER_VALUE);
+
 	size_t unit_max = bucket_unit_max(b);
 	struct memory_block m = {chunk_id, zone_id,
 		unit_max - (block_off % 4), block_off};
@@ -270,6 +272,7 @@ heap_populate_run_bucket(PMEMobjpool *pop, struct bucket *b,
 		if (block_size_idx != 0) {
 			heap_run_insert(b, chunk_id, zone_id, block_size_idx,
 				block_off - block_size_idx);
+			block_size_idx = 0;
 		}
 	}
 }
@@ -746,6 +749,8 @@ heap_coalesce(PMEMobjpool *pop,
 		b = b ? : blocks[i];
 		ret.size_idx += blocks[i] ? blocks[i]->size_idx : 0;
 	}
+
+	ASSERTne(b, NULL);
 
 	ret.chunk_id = b->chunk_id;
 	ret.zone_id = b->zone_id;
