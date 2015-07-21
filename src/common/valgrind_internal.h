@@ -35,10 +35,17 @@
  */
 
 #ifdef USE_VALGRIND
+#define	USE_VG_PMEMCHECK
+#endif
+
+#if defined(USE_VG_PMEMCHECK)
+extern int On_valgrind;
+#include <valgrind/valgrind.h>
+#endif
+
+#ifdef USE_VG_PMEMCHECK
 
 #include <valgrind/pmemcheck.h>
-
-extern int On_valgrind;
 
 #define	VALGRIND_REGISTER_PMEM_MAPPING(addr, len) do {\
 	if (On_valgrind)\

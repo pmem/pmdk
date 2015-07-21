@@ -129,9 +129,9 @@ run different types of tests.
 
 To compile this library with enabled support for the PM-aware version
 of [Valgrind](https://github.com/pmem/valgrind), supply the compiler
-with the **USE_VALGRIND** flag, for example:
+with the **USE_VG_PMEMCHECK** flag, for example:
 ```
-	$ make EXTRA_CFLAGS=-DUSE_VALGRIND
+	$ make EXTRA_CFLAGS=-DUSE_VG_PMEMCHECK
 ```
 
 

@@ -264,7 +264,7 @@ tx_clear_undo_log(PMEMobjpool *pop, struct list_head *head)
 	while (!OBJ_LIST_EMPTY(head)) {
 		obj = head->pe_first;
 
-#ifdef USE_VALGRIND
+#ifdef USE_VG_PMEMCHECK
 		struct oob_header *oobh = OOB_HEADER_FROM_OID(pop, obj);
 		size_t size = pmalloc_usable_size(pop,
 				obj.off - OBJ_OOB_SIZE);
@@ -1398,7 +1398,7 @@ pmemobj_tx_free(PMEMoid oid)
 				&layout->undo_free, oid);
 	} else {
 		ASSERTeq(oobh->internal_type, TYPE_NONE);
-#ifdef USE_VALGRIND
+#ifdef USE_VG_PMEMCHECK
 		size_t size = pmalloc_usable_size(lane->pop,
 				oid.off - OBJ_OOB_SIZE);
 
