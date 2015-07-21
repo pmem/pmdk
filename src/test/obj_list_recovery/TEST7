@@ -57,7 +57,7 @@ expect_normal_exit\
 	../obj_list/obj_list$EXESUFFIX $DIR/testfile\
 		n:1:0 n:1:0 n:1:0 n:1:0\
 		F:after_finish\
-		e:0:2:10:1:1
+		e:0:2:10:1
 
 concat_log
 
@@ -74,7 +74,7 @@ concat_log
 expect_normal_exit\
 	../obj_list/obj_list$EXESUFFIX $DIR/testfile\
 		F:before_finish\
-		e:0:2:11:1:1
+		e:0:2:11:1
 
 concat_log
 
@@ -91,7 +91,7 @@ concat_log
 expect_normal_exit\
 	../obj_list/obj_list$EXESUFFIX $DIR/testfile\
 		F:after_process\
-		e:0:2:12:1:1
+		e:0:2:12:1
 
 concat_log
 
@@ -108,7 +108,7 @@ concat_log
 expect_normal_exit\
 	../obj_list/obj_list$EXESUFFIX $DIR/testfile\
 		F:before_finish\
-		e:0:3:13:1:1
+		e:0:3:13:1
 
 concat_log
 
@@ -125,7 +125,7 @@ concat_log
 expect_normal_exit\
 	../obj_list/obj_list$EXESUFFIX $DIR/testfile\
 		F:after_finish\
-		e:0:3:14:1:1
+		e:0:3:14:1
 
 concat_log
 
@@ -142,7 +142,7 @@ concat_log
 expect_normal_exit\
 	../obj_list/obj_list$EXESUFFIX $DIR/testfile\
 		F:after_process\
-		e:0:3:15:1:1
+		e:0:3:15:1
 
 concat_log
 

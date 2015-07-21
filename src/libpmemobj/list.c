@@ -614,15 +614,9 @@ list_realloc_replace(PMEMobjpool *pop,
 	uint64_t obj_doffset = obj_offset + OBJ_OOB_SIZE;
 	uint64_t new_obj_doffset = new_obj_offset + OBJ_OOB_SIZE;
 
-	/* copy old data */
-	memcpy(OBJ_OFF_TO_PTR(pop, new_obj_offset),
-		OBJ_OFF_TO_PTR(pop, obj_offset), old_size);
-
-	if (constructor) {
-		/* call the constructor manually */
-		void *ptr = OBJ_OFF_TO_PTR(pop, new_obj_doffset);
-		constructor(pop, ptr, arg);
-	}
+	/* call the constructor manually */
+	void *ptr = OBJ_OFF_TO_PTR(pop, new_obj_doffset);
+	constructor(pop, ptr, arg);
 
 	if (field_offset) {
 		/*
@@ -1394,6 +1388,7 @@ list_realloc(PMEMobjpool *pop, struct list_head *oob_head,
 	LOG(3, NULL);
 	ASSERTne(oob_head, NULL);
 	ASSERTne(oidp, NULL);
+	ASSERTne(constructor, NULL);
 
 	int ret;
 	int out_ret;
@@ -1454,18 +1449,14 @@ list_realloc(PMEMobjpool *pop, struct list_head *oob_head,
 	section->obj_offset = obj_offset;
 	pop->persist(&section->obj_offset, sizeof (section->obj_offset));
 
-	if (constructor) {
-		/*
-		 * The user must be aware that any changes in
-		 * old area when reallocating in place won't be
-		 * made atomically.
-		 */
-		ret = prealloc_construct(pop,
-				&section->obj_offset, size,
-				constructor, arg, OBJ_OOB_SIZE);
-	} else {
-		ret = prealloc(pop, &section->obj_offset, size);
-	}
+	/*
+	 * The user must be aware that any changes in
+	 * old area when reallocating in place won't be
+	 * made atomically.
+	 */
+	ret = prealloc_construct(pop,
+			&section->obj_offset, size,
+			constructor, arg, OBJ_OOB_SIZE);
 
 	if (!ret) {
 		uint64_t sec_size_off = OBJ_PTR_TO_OFF(pop, &section->obj_size);
@@ -1625,6 +1616,7 @@ list_realloc_move(PMEMobjpool *pop, struct list_head *oob_head_old,
 
 	ASSERTne(oob_head_old, NULL);
 	ASSERTne(oob_head_new, NULL);
+	ASSERTne(constructor, NULL);
 
 	int ret;
 	int out_ret;
@@ -1689,19 +1681,14 @@ list_realloc_move(PMEMobjpool *pop, struct list_head *oob_head_old,
 	section->obj_offset = obj_offset;
 	pop->persist(&section->obj_offset, sizeof (section->obj_offset));
 
-	if (constructor) {
-		/*
-		 * The user must be aware that any changes in
-		 * old area when reallocating in place won't be
-		 * made atomically.
-		 */
-		ret = prealloc_construct(pop,
-				&section->obj_offset, size,
-				constructor, arg, OBJ_OOB_SIZE);
-	} else {
-		ret = prealloc(pop,
-				&section->obj_offset, size);
-	}
+	/*
+	 * The user must be aware that any changes in
+	 * old area when reallocating in place won't be
+	 * made atomically.
+	 */
+	ret = prealloc_construct(pop,
+			&section->obj_offset, size,
+			constructor, arg, OBJ_OOB_SIZE);
 
 	if (!ret) {
 		in_place = 1;

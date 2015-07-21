@@ -3,7 +3,7 @@ obj_list_recovery/TEST6: START: obj_list
 pmalloc(id = 0)
 pmalloc(id = 1)
 prealloc(id = 0, size = 2) = true
-constructor(id = 0, arg = 10)
+realloc_constructor(id = 0)
 obj_list_recovery/TEST6: Done
 obj_list_recovery/TEST6: START: obj_list
  ../obj_list/obj_list$(nW) $(nW)testfile P:1 R:1 P:2 R:2 V P:1 R:1 P:2 R:2
@@ -35,7 +35,7 @@ obj_list_recovery/TEST6: Done
 obj_list_recovery/TEST6: START: obj_list
  ../obj_list/obj_list$(nW) $(nW)testfile F:before_finish s:0:1:2:2:11:1
 prealloc(id = 10, size = 2) = true
-constructor(id = 10, arg = 11)
+realloc_constructor(id = 10)
 obj_list_recovery/TEST6: Done
 obj_list_recovery/TEST6: START: obj_list
  ../obj_list/obj_list$(nW) $(nW)testfile P:1 R:1 P:2 R:2 V P:1 R:1 P:2 R:2
@@ -67,7 +67,7 @@ obj_list_recovery/TEST6: Done
 obj_list_recovery/TEST6: START: obj_list
  ../obj_list/obj_list$(nW) $(nW)testfile F:after_process s:0:1:2:2:12:1
 prealloc(id = 10, size = 2) = true
-constructor(id = 10, arg = 12)
+realloc_constructor(id = 10)
 obj_list_recovery/TEST6: Done
 obj_list_recovery/TEST6: START: obj_list
  ../obj_list/obj_list$(nW) $(nW)testfile P:1 R:1 P:2 R:2 V P:1 R:1 P:2 R:2
@@ -100,7 +100,7 @@ obj_list_recovery/TEST6: START: obj_list
  ../obj_list/obj_list$(nW) $(nW)testfile F:before_finish s:0:1:2:3:13:1
 prealloc(id = 12, size = 3) = false
 pmalloc(id = 2)
-constructor(id = 12, arg = 13)
+realloc_constructor(id = 12)
 obj_list_recovery/TEST6: Done
 obj_list_recovery/TEST6: START: obj_list
  ../obj_list/obj_list$(nW) $(nW)testfile P:1 R:1 P:2 R:2 V P:1 R:1 P:2 R:2
@@ -134,7 +134,7 @@ obj_list_recovery/TEST6: START: obj_list
  ../obj_list/obj_list$(nW) $(nW)testfile F:after_finish s:0:1:2:3:14:1
 prealloc(id = 12, size = 3) = false
 pmalloc(id = 3)
-constructor(id = 12, arg = 14)
+realloc_constructor(id = 12)
 obj_list_recovery/TEST6: Done
 obj_list_recovery/TEST6: START: obj_list
  ../obj_list/obj_list$(nW) $(nW)testfile P:1 R:1 P:2 R:2 V P:1 R:1 P:2 R:2
@@ -168,7 +168,7 @@ obj_list_recovery/TEST6: START: obj_list
  ../obj_list/obj_list$(nW) $(nW)testfile F:after_process s:1:1:2:3:15:1
 prealloc(id = 1, size = 3) = false
 pmalloc(id = 4)
-constructor(id = 1, arg = 15)
+realloc_constructor(id = 1)
 obj_list_recovery/TEST6: Done
 obj_list_recovery/TEST6: START: obj_list
  ../obj_list/obj_list$(nW) $(nW)testfile P:1 R:1 P:2 R:2 V P:1 R:1 P:2 R:2

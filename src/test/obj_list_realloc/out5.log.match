@@ -11,6 +11,7 @@ list reverse:
 id = 0
 prealloc(id = 0, size = 3) = false
 pmalloc(id = 1)
+realloc_constructor(id = 0)
 pfree(id = 0)
 realloc(id = 2)
 oob list:
