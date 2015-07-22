@@ -64,7 +64,7 @@ libpmemobj.so {
 		pmemobj_zalloc;
 		pmemobj_realloc;
 		pmemobj_zrealloc;
-		pmemobj_strndup;
+		pmemobj_strdup;
 		pmemobj_free;
 		pmemobj_alloc_usable_size;
 		pmemobj_type_num;

@@ -780,7 +780,7 @@ void pmemobj_tx_end();
 /*
  * Performs the actions associated with current stage of the transaction,
  * and makes the transition to the next stage. Current stage must always
- * be obtained by calling pmemobj_tx_get_stage.
+ * be obtained by calling pmemobj_tx_stage.
  *
  * If successful, function returns zero. Otherwise, an error number is returned.
  */

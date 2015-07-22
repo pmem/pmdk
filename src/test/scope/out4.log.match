@@ -44,6 +44,7 @@ pmemobj_rwlock_unlock
 pmemobj_rwlock_wrlock
 pmemobj_rwlock_zero
 pmemobj_set_funcs
+pmemobj_strdup
 pmemobj_tx_abort
 pmemobj_tx_add_range
 pmemobj_tx_add_range_direct
@@ -106,6 +107,7 @@ pmemobj_rwlock_unlock
 pmemobj_rwlock_wrlock
 pmemobj_rwlock_zero
 pmemobj_set_funcs
+pmemobj_strdup
 pmemobj_tx_abort
 pmemobj_tx_add_range
 pmemobj_tx_add_range_direct
@@ -168,6 +170,7 @@ pmemobj_rwlock_unlock
 pmemobj_rwlock_wrlock
 pmemobj_rwlock_zero
 pmemobj_set_funcs
+pmemobj_strdup
 pmemobj_tx_abort
 pmemobj_tx_add_range
 pmemobj_tx_add_range_direct
@@ -230,6 +233,7 @@ pmemobj_rwlock_unlock
 pmemobj_rwlock_wrlock
 pmemobj_rwlock_zero
 pmemobj_set_funcs
+pmemobj_strdup
 pmemobj_tx_abort
 pmemobj_tx_add_range
 pmemobj_tx_add_range_direct
