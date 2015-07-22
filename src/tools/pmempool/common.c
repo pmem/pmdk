@@ -297,7 +297,7 @@ util_parse_range_number(char *str, struct range *rangep, struct range entire)
 		return -1;
 	rangep->last = rangep->first;
 	if (rangep->first > entire.last ||
-	    rangep->last > entire.last)
+	    rangep->last < entire.first)
 		return -1;
 	util_range_limit(rangep, entire);
 	return 0;
