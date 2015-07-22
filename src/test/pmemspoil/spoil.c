@@ -486,90 +486,6 @@ pmemspoil_process_pool_hdr(struct pmemspoil *psp,
 }
 
 /*
- * pmemspoil_process_pmemblk -- process pmemblk fields
- */
-int
-pmemspoil_process_pmemblk(struct pmemspoil *psp,
-		struct pmemspoil_list *pfp)
-{
-	struct pmemblk pmemblk;
-	if (pread(psp->fd, &pmemblk, sizeof (pmemblk), 0) !=
-			sizeof (pmemblk)) {
-		return -1;
-	}
-
-	pmemblk.bsize = le32toh(pmemblk.bsize);
-
-	int ret = 0;
-	if (pmemspoil_check_field(psp, pfp, "bsize")) {
-		ret = PROCESS_UINT32(psp, pfp, pmemblk.bsize);
-	} else {
-		out_err("unknown field '%s'\n", pfp->cur->name);
-		return -1;
-	}
-
-	if (ret) {
-		out_err("parsing value '%s'\n", pfp->value);
-		return -1;
-	}
-
-	pmemblk.bsize = htole32(pmemblk.bsize);
-
-	if (pwrite(psp->fd, &pmemblk, sizeof (pmemblk), 0) !=
-			sizeof (pmemblk)) {
-		return -1;
-	}
-
-	return 0;
-}
-
-/*
- * pmemspoil_process_pmemlog -- process pmemlog fields
- */
-static int
-pmemspoil_process_pmemlog(struct pmemspoil *psp,
-		struct pmemspoil_list *pfp)
-{
-	struct pmemlog pmemlog;
-	if (pread(psp->fd, &pmemlog, sizeof (pmemlog), 0) !=
-			sizeof (pmemlog)) {
-		return -1;
-	}
-
-	pmemlog.start_offset = le64toh(pmemlog.start_offset);
-	pmemlog.end_offset = le64toh(pmemlog.end_offset);
-	pmemlog.write_offset = le64toh(pmemlog.write_offset);
-
-	int ret;
-	if (pmemspoil_check_field(psp, pfp, "start_offset")) {
-		ret = PROCESS_UINT32(psp, pfp, pmemlog.start_offset);
-	} else if (pmemspoil_check_field(psp, pfp, "end_offset")) {
-		ret = PROCESS_UINT32(psp, pfp, pmemlog.end_offset);
-	} else if (pmemspoil_check_field(psp, pfp, "write_offset")) {
-		ret = PROCESS_UINT32(psp, pfp, pmemlog.write_offset);
-	} else {
-		out_err("unknown field '%s'\n", pfp->cur->name);
-		return -1;
-	}
-
-	if (ret) {
-		out_err("parsing value '%s'\n", pfp->value);
-		return -1;
-	}
-
-	pmemlog.start_offset = htole64(pmemlog.start_offset);
-	pmemlog.end_offset = htole64(pmemlog.end_offset);
-	pmemlog.write_offset = htole64(pmemlog.write_offset);
-
-	if (pwrite(psp->fd, &pmemlog, sizeof (pmemlog), 0) !=
-			sizeof (pmemlog)) {
-		return -1;
-	}
-
-	return 0;
-}
-
-/*
  * pmemspoil_process_btt_info_backup -- process btt_info backup fields
  */
 static int
@@ -901,6 +817,92 @@ pmemspoil_process_arena(struct pmemspoil *psp,
 }
 
 /*
+ * pmemspoil_process_pmemblk -- process pmemblk fields
+ */
+int
+pmemspoil_process_pmemblk(struct pmemspoil *psp,
+		struct pmemspoil_list *pfp)
+{
+	struct pmemblk pmemblk;
+	if (pread(psp->fd, &pmemblk, sizeof (pmemblk), 0) !=
+			sizeof (pmemblk)) {
+		return -1;
+	}
+
+	pmemblk.bsize = le32toh(pmemblk.bsize);
+
+	int ret = 0;
+	if (pmemspoil_check_field(psp, pfp, "bsize")) {
+		ret = PROCESS_UINT32(psp, pfp, pmemblk.bsize);
+	} else if (pmemspoil_check_field(psp, pfp, "arena")) {
+		return pmemspoil_process_arena(psp, pfp);
+	} else {
+		out_err("unknown field '%s'\n", pfp->cur->name);
+		return -1;
+	}
+
+	if (ret) {
+		out_err("parsing value '%s'\n", pfp->value);
+		return -1;
+	}
+
+	pmemblk.bsize = htole32(pmemblk.bsize);
+
+	if (pwrite(psp->fd, &pmemblk, sizeof (pmemblk), 0) !=
+			sizeof (pmemblk)) {
+		return -1;
+	}
+
+	return 0;
+}
+
+/*
+ * pmemspoil_process_pmemlog -- process pmemlog fields
+ */
+static int
+pmemspoil_process_pmemlog(struct pmemspoil *psp,
+		struct pmemspoil_list *pfp)
+{
+	struct pmemlog pmemlog;
+	if (pread(psp->fd, &pmemlog, sizeof (pmemlog), 0) !=
+			sizeof (pmemlog)) {
+		return -1;
+	}
+
+	pmemlog.start_offset = le64toh(pmemlog.start_offset);
+	pmemlog.end_offset = le64toh(pmemlog.end_offset);
+	pmemlog.write_offset = le64toh(pmemlog.write_offset);
+
+	int ret;
+	if (pmemspoil_check_field(psp, pfp, "start_offset")) {
+		ret = PROCESS_UINT32(psp, pfp, pmemlog.start_offset);
+	} else if (pmemspoil_check_field(psp, pfp, "end_offset")) {
+		ret = PROCESS_UINT32(psp, pfp, pmemlog.end_offset);
+	} else if (pmemspoil_check_field(psp, pfp, "write_offset")) {
+		ret = PROCESS_UINT32(psp, pfp, pmemlog.write_offset);
+	} else {
+		out_err("unknown field '%s'\n", pfp->cur->name);
+		return -1;
+	}
+
+	if (ret) {
+		out_err("parsing value '%s'\n", pfp->value);
+		return -1;
+	}
+
+	pmemlog.start_offset = htole64(pmemlog.start_offset);
+	pmemlog.end_offset = htole64(pmemlog.end_offset);
+	pmemlog.write_offset = htole64(pmemlog.write_offset);
+
+	if (pwrite(psp->fd, &pmemlog, sizeof (pmemlog), 0) !=
+			sizeof (pmemlog)) {
+		return -1;
+	}
+
+	return 0;
+}
+
+/*
  * pmemspoil_process -- process headers
  */
 static int
@@ -913,8 +915,6 @@ pmemspoil_process(struct pmemspoil *psp,
 		return pmemspoil_process_pmemlog(psp, pfp);
 	} else if (pmemspoil_check_field(psp, pfp, "pmemblk")) {
 		return pmemspoil_process_pmemblk(psp, pfp);
-	} else if (pmemspoil_check_field(psp, pfp, "arena")) {
-		return pmemspoil_process_arena(psp, pfp);
 	}
 
 	out_err("unknown header\n");
