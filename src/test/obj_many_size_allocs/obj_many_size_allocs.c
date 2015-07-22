@@ -64,7 +64,7 @@ test_allocs(PMEMobjpool *pop, const char *path)
 int
 main(int argc, char *argv[])
 {
-	START(argc, argv, "obj_basic_integration");
+	START(argc, argv, "obj_many_size_allocs");
 
 	if (argc != 2)
 		FATAL("usage: %s file-name", argv[0]);
