@@ -1,9 +1,9 @@
 PMEMLOG: pool_hdr
-$(*): spoil: pool_hdr.major = $(*)
-$(*): spoil: pool_hdr.compat_features = $(*)
-$(*): spoil: pool_hdr.incompat_features = $(*)
-$(*): spoil: pool_hdr.ro_compat_features = $(*)
-$(*): spoil: pool_hdr.unused = $(*)
+$(*): spoil: pool_hdr.major=$(*)
+$(*): spoil: pool_hdr.compat_features=$(*)
+$(*): spoil: pool_hdr.incompat_features=$(*)
+$(*): spoil: pool_hdr.ro_compat_features=$(*)
+$(*): spoil: pool_hdr.unused=$(*)
 checking pool header
 incorrect pool header checksum
 pool_hdr.major is not valid
@@ -20,8 +20,8 @@ checking pmemlog header
 pmemlog header correct
 $(*): repaired
 PMEMLOG: pmemlog
-$(*): spoil: pmemlog.start_offset = $(*)
-$(*): spoil: pmemlog.end_offset = $(*)
+$(*): spoil: pmemlog.start_offset=$(*)
+$(*): spoil: pmemlog.end_offset=$(*)
 checking pool header
 pool header checksum correct
 checking pmemlog header
@@ -31,12 +31,12 @@ invalid pmemlog.end_offset: 0x0
 setting pmemlog.end_offset to 0x200000
 $(*): repaired
 PMEMBLK: pool_hdr
-$(*): spoil: pool_hdr.signature = $(*)
-$(*): spoil: pool_hdr.major = $(*)
-$(*): spoil: pool_hdr.compat_features = $(*)
-$(*): spoil: pool_hdr.incompat_features = $(*)
-$(*): spoil: pool_hdr.ro_compat_features = $(*)
-$(*): spoil: pool_hdr.unused = $(*)
+$(*): spoil: pool_hdr.signature=$(*)
+$(*): spoil: pool_hdr.major=$(*)
+$(*): spoil: pool_hdr.compat_features=$(*)
+$(*): spoil: pool_hdr.incompat_features=$(*)
+$(*): spoil: pool_hdr.ro_compat_features=$(*)
+$(*): spoil: pool_hdr.unused=$(*)
 checking pool header
 incorrect pool header checksum
 pool_hdr.signature is not valid
@@ -59,8 +59,8 @@ checking BTT map and flog
 arena 0: checking map and flog
 $(*): repaired
 PMEMBLK: pmemblk
-$(*): spoil: pool_hdr.signature = $(*)
-$(*): spoil: pmemblk.bsize = $(*)
+$(*): spoil: pool_hdr.signature=$(*)
+$(*): spoil: pmemblk.bsize=$(*)
 checking pool header
 incorrect pool header checksum
 pool_hdr.signature is not valid

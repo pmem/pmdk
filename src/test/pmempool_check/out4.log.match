@@ -1,4 +1,4 @@
-$(*): spoil: pool_hdr.checksum = $(*)
+$(*): spoil: pool_hdr.checksum=$(*)
 checking pool header
 incorrect pool header checksum
 $(OPT)pool_hdr.crtime is not valid
