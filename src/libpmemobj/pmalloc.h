@@ -51,4 +51,3 @@ int prealloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
 
 size_t pmalloc_usable_size(PMEMobjpool *pop, uint64_t off);
 int pfree(PMEMobjpool *pop, uint64_t *off);
-int pgrow(PMEMobjpool *pop, uint64_t off, size_t size);

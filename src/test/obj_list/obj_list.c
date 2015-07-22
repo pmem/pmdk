@@ -390,24 +390,24 @@ FUNC_MOCK(pmalloc_construct, int, PMEMobjpool *pop, uint64_t *off,
 FUNC_MOCK_END
 
 /*
- * pgrow -- pgrow mock
+ * prealloc -- prealloc mock
  */
-FUNC_MOCK(pgrow, int, PMEMobjpool *pop, uint64_t off, size_t size)
+FUNC_MOCK(prealloc, int, PMEMobjpool *pop, uint64_t *off, size_t size)
 	FUNC_MOCK_RUN_DEFAULT {
 		uint64_t *alloc_size = (uint64_t *)((uintptr_t)Pop +
-				off - sizeof (uint64_t));
+				*off - sizeof (uint64_t));
 		struct item *item = (struct item *)((uintptr_t)Pop +
-				off + OOB_OFF);
+				*off + OOB_OFF);
 		if (*alloc_size >= size) {
 			*alloc_size = size;
 			Pop->persist(alloc_size, sizeof (*alloc_size));
 
-			OUT("pgrow(id = %d, size = %zu) = true",
+			OUT("prealloc(id = %d, size = %zu) = true",
 				item->id,
 				(size - OOB_OFF) / sizeof (struct item));
 			return 0;
 		} else {
-			OUT("pgrow(id = %d, size = %zu) = false",
+			OUT("prealloc(id = %d, size = %zu) = false",
 				item->id,
 				(size - OOB_OFF) / sizeof (struct item));
 			return -1;
@@ -416,20 +416,18 @@ FUNC_MOCK(pgrow, int, PMEMobjpool *pop, uint64_t off, size_t size)
 FUNC_MOCK_END
 
 /*
- * prealloc -- prealloc mock
- */
-FUNC_MOCK_RET_ALWAYS(prealloc, int, 0);
-
-/*
  * prealloc_construct -- prealloc_construct mock
  */
 FUNC_MOCK(prealloc_construct, int, PMEMobjpool *pop, uint64_t *off,
 	size_t size, void (*constructor)(PMEMobjpool *pop, void *ptr,
 	void *arg), void *arg, uint64_t data_off)
 	FUNC_MOCK_RUN_DEFAULT {
-		void *ptr = (void *)((uintptr_t)Pop + *off + data_off);
-		constructor(pop, ptr, arg);
-		return 0;
+		int ret = prealloc(pop, off, size);
+		if (!ret) {
+			void *ptr = (void *)((uintptr_t)Pop + *off + data_off);
+			constructor(pop, ptr, arg);
+		}
+		return ret;
 	}
 FUNC_MOCK_END
 
@@ -441,6 +439,13 @@ FUNC_MOCK(pmalloc_usable_size, size_t, PMEMobjpool *pop, uint64_t off)
 		uint64_t *alloc_size = (uint64_t *)((uintptr_t)Pop +
 				off - sizeof (uint64_t));
 		return (size_t)*alloc_size;
+	}
+FUNC_MOCK_END
+
+FUNC_MOCK(pmemobj_alloc_usable_size, size_t, PMEMoid oid)
+	FUNC_MOCK_RUN_DEFAULT {
+		size_t size = pmalloc_usable_size(Pop, oid.off - OOB_OFF);
+		return size - OOB_OFF;
 	}
 FUNC_MOCK_END
 
@@ -772,6 +777,12 @@ item_constructor(PMEMobjpool *pop, void *ptr, void *arg)
 	OUT("constructor(id = %d)", id);
 }
 
+struct realloc_arg {
+	void *ptr;
+	size_t new_size;
+	size_t old_size;
+};
+
 /*
  * realloc_constructor -- constructor which prints only the item's
  * id and argument value
@@ -779,9 +790,15 @@ item_constructor(PMEMobjpool *pop, void *ptr, void *arg)
 static void
 realloc_constructor(PMEMobjpool *pop, void *ptr, void *arg)
 {
-	int id = *(int *)arg;
+	struct realloc_arg *rarg = arg;
 	struct item *item = (struct item *)ptr;
-	OUT("constructor(id = %d, arg = %d)", item->id, id);
+	if (ptr != rarg->ptr) {
+		size_t cpy_size = rarg->old_size < rarg->new_size ?
+			rarg->old_size : rarg->new_size;
+		memcpy(ptr, rarg->ptr, cpy_size);
+		pop->persist(ptr, cpy_size);
+	}
+	OUT("realloc_constructor(id = %d)", item->id);
 }
 
 /*
@@ -970,8 +987,7 @@ do_realloc(PMEMobjpool *pop, const char *arg)
 	int N;
 	int s;
 	int id;
-	int c;
-	if (sscanf(arg, "s:%d:%d:%d:%d:%d:%d", &n, &L, &N, &s, &id, &c) != 6)
+	if (sscanf(arg, "s:%d:%d:%d:%d:%d", &n, &L, &N, &s, &id) != 5)
 		FATAL_USAGE_REALLOC();
 
 	if (L == 1) {
@@ -983,14 +999,22 @@ do_realloc(PMEMobjpool *pop, const char *arg)
 	}
 	Pop->persist(Item, sizeof (*Item));
 
+	size_t size = s * sizeof (struct item);
+
+	struct realloc_arg rarg = {
+		.ptr = OBJ_OFF_TO_PTR(pop, Item->oid.off),
+		.old_size = pmemobj_alloc_usable_size(Item->oid),
+		.new_size = size,
+	};
+
 	if (N == 1) {
 		if (list_realloc(pop,
 			(struct list_head *)&D_RW(List_oob)->head,
 			0,
 			NULL,
-			s * sizeof (struct item),
-			c ? realloc_constructor : NULL,
-			c ? &id : NULL,
+			size,
+			realloc_constructor,
+			&rarg,
 			Item->oid.off + offsetof(struct item, id),
 			id,
 			(PMEMoid *)Item)) {
@@ -1001,9 +1025,9 @@ do_realloc(PMEMobjpool *pop, const char *arg)
 			(struct list_head *)&D_RW(List_oob)->head,
 			offsetof(struct item, next),
 			(struct list_head *)&D_RW(List)->head,
-			s * sizeof (struct item),
-			c ? realloc_constructor : NULL,
-			c ? &id : NULL,
+			size,
+			realloc_constructor,
+			&rarg,
 			Item->oid.off + offsetof(struct item, id),
 			id,
 			(PMEMoid *)Item)) {
@@ -1026,10 +1050,9 @@ do_realloc_move(PMEMobjpool *pop, const char *arg)
 	int n;
 	int s;
 	int id;
-	int c;
 	int r;
-	if (sscanf(arg, "e:%d:%d:%d:%d:%d",
-			&n, &s, &id, &c, &r) != 5)
+	if (sscanf(arg, "e:%d:%d:%d:%d",
+			&n, &s, &id, &r) != 4)
 		FATAL_USAGE_REALLOC_MOVE();
 	uint64_t pe_offset = 0;
 	struct list_head *head = NULL;
@@ -1039,15 +1062,20 @@ do_realloc_move(PMEMobjpool *pop, const char *arg)
 	}
 	Item->oid = get_item_oob_list(List_oob.oid, n);
 	Pop->persist(Item, sizeof (*Item));
-
+	size_t size = s * sizeof (struct item);
+	struct realloc_arg rarg = {
+		.ptr = OBJ_OFF_TO_PTR(pop, Item->oid.off),
+		.old_size = pmemobj_alloc_usable_size(Item->oid),
+		.new_size = size
+	};
 	if (list_realloc_move(pop,
 		(struct list_head *)&D_RW(List_oob)->head,
 		(struct list_head *)&D_RW(List_oob_sec)->head,
 		pe_offset,
 		head,
-		s * sizeof (struct item),
-		c ? realloc_constructor : NULL,
-		c ? &id : NULL,
+		size,
+		realloc_constructor,
+		&rarg,
 		Item->oid.off + offsetof(struct item, id),
 		id,
 		(PMEMoid *)Item)) {

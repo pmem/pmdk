@@ -9,7 +9,8 @@ list:
 id = 0
 list reverse:
 id = 0
-pgrow(id = 0, size = 2) = true
+prealloc(id = 0, size = 2) = true
+realloc_constructor(id = 0)
 realloc(id = 1)
 oob list:
 id = 1

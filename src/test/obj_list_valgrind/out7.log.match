@@ -3,12 +3,14 @@ obj_list_valgrind/TEST7: START: obj_list
 pmalloc(id = 0)
 pmalloc(id = 1)
 pmalloc(id = 2)
-pgrow(id = 0, size = 2) = true
+prealloc(id = 0, size = 2) = true
+realloc_constructor(id = 0)
 realloc(id = 10)
-pgrow(id = 1, size = 2) = true
-constructor(id = 1, arg = 11)
+prealloc(id = 1, size = 2) = true
+realloc_constructor(id = 1)
 realloc(id = 11)
-pgrow(id = 2, size = 2) = true
+prealloc(id = 2, size = 2) = true
+realloc_constructor(id = 2)
 realloc(id = 12)
 oob list:
 id = 10
@@ -26,17 +28,19 @@ list reverse:
 id = 11
 id = 12
 id = 10
-pgrow(id = 10, size = 3) = false
+prealloc(id = 10, size = 3) = false
 pmalloc(id = 3)
+realloc_constructor(id = 10)
 pfree(id = 10)
 realloc(id = 20)
-pgrow(id = 11, size = 3) = false
+prealloc(id = 11, size = 3) = false
 pmalloc(id = 4)
-constructor(id = 11, arg = 21)
+realloc_constructor(id = 11)
 pfree(id = 11)
 realloc(id = 21)
-pgrow(id = 12, size = 3) = false
+prealloc(id = 12, size = 3) = false
 pmalloc(id = 5)
+realloc_constructor(id = 12)
 pfree(id = 12)
 realloc(id = 22)
 oob list:

@@ -1,5 +1,5 @@
 obj_list_realloc_move/TEST0: START: obj_list
- ../obj_list/obj_list$(nW) $(nW)testfile n n n n P:1 R:1 P:2 R:2 P:3 R:3 e:-1:2:10:0:0 e:1:2:11:0:0 e:0:2:12:1:0 P:1 R:1 P:2 R:2 P:3 R:3
+ ../obj_list/obj_list$(nW) $(nW)testfile n n n n P:1 R:1 P:2 R:2 P:3 R:3 e:-1:2:10:0 e:1:2:11:0 e:0:2:12:0 P:1 R:1 P:2 R:2 P:3 R:3
 pmalloc(id = 0)
 pmalloc(id = 1)
 pmalloc(id = 2)
@@ -18,12 +18,14 @@ list:
 list reverse:
 oob list sec:
 oob list sec reverse:
-pgrow(id = 3, size = 2) = true
+prealloc(id = 3, size = 2) = true
+realloc_constructor(id = 3)
 realloc_move(id = 10)
-pgrow(id = 1, size = 2) = true
+prealloc(id = 1, size = 2) = true
+realloc_constructor(id = 1)
 realloc_move(id = 11)
-pgrow(id = 0, size = 2) = true
-constructor(id = 0, arg = 12)
+prealloc(id = 0, size = 2) = true
+realloc_constructor(id = 0)
 realloc_move(id = 12)
 oob list:
 id = 2
