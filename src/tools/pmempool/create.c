@@ -67,6 +67,7 @@ struct pmempool_create {
 	uint64_t csize;
 	uint64_t blk_layout;
 	char *layout;
+	struct options *opts;
 };
 
 /*
@@ -117,14 +118,14 @@ static const char *help_str =
  * long_options -- command line options
  */
 static const struct option long_options[] = {
-	{"size",	required_argument,	0,	's'},
-	{"verbose",	no_argument,		0,	'v'},
-	{"help",	no_argument,		0,	'?'},
-	{"max-size",	no_argument,		0,	'M'},
-	{"layout",	required_argument,	0,	'l'},
-	{"write-layout", optional_argument,	0,	'w'},
-	{"inherit",	required_argument,	0,	'i'},
-	{"mode",	required_argument,	0,	'm'},
+	{"size",	required_argument,	0,	's' | OPT_ALL},
+	{"verbose",	no_argument,		0,	'v' | OPT_ALL},
+	{"help",	no_argument,		0,	'?' | OPT_ALL},
+	{"max-size",	no_argument,		0,	'M' | OPT_ALL},
+	{"inherit",	required_argument,	0,	'i' | OPT_ALL},
+	{"mode",	required_argument,	0,	'm' | OPT_ALL},
+	{"write-layout", optional_argument,	0,	'w' | OPT_BLK},
+	{"layout",	required_argument,	0,	'l' | OPT_OBJ},
 	{0,		0,			0,	 0 },
 };
 
@@ -279,11 +280,11 @@ pmempool_get_max_size(char *fname, uint64_t *sizep)
  */
 static int
 pmempool_create_parse_args(struct pmempool_create *pcp, char *appname,
-		int argc, char *argv[])
+		int argc, char *argv[], struct options *opts)
 {
 	int opt, ret;
-	while ((opt = getopt_long(argc, argv, "?vi:s:Mm:l:w::",
-			long_options, NULL)) != -1) {
+	while ((opt = util_options_getopt(argc, argv, "?vi:s:Mm:l:w::",
+			opts)) != -1) {
 		switch (opt) {
 		case 'v':
 			pcp->verbose = 1;
@@ -363,9 +364,11 @@ pmempool_create_func(char *appname, int argc, char *argv[])
 {
 	int ret = 0;
 	struct pmempool_create pc = pmempool_create_default;
+	pc.opts = util_options_alloc(long_options, sizeof (long_options) /
+			sizeof (long_options[0]), NULL);
 
 	/* parse command line arguments */
-	ret = pmempool_create_parse_args(&pc, appname, argc, argv);
+	ret = pmempool_create_parse_args(&pc, appname, argc, argv, pc.opts);
 	if (ret)
 		exit(EXIT_FAILURE);
 
@@ -439,37 +442,8 @@ pmempool_create_func(char *appname, int argc, char *argv[])
 		return -1;
 	}
 
-	/*
-	 * Validate options specific for pool type.
-	 */
-	if (PMEM_POOL_TYPE_LOG == pc.params.type) {
-		if (pc.layout != NULL) {
-			out_err("invalid option specified for log pool type"
-					" -- layout\n");
-			return -1;
-		}
-	}
-
-	if (PMEM_POOL_TYPE_LOG == pc.params.type ||
-	    PMEM_POOL_TYPE_OBJ == pc.params.type) {
-		if (pc.str_bsize != NULL) {
-			out_err("invalid option specified for %s pool type"
-				" -- block size\n", pc.params.type ==
-				PMEM_POOL_TYPE_LOG ? "log" : "obj");
-			return -1;
-		}
-	}
-
-	if (PMEM_POOL_TYPE_LOG == pc.params.type ||
-	    PMEM_POOL_TYPE_BLK == pc.params.type) {
-		if (pc.layout != NULL) {
-			out_err("invalid option specified for %s pool type"
-				" -- layout\n", pc.params.type ==
-				PMEM_POOL_TYPE_LOG ? "log" : "blk");
-			return -1;
-
-		}
-	}
+	if (util_options_verify(pc.opts, pc.params.type))
+		return -1;
 
 	if (pc.params.size && pc.max_size) {
 		out_err("'-M' option cannot be used with '-s'"
@@ -534,5 +508,6 @@ pmempool_create_func(char *appname, int argc, char *argv[])
 			remove(pc.fname);
 	}
 
+	util_options_free(pc.opts);
 	return ret;
 }

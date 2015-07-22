@@ -38,10 +38,10 @@
 
 #include "unittest.h"
 #include "util.h"
-#include "list.h"
-#include "obj.h"
 #include "lane.h"
 #include "redo.h"
+#include "list.h"
+#include "obj.h"
 #include "pmalloc.h"
 
 /* offset to "in band" item */

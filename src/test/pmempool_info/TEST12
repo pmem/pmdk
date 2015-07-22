@@ -1,3 +1,5 @@
+#!/bin/bash -e
+#
 # Copyright (c) 2014-2015, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
@@ -28,34 +30,31 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# Makefile -- top Makefile for pmempool
 #
+# pmempool_info/TEST12 -- test for info command
+#
+export UNITTEST_NAME=pmempool_info/TEST12
+export UNITTEST_NUM=12
 
-vpath %.c ../../
-vpath %.c ../../common
-vpath %.c ../../libpmemblk
+. ../unittest/unittest.sh
 
+require_fs_type pmem non-pmem
+require_build_type nondebug
 
-TARGET = pmempool
+setup
 
-OBJS = pmempool.o info.o info_blk.o info_log.o info_obj.o create.o dump.o\
-       common.o output.o util.o check.o btt.o
+POOL=$DIR/file.pool
+LOG=out${UNITTEST_NUM}.log
+rm -rf $LOG && touch $LOG
 
-LIBS += -lpmemobj -lpmemblk -lpmemlog -lpmem -luuid -pthread
-INCS += -I../../common
-INCS += -I../../libpmemlog
-INCS += -I../../libpmemblk
-INCS += -I../../libpmemobj
-LDFLAGS += -L../../nondebug/
+rm -rf $POOL
+expect_normal_exit $PMEMPOOL create --layout "pmempool" obj $POOL
+expect_normal_exit $PMEMALLOC -o $((1*1024*1024)) -t 1 $POOL
+expect_normal_exit $PMEMALLOC -o 16 -t 2 $POOL
+expect_normal_exit $PMEMPOOL info -O -E -a -A -H -Z -C -s $POOL >> $LOG
 
-MANPAGES = ../../../doc/pmempool.1\
-           ../../../doc/pmempool-info.1\
-	   ../../../doc/pmempool-create.1\
-	   ../../../doc/pmempool-check.1\
-	   ../../../doc/pmempool-dump.1
+rm -f $POOL
 
-BASH_COMP_FILES = pmempool.sh
+check
 
-include ../Makefile.inc
-
-.PHONY: test check
+pass

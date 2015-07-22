@@ -40,6 +40,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <getopt.h>
+#include <stdbool.h>
 #include "common.h"
 #include "output.h"
 #include "info.h"

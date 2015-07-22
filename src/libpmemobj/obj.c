@@ -52,6 +52,7 @@
 #include "util.h"
 #include "out.h"
 #include "lane.h"
+#include "redo.h"
 #include "list.h"
 #include "pmalloc.h"
 #include "cuckoo.h"

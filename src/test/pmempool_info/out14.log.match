@@ -1,0 +1,176 @@
+POOL Header:
+Signature                : OBJPOOL
+Major                    : $(*)
+Mandatory features       : $(*)
+Not mandatory features   : $(*)
+Forced RO                : $(*)
+Pool set UUID            : $(*)
+UUID                     : $(*)
+Previous part UUID       : $(*)
+Next part UUID           : $(*)
+Previous replica UUID    : $(*)
+Next replica UUID        : $(*)
+Creation Time            : $(*)
+Checksum                 : $(*) [OK]
+
+PMEM OBJ Header:
+Layout                   : pmempool
+Lanes offset             : $(*)
+Number of lanes          : $(*)
+Object store offset      : $(*)
+Object store size        : $(*)
+Heap offset              : $(*)
+Heap size                : $(*)
+Checksum                 : $(*) [OK]
+
+Lane:
+
+ Lane section             : allocator
+  Redo log entries         : 4
+  0000000000: Offset: $(*) Value: $(*) Finish flag: 0
+  0000000001: Offset: $(*) Value: $(*) Finish flag: 0
+  0000000002: Offset: $(*) Value: $(*) Finish flag: 0
+  0000000003: Offset: $(*) Value: $(*) Finish flag: 0
+
+ Lane section             : list
+  Object offset            : $(*)
+  Object size              : $(*)
+  Redo log entries         : 15
+  0000000000: Offset: $(*) Value: $(*) Finish flag: 0
+  0000000001: Offset: $(*) Value: $(*) Finish flag: 0
+  0000000002: Offset: $(*) Value: $(*) Finish flag: 0
+  0000000003: Offset: $(*) Value: $(*) Finish flag: 0
+  0000000004: Offset: $(*) Value: $(*) Finish flag: 0
+  0000000005: Offset: $(*) Value: $(*) Finish flag: 0
+  0000000006: Offset: $(*) Value: $(*) Finish flag: 0
+  0000000007: Offset: $(*) Value: $(*) Finish flag: 0
+  0000000008: Offset: $(*) Value: $(*) Finish flag: 0
+  0000000009: Offset: $(*) Value: $(*) Finish flag: 0
+  0000000010: Offset: $(*) Value: $(*) Finish flag: 0
+  0000000011: Offset: $(*) Value: $(*) Finish flag: 0
+  0000000012: Offset: $(*) Value: $(*) Finish flag: 0
+  0000000013: Offset: $(*) Value: $(*) Finish flag: 0
+  0000000014: Offset: $(*) Value: $(*) Finish flag: 0
+
+ Lane section             : tx
+  State                    : none
+  Undo Log - alloc         : 1 element
+
+   Object                   : 0
+   Offset                   : $(*)
+    
+Allocation Header:
+    Zone id                  : $(*)
+    Chunk id                 : $(*)
+    Size                     : $(*)
+
+  Undo Log - free          : 0 elements
+  Undo Log - set           : 0 elements
+
+POOL Header:
+Signature                : OBJPOOL
+Major                    : $(*)
+Mandatory features       : $(*)
+Not mandatory features   : $(*)
+Forced RO                : $(*)
+Pool set UUID            : $(*)
+UUID                     : $(*)
+Previous part UUID       : $(*)
+Next part UUID           : $(*)
+Previous replica UUID    : $(*)
+Next replica UUID        : $(*)
+Creation Time            : $(*)
+Checksum                 : $(*) [OK]
+
+PMEM OBJ Header:
+Layout                   : pmempool
+Lanes offset             : $(*)
+Number of lanes          : $(*)
+Object store offset      : $(*)
+Object store size        : $(*)
+Heap offset              : $(*)
+Heap size                : $(*)
+Checksum                 : $(*) [OK]
+
+Lane:
+
+ Lane section             : list
+  Object offset            : $(*)
+  Object size              : $(*)
+  Redo log entries         : 15
+  0000000000: Offset: $(*) Value: $(*) Finish flag: 0
+  0000000001: Offset: $(*) Value: $(*) Finish flag: 0
+  0000000002: Offset: $(*) Value: $(*) Finish flag: 0
+  0000000003: Offset: $(*) Value: $(*) Finish flag: 0
+  0000000004: Offset: $(*) Value: $(*) Finish flag: 0
+  0000000005: Offset: $(*) Value: $(*) Finish flag: 0
+  0000000006: Offset: $(*) Value: $(*) Finish flag: 0
+  0000000007: Offset: $(*) Value: $(*) Finish flag: 0
+  0000000008: Offset: $(*) Value: $(*) Finish flag: 0
+  0000000009: Offset: $(*) Value: $(*) Finish flag: 0
+  0000000010: Offset: $(*) Value: $(*) Finish flag: 0
+  0000000011: Offset: $(*) Value: $(*) Finish flag: 0
+  0000000012: Offset: $(*) Value: $(*) Finish flag: 0
+  0000000013: Offset: $(*) Value: $(*) Finish flag: 0
+  0000000014: Offset: $(*) Value: $(*) Finish flag: 0
+
+ Lane section             : tx
+  State                    : none
+  Undo Log - alloc         : 0 elements
+  Undo Log - free          : 0 elements
+  Undo Log - set           : 1 element
+
+   Object                   : 0
+   Offset                   : $(*)
+    
+Allocation Header:
+    Zone id                  : $(*)
+    Chunk id                 : $(*)
+    Size                     : $(*)
+
+   
+Tx range:
+   Offset                   : $(*)
+   Size                     : $(*)
+
+POOL Header:
+Signature                : OBJPOOL
+Major                    : $(*)
+Mandatory features       : $(*)
+Not mandatory features   : $(*)
+Forced RO                : $(*)
+Pool set UUID            : $(*)
+UUID                     : $(*)
+Previous part UUID       : $(*)
+Next part UUID           : $(*)
+Previous replica UUID    : $(*)
+Next replica UUID        : $(*)
+Creation Time            : $(*)
+Checksum                 : $(*) [OK]
+
+PMEM OBJ Header:
+Layout                   : pmempool
+Lanes offset             : $(*)
+Number of lanes          : $(*)
+Object store offset      : $(*)
+Object store size        : $(*)
+Heap offset              : $(*)
+Heap size                : $(*)
+Checksum                 : $(*) [OK]
+
+Lane:
+
+ Lane section             : tx
+  State                    : none
+  Undo Log - alloc         : 0 elements
+  Undo Log - free          : 1 element
+
+   Object                   : 0
+   Offset                   : $(*)
+    
+Allocation Header:
+    Zone id                  : $(*)
+    Chunk id                 : $(*)
+    Size                     : $(*)
+
+  Undo Log - set           : 0 elements

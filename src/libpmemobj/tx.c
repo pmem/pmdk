@@ -45,9 +45,10 @@
 #include "libpmem.h"
 #include "libpmemobj.h"
 #include "util.h"
+#include "lane.h"
+#include "redo.h"
 #include "list.h"
 #include "obj.h"
-#include "lane.h"
 #include "out.h"
 #include "pmalloc.h"
 #include "valgrind_internal.h"
@@ -78,18 +79,6 @@ struct lane_tx_runtime {
 	SLIST_HEAD(txl, tx_lock_data) tx_locks;
 };
 
-enum tx_state {
-	TX_STATE_NONE = 0,
-	TX_STATE_COMMITTED = 1,
-};
-
-struct lane_tx_layout {
-	uint64_t state;
-	struct list_head undo_alloc;
-	struct list_head undo_free;
-	struct list_head undo_set;
-};
-
 struct tx_alloc_args {
 	unsigned int type_num;
 	size_t size;
@@ -106,12 +95,6 @@ struct tx_add_range_args {
 	PMEMobjpool *pop;
 	uint64_t offset;
 	uint64_t size;
-};
-
-struct tx_range {
-	uint64_t offset;
-	uint64_t size;
-	uint8_t data[];
 };
 
 /*

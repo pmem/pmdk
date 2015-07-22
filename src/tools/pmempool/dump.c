@@ -46,6 +46,8 @@
 #include "libpmemblk.h"
 #include "libpmemlog.h"
 
+#define	VERBOSE_DEFAULT	1
+
 /*
  * pmempool_dump -- context and arguments for dump command
  */
@@ -150,7 +152,8 @@ pmempool_dump_log_process_chunk(const void *buf, size_t len, void *arg)
 			    pdp->chunkcnt <= curp->last &&
 			    pdp->chunksize <= len) {
 				if (pdp->hex) {
-					outv_hexdump(0, buf, pdp->chunksize,
+					outv_hexdump(VERBOSE_DEFAULT,
+						buf, pdp->chunksize,
 						pdp->chunksize * pdp->chunkcnt,
 						0);
 				} else {
@@ -170,7 +173,8 @@ pmempool_dump_log_process_chunk(const void *buf, size_t len, void *arg)
 				curp->last = len - 1;
 			uint64_t count = curp->last - curp->first + 1;
 			if (pdp->hex) {
-				outv_hexdump(0, ptr, count, curp->first, 0);
+				outv_hexdump(VERBOSE_DEFAULT, ptr,
+						count, curp->first, 0);
 			} else {
 				if (fwrite(ptr, count, 1, pdp->ofh) != 1)
 					err(1, "%s", pdp->ofname);
@@ -200,7 +204,7 @@ pmempool_dump_log(struct pmempool_dump *pdp)
 		entire.last = pmemlog_tell(plp) - 1;
 		if (pdp->chunksize)
 			entire.last = entire.last / pdp->chunksize;
-		util_ranges_add(&pdp->ranges, entire.first, entire.last);
+		util_ranges_add(&pdp->ranges, entire);
 	}
 
 	pdp->chunkcnt = 0;
@@ -228,7 +232,7 @@ pmempool_dump_blk(struct pmempool_dump *pdp)
 	entire.last = pmemblk_nblock(pbp) - 1;
 
 	if (LIST_EMPTY(&pdp->ranges.head)) {
-		util_ranges_add(&pdp->ranges, entire.first, entire.last);
+		util_ranges_add(&pdp->ranges, entire);
 	}
 
 	uint8_t *buff = malloc(pdp->bsize);
@@ -250,7 +254,8 @@ pmempool_dump_blk(struct pmempool_dump *pdp)
 
 			if (pdp->hex) {
 				uint64_t offset = i * pdp->bsize;
-				outv_hexdump(0, buff, pdp->bsize, offset, 0);
+				outv_hexdump(VERBOSE_DEFAULT, buff,
+						pdp->bsize, offset, 0);
 			} else {
 				if (fwrite(buff, pdp->bsize, 1,
 							pdp->ofh) != 1) {
@@ -277,14 +282,10 @@ pmempool_dump_func(char *appname, int argc, char *argv[])
 	struct pmempool_dump pd = pmempool_dump_default;
 	LIST_INIT(&pd.ranges.head);
 
-	out_set_vlevel(0);
+	out_set_vlevel(VERBOSE_DEFAULT);
 
 	int ret = 0;
 	long long chunksize;
-	struct range max = {
-		.first = 0,
-		.last = ~0
-	};
 	int opt;
 	while ((opt = getopt_long(argc, argv, "?o:br:c:",
 				long_options, NULL)) != -1) {
@@ -296,7 +297,8 @@ pmempool_dump_func(char *appname, int argc, char *argv[])
 			pd.hex = 0;
 			break;
 		case 'r':
-			if (util_parse_ranges(optarg, &pd.ranges, &max)) {
+			if (util_parse_ranges(optarg, &pd.ranges,
+						ENTIRE_UINT64)) {
 				out_err("invalid range value specified"
 						" -- '%s'\n", optarg);
 				exit(EXIT_FAILURE);

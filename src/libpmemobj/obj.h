@@ -157,6 +157,25 @@ struct object_store {
 	struct object_store_item bytype[PMEMOBJ_NUM_OID_TYPES];
 };
 
+enum tx_state {
+	TX_STATE_NONE = 0,
+	TX_STATE_COMMITTED = 1,
+};
+
+struct tx_range {
+	uint64_t offset;
+	uint64_t size;
+	uint8_t data[];
+};
+
+
+struct lane_tx_layout {
+	uint64_t state;
+	struct list_head undo_alloc;
+	struct list_head undo_free;
+	struct list_head undo_set;
+};
+
 static inline PMEMoid
 oob_list_next(PMEMobjpool *pop, struct list_head *head, PMEMoid oid)
 {

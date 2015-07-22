@@ -41,12 +41,43 @@
 #include "log.h"
 #include "blk.h"
 #include "libpmemobj.h"
+#include "lane.h"
+#include "redo.h"
 #include "list.h"
 #include "obj.h"
+#include "heap.h"
 #include "btt_layout.h"
+#include "heap_layout.h"
+
+#define	OPT_SHIFT 12
+#define	OPT_MASK (~((1 << OPT_SHIFT) - 1))
+#define	OPT_LOG (1 << (PMEM_POOL_TYPE_LOG + OPT_SHIFT))
+#define	OPT_BLK (1 << (PMEM_POOL_TYPE_BLK + OPT_SHIFT))
+#define	OPT_OBJ (1 << (PMEM_POOL_TYPE_OBJ + OPT_SHIFT))
+#define	OPT_ALL (OPT_LOG | OPT_BLK | OPT_OBJ)
+
+#define	OPT_REQ_SHIFT	8
+#define	OPT_REQ_MASK	((1 << OPT_REQ_SHIFT) - 1)
+#define	_OPT_REQ(c, n) ((c) << (OPT_REQ_SHIFT * (n)))
+#define	OPT_REQ0(c) _OPT_REQ(c, 0)
+#define	OPT_REQ1(c) _OPT_REQ(c, 1)
+#define	OPT_REQ2(c) _OPT_REQ(c, 2)
+#define	OPT_REQ3(c) _OPT_REQ(c, 3)
+#define	OPT_REQ4(c) _OPT_REQ(c, 4)
+#define	OPT_REQ5(c) _OPT_REQ(c, 5)
+#define	OPT_REQ6(c) _OPT_REQ(c, 6)
+#define	OPT_REQ7(c) _OPT_REQ(c, 7)
 
 #define	min(a, b) ((a) < (b) ? (a) : (b))
+#define	ENTIRE_UINT64 (\
+{\
+struct range ret = {\
+	.first = 0,\
+	.last = UINT64_MAX\
+}; ret; })
 
+#define	FOREACH_RANGE(range, ranges)\
+	LIST_FOREACH(range, &(ranges)->head, next)
 /*
  * pmem_pool_type_t -- pool types
  */
@@ -58,6 +89,19 @@ typedef enum {
 	PMEM_POOL_TYPE_ALL	= 0x0f,
 	PMEM_POOL_TYPE_UNKNOWN	= 0x80,
 } pmem_pool_type_t;
+
+struct option_requirement {
+	char opt;
+	pmem_pool_type_t type;
+	uint64_t req;
+};
+
+struct options {
+	const struct option *options;
+	size_t noptions;
+	char *bitmap;
+	const struct option_requirement *req;
+};
 
 struct pmem_pool_params {
 	pmem_pool_type_t type;
@@ -83,16 +127,25 @@ struct ranges {
 	LIST_HEAD(rangeshead, range) head;
 };
 
-pmem_pool_type_t pmem_pool_type_parse_hdr(struct pool_hdr *hdrp);
-pmem_pool_type_t pmem_pool_type_parse_str(char *str);
+pmem_pool_type_t pmem_pool_type_parse_hdr(const struct pool_hdr *hdrp);
+pmem_pool_type_t pmem_pool_type_parse_str(const char *str);
 uint64_t pmem_pool_get_min_size(pmem_pool_type_t type);
-int pmem_pool_parse_params(char *fname, struct pmem_pool_params *paramsp);
+int pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp);
+struct options *util_options_alloc(const struct option *options,
+		size_t nopts, const struct option_requirement *req);
+void util_options_free(struct options *opts);
+int util_options_verify(const struct options *opts, pmem_pool_type_t type);
+int util_options_getopt(int argc, char *argv[], const char *optstr,
+		const struct options *opts);
 int util_validate_checksum(void *addr, size_t len, uint64_t *csum);
-int util_parse_size(char *str, uint64_t *sizep);
-int util_parse_mode(char *str, mode_t *mode);
-int util_parse_ranges(char *str, struct ranges *rangesp, struct range *entirep);
-int util_ranges_add(struct ranges *rangesp, uint64_t first, uint64_t last);
+int util_parse_size(const char *str, uint64_t *sizep);
+int util_parse_mode(const char *str, mode_t *mode);
+int util_parse_ranges(const char *str, struct ranges *rangesp,
+		struct range entire);
+int util_ranges_add(struct ranges *rangesp, struct range range);
 void util_ranges_clear(struct ranges *rangesp);
+int util_ranges_contain(const struct ranges *rangesp, uint64_t n);
+int util_ranges_empty(const struct ranges *rangesp);
 void util_convert2h_pool_hdr(struct pool_hdr *hdrp);
 void util_convert2h_btt_info(struct btt_info *bttp);
 void util_convert2le_pool_hdr(struct pool_hdr *hdrp);
@@ -104,7 +157,15 @@ void util_convert2le_pmemlog(struct pmemlog *plp);
 int util_check_memory(const uint8_t *buff, size_t len, uint8_t val);
 int util_check_bsize(uint32_t bsize, uint64_t fsize);
 uint32_t util_get_max_bsize(uint64_t fsize);
+int util_parse_chunk_types(const char *str, uint64_t *types);
+int util_parse_lane_sections(const char *str, uint64_t *types);
 char ask(char op, char *answers, char def_ans, const char *fmt, va_list ap);
 char ask_yn(char op, char def_ans, const char *fmt, va_list ap);
 char ask_Yn(char op, const char *fmt, ...);
 char ask_yN(char op, const char *fmt, ...);
+
+static inline uint32_t
+util_count_ones(uint64_t val)
+{
+	return __builtin_popcountll(val);
+}

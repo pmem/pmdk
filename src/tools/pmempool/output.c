@@ -40,9 +40,12 @@
 #include <string.h>
 #include <stdint.h>
 #include <ctype.h>
+
 #include "common.h"
 #include "output.h"
 
+#define	_STR(s)	#s
+#define	STR(s) _STR(s)
 #define	TIME_STR_FMT "%a %b %d %Y %H:%M:%S"
 #define	UUID_STR_MAX 37
 #define	HEXDUMP_ROW_WIDTH 16
@@ -54,7 +57,11 @@
 /* 1 printable char per byte + terminating NULL */
 #define	HEXDUMP_ROW_ASCII_LEN (HEXDUMP_ROW_WIDTH + 1)
 #define	SEPARATOR_CHAR '-'
+#define	MAX_INDENT 32
+#define	INDENT_CHAR ' '
 
+static char out_indent_str[MAX_INDENT + 1];
+static int out_indent_level;
 static int out_vlevel;
 static unsigned int out_column_width = 20;
 static FILE *out_fh;
@@ -68,7 +75,7 @@ static const char *out_prefix;
 int
 outv_check(int vlevel)
 {
-	return (out_vlevel >= vlevel);
+	return vlevel && (out_vlevel >= vlevel);
 }
 
 /*
@@ -109,6 +116,8 @@ void
 out_set_stream(FILE *stream)
 {
 	out_fh = stream;
+
+	memset(out_indent_str, INDENT_CHAR, MAX_INDENT);
 }
 
 /*
@@ -125,6 +134,22 @@ out_err(const char *fmt, ...)
 }
 
 /*
+ * out_indent -- change indentation level by factor
+ */
+void
+out_indent(int i)
+{
+	out_indent_str[out_indent_level] = INDENT_CHAR;
+	out_indent_level += i;
+	if (out_indent_level < 0)
+		out_indent_level = 0;
+	if (out_indent_level > MAX_INDENT)
+		out_indent_level = MAX_INDENT;
+
+	out_indent_str[out_indent_level] = '\0';
+}
+
+/*
  * _out_prefix -- print prefix if defined
  */
 static void
@@ -132,6 +157,15 @@ _out_prefix(void)
 {
 	if (out_prefix)
 		fprintf(out_fh, "%s: ", out_prefix);
+}
+
+/*
+ * _out_indent -- print indent
+ */
+static void
+_out_indent(void)
+{
+	fprintf(out_fh, "%s", out_indent_str);
 }
 
 /*
@@ -144,9 +178,37 @@ outv(int vlevel, const char *fmt, ...)
 
 	if (outv_check(vlevel)) {
 		_out_prefix();
+		_out_indent();
 		va_start(ap, fmt);
 		vfprintf(out_fh, fmt, ap);
 		va_end(ap);
+	}
+}
+
+/*
+ * outv_nl -- print new line without indentation
+ */
+void
+outv_nl(int vlevel)
+{
+	if (outv_check(vlevel)) {
+		_out_prefix();
+		fprintf(out_fh, "\n");
+	}
+}
+
+void
+outv_title(int vlevel, const char *fmt, ...)
+{
+	va_list ap;
+	if (outv_check(vlevel)) {
+		_out_prefix();
+		_out_indent();
+		fprintf(out_fh, "\n");
+		va_start(ap, fmt);
+		vfprintf(out_fh, fmt, ap);
+		va_end(ap);
+		fprintf(out_fh, ":\n");
 	}
 }
 
@@ -166,6 +228,7 @@ outv_field(int vlevel, const char *field, const char *fmt, ...)
 
 	if (outv_check(vlevel)) {
 		_out_prefix();
+		_out_indent();
 		va_start(ap, fmt);
 		fprintf(out_fh, "%-*s : ", out_column_width, field);
 		vfprintf(out_fh, fmt, ap);
@@ -461,5 +524,137 @@ out_get_pool_type_str(pmem_pool_type_t type)
 		return "obj";
 	default:
 		return "unknown";
+	}
+}
+
+/*
+ * out_get_lane_section_str -- get lane section type string
+ */
+const char *
+out_get_lane_section_str(enum lane_section_type type)
+{
+	switch (type) {
+	case LANE_SECTION_ALLOCATOR:
+		return "allocator";
+	case LANE_SECTION_LIST:
+		return "list";
+	case LANE_SECTION_TRANSACTION:
+		return "tx";
+	default:
+		return "unknown";
+	}
+}
+
+/*
+ * out_get_tx_state_str -- get transaction state string
+ */
+const char *
+out_get_tx_state_str(enum tx_state state)
+{
+	switch (state) {
+	case TX_STATE_NONE:
+		return "none";
+	case TX_STATE_COMMITTED:
+		return "committed";
+	default:
+		return "unknown";
+	}
+}
+
+/*
+ * out_get_chunk_type_str -- get chunk type string
+ */
+const char *
+out_get_chunk_type_str(enum chunk_type type)
+{
+	switch (type) {
+	case CHUNK_TYPE_FOOTER:
+		return "footer";
+	case CHUNK_TYPE_FREE:
+		return "free";
+	case CHUNK_TYPE_USED:
+		return "used";
+	case CHUNK_TYPE_RUN:
+		return "run";
+	case CHUNK_TYPE_UNKNOWN:
+	default:
+		return "unknown";
+	}
+}
+
+/*
+ * out_get_chunk_flags -- get names of set flags for chunk header
+ */
+const char *
+out_get_chunk_flags(uint16_t flags)
+{
+	return flags & CHUNK_FLAG_ZEROED ? "zeroed" : "";
+}
+
+/*
+ * out_get_zone_magic_str -- get zone magic string with additional
+ * information about correctness of the magic value
+ */
+const char *
+out_get_zone_magic_str(uint32_t magic)
+{
+	static char str_buff[STR_MAX] = {0, };
+
+	const char *correct = NULL;
+	switch (magic) {
+	case 0:
+		correct = "uninitialized";
+		break;
+	case ZONE_HEADER_MAGIC:
+		correct = "OK";
+		break;
+	default:
+		correct = "wrong! should be " STR(ZONE_HEADER_MAGIC);
+		break;
+	}
+
+	snprintf(str_buff, STR_MAX, "0x%08x [%s]", magic, correct);
+
+	return str_buff;
+}
+
+/*
+ * out_get_pmemoid_str -- get PMEMoid string
+ */
+const char *
+out_get_pmemoid_str(PMEMoid oid, uint64_t uuid_lo)
+{
+	static char str_buff[STR_MAX] = {0, };
+	int free_cor = 0;
+	char *correct = "OK";
+	if (oid.pool_uuid_lo && oid.pool_uuid_lo != uuid_lo) {
+		snprintf(str_buff, STR_MAX, "wrong! should be 0x%016lx",
+				uuid_lo);
+		correct = strdup(str_buff);
+		free_cor = 1;
+	}
+
+	snprintf(str_buff, STR_MAX, "off: 0x%016lx pool_uuid_lo: 0x%016lx [%s]",
+			oid.off, oid.pool_uuid_lo, correct);
+
+	if (free_cor)
+		free(correct);
+
+	return str_buff;
+}
+
+/*
+ * out_get_internal_type_str -- get internal type string
+ */
+const char *
+out_get_internal_type_str(enum internal_type type)
+{
+	switch (type) {
+	case TYPE_NONE:
+		return "none";
+	case TYPE_ALLOCATED:
+		return "allocated";
+	default:
+		return "unknonw";
 	}
 }

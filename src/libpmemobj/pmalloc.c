@@ -43,14 +43,14 @@
 #include "libpmemobj.h"
 #include "util.h"
 #include "pmalloc.h"
+#include "lane.h"
+#include "redo.h"
 #include "list.h"
 #include "obj.h"
 #include "out.h"
 #include "heap.h"
 #include "bucket.h"
-#include "redo.h"
 #include "heap_layout.h"
-#include "lane.h"
 #include "out.h"
 
 enum alloc_op_redo {

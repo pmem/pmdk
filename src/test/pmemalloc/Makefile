@@ -28,34 +28,18 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# Makefile -- top Makefile for pmempool
+# Makefile -- Makefile for pmemalloc tool
 #
 
-vpath %.c ../../
-vpath %.c ../../common
-vpath %.c ../../libpmemblk
+CSTYLE = ../../../utils/cstyle
 
+TARGET = pmemalloc
 
-TARGET = pmempool
+OBJS = pmemalloc.o
 
-OBJS = pmempool.o info.o info_blk.o info_log.o info_obj.o create.o dump.o\
-       common.o output.o util.o check.o btt.o
-
-LIBS += -lpmemobj -lpmemblk -lpmemlog -lpmem -luuid -pthread
-INCS += -I../../common
-INCS += -I../../libpmemlog
-INCS += -I../../libpmemblk
-INCS += -I../../libpmemobj
-LDFLAGS += -L../../nondebug/
-
-MANPAGES = ../../../doc/pmempool.1\
-           ../../../doc/pmempool-info.1\
-	   ../../../doc/pmempool-create.1\
-	   ../../../doc/pmempool-check.1\
-	   ../../../doc/pmempool-dump.1
-
-BASH_COMP_FILES = pmempool.sh
+LIBPMEM=y
+LIBPMEMOBJ=y
 
 include ../Makefile.inc
 
-.PHONY: test check
+pmemalloc.o: pmemalloc.c

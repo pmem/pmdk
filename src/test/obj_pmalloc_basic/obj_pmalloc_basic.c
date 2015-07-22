@@ -38,10 +38,10 @@
 #include "libpmemobj.h"
 #include "pmalloc.h"
 #include "util.h"
-#include "list.h"
-#include "obj.h"
 #include "lane.h"
 #include "redo.h"
+#include "list.h"
+#include "obj.h"
 #include "heap_layout.h"
 #include "unittest.h"
 
