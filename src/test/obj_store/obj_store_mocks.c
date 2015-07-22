@@ -43,8 +43,9 @@
 #include "list.h"
 #include "obj.h"
 #include "pmalloc.h"
+#include "heap_layout.h"
 
-struct heap_header {
+struct heap_header_mock {
 	uint64_t offset;	/* persistent */
 	uint64_t size;		/* persistent */
 	uint64_t pop;		/* volatile   */
@@ -55,10 +56,10 @@ struct heap_header {
  */
 FUNC_MOCK(heap_init, int, PMEMobjpool *pop)
 FUNC_MOCK_RUN_DEFAULT {
-	struct heap_header *hheader =
-		(struct heap_header *)((uint64_t)pop + pop->heap_offset);
-	hheader->offset = pop->heap_offset + sizeof (struct heap_header);
-	hheader->size   = pop->heap_size   - sizeof (struct heap_header);
+	struct heap_header_mock *hheader =
+		(struct heap_header_mock *)((uint64_t)pop + pop->heap_offset);
+	hheader->offset = pop->heap_offset + sizeof (struct heap_header_mock);
+	hheader->size   = pop->heap_size   - sizeof (struct heap_header_mock);
 	pmem_msync(hheader, sizeof (*hheader));
 	return 0;
 }
@@ -69,8 +70,8 @@ FUNC_MOCK_END
  */
 FUNC_MOCK(heap_boot, int, PMEMobjpool *pop)
 FUNC_MOCK_RUN_DEFAULT {
-	struct heap_header *hheader =
-		(struct heap_header *)((uint64_t)pop + pop->heap_offset);
+	struct heap_header_mock *hheader =
+		(struct heap_header_mock *)((uint64_t)pop + pop->heap_offset);
 	hheader->pop = (uint64_t)pop;
 	pop->heap = (struct pmalloc_heap *)hheader;
 	pop->uuid_lo = (uint64_t)pop;
@@ -94,16 +95,18 @@ FUNC_MOCK_END
  */
 FUNC_MOCK(pmalloc, int, PMEMobjpool *pop, uint64_t *off, size_t size)
 FUNC_MOCK_RUN_DEFAULT {
-	struct heap_header *hheader = (struct heap_header *)pop->heap;
+	struct heap_header_mock *hheader = (struct heap_header_mock *)pop->heap;
 	PMEMobjpool *pop = (PMEMobjpool *)hheader->pop;
 	if (size < hheader->size) {
-		uint64_t *sizep = (uint64_t *)(hheader->pop + hheader->offset);
-		*sizep = size;
-		pop->persist(sizep, sizeof (uint64_t));
-		*off = hheader->offset + sizeof (uint64_t);
+		struct allocation_header *alloc =
+				(void *)(hheader->pop + hheader->offset);
+		alloc->size = size;
+		alloc->chunk_id = alloc->zone_id = 0;
+		pop->persist(alloc, sizeof (*alloc));
+		*off = hheader->offset + sizeof (*alloc);
 		pop->persist(off, sizeof (uint64_t));
-		hheader->offset += size + sizeof (uint64_t);
-		hheader->size -= size + sizeof (uint64_t);
+		hheader->offset += size + sizeof (*alloc);
+		hheader->size -= size + sizeof (*alloc);
 		pop->persist(hheader, sizeof (*hheader));
 		return 0;
 	} else
@@ -118,7 +121,7 @@ FUNC_MOCK(pmalloc_construct, int, PMEMobjpool *pop, uint64_t *off,
 	size_t size, void (*constructor)(PMEMobjpool *pop, void *ptr,
 	void *arg), void *arg, uint64_t data_off)
 FUNC_MOCK_RUN_DEFAULT {
-	struct heap_header *hheader = (struct heap_header *)pop->heap;
+	struct heap_header_mock *hheader = (struct heap_header_mock *)pop->heap;
 	if (pmalloc(pop, off, size))
 		return ENOMEM;
 	else {
@@ -145,7 +148,7 @@ FUNC_MOCK(prealloc_construct, int, PMEMobjpool *pop, uint64_t *off,
 	size_t size, void (*constructor)(PMEMobjpool *pop, void *ptr,
 	void *arg), void *arg, uint64_t data_off)
 FUNC_MOCK_RUN_DEFAULT {
-	struct heap_header *hheader = (struct heap_header *)pop->heap;
+	struct heap_header_mock *hheader = (struct heap_header_mock *)pop->heap;
 	if (prealloc(pop, off, size))
 		return ENOMEM;
 	else {
@@ -161,9 +164,10 @@ FUNC_MOCK_END
  */
 FUNC_MOCK(pmalloc_usable_size, size_t, PMEMobjpool *pop, uint64_t off)
 FUNC_MOCK_RUN_DEFAULT {
-	struct heap_header *hheader = (struct heap_header *)pop->heap;
-	uint64_t *sizep = (uint64_t *)(hheader->pop + off - sizeof (uint64_t));
-	return (size_t)(*sizep);
+	struct heap_header_mock *hheader = (struct heap_header_mock *)pop->heap;
+	struct allocation_header *alloc =
+			(void *)(hheader->pop + off - sizeof (*alloc));
+	return alloc->size;
 }
 FUNC_MOCK_END
 
@@ -172,13 +176,14 @@ FUNC_MOCK_END
  */
 FUNC_MOCK(pfree, int, PMEMobjpool *pop, uint64_t *off)
 FUNC_MOCK_RUN_DEFAULT {
-	struct heap_header *hheader = (struct heap_header *)pop->heap;
+	struct heap_header_mock *hheader = (struct heap_header_mock *)pop->heap;
 	PMEMobjpool *pop = (PMEMobjpool *)hheader->pop;
-	uint64_t *sizep = (uint64_t *)(hheader->pop + *off - sizeof (uint64_t));
+	struct allocation_header *alloc =
+			(void *)(hheader->pop + *off - sizeof (*alloc));
 	*off = 0;
 	pop->persist(off, sizeof (uint64_t));
-	*sizep = 0;
-	pop->persist(sizep, sizeof (uint64_t));
+	alloc->size = 0;
+	pop->persist(&alloc->size, sizeof (alloc->size));
 	return 0;
 }
 FUNC_MOCK_END
