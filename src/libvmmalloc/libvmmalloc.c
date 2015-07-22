@@ -51,14 +51,24 @@
  * 3) Malloc hooks in glibc are overridden to prevent any references to glibc's
  *    malloc(3) functions in case the application uses dlopen with
  *    RTLD_DEEPBIND flag.
+ *
+ * 4) If the process forks, there is no separate log file open for a new
+ *    process, even if the configured log file name is terminated with "-".
  */
+
+#define	_GNU_SOURCE
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/mman.h>
 #include <sys/param.h>
 #include <errno.h>
 #include <stdint.h>
+#include <signal.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <pthread.h>
 
 #include "libvmem.h"
 #include "libvmmalloc.h"
@@ -75,7 +85,13 @@
  * private to this file...
  */
 static unsigned Header_size;
-static VMEM *Vmp = NULL;
+static VMEM *Vmp;
+static char *Dir;
+static int Fd;
+static int Fd_clone;
+static int Private;
+static int Forkopt = 1; /* default behavior - remap as private */
+
 
 /*
  * malloc -- allocate a block of size bytes
@@ -318,7 +334,7 @@ print_jemalloc_messages(void *ignore, const char *s)
 static void
 print_jemalloc_stats(void *ignore, const char *s)
 {
-	LOG_NONL(3, "%s", s);
+	LOG_NONL(0, "%s", s);
 }
 
 /*
@@ -338,8 +354,12 @@ libvmmalloc_create(const char *dir, size_t size)
 	/* silently enforce multiple of page size */
 	size = roundup(size, Pagesize);
 
+	Fd = util_tmpfile(dir, size);
+	if (Fd == -1)
+		return NULL;
+
 	void *addr;
-	if ((addr = util_map_tmpfile(dir, size)) == NULL)
+	if ((addr = util_map(Fd, size, 0)) == NULL)
 		return NULL;
 
 	/* store opaque info at beginning of mapped area */
@@ -353,7 +373,7 @@ libvmmalloc_create(const char *dir, size_t size)
 	/* Prepare pool for jemalloc */
 	if (je_vmem_pool_create((void *)((uintptr_t)addr + Header_size),
 			size - Header_size, 1) == NULL) {
-		LOG(1, "return NULL");
+		LOG(1, "vmem pool creation failed");
 		util_unmap(vmp->addr, vmp->size);
 		return NULL;
 	}
@@ -371,17 +391,199 @@ libvmmalloc_create(const char *dir, size_t size)
 }
 
 /*
+ * libvmmalloc_clone - (internal) clone the entire pool
+ */
+static void *
+libvmmalloc_clone(void)
+{
+	LOG(3, NULL);
+
+	Fd_clone = util_tmpfile(Dir, Vmp->size);
+	if (Fd_clone == -1)
+		return NULL;
+
+	void *addr = mmap(NULL, Vmp->size, PROT_READ|PROT_WRITE,
+			MAP_SHARED, Fd_clone, 0);
+	if (addr == MAP_FAILED) {
+		LOG(1, "!mmap");
+		(void) close(Fd_clone);
+		return NULL;
+	}
+
+	LOG(3, "copy the entire pool file: dst %p src %p size %zu",
+			addr, Vmp->addr, Vmp->size);
+
+	util_range_rw(Vmp->addr, sizeof (struct pool_hdr));
+	memcpy(addr, Vmp->addr, Vmp->size);
+	util_range_none(Vmp->addr, sizeof (struct pool_hdr));
+
+	return addr;
+}
+
+/*
+ * libvmmalloc_prefork -- (internal) prepare for fork()
+ *
+ * Clones the entire pool or remaps it with MAP_PRIVATE flag.
+ */
+static void
+libvmmalloc_prefork(void)
+{
+	LOG(3, NULL);
+
+	/*
+	 * There's no need to grab any locks here, as jemalloc pre-fork handler
+	 * is executed first, and it does all the synchronization.
+	 */
+
+	ASSERTne(Vmp, NULL);
+	ASSERTne(Dir, NULL);
+
+	void *addr = Vmp->addr;
+	size_t size = Vmp->size;
+
+	if (Private) {
+		LOG(3, "already mapped as private - do nothing");
+		return;
+	}
+
+	switch (Forkopt) {
+	case 3:
+		/* clone the entire pool; if it fails - remap it as private */
+		LOG(3, "clone or remap");
+
+	case 2:
+		LOG(3, "clone the entire pool file");
+
+		if (libvmmalloc_clone() != NULL)
+			break;
+
+		if (Forkopt == 2) {
+			out_log(NULL, 0, NULL, 0, "Error (libvmmalloc): "
+					"pool cloning failed\n");
+			abort();
+		}
+		/* cloning failed; fall-thru to remapping */
+
+	case 1:
+		LOG(3, "remap the pool file as private");
+
+		Vmp = mmap(addr, size, PROT_READ|PROT_WRITE,
+				MAP_PRIVATE|MAP_FIXED, Fd, 0);
+
+		if (Vmp == MAP_FAILED) {
+			out_log(NULL, 0, NULL, 0, "Error (libvmmalloc): "
+					"remapping failed\n");
+			abort();
+		}
+
+		if (Vmp != addr) {
+			out_log(NULL, 0, NULL, 0, "Error (libvmmalloc): "
+					"wrong address\n");
+			abort();
+		}
+
+		Private = 1;
+		break;
+
+	case 0:
+		LOG(3, "do nothing");
+		break;
+
+	default:
+		FATAL("invalid fork action %d", Forkopt);
+	}
+}
+
+/*
+ * libvmmalloc_postfork_parent -- (internal) parent post-fork handler
+ */
+static void
+libvmmalloc_postfork_parent(void)
+{
+	LOG(3, NULL);
+
+	if (Forkopt == 0) {
+		/* do nothing */
+		return;
+	}
+
+	if (Private) {
+		LOG(3, "pool mapped as private - do nothing");
+	} else {
+		LOG(3, "close the cloned pool file");
+		(void) close(Fd_clone);
+	}
+}
+
+/*
+ * libvmmalloc_postfork_child -- (internal) child post-fork handler
+ */
+static void
+libvmmalloc_postfork_child(void)
+{
+	LOG(3, NULL);
+
+	if (Forkopt == 0) {
+		/* do nothing */
+		return;
+	}
+
+	if (Private) {
+		LOG(3, "pool mapped as private - do nothing");
+	} else {
+		LOG(3, "close the original pool file");
+		(void) close(Fd);
+		Fd = Fd_clone;
+
+		void *addr = Vmp->addr;
+		size_t size = Vmp->size;
+
+		LOG(3, "mapping cloned pool file at %p", addr);
+		Vmp = mmap(addr, size, PROT_READ|PROT_WRITE,
+				MAP_SHARED|MAP_FIXED, Fd, 0);
+		if (Vmp == MAP_FAILED) {
+			out_log(NULL, 0, NULL, 0, "Error (libvmmalloc): "
+					"mapping failed\n");
+			abort();
+		}
+
+		if (Vmp != addr) {
+			out_log(NULL, 0, NULL, 0, "Error (libvmmalloc): "
+					"wrong address\n");
+			abort();
+		}
+	}
+
+	/* XXX - open a new log file, with the new PID in the name */
+}
+
+/*
  * libvmmalloc_init -- load-time initialization for libvmmalloc
  *
  * Called automatically by the run-time loader.
+ * The constructor priority guarantees this is executed before
+ * libjemalloc constructor.
  */
-__attribute__((constructor))
+__attribute__((constructor(101)))
 static void
 libvmmalloc_init(void)
 {
-	char *size_str;
-	char *dir = NULL;
-	size_t size = 0;
+	char *env_str;
+	size_t size;
+
+	/*
+	 * Register fork handlers before jemalloc initialization.
+	 * This provides the correct order of fork handlers execution.
+	 * Note that the first malloc() will trigger jemalloc init, so we
+	 * have to register fork handlers before the call to out_init(),
+	 * as it may indirectly call malloc() when opening the log file.
+	 */
+	if (pthread_atfork(libvmmalloc_prefork,
+			libvmmalloc_postfork_parent,
+			libvmmalloc_postfork_child) != 0) {
+		perror("Error (libvmmalloc): pthread_atfork");
+		abort();
+	}
 
 	out_init(VMMALLOC_LOG_PREFIX, VMMALLOC_LOG_LEVEL_VAR,
 			VMMALLOC_LOG_FILE_VAR, VMMALLOC_MAJOR_VERSION,
@@ -390,44 +592,57 @@ libvmmalloc_init(void)
 	LOG(3, NULL);
 	util_init();
 
-	/* Set up jemalloc messages to a custom print function */
+	/* set up jemalloc messages to a custom print function */
 	je_vmem_malloc_message = print_jemalloc_messages;
 
 	Header_size = roundup(sizeof (VMEM), Pagesize);
 
-	if ((dir = getenv(VMMALLOC_POOL_DIR_VAR)) == NULL) {
+	if ((Dir = getenv(VMMALLOC_POOL_DIR_VAR)) == NULL) {
 		out_log(NULL, 0, NULL, 0, "Error (libvmmalloc): "
 				"environment variable %s not specified",
 				VMMALLOC_POOL_DIR_VAR);
-		exit(1);
+		abort();
 	}
 
-	if ((size_str = getenv(VMMALLOC_POOL_SIZE_VAR)) == NULL) {
+	if ((env_str = getenv(VMMALLOC_POOL_SIZE_VAR)) == NULL) {
 		out_log(NULL, 0, NULL, 0, "Error (libvmmalloc): "
 				"environment variable %s not specified",
 				VMMALLOC_POOL_SIZE_VAR);
-		exit(1);
+		abort();
 	} else {
-		size = atoll(size_str);
+		size = atoll(env_str);
 	}
 
 	if (size < VMMALLOC_MIN_POOL) {
 		out_log(NULL, 0, NULL, 0, "Error (libvmmalloc): "
-			"%s value is less than minimum (%zu < %zu)",
-			VMMALLOC_POOL_SIZE_VAR, size, VMMALLOC_MIN_POOL);
-		exit(1);
+				"%s value is less than minimum (%zu < %zu)",
+				VMMALLOC_POOL_SIZE_VAR, size,
+				VMMALLOC_MIN_POOL);
+		abort();
+	}
+
+	if ((env_str = getenv(VMMALLOC_FORK_VAR)) != NULL) {
+		Forkopt = atoi(env_str);
+		if (Forkopt < 0 || Forkopt > 3) {
+			out_log(NULL, 0, NULL, 0, "Error (libvmmalloc): "
+					"incorrect %s value (%d)",
+					VMMALLOC_FORK_VAR, Forkopt);
+				abort();
+		}
+		LOG(4, "Fork action %d", Forkopt);
 	}
 
 	/*
 	 * XXX - vmem_create() could be used here, but then we need to
 	 * link vmem.o, including all the vmem API.
 	 */
-	Vmp = libvmmalloc_create(dir, size);
+	Vmp = libvmmalloc_create(Dir, size);
 	if (Vmp == NULL) {
 		out_log(NULL, 0, NULL, 0, "!Error (libvmmalloc): "
 				"vmem pool creation failed");
-		exit(1);
+		abort();
 	}
+
 	LOG(2, "initialization completed");
 }
 
@@ -437,16 +652,20 @@ libvmmalloc_init(void)
  * Called automatically when the process terminates and prints
  * some basic allocator statistics.
  */
-__attribute__((destructor))
+__attribute__((destructor(101)))
 static void
 libvmmalloc_fini(void)
 {
-	LOG_NONL(3, "\n=========   system heap  ========\n");
-	je_vmem_malloc_stats_print(
-		NULL, print_jemalloc_stats, "gba");
+	char *env_str = getenv(VMMALLOC_LOG_STATS_VAR);
+	if ((env_str == NULL) || strcmp(env_str, "1") != 0)
+		return;
 
-	LOG_NONL(3, "\n=========    vmem pool   ========\n");
+	LOG_NONL(0, "\n=========   system heap  ========\n");
+	je_vmem_malloc_stats_print(
+		print_jemalloc_stats, NULL, "gba");
+
+	LOG_NONL(0, "\n=========    vmem pool   ========\n");
 	je_vmem_pool_malloc_stats_print(
 		(pool_t *)((uintptr_t)Vmp + Header_size),
-		NULL, print_jemalloc_stats, "gba");
+		print_jemalloc_stats, NULL, "gba");
 }

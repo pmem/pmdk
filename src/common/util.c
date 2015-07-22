@@ -251,12 +251,12 @@ util_unmap(void *addr, size_t len)
 }
 
 /*
- * util_map_tmpfile -- reserve space in an unlinked file and memory-map it
+ * util_tmpfile -- reserve space in an unlinked file
  *
  * size must be multiple of page size.
  */
-void *
-util_map_tmpfile(const char *dir, size_t size)
+int
+util_tmpfile(const char *dir, size_t size)
 {
 	static char template[] = "/vmem.XXXXXX";
 
@@ -284,6 +284,27 @@ util_map_tmpfile(const char *dir, size_t size)
 		goto err;
 	}
 
+	return fd;
+
+err:
+	LOG(1, "return -1");
+	int oerrno = errno;
+	(void) sigprocmask(SIG_SETMASK, &oldset, NULL);
+	if (fd != -1)
+		(void) close(fd);
+	errno = oerrno;
+	return -1;
+}
+
+/*
+ * util_map_tmpfile -- reserve space in an unlinked file and memory-map it
+ *
+ * size must be multiple of page size.
+ */
+void *
+util_map_tmpfile(const char *dir, size_t size)
+{
+	int fd = util_tmpfile(dir, size);
 	void *base;
 	if ((base = util_map(fd, size, 0)) == NULL)
 		goto err;
@@ -294,7 +315,6 @@ util_map_tmpfile(const char *dir, size_t size)
 err:
 	ERR("cannot mmap temporary file");
 	int oerrno = errno;
-	(void) sigprocmask(SIG_SETMASK, &oldset, NULL);
 	if (fd != -1)
 		(void) close(fd);
 	errno = oerrno;

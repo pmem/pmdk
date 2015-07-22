@@ -1,6 +1,5 @@
-#!/bin/bash -e
 #
-# Copyright (c) 2014-2015, Intel Corporation
+# Copyright (c) 2015, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,28 +31,9 @@
 #
 
 #
-# src/test/vmmalloc_init/TEST6 -- unit test for vmmalloc_init
+# src/test/vmmalloc_fork/Makefile -- build vmmalloc_fork unit test
 #
-export UNITTEST_NAME=vmmalloc_init/TEST6
-export UNITTEST_NUM=6
+TARGET = vmmalloc_fork
+OBJS = vmmalloc_fork.o
 
-# standard unit test setup
-. ../unittest/unittest.sh
-
-require_fs_type local
-# there's no point in testing statically linked builds
-require_build_type debug
-
-setup
-
-export VMMALLOC_LOG_LEVEL=4
-
-expect_normal_exit LD_PRELOAD=$TEST_LD_LIBRARY_PATH/libvmmalloc.so \
-    ./vmmalloc_init$EXESUFFIX d  2> stderr$UNITTEST_NUM.log
-
-egrep 'VMMALLOC_POOL_SIZE|VMMALLOC_POOL_DIR|TMPDIR|mkstemp|size\ 4321' \
-    vmmalloc$UNITTEST_NUM.log > grep$UNITTEST_NUM.log
-
-check
-
-pass
+include ../Makefile.inc

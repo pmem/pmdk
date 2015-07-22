@@ -51,6 +51,8 @@ unset VMMALLOC_POOL_SIZE
 expect_abnormal_exit LD_PRELOAD=$TEST_LD_LIBRARY_PATH/libvmmalloc.so \
     ./vmmalloc_init$EXESUFFIX 2> stderr$UNITTEST_NUM.log
 
+grep 'Error (libvmmalloc)' stderr$UNITTEST_NUM.log > grep$UNITTEST_NUM.log
+
 check
 
 pass

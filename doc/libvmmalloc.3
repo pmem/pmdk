@@ -41,43 +41,33 @@
 .SH NAME
 libvmmalloc \- general purpose volatile memory allocation library
 .SH SYNOPSIS
-.PP
-$ LD_PRELOAD=libvmmalloc.so
-.I command [args...]
-.PP
-or
-.PP
-$ cc [ flag... ] file... -lvmmalloc [ library... ]
-.sp
-.ft B
 .nf
-#include <stdlib\&.h>
-#include <malloc\&.h>
-#include <libvmmalloc\&.h>
+.BI "$ LD_PRELOAD=" "libvmmalloc.so " "command [ args... ]"
+.sp
+or
+.sp
+.B #include <stdlib.h>
+.B #include <malloc.h>
+.B #include <libvmmalloc.h>
+.sp
+.BI "$ cc [ flag... ] file... " "-lvmmalloc " "[ library... ]"
+.sp
+.sp
+.BI "void *malloc(size_t " size );
+.BI "void free(void *" ptr );
+.BI "void *calloc(size_t " number ", size_t " size );
+.BI "void *realloc(void *" ptr ", size_t " size );
+.sp
+.BI "int posix_memalign(void **" memptr ", size_t " alignment ", size_t " size );
+.BI "void *aligned_alloc(size_t " alignment ", size_t " size );
+.BI "void *memalign(size_t " alignment ", size_t " size );
+.BI "void *valloc(size_t " size );
+.BI "void *pvalloc(size_t " size );
+.sp
+.BI "size_t malloc_usable_size(const void *" ptr );
+.BI "void cfree(void *" ptr );
 .fi
-.ft
-.HP \w'void\ *malloc('u
-.BI "void *malloc(size_t\ " "size" ");"
-.HP \w'void\ *calloc('u
-.BI "void *calloc(size_t\ " "number" ", size_t\ " "size" ");"
-.HP \w'int\ posix_memalign('u
-.BI "int posix_memalign(void\ **" "memptr" ", size_t\ " "alignment" ", size_t\ " "size" ");"
-.HP \w'void\ *realloc('u
-.BI "void *realloc(void\ *" "ptr" ", size_t\ " "size" ");"
-.HP \w'void\ free('u
-.BI "void free(void\ *" "ptr" ");"
-.HP \w'size_t\ malloc_usable_size('u
-.BI "size_t malloc_usable_size(const\ void\ *" "ptr" ");"
-.HP \w'void\ *memalign('u
-.BI "void *memalign(size_t\ " "alignment" ", size_t\ " "size" ");"
-.HP \w'void\ *aligned_alloc('u
-.BI "void *aligned_alloc(size_t\ " "alignment" ", size_t\ " "size" ");"
-.HP \w'void\ *valloc('u
-.BI "void *valloc(size_t\ " "size" ");"
-.HP \w'void\ *pvalloc('u
-.BI "void *pvalloc(size_t\ " "size" ");"
-.HP \w'void\ cfree('u
-.BI "void cfree(void\ *" "ptr" ");"
+.sp
 .SH DESCRIPTION
 .PP
 .B libvmmalloc
@@ -117,12 +107,17 @@ argument to the linker.  Then it becomes the default memory allocator
 for given program.
 .PP
 .B NOTE: Due to the fact the library operates on a memory-mapped file,
-.B it will not work with the programs that perform
+.B it may not work properly with the programs that perform
 .BR fork (3)
 .B not followed by
 .BR exec (3).
-.B The behavior is undefined in such case, but most likely results in the
-.B memory pool corruption and the program crash due to segmentation fault.
+.PP
+.B There are two variants of experimental
+.BR fork ()
+.B support available in libvmmalloc.  The desired library behavior
+.B may be selected by setting VMMALLOC_FORK environment variable.
+.B By default variant #1 is enabled.
+.B See ENVIRONMENT section for more details.
 .PP
 .B libvmmalloc
 uses the
@@ -158,6 +153,7 @@ never calls
 or
 .BR poll ().
 .SH ENVIRONMENT
+.PP
 There are two configuration variables that
 .B must
 be set to make
@@ -176,10 +172,45 @@ It must be not less than the minimum allowed size
 .B VMMALLOC_MIN_POOL
 as defined in
 .B <libvmmalloc.h>.
-
 Note that due to the fact the library adds some metadata to the
 memory pool, the amount of actual usable space is typically less than
 the size of the memory pool file.
+.PP
+Setting the
+.B VMMALLOC_FORK
+configuration variable is optional.  It controls the behavior of
+.B libvmmalloc
+in case of
+.BR fork (3),
+and can be set to the following values:
+.IP 0
+Fork support is disabled.
+The behavior is undefined in such case, but most likely results in the
+memory pool corruption and the program crash due to segmentation fault.
+.IP 1
+The memory pool file is remapped with MAP_PRIVATE flag before the fork
+completes.  From this moment, any access to memory that modifies the heap
+pages, both in the parent and in the child process, will trigger creation
+of a copy of those pages in RAM (copy-on-write).
+The benefit of such approach is that it does not
+significantly increase the time of fork operation, and does not require
+additional space on the file system.  However, all the subsequent memory
+allocations and modifications of the memory allocated before fork, will
+consume system memory resources instead of the memory pool.
+.br
+This is the default setting.
+.IP 2
+A copy of the entire memory pool file is created for the use
+of the child process.
+This requires additional space on the file system, but both the parent
+and the child process may still operate on their memory pools, not consuming
+the system memory resources.
+NOTE: In case of large memory pools, creating a copy of the pool file may
+stall the fork operation for a quite long time.
+.IP 3
+The library first attempts to create a copy of the memory pool (as for
+option #2), but if it fails (i.e. because of insufficient amount of free
+space on the file system), it will fall back to option #1.
 .SH DEBUGGING
 .PP
 Two versions of
@@ -214,8 +245,7 @@ to returning the errno-based errors as usual).
 A trace of basic operations is logged.
 .IP 3
 This level enables a very verbose amount of function call tracing
-in the library.  There are also some basic memory allocation statistics
-logged when the process terminates.
+in the library.
 .IP 4
 This level enables voluminous tracing information about all the
 memory allocations and deallocations.
@@ -232,7 +262,15 @@ Setting the environment variable
 .B VMMALLOC_LOG_LEVEL
 has no effect on the non-debug version of
 .BR libvmmalloc .
+.PP
+.B VMMALLOC_LOG_STATS=1
+.IP
+Setting this environment variable to 1 enables logging the human-readable
+summary statistics at the program termination.
+Statistics are written only for the debug version of
+.BR libvmmalloc .
 .SH NOTES
+.PP
 Unlike the normal
 .BR malloc (),
 which asks the system for additional memory when it runs out,
@@ -240,12 +278,25 @@ which asks the system for additional memory when it runs out,
 allocates the size it is told to and never attempts to grow or shrink
 that memory pool.
 .SH BUGS
+.PP
 .B libvmmalloc
-does not work with the programs that perform
+may not work properly with the programs that perform
 .BR fork (3)
 and do not call
 .BR exec (3)
 immediately afterwards.
+See
+.B ENVIRONMENT
+section for more details about the experimental
+.BR fork ()
+support.
+.PP
+If the trace points in the debug version of the library are enabled
+and the process performs fork, there is no new log file created
+for the child process, even if the configured log file name is terminated
+with "-" character.  All the logging information from the child process
+will be written to the log file owned by the parent process, which may
+lead to corruption or partial loss of the log data.
 .PP
 Malloc hooks (see
 .BR malloc_hook (3)),
@@ -258,7 +309,7 @@ of managing dynamic memory allocation.  See:
 .IP
 http://www.canonware.com/jemalloc/
 .SH "SEE ALSO"
-.BR ld.so (8)
+.BR ld.so (8),
 .BR malloc (3),
 .BR posix_memalign (3),
 .BR malloc_usable_size (3),
