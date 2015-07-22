@@ -426,6 +426,13 @@ pmemblk_map_common(int fd, size_t poolsize, size_t bsize, int rdonly,
 		pmem_msync(hdrp, sizeof (*hdrp));
 	}
 
+	/* remove volatile part of header */
+	VALGRIND_REMOVE_PMEM_MAPPING(&pbp->addr,
+			sizeof (struct pmemblk) -
+			sizeof (struct pool_hdr) -
+			sizeof (pbp->bsize) -
+			sizeof (pbp->is_zeroed));
+
 	/*
 	 * Use some of the memory pool area for run-time info.  This
 	 * run-time state is never loaded from the file, it is always
