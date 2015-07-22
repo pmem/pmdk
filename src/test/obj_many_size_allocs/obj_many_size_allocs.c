@@ -46,8 +46,15 @@ void
 test_allocs(PMEMobjpool *pop, const char *path)
 {
 	PMEMoid oid[TEST_ALLOC_SIZE];
-	for (int i = 0; i < TEST_ALLOC_SIZE; ++i)
-		pmemobj_alloc(pop, &oid[i], i, 0, NULL, NULL);
+
+	if (pmemobj_alloc(pop, &oid[0], 0, 0, NULL, NULL) == 0)
+		FATAL("pmemobj_alloc(0) succeeded");
+
+	for (int i = 1; i < TEST_ALLOC_SIZE; ++i) {
+		if (pmemobj_alloc(pop, &oid[i], i, 0, NULL, NULL) != 0)
+			FATAL("!pmemobj_alloc");
+		ASSERT(!OID_IS_NULL(oid[i]));
+	}
 
 	pmemobj_close(pop);
 
@@ -55,8 +62,10 @@ test_allocs(PMEMobjpool *pop, const char *path)
 
 	ASSERT((pop = pmemobj_open(path, LAYOUT_NAME)) != NULL);
 
-	for (int i = 0; i < TEST_ALLOC_SIZE; ++i)
+	for (int i = 1; i < TEST_ALLOC_SIZE; ++i) {
 		pmemobj_free(&oid[i]);
+		ASSERT(OID_IS_NULL(oid[i]));
+	}
 
 	pmemobj_close(pop);
 }
