@@ -114,6 +114,14 @@ pmemwrite_blk(struct pmemwrite *pwp)
 
 	int i;
 	int ret = 0;
+	size_t blksize = pmemblk_bsize(pbp);
+	char *blk = malloc(blksize);
+	if (!blk) {
+		ret = -1;
+		out_err("malloc(%lu) failed\n", blksize);
+		goto nomem;
+	}
+
 	for (i = 0; i < pwp->nargs; i++) {
 		uint64_t blockno;
 		char *buff = NULL;
@@ -121,7 +129,15 @@ pmemwrite_blk(struct pmemwrite *pwp)
 		/* <blockno>:w:<string> - write string to <blockno> */
 		if (sscanf(pwp->args[i], "%" SCNu64 ":w:%m[^:]",
 					&blockno, &buff) == 2) {
-			ret = pmemblk_write(pbp, buff, blockno);
+			memset(blk, 0, blksize);
+			int bufflen = strlen(buff);
+			if (bufflen > blksize) {
+				out_err("String is longer than block size. "
+					"Truncating.\n");
+				bufflen = blksize;
+			}
+			memcpy(blk, buff, bufflen);
+			ret = pmemblk_write(pbp, blk, blockno);
 			free(buff);
 			if (ret)
 				return -1;
@@ -148,10 +164,12 @@ pmemwrite_blk(struct pmemwrite *pwp)
 			return -1;
 		}
 	}
+	free(blk);
 
+nomem:
 	pmemblk_close(pbp);
 
-	return 0;
+	return ret;
 }
 
 int
