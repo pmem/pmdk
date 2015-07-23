@@ -151,7 +151,7 @@ pmem_drain_nop(void)
  * This function initializes the pmemobj pool for purposes of this
  * unittest.
  */
-FUNC_MOCK(pmemobj_open, PMEMobjpool *, char *fname, char *layout);
+FUNC_MOCK(pmemobj_open, PMEMobjpool *, char *fname, char *layout)
 FUNC_MOCK_RUN_DEFAULT {
 	int fd = open(fname, O_RDWR);
 	if (fd < 0) {
@@ -246,20 +246,15 @@ FUNC_MOCK_END
  * Just unmap the mapped area.
  */
 FUNC_MOCK(pmemobj_close, void, PMEMobjpool *pop)
+	_pobj_cached_pool.pop = NULL;
+	_pobj_cached_pool.uuid_lo = 0;
+	Pop = NULL;
 	munmap(Pop, Pop->size);
 FUNC_MOCK_END
 
-/*
- * pmemobj_direct -- pmemobj_direct mock
- *
- * Use the global handle to pmemobj pool.
- */
-FUNC_MOCK(pmemobj_direct, void *, PMEMoid oid)
-	FUNC_MOCK_RUN_DEFAULT {
-		void *ret = (void *)((uintptr_t)Pop + oid.off);
-		return ret;
-	}
-FUNC_MOCK_END
+__thread struct _pobj_pcache _pobj_cached_pool;
+
+FUNC_MOCK_RET_ALWAYS(pmemobj_pool, PMEMobjpool *, Pop);
 
 /*
  * lane_hold -- lane_hold mock
@@ -595,7 +590,8 @@ for ((item) = \
  */
 #define	LIST_FOREACH_REVERSE(item, list, head, field)\
 for ((item) = \
-	D_RW(D_RW((list))->head.pe_first)->field.pe_prev;\
+	TOID_IS_NULL(D_RW((list))->head.pe_first) ? D_RW(list)->head.pe_first :\
+	D_RW(D_RW(list)->head.pe_first)->field.pe_prev;\
 	!TOID_IS_NULL((item));\
 	TOID_ASSIGN((item),\
 	TOID_EQUALS((item),\

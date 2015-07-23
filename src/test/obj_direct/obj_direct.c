@@ -93,7 +93,6 @@ main(int argc, char *argv[])
 		ASSERTeq(pmemobj_direct(tmpoids[i]), NULL);
 
 		pmemobj_close(pops[i]);
-
 		ASSERTeq(pmemobj_direct(oids[i]), NULL);
 	}
 

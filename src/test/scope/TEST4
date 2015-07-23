@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright (c) 2014, Intel Corporation
+# Copyright (c) 2014-2015, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -49,7 +49,7 @@ parse_lib() {
 	local lib_path=$1
 	echo "$lib_path:" >> out$UNITTEST_NUM.log
 	(nm -g $lib_path |\
-		perl -ne 'print if s/^[0-9a-z]+ T (\w+)/$1/' |\
+		perl -ne 'print if s/^[0-9a-z]+ [TB] (\w+)/$1/' |\
 		sort >> out$UNITTEST_NUM.log) 2>&1
 
 }
