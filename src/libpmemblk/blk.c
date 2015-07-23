@@ -578,6 +578,17 @@ pmemblk_close(PMEMblkpool *pbp)
 }
 
 /*
+ * pmemblk_bsize -- return size of block for specified pool
+ */
+size_t
+pmemblk_bsize(PMEMblkpool *pbp)
+{
+	LOG(3, "pbp %p", pbp);
+
+	return le32toh(pbp->bsize);
+}
+
+/*
  * pmemblk_nblock -- return number of usable blocks in a block memory pool
  */
 size_t
