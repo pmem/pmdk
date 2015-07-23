@@ -44,7 +44,7 @@ require_fs_type pmem non-pmem
 
 setup
 
-truncate -s 4MB $DIR/testfile1
+truncate -s 4M $DIR/testfile1
 
 # unaligned dest
 expect_normal_exit ./pmem_memcpy$EXESUFFIX $DIR/testfile1 7 0 4096
