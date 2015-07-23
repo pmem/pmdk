@@ -218,7 +218,7 @@ main(int argc, char *argv[])
 		if (dest == NULL)
 			FATAL("!could not mmap dest file %s", argv[1]);
 
-		src = MMAP(dest + stbuf.st_size + 1, stbuf.st_size,
+		src = MMAP(dest + stbuf.st_size, stbuf.st_size,
 			PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS,
 			-1, 0);
 		/*
