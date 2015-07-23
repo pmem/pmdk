@@ -32,17 +32,17 @@
 #
 
 #
-# src/test/obj_recovery/TEST0 -- unit test for pool recovery
+# src/test/obj_recovery/TEST2 -- unit test for pool recovery
 #
-export UNITTEST_NAME=obj_recovery/TEST0
-export UNITTEST_NUM=0
+export UNITTEST_NAME=obj_recovery/TEST2
+export UNITTEST_NUM=2
 
 # standard unit test setup
 . ../unittest/unittest.sh
 
 setup
 
-expect_normal_exit ./obj_recovery$EXESUFFIX $DIR/testfile s
-expect_normal_exit ./obj_recovery$EXESUFFIX $DIR/testfile s
+expect_normal_exit ./obj_recovery$EXESUFFIX $DIR/testfile f
+expect_normal_exit ./obj_recovery$EXESUFFIX $DIR/testfile f
 
 pass
