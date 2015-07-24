@@ -1094,3 +1094,50 @@ util_options_verify(const struct options *opts, pmem_pool_type_t type)
 
 	return 0;
 }
+
+/*
+ * util_heap_max_zone -- get number of zones
+ */
+int
+util_heap_max_zone(size_t size)
+{
+	int max_zone = 0;
+	size -= sizeof (struct heap_header);
+
+	while (size >= ZONE_MIN_SIZE) {
+		max_zone++;
+		size -= size <= ZONE_MAX_SIZE ? size : ZONE_MAX_SIZE;
+	}
+
+	return max_zone;
+}
+
+/*
+ * util_plist_nelements -- count number of elements on a list
+ */
+size_t
+util_plist_nelements(struct pmemobjpool *pop, struct list_head *headp)
+{
+	size_t i = 0;
+	struct list_entry *entryp;
+	PLIST_FOREACH(entryp, pop, headp)
+		i++;
+	return i;
+}
+
+/*
+ * util_plist_get_entry -- return nth element from list
+ */
+struct list_entry *
+util_plist_get_entry(struct pmemobjpool *pop,
+	struct list_head *headp, size_t n)
+{
+	struct list_entry *entryp;
+	PLIST_FOREACH(entryp, pop, headp) {
+		if (n == 0)
+			return entryp;
+		n--;
+	}
+
+	return NULL;
+}

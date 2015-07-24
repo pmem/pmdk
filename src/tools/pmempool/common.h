@@ -78,6 +78,29 @@ struct range ret = {\
 
 #define	FOREACH_RANGE(range, ranges)\
 	LIST_FOREACH(range, &(ranges)->head, next)
+
+#define	PLIST_OFF_TO_PTR(pop, off)\
+((off) == 0 ? NULL : (void *)((uintptr_t)(pop) + (off) - OBJ_OOB_SIZE))
+
+#define	PLIST_FOREACH(entry, pop, head)\
+for ((entry) = PLIST_OFF_TO_PTR(pop, (head)->pe_first.off);\
+	(entry) != NULL;\
+	(entry) = ((entry)->pe_next.off == (head)->pe_first.off ?\
+	NULL : PLIST_OFF_TO_PTR(pop, (entry)->pe_next.off)))
+
+#define	PLIST_EMPTY(head) ((head)->pe_first.off == 0)
+
+#define	ENTRY_TO_OOB_HDR(entry) ((struct oob_header *)(entry))
+
+#define	ENTRY_TO_TX_RANGE(entry)\
+((void *)((uintptr_t)(entry) + sizeof (struct oob_header)))
+
+#define	ENTRY_TO_ALLOC_HDR(entry)\
+((void *)((uintptr_t)(entry) - sizeof (struct allocation_header)))
+
+#define	ENTRY_TO_DATA(entry)\
+((void *)((uintptr_t)(entry) + sizeof (struct oob_header)))
+
 /*
  * pmem_pool_type_t -- pool types
  */
@@ -163,6 +186,10 @@ char ask(char op, char *answers, char def_ans, const char *fmt, va_list ap);
 char ask_yn(char op, char def_ans, const char *fmt, va_list ap);
 char ask_Yn(char op, const char *fmt, ...);
 char ask_yN(char op, const char *fmt, ...);
+int util_heap_max_zone(size_t size);
+size_t util_plist_nelements(struct pmemobjpool *pop, struct list_head *headp);
+struct list_entry *util_plist_get_entry(struct pmemobjpool *pop,
+	struct list_head *headp, size_t n);
 
 static inline uint32_t
 util_count_ones(uint64_t val)
