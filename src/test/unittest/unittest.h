@@ -121,10 +121,12 @@ void ut_start(const char *file, int line, const char *func,
 	__attribute__((format(printf, 6, 7)));
 void ut_done(const char *file, int line, const char *func,
 	const char *fmt, ...)
-	__attribute__((format(printf, 4, 5)));
+	__attribute__((format(printf, 4, 5)))
+	__attribute__((noreturn));
 void ut_fatal(const char *file, int line, const char *func,
 	const char *fmt, ...)
-	__attribute__((format(printf, 4, 5)));
+	__attribute__((format(printf, 4, 5)))
+	__attribute__((noreturn));
 void ut_out(const char *file, int line, const char *func,
 	const char *fmt, ...)
 	__attribute__((format(printf, 4, 5)));
