@@ -143,7 +143,7 @@ create_hashset(PMEMobjpool *pop, TOID(struct hashset) hashset, uint32_t seed)
 }
 
 /*
- * hash -- the simpliest hashing function,
+ * hash -- the simplest hashing function,
  * see https://en.wikipedia.org/wiki/Universal_hashing#Hashing_integers
  */
 static uint64_t
