@@ -781,7 +781,7 @@ constructor_realloc(PMEMobjpool *pop, void *ptr, void *arg)
 	struct carg_realloc *carg = arg;
 
 	if (ptr != carg->ptr) {
-		size_t cpy_size = carg->new_size < carg->old_size ?
+		size_t cpy_size = carg->new_size > carg->old_size ?
 			carg->old_size : carg->new_size;
 
 		pop->memcpy_persist(ptr, carg->ptr, cpy_size);
@@ -802,7 +802,7 @@ constructor_zrealloc(PMEMobjpool *pop, void *ptr, void *arg)
 	struct carg_realloc *carg = arg;
 
 	if (ptr != carg->ptr) {
-		size_t cpy_size = carg->new_size < carg->old_size ?
+		size_t cpy_size = carg->new_size > carg->old_size ?
 			carg->old_size : carg->new_size;
 
 		pop->memcpy_persist(ptr, carg->ptr, cpy_size);
