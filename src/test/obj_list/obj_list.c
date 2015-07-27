@@ -517,9 +517,9 @@ FUNC_MOCK(redo_log_set_last, void, PMEMobjpool *pop,
 FUNC_MOCK_END
 
 FUNC_MOCK(redo_log_process, void, PMEMobjpool *pop,
-		struct redo_log *redo, size_t nentires)
+		struct redo_log *redo, size_t nentries)
 		FUNC_MOCK_RUN_DEFAULT {
-			_FUNC_REAL(redo_log_process)(pop, redo, nentires);
+			_FUNC_REAL(redo_log_process)(pop, redo, nentries);
 			if (Redo_fail == FAIL_AFTER_PROCESS) {
 				DONE(NULL);
 			}

@@ -276,14 +276,14 @@ get_bitmap_str(uint64_t val, int values)
 }
 
 /*
- * info_obj_redo -- print redo log entires
+ * info_obj_redo -- print redo log entries
  */
 static void
 info_obj_redo(struct pmem_info *pip, int v, struct redo_log *redo,
-		size_t nentires)
+		size_t nentries)
 {
-	outv_field(v, "Redo log entries", "%lu", nentires);
-	for (size_t i = 0; i < nentires; i++) {
+	outv_field(v, "Redo log entries", "%lu", nentries);
+	for (size_t i = 0; i < nentries; i++) {
 		outv(v, "%010u: "
 			"Offset: 0x%016jx "
 			"Value: 0x%016jx "
