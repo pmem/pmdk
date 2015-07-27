@@ -643,6 +643,7 @@ struct carg_realloc {
 	void *ptr;
 	size_t old_size;
 	size_t new_size;
+	unsigned int user_type;
 };
 
 /*
@@ -732,6 +733,7 @@ obj_realloc_common(PMEMobjpool *pop, struct object_store *store,
 	carg.ptr = OBJ_OFF_TO_PTR(pop, oidp->off);
 	carg.new_size = size;
 	carg.old_size = pmemobj_alloc_usable_size(*oidp);
+	carg.user_type = type_num;
 
 	struct oob_header *pobj = OOB_HEADER_FROM_OID(pop, *oidp);
 	uint16_t user_type_old = pobj->user_type;
@@ -779,12 +781,17 @@ constructor_realloc(PMEMobjpool *pop, void *ptr, void *arg)
 	ASSERTne(arg, NULL);
 
 	struct carg_realloc *carg = arg;
+	struct oob_header *pobj = OOB_HEADER_FROM_PTR(ptr);
 
 	if (ptr != carg->ptr) {
-		size_t cpy_size = carg->new_size < carg->old_size ?
+		size_t cpy_size = carg->new_size > carg->old_size ?
 			carg->old_size : carg->new_size;
 
 		pop->memcpy_persist(ptr, carg->ptr, cpy_size);
+
+		pobj->internal_type = TYPE_ALLOCATED;
+		pobj->user_type = carg->user_type;
+		pop->persist(pobj, sizeof (*pobj));
 	}
 }
 
@@ -800,12 +807,17 @@ constructor_zrealloc(PMEMobjpool *pop, void *ptr, void *arg)
 	ASSERTne(arg, NULL);
 
 	struct carg_realloc *carg = arg;
+	struct oob_header *pobj = OOB_HEADER_FROM_PTR(ptr);
 
 	if (ptr != carg->ptr) {
-		size_t cpy_size = carg->new_size < carg->old_size ?
+		size_t cpy_size = carg->new_size > carg->old_size ?
 			carg->old_size : carg->new_size;
 
 		pop->memcpy_persist(ptr, carg->ptr, cpy_size);
+
+		pobj->internal_type = TYPE_ALLOCATED;
+		pobj->user_type = carg->user_type;
+		pop->persist(pobj, sizeof (*pobj));
 	}
 
 	if (carg->new_size > carg->old_size) {
@@ -1090,6 +1102,7 @@ obj_realloc_root(PMEMobjpool *pop, struct object_store *store, size_t size,
 	carg.ptr = OBJ_OFF_TO_PTR(pop, lhead->pe_first.off);
 	carg.old_size = old_size;
 	carg.new_size = size;
+	carg.user_type = POBJ_ROOT_TYPE_NUM;
 
 	return list_realloc(pop, lhead, 0, NULL, size,
 				constructor_zrealloc_root, &carg,

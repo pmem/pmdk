@@ -133,10 +133,16 @@ test_alloc_api(PMEMobjpool *pop)
 			dummy_node_constructor, &val);
 
 	POBJ_REALLOC(pop, &node_constructed, struct dummy_node_c,
-			sizeof (struct dummy_node_c) + 10);
+			sizeof (struct dummy_node_c) + 1000);
+
+	ASSERTeq(pmemobj_type_num(node_constructed.oid),
+			TOID_TYPE_NUM(struct dummy_node_c));
 
 	POBJ_ZREALLOC(pop, &node_constructed, struct dummy_node_c,
-			sizeof (struct dummy_node_c) + 20);
+			sizeof (struct dummy_node_c) + 2000);
+
+	ASSERTeq(pmemobj_type_num(node_constructed.oid),
+			TOID_TYPE_NUM(struct dummy_node_c));
 
 	POBJ_FREE(&node_constructed);
 
