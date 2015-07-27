@@ -56,42 +56,96 @@ main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_recovery");
 
-	if (argc != 2)
-		FATAL("usage: %s [file]", argv[0]);
+	if (argc != 3)
+		FATAL("usage: %s [file] [type: n/f/s]", argv[0]);
 
 	const char *path = argv[1];
 
 	PMEMobjpool *pop = NULL;
+	int exists = access(path, F_OK) == 0;
+	enum { TEST_NEW, TEST_FREE, TEST_SET } type;
 
-	if (access(path, F_OK) != 0) {
+	if (argv[2][0] == 'n')
+		type = TEST_NEW;
+	else if (argv[2][0] == 'f')
+		type = TEST_FREE;
+	else if (argv[2][0] == 's')
+		type = TEST_SET;
+	else
+		FATAL("invalid type");
+
+	if (!exists) {
 		if ((pop = pmemobj_create(path, POBJ_LAYOUT_NAME(recovery),
 			PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR)) == NULL) {
 			FATAL("failed to create pool\n");
 		}
-
-		TOID(struct root) root = POBJ_ROOT(pop, struct root);
-		TX_BEGIN_LOCK(pop, TX_LOCK_MUTEX, &D_RW(root)->lock) {
-			TX_ADD(root);
-
-			TOID(struct foo) f = TX_NEW(struct foo);
-			D_RW(root)->foo = f;
-			D_RW(f)->bar = BAR_VALUE;
-			exit(0); /* simulate a crash */
-		} TX_END
-
 	} else {
 		if ((pop = pmemobj_open(path, POBJ_LAYOUT_NAME(recovery)))
 						== NULL) {
 			FATAL("failed to open pool\n");
 		}
-		TOID(struct root) root = POBJ_ROOT(pop, struct root);
-
-		ASSERT(TOID_IS_NULL(D_RW(root)->foo));
-		ASSERT(pmemobj_check(path, POBJ_LAYOUT_NAME(recovery)));
-
-		pmemobj_close(pop);
 	}
 
+	TOID(struct root) root = POBJ_ROOT(pop, struct root);
+
+	if (type == TEST_SET) {
+		if (!exists) {
+			TX_BEGIN_LOCK(pop, TX_LOCK_MUTEX, &D_RW(root)->lock) {
+				TX_ADD(root);
+
+				TOID(struct foo) f = TX_NEW(struct foo);
+				D_RW(root)->foo = f;
+				D_RW(f)->bar = BAR_VALUE;
+			} TX_END
+
+			TX_BEGIN_LOCK(pop, TX_LOCK_MUTEX, &D_RW(root)->lock) {
+				TX_ADD_FIELD(D_RW(root)->foo, bar);
+
+				D_RW(D_RW(root)->foo)->bar = BAR_VALUE * 2;
+				exit(0); /* simulate a crash */
+			} TX_END
+		} else {
+			ASSERT(D_RW(D_RW(root)->foo)->bar == BAR_VALUE);
+		}
+	} else if (type == TEST_NEW) {
+		if (!exists) {
+			TX_BEGIN_LOCK(pop, TX_LOCK_MUTEX, &D_RW(root)->lock) {
+				TX_ADD(root);
+
+				TOID(struct foo) f = TX_NEW(struct foo);
+				D_RW(root)->foo = f;
+				D_RW(f)->bar = BAR_VALUE;
+				exit(0); /* simulate a crash */
+			} TX_END
+
+		} else {
+			ASSERT(TOID_IS_NULL(D_RW(root)->foo));
+		}
+	} else { /* TEST_FREE */
+		if (!exists) {
+			TX_BEGIN_LOCK(pop, TX_LOCK_MUTEX, &D_RW(root)->lock) {
+				TX_ADD(root);
+
+				TOID(struct foo) f = TX_NEW(struct foo);
+				D_RW(root)->foo = f;
+				D_RW(f)->bar = BAR_VALUE;
+			} TX_END
+
+			TX_BEGIN_LOCK(pop, TX_LOCK_MUTEX, &D_RW(root)->lock) {
+				TX_ADD(root);
+				TX_FREE(D_RW(root)->foo);
+				D_RW(root)->foo = TOID_NULL(struct foo);
+				exit(0); /* simulate a crash */
+			} TX_END
+
+		} else {
+			ASSERT(!TOID_IS_NULL(D_RW(root)->foo));
+		}
+	}
+
+	ASSERT(pmemobj_check(path, POBJ_LAYOUT_NAME(recovery)));
+
+	pmemobj_close(pop);
 
 	DONE(NULL);
 }

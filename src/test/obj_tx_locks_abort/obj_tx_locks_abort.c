@@ -143,10 +143,12 @@ main(int argc, char *argv[])
 		TOID(struct obj) o;
 		o = D_RW(root)->head;
 		D_RW(o)->data = 100;
+		pmemobj_mutex_zero(pop, &D_RW(o)->lock);
 		for (int i = 0; i < 3; i++) {
 			D_RW(o)->next = TX_NEW(struct obj);
 			o = D_RO(o)->next;
 			D_RW(o)->data = 101 + i;
+			pmemobj_mutex_zero(pop, &D_RW(o)->lock);
 		}
 		TOID_ASSIGN(D_RW(o)->next, OID_NULL);
 	} TX_END;

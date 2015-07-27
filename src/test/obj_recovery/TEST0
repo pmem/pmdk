@@ -42,7 +42,7 @@ export UNITTEST_NUM=0
 
 setup
 
-expect_normal_exit ./obj_recovery$EXESUFFIX $DIR/testfile
-expect_normal_exit ./obj_recovery$EXESUFFIX $DIR/testfile
+expect_normal_exit ./obj_recovery$EXESUFFIX $DIR/testfile s
+expect_normal_exit ./obj_recovery$EXESUFFIX $DIR/testfile s
 
 pass

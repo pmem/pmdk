@@ -297,7 +297,7 @@ util_parse_range_number(char *str, struct range *rangep, struct range entire)
 		return -1;
 	rangep->last = rangep->first;
 	if (rangep->first > entire.last ||
-	    rangep->last > entire.last)
+	    rangep->last < entire.first)
 		return -1;
 	util_range_limit(rangep, entire);
 	return 0;
@@ -344,10 +344,13 @@ util_ranges_add(struct ranges *rangesp, struct range range)
 		err(1, "Cannot allocate memory for range\n");
 	memcpy(rangep, &range, sizeof (*rangep));
 
-	struct range *curp  = NULL;
+	struct range *curp, *next;
 	uint64_t first = rangep->first;
 	uint64_t last = rangep->last;
-	LIST_FOREACH(curp, &rangesp->head, next) {
+
+	curp = LIST_FIRST(&rangesp->head);
+	while (curp) {
+		next = LIST_NEXT(curp, next);
 		if (util_ranges_overlap(curp, rangep)) {
 			LIST_REMOVE(curp, next);
 			if (curp->first < first)
@@ -356,6 +359,7 @@ util_ranges_add(struct ranges *rangesp, struct range range)
 				last = curp->last;
 			free(curp);
 		}
+		curp = next;
 	}
 
 	rangep->first = first;

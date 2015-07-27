@@ -32,23 +32,17 @@
 #
 
 #
-# src/test/pmem_memmove/TEST6 -- unit test for pmem_memmove
+# src/test/obj_recovery/TEST1 -- unit test for pool recovery
 #
-export UNITTEST_NAME=pmem_memmove/TEST6
-export UNITTEST_NUM=6
+export UNITTEST_NAME=obj_recovery/TEST1
+export UNITTEST_NUM=1
 
 # standard unit test setup
 . ../unittest/unittest.sh
 
-require_fs_type pmem non-pmem
-
 setup
 
-truncate -s 4M $DIR/testfile1
-
-# overlap of src, aligned src and dest
-expect_normal_exit ./pmem_memmove$EXESUFFIX $DIR/testfile1 b:4096 o:1 S:20
-
-check
+expect_normal_exit ./obj_recovery$EXESUFFIX $DIR/testfile n
+expect_normal_exit ./obj_recovery$EXESUFFIX $DIR/testfile n
 
 pass
