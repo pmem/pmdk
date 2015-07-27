@@ -437,10 +437,10 @@ parse_args(char *appname, int argc, char *argv[],
 			argsp->obj.vobjects = VERBOSE_DEFAULT;
 			break;
 		case 'a':
-			argsp->obj.valloc = VERBOSE_DEFAULT;
+			argsp->obj.voobhdr = VERBOSE_DEFAULT;
 			break;
 		case 'A':
-			argsp->obj.voobhdr = VERBOSE_DEFAULT;
+			argsp->obj.valloc = VERBOSE_DEFAULT;
 			break;
 		case 'E':
 			argsp->obj.ignore_empty_obj = true;
