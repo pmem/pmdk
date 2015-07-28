@@ -59,10 +59,11 @@ Lane:
    Object                   : 0
    Offset                   : $(*)
     
-Allocation Header:
-    Zone id                  : $(*)
-    Chunk id                 : $(*)
-    Size                     : $(*)
+OOB Header:
+    Next                     : off: $(*) pool_uuid_lo: $(*) [OK]
+    Prev                     : off: $(*) pool_uuid_lo: $(*) [OK]
+    Internal Type            : none
+    User Type                : 1
 
   Undo Log - free          : 0 elements
   Undo Log - set           : 0 elements
@@ -123,10 +124,11 @@ Lane:
    Object                   : 0
    Offset                   : $(*)
     
-Allocation Header:
-    Zone id                  : $(*)
-    Chunk id                 : $(*)
-    Size                     : $(*)
+OOB Header:
+    Next                     : off: $(*) pool_uuid_lo: $(*) [OK]
+    Prev                     : off: $(*) pool_uuid_lo: $(*) [OK]
+    Internal Type            : none
+    User Type                : 0
 
    
 Tx range:
@@ -168,9 +170,10 @@ Lane:
    Object                   : 0
    Offset                   : $(*)
     
-Allocation Header:
-    Zone id                  : $(*)
-    Chunk id                 : $(*)
-    Size                     : $(*)
+OOB Header:
+    Next                     : off: $(*) pool_uuid_lo: $(*) [OK]
+    Prev                     : off: $(*) pool_uuid_lo: $(*) [OK]
+    Internal Type            : allocated
+    User Type                : 1
 
   Undo Log - set           : 0 elements

@@ -312,7 +312,7 @@ static const char *help_str =
 "  -b, --backup <file>  create backup of a pool file before executing\n"
 "  -q, --quiet          be quiet and don't print any messages\n"
 "  -v, --verbose        increase verbosity level\n"
-"  -?, --help           display this help and exit\n"
+"  -h, --help           display this help and exit\n"
 "\n"
 "For complete documentation see %s-check(1) manual page.\n"
 ;
@@ -327,7 +327,7 @@ static const struct option long_options[] = {
 	{"backup",	required_argument,	0,	'b'},
 	{"quiet",	no_argument,		0,	'q'},
 	{"verbose",	no_argument,		0,	'v'},
-	{"help",	no_argument,		0,	'?'},
+	{"help",	no_argument,		0,	'h'},
 	{0,		0,			0,	 0 },
 };
 
@@ -368,7 +368,7 @@ pmempool_check_parse_args(struct pmempool_check *pcp, char *appname,
 		int argc, char *argv[])
 {
 	int opt;
-	while ((opt = getopt_long(argc, argv, "v?rNb:qy",
+	while ((opt = getopt_long(argc, argv, "hvrNb:qy",
 			long_options, NULL)) != -1) {
 		switch (opt) {
 		case 'r':
@@ -390,13 +390,9 @@ pmempool_check_parse_args(struct pmempool_check *pcp, char *appname,
 		case 'v':
 			pcp->verbose = 2;
 			break;
-		case '?':
-			if (optopt == '\0') {
-				pmempool_check_help(appname);
-				exit(EXIT_SUCCESS);
-			}
-			print_usage(appname);
-			exit(EXIT_FAILURE);
+		case 'h':
+			pmempool_check_help(appname);
+			exit(EXIT_SUCCESS);
 		default:
 			print_usage(appname);
 			exit(EXIT_FAILURE);

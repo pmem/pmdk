@@ -121,8 +121,8 @@ static const struct pmempool_info_args pmempool_info_args_default = {
 static const struct option long_options[] = {
 	{"version",	no_argument,		0, 'V' | OPT_ALL},
 	{"verbose",	no_argument,		0, 'v' | OPT_ALL},
-	{"help",	no_argument,		0, '?' | OPT_ALL},
-	{"human",	no_argument,		0, 'h' | OPT_ALL},
+	{"help",	no_argument,		0, 'h' | OPT_ALL},
+	{"human",	no_argument,		0, 'n' | OPT_ALL},
 	{"force",	required_argument,	0, 'f' | OPT_ALL},
 	{"data",	no_argument,		0, 'd' | OPT_ALL},
 	{"headers-hex",	no_argument,		0, 'x' | OPT_ALL},
@@ -248,11 +248,11 @@ static const char *help_str =
 "Show information about pmem pool from specified file.\n"
 "\n"
 "Common options:\n"
-"  -?, --help                      Print this help and exit.\n"
+"  -h, --help                      Print this help and exit.\n"
 "  -V, --version                   Print version and exit.\n"
 "  -v, --verbose                   Increase verbisity level.\n"
 "  -f, --force blk|log|obj         Force parsing a pool of specified type.\n"
-"  -h, --human                     Print sizes in human readable format.\n"
+"  -n, --human                     Print sizes in human readable format.\n"
 "  -x, --headers-hex               Hexdump all headers.\n"
 "  -d, --data                      Dump log data and blocks.\n"
 "  -s, --stats                     Print statistics.\n"
@@ -343,7 +343,7 @@ parse_args(char *appname, int argc, char *argv[],
 		return -1;
 	}
 	while ((opt = util_options_getopt(argc, argv,
-			"vhf:ezuF:L:c:dmxV?w:gBsr:l::RS:OEC::Z::HT:bot:aA",
+			"vhnf:ezuF:L:c:dmxVw:gBsr:l::RS:OEC::Z::HT:bot:aA",
 			opts)) != -1) {
 
 
@@ -354,14 +354,10 @@ parse_args(char *appname, int argc, char *argv[],
 		case 'V':
 			print_version(appname);
 			exit(EXIT_SUCCESS);
-		case '?':
-			if (optopt == '\0') {
-				pmempool_info_help(appname);
-				exit(EXIT_SUCCESS);
-			}
-			print_usage(appname);
-			exit(EXIT_FAILURE);
 		case 'h':
+			pmempool_info_help(appname);
+			exit(EXIT_SUCCESS);
+		case 'n':
 			argsp->human = true;
 			break;
 		case 'f':
@@ -441,10 +437,10 @@ parse_args(char *appname, int argc, char *argv[],
 			argsp->obj.vobjects = VERBOSE_DEFAULT;
 			break;
 		case 'a':
-			argsp->obj.valloc = VERBOSE_DEFAULT;
+			argsp->obj.voobhdr = VERBOSE_DEFAULT;
 			break;
 		case 'A':
-			argsp->obj.voobhdr = VERBOSE_DEFAULT;
+			argsp->obj.valloc = VERBOSE_DEFAULT;
 			break;
 		case 'E':
 			argsp->obj.ignore_empty_obj = true;
@@ -502,6 +498,9 @@ parse_args(char *appname, int argc, char *argv[],
 	/* store pointer to files list */
 	if (optind < argc) {
 		argsp->file = argv[optind];
+	} else {
+		print_usage(appname);
+		return -1;
 	}
 
 	if (!argsp->use_range)
