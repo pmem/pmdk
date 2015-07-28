@@ -1063,7 +1063,7 @@ util_options_getopt(int argc, char *argv[], const char *optstr,
 		const struct options *opts)
 {
 	int opt = getopt_long(argc, argv, optstr, opts->options, NULL);
-	if (opt == -1)
+	if (opt == -1 || opt == '?')
 		return opt;
 
 	opt &= ~OPT_MASK;

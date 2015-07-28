@@ -103,7 +103,7 @@ static const char *help_str =
 "  -m, --mode <octal>   set permissions to <octal> (the default is 0664)\n"
 "  -i, --inherit <file> take required parameters from specified pool file\n"
 "  -v, --verbose        increase verbosity level\n"
-"  -?, --help           display this help and exit\n"
+"  -h, --help           display this help and exit\n"
 "\n"
 "Options for PMEMBLK:\n"
 "  -w, --write-layout [<num>] force writing BTT layout using <num> block\n"
@@ -120,7 +120,7 @@ static const char *help_str =
 static const struct option long_options[] = {
 	{"size",	required_argument,	0,	's' | OPT_ALL},
 	{"verbose",	no_argument,		0,	'v' | OPT_ALL},
-	{"help",	no_argument,		0,	'?' | OPT_ALL},
+	{"help",	no_argument,		0,	'h' | OPT_ALL},
 	{"max-size",	no_argument,		0,	'M' | OPT_ALL},
 	{"inherit",	required_argument,	0,	'i' | OPT_ALL},
 	{"mode",	required_argument,	0,	'm' | OPT_ALL},
@@ -283,19 +283,15 @@ pmempool_create_parse_args(struct pmempool_create *pcp, char *appname,
 		int argc, char *argv[], struct options *opts)
 {
 	int opt, ret;
-	while ((opt = util_options_getopt(argc, argv, "?vi:s:Mm:l:w::",
+	while ((opt = util_options_getopt(argc, argv, "vhi:s:Mm:l:w::",
 			opts)) != -1) {
 		switch (opt) {
 		case 'v':
 			pcp->verbose = 1;
 			break;
-		case '?':
-			if (optopt == '\0') {
-				pmempool_create_help(appname);
-				exit(EXIT_SUCCESS);
-			}
-			print_usage(appname);
-			return -1;
+		case 'h':
+			pmempool_create_help(appname);
+			exit(EXIT_SUCCESS);
 		case 's':
 			ret = util_parse_size(optarg, &pcp->params.size);
 			if (ret || pcp->params.size == 0) {

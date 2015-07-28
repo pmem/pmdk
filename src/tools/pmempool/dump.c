@@ -85,7 +85,7 @@ static const struct option long_options[] = {
 	{"binary",	no_argument,		0,	'b'},
 	{"range",	required_argument,	0,	'r'},
 	{"chunk",	required_argument,	0,	'c'},
-	{"help",	no_argument,		0,	'?'},
+	{"help",	no_argument,		0,	'h'},
 	{0,		0,			0,	 0 },
 };
 
@@ -100,7 +100,7 @@ static const char *help_str =
 "  -b, --binary         dump data in binary format\n"
 "  -r, --range <range>  range of bytes/blocks/data chunks\n"
 "  -c, --chunk <size>   size of chunk for PMEMLOG pool\n"
-"  -?, --help           display this help and exit\n"
+"  -h, --help           display this help and exit\n"
 "\n"
 "For complete documentation see %s-dump(1) manual page.\n"
 ;
@@ -287,7 +287,7 @@ pmempool_dump_func(char *appname, int argc, char *argv[])
 	int ret = 0;
 	long long chunksize;
 	int opt;
-	while ((opt = getopt_long(argc, argv, "?o:br:c:",
+	while ((opt = getopt_long(argc, argv, "ho:br:c:",
 				long_options, NULL)) != -1) {
 		switch (opt) {
 		case 'o':
@@ -313,13 +313,9 @@ pmempool_dump_func(char *appname, int argc, char *argv[])
 			}
 			pd.chunksize = (size_t)chunksize;
 			break;
-		case '?':
-			if (optopt == '\0') {
-				pmempool_dump_help(appname);
-				exit(EXIT_SUCCESS);
-			}
-			print_usage(appname);
-			exit(EXIT_FAILURE);
+		case 'h':
+			pmempool_dump_help(appname);
+			exit(EXIT_SUCCESS);
 		default:
 			print_usage(appname);
 			exit(EXIT_FAILURE);

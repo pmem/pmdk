@@ -66,7 +66,7 @@ static void print_help(char *appname);
  */
 static const struct option long_options[] = {
 	{"version",	no_argument,	0,	'V'},
-	{"help",	no_argument,	0,	'?'},
+	{"help",	no_argument,	0,	'h'},
 	{0,		0,		0,	 0 },
 };
 
@@ -172,7 +172,7 @@ print_help(char *appname)
 	printf("\n");
 	printf("Options:\n");
 	printf("  -V, --version        display version\n");
-	printf("  -?, --help           display this help and exit\n");
+	printf("  -h, --help           display this help and exit\n");
 	printf("\n");
 	printf("The available commands are:\n");
 	int i;
@@ -209,19 +209,15 @@ main(int argc, char *argv[])
 		return 0;
 	}
 
-	while ((opt = getopt_long(2, argv, "?V",
+	while ((opt = getopt_long(2, argv, "Vh",
 			long_options, &option_index)) != -1) {
 		switch (opt) {
 		case 'V':
 			print_version(appname);
 			return 0;
-		case '?':
-			if (optopt == '\0') {
-				print_help(appname);
-				return 0;
-			}
-			print_usage(appname);
-			return -1;
+		case 'h':
+			print_help(appname);
+			return 0;
 		default:
 			print_usage(appname);
 			return -1;

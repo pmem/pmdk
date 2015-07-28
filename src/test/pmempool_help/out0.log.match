@@ -5,7 +5,7 @@ pmempool $(*)
 
 $(*)
   -V, --version        $(*)
-  -?, --help           $(*)
+  -h, --help           $(*)
 
 $(*)
 info	- $(*)
