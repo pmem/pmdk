@@ -502,6 +502,9 @@ parse_args(char *appname, int argc, char *argv[],
 	/* store pointer to files list */
 	if (optind < argc) {
 		argsp->file = argv[optind];
+	} else {
+		print_usage(appname);
+		return -1;
 	}
 
 	if (!argsp->use_range)
