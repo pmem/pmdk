@@ -441,6 +441,15 @@ pmempool_create_func(char *appname, int argc, char *argv[])
 	if (util_options_verify(pc.opts, pc.params.type))
 		return -1;
 
+	if (pc.params.type != PMEM_POOL_TYPE_BLK) {
+		if (pc.str_bsize != NULL) {
+			out_err("invalid option specified for %s pool type"
+					" -- block size\n",
+				out_get_pool_type_str(pc.params.type));
+			return -1;
+		}
+	}
+
 	if (pc.params.size && pc.max_size) {
 		out_err("'-M' option cannot be used with '-s'"
 				" option\n");
