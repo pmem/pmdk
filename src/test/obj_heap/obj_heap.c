@@ -119,7 +119,7 @@ test_heap()
 	struct memory_block result =
 		heap_coalesce(pop, blocksp, MAX_BLOCKS, HEAP_OP_FREE, &hdr,
 			&op_result);
-
+	*((uint64_t *)hdr) = op_result;
 	ASSERT(result.size_idx == 3);
 	ASSERT(result.chunk_id == prev.chunk_id);
 

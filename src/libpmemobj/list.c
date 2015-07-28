@@ -1921,20 +1921,23 @@ lane_list_check(PMEMobjpool *pop, struct lane_section_layout *section_layout)
 	struct lane_list_section *section =
 		(struct lane_list_section *)section_layout;
 
-	if (redo_log_check(pop, section->redo, REDO_NUM_ENTRIES) == 0) {
-		ERR("list lane %p redo log check failed", section);
+	int ret = 0;
+	if ((ret = redo_log_check(pop,
+			section->redo, REDO_NUM_ENTRIES)) != 0) {
+		ERR("list lane: redo log check failed");
 
-		return 0;
+		return ret;
 	}
 
-	if (section->obj_offset && section->obj_offset < pop->heap_offset) {
-		ERR("list lane %p invalid offset 0x%jx",
-				section, section->obj_offset);
+	if (section->obj_offset &&
+		!OBJ_OFF_FROM_HEAP(pop, section->obj_offset)) {
+		ERR("list lane: invalid offset 0x%jx",
+				section->obj_offset);
 
-		return 0;
+		return -1;
 	}
 
-	return 1;
+	return 0;
 }
 
 /*
