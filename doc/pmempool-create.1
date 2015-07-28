@@ -189,7 +189,7 @@ pmempool create blk 512 pool.blk
 pmempool create log -M pool.log
 # Create a log pool file of maximum allowed size
 .TP
-pmempool create blk --size=4G --layout=1 1K pool.blk
+pmempool create blk --size=4G --write-layout=1 1K pool.blk
 # Create a blk pool file of size 4G, block size 1K and write BTT layout using
 write operation to the block number 1
 .TP
