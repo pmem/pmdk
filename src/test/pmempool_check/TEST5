@@ -51,7 +51,10 @@ rm -rf $LOG && touch $LOG
 truncate -s2T $POOL
 expect_normal_exit $PMEMPOOL create -v -l blk 512M $POOL >> $LOG
 check_file $POOL
-$PMEMSPOIL $POOL pool_hdr.checksum=0x0 "arena(1).btt_info.sig=ERROR" "arena(1).btt_info_backup.sig=ERROR"
+$PMEMSPOIL $POOL pool_hdr.checksum=0x0\
+	"pmemblk.arena(1).btt_info.sig=ERROR"\
+	"pmemblk.arena(1).btt_info_backup.sig=ERROR"
+
 expect_normal_exit $PMEMPOOL check -vry $POOL >> $LOG
 
 check

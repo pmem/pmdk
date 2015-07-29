@@ -45,6 +45,8 @@
 #include <stdbool.h>
 #include <inttypes.h>
 #include <sys/param.h>
+#include <sys/stat.h>
+#include <sys/mman.h>
 #include <libgen.h>
 #include <err.h>
 #include "common.h"
@@ -53,27 +55,132 @@
 #define	STR(x)	#x
 
 /*
- * Useful macros for pmemspoil_process_* set of functions.
- * These macros take the struct and field name as an argument
- * and transforms it to address, size and string.
+ * Set of macros for parsing structures and fields.
+ *
  * Example:
- *	struct my_struct {
- *		uint16_t field;
- *	} my;
- *	PROCESS_UINT16(psp, pfp, my.field);
+ *
+ * PROCESS_BEGIN(psp, pfp) {
+ *	PARSE_FIELD(my_struct, my_field, uint32_t);
+ *	PARSE(struct_name, arg, max_index)
+ * } PROCESS_END
+ *
+ * return PROCESS_RET
+ *
+ * The PROCESS_STATE holds the state of processing.
+ * The PROCESS_INDEX holds the index of current field.
  */
-#define	PROCESS_UINT16(psp, pfp, name)	\
-pmemspoil_process_uint16((psp), (pfp), (uint16_t *)&name, STR(name))
 
-#define	PROCESS_UINT32(psp, pfp, name)	\
-pmemspoil_process_uint32((psp), (pfp), (uint32_t *)&name, STR(name))
+/*
+ * State of processing fields.
+ */
+enum process_state {
+	PROCESS_STATE_NOT_FOUND,
+	PROCESS_STATE_FOUND,
+	PROCESS_STATE_FIELD,
+	PROCESS_STATE_ERROR_MSG,
+	PROCESS_STATE_ERROR,
+};
 
-#define	PROCESS_UINT64(psp, pfp, name)	\
-pmemspoil_process_uint64((psp), (pfp), (uint64_t *)&name, STR(name))
+#define	PROCESS_BEGIN(psp, pfp) \
+enum process_state PROCESS_STATE = PROCESS_STATE_NOT_FOUND;\
+struct pmemspoil *_psp = (psp);\
+struct pmemspoil_list *_pfp = (pfp);\
 
-#define	PROCESS_STRING(psp, pfp, name)	\
-pmemspoil_process_string((psp), (pfp), (char *)&name, sizeof (name), STR(name))
+#define	PROCESS_RET ((PROCESS_STATE == PROCESS_STATE_FOUND ||\
+			PROCESS_STATE == PROCESS_STATE_FIELD) ? 0 : -1)
 
+#define	PROCESS_INDEX	(_pfp->cur->index)
+
+#define	PROCESS_END \
+_process_end:\
+switch (PROCESS_STATE) {\
+case PROCESS_STATE_NOT_FOUND:\
+	out_err("unknown field '%s'\n", _pfp->cur->name);\
+	break;\
+case PROCESS_STATE_FIELD:\
+	outv(2, "spoil: %s\n", _pfp->str);\
+	break;\
+case PROCESS_STATE_ERROR_MSG:\
+	out_err("processing '%s'\n", _pfp->str);\
+	PROCESS_STATE = PROCESS_STATE_ERROR;\
+	break;\
+default:\
+	break;\
+}
+
+#define	PROCESS(_name, _arg, _max) do {\
+if (pmemspoil_check_field(_pfp, STR(_name))) {\
+	PROCESS_STATE = PROCESS_STATE_FOUND;\
+	if (_pfp->cur->index >= (_max)) {\
+		PROCESS_STATE = PROCESS_STATE_ERROR_MSG;\
+	} else {\
+		typeof(_arg) a = _arg;\
+		pmemspoil_next_field(_pfp);\
+		if (pmemspoil_process_##_name(_psp, _pfp, a))\
+			PROCESS_STATE = PROCESS_STATE_ERROR;\
+	}\
+	goto _process_end;\
+}\
+} while (0)
+
+#define	PROCESS_NAME(_name, _func, _arg, _max) do {\
+if (pmemspoil_check_field(_pfp, (_name))) {\
+	PROCESS_STATE = PROCESS_STATE_FOUND;\
+	if (_pfp->cur->index >= (_max)) {\
+		PROCESS_STATE = PROCESS_STATE_ERROR_MSG;\
+	} else {\
+		typeof(_arg) a = _arg;\
+		pmemspoil_next_field(_pfp);\
+		if (pmemspoil_process_##_func(_psp, _pfp, a))\
+			PROCESS_STATE = PROCESS_STATE_ERROR;\
+	}\
+	goto _process_end;\
+}\
+} while (0)
+
+#define	PROCESS_FIELD(_ptr, _name, _type) do {\
+	if (pmemspoil_check_field(_pfp, STR(_name))) {\
+		pmemspoil_next_field(_pfp);\
+		if (pmemspoil_process_##_type(_psp, _pfp,\
+				(_type *)&((_ptr)->_name),\
+				sizeof ((_ptr)->_name)))\
+			PROCESS_STATE = PROCESS_STATE_ERROR_MSG;\
+		else\
+			PROCESS_STATE = PROCESS_STATE_FIELD;\
+		goto _process_end;\
+	}\
+} while (0)
+
+#define	PROCESS_FUNC(_name, _func, _arg) do {\
+	if (pmemspoil_check_field(_pfp, (_name))) {\
+		PROCESS_STATE = PROCESS_STATE_FOUND;\
+		if (!_pfp->str) {\
+			PROCESS_STATE = PROCESS_STATE_ERROR_MSG;\
+		} else {\
+			if (pmemspoil_process_##_func(_psp, _pfp, (_arg)))\
+				PROCESS_STATE = PROCESS_STATE_ERROR;\
+		}\
+		goto _process_end;\
+	}\
+} while (0)
+
+#define	PROCESS_FIELD_ARRAY(_ptr, _name, _type, _max) do {\
+if (pmemspoil_check_field(_pfp, STR(_name))) {\
+	if (_pfp->cur->index >= (_max)) {\
+		PROCESS_STATE = PROCESS_STATE_ERROR_MSG;\
+	} else {\
+		uint64_t ind = PROCESS_INDEX;\
+		pmemspoil_next_field(_pfp);\
+		if (pmemspoil_process_##_type(_psp, _pfp,\
+				(_type *)&((_ptr)->_name[ind]),\
+				sizeof ((_ptr)->_name)))\
+			PROCESS_STATE = PROCESS_STATE_ERROR_MSG;\
+		else\
+			PROCESS_STATE = PROCESS_STATE_FIELD;\
+	}\
+	goto _process_end;\
+}\
+} while (0)
 
 /*
  * struct field -- single field with name and id
@@ -82,7 +189,8 @@ struct field {
 	struct field *next;
 	struct field *prev;
 	char *name;
-	uint32_t index;
+	uint64_t index;
+	int is_func;
 };
 
 /*
@@ -93,6 +201,7 @@ struct pmemspoil_list {
 	struct field *tail;
 	struct field *cur;
 	char *value;
+	char *str;
 };
 
 /*
@@ -104,7 +213,35 @@ struct pmemspoil {
 	int fd;
 	struct pmemspoil_list *args;
 	int argc;
+	void *addr;
+	size_t size;
+};
 
+typedef enum chunk_type chunk_type_t;
+
+/*
+ * struct chunk_pair -- chunk header and chunk
+ */
+struct chunk_pair {
+	struct chunk_header *hdr;
+	struct chunk *chunk;
+};
+
+/*
+ * struct list_pair -- list head and entry
+ */
+struct list_pair {
+	struct list_head *head;
+	struct list_entry *entry;
+};
+
+/*
+ * struct checksum_args -- arguments for checksum
+ */
+struct checksum_args {
+	void *ptr;
+	size_t len;
+	void *checksum;
 };
 
 /*
@@ -172,12 +309,19 @@ pmemspoil_help(char *appname)
 static char *
 pmemspoil_parse_field(char *str, struct field *fieldp)
 {
+	fieldp->is_func = 0;
+
 	if (!str)
 		return NULL;
 
 	char *f = strchr(str, '.');
 	if (!f)
 		f = strchr(str, '=');
+	if (!f) {
+		f = strchr(str, '(');
+		if (f && f[1] == ')')
+			fieldp->is_func = 1;
+	}
 	fieldp->index = 0;
 	fieldp->name = NULL;
 	if (f) {
@@ -198,6 +342,8 @@ pmemspoil_parse_field(char *str, struct field *fieldp)
 		if (secstr)
 			free(secstr);
 
+		if (fieldp->is_func)
+			return f + 2;
 		return f + 1;
 	}
 
@@ -216,6 +362,8 @@ pmemspoil_free_fields(struct pmemspoil_list *fieldp)
 		free(cur);
 		cur = next;
 	}
+
+	free(fieldp->str);
 }
 
 /*
@@ -244,6 +392,9 @@ pmemspoil_parse_fields(char *str, struct pmemspoil_list *listp)
 {
 	struct field f;
 	char *nstr = NULL;
+	listp->str = strdup(str);
+	if (!listp->str)
+		return -1;
 	while ((nstr = pmemspoil_parse_field(str, &f)) != NULL) {
 		struct field *fp = malloc(sizeof (struct field));
 		if (!fp) {
@@ -354,11 +505,9 @@ pmemspoil_get_arena_offset(struct pmemspoil *psp, uint32_t id)
  * pmemspoil_check_field -- compares field name and moves pointer if the same
  */
 static int
-pmemspoil_check_field(struct pmemspoil *psp, struct pmemspoil_list *pfp,
-		const char *fname)
+pmemspoil_check_field(struct pmemspoil_list *pfp, const char *fname)
 {
 	if (pfp->cur != NULL && strcmp(pfp->cur->name, fname) == 0) {
-		pfp->cur = pfp->cur->next;
 		return 1;
 	} else {
 		return 0;
@@ -366,25 +515,33 @@ pmemspoil_check_field(struct pmemspoil *psp, struct pmemspoil_list *pfp,
 }
 
 /*
- * pmemspoil_process_string -- process value as string
+ * pmemspoil_next_field -- move to next field
+ */
+static void
+pmemspoil_next_field(struct pmemspoil_list *pfp)
+{
+	pfp->cur = pfp->cur->next;
+}
+
+/*
+ * pmemspoil_process_char -- process value as string
  */
 static int
-pmemspoil_process_string(struct pmemspoil *psp, struct pmemspoil_list *pfp,
-		char *str, size_t len, char *name)
+pmemspoil_process_char(struct pmemspoil *psp, struct pmemspoil_list *pfp,
+		char *str, size_t len)
 {
 	len = min(len, strlen(pfp->value));
 	memcpy(str, pfp->value, len);
-	outv(2, "spoil: %s = %s\n", name, pfp->value);
 
 	return 0;
 }
 
 /*
- * pmemspoil_process_string -- process value as uint16
+ * pmemspoil_process_uint16_t -- process value as uint16
  */
 static int
-pmemspoil_process_uint16(struct pmemspoil *psp, struct pmemspoil_list *pfp,
-		uint16_t *valp, char *name)
+pmemspoil_process_uint16_t(struct pmemspoil *psp, struct pmemspoil_list *pfp,
+		uint16_t *valp, size_t size)
 {
 	uint16_t v;
 	if (sscanf(pfp->value, "0x%" SCNx16, &v) != 1 &&
@@ -392,17 +549,15 @@ pmemspoil_process_uint16(struct pmemspoil *psp, struct pmemspoil_list *pfp,
 		return -1;
 	*valp = v;
 
-	outv(2, "spoil: %s = %s\n", name, pfp->value);
-
 	return 0;
 }
 
 /*
- * pmemspoil_process_string -- process value as uint32
+ * pmemspoil_process_uint32_t -- process value as uint32
  */
 static int
-pmemspoil_process_uint32(struct pmemspoil *psp, struct pmemspoil_list *pfp,
-		uint32_t *valp, char *name)
+pmemspoil_process_uint32_t(struct pmemspoil *psp, struct pmemspoil_list *pfp,
+		uint32_t *valp, size_t size)
 {
 	uint32_t v;
 	if (sscanf(pfp->value, "0x%" SCNx32, &v) != 1 &&
@@ -410,17 +565,15 @@ pmemspoil_process_uint32(struct pmemspoil *psp, struct pmemspoil_list *pfp,
 		return -1;
 	*valp = v;
 
-	outv(2, "spoil: %s = %s\n", name, pfp->value);
-
 	return 0;
 }
 
 /*
- * pmemspoil_process_string -- process value as uint64
+ * pmemspoil_process_uint64_t -- process value as uint64
  */
 static int
-pmemspoil_process_uint64(struct pmemspoil *psp, struct pmemspoil_list *pfp,
-		uint64_t *valp, char *name)
+pmemspoil_process_uint64_t(struct pmemspoil *psp, struct pmemspoil_list *pfp,
+		uint64_t *valp, size_t size)
 {
 	uint64_t v;
 	if (sscanf(pfp->value, "0x%" SCNx64, &v) != 1 &&
@@ -428,7 +581,43 @@ pmemspoil_process_uint64(struct pmemspoil *psp, struct pmemspoil_list *pfp,
 		return -1;
 	*valp = v;
 
-	outv(2, "spoil: %s = %s\n", name, pfp->value);
+	return 0;
+}
+
+/*
+ * pmemspoil_process_chunk_type_t -- process chunk type
+ */
+static int
+pmemspoil_process_chunk_type_t(struct pmemspoil *psp,
+		struct pmemspoil_list *pfp,
+		enum chunk_type *valp, size_t size)
+{
+	uint64_t types = 0;
+	if (util_parse_chunk_types(pfp->value, &types))
+		return -1;
+
+	if (util_count_ones(types) != 1)
+		return -1;
+
+	*valp = (enum chunk_type)(__builtin_ffsll(types) - 1);
+
+	return 0;
+}
+
+/*
+ * pmemspoil_process_PMEMoid -- process PMEMoid value
+ */
+static int
+pmemspoil_process_PMEMoid(struct pmemspoil *psp,
+		struct pmemspoil_list *pfp,
+		PMEMoid *valp, size_t size)
+{
+	PMEMoid v;
+	if (sscanf(pfp->value, "0x%" SCNx64 ",0x%" SCNx64,
+		&v.pool_uuid_lo, &v.off) != 2)
+		return -1;
+
+	*valp = v;
 
 	return 0;
 }
@@ -438,7 +627,7 @@ pmemspoil_process_uint64(struct pmemspoil *psp, struct pmemspoil_list *pfp,
  */
 int
 pmemspoil_process_pool_hdr(struct pmemspoil *psp,
-		struct pmemspoil_list *pfp)
+		struct pmemspoil_list *pfp, void *arg)
 {
 	struct pool_hdr pool_hdr;
 	if (pread(psp->fd, &pool_hdr, sizeof (pool_hdr), 0) !=
@@ -447,126 +636,76 @@ pmemspoil_process_pool_hdr(struct pmemspoil *psp,
 	}
 	util_convert2h_pool_hdr(&pool_hdr);
 
-	int ret = 0;
-	if (pmemspoil_check_field(psp, pfp, "signature")) {
-		ret = PROCESS_STRING(psp, pfp, pool_hdr.signature);
-	} else if (pmemspoil_check_field(psp, pfp, "uuid")) {
-		ret = PROCESS_STRING(psp, pfp, pool_hdr.uuid);
-	} else if (pmemspoil_check_field(psp, pfp, "unused")) {
-		ret = PROCESS_STRING(psp, pfp, pool_hdr.unused);
-	} else if (pmemspoil_check_field(psp, pfp, "major")) {
-		ret = PROCESS_UINT32(psp, pfp, pool_hdr.major);
-	} else if (pmemspoil_check_field(psp, pfp, "compat_features")) {
-		ret = PROCESS_UINT32(psp, pfp, pool_hdr.compat_features);
-	} else if (pmemspoil_check_field(psp, pfp, "incompat_features")) {
-		ret = PROCESS_UINT32(psp, pfp, pool_hdr.incompat_features);
-	} else if (pmemspoil_check_field(psp, pfp, "ro_compat_features")) {
-		ret = PROCESS_UINT32(psp, pfp, pool_hdr.ro_compat_features);
-	} else if (pmemspoil_check_field(psp, pfp, "crtime")) {
-		ret = PROCESS_UINT64(psp, pfp, pool_hdr.crtime);
-	} else if (pmemspoil_check_field(psp, pfp, "checksum")) {
-		ret = PROCESS_UINT64(psp, pfp, pool_hdr.checksum);
-	} else {
-		out_err("unknown field '%s'\n", pfp->cur->name);
-		return -1;
+	PROCESS_BEGIN(psp, pfp) {
+		PROCESS_FIELD(&pool_hdr, signature, char);
+		PROCESS_FIELD(&pool_hdr, uuid, char);
+		PROCESS_FIELD(&pool_hdr, unused, char);
+		PROCESS_FIELD(&pool_hdr, major, uint32_t);
+		PROCESS_FIELD(&pool_hdr, compat_features, uint32_t);
+		PROCESS_FIELD(&pool_hdr, incompat_features, uint32_t);
+		PROCESS_FIELD(&pool_hdr, ro_compat_features, uint32_t);
+		PROCESS_FIELD(&pool_hdr, crtime, uint64_t);
+		PROCESS_FIELD(&pool_hdr, checksum, uint64_t);
+	} PROCESS_END
+
+	if (PROCESS_STATE == PROCESS_STATE_FIELD) {
+		util_convert2le_pool_hdr(&pool_hdr);
+		if (pwrite(psp->fd, &pool_hdr, sizeof (pool_hdr), 0) !=
+				sizeof (pool_hdr)) {
+			return -1;
+		}
 	}
 
-	if (ret) {
-		out_err("parsing value '%s'\n", pfp->value);
-		return -1;
-	}
-
-	util_convert2le_pool_hdr(&pool_hdr);
-	if (pwrite(psp->fd, &pool_hdr, sizeof (pool_hdr), 0) !=
-			sizeof (pool_hdr)) {
-		return -1;
-	}
-
-	return 0;
+	return PROCESS_RET;
 }
 
 /*
- * pmemspoil_process_pmemblk -- process pmemblk fields
- */
-int
-pmemspoil_process_pmemblk(struct pmemspoil *psp,
-		struct pmemspoil_list *pfp)
-{
-	struct pmemblk pmemblk;
-	if (pread(psp->fd, &pmemblk, sizeof (pmemblk), 0) !=
-			sizeof (pmemblk)) {
-		return -1;
-	}
-
-	pmemblk.bsize = le32toh(pmemblk.bsize);
-
-	int ret = 0;
-	if (pmemspoil_check_field(psp, pfp, "bsize")) {
-		ret = PROCESS_UINT32(psp, pfp, pmemblk.bsize);
-	} else {
-		out_err("unknown field '%s'\n", pfp->cur->name);
-		return -1;
-	}
-
-	if (ret) {
-		out_err("parsing value '%s'\n", pfp->value);
-		return -1;
-	}
-
-	pmemblk.bsize = htole32(pmemblk.bsize);
-
-	if (pwrite(psp->fd, &pmemblk, sizeof (pmemblk), 0) !=
-			sizeof (pmemblk)) {
-		return -1;
-	}
-
-	return 0;
-}
-
-/*
- * pmemspoil_process_pmemlog -- process pmemlog fields
+ * pmemspoil_process_btt_info_struct -- process btt_info at given offset
  */
 static int
-pmemspoil_process_pmemlog(struct pmemspoil *psp,
-		struct pmemspoil_list *pfp)
+pmemspoil_process_btt_info_struct(struct pmemspoil *psp,
+		struct pmemspoil_list *pfp, uint64_t offset)
 {
-	struct pmemlog pmemlog;
-	if (pread(psp->fd, &pmemlog, sizeof (pmemlog), 0) !=
-			sizeof (pmemlog)) {
+	struct btt_info btt_info;
+
+	if (pread(psp->fd, &btt_info, sizeof (btt_info), offset) !=
+		sizeof (btt_info)) {
 		return -1;
 	}
 
-	pmemlog.start_offset = le64toh(pmemlog.start_offset);
-	pmemlog.end_offset = le64toh(pmemlog.end_offset);
-	pmemlog.write_offset = le64toh(pmemlog.write_offset);
+	util_convert2h_btt_info(&btt_info);
 
-	int ret;
-	if (pmemspoil_check_field(psp, pfp, "start_offset")) {
-		ret = PROCESS_UINT32(psp, pfp, pmemlog.start_offset);
-	} else if (pmemspoil_check_field(psp, pfp, "end_offset")) {
-		ret = PROCESS_UINT32(psp, pfp, pmemlog.end_offset);
-	} else if (pmemspoil_check_field(psp, pfp, "write_offset")) {
-		ret = PROCESS_UINT32(psp, pfp, pmemlog.write_offset);
-	} else {
-		out_err("unknown field '%s'\n", pfp->cur->name);
-		return -1;
+	PROCESS_BEGIN(psp, pfp) {
+		PROCESS_FIELD(&btt_info, sig, char);
+		PROCESS_FIELD(&btt_info, parent_uuid, char);
+		PROCESS_FIELD(&btt_info, flags, uint32_t);
+		PROCESS_FIELD(&btt_info, major, uint16_t);
+		PROCESS_FIELD(&btt_info, minor, uint16_t);
+		PROCESS_FIELD(&btt_info, external_lbasize, uint32_t);
+		PROCESS_FIELD(&btt_info, external_nlba, uint32_t);
+		PROCESS_FIELD(&btt_info, internal_lbasize, uint32_t);
+		PROCESS_FIELD(&btt_info, internal_nlba, uint32_t);
+		PROCESS_FIELD(&btt_info, nfree, uint32_t);
+		PROCESS_FIELD(&btt_info, infosize, uint32_t);
+		PROCESS_FIELD(&btt_info, nextoff, uint64_t);
+		PROCESS_FIELD(&btt_info, dataoff, uint64_t);
+		PROCESS_FIELD(&btt_info, mapoff, uint64_t);
+		PROCESS_FIELD(&btt_info, flogoff, uint64_t);
+		PROCESS_FIELD(&btt_info, infooff, uint64_t);
+		PROCESS_FIELD(&btt_info, unused, char);
+		PROCESS_FIELD(&btt_info, checksum, uint64_t);
+	} PROCESS_END
+
+	if (PROCESS_STATE == PROCESS_STATE_FIELD) {
+		util_convert2le_btt_info(&btt_info);
+
+		if (pwrite(psp->fd, &btt_info, sizeof (btt_info), offset) !=
+			sizeof (btt_info)) {
+			return -1;
+		}
 	}
 
-	if (ret) {
-		out_err("parsing value '%s'\n", pfp->value);
-		return -1;
-	}
-
-	pmemlog.start_offset = htole64(pmemlog.start_offset);
-	pmemlog.end_offset = htole64(pmemlog.end_offset);
-	pmemlog.write_offset = htole64(pmemlog.write_offset);
-
-	if (pwrite(psp->fd, &pmemlog, sizeof (pmemlog), 0) !=
-			sizeof (pmemlog)) {
-		return -1;
-	}
-
-	return 0;
+	return PROCESS_RET;
 }
 
 /*
@@ -574,14 +713,8 @@ pmemspoil_process_pmemlog(struct pmemspoil *psp,
  */
 static int
 pmemspoil_process_btt_info_backup(struct pmemspoil *psp,
-		struct pmemspoil_list *pfp)
+		struct pmemspoil_list *pfp, uint64_t arena_offset)
 {
-	uint64_t arena_offset =
-		pmemspoil_get_arena_offset(psp, pfp->head->index);
-
-	if (!arena_offset)
-		return -1;
-
 	struct btt_info btt_info_backup;
 
 	if (pread(psp->fd, &btt_info_backup, sizeof (btt_info_backup),
@@ -593,71 +726,7 @@ pmemspoil_process_btt_info_backup(struct pmemspoil *psp,
 	uint64_t backup_offset = arena_offset +
 					le64toh(btt_info_backup.infooff);
 
-	if (pread(psp->fd, &btt_info_backup, sizeof (btt_info_backup),
-				backup_offset) != sizeof (btt_info_backup)) {
-		return -1;
-	}
-
-	util_convert2h_btt_info(&btt_info_backup);
-
-	int ret = 0;
-	if (pmemspoil_check_field(psp, pfp, "sig")) {
-		ret = PROCESS_STRING(psp, pfp, btt_info_backup.sig);
-	} else if (pmemspoil_check_field(psp, pfp, "parent_uuid")) {
-		ret = PROCESS_STRING(psp, pfp, btt_info_backup.parent_uuid);
-	} else if (pmemspoil_check_field(psp, pfp, "flags")) {
-		ret = PROCESS_UINT32(psp, pfp, btt_info_backup.flags);
-	} else if (pmemspoil_check_field(psp, pfp, "major")) {
-		ret = PROCESS_UINT16(psp, pfp, btt_info_backup.major);
-	} else if (pmemspoil_check_field(psp, pfp, "minor")) {
-		ret = PROCESS_UINT16(psp, pfp, btt_info_backup.minor);
-	} else if (pmemspoil_check_field(psp, pfp, "external_lbasize")) {
-		ret = PROCESS_UINT32(psp, pfp,
-				btt_info_backup.external_lbasize);
-	} else if (pmemspoil_check_field(psp, pfp, "external_nlba")) {
-		ret = PROCESS_UINT32(psp, pfp, btt_info_backup.external_nlba);
-	} else if (pmemspoil_check_field(psp, pfp, "internal_lbasize")) {
-		ret = PROCESS_UINT32(psp, pfp,
-			btt_info_backup.internal_lbasize);
-	} else if (pmemspoil_check_field(psp, pfp, "internal_nlba")) {
-		ret = PROCESS_UINT32(psp, pfp, btt_info_backup.internal_nlba);
-	} else if (pmemspoil_check_field(psp, pfp, "nfree")) {
-		ret = PROCESS_UINT32(psp, pfp, btt_info_backup.nfree);
-	} else if (pmemspoil_check_field(psp, pfp, "infosize")) {
-		ret = PROCESS_UINT32(psp, pfp, btt_info_backup.infosize);
-	} else if (pmemspoil_check_field(psp, pfp, "nextoff")) {
-		ret = PROCESS_UINT64(psp, pfp, btt_info_backup.nextoff);
-	} else if (pmemspoil_check_field(psp, pfp, "dataoff")) {
-		ret = PROCESS_UINT64(psp, pfp, btt_info_backup.dataoff);
-	} else if (pmemspoil_check_field(psp, pfp, "mapoff")) {
-		ret = PROCESS_UINT64(psp, pfp, btt_info_backup.mapoff);
-	} else if (pmemspoil_check_field(psp, pfp, "flogoff")) {
-		ret = PROCESS_UINT64(psp, pfp, btt_info_backup.flogoff);
-	} else if (pmemspoil_check_field(psp, pfp, "infooff")) {
-		ret = PROCESS_UINT64(psp, pfp, btt_info_backup.infooff);
-	} else if (pmemspoil_check_field(psp, pfp, "unused")) {
-		ret = PROCESS_STRING(psp, pfp, btt_info_backup.unused);
-	} else if (pmemspoil_check_field(psp, pfp, "checksum")) {
-		ret = PROCESS_UINT64(psp, pfp, btt_info_backup.checksum);
-	} else {
-		out_err("unknown field '%s'\n", pfp->cur->name);
-		return -1;
-	}
-
-	if (!ret) {
-		util_convert2le_btt_info(&btt_info_backup);
-
-		if (pwrite(psp->fd, &btt_info_backup,
-				sizeof (btt_info_backup), backup_offset) !=
-				sizeof (btt_info_backup)) {
-			return -1;
-		}
-	} else {
-		out_err("parsing value '%s'\n", pfp->value);
-		return -1;
-	}
-
-	return 0;
+	return pmemspoil_process_btt_info_struct(psp, pfp, backup_offset);
 }
 
 /*
@@ -665,78 +734,9 @@ pmemspoil_process_btt_info_backup(struct pmemspoil *psp,
  */
 static int
 pmemspoil_process_btt_info(struct pmemspoil *psp,
-		struct pmemspoil_list *pfp)
+		struct pmemspoil_list *pfp, uint64_t arena_offset)
 {
-	uint64_t arena_offset =
-		pmemspoil_get_arena_offset(psp, pfp->head->index);
-
-	if (!arena_offset)
-		return -1;
-
-	struct btt_info btt_info;
-
-	if (pread(psp->fd, &btt_info, sizeof (btt_info), arena_offset) !=
-		sizeof (btt_info)) {
-		return -1;
-	}
-
-	util_convert2h_btt_info(&btt_info);
-
-	int ret = 0;
-	if (pmemspoil_check_field(psp, pfp, "sig")) {
-		ret = PROCESS_STRING(psp, pfp, btt_info.sig);
-	} else if (pmemspoil_check_field(psp, pfp, "parent_uuid")) {
-		ret = PROCESS_STRING(psp, pfp, btt_info.parent_uuid);
-	} else if (pmemspoil_check_field(psp, pfp, "flags")) {
-		ret = PROCESS_UINT32(psp, pfp, btt_info.flags);
-	} else if (pmemspoil_check_field(psp, pfp, "major")) {
-		ret = PROCESS_UINT16(psp, pfp, btt_info.major);
-	} else if (pmemspoil_check_field(psp, pfp, "minor")) {
-		ret = PROCESS_UINT16(psp, pfp, btt_info.minor);
-	} else if (pmemspoil_check_field(psp, pfp, "external_lbasize")) {
-		ret = PROCESS_UINT32(psp, pfp, btt_info.external_lbasize);
-	} else if (pmemspoil_check_field(psp, pfp, "external_nlba")) {
-		ret = PROCESS_UINT32(psp, pfp, btt_info.external_nlba);
-	} else if (pmemspoil_check_field(psp, pfp, "internal_lbasize")) {
-		ret = PROCESS_UINT32(psp, pfp, btt_info.internal_lbasize);
-	} else if (pmemspoil_check_field(psp, pfp, "internal_nlba")) {
-		ret = PROCESS_UINT32(psp, pfp, btt_info.internal_nlba);
-	} else if (pmemspoil_check_field(psp, pfp, "nfree")) {
-		ret = PROCESS_UINT32(psp, pfp, btt_info.nfree);
-	} else if (pmemspoil_check_field(psp, pfp, "infosize")) {
-		ret = PROCESS_UINT32(psp, pfp, btt_info.infosize);
-	} else if (pmemspoil_check_field(psp, pfp, "nextoff")) {
-		ret = PROCESS_UINT64(psp, pfp, btt_info.nextoff);
-	} else if (pmemspoil_check_field(psp, pfp, "dataoff")) {
-		ret = PROCESS_UINT64(psp, pfp, btt_info.dataoff);
-	} else if (pmemspoil_check_field(psp, pfp, "mapoff")) {
-		ret = PROCESS_UINT64(psp, pfp, btt_info.mapoff);
-	} else if (pmemspoil_check_field(psp, pfp, "flogoff")) {
-		ret = PROCESS_UINT64(psp, pfp, btt_info.flogoff);
-	} else if (pmemspoil_check_field(psp, pfp, "infooff")) {
-		ret = PROCESS_UINT64(psp, pfp, btt_info.infooff);
-	} else if (pmemspoil_check_field(psp, pfp, "unused")) {
-		ret = PROCESS_STRING(psp, pfp, btt_info.unused);
-	} else if (pmemspoil_check_field(psp, pfp, "checksum")) {
-		ret = PROCESS_UINT64(psp, pfp, btt_info.checksum);
-	} else {
-		out_err("unknown field '%s'\n", pfp->cur->name);
-		return -1;
-	}
-
-	if (ret) {
-		out_err("parsing value '%s'\n", pfp->value);
-		return -1;
-	}
-
-	util_convert2le_btt_info(&btt_info);
-
-	if (pwrite(psp->fd, &btt_info, sizeof (btt_info), arena_offset) !=
-		sizeof (btt_info)) {
-		return -1;
-	}
-
-	return 0;
+	return pmemspoil_process_btt_info_struct(psp, pfp, arena_offset);
 }
 
 /*
@@ -744,14 +744,8 @@ pmemspoil_process_btt_info(struct pmemspoil *psp,
  */
 static int
 pmemspoil_process_btt_map(struct pmemspoil *psp,
-		struct pmemspoil_list *pfp)
+		struct pmemspoil_list *pfp, uint64_t arena_offset)
 {
-	uint64_t arena_offset =
-		pmemspoil_get_arena_offset(psp, pfp->head->index);
-
-	if (!arena_offset)
-		return -1;
-
 	struct btt_info btt_info;
 
 	if (pread(psp->fd, &btt_info, sizeof (btt_info), arena_offset) !=
@@ -795,15 +789,9 @@ pmemspoil_process_btt_map(struct pmemspoil *psp,
  * pmemspoil_process_btt_flog -- process btt_flog first or second fields
  */
 static int
-pmemspoil_process_btt_flog(struct pmemspoil *psp,
-		struct pmemspoil_list *pfp, int off)
+pmemspoil_process_btt_nflog(struct pmemspoil *psp,
+		struct pmemspoil_list *pfp, uint64_t arena_offset, int off)
 {
-	uint64_t arena_offset =
-		pmemspoil_get_arena_offset(psp, pfp->head->index);
-
-	if (!arena_offset)
-		return -1;
-
 	struct btt_info btt_info;
 	if (pread(psp->fd, &btt_info, sizeof (btt_info), arena_offset) !=
 		sizeof (btt_info)) {
@@ -838,21 +826,14 @@ pmemspoil_process_btt_flog(struct pmemspoil *psp,
 
 	util_convert2h_btt_flog(&btt_flog);
 
-	if (pmemspoil_check_field(psp, pfp, "lba")) {
-		ret = PROCESS_UINT32(psp, pfp, btt_flog.lba);
-	} else if (pmemspoil_check_field(psp, pfp, "old_map")) {
-		ret = PROCESS_UINT32(psp, pfp, btt_flog.old_map);
-	} else if (pmemspoil_check_field(psp, pfp, "new_map")) {
-		ret = PROCESS_UINT32(psp, pfp, btt_flog.new_map);
-	} else if (pmemspoil_check_field(psp, pfp, "seq")) {
-		ret = PROCESS_UINT32(psp, pfp, btt_flog.seq);
-	} else {
-		outv(1, "invalid field\n");
-		ret = -1;
-		goto error;
-	}
+	PROCESS_BEGIN(psp, pfp) {
+		PROCESS_FIELD(&btt_flog, lba, uint32_t);
+		PROCESS_FIELD(&btt_flog, old_map, uint32_t);
+		PROCESS_FIELD(&btt_flog, new_map, uint32_t);
+		PROCESS_FIELD(&btt_flog, seq, uint32_t);
+	} PROCESS_END
 
-	if (!ret) {
+	if (PROCESS_STATE == PROCESS_STATE_FIELD) {
 		util_convert2le_btt_flog(&btt_flog);
 
 		memcpy(flog_entryp, &btt_flog, sizeof (btt_flog));
@@ -868,9 +849,8 @@ pmemspoil_process_btt_flog(struct pmemspoil *psp,
 			ret = -1;
 			goto error;
 		}
-	} else {
-		out_err("parsing value '%s'\n", pfp->value);
 	}
+	ret = PROCESS_RET;
 error:
 	free(flogp);
 
@@ -878,26 +858,487 @@ error:
 }
 
 /*
+ * pmemspoil_process_btt_flog -- process first btt flog entry
+ */
+static int
+pmemspoil_process_btt_flog(struct pmemspoil *psp, struct pmemspoil_list *pfp,
+		uint64_t arena_offset)
+{
+	return pmemspoil_process_btt_nflog(psp, pfp, arena_offset, 0);
+}
+
+/*
+ * pmemspoil_process_btt_flog_prime -- process second btt flog entry
+ */
+static int
+pmemspoil_process_btt_flog_prime(struct pmemspoil *psp,
+		struct pmemspoil_list *pfp, uint64_t arena_offset)
+{
+	return pmemspoil_process_btt_nflog(psp, pfp, arena_offset, 1);
+}
+
+/*
  * pmemspoil_process_arena -- process arena fields
  */
 static int
 pmemspoil_process_arena(struct pmemspoil *psp,
-		struct pmemspoil_list *pfp)
+		struct pmemspoil_list *pfp, uint64_t arena_offset)
 {
-	if (pmemspoil_check_field(psp, pfp, "btt_info")) {
-		return pmemspoil_process_btt_info(psp, pfp);
-	} else if (pmemspoil_check_field(psp, pfp, "btt_info_backup")) {
-		return pmemspoil_process_btt_info_backup(psp, pfp);
-	} else if (pmemspoil_check_field(psp, pfp, "btt_map")) {
-		return pmemspoil_process_btt_map(psp, pfp);
-	} else if (pmemspoil_check_field(psp, pfp, "btt_flog")) {
-		return pmemspoil_process_btt_flog(psp, pfp, 0);
-	} else if (pmemspoil_check_field(psp, pfp, "btt_flog_prime")) {
-		return pmemspoil_process_btt_flog(psp, pfp, 1);
+	if (!arena_offset)
+		return -1;
+
+	PROCESS_BEGIN(psp, pfp) {
+		PROCESS(btt_info, arena_offset, 1);
+		PROCESS(btt_info_backup, arena_offset, 1);
+		PROCESS(btt_map, arena_offset, 1);
+		PROCESS(btt_flog, arena_offset, 1);
+		PROCESS(btt_flog_prime, arena_offset, 1);
+	} PROCESS_END
+
+	return PROCESS_RET;
+}
+
+/*
+ * pmemspoil_process_pmemblk -- process pmemblk fields
+ */
+int
+pmemspoil_process_pmemblk(struct pmemspoil *psp,
+		struct pmemspoil_list *pfp, void *arg)
+{
+	struct pmemblk pmemblk;
+	if (pread(psp->fd, &pmemblk, sizeof (pmemblk), 0) !=
+			sizeof (pmemblk)) {
+		return -1;
 	}
 
-	out_err("unknown header\n");
-	return -1;
+	pmemblk.bsize = le32toh(pmemblk.bsize);
+
+
+	PROCESS_BEGIN(psp, pfp) {
+		PROCESS_FIELD(&pmemblk, bsize, uint32_t);
+
+		PROCESS(arena,
+			pmemspoil_get_arena_offset(psp, PROCESS_INDEX),
+			UINT64_MAX);
+	} PROCESS_END
+
+	if (PROCESS_STATE == PROCESS_STATE_FIELD) {
+		pmemblk.bsize = htole32(pmemblk.bsize);
+
+		if (pwrite(psp->fd, &pmemblk, sizeof (pmemblk), 0) !=
+				sizeof (pmemblk)) {
+			return -1;
+		}
+	}
+
+	return PROCESS_RET;
+}
+
+/*
+ * pmemspoil_process_pmemlog -- process pmemlog fields
+ */
+static int
+pmemspoil_process_pmemlog(struct pmemspoil *psp,
+		struct pmemspoil_list *pfp, void *arg)
+{
+	struct pmemlog pmemlog;
+	if (pread(psp->fd, &pmemlog, sizeof (pmemlog), 0) !=
+			sizeof (pmemlog)) {
+		return -1;
+	}
+
+	pmemlog.start_offset = le64toh(pmemlog.start_offset);
+	pmemlog.end_offset = le64toh(pmemlog.end_offset);
+	pmemlog.write_offset = le64toh(pmemlog.write_offset);
+
+	PROCESS_BEGIN(psp, pfp) {
+		PROCESS_FIELD(&pmemlog, start_offset, uint32_t);
+		PROCESS_FIELD(&pmemlog, end_offset, uint32_t);
+		PROCESS_FIELD(&pmemlog, write_offset, uint32_t);
+	} PROCESS_END
+
+	if (PROCESS_STATE == PROCESS_STATE_FIELD) {
+		pmemlog.start_offset = htole64(pmemlog.start_offset);
+		pmemlog.end_offset = htole64(pmemlog.end_offset);
+		pmemlog.write_offset = htole64(pmemlog.write_offset);
+
+		if (pwrite(psp->fd, &pmemlog, sizeof (pmemlog), 0) !=
+				sizeof (pmemlog)) {
+			return -1;
+		}
+	}
+
+	return PROCESS_RET;
+}
+
+/*
+ * pmemspoil_process_run -- process pmemobj chunk as run
+ */
+static int
+pmemspoil_process_run(struct pmemspoil *psp, struct pmemspoil_list *pfp,
+		struct chunk_pair cpair)
+{
+	struct chunk_header *chdr = cpair.hdr;
+	struct chunk_run *run = (struct chunk_run *)cpair.chunk;
+
+	if (chdr->type != CHUNK_TYPE_RUN) {
+		out_err("%s -- specified chunk is not run", pfp->str);
+		return -1;
+	}
+
+	PROCESS_BEGIN(psp, pfp) {
+		PROCESS_FIELD(run, block_size, uint64_t);
+		PROCESS_FIELD_ARRAY(run, bitmap, uint64_t, MAX_BITMAP_VALUES);
+	} PROCESS_END
+
+	return PROCESS_RET;
+}
+
+/*
+ * pmemspoil_process_chunk -- process pmemobj chunk structures
+ */
+static int
+pmemspoil_process_chunk(struct pmemspoil *psp, struct pmemspoil_list *pfp,
+		struct chunk_pair cpair)
+{
+	struct chunk_header *chdr = cpair.hdr;
+
+	PROCESS_BEGIN(psp, pfp) {
+		PROCESS_FIELD(chdr, type, chunk_type_t);
+		PROCESS_FIELD(chdr, flags, uint16_t);
+		PROCESS_FIELD(chdr, size_idx, uint32_t);
+
+		PROCESS(run, cpair, 1);
+	} PROCESS_END
+
+	return PROCESS_RET;
+}
+
+/*
+ * pmemspoil_process_zone -- process pmemobj zone structures
+ */
+static int
+pmemspoil_process_zone(struct pmemspoil *psp, struct pmemspoil_list *pfp,
+		struct zone *zone)
+{
+	struct zone_header *zhdr = &zone->header;
+
+	PROCESS_BEGIN(psp, pfp) {
+		struct chunk_pair cpair = {
+			.hdr = &zone->chunk_headers[PROCESS_INDEX],
+			.chunk = &zone->chunks[PROCESS_INDEX],
+		};
+
+		PROCESS_FIELD(zhdr, magic, uint32_t);
+		PROCESS_FIELD(zhdr, size_idx, uint32_t);
+		PROCESS_FIELD(zhdr, reserved, char);
+
+		PROCESS(chunk, cpair, zhdr->size_idx);
+	} PROCESS_END
+
+	return PROCESS_RET;
+}
+
+/*
+ * pmemspoil_process_heap -- process pmemobj heap structures
+ */
+static int
+pmemspoil_process_heap(struct pmemspoil *psp, struct pmemspoil_list *pfp,
+		struct heap_layout *hlayout)
+{
+	struct heap_header *hdr = &hlayout->header;
+
+	PROCESS_BEGIN(psp, pfp) {
+		PROCESS_FIELD(hdr, signature, char);
+		PROCESS_FIELD(hdr, major, uint64_t);
+		PROCESS_FIELD(hdr, minor, uint64_t);
+		PROCESS_FIELD(hdr, size, uint64_t);
+		PROCESS_FIELD(hdr, chunksize, uint64_t);
+		PROCESS_FIELD(hdr, chunks_per_zone, uint64_t);
+		PROCESS_FIELD(hdr, reserved, char);
+		PROCESS_FIELD(hdr, checksum, uint64_t);
+
+		PROCESS(zone, &hlayout->zones[PROCESS_INDEX],
+			util_heap_max_zone(psp->size));
+
+	} PROCESS_END
+
+	return PROCESS_RET;
+}
+
+/*
+ * pmemspoil_process_redo_log -- process redo log
+ */
+static int
+pmemspoil_process_redo_log(struct pmemspoil *psp,
+	struct pmemspoil_list *pfp, struct redo_log *redo)
+{
+	PROCESS_BEGIN(psp, pfp) {
+		PROCESS_FIELD(redo, offset, uint64_t);
+		PROCESS_FIELD(redo, value, uint64_t);
+	} PROCESS_END
+
+	return PROCESS_RET;
+}
+
+/*
+ * pmemspoil_process_allocator -- process lane allocator section
+ */
+static int
+pmemspoil_process_sec_allocator(struct pmemspoil *psp,
+	struct pmemspoil_list *pfp, struct allocator_lane_section *sec)
+{
+	PROCESS_BEGIN(psp, pfp) {
+		PROCESS(redo_log, &sec->redo[PROCESS_INDEX], REDO_LOG_SIZE);
+	} PROCESS_END
+
+	return PROCESS_RET;
+}
+
+/*
+ * pmemspoil_process_entry_remove -- remove list entry
+ */
+static int
+pmemspoil_process_entry_remove(struct pmemspoil *psp,
+	struct pmemspoil_list *pfp, struct list_pair lpair)
+{
+	struct list_head *head = lpair.head;
+	struct list_entry *entry = lpair.entry;
+	struct pmemobjpool *pop = psp->addr;
+	struct list_entry *first = PLIST_OFF_TO_PTR(pop, head->pe_first.off);
+	struct list_entry *prev = PLIST_OFF_TO_PTR(pop, entry->pe_prev.off);
+	struct list_entry *next = PLIST_OFF_TO_PTR(pop, entry->pe_next.off);
+
+	if (prev == next) {
+		head->pe_first.off = 0;
+	} else {
+		prev->pe_next.off = entry->pe_next.off;
+		next->pe_prev.off = entry->pe_prev.off;
+		if (first == entry)
+			head->pe_first.off = entry->pe_next.off;
+	}
+
+	return 0;
+}
+
+/*
+ * pmemspoil_process_oob -- process oob header fields
+ */
+static int
+pmemspoil_process_oob(struct pmemspoil *psp,
+	struct pmemspoil_list *pfp, struct list_entry *entry)
+{
+	struct oob_header *oob = ENTRY_TO_OOB_HDR(entry);
+
+	PROCESS_BEGIN(psp, pfp) {
+		PROCESS_FIELD(oob, internal_type, uint16_t);
+		PROCESS_FIELD(oob, user_type, uint16_t);
+		PROCESS_FIELD(oob, size, uint64_t);
+	} PROCESS_END
+
+	return PROCESS_RET;
+}
+
+/*
+ * pmemspoil_process_tx_range -- process tx range fields
+ */
+static int
+pmemspoil_process_tx_range(struct pmemspoil *psp,
+	struct pmemspoil_list *pfp, struct list_entry *entry)
+{
+	struct tx_range *range = ENTRY_TO_TX_RANGE(entry);
+
+	PROCESS_BEGIN(psp, pfp) {
+		PROCESS_FIELD(range, offset, uint64_t);
+		PROCESS_FIELD(range, size, uint64_t);
+	} PROCESS_END
+
+	return PROCESS_RET;
+}
+
+/*
+ * pmemspoil_process_entry -- process list entry
+ */
+static int
+pmemspoil_process_entry(struct pmemspoil *psp,
+	struct pmemspoil_list *pfp, struct list_pair lpair)
+{
+	struct list_entry *entry = lpair.entry;
+	PROCESS_BEGIN(psp, pfp) {
+		PROCESS_FIELD(entry, pe_next, PMEMoid);
+		PROCESS_FIELD(entry, pe_prev, PMEMoid);
+		PROCESS(oob, entry, 1);
+		PROCESS(tx_range, entry, 1);
+
+		PROCESS_FUNC("remove", entry_remove, lpair);
+	} PROCESS_END
+
+	return PROCESS_RET;
+}
+
+/*
+ * pmemspoil_process_list -- process list head
+ */
+static int
+pmemspoil_process_list(struct pmemspoil *psp,
+	struct pmemspoil_list *pfp, struct list_head *head)
+{
+	size_t nelements = util_plist_nelements(psp->addr, head);
+
+	PROCESS_BEGIN(psp, pfp) {
+		struct list_pair lpair = {
+			.head = head,
+			.entry = util_plist_get_entry(psp->addr,
+					head, PROCESS_INDEX),
+		};
+
+		PROCESS_FIELD(head, pe_first, PMEMoid);
+
+		PROCESS(entry, lpair, nelements);
+	} PROCESS_END
+
+	return PROCESS_RET;
+}
+
+/*
+ * pmemspoil_process_tx -- process lane transaction section
+ */
+static int
+pmemspoil_process_sec_tx(struct pmemspoil *psp,
+	struct pmemspoil_list *pfp, struct lane_tx_layout *sec)
+{
+	PROCESS_BEGIN(psp, pfp) {
+		PROCESS_FIELD(sec, state, uint64_t);
+		PROCESS_NAME("undo_alloc", list, &sec->undo_alloc, 1);
+		PROCESS_NAME("undo_set", list, &sec->undo_set, 1);
+		PROCESS_NAME("undo_free", list, &sec->undo_free, 1);
+	} PROCESS_END
+
+	return PROCESS_RET;
+}
+
+/*
+ * pmemspoil_process_list -- process lane list section
+ */
+static int
+pmemspoil_process_sec_list(struct pmemspoil *psp,
+	struct pmemspoil_list *pfp, struct lane_list_section *sec)
+{
+	size_t redo_size = REDO_NUM_ENTRIES;
+	PROCESS_BEGIN(psp, pfp) {
+		PROCESS_FIELD(sec, obj_offset, uint64_t);
+		PROCESS_FIELD(sec, obj_size, uint64_t);
+		PROCESS(redo_log, &sec->redo[PROCESS_INDEX], redo_size);
+	} PROCESS_END
+
+	return PROCESS_RET;
+}
+
+/*
+ * pmemspoil_process_lane -- process pmemobj lanes
+ */
+static int
+pmemspoil_process_lane(struct pmemspoil *psp, struct pmemspoil_list *pfp,
+		struct lane_layout *lane)
+{
+	struct lane_tx_layout *sec_tx = (struct lane_tx_layout *)
+		&lane->sections[LANE_SECTION_TRANSACTION];
+	struct lane_list_section *sec_list = (struct lane_list_section *)
+		&lane->sections[LANE_SECTION_LIST];
+	struct allocator_lane_section *sec_alloc =
+		(struct allocator_lane_section *)
+		&lane->sections[LANE_SECTION_ALLOCATOR];
+
+	PROCESS_BEGIN(psp, pfp) {
+		PROCESS_NAME("allocator", sec_allocator, sec_alloc, 1);
+		PROCESS_NAME("tx", sec_tx, sec_tx, 1);
+		PROCESS_NAME("list", sec_list, sec_list, 1);
+	} PROCESS_END
+
+	return PROCESS_RET;
+}
+
+/*
+ * pmemspoil_process_obj_store -- process object store structures
+ */
+static int
+pmemspoil_process_obj_store(struct pmemspoil *psp,
+		struct pmemspoil_list *pfp, struct object_store *obj_store)
+{
+	PROCESS_BEGIN(psp, pfp) {
+		PROCESS_NAME("type", list,
+			&obj_store->bytype[PROCESS_INDEX].head,
+			PMEMOBJ_NUM_OID_TYPES);
+	} PROCESS_END
+	return PROCESS_RET;
+}
+
+/*
+ * pmemspoil_process_checksum_gen -- generate checksum
+ */
+static int
+pmemspoil_process_checksum_gen(struct pmemspoil *psp,
+		struct pmemspoil_list *pfp, struct checksum_args args)
+{
+	util_checksum(args.ptr, args.len, args.checksum, 1);
+	return 0;
+}
+
+/*
+ * pmemspoil_process_pmemobj -- process pmemobj data structures
+ */
+static int
+pmemspoil_process_pmemobj(struct pmemspoil *psp,
+		struct pmemspoil_list *pfp, void *arg)
+{
+	struct stat buf;
+
+	if (fstat(psp->fd, &buf)) {
+		perror("fstat");
+		return -1;
+	}
+
+	psp->size = buf.st_size;
+	psp->addr = mmap(NULL, buf.st_size, PROT_READ|PROT_WRITE, MAP_SHARED,
+			psp->fd, 0);
+	if (psp->addr == MAP_FAILED) {
+		perror("mmap");
+		return -1;
+	}
+
+	struct pmemobjpool *pop = psp->addr;
+	struct heap_layout *hlayout = (void *)pop + pop->heap_offset;
+	struct lane_layout *lanes = (void *)pop + pop->lanes_offset;
+	struct object_store *obj_store = (void *)pop + pop->obj_store_offset;
+	int ret = 0;
+
+	PROCESS_BEGIN(psp, pfp) {
+		struct checksum_args checksum_args = {
+			.ptr = pop,
+			.len = OBJ_DSC_P_SIZE,
+			.checksum = &pop->checksum,
+		};
+
+		PROCESS_FIELD(pop, layout, char);
+		PROCESS_FIELD(pop, lanes_offset, uint64_t);
+		PROCESS_FIELD(pop, nlanes, uint64_t);
+		PROCESS_FIELD(pop, obj_store_offset, uint64_t);
+		PROCESS_FIELD(pop, obj_store_size, uint64_t);
+		PROCESS_FIELD(pop, heap_offset, uint64_t);
+		PROCESS_FIELD(pop, heap_size, uint64_t);
+		PROCESS_FIELD(pop, unused, char);
+		PROCESS_FIELD(pop, checksum, uint64_t);
+		PROCESS_FIELD(pop, run_id, uint64_t);
+
+		PROCESS_FUNC("checksum_gen", checksum_gen, checksum_args);
+
+		PROCESS(heap, hlayout, 1);
+		PROCESS(lane, &lanes[PROCESS_INDEX], pop->nlanes);
+		PROCESS(obj_store, obj_store, 1);
+	} PROCESS_END
+
+	munmap(psp->addr, psp->size);
+	return ret;
 }
 
 /*
@@ -907,18 +1348,14 @@ static int
 pmemspoil_process(struct pmemspoil *psp,
 		struct pmemspoil_list *pfp)
 {
-	if (pmemspoil_check_field(psp, pfp, "pool_hdr")) {
-		return pmemspoil_process_pool_hdr(psp, pfp);
-	} else if (pmemspoil_check_field(psp, pfp, "pmemlog")) {
-		return pmemspoil_process_pmemlog(psp, pfp);
-	} else if (pmemspoil_check_field(psp, pfp, "pmemblk")) {
-		return pmemspoil_process_pmemblk(psp, pfp);
-	} else if (pmemspoil_check_field(psp, pfp, "arena")) {
-		return pmemspoil_process_arena(psp, pfp);
-	}
+	PROCESS_BEGIN(psp, pfp) {
+		PROCESS(pool_hdr, NULL, 1);
+		PROCESS(pmemlog, NULL, 1);
+		PROCESS(pmemblk, NULL, 1);
+		PROCESS(pmemobj, NULL, 1);
+	} PROCESS_END
 
-	out_err("unknown header\n");
-	return -1;
+	return PROCESS_RET;
 }
 
 /*

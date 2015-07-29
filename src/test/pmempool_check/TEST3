@@ -49,7 +49,9 @@ rm -rf $LOG && touch $LOG
 
 expect_normal_exit $PMEMPOOL create -w blk 512 $POOL
 check_file $POOL
-$PMEMSPOIL $POOL pool_hdr.signature=ERROR "arena.btt_map(0)=0xc0000001" "arena.btt_flog(0).seq=5"
+$PMEMSPOIL $POOL pool_hdr.signature=ERROR\
+	"pmemblk.arena.btt_map(0)=0xc0000001"\
+	"pmemblk.arena.btt_flog(0).seq=5"
 
 expect_normal_exit $PMEMPOOL check -vry $POOL >> $LOG
 

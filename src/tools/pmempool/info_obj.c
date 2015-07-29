@@ -50,29 +50,7 @@
 
 #define	OFF_TO_PTR(pop, off) ((void *)((uintptr_t)(pop) + (off)));
 
-#define	PLIST_OFF_TO_PTR(pop, off)\
-((off) == 0 ? NULL : (void *)((uintptr_t)(pop) + (off) - OBJ_OOB_SIZE))
-
 #define	PTR_TO_OFF(pop, ptr) ((uintptr_t)ptr - (uintptr_t)pop)
-
-#define	PLIST_FOREACH(entry, pop, head)\
-for ((entry) = PLIST_OFF_TO_PTR(pop, (head)->pe_first.off);\
-	(entry) != NULL;\
-	(entry) = ((entry)->pe_next.off == (head)->pe_first.off ?\
-	NULL : PLIST_OFF_TO_PTR(pop, (entry)->pe_next.off)))
-
-#define	PLIST_EMPTY(head) ((head)->pe_first.off == 0)
-
-#define	ENTRY_TO_OOB_HDR(entry) ((struct oob_header *)(entry))
-
-#define	ENTRY_TO_TX_RANGE(entry)\
-((void *)((uintptr_t)(entry) + sizeof (struct oob_header)))
-
-#define	ENTRY_TO_ALLOC_HDR(entry)\
-((void *)((uintptr_t)(entry) - sizeof (struct allocation_header)))
-
-#define	ENTRY_TO_DATA(entry)\
-((void *)((uintptr_t)(entry) + sizeof (struct oob_header)))
 
 
 typedef void (*list_callback_fn)(struct pmem_info *pip, int v, int vnum,
@@ -159,36 +137,6 @@ lane_need_recovery(struct pmem_info *pip, struct lane_layout *lane)
 			&lane->sections[LANE_SECTION_TRANSACTION]);
 
 	return alloc || list || tx;
-}
-
-/*
- * plist_nelements -- count number of elements on a list
- */
-static size_t
-plist_nelements(struct pmemobjpool *pop, struct list_head *headp)
-{
-	size_t i = 0;
-	struct list_entry *entryp;
-	PLIST_FOREACH(entryp, pop, headp)
-		i++;
-	return i;
-}
-
-/*
- * heap_max_zone -- get number of zones
- */
-static int
-heap_max_zone(size_t size)
-{
-	int max_zone = 0;
-	size -= sizeof (struct heap_header);
-
-	while (size >= ZONE_MIN_SIZE) {
-		max_zone++;
-		size -= size <= ZONE_MAX_SIZE ? size : ZONE_MAX_SIZE;
-	}
-
-	return max_zone;
 }
 
 /*
@@ -330,7 +278,7 @@ static void
 info_obj_list(struct pmem_info *pip, int v, int vnum, struct pmemobjpool *pop,
 	struct list_head *headp, const char *name, list_callback_fn cb)
 {
-	size_t nelements = plist_nelements(pop, headp);
+	size_t nelements = util_plist_nelements(pop, headp);
 	if (pip->args.obj.ignore_empty_obj && nelements == 0)
 		return;
 
@@ -782,7 +730,7 @@ info_obj_zones_chunks(struct pmem_info *pip, struct pmemobjpool *pop)
 		return;
 
 	struct heap_layout *layout = OFF_TO_PTR(pop, pop->heap_offset);
-	size_t maxzone = heap_max_zone(pop->heap_size);
+	size_t maxzone = util_heap_max_zone(pop->heap_size);
 	pip->obj.stats.n_zones = maxzone;
 	pip->obj.stats.zone_stats = calloc(maxzone,
 			sizeof (struct pmem_obj_zone_stats));
