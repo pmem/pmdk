@@ -111,6 +111,9 @@ main(int argc, char *argv[])
 			}
 		}
 
+		for (i = 0; i < TEST_ALLOCS_SIZE && allocs[i] != NULL; ++i)
+			vmem_free(vmp, allocs[i]);
+
 		vmem_delete(vmp);
 	}
 
