@@ -107,6 +107,7 @@ main(int argc, char *argv[])
 	size_t alignment;
 	unsigned i;
 	int *ptr;
+	int *ptrs[MAX_ALLOCS];
 
 	START(argc, argv, "vmem_aligned_alloc");
 
@@ -138,8 +139,11 @@ main(int argc, char *argv[])
 				FATAL("!vmem_create");
 		}
 
+		memset(ptrs, 0, MAX_ALLOCS * sizeof (ptrs[0]));
+
 		for (i = 0; i < MAX_ALLOCS; ++i) {
 			ptr = vmem_aligned_alloc(vmp, alignment, sizeof (int));
+			ptrs[i] = ptr;
 
 			/* at least one allocation must succeed */
 			ASSERT(i != 0 || ptr != NULL);
@@ -157,6 +161,12 @@ main(int argc, char *argv[])
 			if (dir == NULL) {
 				ASSERTrange(ptr, mem_pool, VMEM_MIN_POOL);
 			}
+		}
+
+		for (i = 0; i < MAX_ALLOCS; ++i) {
+			if (ptrs[i] == NULL)
+				break;
+			vmem_free(vmp, ptrs[i]);
 		}
 
 		vmem_delete(vmp);

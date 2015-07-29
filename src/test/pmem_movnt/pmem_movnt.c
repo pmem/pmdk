@@ -47,10 +47,11 @@ main(int argc, char *argv[])
 
 	START(argc, argv, "pmem_movnt");
 
-	src = MEMALIGN(64, 4096);
-	dst = MEMALIGN(64, 4096);
+	src = MEMALIGN(64, 8192);
+	dst = MEMALIGN(64, 8192);
 
-	memset(src, 0x88, 4096);
+	memset(src, 0x88, 8192);
+	memset(dst, 0, 8192);
 
 	for (size_t size = 1; size <= 4096; size *= 2) {
 		memset(dst, 0, 4096);
