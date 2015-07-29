@@ -272,7 +272,7 @@ bucket_is_empty(struct bucket *b)
 int
 bucket_lock(struct bucket *b)
 {
-	return bucket_is_small(b) ? 0 : pthread_mutex_lock(&b->lock);
+	return pthread_mutex_lock(&b->lock);
 }
 
 /*
@@ -281,9 +281,6 @@ bucket_lock(struct bucket *b)
 void
 bucket_unlock(struct bucket *b)
 {
-	if (bucket_is_small(b))
-		return;
-
 	if ((errno = pthread_mutex_unlock(&b->lock)) != 0)
 		ERR("!pthread_mutex_unlock");
 }
