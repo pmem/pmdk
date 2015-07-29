@@ -1,5 +1,6 @@
 scope/TEST4:
 $(*)debug/libpmemobj.so:
+_pobj_cached_pool
 _pobj_debug_notice
 pmemobj_alloc
 pmemobj_alloc_usable_size
@@ -13,7 +14,6 @@ pmemobj_cond_wait
 pmemobj_cond_zero
 pmemobj_create
 pmemobj_create_part
-pmemobj_direct
 pmemobj_drain
 pmemobj_errormsg
 pmemobj_first
@@ -32,6 +32,7 @@ pmemobj_mutex_zero
 pmemobj_next
 pmemobj_open
 pmemobj_persist
+pmemobj_pool
 pmemobj_realloc
 pmemobj_root
 pmemobj_root_size
@@ -63,6 +64,7 @@ pmemobj_type_num
 pmemobj_zalloc
 pmemobj_zrealloc
 $(*)nondebug/libpmemobj.so:
+_pobj_cached_pool
 _pobj_debug_notice
 pmemobj_alloc
 pmemobj_alloc_usable_size
@@ -76,7 +78,6 @@ pmemobj_cond_wait
 pmemobj_cond_zero
 pmemobj_create
 pmemobj_create_part
-pmemobj_direct
 pmemobj_drain
 pmemobj_errormsg
 pmemobj_first
@@ -95,6 +96,7 @@ pmemobj_mutex_zero
 pmemobj_next
 pmemobj_open
 pmemobj_persist
+pmemobj_pool
 pmemobj_realloc
 pmemobj_root
 pmemobj_root_size
@@ -126,6 +128,7 @@ pmemobj_type_num
 pmemobj_zalloc
 pmemobj_zrealloc
 $(*)debug/libpmemobj.a:
+_pobj_cached_pool
 _pobj_debug_notice
 pmemobj_alloc
 pmemobj_alloc_usable_size
@@ -139,7 +142,6 @@ pmemobj_cond_wait
 pmemobj_cond_zero
 pmemobj_create
 pmemobj_create_part
-pmemobj_direct
 pmemobj_drain
 pmemobj_errormsg
 pmemobj_first
@@ -158,6 +160,7 @@ pmemobj_mutex_zero
 pmemobj_next
 pmemobj_open
 pmemobj_persist
+pmemobj_pool
 pmemobj_realloc
 pmemobj_root
 pmemobj_root_size
@@ -189,6 +192,7 @@ pmemobj_type_num
 pmemobj_zalloc
 pmemobj_zrealloc
 $(*)nondebug/libpmemobj.a:
+_pobj_cached_pool
 _pobj_debug_notice
 pmemobj_alloc
 pmemobj_alloc_usable_size
@@ -202,7 +206,6 @@ pmemobj_cond_wait
 pmemobj_cond_zero
 pmemobj_create
 pmemobj_create_part
-pmemobj_direct
 pmemobj_drain
 pmemobj_errormsg
 pmemobj_first
@@ -221,6 +224,7 @@ pmemobj_mutex_zero
 pmemobj_next
 pmemobj_open
 pmemobj_persist
+pmemobj_pool
 pmemobj_realloc
 pmemobj_root
 pmemobj_root_size

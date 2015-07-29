@@ -60,6 +60,7 @@
 #include "valgrind_internal.h"
 
 static struct cuckoo *pools;
+__thread struct _pobj_pcache _pobj_cached_pool;
 
 /*
  * obj_init -- initialization of obj
@@ -476,6 +477,11 @@ pmemobj_close(PMEMobjpool *pop)
 		ERR("!cuckoo_remove");
 	}
 
+	if (_pobj_cached_pool.pop == pop) {
+		_pobj_cached_pool.pop = NULL;
+		_pobj_cached_pool.uuid_lo = 0;
+	}
+
 	/* XXX stub */
 
 	if ((errno = heap_cleanup(pop)) != 0)
@@ -537,22 +543,14 @@ pmemobj_check(const char *path, const char *layout)
 }
 
 /*
- * pmemobj_direct -- calculates the direct pointer of an object
+ * pmemobj_pool -- returns the pool handle associated with the oid
  */
-void *
-pmemobj_direct(PMEMoid oid)
+PMEMobjpool *
+pmemobj_pool(PMEMoid oid)
 {
-	if (oid.off == 0)
-		return NULL;
-
-	void *p = cuckoo_get(pools, oid.pool_uuid_lo);
-	if (p == NULL)
-		return NULL;
-
-	ASSERT(OBJ_OID_IS_VALID((PMEMobjpool *)p, oid));
-
-	return p + oid.off;
+	return cuckoo_get(pools, oid.pool_uuid_lo);
 }
+
 
 /* arguments for constructor_alloc_bytype */
 struct carg_bytype {
@@ -1033,11 +1031,9 @@ pmemobj_type_num(PMEMoid oid)
 	if (OBJ_OID_IS_NULL(oid))
 		return -1;
 
-	PMEMobjpool *pop = cuckoo_get(pools, oid.pool_uuid_lo);
-	ASSERTne(pop, NULL);
-	ASSERT(OBJ_OID_IS_VALID(pop, oid));
+	void *ptr = pmemobj_direct(oid);
 
-	struct oob_header *oobh = OOB_HEADER_FROM_OID(pop, oid);
+	struct oob_header *oobh = OOB_HEADER_FROM_PTR(ptr);
 	return oobh->user_type;
 }
 

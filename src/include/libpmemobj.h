@@ -297,10 +297,33 @@ TOID_DECLARE(t, POBJ_ROOT_TYPE_NUM);
  */
 #define	POBJ_LAYOUT_NAME(name) _pobj_layout_##name##_name
 
+PMEMobjpool *pmemobj_pool(PMEMoid oid);
+
+extern __thread struct _pobj_pcache {
+	PMEMobjpool *pop;
+	uint64_t uuid_lo;
+} _pobj_cached_pool;
+
 /*
  * Returns the direct pointer of an object.
  */
-void *pmemobj_direct(PMEMoid oid);
+static inline void *
+pmemobj_direct(PMEMoid oid)
+{
+	if (oid.off == 0 || oid.pool_uuid_lo == 0)
+		return NULL;
+
+	if (_pobj_cached_pool.uuid_lo != oid.pool_uuid_lo) {
+		if ((_pobj_cached_pool.pop = pmemobj_pool(oid)) == NULL) {
+			_pobj_cached_pool.uuid_lo = 0;
+			return NULL;
+		}
+
+		_pobj_cached_pool.uuid_lo = oid.pool_uuid_lo;
+	}
+
+	return (void *)_pobj_cached_pool.pop + oid.off;
+}
 
 #define	DIRECT_RW(o) (\
 {typeof((o)) _o; _o.oid = _o.oid;\

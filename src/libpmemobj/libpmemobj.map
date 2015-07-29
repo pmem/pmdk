@@ -59,6 +59,7 @@ libpmemobj.so {
 		pmemobj_cond_signal;
 		pmemobj_cond_timedwait;
 		pmemobj_cond_wait;
+		pmemobj_pool;
 		pmemobj_direct;
 		pmemobj_alloc;
 		pmemobj_zalloc;
@@ -95,6 +96,7 @@ libpmemobj.so {
 		pmemobj_persist;
 		pmemobj_flush;
 		pmemobj_drain;
+		_pobj_cached_pool;
 		_pobj_debug_notice;
 	local:
 		*;
