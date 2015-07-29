@@ -49,10 +49,11 @@ SRC=pmembench.c\
     clo.c\
     clo_vec.c\
     config_reader.c\
-    scenario.c
+    scenario.c\
+    log.c
 
 # Configuration file without the .cfg extension
-CONFIGS=
+CONFIGS=pmembench_log
 
 LIBS_PATH=../nondebug
 CSTYLE = ../../utils/cstyle
