@@ -68,14 +68,6 @@ FUNC_MOCK(pthread_mutex_init, int,
 	}
 } FUNC_MOCK_END
 
-FUNC_MOCK(pthread_mutex_lock, int, pthread_mutex_t *mutex)
-{
-	FUNC_MOCK_RUN_RET_DEFAULT_REAL(pthread_mutex_lock, mutex)
-	FUNC_MOCK_RUN(0) {
-		return -1;
-	}
-} FUNC_MOCK_END
-
 FUNC_MOCK(ctree_new, struct ctree *, void)
 {
 	FUNC_MOCK_RUN_RET_DEFAULT(MOCK_CRIT)
