@@ -159,7 +159,7 @@ pmalloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
 {
 	size_t sizeh = size + sizeof (struct allocation_header);
 
-	struct bucket *b = heap_get_best_bucket(pop, sizeh, 1);
+	struct bucket *b = heap_get_best_bucket(pop, sizeh);
 
 	int err = 0;
 	uint32_t units = bucket_calc_units(b, sizeh);
@@ -262,7 +262,7 @@ prealloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
 	int err = 0;
 
 	struct allocation_header *alloc = alloc_get_header(pop, *off);
-	struct bucket *b = heap_get_best_bucket(pop, alloc->size, 0);
+	struct bucket *b = heap_get_best_bucket(pop, alloc->size);
 
 	uint32_t add_size_idx = bucket_calc_units(b, sizeh - alloc->size);
 	uint32_t new_size_idx = bucket_calc_units(b, sizeh);
@@ -355,7 +355,7 @@ pfree(PMEMobjpool *pop, uint64_t *off)
 {
 	struct allocation_header *alloc = alloc_get_header(pop, *off);
 
-	struct bucket *b = heap_get_best_bucket(pop, alloc->size, 0);
+	struct bucket *b = heap_get_best_bucket(pop, alloc->size);
 
 	int err = 0;
 

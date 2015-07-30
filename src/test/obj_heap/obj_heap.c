@@ -74,17 +74,17 @@ test_heap()
 	ASSERT(heap_boot(pop) == 0);
 	ASSERT(pop->heap != NULL);
 
-	struct bucket *b_small = heap_get_best_bucket(pop, 0, 1);
-	struct bucket *b_big = heap_get_best_bucket(pop, 1024, 1);
+	struct bucket *b_small = heap_get_best_bucket(pop, 0);
+	struct bucket *b_big = heap_get_best_bucket(pop, 1024);
 
 	ASSERT(bucket_unit_size(b_small) < bucket_unit_size(b_big));
 
 	struct bucket *b_def = heap_get_default_bucket(pop);
 	ASSERT(bucket_unit_size(b_def) == CHUNKSIZE);
 
-	ASSERT(!bucket_is_empty(b_small));
-	ASSERT(!bucket_is_empty(b_big));
-	ASSERT(!bucket_is_empty(b_def));
+	/* new small buckets should be empty */
+	ASSERT(bucket_is_empty(b_small));
+	ASSERT(bucket_is_empty(b_big));
 
 	struct memory_block blocks[MAX_BLOCKS] = {
 		{0, 0, 1, 0},
@@ -95,7 +95,6 @@ test_heap()
 	for (int i = 0; i < MAX_BLOCKS; ++i) {
 		heap_get_bestfit_block(pop, b_def, &blocks[i]);
 		ASSERT(blocks[i].block_off == 0);
-		ASSERT(blocks[i].chunk_id != 0);
 	}
 
 	struct memory_block *blocksp[MAX_BLOCKS] = {NULL};

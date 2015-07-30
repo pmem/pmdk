@@ -34,7 +34,6 @@
  * heap.c -- heap implementation
  */
 
-#include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
@@ -354,14 +353,11 @@ heap_get_default_bucket(PMEMobjpool *pop)
  * heap_get_best_bucket -- returns the bucket that best fits the requested size
  */
 struct bucket *
-heap_get_best_bucket(PMEMobjpool *pop, size_t size, int populated)
+heap_get_best_bucket(PMEMobjpool *pop, size_t size)
 {
 	struct bucket *b = size < pop->heap->last_run_max_size ?
 		pop->heap->bucket_map[size] :
 		pop->heap->buckets[DEFAULT_BUCKET];
-
-	if (populated)
-		heap_ensure_bucket_filled(pop, b, 0);
 
 	return b;
 }

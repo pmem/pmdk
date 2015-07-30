@@ -52,8 +52,7 @@ struct memory_block {
 	uint16_t block_off;
 };
 
-struct bucket *heap_get_best_bucket(PMEMobjpool *pop, size_t size,
-	int populated);
+struct bucket *heap_get_best_bucket(PMEMobjpool *pop, size_t size);
 struct bucket *heap_get_default_bucket(PMEMobjpool *pop);
 void *heap_get_block_data(PMEMobjpool *pop, struct memory_block m);
 void *heap_get_block_header(PMEMobjpool *pop, struct memory_block m,
