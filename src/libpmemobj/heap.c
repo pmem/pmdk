@@ -112,7 +112,8 @@ get_zone_size_idx(uint32_t zone_id, int max_zone, size_t heap_size)
 
 	size_t zone_raw_size = heap_size - zone_id * ZONE_MAX_SIZE;
 
-	zone_raw_size -= sizeof (struct zone);
+	zone_raw_size -= sizeof (struct zone_header) +
+		(sizeof (struct chunk_header) * MAX_CHUNK);
 
 	return zone_raw_size / CHUNKSIZE;
 }
