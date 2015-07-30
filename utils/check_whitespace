@@ -100,7 +100,9 @@ find(sub {
 		if ($full eq './.git' ||
 		    $full eq './src/jemalloc' ||
 		    $full eq './src/debug' ||
-		    $full eq './src/nondebug') {
+		    $full eq './src/nondebug' ||
+		    $full eq './rpmbuild' ||
+		    $full eq './dpkgbuild') {
 			$File::Find::prune = 1;
 			return;
 		}
