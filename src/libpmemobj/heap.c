@@ -948,6 +948,20 @@ heap_init(PMEMobjpool *pop)
 	heap_write_header(&layout->header, pop->heap_size);
 	pmem_msync(&layout->header, sizeof (struct heap_header));
 
+	int zones = heap_max_zone(pop->heap_size);
+	for (int i = 0; i < zones; ++i) {
+		memset(&layout->zones[i].header, 0,
+				sizeof (layout->zones[i].header));
+
+		memset(&layout->zones[i].chunk_headers, 0,
+				sizeof (layout->zones[i].chunk_headers));
+
+		pmem_msync(&layout->zones[i].header,
+			sizeof (layout->zones[i].header));
+		pmem_msync(&layout->zones[i].chunk_headers,
+			sizeof (layout->zones[i].chunk_headers));
+	}
+
 	return 0;
 }
 
