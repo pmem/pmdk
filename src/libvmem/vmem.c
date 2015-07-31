@@ -131,6 +131,19 @@ vmem_construct(void)
 }
 
 /*
+ * vmem_fini -- libvmem cleanup routine
+ *
+ * Called automatically when the process terminates.
+ */
+__attribute__((destructor))
+static void
+vmem_fini(void)
+{
+	LOG(3, NULL);
+	out_fini();
+}
+
+/*
  * vmem_create -- create a memory pool in a temp file
  */
 VMEM *

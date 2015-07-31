@@ -65,6 +65,20 @@ libpmemobj_init(void)
 }
 
 /*
+ * libpmemobj_fini -- libpmemobj cleanup routine
+ *
+ * Called automatically when the process terminates.
+ */
+__attribute__((destructor))
+static void
+libpmemobj_fini(void)
+{
+	LOG(3, NULL);
+	obj_fini();
+	out_fini();
+}
+
+/*
  * pmemobj_check_version -- see if lib meets application version requirements
  */
 const char *

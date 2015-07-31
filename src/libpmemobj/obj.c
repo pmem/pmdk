@@ -70,9 +70,22 @@ __thread struct _pobj_pcache _pobj_cached_pool;
 void
 obj_init(void)
 {
+	LOG(3, NULL);
 	pools = cuckoo_new();
 	if (pools == NULL)
 		FATAL("!cuckoo_new");
+}
+
+/*
+ * obj_fini -- cleanup of obj
+ *
+ * Called by destructor.
+ */
+void
+obj_fini(void)
+{
+	LOG(3, NULL);
+	cuckoo_delete(pools);
 }
 
 /*

@@ -60,6 +60,19 @@ libpmemblk_init(void)
 }
 
 /*
+ * libpmemblk_fini -- libpmemblk cleanup routine
+ *
+ * Called automatically when the process terminates.
+ */
+__attribute__((destructor))
+static void
+libpmemblk_fini(void)
+{
+	LOG(3, NULL);
+	out_fini();
+}
+
+/*
  * pmemblk_check_version -- see if lib meets application version requirements
  */
 const char *
