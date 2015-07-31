@@ -1,0 +1,1 @@
+obj_pool_sets_parser/TEST21: Error: pmemobj_open: ./myobjpool21.set: Invalid argument

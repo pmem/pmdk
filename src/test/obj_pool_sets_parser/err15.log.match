@@ -1,0 +1,1 @@
+obj_pool_sets_parser/TEST15: Error: pmemobj_open: ./myobjpool15.set: Invalid argument

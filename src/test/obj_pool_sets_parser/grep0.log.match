@@ -1,0 +1,2 @@
+<libpmemobj>: <4> [../common/parser.c:$(N) parser_parse_set_file] parsing file ./myobjpool0.set
+<libpmemobj>: <4> [../common/parser.c:$(N) parser_parse_set_file] set file format correct (./myobjpool0.set)

@@ -1,0 +1,2 @@
+<libpmemobj>: <4> [../common/parser.c:$(N) parser_parse_set_file] parsing file ./myobjpool12.set
+<libpmemobj>: <1> [../common/parser.c:$(N) parser_parse_set_file] sizes of pool set and replica mismatch [./myobjpool12.set:12]

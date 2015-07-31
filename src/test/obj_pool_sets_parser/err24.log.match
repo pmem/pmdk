@@ -1,0 +1,1 @@
+obj_pool_sets_parser/TEST24: Error: pmemobj_open: ./myobjpool24.set: Operation not supported

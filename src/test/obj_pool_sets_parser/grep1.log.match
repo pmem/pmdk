@@ -1,0 +1,2 @@
+<libpmemobj>: <3> [obj.c:$(N) pmemobj_open] path ./myobjpool1.set layout layout_obj_pool_sets_parser
+<libpmemobj>: <1> [obj.c:$(N) pmemobj_open] size 42 smaller than 8388608

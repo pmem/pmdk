@@ -140,6 +140,7 @@ TEST = blk_nblock\
        obj_store\
        obj_debug\
        obj_recovery\
+       obj_pool_sets_parser\
        out_err\
        out_err_mt\
        obj_pmalloc_mt\
