@@ -3,6 +3,7 @@ Linux NVM Library
 This is src/test/pmemwrite/README.
 
 This directory contains a simple application for writing data to pool files.
+It's used as a helper program by some unit tests.
 
 Usage:
 	$ pmemwrite <file> <args>...

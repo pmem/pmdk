@@ -52,6 +52,7 @@ libpmemblk \- persistent memory resident array of blocks
 .BI "PMEMblkpool *pmemblk_create(const char *" path ", size_t " bsize ,
 .BI "    size_t " poolsize ", mode_t " mode );
 .BI "void pmemblk_close(PMEMblkpool *" pbp );
+.BI "size_t pmemblk_bsize(PMEMblkpool *" pbp );
 .BI "size_t pmemblk_nblock(PMEMblkpool *" pbp );
 .BI "int pmemblk_read(PMEMblkpool *" pbp ", void *" buf ", off_t " blockno );
 .BI "int pmemblk_write(PMEMblkpool *" pbp ", const void *" buf ", off_t " blockno );
@@ -253,6 +254,21 @@ itself lives on in the file that contains it and may be re-opened
 at a later time using
 .BR pmemblk_open ()
 as described above.
+.PP
+.BI "size_t pmemblk_bsize(PMEMblkpool *" pbp );
+.IP
+The
+.BR pmemblk_bsize ()
+function returns the block size of the specified block memory pool.
+It's the value which was passed as
+.I bsize
+to
+.BR pmemblk_create ().
+.I pbp
+must be a block memory pool handle as returned by
+.BR pmemblk_open ()
+or
+.BR pmemblk_create ().
 .PP
 .BI "size_t pmemblk_nblock(PMEMblkpool *" pbp );
 .IP

@@ -62,12 +62,17 @@ main(int argc, char *argv[])
 		} else {
 			OUT("%s: block size %zu usable blocks: %zu",
 					fname, bsize, pmemblk_nblock(handle));
+			ASSERTeq(pmemblk_bsize(handle), bsize);
 			pmemblk_close(handle);
 			int result = pmemblk_check(fname);
 			if (result < 0)
 				OUT("!%s: pmemblk_check", fname);
 			else if (result == 0)
 				OUT("%s: pmemblk_check: not consistent", fname);
+
+			handle = pmemblk_open(fname, 0);
+			ASSERTeq(pmemblk_bsize(handle), bsize);
+			pmemblk_close(handle);
 		}
 	}
 

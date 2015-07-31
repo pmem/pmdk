@@ -1,5 +1,6 @@
 scope/TEST3:
 $(*)debug/libpmemblk.so:
+pmemblk_bsize
 pmemblk_check
 pmemblk_check_version
 pmemblk_close
@@ -13,6 +14,7 @@ pmemblk_set_funcs
 pmemblk_set_zero
 pmemblk_write
 $(*)nondebug/libpmemblk.so:
+pmemblk_bsize
 pmemblk_check
 pmemblk_check_version
 pmemblk_close
@@ -26,6 +28,7 @@ pmemblk_set_funcs
 pmemblk_set_zero
 pmemblk_write
 $(*)debug/libpmemblk.a:
+pmemblk_bsize
 pmemblk_check
 pmemblk_check_version
 pmemblk_close
@@ -39,6 +42,7 @@ pmemblk_set_funcs
 pmemblk_set_zero
 pmemblk_write
 $(*)nondebug/libpmemblk.a:
+pmemblk_bsize
 pmemblk_check
 pmemblk_check_version
 pmemblk_close

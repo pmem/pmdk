@@ -46,6 +46,7 @@ libpmemblk.so {
 		pmemblk_write;
 		pmemblk_set_zero;
 		pmemblk_set_error;
+		pmemblk_bsize;
 	local:
 		*;
 };
