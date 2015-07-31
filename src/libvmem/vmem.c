@@ -139,6 +139,7 @@ __attribute__((destructor))
 static void
 vmem_fini(void)
 {
+	LOG(3, NULL);
 	out_fini();
 }
 

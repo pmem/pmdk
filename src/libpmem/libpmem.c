@@ -67,6 +67,7 @@ __attribute__((destructor))
 static void
 libpmem_fini(void)
 {
+	LOG(3, NULL);
 	out_fini();
 }
 

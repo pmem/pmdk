@@ -656,6 +656,8 @@ __attribute__((destructor(101)))
 static void
 libvmmalloc_fini(void)
 {
+	LOG(3, NULL);
+
 	char *env_str = getenv(VMMALLOC_LOG_STATS_VAR);
 	if ((env_str == NULL) || strcmp(env_str, "1") != 0)
 		return;

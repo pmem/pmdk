@@ -73,6 +73,7 @@ __attribute__((destructor))
 static void
 libpmemobj_fini(void)
 {
+	LOG(3, NULL);
 	obj_fini();
 	out_fini();
 }
