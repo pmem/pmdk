@@ -183,7 +183,12 @@ heap_init_run(PMEMobjpool *pop, struct bucket *b, struct chunk_header *hdr,
 	pop->persist(&run->block_size, sizeof (run->block_size));
 
 	ASSERT(hdr->type == CHUNK_TYPE_FREE);
-	memset(run->bitmap, 0, sizeof (run->bitmap));
+
+	/* set all the bits */
+	memset(run->bitmap, 0xFF, sizeof (run->bitmap));
+
+	/* clear only the bits available for allocations from this bucket */
+	memset(run->bitmap, 0, sizeof (uint64_t) * (bucket_bitmap_nval(b) - 1));
 	run->bitmap[bucket_bitmap_nval(b) - 1] = bucket_bitmap_lastval(b);
 
 	pop->persist(run->bitmap, sizeof (run->bitmap));
@@ -200,6 +205,7 @@ heap_run_insert(struct bucket *b, uint32_t chunk_id, uint32_t zone_id,
 		uint32_t size_idx, uint16_t block_off)
 {
 	ASSERT(size_idx <= BITS_PER_VALUE);
+	ASSERT(block_off + size_idx <= bucket_bitmap_nallocs(b));
 
 	size_t unit_max = bucket_unit_max(b);
 	struct memory_block m = {chunk_id, zone_id,
@@ -239,7 +245,7 @@ heap_populate_run_bucket(PMEMobjpool *pop, struct bucket *b,
 	uint16_t block_off = 0;
 	uint16_t block_size_idx = 0;
 
-	for (int i = 0; i < MAX_BITMAP_VALUES; ++i) {
+	for (int i = 0; i < bucket_bitmap_nval(b); ++i) {
 		uint64_t v = run->bitmap[i];
 		block_off = BITS_PER_VALUE * i;
 		if (v == 0) {
@@ -521,9 +527,8 @@ heap_get_exact_block(PMEMobjpool *pop, struct bucket *b,
 	if (bucket_lock(b) != 0)
 		return EAGAIN;
 
-	if (bucket_get_rm_block_exact(b, *m) != 0) {
+	if (bucket_get_rm_block_exact(b, *m) != 0)
 		return ENOMEM;
-	}
 
 	if (units != m->size_idx)
 		heap_recycle_block(pop, b, m, units);
