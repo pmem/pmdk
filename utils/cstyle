@@ -523,7 +523,7 @@ line: while (<$filehandle>) {
 	if (/[^ \t]\+=/ || /\+=[^ ]/) {
 		err("missing space around += operator");
 	}
-	if (/[^ \t\-]\-[^\->]/ && !/\(\w+\)\-\w/ && !/\(\-\w+.*\)/) {
+	if (/[^ \t\-]\-[^\->]/ && !/\(\w+\)\-\w/ && !/[\(\[]\-\w+.*[\)\]]/) {
 		err("missing space before - operator");
 	}
 	if (/[^\-]\-[^ \-=>\d]/ && !/\(\-\w+\)/) {
@@ -541,7 +541,8 @@ line: while (<$filehandle>) {
 	if (/[^ \t\(\)\*\[]\*/) {
 		err("missing space before * operator");
 	}
-	if (/\*[^ =\*\w\(,]/ && !/\(.+ \*+\)/ && !/\*\[\]/) {
+	if (/\*[^ =\*\w\(,]/ && !/\(.+ \*+\)/ && !/\*\[\]/ &&
+	    !/\*\-\-\w/ && !/\*\+\+\w/) {
 		err("missing space after * operator");
 	}
 	if (/[^<>\s][!<>=]=/ || /[^<>][!<>=]=[^\s,]/ ||
