@@ -20,4 +20,4 @@ $(OPT)==$(N)== Number of overwritten stores: 1
 $(OPT)==$(N)== Overwritten stores before they were made persistent:
 $(OPT)==$(N)== [0]    at 0x$(nW): $(nW)memset ($(*))
 $(OPT)==$(N)==    by 0x$(nW): main (pmem_valgr_simple.c:82)
-$(OPT)	Address: 0x$(nW)	size: 8	state: DIRTY
+$(OPT)==$(N)== 	Address: 0x$(nW)	size: 8	state: DIRTY
