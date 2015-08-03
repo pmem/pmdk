@@ -97,10 +97,9 @@ extern int On_valgrind;
 	}\
 } while (0)
 
-/* XXX change definition to VALGRIND_PMC_SET_CLEAN */
 #define	VALGRIND_SET_CLEAN(addr, len) do {\
 	if (On_valgrind)\
-		VALGRIND_DO_PERSIST(addr, len);\
+		VALGRIND_PMC_SET_CLEAN(addr, len);\
 } while (0)
 
 #define	VALGRIND_WRITE_STATS do {\
