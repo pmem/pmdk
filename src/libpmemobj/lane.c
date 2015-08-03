@@ -52,6 +52,7 @@
 #include "redo.h"
 #include "list.h"
 #include "obj.h"
+#include "valgrind_internal.h"
 
 static __thread int lane_idx = -1;
 static int next_lane_idx = 0;
@@ -175,6 +176,9 @@ lane_boot(PMEMobjpool *pop)
 		goto error_lanes_malloc;
 	}
 
+	/* add lanes to pmemcheck ignored list */
+	VALGRIND_ADD_TO_GLOBAL_TX_IGNORE((void *)pop + pop->lanes_offset,
+		(sizeof (struct lane_layout) * pop->nlanes));
 	int i;
 	for (i = 0; i < pop->nlanes; ++i) {
 		struct lane_layout *layout = lane_get_layout(pop, i);

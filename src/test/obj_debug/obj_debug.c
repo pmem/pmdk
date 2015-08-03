@@ -35,7 +35,7 @@
  *
  * usage: obj_debug file operation:...
  *
- * operations are 'f' or 'l' or 'r'
+ * operations are 'f' or 'l' or 'r' or 'a'
  *
  */
 #include <stddef.h>
@@ -174,18 +174,52 @@ test_add_range(const char *path)
 	pmemobj_close(pop);
 }
 
+void
+int3_constructor(PMEMobjpool *pop, void *ptr, void *arg)
+{
+	struct int3_s *args = arg;
+	struct int3_s *val = ptr;
+
+	val->i1 = args->i1;
+	val->i2 = args->i2;
+	val->i3 = args->i3;
+
+	pmemobj_persist(pop, val, sizeof (*val));
+}
+
+void
+test_alloc_construct(const char *path)
+{
+	PMEMobjpool *pop = NULL;
+
+	if ((pop = pmemobj_create(path, LAYOUT_NAME,
+			PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR)) == NULL)
+		FATAL("!pmemobj_create: %s", path);
+
+	TX_BEGIN(pop) {
+		struct int3_s args = { 1, 2, 3 };
+		PMEMoid allocation;
+		pmemobj_alloc(pop, &allocation, sizeof (allocation), 1,
+				int3_constructor, &args);
+	} TX_ONABORT {
+		ASSERT(0);
+	} TX_END
+
+	pmemobj_close(pop);
+}
+
 int
 main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_debug");
 
 	if (argc != 3)
-		FATAL("usage: %s file-name op:f|l|r", argv[0]);
+		FATAL("usage: %s file-name op:f|l|r|a", argv[0]);
 
 	const char *path = argv[1];
 
-	if (strchr("flr", argv[2][0]) == NULL || argv[2][1] != '\0')
-		FATAL("op must be f or l or r");
+	if (strchr("flra", argv[2][0]) == NULL || argv[2][1] != '\0')
+		FATAL("op must be f or l or r or a");
 
 	switch (argv[2][0]) {
 		case 'f':
@@ -196,6 +230,9 @@ main(int argc, char *argv[])
 			break;
 		case 'r':
 			test_add_range(path);
+			break;
+		case 'a':
+			test_alloc_construct(path);
 			break;
 	}
 

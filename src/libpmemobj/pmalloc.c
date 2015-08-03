@@ -52,6 +52,7 @@
 #include "bucket.h"
 #include "heap_layout.h"
 #include "out.h"
+#include "valgrind_internal.h"
 
 enum alloc_op_redo {
 	ALLOC_OP_REDO_PTR_OFFSET,
@@ -67,10 +68,11 @@ void
 alloc_write_header(PMEMobjpool *pop, struct allocation_header *alloc,
 	uint32_t chunk_id, uint32_t zone_id, uint64_t size)
 {
+	VALGRIND_ADD_TO_TX(alloc, sizeof (*alloc));
 	alloc->chunk_id = chunk_id;
 	alloc->size = size;
 	alloc->zone_id = zone_id;
-
+	VALGRIND_REMOVE_FROM_TX(alloc, sizeof (*alloc));
 	pop->persist(alloc, sizeof (*alloc));
 }
 
@@ -331,7 +333,6 @@ error:
 
 	return err;
 }
-
 
 /*
  * pmalloc_usable_size -- returns the number of bytes in the memory block

@@ -46,6 +46,7 @@
 #include "util.h"
 #include "obj.h"
 #include "out.h"
+#include "valgrind_internal.h"
 
 #define	PREV_OFF (offsetof(struct list_entry, pe_prev) + offsetof(PMEMoid, off))
 #define	NEXT_OFF (offsetof(struct list_entry, pe_next) + offsetof(PMEMoid, off))
@@ -331,7 +332,10 @@ list_set_user_field(PMEMobjpool *pop,
 			old_offset + new_offset;
 
 		uint64_t *field = OBJ_OFF_TO_PTR(pop, new_field_offset);
+		/* temp add custom field change to valgrind transaction */
+		VALGRIND_ADD_TO_TX(field, sizeof (*field));
 		*field = field_value;
+		VALGRIND_REMOVE_FROM_TX(field, sizeof (*field));
 
 		return redo_index;
 	} else {
@@ -354,11 +358,13 @@ list_fill_entry_persist(PMEMobjpool *pop, struct list_entry *entry_ptr,
 {
 	LOG(15, NULL);
 
+	VALGRIND_ADD_TO_TX(entry_ptr, sizeof (*entry_ptr));
 	entry_ptr->pe_next.pool_uuid_lo = pop->uuid_lo;
 	entry_ptr->pe_next.off = next_offset;
 
 	entry_ptr->pe_prev.pool_uuid_lo = pop->uuid_lo;
 	entry_ptr->pe_prev.off = prev_offset;
+	VALGRIND_REMOVE_FROM_TX(entry_ptr, sizeof (*entry_ptr));
 
 	pop->persist(entry_ptr, sizeof (*entry_ptr));
 }
@@ -372,17 +378,32 @@ static size_t
 list_fill_entry_redo_log(PMEMobjpool *pop,
 	struct redo_log *redo, size_t redo_index,
 	struct list_args_common *args,
-	uint64_t next_offset, uint64_t prev_offset)
+	uint64_t next_offset, uint64_t prev_offset, int set_uuid)
 {
 	LOG(15, NULL);
 
 	ASSERTne(args->entry_ptr, NULL);
 	ASSERTne(args->obj_doffset, 0);
 
-	/* don't need to fill pool uuid using redo log */
-	args->entry_ptr->pe_next.pool_uuid_lo = pop->uuid_lo;
-	args->entry_ptr->pe_prev.pool_uuid_lo = pop->uuid_lo;
-	pop->persist(args->entry_ptr, sizeof (*args->entry_ptr));
+	if (set_uuid) {
+		VALGRIND_ADD_TO_TX(&(args->entry_ptr->pe_next.pool_uuid_lo),
+				sizeof (args->entry_ptr->pe_next.pool_uuid_lo));
+		VALGRIND_ADD_TO_TX(&(args->entry_ptr->pe_prev.pool_uuid_lo),
+				sizeof (args->entry_ptr->pe_prev.pool_uuid_lo));
+		/* don't need to fill pool uuid using redo log */
+		args->entry_ptr->pe_next.pool_uuid_lo = pop->uuid_lo;
+		args->entry_ptr->pe_prev.pool_uuid_lo = pop->uuid_lo;
+		VALGRIND_REMOVE_FROM_TX(
+				&(args->entry_ptr->pe_next.pool_uuid_lo),
+				sizeof (args->entry_ptr->pe_next.pool_uuid_lo));
+		VALGRIND_REMOVE_FROM_TX(
+				&(args->entry_ptr->pe_prev.pool_uuid_lo),
+				sizeof (args->entry_ptr->pe_prev.pool_uuid_lo));
+		pop->persist(args->entry_ptr, sizeof (*args->entry_ptr));
+	} else {
+		ASSERTeq(args->entry_ptr->pe_next.pool_uuid_lo, pop->uuid_lo);
+		ASSERTeq(args->entry_ptr->pe_prev.pool_uuid_lo, pop->uuid_lo);
+	}
 
 	/* set current->next and current->prev using redo log */
 	uint64_t next_off_off = args->obj_doffset + args->pe_offset + NEXT_OFF;
@@ -905,7 +926,7 @@ list_insert(PMEMobjpool *pop,
 
 	/* fill entry of existing element using redo log */
 	redo_index = list_fill_entry_redo_log(pop, redo, redo_index,
-			&args_common, next_offset, prev_offset);
+			&args_common, next_offset, prev_offset, 1);
 
 	redo_log_set_last(pop, redo, redo_index - 1);
 
@@ -1116,7 +1137,7 @@ list_remove(PMEMobjpool *pop,
 
 	/* clear next and prev offsets in removing element using redo log */
 	redo_index = list_fill_entry_redo_log(pop, redo, redo_index,
-			&args_common, 0, 0);
+			&args_common, 0, 0, 0);
 
 	redo_log_set_last(pop, redo, redo_index - 1);
 
@@ -1213,7 +1234,7 @@ list_move_oob(PMEMobjpool *pop,
 
 	/* change next and prev offsets of moving element using redo log */
 	redo_index = list_fill_entry_redo_log(pop, redo, redo_index,
-			&args_common, next_offset, prev_offset);
+			&args_common, next_offset, prev_offset, 0);
 
 	redo_log_set_last(pop, redo, redo_index - 1);
 
@@ -1327,9 +1348,12 @@ list_move(PMEMobjpool *pop,
 	redo_index = list_insert_user(pop, redo, redo_index, &args_insert,
 			&args_common, &next_offset, &prev_offset);
 
+	/* offsets differ, move is between different list entries - set uuid */
+	int set_uuid = pe_offset_new != pe_offset_old ? 1 : 0;
+
 	/* fill next and prev offsets of moving element using redo log */
 	redo_index = list_fill_entry_redo_log(pop, redo, redo_index,
-			&args_common, next_offset, prev_offset);
+			&args_common, next_offset, prev_offset, set_uuid);
 
 	redo_log_set_last(pop, redo, redo_index - 1);
 
@@ -1777,9 +1801,9 @@ list_realloc_move(PMEMobjpool *pop, struct list_head *oob_head_old,
 			new_obj_doffset, &next_offset, &prev_offset);
 
 	if (in_place) {
-		/* realloc in place se we need to use redo log */
+		/* realloc in place so we need to use redo log */
 		redo_index = list_fill_entry_redo_log(pop, redo, redo_index,
-				&args_common, next_offset, prev_offset);
+				&args_common, next_offset, prev_offset, 0);
 	} else {
 		/*
 		 * Realloc not in place so no need to modify next and prev

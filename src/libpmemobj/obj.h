@@ -61,8 +61,11 @@
 #define	OBJ_OID_IS_NULL(oid)	((oid).off == 0)
 #define	OBJ_LIST_EMPTY(head)	OBJ_OID_IS_NULL((head)->pe_first)
 #define	OBJ_PTR_IS_VALID(pop, ptr)\
-	(OBJ_PTR_TO_OFF(pop, ptr) >= (pop)->heap_offset &&\
-	OBJ_PTR_TO_OFF(pop, ptr) < (pop)->heap_offset + (pop)->heap_size)
+	((OBJ_PTR_TO_OFF(pop, ptr) >= (pop)->heap_offset &&\
+	OBJ_PTR_TO_OFF(pop, ptr) < (pop)->heap_offset + (pop)->heap_size) ||\
+	((OBJ_PTR_TO_OFF(pop, ptr) >= (pop)->obj_store_offset &&\
+	OBJ_PTR_TO_OFF(pop, ptr) < (pop)->obj_store_offset +\
+	(pop)->obj_store_size)))
 
 #define	OBJ_OID_IS_VALID(pop, oid) (\
 	{\

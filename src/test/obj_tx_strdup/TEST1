@@ -1,3 +1,4 @@
+#!/bin/bash -e
 #
 # Copyright (c) 2015, Intel Corporation
 #
@@ -31,20 +32,22 @@
 #
 
 #
-# src/test/obj_list/Makefile -- build obj_list test
+# src/test/obj_tx_strdup/TEST0 -- unit test for pmemobj_tx_strdup
 #
-vpath %.c ../../libpmemobj
-vpath %.c ../../common
+export UNITTEST_NAME=obj_tx_strdup/TEST1
+export UNITTEST_NUM=1
 
-TARGET = obj_list
-OBJS = obj_list.o list.o redo.o util.o out.o lane.o
+# standard unit test setup
+. ../unittest/unittest.sh
 
-LIBPMEM=y
+require_valgrind_pmemcheck
 
-include ../Makefile.inc
-CFLAGS += -g -DDEBUG
-LDFLAGS += $(call extract_funcs, obj_list.c)
-INCS += -I../../libpmemobj/ -I../../common/
+setup
 
-obj_list.o: obj_list.c
-out.o: CFLAGS += -DDEBUG -DSRCVERSION=\"utversion\"
+expect_normal_exit valgrind --tool=pmemcheck\
+    --log-file=valgrind$UNITTEST_NUM.log\
+    ./obj_tx_strdup$EXESUFFIX $DIR/testfile1
+
+check
+
+pass

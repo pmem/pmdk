@@ -406,6 +406,24 @@ do_tx_alloc_no_tx(PMEMobjpool *pop)
 	ASSERT(TOID_IS_NULL(obj));
 }
 
+/*
+ * do_tx_root -- retrieve root inside of transaction
+ */
+static void
+do_tx_root(PMEMobjpool *pop)
+{
+	size_t root_size = 24;
+	TX_BEGIN(pop) {
+		PMEMoid root = pmemobj_root(pop, root_size);
+		ASSERT(!OID_IS_NULL(root));
+		ASSERT(util_is_zeroed(pmemobj_direct(root),
+				root_size));
+		ASSERTeq(root_size, pmemobj_root_size(pop));
+	} TX_ONABORT {
+		ASSERT(0);
+	} TX_END
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -420,6 +438,8 @@ main(int argc, char *argv[])
 				S_IWUSR | S_IRUSR)) == NULL)
 		FATAL("!pmemobj_create");
 
+	do_tx_root(pop);
+	VALGRIND_WRITE_STATS;
 	do_tx_alloc_no_tx(pop);
 	VALGRIND_WRITE_STATS;
 	do_tx_alloc_commit(pop);

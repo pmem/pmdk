@@ -1,0 +1,54 @@
+==$(N)== pmemcheck-$(nW), a simple persistent store checker
+==$(N)== Copyright (c) 2014-2015, Intel Corporation
+==$(N)== Using Valgrind-$(nW) and LibVEX; rerun with -h for copyright info
+==$(N)== Command: ./obj_debug$(nW) $(nW)testfile1 a
+==$(N)== Parent PID: $(N)
+==$(N)== 
+==$(N)== 
+==$(N)== Number of stores not made persistent: 0
+==$(N)== 
+==$(N)== Number of stores made outside of transactions: 5
+==$(N)== Stores made outside of transactions:
+==$(N)== [0]    at 0x$(nW): constructor_alloc_bytype (obj.c:$(N))
+==$(N)==    by 0x$(nW): pmalloc_construct (pmalloc.c:$(N))
+==$(N)==    by 0x$(nW): list_insert_new (list.c:$(N))
+==$(N)==    by 0x$(nW): obj_alloc_construct (obj.c:$(N))
+==$(N)==    by 0x$(nW): pmemobj_alloc (obj.c:$(N))
+==$(N)==    by 0x$(nW): test_alloc_construct (obj_debug.c:$(N))
+==$(N)==    by 0x$(nW): main (obj_debug.c:$(N))
+==$(N)== 	Address: 0x$(nW)	size: $(N)
+==$(N)== [1]    at 0x$(nW): constructor_alloc_bytype (obj.c:$(N))
+==$(N)==    by 0x$(nW): pmalloc_construct (pmalloc.c:$(N))
+==$(N)==    by 0x$(nW): list_insert_new (list.c:$(N))
+==$(N)==    by 0x$(nW): obj_alloc_construct (obj.c:$(N))
+==$(N)==    by 0x$(nW): pmemobj_alloc (obj.c:$(N))
+==$(N)==    by 0x$(nW): test_alloc_construct (obj_debug.c:$(N))
+==$(N)==    by 0x$(nW): main (obj_debug.c:$(N))
+==$(N)== 	Address: 0x$(nW)	size: $(N)
+==$(N)== [2]    at 0x$(nW): int3_constructor (obj_debug.c:$(N))
+==$(N)==    by 0x$(nW): constructor_alloc_bytype (obj.c:$(N))
+==$(N)==    by 0x$(nW): pmalloc_construct (pmalloc.c:$(N))
+==$(N)==    by 0x$(nW): list_insert_new (list.c:$(N))
+==$(N)==    by 0x$(nW): obj_alloc_construct (obj.c:$(N))
+==$(N)==    by 0x$(nW): pmemobj_alloc (obj.c:$(N))
+==$(N)==    by 0x$(nW): test_alloc_construct (obj_debug.c:$(N))
+==$(N)==    by 0x$(nW): main (obj_debug.c:$(N))
+==$(N)== 	Address: 0x$(nW)	size: $(N)
+==$(N)== [3]    at 0x$(nW): int3_constructor (obj_debug.c:$(N))
+==$(N)==    by 0x$(nW): constructor_alloc_bytype (obj.c:$(N))
+==$(N)==    by 0x$(nW): pmalloc_construct (pmalloc.c:$(N))
+==$(N)==    by 0x$(nW): list_insert_new (list.c:$(N))
+==$(N)==    by 0x$(nW): obj_alloc_construct (obj.c:$(N))
+==$(N)==    by 0x$(nW): pmemobj_alloc (obj.c:$(N))
+==$(N)==    by 0x$(nW): test_alloc_construct (obj_debug.c:$(N))
+==$(N)==    by 0x$(nW): main (obj_debug.c:$(N))
+==$(N)== 	Address: 0x$(nW)	size: $(N)
+==$(N)== [4]    at 0x$(nW): int3_constructor (obj_debug.c:$(N))
+==$(N)==    by 0x$(nW): constructor_alloc_bytype (obj.c:$(N))
+==$(N)==    by 0x$(nW): pmalloc_construct (pmalloc.c:$(N))
+==$(N)==    by 0x$(nW): list_insert_new (list.c:$(N))
+==$(N)==    by 0x$(nW): obj_alloc_construct (obj.c:$(N))
+==$(N)==    by 0x$(nW): pmemobj_alloc (obj.c:$(N))
+==$(N)==    by 0x$(nW): test_alloc_construct (obj_debug.c:$(N))
+==$(N)==    by 0x$(nW): main (obj_debug.c:$(N))
+==$(N)== 	Address: 0x$(nW)	size: $(N)

@@ -285,6 +285,30 @@ do_tx_realloc_alloc_abort(PMEMobjpool *pop)
 	ASSERT(TOID_IS_NULL(obj));
 }
 
+
+/*
+ * do_tx_root_realloc -- retrieve root inside of transaction
+ */
+static void
+do_tx_root_realloc(PMEMobjpool *pop)
+{
+	TX_BEGIN(pop) {
+		PMEMoid root = pmemobj_root(pop, sizeof (struct object));
+		ASSERT(!OID_IS_NULL(root));
+		ASSERT(util_is_zeroed(pmemobj_direct(root),
+				sizeof (struct object)));
+		ASSERTeq(sizeof (struct object), pmemobj_root_size(pop));
+
+		root = pmemobj_root(pop, 2 * sizeof (struct object));
+		ASSERT(!OID_IS_NULL(root));
+		ASSERT(util_is_zeroed(pmemobj_direct(root),
+				2 * sizeof (struct object)));
+		ASSERTeq(2 * sizeof (struct object), pmemobj_root_size(pop));
+	} TX_ONABORT {
+		ASSERT(0);
+	} TX_END
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -298,6 +322,7 @@ main(int argc, char *argv[])
 				S_IWUSR | S_IRUSR)) == NULL)
 		FATAL("!pmemobj_create");
 
+	do_tx_root_realloc(pop);
 	do_tx_realloc_no_tx(pop);
 	do_tx_realloc_commit(pop);
 	do_tx_realloc_abort(pop);
@@ -305,7 +330,6 @@ main(int argc, char *argv[])
 	do_tx_zrealloc_abort(pop);
 	do_tx_realloc_alloc_commit(pop);
 	do_tx_realloc_alloc_abort(pop);
-
 	pmemobj_close(pop);
 
 	DONE(NULL);

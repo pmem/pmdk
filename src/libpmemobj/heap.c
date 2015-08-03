@@ -131,7 +131,7 @@ heap_chunk_write_footer(struct chunk_header *hdr, uint32_t size_idx)
 	f.size_idx = size_idx;
 	*(hdr + size_idx - 1) = f;
 	/* no need to persist, footers are recreated in heap_populate_buckets */
-	VALGRIND_SET_CLEAN((hdr + size_idx - 1), sizeof (f));
+	VALGRIND_SET_CLEAN(hdr + size_idx - 1, sizeof (f));
 }
 
 /*
@@ -179,6 +179,8 @@ static void
 heap_init_run(PMEMobjpool *pop, struct bucket *b, struct chunk_header *hdr,
 	struct chunk_run *run)
 {
+	/* add/remove chunk_run and chunk_header to valgrind transaction */
+	VALGRIND_ADD_TO_TX(run, sizeof (*run));
 	run->block_size = bucket_unit_size(b);
 	pop->persist(&run->block_size, sizeof (run->block_size));
 
@@ -190,10 +192,14 @@ heap_init_run(PMEMobjpool *pop, struct bucket *b, struct chunk_header *hdr,
 	/* clear only the bits available for allocations from this bucket */
 	memset(run->bitmap, 0, sizeof (uint64_t) * (bucket_bitmap_nval(b) - 1));
 	run->bitmap[bucket_bitmap_nval(b) - 1] = bucket_bitmap_lastval(b);
+	VALGRIND_REMOVE_FROM_TX(run, sizeof (*run));
 
 	pop->persist(run->bitmap, sizeof (run->bitmap));
 
+	VALGRIND_ADD_TO_TX(hdr, sizeof (*hdr));
 	hdr->type = CHUNK_TYPE_RUN;
+	VALGRIND_REMOVE_FROM_TX(hdr, sizeof (*hdr));
+
 	pop->persist(hdr, sizeof (*hdr));
 }
 
@@ -293,6 +299,10 @@ heap_populate_buckets(PMEMobjpool *pop)
 
 	uint32_t zone_id = h->zones_exhausted++;
 	struct zone *z = &h->layout->zones[zone_id];
+
+	/* ignore zone and chunk headers */
+	VALGRIND_ADD_TO_GLOBAL_TX_IGNORE(z, sizeof (z->header) +
+		sizeof (z->chunk_headers));
 
 	if (z->header.magic != ZONE_HEADER_MAGIC)
 		heap_zone_init(pop, zone_id);
@@ -844,7 +854,9 @@ heap_degrade_run_if_empty(PMEMobjpool *pop, struct bucket *b,
 	uint64_t op_result;
 	struct memory_block fm =
 			heap_free_block(pop, defb, m, &mhdr, &op_result);
+	VALGRIND_ADD_TO_TX(mhdr, sizeof (*mhdr));
 	*mhdr = op_result;
+	VALGRIND_REMOVE_FROM_TX(mhdr, sizeof (*mhdr));
 	pop->persist(mhdr, sizeof (*mhdr));
 
 	if ((err = bucket_insert_block(defb, fm)) != 0) {

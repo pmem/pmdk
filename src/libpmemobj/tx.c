@@ -112,12 +112,20 @@ constructor_tx_alloc(PMEMobjpool *pop, void *ptr, void *arg)
 
 	struct oob_header *oobh = OOB_HEADER_FROM_PTR(ptr);
 
+	/* temporarily add the OOB header */
+	VALGRIND_ADD_TO_TX(oobh, OBJ_OOB_SIZE);
+
 	/*
 	 * no need to flush and persist because this
 	 * will be done in pre-commit phase
 	 */
 	oobh->internal_type = TYPE_NONE;
 	oobh->user_type = args->type_num;
+
+	VALGRIND_REMOVE_FROM_TX(oobh, OBJ_OOB_SIZE);
+
+	/* do not report changes to the new object */
+	VALGRIND_ADD_TO_TX(ptr, args->size);
 }
 
 /*
@@ -135,12 +143,20 @@ constructor_tx_zalloc(PMEMobjpool *pop, void *ptr, void *arg)
 
 	struct oob_header *oobh = OOB_HEADER_FROM_PTR(ptr);
 
+	/* temporarily add the OOB header */
+	VALGRIND_ADD_TO_TX(oobh, OBJ_OOB_SIZE);
+
 	/*
 	 * no need to flush and persist because this
 	 * will be done in pre-commit phase
 	 */
 	oobh->internal_type = TYPE_NONE;
 	oobh->user_type = args->type_num;
+
+	VALGRIND_REMOVE_FROM_TX(oobh, OBJ_OOB_SIZE);
+
+	/* do not report changes to the new object */
+	VALGRIND_ADD_TO_TX(ptr, args->size);
 
 	memset(ptr, 0, args->size);
 }
@@ -159,6 +175,11 @@ constructor_tx_add_range(PMEMobjpool *pop, void *ptr, void *arg)
 	struct tx_add_range_args *args = arg;
 	struct tx_range *range = ptr;
 
+	/* temporarily add the object copy to the transaction */
+	VALGRIND_ADD_TO_TX(OOB_HEADER_FROM_PTR(ptr),
+				sizeof (struct tx_range) + args->size
+				+ OBJ_OOB_SIZE);
+
 	range->offset = args->offset;
 	range->size = args->size;
 
@@ -168,6 +189,13 @@ constructor_tx_add_range(PMEMobjpool *pop, void *ptr, void *arg)
 	pop->flush(range, sizeof (struct tx_range));
 	/* memcpy data and persist */
 	pop->memcpy_persist(range->data, src, args->size);
+
+	VALGRIND_REMOVE_FROM_TX(OOB_HEADER_FROM_PTR(ptr),
+				sizeof (struct tx_range) + args->size
+				+ OBJ_OOB_SIZE);
+
+	/* do not report changes to the original object */
+	VALGRIND_ADD_TO_TX(src, args->size);
 }
 
 /*
@@ -184,12 +212,20 @@ constructor_tx_copy(PMEMobjpool *pop, void *ptr, void *arg)
 	struct tx_alloc_copy_args *args = arg;
 	struct oob_header *oobh = OOB_HEADER_FROM_PTR(ptr);
 
+	/* temporarily add the OOB header */
+	VALGRIND_ADD_TO_TX(oobh, OBJ_OOB_SIZE);
+
 	/*
 	 * no need to flush and persist because this
 	 * will be done in pre-commit phase
 	 */
 	oobh->internal_type = TYPE_NONE;
 	oobh->user_type = args->type_num;
+
+	VALGRIND_REMOVE_FROM_TX(oobh, OBJ_OOB_SIZE);
+
+	/* do not report changes made to the copy */
+	VALGRIND_ADD_TO_TX(ptr, args->size);
 
 	memcpy(ptr, args->ptr, args->copy_size);
 }
@@ -209,12 +245,20 @@ constructor_tx_copy_zero(PMEMobjpool *pop, void *ptr, void *arg)
 	struct tx_alloc_copy_args *args = arg;
 	struct oob_header *oobh = OOB_HEADER_FROM_PTR(ptr);
 
+	/* temporarily add the OOB header */
+	VALGRIND_ADD_TO_TX(oobh, OBJ_OOB_SIZE);
+
 	/*
 	 * no need to flush and persist because this
 	 * will be done in pre-commit phase
 	 */
 	oobh->internal_type = TYPE_NONE;
 	oobh->user_type = args->type_num;
+
+	VALGRIND_REMOVE_FROM_TX(oobh, OBJ_OOB_SIZE);
+
+	/* do not report changes made to the copy */
+	VALGRIND_ADD_TO_TX(ptr, args->size);
 
 	memcpy(ptr, args->ptr, args->copy_size);
 	if (args->size > args->copy_size) {
@@ -478,6 +522,8 @@ tx_pre_commit_alloc(PMEMobjpool *pop, struct lane_tx_layout *layout)
 
 		struct oob_header *oobh = OOB_HEADER_FROM_OID(pop, iter);
 
+		VALGRIND_ADD_TO_TX(oobh, OBJ_OOB_SIZE);
+
 		/*
 		 * Set object as allocated.
 		 * This must be done in pre-commit phase instead of at
@@ -487,6 +533,8 @@ tx_pre_commit_alloc(PMEMobjpool *pop, struct lane_tx_layout *layout)
 		 * is on undo log list and not in object store.
 		 */
 		oobh->internal_type = TYPE_ALLOCATED;
+
+		VALGRIND_REMOVE_FROM_TX(oobh, OBJ_OOB_SIZE);
 
 		size_t size = pmalloc_usable_size(pop,
 				iter.off - OBJ_OOB_SIZE);
@@ -893,6 +941,7 @@ int
 pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...)
 {
 	LOG(3, NULL);
+	VALGRIND_START_TX;
 
 	int err = 0;
 
@@ -1057,6 +1106,8 @@ pmemobj_tx_end()
 	SLIST_REMOVE_HEAD(&lane->tx_entries, tx_entry);
 	int errnum = txd->errnum;
 	Free(txd);
+
+	VALGRIND_END_TX;
 
 	if (SLIST_EMPTY(&lane->tx_entries)) {
 		/* this is the outermost transaction */
@@ -1387,6 +1438,8 @@ pmemobj_tx_free(PMEMoid oid)
 
 		VALGRIND_SET_CLEAN(oobh, size);
 #endif
+		VALGRIND_REMOVE_FROM_TX(oobh, pmalloc_usable_size(lane->pop,
+				oid.off - OBJ_OOB_SIZE));
 		/*
 		 * The object has been allocated within the same transaction
 		 * so we can just remove and free the object from undo log.
