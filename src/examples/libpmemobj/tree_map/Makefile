@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2014-2015, Intel Corporation
+# Copyright (c) 2015, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,27 +31,24 @@
 #
 
 #
-# examples/libpmemobj/Makefile -- build the libpmemobj examples
+# examples/libpmemobj/tree_map/Makefile -- build the tree map example
 #
-PROGS = manpage btree pi
-DIRS = pminvaders pmemlog pmemblk string_store string_store_tx\
-	string_store_tx_type hashset tree_map
+PROGS = data_store_ctree data_store_btree
 
-INCDIR ?= ../../include
-LIBDIR ?= ../../debug
+INCDIR ?= ../../../include
+LIBDIR ?= ../../../debug
 
 INCS = -I$(INCDIR)
-LIBS = -Wl,-rpath=$(LIBDIR) -L$(LIBDIR) -lpmemobj -lpmem -pthread -lm
+LIBS = -Wl,-rpath=$(LIBDIR) -L$(LIBDIR) -lpmemobj -pthread
 CFLAGS = -std=gnu99 -ggdb -Wall -Werror
-CSTYLE = ../../../utils/cstyle
+CSTYLE = ../../../../utils/cstyle
 
 all:     TARGET = all
 clean:   TARGET = clean
 clobber: TARGET = clobber
 cstyle:  TARGET = cstyle
 
-all: $(PROGS) $(DIRS)
-
+all: $(PROGS)
 
 clean: $(DIRS)
 	$(RM) *.o core a.out
@@ -66,11 +63,10 @@ cstyle: $(DIRS)
 	$(CC) -c -o $@ $(CFLAGS) $(INCS) $<
 
 $(PROGS):
-	$(CC) -o $@ $< $(LIBS)
+	$(CC) -o $@ $< tree_map.o data_store.o $(LIBS)
 
-manpage: manpage.o
-btree: btree.o
-pi: pi.o
+data_store_ctree: ctree_map.o tree_map.o data_store.o
+data_store_btree: btree_map.o tree_map.o data_store.o
 
 $(DIRS):
 	$(MAKE) -C $@ $(TARGET)
