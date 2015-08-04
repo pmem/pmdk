@@ -788,7 +788,7 @@ util_parse_enum(const char *str, int first, int max, uint64_t *bitmap,
 {
 	for (int i = first; i < max; i++) {
 		if (strcmp(str, enum_to_str(i)) == 0) {
-			*bitmap |= (1<<i);
+			*bitmap |= (uint64_t)1<<i;
 			return 0;
 		}
 	}

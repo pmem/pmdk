@@ -40,6 +40,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <ctype.h>
+#include <err.h>
 
 #include "common.h"
 #include "output.h"
@@ -631,6 +632,8 @@ out_get_pmemoid_str(PMEMoid oid, uint64_t uuid_lo)
 		snprintf(str_buff, STR_MAX, "wrong! should be 0x%016lx",
 				uuid_lo);
 		correct = strdup(str_buff);
+		if (!correct)
+			err(1, "Cannot allocate memory for PMEMoid string\n");
 		free_cor = 1;
 	}
 
