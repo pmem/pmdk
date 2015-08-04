@@ -35,6 +35,7 @@
  */
 #include <stdlib.h>
 #include <stdint.h>
+#include <errno.h>
 
 #include "libpmem.h"
 #include "libpmemobj.h"
@@ -54,9 +55,9 @@
 static inline int
 redo_log_check_offset(PMEMobjpool *pop, uint64_t offset)
 {
-	/* XXX change the minimum offset */
-	return offset >= _POBJ_REDO_MIN_OFFSET &&
-		offset <= (pop->size - sizeof (uint64_t));
+	return OBJ_OFF_FROM_LANES(pop, offset) ||
+		OBJ_OFF_FROM_OBJ_STORE(pop, offset) ||
+		OBJ_OFF_FROM_HEAP(pop, offset);
 }
 
 /*
@@ -142,7 +143,7 @@ redo_log_process(PMEMobjpool *pop, struct redo_log *redo,
 {
 	LOG(15, "redo %p nentries %zu", redo, nentries);
 
-	ASSERTeq(redo_log_check(pop, redo, nentries), 1);
+	ASSERTeq(redo_log_check(pop, redo, nentries), 0);
 
 	uint64_t *val;
 	while ((redo->offset & REDO_FINISH_FLAG) == 0) {
@@ -200,7 +201,7 @@ redo_log_check(PMEMobjpool *pop, struct redo_log *redo, size_t nentries)
 
 	if (nflags > 1) {
 		LOG(15, "redo %p to many finish flags", redo);
-		return 0;
+		return -1;
 	}
 
 	if (nflags == 1) {
@@ -208,7 +209,7 @@ redo_log_check(PMEMobjpool *pop, struct redo_log *redo, size_t nentries)
 			if (!redo_log_check_offset(pop, redo->offset)) {
 				LOG(15, "redo %p invalid offset %ju",
 						redo, redo->offset);
-				return 0;
+				return -1;
 			}
 			redo++;
 		}
@@ -216,9 +217,9 @@ redo_log_check(PMEMobjpool *pop, struct redo_log *redo, size_t nentries)
 		uint64_t offset = redo->offset & REDO_FLAG_MASK;
 		if (!redo_log_check_offset(pop, offset)) {
 			LOG(15, "redo %p invalid offset %ju", redo, offset);
-			return 0;
+			return -1;
 		}
 	}
 
-	return 1;
+	return 0;
 }

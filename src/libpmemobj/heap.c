@@ -980,11 +980,15 @@ heap_cleanup(PMEMobjpool *pop)
 static int
 heap_verify_header(struct heap_header *hdr)
 {
-	if (util_checksum(hdr, sizeof (*hdr), &hdr->checksum, 0) != 1)
-		return 1;
+	if (util_checksum(hdr, sizeof (*hdr), &hdr->checksum, 0) != 1) {
+		ERR("heap: invalid header's checksum");
+		return -1;
+	}
 
-	if (memcmp(hdr->signature, HEAP_SIGNATURE, HEAP_SIGNATURE_LEN) != 0)
-		return 1;
+	if (memcmp(hdr->signature, HEAP_SIGNATURE, HEAP_SIGNATURE_LEN) != 0) {
+		ERR("heap: invalid signature");
+		return -1;
+	}
 
 	return 0;
 }
@@ -996,8 +1000,10 @@ heap_verify_header(struct heap_header *hdr)
 static int
 heap_verify_zone_header(struct zone_header *hdr)
 {
-	if (hdr->size_idx == 0)
-		return 1;
+	if (hdr->size_idx == 0) {
+		ERR("heap: invalid zone size");
+		return -1;
+	}
 
 	return 0;
 }
@@ -1009,14 +1015,20 @@ heap_verify_zone_header(struct zone_header *hdr)
 static int
 heap_verify_chunk_header(struct chunk_header *hdr)
 {
-	if (hdr->type == CHUNK_TYPE_UNKNOWN)
-		return 1;
+	if (hdr->type == CHUNK_TYPE_UNKNOWN) {
+		ERR("heap: invalid chunk type");
+		return -1;
+	}
 
-	if (hdr->type >= MAX_CHUNK_TYPE)
-		return 1;
+	if (hdr->type >= MAX_CHUNK_TYPE) {
+		ERR("heap: unknown chunk type");
+		return -1;
+	}
 
-	if (hdr->flags | ~(CHUNK_FLAG_ZEROED))
-		return 1;
+	if (hdr->flags & CHUNK_FLAG_ZEROED) {
+		ERR("heap: invalid chunk flags");
+		return -1;
+	}
 
 	return 0;
 }
@@ -1027,22 +1039,29 @@ heap_verify_chunk_header(struct chunk_header *hdr)
 static int
 heap_verify_zone(struct zone *zone)
 {
-	if (zone->header.magic != ZONE_HEADER_MAGIC)
+	if (zone->header.magic == 0)
 		return 0; /* not initialized, and that is OK */
 
+	if (zone->header.magic != ZONE_HEADER_MAGIC) {
+		ERR("heap: invalid zone magic");
+		return -1;
+	}
+
 	if (heap_verify_zone_header(&zone->header))
-		return 1;
+		return -1;
 
 	uint32_t i;
 	for (i = 0; i < zone->header.size_idx; ) {
 		if (heap_verify_chunk_header(&zone->chunk_headers[i]))
-			return 1;
+			return -1;
 
 		i += zone->chunk_headers[i].size_idx;
 	}
 
-	if (i != zone->header.size_idx)
-		return 1;
+	if (i != zone->header.size_idx) {
+		ERR("heap: chunk sizes mismatch");
+		return -1;
+	}
 
 	return 0;
 }
@@ -1055,19 +1074,25 @@ heap_verify_zone(struct zone *zone)
 int
 heap_check(PMEMobjpool *pop)
 {
-	if (pop->heap_size < HEAP_MIN_SIZE)
-		return EINVAL;
+	if (pop->heap_size < HEAP_MIN_SIZE) {
+		ERR("heap: invalid heap size");
+		return -1;
+	}
 
 	struct heap_layout *layout = heap_get_layout(pop);
 
-	if (pop->heap_size != layout->header.size)
-		return EINVAL;
-
-	int ok = 0;
-	ok &= heap_verify_header(&layout->header);
-	for (int i = 0; i < heap_max_zone(layout->header.size); ++i) {
-		ok &= heap_verify_zone(&layout->zones[i]);
+	if (pop->heap_size != layout->header.size) {
+		ERR("heap: heap size missmatch");
+		return -1;
 	}
 
-	return ok;
+	if (heap_verify_header(&layout->header))
+		return -1;
+
+	for (int i = 0; i < heap_max_zone(layout->header.size); ++i) {
+		if (heap_verify_zone(&layout->zones[i]))
+			return -1;
+	}
+
+	return 0;
 }

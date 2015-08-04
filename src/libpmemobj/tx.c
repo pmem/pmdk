@@ -1513,8 +1513,61 @@ lane_transaction_check(PMEMobjpool *pop,
 {
 	LOG(3, "tx lane %p", section);
 
-	/* XXX */
-	return 1;
+	struct lane_tx_layout *tx_sec = (struct lane_tx_layout *)section;
+
+	if (tx_sec->state != TX_STATE_NONE &&
+		tx_sec->state != TX_STATE_COMMITTED) {
+		ERR("tx lane: invalid transaction state");
+		return -1;
+	}
+
+	PMEMoid iter;
+	/* check undo log for set operation */
+	for (iter = tx_sec->undo_set.pe_first; !OBJ_OID_IS_NULL(iter);
+		iter = oob_list_next(pop, &tx_sec->undo_set, iter)) {
+
+		struct tx_range *range = OBJ_OFF_TO_PTR(pop, iter.off);
+
+		if (!OBJ_OFF_FROM_HEAP(pop, range->offset) ||
+			!OBJ_OFF_FROM_HEAP(pop, range->offset + range->size)) {
+			ERR("tx_lane: invalid offset in tx range object");
+			return -1;
+		}
+	}
+
+	/* check undo log for allocations */
+	for (iter = tx_sec->undo_alloc.pe_first; !OBJ_OID_IS_NULL(iter);
+		iter = oob_list_next(pop, &tx_sec->undo_alloc, iter)) {
+
+		struct oob_header *oobh = OOB_HEADER_FROM_OID(pop, iter);
+		if (oobh->internal_type != TYPE_NONE) {
+			ERR("tx lane: invalid internal type");
+			return -1;
+		}
+
+		if (oobh->user_type >= PMEMOBJ_NUM_OID_TYPES) {
+			ERR("tx lane: invalid user type");
+			return -1;
+		}
+	}
+
+	/* check undo log for free operation */
+	for (iter = tx_sec->undo_free.pe_first; !OBJ_OID_IS_NULL(iter);
+		iter = oob_list_next(pop, &tx_sec->undo_free, iter)) {
+
+		struct oob_header *oobh = OOB_HEADER_FROM_OID(pop, iter);
+		if (oobh->internal_type != TYPE_ALLOCATED) {
+			ERR("tx lane: invalid internal type");
+			return -1;
+		}
+
+		if (oobh->user_type >= PMEMOBJ_NUM_OID_TYPES) {
+			ERR("tx lane: invalid user type");
+			return -1;
+		}
+	}
+
+	return 0;
 }
 
 struct section_operations transaction_ops = {

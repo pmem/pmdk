@@ -380,7 +380,7 @@ util_convert_hdr(struct pool_hdr *hdrp)
 
 	/* to be valid, a header must have a major version of at least 1 */
 	if ((hdrp->major = le32toh(hdrp->major)) == 0) {
-		LOG(3, "invalid major version (0)");
+		ERR("invalid major version (0)");
 		return 0;
 	}
 	hdrp->compat_features = le32toh(hdrp->compat_features);
@@ -395,7 +395,7 @@ util_convert_hdr(struct pool_hdr *hdrp)
 
 	/* and to be valid, the fields must checksum correctly */
 	if (!util_checksum(hdrp, sizeof (*hdrp), &hdrp->checksum, 0)) {
-		LOG(3, "invalid checksum");
+		ERR("invalid checksum of pool header");
 		return 0;
 	}
 

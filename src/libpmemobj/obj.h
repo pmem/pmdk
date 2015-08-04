@@ -60,12 +60,23 @@
 #define	OBJ_PTR_TO_OFF(pop, ptr) ((uintptr_t)(ptr) - (uintptr_t)(pop))
 #define	OBJ_OID_IS_NULL(oid)	((oid).off == 0)
 #define	OBJ_LIST_EMPTY(head)	OBJ_OID_IS_NULL((head)->pe_first)
+#define	OBJ_OFF_FROM_HEAP(pop, off)\
+	((off) >= (pop)->heap_offset &&\
+	(off) < (pop)->heap_offset + (pop)->heap_size)
+#define	OBJ_OFF_FROM_LANES(pop, off)\
+	((off) >= (pop)->lanes_offset &&\
+	(off) < (pop)->lanes_offset +\
+	(pop)->nlanes * sizeof (struct lane_layout))
+#define	OBJ_OFF_FROM_OBJ_STORE(pop, off)\
+	((off) >= (pop)->obj_store_offset &&\
+	(off) < (pop)->obj_store_offset + (pop)->obj_store_size)
+
+#define	OBJ_OFF_IS_VALID(pop, off)\
+	(OBJ_OFF_FROM_HEAP(pop, off) ||\
+	OBJ_OFF_FROM_OBJ_STORE(pop, off))
+
 #define	OBJ_PTR_IS_VALID(pop, ptr)\
-	((OBJ_PTR_TO_OFF(pop, ptr) >= (pop)->heap_offset &&\
-	OBJ_PTR_TO_OFF(pop, ptr) < (pop)->heap_offset + (pop)->heap_size) ||\
-	((OBJ_PTR_TO_OFF(pop, ptr) >= (pop)->obj_store_offset &&\
-	OBJ_PTR_TO_OFF(pop, ptr) < (pop)->obj_store_offset +\
-	(pop)->obj_store_size)))
+	OBJ_OFF_IS_VALID(pop, OBJ_PTR_TO_OFF(pop, ptr))
 
 #define	OBJ_OID_IS_VALID(pop, oid) (\
 	{\

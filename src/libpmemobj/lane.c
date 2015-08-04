@@ -267,7 +267,7 @@ lane_check(PMEMobjpool *pop)
 		section_err = section_ops[j]->check(pop,
 				&layout->sections[j]);
 		if (section_err) {
-			ERR("!section_ops->check %d %d %d",
+			LOG(3, "!section_ops->check %d %d %d",
 					i, j, section_err);
 			err = section_err;
 		}

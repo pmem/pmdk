@@ -138,6 +138,32 @@ pmemobj_get_uuid_lo(PMEMobjpool *pop)
 }
 
 /*
+ * pmemobj_boot -- (internal) boots the pmemobj pool
+ */
+static int
+pmemobj_boot(PMEMobjpool *pop)
+{
+	LOG(3, "pop %p", pop);
+
+	if ((errno = lane_boot(pop)) != 0) {
+		ERR("!lane_boot");
+		return errno;
+	}
+
+	if ((errno = heap_boot(pop)) != 0) {
+		ERR("!heap_boot");
+		return errno;
+	}
+
+	if ((errno = lane_recover(pop)) != 0) {
+		ERR("!lane_recover");
+		return errno;
+	}
+
+	return 0;
+}
+
+/*
  * pmemobj_map_common -- (internal) map a transactional memory pool
  *
  * This routine does all the work, but takes a rdonly flag so internal
@@ -148,7 +174,7 @@ pmemobj_get_uuid_lo(PMEMobjpool *pop)
  */
 static PMEMobjpool *
 pmemobj_map_common(int fd, const char *layout, size_t poolsize, int rdonly,
-		int empty)
+		int empty, int boot)
 {
 	LOG(3, "fd %d layout %s poolsize %zu rdonly %d empty %d",
 			fd, layout, poolsize, rdonly, empty);
@@ -377,19 +403,15 @@ pmemobj_map_common(int fd, const char *layout, size_t poolsize, int rdonly,
 		pop->memset_persist = nopmem_memset_persist;
 	}
 
-	if ((errno = lane_boot(pop)) != 0) {
-		ERR("!lane_boot");
-		goto err;
-	}
+	if (boot) {
+		if ((errno = pmemobj_boot(pop)) != 0)
+			goto err;
 
-	if ((errno = heap_boot(pop)) != 0) {
-		ERR("!heap_boot");
-		goto err;
-	}
+		if ((errno = cuckoo_insert(pools, pop->uuid_lo, pop)) != 0) {
+			ERR("!cuckoo_insert");
+			goto err;
+		}
 
-	if ((errno = lane_recover(pop)) != 0) {
-		ERR("!lane_recover");
-		goto err;
 	}
 
 	/* XXX the rest of run-time info */
@@ -402,10 +424,6 @@ pmemobj_map_common(int fd, const char *layout, size_t poolsize, int rdonly,
 	 */
 	util_range_none(addr, sizeof (struct pool_hdr));
 
-	if ((errno = cuckoo_insert(pools, pop->uuid_lo, pop)) != 0) {
-		ERR("!cuckoo_insert");
-		goto err;
-	}
 
 	LOG(3, "pop %p", pop);
 	return pop;
@@ -442,7 +460,7 @@ pmemobj_create(const char *path, const char *layout, size_t poolsize,
 	if (fd == -1)
 		return NULL;	/* errno set by util_pool_create/open() */
 
-	PMEMobjpool *pop = pmemobj_map_common(fd, layout, poolsize, 0, 1);
+	PMEMobjpool *pop = pmemobj_map_common(fd, layout, poolsize, 0, 1, 1);
 	if (pop == NULL && created)
 		unlink(path);	/* delete file if pool creation failed */
 
@@ -463,7 +481,7 @@ pmemobj_open(const char *path, const char *layout)
 	if ((fd = util_pool_open(path, &poolsize, PMEMOBJ_MIN_POOL)) == -1)
 		return NULL;	/* errno set by util_pool_open() */
 
-	return pmemobj_map_common(fd, layout, poolsize, 0, 0);
+	return pmemobj_map_common(fd, layout, poolsize, 0, 0, 1);
 }
 
 /*
@@ -476,6 +494,25 @@ pmemobj_create_part(const char *path, const char *layout, size_t partsize,
 {
 	/* XXX */
 	return NULL;
+}
+
+/*
+ * pmemobj_close_cleanup -- (internal) cleanup the pool and unmap
+ */
+static void
+pmemobj_cleanup(PMEMobjpool *pop)
+{
+	LOG(3, "pop %p", pop);
+
+	if ((errno = heap_cleanup(pop)) != 0)
+		ERR("!heap_cleanup");
+
+	/* cleanup run-time state */
+	if ((errno = lane_cleanup(pop)) != 0)
+		ERR("!lane_cleanup");
+
+	VALGRIND_REMOVE_PMEM_MAPPING(pop->addr, pop->size);
+	util_unmap(pop->addr, pop->size);
 }
 
 /*
@@ -495,17 +532,7 @@ pmemobj_close(PMEMobjpool *pop)
 		_pobj_cached_pool.uuid_lo = 0;
 	}
 
-	/* XXX stub */
-
-	if ((errno = heap_cleanup(pop)) != 0)
-		ERR("!heap_cleanup");
-
-	/* cleanup run-time state */
-	if ((errno = lane_cleanup(pop)) != 0)
-		ERR("!lane_cleanup");
-
-	VALGRIND_REMOVE_PMEM_MAPPING(pop->addr, pop->size);
-	util_unmap(pop->addr, pop->size);
+	pmemobj_cleanup(pop);
 }
 
 /*
@@ -523,7 +550,7 @@ pmemobj_check(const char *path, const char *layout)
 		return -1;	/* errno set by util_pool_open() */
 
 	/* map the pool read-only */
-	PMEMobjpool *pop = pmemobj_map_common(fd, layout, poolsize, 1, 0);
+	PMEMobjpool *pop = pmemobj_map_common(fd, layout, poolsize, 1, 0, 0);
 
 	if (pop == NULL)
 		return -1;	/* errno set by pmemobj_map_common() */
@@ -535,19 +562,30 @@ pmemobj_check(const char *path, const char *layout)
 		consistent = 0;
 	}
 
-	if ((errno = heap_check(pop)) != 0) {
-		ERR("!heap_check");
+	if ((errno = lane_check(pop)) != 0) {
+		LOG(3, "!lane_check");
 		consistent = 0;
 	}
 
-	if (lane_check(pop) != 1) {
-		ERR("lane_check");
+	if ((errno = heap_check(pop)) != 0) {
+		LOG(3, "!heap_check");
 		consistent = 0;
+	}
+
+	if (consistent && (errno = pmemobj_boot(pop)) != 0) {
+		LOG(3, "!pmemobj_boot");
+		consistent = 0;
+	}
+
+	if (consistent) {
+		pmemobj_close(pop);
+	} else {
+		VALGRIND_REMOVE_PMEM_MAPPING(pop, poolsize);
+		util_unmap(pop, poolsize);
 	}
 
 	/* XXX validate metadata */
 
-	pmemobj_close(pop);
 
 	if (consistent)
 		LOG(4, "pool consistency check OK");

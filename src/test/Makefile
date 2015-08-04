@@ -144,7 +144,8 @@ TEST = blk_nblock\
        out_err_mt\
        obj_pmalloc_mt\
        obj_many_size_allocs\
-       obj_heap_state
+       obj_heap_state\
+       obj_check
 
 all     : TARGET = all
 clean   : TARGET = clean

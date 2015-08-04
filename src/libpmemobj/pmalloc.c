@@ -466,7 +466,11 @@ lane_allocator_check(PMEMobjpool *pop, struct lane_section_layout *section)
 	struct allocator_lane_section *sec =
 		(struct allocator_lane_section *)section;
 
-	return redo_log_check(pop, sec->redo, MAX_ALLOC_OP_REDO);
+	int ret;
+	if ((ret = redo_log_check(pop, sec->redo, MAX_ALLOC_OP_REDO)) != 0)
+		ERR("allocator lane: redo log check failed");
+
+	return ret;
 }
 
 struct section_operations allocator_ops = {
