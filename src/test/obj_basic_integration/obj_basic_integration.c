@@ -201,6 +201,14 @@ test_list_api(PMEMobjpool *pop)
 	POBJ_LIST_MOVE_ELEMENT_HEAD(pop, &D_RW(root)->moved,
 		&D_RW(root)->dummies, node, plist_m, plist);
 
+	POBJ_LIST_MOVE_ELEMENT_TAIL(pop, &D_RW(root)->dummies,
+		&D_RW(root)->moved, node, plist, plist_m);
+
+	ASSERTeq(POBJ_LIST_EMPTY(&D_RW(root)->moved), 0);
+
+	POBJ_LIST_MOVE_ELEMENT_TAIL(pop, &D_RW(root)->moved,
+		&D_RW(root)->dummies, node, plist_m, plist);
+
 	POBJ_LIST_REMOVE(pop, &D_RW(root)->dummies, node, plist);
 	POBJ_LIST_INSERT_TAIL(pop, &D_RW(root)->dummies, node, plist);
 	POBJ_LIST_REMOVE_FREE(pop, &D_RW(root)->dummies, node, plist);
@@ -211,6 +219,23 @@ test_list_api(PMEMobjpool *pop)
 		nodes_count++;
 	}
 	ASSERTeq(nodes_count, 2);
+
+	POBJ_LIST_INSERT_NEW_AFTER(pop, &D_RW(root)->dummies,
+		POBJ_LIST_FIRST(&D_RO(root)->dummies), plist,
+		sizeof (struct dummy_node), dummy_node_constructor,
+		test_val);
+
+	POBJ_LIST_INSERT_NEW_BEFORE(pop, &D_RW(root)->dummies,
+		POBJ_LIST_LAST(&D_RO(root)->dummies, plist), plist,
+		sizeof (struct dummy_node), dummy_node_constructor,
+		test_val);
+
+	nodes_count = 0;
+	POBJ_LIST_FOREACH_REVERSE(iter, &D_RO(root)->dummies, plist) {
+		OUT("reverse dummy_node %d", D_RO(iter)->value);
+		nodes_count++;
+	}
+	ASSERTeq(nodes_count, 4);
 }
 
 void

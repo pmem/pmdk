@@ -653,7 +653,7 @@ pmemobj_list_insert((pop),\
 	0 /* after */, (elm).oid)
 
 #define	POBJ_LIST_INSERT_BEFORE(pop, head, listelm, elm, field)\
-pmemobj_list_insert((pop), offsetof(typeof (*D_RO((elm))),\
+pmemobj_list_insert((pop), \
 	offsetof(typeof (*(POBJ_LIST_FIRST(head)._type)), field),\
 	(head), (listelm).oid,\
 	1 /* before */, (elm).oid)
@@ -711,7 +711,7 @@ pmemobj_list_move((pop),\
 	(head),\
 	offsetof(typeof (*(POBJ_LIST_FIRST(head_new)._type)), field_new),\
 	(head_new),\
-	POBJ_LIST_LAST((head_new)).oid,\
+	POBJ_LIST_LAST((head_new), field_new).oid,\
 	0 /* after */, (elm).oid)
 
 #define	POBJ_LIST_MOVE_ELEMENT_AFTER(pop,\
