@@ -1082,7 +1082,7 @@ pmemobj_drain(PMEMobjpool *pop)
 /*
  * pmemobj_type_num -- returns type number of object
  */
-unsigned int
+int
 pmemobj_type_num(PMEMoid oid)
 {
 	LOG(3, "oid.off 0x%016jx", oid.off);

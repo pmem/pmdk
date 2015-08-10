@@ -150,6 +150,9 @@ test_alloc_api(PMEMobjpool *pop)
 			sizeof (struct dummy_node));
 
 	POBJ_FREE(&node_zeroed);
+
+	ASSERTeq(pmemobj_type_num(node_zeroed.oid), -1);
+	ASSERTeq(pmemobj_type_num(OID_NULL), -1);
 }
 
 void
@@ -232,6 +235,9 @@ test_list_api(PMEMobjpool *pop)
 	TOID(struct dummy_root) root;
 	root = POBJ_ROOT(pop, struct dummy_root);
 	int nodes_count = 0;
+
+	ASSERTeq(pmemobj_type_num(root.oid), POBJ_ROOT_TYPE_NUM);
+	ASSERTeq(TOID_TYPE_NUM_OF(root), POBJ_ROOT_TYPE_NUM);
 
 	TOID(struct dummy_node) iter;
 	POBJ_LIST_FOREACH_REVERSE(iter, &D_RO(root)->dummies, plist) {

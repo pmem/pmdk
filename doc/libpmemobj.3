@@ -37,7 +37,7 @@
 .\" or
 .\"	groff -man -Tascii libpmemobj.3
 .\"
-.TH libpmemobj 3 "pmemobj API version 0.4.10" "NVM Library"
+.TH libpmemobj 3 "pmemobj API version 0.4.11" "NVM Library"
 .SH NAME
 libpmemobj \- persistent memory transactional object store
 .SH SYNOPSIS
@@ -145,7 +145,7 @@ libpmemobj \- persistent memory transactional object store
 .BI "size_t pmemobj_alloc_usable_size(PMEMoid " oid );
 .BI "PMEMobjpool *pmemobj_pool(PMEMoid " oid );
 .BI "void *pmemobj_direct(PMEMoid " oid );
-.BI "unsigned int pmemobj_type_num(PMEMoid " oid );
+.BI "int pmemobj_type_num(PMEMoid " oid );
 .sp
 .BI "POBJ_NEW(PMEMobjpool *" pop ", TOID *" oidp ", " TYPE ,
 .BI "    void (*" constructor ")(PMEMobjpool *" pop ", void *" ptr ", void *" arg ),
@@ -988,6 +988,14 @@ The
 function returns a pointer to an object represented by
 .IR oid .
 If OID_NULL is passed as an argument, function returns NULL.
+.PP
+.BI "int pmemobj_type_num(PMEMoid " oid );
+.IP
+The
+.BR pmemobj_type_num ()
+function returns a type number of the object represented by
+.IR oid .
+If OID_NULL is passed as an argument, function returns -1.
 .PP
 .BI "PMEMobjpool *pmemobj_pool(PMEMoid " oid );
 .IP
@@ -2605,7 +2613,7 @@ The
 function performs the actions associated with current stage of the transaction,
 and makes the transition to the next stage.  Current stage must always
 be obtained by a call to
-.BR pmemobj_tx_get_stage ().
+.BR pmemobj_tx_stage ().
 If successful, function returns zero.  Otherwise, an error number is returned.
 .PP
 .BI "int pmemobj_tx_add_range(PMEMoid " oid ", uint64_t " off ", size_t " size );
