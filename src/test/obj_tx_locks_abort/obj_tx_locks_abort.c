@@ -39,7 +39,7 @@
 
 #define	LAYOUT_NAME "locks"
 
-TOID_DECLARE(struct root_obj, POBJ_ROOT_TYPE_NUM);
+TOID_DECLARE_ROOT(struct root_obj);
 TOID_DECLARE(struct obj, 1);
 
 struct root_obj {
