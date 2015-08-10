@@ -153,6 +153,80 @@ test_alloc_api(PMEMobjpool *pop)
 }
 
 void
+test_realloc_api(PMEMobjpool *pop)
+{
+	PMEMoid oid = OID_NULL;
+	int ret;
+
+	ret = pmemobj_alloc(pop, &oid, 128, 0, NULL, NULL);
+	ASSERTeq(ret, 0);
+	ASSERT(!OID_IS_NULL(oid));
+	OUT("alloc: %u, size: %zu", 128,
+			pmemobj_alloc_usable_size(oid));
+
+	/* grow */
+	ret = pmemobj_realloc(pop, &oid, 655360, 0);
+	ASSERTeq(ret, 0);
+	ASSERT(!OID_IS_NULL(oid));
+	OUT("realloc: %u => %u, size: %zu", 128, 655360,
+			pmemobj_alloc_usable_size(oid));
+
+	/* shrink */
+	ret = pmemobj_realloc(pop, &oid, 1, 0);
+	ASSERTeq(ret, 0);
+	ASSERT(!OID_IS_NULL(oid));
+	OUT("realloc: %u => %u, size: %zu", 655360, 1,
+			pmemobj_alloc_usable_size(oid));
+
+	/* free */
+	ret = pmemobj_realloc(pop, &oid, 0, 0);
+	ASSERTeq(ret, 0);
+	ASSERT(OID_IS_NULL(oid));
+	OUT("free");
+
+	/* alloc */
+	ret = pmemobj_realloc(pop, &oid, 777, 0);
+	ASSERTeq(ret, 0);
+	ASSERT(!OID_IS_NULL(oid));
+	OUT("realloc: %u => %u, size: %zu", 0, 777,
+			pmemobj_alloc_usable_size(oid));
+
+	/* shrink */
+	ret = pmemobj_realloc(pop, &oid, 1, 0);
+	ASSERTeq(ret, 0);
+	ASSERT(!OID_IS_NULL(oid));
+	OUT("realloc: %u => %u, size: %zu", 777, 1,
+			pmemobj_alloc_usable_size(oid));
+
+	pmemobj_free(&oid);
+	ASSERT(OID_IS_NULL(oid));
+	OUT("free");
+
+	/* alloc */
+	ret = pmemobj_realloc(pop, &oid, 1, 0);
+	ASSERTeq(ret, 0);
+	ASSERT(!OID_IS_NULL(oid));
+	OUT("realloc: %u => %u, size: %zu", 0, 1,
+			pmemobj_alloc_usable_size(oid));
+
+	/* do nothing */
+	ret = pmemobj_realloc(pop, &oid, 1, 0);
+	ASSERTeq(ret, 0);
+	ASSERT(!OID_IS_NULL(oid));
+	OUT("realloc: %u => %u, size: %zu", 1, 1,
+			pmemobj_alloc_usable_size(oid));
+
+	pmemobj_free(&oid);
+	ASSERT(OID_IS_NULL(oid));
+	OUT("free");
+
+	/* do nothing */
+	ret = pmemobj_realloc(pop, &oid, 0, 0);
+	ASSERTeq(ret, 0);
+	ASSERT(OID_IS_NULL(oid));
+}
+
+void
 test_list_api(PMEMobjpool *pop)
 {
 	TOID(struct dummy_root) root;
@@ -290,6 +364,7 @@ main(int argc, char *argv[])
 		FATAL("!pmemobj_create: %s", path);
 
 	test_alloc_api(pop);
+	test_realloc_api(pop);
 	test_list_api(pop);
 	test_tx_api(pop);
 
