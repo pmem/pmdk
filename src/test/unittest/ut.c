@@ -418,16 +418,7 @@ ut_fatal(const char *file, int line, const char *func,
 
 	va_end(ap);
 
-	if (Outfp != NULL)
-		fclose(Outfp);
-
-	if (Errfp != NULL)
-		fclose(Errfp);
-
-	if (Tracefp != NULL)
-		fclose(Tracefp);
-
-	exit(1);
+	abort();
 }
 
 /*
