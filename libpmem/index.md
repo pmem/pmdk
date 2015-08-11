@@ -82,7 +82,7 @@ given a non-pmem file.  Your program could decide to print an error
 message and exit (for example: "ERROR: This program only works on pmem").
 But it seems more likely you will want to save the result of
 `pmem_is_pmem()` as shown above, and then use that flag to decide
-how what to do when flushing changes to persistence as later in
+what to do when flushing changes to persistence as later in
 this example program.
 
 <code data-gist-id='andyrudoff/15bda69da7fe77e8469b' data-gist-file='manpage.c' data-gist-line='79-80' data-gist-highlight-line='80' data-gist-hide-footer='true'></code>
@@ -138,7 +138,7 @@ instead of calling `msync(2)` directly.  For convenience, the
 the arguments are aligned, as requirement of POSIX.
 
 Buildable source for the
-[libpmem manpage.c](https://github.com/pmem/nvml/tree/master/examples/libpmem)
+[libpmem manpage.c](https://github.com/pmem/nvml/tree/master/src/examples/libpmem)
 example above is available in the NVML repository.
 
 **Copying to Persistent Memory**
@@ -160,7 +160,7 @@ used just like `memcpy(3)` except that when the destination is pmem,
 libpmem handles flushing the data to persistence as part of the copy.
 
 Buildable source for the
-[libpmem simple_copy.c](https://github.com/pmem/nvml/tree/master/examples/libpmem)
+[libpmem simple_copy.c](https://github.com/pmem/nvml/tree/master/src/examples/libpmem)
 example above is available in the NVML repository.
 
 **Separating the Flush Steps**
@@ -191,5 +191,5 @@ rather than waiting for the hardware queues to drain each time, that
 step is saved until the end, as shown on line 75 above.
 
 Buildable source for the
-[libpmem full_copy.c](https://github.com/pmem/nvml/tree/master/examples/libpmem)
+[libpmem full_copy.c](https://github.com/pmem/nvml/tree/master/src/examples/libpmem)
 example above is available in the NVML repository.
