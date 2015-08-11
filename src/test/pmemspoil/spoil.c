@@ -638,13 +638,19 @@ pmemspoil_process_pool_hdr(struct pmemspoil *psp,
 
 	PROCESS_BEGIN(psp, pfp) {
 		PROCESS_FIELD(&pool_hdr, signature, char);
+		PROCESS_FIELD(&pool_hdr, poolset_uuid, char);
 		PROCESS_FIELD(&pool_hdr, uuid, char);
+		PROCESS_FIELD(&pool_hdr, prev_part_uuid, char);
+		PROCESS_FIELD(&pool_hdr, next_part_uuid, char);
+		PROCESS_FIELD(&pool_hdr, prev_repl_uuid, char);
+		PROCESS_FIELD(&pool_hdr, next_repl_uuid, char);
 		PROCESS_FIELD(&pool_hdr, unused, char);
 		PROCESS_FIELD(&pool_hdr, major, uint32_t);
 		PROCESS_FIELD(&pool_hdr, compat_features, uint32_t);
 		PROCESS_FIELD(&pool_hdr, incompat_features, uint32_t);
 		PROCESS_FIELD(&pool_hdr, ro_compat_features, uint32_t);
 		PROCESS_FIELD(&pool_hdr, crtime, uint64_t);
+		PROCESS_FIELD(&pool_hdr, arch_flags, char);
 		PROCESS_FIELD(&pool_hdr, checksum, uint64_t);
 	} PROCESS_END
 
