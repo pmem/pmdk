@@ -191,7 +191,7 @@ main(int argc, char *argv[])
 
 	pmemblk_close(handle);
 
-	int result = pmemblk_check(path);
+	int result = pmemblk_check(path, Bsize);
 	if (result < 0)
 		OUT("!%s: pmemblk_check", path);
 	else if (result == 0)

@@ -144,7 +144,7 @@ main(int argc, char *argv[])
 	pmemblk_close(Handle);
 
 	/* XXX not ready to pass this part of the test yet */
-	int result = pmemblk_check(path);
+	int result = pmemblk_check(path, Bsize);
 	if (result < 0)
 		OUT("!%s: pmemblk_check", path);
 	else if (result == 0)
