@@ -241,17 +241,15 @@ test_list_api(PMEMobjpool *pop)
 
 	ASSERTeq(nodes_count, 0);
 
-	int *test_val = MALLOC(sizeof (*test_val));
-	*test_val = TEST_VALUE;
+	int test_val = TEST_VALUE;
 
 	POBJ_LIST_INSERT_NEW_HEAD(pop, &D_RW(root)->dummies, plist,
 			sizeof (struct dummy_node), dummy_node_constructor,
-			test_val);
+			&test_val);
 	POBJ_LIST_INSERT_NEW_TAIL(pop, &D_RW(root)->dummies, plist,
 			sizeof (struct dummy_node), dummy_node_constructor,
-			test_val);
+			&test_val);
 
-	FREE(test_val);
 
 	TOID(struct dummy_node) node;
 	POBJ_ZNEW(pop, &node, struct dummy_node);
@@ -297,12 +295,12 @@ test_list_api(PMEMobjpool *pop)
 	POBJ_LIST_INSERT_NEW_AFTER(pop, &D_RW(root)->dummies,
 		POBJ_LIST_FIRST(&D_RO(root)->dummies), plist,
 		sizeof (struct dummy_node), dummy_node_constructor,
-		test_val);
+		&test_val);
 
 	POBJ_LIST_INSERT_NEW_BEFORE(pop, &D_RW(root)->dummies,
 		POBJ_LIST_LAST(&D_RO(root)->dummies, plist), plist,
 		sizeof (struct dummy_node), dummy_node_constructor,
-		test_val);
+		&test_val);
 
 	nodes_count = 0;
 	POBJ_LIST_FOREACH_REVERSE(iter, &D_RO(root)->dummies, plist) {

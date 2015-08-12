@@ -15,4 +15,8 @@ dummy_node 5
 dummy_node 5
 reverse dummy_node 5
 reverse dummy_node 5
+reverse dummy_node 5
+reverse dummy_node 5
+reverse dummy_node 5
+reverse dummy_node 5
 obj_basic_integration/TEST0: Done
