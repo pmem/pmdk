@@ -648,6 +648,12 @@ obj_alloc_construct(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 		return -1;
 	}
 
+	if (size > PMEMOBJ_MAX_ALLOC_SIZE) {
+		ERR("requested size too large");
+		errno = ENOMEM;
+		return -1;
+	}
+
 	struct list_head *lhead = &pop->store->bytype[type_num].head;
 	struct carg_bytype carg;
 
@@ -774,6 +780,12 @@ obj_realloc_common(PMEMobjpool *pop, struct object_store *store,
 
 		return obj_alloc_construct(pop, oidp, size, type_num,
 						constr_alloc, &carg);
+	}
+
+	if (size > PMEMOBJ_MAX_ALLOC_SIZE) {
+		ERR("requested size too large");
+		errno = ENOMEM;
+		return -1;
 	}
 
 	/* if size is 0 just free */
@@ -1194,6 +1206,12 @@ pmemobj_root(PMEMobjpool *pop, size_t size)
 {
 	LOG(3, "pop %p size %zu", pop, size);
 
+	if (size > PMEMOBJ_MAX_ALLOC_SIZE) {
+		ERR("requested size too large");
+		errno = ENOMEM;
+		return OID_NULL;
+	}
+
 	PMEMoid root;
 
 	pmemobj_mutex_lock(pop, &pop->rootlock);
@@ -1304,6 +1322,12 @@ pmemobj_list_insert_new(PMEMobjpool *pop, size_t pe_offset, void *head,
 		ERR("!pmemobj_list_insert_new");
 		LOG(2, "type_num has to be in range [0, %i]",
 		    PMEMOBJ_NUM_OID_TYPES - 1);
+		return OID_NULL;
+	}
+
+	if (size > PMEMOBJ_MAX_ALLOC_SIZE) {
+		ERR("requested size too large");
+		errno = ENOMEM;
 		return OID_NULL;
 	}
 

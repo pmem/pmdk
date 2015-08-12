@@ -39,6 +39,7 @@
 
 #define	MAX_CHUNK (UINT16_MAX - 7) /* has to be multiple of 8 */
 #define	CHUNKSIZE (1024L * 256)	/* 256 kilobytes */
+#define	MAX_MEMORY_BLOCK_SIZE (MAX_CHUNK * CHUNKSIZE)
 #define	HEAP_SIGNATURE_LEN 16
 #define	HEAP_SIGNATURE "MEMORY_HEAP_HDR\0"
 #define	ZONE_HEADER_MAGIC 0xC3F0A2D2

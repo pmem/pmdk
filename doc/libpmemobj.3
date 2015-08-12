@@ -968,7 +968,10 @@ In practice, such a handle is a unique Object IDentifier (OID) of a global
 scope, which means that two objects from different pools may not have the
 same OID.  The special
 .I OID_NULL
-macro defines a NULL-like handle that does not represent any object.
+macro defines a NULL-like handle that does not represent any object. The size
+of a single object is limited by a
+.IR PMEMOBJ_MAX_ALLOC_SIZE .
+Thus an allocation with requested size greater than this value will fail.
 .PP
 An OID cannot be considered as a direct pointer to an object.  Each time the
 program attempts to read or write object data, it must obtain the current
