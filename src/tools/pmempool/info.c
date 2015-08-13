@@ -211,6 +211,11 @@ static const struct option_requirement option_requirements[] = {
 	{
 		.opt	= 'b',
 		.type	= PMEM_POOL_TYPE_OBJ,
+		.req	= OPT_REQ0('H')
+	},
+	{
+		.opt	= 'b',
+		.type	= PMEM_POOL_TYPE_OBJ,
 		.req	= OPT_REQ0('C')
 	},
 	{
