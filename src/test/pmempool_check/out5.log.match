@@ -2,8 +2,6 @@ Creating pmem blk pool with block size 512.0M
 Writing BTT layout using block 0.
 checking pool header
 incorrect pool header checksum
-pool_hdr.crtime is not valid
-setting pool_hdr.crtime to file's modtime: $(*)
 setting pool_hdr.uuid to: $(*)
 setting pool_hdr.checksum to: $(*)
 checking pmemblk header

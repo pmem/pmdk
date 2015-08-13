@@ -200,6 +200,23 @@ pmempool_check_nssync(void *ns, int lane, void *addr, size_t len)
 }
 
 /*
+ * pmempool_check_nszero -- btt callback for zeroing memory
+ */
+static int
+pmempool_check_nszero(void *ns, int lane, size_t len, off_t off)
+{
+	struct btt_context *nsc = (struct btt_context *)ns;
+
+	if (off + len >= nsc->len) {
+		errno = EINVAL;
+		return -1;
+	}
+	memset(nsc->addr + off, 0, len);
+
+	return 0;
+}
+
+/*
  * list_item -- item for simple list
  */
 struct list_item {
@@ -280,7 +297,8 @@ struct ns_callback pmempool_check_btt_ns_callback = {
 	.nsread = pmempool_check_nsread,
 	.nswrite = pmempool_check_nswrite,
 	.nsmap = pmempool_check_nsmap,
-	.nssync = pmempool_check_nssync
+	.nssync = pmempool_check_nssync,
+	.nszero = pmempool_check_nszero,
 };
 
 /*
