@@ -768,6 +768,10 @@ obj_realloc_common(PMEMobjpool *pop, struct object_store *store,
 		struct carg_alloc carg;
 		carg.size = size;
 
+		/* if size is 0 - do nothing */
+		if (size == 0)
+			return 0;
+
 		return obj_alloc_construct(pop, oidp, size, type_num,
 						constr_alloc, &carg);
 	}

@@ -1,0 +1,22 @@
+obj_basic_integration/TEST1: START: obj_basic_integration
+ ./obj_basic_integration$(nW) $(nW)/testfile1
+alloc: 128, size: 192
+realloc: 128 => 655360, size: 786368
+realloc: 655360 => 1, size: 786368
+free
+realloc: 0 => 777, size: 960
+realloc: 777 => 1, size: 960
+free
+realloc: 0 => 1, size: 64
+realloc: 1 => 1, size: 64
+free
+dummy_node 0
+dummy_node 5
+dummy_node 5
+reverse dummy_node 5
+reverse dummy_node 5
+reverse dummy_node 5
+reverse dummy_node 5
+reverse dummy_node 5
+reverse dummy_node 5
+obj_basic_integration/TEST1: Done

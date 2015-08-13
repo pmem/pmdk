@@ -46,4 +46,6 @@ expect_normal_exit\
     --log-file=valgrind$UNITTEST_NUM.log\
     ./obj_basic_integration$EXESUFFIX $DIR/testfile1
 
+check
+
 pass
