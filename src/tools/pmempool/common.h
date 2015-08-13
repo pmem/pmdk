@@ -187,6 +187,8 @@ char ask_yn(char op, char def_ans, const char *fmt, va_list ap);
 char ask_Yn(char op, const char *fmt, ...);
 char ask_yN(char op, const char *fmt, ...);
 int util_heap_max_zone(size_t size);
+int util_heap_get_bitmap_params(uint64_t block_size, uint64_t *nallocsp,
+		uint64_t *nvalsp, uint64_t *last_valp);
 size_t util_plist_nelements(struct pmemobjpool *pop, struct list_head *headp);
 struct list_entry *util_plist_get_entry(struct pmemobjpool *pop,
 	struct list_head *headp, size_t n);
