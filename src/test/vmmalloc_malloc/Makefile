@@ -37,5 +37,3 @@ TARGET = vmmalloc_malloc
 OBJS = vmmalloc_malloc.o
 
 include ../Makefile.inc
-
-vmmalloc_malloc.o: vmmalloc_malloc.c

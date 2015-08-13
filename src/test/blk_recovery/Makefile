@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2014, Intel Corporation
+# Copyright (c) 2014-2015, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -42,5 +42,3 @@ LIBPMEMBLK=y
 
 include ../Makefile.inc
 CFLAGS += -I../../common -I../../libpmemblk
-
-blk_recovery.o: blk_recovery.c

@@ -46,5 +46,4 @@ CFLAGS += -g -DDEBUG
 LDFLAGS += $(call extract_funcs, obj_list.c)
 INCS += -I../../libpmemobj/ -I../../common/
 
-obj_list.o: obj_list.c
 out.o: CFLAGS += -DDEBUG -DSRCVERSION=\"utversion\"

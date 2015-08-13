@@ -50,5 +50,3 @@ libtest_clean:
 
 LIBS += -ldl
 CFLAGS += -Wno-deprecated-declarations
-
-vmmalloc_init.o: vmmalloc_init.c

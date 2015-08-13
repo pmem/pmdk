@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2014, Intel Corporation
+# Copyright (c) 2014-2015, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -40,5 +40,3 @@ LIBPMEM=y
 LIBPMEMBLK=y
 
 include ../Makefile.inc
-
-blk_rw_mt.o: blk_rw_mt.c

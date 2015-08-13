@@ -41,5 +41,3 @@ LIBPMEM=y
 LIBPMEMOBJ=y
 
 include ../Makefile.inc
-
-pmemalloc.o: pmemalloc.c

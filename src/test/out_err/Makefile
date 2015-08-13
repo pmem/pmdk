@@ -45,7 +45,3 @@ include ../Makefile.inc
 
 #Test debug output
 CFLAGS += -DDEBUG -I../../common
-
-out_err.o: out_err.c
-
-out.o: out.c

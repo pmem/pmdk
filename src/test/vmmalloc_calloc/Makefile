@@ -40,5 +40,3 @@ include ../Makefile.inc
 
 INCS += -I../../jemalloc/include/
 INCS += -I../../nondebug/jemalloc/include/
-
-vmmalloc_calloc.o: vmmalloc_calloc.c

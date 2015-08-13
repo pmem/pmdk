@@ -50,5 +50,3 @@ LDFLAGS += $(call extract_funcs, obj_store_mocks.c)
 INCS += -I../../libpmemobj/ -I../../common/
 
 out.o: CFLAGS += -DDEBUG -DSRCVERSION=\"utversion\"
-obj_store_mocks.o: obj_store_mocks.c
-obj_store.o: obj_store.c obj_store_mocks.c

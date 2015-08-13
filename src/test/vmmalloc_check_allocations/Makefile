@@ -37,5 +37,3 @@ TARGET = vmmalloc_check_allocations
 OBJS = vmmalloc_check_allocations.o
 
 include ../Makefile.inc
-
-vmmalloc_check_allocations.o: vmmalloc_check_allocations.c

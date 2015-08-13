@@ -38,5 +38,3 @@ OBJS = vmmalloc_valgrind.o
 
 include ../Makefile.inc
 
-vmmalloc_valgrind.o: vmmalloc_valgrind.c
-

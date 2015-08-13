@@ -44,5 +44,3 @@ BUILD_STATIC_NONDEBUG=n
 include ../Makefile.inc
 
 CFLAGS += -DDEBUG
-
-obj_debug.o : obj_debug.c
