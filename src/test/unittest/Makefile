@@ -44,7 +44,12 @@ $(TARGET): $(OBJS)
 	$(AR) rv $@ $(OBJS)
 
 .c.o:
-	$(CC) -c $(CFLAGS) $(INCS) $(COMMONINCS) $< -o $@
+	@mkdir -p .deps
+	$(CC) -MD -c $(CFLAGS) $(INCS) $(COMMONINCS) $< -o $@
+	@cp $*.d .deps/$*.P; \
+	sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
+	    -e '/^$$/ d' -e 's/$$/ :/' < $*.d >> .deps/$*.P; \
+	rm -f $*.d
 
 clean:
 	$(RM) *.o core a.out
@@ -54,15 +59,8 @@ cstyle:
 
 clobber: clean
 	$(RM) $(TARGET)
+	$(RM) -d .deps/*.P .deps
 
 .PHONY: all test clean clobber cstyle
 
-ut.o: ut.c unittest.h
-
-ut_alloc.o: ut_alloc.c unittest.h
-
-ut_file.o: ut_file.c unittest.h
-
-ut_pthread.o: ut_pthread.c unittest.h
-
-ut_signal.o: ut_file.c unittest.h
+-include .deps/*.P

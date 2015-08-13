@@ -114,13 +114,19 @@ $(TARGET): $(OBJS) $(EXTRA_DEPS)
 	$(CC) -o $@ $(LDFLAGS) $(OBJS) $(DYNAMIC_LIBS) $(LIBS)
 
 .c.o:
-	$(CC) -c $(CFLAGS) $(INCS) $< -o $@
+	@mkdir -p .deps
+	$(CC) -MD -c $(CFLAGS) $(INCS) $< -o $@
+	@cp $*.d .deps/$*.P; \
+	sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
+	    -e '/^$$/ d' -e 's/$$/ :/' < $*.d >> .deps/$*.P; \
+	rm -f $*.d
 
 clean:
 	$(RM) *.o */*.o core a.out *.log testfile*
 
 clobber: clean
 	$(RM) $(TARGET) $(TARGET_STATIC_DEBUG) $(TARGET_STATIC_NONDEBUG)
+	$(RM) -d .deps/*.P .deps
 
 cstyle:
 ifneq ($(TARGET),)
@@ -129,4 +135,4 @@ endif
 
 .PHONY: all clean clobber cstyle
 
-$(OBJS): ../unittest/unittest.h
+-include .deps/*.P

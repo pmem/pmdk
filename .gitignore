@@ -11,3 +11,4 @@ rpmbuild/
 dpkgbuild/
 rpm/
 dpkg/
+.deps
