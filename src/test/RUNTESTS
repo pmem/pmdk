@@ -62,8 +62,12 @@ EOF
 #
 runtest() {
 	export UNITTEST_QUIET=1
-	[ -x "$1/TEST0" ] || {
+	[ -f "$1/TEST0" ] || {
 		echo FAIL: $1: test not found.
+		exit 1
+	}
+	[ -x "$1/TEST0" ] || {
+		echo FAIL: $1: test not executable.
 		exit 1
 	}
 
