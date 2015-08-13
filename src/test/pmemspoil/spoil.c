@@ -148,7 +148,20 @@ if (pmemspoil_check_field(_pfp, (_name))) {\
 		pmemspoil_next_field(_pfp);\
 		if (pmemspoil_process_##_type(_psp, _pfp,\
 				(_type *)&((_ptr)->_name),\
-				sizeof ((_ptr)->_name)))\
+				sizeof ((_ptr)->_name), 0))\
+			PROCESS_STATE = PROCESS_STATE_ERROR_MSG;\
+		else\
+			PROCESS_STATE = PROCESS_STATE_FIELD;\
+		goto _process_end;\
+	}\
+} while (0)
+
+#define	PROCESS_FIELD_LE(_ptr, _name, _type) do {\
+	if (pmemspoil_check_field(_pfp, STR(_name))) {\
+		pmemspoil_next_field(_pfp);\
+		if (pmemspoil_process_##_type(_psp, _pfp,\
+				(_type *)&((_ptr)->_name),\
+				sizeof ((_ptr)->_name), 1))\
 			PROCESS_STATE = PROCESS_STATE_ERROR_MSG;\
 		else\
 			PROCESS_STATE = PROCESS_STATE_FIELD;\
@@ -180,7 +193,7 @@ if (pmemspoil_check_field(_pfp, STR(_name))) {\
 		pmemspoil_next_field(_pfp);\
 		if (pmemspoil_process_##_type(_psp, _pfp,\
 				(_type *)&((_ptr)->_name[ind]),\
-				sizeof ((_ptr)->_name)))\
+				sizeof ((_ptr)->_name), 0))\
 			PROCESS_STATE = PROCESS_STATE_ERROR_MSG;\
 		else\
 			PROCESS_STATE = PROCESS_STATE_FIELD;\
@@ -535,7 +548,7 @@ pmemspoil_next_field(struct pmemspoil_list *pfp)
  */
 static int
 pmemspoil_process_char(struct pmemspoil *psp, struct pmemspoil_list *pfp,
-		char *str, size_t len)
+		char *str, size_t len, int le)
 {
 	len = min(len, strlen(pfp->value));
 	memcpy(str, pfp->value, len);
@@ -548,13 +561,16 @@ pmemspoil_process_char(struct pmemspoil *psp, struct pmemspoil_list *pfp,
  */
 static int
 pmemspoil_process_uint16_t(struct pmemspoil *psp, struct pmemspoil_list *pfp,
-		uint16_t *valp, size_t size)
+		uint16_t *valp, size_t size, int le)
 {
 	uint16_t v;
 	if (sscanf(pfp->value, "0x%" SCNx16, &v) != 1 &&
 	    sscanf(pfp->value, "%" SCNu16, &v) != 1)
 		return -1;
-	*valp = v;
+	if (le)
+		*valp = htole16(v);
+	else
+		*valp = v;
 
 	return 0;
 }
@@ -564,13 +580,16 @@ pmemspoil_process_uint16_t(struct pmemspoil *psp, struct pmemspoil_list *pfp,
  */
 static int
 pmemspoil_process_uint32_t(struct pmemspoil *psp, struct pmemspoil_list *pfp,
-		uint32_t *valp, size_t size)
+		uint32_t *valp, size_t size, int le)
 {
 	uint32_t v;
 	if (sscanf(pfp->value, "0x%" SCNx32, &v) != 1 &&
 	    sscanf(pfp->value, "%" SCNu32, &v) != 1)
 		return -1;
-	*valp = v;
+	if (le)
+		*valp = htole32(v);
+	else
+		*valp = v;
 
 	return 0;
 }
@@ -580,13 +599,16 @@ pmemspoil_process_uint32_t(struct pmemspoil *psp, struct pmemspoil_list *pfp,
  */
 static int
 pmemspoil_process_uint64_t(struct pmemspoil *psp, struct pmemspoil_list *pfp,
-		uint64_t *valp, size_t size)
+		uint64_t *valp, size_t size, int le)
 {
 	uint64_t v;
 	if (sscanf(pfp->value, "0x%" SCNx64, &v) != 1 &&
 	    sscanf(pfp->value, "%" SCNu64, &v) != 1)
 		return -1;
-	*valp = v;
+	if (le)
+		*valp = htole64(v);
+	else
+		*valp = v;
 
 	return 0;
 }
@@ -597,7 +619,7 @@ pmemspoil_process_uint64_t(struct pmemspoil *psp, struct pmemspoil_list *pfp,
 static int
 pmemspoil_process_chunk_type_t(struct pmemspoil *psp,
 		struct pmemspoil_list *pfp,
-		enum chunk_type *valp, size_t size)
+		enum chunk_type *valp, size_t size, int le)
 {
 	uint64_t types = 0;
 	if (util_parse_chunk_types(pfp->value, &types))
@@ -606,6 +628,7 @@ pmemspoil_process_chunk_type_t(struct pmemspoil *psp,
 	if (util_count_ones(types) != 1)
 		return -1;
 
+	/* ignore 'le' */
 	*valp = (enum chunk_type)(__builtin_ffsll(types) - 1);
 
 	return 0;
@@ -617,13 +640,14 @@ pmemspoil_process_chunk_type_t(struct pmemspoil *psp,
 static int
 pmemspoil_process_PMEMoid(struct pmemspoil *psp,
 		struct pmemspoil_list *pfp,
-		PMEMoid *valp, size_t size)
+		PMEMoid *valp, size_t size, int le)
 {
 	PMEMoid v;
 	if (sscanf(pfp->value, "0x%" SCNx64 ",0x%" SCNx64,
 		&v.pool_uuid_lo, &v.off) != 2)
 		return -1;
 
+	/* ignore 'le' */
 	*valp = v;
 
 	return 0;
@@ -637,9 +661,6 @@ pmemspoil_process_checksum_gen(struct pmemspoil *psp,
 		struct pmemspoil_list *pfp, struct checksum_args args)
 {
 	util_checksum(args.ptr, args.len, args.checksum, 1);
-	uint64_t csum = le64toh(*(uint64_t *)args.checksum);
-	*(uint64_t *)args.checksum = csum;
-	outv(2, "checksum: 0x%llx\n", csum);
 	return 0;
 }
 
@@ -655,7 +676,6 @@ pmemspoil_process_pool_hdr(struct pmemspoil *psp,
 			sizeof (pool_hdr)) {
 		return -1;
 	}
-	util_convert2h_pool_hdr(&pool_hdr);
 
 	PROCESS_BEGIN(psp, pfp) {
 		struct checksum_args checksum_args = {
@@ -672,20 +692,19 @@ pmemspoil_process_pool_hdr(struct pmemspoil *psp,
 		PROCESS_FIELD(&pool_hdr, prev_repl_uuid, char);
 		PROCESS_FIELD(&pool_hdr, next_repl_uuid, char);
 		PROCESS_FIELD(&pool_hdr, unused, char);
-		PROCESS_FIELD(&pool_hdr, major, uint32_t);
-		PROCESS_FIELD(&pool_hdr, compat_features, uint32_t);
-		PROCESS_FIELD(&pool_hdr, incompat_features, uint32_t);
-		PROCESS_FIELD(&pool_hdr, ro_compat_features, uint32_t);
-		PROCESS_FIELD(&pool_hdr, crtime, uint64_t);
-		PROCESS_FIELD(&pool_hdr, arch_flags, char);
-		PROCESS_FIELD(&pool_hdr, checksum, uint64_t);
+		PROCESS_FIELD_LE(&pool_hdr, major, uint32_t);
+		PROCESS_FIELD_LE(&pool_hdr, compat_features, uint32_t);
+		PROCESS_FIELD_LE(&pool_hdr, incompat_features, uint32_t);
+		PROCESS_FIELD_LE(&pool_hdr, ro_compat_features, uint32_t);
+		PROCESS_FIELD_LE(&pool_hdr, crtime, uint64_t);
+		PROCESS_FIELD(&pool_hdr, arch_flags, char); /* XXX */
+		PROCESS_FIELD_LE(&pool_hdr, checksum, uint64_t);
 
 		PROCESS_FUNC("checksum_gen", checksum_gen, checksum_args);
 	} PROCESS_END
 
 	if (PROCESS_STATE == PROCESS_STATE_FIELD ||
 	    PROCESS_STATE == PROCESS_STATE_FUNC) {
-		util_convert2le_pool_hdr(&pool_hdr);
 		if (pwrite(psp->fd, &pool_hdr, sizeof (pool_hdr), 0) !=
 				sizeof (pool_hdr)) {
 			return -1;
@@ -709,32 +728,28 @@ pmemspoil_process_btt_info_struct(struct pmemspoil *psp,
 		return -1;
 	}
 
-	util_convert2h_btt_info(&btt_info);
-
 	PROCESS_BEGIN(psp, pfp) {
 		PROCESS_FIELD(&btt_info, sig, char);
 		PROCESS_FIELD(&btt_info, parent_uuid, char);
-		PROCESS_FIELD(&btt_info, flags, uint32_t);
-		PROCESS_FIELD(&btt_info, major, uint16_t);
-		PROCESS_FIELD(&btt_info, minor, uint16_t);
-		PROCESS_FIELD(&btt_info, external_lbasize, uint32_t);
-		PROCESS_FIELD(&btt_info, external_nlba, uint32_t);
-		PROCESS_FIELD(&btt_info, internal_lbasize, uint32_t);
-		PROCESS_FIELD(&btt_info, internal_nlba, uint32_t);
-		PROCESS_FIELD(&btt_info, nfree, uint32_t);
-		PROCESS_FIELD(&btt_info, infosize, uint32_t);
-		PROCESS_FIELD(&btt_info, nextoff, uint64_t);
-		PROCESS_FIELD(&btt_info, dataoff, uint64_t);
-		PROCESS_FIELD(&btt_info, mapoff, uint64_t);
-		PROCESS_FIELD(&btt_info, flogoff, uint64_t);
-		PROCESS_FIELD(&btt_info, infooff, uint64_t);
+		PROCESS_FIELD_LE(&btt_info, flags, uint32_t);
+		PROCESS_FIELD_LE(&btt_info, major, uint16_t);
+		PROCESS_FIELD_LE(&btt_info, minor, uint16_t);
+		PROCESS_FIELD_LE(&btt_info, external_lbasize, uint32_t);
+		PROCESS_FIELD_LE(&btt_info, external_nlba, uint32_t);
+		PROCESS_FIELD_LE(&btt_info, internal_lbasize, uint32_t);
+		PROCESS_FIELD_LE(&btt_info, internal_nlba, uint32_t);
+		PROCESS_FIELD_LE(&btt_info, nfree, uint32_t);
+		PROCESS_FIELD_LE(&btt_info, infosize, uint32_t);
+		PROCESS_FIELD_LE(&btt_info, nextoff, uint64_t);
+		PROCESS_FIELD_LE(&btt_info, dataoff, uint64_t);
+		PROCESS_FIELD_LE(&btt_info, mapoff, uint64_t);
+		PROCESS_FIELD_LE(&btt_info, flogoff, uint64_t);
+		PROCESS_FIELD_LE(&btt_info, infooff, uint64_t);
 		PROCESS_FIELD(&btt_info, unused, char);
-		PROCESS_FIELD(&btt_info, checksum, uint64_t);
+		PROCESS_FIELD_LE(&btt_info, checksum, uint64_t);
 	} PROCESS_END
 
 	if (PROCESS_STATE == PROCESS_STATE_FIELD) {
-		util_convert2le_btt_info(&btt_info);
-
 		if (pwrite(psp->fd, &btt_info, sizeof (btt_info), offset) !=
 			sizeof (btt_info)) {
 			return -1;
@@ -816,7 +831,6 @@ pmemspoil_process_btt_map(struct pmemspoil *psp,
 		ret = -1;
 	}
 
-
 	free(mapp);
 	return ret;
 }
@@ -852,36 +866,20 @@ pmemspoil_process_btt_nflog(struct pmemspoil *psp,
 		goto error;
 	}
 
-	struct btt_flog btt_flog;
-	uint8_t *flog_entryp = flogp +
-			pfp->head->next->index * BTT_FLOG_PAIR_ALIGN;
+	struct btt_flog *flog_entryp = (struct btt_flog *)(flogp +
+			pfp->head->next->index * BTT_FLOG_PAIR_ALIGN);
 	if (off)
-		flog_entryp += sizeof (btt_flog);
-
-	memcpy(&btt_flog, flog_entryp, sizeof (btt_flog));
-
-	util_convert2h_btt_flog(&btt_flog);
+		flog_entryp++;
 
 	PROCESS_BEGIN(psp, pfp) {
-		PROCESS_FIELD(&btt_flog, lba, uint32_t);
-		PROCESS_FIELD(&btt_flog, old_map, uint32_t);
-		PROCESS_FIELD(&btt_flog, new_map, uint32_t);
-		PROCESS_FIELD(&btt_flog, seq, uint32_t);
+		PROCESS_FIELD_LE(flog_entryp, lba, uint32_t);
+		PROCESS_FIELD_LE(flog_entryp, old_map, uint32_t);
+		PROCESS_FIELD_LE(flog_entryp, new_map, uint32_t);
+		PROCESS_FIELD_LE(flog_entryp, seq, uint32_t);
 	} PROCESS_END
 
 	if (PROCESS_STATE == PROCESS_STATE_FIELD) {
-		util_convert2le_btt_flog(&btt_flog);
-
-		memcpy(flog_entryp, &btt_flog, sizeof (btt_flog));
-
-		if (pwrite(psp->fd, flogp, flogsize, flogoff)
-				!= flogsize) {
-			ret = -1;
-			goto error;
-		}
-
-		if (pwrite(psp->fd, flogp, flogsize, flogoff) !=
-			flogsize) {
+		if (pwrite(psp->fd, flogp, flogsize, flogoff) != flogsize) {
 			ret = -1;
 			goto error;
 		}
@@ -947,11 +945,8 @@ pmemspoil_process_pmemblk(struct pmemspoil *psp,
 		return -1;
 	}
 
-	pmemblk.bsize = le32toh(pmemblk.bsize);
-
-
 	PROCESS_BEGIN(psp, pfp) {
-		PROCESS_FIELD(&pmemblk, bsize, uint32_t);
+		PROCESS_FIELD_LE(&pmemblk, bsize, uint32_t);
 
 		PROCESS(arena,
 			pmemspoil_get_arena_offset(psp, PROCESS_INDEX),
@@ -959,8 +954,6 @@ pmemspoil_process_pmemblk(struct pmemspoil *psp,
 	} PROCESS_END
 
 	if (PROCESS_STATE == PROCESS_STATE_FIELD) {
-		pmemblk.bsize = htole32(pmemblk.bsize);
-
 		if (pwrite(psp->fd, &pmemblk, sizeof (pmemblk), 0) !=
 				sizeof (pmemblk)) {
 			return -1;
@@ -983,21 +976,13 @@ pmemspoil_process_pmemlog(struct pmemspoil *psp,
 		return -1;
 	}
 
-	pmemlog.start_offset = le64toh(pmemlog.start_offset);
-	pmemlog.end_offset = le64toh(pmemlog.end_offset);
-	pmemlog.write_offset = le64toh(pmemlog.write_offset);
-
 	PROCESS_BEGIN(psp, pfp) {
-		PROCESS_FIELD(&pmemlog, start_offset, uint32_t);
-		PROCESS_FIELD(&pmemlog, end_offset, uint32_t);
-		PROCESS_FIELD(&pmemlog, write_offset, uint32_t);
+		PROCESS_FIELD_LE(&pmemlog, start_offset, uint32_t);
+		PROCESS_FIELD_LE(&pmemlog, end_offset, uint32_t);
+		PROCESS_FIELD_LE(&pmemlog, write_offset, uint32_t);
 	} PROCESS_END
 
 	if (PROCESS_STATE == PROCESS_STATE_FIELD) {
-		pmemlog.start_offset = htole64(pmemlog.start_offset);
-		pmemlog.end_offset = htole64(pmemlog.end_offset);
-		pmemlog.write_offset = htole64(pmemlog.write_offset);
-
 		if (pwrite(psp->fd, &pmemlog, sizeof (pmemlog), 0) !=
 				sizeof (pmemlog)) {
 			return -1;
