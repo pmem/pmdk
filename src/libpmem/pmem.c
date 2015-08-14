@@ -265,7 +265,6 @@ predrain_fence_empty(void)
 {
 	LOG(15, NULL);
 
-	VALGRIND_DO_FENCE;
 	/* nothing to do (because CLFLUSH did it for us) */
 }
 
@@ -855,6 +854,9 @@ memmove_nodrain_movnt(void *pmemdest, const void *src, size_t len)
 		}
 	}
 
+	/* serialize non-temporal store instructions */
+	predrain_fence_sfence();
+
 	return pmemdest;
 }
 
@@ -1015,6 +1017,9 @@ memset_nodrain_movnt(void *pmemdest, int c, size_t len)
 			pmem_flush(d32, cnt);
 		}
 	}
+
+	/* serialize non-temporal store instructions */
+	predrain_fence_sfence();
 
 	return pmemdest;
 }
