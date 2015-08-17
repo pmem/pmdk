@@ -263,10 +263,10 @@ libpmemobj \- persistent memory transactional object store
 .sp
 .BI "TX_BEGIN_LOCK(PMEMobjpool *" pop ", " ... )
 .BI "TX_BEGIN(PMEMobjpool *" pop )
-.BI "TX_ONABORT
-.BI "TX_ONCOMMIT
-.BI "TX_FINALLY
-.BI "TX_END
+.B TX_ONABORT
+.B TX_ONCOMMIT
+.B TX_FINALLY
+.B TX_END
 .sp
 .BI "TX_ADD(TOID " o )
 .BI "TX_ADD_FIELD(TOID " o ", " FIELD )
@@ -327,7 +327,7 @@ builds on this type of memory mapped file.
 This library is for applications that need a transactions
 and persistent memory management.
 The
-.BR libpmemobj
+.B libpmemobj
 requires a
 .B -std=gnu99
 compilation flag to build properly.
@@ -724,7 +724,7 @@ as described in
 and
 .BR pthread_cond (3).
 They provide semantics similar to standard
-.BR pthread
+.B pthread
 locks, except that they are considered initialized by zeroing them.
 So allocating the locks with
 .BR pmemobj_zalloc ()
@@ -1019,21 +1019,21 @@ section for more details.
 The maximum allowed
 .I type number
 value is limited by the
-.BR PMEMOBJ_NUM_OID_TYPES
+.B PMEMOBJ_NUM_OID_TYPES
 macro.  The only valid type numbers are those in the range
-.B "[0, PMEMOBJ_NUM_OID_TYPES-1]"
+.B [0, PMEMOBJ_NUM_OID_TYPES-1]
 and the special value
 .B POBJ_ROOT_TYPE_NUM
 reserved for the root object.
 .PP
 The
-.BR OID_IS_NULL
+.B OID_IS_NULL
 macro checks if given
 .I PMEMoid
 represents a NULL object.
 .PP
 The
-.BR OID_EQUALS
+.B OID_EQUALS
 macro compares two
 .I PMEMoid
 objects.
@@ -1079,9 +1079,9 @@ is the name of a user-defined structure. The typed OID must be declared first
 using the
 .BR TOID_DECLARE ,
 .BR TOID_DECLARE_ROOT ,
-.BR POBJ_LAYOUT_TOID
+.B POBJ_LAYOUT_TOID
 or
-.BR POBJ_LAYOUT_ROOT
+.B POBJ_LAYOUT_ROOT
 macros.
 .PP
 .BI "TOID_TYPE_NUM(" TYPE )
@@ -1462,7 +1462,7 @@ The allocations are always aligned to the cache-line boundary.
 .BI "    void *" ptr ", void *" arg "), void *" arg );
 .IP
 The
-.BR pmemobj_alloc
+.B pmemobj_alloc
 function allocates a new object from the persistent memory heap
 associated with memory pool
 .IR pop .
@@ -1477,7 +1477,7 @@ points to memory location from the
 heap the
 .I oidp
 is modified atomically. Before returning, it calls the
-.BR constructor
+.B constructor
 function passing the pool handle
 .IR pop ,
 the pointer to the newly allocated object in
@@ -1794,7 +1794,7 @@ The
 macro is a wrapper around the
 .BR pmemobj_zalloc ()
 function which takes the type name
-.BR TYPE
+.B TYPE
 and passes the size and type number to
 the
 .BR pmemobj_zalloc ()
@@ -1829,7 +1829,7 @@ The
 macro is a wrapper around the
 .BR pmemobj_realloc ()
 function which takes the type name
-.BR TYPE
+.B TYPE
 and passes the type number to the
 .BR pmemobj_realloc ()
 function from the typed OID.
@@ -1845,7 +1845,7 @@ The
 macro is a wrapper around the
 .BR pmemobj_zrealloc ()
 function which takes the type name
-.BR TYPE
+.B TYPE
 and passes the type number to the
 .BR pmemobj_zrealloc ()
 function from the typed OID.
@@ -1869,7 +1869,7 @@ as an argument instead of
 Besides the internal objects collections described in section
 .B OBJECT CONTAINERS
 the
-.BR libpmemobj
+.B libpmemobj
 provides a mechanism to organize persistent objects in the user-defined
 persistent atomic circular doubly linked lists.  All the routines and macros
 operating on the persistent lists provide atomicity with respect to
@@ -1910,12 +1910,12 @@ list before or after an existing element, at the head of the list, or at the
 end of the list.  A list may be traversed in either direction.
 .PP
 The user-defined structure of each element must contain a field of type
-.BR list_entry
+.B list_entry
 holding the object handles to the previous and next element on the list.
 Both the
-.BR list_head
+.B list_head
 and the
-.BR list_entry
+.B list_entry
 structures are declared in
 .BR <libpmemobj.h> .
 .PP
@@ -1932,7 +1932,7 @@ will not be rolled-back if such a transaction is aborted or interrupted.
 .BI "     void *" head ", PMEMoid " dest ", int " before ", PMEMoid " oid );
 .IP
 The
-.BR pmemobj_list_insert
+.B pmemobj_list_insert
 function inserts an element represented by object handle
 .I oid
 into the list referenced by
@@ -1973,7 +1973,7 @@ On success, zero is returned. On error, -1 is returned and errno is set.
 .BI "    void *" ptr ", void *" arg "), void *" arg );
 .IP
 The
-.BR pmemobj_list_insert_new
+.B pmemobj_list_insert_new
 function atomically allocates a new object of given
 .I size
 and type
@@ -1999,7 +1999,7 @@ All the handles
 must point to the objects allocated from the same memory pool
 .IR pop .
 Before returning, it calls the
-.BR constructor
+.B constructor
 function passing the pool handle
 .IR pop ,
 the pointer to the newly allocated object in
@@ -2026,7 +2026,7 @@ On error, OID_NULL is returned and errno is set.
 .BI "     void *" head ", PMEMoid " oid ", int " free );
 .IP
 The
-.BR pmemobj_list_remove
+.B pmemobj_list_remove
 function removes the object referenced by
 .I oid
 from the list pointed by
@@ -2056,7 +2056,7 @@ On success, zero is returned. On error, -1 is returned and errno is set.
 .BI "    PMEMoid " dest ", int " before ", PMEMoid " oid );
 .IP
 The
-.BR pmemobj_list_move
+.B pmemobj_list_move
 function moves the object represented by
 .I oid
 from the list pointed by
@@ -2121,7 +2121,7 @@ list.  The elements are doubly linked so that an arbitrary element can be
 removed without a need to traverse the list.  New elements can be added to the
 list before or after an existing element, at the head of the list, or at the
 end of the list.  A list may be traversed in either direction.  A
-.BR POBJ_LIST_HEAD
+.B POBJ_LIST_HEAD
 structure is declared as follows:
 .IP
 .nf
@@ -2143,7 +2143,7 @@ is the name of a user-defined structure that must be declared using the macro
 See the examples below for further explanation of how these macros are used.
 .PP
 The macro
-.BR POBJ_LIST_ENTRY
+.B POBJ_LIST_ENTRY
 declares a structure that connects the elements in the list.
 .IP
 .nf
@@ -2157,7 +2157,7 @@ struct {
 .BI "POBJ_LIST_FIRST(POBJ_LIST_HEAD *" head )
 .IP
 The macro
-.BR POBJ_LIST_FIRST
+.B POBJ_LIST_FIRST
 returns the first element on the list referenced by
 .IR head .
 If the list is empty OID_NULL is returned.
@@ -2165,7 +2165,7 @@ If the list is empty OID_NULL is returned.
 .BI "POBJ_LIST_LAST(POBJ_LIST_HEAD *" head ", POBJ_LIST_ENTRY " FIELD )
 .IP
 The macro
-.BR POBJ_LIST_LAST
+.B POBJ_LIST_LAST
 returns the last element on the list referenced by
 .IR head .
 If the list is empty OID_NULL is returned.
@@ -2173,7 +2173,7 @@ If the list is empty OID_NULL is returned.
 .BI "POBJ_LIST_EMPTY(POBJ_LIST_HEAD *" head )
 .IP
 The macro
-.BR POBJ_LIST_EMPTY
+.B POBJ_LIST_EMPTY
 evaluates to 1 if the list referenced by
 .I head
 is empty.  Otherwise, 0 is returned.
@@ -2181,7 +2181,7 @@ is empty.  Otherwise, 0 is returned.
 .BI "POBJ_LIST_NEXT(TOID " elm ", POBJ_LIST_ENTRY " FIELD )
 .IP
 The macro
-.BR POBJ_LIST_NEXT
+.B POBJ_LIST_NEXT
 returns the element from the list referenced by
 .I head
 next to the element
@@ -2193,7 +2193,7 @@ is the last element on the list, OID_NULL is returned.
 .BI "POBJ_LIST_PREV(TOID " elm ", POBJ_LIST_ENTRY " FIELD )
 .IP
 The macro
-.BR POBJ_LIST_PREV
+.B POBJ_LIST_PREV
 returns the element from the list referenced by
 .I head
 preceding the element
@@ -2207,7 +2207,7 @@ is the first element on the list, OID_NULL is returned.
 .BI "    POBJ_LIST_ENTRY " FIELD )
 .IP
 The macro
-.BR POBJ_LIST_FOREACH
+.B POBJ_LIST_FOREACH
 traverses the list referenced by
 .I head
 assigning a handle to each element in turn to
@@ -2219,7 +2219,7 @@ variable.
 .BI "    POBJ_LIST_ENTRY " FIELD )
 .IP
 The macro
-.BR POBJ_LIST_FOREACH_REVERSE
+.B POBJ_LIST_FOREACH_REVERSE
 traverses the list referenced by
 .I head
 in reverse order, assigning a handle to each element in turn to
@@ -2236,7 +2236,7 @@ in the element structure.
 .BI "    TOID " elm ", POBJ_LIST_ENTRY " FIELD )
 .IP
 The macro
-.BR POBJ_LIST_INSERT_HEAD
+.B POBJ_LIST_INSERT_HEAD
 inserts the element
 .I elm
 at the head of the list referenced by
@@ -2247,7 +2247,7 @@ at the head of the list referenced by
 .BI "    TOID " elm ", POBJ_LIST_ENTRY " FIELD )
 .IP
 The macro
-.BR POBJ_LIST_INSERT_TAIL
+.B POBJ_LIST_INSERT_TAIL
 inserts the element
 .I elm
 at the end of the list referenced by
@@ -2258,7 +2258,7 @@ at the end of the list referenced by
 .BI "    TOID " listelm ", TOID " elm ", POBJ_LIST_ENTRY " FIELD )
 .IP
 The macro
-.BR POBJ_LIST_INSERT_AFTER
+.B POBJ_LIST_INSERT_AFTER
 inserts the element
 .I elm
 into the list referenced by
@@ -2271,7 +2271,7 @@ after the element
 .BI "    TOID " listelm ", TOID " elm ", POBJ_LIST_ENTRY " FIELD )
 .IP
 The macro
-.BR POBJ_LIST_INSERT_BEFORE
+.B POBJ_LIST_INSERT_BEFORE
 inserts the element
 .I elm
 into the list referenced by
@@ -2288,7 +2288,7 @@ before the element
 .BI "    void *" arg "), void *" arg )
 .IP
 The macro
-.BR POBJ_LIST_INSERT_NEW_HEAD
+.B POBJ_LIST_INSERT_NEW_HEAD
 atomically allocates a new object of size
 .I size
 and inserts it at the head of the list referenced by
@@ -2306,7 +2306,7 @@ the first element on list.
 .BI "    void *" arg "), void *" arg )
 .IP
 The macro
-.BR POBJ_LIST_INSERT_NEW_TAIL
+.B POBJ_LIST_INSERT_NEW_TAIL
 atomically allocates a new object of size
 .I size
 and inserts it at the tail of the list referenced by
@@ -2324,7 +2324,7 @@ the first element on list.
 .BI "    void *" arg "), void *" arg )
 .IP
 The macro
-.BR POBJ_LIST_INSERT_NEW_AFTER
+.B POBJ_LIST_INSERT_NEW_AFTER
 atomically allocates a new object of size
 .I size
 and inserts it into the list referenced by
@@ -2344,7 +2344,7 @@ the first element on list.
 .BI "    void *" arg "), void *" arg )
 .IP
 The macro
-.BR POBJ_LIST_INSERT_NEW_BEFORE
+.B POBJ_LIST_INSERT_NEW_BEFORE
 atomically allocates a new object of size
 .I size
 and inserts it into the list referenced by
@@ -2360,7 +2360,7 @@ the first element on list.
 .BI "    TOID " elm ", POBJ_LIST_ENTRY " FIELD )
 .IP
 The macro
-.BR POBJ_LIST_REMOVE
+.B POBJ_LIST_REMOVE
 removes the element
 .I elm
 from the list referenced by
@@ -2371,7 +2371,7 @@ from the list referenced by
 .BI "    TOID " elm ", POBJ_LIST_ENTRY " FIELD )
 .IP
 The macro
-.BR POBJ_LIST_REMOVE_FREE
+.B POBJ_LIST_REMOVE_FREE
 removes the element
 .I elm
 from the list referenced by
@@ -2385,7 +2385,7 @@ and frees the memory space represented by this element.
 .BI "    POBJ_LIST_ENTRY " field_new )
 .IP
 The macro
-.BR POBJ_LIST_MOVE_ELEMENT_HEAD
+.B POBJ_LIST_MOVE_ELEMENT_HEAD
 moves the element
 .I elm
 from the list referenced by
@@ -2407,7 +2407,7 @@ in the element structure that are used to connect the elements in both lists.
 .BI "    POBJ_LIST_ENTRY " field_new )
 .IP
 The macro
-.BR POBJ_LIST_MOVE_ELEMENT_TAIL
+.B POBJ_LIST_MOVE_ELEMENT_TAIL
 moves the element
 .I elm
 from the list referenced by
@@ -2429,7 +2429,7 @@ in the element structure that are used to connect the elements in both lists.
 .BI "    POBJ_LIST_ENTRY " FIELD ", POBJ_LIST_ENTRY " field_new )
 .IP
 The macro
-.BR POBJ_LIST_MOVE_ELEMENT_AFTER
+.B POBJ_LIST_MOVE_ELEMENT_AFTER
 atomically removes the element
 .I elm
 from the list referenced by
@@ -2453,7 +2453,7 @@ in the element structure that are used to connect the elements in both lists.
 .BI "    POBJ_LIST_ENTRY " FIELD ", POBJ_LIST_ENTRY " field_new )
 .IP
 The macro
-.BR POBJ_LIST_MOVE_ELEMENT_BEFORE
+.B POBJ_LIST_MOVE_ELEMENT_BEFORE
 atomically removes the element
 .I elm
 from the list referenced by
@@ -2513,19 +2513,19 @@ Stages are changed only by the
 .I pmemobj_tx_*
 functions.  The transaction stages are defined as follows:
 .IP
-.BR TX_STAGE_NONE
+.B TX_STAGE_NONE
 - no open transaction in this thread
 .IP
-.BR TX_STAGE_WORK
+.B TX_STAGE_WORK
 - transaction in progress
 .IP
-.BR TX_STAGE_ONCOMMIT
+.B TX_STAGE_ONCOMMIT
 - successfully committed
 .IP
-.BR TX_STAGE_ONABORT
+.B TX_STAGE_ONABORT
 - starting the transaction failed or transaction aborted
 .IP
-.BR TX_STAGE_FINALLY
+.B TX_STAGE_FINALLY
 - ready for clean up
 .PP
 .BI "int pmemobj_tx_begin(PMEMobjpool *" pop ", jmp_buf *" env ", " ... );
@@ -2676,7 +2676,7 @@ In contrast to the non-transactional allocations, the objects are
 added to the internal object containers of given
 .I type_num
 only after the transaction is committed, making the objects visible to the
-.BR POBJ_FOREACH_*
+.B POBJ_FOREACH_*
 macros.
 If successful and called during
 .I TX_STAGE_WORK
@@ -2785,7 +2785,7 @@ function returns zero. Otherwise, stage changes to
 and an error number is returned.
 .PP
 In addition to the above API, the
-.BR libpmemobj
+.B libpmemobj
 offers a more intuitive method of building transactions using a set of macros
 described below.  When using macros, the complete transaction flow looks like
 this:
@@ -2833,7 +2833,7 @@ starting a transaction (like for a single-threaded program).
 Each of those macros shall be followed by a block of code with all the
 operations that are to be performed atomically.
 .PP
-.BI "TX_ONABORT
+.B TX_ONABORT
 .IP
 The
 .BR TX_ONABORT ()
@@ -2843,25 +2843,25 @@ transaction fails due to an error in
 or if the transaction is aborted.
 This block is optional.
 .PP
-.BI "TX_ONCOMMIT
+.B TX_ONCOMMIT
 .IP
 The
 .BR TX_ONCOMMIT ()
 macro starts a block of code that will be executed only if the transaction
 is successfully committed, which means that the execution of code in
-.BR TX_BEGIN
+.B TX_BEGIN
 block has not been interrupted by an error or by a call to
 .BR pmemobj_tx_abort ().
 This block is optional.
 .PP
-.BI "TX_FINALLY
+.B TX_FINALLY
 .IP
 The
 .BR TX_FINALLY ()
 macro starts a block of code that will be executed regardless of whether
 the transaction is committed or aborted.  This block is optional.
 .PP
-.BI "TX_END
+.B TX_END
 .IP
 The
 .BR TX_END ()
@@ -2872,7 +2872,7 @@ or
 macro.  It is mandatory to terminate each transaction with this macro.
 .PP
 Similarly to the macros controlling the transaction flow, the
-.BR libpmemobj
+.B libpmemobj
 defines a set of macros that simplify the transactional operations on
 persistent objects.  Note that those macros operate on typed object handles,
 thus eliminating the need to specify the size of the object, or the size
@@ -2905,7 +2905,7 @@ a failure or abort, all the changes within the object will be rolled-back.
 .BI "TX_SET(TOID " o ", " FIELD ", " VALUE )
 .IP
 The
-.BR TX_SET
+.B TX_SET
 macro saves in the undo log the current value of given
 .I FIELD
 of the object referenced by a handle
@@ -2917,7 +2917,7 @@ In case of a failure or abort, the saved value will be restored.
 .BI "TX_MEMCPY(const void *" dest ", const void *" src ", size_t " num )
 .IP
 The
-.BR TX_MEMCPY
+.B TX_MEMCPY
 macro saves in the undo log the current content of
 .I dest
 buffer and then overwrites the first
@@ -2929,7 +2929,7 @@ In case of a failure or abort, the saved value will be restored.
 .BI "TX_MEMSET(const void *" dest ", int " c ", size_t " num )
 .IP
 The
-.BR TX_MEMSET
+.B TX_MEMSET
 macro saves in the undo log the current content of
 .I dest
 buffer and then fills the first
@@ -3203,9 +3203,9 @@ contains run-time assertions and trace points.
 The typical way to access the debug version is to set the environment variable
 .B LD_LIBRARY_PATH
 to
-.BR /usr/lib/nvml_debug
+.B /usr/lib/nvml_debug
 or
-.BR /usr/lib64/nvml_debug
+.B /usr/lib64/nvml_debug
 depending on where the debug libraries are installed on the system.
 The trace points in the debug version of the library
 are enabled using the environment variable
