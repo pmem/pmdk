@@ -485,19 +485,7 @@ pmemobj_open(const char *path, const char *layout)
 }
 
 /*
- * pmemobj_create_part -- XXX
- */
-PMEMobjpool *
-pmemobj_create_part(const char *path, const char *layout, size_t partsize,
-	mode_t mode, int part_index, int nparts, int replica_index,
-	int nreplica)
-{
-	/* XXX */
-	return NULL;
-}
-
-/*
- * pmemobj_close_cleanup -- (internal) cleanup the pool and unmap
+ * pmemobj_cleanup -- (internal) cleanup the pool and unmap
  */
 static void
 pmemobj_cleanup(PMEMobjpool *pop)
