@@ -186,6 +186,96 @@ function create_holey_file() {
 }
 
 #
+# create_poolset -- create a dummy pool set
+#
+# Creates a pool set file using the provided list of part sizes and paths.
+# Optionally, it also creates the selected part files (zeroed, partially zeroed
+# or non-zeroed) with requested size and mode.  The actual file size may be
+# different than the part size in the pool set file.
+# 'r' or 'R' on the list of arguments indicate the beginning of the next
+# replica set.
+#
+# Each part argument has the following format:
+#   psize:ppath[:cmd[:fsize[:mode]]]
+#
+# where:
+#   psize - part size
+#   ppath - path
+#   cmd   - (optional) can be:
+#            x - do nothing (may be skipped if there's no 'fsize', 'mode')
+#            z - crete zeroed (holey) file
+#            n - create non-zeroed file
+#            h - create non-zeroed file, but with zeroed header (first 4KB)
+#   fsize - (optional) the actual size of the part file (if 'cmd' is not 'x')
+#   mode  - same format as for 'chmod' command
+#
+# example:
+#   The following command define a pool set consisting of two parts: 16MB
+#   and 32MB, and the replica with only one part of 48MB.  The first part file
+#   is not created, the second is zeroed.  The only replica part is non-zeroed.
+#   Also, the last file is read-only and its size does not match the information
+#   from pool set file.
+#
+#	create_poolset ./pool.set 16M:testfile1 32M:testfile2:z \
+#				R 48M:testfile3:n:11M:0400
+#
+function create_poolset() {
+	psfile=$1
+	shift 1
+	echo "PMEMPOOLSET" > $psfile
+	while [ "$1" ]
+	do
+		if [ "$1" = "R" ] || [ "$1" = "r" ]
+		then
+			echo "REPLICA" >> $psfile
+			shift 1
+			continue
+		fi
+
+		cmd=$1
+		fparms=(${cmd//:/ })
+		shift 1
+
+		fsize=${fparms[0]}
+		fpath=${fparms[1]}
+		cmd=${fparms[2]}
+		asize=${fparams[3]}
+		mode=${fparms[4]]}
+
+		if [ ! $asize ]; then
+			asize=$fsize
+		fi
+
+		case "$cmd"
+		in
+		x)
+			# do nothing
+			;;
+		z)
+			# zeroed (holey) file
+			truncate -s $asize $fpath
+			;;
+		n)
+			# non-zeroed file
+			dd if=/dev/zero bs=$asize count=1 2>/dev/null | tr '\0' '\132' >> $fpath
+			;;
+		h)
+			# non-zeroed file, except 4K header
+			truncate -s 4K $fpath
+			dd if=/dev/zero bs=$asize count=1 2>/dev/null | tr '\0' '\132' >> $fpath
+			truncate -s $asize $fpath
+			;;
+		esac
+
+		if [ $mode ]; then
+			chmod $mode $fpath
+		fi
+
+		echo "$fsize $fpath" >> $psfile
+	done
+}
+
+#
 # expect_normal_exit -- run a given command, expect it to exit 0
 #
 function expect_normal_exit() {
@@ -372,6 +462,9 @@ function require_valgrind_dev_3_10() {
 # setup -- print message that test setup is commencing
 #
 function setup() {
+	# make sure we have a well defined locale for string operations here
+	export LC_ALL="C"
+
 	echo "$UNITTEST_NAME: SETUP ($TEST/$FS/$BUILD)"
 	if [ -d "$DIR" ]; then
 		rm --one-file-system -rf -- $DIR
@@ -426,6 +519,32 @@ check_file()
 		echo "Missing file: ${1}"
 		exit 1
 	fi
+}
+
+#
+# check_files -- check if files exist and print error message if not
+#
+check_files()
+{
+	for file in $*
+	do
+		check_file $file
+	done
+}
+
+#
+# check_no_files -- check if files has been deleted and print error message if not
+#
+check_no_files()
+{
+	for file in $*
+	do
+		if [ -f $file ]
+		then
+			echo "Not deleted file: ${file}"
+			exit 1
+		fi
+	done
 }
 
 #
