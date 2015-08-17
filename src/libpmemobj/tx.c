@@ -791,6 +791,12 @@ tx_alloc_common(size_t size, unsigned int type_num,
 		return OID_NULL;
 	}
 
+	if (size > PMEMOBJ_MAX_ALLOC_SIZE) {
+		ERR("requested size too large");
+		errno = ENOMEM;
+		return OID_NULL;
+	}
+
 	if (type_num >= PMEMOBJ_NUM_OID_TYPES) {
 		ERR("invalid type_num %d", type_num);
 		errno = EINVAL;
@@ -833,6 +839,12 @@ tx_alloc_copy_common(size_t size, unsigned int type_num, const void *ptr,
 	void *arg))
 {
 	LOG(3, NULL);
+
+	if (size > PMEMOBJ_MAX_ALLOC_SIZE) {
+		ERR("requested size too large");
+		errno = ENOMEM;
+		return OID_NULL;
+	}
 
 	if (type_num >= PMEMOBJ_NUM_OID_TYPES) {
 		ERR("invalid type_num %d", type_num);
@@ -882,6 +894,12 @@ tx_realloc_common(PMEMoid oid, size_t size, unsigned int type_num,
 	if (tx.stage != TX_STAGE_WORK) {
 		ERR("invalid tx stage");
 		errno = EINVAL;
+		return OID_NULL;
+	}
+
+	if (size > PMEMOBJ_MAX_ALLOC_SIZE) {
+		ERR("requested size too large");
+		errno = ENOMEM;
 		return OID_NULL;
 	}
 

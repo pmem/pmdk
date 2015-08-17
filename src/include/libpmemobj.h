@@ -80,6 +80,7 @@ const char *pmemobj_check_version(
 		unsigned minor_required);
 
 #define	PMEMOBJ_MIN_POOL ((size_t)(1024 * 1024 * 8)) /* 8 MB */
+#define	PMEMOBJ_MAX_ALLOC_SIZE ((size_t)0x3FFDFFFC0)
 #define	PMEMOBJ_MAX_LAYOUT ((size_t)1024)
 #define	PMEMOBJ_NUM_OID_TYPES ((unsigned)1024)
 
@@ -947,11 +948,11 @@ TOID_TYPE_NUM(t)); _pobj_ret; })
 TOID_TYPE_NUM(t)); _pobj_ret; })
 
 #define	TX_REALLOC(o, size) (\
-{ typeof((o)) _pobj_ret = (typeof((o)))pmemobj_tx_realloc((size),\
+{ typeof((o)) _pobj_ret = (typeof((o)))pmemobj_tx_realloc((o).oid, (size),\
 TOID_TYPE_NUM_OF(o)); _pobj_ret; })
 
 #define	TX_ZREALLOC(o, size) (\
-{ typeof((o)) _pobj_ret = (typeof((o)))pmemobj_tx_zrealloc((size),\
+{ typeof((o)) _pobj_ret = (typeof((o)))pmemobj_tx_zrealloc((o).oid, (size),\
 TOID_TYPE_NUM_OF(o)); _pobj_ret; })
 
 #define	TX_STRDUP(s, type_num)\

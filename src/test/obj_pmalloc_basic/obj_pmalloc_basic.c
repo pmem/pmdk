@@ -177,6 +177,16 @@ test_mock_pool_allocs()
 	FREE(addr);
 }
 
+void
+test_spec_compliance()
+{
+	uint64_t max_alloc = MAX_MEMORY_BLOCK_SIZE -
+		sizeof (struct allocation_header) -
+		sizeof (struct oob_header);
+
+	ASSERTeq(max_alloc, PMEMOBJ_MAX_ALLOC_SIZE);
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -184,6 +194,8 @@ main(int argc, char *argv[])
 
 	for (int i = 0; i < TEST_RUNS; ++i)
 		test_mock_pool_allocs();
+
+	test_spec_compliance();
 
 	DONE(NULL);
 }
