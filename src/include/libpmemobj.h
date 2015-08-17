@@ -390,7 +390,7 @@ size_t pmemobj_alloc_usable_size(PMEMoid oid);
 /*
  * Returns the type number of the object.
  */
-unsigned int pmemobj_type_num(PMEMoid oid);
+int pmemobj_type_num(PMEMoid oid);
 
 /*
  * If called for the first time on a newly created pool, the root object
