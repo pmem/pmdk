@@ -168,24 +168,20 @@ struct benchmark_clo
 	size_t off;
 	const char *def;
 	bool ignore_in_res;
-	union
+	struct
 	{
-		struct
-		{
-			size_t size;
-			enum clo_int_base base;
-			int64_t min;
-			int64_t max;
-		} type_int;
-		struct
-		{
-			size_t size;
-			enum clo_int_base base;
-			uint64_t min;
-			uint64_t max;
-		} type_uint;
-	};
-
+		size_t size;
+		enum clo_int_base base;
+		int64_t min;
+		int64_t max;
+	} type_int;
+	struct
+	{
+		size_t size;
+		enum clo_int_base base;
+		uint64_t min;
+		uint64_t max;
+	} type_uint;
 	int used;
 };
 
