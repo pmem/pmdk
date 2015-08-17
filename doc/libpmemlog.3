@@ -284,7 +284,7 @@ On success, zero is returned.  On error, -1 is returned and errno is set.
 .PP
 .IP
 NOTE: Since
-.BR libpmemlog
+.B libpmemlog
 is designed as a low-latency code path, many of the
 checks routinely done by the operating system for
 .BR writev (2)
@@ -485,9 +485,9 @@ contains run-time assertions and trace points.
 The typical way to access the debug version is to set the environment variable
 .B LD_LIBRARY_PATH
 to
-.BR /usr/lib/nvml_debug
+.B /usr/lib/nvml_debug
 or
-.BR /usr/lib64/nvml_debug
+.B /usr/lib64/nvml_debug
 depending on where the debug libraries are installed on the system.
 The trace points in the debug version of the library
 are enabled using the environment variable

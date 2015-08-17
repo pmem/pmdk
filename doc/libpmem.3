@@ -265,7 +265,7 @@ function creates a new read/write mapping for the entire file
 referred by to file descriptor
 .IR fd ,
 where
-.IR fd
+.I fd
 must be a file descriptor for a file opened for both reading
 and writing.
 .BR pmem_map ()
@@ -547,9 +547,9 @@ contains run-time assertions and trace points.
 The typical way to access the debug version is to set the environment variable
 .B LD_LIBRARY_PATH
 to
-.BR /usr/lib/nvml_debug
+.B /usr/lib/nvml_debug
 or
-.BR /usr/lib64/nvml_debug
+.B /usr/lib64/nvml_debug
 depending on where the debug libraries are installed on the system.
 The trace points in the debug version of the library
 are enabled using the environment variable
@@ -607,7 +607,7 @@ to always return true.  This variable is mostly used for testing
 but can be used to force pmem behavior on a system where a range
 of pmem is not detectable as pmem for some reason.
 .PP
-.BI PMEM_NO_PCOMMIT=1
+.B PMEM_NO_PCOMMIT=1
 .IP
 Setting this environment variable to 1 forces
 .B libpmem
@@ -618,7 +618,7 @@ is performed some other way, like automatic flushing during a power failure.
 WARNING: Using this environment variable incorrectly
 may impact program correctness.
 .PP
-.BI PMEM_NO_CLWB=1
+.B PMEM_NO_CLWB=1
 .IP
 Setting this environment variable to 1 forces
 .B libpmem
@@ -641,7 +641,7 @@ where using
 .B CLWB
 has a negative impact on performance.
 .PP
-.BI PMEM_NO_CLFLUSHOPT=1
+.B PMEM_NO_CLFLUSHOPT=1
 .IP
 Setting this environment variable to 1 forces
 .B libpmem
@@ -661,7 +661,7 @@ is not available.
 This variable is intended for use
 during library testing.
 .PP
-.BI PMEM_NO_MOVNT=1
+.B PMEM_NO_MOVNT=1
 .IP
 Setting this environment variable to 1 forces
 .B libpmem
@@ -695,7 +695,7 @@ to always use the
 .I non-temporal
 move instructions if available.
 It has no effect if
-.BI PMEM_NO_MOVNT
+.B PMEM_NO_MOVNT
 variable is set to 1.
 This variable is intended for use during library testing.
 .SH EXAMPLES
