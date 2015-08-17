@@ -37,7 +37,7 @@
 .\" or
 .\"	groff -man -Tascii libpmemobj.3
 .\"
-.TH libpmemobj 3 "pmemobj API version 0.4.11" "NVM Library"
+.TH libpmemobj 3 "pmemobj API version 0.4.12" "NVM Library"
 .SH NAME
 libpmemobj \- persistent memory transactional object store
 .SH SYNOPSIS
@@ -1016,9 +1016,15 @@ objects of given type stored in the persistent memory pool.  See
 .B OBJECT CONTAINERS
 section for more details.
 .PP
-The
+The maximum allowed
+.I type number
+value is limited by the
 .BR PMEMOBJ_NUM_OID_TYPES
-macro defines the limit of valid type numbers.
+macro.  The only valid type numbers are those in the range
+.B "[0, PMEMOBJ_NUM_OID_TYPES-1]"
+and the special value
+.B POBJ_ROOT_TYPE_NUM
+reserved for the root object.
 .PP
 The
 .BR OID_IS_NULL
