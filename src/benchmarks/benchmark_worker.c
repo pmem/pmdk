@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright (c) 2015, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -29,26 +29,63 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 /*
- * blk_mt.h -- definitions for the PMEMBLK benchmark
+ * benchmark_worker.c -- benchmark_worker module definitions
  */
 
-struct measurements {
-	struct timespec start_time;
-	struct timespec stop_time;
-	unsigned long long total_ops;
-	double ops_per_second;
-	double mean_ops_time;
-	double total_run_time;
-};
+#include <err.h>
+#include <assert.h>
 
-struct blk_arguments {
-	unsigned long block_size;
-	unsigned int num_ops;
-	unsigned int thread_count;
-	char *file_path;
-	unsigned int file_size;
-	int file_io;
-	int prep_blk_file;
-};
+#include "benchmark_worker.h"
+
+/*
+ * benchmark_worker_alloc -- allocate benchmark worker
+ */
+struct benchmark_worker *
+benchmark_worker_alloc(void)
+{
+	struct benchmark_worker *w = calloc(1, sizeof (*w));
+	assert(w != NULL);
+	return w;
+}
+
+/*
+ * benchmark_worker_free -- release benchmark worker
+ */
+void
+benchmark_worker_free(struct benchmark_worker *w)
+{
+	free(w);
+}
+
+/*
+ * thread_func -- (internal) callback for pthread
+ */
+static void *
+thread_func(void *arg)
+{
+	assert(arg != NULL);
+
+	struct benchmark_worker *worker = (struct benchmark_worker *)arg;
+	worker->ret = worker->func(worker->bench, worker->args, &worker->info);
+
+	return NULL;
+}
+
+/*
+ * benchmark_worker_run -- run benchmark worker
+ */
+int
+benchmark_worker_run(struct benchmark_worker *w)
+{
+	return pthread_create(&w->thread, NULL, thread_func, w);
+}
+
+/*
+ * benchmark_worker_join -- join benchmark worker
+ */
+int
+benchmark_worker_join(struct benchmark_worker *w)
+{
+	return pthread_join(w->thread, NULL);
+}

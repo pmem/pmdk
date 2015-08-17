@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright (c) 2015, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -26,39 +26,16 @@
  * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
  * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY LOG OF THE USE
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-#include <stdlib.h>
-#include <inttypes.h>
-#include <libpmemlog.h>
-#include <stdbool.h>
-
-#include "log_mt.h"
-
-/* thread routine */
-typedef int (*thread_f)(void *arg);
-
-/* thread info structure */
-struct thread_info {
-	thread_f func;
-	void *hndl;
-	int start;
-	int end;
-	int result;
-	struct random_data *rand_state;
-	size_t vec_size;
-	size_t el_size;
-	struct iovec *iov;
-	char *buf;
-	size_t buf_size;
-	size_t buf_ptr;
-};
-
-int run_threads(struct prog_args *args, thread_f task,
-				void *arg, double *exec_time);
-int task_pmemlog_append(void *arg);
-int task_pmemlog_read(void *arg);
-int task_fileiolog_append(void *arg);
-int task_fileiolog_read(void *arg);
+/*
+ * clo.h -- command line options module declarations
+ */
+int benchmark_clo_parse(int argc, char *argv[], struct benchmark_clo *clos,
+		size_t nclo, struct clo_vec *clovec);
+int benchmark_clo_parse_scenario(struct scenario *scenario,
+		struct benchmark_clo *clos, size_t nclo,
+		struct clo_vec *clovec);
+const char *benchmark_clo_str(struct benchmark_clo *clo,
+		void *args, size_t size);

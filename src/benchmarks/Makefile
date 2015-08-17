@@ -33,16 +33,66 @@
 #
 # Makefile -- build all benchmarks
 #
-BENCHMARK = vmem_mt blk_mt log_mt
 
-all     : TARGET = all
-clean   : TARGET = clean
-clobber : TARGET = clobber
-cstyle  : TARGET = cstyle
+BENCHMARK = pmembench
 
-all clean clobber cstyle: $(BENCHMARK)
+GLIB:= $(shell pkg-config glib-2.0 && echo "y" || echo "n")
+ifeq ($(GLIB),y)
+TARGET = $(BENCHMARK)
+else
+TARGET = no-glib
+endif
 
-$(BENCHMARK):
-	$(MAKE) -C $@ $(TARGET)
+SRC=pmembench.c\
+    benchmark_time.c\
+    benchmark_worker.c\
+    clo.c\
+    clo_vec.c\
+    config_reader.c\
+    scenario.c\
+    log.c
 
-.PHONY: all clean clobber cstyle $(BENCHMARK)
+# Configuration file without the .cfg extension
+CONFIGS=pmembench_log
+
+LIBS_PATH=../nondebug
+CSTYLE = ../../utils/cstyle
+OBJS=$(SRC:.c=.o)
+LDFLAGS = -L$(LIBS_PATH)
+LDFLAGS += $(EXTRA_LDFLAGS)
+LIBS += -lpmemlog -lpmem -pthread -lm
+CFLAGS = -std=gnu99 -Wall -Werror -pthread $(EXTRA_CFLAGS)
+CFLAGS += -I../include
+CFLAGS += $(shell pkg-config --cflags glib-2.0)
+LIBS += $(shell pkg-config --libs glib-2.0)
+
+ifeq ($(DEBUG),)
+CFLAGS += -O3
+else
+CFLAGS += -ggdb
+endif
+
+default: $(TARGET)
+
+no-glib:
+	@echo "glib-2.0 development package required"
+
+%.o: %.c
+	$(CC) -c $(CFLAGS) $< -o $@
+
+$(BENCHMARK): $(OBJS)
+	$(CC) -o $@ $(LDFLAGS) $(OBJS) $(LIBS)
+
+clean:
+	$(RM) $(OBJS)
+
+clobber: clean
+	$(RM) $(BENCHMARK)
+
+cstyle:
+	$(CSTYLE) -pP *.[ch]
+
+run: $(BENCHMARK) $(CONFIGS)
+	$(foreach c, $(CONFIGS), LD_LIBRARY_PATH=$(LIBS_PATH) ./$(BENCHMARK) $(c).cfg > $(c).csv)
+
+.PHONY: all clean clobber run cstyle no-glib $(CONFIGS)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright (c) 2015, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -29,54 +29,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 /*
- * workers.h -- definitions for the thread workers
+ * scenario.h -- scenario module declaration
  */
-
-#include <stdint.h>
-#include <libpmemblk.h>
-
-/*
- * Data structure for thread workers
- */
-struct worker_info {
-	unsigned long block_size;
-	unsigned long num_blocks;
-	unsigned int thread_index;
-	unsigned int seed;
-	unsigned int num_ops;
-	PMEMblkpool *handle;
-	int file_desc;
-	unsigned int file_lanes;
+struct kv
+{
+	TAILQ_ENTRY(kv) next;
+	char *key;
+	char *value;
 };
 
-/*
- * worker -- read worker function for pmem
- */
-void *r_worker(void *arg);
-/*
- * worker -- write worker function for pmem
- */
-void *w_worker(void *arg);
+struct scenario
+{
+	TAILQ_ENTRY(scenario) next;
+	TAILQ_HEAD(scenariohead, kv) head;
+	char *name;
+	char *benchmark;
+};
 
-/*
- * prep_worker -- worker for the prep mode. Writes the whole
- * calculated range of lba's. This is similar to the rf_worker.
- */
-void *prep_worker(void *arg);
+struct scenarios
+{
+	TAILQ_HEAD(scenarioshead, scenario) head;
+};
 
-/*
- * warmup_worker -- worker for the warm-up. Reads the whole
- * calculated range of lba's. This is similar to the rf_worker.
- */
-void *warmup_worker(void *arg);
+#define	FOREACH_SCENARIO(s, ss)	TAILQ_FOREACH((s), &(ss)->head, next)
+#define	FOREACH_KV(kv, s) TAILQ_FOREACH((kv), &(s)->head, next)
 
-/*
- * worker -- read worker function for file io
- */
-void *rf_worker(void *arg);
-/*
- * worker -- write worker function for file io
- */
-void *wf_worker(void *arg);
+struct kv *kv_alloc(const char *key, const char *value);
+void kv_free(struct kv *kv);
+
+struct scenario *scenario_alloc(const char *name, const char *bench);
+void scenario_free(struct scenario *s);
+
+struct scenarios *scenarios_alloc(void);
+void scenarios_free(struct scenarios *scenarios);
+
+struct scenario *scenarios_get_scenario(struct scenarios *ss, const char *name);
