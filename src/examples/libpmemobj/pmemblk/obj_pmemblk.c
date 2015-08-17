@@ -87,10 +87,11 @@ pmemblk_map(PMEMobjpool *pop, size_t bsize, size_t fsize)
 	bp = POBJ_ROOT(pop, struct base);
 
 	/* read pool descriptor and validate user provided values */
-	if ((D_RO(bp)->bsize != 0) && (D_RO(bp)->bsize != bsize)) {
-		return -1;
-	} else if (D_RO(bp)->bsize != 0) {
-		return 0;
+	if (D_RO(bp)->bsize) {
+		if (bsize && D_RO(bp)->bsize != bsize)
+			return -1;
+		else
+			return 0;
 	}
 
 	/* new pool, calculate and store metadata */
@@ -156,9 +157,19 @@ pmemblk_close(PMEMblkpool *pbp)
  * pmemblk_check -- block memory pool consistency check
  */
 int
-pmemblk_check(const char *path)
+pmemblk_check(const char *path, size_t bsize)
 {
-	return pmemobj_check(path, POBJ_LAYOUT_NAME(obj_pmemblk));
+	int ret = pmemobj_check(path, POBJ_LAYOUT_NAME(obj_pmemblk));
+	if (ret)
+		return ret;
+
+	/* open just to validate block size */
+	PMEMblkpool *pop = pmemblk_open(path, bsize);
+	if (!pop)
+		return -1;
+
+	pmemblk_close(pop);
+	return 0;
 }
 
 /*

@@ -708,9 +708,9 @@ pmemblk_set_error(PMEMblkpool *pbp, off_t blockno)
  * pmemblk_check -- block memory pool consistency check
  */
 int
-pmemblk_check(const char *path)
+pmemblk_check(const char *path, size_t bsize)
 {
-	LOG(3, "path \"%s\"", path);
+	LOG(3, "path \"%s\" bsize %zu", path, bsize);
 
 	size_t poolsize = 0;
 	int fd;
@@ -719,7 +719,7 @@ pmemblk_check(const char *path)
 		return -1;	/* errno set by util_pool_open() */
 
 	/* map the pool read-only */
-	PMEMblkpool *pbp = pmemblk_map_common(fd, poolsize, 0, 1, 0, 0);
+	PMEMblkpool *pbp = pmemblk_map_common(fd, poolsize, bsize, 1, 0, 0);
 
 	if (pbp == NULL)
 		return -1;	/* errno set by pmemblk_map_common() */

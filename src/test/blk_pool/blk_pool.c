@@ -63,12 +63,14 @@ pool_create(const char *path, size_t bsize, size_t poolsize, unsigned mode)
 
 		pmemblk_close(pbp);
 
-		int result = pmemblk_check(path);
+		int result = pmemblk_check(path, bsize);
 
 		if (result < 0)
 			OUT("!%s: pmemblk_check", path);
 		else if (result == 0)
 			OUT("%s: pmemblk_check: not consistent", path);
+		else
+			ASSERTeq(pmemblk_check(path, bsize * 2), -1);
 	}
 }
 

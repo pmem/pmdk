@@ -75,7 +75,7 @@ PMEMblkpool *pmemblk_open(const char *path, size_t bsize);
 PMEMblkpool *pmemblk_create(const char *path, size_t bsize,
 		size_t poolsize, mode_t mode);
 void pmemblk_close(PMEMblkpool *pbp);
-int pmemblk_check(const char *path);
+int pmemblk_check(const char *path, size_t bsize);
 size_t pmemblk_bsize(PMEMblkpool *pbp);
 size_t pmemblk_nblock(PMEMblkpool *pbp);
 int pmemblk_read(PMEMblkpool *pbp, void *buf, off_t blockno);

@@ -70,7 +70,7 @@ libpmemblk \- persistent memory resident array of blocks
 .BI "void pmemblk_set_funcs("
 .BI "    void *(*" malloc_func ")(size_t " size ),
 .BI "    void (*" free_func ")(void *" ptr ));
-.BI "int pmemblk_check(const char *" path );
+.BI "int pmemblk_check(const char *" path ", size_t " bsize );
 .sp
 .B Error handling:
 .sp
@@ -409,7 +409,7 @@ default function to be used.
 The library does not make heavy use of the system malloc functions, but
 it does allocate approximately 4-8 kilobytes for each memory pool in use.
 .PP
-.BI "int pmemblk_check(const char *" path );
+.BI "int pmemblk_check(const char *" path ", size_t " bsize );
 .IP
 The
 .BR pmemblk_check ()
@@ -428,7 +428,11 @@ will provide additional details on inconsistencies when
 .B PMEMBLK_LOG_LEVEL
 is at least 1, as described in the
 .B "DEBUGGING AND ERROR HANDLING"
-section below.
+section below. When
+.I bsize
+is non-zero
+.BR pmemblk_check ()
+will compare it to the block size of the pool and return 0 when they don't match.
 .BR pmemblk_check ()
 will return -1 and set errno if it cannot perform the
 consistency check due to other errors.

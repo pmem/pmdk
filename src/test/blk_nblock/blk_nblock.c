@@ -64,15 +64,19 @@ main(int argc, char *argv[])
 					fname, bsize, pmemblk_nblock(handle));
 			ASSERTeq(pmemblk_bsize(handle), bsize);
 			pmemblk_close(handle);
-			int result = pmemblk_check(fname);
+			int result = pmemblk_check(fname, bsize);
 			if (result < 0)
 				OUT("!%s: pmemblk_check", fname);
 			else if (result == 0)
 				OUT("%s: pmemblk_check: not consistent", fname);
+			else {
+				ASSERTeq(pmemblk_check(fname, bsize + 1), -1);
+				ASSERTeq(pmemblk_check(fname, 0), 1);
 
-			handle = pmemblk_open(fname, 0);
-			ASSERTeq(pmemblk_bsize(handle), bsize);
-			pmemblk_close(handle);
+				handle = pmemblk_open(fname, 0);
+				ASSERTeq(pmemblk_bsize(handle), bsize);
+				pmemblk_close(handle);
+			}
 		}
 	}
 
