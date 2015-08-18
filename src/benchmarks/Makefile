@@ -106,6 +106,7 @@ clean:
 
 clobber: clean
 	$(RM) $(BENCHMARK)
+	$(RM) *.csv
 
 cstyle:
 	$(CSTYLE) -pP *.[ch]
