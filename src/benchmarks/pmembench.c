@@ -208,6 +208,22 @@ static struct benchmark_clo pmembench_clos[] = {
 		.def		= "/mnt/pmem/testfile",
 		.ignore_in_res	= true,
 	},
+	{
+		.opt_short	= 'm',
+		.opt_long	= "mode",
+		.type		= CLO_TYPE_UINT,
+		.descr		= "File mode",
+		.off		= clo_field_offset(struct benchmark_args,
+					fmode),
+		.def		= "0666",
+		.ignore_in_res	= true,
+		.type_uint	= {
+			.size	= clo_field_size(struct benchmark_args, fmode),
+			.base	= CLO_INT_BASE_OCT,
+			.min	= 0,
+			.max	= ULONG_MAX,
+		},
+	},
 };
 
 /*
