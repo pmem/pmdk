@@ -272,159 +272,52 @@ static struct ns_callback ns_cb = {
 };
 
 /*
- * pmemblk_map_common -- (internal) map a block memory pool
- *
- * This routine does all the work, but takes a rdonly flag so internal
- * calls can map a read-only pool if required.
- *
- * If empty flag is set, the file is assumed to be a new memory pool, and
- * a new pool header is created.  Otherwise, a valid pool header must exist.
- *
- * Passing in bsize == 0 means a valid pool header must exist (which
- * will supply the block size).
+ * pmemblk_descr_create -- (internal) create block memory pool descriptor
  */
-static PMEMblkpool *
-pmemblk_map_common(int fd, size_t poolsize, size_t bsize, int rdonly,
-		int initialize, int zeroed)
+static int
+pmemblk_descr_create(PMEMblkpool *pbp, size_t bsize, int zeroed)
 {
-	LOG(3, "fd %d poolsize %zu bsize %zu rdonly %d initialize %d zeroed %d",
-			fd, poolsize, bsize, rdonly, initialize, zeroed);
+	LOG(3, "pbp %p bsize %zu zeroed %d", pbp, bsize, zeroed);
 
-	/* things free by "goto err" if not NULL */
-	struct btt *bttp = NULL;
-	pthread_mutex_t *locks = NULL;
+	/* create the required metadata */
+	pbp->bsize = htole32(bsize);
+	pmem_msync(&pbp->bsize, sizeof (bsize));
 
-	void *addr;
-	if ((addr = util_map(fd, poolsize, rdonly)) == NULL) {
-		(void) close(fd);
-		return NULL;	/* util_map() set errno, called LOG */
+	pbp->is_zeroed = zeroed;
+	pmem_msync(&pbp->is_zeroed, sizeof (pbp->is_zeroed));
+
+	return 0;
+}
+
+/*
+ * pmemblk_descr_check -- (internal) validate block memory pool descriptor
+ */
+static int
+pmemblk_descr_check(PMEMblkpool *pbp, size_t *bsize)
+{
+	LOG(3, "pbp %p bsize %zu", pbp, *bsize);
+
+	size_t hdr_bsize = le32toh(pbp->bsize);
+	if (*bsize && *bsize != hdr_bsize) {
+		ERR("wrong bsize (%zu), pool created with bsize %zu",
+				*bsize, hdr_bsize);
+		errno = EINVAL;
+		return -1;
 	}
+	*bsize = hdr_bsize;
+	LOG(3, "using block size from header: %zu", *bsize);
 
-	VALGRIND_REGISTER_PMEM_MAPPING(addr, poolsize);
-	VALGRIND_REGISTER_PMEM_FILE(fd, addr, poolsize, 0);
+	return 0;
+}
 
-	(void) close(fd);
-
-	/* check if the mapped region is located in persistent memory */
-	int is_pmem = pmem_is_pmem(addr, poolsize);
-
-	/* opaque info lives at the beginning of mapped memory pool */
-	struct pmemblk *pbp = addr;
-
-	if (!initialize) {
-		struct pool_hdr hdr;
-
-		memcpy(&hdr, &pbp->hdr, sizeof (hdr));
-
-		if (!util_convert_hdr(&hdr)) {
-			errno = EINVAL;
-			goto err;
-		}
-
-		/*
-		 * valid header found
-		 */
-		if (strncmp(hdr.signature, BLK_HDR_SIG, POOL_HDR_SIG_LEN)) {
-			ERR("wrong pool type: \"%s\"", hdr.signature);
-
-			errno = EINVAL;
-			goto err;
-		}
-
-		if (hdr.major != BLK_FORMAT_MAJOR) {
-			ERR("blk pool version %d (library expects %d)",
-				hdr.major, BLK_FORMAT_MAJOR);
-
-			errno = EINVAL;
-			goto err;
-		}
-
-		/* XXX - pools sets / replicas */
-		if (memcmp(hdr.uuid, hdr.prev_part_uuid, POOL_HDR_UUID_LEN) ||
-		    memcmp(hdr.uuid, hdr.next_part_uuid, POOL_HDR_UUID_LEN) ||
-		    memcmp(hdr.uuid, hdr.prev_repl_uuid, POOL_HDR_UUID_LEN) ||
-		    memcmp(hdr.uuid, hdr.next_repl_uuid, POOL_HDR_UUID_LEN)) {
-			ERR("wrong UUID");
-			errno = EINVAL;
-			goto err;
-		}
-
-		size_t hdr_bsize = le32toh(pbp->bsize);
-		if (bsize && bsize != hdr_bsize) {
-			ERR("wrong bsize (%zu), pool created with bsize %zu",
-					bsize, hdr_bsize);
-			errno = EINVAL;
-			goto err;
-		}
-		bsize = hdr_bsize;
-		LOG(3, "using block size from header: %zu", bsize);
-
-		int retval = util_feature_check(&hdr, BLK_FORMAT_INCOMPAT,
-							BLK_FORMAT_RO_COMPAT,
-							BLK_FORMAT_COMPAT);
-		if (retval < 0)
-		    goto err;
-		else if (retval == 0)
-		    rdonly = 1;
-	} else {
-		LOG(3, "creating new blk memory pool");
-
-		ASSERTeq(rdonly, 0);
-
-		struct pool_hdr *hdrp = &pbp->hdr;
-
-		/* check if the pool header is all zero */
-		if (!util_is_zeroed(hdrp, sizeof (*hdrp))) {
-			ERR("Non-zero pool header detected");
-			errno = EINVAL;
-			goto err;
-		}
-
-		/* check if bsize is valid */
-		if (bsize == 0) {
-			ERR("Invalid block size %zu", bsize);
-			errno = EINVAL;
-			goto err;
-		}
-
-		/* create the required metadata first */
-		pbp->bsize = htole32(bsize);
-		pmem_msync(&pbp->bsize, sizeof (bsize));
-
-		pbp->is_zeroed = zeroed;
-		pmem_msync(&pbp->is_zeroed, sizeof (pbp->is_zeroed));
-
-		/* create pool header */
-		strncpy(hdrp->signature, BLK_HDR_SIG, POOL_HDR_SIG_LEN);
-		hdrp->major = htole32(BLK_FORMAT_MAJOR);
-		hdrp->compat_features = htole32(BLK_FORMAT_COMPAT);
-		hdrp->incompat_features = htole32(BLK_FORMAT_INCOMPAT);
-		hdrp->ro_compat_features = htole32(BLK_FORMAT_RO_COMPAT);
-		uuid_generate(hdrp->uuid);
-		/* XXX - pools sets / replicas */
-		uuid_generate(hdrp->poolset_uuid);
-		memcpy(hdrp->prev_part_uuid, hdrp->uuid, POOL_HDR_UUID_LEN);
-		memcpy(hdrp->next_part_uuid, hdrp->uuid, POOL_HDR_UUID_LEN);
-		memcpy(hdrp->prev_repl_uuid, hdrp->uuid, POOL_HDR_UUID_LEN);
-		memcpy(hdrp->next_repl_uuid, hdrp->uuid, POOL_HDR_UUID_LEN);
-		hdrp->crtime = htole64((uint64_t)time(NULL));
-
-		if (util_get_arch_flags(&hdrp->arch_flags)) {
-			ERR("Reading architecture flags failed\n");
-			errno = EINVAL;
-			goto err;
-		}
-
-		hdrp->arch_flags.alignment_desc =
-			htole64(hdrp->arch_flags.alignment_desc);
-		hdrp->arch_flags.e_machine =
-			htole16(hdrp->arch_flags.e_machine);
-
-		util_checksum(hdrp, sizeof (*hdrp), &hdrp->checksum, 1);
-
-		/* store pool's header */
-		pmem_msync(hdrp, sizeof (*hdrp));
-	}
+/*
+ * pmemblk_runtime_init -- (internal) initialize block memory pool runtime data
+ */
+static int
+pmemblk_runtime_init(PMEMblkpool *pbp, size_t bsize, int rdonly, int is_pmem)
+{
+	LOG(3, "pbp %p bsize %zu rdonly %d is_pmem %d",
+			pbp, bsize, rdonly, is_pmem);
 
 	/* remove volatile part of header */
 	VALGRIND_REMOVE_PMEM_MAPPING(&pbp->addr,
@@ -438,11 +331,9 @@ pmemblk_map_common(int fd, size_t poolsize, size_t bsize, int rdonly,
 	 * run-time state is never loaded from the file, it is always
 	 * created here, so no need to worry about byte-order.
 	 */
-	pbp->addr = addr;
-	pbp->size = poolsize;
 	pbp->rdonly = rdonly;
 	pbp->is_pmem = is_pmem;
-	pbp->data = addr + roundup(sizeof (*pbp), BLK_FORMAT_DATA_ALIGN);
+	pbp->data = pbp->addr + roundup(sizeof (*pbp), BLK_FORMAT_DATA_ALIGN);
 	pbp->datasize = (pbp->addr + pbp->size) - pbp->data;
 
 	LOG(4, "data area %p data size %zu bsize %zu",
@@ -453,6 +344,10 @@ pmemblk_map_common(int fd, size_t poolsize, size_t bsize, int rdonly,
 		ncpus = 1;
 
 	ns_cb.ns_is_zeroed = pbp->is_zeroed;
+
+	/* things free by "goto err" if not NULL */
+	struct btt *bttp = NULL;
+	pthread_mutex_t *locks = NULL;
 
 	bttp = btt_init(pbp->datasize, (uint32_t)bsize, pbp->hdr.uuid,
 			ncpus * 2, pbp, &ns_cb);
@@ -491,13 +386,12 @@ pmemblk_map_common(int fd, size_t poolsize, size_t bsize, int rdonly,
 	 * The prototype PMFS doesn't allow this when large pages are in
 	 * use. It is not considered an error if this fails.
 	 */
-	util_range_none(addr, sizeof (struct pool_hdr));
+	util_range_none(pbp->addr, sizeof (struct pool_hdr));
 
 	/* the data area should be kept read-only for debug version */
 	RANGE_RO(pbp->data, pbp->datasize);
 
-	LOG(3, "pbp %p", pbp);
-	return pbp;
+	return 0;
 
 err:
 	LOG(4, "error clean up");
@@ -506,10 +400,8 @@ err:
 		Free((void *)locks);
 	if (bttp)
 		btt_fini(bttp);
-	VALGRIND_REMOVE_PMEM_MAPPING(addr, poolsize);
-	util_unmap(addr, poolsize);
 	errno = oerrno;
-	return NULL;
+	return -1;
 }
 
 /*
@@ -519,28 +411,139 @@ PMEMblkpool *
 pmemblk_create(const char *path, size_t bsize, size_t poolsize,
 		mode_t mode)
 {
-	LOG(3, "path %s bsize %zu poolsize %zu mode %d",
+	LOG(3, "path %s bsize %zu poolsize %zu mode %o",
 			path, bsize, poolsize, mode);
 
-	int created = 0;
-	int fd;
-	if (poolsize != 0) {
-		/* create a new memory pool file */
-		fd = util_pool_create(path, poolsize, PMEMBLK_MIN_POOL, mode);
-		created = 1;
-	} else {
-		/* open an existing file */
-		fd = util_pool_open(path, &poolsize, PMEMBLK_MIN_POOL);
+	/* check if bsize is valid */
+	if (bsize == 0) {
+		ERR("Invalid block size %zu", bsize);
+		errno = EINVAL;
+		return NULL;
 	}
-	if (fd == -1)
-		return NULL;	/* errno set by util_pool_create/open() */
 
-	PMEMblkpool *pbp;
-	pbp = pmemblk_map_common(fd, poolsize, bsize, 0, 1, created);
-	if (pbp == NULL && created)
-		unlink(path);	/* delete file if pool creation failed */
+	struct pool_set *set;
 
+	if (util_pool_create(&set, path, poolsize, mode, PMEMBLK_MIN_POOL,
+			roundup(sizeof (struct pmemblk), Pagesize),
+			BLK_HDR_SIG, BLK_FORMAT_MAJOR,
+			BLK_FORMAT_COMPAT, BLK_FORMAT_INCOMPAT,
+			BLK_FORMAT_RO_COMPAT) != 0) {
+		LOG(2, "cannot create pool or pool set");
+		return NULL;
+	}
+
+	ASSERT(set->nreplicas > 0);
+
+	struct pool_replica *rep = set->replica[0];
+	PMEMblkpool *pbp = rep->part[0].addr;
+
+	pbp->addr = pbp;
+	pbp->size = rep->repsize;
+
+	VALGRIND_REMOVE_PMEM_MAPPING(&pbp->addr,
+			sizeof (struct pmemblk) -
+			((uintptr_t)&pbp->addr - (uintptr_t)&pbp->hdr));
+
+	if (set->nreplicas > 1) {
+		ERR("replicas not supported");
+		goto err;
+	}
+
+	/* create pool descriptor */
+	if (pmemblk_descr_create(pbp, bsize, set->zeroed) != 0) {
+		LOG(2, "descriptor creation failed");
+		goto err;
+	}
+
+	/* initialize runtime parts */
+	if (pmemblk_runtime_init(pbp, bsize, 0, rep->is_pmem) != 0) {
+		ERR("pool initialization failed");
+		goto err;
+	}
+
+	util_poolset_free(set);
+
+	LOG(3, "pbp %p", pbp);
 	return pbp;
+
+err:
+	LOG(4, "error clean up");
+	int oerrno = errno;
+	VALGRIND_REMOVE_PMEM_MAPPING(pbp->addr, pbp->size);
+	util_unmap(pbp->addr, pbp->size);
+	util_poolset_close(set, 1);
+	errno = oerrno;
+	return NULL;
+}
+
+
+/*
+ * pmemblk_open_common -- (internal) open a block memory pool
+ *
+ * This routine does all the work, but takes a cow flag so internal
+ * calls can map a read-only pool if required.
+ *
+ * Passing in bsize == 0 means a valid pool header must exist (which
+ * will supply the block size).
+ */
+static PMEMblkpool *
+pmemblk_open_common(const char *path, size_t bsize, int cow)
+{
+	LOG(3, "path %s bsize %zu cow %d", path, bsize, cow);
+
+	struct pool_set *set;
+
+	if (util_pool_open(&set, path, cow, PMEMBLK_MIN_POOL,
+			roundup(sizeof (struct pmemblk), Pagesize),
+			BLK_HDR_SIG, BLK_FORMAT_MAJOR,
+			BLK_FORMAT_COMPAT, BLK_FORMAT_INCOMPAT,
+			BLK_FORMAT_RO_COMPAT) != 0) {
+		LOG(2, "cannot open pool or pool set");
+		return NULL;
+	}
+
+	ASSERT(set->nreplicas > 0);
+
+	struct pool_replica *rep = set->replica[0];
+	PMEMblkpool *pbp = rep->part[0].addr;
+
+	pbp->addr = pbp;
+	pbp->size = rep->repsize;
+
+	VALGRIND_REMOVE_PMEM_MAPPING(&pbp->addr,
+			sizeof (struct pmemblk) -
+			((uintptr_t)&pbp->addr - (uintptr_t)&pbp->hdr));
+
+	if (set->nreplicas > 1) {
+		ERR("replicas not supported");
+		goto err;
+	}
+
+	/* validate pool descriptor */
+	if (pmemblk_descr_check(pbp, &bsize) != 0) {
+		LOG(2, "descriptor check failed");
+		goto err;
+	}
+
+	/* initialize runtime parts */
+	if (pmemblk_runtime_init(pbp, bsize, set->rdonly, rep->is_pmem) != 0) {
+		ERR("pool initialization failed");
+		goto err;
+	}
+
+	util_poolset_free(set);
+
+	LOG(3, "pbp %p", pbp);
+	return pbp;
+
+err:
+	LOG(4, "error clean up");
+	int oerrno = errno;
+	VALGRIND_REMOVE_PMEM_MAPPING(pbp->addr, pbp->size);
+	util_unmap(pbp->addr, pbp->size);
+	util_poolset_free(set);
+	errno = oerrno;
+	return NULL;
 }
 
 /*
@@ -551,13 +554,7 @@ pmemblk_open(const char *path, size_t bsize)
 {
 	LOG(3, "path %s bsize %zu", path, bsize);
 
-	size_t poolsize = 0;
-	int fd;
-
-	if ((fd = util_pool_open(path, &poolsize, PMEMBLK_MIN_POOL)) == -1)
-		return NULL;	/* errno set by util_pool_open() */
-
-	return pmemblk_map_common(fd, poolsize, bsize, 0, 0, 0);
+	return pmemblk_open_common(path, bsize, 0);
 }
 
 /*
@@ -712,17 +709,10 @@ pmemblk_check(const char *path, size_t bsize)
 {
 	LOG(3, "path \"%s\" bsize %zu", path, bsize);
 
-	size_t poolsize = 0;
-	int fd;
-
-	if ((fd = util_pool_open(path, &poolsize, PMEMBLK_MIN_POOL)) == -1)
-		return -1;	/* errno set by util_pool_open() */
-
 	/* map the pool read-only */
-	PMEMblkpool *pbp = pmemblk_map_common(fd, poolsize, bsize, 1, 0, 0);
-
+	PMEMblkpool *pbp = pmemblk_open_common(path, bsize, 1);
 	if (pbp == NULL)
-		return -1;	/* errno set by pmemblk_map_common() */
+		return -1;	/* errno set by pmemblk_open_common() */
 
 	int retval = btt_check(pbp->bttp);
 	int oerrno = errno;

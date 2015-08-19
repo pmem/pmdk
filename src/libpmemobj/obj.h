@@ -99,11 +99,20 @@
 #define	OBJ_STORE_ITEM_PADDING\
 	(_POBJ_CL_ALIGNMENT - (sizeof (struct list_head) % _POBJ_CL_ALIGNMENT))
 
-typedef void (*persist_fn)(void *, size_t);
-typedef void (*flush_fn)(void *, size_t);
-typedef void (*drain_fn)(void);
-typedef void *(*memcpy_fn)(void *dest, const void *src, size_t len);
-typedef void *(*memset_fn)(void *dest, int c, size_t len);
+typedef void (*persist_local_fn)(void *, size_t);
+typedef void (*flush_local_fn)(void *, size_t);
+typedef void (*drain_local_fn)(void);
+typedef void *(*memcpy_local_fn)(void *dest, const void *src, size_t len);
+typedef void *(*memset_local_fn)(void *dest, int c, size_t len);
+
+typedef void (*persist_fn)(PMEMobjpool *pop, void *, size_t);
+typedef void (*flush_fn)(PMEMobjpool *pop, void *, size_t);
+typedef void (*drain_fn)(PMEMobjpool *pop);
+typedef void *(*memcpy_fn)(PMEMobjpool *pop, void *dest, const void *src,
+					size_t len);
+typedef void *(*memset_fn)(PMEMobjpool *pop, void *dest, int c, size_t len);
+
+extern unsigned long Pagesize;
 
 struct pmemobjpool {
 	struct pool_hdr hdr;	/* memory pool header */
@@ -132,6 +141,16 @@ struct pmemobjpool {
 	struct object_store *store; /* object store */
 	uint64_t uuid_lo;
 
+	struct pmemobjpool *replica;	/* next replica */
+
+	/* per-replica functions: pmem or non-pmem */
+	persist_local_fn persist_local;	/* persist function */
+	flush_local_fn flush_local;	/* flush function */
+	drain_local_fn drain_local;	/* drain function */
+	memcpy_local_fn memcpy_persist_local; /* persistent memcpy function */
+	memset_local_fn memset_persist_local; /* persistent memset function */
+
+	/* for 'master' replica: with or without data replication */
 	persist_fn persist;	/* persist function */
 	flush_fn flush;		/* flush function */
 	drain_fn drain;		/* drain function */

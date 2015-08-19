@@ -117,7 +117,7 @@ pmemobj_mutex_zero(PMEMobjpool *pop, PMEMmutex *mutexp)
 	LOG(3, "pop %p mutex %p", pop, mutexp);
 
 	mutexp->pmemmutex.runid = 0;
-	pop->persist(&mutexp->pmemmutex.runid,
+	pop->persist(pop, &mutexp->pmemmutex.runid,
 				sizeof (&mutexp->pmemmutex.runid));
 }
 
@@ -184,7 +184,7 @@ pmemobj_rwlock_zero(PMEMobjpool *pop, PMEMrwlock *rwlockp)
 	LOG(3, "pop %p rwlock %p", pop, rwlockp);
 
 	rwlockp->pmemrwlock.runid = 0;
-	pop->persist(&rwlockp->pmemrwlock.runid,
+	pop->persist(pop, &rwlockp->pmemrwlock.runid,
 				sizeof (&rwlockp->pmemrwlock.runid));
 }
 
@@ -327,7 +327,8 @@ pmemobj_cond_zero(PMEMobjpool *pop, PMEMcond *condp)
 	LOG(3, "pop %p cond %p", pop, condp);
 
 	condp->pmemcond.runid = 0;
-	pop->persist(&condp->pmemcond.runid, sizeof (&condp->pmemcond.runid));
+	pop->persist(pop, &condp->pmemcond.runid,
+			sizeof (&condp->pmemcond.runid));
 }
 
 /*

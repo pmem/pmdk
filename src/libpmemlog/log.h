@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright (c) 2014-2015, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -44,6 +44,8 @@
 #define	LOG_FORMAT_COMPAT 0x0000
 #define	LOG_FORMAT_INCOMPAT 0x0000
 #define	LOG_FORMAT_RO_COMPAT 0x0000
+
+extern unsigned long Pagesize;
 
 struct pmemlog {
 	struct pool_hdr hdr;	/* memory pool header */

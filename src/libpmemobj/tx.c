@@ -186,9 +186,9 @@ constructor_tx_add_range(PMEMobjpool *pop, void *ptr, void *arg)
 	void *src = OBJ_OFF_TO_PTR(args->pop, args->offset);
 
 	/* flush offset and size */
-	pop->flush(range, sizeof (struct tx_range));
+	pop->flush(pop, range, sizeof (struct tx_range));
 	/* memcpy data and persist */
-	pop->memcpy_persist(range->data, src, args->size);
+	pop->memcpy_persist(pop, range->data, src, args->size);
 
 	VALGRIND_REMOVE_FROM_TX(OOB_HEADER_FROM_PTR(ptr),
 				sizeof (struct tx_range) + args->size
@@ -275,7 +275,7 @@ static inline void
 tx_set_state(PMEMobjpool *pop, struct lane_tx_layout *layout, uint64_t state)
 {
 	layout->state = state;
-	pop->persist(&layout->state, sizeof (layout->state));
+	pop->persist(pop, &layout->state, sizeof (layout->state));
 }
 
 /*
@@ -462,7 +462,7 @@ tx_restore_range(PMEMobjpool *pop, struct tx_range *range)
 		struct tx_range_data *txr = SLIST_FIRST(&tx_ranges);
 		SLIST_REMOVE_HEAD(&tx_ranges, tx_range);
 		/* restore partial range data from snapshot */
-		pop->memcpy_persist(txr->begin,
+		pop->memcpy_persist(pop, txr->begin,
 				&range->data[txr->begin - dst_ptr],
 				txr->end - txr->begin);
 		Free(txr);
@@ -486,7 +486,8 @@ tx_abort_set(PMEMobjpool *pop, struct lane_tx_layout *layout, int recovery)
 
 		if (recovery) {
 			/* lane recovery */
-			pop->memcpy_persist(OBJ_OFF_TO_PTR(pop, range->offset),
+			pop->memcpy_persist(pop,
+					OBJ_OFF_TO_PTR(pop, range->offset),
 					range->data, range->size);
 		} else {
 			/* aborted transaction */
@@ -540,7 +541,7 @@ tx_pre_commit_alloc(PMEMobjpool *pop, struct lane_tx_layout *layout)
 				iter.off - OBJ_OOB_SIZE);
 
 		/* flush and persist the whole allocated area and oob header */
-		pop->persist(oobh, size);
+		pop->persist(pop, oobh, size);
 	}
 }
 
@@ -561,7 +562,7 @@ tx_pre_commit_set(PMEMobjpool *pop, struct lane_tx_layout *layout)
 		void *ptr = OBJ_OFF_TO_PTR(pop, range->offset);
 
 		/* flush and persist modified area */
-		pop->persist(ptr, range->size);
+		pop->persist(pop, ptr, range->size);
 	}
 }
 

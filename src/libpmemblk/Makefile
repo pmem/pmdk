@@ -35,7 +35,8 @@
 LIBRARY_NAME = pmemblk
 LIBRARY_SO_VERSION = 1
 LIBRARY_VERSION = 0.0
-SOURCE = libpmemblk.c blk.c btt.c $(COMMON)/util.c $(COMMON)/out.c
+SOURCE = libpmemblk.c blk.c btt.c $(COMMON)/util.c $(COMMON)/set.c\
+	$(COMMON)/out.c
 
 include ../Makefile.inc
 

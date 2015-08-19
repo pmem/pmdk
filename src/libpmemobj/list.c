@@ -366,7 +366,7 @@ list_fill_entry_persist(PMEMobjpool *pop, struct list_entry *entry_ptr,
 	entry_ptr->pe_prev.off = prev_offset;
 	VALGRIND_REMOVE_FROM_TX(entry_ptr, sizeof (*entry_ptr));
 
-	pop->persist(entry_ptr, sizeof (*entry_ptr));
+	pop->persist(pop, entry_ptr, sizeof (*entry_ptr));
 }
 
 /*
@@ -399,7 +399,7 @@ list_fill_entry_redo_log(PMEMobjpool *pop,
 		VALGRIND_REMOVE_FROM_TX(
 				&(args->entry_ptr->pe_prev.pool_uuid_lo),
 				sizeof (args->entry_ptr->pe_prev.pool_uuid_lo));
-		pop->persist(args->entry_ptr, sizeof (*args->entry_ptr));
+		pop->persist(pop, args->entry_ptr, sizeof (*args->entry_ptr));
 	} else {
 		ASSERTeq(args->entry_ptr->pe_next.pool_uuid_lo, pop->uuid_lo);
 		ASSERTeq(args->entry_ptr->pe_prev.pool_uuid_lo, pop->uuid_lo);
@@ -642,7 +642,7 @@ list_realloc_replace(PMEMobjpool *pop,
 	 * Persist the copied and modified data. The caller
 	 * is responsible to persist modified data in extended area.
 	 */
-	pop->persist(OBJ_OFF_TO_PTR(pop, new_obj_offset), old_size);
+	pop->persist(pop, OBJ_OFF_TO_PTR(pop, new_obj_offset), old_size);
 
 	if (head) {
 		struct list_entry *entry_ptr =
@@ -1453,10 +1453,10 @@ list_realloc(PMEMobjpool *pop, struct list_head *oob_head,
 	 * 6. Process the redo log.
 	 */
 	section->obj_size = old_size;
-	pop->persist(&section->obj_size, sizeof (section->obj_size));
+	pop->persist(pop, &section->obj_size, sizeof (section->obj_size));
 
 	section->obj_offset = obj_offset;
-	pop->persist(&section->obj_offset, sizeof (section->obj_offset));
+	pop->persist(pop, &section->obj_offset, sizeof (section->obj_offset));
 
 	/*
 	 * The user must be aware that any changes in
@@ -1487,11 +1487,12 @@ list_realloc(PMEMobjpool *pop, struct list_head *oob_head,
 		 * If realloc in-place failed clear the obj_offset and obj_size.
 		 */
 		section->obj_offset = 0;
-		pop->persist(&section->obj_offset,
+		pop->persist(pop, &section->obj_offset,
 				sizeof (section->obj_offset));
 
 		section->obj_size = 0;
-		pop->persist(&section->obj_size, sizeof (section->obj_size));
+		pop->persist(pop, &section->obj_size,
+				sizeof (section->obj_size));
 
 		/*
 		 * Realloc in place is not possible so we need to perform
@@ -1685,10 +1686,10 @@ list_realloc_move(PMEMobjpool *pop, struct list_head *oob_head_old,
 	 * 6. Process the redo log.
 	 */
 	section->obj_size = old_size;
-	pop->persist(&section->obj_size, sizeof (section->obj_size));
+	pop->persist(pop, &section->obj_size, sizeof (section->obj_size));
 
 	section->obj_offset = obj_offset;
-	pop->persist(&section->obj_offset, sizeof (section->obj_offset));
+	pop->persist(pop, &section->obj_offset, sizeof (section->obj_offset));
 
 	/*
 	 * The user must be aware that any changes in
@@ -1722,11 +1723,12 @@ list_realloc_move(PMEMobjpool *pop, struct list_head *oob_head_old,
 		 * If realloc in-place failed clear the obj_offset and obj_size.
 		 */
 		section->obj_offset = 0;
-		pop->persist(&section->obj_offset,
+		pop->persist(pop, &section->obj_offset,
 				sizeof (section->obj_offset));
 
 		section->obj_size = 0;
-		pop->persist(&section->obj_size, sizeof (section->obj_size));
+		pop->persist(pop, &section->obj_size,
+				sizeof (section->obj_size));
 
 		/*
 		 * Realloc in place is not possible so we need to perform
@@ -1889,7 +1891,7 @@ lane_list_recovery(PMEMobjpool *pop, struct lane_section_layout *section_layout)
 			 * so just clear the offset and size.
 			 */
 			section->obj_offset = 0;
-			pop->persist(&section->obj_offset,
+			pop->persist(pop, &section->obj_offset,
 					sizeof (section->obj_offset));
 		}
 		/*
@@ -1897,7 +1899,8 @@ lane_list_recovery(PMEMobjpool *pop, struct lane_section_layout *section_layout)
 		 * size field.
 		 */
 		section->obj_size = 0;
-		pop->persist(&section->obj_size, sizeof (section->obj_size));
+		pop->persist(pop, &section->obj_size,
+				sizeof (section->obj_size));
 
 	} else if (section->obj_offset) {
 		/* alloc or free recovery */
