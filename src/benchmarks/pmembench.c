@@ -226,6 +226,20 @@ static struct benchmark_clo pmembench_clos[] = {
 			.max	= ULONG_MAX,
 		},
 	},
+	{
+		.opt_short	= 's',
+		.opt_long	= "seed",
+		.type		= CLO_TYPE_UINT,
+		.descr		= "PRNG seed",
+		.off		= clo_field_offset(struct benchmark_args, seed),
+		.def		= "0",
+		.type_uint	= {
+			.size	= clo_field_size(struct benchmark_args, seed),
+			.base	= CLO_INT_BASE_DEC,
+			.min	= 0,
+			.max	= ~0,
+		},
+	},
 };
 
 /*
@@ -827,14 +841,14 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 									i);
 			}
 		}
-		benchmark_time_get(&stop);
-		benchmark_time_diff(&diff, &start, &stop);
-
-		struct latency_stats latency;
-		pmembench_get_latency_stats(workers, args->n_threads, &latency);
-
-		pmembench_print_results(bench, args, diff, &latency);
-
+		if (ret == 0) {
+			benchmark_time_get(&stop);
+			benchmark_time_diff(&diff, &start, &stop);
+			struct latency_stats latency;
+			pmembench_get_latency_stats(workers, args->n_threads,
+								&latency);
+			pmembench_print_results(bench, args, diff, &latency);
+		}
 		for (i = 0; i < args->n_threads; i++) {
 			if (bench->info->free_worker)
 				bench->info->free_worker(bench, args,

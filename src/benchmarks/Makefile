@@ -55,6 +55,7 @@ SRC=pmembench.c\
     scenario.c\
     log.c\
     blk.c\
+    vmem.c\
     pmem_memset.c\
     pmem_memcpy.c\
     pmemobj_gen.c\
@@ -65,6 +66,7 @@ SRC=pmembench.c\
 # Configuration file without the .cfg extension
 CONFIGS=pmembench_log\
 	pmembench_blk\
+	pmembench_vmem\
 	pmembench_memset\
 	pmembench_memcpy\
 	pmembench_obj_pmalloc\
@@ -77,7 +79,7 @@ CSTYLE = ../../utils/cstyle
 OBJS=$(SRC:.c=.o)
 LDFLAGS = -L$(LIBS_PATH)
 LDFLAGS += $(EXTRA_LDFLAGS)
-LIBS += -lpmemobj -lpmemlog -lpmemblk -lpmem -pthread -lm -luuid
+LIBS += -lpmemobj -lpmemlog -lpmemblk -lpmem -lvmem -pthread -lm -luuid
 CFLAGS  = -std=gnu99
 CFLAGS += -Wall
 CFLAGS += -Werror
