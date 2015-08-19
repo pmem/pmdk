@@ -39,7 +39,7 @@ vpath %.c ../../common
 TARGET = obj_store
 OBJS = obj_store.o obj_store_mocks.o libpmemobj.o obj.o redo.o pmalloc.o\
 	lane.o list.o sync.o cuckoo.o tx.o heap.o bucket.o ctree.o\
-	out.o util.o
+	out.o util.o set.o
 
 LIBPMEM=y
 

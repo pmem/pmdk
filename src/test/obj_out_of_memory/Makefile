@@ -1,4 +1,3 @@
-#!/bin/bash -e
 #
 # Copyright (c) 2015, Intel Corporation
 #
@@ -31,19 +30,13 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-export UNITTEST_NAME=obj_basic_integration/TEST0
-export UNITTEST_NUM=0
+#
+# src/test/obj_out_of_memory/Makefile -- build obj_out_of_memory test
+#
+TARGET = obj_out_of_memory
+OBJS = obj_out_of_memory.o
 
-# standard unit test setup
-. ../unittest/unittest.sh
+LIBPMEM=y
+LIBPMEMOBJ=y
 
-setup
-
-create_holey_file 8 $DIR/testfile1
-
-expect_normal_exit\
-    ./obj_basic_integration$EXESUFFIX $DIR/testfile1
-
-check
-
-pass
+include ../Makefile.inc

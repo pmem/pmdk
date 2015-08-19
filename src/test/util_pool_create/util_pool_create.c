@@ -58,7 +58,7 @@ main(int argc, char *argv[])
 		fname++;
 
 		int fd;
-		if ((fd = util_pool_create(fname, size, minsize,
+		if ((fd = util_file_create(fname, size, minsize,
 				S_IWUSR | S_IRUSR)) == -1)
 			OUT("!%s: util_pool_create", fname);
 		else {

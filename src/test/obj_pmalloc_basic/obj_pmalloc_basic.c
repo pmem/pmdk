@@ -75,6 +75,33 @@ drain_empty(void)
 	/* do nothing */
 }
 
+/*
+ * obj_persist -- pmemobj version of pmem_persist w/o replication
+ */
+static void
+obj_persist(PMEMobjpool *pop, void *addr, size_t len)
+{
+	pop->persist_local(addr, len);
+}
+
+/*
+ * obj_flush -- pmemobj version of pmem_flush w/o replication
+ */
+static void
+obj_flush(PMEMobjpool *pop, void *addr, size_t len)
+{
+	pop->flush_local(addr, len);
+}
+
+/*
+ * obj_drain -- pmemobj version of pmem_drain w/o replication
+ */
+static void
+obj_drain(PMEMobjpool *pop)
+{
+	pop->drain_local();
+}
+
 struct foo {
 	uintptr_t bar;
 };
@@ -146,11 +173,16 @@ test_mock_pool_allocs()
 	mock_pop->is_pmem = 0;
 	mock_pop->heap_offset = sizeof (struct mock_pop);
 	mock_pop->heap_size = MOCK_POOL_SIZE - mock_pop->heap_offset;
-	mock_pop->persist = (persist_fn)pmem_msync;
 	mock_pop->nlanes = 1;
 	mock_pop->lanes_offset = sizeof (PMEMobjpool);
-	mock_pop->flush = (flush_fn)pmem_msync;
-	mock_pop->drain = drain_empty;
+
+	mock_pop->persist_local = (persist_local_fn)pmem_msync;
+	mock_pop->flush_local = (flush_local_fn)pmem_msync;
+	mock_pop->drain_local = drain_empty;
+
+	mock_pop->persist = obj_persist;
+	mock_pop->flush = obj_flush;
+	mock_pop->drain = obj_drain;
 
 	lane_boot(mock_pop);
 

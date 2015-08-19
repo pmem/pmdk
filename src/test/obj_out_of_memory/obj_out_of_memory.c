@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2015, Intel Corporation
+ * Copyright (c) 2015, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,35 +31,65 @@
  */
 
 /*
- * util_pool_open.c -- unit test for util_pool_open()
- *
- * usage: util_pool_open minlen path [path]...
+ * obj_out_of_memory.c -- allocate objects until OOM
  */
 
+#include <stdlib.h>
 #include "unittest.h"
 
-#include "util.h"
+#define	LAYOUT_NAME "out_of_memory"
+
+void
+test_alloc(PMEMobjpool *pop, size_t size)
+{
+	unsigned long cnt = 0;
+
+	while (pmemobj_alloc(pop, NULL, size, 0, NULL, NULL) == 0)
+		cnt++;
+
+	OUT("size: %zu allocs: %lu", size, cnt);
+}
+
+void
+test_free(PMEMobjpool *pop)
+{
+	PMEMoid oid;
+	PMEMoid next;
+	int type_num;
+
+	POBJ_FOREACH_SAFE(pop, oid, next, type_num)
+		pmemobj_free(&oid);
+}
 
 int
 main(int argc, char *argv[])
 {
-	START(argc, argv, "util_pool_open");
+	START(argc, argv, "obj_out_of_memory");
 
 	if (argc < 3)
-		FATAL("usage: %s minlen path...", argv[0]);
+		FATAL("usage: %s size filename ...", argv[0]);
 
-	char *fname;
-	size_t minsize = strtoul(argv[1], &fname, 0);
+	size_t size = atoll(argv[1]);
 
-	for (int arg = 2; arg < argc; arg++) {
-		size_t size = 0;
-		int fd;
-		if ((fd = util_file_open(argv[arg], &size, minsize)) == -1)
-			OUT("!%s: util_pool_open", argv[arg]);
-		else {
-			OUT("%s: open, len %zu", argv[arg], size);
-			close(fd);
-		}
+	for (int i = 2; i < argc; i++) {
+		const char *path = argv[i];
+
+		PMEMobjpool *pop = pmemobj_create(path, LAYOUT_NAME, 0,
+					S_IWUSR | S_IRUSR);
+		if (pop == NULL)
+			FATAL("!pmemobj_create: %s", path);
+
+		test_alloc(pop, size);
+
+		pmemobj_close(pop);
+
+		ASSERTeq(pmemobj_check(path, LAYOUT_NAME), 1);
+
+		ASSERTne(pop = pmemobj_open(path, LAYOUT_NAME), NULL);
+
+		test_free(pop);
+
+		pmemobj_close(pop);
 	}
 
 	DONE(NULL);

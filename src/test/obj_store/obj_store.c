@@ -114,7 +114,7 @@ test_root_object(const char *path)
 	/* fill in root object */
 	strncpy(D_RW(root)->name, ROOT_NAME, MAX_ROOT_NAME);
 	D_RW(root)->value = ROOT_VALUE;
-	pop->persist(D_RW(root), sizeof (struct root));
+	pop->persist(pop, D_RW(root), sizeof (struct root));
 
 	/* re-open the pool */
 	pmemobj_close(pop);
@@ -146,7 +146,7 @@ test_root_object(const char *path)
 
 	/* fill in new content */
 	strncpy(D_RW(rootg)->name2, ROOT_NAME, MAX_ROOT_NAME);
-	pop->persist(&D_RW(rootg)->name2, sizeof (D_RW(rootg)->name2));
+	pop->persist(pop, &D_RW(rootg)->name2, sizeof (D_RW(rootg)->name2));
 
 	/* re-open the pool */
 	pmemobj_close(pop);
@@ -199,7 +199,7 @@ test_alloc_free(const char *path)
 		offsets[type_num] = tobj.oid.off;
 
 		D_RW(tobj)->value = type_num;
-		pop->persist(&D_RW(tobj)->value, sizeof (uint8_t));
+		pop->persist(pop, &D_RW(tobj)->value, sizeof (uint8_t));
 	}
 
 	/* re-open the pool */
@@ -270,7 +270,7 @@ test_FOREACH(const char *path)
 			ASSERT(isclr(bitmap, value));
 			setbit(bitmap, value);
 			D_RW(tobj)->value = value;
-			pop->persist(&D_RW(tobj)->value, sizeof (uint8_t));
+			pop->persist(pop, &D_RW(tobj)->value, sizeof (uint8_t));
 		}
 
 	/* re-open the pool */
@@ -347,7 +347,7 @@ test_user_lists(const char *path)
 	/* fill in root object */
 	strncpy(D_RW(root)->name, ROOT_NAME, MAX_ROOT_NAME);
 	D_RW(root)->value = ROOT_VALUE;
-	pop->persist(D_RW(root), sizeof (struct root));
+	pop->persist(pop, D_RW(root), sizeof (struct root));
 
 	/* add _N_OBJECTS elements to the user list */
 	for (i = 0; i < _N_OBJECTS; i++) {

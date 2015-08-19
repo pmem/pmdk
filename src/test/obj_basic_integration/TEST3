@@ -31,18 +31,27 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-export UNITTEST_NAME=obj_basic_integration/TEST0
-export UNITTEST_NUM=0
+export UNITTEST_NAME=obj_basic_integration/TEST3
+export UNITTEST_NUM=3
 
 # standard unit test setup
 . ../unittest/unittest.sh
 
+PMEMPOOL_INFO="../../tools/pmempool/pmempool info -s -o -O -A -l -H -C -Z -b"
+
 setup
 
-create_holey_file 8 $DIR/testfile1
+create_poolset $DIR/testset1 8M:$DIR/testfile1:x r 8M:$DIR/testfile2:x
 
 expect_normal_exit\
-    ./obj_basic_integration$EXESUFFIX $DIR/testfile1
+    ./obj_basic_integration$EXESUFFIX $DIR/testset1
+
+$PMEMPOOL_INFO $DIR/testfile1 > ./info1.log
+$PMEMPOOL_INFO $DIR/testfile2 > ./info2.log
+
+set +e
+diff ./info1.log ./info2.log > dump$UNITTEST_NUM.log
+set -e
 
 check
 
