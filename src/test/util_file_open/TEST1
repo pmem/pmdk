@@ -32,9 +32,9 @@
 #
 
 #
-# src/test/util_pool_open/TEST1 -- unit test for util_pool_open()
+# src/test/util_file_open/TEST1 -- unit test for util_file_open()
 #
-export UNITTEST_NAME=util_pool_open/TEST1
+export UNITTEST_NAME=util_file_open/TEST1
 export UNITTEST_NUM=1
 
 # standard unit test setup
@@ -54,7 +54,7 @@ chmod -w $DIR/testfile2
 ln -s testfile1 $DIR/testlink1
 ln -s testfile2 $DIR/testlink2
 
-expect_normal_exit ./util_pool_open$EXESUFFIX $MIN_POOL \
+expect_normal_exit ./util_file_open$EXESUFFIX $MIN_POOL \
     $DIR/testlink1\
     $DIR/testlink2\
     $DIR/testfile1\

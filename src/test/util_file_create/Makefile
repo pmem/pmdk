@@ -1,4 +1,3 @@
-#!/bin/bash -e
 #
 # Copyright (c) 2014-2015, Intel Corporation
 #
@@ -32,42 +31,14 @@
 #
 
 #
-# src/test/util_pool_create/TEST0 -- unit test for util_pool_create()
+# src/test/util_file_create/Makefile -- build util_file_create unit test
 #
-export UNITTEST_NAME=util_pool_create/TEST0
-export UNITTEST_NUM=0
+vpath %.c ../../common
+vpath %.h ../../common
+TARGET = util_file_create
+OBJS = util_file_create.o util.o out.o
 
-# standard unit test setup
-. ../unittest/unittest.sh
+out.o: CFLAGS += -DSRCVERSION=\"utversion\"
 
-require_fs_type local
-
-setup
-
-MIN_POOL=0x4000
-
-rm -fr $DIR/testdir1
-
-truncate -s 32K $DIR/testfile1
-mkdir $DIR/testdir1
-ln -s $DIR/testfile0 $DIR/testlink1
-ln -s $DIR/testfile1 $DIR/testlink2
-ln -s $DIR/testdir1 $DIR/testlink3
-ln -s /dev/zero $DIR/testlink4
-
-expect_normal_exit ./util_pool_create$EXESUFFIX $MIN_POOL \
-    $MIN_POOL:$DIR/testdir1\
-    $MIN_POOL:/dev/zero\
-    $MIN_POOL:$DIR/testlink1\
-    $MIN_POOL:$DIR/testlink2\
-    $MIN_POOL:$DIR/testlink3\
-    $MIN_POOL:$DIR/testlink4\
-    $MIN_POOL:$DIR/testfile1\
-    0x1000:$DIR/testfile2\
-    $MIN_POOL:$DIR/testfile3
-
-rm -fr $DIR/testdir1
-
-check
-
-pass
+include ../Makefile.inc
+INCS += -I../../common

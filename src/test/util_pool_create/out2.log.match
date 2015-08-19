@@ -1,4 +1,0 @@
-util_pool_create/TEST2: START: util_pool_create
- ./util_pool_create$(nW) 0x4000 0x7FFFFFFFFFFFFFFF:$(nW)/testfile
-$(nW)/testfile: util_pool_create: $(*)
-util_pool_create/TEST2: Done

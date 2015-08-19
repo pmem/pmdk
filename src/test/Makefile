@@ -61,8 +61,8 @@ TEST = blk_nblock\
        traces_custom_function\
        traces_pmem\
        util_map_proc\
-       util_pool_create\
-       util_pool_open\
+       util_file_create\
+       util_file_open\
        util_poolset\
        util_poolset_parse\
        vmem_aligned_alloc\

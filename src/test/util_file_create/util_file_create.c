@@ -31,9 +31,9 @@
  */
 
 /*
- * util_pool_open.c -- unit test for util_pool_open()
+ * util_file_create.c -- unit test for util_file_create()
  *
- * usage: util_pool_open minlen path [path]...
+ * usage: util_file_create minlen len:path [len:path]...
  */
 
 #include "unittest.h"
@@ -43,21 +43,26 @@
 int
 main(int argc, char *argv[])
 {
-	START(argc, argv, "util_pool_open");
+	START(argc, argv, "util_file_create");
 
 	if (argc < 3)
-		FATAL("usage: %s minlen path...", argv[0]);
+		FATAL("usage: %s minlen len:path...", argv[0]);
 
 	char *fname;
 	size_t minsize = strtoul(argv[1], &fname, 0);
 
 	for (int arg = 2; arg < argc; arg++) {
-		size_t size = 0;
+		size_t size = strtoul(argv[arg], &fname, 0);
+		if (*fname != ':')
+			FATAL("usage: %s minlen len:path...", argv[0]);
+		fname++;
+
 		int fd;
-		if ((fd = util_file_open(argv[arg], &size, minsize)) == -1)
-			OUT("!%s: util_pool_open", argv[arg]);
+		if ((fd = util_file_create(fname, size, minsize,
+				S_IWUSR | S_IRUSR)) == -1)
+			OUT("!%s: util_file_create", fname);
 		else {
-			OUT("%s: open, len %zu", argv[arg], size);
+			OUT("%s: created", fname);
 			close(fd);
 		}
 	}

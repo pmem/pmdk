@@ -35,9 +35,6 @@
 # RUNTESTS -- setup the environment and run each test
 #
 
-# make sure we have a well defined locale for string operations here
-export LC_ALL="C"
-
 #
 # usage -- print usage message and exit
 #
