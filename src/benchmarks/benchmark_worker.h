@@ -80,8 +80,7 @@ struct benchmark_worker
 	int ret;
 	int ret_init;
 	int ret_exit;
-	int (*func)(struct benchmark *bench, struct benchmark_args *args,
-			struct worker_info *info);
+	int (*func)(struct benchmark *bench, struct worker_info *info);
 	int (*init)(struct benchmark *bench, struct benchmark_args *args,
 			struct worker_info *info);
 	int (*exit)(struct benchmark *bench, struct benchmark_args *args,

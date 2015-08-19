@@ -37,7 +37,6 @@
 #include <assert.h>
 
 #include "benchmark_worker.h"
-
 /*
  * worker_state_wait_for_transition -- wait for transition from and to
  * specified states
@@ -89,7 +88,7 @@ thread_func(void *arg)
 	worker_state_wait_for_transition(worker,
 		WORKER_STATE_INITIALIZED, WORKER_STATE_RUN);
 
-	worker->ret = worker->func(worker->bench, worker->args, &worker->info);
+	worker->ret = worker->func(worker->bench, &worker->info);
 
 	worker_state_transition(worker,
 		WORKER_STATE_RUN, WORKER_STATE_END);

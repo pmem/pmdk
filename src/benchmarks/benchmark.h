@@ -87,6 +87,7 @@ struct benchmark_args
 	uint64_t n_ops_per_thread;	/* number of operations per thread */
 	size_t dsize;			/* data size */
 	unsigned int seed;		/* PRNG seed */
+	unsigned int repeats;		/* number of repeats of one scenario */
 	bool help;			/* print help for benchmark */
 	void *opts;			/* benchmark specific arguments */
 };
@@ -209,8 +210,7 @@ struct operation_info
 	struct worker_info *worker;	/* worker's info */
 	struct benchmark_args *args;	/* benchmark arguments */
 	unsigned int index;		/* operation's index */
-	benchmark_time_t t_start;	/* timestamp of start */
-	benchmark_time_t t_end;		/* timestamp of end */
+	benchmark_time_t t_diff;	/* timestamp of start */
 };
 
 /*
@@ -271,6 +271,8 @@ struct benchmark_info
 	int (*free_worker)(struct benchmark *bench, struct benchmark_args *args,
 			struct worker_info *worker);
 	int (*operation)(struct benchmark *bench, struct operation_info *info);
+	int (*op_init)(struct benchmark *bench, struct operation_info *info);
+	int (*op_exit)(struct benchmark *bench, struct operation_info *info);
 	bool multithread;
 	bool multiops;
 	bool measure_time;
