@@ -37,7 +37,7 @@
 .\" or
 .\"	groff -man -Tascii libpmemblk.3
 .\"
-.TH libpmemblk 3 "pmemblk API version 0.8.2" "NVM Library"
+.TH libpmemblk 3 "pmemblk API version 0.8.3" "NVM Library"
 .SH NAME
 libpmemblk \- persistent memory resident array of blocks
 .SH SYNOPSIS
@@ -242,6 +242,86 @@ will silently round up the given size to
 .BR PMEMBLK_MIN_BLK ,
 as defined in
 .BR <libpmemblk.h> .
+.PP
+Depending on the configuration of the system, the available space of
+non-volatile memory space may be divided into multiple memory devices.
+In such case, the maximum size of the pmemblk memory pool could be
+limited by the capacity of a single memory device.
+The
+.B libpmemblk
+allows building persistent memory resident array spanning multiple memory
+devices
+by creation of persistent memory pools consisting of multiple files, where
+each part of such a
+.I pool set
+may be stored on different pmem-aware filesystem.
+.PP
+Creation of all the parts of the pool set can be done with the
+.BR pmemblk_create ()
+function.  However, the recommended method for creating pool sets
+is to do it by using the
+.BR pmempool (1)
+utility.
+.PP
+When creating the pool set consisting of multiple files, the
+.I path
+argument passed to
+.BR pmemblk_create ()
+must point to the special
+.I set
+file that defines the pool layout and the location of all the parts of
+the pool set.
+The
+.I poolsize
+argument must be 0.
+The meaning of
+.I layout
+and
+.I mode
+arguments doesn't change, except that the same
+.I mode
+is used for creation of all the parts of the pool set.
+If the error prevents any of the pool set files from being created,
+.BR pmemblk_create ()
+returns NULL and sets errno appropriately.
+.PP
+When opening the pool set consisting of multiple files, the
+.I path
+argument passed to
+.BR pmemblk_open ()
+must not point to the pmemblk memory pool file, but to the same
+.I set
+file that was used for the pool set creation.
+If an error prevents any of the pool set files from being opened,
+or if the actual size of any file does not match the corresponding
+part size defined in
+.I set
+file
+.BR pmemblk_open ()
+returns NULL and sets errno appropriately.
+.PP
+The set file is a plain
+text file, which must start with the line containing a
+.I "PMEMPOOLSET"
+string,
+followed by the specification of all the pool parts in the next lines.
+For each part, the file size and the absolute path must be provided.
+Lines starting with "#" character are ignored.
+.PP
+Here is the example "myblkpool.set" file:
+.IP
+.nf
+PMEMPOOLSET
+100G /mountpoint0/myfile.part0
+200G /mountpoint1/myfile.part1
+400G /mountpoint2/myfile.part2
+.fi
+.PP
+The files in the set may be created by running the following command:
+.IP
+.nf
+pmempool create blk <bsize> --from-set=myblkpool.set
+.fi
 .PP
 .BI "void pmemblk_close(PMEMblkpool *" pbp );
 .IP
@@ -594,6 +674,12 @@ See http://pmem.io/nvml/libpmemblk for more examples
 using the
 .B libpmemblk
 API.
+.SH BUGS
+Unlike
+.BR libpmemobj ,
+data replication is not supported in
+.BR libpmemblk .
+Thus, it is not allowed to specify replica sections in pool set files.
 .SH ACKNOWLEDGEMENTS
 .PP
 .B libpmemblk

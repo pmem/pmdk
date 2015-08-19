@@ -37,7 +37,7 @@
 .\" or
 .\"	groff -man -Tascii libpmemobj.3
 .\"
-.TH libpmemobj 3 "pmemobj API version 0.4.14" "NVM Library"
+.TH libpmemobj 3 "pmemobj API version 0.4.15" "NVM Library"
 .SH NAME
 libpmemobj \- persistent memory transactional object store
 .SH SYNOPSIS
@@ -650,7 +650,7 @@ argument passed to
 must not point to the pmemobj memory pool file, but to the same
 .I set
 file that was used for the pool set creation.
-If the error prevents any of the pool set files from being open,
+If an error prevents any of the pool set files from being opened,
 or if the actual size of any file does not match the corresponding
 part size defined in
 .I set
@@ -687,22 +687,6 @@ The files in the set may be created by running the following command:
 .nf
 pmempool create obj --layout="mylayout" --from-set=myobjpool.set
 .fi
-.PP
-This is equivalent to making these calls:
-.IP
-.nf
-pmemobj_create_part("/mountpoint0/myfile.part0", "mylayout",
-                        100 * SZ_1G, 0666, 0, 3, 0, 2);
-pmemobj_create_part("/mountpoint1/myfile.part1", "mylayout",
-                        200 * SZ_1G, 0666, 1, 3, 0, 2);
-pmemobj_create_part("/mountpoint2/myfile.part2", "mylayout",
-                        400 * SZ_1G, 0666, 2, 3, 0, 2);
-pmemobj_create_part("/mountpoint3/mymirror.part0", "mylayout",
-                        500 * SZ_1G, 0666, 0, 2, 1, 2);
-pmemobj_create_part("/mountpoint4/mymirror.part1", "mylayout",
-                        200 * SZ_1G, 0666, 1, 2, 1, 2);
-.fi
-
 .SH LOCKING
 .PP
 .B libpmemobj
