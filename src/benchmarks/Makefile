@@ -52,12 +52,14 @@ SRC=pmembench.c\
     scenario.c\
     log.c\
     pmem_memset.c\
-    blk.c
+    blk.c\
+    pmem_memcpy.c
 
 # Configuration file without the .cfg extension
 CONFIGS=pmembench_log\
 	pmembench_memset\
-	pmembench_blk
+	pmembench_blk\
+	pmembench_memcpy
 
 LIBS_PATH=../nondebug
 CSTYLE = ../../utils/cstyle
