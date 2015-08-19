@@ -43,6 +43,7 @@
 #include <math.h>
 #include <sys/queue.h>
 #include <linux/limits.h>
+#include <dirent.h>
 
 #include "benchmark.h"
 #include "benchmark_worker.h"
@@ -432,7 +433,7 @@ pmembench_parse_clo(struct pmembench *pb, struct benchmark *bench,
 /*
  * pmembench_init_workers -- init benchmark's workers
  */
-static void
+static int
 pmembench_init_workers(struct benchmark_worker **workers, size_t nworkers,
 		struct benchmark *bench, struct benchmark_args *args)
 {
@@ -452,10 +453,13 @@ pmembench_init_workers(struct benchmark_worker **workers, size_t nworkers,
 		workers[i]->bench = bench;
 		workers[i]->args = args;
 		workers[i]->func = pmembench_run_worker;
-		if (bench->info->init_worker)
-			bench->info->init_worker(bench, args,
-					&workers[i]->info);
+		if (bench->info->init_worker) {
+			if (bench->info->init_worker(bench, args,
+						&workers[i]->info) != 0)
+				return -1;
+		}
 	}
+	return 0;
 }
 
 /*
@@ -682,6 +686,38 @@ out:
 }
 
 /*
+ * pmembench_remove_file -- remove file or directory if exists
+ */
+static int
+pmembench_remove_file(const char *dname)
+{
+	int ret = 0;
+	DIR *dir;
+	struct dirent *d;
+	char *tmp;
+	dir = opendir(dname);
+	if (dir == NULL) {
+		if (access(dname, F_OK) == 0)
+			remove(dname);
+		return ret;
+	}
+
+	while ((d = readdir(dir)) != NULL) {
+		if (strcmp(d->d_name, ".") == 0 || strcmp(d->d_name, "..") == 0)
+			continue;
+		tmp = malloc(strlen(dname) + strlen(d->d_name) + 2);
+		sprintf(tmp, "%s/%s", dname, d->d_name);
+		ret = (d->d_type == DT_DIR) ? pmembench_remove_file(tmp)
+								: remove(tmp);
+		free(tmp);
+		if (ret != 0)
+			return ret;
+	}
+	ret = rmdir(dname);
+	return ret;
+}
+
+/*
  * pmembench_run -- runs one benchmark. Parses arguments and performs
  * specific functions.
  */
@@ -748,7 +784,10 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 				sizeof (struct benchmark_args));
 
 		if (bench->info->rm_file) {
-			remove(args->fname);
+			if ((ret = pmembench_remove_file(args->fname)) != 0) {
+				perror("removing file failed");
+				goto out;
+			}
 		}
 
 		if (bench->info->init) {
@@ -766,7 +805,12 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 				sizeof (struct benchmark_worker *));
 		assert(workers != NULL);
 
-		pmembench_init_workers(workers, args->n_threads, bench, args);
+		if ((ret = pmembench_init_workers(workers, args->n_threads,
+							bench, args)) != 0) {
+			if (bench->info->exit)
+				bench->info->exit(bench, args);
+			goto out;
+		}
 
 		unsigned int i;
 		benchmark_time_t start, stop, diff;

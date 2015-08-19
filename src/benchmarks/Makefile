@@ -56,21 +56,23 @@ SRC=pmembench.c\
     blk.c\
     pmem_memset.c\
     pmem_memcpy.c\
-    obj_pmalloc.c
+    obj_pmalloc.c\
+    pmemobj_gen.c
 
 # Configuration file without the .cfg extension
 CONFIGS=pmembench_log\
 	pmembench_blk\
 	pmembench_memset\
 	pmembench_memcpy\
-	pmembench_obj_pmalloc
+	pmembench_obj_pmalloc\
+	pmembench_obj_gen
 
 LIBS_PATH=../nondebug
 CSTYLE = ../../utils/cstyle
 OBJS=$(SRC:.c=.o)
 LDFLAGS = -L$(LIBS_PATH)
 LDFLAGS += $(EXTRA_LDFLAGS)
-LIBS += -lpmemobj -lpmemlog -lpmemblk -lpmem -pthread -lm
+LIBS += -lpmemobj -lpmemlog -lpmemblk -lpmem -pthread -lm -luuid
 CFLAGS  = -std=gnu99
 CFLAGS += -Wall
 CFLAGS += -Werror
