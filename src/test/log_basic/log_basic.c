@@ -204,21 +204,6 @@ main(int argc, char *argv[])
 		FATAL("usage: %s file-name op:n|a|v|t|r|w", argv[0]);
 
 	const char *path = argv[1];
-	/* check consistency */
-	result = pmemlog_check(path);
-	if (result < 0)
-		OUT("!%s: pmemlog_check", path);
-	else if (result == 0)
-		OUT("%s: pmemlog_check: not consistent", path);
-
-	int fd = OPEN(path, O_RDWR);
-
-	/* pre-allocate 2MB of persistent memory */
-	errno = posix_fallocate(fd, (off_t)0, (size_t)(2 * 1024 * 1024));
-	if (errno != 0)
-		FATAL("!posix_fallocate");
-
-	CLOSE(fd);
 
 	if ((plp = pmemlog_create(path, 0, S_IWUSR | S_IRUSR)) == NULL)
 		FATAL("!pmemlog_create: %s", path);

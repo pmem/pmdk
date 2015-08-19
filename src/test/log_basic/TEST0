@@ -50,7 +50,7 @@ export UNITTEST_NUM=0
 
 setup
 
-touch $DIR/testfile1
+create_holey_file 2 $DIR/testfile1
 
 expect_normal_exit ./log_basic$EXESUFFIX $DIR/testfile1 n t w r
 
