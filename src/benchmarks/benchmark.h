@@ -85,6 +85,7 @@ struct benchmark_args
 	unsigned int n_threads;		/* number of working threads */
 	uint64_t n_ops_per_thread;	/* number of operations per thread */
 	size_t dsize;			/* data size */
+	unsigned int seed;		/* PRNG seed */
 	bool help;			/* print help for benchmark */
 	void *opts;			/* benchmark specific arguments */
 };
