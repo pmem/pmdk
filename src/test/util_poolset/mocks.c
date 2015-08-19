@@ -56,6 +56,9 @@ FUNC_MOCK_RUN_DEFAULT {
 FUNC_MOCK_END
 
 
+/*
+ * posix_fallocate -- posix_fallocate mock
+ */
 FUNC_MOCK(posix_fallocate, int, int fd, off_t offset, off_t len)
 FUNC_MOCK_RUN_DEFAULT {
 	if (Fallocate_len == len) {
@@ -67,6 +70,9 @@ FUNC_MOCK_RUN_DEFAULT {
 FUNC_MOCK_END
 
 
+/*
+ * pmem_is_pmem -- pmem_is_pmem mock
+ */
 FUNC_MOCK(pmem_is_pmem, int, void *addr, size_t len)
 FUNC_MOCK_RUN_DEFAULT {
 	if (Is_pmem_len == len) {
@@ -76,13 +82,3 @@ FUNC_MOCK_RUN_DEFAULT {
 	return _FUNC_REAL(pmem_is_pmem)(addr, len);
 }
 FUNC_MOCK_END
-
-
-
-#if 0
-
-int
-util_is_zeroed(const void *addr, size_t len);
-
-
-#endif

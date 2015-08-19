@@ -28,3 +28,7 @@ set file format correct (./pool26.set)
 ./pool27.set [incorrect format of size:3]
 ./pool28.set [incorrect format of size:3]
 ./pool29.set [incorrect format of size:3]
+./pool30.set [the first line must be exactly 'PMEMPOOLSET':1]
+./pool31.set [the first line must be exactly 'PMEMPOOLSET':1]
+./pool32.set [size and path expected:3]
+./pool33.set [size and path expected:2]

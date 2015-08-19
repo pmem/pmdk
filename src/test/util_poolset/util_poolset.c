@@ -71,11 +71,16 @@ void out_fini(void);
  * - pool_size == min(replica_size)
  */
 static void
-poolset_info(const char *fname, struct pool_set *set, size_t hdrsize)
+poolset_info(const char *fname, struct pool_set *set, size_t hdrsize, int o)
 {
-	OUT("%s: created: hdrsize %zu nreps %d poolsize %zu rdonly %d "
-		"zeroed %d", fname, hdrsize, set->nreplicas, set->poolsize,
-		set->rdonly, set->zeroed);
+	if (o)
+		OUT("%s: opened: hdrsize %zu nreps %d poolsize %zu rdonly %d "
+			"zeroed %d", fname, hdrsize, set->nreplicas,
+			set->poolsize, set->rdonly, set->zeroed);
+	else
+		OUT("%s: created: hdrsize %zu nreps %d poolsize %zu zeroed %d",
+			fname, hdrsize, set->nreplicas, set->poolsize,
+			set->zeroed);
 
 	size_t poolsize = SIZE_MAX;
 
@@ -174,7 +179,7 @@ main(int argc, char *argv[])
 			if (ret == -1)
 				OUT("!%s: util_pool_create", fname);
 			else {
-				poolset_info(fname, set, hdrsize);
+				poolset_info(fname, set, hdrsize, 0);
 				util_poolset_close(set, 0); /* do not delete */
 			}
 			break;
@@ -184,7 +189,7 @@ main(int argc, char *argv[])
 			if (ret == -1)
 				OUT("!%s: util_pool_open", fname);
 			else {
-				poolset_info(fname, set, hdrsize);
+				poolset_info(fname, set, hdrsize, 1);
 				util_poolset_close(set, 0); /* do not delete */
 			}
 			break;

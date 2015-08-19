@@ -148,14 +148,14 @@ int util_check_arch_flags(const struct arch_flags *arch_flags);
  * pool sets & replicas
  */
 #define	POOLSET_HDR_SIG "PMEMPOOLSET"
-#define	POOLSET_HDR_SIG_LEN 11	/* does not NOT include '\0' */
+#define	POOLSET_HDR_SIG_LEN 11	/* does NOT include '\0' */
 
 #define	POOLSET_REPLICA_SIG "REPLICA"
-#define	POOLSET_REPLICA_SIG_LEN 7	/* does not NOT include '\0' */
+#define	POOLSET_REPLICA_SIG_LEN 7	/* does NOT include '\0' */
 
 struct pool_set_part {
 	/* populated by a pool set file parser */
-	const char *path;	/* valid only at pool open/create */
+	const char *path;
 	size_t filesize;	/* aligned to page size */
 	int fd;
 	int created;		/* indicates newly created (zeroed) file */

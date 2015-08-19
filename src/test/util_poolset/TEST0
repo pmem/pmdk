@@ -110,9 +110,9 @@ expect_normal_exit ./util_poolset$EXESUFFIX c $MIN_POOL $HDR_SIZE\
 	$DIR/testset2 $DIR/testset3\
 	$DIR/testset4 $DIR/testset5\
 	$DIR/testset6\
-	-mo:$DIR/testfile72 $DIR/testset7\
+	-mo:`readlink -mn $DIR/testfile72` $DIR/testset7\
 	-mf:$((1024*1024*1024)) $DIR/testset8\
-	-mo:$DIR/testfile102 $DIR/testset10\
+	-mo:`readlink -mn $DIR/testfile102` $DIR/testset10\
 	$DIR/testset11\
 	$DIR/testset12 $DIR/testset13\
 	$DIR/testset14 $DIR/testset15\

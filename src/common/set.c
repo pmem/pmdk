@@ -152,8 +152,13 @@ util_poolset_free(struct pool_set *set)
 {
 	LOG(3, "set %p", set);
 
-	for (unsigned r = 0; r < set->nreplicas; r++)
+	for (unsigned r = 0; r < set->nreplicas; r++) {
+		struct pool_replica *rep = set->replica[r];
+		for (unsigned p = 0; p < rep->nparts; p++) {
+			Free((void *)(rep->part[p].path));
+		}
 		Free(set->replica[r]);
+	}
 
 	Free(set);
 }
@@ -297,6 +302,7 @@ util_parse_add_part(struct pool_set *set, const char *path, size_t filesize)
 	rep->part[p].filesize = filesize;
 	rep->part[p].fd = -1;
 	rep->part[p].addr = NULL;
+	rep->part[p].created = 0;
 
 	return 0;
 }
@@ -352,12 +358,6 @@ util_poolset_parse(const char *path, int fd, struct pool_set **setp)
 {
 	LOG(3, "path %s fd %d setp %p", path, fd, setp);
 
-	enum parser_states_enum {
-		STATE_BEGIN,
-		STATE_PMEMPOOLSET,
-		STATE_REPLICA
-	} parser_state;
-
 	enum parser_codes result;
 	char line[PARSER_MAX_LINE];
 	char *s;
@@ -388,8 +388,26 @@ util_poolset_parse(const char *path, int fd, struct pool_set **setp)
 
 	unsigned nlines = 0;
 	unsigned nparts = 0; /* number of parts in current replica */
-	parser_state = STATE_BEGIN;
-	result = PARSER_CONTINUE;
+
+	/* read the first line */
+	s = fgets(line, PARSER_MAX_LINE, fs);
+	nlines++;
+
+	/* check also if the last character is '\n' */
+	if (s && strncmp(line, POOLSET_HDR_SIG, POOLSET_HDR_SIG_LEN) == 0 &&
+	    line[POOLSET_HDR_SIG_LEN] == '\n') {
+		/* 'PMEMPOOLSET' signature detected */
+		LOG(10, "PMEMPOOLSET");
+
+		int ret = util_parse_add_replica(&set);
+		if (ret != 0)
+			goto err;
+
+		nparts = 0;
+		result = PARSER_CONTINUE;
+	} else {
+		result = PARSER_PMEMPOOLSET;
+	}
 
 	while (result == PARSER_CONTINUE) {
 		/* read next line */
@@ -397,85 +415,59 @@ util_poolset_parse(const char *path, int fd, struct pool_set **setp)
 		nlines++;
 
 		if (s) {
-			/* skip comments and blank lines */
-			if (*s == '#' || *s == '\n')
-				continue;
-
-			/* chop off newline */
+			/* chop off newline and comments */
 			if ((cp = strchr(line, '\n')) != NULL)
 				*cp = '\0';
+			if ((cp = strchr(line, '#')) != NULL)
+				*cp = '\0';
+
+			/* skip comments and blank lines */
+			if (cp == s)
+				continue;
 		}
 
-		switch (parser_state) {
-		case STATE_BEGIN:
-			/* compare also if the last character is '\0' */
-			if (s && strncmp(line, POOLSET_HDR_SIG,
-						POOLSET_HDR_SIG_LEN + 1) == 0) {
-				/* 'PMEMPOOLSET' signature detected */
-				LOG(10, "PMEMPOOLSET");
+		if (!s) {
+			if (nparts >= 1) {
+				result = PARSER_FORMAT_OK;
+			} else {
+				if (set->nreplicas == 1)
+					result = PARSER_SET_NO_PARTS;
+				else
+					result = PARSER_REP_NO_PARTS;
+			}
+		} else if (strncmp(line, POOLSET_REPLICA_SIG,
+					POOLSET_REPLICA_SIG_LEN) == 0) {
+			if (line[POOLSET_REPLICA_SIG_LEN] != '\0') {
+				/* something more than 'REPLICA' */
+				result = PARSER_REPLICA;
+			} else if (nparts >= 1) {
+				/* 'REPLICA' signature detected */
+				LOG(10, "REPLICA");
 
 				int ret = util_parse_add_replica(&set);
 				if (ret != 0)
 					goto err;
 
 				nparts = 0;
-
-				parser_state = STATE_PMEMPOOLSET;
 				result = PARSER_CONTINUE;
 			} else {
-				result = PARSER_PMEMPOOLSET;
+				if (set->nreplicas == 1)
+					result = PARSER_SET_NO_PARTS;
+				else
+					result = PARSER_REP_NO_PARTS;
 			}
-			break;
-
-		case STATE_PMEMPOOLSET:
-		case STATE_REPLICA:
-			if (!s) {
-				if (nparts >= 1) {
-					result = PARSER_FORMAT_OK;
-				} else {
-					if (set->nreplicas == 1)
-						result = PARSER_SET_NO_PARTS;
-					else
-						result = PARSER_REP_NO_PARTS;
-				}
-			} else if (strncmp(line, POOLSET_REPLICA_SIG,
-						POOLSET_REPLICA_SIG_LEN) == 0) {
-				if (line[POOLSET_REPLICA_SIG_LEN] != '\0') {
-					/* something more than 'REPLICA' */
-					result = PARSER_REPLICA;
-				} else if (nparts >= 1) {
-					/* 'REPLICA' signature detected */
-					LOG(10, "REPLICA");
-
-					int ret = util_parse_add_replica(&set);
-					if (ret != 0)
-						goto err;
-
-					nparts = 0;
-
-					parser_state = STATE_REPLICA;
-					result = PARSER_CONTINUE;
-				} else {
-					if (set->nreplicas == 1)
-						result = PARSER_SET_NO_PARTS;
-					else
-						result = PARSER_REP_NO_PARTS;
-				}
-			} else {
-				/* read size and path */
-				result = parser_read_line(line, &psize, &ppath);
-				if (result == PARSER_CONTINUE) {
-					/* add a new pool's part to the list */
-					int ret = util_parse_add_part(set,
-						ppath, psize);
-					if (ret != 0)
-						goto err;
-					nparts++;
-				}
+		} else {
+			/* read size and path */
+			result = parser_read_line(line, &psize, &ppath);
+			if (result == PARSER_CONTINUE) {
+				/* add a new pool's part to the list */
+				int ret = util_parse_add_part(set,
+					ppath, psize);
+				if (ret != 0)
+					goto err;
+				nparts++;
 			}
-			break;
 		}
-
 	}
 
 	if (result == PARSER_FORMAT_OK) {
@@ -491,18 +483,16 @@ err:
 	(void) fclose(fs);
 	util_poolset_free(set);
 	return -1;
-
-#undef	PARSER_MAX_LINE
 }
 
 /*
- * util_poolset_classic -- (internal) create a one-part pool set
+ * util_poolset_single -- (internal) create a one-part pool set
  *
  * On success returns a pointer to a newly allocated and initialized
  * pool set structure.  Otherwise, NULL is returned.
  */
 static struct pool_set *
-util_poolset_classic(const char *path, size_t filesize, int fd, int create)
+util_poolset_single(const char *path, size_t filesize, int fd, int create)
 {
 	LOG(3, "path %s filesize %zu fd %d create %d",
 			path, filesize, fd, create);
@@ -525,13 +515,13 @@ util_poolset_classic(const char *path, size_t filesize, int fd, int create)
 	}
 	set->replica[0] = rep;
 
-	/* round down to the nearest page boundary */
 	rep->part[0].filesize = filesize;
-	rep->part[0].path = path;
+	rep->part[0].path = Strdup(path);
 	rep->part[0].fd = fd;
 	rep->part[0].created = create;
 
 	rep->nparts = 1;
+	/* round down to the nearest page boundary */
 	rep->repsize = rep->part[0].filesize & ~(Pagesize - 1);
 
 	set->nreplicas = 1;
@@ -634,7 +624,7 @@ util_poolset_create(struct pool_set **setp, const char *path, size_t poolsize,
 		if (fd == -1)
 			return -1;
 
-		*setp = util_poolset_classic(path, poolsize, fd, 1);
+		*setp = util_poolset_single(path, poolsize, fd, 1);
 		if (*setp == NULL) {
 			ret = -1;
 			goto err;
@@ -666,7 +656,7 @@ util_poolset_create(struct pool_set **setp, const char *path, size_t poolsize,
 			goto err;
 		}
 
-		*setp = util_poolset_classic(path, size, fd, 0);
+		*setp = util_poolset_single(path, size, fd, 0);
 		if (*setp == NULL) {
 			ret = -1;
 			goto err;
@@ -729,7 +719,7 @@ util_poolset_open(struct pool_set **setp, const char *path, size_t minsize)
 			goto err;
 		}
 
-		*setp = util_poolset_classic(path, size, fd, 0);
+		*setp = util_poolset_single(path, size, fd, 0);
 		if (*setp == NULL) {
 			ret = -1;
 			goto err;
@@ -894,16 +884,6 @@ util_header_check(struct pool_set *set, unsigned repidx, unsigned partidx,
 		return -1;
 	}
 
-	/* check replicas linkage */
-	if (memcmp(HDR(REP(set, repidx - 1), 0)->uuid, hdr.prev_repl_uuid,
-						POOL_HDR_UUID_LEN) ||
-	    memcmp(HDR(REP(set, repidx + 1), 0)->uuid, hdr.next_repl_uuid,
-						POOL_HDR_UUID_LEN)) {
-		ERR("wrong replica UUID");
-		errno = EINVAL;
-		return -1;
-	}
-
 	/* check format version */
 	if (HDR(rep, 0)->major != hdrp->major) {
 		ERR("incompatible pool format");
@@ -965,9 +945,6 @@ util_replica_create(struct pool_set *set, unsigned repidx, int flags,
 	VALGRIND_REGISTER_PMEM_FILE(rep->part[0].fd,
 				rep->part[0].addr, rep->part[0].size, 0);
 
-	size_t mapsize = rep->part[0].filesize & ~(Pagesize - 1);
-	addr = rep->part[0].addr + mapsize;
-
 	(void) close(rep->part[0].fd);
 	rep->part[0].fd = -1;
 
@@ -993,6 +970,9 @@ util_replica_create(struct pool_set *set, unsigned repidx, int flags,
 	}
 
 	set->zeroed &= rep->part[0].created;
+
+	size_t mapsize = rep->part[0].filesize & ~(Pagesize - 1);
+	addr = rep->part[0].addr + mapsize;
 
 	/*
 	 * unmap headers; map the remaining parts of the usable pool space
@@ -1143,9 +1123,6 @@ util_replica_open(struct pool_set *set, unsigned repidx, int flags,
 	VALGRIND_REGISTER_PMEM_FILE(rep->part[0].fd,
 				rep->part[0].addr, rep->part[0].size, 0);
 
-	size_t mapsize = rep->part[0].filesize & ~(Pagesize - 1);
-	addr = rep->part[0].addr + mapsize;
-
 	(void) close(rep->part[0].fd);
 	rep->part[0].fd = -1;
 
@@ -1171,6 +1148,9 @@ util_replica_open(struct pool_set *set, unsigned repidx, int flags,
 	}
 
 	set->rdonly |= rep->part[0].rdonly;
+
+	size_t mapsize = rep->part[0].filesize & ~(Pagesize - 1);
+	addr = rep->part[0].addr + mapsize;
 
 	/*
 	 * unmap headers; map the remaining parts of the usable pool space
@@ -1257,6 +1237,20 @@ util_pool_open(struct pool_set **setp, const char *path, int rdonly,
 		if (util_replica_open(set, r, flags, hdrsize, sig,
 				major, compat, incompat, ro_compat) != 0) {
 			LOG(2, "replica open failed");
+			goto err;
+		}
+	}
+
+	/* check replicas linkage */
+	for (unsigned r = 0; r < set->nreplicas; r++) {
+		if (memcmp(HDR(REP(set, r - 1), 0)->uuid,
+					HDR(REP(set, r), 0)->prev_repl_uuid,
+					POOL_HDR_UUID_LEN) ||
+		    memcmp(HDR(REP(set, r + 1), 0)->uuid,
+					HDR(REP(set, r), 0)->next_repl_uuid,
+					POOL_HDR_UUID_LEN)) {
+			ERR("wrong replica UUID");
+			errno = EINVAL;
 			goto err;
 		}
 	}
