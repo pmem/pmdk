@@ -63,6 +63,7 @@ TEST = blk_nblock\
        util_map_proc\
        util_pool_create\
        util_pool_open\
+       util_poolset\
        util_poolset_parse\
        vmem_aligned_alloc\
        vmem_calloc\
