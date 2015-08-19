@@ -201,17 +201,26 @@ tree_map_find_dest_node(TOID(struct tree_map) map, TOID(struct tree_map_node) n,
 		}
 	}
 
-	for (int i = 0; i < BTREE_ORDER; ++i) {
-		if (i == BTREE_ORDER - 1 || D_RO(n)->items[i].key == 0 ||
-			D_RO(n)->items[i].key > key) {
-			*p = i;
+	int i;
+	for (i = 0; i < BTREE_ORDER - 1; ++i) {
+		*p = i;
+
+		/*
+		 * The key either fits somewhere in the middle or at the
+		 * right edge of the node.
+		 */
+		if (D_RO(n)->n == i || D_RO(n)->items[i].key > key) {
 			return TOID_IS_NULL(D_RO(n)->slots[i]) ? n :
 				tree_map_find_dest_node(map,
 					D_RO(n)->slots[i], n, key, p);
 		}
 	}
 
-	return TOID_NULL(struct tree_map_node);
+	/*
+	 * The key is bigger than the last node element, go one level deeper
+	 * in the rightmost child.
+	 */
+	return tree_map_find_dest_node(map, D_RO(n)->slots[i], n, key, p);
 }
 
 /*
@@ -408,6 +417,13 @@ tree_map_remove_from_node(TOID(struct tree_map) map,
 		tree_map_rebalance(map, rchild, node, p + 1);
 }
 
+#define	NODE_CONTAINS_ITEM(_n, _i, _k)\
+(_i != D_RO(_n)->n && D_RO(_n)->items[_i].key == _k)
+
+#define	NODE_CHILD_CAN_CONTAIN_ITEM(_n, _i, _k)\
+(_i == D_RO(_n)->n || D_RO(_n)->items[_i].key > _k) &&\
+!TOID_IS_NULL(D_RO(_n)->slots[_i])
+
 /*
  * tree_map_remove_item -- (internal) removes item from node
  */
@@ -418,13 +434,13 @@ tree_map_remove_item(TOID(struct tree_map) map, TOID(struct tree_map_node) node,
 	PMEMoid ret = OID_NULL;
 	int i = 0;
 	for (; i <= D_RO(node)->n; ++i) {
-		if (i == D_RO(node)->n || D_RO(node)->items[i].key > key) {
-			ret = tree_map_remove_item(map, D_RO(node)->slots[i],
-				node, key, i);
-			break;
-		} else if (D_RO(node)->items[i].key == key) {
+		if (NODE_CONTAINS_ITEM(node, i, key)) {
 			tree_map_remove_from_node(map, node, parent, i);
 			ret = D_RO(node)->items[i].value;
+			break;
+		} else if (NODE_CHILD_CAN_CONTAIN_ITEM(node, i, key)) {
+			ret = tree_map_remove_item(map, D_RO(node)->slots[i],
+				node, key, i);
 			break;
 		}
 	}
@@ -482,17 +498,17 @@ tree_map_clear(PMEMobjpool *pop,
 }
 
 /*
- * tree_map_get_from_node -- (internal) searches for a value in the node
+ * tree_map_get_in_node -- (internal) searches for a value in the node
  */
 static PMEMoid
-tree_map_get_from_node(TOID(struct tree_map_node) node, uint64_t key)
+tree_map_get_in_node(TOID(struct tree_map_node) node, uint64_t key)
 {
-	for (int i = 0; i <= D_RO(node)->n; ++i)
-		if (i == D_RO(node)->n || D_RO(node)->items[i].key > key)
-			return tree_map_get_from_node(
-				D_RO(node)->slots[i], key);
-		else if (D_RO(node)->items[i].key == key)
+	for (int i = 0; i <= D_RO(node)->n; ++i) {
+		if (NODE_CONTAINS_ITEM(node, i, key))
 			return D_RO(node)->items[i].value;
+		else if (NODE_CHILD_CAN_CONTAIN_ITEM(node, i, key))
+			return tree_map_get_in_node(D_RO(node)->slots[i], key);
+	}
 
 	return OID_NULL;
 }
@@ -503,7 +519,7 @@ tree_map_get_from_node(TOID(struct tree_map_node) node, uint64_t key)
 PMEMoid
 tree_map_get(TOID(struct tree_map) map, uint64_t key)
 {
-	return tree_map_get_from_node(D_RO(map)->root, key);
+	return tree_map_get_in_node(D_RO(map)->root, key);
 }
 
 /*
