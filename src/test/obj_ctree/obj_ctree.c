@@ -50,32 +50,29 @@ enum {
 #define	TEST_VAL_C 3
 
 FUNC_MOCK(malloc, void *, size_t size)
-{
 	FUNC_MOCK_RUN_RET_DEFAULT_REAL(malloc, size)
 	FUNC_MOCK_RUN(TEST_INSERT + 0) /* leaf malloc */
 	FUNC_MOCK_RUN(TEST_INSERT + 3) /* accessor malloc */
 	FUNC_MOCK_RUN(TEST_NEW_DELETE + 0) { /* t malloc */
 		return NULL;
 	}
-} FUNC_MOCK_END
+FUNC_MOCK_END
 
 FUNC_MOCK(pthread_mutex_init, int,
 	pthread_mutex_t *mutex, const pthread_mutexattr_t *attr)
-{
 	FUNC_MOCK_RUN_RET_DEFAULT_REAL(pthread_mutex_init, mutex, attr)
 	FUNC_MOCK_RUN(TEST_NEW_DELETE + 0) {
 		return -1;
 	}
-} FUNC_MOCK_END
+FUNC_MOCK_END
 
 FUNC_MOCK(pthread_mutex_lock, int, pthread_mutex_t *mutex)
-{
 	FUNC_MOCK_RUN_RET_DEFAULT_REAL(pthread_mutex_lock, mutex)
 	FUNC_MOCK_RUN(TEST_REMOVE + 0)
 	FUNC_MOCK_RUN(TEST_INSERT + 1) {
 		return -1;
 	}
-} FUNC_MOCK_END
+FUNC_MOCK_END
 
 void
 test_ctree_new_delete_empty()

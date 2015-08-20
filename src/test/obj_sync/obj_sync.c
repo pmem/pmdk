@@ -64,30 +64,28 @@ static struct mock_obj {
 
 FUNC_MOCK(pthread_mutex_init, int,
 		pthread_mutex_t *mutex, const pthread_mutexattr_t *attr)
-{
+
 	FUNC_MOCK_RUN_RET_DEFAULT_REAL(pthread_mutex_init, mutex, attr)
 	FUNC_MOCK_RUN(1) {
 		return -1;
 	}
-} FUNC_MOCK_END
+FUNC_MOCK_END
 
 FUNC_MOCK(pthread_rwlock_init, int,
 		pthread_rwlock_t *rwlock, const pthread_rwlockattr_t *attr)
-{
 	FUNC_MOCK_RUN_RET_DEFAULT_REAL(pthread_rwlock_init, rwlock, attr)
 	FUNC_MOCK_RUN(1) {
 		return -1;
 	}
-} FUNC_MOCK_END
+FUNC_MOCK_END
 
 FUNC_MOCK(pthread_cond_init, int,
 		pthread_cond_t *cond, const pthread_condattr_t  *attr)
-{
 	FUNC_MOCK_RUN_RET_DEFAULT_REAL(pthread_cond_init, cond, attr)
 	FUNC_MOCK_RUN(1) {
 		return -1;
 	}
-} FUNC_MOCK_END
+FUNC_MOCK_END
 
 /*
  * mock_open_pool -- (internal) simulate pool opening
