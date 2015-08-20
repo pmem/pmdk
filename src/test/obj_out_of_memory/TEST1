@@ -31,10 +31,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-#
-# src/test/obj_recovery/TEST1 -- unit test for pool recovery
-#
-export UNITTEST_NAME=obj_recovery/TEST1
+export UNITTEST_NAME=obj_out_of_memory/TEST1
 export UNITTEST_NUM=1
 
 # standard unit test setup
@@ -42,10 +39,16 @@ export UNITTEST_NUM=1
 
 setup
 
-create_holey_file 16 $DIR/testfile
+export PMEM_IS_PMEM_FORCE=1
+export PMEMOBJ_LOG_LEVEL=1
 
-expect_normal_exit ./obj_recovery$EXESUFFIX $DIR/testfile y c n
-expect_normal_exit ./obj_recovery$EXESUFFIX $DIR/testfile y o n
+create_poolset $DIR/testset1 8M:$DIR/testfile1 R 8M:$DIR/testfile2
+
+expect_normal_exit\
+	./obj_out_of_memory$EXESUFFIX 1024 $DIR/testset1
+
+compare_replicas "-soOaAbd -l -Z -H -C" \
+		$DIR/testfile1 $DIR/testfile2 > diff$UNITTEST_NUM.log
 
 check
 

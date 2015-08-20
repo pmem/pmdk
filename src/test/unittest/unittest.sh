@@ -642,3 +642,20 @@ check_arena()
 		exit 1
 	fi
 }
+
+#
+# dump_pool_info -- dump selected pool metadata and/or user data
+#
+function dump_pool_info() {
+	# ignore selected header fields that differ by definition
+	$PMEMPOOL info $* | sed -e "/^UUID/,/^Checksum/d"
+}
+
+#
+# compare_replicas -- check replicas consistency by comparing `pmempool info` output
+#
+function compare_replicas() {
+	set +e
+	diff <(dump_pool_info $1 $2) <(dump_pool_info $1 $3)
+	set -e
+}

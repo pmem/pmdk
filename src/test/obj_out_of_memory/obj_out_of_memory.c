@@ -39,13 +39,29 @@
 
 #define	LAYOUT_NAME "out_of_memory"
 
+struct cargs {
+	size_t size;
+};
+
+void
+test_constructor(PMEMobjpool *pop, void *addr, void *args)
+{
+	struct cargs *a = args;
+	pmemobj_memset_persist(pop, addr, rand() % 256, a->size / 2);
+}
+
 void
 test_alloc(PMEMobjpool *pop, size_t size)
 {
 	unsigned long cnt = 0;
 
-	while (pmemobj_alloc(pop, NULL, size, 0, NULL, NULL) == 0)
+	while (1) {
+		struct cargs args = { size };
+		if (pmemobj_alloc(pop, NULL, size, 0,
+				test_constructor, &args) != 0)
+			break;
 		cnt++;
+	}
 
 	OUT("size: %zu allocs: %lu", size, cnt);
 }

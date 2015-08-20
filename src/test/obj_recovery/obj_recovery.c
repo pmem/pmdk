@@ -56,27 +56,28 @@ main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_recovery");
 
-	if (argc != 3)
-		FATAL("usage: %s [file] [type: n/f/s]", argv[0]);
+	if (argc != 5)
+		FATAL("usage: %s [file] [lock: y/n] [cmd: c/o] [type: n/f/s]",
+			argv[0]);
 
 	const char *path = argv[1];
 
 	PMEMobjpool *pop = NULL;
-	int exists = access(path, F_OK) == 0;
+	int exists = argv[3][0] == 'o';
 	enum { TEST_NEW, TEST_FREE, TEST_SET } type;
 
-	if (argv[2][0] == 'n')
+	if (argv[4][0] == 'n')
 		type = TEST_NEW;
-	else if (argv[2][0] == 'f')
+	else if (argv[4][0] == 'f')
 		type = TEST_FREE;
-	else if (argv[2][0] == 's')
+	else if (argv[4][0] == 's')
 		type = TEST_SET;
 	else
 		FATAL("invalid type");
 
 	if (!exists) {
 		if ((pop = pmemobj_create(path, POBJ_LAYOUT_NAME(recovery),
-			PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR)) == NULL) {
+			0, S_IWUSR | S_IRUSR)) == NULL) {
 			FATAL("failed to create pool\n");
 		}
 	} else {
@@ -88,9 +89,17 @@ main(int argc, char *argv[])
 
 	TOID(struct root) root = POBJ_ROOT(pop, struct root);
 
+	int lock_type = TX_LOCK_NONE;
+	void *lock = NULL;
+
+	if (argv[2][0] == 'y') {
+		lock_type = TX_LOCK_MUTEX;
+		lock = &D_RW(root)->lock;
+	}
+
 	if (type == TEST_SET) {
 		if (!exists) {
-			TX_BEGIN_LOCK(pop, TX_LOCK_MUTEX, &D_RW(root)->lock) {
+			TX_BEGIN_LOCK(pop, lock_type, lock) {
 				TX_ADD(root);
 
 				TOID(struct foo) f = TX_NEW(struct foo);
@@ -98,7 +107,7 @@ main(int argc, char *argv[])
 				D_RW(f)->bar = BAR_VALUE;
 			} TX_END
 
-			TX_BEGIN_LOCK(pop, TX_LOCK_MUTEX, &D_RW(root)->lock) {
+			TX_BEGIN_LOCK(pop, lock_type, lock) {
 				TX_ADD_FIELD(D_RW(root)->foo, bar);
 
 				D_RW(D_RW(root)->foo)->bar = BAR_VALUE * 2;
@@ -109,11 +118,9 @@ main(int argc, char *argv[])
 		}
 	} else if (type == TEST_NEW) {
 		if (!exists) {
-			TX_BEGIN_LOCK(pop, TX_LOCK_MUTEX, &D_RW(root)->lock) {
-				TX_ADD(root);
-
+			TX_BEGIN_LOCK(pop, lock_type, lock) {
 				TOID(struct foo) f = TX_NEW(struct foo);
-				D_RW(root)->foo = f;
+				TX_SET(root, foo, f);
 				D_RW(f)->bar = BAR_VALUE;
 				exit(0); /* simulate a crash */
 			} TX_END
@@ -123,7 +130,7 @@ main(int argc, char *argv[])
 		}
 	} else { /* TEST_FREE */
 		if (!exists) {
-			TX_BEGIN_LOCK(pop, TX_LOCK_MUTEX, &D_RW(root)->lock) {
+			TX_BEGIN_LOCK(pop, lock_type, lock) {
 				TX_ADD(root);
 
 				TOID(struct foo) f = TX_NEW(struct foo);
@@ -131,7 +138,7 @@ main(int argc, char *argv[])
 				D_RW(f)->bar = BAR_VALUE;
 			} TX_END
 
-			TX_BEGIN_LOCK(pop, TX_LOCK_MUTEX, &D_RW(root)->lock) {
+			TX_BEGIN_LOCK(pop, lock_type, lock) {
 				TX_ADD(root);
 				TX_FREE(D_RW(root)->foo);
 				D_RW(root)->foo = TOID_NULL(struct foo);

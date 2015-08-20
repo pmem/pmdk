@@ -43,6 +43,15 @@
 #define	ALLOCS 100
 #define	ALLOC_SIZE 50
 
+char buf[ALLOC_SIZE];
+
+void
+test_constructor(PMEMobjpool *pop, void *addr, void *args)
+{
+	/* do not use pmem_memcpy_persist() here */
+	pmemobj_memcpy_persist(pop, addr, buf, ALLOC_SIZE);
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -53,10 +62,13 @@ main(int argc, char *argv[])
 
 	const char *path = argv[1];
 
+	for (int i = 0; i < ALLOC_SIZE; i++)
+		buf[i] = rand() % 256;
+
 	PMEMobjpool *pop = NULL;
 
 	if ((pop = pmemobj_create(path, LAYOUT_NAME,
-			PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR)) == NULL)
+			0, S_IWUSR | S_IRUSR)) == NULL)
 		FATAL("!pmemobj_create: %s", path);
 
 	pmemobj_root(pop, ROOT_SIZE); /* just to trigger allocation */
@@ -68,7 +80,8 @@ main(int argc, char *argv[])
 
 	for (int i = 0; i < ALLOCS; ++i) {
 		PMEMoid oid;
-		pmemobj_alloc(pop, &oid, ALLOC_SIZE, 0, NULL, NULL);
+		pmemobj_alloc(pop, &oid, ALLOC_SIZE, 0,
+				test_constructor, NULL);
 		OUT("%d %lu", i, oid.off);
 	}
 

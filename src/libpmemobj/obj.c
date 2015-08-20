@@ -125,6 +125,12 @@ nopmem_memset_persist(void *dest, int c, size_t len)
 }
 
 /*
+ * XXX - Consider removing obj_norep_*() wrappers to call *_local()
+ * functions directly.  Alternatively, always use obj_rep_*(), even
+ * if there are no replicas.  Verify the performance penalty.
+ */
+
+/*
  * obj_norep_memcpy_persist -- (internal) memcpy w/o replication
  */
 static void *
@@ -280,6 +286,7 @@ pmemobj_boot(PMEMobjpool *pop)
 	}
 
 	if ((errno = heap_boot(pop)) != 0) {
+		lane_cleanup(pop);
 		ERR("!heap_boot");
 		return errno;
 	}
@@ -600,6 +607,36 @@ pmemobj_recover(PMEMobjpool *pop)
 }
 
 /*
+ * pmemobj_check_basic -- (internal) basic pool consistency check
+ *
+ * Used to check if all the replicas are consistent prior to pool recovery.
+ */
+static int
+pmemobj_check_basic(PMEMobjpool *pop)
+{
+	LOG(3, "pop %p", pop);
+
+	int consistent = 1;
+
+	if (pop->run_id % 2) {
+		ERR("invalid run_id %ju", pop->run_id);
+		consistent = 0;
+	}
+
+	if ((errno = lane_check(pop)) != 0) {
+		LOG(2, "!lane_check");
+		consistent = 0;
+	}
+
+	if ((errno = heap_check(pop)) != 0) {
+		LOG(2, "!heap_check");
+		consistent = 0;
+	}
+
+	return consistent;
+}
+
+/*
  * pmemobj_open_common -- open a transactional memory pool (set)
  *
  * This routine does all the work, but takes a cow flag so internal
@@ -658,6 +695,34 @@ pmemobj_open_common(const char *path, const char *layout, int cow, int boot)
 			pop->replica = set->replica[r + 1]->part[0].addr;
 	}
 
+	/*
+	 * If there is more than one replica, check if all of them are
+	 * consistent (recoverable).
+	 * On success, choose any replica and copy entire lanes (redo logs)
+	 * to all the other replicas to synchronize them.
+	 */
+	if (set->nreplicas > 1) {
+		for (unsigned r = 0; r < set->nreplicas; r++) {
+			pop = set->replica[r]->part[0].addr;
+			if (pmemobj_check_basic(pop) == 0) {
+				ERR("inconsistent replica #%u", r);
+				goto err;
+			}
+		}
+
+		/* copy lanes */
+		pop = set->replica[0]->part[0].addr;
+		void *src = (void *)((uintptr_t)pop + pop->lanes_offset);
+		size_t len = pop->nlanes * sizeof (struct lane_layout);
+
+		for (unsigned r = 1; r < set->nreplicas; r++) {
+			pop = set->replica[r]->part[0].addr;
+			void *dst = (void *)((uintptr_t)pop +
+						pop->lanes_offset);
+			pop->memcpy_persist_local(dst, src, len);
+		}
+	}
+
 	pop = set->replica[0]->part[0].addr;
 
 	/* initialize runtime parts - lanes, obj stores, ... */
@@ -666,16 +731,12 @@ pmemobj_open_common(const char *path, const char *layout, int cow, int boot)
 		goto err;
 	}
 
-	/* XXX - sync replicas */
-
 	if (boot) {
 		if (pmemobj_recover(pop) != 0) {
 			ERR("pool recovery failed");
 			goto err;
 		}
 	}
-
-	/* XXX - update func pointers to enable replication */
 
 	LOG(3, "pop %p", pop);
 
@@ -722,10 +783,14 @@ pmemobj_cleanup(PMEMobjpool *pop)
 	if ((errno = lane_cleanup(pop)) != 0)
 		ERR("!lane_cleanup");
 
-	VALGRIND_REMOVE_PMEM_MAPPING(pop->addr, pop->size);
-	util_unmap(pop->addr, pop->size);
-
-	/* XXX - replicas */
+	/* unmap all the replicas */
+	PMEMobjpool *rep;
+	do {
+		rep = pop->replica;
+		VALGRIND_REMOVE_PMEM_MAPPING(pop->addr, pop->size);
+		util_unmap(pop->addr, pop->size);
+		pop = rep;
+	} while (pop);
 }
 
 /*
@@ -762,20 +827,12 @@ pmemobj_check(const char *path, const char *layout)
 
 	int consistent = 1;
 
-	if (pop->run_id % 2) {
-		ERR("invalid run_id %ju", pop->run_id);
-		consistent = 0;
-	}
-
-	if ((errno = lane_check(pop)) != 0) {
-		LOG(3, "!lane_check");
-		consistent = 0;
-	}
-
-	if ((errno = heap_check(pop)) != 0) {
-		LOG(3, "!heap_check");
-		consistent = 0;
-	}
+	/*
+	 * For replicated pools, basic consistency check is performed
+	 * in pmemobj_open_common().
+	 */
+	if (pop->replica == NULL)
+		consistent = pmemobj_check_basic(pop);
 
 	if (consistent && (errno = pmemobj_boot(pop)) != 0) {
 		LOG(3, "!pmemobj_boot");
@@ -783,13 +840,17 @@ pmemobj_check(const char *path, const char *layout)
 	}
 
 	if (consistent) {
-		pmemobj_close(pop);
+		pmemobj_cleanup(pop);
 	} else {
-		VALGRIND_REMOVE_PMEM_MAPPING(pop->addr, pop->size);
-		util_unmap(pop->addr, pop->size);
+		/* unmap all the replicas */
+		PMEMobjpool *rep;
+		do {
+			rep = pop->replica;
+			VALGRIND_REMOVE_PMEM_MAPPING(pop->addr, pop->size);
+			util_unmap(pop->addr, pop->size);
+			pop = rep;
+		} while (pop);
 	}
-
-	/* XXX validate metadata */
 
 	if (consistent)
 		LOG(4, "pool consistency check OK");

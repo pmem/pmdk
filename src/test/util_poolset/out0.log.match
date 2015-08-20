@@ -15,6 +15,7 @@ $(nW)/testset3: created: hdrsize 8192 nreps 1 poolsize 57344 zeroed 0
 $(nW)/testset4: util_pool_create: Invalid argument
 $(nW)/testset5: util_pool_create: Invalid argument
 $(nW)/testset6: util_pool_create: No such file or directory
+mocked open: $(nW)/testfile72
 $(nW)/testset7: util_pool_create: Permission denied
 mocked fallocate: 1073741824
 $(nW)/testset8: util_pool_create: No space left on device

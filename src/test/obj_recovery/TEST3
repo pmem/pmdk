@@ -32,20 +32,27 @@
 #
 
 #
-# src/test/obj_recovery/TEST1 -- unit test for pool recovery
+# src/test/obj_recovery/TEST3 -- unit test for pool recovery
 #
-export UNITTEST_NAME=obj_recovery/TEST1
-export UNITTEST_NUM=1
+export UNITTEST_NAME=obj_recovery/TEST3
+export UNITTEST_NUM=3
 
 # standard unit test setup
 . ../unittest/unittest.sh
 
 setup
 
-create_holey_file 16 $DIR/testfile
+create_poolset $DIR/testset 16M:$DIR/testfile1 R 16M:$DIR/testfile2
 
-expect_normal_exit ./obj_recovery$EXESUFFIX $DIR/testfile y c n
-expect_normal_exit ./obj_recovery$EXESUFFIX $DIR/testfile y o n
+expect_normal_exit ./obj_recovery$EXESUFFIX $DIR/testset n c s
+
+compare_replicas "-soOaAbd -l -Z -H -C" \
+	$DIR/testfile1 $DIR/testfile2 > diff_pre$UNITTEST_NUM.log
+
+expect_normal_exit ./obj_recovery$EXESUFFIX $DIR/testset n o s
+
+compare_replicas "-soOaAbd -l -Z -H -C" \
+	$DIR/testfile1 $DIR/testfile2 > diff_post$UNITTEST_NUM.log
 
 check
 

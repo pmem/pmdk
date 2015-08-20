@@ -31,21 +31,23 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-#
-# src/test/obj_recovery/TEST1 -- unit test for pool recovery
-#
-export UNITTEST_NAME=obj_recovery/TEST1
-export UNITTEST_NUM=1
+export UNITTEST_NAME=obj_many_size_allocs/TEST2
+export UNITTEST_NUM=2
 
 # standard unit test setup
 . ../unittest/unittest.sh
 
 setup
 
-create_holey_file 16 $DIR/testfile
+export PMEM_IS_PMEM_FORCE=1
 
-expect_normal_exit ./obj_recovery$EXESUFFIX $DIR/testfile y c n
-expect_normal_exit ./obj_recovery$EXESUFFIX $DIR/testfile y o n
+create_poolset $DIR/testset1 16M:$DIR/testfile1 r 16M:$DIR/testfile2
+
+expect_normal_exit\
+	./obj_many_size_allocs$EXESUFFIX $DIR/testset1
+
+compare_replicas "-soOaAbd -l -Z -H -C" \
+	$DIR/testfile1 $DIR/testfile2 > diff$UNITTEST_NUM.log
 
 check
 
