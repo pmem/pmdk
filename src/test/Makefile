@@ -112,6 +112,7 @@ TEST = blk_nblock\
        obj_basic_integration\
        obj_pmalloc_basic\
        obj_pool\
+       obj_pool_lock\
        obj_lane\
        obj_sync\
        obj_direct\
