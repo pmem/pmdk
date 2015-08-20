@@ -45,6 +45,7 @@ TEST = blk_nblock\
        checksum\
        log_basic\
        log_pool\
+       log_pool_lock\
        log_recovery\
        log_walker\
        pmem_isa_proc\
