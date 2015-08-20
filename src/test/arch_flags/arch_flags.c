@@ -83,7 +83,6 @@ void out_fini(void);
  * open -- open syscall mock
  */
 FUNC_MOCK(open, int, const char *pathname, int flags, mode_t mode)
-{
 	FUNC_MOCK_RUN_DEFAULT {
 		if (strcmp(pathname, ELF_FILE_NAME) == 0) {
 			if (Open_ret) {
@@ -98,7 +97,7 @@ FUNC_MOCK(open, int, const char *pathname, int flags, mode_t mode)
 
 		return __real_open(pathname, flags, mode);
 	}
-} FUNC_MOCK_END
+FUNC_MOCK_END
 
 /*
  * split_opts_path -- split options string and path to file

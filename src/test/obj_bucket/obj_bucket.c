@@ -52,51 +52,46 @@
 #define	TEST_BLOCK_OFF	40
 
 FUNC_MOCK(malloc, void *, size_t size)
-{
 	FUNC_MOCK_RUN_RET_DEFAULT_REAL(malloc, size)
 	FUNC_MOCK_RUN(0) { /* b malloc */
 		return NULL;
 	}
-} FUNC_MOCK_END
+FUNC_MOCK_END
 
 FUNC_MOCK(pthread_mutex_init, int,
 	pthread_mutex_t *mutex, const pthread_mutexattr_t *attr)
-{
 	FUNC_MOCK_RUN_RET_DEFAULT_REAL(pthread_mutex_init, mutex, attr)
 	FUNC_MOCK_RUN(0) {
 		return -1;
 	}
-} FUNC_MOCK_END
+FUNC_MOCK_END
 
 FUNC_MOCK(ctree_new, struct ctree *, void)
-{
 	FUNC_MOCK_RUN_RET_DEFAULT(MOCK_CRIT)
 	FUNC_MOCK_RUN(0) {
 		return NULL;
 	}
-} FUNC_MOCK_END
+FUNC_MOCK_END
 
 FUNC_MOCK_RET_ALWAYS(ctree_delete, void *, NULL);
 
 static uint64_t inserted_key;
 
 FUNC_MOCK(ctree_insert, int, struct ctree *c, uint64_t key)
-{
 	FUNC_MOCK_RUN_DEFAULT {
 		inserted_key = key;
 		return 0;
 	}
-} FUNC_MOCK_END
+FUNC_MOCK_END
 
 FUNC_MOCK(ctree_remove, uint64_t, struct ctree *c, uint64_t key, int eq)
-{
 	FUNC_MOCK_RUN_DEFAULT {
 		return inserted_key;
 	}
 	FUNC_MOCK_RUN(0) {
 		return 0;
 	}
-} FUNC_MOCK_END
+FUNC_MOCK_END
 
 void
 test_new_delete_bucket()

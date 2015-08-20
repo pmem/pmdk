@@ -20,13 +20,13 @@ The rest of FUNC_MOCK set of macros is used in more complicated cases.
 It allows to implement replacement logic for different runs of the given
 function. For example:
 
-    FUNC_MOCK(malloc, void *, size_t size) {
+    FUNC_MOCK(malloc, void *, size_t size)
 	FUNC_MOCK_RUN_RET_DEFAULT_REAL(malloc, size)
 	FUNC_MOCK_RUN(2) {
 	    ASSERTeq(size, 8);
 	    return NULL;
 	}
-    } FUNC_MOCK_END
+    FUNC_MOCK_END
 
 This declaration causes the third malloc call to return NULL and also verifies
 if the size argument is of expected size. All other mallocs fallback to the

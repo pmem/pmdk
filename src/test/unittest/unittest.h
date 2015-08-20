@@ -524,9 +524,9 @@ int ut_pthread_join(const char *file, int line, const char *func,
 	default: return (ret);
 
 #define	FUNC_MOCK_RET_ALWAYS(name, ret_type, ret)\
-	FUNC_MOCK(name, ret_type) {\
+	FUNC_MOCK(name, ret_type)\
 		FUNC_MOCK_RUN_RET_DEFAULT(ret);\
-	} FUNC_MOCK_END
+	FUNC_MOCK_END
 
 extern unsigned long Pagesize;
 
