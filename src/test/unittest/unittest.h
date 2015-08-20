@@ -488,7 +488,7 @@ int ut_pthread_join(const char *file, int line, const char *func,
  * mocks...
  */
 #define	_FUNC_REAL_DECL(name, ret_type, ...)\
-	ret_type __real_##name(__VA_ARGS__);
+	ret_type __real_##name(__VA_ARGS__) __attribute__((unused));
 
 #define	_FUNC_REAL(name)\
 	__real_##name
@@ -500,7 +500,7 @@ int ut_pthread_join(const char *file, int line, const char *func,
     RCOUNTER(name) = val;
 
 #define	FUNC_MOCK(name, ret_type, ...)\
-	_FUNC_REAL_DECL(name, ret_type, ##__VA_ARGS__);\
+	_FUNC_REAL_DECL(name, ret_type, ##__VA_ARGS__)\
 	static int RCOUNTER(name);\
 	ret_type __wrap_##name(__VA_ARGS__) {\
 		switch (__sync_fetch_and_add(&RCOUNTER(name), 1)) {
