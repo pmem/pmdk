@@ -38,6 +38,7 @@
 TEST = blk_nblock\
        blk_non_zero\
        blk_pool\
+       blk_pool_lock\
        blk_recovery\
        blk_rw\
        blk_rw_mt\
