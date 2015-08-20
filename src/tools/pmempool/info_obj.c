@@ -190,17 +190,23 @@ get_bitmap_size(struct chunk_run *run)
 /*
  * get_bitmap_reserved -- get number of reserved blocks in chunk run
  */
-static uint32_t
-get_bitmap_reserved(struct chunk_run *run)
+static int
+get_bitmap_reserved(struct chunk_run *run, uint32_t *reserved)
 {
-	uint32_t ret = 0;
-	int size = get_bitmap_size(run);
-	int used_values = size / BITS_PER_VALUE;
-	for (int i = 0; i < used_values; i++) {
-		ret += util_count_ones(run->bitmap[i]);
-	}
+	uint64_t nvals = 0;
+	uint64_t last_val = 0;
+	if (util_heap_get_bitmap_params(run->block_size, NULL, &nvals,
+			&last_val))
+		return -1;
 
-	return ret;
+	uint32_t ret = 0;
+	for (uint64_t i = 0; i < nvals - 1; i++)
+		ret += util_count_ones(run->bitmap[i]);
+	ret += util_count_ones(run->bitmap[nvals - 1] & ~last_val);
+
+	*reserved = ret;
+
+	return 0;
 }
 
 /*
@@ -638,16 +644,20 @@ info_obj_chunk_hdr(struct pmem_info *pip, int v, struct pmemobjpool *pop,
 
 		int class = heap_size_to_class(run->block_size);
 		if (class >= 0 && class < MAX_BUCKETS) {
-			uint32_t units = get_bitmap_size(run);
-			uint32_t used = get_bitmap_reserved(run);
-
-			stats->class_stats[class].n_units += units;
-			stats->class_stats[class].n_used += used;
-
 			outv_field(v, "Block size", "%s",
 					out_get_size_str(run->block_size,
 						pip->args.human));
-			outv_field(v, "Bitmap", "%u / %u", used, units);
+
+			uint32_t units = get_bitmap_size(run);
+			uint32_t used = 0;
+			if (get_bitmap_reserved(run,  &used)) {
+				outv_field(v, "Bitmap", "[error]");
+			} else {
+				stats->class_stats[class].n_units += units;
+				stats->class_stats[class].n_used += used;
+
+				outv_field(v, "Bitmap", "%u / %u", used, units);
+			}
 
 			info_obj_run_bitmap(v && pip->args.obj.vbitmap, run);
 		} else {
