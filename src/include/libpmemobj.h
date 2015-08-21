@@ -218,9 +218,15 @@ _toid_##t##_toid(PMEMoid _oid) : oid(_oid)\
 #endif
 
 /*
+ * This will cause a compile-time error for typed OID's declared
+ * with a type number exceeding the limit.
+ */
+#define	_TOID_TYPE_NUM(i) ((i) < PMEMOBJ_NUM_OID_TYPES ? (i) : UINT64_MAX)
+
+/*
  * Declaration of typed OID
  */
-#define	TOID_DECLARE(t, i)\
+#define	_TOID_DECLARE(t, i)\
 typedef uint8_t _toid_##t##_toid_type_num[(i)];\
 TOID(t)\
 {\
@@ -231,9 +237,14 @@ TOID(t)\
 }
 
 /*
- * Declaration of typed OID of root object
+ * Declaration of typed OID of an object
  */
-#define	TOID_DECLARE_ROOT(t) TOID_DECLARE(t, POBJ_ROOT_TYPE_NUM)
+#define	TOID_DECLARE(t, i) _TOID_DECLARE(t, _TOID_TYPE_NUM(i))
+
+/*
+ * Declaration of typed OID of a root object
+ */
+#define	TOID_DECLARE_ROOT(t) _TOID_DECLARE(t, POBJ_ROOT_TYPE_NUM)
 
 /*
  * Type number of specified type
@@ -290,7 +301,7 @@ TOID_DECLARE(t, (__COUNTER__ - _POBJ_LAYOUT_REF(name)));
  * Declaration of typed OID of root inside layout declaration
  */
 #define	POBJ_LAYOUT_ROOT(name, t)\
-TOID_DECLARE(t, POBJ_ROOT_TYPE_NUM);
+TOID_DECLARE_ROOT(t);
 
 /*
  * Name of declared layout
