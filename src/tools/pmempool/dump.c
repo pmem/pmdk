@@ -53,7 +53,6 @@
  */
 struct pmempool_dump {
 	char *fname;
-	int fd;
 	char *ofname;
 	FILE *ofh;
 	int hex;
@@ -68,7 +67,6 @@ struct pmempool_dump {
  */
 static const struct pmempool_dump pmempool_dump_default = {
 	.fname		= NULL,
-	.fd		= -1,
 	.ofname		= NULL,
 	.ofh		= NULL,
 	.hex		= 1,
@@ -330,11 +328,6 @@ pmempool_dump_func(char *appname, int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	if ((pd.fd = open(pd.fname, O_RDWR)) < 0) {
-		warn("%s", pd.fname);
-		exit(EXIT_FAILURE);
-	}
-
 	if (pd.ofname == NULL) {
 		/* use standard output by default */
 		pd.ofh = stdout;
@@ -376,8 +369,6 @@ pmempool_dump_func(char *appname, int argc, char *argv[])
 out:
 	if (ret)
 		outv_err("dumping pool file failed\n");
-
-	close(pd.fd);
 
 	if (pd.ofh != stdout)
 		fclose(pd.ofh);
