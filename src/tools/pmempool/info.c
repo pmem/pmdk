@@ -299,7 +299,7 @@ static const char *help_str =
 "  -C, --chunks [<range>]          Print zones header. If range is specified\n"
 "                                  and --object|-O option is specified prints\n"
 "                                  objects from specified zones only.\n"
-"  -T, --chunk-type used,free,run,unknown,footer\n"
+"  -T, --chunk-type used,free,run,footer\n"
 "                                  Print only specified type(s) of chunk.\n"
 "                                  [requires --chunks|-C]\n"
 "  -b, --bitmap                    Print chunk run's bitmap in graphical\n"
@@ -482,7 +482,9 @@ parse_args(char *appname, int argc, char *argv[],
 		case 'T':
 			argsp->obj.chunk_types = 0;
 			if (util_parse_chunk_types(optarg,
-						&argsp->obj.chunk_types)) {
+					&argsp->obj.chunk_types) ||
+				(argsp->obj.chunk_types &
+				(1 << CHUNK_TYPE_UNKNOWN))) {
 				outv_err("'%s' -- cannot parse chunk type(s)\n",
 						optarg);
 				return -1;
@@ -661,7 +663,7 @@ pmempool_setup_poolset(struct pmem_info *pip)
 
 	/*
 	 * Open the poolset, the values passed to util_pool_open are read
-	 * from the first poolset file, these values are then comapred with
+	 * from the first poolset file, these values are then compared with
 	 * the values from all headers of poolset files.
 	 */
 	if (util_pool_open(&pip->poolset, pip->file_name, 1, minsize,
