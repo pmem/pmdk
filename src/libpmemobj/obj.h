@@ -229,5 +229,23 @@ oob_list_last(PMEMobjpool *pop, struct list_head *head)
 	return oobh->oob.pe_prev;
 }
 
+/*
+ * pmemobj_get_uuid_lo -- (internal) evaluates XOR sum of least significant
+ * 8 bytes with most significant 8 bytes.
+ */
+static inline uint64_t
+pmemobj_get_uuid_lo(PMEMobjpool *pop)
+{
+	uint64_t uuid_lo = 0;
+
+	for (int i = 0; i < 8; i++) {
+		uuid_lo = (uuid_lo << 8) |
+			(pop->hdr.poolset_uuid[i] ^
+				pop->hdr.poolset_uuid[8 + i]);
+	}
+
+	return uuid_lo;
+}
+
 void obj_init(void);
 void obj_fini(void);

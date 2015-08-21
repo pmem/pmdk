@@ -267,24 +267,6 @@ obj_rep_drain(PMEMobjpool *pop)
 }
 
 /*
- * pmemobj_get_uuid_lo -- (internal) evaluates XOR sum of least significant
- * 8 bytes with most significant 8 bytes.
- */
-static uint64_t
-pmemobj_get_uuid_lo(PMEMobjpool *pop)
-{
-	uint64_t uuid_lo = 0;
-
-	for (int i = 0; i < 8; i++) {
-		uuid_lo = (uuid_lo << 8) |
-			(pop->hdr.poolset_uuid[i] ^
-				pop->hdr.poolset_uuid[8 + i]);
-	}
-
-	return uuid_lo;
-}
-
-/*
  * pmemobj_boot -- (internal) boots the pmemobj pool
  */
 static int

@@ -309,13 +309,13 @@ info_obj_oob_hdr(struct pmem_info *pip, int v, struct pmemobjpool *pop,
 {
 	outv_title(v, "OOB Header");
 	outv_hexdump(v && pip->args.vhdrdump, oob, sizeof (*oob),
-			PTR_TO_OFF(pop, oob), 1);
+		PTR_TO_OFF(pop, oob), 1);
 	outv_field(v, "Next",
-			out_get_pmemoid_str(oob->oob.pe_next, pop->uuid_lo));
+		out_get_pmemoid_str(oob->oob.pe_next, pip->obj.uuid_lo));
 	outv_field(v, "Prev",
-			out_get_pmemoid_str(oob->oob.pe_prev, pop->uuid_lo));
+		out_get_pmemoid_str(oob->oob.pe_prev, pip->obj.uuid_lo));
 	outv_field(v, "Internal Type", "%s",
-			out_get_internal_type_str(oob->internal_type));
+		out_get_internal_type_str(oob->internal_type));
 
 	if (oob->user_type == POBJ_ROOT_TYPE_NUM)
 		outv_field(v, "User Type", "%u [root object]", oob->user_type);
@@ -665,12 +665,6 @@ info_obj_chunk_hdr(struct pmem_info *pip, int v, struct pmemobjpool *pop,
 					out_get_size_str(run->block_size,
 						pip->args.human));
 		}
-
-		outv_hexdump(v && pip->args.vdata, &run->data, RUNSIZE,
-				PTR_TO_OFF(pop, run->data), 1);
-	} else {
-		outv_hexdump(v && pip->args.vdata, chunk, CHUNKSIZE,
-				PTR_TO_OFF(pop, chunk), 1);
 	}
 }
 
@@ -681,7 +675,8 @@ static void
 info_obj_zone_chunks(struct pmem_info *pip, int v, struct pmemobjpool *pop,
 		struct zone *zone, struct pmem_obj_zone_stats *stats)
 {
-	for (uint64_t c = 0; c < zone->header.size_idx; c++) {
+	uint64_t c = 0;
+	while (c < zone->header.size_idx) {
 		enum chunk_type type = zone->chunk_headers[c].type;
 		/* check range and types of chunks */
 		if (util_ranges_contain(&pip->args.obj.chunk_ranges, c) &&
@@ -700,6 +695,7 @@ info_obj_zone_chunks(struct pmem_info *pip, int v, struct pmemobjpool *pop,
 					&zone->chunk_headers[c],
 					&zone->chunks[c], stats);
 		}
+		c += zone->chunk_headers[c].size_idx;
 	}
 }
 
@@ -1083,6 +1079,8 @@ pmempool_info_obj(struct pmem_info *pip)
 	}
 
 	struct pmemobjpool *pop = pip->obj.addr;
+
+	pip->obj.uuid_lo = pmemobj_get_uuid_lo(pop);
 
 	info_obj_descriptor(pip, VERBOSE_DEFAULT, pop);
 	info_obj_lanes(pip, pip->args.obj.vlanes, pop);
