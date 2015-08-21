@@ -299,9 +299,11 @@ TOID_DECLARE(t, POBJ_ROOT_TYPE_NUM);
 
 PMEMobjpool *pmemobj_pool(PMEMoid oid);
 
+extern int _pobj_cache_invalidate;
 extern __thread struct _pobj_pcache {
 	PMEMobjpool *pop;
 	uint64_t uuid_lo;
+	int invalidate;
 } _pobj_cached_pool;
 
 /*
@@ -313,7 +315,10 @@ pmemobj_direct(PMEMoid oid)
 	if (oid.off == 0 || oid.pool_uuid_lo == 0)
 		return NULL;
 
-	if (_pobj_cached_pool.uuid_lo != oid.pool_uuid_lo) {
+	if (_pobj_cache_invalidate != _pobj_cached_pool.invalidate ||
+		_pobj_cached_pool.uuid_lo != oid.pool_uuid_lo) {
+		_pobj_cached_pool.invalidate = _pobj_cache_invalidate;
+
 		if ((_pobj_cached_pool.pop = pmemobj_pool(oid)) == NULL) {
 			_pobj_cached_pool.uuid_lo = 0;
 			return NULL;

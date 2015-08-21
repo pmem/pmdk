@@ -1,5 +1,6 @@
 scope/TEST4:
 $(*)debug/libpmemobj.so:
+_pobj_cache_invalidate
 _pobj_cached_pool
 _pobj_debug_notice
 pmemobj_alloc
@@ -63,6 +64,7 @@ pmemobj_type_num
 pmemobj_zalloc
 pmemobj_zrealloc
 $(*)nondebug/libpmemobj.so:
+_pobj_cache_invalidate
 _pobj_cached_pool
 _pobj_debug_notice
 pmemobj_alloc
