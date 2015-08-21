@@ -146,13 +146,16 @@ sub match {
 	my ($mfile, $ofile) = @_;
 	my $pat;
 	my $output = snarf($ofile);
-	my $line = 0;
+	my $all_lines = $output;
+	my $line_pat = 0;
+	my $line_out = 0;
 	my $opt = 0;
 
 	open(F, $mfile) or die "$mfile: $!\n";
 	while (<F>) {
 		$pat = $_;
-		$line++;
+		$line_pat++;
+		$line_out++;
 		s/([*+?|{}.\\^\$\[()])/\\$1/g;
 		s/\\\$\\\(FP\\\)/[-+]?\\d*\\.?\\d+([eE][-+]?\\d+)?/g;
 		s/\\\$\\\(N\\\)/\\d+/g;
@@ -165,15 +168,22 @@ sub match {
 		if (s/\\\$\\\(OPT\\\)//) {
 			$opt = 1;
 		}
-		print "$mfile:$line matching /$pat/\n" if $opt_v;
+		printf("%s:%-3d %s%s:%-3d       %s\n", $mfile, $line_pat, $pat, $ofile, $line_out, (split /\n/, $output)[0]) if $opt_v;
 		print " => /$_/\n" if $opt_d;
 		print " [$output]\n" if $opt_d;
 		unless ($output =~ s/^$_//) {
 			if ($opt) {
-				print "$mfile:$line skipping optional /$pat/\n" if $opt_v;
+				printf("%s:%-3d      [skipping optional line]\n", $ofile, $line_out) if $opt_v;
+				$line_out--;
 				$opt = 0;
 			} else {
-				die "$mfile:$line did not match pattern: /$pat/\n";
+				if (!$opt_v) {
+					print "[MATCHING FAILED, COMPLETE FILE ($ofile) BELOW]\n$all_lines\n[EOF]\n";
+					$opt_v = 1;
+					match($mfile, $ofile);
+				}
+
+				die "$mfile:$line_pat did not match pattern\n";
 			}
 		}
 	}
@@ -181,7 +191,7 @@ sub match {
 	if ($output ne '') {
 		# make it a little more print-friendly...
 		$output =~ s/\n/\\n/g;
-		die "line $line: unexpected output: \"$output\"\n";
+		die "line $line_pat: unexpected output: \"$output\"\n";
 	}
 }
 
