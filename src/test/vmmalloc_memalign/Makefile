@@ -48,5 +48,3 @@ libaa_cleanup:
 	$(RM) libaa.so
 
 LIBS += -lc -L. -Wl,-rpath=. -laa
-
-vmmalloc_memalign.o: vmmalloc_memalign.c

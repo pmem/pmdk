@@ -45,5 +45,3 @@ LIBPMEMBLK=y
 LIBPMEMOBJ=y
 
 include ../Makefile.inc
-
-out_err_mt.o: out_err_mt.c

@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2014, Intel Corporation
+# Copyright (c) 2014-2015, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -43,9 +43,3 @@ out.o: CFLAGS += -DSRCVERSION=\"utversion\"
 
 include ../Makefile.inc
 INCS += -I../../include -I../../common/
-
-checksum.o: checksum.c util.h out.h
-
-util.o: util.c util.h out.h
-
-out.o: out.c out.h

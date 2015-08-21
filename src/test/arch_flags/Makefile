@@ -41,6 +41,5 @@ include ../Makefile.inc
 INCS += -I../../common
 LDFLAGS += -Wl,--wrap=open
 
-arch_flags.o: arch_flags.c
 out.o: CFLAGS += -DDEBUG -DSRCVERSION=\"utversion\"
 util.o: CFLAGS += -DDEBUG

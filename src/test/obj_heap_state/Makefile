@@ -40,5 +40,3 @@ LIBPMEM=y
 LIBPMEMOBJ=y
 
 include ../Makefile.inc
-
-obj_heap_state.o: obj_heap_state.c

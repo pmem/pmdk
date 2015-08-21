@@ -40,5 +40,3 @@ LIBPMEM=y
 LIBPMEMOBJ=y
 
 include ../Makefile.inc
-
-obj_check.o: obj_check.c

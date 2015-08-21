@@ -39,5 +39,3 @@ OBJS = vmmalloc_malloc_hooks.o
 include ../Makefile.inc
 
 CFLAGS += -Wno-deprecated-declarations
-
-vmmalloc_malloc_hooks.o: vmmalloc_malloc_hooks.c

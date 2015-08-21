@@ -40,5 +40,3 @@ LIBPMEM=y
 LIBPMEMOBJ=y
 
 include ../Makefile.inc
-
-obj_many_size_allocs.o: obj_many_size_allocs.c

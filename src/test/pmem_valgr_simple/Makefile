@@ -43,5 +43,3 @@ LIBPMEM=y
 include ../Makefile.inc
 
 INCS += -I../../common
-
-pmem_valgr_simple.o: pmem_valgr_simple.c valgrind_internal.h

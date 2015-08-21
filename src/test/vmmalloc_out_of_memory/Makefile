@@ -37,5 +37,3 @@ TARGET = vmmalloc_out_of_memory
 OBJS = vmmalloc_out_of_memory.o
 
 include ../Makefile.inc
-
-vmmalloc_out_of_memory.o: vmmalloc_out_of_memory.c

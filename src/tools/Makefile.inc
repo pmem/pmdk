@@ -51,6 +51,7 @@ clean:
 
 clobber: clean
 	$(RM) $(TARGET)
+	$(RM) -d .deps/*.P .deps
 
 cstyle:
 	$(CSTYLE) -pP *.[ch]
@@ -84,6 +85,13 @@ $(TARGET): $(OBJS)
 	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
 
 %.o: %.c
-	$(CC) $(CFLAGS) $(INCS) -c -o $@ $<
+	@mkdir -p .deps
+	$(CC) -MD $(CFLAGS) $(INCS) -c -o $@ $<
+	@cp $*.d .deps/$*.P; \
+	sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
+	    -e '/^$$/ d' -e 's/$$/ :/' < $*.d >> .deps/$*.P; \
+	rm -f $*.d
 
 .PHONY: all clean clobber cstyle install uninstall
+
+-include .deps/*.P

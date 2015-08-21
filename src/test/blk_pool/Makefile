@@ -40,5 +40,3 @@ LIBPMEM=y
 LIBPMEMBLK=y
 
 include ../Makefile.inc
-
-blk_pool.o: blk_pool.c

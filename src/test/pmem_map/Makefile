@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2014, Intel Corporation
+# Copyright (c) 2014-2015, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -39,5 +39,3 @@ OBJS = pmem_map.o
 LIBPMEM=y
 
 include ../Makefile.inc
-
-pmem_map.o: pmem_map.c

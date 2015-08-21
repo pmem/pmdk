@@ -132,8 +132,6 @@ EXTRA_TARGETS_CLEAN = $(EXTRA_TARGETS:=-clean)
 EXTRA_TARGETS_CLOBBER = $(EXTRA_TARGETS:=-clobber)
 endif
 
-DEPS += $(INCLUDE)/$(LIB_NAME).h $(wildcard *.h) $(wildcard $(COMMON)/*.h)
-
 all: $(objdir) $(libdir) $(EXTRA_TARGETS) $(LIB_AR) $(LIB_SO_SONAME) $(LIB_SO_REAL) $(LIB_SO)
 
 $(objdir) $(libdir):
@@ -172,11 +170,19 @@ clean: $(EXTRA_TARGETS_CLEAN)
 
 clobber: clean $(EXTRA_TARGETS_CLOBBER)
 	$(RM) $(LIB_AR) $(LIB_SO_SONAME) $(LIB_SO_REAL) $(LIB_SO)
+	$(RM) -d $(objdir)/.deps/*.P $(objdir)/.deps
 
 cstyle:
 	$(CSTYLE) -pP *.[ch]
 
-$(objdir)/%.o: %.c $(DEPS)
-	$(CC) -c -o $@ $(CFLAGS) $(INCS) -fPIC $<
+$(objdir)/%.o: %.c
+	@mkdir -p $(objdir)/.deps
+	$(CC) -MD -c -o $@ $(CFLAGS) $(INCS) -fPIC $<
+	@cp $(objdir)/$*.d $(objdir)/.deps/$*.P; \
+	sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
+	    -e '/^$$/ d' -e 's/$$/ :/' < $(objdir)/$*.d >> $(objdir)/.deps/$*.P; \
+	rm -f $(objdir)/$*.d
 
 .PHONY: all clean clobber install uninstall cstyle
+
+-include $(objdir)/.deps/*.P

@@ -39,5 +39,3 @@ OBJS = pmem_movnt.o
 LIBPMEM=y
 
 include ../Makefile.inc
-
-pmem_movnt.o: pmem_movnt.c

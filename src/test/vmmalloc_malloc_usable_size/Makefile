@@ -37,5 +37,3 @@ TARGET = vmmalloc_malloc_usable_size
 OBJS = vmmalloc_malloc_usable_size.o
 
 include ../Makefile.inc
-
-vmmalloc_malloc_usable_size.o: vmmalloc_malloc_usable_size.c

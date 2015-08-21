@@ -39,5 +39,3 @@ OBJS = pmem_movnt_align.o
 LIBPMEM=y
 
 include ../Makefile.inc
-
-pmem_movnt_align.o: pmem_movnt_align.c

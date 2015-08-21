@@ -40,5 +40,3 @@ LIBPMEM=y
 LIBPMEMLOG=y
 
 include ../Makefile.inc
-
-log_pool.o: log_pool.c

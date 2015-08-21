@@ -39,5 +39,3 @@ OBJS = pmem_memset.o
 LIBPMEM=y
 
 include ../Makefile.inc
-
-pmem_memset.o: pmem_memset.c

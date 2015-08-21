@@ -40,5 +40,3 @@ LIBPMEM=y
 LIBPMEMOBJ=y
 
 include ../Makefile.inc
-
-obj_basic_integration.o: obj_basic_integration.c
