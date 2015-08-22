@@ -170,7 +170,7 @@ clean: $(EXTRA_TARGETS_CLEAN)
 
 clobber: clean $(EXTRA_TARGETS_CLOBBER)
 	$(RM) $(LIB_AR) $(LIB_SO_SONAME) $(LIB_SO_REAL) $(LIB_SO)
-	$(RM) -d $(objdir)/.deps/*.P $(objdir)/.deps
+	$(RM) -r $(objdir)/.deps
 
 cstyle:
 	$(CSTYLE) -pP *.[ch]
@@ -178,10 +178,10 @@ cstyle:
 $(objdir)/%.o: %.c
 	@mkdir -p $(objdir)/.deps
 	$(CC) -MD -c -o $@ $(CFLAGS) $(INCS) -fPIC $<
-	@cp $(objdir)/$*.d $(objdir)/.deps/$*.P; \
+	@$(CP) $(objdir)/$*.d $(objdir)/.deps/$*.P; \
 	sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
 	    -e '/^$$/ d' -e 's/$$/ :/' < $(objdir)/$*.d >> $(objdir)/.deps/$*.P; \
-	rm -f $(objdir)/$*.d
+	$(RM) -f $(objdir)/$*.d
 
 .PHONY: all clean clobber install uninstall cstyle
 

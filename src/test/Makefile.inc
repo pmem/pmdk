@@ -119,14 +119,14 @@ $(TARGET): $(OBJS) $(EXTRA_DEPS)
 	@cp $*.d .deps/$*.P; \
 	sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
 	    -e '/^$$/ d' -e 's/$$/ :/' < $*.d >> .deps/$*.P; \
-	rm -f $*.d
+	$(RM) -f $*.d
 
 clean:
 	$(RM) *.o */*.o core a.out *.log testfile*
 
 clobber: clean
 	$(RM) $(TARGET) $(TARGET_STATIC_DEBUG) $(TARGET_STATIC_NONDEBUG)
-	$(RM) -d .deps/*.P .deps
+	$(RM) -r .deps
 
 cstyle:
 ifneq ($(TARGET),)
