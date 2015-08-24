@@ -171,6 +171,13 @@ pmalloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
 	if ((err = heap_get_bestfit_block(pop, b, &m)) != 0)
 		return err;
 
+#ifdef DEBUG
+	if (heap_block_is_allocated(pop, m)) {
+		ERR("heap corruption");
+		ASSERT(0);
+	}
+#endif /* DEBUG */
+
 	uint64_t op_result = 0;
 
 	void *block_data = heap_get_block_data(pop, m);
@@ -361,6 +368,13 @@ pfree(PMEMobjpool *pop, uint64_t *off)
 	int err = 0;
 
 	struct memory_block m = get_mblock_from_alloc(pop, b, alloc);
+
+#ifdef DEBUG
+	if (!heap_block_is_allocated(pop, m)) {
+		ERR("Double free or heap corruption");
+		ASSERT(0);
+	}
+#endif /* DEBUG */
 
 	if ((err = heap_lock_if_run(pop, m)) != 0)
 		return err;

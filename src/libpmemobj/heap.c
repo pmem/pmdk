@@ -617,6 +617,41 @@ heap_get_block_data(PMEMobjpool *pop, struct memory_block m)
 	return (void *)&run->data + (run->block_size * m.block_off);
 }
 
+#ifdef DEBUG
+/*
+ * heap_block_is_allocated -- checks whether the memory block is allocated
+ */
+int
+heap_block_is_allocated(PMEMobjpool *pop, struct memory_block m)
+{
+	struct zone *z = &pop->heap->layout->zones[m.zone_id];
+	struct chunk_header *hdr = &z->chunk_headers[m.chunk_id];
+
+	if (hdr->type == CHUNK_TYPE_USED)
+		return 1;
+
+	if (hdr->type == CHUNK_TYPE_FREE)
+		return 0;
+
+	ASSERTeq(hdr->type, CHUNK_TYPE_RUN);
+
+	struct chunk_run *r = (struct chunk_run *)&z->chunks[m.chunk_id];
+
+	int v = m.block_off / BITS_PER_VALUE;
+	uint64_t bitmap = r->bitmap[v];
+	int b = m.block_off % BITS_PER_VALUE;
+
+	int b_last = b + m.size_idx;
+	ASSERT(b_last <= BITS_PER_VALUE);
+
+	for (int i = b; i < b_last; ++i)
+		if (!BIT_IS_CLR(bitmap, i))
+			return 1;
+
+	return 0;
+}
+#endif /* DEBUG */
+
 /*
  * heap_run_get_block -- (internal) returns next/prev memory block from run
  */
