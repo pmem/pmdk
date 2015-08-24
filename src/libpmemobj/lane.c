@@ -222,30 +222,33 @@ lane_cleanup(PMEMobjpool *pop)
 	return err;
 }
 
-#define	FOREACH_LANE_SECTION(pop, var, lane, section)\
-for (section = 0; section < MAX_LANE_SECTION; ++section)\
-	for (lane = 0, var = lane_get_layout(pop, lane);\
-		lane < pop->nlanes; ++lane)
-
 /*
- * lane_recover -- performs recovery of all lanes
+ * lane_recover_and_boot -- performs initialization and recovery of all lanes
  */
 int
-lane_recover(PMEMobjpool *pop)
+lane_recover_and_section_boot(PMEMobjpool *pop)
 {
 	int err = 0;
-	int section_err;
-	int i; /* lane index */
-	int j; /* section index */
+	int i; /* section index */
+	int j; /* lane index */
 	struct lane_layout *layout;
 
-	FOREACH_LANE_SECTION(pop, layout, i, j) {
-		section_err = section_ops[j]->recover(pop,
-				&layout->sections[j]);
-		if (section_err) {
-			ERR("!section_ops->recover %d %d %d",
-					i, j, section_err);
-			err = section_err;
+	for (i = 0; i < MAX_LANE_SECTION; ++i) {
+		for (j = 0; j < pop->nlanes; ++j) {
+			layout = lane_get_layout(pop, j);
+			err = section_ops[i]->recover(pop,
+				&layout->sections[i]);
+
+			if (err != 0) {
+				LOG(2, "section_ops->recover %d %d %d",
+					i, j, err);
+				return err;
+			}
+		}
+
+		if ((err = section_ops[i]->boot(pop)) != 0) {
+			LOG(2, "section_ops->init %d %d", i, err);
+			return err;
 		}
 	}
 
@@ -259,18 +262,21 @@ int
 lane_check(PMEMobjpool *pop)
 {
 	int err = 0;
-	int section_err;
-	int i; /* lane index */
-	int j; /* section index */
+	int i; /* section index */
+	int j; /* lane index */
 	struct lane_layout *layout;
 
-	FOREACH_LANE_SECTION(pop, layout, i, j) {
-		section_err = section_ops[j]->check(pop,
-				&layout->sections[j]);
-		if (section_err) {
-			LOG(3, "!section_ops->check %d %d %d",
-					i, j, section_err);
-			err = section_err;
+	for (i = 0; i < MAX_LANE_SECTION; ++i) {
+		for (j = 0; j < pop->nlanes; ++j) {
+			layout = lane_get_layout(pop, j);
+			err = section_ops[i]->check(pop, &layout->sections[i]);
+
+			if (err) {
+				LOG(2, "section_ops->check %d %d %d",
+					i, j, err);
+
+				return err;
+			}
 		}
 	}
 

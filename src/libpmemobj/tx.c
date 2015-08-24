@@ -1589,11 +1589,22 @@ lane_transaction_check(PMEMobjpool *pop,
 	return 0;
 }
 
+/*
+ * lane_transaction_init -- initalizes transaction section
+ */
+static int
+lane_transaction_boot(PMEMobjpool *pop)
+{
+	/* nop */
+	return 0;
+}
+
 struct section_operations transaction_ops = {
 	.construct = lane_transaction_construct,
 	.destruct = lane_transaction_destruct,
 	.recover = lane_transaction_recovery,
-	.check = lane_transaction_check
+	.check = lane_transaction_check,
+	.boot = lane_transaction_boot
 };
 
 SECTION_PARM(LANE_SECTION_TRANSACTION, &transaction_ops);
