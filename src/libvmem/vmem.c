@@ -63,7 +63,7 @@ static unsigned Header_size;
 static void
 print_jemalloc_messages(void *ignore, const char *s)
 {
-	LOG_NONL(1, "%s", s);
+	ERR("%s", s);
 }
 
 /*
@@ -114,7 +114,7 @@ vmem_init(void)
 
 	oerrno = errno;
 	if ((errno = pthread_mutex_unlock(&lock)))
-		LOG(1, "!pthread_mutex_unlock");
+		ERR("!pthread_mutex_unlock");
 	errno = oerrno;
 }
 
@@ -153,7 +153,7 @@ vmem_create(const char *dir, size_t size)
 	LOG(3, "dir \"%s\" size %zu", dir, size);
 
 	if (size < VMEM_MIN_POOL) {
-		LOG(1, "size %zu smaller than %zu", size, VMEM_MIN_POOL);
+		ERR("size %zu smaller than %zu", size, VMEM_MIN_POOL);
 		errno = EINVAL;
 		return NULL;
 	}
@@ -176,7 +176,7 @@ vmem_create(const char *dir, size_t size)
 	/* Prepare pool for jemalloc */
 	if (je_vmem_pool_create((void *)((uintptr_t)addr + Header_size),
 			size - Header_size, 1) == NULL) {
-		LOG(1, "return NULL");
+		ERR("pool creation failed");
 		util_unmap(vmp->addr, vmp->size);
 		return NULL;
 	}
@@ -203,13 +203,13 @@ vmem_create_in_region(void *addr, size_t size)
 	LOG(3, "addr %p size %zu", addr, size);
 
 	if (((uintptr_t)addr & (Pagesize - 1)) != 0) {
-		LOG(1, "addr %p not aligned to pagesize %lu", addr, Pagesize);
+		ERR("addr %p not aligned to pagesize %lu", addr, Pagesize);
 		errno = EINVAL;
 		return NULL;
 	}
 
 	if (size < VMEM_MIN_POOL) {
-		LOG(1, "size %zu smaller than %zu", size, VMEM_MIN_POOL);
+		ERR("size %zu smaller than %zu", size, VMEM_MIN_POOL);
 		errno = EINVAL;
 		return NULL;
 	}
@@ -225,7 +225,7 @@ vmem_create_in_region(void *addr, size_t size)
 	/* Prepare pool for jemalloc */
 	if (je_vmem_pool_create((void *)((uintptr_t)addr + Header_size),
 				size - Header_size, 0) == NULL) {
-		LOG(1, "return NULL");
+		ERR("pool creation failed");
 		return NULL;
 	}
 

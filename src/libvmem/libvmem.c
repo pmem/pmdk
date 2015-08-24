@@ -54,24 +54,16 @@ vmem_check_version(unsigned major_required, unsigned minor_required)
 	LOG(3, "major_required %u minor_required %u",
 			major_required, minor_required);
 
-	static char errstr[] =
-		"libvmem major version mismatch "
-		"(need AAAAAAAAAA, found BBBBBBBBBB)";
-
 	if (major_required != VMEM_MAJOR_VERSION) {
-		sprintf(errstr,
-			"libvmem major version mismatch (need %u, found %u)",
+		ERR("libvmem major version mismatch (need %u, found %u)",
 			major_required, VMEM_MAJOR_VERSION);
-		LOG(1, "%s", errstr);
-		return errstr;
+		return out_get_errormsg();
 	}
 
 	if (minor_required > VMEM_MINOR_VERSION) {
-		sprintf(errstr,
-			"libvmem minor version mismatch (need %u, found %u)",
+		ERR("libvmem minor version mismatch (need %u, found %u)",
 			minor_required, VMEM_MINOR_VERSION);
-		LOG(1, "%s", errstr);
-		return errstr;
+		return out_get_errormsg();
 	}
 
 	return NULL;
@@ -95,4 +87,13 @@ vmem_set_funcs(
 			realloc_func, strdup_func);
 	out_set_print_func(print_func);
 	je_vmem_pool_set_alloc_funcs(malloc_func, free_func);
+}
+
+/*
+ * vmem_errormsg -- return last error message
+ */
+const char *
+vmem_errormsg(void)
+{
+	return out_get_errormsg();
 }

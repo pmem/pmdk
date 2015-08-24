@@ -45,7 +45,7 @@ require_fs_type local
 setup
 
 expect_normal_exit ./out_err_mt$EXESUFFIX \
-	$DIR/testfile1 $DIR/testfile2 $DIR/testfile3
+	$DIR/testfile1 $DIR/testfile2 $DIR/testfile3 $DIR
 
 check
 

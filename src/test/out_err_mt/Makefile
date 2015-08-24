@@ -43,5 +43,6 @@ LIBPMEM=y
 LIBPMEMLOG=y
 LIBPMEMBLK=y
 LIBPMEMOBJ=y
+LIBVMEM=y
 
 include ../Makefile.inc
