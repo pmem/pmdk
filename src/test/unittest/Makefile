@@ -49,7 +49,7 @@ $(TARGET): $(OBJS)
 	@cp $*.d .deps/$*.P; \
 	sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
 	    -e '/^$$/ d' -e 's/$$/ :/' < $*.d >> .deps/$*.P; \
-	rm -f $*.d
+	$(RM) -f $*.d
 
 clean:
 	$(RM) *.o core a.out
@@ -59,7 +59,7 @@ cstyle:
 
 clobber: clean
 	$(RM) $(TARGET)
-	$(RM) -d .deps/*.P .deps
+	$(RM) -r .deps
 
 .PHONY: all test clean clobber cstyle
 

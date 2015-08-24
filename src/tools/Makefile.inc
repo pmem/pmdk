@@ -51,7 +51,7 @@ clean:
 
 clobber: clean
 	$(RM) $(TARGET)
-	$(RM) -d .deps/*.P .deps
+	$(RM) -r .deps
 
 cstyle:
 	$(CSTYLE) -pP *.[ch]
@@ -90,7 +90,7 @@ $(TARGET): $(OBJS)
 	@cp $*.d .deps/$*.P; \
 	sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
 	    -e '/^$$/ d' -e 's/$$/ :/' < $*.d >> .deps/$*.P; \
-	rm -f $*.d
+	$(RM) -f $*.d
 
 .PHONY: all clean clobber cstyle install uninstall
 
