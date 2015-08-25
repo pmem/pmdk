@@ -208,6 +208,26 @@ test_alloc_construct(const char *path)
 	pmemobj_close(pop);
 }
 
+void
+test_double_free(const char *path)
+{
+	PMEMobjpool *pop = NULL;
+
+	if ((pop = pmemobj_create(path, LAYOUT_NAME,
+			PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR)) == NULL)
+		FATAL("!pmemobj_create: %s", path);
+
+	PMEMoid oid, oid2;
+	int err = pmemobj_zalloc(pop, &oid, 100, 0);
+	ASSERTeq(err, 0);
+	ASSERT(!OID_IS_NULL(oid));
+
+	oid2 = oid;
+
+	pmemobj_free(&oid);
+	pmemobj_free(&oid2);
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -218,8 +238,8 @@ main(int argc, char *argv[])
 
 	const char *path = argv[1];
 
-	if (strchr("flra", argv[2][0]) == NULL || argv[2][1] != '\0')
-		FATAL("op must be f or l or r or a");
+	if (strchr("flrap", argv[2][0]) == NULL || argv[2][1] != '\0')
+		FATAL("op must be f or l or r or a or p");
 
 	switch (argv[2][0]) {
 		case 'f':
@@ -233,6 +253,9 @@ main(int argc, char *argv[])
 			break;
 		case 'a':
 			test_alloc_construct(path);
+			break;
+		case 'p':
+			test_double_free(path);
 			break;
 	}
 
