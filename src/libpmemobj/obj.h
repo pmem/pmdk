@@ -41,7 +41,7 @@
 #define	PMEMOBJ_LOG_FILE_VAR "PMEMOBJ_LOG_FILE"
 
 /* attributes of the obj memory pool format for the pool header */
-#define	OBJ_HDR_SIG "OBJPOOL"	/* must be 8 bytes including '\0' */
+#define	OBJ_HDR_SIG "PMEMOBJ"	/* must be 8 bytes including '\0' */
 #define	OBJ_FORMAT_MAJOR 1
 #define	OBJ_FORMAT_COMPAT 0x0000
 #define	OBJ_FORMAT_INCOMPAT 0x0000

@@ -1,5 +1,5 @@
 POOL Header:
-Signature                : OBJPOOL
+Signature                : PMEMOBJ
 Major                    : $(*)
 Mandatory features       : $(*)
 Not mandatory features   : $(*)
@@ -69,7 +69,7 @@ OOB Header:
   Undo Log - set           : 0 elements
 
 POOL Header:
-Signature                : OBJPOOL
+Signature                : PMEMOBJ
 Major                    : $(*)
 Mandatory features       : $(*)
 Not mandatory features   : $(*)
@@ -136,7 +136,7 @@ Tx range:
    Size                     : $(*)
 
 POOL Header:
-Signature                : OBJPOOL
+Signature                : PMEMOBJ
 Major                    : $(*)
 Mandatory features       : $(*)
 Not mandatory features   : $(*)

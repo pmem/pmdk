@@ -1,5 +1,5 @@
 POOL Header:
-Signature                : OBJPOOL
+Signature                : PMEMOBJ
 Major                    : 1
 Mandatory features       : $(*)
 Not mandatory features   : $(*)
