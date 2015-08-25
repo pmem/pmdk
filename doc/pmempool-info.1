@@ -427,12 +427,19 @@ options.
 .RE
 .PP
 .B -b, --bitmap
+.RS 8
 Print bitmap of used blocks in chunks of type run. This option requires
 .B -H, --heap
 and
 .B -C, --chunks
 options.
+.RE
+.PP
+.B -p, --replica <num>
 .RS 8
+Print information from
+.B <num>
+replica. The 0 value means the master pool file.
 .RE
 
 .SH RANGE

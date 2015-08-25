@@ -112,6 +112,7 @@ static const struct pmempool_info_args pmempool_info_args_default = {
 		.lanes_recovery	= false,
 		.ignore_empty_obj = false,
 		.chunk_types	= DEFAULT_CHUNK_TYPES,
+		.replica	= 0,
 	},
 };
 
@@ -149,6 +150,7 @@ static const struct option long_options[] = {
 	{"chunks",	optional_argument,	0, 'C' | OPT_OBJ},
 	{"chunk-type",	required_argument,	0, 'T' | OPT_OBJ},
 	{"bitmap",	no_argument,		0, 'b' | OPT_OBJ},
+	{"replica",	required_argument,	0, 'p' | OPT_OBJ},
 	{NULL,		0,			0,  0 },
 };
 
@@ -302,6 +304,7 @@ static const char *help_str =
 "                                  [requires --chunks|-C]\n"
 "  -b, --bitmap                    Print chunk run's bitmap in graphical\n"
 "                                  format. [requires --chunks|-C]\n"
+"  -p, --replica <num>             Print info from specified replica\n"
 "For complete documentation see %s-info(1) manual page.\n"
 ;
 
@@ -353,7 +356,7 @@ parse_args(char *appname, int argc, char *argv[],
 		return -1;
 	}
 	while ((opt = util_options_getopt(argc, argv,
-			"vhnf:ezuF:L:c:dmxVw:gBsr:l::RS:OEC::Z::HT:bot:aA",
+			"vhnf:ezuF:L:c:dmxVw:gBsr:l::RS:OEC::Z::HT:bot:aAp:",
 			opts)) != -1) {
 
 
@@ -499,6 +502,9 @@ parse_args(char *appname, int argc, char *argv[],
 		case 'b':
 			argsp->obj.vbitmap = VERBOSE_DEFAULT;
 			break;
+		case 'p':
+			argsp->obj.replica = atoll(optarg);
+			break;
 		default:
 			print_usage(appname);
 			return -1;
@@ -537,10 +543,25 @@ parse_args(char *appname, int argc, char *argv[],
 int
 pmempool_info_read(struct pmem_info *pip, void *buff, size_t nbytes, off_t off)
 {
-	ssize_t ret = pread(pip->fd, buff, nbytes, off);
-	if (ret < 0)
-		warn("%s", pip->file_name);
-	return !(nbytes == ret);
+	if (pip->poolset) {
+		/* replication is allowed only for pmemobj pool */
+		int r = pip->type == PMEM_POOL_TYPE_OBJ ?
+			pip->args.obj.replica : 0;
+
+		void *addr = pip->poolset->replica[r]->part[0].addr;
+
+		if (off + nbytes > pip->poolset->poolsize)
+			return -1;
+
+		memcpy(buff, addr + off, nbytes);
+
+		return 0;
+	} else {
+		ssize_t ret = pread(pip->fd, buff, nbytes, off);
+		if (ret < 0)
+			warn("%s", pip->file_name);
+		return !(nbytes == ret);
+	}
 }
 
 /*
@@ -592,6 +613,75 @@ pmempool_info_pool_hdr(struct pmem_info *pip, int v)
 	return ret;
 }
 
+/*
+ * pmempool_setup_poolset -- parse poolset file and setup reading from it
+ */
+static int
+pmempool_setup_poolset(struct pmem_info *pip)
+{
+	struct pool_set *set = NULL;
+	int fd = -1;
+	struct pool_hdr hdr;
+
+	/* parse poolset file */
+	if (util_poolset_parse(pip->file_name, pip->fd, &set)) {
+		outv_err("parsing poolset file failed\n");
+		return -1;
+	}
+
+	/* open the first part set file to read the pool header values */
+	int ret = 0;
+	fd = open(set->replica[0]->part[0].path, O_RDONLY);
+	if (fd < 0) {
+		outv_err("cannot open poolset part file\n");
+		ret = -1;
+		goto err_pool_set;
+	}
+
+	/* read the pool header from first pool set file */
+	if (pread(fd, &hdr, sizeof (hdr), 0)
+			!= sizeof (hdr)) {
+		outv_err("cannot read pool header from poolset\n");
+		ret = -1;
+		goto err_close;
+	}
+
+	util_convert2h_pool_hdr(&hdr);
+
+	/* parse pool type from first pool set file */
+	pmem_pool_type_t type = pmem_pool_type_parse_hdr(&hdr);
+	if (type == PMEM_POOL_TYPE_UNKNOWN) {
+		outv_err("cannot determine pool type from poolset\n");
+		ret = -1;
+		goto err_close;
+	}
+
+	/* get minimum size based on pool type for util_pool_open */
+	size_t minsize = pmem_pool_get_min_size(type);
+
+	/*
+	 * Open the poolset, the values passed to util_pool_open are read
+	 * from the first poolset file, these values are then comapred with
+	 * the values from all headers of poolset files.
+	 */
+	if (util_pool_open(&pip->poolset, pip->file_name, 1, minsize,
+		sizeof (struct pool_hdr),
+		hdr.signature, hdr.major,
+		hdr.compat_features,
+		hdr.incompat_features,
+		hdr.ro_compat_features)) {
+		outv_err("openning poolset failed\n");
+		ret = -1;
+	}
+
+err_close:
+	close(fd);
+err_pool_set:
+	util_poolset_free(set);
+
+	return ret;
+
+}
 
 /*
  * pmempool_info_get_pool_type -- get pool type to parse
@@ -601,18 +691,6 @@ pmempool_info_pool_hdr(struct pmem_info *pip, int v)
 static pmem_pool_type_t
 pmempool_info_get_pool_type(struct pmem_info *pip)
 {
-	int ret = 0;
-
-	struct pool_hdr *hdrp = malloc(sizeof (struct pool_hdr));
-	if (!hdrp)
-		err(1, "Cannot allocate memory for pool_hdr");
-
-	if (pmempool_info_read(pip, hdrp, sizeof (*hdrp), 0)) {
-		outv_err("cannot read pool header\n");
-		ret = PMEM_POOL_TYPE_UNKNOWN;
-		goto error;
-	}
-
 	/*
 	 * If force flag is set 'types' fields _must_ hold
 	 * single pool type - this is validated when processing
@@ -621,10 +699,30 @@ pmempool_info_get_pool_type(struct pmem_info *pip)
 	if (pip->args.force)
 		return pip->args.type;
 
+	int ret = 0;
+	int is_poolset = !pmem_pool_check_pool_set(pip->file_name);
+	struct pool_hdr hdr;
+
+	pip->fd = open(pip->file_name, O_RDONLY);
+	if (pip->fd < 0) {
+		warn("%s", pip->file_name);
+		return PMEM_POOL_TYPE_UNKNOWN;
+	}
+
+
+	if (is_poolset) {
+		if (pmempool_setup_poolset(pip))
+			return PMEM_POOL_TYPE_UNKNOWN;
+	}
+
+	if (pmempool_info_read(pip, &hdr, sizeof (hdr), 0)) {
+		outv_err("cannot read pool header\n");
+		return PMEM_POOL_TYPE_UNKNOWN;
+	}
+
 	/* parse pool type from pool header */
-	ret = pmem_pool_type_parse_hdr(hdrp);
-error:
-	free(hdrp);
+	ret = pmem_pool_type_parse_hdr(&hdr);
+
 	return ret;
 }
 
@@ -636,21 +734,15 @@ pmempool_info_file(struct pmem_info *pip, const char *file_name)
 {
 	int ret = 0;
 
-	pip->fd = open(file_name, O_RDONLY);
-	if (pip->fd < 0) {
-		warn("%s", file_name);
-		return -1;
-	}
-
 	pip->file_name = file_name;
 
 	/*
 	 * Get pool type to parse based on headers
 	 * and command line flags.
 	 */
-	pmem_pool_type_t type = pmempool_info_get_pool_type(pip);
+	pip->type = pmempool_info_get_pool_type(pip);
 
-	if (PMEM_POOL_TYPE_UNKNOWN == type) {
+	if (PMEM_POOL_TYPE_UNKNOWN == pip->type) {
 		/*
 		 * This means don't know what pool type should be parsed
 		 * this happens when can't determine pool type of file
@@ -659,9 +751,18 @@ pmempool_info_file(struct pmem_info *pip, const char *file_name)
 		ret = -1;
 		outv_err("%s: cannot determine type of pool\n", file_name);
 	} else {
-		if (util_options_verify(pip->opts, type)) {
+		if (util_options_verify(pip->opts, pip->type)) {
 			ret = -1;
 			goto err;
+		}
+
+		if (pip->poolset) {
+			if (pip->args.obj.replica >= pip->poolset->nreplicas) {
+				outv_err("invalid replica -- maximum is %lu\n",
+						pip->poolset->nreplicas);
+				ret = -1;
+				goto err;
+			}
 		}
 
 		if (pmempool_info_pool_hdr(pip, VERBOSE_DEFAULT)) {
@@ -669,7 +770,7 @@ pmempool_info_file(struct pmem_info *pip, const char *file_name)
 			goto err;
 		}
 
-		switch (type) {
+		switch (pip->type) {
 		case PMEM_POOL_TYPE_LOG:
 			ret = pmempool_info_log(pip);
 			break;
@@ -743,6 +844,7 @@ int
 pmempool_info_func(char *appname, int argc, char *argv[])
 {
 	int ret = 0;
+	util_init();
 	struct pmem_info *pip = pmempool_info_alloc();
 
 	/* read command line arguments */
