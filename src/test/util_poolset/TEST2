@@ -40,6 +40,8 @@ export UNITTEST_NUM=2
 # standard unit test setup
 . ../unittest/unittest.sh
 
+require_fs_type non-pmem
+
 setup
 
 export TEST_LOG_LEVEL=4
