@@ -56,6 +56,10 @@ rm -rf $POOL
 expect_normal_exit $PMEMPOOL create log $POOL
 expect_normal_exit file -m $MAGIC $POOL >> $LOG
 
+rm -rf $POOL
+expect_normal_exit $PMEMPOOL create obj $POOL
+expect_normal_exit file -m $MAGIC $POOL >> $LOG
+
 check
 
 pass

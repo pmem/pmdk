@@ -63,7 +63,7 @@ check_size $SIZE $POOL
 rm -rf $POOL
 expect_normal_exit $PMEMPOOL create -s $SIZE obj $POOL
 check_file $POOL
-check_signature OBJPOOL $POOL
+check_signature PMEMOBJ $POOL
 check_layout "" $POOL
 check_size $SIZE $POOL
 

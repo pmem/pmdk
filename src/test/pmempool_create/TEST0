@@ -60,7 +60,7 @@ check_signature PMEMLOG $POOL
 rm -rf $POOL
 expect_normal_exit $PMEMPOOL create --layout=LAYOUT_NAME obj $POOL
 check_file $POOL
-check_signature OBJPOOL $POOL
+check_signature PMEMOBJ $POOL
 check_layout LAYOUT_NAME $POOL
 
 pass
