@@ -614,8 +614,7 @@ the "master" pool set.
 Creation of all the parts of the pool set and the associated replica sets
 can be done with the
 .BR pmemobj_create ()
-function.  However, the recommended method for creating pool sets and replicas
-is to do it by using the
+function or by using the
 .BR pmempool (1)
 utility.
 .PP
@@ -685,7 +684,7 @@ REPLICA
 The files in the set may be created by running the following command:
 .IP
 .nf
-pmempool create obj --layout="mylayout" --from-set=myobjpool.set
+pmempool create --layout="mylayout" obj myobjpool.set
 .fi
 .SH LOCKING
 .PP
