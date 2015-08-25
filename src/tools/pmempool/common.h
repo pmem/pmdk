@@ -152,6 +152,7 @@ struct ranges {
 
 pmem_pool_type_t pmem_pool_type_parse_hdr(const struct pool_hdr *hdrp);
 pmem_pool_type_t pmem_pool_type_parse_str(const char *str);
+int pmem_pool_check_pool_set(const char *fname);
 uint64_t pmem_pool_get_min_size(pmem_pool_type_t type);
 int pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp);
 struct options *util_options_alloc(const struct option *options,

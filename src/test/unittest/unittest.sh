@@ -203,7 +203,7 @@ function create_holey_file() {
 #   ppath - path
 #   cmd   - (optional) can be:
 #            x - do nothing (may be skipped if there's no 'fsize', 'mode')
-#            z - crete zeroed (holey) file
+#            z - create zeroed (holey) file
 #            n - create non-zeroed file
 #            h - create non-zeroed file, but with zeroed header (first 4KB)
 #   fsize - (optional) the actual size of the part file (if 'cmd' is not 'x')
@@ -606,9 +606,22 @@ check_signature()
 
 	if [[ $sig != $file_sig ]]
 	then
-		echo "error: signature doesn't match ${file_sig} != ${sig}"
+		echo "error: $file: signature doesn't match ${file_sig} != ${sig}"
 		exit 1
 	fi
+}
+
+#
+# check_signatures -- check if multiple files contain specified signature
+#
+check_signatures()
+{
+	local sig=$1
+	shift 1
+	for file in $*
+	do
+		check_signature $sig $file
+	done
 }
 
 #

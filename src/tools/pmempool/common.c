@@ -61,7 +61,7 @@
 typedef const char *(*enum_to_str_fn)(int);
 
 /*
- * pmem_pool_type_parse -- return pool type based on pool header data
+ * pmem_pool_type_parse_hdr -- return pool type based on pool header data
  */
 pmem_pool_type_t
 pmem_pool_type_parse_hdr(const struct pool_hdr *hdrp)
@@ -77,7 +77,7 @@ pmem_pool_type_parse_hdr(const struct pool_hdr *hdrp)
 }
 
 /*
- * pmempool_info_parse_type -- returns pool type from command line arg
+ * pmem_pool_type_parse_str -- returns pool type from command line arg
  */
 pmem_pool_type_t
 pmem_pool_type_parse_str(const char *str)
@@ -91,6 +91,30 @@ pmem_pool_type_parse_str(const char *str)
 	} else {
 		return PMEM_POOL_TYPE_UNKNOWN;
 	}
+}
+
+/*
+ * pmem_pool_check_pool_set -- returns 0 for poolset file
+ */
+int
+pmem_pool_check_pool_set(const char *fname)
+{
+	int fd = open(fname, O_RDONLY);
+	if (fd < 0)
+		return -1;
+
+	int ret = 0;
+	char poolset[POOLSET_HDR_SIG_LEN];
+	if (read(fd, poolset, sizeof (poolset)) != sizeof (poolset)) {
+		ret = -1;
+		goto out;
+	}
+
+	if (strncmp(poolset, POOLSET_HDR_SIG, POOLSET_HDR_SIG_LEN))
+		ret = 1;
+out:
+	close(fd);
+	return ret;
 }
 
 /*

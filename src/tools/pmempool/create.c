@@ -373,6 +373,9 @@ pmempool_create_func(char *appname, int argc, char *argv[])
 
 	umask(0);
 
+	pc.fexists = access(pc.fname, F_OK) == 0;
+	int is_poolset = pc.fexists && !pmem_pool_check_pool_set(pc.fname);
+
 	/*
 	 * Parse pool type and other parameters if --inherit option
 	 * passed. It is possible to either pass --inherit option
@@ -402,6 +405,13 @@ pmempool_create_func(char *appname, int argc, char *argv[])
 		}
 
 	} else if (pc.inherit_fname) {
+		int is_inherit_poolset = !access(pc.inherit_fname, F_OK) &&
+			!pmem_pool_check_pool_set(pc.inherit_fname);
+		if (is_inherit_poolset || is_poolset) {
+			outv_err("-i|--inherit is not supported for "
+					"poolset file\n");
+			return -1;
+		}
 		/*
 		 * If no type string passed, --inherit option must be passed
 		 * so parse file and get required parameters.
@@ -442,22 +452,33 @@ pmempool_create_func(char *appname, int argc, char *argv[])
 	if (util_options_verify(pc.opts, pc.params.type))
 		return -1;
 
-	if (pc.params.type != PMEM_POOL_TYPE_BLK) {
-		if (pc.str_bsize != NULL) {
-			outv_err("invalid option specified for %s pool type"
-					" -- block size\n",
-				out_get_pool_type_str(pc.params.type));
+	if (pc.params.type != PMEM_POOL_TYPE_BLK && pc.str_bsize != NULL) {
+		outv_err("invalid option specified for %s pool type"
+				" -- block size\n",
+			out_get_pool_type_str(pc.params.type));
+		return -1;
+	}
+
+	if (is_poolset) {
+		if (pc.params.size) {
+			outv_err("-s|--size cannot be used with "
+					"poolset file\n");
+			return -1;
+		}
+
+		if (pc.max_size) {
+			outv_err("-M|--max-size cannot be used with "
+					"poolset file\n");
 			return -1;
 		}
 	}
 
 	if (pc.params.size && pc.max_size) {
-		outv_err("'-M' option cannot be used with '-s'"
+		outv_err("-M|--max-size option cannot be used with -s|--size"
 				" option\n");
 		return -1;
 	}
 
-	pc.fexists = access(pc.fname, F_OK) == 0;
 	/*
 	 * If neither --size nor --inherit options passed, check
 	 * for --max-size option - if not passed use minimum pool size.
