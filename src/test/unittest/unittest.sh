@@ -237,7 +237,7 @@ function create_poolset() {
 		shift 1
 
 		fsize=${fparms[0]}
-		fpath=`readlink -fn ${fparms[1]}`
+		fpath=`readlink -mn ${fparms[1]}`
 		cmd=${fparms[2]}
 		asize=${fparams[3]}
 		mode=${fparms[4]]}
@@ -641,4 +641,21 @@ check_arena()
 		echo "error: can't find arena signature"
 		exit 1
 	fi
+}
+
+#
+# dump_pool_info -- dump selected pool metadata and/or user data
+#
+function dump_pool_info() {
+	# ignore selected header fields that differ by definition
+	$PMEMPOOL info $* | sed -e "/^UUID/,/^Checksum/d"
+}
+
+#
+# compare_replicas -- check replicas consistency by comparing `pmempool info` output
+#
+function compare_replicas() {
+	set +e
+	diff <(dump_pool_info $1 $2) <(dump_pool_info $1 $3)
+	set -e
 }

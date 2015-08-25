@@ -150,6 +150,7 @@ struct pmem_info {
 	struct {
 		void *addr;		/* mapped file */
 		struct pmem_obj_stats stats;
+		uint64_t uuid_lo;
 	} obj;
 };
 

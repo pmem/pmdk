@@ -61,8 +61,10 @@ TEST = blk_nblock\
        traces_custom_function\
        traces_pmem\
        util_map_proc\
-       util_pool_create\
-       util_pool_open\
+       util_file_create\
+       util_file_open\
+       util_poolset\
+       util_poolset_parse\
        vmem_aligned_alloc\
        vmem_calloc\
        vmem_check_allocations\
@@ -146,7 +148,8 @@ TEST = blk_nblock\
        obj_pmalloc_mt\
        obj_many_size_allocs\
        obj_heap_state\
-       obj_check
+       obj_check\
+       obj_out_of_memory
 
 all     : TARGET = all
 clean   : TARGET = clean

@@ -50,9 +50,11 @@
 #include <elf.h>
 #include <link.h>
 
-#include "valgrind_internal.h"
+#include "libpmem.h"
+
 #include "util.h"
 #include "out.h"
+#include "valgrind_internal.h"
 
 #define	PROCMAXLEN 2048 /* maximum expected line length in /proc files */
 
@@ -131,7 +133,7 @@ util_set_alloc_funcs(void *(*malloc_func)(size_t size),
 }
 
 /*
- * util_map_hint -- (internal) use /proc to determine a hint address for mmap()
+ * util_map_hint -- use /proc to determine a hint address for mmap()
  *
  * This is a helper function for util_map().  It opens up /proc/self/maps
  * and looks for the first unused address in the process address space that is:
@@ -143,9 +145,11 @@ util_set_alloc_funcs(void *(*malloc_func)(size_t size),
  * mappings.  It is not an error if mmap() ignores the hint and chooses
  * different address.
  */
-static char *
+char *
 util_map_hint(size_t len)
 {
+	LOG(3, "len %zu", len);
+
 	FILE *fp;
 	if ((fp = fopen("/proc/self/maps", "r")) == NULL) {
 		ERR("!/proc/self/maps");
@@ -213,12 +217,11 @@ util_map_hint(size_t len)
 void *
 util_map(int fd, size_t len, int cow)
 {
-	void *base;
-
 	LOG(3, "fd %d len %zu cow %d", fd, len, cow);
 
-	void *addr = util_map_hint(len);
+	void *base;
 
+	void *addr = util_map_hint(len);
 	if ((base = mmap(addr, len, PROT_READ|PROT_WRITE,
 			(cow) ? MAP_PRIVATE|MAP_NORESERVE : MAP_SHARED,
 					fd, 0)) == MAP_FAILED) {
@@ -243,7 +246,6 @@ util_unmap(void *addr, size_t len)
 	LOG(3, "addr %p len %zu", addr, len);
 
 	int retval = munmap(addr, len);
-
 	if (retval < 0)
 		ERR("!munmap");
 
@@ -258,6 +260,8 @@ util_unmap(void *addr, size_t len)
 int
 util_tmpfile(const char *dir, size_t size)
 {
+	LOG(3, "dir %s size %zu", dir, size);
+
 	static char template[] = "/vmem.XXXXXX";
 
 	char fullname[strlen(dir) + sizeof (template)];
@@ -634,12 +638,12 @@ util_feature_check(struct pool_hdr *hdrp, uint32_t incompat,
 }
 
 /*
- * util_pool_create -- create a new memory pool file
+ * util_file_create -- create a new memory pool file
  */
 int
-util_pool_create(const char *path, size_t size, size_t minsize, mode_t mode)
+util_file_create(const char *path, size_t size, size_t minsize, mode_t mode)
 {
-	LOG(3, "path %s size %zu minsize %zu mode %d",
+	LOG(3, "path %s size %zu minsize %zu mode %o",
 			path, size, minsize, mode);
 
 	ASSERTne(size, 0);
@@ -662,6 +666,7 @@ util_pool_create(const char *path, size_t size, size_t minsize, mode_t mode)
 	}
 
 	return fd;
+
 err:
 	LOG(4, "error clean up");
 	int oerrno = errno;
@@ -673,10 +678,10 @@ err:
 }
 
 /*
- * util_pool_open -- open a memory pool file
+ * util_file_open -- open a memory pool file
  */
 int
-util_pool_open(const char *path, size_t *size, size_t minsize)
+util_file_open(const char *path, size_t *size, size_t minsize)
 {
 	LOG(3, "path %s minsize %zu", path, minsize);
 

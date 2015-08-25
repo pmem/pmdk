@@ -147,8 +147,41 @@ int util_check_arch_flags(const struct arch_flags *arch_flags);
 /*
  * pool sets & replicas
  */
-#define	POOLSET_HDR_SIG "PMEMPOOLSET"	/* must be 12 bytes including '\0' */
-#define	POOLSET_HDR_SIG_LEN 12
+#define	POOLSET_HDR_SIG "PMEMPOOLSET"
+#define	POOLSET_HDR_SIG_LEN 11	/* does NOT include '\0' */
+
+#define	POOLSET_REPLICA_SIG "REPLICA"
+#define	POOLSET_REPLICA_SIG_LEN 7	/* does NOT include '\0' */
+
+struct pool_set_part {
+	/* populated by a pool set file parser */
+	const char *path;
+	size_t filesize;	/* aligned to page size */
+	int fd;
+	int created;		/* indicates newly created (zeroed) file */
+
+	/* util_poolset_open/create */
+	void *addr;		/* base address of the mapping */
+	size_t size;		/* size of the mapping - page aligned */
+	int rdonly;
+	unsigned char uuid[POOL_HDR_UUID_LEN];
+};
+
+struct pool_replica {
+	unsigned nparts;
+	size_t repsize;		/* total size of all the parts (mappings) */
+	int is_pmem;		/* true if all the parts are in PMEM */
+	struct pool_set_part part[];
+};
+
+struct pool_set {
+	unsigned nreplicas;
+	unsigned char uuid[POOL_HDR_UUID_LEN];
+	int rdonly;
+	int zeroed;		/* true if all the parts are new files */
+	size_t poolsize;	/* the smallest replica size */
+	struct pool_replica *replica[];
+};
 
 void util_init(void);
 
@@ -161,6 +194,19 @@ int util_is_zeroed(const void *addr, size_t len);
 int util_feature_check(struct pool_hdr *hdrp, uint32_t incompat,
 				uint32_t ro_compat, uint32_t compat);
 
-int util_pool_create(const char *path, size_t size, size_t minsize,
-				mode_t mode);
-int util_pool_open(const char *path, size_t *size, size_t minsize);
+char *util_map_hint(size_t len);
+
+int util_poolset_parse(const char *path, int fd, struct pool_set **setp);
+void util_poolset_close(struct pool_set *set, int del);
+void util_poolset_free(struct pool_set *set);
+
+int util_file_create(const char *path, size_t size, size_t minsize,
+	mode_t mode);
+int util_file_open(const char *path, size_t *size, size_t minsize);
+
+int util_pool_create(struct pool_set **setp, const char *path, size_t poolsize,
+	mode_t mode, size_t minsize, size_t hdrsize, const char *sig,
+	uint32_t major, uint32_t compat, uint32_t incompat, uint32_t ro_compat);
+int util_pool_open(struct pool_set **setp, const char *path, int rdonly,
+	size_t minsize, size_t hdrsize, const char *sig,
+	uint32_t major, uint32_t compat, uint32_t incompat, uint32_t ro_compat);

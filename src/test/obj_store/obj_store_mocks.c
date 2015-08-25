@@ -74,7 +74,6 @@ FUNC_MOCK_RUN_DEFAULT {
 		(struct heap_header_mock *)((uint64_t)pop + pop->heap_offset);
 	hheader->pop = (uint64_t)pop;
 	pop->heap = (struct pmalloc_heap *)hheader;
-	pop->uuid_lo = (uint64_t)pop;
 	return 0;
 }
 FUNC_MOCK_END
@@ -102,12 +101,12 @@ FUNC_MOCK_RUN_DEFAULT {
 				(void *)(hheader->pop + hheader->offset);
 		alloc->size = size;
 		alloc->chunk_id = alloc->zone_id = 0;
-		pop->persist(alloc, sizeof (*alloc));
+		pop->persist(pop, alloc, sizeof (*alloc));
 		*off = hheader->offset + sizeof (*alloc);
-		pop->persist(off, sizeof (uint64_t));
+		pop->persist(pop, off, sizeof (uint64_t));
 		hheader->offset += size + sizeof (*alloc);
 		hheader->size -= size + sizeof (*alloc);
-		pop->persist(hheader, sizeof (*hheader));
+		pop->persist(pop, hheader, sizeof (*hheader));
 		return 0;
 	} else
 		return ENOMEM;
@@ -181,9 +180,9 @@ FUNC_MOCK_RUN_DEFAULT {
 	struct allocation_header *alloc =
 			(void *)(hheader->pop + *off - sizeof (*alloc));
 	*off = 0;
-	pop->persist(off, sizeof (uint64_t));
+	pop->persist(pop, off, sizeof (uint64_t));
 	alloc->size = 0;
-	pop->persist(&alloc->size, sizeof (alloc->size));
+	pop->persist(pop, &alloc->size, sizeof (alloc->size));
 	return 0;
 }
 FUNC_MOCK_END

@@ -36,15 +36,16 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <sys/mman.h>
+#include <sys/param.h>
 #include <unistd.h>
 #include <errno.h>
 #include <stdint.h>
-#include <uuid/uuid.h>
-#include <time.h>
 #include <endian.h>
 #include <stdlib.h>
 #include <setjmp.h>
 #include <inttypes.h>
+#include <fcntl.h>
 
 #include "libpmem.h"
 #include "libpmemobj.h"
@@ -103,6 +104,8 @@ drain_empty(void)
 static void *
 nopmem_memcpy_persist(void *dest, const void *src, size_t len)
 {
+	LOG(15, "dest %p src %p len %zu", dest, src, len);
+
 	memcpy(dest, src, len);
 	pmem_msync(dest, len);
 	return dest;
@@ -114,27 +117,159 @@ nopmem_memcpy_persist(void *dest, const void *src, size_t len)
 static void *
 nopmem_memset_persist(void *dest, int c, size_t len)
 {
+	LOG(15, "dest %p c '%c' len %zu", dest, c, len);
+
 	memset(dest, c, len);
 	pmem_msync(dest, len);
 	return dest;
 }
 
 /*
- * pmemobj_get_uuid_lo -- (internal) evaluates XOR sum of least significant
- * 8 bytes with most significant 8 bytes.
+ * XXX - Consider removing obj_norep_*() wrappers to call *_local()
+ * functions directly.  Alternatively, always use obj_rep_*(), even
+ * if there are no replicas.  Verify the performance penalty.
  */
-static uint64_t
-pmemobj_get_uuid_lo(PMEMobjpool *pop)
+
+/*
+ * obj_norep_memcpy_persist -- (internal) memcpy w/o replication
+ */
+static void *
+obj_norep_memcpy_persist(PMEMobjpool *pop, void *dest, const void *src,
+	size_t len)
 {
-	uint64_t uuid_lo = 0;
+	LOG(15, "pop %p dest %p src %p len %zu", pop, dest, src, len);
 
-	for (int i = 0; i < 8; i++) {
-		uuid_lo = (uuid_lo << 8) |
-			(pop->hdr.poolset_uuid[i] ^
-				pop->hdr.poolset_uuid[8 + i]);
+	return pop->memcpy_persist_local(dest, src, len);
+}
+
+/*
+ * obj_norep_memset_persist -- (internal) memset w/o replication
+ */
+static void *
+obj_norep_memset_persist(PMEMobjpool *pop, void *dest, int c, size_t len)
+{
+	LOG(15, "pop %p dest %p c '%c' len %zu", pop, dest, c, len);
+
+	return pop->memset_persist_local(dest, c, len);
+}
+
+/*
+ * obj_norep_persist -- (internal) persist w/o replication
+ */
+static void
+obj_norep_persist(PMEMobjpool *pop, void *addr, size_t len)
+{
+	LOG(15, "pop %p addr %p len %zu", pop, addr, len);
+
+	pop->persist_local(addr, len);
+}
+
+/*
+ * obj_norep_flush -- (internal) flush w/o replication
+ */
+static void
+obj_norep_flush(PMEMobjpool *pop, void *addr, size_t len)
+{
+	LOG(15, "pop %p addr %p len %zu", pop, addr, len);
+
+	pop->flush_local(addr, len);
+}
+
+/*
+ * obj_norep_drain -- (internal) drain w/o replication
+ */
+static void
+obj_norep_drain(PMEMobjpool *pop)
+{
+	LOG(15, "pop %p", pop);
+
+	pop->drain_local();
+}
+
+/*
+ * obj_rep_memcpy_persist -- (internal) memcpy with replication
+ */
+static void *
+obj_rep_memcpy_persist(PMEMobjpool *pop, void *dest, const void *src,
+	size_t len)
+{
+	LOG(15, "pop %p dest %p src %p len %zu", pop, dest, src, len);
+
+	PMEMobjpool *rep = pop->replica;
+	while (rep) {
+		void *rdest = (char *)rep + (uintptr_t)dest - (uintptr_t)pop;
+		rep->memcpy_persist_local(rdest, src, len);
+		rep = rep->replica;
 	}
+	return pop->memcpy_persist_local(dest, src, len);
+}
 
-	return uuid_lo;
+/*
+ * obj_rep_memset_persist -- (internal) memset with replication
+ */
+static void *
+obj_rep_memset_persist(PMEMobjpool *pop, void *dest, int c, size_t len)
+{
+	LOG(15, "pop %p dest %p c '%c' len %zu", pop, dest, c, len);
+
+	PMEMobjpool *rep = pop->replica;
+	while (rep) {
+		void *rdest = (char *)rep + (uintptr_t)dest - (uintptr_t)pop;
+		rep->memset_persist_local(rdest, c, len);
+		rep = rep->replica;
+	}
+	return pop->memset_persist_local(dest, c, len);
+}
+
+/*
+ * obj_rep_persist -- (internal) persist with replication
+ */
+static void
+obj_rep_persist(PMEMobjpool *pop, void *addr, size_t len)
+{
+	LOG(15, "pop %p addr %p len %zu", pop, addr, len);
+
+	PMEMobjpool *rep = pop->replica;
+	while (rep) {
+		void *raddr = (char *)rep + (uintptr_t)addr - (uintptr_t)pop;
+		rep->memcpy_persist_local(raddr, addr, len);
+		rep = rep->replica;
+	}
+	pop->persist_local(addr, len);
+}
+
+/*
+ * obj_rep_flush -- (internal) flush with replication
+ */
+static void
+obj_rep_flush(PMEMobjpool *pop, void *addr, size_t len)
+{
+	LOG(15, "pop %p addr %p len %zu", pop, addr, len);
+
+	PMEMobjpool *rep = pop->replica;
+	while (rep) {
+		void *raddr = (char *)rep + (uintptr_t)addr - (uintptr_t)pop;
+		memcpy(raddr, addr, len);
+		rep->flush_local(raddr, len);
+		rep = rep->replica;
+	}
+	pop->flush_local(addr, len);
+}
+
+/*
+ * obj_rep_drain -- (internal) drain with replication
+ */
+static void
+obj_rep_drain(PMEMobjpool *pop)
+{
+	LOG(15, "pop %p", pop);
+
+	PMEMobjpool *rep = pop->replica;
+	while (rep) {
+		rep->drain_local();
+		rep = rep->replica;
+	}
+	pop->drain_local();
 }
 
 /*
@@ -151,12 +286,8 @@ pmemobj_boot(PMEMobjpool *pop)
 	}
 
 	if ((errno = heap_boot(pop)) != 0) {
+		lane_cleanup(pop);
 		ERR("!heap_boot");
-		return errno;
-	}
-
-	if ((errno = lane_recover(pop)) != 0) {
-		ERR("!lane_recover");
 		return errno;
 	}
 
@@ -164,257 +295,203 @@ pmemobj_boot(PMEMobjpool *pop)
 }
 
 /*
- * pmemobj_map_common -- (internal) map a transactional memory pool
- *
- * This routine does all the work, but takes a rdonly flag so internal
- * calls can map a read-only pool if required.
- *
- * If empty flag is set, the file is assumed to be a new memory pool, and
- * new pool header is created.  Otherwise, a valid header must exist.
+ * pmemobj_descr_create -- (internal) create obj pool descriptor
  */
-static PMEMobjpool *
-pmemobj_map_common(int fd, const char *layout, size_t poolsize, int rdonly,
-		int empty, int boot)
+static int
+pmemobj_descr_create(PMEMobjpool *pop, const char *layout, size_t poolsize)
 {
-	LOG(3, "fd %d layout %s poolsize %zu rdonly %d empty %d",
-			fd, layout, poolsize, rdonly, empty);
+	LOG(3, "pop %p layout %s poolsize %zu", pop, layout, poolsize);
 
-	void *addr;
-	if ((addr = util_map(fd, poolsize, rdonly)) == NULL) {
-		(void) close(fd);
-		return NULL;	/* util_map() set errno, called LOG */
-	}
-
-	VALGRIND_REGISTER_PMEM_MAPPING(addr, poolsize);
-	VALGRIND_REGISTER_PMEM_FILE(fd, addr, poolsize, 0);
-
-	(void) close(fd);
-
-	/* check if the mapped region is located in persistent memory */
-	int is_pmem = pmem_is_pmem(addr, poolsize);
+	ASSERTeq(poolsize % Pagesize, 0);
 
 	/* opaque info lives at the beginning of mapped memory pool */
-	struct pmemobjpool *pop = addr;
-	struct pool_hdr hdr;
-
-	/* pointer to pool descriptor */
 	void *dscp = (void *)((uintptr_t)(&pop->hdr) +
-						sizeof (struct pool_hdr));
+				sizeof (struct pool_hdr));
 
-	if (!empty) {
-		memcpy(&hdr, &pop->hdr, sizeof (hdr));
+	/* create the persistent part of pool's descriptor */
+	memset(dscp, 0, OBJ_DSC_P_SIZE);
+	if (layout)
+		strncpy(pop->layout, layout, PMEMOBJ_MAX_LAYOUT - 1);
 
-		if (!util_convert_hdr(&hdr)) {
-			errno = EINVAL;
-			goto err;
-		}
-
-		/*
-		 * valid header found
-		 */
-		if (strncmp(hdr.signature, OBJ_HDR_SIG, POOL_HDR_SIG_LEN)) {
-			ERR("wrong pool type: \"%s\"", hdr.signature);
-			errno = EINVAL;
-			goto err;
-		}
-
-		if (hdr.major != OBJ_FORMAT_MAJOR) {
-			ERR("obj pool version %d (library expects %d)",
-				hdr.major, OBJ_FORMAT_MAJOR);
-			errno = EINVAL;
-			goto err;
-		}
-
-		/* XXX - pools sets / replicas */
-		if (memcmp(hdr.uuid, hdr.prev_part_uuid, POOL_HDR_UUID_LEN) ||
-		    memcmp(hdr.uuid, hdr.next_part_uuid, POOL_HDR_UUID_LEN) ||
-		    memcmp(hdr.uuid, hdr.prev_repl_uuid, POOL_HDR_UUID_LEN) ||
-		    memcmp(hdr.uuid, hdr.next_repl_uuid, POOL_HDR_UUID_LEN)) {
-			ERR("wrong UUID");
-			errno = EINVAL;
-			goto err;
-		}
-
-		if (util_check_arch_flags(&hdr.arch_flags)) {
-			ERR("wrong architecture flags");
-			errno = EINVAL;
-			goto err;
-		}
-
-		if (layout &&
-		    strncmp(pop->layout, layout, PMEMOBJ_MAX_LAYOUT)) {
-			ERR("wrong layout (\"%s\"), "
-				"pool created with layout \"%s\"",
-				layout, pop->layout);
-			errno = EINVAL;
-			goto err;
-		}
-
-		if (!util_checksum(dscp, OBJ_DSC_P_SIZE, &pop->checksum, 0)) {
-			ERR("invalid checksum of pool descriptor");
-			errno = EINVAL;
-			goto err;
-		}
-
-		/* XXX check rest of required metadata */
-
-		int retval = util_feature_check(&hdr, OBJ_FORMAT_INCOMPAT,
-							OBJ_FORMAT_RO_COMPAT,
-							OBJ_FORMAT_COMPAT);
-		if (retval < 0)
-		    goto err;
-		else if (retval == 0)
-		    rdonly = 1;
-	} else {
-		LOG(3, "creating new transactional memory pool");
-
-		ASSERTeq(rdonly, 0);
-
-		struct pool_hdr *hdrp = &pop->hdr;
-
-		/* check if the pool header is all zeros */
-		if (!util_is_zeroed(hdrp, sizeof (*hdrp))) {
-			ERR("Non-empty file detected");
-			errno = EINVAL;
-			goto err;
-		}
-
-		/* check length of layout */
-		if (layout && (strlen(layout) >= PMEMOBJ_MAX_LAYOUT)) {
-				ERR("Layout too long");
-				errno = EINVAL;
-				goto err;
-		}
-
-		/* create pool's header */
-		strncpy(hdrp->signature, OBJ_HDR_SIG, POOL_HDR_SIG_LEN);
-		hdrp->major = htole32(OBJ_FORMAT_MAJOR);
-		hdrp->compat_features = htole32(OBJ_FORMAT_COMPAT);
-		hdrp->incompat_features = htole32(OBJ_FORMAT_INCOMPAT);
-		hdrp->ro_compat_features = htole32(OBJ_FORMAT_RO_COMPAT);
-		uuid_generate(hdrp->uuid);
-		/* XXX - pools sets / replicas */
-		uuid_generate(hdrp->poolset_uuid);
-		memcpy(hdrp->prev_part_uuid, hdrp->uuid, POOL_HDR_UUID_LEN);
-		memcpy(hdrp->next_part_uuid, hdrp->uuid, POOL_HDR_UUID_LEN);
-		memcpy(hdrp->prev_repl_uuid, hdrp->uuid, POOL_HDR_UUID_LEN);
-		memcpy(hdrp->next_repl_uuid, hdrp->uuid, POOL_HDR_UUID_LEN);
-		hdrp->crtime = htole64((uint64_t)time(NULL));
-
-		if (util_get_arch_flags(&hdrp->arch_flags)) {
-			ERR("Reading architecture flags failed\n");
-			errno = EINVAL;
-			goto err;
-		}
-
-		hdrp->arch_flags.alignment_desc =
-			htole64(hdrp->arch_flags.alignment_desc);
-		hdrp->arch_flags.e_machine =
-			htole16(hdrp->arch_flags.e_machine);
-
-		util_checksum(hdrp, sizeof (*hdrp), &hdrp->checksum, 1);
-
-		/* store pool's header */
-		pmem_msync(hdrp, sizeof (*hdrp));
-
-		/* initialize run_id, it will be incremented later */
-		pop->run_id = 0;
-		pmem_msync(&pop->run_id, sizeof (pop->run_id));
-
-		/* zero all lanes */
-		void *lanes_layout = (void *)((uintptr_t)pop +
-							OBJ_LANES_OFFSET);
-
-		memset(lanes_layout, 0,
-			OBJ_NLANES * sizeof (struct lane_layout));
-		pmem_msync(lanes_layout, OBJ_NLANES *
-			sizeof (struct lane_layout));
-
-		/* initialization of the obj_store */
-		uint64_t obj_store_offset = OBJ_LANES_OFFSET +
-			OBJ_NLANES * sizeof (struct lane_layout);
-		uint64_t obj_store_size = (PMEMOBJ_NUM_OID_TYPES + 1) *
-			sizeof (struct object_store_item);
-			/* + 1 - for root object */
-		void *store = (void *)((uintptr_t)pop + obj_store_offset);
-		memset(store, 0, obj_store_size);
-		pmem_msync(store, obj_store_size);
-
-		/* create the persistent part of pool's descriptor */
-		memset(dscp, 0, OBJ_DSC_P_SIZE);
-		if (layout)
-			strncpy(pop->layout, layout, PMEMOBJ_MAX_LAYOUT - 1);
-		pop->lanes_offset = OBJ_LANES_OFFSET;
-		pop->nlanes = OBJ_NLANES;
-		pop->obj_store_offset = obj_store_offset;
-		pop->obj_store_size = obj_store_size;
-		pop->heap_offset = pop->obj_store_offset +
-			pop->obj_store_size;
-		pop->heap_size = poolsize - pop->heap_offset;
-
-		if ((errno = heap_init(pop)) != 0) {
-			ERR("!heap_init");
-			goto err;
-		}
-
-		util_checksum(dscp, OBJ_DSC_P_SIZE, &pop->checksum, 1);
-
-		/* store the persistent part of pool's descriptor (2kB) */
-		pmem_msync(dscp, OBJ_DSC_P_SIZE);
-	}
-
-	/* run_id is made unique by incrementing the previous value */
-	pop->run_id += 2;
-	if (pop->run_id == 0)
-		pop->run_id += 2;
+	/* initialize run_id, it will be incremented later */
+	pop->run_id = 0;
 	pmem_msync(&pop->run_id, sizeof (pop->run_id));
 
-	VALGRIND_REMOVE_PMEM_MAPPING(&pop->addr,
-			sizeof (struct pmemobjpool) -
-			sizeof (struct pool_hdr) -
-			OBJ_DSC_P_SIZE);
+	pop->lanes_offset = OBJ_LANES_OFFSET;
+	pop->nlanes = OBJ_NLANES;
+
+	/* zero all lanes */
+	void *lanes_layout = (void *)((uintptr_t)pop +
+						pop->lanes_offset);
+
+	memset(lanes_layout, 0,
+		pop->nlanes * sizeof (struct lane_layout));
+	pmem_msync(lanes_layout, pop->nlanes *
+		sizeof (struct lane_layout));
+
+	/* initialization of the obj_store */
+	pop->obj_store_offset = pop->lanes_offset +
+		pop->nlanes * sizeof (struct lane_layout);
+	pop->obj_store_size = (PMEMOBJ_NUM_OID_TYPES + 1) *
+		sizeof (struct object_store_item);
+		/* + 1 - for root object */
+	void *store = (void *)((uintptr_t)pop + pop->obj_store_offset);
+	memset(store, 0, pop->obj_store_size);
+	pmem_msync(store, pop->obj_store_size);
+
+	pop->heap_offset = pop->obj_store_offset + pop->obj_store_size;
+	pop->heap_offset = (pop->heap_offset + Pagesize - 1) & ~(Pagesize - 1);
+	pop->heap_size = poolsize - pop->heap_offset;
+
+	/* initialize heap prior to storing the checksum */
+	if ((errno = heap_init(pop)) != 0) {
+		ERR("!heap_init");
+		return -1;
+	}
+
+	util_checksum(dscp, OBJ_DSC_P_SIZE, &pop->checksum, 1);
+
+	/* store the persistent part of pool's descriptor (2kB) */
+	pmem_msync(dscp, OBJ_DSC_P_SIZE);
+
+	return 0;
+}
+
+/*
+ * pmemobj_descr_check -- (internal) validate obj pool descriptor
+ */
+static int
+pmemobj_descr_check(PMEMobjpool *pop, const char *layout, size_t poolsize)
+{
+	LOG(3, "pop %p layout %s poolsize %zu", pop, layout, poolsize);
+
+	void *dscp = (void *)((uintptr_t)(&pop->hdr) +
+				sizeof (struct pool_hdr));
+
+	if (!util_checksum(dscp, OBJ_DSC_P_SIZE, &pop->checksum, 0)) {
+		ERR("invalid checksum of pool descriptor");
+		errno = EINVAL;
+		return -1;
+	}
+
+	if (layout &&
+	    strncmp(pop->layout, layout, PMEMOBJ_MAX_LAYOUT)) {
+		ERR("wrong layout (\"%s\"), "
+			"pool created with layout \"%s\"",
+			layout, pop->layout);
+		errno = EINVAL;
+		return -1;
+	}
+
+	if (pop->size < poolsize) {
+		ERR("replica size smaller than pool size: %zu < %zu",
+			pop->size, poolsize);
+		errno = EINVAL;
+		return -1;
+	}
+
+	if (pop->heap_offset + pop->heap_size != poolsize) {
+		ERR("heap size does not match pool size: %zu != %zu",
+			pop->heap_offset + pop->heap_size, poolsize);
+		errno = EINVAL;
+		return -1;
+	}
+
+	if (pop->heap_offset % Pagesize ||
+	    pop->heap_size % Pagesize) {
+		ERR("unaligned heap: off %ju, size %zu",
+			pop->heap_offset, pop->heap_size);
+		errno = EINVAL;
+		return -1;
+	}
+
+	return 0;
+}
+
+/*
+ * pmemobj_replica_init -- (internal) initialize runtime part of the replica
+ */
+static int
+pmemobj_replica_init(PMEMobjpool *pop, int is_pmem)
+{
+	LOG(3, "pop %p is_pmem %d", pop, is_pmem);
 
 	/*
 	 * Use some of the memory pool area for run-time info.  This
 	 * run-time state is never loaded from the file, it is always
 	 * created here, so no need to worry about byte-order.
 	 */
-	pop->addr = addr;
-	pop->size = poolsize;
+	pop->is_pmem = is_pmem;
+	pop->replica = NULL;
+
+	if (pop->is_pmem) {
+		pop->persist_local = pmem_persist;
+		pop->flush_local = pmem_flush;
+		pop->drain_local = pmem_drain;
+		pop->memcpy_persist_local = pmem_memcpy_persist;
+		pop->memset_persist_local = pmem_memset_persist;
+	} else {
+		pop->persist_local = (persist_local_fn)pmem_msync;
+		pop->flush_local = (flush_local_fn)pmem_msync;
+		pop->drain_local = drain_empty;
+		pop->memcpy_persist_local = nopmem_memcpy_persist;
+		pop->memset_persist_local = nopmem_memset_persist;
+	}
+
+	/* initially, use variants w/o replication */
+	pop->persist = obj_norep_persist;
+	pop->flush = obj_norep_flush;
+	pop->drain = obj_norep_drain;
+	pop->memcpy_persist = obj_norep_memcpy_persist;
+	pop->memset_persist = obj_norep_memset_persist;
+
+	return 0;
+}
+
+/*
+ * pmemobj_runtime_init -- (internal) initialize runtime part of the pool header
+ */
+static int
+pmemobj_runtime_init(PMEMobjpool *pop, int rdonly, int boot)
+{
+	LOG(3, "pop %p rdonly %d boot %d", pop, rdonly, boot);
+
+	if (pop->replica != NULL) {
+		/* switch to functions that replicate data */
+		pop->persist = obj_rep_persist;
+		pop->flush = obj_rep_flush;
+		pop->drain = obj_rep_drain;
+		pop->memcpy_persist = obj_rep_memcpy_persist;
+		pop->memset_persist = obj_rep_memset_persist;
+	}
+
+	/* run_id is made unique by incrementing the previous value */
+	pop->run_id += 2;
+	if (pop->run_id == 0)
+		pop->run_id += 2;
+	pop->persist(pop, &pop->run_id, sizeof (pop->run_id));
+
+	/*
+	 * Use some of the memory pool area for run-time info.  This
+	 * run-time state is never loaded from the file, it is always
+	 * created here, so no need to worry about byte-order.
+	 */
 	pop->rdonly = rdonly;
 	pop->lanes = NULL;
-	pop->is_pmem = is_pmem;
 
 	pop->uuid_lo = pmemobj_get_uuid_lo(pop);
 	pop->store = (struct object_store *)
 			((uintptr_t)pop + pop->obj_store_offset);
 
-	if (pop->is_pmem) {
-		pop->persist = pmem_persist;
-		pop->flush = pmem_flush;
-		pop->drain = pmem_drain;
-		pop->memcpy_persist = pmem_memcpy_persist;
-		pop->memset_persist = pmem_memset_persist;
-	} else {
-		pop->persist = (persist_fn)pmem_msync;
-		pop->flush = (flush_fn)pmem_msync;
-		pop->drain = drain_empty;
-		pop->memcpy_persist = nopmem_memcpy_persist;
-		pop->memset_persist = nopmem_memset_persist;
-	}
-
 	if (boot) {
 		if ((errno = pmemobj_boot(pop)) != 0)
-			goto err;
+			return -1;
 
 		if ((errno = cuckoo_insert(pools, pop->uuid_lo, pop)) != 0) {
 			ERR("!cuckoo_insert");
-			goto err;
+			return -1;
 		}
-
 	}
-
-	/* XXX the rest of run-time info */
 
 	/*
 	 * If possible, turn off all permissions on the pool header page.
@@ -422,49 +499,263 @@ pmemobj_map_common(int fd, const char *layout, size_t poolsize, int rdonly,
 	 * The prototype PMFS doesn't allow this when large pages are in
 	 * use. It is not considered an error if this fails.
 	 */
-	util_range_none(addr, sizeof (struct pool_hdr));
+	util_range_none(pop->addr, sizeof (struct pool_hdr));
 
-
-	LOG(3, "pop %p", pop);
-	return pop;
-
-err:
-	LOG(4, "error clean up");
-	int oerrno = errno;
-	VALGRIND_REMOVE_PMEM_MAPPING(addr, poolsize);
-	util_unmap(addr, poolsize);
-	errno = oerrno;
-	return NULL;
+	return 0;
 }
 
 /*
- * pmemobj_create -- create a transactional memory pool
+ * pmemobj_create -- create a transactional memory pool (set)
  */
 PMEMobjpool *
 pmemobj_create(const char *path, const char *layout, size_t poolsize,
 		mode_t mode)
 {
-	LOG(3, "path %s layout %s poolsize %zu mode %d",
+	LOG(3, "path %s layout %s poolsize %zu mode %o",
 			path, layout, poolsize, mode);
 
-	int created = 0;
-	int fd;
-	if (poolsize != 0) {
-		/* create a new memory pool file */
-		fd = util_pool_create(path, poolsize, PMEMOBJ_MIN_POOL, mode);
-		created = 1;
-	} else {
-		/* open an existing file */
-		fd = util_pool_open(path, &poolsize, PMEMOBJ_MIN_POOL);
+	/* check length of layout */
+	if (layout && (strlen(layout) >= PMEMOBJ_MAX_LAYOUT)) {
+		ERR("Layout too long");
+		errno = EINVAL;
+		return NULL;
 	}
-	if (fd == -1)
-		return NULL;	/* errno set by util_pool_create/open() */
 
-	PMEMobjpool *pop = pmemobj_map_common(fd, layout, poolsize, 0, 1, 1);
-	if (pop == NULL && created)
-		unlink(path);	/* delete file if pool creation failed */
+	struct pool_set *set;
+
+	if (util_pool_create(&set, path, poolsize, mode, PMEMOBJ_MIN_POOL,
+			roundup(sizeof (struct pmemobjpool), Pagesize),
+			OBJ_HDR_SIG, OBJ_FORMAT_MAJOR,
+			OBJ_FORMAT_COMPAT, OBJ_FORMAT_INCOMPAT,
+			OBJ_FORMAT_RO_COMPAT) != 0) {
+		LOG(2, "cannot create pool or pool set");
+		return NULL;
+	}
+
+	ASSERT(set->nreplicas > 0);
+
+	PMEMobjpool *pop;
+	for (unsigned r = 0; r < set->nreplicas; r++) {
+		struct pool_replica *rep = set->replica[r];
+		pop = rep->part[0].addr;
+
+		VALGRIND_REMOVE_PMEM_MAPPING(&pop->addr,
+			sizeof (struct pmemobjpool) -
+			((uintptr_t)&pop->addr - (uintptr_t)&pop->hdr));
+
+		pop->addr = pop;
+		pop->size = rep->repsize;
+
+		/* create pool descriptor */
+		if (pmemobj_descr_create(pop, layout, set->poolsize) != 0) {
+			LOG(2, "descriptor creation failed");
+			goto err;
+		}
+
+		/* initialize replica runtime - is_pmem, funcs, ... */
+		if (pmemobj_replica_init(pop, rep->is_pmem) != 0) {
+			ERR("pool initialization failed");
+			goto err;
+		}
+
+		/* link replicas */
+		if (r < set->nreplicas - 1)
+			pop->replica = set->replica[r + 1]->part[0].addr;
+	}
+
+	pop = set->replica[0]->part[0].addr;
+
+	/* initialize runtime parts - lanes, obj stores, ... */
+	if (pmemobj_runtime_init(pop, 0, 1 /* boot*/) != 0) {
+		ERR("pool initialization failed");
+		goto err;
+	}
+
+	LOG(3, "pop %p", pop);
+
+	util_poolset_free(set);
 
 	return pop;
+
+err:
+	LOG(4, "error clean up");
+	int oerrno = errno;
+	for (unsigned r = 0; r < set->nreplicas; r++) {
+		struct pool_replica *rep = set->replica[r];
+		VALGRIND_REMOVE_PMEM_MAPPING(rep->part[0].addr,
+						rep->part[0].size);
+		util_unmap(rep->part[0].addr, rep->part[0].size);
+	}
+	util_poolset_close(set, 1);
+	errno = oerrno;
+	return NULL;
+}
+
+/*
+ * pmemobj_recover -- (internal) perform a transactional memory pool recovery
+ */
+static int
+pmemobj_recover(PMEMobjpool *pop)
+{
+	LOG(3, "pop %p", pop);
+
+	if ((errno = lane_recover(pop)) != 0) {
+		ERR("!lane_recover");
+		return -1;
+	}
+	return 0;
+}
+
+/*
+ * pmemobj_check_basic -- (internal) basic pool consistency check
+ *
+ * Used to check if all the replicas are consistent prior to pool recovery.
+ */
+static int
+pmemobj_check_basic(PMEMobjpool *pop)
+{
+	LOG(3, "pop %p", pop);
+
+	int consistent = 1;
+
+	if (pop->run_id % 2) {
+		ERR("invalid run_id %ju", pop->run_id);
+		consistent = 0;
+	}
+
+	if ((errno = lane_check(pop)) != 0) {
+		LOG(2, "!lane_check");
+		consistent = 0;
+	}
+
+	if ((errno = heap_check(pop)) != 0) {
+		LOG(2, "!heap_check");
+		consistent = 0;
+	}
+
+	return consistent;
+}
+
+/*
+ * pmemobj_open_common -- open a transactional memory pool (set)
+ *
+ * This routine does all the work, but takes a cow flag so internal
+ * calls can map a read-only pool if required.
+ */
+static PMEMobjpool *
+pmemobj_open_common(const char *path, const char *layout, int cow, int boot)
+{
+	LOG(3, "path %s layout %s cow %d", path, layout, cow);
+
+	struct pool_set *set;
+
+	if (util_pool_open(&set, path, cow, PMEMOBJ_MIN_POOL,
+			roundup(sizeof (struct pmemobjpool), Pagesize),
+			OBJ_HDR_SIG, OBJ_FORMAT_MAJOR,
+			OBJ_FORMAT_COMPAT, OBJ_FORMAT_INCOMPAT,
+			OBJ_FORMAT_RO_COMPAT) != 0) {
+		LOG(2, "cannot open pool or pool set");
+		return NULL;
+	}
+
+	ASSERT(set->nreplicas > 0);
+
+	/* read-only mode is not supported in libpmemobj */
+	if (set->rdonly) {
+		ERR("read-only mode is not supported");
+		errno = EINVAL;
+		goto err;
+	}
+
+	PMEMobjpool *pop;
+	for (unsigned r = 0; r < set->nreplicas; r++) {
+		struct pool_replica *rep = set->replica[r];
+		pop = rep->part[0].addr;
+
+		VALGRIND_REMOVE_PMEM_MAPPING(&pop->addr,
+			sizeof (struct pmemobjpool) -
+			((uintptr_t)&pop->addr - (uintptr_t)&pop->hdr));
+
+		pop->addr = pop;
+		pop->size = rep->repsize;
+
+		if (pmemobj_descr_check(pop, layout, set->poolsize) != 0) {
+			LOG(2, "descriptor check failed");
+			goto err;
+		}
+
+		/* initialize replica runtime - is_pmem, funcs, ... */
+		if (pmemobj_replica_init(pop, rep->is_pmem) != 0) {
+			ERR("pool initialization failed");
+			goto err;
+		}
+
+		/* link replicas */
+		if (r < set->nreplicas - 1)
+			pop->replica = set->replica[r + 1]->part[0].addr;
+	}
+
+	/*
+	 * If there is more than one replica, check if all of them are
+	 * consistent (recoverable).
+	 * On success, choose any replica and copy entire lanes (redo logs)
+	 * to all the other replicas to synchronize them.
+	 */
+	if (set->nreplicas > 1) {
+		for (unsigned r = 0; r < set->nreplicas; r++) {
+			pop = set->replica[r]->part[0].addr;
+			if (pmemobj_check_basic(pop) == 0) {
+				ERR("inconsistent replica #%u", r);
+				goto err;
+			}
+		}
+
+		/* copy lanes */
+		pop = set->replica[0]->part[0].addr;
+		void *src = (void *)((uintptr_t)pop + pop->lanes_offset);
+		size_t len = pop->nlanes * sizeof (struct lane_layout);
+
+		for (unsigned r = 1; r < set->nreplicas; r++) {
+			pop = set->replica[r]->part[0].addr;
+			void *dst = (void *)((uintptr_t)pop +
+						pop->lanes_offset);
+			pop->memcpy_persist_local(dst, src, len);
+		}
+	}
+
+	pop = set->replica[0]->part[0].addr;
+
+	/* initialize runtime parts - lanes, obj stores, ... */
+	if (pmemobj_runtime_init(pop, 0, boot) != 0) {
+		ERR("pool initialization failed");
+		goto err;
+	}
+
+	if (boot) {
+		if (pmemobj_recover(pop) != 0) {
+			ERR("pool recovery failed");
+			goto err;
+		}
+	}
+
+	LOG(3, "pop %p", pop);
+
+	util_poolset_free(set);
+
+	return pop;
+
+err:
+	LOG(4, "error clean up");
+	int oerrno = errno;
+	for (unsigned r = 0; r < set->nreplicas; r++) {
+		struct pool_replica *rep = set->replica[r];
+		VALGRIND_REMOVE_PMEM_MAPPING(rep->part[0].addr,
+						rep->part[0].size);
+		util_unmap(rep->part[0].addr, rep->part[0].size);
+	}
+	util_poolset_free(set);
+	errno = oerrno;
+	return NULL;
 }
 
 /*
@@ -475,13 +766,7 @@ pmemobj_open(const char *path, const char *layout)
 {
 	LOG(3, "path %s layout %s", path, layout);
 
-	size_t poolsize = 0;
-	int fd;
-
-	if ((fd = util_pool_open(path, &poolsize, PMEMOBJ_MIN_POOL)) == -1)
-		return NULL;	/* errno set by util_pool_open() */
-
-	return pmemobj_map_common(fd, layout, poolsize, 0, 0, 1);
+	return pmemobj_open_common(path, layout, 0, 1);
 }
 
 /*
@@ -495,12 +780,17 @@ pmemobj_cleanup(PMEMobjpool *pop)
 	if ((errno = heap_cleanup(pop)) != 0)
 		ERR("!heap_cleanup");
 
-	/* cleanup run-time state */
 	if ((errno = lane_cleanup(pop)) != 0)
 		ERR("!lane_cleanup");
 
-	VALGRIND_REMOVE_PMEM_MAPPING(pop->addr, pop->size);
-	util_unmap(pop->addr, pop->size);
+	/* unmap all the replicas */
+	PMEMobjpool *rep;
+	do {
+		rep = pop->replica;
+		VALGRIND_REMOVE_PMEM_MAPPING(pop->addr, pop->size);
+		util_unmap(pop->addr, pop->size);
+		pop = rep;
+	} while (pop);
 }
 
 /*
@@ -531,34 +821,18 @@ pmemobj_check(const char *path, const char *layout)
 {
 	LOG(3, "path %s layout %s", path, layout);
 
-	size_t poolsize = 0;
-	int fd;
-
-	if ((fd = util_pool_open(path, &poolsize, PMEMOBJ_MIN_POOL)) == -1)
-		return -1;	/* errno set by util_pool_open() */
-
-	/* map the pool read-only */
-	PMEMobjpool *pop = pmemobj_map_common(fd, layout, poolsize, 1, 0, 0);
-
+	PMEMobjpool *pop = pmemobj_open_common(path, layout, 1, 0);
 	if (pop == NULL)
-		return -1;	/* errno set by pmemobj_map_common() */
+		return -1;	/* errno set by pmemobj_open_common() */
 
 	int consistent = 1;
 
-	if (pop->run_id % 2) {
-		ERR("invalid run_id %ju", pop->run_id);
-		consistent = 0;
-	}
-
-	if ((errno = lane_check(pop)) != 0) {
-		LOG(3, "!lane_check");
-		consistent = 0;
-	}
-
-	if ((errno = heap_check(pop)) != 0) {
-		LOG(3, "!heap_check");
-		consistent = 0;
-	}
+	/*
+	 * For replicated pools, basic consistency check is performed
+	 * in pmemobj_open_common().
+	 */
+	if (pop->replica == NULL)
+		consistent = pmemobj_check_basic(pop);
 
 	if (consistent && (errno = pmemobj_boot(pop)) != 0) {
 		LOG(3, "!pmemobj_boot");
@@ -566,14 +840,17 @@ pmemobj_check(const char *path, const char *layout)
 	}
 
 	if (consistent) {
-		pmemobj_close(pop);
+		pmemobj_cleanup(pop);
 	} else {
-		VALGRIND_REMOVE_PMEM_MAPPING(pop, poolsize);
-		util_unmap(pop, poolsize);
+		/* unmap all the replicas */
+		PMEMobjpool *rep;
+		do {
+			rep = pop->replica;
+			VALGRIND_REMOVE_PMEM_MAPPING(pop->addr, pop->size);
+			util_unmap(pop->addr, pop->size);
+			pop = rep;
+		} while (pop);
 	}
-
-	/* XXX validate metadata */
-
 
 	if (consistent)
 		LOG(4, "pool consistency check OK");
@@ -614,7 +891,7 @@ constructor_alloc_bytype(PMEMobjpool *pop, void *ptr, void *arg)
 
 	pobj->internal_type = TYPE_ALLOCATED;
 	pobj->user_type = carg->user_type;
-	pop->persist(pobj, OBJ_OOB_SIZE);
+	pop->persist(pop, pobj, OBJ_OOB_SIZE);
 
 	if (carg->constructor)
 		carg->constructor(pop, ptr, carg->arg);
@@ -702,7 +979,7 @@ constructor_zalloc(PMEMobjpool *pop, void *ptr, void *arg)
 
 	struct carg_alloc *carg = arg;
 
-	pop->memset_persist(ptr, 0, carg->size);
+	pop->memset_persist(pop, ptr, 0, carg->size);
 }
 
 /*
@@ -840,11 +1117,11 @@ constructor_realloc(PMEMobjpool *pop, void *ptr, void *arg)
 		size_t cpy_size = carg->new_size > carg->old_size ?
 			carg->old_size : carg->new_size;
 
-		pop->memcpy_persist(ptr, carg->ptr, cpy_size);
+		pop->memcpy_persist(pop, ptr, carg->ptr, cpy_size);
 
 		pobj->internal_type = TYPE_ALLOCATED;
 		pobj->user_type = carg->user_type;
-		pop->persist(pobj, sizeof (*pobj));
+		pop->persist(pop, pobj, sizeof (*pobj));
 	}
 }
 
@@ -866,18 +1143,18 @@ constructor_zrealloc(PMEMobjpool *pop, void *ptr, void *arg)
 		size_t cpy_size = carg->new_size > carg->old_size ?
 			carg->old_size : carg->new_size;
 
-		pop->memcpy_persist(ptr, carg->ptr, cpy_size);
+		pop->memcpy_persist(pop, ptr, carg->ptr, cpy_size);
 
 		pobj->internal_type = TYPE_ALLOCATED;
 		pobj->user_type = carg->user_type;
-		pop->persist(pobj, sizeof (*pobj));
+		pop->persist(pop, pobj, sizeof (*pobj));
 	}
 
 	if (carg->new_size > carg->old_size) {
 		size_t grow_len = carg->new_size - carg->old_size;
 		void *new_data_ptr = (void *)((uintptr_t)ptr + carg->old_size);
 
-		pop->memset_persist(new_data_ptr, 0, grow_len);
+		pop->memset_persist(pop, new_data_ptr, 0, grow_len);
 	}
 }
 
@@ -955,7 +1232,7 @@ constructor_strdup(PMEMobjpool *pop, void *ptr, void *arg)
 	struct carg_strdup *carg = arg;
 
 	/* copy string */
-	pop->memcpy_persist(ptr, carg->s, carg->size);
+	pop->memcpy_persist(pop, ptr, carg->s, carg->size);
 }
 
 /*
@@ -1040,7 +1317,9 @@ void *
 pmemobj_memcpy_persist(PMEMobjpool *pop, void *dest, const void *src,
 	size_t len)
 {
-	return pop->memcpy_persist(dest, src, len);
+	LOG(15, "pop %p dest %p src %p len %zu", pop, dest, src, len);
+
+	return pop->memcpy_persist(pop, dest, src, len);
 }
 
 /*
@@ -1049,7 +1328,9 @@ pmemobj_memcpy_persist(PMEMobjpool *pop, void *dest, const void *src,
 void *
 pmemobj_memset_persist(PMEMobjpool *pop, void *dest, int c, size_t len)
 {
-	return pop->memset_persist(dest, c, len);
+	LOG(15, "pop %p dest %p c '%c' len %zu", pop, dest, c, len);
+
+	return pop->memset_persist(pop, dest, c, len);
 }
 
 /*
@@ -1058,7 +1339,9 @@ pmemobj_memset_persist(PMEMobjpool *pop, void *dest, int c, size_t len)
 void
 pmemobj_persist(PMEMobjpool *pop, void *addr, size_t len)
 {
-	pop->persist(addr, len);
+	LOG(15, "pop %p addr %p len %zu", pop, addr, len);
+
+	pop->persist(pop, addr, len);
 }
 
 /*
@@ -1067,7 +1350,9 @@ pmemobj_persist(PMEMobjpool *pop, void *addr, size_t len)
 void
 pmemobj_flush(PMEMobjpool *pop, void *addr, size_t len)
 {
-	pop->flush(addr, len);
+	LOG(15, "pop %p addr %p len %zu", pop, addr, len);
+
+	pop->flush(pop, addr, len);
 }
 
 /*
@@ -1076,7 +1361,9 @@ pmemobj_flush(PMEMobjpool *pop, void *addr, size_t len)
 void
 pmemobj_drain(PMEMobjpool *pop)
 {
-	pop->drain();
+	LOG(15, "pop %p", pop);
+
+	pop->drain(pop);
 }
 
 /*
@@ -1118,7 +1405,7 @@ constructor_alloc_root(PMEMobjpool *pop, void *ptr, void *arg)
 	/* temporarily add atomic root allocation to pmemcheck transaction */
 	VALGRIND_ADD_TO_TX(ro, OBJ_OOB_SIZE + carg->size);
 
-	pop->memset_persist(ptr, 0, carg->size);
+	pop->memset_persist(pop, ptr, 0, carg->size);
 
 	ro->internal_type = TYPE_ALLOCATED;
 	ro->user_type = POBJ_ROOT_TYPE_NUM;
@@ -1126,7 +1413,7 @@ constructor_alloc_root(PMEMobjpool *pop, void *ptr, void *arg)
 
 	VALGRIND_REMOVE_FROM_TX(ro, OBJ_OOB_SIZE + carg->size);
 
-	pop->persist(ro, OBJ_OOB_SIZE);
+	pop->persist(pop, ro, OBJ_OOB_SIZE);
 }
 
 /*

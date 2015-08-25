@@ -42,7 +42,11 @@ export UNITTEST_NUM=0
 
 setup
 
-expect_normal_exit ./obj_recovery$EXESUFFIX $DIR/testfile s
-expect_normal_exit ./obj_recovery$EXESUFFIX $DIR/testfile s
+create_holey_file 16 $DIR/testfile
+
+expect_normal_exit ./obj_recovery$EXESUFFIX $DIR/testfile y c s
+expect_normal_exit ./obj_recovery$EXESUFFIX $DIR/testfile y o s
+
+check
 
 pass

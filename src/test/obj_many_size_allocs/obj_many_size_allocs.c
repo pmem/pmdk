@@ -42,6 +42,18 @@
 #define	LAYOUT_NAME "many_size_allocs"
 #define	TEST_ALLOC_SIZE 2048
 
+struct cargs {
+	size_t size;
+};
+
+void
+test_constructor(PMEMobjpool *pop, void *addr, void *args)
+{
+	struct cargs *a = args;
+	/* do not use pmem_memset_persit() here */
+	pmemobj_memset_persist(pop, addr, a->size % 256, a->size);
+}
+
 void
 test_allocs(PMEMobjpool *pop, const char *path)
 {
@@ -51,7 +63,9 @@ test_allocs(PMEMobjpool *pop, const char *path)
 		FATAL("pmemobj_alloc(0) succeeded");
 
 	for (int i = 1; i < TEST_ALLOC_SIZE; ++i) {
-		if (pmemobj_alloc(pop, &oid[i], i, 0, NULL, NULL) != 0)
+		struct cargs args = { i };
+		if (pmemobj_alloc(pop, &oid[i], i, 0,
+				test_constructor, &args) != 0)
 			FATAL("!pmemobj_alloc");
 		ASSERT(!OID_IS_NULL(oid[i]));
 	}
@@ -83,7 +97,7 @@ main(int argc, char *argv[])
 	PMEMobjpool *pop = NULL;
 
 	if ((pop = pmemobj_create(path, LAYOUT_NAME,
-			PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR)) == NULL)
+			0, S_IWUSR | S_IRUSR)) == NULL)
 		FATAL("!pmemobj_create: %s", path);
 
 	test_allocs(pop, path);

@@ -41,12 +41,10 @@ setup
 
 export PMEM_IS_PMEM_FORCE=1
 
-rm -rf $DIR/testfile1
+create_holey_file 16 $DIR/testfile1
 
 expect_normal_exit\
 	./obj_heap_state$EXESUFFIX $DIR/testfile1
-
-rm -rf $DIR/testfile1
 
 check
 

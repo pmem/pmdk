@@ -75,6 +75,34 @@ pmem_drain_nop(void)
 {
 }
 
+/*
+ * obj_persist -- pmemobj version of pmem_persist w/o replication
+ */
+static void
+obj_persist(PMEMobjpool *pop, void *addr, size_t len)
+{
+	pop->persist_local(addr, len);
+}
+
+/*
+ * obj_flush -- pmemobj version of pmem_flush w/o replication
+ */
+static void
+obj_flush(PMEMobjpool *pop, void *addr, size_t len)
+{
+	pop->flush_local(addr, len);
+}
+
+/*
+ * obj_drain -- pmemobj version of pmem_drain w/o replication
+ */
+static void
+obj_drain(PMEMobjpool *pop)
+{
+	pop->drain_local();
+}
+
+
 PMEMobjpool *
 pmemobj_open_mock(const char *fname)
 {
@@ -111,14 +139,18 @@ pmemobj_open_mock(const char *fname)
 	pop->rdonly = 0;
 
 	if (pop->is_pmem) {
-		pop->persist = pmem_persist;
-		pop->flush = pmem_flush;
-		pop->drain = pmem_drain;
+		pop->persist_local = pmem_persist;
+		pop->flush_local = pmem_flush;
+		pop->drain_local = pmem_drain;
 	} else {
-		pop->persist = (persist_fn)pmem_msync;
-		pop->flush = (persist_fn)pmem_msync;
-		pop->drain = pmem_drain_nop;
+		pop->persist_local = (persist_local_fn)pmem_msync;
+		pop->flush_local = (persist_local_fn)pmem_msync;
+		pop->drain_local = pmem_drain_nop;
 	}
+
+	pop->persist = obj_persist;
+	pop->flush = obj_flush;
+	pop->drain = obj_drain;
 
 	return pop;
 }
