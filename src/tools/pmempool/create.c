@@ -166,7 +166,7 @@ static int
 pmempool_create_obj(struct pmempool_create *pcp)
 {
 	if (pcp->layout && strlen(pcp->layout) >= PMEMOBJ_MAX_LAYOUT) {
-		out_err("Layout name is to long, "
+		outv_err("Layout name is to long, "
 			"maximum number of characters is %d\n",
 			PMEMOBJ_MAX_LAYOUT);
 		return -1;
@@ -177,7 +177,7 @@ pmempool_create_obj(struct pmempool_create *pcp)
 	PMEMobjpool *pop = pmemobj_create(pcp->fname, pcp->layout,
 			pcp->params.size, pcp->params.mode);
 	if (!pop) {
-		out_err("'%s' -- %s\n", pcp->fname, pmemobj_errormsg());
+		outv_err("'%s' -- %s\n", pcp->fname, pmemobj_errormsg());
 		return -1;
 	}
 
@@ -206,13 +206,13 @@ pmempool_create_blk(struct pmempool_create *pcp)
 			pcp->params.size, pcp->params.mode);
 
 	if (!pbp) {
-		out_err("'%s' -- %s\n", pcp->fname, pmemblk_errormsg());
+		outv_err("'%s' -- %s\n", pcp->fname, pmemblk_errormsg());
 		return -1;
 	}
 	size_t nblock = pmemblk_nblock(pbp);
 	if (pcp->blk_layout != UINT64_MAX) {
 		if (pcp->blk_layout >= nblock) {
-			out_err("'%s' -- block number must be"
+			outv_err("'%s' -- block number must be"
 				" >= 0 and  < %ld\n",
 				pcp->layout, nblock);
 			ret = -1;
@@ -222,7 +222,7 @@ pmempool_create_blk(struct pmempool_create *pcp)
 
 			if (pmemblk_set_error(pbp, pcp->blk_layout) ||
 				pmemblk_set_zero(pbp, pcp->blk_layout)) {
-				out_err("writing BTT layout to block"
+				outv_err("writing BTT layout to block"
 					" %ld failed\n", pcp->blk_layout);
 				ret = -1;
 			}
@@ -245,7 +245,7 @@ pmempool_create_log(struct pmempool_create *pcp)
 					pcp->params.size, pcp->params.mode);
 
 	if (!plp) {
-		out_err("'%s' -- %s\n", pcp->fname, pmemlog_errormsg());
+		outv_err("'%s' -- %s\n", pcp->fname, pmemlog_errormsg());
 		return -1;
 	}
 
@@ -295,7 +295,7 @@ pmempool_create_parse_args(struct pmempool_create *pcp, char *appname,
 		case 's':
 			ret = util_parse_size(optarg, &pcp->params.size);
 			if (ret || pcp->params.size == 0) {
-				out_err("invalid size value specified '%s'\n",
+				outv_err("invalid size value specified '%s'\n",
 						optarg);
 				return -1;
 			}
@@ -305,7 +305,7 @@ pmempool_create_parse_args(struct pmempool_create *pcp, char *appname,
 			break;
 		case 'm':
 			if (util_parse_mode(optarg, &pcp->params.mode)) {
-				out_err("invalid mode value specified '%s'\n",
+				outv_err("invalid mode value specified '%s'\n",
 						optarg);
 				return -1;
 			}
@@ -316,7 +316,7 @@ pmempool_create_parse_args(struct pmempool_create *pcp, char *appname,
 		case 'w':
 			if (optarg) {
 				if (optarg[0] == '-') {
-					out_err("value must be >= 0 -- 'w'");
+					outv_err("value must be >= 0 -- 'w'");
 					return -1;
 				}
 				pcp->blk_layout = atoll(optarg);
@@ -383,18 +383,19 @@ pmempool_create_func(char *appname, int argc, char *argv[])
 		/* parse pool type string if passed in command line arguments */
 		pc.params.type = pmem_pool_type_parse_str(pc.str_type);
 		if (PMEM_POOL_TYPE_UNKNOWN == pc.params.type) {
-			out_err("'%s' -- unknown pool type\n", pc.str_type);
+			outv_err("'%s' -- unknown pool type\n", pc.str_type);
 			return -1;
 		}
 
 		if (PMEM_POOL_TYPE_BLK == pc.params.type) {
 			if (pc.str_bsize == NULL) {
-				out_err("blk pool requires <bsize> argument\n");
+				outv_err("blk pool requires <bsize> "
+					"argument\n");
 				return -1;
 			}
 			if (util_parse_size(pc.str_bsize,
 						&pc.params.blk.bsize)) {
-				out_err("cannot parse '%s' as block size\n",
+				outv_err("cannot parse '%s' as block size\n",
 						pc.str_bsize);
 				return -1;
 			}
@@ -414,7 +415,7 @@ pmempool_create_func(char *appname, int argc, char *argv[])
 		if (PMEM_POOL_TYPE_NONE == pc.params.type) {
 			err(1, "%s", pc.inherit_fname);
 		} else if (PMEM_POOL_TYPE_UNKNOWN == pc.params.type) {
-			out_err("'%s' -- unknown pool type\n",
+			outv_err("'%s' -- unknown pool type\n",
 					pc.inherit_fname);
 			return -1;
 		} else {
@@ -443,7 +444,7 @@ pmempool_create_func(char *appname, int argc, char *argv[])
 
 	if (pc.params.type != PMEM_POOL_TYPE_BLK) {
 		if (pc.str_bsize != NULL) {
-			out_err("invalid option specified for %s pool type"
+			outv_err("invalid option specified for %s pool type"
 					" -- block size\n",
 				out_get_pool_type_str(pc.params.type));
 			return -1;
@@ -451,7 +452,7 @@ pmempool_create_func(char *appname, int argc, char *argv[])
 	}
 
 	if (pc.params.size && pc.max_size) {
-		out_err("'-M' option cannot be used with '-s'"
+		outv_err("'-M' option cannot be used with '-s'"
 				" option\n");
 		return -1;
 	}
@@ -469,11 +470,11 @@ pmempool_create_func(char *appname, int argc, char *argv[])
 			int ret = pmempool_get_max_size(pc.fname,
 					&pc.params.size);
 			if (ret) {
-				out_err("cannot get available space of fs\n");
+				outv_err("cannot get available space of fs\n");
 				return -1;
 			}
 			if (pc.params.size == 0) {
-				out_err("No space left on device\n");
+				outv_err("No space left on device\n");
 				return -1;
 			}
 			outv(1, "Available space is %s\n",
@@ -487,7 +488,7 @@ pmempool_create_func(char *appname, int argc, char *argv[])
 		}
 	} else {
 		if (pc.params.size < min_size) {
-			out_err("size must be >= %lu bytes\n", min_size);
+			outv_err("size must be >= %lu bytes\n", min_size);
 			return -1;
 		}
 	}
@@ -508,7 +509,7 @@ pmempool_create_func(char *appname, int argc, char *argv[])
 	}
 
 	if (ret) {
-		out_err("creating pool file failed\n");
+		outv_err("creating pool file failed\n");
 		if (!pc.fexists)
 			remove(pc.fname);
 	}

@@ -1005,7 +1005,7 @@ util_opt_print_requirements(const struct options *opts,
 		rc++;
 	}
 
-	out_err("%s\n", buff);
+	outv_err("%s\n", buff);
 }
 
 /*
@@ -1045,7 +1045,7 @@ util_opt_verify_type(const struct options *opts, pmem_pool_type_t type,
 	int opt_type = opt->val;
 	opt_type >>= OPT_SHIFT;
 	if (!(opt_type & (1<<type))) {
-		out_err("'--%s|-%c' -- invalid option specified"
+		outv_err("'--%s|-%c' -- invalid option specified"
 			" for pool type '%s'\n",
 			opt->name, val,
 			out_get_pool_type_str(type));

@@ -248,7 +248,8 @@ pmempool_dump_blk(struct pmempool_dump *pdp)
 				i <= curp->last && i <= entire.last; i++) {
 			if (pmemblk_read(pbp, buff, i)) {
 				ret = -1;
-				out_err("reading block number %lu failed\n", i);
+				outv_err("reading block number %lu "
+					"failed\n", i);
 				break;
 			}
 
@@ -299,7 +300,7 @@ pmempool_dump_func(char *appname, int argc, char *argv[])
 		case 'r':
 			if (util_parse_ranges(optarg, &pd.ranges,
 						ENTIRE_UINT64)) {
-				out_err("invalid range value specified"
+				outv_err("invalid range value specified"
 						" -- '%s'\n", optarg);
 				exit(EXIT_FAILURE);
 			}
@@ -307,7 +308,7 @@ pmempool_dump_func(char *appname, int argc, char *argv[])
 		case 'c':
 			chunksize = atoll(optarg);
 			if (chunksize <= 0) {
-				out_err("invalid chunk size specified '%s'\n",
+				outv_err("invalid chunk size specified '%s'\n",
 						optarg);
 				exit(EXIT_FAILURE);
 			}
@@ -364,17 +365,17 @@ pmempool_dump_func(char *appname, int argc, char *argv[])
 		ret = pmempool_dump_blk(&pd);
 		break;
 	case PMEM_POOL_TYPE_OBJ:
-		out_err("obj pool file not supported\n");
+		outv_err("obj pool file not supported\n");
 		ret = -1;
 		break;
 	default:
-		out_err("%s: pool file corrupted\n", pd.fname);
+		outv_err("%s: pool file corrupted\n", pd.fname);
 		ret = -1;
 	}
 
 out:
 	if (ret)
-		out_err("dumping pool file failed\n");
+		outv_err("dumping pool file failed\n");
 
 	close(pd.fd);
 

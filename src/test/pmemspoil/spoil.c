@@ -97,7 +97,7 @@ struct pmemspoil_list *_pfp = (pfp);\
 _process_end:\
 switch (PROCESS_STATE) {\
 case PROCESS_STATE_NOT_FOUND:\
-	out_err("unknown field '%s'\n", _pfp->cur->name);\
+	outv_err("unknown field '%s'\n", _pfp->cur->name);\
 	break;\
 case PROCESS_STATE_FIELD:\
 	outv(2, "spoil: %s\n", _pfp->str);\
@@ -106,7 +106,7 @@ case PROCESS_STATE_FUNC:\
 	outv(2, "spoil: %s\n", _pfp->str);\
 	break;\
 case PROCESS_STATE_ERROR_MSG:\
-	out_err("processing '%s'\n", _pfp->str);\
+	outv_err("processing '%s'\n", _pfp->str);\
 	PROCESS_STATE = PROCESS_STATE_ERROR;\
 	break;\
 default:\
@@ -469,7 +469,7 @@ pmemspoil_parse_args(struct pmemspoil *psp, char *appname,
 		for (i = 0; i < psp->argc; i++) {
 			char *str = argv[ind];
 			if (pmemspoil_parse_fields(str, &psp->args[i])) {
-				out_err("ivalid argument");
+				outv_err("ivalid argument");
 				exit(EXIT_FAILURE);
 			}
 
@@ -1003,7 +1003,7 @@ pmemspoil_process_run(struct pmemspoil *psp, struct pmemspoil_list *pfp,
 	struct chunk_run *run = (struct chunk_run *)cpair.chunk;
 
 	if (chdr->type != CHUNK_TYPE_RUN) {
-		out_err("%s -- specified chunk is not run", pfp->str);
+		outv_err("%s -- specified chunk is not run", pfp->str);
 		return -1;
 	}
 

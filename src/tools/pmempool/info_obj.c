@@ -1044,7 +1044,7 @@ static void
 info_obj_sa_sigaction(int signum, siginfo_t *info, void *context)
 {
 	uintptr_t offset = (uintptr_t)info->si_addr - (uintptr_t)Pip->obj.addr;
-	out_err("Invalid offset 0x%lx\n", offset);
+	outv_err("Invalid offset 0x%lx\n", offset);
 	exit(EXIT_FAILURE);
 }
 

@@ -61,7 +61,7 @@ info_log_data(struct pmem_info *pip, int v, struct pmemlog *plp)
 		MAP_PRIVATE|MAP_NORESERVE, pip->fd, plp->start_offset))
 			== MAP_FAILED) {
 		warn("%s", pip->file_name);
-		out_err("cannot read pmem log data\n");
+		outv_err("cannot read pmem log data\n");
 		return -1;
 	}
 
@@ -175,7 +175,7 @@ pmempool_info_log(struct pmem_info *pip)
 		err(1, "Cannot allocate memory for pmemlog structure");
 
 	if (pmempool_info_read(pip, plp, sizeof (struct pmemlog), 0)) {
-		out_err("cannot read pmemlog header\n");
+		outv_err("cannot read pmemlog header\n");
 		return -1;
 	}
 

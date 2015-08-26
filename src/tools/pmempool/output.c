@@ -122,16 +122,41 @@ out_set_stream(FILE *stream)
 }
 
 /*
- * out_err -- print error message
+ * outv_err -- print error message
  */
 void
-out_err(const char *fmt, ...)
+outv_err(const char *fmt, ...)
 {
 	va_list ap;
 	va_start(ap, fmt);
+	outv_err_vargs(fmt, ap);
+	va_end(ap);
+}
+
+/*
+ * out_err -- for src/common
+ */
+void
+out_err(const char *file, int line, const char *func,
+	const char *fmt, ...)
+{
+	va_list ap;
+	va_start(ap, fmt);
+	outv_err_vargs(fmt, ap);
+	va_end(ap);
+}
+
+
+/*
+ * outv_err_vargs -- print error message
+ */
+void
+outv_err_vargs(const char *fmt, va_list ap)
+{
 	fprintf(stderr, "error: ");
 	vfprintf(stderr, fmt, ap);
-	va_end(ap);
+	if (!strchr(fmt, '\n'))
+		fprintf(stderr, "\n");
 }
 
 /*

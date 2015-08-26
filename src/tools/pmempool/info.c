@@ -373,7 +373,7 @@ parse_args(char *appname, int argc, char *argv[],
 		case 'f':
 			argsp->type = pmem_pool_type_parse_str(optarg);
 			if (argsp->type == PMEM_POOL_TYPE_UNKNOWN) {
-				out_err("'%s' -- unknown pool type\n", optarg);
+				outv_err("'%s' -- unknown pool type\n", optarg);
 				return -1;
 			}
 			argsp->force = true;
@@ -390,7 +390,7 @@ parse_args(char *appname, int argc, char *argv[],
 		case 'r':
 			if (util_parse_ranges(optarg, &argsp->ranges,
 						ENTIRE_UINT64)) {
-				out_err("'%s' -- cannot parse range(s)\n",
+				outv_err("'%s' -- cannot parse range(s)\n",
 						optarg);
 				return -1;
 			}
@@ -417,7 +417,7 @@ parse_args(char *appname, int argc, char *argv[],
 		case 'w':
 			argsp->log.walk = (size_t)atoll(optarg);
 			if (argsp->log.walk == 0) {
-				out_err("'%s' -- invalid chunk size\n",
+				outv_err("'%s' -- invalid chunk size\n",
 					optarg);
 				return -1;
 			}
@@ -426,7 +426,7 @@ parse_args(char *appname, int argc, char *argv[],
 			argsp->obj.vlanes = VERBOSE_DEFAULT;
 			if (util_parse_ranges(optarg, &argsp->obj.lane_ranges,
 						ENTIRE_UINT64)) {
-				out_err("%s -- cannot parse lanes range(s)\n",
+				outv_err("%s -- cannot parse lanes range(s)\n",
 						optarg);
 				return -1;
 			}
@@ -438,7 +438,7 @@ parse_args(char *appname, int argc, char *argv[],
 			argsp->obj.lane_sections = 0;
 			if (util_parse_lane_sections(optarg,
 						&argsp->obj.lane_sections)) {
-				out_err("'%s' -- cannot parse"
+				outv_err("'%s' -- cannot parse"
 					" lane section(s)\n", optarg);
 				return -1;
 			}
@@ -459,8 +459,8 @@ parse_args(char *appname, int argc, char *argv[],
 			argsp->obj.vzonehdr = VERBOSE_DEFAULT;
 			if (util_parse_ranges(optarg, &argsp->obj.zone_ranges,
 						ENTIRE_UINT64)) {
-				out_err("'%s' -- cannot parse zones range(s)\n",
-						optarg);
+				outv_err("'%s' -- cannot parse zones "
+						"range(s)\n", optarg);
 				return -1;
 			}
 			break;
@@ -468,7 +468,7 @@ parse_args(char *appname, int argc, char *argv[],
 			argsp->obj.vchunkhdr = VERBOSE_DEFAULT;
 			if (util_parse_ranges(optarg, &argsp->obj.chunk_ranges,
 						ENTIRE_UINT64)) {
-				out_err("'%s' -- cannot parse"
+				outv_err("'%s' -- cannot parse"
 					" chunks range(s)\n", optarg);
 				return -1;
 			}
@@ -480,7 +480,7 @@ parse_args(char *appname, int argc, char *argv[],
 			argsp->obj.chunk_types = 0;
 			if (util_parse_chunk_types(optarg,
 						&argsp->obj.chunk_types)) {
-				out_err("'%s' -- cannot parse chunk type(s)\n",
+				outv_err("'%s' -- cannot parse chunk type(s)\n",
 						optarg);
 				return -1;
 			}
@@ -491,7 +491,7 @@ parse_args(char *appname, int argc, char *argv[],
 		case 't':
 			if (util_parse_ranges(optarg,
 				&argsp->obj.object_ranges, ENTIRE_TYPE_NUM)) {
-				out_err("'%s' -- cannot parse range(s)\n",
+				outv_err("'%s' -- cannot parse range(s)\n",
 						optarg);
 				return -1;
 			}
@@ -555,7 +555,7 @@ pmempool_info_pool_hdr(struct pmem_info *pip, int v)
 		err(1, "Cannot allocate memory for pool_hdr");
 
 	if (pmempool_info_read(pip, hdr, sizeof (*hdr), 0)) {
-		out_err("cannot read pool header\n");
+		outv_err("cannot read pool header\n");
 		free(hdr);
 		return -1;
 	}
@@ -608,7 +608,7 @@ pmempool_info_get_pool_type(struct pmem_info *pip)
 		err(1, "Cannot allocate memory for pool_hdr");
 
 	if (pmempool_info_read(pip, hdrp, sizeof (*hdrp), 0)) {
-		out_err("cannot read pool header\n");
+		outv_err("cannot read pool header\n");
 		ret = PMEM_POOL_TYPE_UNKNOWN;
 		goto error;
 	}
@@ -657,7 +657,7 @@ pmempool_info_file(struct pmem_info *pip, const char *file_name)
 		 * by parsing signature and force flag is not set.
 		 */
 		ret = -1;
-		out_err("%s: cannot determine type of pool\n", file_name);
+		outv_err("%s: cannot determine type of pool\n", file_name);
 	} else {
 		if (util_options_verify(pip->opts, type)) {
 			ret = -1;
