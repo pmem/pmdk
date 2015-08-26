@@ -47,6 +47,7 @@
 #include "create.h"
 #include "dump.h"
 #include "check.h"
+#include "rm.h"
 
 #define	APPNAME	"pmempool"
 
@@ -131,6 +132,12 @@ struct command commands[] = {
 		.brief = "check consistency of a pool",
 		.func = pmempool_check_func,
 		.help = pmempool_check_help,
+	},
+	{
+		.name = "rm",
+		.brief = "remove pool or poolset",
+		.func = pmempool_rm_func,
+		.help = pmempool_rm_help,
 	},
 	{
 		.name = "help",
