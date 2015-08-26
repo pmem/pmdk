@@ -40,8 +40,10 @@ TARGET = pmemwrite
 
 OBJS = common.o output.o util.o write.o
 
-LIBS += -luuid -pthread -lpmemlog -lpmemblk -lpmem
-LDFLAGS += -L../../nondebug/
+LIBPMEM=y
+LIBPMEMBLK=y
+LIBPMEMLOG=y
+
 CFLAGS += -I../../tools/pmempool
 CFLAGS += -I../../common
 CFLAGS += -I../../libpmemlog

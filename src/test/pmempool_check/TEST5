@@ -39,7 +39,6 @@ export UNITTEST_NUM=5
 . ../unittest/unittest.sh
 
 require_fs_type pmem non-pmem
-require_build_type nondebug
 require_test_type long
 
 setup
@@ -49,13 +48,13 @@ LOG=out${UNITTEST_NUM}.log
 rm -rf $LOG && touch $LOG
 
 truncate -s2T $POOL
-expect_normal_exit $PMEMPOOL create -v -w blk 512M $POOL >> $LOG
+expect_normal_exit $PMEMPOOL$EXESUFFIX create -v -w blk 512M $POOL >> $LOG
 check_file $POOL
 $PMEMSPOIL $POOL pool_hdr.checksum=0x0\
 	"pmemblk.arena(1).btt_info.sig=ERROR"\
 	"pmemblk.arena(1).btt_info_backup.sig=ERROR"
 
-expect_normal_exit $PMEMPOOL check -vry $POOL >> $LOG
+expect_normal_exit $PMEMPOOL$EXESUFFIX check -vry $POOL >> $LOG
 
 check
 

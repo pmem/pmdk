@@ -39,7 +39,6 @@ export UNITTEST_NUM=11
 . ../unittest/unittest.sh
 
 require_fs_type pmem non-pmem
-require_build_type nondebug
 
 setup
 
@@ -48,8 +47,8 @@ LOG=out${UNITTEST_NUM}.log
 rm -rf $LOG && touch $LOG
 
 rm -rf $POOL
-expect_normal_exit $PMEMPOOL create --layout "pmempool" obj $POOL
-expect_normal_exit $PMEMPOOL info -H $POOL >> $LOG
+expect_normal_exit $PMEMPOOL$EXESUFFIX create --layout "pmempool" obj $POOL
+expect_normal_exit $PMEMPOOL$EXESUFFIX info -H $POOL >> $LOG
 
 rm -f $POOL
 

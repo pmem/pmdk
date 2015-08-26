@@ -40,7 +40,6 @@ export UNITTEST_NUM=6
 # standard unit test setup
 . ../unittest/unittest.sh
 
-require_build_type debug nondebug
 
 setup
 
@@ -49,19 +48,19 @@ rm -rf log$UNITTEST_NUM.log
 # Heap structures
 
 # Set invalid signature
-expect_normal_exit $PMEMPOOL create obj $DIR/testfile
+expect_normal_exit $PMEMPOOL$EXESUFFIX create obj $DIR/testfile
 $PMEMSPOIL $DIR/testfile "pmemobj.heap.signature=ERROR"
 expect_normal_exit ./obj_check$EXESUFFIX $DIR/testfile
 cat out$UNITTEST_NUM.log >> log$UNITTEST_NUM.log
 rm -f $DIR/testfile
 
-expect_normal_exit $PMEMPOOL create obj $DIR/testfile
+expect_normal_exit $PMEMPOOL$EXESUFFIX create obj $DIR/testfile
 $PMEMSPOIL $DIR/testfile "pmemobj.heap.zone(0).size_idx=0"
 expect_normal_exit ./obj_check$EXESUFFIX $DIR/testfile
 cat out$UNITTEST_NUM.log >> log$UNITTEST_NUM.log
 rm -f $DIR/testfile
 
-expect_normal_exit $PMEMPOOL create obj $DIR/testfile
+expect_normal_exit $PMEMPOOL$EXESUFFIX create obj $DIR/testfile
 $PMEMSPOIL $DIR/testfile "pmemobj.heap.zone(0).chunk(0).type=unknown"
 expect_normal_exit ./obj_check$EXESUFFIX $DIR/testfile
 cat out$UNITTEST_NUM.log >> log$UNITTEST_NUM.log

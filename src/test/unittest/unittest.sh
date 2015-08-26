@@ -661,7 +661,7 @@ check_arena()
 #
 function dump_pool_info() {
 	# ignore selected header fields that differ by definition
-	$PMEMPOOL info $* | sed -e "/^UUID/,/^Checksum/d"
+	${PMEMPOOL}.static-nondebug info $* | sed -e "/^UUID/,/^Checksum/d"
 }
 
 #

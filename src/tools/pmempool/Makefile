@@ -41,12 +41,15 @@ TARGET = pmempool
 OBJS = pmempool.o info.o info_blk.o info_log.o info_obj.o create.o dump.o\
        common.o output.o util.o check.o btt.o set.o
 
-LIBS += -lpmemobj -lpmemblk -lpmemlog -lpmem -luuid -pthread
+LIBPMEM=y
+LIBPMEMBLK=y
+LIBPMEMOBJ=y
+LIBPMEMLOG=y
+
 INCS += -I../../common
 INCS += -I../../libpmemlog
 INCS += -I../../libpmemblk
 INCS += -I../../libpmemobj
-LDFLAGS += -L../../nondebug/
 
 MANPAGES = ../../../doc/pmempool.1\
            ../../../doc/pmempool-info.1\

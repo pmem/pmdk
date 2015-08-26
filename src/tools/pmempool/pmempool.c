@@ -48,6 +48,8 @@
 #include "dump.h"
 #include "check.h"
 
+#define	APPNAME	"pmempool"
+
 /*
  * command -- struct for pmempool commands definition
  */
@@ -203,9 +205,8 @@ main(int argc, char *argv[])
 	int opt;
 	int option_index;
 
-	char *appname = basename(argv[0]);
 	if (argc < 2) {
-		print_usage(appname);
+		print_usage(APPNAME);
 		return 0;
 	}
 
@@ -213,13 +214,13 @@ main(int argc, char *argv[])
 			long_options, &option_index)) != -1) {
 		switch (opt) {
 		case 'V':
-			print_version(appname);
+			print_version(APPNAME);
 			return 0;
 		case 'h':
-			print_help(appname);
+			print_help(APPNAME);
 			return 0;
 		default:
-			print_usage(appname);
+			print_usage(APPNAME);
 			return -1;
 		}
 	}
@@ -229,7 +230,7 @@ main(int argc, char *argv[])
 	struct command *cmdp = get_command(cmd_str);
 
 	if (cmdp)
-		return cmdp->func(appname, argc - 1, argv + 1);
+		return cmdp->func(APPNAME, argc - 1, argv + 1);
 
 	outv_err("'%s' -- unknown command\n", cmd_str);
 

@@ -40,7 +40,6 @@ TARGET = pmemspoil
 
 OBJS = common.o output.o util.o spoil.o
 
-LIBS += -luuid -pthread
 LDFLAGS += -L../../nondebug/
 CFLAGS += -I../../tools/pmempool
 CFLAGS += -I../../common

@@ -40,11 +40,10 @@ export UNITTEST_NUM=2
 # standard unit test setup
 . ../unittest/unittest.sh
 
-require_build_type debug nondebug
 
 setup
 
-expect_normal_exit $PMEMPOOL create obj $DIR/testfile
+expect_normal_exit $PMEMPOOL$EXESUFFIX create obj $DIR/testfile
 $PMEMSPOIL $DIR/testfile "pmemobj.layout=ERROR"
 expect_normal_exit ./obj_check$EXESUFFIX $DIR/testfile
 
