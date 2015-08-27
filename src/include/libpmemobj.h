@@ -333,7 +333,7 @@ pmemobj_direct(PMEMoid oid)
 		_pobj_cached_pool.uuid_lo = oid.pool_uuid_lo;
 	}
 
-	return (void *)_pobj_cached_pool.pop + oid.off;
+	return (void *)((uintptr_t)_pobj_cached_pool.pop + oid.off);
 }
 
 #define	DIRECT_RW(o) (\
