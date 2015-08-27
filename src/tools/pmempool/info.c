@@ -691,13 +691,6 @@ err_pool_set:
 static pmem_pool_type_t
 pmempool_info_get_pool_type(struct pmem_info *pip)
 {
-	/*
-	 * If force flag is set 'types' fields _must_ hold
-	 * single pool type - this is validated when processing
-	 * command line arguments.
-	 */
-	if (pip->args.force)
-		return pip->args.type;
 
 	int ret = 0;
 	int is_poolset = !pmem_pool_check_pool_set(pip->file_name);
@@ -719,6 +712,14 @@ pmempool_info_get_pool_type(struct pmem_info *pip)
 		outv_err("cannot read pool header\n");
 		return PMEM_POOL_TYPE_UNKNOWN;
 	}
+
+	/*
+	 * If force flag is set 'types' fields _must_ hold
+	 * single pool type - this is validated when processing
+	 * command line arguments.
+	 */
+	if (pip->args.force)
+		return pip->args.type;
 
 	/* parse pool type from pool header */
 	ret = pmem_pool_type_parse_hdr(&hdr);
