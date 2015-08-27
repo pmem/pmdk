@@ -48,6 +48,7 @@
 #include <ctype.h>
 #include <assert.h>
 #include <getopt.h>
+#include <unistd.h>
 
 #include "common.h"
 #include "output.h"
@@ -945,6 +946,7 @@ ask(char op, char *answers, char def_ans, const char *fmt, va_list ap)
 	char ans = '\0';
 	if (op != '?')
 		return op;
+	int is_tty = isatty(fileno(stdin));
 	do {
 		vprintf(fmt, ap);
 		size_t len = strlen(answers);
@@ -962,7 +964,11 @@ ask(char op, char *answers, char def_ans, const char *fmt, va_list ap)
 		if (ans != '\n')
 			getchar();
 	} while (ans != '\n' && strchr(answers, ans) == NULL);
-	return ans == '\n' ? def_ans : ans;
+
+	char ret = ans == '\n' ? def_ans : ans;
+	if (!is_tty)
+		printf("%c\n", ret);
+	return ret;
 }
 
 char
