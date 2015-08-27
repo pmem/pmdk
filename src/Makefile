@@ -58,11 +58,6 @@ SCOPE_SRC_FILES = $(foreach d, $(SCOPE_SRC_DIRS), $(wildcard $(d)/*.c))
 SCOPE_HDR_FILES = $(foreach d, $(SCOPE_HDR_DIRS), $(wildcard $(D)/*.h))
 SCOPEFILES = $(SCOPE_SRC_FILES) $(SCOPE_HDR_FILES)
 
-TEST_TYPE = check
-TEST_BUILD = all
-TEST_FS = all
-TEST_TIME = 3m
-
 all: $(ALL_TARGETS)
 install: $(INSTALL_TARGETS:=-install)
 uninstall: $(INSTALL_TARGETS:=-uninstall)
@@ -115,8 +110,8 @@ jemalloc-check: jemalloc-test
 test: all jemalloc-test
 	$(MAKE) -C test all
 
-check: test jemalloc-check
-	cd test && ./RUNTESTS -b $(TEST_BUILD) -t $(TEST_TYPE) -f $(TEST_FS) -o $(TEST_TIME)
+check pcheck: test jemalloc-check
+	$(MAKE) -C test $@
 
 jemalloc jemalloc-clean jemalloc-clobber jemalloc-test jemalloc-check:
 	$(MAKE) -C jemalloc -f Makefile.nvml $@
@@ -143,5 +138,5 @@ clean:
 
 .NOTPARALLEL: libvmem libvmmalloc
 
-.PHONY: all install uninstall clean clobber cstyle test check\
+.PHONY: all install uninstall clean clobber cstyle test check pcheck\
 	jemalloc jemalloc-clean jemalloc-test jemalloc-check cscope $(ALL_TARGETS)

@@ -156,6 +156,13 @@ clean   : TARGET = clean
 clobber : TARGET = clobber
 test    : TARGET = test
 cstyle  : TARGET = cstyle
+check   : TARGET = check
+pcheck  : TARGET = pcheck
+
+TEST_TYPE = check
+TEST_BUILD = all
+TEST_FS = all
+TEST_TIME = 3m
 
 all test cstyle: $(TEST)
 
@@ -168,4 +175,11 @@ $(TEST): unittest
 unittest:
 	$(MAKE) -C $@ $(TARGET)
 
-.PHONY: all clean clobber test cstyle unittest $(TEST)
+check:
+	@./RUNTESTS -b $(TEST_BUILD) -t $(TEST_TYPE) -f $(TEST_FS) -o $(TEST_TIME)
+	@echo "No failures."
+
+pcheck: $(TEST)
+	@echo "No failures."
+
+.PHONY: all check clean clobber cstyle pcheck test unittest $(TEST)

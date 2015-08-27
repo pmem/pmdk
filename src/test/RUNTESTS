@@ -43,13 +43,14 @@ usage()
 	[ "$1" ] && echo Error: $1
 	cat <<EOF
 Usage: $0 [ -nv ] [ -b build-type ] [ -t test-type ] [ -f fs-type ]
-	    [ -o timeout ] [tests...]
+	    [ -o timeout ] [-s test-file ] [tests...]
     build-types: debug, nondebug, static-debug, static-nondebug, all (default)
      test-types: check (default), short, long
        fs-types: local, pmem, non-pmem, all (default)
         timeout: floating point number with an optional suffix: 's' for seconds
 		 (the default), 'm' for minutes, 'h' for hours or 'd' for days.
 		 Default value is 3 minutes.
+      test-file: all (default), TEST0, TEST1, ...
 EOF
 	exit 1
 }
@@ -77,6 +78,8 @@ runtest() {
 	[ "$fss" = all ] && fss="local pmem non-pmem"
 	builds=$buildtype
 	[ "$builds" = all ] && builds="debug nondebug static-debug static-nondebug"
+	runscripts=$testfile
+	[ "$runscripts" = all ] && runscripts=`ls -1 TEST* | sort -V`
 
 	# for each fs-type being tested...
 	for fs in $fss
@@ -101,7 +104,7 @@ runtest() {
 		do
 			[ "$verbose" ] && echo RUNTESTS: Testing build-type: $build...
 			# for each TEST script found...
-			for runscript in `ls -1 TEST* | sort -V`
+			for runscript in $runscripts
 			do
 				if [ "$dryrun" ]
 				then
@@ -121,9 +124,7 @@ runtest() {
 				[ $retval = 124 -o $retval = 137 ] && errmsg='timed out'
 
 				[ $retval != 0 ] && {
-					echo RUNTESTS: stopping:
-					echo "    $1/$runscript $errmsg"
-					echo "    TEST=$testtype FS=$fs BUILD=$build"
+					echo "RUNTESTS: stopping: $1/$runscript $errmsg, TEST=$testtype FS=$fs BUILD=$build"
 					exit 1
 				}
 			done
@@ -155,11 +156,12 @@ testconfig="./testconfig.sh"
 killopt="-k 10s"
 time='3m'
 use_timeout="ok"
+testfile=all
 
 #
 # command-line argument processing...
 #
-args=`getopt nvb:t:f:o: $*`
+args=`getopt nvb:t:f:o:s: $*`
 [ $? != 0 ] && usage
 set -- $args
 for arg
@@ -215,6 +217,10 @@ do
 		time="$2"
 		shift 2
 		;;
+	-s)
+		testfile="$2"
+		shift 2
+		;;
 	--)
 		shift
 		break
@@ -231,8 +237,6 @@ done
 	echo "    fs-type: $fstype"
 	echo Tests: $*
 }
-
-echo RUNTESTS: test-type: $testtype
 
 # check if timeout supports "-k" option
 timeout -k 1s 1s true &>/dev/null
@@ -261,5 +265,4 @@ fi
 [ "$local_skip" ] && echo "SKIPPED fs-type \"local\" runs: testconfig.sh doesn't set LOCAL_FS_DIR"
 [ "$pmem_skip" ] && echo "SKIPPED fs-type \"pmem\" runs: testconfig.sh doesn't set PMEM_FS_DIR"
 [ "$non_pmem_skip" ] && echo "SKIPPED fs-type \"non-pmem\" runs: testconfig.sh doesn't set NON_PMEM_FS_DIR"
-[ "$dryrun" ] || echo RUNTESTS: No failures.
 exit 0

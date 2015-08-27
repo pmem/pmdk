@@ -77,7 +77,7 @@ clobber:
 	$(MAKE) -C doc $@
 	$(RM) -r $(RPM_BUILDDIR) $(DPKG_BUILDDIR) rpm dpkg
 
-test check: all
+test check pcheck: all
 	$(MAKE) -C src $@
 
 cstyle:
@@ -98,7 +98,7 @@ pkg-clean:
 	$(RM) -r $(DESTDIR)
 
 rpm dpkg: pkg-clean source
-	utils/build-$@.sh $(SRCVERSION) $(DESTDIR)/nvml $(DESTDIR) $(CURDIR)/$@\
+	+utils/build-$@.sh $(SRCVERSION) $(DESTDIR)/nvml $(DESTDIR) $(CURDIR)/$@\
 			$(CURDIR)/src/test/testconfig.sh
 
 install uninstall:
@@ -106,4 +106,4 @@ install uninstall:
 	$(MAKE) -C doc $@
 
 .PHONY: all clean clobber test check cstyle install uninstall\
-	source rpm dpkg pkg-clean $(SUBDIRS)
+	source rpm dpkg pkg-clean pcheck $(SUBDIRS)

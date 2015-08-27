@@ -231,7 +231,7 @@ override_dh_auto_test:
 	else\
 	        cp src/test/testconfig.sh.example src/test/testconfig.sh;\
 	fi
-	make check
+	make -s pcheck
 EOF
 
 chmod +x debian/rules
