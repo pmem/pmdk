@@ -1,7 +1,8 @@
 $(*)
 $(*)
 $(*)
-$(OPT)$(*)
+$(OPT)$(*) compiled with support for Valgrind pmemcheck
+$(OPT)$(*) compiled with support for Valgrind helgrind
 $(*)Log level NONE
 $(*)Log level ERROR
 $(*)Log level WARNING

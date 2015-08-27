@@ -43,6 +43,7 @@
 #include <dirent.h>
 #include <string.h>
 #include <errno.h>
+#include <pthread.h>
 
 #include "libvmem.h"
 
@@ -56,7 +57,29 @@ static int Log_level;
 static FILE *Out_fp;
 
 #define	MAXPRINT 8192	/* maximum expected log line */
-static __thread char Last_errormsg[MAXPRINT];
+static pthread_once_t Last_errormsg_key_once = PTHREAD_ONCE_INIT;
+static pthread_key_t Last_errormsg_key;
+
+static void
+_Last_errormsg_key_alloc()
+{
+	int pth_ret = pthread_key_create(&Last_errormsg_key, free);
+	if (pth_ret)
+		FATAL("!pthread_key_create");
+
+	VALGRIND_ANNOTATE_HAPPENS_BEFORE(&Last_errormsg_key_once);
+}
+
+static void
+Last_errormsg_key_alloc()
+{
+	pthread_once(&Last_errormsg_key_once, _Last_errormsg_key_alloc);
+	/*
+	 * Workaround Helgrind's bug:
+	 * https://bugs.kde.org/show_bug.cgi?id=337735
+	 */
+	VALGRIND_ANNOTATE_HAPPENS_AFTER(&Last_errormsg_key_once);
+}
 
 #ifdef	DEBUG
 /*
@@ -144,6 +167,10 @@ out_init(const char *log_prefix, const char *log_level_var,
 #ifdef USE_VG_PMEMCHECK
 	LOG(1, "compiled with support for Valgrind pmemcheck");
 #endif /* USE_VG_PMEMCHECK */
+#ifdef USE_VG_HELGRIND
+	LOG(1, "compiled with support for Valgrind helgrind");
+#endif /* USE_VG_HELGRIND */
+	Last_errormsg_key_alloc();
 }
 
 /*
@@ -157,6 +184,12 @@ out_fini()
 	if (Out_fp != NULL && Out_fp != stderr) {
 		fclose(Out_fp);
 		Out_fp = stderr;
+	}
+
+	void *p = pthread_getspecific(Last_errormsg_key);
+	if (p) {
+		free(p);
+		pthread_setspecific(Last_errormsg_key, NULL);
 	}
 }
 
@@ -263,6 +296,7 @@ out_error(const char *file, int line, const char *func,
 	int cc = 0;
 	const char *sep = "";
 	const char *errstr = "";
+	char *Last_errormsg = (char *)out_get_errormsg();
 
 	if (fmt) {
 		if (*fmt == '!') {
@@ -382,5 +416,15 @@ out_err(const char *file, int line, const char *func,
 const char *
 out_get_errormsg(void)
 {
+	Last_errormsg_key_alloc();
+
+	char *Last_errormsg = pthread_getspecific(Last_errormsg_key);
+	if (Last_errormsg == NULL) {
+		Last_errormsg = malloc(MAXPRINT);
+		int ret = pthread_setspecific(Last_errormsg_key, Last_errormsg);
+		if (ret)
+			FATAL("!pthread_setspecific");
+	}
+
 	return Last_errormsg;
 }
