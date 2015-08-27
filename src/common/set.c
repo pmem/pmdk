@@ -418,7 +418,7 @@ util_poolset_parse(const char *path, int fd, struct pool_set **setp)
 			/* chop off newline and comments */
 			if ((cp = strchr(line, '\n')) != NULL)
 				*cp = '\0';
-			if ((cp = strchr(line, '#')) != NULL)
+			if (cp != s && (cp = strchr(line, '#')) != NULL)
 				*cp = '\0';
 
 			/* skip comments and blank lines */
