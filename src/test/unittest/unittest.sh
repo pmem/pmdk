@@ -390,6 +390,31 @@ function require_valgrind_pmemcheck() {
 }
 
 #
+# require_valgrind_helgrind -- continue script execution only if
+#	valgrind with helgrind is installed
+#
+function require_valgrind_helgrind() {
+	require_valgrind
+	local binary=$1
+	[ -n "$binary" ] || binary=*
+        strings ${binary}.static-debug 2>&1 | \
+            grep -q "compiled with support for Valgrind helgrind" && true
+        if [ $? -ne 0 ]; then
+            echo "$UNITTEST_NAME: SKIP not compiled with support for Valgrind helgrind"
+            exit 0
+        fi
+
+	valgrind --tool=helgrind --help 2>&1 | \
+		grep -q "Helgrind is Copyright (C)" && true
+        if [ $? -ne 0 ]; then
+            echo "$UNITTEST_NAME: SKIP valgrind package with helgrind required"
+            exit 0;
+        fi
+
+        return
+}
+
+#
 # set_valgrind_exe_name -- set the actual Valgrind executable name
 #
 # On some systems (Ubuntu), "valgrind" is a shell script that calls
