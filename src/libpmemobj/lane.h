@@ -67,19 +67,21 @@ struct lane {
 typedef int (*section_layout_op)(PMEMobjpool *pop,
 	struct lane_section_layout *layout);
 typedef int (*section_op)(struct lane_section *section);
+typedef int (*section_global_op)(PMEMobjpool *pop);
 
 struct section_operations {
 	section_op construct;
 	section_op destruct;
 	section_layout_op check;
 	section_layout_op recover;
+	section_global_op boot;
 };
 
 extern struct section_operations *section_ops[MAX_LANE_SECTION];
 
 int lane_boot(PMEMobjpool *pop);
 int lane_cleanup(PMEMobjpool *pop);
-int lane_recover(PMEMobjpool *pop);
+int lane_recover_and_section_boot(PMEMobjpool *pop);
 int lane_check(PMEMobjpool *pop);
 
 int lane_hold(PMEMobjpool *pop, struct lane_section **section,

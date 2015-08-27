@@ -1963,11 +1963,22 @@ lane_list_destruct(struct lane_section *section)
 	return 0;
 }
 
+/*
+ * lane_list_init -- initalizes list section
+ */
+static int
+lane_list_boot(PMEMobjpool *pop)
+{
+	/* nop */
+	return 0;
+}
+
 struct section_operations list_ops = {
 	.construct = lane_list_construct,
 	.destruct = lane_list_destruct,
 	.recover = lane_list_recovery,
-	.check = lane_list_check
+	.check = lane_list_check,
+	.boot = lane_list_boot
 };
 
 SECTION_PARM(LANE_SECTION_LIST, &list_ops);

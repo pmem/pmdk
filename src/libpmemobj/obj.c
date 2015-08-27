@@ -285,9 +285,8 @@ pmemobj_boot(PMEMobjpool *pop)
 		return errno;
 	}
 
-	if ((errno = heap_boot(pop)) != 0) {
-		lane_cleanup(pop);
-		ERR("!heap_boot");
+	if ((errno = lane_recover_and_section_boot(pop)) != 0) {
+		ERR("!lane_recover_and_section_boot");
 		return errno;
 	}
 
@@ -592,21 +591,6 @@ err:
 }
 
 /*
- * pmemobj_recover -- (internal) perform a transactional memory pool recovery
- */
-static int
-pmemobj_recover(PMEMobjpool *pop)
-{
-	LOG(3, "pop %p", pop);
-
-	if ((errno = lane_recover(pop)) != 0) {
-		ERR("!lane_recover");
-		return -1;
-	}
-	return 0;
-}
-
-/*
  * pmemobj_check_basic -- (internal) basic pool consistency check
  *
  * Used to check if all the replicas are consistent prior to pool recovery.
@@ -729,13 +713,6 @@ pmemobj_open_common(const char *path, const char *layout, int cow, int boot)
 	if (pmemobj_runtime_init(pop, 0, boot) != 0) {
 		ERR("pool initialization failed");
 		goto err;
-	}
-
-	if (boot) {
-		if (pmemobj_recover(pop) != 0) {
-			ERR("pool recovery failed");
-			goto err;
-		}
 	}
 
 	LOG(3, "pop %p", pop);

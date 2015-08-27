@@ -264,9 +264,7 @@ FUNC_MOCK_RUN_DEFAULT {
 		Pop->persist(Pop, Heap_offset, sizeof (*Heap_offset));
 	}
 
-
 	Pop->persist(Pop, Pop, HEAP_OFFSET);
-
 	return Pop;
 }
 FUNC_MOCK_END
@@ -313,6 +311,13 @@ FUNC_MOCK_END
  * Always returns success.
  */
 FUNC_MOCK_RET_ALWAYS(lane_release, int, 0);
+
+/*
+ * heap_boot -- heap_boot mock
+ *
+ * Always returns success.
+ */
+FUNC_MOCK_RET_ALWAYS(heap_boot, int, 0);
 
 /*
  * pmemobj_alloc -- pmemobj_alloc mock
@@ -486,9 +491,9 @@ FUNC_MOCK_RET_ALWAYS(pmemobj_mutex_lock, int, 0);
 FUNC_MOCK_RET_ALWAYS(pmemobj_mutex_unlock, int, 0);
 
 /*
- * lane_recover -- lane_recover mock
+ * lane_recover_and_section_boot -- lane_recover_and_section_boot mock
  */
-FUNC_MOCK(lane_recover, int, PMEMobjpool *pop)
+FUNC_MOCK(lane_recover_and_section_boot, int, PMEMobjpool *pop)
 	FUNC_MOCK_RUN_DEFAULT {
 		return section_ops[LANE_SECTION_LIST]->recover(Pop,
 				Lane_section.layout);
@@ -1180,7 +1185,7 @@ main(int argc, char *argv[])
 			do_realloc_move(pop, argv[i]);
 			break;
 		case 'V':
-			lane_recover(pop);
+			lane_recover_and_section_boot(pop);
 			break;
 		case 'F':
 			do_fail(pop, argv[i]);
