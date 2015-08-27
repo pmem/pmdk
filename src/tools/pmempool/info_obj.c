@@ -1044,7 +1044,7 @@ static void
 info_obj_sa_sigaction(int signum, siginfo_t *info, void *context)
 {
 	uintptr_t offset = (uintptr_t)info->si_addr - (uintptr_t)Pip->obj.addr;
-	out_err("Invalid offset 0x%lx\n", offset);
+	outv_err("Invalid offset 0x%lx\n", offset);
 	exit(EXIT_FAILURE);
 }
 
@@ -1059,17 +1059,31 @@ static struct sigaction info_obj_sigaction = {
 int
 pmempool_info_obj(struct pmem_info *pip)
 {
-	struct stat buf;
-	if (fstat(pip->fd, &buf)) {
-		perror(pip->file_name);
-		return -1;
-	}
+	int mapped = 0;
+	if (!pip->poolset) {
+		struct stat buf;
+		if (fstat(pip->fd, &buf)) {
+			perror(pip->file_name);
+			return -1;
+		}
 
-	/* for pmemobj it is much easier to use mmap instead of file io */
-	if ((pip->obj.addr = mmap(NULL, buf.st_size,
-		PROT_READ|PROT_WRITE, MAP_PRIVATE, pip->fd, 0)) == MAP_FAILED) {
-		perror(pip->file_name);
-		return -1;
+		pip->obj.size = buf.st_size;
+
+		/*
+		 * For pmemobj it is much easier to use mmap
+		 * instead of file io.
+		 */
+		if ((pip->obj.addr = mmap(NULL, buf.st_size,
+			PROT_READ|PROT_WRITE, MAP_PRIVATE, pip->fd, 0))
+				== MAP_FAILED) {
+			perror(pip->file_name);
+			return -1;
+		}
+		mapped = 1;
+	} else {
+		int r = pip->args.obj.replica;
+		pip->obj.addr = pip->poolset->replica[r]->part[0].addr;
+		pip->obj.size = pip->poolset->poolsize;
 	}
 
 	Pip = pip;
@@ -1090,7 +1104,8 @@ pmempool_info_obj(struct pmem_info *pip)
 	info_obj_zones_chunks(pip, pop);
 	info_obj_stats(pip, pip->args.vstats);
 
-	munmap(pip->obj.addr, buf.st_size);
+	if (mapped)
+		munmap(pip->obj.addr, pip->obj.size);
 
 	return 0;
 }

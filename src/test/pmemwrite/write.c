@@ -118,7 +118,7 @@ pmemwrite_blk(struct pmemwrite *pwp)
 	char *blk = malloc(blksize);
 	if (!blk) {
 		ret = -1;
-		out_err("malloc(%lu) failed\n", blksize);
+		outv_err("malloc(%lu) failed\n", blksize);
 		goto nomem;
 	}
 
@@ -132,7 +132,7 @@ pmemwrite_blk(struct pmemwrite *pwp)
 			memset(blk, 0, blksize);
 			int bufflen = strlen(buff);
 			if (bufflen > blksize) {
-				out_err("String is longer than block size. "
+				outv_err("String is longer than block size. "
 					"Truncating.\n");
 				bufflen = blksize;
 			}
@@ -152,7 +152,7 @@ pmemwrite_blk(struct pmemwrite *pwp)
 				ret = pmemblk_set_error(pbp, blockno);
 				break;
 			default:
-				out_err("Invalid flag '%c'\n", flag);
+				outv_err("Invalid flag '%c'\n", flag);
 				return -1;
 			}
 			if (ret) {
@@ -160,7 +160,7 @@ pmemwrite_blk(struct pmemwrite *pwp)
 				return -1;
 			}
 		} else {
-			out_err("Invalid argument '%s'\n", pwp->args[i]);
+			outv_err("Invalid argument '%s'\n", pwp->args[i]);
 			return -1;
 		}
 	}

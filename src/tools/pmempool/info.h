@@ -96,6 +96,7 @@ struct pmempool_info_args {
 		bool lanes_recovery;
 		bool ignore_empty_obj;
 		uint64_t chunk_types;
+		size_t replica;
 		struct ranges lane_ranges;
 		struct ranges object_ranges;
 		struct ranges zone_ranges;
@@ -144,11 +145,14 @@ struct pmem_info {
 	int fd;			/* file descriptor */
 	struct pmempool_info_args args;	/* arguments parsed from command line */
 	struct options *opts;
+	struct pool_set *poolset;
+	pmem_pool_type_t type;
 	struct {
 		struct pmem_blk_stats stats;
 	} blk;
 	struct {
 		void *addr;		/* mapped file */
+		size_t size;
 		struct pmem_obj_stats stats;
 		uint64_t uuid_lo;
 	} obj;

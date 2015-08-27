@@ -132,7 +132,7 @@ info_btt_data(struct pmem_info *pip, int v,
 	/* read btt map area */
 	if (pmempool_info_read(pip, (uint8_t *)map, mapsize,
 				arena_off + infop->mapoff)) {
-		out_err("wrong BTT Map size or offset\n");
+		outv_err("wrong BTT Map size or offset\n");
 		ret = -1;
 		goto error;
 	}
@@ -166,7 +166,7 @@ info_btt_data(struct pmem_info *pip, int v,
 
 			if (pmempool_info_read(pip, block_buff,
 					infop->external_lbasize, block_off)) {
-				out_err("cannot read %d block\n", i);
+				outv_err("cannot read %d block\n", i);
 				ret = -1;
 				goto error;
 			}
@@ -216,7 +216,7 @@ info_btt_map(struct pmem_info *pip, int v,
 	/* read btt map area */
 	if (pmempool_info_read(pip, (uint8_t *)map, mapsize,
 				arena_off + infop->mapoff)) {
-		out_err("wrong BTT Map size or offset\n");
+		outv_err("wrong BTT Map size or offset\n");
 		ret = -1;
 		goto error;
 	}
@@ -299,7 +299,7 @@ info_btt_flog(struct pmem_info *pip, int v,
 
 	if (pmempool_info_read(pip, buff, flog_size,
 				arena_off + infop->flogoff)) {
-		out_err("cannot read BTT FLOG");
+		outv_err("cannot read BTT FLOG");
 		ret = -1;
 		goto error;
 	}
@@ -409,7 +409,7 @@ info_btt_layout(struct pmem_info *pip, struct pmemblk *pbp,
 	int ret = 0;
 
 	if (btt_off <= 0) {
-		out_err("wrong BTT layout offset\n");
+		outv_err("wrong BTT layout offset\n");
 		return -1;
 	}
 
@@ -430,7 +430,7 @@ info_btt_layout(struct pmem_info *pip, struct pmemblk *pbp,
 		/* read btt info area */
 		if (pmempool_info_read(pip, infop, sizeof (*infop), offset)) {
 			ret = -1;
-			out_err("cannot read BTT Info header\n");
+			outv_err("cannot read BTT Info header\n");
 			goto err;
 		}
 
@@ -482,7 +482,7 @@ info_btt_layout(struct pmem_info *pip, struct pmemblk *pbp,
 		/* read btt info backup area */
 		if (pmempool_info_read(pip, infop, sizeof (*infop),
 			offset + infop->infooff)) {
-			out_err("wrong BTT Info Backup size or offset\n");
+			outv_err("wrong BTT Info Backup size or offset\n");
 			ret = -1;
 			goto err;
 		}
@@ -538,7 +538,7 @@ pmempool_info_blk(struct pmem_info *pip)
 		err(1, "Cannot allocate memory for pmemblk structure");
 
 	if (pmempool_info_read(pip, pbp, sizeof (struct pmemblk), 0)) {
-		out_err("cannot read pmemblk header\n");
+		outv_err("cannot read pmemblk header\n");
 		return -1;
 	}
 

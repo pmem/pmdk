@@ -1,3 +1,5 @@
+#!/bin/bash -e
+#
 # Copyright (c) 2014-2015, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
@@ -28,34 +30,65 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# Makefile -- top Makefile for pmempool
 #
+# pmempool_create/TEST6 -- test for pmempool create command with poolset
+#
+export UNITTEST_NAME=pmempool_create/TEST6
+export UNITTEST_NUM=6
 
-vpath %.c ../../
-vpath %.c ../../common
-vpath %.c ../../libpmemblk
+. ../unittest/unittest.sh
 
+require_fs_type pmem non-pmem
+require_build_type nondebug
 
-TARGET = pmempool
+setup
 
-OBJS = pmempool.o info.o info_blk.o info_log.o info_obj.o create.o dump.o\
-       common.o output.o util.o check.o btt.o set.o
+POOLSET=$DIR/pool.set
+POOL1=$DIR/pool.part1
+POOL2=$DIR/pool.part2
+POOL3=$DIR/pool.part3
+POOLS="$POOL1 $POOL2 $POOL3"
+POOLREP=$DIR/rep.set
+REPL1=$DIR/pool.rep.part1
+REPL2=$DIR/pool.rep.part2
+REPL3=$DIR/pool.rep.part3
+REPS="$REPL1 $REPL2 $REPL3"
 
-LIBS += -lpmemobj -lpmemblk -lpmemlog -lpmem -luuid -pthread
-INCS += -I../../common
-INCS += -I../../libpmemlog
-INCS += -I../../libpmemblk
-INCS += -I../../libpmemobj
-LDFLAGS += -L../../nondebug/
+rm -f $POOLSET
+create_poolset $POOLSET 32M:$POOL1:z 32M:$POOL2:z 32M:$POOL3:z
+check_file $POOLSET
 
-MANPAGES = ../../../doc/pmempool.1\
-           ../../../doc/pmempool-info.1\
-	   ../../../doc/pmempool-create.1\
-	   ../../../doc/pmempool-check.1\
-	   ../../../doc/pmempool-dump.1
+rm -f $POOLREP
+create_poolset $POOLREP 32M:$POOL1:z 32M:$POOL2:z 32M:$POOL3:z\
+	R 32M:$REPL1:z 32M:$REPL2:z 32M:$REPL3:z
+check_file $POOLREP
 
-BASH_COMP_FILES = pmempool.sh
+# PMEMBLK
+rm -f $POOLS
+expect_normal_exit $PMEMPOOL create blk 512 $POOLSET
+check_files $POOLS
+check_signatures PMEMBLK $POOLS
 
-include ../Makefile.inc
+# PMEMLOG
+rm -f $POOLS
+expect_normal_exit $PMEMPOOL create log $POOLSET
+check_files $POOLS
+check_signatures PMEMLOG $POOLS
 
-.PHONY: test check
+# PMEMOBJ
+rm -f $POOLS
+expect_normal_exit $PMEMPOOL create --layout=LAYOUT_NAME obj $POOLSET
+check_files $POOL
+check_signatures PMEMOBJ $POOLS
+
+# PMEMOBJ with replica
+rm -f $POOLS
+expect_normal_exit $PMEMPOOL create --layout=LAYOUT_NAME obj $POOLREP
+check_files $POOLS $REPS
+check_signatures PMEMOBJ $POOLS $REPS
+
+rm -f $POOLS
+rm -f $REPS
+rm -f $POOLSET
+rm -f $POOLREP
+pass

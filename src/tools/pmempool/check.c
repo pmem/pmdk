@@ -425,12 +425,12 @@ pmempool_check_parse_args(struct pmempool_check *pcp, char *appname,
 	}
 
 	if (!pcp->repair && !pcp->exec) {
-		out_err("'-N' option requires '-r'\n");
+		outv_err("'-N' option requires '-r'\n");
 		exit(EXIT_FAILURE);
 	}
 
 	if (!pcp->repair && pcp->backup) {
-		out_err("'-b' option requires '-r'\n");
+		outv_err("'-b' option requires '-r'\n");
 		exit(EXIT_FAILURE);
 	}
 
@@ -573,7 +573,7 @@ pmempool_check_pool_hdr(struct pmempool_check *pcp)
 			sizeof (pcp->hdr.pool)) {
 		if (errno)
 			warn("%s", pcp->fname);
-		out_err("cannot read pool_hdr\n");
+		outv_err("cannot read pool_hdr\n");
 		return CHECK_RESULT_ERROR;
 	}
 
@@ -646,7 +646,7 @@ pmempool_check_pool_hdr(struct pmempool_check *pcp)
 		default_hdr.incompat_features = BLK_FORMAT_INCOMPAT;
 		default_hdr.ro_compat_features = BLK_FORMAT_RO_COMPAT;
 	} else {
-		out_err("Unsupported pool type '%s'",
+		outv_err("Unsupported pool type '%s'",
 				out_get_pool_type_str(pcp->ptype));
 		return CHECK_RESULT_ERROR;
 	}
@@ -824,7 +824,7 @@ pmempool_check_read_pmemlog(struct pmempool_check *pcp)
 	if (pread(pcp->fd, ptr, size, offset) != size) {
 		if (errno)
 			warn("%s", pcp->fname);
-		out_err("cannot read pmemlog structure\n");
+		outv_err("cannot read pmemlog structure\n");
 		return -1;
 	}
 
@@ -857,7 +857,7 @@ pmempool_check_read_pmemblk(struct pmempool_check *pcp)
 	if (pread(pcp->fd, ptr, size, offset) != size) {
 		if (errno)
 			warn("%s", pcp->fname);
-		out_err("cannot read pmemblk structure\n");
+		outv_err("cannot read pmemblk structure\n");
 		return -1;
 	}
 
@@ -1084,14 +1084,14 @@ pmempool_check_btt_info_advanced_repair(struct pmempool_check *pcp,
 				&pmempool_check_btt_ns_callback);
 
 	if (!bttp) {
-		out_err("cannot initialize BTT layer\n");
+		outv_err("cannot initialize BTT layer\n");
 		ret = -1;
 		goto error;
 	}
 
 	/* lazy layout writing */
 	if (btt_write(bttp, 0, 0, addr)) {
-		out_err("writing layout failed\n");
+		outv_err("writing layout failed\n");
 		ret = -1;
 		goto error_btt;
 	}
@@ -1176,7 +1176,7 @@ pmempool_check_btt_info(struct pmempool_check *pcp)
 					sizeof (arenap->btt_info)) {
 			if (errno)
 				warn("%s", pcp->fname);
-			out_err("arena %u: cannot read BTT Info header\n",
+			outv_err("arena %u: cannot read BTT Info header\n",
 					arenap->id);
 			free(arenap);
 			return CHECK_RESULT_ERROR;
@@ -1371,7 +1371,7 @@ pmempool_check_write_flog(struct pmempool_check *pcp, struct arena *arenap)
 	}
 
 	if (ret)
-		out_err("arena %u: writing BTT FLOG failed\n", arenap->id);
+		outv_err("arena %u: writing BTT FLOG failed\n", arenap->id);
 
 	return 0;
 }
@@ -1397,7 +1397,7 @@ pmempool_check_read_flog(struct pmempool_check *pcp, struct arena *arenap)
 			!= arenap->flogsize) {
 		if (errno)
 			warn("%s", pcp->fname);
-		out_err("arena %u: cannot read BTT FLOG\n", arenap->id);
+		outv_err("arena %u: cannot read BTT FLOG\n", arenap->id);
 		return -1;
 	}
 
@@ -1447,7 +1447,7 @@ pmempool_check_write_map(struct pmempool_check *pcp, struct arena *arenap)
 	}
 
 	if (ret)
-		out_err("arena %u: writing BTT map failed\n", arenap->id);
+		outv_err("arena %u: writing BTT map failed\n", arenap->id);
 
 	return ret;
 }
@@ -1472,7 +1472,7 @@ pmempool_check_read_map(struct pmempool_check *pcp, struct arena *arenap)
 			arenap->mapsize) {
 		if (errno)
 			warn("%s", pcp->fname);
-		out_err("arena %u: cannot read BTT map\n", arenap->id);
+		outv_err("arena %u: cannot read BTT map\n", arenap->id);
 		return -1;
 	}
 
@@ -1723,7 +1723,7 @@ pmempool_check_write_log(struct pmempool_check *pcp)
 	}
 
 	if (ret)
-		out_err("writing pmemlog structure failed\n");
+		outv_err("writing pmemlog structure failed\n");
 
 	return ret;
 }
@@ -1745,7 +1745,7 @@ pmempool_check_write_blk(struct pmempool_check *pcp)
 		!= sizeof (pcp->hdr.blk)) {
 		if (errno)
 			warn("%s", pcp->fname);
-		out_err("writing pmemblk structure failed\n");
+		outv_err("writing pmemblk structure failed\n");
 		return -1;
 	}
 
@@ -1768,7 +1768,7 @@ pmempool_check_write_blk(struct pmempool_check *pcp)
 			sizeof (arenap->btt_info)) {
 			if (errno)
 				warn("%s", pcp->fname);
-			out_err("arena %u: writing BTT Info failed\n",
+			outv_err("arena %u: writing BTT Info failed\n",
 				arenap->id);
 			return -1;
 		}
@@ -1779,7 +1779,7 @@ pmempool_check_write_blk(struct pmempool_check *pcp)
 			sizeof (arenap->btt_info)) {
 			if (errno)
 				warn("%s", pcp->fname);
-			out_err("arena %u: writing BTT Info backup failed\n",
+			outv_err("arena %u: writing BTT Info backup failed\n",
 				arenap->id);
 		}
 
@@ -1885,7 +1885,7 @@ pmempool_check_all_steps(struct pmempool_check *pcp)
 {
 	if (pcp->repair && pcp->backup && pcp->exec) {
 		if (pmempool_check_create_backup(pcp)) {
-			out_err("unable to create backup file\n");
+			outv_err("unable to create backup file\n");
 			return -1;
 		}
 	}
@@ -1962,7 +1962,7 @@ pmempool_check_func(char *appname, int argc, char *argv[])
 			ret = -1;
 			break;
 		case CHECK_RESULT_ERROR:
-			out_err("repairing failed\n");
+			outv_err("repairing failed\n");
 			ret = -1;
 			break;
 		}

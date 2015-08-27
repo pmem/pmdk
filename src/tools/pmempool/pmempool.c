@@ -93,7 +93,7 @@ help_func(char *appname, int argc, char *argv[])
 			cmdp->help(appname);
 			return 0;
 		} else {
-			out_err("No help text for '%s' command\n", cmd_str);
+			outv_err("No help text for '%s' command\n", cmd_str);
 			return -1;
 		}
 	} else {
@@ -231,7 +231,7 @@ main(int argc, char *argv[])
 	if (cmdp)
 		return cmdp->func(appname, argc - 1, argv + 1);
 
-	out_err("'%s' -- unknown command\n", cmd_str);
+	outv_err("'%s' -- unknown command\n", cmd_str);
 
 	return -1;
 }
