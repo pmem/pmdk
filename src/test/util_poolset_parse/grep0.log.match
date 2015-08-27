@@ -32,3 +32,5 @@ set file format correct (./pool26.set)
 ./pool31.set [the first line must be exactly 'PMEMPOOLSET':1]
 ./pool32.set [size and path expected:3]
 ./pool33.set [size and path expected:2]
+set file format correct (./pool34.set)
+set file format correct (./pool35.set)
