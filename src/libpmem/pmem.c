@@ -265,6 +265,7 @@ predrain_fence_empty(void)
 {
 	LOG(15, NULL);
 
+	VALGRIND_DO_FENCE;
 	/* nothing to do (because CLFLUSH did it for us) */
 }
 
