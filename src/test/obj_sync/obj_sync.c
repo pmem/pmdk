@@ -236,6 +236,7 @@ int
 main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_sync");
+	util_init();
 
 	if (argc < 4)
 		FATAL_USAGE();

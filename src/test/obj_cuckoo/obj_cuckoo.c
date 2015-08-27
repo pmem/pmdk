@@ -45,11 +45,11 @@
 #define	TEST_VAL(x) ((void *)((uintptr_t)(x)))
 
 FUNC_MOCK(malloc, void *, size_t size)
+	FUNC_MOCK_RUN(1) /* internal out_err malloc */
 	FUNC_MOCK_RUN_RET_DEFAULT_REAL(malloc, size)
-	FUNC_MOCK_RUN(1) /* cuckoo malloc */
-	FUNC_MOCK_RUN(0) { /* tab malloc */
+	FUNC_MOCK_RUN(2) /* tab malloc */
+	FUNC_MOCK_RUN(0) /* cuckoo malloc */
 		return NULL;
-	}
 FUNC_MOCK_END
 
 void

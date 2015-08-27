@@ -92,7 +92,7 @@ Free_func Free = free;
 Realloc_func Realloc = realloc;
 Strdup_func Strdup = strdup;
 
-#if defined(USE_VG_PMEMCHECK)
+#if defined(USE_VG_PMEMCHECK) || defined(USE_VG_HELGRIND)
 /* initialized to true if the process is running inside Valgrind */
 int On_valgrind;
 #endif
@@ -109,7 +109,7 @@ util_init(void)
 	if (Pagesize == 0)
 		Pagesize = (unsigned long) sysconf(_SC_PAGESIZE);
 
-#if defined(USE_VG_PMEMCHECK)
+#if defined(USE_VG_PMEMCHECK) || defined(USE_VG_HELGRIND)
 	On_valgrind = RUNNING_ON_VALGRIND;
 #endif
 }

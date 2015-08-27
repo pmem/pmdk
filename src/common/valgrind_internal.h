@@ -36,11 +36,33 @@
 
 #ifdef USE_VALGRIND
 #define	USE_VG_PMEMCHECK
+#define	USE_VG_HELGRIND
 #endif
 
-#if defined(USE_VG_PMEMCHECK)
+#if defined(USE_VG_PMEMCHECK) || defined(USE_VG_HELGRIND)
 extern int On_valgrind;
 #include <valgrind/valgrind.h>
+#endif
+
+#ifdef USE_VG_HELGRIND
+#include <valgrind/helgrind.h>
+
+#define	VALGRIND_ANNOTATE_HAPPENS_BEFORE(obj) do {\
+	if (On_valgrind) \
+		ANNOTATE_HAPPENS_BEFORE((obj));\
+} while (0)
+
+#define	VALGRIND_ANNOTATE_HAPPENS_AFTER(obj) do {\
+	if (On_valgrind) \
+		ANNOTATE_HAPPENS_AFTER((obj));\
+} while (0)
+
+#else
+
+#define	VALGRIND_ANNOTATE_HAPPENS_BEFORE(obj) do { (void)(obj); } while (0)
+
+#define	VALGRIND_ANNOTATE_HAPPENS_AFTER(obj) do { (void)(obj); } while (0)
+
 #endif
 
 #ifdef USE_VG_PMEMCHECK

@@ -37,7 +37,7 @@ vpath %.c ../../common
 vpath %.h ../../common
 
 TARGET = traces_custom_function
-OBJS = traces_custom_function.o out.o
+OBJS = traces_custom_function.o out.o util.o
 
 out.o: CFLAGS += -DSRCVERSION=\"utversion\"
 
