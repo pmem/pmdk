@@ -678,24 +678,33 @@ info_obj_zone_chunks(struct pmem_info *pip, int v, struct pmemobjpool *pop,
 	uint64_t c = 0;
 	while (c < zone->header.size_idx) {
 		enum chunk_type type = zone->chunk_headers[c].type;
-		/* check range and types of chunks */
-		if (util_ranges_contain(&pip->args.obj.chunk_ranges, c) &&
-				(pip->args.obj.chunk_types &
-				(1 << type))) {
+		uint64_t size_idx = zone->chunk_headers[c].size_idx;
+		if (util_ranges_contain(&pip->args.obj.chunk_ranges, c)) {
+			if (pip->args.obj.chunk_types & (1 << type)) {
+				stats->n_chunks++;
+				stats->n_chunks_type[type]++;
 
-			stats->n_chunks++;
-			stats->n_chunks_type[type]++;
+				stats->size_chunks += size_idx;
+				stats->size_chunks_type[type] += size_idx;
 
-			stats->size_chunks += zone->chunk_headers[c].size_idx;
-			stats->size_chunks_type[type] +=
-				zone->chunk_headers[c].size_idx;
+				info_obj_chunk_hdr(pip, pip->args.obj.vchunkhdr,
+						pop, c,
+						&zone->chunk_headers[c],
+						&zone->chunks[c], stats);
 
-			info_obj_chunk_hdr(pip, pip->args.obj.vchunkhdr,
-					pop, c,
-					&zone->chunk_headers[c],
-					&zone->chunks[c], stats);
+			}
+			if (size_idx > 1 && type != CHUNK_TYPE_RUN &&
+				pip->args.obj.chunk_types &
+				(1 << CHUNK_TYPE_FOOTER)) {
+				size_t f = c + size_idx - 1;
+				info_obj_chunk_hdr(pip, pip->args.obj.vchunkhdr,
+					pop, f,
+					&zone->chunk_headers[f],
+					&zone->chunks[f], stats);
+			}
 		}
-		c += zone->chunk_headers[c].size_idx;
+
+		c += size_idx;
 	}
 }
 
