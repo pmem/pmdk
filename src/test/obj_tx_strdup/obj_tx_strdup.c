@@ -114,6 +114,24 @@ do_tx_strdup_abort(PMEMobjpool *pop)
 }
 
 /*
+ * do_tx_strdup_null -- duplicate a NULL string to trigger tx abort
+ */
+static void
+do_tx_strdup_null(PMEMobjpool *pop)
+{
+	TOID(char) str;
+	TX_BEGIN(pop) {
+		TOID_ASSIGN(str, pmemobj_tx_strdup(NULL, TYPE_ABORT));
+		ASSERT(0); /* should not get to this point */
+	} TX_ONCOMMIT {
+		ASSERT(0);
+	} TX_END
+
+	TOID_ASSIGN(str, pmemobj_first(pop, TYPE_ABORT));
+	ASSERT(TOID_IS_NULL(str));
+}
+
+/*
  * do_tx_strdup_free_commit -- duplicate a string, free and commit the
  * transaction
  */
@@ -275,6 +293,7 @@ main(int argc, char *argv[])
 	do_tx_strdup_no_tx(pop);
 	do_tx_strdup_commit(pop);
 	do_tx_strdup_abort(pop);
+	do_tx_strdup_null(pop);
 	do_tx_strdup_free_commit(pop);
 	do_tx_strdup_free_abort(pop);
 	do_tx_strdup_commit_nested(pop);

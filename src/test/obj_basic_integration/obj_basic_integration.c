@@ -374,45 +374,13 @@ test_tx_api(PMEMobjpool *pop)
 	TOID_ASSIGN(root, pmemobj_root(pop, sizeof (struct dummy_root)));
 
 	int *vstate = NULL; /* volatile state */
-	TOID(struct dummy_node) ret;
 
 	TX_BEGIN_LOCK(pop, TX_LOCK_MUTEX, &D_RW(root)->lock) {
 		vstate = MALLOC(sizeof (*vstate));
 		*vstate = TEST_VALUE;
 		TX_ADD(root);
 		D_RW(root)->value = *vstate;
-
-		D_RW(root)->node = TX_ALLOC(struct dummy_node, SIZE_MAX);
-		ASSERT(TOID_IS_NULL(D_RO(root)->node));
-		ASSERTeq(errno, ENOMEM);
-
-		D_RW(root)->node = TX_ZALLOC(struct dummy_node, SIZE_MAX);
-		ASSERT(TOID_IS_NULL(D_RO(root)->node));
-		ASSERTeq(errno, ENOMEM);
-
-		D_RW(root)->node = TX_ALLOC(struct dummy_node,
-			PMEMOBJ_MAX_ALLOC_SIZE + 1);
-		ASSERT(TOID_IS_NULL(D_RO(root)->node));
-		ASSERTeq(errno, ENOMEM);
-
-		D_RW(root)->node = TX_ZALLOC(struct dummy_node,
-			PMEMOBJ_MAX_ALLOC_SIZE + 1);
-		ASSERT(TOID_IS_NULL(D_RO(root)->node));
-		ASSERTeq(errno, ENOMEM);
-
-		D_RW(root)->node = TX_ZNEW(struct dummy_node);
-		TX_REALLOC(D_RO(root)->node, SIZE_MAX);
-		ASSERTeq(errno, ENOMEM);
-		errno = 0;
-
-		ret = TX_REALLOC(D_RO(root)->node, PMEMOBJ_MAX_ALLOC_SIZE + 1);
-		ASSERT(TOID_IS_NULL(ret));
-		ASSERTeq(errno, ENOMEM);
-
-		TX_MEMSET(D_RW(D_RW(root)->node)->teststr, 'a', TEST_STR_LEN);
-		TX_MEMCPY(D_RW(D_RW(root)->node)->teststr, TEST_STR,
-			TEST_STR_LEN);
-		TX_SET(D_RW(root)->node, value, TEST_VALUE);
+		TOID_ASSIGN(D_RW(root)->node, OID_NULL);
 	} TX_FINALLY {
 		FREE(vstate);
 		vstate = NULL;
@@ -420,6 +388,79 @@ test_tx_api(PMEMobjpool *pop)
 
 	ASSERTeq(vstate, NULL);
 	ASSERTeq(D_RW(root)->value, TEST_VALUE);
+
+	TX_BEGIN_LOCK(pop, TX_LOCK_MUTEX, &D_RW(root)->lock) {
+		TX_ADD(root);
+		D_RW(root)->node = TX_ALLOC(struct dummy_node, SIZE_MAX);
+		ASSERT(0); /* should not get to this point */
+	} TX_ONABORT {
+		ASSERT(TOID_IS_NULL(D_RO(root)->node));
+		ASSERTeq(errno, ENOMEM);
+	} TX_END
+
+	errno = 0;
+	TX_BEGIN_LOCK(pop, TX_LOCK_MUTEX, &D_RW(root)->lock) {
+		D_RW(root)->node = TX_ZALLOC(struct dummy_node, SIZE_MAX);
+		ASSERT(0); /* should not get to this point */
+	} TX_ONABORT {
+		ASSERT(TOID_IS_NULL(D_RO(root)->node));
+		ASSERTeq(errno, ENOMEM);
+	} TX_END
+
+	errno = 0;
+	TX_BEGIN_LOCK(pop, TX_LOCK_MUTEX, &D_RW(root)->lock) {
+		D_RW(root)->node = TX_ALLOC(struct dummy_node,
+			PMEMOBJ_MAX_ALLOC_SIZE + 1);
+		ASSERT(0); /* should not get to this point */
+	} TX_ONABORT {
+		ASSERT(TOID_IS_NULL(D_RO(root)->node));
+		ASSERTeq(errno, ENOMEM);
+	} TX_END
+
+	errno = 0;
+	TX_BEGIN_LOCK(pop, TX_LOCK_MUTEX, &D_RW(root)->lock) {
+		D_RW(root)->node = TX_ZALLOC(struct dummy_node,
+			PMEMOBJ_MAX_ALLOC_SIZE + 1);
+		ASSERT(0); /* should not get to this point */
+	} TX_ONABORT {
+		ASSERT(TOID_IS_NULL(D_RO(root)->node));
+		ASSERTeq(errno, ENOMEM);
+	} TX_END
+
+	errno = 0;
+	TX_BEGIN_LOCK(pop, TX_LOCK_MUTEX, &D_RW(root)->lock) {
+		TX_ADD(root);
+		D_RW(root)->node = TX_ZNEW(struct dummy_node);
+		TX_REALLOC(D_RO(root)->node, SIZE_MAX);
+		ASSERT(0); /* should not get to this point */
+	} TX_ONABORT {
+		ASSERTeq(errno, ENOMEM);
+	} TX_END
+	ASSERT(TOID_IS_NULL(D_RO(root)->node));
+
+	errno = 0;
+	TX_BEGIN_LOCK(pop, TX_LOCK_MUTEX, &D_RW(root)->lock) {
+		TX_ADD(root);
+		D_RW(root)->node = TX_ZNEW(struct dummy_node);
+		TX_REALLOC(D_RO(root)->node, PMEMOBJ_MAX_ALLOC_SIZE + 1);
+		ASSERT(0); /* should not get to this point */
+	} TX_ONABORT {
+		ASSERTeq(errno, ENOMEM);
+	} TX_END
+	ASSERT(TOID_IS_NULL(D_RO(root)->node));
+
+	errno = 0;
+	TX_BEGIN_LOCK(pop, TX_LOCK_MUTEX, &D_RW(root)->lock) {
+		TX_ADD(root);
+		D_RW(root)->node = TX_ZNEW(struct dummy_node);
+		TX_MEMSET(D_RW(D_RW(root)->node)->teststr, 'a', TEST_STR_LEN);
+		TX_MEMCPY(D_RW(D_RW(root)->node)->teststr, TEST_STR,
+			TEST_STR_LEN);
+		TX_SET(D_RW(root)->node, value, TEST_VALUE);
+	} TX_END
+	ASSERTeq(D_RW(D_RW(root)->node)->value, TEST_VALUE);
+	ASSERT(strncmp(D_RW(D_RW(root)->node)->teststr, TEST_STR,
+		TEST_STR_LEN) == 0);
 
 	TX_BEGIN_LOCK(pop, TX_LOCK_MUTEX, &D_RW(root)->lock) {
 		TX_ADD(root);

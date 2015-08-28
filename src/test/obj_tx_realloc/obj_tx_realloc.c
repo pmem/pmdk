@@ -54,6 +54,8 @@ enum type_number {
 	TYPE_ABORT_ZERO,
 	TYPE_COMMIT_ALLOC,
 	TYPE_ABORT_ALLOC,
+	TYPE_ABORT_HUGE,
+	TYPE_ABORT_ZERO_HUGE,
 };
 
 struct object {
@@ -158,6 +160,33 @@ do_tx_realloc_abort(PMEMobjpool *pop)
 }
 
 /*
+ * do_tx_realloc_huge -- reallocate an object to a huge size to trigger tx abort
+ */
+static void
+do_tx_realloc_huge(PMEMobjpool *pop)
+{
+	TOID(struct object) obj;
+	TOID_ASSIGN(obj, do_tx_alloc(pop, TYPE_ABORT_HUGE, TEST_VALUE_1));
+	size_t new_size = PMEMOBJ_MAX_ALLOC_SIZE + 1;
+
+	TX_BEGIN(pop) {
+		TOID_ASSIGN(obj, pmemobj_tx_realloc(obj.oid,
+			new_size, TYPE_ABORT_HUGE));
+		ASSERT(0); /* should not get to this point */
+	} TX_ONCOMMIT {
+		ASSERT(0);
+	} TX_END
+
+	TOID_ASSIGN(obj, pmemobj_first(pop, TYPE_ABORT_HUGE));
+	ASSERT(!TOID_IS_NULL(obj));
+	ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
+	ASSERT(pmemobj_alloc_usable_size(obj.oid) < new_size);
+
+	TOID_ASSIGN(obj, pmemobj_next(obj.oid));
+	ASSERT(TOID_IS_NULL(obj));
+}
+
+/*
  * do_tx_zrealloc_commit -- reallocate an object and commit the transaction
  */
 static void
@@ -216,6 +245,34 @@ do_tx_zrealloc_abort(PMEMobjpool *pop)
 	} TX_END
 
 	TOID_ASSIGN(obj, pmemobj_first(pop, TYPE_ABORT_ZERO));
+	ASSERT(!TOID_IS_NULL(obj));
+	ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
+	ASSERT(pmemobj_alloc_usable_size(obj.oid) < new_size);
+
+	TOID_ASSIGN(obj, pmemobj_next(obj.oid));
+	ASSERT(TOID_IS_NULL(obj));
+}
+
+/*
+ * do_tx_realloc_huge -- reallocate an object to a huge size to trigger tx abort
+ */
+static void
+do_tx_zrealloc_huge(PMEMobjpool *pop)
+{
+	TOID(struct object) obj;
+	TOID_ASSIGN(obj, do_tx_alloc(pop, TYPE_ABORT_ZERO_HUGE, TEST_VALUE_1));
+	size_t old_size = pmemobj_alloc_usable_size(obj.oid);
+	size_t new_size = 2 * old_size;
+
+	TX_BEGIN(pop) {
+		TOID_ASSIGN(obj, pmemobj_tx_zrealloc(obj.oid,
+			PMEMOBJ_MAX_ALLOC_SIZE + 1, TYPE_ABORT_ZERO_HUGE));
+		ASSERT(0); /* should not get to this point */
+	} TX_ONCOMMIT {
+		ASSERT(0);
+	} TX_END
+
+	TOID_ASSIGN(obj, pmemobj_first(pop, TYPE_ABORT_ZERO_HUGE));
 	ASSERT(!TOID_IS_NULL(obj));
 	ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
 	ASSERT(pmemobj_alloc_usable_size(obj.oid) < new_size);
@@ -326,8 +383,10 @@ main(int argc, char *argv[])
 	do_tx_realloc_no_tx(pop);
 	do_tx_realloc_commit(pop);
 	do_tx_realloc_abort(pop);
+	do_tx_realloc_huge(pop);
 	do_tx_zrealloc_commit(pop);
 	do_tx_zrealloc_abort(pop);
+	do_tx_zrealloc_huge(pop);
 	do_tx_realloc_alloc_commit(pop);
 	do_tx_realloc_alloc_abort(pop);
 	pmemobj_close(pop);
