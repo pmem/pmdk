@@ -81,6 +81,7 @@ dummy_node_constructor(PMEMobjpool *pop, void *ptr, void *arg)
 	struct dummy_node *n = ptr;
 	int *test_val = arg;
 	n->value = *test_val;
+	pmemobj_persist(pop, &n->value, sizeof (n->value));
 }
 
 void
