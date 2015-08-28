@@ -141,13 +141,13 @@ endif
 TST=$(shell basename `pwd`)
 TSTCHECKS=$(shell ls -1 TEST* | sort -V)
 
-$(TSTCHECKS):
+$(TSTCHECKS): all
 	@cd .. && ./RUNTESTS ${TST} -b $(TEST_BUILD) -t $(TEST_TYPE) -f $(TEST_FS) -o $(TEST_TIME) -s $@
 
 check: all
 	@cd .. && ./RUNTESTS ${TST} -b $(TEST_BUILD) -t $(TEST_TYPE) -f $(TEST_FS) -o $(TEST_TIME)
 
-pcheck: all $(TSTCHECKS)
+pcheck: $(TSTCHECKS)
 
 .PHONY: all check clean clobber cstyle pcheck $(TSTCHECKS)
 
