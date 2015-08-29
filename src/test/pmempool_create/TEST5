@@ -39,14 +39,13 @@ export UNITTEST_NUM=5
 . ../unittest/unittest.sh
 
 require_fs_type pmem non-pmem
-require_build_type nondebug
 
 setup
 
 POOL=$DIR/file.pool
 
 # PMEMBLK
-expect_abnormal_exit $PMEMPOOL create blk $POOL 2> err5.log
+expect_abnormal_exit $PMEMPOOL$EXESUFFIX create blk $POOL 2> err5.log
 
 check
 

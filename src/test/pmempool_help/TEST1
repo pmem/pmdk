@@ -39,7 +39,6 @@ export UNITTEST_NUM=1
 . ../unittest/unittest.sh
 
 require_fs_type pmem non-pmem
-require_build_type nondebug
 
 setup
 
@@ -49,12 +48,12 @@ rm -rf $LOG && touch $LOG
 for cmd in info dump create check
 do
 	rm -f help_${cmd}.log ${cmd}_help.log
-	expect_normal_exit $PMEMPOOL help $cmd >> help_${cmd}.log
-	expect_normal_exit $PMEMPOOL ${cmd} --help >> ${cmd}_help.log
+	expect_normal_exit $PMEMPOOL$EXESUFFIX help $cmd >> help_${cmd}.log
+	expect_normal_exit $PMEMPOOL$EXESUFFIX ${cmd} --help >> ${cmd}_help.log
 	diff help_${cmd}.log ${cmd}_help.log >> $LOG
 done
 
-expect_normal_exit $PMEMPOOL help help >> $LOG
+expect_normal_exit $PMEMPOOL$EXESUFFIX help help >> $LOG
 
 check
 

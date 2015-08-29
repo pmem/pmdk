@@ -39,7 +39,6 @@ export UNITTEST_NUM=6
 . ../unittest/unittest.sh
 
 require_fs_type pmem non-pmem
-require_build_type nondebug
 
 setup
 
@@ -65,25 +64,25 @@ check_file $POOLREP
 
 # PMEMBLK
 rm -f $POOLS
-expect_normal_exit $PMEMPOOL create blk 512 $POOLSET
+expect_normal_exit $PMEMPOOL$EXESUFFIX create blk 512 $POOLSET
 check_files $POOLS
 check_signatures PMEMBLK $POOLS
 
 # PMEMLOG
 rm -f $POOLS
-expect_normal_exit $PMEMPOOL create log $POOLSET
+expect_normal_exit $PMEMPOOL$EXESUFFIX create log $POOLSET
 check_files $POOLS
 check_signatures PMEMLOG $POOLS
 
 # PMEMOBJ
 rm -f $POOLS
-expect_normal_exit $PMEMPOOL create --layout=LAYOUT_NAME obj $POOLSET
+expect_normal_exit $PMEMPOOL$EXESUFFIX create --layout=LAYOUT_NAME obj $POOLSET
 check_files $POOL
 check_signatures PMEMOBJ $POOLS
 
 # PMEMOBJ with replica
 rm -f $POOLS
-expect_normal_exit $PMEMPOOL create --layout=LAYOUT_NAME obj $POOLREP
+expect_normal_exit $PMEMPOOL$EXESUFFIX create --layout=LAYOUT_NAME obj $POOLREP
 check_files $POOLS $REPS
 check_signatures PMEMOBJ $POOLS $REPS
 

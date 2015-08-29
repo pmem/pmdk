@@ -39,28 +39,27 @@ export UNITTEST_NUM=4
 . ../unittest/unittest.sh
 
 require_fs_type pmem non-pmem
-require_build_type nondebug
 
 setup
 
 POOL=$DIR/file.pool
 
 # PMEMBLK
-expect_normal_exit $PMEMPOOL create -m 0666 blk 512 $POOL
+expect_normal_exit $PMEMPOOL$EXESUFFIX create -m 0666 blk 512 $POOL
 check_file $POOL
 check_signature PMEMBLK $POOL
 check_mode 666 $POOL
 
 # PMEMLOG
 rm -rf $POOL
-expect_normal_exit $PMEMPOOL create -m 0555 log $POOL
+expect_normal_exit $PMEMPOOL$EXESUFFIX create -m 0555 log $POOL
 check_file $POOL
 check_signature PMEMLOG $POOL
 check_mode 555 $POOL
 
 # PMEMOBJ
 rm -rf $POOL
-expect_normal_exit $PMEMPOOL create -m 0556 --layout=LAYOUT_NAME obj $POOL
+expect_normal_exit $PMEMPOOL$EXESUFFIX create -m 0556 --layout=LAYOUT_NAME obj $POOL
 check_file $POOL
 check_signature PMEMOBJ $POOL
 check_layout LAYOUT_NAME $POOL

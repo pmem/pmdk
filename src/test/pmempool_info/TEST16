@@ -39,7 +39,6 @@ export UNITTEST_NUM=16
 . ../unittest/unittest.sh
 
 require_fs_type pmem non-pmem
-require_build_type nondebug
 
 setup
 
@@ -71,18 +70,18 @@ create_poolset $POOLREP 32M:$POOL1:z 32M:$POOL2:z 32M:$POOL3:z\
 check_file $POOLREP
 
 rm -f $POOLS
-expect_normal_exit $PMEMPOOL create blk 512 $POOLSET
-expect_normal_exit $PMEMPOOL info $POOLSET >> $LOG
+expect_normal_exit $PMEMPOOL$EXESUFFIX create blk 512 $POOLSET
+expect_normal_exit $PMEMPOOL$EXESUFFIX info $POOLSET >> $LOG
 
 rm -f $POOLS
-expect_normal_exit $PMEMPOOL create log $POOLSET
-expect_normal_exit $PMEMPOOL info $POOLSET >> $LOG
+expect_normal_exit $PMEMPOOL$EXESUFFIX create log $POOLSET
+expect_normal_exit $PMEMPOOL$EXESUFFIX info $POOLSET >> $LOG
 
 rm -f $POOLS $REPS
-expect_normal_exit $PMEMPOOL create obj --layout pmempool $POOLREP
-expect_normal_exit $PMEMPOOL info $POOLREP >> $LOG
-expect_normal_exit $PMEMPOOL info --replica 0 $POOLREP > $LOG_REP0
-expect_normal_exit $PMEMPOOL info --replica 1 $POOLREP > $LOG_REP1
+expect_normal_exit $PMEMPOOL$EXESUFFIX create obj --layout pmempool $POOLREP
+expect_normal_exit $PMEMPOOL$EXESUFFIX info $POOLREP >> $LOG
+expect_normal_exit $PMEMPOOL$EXESUFFIX info --replica 0 $POOLREP > $LOG_REP0
+expect_normal_exit $PMEMPOOL$EXESUFFIX info --replica 1 $POOLREP > $LOG_REP1
 
 echo "DIFF" >> $LOG
 diff --normal $LOG_REP0 $LOG_REP1 >> $LOG || true

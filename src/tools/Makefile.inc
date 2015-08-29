@@ -37,20 +37,59 @@ INCS += -I../../include
 CFLAGS += -std=gnu99 -Wall -Werror $(EXTRA_CFLAGS)
 CFLAGS += -O2 -D_FORTIFY_SOURCE=2
 CFLAGS += -DSRCVERSION='"$(SRCVERSION)"'
-LDFLAGS += -Wl,-z,relro $(EXTRA_LDFLAGS)
+LDFLAGS += -Wl,-z,relro $(EXTRA_LDFLAGS) -L../../nondebug
 TOOLSDIR=/usr/bin
 TARGET_DIR=$(DESTDIR)$(TOOLSDIR)
 BASH_COMP_FILES ?=
 BASH_COMP_DIR =$(DESTDIR)/etc/bash_completion.d/
 CSTYLE=../../../utils/cstyle
 
-all: $(TARGET)
+TARGET_STATIC_NONDEBUG=$(TARGET).static-nondebug
+TARGET_STATIC_DEBUG=$(TARGET).static-debug
+
+LIBSDIR=../..
+
+LIBS += -pthread -luuid
+
+ifeq ($(LIBPMEMBLK), y)
+DYNAMIC_LIBS += -lpmemblk
+STATIC_DEBUG_LIBS += $(LIBSDIR)/debug/libpmemblk.a
+STATIC_NONDEBUG_LIBS += $(LIBSDIR)/nondebug/libpmemblk.a
+endif
+
+ifeq ($(LIBPMEMLOG), y)
+DYNAMIC_LIBS += -lpmemlog
+STATIC_DEBUG_LIBS += $(LIBSDIR)/debug/libpmemlog.a
+STATIC_NONDEBUG_LIBS += $(LIBSDIR)/nondebug/libpmemlog.a
+endif
+
+ifeq ($(LIBPMEMOBJ), y)
+DYNAMIC_LIBS += -lpmemobj
+STATIC_DEBUG_LIBS += $(LIBSDIR)/debug/libpmemobj.a
+STATIC_NONDEBUG_LIBS += $(LIBSDIR)/nondebug/libpmemobj.a
+endif
+
+ifeq ($(LIBPMEM),y)
+DYNAMIC_LIBS += -lpmem
+STATIC_DEBUG_LIBS += $(LIBSDIR)/debug/libpmem.a
+STATIC_NONDEBUG_LIBS += $(LIBSDIR)/nondebug/libpmem.a
+endif
+
+ifeq ($(LIBVMEM),y)
+DYNAMIC_LIBS += -lvmem
+STATIC_DEBUG_LIBS += $(LIBSDIR)/debug/libvmem.a
+STATIC_NONDEBUG_LIBS += $(LIBSDIR)/nondebug/libvmem.a
+endif
+
+all: $(TARGET) $(TARGET_STATIC_NONDEBUG) $(TARGET_STATIC_DEBUG)
 
 clean:
 	$(RM) $(OBJS)
 
 clobber: clean
 	$(RM) $(TARGET)
+	$(RM) $(TARGET_STATIC_NONDEBUG)
+	$(RM) $(TARGET_STATIC_DEBUG)
 	$(RM) -r .deps
 
 cstyle:
@@ -74,15 +113,20 @@ ifneq ($(BASH_COMP_FILES),)
 	$(RM) $(BASH_COMP_DIR)/$(BASH_COMP_FILES)
 endif
 
-
 %.gz: %
 	gzip -c ./$< > $@
 
 %.txt: %
 	man ./$< > $@
 
+$(TARGET_STATIC_DEBUG): $(OBJS)
+	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(STATIC_DEBUG_LIBS) $(LIBS)
+
+$(TARGET_STATIC_NONDEBUG): $(OBJS)
+	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(STATIC_NONDEBUG_LIBS) $(LIBS)
+
 $(TARGET): $(OBJS)
-	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
+	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LIBS) $(DYNAMIC_LIBS)
 
 %.o: %.c
 	@mkdir -p .deps

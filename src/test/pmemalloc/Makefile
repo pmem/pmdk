@@ -37,8 +37,9 @@ TARGET = pmemalloc
 
 OBJS = pmemalloc.o
 
-LIBS += -lpmemobj -lpmem
-LDFLAGS += -L../../nondebug/
+LIBPMEM=y
+LIBPMEMOBJ=y
+
 CFLAGS += -I../../libpmemobj
 
 include ../../tools/Makefile.inc

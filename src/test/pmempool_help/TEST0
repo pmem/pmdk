@@ -39,16 +39,15 @@ export UNITTEST_NUM=0
 . ../unittest/unittest.sh
 
 require_fs_type pmem non-pmem
-require_build_type nondebug
 
 setup
 
 LOG=out${UNITTEST_NUM}.log
 rm -rf $LOG && touch $LOG
 
-expect_normal_exit $PMEMPOOL >> $LOG
-expect_normal_exit $PMEMPOOL --version >> $LOG
-expect_normal_exit $PMEMPOOL --help >> $LOG
+expect_normal_exit $PMEMPOOL$EXESUFFIX >> $LOG
+expect_normal_exit $PMEMPOOL$EXESUFFIX --version >> $LOG
+expect_normal_exit $PMEMPOOL$EXESUFFIX --help >> $LOG
 
 check
 

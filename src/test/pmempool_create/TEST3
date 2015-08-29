@@ -39,7 +39,6 @@ export UNITTEST_NUM=3
 . ../unittest/unittest.sh
 
 require_fs_type pmem non-pmem
-require_build_type nondebug
 
 setup
 
@@ -47,11 +46,11 @@ POOL=$DIR/file.pool
 INHERIT=$DIR/inherit.pool
 
 # PMEMBLK
-expect_normal_exit $PMEMPOOL create blk 512 $POOL
+expect_normal_exit $PMEMPOOL$EXESUFFIX create blk 512 $POOL
 check_file $POOL
 check_signature PMEMBLK $POOL
 SIZE=$(get_size $POOL)
-expect_normal_exit $PMEMPOOL create --inherit $POOL $INHERIT
+expect_normal_exit $PMEMPOOL$EXESUFFIX create --inherit $POOL $INHERIT
 check_file $INHERIT
 check_signature PMEMBLK $INHERIT
 check_size $SIZE $INHERIT
@@ -59,11 +58,11 @@ check_size $SIZE $INHERIT
 # PMEMLOG
 rm -rf $POOL
 rm -rf $INHERIT
-expect_normal_exit $PMEMPOOL create log $POOL
+expect_normal_exit $PMEMPOOL$EXESUFFIX create log $POOL
 check_file $POOL
 check_signature PMEMLOG $POOL
 SIZE=$(get_size $POOL)
-expect_normal_exit $PMEMPOOL create --inherit $POOL $INHERIT
+expect_normal_exit $PMEMPOOL$EXESUFFIX create --inherit $POOL $INHERIT
 check_file $INHERIT
 check_signature PMEMLOG $INHERIT
 check_size $SIZE $INHERIT
@@ -71,12 +70,12 @@ check_size $SIZE $INHERIT
 # PMEMOBJ
 rm -rf $POOL
 rm -rf $INHERIT
-expect_normal_exit $PMEMPOOL create --layout=LAYOUT_NAME obj $POOL
+expect_normal_exit $PMEMPOOL$EXESUFFIX create --layout=LAYOUT_NAME obj $POOL
 check_file $POOL
 check_signature PMEMOBJ $POOL
 check_layout LAYOUT_NAME $POOL
 SIZE=$(get_size $POOL)
-expect_normal_exit $PMEMPOOL create --inherit $POOL $INHERIT
+expect_normal_exit $PMEMPOOL$EXESUFFIX create --inherit $POOL $INHERIT
 check_file $INHERIT
 check_signature PMEMOBJ $INHERIT
 check_layout LAYOUT_NAME $POOL

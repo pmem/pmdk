@@ -1,2 +1,4 @@
 pmempool
+pmempool.static-nondebug
+pmempool.static-debug
 *.1.*
