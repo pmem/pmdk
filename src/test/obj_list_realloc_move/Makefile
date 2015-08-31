@@ -35,4 +35,4 @@
 # unittest
 #
 
-include ../Makefile.inc
+include ../obj_list/Makefile.inc

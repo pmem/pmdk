@@ -44,12 +44,8 @@ set.o: CFLAGS += -DDEBUG
 
 LIBPMEM=y
 
+USE_PMEMSPOIL=y
+
 include ../Makefile.inc
 LDFLAGS += $(call extract_funcs, mocks.c)
 INCS += -I../../common
-
-util_poolset.o: util_poolset.c util.h
-util.o: util.c util.h
-set.o: set.c util.h
-out.o: out.c out.h
-mocks.o: mocks.c

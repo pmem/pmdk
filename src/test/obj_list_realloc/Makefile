@@ -34,4 +34,4 @@
 # src/test/obj_list_realloc/Makefile -- build obj_list_realloc unittest
 #
 
-include ../Makefile.inc
+include ../obj_list/Makefile.inc

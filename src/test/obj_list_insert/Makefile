@@ -34,4 +34,4 @@
 # src/test/obj_list_insert/Makefile -- build obj_list_insert unittest
 #
 
-include ../Makefile.inc
+include ../obj_list/Makefile.inc

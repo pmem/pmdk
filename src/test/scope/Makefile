@@ -44,8 +44,6 @@ clobber: clean
 
 cstyle:
 
-check:
+test check pcheck: all
 
-pcheck:
-
-.PHONY: all check clean clobber cstyle pcheck
+.PHONY: all check clean clobber cstyle pcheck test

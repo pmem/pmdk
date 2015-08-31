@@ -38,5 +38,9 @@ OBJS = obj_check.o
 
 LIBPMEM=y
 LIBPMEMOBJ=y
+USE_PMEMSPOIL=y
+USE_PMEMWRITE=y
+USE_PMEMALLOC=y
 
 include ../Makefile.inc
+

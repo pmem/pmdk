@@ -136,6 +136,8 @@ $(TARGET): $(OBJS)
 	    -e '/^$$/ d' -e 's/$$/ :/' < $*.d >> .deps/$*.P; \
 	$(RM) -f $*.d
 
-.PHONY: all clean clobber cstyle install uninstall
+test check pcheck: all
+
+.PHONY: all clean clobber cstyle install uninstall test check pcheck
 
 -include .deps/*.P
