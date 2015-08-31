@@ -58,8 +58,7 @@ main(int argc, char *argv[])
 		fname++;
 
 		int fd;
-		if ((fd = util_file_create(fname, size, minsize,
-				S_IWUSR | S_IRUSR)) == -1)
+		if ((fd = util_file_create(fname, size, minsize)) == -1)
 			OUT("!%s: util_file_create", fname);
 		else {
 			OUT("%s: created", fname);

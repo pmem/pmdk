@@ -37,6 +37,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <sys/mman.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -191,6 +192,66 @@ util_poolset_close(struct pool_set *set, int del)
 
 	util_poolset_free(set);
 	errno = oerrno;
+}
+
+/*
+ * util_poolset_chmod -- change mode for all created files related to pool set
+ */
+int
+util_poolset_chmod(struct pool_set *set, mode_t mode)
+{
+	LOG(3, "set %p mode %o", set, mode);
+
+	for (unsigned r = 0; r < set->nreplicas; r++) {
+		struct pool_replica *rep = set->replica[r];
+
+		for (unsigned p = 0; p < rep->nparts; p++) {
+			struct pool_set_part *part = &rep->part[p];
+
+			if (!part->created)
+				continue;
+
+			struct stat st;
+			if (fstat(part->fd, &st)) {
+				ERR("!fstat");
+				return -1;
+			}
+
+			if (st.st_mode & ~S_IFMT) {
+				LOG(1, "file permissions changed during pool "
+					"initialization, file: %s (%o)",
+					part->path, st.st_mode & ~S_IFMT);
+			}
+
+			if (fchmod(part->fd, mode)) {
+				ERR("!fchmod %u/%u/%s", r, p,
+						rep->part[p].path);
+				return -1;
+			}
+		}
+	}
+
+	return 0;
+}
+
+/*
+ * util_poolset_fdclose -- close file descriptors related to pool set
+ */
+void
+util_poolset_fdclose(struct pool_set *set)
+{
+	LOG(3, "set %p", set);
+
+	for (unsigned r = 0; r < set->nreplicas; r++) {
+		struct pool_replica *rep = set->replica[r];
+
+		for (unsigned p = 0; p < rep->nparts; p++) {
+			struct pool_set_part *part = &rep->part[p];
+
+			if (part->fd != -1)
+				close(part->fd);
+		}
+	}
 }
 
 /*
@@ -533,11 +594,9 @@ util_poolset_single(const char *path, size_t filesize, int fd, int create)
  * util_poolset_file -- (internal) open or create a single part file
  */
 static int
-util_poolset_file(struct pool_set_part *part, size_t minsize, int mode,
-	int create)
+util_poolset_file(struct pool_set_part *part, size_t minsize, int create)
 {
-	LOG(3, "part %p minsize %zu mode %o create %d",
-		part, minsize, mode, create);
+	LOG(3, "part %p minsize %zu create %d", part, minsize, create);
 
 	/* check if file exists */
 	if (access(part->path, F_OK) == 0)
@@ -547,7 +606,7 @@ util_poolset_file(struct pool_set_part *part, size_t minsize, int mode,
 
 	if (create) {
 		size = part->filesize;
-		part->fd = util_file_create(part->path, size, minsize, mode);
+		part->fd = util_file_create(part->path, size, minsize);
 		part->created = 1;
 		if (part->fd == -1) {
 			LOG(2, "failed to create file: %s", part->path);
@@ -555,7 +614,7 @@ util_poolset_file(struct pool_set_part *part, size_t minsize, int mode,
 		}
 	} else {
 		size = 0;
-		part->fd = util_file_open(part->path, &size, minsize);
+		part->fd = util_file_open(part->path, &size, minsize, O_RDWR);
 		part->created = 0;
 		if (part->fd == -1) {
 			LOG(2, "failed to open file: %s", part->path);
@@ -579,18 +638,15 @@ util_poolset_file(struct pool_set_part *part, size_t minsize, int mode,
  *                       of a pool set and replica sets
  */
 static int
-util_poolset_files(struct pool_set *set, size_t minsize, int mode, int create)
+util_poolset_files(struct pool_set *set, size_t minsize, int create)
 {
-	LOG(3, "set %p minsize %zu mode %o create %d",
-		set, minsize, mode, create);
+	LOG(3, "set %p minsize %zu create %d", set, minsize, create);
 
 	for (unsigned r = 0; r < set->nreplicas; r++) {
 		struct pool_replica *rep = set->replica[r];
 		for (unsigned p = 0; p < rep->nparts; p++) {
-			if (util_poolset_file(&rep->part[p], minsize,
-							mode, create) != 0) {
+			if (util_poolset_file(&rep->part[p], minsize, create))
 				return -1;
-			}
 
 			rep->repsize +=
 				(rep->part[p].filesize & ~(Pagesize - 1));
@@ -608,10 +664,10 @@ util_poolset_files(struct pool_set *set, size_t minsize, int mode, int create)
  */
 static int
 util_poolset_create(struct pool_set **setp, const char *path, size_t poolsize,
-	mode_t mode, size_t minsize)
+	size_t minsize)
 {
-	LOG(3, "setp %p path %s poolsize %zu mode %o minsize %zu",
-		setp, path, poolsize, mode, minsize);
+	LOG(3, "setp %p path %s poolsize %zu minsize %zu",
+		setp, path, poolsize, minsize);
 
 	int oerrno;
 	int ret = 0;
@@ -620,7 +676,7 @@ util_poolset_create(struct pool_set **setp, const char *path, size_t poolsize,
 
 	if (poolsize != 0) {
 		/* create a new file */
-		fd = util_file_create(path, poolsize, minsize, mode);
+		fd = util_file_create(path, poolsize, minsize);
 		if (fd == -1)
 			return -1;
 
@@ -635,7 +691,7 @@ util_poolset_create(struct pool_set **setp, const char *path, size_t poolsize,
 	}
 
 	/* do not check minsize */
-	if ((fd = util_file_open(path, &size, 0)) == -1)
+	if ((fd = util_file_open(path, &size, 0, O_RDWR)) == -1)
 		return -1;
 
 	char signature[POOLSET_HDR_SIG_LEN];
@@ -670,7 +726,7 @@ util_poolset_create(struct pool_set **setp, const char *path, size_t poolsize,
 	if (ret != 0)
 		goto err;
 
-	ret = util_poolset_files(*setp, minsize, mode, 1);
+	ret = util_poolset_files(*setp, minsize, 1);
 	if (ret != 0)
 		util_poolset_close(*setp, 1);
 
@@ -698,7 +754,7 @@ util_poolset_open(struct pool_set **setp, const char *path, size_t minsize)
 	size_t size = 0;
 
 	/* do not check minsize */
-	if ((fd = util_file_open(path, &size, 0)) == -1)
+	if ((fd = util_file_open(path, &size, 0, O_RDWR)) == -1)
 		return -1;
 
 	char signature[POOLSET_HDR_SIG_LEN];
@@ -733,7 +789,7 @@ util_poolset_open(struct pool_set **setp, const char *path, size_t minsize)
 	if (ret != 0)
 		goto err;
 
-	ret = util_poolset_files(*setp, minsize, 0, 0);
+	ret = util_poolset_files(*setp, minsize, 0);
 	if (ret != 0)
 		util_poolset_close(*setp, 0);
 
@@ -945,9 +1001,6 @@ util_replica_create(struct pool_set *set, unsigned repidx, int flags,
 	VALGRIND_REGISTER_PMEM_FILE(rep->part[0].fd,
 				rep->part[0].addr, rep->part[0].size, 0);
 
-	(void) close(rep->part[0].fd);
-	rep->part[0].fd = -1;
-
 	/* map all the remaining headers - don't care about the address */
 	for (unsigned p = 1; p < rep->nparts; p++) {
 		if (util_map_part(&rep->part[p], NULL,
@@ -997,9 +1050,6 @@ util_replica_create(struct pool_set *set, unsigned repidx, int flags,
 		mapsize += rep->part[p].size;
 		set->zeroed &= rep->part[p].created;
 		addr += rep->part[p].size;
-
-		(void) close(rep->part[p].fd);
-		rep->part[p].fd = -1;
 	}
 
 	rep->is_pmem = pmem_is_pmem(rep->part[0].addr, rep->part[0].size);
@@ -1031,18 +1081,18 @@ err:
  */
 int
 util_pool_create(struct pool_set **setp, const char *path, size_t poolsize,
-	mode_t mode, size_t minsize, size_t hdrsize, const char *sig,
+	size_t minsize, size_t hdrsize, const char *sig,
 	uint32_t major, uint32_t compat, uint32_t incompat, uint32_t ro_compat)
 {
-	LOG(3, "setp %p path %s poolsize %zu mode %o minsize %zu "
+	LOG(3, "setp %p path %s poolsize %zu minsize %zu "
 		"hdrsize %zu sig %s major %u "
 		"compat %#x incompat %#x ro_comapt %#x",
-		setp, path, poolsize, mode, minsize, hdrsize,
+		setp, path, poolsize, minsize, hdrsize,
 		sig, major, compat, incompat, ro_compat);
 
 	int flags = MAP_SHARED;
 
-	int ret = util_poolset_create(setp, path, poolsize, mode, minsize);
+	int ret = util_poolset_create(setp, path, poolsize, minsize);
 	if (ret < 0) {
 		LOG(2, "cannot create pool set");
 		return -1;
@@ -1123,9 +1173,6 @@ util_replica_open(struct pool_set *set, unsigned repidx, int flags,
 	VALGRIND_REGISTER_PMEM_FILE(rep->part[0].fd,
 				rep->part[0].addr, rep->part[0].size, 0);
 
-	(void) close(rep->part[0].fd);
-	rep->part[0].fd = -1;
-
 	/* map all the remaining headers - don't care about the address */
 	for (unsigned p = 1; p < rep->nparts; p++) {
 		if (util_map_part(&rep->part[p], NULL,
@@ -1175,9 +1222,6 @@ util_replica_open(struct pool_set *set, unsigned repidx, int flags,
 		mapsize += rep->part[p].size;
 		set->rdonly |= rep->part[p].rdonly; /* XXX - not needed? */
 		addr += rep->part[p].size;
-
-		(void) close(rep->part[p].fd);
-		rep->part[p].fd = -1;
 	}
 
 	rep->is_pmem = pmem_is_pmem(rep->part[0].addr, rep->part[0].size);

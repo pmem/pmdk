@@ -1395,7 +1395,8 @@ main(int argc, char *argv[])
 		print_usage(appname);
 		exit(EXIT_FAILURE);
 	} else {
-		if ((psp->fd = open(psp->fname, O_RDWR)) < 0)
+		psp->fd = util_file_open(psp->fname, NULL, 0, O_RDWR);
+		if (psp->fd < 0)
 			err(1, "%s", psp->fname);
 	}
 

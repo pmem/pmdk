@@ -173,12 +173,12 @@ main(int argc, char *argv[])
 
 		switch (argv[1][0]) {
 		case 'c':
-			ret = util_pool_create(&set, fname, 0,
-				S_IWUSR | S_IRUSR, minsize, hdrsize, SIG,
-				1, 0, 0, 0);
+			ret = util_pool_create(&set, fname, 0, minsize, hdrsize,
+				SIG, 1, 0, 0, 0);
 			if (ret == -1)
 				OUT("!%s: util_pool_create", fname);
 			else {
+				util_poolset_chmod(set, S_IWUSR | S_IRUSR);
 				poolset_info(fname, set, hdrsize, 0);
 				util_poolset_close(set, 0); /* do not delete */
 			}

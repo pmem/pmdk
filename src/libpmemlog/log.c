@@ -169,7 +169,7 @@ pmemlog_create(const char *path, size_t poolsize, mode_t mode)
 
 	struct pool_set *set;
 
-	if (util_pool_create(&set, path, poolsize, mode, PMEMLOG_MIN_POOL,
+	if (util_pool_create(&set, path, poolsize, PMEMLOG_MIN_POOL,
 			roundup(sizeof (struct pmemlog), Pagesize),
 			LOG_HDR_SIG, LOG_FORMAT_MAJOR,
 			LOG_FORMAT_COMPAT, LOG_FORMAT_INCOMPAT,
@@ -207,6 +207,11 @@ pmemlog_create(const char *path, size_t poolsize, mode_t mode)
 		goto err;
 	}
 
+	if (util_poolset_chmod(set, mode))
+		goto err;
+
+	util_poolset_fdclose(set);
+
 	util_poolset_free(set);
 
 	LOG(3, "plp %p", plp);
@@ -215,8 +220,6 @@ pmemlog_create(const char *path, size_t poolsize, mode_t mode)
 err:
 	LOG(4, "error clean up");
 	int oerrno = errno;
-	VALGRIND_REMOVE_PMEM_MAPPING(plp->addr, plp->size);
-	util_unmap(plp->addr, plp->size);
 	util_poolset_close(set, 1);
 	errno = oerrno;
 	return NULL;
@@ -273,6 +276,8 @@ pmemlog_open_common(const char *path, int cow)
 		goto err;
 	}
 
+	util_poolset_fdclose(set);
+
 	util_poolset_free(set);
 
 	LOG(3, "plp %p", plp);
@@ -281,9 +286,7 @@ pmemlog_open_common(const char *path, int cow)
 err:
 	LOG(4, "error clean up");
 	int oerrno = errno;
-	VALGRIND_REMOVE_PMEM_MAPPING(plp->addr, plp->size);
-	util_unmap(plp->addr, plp->size);
-	util_poolset_free(set);
+	util_poolset_close(set, 0);
 	errno = oerrno;
 	return NULL;
 }

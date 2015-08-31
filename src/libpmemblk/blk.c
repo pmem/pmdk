@@ -423,7 +423,7 @@ pmemblk_create(const char *path, size_t bsize, size_t poolsize,
 
 	struct pool_set *set;
 
-	if (util_pool_create(&set, path, poolsize, mode, PMEMBLK_MIN_POOL,
+	if (util_pool_create(&set, path, poolsize, PMEMBLK_MIN_POOL,
 			roundup(sizeof (struct pmemblk), Pagesize),
 			BLK_HDR_SIG, BLK_FORMAT_MAJOR,
 			BLK_FORMAT_COMPAT, BLK_FORMAT_INCOMPAT,
@@ -461,6 +461,11 @@ pmemblk_create(const char *path, size_t bsize, size_t poolsize,
 		goto err;
 	}
 
+	if (util_poolset_chmod(set, mode))
+		goto err;
+
+	util_poolset_fdclose(set);
+
 	util_poolset_free(set);
 
 	LOG(3, "pbp %p", pbp);
@@ -469,8 +474,6 @@ pmemblk_create(const char *path, size_t bsize, size_t poolsize,
 err:
 	LOG(4, "error clean up");
 	int oerrno = errno;
-	VALGRIND_REMOVE_PMEM_MAPPING(pbp->addr, pbp->size);
-	util_unmap(pbp->addr, pbp->size);
 	util_poolset_close(set, 1);
 	errno = oerrno;
 	return NULL;
@@ -531,6 +534,8 @@ pmemblk_open_common(const char *path, size_t bsize, int cow)
 		goto err;
 	}
 
+	util_poolset_fdclose(set);
+
 	util_poolset_free(set);
 
 	LOG(3, "pbp %p", pbp);
@@ -539,9 +544,7 @@ pmemblk_open_common(const char *path, size_t bsize, int cow)
 err:
 	LOG(4, "error clean up");
 	int oerrno = errno;
-	VALGRIND_REMOVE_PMEM_MAPPING(pbp->addr, pbp->size);
-	util_unmap(pbp->addr, pbp->size);
-	util_poolset_free(set);
+	util_poolset_close(set, 0);
 	errno = oerrno;
 	return NULL;
 }

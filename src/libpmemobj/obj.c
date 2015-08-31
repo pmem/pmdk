@@ -522,7 +522,7 @@ pmemobj_create(const char *path, const char *layout, size_t poolsize,
 
 	struct pool_set *set;
 
-	if (util_pool_create(&set, path, poolsize, mode, PMEMOBJ_MIN_POOL,
+	if (util_pool_create(&set, path, poolsize, PMEMOBJ_MIN_POOL,
 			roundup(sizeof (struct pmemobjpool), Pagesize),
 			OBJ_HDR_SIG, OBJ_FORMAT_MAJOR,
 			OBJ_FORMAT_COMPAT, OBJ_FORMAT_INCOMPAT,
@@ -570,21 +570,20 @@ pmemobj_create(const char *path, const char *layout, size_t poolsize,
 		goto err;
 	}
 
-	LOG(3, "pop %p", pop);
+	if (util_poolset_chmod(set, mode))
+		goto err;
+
+	util_poolset_fdclose(set);
 
 	util_poolset_free(set);
+
+	LOG(3, "pop %p", pop);
 
 	return pop;
 
 err:
 	LOG(4, "error clean up");
 	int oerrno = errno;
-	for (unsigned r = 0; r < set->nreplicas; r++) {
-		struct pool_replica *rep = set->replica[r];
-		VALGRIND_REMOVE_PMEM_MAPPING(rep->part[0].addr,
-						rep->part[0].size);
-		util_unmap(rep->part[0].addr, rep->part[0].size);
-	}
 	util_poolset_close(set, 1);
 	errno = oerrno;
 	return NULL;
@@ -715,22 +714,18 @@ pmemobj_open_common(const char *path, const char *layout, int cow, int boot)
 		goto err;
 	}
 
-	LOG(3, "pop %p", pop);
+	util_poolset_fdclose(set);
 
 	util_poolset_free(set);
+
+	LOG(3, "pop %p", pop);
 
 	return pop;
 
 err:
 	LOG(4, "error clean up");
 	int oerrno = errno;
-	for (unsigned r = 0; r < set->nreplicas; r++) {
-		struct pool_replica *rep = set->replica[r];
-		VALGRIND_REMOVE_PMEM_MAPPING(rep->part[0].addr,
-						rep->part[0].size);
-		util_unmap(rep->part[0].addr, rep->part[0].size);
-	}
-	util_poolset_free(set);
+	util_poolset_close(set, 0);
 	errno = oerrno;
 	return NULL;
 }
