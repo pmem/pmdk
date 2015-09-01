@@ -38,7 +38,9 @@ CSTYLE = ../../../utils/cstyle
 
 TARGET = pmemspoil
 
-OBJS = common.o output.o util.o spoil.o
+OBJS = common.o output.o util.o spoil.o set.o
+
+LIBPMEM=y
 
 LDFLAGS += -L../../nondebug/
 CFLAGS += -I../../tools/pmempool

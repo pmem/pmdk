@@ -418,7 +418,7 @@ pmempool_create_func(char *appname, int argc, char *argv[])
 		 * so parse file and get required parameters.
 		 */
 		outv(1, "Parsing '%s' file:\n", pc.inherit_fname);
-		if (pmem_pool_parse_params(pc.inherit_fname, &pc.params)) {
+		if (pmem_pool_parse_params(pc.inherit_fname, &pc.params, 1)) {
 			perror(pc.inherit_fname);
 			return -1;
 		}

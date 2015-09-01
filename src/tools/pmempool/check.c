@@ -1935,7 +1935,7 @@ pmempool_check_func(char *appname, int argc, char *argv[])
 	out_set_vlevel(pc.verbose);
 
 	struct pmem_pool_params params;
-	if (pmem_pool_parse_params(pc.fname, &params)) {
+	if (pmem_pool_parse_params(pc.fname, &params, 0)) {
 		perror(pc.fname);
 		return -1;
 	}

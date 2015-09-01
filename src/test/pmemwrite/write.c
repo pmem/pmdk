@@ -203,7 +203,7 @@ main(int argc, char *argv[])
 
 	struct pmem_pool_params params;
 	/* parse pool type from file */
-	pmem_pool_parse_params(pwrite.fname, &params);
+	pmem_pool_parse_params(pwrite.fname, &params, 1);
 
 	switch (params.type) {
 	case PMEM_POOL_TYPE_BLK:
