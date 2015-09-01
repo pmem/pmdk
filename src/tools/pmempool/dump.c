@@ -345,7 +345,7 @@ pmempool_dump_func(char *appname, int argc, char *argv[])
 
 	struct pmem_pool_params params;
 	/* parse pool type and block size for pmem blk pool */
-	if (pmem_pool_parse_params(pd.fname, &params)) {
+	if (pmem_pool_parse_params(pd.fname, &params, 1)) {
 		ret = -1;
 		goto out;
 	}
