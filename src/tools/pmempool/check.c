@@ -44,18 +44,22 @@
 #include <sys/param.h>
 #include <sys/mman.h>
 #include <sys/queue.h>
-#include <sys/sendfile.h>
 #include <sys/stat.h>
 #include <errno.h>
 #include <err.h>
 #define	__USE_UNIX98
 #include <unistd.h>
+#include <assert.h>
+
 #include "common.h"
 #include "check.h"
 #include "output.h"
 #include "libpmemblk.h"
 #include "libpmemlog.h"
 #include "btt.h"
+
+#define	PREFIX_BUFF_SIZE	1024
+static char prefix_buff[PREFIX_BUFF_SIZE];
 
 /*
  * arena -- internal structure for holding BTT Info and offset
@@ -78,12 +82,13 @@ struct arena {
 struct pmempool_check {
 	int verbose;		/* verbosity level */
 	char *fname;		/* file name */
-	int fd;			/* file descriptor */
+	struct pool_set_file *pfile;
 	bool repair;		/* do repair */
 	bool backup;		/* do backup */
 	char *backup_fname;	/* backup file name */
 	bool exec;		/* do execute */
-	pmem_pool_type_t ptype; /* pool type */
+	struct pmem_pool_params params;	/* pool params */
+	int blk_no_layout;
 	union {
 		struct pool_hdr pool;
 		struct pmemlog log;
@@ -103,7 +108,6 @@ struct pmempool_check {
 typedef enum
 {
 	CHECK_RESULT_CONSISTENT,
-	CHECK_RESULT_CONSISTENT_BREAK,
 	CHECK_RESULT_NOT_CONSISTENT,
 	CHECK_RESULT_REPAIRED,
 	CHECK_RESULT_CANNOT_REPAIR,
@@ -116,10 +120,31 @@ typedef enum
 struct pmempool_check_step {
 	check_result_t (*func)(struct pmempool_check *); /* step function */
 	pmem_pool_type_t type;	/* allowed pool types */
+	bool part;		/* check part files */
 };
 
 #define	BACKUP_SUFFIX	".bak"
 #define	BTT_INFO_SIG	"BTT_ARENA_INFO\0"
+
+/*
+ * pmempool_check_write -- read data from file
+ */
+static int
+pmempool_check_write(struct pmempool_check *pcp, void *buff,
+		size_t nbytes, off_t off)
+{
+	return pool_set_file_write(pcp->pfile, buff, nbytes, off);
+}
+
+/*
+ * pmempool_check_read -- read data from file
+ */
+static int
+pmempool_check_read(struct pmempool_check *pcp, void *buff,
+		size_t nbytes, off_t off)
+{
+	return pool_set_file_read(pcp->pfile, buff, nbytes, off);
+}
 
 /*
  * btt_context -- context for using btt API
@@ -308,12 +333,10 @@ struct ns_callback pmempool_check_btt_ns_callback = {
 const struct pmempool_check pmempool_check_default = {
 	.verbose	= 1,
 	.fname		= NULL,
-	.fd		= -1,
 	.repair		= false,
 	.backup		= false,
 	.backup_fname	= NULL,
 	.exec		= true,
-	.ptype		= PMEM_POOL_TYPE_UNKNOWN,
 	.narenas	= 0,
 	.ans		= '?',
 };
@@ -442,40 +465,28 @@ pmempool_check_parse_args(struct pmempool_check *pcp, char *appname,
  * pmempool_check_cp -- copy file from fsrc to fdst
  */
 static int
-pmempool_check_cp(char *fsrc, char *fdst)
+pmempool_check_cp(struct pmempool_check *pcp)
 {
-	int sfd;
-	int dfd;
-
-	sfd = util_file_open(fsrc, NULL, 0, O_RDONLY);
-	if (sfd < 0)
-		err(1, "%s", fsrc);
-
-	struct stat buff;
-	if (fstat(sfd, &buff)) {
-		warn("%s", fsrc);
-		close(sfd);
-		return -1;
-	}
-
-	dfd = util_file_create(fdst, buff.st_size, 0);
+	int dfd = util_file_create(pcp->backup_fname, pcp->pfile->size, 0);
 	if (dfd < 0) {
-		warn("%s", fdst);
-		close(sfd);
+		warn("%s", pcp->backup_fname);
 		return -1;
 	}
 
-	ssize_t ret = sendfile(dfd, sfd, NULL, buff.st_size);
-	if (ret == -1)
-		err(1, "copying file '%s' to '%s' failed", fsrc, fdst);
+	void *daddr = mmap(NULL, pcp->pfile->size, PROT_READ | PROT_WRITE,
+			MAP_SHARED, dfd, 0);
+	if (daddr == MAP_FAILED) {
+		close(dfd);
+		return -1;
+	}
 
-	if (fchmod(dfd, buff.st_mode))
-		warn("%s", fdst);
+	void *saddr = pool_set_file_map(pcp->pfile, 0);
 
-	close(sfd);
+	memcpy(daddr, saddr, pcp->pfile->size);
+	munmap(daddr, pcp->pfile->size);
 	close(dfd);
 
-	return !(ret == buff.st_size);
+	return 0;
 }
 
 /*
@@ -485,7 +496,7 @@ static int
 pmempool_check_create_backup(struct pmempool_check *pcp)
 {
 	outv(1, "creating backup file: %s\n", pcp->backup_fname);
-	return pmempool_check_cp(pcp->fname, pcp->backup_fname);
+	return pmempool_check_cp(pcp);
 }
 
 /*
@@ -504,8 +515,7 @@ pmempool_check_get_first_valid_btt(struct pmempool_check *pcp, struct btt_info
 	 * Starting at offset, read every page and check for
 	 * valid BTT Info Header. Check signature and checksum.
 	 */
-	while (pread(pcp->fd, infop, sizeof (*infop), offset)
-			== sizeof (*infop)) {
+	while (!pmempool_check_read(pcp, infop, sizeof (*infop), offset)) {
 		if (memcmp(infop->sig, BTT_INFO_SIG,
 					BTTINFO_SIG_LEN) == 0 &&
 			util_checksum(infop, sizeof (*infop),
@@ -569,243 +579,628 @@ pmempool_check_insert_arena(struct pmempool_check *pcp, struct arena
 }
 
 /*
- * pmempool_check_pool_hdr -- try to repair pool_hdr
+ * pmempool_check_all_uuid_same -- check if all uuids are same and non-zero
+ */
+static int
+pmempool_check_all_uuid_same(unsigned char (*uuids)[POOL_HDR_UUID_LEN], int n)
+{
+	if (!util_check_memory(uuids[0], POOL_HDR_UUID_LEN, 0))
+		return 0;
+	for (int i = 1; i < n; i++) {
+		if (memcmp(uuids[0], uuids[i], POOL_HDR_UUID_LEN))
+			return 0;
+	}
+
+	return 1;
+}
+
+/*
+ * pmempool_check_get_two_same_uuid -- return indices of two the same uuids
+ */
+static int
+pmempool_check_get_max_same_uuid(unsigned char (*uuids)[POOL_HDR_UUID_LEN],
+		int n, int *indexp)
+{
+	int max = 0;
+	for (int i = 0; i < n; i++) {
+		int icount = 0;
+		if (!util_check_memory(uuids[i], POOL_HDR_UUID_LEN, 0))
+			continue;
+		for (int j = 0; j < n; j++) {
+			if (i == j)
+				continue;
+			if (!memcmp(uuids[i], uuids[j], POOL_HDR_UUID_LEN))
+				icount++;
+		}
+
+		if (icount > max) {
+			max = icount;
+			*indexp = i;
+		}
+	}
+
+	if (max)
+		return 0;
+	return -1;
+}
+
+/*
+ * pmempool_check_set_all_uuids -- set all uuids to the specified one
+ */
+static void
+pmempool_check_set_all_uuids(unsigned char (*uuids)[POOL_HDR_UUID_LEN],
+		int n, int index)
+{
+	for (int i = 0; i < n; i++) {
+		if (i == index)
+			continue;
+		memcpy(uuids[i], uuids[index], POOL_HDR_UUID_LEN);
+	}
+}
+
+/*
+ * pmempool_check_possible_type -- return possible type of pool
+ */
+static pmem_pool_type_t
+pmempool_check_possible_type(struct pmempool_check *pcp)
+{
+	/*
+	 * We can scan pool file for valid BTT Info header
+	 * if found it means this is pmem blk pool.
+	 */
+	if (pmempool_check_get_first_valid_arena(pcp,
+				&pcp->bttc)) {
+		return PMEM_POOL_TYPE_BLK;
+	}
+
+	return PMEM_POOL_TYPE_UNKNOWN;
+}
+
+/*
+ * pmempool_check_supported -- check if pool type is supported
+ */
+static int
+pmempool_check_supported(pmem_pool_type_t type)
+{
+	switch (type) {
+	case PMEM_POOL_TYPE_LOG:
+		return 1;
+	case PMEM_POOL_TYPE_BLK:
+		return 1;
+	case PMEM_POOL_TYPE_OBJ:
+	default:
+		return 0;
+	}
+}
+
+/*
+ * pmempool_check_pool_hdr_gen -- generate pool hdr values
  */
 static check_result_t
-pmempool_check_pool_hdr(struct pmempool_check *pcp)
+pmempool_check_pool_hdr_gen(struct pmempool_check *pcp, struct pool_hdr *hdrp,
+		int regenerate_uuids)
 {
-	outv(2, "checking pool header\n");
-	if (pread(pcp->fd, &pcp->hdr.pool, sizeof (pcp->hdr.pool), 0) !=
-			sizeof (pcp->hdr.pool)) {
-		if (errno)
-			warn("%s", pcp->fname);
-		outv_err("cannot read pool_hdr\n");
-		return CHECK_RESULT_ERROR;
-	}
-
-	if (util_check_memory((const uint8_t *)&pcp->hdr.pool,
-			sizeof (pcp->hdr.pool), 0) != 0) {
-		/*
-		 * Validate checksum and return immediately if checksum is
-		 * correct.
-		 * If checksum is invalid and the repair flag is not set
-		 * print message and return error.
-		 */
-		if (util_checksum(&pcp->hdr.pool, sizeof (pcp->hdr.pool),
-					&pcp->hdr.pool.checksum, 0)) {
-			outv(2, "pool header checksum correct\n");
-			return CHECK_RESULT_CONSISTENT;
+	if (hdrp->crtime > pcp->pfile->mtime) {
+		outv(1, "pool_hdr.crtime is not valid\n");
+		if (ask_Yn(pcp->ans, "Do you want to set it to file's "
+			"modtime [%s]?", out_get_time_str(
+				pcp->pfile->mtime)) == 'y') {
+			outv(1, "setting pool_hdr.crtime to file's "
+				"modtime: %s\n",
+				out_get_time_str(pcp->pfile->mtime));
+			hdrp->crtime = pcp->pfile->mtime;
 		} else {
-			outv(1, "incorrect pool header checksum\n");
-			if (!pcp->repair)
-				return CHECK_RESULT_NOT_CONSISTENT;
-			util_convert2h_pool_hdr(&pcp->hdr.pool);
-		}
-	} else {
-		outv(1, "pool_hdr zeroed\n");
-		if (!pcp->repair)
-			return CHECK_RESULT_NOT_CONSISTENT;
-	}
-
-	/*
-	 * Here we have invalid checksum or zeroed pool_hdr
-	 * and repair flag is set so we can try to repair the
-	 * pool_hdr structure by writing some default values.
-	 */
-
-	struct pool_hdr default_hdr;
-
-	if (pcp->ptype == PMEM_POOL_TYPE_UNKNOWN) {
-		/*
-		 * We can scan pool file for valid BTT Info header
-		 * if found it means this is pmem blk pool.
-		 */
-		if (pmempool_check_get_first_valid_arena(pcp,
-					&pcp->bttc)) {
-			outv(1, "pool_hdr.signature is not valid\n");
-			if (ask_Yn(pcp->ans, "Do you want to set "
-				"pool_hdr.signature to %s?", BLK_HDR_SIG)
-					== 'y') {
-				outv(1, "setting pool_hdr.signature to %s\n",
-						BLK_HDR_SIG);
-				strncpy(pcp->hdr.pool.signature, BLK_HDR_SIG,
-						POOL_HDR_SIG_LEN);
-				pcp->ptype = PMEM_POOL_TYPE_BLK;
-			} else {
-				return CHECK_RESULT_CANNOT_REPAIR;
-			}
-		} else {
-			outv(1, "cannot determine pool type\n");
 			return CHECK_RESULT_CANNOT_REPAIR;
 		}
 	}
 
-	/* set constant values depending on pool type */
-	if (pcp->ptype == PMEM_POOL_TYPE_LOG) {
-		default_hdr.major = LOG_FORMAT_MAJOR;
-		default_hdr.compat_features = LOG_FORMAT_COMPAT;
-		default_hdr.incompat_features = LOG_FORMAT_INCOMPAT;
-		default_hdr.ro_compat_features = LOG_FORMAT_RO_COMPAT;
-	} else if (pcp->ptype == PMEM_POOL_TYPE_BLK) {
-		default_hdr.major = BLK_FORMAT_MAJOR;
-		default_hdr.compat_features = BLK_FORMAT_COMPAT;
-		default_hdr.incompat_features = BLK_FORMAT_INCOMPAT;
-		default_hdr.ro_compat_features = BLK_FORMAT_RO_COMPAT;
-	} else {
-		outv_err("Unsupported pool type '%s'",
-				out_get_pool_type_str(pcp->ptype));
-		return CHECK_RESULT_ERROR;
-	}
+	util_convert2le_pool_hdr(hdrp);
 
-	if (pcp->hdr.pool.major != default_hdr.major) {
-		outv(1, "pool_hdr.major is not valid\n");
-		if (ask_Yn(pcp->ans, "Do you want to set it to default value "
-				"0x%x?", default_hdr.major) == 'y') {
-			outv(1, "setting pool_hdr.major to 0x%x\n",
-					default_hdr.major);
-			pcp->hdr.pool.major = default_hdr.major;
+	if (ask_Yn(pcp->ans, "Do you want to regenerate checksum?")
+			== 'n')
+		return CHECK_RESULT_CANNOT_REPAIR;
+
+	util_checksum(hdrp, sizeof (*hdrp),
+				&hdrp->checksum, 1);
+	outv(1, "setting pool_hdr.checksum to: 0x%x\n",
+			le32toh(hdrp->checksum));
+
+	util_convert2h_pool_hdr(hdrp);
+
+	return CHECK_RESULT_REPAIRED;
+}
+
+/*
+ * pmempool_check_uuids_single -- check UUID values for a single pool file
+ */
+static check_result_t
+pmempool_check_uuids_single(struct pmempool_check *pcp, struct pool_hdr *hdrp)
+{
+	if (!pmempool_check_all_uuid_same(&hdrp->uuid, 5)) {
+		outv(1, "UUID values don't match\n");
+		int index = 0;
+		if (pmempool_check_get_max_same_uuid(&hdrp->uuid, 5, &index)) {
+			if (ask_Yn(pcp->ans, "Do you want to regenerate UUIDs?")
+				!= 'y') {
+				return CHECK_RESULT_CANNOT_REPAIR;
+			}
+
+			uuid_generate(hdrp->uuid);
+			outv(1, "setting UUIDs to: %s\n",
+				out_get_uuid_str(hdrp->uuid));
+			pmempool_check_set_all_uuids(&hdrp->uuid, 5, 0);
+
+			return CHECK_RESULT_REPAIRED;
+		} else {
+			if (ask_Yn(pcp->ans, "Do you want to set it"
+				" to valid value?") != 'y') {
+				return CHECK_RESULT_CANNOT_REPAIR;
+			}
+			unsigned char (*uuid_i)[POOL_HDR_UUID_LEN] =
+				&hdrp->uuid;
+			outv(2, "setting UUIDs to %s\n",
+				out_get_uuid_str(uuid_i[index]));
+			pmempool_check_set_all_uuids(&hdrp->uuid, 5, index);
+			return CHECK_RESULT_REPAIRED;
 		}
 	}
 
-	if (pcp->hdr.pool.compat_features != default_hdr.compat_features) {
-		outv(1, "pool_hdr.compat_features is not valid\n");
-		if (ask_Yn(pcp->ans, "Do you want to set it to default value "
-			"0x%x?", default_hdr.compat_features) == 'y') {
-			outv(1, "setting pool_hdr.compat_features to 0x%x\n",
-					default_hdr.compat_features);
-			pcp->hdr.pool.compat_features =
-					default_hdr.compat_features;
+	return CHECK_RESULT_CONSISTENT;
+}
+
+/*
+ * pmempool_check_uuids -- check UUID values for pool file
+ */
+static check_result_t
+pmempool_check_uuids(struct pmempool_check *pcp, struct pool_hdr *hdrp,
+		unsigned rid, unsigned nreplicas, unsigned pid, unsigned nparts)
+{
+	check_result_t ret = CHECK_RESULT_CONSISTENT;
+
+	unsigned nr = (rid + 1) % nreplicas;
+	unsigned pr = (rid - 1) % nreplicas;
+	unsigned np = (pid + 1) % nparts;
+	unsigned pp = (pid - 1) % nparts;
+
+	int single_part = np == pid && pp == pid;
+	int single_repl = nr == rid && pr == rid;
+
+	struct pool_replica *rep = pcp->pfile->poolset->replica[rid];
+	struct pool_replica *next_rep = pcp->pfile->poolset->replica[nr];
+	struct pool_replica *prev_rep = pcp->pfile->poolset->replica[pr];
+
+	struct pool_hdr *next_part_hdrp = rep->part[np].hdr;
+	struct pool_hdr *prev_part_hdrp = rep->part[pp].hdr;
+
+	struct pool_hdr *next_repl_hdrp = next_rep->part[0].hdr;
+	struct pool_hdr *prev_repl_hdrp = prev_rep->part[0].hdr;
+
+	int next_part_cs_valid = util_pool_hdr_valid(next_part_hdrp);
+	int prev_part_cs_valid = util_pool_hdr_valid(prev_part_hdrp);
+	int next_repl_cs_valid = util_pool_hdr_valid(next_repl_hdrp);
+	int prev_repl_cs_valid = util_pool_hdr_valid(prev_repl_hdrp);
+
+	int next_part_valid = !memcmp(hdrp->next_part_uuid,
+			next_part_hdrp->uuid, POOL_HDR_UUID_LEN);
+	int prev_part_valid = !memcmp(hdrp->prev_part_uuid,
+			prev_part_hdrp->uuid, POOL_HDR_UUID_LEN);
+
+	int next_repl_valid = !memcmp(hdrp->next_repl_uuid,
+			next_repl_hdrp->uuid, POOL_HDR_UUID_LEN);
+	int prev_repl_valid = !memcmp(hdrp->prev_repl_uuid,
+			prev_repl_hdrp->uuid, POOL_HDR_UUID_LEN);
+
+
+	if ((single_part || next_part_cs_valid) && !next_part_valid) {
+		outv(1, "invalid pool_hdr.next_part_uuid\n");
+		if (ask_Yn(pcp->ans,
+			"Do you want to set it to valid value?") == 'y') {
+			outv(2, "setting pool_hdr.next_part_uuid to %s\n",
+					out_get_uuid_str(next_part_hdrp->uuid));
+			memcpy(hdrp->next_part_uuid, next_part_hdrp->uuid,
+					POOL_HDR_UUID_LEN);
+			ret = CHECK_RESULT_REPAIRED;
+		} else {
+			return CHECK_RESULT_CANNOT_REPAIR;
 		}
 	}
 
-	if (pcp->hdr.pool.incompat_features != default_hdr.incompat_features) {
-		outv(1, "pool_hdr.incompat_features is not valid\n");
-		if (ask_Yn(pcp->ans, "Do you want to set it to default value "
-			"0x%x?", default_hdr.incompat_features) == 'y') {
-			outv(1, "setting pool_hdr.incompat_features to 0x%x\n",
-					default_hdr.incompat_features);
-			pcp->hdr.pool.incompat_features =
-					default_hdr.incompat_features;
+	if ((single_part || prev_part_cs_valid) && !prev_part_valid) {
+		outv(1, "invalid pool_hdr.prev_part_uuid\n");
+		if (ask_Yn(pcp->ans,
+			"Do you want to set it to valid value?") == 'y') {
+			outv(2, "setting pool_hdr.prev_part_uuid to %s\n",
+					out_get_uuid_str(prev_part_hdrp->uuid));
+			memcpy(hdrp->prev_part_uuid, prev_part_hdrp->uuid,
+					POOL_HDR_UUID_LEN);
+			ret = CHECK_RESULT_REPAIRED;
+		} else {
+			return CHECK_RESULT_CANNOT_REPAIR;
 		}
 	}
 
-	if (pcp->hdr.pool.ro_compat_features !=
-			default_hdr.ro_compat_features) {
-		outv(1, "pool_hdr.ro_compat_features is not valid\n");
-		if (ask_Yn(pcp->ans, "Do you want to set it to default value "
-			"0x%x?", default_hdr.ro_compat_features) == 'y') {
-			outv(1, "setting pool_hdr.ro_compat_features to 0x%x\n",
-					default_hdr.ro_compat_features);
-			pcp->hdr.pool.ro_compat_features =
-				default_hdr.ro_compat_features;
+	if ((single_repl || prev_repl_cs_valid) && !next_repl_valid) {
+		outv(1, "invalid pool_hdr.next_repl_uuid\n");
+		if (ask_Yn(pcp->ans,
+			"Do you want to set it to valid value?") == 'y') {
+			outv(2, "setting pool_hdr.next_repl_uuid to %s\n",
+					out_get_uuid_str(next_repl_hdrp->uuid));
+			memcpy(hdrp->next_repl_uuid, next_repl_hdrp->uuid,
+					POOL_HDR_UUID_LEN);
+			ret = CHECK_RESULT_REPAIRED;
+		} else {
+			return CHECK_RESULT_CANNOT_REPAIR;
 		}
 	}
 
-	if (util_check_memory(pcp->hdr.pool.unused,
-				sizeof (pcp->hdr.pool.unused), 0)) {
-		outv(1, "unused area is not filled by zeros\n");
-		if (ask_Yn(pcp->ans, "Do you want to fill it up?") == 'y') {
-			outv(1, "setting pool_hdr.unused to zeros\n");
-			memset(pcp->hdr.pool.unused, 0,
-					sizeof (pcp->hdr.pool.unused));
+	if ((single_repl || next_repl_cs_valid) && !prev_repl_valid) {
+		outv(1, "invalid pool_hdr.prev_repl_uuid\n");
+		if (ask_Yn(pcp->ans,
+			"Do you want to set it to valid value?") == 'y') {
+			outv(2, "setting pool_hdr.prev_repl_uuid to %s\n",
+					out_get_uuid_str(prev_repl_hdrp->uuid));
+			memcpy(hdrp->prev_repl_uuid, prev_repl_hdrp->uuid,
+					POOL_HDR_UUID_LEN);
+			ret = CHECK_RESULT_REPAIRED;
+		} else {
+			return CHECK_RESULT_CANNOT_REPAIR;
 		}
 	}
 
+	return ret;
+}
+
+/*
+ * pmempool_check_get_valid_part -- returns valid part replica and part ids
+ */
+static int
+pmempool_check_get_valid_part(struct pmempool_check *pcp,
+		unsigned rid, unsigned pid, unsigned *ridp, unsigned *pidp)
+{
+	for (unsigned r = 0; r < pcp->pfile->poolset->nreplicas; r++) {
+		struct pool_replica *rep = pcp->pfile->poolset->replica[r];
+		for (unsigned p = 0; p < rep->nparts; p++) {
+			if (r == rid && p == pid)
+				continue;
+
+			if (util_pool_hdr_valid(rep->part[p].hdr)) {
+				*ridp = r;
+				*pidp = p;
+				return 0;
+			}
+		}
+	}
+
+	return -1;
+}
+
+/*
+ * pmempool_check_poolset_uuid -- check/repair poolset_uuid field
+ */
+static check_result_t
+pmempool_check_poolset_uuid(struct pmempool_check *pcp, struct pool_hdr *hdrp,
+		unsigned r, unsigned p)
+{
 	/* for blk pool we can take the UUID from BTT Info header */
-	if (pcp->ptype == PMEM_POOL_TYPE_BLK &&
-		pcp->bttc.valid &&
-		memcmp(pcp->hdr.pool.poolset_uuid,
-			pcp->bttc.btt_info.parent_uuid,
+	if (pcp->params.type == PMEM_POOL_TYPE_BLK &&
+		pcp->bttc.valid) {
+		if (!memcmp(hdrp->poolset_uuid, pcp->bttc.btt_info.parent_uuid,
 				POOL_HDR_UUID_LEN)) {
-		outv(1, "UUID is not valid\n");
+			return CHECK_RESULT_CONSISTENT;
+		}
+
+		outv(1, "invalid pool_hdr.poolset_uuid\n");
 		if (ask_Yn(pcp->ans, "Do you want to set it to %s from "
 			"BTT Info?", out_get_uuid_str(
 				pcp->bttc.btt_info.parent_uuid)) == 'y') {
 			outv(1, "setting pool_hdr.poolset_uuid to %s\n",
 				out_get_uuid_str(
 				pcp->bttc.btt_info.parent_uuid));
-			memcpy(pcp->hdr.pool.poolset_uuid,
+			memcpy(hdrp->poolset_uuid,
 				pcp->bttc.btt_info.parent_uuid,
 				POOL_HDR_UUID_LEN);
 			pcp->uuid_op = UUID_FROM_BTT;
-		}
-	}
 
-	util_convert2le_pool_hdr(&pcp->hdr.pool);
-
-	if (!util_checksum(&pcp->hdr.pool, sizeof (pcp->hdr.pool),
-				&pcp->hdr.pool.checksum, 0)) {
-
-		util_convert2h_pool_hdr(&pcp->hdr.pool);
-
-		/*
-		 * Here we are sure all fields are valid except:
-		 * - crtime
-		 * - UUID
-		 * - checksum
-		 * These values are not crucial for consistency checking, so we
-		 * can regenerate these values and check consistency one more
-		 * time.
-		 *
-		 * Creation time should be less than file's modification time -
-		 * if it's not it is probably corrupted. We cannot determine
-		 * valid value but we can set this value to file's modification
-		 * time.
-		 *
-		 * The UUID may be either regenerated or restored from valid
-		 * BTT Info header in case of pmem blk pool.
-		 * The regenerated UUID must be propagated to all BTT Info
-		 * headers.
-		 *
-		 * Finally the checksum may be computed using fletcher64 and
-		 * stored in header.
-		 */
-		struct stat buff;
-		if (fstat(pcp->fd, &buff))
-			return CHECK_RESULT_ERROR;
-
-		if (pcp->hdr.pool.crtime > buff.st_mtime) {
-			outv(1, "pool_hdr.crtime is not valid\n");
-			if (ask_Yn(pcp->ans, "Do you want to set it to file's "
-				"modtime [%s]?", out_get_time_str(
-					buff.st_mtime)) == 'y') {
-				outv(1, "setting pool_hdr.crtime to file's "
-					"modtime: %s\n",
-					out_get_time_str(buff.st_mtime));
-				pcp->hdr.pool.crtime = buff.st_mtime;
-			} else {
-				return CHECK_RESULT_CANNOT_REPAIR;
-			}
-		}
-
-		if (pcp->uuid_op == UUID_NOP &&
-			ask_Yn(pcp->ans, "Do you want to regenerate UUID?")
-				== 'y') {
-			uuid_generate(pcp->hdr.pool.poolset_uuid);
-			outv(1, "setting pool_hdr.poolset_uuid to: %s\n",
-				out_get_uuid_str(pcp->hdr.pool.poolset_uuid));
-			pcp->uuid_op = UUID_REGENERATED;
+			return CHECK_RESULT_REPAIRED;
 		} else {
 			return CHECK_RESULT_CANNOT_REPAIR;
 		}
+	} else if (pcp->params.is_poolset) {
+		unsigned rid = 0;
+		unsigned pid = 0;
+		if (pmempool_check_get_valid_part(pcp, r, p, &rid, &pid))
+			return CHECK_RESULT_CANNOT_REPAIR;
+		struct pool_hdr *valid_hdrp =
+			pcp->pfile->poolset->replica[rid]->part[pid].hdr;
+		if (!memcmp(hdrp->poolset_uuid, valid_hdrp->poolset_uuid,
+					POOL_HDR_UUID_LEN))
+			return CHECK_RESULT_CONSISTENT;
 
-		util_convert2le_pool_hdr(&pcp->hdr.pool);
-
-		if (ask_Yn(pcp->ans, "Do you want to regenerate checksum?")
-				== 'n')
+		outv(1, "invalid pool_hdr.poolset_uuid\n");
+		if (ask_Yn(pcp->ans, "Do you want to set it to %s from valid"
+				"pool file part ?", out_get_uuid_str(
+				valid_hdrp->poolset_uuid)) != 'y')
 			return CHECK_RESULT_CANNOT_REPAIR;
 
-		util_checksum(&pcp->hdr.pool, sizeof (pcp->hdr.pool),
-					&pcp->hdr.pool.checksum, 1);
-		outv(1, "setting pool_hdr.checksum to: 0x%x\n",
-				le32toh(pcp->hdr.pool.checksum));
-
-		util_convert2h_pool_hdr(&pcp->hdr.pool);
+		outv(1, "setting pool_hdr.poolset_uuid to %s\n",
+			out_get_uuid_str(valid_hdrp->poolset_uuid));
+		memcpy(hdrp->poolset_uuid, valid_hdrp->poolset_uuid,
+				POOL_HDR_UUID_LEN);
 
 		return CHECK_RESULT_REPAIRED;
 	}
 
+	return CHECK_RESULT_CONSISTENT;
+}
+
+/*
+ * pmempool_check_pool_hdr_default -- check some default values in pool header
+ */
+static check_result_t
+pmempool_check_pool_hdr_default(struct pmempool_check *pcp,
+		struct pool_hdr *hdrp, struct pool_hdr *def_hdrp)
+{
+	int repaired = 0;
+	int cannot_repair = 0;
+	if (strncmp(hdrp->signature, def_hdrp->signature, POOL_HDR_SIG_LEN)) {
+		outv(1, "pool_hdr.signature is not valid\n");
+		if (ask_Yn(pcp->ans, "Do you want to set "
+			"pool_hdr.signature to %s?", def_hdrp->signature)
+				== 'y') {
+			outv(1, "setting pool_hdr.signature to %s\n",
+					def_hdrp->signature);
+			strncpy(hdrp->signature, def_hdrp->signature,
+					POOL_HDR_SIG_LEN);
+			repaired = 1;
+		} else {
+			cannot_repair = 1;
+		}
+	}
+
+	if (hdrp->major != def_hdrp->major) {
+		outv(1, "pool_hdr.major is not valid\n");
+		if (ask_Yn(pcp->ans, "Do you want to set it to default value "
+				"0x%x?", def_hdrp->major) == 'y') {
+			outv(1, "setting pool_hdr.major to 0x%x\n",
+					def_hdrp->major);
+			hdrp->major = def_hdrp->major;
+			repaired = 1;
+		} else {
+			cannot_repair = 1;
+		}
+	}
+
+	if (hdrp->compat_features != def_hdrp->compat_features) {
+		outv(1, "pool_hdr.compat_features is not valid\n");
+		if (ask_Yn(pcp->ans, "Do you want to set it to default value "
+			"0x%x?", def_hdrp->compat_features) == 'y') {
+			outv(1, "setting pool_hdr.compat_features to 0x%x\n",
+					def_hdrp->compat_features);
+			hdrp->compat_features =
+					def_hdrp->compat_features;
+			repaired = 1;
+		} else {
+			cannot_repair = 1;
+		}
+	}
+
+	if (hdrp->incompat_features != def_hdrp->incompat_features) {
+		outv(1, "pool_hdr.incompat_features is not valid\n");
+		if (ask_Yn(pcp->ans, "Do you want to set it to default value "
+			"0x%x?", def_hdrp->incompat_features) == 'y') {
+			outv(1, "setting pool_hdr.incompat_features to 0x%x\n",
+					def_hdrp->incompat_features);
+			hdrp->incompat_features =
+					def_hdrp->incompat_features;
+			repaired = 1;
+		} else {
+			cannot_repair = 1;
+		}
+	}
+
+	if (hdrp->ro_compat_features !=
+			def_hdrp->ro_compat_features) {
+		outv(1, "pool_hdr.ro_compat_features is not valid\n");
+		if (ask_Yn(pcp->ans, "Do you want to set it to default value "
+			"0x%x?", def_hdrp->ro_compat_features) == 'y') {
+			outv(1, "setting pool_hdr.ro_compat_features to 0x%x\n",
+					def_hdrp->ro_compat_features);
+			hdrp->ro_compat_features =
+				def_hdrp->ro_compat_features;
+			repaired = 1;
+		} else {
+			cannot_repair = 1;
+		}
+	}
+
+	if (util_check_memory(hdrp->unused,
+				sizeof (hdrp->unused), 0)) {
+		outv(1, "unused area is not filled by zeros\n");
+		if (ask_Yn(pcp->ans, "Do you want to fill it up?") == 'y') {
+			outv(1, "setting pool_hdr.unused to zeros\n");
+			memset(hdrp->unused, 0,
+					sizeof (hdrp->unused));
+			repaired = 1;
+		} else {
+			cannot_repair = 1;
+		}
+	}
+
+	if (cannot_repair)
+		return CHECK_RESULT_CANNOT_REPAIR;
+
+	if (repaired)
+		return CHECK_RESULT_REPAIRED;
+
+	return CHECK_RESULT_CONSISTENT;
+}
+
+/*
+ * pmempool_check_pool_hdr_single -- check pool header for single file
+ */
+static check_result_t
+pmempool_check_pool_hdr_single(struct pmempool_check *pcp,
+	unsigned rid, unsigned nreplicas, unsigned pid, unsigned nparts)
+{
+	outv(2, "checking pool header\n");
+	struct pool_hdr hdr;
+	struct pool_replica *rep = pcp->pfile->poolset->replica[rid];
+	struct pool_hdr *hdrp = rep->part[pid].hdr;
+	memcpy(&hdr, hdrp, sizeof (hdr));
+
+	int cs_valid = util_pool_hdr_valid(&hdr);
+
+	if (util_check_memory((void *)&hdr, sizeof (hdr), 0) == 0) {
+		if (!pcp->repair)
+			return CHECK_RESULT_NOT_CONSISTENT;
+	} else {
+		if (cs_valid) {
+			outv(2, "pool header checksum correct\n");
+			return CHECK_RESULT_CONSISTENT;
+		} else {
+			outv(1, "incorrect pool header checksum\n");
+			if (!pcp->repair)
+				return CHECK_RESULT_NOT_CONSISTENT;
+		}
+	}
+
+	assert(pcp->repair);
+
+	if (pcp->params.type == PMEM_POOL_TYPE_UNKNOWN) {
+		pcp->params.type = pmempool_check_possible_type(pcp);
+		if (pcp->params.type == PMEM_POOL_TYPE_UNKNOWN) {
+			outv(1, "cannot determine pool type\n");
+			return CHECK_RESULT_CANNOT_REPAIR;
+		}
+	}
+
+	if (!pmempool_check_supported(pcp->params.type)) {
+		outv_err("Unsupported pool type '%s'",
+				out_get_pool_type_str(pcp->params.type));
+		return CHECK_RESULT_CANNOT_REPAIR;
+	}
+
+	/*
+	 * Here we know the pool type and thus we can check
+	 * for some default values
+	 */
+
+	util_convert2h_pool_hdr(&hdr);
+	struct pool_hdr def_hdr;
+	pmem_default_pool_hdr(pcp->params.type, &def_hdr);
+
+	check_result_t ret;
+
+	ret = pmempool_check_pool_hdr_default(pcp, &hdr, &def_hdr);
+	if (ret == CHECK_RESULT_CANNOT_REPAIR)
+		return ret;
+
+	ret = pmempool_check_poolset_uuid(pcp, &hdr, rid, pid);
+	if (ret == CHECK_RESULT_CANNOT_REPAIR)
+		return ret;
+
+	if (nreplicas == 1 && nparts == 1) {
+		ret = pmempool_check_uuids_single(pcp, &hdr);
+		if (ret == CHECK_RESULT_CANNOT_REPAIR)
+			return ret;
+	} else {
+		ret = pmempool_check_uuids(pcp, &hdr,
+			rid, nreplicas, pid, nparts);
+		if (ret == CHECK_RESULT_CANNOT_REPAIR)
+			return ret;
+	}
+
+	util_convert2le_pool_hdr(&hdr);
+
+	cs_valid = util_pool_hdr_valid(&hdr);
+
+	if (cs_valid) {
+		goto out_repaired;
+	}
+
+	util_convert2h_pool_hdr(&hdr);
+
+	check_result_t ret_gen = pmempool_check_pool_hdr_gen(pcp, &hdr, 0);
+	if (ret_gen == CHECK_RESULT_REPAIRED)
+		goto out_repaired;
+
+	return ret_gen;
+
+out_repaired:
+	memcpy(hdrp, &hdr, sizeof (*hdrp));
+	msync(hdrp, sizeof (*hdrp), MS_SYNC);
 	return CHECK_RESULT_REPAIRED;
+}
+
+/*
+ * pmempool_check_count_files -- return total number of files in pool set
+ */
+static unsigned
+pmempool_check_count_files(struct pmempool_check *pcp)
+{
+	unsigned ret = 0;
+	unsigned nreplicas = pcp->pfile->poolset->nreplicas;
+	for (unsigned r = 0; r < nreplicas; r++) {
+		struct pool_replica *rep = pcp->pfile->poolset->replica[r];
+		ret += rep->nparts;
+	}
+
+	return ret;
+}
+
+/*
+ * pmempool_check_pool_hdr -- check/repair pool header of all files in pool set
+ */
+static check_result_t
+pmempool_check_pool_hdr(struct pmempool_check *pcp)
+{
+	int rdonly = !pcp->repair || !pcp->exec;
+	if (pool_set_file_map_headers(pcp->pfile, rdonly,
+			sizeof (struct pool_hdr))) {
+		outv_err("cannot map pool headers\n");
+		return CHECK_RESULT_ERROR;
+	}
+
+	int cannot_repair = 0;
+	int repaired = 0;
+	int not_consistent = 0;
+	check_result_t ret = CHECK_RESULT_CONSISTENT;
+	unsigned nreplicas = pcp->pfile->poolset->nreplicas;
+	unsigned nfiles = pmempool_check_count_files(pcp);
+	for (unsigned r = 0; r < nreplicas; r++) {
+		struct pool_replica *rep = pcp->pfile->poolset->replica[r];
+		for (unsigned p = 0; p < rep->nparts; p++) {
+			if (nfiles > 1) {
+				snprintf(prefix_buff, PREFIX_BUFF_SIZE,
+						"replica %u part %u",
+						r, p);
+				out_set_prefix(prefix_buff);
+			}
+			ret = pmempool_check_pool_hdr_single(pcp, r,
+					nreplicas, p, rep->nparts);
+			if (ret == CHECK_RESULT_CANNOT_REPAIR)
+				cannot_repair = 1;
+			else if (ret == CHECK_RESULT_REPAIRED)
+				repaired = 1;
+			else if (ret == CHECK_RESULT_NOT_CONSISTENT)
+				not_consistent = 1;
+		}
+	}
+
+	memcpy(&pcp->hdr.pool, pcp->pfile->poolset->replica[0]->part[0].hdr,
+			sizeof (struct pool_hdr));
+
+	out_set_prefix(NULL);
+	pool_set_file_unmap_headers(pcp->pfile);
+
+	if (cannot_repair)
+		return CHECK_RESULT_CANNOT_REPAIR;
+	if (repaired)
+		return CHECK_RESULT_REPAIRED;
+	if (not_consistent)
+		return CHECK_RESULT_NOT_CONSISTENT;
+
+	return ret;
 }
 
 /*
@@ -828,7 +1223,7 @@ pmempool_check_read_pmemlog(struct pmempool_check *pcp)
 	size_t size = sizeof (pcp->hdr.log) - sizeof (pcp->hdr.log.hdr);
 	off_t offset = sizeof (pcp->hdr.log.hdr);
 
-	if (pread(pcp->fd, ptr, size, offset) != size) {
+	if (pmempool_check_read(pcp, ptr, size, offset)) {
 		if (errno)
 			warn("%s", pcp->fname);
 		outv_err("cannot read pmemlog structure\n");
@@ -861,7 +1256,7 @@ pmempool_check_read_pmemblk(struct pmempool_check *pcp)
 	size_t size = sizeof (pcp->hdr.blk) - sizeof (pcp->hdr.blk.hdr);
 	off_t offset = sizeof (pcp->hdr.blk.hdr);
 
-	if (pread(pcp->fd, ptr, size, offset) != size) {
+	if (pmempool_check_read(pcp, ptr, size, offset)) {
 		if (errno)
 			warn("%s", pcp->fname);
 		outv_err("cannot read pmemblk structure\n");
@@ -889,12 +1284,6 @@ pmempool_check_pmemlog(struct pmempool_check *pcp)
 	const uint64_t d_start_offset =
 		roundup(sizeof (pcp->hdr.log),
 				LOG_FORMAT_DATA_ALIGN);
-	struct stat buff;
-	if (fstat(pcp->fd, &buff)) {
-		if (errno)
-			warn("%s", pcp->fname);
-		return CHECK_RESULT_ERROR;
-	}
 
 	check_result_t ret = CHECK_RESULT_CONSISTENT;
 
@@ -918,16 +1307,16 @@ pmempool_check_pmemlog(struct pmempool_check *pcp)
 		}
 	}
 
-	if (pcp->hdr.log.end_offset != buff.st_size) {
+	if (pcp->hdr.log.end_offset != pcp->pfile->size) {
 		outv(1, "invalid pmemlog.end_offset: 0x%x\n",
 			pcp->hdr.log.end_offset);
 		if (pcp->repair) {
 			if (ask_Yn(pcp->ans, "Do you want to set "
 				"pmemlog.end_offset to 0x%x?",
-				buff.st_size) == 'y') {
+				pcp->pfile->size) == 'y') {
 				outv(1, "setting pmemlog.end_offset to 0x%x\n",
-						buff.st_size);
-				pcp->hdr.log.end_offset = buff.st_size;
+						pcp->pfile->size);
+				pcp->hdr.log.end_offset = pcp->pfile->size;
 
 				ret = CHECK_RESULT_REPAIRED;
 			} else {
@@ -939,7 +1328,7 @@ pmempool_check_pmemlog(struct pmempool_check *pcp)
 	}
 
 	if (pcp->hdr.log.write_offset < d_start_offset ||
-	    pcp->hdr.log.write_offset > buff.st_size) {
+	    pcp->hdr.log.write_offset > pcp->pfile->size) {
 		outv(1, "invalid pmemlog.write_offset: 0x%x\n",
 			pcp->hdr.log.write_offset);
 		if (pcp->repair) {
@@ -948,7 +1337,7 @@ pmempool_check_pmemlog(struct pmempool_check *pcp)
 					== 'y') {
 				outv(1, "setting pmemlog.write_offset "
 						"to pmemlog.end_offset\n");
-				pcp->hdr.log.write_offset = buff.st_size;
+				pcp->hdr.log.write_offset = pcp->pfile->size;
 
 				ret = CHECK_RESULT_REPAIRED;
 			} else {
@@ -964,7 +1353,6 @@ pmempool_check_pmemlog(struct pmempool_check *pcp)
 
 	return ret;
 }
-
 
 /*
  * pmempool_check_pmemblk -- try to repair pmemblk header
@@ -1004,17 +1392,10 @@ pmempool_check_pmemblk(struct pmempool_check *pcp)
 			}
 		}
 	} else {
-		/* cannot find valid BTT Info */
-		struct stat buff;
-		if (fstat(pcp->fd, &buff)) {
-			if (errno)
-				warn("%s", pcp->fname);
-			return CHECK_RESULT_ERROR;
-		}
 
 		if (pcp->hdr.blk.bsize < BTT_MIN_LBA_SIZE ||
 			util_check_bsize(pcp->hdr.blk.bsize,
-				buff.st_size)) {
+				pcp->pfile->size)) {
 			outv(1, "invalid pmemblk.bsize\n");
 			return CHECK_RESULT_CANNOT_REPAIR;
 		}
@@ -1047,10 +1428,7 @@ pmempool_check_btt_info_advanced_repair(struct pmempool_check *pcp,
 {
 	bool eof = false;
 	if (!endoff) {
-		struct stat buff;
-		if (fstat(pcp->fd, &buff))
-			return -1;
-		endoff = buff.st_size;
+		endoff = pcp->pfile->size;
 		eof = true;
 	}
 
@@ -1058,15 +1436,11 @@ pmempool_check_btt_info_advanced_repair(struct pmempool_check *pcp,
 			startoff, endoff);
 	uint64_t rawsize = endoff - startoff;
 
-	int flags = pcp->repair && pcp->exec ? MAP_SHARED : MAP_PRIVATE;
-
 	/*
 	 * Map the whole requested area in private mode as we want to write
 	 * only BTT Info headers to file.
 	 */
-	void *addr = mmap(NULL, rawsize, PROT_READ|PROT_WRITE, flags,
-			pcp->fd, startoff);
-
+	void *addr = pool_set_file_map(pcp->pfile, startoff);
 	if (addr == MAP_FAILED) {
 		warn("%s", pcp->fname);
 		return -1;
@@ -1178,9 +1552,8 @@ pmempool_check_btt_info(struct pmempool_check *pcp)
 		offset += nextoff;
 
 		/* read the BTT Info header at well known offset */
-		if ((ret = pread(pcp->fd, &arenap->btt_info,
-			sizeof (arenap->btt_info), offset)) !=
-					sizeof (arenap->btt_info)) {
+		if ((ret = pmempool_check_read(pcp, &arenap->btt_info,
+			sizeof (arenap->btt_info), offset)) != 0) {
 			if (errno)
 				warn("%s", pcp->fname);
 			outv_err("arena %u: cannot read BTT Info header\n",
@@ -1198,7 +1571,8 @@ pmempool_check_btt_info(struct pmempool_check *pcp)
 				sizeof (arenap->btt_info), 0) == 0) {
 			outv(2, "BTT Layout not written\n");
 			free(arenap);
-			return CHECK_RESULT_CONSISTENT_BREAK;
+			pcp->blk_no_layout = 1;
+			return CHECK_RESULT_CONSISTENT;
 		}
 		/* check consistency of BTT Info */
 		int ret = pmempool_check_check_btt(&arenap->btt_info);
@@ -1365,15 +1739,10 @@ pmempool_check_write_flog(struct pmempool_check *pcp, struct arena *arenap)
 	}
 
 	int ret = 0;
-	if (pwrite(pcp->fd, arenap->flog, arenap->flogsize, flogoff) !=
-			arenap->flogsize) {
+	if (pmempool_check_write(pcp, arenap->flog,
+				arenap->flogsize, flogoff)) {
 		if (errno)
 			warn("%s", pcp->fname);
-		ret = -1;
-	}
-
-	if (fsync(pcp->fd)) {
-		warn("%s", pcp->fname);
 		ret = -1;
 	}
 
@@ -1400,8 +1769,7 @@ pmempool_check_read_flog(struct pmempool_check *pcp, struct arena *arenap)
 	if (!arenap->flog)
 		err(1, "Cannot allocate memory for FLOG entries");
 
-	if (pread(pcp->fd, arenap->flog, arenap->flogsize, flogoff)
-			!= arenap->flogsize) {
+	if (pmempool_check_read(pcp, arenap->flog, arenap->flogsize, flogoff)) {
 		if (errno)
 			warn("%s", pcp->fname);
 		outv_err("arena %u: cannot read BTT FLOG\n", arenap->id);
@@ -1441,15 +1809,9 @@ pmempool_check_write_map(struct pmempool_check *pcp, struct arena *arenap)
 		arenap->map[i] = htole32(arenap->map[i]);
 
 	int ret = 0;
-	if (pwrite(pcp->fd, arenap->map, arenap->mapsize, mapoff) !=
-			arenap->mapsize) {
+	if (pmempool_check_write(pcp, arenap->map, arenap->mapsize, mapoff)) {
 		if (errno)
 			warn("%s", pcp->fname);
-		ret = -1;
-	}
-
-	if (fsync(pcp->fd)) {
-		warn("%s", pcp->fname);
 		ret = -1;
 	}
 
@@ -1475,8 +1837,7 @@ pmempool_check_read_map(struct pmempool_check *pcp, struct arena *arenap)
 	if (!arenap->map)
 		err(1, "Cannot allocate memory for BTT map");
 
-	if (pread(pcp->fd, arenap->map, arenap->mapsize, mapoff) !=
-			arenap->mapsize) {
+	if (pmempool_check_read(pcp, arenap->map, arenap->mapsize, mapoff)) {
 		if (errno)
 			warn("%s", pcp->fname);
 		outv_err("arena %u: cannot read BTT map\n", arenap->id);
@@ -1497,7 +1858,7 @@ static check_result_t
 pmempool_check_arena_map_flog(struct pmempool_check *pcp,
 		struct arena *arenap)
 {
-	check_result_t ret = 0;
+	check_result_t ret = CHECK_RESULT_CONSISTENT;
 
 	/* read flog and map entries */
 	if (pmempool_check_read_flog(pcp, arenap))
@@ -1683,6 +2044,9 @@ out:
 static check_result_t
 pmempool_check_btt_map_flog(struct pmempool_check *pcp)
 {
+	if (pcp->blk_no_layout)
+		return CHECK_RESULT_CONSISTENT;
+
 	outv(2, "checking BTT map and flog\n");
 
 	check_result_t ret = CHECK_RESULT_ERROR;
@@ -1702,37 +2066,50 @@ pmempool_check_btt_map_flog(struct pmempool_check *pcp)
 }
 
 /*
+ * pmempool_check_write_pool_hdr -- write pool header
+ */
+static check_result_t
+pmempool_check_write_pool_hdr(struct pmempool_check *pcp)
+{
+	return CHECK_RESULT_CONSISTENT;
+	if (!pcp->repair || !pcp->exec)
+		return CHECK_RESULT_CONSISTENT;
+
+	if (pmempool_check_write(pcp, &pcp->hdr.pool,
+				sizeof (pcp->hdr.pool), 0)) {
+		if (errno)
+			warn("%s", pcp->fname);
+		outv_err("writing pool header failed\n");
+		return CHECK_RESULT_CANNOT_REPAIR;
+	}
+
+	return CHECK_RESULT_CONSISTENT;
+}
+
+/*
  * pmempool_check_write_log -- write all structures for log pool
  */
 static check_result_t
 pmempool_check_write_log(struct pmempool_check *pcp)
 {
 	if (!pcp->repair || !pcp->exec)
-		return 0;
+		return CHECK_RESULT_CONSISTENT;
 
 	/* endianness conversion */
 	pcp->hdr.log.start_offset = htole64(pcp->hdr.log.start_offset);
 	pcp->hdr.log.end_offset = htole64(pcp->hdr.log.end_offset);
 	pcp->hdr.log.write_offset = htole64(pcp->hdr.log.write_offset);
 
-	int ret = 0;
 
-	if (pwrite(pcp->fd, &pcp->hdr.log, sizeof (pcp->hdr.log), 0)
-		!= sizeof (pcp->hdr.log)) {
+	if (pmempool_check_write(pcp, &pcp->hdr.log,
+				sizeof (pcp->hdr.log), 0)) {
 		if (errno)
 			warn("%s", pcp->fname);
-		ret = -1;
-	}
-
-	if (fsync(pcp->fd)) {
-		warn("%s", pcp->fname);
-		ret = -1;
-	}
-
-	if (ret)
 		outv_err("writing pmemlog structure failed\n");
+		return CHECK_RESULT_CANNOT_REPAIR;
+	}
 
-	return ret;
+	return CHECK_RESULT_CONSISTENT;
 }
 
 /*
@@ -1742,18 +2119,17 @@ static check_result_t
 pmempool_check_write_blk(struct pmempool_check *pcp)
 {
 	if (!pcp->repair || !pcp->exec)
-		return 0;
+		return CHECK_RESULT_CONSISTENT;
 
 	/* endianness conversion */
 	pcp->hdr.blk.bsize = htole32(pcp->hdr.blk.bsize);
 
-	if (pwrite(pcp->fd, &pcp->hdr.blk,
-		sizeof (pcp->hdr.blk), 0)
-		!= sizeof (pcp->hdr.blk)) {
+	if (pmempool_check_write(pcp, &pcp->hdr.blk,
+		sizeof (pcp->hdr.blk), 0)) {
 		if (errno)
 			warn("%s", pcp->fname);
 		outv_err("writing pmemblk structure failed\n");
-		return -1;
+		return CHECK_RESULT_CANNOT_REPAIR;
 	}
 
 	struct arena *arenap;
@@ -1771,20 +2147,18 @@ pmempool_check_write_blk(struct pmempool_check *pcp)
 					&arenap->btt_info.checksum, 1);
 		}
 
-		if (pwrite(pcp->fd, &arenap->btt_info,
-			sizeof (arenap->btt_info), arenap->offset) !=
-			sizeof (arenap->btt_info)) {
+		if (pmempool_check_write(pcp, &arenap->btt_info,
+			sizeof (arenap->btt_info), arenap->offset)) {
 			if (errno)
 				warn("%s", pcp->fname);
 			outv_err("arena %u: writing BTT Info failed\n",
 				arenap->id);
-			return -1;
+			return CHECK_RESULT_CANNOT_REPAIR;
 		}
 
-		if (pwrite(pcp->fd, &arenap->btt_info,
+		if (pmempool_check_write(pcp, &arenap->btt_info,
 			sizeof (arenap->btt_info), arenap->offset +
-				le64toh(arenap->btt_info.infooff)) !=
-			sizeof (arenap->btt_info)) {
+				le64toh(arenap->btt_info.infooff))) {
 			if (errno)
 				warn("%s", pcp->fname);
 			outv_err("arena %u: writing BTT Info backup failed\n",
@@ -1792,18 +2166,13 @@ pmempool_check_write_blk(struct pmempool_check *pcp)
 		}
 
 		if (pmempool_check_write_flog(pcp, arenap))
-			return -1;
+			return CHECK_RESULT_CANNOT_REPAIR;
 
 		if (pmempool_check_write_map(pcp, arenap))
-			return -1;
+			return CHECK_RESULT_CANNOT_REPAIR;
 	}
 
-	if (fsync(pcp->fd)) {
-		warn("%s", pcp->fname);
-		return -1;
-	}
-
-	return 0;
+	return CHECK_RESULT_CONSISTENT;
 }
 /*
  * pmempool_check_steps -- check steps
@@ -1814,30 +2183,43 @@ static const struct pmempool_check_step pmempool_check_steps[] = {
 				| PMEM_POOL_TYPE_LOG
 				| PMEM_POOL_TYPE_UNKNOWN,
 		.func	= pmempool_check_pool_hdr,
+		.part	= true,
 	},
 	{
 		.type	= PMEM_POOL_TYPE_LOG,
 		.func	= pmempool_check_pmemlog,
+		.part	= false,
 	},
 	{
 		.type	= PMEM_POOL_TYPE_BLK,
 		.func	= pmempool_check_pmemblk,
+		.part	= false,
 	},
 	{
 		.type	= PMEM_POOL_TYPE_BLK,
 		.func	= pmempool_check_btt_info,
+		.part	= false,
 	},
 	{
 		.type	= PMEM_POOL_TYPE_BLK,
 		.func	= pmempool_check_btt_map_flog,
+		.part	= false,
+	},
+	{
+		.type	= PMEM_POOL_TYPE_LOG |
+				PMEM_POOL_TYPE_BLK,
+		.func	= pmempool_check_write_pool_hdr,
+		.part	= true,
 	},
 	{
 		.type	= PMEM_POOL_TYPE_LOG,
 		.func	= pmempool_check_write_log,
+		.part	= false,
 	},
 	{
 		.type	= PMEM_POOL_TYPE_BLK,
 		.func	= pmempool_check_write_blk,
+		.part	= false,
 	},
 	{
 		.func	= NULL,
@@ -1857,7 +2239,10 @@ pmempool_check_single_step(struct pmempool_check *pcp,
 	if (step->func == NULL)
 		return 1;
 
-	if (!(step->type & pcp->ptype))
+	if (!(step->type & pcp->params.type))
+		return 0;
+
+	if (pcp->params.is_part && !step->part)
 		return 0;
 
 	check_result_t ret = step->func(pcp);
@@ -1875,7 +2260,6 @@ pmempool_check_single_step(struct pmempool_check *pcp,
 		 * and we don't want to repair
 		 */
 		return !pcp->repair;
-	case CHECK_RESULT_CONSISTENT_BREAK:
 	case CHECK_RESULT_CANNOT_REPAIR:
 	case CHECK_RESULT_ERROR:
 		*resp = ret;
@@ -1898,19 +2282,10 @@ pmempool_check_all_steps(struct pmempool_check *pcp)
 		}
 	}
 
-	int flags = pcp->repair ? O_RDWR : O_RDONLY;
-	pcp->fd = util_file_open(pcp->fname, NULL, 0, flags);
-	if (pcp->fd < 0) {
-		warn("%s", pcp->fname);
-		return -1;
-	}
-
 	check_result_t ret = CHECK_RESULT_CONSISTENT;
 	int i = 0;
 	while (!pmempool_check_single_step(pcp,
 			&pmempool_check_steps[i++], &ret));
-
-	close(pcp->fd);
 
 	return ret;
 }
@@ -1934,27 +2309,31 @@ pmempool_check_func(char *appname, int argc, char *argv[])
 	/* set verbosity level */
 	out_set_vlevel(pc.verbose);
 
-	struct pmem_pool_params params;
-	if (pmem_pool_parse_params(pc.fname, &params, 0)) {
+	if (pmem_pool_parse_params(pc.fname, &pc.params, 0)) {
 		perror(pc.fname);
 		return -1;
 	}
-
-	pc.ptype = params.type;
 
 	/*
 	 * The PMEM_POOL_TYPE_NONE means no such file or
 	 * cannot read file so it doesn't make any sense
 	 * to call pmem*_check().
 	 */
-	if (pc.ptype == PMEM_POOL_TYPE_NONE) {
+	if (pc.params.type == PMEM_POOL_TYPE_NONE) {
 		warn("%s", pc.fname);
 		ret = -1;
 	} else {
+		int rdonly = !(pc.repair && pc.exec);
+		pc.pfile = pool_set_file_open(pc.fname, rdonly, 0);
+		if (!pc.pfile) {
+			perror(pc.fname);
+			return -1;
+		}
 		res = pmempool_check_all_steps(&pc);
+
+		pool_set_file_close(pc.pfile);
 		switch (res) {
 		case CHECK_RESULT_CONSISTENT:
-		case CHECK_RESULT_CONSISTENT_BREAK:
 			outv(2, "%s: consistent\n", pc.fname);
 			ret = 0;
 			break;

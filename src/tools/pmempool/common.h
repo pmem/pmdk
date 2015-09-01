@@ -153,6 +153,7 @@ struct pool_set_file {
 	struct pool_set *poolset;
 	size_t replica;
 	time_t mtime;
+	mode_t mode;
 };
 
 struct pool_set_file *pool_set_file_open(const char *fname,
@@ -164,6 +165,9 @@ int pool_set_file_write(struct pool_set_file *file, void *buff,
 		size_t nbytes, off_t off);
 int pool_set_file_set_replica(struct pool_set_file *file, size_t replica);
 void *pool_set_file_map(struct pool_set_file *file, off_t offset);
+int pool_set_file_map_headers(struct pool_set_file *file,
+		int rdonly, size_t hdrsize);
+void pool_set_file_unmap_headers(struct pool_set_file *file);
 
 struct range {
 	LIST_ENTRY(range) next;
@@ -182,6 +186,8 @@ uint64_t pmem_pool_get_min_size(pmem_pool_type_t type);
 size_t pmem_pool_get_hdr_size(pmem_pool_type_t type);
 int pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp,
 		int check);
+void pmem_default_pool_hdr(pmem_pool_type_t type, struct pool_hdr *hdrp);
+int pmem_pool_is_pool_set_part(const struct pool_hdr *hdrp);
 int util_poolset_map(const char *fname, struct pool_set **poolset, int rdonly);
 struct options *util_options_alloc(const struct option *options,
 		size_t nopts, const struct option_requirement *req);
@@ -190,6 +196,7 @@ int util_options_verify(const struct options *opts, pmem_pool_type_t type);
 int util_options_getopt(int argc, char *argv[], const char *optstr,
 		const struct options *opts);
 int util_validate_checksum(void *addr, size_t len, uint64_t *csum);
+int util_pool_hdr_valid(struct pool_hdr *hdrp);
 int util_parse_size(const char *str, uint64_t *sizep);
 int util_parse_mode(const char *str, mode_t *mode);
 int util_parse_ranges(const char *str, struct ranges *rangesp,
