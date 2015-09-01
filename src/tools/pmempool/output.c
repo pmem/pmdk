@@ -140,10 +140,7 @@ void
 out_err(const char *file, int line, const char *func,
 	const char *fmt, ...)
 {
-	va_list ap;
-	va_start(ap, fmt);
-	outv_err_vargs(fmt, ap);
-	va_end(ap);
+	/* stub */
 }
 
 
