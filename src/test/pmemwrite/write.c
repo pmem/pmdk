@@ -176,6 +176,7 @@ int
 main(int argc, char *argv[])
 {
 	int opt;
+	util_init();
 	char *appname = basename(argv[0]);
 
 	while ((opt = getopt(argc, argv, "h")) != -1) {
