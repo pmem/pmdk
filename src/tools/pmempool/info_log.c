@@ -56,10 +56,8 @@ info_log_data(struct pmem_info *pip, int v, struct pmemlog *plp)
 	if (size_used == 0)
 		return 0;
 
-	uint8_t *addr;
-	if ((addr = mmap(NULL, size_used, PROT_READ|PROT_WRITE,
-		MAP_PRIVATE|MAP_NORESERVE, pip->fd, plp->start_offset))
-			== MAP_FAILED) {
+	uint8_t *addr = pool_set_file_map(pip->pfile, plp->start_offset);
+	if (addr == MAP_FAILED) {
 		warn("%s", pip->file_name);
 		outv_err("cannot read pmem log data\n");
 		return -1;

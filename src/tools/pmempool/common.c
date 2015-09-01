@@ -589,14 +589,17 @@ util_poolset_map(const char *fname, struct pool_set **poolset, int rdonly)
 		goto err_close_part;
 	}
 
+	close(fdp);
+	util_poolset_free(set);
+	close(fd);
+
 	util_convert2h_pool_hdr(&hdr);
 
 	/* parse pool type from first pool set file */
 	pmem_pool_type_t type = pmem_pool_type_parse_hdr(&hdr);
 	if (type == PMEM_POOL_TYPE_UNKNOWN) {
 		outv_err("cannot determine pool type from poolset\n");
-		ret = -1;
-		goto err_close_part;
+		return -1;
 	}
 
 	/* get minimum size based on pool type for util_pool_open */
@@ -616,8 +619,10 @@ util_poolset_map(const char *fname, struct pool_set **poolset, int rdonly)
 			hdr.incompat_features,
 			hdr.ro_compat_features)) {
 		outv_err("openning poolset failed\n");
-		ret = -1;
+		return -1;
 	}
+
+	return 0;
 err_close_part:
 	close(fdp);
 err_pool_set:
