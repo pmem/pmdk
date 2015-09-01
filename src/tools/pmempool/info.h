@@ -60,7 +60,7 @@
  * pmempool_info_args -- structure for storing command line arguments
  */
 struct pmempool_info_args {
-	char *file;		/* table of input files */
+	char *file;		/* input file */
 	unsigned int col_width;	/* column width for printing fields */
 	bool human;		/* sizes in human-readable formats */
 	bool force;		/* force parsing pool */
@@ -142,7 +142,7 @@ struct pmem_obj_stats {
  */
 struct pmem_info {
 	const char *file_name;	/* current file name */
-	int fd;			/* file descriptor */
+	struct pool_set_file *pfile;
 	struct pmempool_info_args args;	/* arguments parsed from command line */
 	struct options *opts;
 	struct pool_set *poolset;
