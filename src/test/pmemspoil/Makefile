@@ -38,7 +38,7 @@ CSTYLE = ../../../utils/cstyle
 
 TARGET = pmemspoil
 
-OBJS = common.o output.o util.o spoil.o set.o
+OBJS = common.o output.o util.o set.o spoil.o
 
 LIBPMEM=y
 
