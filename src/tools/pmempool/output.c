@@ -551,6 +551,24 @@ out_get_pool_type_str(pmem_pool_type_t type)
 }
 
 /*
+ * out_get_pool_signature -- return signature of specified pool type
+ */
+const char *
+out_get_pool_signature(pmem_pool_type_t type)
+{
+	switch (type) {
+	case PMEM_POOL_TYPE_LOG:
+		return LOG_HDR_SIG;
+	case PMEM_POOL_TYPE_BLK:
+		return BLK_HDR_SIG;
+	case PMEM_POOL_TYPE_OBJ:
+		return OBJ_HDR_SIG;
+	default:
+		return NULL;
+	}
+}
+
+/*
  * out_get_lane_section_str -- get lane section type string
  */
 const char *

@@ -62,6 +62,7 @@ const char *out_get_percentage(double percentage);
 const char *out_get_checksum(void *addr, size_t len, uint64_t *csump);
 const char *out_get_btt_map_entry(uint32_t map);
 const char *out_get_pool_type_str(pmem_pool_type_t type);
+const char *out_get_pool_signature(pmem_pool_type_t type);
 const char *out_get_lane_section_str(enum lane_section_type type);
 const char *out_get_tx_state_str(enum tx_state state);
 const char *out_get_chunk_type_str(enum chunk_type type);
