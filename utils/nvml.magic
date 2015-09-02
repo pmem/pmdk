@@ -7,6 +7,8 @@
 #
 # PMEM signature
 0	string			PMEM
+>4	string			POOLSET		Persistent Memory Poolset file
+>>11	search			REPLICA		with replica
 # Pool type signature
 >4	regex			LOG|BLK|OBJ	Persistent Memory Pool file, type: %s,
 # Major version number

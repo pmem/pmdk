@@ -38,7 +38,6 @@ export UNITTEST_NUM=0
 
 . ../unittest/unittest.sh
 
-require_fs_type pmem
 require_build_type nondebug
 
 setup
@@ -58,6 +57,14 @@ expect_normal_exit file -m $MAGIC $POOL >> $LOG
 
 rm -rf $POOL
 expect_normal_exit $PMEMPOOL create obj $POOL
+expect_normal_exit file -m $MAGIC $POOL >> $LOG
+
+rm -rf $POOL
+create_poolset $POOL 32M:file.part1:x 32M:file.part2:x
+expect_normal_exit file -m $MAGIC $POOL >> $LOG
+
+rm -rf $POOL
+create_poolset $POOL 32M:file.part1:x 32M:file.part2:x R 32M:file.rep1:x 32M:file.rep2:x
 expect_normal_exit file -m $MAGIC $POOL >> $LOG
 
 check
