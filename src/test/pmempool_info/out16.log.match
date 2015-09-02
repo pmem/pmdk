@@ -62,7 +62,7 @@ Heap offset              : $(*)
 Heap size                : $(*)
 Checksum                 : $(*) [OK]
 DIFF
-8,12c8,12
+$(nW)
 < UUID                     : $(*)
 < Previous part UUID       : $(*)
 < Next part UUID           : $(*)
@@ -74,7 +74,3 @@ DIFF
 > Next part UUID           : $(*)
 > Previous replica UUID    : $(*)
 > Next replica UUID        : $(*)
-14c14
-< Checksum                 : $(*) [OK]
----
-> Checksum                 : $(*) [OK]
