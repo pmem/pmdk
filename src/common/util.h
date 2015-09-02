@@ -42,10 +42,10 @@ typedef void (*Free_func)(void *ptr);
 typedef void *(*Realloc_func)(void *ptr, size_t size);
 typedef char *(*Strdup_func)(const char *s);
 
-Malloc_func Malloc;
-Free_func Free;
-Realloc_func Realloc;
-Strdup_func Strdup;
+extern Malloc_func Malloc;
+extern Free_func Free;
+extern Realloc_func Realloc;
+extern Strdup_func Strdup;
 
 void util_set_alloc_funcs(
 		void *(*malloc_func)(size_t size),
