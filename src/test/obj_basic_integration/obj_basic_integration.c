@@ -276,9 +276,12 @@ test_list_api(PMEMobjpool *pop)
 	ASSERTeq(pmemobj_type_num(root.oid), POBJ_ROOT_TYPE_NUM);
 	ASSERTeq(TOID_TYPE_NUM_OF(root), POBJ_ROOT_TYPE_NUM);
 
+	TOID(struct dummy_node) first;
 	TOID(struct dummy_node) iter;
+
 	POBJ_LIST_FOREACH_REVERSE(iter, &D_RO(root)->dummies, plist) {
-		OUT("dummy_node %d", D_RO(iter)->value);
+		OUT("POBJ_LIST_FOREACH_REVERSE: dummy_node %d",
+					D_RO(iter)->value);
 		nodes_count++;
 	}
 
@@ -304,6 +307,7 @@ test_list_api(PMEMobjpool *pop)
 	POBJ_LIST_INSERT_NEW_HEAD(pop, &D_RW(root)->dummies, plist,
 			sizeof (struct dummy_node), dummy_node_constructor,
 			&test_val);
+	test_val++;
 	POBJ_LIST_INSERT_NEW_TAIL(pop, &D_RW(root)->dummies, plist,
 			sizeof (struct dummy_node), dummy_node_constructor,
 			&test_val);
@@ -316,10 +320,21 @@ test_list_api(PMEMobjpool *pop)
 	nodes_count = 0;
 
 	POBJ_LIST_FOREACH(iter, &D_RO(root)->dummies, plist) {
-		OUT("dummy_node %d", D_RO(iter)->value);
+		OUT("POBJ_LIST_FOREACH: dummy_node %d", D_RO(iter)->value);
 		nodes_count++;
 	}
 
+	ASSERTeq(nodes_count, 3);
+
+	/* now do the same, but w/o using FOREACH macro */
+	nodes_count = 0;
+	first = POBJ_LIST_FIRST(&D_RO(root)->dummies);
+	iter = first;
+	do {
+		OUT("POBJ_LIST_NEXT: dummy_node %d", D_RO(iter)->value);
+		nodes_count++;
+		iter = POBJ_LIST_NEXT(iter, plist);
+	} while (!TOID_EQUALS(iter, first));
 	ASSERTeq(nodes_count, 3);
 
 	POBJ_LIST_MOVE_ELEMENT_HEAD(pop, &D_RW(root)->dummies,
@@ -344,16 +359,30 @@ test_list_api(PMEMobjpool *pop)
 
 	nodes_count = 0;
 	POBJ_LIST_FOREACH_REVERSE(iter, &D_RO(root)->dummies, plist) {
-		OUT("reverse dummy_node %d", D_RO(iter)->value);
+		OUT("POBJ_LIST_FOREACH_REVERSE: dummy_node %d",
+					D_RO(iter)->value);
 		nodes_count++;
 	}
 	ASSERTeq(nodes_count, 2);
 
+	/* now do the same, but w/o using FOREACH macro */
+	nodes_count = 0;
+	first = POBJ_LIST_FIRST(&D_RO(root)->dummies);
+	iter = first;
+	do {
+		OUT("POBJ_LIST_PREV: dummy_node %d", D_RO(iter)->value);
+		nodes_count++;
+		iter = POBJ_LIST_PREV(iter, plist);
+	} while (!TOID_EQUALS(iter, first));
+	ASSERTeq(nodes_count, 2);
+
+	test_val++;
 	POBJ_LIST_INSERT_NEW_AFTER(pop, &D_RW(root)->dummies,
 		POBJ_LIST_FIRST(&D_RO(root)->dummies), plist,
 		sizeof (struct dummy_node), dummy_node_constructor,
 		&test_val);
 
+	test_val++;
 	POBJ_LIST_INSERT_NEW_BEFORE(pop, &D_RW(root)->dummies,
 		POBJ_LIST_LAST(&D_RO(root)->dummies, plist), plist,
 		sizeof (struct dummy_node), dummy_node_constructor,
@@ -361,9 +390,21 @@ test_list_api(PMEMobjpool *pop)
 
 	nodes_count = 0;
 	POBJ_LIST_FOREACH_REVERSE(iter, &D_RO(root)->dummies, plist) {
-		OUT("reverse dummy_node %d", D_RO(iter)->value);
+		OUT("POBJ_LIST_FOREACH_REVERSE: dummy_node %d",
+					D_RO(iter)->value);
 		nodes_count++;
 	}
+	ASSERTeq(nodes_count, 4);
+
+	/* now do the same, but w/o using FOREACH macro */
+	nodes_count = 0;
+	first = POBJ_LIST_LAST(&D_RO(root)->dummies, plist);
+	iter = first;
+	do {
+		OUT("POBJ_LIST_PREV: dummy_node %d", D_RO(iter)->value);
+		nodes_count++;
+		iter = POBJ_LIST_PREV(iter, plist);
+	} while (!TOID_EQUALS(iter, first));
 	ASSERTeq(nodes_count, 4);
 }
 
