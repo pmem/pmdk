@@ -147,6 +147,7 @@ struct pmem_info {
 	struct options *opts;
 	struct pool_set *poolset;
 	pmem_pool_type_t type;
+	struct pmem_pool_params params;
 	struct {
 		struct pmem_blk_stats stats;
 	} blk;

@@ -643,7 +643,7 @@ pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp,
 	struct stat stat_buf;
 	paramsp->type = PMEM_POOL_TYPE_NONE;
 
-	int is_poolset = pmem_pool_check_pool_set(fname) == 0;
+	paramsp->is_poolset = pmem_pool_check_pool_set(fname) == 0;
 	int fd = util_file_open(fname, NULL, 0, O_RDONLY);
 	if (fd < 0)
 		return -1;
@@ -660,7 +660,7 @@ pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp,
 
 	void *addr = NULL;
 	struct pool_set *set = NULL;
-	if (is_poolset) {
+	if (paramsp->is_poolset) {
 		/* close the file */
 		close(fd);
 		fd = -1;
@@ -690,6 +690,15 @@ pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp,
 
 	util_convert2h_pool_hdr(&hdr);
 
+	/*
+	 * Check if file is a part of pool set by comparing
+	 * the UUID with the next part UUID. If it is the same
+	 * it means the pool consist of a single file.
+	 */
+	paramsp->is_part = !paramsp->is_poolset &&
+		memcmp(hdr.uuid, hdr.next_part_uuid,
+			POOL_HDR_UUID_LEN);
+
 	paramsp->type = pmem_pool_type_parse_hdr(&hdr);
 
 	if (paramsp->type == PMEM_POOL_TYPE_BLK) {
@@ -702,7 +711,7 @@ pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp,
 		memcpy(paramsp->obj.layout, pop.layout, PMEMOBJ_MAX_LAYOUT);
 	}
 
-	if (is_poolset)
+	if (paramsp->is_poolset)
 		util_poolset_close(set, 0);
 	else
 		munmap(addr, stat_buf.st_size);

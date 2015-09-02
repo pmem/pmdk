@@ -133,6 +133,8 @@ struct pmem_pool_params {
 	pmem_pool_type_t type;
 	uint64_t size;
 	mode_t mode;
+	int is_poolset;
+	int is_part;
 	union {
 		struct {
 			uint64_t bsize;

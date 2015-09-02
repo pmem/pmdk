@@ -568,8 +568,10 @@ pmempool_info_pool_hdr(struct pmem_info *pip, int v)
 
 	util_convert2h_pool_hdr(hdr);
 
-	outv_field(v, "Signature", "%.*s", POOL_HDR_SIG_LEN,
-			hdr->signature);
+	outv_field(v, "Signature", "%.*s%s", POOL_HDR_SIG_LEN,
+			hdr->signature,
+			pip->params.is_part ?
+			" [part file]" : "");
 	outv_field(v, "Major", "%d", hdr->major);
 	outv_field(v, "Mandatory features", "0x%x", hdr->incompat_features);
 	outv_field(v, "Not mandatory features", "0x%x", hdr->compat_features);
@@ -613,14 +615,13 @@ pmempool_info_file(struct pmem_info *pip, const char *file_name)
 	if (pip->args.force) {
 		pip->type = pip->args.type;
 	} else {
-		struct pmem_pool_params params;
-		if (pmem_pool_parse_params(file_name, &params, 1)) {
+		if (pmem_pool_parse_params(file_name, &pip->params, 1)) {
 			outv_err("%s: cannot determine type of pool\n",
 					file_name);
 			return -1;
 		}
 
-		pip->type = params.type;
+		pip->type = pip->params.type;
 	}
 
 	if (PMEM_POOL_TYPE_UNKNOWN == pip->type) {
@@ -650,7 +651,12 @@ pmempool_info_file(struct pmem_info *pip, const char *file_name)
 
 		if (pmempool_info_pool_hdr(pip, VERBOSE_DEFAULT)) {
 			ret = -1;
-			goto err_close;
+			goto out_close;
+		}
+
+		if (pip->params.is_part) {
+			ret = 0;
+			goto out_close;
 		}
 
 		switch (pip->type) {
@@ -669,7 +675,7 @@ pmempool_info_file(struct pmem_info *pip, const char *file_name)
 			break;
 		}
 	}
-err_close:
+out_close:
 	pool_set_file_close(pip->pfile);
 
 	return ret;
