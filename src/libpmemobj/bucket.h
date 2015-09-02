@@ -46,6 +46,7 @@ size_t bucket_unit_max(struct bucket *b);
 int bucket_insert_block(struct bucket *b, struct memory_block m);
 int bucket_get_rm_block_bestfit(struct bucket *b, struct memory_block *m);
 int bucket_get_rm_block_exact(struct bucket *b, struct memory_block m);
+int bucket_get_block_exact(struct bucket *b, struct memory_block m);
 int bucket_lock(struct bucket *b);
 int bucket_is_empty(struct bucket *b);
 int bucket_bitmap_nval(struct bucket *b);

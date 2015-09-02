@@ -1478,7 +1478,7 @@ pmemobj_tx_free(PMEMoid oid)
  * lane_transaction_construct -- create transaction lane section
  */
 static int
-lane_transaction_construct(struct lane_section *section)
+lane_transaction_construct(PMEMobjpool *pop, struct lane_section *section)
 {
 	section->runtime = Malloc(sizeof (struct lane_tx_runtime));
 	if (section->runtime == NULL)
@@ -1492,7 +1492,7 @@ lane_transaction_construct(struct lane_section *section)
  * lane_transaction_destruct -- destroy transaction lane section
  */
 static int
-lane_transaction_destruct(struct lane_section *section)
+lane_transaction_destruct(PMEMobjpool *pop, struct lane_section *section)
 {
 	Free(section->runtime);
 

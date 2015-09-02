@@ -64,7 +64,7 @@ enum alloc_op_redo {
 /*
  * alloc_write_header -- (internal) creates allocation header
  */
-void
+static void
 alloc_write_header(PMEMobjpool *pop, struct allocation_header *alloc,
 	uint32_t chunk_id, uint32_t zone_id, uint64_t size)
 {
@@ -79,7 +79,7 @@ alloc_write_header(PMEMobjpool *pop, struct allocation_header *alloc,
 /*
  * alloc_get_header -- (internal) calculates the address of allocation header
  */
-struct allocation_header *
+static struct allocation_header *
 alloc_get_header(PMEMobjpool *pop, uint64_t off)
 {
 	void *ptr = (void *)pop + off;
@@ -134,6 +134,60 @@ get_mblock_from_alloc(PMEMobjpool *pop, struct bucket *b,
 }
 
 /*
+ * persist_alloc -- (internal) performs a persistent allocation of the
+ *	memory block previously reserved by volatile bucket
+ */
+static int
+persist_alloc(PMEMobjpool *pop, struct lane_section *lane,
+	struct memory_block m, uint64_t real_size, uint64_t *off,
+	void (*constructor)(PMEMobjpool *pop, void *ptr, void *arg),
+	void *arg, uint64_t data_off)
+{
+	int err;
+
+#ifdef DEBUG
+	if (heap_block_is_allocated(pop, m)) {
+		ERR("heap corruption");
+		ASSERT(0);
+	}
+#endif /* DEBUG */
+
+	uint64_t op_result = 0;
+
+	void *block_data = heap_get_block_data(pop, m);
+	void *datap = block_data + sizeof (struct allocation_header);
+
+	ASSERT((uint64_t)block_data % _POBJ_CL_ALIGNMENT == 0);
+
+	alloc_write_header(pop, block_data, m.chunk_id, m.zone_id, real_size);
+
+	if (constructor != NULL)
+		constructor(pop, datap + data_off, arg);
+
+	if ((err = heap_lock_if_run(pop, m)) != 0)
+		return err;
+
+	void *hdr = heap_get_block_header(pop, m, HEAP_OP_ALLOC, &op_result);
+
+	struct allocator_lane_section *sec =
+		(struct allocator_lane_section *)lane->layout;
+
+	redo_log_store(pop, sec->redo, ALLOC_OP_REDO_PTR_OFFSET,
+		pop_offset(pop, off), pop_offset(pop, datap));
+	redo_log_store_last(pop, sec->redo, ALLOC_OP_REDO_HEADER,
+		pop_offset(pop, hdr), op_result);
+
+	redo_log_process(pop, sec->redo, MAX_ALLOC_OP_REDO);
+
+	if (heap_unlock_if_run(pop, m) != 0) {
+		ERR("Failed to release run lock");
+		ASSERT(0);
+	}
+
+	return err;
+}
+
+/*
  * pmalloc -- allocates a new block of memory
  *
  * The pool offset is written persistently into the off variable.
@@ -159,78 +213,59 @@ pmalloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
 	void (*constructor)(PMEMobjpool *pop, void *ptr, void *arg),
 	void *arg, uint64_t data_off)
 {
+	int err = 0;
+
+	struct lane_section *lane;
+	if ((err = lane_hold(pop, &lane, LANE_SECTION_ALLOCATOR)) != 0)
+		return err;
+
 	size_t sizeh = size + sizeof (struct allocation_header);
 
 	struct bucket *b = heap_get_best_bucket(pop, sizeh);
 
-	int err = 0;
-	uint32_t units = bucket_calc_units(b, sizeh);
+	struct memory_block m = {0, 0, 0, 0};
 
-	struct memory_block m = {0, 0, units, 0};
+	m.size_idx = bucket_calc_units(b, sizeh);
 
-	if ((err = heap_get_bestfit_block(pop, b, &m)) != 0)
-		return err;
+	err = heap_get_bestfit_block(pop, b, &m);
 
-#ifdef DEBUG
-	if (heap_block_is_allocated(pop, m)) {
-		ERR("heap corruption");
-		ASSERT(0);
+	if (err == ENOMEM && !bucket_is_small(b))
+		goto out; /* there's only one huge bucket */
+
+	if (err == ENOMEM) {
+		/*
+		 * There's no more available memory in the common heap and in
+		 * this lane cache, fallback to the auxiliary (shared) bucket.
+		 */
+		b = heap_get_auxiliary_bucket(pop, sizeh);
+		err = heap_get_bestfit_block(pop, b, &m);
 	}
-#endif /* DEBUG */
 
-	uint64_t op_result = 0;
+	if (err == ENOMEM) {
+		/*
+		 * The auxiliary bucket cannot satisfy our request, borrow
+		 * memory from other caches.
+		 */
+		heap_drain_to_auxiliary(pop, b, m.size_idx);
+		err = heap_get_bestfit_block(pop, b, &m);
+	}
 
-	void *block_data = heap_get_block_data(pop, m);
-	void *datap = block_data + sizeof (struct allocation_header);
+	if (err == ENOMEM) {
+		/* we are completely out of memory */
+		goto out;
+	}
 
-	ASSERT((uint64_t)block_data % _POBJ_CL_ALIGNMENT == 0);
+	/*
+	 * Now that the memory is reserved we can go ahead with making the
+	 * allocation persistent.
+	 */
+	uint64_t real_size = bucket_unit_size(b) * m.size_idx;
+	err = persist_alloc(pop, lane, m, real_size, off,
+		constructor, arg, data_off);
 
-	uint64_t real_size = bucket_unit_size(b) * units;
-
-	alloc_write_header(pop, block_data, m.chunk_id, m.zone_id, real_size);
-
-	if (constructor != NULL)
-		constructor(pop, datap + data_off, arg);
-
-	if ((err = heap_lock_if_run(pop, m)) != 0)
-		return err;
-
-	void *hdr = heap_get_block_header(pop, m, HEAP_OP_ALLOC, &op_result);
-
-	struct lane_section *lane;
-	if ((err = lane_hold(pop, &lane, LANE_SECTION_ALLOCATOR)) != 0)
-		goto err_lane_hold;
-
-	struct allocator_lane_section *sec =
-		(struct allocator_lane_section *)lane->layout;
-
-	redo_log_store(pop, sec->redo, ALLOC_OP_REDO_PTR_OFFSET,
-		pop_offset(pop, off), pop_offset(pop, datap));
-	redo_log_store_last(pop, sec->redo, ALLOC_OP_REDO_HEADER,
-		pop_offset(pop, hdr), op_result);
-
-	redo_log_process(pop, sec->redo, MAX_ALLOC_OP_REDO);
-
+out:
 	if (lane_release(pop) != 0) {
 		ERR("Failed to release the lane");
-		ASSERT(0);
-	}
-
-	if (heap_unlock_if_run(pop, m) != 0) {
-		ERR("Failed to release run lock");
-		ASSERT(0);
-	}
-
-	return 0;
-
-err_lane_hold:
-	if (heap_unlock_if_run(pop, m) != 0) {
-		ERR("Failed to release run lock");
-		ASSERT(0);
-	}
-
-	if (bucket_insert_block(b, m) != 0) {
-		ERR("Failed to recover heap volatile state");
 		ASSERT(0);
 	}
 
@@ -271,6 +306,11 @@ prealloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
 	int err = 0;
 
 	struct allocation_header *alloc = alloc_get_header(pop, *off);
+
+	struct lane_section *lane;
+	if ((err = lane_hold(pop, &lane, LANE_SECTION_ALLOCATOR)) != 0)
+		return err;
+
 	struct bucket *b = heap_get_best_bucket(pop, alloc->size);
 
 	uint32_t add_size_idx = bucket_calc_units(b, sizeh - alloc->size);
@@ -280,20 +320,20 @@ prealloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
 	struct memory_block cnt = get_mblock_from_alloc(pop, b, alloc);
 
 	if ((err = heap_lock_if_run(pop, cnt)) != 0)
-		return err;
+		goto out_lane;
 
 	struct memory_block next = {0};
 	if ((err = heap_get_adjacent_free_block(pop, &next, cnt, 0)) != 0)
-		goto error;
+		goto out;
 
 	if (next.size_idx < add_size_idx) {
 		err = ENOMEM;
-		goto error;
+		goto out;
 	}
 
 	if ((err = heap_get_exact_block(pop, b, &next,
 		add_size_idx)) != 0)
-		goto error;
+		goto out;
 
 	struct memory_block *blocks[2] = {&cnt, &next};
 	uint64_t op_result;
@@ -306,10 +346,6 @@ prealloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
 	if (constructor != NULL)
 		constructor(pop, datap + data_off, arg);
 
-	struct lane_section *lane;
-	if ((err = lane_hold(pop, &lane, LANE_SECTION_ALLOCATOR)) != 0)
-		goto error;
-
 	struct allocator_lane_section *sec =
 		(struct allocator_lane_section *)lane->layout;
 
@@ -320,21 +356,15 @@ prealloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
 
 	redo_log_process(pop, sec->redo, MAX_ALLOC_OP_REDO);
 
+out:
+	if (heap_unlock_if_run(pop, cnt) != 0) {
+		ERR("Failed to release run lock");
+		ASSERT(0);
+	}
+
+out_lane:
 	if (lane_release(pop) != 0) {
 		ERR("Failed to release the lane");
-		ASSERT(0);
-	}
-
-	if (heap_unlock_if_run(pop, cnt) != 0) {
-		ERR("Failed to release run lock");
-		ASSERT(0);
-	}
-
-	return 0;
-
-error:
-	if (heap_unlock_if_run(pop, cnt) != 0) {
-		ERR("Failed to release run lock");
 		ASSERT(0);
 	}
 
@@ -363,9 +393,13 @@ pfree(PMEMobjpool *pop, uint64_t *off)
 {
 	struct allocation_header *alloc = alloc_get_header(pop, *off);
 
-	struct bucket *b = heap_get_best_bucket(pop, alloc->size);
-
 	int err = 0;
+
+	struct lane_section *lane;
+	if ((err = lane_hold(pop, &lane, LANE_SECTION_ALLOCATOR)) != 0)
+		return err;
+
+	struct bucket *b = heap_get_best_bucket(pop, alloc->size);
 
 	struct memory_block m = get_mblock_from_alloc(pop, b, alloc);
 
@@ -377,15 +411,11 @@ pfree(PMEMobjpool *pop, uint64_t *off)
 #endif /* DEBUG */
 
 	if ((err = heap_lock_if_run(pop, m)) != 0)
-		return err;
+		goto out;
 
 	uint64_t op_result;
 	void *hdr;
 	struct memory_block res = heap_free_block(pop, b, m, &hdr, &op_result);
-
-	struct lane_section *lane;
-	if ((err = lane_hold(pop, &lane, LANE_SECTION_ALLOCATOR)) != 0)
-		goto error_lane_hold;
 
 	struct allocator_lane_section *sec =
 		(struct allocator_lane_section *)lane->layout;
@@ -397,17 +427,11 @@ pfree(PMEMobjpool *pop, uint64_t *off)
 
 	redo_log_process(pop, sec->redo, MAX_ALLOC_OP_REDO);
 
-	if (lane_release(pop) != 0) {
-		ERR("Failed to release the lane");
-		ASSERT(0);
-	}
-
 	/*
 	 * There's no point in rolling back redo log changes because the
 	 * volatile errors don't break the persistent state.
 	 */
-	if (bucket_insert_block(b, res)
-		!= 0) {
+	if (bucket_insert_block(b, res) != 0) {
 		ERR("Failed to update the heap volatile state");
 		ASSERT(0);
 	}
@@ -422,11 +446,9 @@ pfree(PMEMobjpool *pop, uint64_t *off)
 		ASSERT(0);
 	}
 
-	return 0;
-
-error_lane_hold:
-	if (heap_unlock_if_run(pop, m) != 0) {
-		ERR("Failed to release run lock");
+out:
+	if (lane_release(pop) != 0) {
+		ERR("Failed to release the lane");
 		ASSERT(0);
 	}
 
@@ -437,10 +459,8 @@ error_lane_hold:
  * lane_allocator_construct -- create allocator lane section
  */
 static int
-lane_allocator_construct(struct lane_section *section)
+lane_allocator_construct(PMEMobjpool *pop, struct lane_section *section)
 {
-	/* no-op */
-
 	return 0;
 }
 
@@ -448,10 +468,8 @@ lane_allocator_construct(struct lane_section *section)
  * lane_allocator_destruct -- destroy allocator lane section
  */
 static int
-lane_allocator_destruct(struct lane_section *section)
+lane_allocator_destruct(PMEMobjpool *pop, struct lane_section *section)
 {
-	/* no-op */
-
 	return 0;
 }
 

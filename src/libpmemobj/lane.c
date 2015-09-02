@@ -54,7 +54,7 @@
 #include "obj.h"
 #include "valgrind_internal.h"
 
-static __thread int lane_idx = -1;
+__thread int lane_idx = -1;
 static int next_lane_idx = 0;
 
 struct section_operations *section_ops[MAX_LANE_SECTION];
@@ -73,7 +73,7 @@ lane_get_layout(PMEMobjpool *pop, int lane_idx)
  * lane_init -- (internal) initializes a single lane runtime variables
  */
 static int
-lane_init(struct lane *lane, struct lane_layout *layout)
+lane_init(PMEMobjpool *pop, struct lane *lane, struct lane_layout *layout)
 {
 	ASSERTne(lane, NULL);
 
@@ -112,8 +112,8 @@ lane_init(struct lane *lane, struct lane_layout *layout)
 	for (i = 0; i < MAX_LANE_SECTION; ++i) {
 		lane->sections[i].runtime = NULL;
 		lane->sections[i].layout = &layout->sections[i];
-		if ((err =
-			section_ops[i]->construct(&lane->sections[i])) != 0) {
+		err = section_ops[i]->construct(pop, &lane->sections[i]);
+		if (err != 0) {
 			ERR("!lane_construct_ops %d", i);
 			goto error_section_construct;
 		}
@@ -123,7 +123,7 @@ lane_init(struct lane *lane, struct lane_layout *layout)
 
 error_section_construct:
 	for (i = i - 1; i >= 0; --i)
-		if (section_ops[i]->destruct(&lane->sections[i]) != 0)
+		if (section_ops[i]->destruct(pop, &lane->sections[i]) != 0)
 			ERR("!lane_destruct_ops %d", i);
 error_lock_attr_destroy:
 	if (pthread_mutex_destroy(lane->lock) != 0)
@@ -142,13 +142,15 @@ error_lock_malloc:
  * lane_destroy -- cleanups a single lane runtime variables
  */
 static int
-lane_destroy(struct lane *lane)
+lane_destroy(PMEMobjpool *pop, struct lane *lane)
 {
 	int err = 0;
 
-	for (int i = 0; i < MAX_LANE_SECTION; ++i)
-		if ((err = section_ops[i]->destruct(&lane->sections[i])) != 0)
+	for (int i = 0; i < MAX_LANE_SECTION; ++i) {
+		err = section_ops[i]->destruct(pop, &lane->sections[i]);
+		if (err != 0)
 			ERR("!lane_destruct_ops %d", i);
+	}
 
 	if ((err = pthread_mutex_destroy(lane->lock)) != 0)
 		ERR("!pthread_mutex_destroy");
@@ -183,7 +185,7 @@ lane_boot(PMEMobjpool *pop)
 	for (i = 0; i < pop->nlanes; ++i) {
 		struct lane_layout *layout = lane_get_layout(pop, i);
 
-		if ((err = lane_init(&pop->lanes[i], layout)) != 0) {
+		if ((err = lane_init(pop, &pop->lanes[i], layout)) != 0) {
 			ERR("!lane_init");
 			goto error_lane_init;
 		}
@@ -193,7 +195,7 @@ lane_boot(PMEMobjpool *pop)
 
 error_lane_init:
 	for (i = i - 1; i >= 0; --i)
-		if (lane_destroy(&pop->lanes[i]) != 0)
+		if (lane_destroy(pop, &pop->lanes[i]) != 0)
 			ERR("!lane_destroy");
 	Free(pop->lanes);
 	pop->lanes = NULL;
@@ -213,7 +215,7 @@ lane_cleanup(PMEMobjpool *pop)
 	int err = 0;
 
 	for (int i = 0; i < pop->nlanes; ++i)
-		if ((err = lane_destroy(&pop->lanes[i])) != 0)
+		if ((err = lane_destroy(pop, &pop->lanes[i])) != 0)
 			ERR("!lane_destroy");
 
 	Free(pop->lanes);

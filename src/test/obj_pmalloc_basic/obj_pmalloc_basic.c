@@ -184,10 +184,10 @@ test_mock_pool_allocs()
 	mock_pop->flush = obj_flush;
 	mock_pop->drain = obj_drain;
 
-	lane_boot(mock_pop);
-
 	heap_init(mock_pop);
 	heap_boot(mock_pop);
+
+	lane_boot(mock_pop);
 
 	ASSERTne(mock_pop->heap, NULL);
 

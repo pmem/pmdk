@@ -31,19 +31,14 @@
 #
 
 #
-# src/test/obj_heap/Makefile -- build heap unit test
+# src/test/obj_pmalloc_oom_mt/Makefile -- build obj_pmalloc_oom_mt test
 #
-vpath %.c ../../libpmemobj
-vpath %.c ../../common
-
-TARGET = obj_heap
-OBJS = obj_heap.o heap.o util.o bucket.o ctree.o out.o lane.o
+TARGET = obj_pmalloc_oom_mt
+OBJS = obj_pmalloc_oom_mt.o
 
 LIBPMEM=y
-
-out.o: CFLAGS += -DSRCVERSION=\"utversion\"
+LIBPMEMOBJ=y
 
 include ../Makefile.inc
 
-LDFLAGS += $(call extract_funcs, obj_heap.c)
-INCS += -I../../libpmemobj/ -I../../common/
+obj_pmalloc_oom_mt.o: obj_pmalloc_oom_mt.c

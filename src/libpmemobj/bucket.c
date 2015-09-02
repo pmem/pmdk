@@ -258,6 +258,21 @@ bucket_get_rm_block_exact(struct bucket *b, struct memory_block m)
 }
 
 /*
+ * bucket_get_block_exact -- finds exact match memory block
+ */
+int
+bucket_get_block_exact(struct bucket *b, struct memory_block m)
+{
+	uint64_t key = CHUNK_KEY_PACK(m.zone_id, m.chunk_id, m.block_off,
+			m.size_idx);
+
+	if (ctree_find(b->tree, key) != key)
+		return ENOMEM;
+
+	return 0;
+}
+
+/*
  * bucket_is_empty -- checks whether the bucket is empty
  */
 int
