@@ -862,12 +862,13 @@ err:
  */
 static int
 util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
-	const char *sig, uint32_t major, uint32_t compat, uint32_t incompat,
-	uint32_t ro_compat)
+	size_t hdrsize, const char *sig, uint32_t major, uint32_t compat,
+	uint32_t incompat, uint32_t ro_compat)
 {
-	LOG(3, "set %p repidx %u partidx %u sig %s major %u "
+	LOG(3, "set %p repidx %u partidx %u hdrsize %zu sig %s major %u "
 		"compat %#x incompat %#x ro_comapt %#x",
-		set, repidx, partidx, sig, major, compat, incompat, ro_compat);
+		set, repidx, partidx, hdrsize,
+		sig, major, compat, incompat, ro_compat);
 
 	struct pool_replica *rep = set->replica[repidx];
 
@@ -880,6 +881,14 @@ util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 		errno = EINVAL;
 		return -1;
 	}
+
+	/*
+	 * Zero out the pool descriptor - just in case we fail right after
+	 * header checksum is stored.
+	 */
+	void *descp = (void *)((uintptr_t)hdrp + sizeof (*hdrp));
+	memset(descp, 0, hdrsize - sizeof (*hdrp));
+	pmem_msync(descp, hdrsize - sizeof (*hdrp));
 
 	/* create pool's header */
 	strncpy(hdrp->signature, sig, POOL_HDR_SIG_LEN);
@@ -1060,7 +1069,7 @@ util_replica_create(struct pool_set *set, unsigned repidx, int flags,
 
 	/* create headers, set UUID's */
 	for (unsigned p = 0; p < rep->nparts; p++) {
-		if (util_header_create(set, repidx, p, sig, major,
+		if (util_header_create(set, repidx, p, hdrsize, sig, major,
 				compat, incompat, ro_compat) != 0) {
 			LOG(2, "header creation failed - part #%d", p);
 			goto err;
