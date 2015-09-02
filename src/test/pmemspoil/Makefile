@@ -48,9 +48,3 @@ CFLAGS += -I../../libpmemblk
 CFLAGS += -I../../libpmemobj
 
 include ../../tools/Makefile.inc
-
-check:
-
-pcheck:
-
-.PHONY: check pcheck

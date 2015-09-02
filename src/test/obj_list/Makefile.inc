@@ -1,4 +1,5 @@
-# Copyright (c) 2014-2015, Intel Corporation
+#
+# Copyright (c) 2015, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -28,18 +29,14 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# Makefile -- Makefile for pmemalloc tool
+
+#
+# src/test/obj_list/Makefile.inc -- build obj_list* unittest
 #
 
-CSTYLE = ../../../utils/cstyle
+../obj_list/obj_list:
+	$(MAKE) -C ../obj_list all
 
-TARGET = pmemalloc
+all: ../obj_list/obj_list
 
-OBJS = pmemalloc.o
-
-LIBPMEM=y
-LIBPMEMOBJ=y
-
-CFLAGS += -I../../libpmemobj
-
-include ../../tools/Makefile.inc
+include ../Makefile.inc

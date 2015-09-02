@@ -34,4 +34,4 @@
 # src/test/obj_list_move_oob/Makefile -- build obj_list_move_oob unittest
 #
 
-include ../Makefile.inc
+include ../obj_list/Makefile.inc

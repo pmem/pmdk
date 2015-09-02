@@ -61,9 +61,7 @@ clobber: clean
 	$(RM) $(TARGET)
 	$(RM) -r .deps
 
-check:
-
-pcheck:
+test check pcheck: all
 
 .PHONY: all test check clean clobber cstyle pcheck
 

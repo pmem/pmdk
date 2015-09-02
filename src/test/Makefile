@@ -35,6 +35,14 @@
 #
 # Makefile -- build all unit tests
 #
+
+TEST_DEPS = \
+       unittest\
+       pmemspoil\
+       pmemwrite\
+       pmemalloc\
+       obj_list
+
 TEST = blk_nblock\
        blk_non_zero\
        blk_pool\
@@ -100,9 +108,6 @@ TEST = blk_nblock\
        vmmalloc_realloc\
        vmmalloc_valgrind\
        vmmalloc_valloc\
-       pmemspoil\
-       pmemwrite\
-       pmemalloc\
        pmempool_check\
        pmempool_info\
        pmempool_dump\
@@ -119,7 +124,6 @@ TEST = blk_nblock\
        obj_sync\
        obj_direct\
        obj_cuckoo\
-       obj_list\
        obj_list_insert\
        obj_list_insert_new\
        obj_list_remove\
@@ -170,19 +174,18 @@ TEST_TIME = 3m
 all test cstyle: $(TEST)
 
 clean clobber: $(TEST)
-	$(MAKE) -C unittest $@
 
-$(TEST): unittest
+$(TEST_DEPS):
 	$(MAKE) -C $@ $(TARGET)
 
-unittest:
+$(TEST): $(TEST_DEPS)
 	$(MAKE) -C $@ $(TARGET)
 
-check:
+check: test
 	@./RUNTESTS -b $(TEST_BUILD) -t $(TEST_TYPE) -f $(TEST_FS) -o $(TEST_TIME)
 	@echo "No failures."
 
 pcheck: $(TEST)
 	@echo "No failures."
 
-.PHONY: all check clean clobber cstyle pcheck test unittest $(TEST)
+.PHONY: all check clean clobber cstyle pcheck test unittest $(TEST) $(TEST_DEPS)

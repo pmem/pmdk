@@ -39,7 +39,8 @@
 
 LIBS_DIR=../..
 
-LIBS = ../unittest/libut.a
+UT = ../unittest/libut.a
+LIBS = $(UT)
 LIBS += -L$(LIBS_DIR)/debug
 LIBS += -luuid -pthread
 
@@ -109,13 +110,16 @@ endif
 
 all: $(TARGET) $(TARGET_STATIC_DEBUG) $(TARGET_STATIC_NONDEBUG)
 
-$(TARGET_STATIC_DEBUG): $(OBJS) $(STATIC_DEBUG_LIBS) $(EXTRA_DEPS)
+$(UT):
+	$(MAKE) -C ../unittest
+
+$(TARGET_STATIC_DEBUG): $(OBJS) $(UT) $(STATIC_DEBUG_LIBS) $(EXTRA_DEPS)
 	$(CC) -o $@ $(LDFLAGS) $(OBJS) $(STATIC_DEBUG_LIBS) $(LIBS)
 
-$(TARGET_STATIC_NONDEBUG): $(OBJS) $(STATIC_NONDEBUG_LIBS) $(EXTRA_DEPS)
+$(TARGET_STATIC_NONDEBUG): $(OBJS) $(UT) $(STATIC_NONDEBUG_LIBS) $(EXTRA_DEPS)
 	$(CC) -o $@ $(LDFLAGS) $(OBJS) $(STATIC_NONDEBUG_LIBS) $(LIBS)
 
-$(TARGET): $(OBJS) $(EXTRA_DEPS)
+$(TARGET): $(OBJS) $(UT) $(EXTRA_DEPS)
 	$(CC) -o $@ $(LDFLAGS) $(OBJS) $(DYNAMIC_LIBS) $(LIBS)
 
 .c.o:
@@ -141,14 +145,37 @@ endif
 TST=$(shell basename `pwd`)
 TSTCHECKS=$(shell ls -1 TEST* | sort -V)
 
-$(TSTCHECKS):
+$(TSTCHECKS): all
 	@cd .. && ./RUNTESTS ${TST} -b $(TEST_BUILD) -t $(TEST_TYPE) -f $(TEST_FS) -o $(TEST_TIME) -s $@
 
 check: all
 	@cd .. && ./RUNTESTS ${TST} -b $(TEST_BUILD) -t $(TEST_TYPE) -f $(TEST_FS) -o $(TEST_TIME)
 
-pcheck: all $(TSTCHECKS)
+pcheck: $(TSTCHECKS)
 
-.PHONY: all check clean clobber cstyle pcheck $(TSTCHECKS)
+test: all
+
+../pmemspoil/pmemspoil:
+	$(MAKE) -C ../pmemspoil all
+
+ifeq ($(USE_PMEMSPOIL), y)
+all: ../pmemspoil/pmemspoil
+endif
+
+../pmemwrite/pmemwrite:
+	$(MAKE) -C ../pmemwrite all
+
+ifeq ($(USE_PMEMWRITE), y)
+all: ../pmemwrite/pmemwrite
+endif
+
+../pmemalloc/pmemalloc:
+	$(MAKE) -C ../pmemalloc all
+
+ifeq ($(USE_PMEMALLOC), y)
+all: ../pmemalloc/pmemalloc
+endif
+
+.PHONY: all check clean clobber cstyle pcheck test $(TSTCHECKS)
 
 -include .deps/*.P

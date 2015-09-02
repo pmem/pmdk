@@ -33,4 +33,6 @@
 #
 # src/test/pmempool_check/Makefile -- build pmempool check unittest
 #
+USE_PMEMSPOIL=y
+
 include ../Makefile.inc
