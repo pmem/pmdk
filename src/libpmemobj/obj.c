@@ -61,6 +61,7 @@
 #include "valgrind_internal.h"
 
 static struct cuckoo *pools;
+int _pobj_cache_invalidate;
 __thread struct _pobj_pcache _pobj_cached_pool;
 
 /*
@@ -778,6 +779,8 @@ pmemobj_close(PMEMobjpool *pop)
 {
 	LOG(3, "pop %p", pop);
 
+	_pobj_cache_invalidate++;
+
 	if (cuckoo_remove(pools, pop->uuid_lo) != pop) {
 		ERR("!cuckoo_remove");
 	}
@@ -843,7 +846,6 @@ pmemobj_pool(PMEMoid oid)
 {
 	return cuckoo_get(pools, oid.pool_uuid_lo);
 }
-
 
 /* arguments for constructor_alloc_bytype */
 struct carg_bytype {

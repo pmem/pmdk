@@ -43,6 +43,27 @@
 #define	MAX_PATH_LEN 255
 #define	LAYOUT_NAME "direct"
 
+pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
+int flag = 1;
+
+PMEMoid thread_oid;
+
+void *
+test_worker(void *arg)
+{
+	/* before pool is closed */
+	ASSERTne(pmemobj_direct(thread_oid), NULL);
+
+	flag = 0;
+	pthread_mutex_lock(&lock);
+	/* after pool is closed */
+	ASSERTeq(pmemobj_direct(thread_oid), NULL);
+
+	pthread_mutex_unlock(&lock);
+
+	return NULL;
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -85,16 +106,31 @@ main(int argc, char *argv[])
 		ASSERTeq(r, 0);
 	}
 
+	r = pmemobj_alloc(pops[0], &thread_oid, 100, 2, NULL, NULL);
+	ASSERTeq(r, 0);
+	ASSERTne(pmemobj_direct(thread_oid), NULL);
+
+	pthread_mutex_lock(&lock);
+
+	pthread_t t;
+	pthread_create(&t, NULL, test_worker, NULL);
+
+	/* wait for the thread to perform the first direct */
+	while (flag)
+		;
+
 	for (int i = 0; i < npools; ++i) {
 		ASSERTne(pmemobj_direct(tmpoids[i]), NULL);
 
 		pmemobj_free(&tmpoids[i]);
 
 		ASSERTeq(pmemobj_direct(tmpoids[i]), NULL);
-
 		pmemobj_close(pops[i]);
 		ASSERTeq(pmemobj_direct(oids[i]), NULL);
 	}
+	pthread_mutex_unlock(&lock);
+
+	pthread_join(t, NULL);
 
 	DONE(NULL);
 }
