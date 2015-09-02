@@ -49,6 +49,7 @@ print_errors(const char *msg)
 	OUT("PMEMOBJ: %s", pmemobj_errormsg());
 	OUT("PMEMLOG: %s", pmemlog_errormsg());
 	OUT("PMEMBLK: %s", pmemblk_errormsg());
+	OUT("VMEM: %s", vmem_errormsg());
 }
 
 static void
@@ -85,6 +86,13 @@ check_errors(int ver)
 	ASSERTeq(ret, 2);
 	ASSERTeq(err_need, ver);
 	ASSERTeq(err_found, PMEMBLK_MAJOR_VERSION);
+
+	ret = sscanf(vmem_errormsg(),
+		"libvmem major version mismatch (need %d, found %d)",
+		&err_need, &err_found);
+	ASSERTeq(ret, 2);
+	ASSERTeq(err_need, ver);
+	ASSERTeq(err_found, VMEM_MAJOR_VERSION);
 }
 
 static void *
@@ -96,6 +104,7 @@ do_test(void *arg)
 	pmemobj_check_version(ver, 0);
 	pmemlog_check_version(ver, 0);
 	pmemblk_check_version(ver, 0);
+	vmem_check_version(ver, 0);
 	check_errors(ver);
 
 	return NULL;
@@ -121,8 +130,8 @@ main(int argc, char *argv[])
 {
 	START(argc, argv, "out_err_mt");
 
-	if (argc != 4)
-		FATAL("usage: %s filename1 filename2 filename3", argv[0]);
+	if (argc != 5)
+		FATAL("usage: %s filename1 filename2 filename3 dir", argv[0]);
 
 	PMEMobjpool *pop = pmemobj_create(argv[1], "test",
 		PMEMOBJ_MIN_POOL, 0666);
@@ -130,11 +139,13 @@ main(int argc, char *argv[])
 		PMEMLOG_MIN_POOL, 0666);
 	PMEMblkpool *pbp = pmemblk_create(argv[3],
 		128, PMEMBLK_MIN_POOL, 0666);
+	VMEM *vmp = vmem_create(argv[4], VMEM_MIN_POOL);
 
 	pmem_check_version(10000, 0);
 	pmemobj_check_version(10001, 0);
 	pmemlog_check_version(10002, 0);
 	pmemblk_check_version(10003, 0);
+	vmem_check_version(10004, 0);
 	print_errors("version check");
 
 	void *ptr = NULL;
@@ -151,11 +162,16 @@ main(int argc, char *argv[])
 	pmemblk_set_error(pbp, nblock + 1);
 	print_errors("pmemblk_set_error");
 
+	VMEM *vmp2 = vmem_create_in_region(NULL, 1);
+	ASSERTeq(vmp2, NULL);
+	print_errors("vmem_create_in_region");
+
 	run_mt_test(do_test);
 
 	pmemobj_close(pop);
 	pmemlog_close(plp);
 	pmemblk_close(pbp);
+	vmem_delete(vmp);
 
 	DONE(NULL);
 }

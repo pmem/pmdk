@@ -7,6 +7,7 @@ vmem_check_version
 vmem_create
 vmem_create_in_region
 vmem_delete
+vmem_errormsg
 vmem_free
 vmem_malloc
 vmem_malloc_usable_size
@@ -22,6 +23,7 @@ vmem_check_version
 vmem_create
 vmem_create_in_region
 vmem_delete
+vmem_errormsg
 vmem_free
 vmem_malloc
 vmem_malloc_usable_size
@@ -37,6 +39,7 @@ vmem_check_version
 vmem_create
 vmem_create_in_region
 vmem_delete
+vmem_errormsg
 vmem_free
 vmem_malloc
 vmem_malloc_usable_size
@@ -52,6 +55,7 @@ vmem_check_version
 vmem_create
 vmem_create_in_region
 vmem_delete
+vmem_errormsg
 vmem_free
 vmem_malloc
 vmem_malloc_usable_size

@@ -113,6 +113,8 @@ void vmem_set_funcs(
 		char *(*strdup_func)(const char *s),
 		void (*print_func)(const char *s));
 
+const char *vmem_errormsg(void);
+
 #ifdef __cplusplus
 }
 #endif

@@ -37,7 +37,7 @@
 .\" or
 .\"	groff -man -Tascii libvmem.3
 .\"
-.TH libvmem 3 "vmem API version 0.8.2" "NVM Library"
+.TH libvmem 3 "vmem API version 0.8.3" "NVM Library"
 .SH NAME
 libvmem \- volatile memory allocation library
 .SH SYNOPSIS
@@ -75,6 +75,10 @@ libvmem \- volatile memory allocation library
 .BI "           void *(*" realloc_func ")(void *" ptr ", size_t " size ),
 .BI "           char *(*" strdup_func ")(const char *" s ),
 .BI "           void (*" print_func ")(const char *" s ));
+.sp
+.B Error handling:
+.sp
+.BI "const char *vmem_errormsg(void);
 .fi
 .sp
 .SH DESCRIPTION
@@ -118,7 +122,7 @@ will never print messages or intentionally cause the process to exit.
 Exceptions to this are prints caused by calls to
 .BR vmem_stats_print (),
 or by enabling debugging as described under
-.B DEBUGGING
+.B DEBUGGING AND ERROR HANDLING
 below.
 The library uses
 .BR pthreads (7)
@@ -285,7 +289,7 @@ Since an error return indicates memory pool corruption, applications
 should not continue to use a pool in this state.
 Additional details about errors found are logged when the log level
 is at least 1 (see
-.B DEBUGGING
+.B DEBUGGING AND ERROR HANDLING
 below).
 During the consistency check performed by
 .BR vmem_check (),
@@ -609,7 +613,7 @@ when the
 .BR vmem_stats_print ()
 entry point is used, or when additional tracing is enabled
 in the debug version of the library as described in the
-.B DEBUGGING
+.B DEBUGGING AND ERROR HANDLING
 section below.
 The default
 .I print_func
@@ -619,7 +623,7 @@ the file specified by the
 environment variable, or to
 .B stderr
 if that variable is not set.
-.SH DEBUGGING
+.SH DEBUGGING AND ERROR HANDLING
 .PP
 Two versions of
 .B libvmem
@@ -629,8 +633,31 @@ linked using the
 .B -lvmem
 option, is optimized for performance.  That version skips checks
 that impact performance and never logs any trace information or performs
-any run-time assertions.  A second version, accessed when a program
-uses the libraries under
+any run-time assertions.  If an error is detected during the call to
+.B libvmem
+function, an application may retrieve an error message describing the
+reason of failure using the following function:
+.PP
+.BI "const char *vmem_errormsg(void);
+.IP
+The
+.BR vmem_errormsg ()
+function returns a pointer to a static buffer containing the last error
+message logged for current thread.  The error message may include
+description of the corresponding error code (if errno was set), as returned by
+.BR strerror (3).
+The error message buffer is thread-local; errors encountered in one thread
+do not affect its value in other threads.
+The buffer is never cleared by any library function; its content is
+significant only when the return value of the immediately preceding call to
+.B libvmem
+function indicated an error, or if errno was set.
+The application must not modify or free the error message string,
+but it may be modified by subsequent calls to other library functions.
+.PP
+A second version of
+.BR libvmem ,
+accessed when a program uses the libraries under
 .BR /usr/lib/nvml_debug ,
 contains run-time assertions and trace points.
 The typical way to access the debug version is to set the environment variable
@@ -652,7 +679,9 @@ Only statistics are logged, and then only in response to a call to
 .BR vmem_stats_print ().
 .IP 1
 Additional details on any errors detected are logged (in addition
-to returning the errno-based errors as usual).
+to returning the errno-based errors as usual).  The same information
+may be retrieved using
+.BR vmem_errormsg ().
 .IP 2
 A trace of basic operations including allocations and deallocations
 is logged.
@@ -749,5 +778,6 @@ http://snia.org/nvmp
 .BR posix_memalign (3),
 .BR strdup (3),
 .BR mmap (2),
+.BR strerror (3),
 .BR jemalloc (3),
 .BR libpmem (3).
