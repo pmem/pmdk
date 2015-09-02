@@ -309,6 +309,53 @@ do_tx_alloc_abort(PMEMobjpool *pop)
 }
 
 /*
+ * do_tx_alloc_zerolen -- allocates an object of zero size to trigger tx abort
+ */
+static void
+do_tx_alloc_zerolen(PMEMobjpool *pop)
+{
+	TOID(struct object) obj;
+	TX_BEGIN(pop) {
+		TOID_ASSIGN(obj, pmemobj_tx_alloc(0, TYPE_ABORT));
+		ASSERT(0); /* should not get to this point */
+	} TX_ONCOMMIT {
+		ASSERT(0);
+	} TX_ONABORT {
+		TOID_ASSIGN(obj, OID_NULL);
+	} TX_END
+
+	ASSERT(TOID_IS_NULL(obj));
+
+	TOID(struct object) first;
+	TOID_ASSIGN(first, pmemobj_first(pop, TYPE_ABORT));
+	ASSERT(TOID_IS_NULL(first));
+}
+
+/*
+ * do_tx_alloc_huge -- allocates a huge object to trigger tx abort
+ */
+static void
+do_tx_alloc_huge(PMEMobjpool *pop)
+{
+	TOID(struct object) obj;
+	TX_BEGIN(pop) {
+		TOID_ASSIGN(obj, pmemobj_tx_alloc(PMEMOBJ_MAX_ALLOC_SIZE + 1,
+				TYPE_ABORT));
+		ASSERT(0); /* should not get to this point */
+	} TX_ONCOMMIT {
+		ASSERT(0);
+	} TX_ONABORT {
+		TOID_ASSIGN(obj, OID_NULL);
+	} TX_END
+
+	ASSERT(TOID_IS_NULL(obj));
+
+	TOID(struct object) first;
+	TOID_ASSIGN(first, pmemobj_first(pop, TYPE_ABORT));
+	ASSERT(TOID_IS_NULL(first));
+}
+
+/*
  * do_tx_alloc_commit -- allocates and object
  */
 static void
@@ -352,6 +399,53 @@ do_tx_zalloc_abort(PMEMobjpool *pop)
 
 		D_RW(obj)->value = TEST_VALUE_1;
 		pmemobj_tx_abort(-1);
+	} TX_ONCOMMIT {
+		ASSERT(0);
+	} TX_ONABORT {
+		TOID_ASSIGN(obj, OID_NULL);
+	} TX_END
+
+	ASSERT(TOID_IS_NULL(obj));
+
+	TOID(struct object) first;
+	TOID_ASSIGN(first, pmemobj_first(pop, TYPE_ZEROED_ABORT));
+	ASSERT(TOID_IS_NULL(first));
+}
+
+/*
+ * do_tx_zalloc_zerolen -- allocate an object of zero size to trigger tx abort
+ */
+static void
+do_tx_zalloc_zerolen(PMEMobjpool *pop)
+{
+	TOID(struct object) obj;
+	TX_BEGIN(pop) {
+		TOID_ASSIGN(obj, pmemobj_tx_zalloc(0, TYPE_ZEROED_ABORT));
+		ASSERT(0); /* should not get to this point */
+	} TX_ONCOMMIT {
+		ASSERT(0);
+	} TX_ONABORT {
+		TOID_ASSIGN(obj, OID_NULL);
+	} TX_END
+
+	ASSERT(TOID_IS_NULL(obj));
+
+	TOID(struct object) first;
+	TOID_ASSIGN(first, pmemobj_first(pop, TYPE_ZEROED_ABORT));
+	ASSERT(TOID_IS_NULL(first));
+}
+
+/*
+ * do_tx_zalloc_huge -- allocates a huge object to trigger tx abort
+ */
+static void
+do_tx_zalloc_huge(PMEMobjpool *pop)
+{
+	TOID(struct object) obj;
+	TX_BEGIN(pop) {
+		TOID_ASSIGN(obj, pmemobj_tx_zalloc(PMEMOBJ_MAX_ALLOC_SIZE + 1,
+				TYPE_ZEROED_ABORT));
+		ASSERT(0); /* should not get to this point */
 	} TX_ONCOMMIT {
 		ASSERT(0);
 	} TX_ONABORT {
@@ -446,9 +540,17 @@ main(int argc, char *argv[])
 	VALGRIND_WRITE_STATS;
 	do_tx_alloc_abort(pop);
 	VALGRIND_WRITE_STATS;
+	do_tx_alloc_zerolen(pop);
+	VALGRIND_WRITE_STATS;
+	do_tx_alloc_huge(pop);
+	VALGRIND_WRITE_STATS;
 	do_tx_zalloc_commit(pop);
 	VALGRIND_WRITE_STATS;
 	do_tx_zalloc_abort(pop);
+	VALGRIND_WRITE_STATS;
+	do_tx_zalloc_zerolen(pop);
+	VALGRIND_WRITE_STATS;
+	do_tx_zalloc_huge(pop);
 	VALGRIND_WRITE_STATS;
 	do_tx_alloc_commit_nested(pop);
 	VALGRIND_WRITE_STATS;

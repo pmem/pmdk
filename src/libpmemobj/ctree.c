@@ -105,11 +105,14 @@ error_ctree_malloc:
 void
 ctree_delete(struct ctree *t)
 {
+	int err;
 	while (t->root)
 		ctree_remove(t, 0, 0);
 
-	if ((errno = pthread_mutex_destroy(&t->lock)) != 0)
+	if ((err = pthread_mutex_destroy(&t->lock)) != 0) {
+		errno = err;
 		ERR("!pthread_mutex_destroy");
+	}
 
 	Free(t);
 }
@@ -123,6 +126,7 @@ ctree_insert(struct ctree *t, uint64_t key)
 	void **dst = &t->root;
 	struct node *a = NULL;
 	int err;
+	int err_out;
 
 	if ((err = pthread_mutex_lock(&t->lock)) != 0)
 		return err;
@@ -179,8 +183,10 @@ ctree_insert(struct ctree *t, uint64_t key)
 	NODE_INTERNAL_SET(*dst, n);
 
 out:
-	if ((errno = pthread_mutex_unlock(&t->lock)) != 0)
+	if ((err_out = pthread_mutex_unlock(&t->lock)) != 0) {
+		errno = err_out;
 		ERR("!pthread_mutex_unlock");
+	}
 
 	return err;
 
@@ -189,8 +195,10 @@ error_internal_malloc:
 error_duplicate:
 	Free(n);
 error_leaf_malloc:
-	if ((errno = pthread_mutex_unlock(&t->lock)) != 0)
+	if ((err_out = pthread_mutex_unlock(&t->lock)) != 0) {
+		errno = err_out;
 		ERR("!pthread_mutex_unlock");
+	}
 
 	return err;
 }
@@ -225,7 +233,9 @@ ctree_remove(struct ctree *t, uint64_t key, int eq)
 	void **path[KEY_LEN] = {NULL, };
 	int psize = 0;
 
-	if ((errno = pthread_mutex_lock(&t->lock)) != 0) {
+	int err;
+	if ((err = pthread_mutex_lock(&t->lock)) != 0) {
+		errno = err;
 		ERR("!pthread_mutex_lock");
 		return 0;
 	}
@@ -285,8 +295,10 @@ ctree_remove(struct ctree *t, uint64_t key, int eq)
 	}
 
 out:
-	if ((errno = pthread_mutex_unlock(&t->lock)) != 0)
+	if ((err = pthread_mutex_unlock(&t->lock)) != 0) {
+		errno = err;
 		ERR("!pthread_mutex_unlock");
+	}
 
 	return k;
 }
@@ -297,15 +309,19 @@ out:
 int
 ctree_is_empty(struct ctree *t)
 {
-	if ((errno = pthread_mutex_lock(&t->lock)) != 0) {
+	int err;
+	if ((err = pthread_mutex_lock(&t->lock)) != 0) {
+		errno = err;
 		ERR("!pthread_mutex_lock");
 		return errno;
 	}
 
 	int ret = t->root == NULL;
 
-	if ((errno = pthread_mutex_unlock(&t->lock)) != 0)
+	if ((err = pthread_mutex_unlock(&t->lock)) != 0) {
+		errno = err;
 		ERR("!pthread_mutex_unlock");
+	}
 
 	return ret;
 }

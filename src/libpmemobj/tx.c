@@ -795,6 +795,7 @@ tx_alloc_common(size_t size, unsigned int type_num,
 	if (size > PMEMOBJ_MAX_ALLOC_SIZE) {
 		ERR("requested size too large");
 		errno = ENOMEM;
+		pmemobj_tx_abort(EINVAL);
 		return OID_NULL;
 	}
 
@@ -844,6 +845,7 @@ tx_alloc_copy_common(size_t size, unsigned int type_num, const void *ptr,
 	if (size > PMEMOBJ_MAX_ALLOC_SIZE) {
 		ERR("requested size too large");
 		errno = ENOMEM;
+		pmemobj_tx_abort(EINVAL);
 		return OID_NULL;
 	}
 
@@ -901,6 +903,7 @@ tx_realloc_common(PMEMoid oid, size_t size, unsigned int type_num,
 	if (size > PMEMOBJ_MAX_ALLOC_SIZE) {
 		ERR("requested size too large");
 		errno = ENOMEM;
+		pmemobj_tx_abort(EINVAL);
 		return OID_NULL;
 	}
 
@@ -1328,6 +1331,7 @@ pmemobj_tx_alloc(size_t size, unsigned int type_num)
 	if (size == 0) {
 		ERR("allocation with size 0");
 		errno = EINVAL;
+		pmemobj_tx_abort(EINVAL);
 		return OID_NULL;
 	}
 
@@ -1345,6 +1349,7 @@ pmemobj_tx_zalloc(size_t size, unsigned int type_num)
 	if (size == 0) {
 		ERR("allocation with size 0");
 		errno = EINVAL;
+		pmemobj_tx_abort(EINVAL);
 		return OID_NULL;
 	}
 
@@ -1391,6 +1396,7 @@ pmemobj_tx_strdup(const char *s, unsigned int type_num)
 	}
 
 	if (NULL == s) {
+		ERR("cannot duplicate NULL string");
 		errno = EINVAL;
 		pmemobj_tx_abort(EINVAL);
 		return OID_NULL;
