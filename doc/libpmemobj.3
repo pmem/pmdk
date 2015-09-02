@@ -2186,25 +2186,15 @@ is empty.  Otherwise, 0 is returned.
 .IP
 The macro
 .B POBJ_LIST_NEXT
-returns the element from the list referenced by
-.I head
-next to the element
+returns the element next to the element
 .IR elm .
-If
-.I elm
-is the last element on the list, OID_NULL is returned.
 .PP
 .BI "POBJ_LIST_PREV(TOID " elm ", POBJ_LIST_ENTRY " FIELD )
 .IP
 The macro
 .B POBJ_LIST_PREV
-returns the element from the list referenced by
-.I head
-preceding the element
+returns the element preceding the element
 .IR elm .
-If
-.I elm
-is the first element on the list, OID_NULL is returned.
 .PP
 .BI "POBJ_LIST_FOREACH(TOID " var ", POBJ_LIST_HEAD *" head ,
 .br
