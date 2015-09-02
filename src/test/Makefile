@@ -38,12 +38,14 @@
 TEST = blk_nblock\
        blk_non_zero\
        blk_pool\
+       blk_pool_lock\
        blk_recovery\
        blk_rw\
        blk_rw_mt\
        checksum\
        log_basic\
        log_pool\
+       log_pool_lock\
        log_recovery\
        log_walker\
        pmem_isa_proc\
@@ -112,6 +114,7 @@ TEST = blk_nblock\
        obj_basic_integration\
        obj_pmalloc_basic\
        obj_pool\
+       obj_pool_lock\
        obj_lane\
        obj_sync\
        obj_direct\

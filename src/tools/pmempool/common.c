@@ -99,7 +99,7 @@ pmem_pool_type_parse_str(const char *str)
 int
 pmem_pool_check_pool_set(const char *fname)
 {
-	int fd = open(fname, O_RDONLY);
+	int fd = util_file_open(fname, NULL, 0, O_RDONLY);
 	if (fd < 0)
 		return -1;
 
@@ -513,7 +513,7 @@ pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp)
 
 	paramsp->type = PMEM_POOL_TYPE_NONE;
 
-	int fd = open(fname, O_RDONLY);
+	int fd = util_file_open(fname, NULL, 0, O_RDONLY);
 	if (fd < 0)
 		return -1;
 

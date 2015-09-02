@@ -631,9 +631,12 @@ pmempool_setup_poolset(struct pmem_info *pip)
 		return -1;
 	}
 
+	close(pip->fd);
+	pip->fd = -1;
+
 	/* open the first part set file to read the pool header values */
 	int ret = 0;
-	fd = open(set->replica[0]->part[0].path, O_RDONLY);
+	fd = util_file_open(set->replica[0]->part[0].path, NULL, 0, O_RDONLY);
 	if (fd < 0) {
 		outv_err("cannot open poolset part file\n");
 		ret = -1;
@@ -647,6 +650,8 @@ pmempool_setup_poolset(struct pmem_info *pip)
 		ret = -1;
 		goto err_close;
 	}
+	close(fd);
+	fd = -1;
 
 	util_convert2h_pool_hdr(&hdr);
 
@@ -677,7 +682,8 @@ pmempool_setup_poolset(struct pmem_info *pip)
 	}
 
 err_close:
-	close(fd);
+	if (fd != -1)
+		close(fd);
 err_pool_set:
 	util_poolset_free(set);
 
@@ -698,21 +704,20 @@ pmempool_info_get_pool_type(struct pmem_info *pip)
 	int is_poolset = !pmem_pool_check_pool_set(pip->file_name);
 	struct pool_hdr hdr;
 
-	pip->fd = open(pip->file_name, O_RDONLY);
+	pip->fd = util_file_open(pip->file_name, NULL, 0, O_RDONLY);
 	if (pip->fd < 0) {
 		warn("%s", pip->file_name);
 		return PMEM_POOL_TYPE_UNKNOWN;
 	}
 
-
 	if (is_poolset) {
 		if (pmempool_setup_poolset(pip))
-			return PMEM_POOL_TYPE_UNKNOWN;
+			goto err;
 	}
 
 	if (pmempool_info_read(pip, &hdr, sizeof (hdr), 0)) {
 		outv_err("cannot read pool header\n");
-		return PMEM_POOL_TYPE_UNKNOWN;
+		goto err;
 	}
 
 	/*
@@ -727,6 +732,10 @@ pmempool_info_get_pool_type(struct pmem_info *pip)
 	ret = pmem_pool_type_parse_hdr(&hdr);
 
 	return ret;
+err:
+	close(pip->fd);
+	pip->fd = -1;
+	return PMEM_POOL_TYPE_UNKNOWN;
 }
 
 /*
@@ -808,6 +817,7 @@ pmempool_info_alloc(void)
 
 	if (pip) {
 		memset(pip, 0, sizeof (*pip));
+		pip->fd = -1;
 		/* set default command line parameters */
 		memcpy(&pip->args, &pmempool_info_args_default,
 				sizeof (pip->args));

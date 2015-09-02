@@ -199,13 +199,14 @@ char *util_map_hint(size_t len);
 int util_poolset_parse(const char *path, int fd, struct pool_set **setp);
 void util_poolset_close(struct pool_set *set, int del);
 void util_poolset_free(struct pool_set *set);
+int util_poolset_chmod(struct pool_set *set, mode_t mode);
+void util_poolset_fdclose(struct pool_set *set);
 
-int util_file_create(const char *path, size_t size, size_t minsize,
-	mode_t mode);
-int util_file_open(const char *path, size_t *size, size_t minsize);
+int util_file_create(const char *path, size_t size, size_t minsize);
+int util_file_open(const char *path, size_t *size, size_t minsize, int flags);
 
 int util_pool_create(struct pool_set **setp, const char *path, size_t poolsize,
-	mode_t mode, size_t minsize, size_t hdrsize, const char *sig,
+	size_t minsize, size_t hdrsize, const char *sig,
 	uint32_t major, uint32_t compat, uint32_t incompat, uint32_t ro_compat);
 int util_pool_open(struct pool_set **setp, const char *path, int rdonly,
 	size_t minsize, size_t hdrsize, const char *sig,

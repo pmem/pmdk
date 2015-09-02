@@ -53,8 +53,8 @@ main(int argc, char *argv[])
 
 	for (int arg = 2; arg < argc; arg++) {
 		size_t size = 0;
-		int fd;
-		if ((fd = util_file_open(argv[arg], &size, minsize)) == -1)
+		int fd = util_file_open(argv[arg], &size, minsize, O_RDWR);
+		if (fd == -1)
 			OUT("!%s: util_file_open", argv[arg]);
 		else {
 			OUT("%s: open, len %zu", argv[arg], size);

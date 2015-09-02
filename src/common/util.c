@@ -37,6 +37,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/file.h>
 #include <sys/mman.h>
 #include <sys/param.h>
 #include <sys/stat.h>
@@ -641,10 +642,9 @@ util_feature_check(struct pool_hdr *hdrp, uint32_t incompat,
  * util_file_create -- create a new memory pool file
  */
 int
-util_file_create(const char *path, size_t size, size_t minsize, mode_t mode)
+util_file_create(const char *path, size_t size, size_t minsize)
 {
-	LOG(3, "path %s size %zu minsize %zu mode %o",
-			path, size, minsize, mode);
+	LOG(3, "path %s size %zu minsize %zu", path, size, minsize);
 
 	ASSERTne(size, 0);
 
@@ -655,9 +655,18 @@ util_file_create(const char *path, size_t size, size_t minsize, mode_t mode)
 	}
 
 	int fd;
-	if ((fd = open(path, O_RDWR|O_CREAT|O_EXCL, mode)) < 0) {
+	/*
+	 * Create file without any permission. It will be granted once
+	 * initialization completes.
+	 */
+	if ((fd = open(path, O_RDWR|O_CREAT|O_EXCL, 0)) < 0) {
 		ERR("!open %s", path);
 		return -1;
+	}
+
+	if (flock(fd, LOCK_EX | LOCK_NB) < 0) {
+		ERR("!flock");
+		goto err;
 	}
 
 	if ((errno = posix_fallocate(fd, 0, size)) != 0) {
@@ -681,29 +690,41 @@ err:
  * util_file_open -- open a memory pool file
  */
 int
-util_file_open(const char *path, size_t *size, size_t minsize)
+util_file_open(const char *path, size_t *size, size_t minsize, int flags)
 {
-	LOG(3, "path %s minsize %zu", path, minsize);
+	LOG(3, "path %s size %p minsize %zu flags %d", path, size, minsize,
+			flags);
 
-	ASSERTeq(*size, 0);
+	if (size || minsize) {
+		if (size)
+			ASSERTeq(*size, 0);
 
-	struct stat stbuf;
-	if (stat(path, &stbuf) < 0) {
-		ERR("!stat %s", path);
-		return -1;
+		struct stat stbuf;
+		if (stat(path, &stbuf) < 0) {
+			ERR("!stat %s", path);
+			return -1;
+		}
+
+		if (stbuf.st_size < minsize) {
+			ERR("size %lld smaller than %zu",
+					(long long)stbuf.st_size, minsize);
+			errno = EINVAL;
+			return -1;
+		}
+
+		if (size)
+			*size = stbuf.st_size;
 	}
-
-	if (stbuf.st_size < minsize) {
-		ERR("size %lld smaller than %zu",
-				(long long)stbuf.st_size, minsize);
-		errno = EINVAL;
-		return -1;
-	}
-	*size = stbuf.st_size;
 
 	int fd;
-	if ((fd = open(path, O_RDWR)) < 0) {
+	if ((fd = open(path, flags)) < 0) {
 		ERR("!open %s", path);
+		return -1;
+	}
+
+	if (flock(fd, LOCK_EX | LOCK_NB) < 0) {
+		ERR("!flock");
+		close(fd);
 		return -1;
 	}
 

@@ -446,7 +446,8 @@ pmempool_check_cp(char *fsrc, char *fdst)
 	int sfd;
 	int dfd;
 
-	if ((sfd = open(fsrc, O_RDONLY)) < 0)
+	sfd = util_file_open(fsrc, NULL, 0, O_RDONLY);
+	if (sfd < 0)
 		err(1, "%s", fsrc);
 
 	struct stat buff;
@@ -456,7 +457,8 @@ pmempool_check_cp(char *fsrc, char *fdst)
 		return -1;
 	}
 
-	if ((dfd = open(fdst, O_WRONLY|O_CREAT, buff.st_mode)) < 0) {
+	dfd = util_file_create(fdst, buff.st_size, 0);
+	if (dfd < 0) {
 		warn("%s", fdst);
 		close(sfd);
 		return -1;
@@ -465,6 +467,9 @@ pmempool_check_cp(char *fsrc, char *fdst)
 	ssize_t ret = sendfile(dfd, sfd, NULL, buff.st_size);
 	if (ret == -1)
 		err(1, "copying file '%s' to '%s' failed", fsrc, fdst);
+
+	if (fchmod(dfd, buff.st_mode))
+		warn("%s", fdst);
 
 	close(sfd);
 	close(dfd);
@@ -1891,7 +1896,8 @@ pmempool_check_all_steps(struct pmempool_check *pcp)
 	}
 
 	int flags = pcp->repair ? O_RDWR : O_RDONLY;
-	if ((pcp->fd = open(pcp->fname, flags)) < 0) {
+	pcp->fd = util_file_open(pcp->fname, NULL, 0, flags);
+	if (pcp->fd < 0) {
 		warn("%s", pcp->fname);
 		return -1;
 	}
