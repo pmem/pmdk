@@ -37,7 +37,7 @@
 .\" or
 .\"	groff -man -Tascii libpmemobj.3
 .\"
-.TH libpmemobj 3 "pmemobj API version 0.4.15" "NVM Library"
+.TH libpmemobj 3 "pmemobj API version 0.4.16" "NVM Library"
 .SH NAME
 libpmemobj \- persistent memory transactional object store
 .SH SYNOPSIS
@@ -1260,6 +1260,8 @@ The
 provides a mechanism allowing to iterate through the internal object collections,
 either looking for a specific object, or performing a specific operation on
 each object of given type.
+Software should not make any assumptions about the order of the objects in
+the internal object containers.
 .PP
 .BI "PMEMoid pmemobj_first(PMEMobjpool *" pop ", unsigned int " type_num );
 .IP
@@ -1341,9 +1343,7 @@ variable.
 .br
 .BI "    PMEMoid " nvaroid ", unsigned int " vartype_num )
 .sp
-.BI "POBJ_FOREACH_SAFE_TYPE(PMEMobjpool *" pop ", TOID " var ,
-.br
-.BI "    PMEMoid " nvar ", unsigned int " type_num )
+.BI "POBJ_FOREACH_SAFE_TYPE(PMEMobjpool *" pop ", TOID " var ", TOID " nvar )
 .IP
 The macros
 .BR POBJ_FOREACH_SAFE ()
@@ -1450,6 +1450,14 @@ The
 .B PMEMoid
 of allocated object is stored in
 .IR oidp .
+If NULL is passed as
+.IR oidp ,
+then the newly allocated object may be accessed only by iterating objects
+in the object container associated with given
+.IR type_num ,
+as described in
+.B OBJECT CONTAINERS
+section.
 If the
 .I oidp
 points to memory location from the
@@ -1497,6 +1505,14 @@ The
 .B PMEMoid
 of allocated object is stored in
 .IR oidp .
+If NULL is passed as
+.IR oidp ,
+then the newly allocated object may be accessed only by iterating objects
+in the object container associated with given
+.IR type_num ,
+as described in
+.B OBJECT CONTAINERS
+section.
 If the
 .I oidp
 points to memory location from the
@@ -1686,6 +1702,14 @@ It stores a handle to a new object in
 .I oidp
 which is a duplicate of the string
 .IR s .
+If NULL is passed as
+.IR oidp ,
+then the newly allocated object may be accessed only by iterating objects
+in the object container associated with given
+.IR type_num ,
+as described in
+.B OBJECT CONTAINERS
+section.
 If the
 .I oidp
 points to memory location from the
