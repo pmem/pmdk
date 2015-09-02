@@ -74,9 +74,9 @@ static void
 poolset_info(const char *fname, struct pool_set *set, size_t hdrsize, int o)
 {
 	if (o)
-		OUT("%s: opened: hdrsize %zu nreps %d poolsize %zu rdonly %d "
-			"zeroed %d", fname, hdrsize, set->nreplicas,
-			set->poolsize, set->rdonly, set->zeroed);
+		OUT("%s: opened: hdrsize %zu nreps %d poolsize %zu rdonly %d",
+			fname, hdrsize, set->nreplicas, set->poolsize,
+			set->rdonly);
 	else
 		OUT("%s: created: hdrsize %zu nreps %d poolsize %zu zeroed %d",
 			fname, hdrsize, set->nreplicas, set->poolsize,
