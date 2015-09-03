@@ -33,7 +33,7 @@
 #
 # examples/libpmemobj/tree_map/Makefile -- build the tree map example
 #
-PROGS = data_store_ctree data_store_btree
+PROGS = data_store_ctree data_store_btree data_store_rbtree
 
 INCDIR ?= ../../../include
 LIBDIR ?= ../../../debug
@@ -67,6 +67,7 @@ $(PROGS):
 
 data_store_ctree: ctree_map.o tree_map.o data_store.o
 data_store_btree: btree_map.o tree_map.o data_store.o
+data_store_rbtree: rbtree_map.o tree_map.o data_store.o
 
 $(DIRS):
 	$(MAKE) -C $@ $(TARGET)
