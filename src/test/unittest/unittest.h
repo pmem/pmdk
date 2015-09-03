@@ -528,6 +528,6 @@ int ut_pthread_join(const char *file, int line, const char *func,
 		FUNC_MOCK_RUN_RET_DEFAULT(ret);\
 	FUNC_MOCK_END
 
-extern unsigned long Pagesize;
+extern unsigned long Ut_pagesize;
 
 #endif	/* unittest.h */
