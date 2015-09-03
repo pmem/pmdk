@@ -349,7 +349,7 @@ pmemblk_runtime_init(PMEMblkpool *pbp, size_t bsize, int rdonly, int is_pmem)
 	struct btt *bttp = NULL;
 	pthread_mutex_t *locks = NULL;
 
-	bttp = btt_init(pbp->datasize, (uint32_t)bsize, pbp->hdr.uuid,
+	bttp = btt_init(pbp->datasize, (uint32_t)bsize, pbp->hdr.poolset_uuid,
 			ncpus * 2, pbp, &ns_cb);
 
 	if (bttp == NULL)
