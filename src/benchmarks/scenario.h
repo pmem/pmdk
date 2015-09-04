@@ -32,6 +32,9 @@
 /*
  * scenario.h -- scenario module declaration
  */
+
+#include <stdbool.h>
+
 struct kv
 {
 	TAILQ_ENTRY(kv) next;
@@ -65,3 +68,8 @@ struct scenarios *scenarios_alloc(void);
 void scenarios_free(struct scenarios *scenarios);
 
 struct scenario *scenarios_get_scenario(struct scenarios *ss, const char *name);
+
+bool contains_scenarios(int argc, char **argv, struct scenarios *ss);
+struct scenario *clone_scenario(struct scenario *src_scenario);
+struct kv *find_kv_in_scenario(const char *key,
+					const struct scenario *scenario);
