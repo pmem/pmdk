@@ -69,7 +69,9 @@ libpmemblk \- persistent memory resident array of blocks
 .sp
 .BI "void pmemblk_set_funcs("
 .BI "    void *(*" malloc_func ")(size_t " size ),
-.BI "    void (*" free_func ")(void *" ptr ));
+.BI "    void (*" free_func ")(void *" ptr ),
+.BI "    void *(*" realloc_func ")(void *" ptr ", size_t " size ),
+.BI "    char *(*" strdup_func ")(const char *" s ));
 .BI "int pmemblk_check(const char *" path ", size_t " bsize );
 .sp
 .B Error handling:
@@ -476,7 +478,11 @@ commonly used than the previous sections.
 .br
 .BI "    void *(*" malloc_func ")(size_t " size ),
 .br
-.BI "    void (*" free_func ")(void *" ptr ));
+.BI "    void (*" free_func ")(void *" ptr ),
+.br
+.BI "    void *(*" realloc_func ")(void *" ptr ", size_t " size ),
+.br
+.BI "    char *(*" strdup_func ")(const char *" s ));
 .IP
 The
 .BR pmemblk_set_funcs ()

@@ -93,6 +93,20 @@ blk_free(void *ptr)
 }
 
 static void *
+blk_realloc(void *ptr, size_t size)
+{
+	cnt[BLK].reallocs++;
+	return realloc(ptr, size);
+}
+
+static char *
+blk_strdup(const char *s)
+{
+	cnt[BLK].strdups++;
+	return strdup(s);
+}
+
+static void *
 log_malloc(size_t size)
 {
 	cnt[LOG].mallocs++;
@@ -105,6 +119,20 @@ log_free(void *ptr)
 	if (ptr)
 		cnt[LOG].frees++;
 	free(ptr);
+}
+
+static void *
+log_realloc(void *ptr, size_t size)
+{
+	cnt[LOG].reallocs++;
+	return realloc(ptr, size);
+}
+
+static char *
+log_strdup(const char *s)
+{
+	cnt[LOG].strdups++;
+	return strdup(s);
 }
 
 static void *
@@ -188,6 +216,8 @@ test_blk(const char *path)
 
 	OUT("blk_mallocs: %d", cnt[BLK].mallocs);
 	OUT("blk_frees: %d", cnt[BLK].frees);
+	OUT("blk_reallocs: %d", cnt[BLK].reallocs);
+	OUT("blk_strdups: %d", cnt[BLK].strdups);
 
 	if (cnt[BLK].mallocs == 0 || cnt[BLK].frees == 0)
 		FATAL("BLK mallocs: %d, frees: %d", cnt[BLK].mallocs,
@@ -216,6 +246,8 @@ test_log(const char *path)
 
 	OUT("log_mallocs: %d", cnt[LOG].mallocs);
 	OUT("log_frees: %d", cnt[LOG].frees);
+	OUT("log_reallocs: %d", cnt[LOG].reallocs);
+	OUT("log_strdups: %d", cnt[LOG].strdups);
 
 	if (cnt[LOG].mallocs == 0 || cnt[LOG].frees == 0)
 		FATAL("LOG mallocs: %d, frees: %d", cnt[LOG].mallocs,
@@ -269,8 +301,8 @@ main(int argc, char *argv[])
 		FATAL("usage: %s file dir", argv[0]);
 
 	pmemobj_set_funcs(obj_malloc, obj_free, obj_realloc, obj_strdup);
-	pmemblk_set_funcs(blk_malloc, blk_free);
-	pmemlog_set_funcs(log_malloc, log_free);
+	pmemblk_set_funcs(blk_malloc, blk_free, blk_realloc, blk_strdup);
+	pmemlog_set_funcs(log_malloc, log_free, log_realloc, log_strdup);
 	vmem_set_funcs(_vmem_malloc, _vmem_free, _vmem_realloc, _vmem_strdup,
 			NULL);
 
