@@ -284,7 +284,7 @@ FUNC_MOCK_END
 int _pobj_cache_invalidate;
 __thread struct _pobj_pcache _pobj_cached_pool;
 
-FUNC_MOCK_RET_ALWAYS(pmemobj_pool, PMEMobjpool *, Pop);
+FUNC_MOCK_RET_ALWAYS(pmemobj_pool, PMEMobjpool *, Pop, PMEMoid oid);
 
 /*
  * lane_hold -- lane_hold mock
@@ -311,14 +311,14 @@ FUNC_MOCK_END
  *
  * Always returns success.
  */
-FUNC_MOCK_RET_ALWAYS(lane_release, int, 0);
+FUNC_MOCK_RET_ALWAYS(lane_release, int, 0, PMEMobjpool *pop);
 
 /*
  * heap_boot -- heap_boot mock
  *
  * Always returns success.
  */
-FUNC_MOCK_RET_ALWAYS(heap_boot, int, 0);
+FUNC_MOCK_RET_ALWAYS(heap_boot, int, 0, PMEMobjpool *pop);
 
 /*
  * pmemobj_alloc -- pmemobj_alloc mock
@@ -484,12 +484,14 @@ FUNC_MOCK_END
 /*
  * pmemobj_mutex_lock -- pmemobj_mutex_lock mock
  */
-FUNC_MOCK_RET_ALWAYS(pmemobj_mutex_lock, int, 0);
+FUNC_MOCK_RET_ALWAYS(pmemobj_mutex_lock, int, 0, PMEMobjpool *pop,
+		PMEMmutex *mutexp);
 
 /*
  * pmemobj_mutex_unlock -- pmemobj_mutex_unlock mock
  */
-FUNC_MOCK_RET_ALWAYS(pmemobj_mutex_unlock, int, 0);
+FUNC_MOCK_RET_ALWAYS(pmemobj_mutex_unlock, int, 0, PMEMobjpool *pop,
+		PMEMmutex *mutexp);
 
 /*
  * lane_recover_and_section_boot -- lane_recover_and_section_boot mock
@@ -1122,7 +1124,7 @@ do_realloc_move(PMEMobjpool *pop, const char *arg)
 /*
  * do_fail -- fail after specified event
  */
-void
+static void
 do_fail(PMEMobjpool *pop, const char *arg)
 {
 	if (strcmp(arg, "F:before_finish") == 0) {

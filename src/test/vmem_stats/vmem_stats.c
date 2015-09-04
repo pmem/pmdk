@@ -47,7 +47,7 @@ static int custom_alloc_calls;
  * This function updates statistics about custom alloc functions,
  * and returns allocated memory.
  */
-void *
+static void *
 malloc_custom(size_t size)
 {
 	++custom_alloc_calls;
@@ -61,7 +61,7 @@ malloc_custom(size_t size)
  * This function updates statistics about custom alloc functions,
  * and frees allocated memory.
  */
-void
+static void
 free_custom(void *ptr)
 {
 	++custom_alloc_calls;
@@ -75,7 +75,7 @@ free_custom(void *ptr)
  * This function updates statistics about custom alloc functions,
  * and returns reallocated memory.
  */
-void *
+static void *
 realloc_custom(void *ptr, size_t size)
 {
 	++custom_alloc_calls;
@@ -88,7 +88,7 @@ realloc_custom(void *ptr, size_t size)
  * This function updates statistics about custom alloc functions,
  * and returns allocated memory with a duplicated string.
  */
-char *
+static char *
 strdup_custom(const char *s)
 {
 	++custom_alloc_calls;

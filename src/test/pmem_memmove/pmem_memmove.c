@@ -48,7 +48,7 @@
  * Map a new src with the original dest as a hint.
  * In the event of an error caller must unmap all passed in mappings.
  */
-void
+static void
 swap_mappings(void **dest, void **src, size_t size, int fd)
 {
 
@@ -80,7 +80,7 @@ swap_mappings(void **dest, void **src, size_t size, int fd)
  * dest. Use the non pmem version of the memset/memcpy commands
  * so as not to introduce any possible side affects.
  */
-void
+static void
 do_memmove(int fd, void *dest, void *src, char *file_name, off_t dest_off,
 	off_t src_off, off_t off, off_t bytes)
 {

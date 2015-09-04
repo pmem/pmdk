@@ -51,6 +51,7 @@
 #define	__USE_UNIX98
 #include <unistd.h>
 #include "common.h"
+#include "check.h"
 #include "output.h"
 #include "libpmemblk.h"
 #include "libpmemlog.h"

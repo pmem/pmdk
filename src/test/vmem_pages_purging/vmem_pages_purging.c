@@ -43,7 +43,7 @@
 #define	DEFAULT_COUNT	(SMALL_MAXCLASS / 4)
 #define	DEFAULT_N	100
 
-void
+static void
 usage(char *appname)
 {
 	FATAL("usage: %s [-z - use calloc] directory ", appname);

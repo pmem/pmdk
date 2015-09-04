@@ -102,18 +102,7 @@ obj_drain(PMEMobjpool *pop)
 	pop->drain_local();
 }
 
-struct foo {
-	uintptr_t bar;
-};
-
-void
-test_constructor(void *ptr, void *arg)
-{
-	struct foo *f = ptr;
-	f->bar = (uintptr_t)arg;
-}
-
-void
+static void
 test_oom_allocs(size_t size)
 {
 	uint64_t max_allocs = MOCK_POOL_SIZE / size;
@@ -137,7 +126,7 @@ test_oom_allocs(size_t size)
 	FREE(allocs);
 }
 
-void
+static void
 test_malloc_free_loop(size_t size)
 {
 	int err;
@@ -148,7 +137,7 @@ test_malloc_free_loop(size_t size)
 	}
 }
 
-void
+static void
 test_realloc(size_t org, size_t dest)
 {
 	int err;
@@ -162,7 +151,7 @@ test_realloc(size_t org, size_t dest)
 	ASSERTeq(err, 0);
 }
 
-void
+static void
 test_mock_pool_allocs()
 {
 	addr = MALLOC(MOCK_POOL_SIZE);
@@ -209,7 +198,7 @@ test_mock_pool_allocs()
 	FREE(addr);
 }
 
-void
+static void
 test_spec_compliance()
 {
 	uint64_t max_alloc = MAX_MEMORY_BLOCK_SIZE -

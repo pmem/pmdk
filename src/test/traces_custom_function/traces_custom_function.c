@@ -60,7 +60,7 @@
  *
  * This is called from the library to print text instead of output to stderr.
  */
-void
+static void
 print_custom_function(const char *s)
 {
 	if (s) {
@@ -75,7 +75,7 @@ print_custom_function(const char *s)
  *
  * It modifies format by adding @@ in front of each conversion specification.
  */
-int
+static int
 vsnprintf_custom_function(char *str, size_t size, const char *format,
 		va_list ap)
 {

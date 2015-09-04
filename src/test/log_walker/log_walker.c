@@ -43,7 +43,7 @@
 /*
  * do_append -- call pmemlog_append() & print result
  */
-void
+static void
 do_append(PMEMlogpool *plp)
 {
 	const char *str[6] = {
@@ -76,7 +76,7 @@ do_append(PMEMlogpool *plp)
  *
  * It is a walker function for pmemlog_walk
  */
-int
+static int
 try_to_store(const void *buf, size_t len, void *arg)
 {
 	memset((void *)buf, 0, len);
@@ -86,7 +86,7 @@ try_to_store(const void *buf, size_t len, void *arg)
 /*
  * do_walk -- call pmemlog_walk() & print result
  */
-void
+static void
 do_walk(PMEMlogpool *plp)
 {
 	pmemlog_walk(plp, 0, try_to_store, NULL);
@@ -98,7 +98,7 @@ sigjmp_buf Jmp;
 /*
  * signal_handler -- called on SIGSEGV
  */
-void
+static void
 signal_handler(int sig)
 {
 	OUT("signal: %s", strsignal(sig));

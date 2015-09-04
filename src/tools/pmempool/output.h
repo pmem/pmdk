@@ -44,6 +44,8 @@ void out_set_stream(FILE *stream);
 void out_set_prefix(const char *prefix);
 void out_set_col_width(unsigned int col_width);
 void outv_err(const char *fmt, ...);
+void out_err(const char *file, int line, const char *func,
+		const char *fmt, ...);
 void outv_err_vargs(const char *fmt, va_list ap);
 void out_indent(int i);
 void outv(int vlevel, const char *fmt, ...);

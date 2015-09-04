@@ -212,7 +212,7 @@ get_bitmap_reserved(struct chunk_run *run, uint32_t *reserved)
 /*
  * get_bitmap_str -- get bitmap single value string
  */
-const char *
+static const char *
 get_bitmap_str(uint64_t val, int values)
 {
 	static char buff[BITMAP_BUFF_SIZE];

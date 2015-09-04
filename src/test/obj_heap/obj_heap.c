@@ -59,7 +59,7 @@ struct mock_pop {
 	void *heap;
 };
 
-void
+static void
 test_heap()
 {
 	struct mock_pop *mpop = Malloc(MOCK_POOL_SIZE);

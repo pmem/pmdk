@@ -45,7 +45,7 @@
 
 #define	MB ((size_t)1 << 20)
 
-void
+static void
 pool_create(const char *path, const char *layout, size_t poolsize,
 	unsigned mode)
 {
@@ -72,7 +72,7 @@ pool_create(const char *path, const char *layout, size_t poolsize,
 	}
 }
 
-void
+static void
 pool_open(const char *path, const char *layout)
 {
 	PMEMobjpool *pop = pmemobj_open(path, layout);

@@ -315,7 +315,7 @@ print_version(char *appname)
 /*
  * pmempool_check_help -- print help message for check command
  */
-void
+static void
 pmemspoil_help(char *appname)
 {
 	print_usage(appname);
@@ -667,7 +667,7 @@ pmemspoil_process_checksum_gen(struct pmemspoil *psp,
 /*
  * pmemspoil_process_pool_hdr -- process pool_hdr fields
  */
-int
+static int
 pmemspoil_process_pool_hdr(struct pmemspoil *psp,
 		struct pmemspoil_list *pfp, void *arg)
 {
@@ -935,7 +935,7 @@ pmemspoil_process_arena(struct pmemspoil *psp,
 /*
  * pmemspoil_process_pmemblk -- process pmemblk fields
  */
-int
+static int
 pmemspoil_process_pmemblk(struct pmemspoil *psp,
 		struct pmemspoil_list *pfp, void *arg)
 {

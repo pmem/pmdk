@@ -45,7 +45,7 @@
 int allocated;
 PMEMobjpool *pop;
 
-void *
+static void *
 oom_worker(void *arg)
 {
 	allocated = 0;

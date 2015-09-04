@@ -75,7 +75,7 @@ struct dummy_root {
 	POBJ_LIST_HEAD(moved_list, struct dummy_node) moved;
 };
 
-void
+static void
 dummy_node_constructor(PMEMobjpool *pop, void *ptr, void *arg)
 {
 	struct dummy_node *n = ptr;
@@ -84,7 +84,7 @@ dummy_node_constructor(PMEMobjpool *pop, void *ptr, void *arg)
 	pmemobj_persist(pop, &n->value, sizeof (n->value));
 }
 
-void
+static void
 test_alloc_api(PMEMobjpool *pop)
 {
 	TOID(struct dummy_node) node_zeroed;
@@ -175,7 +175,7 @@ test_alloc_api(PMEMobjpool *pop)
 	ASSERTeq(errno, ENOMEM);
 }
 
-void
+static void
 test_realloc_api(PMEMobjpool *pop)
 {
 	PMEMoid oid = OID_NULL;
@@ -266,7 +266,7 @@ test_realloc_api(PMEMobjpool *pop)
 	ASSERT(OID_IS_NULL(oid));
 }
 
-void
+static void
 test_list_api(PMEMobjpool *pop)
 {
 	TOID(struct dummy_root) root;
@@ -408,7 +408,7 @@ test_list_api(PMEMobjpool *pop)
 	ASSERTeq(nodes_count, 4);
 }
 
-void
+static void
 test_tx_api(PMEMobjpool *pop)
 {
 	TOID(struct dummy_root) root;

@@ -1500,7 +1500,7 @@ map_lock(struct btt *bttp, int lane, struct arena *arenap,
 /*
  * map_abort -- (internal) drop the map_lock without updating the entry
  */
-void
+static void
 map_abort(struct btt *bttp, int lane, struct arena *arenap, uint32_t premap_lba)
 {
 	LOG(3, "bttp %p lane %d arenap %p premap_lba %u",

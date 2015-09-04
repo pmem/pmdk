@@ -55,7 +55,7 @@ struct worker_args {
 	int idx;
 };
 
-void *
+static void *
 alloc_worker(void *arg)
 {
 	struct worker_args *a = arg;
@@ -68,7 +68,7 @@ alloc_worker(void *arg)
 	return NULL;
 }
 
-void *
+static void *
 realloc_worker(void *arg)
 {
 	struct worker_args *a = arg;
@@ -81,7 +81,7 @@ realloc_worker(void *arg)
 	return NULL;
 }
 
-void *
+static void *
 free_worker(void *arg)
 {
 	struct worker_args *a = arg;
@@ -94,7 +94,7 @@ free_worker(void *arg)
 	return NULL;
 }
 
-void
+static void
 run_worker(void *(worker_func)(void *arg), struct worker_args args[])
 {
 	pthread_t t[THREADS];

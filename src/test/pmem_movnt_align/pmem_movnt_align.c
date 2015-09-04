@@ -57,7 +57,7 @@ typedef void *(*mem_fn)(void *, const void *, size_t);
  * pointed by mem_func and compares the memory, mem_func shall
  * be either memmove or memcpy
  */
-void
+static void
 check_func(void *dest, void *src, size_t len, mem_fn mem_func)
 {
 	memset(dest, 1, len);
@@ -72,7 +72,7 @@ check_func(void *dest, void *src, size_t len, mem_fn mem_func)
 /*
  * check_memmove -- invoke check function with pmem_memmove_persist
  */
-void
+static void
 check_memmove(void *dest, void *src, size_t len)
 {
 	check_func(dest, src, len, pmem_memmove_persist);
@@ -81,7 +81,7 @@ check_memmove(void *dest, void *src, size_t len)
 /*
  * check_memmove -- invoke check function with pmem_memcpy_persist
  */
-void
+static void
 check_memcpy(void *dest, void *src, size_t len)
 {
 	check_func(dest, src, len, pmem_memcpy_persist);
@@ -90,7 +90,7 @@ check_memcpy(void *dest, void *src, size_t len)
 /*
  * check_memset -- check pmem_memset_no_drain function
  */
-void
+static void
 check_memset(void *dest, size_t len)
 {
 	char buff[len];

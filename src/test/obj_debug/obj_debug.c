@@ -65,7 +65,7 @@ struct int3_s {
 	uint32_t i3;
 };
 
-void
+static void
 test_FOREACH(const char *path)
 {
 	PMEMobjpool *pop = NULL;
@@ -103,7 +103,7 @@ test_FOREACH(const char *path)
 	pmemobj_close(pop);
 }
 
-void
+static void
 test_lists(const char *path)
 {
 	PMEMobjpool *pop = NULL;
@@ -140,7 +140,7 @@ test_lists(const char *path)
 	pmemobj_close(pop);
 }
 
-void
+static void
 test_add_range(const char *path)
 {
 	PMEMobjpool *pop = NULL;
@@ -174,7 +174,7 @@ test_add_range(const char *path)
 	pmemobj_close(pop);
 }
 
-void
+static void
 int3_constructor(PMEMobjpool *pop, void *ptr, void *arg)
 {
 	struct int3_s *args = arg;
@@ -187,7 +187,7 @@ int3_constructor(PMEMobjpool *pop, void *ptr, void *arg)
 	pmemobj_persist(pop, val, sizeof (*val));
 }
 
-void
+static void
 test_alloc_construct(const char *path)
 {
 	PMEMobjpool *pop = NULL;
@@ -208,7 +208,7 @@ test_alloc_construct(const char *path)
 	pmemobj_close(pop);
 }
 
-void
+static void
 test_double_free(const char *path)
 {
 	PMEMobjpool *pop = NULL;

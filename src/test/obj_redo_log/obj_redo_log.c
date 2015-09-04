@@ -103,7 +103,7 @@ obj_drain(PMEMobjpool *pop)
 }
 
 
-PMEMobjpool *
+static PMEMobjpool *
 pmemobj_open_mock(const char *fname)
 {
 	int fd = open(fname, O_RDWR);
@@ -155,7 +155,7 @@ pmemobj_open_mock(const char *fname)
 	return pop;
 }
 
-void
+static void
 pmemobj_close_mock(PMEMobjpool *pop)
 {
 	munmap(pop, pop->size);

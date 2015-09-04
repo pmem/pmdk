@@ -46,7 +46,7 @@ struct cargs {
 	size_t size;
 };
 
-void
+static void
 test_constructor(PMEMobjpool *pop, void *addr, void *args)
 {
 	struct cargs *a = args;
@@ -54,7 +54,7 @@ test_constructor(PMEMobjpool *pop, void *addr, void *args)
 	pmemobj_memset_persist(pop, addr, a->size % 256, a->size);
 }
 
-void
+static void
 test_allocs(PMEMobjpool *pop, const char *path)
 {
 	PMEMoid oid[TEST_ALLOC_SIZE];

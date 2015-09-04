@@ -43,7 +43,7 @@ VMEM *Vmp;
 /*
  * signal_handler -- called on SIGSEGV
  */
-void
+static void
 signal_handler(int sig)
 {
 	OUT("signal: %s", strsignal(sig));

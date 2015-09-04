@@ -74,7 +74,7 @@ FUNC_MOCK(pthread_mutex_lock, int, pthread_mutex_t *mutex)
 	}
 FUNC_MOCK_END
 
-void
+static void
 test_ctree_new_delete_empty()
 {
 	struct ctree *t = NULL;
@@ -98,7 +98,7 @@ test_ctree_new_delete_empty()
 	ctree_delete(t);
 }
 
-void
+static void
 test_ctree_insert()
 {
 	struct ctree *t = ctree_new();
@@ -133,7 +133,7 @@ test_ctree_insert()
 	ctree_delete(t);
 }
 
-void
+static void
 test_ctree_find()
 {
 	struct ctree *t = ctree_new();
@@ -154,7 +154,7 @@ test_ctree_find()
 	ctree_delete(t);
 }
 
-void
+static void
 test_ctree_remove()
 {
 	struct ctree *t = ctree_new();
