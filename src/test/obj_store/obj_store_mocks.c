@@ -65,6 +65,9 @@ FUNC_MOCK_RUN_DEFAULT {
 }
 FUNC_MOCK_END
 
+FUNC_MOCK_RET_ALWAYS(bucket_cache_new, void *, (void *)0x1);
+FUNC_MOCK_RET_ALWAYS(bucket_cache_delete, int, 0);
+
 /*
  * heap_boot -- heap_boot mock
  */

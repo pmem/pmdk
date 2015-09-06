@@ -1,3 +1,4 @@
+#!/bin/bash -e
 #
 # Copyright (c) 2015, Intel Corporation
 #
@@ -30,20 +31,16 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-#
-# src/test/obj_heap/Makefile -- build heap unit test
-#
-vpath %.c ../../libpmemobj
-vpath %.c ../../common
+export UNITTEST_NAME=obj_pmalloc_oom_mt/TEST0
+export UNITTEST_NUM=0
 
-TARGET = obj_heap
-OBJS = obj_heap.o heap.o util.o bucket.o ctree.o out.o lane.o
+# standard unit test setup
+. ../unittest/unittest.sh
 
-LIBPMEM=y
+setup
 
-out.o: CFLAGS += -DSRCVERSION=\"utversion\"
+export PMEM_IS_PMEM_FORCE=1
 
-include ../Makefile.inc
+expect_normal_exit ./obj_pmalloc_oom_mt$EXESUFFIX $DIR/testfile1
 
-LDFLAGS += $(call extract_funcs, obj_heap.c)
-INCS += -I../../libpmemobj/ -I../../common/
+pass

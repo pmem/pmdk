@@ -31,64 +31,61 @@
  */
 
 /*
- * lane.h -- internal definitions for lanes
+ * obj_pmalloc_oom_mt.c -- build multithreaded out of memory test
+ *
  */
-#define	LANE_SECTION_LEN 256
 
-enum lane_section_type {
-	LANE_SECTION_ALLOCATOR,
-	LANE_SECTION_LIST,
-	LANE_SECTION_TRANSACTION,
+#include <stddef.h>
 
-	MAX_LANE_SECTION
-};
+#include "unittest.h"
 
-struct lane_section_layout {
-	unsigned char data[LANE_SECTION_LEN];
-};
+#define	TEST_ALLOC_SIZE (98304 - 64) /* last unit size */
+#define	LAYOUT_NAME "oom_mt"
 
-struct lane_section {
-	/* persistent */
-	struct lane_section_layout *layout;
+int allocated;
+PMEMobjpool *pop;
 
-	void *runtime;
-};
+void *
+oom_worker(void *arg)
+{
+	allocated = 0;
+	while (pmemobj_alloc(pop, NULL, TEST_ALLOC_SIZE, 0, NULL, NULL) == 0)
+		allocated++;
 
-struct lane_layout {
-	struct lane_section_layout sections[MAX_LANE_SECTION];
-};
+	PMEMoid iter, iter2;
+	int type;
+	POBJ_FOREACH_SAFE(pop, iter, iter2, type)
+		pmemobj_free(&iter);
 
-struct lane {
-	/* volatile state */
-	pthread_mutex_t *lock;
-	struct lane_section sections[MAX_LANE_SECTION];
-};
+	return NULL;
+}
 
-typedef int (*section_layout_op)(PMEMobjpool *pop,
-	struct lane_section_layout *layout);
-typedef int (*section_op)(PMEMobjpool *pop, struct lane_section *section);
-typedef int (*section_global_op)(PMEMobjpool *pop);
+int
+main(int argc, char *argv[])
+{
+	START(argc, argv, "obj_pmalloc_oom_mt");
 
-struct section_operations {
-	section_op construct;
-	section_op destruct;
-	section_layout_op check;
-	section_layout_op recover;
-	section_global_op boot;
-};
+	if (argc != 2)
+		FATAL("usage: %s file-name", argv[0]);
 
-extern struct section_operations *section_ops[MAX_LANE_SECTION];
-extern __thread int lane_idx;
+	const char *path = argv[1];
 
-int lane_boot(PMEMobjpool *pop);
-int lane_cleanup(PMEMobjpool *pop);
-int lane_recover_and_section_boot(PMEMobjpool *pop);
-int lane_check(PMEMobjpool *pop);
+	if ((pop = pmemobj_create(path, LAYOUT_NAME,
+			PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR)) == NULL)
+		FATAL("!pmemobj_create: %s", path);
 
-int lane_hold(PMEMobjpool *pop, struct lane_section **section,
-	enum lane_section_type type);
-int lane_release(PMEMobjpool *pop);
+	pthread_t t;
+	pthread_create(&t, NULL, oom_worker, NULL);
+	pthread_join(t, NULL);
 
-#define	SECTION_PARM(n, ops)\
-__attribute__((constructor)) static void _section_parm_##n(void)\
-{ section_ops[n] = ops; }
+	int first_thread_allocated = allocated;
+
+	pthread_create(&t, NULL, oom_worker, NULL);
+	pthread_join(t, NULL);
+
+	ASSERTeq(first_thread_allocated, allocated);
+
+	pmemobj_close(pop);
+
+	DONE(NULL);
+}

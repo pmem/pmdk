@@ -63,7 +63,7 @@ struct mock_pop {
 static int construct_fail;
 
 static int
-lane_noop_construct(struct lane_section *section)
+lane_noop_construct(PMEMobjpool *pop, struct lane_section *section)
 {
 	OUT("lane_noop_construct");
 	if (construct_fail)
@@ -75,7 +75,7 @@ lane_noop_construct(struct lane_section *section)
 }
 
 static int
-lane_noop_destruct(struct lane_section *section)
+lane_noop_destruct(PMEMobjpool *pop, struct lane_section *section)
 {
 	OUT("lane_noop_destruct");
 	return 0;

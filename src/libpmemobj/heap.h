@@ -52,7 +52,12 @@ struct memory_block {
 	uint16_t block_off;
 };
 
+struct bucket_cache;
+
 struct bucket *heap_get_best_bucket(PMEMobjpool *pop, size_t size);
+struct bucket *heap_get_auxiliary_bucket(PMEMobjpool *pop, size_t size);
+void heap_drain_to_auxiliary(PMEMobjpool *pop, struct bucket *auxb,
+	uint32_t size_idx);
 struct bucket *heap_get_default_bucket(PMEMobjpool *pop);
 void *heap_get_block_data(PMEMobjpool *pop, struct memory_block m);
 void *heap_get_block_header(PMEMobjpool *pop, struct memory_block m,

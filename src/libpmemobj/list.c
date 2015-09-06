@@ -717,24 +717,6 @@ list_insert_new(PMEMobjpool *pop, struct list_head *oob_head,
 	ASSERTne(lane_section, NULL);
 	ASSERTne(lane_section->layout, NULL);
 
-	/*
-	 * In case of oob list and user list grab the oob list lock
-	 * first.
-	 *
-	 * XXX performance improvement: initialize oob locks at pool opening
-	 */
-	if ((ret = pmemobj_mutex_lock(pop, &oob_head->lock))) {
-		LOG(2, "pmemobj_mutex_lock failed");
-		goto err_oob_lock;
-	}
-
-	if (head) {
-		if ((ret = pmemobj_mutex_lock(pop, &head->lock))) {
-			LOG(2, "pmemobj_mutex_lock failed");
-			goto err_lock;
-		}
-	}
-
 	/* increase allocation size by oob header size */
 	size += OBJ_OOB_SIZE;
 	struct lane_list_section *section =
@@ -758,6 +740,24 @@ list_insert_new(PMEMobjpool *pop, struct list_head *oob_head,
 			ERR("!pmalloc");
 			ret = -1;
 			goto err_pmalloc;
+		}
+	}
+
+	/*
+	 * In case of oob list and user list grab the oob list lock
+	 * first.
+	 *
+	 * XXX performance improvement: initialize oob locks at pool opening
+	 */
+	if ((ret = pmemobj_mutex_lock(pop, &oob_head->lock))) {
+		LOG(2, "pmemobj_mutex_lock failed");
+		goto err_oob_lock;
+	}
+
+	if (head) {
+		if ((ret = pmemobj_mutex_lock(pop, &head->lock))) {
+			LOG(2, "pmemobj_mutex_lock failed");
+			goto err_lock;
 		}
 	}
 
@@ -832,7 +832,7 @@ list_insert_new(PMEMobjpool *pop, struct list_head *oob_head,
 	redo_log_process(pop, redo, REDO_NUM_ENTRIES);
 
 	ret = 0;
-err_pmalloc:
+
 	if (head) {
 		out_ret = pmemobj_mutex_unlock(pop, &head->lock);
 		ASSERTeq(out_ret, 0);
@@ -844,6 +844,7 @@ err_lock:
 	ASSERTeq(out_ret, 0);
 	if (out_ret)
 		LOG(2, "pmemobj_mutex_unlock failed");
+err_pmalloc:
 err_oob_lock:
 	out_ret = lane_release(pop);
 	ASSERTeq(out_ret, 0);
@@ -1046,6 +1047,13 @@ list_remove_free(PMEMobjpool *pop, struct list_head *oob_head,
 	ASSERT(redo_index <= REDO_NUM_ENTRIES);
 	redo_log_process(pop, redo, REDO_NUM_ENTRIES);
 
+	if (head) {
+		out_ret = pmemobj_mutex_unlock(pop, &head->lock);
+		ASSERTeq(out_ret, 0);
+		if (out_ret)
+			LOG(2, "pmemobj_mutex_unlock failed");
+	}
+
 	/*
 	 * Don't need to fill next and prev offsets of removing element
 	 * because the element is freed.
@@ -1058,12 +1066,6 @@ list_remove_free(PMEMobjpool *pop, struct list_head *oob_head,
 		ret = 0;
 	}
 
-	if (head) {
-		out_ret = pmemobj_mutex_unlock(pop, &head->lock);
-		ASSERTeq(out_ret, 0);
-		if (out_ret)
-			LOG(2, "pmemobj_mutex_unlock failed");
-	}
 err_lock:
 	out_ret = pmemobj_mutex_unlock(pop, &oob_head->lock);
 	ASSERTeq(out_ret, 0);
@@ -1956,7 +1958,7 @@ lane_list_check(PMEMobjpool *pop, struct lane_section_layout *section_layout)
  * lane_list_construct -- (internal) create list lane section
  */
 static int
-lane_list_construct(struct lane_section *section)
+lane_list_construct(PMEMobjpool *pop, struct lane_section *section)
 {
 	/* nop */
 	return 0;
@@ -1966,7 +1968,7 @@ lane_list_construct(struct lane_section *section)
  * lane_list_destruct -- (internal) destroy list lane section
  */
 static int
-lane_list_destruct(struct lane_section *section)
+lane_list_destruct(PMEMobjpool *pop, struct lane_section *section)
 {
 	/* nop */
 	return 0;

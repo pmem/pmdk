@@ -74,6 +74,8 @@ test_heap()
 	ASSERT(heap_boot(pop) == 0);
 	ASSERT(pop->heap != NULL);
 
+	lane_idx = 0;
+
 	struct bucket *b_small = heap_get_best_bucket(pop, 0);
 	struct bucket *b_big = heap_get_best_bucket(pop, 1024);
 
