@@ -98,7 +98,7 @@ main(int argc, char *argv[])
 		FATAL("!pmemobj_create: %s", path);
 
 	/* try to allocate 0.7*N */
-	root = (TOID(struct root))pmemobj_root(pop, 0.7 * N);
+	root = (TOID(struct root))pmemobj_root(pop, 0.5 * N);
 
 	if (TOID_IS_NULL(root))
 		FATAL("couldn't allocate root object");

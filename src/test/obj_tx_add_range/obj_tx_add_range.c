@@ -44,6 +44,7 @@
 #define	LAYOUT_NAME "tx_add_range"
 
 #define	OBJ_SIZE	1024
+#define	OVERLAP_SIZE	100
 
 enum type_number {
 	TYPE_OBJ,
@@ -51,10 +52,15 @@ enum type_number {
 };
 
 TOID_DECLARE(struct object, 0);
+TOID_DECLARE(struct overlap_object, 1);
 
 struct object {
 	size_t value;
 	char data[OBJ_SIZE - sizeof (size_t)];
+};
+
+struct overlap_object {
+	uint8_t data[OVERLAP_SIZE];
 };
 
 #define	VALUE_OFF	(offsetof(struct object, value))
@@ -63,6 +69,7 @@ struct object {
 #define	DATA_SIZE	(OBJ_SIZE - sizeof (size_t))
 #define	TEST_VALUE_1	1
 #define	TEST_VALUE_2	2
+
 
 /*
  * do_tx_alloc -- do tx allocation with specified type number
@@ -391,6 +398,135 @@ do_tx_add_range_no_tx(PMEMobjpool *pop)
 	ASSERTne(ret, 0);
 }
 
+/*
+ * do_tx_add_range_overlapping -- call pmemobj_tx_add_range with overlapping
+ */
+static void
+do_tx_add_range_overlapping(PMEMobjpool *pop)
+{
+	TOID(struct overlap_object) obj;
+	TOID_ASSIGN(obj, do_tx_zalloc(pop, 1));
+
+	/*
+	 * -+-+-+-+-
+	 * +++++++++
+	 */
+	TX_BEGIN(pop) {
+		TX_ADD_FIELD(obj, data[1]);
+		D_RW(obj)->data[1] = 1;
+
+		TX_ADD_FIELD(obj, data[3]);
+		D_RW(obj)->data[3] = 3;
+
+		TX_ADD_FIELD(obj, data[5]);
+		D_RW(obj)->data[5] = 5;
+
+		TX_ADD_FIELD(obj, data[7]);
+		D_RW(obj)->data[7] = 7;
+		TX_ADD(obj);
+		memset(D_RW(obj)->data, 0xFF, OVERLAP_SIZE);
+
+		pmemobj_tx_abort(-1);
+	} TX_ONCOMMIT {
+		ASSERT(0);
+	} TX_END
+
+	ASSERT(util_is_zeroed(D_RO(obj)->data, OVERLAP_SIZE));
+
+	/*
+	 * ++++----++++
+	 * --++++++++--
+	 */
+	TX_BEGIN(pop) {
+		pmemobj_tx_add_range(obj.oid, 0, 4);
+		memset(D_RW(obj)->data + 0, 1, 4);
+
+		pmemobj_tx_add_range(obj.oid, 8, 4);
+		memset(D_RW(obj)->data + 8, 2, 4);
+
+		pmemobj_tx_add_range(obj.oid, 2, 8);
+		memset(D_RW(obj)->data + 2, 3, 8);
+
+		TX_ADD(obj);
+		memset(D_RW(obj)->data, 0xFF, OVERLAP_SIZE);
+
+		pmemobj_tx_abort(-1);
+	} TX_ONCOMMIT {
+		ASSERT(0);
+	} TX_END
+
+	ASSERT(util_is_zeroed(D_RO(obj)->data, OVERLAP_SIZE));
+
+	/*
+	 * ++++----++++
+	 * ----++++----
+	 */
+	TX_BEGIN(pop) {
+		pmemobj_tx_add_range(obj.oid, 0, 4);
+		memset(D_RW(obj)->data + 0, 1, 4);
+
+		pmemobj_tx_add_range(obj.oid, 8, 4);
+		memset(D_RW(obj)->data + 8, 2, 4);
+
+		pmemobj_tx_add_range(obj.oid, 4, 4);
+		memset(D_RW(obj)->data + 4, 3, 4);
+
+		TX_ADD(obj);
+		memset(D_RW(obj)->data, 0xFF, OVERLAP_SIZE);
+
+		pmemobj_tx_abort(-1);
+	} TX_ONCOMMIT {
+		ASSERT(0);
+	} TX_END
+
+	ASSERT(util_is_zeroed(D_RO(obj)->data, OVERLAP_SIZE));
+
+	/*
+	 * ++++-++-++++
+	 * --++++++++--
+	 */
+	TX_BEGIN(pop) {
+		pmemobj_tx_add_range(obj.oid, 0, 4);
+		memset(D_RW(obj)->data + 0, 1, 4);
+
+		pmemobj_tx_add_range(obj.oid, 5, 2);
+		memset(D_RW(obj)->data + 5, 2, 2);
+
+		pmemobj_tx_add_range(obj.oid, 8, 4);
+		memset(D_RW(obj)->data + 8, 3, 4);
+
+		pmemobj_tx_add_range(obj.oid, 2, 8);
+		memset(D_RW(obj)->data + 2, 4, 8);
+
+		TX_ADD(obj);
+		memset(D_RW(obj)->data, 0xFF, OVERLAP_SIZE);
+
+		pmemobj_tx_abort(-1);
+	} TX_ONCOMMIT {
+		ASSERT(0);
+	} TX_END
+
+	ASSERT(util_is_zeroed(D_RO(obj)->data, OVERLAP_SIZE));
+
+	/*
+	 * ++++
+	 * ++++
+	 */
+	TX_BEGIN(pop) {
+		pmemobj_tx_add_range(obj.oid, 0, 4);
+		memset(D_RW(obj)->data, 1, 4);
+
+		pmemobj_tx_add_range(obj.oid, 0, 4);
+		memset(D_RW(obj)->data, 2, 4);
+
+		pmemobj_tx_abort(-1);
+	} TX_ONCOMMIT {
+		ASSERT(0);
+	} TX_END
+
+	ASSERT(util_is_zeroed(D_RO(obj)->data, OVERLAP_SIZE));
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -404,6 +540,7 @@ main(int argc, char *argv[])
 	if ((pop = pmemobj_create(argv[1], LAYOUT_NAME, PMEMOBJ_MIN_POOL,
 	    S_IWUSR | S_IRUSR)) == NULL)
 		FATAL("!pmemobj_create");
+
 
 	do_tx_add_range_no_tx(pop);
 	VALGRIND_WRITE_STATS;
@@ -424,6 +561,8 @@ main(int argc, char *argv[])
 	do_tx_add_range_alloc_commit(pop);
 	VALGRIND_WRITE_STATS;
 	do_tx_add_range_alloc_abort(pop);
+	VALGRIND_WRITE_STATS;
+	do_tx_add_range_overlapping(pop);
 	VALGRIND_WRITE_STATS;
 
 	pmemobj_close(pop);

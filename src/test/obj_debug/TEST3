@@ -41,17 +41,9 @@ export UNITTEST_NUM=3
 . ../unittest/unittest.sh
 
 require_build_type debug
-require_valgrind_pmemcheck
 
 setup
 
-export PMEMOBJ_LOG_LEVEL=4
-expect_normal_exit valgrind --tool=pmemcheck\
-	--log-file=valgrind$UNITTEST_NUM.log\
-	./obj_debug$EXESUFFIX $DIR/testfile1 a
-
-grep "_pobj_debug_notice" ./pmemobj$UNITTEST_NUM.log > grep$UNITTEST_NUM.log
-
-check
+expect_abnormal_exit ./obj_debug$EXESUFFIX $DIR/testfile1 p 2> /dev/null
 
 pass

@@ -34,13 +34,9 @@
  * heap.c -- heap implementation
  */
 
-#include <string.h>
-#include <unistd.h>
-#include <errno.h>
-#include <stdint.h>
-#include <pthread.h>
 #include <errno.h>
 #include <sys/queue.h>
+#include <unistd.h>
 
 #include "libpmem.h"
 #include "libpmemobj.h"
@@ -767,6 +763,8 @@ heap_get_bestfit_block(PMEMobjpool *pop, struct bucket *b,
 		else
 			break;
 	}
+
+	ASSERT(m->size_idx >= units);
 
 	if (i == MAX_BUCKET_REFILL) {
 		bucket_unlock(b);

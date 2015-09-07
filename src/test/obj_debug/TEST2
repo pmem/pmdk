@@ -41,13 +41,16 @@ export UNITTEST_NUM=2
 . ../unittest/unittest.sh
 
 require_build_type debug
+require_valgrind_pmemcheck
 
 setup
 
 export PMEMOBJ_LOG_LEVEL=4
-expect_normal_exit ./obj_debug$EXESUFFIX $DIR/testfile1 r
+expect_normal_exit valgrind --tool=pmemcheck\
+	--log-file=valgrind$UNITTEST_NUM.log\
+	./obj_debug$EXESUFFIX $DIR/testfile1 a
 
-grep "is already in undo log" ./pmemobj$UNITTEST_NUM.log > grep$UNITTEST_NUM.log
+grep "_pobj_debug_notice" ./pmemobj$UNITTEST_NUM.log > grep$UNITTEST_NUM.log
 
 check
 

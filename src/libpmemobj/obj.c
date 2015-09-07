@@ -34,18 +34,9 @@
  * obj.c -- transactional object store implementation
  */
 
-#include <stdio.h>
-#include <string.h>
-#include <sys/mman.h>
 #include <sys/param.h>
-#include <unistd.h>
 #include <errno.h>
-#include <stdint.h>
-#include <endian.h>
 #include <stdlib.h>
-#include <setjmp.h>
-#include <inttypes.h>
-#include <fcntl.h>
 
 #include "libpmem.h"
 #include "libpmemobj.h"

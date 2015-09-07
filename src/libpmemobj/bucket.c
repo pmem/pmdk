@@ -37,9 +37,6 @@
  * between the heap-managed chunks/runs and memory allocations.
  */
 
-#include <stdint.h>
-#include <stdlib.h>
-#include <pthread.h>
 #include <errno.h>
 
 #include "libpmem.h"
@@ -218,7 +215,7 @@ bucket_insert_block(struct bucket *b, struct memory_block m)
 	uint64_t key = CHUNK_KEY_PACK(m.zone_id, m.chunk_id, m.block_off,
 				m.size_idx);
 
-	return ctree_insert(b->tree, key);
+	return ctree_insert(b->tree, key, 0);
 }
 
 /*
@@ -238,6 +235,7 @@ bucket_get_rm_block_bestfit(struct bucket *b, struct memory_block *m)
 	m->zone_id = CHUNK_KEY_GET_ZONE_ID(key);
 	m->block_off = CHUNK_KEY_GET_BLOCK_OFF(key);
 	m->size_idx = CHUNK_KEY_GET_SIZE_IDX(key);
+
 
 	return 0;
 }
@@ -266,10 +264,7 @@ bucket_get_block_exact(struct bucket *b, struct memory_block m)
 	uint64_t key = CHUNK_KEY_PACK(m.zone_id, m.chunk_id, m.block_off,
 			m.size_idx);
 
-	if (ctree_find(b->tree, key) != key)
-		return ENOMEM;
-
-	return 0;
+	return ctree_find(b->tree, key) == key ? 0 : ENOMEM;
 }
 
 /*

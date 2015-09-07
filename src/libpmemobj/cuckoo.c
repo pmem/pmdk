@@ -34,13 +34,9 @@
  * cuckoo.c -- implementation of cuckoo hash table
  */
 #include <stdint.h>
-#include <pthread.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
-#include <assert.h>
 #include <errno.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "cuckoo.h"
 #include "out.h"

@@ -55,6 +55,9 @@
 #define	OBJ_LANES_OFFSET	8192	/* lanes offset (8kB) */
 #define	OBJ_NLANES		1024	/* number of lanes */
 
+#define	MAX_CACHED_RANGE_SIZE 16
+#define	MAX_CACHED_RANGES 254 /* calculated to be exactly 8192 bytes */
+
 #define	OBJ_OOB_SIZE		(sizeof (struct oob_header))
 #define	OBJ_OFF_TO_PTR(pop, off) ((void *)((uintptr_t)(pop) + (off)))
 #define	OBJ_PTR_TO_OFF(pop, ptr) ((uintptr_t)(ptr) - (uintptr_t)(pop))
@@ -201,12 +204,20 @@ struct tx_range {
 	uint8_t data[];
 };
 
+struct tx_range_cache {
+	struct { /* compatible with struct tx_range */
+		uint64_t offset;
+		uint64_t size;
+		uint8_t data[MAX_CACHED_RANGE_SIZE];
+	} range[MAX_CACHED_RANGES];
+};
 
 struct lane_tx_layout {
 	uint64_t state;
 	struct list_head undo_alloc;
 	struct list_head undo_free;
 	struct list_head undo_set;
+	struct list_head undo_set_cache;
 };
 
 static inline PMEMoid
