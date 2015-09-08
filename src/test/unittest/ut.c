@@ -57,7 +57,7 @@ static FILE *Tracefp;
 
 static int Quiet;		/* set by UNITTEST_QUIET env variable */
 static char *Testname;		/* set by UNITTEST_NAME env variable */
-unsigned long Pagesize;
+unsigned long Ut_pagesize;
 
 /*
  * flags that control output
@@ -367,7 +367,7 @@ ut_start(const char *file, int line, const char *func,
 
 	record_open_files();
 
-	Pagesize = sysconf(_SC_PAGESIZE);
+	Ut_pagesize = sysconf(_SC_PAGESIZE);
 
 	errno = saveerrno;
 }

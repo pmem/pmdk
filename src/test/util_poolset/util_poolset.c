@@ -95,7 +95,7 @@ poolset_info(const char *fname, struct pool_set *set, size_t hdrsize, int o)
 			struct pool_set_part *part = &rep->part[i];
 			OUT("    part[%d] path %s filesize %zu size %zu",
 				i, part->path, part->filesize, part->size);
-			size_t partsize = (part->filesize & ~(Pagesize - 1));
+			size_t partsize = (part->filesize & ~(Ut_pagesize - 1));
 			repsize += partsize;
 			if (i > 0)
 				ASSERTeq(part->size, partsize - hdrsize);
@@ -155,6 +155,7 @@ main(int argc, char *argv[])
 
 	out_init(LOG_PREFIX, LOG_LEVEL_VAR, LOG_FILE_VAR,
 			MAJOR_VERSION, MINOR_VERSION);
+	util_init();
 
 	if (argc < 6)
 		FATAL("usage: %s cmd minlen hdrsize [mockopts] setfile ...",

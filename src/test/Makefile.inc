@@ -91,8 +91,8 @@ extract_funcs = $(shell \
     awk '{print "-Wl,--wrap="$$0}')
 
 INCS = -I../unittest -I../../include
-CFLAGS = -ggdb -Wall -Werror -std=gnu99 $(EXTRA_CFLAGS)
-LDFLAGS = $(EXTRA_LDFLAGS)
+CFLAGS = -ggdb -Wall -Werror -std=gnu99 -fno-common $(EXTRA_CFLAGS)
+LDFLAGS = -Wl,--warn-common -Wl,--fatal-warnings $(EXTRA_LDFLAGS)
 
 #
 # By default debug and non-debug static versions are built.

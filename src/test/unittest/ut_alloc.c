@@ -115,7 +115,7 @@ void *
 ut_pagealignmalloc(const char *file, int line, const char *func,
     size_t size)
 {
-	return ut_memalign(file, line, func, (size_t)Pagesize, size);
+	return ut_memalign(file, line, func, (size_t)Ut_pagesize, size);
 }
 
 /*
@@ -148,10 +148,10 @@ ut_mmap_anon_aligned(const char *file, int line, const char *func,
 	size_t sz;
 
 	if (alignment == 0)
-		alignment = Pagesize;
+		alignment = Ut_pagesize;
 
 	/* alignment must be a multiple of page size */
-	if (alignment & (Pagesize - 1))
+	if (alignment & (Ut_pagesize - 1))
 		return NULL;
 
 	/* power of two */
@@ -168,19 +168,19 @@ ut_mmap_anon_aligned(const char *file, int line, const char *func,
 	d_aligned = (void *)di_aligned;
 
 	sz = di_aligned - di;
-	if (sz - Pagesize)
-		ut_munmap(file, line, func, d, sz - Pagesize);
+	if (sz - Ut_pagesize)
+		ut_munmap(file, line, func, d, sz - Ut_pagesize);
 
 	/* guard page before */
-	ut_mprotect(file, line, func, d_aligned - Pagesize, Pagesize,
+	ut_mprotect(file, line, func, d_aligned - Ut_pagesize, Ut_pagesize,
 			PROT_NONE);
 
 	/* guard page after */
-	ut_mprotect(file, line, func, d_aligned + size, Pagesize, PROT_NONE);
+	ut_mprotect(file, line, func, d_aligned + size, Ut_pagesize, PROT_NONE);
 
-	sz = di + size + 2 * alignment - (di_aligned + size) - Pagesize;
+	sz = di + size + 2 * alignment - (di_aligned + size) - Ut_pagesize;
 	if (sz)
-		ut_munmap(file, line, func, d_aligned + size + Pagesize, sz);
+		ut_munmap(file, line, func, d_aligned + size + Ut_pagesize, sz);
 
 	return d_aligned;
 }
@@ -193,6 +193,6 @@ int
 ut_munmap_anon_aligned(const char *file, int line, const char *func,
     void *start, size_t size)
 {
-	return ut_munmap(file, line, func, start - Pagesize,
-			size + 2 * Pagesize);
+	return ut_munmap(file, line, func, start - Ut_pagesize,
+			size + 2 * Ut_pagesize);
 }
