@@ -713,16 +713,17 @@ pmempool_check_pool_hdr(struct pmempool_check *pcp)
 	/* for blk pool we can take the UUID from BTT Info header */
 	if (pcp->ptype == PMEM_POOL_TYPE_BLK &&
 		pcp->bttc.valid &&
-		memcmp(pcp->hdr.pool.uuid, pcp->bttc.btt_info.parent_uuid,
+		memcmp(pcp->hdr.pool.poolset_uuid,
+			pcp->bttc.btt_info.parent_uuid,
 				POOL_HDR_UUID_LEN)) {
 		outv(1, "UUID is not valid\n");
 		if (ask_Yn(pcp->ans, "Do you want to set it to %s from "
 			"BTT Info?", out_get_uuid_str(
 				pcp->bttc.btt_info.parent_uuid)) == 'y') {
-			outv(1, "setting pool_hdr.uuid to %s\n",
+			outv(1, "setting pool_hdr.poolset_uuid to %s\n",
 				out_get_uuid_str(
 				pcp->bttc.btt_info.parent_uuid));
-			memcpy(pcp->hdr.pool.uuid,
+			memcpy(pcp->hdr.pool.poolset_uuid,
 				pcp->bttc.btt_info.parent_uuid,
 				POOL_HDR_UUID_LEN);
 			pcp->uuid_op = UUID_FROM_BTT;
@@ -779,9 +780,9 @@ pmempool_check_pool_hdr(struct pmempool_check *pcp)
 		if (pcp->uuid_op == UUID_NOP &&
 			ask_Yn(pcp->ans, "Do you want to regenerate UUID?")
 				== 'y') {
-			uuid_generate(pcp->hdr.pool.uuid);
-			outv(1, "setting pool_hdr.uuid to: %s\n",
-				out_get_uuid_str(pcp->hdr.pool.uuid));
+			uuid_generate(pcp->hdr.pool.poolset_uuid);
+			outv(1, "setting pool_hdr.poolset_uuid to: %s\n",
+				out_get_uuid_str(pcp->hdr.pool.poolset_uuid));
 			pcp->uuid_op = UUID_REGENERATED;
 		} else {
 			return CHECK_RESULT_CANNOT_REPAIR;
@@ -1083,7 +1084,7 @@ pmempool_check_btt_info_advanced_repair(struct pmempool_check *pcp,
 
 	/* init btt in requested area */
 	struct btt *bttp = btt_init(rawsize,
-				lbasize, pcp->hdr.pool.uuid,
+				lbasize, pcp->hdr.pool.poolset_uuid,
 				BTT_DEFAULT_NFREE,
 				(void *)&btt_context,
 				&pmempool_check_btt_ns_callback);
@@ -1760,7 +1761,8 @@ pmempool_check_write_blk(struct pmempool_check *pcp)
 		util_convert2le_btt_info(&arenap->btt_info);
 
 		if (pcp->uuid_op == UUID_REGENERATED) {
-			memcpy(arenap->btt_info.parent_uuid, pcp->hdr.pool.uuid,
+			memcpy(arenap->btt_info.parent_uuid,
+				pcp->hdr.pool.poolset_uuid,
 					sizeof (arenap->btt_info.parent_uuid));
 
 			util_checksum(&arenap->btt_info,
