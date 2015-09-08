@@ -75,6 +75,7 @@ TEST = blk_nblock\
        util_file_open\
        util_poolset\
        util_poolset_parse\
+       set_funcs\
        vmem_aligned_alloc\
        vmem_calloc\
        vmem_check_allocations\

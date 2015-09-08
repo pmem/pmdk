@@ -93,7 +93,9 @@ void pmemlog_walk(PMEMlogpool *plp, size_t chunksize,
  */
 void pmemlog_set_funcs(
 		void *(*malloc_func)(size_t size),
-		void (*free_func)(void *ptr));
+		void (*free_func)(void *ptr),
+		void *(*realloc_func)(void *ptr, size_t size),
+		char *(*strdup_func)(const char *s));
 
 const char *pmemlog_errormsg(void);
 
