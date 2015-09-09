@@ -46,7 +46,7 @@
  * the original src address as a hint. If successful, unmap original dest.
  * Map a new src with the original dest as a hint.
  */
-void
+static void
 swap_mappings(void **dest, void **src, size_t size, int fd)
 {
 
@@ -78,7 +78,7 @@ swap_mappings(void **dest, void **src, size_t size, int fd)
  * so as not to introduce any possible side affects.
  */
 
-void
+static void
 do_memcpy(int fd, void *dest, int dest_off, void *src, int src_off,
     size_t bytes, char *file_name)
 {

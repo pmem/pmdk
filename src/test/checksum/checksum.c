@@ -47,7 +47,7 @@
  * Gold standard implementation used to compare to the
  * util_checksum() being unit tested.
  */
-uint64_t
+static uint64_t
 fletcher64(void *addr, size_t len)
 {
 	uint32_t *p32 = addr;

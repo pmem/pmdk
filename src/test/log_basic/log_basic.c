@@ -44,7 +44,7 @@
 /*
  * do_nbyte -- call pmemlog_nbyte() & print result
  */
-void
+static void
 do_nbyte(PMEMlogpool *plp)
 {
 	size_t nbyte = pmemlog_nbyte(plp);
@@ -54,7 +54,7 @@ do_nbyte(PMEMlogpool *plp)
 /*
  * do_append -- call pmemlog_append() & print result
  */
-void
+static void
 do_append(PMEMlogpool *plp)
 {
 	const char *str[6] = {
@@ -85,7 +85,7 @@ do_append(PMEMlogpool *plp)
 /*
  * do_appendv -- call pmemlog_appendv() & print result
  */
-void
+static void
 do_appendv(PMEMlogpool *plp)
 {
 	struct iovec iov[9] = {
@@ -144,7 +144,7 @@ do_appendv(PMEMlogpool *plp)
 /*
  * do_tell -- call pmemlog_tell() & print result
  */
-void
+static void
 do_tell(PMEMlogpool *plp)
 {
 	off_t tell = pmemlog_tell(plp);
@@ -154,7 +154,7 @@ do_tell(PMEMlogpool *plp)
 /*
  * do_rewind -- call pmemlog_rewind() & print result
  */
-void
+static void
 do_rewind(PMEMlogpool *plp)
 {
 	pmemlog_rewind(plp);
@@ -166,7 +166,7 @@ do_rewind(PMEMlogpool *plp)
  *
  * It is a walker function for pmemlog_walk
  */
-int
+static int
 printit(const void *buf, size_t len, void *arg)
 {
 	char *str = alloca(len + 1);
@@ -183,7 +183,7 @@ printit(const void *buf, size_t len, void *arg)
  *
  * pmemlog_walk() is called twice: for chunk size 0 and 16
  */
-void
+static void
 do_walk(PMEMlogpool *plp)
 {
 	pmemlog_walk(plp, 0, printit, NULL);

@@ -48,7 +48,7 @@ int flag = 1;
 
 PMEMoid thread_oid;
 
-void *
+static void *
 test_worker(void *arg)
 {
 	/* before pool is closed */

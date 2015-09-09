@@ -34,7 +34,7 @@
  * aligned_alloc.c -- dummy implementation of aligned_alloc()
  */
 
-#include <stddef.h>
+#include "aligned_alloc.h"
 
 __attribute__((weak))
 void *

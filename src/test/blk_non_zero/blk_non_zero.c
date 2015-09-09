@@ -52,7 +52,7 @@ size_t Bsize;
 /*
  * construct -- build a buffer for writing
  */
-void
+static void
 construct(unsigned char *buf)
 {
 	static int ord = 1;
@@ -69,7 +69,7 @@ construct(unsigned char *buf)
 /*
  * ident -- identify what a buffer holds
  */
-char *
+static char *
 ident(unsigned char *buf)
 {
 	static char descr[100];
@@ -88,7 +88,7 @@ ident(unsigned char *buf)
 /*
  * is_zeroed -- read is_zeroed flag from header
  */
-int
+static int
 is_zeroed(const char *path)
 {
 	int fd = OPEN(path, O_RDWR);

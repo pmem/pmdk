@@ -42,6 +42,7 @@
 #include <string.h>
 #include <err.h>
 #include "common.h"
+#include "dump.h"
 #include "output.h"
 #include "libpmemblk.h"
 #include "libpmemlog.h"

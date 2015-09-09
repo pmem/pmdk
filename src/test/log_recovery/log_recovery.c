@@ -47,7 +47,7 @@
 /*
  * do_append -- call pmemlog_append() & print result
  */
-void
+static void
 do_append(PMEMlogpool *plp)
 {
 	const char *str[6] = {
@@ -78,7 +78,7 @@ do_append(PMEMlogpool *plp)
 /*
  * do_appendv -- call pmemlog_appendv() & print result
  */
-void
+static void
 do_appendv(PMEMlogpool *plp)
 {
 	struct iovec iov[9] = {
@@ -137,7 +137,7 @@ do_appendv(PMEMlogpool *plp)
 /*
  * do_tell -- call pmemlog_tell() & print result
  */
-void
+static void
 do_tell(PMEMlogpool *plp)
 {
 	off_t tell = pmemlog_tell(plp);
@@ -149,7 +149,7 @@ do_tell(PMEMlogpool *plp)
  *
  * It is a walker function for pmemlog_walk
  */
-int
+static int
 printit(const void *buf, size_t len, void *arg)
 {
 	char *str = alloca(len + 1);
@@ -164,7 +164,7 @@ printit(const void *buf, size_t len, void *arg)
 /*
  * do_walk -- call pmemlog_walk() & print result
  */
-void
+static void
 do_walk(PMEMlogpool *plp)
 {
 	pmemlog_walk(plp, 0, printit, NULL);
@@ -176,7 +176,7 @@ sigjmp_buf Jmp;
 /*
  * signal_handler -- called on SIGSEGV
  */
-void
+static void
 signal_handler(int sig)
 {
 	OUT("signal: %s", strsignal(sig));

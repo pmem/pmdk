@@ -45,7 +45,7 @@
 
 #define	MB ((size_t)1 << 20)
 
-void
+static void
 pool_create(const char *path, size_t bsize, size_t poolsize, unsigned mode)
 {
 	PMEMblkpool *pbp = pmemblk_create(path, bsize, poolsize, mode);
@@ -74,7 +74,7 @@ pool_create(const char *path, size_t bsize, size_t poolsize, unsigned mode)
 	}
 }
 
-void
+static void
 pool_open(const char *path, size_t bsize)
 {
 	PMEMblkpool *pbp = pmemblk_open(path, bsize);

@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2014, Intel Corporation
+# Copyright (c) 2014-2015, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -61,7 +61,7 @@ OBJS=$(SRC:.c=.o)
 LDFLAGS = -L$(LIBS_PATH)
 LDFLAGS += $(EXTRA_LDFLAGS)
 LIBS += -lpmemlog -lpmem -pthread -lm
-CFLAGS = -std=gnu99 -Wall -Werror -pthread $(EXTRA_CFLAGS)
+CFLAGS = -std=gnu99 -Wall -Werror -Wmissing-prototypes -pthread $(EXTRA_CFLAGS)
 CFLAGS += -I../include
 CFLAGS += $(shell pkg-config --cflags glib-2.0)
 LIBS += $(shell pkg-config --libs glib-2.0)

@@ -53,6 +53,7 @@
 #include "out.h"
 #include "list.h"
 #include "obj.h"
+#include "pmalloc.h"
 #include "valgrind_internal.h"
 
 #define	MAX_BUCKET_REFILL 2

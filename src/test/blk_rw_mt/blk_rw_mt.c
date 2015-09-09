@@ -49,7 +49,7 @@ PMEMblkpool *Handle;
 /*
  * construct -- build a buffer for writing
  */
-void
+static void
 construct(int *ordp, unsigned char *buf)
 {
 	for (int i = 0; i < Bsize; i++)
@@ -64,7 +64,7 @@ construct(int *ordp, unsigned char *buf)
 /*
  * check -- check for torn buffers
  */
-void
+static void
 check(unsigned char *buf)
 {
 	unsigned val = *buf;
@@ -79,7 +79,7 @@ check(unsigned char *buf)
 /*
  * worker -- the work each thread performs
  */
-void *
+static void *
 worker(void *arg)
 {
 	long mytid = (long)arg;

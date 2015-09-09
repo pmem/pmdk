@@ -36,7 +36,7 @@
 
 struct cuckoo;
 
-struct cuckoo *cuckoo_new();
+struct cuckoo *cuckoo_new(void);
 void cuckoo_delete(struct cuckoo *c);
 
 int cuckoo_insert(struct cuckoo *c, uint64_t key, void *value);

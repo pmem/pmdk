@@ -525,14 +525,14 @@ pmemobj_zrealloc((pop), _pobj_oidp, (size), TOID_TYPE_NUM_OF(*(o))); })
 _pobj_ret; })
 
 /*
- * Debug helper function and macros
- */
-#ifdef	DEBUG
-
-/*
  * (debug helper function) logs notice message if used inside a transaction
  */
 void _pobj_debug_notice(const char *func_name, const char *file, int line);
+
+/*
+ * Debug helper function and macros
+ */
+#ifdef	DEBUG
 
 /*
  * (debug helper macro) logs notice message if used inside a transaction
@@ -770,7 +770,7 @@ enum pobj_tx_stage {
 /*
  * Always returns the current transaction stage for a thread.
  */
-enum pobj_tx_stage pmemobj_tx_stage();
+enum pobj_tx_stage pmemobj_tx_stage(void);
 
 enum pobj_tx_lock {
 	TX_LOCK_NONE,
@@ -804,7 +804,7 @@ void pmemobj_tx_abort(int errnum);
  * to TX_STAGE_ONCOMMIT and function returns zero. Otherwise, stage changes
  * to TX_STAGE_ONABORT and an error number is returned.
  */
-int pmemobj_tx_commit();
+int pmemobj_tx_commit(void);
 
 /*
  * Cleanups current transaction. Must always be called after pmemobj_tx_begin,
@@ -814,7 +814,7 @@ int pmemobj_tx_commit();
  *
  * Always causes transition to TX_STAGE_NONE.
  */
-void pmemobj_tx_end();
+void pmemobj_tx_end(void);
 
 /*
  * Performs the actions associated with current stage of the transaction,
@@ -823,7 +823,7 @@ void pmemobj_tx_end();
  *
  * If successful, function returns zero. Otherwise, an error number is returned.
  */
-int pmemobj_tx_process();
+int pmemobj_tx_process(void);
 
 #define	_POBJ_TX_BEGIN(pop, ...)\
 {\

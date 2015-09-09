@@ -47,7 +47,7 @@ size_t Bsize;
 /*
  * construct -- build a buffer for writing
  */
-void
+static void
 construct(unsigned char *buf)
 {
 	static int ord = 1;
@@ -64,7 +64,7 @@ construct(unsigned char *buf)
 /*
  * ident -- identify what a buffer holds
  */
-char *
+static char *
 ident(unsigned char *buf)
 {
 	static char descr[100];

@@ -73,7 +73,7 @@ FUNC_MOCK(ctree_new, struct ctree *, void)
 	}
 FUNC_MOCK_END
 
-FUNC_MOCK_RET_ALWAYS(ctree_delete, void *, NULL);
+FUNC_MOCK_RET_ALWAYS(ctree_delete, void *, NULL, struct ctree *t);
 
 static uint64_t inserted_key;
 
@@ -93,7 +93,7 @@ FUNC_MOCK(ctree_remove, uint64_t, struct ctree *c, uint64_t key, int eq)
 	}
 FUNC_MOCK_END
 
-void
+static void
 test_new_delete_bucket()
 {
 	struct bucket *b = NULL;
@@ -117,7 +117,7 @@ test_new_delete_bucket()
 	bucket_delete(b);
 }
 
-void
+static void
 test_bucket()
 {
 	struct bucket *b = bucket_new(TEST_UNIT_SIZE, TEST_MAX_UNIT);
@@ -130,7 +130,7 @@ test_bucket()
 	bucket_unlock(b);
 }
 
-void
+static void
 test_bucket_insert_get()
 {
 	struct bucket *b = bucket_new(TEST_UNIT_SIZE, TEST_MAX_UNIT);
@@ -154,7 +154,7 @@ test_bucket_insert_get()
 	bucket_delete(b);
 }
 
-void
+static void
 test_bucket_remove()
 {
 	struct bucket *b = bucket_new(TEST_UNIT_SIZE, TEST_MAX_UNIT);

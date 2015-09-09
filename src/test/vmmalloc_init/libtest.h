@@ -29,16 +29,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#ifndef	LIBTEST_H
+#define	LIBTEST_H
 
-/*
- * ctree.h -- internal definitions for crit-bit tree
- */
+#include <stddef.h>
 
-struct ctree;
+void *falloc(size_t size, int c);
 
-struct ctree *ctree_new(void);
-void ctree_delete(struct ctree *t);
-int ctree_insert(struct ctree *t, uint64_t key);
-uint64_t ctree_find(struct ctree *t, uint64_t key);
-uint64_t ctree_remove(struct ctree *t, uint64_t key, int eq);
-int ctree_is_empty(struct ctree *t);
+#endif

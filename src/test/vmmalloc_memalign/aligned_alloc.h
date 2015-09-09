@@ -30,15 +30,11 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * ctree.h -- internal definitions for crit-bit tree
- */
+#ifndef	ALIGNED_ALLOC_H
+#define	ALIGNED_ALLOC_H
 
-struct ctree;
+#include <stddef.h>
 
-struct ctree *ctree_new(void);
-void ctree_delete(struct ctree *t);
-int ctree_insert(struct ctree *t, uint64_t key);
-uint64_t ctree_find(struct ctree *t, uint64_t key);
-uint64_t ctree_remove(struct ctree *t, uint64_t key, int eq);
-int ctree_is_empty(struct ctree *t);
+void *aligned_alloc(size_t alignment, size_t size);
+
+#endif

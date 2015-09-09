@@ -90,7 +90,7 @@ tobject_construct(PMEMobjpool *pop, void *ptr, void *arg)
 }
 
 
-void
+static void
 test_root_object(const char *path)
 {
 	PMEMobjpool *pop = NULL;
@@ -166,7 +166,7 @@ test_root_object(const char *path)
 	pmemobj_close(pop);
 }
 
-void
+static void
 test_alloc_free(const char *path)
 {
 #define	_N_TEST_TYPES 3 /* number of types to test */
@@ -240,7 +240,7 @@ test_alloc_free(const char *path)
 #undef	_N_TEST_TYPES
 }
 
-void
+static void
 test_FOREACH(const char *path)
 {
 #define	_MAX_TYPES	3	/* number of types to test */
@@ -319,7 +319,7 @@ test_FOREACH(const char *path)
 #undef	_MAX_ELEMENTS
 }
 
-void
+static void
 test_user_lists(const char *path)
 {
 #define	_N_OBJECTS 5
@@ -404,7 +404,7 @@ test_user_lists(const char *path)
 	pmemobj_close(pop);
 }
 
-void
+static void
 test_null_oids(void)
 {
 	PMEMoid nulloid = OID_NULL;
@@ -416,7 +416,7 @@ test_null_oids(void)
 	ASSERT(next.off == 0 && next.pool_uuid_lo == 0);
 }
 
-void
+static void
 test_strdup(const char *path)
 {
 	PMEMobjpool *pop = NULL;

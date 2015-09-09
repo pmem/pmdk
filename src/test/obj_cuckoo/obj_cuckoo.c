@@ -52,7 +52,7 @@ FUNC_MOCK(malloc, void *, size_t size)
 		return NULL;
 FUNC_MOCK_END
 
-void
+static void
 test_cuckoo_new_delete()
 {
 	struct cuckoo *c = NULL;
@@ -72,7 +72,7 @@ test_cuckoo_new_delete()
 	cuckoo_delete(c);
 }
 
-void
+static void
 test_insert_get_remove()
 {
 	struct cuckoo *c = cuckoo_new();

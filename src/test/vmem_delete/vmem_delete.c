@@ -46,7 +46,7 @@ sigjmp_buf Jmp;
 /*
  * signal_handler -- called on SIGSEGV
  */
-void
+static void
 signal_handler(int sig)
 {
 	OUT("\tsignal: %s", strsignal(sig));

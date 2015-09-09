@@ -43,14 +43,14 @@ struct cargs {
 	size_t size;
 };
 
-void
+static void
 test_constructor(PMEMobjpool *pop, void *addr, void *args)
 {
 	struct cargs *a = args;
 	pmemobj_memset_persist(pop, addr, rand() % 256, a->size / 2);
 }
 
-void
+static void
 test_alloc(PMEMobjpool *pop, size_t size)
 {
 	unsigned long cnt = 0;
@@ -66,7 +66,7 @@ test_alloc(PMEMobjpool *pop, size_t size)
 	OUT("size: %zu allocs: %lu", size, cnt);
 }
 
-void
+static void
 test_free(PMEMobjpool *pop)
 {
 	PMEMoid oid;

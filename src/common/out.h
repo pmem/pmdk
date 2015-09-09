@@ -95,7 +95,7 @@
 void out_init(const char *log_prefix, const char *log_level_var,
 		const char *log_file_var, int major_version,
 		int minor_version);
-void out_fini();
+void out_fini(void);
 void out(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 void out_nonl(int level, const char *fmt,
 	...) __attribute__((format(printf, 2, 3)));

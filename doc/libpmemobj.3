@@ -241,13 +241,13 @@ libpmemobj \- persistent memory transactional object store
 .sp
 .B Transactional object manipulation:
 .sp
-.BI "enum tx_stage pmemobj_tx_stage();
+.BI "enum tx_stage pmemobj_tx_stage(void);
 .sp
 .BI "int pmemobj_tx_begin(PMEMobjpool *" pop ", jmp_buf *" env ", enum " tx_lock ", " ... );
 .BI "void pmemobj_tx_abort(int " errnum );
-.BI "int pmemobj_tx_commit();
-.BI "void pmemobj_tx_end();
-.BI "int pmemobj_tx_process();
+.BI "int pmemobj_tx_commit(void);
+.BI "void pmemobj_tx_end(void);
+.BI "int pmemobj_tx_process(void);
 .sp
 .BI "int pmemobj_tx_add_range(PMEMoid " oid ", uint64_t " off ", size_t " size );
 .BI "int pmemobj_tx_add_range_direct(void *" ptr ", size_t " size );
@@ -2498,7 +2498,7 @@ Committing the nested transaction does not commit the outer
 transaction, however errors in the nested transaction are propagated up to
 the outer-most level, resulting in the interruption of the entire transaction.
 .PP
-.BI "enum tx_stage pmemobj_tx_stage();
+.BI "enum tx_stage pmemobj_tx_stage(void);
 .IP
 The
 .BR pmemobj_tx_stage ()
@@ -2574,7 +2574,7 @@ aborts the current transaction and causes transition to
 It has no effect if called during the stage other than
 .IR TX_STAGE_WORK .
 .PP
-.BI "int pmemobj_tx_commit();
+.BI "int pmemobj_tx_commit(void);
 .IP
 The
 .BR pmemobj_tx_commit ()
@@ -2586,7 +2586,7 @@ If successful returns 0.  Otherwise, an error number is returned.
 It has no effect if called during the stage other than
 .IR TX_STAGE_WORK .
 .PP
-.BI "void pmemobj_tx_end();
+.BI "void pmemobj_tx_end(void);
 .IP
 The
 .BR pmemobj_tx_end ()
@@ -2606,7 +2606,7 @@ during
 .I TX_STAGE_NONE
 stage.
 .PP
-.BI "int pmemobj_tx_process();
+.BI "int pmemobj_tx_process(void);
 .IP
 The
 .BR pmemobj_tx_process ()

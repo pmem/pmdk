@@ -35,7 +35,7 @@
 #
 TARGET = libut.a
 OBJS = ut.o ut_alloc.o ut_file.o ut_pthread.o ut_signal.o
-CFLAGS = -I../../include -ggdb -Wall -Werror -std=gnu99 -pthread -fno-common
+CFLAGS = -I../../include -ggdb -Wall -Werror -Wmissing-prototypes -std=gnu99 -pthread -fno-common
 CSTYLE = ../../../utils/cstyle
 
 all test: $(TARGET)

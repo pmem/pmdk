@@ -45,7 +45,7 @@
 
 char buf[ALLOC_SIZE];
 
-void
+static void
 test_constructor(PMEMobjpool *pop, void *addr, void *args)
 {
 	/* do not use pmem_memcpy_persist() here */

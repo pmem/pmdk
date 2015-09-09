@@ -125,7 +125,7 @@ SECTION_PARM(LANE_SECTION_ALLOCATOR, &noop_ops);
 SECTION_PARM(LANE_SECTION_LIST, &noop_ops);
 SECTION_PARM(LANE_SECTION_TRANSACTION, &noop_ops);
 
-void
+static void
 test_lane_boot_cleanup_ok()
 {
 	struct mock_pop pop = {
@@ -152,7 +152,7 @@ test_lane_boot_cleanup_ok()
 	ASSERTeq(pop.p.lanes, NULL);
 }
 
-void
+static void
 test_lane_boot_fail()
 {
 	struct mock_pop pop = {
@@ -173,7 +173,7 @@ test_lane_boot_fail()
 	ASSERTeq(pop.p.lanes, NULL);
 }
 
-void
+static void
 test_lane_recovery_check_ok()
 {
 	struct mock_pop pop = {
@@ -189,7 +189,7 @@ test_lane_recovery_check_ok()
 	ASSERTeq(lane_check(&pop.p), 0);
 }
 
-void
+static void
 test_lane_recovery_check_fail()
 {
 	struct mock_pop pop = {
@@ -208,7 +208,7 @@ test_lane_recovery_check_fail()
 	ASSERTne(lane_check(&pop.p), 0);
 }
 
-void
+static void
 test_lane_hold_release()
 {
 	pthread_mutex_t lock = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;

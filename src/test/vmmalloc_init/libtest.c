@@ -39,6 +39,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include "libtest.h"
 
 /*
  * falloc -- allocate a block of size bytes and fill it with a constant byte
