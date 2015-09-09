@@ -11,6 +11,10 @@ Next part UUID           : $(*)
 Previous replica UUID    : $(*)
 Next replica UUID        : $(*)
 Creation Time            : $(*)
+Alignment Descriptor     : $(*)
+Class                    : $(*)
+Data                     : $(*)
+Machine                  : $(*)
 Checksum                 : $(*) [OK]
 
 PMEM OBJ Header:

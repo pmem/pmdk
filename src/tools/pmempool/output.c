@@ -41,6 +41,7 @@
 #include <stdint.h>
 #include <ctype.h>
 #include <err.h>
+#include <elf.h>
 
 #include "common.h"
 #include "output.h"
@@ -700,4 +701,79 @@ out_get_internal_type_str(enum internal_type type)
 	default:
 		return "unknonw";
 	}
+}
+
+/*
+ * out_get_ei_class_str -- get ELF's ei_class value string
+ */
+const char *
+out_get_ei_class_str(uint8_t ei_class)
+{
+	switch (ei_class) {
+	case ELFCLASSNONE:
+		return "none";
+	case ELFCLASS32:
+		return "ELF32";
+	case ELFCLASS64:
+		return "ELF64";
+	default:
+		return "unknown";
+	}
+}
+
+/*
+ * out_get_ei_data_str -- get ELF's ei_data value string
+ */
+const char *
+out_get_ei_data_str(uint8_t ei_data)
+{
+	switch (ei_data) {
+	case ELFDATANONE:
+		return "none";
+	case ELFDATA2LSB:
+		return "2's complement, little endian";
+	case ELFDATA2MSB:
+		return "2's complement, big endian";
+	default:
+		return "unknown";
+	}
+}
+
+/*
+ * out_get_e_machine_str -- get ELF's e_machine value string
+ */
+const char *
+out_get_e_machine_str(uint16_t e_machine)
+{
+	static char str_buff[STR_MAX] = {0, };
+	switch (e_machine) {
+	case EM_NONE:
+		return "none";
+	case EM_X86_64:
+		return "AMD X86-64";
+	default:
+		if (e_machine >= EM_NUM) {
+			return "unknown";
+		} else {
+			snprintf(str_buff, STR_MAX, "%u", e_machine);
+			return str_buff;
+		}
+	}
+}
+
+/*
+ * out_get_alignment_descr_str -- get alignment descriptor string
+ */
+const char *
+out_get_alignment_desc_str(uint64_t ad, uint64_t valid_ad)
+{
+	static char str_buff[STR_MAX] = {0, };
+
+	if (ad == valid_ad)
+		snprintf(str_buff, STR_MAX, "0x%016lx [OK]", ad);
+	else
+		snprintf(str_buff, STR_MAX, "0x%016lx "
+			"[wrong! should be 0x%016lx]", ad, valid_ad);
+
+	return str_buff;
 }

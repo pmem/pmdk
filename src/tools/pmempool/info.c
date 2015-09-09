@@ -68,6 +68,9 @@ struct range ret = {\
 	.last = PMEMOBJ_NUM_OID_TYPES - 1,\
 }; ret; })
 
+#define	GET_ALIGNMENT(ad, x)\
+(1 + (((ad) >> (ALIGNMENT_DESC_BITS * (x))) & ((1 << ALIGNMENT_DESC_BITS) - 1)))
+
 /*
  * Default arguments
  */
@@ -552,6 +555,22 @@ pmempool_info_read(struct pmem_info *pip, void *buff, size_t nbytes, off_t off)
 static int
 pmempool_info_pool_hdr(struct pmem_info *pip, int v)
 {
+	static const char *alignment_desc_str[] = {
+		"  char",
+		"  short",
+		"  int",
+		"  long",
+		"  long long",
+		"  size_t",
+		"  off_t",
+		"  float",
+		"  double",
+		"  long double",
+		"  void *",
+	};
+	static const size_t alignment_desc_n =
+		sizeof (alignment_desc_str) / sizeof (alignment_desc_str[0]);
+
 	int ret = 0;
 	struct pool_hdr *hdr = malloc(sizeof (struct pool_hdr));
 	if (!hdr)
@@ -559,6 +578,13 @@ pmempool_info_pool_hdr(struct pmem_info *pip, int v)
 
 	if (pmempool_info_read(pip, hdr, sizeof (*hdr), 0)) {
 		outv_err("cannot read pool header\n");
+		free(hdr);
+		return -1;
+	}
+
+	struct arch_flags arch_flags;
+	if (util_get_arch_flags(&arch_flags)) {
+		outv_err("cannot read architecture flags\n");
 		free(hdr);
 		return -1;
 	}
@@ -589,6 +615,37 @@ pmempool_info_pool_hdr(struct pmem_info *pip, int v)
 				out_get_uuid_str(hdr->next_repl_uuid));
 	outv_field(v, "Creation Time", "%s",
 			out_get_time_str((time_t)hdr->crtime));
+
+	uint64_t ad = hdr->arch_flags.alignment_desc;
+	uint64_t cur_ad = arch_flags.alignment_desc;
+
+	outv_field(v, "Alignment Descriptor", "%s",
+			out_get_alignment_desc_str(ad, cur_ad));
+
+	for (int i = 0; i < alignment_desc_n; i++) {
+		int a = GET_ALIGNMENT(ad, i);
+		if (ad == cur_ad) {
+			outv_field(v + 1, alignment_desc_str[i],
+					"%2d", a);
+		} else {
+			int av = GET_ALIGNMENT(cur_ad, i);
+			if (a == av) {
+				outv_field(v + 1, alignment_desc_str[i],
+					"%2d [OK]", a);
+			} else {
+				outv_field(v + 1, alignment_desc_str[i],
+					"%2d [wrong! should be %2d]", a, av);
+			}
+		}
+	}
+
+	outv_field(v, "Class", "%s",
+			out_get_ei_class_str(hdr->arch_flags.ei_class));
+	outv_field(v, "Data", "%s",
+			out_get_ei_data_str(hdr->arch_flags.ei_data));
+	outv_field(v, "Machine", "%s",
+			out_get_e_machine_str(hdr->arch_flags.e_machine));
+
 	outv_field(v, "Checksum", "%s", out_get_checksum(hdr, sizeof (*hdr),
 				&hdr->checksum));
 
