@@ -677,7 +677,7 @@ heap_buckets_init(PMEMobjpool *pop)
 	}
 
 	/* XXX better way to fill the bucket map */
-	for (i = 0; i <= h->last_run_max_size; ++i) {
+	for (i = 0; i < h->last_run_max_size; ++i) {
 		for (int j = 0; j < MAX_BUCKETS - 1; ++j) {
 			/*
 			 * Skip the last unit, so that the distribution
