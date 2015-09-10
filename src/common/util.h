@@ -161,6 +161,8 @@ struct pool_set_part {
 	int created;		/* indicates newly created (zeroed) file */
 
 	/* util_poolset_open/create */
+	void *hdr;		/* base address of header */
+	size_t hdrsize;		/* size of the header mapping */
 	void *addr;		/* base address of the mapping */
 	size_t size;		/* size of the mapping - page aligned */
 	int rdonly;
@@ -208,6 +210,8 @@ int util_file_open(const char *path, size_t *size, size_t minsize, int flags);
 int util_pool_create(struct pool_set **setp, const char *path, size_t poolsize,
 	size_t minsize, size_t hdrsize, const char *sig,
 	uint32_t major, uint32_t compat, uint32_t incompat, uint32_t ro_compat);
+int util_pool_open_nocheck(struct pool_set **setp, const char *path, int rdonly,
+		size_t hdrsize);
 int util_pool_open(struct pool_set **setp, const char *path, int rdonly,
 	size_t minsize, size_t hdrsize, const char *sig,
 	uint32_t major, uint32_t compat, uint32_t incompat, uint32_t ro_compat);

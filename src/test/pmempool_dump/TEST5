@@ -1,3 +1,5 @@
+#!/bin/bash -e
+#
 # Copyright (c) 2014-2015, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
@@ -28,25 +30,33 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# Makefile -- Makefile for pmemspoil tool
 #
+# pmempool_dump/TEST5 -- test for dump command
+#
+export UNITTEST_NAME=pmempool_dump/TEST5
+export UNITTEST_NUM=5
 
-vpath %.c ../../
-vpath %.c ../../tools/pmempool
-vpath %.c ../../common
-CSTYLE = ../../../utils/cstyle
+. ../unittest/unittest.sh
 
-TARGET = pmemspoil
+require_fs_type pmem non-pmem
+require_build_type nondebug
 
-OBJS = common.o output.o util.o set.o spoil.o
+setup
 
-LIBPMEM=y
+POOLSET=$DIR/pool.set
+POOL_PART1=$DIR/pool.part1
+POOL_PART2=$DIR/pool.part2
+LOG=out${UNITTEST_NUM}.log
+rm -rf $LOG && touch $LOG
 
-LDFLAGS += -L../../nondebug/
-CFLAGS += -I../../tools/pmempool
-CFLAGS += -I../../common
-CFLAGS += -I../../libpmemlog
-CFLAGS += -I../../libpmemblk
-CFLAGS += -I../../libpmemobj
+rm -f $POOLSET $POOL_PART1 $POOL_PART2
 
-include ../../tools/Makefile.inc
+create_poolset $POOLSET 32M:$POOL_PART1:z 32M:$POOL_PART2:z
+
+expect_normal_exit $PMEMPOOL create log $POOLSET
+expect_normal_exit $PMEMWRITE $POOLSET PMEMPOOL_DUMP_TEST
+expect_normal_exit $PMEMPOOL dump $POOLSET >> $LOG
+
+check
+
+pass

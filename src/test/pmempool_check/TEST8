@@ -1,3 +1,5 @@
+#!/bin/bash -e
+#
 # Copyright (c) 2014-2015, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
@@ -28,25 +30,51 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# Makefile -- Makefile for pmemspoil tool
 #
+# pmempool_check/TEST8 -- test for checking pools
+#
+export UNITTEST_NAME=pmempool_check/TEST8
+export UNITTEST_NUM=8
 
-vpath %.c ../../
-vpath %.c ../../tools/pmempool
-vpath %.c ../../common
-CSTYLE = ../../../utils/cstyle
+. ../unittest/unittest.sh
 
-TARGET = pmemspoil
+require_fs_type pmem non-pmem
 
-OBJS = common.o output.o util.o set.o spoil.o
+setup
 
-LIBPMEM=y
+POOLSET=$DIR/pool.set
+POOL_P1=$DIR/pool.p1
+POOL_P2=$DIR/pool.p2
+POOL_P3=$DIR/pool.p3
+POOL_P4=$DIR/pool.p4
+POOLS="$POOL_P1 $POOL_P2 $POOL_P3 $POOL_P4"
 
-LDFLAGS += -L../../nondebug/
-CFLAGS += -I../../tools/pmempool
-CFLAGS += -I../../common
-CFLAGS += -I../../libpmemlog
-CFLAGS += -I../../libpmemblk
-CFLAGS += -I../../libpmemobj
+LOG=out${UNITTEST_NUM}.log
+rm -rf $LOG && touch $LOG
 
-include ../../tools/Makefile.inc
+create_poolset $POOLSET\
+	32M:$POOL_P1:z\
+	32M:$POOL_P2:z\
+	32M:$POOL_P3:z\
+	32M:$POOL_P4:z
+
+check_file $POOLSET
+
+rm -f $POOLS
+expect_normal_exit $PMEMPOOL$EXESUFFIX create blk 512 $POOLSET
+check_files $POOLS
+$PMEMSPOIL -v $POOL_P1\
+	pool_hdr.next_part_uuid=ERROR_NEXT\
+	pool_hdr.prev_part_uuid=ERROR_PREV\
+	pool_hdr.next_repl_uuid=ERROR_NEXT_REP\
+	pool_hdr.prev_repl_uuid=ERROR_PREV_REP\
+	pool_hdr.poolset_uuid=ERROR\
+	>> $LOG
+
+expect_abnormal_exit $PMEMPOOL$EXESUFFIX check $POOLSET >> $LOG
+expect_normal_exit $PMEMPOOL$EXESUFFIX check -vyr $POOLSET >> $LOG
+expect_normal_exit $PMEMPOOL$EXESUFFIX check $POOLSET >> $LOG
+
+check
+
+pass
