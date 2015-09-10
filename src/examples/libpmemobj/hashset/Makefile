@@ -29,45 +29,13 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
 PROGS = hashset_atomic hashset_tx
 
-INCDIR ?= ../../../include
-LIBDIR ?= ../../../debug
+LIBS = -lpmemobj -lpmem -pthread
 
-INCS = -I$(INCDIR)
-LIBS = -Wl,-rpath=$(LIBDIR) -L$(LIBDIR) -lpmemobj -lpmem -pthread
-CFLAGS = -std=gnu99 -ggdb -Wall -Werror
-CSTYLE = ../../../../utils/cstyle
-
-
-all:     TARGET = all
-clean:   TARGET = clean
-clobber: TARGET = clobber
-cstyle:  TARGET = cstyle
-
-all: $(PROGS)
-
-clean: $(DIRS)
-	$(RM) *.o core a.out
-
-clobber: clean $(DIRS)
-	$(RM) $(PROGS)
-
-cstyle: $(DIRS)
-	$(CSTYLE) -pP *.[ch]
-
-.c.o:
-	$(CC) -c -o $@ $(CFLAGS) $(INCS) $<
-
-$(PROGS):
-	$(CC) -o $@ $< main.o $(LIBS)
+include ../../Makefile.inc
 
 hashset_atomic: hashset_atomic.o main.o
 
 hashset_tx: hashset_tx.o main.o
 
-$(DIRS):
-	$(MAKE) -C $@ $(TARGET)
-
-.PHONY: all clean clobber cstyle $(DIRS)

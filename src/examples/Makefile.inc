@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2014-2015, Intel Corporation
+# Copyright (c) 2015, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,9 +31,51 @@
 #
 
 #
-# examples/Makefile -- build the NVM Library examples
+# examples/Makefile.inc -- build the NVM Library examples
 #
+TOP_SRC := ../$(dir $(lastword $(MAKEFILE_LIST)))
+TOP := ../$(TOP_SRC)
+CSTYLE = $(TOP)utils/cstyle
 
-DIRS = libpmem libpmemblk libpmemlog libpmemobj libvmem
+INCDIR ?= $(TOP_SRC)include
+LIBDIR ?= $(TOP_SRC)debug
 
-include Makefile.inc
+CFLAGS = -std=gnu99 -ggdb -Wall -Werror
+LDFLAGS = -Wl,-rpath=$(LIBDIR) -L$(LIBDIR)
+INCS = -I$(INCDIR)
+
+all-dirs:     TARGET = all
+clean-dirs:   TARGET = clean
+clobber-dirs: TARGET = clobber
+cstyle-dirs:  TARGET = cstyle
+
+all: $(if $(DIRS), all-dirs, ) $(if $(PROGS), all-progs, )
+clean: $(if $(DIRS), clean-dirs, ) $(if $(PROGS), clean-progs, )
+clobber: $(if $(DIRS), clobber-dirs, ) $(if $(PROGS), clobber-progs, )
+cstyle: $(if $(DIRS), cstyle-dirs, ) $(if $(PROGS), cstyle-progs, )
+
+all-dirs clean-dirs clobber-dirs cstyle-dirs: $(DIRS)
+all-progs: $(PROGS)
+
+$(DIRS):
+	$(MAKE) -C $@ $(TARGET)
+
+clobber-progs: clean-progs
+	$(RM) $(PROGS)
+
+clean-progs:
+	$(RM) *.o
+
+cstyle-progs:
+	$(CSTYLE) -pP *.[ch]
+
+.c.o:
+	$(CC) -c -o $@ $(CFLAGS) $(INCS) $<
+
+$(PROGS):
+	$(CC) -o $@ $(LDFLAGS) $^ $(LIBS)
+
+.PHONY: all clean clobber cstyle\
+	all-dirs clean-dirs clobber-dirs cstyle-dirs\
+	all-progs clean-progs clobber-progs cstyle-progs\
+	$(DIRS)

@@ -35,35 +35,12 @@
 #
 PROGS = addlog printlog
 
-INCDIR ?= ../../../include
-LIBDIR ?= ../../../debug
+LIBS = -lpmemlog -lpmem -pthread
 
-INCS = -I$(INCDIR)
-LIBS = -Wl,-rpath=$(LIBDIR) -L$(LIBDIR) -lpmemlog -lpmem -pthread
-CFLAGS = -std=gnu99 -ggdb -Wall -Werror
-CSTYLE = ../../../../utils/cstyle
-
-all: $(PROGS)
-
-clean:
-	$(RM) *.o core a.out
-
-clobber: clean
-	$(RM) $(PROGS)
-
-cstyle:
-	$(CSTYLE) -pP *.[ch]
-
-.c.o:
-	$(CC) -c -o $@ $(CFLAGS) $(INCS) $<
-
-$(PROGS):
-	$(CC) -o $@ $< $(LIBS)
+include ../../Makefile.inc
 
 addlog: addlog.o
 
 printlog: printlog.o
 
 addlog.o printlog.o: logentry.h
-
-.PHONY: all clean clobber cstyle
