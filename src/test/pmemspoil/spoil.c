@@ -1305,7 +1305,6 @@ pmemspoil_process_pmemobj(struct pmemspoil *psp,
 	struct heap_layout *hlayout = (void *)pop + pop->heap_offset;
 	struct lane_layout *lanes = (void *)pop + pop->lanes_offset;
 	struct object_store *obj_store = (void *)pop + pop->obj_store_offset;
-	int ret = 0;
 
 	PROCESS_BEGIN(psp, pfp) {
 		struct checksum_args checksum_args = {
@@ -1332,7 +1331,7 @@ pmemspoil_process_pmemobj(struct pmemspoil *psp,
 		PROCESS(obj_store, obj_store, 1);
 	} PROCESS_END
 
-	return ret;
+	return PROCESS_RET;
 }
 
 /*
@@ -1398,8 +1397,11 @@ main(int argc, char *argv[])
 
 	out_set_prefix(psp->fname);
 
-	for (int i = 0; i < psp->argc; i++)
-		pmemspoil_process(psp, &psp->args[i]);
+	for (int i = 0; i < psp->argc; i++) {
+		ret = pmemspoil_process(psp, &psp->args[i]);
+		if (ret)
+			goto error;
+	}
 
 error:
 	if (psp != NULL) {
