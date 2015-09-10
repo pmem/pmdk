@@ -34,12 +34,8 @@
  * tx.c -- transactions implementation
  */
 
-#include <pthread.h>
-#include <stdint.h>
-#include <string.h>
 #include <errno.h>
 #include <sys/queue.h>
-#include <stdarg.h>
 #include <stdlib.h>
 
 #include "libpmem.h"
@@ -51,6 +47,7 @@
 #include "obj.h"
 #include "out.h"
 #include "pmalloc.h"
+#include "ctree.h"
 #include "valgrind_internal.h"
 
 struct tx_data {
@@ -75,6 +72,8 @@ struct tx_lock_data {
 
 struct lane_tx_runtime {
 	PMEMobjpool *pop;
+	struct ctree *ranges;
+	int cache_slot;
 	SLIST_HEAD(txd, tx_data) tx_entries;
 	SLIST_HEAD(txl, tx_lock_data) tx_locks;
 };
@@ -282,7 +281,7 @@ tx_set_state(PMEMobjpool *pop, struct lane_tx_layout *layout, uint64_t state)
  * tx_clear_undo_log -- (internal) clear undo log pointed by head
  */
 static int
-tx_clear_undo_log(PMEMobjpool *pop, struct list_head *head)
+tx_clear_undo_log(PMEMobjpool *pop, struct list_head *head, int vg_clean)
 {
 	LOG(3, NULL);
 
@@ -292,16 +291,22 @@ tx_clear_undo_log(PMEMobjpool *pop, struct list_head *head)
 		obj = head->pe_first;
 
 #ifdef USE_VG_PMEMCHECK
-		struct oob_header *oobh = OOB_HEADER_FROM_OID(pop, obj);
-		size_t size = pmalloc_usable_size(pop,
+		/*
+		 * Clean the valgrind state of the underlying memory for
+		 * allocated objects in the undo log, so that not-persisted
+		 * modifications after abort are not reported.
+		 */
+		if (vg_clean) {
+			struct oob_header *oobh = OOB_HEADER_FROM_OID(pop, obj);
+			size_t size = pmalloc_usable_size(pop,
 				obj.off - OBJ_OOB_SIZE);
 
-		VALGRIND_SET_CLEAN(oobh, size);
+			VALGRIND_SET_CLEAN(oobh, size);
+		}
 #endif
 
 		/* remove and free all elements from undo log */
-		ret = list_remove_free(pop, head,
-				0, NULL, &obj);
+		ret = list_remove_free(pop, head, 0, NULL, &obj);
 
 		ASSERTeq(ret, 0);
 		if (ret) {
@@ -321,7 +326,7 @@ tx_abort_alloc(PMEMobjpool *pop, struct lane_tx_layout *layout)
 {
 	LOG(3, NULL);
 
-	return tx_clear_undo_log(pop, &layout->undo_alloc);
+	return tx_clear_undo_log(pop, &layout->undo_alloc, 1);
 }
 
 /*
@@ -470,6 +475,59 @@ tx_restore_range(PMEMobjpool *pop, struct tx_range *range)
 }
 
 /*
+ * tx_foreach_set -- (internal) iterates over every memory range
+ */
+static void
+tx_foreach_set(PMEMobjpool *pop, struct lane_tx_layout *layout,
+	void (*cb)(PMEMobjpool *pop, struct tx_range *range))
+{
+	LOG(3, NULL);
+
+	struct tx_range *range = NULL;
+
+	PMEMoid iter;
+	for (iter = layout->undo_set.pe_first; !OBJ_OID_IS_NULL(iter);
+		iter = oob_list_next(pop, &layout->undo_set, iter)) {
+
+		range = OBJ_OFF_TO_PTR(pop, iter.off);
+		cb(pop, range);
+	}
+
+	/* cached objects */
+	for (iter = layout->undo_set_cache.pe_first; !OBJ_OID_IS_NULL(iter);
+		iter = oob_list_next(pop, &layout->undo_set_cache, iter)) {
+
+		struct tx_range_cache *cache = OBJ_OFF_TO_PTR(pop, iter.off);
+		for (int i = 0; i < MAX_CACHED_RANGES; ++i) {
+			range = (struct tx_range *)&cache->range[i];
+			if (range->offset == 0 || range->size == 0)
+				break;
+
+			cb(pop, range);
+		}
+	}
+}
+
+/*
+ * tx_abort_restore_range -- (internal) restores content of the memory range
+ */
+static void
+tx_abort_restore_range(PMEMobjpool *pop, struct tx_range *range)
+{
+	tx_restore_range(pop, range);
+}
+
+/*
+ * tx_abort_recover_range -- (internal) restores content while skipping locks
+ */
+static void
+tx_abort_recover_range(PMEMobjpool *pop, struct tx_range *range)
+{
+	void *ptr = OBJ_OFF_TO_PTR(pop, range->offset);
+	pop->memcpy_persist(pop, ptr, range->data, range->size);
+}
+
+/*
  * tx_abort_set -- (internal) abort all set operations
  */
 static int
@@ -477,34 +535,15 @@ tx_abort_set(PMEMobjpool *pop, struct lane_tx_layout *layout, int recovery)
 {
 	LOG(3, NULL);
 
-	int ret;
-	PMEMoid obj;
+	if (recovery)
+		tx_foreach_set(pop, layout, tx_abort_recover_range);
+	else
+		tx_foreach_set(pop, layout, tx_abort_restore_range);
 
-	while (!OBJ_OID_IS_NULL((obj = oob_list_last(pop,
-					&layout->undo_set)))) {
-		struct tx_range *range = OBJ_OFF_TO_PTR(pop, obj.off);
+	int ret = tx_clear_undo_log(pop, &layout->undo_set_cache, 0);
+	ret |= tx_clear_undo_log(pop, &layout->undo_set, 0);
 
-		if (recovery) {
-			/* lane recovery */
-			pop->memcpy_persist(pop,
-					OBJ_OFF_TO_PTR(pop, range->offset),
-					range->data, range->size);
-		} else {
-			/* aborted transaction */
-			tx_restore_range(pop, range);
-		}
-
-		/* remove snapshot from undo log */
-		ret = list_remove_free(pop, &layout->undo_set, 0, NULL, &obj);
-
-		ASSERTeq(ret, 0);
-		if (ret) {
-			LOG(2, "list_remove_free failed");
-			return ret;
-		}
-	}
-
-	return 0;
+	return ret;
 }
 
 /*
@@ -546,6 +585,16 @@ tx_pre_commit_alloc(PMEMobjpool *pop, struct lane_tx_layout *layout)
 }
 
 /*
+ * tx_pre_commit_range_persist -- (internal) flushes memory range to persistence
+ */
+static void
+tx_pre_commit_range_persist(PMEMobjpool *pop, struct tx_range *range)
+{
+	void *ptr = OBJ_OFF_TO_PTR(pop, range->offset);
+	pop->persist(pop, ptr, range->size);
+}
+
+/*
  * tx_pre_commit_set -- (internal) do pre-commit operations for
  * set operations
  */
@@ -554,16 +603,7 @@ tx_pre_commit_set(PMEMobjpool *pop, struct lane_tx_layout *layout)
 {
 	LOG(3, NULL);
 
-	PMEMoid iter;
-	for (iter = layout->undo_set.pe_first; !OBJ_OID_IS_NULL(iter);
-		iter = oob_list_next(pop, &layout->undo_set, iter)) {
-
-		struct tx_range *range = OBJ_OFF_TO_PTR(pop, iter.off);
-		void *ptr = OBJ_OFF_TO_PTR(pop, range->offset);
-
-		/* flush and persist modified area */
-		pop->persist(pop, ptr, range->size);
-	}
+	tx_foreach_set(pop, layout, tx_pre_commit_range_persist);
 }
 
 /*
@@ -609,7 +649,7 @@ tx_post_commit_free(PMEMobjpool *pop, struct lane_tx_layout *layout)
 {
 	LOG(3, NULL);
 
-	return tx_clear_undo_log(pop, &layout->undo_free);
+	return tx_clear_undo_log(pop, &layout->undo_free, 0);
 }
 
 /*
@@ -621,7 +661,29 @@ tx_post_commit_set(PMEMobjpool *pop, struct lane_tx_layout *layout)
 {
 	LOG(3, NULL);
 
-	return tx_clear_undo_log(pop, &layout->undo_set);
+	struct list_head *head = &layout->undo_set_cache;
+	int ret = 0;
+	PMEMoid obj = OID_NULL;
+
+	/* clear all the undo log caches except for the last one */
+	while (head->pe_first.off != oob_list_last(pop, head).off) {
+		obj = head->pe_first;
+
+		ret = list_remove_free(pop, head, 0, NULL, &obj);
+
+		ASSERTeq(ret, 0);
+	}
+
+	if (!OID_IS_NULL(obj)) {
+		/* zero the cache, will be useful later on */
+		struct tx_range_cache *cache = OBJ_OFF_TO_PTR(pop, obj.off);
+		pop->memset_persist(pop, cache, 0,
+			sizeof (struct tx_range_cache));
+	}
+
+	ret |= tx_clear_undo_log(pop, &layout->undo_set, 0);
+
+	return ret;
 }
 
 /*
@@ -823,13 +885,18 @@ tx_alloc_common(size_t size, unsigned int type_num,
 			0, NULL, OID_NULL, 0,
 			size, constructor, &args, &retoid);
 
-	if (OBJ_OID_IS_NULL(retoid)) {
-		ERR("out of memory");
-		errno = ENOMEM;
-		pmemobj_tx_abort(ENOMEM);
-	}
+	if (OBJ_OID_IS_NULL(retoid) ||
+		ctree_insert(lane->ranges, retoid.off, size) != 0)
+		goto err_oom;
 
 	return retoid;
+
+err_oom:
+	ERR("out of memory");
+	errno = ENOMEM;
+	pmemobj_tx_abort(ENOMEM);
+
+	return OID_NULL;
 }
 
 /*
@@ -875,13 +942,18 @@ tx_alloc_copy_common(size_t size, unsigned int type_num, const void *ptr,
 			0, NULL, OID_NULL, 0,
 			size, constructor, &args, &retoid);
 
-	if (ret || OBJ_OID_IS_NULL(retoid)) {
-		ERR("out of memory");
-		errno = ENOMEM;
-		pmemobj_tx_abort(ENOMEM);
-	}
+	if (ret || OBJ_OID_IS_NULL(retoid) ||
+		ctree_insert(lane->ranges, retoid.off, size) != 0)
+		goto err_oom;
 
 	return retoid;
+
+err_oom:
+	ERR("out of memory");
+	errno = ENOMEM;
+	pmemobj_tx_abort(ENOMEM);
+
+	return OID_NULL;
 }
 
 /*
@@ -978,6 +1050,8 @@ pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...)
 		lane = tx.section->runtime;
 		SLIST_INIT(&lane->tx_entries);
 		SLIST_INIT(&lane->tx_locks);
+		lane->ranges = ctree_new();
+		lane->cache_slot = 0;
 
 		lane->pop = pop;
 	} else {
@@ -1126,6 +1200,7 @@ pmemobj_tx_end()
 	struct lane_tx_runtime *lane = tx.section->runtime;
 	struct tx_data *txd = SLIST_FIRST(&lane->tx_entries);
 	SLIST_REMOVE_HEAD(&lane->tx_entries, tx_entry);
+
 	int errnum = txd->errnum;
 	Free(txd);
 
@@ -1135,6 +1210,10 @@ pmemobj_tx_end()
 		/* this is the outermost transaction */
 		struct lane_tx_layout *layout =
 			(struct lane_tx_layout *)tx.section->layout;
+
+		/* cleanup cache */
+		ctree_delete(lane->ranges);
+		lane->cache_slot = 0;
 
 		/* the transaction state and undo log should be clear */
 		ASSERTeq(layout->state, TX_STATE_NONE);
@@ -1190,6 +1269,117 @@ pmemobj_tx_process()
 }
 
 /*
+ * pmemobj_tx_add_large -- (internal) adds large memory range to undo log
+ */
+static int
+pmemobj_tx_add_large(struct lane_tx_layout *layout,
+	struct tx_add_range_args *args)
+{
+	/* insert snapshot to undo log */
+	PMEMoid snapshot;
+	int ret = list_insert_new(args->pop, &layout->undo_set, 0,
+			NULL, OID_NULL, 0,
+			args->size + sizeof (struct tx_range),
+			constructor_tx_add_range, args, &snapshot);
+
+	return ret;
+}
+
+/*
+ * constructor_tx_range_cache -- (internal) cache constructor
+ */
+static void
+constructor_tx_range_cache(PMEMobjpool *pop, void *ptr, void *arg)
+{
+	LOG(3, NULL);
+
+	ASSERTne(ptr, NULL);
+
+	/* temporarily add the object copy to the transaction */
+	VALGRIND_ADD_TO_TX(ptr, sizeof (struct tx_range_cache));
+
+	pop->memset_persist(pop, ptr, 0, sizeof (struct tx_range_cache));
+
+	VALGRIND_REMOVE_FROM_TX(ptr, sizeof (struct tx_range_cache));
+}
+
+/*
+ * pmemobj_tx_get_range_cache -- (internal) returns first available cache
+ */
+static struct tx_range_cache *
+pmemobj_tx_get_range_cache(PMEMobjpool *pop, struct lane_tx_layout *layout)
+{
+	PMEMoid last_cache = oob_list_last(pop, &layout->undo_set_cache);
+	struct tx_range_cache *cache = NULL;
+	/* get the last element from the caches list */
+	if (!OBJ_OID_IS_NULL(last_cache))
+		cache = OBJ_OFF_TO_PTR(pop, last_cache.off);
+
+	/* verify if the cache exists and has at least one free slot */
+	if (cache == NULL || cache->range[MAX_CACHED_RANGES - 1].offset != 0) {
+		/* no existing cache, allocate a new one */
+		PMEMoid ncache_oid;
+		if (list_insert_new(pop, &layout->undo_set_cache,
+			0, NULL, OID_NULL, 0, sizeof (struct tx_range_cache),
+			constructor_tx_range_cache, NULL, &ncache_oid) != 0)
+			return NULL;
+
+		cache = OBJ_OFF_TO_PTR(pop, ncache_oid.off);
+
+		/* since the cache is new, we start the count from 0 */
+		struct lane_tx_runtime *runtime = tx.section->runtime;
+		runtime->cache_slot = 0;
+	}
+
+	return cache;
+}
+
+/*
+ * pmemobj_tx_add_small -- (internal) adds small memory range to undo log cache
+ */
+static int
+pmemobj_tx_add_small(struct lane_tx_layout *layout,
+	struct tx_add_range_args *args)
+{
+	PMEMobjpool *pop = args->pop;
+
+	struct tx_range_cache *cache = pmemobj_tx_get_range_cache(pop, layout);
+
+	if (cache == NULL) {
+		ERR("Failed to create range cache");
+		return 1;
+	}
+
+	struct lane_tx_runtime *runtime = tx.section->runtime;
+
+	int n = runtime->cache_slot++; /* first free cache slot */
+
+	ASSERT(n != MAX_CACHED_RANGES);
+
+	/* those structures are binary compatible */
+	struct tx_range *range = (struct tx_range *)&cache->range[n];
+	VALGRIND_ADD_TO_TX(range,
+		sizeof (struct tx_range) + MAX_CACHED_RANGE_SIZE);
+
+	/* this isn't transactional so we have to keep the order */
+	void *src = OBJ_OFF_TO_PTR(pop, args->offset);
+	VALGRIND_ADD_TO_TX(src, args->size);
+
+	pop->memcpy_persist(pop, range->data, src, args->size);
+
+	/* the range is only valid if both size and offset are != 0 */
+	range->size = args->size;
+	range->offset = args->offset;
+	pop->persist(pop, range,
+		sizeof (range->offset) + sizeof (range->size));
+
+	VALGRIND_REMOVE_FROM_TX(range,
+		sizeof (struct tx_range) + MAX_CACHED_RANGE_SIZE);
+
+	return 0;
+}
+
+/*
  * pmemobj_tx_add_common -- (internal) common code for adding persistent memory
  *				into the transaction
  */
@@ -1208,45 +1398,67 @@ pmemobj_tx_add_common(struct tx_add_range_args *args)
 		return EINVAL;
 	}
 
-#ifdef DEBUG
-	/* verify if the range is already added to the undo log */
-	PMEMoid iter = layout->undo_set.pe_first;
-	while (!OBJ_OID_IS_NULL(iter)) {
-		struct tx_range *range =
-			OBJ_OFF_TO_PTR(args->pop, iter.off);
+	struct lane_tx_runtime *runtime = tx.section->runtime;
 
-		if (args->offset >= range->offset &&
-				args->offset + args->size <=
-				range->offset + range->size) {
-			LOG(4, "Notice: range: offset = 0x%jx"
-			    " size = %zu is already in undo log"
-			    " as range: offset = 0x%jx size = %zu",
-			    args->offset, args->size,
-			    range->offset, range->size);
-			break;
-		} else if (args->offset <= range->offset + range->size &&
-				args->offset + args->size >=
-				range->offset) {
-			LOG(4, "Notice: a part of range: offset = 0x%jx"
-			    " size = %zu is already in undo log"
-			    " as range: offset = 0x%jx size = %zu",
-			    args->offset, args->size,
-			    range->offset, range->size);
-			break;
+	/* starting from the end, search for all overlapping ranges */
+	uint64_t spoint = args->offset + args->size - 1; /* start point */
+	uint64_t apoint = 0; /* add point */
+	int ret = 0;
+
+	while (spoint >= args->offset) {
+		apoint = spoint + 1;
+		/* find range less than starting point */
+		uint64_t range = ctree_find_le(runtime->ranges, &spoint);
+		struct tx_add_range_args nargs;
+		nargs.pop = args->pop;
+
+		if (spoint < args->offset) { /* the found offset is earlier */
+			nargs.size = apoint - args->offset;
+			/* overlap on the left edge */
+			if (spoint + range > args->offset) {
+				nargs.offset = spoint + range;
+				if (nargs.size <= nargs.offset - args->offset)
+					break;
+				nargs.size -= nargs.offset - args->offset;
+			} else {
+				nargs.offset = args->offset;
+			}
+
+			if (args->size == 0)
+				break;
+
+			spoint = 0; /* this is the end of our search */
+		} else { /* found offset is equal or greater than offset */
+			nargs.offset = spoint + range;
+			spoint -= 1;
+			if (nargs.offset >= apoint)
+				continue;
+
+			nargs.size = apoint - nargs.offset;
 		}
-		iter = oob_list_next(args->pop, &layout->undo_set, iter);
+
+		/*
+		 * Depending on the size of the block, either allocate an
+		 * entire new object or use cache.
+		 */
+		ret = nargs.size > MAX_CACHED_RANGE_SIZE ?
+			pmemobj_tx_add_large(layout, &nargs) :
+			pmemobj_tx_add_small(layout, &nargs);
+
+		if (ret != 0)
+			break;
+
+
+		if (ctree_insert(runtime->ranges,
+			nargs.offset, nargs.size) != 0)
+			break;
 	}
 
-#endif /* DEBUG */
-
-	/* insert snapshot to undo log */
-	PMEMoid snapshot;
-	int ret = list_insert_new(args->pop, &layout->undo_set, 0,
-			NULL, OID_NULL, 0,
-			args->size + sizeof (struct tx_range),
-			constructor_tx_add_range, args, &snapshot);
-
-	ASSERTeq(ret, 0);
+	if (ret != 0) {
+		ERR("out of memory");
+		errno = ENOMEM;
+		pmemobj_tx_abort(ENOMEM);
+	}
 
 	return ret;
 }
@@ -1465,6 +1677,12 @@ pmemobj_tx_free(PMEMoid oid)
 #endif
 		VALGRIND_REMOVE_FROM_TX(oobh, pmalloc_usable_size(lane->pop,
 				oid.off - OBJ_OOB_SIZE));
+
+		if (ctree_remove(lane->ranges, oid.off, 1) != oid.off) {
+			ERR("TX undo state mismatch");
+			ASSERT(0);
+		}
+
 		/*
 		 * The object has been allocated within the same transaction
 		 * so we can just remove and free the object from undo log.

@@ -33,9 +33,6 @@
 /*
  * list.c -- implementation of persistent atomic lists module
  */
-#include <stdint.h>
-#include <stddef.h>
-#include <string.h>
 #include <errno.h>
 
 #include "libpmemobj.h"

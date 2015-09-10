@@ -1,2 +1,1 @@
-<libpmemobj>: <4> [tx.c:$(N) pmemobj_tx_add_common] Notice: range: offset = 0x$(X) size = 4 is already in undo log as range: offset = 0x$(X) size = 4
-<libpmemobj>: <4> [tx.c:$(N) pmemobj_tx_add_common] Notice: a part of range: offset = 0x$(X) size = 12 is already in undo log as range: offset = 0x$(X) size = 4
+<libpmemobj>: <$(N)> [obj.c:$(N) _pobj_debug_notice] Notice: non-transactional API used inside a transaction (pmemobj_alloc)

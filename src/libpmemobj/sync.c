@@ -34,8 +34,6 @@
  * sync.c -- persistent memory resident synchronization primitives
  */
 
-#include <pthread.h>
-#include <stdint.h>
 #include <errno.h>
 
 #include "libpmem.h"

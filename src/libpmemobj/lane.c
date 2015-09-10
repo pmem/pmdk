@@ -38,12 +38,7 @@
 #define	_GNU_SOURCE
 #endif
 
-#include <stdio.h>
-#include <string.h>
-#include <unistd.h>
 #include <errno.h>
-#include <stdint.h>
-#include <pthread.h>
 
 #include "libpmemobj.h"
 #include "lane.h"

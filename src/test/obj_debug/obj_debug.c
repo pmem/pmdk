@@ -141,40 +141,6 @@ test_lists(const char *path)
 }
 
 static void
-test_add_range(const char *path)
-{
-	PMEMobjpool *pop = NULL;
-	TOID(struct root) root;
-	TOID(struct int3_s) obj;
-
-#define	ANY_VALUE 0
-#define	COMMANDS_ADD_RANGE()\
-	do {\
-		TX_SET(root, val, ANY_VALUE);\
-		TX_SET(root, val, ANY_VALUE + 1);\
-		TX_SET(obj, i2, ANY_VALUE);\
-		TX_ADD(obj);\
-	} while (0)
-
-	if ((pop = pmemobj_create(path, LAYOUT_NAME,
-			PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR)) == NULL)
-		FATAL("!pmemobj_create: %s", path);
-
-	root = POBJ_ROOT(pop, struct root);
-	POBJ_NEW(pop, &obj, struct int3_s, NULL, NULL);
-
-	COMMANDS_ADD_RANGE();
-	TX_BEGIN(pop) {
-		COMMANDS_ADD_RANGE();
-	} TX_ONABORT {
-		ASSERT(0);
-	} TX_END
-	COMMANDS_ADD_RANGE();
-
-	pmemobj_close(pop);
-}
-
-static void
 int3_constructor(PMEMobjpool *pop, void *ptr, void *arg)
 {
 	struct int3_s *args = arg;
@@ -247,9 +213,6 @@ main(int argc, char *argv[])
 			break;
 		case 'l':
 			test_lists(path);
-			break;
-		case 'r':
-			test_add_range(path);
 			break;
 		case 'a':
 			test_alloc_construct(path);

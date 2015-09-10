@@ -34,11 +34,7 @@
  * pmalloc.c -- persistent malloc implementation
  */
 
-#include <stdint.h>
 #include <errno.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
 
 #include "libpmemobj.h"
 #include "util.h"

@@ -45,6 +45,7 @@
 #include "util.h"
 #include "lane.h"
 #include "redo.h"
+#include "heap_layout.h"
 #include "list.h"
 #include "obj.h"
 
@@ -53,7 +54,7 @@
 #define	MOCK_RUNTIME_2 (void *)(0xBCD)
 
 static void *base_ptr;
-#define	RPTR(p) (void *)(base_ptr - (void *)p)
+#define	RPTR(p) (void *)((void *)p - base_ptr)
 
 struct mock_pop {
 	PMEMobjpool p;
@@ -134,7 +135,7 @@ test_lane_boot_cleanup_ok()
 			.lanes = NULL
 		}
 	};
-	base_ptr = &pop;
+	base_ptr = &pop.p;
 
 	pop.p.lanes_offset = (uint64_t)&pop.l - (uint64_t)&pop.p;
 	ASSERTeq(lane_boot(&pop.p), 0);
@@ -161,8 +162,8 @@ test_lane_boot_fail()
 			.lanes = NULL
 		}
 	};
-	base_ptr = &pop;
-	pop.p.lanes_offset = (uint64_t)&pop.p - (uint64_t)&pop.l;
+	base_ptr = &pop.p;
+	pop.p.lanes_offset = (uint64_t)&pop.l - (uint64_t)&pop.p;
 
 	construct_fail = 1;
 
@@ -182,8 +183,8 @@ test_lane_recovery_check_ok()
 			.lanes = NULL
 		}
 	};
-	base_ptr = &pop;
-	pop.p.lanes_offset = (uint64_t)&pop.p - (uint64_t)&pop.l;
+	base_ptr = &pop.p;
+	pop.p.lanes_offset = (uint64_t)&pop.l - (uint64_t)&pop.p;
 
 	ASSERTeq(lane_recover_and_section_boot(&pop.p), 0);
 	ASSERTeq(lane_check(&pop.p), 0);
@@ -198,8 +199,8 @@ test_lane_recovery_check_fail()
 			.lanes = NULL
 		}
 	};
-	base_ptr = &pop;
-	pop.p.lanes_offset = (uint64_t)&pop.p - (uint64_t)&pop.l;
+	base_ptr = &pop.p;
+	pop.p.lanes_offset = (uint64_t)&pop.l - (uint64_t)&pop.p;
 
 	recovery_check_fail = 1;
 
@@ -231,7 +232,8 @@ test_lane_hold_release()
 			.lanes = &mock_lane
 		}
 	};
-	pop.p.lanes_offset = (uint64_t)&pop.p - (uint64_t)&pop.l;
+	pop.p.lanes_offset = (uint64_t)&pop.l - (uint64_t)&pop.p;
+	base_ptr = &pop.p;
 
 	struct lane_section *sec;
 	ASSERTeq(lane_hold(&pop.p, &sec, LANE_SECTION_ALLOCATOR), 0);
@@ -244,6 +246,14 @@ test_lane_hold_release()
 	ASSERTne(lane_release(&pop.p), 0); /* only two sections were held */
 }
 
+static void
+test_lane_sizes(void)
+{
+	ASSERT(sizeof (struct lane_tx_layout) <= LANE_SECTION_LEN);
+	ASSERT(sizeof (struct allocator_lane_section) <= LANE_SECTION_LEN);
+	ASSERT(sizeof (struct lane_list_section) <= LANE_SECTION_LEN);
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -254,6 +264,7 @@ main(int argc, char *argv[])
 	test_lane_recovery_check_ok();
 	test_lane_recovery_check_fail();
 	test_lane_hold_release();
+	test_lane_sizes();
 
 	DONE(NULL);
 }

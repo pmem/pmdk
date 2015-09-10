@@ -111,22 +111,22 @@ test_ctree_insert()
 	ASSERT(ctree_is_empty(t));
 
 	/* pthread_mutex_lock fail */
-	ASSERT(ctree_insert(t, TEST_VAL_A) != 0);
+	ASSERT(ctree_insert(t, TEST_VAL_A, 0) != 0);
 
 	/* leaf Malloc fail */
-	ASSERT(ctree_insert(t, TEST_VAL_A) != 0);
+	ASSERT(ctree_insert(t, TEST_VAL_A, 0) != 0);
 
 	/* all OK root */
-	ASSERT(ctree_insert(t, TEST_VAL_B) == 0); /* insert proper +2 mallocs */
+	ASSERT(ctree_insert(t, TEST_VAL_B, 0) == 0); /* insert +2 mallocs */
 
 	/* accessor Malloc fail */
-	ASSERT(ctree_insert(t, TEST_VAL_A) != 0);
+	ASSERT(ctree_insert(t, TEST_VAL_A, 0) != 0);
 
 	/* insert duplicate */
-	ASSERT(ctree_insert(t, TEST_VAL_B) != 0);
+	ASSERT(ctree_insert(t, TEST_VAL_B, 0) != 0);
 
 	/* all OK second */
-	ASSERT(ctree_insert(t, TEST_VAL_A) == 0);
+	ASSERT(ctree_insert(t, TEST_VAL_A, 0) == 0);
 
 	ASSERT(!ctree_is_empty(t));
 
@@ -140,16 +140,20 @@ test_ctree_find()
 	ASSERT(t != NULL);
 
 	/* search empty tree */
-	ASSERT(ctree_find(t, TEST_VAL_A) == 0);
+	uint64_t k = TEST_VAL_A;
+	ASSERT(ctree_find_le(t, &k) == 0);
 
 	/* insert 2 valid elements */
-	ASSERT(ctree_insert(t, TEST_VAL_A) == 0);
-	ASSERT(ctree_insert(t, TEST_VAL_B) == 0);
+	ASSERT(ctree_insert(t, TEST_VAL_A, TEST_VAL_A) == 0);
+	ASSERT(ctree_insert(t, TEST_VAL_B, TEST_VAL_B) == 0);
 
 	/* search for values */
-	ASSERT(ctree_find(t, 0) == TEST_VAL_A);
-	ASSERT(ctree_find(t, TEST_VAL_A) == TEST_VAL_A);
-	ASSERT(ctree_find(t, TEST_VAL_B) == TEST_VAL_B);
+	k = 0;
+	ASSERT(ctree_find_le(t, &k) == 0);
+	k = TEST_VAL_A;
+	ASSERT(ctree_find_le(t, &k) == TEST_VAL_A);
+	k = TEST_VAL_B;
+	ASSERT(ctree_find_le(t, &k) == TEST_VAL_B);
 
 	ctree_delete(t);
 }
@@ -171,8 +175,8 @@ test_ctree_remove()
 	ASSERT(ctree_remove(t, TEST_VAL_A, 0) == 0);
 
 	/* insert 2 valid values */
-	ASSERT(ctree_insert(t, TEST_VAL_A) == 0);
-	ASSERT(ctree_insert(t, TEST_VAL_B) == 0);
+	ASSERT(ctree_insert(t, TEST_VAL_A, 0) == 0);
+	ASSERT(ctree_insert(t, TEST_VAL_B, 0) == 0);
 
 	/* fail to remove equal greater */
 	ASSERT(ctree_remove(t, TEST_VAL_C, 0) == 0);

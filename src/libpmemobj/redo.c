@@ -33,9 +33,6 @@
 /*
  * redo.c -- redo log implementation
  */
-#include <stdlib.h>
-#include <stdint.h>
-#include <errno.h>
 
 #include "libpmem.h"
 #include "libpmemobj.h"

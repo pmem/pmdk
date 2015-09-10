@@ -62,6 +62,11 @@ struct node {
 	int diff;	/* most significant differing bit */
 };
 
+struct node_leaf {
+	uint64_t key;
+	uint64_t value;
+};
+
 struct ctree {
 	void *root;
 	pthread_mutex_t lock;
@@ -121,7 +126,7 @@ ctree_delete(struct ctree *t)
  * ctree_insert -- inserts a new key into the tree
  */
 int
-ctree_insert(struct ctree *t, uint64_t key)
+ctree_insert(struct ctree *t, uint64_t key, uint64_t value)
 {
 	void **dst = &t->root;
 	struct node *a = NULL;
@@ -137,36 +142,36 @@ ctree_insert(struct ctree *t, uint64_t key)
 		dst = &a->slots[BIT_IS_SET(key, a->diff)];
 	}
 
-	uint64_t *dstkeyp = *dst;
-	uint64_t *kp = Malloc(sizeof (uint64_t)); /* allocate leaf node */
-	if (kp == NULL) {
+	struct node_leaf *dstleaf = *dst;
+	struct node_leaf *nleaf = Malloc(sizeof (*nleaf));
+	if (nleaf == NULL) {
 		err = ENOMEM;
 		goto error_leaf_malloc;
 	}
+	nleaf->key = key;
+	nleaf->value = value;
 
-	*kp = key;
-	if (dstkeyp == NULL) { /* root */
-		*dst = kp;
+	if (dstleaf == NULL) { /* root */
+		*dst = nleaf;
 		goto out;
 	}
 
-	uint64_t dstkey = *dstkeyp;
 	struct node *n = Malloc(sizeof (*n)); /* internal node */
 	if (n == NULL) {
 		err = ENOMEM;
 		goto error_internal_malloc;
 	}
 
-	if (dstkey == key) {
+	if (dstleaf->key == key) {
 		err = EINVAL;
 		goto error_duplicate;
 	}
 
-	n->diff = find_crit_bit(dstkey, key);
+	n->diff = find_crit_bit(dstleaf->key, key);
 
 	/* insert the node at the direction based on the critical bit */
 	int d = BIT_IS_SET(key, n->diff);
-	n->slots[d] = kp;
+	n->slots[d] = nleaf;
 
 	/* find the appropriate position in the tree to insert the node */
 	dst = &t->root;
@@ -174,7 +179,8 @@ ctree_insert(struct ctree *t, uint64_t key)
 		a = NODE_INTERNAL_GET(*dst);
 
 		/* the critical bits have to be sorted */
-		if (a->diff < n->diff) break;
+		if (a->diff < n->diff)
+			break;
 		dst = &a->slots[BIT_IS_SET(key, a->diff)];
 	}
 
@@ -191,7 +197,7 @@ out:
 	return err;
 
 error_internal_malloc:
-	Free(kp);
+	Free(nleaf);
 error_duplicate:
 	Free(n);
 error_leaf_malloc:
@@ -204,34 +210,84 @@ error_leaf_malloc:
 }
 
 /*
- * ctree_find -- searches for a key in the tree
+ * ctree_find-- searches for an equal key in the tree
  */
 uint64_t
 ctree_find(struct ctree *t, uint64_t key)
 {
-	uint64_t *dst = t->root;
+	struct node_leaf *dst = t->root;
 	struct node *a = NULL;
+
 	while (NODE_IS_INTERNAL(dst)) {
 		a = NODE_INTERNAL_GET(dst);
 		dst = a->slots[BIT_IS_SET(key, a->diff)];
 	}
 
-	return dst ? *dst : 0;
+	if (dst && dst->key == key)
+		return key;
+	else
+		return 0;
 }
 
 /*
- * ctree_remove -- removes a (greater) equal key from the tree
+ * ctree_find_le -- searches for a (less or equal) key in the tree
+ */
+uint64_t
+ctree_find_le(struct ctree *t, uint64_t *key)
+{
+	struct node_leaf *dst = t->root;
+	struct node *a = NULL;
+
+	while (NODE_IS_INTERNAL(dst)) {
+		a = NODE_INTERNAL_GET(dst);
+		dst = a->slots[BIT_IS_SET(*key, a->diff)];
+	}
+
+	if (dst == NULL || dst->key == *key)
+		goto out;
+
+	uint64_t diff = find_crit_bit(dst->key, *key);
+
+	struct node *top = NULL;
+	dst = t->root;
+	while (NODE_IS_INTERNAL(dst)) {
+		a = NODE_INTERNAL_GET(dst);
+		if (a->diff < diff)
+			break;
+
+		if (BIT_IS_SET(*key, a->diff)) {
+			top = a->slots[0];
+			dst = a->slots[1];
+		} else {
+			dst = a->slots[0];
+		}
+	}
+
+	if (!BIT_IS_SET(*key, diff))
+		dst = (struct node_leaf *)top;
+
+	while (NODE_IS_INTERNAL(dst)) {
+		a = NODE_INTERNAL_GET(dst);
+		dst = a->slots[1];
+	}
+
+	if (dst && dst->key > *key)
+		dst = NULL;
+
+out:
+	*key = dst ? dst->key : 0;
+	return dst ? dst->value : 0;
+}
+
+/*
+ * ctree_remove -- removes a (greater or equal) key from the tree
  */
 uint64_t
 ctree_remove(struct ctree *t, uint64_t key, int eq)
 {
 	void **p = NULL; /* parent ref */
 	void **dst = &t->root; /* node to remove ref */
-	int d = 0; /* last taken direction */
 	struct node *a = NULL; /* internal node */
-
-	void **path[KEY_LEN] = {NULL, };
-	int psize = 0;
 
 	int err;
 	if ((err = pthread_mutex_lock(&t->lock)) != 0) {
@@ -240,7 +296,9 @@ ctree_remove(struct ctree *t, uint64_t key, int eq)
 		return 0;
 	}
 
+	struct node_leaf *l = NULL;
 	uint64_t k = 0;
+
 	if (t->root == NULL)
 		goto out;
 
@@ -248,50 +306,77 @@ ctree_remove(struct ctree *t, uint64_t key, int eq)
 	while (NODE_IS_INTERNAL(*dst)) {
 		a = NODE_INTERNAL_GET(*dst);
 		p = dst;
-		path[psize++] = p;
-		dst = &a->slots[(d = BIT_IS_SET(key, a->diff))];
+		dst = &a->slots[BIT_IS_SET(key, a->diff)];
 	}
 
-	k = **(uint64_t **)dst;
-	if (eq && k != key) {
+	l = *dst;
+	k = l->key;
+
+	if (l->key == key) {
+		goto remove;
+	} else if (eq && l->key != key) {
 		k = 0;
 		goto out;
 	}
 
-	int asize = 0;
-	/* search again, but this time always go right */
-	while (k < key && (asize != psize)) {
-		d = 1;
-		p = path[asize++];
-		a = NODE_INTERNAL_GET(*p);
-		dst = &(a->slots[d]);
-		while (NODE_IS_INTERNAL(*dst)) {
-			a = NODE_INTERNAL_GET(*dst);
-			p = dst;
-			dst = &a->slots[(d = BIT_IS_SET(key, a->diff))];
+	uint64_t diff = find_crit_bit(k, key);
+
+	void **top = NULL; /* top pointer */
+	void **topp = NULL; /* top parent */
+	p = NULL;
+	dst = &t->root;
+
+	while (NODE_IS_INTERNAL(*dst)) {
+		a = NODE_INTERNAL_GET(*dst);
+		p = dst;
+
+		if (a->diff < diff)
+			break;
+
+		if (BIT_IS_SET(key, a->diff)) {
+			dst = &a->slots[1];
+		} else {
+			topp = dst;
+			top = &a->slots[1];
+			dst = &a->slots[0];
 		}
-		k = **(uint64_t **)dst;
 	}
 
-	if (k < key) {
+	if (BIT_IS_SET(key, diff)) {
+		dst = top;
+		p = topp;
+		a = p ? NODE_INTERNAL_GET(*p) : NULL;
+	}
+
+	if (dst == NULL) {
 		k = 0;
 		goto out;
 	}
 
+	while (NODE_IS_INTERNAL(*dst)) {
+		a = NODE_INTERNAL_GET(*dst);
+		p = dst;
+		dst = &a->slots[0];
+	}
+
+	l = *dst;
+	k = l->key;
+
+	ASSERT(k > key);
+
+remove:
 	/*
 	 * If the node that is being removed isn't root then simply swap the
 	 * remaining child with the parent.
 	 */
-	if (p) {
-		*p = a->slots[!d];
-	}
-
-	/* Free the internal node and the leaf */
-	Free(*dst);
-	Free(a); /* NULL for root */
-
-	if (!p) { /* root */
+	if (a == NULL) {
+		Free(*dst);
 		*dst = NULL;
+	} else {
+		*p = a->slots[a->slots[0] == *dst];
+		/* Free the internal node and the leaf */
+		Free(*dst);
+		Free(a);
 	}
 
 out:

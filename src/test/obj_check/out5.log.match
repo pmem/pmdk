@@ -20,9 +20,9 @@ not consistent: tx lane: invalid user type
 obj_check/TEST5: Done
 obj_check/TEST5: START: obj_check
  ./obj_check$(nW) $(nW)testfile
-not consistent: tx_lane: invalid offset in tx range object
+consistent
 obj_check/TEST5: Done
 obj_check/TEST5: START: obj_check
  ./obj_check$(nW) $(nW)testfile
-not consistent: tx_lane: invalid offset in tx range object
+consistent
 obj_check/TEST5: Done
