@@ -41,20 +41,19 @@
 #define	BIT_IS_SET(n, i) (!!((n) & (1L << (i))))
 
 TOID_DECLARE(struct tree_map_node, TREE_MAP_TYPE_OFFSET + 1);
-TOID_DECLARE(struct tree_map_leaf, TREE_MAP_TYPE_OFFSET + 2);
+
+struct tree_map_entry {
+	uint64_t key;
+	PMEMoid slot;
+};
 
 struct tree_map_node {
 	int diff; /* most significant differing bit */
-	PMEMoid slots[2]; /* slots for either internal or leaf nodes */
-};
-
-struct tree_map_leaf {
-	uint64_t key;
-	PMEMoid value;
+	struct tree_map_entry entries[2];
 };
 
 struct tree_map {
-	PMEMoid root;
+	struct tree_map_entry root;
 };
 
 /*
@@ -106,34 +105,35 @@ tree_map_delete(PMEMobjpool *pop, TOID(struct tree_map) *map)
  * tree_map_insert_leaf -- (internal) inserts a new leaf at the position
  */
 static void
-tree_map_insert_leaf(PMEMoid *p, TOID(struct tree_map_leaf) new_leaf, int diff)
+tree_map_insert_leaf(struct tree_map_entry *p,
+	struct tree_map_entry e, int diff)
 {
 	TOID(struct tree_map_node) new_node = TX_NEW(struct tree_map_node);
 	D_RW(new_node)->diff = diff;
 
-	int d = BIT_IS_SET(D_RO(new_leaf)->key, D_RO(new_node)->diff);
+	int d = BIT_IS_SET(e.key, D_RO(new_node)->diff);
 
 	/* insert the leaf at the direction based on the critical bit */
-	D_RW(new_node)->slots[d] = new_leaf.oid;
+	D_RW(new_node)->entries[d] = e;
 
 	/* find the appropriate position in the tree to insert the node */
 	TOID(struct tree_map_node) node;
-	while (OID_INSTANCEOF(*p, struct tree_map_node)) {
-		TOID_ASSIGN(node, *p);
+	while (OID_INSTANCEOF(p->slot, struct tree_map_node)) {
+		TOID_ASSIGN(node, p->slot);
 
 		/* the critical bits have to be sorted */
 		if (D_RO(node)->diff < D_RO(new_node)->diff)
 			break;
 
-		p = &D_RW(node)->slots
-			[BIT_IS_SET(D_RO(new_leaf)->key, D_RO(node)->diff)];
+		p = &D_RW(node)->entries[BIT_IS_SET(e.key, D_RO(node)->diff)];
 	}
 
 	/* insert the found destination in the other slot */
-	D_RW(new_node)->slots[!d] = *p;
+	D_RW(new_node)->entries[!d] = *p;
 
 	pmemobj_tx_add_range_direct(p, sizeof (*p));
-	*p = new_node.oid;
+	p->key = 0;
+	p->slot = new_node.oid;
 }
 
 /*
@@ -143,35 +143,24 @@ int
 tree_map_insert(PMEMobjpool *pop,
 	TOID(struct tree_map) map, uint64_t key, PMEMoid value)
 {
-	PMEMoid *p = &D_RW(map)->root;
+	struct tree_map_entry *p = &D_RW(map)->root;
 	int ret = 0;
 
 	/* descend the path until a best matching key is found */
 	TOID(struct tree_map_node) node;
-	while (OID_INSTANCEOF(*p, struct tree_map_node)) {
-		TOID_ASSIGN(node, *p);
-		p = &D_RW(node)->slots[BIT_IS_SET(key, D_RW(node)->diff)];
+	while (OID_INSTANCEOF(p->slot, struct tree_map_node)) {
+		TOID_ASSIGN(node, p->slot);
+		p = &D_RW(node)->entries[BIT_IS_SET(key, D_RW(node)->diff)];
 	}
 
+	struct tree_map_entry e = {key, value};
 	TX_BEGIN(pop) {
-		TOID(struct tree_map_leaf) new_leaf =
-					TX_NEW(struct tree_map_leaf);
-
-		D_RW(new_leaf)->key = key;
-		D_RW(new_leaf)->value = value;
-
-		TOID(struct tree_map_leaf) leaf;
-		TOID_ASSIGN(leaf, *p);
-
-		if (TOID_IS_NULL(leaf)) { /* root */
+		if (p->key == 0 || p->key == key) {
 			pmemobj_tx_add_range_direct(p, sizeof (*p));
-			*p = new_leaf.oid;
-		} else if (D_RO(leaf)->key == D_RO(new_leaf)->key) {
-			TX_ADD_FIELD(leaf, value); /* key already exists */
-			D_RW(leaf)->value = value;
+			*p = e;
 		} else {
-			tree_map_insert_leaf(&D_RW(map)->root, new_leaf,
-					find_crit_bit(D_RO(leaf)->key, key));
+			tree_map_insert_leaf(&D_RW(map)->root, e,
+					find_crit_bit(p->key, key));
 		}
 	} TX_ONABORT {
 		ret = 1;
@@ -183,52 +172,49 @@ tree_map_insert(PMEMobjpool *pop,
 /*
  * tree_map_get_leaf -- (internal) searches for a leaf of the key
  */
-static TOID(struct tree_map_leaf) *
+struct tree_map_entry *
 tree_map_get_leaf(TOID(struct tree_map) map,
-	uint64_t key, TOID(struct tree_map_node) **parent)
+	uint64_t key, struct tree_map_entry **parent)
 {
-	PMEMoid *p = &D_RW(map)->root;
-	TOID(struct tree_map_node) *node = NULL;
+	struct tree_map_entry *n = &D_RW(map)->root;
+	struct tree_map_entry *p = NULL;
 
-	while (OID_INSTANCEOF(*p, struct tree_map_node)) {
-		node = (TOID(struct tree_map_node) *)p;
+	TOID(struct tree_map_node) node;
+	while (OID_INSTANCEOF(n->slot, struct tree_map_node)) {
+		TOID_ASSIGN(node, n->slot);
 
-		p = &D_RW(*node)->slots[BIT_IS_SET(key, D_RW(*node)->diff)];
+		p = n;
+		n = &D_RW(node)->entries[BIT_IS_SET(key, D_RW(node)->diff)];
 	}
 
-	if (!OID_IS_NULL(*p) && OID_INSTANCEOF(*p, struct tree_map_leaf)) {
-		TOID(struct tree_map_leaf) *leaf =
-			(TOID(struct tree_map_leaf) *)p;
+	if (n->key == key) {
+		if (parent)
+			*parent = p;
 
-		if (D_RW(*leaf)->key == key) {
-			if (parent)
-				*parent = node;
-
-			return leaf;
-		}
+		return n;
 	}
 
 	return NULL;
 }
-
+#include <stdio.h>
 /*
  * tree_map_remove -- removes key-value pair from the map
  */
 PMEMoid
 tree_map_remove(PMEMobjpool *pop, TOID(struct tree_map) map, uint64_t key)
 {
-	TOID(struct tree_map_node) *parent = NULL;
-	TOID(struct tree_map_leaf) *leaf = tree_map_get_leaf(map, key, &parent);
-	if (leaf == NULL || TOID_IS_NULL(*leaf))
+	struct tree_map_entry *parent = NULL;
+	struct tree_map_entry *leaf = tree_map_get_leaf(map, key, &parent);
+	if (leaf == NULL)
 		return OID_NULL;
 
-	PMEMoid ret = D_RO(*leaf)->value;
+	PMEMoid ret = leaf->slot;
 
 	if (parent == NULL) { /* root */
 		TX_BEGIN(pop) {
-			TX_FREE(*leaf);
 			pmemobj_tx_add_range_direct(leaf, sizeof (*leaf));
-			*leaf = TOID_NULL(struct tree_map_leaf);
+			leaf->key = 0;
+			leaf->slot = OID_NULL;
 		} TX_END
 	} else {
 		/*
@@ -240,13 +226,13 @@ tree_map_remove(PMEMobjpool *pop, TOID(struct tree_map) map, uint64_t key)
 		 * so it's swapped with the remaining node and then also freed.
 		 */
 		TX_BEGIN(pop) {
-			PMEMoid *dest = (PMEMoid *)parent;
-			TOID(struct tree_map_node) node = *parent;
+			struct tree_map_entry *dest = parent;
+			TOID(struct tree_map_node) node;
+			TOID_ASSIGN(node, parent->slot);
 			pmemobj_tx_add_range_direct(dest, sizeof (*dest));
-			*dest = D_RW(*parent)->slots[
-				OID_EQUALS(D_RO(*parent)->slots[0], leaf->oid)];
+			*dest = D_RW(node)->entries[
+				D_RO(node)->entries[0].key == leaf->key];
 
-			TX_FREE(*leaf);
 			TX_FREE(node);
 		} TX_END
 	}
@@ -264,8 +250,8 @@ tree_map_clear_node(PMEMoid p)
 		TOID(struct tree_map_node) node;
 		TOID_ASSIGN(node, p);
 
-		tree_map_clear_node(D_RW(node)->slots[0]);
-		tree_map_clear_node(D_RW(node)->slots[1]);
+		tree_map_clear_node(D_RW(node)->entries[0].slot);
+		tree_map_clear_node(D_RW(node)->entries[1].slot);
 	}
 
 	pmemobj_tx_free(p);
@@ -279,9 +265,9 @@ tree_map_clear(PMEMobjpool *pop,
 	TOID(struct tree_map) map)
 {
 	TX_BEGIN(pop) {
-		tree_map_clear_node(D_RW(map)->root);
+		tree_map_clear_node(D_RW(map)->root.slot);
 		TX_ADD_FIELD(map, root);
-		D_RW(map)->root = OID_NULL;
+		D_RW(map)->root.slot = OID_NULL;
 	} TX_END
 
 	return 0;
@@ -293,29 +279,26 @@ tree_map_clear(PMEMobjpool *pop,
 PMEMoid
 tree_map_get(TOID(struct tree_map) map, uint64_t key)
 {
-	TOID(struct tree_map_leaf) *leaf = tree_map_get_leaf(map, key, NULL);
-
-	return leaf == NULL ? OID_NULL : D_RW(*leaf)->value;
+	return tree_map_get_leaf(map, key, NULL)->slot;
 }
 
 /*
  * tree_map_foreach_node -- (internal) recursively traverses tree
  */
 static int
-tree_map_foreach_node(PMEMoid p,
+tree_map_foreach_node(struct tree_map_entry e,
 	int (*cb)(uint64_t key, PMEMoid value, void *arg), void *arg)
 {
 	int ret = 0;
-	if (OID_INSTANCEOF(p, struct tree_map_leaf)) {
-		TOID(struct tree_map_leaf) leaf;
-		TOID_ASSIGN(leaf, p);
-		ret = cb(D_RO(leaf)->key, D_RO(leaf)->value, arg);
-	} else { /* struct tree_map_node */
-		TOID(struct tree_map_node) node;
-		TOID_ASSIGN(node, p);
 
-		if (tree_map_foreach_node(D_RO(node)->slots[0], cb, arg) == 0)
-			tree_map_foreach_node(D_RO(node)->slots[1], cb, arg);
+	if (OID_INSTANCEOF(e.slot, struct tree_map_node)) {
+		TOID(struct tree_map_node) node;
+		TOID_ASSIGN(node, e.slot);
+
+		if (tree_map_foreach_node(D_RO(node)->entries[0], cb, arg) == 0)
+			tree_map_foreach_node(D_RO(node)->entries[1], cb, arg);
+	} else { /* leaf */
+		ret = cb(e.key, e.slot, arg);
 	}
 
 	return ret;
@@ -328,7 +311,7 @@ int
 tree_map_foreach(TOID(struct tree_map) map,
 	int (*cb)(uint64_t key, PMEMoid value, void *arg), void *arg)
 {
-	if (OID_IS_NULL(D_RO(map)->root))
+	if (OID_IS_NULL(D_RO(map)->root.slot))
 		return 0;
 
 	return tree_map_foreach_node(D_RO(map)->root, cb, arg);
@@ -340,5 +323,5 @@ tree_map_foreach(TOID(struct tree_map) map,
 int
 tree_map_is_empty(TOID(struct tree_map) map)
 {
-	return OID_IS_NULL(D_RO(map)->root);
+	return D_RO(map)->root.key == 0;
 }
