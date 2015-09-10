@@ -205,6 +205,8 @@ main(int argc, char *argv[])
 	int opt;
 	int option_index;
 
+	util_init();
+
 	if (argc < 2) {
 		print_usage(APPNAME);
 		return 0;

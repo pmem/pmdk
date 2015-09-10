@@ -1,3 +1,5 @@
+#!/bin/bash -e
+#
 # Copyright (c) 2014-2015, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
@@ -28,25 +30,45 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# Makefile -- Makefile for pmemspoil tool
 #
+# pmemspoil/TEST0 -- test for pmemspoil
+#
+export UNITTEST_NAME=pmemspoil/TEST0
+export UNITTEST_NUM=0
 
-vpath %.c ../../
-vpath %.c ../../tools/pmempool
-vpath %.c ../../common
-CSTYLE = ../../../utils/cstyle
+. ../unittest/unittest.sh
 
-TARGET = pmemspoil
+require_fs_type pmem non-pmem
+require_build_type nondebug
 
-OBJS = common.o output.o util.o set.o spoil.o
+setup
 
-LIBPMEM=y
+LOG=out${UNITTEST_NUM}.log
 
-LDFLAGS += -L../../nondebug/
-CFLAGS += -I../../tools/pmempool
-CFLAGS += -I../../common
-CFLAGS += -I../../libpmemlog
-CFLAGS += -I../../libpmemblk
-CFLAGS += -I../../libpmemobj
+rm -rf $LOG && touch $LOG
 
-include ../../tools/Makefile.inc
+POOLSET=$DIR/pool.set
+POOL1=$DIR/pool.part1
+POOL2=$DIR/pool.part2
+POOL3=$DIR/pool.part3
+REPL1=$DIR/pool.rep.part1
+REPL2=$DIR/pool.rep.part2
+REPL3=$DIR/pool.rep.part3
+POOLS="$POOL1 $POOL2 $POOL3 $REPL1 $REPL2 $REPL3"
+
+rm -f $POOLREP
+create_poolset $POOLSET 32M:$POOL1:z 32M:$POOL2:z 32M:$POOL3:z\
+	R 32M:$REPL1:z 32M:$REPL2:z 32M:$REPL3:z
+check_file $POOLSET
+
+rm -f $POOLS $REPS
+expect_normal_exit $PMEMPOOL create obj --layout pmempool $POOLSET
+$PMEMSPOIL $POOLSET --replica 0 "pmemobj.layout=replica0"
+expect_normal_exit $PMEMPOOL info --replica 0 $POOLSET | grep '^Layout.*' >> $LOG
+$PMEMSPOIL $POOLSET --replica 1 "pmemobj.layout=replica1"
+expect_normal_exit $PMEMPOOL info --replica 1 $POOLSET | grep '^Layout.*' >> $LOG
+
+
+check
+
+pass

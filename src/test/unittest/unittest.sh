@@ -514,7 +514,7 @@ function pass() {
 
 # Paths to some useful tools
 [ -n "$PMEMPOOL" ] || PMEMPOOL=../../tools/pmempool/pmempool
-[ -n "$PMEMSPOIL" ] || PMEMSPOIL=../pmemspoil/pmemspoil
+[ -n "$PMEMSPOIL" ] || PMEMSPOIL=../pmemspoil/pmemspoil.static-nondebug
 [ -n "$PMEMWRITE" ] || PMEMWRITE=../pmemwrite/pmemwrite
 [ -n "$PMEMALLOC" ] || PMEMALLOC=../pmemalloc/pmemalloc
 

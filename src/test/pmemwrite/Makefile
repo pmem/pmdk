@@ -38,7 +38,7 @@ CSTYLE = ../../../utils/cstyle
 
 TARGET = pmemwrite
 
-OBJS = common.o output.o util.o write.o
+OBJS = common.o output.o util.o set.o write.o
 
 LIBPMEM=y
 LIBPMEMBLK=y

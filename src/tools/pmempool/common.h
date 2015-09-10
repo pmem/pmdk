@@ -37,6 +37,7 @@
 #include <stdint.h>
 #include <sys/queue.h>
 #include <stdarg.h>
+
 #include "util.h"
 #include "log.h"
 #include "blk.h"
@@ -101,6 +102,8 @@ for ((entry) = PLIST_OFF_TO_PTR(pop, (head)->pe_first.off);\
 #define	ENTRY_TO_DATA(entry)\
 ((void *)((uintptr_t)(entry) + sizeof (struct oob_header)))
 
+#define	DEFAULT_HDR_SIZE 8192
+
 /*
  * pmem_pool_type_t -- pool types
  */
@@ -130,6 +133,8 @@ struct pmem_pool_params {
 	pmem_pool_type_t type;
 	uint64_t size;
 	mode_t mode;
+	int is_poolset;
+	int is_part;
 	union {
 		struct {
 			uint64_t bsize;
@@ -139,6 +144,30 @@ struct pmem_pool_params {
 		} obj;
 	};
 };
+
+struct pool_set_file {
+	int fd;
+	char *fname;
+	void *addr;
+	size_t size;
+	struct pool_set *poolset;
+	size_t replica;
+	time_t mtime;
+	mode_t mode;
+};
+
+struct pool_set_file *pool_set_file_open(const char *fname,
+		int rdonly, int check);
+void pool_set_file_close(struct pool_set_file *file);
+int pool_set_file_read(struct pool_set_file *file, void *buff,
+		size_t nbytes, off_t off);
+int pool_set_file_write(struct pool_set_file *file, void *buff,
+		size_t nbytes, off_t off);
+int pool_set_file_set_replica(struct pool_set_file *file, size_t replica);
+void *pool_set_file_map(struct pool_set_file *file, off_t offset);
+int pool_set_file_map_headers(struct pool_set_file *file,
+		int rdonly, size_t hdrsize);
+void pool_set_file_unmap_headers(struct pool_set_file *file);
 
 struct range {
 	LIST_ENTRY(range) next;
@@ -154,7 +183,12 @@ pmem_pool_type_t pmem_pool_type_parse_hdr(const struct pool_hdr *hdrp);
 pmem_pool_type_t pmem_pool_type_parse_str(const char *str);
 int pmem_pool_check_pool_set(const char *fname);
 uint64_t pmem_pool_get_min_size(pmem_pool_type_t type);
-int pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp);
+size_t pmem_pool_get_hdr_size(pmem_pool_type_t type);
+int pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp,
+		int check);
+void pmem_default_pool_hdr(pmem_pool_type_t type, struct pool_hdr *hdrp);
+int pmem_pool_is_pool_set_part(const struct pool_hdr *hdrp);
+int util_poolset_map(const char *fname, struct pool_set **poolset, int rdonly);
 struct options *util_options_alloc(const struct option *options,
 		size_t nopts, const struct option_requirement *req);
 void util_options_free(struct options *opts);
@@ -162,6 +196,7 @@ int util_options_verify(const struct options *opts, pmem_pool_type_t type);
 int util_options_getopt(int argc, char *argv[], const char *optstr,
 		const struct options *opts);
 int util_validate_checksum(void *addr, size_t len, uint64_t *csum);
+int util_pool_hdr_valid(struct pool_hdr *hdrp);
 int util_parse_size(const char *str, uint64_t *sizep);
 int util_parse_mode(const char *str, mode_t *mode);
 int util_parse_ranges(const char *str, struct ranges *rangesp,

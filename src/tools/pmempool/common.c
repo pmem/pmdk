@@ -44,9 +44,11 @@
 #include <string.h>
 #include <err.h>
 #include <sys/param.h>
+#include <sys/mman.h>
 #include <ctype.h>
 #include <assert.h>
 #include <getopt.h>
+
 #include "common.h"
 #include "output.h"
 #include "libpmemblk.h"
@@ -130,6 +132,17 @@ util_validate_checksum(void *addr, size_t len, uint64_t *csum)
 		util_checksum(addr, len, csum, 1);
 	return csum_valid;
 }
+
+/*
+ * util_pool_hdr_valid -- return 1 if pool header is valid
+ */
+int
+util_pool_hdr_valid(struct pool_hdr *hdrp)
+{
+	return util_check_memory((void *)hdrp, sizeof (*hdrp), 0) &&
+		util_checksum(hdrp, sizeof (*hdrp), &hdrp->checksum, 0);
+}
+
 
 /*
  * util_parse_size -- parse size from string
@@ -503,64 +516,261 @@ pmem_pool_get_min_size(pmem_pool_type_t type)
 }
 
 /*
- * pmem_pool_parse_params -- parse pool type, file size and block size
+ * pmem_pool_get_hdr_size -- return size of header for specified type
+ */
+size_t
+pmem_pool_get_hdr_size(pmem_pool_type_t type)
+{
+	switch (type) {
+	case PMEM_POOL_TYPE_LOG:
+		return sizeof (struct pmemlog);
+	case PMEM_POOL_TYPE_BLK:
+		return sizeof (struct pmemblk);
+	case PMEM_POOL_TYPE_OBJ:
+		return sizeof (struct pmemobjpool);
+	default:
+		break;
+	}
+
+	return 0;
+}
+
+/*
+ * util_poolset_map_nocheck -- map poolset without checking the pool header
  */
 int
-pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp)
+util_poolset_map_nocheck(const char *fname, struct pool_set **poolset,
+		int rdonly)
 {
-	struct stat stat_buf;
-	struct pool_hdr hdr;
+	int fd = util_file_open(fname, NULL, 0, O_RDONLY);
+	if (fd < 0)
+		return -1;
 
-	paramsp->type = PMEM_POOL_TYPE_NONE;
+	int ret = 0;
+
+	struct pool_set *set = NULL;
+	/* parse poolset file */
+	if (util_poolset_parse(fname, fd, &set)) {
+		outv_err("parsing poolset file failed\n");
+		ret = -1;
+		goto err_close;
+	}
+
+err_close:
+	close(fd);
+
+	return ret;
+}
+
+/*
+ * util_poolset_map -- map poolset
+ */
+int
+util_poolset_map(const char *fname, struct pool_set **poolset, int rdonly)
+{
+	if (pmem_pool_check_pool_set(fname) != 0) {
+		return util_pool_open_nocheck(poolset, fname, rdonly,
+					DEFAULT_HDR_SIZE);
+	}
 
 	int fd = util_file_open(fname, NULL, 0, O_RDONLY);
 	if (fd < 0)
 		return -1;
 
 	int ret = 0;
-	paramsp->type = PMEM_POOL_TYPE_UNKNOWN;
 
-	/* read pool_hdr */
-	if (pread(fd, &hdr, sizeof (hdr), 0) ==
-			sizeof (hdr)) {
-		paramsp->type = pmem_pool_type_parse_hdr(&hdr);
-	} else {
+	struct pool_set *set = NULL;
+
+	/* parse poolset file */
+	if (util_poolset_parse(fname, fd, &set)) {
+		outv_err("parsing poolset file failed\n");
 		ret = -1;
-		goto out;
+		goto err_close;
 	}
 
+	/* open the first part set file to read the pool header values */
+	int fdp = util_file_open(set->replica[0]->part[0].path,
+			NULL, 0, O_RDONLY);
+	if (fdp < 0) {
+		outv_err("cannot open poolset part file\n");
+		ret = -1;
+		goto err_pool_set;
+	}
 
+	struct pool_hdr hdr;
+	/* read the pool header from first pool set file */
+	if (pread(fdp, &hdr, sizeof (hdr), 0)
+			!= sizeof (hdr)) {
+		outv_err("cannot read pool header from poolset\n");
+		ret = -1;
+		goto err_close_part;
+	}
+
+	close(fdp);
+	util_poolset_free(set);
+	close(fd);
+
+	util_convert2h_pool_hdr(&hdr);
+
+	/* parse pool type from first pool set file */
+	pmem_pool_type_t type = pmem_pool_type_parse_hdr(&hdr);
+	if (type == PMEM_POOL_TYPE_UNKNOWN) {
+		outv_err("cannot determine pool type from poolset\n");
+		return -1;
+	}
+
+	/* get minimum size based on pool type for util_pool_open */
+	size_t minsize = pmem_pool_get_min_size(type);
+
+	size_t hdrsize = pmem_pool_get_hdr_size(type);
+
+	/*
+	 * Open the poolset, the values passed to util_pool_open are read
+	 * from the first poolset file, these values are then compared with
+	 * the values from all headers of poolset files.
+	 */
+	if (util_pool_open(poolset, fname, rdonly, minsize,
+			roundup(hdrsize, Pagesize),
+			hdr.signature, hdr.major,
+			hdr.compat_features,
+			hdr.incompat_features,
+			hdr.ro_compat_features)) {
+		outv_err("openning poolset failed\n");
+		return -1;
+	}
+
+	return 0;
+err_close_part:
+	close(fdp);
+err_pool_set:
+	util_poolset_free(set);
+err_close:
+	close(fd);
+
+	return ret;
+}
+
+/*
+ * pmem_pool_parse_params -- parse pool type, file size and block size
+ */
+int
+pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp,
+		int check)
+{
+	struct stat stat_buf;
+	paramsp->type = PMEM_POOL_TYPE_NONE;
+
+	paramsp->is_poolset = pmem_pool_check_pool_set(fname) == 0;
+	int fd = util_file_open(fname, NULL, 0, O_RDONLY);
+	if (fd < 0)
+		return -1;
+
+	int ret = 0;
 	/* get file size and mode */
 	if (fstat(fd, &stat_buf) == 0) {
 		paramsp->size = stat_buf.st_size;
 		paramsp->mode = stat_buf.st_mode;
 	} else {
 		ret = -1;
-		goto out;
+		goto out_close;
 	}
+
+	void *addr = NULL;
+	struct pool_set *set = NULL;
+	if (paramsp->is_poolset) {
+		/* close the file */
+		close(fd);
+		fd = -1;
+
+		if (check) {
+			if (util_poolset_map(fname, &set, 1))
+				return -1;
+		} else {
+			if (util_pool_open_nocheck(&set, fname, 1,
+						DEFAULT_HDR_SIZE))
+				return -1;
+		}
+
+		paramsp->size = set->poolsize;
+		addr = set->replica[0]->part[0].addr;
+	} else {
+		addr = mmap(NULL, stat_buf.st_size,
+				PROT_READ, MAP_PRIVATE, fd, 0);
+		if (addr == MAP_FAILED) {
+			ret = -1;
+			goto out_close;
+		}
+	}
+
+	struct pool_hdr hdr;
+	memcpy(&hdr, addr, sizeof (hdr));
+
+	util_convert2h_pool_hdr(&hdr);
+
+	/*
+	 * Check if file is a part of pool set by comparing
+	 * the UUID with the next part UUID. If it is the same
+	 * it means the pool consist of a single file.
+	 */
+	paramsp->is_part = !paramsp->is_poolset &&
+		(memcmp(hdr.uuid, hdr.next_part_uuid, POOL_HDR_UUID_LEN) ||
+		memcmp(hdr.uuid, hdr.prev_part_uuid, POOL_HDR_UUID_LEN));
+
+	paramsp->type = pmem_pool_type_parse_hdr(&hdr);
 
 	if (paramsp->type == PMEM_POOL_TYPE_BLK) {
 		struct pmemblk pbp;
-		if (pread(fd, &pbp, sizeof (pbp), 0) == sizeof (pbp)) {
-			paramsp->blk.bsize = le32toh(pbp.bsize);
-		} else {
-			ret = -1;
-			goto out;
-		}
+		memcpy(&pbp, addr, sizeof (pbp));
+		paramsp->blk.bsize = le32toh(pbp.bsize);
 	} else if (paramsp->type == PMEM_POOL_TYPE_OBJ) {
 		struct pmemobjpool pop;
-		if (pread(fd, &pop, sizeof (pop), 0) == sizeof (pop)) {
-			memcpy(paramsp->obj.layout, pop.layout,
-					PMEMOBJ_MAX_LAYOUT);
-		} else {
-			ret = -1;
-			goto out;
-		}
+		memcpy(&pop, addr, sizeof (pop));
+		memcpy(paramsp->obj.layout, pop.layout, PMEMOBJ_MAX_LAYOUT);
 	}
-out:
-	close(fd);
 
+	if (paramsp->is_poolset)
+		util_poolset_close(set, 0);
+	else
+		munmap(addr, stat_buf.st_size);
+out_close:
+	close(fd);
 	return ret;
+}
+
+/*
+ * pmem_default_pool_hdr -- return default pool header values
+ */
+void
+pmem_default_pool_hdr(pmem_pool_type_t type, struct pool_hdr *hdrp)
+{
+	memset(hdrp, 0, sizeof (*hdrp));
+	const char *sig = out_get_pool_signature(type);
+	assert(sig);
+
+	strncpy(hdrp->signature, sig, POOL_HDR_SIG_LEN);
+
+	switch (type) {
+	case PMEM_POOL_TYPE_LOG:
+		hdrp->major = LOG_FORMAT_MAJOR;
+		hdrp->compat_features = LOG_FORMAT_COMPAT;
+		hdrp->incompat_features = LOG_FORMAT_INCOMPAT;
+		hdrp->ro_compat_features = LOG_FORMAT_RO_COMPAT;
+		break;
+	case PMEM_POOL_TYPE_BLK:
+		hdrp->major = BLK_FORMAT_MAJOR;
+		hdrp->compat_features = BLK_FORMAT_COMPAT;
+		hdrp->incompat_features = BLK_FORMAT_INCOMPAT;
+		hdrp->ro_compat_features = BLK_FORMAT_RO_COMPAT;
+		break;
+	case PMEM_POOL_TYPE_OBJ:
+		hdrp->major = OBJ_FORMAT_MAJOR;
+		hdrp->compat_features = OBJ_FORMAT_COMPAT;
+		hdrp->incompat_features = OBJ_FORMAT_INCOMPAT;
+		hdrp->ro_compat_features = OBJ_FORMAT_RO_COMPAT;
+		break;
+	default:
+		break;
+	}
 }
 
 /*
@@ -1196,4 +1406,192 @@ util_plist_get_entry(struct pmemobjpool *pop,
 	}
 
 	return NULL;
+}
+
+/*
+ * pool_set_file_open -- opens pool set file or regular file
+ */
+struct pool_set_file *
+pool_set_file_open(const char *fname,
+		int rdonly, int check)
+{
+	struct pool_set_file *file = calloc(1, sizeof (*file));
+	if (!file)
+		return NULL;
+
+	file->replica = 0;
+	file->fname = strdup(fname);
+	if (!file->fname)
+		goto err;
+
+	struct stat buf;
+
+	/*
+	 * The check flag indicates whether the headers from each pool
+	 * set file part should be checked for valid values.
+	 */
+	if (check) {
+		if (util_poolset_map(file->fname,
+				&file->poolset, rdonly))
+			goto err_free_fname;
+	} else {
+		if (util_pool_open_nocheck(&file->poolset, file->fname,
+				rdonly, DEFAULT_HDR_SIZE))
+			goto err_free_fname;
+	}
+
+	file->size = file->poolset->poolsize;
+
+	/* get modification time from the first part of first replica */
+	const char *path = file->poolset->replica[0]->part[0].path;
+	if (stat(path, &buf)) {
+		warn("%s", path);
+		goto err_close_poolset;
+	}
+
+	file->mtime = buf.st_mtime;
+	file->mode = buf.st_mode;
+	file->addr = file->poolset->replica[0]->part[0].addr;
+
+	return file;
+
+err_close_poolset:
+	util_poolset_close(file->poolset, 0);
+err_free_fname:
+	free(file->fname);
+err:
+	free(file);
+	return NULL;
+}
+
+/*
+ * pool_set_file_close -- closes pool set file or regular file
+ */
+void
+pool_set_file_close(struct pool_set_file *file)
+{
+	if (file->poolset)
+		util_poolset_close(file->poolset, 0);
+	else if (file->addr) {
+		munmap(file->addr, file->size);
+		close(file->fd);
+	}
+	free(file->fname);
+}
+
+/*
+ * pool_set_file_read -- read from pool set file or regular file
+ */
+int
+pool_set_file_read(struct pool_set_file *file, void *buff,
+		size_t nbytes, off_t off)
+{
+	if (off + nbytes > file->size)
+		return -1;
+
+	memcpy(buff, file->addr + off, nbytes);
+
+	return 0;
+}
+
+/*
+ * pool_set_file_write -- write to pool set file or regular file
+ */
+int
+pool_set_file_write(struct pool_set_file *file, void *buff,
+		size_t nbytes, off_t off)
+{
+	if (off + nbytes > file->size)
+		return -1;
+
+	memcpy(file->addr + off, buff, nbytes);
+
+	return 0;
+}
+
+/*
+ * pool_set_file_set_replica -- change replica for pool set file
+ */
+int
+pool_set_file_set_replica(struct pool_set_file *file, size_t replica)
+{
+	if (!replica)
+		return 0;
+
+	if (!file->poolset)
+		return -1;
+
+	if (replica >= file->poolset->nreplicas)
+		return -1;
+
+	file->replica = replica;
+	file->addr = file->poolset->replica[replica]->part[0].addr;
+
+	return 0;
+}
+
+/*
+ * pool_set_file_map -- return mapped address at given offset
+ */
+void *
+pool_set_file_map(struct pool_set_file *file, off_t offset)
+{
+	if (file->addr == MAP_FAILED)
+		return NULL;
+	return file->addr + offset;
+}
+
+/*
+ * pool_set_file_map_headers -- map headers of each pool set part file
+ */
+int
+pool_set_file_map_headers(struct pool_set_file *file,
+		int rdonly, size_t hdrsize)
+{
+	if (!file->poolset)
+		return -1;
+
+	int flags = rdonly ? MAP_PRIVATE : MAP_SHARED;
+	for (unsigned r = 0; r < file->poolset->nreplicas; r++) {
+		struct pool_replica *rep = file->poolset->replica[r];
+		for (unsigned p = 0; p < rep->nparts; p++) {
+			struct pool_set_part *part = &rep->part[p];
+
+			part->hdr = mmap(NULL, hdrsize, PROT_READ | PROT_WRITE,
+					flags, part->fd, 0);
+			if (part->hdr == MAP_FAILED) {
+				part->hdr = NULL;
+				goto err;
+			}
+
+			part->hdrsize = hdrsize;
+		}
+	}
+
+	return 0;
+err:
+	pool_set_file_unmap_headers(file);
+	return -1;
+}
+
+/*
+ * pool_set_file_unmap_headers -- unmap headers of each pool set part file
+ */
+void
+pool_set_file_unmap_headers(struct pool_set_file *file)
+{
+	if (!file->poolset)
+		return;
+	for (unsigned r = 0; r < file->poolset->nreplicas; r++) {
+		struct pool_replica *rep = file->poolset->replica[r];
+		for (unsigned p = 0; p < rep->nparts; p++) {
+			struct pool_set_part *part = &rep->part[p];
+			if (part->hdr != NULL) {
+				assert(part->hdrsize > 0);
+				munmap(part->hdr, part->hdrsize);
+				part->hdr = NULL;
+				part->hdrsize = 0;
+			}
+		}
+	}
 }

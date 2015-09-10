@@ -72,7 +72,6 @@ struct range ret = {\
  * Default arguments
  */
 static const struct pmempool_info_args pmempool_info_args_default = {
-	.file		= NULL,
 	/*
 	 * Picked experimentally based on used fields names.
 	 * This should be at least the number of characters of
@@ -513,7 +512,6 @@ parse_args(char *appname, int argc, char *argv[],
 		}
 	}
 
-	/* store pointer to files list */
 	if (optind < argc) {
 		argsp->file = argv[optind];
 	} else {
@@ -545,25 +543,7 @@ parse_args(char *appname, int argc, char *argv[],
 int
 pmempool_info_read(struct pmem_info *pip, void *buff, size_t nbytes, off_t off)
 {
-	if (pip->poolset) {
-		/* replication is allowed only for pmemobj pool */
-		int r = pip->type == PMEM_POOL_TYPE_OBJ ?
-			pip->args.obj.replica : 0;
-
-		void *addr = pip->poolset->replica[r]->part[0].addr;
-
-		if (off + nbytes > pip->poolset->poolsize)
-			return -1;
-
-		memcpy(buff, addr + off, nbytes);
-
-		return 0;
-	} else {
-		ssize_t ret = pread(pip->fd, buff, nbytes, off);
-		if (ret < 0)
-			warn("%s", pip->file_name);
-		return !(nbytes == ret);
-	}
+	return pool_set_file_read(pip->pfile, buff, nbytes, off);
 }
 
 /*
@@ -588,8 +568,10 @@ pmempool_info_pool_hdr(struct pmem_info *pip, int v)
 
 	util_convert2h_pool_hdr(hdr);
 
-	outv_field(v, "Signature", "%.*s", POOL_HDR_SIG_LEN,
-			hdr->signature);
+	outv_field(v, "Signature", "%.*s%s", POOL_HDR_SIG_LEN,
+			hdr->signature,
+			pip->params.is_part ?
+			" [part file]" : "");
 	outv_field(v, "Major", "%d", hdr->major);
 	outv_field(v, "Mandatory features", "0x%x", hdr->incompat_features);
 	outv_field(v, "Not mandatory features", "0x%x", hdr->compat_features);
@@ -616,129 +598,6 @@ pmempool_info_pool_hdr(struct pmem_info *pip, int v)
 }
 
 /*
- * pmempool_setup_poolset -- parse poolset file and setup reading from it
- */
-static int
-pmempool_setup_poolset(struct pmem_info *pip)
-{
-	struct pool_set *set = NULL;
-	int fd = -1;
-	struct pool_hdr hdr;
-
-	/* parse poolset file */
-	if (util_poolset_parse(pip->file_name, pip->fd, &set)) {
-		outv_err("parsing poolset file failed\n");
-		return -1;
-	}
-
-	close(pip->fd);
-	pip->fd = -1;
-
-	/* open the first part set file to read the pool header values */
-	int ret = 0;
-	fd = util_file_open(set->replica[0]->part[0].path, NULL, 0, O_RDONLY);
-	if (fd < 0) {
-		outv_err("cannot open poolset part file\n");
-		ret = -1;
-		goto err_pool_set;
-	}
-
-	/* read the pool header from first pool set file */
-	if (pread(fd, &hdr, sizeof (hdr), 0)
-			!= sizeof (hdr)) {
-		outv_err("cannot read pool header from poolset\n");
-		ret = -1;
-		goto err_close;
-	}
-	close(fd);
-	fd = -1;
-
-	util_convert2h_pool_hdr(&hdr);
-
-	/* parse pool type from first pool set file */
-	pmem_pool_type_t type = pmem_pool_type_parse_hdr(&hdr);
-	if (type == PMEM_POOL_TYPE_UNKNOWN) {
-		outv_err("cannot determine pool type from poolset\n");
-		ret = -1;
-		goto err_close;
-	}
-
-	/* get minimum size based on pool type for util_pool_open */
-	size_t minsize = pmem_pool_get_min_size(type);
-
-	/*
-	 * Open the poolset, the values passed to util_pool_open are read
-	 * from the first poolset file, these values are then compared with
-	 * the values from all headers of poolset files.
-	 */
-	if (util_pool_open(&pip->poolset, pip->file_name, 1, minsize,
-		sizeof (struct pool_hdr),
-		hdr.signature, hdr.major,
-		hdr.compat_features,
-		hdr.incompat_features,
-		hdr.ro_compat_features)) {
-		outv_err("openning poolset failed\n");
-		ret = -1;
-	}
-
-err_close:
-	if (fd != -1)
-		close(fd);
-err_pool_set:
-	util_poolset_free(set);
-
-	return ret;
-
-}
-
-/*
- * pmempool_info_get_pool_type -- get pool type to parse
- *
- * Return pool type to parse based on headers data and command line arguments.
- */
-static pmem_pool_type_t
-pmempool_info_get_pool_type(struct pmem_info *pip)
-{
-
-	int ret = 0;
-	int is_poolset = !pmem_pool_check_pool_set(pip->file_name);
-	struct pool_hdr hdr;
-
-	pip->fd = util_file_open(pip->file_name, NULL, 0, O_RDONLY);
-	if (pip->fd < 0) {
-		warn("%s", pip->file_name);
-		return PMEM_POOL_TYPE_UNKNOWN;
-	}
-
-	if (is_poolset) {
-		if (pmempool_setup_poolset(pip))
-			goto err;
-	}
-
-	if (pmempool_info_read(pip, &hdr, sizeof (hdr), 0)) {
-		outv_err("cannot read pool header\n");
-		goto err;
-	}
-
-	/*
-	 * If force flag is set 'types' fields _must_ hold
-	 * single pool type - this is validated when processing
-	 * command line arguments.
-	 */
-	if (pip->args.force)
-		return pip->args.type;
-
-	/* parse pool type from pool header */
-	ret = pmem_pool_type_parse_hdr(&hdr);
-
-	return ret;
-err:
-	close(pip->fd);
-	pip->fd = -1;
-	return PMEM_POOL_TYPE_UNKNOWN;
-}
-
-/*
  * pmempool_info_file -- print info about single file
  */
 static int
@@ -749,10 +608,21 @@ pmempool_info_file(struct pmem_info *pip, const char *file_name)
 	pip->file_name = file_name;
 
 	/*
-	 * Get pool type to parse based on headers
-	 * and command line flags.
+	 * If force flag is set 'types' fields _must_ hold
+	 * single pool type - this is validated when processing
+	 * command line arguments.
 	 */
-	pip->type = pmempool_info_get_pool_type(pip);
+	if (pip->args.force) {
+		pip->type = pip->args.type;
+	} else {
+		if (pmem_pool_parse_params(file_name, &pip->params, 1)) {
+			outv_err("%s: cannot determine type of pool\n",
+					file_name);
+			return -1;
+		}
+
+		pip->type = pip->params.type;
+	}
 
 	if (PMEM_POOL_TYPE_UNKNOWN == pip->type) {
 		/*
@@ -763,23 +633,30 @@ pmempool_info_file(struct pmem_info *pip, const char *file_name)
 		ret = -1;
 		outv_err("%s: cannot determine type of pool\n", file_name);
 	} else {
-		if (util_options_verify(pip->opts, pip->type)) {
-			ret = -1;
-			goto err;
+		if (util_options_verify(pip->opts, pip->type))
+			return -1;
+
+		pip->pfile = pool_set_file_open(file_name, 1, 1);
+		if (!pip->pfile) {
+			perror(file_name);
+			return -1;
 		}
 
-		if (pip->poolset) {
-			if (pip->args.obj.replica >= pip->poolset->nreplicas) {
-				outv_err("invalid replica -- maximum is %lu\n",
-						pip->poolset->nreplicas);
-				ret = -1;
-				goto err;
-			}
+		if (pip->args.obj.replica &&
+			pool_set_file_set_replica(pip->pfile,
+				pip->args.obj.replica)) {
+			outv_err("invalid replica number '%lu'",
+					pip->args.obj.replica);
 		}
 
 		if (pmempool_info_pool_hdr(pip, VERBOSE_DEFAULT)) {
 			ret = -1;
-			goto err;
+			goto out_close;
+		}
+
+		if (pip->params.is_part) {
+			ret = 0;
+			goto out_close;
 		}
 
 		switch (pip->type) {
@@ -798,9 +675,8 @@ pmempool_info_file(struct pmem_info *pip, const char *file_name)
 			break;
 		}
 	}
-err:
-	close(pip->fd);
-	pip->fd = -1;
+out_close:
+	pool_set_file_close(pip->pfile);
 
 	return ret;
 }
@@ -817,7 +693,7 @@ pmempool_info_alloc(void)
 
 	if (pip) {
 		memset(pip, 0, sizeof (*pip));
-		pip->fd = -1;
+
 		/* set default command line parameters */
 		memcpy(&pip->args, &pmempool_info_args_default,
 				sizeof (pip->args));
@@ -857,7 +733,6 @@ int
 pmempool_info_func(char *appname, int argc, char *argv[])
 {
 	int ret = 0;
-	util_init();
 	struct pmem_info *pip = pmempool_info_alloc();
 
 	/* read command line arguments */

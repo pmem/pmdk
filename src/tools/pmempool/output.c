@@ -140,10 +140,7 @@ void
 out_err(const char *file, int line, const char *func,
 	const char *fmt, ...)
 {
-	va_list ap;
-	va_start(ap, fmt);
-	outv_err_vargs(fmt, ap);
-	va_end(ap);
+	/* stub */
 }
 
 
@@ -550,6 +547,24 @@ out_get_pool_type_str(pmem_pool_type_t type)
 		return "obj";
 	default:
 		return "unknown";
+	}
+}
+
+/*
+ * out_get_pool_signature -- return signature of specified pool type
+ */
+const char *
+out_get_pool_signature(pmem_pool_type_t type)
+{
+	switch (type) {
+	case PMEM_POOL_TYPE_LOG:
+		return LOG_HDR_SIG;
+	case PMEM_POOL_TYPE_BLK:
+		return BLK_HDR_SIG;
+	case PMEM_POOL_TYPE_OBJ:
+		return OBJ_HDR_SIG;
+	default:
+		return NULL;
 	}
 }
 

@@ -50,8 +50,6 @@ export TEST_LOG_FILE=./test$UNITTEST_NUM.log
 MIN_POOL=$((32 * 1024))
 HDR_SIZE=8192
 
-SPOIL="../pmemspoil/pmemspoil"
-
 # prepare pool sets
 create_poolset $DIR/testset1 32K:$DIR/testfile11:x 32K:$DIR/testfile12:x
 create_poolset $DIR/testset2 32K:$DIR/testfile21:x 32K:$DIR/testfile22:x
@@ -76,18 +74,18 @@ expect_normal_exit ./util_poolset$EXESUFFIX c $MIN_POOL $HDR_SIZE\
 	$DIR/testset11 $DIR/testset12
 
 # inject some errors
-$SPOIL $DIR/testfile22 pool_hdr.checksum=0
-$SPOIL $DIR/testfile32 pool_hdr.signature="ERROR" "pool_hdr.checksum_gen()"
-$SPOIL $DIR/testfile42 pool_hdr.major=99 "pool_hdr.checksum_gen()"
-$SPOIL $DIR/testfile52 pool_hdr.arch_flags="0000000000000000" "pool_hdr.checksum_gen()"
-$SPOIL $DIR/testfile62 pool_hdr.compat_features=0x12345678 "pool_hdr.checksum_gen()"
-$SPOIL $DIR/testfile72 pool_hdr.compat_features=0x12345678 "pool_hdr.checksum_gen()"
-$SPOIL $DIR/testfile82 pool_hdr.compat_features=0x12345678 "pool_hdr.checksum_gen()"
-$SPOIL $DIR/testfile91 pool_hdr.poolset_uuid="0123456789012345" "pool_hdr.checksum_gen()"
-$SPOIL $DIR/testfile101 pool_hdr.next_part_uuid="0123456789012345" "pool_hdr.checksum_gen()"
-$SPOIL $DIR/testfile111 pool_hdr.prev_part_uuid="0123456789012345" \
+$PMEMSPOIL $DIR/testfile22 pool_hdr.checksum=0
+$PMEMSPOIL $DIR/testfile32 pool_hdr.signature="ERROR" "pool_hdr.checksum_gen()"
+$PMEMSPOIL $DIR/testfile42 pool_hdr.major=99 "pool_hdr.checksum_gen()"
+$PMEMSPOIL $DIR/testfile52 pool_hdr.arch_flags="0000000000000000" "pool_hdr.checksum_gen()"
+$PMEMSPOIL $DIR/testfile62 pool_hdr.compat_features=0x12345678 "pool_hdr.checksum_gen()"
+$PMEMSPOIL $DIR/testfile72 pool_hdr.compat_features=0x12345678 "pool_hdr.checksum_gen()"
+$PMEMSPOIL $DIR/testfile82 pool_hdr.compat_features=0x12345678 "pool_hdr.checksum_gen()"
+$PMEMSPOIL $DIR/testfile91 pool_hdr.poolset_uuid="0123456789012345" "pool_hdr.checksum_gen()"
+$PMEMSPOIL $DIR/testfile101 pool_hdr.next_part_uuid="0123456789012345" "pool_hdr.checksum_gen()"
+$PMEMSPOIL $DIR/testfile111 pool_hdr.prev_part_uuid="0123456789012345" \
 	pool_hdr.next_part_uuid="0123456789012345" "pool_hdr.checksum_gen()"
-$SPOIL $DIR/testfile121 pool_hdr.next_repl_uuid="0123456789012345" "pool_hdr.checksum_gen()"
+$PMEMSPOIL $DIR/testfile121 pool_hdr.next_repl_uuid="0123456789012345" "pool_hdr.checksum_gen()"
 
 # now check if pool sets may be opened
 expect_normal_exit ./util_poolset$EXESUFFIX o $MIN_POOL $HDR_SIZE\

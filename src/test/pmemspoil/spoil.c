@@ -230,11 +230,12 @@ struct pmemspoil_list {
 struct pmemspoil {
 	int verbose;
 	char *fname;
-	int fd;
+	struct pool_set_file *pfile;
 	struct pmemspoil_list *args;
 	int argc;
 	void *addr;
 	size_t size;
+	int replica;
 };
 
 typedef enum chunk_type chunk_type_t;
@@ -270,9 +271,9 @@ struct checksum_args {
 static const struct pmemspoil pmemspoil_default = {
 	.verbose	= 1,
 	.fname		= NULL,
-	.fd		= -1,
 	.args		= NULL,
 	.argc		= 0,
+	.replica	= 0,
 };
 
 /*
@@ -282,6 +283,7 @@ static const char *help_str =
 "Common options:\n"
 "  -v, --verbose        Increase verbose level\n"
 "  -?, --help           Display this help and exit\n"
+"  -r, --replica <num>  Replica index\n"
 "\n"
 ;
 
@@ -291,6 +293,7 @@ static const char *help_str =
 static const struct option long_options[] = {
 	{"verbose",	no_argument,		0,	'v'},
 	{"help",	no_argument,		0,	'?'},
+	{"replica",	required_argument,	0,	'r'},
 	{0,		0,			0,	 0 },
 };
 
@@ -321,6 +324,24 @@ pmemspoil_help(char *appname)
 	print_usage(appname);
 	print_version(appname);
 	printf(help_str, appname);
+}
+
+/*
+ * pmemspoil_read -- read data from pool
+ */
+static int
+pmemspoil_read(struct pmemspoil *psp, void *buff, size_t nbytes, off_t off)
+{
+	return pool_set_file_read(psp->pfile, buff, nbytes, off);
+}
+
+/*
+ * pmemspoil_write -- write data to pool
+ */
+static int
+pmemspoil_write(struct pmemspoil *psp, void *buff, size_t nbytes, off_t off)
+{
+	return pool_set_file_write(psp->pfile, buff, nbytes, off);
 }
 
 /*
@@ -440,7 +461,7 @@ pmemspoil_parse_args(struct pmemspoil *psp, char *appname,
 		int argc, char *argv[])
 {
 	int opt;
-	while ((opt = getopt_long(argc, argv, "v?rNb::q",
+	while ((opt = getopt_long(argc, argv, "v?r:",
 			long_options, NULL)) != -1) {
 		switch (opt) {
 		case 'v':
@@ -449,6 +470,9 @@ pmemspoil_parse_args(struct pmemspoil *psp, char *appname,
 		case '?':
 			pmemspoil_help(appname);
 			exit(EXIT_SUCCESS);
+		case 'r':
+			psp->replica = atoi(optarg);
+			break;
 		default:
 			print_usage(appname);
 			exit(EXIT_FAILURE);
@@ -505,8 +529,8 @@ pmemspoil_get_arena_offset(struct pmemspoil *psp, uint32_t id)
 			return 0;
 		}
 		offset = offset + infop->nextoff;
-		if ((ret = pread(psp->fd, infop, sizeof (*infop), offset))
-			!= sizeof (*infop)) {
+		if ((ret = pmemspoil_read(psp, infop,
+				sizeof (*infop), offset))) {
 			free(infop);
 			return 0;
 		}
@@ -672,10 +696,8 @@ pmemspoil_process_pool_hdr(struct pmemspoil *psp,
 		struct pmemspoil_list *pfp, void *arg)
 {
 	struct pool_hdr pool_hdr;
-	if (pread(psp->fd, &pool_hdr, sizeof (pool_hdr), 0) !=
-			sizeof (pool_hdr)) {
+	if (pmemspoil_read(psp, &pool_hdr, sizeof (pool_hdr), 0))
 		return -1;
-	}
 
 	PROCESS_BEGIN(psp, pfp) {
 		struct checksum_args checksum_args = {
@@ -705,10 +727,8 @@ pmemspoil_process_pool_hdr(struct pmemspoil *psp,
 
 	if (PROCESS_STATE == PROCESS_STATE_FIELD ||
 	    PROCESS_STATE == PROCESS_STATE_FUNC) {
-		if (pwrite(psp->fd, &pool_hdr, sizeof (pool_hdr), 0) !=
-				sizeof (pool_hdr)) {
+		if (pmemspoil_write(psp, &pool_hdr, sizeof (pool_hdr), 0))
 			return -1;
-		}
 	}
 
 	return PROCESS_RET;
@@ -723,10 +743,8 @@ pmemspoil_process_btt_info_struct(struct pmemspoil *psp,
 {
 	struct btt_info btt_info;
 
-	if (pread(psp->fd, &btt_info, sizeof (btt_info), offset) !=
-		sizeof (btt_info)) {
+	if (pmemspoil_read(psp, &btt_info, sizeof (btt_info), offset))
 		return -1;
-	}
 
 	PROCESS_BEGIN(psp, pfp) {
 		PROCESS_FIELD(&btt_info, sig, char);
@@ -750,10 +768,8 @@ pmemspoil_process_btt_info_struct(struct pmemspoil *psp,
 	} PROCESS_END
 
 	if (PROCESS_STATE == PROCESS_STATE_FIELD) {
-		if (pwrite(psp->fd, &btt_info, sizeof (btt_info), offset) !=
-			sizeof (btt_info)) {
+		if (pmemspoil_write(psp, &btt_info, sizeof (btt_info), offset))
 			return -1;
-		}
 	}
 
 	return PROCESS_RET;
@@ -768,11 +784,9 @@ pmemspoil_process_btt_info_backup(struct pmemspoil *psp,
 {
 	struct btt_info btt_info_backup;
 
-	if (pread(psp->fd, &btt_info_backup, sizeof (btt_info_backup),
-				arena_offset) !=
-		sizeof (btt_info_backup)) {
+	if (pmemspoil_read(psp, &btt_info_backup, sizeof (btt_info_backup),
+				arena_offset))
 		return -1;
-	}
 
 	uint64_t backup_offset = arena_offset +
 					le64toh(btt_info_backup.infooff);
@@ -799,10 +813,8 @@ pmemspoil_process_btt_map(struct pmemspoil *psp,
 {
 	struct btt_info btt_info;
 
-	if (pread(psp->fd, &btt_info, sizeof (btt_info), arena_offset) !=
-		sizeof (btt_info)) {
+	if (pmemspoil_read(psp, &btt_info, sizeof (btt_info), arena_offset))
 		return -1;
-	}
 
 	util_convert2h_btt_info(&btt_info);
 
@@ -815,20 +827,18 @@ pmemspoil_process_btt_map(struct pmemspoil *psp,
 		err(1, NULL);
 	int ret = 0;
 
-	if (pread(psp->fd, mapp, mapsize, mapoff) == mapsize) {
+	if (pmemspoil_read(psp, mapp, mapsize, mapoff)) {
+		ret = -1;
+	} else {
 		uint32_t v;
 		if (sscanf(pfp->value, "0x%x", &v) != 1 &&
 		    sscanf(pfp->value, "%u", &v) != 1) {
 			ret = -1;
 		} else {
 			mapp[pfp->head->next->index] = v;
-			if (pwrite(psp->fd, mapp, mapsize, mapoff) !=
-				mapsize) {
+			if (pmemspoil_write(psp, mapp, mapsize, mapoff))
 				ret = -1;
-			}
 		}
-	} else {
-		ret = -1;
 	}
 
 	free(mapp);
@@ -843,10 +853,8 @@ pmemspoil_process_btt_nflog(struct pmemspoil *psp,
 		struct pmemspoil_list *pfp, uint64_t arena_offset, int off)
 {
 	struct btt_info btt_info;
-	if (pread(psp->fd, &btt_info, sizeof (btt_info), arena_offset) !=
-		sizeof (btt_info)) {
+	if (pmemspoil_read(psp, &btt_info, sizeof (btt_info), arena_offset))
 		return -1;
-	}
 
 	util_convert2h_btt_info(&btt_info);
 
@@ -861,7 +869,7 @@ pmemspoil_process_btt_nflog(struct pmemspoil *psp,
 
 	int ret = 0;
 
-	if (pread(psp->fd, flogp, flogsize, flogoff) != flogsize) {
+	if (pmemspoil_read(psp, flogp, flogsize, flogoff)) {
 		ret = -1;
 		goto error;
 	}
@@ -879,7 +887,7 @@ pmemspoil_process_btt_nflog(struct pmemspoil *psp,
 	} PROCESS_END
 
 	if (PROCESS_STATE == PROCESS_STATE_FIELD) {
-		if (pwrite(psp->fd, flogp, flogsize, flogoff) != flogsize) {
+		if (pmemspoil_write(psp, flogp, flogsize, flogoff)) {
 			ret = -1;
 			goto error;
 		}
@@ -940,10 +948,8 @@ pmemspoil_process_pmemblk(struct pmemspoil *psp,
 		struct pmemspoil_list *pfp, void *arg)
 {
 	struct pmemblk pmemblk;
-	if (pread(psp->fd, &pmemblk, sizeof (pmemblk), 0) !=
-			sizeof (pmemblk)) {
+	if (pmemspoil_read(psp, &pmemblk, sizeof (pmemblk), 0))
 		return -1;
-	}
 
 	PROCESS_BEGIN(psp, pfp) {
 		PROCESS_FIELD_LE(&pmemblk, bsize, uint32_t);
@@ -954,10 +960,8 @@ pmemspoil_process_pmemblk(struct pmemspoil *psp,
 	} PROCESS_END
 
 	if (PROCESS_STATE == PROCESS_STATE_FIELD) {
-		if (pwrite(psp->fd, &pmemblk, sizeof (pmemblk), 0) !=
-				sizeof (pmemblk)) {
+		if (pmemspoil_write(psp, &pmemblk, sizeof (pmemblk), 0))
 			return -1;
-		}
 	}
 
 	return PROCESS_RET;
@@ -971,10 +975,8 @@ pmemspoil_process_pmemlog(struct pmemspoil *psp,
 		struct pmemspoil_list *pfp, void *arg)
 {
 	struct pmemlog pmemlog;
-	if (pread(psp->fd, &pmemlog, sizeof (pmemlog), 0) !=
-			sizeof (pmemlog)) {
+	if (pmemspoil_read(psp, &pmemlog, sizeof (pmemlog), 0))
 		return -1;
-	}
 
 	PROCESS_BEGIN(psp, pfp) {
 		PROCESS_FIELD_LE(&pmemlog, start_offset, uint32_t);
@@ -983,10 +985,8 @@ pmemspoil_process_pmemlog(struct pmemspoil *psp,
 	} PROCESS_END
 
 	if (PROCESS_STATE == PROCESS_STATE_FIELD) {
-		if (pwrite(psp->fd, &pmemlog, sizeof (pmemlog), 0) !=
-				sizeof (pmemlog)) {
+		if (pmemspoil_write(psp, &pmemlog, sizeof (pmemlog), 0))
 			return -1;
-		}
 	}
 
 	return PROCESS_RET;
@@ -1301,21 +1301,6 @@ static int
 pmemspoil_process_pmemobj(struct pmemspoil *psp,
 		struct pmemspoil_list *pfp, void *arg)
 {
-	struct stat buf;
-
-	if (fstat(psp->fd, &buf)) {
-		perror("fstat");
-		return -1;
-	}
-
-	psp->size = buf.st_size;
-	psp->addr = mmap(NULL, buf.st_size, PROT_READ|PROT_WRITE, MAP_SHARED,
-			psp->fd, 0);
-	if (psp->addr == MAP_FAILED) {
-		perror("mmap");
-		return -1;
-	}
-
 	struct pmemobjpool *pop = psp->addr;
 	struct heap_layout *hlayout = (void *)pop + pop->heap_offset;
 	struct lane_layout *lanes = (void *)pop + pop->lanes_offset;
@@ -1347,7 +1332,6 @@ pmemspoil_process_pmemobj(struct pmemspoil *psp,
 		PROCESS(obj_store, obj_store, 1);
 	} PROCESS_END
 
-	munmap(psp->addr, psp->size);
 	return ret;
 }
 
@@ -1375,6 +1359,7 @@ int
 main(int argc, char *argv[])
 {
 	char *appname = basename(argv[0]);
+	util_init();
 	int ret = 0;
 	struct pmemspoil *psp = malloc(sizeof (struct pmemspoil));
 	if (!psp)
@@ -1394,29 +1379,39 @@ main(int argc, char *argv[])
 	if (psp->fname == NULL) {
 		print_usage(appname);
 		exit(EXIT_FAILURE);
-	} else {
-		psp->fd = util_file_open(psp->fname, NULL, 0, O_RDWR);
-		if (psp->fd < 0)
-			err(1, "%s", psp->fname);
 	}
+
+	psp->pfile = pool_set_file_open(psp->fname, 0, 1);
+	if (!psp->pfile)
+		err(1, "%s", psp->fname);
+
+	if (pool_set_file_set_replica(psp->pfile, psp->replica)) {
+		outv_err("invalid replica argument max is %lu\n",
+				psp->pfile->poolset ?
+				psp->pfile->poolset->nreplicas :
+				0);
+		return -1;
+	}
+
+	psp->addr = pool_set_file_map(psp->pfile, 0);
+	psp->size = psp->pfile->size;
 
 	out_set_prefix(psp->fname);
 
-	int i;
-	for (i = 0; i < psp->argc; i++) {
+	for (int i = 0; i < psp->argc; i++)
 		pmemspoil_process(psp, &psp->args[i]);
-	}
 
 error:
 	if (psp != NULL) {
 		if (psp->args) {
-			int i;
-			for (i = 0; i < psp->argc; i++)
+			for (int i = 0; i < psp->argc; i++)
 				pmemspoil_free_fields(&psp->args[i]);
 			free(psp->args);
 		}
 		free(psp);
 	}
+
+	pool_set_file_close(psp->pfile);
 
 	return ret;
 }
