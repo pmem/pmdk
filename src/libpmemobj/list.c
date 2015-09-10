@@ -324,9 +324,8 @@ list_set_user_field(PMEMobjpool *pop,
 		ASSERT(field_offset + sizeof (uint64_t)
 				<= old_offset + old_size);
 		/*
-		 * The user's field is inside the object
-		 * so we don't need to use redo log just
-		 * normal store + persist outside the function
+		 * The user's field is inside the object so we don't need to
+		 * use redo log - just normal store + persist.
 		 */
 		uint64_t new_field_offset = field_offset -
 			old_offset + new_offset;
@@ -336,6 +335,7 @@ list_set_user_field(PMEMobjpool *pop,
 		VALGRIND_ADD_TO_TX(field, sizeof (*field));
 		*field = field_value;
 		VALGRIND_REMOVE_FROM_TX(field, sizeof (*field));
+		pop->persist(pop, field, sizeof (*field));
 
 		return redo_index;
 	} else {
@@ -625,24 +625,12 @@ list_realloc_replace(PMEMobjpool *pop,
 	constructor(pop, ptr, arg);
 
 	if (field_offset) {
-		/*
-		 * Set user's field. Need to call this function
-		 * before the persist because if the field is inside
-		 * the object we don't need to use redo. We can
-		 * do the normal store and persist.
-		 */
 		redo_index = list_set_user_field(pop,
 				redo, redo_index,
 				field_offset, field_value,
 				obj_offset, old_size,
 				new_obj_offset);
 	}
-
-	/*
-	 * Persist the copied and modified data. The caller
-	 * is responsible to persist modified data in extended area.
-	 */
-	pop->persist(pop, OBJ_OFF_TO_PTR(pop, new_obj_offset), old_size);
 
 	if (head) {
 		struct list_entry *entry_ptr =
