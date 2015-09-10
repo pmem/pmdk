@@ -33,17 +33,4 @@
 #
 # src/test/scope/Makefile -- build scope unit test
 #
-# This Makefile doesn't use ../Makefile.inc since there's no C to build.
-#
-all:
-
-clean:
-	$(RM) *.o */*.o core a.out *.log testfile*
-
-clobber: clean
-
-cstyle:
-
-test check pcheck: all
-
-.PHONY: all check clean clobber cstyle pcheck test
+include ../Makefile.inc
