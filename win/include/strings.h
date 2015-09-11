@@ -1,0 +1,3 @@
+/*
+ * fake strings.h
+ */

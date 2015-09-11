@@ -35,6 +35,7 @@
  */
 
 #include <stddef.h>
+#include "libpmemobj.h"
 
 #define	PMEMOBJ_LOG_PREFIX "libpmemobj"
 #define	PMEMOBJ_LOG_LEVEL_VAR "PMEMOBJ_LOG_LEVEL"

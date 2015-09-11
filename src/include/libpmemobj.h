@@ -272,13 +272,14 @@ TOID(t)\
  * Begin of layout declaration
  */
 #define	POBJ_LAYOUT_BEGIN(name)\
-typedef uint8_t _pobj_layout_##name##_ref[__COUNTER__]
+const char *_pobj_layout_##name##_name = #name;\
+typedef uint8_t _pobj_layout_##name##_ref[__COUNTER__ + 1]
 
 /*
  * End of layout declaration
  */
 #define	POBJ_LAYOUT_END(name)\
-typedef char _pobj_layout_##name##_cnt[__COUNTER__ -\
+typedef char _pobj_layout_##name##_cnt[__COUNTER__ + 1 -\
 1 - _POBJ_LAYOUT_REF(name)];
 
 /*
@@ -290,7 +291,7 @@ typedef char _pobj_layout_##name##_cnt[__COUNTER__ -\
  * Declaration of typed OID inside layout declaration
  */
 #define	POBJ_LAYOUT_TOID(name, t)\
-TOID_DECLARE(t, (__COUNTER__ - _POBJ_LAYOUT_REF(name)));
+TOID_DECLARE(t, (__COUNTER__ + 1 - _POBJ_LAYOUT_REF(name)));
 
 /*
  * Declaration of typed OID of root inside layout declaration
@@ -514,10 +515,20 @@ pmemobj_alloc((pop), _pobj_oidp, sizeof (t), TOID_TYPE_NUM(t), (constr),\
 PMEMoid *_pobj_oidp = _pobj_tmp ? &_pobj_tmp->oid : NULL;\
 pmemobj_alloc((pop), _pobj_oidp, (size), TOID_TYPE_NUM(t), (constr), (arg)); })
 
+#ifndef WIN32
 #define	POBJ_ZNEW(pop, o, t) (\
 { TOID(t) *_pobj_tmp = (o);\
 PMEMoid *_pobj_oidp = _pobj_tmp ? &_pobj_tmp->oid : NULL;\
 pmemobj_zalloc((pop), _pobj_oidp, sizeof (t), TOID_TYPE_NUM(t)); })
+#else
+static inline int
+_pobj_znew(PMEMobjpool *pop, void *o, size_t size, unsigned type_num)
+{
+	PMEMoid *_pobj_oidp = o ? o : NULL;
+	return pmemobj_zalloc(pop, _pobj_oidp, size, type_num);
+}
+#define	POBJ_ZNEW(pop, o, t) _pobj_znew(pop, o, sizeof (t), TOID_TYPE_NUM(t))
+#endif
 
 #define	POBJ_ZALLOC(pop, o, t, size) (\
 { TOID(t) *_pobj_tmp = (o);\

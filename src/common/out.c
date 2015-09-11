@@ -150,6 +150,7 @@ Last_errormsg_get()
 static const char *
 getexecname(void)
 {
+#ifndef WIN32
 	char procpath[PATH_MAX];
 	static char namepath[PATH_MAX];
 	ssize_t cc;
@@ -162,6 +163,9 @@ getexecname(void)
 		namepath[cc] = '\0';
 
 	return namepath;
+#else
+	return ""; /* GetProcessImageFileName() */
+#endif
 }
 #endif	/* DEBUG */
 
@@ -199,7 +203,7 @@ out_init(const char *log_prefix, const char *log_level_var,
 		size_t cc = strlen(log_file);
 
 		/* reserve more than enough space for a PID + '\0' */
-		char log_file_pid[cc + 30];
+		char *log_file_pid = malloc(cc + 30);
 
 		if (cc > 0 && log_file[cc - 1] == '-') {
 			snprintf(log_file_pid, cc + 30, "%s%d",
@@ -212,6 +216,8 @@ out_init(const char *log_prefix, const char *log_level_var,
 					log_file, strerror(errno));
 			abort();
 		}
+
+		free(log_file_pid);
 	}
 #endif	/* DEBUG */
 

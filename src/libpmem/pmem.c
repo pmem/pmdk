@@ -203,7 +203,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-#include <xmmintrin.h>
+#include <emmintrin.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -216,6 +216,7 @@
 #include "out.h"
 #include "valgrind_internal.h"
 
+#ifndef WIN32
 /*
  * The x86 memory instructions are new enough that the compiler
  * intrinsic functions are not always available.  The intrinsic
@@ -227,6 +228,7 @@
 	asm volatile(".byte 0x66; xsaveopt %0" : "+m" (*(volatile char *)addr));
 #define	_mm_pcommit()\
 	asm volatile(".byte 0x66, 0x0f, 0xae, 0xf8");
+#endif
 
 #define	FLUSH_ALIGN ((uintptr_t)64)
 
@@ -524,6 +526,7 @@ is_pmem_never(const void *addr, size_t len)
 static int
 is_pmem_proc(const void *addr, size_t len)
 {
+#ifndef WIN32
 	const char *caddr = addr;
 
 	FILE *fp;
@@ -590,7 +593,9 @@ is_pmem_proc(const void *addr, size_t len)
 	}
 
 	fclose(fp);
-
+#else
+	int retval = 0;
+#endif
 	LOG(3, "returning %d", retval);
 	return retval;
 }

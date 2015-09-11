@@ -364,17 +364,20 @@ util_tmpfile(const char *dir, const char *templ)
 	LOG(3, "dir \"%s\" template \"%s\"", dir, templ);
 
 	int oerrno;
+	int fd = -1;
 
 	char *fullname = alloca(strlen(dir) + sizeof (templ));
 	(void) strcpy(fullname, dir);
 	(void) strcat(fullname, templ);
 
+#ifndef WIN32
 	sigset_t set, oldset;
 	sigfillset(&set);
 	(void) sigprocmask(SIG_BLOCK, &set, &oldset);
+#endif
 
 	mode_t prev_umask = umask(S_IRWXG | S_IRWXO);
-	int fd = mkstemp(fullname);
+	fd = mkstemp(fullname);
 	umask(prev_umask);
 	if (fd < 0) {
 		ERR("!mkstemp");
@@ -382,15 +385,20 @@ util_tmpfile(const char *dir, const char *templ)
 	}
 
 	(void) unlink(fullname);
+#ifndef WIN32
 	(void) sigprocmask(SIG_SETMASK, &oldset, NULL);
-
+#endif
 	LOG(3, "unlinked file is \"%s\"", fullname);
 
 	return fd;
 
 err:
 	oerrno = errno;
+#ifndef WIN32
 	(void) sigprocmask(SIG_SETMASK, &oldset, NULL);
+#endif
+	if (fd != -1)
+		(void) close(fd);
 	errno = oerrno;
 	return -1;
 }
@@ -528,6 +536,7 @@ util_convert_hdr(struct pool_hdr *hdrp)
 int
 util_get_arch_flags(struct arch_flags *arch_flags)
 {
+#ifndef WIN32
 	char *path = "/proc/self/exe";
 	int fd;
 	ElfW(Ehdr) elf;
@@ -565,6 +574,9 @@ out_close:
 	close(fd);
 out:
 	return ret;
+#else
+	return 0; /* GetSystemInfo */
+#endif
 }
 
 /*
