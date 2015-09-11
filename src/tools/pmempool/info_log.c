@@ -174,6 +174,7 @@ pmempool_info_log(struct pmem_info *pip)
 
 	if (pmempool_info_read(pip, plp, sizeof (struct pmemlog), 0)) {
 		outv_err("cannot read pmemlog header\n");
+		free(plp);
 		return -1;
 	}
 
