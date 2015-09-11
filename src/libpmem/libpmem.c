@@ -48,8 +48,12 @@
  *
  * Called automatically by the run-time loader.
  */
+#ifndef WIN32
 __attribute__((constructor))
 static void
+#else
+void
+#endif
 libpmem_init(void)
 {
 	out_init(PMEM_LOG_PREFIX, PMEM_LOG_LEVEL_VAR, PMEM_LOG_FILE_VAR,
@@ -64,8 +68,12 @@ libpmem_init(void)
  *
  * Called automatically when the process terminates.
  */
+#ifndef WIN32
 __attribute__((destructor))
 static void
+#else
+void
+#endif
 libpmem_fini(void)
 {
 	LOG(3, NULL);

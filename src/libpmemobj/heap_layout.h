@@ -37,7 +37,11 @@
 #define	HEAP_MAJOR 1
 #define	HEAP_MINOR 0
 
+#ifndef WIN32
 #define	MAX_CHUNK (UINT16_MAX - 7) /* has to be multiple of 8 */
+#else
+#define	MAX_CHUNK (1024 - 7) /* has to be multiple of 8 */
+#endif
 #define	CHUNKSIZE ((size_t)1024 * 256)	/* 256 kilobytes */
 #define	MAX_MEMORY_BLOCK_SIZE (MAX_CHUNK * CHUNKSIZE)
 #define	HEAP_SIGNATURE_LEN 16
