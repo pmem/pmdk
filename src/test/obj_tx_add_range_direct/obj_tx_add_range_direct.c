@@ -417,6 +417,31 @@ do_tx_add_range_no_tx(PMEMobjpool *pop)
 	ASSERTne(ret, 0);
 }
 
+/*
+ * do_tx_commit_and_abort -- use range cache, commit and then abort to make
+ *	sure that it won't affect previously modified data.
+ */
+static void
+do_tx_commit_and_abort(PMEMobjpool *pop)
+{
+	TOID(struct object) obj;
+	TOID_ASSIGN(obj, do_tx_zalloc(pop, TYPE_OBJ));
+
+	TX_BEGIN(pop) {
+		TX_SET(obj, value, TEST_VALUE_1); /* this will land in cache */
+	} TX_ONABORT {
+		ASSERT(0);
+	} TX_END
+
+	TX_BEGIN(pop) {
+		pmemobj_tx_abort(-1);
+	} TX_ONCOMMIT {
+		ASSERT(0);
+	} TX_END
+
+	ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -450,6 +475,8 @@ main(int argc, char *argv[])
 	do_tx_add_range_alloc_commit(pop);
 	VALGRIND_WRITE_STATS;
 	do_tx_add_range_alloc_abort(pop);
+	VALGRIND_WRITE_STATS;
+	do_tx_commit_and_abort(pop);
 	VALGRIND_WRITE_STATS;
 
 	pmemobj_close(pop);

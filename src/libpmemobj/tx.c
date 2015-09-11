@@ -663,7 +663,7 @@ tx_post_commit_set(PMEMobjpool *pop, struct lane_tx_layout *layout)
 
 	struct list_head *head = &layout->undo_set_cache;
 	int ret = 0;
-	PMEMoid obj = OID_NULL;
+	PMEMoid obj = head->pe_first; /* first cache object */
 
 	/* clear all the undo log caches except for the last one */
 	while (head->pe_first.off != oob_list_last(pop, head).off) {
@@ -677,8 +677,11 @@ tx_post_commit_set(PMEMobjpool *pop, struct lane_tx_layout *layout)
 	if (!OID_IS_NULL(obj)) {
 		/* zero the cache, will be useful later on */
 		struct tx_range_cache *cache = OBJ_OFF_TO_PTR(pop, obj.off);
+
+		VALGRIND_ADD_TO_TX(cache, sizeof (struct tx_range_cache));
 		pop->memset_persist(pop, cache, 0,
 			sizeof (struct tx_range_cache));
+		VALGRIND_REMOVE_FROM_TX(cache, sizeof (struct tx_range_cache));
 	}
 
 	ret |= tx_clear_undo_log(pop, &layout->undo_set, 0);
