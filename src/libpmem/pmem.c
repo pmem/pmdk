@@ -203,7 +203,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-#include <xmmintrin.h>
+#include <emmintrin.h>
 
 #include "libpmem.h"
 
@@ -212,6 +212,7 @@
 #include "out.h"
 #include "valgrind_internal.h"
 
+#ifndef WIN32
 /*
  * The x86 memory instructions are new enough that the compiler
  * intrinsic functions are not always available.  The intrinsic
@@ -223,6 +224,7 @@
 	asm volatile(".byte 0x66; xsaveopt %0" : "+m" (*(volatile char *)addr));
 #define	_mm_pcommit()\
 	asm volatile(".byte 0x66, 0x0f, 0xae, 0xf8");
+#endif
 
 #define	FLUSH_ALIGN ((uintptr_t)64)
 
@@ -520,6 +522,7 @@ is_pmem_never(const void *addr, size_t len)
 static int
 is_pmem_proc(const void *addr, size_t len)
 {
+#ifndef WIN32
 	const char *caddr = addr;
 
 	FILE *fp;
@@ -586,7 +589,9 @@ is_pmem_proc(const void *addr, size_t len)
 	}
 
 	fclose(fp);
-
+#else
+	int retval = 0;
+#endif
 	LOG(3, "returning %d", retval);
 	return retval;
 }
@@ -1187,8 +1192,12 @@ pmem_parse_cpuinfo(char *line)
  *
  * Called automatically by the run-time loader.
  */
+#ifndef WIN32
 __attribute__((constructor))
 static void
+#else
+void
+#endif
 pmem_init(void)
 {
 	out_init(PMEM_LOG_PREFIX, PMEM_LOG_LEVEL_VAR, PMEM_LOG_FILE_VAR,
@@ -1196,6 +1205,7 @@ pmem_init(void)
 	LOG(3, NULL);
 	util_init();
 
+#ifndef WIN32
 	/* detect supported cache flush features */
 	FILE *fp;
 	if ((fp = fopen("/proc/cpuinfo", "r")) == NULL) {
@@ -1210,6 +1220,7 @@ pmem_init(void)
 
 		fclose(fp);
 	}
+#endif
 
 	/*
 	 * For testing, allow overriding the default threshold

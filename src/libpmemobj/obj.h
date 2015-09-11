@@ -35,6 +35,7 @@
  */
 
 #include <stddef.h>
+#include "libpmemobj.h"
 
 #define	PMEMOBJ_LOG_PREFIX "libpmemobj"
 #define	PMEMOBJ_LOG_LEVEL_VAR "PMEMOBJ_LOG_LEVEL"
@@ -80,15 +81,6 @@
 
 #define	OBJ_PTR_IS_VALID(pop, ptr)\
 	OBJ_OFF_IS_VALID(pop, OBJ_PTR_TO_OFF(pop, ptr))
-
-#define	OBJ_OID_IS_VALID(pop, oid) (\
-	{\
-		PMEMoid o = (oid);\
-		OBJ_OID_IS_NULL(o) ||\
-		(o.pool_uuid_lo == (pop)->uuid_lo &&\
-		o.off >= (pop)->heap_offset &&\
-		o.off < (pop)->heap_offset + (pop)->heap_size);\
-	})
 
 #define	OOB_HEADER_FROM_OID(pop, oid)\
 	((struct oob_header *)((uintptr_t)(pop) + (oid).off - OBJ_OOB_SIZE))
@@ -264,6 +256,15 @@ pmemobj_get_uuid_lo(PMEMobjpool *pop)
 	}
 
 	return uuid_lo;
+}
+
+static inline int
+OBJ_OID_IS_VALID(PMEMobjpool *pop, PMEMoid o)
+{
+	return OBJ_OID_IS_NULL(o) ||
+		(o.pool_uuid_lo == (pop)->uuid_lo &&
+			o.off >= (pop)->heap_offset &&
+			o.off < (pop)->heap_offset + (pop)->heap_size);
 }
 
 void obj_init(void);

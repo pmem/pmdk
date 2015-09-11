@@ -77,9 +77,8 @@ alloc_write_header(PMEMobjpool *pop, struct allocation_header *alloc,
 static struct allocation_header *
 alloc_get_header(PMEMobjpool *pop, uint64_t off)
 {
-	void *ptr = (char *)pop + off;
-	struct allocation_header *alloc = (void *)((char *)ptr -
-			sizeof (*alloc));
+	char *ptr = (char *)pop + off;
+	struct allocation_header *alloc = (void *)(ptr - sizeof (*alloc));
 
 	return alloc;
 }
@@ -337,8 +336,8 @@ prealloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
 		heap_coalesce(pop, blocks, 2, HEAP_OP_ALLOC, &hdr, &op_result);
 
 	void *block_data = heap_get_block_data(pop, m);
-	void *datap = (char *)block_data + sizeof (struct allocation_header);
-	void *userdatap = (char *)datap + data_off;
+	char *datap = (char *)block_data + sizeof (struct allocation_header);
+	void *userdatap = datap + data_off;
 
 	/* mark new part as accessible and undefined */
 	VALGRIND_DO_MAKE_MEM_UNDEFINED(pop, (char *)block_data + alloc->size,

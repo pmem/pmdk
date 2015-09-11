@@ -1,0 +1,29 @@
+;;;; Begin Copyright Notice
+;
+; Copyright (c) Intel Corporation (2015).
+;
+; TBD
+;
+;;;;  End Copyright Notice
+
+LIBRARY libpmem
+
+VERSION 1.0
+
+EXPORTS
+	pmem_map
+	pmem_is_pmem
+	pmem_persist
+	pmem_msync
+	pmem_flush
+	pmem_drain
+	pmem_has_hw_drain
+	pmem_memmove_persist
+	pmem_memcpy_persist
+	pmem_memset_persist
+	pmem_memmove_nodrain
+	pmem_memcpy_nodrain
+	pmem_memset_nodrain
+	pmem_check_version
+	pmem_errormsg
+	DllMain
