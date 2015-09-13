@@ -1069,7 +1069,7 @@ int
 pmempool_info_obj(struct pmem_info *pip)
 {
 	pip->obj.addr = pool_set_file_map(pip->pfile, 0);
-	if (pip->obj.addr == MAP_FAILED)
+	if (pip->obj.addr == NULL)
 		return -1;
 
 	pip->obj.size = pip->pfile->size;

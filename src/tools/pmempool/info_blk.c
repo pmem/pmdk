@@ -539,6 +539,7 @@ pmempool_info_blk(struct pmem_info *pip)
 
 	if (pmempool_info_read(pip, pbp, sizeof (struct pmemblk), 0)) {
 		outv_err("cannot read pmemblk header\n");
+		free(pbp);
 		return -1;
 	}
 
