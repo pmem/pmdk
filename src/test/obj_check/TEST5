@@ -40,11 +40,11 @@ export UNITTEST_NUM=5
 # standard unit test setup
 . ../unittest/unittest.sh
 
-
-
 setup
 
 rm -f log$UNITTEST_NUM.log
+
+SIZE=128
 
 # Transaction lane section
 
@@ -57,7 +57,7 @@ rm -f $DIR/testfile
 
 # Set invalid internal_type for allocation
 expect_normal_exit $PMEMPOOL$EXESUFFIX create obj $DIR/testfile
-expect_abnormal_exit $PMEMALLOC$EXESUFFIX -o16 -ea $DIR/testfile
+expect_abnormal_exit $PMEMALLOC$EXESUFFIX -o$SIZE -ea $DIR/testfile
 $PMEMSPOIL $DIR/testfile "pmemobj.lane(0).tx.undo_alloc.entry(0).oob.internal_type=0x5"
 expect_normal_exit ./obj_check$EXESUFFIX $DIR/testfile
 cat out$UNITTEST_NUM.log >> log$UNITTEST_NUM.log
@@ -65,7 +65,7 @@ rm -f $DIR/testfile
 
 # Set invalid user_type for allocation
 expect_normal_exit $PMEMPOOL$EXESUFFIX create obj $DIR/testfile
-expect_abnormal_exit $PMEMALLOC$EXESUFFIX -o16 -ea $DIR/testfile
+expect_abnormal_exit $PMEMALLOC$EXESUFFIX -o$SIZE -ea $DIR/testfile
 $PMEMSPOIL $DIR/testfile "pmemobj.lane(0).tx.undo_alloc.entry(0).oob.user_type=4096"
 expect_normal_exit ./obj_check$EXESUFFIX $DIR/testfile
 cat out$UNITTEST_NUM.log >> log$UNITTEST_NUM.log
@@ -73,7 +73,7 @@ rm -f $DIR/testfile
 
 # Set invalid internal_type for free
 expect_normal_exit $PMEMPOOL$EXESUFFIX create obj $DIR/testfile
-expect_abnormal_exit $PMEMALLOC$EXESUFFIX -o16 -f -ef $DIR/testfile
+expect_abnormal_exit $PMEMALLOC$EXESUFFIX -o$SIZE -f -ef $DIR/testfile
 $PMEMSPOIL $DIR/testfile "pmemobj.lane(0).tx.undo_free.entry(0).oob.internal_type=0x5"
 expect_normal_exit ./obj_check$EXESUFFIX $DIR/testfile
 cat out$UNITTEST_NUM.log >> log$UNITTEST_NUM.log
@@ -81,7 +81,7 @@ rm -f $DIR/testfile
 
 # Set invalid user_type for free
 expect_normal_exit $PMEMPOOL$EXESUFFIX create obj $DIR/testfile
-expect_abnormal_exit $PMEMALLOC$EXESUFFIX -o16 -f -ef $DIR/testfile
+expect_abnormal_exit $PMEMALLOC$EXESUFFIX -o$SIZE -f -ef $DIR/testfile
 $PMEMSPOIL $DIR/testfile "pmemobj.lane(0).tx.undo_free.entry(0).oob.user_type=4096"
 expect_normal_exit ./obj_check$EXESUFFIX $DIR/testfile
 cat out$UNITTEST_NUM.log >> log$UNITTEST_NUM.log
@@ -89,7 +89,7 @@ rm -f $DIR/testfile
 
 # Set invalid offset in tx range
 expect_normal_exit $PMEMPOOL$EXESUFFIX create obj $DIR/testfile
-expect_abnormal_exit $PMEMALLOC$EXESUFFIX -o16 -s -es $DIR/testfile
+expect_abnormal_exit $PMEMALLOC$EXESUFFIX -o$SIZE -s -es $DIR/testfile
 $PMEMSPOIL $DIR/testfile "pmemobj.lane(0).tx.undo_set.entry(0).tx_range.offset=0"
 expect_normal_exit ./obj_check$EXESUFFIX $DIR/testfile
 cat out$UNITTEST_NUM.log >> log$UNITTEST_NUM.log
@@ -97,9 +97,9 @@ rm -f $DIR/testfile
 
 # Set invalid size in tx range
 expect_normal_exit $PMEMPOOL$EXESUFFIX create obj $DIR/testfile
-SIZE=$(stat -c%s $DIR/testfile)
-expect_abnormal_exit $PMEMALLOC$EXESUFFIX -o16 -s -es $DIR/testfile
-$PMEMSPOIL $DIR/testfile "pmemobj.lane(0).tx.undo_set.entry(0).tx_range.size=$SIZE"
+INVALID_SIZE=$(stat -c%s $DIR/testfile)
+expect_abnormal_exit $PMEMALLOC$EXESUFFIX -o$SIZE -s -es $DIR/testfile
+$PMEMSPOIL $DIR/testfile "pmemobj.lane(0).tx.undo_set.entry(0).tx_range.size=$INVALID_SIZE"
 expect_normal_exit ./obj_check$EXESUFFIX $DIR/testfile
 cat out$UNITTEST_NUM.log >> log$UNITTEST_NUM.log
 rm -f $DIR/testfile
