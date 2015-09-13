@@ -1,3 +1,16 @@
+Sun Sep 13 2015 Andy Rudoff <andy.rudoff@intel.com>
+
+	* Version 0.3
+	NVML is now feature complete, adding support for:
+		- pool sets
+		- pmemobj local replication (active/passive)
+		- experimental valgrind support
+		- pmempool support for all pool types
+	Man pages are all complete.
+	This release is considered "Alpha quality" by the team, having
+	gone through significant validation but only some performance
+	analysis at this point.
+
 Tue Jun 30 2015 Andy Rudoff <andy.rudoff@intel.com>
 
 	* Version 0.2
