@@ -52,6 +52,7 @@ libpmem \- persistent memory support library
 .BI "void pmem_persist(void *" addr ", size_t " len );
 .BI "int pmem_msync(void *" addr ", size_t " len );
 .BI "void *pmem_map(int " fd );
+.BI "int pmem_unmap(void *" addr ", size_t " len );
 .sp
 .B Partial flushing operations:
 .sp
@@ -278,7 +279,27 @@ returns a pointer to mapped area.  On error, NULL is returned, and
 errno is set appropriately.  To delete mappings created with
 .BR pmem_map (),
 use
-.BR munmap (2).
+.BR pmem_unmap ().
+.PP
+.BI "int pmem_unmap(void *" addr ", size_t " len );
+.IP
+The
+.BR pmem_unmap ()
+function deletes all the mappings for the specified address range, and
+causes further references to addresses within the range to generate
+invalid memory references. It will use the address specified by the
+parameter
+.IR addr ,
+where
+.I addr
+must be a previously mapped region.
+.BR pmem_unmap ()
+will delete the mappings using the
+.BR munmap (2),
+On success,
+.BR pmem_unmap ()
+returns zero.  On error, -1 is returned, and
+errno is set appropriately.
 .SH PARTIAL FLUSHING OPERATIONS
 .PP
 The functions in this section provide access to the stages
@@ -766,6 +787,13 @@ main(int argc, char *argv[])
         pmem_persist(pmemaddr, PMEM_LEN);
     else
         pmem_msync(pmemaddr, PMEM_LEN);
+
+    /*
+     * Delete the mappings. The region is also
+     * automatically unmapped when the process is
+     * terminated.
+     */
+    pmem_unmap(pmemaddr, PMEM_LEN);
 }
 .fi
 .PP

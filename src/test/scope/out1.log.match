@@ -15,6 +15,7 @@ pmem_memset_nodrain
 pmem_memset_persist
 pmem_msync
 pmem_persist
+pmem_unmap
 $(*)nondebug/libpmem.so:
 pmem_check_version
 pmem_drain
@@ -31,6 +32,7 @@ pmem_memset_nodrain
 pmem_memset_persist
 pmem_msync
 pmem_persist
+pmem_unmap
 $(*)debug/libpmem.a:
 pmem_check_version
 pmem_drain
@@ -47,6 +49,7 @@ pmem_memset_nodrain
 pmem_memset_persist
 pmem_msync
 pmem_persist
+pmem_unmap
 $(*)nondebug/libpmem.a:
 pmem_check_version
 pmem_drain
@@ -63,3 +66,4 @@ pmem_memset_nodrain
 pmem_memset_persist
 pmem_msync
 pmem_persist
+pmem_unmap

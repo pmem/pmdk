@@ -84,4 +84,11 @@ main(int argc, char *argv[])
 		pmem_persist(pmemaddr, PMEM_LEN);
 	else
 		pmem_msync(pmemaddr, PMEM_LEN);
+
+	/*
+	 * Delete the mappings. The region is also
+	 * automatically unmapped when the process is
+	 * terminated.
+	 */
+	pmem_unmap(pmemaddr, PMEM_LEN);
 }

@@ -632,6 +632,19 @@ pmem_map(int fd)
 }
 
 /*
+ * pmem_unmap -- unmap the specified region
+ */
+int
+pmem_unmap(void *addr, size_t len)
+{
+	int ret;
+	LOG(3, "addr %p len %zu", addr, len);
+	ret = util_unmap(addr, len);
+	VALGRIND_REMOVE_PMEM_MAPPING(addr, len);
+	return ret;
+}
+
+/*
  * memmove_nodrain_normal -- (internal) memmove to pmem without hw drain
  */
 static void *
