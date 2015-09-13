@@ -50,10 +50,12 @@ SRC=pmembench.c\
     clo_vec.c\
     config_reader.c\
     scenario.c\
-    log.c
+    log.c\
+    pmem_memset.c
 
 # Configuration file without the .cfg extension
-CONFIGS=pmembench_log
+CONFIGS=pmembench_log\
+	pmembench_memset
 
 LIBS_PATH=../nondebug
 CSTYLE = ../../utils/cstyle
@@ -85,6 +87,7 @@ $(BENCHMARK): $(OBJS)
 
 clean:
 	$(RM) $(OBJS)
+	$(RM) *.csv
 
 clobber: clean
 	$(RM) $(BENCHMARK)
@@ -92,7 +95,9 @@ clobber: clean
 cstyle:
 	$(CSTYLE) -pP *.[ch]
 
+$(CONFIGS):
+	LD_LIBRARY_PATH=$(LIBS_PATH) ./$(BENCHMARK) $@.cfg > $@.csv
+
 run: $(BENCHMARK) $(CONFIGS)
-	$(foreach c, $(CONFIGS), LD_LIBRARY_PATH=$(LIBS_PATH) ./$(BENCHMARK) $(c).cfg > $(c).csv)
 
 .PHONY: all clean clobber run cstyle no-glib $(CONFIGS)

@@ -1,2 +1,4 @@
 pmembench
 *.csv
+testfile.log
+testfile.memset
