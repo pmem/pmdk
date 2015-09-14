@@ -342,7 +342,7 @@ util_checksum(void *addr, size_t len, uint64_t *csump, int insert)
 {
 	ASSERTeq(len % 4, 0);
 	uint32_t *p32 = addr;
-	uint32_t *p32end = addr + len;
+	uint32_t *p32end = PTR_ADD(addr, len);
 	uint32_t lo32 = 0;
 	uint32_t hi32 = 0;
 	uint64_t csum;

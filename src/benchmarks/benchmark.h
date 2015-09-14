@@ -68,6 +68,12 @@
 #define	ARRAY_SIZE(x)	(sizeof (x) / sizeof (x[0]))
 #endif
 
+static inline void *
+PTR_ADD(void *ptr, size_t off)
+{
+	return (void *)((uintptr_t)ptr + off);
+}
+
 struct benchmark;
 
 /*

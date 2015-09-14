@@ -112,7 +112,7 @@ main(int argc, char *argv[])
 
 	char type = argv[1][0];
 
-	void *src, *dst;
+	char *src, *dst;
 
 	size_t s;
 	switch (type) {

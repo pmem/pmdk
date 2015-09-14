@@ -502,7 +502,7 @@ clo_str_flag(struct benchmark_clo *clo, void *addr, size_t size)
 	if (clo->off + sizeof (bool) > size)
 		return NULL;
 
-	bool flag = *(bool *)(addr + clo->off);
+	bool flag = *(bool *)PTR_ADD(addr, clo->off);
 
 	return flag ? "true" : "false";
 }
@@ -516,7 +516,7 @@ clo_str_str(struct benchmark_clo *clo, void *addr, size_t size)
 	if (clo->off + sizeof (char *) > size)
 		return NULL;
 
-	return *(char **)(addr + clo->off);
+	return *(char **)PTR_ADD(addr, clo->off);
 }
 
 /*
@@ -528,7 +528,7 @@ clo_str_int(struct benchmark_clo *clo, void *addr, size_t size)
 	if (clo->off + clo->type_int.size > size)
 		return NULL;
 
-	void *val = addr + clo->off;
+	void *val = PTR_ADD(addr, clo->off);
 
 	switch (clo->type_int.size) {
 		case 1:
@@ -563,7 +563,7 @@ clo_str_uint(struct benchmark_clo *clo, void *addr, size_t size)
 	if (clo->off + clo->type_uint.size > size)
 		return NULL;
 
-	void *val = addr + clo->off;
+	void *val = PTR_ADD(addr, clo->off);
 
 	switch (clo->type_uint.size) {
 		case 1:

@@ -60,8 +60,8 @@ struct section_operations *section_ops[MAX_LANE_SECTION];
 static struct lane_layout *
 lane_get_layout(PMEMobjpool *pop, int lane_idx)
 {
-	return (void *)pop + pop->lanes_offset +
-		(sizeof (struct lane_layout) * lane_idx);
+	return PTR_ADD(pop, pop->lanes_offset +
+			sizeof (struct lane_layout) * lane_idx);
 }
 
 /*
@@ -174,7 +174,7 @@ lane_boot(PMEMobjpool *pop)
 	}
 
 	/* add lanes to pmemcheck ignored list */
-	VALGRIND_ADD_TO_GLOBAL_TX_IGNORE((void *)pop + pop->lanes_offset,
+	VALGRIND_ADD_TO_GLOBAL_TX_IGNORE(PTR_ADD(pop, pop->lanes_offset),
 		(sizeof (struct lane_layout) * pop->nlanes));
 	int i;
 	for (i = 0; i < pop->nlanes; ++i) {

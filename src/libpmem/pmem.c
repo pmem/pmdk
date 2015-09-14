@@ -656,19 +656,20 @@ memmove_nodrain_movnt(void *pmemdest, const void *src, size_t len)
 	size_t i;
 	__m128i *d;
 	__m128i *s;
-	void *dest1 = pmemdest;
+	const uint8_t *src1 = src;
+	uint8_t *dest1 = pmemdest;
 	size_t cnt;
 
-	if (len == 0 || src == pmemdest)
+	if (len == 0 || src1 == dest1)
 		return pmemdest;
 
 	if (len < Movnt_threshold) {
-		memmove(pmemdest, src, len);
+		memmove(pmemdest, src1, len);
 		pmem_flush(pmemdest, len);
 		return pmemdest;
 	}
 
-	if ((uintptr_t)dest1 - (uintptr_t)src >= len) {
+	if (PTR_DIFF(dest1, src1) >= len) {
 		/*
 		 * Copy the range in the forward direction.
 		 *
@@ -685,8 +686,8 @@ memmove_nodrain_movnt(void *pmemdest, const void *src, size_t len)
 			if (cnt > len)
 				cnt = len;
 
-			uint8_t *d8 = (uint8_t *)dest1;
-			const uint8_t *s8 = (uint8_t *)src;
+			uint8_t *d8 = dest1;
+			const uint8_t *s8 = src1;
 			for (i = 0; i < cnt; i++) {
 				*d8 = *s8;
 				d8++;
@@ -694,12 +695,12 @@ memmove_nodrain_movnt(void *pmemdest, const void *src, size_t len)
 			}
 			pmem_flush(dest1, cnt);
 			dest1 += cnt;
-			src += cnt;
+			src1 += cnt;
 			len -= cnt;
 		}
 
 		d = (__m128i *)dest1;
-		s = (__m128i *)src;
+		s = (__m128i *)src1;
 
 		cnt = len >> CHUNK_SHIFT;
 		for (i = 0; i < cnt; i++) {
@@ -769,7 +770,7 @@ memmove_nodrain_movnt(void *pmemdest, const void *src, size_t len)
 		 */
 
 		dest1 = dest1 + len;
-		src = src + len;
+		src1 = src1 + len;
 
 		cnt = (uint64_t)dest1 & ALIGN_MASK;
 		if (cnt > 0) {
@@ -777,8 +778,8 @@ memmove_nodrain_movnt(void *pmemdest, const void *src, size_t len)
 			if (cnt > len)
 				cnt = len;
 
-			uint8_t *d8 = (uint8_t *)dest1;
-			const uint8_t *s8 = (uint8_t *)src;
+			uint8_t *d8 = dest1;
+			const uint8_t *s8 = (uint8_t *)src1;
 			for (i = 0; i < cnt; i++) {
 				d8--;
 				s8--;
@@ -786,12 +787,12 @@ memmove_nodrain_movnt(void *pmemdest, const void *src, size_t len)
 			}
 			pmem_flush(d8, cnt);
 			dest1 -= cnt;
-			src -= cnt;
+			src1 -= cnt;
 			len -= cnt;
 		}
 
 		d = (__m128i *)dest1;
-		s = (__m128i *)src;
+		s = (__m128i *)src1;
 
 		cnt = len >> CHUNK_SHIFT;
 		for (i = 0; i < cnt; i++) {
@@ -939,7 +940,7 @@ memset_nodrain_movnt(void *pmemdest, int c, size_t len)
 	LOG(15, "pmemdest %p c 0x%x len %zu", pmemdest, c, len);
 
 	int i;
-	void *dest1 = pmemdest;
+	uint8_t *dest1 = pmemdest;
 	size_t cnt;
 	__m128i xmm0;
 	__m128i *d;

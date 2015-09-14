@@ -34,7 +34,13 @@
 INCS += -I. -I..
 INCS += -I../..
 INCS += -I../../include
-CFLAGS += -std=gnu99 -Wall -Werror -Wmissing-prototypes -fno-common $(EXTRA_CFLAGS)
+CFLAGS += -std=gnu99
+CFLAGS += -Wall
+CFLAGS += -Werror
+CFLAGS += -Wmissing-prototypes
+CFLAGS += -Wpointer-arith
+CFLAGS += -fno-common
+CFLAGS += $(EXTRA_CFLAGS)
 CFLAGS += -O2 -D_FORTIFY_SOURCE=2
 CFLAGS += -DSRCVERSION='"$(SRCVERSION)"'
 LDFLAGS += -Wl,-z,relro -Wl,--warn-common -Wl,--fatal-warnings $(EXTRA_LDFLAGS) -L../../nondebug

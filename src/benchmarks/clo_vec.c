@@ -37,6 +37,7 @@
 #include <assert.h>
 
 #include "clo_vec.h"
+#include "benchmark.h"
 
 /*
  * clo_vec_alloc -- allocate new CLO vector
@@ -225,7 +226,7 @@ clo_vec_memcpy(struct clo_vec *clovec, size_t off, size_t size, void *ptr)
 	size_t i;
 	for (i = 0; i < clovec->nargs; i++) {
 		void *args = clo_vec_get_args(clovec, i);
-		void *dptr = args + off;
+		void *dptr = PTR_ADD(args, off);
 		memcpy(dptr, ptr, size);
 	}
 
@@ -258,7 +259,7 @@ clo_vec_memcpy_list(struct clo_vec *clovec, size_t off, size_t size,
 	TAILQ_FOREACH(value, &list->head, next) {
 		for (i = value_i * len; i < (value_i + 1) * len; i++) {
 			void *args = clo_vec_get_args(clovec, i);
-			void *dptr = args + off;
+			void *dptr = PTR_ADD(args, off);
 			memcpy(dptr, value->ptr, size);
 		}
 		value_i++;
