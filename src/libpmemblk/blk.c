@@ -106,7 +106,7 @@ nsread(void *ns, int lane, void *buf, size_t count, off_t off)
 		return -1;
 	}
 
-	memcpy(buf, pbp->data + off, count);
+	memcpy(buf, PTR_ADD(pbp->data, off), count);
 
 	return 0;
 }
@@ -132,7 +132,7 @@ nswrite(void *ns, int lane, const void *buf, size_t count, off_t off)
 		return -1;
 	}
 
-	void *dest = pbp->data + off;
+	void *dest = PTR_ADD(pbp->data, off);
 
 #ifdef DEBUG
 	/* grab debug write lock */
@@ -196,7 +196,7 @@ nsmap(void *ns, int lane, void **addrp, size_t len, off_t off)
 	 * Since the entire file is memory-mapped, this callback
 	 * can always provide the entire length requested.
 	 */
-	*addrp = pbp->data + off;
+	*addrp = PTR_ADD(pbp->data, off);
 
 	LOG(12, "returning addr %p", *addrp);
 
@@ -248,7 +248,7 @@ nszero(void *ns, int lane, size_t count, off_t off)
 		return -1;
 	}
 
-	void *dest = pbp->data + off;
+	void *dest = PTR_ADD(pbp->data, off);
 
 	/* unprotect the memory (debug version only) */
 	RANGE_RW(dest, count);
@@ -333,8 +333,9 @@ pmemblk_runtime_init(PMEMblkpool *pbp, size_t bsize, int rdonly, int is_pmem)
 	 */
 	pbp->rdonly = rdonly;
 	pbp->is_pmem = is_pmem;
-	pbp->data = pbp->addr + roundup(sizeof (*pbp), BLK_FORMAT_DATA_ALIGN);
-	pbp->datasize = (pbp->addr + pbp->size) - pbp->data;
+	pbp->data = PTR_ADD(pbp->addr,
+			roundup(sizeof (*pbp), BLK_FORMAT_DATA_ALIGN));
+	pbp->datasize = PTR_DIFF(PTR_ADD(pbp->addr, pbp->size), pbp->data);
 
 	LOG(4, "data area %p data size %zu bsize %zu",
 		pbp->data, pbp->datasize, bsize);
@@ -440,9 +441,8 @@ pmemblk_create(const char *path, size_t bsize, size_t poolsize,
 	pbp->addr = pbp;
 	pbp->size = rep->repsize;
 
-	VALGRIND_REMOVE_PMEM_MAPPING(&pbp->addr,
-			sizeof (struct pmemblk) -
-			((uintptr_t)&pbp->addr - (uintptr_t)&pbp->hdr));
+	VALGRIND_REMOVE_PMEM_MAPPING(&pbp->addr, sizeof (struct pmemblk) -
+			PTR_DIFF(&pbp->addr, &pbp->hdr));
 
 	if (set->nreplicas > 1) {
 		ERR("replicas not supported");
@@ -513,9 +513,8 @@ pmemblk_open_common(const char *path, size_t bsize, int cow)
 	pbp->addr = pbp;
 	pbp->size = rep->repsize;
 
-	VALGRIND_REMOVE_PMEM_MAPPING(&pbp->addr,
-			sizeof (struct pmemblk) -
-			((uintptr_t)&pbp->addr - (uintptr_t)&pbp->hdr));
+	VALGRIND_REMOVE_PMEM_MAPPING(&pbp->addr, sizeof (struct pmemblk) -
+			PTR_DIFF(&pbp->addr, &pbp->hdr));
 
 	if (set->nreplicas > 1) {
 		ERR("replicas not supported");

@@ -309,9 +309,8 @@ memset_op(struct benchmark *bench, struct operation_info *info)
 		info->args->n_ops_per_thread * info->worker->index
 			+ mb->func_dest(mb, index);
 
-	void *dest = mb->pmem_addr
-		+ dest_index * mb->pargs->chunk_size
-		+ mb->pargs->dest_off;
+	void *dest = PTR_ADD(mb->pmem_addr,
+		dest_index * mb->pargs->chunk_size + mb->pargs->dest_off);
 	int c = mb->const_b;
 	size_t len = mb->pargs->chunk_size;
 

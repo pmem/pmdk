@@ -215,3 +215,19 @@ int util_pool_open_nocheck(struct pool_set **setp, const char *path, int rdonly,
 int util_pool_open(struct pool_set **setp, const char *path, int rdonly,
 	size_t minsize, size_t hdrsize, const char *sig,
 	uint32_t major, uint32_t compat, uint32_t incompat, uint32_t ro_compat);
+
+static inline void *
+PTR_ADD(void *ptr, size_t off)
+{
+	return (void *)((uintptr_t)ptr + off);
+}
+static inline void *
+PTR_SUB(void *ptr, size_t off)
+{
+	return (void *)((uintptr_t)ptr - off);
+}
+static inline uintptr_t
+PTR_DIFF(const void *further_ptr, const void *base_ptr)
+{
+	return (uintptr_t)further_ptr - (uintptr_t)base_ptr;
+}

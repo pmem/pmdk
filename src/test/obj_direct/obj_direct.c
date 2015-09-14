@@ -100,7 +100,7 @@ main(int argc, char *argv[])
 
 		uint64_t off = pops[i]->heap_offset;
 		oids[i] = (PMEMoid) {pops[i]->uuid_lo, off};
-		ASSERTeq(pmemobj_direct(oids[i]) - off, pops[i]);
+		ASSERTeq(pmemobj_direct(oids[i]), PTR_ADD(pops[i], off));
 
 		r = pmemobj_alloc(pops[i], &tmpoids[i], 100, 1, NULL, NULL);
 		ASSERTeq(r, 0);

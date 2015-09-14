@@ -149,7 +149,7 @@ bucket_cache_destroy(struct bucket_cache *cache)
 static struct heap_layout *
 heap_get_layout(PMEMobjpool *pop)
 {
-	return (void *)pop + pop->heap_offset;
+	return PTR_ADD(pop, pop->heap_offset);
 }
 
 /*
@@ -867,7 +867,7 @@ heap_get_block_data(PMEMobjpool *pop, struct memory_block m)
 	struct chunk_run *run = data;
 	ASSERT(run->block_size != 0);
 
-	return (void *)&run->data + (run->block_size * m.block_off);
+	return &run->data[run->block_size * m.block_off];
 }
 
 #ifdef DEBUG

@@ -261,7 +261,7 @@ constructor_tx_copy_zero(PMEMobjpool *pop, void *ptr, void *arg)
 
 	memcpy(ptr, args->ptr, args->copy_size);
 	if (args->size > args->copy_size) {
-		void *zero_ptr = (void *)((uintptr_t)ptr + args->copy_size);
+		void *zero_ptr = PTR_ADD(ptr, args->copy_size);
 		size_t zero_size = args->size - args->copy_size;
 		memset(zero_ptr, 0, zero_size);
 	}
@@ -397,7 +397,7 @@ tx_restore_range(PMEMobjpool *pop, struct tx_range *range)
 	}
 
 	txr->begin = OBJ_OFF_TO_PTR(pop, range->offset);
-	txr->end = txr->begin + range->size;
+	txr->end = PTR_ADD(txr->begin, range->size);
 	SLIST_INSERT_HEAD(&tx_ranges, txr, tx_range);
 
 	struct tx_lock_data *txl;
@@ -407,7 +407,7 @@ tx_restore_range(PMEMobjpool *pop, struct tx_range *range)
 	SLIST_FOREACH(txl, &(runtime->tx_locks), tx_lock) {
 		void *lock_begin = txl->lock.mutex;
 		/* all PMEM locks have the same size */
-		void *lock_end = lock_begin + _POBJ_CL_ALIGNMENT;
+		void *lock_end = PTR_ADD(lock_begin, _POBJ_CL_ALIGNMENT);
 
 		SLIST_FOREACH(txr, &tx_ranges, tx_range) {
 			if ((lock_begin >= txr->begin &&
@@ -467,9 +467,10 @@ tx_restore_range(PMEMobjpool *pop, struct tx_range *range)
 		struct tx_range_data *txr = SLIST_FIRST(&tx_ranges);
 		SLIST_REMOVE_HEAD(&tx_ranges, tx_range);
 		/* restore partial range data from snapshot */
+		ASSERT(txr->begin >= dst_ptr);
 		pop->memcpy_persist(pop, txr->begin,
-				&range->data[txr->begin - dst_ptr],
-				txr->end - txr->begin);
+				&range->data[PTR_DIFF(txr->begin, dst_ptr)],
+				PTR_DIFF(txr->end, txr->begin));
 		Free(txr);
 	}
 }
@@ -1485,7 +1486,7 @@ pmemobj_tx_add_range_direct(void *ptr, size_t size)
 
 	struct tx_add_range_args args = {
 		.pop = lane->pop,
-		.offset = ptr - (void *)lane->pop,
+		.offset = PTR_DIFF(ptr, lane->pop),
 		.size = size
 	};
 

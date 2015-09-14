@@ -545,7 +545,7 @@ pmempool_info_blk(struct pmem_info *pip)
 
 	info_blk_descriptor(pip, VERBOSE_DEFAULT, pbp);
 
-	ssize_t btt_off = pbp->data - pbp->addr;
+	ssize_t btt_off = PTR_DIFF(pbp->data, pbp->addr);
 	ret = info_btt_layout(pip, pbp, btt_off);
 
 	free(pbp);

@@ -169,7 +169,7 @@ pmempool_check_nsread(void *ns, int lane, void *buf, size_t count,
 		return -1;
 	}
 
-	memcpy(buf, nsc->addr + off, count);
+	memcpy(buf, PTR_ADD(nsc->addr, off), count);
 
 	return 0;
 }
@@ -188,7 +188,7 @@ pmempool_check_nswrite(void *ns, int lane, const void *buf, size_t count,
 		return -1;
 	}
 
-	memcpy(nsc->addr + off, buf, count);
+	memcpy(PTR_ADD(nsc->addr, off), buf, count);
 
 	return 0;
 }
@@ -211,7 +211,7 @@ pmempool_check_nsmap(void *ns, int lane, void **addrp, size_t len,
 	 * Since the entire file is memory-mapped, this callback
 	 * can always provide the entire length requested.
 	 */
-	*addrp = nsc->addr + off;
+	*addrp = PTR_ADD(nsc->addr, off);
 
 	return len;
 }
@@ -237,7 +237,7 @@ pmempool_check_nszero(void *ns, int lane, size_t len, off_t off)
 		errno = EINVAL;
 		return -1;
 	}
-	memset(nsc->addr + off, 0, len);
+	memset(PTR_ADD(nsc->addr, off), 0, len);
 
 	return 0;
 }
@@ -1483,8 +1483,7 @@ pmempool_check_btt_info_advanced_repair(struct pmempool_check *pcp,
 	uint64_t nextoff = 0;
 	do {
 		offset += nextoff;
-		struct btt_info *infop =
-			(struct btt_info *)((uintptr_t)addr + offset);
+		struct btt_info *infop = PTR_ADD(addr, offset);
 
 		if (pmempool_check_check_btt(infop) != 1) {
 			ret = -1;

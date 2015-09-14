@@ -224,14 +224,14 @@ FUNC_MOCK_RUN_DEFAULT {
 	Pop->heap_size = Pop->size - Pop->heap_offset;
 	uint64_t heap_offset = HEAP_OFFSET;
 
-	Heap_offset = (uint64_t *)((uintptr_t)Pop + heap_offset);
+	Heap_offset = PTR_ADD(Pop, heap_offset);
 	heap_offset += sizeof (*Heap_offset);
 
-	Id = (int *)((uintptr_t)Pop + heap_offset);
+	Id = PTR_ADD(Pop, heap_offset);
 	heap_offset += sizeof (*Id);
 
 	/* Alloc lane layout */
-	Lane_section.layout = (void *)((uintptr_t)Pop + heap_offset);
+	Lane_section.layout = PTR_ADD(Pop, heap_offset);
 	heap_offset += LANE_SECTION_LEN;
 
 	/* Alloc in band lists */
@@ -252,7 +252,7 @@ FUNC_MOCK_RUN_DEFAULT {
 	List_oob_sec.oid.off = heap_offset;
 	heap_offset += sizeof (struct oob_list);
 
-	Item = (void *)((uintptr_t)Pop + heap_offset);
+	Item = PTR_ADD(Pop, heap_offset);
 	heap_offset += sizeof (*Item);
 	Item->oid.pool_uuid_lo = Pop->uuid_lo;
 	Item->oid.off = heap_offset;
@@ -350,16 +350,14 @@ FUNC_MOCK_END
 FUNC_MOCK(pmalloc, int, PMEMobjpool *pop, uint64_t *ptr, size_t size)
 	FUNC_MOCK_RUN_DEFAULT {
 		size = 2 * (size - OOB_OFF) + OOB_OFF;
-		uint64_t *alloc_size = (uint64_t *)((uintptr_t)Pop
-				+ *Heap_offset);
+		uint64_t *alloc_size = PTR_ADD(Pop, *Heap_offset);
 		*alloc_size = size;
 		Pop->persist(Pop, alloc_size, sizeof (*alloc_size));
 
 		*ptr = *Heap_offset + sizeof (uint64_t);
 		Pop->persist(Pop, ptr, sizeof (*ptr));
 
-		struct oob_item *item =
-			(struct oob_item *)((uintptr_t)Pop + *ptr);
+		struct oob_item *item = PTR_ADD(Pop, *ptr);
 
 		item->item.id = *Id;
 		Pop->persist(Pop, &item->item.id, sizeof (item->item.id));
@@ -382,8 +380,7 @@ FUNC_MOCK_END
  */
 FUNC_MOCK(pfree, int, PMEMobjpool *pop, uint64_t *ptr)
 	FUNC_MOCK_RUN_DEFAULT {
-		struct oob_item *item =
-			(struct oob_item *)((uintptr_t)Pop + *ptr);
+		struct oob_item *item = PTR_ADD(Pop, *ptr);
 		OUT("pfree(id = %d)", item->item.id);
 		*ptr = 0;
 		Pop->persist(Pop, ptr, sizeof (*ptr));
@@ -403,8 +400,7 @@ FUNC_MOCK(pmalloc_construct, int, PMEMobjpool *pop, uint64_t *off,
 	void *arg), void *arg, uint64_t data_off)
 	FUNC_MOCK_RUN_DEFAULT {
 		size = 2 * (size - OOB_OFF) + OOB_OFF;
-		uint64_t *alloc_size = (uint64_t *)((uintptr_t)Pop +
-				*Heap_offset);
+		uint64_t *alloc_size = PTR_ADD(Pop, *Heap_offset);
 		*alloc_size = size;
 		Pop->persist(Pop, alloc_size, sizeof (*alloc_size));
 
@@ -414,7 +410,7 @@ FUNC_MOCK(pmalloc_construct, int, PMEMobjpool *pop, uint64_t *off,
 		*Heap_offset = *Heap_offset + sizeof (uint64_t) + size;
 		Pop->persist(Pop, Heap_offset, sizeof (*Heap_offset));
 
-		void *ptr = (void *)((uintptr_t)Pop + *off + data_off);
+		void *ptr = PTR_ADD(Pop, *off + data_off);
 		constructor(pop, ptr, arg);
 
 		return 0;
@@ -426,10 +422,8 @@ FUNC_MOCK_END
  */
 FUNC_MOCK(prealloc, int, PMEMobjpool *pop, uint64_t *off, size_t size)
 	FUNC_MOCK_RUN_DEFAULT {
-		uint64_t *alloc_size = (uint64_t *)((uintptr_t)Pop +
-				*off - sizeof (uint64_t));
-		struct item *item = (struct item *)((uintptr_t)Pop +
-				*off + OOB_OFF);
+		uint64_t *alloc_size = PTR_ADD(Pop, *off - sizeof (uint64_t));
+		struct item *item = PTR_ADD(Pop, *off + OOB_OFF);
 		if (*alloc_size >= size) {
 			*alloc_size = size;
 			Pop->persist(Pop, alloc_size, sizeof (*alloc_size));
@@ -456,7 +450,7 @@ FUNC_MOCK(prealloc_construct, int, PMEMobjpool *pop, uint64_t *off,
 	FUNC_MOCK_RUN_DEFAULT {
 		int ret = prealloc(pop, off, size);
 		if (!ret) {
-			void *ptr = (void *)((uintptr_t)Pop + *off + data_off);
+			void *ptr = PTR_ADD(Pop, *off + data_off);
 			constructor(pop, ptr, arg);
 		}
 		return ret;
@@ -468,8 +462,7 @@ FUNC_MOCK_END
  */
 FUNC_MOCK(pmalloc_usable_size, size_t, PMEMobjpool *pop, uint64_t off)
 	FUNC_MOCK_RUN_DEFAULT {
-		uint64_t *alloc_size = (uint64_t *)((uintptr_t)Pop +
-				off - sizeof (uint64_t));
+		uint64_t *alloc_size = PTR_ADD(Pop, off - sizeof (uint64_t));
 		return (size_t)*alloc_size;
 	}
 FUNC_MOCK_END

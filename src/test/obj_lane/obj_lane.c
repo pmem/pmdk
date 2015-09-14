@@ -54,7 +54,6 @@
 #define	MOCK_RUNTIME_2 (void *)(0xBCD)
 
 static void *base_ptr;
-#define	RPTR(p) (void *)((void *)p - base_ptr)
 
 struct mock_pop {
 	PMEMobjpool p;
@@ -88,7 +87,7 @@ static int
 lane_noop_recovery(PMEMobjpool *pop,
 	struct lane_section_layout *section)
 {
-	OUT("lane_noop_recovery %p", RPTR(section));
+	OUT("lane_noop_recovery 0x%lx", PTR_DIFF(section, base_ptr));
 	if (recovery_check_fail)
 		return EINVAL;
 
@@ -99,7 +98,7 @@ static int
 lane_noop_check(PMEMobjpool *pop,
 	struct lane_section_layout *section)
 {
-	OUT("lane_noop_check %p", RPTR(section));
+	OUT("lane_noop_check 0x%lx", PTR_DIFF(section, base_ptr));
 	if (recovery_check_fail)
 		return EINVAL;
 

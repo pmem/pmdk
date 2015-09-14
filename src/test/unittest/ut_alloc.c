@@ -143,7 +143,7 @@ void *
 ut_mmap_anon_aligned(const char *file, int line, const char *func,
     size_t alignment, size_t size)
 {
-	void *d, *d_aligned;
+	char *d, *d_aligned;
 	uintptr_t di, di_aligned;
 	size_t sz;
 
@@ -193,6 +193,6 @@ int
 ut_munmap_anon_aligned(const char *file, int line, const char *func,
     void *start, size_t size)
 {
-	return ut_munmap(file, line, func, start - Ut_pagesize,
+	return ut_munmap(file, line, func, (char *)start - Ut_pagesize,
 			size + 2 * Ut_pagesize);
 }

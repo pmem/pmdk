@@ -37,13 +37,14 @@
  */
 
 #include "unittest.h"
+#include "util.h"
 
 int
 main(int argc, char *argv[])
 {
 	int fd;
 	struct stat stbuf;
-	void *dest;
+	char *dest;
 
 	START(argc, argv, "pmem_valgr_simple");
 
@@ -64,7 +65,7 @@ main(int argc, char *argv[])
 	*(int *)dest = 4;
 
 	/* this will be made persistent */
-	uint64_t *tmp64dst = (void *)((uintptr_t)dest + 4096);
+	uint64_t *tmp64dst = PTR_ADD(dest, 4096);
 	*tmp64dst = 50;
 
 	if (pmem_is_pmem(dest, sizeof (*tmp64dst))) {
@@ -73,7 +74,7 @@ main(int argc, char *argv[])
 		pmem_msync(tmp64dst, sizeof (*tmp64dst));
 	}
 
-	uint16_t *tmp16dst = (void *)((uintptr_t)dest + 1024);
+	uint16_t *tmp16dst = PTR_ADD(dest, 1024);
 	*tmp16dst = 21;
 	/* will appear as flushed in valgrind log */
 	pmem_flush(tmp16dst, sizeof (*tmp16dst));

@@ -50,8 +50,9 @@
 static uint64_t
 fletcher64(void *addr, size_t len)
 {
+	ASSERT(len % 4 == 0);
 	uint32_t *p32 = addr;
-	uint32_t *p32end = addr + len;
+	uint32_t *p32end = PTR_ADD(addr, len);
 	uint32_t lo32 = 0;
 	uint32_t hi32 = 0;
 
@@ -93,7 +94,7 @@ main(int argc, char *argv[])
 		 * verified against the gold standard fletcher64
 		 * routine in this file.
 		 */
-		while ((void *)(ptr + 1) < addr + stbuf.st_size) {
+		while ((void *)(ptr + 1) < PTR_ADD(addr, stbuf.st_size)) {
 			/* save whatever was at *ptr */
 			uint64_t oldval = *ptr;
 
@@ -131,8 +132,8 @@ main(int argc, char *argv[])
 			 */
 			ASSERTeq(csum, gold_csum);
 
-			OUT("%s:%lu 0x%lx", argv[arg],
-				(void *)ptr - addr, csum);
+			OUT("%s:%lu 0x%lx", argv[arg], PTR_DIFF(ptr, addr),
+					csum);
 
 			ptr++;
 		}

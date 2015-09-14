@@ -78,10 +78,7 @@ alloc_write_header(PMEMobjpool *pop, struct allocation_header *alloc,
 static struct allocation_header *
 alloc_get_header(PMEMobjpool *pop, uint64_t off)
 {
-	void *ptr = (void *)pop + off;
-	struct allocation_header *alloc = ptr - sizeof (*alloc);
-
-	return alloc;
+	return PTR_ADD(pop, off - sizeof (struct allocation_header));
 }
 
 /*
@@ -104,7 +101,7 @@ calc_block_offset(PMEMobjpool *pop, struct bucket *b,
 	if (bucket_is_small(b)) {
 		struct memory_block m = {alloc->chunk_id, alloc->zone_id, 0, 0};
 		void *data = heap_get_block_data(pop, m);
-		uintptr_t diff = (uintptr_t)alloc - (uintptr_t)data;
+		uintptr_t diff = PTR_DIFF(alloc, data);
 		block_off = diff / bucket_unit_size(b);
 		ASSERT(diff % bucket_unit_size(b) == 0);
 	}
@@ -151,14 +148,14 @@ persist_alloc(PMEMobjpool *pop, struct lane_section *lane,
 	uint64_t op_result = 0;
 
 	void *block_data = heap_get_block_data(pop, m);
-	void *datap = block_data + sizeof (struct allocation_header);
+	void *datap = PTR_ADD(block_data, sizeof (struct allocation_header));
 
 	ASSERT((uint64_t)block_data % _POBJ_CL_ALIGNMENT == 0);
 
 	alloc_write_header(pop, block_data, m.chunk_id, m.zone_id, real_size);
 
 	if (constructor != NULL)
-		constructor(pop, datap + data_off, arg);
+		constructor(pop, PTR_ADD(datap, data_off), arg);
 
 	if ((err = heap_lock_if_run(pop, m)) != 0)
 		return err;
@@ -338,9 +335,9 @@ prealloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
 		heap_coalesce(pop, blocks, 2, HEAP_OP_ALLOC, &hdr, &op_result);
 
 	void *block_data = heap_get_block_data(pop, m);
-	void *datap = block_data + sizeof (struct allocation_header);
+	void *datap = PTR_ADD(block_data, sizeof (struct allocation_header));
 	if (constructor != NULL)
-		constructor(pop, datap + data_off, arg);
+		constructor(pop, PTR_ADD(datap, data_off), arg);
 
 	struct allocator_lane_section *sec =
 		(struct allocator_lane_section *)lane->layout;

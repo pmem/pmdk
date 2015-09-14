@@ -1462,7 +1462,7 @@ pool_set_file_read(struct pool_set_file *file, void *buff,
 	if (off + nbytes > file->size)
 		return -1;
 
-	memcpy(buff, file->addr + off, nbytes);
+	memcpy(buff, PTR_ADD(file->addr, off), nbytes);
 
 	return 0;
 }
@@ -1477,7 +1477,7 @@ pool_set_file_write(struct pool_set_file *file, void *buff,
 	if (off + nbytes > file->size)
 		return -1;
 
-	memcpy(file->addr + off, buff, nbytes);
+	memcpy(PTR_ADD(file->addr, off), buff, nbytes);
 
 	return 0;
 }
@@ -1511,7 +1511,7 @@ pool_set_file_map(struct pool_set_file *file, off_t offset)
 {
 	if (file->addr == MAP_FAILED)
 		return NULL;
-	return file->addr + offset;
+	return PTR_ADD(file->addr, offset);
 }
 
 /*
