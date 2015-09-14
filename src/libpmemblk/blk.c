@@ -441,9 +441,8 @@ pmemblk_create(const char *path, size_t bsize, size_t poolsize,
 	pbp->addr = pbp;
 	pbp->size = rep->repsize;
 
-	VALGRIND_REMOVE_PMEM_MAPPING(&pbp->addr,
-			sizeof (struct pmemblk) -
-			((uintptr_t)&pbp->addr - (uintptr_t)&pbp->hdr));
+	VALGRIND_REMOVE_PMEM_MAPPING(&pbp->addr, sizeof (struct pmemblk) -
+			PTR_DIFF(&pbp->addr, &pbp->hdr));
 
 	if (set->nreplicas > 1) {
 		ERR("replicas not supported");
@@ -514,9 +513,8 @@ pmemblk_open_common(const char *path, size_t bsize, int cow)
 	pbp->addr = pbp;
 	pbp->size = rep->repsize;
 
-	VALGRIND_REMOVE_PMEM_MAPPING(&pbp->addr,
-			sizeof (struct pmemblk) -
-			((uintptr_t)&pbp->addr - (uintptr_t)&pbp->hdr));
+	VALGRIND_REMOVE_PMEM_MAPPING(&pbp->addr, sizeof (struct pmemblk) -
+			PTR_DIFF(&pbp->addr, &pbp->hdr));
 
 	if (set->nreplicas > 1) {
 		ERR("replicas not supported");

@@ -183,9 +183,8 @@ pmemlog_create(const char *path, size_t poolsize, mode_t mode)
 	struct pool_replica *rep = set->replica[0];
 	PMEMlogpool *plp = rep->part[0].addr;
 
-	VALGRIND_REMOVE_PMEM_MAPPING(&plp->addr,
-			sizeof (struct pmemlog) -
-			((uintptr_t)&plp->addr - (uintptr_t)&plp->hdr));
+	VALGRIND_REMOVE_PMEM_MAPPING(&plp->addr, sizeof (struct pmemlog) -
+			PTR_DIFF(&plp->addr, &plp->hdr));
 
 	plp->addr = plp;
 	plp->size = rep->repsize;
@@ -252,9 +251,8 @@ pmemlog_open_common(const char *path, int cow)
 	struct pool_replica *rep = set->replica[0];
 	PMEMlogpool *plp = rep->part[0].addr;
 
-	VALGRIND_REMOVE_PMEM_MAPPING(&plp->addr,
-			sizeof (struct pmemlog) -
-			((uintptr_t)&plp->addr - (uintptr_t)&plp->hdr));
+	VALGRIND_REMOVE_PMEM_MAPPING(&plp->addr, sizeof (struct pmemlog) -
+			PTR_DIFF(&plp->addr, &plp->hdr));
 
 	plp->addr = plp;
 	plp->size = rep->repsize;

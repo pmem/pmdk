@@ -106,8 +106,7 @@ malloc(size_t size)
 		return je_vmem_malloc(size);
 	}
 	LOG(4, "size %zu", size);
-	return je_vmem_pool_malloc(
-			(pool_t *)((uintptr_t)Vmp + Header_size), size);
+	return je_vmem_pool_malloc(PTR_ADD(Vmp, Header_size), size);
 }
 
 /*
@@ -123,8 +122,7 @@ calloc(size_t nmemb, size_t size)
 		return je_vmem_calloc(nmemb, size);
 	}
 	LOG(4, "nmemb %zu, size %zu", nmemb, size);
-	return je_vmem_pool_calloc((pool_t *)((uintptr_t)Vmp + Header_size),
-			nmemb, size);
+	return je_vmem_pool_calloc(PTR_ADD(Vmp, Header_size), nmemb, size);
 }
 
 /*
@@ -139,8 +137,7 @@ realloc(void *ptr, size_t size)
 		return je_vmem_realloc(ptr, size);
 	}
 	LOG(4, "ptr %p, size %zu", ptr, size);
-	return je_vmem_pool_ralloc((pool_t *)((uintptr_t)Vmp + Header_size),
-			ptr, size);
+	return je_vmem_pool_ralloc(PTR_ADD(Vmp, Header_size), ptr, size);
 }
 
 /*
@@ -154,7 +151,7 @@ free(void *ptr)
 		return;
 	}
 	LOG(4, "ptr %p", ptr);
-	je_vmem_pool_free((pool_t *)((uintptr_t)Vmp + Header_size), ptr);
+	je_vmem_pool_free(PTR_ADD(Vmp, Header_size), ptr);
 }
 
 /*
@@ -170,7 +167,7 @@ cfree(void *ptr)
 		return;
 	}
 	LOG(4, "ptr %p", ptr);
-	je_vmem_pool_free((pool_t *)((uintptr_t)Vmp + Header_size), ptr);
+	je_vmem_pool_free(PTR_ADD(Vmp, Header_size), ptr);
 }
 
 #ifdef	VMMALLOC_OVERRIDE_MEMALIGN
@@ -189,8 +186,7 @@ memalign(size_t boundary, size_t size)
 		return je_vmem_memalign(boundary, size);
 	}
 	LOG(4, "boundary %zu  size %zu", boundary, size);
-	return je_vmem_pool_aligned_alloc(
-			(pool_t *)((uintptr_t)Vmp + Header_size),
+	return je_vmem_pool_aligned_alloc(PTR_ADD(Vmp, Header_size),
 			boundary, size);
 }
 #endif
@@ -215,8 +211,7 @@ aligned_alloc(size_t alignment, size_t size)
 		return je_vmem_memalign(alignment, size);
 	}
 	LOG(4, "alignment %zu  size %zu", alignment, size);
-	return je_vmem_pool_aligned_alloc(
-			(pool_t *)((uintptr_t)Vmp + Header_size),
+	return je_vmem_pool_aligned_alloc(PTR_ADD(Vmp, Header_size),
 			alignment, size);
 }
 #endif
@@ -240,8 +235,7 @@ posix_memalign(void **memptr, size_t alignment, size_t size)
 		return ret;
 	}
 	LOG(4, "alignment %zu  size %zu", alignment, size);
-	*memptr = je_vmem_pool_aligned_alloc(
-			(pool_t *)((uintptr_t)Vmp + Header_size),
+	*memptr = je_vmem_pool_aligned_alloc(PTR_ADD(Vmp, Header_size),
 			alignment, size);
 	if (*memptr == NULL)
 		ret = errno;
@@ -264,8 +258,7 @@ valloc(size_t size)
 		return je_vmem_valloc(size);
 	}
 	LOG(4, "size %zu", size);
-	return je_vmem_pool_aligned_alloc(
-			(pool_t *)((uintptr_t)Vmp + Header_size),
+	return je_vmem_pool_aligned_alloc(PTR_ADD(Vmp, Header_size),
 			Pagesize, size);
 }
 
@@ -280,8 +273,7 @@ pvalloc(size_t size)
 		return je_vmem_valloc(roundup(size, Pagesize));
 	}
 	LOG(4, "size %zu", size);
-	return je_vmem_pool_aligned_alloc(
-			(pool_t *)((uintptr_t)Vmp + Header_size),
+	return je_vmem_pool_aligned_alloc(PTR_ADD(Vmp, Header_size),
 			Pagesize, roundup(size, Pagesize));
 }
 #endif
@@ -296,8 +288,7 @@ malloc_usable_size(void *ptr)
 		return je_vmem_malloc_usable_size(ptr);
 	}
 	LOG(4, "ptr %p", ptr);
-	return je_vmem_pool_malloc_usable_size(
-			(pool_t *)((uintptr_t)Vmp + Header_size), ptr);
+	return je_vmem_pool_malloc_usable_size(PTR_ADD(Vmp, Header_size), ptr);
 }
 
 #if (defined(__GLIBC__) && !defined(__UCLIBC__))
@@ -371,8 +362,8 @@ libvmmalloc_create(const char *dir, size_t size)
 	vmp->caller_mapped = 0;
 
 	/* Prepare pool for jemalloc */
-	if (je_vmem_pool_create((void *)((uintptr_t)addr + Header_size),
-			size - Header_size, 1) == NULL) {
+	if (je_vmem_pool_create(PTR_ADD(addr, Header_size), size - Header_size,
+			1) == NULL) {
 		LOG(1, "vmem pool creation failed");
 		util_unmap(vmp->addr, vmp->size);
 		return NULL;
@@ -667,8 +658,7 @@ libvmmalloc_fini(void)
 		print_jemalloc_stats, NULL, "gba");
 
 	LOG_NONL(0, "\n=========    vmem pool   ========\n");
-	je_vmem_pool_malloc_stats_print(
-		(pool_t *)((uintptr_t)Vmp + Header_size),
+	je_vmem_pool_malloc_stats_print(PTR_ADD(Vmp, Header_size),
 		print_jemalloc_stats, NULL, "gba");
 	out_fini();
 }

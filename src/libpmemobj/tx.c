@@ -261,7 +261,7 @@ constructor_tx_copy_zero(PMEMobjpool *pop, void *ptr, void *arg)
 
 	memcpy(ptr, args->ptr, args->copy_size);
 	if (args->size > args->copy_size) {
-		void *zero_ptr = (void *)((uintptr_t)ptr + args->copy_size);
+		void *zero_ptr = PTR_ADD(ptr, args->copy_size);
 		size_t zero_size = args->size - args->copy_size;
 		memset(zero_ptr, 0, zero_size);
 	}

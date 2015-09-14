@@ -296,8 +296,7 @@ pmemobj_descr_create(PMEMobjpool *pop, const char *layout, size_t poolsize)
 	ASSERTeq(poolsize % Pagesize, 0);
 
 	/* opaque info lives at the beginning of mapped memory pool */
-	void *dscp = (void *)((uintptr_t)(&pop->hdr) +
-				sizeof (struct pool_hdr));
+	void *dscp = PTR_ADD(&pop->hdr, sizeof (struct pool_hdr));
 
 	/* create the persistent part of pool's descriptor */
 	memset(dscp, 0, OBJ_DSC_P_SIZE);
@@ -312,8 +311,7 @@ pmemobj_descr_create(PMEMobjpool *pop, const char *layout, size_t poolsize)
 	pop->nlanes = OBJ_NLANES;
 
 	/* zero all lanes */
-	void *lanes_layout = (void *)((uintptr_t)pop +
-						pop->lanes_offset);
+	void *lanes_layout = PTR_ADD(pop, pop->lanes_offset);
 
 	memset(lanes_layout, 0,
 		pop->nlanes * sizeof (struct lane_layout));
@@ -326,7 +324,7 @@ pmemobj_descr_create(PMEMobjpool *pop, const char *layout, size_t poolsize)
 	pop->obj_store_size = (PMEMOBJ_NUM_OID_TYPES + 1) *
 		sizeof (struct object_store_item);
 		/* + 1 - for root object */
-	void *store = (void *)((uintptr_t)pop + pop->obj_store_offset);
+	void *store = PTR_ADD(pop, pop->obj_store_offset);
 	memset(store, 0, pop->obj_store_size);
 	pmem_msync(store, pop->obj_store_size);
 
@@ -356,8 +354,7 @@ pmemobj_descr_check(PMEMobjpool *pop, const char *layout, size_t poolsize)
 {
 	LOG(3, "pop %p layout %s poolsize %zu", pop, layout, poolsize);
 
-	void *dscp = (void *)((uintptr_t)(&pop->hdr) +
-				sizeof (struct pool_hdr));
+	void *dscp = PTR_ADD(&pop->hdr, sizeof (struct pool_hdr));
 
 	if (!util_checksum(dscp, OBJ_DSC_P_SIZE, &pop->checksum, 0)) {
 		ERR("invalid checksum of pool descriptor");
@@ -471,8 +468,7 @@ pmemobj_runtime_init(PMEMobjpool *pop, int rdonly, int boot)
 	pop->lanes = NULL;
 
 	pop->uuid_lo = pmemobj_get_uuid_lo(pop);
-	pop->store = (struct object_store *)
-			((uintptr_t)pop + pop->obj_store_offset);
+	pop->store = PTR_ADD(pop, pop->obj_store_offset);
 
 	if (boot) {
 		if ((errno = pmemobj_boot(pop)) != 0)
@@ -532,7 +528,7 @@ pmemobj_create(const char *path, const char *layout, size_t poolsize,
 
 		VALGRIND_REMOVE_PMEM_MAPPING(&pop->addr,
 			sizeof (struct pmemobjpool) -
-			((uintptr_t)&pop->addr - (uintptr_t)&pop->hdr));
+			PTR_DIFF(&pop->addr, &pop->hdr));
 
 		pop->addr = pop;
 		pop->size = rep->repsize;
@@ -649,7 +645,7 @@ pmemobj_open_common(const char *path, const char *layout, int cow, int boot)
 
 		VALGRIND_REMOVE_PMEM_MAPPING(&pop->addr,
 			sizeof (struct pmemobjpool) -
-			((uintptr_t)&pop->addr - (uintptr_t)&pop->hdr));
+			PTR_DIFF(&pop->addr, &pop->hdr));
 
 		pop->addr = pop;
 		pop->size = rep->repsize;
@@ -687,13 +683,12 @@ pmemobj_open_common(const char *path, const char *layout, int cow, int boot)
 
 		/* copy lanes */
 		pop = set->replica[0]->part[0].addr;
-		void *src = (void *)((uintptr_t)pop + pop->lanes_offset);
+		void *src = PTR_ADD(pop, pop->lanes_offset);
 		size_t len = pop->nlanes * sizeof (struct lane_layout);
 
 		for (unsigned r = 1; r < set->nreplicas; r++) {
 			pop = set->replica[r]->part[0].addr;
-			void *dst = (void *)((uintptr_t)pop +
-						pop->lanes_offset);
+			void *dst = PTR_ADD(pop, pop->lanes_offset);
 			pop->memcpy_persist_local(dst, src, len);
 		}
 	}
@@ -1117,7 +1112,7 @@ constructor_zrealloc(PMEMobjpool *pop, void *ptr, void *arg)
 
 	if (carg->new_size > carg->old_size) {
 		size_t grow_len = carg->new_size - carg->old_size;
-		void *new_data_ptr = (void *)((uintptr_t)ptr + carg->old_size);
+		void *new_data_ptr = PTR_ADD(ptr, carg->old_size);
 
 		pop->memset_persist(pop, new_data_ptr, 0, grow_len);
 	}

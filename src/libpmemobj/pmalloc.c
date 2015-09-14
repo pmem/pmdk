@@ -101,7 +101,7 @@ calc_block_offset(PMEMobjpool *pop, struct bucket *b,
 	if (bucket_is_small(b)) {
 		struct memory_block m = {alloc->chunk_id, alloc->zone_id, 0, 0};
 		void *data = heap_get_block_data(pop, m);
-		uintptr_t diff = (uintptr_t)alloc - (uintptr_t)data;
+		uintptr_t diff = PTR_DIFF(alloc, data);
 		block_off = diff / bucket_unit_size(b);
 		ASSERT(diff % bucket_unit_size(b) == 0);
 	}

@@ -48,11 +48,6 @@
 #define	BITMAP_BUFF_SIZE 1024
 #define	TYPE_NUM_BUFF_SIZE 32
 
-#define	OFF_TO_PTR(pop, off) ((void *)((uintptr_t)(pop) + (off)));
-
-#define	PTR_TO_OFF(pop, ptr) ((uintptr_t)ptr - (uintptr_t)pop)
-
-
 typedef void (*list_callback_fn)(struct pmem_info *pip, int v, int vnum,
 		struct pmemobjpool *pop, struct list_entry *entry, size_t i);
 
@@ -309,7 +304,7 @@ info_obj_oob_hdr(struct pmem_info *pip, int v, struct pmemobjpool *pop,
 {
 	outv_title(v, "OOB Header");
 	outv_hexdump(v && pip->args.vhdrdump, oob, sizeof (*oob),
-		PTR_TO_OFF(pop, oob), 1);
+		PTR_DIFF(oob, pop), 1);
 	outv_field(v, "Next",
 		out_get_pmemoid_str(oob->oob.pe_next, pip->obj.uuid_lo));
 	outv_field(v, "Prev",
@@ -332,7 +327,7 @@ info_obj_alloc_hdr(struct pmem_info *pip, int v, struct pmemobjpool *pop,
 {
 	outv_title(v, "Allocation Header");
 	outv_hexdump(v && pip->args.vhdrdump, alloc,
-			sizeof (*alloc), PTR_TO_OFF(pip->obj.addr, alloc), 1);
+			sizeof (*alloc), PTR_DIFF(alloc, pip->obj.addr), 1);
 	outv_field(v, "Zone id", "%u", alloc->zone_id);
 	outv_field(v, "Chunk id", "%u", alloc->chunk_id);
 	outv_field(v, "Size", "%s",
@@ -352,14 +347,14 @@ obj_object_cb(struct pmem_info *pip, int v, int vnum, struct pmemobjpool *pop,
 
 	outv_nl(vnum);
 	outv_field(vnum, "Object", "%lu", i);
-	outv_field(vnum, "Offset", "0x%016lx", PTR_TO_OFF(pop, data));
+	outv_field(vnum, "Offset", "0x%016lx", PTR_DIFF(data, pop));
 
 	out_indent(1);
 	info_obj_alloc_hdr(pip, v && pip->args.obj.valloc, pop, alloc);
 	info_obj_oob_hdr(pip, v && pip->args.obj.voobhdr, pop, oob);
 
 	outv_hexdump(v && pip->args.vdata, data,
-			alloc->size, PTR_TO_OFF(pip->obj.addr, data), 1);
+			alloc->size, PTR_DIFF(data, pip->obj.addr), 1);
 	outv_nl(vnum);
 	out_indent(-1);
 }
@@ -416,7 +411,7 @@ info_obj_lane_section(struct pmem_info *pip, int v, struct pmemobjpool *pop,
 	outv_hexdump(v && pip->args.vhdrdump,
 			&lane->sections[type],
 			LANE_SECTION_LEN,
-			PTR_TO_OFF(pop, &lane->sections[type]),
+			PTR_DIFF(&lane->sections[type], pop),
 			1);
 
 	out_indent(1);
@@ -519,7 +514,7 @@ info_obj_store(struct pmem_info *pip, int v, struct pmemobjpool *pop)
 		return;
 
 	char buff[TYPE_NUM_BUFF_SIZE];
-	struct object_store *obj_store = OFF_TO_PTR(pop, pop->obj_store_offset);
+	struct object_store *obj_store = PTR_ADD(pop, pop->obj_store_offset);
 
 	outv_title(v, "Object store");
 
@@ -550,7 +545,7 @@ static void
 info_obj_heap(struct pmem_info *pip, int v,
 		struct pmemobjpool *pop)
 {
-	struct heap_layout *layout = OFF_TO_PTR(pop, pop->heap_offset);
+	struct heap_layout *layout = PTR_ADD(pop, pop->heap_offset);
 	struct heap_header *heap = &layout->header;
 
 	outv(v, "\nPMEMOBJ Heap Header:\n");
@@ -577,7 +572,7 @@ info_obj_zone_hdr(struct pmem_info *pip, int v, struct pmemobjpool *pop,
 		size_t i, struct zone_header *zone)
 {
 	outv_hexdump(v && pip->args.vhdrdump, zone, sizeof (*zone),
-			PTR_TO_OFF(pop, zone), 1);
+			PTR_DIFF(zone, pop), 1);
 	outv_field(v, "Magic", "%s", out_get_zone_magic_str(zone->magic));
 	outv_field(v, "Size idx", "%u", zone->size_idx);
 }
@@ -621,7 +616,7 @@ info_obj_chunk_hdr(struct pmem_info *pip, int v, struct pmemobjpool *pop,
 	outv_field(v, "Chunk", "%lu", c);
 
 	outv_hexdump(v && pip->args.vhdrdump, chunk_hdr, sizeof (*chunk_hdr),
-			PTR_TO_OFF(pop, chunk_hdr), 1);
+			PTR_DIFF(chunk_hdr, pop), 1);
 
 	outv_field(v, "Type", "%s", out_get_chunk_type_str(chunk_hdr->type));
 	outv_field(v, "Flags", "0x%x %s", chunk_hdr->flags,
@@ -641,7 +636,7 @@ info_obj_chunk_hdr(struct pmem_info *pip, int v, struct pmemobjpool *pop,
 
 		outv_hexdump(v && pip->args.vhdrdump, run,
 				sizeof (run->block_size) + sizeof (run->bitmap),
-				PTR_TO_OFF(pop, run), 1);
+				PTR_DIFF(run, pop), 1);
 
 		int class = heap_size_to_class(run->block_size);
 		if (class >= 0 && class < MAX_BUCKETS) {
@@ -716,8 +711,7 @@ static void
 info_obj_root_obj(struct pmem_info *pip, int v,
 		struct pmemobjpool *pop)
 {
-	struct object_store *obj_store = OFF_TO_PTR(pop,
-			pop->obj_store_offset);
+	struct object_store *obj_store = PTR_ADD(pop, pop->obj_store_offset);
 	struct list_entry *entry = PLIST_OFF_TO_PTR(pop,
 			obj_store->root.head.pe_first.off);
 
@@ -728,7 +722,7 @@ info_obj_root_obj(struct pmem_info *pip, int v,
 		void *data = ENTRY_TO_DATA(entry);
 
 		outv(v, "\nRoot object:\n");
-		outv_field(v, "Offset", "0x%016x", PTR_TO_OFF(pop, data));
+		outv_field(v, "Offset", "0x%016x", PTR_DIFF(data, pop));
 		outv_field(v, "Size",
 				out_get_size_str(oob->size, pip->args.human));
 
@@ -745,7 +739,7 @@ info_obj_zones_chunks(struct pmem_info *pip, struct pmemobjpool *pop)
 	if (!outv_check(pip->args.obj.vheap) && !outv_check(pip->args.vstats))
 		return;
 
-	struct heap_layout *layout = OFF_TO_PTR(pop, pop->heap_offset);
+	struct heap_layout *layout = PTR_ADD(pop, pop->heap_offset);
 	size_t maxzone = util_heap_max_zone(pop->heap_size);
 	pip->obj.stats.n_zones = maxzone;
 	pip->obj.stats.zone_stats = calloc(maxzone,
@@ -800,8 +794,7 @@ info_obj_descriptor(struct pmem_info *pip, int v,
 			sizeof (pop->layout), 0) ? pop->layout : "(null)";
 
 	/* address for checksum */
-	void *dscp = (void *)((uintptr_t)(&pop->hdr) +
-			sizeof (struct pool_hdr));
+	void *dscp = PTR_ADD(&pop->hdr, sizeof (struct pool_hdr));
 
 	outv_field(v, "Layout", layout);
 	outv_field(v, "Lanes offset", "0x%lx", pop->lanes_offset);
@@ -1053,7 +1046,7 @@ static struct pmem_info *Pip;
 static void
 info_obj_sa_sigaction(int signum, siginfo_t *info, void *context)
 {
-	uintptr_t offset = (uintptr_t)info->si_addr - (uintptr_t)Pip->obj.addr;
+	uintptr_t offset = PTR_DIFF(info->si_addr, Pip->obj.addr);
 	outv_err("Invalid offset 0x%lx\n", offset);
 	exit(EXIT_FAILURE);
 }

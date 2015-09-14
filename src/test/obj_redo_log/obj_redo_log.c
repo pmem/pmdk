@@ -222,8 +222,7 @@ main(int argc, char *argv[])
 			if (sscanf(arg, "r:0x%lx", &offset) != 1)
 				FATAL_USAGE();
 
-			uint64_t *valp = (uint64_t *)((uintptr_t)pop->addr
-					+ offset);
+			uint64_t *valp = PTR_ADD(pop->addr, offset);
 			OUT("r:0x%08lx:0x%08lx", offset, *valp);
 			break;
 		case 'e':

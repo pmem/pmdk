@@ -81,7 +81,7 @@ struct range ret = {\
 	LIST_FOREACH(range, &(ranges)->head, next)
 
 #define	PLIST_OFF_TO_PTR(pop, off)\
-((off) == 0 ? NULL : (void *)((uintptr_t)(pop) + (off) - OBJ_OOB_SIZE))
+((off) == 0 ? NULL : PTR_ADD(pop, (off) - OBJ_OOB_SIZE))
 
 #define	PLIST_FOREACH(entry, pop, head)\
 for ((entry) = PLIST_OFF_TO_PTR(pop, (head)->pe_first.off);\
@@ -93,14 +93,12 @@ for ((entry) = PLIST_OFF_TO_PTR(pop, (head)->pe_first.off);\
 
 #define	ENTRY_TO_OOB_HDR(entry) ((struct oob_header *)(entry))
 
-#define	ENTRY_TO_TX_RANGE(entry)\
-((void *)((uintptr_t)(entry) + sizeof (struct oob_header)))
+#define	ENTRY_TO_TX_RANGE(entry) PTR_ADD(entry, sizeof (struct oob_header))
 
 #define	ENTRY_TO_ALLOC_HDR(entry)\
-((void *)((uintptr_t)(entry) - sizeof (struct allocation_header)))
+PTR_SUB(entry, sizeof (struct allocation_header))
 
-#define	ENTRY_TO_DATA(entry)\
-((void *)((uintptr_t)(entry) + sizeof (struct oob_header)))
+#define	ENTRY_TO_DATA(entry) PTR_ADD(entry, sizeof (struct oob_header))
 
 #define	DEFAULT_HDR_SIZE 8192
 

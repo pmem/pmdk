@@ -1483,8 +1483,7 @@ pmempool_check_btt_info_advanced_repair(struct pmempool_check *pcp,
 	uint64_t nextoff = 0;
 	do {
 		offset += nextoff;
-		struct btt_info *infop =
-			(struct btt_info *)((uintptr_t)addr + offset);
+		struct btt_info *infop = PTR_ADD(addr, offset);
 
 		if (pmempool_check_check_btt(infop) != 1) {
 			ret = -1;

@@ -683,8 +683,7 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 	size_t args_i;
 	for (args_i = 0; args_i < clovec->nargs; args_i++) {
 		args = clo_vec_get_args(clovec, args_i);
-		args->opts = (void *)((uintptr_t)args +
-				sizeof (struct benchmark_args));
+		args->opts = PTR_ADD(args, sizeof (struct benchmark_args));
 
 		if (bench->info->rm_file) {
 			remove(args->fname);

@@ -202,7 +202,7 @@ do_tx_zrealloc_commit(PMEMobjpool *pop)
 			new_size, TYPE_COMMIT_ZERO));
 		ASSERT(!TOID_IS_NULL(obj));
 		ASSERT(pmemobj_alloc_usable_size(obj.oid) >= new_size);
-		void *new_ptr = (void *)((uintptr_t)D_RW(obj) + old_size);
+		void *new_ptr = PTR_ADD(D_RW(obj), old_size);
 		ASSERT(util_is_zeroed(new_ptr, new_size - old_size));
 	} TX_ONABORT {
 		ASSERT(0);
@@ -212,7 +212,7 @@ do_tx_zrealloc_commit(PMEMobjpool *pop)
 	ASSERT(!TOID_IS_NULL(obj));
 	ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
 	ASSERT(pmemobj_alloc_usable_size(obj.oid) >= new_size);
-	void *new_ptr = (void *)((uintptr_t)D_RW(obj) + old_size);
+	void *new_ptr = PTR_ADD(D_RW(obj), old_size);
 	ASSERT(util_is_zeroed(new_ptr, new_size - old_size));
 
 
@@ -236,7 +236,7 @@ do_tx_zrealloc_abort(PMEMobjpool *pop)
 			new_size, TYPE_ABORT_ZERO));
 		ASSERT(!TOID_IS_NULL(obj));
 		ASSERT(pmemobj_alloc_usable_size(obj.oid) >= new_size);
-		void *new_ptr = (void *)((uintptr_t)D_RW(obj) + old_size);
+		void *new_ptr = PTR_ADD(D_RW(obj), old_size);
 		ASSERT(util_is_zeroed(new_ptr, new_size - old_size));
 
 		pmemobj_tx_abort(-1);
