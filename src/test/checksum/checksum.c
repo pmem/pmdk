@@ -50,6 +50,7 @@
 static uint64_t
 fletcher64(void *addr, size_t len)
 {
+	ASSERT(len % 4 == 0);
 	uint32_t *p32 = addr;
 	uint32_t *p32end = addr + len;
 	uint32_t lo32 = 0;

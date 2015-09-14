@@ -40,6 +40,7 @@ TARGET = checksum
 OBJS = checksum.o util.o out.o
 
 out.o: CFLAGS += -DSRCVERSION=\"utversion\"
+util.o: CFLAGS += -DDEBUG
 
 include ../Makefile.inc
 INCS += -I../../include -I../../common/
