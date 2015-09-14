@@ -1302,9 +1302,10 @@ pmemspoil_process_pmemobj(struct pmemspoil *psp,
 		struct pmemspoil_list *pfp, void *arg)
 {
 	struct pmemobjpool *pop = psp->addr;
-	struct heap_layout *hlayout = (void *)pop + pop->heap_offset;
-	struct lane_layout *lanes = (void *)pop + pop->lanes_offset;
-	struct object_store *obj_store = (void *)pop + pop->obj_store_offset;
+	struct heap_layout *hlayout = (void *)((char *)pop + pop->heap_offset);
+	struct lane_layout *lanes = (void *)((char *)pop + pop->lanes_offset);
+	struct object_store *obj_store =
+			(void *)((char *)pop + pop->obj_store_offset);
 
 	PROCESS_BEGIN(psp, pfp) {
 		struct checksum_args checksum_args = {

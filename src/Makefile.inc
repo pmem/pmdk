@@ -45,7 +45,16 @@ vpath %.c $(COMMON)
 
 INCS += -I../include -I../common/
 
-CFLAGS += -std=gnu99 -Wall -Werror -Wmissing-prototypes -pthread -fno-common $(EXTRA_CFLAGS) -DSRCVERSION=\"$(SRCVERSION)\"
+CFLAGS += -std=gnu99
+CFLAGS += -Wall
+CFLAGS += -Werror
+CFLAGS += -Wmissing-prototypes
+CFLAGS += -Wpointer-arith
+CFLAGS += -pthread
+CFLAGS += -fno-common
+CFLAGS += $(EXTRA_CFLAGS)
+CFLAGS += -DSRCVERSION=\"$(SRCVERSION)\"
+
 LDFLAGS += -Wl,-z,relro -Wl,--fatal-warnings -Wl,--warn-common $(EXTRA_LDFLAGS)
 
 define arch32_error_msg

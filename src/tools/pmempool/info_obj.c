@@ -450,7 +450,8 @@ info_obj_lanes(struct pmem_info *pip, int v,
 	 * Iterate through all lanes from specified range and print
 	 * specified sections.
 	 */
-	struct lane_layout *lanes = pip->obj.addr + pop->lanes_offset;
+	struct lane_layout *lanes = (void *)((char *)pip->obj.addr +
+			pop->lanes_offset);
 	uint64_t i;
 	struct range *curp = NULL;
 	FOREACH_RANGE(curp, &pip->args.obj.lane_ranges) {
