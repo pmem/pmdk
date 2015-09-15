@@ -42,6 +42,7 @@
 #include <unistd.h>
 #include <math.h>
 #include <sys/queue.h>
+#include <linux/limits.h>
 
 #include "benchmark.h"
 #include "benchmark_worker.h"
@@ -648,15 +649,36 @@ out:
 static int
 pmembench_run(struct pmembench *pb, struct benchmark *bench)
 {
+	char old_wd[PATH_MAX];
 	int ret = 0;
+
 	assert(bench->info != NULL);
 	pmembench_merge_clos(bench);
+
+	/*
+	 * Check if PMEMBENCH_DIR env var is set and change
+	 * the working directory accordingly.
+	 */
+	char *wd = getenv("PMEMBENCH_DIR");
+	if (wd != NULL) {
+		/* get current dir name */
+		if (getcwd(old_wd, PATH_MAX) == NULL) {
+			perror("getcwd");
+			ret = -1;
+			goto out_release_clos;
+		}
+		if (chdir(wd)) {
+			perror("chdir(wd)");
+			ret = -1;
+			goto out_release_clos;
+		}
+	}
 
 	if (bench->info->pre_init) {
 		if (bench->info->pre_init(bench)) {
 			warn("%s: pre-init failed", bench->info->name);
 			ret = -1;
-			goto out_release_clos;
+			goto out_old_wd;
 		}
 	}
 
@@ -747,6 +769,14 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 out:
 out_release_args:
 	clo_vec_free(clovec);
+out_old_wd:
+	/* restore the original working directory */
+	if (wd != NULL) { /* Only if PMEMBENCH_DIR env var was defined */
+		if (chdir(old_wd)) {
+			perror("chdir(old_wd)");
+			ret = -1;
+		}
+	}
 out_release_clos:
 	pmembench_release_clos(bench);
 	return ret;
