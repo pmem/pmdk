@@ -165,11 +165,24 @@ out_init(const char *log_prefix, const char *log_level_var,
 	LOG(1, "%s version %d.%d", log_prefix, major_version, minor_version);
 	LOG(1, "src version %s", nvml_src_version);
 #ifdef USE_VG_PMEMCHECK
-	LOG(1, "compiled with support for Valgrind pmemcheck");
+	/*
+	 * Attribute "used" to prevent compiler from optimizing out the variable
+	 * when LOG expands to no code (!DEBUG)
+	 */
+	static __attribute__((used)) const char *pmemcheck_msg =
+			"compiled with support for Valgrind pmemcheck";
+	LOG(1, "%s", pmemcheck_msg);
 #endif /* USE_VG_PMEMCHECK */
 #ifdef USE_VG_HELGRIND
-	LOG(1, "compiled with support for Valgrind helgrind");
+	static __attribute__((used)) const char *helgrind_msg =
+			"compiled with support for Valgrind helgrind";
+	LOG(1, "%s", helgrind_msg);
 #endif /* USE_VG_HELGRIND */
+#ifdef USE_VG_MEMCHECK
+	static __attribute__((used)) const char *memcheck_msg =
+			"compiled with support for Valgrind memcheck";
+	LOG(1, "%s", memcheck_msg);
+#endif /* USE_VG_MEMCHECK */
 	Last_errormsg_key_alloc();
 }
 

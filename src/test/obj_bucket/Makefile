@@ -37,7 +37,7 @@ vpath %.c ../../libpmemobj
 vpath %.c ../../common
 
 TARGET = obj_bucket
-OBJS = obj_bucket.o ctree.o bucket.o util.o out.o
+OBJS = obj_bucket.o ctree.o bucket.o util.o out.o heap.o lane.o
 
 LIBPMEM=y
 

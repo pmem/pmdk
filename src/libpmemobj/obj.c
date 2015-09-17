@@ -49,6 +49,7 @@
 #include "pmalloc.h"
 #include "cuckoo.h"
 #include "obj.h"
+#include "heap_layout.h"
 #include "valgrind_internal.h"
 
 static struct cuckoo *pools;
@@ -64,6 +65,9 @@ void
 obj_init(void)
 {
 	LOG(3, NULL);
+
+	COMPILE_ERROR_ON(sizeof (struct pmemobjpool) != 8192);
+
 	pools = cuckoo_new();
 	if (pools == NULL)
 		FATAL("!cuckoo_new");
@@ -263,6 +267,165 @@ obj_rep_drain(PMEMobjpool *pop)
 	}
 	pop->drain_local();
 }
+
+#ifdef USE_VG_MEMCHECK
+/*
+ * pmemobj_vg_register_object -- (internal) notify Valgrind about object
+ */
+static void
+pmemobj_vg_register_object(struct pmemobjpool *pop, PMEMoid oid, int is_root)
+{
+	LOG(4, "pop %p oid.off 0x%016jx is_root %d", pop, oid.off, is_root);
+	void *addr = pmemobj_direct(oid);
+
+	size_t sz;
+	if (is_root)
+		sz = pmemobj_root_size(pop);
+	else
+		sz = pmemobj_alloc_usable_size(oid);
+
+	size_t headers = sizeof (struct allocation_header) + OBJ_OOB_SIZE;
+
+	VALGRIND_DO_MEMPOOL_ALLOC(pop, addr, sz);
+	VALGRIND_DO_MAKE_MEM_DEFINED(pop, addr - headers, sz + headers);
+
+	struct oob_header *oob = OOB_HEADER_FROM_PTR(addr);
+
+	if (!is_root)
+		/* no one should touch it */
+		VALGRIND_DO_MAKE_MEM_NOACCESS(pop, &oob->size,
+				sizeof (oob->size));
+
+	/* no one should touch it */
+	VALGRIND_DO_MAKE_MEM_NOACCESS(pop, &oob->padding,
+			sizeof (oob->padding));
+}
+
+/*
+ * Arbitrary value. When there's more undefined regions than MAX_UNDEFS, it's
+ * not worth reporting everything - developer should fix the code.
+ */
+#define	MAX_UNDEFS 1000
+
+/*
+ * pmemobj_vg_check_no_undef -- (internal) check whether there are any undefined
+ *				regions
+ */
+static void
+pmemobj_vg_check_no_undef(struct pmemobjpool *pop)
+{
+	LOG(4, "pop %p", pop);
+
+	struct {
+		void *start, *end;
+	} undefs[MAX_UNDEFS];
+	int num_undefs = 0;
+
+	VALGRIND_DO_DISABLE_ERROR_REPORTING;
+	char *addr_start = pop->addr;
+	char *addr_end = addr_start + pop->size;
+
+	while (addr_start < addr_end) {
+		char *noaccess = (char *)VALGRIND_CHECK_MEM_IS_ADDRESSABLE(
+					addr_start, addr_end - addr_start);
+		if (noaccess == NULL)
+			noaccess = addr_end;
+
+		while (addr_start < noaccess) {
+			char *undefined =
+				(char *)VALGRIND_CHECK_MEM_IS_DEFINED(
+					addr_start, noaccess - addr_start);
+
+			if (undefined) {
+				addr_start = undefined;
+
+#ifdef VALGRIND_CHECK_MEM_IS_UNDEFINED
+				addr_start = (char *)
+					VALGRIND_CHECK_MEM_IS_UNDEFINED(
+					addr_start, noaccess - addr_start);
+				if (addr_start == NULL)
+					addr_start = noaccess;
+#else
+				while (addr_start < noaccess &&
+						VALGRIND_CHECK_MEM_IS_DEFINED(
+								addr_start, 1))
+					addr_start++;
+#endif
+
+				if (num_undefs < MAX_UNDEFS) {
+					undefs[num_undefs].start = undefined;
+					undefs[num_undefs].end = addr_start - 1;
+					num_undefs++;
+				}
+			} else
+				addr_start = noaccess;
+		}
+
+#ifdef VALGRIND_CHECK_MEM_IS_UNADDRESSABLE
+		addr_start = (char *)VALGRIND_CHECK_MEM_IS_UNADDRESSABLE(
+				addr_start, addr_end - addr_start);
+		if (addr_start == NULL)
+			addr_start = addr_end;
+#else
+		while (addr_start < addr_end &&
+				(char *)VALGRIND_CHECK_MEM_IS_ADDRESSABLE(
+						addr_start, 1) == addr_start)
+			addr_start++;
+#endif
+	}
+	VALGRIND_DO_ENABLE_ERROR_REPORTING;
+
+	if (num_undefs) {
+		/*
+		 * How to resolve this error:
+		 * If it's part of the free space Valgrind should be told about
+		 * it by VALGRIND_DO_MAKE_MEM_NOACCESS request. If it's
+		 * allocated - initialize it or use VALGRIND_DO_MAKE_MEM_DEFINED
+		 * request.
+		 */
+
+		VALGRIND_PRINTF("Part of the pool is left in undefined state on"
+				" boot. This is pmemobj's bug.\nUndefined"
+				" regions:\n");
+		for (int i = 0; i < num_undefs; ++i)
+			VALGRIND_PRINTF("   [%p, %p]\n", undefs[i].start,
+					undefs[i].end);
+		if (num_undefs == MAX_UNDEFS)
+			VALGRIND_PRINTF("   ...\n");
+
+		/* Trigger error. */
+		VALGRIND_CHECK_MEM_IS_DEFINED(undefs[0].start, 1);
+	}
+}
+
+/*
+ * pmemobj_vg_boot -- (internal) notify Valgrind about pool objects
+ */
+static void
+pmemobj_vg_boot(struct pmemobjpool *pop)
+{
+	if (!On_valgrind)
+		return;
+	LOG(4, "pop %p", pop);
+
+	PMEMoid oid;
+	int rs = pmemobj_root_size(pop);
+	if (rs) {
+		oid = pmemobj_root(pop, rs);
+		pmemobj_vg_register_object(pop, oid, 1);
+	}
+
+	for (int i = 0; i < PMEMOBJ_NUM_OID_TYPES; ++i) {
+		for (oid = pmemobj_first(pop, i); !OID_IS_NULL(oid);
+				oid = pmemobj_next(oid))
+			pmemobj_vg_register_object(pop, oid, 0);
+	}
+
+	if (getenv("PMEMOBJ_VG_CHECK_UNDEF"))
+		pmemobj_vg_check_no_undef(pop);
+}
+
+#endif
 
 /*
  * pmemobj_boot -- (internal) boots the pmemobj pool
@@ -555,6 +718,14 @@ pmemobj_create(const char *path, const char *layout, size_t poolsize,
 	}
 
 	pop = set->replica[0]->part[0].addr;
+	pop->is_master_replica = 1;
+
+	for (unsigned r = 1; r < set->nreplicas; r++) {
+		PMEMobjpool *rep = set->replica[r]->part[0].addr;
+		rep->is_master_replica = 0;
+	}
+
+	VALGRIND_DO_CREATE_MEMPOOL(pop, 0, 0);
 
 	/* initialize runtime parts - lanes, obj stores, ... */
 	if (pmemobj_runtime_init(pop, 0, 1 /* boot*/) != 0) {
@@ -699,6 +870,18 @@ pmemobj_open_common(const char *path, const char *layout, int cow, int boot)
 	}
 
 	pop = set->replica[0]->part[0].addr;
+	pop->is_master_replica = 1;
+
+	for (unsigned r = 1; r < set->nreplicas; r++) {
+		PMEMobjpool *rep = set->replica[r]->part[0].addr;
+		rep->is_master_replica = 0;
+	}
+
+#ifdef USE_VG_MEMCHECK
+	heap_vg_open(pop);
+#endif
+
+	VALGRIND_DO_CREATE_MEMPOOL(pop, 0, 0);
 
 	/* initialize runtime parts - lanes, obj stores, ... */
 	if (pmemobj_runtime_init(pop, 0, boot) != 0) {
@@ -707,8 +890,12 @@ pmemobj_open_common(const char *path, const char *layout, int cow, int boot)
 	}
 
 	util_poolset_fdclose(set);
-
 	util_poolset_free(set);
+
+#ifdef USE_VG_MEMCHECK
+	if (boot)
+		pmemobj_vg_boot(pop);
+#endif
 
 	LOG(3, "pop %p", pop);
 
@@ -746,6 +933,8 @@ pmemobj_cleanup(PMEMobjpool *pop)
 
 	if ((errno = lane_cleanup(pop)) != 0)
 		ERR("!lane_cleanup");
+
+	VALGRIND_DO_DESTROY_MEMPOOL(pop);
 
 	/* unmap all the replicas */
 	PMEMobjpool *rep;
@@ -856,7 +1045,12 @@ constructor_alloc_bytype(PMEMobjpool *pop, void *ptr, void *arg)
 
 	pobj->internal_type = TYPE_ALLOCATED;
 	pobj->user_type = carg->user_type;
-	pop->persist(pop, pobj, OBJ_OOB_SIZE);
+	pop->persist(pop, &pobj->internal_type,
+		/* there's no padding between these, so we can add sizes */
+		sizeof (pobj->internal_type) + sizeof (pobj->user_type));
+
+	VALGRIND_DO_MAKE_MEM_NOACCESS(pop, &pobj->padding,
+			sizeof (pobj->padding));
 
 	if (carg->constructor)
 		carg->constructor(pop, ptr, carg->arg);
@@ -1078,16 +1272,22 @@ constructor_realloc(PMEMobjpool *pop, void *ptr, void *arg)
 	struct carg_realloc *carg = arg;
 	struct oob_header *pobj = OOB_HEADER_FROM_PTR(ptr);
 
-	if (ptr != carg->ptr) {
-		size_t cpy_size = carg->new_size > carg->old_size ?
+	if (ptr == carg->ptr)
+		return;
+
+	size_t cpy_size = carg->new_size > carg->old_size ?
 			carg->old_size : carg->new_size;
 
-		pop->memcpy_persist(pop, ptr, carg->ptr, cpy_size);
+	pop->memcpy_persist(pop, ptr, carg->ptr, cpy_size);
 
-		pobj->internal_type = TYPE_ALLOCATED;
-		pobj->user_type = carg->user_type;
-		pop->persist(pop, pobj, sizeof (*pobj));
-	}
+	pobj->internal_type = TYPE_ALLOCATED;
+	pobj->user_type = carg->user_type;
+	pop->persist(pop, &pobj->internal_type,
+		/* there's no padding between these, so we can add sizes */
+		sizeof (pobj->internal_type) + sizeof (pobj->user_type));
+
+	VALGRIND_DO_MAKE_MEM_NOACCESS(pop, &pobj->padding,
+			sizeof (pobj->padding));
 }
 
 /*
@@ -1112,7 +1312,13 @@ constructor_zrealloc(PMEMobjpool *pop, void *ptr, void *arg)
 
 		pobj->internal_type = TYPE_ALLOCATED;
 		pobj->user_type = carg->user_type;
-		pop->persist(pop, pobj, sizeof (*pobj));
+		pop->persist(pop, &pobj->internal_type,
+		/* there's no padding between these, so we can add sizes */
+			sizeof (pobj->internal_type) +
+			sizeof (pobj->user_type));
+
+		VALGRIND_DO_MAKE_MEM_NOACCESS(pop, &pobj->padding,
+				sizeof (pobj->padding));
 	}
 
 	if (carg->new_size > carg->old_size) {
@@ -1378,7 +1584,12 @@ constructor_alloc_root(PMEMobjpool *pop, void *ptr, void *arg)
 
 	VALGRIND_REMOVE_FROM_TX(ro, OBJ_OOB_SIZE + carg->size);
 
-	pop->persist(pop, ro, OBJ_OOB_SIZE);
+	pop->persist(pop, &ro->size,
+		/* there's no padding between these, so we can add sizes */
+		sizeof (ro->size) + sizeof (ro->internal_type) +
+		sizeof (ro->user_type));
+
+	VALGRIND_DO_MAKE_MEM_NOACCESS(pop, &ro->padding, sizeof (ro->padding));
 }
 
 /*

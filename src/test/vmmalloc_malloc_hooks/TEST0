@@ -48,9 +48,9 @@ require_build_type debug
 setup
 
 export VMMALLOC_LOG_LEVEL=4
+export TEST_LD_PRELOAD=libvmmalloc.so
 
-expect_normal_exit LD_PRELOAD=$TEST_LD_LIBRARY_PATH/libvmmalloc.so \
-    ./vmmalloc_malloc_hooks$EXESUFFIX
+expect_normal_exit ./vmmalloc_malloc_hooks$EXESUFFIX
 
 egrep 'size\ 4321' \
     vmmalloc$UNITTEST_NUM.log > grep$UNITTEST_NUM.log

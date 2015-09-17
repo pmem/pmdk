@@ -43,7 +43,8 @@ int bucket_is_small(struct bucket *b);
 uint32_t bucket_calc_units(struct bucket *b, size_t size);
 size_t bucket_unit_size(struct bucket *b);
 size_t bucket_unit_max(struct bucket *b);
-int bucket_insert_block(struct bucket *b, struct memory_block m);
+int bucket_insert_block(PMEMobjpool *pop, struct bucket *b,
+	struct memory_block m);
 int bucket_get_rm_block_bestfit(struct bucket *b, struct memory_block *m);
 int bucket_get_rm_block_exact(struct bucket *b, struct memory_block m);
 int bucket_get_block_exact(struct bucket *b, struct memory_block m);

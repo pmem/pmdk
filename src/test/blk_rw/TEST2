@@ -44,6 +44,9 @@ export UNITTEST_NUM=2
 require_fs_type pmem non-pmem
 require_unlimited_vm
 
+# this test creates huge file
+memcheck force-disable
+
 setup
 
 # multi-arena case

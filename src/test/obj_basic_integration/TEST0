@@ -37,6 +37,9 @@ export UNITTEST_NUM=0
 # standard unit test setup
 . ../unittest/unittest.sh
 
+# covered by TEST5
+memcheck force-disable
+
 setup
 
 create_holey_file 8 $DIR/testfile1

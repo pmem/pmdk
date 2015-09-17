@@ -44,9 +44,10 @@ require_fs_type local
 
 setup
 
-expect_normal_exit ARCH_FLAGS_LOG_LEVEL=15\
-	ARCH_FLAGS_LOG_FILE="log${UNITTEST_NUM}.log"\
-	./arch_flags$EXESUFFIX\
+export ARCH_FLAGS_LOG_LEVEL=15
+export ARCH_FLAGS_LOG_FILE="log${UNITTEST_NUM}.log"
+
+expect_normal_exit ./arch_flags$EXESUFFIX\
 	elf.bin:0:0x0:0x0 elf.bin\
 	elf.bin:1:0x0:0x0 elf.bin\
 	elf_err_small.bin:0:0x0:0x0 elf.bin\

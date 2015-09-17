@@ -422,6 +422,8 @@ pmem_flush(void *addr, size_t len)
 {
 	LOG(10, "addr %p len %zu", addr, len);
 
+	VALGRIND_DO_CHECK_MEM_IS_ADDRESSABLE(addr, len);
+
 	Func_flush(addr, len);
 }
 
@@ -448,6 +450,9 @@ int
 pmem_msync(void *addr, size_t len)
 {
 	LOG(15, "addr %p len %zu", addr, len);
+
+	VALGRIND_DO_CHECK_MEM_IS_ADDRESSABLE(addr, len);
+
 	/*
 	 * msync requires len to be a multiple of pagesize, so
 	 * adjust addr and len to represent the full 4k chunks
@@ -460,9 +465,19 @@ pmem_msync(void *addr, size_t len)
 	/* round addr down to page boundary */
 	uintptr_t uptr = (uintptr_t)addr & ~(Pagesize - 1);
 
+	/*
+	 * msync accepts addresses aligned to page boundary, so we may sync
+	 * more and part of it may have been marked as undefined/inaccessible
+	 * Msyncing such memory is not a bug, so as a workaround temporarily
+	 * disable error reporting.
+	 */
+	VALGRIND_DO_DISABLE_ERROR_REPORTING;
+
 	int ret;
 	if ((ret = msync((void *)uptr, len, MS_SYNC)) < 0)
 		ERR("!msync");
+
+	VALGRIND_DO_ENABLE_ERROR_REPORTING;
 
 	/* full flush, commit */
 	VALGRIND_DO_PERSIST(uptr, len);

@@ -151,6 +151,7 @@ TEST = blk_nblock\
        obj_debug\
        obj_recovery\
        obj_recreate\
+       obj_memcheck\
        out_err\
        out_err_mt\
        obj_pmalloc_mt\
@@ -172,6 +173,7 @@ TEST_TYPE = check
 TEST_BUILD = all
 TEST_FS = all
 TEST_TIME = 3m
+MEMCHECK = auto
 
 all test cstyle: $(TEST)
 
@@ -183,8 +185,17 @@ $(TEST_DEPS):
 $(TEST): $(TEST_DEPS)
 	$(MAKE) -C $@ $(TARGET)
 
+memcheck-summary:
+	grep ERROR */memcheck*.log
+
+memcheck-summary-errors:
+	grep ERROR */memcheck*.log | grep -v " 0 errors" || true
+
+memcheck-summary-leaks:
+	grep "in use at exit" */memcheck*.log | grep -v " 0 bytes in 0 blocks" || true
+
 check: test
-	@./RUNTESTS -b $(TEST_BUILD) -t $(TEST_TYPE) -f $(TEST_FS) -o $(TEST_TIME)
+	@./RUNTESTS -b $(TEST_BUILD) -t $(TEST_TYPE) -f $(TEST_FS) -o $(TEST_TIME) -m $(MEMCHECK)
 	@echo "No failures."
 
 pcheck: $(TEST)

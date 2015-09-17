@@ -43,7 +43,7 @@ usage()
 	[ "$1" ] && echo Error: $1
 	cat <<EOF
 Usage: $0 [ -nv ] [ -b build-type ] [ -t test-type ] [ -f fs-type ]
-	    [ -o timeout ] [-s test-file ] [tests...]
+	    [ -o timeout ] [-s test-file ] [ -m memcheck ] [tests...]
     build-types: debug, nondebug, static-debug, static-nondebug, all (default)
      test-types: check (default), short, long
        fs-types: local, pmem, non-pmem, all (default)
@@ -51,6 +51,9 @@ Usage: $0 [ -nv ] [ -b build-type ] [ -t test-type ] [ -f fs-type ]
 		 (the default), 'm' for minutes, 'h' for hours or 'd' for days.
 		 Default value is 3 minutes.
       test-file: all (default), TEST0, TEST1, ...
+       memcheck: auto (default, enable/disable based on test requirements),
+                 force-enable (enable when test does not require memcheck, but
+                               obey test's explicit memcheck disable)
 EOF
 	exit 1
 }
@@ -113,10 +116,10 @@ runtest() {
 				elif [ "$use_timeout" -a "$testtype" = "check" ]
 				then
 					[ "$verbose" ] && echo "RUNTESTS: Running: (in ./$1) TEST=$testtype FS=$fs BUILD=$build ./$runscript"
-					TEST=$testtype FS=$fs BUILD=$build timeout --foreground $killopt $time ./$runscript
+					MEMCHECK=$memcheck TEST=$testtype FS=$fs BUILD=$build timeout --foreground $killopt $time ./$runscript
 				else
 					[ "$verbose" ] && echo "RUNTESTS: Running: (in ./$1) TEST=$testtype FS=$fs BUILD=$build ./$runscript"
-					TEST=$testtype FS=$fs BUILD=$build ./$runscript
+					MEMCHECK=$memcheck TEST=$testtype FS=$fs BUILD=$build ./$runscript
 				fi
 
 				retval=$?
@@ -157,11 +160,12 @@ killopt="-k 10s"
 time='3m'
 use_timeout="ok"
 testfile=all
+memcheck=auto
 
 #
 # command-line argument processing...
 #
-args=`getopt nvb:t:f:o:s: $*`
+args=`getopt nvb:t:f:o:s:m: $*`
 [ $? != 0 ] && usage
 set -- $args
 for arg
@@ -213,6 +217,18 @@ do
 			;;
 		esac
 		;;
+	-m)
+		memcheck="$2"
+		shift 2
+		case "$memcheck"
+		in
+		auto|force-enable)
+			;;
+		*)
+			usage "bad memcheck: $memcheck"
+			;;
+		esac
+		;;
 	-o)
 		time="$2"
 		shift 2
@@ -235,6 +251,7 @@ done
 	echo "    build-type: $buildtype"
 	echo "    test-type: $testtype"
 	echo "    fs-type: $fstype"
+	echo "    memcheck: $memcheck"
 	echo Tests: $*
 }
 

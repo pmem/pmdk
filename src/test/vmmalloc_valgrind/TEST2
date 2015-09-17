@@ -53,7 +53,9 @@ setup
 unset VMMALLOC_LOG_LEVEL
 unset VMMALLOC_LOG_FILE
 
-expect_normal_exit LD_PRELOAD=libvmmalloc.so $VALGRINDEXE\
+export TEST_LD_PRELOAD=libvmmalloc.so
+
+expect_normal_exit $VALGRINDEXE\
 	--suppressions=excluded-errors.supp --leak-check=full\
 	--show-reachable=yes --log-file=valgrind$UNITTEST_NUM.log\
 	./vmmalloc_valgrind$EXESUFFIX 2

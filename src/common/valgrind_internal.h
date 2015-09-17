@@ -37,11 +37,15 @@
 #ifdef USE_VALGRIND
 #define	USE_VG_PMEMCHECK
 #define	USE_VG_HELGRIND
+#define	USE_VG_MEMCHECK
 #endif
 
-#if defined(USE_VG_PMEMCHECK) || defined(USE_VG_HELGRIND)
+#if defined(USE_VG_PMEMCHECK) || defined(USE_VG_HELGRIND) ||\
+	defined(USE_VG_MEMCHECK)
 extern int On_valgrind;
 #include <valgrind/valgrind.h>
+#else
+#define	On_valgrind (0)
 #endif
 
 #ifdef USE_VG_HELGRIND
@@ -285,7 +289,7 @@ extern int On_valgrind;
 
 #define	VALGRIND_START_TX do {} while (0)
 
-#define	VALGRIND_START_TX_N(txn) do {} while (0)
+#define	VALGRIND_START_TX_N(txn) do { (void) (txn); } while (0)
 
 #define	VALGRIND_END_TX do {} while (0)
 
@@ -319,5 +323,101 @@ extern int On_valgrind;
 	(void) (addr);\
 	(void) (len);\
 } while (0)
+
+#endif
+
+#ifdef USE_VG_MEMCHECK
+
+#include <valgrind/memcheck.h>
+
+#define	VALGRIND_DO_DISABLE_ERROR_REPORTING do {\
+	if (On_valgrind)\
+		VALGRIND_DISABLE_ERROR_REPORTING;\
+} while (0)
+
+#define	VALGRIND_DO_ENABLE_ERROR_REPORTING do {\
+	if (On_valgrind)\
+		VALGRIND_ENABLE_ERROR_REPORTING;\
+} while (0)
+
+#define	VALGRIND_DO_CREATE_MEMPOOL(pool, rzB, is_zeroed) do {\
+	if (On_valgrind)\
+		VALGRIND_CREATE_MEMPOOL(pool, rzB, is_zeroed);\
+} while (0)
+
+#define	VALGRIND_DO_DESTROY_MEMPOOL(pool) do {\
+	if (On_valgrind)\
+		VALGRIND_DESTROY_MEMPOOL(pool);\
+} while (0)
+
+#define	VALGRIND_DO_MEMPOOL_ALLOC(pool, addr, size) do {\
+	if (On_valgrind && pool->is_master_replica)\
+		VALGRIND_MEMPOOL_ALLOC(pool, addr, size);\
+} while (0)
+
+#define	VALGRIND_DO_MEMPOOL_FREE(pool, addr) do {\
+	if (On_valgrind && pool->is_master_replica)\
+		VALGRIND_MEMPOOL_FREE(pool, addr);\
+} while (0)
+
+#define	VALGRIND_DO_MEMPOOL_CHANGE(pool, addrA, addrB, size) do {\
+	if (On_valgrind && pool->is_master_replica)\
+		VALGRIND_MEMPOOL_CHANGE(pool, addrA, addrB, size);\
+} while (0)
+
+#define	VALGRIND_DO_MAKE_MEM_DEFINED(pool, addr, len) do {\
+	if (On_valgrind && pool->is_master_replica)\
+		VALGRIND_MAKE_MEM_DEFINED(addr, len);\
+} while (0)
+
+#define	VALGRIND_DO_MAKE_MEM_UNDEFINED(pool, addr, len) do {\
+	if (On_valgrind && pool->is_master_replica)\
+		VALGRIND_MAKE_MEM_UNDEFINED(addr, len);\
+} while (0)
+
+#define	VALGRIND_DO_MAKE_MEM_NOACCESS(pool, addr, len) do {\
+	if (On_valgrind && pool->is_master_replica)\
+		VALGRIND_MAKE_MEM_NOACCESS(addr, len);\
+} while (0)
+
+#define	VALGRIND_DO_CHECK_MEM_IS_ADDRESSABLE(addr, len) do {\
+	if (On_valgrind)\
+		VALGRIND_CHECK_MEM_IS_ADDRESSABLE(addr, len);\
+} while (0)
+
+#else
+
+#define	VALGRIND_DO_DISABLE_ERROR_REPORTING do {} while (0)
+
+#define	VALGRIND_DO_ENABLE_ERROR_REPORTING do {} while (0)
+
+#define	VALGRIND_DO_CREATE_MEMPOOL(pool, rzB, is_zeroed)\
+	do { (void) (pool); (void) (rzB); (void) (is_zeroed); } while (0)
+
+#define	VALGRIND_DO_DESTROY_MEMPOOL(pool)\
+	do { (void) (pool); } while (0)
+
+#define	VALGRIND_DO_MEMPOOL_ALLOC(pool, addr, size)\
+	do { (void) (pool); (void) (addr); (void) (size); } while (0)
+
+#define	VALGRIND_DO_MEMPOOL_FREE(pool, addr)\
+	do { (void) (pool); (void) (addr); } while (0)
+
+#define	VALGRIND_DO_MEMPOOL_CHANGE(pool, addrA, addrB, size)\
+	do {\
+		(void) (pool); (void) (addrA); (void) (addrB); (void) (size);\
+	} while (0)
+
+#define	VALGRIND_DO_MAKE_MEM_DEFINED(pool, addr, len)\
+	do { (void) (pool); (void) (addr); (void) (len); } while (0)
+
+#define	VALGRIND_DO_MAKE_MEM_UNDEFINED(pool, addr, len)\
+	do { (void) (pool); (void) (addr); (void) (len); } while (0)
+
+#define	VALGRIND_DO_MAKE_MEM_NOACCESS(pool, addr, len)\
+	do { (void) (pool); (void) (addr); (void) (len); } while (0)
+
+#define	VALGRIND_DO_CHECK_MEM_IS_ADDRESSABLE(addr, len)\
+	do { (void) (addr); (void) (len); } while (0)
 
 #endif

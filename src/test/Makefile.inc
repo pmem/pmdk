@@ -78,6 +78,7 @@ TEST_TYPE = check
 TEST_BUILD = all
 TEST_FS = all
 TEST_TIME = 3m
+MEMCHECK = auto
 
 #
 # This is a helper function to be combined with usage of macros available
@@ -153,10 +154,10 @@ TST=$(shell basename `pwd`)
 TSTCHECKS=$(shell ls -1 TEST* | sort -V)
 
 $(TSTCHECKS): all
-	@cd .. && ./RUNTESTS ${TST} -b $(TEST_BUILD) -t $(TEST_TYPE) -f $(TEST_FS) -o $(TEST_TIME) -s $@
+	@cd .. && ./RUNTESTS ${TST} -b $(TEST_BUILD) -t $(TEST_TYPE) -f $(TEST_FS) -o $(TEST_TIME) -m $(MEMCHECK) -s $@
 
 check: all
-	@cd .. && ./RUNTESTS ${TST} -b $(TEST_BUILD) -t $(TEST_TYPE) -f $(TEST_FS) -o $(TEST_TIME)
+	@cd .. && ./RUNTESTS ${TST} -b $(TEST_BUILD) -t $(TEST_TYPE) -f $(TEST_FS) -o $(TEST_TIME) -m $(MEMCHECK)
 
 pcheck: $(TSTCHECKS)
 
