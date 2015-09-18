@@ -1028,7 +1028,6 @@ memset_nodrain_movnt(void *pmemdest, int c, size_t len)
 	/* memset the last bytes (<16), first dwords then bytes */
 	len &= MOVNT_MASK;
 	if (len != 0) {
-		i = 0;
 		int32_t *d32 = (int32_t *)d;
 		cnt = len >> DWORD_SHIFT;
 		if (cnt != 0) {

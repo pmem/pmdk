@@ -1694,8 +1694,6 @@ list_realloc_move(PMEMobjpool *pop, struct list_head *oob_head_old,
 			constructor, arg, OBJ_OOB_SIZE);
 
 	if (!ret) {
-		in_place = 1;
-
 		uint64_t sec_size_off = OBJ_PTR_TO_OFF(pop, &section->obj_size);
 
 		/* clear offset and size field in lane section */
