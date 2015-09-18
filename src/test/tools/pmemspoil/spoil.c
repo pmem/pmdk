@@ -1117,7 +1117,7 @@ pmemspoil_process_heap(struct pmemspoil *psp, struct pmemspoil_list *pfp,
 		PROCESS_FIELD(hdr, reserved, char);
 		PROCESS_FIELD(hdr, checksum, uint64_t);
 
-		PROCESS(zone, &hlayout->zones[PROCESS_INDEX],
+		PROCESS(zone, ZID_TO_ZONE(hlayout, PROCESS_INDEX),
 			util_heap_max_zone(psp->size));
 
 	} PROCESS_END
