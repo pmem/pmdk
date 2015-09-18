@@ -741,7 +741,7 @@ info_obj_zones_chunks(struct pmem_info *pip, struct pmemobjpool *pop)
 		err(1, "Cannot allocate memory for zone stats");
 
 	for (size_t i = 0; i < maxzone; i++) {
-		struct zone *zone = &layout->zones[i];
+		struct zone *zone = ZID_TO_ZONE(layout, i);
 
 		if (util_ranges_contain(&pip->args.obj.zone_ranges, i)) {
 			int vvv = pip->args.obj.vheap &&
