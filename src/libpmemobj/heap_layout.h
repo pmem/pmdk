@@ -43,7 +43,8 @@
 #define	HEAP_SIGNATURE_LEN 16
 #define	HEAP_SIGNATURE "MEMORY_HEAP_HDR\0"
 #define	ZONE_HEADER_MAGIC 0xC3F0A2D2
-#define	ZONE_MAX_SIZE (sizeof (struct zone) + sizeof (struct chunk) * MAX_CHUNK)
+#define	ZONE_MAX_SIZE (sizeof (struct zone)\
+			+ sizeof (struct chunk) * (MAX_CHUNK - 1))
 #define	ZONE_MIN_SIZE (ZONE_MAX_SIZE - (MAX_CHUNK - 1) * CHUNKSIZE)
 #define	HEAP_MIN_SIZE (sizeof (struct heap_layout) + ZONE_MIN_SIZE)
 #define	REDO_LOG_SIZE 4
@@ -100,7 +101,7 @@ struct zone_header {
 struct zone {
 	struct zone_header header;
 	struct chunk_header chunk_headers[MAX_CHUNK];
-	struct chunk chunks[];
+	struct chunk chunks[1];
 };
 
 struct heap_header {
