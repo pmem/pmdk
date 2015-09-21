@@ -58,8 +58,10 @@
 static struct cuckoo *pools_ht; /* hash table used for searching by UUID */
 static struct ctree *pools_tree; /* tree used for searching by address */
 
+#ifndef WIN32
 int _pobj_cache_invalidate;
 __thread struct _pobj_pcache _pobj_cached_pool;
+#endif
 
 /*
  * User may decide to map all pools with MAP_PRIVATE flag using
@@ -956,7 +958,9 @@ pmemobj_close(PMEMobjpool *pop)
 {
 	LOG(3, "pop %p", pop);
 
+#ifndef WIN32
 	_pobj_cache_invalidate++;
+#endif
 
 	if (cuckoo_remove(pools_ht, pop->uuid_lo) != pop) {
 		ERR("cuckoo_remove");
@@ -966,10 +970,12 @@ pmemobj_close(PMEMobjpool *pop)
 		ERR("ctree_remove");
 	}
 
+#ifndef WIN32
 	if (_pobj_cached_pool.pop == pop) {
 		_pobj_cached_pool.pop = NULL;
 		_pobj_cached_pool.uuid_lo = 0;
 	}
+#endif
 
 	pmemobj_cleanup(pop);
 }

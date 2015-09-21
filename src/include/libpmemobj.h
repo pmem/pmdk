@@ -307,16 +307,19 @@ TOID_DECLARE_ROOT(t);
 PMEMobjpool *pmemobj_pool_by_ptr(const void *addr);
 PMEMobjpool *pmemobj_pool_by_oid(PMEMoid oid);
 
+#ifndef WIN32
 extern int _pobj_cache_invalidate;
 extern __thread struct _pobj_pcache {
 	PMEMobjpool *pop;
 	uint64_t uuid_lo;
 	int invalidate;
 } _pobj_cached_pool;
+#endif
 
 /*
  * Returns the direct pointer of an object.
  */
+#ifndef WIN32
 static inline void *
 pmemobj_direct(PMEMoid oid)
 {
@@ -337,6 +340,20 @@ pmemobj_direct(PMEMoid oid)
 
 	return (void *)((uintptr_t)_pobj_cached_pool.pop + oid.off);
 }
+#else
+static void *
+pmemobj_direct(PMEMoid oid)
+{
+	if (oid.off == 0 || oid.pool_uuid_lo == 0)
+		return NULL;
+
+	void *pop = pmemobj_pool(oid);
+	if (pop)
+		return (void *)((uintptr_t)pop + oid.off);
+	else
+		return NULL;
+}
+#endif
 
 #define	DIRECT_RW(o) (\
 {__typeof__(o) _o; _o._type = NULL; (void)_o;\
