@@ -54,7 +54,7 @@
 #define	MOCK_RUNTIME_2 (void *)(0xBCD)
 
 static void *base_ptr;
-#define	RPTR(p) (void *)((void *)p - base_ptr)
+#define	RPTR(p) (void *)((char *)p - (char *)base_ptr)
 
 struct mock_pop {
 	PMEMobjpool p;

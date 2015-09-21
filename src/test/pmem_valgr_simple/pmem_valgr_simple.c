@@ -43,7 +43,7 @@ main(int argc, char *argv[])
 {
 	int fd;
 	struct stat stbuf;
-	void *dest;
+	char *dest;
 
 	START(argc, argv, "pmem_valgr_simple");
 

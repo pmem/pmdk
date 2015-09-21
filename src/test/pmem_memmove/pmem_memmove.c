@@ -49,13 +49,13 @@
  * In the event of an error caller must unmap all passed in mappings.
  */
 static void
-swap_mappings(void **dest, void **src, size_t size, int fd)
+swap_mappings(char **dest, char **src, size_t size, int fd)
 {
 
-	void *d = *dest;
-	void *s = *src;
-	void *ts;
-	void *td;
+	char *d = *dest;
+	char *s = *src;
+	char *ts;
+	char *td;
 
 	MUNMAP(*src, size);
 
@@ -81,12 +81,12 @@ swap_mappings(void **dest, void **src, size_t size, int fd)
  * so as not to introduce any possible side affects.
  */
 static void
-do_memmove(int fd, void *dest, void *src, char *file_name, off_t dest_off,
+do_memmove(int fd, char *dest, char *src, char *file_name, off_t dest_off,
 	off_t src_off, off_t off, off_t bytes)
 {
 	void *ret;
-	void *src1 = malloc(bytes);
-	void *buf = malloc(bytes);
+	char *src1 = malloc(bytes);
+	char *buf = malloc(bytes);
 	char old;
 
 	memset(buf, 0, bytes);
@@ -154,8 +154,8 @@ main(int argc, char *argv[])
 {
 	int fd;
 	struct stat stbuf;
-	void *dest;
-	void *src;
+	char *dest;
+	char *src;
 	off_t dest_off = 0;
 	off_t src_off = 0;
 	uint64_t bytes = 0;

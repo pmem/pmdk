@@ -43,9 +43,9 @@ main(int argc, char *argv[])
 {
 	int fd;
 	struct stat stbuf;
-	void *dest;
-	void *dest1;
-	void *ret;
+	char *dest;
+	char *dest1;
+	char *ret;
 
 	START(argc, argv, "pmem_memset");
 

@@ -173,7 +173,7 @@ main(int argc, char *argv[])
 	PMEMobjpool *pop = pmemobj_open_mock(argv[1]);
 	ASSERTne(pop, NULL);
 
-	ASSERTeq(util_is_zeroed(pop->addr + PMEMOBJ_POOL_HDR_SIZE,
+	ASSERTeq(util_is_zeroed((char *)pop->addr + PMEMOBJ_POOL_HDR_SIZE,
 			pop->size - PMEMOBJ_POOL_HDR_SIZE), 1);
 
 	char *end = NULL;

@@ -47,12 +47,11 @@
  * Map a new src with the original dest as a hint.
  */
 static void
-swap_mappings(void **dest, void **src, size_t size, int fd)
+swap_mappings(char **dest, char **src, size_t size, int fd)
 {
-
-	void *d = *dest;
-	void *s = *src;
-	void *td, *ts;
+	char *d = *dest;
+	char *s = *src;
+	char *td, *ts;
 
 	MUNMAP(*src, size);
 
@@ -79,7 +78,7 @@ swap_mappings(void **dest, void **src, size_t size, int fd)
  */
 
 static void
-do_memcpy(int fd, void *dest, int dest_off, void *src, int src_off,
+do_memcpy(int fd, char *dest, int dest_off, char *src, int src_off,
     size_t bytes, char *file_name)
 {
 	void *ret;
@@ -123,8 +122,8 @@ int
 main(int argc, char *argv[])
 {
 	int fd;
-	void *dest;
-	void *src;
+	char *dest;
+	char *src;
 	struct stat stbuf;
 
 	START(argc, argv, "pmem_memcpy");
