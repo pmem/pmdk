@@ -21,7 +21,11 @@
     <ClInclude Include="..\..\src\common\out.h" />
     <ClInclude Include="..\..\src\common\util.h" />
     <ClInclude Include="..\..\src\common\valgrind_internal.h" />
+    <ClInclude Include="..\..\src\include\libpmem.h" />
     <ClInclude Include="..\..\src\libpmem\pmem.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="libpmem.def" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{9e9e3d25-2139-4a5d-9200-18148ddead45}</ProjectGuid>

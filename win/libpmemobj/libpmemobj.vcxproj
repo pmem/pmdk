@@ -33,6 +33,7 @@
     <ClInclude Include="..\..\src\common\out.h" />
     <ClInclude Include="..\..\src\common\util.h" />
     <ClInclude Include="..\..\src\common\valgrind_internal.h" />
+    <ClInclude Include="..\..\src\include\libpmemobj.h" />
     <ClInclude Include="..\..\src\libpmemobj\bucket.h" />
     <ClInclude Include="..\..\src\libpmemobj\ctree.h" />
     <ClInclude Include="..\..\src\libpmemobj\cuckoo.h" />
@@ -43,6 +44,9 @@
     <ClInclude Include="..\..\src\libpmemobj\obj.h" />
     <ClInclude Include="..\..\src\libpmemobj\pmalloc.h" />
     <ClInclude Include="..\..\src\libpmemobj\redo.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="libpmemobj.def" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{1BAA1617-93AE-4196-8A1A-BD492FB18AEF}</ProjectGuid>
@@ -104,12 +108,13 @@
       <BrowseInformation>true</BrowseInformation>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <ForcedUsingFiles>$(ProjectDir)\..\include;%(ForcedUsingFiles)</ForcedUsingFiles>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
-      <AdditionalDependencies>libpmem.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(ProjectDir)..\$(IntermediateOutputPath)libpmem\libpmem.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>C:\NVML\nvml\win\x64\Debug\libpmem;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <ModuleDefinitionFile>libpmemobj.def</ModuleDefinitionFile>
     </Link>
