@@ -1,22 +1,52 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tga;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{16473205-8f12-4d4c-b1e9-e14ea3013e70}</UniqueIdentifier>
+      <Extensions>h</Extensions>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{17275273-f923-45ff-9b7e-b2ea76561168}</UniqueIdentifier>
+      <Extensions>c;def</Extensions>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\libpmem\libpmem.c" />
-    <ClCompile Include="..\..\src\libpmem\pmem.c" />
-    <ClCompile Include="..\..\src\common\out.c" />
-    <ClCompile Include="..\..\src\common\util.c" />
-    <ClCompile Include="..\libpmem\libpmem_main.c" />
+    <ClCompile Include="..\..\src\libpmem\libpmem.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libpmem\libpmem_main.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\common\out.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libpmem\pmem.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\common\util.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\src\libpmem\pmem.h" />
-    <ClInclude Include="..\..\src\common\out.h" />
-    <ClInclude Include="..\..\src\common\util.h" />
-    <ClInclude Include="..\..\src\common\valgrind_internal.h" />
+    <ClInclude Include="..\..\src\common\out.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libpmem\pmem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\common\util.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\common\valgrind_internal.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\include\libpmem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="libpmem.def">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
 </Project>
