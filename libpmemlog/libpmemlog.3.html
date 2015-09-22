@@ -1,5 +1,5 @@
 <!-- Creator     : groff version 1.18.1.4 -->
-<!-- CreationDate: Tue Jun 30 07:14:47 2015 -->
+<!-- CreationDate: Tue Sep 22 08:36:11 2015 -->
 <html>
 <head>
 <meta name="generator" content="groff -Thtml, see www.gnu.org">
@@ -17,6 +17,7 @@
 <a href="#MANAGING LIBRARY BEHAVIOR">MANAGING LIBRARY BEHAVIOR</a><br>
 <a href="#DEBUGGING AND ERROR HANDLING">DEBUGGING AND ERROR HANDLING</a><br>
 <a href="#EXAMPLES">EXAMPLES</a><br>
+<a href="#BUGS">BUGS</a><br>
 <a href="#ACKNOWLEDGEMENTS">ACKNOWLEDGEMENTS</a><br>
 <a href="#SEE ALSO">SEE ALSO</a><br>
 
@@ -71,7 +72,9 @@ Managing library behavior:
 
 void pmemlog_set_funcs(
     void *(*</b><i>malloc_func</i><b>)(size_t</b> <i>size</i><b>),
-    void (*</b><i>free_func</i><b>)(void *</b><i>ptr</i><b>));
+    void (*</b><i>free_func</i><b>)(void *</b><i>ptr</i><b>),
+    void *(*</b><i>realloc_func</i><b>)(void *</b><i>ptr</i><b>, size_t</b> <i>size</i><b>),
+    char *(*</b><i>strdup_func</i><b>)(const char *</b><i>s</i><b>));
 int pmemlog_check(const char *</b><i>path</i><b>);
 
 Error handling:
@@ -234,6 +237,95 @@ pool is defined in <b>&lt;libpmemlog.h&gt;</b> as
 </td>
 </table>
 <!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>Depending on the configuration of the system, the
+available space of non-volatile memory space may be divided
+into multiple memory devices. In such case, the maximum size
+of the pmemlog memory pool could be limited by the capacity
+of a single memory device. The <b>libpmemlog</b> allows
+building persistent memory resident log spanning multiple
+memory devices by creation of persistent memory pools
+consisting of multiple files, where each part of such a
+<i>pool set</i> may be stored on different pmem-aware
+filesystem.</p>
+<!-- INDENTATION -->
+<p>Creation of all the parts of the pool set can be done
+with the <b>pmemlog_create</b>() function. However, the
+recommended method for creating pool sets is to do it by
+using the <b>pmempool</b>(1) utility.</p>
+<!-- INDENTATION -->
+<p>When creating the pool set consisting of multiple files,
+the <i>path</i> argument passed to <b>pmemlog_create</b>()
+must point to the special <i>set</i> file that defines the
+pool layout and the location of all the parts of the pool
+set. The <i>poolsize</i> argument must be 0. The meaning of
+<i>layout</i> and <i>mode</i> arguments doesn&rsquo;t
+change, except that the same <i>mode</i> is used for
+creation of all the parts of the pool set. If the error
+prevents any of the pool set files from being created,
+<b>pmemlog_create</b>() returns NULL and sets errno
+appropriately.</p>
+<!-- INDENTATION -->
+<p>When opening the pool set consisting of multiple files,
+the <i>path</i> argument passed to <b>pmemlog_open</b>()
+must not point to the pmemlog memory pool file, but to the
+same <i>set</i> file that was used for the pool set
+creation. If an error prevents any of the pool set files
+from being opened, or if the actual size of any file does
+not match the corresponding part size defined in <i>set</i>
+file <b>pmemlog_open</b>() returns NULL and sets errno
+appropriately.</p>
+<!-- INDENTATION -->
+<p>The set file is a plain text file, which must start with
+the line containing a <i>PMEMPOOLSET</i> string, followed by
+the specification of all the pool parts in the next lines.
+For each part, the file size and the absolute path must be
+provided. Lines starting with &quot;#&quot; character are
+ignored.</p>
+<!-- INDENTATION -->
+<p>Here is the example &quot;mylogpool.set&quot; file:</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="20%"></td>
+<td width="79%">
+<pre>PMEMPOOLSET
+100G /mountpoint0/myfile.part0
+200G /mountpoint1/myfile.part1
+400G /mountpoint2/myfile.part2
+</pre>
+</td>
+</table>
+<!-- INDENTATION -->
+
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>The files in the set may be created by running the
+following command:</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="20%"></td>
+<td width="79%">
+<pre>pmempool create log --from-set=mylogpool.set
+</pre>
+</td>
+</table>
+<!-- INDENTATION -->
+
 <table width="100%" border=0 rules="none" frame="void"
        cols="2" cellspacing="0" cellpadding="0">
 <tr valign="top" align="left">
@@ -502,7 +594,11 @@ less commonly used than the previous sections.</p>
 void *(*</b><i>malloc_func</i><b>)(size_t</b>
 <i>size</i><b>),<br>
 void (*</b><i>free_func</i><b>)(void
-*</b><i>ptr</i><b>));</b></p>
+*</b><i>ptr</i><b>),<br>
+void *(*</b><i>realloc_func</i><b>)(void *</b><i>ptr</i><b>,
+size_t</b> <i>size</i><b>),<br>
+char *(*</b><i>strdup_func</i><b>)(const char
+*</b><i>s</i><b>));</b></p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -790,6 +886,19 @@ main(int argc, char *argv[])
 <td width="89%">
 <p>See http://pmem.io/nvml/libpmemlog for more examples
 using the <b>libpmemlog</b> API.</p>
+</td>
+</table>
+<a name="BUGS"></a>
+<h2>BUGS</h2>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>Unlike <b>libpmemobj</b>, data replication is not
+supported in <b>libpmemlog</b>. Thus, it is not allowed to
+specify replica sections in pool set files.</p>
 </td>
 </table>
 <a name="ACKNOWLEDGEMENTS"></a>

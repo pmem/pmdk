@@ -1,5 +1,5 @@
 <!-- Creator     : groff version 1.18.1.4 -->
-<!-- CreationDate: Tue Jun 30 07:14:47 2015 -->
+<!-- CreationDate: Tue Sep 22 08:36:11 2015 -->
 <html>
 <head>
 <meta name="generator" content="groff -Thtml, see www.gnu.org">
@@ -15,7 +15,7 @@
 <a href="#MANAGING MEMORY POOLS">MANAGING MEMORY POOLS</a><br>
 <a href="#MEMORY ALLOCATION">MEMORY ALLOCATION</a><br>
 <a href="#MANAGING LIBRARY BEHAVIOR">MANAGING LIBRARY BEHAVIOR</a><br>
-<a href="#DEBUGGING">DEBUGGING</a><br>
+<a href="#DEBUGGING AND ERROR HANDLING">DEBUGGING AND ERROR HANDLING</a><br>
 <a href="#EXAMPLE">EXAMPLE</a><br>
 <a href="#BUGS">BUGS</a><br>
 <a href="#ACKNOWLEDGEMENTS">ACKNOWLEDGEMENTS</a><br>
@@ -74,6 +74,10 @@ void vmem_set_funcs(
            void *(*</b><i>realloc_func</i><b>)(void *</b><i>ptr</i><b>, size_t</b> <i>size</i><b>),
            char *(*</b><i>strdup_func</i><b>)(const char *</b><i>s</i><b>),
            void (*</b><i>print_func</i><b>)(const char *</b><i>s</i><b>));
+
+Error handling:
+
+const char *vmem_errormsg(void);
 </b></pre>
 </td>
 </table>
@@ -113,16 +117,16 @@ memory pools, and this library supplies the more familiar
 messages or intentionally cause the process to exit.
 Exceptions to this are prints caused by calls to
 <b>vmem_stats_print</b>(), or by enabling debugging as
-described under <b>DEBUGGING</b> below. The library uses
-<b>pthreads</b>(7) to be fully MT-safe, but never creates or
-destroys threads itself. The library does not make use of
-any signals, networking, and never calls <b>select</b>() or
-<b>poll</b>(). The system memory allocation routines like
-<b>malloc</b>() and <b>free</b>() are used by <b>libvmem</b>
-for managing a small amount of run-time state, but
-applications are allowed to override these calls if
-necessary (see the description of <b>vmem_set_funcs</b>()
-below).</p>
+described under <b>DEBUGGING AND ERROR HANDLING</b> below.
+The library uses <b>pthreads</b>(7) to be fully MT-safe, but
+never creates or destroys threads itself. The library does
+not make use of any signals, networking, and never calls
+<b>select</b>() or <b>poll</b>(). The system memory
+allocation routines like <b>malloc</b>() and <b>free</b>()
+are used by <b>libvmem</b> for managing a small amount of
+run-time state, but applications are allowed to override
+these calls if necessary (see the description of
+<b>vmem_set_funcs</b>() below).</p>
 <!-- INDENTATION -->
 <p><b>libvmem</b> interfaces are grouped into three
 categories: those that manage memory pools, those providing
@@ -270,12 +274,13 @@ performed, are indicated by a return value of -1. Since an
 error return indicates memory pool corruption, applications
 should not continue to use a pool in this state. Additional
 details about errors found are logged when the log level is
-at least 1 (see <b>DEBUGGING</b> below). During the
-consistency check performed by <b>vmem_check</b>(), other
-operations on the same memory pool are locked out. The
-checks are all read-only; <b>vmem_check</b>() never modifies
-the memory pool. This function is mostly useful for
-<b>libvmem</b> developers during testing/debugging.</p>
+at least 1 (see <b>DEBUGGING AND ERROR HANDLING</b> below).
+During the consistency check performed by
+<b>vmem_check</b>(), other operations on the same memory
+pool are locked out. The checks are all read-only;
+<b>vmem_check</b>() never modifies the memory pool. This
+function is mostly useful for <b>libvmem</b> developers
+during testing/debugging.</p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -628,15 +633,15 @@ first four arguments to <b>vmem_set_funcs</b>(). The
 <i>print_func</i> function is called by <b>libvmem</b> when
 the <b>vmem_stats_print</b>() entry point is used, or when
 additional tracing is enabled in the debug version of the
-library as described in the <b>DEBUGGING</b> section below.
-The default <i>print_func</i> used by the library prints to
-the file specified by the <b>VMEM_LOG_FILE</b> environment
-variable, or to <b>stderr</b> if that variable is not
-set.</p>
+library as described in the <b>DEBUGGING AND ERROR
+HANDLING</b> section below. The default <i>print_func</i>
+used by the library prints to the file specified by the
+<b>VMEM_LOG_FILE</b> environment variable, or to
+<b>stderr</b> if that variable is not set.</p>
 </td>
 </table>
-<a name="DEBUGGING"></a>
-<h2>DEBUGGING</h2>
+<a name="DEBUGGING AND ERROR HANDLING"></a>
+<h2>DEBUGGING AND ERROR HANDLING</h2>
 <!-- INDENTATION -->
 <table width="100%" border=0 rules="none" frame="void"
        cols="2" cellspacing="0" cellpadding="0">
@@ -648,11 +653,46 @@ a development system. The normal version, accessed when a
 program is linked using the <b>-lvmem</b> option, is
 optimized for performance. That version skips checks that
 impact performance and never logs any trace information or
-performs any run-time assertions. A second version, accessed
-when a program uses the libraries under
-<b>/usr/lib/nvml_debug</b>, contains run-time assertions and
-trace points. The typical way to access the debug version is
-to set the environment variable <b>LD_LIBRARY_PATH</b> to
+performs any run-time assertions. If an error is detected
+during the call to <b>libvmem</b> function, an application
+may retrieve an error message describing the reason of
+failure using the following function:</p>
+<!-- INDENTATION -->
+<p><b>const char *vmem_errormsg(void);</b></p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="20%"></td>
+<td width="79%">
+<p>The <b>vmem_errormsg</b>() function returns a pointer to
+a static buffer containing the last error message logged for
+current thread. The error message may include description of
+the corresponding error code (if errno was set), as returned
+by <b>strerror</b>(3). The error message buffer is
+thread-local; errors encountered in one thread do not affect
+its value in other threads. The buffer is never cleared by
+any library function; its content is significant only when
+the return value of the immediately preceding call to
+<b>libvmem</b> function indicated an error, or if errno was
+set. The application must not modify or free the error
+message string, but it may be modified by subsequent calls
+to other library functions.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>A second version of <b>libvmem</b>, accessed when a
+program uses the libraries under <b>/usr/lib/nvml_debug</b>,
+contains run-time assertions and trace points. The typical
+way to access the debug version is to set the environment
+variable <b>LD_LIBRARY_PATH</b> to
 <b>/usr/lib/nvml_debug</b> or <b>/usr/lib64/nvml_debug</b>
 depending on where the debug libraries are installed on the
 system. The trace points in the debug version of the library
@@ -687,7 +727,9 @@ response to a call to <b>vmem_stats_print</b>().</p>
 <td width="77%">
 
 <p>Additional details on any errors detected are logged (in
-addition to returning the errno-based errors as usual).</p>
+addition to returning the errno-based errors as usual). The
+same information may be retrieved using
+<b>vmem_errormsg</b>().</p>
 </td>
 <tr valign="top" align="left">
 <td width="11%"></td>
@@ -875,8 +917,8 @@ Technical Work Group:</p>
 <td width="10%"></td>
 <td width="89%">
 <p><b>malloc</b>(3), <b>posix_memalign</b>(3),
-<b>strdup</b>(3), <b>mmap</b>(2), <b>jemalloc</b>(3),
-<b>libpmem</b>(3).</p>
+<b>strdup</b>(3), <b>mmap</b>(2), <b>strerror</b>(3),
+<b>jemalloc</b>(3), <b>libpmem</b>(3).</p>
 </td>
 </table>
 <hr>

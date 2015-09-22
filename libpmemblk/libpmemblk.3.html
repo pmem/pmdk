@@ -1,5 +1,5 @@
 <!-- Creator     : groff version 1.18.1.4 -->
-<!-- CreationDate: Tue Jun 30 07:14:47 2015 -->
+<!-- CreationDate: Tue Sep 22 08:36:11 2015 -->
 <html>
 <head>
 <meta name="generator" content="groff -Thtml, see www.gnu.org">
@@ -17,6 +17,7 @@
 <a href="#MANAGING LIBRARY BEHAVIOR">MANAGING LIBRARY BEHAVIOR</a><br>
 <a href="#DEBUGGING AND ERROR HANDLING">DEBUGGING AND ERROR HANDLING</a><br>
 <a href="#EXAMPLES">EXAMPLES</a><br>
+<a href="#BUGS">BUGS</a><br>
 <a href="#ACKNOWLEDGEMENTS">ACKNOWLEDGEMENTS</a><br>
 <a href="#SEE ALSO">SEE ALSO</a><br>
 
@@ -51,6 +52,7 @@ PMEMblkpool *pmemblk_open(const char *</b><i>path</i><b>, size_t</b> <i>bsize</i
 PMEMblkpool *pmemblk_create(const char *</b><i>path</i><b>, size_t</b> <i>bsize</i><b>,
     size_t</b> <i>poolsize</i><b>, mode_t</b> <i>mode</i><b>);
 void pmemblk_close(PMEMblkpool *</b><i>pbp</i><b>);
+size_t pmemblk_bsize(PMEMblkpool *</b><i>pbp</i><b>);
 size_t pmemblk_nblock(PMEMblkpool *</b><i>pbp</i><b>);
 int pmemblk_read(PMEMblkpool *</b><i>pbp</i><b>, void *</b><i>buf</i><b>, off_t</b> <i>blockno</i><b>);
 int pmemblk_write(PMEMblkpool *</b><i>pbp</i><b>, const void *</b><i>buf</i><b>, off_t</b> <i>blockno</i><b>);
@@ -67,8 +69,10 @@ Managing library behavior:
 
 void pmemblk_set_funcs(
     void *(*</b><i>malloc_func</i><b>)(size_t</b> <i>size</i><b>),
-    void (*</b><i>free_func</i><b>)(void *</b><i>ptr</i><b>));
-int pmemblk_check(const char *</b><i>path</i><b>);
+    void (*</b><i>free_func</i><b>)(void *</b><i>ptr</i><b>),
+    void *(*</b><i>realloc_func</i><b>)(void *</b><i>ptr</i><b>, size_t</b> <i>size</i><b>),
+    char *(*</b><i>strdup_func</i><b>)(const char *</b><i>s</i><b>));
+int pmemblk_check(const char *</b><i>path</i><b>, size_t</b> <i>bsize</i><b>);
 
 Error handling:
 
@@ -248,6 +252,95 @@ in <b>&lt;libpmemblk.h&gt;</b> as <b>PMEMBLK_MIN_POOL</b>.
 <tr valign="top" align="left">
 <td width="10%"></td>
 <td width="89%">
+<p>Depending on the configuration of the system, the
+available space of non-volatile memory space may be divided
+into multiple memory devices. In such case, the maximum size
+of the pmemblk memory pool could be limited by the capacity
+of a single memory device. The <b>libpmemblk</b> allows
+building persistent memory resident array spanning multiple
+memory devices by creation of persistent memory pools
+consisting of multiple files, where each part of such a
+<i>pool set</i> may be stored on different pmem-aware
+filesystem.</p>
+<!-- INDENTATION -->
+<p>Creation of all the parts of the pool set can be done
+with the <b>pmemblk_create</b>() function. However, the
+recommended method for creating pool sets is to do it by
+using the <b>pmempool</b>(1) utility.</p>
+<!-- INDENTATION -->
+<p>When creating the pool set consisting of multiple files,
+the <i>path</i> argument passed to <b>pmemblk_create</b>()
+must point to the special <i>set</i> file that defines the
+pool layout and the location of all the parts of the pool
+set. The <i>poolsize</i> argument must be 0. The meaning of
+<i>layout</i> and <i>mode</i> arguments doesn&rsquo;t
+change, except that the same <i>mode</i> is used for
+creation of all the parts of the pool set. If the error
+prevents any of the pool set files from being created,
+<b>pmemblk_create</b>() returns NULL and sets errno
+appropriately.</p>
+<!-- INDENTATION -->
+<p>When opening the pool set consisting of multiple files,
+the <i>path</i> argument passed to <b>pmemblk_open</b>()
+must not point to the pmemblk memory pool file, but to the
+same <i>set</i> file that was used for the pool set
+creation. If an error prevents any of the pool set files
+from being opened, or if the actual size of any file does
+not match the corresponding part size defined in <i>set</i>
+file <b>pmemblk_open</b>() returns NULL and sets errno
+appropriately.</p>
+<!-- INDENTATION -->
+<p>The set file is a plain text file, which must start with
+the line containing a <i>PMEMPOOLSET</i> string, followed by
+the specification of all the pool parts in the next lines.
+For each part, the file size and the absolute path must be
+provided. Lines starting with &quot;#&quot; character are
+ignored.</p>
+<!-- INDENTATION -->
+<p>Here is the example &quot;myblkpool.set&quot; file:</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="20%"></td>
+<td width="79%">
+<pre>PMEMPOOLSET
+100G /mountpoint0/myfile.part0
+200G /mountpoint1/myfile.part1
+400G /mountpoint2/myfile.part2
+</pre>
+</td>
+</table>
+<!-- INDENTATION -->
+
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>The files in the set may be created by running the
+following command:</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="20%"></td>
+<td width="79%">
+<pre>pmempool create blk &lt;bsize&gt; --from-set=myblkpool.set
+</pre>
+</td>
+</table>
+<!-- INDENTATION -->
+
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
 <p><b>void pmemblk_close(PMEMblkpool
 *</b><i>pbp</i><b>);</b></p>
 </td>
@@ -263,6 +356,30 @@ pool indicated by <i>pbp</i> and deletes the memory pool
 handle. The block memory pool itself lives on in the file
 that contains it and may be re-opened at a later time using
 <b>pmemblk_open</b>() as described above.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>size_t pmemblk_bsize(PMEMblkpool
+*</b><i>pbp</i><b>);</b></p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="20%"></td>
+<td width="79%">
+<p>The <b>pmemblk_bsize</b>() function returns the block
+size of the specified block memory pool. It&rsquo;s the
+value which was passed as <i>bsize</i> to
+<b>pmemblk_create</b>(). <i>pbp</i> must be a block memory
+pool handle as returned by <b>pmemblk_open</b>() or
+<b>pmemblk_create</b>().</p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -460,7 +577,11 @@ less commonly used than the previous sections.</p>
 void *(*</b><i>malloc_func</i><b>)(size_t</b>
 <i>size</i><b>),<br>
 void (*</b><i>free_func</i><b>)(void
-*</b><i>ptr</i><b>));</b></p>
+*</b><i>ptr</i><b>),<br>
+void *(*</b><i>realloc_func</i><b>)(void *</b><i>ptr</i><b>,
+size_t</b> <i>size</i><b>),<br>
+char *(*</b><i>strdup_func</i><b>)(const char
+*</b><i>s</i><b>));</b></p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -484,8 +605,8 @@ approximately 4-8 kilobytes for each memory pool in use.</p>
 <tr valign="top" align="left">
 <td width="10%"></td>
 <td width="89%">
-<p><b>int pmemblk_check(const char
-*</b><i>path</i><b>);</b></p>
+<p><b>int pmemblk_check(const char *</b><i>path</i><b>,
+size_t</b> <i>bsize</i><b>);</b></p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -503,11 +624,13 @@ return 0, in which case the use of the file with
 debug version of <b>libpmemblk</b> will provide additional
 details on inconsistencies when <b>PMEMBLK_LOG_LEVEL</b> is
 at least 1, as described in the <b>DEBUGGING AND ERROR
-HANDLING</b> section below. <b>pmemblk_check</b>() will
-return -1 and set errno if it cannot perform the consistency
-check due to other errors. <b>pmemblk_check</b>() opens the
-given <i>path</i> read-only so it never makes any changes to
-the file.</p>
+HANDLING</b> section below. When <i>bsize</i> is non-zero
+<b>pmemblk_check</b>() will compare it to the block size of
+the pool and return 0 when they don&rsquo;t match.
+<b>pmemblk_check</b>() will return -1 and set errno if it
+cannot perform the consistency check due to other errors.
+<b>pmemblk_check</b>() opens the given <i>path</i> read-only
+so it never makes any changes to the file.</p>
 </td>
 </table>
 <a name="DEBUGGING AND ERROR HANDLING"></a>
@@ -746,6 +869,19 @@ main(int argc, char *argv[])
 <td width="89%">
 <p>See http://pmem.io/nvml/libpmemblk for more examples
 using the <b>libpmemblk</b> API.</p>
+</td>
+</table>
+<a name="BUGS"></a>
+<h2>BUGS</h2>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>Unlike <b>libpmemobj</b>, data replication is not
+supported in <b>libpmemblk</b>. Thus, it is not allowed to
+specify replica sections in pool set files.</p>
 </td>
 </table>
 <a name="ACKNOWLEDGEMENTS"></a>

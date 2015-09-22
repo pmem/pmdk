@@ -1,5 +1,5 @@
 <!-- Creator     : groff version 1.18.1.4 -->
-<!-- CreationDate: Tue Jun 30 07:14:47 2015 -->
+<!-- CreationDate: Tue Sep 22 08:36:11 2015 -->
 <html>
 <head>
 <meta name="generator" content="groff -Thtml, see www.gnu.org">
@@ -40,128 +40,36 @@ allocation library</p>
 <tr valign="top" align="left">
 <td width="10%"></td>
 <td width="89%">
-<p>$ LD_PRELOAD=libvmmalloc.so <i>command [args...]</i></p>
-<!-- INDENTATION -->
-<p>or</p>
-<!-- INDENTATION -->
-<p>$ cc [ flag... ] file... -lvmmalloc [ library... ]</p>
-<!-- INDENTATION -->
-<pre><b>#include &lt;stdlib.h&gt;
+<pre><b>$ LD_PRELOAD=</b><i>libvmmalloc.so</i> <b>command [ args... ]
+
+</b>or
+
+<b>#include &lt;stdlib.h&gt;
 #include &lt;malloc.h&gt;
 #include &lt;libvmmalloc.h&gt;
-</b></pre>
-</td>
-</table>
-<!-- INDENTATION -->
 
-<table width="100%" border=0 rules="none" frame="void"
-       cols="2" cellspacing="0" cellpadding="0">
-<tr valign="top" align="left">
-<td width="10%"></td>
-<td width="89%">
-<p><b>void *malloc(size_t</b> <i>size</i><b>);</b></p>
-</td>
-</table>
-<!-- INDENTATION -->
-<table width="100%" border=0 rules="none" frame="void"
-       cols="2" cellspacing="0" cellpadding="0">
-<tr valign="top" align="left">
-<td width="10%"></td>
-<td width="89%">
-<p><b>void *calloc(size_t</b> <i>number</i><b>, size_t</b>
-<i>size</i><b>);</b></p>
-</td>
-</table>
-<!-- INDENTATION -->
-<table width="100%" border=0 rules="none" frame="void"
-       cols="2" cellspacing="0" cellpadding="0">
-<tr valign="top" align="left">
-<td width="10%"></td>
-<td width="89%">
-<p><b>int posix_memalign(void **</b><i>memptr</i><b>,
-size_t</b> <i>alignment</i><b>, size_t</b>
-<i>size</i><b>);</b></p>
-</td>
-</table>
-<!-- INDENTATION -->
-<table width="100%" border=0 rules="none" frame="void"
-       cols="2" cellspacing="0" cellpadding="0">
-<tr valign="top" align="left">
-<td width="10%"></td>
-<td width="89%">
-<p><b>void *realloc(void *</b><i>ptr</i><b>, size_t</b>
-<i>size</i><b>);</b></p>
-</td>
-</table>
-<!-- INDENTATION -->
-<table width="100%" border=0 rules="none" frame="void"
-       cols="2" cellspacing="0" cellpadding="0">
-<tr valign="top" align="left">
-<td width="10%"></td>
-<td width="89%">
-<p><b>void free(void *</b><i>ptr</i><b>);</b></p>
-</td>
-</table>
-<!-- INDENTATION -->
-<table width="100%" border=0 rules="none" frame="void"
-       cols="2" cellspacing="0" cellpadding="0">
-<tr valign="top" align="left">
-<td width="10%"></td>
-<td width="89%">
-<p><b>size_t malloc_usable_size(const void
-*</b><i>ptr</i><b>);</b></p>
-</td>
-</table>
-<!-- INDENTATION -->
-<table width="100%" border=0 rules="none" frame="void"
-       cols="2" cellspacing="0" cellpadding="0">
-<tr valign="top" align="left">
-<td width="10%"></td>
-<td width="89%">
-<p><b>void *memalign(size_t</b> <i>alignment</i><b>,
-size_t</b> <i>size</i><b>);</b></p>
-</td>
-</table>
-<!-- INDENTATION -->
-<table width="100%" border=0 rules="none" frame="void"
-       cols="2" cellspacing="0" cellpadding="0">
-<tr valign="top" align="left">
-<td width="10%"></td>
-<td width="89%">
-<p><b>void *aligned_alloc(size_t</b> <i>alignment</i><b>,
-size_t</b> <i>size</i><b>);</b></p>
-</td>
-</table>
-<!-- INDENTATION -->
-<table width="100%" border=0 rules="none" frame="void"
-       cols="2" cellspacing="0" cellpadding="0">
-<tr valign="top" align="left">
-<td width="10%"></td>
-<td width="89%">
-<p><b>void *valloc(size_t</b> <i>size</i><b>);</b></p>
-</td>
-</table>
-<!-- INDENTATION -->
-<table width="100%" border=0 rules="none" frame="void"
-       cols="2" cellspacing="0" cellpadding="0">
-<tr valign="top" align="left">
-<td width="10%"></td>
-<td width="89%">
-<p><b>void *pvalloc(size_t</b> <i>size</i><b>);</b></p>
-</td>
-</table>
-<!-- INDENTATION -->
-<table width="100%" border=0 rules="none" frame="void"
-       cols="2" cellspacing="0" cellpadding="0">
-<tr valign="top" align="left">
-<td width="10%"></td>
-<td width="89%">
-<p><b>void cfree(void *</b><i>ptr</i><b>);</b></p>
+$ cc [ flag... ] file...</b> <i>-lvmmalloc</i> <b>[ library... ]
+
+void *malloc(size_t</b> <i>size</i><b>);
+void free(void *</b><i>ptr</i><b>);
+void *calloc(size_t</b> <i>number</i><b>, size_t</b> <i>size</i><b>);
+void *realloc(void *</b><i>ptr</i><b>, size_t</b> <i>size</i><b>);
+
+int posix_memalign(void **</b><i>memptr</i><b>, size_t</b> <i>alignment</i><b>, size_t</b> <i>size</i><b>);
+void *aligned_alloc(size_t</b> <i>alignment</i><b>, size_t</b> <i>size</i><b>);
+void *memalign(size_t</b> <i>alignment</i><b>, size_t</b> <i>size</i><b>);
+void *valloc(size_t</b> <i>size</i><b>);
+void *pvalloc(size_t</b> <i>size</i><b>);
+
+size_t malloc_usable_size(const void *</b><i>ptr</i><b>);
+void cfree(void *</b><i>ptr</i><b>);
+</b></pre>
 </td>
 </table>
 <a name="DESCRIPTION"></a>
 <h2>DESCRIPTION</h2>
 <!-- INDENTATION -->
+
 <table width="100%" border=0 rules="none" frame="void"
        cols="2" cellspacing="0" cellpadding="0">
 <tr valign="top" align="left">
@@ -194,11 +102,15 @@ it becomes the default memory allocator for given
 program.</p>
 <!-- INDENTATION -->
 <p><b>NOTE: Due to the fact the library operates on a
-memory-mapped file, it will not work with the programs that
-perform fork</b>(3) <b>not followed by exec</b>(3). <b>The
-behavior is undefined in such case, but most likely results
-in the memory pool corruption and the program crash due to
-segmentation fault.</b></p>
+memory-mapped file, it may not work properly with the
+programs that perform fork</b>(3) <b>not followed by
+exec</b>(3).</p>
+<!-- INDENTATION -->
+<p><b>There are two variants of experimental fork</b>()
+<b>support available in libvmmalloc. The desired library
+behavior may be selected by setting VMMALLOC_FORK
+environment variable. By default variant #1 is enabled. See
+ENVIRONMENT section for more details.</b></p>
 <!-- INDENTATION -->
 <p><b>libvmmalloc</b> uses the <b>mmap</b>(2) system call to
 create a pool of volatile memory. The library is most useful
@@ -277,11 +189,105 @@ writable.</p>
 <p>Defines the desired size (in bytes) of the memory pool
 file. It must be not less than the minimum allowed size
 <b>VMMALLOC_MIN_POOL</b> as defined in
-<b>&lt;libvmmalloc.h&gt;.</b></p>
+<b>&lt;libvmmalloc.h&gt;.</b> Note that due to the fact the
+library adds some metadata to the memory pool, the amount of
+actual usable space is typically less than the size of the
+memory pool file.</p>
+</td>
+</table>
 <!-- INDENTATION -->
-<p>Note that due to the fact the library adds some metadata
-to the memory pool, the amount of actual usable space is
-typically less than the size of the memory pool file.</p>
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>Setting the <b>VMMALLOC_FORK</b> configuration variable
+is optional. It controls the behavior of <b>libvmmalloc</b>
+in case of <b>fork</b>(3), and can be set to the following
+values:</p>
+</td>
+</table>
+<!-- TABS -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="4" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="1%">
+
+<p>0</p>
+</td>
+<td width="8%"></td>
+<td width="77%">
+
+<p>Fork support is disabled. The behavior is undefined in
+such case, but most likely results in the memory pool
+corruption and the program crash due to segmentation
+fault.</p>
+</td>
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="1%">
+
+<p>1</p>
+</td>
+<td width="8%"></td>
+<td width="77%">
+
+<p>The memory pool file is remapped with MAP_PRIVATE flag
+before the fork completes. From this moment, any access to
+memory that modifies the heap pages, both in the parent and
+in the child process, will trigger creation of a copy of
+those pages in RAM (copy-on-write). The benefit of such
+approach is that it does not significantly increase the time
+of fork operation, and does not require additional space on
+the file system. However, all the subsequent memory
+allocations and modifications of the memory allocated before
+fork, will consume system memory resources instead of the
+memory pool.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>This is the default setting.</p>
+</td>
+</table>
+<!-- TABS -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="4" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="2%">
+
+<p>2</p>
+</td>
+<td width="7%"></td>
+<td width="77%">
+
+<p>A copy of the entire memory pool file is created for the
+use of the child process. This requires additional space on
+the file system, but both the parent and the child process
+may still operate on their memory pools, not consuming the
+system memory resources. NOTE: In case of large memory
+pools, creating a copy of the pool file may stall the fork
+operation for a quite long time.</p>
+</td>
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="2%">
+
+<p>3</p>
+</td>
+<td width="7%"></td>
+<td width="77%">
+
+<p>The library first attempts to create a copy of the
+memory pool (as for option #2), but if it fails (i.e.
+because of insufficient amount of free space on the file
+system), it will fall back to option #1.</p>
 </td>
 </table>
 <a name="DEBUGGING"></a>
@@ -357,9 +363,7 @@ addition to returning the errno-based errors as usual).</p>
 <td width="77%">
 
 <p>This level enables a very verbose amount of function
-call tracing in the library. There are also some basic
-memory allocation statistics logged when the process
-terminates.</p>
+call tracing in the library.</p>
 </td>
 <tr valign="top" align="left">
 <td width="11%"></td>
@@ -391,6 +395,20 @@ stderr.</p>
 <p>Setting the environment variable
 <b>VMMALLOC_LOG_LEVEL</b> has no effect on the non-debug
 version of <b>libvmmalloc</b>.</p>
+<!-- INDENTATION -->
+<p><b>VMMALLOC_LOG_STATS=1</b></p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="20%"></td>
+<td width="79%">
+<p>Setting this environment variable to 1 enables logging
+the human-readable summary statistics at the program
+termination. Statistics are written only for the debug
+version of <b>libvmmalloc</b>.</p>
 </td>
 </table>
 <a name="NOTES"></a>
@@ -415,9 +433,20 @@ or shrink that memory pool.</p>
 <tr valign="top" align="left">
 <td width="10%"></td>
 <td width="89%">
-<p><b>libvmmalloc</b> does not work with the programs that
-perform <b>fork</b>(3) and do not call <b>exec</b>(3)
-immediately afterwards.</p>
+<p><b>libvmmalloc</b> may not work properly with the
+programs that perform <b>fork</b>(3) and do not call
+<b>exec</b>(3) immediately afterwards. See
+<b>ENVIRONMENT</b> section for more details about the
+experimental <b>fork</b>() support.</p>
+<!-- INDENTATION -->
+<p>If the trace points in the debug version of the library
+are enabled and the process performs fork, there is no new
+log file created for the child process, even if the
+configured log file name is terminated with &quot;-&quot;
+character. All the logging information from the child
+process will be written to the log file owned by the parent
+process, which may lead to corruption or partial loss of the
+log data.</p>
 <!-- INDENTATION -->
 <p>Malloc hooks (see <b>malloc_hook</b>(3)), are not
 supported when using <b>libvmmalloc</b>.</p>
@@ -453,7 +482,7 @@ allocation. See:</p>
 <tr valign="top" align="left">
 <td width="10%"></td>
 <td width="89%">
-<p><b>ld.so</b>(8) <b>malloc</b>(3),
+<p><b>ld.so</b>(8), <b>malloc</b>(3),
 <b>posix_memalign</b>(3), <b>malloc_usable_size</b>(3),
 <b>malloc_hook</b>(3), <b>jemalloc</b>(3),
 <b>libvmem</b>(3), <b>libpmem</b>(3).</p>

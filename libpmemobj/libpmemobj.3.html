@@ -1,5 +1,5 @@
 <!-- Creator     : groff version 1.18.1.4 -->
-<!-- CreationDate: Thu Jul  9 07:30:26 2015 -->
+<!-- CreationDate: Tue Sep 22 08:36:11 2015 -->
 <html>
 <head>
 <meta name="generator" content="groff -Thtml, see www.gnu.org">
@@ -62,9 +62,6 @@ Most commonly used functions:
 PMEMobjpool *pmemobj_open(const char *</b><i>path</i><b>, const char *</b><i>layout</i><b>);
 PMEMobjpool *pmemobj_create(const char *</b><i>path</i><b>, const char *</b><i>layout</i><b>,
     size_t</b> <i>poolsize</i><b>, mode_t</b> <i>mode</i><b>);
-PMEMobjpool *pmemobj_create_part(const char *</b><i>path</i><b>, const char *</b><i>layout</i><b>,
-    size_t</b> <i>partsize</i><b>, mode_t</b> <i>mode</i><b>, int</b> <i>part_index</i><b>, int</b> <i>nparts</i><b>,
-    int</b> <i>replica_index</i><b>, int</b> <i>nreplica</i><b>);
 void pmemobj_close(PMEMobjpool *</b><i>pop</i><b>);
 
 Low-level memory manipulation:
@@ -154,8 +151,9 @@ int pmemobj_strdup(PMEMobjpool *</b><i>pop</i><b>, PMEMoid *</b><i>oidp</i><b>, 
     unsigned int</b> <i>type_num</i><b>);
 void pmemobj_free(PMEMoid *</b><i>oidp</i><b>);
 size_t pmemobj_alloc_usable_size(PMEMoid</b> <i>oid</i><b>);
+PMEMobjpool *pmemobj_pool(PMEMoid</b> <i>oid</i><b>);
 void *pmemobj_direct(PMEMoid</b> <i>oid</i><b>);
-unsigned int pmemobj_type_num(PMEMoid</b> <i>oid</i><b>);
+int pmemobj_type_num(PMEMoid</b> <i>oid</i><b>);
 
 POBJ_NEW(PMEMobjpool *</b><i>pop</i><b>, TOID *</b><i>oidp</i><b>,</b> <i>TYPE</i><b>,
     void (*</b><i>constructor</i><b>)(PMEMobjpool *</b><i>pop</i><b>, void *</b><i>ptr</i><b>, void *</b><i>arg</i><b>),
@@ -254,13 +252,13 @@ POBJ_LIST_MOVE_ELEMENT_TAIL(PMEMobjpool *</b><i>pop</i><b>, POBJ_LIST_HEAD *</b>
 
 Transactional object manipulation:
 
-enum tx_stage pmemobj_tx_stage();
+enum tx_stage pmemobj_tx_stage(void);
 
 int pmemobj_tx_begin(PMEMobjpool *</b><i>pop</i><b>, jmp_buf *</b><i>env</i><b>, enum</b> <i>tx_lock</i><b>,</b> <i>...</i><b>);
 void pmemobj_tx_abort(int</b> <i>errnum</i><b>);
-int pmemobj_tx_commit();
-void pmemobj_tx_end();
-int pmemobj_tx_process();
+int pmemobj_tx_commit(void);
+void pmemobj_tx_end(void);
+int pmemobj_tx_process(void);
 
 int pmemobj_tx_add_range(PMEMoid</b> <i>oid</i><b>, uint64_t</b> <i>off</i><b>, size_t</b> <i>size</i><b>);
 int pmemobj_tx_add_range_direct(void *</b><i>ptr</i><b>, size_t</b> <i>size</i><b>);
@@ -304,7 +302,9 @@ Managing library behavior:
 
 void pmemobj_set_funcs(
     void *(*</b><i>malloc_func</i><b>)(size_t</b> <i>size</i><b>),
-    void (*</b><i>free_func</i><b>)(void *</b><i>ptr</i><b>));
+    void (*</b><i>free_func</i><b>)(void *</b><i>ptr</i><b>),
+    void *(*</b><i>realloc_func</i><b>)(void *</b><i>ptr</i><b>, size_t</b> <i>size</i><b>),
+    char *(*</b><i>strdup_func</i><b>)(const char *</b><i>s</i><b>));
 int pmemobj_check(const char *</b><i>path</i><b>, const char *</b><i>layout</i><b>);
 
 Error handling:
@@ -656,60 +656,38 @@ backup for a persistent memory pool by producing a
 be considered the binary copies of the &quot;master&quot;
 pool set.</p>
 <!-- INDENTATION -->
-<p>Creation of each specific part of the pool set or the
-replica set can be done with the
-<b>pmemobj_create_part</b>() function described below.
-However, the recommended method for creating pool sets and
-replicas is to do it by using the <b>pmempool</b>(1)
-utility.</p>
+<p>Creation of all the parts of the pool set and the
+associated replica sets can be done with the
+<b>pmemobj_create</b>() function or by using the
+<b>pmempool</b>(1) utility.</p>
 <!-- INDENTATION -->
-<p><b>PMEMobjpool *pmemobj_create_part(const char
-*</b><i>path</i><b>, const char *</b><i>layout</i><b>,<br>
-size_t</b> <i>partsize</i><b>, mode_t</b> <i>mode</i><b>,
-int</b> <i>part_index</i><b>, int</b> <i>nparts</i><b>,<br>
-int</b> <i>replica_index</i><b>, int</b>
-<i>nreplica</i><b>);</b></p>
-</td>
-</table>
+<p>When creating the pool set consisting of multiple files,
+or when creating the replicated pool set, the <i>path</i>
+argument passed to <b>pmemobj_create</b>() must point to the
+special <i>set</i> file that defines the pool layout and the
+location of all the parts of the pool set. The
+<i>poolsize</i> argument must be 0. The meaning of
+<i>layout</i> and <i>mode</i> arguments doesn&rsquo;t
+change, except that the same <i>mode</i> is used for
+creation of all the parts of the pool set and replicas. If
+the error prevents any of the pool set files from being
+created, <b>pmemobj_create</b>() returns NULL and sets errno
+appropriately.</p>
 <!-- INDENTATION -->
-<table width="100%" border=0 rules="none" frame="void"
-       cols="2" cellspacing="0" cellpadding="0">
-<tr valign="top" align="left">
-<td width="20%"></td>
-<td width="79%">
-<p>The <b>pmemobj_create_part</b>() function creates a part
-of transactional object store of the size specified by
-<i>partsize</i>. The <i>path</i> argument specifies the name
-of the memory pool part file to be created. The meaning of
-<i>layout</i> and <i>mode</i> arguments is the same as for
-<b>pmemobj_create</b>().</p>
-<!-- INDENTATION -->
-<p>The <i>part_index</i> and <i>nparts</i> arguments specify
-the index of given part and the total number of parts in the
-pool set. Similarly, <i>replica_index</i> and
-<i>nreplica</i> specify the replica index and the total
-number of replicas.</p>
-</td>
-</table>
-<!-- INDENTATION -->
-<table width="100%" border=0 rules="none" frame="void"
-       cols="2" cellspacing="0" cellpadding="0">
-<tr valign="top" align="left">
-<td width="10%"></td>
-<td width="89%">
 <p>When opening the pool set consisting of multiple files,
 or when opening the replicated pool set, the <i>path</i>
 argument passed to <b>pmemobj_open</b>() must not point to
-the pmemobj memory pool file, but to the special <i>set</i>
-file that defines the pool layout and the location of all
-the parts of the pool set. If the error prevents any of the
-pool set files from being open, <b>pmemobj_open</b>()
+the pmemobj memory pool file, but to the same <i>set</i>
+file that was used for the pool set creation. If an error
+prevents any of the pool set files from being opened, or if
+the actual size of any file does not match the corresponding
+part size defined in <i>set</i> file <b>pmemobj_open</b>()
 returns NULL and sets errno appropriately.</p>
 <!-- INDENTATION -->
 <p>The set file is a plain text file, which must start with
 the line containing a <i>PMEMPOOLSET</i> string, followed by
 the specification of all the pool parts in the next lines.
-For each part, the file size and the full path must be
+For each part, the file size and the absolute path must be
 provided. Sections defining the replica sets are optional.
 There could be multiple replica sections and each must start
 with the line containing a <i>REPLICA</i> string. Lines
@@ -751,36 +729,7 @@ following command:</p>
 <tr valign="top" align="left">
 <td width="20%"></td>
 <td width="79%">
-<pre>pmempool create obj --layout=&quot;mylayout&quot; --from-set=myobjpool.set
-</pre>
-</td>
-</table>
-<!-- INDENTATION -->
-
-<table width="100%" border=0 rules="none" frame="void"
-       cols="2" cellspacing="0" cellpadding="0">
-<tr valign="top" align="left">
-<td width="10%"></td>
-<td width="89%">
-<p>This is equivalent to making these calls:</p>
-</td>
-</table>
-<!-- INDENTATION -->
-<table width="100%" border=0 rules="none" frame="void"
-       cols="2" cellspacing="0" cellpadding="0">
-<tr valign="top" align="left">
-<td width="20%"></td>
-<td width="79%">
-<pre>pmemobj_create_part(&quot;/mountpoint0/myfile.part0&quot;, &quot;mylayout&quot;,
-                        100 * SZ_1G, 0666, 0, 3, 0, 2);
-pmemobj_create_part(&quot;/mountpoint1/myfile.part1&quot;, &quot;mylayout&quot;,
-                        200 * SZ_1G, 0666, 1, 3, 0, 2);
-pmemobj_create_part(&quot;/mountpoint2/myfile.part2&quot;, &quot;mylayout&quot;,
-                        400 * SZ_1G, 0666, 2, 3, 0, 2);
-pmemobj_create_part(&quot;/mountpoint3/mymirror.part0&quot;, &quot;mylayout&quot;,
-                        500 * SZ_1G, 0666, 0, 2, 1, 2);
-pmemobj_create_part(&quot;/mountpoint4/mymirror.part1&quot;, &quot;mylayout&quot;,
-                        200 * SZ_1G, 0666, 1, 2, 1, 2);
+<pre>pmempool create --layout=&quot;mylayout&quot; obj myobjpool.set
 </pre>
 </td>
 </table>
@@ -1233,7 +1182,10 @@ practice, such a handle is a unique Object IDentifier (OID)
 of a global scope, which means that two objects from
 different pools may not have the same OID. The special
 <i>OID_NULL</i> macro defines a NULL-like handle that does
-not represent any object.</p>
+not represent any object. The size of a single object is
+limited by a <i>PMEMOBJ_MAX_ALLOC_SIZE</i>. Thus an
+allocation with requested size greater than this value will
+fail.</p>
 <!-- INDENTATION -->
 <p>An OID cannot be considered as a direct pointer to an
 object. Each time the program attempts to read or write
@@ -1270,6 +1222,49 @@ as an argument, function returns NULL.</p>
 <tr valign="top" align="left">
 <td width="10%"></td>
 <td width="89%">
+<p><b>int pmemobj_type_num(PMEMoid</b>
+<i>oid</i><b>);</b></p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="20%"></td>
+<td width="79%">
+<p>The <b>pmemobj_type_num</b>() function returns a type
+number of the object represented by <i>oid</i>. If OID_NULL
+is passed as an argument, function returns -1.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>PMEMobjpool *pmemobj_pool(PMEMoid</b>
+<i>oid</i><b>);</b></p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="20%"></td>
+<td width="79%">
+<p>The <b>pmemobj_pool</b>() function returns a handle to
+the pool which contains the object represented by
+<i>oid</i>. If the pool is not open or OID_NULL is passed as
+an argument, function returns NULL.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
 <p>At the time of allocation (or reallocation), each object
 may be assigned a number representing its type. Such a
 <i>type number</i> may be used to arrange the persistent
@@ -1279,8 +1274,11 @@ safety mechanism. It also allows to iterate through all the
 objects of given type stored in the persistent memory pool.
 See <b>OBJECT CONTAINERS</b> section for more details.</p>
 <!-- INDENTATION -->
-<p>The <b>PMEMOBJ_NUM_OID_TYPES</b> macro defines the limit
-of valid type numbers.</p>
+<p>The maximum allowed <i>type number</i> value is limited
+by the <b>PMEMOBJ_NUM_OID_TYPES</b> macro. The only valid
+type numbers are those in the range <b>[0,
+PMEMOBJ_NUM_OID_TYPES-1]</b> and the special value
+<b>POBJ_ROOT_TYPE_NUM</b> reserved for the root object.</p>
 <!-- INDENTATION -->
 <p>The <b>OID_IS_NULL</b> macro checks if given
 <i>PMEMoid</i> represents a NULL object.</p>
@@ -1807,7 +1805,9 @@ containers is limited by <b>PMEMOBJ_NUM_OID_TYPES</b>.</p>
 <p>The <i>libpmemobj</i> provides a mechanism allowing to
 iterate through the internal object collections, either
 looking for a specific object, or performing a specific
-operation on each object of given type.</p>
+operation on each object of given type. Software should not
+make any assumptions about the order of the objects in the
+internal object containers.</p>
 <!-- INDENTATION -->
 <p><b>PMEMoid pmemobj_first(PMEMobjpool *</b><i>pop</i><b>,
 unsigned int</b> <i>type_num</i><b>);</b></p>
@@ -1958,9 +1958,7 @@ PMEMoid</b> <i>nvaroid</i><b>, unsigned int</b>
 <i>vartype_num</i><b>)</b></p>
 <!-- INDENTATION -->
 <p><b>POBJ_FOREACH_SAFE_TYPE(PMEMobjpool *</b><i>pop</i><b>,
-TOID</b> <i>var</i><b>,<br>
-PMEMoid</b> <i>nvar</i><b>, unsigned int</b>
-<i>type_num</i><b>)</b></p>
+TOID</b> <i>var</i><b>, TOID</b> <i>nvar</i><b>)</b></p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -2118,8 +2116,12 @@ void *</b><i>ptr</i><b>, void *</b><i>arg</i><b>), void
 <p>The <b>pmemobj_alloc</b> function allocates a new object
 from the persistent memory heap associated with memory pool
 <i>pop</i>. The <b>PMEMoid</b> of allocated object is stored
-in <i>oidp</i>. If the <i>oidp</i> points to memory location
-from the <b>pmemobj</b> heap the <i>oidp</i> is modified
+in <i>oidp</i>. If NULL is passed as <i>oidp</i>, then the
+newly allocated object may be accessed only by iterating
+objects in the object container associated with given
+<i>type_num</i>, as described in <b>OBJECT CONTAINERS</b>
+section. If the <i>oidp</i> points to memory location from
+the <b>pmemobj</b> heap the <i>oidp</i> is modified
 atomically. Before returning, it calls the
 <b>constructor</b> function passing the pool handle
 <i>pop</i>, the pointer to the newly allocated object in
@@ -2159,18 +2161,22 @@ unsigned int</b> <i>type_num</i><b>);</b></p>
 <p>The <b>pmemobj_zalloc</b>() function allocates a new
 zeroed object from the the persistent memory heap associated
 with memory pool <i>pop</i>. The <b>PMEMoid</b> of allocated
-object is stored in <i>oidp</i>. If the <i>oidp</i> points
-to memory location from the <b>pmemobj</b> heap the
-<i>oidp</i> is modified atomically. The <i>size</i> can be
-any non-zero value, however due to internal padding and
-object metadata, the actual size of the allocation will
-differ from the requested one by at least 64 bytes. For this
-reason, making the allocations of a size less than 64 bytes
-is extremely inefficient and discouraged. If <i>size</i>
-equals 0, then <b>pmemobj_zalloc</b>() returns non-zero
-value, sets the errno and leaves the <i>oidp</i> untouched.
-The allocated object is added to the internal container
-associated with given <i>type_num</i>.</p>
+object is stored in <i>oidp</i>. If NULL is passed as
+<i>oidp</i>, then the newly allocated object may be accessed
+only by iterating objects in the object container associated
+with given <i>type_num</i>, as described in <b>OBJECT
+CONTAINERS</b> section. If the <i>oidp</i> points to memory
+location from the <b>pmemobj</b> heap the <i>oidp</i> is
+modified atomically. The <i>size</i> can be any non-zero
+value, however due to internal padding and object metadata,
+the actual size of the allocation will differ from the
+requested one by at least 64 bytes. For this reason, making
+the allocations of a size less than 64 bytes is extremely
+inefficient and discouraged. If <i>size</i> equals 0, then
+<b>pmemobj_zalloc</b>() returns non-zero value, sets the
+errno and leaves the <i>oidp</i> untouched. The allocated
+object is added to the internal container associated with
+given <i>type_num</i>.</p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -2318,7 +2324,11 @@ semantics as <b>strdup</b>(3), but operates on the
 persistent memory heap associated with memory pool
 <i>pop</i>. It stores a handle to a new object in
 <i>oidp</i> which is a duplicate of the string <i>s</i>. If
-the <i>oidp</i> points to memory location from the
+NULL is passed as <i>oidp</i>, then the newly allocated
+object may be accessed only by iterating objects in the
+object container associated with given <i>type_num</i>, as
+described in <b>OBJECT CONTAINERS</b> section. If the
+<i>oidp</i> points to memory location from the
 <b>pmemobj</b> heap the <i>oidp</i> is changed atomically.
 The allocated string object is also added to the internal
 container associated with given <i>type_num</i>. Memory for
@@ -2561,11 +2571,11 @@ support the following functionality:</p>
        cols="4" cellspacing="0" cellpadding="0">
 <tr valign="top" align="left">
 <td width="11%"></td>
-<td width="1%">
+<td width="2%">
 
 <p>*</p>
 </td>
-<td width="4%"></td>
+<td width="2%"></td>
 <td width="82%">
 
 <p>Insertion of an object at the head of the list, or at
@@ -2573,11 +2583,11 @@ the end of the list.</p>
 </td>
 <tr valign="top" align="left">
 <td width="11%"></td>
-<td width="1%">
+<td width="2%">
 
 <p>*</p>
 </td>
-<td width="4%"></td>
+<td width="2%"></td>
 <td width="82%">
 
 <p>Insertion of an object before or after any element in
@@ -2585,11 +2595,11 @@ the list.</p>
 </td>
 <tr valign="top" align="left">
 <td width="11%"></td>
-<td width="1%">
+<td width="2%">
 
 <p>*</p>
 </td>
-<td width="4%"></td>
+<td width="2%"></td>
 <td width="82%">
 
 <p>Atomic allocation and insertion of a new object at the
@@ -2597,11 +2607,11 @@ head of the list, or at the end of the list.</p>
 </td>
 <tr valign="top" align="left">
 <td width="11%"></td>
-<td width="1%">
+<td width="2%">
 
 <p>*</p>
 </td>
-<td width="4%"></td>
+<td width="2%"></td>
 <td width="82%">
 
 <p>Atomic allocation and insertion of a new object before
@@ -2609,11 +2619,11 @@ or after any element in the list.</p>
 </td>
 <tr valign="top" align="left">
 <td width="11%"></td>
-<td width="1%">
+<td width="2%">
 
 <p>*</p>
 </td>
-<td width="4%"></td>
+<td width="2%"></td>
 <td width="82%">
 
 <p>Atomic moving of an element from one list to the
@@ -2621,22 +2631,22 @@ specific location on another list.</p>
 </td>
 <tr valign="top" align="left">
 <td width="11%"></td>
-<td width="1%">
+<td width="2%">
 
 <p>*</p>
 </td>
-<td width="4%"></td>
+<td width="2%"></td>
 <td width="82%">
 
 <p>Removal of any object in the list.</p>
 </td>
 <tr valign="top" align="left">
 <td width="11%"></td>
-<td width="1%">
+<td width="2%">
 
 <p>*</p>
 </td>
-<td width="4%"></td>
+<td width="2%"></td>
 <td width="82%">
 
 <p>Atomic removal and freeing of any object in the
@@ -2644,11 +2654,11 @@ list.</p>
 </td>
 <tr valign="top" align="left">
 <td width="11%"></td>
-<td width="1%">
+<td width="2%">
 
 <p>*</p>
 </td>
-<td width="4%"></td>
+<td width="2%"></td>
 <td width="82%">
 
 <p>Forward or backward traversal through the list.</p>
@@ -2996,10 +3006,8 @@ POBJ_LIST_ENTRY</b> <i>FIELD</i><b>)</b></p>
 <tr valign="top" align="left">
 <td width="20%"></td>
 <td width="79%">
-<p>The macro <b>POBJ_LIST_NEXT</b> returns the element from
-the list referenced by <i>head</i> next to the element
-<i>elm</i>. If <i>elm</i> is the last element on the list,
-OID_NULL is returned.</p>
+<p>The macro <b>POBJ_LIST_NEXT</b> returns the element next
+to the element <i>elm</i>.</p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -3018,10 +3026,8 @@ POBJ_LIST_ENTRY</b> <i>FIELD</i><b>)</b></p>
 <tr valign="top" align="left">
 <td width="20%"></td>
 <td width="79%">
-<p>The macro <b>POBJ_LIST_PREV</b> returns the element from
-the list referenced by <i>head</i> preceding the element
-<i>elm</i>. If <i>elm</i> is the first element on the list,
-OID_NULL is returned.</p>
+<p>The macro <b>POBJ_LIST_PREV</b> returns the element
+preceding the element <i>elm</i>.</p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -3484,7 +3490,7 @@ transaction, however errors in the nested transaction are
 propagated up to the outer-most level, resulting in the
 interruption of the entire transaction.</p>
 <!-- INDENTATION -->
-<p><b>enum tx_stage pmemobj_tx_stage();</b></p>
+<p><b>enum tx_stage pmemobj_tx_stage(void);</b></p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -3584,7 +3590,7 @@ the stage other than <i>TX_STAGE_WORK</i>.</p>
 <tr valign="top" align="left">
 <td width="10%"></td>
 <td width="89%">
-<p><b>int pmemobj_tx_commit();</b></p>
+<p><b>int pmemobj_tx_commit(void);</b></p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -3609,7 +3615,7 @@ effect if called during the stage other than
 <tr valign="top" align="left">
 <td width="10%"></td>
 <td width="89%">
-<p><b>void pmemobj_tx_end();</b></p>
+<p><b>void pmemobj_tx_end(void);</b></p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -3637,7 +3643,7 @@ during <i>TX_STAGE_NONE</i> stage.</p>
 <tr valign="top" align="left">
 <td width="10%"></td>
 <td width="89%">
-<p><b>int pmemobj_tx_process();</b></p>
+<p><b>int pmemobj_tx_process(void);</b></p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -3650,8 +3656,8 @@ during <i>TX_STAGE_NONE</i> stage.</p>
 actions associated with current stage of the transaction,
 and makes the transition to the next stage. Current stage
 must always be obtained by a call to
-<b>pmemobj_tx_get_stage</b>(). If successful, function
-returns zero. Otherwise, an error number is returned.</p>
+<b>pmemobj_tx_stage</b>(). If successful, function returns
+zero. Otherwise, an error number is returned.</p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -4554,7 +4560,11 @@ less commonly used than the previous sections.</p>
 void *(*</b><i>malloc_func</i><b>)(size_t</b>
 <i>size</i><b>),<br>
 void (*</b><i>free_func</i><b>)(void
-*</b><i>ptr</i><b>));</b></p>
+*</b><i>ptr</i><b>),<br>
+void *(*</b><i>realloc_func</i><b>)(void *</b><i>ptr</i><b>,
+size_t</b> <i>size</i><b>),<br>
+char *(*</b><i>strdup_func</i><b>)(const char
+*</b><i>s</i><b>));</b></p>
 </td>
 </table>
 <!-- INDENTATION -->
