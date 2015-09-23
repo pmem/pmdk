@@ -174,7 +174,7 @@ lane_boot(PMEMobjpool *pop)
 	}
 
 	/* add lanes to pmemcheck ignored list */
-	VALGRIND_ADD_TO_GLOBAL_TX_IGNORE((void *)pop + pop->lanes_offset,
+	VALGRIND_ADD_TO_GLOBAL_TX_IGNORE((char *)pop + pop->lanes_offset,
 		(sizeof (struct lane_layout) * pop->nlanes));
 	int i;
 	for (i = 0; i < pop->nlanes; ++i) {
