@@ -142,7 +142,7 @@ test_bucket_insert_get()
 	/* get from empty */
 	ASSERT(bucket_get_rm_block_bestfit(b, &m) != 0);
 
-	ASSERT(bucket_insert_block(b, m) == 0);
+	ASSERT(bucket_insert_block(NULL, b, m) == 0);
 
 	ASSERT(bucket_get_rm_block_bestfit(b, &m) == 0);
 
@@ -163,7 +163,7 @@ test_bucket_remove()
 	struct memory_block m = {TEST_CHUNK_ID, TEST_ZONE_ID,
 		TEST_SIZE_IDX, TEST_BLOCK_OFF};
 
-	ASSERT(bucket_insert_block(b, m) == 0);
+	ASSERT(bucket_insert_block(NULL, b, m) == 0);
 
 	ASSERT(bucket_get_rm_block_exact(b, m) == 0);
 

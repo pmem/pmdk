@@ -190,10 +190,13 @@ get_zone_size_idx(uint32_t zone_id, int max_zone, size_t heap_size)
  * heap_chunk_write_footer -- (internal) writes a chunk footer
  */
 static void
-heap_chunk_write_footer(struct chunk_header *hdr, uint32_t size_idx)
+heap_chunk_write_footer(PMEMobjpool *pop, struct chunk_header *hdr,
+		uint32_t size_idx)
 {
 	if (size_idx == 1) /* that would overwrite the header */
 		return;
+
+	VALGRIND_DO_MAKE_MEM_UNDEFINED(pop, hdr + size_idx - 1, sizeof (*hdr));
 
 	struct chunk_header f = *hdr;
 	f.type = CHUNK_TYPE_FOOTER;
@@ -215,10 +218,12 @@ heap_chunk_init(PMEMobjpool *pop, struct chunk_header *hdr,
 		.flags = 0,
 		.size_idx = size_idx
 	};
+	VALGRIND_DO_MAKE_MEM_UNDEFINED(pop, hdr, sizeof (*hdr));
+
 	*hdr = nhdr; /* write the entire header (8 bytes) at once */
 	pop->persist(pop, hdr, sizeof (*hdr));
 
-	heap_chunk_write_footer(hdr, size_idx);
+	heap_chunk_write_footer(pop, hdr, size_idx);
 }
 
 /*
@@ -276,8 +281,8 @@ heap_init_run(PMEMobjpool *pop, struct bucket *b, struct chunk_header *hdr,
  * heap_run_insert -- (internal) inserts and splits a block of memory into a run
  */
 static void
-heap_run_insert(struct bucket *b, uint32_t chunk_id, uint32_t zone_id,
-		uint32_t size_idx, uint16_t block_off)
+heap_run_insert(PMEMobjpool *pop, struct bucket *b, uint32_t chunk_id,
+		uint32_t zone_id, uint32_t size_idx, uint16_t block_off)
 {
 	ASSERT(size_idx <= BITS_PER_VALUE);
 	ASSERT(block_off + size_idx <= bucket_bitmap_nallocs(b));
@@ -290,7 +295,7 @@ heap_run_insert(struct bucket *b, uint32_t chunk_id, uint32_t zone_id,
 		m.size_idx = size_idx;
 
 	do {
-		bucket_insert_block(b, m);
+		bucket_insert_block(pop, b, m);
 		m.block_off += m.size_idx;
 		size_idx -= m.size_idx;
 		m.size_idx = size_idx > unit_max ? unit_max : size_idx;
@@ -309,8 +314,10 @@ heap_populate_run_bucket(PMEMobjpool *pop, struct bucket *b,
 	struct chunk_header *hdr = &z->chunk_headers[chunk_id];
 	struct chunk_run *run = (struct chunk_run *)&z->chunks[chunk_id];
 
-	if (hdr->type != CHUNK_TYPE_RUN)
+	if (hdr->type != CHUNK_TYPE_RUN) {
+		VALGRIND_DO_MAKE_MEM_UNDEFINED(pop, run, sizeof (*run));
 		heap_init_run(pop, b, hdr, run);
+	}
 
 	ASSERT(hdr->size_idx == 1);
 	ASSERT(bucket_unit_size(b) == run->block_size);
@@ -324,7 +331,7 @@ heap_populate_run_bucket(PMEMobjpool *pop, struct bucket *b,
 		uint64_t v = run->bitmap[i];
 		block_off = BITS_PER_VALUE * i;
 		if (v == 0) {
-			heap_run_insert(b, chunk_id, zone_id,
+			heap_run_insert(pop, b, chunk_id, zone_id,
 				BITS_PER_VALUE, block_off);
 			continue;
 		} else if (v == ~0L) {
@@ -335,7 +342,7 @@ heap_populate_run_bucket(PMEMobjpool *pop, struct bucket *b,
 			if (BIT_IS_CLR(v, j)) {
 				block_size_idx++;
 			} else if (block_size_idx != 0) {
-				heap_run_insert(b, chunk_id, zone_id,
+				heap_run_insert(pop, b, chunk_id, zone_id,
 					block_size_idx,
 					block_off - block_size_idx);
 				block_size_idx = 0;
@@ -348,8 +355,8 @@ heap_populate_run_bucket(PMEMobjpool *pop, struct bucket *b,
 		}
 
 		if (block_size_idx != 0) {
-			heap_run_insert(b, chunk_id, zone_id, block_size_idx,
-				block_off - block_size_idx);
+			heap_run_insert(pop, b, chunk_id, zone_id,
+				block_size_idx, block_off - block_size_idx);
 			block_size_idx = 0;
 		}
 	}
@@ -419,7 +426,7 @@ heap_populate_buckets(PMEMobjpool *pop)
 	for (uint32_t i = 0; i < z->header.size_idx; ) {
 		struct chunk_header *hdr = &z->chunk_headers[i];
 		ASSERT(hdr->size_idx != 0);
-		heap_chunk_write_footer(hdr, hdr->size_idx);
+		heap_chunk_write_footer(pop, hdr, hdr->size_idx);
 
 		switch (hdr->type) {
 			case CHUNK_TYPE_RUN:
@@ -429,7 +436,7 @@ heap_populate_buckets(PMEMobjpool *pop)
 			case CHUNK_TYPE_FREE:
 				m.chunk_id = i;
 				m.size_idx = hdr->size_idx;
-				bucket_insert_block(def_bucket, m);
+				bucket_insert_block(pop, def_bucket, m);
 				break;
 			case CHUNK_TYPE_USED:
 				break;
@@ -619,7 +626,7 @@ heap_drain_to_auxiliary(PMEMobjpool *pop, struct bucket *auxb,
 				break;
 
 			drained_cache += m.size_idx;
-			bucket_insert_block(auxb, m);
+			bucket_insert_block(pop, auxb, m);
 		}
 
 		total_drained += drained_cache;
@@ -721,7 +728,7 @@ heap_resize_chunk(PMEMobjpool *pop,
 
 	struct bucket *def_bucket = pop->heap->buckets[DEFAULT_BUCKET];
 	struct memory_block m = {new_chunk_id, zone_id, rem_size_idx, 0};
-	if (bucket_insert_block(def_bucket, m) != 0) {
+	if (bucket_insert_block(pop, def_bucket, m) != 0) {
 		ERR("bucket_insert_block failed during resize");
 	}
 }
@@ -736,7 +743,7 @@ heap_recycle_block(PMEMobjpool *pop, struct bucket *b, struct memory_block *m,
 	if (bucket_is_small(b)) {
 		struct memory_block r = {m->chunk_id, m->zone_id,
 			m->size_idx - units, m->block_off + units};
-		bucket_insert_block(b, r);
+		bucket_insert_block(pop, b, r);
 	} else {
 		heap_resize_chunk(pop, m->chunk_id, m->zone_id, units);
 	}
@@ -833,7 +840,11 @@ heap_get_block_header(PMEMobjpool *pop, struct memory_block m,
 			op == HEAP_OP_ALLOC ? CHUNK_TYPE_USED : CHUNK_TYPE_FREE,
 			m.size_idx);
 
-		heap_chunk_write_footer(hdr, m.size_idx);
+		VALGRIND_DO_MAKE_MEM_NOACCESS(pop, hdr + 1,
+				(hdr->size_idx - 1) *
+				sizeof (struct chunk_header));
+
+		heap_chunk_write_footer(pop, hdr, m.size_idx);
 
 		return hdr;
 	}
@@ -1170,7 +1181,7 @@ heap_degrade_run_if_empty(PMEMobjpool *pop, struct bucket *b,
 	VALGRIND_REMOVE_FROM_TX(mhdr, sizeof (*mhdr));
 	pop->persist(pop, mhdr, sizeof (*mhdr));
 
-	if ((err = bucket_insert_block(defb, fm)) != 0) {
+	if ((err = bucket_insert_block(pop, defb, fm)) != 0) {
 		ERR("Failed to update heap volatile state");
 	}
 
@@ -1184,6 +1195,26 @@ out:
 
 	return err;
 }
+
+#ifdef USE_VG_MEMCHECK
+/*
+ * heap_vg_boot -- performs Valgrind-related heap initialization
+ */
+static void
+heap_vg_boot(PMEMobjpool *pop)
+{
+	if (!On_valgrind)
+		return;
+	LOG(4, "pop %p", pop);
+
+	/* mark unused part of the last zone as not accessible */
+	struct pmalloc_heap *h = pop->heap;
+	struct zone *last_zone = &h->layout->zones[h->max_zone - 1];
+	void *unused = &last_zone->chunks[last_zone->header.size_idx];
+	VALGRIND_DO_MAKE_MEM_NOACCESS(pop, unused,
+			(void *)pop + pop->size - unused);
+}
+#endif
 
 /*
  * heap_get_ncpus -- (internal) returns the number of available CPUs
@@ -1239,6 +1270,10 @@ heap_boot(PMEMobjpool *pop)
 		if (bucket_cache_init(pop, &h->caches[i]) != 0)
 			goto error_cache_init;
 
+#ifdef USE_VG_MEMCHECK
+	heap_vg_boot(pop);
+#endif
+
 	return 0;
 
 error_cache_init:
@@ -1276,6 +1311,66 @@ heap_write_header(struct heap_header *hdr, size_t size)
 	*hdr = newhdr;
 }
 
+#ifdef USE_VG_MEMCHECK
+/*
+ * heap_vg_open -- notifies Valgrind about heap layout
+ */
+void
+heap_vg_open(PMEMobjpool *pop)
+{
+	VALGRIND_DO_MAKE_MEM_UNDEFINED(pop, ((void *)pop) + pop->heap_offset,
+			pop->heap_size);
+
+	struct heap_layout *layout = heap_get_layout(pop);
+
+	VALGRIND_DO_MAKE_MEM_DEFINED(pop, &layout->header,
+			sizeof (layout->header));
+
+	int zones = heap_max_zone(pop->heap_size);
+
+	for (int i = 0; i < zones; ++i) {
+		struct zone *z = &layout->zones[i];
+		uint32_t chunks;
+
+		VALGRIND_DO_MAKE_MEM_DEFINED(pop, &z->header,
+				sizeof (z->header));
+
+		if (z->header.magic != ZONE_HEADER_MAGIC)
+			continue;
+
+		chunks = z->header.size_idx;
+
+		for (uint32_t c = 0; c < chunks; ) {
+			struct chunk_header *hdr = &z->chunk_headers[c];
+
+			VALGRIND_DO_MAKE_MEM_DEFINED(pop, hdr, sizeof (*hdr));
+
+			if (hdr->type == CHUNK_TYPE_RUN) {
+				struct chunk_run *run =
+					(struct chunk_run *)&z->chunks[c];
+
+				VALGRIND_DO_MAKE_MEM_DEFINED(pop, run,
+					sizeof (*run));
+			}
+
+			ASSERT(hdr->size_idx > 0);
+
+			/* mark unused chunk headers as not accessible */
+			VALGRIND_DO_MAKE_MEM_NOACCESS(pop,
+					&z->chunk_headers[c + 1],
+					(hdr->size_idx - 1) *
+					sizeof (struct chunk_header));
+
+			c += hdr->size_idx;
+		}
+
+		/* mark all unused chunk headers after last as not accessible */
+		VALGRIND_DO_MAKE_MEM_NOACCESS(pop, &z->chunk_headers[chunks],
+			(MAX_CHUNK - chunks) * sizeof (struct chunk_header));
+	}
+}
+#endif
+
 /*
  * heap_init -- initializes the heap
  *
@@ -1286,6 +1381,9 @@ heap_init(PMEMobjpool *pop)
 {
 	if (pop->heap_size < HEAP_MIN_SIZE)
 		return EINVAL;
+
+	VALGRIND_DO_MAKE_MEM_UNDEFINED(pop, (char *)pop + pop->heap_offset,
+			pop->heap_size);
 
 	struct heap_layout *layout = heap_get_layout(pop);
 	heap_write_header(&layout->header, pop->heap_size);
@@ -1302,6 +1400,11 @@ heap_init(PMEMobjpool *pop)
 		pmem_msync(&layout->zones[i].header,
 			sizeof (layout->zones[i].header));
 		pmem_msync(&layout->zones[i].chunk_headers,
+			sizeof (layout->zones[i].chunk_headers));
+
+		/* only explicitly allocated chunks should be accessible */
+		VALGRIND_DO_MAKE_MEM_NOACCESS(pop,
+			&layout->zones[i].chunk_headers,
 			sizeof (layout->zones[i].chunk_headers));
 	}
 

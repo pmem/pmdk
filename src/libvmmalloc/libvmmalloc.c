@@ -78,6 +78,7 @@
 #include "vmem.h"
 #include "vmmalloc.h"
 #include "out.h"
+#include "valgrind_internal.h"
 
 #define	HUGE (2 * 1024 * 1024)
 
@@ -414,7 +415,16 @@ libvmmalloc_clone(void)
 			addr, Vmp->addr, Vmp->size);
 
 	util_range_rw(Vmp->addr, sizeof (struct pool_hdr));
+
+	/*
+	 * Part of vmem pool was probably freed at some point, so Valgrind
+	 * marked it as undefined/inaccessible. We need to duplicate the whole
+	 * pool, so as a workaround temporarily disable error reporting.
+	 */
+	VALGRIND_DO_DISABLE_ERROR_REPORTING;
 	memcpy(addr, Vmp->addr, Vmp->size);
+	VALGRIND_DO_ENABLE_ERROR_REPORTING;
+
 	util_range_none(Vmp->addr, sizeof (struct pool_hdr));
 
 	return addr;

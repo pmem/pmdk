@@ -49,9 +49,9 @@ setup
 export VMMALLOC_POOL_SIZE=$((64 * 1024 * 1024))
 export VMMALLOC_LOG_LEVEL=3
 export VMMALLOC_FORK=2
+export TEST_LD_PRELOAD=libvmmalloc.so
 
-expect_normal_exit LD_PRELOAD=$TEST_LD_LIBRARY_PATH/libvmmalloc.so \
-    ./vmmalloc_fork$EXESUFFIX e 4 2
+expect_normal_exit ./vmmalloc_fork$EXESUFFIX e 4 2
 
 check
 

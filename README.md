@@ -133,6 +133,8 @@ with the **USE_VG_PMEMCHECK** flag, for example:
 ```
 	$ make EXTRA_CFLAGS=-DUSE_VG_PMEMCHECK
 ```
+For Valgrind memcheck support, supply **USE_VG_MEMCHECK** flag.
+**USE_VALGRIND** flag enables both.
 
 
 ### Contacts ###

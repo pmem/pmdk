@@ -92,7 +92,8 @@ FUNC_MOCK_END
  *
  * Allocates the memory using linear allocator.
  */
-FUNC_MOCK(pmalloc, int, PMEMobjpool *pop, uint64_t *off, size_t size)
+FUNC_MOCK(pmalloc, int, PMEMobjpool *pop, uint64_t *off, size_t size,
+		uint64_t data_off)
 FUNC_MOCK_RUN_DEFAULT {
 	struct heap_header_mock *hheader = (struct heap_header_mock *)pop->heap;
 	PMEMobjpool *pop = (PMEMobjpool *)hheader->pop;
@@ -121,7 +122,7 @@ FUNC_MOCK(pmalloc_construct, int, PMEMobjpool *pop, uint64_t *off,
 	void *arg), void *arg, uint64_t data_off)
 FUNC_MOCK_RUN_DEFAULT {
 	struct heap_header_mock *hheader = (struct heap_header_mock *)pop->heap;
-	if (pmalloc(pop, off, size))
+	if (pmalloc(pop, off, size, data_off))
 		return ENOMEM;
 	else {
 		(*constructor)(pop, (void *)(hheader->pop + *off + data_off),
@@ -134,7 +135,8 @@ FUNC_MOCK_END
 /*
  * prealloc -- prealloc mock
  */
-FUNC_MOCK(prealloc, int, PMEMobjpool *pop, uint64_t *off, size_t size)
+FUNC_MOCK(prealloc, int, PMEMobjpool *pop, uint64_t *off, size_t size,
+		uint64_t data_off)
 FUNC_MOCK_RUN_DEFAULT {
 	return ENOSYS;
 }
@@ -148,7 +150,7 @@ FUNC_MOCK(prealloc_construct, int, PMEMobjpool *pop, uint64_t *off,
 	void *arg), void *arg, uint64_t data_off)
 FUNC_MOCK_RUN_DEFAULT {
 	struct heap_header_mock *hheader = (struct heap_header_mock *)pop->heap;
-	if (prealloc(pop, off, size))
+	if (prealloc(pop, off, size, data_off))
 		return ENOMEM;
 	else {
 		(*constructor)(pop, (void *)(hheader->pop + *off + data_off),
@@ -173,7 +175,7 @@ FUNC_MOCK_END
 /*
  * pfree -- pfree mock
  */
-FUNC_MOCK(pfree, int, PMEMobjpool *pop, uint64_t *off)
+FUNC_MOCK(pfree, int, PMEMobjpool *pop, uint64_t *off, uint64_t data_off)
 FUNC_MOCK_RUN_DEFAULT {
 	struct heap_header_mock *hheader = (struct heap_header_mock *)pop->heap;
 	PMEMobjpool *pop = (PMEMobjpool *)hheader->pop;
@@ -185,4 +187,8 @@ FUNC_MOCK_RUN_DEFAULT {
 	pop->persist(pop, &alloc->size, sizeof (alloc->size));
 	return 0;
 }
+FUNC_MOCK_END
+
+FUNC_MOCK(heap_vg_open, void, PMEMobjpool *pop)
+FUNC_MOCK_RUN_DEFAULT {}
 FUNC_MOCK_END

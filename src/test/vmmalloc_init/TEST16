@@ -44,10 +44,15 @@ require_fs_type local
 # there's no point in testing statically linked builds
 require_build_type nondebug
 
+# Valgrind does not call vmmalloc's malloc implementation from library
+# loaded with RTLD_DEEPBIND.
+memcheck force-disable
+
 setup
 
-expect_normal_exit LD_PRELOAD=$TEST_LD_LIBRARY_PATH/libvmmalloc.so \
-    ./vmmalloc_init$EXESUFFIX d 2> stderr$UNITTEST_NUM.log
+export TEST_LD_PRELOAD=libvmmalloc.so
+
+expect_normal_exit ./vmmalloc_init$EXESUFFIX d 2> stderr$UNITTEST_NUM.log
 
 check
 

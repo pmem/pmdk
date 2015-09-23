@@ -48,6 +48,10 @@
 #include "heap.h"
 #include "bucket.h"
 #include "ctree.h"
+#include "lane.h"
+#include "list.h"
+#include "obj.h"
+#include "valgrind_internal.h"
 
 /*
  * The elements in the tree are sorted by the key and it's vital that the
@@ -206,11 +210,19 @@ bucket_calc_units(struct bucket *b, size_t size)
  * bucket_insert_block -- inserts a new memory block into the container
  */
 int
-bucket_insert_block(struct bucket *b, struct memory_block m)
+bucket_insert_block(PMEMobjpool *pop, struct bucket *b, struct memory_block m)
 {
 	ASSERT(m.chunk_id < MAX_CHUNK);
 	ASSERT(m.zone_id < UINT16_MAX);
 	ASSERT(m.size_idx != 0);
+
+#ifdef USE_VG_MEMCHECK
+	if (On_valgrind) {
+		size_t rsize = m.size_idx * bucket_unit_size(b);
+		void *block_data = heap_get_block_data(pop, m);
+		VALGRIND_DO_MAKE_MEM_NOACCESS(pop, block_data, rsize);
+	}
+#endif
 
 	uint64_t key = CHUNK_KEY_PACK(m.zone_id, m.chunk_id, m.block_off,
 				m.size_idx);

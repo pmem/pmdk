@@ -31,39 +31,39 @@ lane_noop_destruct
 lane_noop_destruct
 lane_noop_destruct
 lane_noop_construct
-lane_noop_recovery 0x18d8
-lane_noop_recovery 0x24d8
-lane_noop_recovery 0x30d8
-lane_noop_recovery 0x3cd8
-lane_noop_recovery 0x48d8
+lane_noop_recovery 0x2000
+lane_noop_recovery 0x2c00
+lane_noop_recovery 0x3800
+lane_noop_recovery 0x4400
+lane_noop_recovery 0x5000
 lane_noop_init
-lane_noop_recovery 0x1cd8
-lane_noop_recovery 0x28d8
-lane_noop_recovery 0x34d8
-lane_noop_recovery 0x40d8
-lane_noop_recovery 0x4cd8
+lane_noop_recovery 0x2400
+lane_noop_recovery 0x3000
+lane_noop_recovery 0x3c00
+lane_noop_recovery 0x4800
+lane_noop_recovery 0x5400
 lane_noop_init
-lane_noop_recovery 0x20d8
-lane_noop_recovery 0x2cd8
-lane_noop_recovery 0x38d8
-lane_noop_recovery 0x44d8
-lane_noop_recovery 0x50d8
+lane_noop_recovery 0x2800
+lane_noop_recovery 0x3400
+lane_noop_recovery 0x4000
+lane_noop_recovery 0x4c00
+lane_noop_recovery 0x5800
 lane_noop_init
-lane_noop_check 0x18d8
-lane_noop_check 0x24d8
-lane_noop_check 0x30d8
-lane_noop_check 0x3cd8
-lane_noop_check 0x48d8
-lane_noop_check 0x1cd8
-lane_noop_check 0x28d8
-lane_noop_check 0x34d8
-lane_noop_check 0x40d8
-lane_noop_check 0x4cd8
-lane_noop_check 0x20d8
-lane_noop_check 0x2cd8
-lane_noop_check 0x38d8
-lane_noop_check 0x44d8
-lane_noop_check 0x50d8
-lane_noop_recovery 0x18d8
-lane_noop_check 0x18d8
+lane_noop_check 0x2000
+lane_noop_check 0x2c00
+lane_noop_check 0x3800
+lane_noop_check 0x4400
+lane_noop_check 0x5000
+lane_noop_check 0x2400
+lane_noop_check 0x3000
+lane_noop_check 0x3c00
+lane_noop_check 0x4800
+lane_noop_check 0x5400
+lane_noop_check 0x2800
+lane_noop_check 0x3400
+lane_noop_check 0x4000
+lane_noop_check 0x4c00
+lane_noop_check 0x5800
+lane_noop_recovery 0x2000
+lane_noop_check 0x2000
 obj_lane/TEST0: Done

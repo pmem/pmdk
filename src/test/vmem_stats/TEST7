@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright (c) 2014, Intel Corporation
+# Copyright (c) 2014-2015, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -42,6 +42,9 @@ export UNITTEST_NUM=7
 
 require_fs_type local
 require_build_type debug
+
+# memcheck affects stats
+memcheck force-disable
 
 setup
 

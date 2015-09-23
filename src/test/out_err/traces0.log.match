@@ -3,6 +3,7 @@
 <trace>: <1> [../../common/out.c:$(N) out_init] src version SRCVERSION:utversion
 $(OPT)<trace>: <1> [../../common/out.c:$(N) out_init] compiled with support for Valgrind pmemcheck
 $(OPT)<trace>: <1> [../../common/out.c:$(N) out_init] compiled with support for Valgrind helgrind
+$(OPT)<trace>: <1> [../../common/out.c:$(N) out_init] compiled with support for Valgrind memcheck
 <trace>: <1> [out_err.c:$(N) main] ERR #1
 <trace>: <1> [out_err.c:$(N) main] ERR #2: Success
 <trace>: <1> [out_err.c:$(N) main] ERR #3: Invalid argument

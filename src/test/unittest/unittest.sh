@@ -36,6 +36,7 @@
 [ "$TEST" ] || export TEST=check
 [ "$FS" ] || export FS=local
 [ "$BUILD" ] || export BUILD=debug
+[ "$MEMCHECK" ] || export MEMCHECK=auto
 
 # force globs to fail if they don't match
 shopt -s failglob
@@ -135,6 +136,9 @@ export VMMALLOC_POOL_DIR="$DIR"
 export VMMALLOC_POOL_SIZE=$((16 * 1024 * 1024))
 export VMMALLOC_LOG_LEVEL=3
 export VMMALLOC_LOG_FILE=vmmalloc$UNITTEST_NUM.log
+
+export MEMCHECK_LOG_FILE=memcheck_${BUILD}_${UNITTEST_NUM}.log
+export VALIDATE_MEMCHECK_LOG=1
 
 #
 # create_file -- create zeroed out files of a given length in megs
@@ -279,8 +283,27 @@ function create_poolset() {
 # expect_normal_exit -- run a given command, expect it to exit 0
 #
 function expect_normal_exit() {
-	eval $ECHO LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH \
+	if [ "$RUN_MEMCHECK" ]; then
+		OLDTRACE="$TRACE"
+		rm -f $MEMCHECK_LOG_FILE
+		if echo "$*" | grep -v valgrind >/dev/null; then
+			TRACE="valgrind --log-file=$MEMCHECK_LOG_FILE $MEMCHECK_OPTS $TRACE"
+		fi
+	fi
+
+	eval $ECHO LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH LD_PRELOAD=$TEST_LD_PRELOAD \
 	$TRACE $*
+
+	if [ "$RUN_MEMCHECK" ]; then
+		TRACE="$OLDTRACE"
+		if [ -f $MEMCHECK_LOG_FILE -a "${VALIDATE_MEMCHECK_LOG}" = "1" ]; then
+			if ! grep "ERROR SUMMARY: 0 errors" $MEMCHECK_LOG_FILE >/dev/null; then
+				echo $UNITTEST_NAME failed with Valgrind. See $MEMCHECK_LOG_FILE. First 20 lines below.
+				paste -d " " <(yes $UNITTEST_NAME $MEMCHECK_LOG_FILE | head -n 20) <(head -n 20 $MEMCHECK_LOG_FILE)
+				false
+			fi
+		fi
+	fi
 }
 
 #
@@ -288,7 +311,7 @@ function expect_normal_exit() {
 #
 function expect_abnormal_exit() {
 	set +e
-	eval $ECHO LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH \
+	eval $ECHO LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH LD_PRELOAD=$TEST_LD_PRELOAD \
 	$TRACE $*
 	set -e
 }
@@ -355,6 +378,23 @@ function require_build_type() {
 }
 
 #
+# memcheck -- only allow script to continue when memcheck's settings match
+#
+function memcheck() {
+	if [ "$1" = "force-enable" ]; then
+		export RUN_MEMCHECK=1
+	elif [ "$1" = "force-disable" ]; then
+		if [ "$MEMCHECK" = "force-enable" ]; then
+			echo "$UNITTEST_NAME: SKIP memcheck $1 vs $MEMCHECK"
+			exit 0
+		fi
+	else
+		echo "invalid memcheck parameter"
+		exit 1
+	fi
+}
+
+#
 # require_valgrind -- continue script execution only if
 #	valgrind package is installed
 #
@@ -372,7 +412,7 @@ function require_valgrind_pmemcheck() {
 	require_valgrind
 	local binary=$1
 	[ -n "$binary" ] || binary=*
-        strings ${binary}.static-debug 2>&1 | \
+        strings ${binary} 2>&1 | \
             grep -q "compiled with support for Valgrind pmemcheck" && true
         if [ $? -ne 0 ]; then
             echo "$UNITTEST_NAME: SKIP not compiled with support for Valgrind pmemcheck"
@@ -412,6 +452,24 @@ function require_valgrind_helgrind() {
         fi
 
         return
+}
+
+#
+# require_valgrind_memcheck -- continue script execution only if
+#	valgrind with memcheck is installed
+#
+function require_valgrind_memcheck() {
+	require_valgrind
+	local binary=$1
+	[ -n "$binary" ] || binary=*
+	strings ${binary} 2>&1 | \
+		grep -q "compiled with support for Valgrind memcheck" && true
+	if [ $? -ne 0 ]; then
+		echo "$UNITTEST_NAME: SKIP not compiled with support for Valgrind memcheck"
+		exit 0
+	fi
+
+	return
 }
 
 #
@@ -490,7 +548,17 @@ function setup() {
 	# make sure we have a well defined locale for string operations here
 	export LC_ALL="C"
 
-	echo "$UNITTEST_NAME: SETUP ($TEST/$FS/$BUILD)"
+	if [ "$MEMCHECK" = "force-enable" ]; then
+		export RUN_MEMCHECK=1
+	fi
+
+	if [ "$RUN_MEMCHECK" ]; then
+		MCSTR="/memcheck"
+	else
+		MCSTR=""
+	fi
+
+	echo "$UNITTEST_NAME: SETUP ($TEST/$FS/$BUILD$MCSTR)"
 	if [ -d "$DIR" ]; then
 		rm --one-file-system -rf -- $DIR
 	fi

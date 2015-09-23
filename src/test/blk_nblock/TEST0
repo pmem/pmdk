@@ -43,6 +43,9 @@ export UNITTEST_NUM=0
 require_fs_type local
 require_unlimited_vm
 
+# this test creates huge files
+memcheck force-disable
+
 setup
 
 #

@@ -44,6 +44,7 @@
 #include "obj.h"
 #include "heap_layout.h"
 #include "unittest.h"
+#include "valgrind_internal.h"
 
 #define	MOCK_POOL_SIZE PMEMOBJ_MIN_POOL
 #define	MAX_ALLOCS 20
@@ -110,7 +111,7 @@ test_oom_allocs(size_t size)
 
 	size_t count = 0;
 	for (;;) {
-		if (pmalloc(mock_pop, &addr->ptr, size)) {
+		if (pmalloc(mock_pop, &addr->ptr, size, 0)) {
 			break;
 		}
 		ASSERT(addr->ptr != 0);
@@ -119,7 +120,7 @@ test_oom_allocs(size_t size)
 
 	for (int i = 0; i < count; ++i) {
 		addr->ptr = allocs[i];
-		pfree(mock_pop, &addr->ptr);
+		pfree(mock_pop, &addr->ptr, 0);
 		ASSERT(addr->ptr == 0);
 	}
 	ASSERT(count != 0);
@@ -131,9 +132,9 @@ test_malloc_free_loop(size_t size)
 {
 	int err;
 	for (int i = 0; i < MAX_MALLOC_FREE_LOOP; ++i) {
-		err = pmalloc(mock_pop, &addr->ptr, size);
+		err = pmalloc(mock_pop, &addr->ptr, size, 0);
 		ASSERTeq(err, 0);
-		pfree(mock_pop, &addr->ptr);
+		pfree(mock_pop, &addr->ptr, 0);
 	}
 }
 
@@ -141,13 +142,13 @@ static void
 test_realloc(size_t org, size_t dest)
 {
 	int err;
-	err = pmalloc(mock_pop, &addr->ptr, org);
+	err = pmalloc(mock_pop, &addr->ptr, org, 0);
 	ASSERTeq(err, 0);
 	ASSERT(pmalloc_usable_size(mock_pop, addr->ptr) >= org);
-	err = prealloc(mock_pop, &addr->ptr, dest);
+	err = prealloc(mock_pop, &addr->ptr, dest, 0);
 	ASSERTeq(err, 0);
 	ASSERT(pmalloc_usable_size(mock_pop, addr->ptr) >= dest);
-	err = pfree(mock_pop, &addr->ptr);
+	err = pfree(mock_pop, &addr->ptr, 0);
 	ASSERTeq(err, 0);
 }
 
@@ -164,6 +165,8 @@ test_mock_pool_allocs()
 	mock_pop->heap_size = MOCK_POOL_SIZE - mock_pop->heap_offset;
 	mock_pop->nlanes = 1;
 	mock_pop->lanes_offset = sizeof (PMEMobjpool);
+	mock_pop->is_master_replica = 1;
+	VALGRIND_DO_CREATE_MEMPOOL(mock_pop, 0, 0);
 
 	mock_pop->persist_local = (persist_local_fn)pmem_msync;
 	mock_pop->flush_local = (flush_local_fn)pmem_msync;
@@ -212,6 +215,7 @@ int
 main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_pmalloc_basic");
+	util_init();
 
 	for (int i = 0; i < TEST_RUNS; ++i)
 		test_mock_pool_allocs();

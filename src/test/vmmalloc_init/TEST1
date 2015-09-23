@@ -48,9 +48,9 @@ setup
 
 export VMMALLOC_LOG_LEVEL=4
 unset VMMALLOC_POOL_SIZE
+export TEST_LD_PRELOAD=libvmmalloc.so
 
-expect_abnormal_exit LD_PRELOAD=$TEST_LD_LIBRARY_PATH/libvmmalloc.so \
-    ./vmmalloc_init$EXESUFFIX 2> stderr$UNITTEST_NUM.log
+expect_abnormal_exit ./vmmalloc_init$EXESUFFIX 2> stderr$UNITTEST_NUM.log
 
 grep 'Error (libvmmalloc)' vmmalloc$UNITTEST_NUM.log > grep$UNITTEST_NUM.log
 

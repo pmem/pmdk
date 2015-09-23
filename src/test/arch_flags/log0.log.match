@@ -3,6 +3,7 @@
 <arch_flags>: <1> [$(nW) out_init] src version SRCVERSION:utversion
 $(OPT)<arch_flags>: <1> [$(nW) out_init] compiled with support for Valgrind pmemcheck
 $(OPT)<arch_flags>: <1> [$(nW) out_init] compiled with support for Valgrind helgrind
+$(OPT)<arch_flags>: <1> [$(nW) out_init] compiled with support for Valgrind memcheck
 <arch_flags>: <1> [$(nW) util_get_arch_flags] open /proc/self/exe: $(*)
 <arch_flags>: <1> [$(nW) util_get_arch_flags] read /proc/self/exe: $(*)
 <arch_flags>: <1> [$(nW) util_get_arch_flags] invalid ELF magic

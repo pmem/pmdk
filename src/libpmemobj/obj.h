@@ -161,6 +161,8 @@ struct pmemobjpool {
 	memset_fn memset_persist; /* persistent memset function */
 
 	PMEMmutex rootlock;	/* root object lock */
+	int is_master_replica;
+	char unused2[1824];
 };
 
 /*

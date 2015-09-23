@@ -117,6 +117,10 @@ unit test framework also looks for several other variables:
 
 		$ TEST_LD_LIBRARY_PATH=/usr/lib ./TEST0
 
+	Run test under Valgrind/memcheck:
+
+		$ MEMCHECK=force-enable ./TEST0
+
 
 DETAILS ON HOW TO WRITE UNIT TESTS
 

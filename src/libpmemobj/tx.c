@@ -125,6 +125,9 @@ constructor_tx_alloc(PMEMobjpool *pop, void *ptr, void *arg)
 
 	/* do not report changes to the new object */
 	VALGRIND_ADD_TO_TX(ptr, args->size);
+
+	VALGRIND_DO_MAKE_MEM_NOACCESS(pop, &oobh->padding,
+			sizeof (oobh->padding));
 }
 
 /*
@@ -156,6 +159,9 @@ constructor_tx_zalloc(PMEMobjpool *pop, void *ptr, void *arg)
 
 	/* do not report changes to the new object */
 	VALGRIND_ADD_TO_TX(ptr, args->size);
+
+	VALGRIND_DO_MAKE_MEM_NOACCESS(pop, &oobh->padding,
+			sizeof (oobh->padding));
 
 	memset(ptr, 0, args->size);
 }
@@ -226,6 +232,9 @@ constructor_tx_copy(PMEMobjpool *pop, void *ptr, void *arg)
 	/* do not report changes made to the copy */
 	VALGRIND_ADD_TO_TX(ptr, args->size);
 
+	VALGRIND_DO_MAKE_MEM_NOACCESS(pop, &oobh->padding,
+			sizeof (oobh->padding));
+
 	memcpy(ptr, args->ptr, args->copy_size);
 }
 
@@ -258,6 +267,9 @@ constructor_tx_copy_zero(PMEMobjpool *pop, void *ptr, void *arg)
 
 	/* do not report changes made to the copy */
 	VALGRIND_ADD_TO_TX(ptr, args->size);
+
+	VALGRIND_DO_MAKE_MEM_NOACCESS(pop, &oobh->padding,
+			sizeof (oobh->padding));
 
 	memcpy(ptr, args->ptr, args->copy_size);
 	if (args->size > args->copy_size) {
@@ -580,8 +592,12 @@ tx_pre_commit_alloc(PMEMobjpool *pop, struct lane_tx_layout *layout)
 		size_t size = pmalloc_usable_size(pop,
 				iter.off - OBJ_OOB_SIZE);
 
+		VALGRIND_DO_MAKE_MEM_DEFINED(pop, oobh->padding,
+				sizeof (oobh->padding));
 		/* flush and persist the whole allocated area and oob header */
 		pop->persist(pop, oobh, size);
+		VALGRIND_DO_MAKE_MEM_NOACCESS(pop, oobh->padding,
+				sizeof (oobh->padding));
 	}
 }
 
@@ -1721,6 +1737,33 @@ lane_transaction_destruct(PMEMobjpool *pop, struct lane_section *section)
 	return 0;
 }
 
+#ifdef USE_VG_MEMCHECK
+/*
+ * tx_abort_register_valgrind -- tells Valgrind about objects from specified
+ *				 undo list
+ */
+static void
+tx_abort_register_valgrind(PMEMobjpool *pop, struct list_head *head)
+{
+	PMEMoid iter = head->pe_first;
+
+	while (!OBJ_OID_IS_NULL(iter)) {
+		/*
+		 * Can't use pmemobj_direct and pmemobj_alloc_usable_size
+		 * because pool has not been registered yet.
+		 */
+		void *p = (char *)pop + iter.off;
+		size_t sz = pmalloc_usable_size(pop,
+				iter.off - OBJ_OOB_SIZE) - OBJ_OOB_SIZE;
+
+		VALGRIND_DO_MEMPOOL_ALLOC(pop, p, sz);
+		VALGRIND_DO_MAKE_MEM_DEFINED(pop, p, sz);
+
+		iter = oob_list_next(pop, head, iter);
+	}
+}
+#endif
+
 /*
  * lane_transaction_recovery -- recovery of transaction lane section
  */
@@ -1744,6 +1787,12 @@ lane_transaction_recovery(PMEMobjpool *pop,
 			ERR("tx_post_commit failed");
 		}
 	} else {
+#ifdef USE_VG_MEMCHECK
+		if (On_valgrind) {
+			tx_abort_register_valgrind(pop, &layout->undo_set);
+			tx_abort_register_valgrind(pop, &layout->undo_alloc);
+		}
+#endif
 		/* process undo log and restore all operations */
 		tx_abort(pop, layout, 1 /* recovery */);
 	}

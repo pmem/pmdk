@@ -46,8 +46,9 @@ require_build_type nondebug
 
 setup
 
-expect_normal_exit LD_PRELOAD=$TEST_LD_LIBRARY_PATH/libvmmalloc.so \
-    ./vmmalloc_init$EXESUFFIX 2> stderr$UNITTEST_NUM.log
+export TEST_LD_PRELOAD=libvmmalloc.so
+
+expect_normal_exit ./vmmalloc_init$EXESUFFIX 2> stderr$UNITTEST_NUM.log
 
 check
 
