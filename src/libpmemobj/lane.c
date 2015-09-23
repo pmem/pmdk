@@ -60,8 +60,8 @@ struct section_operations *section_ops[MAX_LANE_SECTION];
 static struct lane_layout *
 lane_get_layout(PMEMobjpool *pop, int lane_idx)
 {
-	return (void *)pop + pop->lanes_offset +
-		(sizeof (struct lane_layout) * lane_idx);
+	return (void *)((char *)pop + pop->lanes_offset +
+		sizeof (struct lane_layout) * lane_idx);
 }
 
 /*

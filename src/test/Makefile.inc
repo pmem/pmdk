@@ -91,7 +91,14 @@ extract_funcs = $(shell \
     awk '{print "-Wl,--wrap="$$0}')
 
 INCS = -I../unittest -I../../include
-CFLAGS = -ggdb -Wall -Werror -Wmissing-prototypes -std=gnu99 -fno-common $(EXTRA_CFLAGS)
+CFLAGS  = -std=gnu99
+CFLAGS += -ggdb
+CFLAGS += -Wall
+CFLAGS += -Werror
+CFLAGS += -Wmissing-prototypes
+CFLAGS += -Wpointer-arith
+CFLAGS += -fno-common
+CFLAGS += $(EXTRA_CFLAGS)
 LDFLAGS = -Wl,--warn-common -Wl,--fatal-warnings $(EXTRA_LDFLAGS)
 
 #

@@ -126,11 +126,11 @@ main(int argc, char *argv[])
 	OUT("write     lba %zu: %s", lba, ident(buf));
 
 	/* reach into the layout and write-protect the map */
-	struct btt_info *infop = (void *)handle +
-		roundup(sizeof (struct pmemblk), BLK_FORMAT_DATA_ALIGN);
+	struct btt_info *infop = (void *)((char *)handle +
+		roundup(sizeof (struct pmemblk), BLK_FORMAT_DATA_ALIGN));
 
-	void *mapaddr = (void *)infop + le32toh(infop->mapoff);
-	void *flogaddr = (void *)infop + le32toh(infop->flogoff);
+	char *mapaddr = (char *)infop + le32toh(infop->mapoff);
+	char *flogaddr = (char *)infop + le32toh(infop->flogoff);
 
 	OUT("write-protecting map, length %zu", (size_t)(flogaddr - mapaddr));
 	MPROTECT(mapaddr, (size_t)(flogaddr - mapaddr), PROT_READ);

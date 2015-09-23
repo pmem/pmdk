@@ -153,7 +153,7 @@ pmemlog_runtime_init(PMEMlogpool *plp, int rdonly, int is_pmem)
 	util_range_none(plp->addr, sizeof (struct pool_hdr));
 
 	/* the rest should be kept read-only (debug version only) */
-	RANGE_RO(plp->addr + sizeof (struct pool_hdr),
+	RANGE_RO((char *)plp->addr + sizeof (struct pool_hdr),
 			plp->size - sizeof (struct pool_hdr));
 
 	return 0;
@@ -352,19 +352,20 @@ pmemlog_persist(PMEMlogpool *plp, uint64_t new_write_offset)
 	size_t length = new_write_offset - old_write_offset;
 
 	/* unprotect the log space range (debug version only) */
-	RANGE_RW(plp->addr + old_write_offset, length);
+	RANGE_RW((char *)plp->addr + old_write_offset, length);
 
 	/* persist the data */
 	if (plp->is_pmem)
 		pmem_drain(); /* data already flushed */
 	else
-		pmem_msync(plp->addr + old_write_offset, length);
+		pmem_msync((char *)plp->addr + old_write_offset, length);
 
 	/* protect the log space range (debug version only) */
-	RANGE_RO(plp->addr + old_write_offset, length);
+	RANGE_RO((char *)plp->addr + old_write_offset, length);
 
 	/* unprotect the pool descriptor (debug version only) */
-	RANGE_RW(plp->addr + sizeof (struct pool_hdr), LOG_FORMAT_DATA_ALIGN);
+	RANGE_RW((char *)plp->addr + sizeof (struct pool_hdr),
+			LOG_FORMAT_DATA_ALIGN);
 
 	/* write the metadata */
 	plp->write_offset = htole64(new_write_offset);
@@ -376,7 +377,8 @@ pmemlog_persist(PMEMlogpool *plp, uint64_t new_write_offset)
 		pmem_msync(&plp->write_offset, sizeof (plp->write_offset));
 
 	/* set the write-protection again (debug version only) */
-	RANGE_RO(plp->addr + sizeof (struct pool_hdr), LOG_FORMAT_DATA_ALIGN);
+	RANGE_RO((char *)plp->addr + sizeof (struct pool_hdr),
+			LOG_FORMAT_DATA_ALIGN);
 }
 
 /*
@@ -580,7 +582,8 @@ pmemlog_rewind(PMEMlogpool *plp)
 	}
 
 	/* unprotect the pool descriptor (debug version only) */
-	RANGE_RW(plp->addr + sizeof (struct pool_hdr), LOG_FORMAT_DATA_ALIGN);
+	RANGE_RW((char *)plp->addr + sizeof (struct pool_hdr),
+			LOG_FORMAT_DATA_ALIGN);
 
 	plp->write_offset = plp->start_offset;
 	if (plp->is_pmem)
@@ -589,7 +592,8 @@ pmemlog_rewind(PMEMlogpool *plp)
 		pmem_msync(&plp->write_offset, sizeof (uint64_t));
 
 	/* set the write-protection again (debug version only) */
-	RANGE_RO(plp->addr + sizeof (struct pool_hdr), LOG_FORMAT_DATA_ALIGN);
+	RANGE_RO((char *)plp->addr + sizeof (struct pool_hdr),
+			LOG_FORMAT_DATA_ALIGN);
 
 	if ((errno = pthread_rwlock_unlock(plp->rwlockp)))
 		ERR("!pthread_rwlock_unlock");

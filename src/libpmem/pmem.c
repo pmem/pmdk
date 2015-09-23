@@ -693,8 +693,8 @@ memmove_nodrain_movnt(void *pmemdest, const void *src, size_t len)
 				s8++;
 			}
 			pmem_flush(dest1, cnt);
-			dest1 += cnt;
-			src += cnt;
+			dest1 = (char *)dest1 + cnt;
+			src = (char *)src + cnt;
 			len -= cnt;
 		}
 
@@ -768,8 +768,8 @@ memmove_nodrain_movnt(void *pmemdest, const void *src, size_t len)
 		 * overlapped destination range.
 		 */
 
-		dest1 = dest1 + len;
-		src = src + len;
+		dest1 = (char *)dest1 + len;
+		src = (char *)src + len;
 
 		cnt = (uint64_t)dest1 & ALIGN_MASK;
 		if (cnt > 0) {
@@ -785,8 +785,8 @@ memmove_nodrain_movnt(void *pmemdest, const void *src, size_t len)
 				*d8 = *s8;
 			}
 			pmem_flush(d8, cnt);
-			dest1 -= cnt;
-			src -= cnt;
+			dest1 = (char *)dest1 - cnt;
+			src = (char *)src - cnt;
 			len -= cnt;
 		}
 
@@ -961,7 +961,7 @@ memset_nodrain_movnt(void *pmemdest, int c, size_t len)
 		memset(dest1, c, cnt);
 		pmem_flush(dest1, cnt);
 		len -= cnt;
-		dest1 += cnt;
+		dest1 = (char *)dest1 + cnt;
 	}
 
 	xmm0 = _mm_set_epi8(c, c, c, c,

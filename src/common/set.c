@@ -1074,7 +1074,7 @@ util_replica_create(struct pool_set *set, unsigned repidx, int flags,
 	set->zeroed &= rep->part[0].created;
 
 	size_t mapsize = rep->part[0].filesize & ~(Pagesize - 1);
-	addr = rep->part[0].addr + mapsize;
+	addr = (char *)rep->part[0].addr + mapsize;
 
 	/*
 	 * map the remaining parts of the usable pool space (4K-aligned)
@@ -1092,7 +1092,7 @@ util_replica_create(struct pool_set *set, unsigned repidx, int flags,
 
 		mapsize += rep->part[p].size;
 		set->zeroed &= rep->part[p].created;
-		addr += rep->part[p].size;
+		addr = (char *)addr + rep->part[p].size;
 	}
 
 	rep->is_pmem = pmem_is_pmem(rep->part[0].addr, rep->part[0].size);
@@ -1240,7 +1240,7 @@ util_replica_open(struct pool_set *set, unsigned repidx, int flags,
 	}
 
 	size_t mapsize = rep->part[0].filesize & ~(Pagesize - 1);
-	addr = rep->part[0].addr + mapsize;
+	addr = (char *)rep->part[0].addr + mapsize;
 
 	/*
 	 * map the remaining parts of the usable pool space
@@ -1258,7 +1258,7 @@ util_replica_open(struct pool_set *set, unsigned repidx, int flags,
 			rep->part[p].addr, rep->part[p].size, hdrsize);
 
 		mapsize += rep->part[p].size;
-		addr += rep->part[p].size;
+		addr = (char *)addr + rep->part[p].size;
 	}
 
 	rep->is_pmem = pmem_is_pmem(rep->part[0].addr, rep->part[0].size);
