@@ -755,6 +755,9 @@ util_convert2h_pool_hdr(struct pool_hdr *hdrp)
 	hdrp->compat_features = le32toh(hdrp->compat_features);
 	hdrp->incompat_features = le32toh(hdrp->incompat_features);
 	hdrp->ro_compat_features = le32toh(hdrp->ro_compat_features);
+	hdrp->arch_flags.alignment_desc =
+		le64toh(hdrp->arch_flags.alignment_desc);
+	hdrp->arch_flags.e_machine = le16toh(hdrp->arch_flags.e_machine);
 	hdrp->crtime = le64toh(hdrp->crtime);
 	hdrp->checksum = le64toh(hdrp->checksum);
 }
@@ -768,6 +771,9 @@ util_convert2le_pool_hdr(struct pool_hdr *hdrp)
 	hdrp->compat_features = htole32(hdrp->compat_features);
 	hdrp->incompat_features = htole32(hdrp->incompat_features);
 	hdrp->ro_compat_features = htole32(hdrp->ro_compat_features);
+	hdrp->arch_flags.alignment_desc =
+		htole64(hdrp->arch_flags.alignment_desc);
+	hdrp->arch_flags.e_machine = htole16(hdrp->arch_flags.e_machine);
 	hdrp->crtime = htole64(hdrp->crtime);
 	hdrp->checksum = htole64(hdrp->checksum);
 }

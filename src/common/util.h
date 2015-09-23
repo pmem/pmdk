@@ -59,6 +59,11 @@ int util_tmpfile(const char *dir, size_t size);
 void *util_map_tmpfile(const char *dir, size_t size);
 
 /*
+ * Number of bits per type in alignment descriptor
+ */
+#define	ALIGNMENT_DESC_BITS		4
+
+/*
  * architecture identification flags
  *
  * These flags allow to unambiguously determine the architecture

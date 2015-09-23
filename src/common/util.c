@@ -65,22 +65,21 @@
 /*
  * set of macros for determining the alignment descriptor
  */
-#define	DESC_BITS		4
-#define	DESC_MASK		((1 << DESC_BITS) - 1)
+#define	DESC_MASK		((1 << ALIGNMENT_DESC_BITS) - 1)
 #define	alignment_of(t)		offsetof(struct { char c; t x; }, x)
 #define	alignment_desc_of(t)	(((uint64_t)alignment_of(t) - 1) & DESC_MASK)
 #define	alignment_desc()\
-(alignment_desc_of(char)	<<  0 * DESC_BITS) |\
-(alignment_desc_of(short)	<<  1 * DESC_BITS) |\
-(alignment_desc_of(int)		<<  2 * DESC_BITS) |\
-(alignment_desc_of(long)	<<  3 * DESC_BITS) |\
-(alignment_desc_of(long long)	<<  4 * DESC_BITS) |\
-(alignment_desc_of(size_t)	<<  5 * DESC_BITS) |\
-(alignment_desc_of(off_t)	<<  6 * DESC_BITS) |\
-(alignment_desc_of(float)	<<  7 * DESC_BITS) |\
-(alignment_desc_of(double)	<<  8 * DESC_BITS) |\
-(alignment_desc_of(long double)	<<  9 * DESC_BITS) |\
-(alignment_desc_of(void *)	<< 10 * DESC_BITS)
+(alignment_desc_of(char)	<<  0 * ALIGNMENT_DESC_BITS) |\
+(alignment_desc_of(short)	<<  1 * ALIGNMENT_DESC_BITS) |\
+(alignment_desc_of(int)		<<  2 * ALIGNMENT_DESC_BITS) |\
+(alignment_desc_of(long)	<<  3 * ALIGNMENT_DESC_BITS) |\
+(alignment_desc_of(long long)	<<  4 * ALIGNMENT_DESC_BITS) |\
+(alignment_desc_of(size_t)	<<  5 * ALIGNMENT_DESC_BITS) |\
+(alignment_desc_of(off_t)	<<  6 * ALIGNMENT_DESC_BITS) |\
+(alignment_desc_of(float)	<<  7 * ALIGNMENT_DESC_BITS) |\
+(alignment_desc_of(double)	<<  8 * ALIGNMENT_DESC_BITS) |\
+(alignment_desc_of(long double)	<<  9 * ALIGNMENT_DESC_BITS) |\
+(alignment_desc_of(void *)	<< 10 * ALIGNMENT_DESC_BITS)
 
 /* library-wide page size */
 unsigned long Pagesize;
