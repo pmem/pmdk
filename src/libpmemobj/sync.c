@@ -116,7 +116,7 @@ pmemobj_mutex_zero(PMEMobjpool *pop, PMEMmutex *mutexp)
 
 	mutexp->pmemmutex.runid = 0;
 	pop->persist(pop, &mutexp->pmemmutex.runid,
-				sizeof (&mutexp->pmemmutex.runid));
+				sizeof (mutexp->pmemmutex.runid));
 }
 
 /*
@@ -183,7 +183,7 @@ pmemobj_rwlock_zero(PMEMobjpool *pop, PMEMrwlock *rwlockp)
 
 	rwlockp->pmemrwlock.runid = 0;
 	pop->persist(pop, &rwlockp->pmemrwlock.runid,
-				sizeof (&rwlockp->pmemrwlock.runid));
+				sizeof (rwlockp->pmemrwlock.runid));
 }
 
 /*
@@ -326,7 +326,7 @@ pmemobj_cond_zero(PMEMobjpool *pop, PMEMcond *condp)
 
 	condp->pmemcond.runid = 0;
 	pop->persist(pop, &condp->pmemcond.runid,
-			sizeof (&condp->pmemcond.runid));
+			sizeof (condp->pmemcond.runid));
 }
 
 /*
