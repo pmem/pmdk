@@ -81,7 +81,7 @@ main(int argc, char *argv[])
 	/* shows strange behavior of memset in some cases */
 	memset(dest + dest_off, 0, bytes);
 
-	munmap(dest, (size_t)stbuf.st_size);
+	pmem_unmap(dest, stbuf.st_size);
 
 	CLOSE(fd);
 

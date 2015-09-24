@@ -96,6 +96,7 @@ main(int argc, char *argv[])
 
 	/* read up to BUF_LEN from srcfd */
 	if ((cc = read(srcfd, buf, BUF_LEN)) < 0) {
+		pmem_unmap(pmemaddr, BUF_LEN);
 		perror("read");
 		exit(1);
 	}
@@ -109,6 +110,7 @@ main(int argc, char *argv[])
 	}
 
 	close(srcfd);
+	pmem_unmap(pmemaddr, BUF_LEN);
 
 	exit(0);
 }

@@ -40,6 +40,19 @@
 
 #define	CHECK_BYTES 4096	/* bytes to compare before/after map call */
 
+sigjmp_buf Jmp;
+
+/*
+ * signal_handler -- called on SIGSEGV
+ */
+static void
+signal_handler(int sig)
+{
+	OUT("signal: %s", strsignal(sig));
+
+	siglongjmp(Jmp, 1);
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -47,6 +60,13 @@ main(int argc, char *argv[])
 
 	if (argc != 2)
 		FATAL("usage: %s file", argv[0]);
+
+	/* arrange to catch SEGV */
+	struct sigaction v;
+	sigemptyset(&v.sa_mask);
+	v.sa_flags = 0;
+	v.sa_handler = signal_handler;
+	SIGACTION(SIGSEGV, &v, NULL);
 
 	int fd;
 	void *addr;
@@ -78,7 +98,14 @@ main(int argc, char *argv[])
 	memset(pat, 0xA5, CHECK_BYTES);
 	memcpy(addr, pat, CHECK_BYTES);
 
-	MUNMAP(addr, stbuf.st_size);
+	pmem_unmap(addr, stbuf.st_size);
+
+	if (!sigsetjmp(Jmp, 1)) {
+		/* same memcpy from above should now fail */
+		memcpy(addr, pat, CHECK_BYTES);
+	} else {
+		OUT("unmap successful");
+	}
 
 	LSEEK(fd, (off_t)0, SEEK_SET);
 	if (READ(fd, buf, CHECK_BYTES) == CHECK_BYTES) {

@@ -154,6 +154,7 @@ main(int argc, char *argv[])
 		do_copy_to_non_pmem(pmemaddr, srcfd, stbuf.st_size);
 
 	close(srcfd);
+	pmem_unmap(pmemaddr, stbuf.st_size);
 
 	exit(0);
 }

@@ -50,6 +50,7 @@ extern "C" {
 #include <sys/types.h>
 
 void *pmem_map(int fd);
+int pmem_unmap(void *addr, size_t len);
 int pmem_is_pmem(void *addr, size_t len);
 void pmem_persist(void *addr, size_t len);
 int pmem_msync(void *addr, size_t len);
