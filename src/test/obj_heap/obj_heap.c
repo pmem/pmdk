@@ -60,6 +60,12 @@ struct mock_pop {
 };
 
 static void
+obj_heap_persist(PMEMobjpool *pop, void *ptr, size_t sz)
+{
+	pmem_msync(ptr, sz);
+}
+
+static void
 test_heap()
 {
 	struct mock_pop *mpop = Malloc(MOCK_POOL_SIZE);
@@ -68,7 +74,7 @@ test_heap()
 	pop->size = MOCK_POOL_SIZE;
 	pop->heap_size = MOCK_POOL_SIZE - sizeof (PMEMobjpool);
 	pop->heap_offset = (uint64_t)((uint64_t)&mpop->heap - (uint64_t)mpop);
-	pop->persist = (persist_fn)pmem_msync;
+	pop->persist = obj_heap_persist;
 
 	ASSERT(heap_check(pop) != 0);
 	ASSERT(heap_init(pop) == 0);
