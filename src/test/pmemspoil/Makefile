@@ -49,4 +49,6 @@ CFLAGS += -I../../libpmemlog
 CFLAGS += -I../../libpmemblk
 CFLAGS += -I../../libpmemobj
 
+CLEAN_FILES = *.log
+
 include ../../tools/Makefile.inc

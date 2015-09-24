@@ -90,7 +90,7 @@ endif
 all: $(TARGET) $(TARGET_STATIC_NONDEBUG) $(TARGET_STATIC_DEBUG)
 
 clean:
-	$(RM) $(OBJS)
+	$(RM) $(OBJS) $(CLEAN_FILES)
 
 clobber: clean
 	$(RM) $(TARGET)
