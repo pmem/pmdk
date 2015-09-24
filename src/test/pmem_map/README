@@ -10,7 +10,9 @@ Initially, the first 4k of the file is populated with some pattern
 using write(). The file content is verified after successful mapping
 with pmem_map(). Then, the program overwrites the first 4k of the
 mapped memory region with another pattern, unmaps the file, and
-verifies its content once again.
+verifies its content once again.  Since this test unmaps the file
+with pmem_unmap(), it also tests that function by trying to access
+the address after it was unmapped and verifying it can't.
 
 Finally, the program re-opens the file with read-only access then
 tries to map the file and prints an error message if pmem_map()
