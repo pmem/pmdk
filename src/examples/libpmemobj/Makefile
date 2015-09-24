@@ -37,42 +37,10 @@ PROGS = manpage btree pi
 DIRS = pminvaders pmemlog pmemblk string_store string_store_tx\
 	string_store_tx_type hashset tree_map
 
-INCDIR ?= ../../include
-LIBDIR ?= ../../debug
+LIBS = -lpmemobj -lpmem -pthread -lm -pthread
 
-INCS = -I$(INCDIR)
-LIBS = -Wl,-rpath=$(LIBDIR) -L$(LIBDIR) -lpmemobj -lpmem -pthread -lm
-CFLAGS = -std=gnu99 -ggdb -Wall -Werror
-CSTYLE = ../../../utils/cstyle
-
-all:     TARGET = all
-clean:   TARGET = clean
-clobber: TARGET = clobber
-cstyle:  TARGET = cstyle
-
-all: $(PROGS) $(DIRS)
-
-
-clean: $(DIRS)
-	$(RM) *.o core a.out
-
-clobber: clean $(DIRS)
-	$(RM) $(PROGS)
-
-cstyle: $(DIRS)
-	$(CSTYLE) -pP *.[ch]
-
-.c.o:
-	$(CC) -c -o $@ $(CFLAGS) $(INCS) $<
-
-$(PROGS):
-	$(CC) -o $@ $< $(LIBS)
+include ../Makefile.inc
 
 manpage: manpage.o
 btree: btree.o
 pi: pi.o
-
-$(DIRS):
-	$(MAKE) -C $@ $(TARGET)
-
-.PHONY: all clean clobber cstyle $(DIRS)

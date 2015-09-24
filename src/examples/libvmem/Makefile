@@ -34,42 +34,10 @@
 # examples/libvmem/Makefile -- build the libvmem examples
 #
 PROGS = manpage
-DIRS =
 
-INCDIR ?= ../../include
-LIBDIR ?= ../../debug
+LIBS = -lvmem -pthread
 
-INCS = -I$(INCDIR)
-LIBS = -Wl,-rpath=$(LIBDIR) -L$(LIBDIR) -lvmem -pthread
-CFLAGS = -std=gnu99 -ggdb -Wall -Werror
-CSTYLE = ../../../utils/cstyle
-
-all:     TARGET = all
-clean:   TARGET = clean
-clobber: TARGET = clobber
-cstyle:  TARGET = cstyle
-
-all: $(PROGS) $(DIRS)
-
-clean: $(DIRS)
-	$(RM) *.o core a.out
-
-clobber: clean $(DIRS)
-	$(RM) $(PROGS)
-
-cstyle: $(DIRS)
-	$(CSTYLE) -pP *.[ch]
-
-.c.o:
-	$(CC) -c -o $@ $(CFLAGS) $(INCS) $<
-
-$(PROGS):
-	$(CC) -o $@ $< $(LIBS)
+include ../Makefile.inc
 
 manpage: manpage.o
-
-$(DIRS):
-	$(MAKE) -C $@ $(TARGET)
-
-.PHONY: all clean clobber cstyle $(DIRS)
 

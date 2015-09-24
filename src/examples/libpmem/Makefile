@@ -33,37 +33,15 @@
 #
 # examples/libpmem/Makefile -- build the libpmem examples
 #
+
 PROGS = manpage simple_copy full_copy
 
-INCDIR ?= ../../include
-LIBDIR ?= ../../debug
+LIBS = -lpmem -pthread
 
-INCS = -I$(INCDIR)
-LIBS = -Wl,-rpath=$(LIBDIR) -L$(LIBDIR) -lpmem -pthread
-CFLAGS = -std=gnu99 -ggdb -Wall -Werror
-CSTYLE = ../../../utils/cstyle
-
-all: $(PROGS)
-
-clean:
-	$(RM) *.o core a.out
-
-clobber: clean
-	$(RM) $(PROGS)
-
-cstyle:
-	$(CSTYLE) -pP *.[ch]
-
-.c.o:
-	$(CC) -c -o $@ $(CFLAGS) $(INCS) $<
-
-$(PROGS):
-	$(CC) -o $@ $< $(LIBS)
+include ../Makefile.inc
 
 manpage: manpage.o
 
 simple_copy: simple_copy.o
 
 full_copy: full_copy.o
-
-.PHONY: all clean clobber cstyle

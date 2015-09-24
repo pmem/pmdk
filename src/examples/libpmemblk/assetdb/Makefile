@@ -35,30 +35,9 @@
 #
 PROGS = asset_load asset_list asset_checkout asset_checkin
 
-INCDIR ?= ../../../include
-LIBDIR ?= ../../../debug
+LIBS = -lpmemblk -lpmem -pthread
 
-INCS = -I$(INCDIR)
-LIBS = -Wl,-rpath=$(LIBDIR) -L$(LIBDIR) -lpmemblk -lpmem -pthread
-CFLAGS = -std=gnu99 -ggdb -Wall -Werror
-CSTYLE = ../../../../utils/cstyle
-
-all: $(PROGS)
-
-clean:
-	$(RM) *.o core a.out
-
-clobber: clean
-	$(RM) $(PROGS)
-
-cstyle:
-	$(CSTYLE) -pP *.[ch]
-
-.c.o:
-	$(CC) -c -o $@ $(CFLAGS) $(INCS) $<
-
-$(PROGS):
-	$(CC) -o $@ $< $(LIBS)
+include ../../Makefile.inc
 
 asset_load: asset_load.o
 
@@ -69,5 +48,3 @@ asset_checkout: asset_checkout.o
 asset_checkin: asset_checkin.o
 
 asset_load.o asset_list.o asset_checkout.o asset_checkin.o: asset.h
-
-.PHONY: all clean clobber cstyle

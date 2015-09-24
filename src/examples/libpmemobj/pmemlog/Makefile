@@ -35,35 +35,9 @@
 #
 PROGS = obj_pmemlog obj_pmemlog_macros obj_pmemlog_minimal obj_pmemlog_simple
 
-INCDIR ?= ../../../include
-LIBDIR ?= ../../../debug
+LIBS = -lpmemobj -lpmem -pthread
 
-INCS = -I$(INCDIR)
-LIBS = -Wl,-rpath=$(LIBDIR) -L$(LIBDIR) -lpmemobj -lpmem -pthread
-CFLAGS = -std=gnu99 -ggdb -Wall -Werror
-CSTYLE = ../../../../utils/cstyle
-
-all:     TARGET = all
-clean:   TARGET = clean
-clobber: TARGET = clobber
-cstyle:  TARGET = cstyle
-
-all: $(PROGS)
-
-clean: $(DIRS)
-	$(RM) *.o core a.out
-
-clobber: clean $(DIRS)
-	$(RM) $(PROGS)
-
-cstyle: $(DIRS)
-	$(CSTYLE) -pP *.[ch]
-
-.c.o:
-	$(CC) -c -o $@ $(CFLAGS) $(INCS) $<
-
-$(PROGS):
-	$(CC) -o $@ $< $(LIBS)
+include ../../Makefile.inc
 
 obj_pmemlog: obj_pmemlog.o
 
@@ -72,8 +46,3 @@ obj_pmemlog_macros: obj_pmemlog_macros.o
 obj_pmemlog_minimal: obj_pmemlog_minimal.o
 
 obj_pmemlog_simple: obj_pmemlog_simple.o
-
-$(DIRS):
-	$(MAKE) -C $@ $(TARGET)
-
-.PHONY: all clean clobber cstyle $(DIRS)
