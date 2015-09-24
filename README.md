@@ -8,7 +8,7 @@ For more information, see http://pmem.io.
 
 |**NOTE**|
 |:------:|
-|**These libraries are not yet considered production quality, but they are getting close!  We expect to validate them to production quality by the end of September, 2015.  The libraries are currently validated to "early access" quality, usable for development of pmem-aware applications.  You are encouraged to try them out and give us feedback via our [Google group](http://groups.google.com/group/pmem).**|
+|**These libraries are not yet considered production quality, but they are getting close!  They are currently validated to "alpha" quality, meaning all features pass their tests with no known critical issues.  You are encouraged to try them out and give us feedback via our [Google group](http://groups.google.com/group/pmem).**|
 
 ### The Libraries ###
 
