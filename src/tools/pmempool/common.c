@@ -954,7 +954,7 @@ ask(char op, char *answers, char def_ans, const char *fmt, va_list ap)
 		for (i = 0; i < len; i++) {
 			char ans = tolower(answers[i]);
 			printf("%c", ans == def_ansl ? toupper(ans) : ans);
-			if (i != len -1)
+			if (i != len - 1)
 				printf("/");
 		}
 		printf("] ");

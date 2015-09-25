@@ -182,7 +182,7 @@ clo_parse_single_int(struct benchmark_clo *clo, const char *arg, void *ptr)
 	}
 
 	int64_t tmax = ((int64_t)1 << (8 * clo->type_int.size - 1)) - 1;
-	int64_t tmin = - ((int64_t)1 << (8 * clo->type_int.size - 1));
+	int64_t tmin = -((int64_t)1 << (8 * clo->type_int.size - 1));
 
 	tmax = min(tmax, clo->type_int.max);
 	tmin = max(tmin, clo->type_int.min);

@@ -140,7 +140,7 @@ main(int argc, char *argv[])
 				FATAL("!%s: pmemblk_open", path);
 			break;
 		default:
-			FATAL("unrecognized command %s", argv[read_arg -1 ]);
+			FATAL("unrecognized command %s", argv[read_arg - 1]);
 	}
 
 	OUT("%s block size %zu usable blocks %zu",
