@@ -38,6 +38,8 @@
 #include <stdarg.h>
 #include <errno.h>
 #include "unittest.h"
+#include "valgrind_internal.h"
+#include "util.h"
 
 #define	NUM_THREADS 16
 
@@ -141,6 +143,8 @@ main(int argc, char *argv[])
 		128, PMEMBLK_MIN_POOL, 0666);
 	VMEM *vmp = vmem_create(argv[4], VMEM_MIN_POOL);
 
+	util_init();
+
 	pmem_check_version(10000, 0);
 	pmemobj_check_version(10001, 0);
 	pmemlog_check_version(10002, 0);
@@ -149,7 +153,13 @@ main(int argc, char *argv[])
 	print_errors("version check");
 
 	void *ptr = NULL;
+	/*
+	 * We are testing library error reporting and we don't want this test
+	 * to fail under memcheck.
+	 */
+	VALGRIND_DO_DISABLE_ERROR_REPORTING;
 	pmem_msync(ptr, 1);
+	VALGRIND_DO_ENABLE_ERROR_REPORTING;
 	print_errors("pmem_msync");
 
 	(void) pmemobj_first(pop, PMEMOBJ_NUM_OID_TYPES + 1);

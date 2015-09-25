@@ -1791,6 +1791,8 @@ lane_transaction_recovery(PMEMobjpool *pop,
 		if (On_valgrind) {
 			tx_abort_register_valgrind(pop, &layout->undo_set);
 			tx_abort_register_valgrind(pop, &layout->undo_alloc);
+			tx_abort_register_valgrind(pop,
+					&layout->undo_set_cache);
 		}
 #endif
 		/* process undo log and restore all operations */

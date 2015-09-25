@@ -32,8 +32,10 @@
 
 #include "unittest.h"
 
+#if defined(USE_VG_MEMCHECK) || defined(USE_VALGRIND)
 #include <valgrind/valgrind.h>
 #include <valgrind/memcheck.h>
+#endif
 
 /*
  * Layout definition
@@ -56,6 +58,7 @@ struct root {
 static void
 test_memcheck_bug()
 {
+#if defined(USE_VG_MEMCHECK) || defined(USE_VALGRIND)
 	volatile char tmp[100];
 
 	VALGRIND_CREATE_MEMPOOL(tmp, 0, 0);
@@ -64,6 +67,7 @@ test_memcheck_bug()
 	VALGRIND_MEMPOOL_ALLOC(tmp, tmp + 8, 16);
 	VALGRIND_MAKE_MEM_NOACCESS(tmp, 8);
 	tmp[7] = 0x66;
+#endif
 }
 
 static void
