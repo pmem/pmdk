@@ -68,6 +68,7 @@ CFLAGS += -Wall
 CFLAGS += -Werror
 CFLAGS += -Wmissing-prototypes
 CFLAGS += -Wpointer-arith
+CFLAGS += -Wunused-macros
 CFLAGS += -pthread
 CFLAGS += $(EXTRA_CFLAGS)
 CFLAGS += -I../include

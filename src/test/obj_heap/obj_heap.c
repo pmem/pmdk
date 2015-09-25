@@ -48,10 +48,6 @@
 
 #define	MOCK_POOL_SIZE PMEMOBJ_MIN_POOL
 
-#define	CHUNK_FIRST	0
-#define	CHUNK_SECOND	1
-#define	CHUNK_THIRD	2
-#define	CHUNK_NEW_SIZE_IDX 1
 #define	MAX_BLOCKS 3
 
 struct mock_pop {

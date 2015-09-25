@@ -44,7 +44,6 @@
 
 #include "benchmark.h"
 
-#define	FLUSH_ALIGN 64
 #define	MAX_OFFSET 63
 
 struct memset_bench;
