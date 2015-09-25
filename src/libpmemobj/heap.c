@@ -667,9 +667,9 @@ heap_buckets_init(PMEMobjpool *pop)
 	bucket_proto[i].unit_size = CHUNKSIZE;
 
 	h->last_run_max_size = bucket_proto[i - 1].unit_size *
-				(bucket_proto[i - 1].unit_max - 1);
+				bucket_proto[i - 1].unit_max;
 
-	h->bucket_map = Malloc(sizeof (*h->bucket_map) * h->last_run_max_size);
+	h->bucket_map = Malloc(sizeof (uint8_t) * (h->last_run_max_size + 1));
 	if (h->bucket_map == NULL)
 		goto error_bucket_map_malloc;
 
@@ -681,8 +681,13 @@ heap_buckets_init(PMEMobjpool *pop)
 	}
 
 	/* XXX better way to fill the bucket map */
-	for (i = 0; i < h->last_run_max_size; ++i) {
-		for (int j = 0; j < MAX_BUCKETS - 1; ++j) {
+	for (i = 0; i <= h->last_run_max_size; ++i) {
+		/*
+		 * All sizes can be handled by the largest available run bucket,
+		 * next pick the smallest fit.
+		 */
+		h->bucket_map[i] = MAX_BUCKETS - 2;
+		for (int j = 0; j < MAX_BUCKETS - 2; ++j) {
 			/*
 			 * Skip the last unit, so that the distribution
 			 * of buckets in the map is better.
