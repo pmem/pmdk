@@ -525,7 +525,7 @@ lane_allocator_check(PMEMobjpool *pop, struct lane_section_layout *section)
 }
 
 /*
- * lane_allocator_init -- initalizes allocator section
+ * lane_allocator_init -- initializes allocator section
  */
 static int
 lane_allocator_boot(PMEMobjpool *pop)

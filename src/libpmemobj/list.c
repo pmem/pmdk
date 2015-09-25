@@ -1962,7 +1962,7 @@ lane_list_destruct(PMEMobjpool *pop, struct lane_section *section)
 }
 
 /*
- * lane_list_init -- initalizes list section
+ * lane_list_init -- initializes list section
  */
 static int
 lane_list_boot(PMEMobjpool *pop)
