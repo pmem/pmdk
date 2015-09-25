@@ -728,6 +728,7 @@ util_poolset_create(struct pool_set **setp, const char *path, size_t poolsize,
 		if (fd == -1)
 			return -1;
 
+		/* close the file and open with O_RDWR */
 		*setp = util_poolset_single(path, poolsize, fd, 1);
 		if (*setp == NULL) {
 			ret = -1;
@@ -739,7 +740,7 @@ util_poolset_create(struct pool_set **setp, const char *path, size_t poolsize,
 	}
 
 	/* do not check minsize */
-	if ((fd = util_file_open(path, &size, 0, O_RDWR)) == -1)
+	if ((fd = util_file_open(path, &size, 0, O_RDONLY)) == -1)
 		return -1;
 
 	char signature[POOLSET_HDR_SIG_LEN];
@@ -759,6 +760,11 @@ util_poolset_create(struct pool_set **setp, const char *path, size_t poolsize,
 			ret = -1;
 			goto err;
 		}
+
+		(void) close(fd);
+		size = 0;
+		if ((fd = util_file_open(path, &size, 0, O_RDWR)) == -1)
+			return -1;
 
 		*setp = util_poolset_single(path, size, fd, 0);
 		if (*setp == NULL) {
@@ -802,7 +808,7 @@ util_poolset_open(struct pool_set **setp, const char *path, size_t minsize)
 	size_t size = 0;
 
 	/* do not check minsize */
-	if ((fd = util_file_open(path, &size, 0, O_RDWR)) == -1)
+	if ((fd = util_file_open(path, &size, 0, O_RDONLY)) == -1)
 		return -1;
 
 	char signature[POOLSET_HDR_SIG_LEN];
@@ -822,6 +828,12 @@ util_poolset_open(struct pool_set **setp, const char *path, size_t minsize)
 			ret = -1;
 			goto err;
 		}
+
+		/* close the file and open with O_RDWR */
+		(void) close(fd);
+		size = 0;
+		if ((fd = util_file_open(path, &size, 0, O_RDWR)) == -1)
+			return -1;
 
 		*setp = util_poolset_single(path, size, fd, 0);
 		if (*setp == NULL) {

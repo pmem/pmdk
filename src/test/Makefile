@@ -113,6 +113,7 @@ TEST = blk_nblock\
        pmempool_info\
        pmempool_dump\
        pmempool_create\
+       pmempool_rm\
        pmempool_help\
        magic\
        arch_flags\
