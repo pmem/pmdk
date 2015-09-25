@@ -110,7 +110,7 @@ updated atomically (the updates cannot be
 .I torn
 by program interruption such as power failures).
 This library builds on the low-level pmem support provided by
-.BR libpmem ,
+.BR libpmem (3) ,
 handling the transactional update of the log, flushing to
 persistence, and recovery for the application.
 .PP
@@ -425,7 +425,7 @@ The callback function should return 1 if
 should continue walking through the log, or 0 to
 terminate the walk.
 The callback function is called while holding
-.B libpmem
+.B libpmemlog
 internal locks that make calls atomic, so the callback function
 must not try to append to the log itself or deadlock will occur.
 .SH LIBRARY API VERSIONING

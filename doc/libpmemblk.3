@@ -108,7 +108,7 @@ updated atomically (the update cannot be
 .I torn
 by program interruption such as power failures).
 This library builds on the low-level pmem support provided by
-.BR libpmem ,
+.BR libpmem (3),
 handling the transactional update of the blocks, flushing to
 persistence, and recovery for the application.
 .PP
@@ -405,7 +405,7 @@ in memory pool
 .IR pbp .
 Using this function is faster than actually writing a block of zeros
 since
-.B libpmem
+.B libpmemblk
 uses metadata to indicate the block should read back as zero.
 On success, zero is returned.  On error, -1 is returned and errno is set.
 .PP
