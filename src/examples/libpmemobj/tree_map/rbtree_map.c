@@ -171,8 +171,7 @@ tree_map_rotate(TOID(struct tree_map) map,
 
 	NODE_P(child) = NODE_P(node);
 
-	TX_ADD(NODE_P(node));
-	NODE_PARENT_AT(node, NODE_LOCATION(node)) = child;
+	TX_SET(NODE_P(node), slots[NODE_LOCATION(node)], child);
 
 	D_RW(child)->slots[c] = node;
 	D_RW(node)->parent = child;
@@ -376,8 +375,7 @@ tree_map_remove(PMEMobjpool *pop, TOID(struct tree_map) map, uint64_t key)
 		if (TOID_EQUALS(NODE_P(x), r)) {
 			TX_SET(r, slots[RB_LEFT], x);
 		} else {
-			TX_ADD(y);
-			NODE_PARENT_AT(y, NODE_LOCATION(y)) = x;
+			TX_SET(NODE_P(y), slots[NODE_LOCATION(y)], x);
 		}
 
 		if (D_RO(y)->color == COLOR_BLACK)
@@ -392,8 +390,7 @@ tree_map_remove(PMEMobjpool *pop, TOID(struct tree_map) map, uint64_t key)
 			TX_SET(D_RW(n)->slots[RB_LEFT], parent, y);
 			TX_SET(D_RW(n)->slots[RB_RIGHT], parent, y);
 
-			TX_ADD(NODE_P(n));
-			NODE_PARENT_AT(n, NODE_LOCATION(n)) = y;
+			TX_SET(NODE_P(n), slots[NODE_LOCATION(n)], y);
 		}
 		TX_FREE(n);
 	} TX_END

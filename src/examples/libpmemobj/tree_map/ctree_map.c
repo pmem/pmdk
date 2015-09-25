@@ -196,7 +196,7 @@ tree_map_get_leaf(TOID(struct tree_map) map,
 
 	return NULL;
 }
-#include <stdio.h>
+
 /*
  * tree_map_remove -- removes key-value pair from the map
  */
