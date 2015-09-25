@@ -43,7 +43,6 @@
 #define	LAYOUT_NAME "tx_realloc"
 
 #define	TEST_VALUE_1	1
-#define	TEST_VALUE_2	2
 #define	OBJ_SIZE	1024
 
 enum type_number {

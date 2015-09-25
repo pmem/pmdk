@@ -56,7 +56,7 @@ JEMALLOC_AUTOM4TE_CACHE=autom4te.cache
 .NOTPARALLEL: $(JEMALLOC_CFG_OUT_FILES)
 JEMALLOC_CONFIG_FILE = $(JEMALLOC_DIR)/jemalloc.cfg
 JEMALLOC_CONFIG = $(shell cat $(JEMALLOC_CONFIG_FILE))
-JEMALLOC_CFLAGS=$(filter-out -fno-common -Wmissing-prototypes -Wpointer-arith, $(CFLAGS))
+JEMALLOC_CFLAGS=$(filter-out -fno-common -Wmissing-prototypes -Wpointer-arith -Wunused-macros, $(CFLAGS))
 JEMALLOC_REMOVE_LDFLAGS_TMP = -Wl,--warn-common
 JEMALLOC_LDFLAGS=$(filter-out $(JEMALLOC_REMOVE_LDFLAGS_TMP), $(LDFLAGS))
 
