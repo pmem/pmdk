@@ -90,6 +90,27 @@ Free_func Free = free;
 Realloc_func Realloc = realloc;
 Strdup_func Strdup = strdup;
 
+#ifdef WIN32
+
+/*
+ * this structure tracks the file mappings outstanding per file handle
+ */
+
+LIST_ENTRY FileMappingListHead;
+
+typedef struct _FILE_MAPPING_TRACKER {
+
+	LIST_ENTRY ListEntry;
+	int FileHandle;
+	HANDLE FileMappingHandle;
+	PVOID *BaseAddress;
+
+} FILE_MAPPING_TRACKER, *PFILE_MAPPING_TRACKER;
+
+HANDLE FileMappingListMutex = NULL;
+
+#endif
+
 #if defined(USE_VG_PMEMCHECK) || defined(USE_VG_HELGRIND) ||\
 	defined(USE_VG_MEMCHECK)
 /* initialized to true if the process is running inside Valgrind */
@@ -130,9 +151,57 @@ util_init(void)
 		}
 	}
 
+#ifdef WIN32
+	InitializeListHead(&FileMappingListHead);
+
+	FileMappingListMutex = CreateMutex(NULL, FALSE, NULL);
+#endif
+
 #if defined(USE_VG_PMEMCHECK) || defined(USE_VG_HELGRIND) ||\
 	defined(USE_VG_MEMCHECK)
 	_On_valgrind = RUNNING_ON_VALGRIND;
+#endif
+}
+
+/*
+ * util_fini -- initialize the utils
+ *
+ * This is called from the library destructor code.
+ */
+void
+util_fini(void)
+{
+	LOG(3, NULL);
+
+#ifdef WIN32
+
+	if (FileMappingListMutex != NULL) {
+		/*
+		 * Let's make sure that no one is in the middle of updating the
+		 * list by grabbing the lock.  There is still a race condition
+		 * with someone coming in while we're tearing it down and trying
+		 */
+		WaitForSingleObject(FileMappingListMutex, INFINITE);
+		ReleaseMutex(FileMappingListMutex);
+		CloseHandle(FileMappingListMutex);
+
+		while (!IsListEmpty(&FileMappingListHead)) {
+			PLIST_ENTRY listEntry =
+				RemoveTailList(&FileMappingListHead);
+
+			PFILE_MAPPING_TRACKER mappingTracker =
+				CONTAINING_RECORD(listEntry,
+					FILE_MAPPING_TRACKER, ListEntry);
+
+			if (mappingTracker->BaseAddress != NULL)
+				UnmapViewOfFile(mappingTracker->BaseAddress);
+
+			if (mappingTracker->FileMappingHandle != NULL)
+				CloseHandle(mappingTracker->FileMappingHandle);
+
+			Free(mappingTracker);
+		}
+	}
 #endif
 }
 
@@ -175,6 +244,7 @@ util_map_hint_unused(void *minaddr, size_t len, size_t align)
 
 	ASSERT(align > 0);
 
+#ifndef WIN32
 	FILE *fp;
 	if ((fp = fopen("/proc/self/maps", "r")) == NULL) {
 		ERR("!/proc/self/maps");
@@ -229,7 +299,9 @@ util_map_hint_unused(void *minaddr, size_t len, size_t align)
 	}
 
 	fclose(fp);
-
+#else
+	char *raddr = NULL;
+#endif
 	LOG(3, "returning %p", raddr);
 	return raddr;
 }
@@ -311,6 +383,9 @@ util_map(int fd, size_t len, int cow, size_t req_align)
 	LOG(3, "fd %d len %zu cow %d req_align %zu", fd, len, cow, req_align);
 
 	void *base;
+
+#ifndef WIN32
+
 	void *addr = util_map_hint(len, req_align);
 
 	if ((base = mmap(addr, len, PROT_READ|PROT_WRITE,
@@ -319,6 +394,55 @@ util_map(int fd, size_t len, int cow, size_t req_align)
 		ERR("!mmap %zu bytes", len);
 		return NULL;
 	}
+#else
+	HANDLE fileMapping = CreateFileMapping((HANDLE) fd,
+					NULL,
+					PAGE_READWRITE,
+					(DWORD) (len >> 32),
+					(DWORD) (len & 0xFFFFFFFF),
+					NULL);
+
+	if (fileMapping == NULL) {
+		ERR("!mmap %zu bytes", len);
+		return NULL;
+	}
+
+	base = MapViewOfFile(fileMapping,
+				FILE_MAP_ALL_ACCESS,
+				0,
+				0,
+				len);
+
+	if (base == NULL) {
+		CloseHandle(fileMapping);
+		ERR("!mmap %zu bytes", len);
+		return NULL;
+	}
+
+	/*
+	 * We will track the file mapping handle on a lookaside list so that
+	 * we don't have to modify the fact that we only return back the base
+	 * address rather than a more elaborate structure.
+	 */
+
+	PFILE_MAPPING_TRACKER mappingTracker =
+			Malloc(sizeof (FILE_MAPPING_TRACKER));
+
+	if (mappingTracker == NULL) {
+		CloseHandle(fileMapping);
+		ERR("!mmap %zu bytes", len);
+		return NULL;
+	}
+
+	mappingTracker->FileHandle = fd;
+	mappingTracker->FileMappingHandle = fileMapping;
+	mappingTracker->BaseAddress = base;
+
+	WaitForSingleObject(FileMappingListMutex, INFINITE);
+	InsertHeadList(&FileMappingListHead, &mappingTracker->ListEntry);
+	ReleaseMutex(FileMappingListMutex);
+
+#endif
 
 	LOG(3, "mapped at %p", base);
 
@@ -336,9 +460,52 @@ util_unmap(void *addr, size_t len)
 {
 	LOG(3, "addr %p len %zu", addr, len);
 
+#ifndef WIN32
 	int retval = munmap(addr, len);
 	if (retval < 0)
 		ERR("!munmap");
+#else
+
+	PLIST_ENTRY listEntry;
+	int retval = ERROR_INVALID_PARAMETER;
+	BOOLEAN haveMutex = TRUE;
+
+	WaitForSingleObject(FileMappingListMutex, INFINITE);
+	listEntry = FileMappingListHead.Flink;
+
+	while (listEntry != &FileMappingListHead) {
+
+		PFILE_MAPPING_TRACKER mappingTracker =
+			CONTAINING_RECORD(listEntry, FILE_MAPPING_TRACKER,
+						ListEntry);
+
+		if (mappingTracker->BaseAddress == addr) {
+			/*
+			 * Let's release the list mutex before we do the work
+			 * of unmapping and closing may take some time.
+			 */
+
+			RemoveEntryList(listEntry);
+			ReleaseMutex(FileMappingListMutex);
+			haveMutex = FALSE;
+
+			retval = (UnmapViewOfFile(mappingTracker->BaseAddress)
+					!= 0) ? 0 : GetLastError();
+			CloseHandle(mappingTracker->FileMappingHandle);
+			Free(mappingTracker);
+
+			break;
+		}
+
+		listEntry = listEntry->Flink;
+	}
+
+	if (haveMutex)
+		ReleaseMutex(FileMappingListMutex);
+
+	if (retval != 0)
+		ERR("!munmap");
+#endif
 
 	return retval;
 }
@@ -353,10 +520,12 @@ util_tmpfile(const char *dir, size_t size)
 {
 	LOG(3, "dir %s size %zu", dir, size);
 
-	static char template[] = "/vmem.XXXXXX";
 	int fd = -1;
 
+#ifndef WIN32
+	static char template[] = "/vmem.XXXXXX";
 	char fullname[PATH_MAX];
+
 	(void) strcpy(fullname, dir);
 	(void) strcat(fullname, template);
 
@@ -366,11 +535,9 @@ util_tmpfile(const char *dir, size_t size)
 		return -1;
 	}
 
-#ifndef WIN32
 	sigset_t set, oldset;
 	sigfillset(&set);
 	(void) sigprocmask(SIG_BLOCK, &set, &oldset);
-#endif
 
 	mode_t prev_umask = umask(S_IRWXG | S_IRWXO);
 	fd = mkstemp(fullname);
@@ -381,27 +548,72 @@ util_tmpfile(const char *dir, size_t size)
 	}
 
 	(void) unlink(fullname);
-#ifndef WIN32
 	(void) sigprocmask(SIG_SETMASK, &oldset, NULL);
-#endif
 	LOG(3, "unlinked file is \"%s\"", fullname);
 
 	if ((errno = posix_fallocate(fd, 0, (off_t)size)) != 0) {
 		ERR("!posix_fallocate");
 		goto err;
 	}
+#else
+	char fullName[MAX_PATH];
+	UINT fileNo;
+	FILE_DISPOSITION_INFO fileDisp;
 
+	fileNo = GetTempFileNameA(dir, "umem", 0, (LPSTR)&fullName[0]);
+
+	if (fileNo == 0) {
+		ERR("!mkstemp");
+		goto err;
+	}
+
+	fd = util_file_create((const char *)&fullName, size, size);
+
+	if (fd == INVALID_HANDLE_VALUE) {
+		ERR("!mkstemp");
+		goto err;
+	}
+
+	fileDisp.DeleteFile = TRUE;
+
+	if (!SetFileInformationByHandle((HANDLE) fd,
+				FileDispositionInfo,
+				&fileDisp,
+				sizeof (fileDisp))) {
+
+		/*
+		 * let's preserve the last error across the close and delete
+		 */
+		int oerrno = GetLastError();
+
+		CloseHandle((HANDLE) fd);
+		DeleteFileA((LPCSTR) &fullName);
+		fd = INVALID_HANDLE_VALUE;
+		SetLastError(oerrno);
+
+		ERR("!mkstemp");
+		goto err;
+	}
+
+#endif
 	return fd;
 
 err:
 	LOG(1, "return -1");
-	int oerrno = errno;
 #ifndef WIN32
+	int oerrno = errno;
 	(void) sigprocmask(SIG_SETMASK, &oldset, NULL);
-#endif
 	if (fd != -1)
 		(void) close(fd);
+
 	errno = oerrno;
+#else
+	int oerrno = GetLastError();
+	if (fd != INVALID_HANDLE_VALUE)
+		(void) CloseHandle((HANDLE)fd);
+
+	SetLastError(oerrno);
+#endif
 	return -1;
 }
 
@@ -781,6 +993,8 @@ util_file_create(const char *path, size_t size, size_t minsize)
 	 * Create file without any permission. It will be granted once
 	 * initialization completes.
 	 */
+
+#ifndef WIN32
 	if ((fd = open(path, O_RDWR|O_CREAT|O_EXCL, 0)) < 0) {
 		ERR("!open %s", path);
 		return -1;
@@ -795,16 +1009,52 @@ util_file_create(const char *path, size_t size, size_t minsize)
 		ERR("!posix_fallocate");
 		goto err;
 	}
+#else
+	fd = CreateFileA(path,
+			GENERIC_READ | GENERIC_WRITE,
+			0, /* share mode is exclusive */
+			NULL,
+			CREATE_ALWAYS,
+			FILE_ATTRIBUTE_NORMAL,
+			NULL);
+
+	if (fd == INVALID_HANDLE_VALUE) {
+		ERR("!CreateFile %s", path);
+		return -1;
+	}
+
+	LARGE_INTEGER fileLength;
+	fileLength.QuadPart = size;
+
+	if (SetFilePointerEx(fd, fileLength, NULL, FILE_BEGIN) == 0) {
+		ERR("!SetFilePointerEx %s", path);
+		goto err;
+	}
+
+	if (SetEndOfFile(fd) == 0) {
+		ERR("!SetEndOfFile %s", path);
+		goto err;
+	}
+#endif
 
 	return fd;
 
 err:
 	LOG(4, "error clean up");
+#ifndef WIN32
 	int oerrno = errno;
 	if (fd != -1)
 		(void) close(fd);
 	unlink(path);
 	errno = oerrno;
+#else
+	int oerrno = GetLastError();
+	if (fd != INVALID_HANDLE_VALUE) {
+		(void) CloseHandle((HANDLE)fd);
+		DeleteFileA(path);
+	}
+	SetLastError(oerrno);
+#endif
 	return -1;
 }
 
@@ -834,6 +1084,8 @@ util_file_open(const char *path, size_t *size, size_t minsize, int flags)
 		if (size)
 			ASSERTeq(*size, 0);
 
+#ifndef WIN32
+
 		struct stat stbuf;
 		if (fstat(fd, &stbuf) < 0) {
 			ERR("!fstat %s", path);
@@ -854,7 +1106,53 @@ util_file_open(const char *path, size_t *size, size_t minsize, int flags)
 
 		if (size)
 			*size = (size_t)stbuf.st_size;
+#else
+	WIN32_FILE_ATTRIBUTE_DATA fileData;
+
+	if (!GetFileAttributesExA(path, GetFileExInfoStandard, &fileData)) {
+		ERR("!GetFileAttributesEx %s", path);
+		return -1;
 	}
+
+	size_t fileSize = (fileData.nFileSizeHigh << 32) |
+				fileData.nFileSizeLow;
+
+	if (fileSize < minsize) {
+		ERR("size %zu smaller than %zu", fileSize, minsize);
+		SetLastError(ERROR_INVALID_PARAMETER);
+		return -1;
+	}
+
+	if (size)
+		*size = fileSize;
+#endif
+	}
+
+#ifndef WIN32
+	if ((fd = open(path, flags)) < 0) {
+		ERR("!open %s", path);
+		return -1;
+	}
+
+	if (flock(fd, LOCK_EX | LOCK_NB) < 0) {
+		ERR("!flock");
+		close(fd);
+		return -1;
+	}
+#else
+	fd = CreateFileA(path,
+			GENERIC_READ | GENERIC_WRITE,
+			0, /* share mode is exclusive */
+			NULL,
+			OPEN_EXISTING,
+			FILE_ATTRIBUTE_NORMAL,
+			NULL);
+
+	if (fd == INVALID_HANDLE_VALUE) {
+		ERR("!CreateFile %s", path);
+		return -1;
+	}
+#endif
 
 	return fd;
 err:

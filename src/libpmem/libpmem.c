@@ -76,6 +76,7 @@ void
 libpmem_fini(void)
 {
 	LOG(3, NULL);
+	util_fini();
 	out_fini();
 }
 
