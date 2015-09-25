@@ -222,6 +222,7 @@ struct uuid {
 };
 
 void util_init(void);
+void util_fini(void);
 
 int util_range_ro(void *addr, size_t len);
 int util_range_rw(void *addr, size_t len);
