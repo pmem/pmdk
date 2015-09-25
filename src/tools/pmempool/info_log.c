@@ -85,7 +85,7 @@ info_log_data(struct pmem_info *pip, int v, struct pmemlog *plp)
 		 */
 		uint32_t nchunks = size_used / pip->args.log.walk;
 
-		outv_title(v, "PMEMLOG data [chunks: total = %lu size = %ld]\n",
+		outv_title(v, "PMEMLOG data [chunks: total = %lu size = %ld]",
 				nchunks, pip->args.log.walk);
 
 		struct range *curp = NULL;
