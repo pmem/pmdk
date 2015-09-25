@@ -38,6 +38,7 @@
 #include <stdint.h>
 #include <io.h>
 #include <process.h>
+#include <listentry.h>
 
 #define	PATH_MAX MAX_PATH
 #define	__thread __declspec(thread)
