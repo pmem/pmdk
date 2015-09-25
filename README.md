@@ -72,7 +72,7 @@ this command at the top level:
 	$ make
 ```
 
-Once the make completes, all the libraries are built and the examples
+Once the make completes (*), all the libraries are built and the examples
 under `src/examples` are built as well.  You can play with the library
 within the build tree, or install it locally on your machine.  Installing
 the library is more convenient since it installs man pages and libraries
@@ -105,6 +105,18 @@ To build dpkg packages on Debian-based distributions:
 	$ make dpkg
 ```
 **Prerequisites:** devscripts
+
+(*) By default all code is built with -Werror flag which fails the whole build
+when compiler emits any warning. It's very useful during development, but can be
+annoying in deployment. If you want to disable -Werror, you can use EXTRA_CFLAGS
+variable:
+```
+	$ make EXTRA_CFLAGS="-Wno-error"
+```
+or
+```
+	$ make EXTRA_CFLAGS="-Wno-error=$(type-of-warning)"
+```
 
 ### Testing the Libraries ###
 
