@@ -297,7 +297,7 @@ lane_hold(PMEMobjpool *pop, struct lane_section **section,
 
 	if (Lane_idx == UINT32_MAX) {
 		do {
-			Lane_idx = __sync_fetch_and_add32(&Next_lane_idx, 1);
+			Lane_idx = __sync_fetch_and_add(&Next_lane_idx, 1);
 		} while (Lane_idx == UINT32_MAX); /* handles wraparound */
 	}
 
