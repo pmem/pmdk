@@ -311,7 +311,7 @@ heap_run_insert(PMEMobjpool *pop, struct bucket *b, uint32_t chunk_id,
 
 	unsigned unit_max = r->unit_max;
 	struct memory_block m = {chunk_id, zone_id,
-		unit_max - (block_off % unit_max), block_off};
+		(uint32_t)(unit_max - (block_off % unit_max)), block_off};
 
 	if (m.size_idx > size_idx)
 		m.size_idx = size_idx;
@@ -322,7 +322,8 @@ heap_run_insert(PMEMobjpool *pop, struct bucket *b, uint32_t chunk_id,
 		ASSERT(m.block_off + m.size_idx <= UINT16_MAX);
 		m.block_off = (uint16_t)(m.block_off + (uint16_t)m.size_idx);
 		size_idx -= m.size_idx;
-		m.size_idx = size_idx > unit_max ? unit_max : size_idx;
+		m.size_idx = size_idx > unit_max ?
+				(uint32_t)unit_max : size_idx;
 	} while (size_idx != 0);
 }
 
