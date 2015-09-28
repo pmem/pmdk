@@ -37,8 +37,6 @@
  * usage: vmmalloc_memalign [m|p|a]
  */
 
-#define	_ISOC11_SOURCE
-
 #include <stdlib.h>
 #include <malloc.h>
 #include <errno.h>

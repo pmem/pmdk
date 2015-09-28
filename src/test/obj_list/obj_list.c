@@ -106,8 +106,6 @@ TOID(struct oob_list) List_oob_sec;
 
 TOID(struct oob_item) *Item;
 
-#define	IS_NULL(oid)	(oid.off == 0)
-
 /* usage macros */
 #define	FATAL_USAGE()\
 	FATAL("usage: obj_list <file> [PRnifr]")
@@ -115,8 +113,6 @@ TOID(struct oob_item) *Item;
 	FATAL("usage: obj_list <file> P:<list>")
 #define	FATAL_USAGE_PRINT_REVERSE()\
 	FATAL("usage: obj_list <file> R:<list>")
-#define	FATAL_USAGE_INSERT_NEW()\
-	FATAL("usage: obj_list <file> n[:<where>:<num>[:<id>]]")
 #define	FATAL_USAGE_INSERT()\
 	FATAL("usage: obj_list <file> i:<where>:<num>")
 #define	FATAL_USAGE_REMOVE_FREE()\

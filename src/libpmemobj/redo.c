@@ -44,8 +44,6 @@
 #include "out.h"
 #include "valgrind_internal.h"
 
-#define	_POBJ_REDO_MIN_OFFSET	8192
-
 /*
  * redo_log_check_offset -- (internal) check if offset is valid
  */
