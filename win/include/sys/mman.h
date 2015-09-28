@@ -46,7 +46,8 @@
 
 #define	MS_SYNC 0
 
-#define	mmap(addr, len, prot, flags, fd, offset) NULL
-#define	munmap(addr, len) 0
+#define	mmap(addr, len, prot, flags, fd, offset) (memset(_aligned_malloc(len, 4096), 0, len))
+#define	munmap(addr, len) (_aligned_free(addr), 0)
+
 #define	mprotect(ptr, len, prot) 0
 #define	msync(ptr, len, flags) 0
