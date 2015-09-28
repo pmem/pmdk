@@ -66,7 +66,7 @@ __sync_fetch_and_and(volatile uint64_t *a, uint64_t val) {
 }
 
 __inline uint32_t
-__sync_fetch_and_add32(volatile uint32_t *a, uint32_t val) {
+__sync_fetch_and_add(volatile uint32_t *a, uint32_t val) {
 	return _InterlockedExchangeAdd(a, val);
 }
 
