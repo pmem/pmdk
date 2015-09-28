@@ -238,7 +238,7 @@ $(C_OBJS) $(C_PIC_OBJS) $(C_JET_OBJS) $(C_TESTLIB_OBJS) $(TESTS_OBJS): %.$(O):
 	@mkdir -p $(@D)
 	$(CC) $(CFLAGS) -c $(CPPFLAGS) $(CTARGET) $<
 ifdef CC_MM
-	@$(CC) -MM $(CPPFLAGS) -MT $@ -o $(@:%.$(O)=%.d) $<
+	@$(CC) -MM $(CFLAGS) $(CPPFLAGS) -MT $@ -o $(@:%.$(O)=%.d) $<
 endif
 
 ifneq ($(SOREV),$(SO))

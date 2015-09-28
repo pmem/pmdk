@@ -83,7 +83,7 @@ endif
 
 GLIB_TEST_PROG="\#include <glib.h>\nint main(){return 0;}"
 GLIB_SILENCE := $(shell printf $(GLIB_TEST_PROG) |\
-	$(CC) $(CFLAGS) -x c - 2>/dev/null && echo n || echo y)
+	$(CC) $(CFLAGS) -x c -o /dev/null - 2>/dev/null && echo n || echo y)
 
 ifeq ($(GLIB_SILENCE), y)
 CFLAGS += -Wno-unknown-attributes
