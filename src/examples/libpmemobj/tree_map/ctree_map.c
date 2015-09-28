@@ -279,7 +279,8 @@ tree_map_clear(PMEMobjpool *pop,
 PMEMoid
 tree_map_get(TOID(struct tree_map) map, uint64_t key)
 {
-	return tree_map_get_leaf(map, key, NULL)->slot;
+	struct tree_map_entry *entry = tree_map_get_leaf(map, key, NULL);
+	return entry ? entry->slot : OID_NULL;
 }
 
 /*

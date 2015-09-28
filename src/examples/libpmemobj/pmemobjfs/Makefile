@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2014-2015, Intel Corporation
+# Copyright (c) 2015, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,16 +31,36 @@
 #
 
 #
-# examples/libpmemobj/Makefile -- build the libpmemobj examples
+# examples/libpmemobj/pmemobjfs/Makefile -- build simple fuse base on libpmemobj
 #
-PROGS = manpage btree pi
-DIRS = pminvaders pmemlog pmemblk string_store string_store_tx\
-	string_store_tx_type hashset tree_map pmemobjfs
 
-LIBS = -lpmemobj -lpmem -pthread -lm -pthread
+vpath %.c ../tree_map/
 
-include ../Makefile.inc
+FUSE := $(shell pkg-config fuse && echo "y" || echo "n")
+ifeq ($(FUSE), y)
+LINKS = mkfs.pmemobjfs\
+       pmemobjfs.tx_begin\
+       pmemobjfs.tx_commit\
+       pmemobjfs.tx_abort
+PROGS = pmemobjfs
+endif
 
-manpage: manpage.o
-btree: btree.o
-pi: pi.o
+all-progs: $(LINKS)
+clean-progs: clean-links
+
+include ../../Makefile.inc
+
+LIBS += -lpmemobj -lpmem -pthread $(shell pkg-config --libs fuse)
+CFLAGS += $(shell pkg-config --cflags fuse)
+CFLAGS += -I../tree_map
+CFLAGS += -DFUSE_USE_VERSION=28
+
+$(LINKS): pmemobjfs
+	ln -sf pmemobjfs $@
+
+clean-links:
+	$(RM) $(LINKS)
+
+pmemobjfs: pmemobjfs.o ctree_map.o tree_map.o
+
+.PHONY: clean-links
