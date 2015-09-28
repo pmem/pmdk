@@ -224,7 +224,7 @@
 #define	_mm_pcommit()\
 	asm volatile(".byte 0x66, 0x0f, 0xae, 0xf8");
 
-#define	FLUSH_ALIGN 64
+#define	FLUSH_ALIGN ((uintptr_t)64)
 
 #define	ALIGN_MASK	(FLUSH_ALIGN - 1)
 
@@ -549,7 +549,7 @@ is_pmem_proc(void *addr, size_t len)
 				break;
 			} else if (caddr < hi) {
 				/* start address is in this range */
-				size_t rangelen = hi - caddr;
+				size_t rangelen = (size_t)(hi - caddr);
 
 				/* remember that matching has started */
 				needmm = 1;
@@ -624,9 +624,13 @@ pmem_map(int fd)
 		ERR("!fstat");
 		return NULL;
 	}
+	if (stbuf.st_size < 0) {
+		ERR("fstat: negative size");
+		return NULL;
+	}
 
 	void *addr;
-	if ((addr = util_map(fd, stbuf.st_size, 0)) == NULL)
+	if ((addr = util_map(fd, (size_t)stbuf.st_size, 0)) == NULL)
 		return NULL;    /* util_map() set errno, called LOG */
 
 	LOG(3, "returning %p", addr);
@@ -958,7 +962,7 @@ memset_nodrain_movnt(void *pmemdest, int c, size_t len)
 {
 	LOG(15, "pmemdest %p c 0x%x len %zu", pmemdest, c, len);
 
-	int i;
+	size_t i;
 	void *dest1 = pmemdest;
 	size_t cnt;
 	__m128i xmm0;
@@ -984,10 +988,7 @@ memset_nodrain_movnt(void *pmemdest, int c, size_t len)
 		dest1 = (char *)dest1 + cnt;
 	}
 
-	xmm0 = _mm_set_epi8(c, c, c, c,
-		c, c, c, c,
-		c, c, c, c,
-		c, c, c, c);
+	xmm0 = _mm_set1_epi8((char)c);
 
 	d = (__m128i *)dest1;
 	cnt = len / CHUNK_SIZE;
@@ -1223,8 +1224,8 @@ pmem_init(void)
 		if (val < 0)
 			LOG(3, "Invalid PMEM_MOVNT_THRESHOLD");
 		else {
-			LOG(3, "PMEM_MOVNT_THRESHOLD set to %lld", val);
-			Movnt_threshold = val;
+			LOG(3, "PMEM_MOVNT_THRESHOLD set to %zu", (size_t)val);
+			Movnt_threshold = (size_t)val;
 		}
 	}
 
