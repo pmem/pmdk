@@ -34,20 +34,32 @@
  * fake mman.h
  */
 
-#define	MAP_PRIVATE 0
-#define	MAP_NORESERVE 0
-#define	MAP_SHARED 0
+#define	PROT_NONE	0x0
+#define	PROT_READ	0x1
+#define	PROT_WRITE	0x2
+#define	PROT_EXEC	0x4
+
+#define	MAP_SHARED	0x1
+#define	MAP_PRIVATE	0x2
+
+#define	MAP_FIXED	0x10
+#define	MAP_ANONYMOUS	0x20
+#define	MAP_ANON	MAP_ANONYMOUS
+
+#define	MAP_NORESERVE	0x04000
+
+#define	MS_ASYNC	1
+#define	MS_SYNC		4
+#define	MS_INVALIDATE	2
+
 #define	MAP_FAILED ((void *)(-1))
-#define	MAP_FIXED 0
 
-#define	PROT_READ 0
-#define	PROT_WRITE 0
-#define	PROT_NONE 0
 
-#define	MS_SYNC 0
+void mmap_init(void);
+void mmap_fini(void);
 
-#define	mmap(addr, len, prot, flags, fd, offset) (memset(_aligned_malloc(len, 4096), 0, len))
-#define	munmap(addr, len) (_aligned_free(addr), 0)
+void *mmap(void *addr, size_t len, int prot, int flags, int fd, size_t offset);
+int munmap(void *addr, size_t len);
 
 #define	mprotect(ptr, len, prot) 0
 #define	msync(ptr, len, flags) 0

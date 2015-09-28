@@ -756,7 +756,7 @@ heap_drain_to_auxiliary(PMEMobjpool *pop, struct bucket *auxb,
 
 	for (unsigned i = 0;
 			i < h->ncaches && total_drained < units_total; ++i) {
-		cache_id = __sync_fetch_and_add32(&h->last_drained[b_id], 1)
+		cache_id = __sync_fetch_and_add(&h->last_drained[b_id], 1)
 				% h->ncaches;
 
 		b = h->caches[cache_id].buckets[b_id];
