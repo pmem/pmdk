@@ -44,6 +44,8 @@ CFLAGS += -Wmissing-prototypes
 CFLAGS += -Wpointer-arith
 CFLAGS += -pthread
 CFLAGS += -fno-common
+CFLAGS += $(EXTRA_CFLAGS)
+
 CSTYLE = ../../../utils/cstyle
 
 all test: $(TARGET)
