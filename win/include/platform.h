@@ -65,14 +65,21 @@ __sync_fetch_and_and(volatile uint64_t *a, uint64_t val) {
 	return _InterlockedAnd64(a, val);
 }
 
+__inline uint32_t
+__sync_fetch_and_add32(volatile uint32_t *a, uint32_t val) {
+	return _InterlockedExchangeAdd(a, val);
+}
+
 __inline uint64_t
-__sync_fetch_and_add(volatile uint64_t *a, uint64_t val) {
+__sync_fetch_and_add64(volatile uint64_t *a, uint64_t val) {
 	return _InterlockedExchangeAdd64(a, val);
 }
 
-__inline int
-__sync_bool_compare_and_swap(volatile uint64_t *ptr, uint64_t oldval, uint64_t newval) {
-	return (int)_InterlockedCompareExchange64(ptr, oldval, newval);
+__inline long
+__sync_bool_compare_and_swap(volatile uint64_t *ptr,
+				uint64_t oldval, uint64_t newval) {
+	uint64_t old = _InterlockedCompareExchange64(ptr, newval, oldval);
+	return (old == oldval);
 }
 
 #define	LOCK_EX 0
