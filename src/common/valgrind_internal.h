@@ -42,7 +42,7 @@
 
 #if defined(USE_VG_PMEMCHECK) || defined(USE_VG_HELGRIND) ||\
 	defined(USE_VG_MEMCHECK)
-extern int On_valgrind;
+extern unsigned On_valgrind;
 #include <valgrind/valgrind.h>
 #else
 #define	On_valgrind (0)
