@@ -90,27 +90,6 @@ Free_func Free = free;
 Realloc_func Realloc = realloc;
 Strdup_func Strdup = strdup;
 
-#ifdef WIN32
-
-/*
- * this structure tracks the file mappings outstanding per file handle
- */
-
-LIST_ENTRY FileMappingListHead;
-
-typedef struct _FILE_MAPPING_TRACKER {
-
-	LIST_ENTRY ListEntry;
-	int FileHandle;
-	HANDLE FileMappingHandle;
-	PVOID *BaseAddress;
-
-} FILE_MAPPING_TRACKER, *PFILE_MAPPING_TRACKER;
-
-HANDLE FileMappingListMutex = NULL;
-
-#endif
-
 #if defined(USE_VG_PMEMCHECK) || defined(USE_VG_HELGRIND) ||\
 	defined(USE_VG_MEMCHECK)
 /* initialized to true if the process is running inside Valgrind */
@@ -152,9 +131,7 @@ util_init(void)
 	}
 
 #ifdef WIN32
-	InitializeListHead(&FileMappingListHead);
-
-	FileMappingListMutex = CreateMutex(NULL, FALSE, NULL);
+	mmap_init();
 #endif
 
 #if defined(USE_VG_PMEMCHECK) || defined(USE_VG_HELGRIND) ||\
@@ -174,34 +151,7 @@ util_fini(void)
 	LOG(3, NULL);
 
 #ifdef WIN32
-
-	if (FileMappingListMutex != NULL) {
-		/*
-		 * Let's make sure that no one is in the middle of updating the
-		 * list by grabbing the lock.  There is still a race condition
-		 * with someone coming in while we're tearing it down and trying
-		 */
-		WaitForSingleObject(FileMappingListMutex, INFINITE);
-		ReleaseMutex(FileMappingListMutex);
-		CloseHandle(FileMappingListMutex);
-
-		while (!IsListEmpty(&FileMappingListHead)) {
-			PLIST_ENTRY listEntry =
-				RemoveTailList(&FileMappingListHead);
-
-			PFILE_MAPPING_TRACKER mappingTracker =
-				CONTAINING_RECORD(listEntry,
-					FILE_MAPPING_TRACKER, ListEntry);
-
-			if (mappingTracker->BaseAddress != NULL)
-				UnmapViewOfFile(mappingTracker->BaseAddress);
-
-			if (mappingTracker->FileMappingHandle != NULL)
-				CloseHandle(mappingTracker->FileMappingHandle);
-
-			Free(mappingTracker);
-		}
-	}
+	mmap_fini();
 #endif
 }
 
@@ -394,55 +344,6 @@ util_map(int fd, size_t len, int cow, size_t req_align)
 		ERR("!mmap %zu bytes", len);
 		return NULL;
 	}
-#else
-	HANDLE fileMapping = CreateFileMapping((HANDLE) fd,
-					NULL,
-					PAGE_READWRITE,
-					(DWORD) (len >> 32),
-					(DWORD) (len & 0xFFFFFFFF),
-					NULL);
-
-	if (fileMapping == NULL) {
-		ERR("!mmap %zu bytes", len);
-		return NULL;
-	}
-
-	base = MapViewOfFile(fileMapping,
-				FILE_MAP_ALL_ACCESS,
-				0,
-				0,
-				len);
-
-	if (base == NULL) {
-		CloseHandle(fileMapping);
-		ERR("!mmap %zu bytes", len);
-		return NULL;
-	}
-
-	/*
-	 * We will track the file mapping handle on a lookaside list so that
-	 * we don't have to modify the fact that we only return back the base
-	 * address rather than a more elaborate structure.
-	 */
-
-	PFILE_MAPPING_TRACKER mappingTracker =
-			Malloc(sizeof (FILE_MAPPING_TRACKER));
-
-	if (mappingTracker == NULL) {
-		CloseHandle(fileMapping);
-		ERR("!mmap %zu bytes", len);
-		return NULL;
-	}
-
-	mappingTracker->FileHandle = fd;
-	mappingTracker->FileMappingHandle = fileMapping;
-	mappingTracker->BaseAddress = base;
-
-	WaitForSingleObject(FileMappingListMutex, INFINITE);
-	InsertHeadList(&FileMappingListHead, &mappingTracker->ListEntry);
-	ReleaseMutex(FileMappingListMutex);
-
-#endif
 
 	LOG(3, "mapped at %p", base);
 
@@ -460,52 +361,9 @@ util_unmap(void *addr, size_t len)
 {
 	LOG(3, "addr %p len %zu", addr, len);
 
-#ifndef WIN32
 	int retval = munmap(addr, len);
 	if (retval < 0)
 		ERR("!munmap");
-#else
-
-	PLIST_ENTRY listEntry;
-	int retval = ERROR_INVALID_PARAMETER;
-	BOOLEAN haveMutex = TRUE;
-
-	WaitForSingleObject(FileMappingListMutex, INFINITE);
-	listEntry = FileMappingListHead.Flink;
-
-	while (listEntry != &FileMappingListHead) {
-
-		PFILE_MAPPING_TRACKER mappingTracker =
-			CONTAINING_RECORD(listEntry, FILE_MAPPING_TRACKER,
-						ListEntry);
-
-		if (mappingTracker->BaseAddress == addr) {
-			/*
-			 * Let's release the list mutex before we do the work
-			 * of unmapping and closing may take some time.
-			 */
-
-			RemoveEntryList(listEntry);
-			ReleaseMutex(FileMappingListMutex);
-			haveMutex = FALSE;
-
-			retval = (UnmapViewOfFile(mappingTracker->BaseAddress)
-					!= 0) ? 0 : GetLastError();
-			CloseHandle(mappingTracker->FileMappingHandle);
-			Free(mappingTracker);
-
-			break;
-		}
-
-		listEntry = listEntry->Flink;
-	}
-
-	if (haveMutex)
-		ReleaseMutex(FileMappingListMutex);
-
-	if (retval != 0)
-		ERR("!munmap");
-#endif
 
 	return retval;
 }
@@ -777,6 +635,15 @@ out_close:
 out:
 	return ret;
 #else
+
+	SYSTEM_INFO si;
+	GetSystemInfo(&si);
+
+	arch_flags->e_machine = si.wProcessorArchitecture;
+	arch_flags->ei_class = 0; /* si.dwProcessorType; */
+	arch_flags->ei_data = 0;
+	arch_flags->alignment_desc = alignment_desc();
+
 	return 0; /* GetSystemInfo */
 #endif
 }
@@ -1010,6 +877,18 @@ util_file_create(const char *path, size_t size, size_t minsize)
 		goto err;
 	}
 #else
+
+#if 1
+	if ((fd = open(path, O_RDWR|O_CREAT|O_EXCL, S_IWRITE | S_IREAD)) < 0) {
+		ERR("!open %s", path);
+		return -1;
+	}
+
+	if (chsize(fd, (long)size)) {
+		ERR("!chsize %s", path);
+		goto err;
+	}
+#else
 	fd = CreateFileA(path,
 			GENERIC_READ | GENERIC_WRITE,
 			0, /* share mode is exclusive */
@@ -1019,29 +898,33 @@ util_file_create(const char *path, size_t size, size_t minsize)
 			NULL);
 
 	if (fd == INVALID_HANDLE_VALUE) {
-		ERR("!CreateFile %s", path);
+		ERR("!open %s", path);
 		return -1;
 	}
 
 	LARGE_INTEGER fileLength;
 	fileLength.QuadPart = size;
 
-	if (SetFilePointerEx(fd, fileLength, NULL, FILE_BEGIN) == 0) {
+	HANDLE fh = _get_osfhandle(fd);
+	if (SetFilePointerEx(fh, fileLength, NULL, FILE_BEGIN) == 0) {
 		ERR("!SetFilePointerEx %s", path);
 		goto err;
 	}
 
-	if (SetEndOfFile(fd) == 0) {
+	if (SetEndOfFile(fh) == 0) {
 		ERR("!SetEndOfFile %s", path);
 		goto err;
 	}
+#endif
+
 #endif
 
 	return fd;
 
 err:
 	LOG(4, "error clean up");
-#ifndef WIN32
+
+#if 1 /* #ifndef WIN32 */
 	int oerrno = errno;
 	if (fd != -1)
 		(void) close(fd);
@@ -1050,7 +933,7 @@ err:
 #else
 	int oerrno = GetLastError();
 	if (fd != INVALID_HANDLE_VALUE) {
-		(void) CloseHandle((HANDLE)fd);
+		(void) CloseHandle(fh);
 		DeleteFileA(path);
 	}
 	SetLastError(oerrno);
@@ -1084,7 +967,7 @@ util_file_open(const char *path, size_t *size, size_t minsize, int flags)
 		if (size)
 			ASSERTeq(*size, 0);
 
-#ifndef WIN32
+#if 1 /* #ifndef WIN32 */
 
 		struct stat stbuf;
 		if (fstat(fd, &stbuf) < 0) {
