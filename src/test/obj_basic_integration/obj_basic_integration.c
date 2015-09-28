@@ -42,7 +42,6 @@
 #define	TEST_STR "abcdefgh"
 #define	TEST_STR_LEN 8
 #define	TEST_VALUE 5
-#define	TEST_ALLOC_SIZE 2048
 
 /*
  * Layout definition

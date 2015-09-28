@@ -226,7 +226,6 @@
 
 #define	FLUSH_ALIGN 64
 
-#define	ALIGN_SHIFT	6
 #define	ALIGN_MASK	(FLUSH_ALIGN - 1)
 
 #define	CHUNK_SIZE	128 /* 16*8 */

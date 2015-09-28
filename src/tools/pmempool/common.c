@@ -56,9 +56,6 @@
 #include "libpmemlog.h"
 #include "libpmemobj.h"
 
-#define	__USE_UNIX98
-#include <unistd.h>
-
 #define	REQ_BUFF_SIZE	2048
 
 typedef const char *(*enum_to_str_fn)(int);

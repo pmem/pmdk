@@ -47,7 +47,6 @@
 #include "valgrind_internal.h"
 
 #define	MOCK_POOL_SIZE PMEMOBJ_MIN_POOL
-#define	MAX_ALLOCS 20
 #define	TEST_MEGA_ALLOC_SIZE (1024 * 1024)
 #define	TEST_HUGE_ALLOC_SIZE (255 * 1024)
 #define	TEST_SMALL_ALLOC_SIZE (200)

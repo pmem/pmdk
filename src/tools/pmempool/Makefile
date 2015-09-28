@@ -51,6 +51,8 @@ INCS += -I../../libpmemlog
 INCS += -I../../libpmemblk
 INCS += -I../../libpmemobj
 
+common.o: CFLAGS += -D__USE_UNIX98
+
 MANPAGES = ../../../doc/pmempool.1\
            ../../../doc/pmempool-info.1\
 	   ../../../doc/pmempool-create.1\
