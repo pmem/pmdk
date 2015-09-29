@@ -553,7 +553,10 @@ pmemlog_tell(PMEMlogpool *plp)
 		return (off_t)-1;
 	}
 
-	off_t wp = le64toh(plp->write_offset) - le64toh(plp->start_offset);
+	ASSERT(le64toh(plp->write_offset) >= le64toh(plp->start_offset));
+	off_t wp = (off_t)(le64toh(plp->write_offset) -
+			le64toh(plp->start_offset));
+
 	LOG(4, "write offset %lld", (long long)wp);
 
 	if ((errno = pthread_rwlock_unlock(plp->rwlockp)))

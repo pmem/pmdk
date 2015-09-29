@@ -64,4 +64,4 @@ struct pmemlog {
 };
 
 /* data area starts at this alignment after the struct pmemlog above */
-#define	LOG_FORMAT_DATA_ALIGN 4096
+#define	LOG_FORMAT_DATA_ALIGN ((uintptr_t)4096)
