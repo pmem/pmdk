@@ -1869,7 +1869,7 @@ lane_transaction_check(PMEMobjpool *pop,
 }
 
 /*
- * lane_transaction_init -- initalizes transaction section
+ * lane_transaction_init -- initializes transaction section
  */
 static int
 lane_transaction_boot(PMEMobjpool *pop)

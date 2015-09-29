@@ -586,7 +586,7 @@ heap_drain_to_auxiliary(PMEMobjpool *pop, struct bucket *auxb,
 	int units_per_bucket = bucket_bitmap_nallocs(auxb) *
 				MAX_UNITS_PCT_DRAINED_CACHE;
 
-	/* max untis drained from all of the bucket caches */
+	/* max units drained from all of the bucket caches */
 	int units_total = bucket_bitmap_nallocs(auxb) *
 			MAX_UNITS_PCT_DRAINED_TOTAL;
 
