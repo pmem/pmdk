@@ -158,8 +158,8 @@ struct btt_context {
  * pmempool_check_nsread -- btt callback for reading
  */
 static int
-pmempool_check_nsread(void *ns, int lane, void *buf, size_t count,
-		off_t off)
+pmempool_check_nsread(void *ns, unsigned lane, void *buf, size_t count,
+		uint64_t off)
 {
 	struct btt_context *nsc = (struct btt_context *)ns;
 
@@ -177,8 +177,8 @@ pmempool_check_nsread(void *ns, int lane, void *buf, size_t count,
  * pmempool_check_nswrite -- btt callback for writing
  */
 static int
-pmempool_check_nswrite(void *ns, int lane, const void *buf, size_t count,
-		off_t off)
+pmempool_check_nswrite(void *ns, unsigned lane, const void *buf,
+		size_t count, uint64_t off)
 {
 	struct btt_context *nsc = (struct btt_context *)ns;
 
@@ -196,8 +196,8 @@ pmempool_check_nswrite(void *ns, int lane, const void *buf, size_t count,
  * pmempool_check_nsmap -- btt callback for memory mapping
  */
 static ssize_t
-pmempool_check_nsmap(void *ns, int lane, void **addrp, size_t len,
-		off_t off)
+pmempool_check_nsmap(void *ns, unsigned lane, void **addrp, size_t len,
+		uint64_t off)
 {
 	struct btt_context *nsc = (struct btt_context *)ns;
 
@@ -219,7 +219,7 @@ pmempool_check_nsmap(void *ns, int lane, void **addrp, size_t len,
  * pmempool_check_nssync -- btt callback for memory synchronization
  */
 static void
-pmempool_check_nssync(void *ns, int lane, void *addr, size_t len)
+pmempool_check_nssync(void *ns, unsigned lane, void *addr, size_t len)
 {
 	/* do nothing */
 }
@@ -228,7 +228,7 @@ pmempool_check_nssync(void *ns, int lane, void *addr, size_t len)
  * pmempool_check_nszero -- btt callback for zeroing memory
  */
 static int
-pmempool_check_nszero(void *ns, int lane, size_t len, off_t off)
+pmempool_check_nszero(void *ns, unsigned lane, size_t len, uint64_t off)
 {
 	struct btt_context *nsc = (struct btt_context *)ns;
 
