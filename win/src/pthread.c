@@ -35,24 +35,251 @@
  */
 
 #include <pthread.h>
+#include <time.h>
+
+
+#ifdef USE_WIN_MUTEX
 
 int
 pthread_mutex_init(pthread_mutex_t *restrict mutex,
-const pthread_mutexattr_t *restrict attr)
+	const pthread_mutexattr_t *restrict attr)
+{
+	/* XXX - errno */
+	*mutex = CreateMutex(NULL, FALSE, NULL);
+	return *mutex == NULL;
+}
+
+int
+pthread_mutex_destroy(pthread_mutex_t *restrict mutex)
+{
+	/* XXX - errno */
+	return 0;
+}
+
+int
+pthread_mutex_lock(pthread_mutex_t *restrict mutex)
+{
+	/* XXX - errno */
+	return WaitForSingleObject(*mutex, INFINITE) == WAIT_FAILED;
+}
+
+int
+pthread_mutex_trylock(pthread_mutex_t *restrict mutex)
+{
+	/* XXX - errno */
+	return WaitForSingleObject(*mutex, 0) == WAIT_FAILED;
+}
+
+int
+pthread_mutex_unlock(pthread_mutex_t *restrict mutex)
+{
+	/* XXX - errno */
+	return ReleaseMutex(*mutex) == FALSE;
+}
+
+#else
+
+int
+pthread_mutex_init(pthread_mutex_t *restrict mutex,
+	const pthread_mutexattr_t *restrict attr)
+{
+	/* XXX - errno */
+	InitializeCriticalSection(mutex); /* XXX - use spin count? */
+	return 0;
+}
+
+int
+pthread_mutex_destroy(pthread_mutex_t *restrict mutex)
+{
+	/* XXX - errno */
+	DeleteCriticalSection(mutex);
+	return 0;
+}
+
+int
+pthread_mutex_lock(pthread_mutex_t *restrict mutex)
+{
+	/* XXX - errno */
+	EnterCriticalSection(mutex);
+	return 0;
+}
+
+int
+pthread_mutex_trylock(pthread_mutex_t *restrict mutex)
+{
+	/* XXX - errno */
+	return TryEnterCriticalSection(mutex) == FALSE;
+}
+
+/* XXX - non POSIX */
+int
+pthread_mutex_timedlock(pthread_mutex_t *restrict mutex,
+	const struct timespec *abstime)
+{
+	if (TryEnterCriticalSection(mutex) == TRUE)
+		return 0;
+
+	time_t etime = time(NULL) + abstime->tv_sec +
+					abstime->tv_nsec / 1000000;
+	while (1) {
+		Sleep(1);
+		if (TryEnterCriticalSection(mutex) == TRUE)
+			return 0;
+		if (time(NULL) >= etime)
+			break;
+	}
+
+	return 1; /* XXX - errno */
+}
+
+int
+pthread_mutex_unlock(pthread_mutex_t *restrict mutex)
+{
+	/* XXX - errno */
+	LeaveCriticalSection(mutex);
+	return 0;
+}
+
+#endif
+
+#ifdef USE_WIN_SRWLOCK
+
+int
+pthread_rwlock_init(pthread_rwlock_t *restrict rwlock,
+			const pthread_rwlockattr_t *restrict attr)
+{
+	/* XXX - errno */
+	InitializeSRWLock(rwlock);
+	return 0;
+}
+
+int
+pthread_rwlock_destroy(pthread_rwlock_t *restrict rwlock)
 {
 	return 0;
 }
 
 int
-pthread_rwlock_init(pthread_rwlock_t *restrict rwlock,
-const pthread_rwlockattr_t *restrict attr)
+pthread_rwlock_rdlock(pthread_rwlock_t *restrict rwlock)
 {
+	/* XXX - errno */
+	AcquireSRWLockShared(rwlock);
 	return 0;
 }
+
+int
+pthread_rwlock_wrlock(pthread_rwlock_t *restrict rwlock)
+{
+	/* XXX - errno */
+	AcquireSRWLockExclusive(rwlock);
+	return 0;
+}
+
+int
+pthread_rwlock_tryrdlock(pthread_rwlock_t *restrict rwlock)
+{
+	/* XXX - errno */
+	return TryAcquireSRWLockShared(rwlock) == FALSE;
+}
+
+int
+pthread_rwlock_trywrlock(pthread_rwlock_t *restrict rwlock)
+{
+	/* XXX - errno */
+	return TryAcquireSRWLockExclusive(rwlock) == FALSE;
+}
+
+int
+pthread_rwlock_timedrdlock(pthread_rwlock_t *restrict rwlock,
+	const struct timespec *abstime)
+{
+	if (TryAcquireSRWLockShared(rwlock) == TRUE)
+		return 0;
+
+	time_t etime = time(NULL) + abstime->tv_sec +
+					abstime->tv_nsec / 1000000;
+	while (1) {
+		Sleep(1);
+		if (TryAcquireSRWLockShared(rwlock) == TRUE)
+			return 0;
+		if (time(NULL) >= etime)
+			break;
+	}
+
+	return 1; /* XXX - errno */
+}
+
+int
+pthread_rwlock_timedwrlock(pthread_rwlock_t *restrict rwlock,
+	const struct timespec *abstime)
+{
+	if (TryAcquireSRWLockExclusive(rwlock) == TRUE)
+		return 0;
+
+	time_t etime = time(NULL) + abstime->tv_sec +
+					abstime->tv_nsec / 1000000;
+	while (1) {
+		Sleep(1);
+		if (TryAcquireSRWLockExclusive(rwlock) == TRUE)
+			return 0;
+		if (time(NULL) >= etime)
+			break;
+	}
+
+	return 1; /* XXX - errno */
+}
+
+int
+pthread_rwlock_unlock(pthread_rwlock_t *restrict rwlock)
+{
+	/* XXX - distinquish between shared/exclusive lock */
+	ReleaseSRWLockExclusive(rwlock); /* ReleaseSRWLockShared(rwlock); */
+	return 0;
+}
+
+#endif
+
 
 int
 pthread_cond_init(pthread_cond_t *restrict cond,
 	const pthread_condattr_t *restrict attr)
 {
+	InitializeConditionVariable(cond);
 	return 0;
+}
+
+int
+pthread_cond_destroy(pthread_cond_t *restrict cond)
+{
+	return 0;
+}
+
+int
+pthread_cond_broadcast(pthread_cond_t *restrict cond)
+{
+	WakeAllConditionVariable(cond);
+	return 0;
+}
+
+int
+pthread_cond_signal(pthread_cond_t *restrict cond)
+{
+	WakeConditionVariable(cond);
+	return 0;
+}
+
+int
+pthread_cond_timedwait(pthread_cond_t *restrict cond,
+	pthread_mutex_t *restrict mutex, const struct timespec *abstime)
+{
+	DWORD ms = (DWORD)(abstime->tv_sec * 1000 +
+					abstime->tv_nsec / 1000000);
+	return SleepConditionVariableCS(cond, mutex, ms) == FALSE;
+}
+
+int
+pthread_cond_wait(pthread_cond_t *restrict cond,
+	pthread_mutex_t *restrict mutex)
+{
+	return SleepConditionVariableCS(cond, mutex, INFINITE) == FALSE;
 }
