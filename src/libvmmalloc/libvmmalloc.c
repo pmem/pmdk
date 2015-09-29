@@ -86,7 +86,7 @@
 /*
  * private to this file...
  */
-static unsigned Header_size;
+static size_t Header_size;
 static VMEM *Vmp;
 static char *Dir;
 static int Fd;
@@ -621,7 +621,15 @@ libvmmalloc_init(void)
 				VMMALLOC_POOL_SIZE_VAR);
 		abort();
 	} else {
-		size = atoll(env_str);
+		long long int v = atoll(env_str);
+		if (v < 0) {
+			out_log(NULL, 0, NULL, 0,
+				"Error (libvmmalloc): negative %s",
+				VMMALLOC_POOL_SIZE_VAR);
+			abort();
+		}
+
+		size = (size_t)v;
 	}
 
 	if (size < VMMALLOC_MIN_POOL) {
