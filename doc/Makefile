@@ -45,7 +45,7 @@ GZFILES_3 = $(MANPAGES_3:=.gz)
 GZFILES = $(GZFILES_1) $(GZFILES_3)
 INSTALL_SECTIONS = install-1 install-3
 UNINSTALL_SECTIONS = uninstall-1 uninstall-3
-MANPAGES_DESTDIR = $(DESTDIR)/usr/share/man/man
+MANPAGES_DESTDIR = $(DESTDIR)$(prefix)/share/man/man
 
 all: $(TXTFILES)
 

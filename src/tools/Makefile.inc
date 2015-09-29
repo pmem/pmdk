@@ -45,7 +45,7 @@ CFLAGS += $(EXTRA_CFLAGS)
 CFLAGS += -O2 -D_FORTIFY_SOURCE=2
 CFLAGS += -DSRCVERSION='"$(SRCVERSION)"'
 LDFLAGS += -Wl,-z,relro -Wl,--warn-common -Wl,--fatal-warnings $(EXTRA_LDFLAGS) -L../../nondebug
-TOOLSDIR=/usr/bin
+TOOLSDIR=$(prefix)/bin
 TARGET_DIR=$(DESTDIR)$(TOOLSDIR)
 BASH_COMP_FILES ?=
 BASH_COMP_DIR =$(DESTDIR)/etc/bash_completion.d/

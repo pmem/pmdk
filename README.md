@@ -82,7 +82,14 @@ in the standard system locations:
 	# make install
 ```
 
-To install this library into other locations, you can use
+To install this library into other locations, you can use the
+prefix variable, e.g.:
+```
+	$ make install prefix=/usr/local
+```
+This will install files to /usr/local/lib, /usr/local/include /usr/local/share/man.
+
+To prepare this library for packaging, you can use the
 DESTDIR variable, e.g.:
 ```
 	$ make install DESTDIR=/tmp
