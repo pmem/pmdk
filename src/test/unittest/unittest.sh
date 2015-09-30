@@ -287,6 +287,10 @@ function expect_normal_exit() {
 		OLDTRACE="$TRACE"
 		rm -f $MEMCHECK_LOG_FILE
 		if echo "$*" | grep -v valgrind >/dev/null; then
+			if [ "$MEMCHECK_DONT_CHECK_LEAKS" != "1" ]; then
+				export MEMCHECK_OPTS="$MEMCHECK_OPTS --leak-check=full"
+			fi
+
 			TRACE="valgrind --log-file=$MEMCHECK_LOG_FILE $MEMCHECK_OPTS $TRACE"
 		fi
 	fi
