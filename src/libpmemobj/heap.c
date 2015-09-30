@@ -1432,6 +1432,16 @@ heap_cleanup(PMEMobjpool *pop)
 
 	Free(pop->heap->caches);
 
+	pthread_mutex_destroy(&pop->heap->active_run_lock);
+
+	struct active_run *r;
+	for (int i = 0; i < MAX_BUCKETS - 1; ++i) {
+		while ((r = SLIST_FIRST(&pop->heap->active_runs[i])) != NULL) {
+			SLIST_REMOVE_HEAD(&pop->heap->active_runs[i], run);
+			Free(r);
+		}
+	}
+
 	Free(pop->heap);
 
 	pop->heap = NULL;
