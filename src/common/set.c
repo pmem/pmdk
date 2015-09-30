@@ -351,8 +351,11 @@ parser_read_line(char *line, size_t *size, char **path)
 		    (endptr[1] == '\0'))
 			return PARSER_CONTINUE;
 
-		if (ufound)
+		if (ufound) {
+			Free(*path);
+			*path = NULL;
 			return PARSER_WRONG_SIZE;
+		}
 
 		/* multiply size by a unit */
 		switch (endptr[0]) {
@@ -373,6 +376,8 @@ parser_read_line(char *line, size_t *size, char **path)
 				*size *= 1ULL << 40; /* 1 TB */
 				break;
 			default:
+				Free(*path);
+				*path = NULL;
 				return PARSER_WRONG_SIZE;
 		}
 
@@ -467,6 +472,7 @@ util_poolset_parse(const char *path, int fd, struct pool_set **setp)
 {
 	LOG(3, "path %s fd %d setp %p", path, fd, setp);
 
+	struct pool_set *set;
 	enum parser_codes result;
 	char line[PARSER_MAX_LINE];
 	char *s;
@@ -475,23 +481,21 @@ util_poolset_parse(const char *path, int fd, struct pool_set **setp)
 	size_t psize;
 	FILE *fs;
 
-	struct pool_set *set = Malloc(sizeof (struct pool_set));
-	if (set == NULL) {
-		ERR("!Malloc for pool set");
-		return -1;
-	}
-
-	set->nreplicas = 0;
-	set->poolsize = 0;
-
 	if (lseek(fd, 0, SEEK_SET) != 0) {
 		ERR("!lseek %d", fd);
 		return -1;
 	}
 
+	fd = dup(fd);
+	if (fd < 0) {
+		ERR("!dup");
+		return -1;
+	}
+
 	/* associate a stream with the file descriptor */
-	if ((fs = fdopen(dup(fd), "r")) == NULL) {
+	if ((fs = fdopen(fd, "r")) == NULL) {
 		ERR("!fdopen %d", fd);
+		close(fd);
 		return -1;
 	}
 
@@ -501,6 +505,15 @@ util_poolset_parse(const char *path, int fd, struct pool_set **setp)
 	/* read the first line */
 	s = fgets(line, PARSER_MAX_LINE, fs);
 	nlines++;
+
+	set = Malloc(sizeof (struct pool_set));
+	if (set == NULL) {
+		ERR("!Malloc for pool set");
+		goto err;
+	}
+
+	set->nreplicas = 0;
+	set->poolsize = 0;
 
 	/* check also if the last character is '\n' */
 	if (s && strncmp(line, POOLSET_HDR_SIG, POOLSET_HDR_SIG_LEN) == 0 &&
@@ -590,7 +603,8 @@ util_poolset_parse(const char *path, int fd, struct pool_set **setp)
 
 err:
 	(void) fclose(fs);
-	util_poolset_free(set);
+	if (set)
+		util_poolset_free(set);
 	return -1;
 }
 
