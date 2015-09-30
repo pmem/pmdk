@@ -197,6 +197,9 @@ test_mock_pool_allocs()
 	test_realloc(TEST_SMALL_ALLOC_SIZE, TEST_MEDIUM_ALLOC_SIZE);
 	test_realloc(TEST_HUGE_ALLOC_SIZE, TEST_MEGA_ALLOC_SIZE);
 
+	lane_cleanup(mock_pop);
+	heap_cleanup(mock_pop);
+
 	FREE(addr);
 }
 

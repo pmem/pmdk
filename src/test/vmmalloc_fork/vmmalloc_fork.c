@@ -170,6 +170,7 @@ main(int argc, char *argv[])
 		}
 	}
 
+	free(sizes);
 	free(bufs);
 
 	if (first_child == 0) {

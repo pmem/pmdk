@@ -39,37 +39,42 @@
 #include "unittest.h"
 
 #define	MIN_SIZE (sizeof (int))
-#define	MAX_SIZE (4 * 1024 * 1024)
+#define	SIZE 20
+#define	MAX_SIZE (MIN_SIZE << SIZE)
 
 int
 main(int argc, char *argv[])
 {
 	const int test_value = 12345;
 	size_t size;
-	int *ptr;
+	int *ptr[SIZE];
+	int i = 0;
 	size_t sum_alloc = 0;
 
 	START(argc, argv, "vmmalloc_malloc");
 
 	/* test with multiple size of allocations from 4MB to sizeof (int) */
-	for (size = MAX_SIZE; size > MIN_SIZE; size /= 2)
-		do {
-			ptr = malloc(size);
+	for (size = MAX_SIZE; size > MIN_SIZE; size /= 2) {
+		ptr[i] = malloc(size);
 
-			if (ptr == NULL)
-				break;
+		if (ptr[i] == NULL)
+			continue;
 
-			*ptr = test_value;
-			ASSERTeq(*ptr, test_value);
+		*ptr[i] = test_value;
+		ASSERTeq(*ptr[i], test_value);
 
-			sum_alloc += size;
-		} while (size == MIN_SIZE);
+		sum_alloc += size;
+		i++;
+	}
 
 	/* at least one allocation for each size must succeed */
 	ASSERTeq(size, MIN_SIZE);
 
 	/* allocate more than half of pool size */
 	ASSERT(sum_alloc * 2 > VMEM_MIN_POOL);
+
+	while (i > 0)
+		free(ptr[--i]);
 
 	DONE(NULL);
 }

@@ -38,14 +38,19 @@
 
 #include "unittest.h"
 
+#define	MIN_SIZE (sizeof (int))
+#define	SIZE 20
+#define	MAX_SIZE (MIN_SIZE << SIZE)
+
 int
 main(int argc, char *argv[])
 {
 	char *dir = NULL;
 	void *mem_pool = NULL;
 	VMEM *vmp;
-	size_t object_size;
-	int *ptr;
+	size_t obj_size;
+	int *ptr[SIZE];
+	int i = 0;
 	size_t sum_alloc = 0;
 
 	START(argc, argv, "vmem_mix_allocations");
@@ -58,7 +63,7 @@ main(int argc, char *argv[])
 
 	if (dir == NULL) {
 		/* allocate memory for function vmem_create_in_region() */
-		mem_pool = MMAP_ANON_ALIGNED(VMEM_MIN_POOL, 4 << 20);
+		mem_pool = MMAP_ANON_ALIGNED(VMEM_MIN_POOL, MAX_SIZE);
 
 		vmp = vmem_create_in_region(mem_pool, VMEM_MIN_POOL);
 		if (vmp == NULL)
@@ -70,23 +75,26 @@ main(int argc, char *argv[])
 	}
 
 	/* test with multiple size of allocations from 4MB to 2B */
-	for (object_size = 4 * 1024 * 1024; object_size >= 4; object_size /= 2)
-		do {
-			ptr = vmem_malloc(vmp, object_size);
+	for (obj_size = MAX_SIZE; obj_size >= MIN_SIZE; obj_size /= 2) {
+		ptr[i] = vmem_malloc(vmp, obj_size);
 
-			if (ptr == NULL)
-				break;
+		if (ptr[i] == NULL)
+			continue;
 
-			sum_alloc += object_size;
+		sum_alloc += obj_size;
 
-			/* check that pointer came from mem_pool */
-			if (dir == NULL) {
-				ASSERTrange(ptr, mem_pool, VMEM_MIN_POOL);
-			}
-		} while (object_size == 2);
+		/* check that pointer came from mem_pool */
+		if (dir == NULL)
+			ASSERTrange(ptr[i], mem_pool, VMEM_MIN_POOL);
+
+		i++;
+	}
 
 	/* allocate more than half of pool size */
 	ASSERT(sum_alloc * 2 > VMEM_MIN_POOL);
+
+	while (i > 0)
+		vmem_free(vmp, ptr[--i]);
 
 	vmem_delete(vmp);
 
