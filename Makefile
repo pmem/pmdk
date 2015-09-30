@@ -60,7 +60,7 @@
 
 export SRCVERSION = $(shell git describe 2>/dev/null || cat .version)
 
-prefix ?= /usr/local
+export prefix = /usr/local
 
 RPM_BUILDDIR=rpmbuild
 DPKG_BUILDDIR=dpkgbuild
