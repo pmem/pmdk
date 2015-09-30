@@ -40,11 +40,14 @@ export UNITTEST_NUM=3
 require_valgrind_memcheck
 
 memcheck force-enable
+
 export PMEMOBJ_VG_CHECK_UNDEF=1
 
 setup
 
 export PMEM_IS_PMEM_FORCE=1
+
+export MEMCHECK_OPTS="--leak-check=full"
 
 create_holey_file 16 $DIR/testfile1
 
