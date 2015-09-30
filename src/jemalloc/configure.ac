@@ -1031,7 +1031,7 @@ dnl Set VERSION if source directory has an embedded git repository.
 if test -d "${srcroot}.git" ; then
   git describe --long --abbrev=40 > ${srcroot}VERSION
 fi
-jemalloc_version=`cat ${srcroot}VERSION`
+jemalloc_version=`cat ${srcroot}VERSION 2>/dev/null`
 jemalloc_version_major=`echo ${jemalloc_version} | tr ".g-" " " | awk '{print [$]1}'`
 jemalloc_version_minor=`echo ${jemalloc_version} | tr ".g-" " " | awk '{print [$]2}'`
 jemalloc_version_bugfix=`echo ${jemalloc_version} | tr ".g-" " " | awk '{print [$]3}'`
