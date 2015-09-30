@@ -42,6 +42,9 @@ export UNITTEST_NUM=5
 
 setup
 
+# exits in the middle of transaction, so pool cannot be closed
+export MEMCHECK_DONT_CHECK_LEAKS=1
+
 create_poolset $DIR/testset 16M:$DIR/testfile1 R 16M:$DIR/testfile2
 
 expect_normal_exit ./obj_recovery$EXESUFFIX $DIR/testset n c f

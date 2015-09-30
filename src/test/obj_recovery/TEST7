@@ -48,6 +48,9 @@ export PMEMOBJ_VG_CHECK_UNDEF=1
 
 setup
 
+# exits in the middle of transaction, so pool cannot be closed
+export MEMCHECK_DONT_CHECK_LEAKS=1
+
 create_holey_file 16 $DIR/testfile
 
 expect_normal_exit ./obj_recovery$EXESUFFIX $DIR/testfile y c n
