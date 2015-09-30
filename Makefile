@@ -55,13 +55,18 @@
 # locations (/usr/lib, /usr/include, and /usr/share/man).
 # You can provide custom directory prefix for installation using
 # DESTDIR variable e.g.: "make install DESTDIR=/opt"
+# You can override the prefix within DESTDIR using prefix variable
+# e.g.: "make install prefix=/usr"
 
 export SRCVERSION = $(shell git describe 2>/dev/null || cat .version)
+
+prefix ?= /usr/local
 
 RPM_BUILDDIR=rpmbuild
 DPKG_BUILDDIR=dpkgbuild
 rpm : override DESTDIR=$(CURDIR)/$(RPM_BUILDDIR)
 dpkg: override DESTDIR=$(CURDIR)/$(DPKG_BUILDDIR)
+rpm dpkg: override prefix=/usr
 
 all:
 	$(MAKE) -C src $@

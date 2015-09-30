@@ -73,16 +73,16 @@ $(error $(arch32_error_msg))
 endif
 
 ifeq ($(shell uname -m), x86_64)
-ifneq ($(wildcard /usr/lib64),)
-LIBDIR = usr/lib64
+ifneq ($(wildcard $(prefix)/lib64),)
+LIBDIR = $(prefix)/lib64
 else
-LIBDIR = usr/lib
+LIBDIR = $(prefix)/lib
 endif
 else
-LIBDIR = usr/lib
+LIBDIR = $(prefix)/lib
 endif
 
-LIBS_DESTDIR = $(DESTDIR)/$(LIBDIR)/$(LIBS_DIR)
+LIBS_DESTDIR = $(DESTDIR)$(LIBDIR)/$(LIBS_DIR)
 
 ifeq ($(DEBUG),1)
 CFLAGS += -O0 -ggdb -DDEBUG
