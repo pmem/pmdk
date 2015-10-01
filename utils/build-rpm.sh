@@ -167,8 +167,8 @@ Development files for NVML libpmem library
 %{_libdir}/nvml_debug/libpmem.so
 %{_libdir}/nvml_debug/libpmem.so.*
 %{_libdir}/nvml_debug/libpmem.a
-/usr/include/libpmem.h
-/usr/share/man/man3/libpmem.3.gz
+%{_includedir}/libpmem.h
+%{_mandir}/man3/libpmem.3.gz
 
 %package -n libpmemblk
 Summary: libpmemblk library
@@ -193,8 +193,8 @@ Development files for NVML libpmemblk library
 %{_libdir}/nvml_debug/libpmemblk.so
 %{_libdir}/nvml_debug/libpmemblk.so.*
 %{_libdir}/nvml_debug/libpmemblk.a
-/usr/include/libpmemblk.h
-/usr/share/man/man3/libpmemblk.3.gz
+%{_includedir}/libpmemblk.h
+%{_mandir}/man3/libpmemblk.3.gz
 
 %package -n libpmemlog
 Summary: libpmemlog library
@@ -219,8 +219,8 @@ Development files for NVML libpmemlog library
 %{_libdir}/nvml_debug/libpmemlog.so
 %{_libdir}/nvml_debug/libpmemlog.so.*
 %{_libdir}/nvml_debug/libpmemlog.a
-/usr/include/libpmemlog.h
-/usr/share/man/man3/libpmemlog.3.gz
+%{_includedir}/libpmemlog.h
+%{_mandir}/man3/libpmemlog.3.gz
 
 %package -n libpmemobj
 Summary: libpmemobj library
@@ -245,8 +245,8 @@ Development files for NVML libpmemobj library
 %{_libdir}/nvml_debug/libpmemobj.so
 %{_libdir}/nvml_debug/libpmemobj.so.*
 %{_libdir}/nvml_debug/libpmemobj.a
-/usr/include/libpmemobj.h
-/usr/share/man/man3/libpmemobj.3.gz
+%{_includedir}/libpmemobj.h
+%{_mandir}/man3/libpmemobj.3.gz
 
 %package -n libvmem
 Summary: libvmem library
@@ -271,8 +271,8 @@ Development files for NVML libvmem library
 %{_libdir}/nvml_debug/libvmem.so
 %{_libdir}/nvml_debug/libvmem.so.*
 %{_libdir}/nvml_debug/libvmem.a
-/usr/include/libvmem.h
-/usr/share/man/man3/libvmem.3.gz
+%{_includedir}/libvmem.h
+%{_mandir}/man3/libvmem.3.gz
 
 %package -n libvmmalloc
 Summary: libvmmalloc library
@@ -297,8 +297,8 @@ Development files for NVML libvmmalloc library
 %{_libdir}/nvml_debug/libvmmalloc.so
 %{_libdir}/nvml_debug/libvmmalloc.so.*
 %{_libdir}/nvml_debug/libvmmalloc.a
-/usr/include/libvmmalloc.h
-/usr/share/man/man3/libvmmalloc.3.gz
+%{_includedir}/libvmmalloc.h
+%{_mandir}/man3/libvmmalloc.3.gz
 
 %package tools
 Group:		%{package_group}
@@ -309,13 +309,13 @@ Requires:	libuuid-devel
 Usefull applications for administration and diagnostic purposes.
 
 %files tools
-/usr/bin/pmempool
-/usr/share/man/man1/pmempool.1.gz
-/usr/share/man/man1/pmempool-info.1.gz
-/usr/share/man/man1/pmempool-create.1.gz
-/usr/share/man/man1/pmempool-dump.1.gz
-/usr/share/man/man1/pmempool-check.1.gz
-/etc/bash_completion.d/pmempool.sh
+%{_bindir}/pmempool
+%{_mandir}/man1/pmempool.1.gz
+%{_mandir}/man1/pmempool-info.1.gz
+%{_mandir}/man1/pmempool-create.1.gz
+%{_mandir}/man1/pmempool-dump.1.gz
+%{_mandir}/man1/pmempool-check.1.gz
+%{_sysconfdir}/bash_completion.d/pmempool.sh
 
 %prep
 %setup -q -n $PACKAGE_SOURCE
@@ -325,7 +325,7 @@ Usefull applications for administration and diagnostic purposes.
 
 %install
 rm -rf %{buildroot}
-make install DESTDIR=%{buildroot}
+make install DESTDIR=%{buildroot} prefix=%{_prefix}
 mkdir -p %{buildroot}/usr/share/nvml
 cp utils/nvml.magic %{buildroot}/usr/share/nvml/
 
