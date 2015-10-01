@@ -68,3 +68,11 @@ of persistent memory as volatile memory without modifying the target
 application.
 
 See the [libvmmalloc page](libvmmalloc) for documentation and examples.
+
+#### pmempool
+
+The **pmempool** is a management tool for Persistent Memory pool files created
+by the **NVML** libraries. It may be useful for system administrators as well
+as for software developers for troubleshooting and debugging purposes.
+
+See the [pmempool page](pmempool) for available commands and documentation.
