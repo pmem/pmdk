@@ -33,6 +33,8 @@
 #
 # Makefile -- build all benchmarks
 #
+vpath %.c ../libpmemobj
+vpath %.c ../common
 
 BENCHMARK = pmembench
 
@@ -51,22 +53,24 @@ SRC=pmembench.c\
     config_reader.c\
     scenario.c\
     log.c\
-    pmem_memset.c\
     blk.c\
-    pmem_memcpy.c
+    pmem_memset.c\
+    pmem_memcpy.c\
+    obj_pmalloc.c
 
 # Configuration file without the .cfg extension
 CONFIGS=pmembench_log\
-	pmembench_memset\
 	pmembench_blk\
-	pmembench_memcpy
+	pmembench_memset\
+	pmembench_memcpy\
+	pmembench_obj_pmalloc
 
 LIBS_PATH=../nondebug
 CSTYLE = ../../utils/cstyle
 OBJS=$(SRC:.c=.o)
 LDFLAGS = -L$(LIBS_PATH)
 LDFLAGS += $(EXTRA_LDFLAGS)
-LIBS += -lpmemlog -lpmemblk -lpmem -pthread -lm
+LIBS += -lpmemobj -lpmemlog -lpmemblk -lpmem -pthread -lm
 CFLAGS  = -std=gnu99
 CFLAGS += -Wall
 CFLAGS += -Werror
@@ -76,8 +80,13 @@ CFLAGS += -Wunused-macros
 CFLAGS += -pthread
 CFLAGS += $(EXTRA_CFLAGS)
 CFLAGS += -I../include
+CFLAGS += -I../libpmemobj
+CFLAGS += -I../common
+CFLAGS += -DSRCVERSION=\"$(SRCVERSION)\"
 CFLAGS += $(shell pkg-config --cflags glib-2.0)
 LIBS += $(shell pkg-config --libs glib-2.0)
+
+OBJS += pmemobj.o
 
 ifeq ($(DEBUG),)
 CFLAGS += -O3
@@ -121,3 +130,8 @@ $(CONFIGS):
 run: $(BENCHMARK) $(CONFIGS)
 
 .PHONY: all clean clobber run cstyle no-glib $(CONFIGS)
+
+PMEMOBJ_SYMBOLS=pmalloc pfree
+
+pmemobj.o: $(LIBS_PATH)/libpmemobj/libpmemobj_unscoped.o
+	objcopy --localize-hidden $(addprefix -G, $(PMEMOBJ_SYMBOLS)) $< $@
