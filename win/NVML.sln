@@ -18,31 +18,58 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libpmemobj", "libpmemobj\li
 		{9E9E3D25-2139-4A5D-9200-18148DDEAD45} = {9E9E3D25-2139-4A5D-9200-18148DDEAD45}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "objtest_cpp", "objtest_cpp\objtest_cpp.vcxproj", "{88C1D67C-996C-41E6-8119-2B18E61A0596}"
+	ProjectSection(ProjectDependencies) = postProject
+		{1BAA1617-93AE-4196-8A1A-BD492FB18AEF} = {1BAA1617-93AE-4196-8A1A-BD492FB18AEF}
+		{9E9E3D25-2139-4A5D-9200-18148DDEAD45} = {9E9E3D25-2139-4A5D-9200-18148DDEAD45}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
 		Release|x64 = Release|x64
+		Release|x86 = Release|x86
 		Static-Debug|x64 = Static-Debug|x64
+		Static-Debug|x86 = Static-Debug|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{8A15AF29-0DDA-410A-B381-CEF9AE26CCF0}.Debug|x64.ActiveCfg = Debug|x64
 		{8A15AF29-0DDA-410A-B381-CEF9AE26CCF0}.Debug|x64.Build.0 = Debug|x64
+		{8A15AF29-0DDA-410A-B381-CEF9AE26CCF0}.Debug|x86.ActiveCfg = Debug|x64
 		{8A15AF29-0DDA-410A-B381-CEF9AE26CCF0}.Release|x64.ActiveCfg = Release|x64
 		{8A15AF29-0DDA-410A-B381-CEF9AE26CCF0}.Release|x64.Build.0 = Release|x64
+		{8A15AF29-0DDA-410A-B381-CEF9AE26CCF0}.Release|x86.ActiveCfg = Release|x64
 		{8A15AF29-0DDA-410A-B381-CEF9AE26CCF0}.Static-Debug|x64.ActiveCfg = Static-Debug|x64
 		{8A15AF29-0DDA-410A-B381-CEF9AE26CCF0}.Static-Debug|x64.Build.0 = Static-Debug|x64
+		{8A15AF29-0DDA-410A-B381-CEF9AE26CCF0}.Static-Debug|x86.ActiveCfg = Static-Debug|x64
 		{9E9E3D25-2139-4A5D-9200-18148DDEAD45}.Debug|x64.ActiveCfg = Debug|x64
 		{9E9E3D25-2139-4A5D-9200-18148DDEAD45}.Debug|x64.Build.0 = Debug|x64
+		{9E9E3D25-2139-4A5D-9200-18148DDEAD45}.Debug|x86.ActiveCfg = Debug|x64
 		{9E9E3D25-2139-4A5D-9200-18148DDEAD45}.Release|x64.ActiveCfg = Release|x64
 		{9E9E3D25-2139-4A5D-9200-18148DDEAD45}.Release|x64.Build.0 = Release|x64
+		{9E9E3D25-2139-4A5D-9200-18148DDEAD45}.Release|x86.ActiveCfg = Release|x64
 		{9E9E3D25-2139-4A5D-9200-18148DDEAD45}.Static-Debug|x64.ActiveCfg = Static-Debug|x64
 		{9E9E3D25-2139-4A5D-9200-18148DDEAD45}.Static-Debug|x64.Build.0 = Static-Debug|x64
+		{9E9E3D25-2139-4A5D-9200-18148DDEAD45}.Static-Debug|x86.ActiveCfg = Static-Debug|x64
 		{1BAA1617-93AE-4196-8A1A-BD492FB18AEF}.Debug|x64.ActiveCfg = Debug|x64
 		{1BAA1617-93AE-4196-8A1A-BD492FB18AEF}.Debug|x64.Build.0 = Debug|x64
+		{1BAA1617-93AE-4196-8A1A-BD492FB18AEF}.Debug|x86.ActiveCfg = Debug|x64
 		{1BAA1617-93AE-4196-8A1A-BD492FB18AEF}.Release|x64.ActiveCfg = Release|x64
 		{1BAA1617-93AE-4196-8A1A-BD492FB18AEF}.Release|x64.Build.0 = Release|x64
+		{1BAA1617-93AE-4196-8A1A-BD492FB18AEF}.Release|x86.ActiveCfg = Release|x64
 		{1BAA1617-93AE-4196-8A1A-BD492FB18AEF}.Static-Debug|x64.ActiveCfg = Static-Debug|x64
 		{1BAA1617-93AE-4196-8A1A-BD492FB18AEF}.Static-Debug|x64.Build.0 = Static-Debug|x64
+		{1BAA1617-93AE-4196-8A1A-BD492FB18AEF}.Static-Debug|x86.ActiveCfg = Static-Debug|x64
+		{88C1D67C-996C-41E6-8119-2B18E61A0596}.Debug|x64.ActiveCfg = Debug|x64
+		{88C1D67C-996C-41E6-8119-2B18E61A0596}.Debug|x64.Build.0 = Debug|x64
+		{88C1D67C-996C-41E6-8119-2B18E61A0596}.Debug|x86.ActiveCfg = Debug|x64
+		{88C1D67C-996C-41E6-8119-2B18E61A0596}.Release|x64.ActiveCfg = Release|x64
+		{88C1D67C-996C-41E6-8119-2B18E61A0596}.Release|x64.Build.0 = Release|x64
+		{88C1D67C-996C-41E6-8119-2B18E61A0596}.Release|x86.ActiveCfg = Release|x64
+		{88C1D67C-996C-41E6-8119-2B18E61A0596}.Static-Debug|x64.ActiveCfg = Static-Debug|x64
+		{88C1D67C-996C-41E6-8119-2B18E61A0596}.Static-Debug|x64.Build.0 = Static-Debug|x64
+		{88C1D67C-996C-41E6-8119-2B18E61A0596}.Static-Debug|x86.ActiveCfg = Static-Debug|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -51,5 +78,6 @@ Global
 		{8A15AF29-0DDA-410A-B381-CEF9AE26CCF0} = {853D45D8-980C-4991-B62A-DAC6FD245402}
 		{9E9E3D25-2139-4A5D-9200-18148DDEAD45} = {853D45D8-980C-4991-B62A-DAC6FD245402}
 		{1BAA1617-93AE-4196-8A1A-BD492FB18AEF} = {853D45D8-980C-4991-B62A-DAC6FD245402}
+		{88C1D67C-996C-41E6-8119-2B18E61A0596} = {853D45D8-980C-4991-B62A-DAC6FD245402}
 	EndGlobalSection
 EndGlobal
