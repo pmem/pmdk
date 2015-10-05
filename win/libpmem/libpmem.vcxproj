@@ -19,7 +19,9 @@
     <ClCompile Include="..\..\src\common\util.c" />
     <ClCompile Include="..\..\src\libpmem\libpmem.c" />
     <ClCompile Include="..\..\src\libpmem\pmem.c" />
-    <ClCompile Include="..\libpmem\libpmem_main.c" />
+    <ClCompile Include="..\libpmem\libpmem_main.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Static-Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\common\out.h" />

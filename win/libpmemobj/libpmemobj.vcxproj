@@ -32,7 +32,9 @@
     <ClCompile Include="..\..\src\libpmemobj\tx.c" />
     <ClCompile Include="..\src\mmap.c" />
     <ClCompile Include="..\src\pthread.c" />
-    <ClCompile Include="libpmemobj_main.c" />
+    <ClCompile Include="libpmemobj_main.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Static-Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\common\out.h" />
