@@ -40,6 +40,7 @@
 #include <process.h>
 #include <listentry.h>
 
+
 #define	PATH_MAX MAX_PATH
 #define	__thread __declspec(thread)
 #define	__attribute__(a)
@@ -47,12 +48,13 @@
 #define	restrict __restrict
 #define	mode_t int
 #define	ssize_t long long int
+#define	typeof decltype
 
 
 __inline int
 __builtin_clzll(uint64_t val)
 {
-	unsigned long lz = 0;
+	DWORD lz = 0;
 
 	if (_BitScanReverse64(&lz, val))
 		return 63 - (int)lz;
@@ -62,7 +64,7 @@ __builtin_clzll(uint64_t val)
 
 __inline uint64_t
 __sync_fetch_and_and(volatile uint64_t *a, uint64_t val) {
-	return _InterlockedAnd64(a, val);
+	return _InterlockedAnd64((LONG64 *)a, (LONG64)val);
 }
 
 __inline uint32_t
@@ -72,13 +74,14 @@ __sync_fetch_and_add(volatile uint32_t *a, uint32_t val) {
 
 __inline uint64_t
 __sync_fetch_and_add64(volatile uint64_t *a, uint64_t val) {
-	return _InterlockedExchangeAdd64(a, val);
+	return _InterlockedExchangeAdd64((LONG64 *)a, (LONG64)val);
 }
 
 __inline long
 __sync_bool_compare_and_swap(volatile uint64_t *ptr,
 				uint64_t oldval, uint64_t newval) {
-	uint64_t old = _InterlockedCompareExchange64(ptr, newval, oldval);
+	uint64_t old = _InterlockedCompareExchange64((volatile LONG64 *)ptr,
+		(LONG64)newval, (LONG64)oldval);
 	return (old == oldval);
 }
 
