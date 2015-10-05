@@ -339,10 +339,24 @@ pmemobj_direct(PMEMoid oid)
 	return (void *)((uintptr_t)_pobj_cached_pool.pop + oid.off);
 }
 
+#ifndef WIN32
+
 #define	DIRECT_RW(o) (\
 {__typeof__(o) _o; _o._type = NULL; (void)_o;\
 (__typeof__(*(o)._type) *)pmemobj_direct((o).oid); })
 #define	DIRECT_RO(o) ((const __typeof__(*(o)._type) *)pmemobj_direct((o).oid))
+
+#else /* WIN32 */
+
+#ifndef __cplusplus
+#define DIRECT_RW(o) (pmemobj_direct((o).oid))
+#define DIRECT_RO(o) (pmemobj_direct((o).oid))
+#else
+#define DIRECT_RW(o) ((typeof ((o)._type))pmemobj_direct((o).oid))
+#define DIRECT_RO(o) ((const typeof ((o)._type))pmemobj_direct((o).oid))
+#endif
+
+#endif /* WIN32 */
 
 #define	D_RW	DIRECT_RW
 #define	D_RO	DIRECT_RO
@@ -505,52 +519,54 @@ _pobj_ret; })
 
 #define	POBJ_NEXT(o) ((__typeof__(o))POBJ_NEXT_TYPE_NUM(o.oid))
 
-#define	POBJ_NEW(pop, o, t, constr, arg) (\
-{ TOID(t) *_pobj_tmp = (o);\
-PMEMoid *_pobj_oidp = _pobj_tmp ? &_pobj_tmp->oid : NULL;\
-pmemobj_alloc((pop), _pobj_oidp, sizeof (t), TOID_TYPE_NUM(t), (constr),\
-		(arg)); })
-
-#define	POBJ_ALLOC(pop, o, t, size, constr, arg) (\
-{ TOID(t) *_pobj_tmp = (o);\
-PMEMoid *_pobj_oidp = _pobj_tmp ? &_pobj_tmp->oid : NULL;\
-pmemobj_alloc((pop), _pobj_oidp, (size), TOID_TYPE_NUM(t), (constr), (arg)); })
-
 #ifndef WIN32
-#define	POBJ_ZNEW(pop, o, t) (\
-{ TOID(t) *_pobj_tmp = (o);\
-PMEMoid *_pobj_oidp = _pobj_tmp ? &_pobj_tmp->oid : NULL;\
-pmemobj_zalloc((pop), _pobj_oidp, sizeof (t), TOID_TYPE_NUM(t)); })
-#else
-static inline int
-_pobj_znew(PMEMobjpool *pop, void *o, size_t size, unsigned type_num)
-{
-	PMEMoid *_pobj_oidp = o ? o : NULL;
-	return pmemobj_zalloc(pop, _pobj_oidp, size, type_num);
-}
-#define	POBJ_ZNEW(pop, o, t) _pobj_znew(pop, o, sizeof (t), TOID_TYPE_NUM(t))
-#endif
 
-#define	POBJ_ZALLOC(pop, o, t, size) (\
+#define _POBJ_ALLOC(func, pop, o, t, ...) (\
 { TOID(t) *_pobj_tmp = (o);\
 PMEMoid *_pobj_oidp = _pobj_tmp ? &_pobj_tmp->oid : NULL;\
-pmemobj_zalloc((pop), _pobj_oidp, (size), TOID_TYPE_NUM(t)); })
+func((pop), _pobj_oidp, __VA_ARGS__); })
 
-#define	POBJ_REALLOC(pop, o, t, size) (\
-{ TOID(t) *_pobj_tmp = (o);\
-PMEMoid *_pobj_oidp = _pobj_tmp ? &_pobj_tmp->oid : NULL;\
-pmemobj_realloc((pop), _pobj_oidp, (size), TOID_TYPE_NUM(t)); })
+#else /* WIN32 */
 
-#define	POBJ_ZREALLOC(pop, o, t, size) (\
-{ TOID(t) *_pobj_tmp = (o);\
-PMEMoid *_pobj_oidp = _pobj_tmp ? &_pobj_tmp->oid : NULL;\
-pmemobj_zrealloc((pop), _pobj_oidp, (size), TOID_TYPE_NUM_OF(*(o))); })
+#define _POBJ_ALLOC(func, pop, o, t, ...)\
+func(pop, (PMEMoid *)(o), __VA_ARGS__)
+
+#endif /* WIN32 */
+
+
+#define	POBJ_NEW(pop, o, t, constr, arg)\
+_POBJ_ALLOC(pmemobj_alloc, (pop), (o), t, sizeof (t), TOID_TYPE_NUM(t),\
+	(constr), (arg))
+
+#define	POBJ_ALLOC(pop, o, t, size, constr, arg)\
+_POBJ_ALLOC(pmemobj_alloc, (pop), (o), t, (size), TOID_TYPE_NUM(t),\
+	(constr), (arg))
+
+#define	POBJ_ZNEW(pop, o, t)\
+_POBJ_ALLOC(pmemobj_zalloc, (pop), (o), t, sizeof (t), TOID_TYPE_NUM(t))
+
+#define	POBJ_ZALLOC(pop, o, t, size)\
+_POBJ_ALLOC(pmemobj_zalloc, (pop), (o), t, (size), TOID_TYPE_NUM(t))
+
+#define	POBJ_REALLOC(pop, o, t, size)\
+_POBJ_ALLOC(pmemobj_realloc, (pop), (o), t, (size), TOID_TYPE_NUM(t))
+
+#define	POBJ_ZREALLOC(pop, o, t, size)\
+_POBJ_ALLOC(pmemobj_zrealloc, (pop), (o), t, (size), TOID_TYPE_NUM(t))
 
 #define	POBJ_FREE(o) pmemobj_free((PMEMoid *)(o))
 
+#ifndef WIN32
+
 #define	POBJ_ROOT(pop, t) (\
-{ TOID(t) _pobj_ret = (TOID(t))pmemobj_root((pop), sizeof (t));\
-_pobj_ret; })
+{ TOID(t) _pobj_ret = (TOID(t))pmemobj_root((pop), sizeof (t)); _pobj_ret; } )
+
+#else /* WIN32 */
+
+#define	POBJ_ROOT(pop, t) (\
+(TOID(t))pmemobj_root((pop), sizeof (t)) )
+
+#endif /* WIN32 */
 
 /*
  * (debug helper function) logs notice message if used inside a transaction
@@ -1014,31 +1030,48 @@ pmemobj_tx_add_range_direct(p, sizeof (*p))
 #define	TX_ADD_FIELD_DIRECT(p, field)\
 pmemobj_tx_add_range_direct(&(p)->field, sizeof ((p)->field))
 
-#define	TX_NEW(t) (\
-{ TOID(t) _pobj_ret = (TOID(t))pmemobj_tx_alloc(sizeof (t),\
-TOID_TYPE_NUM(t)); _pobj_ret; })
 
-#define	TX_ALLOC(t, size) (\
-{ TOID(t) _pobj_ret = (TOID(t))pmemobj_tx_alloc((size),\
-TOID_TYPE_NUM(t)); _pobj_ret; })
+#ifndef WIN32
 
-#define	TX_ZNEW(t) (\
-{ TOID(t) _pobj_ret = (TOID(t))pmemobj_tx_zalloc(sizeof (t),\
-TOID_TYPE_NUM(t)); _pobj_ret; })
+#define	_TX_ALLOC(func, t, ...) (\
+{ TOID(t) _pobj_ret = (TOID(t))func(__VA_ARGS__); _pobj_ret; })
+#define	_TX_REALLOC(func, o, ...) (\
+{ __typeof__ (o) _pobj_ret = (__typeof__ (o))func((o).oid, __VA_ARGS__);\
+_pobj_ret; })
 
-#define	TX_ZALLOC(t, size) (\
-{ TOID(t) _pobj_ret = (TOID(t))pmemobj_tx_zalloc((size),\
-TOID_TYPE_NUM(t)); _pobj_ret; })
+#else /* WIN32 */
 
-#define	TX_REALLOC(o, size) (\
-{ __typeof__(o) _pobj_ret =\
-(__typeof__(o))pmemobj_tx_realloc((o).oid, (size),\
-TOID_TYPE_NUM_OF(o)); _pobj_ret; })
+#ifndef __cplusplus
+#define	_TX_ALLOC(func, t, ...)\
+( TOID(t)func(__VA_ARGS__) )
+#define	_TX_REALLOC(func, o, ...)\
+( func((o).oid, __VA_ARGS__) )
+#else
+#define	_TX_ALLOC(func, t, ...)\
+( TOID(t)func(__VA_ARGS__) )
+#define	_TX_REALLOC(func, o, ...)\
+( (__typeof__ (o))func((o).oid, __VA_ARGS__) )
+#endif
 
-#define	TX_ZREALLOC(o, size) (\
-{ __typeof__(o) _pobj_ret =\
-(__typeof__(o))pmemobj_tx_zrealloc((o).oid, (size),\
-TOID_TYPE_NUM_OF(o)); _pobj_ret; })
+#endif /* WIN32 */
+
+#define TX_NEW(t)\
+( _TX_ALLOC(pmemobj_tx_alloc, t, sizeof (t), TOID_TYPE_NUM(t)) )
+
+#define	TX_ALLOC(t, size)\
+( _TX_ALLOC(pmemobj_tx_alloc, t, size, TOID_TYPE_NUM(t)) )
+
+#define	TX_ZNEW(t)\
+( _TX_ALLOC(pmemobj_tx_zalloc, t, sizeof (t), TOID_TYPE_NUM(t)) )
+
+#define	TX_ZALLOC(t, size)\
+( _TX_ALLOC(pmemobj_tx_zalloc, t, size, TOID_TYPE_NUM(t)) )
+
+#define	TX_REALLOC(o, size)\
+( _TX_REALLOC(pmemobj_tx_realloc, o, size, TOID_TYPE_NUM_OF(o)) )
+
+#define	TX_ZREALLOC(o, size)\
+( _TX_REALLOC(pmemobj_tx_zrealloc, o, size, TOID_TYPE_NUM_OF(o)) )
 
 #define	TX_STRDUP(s, type_num)\
 pmemobj_tx_strdup(s, type_num)
