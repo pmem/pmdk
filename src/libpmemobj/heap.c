@@ -361,7 +361,7 @@ heap_process_run_metadata(PMEMobjpool *pop, struct bucket *b,
 			heap_run_insert(pop, b, chunk_id, zone_id,
 				BITS_PER_VALUE, block_off);
 			continue;
-		} else if (v == ~(uint64_t)0) {
+		} else if (v == UINT64_MAX) {
 			continue;
 		}
 
@@ -470,7 +470,7 @@ static int
 heap_run_is_empty(struct chunk_run *run)
 {
 	for (int i = 0; i < MAX_BITMAP_VALUES; ++i)
-		if (run->bitmap[i] != ~(uint64_t)0)
+		if (run->bitmap[i] != UINT64_MAX)
 			return 0;
 
 	return 1;
