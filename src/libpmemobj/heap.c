@@ -556,6 +556,27 @@ heap_get_best_bucket(PMEMobjpool *pop, size_t size)
 }
 
 /*
+ * heap_get_chunk_bucket -- returns the bucket that fits to chunk's unit size
+ */
+struct bucket *
+heap_get_chunk_bucket(PMEMobjpool *pop, uint32_t zone_id, uint32_t chunk_id)
+{
+	ASSERT(zone_id < pop->heap->zones_exhausted);
+	struct zone *z = &pop->heap->layout->zones[zone_id];
+
+	ASSERT(chunk_id < z->header.size_idx);
+	struct chunk_header *hdr = &z->chunk_headers[chunk_id];
+
+	if (hdr->type == CHUNK_TYPE_RUN) {
+		struct chunk_run *run =
+			(struct chunk_run *)&z->chunks[chunk_id];
+		return heap_get_best_bucket(pop, run->block_size);
+	} else {
+		return pop->heap->buckets[DEFAULT_BUCKET];
+	}
+}
+
+/*
  * heap_get_auxiliary_bucket -- returns bucket common for all threads
  */
 struct bucket *

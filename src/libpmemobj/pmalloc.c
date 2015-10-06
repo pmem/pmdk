@@ -415,7 +415,8 @@ pfree(PMEMobjpool *pop, uint64_t *off, uint64_t data_off)
 	if ((err = lane_hold(pop, &lane, LANE_SECTION_ALLOCATOR)) != 0)
 		return err;
 
-	struct bucket *b = heap_get_best_bucket(pop, alloc->size);
+	struct bucket *b = heap_get_chunk_bucket(pop,
+			alloc->zone_id, alloc->chunk_id);
 
 	struct memory_block m = get_mblock_from_alloc(pop, b, alloc);
 
