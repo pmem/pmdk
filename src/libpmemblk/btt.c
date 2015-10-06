@@ -343,7 +343,6 @@ read_info(struct btt *bttp, struct btt_info *infop)
 	return 1;
 }
 
-#ifdef DEBUG
 /*
  * map_entry_is_zero -- (internal) checks if map_entry is in zero state
  */
@@ -352,7 +351,6 @@ map_entry_is_zero(uint32_t map_entry)
 {
 	return (map_entry & ~BTT_MAP_ENTRY_LBA_MASK) == BTT_MAP_ENTRY_ZERO;
 }
-#endif
 
 /*
  * map_entry_is_error -- (internal) checks if map_entry is in error state
