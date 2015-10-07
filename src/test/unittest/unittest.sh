@@ -291,8 +291,38 @@ function expect_normal_exit() {
 		fi
 	fi
 
+	set +e
 	eval $ECHO LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH LD_PRELOAD=$TEST_LD_PRELOAD \
 	$TRACE $*
+	ret=$?
+	set -e
+
+	if [ "$ret" -ne "0" ]; then
+		if [ "$ret" -gt "128" ]; then
+			msg="crashed (signal $(($ret - 128)))"
+		else
+			msg="failed with exit code $ret"
+		fi
+
+		if [ -f err$UNITTEST_NUM.log ]; then
+			if [ "$UNITTEST_QUIET" = "1" ]; then
+				echo "$UNITTEST_NAME $msg. err$UNITTEST_NUM.log below."
+				cat err$UNITTEST_NUM.log
+			else
+				echo "$UNITTEST_NAME $msg. err$UNITTEST_NUM.log above."
+			fi
+		else
+			echo "$UNITTEST_NAME $msg."
+		fi
+
+		if [ "$RUN_MEMCHECK" ]; then
+			echo "$MEMCHECK_LOG_FILE below."
+			ln=`wc -l < $MEMCHECK_LOG_FILE`
+			paste -d " " <(yes $UNITTEST_NAME $MEMCHECK_LOG_FILE | head -n $ln) <(head -n $ln $MEMCHECK_LOG_FILE)
+		fi
+
+		false
+	fi
 
 	if [ "$RUN_MEMCHECK" ]; then
 		TRACE="$OLDTRACE"
