@@ -103,6 +103,10 @@ CFLAGS += -fno-common
 CFLAGS += $(EXTRA_CFLAGS)
 LDFLAGS = -Wl,--warn-common -Wl,--fatal-warnings $(EXTRA_LDFLAGS)
 
+ifneq ($(USE_LIBUNWIND),)
+LDFLAGS += -ldl $(shell pkg-config --libs libunwind)
+endif
+
 #
 # By default debug and non-debug static versions are built.
 # It can be changed by setting BUILD_STATIC_DEBUG

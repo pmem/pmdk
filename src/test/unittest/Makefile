@@ -34,7 +34,7 @@
 # src/test/unittest/Makefile -- build unittest support library
 #
 TARGET = libut.a
-OBJS = ut.o ut_alloc.o ut_file.o ut_pthread.o ut_signal.o
+OBJS = ut.o ut_alloc.o ut_file.o ut_pthread.o ut_signal.o ut_backtrace.o
 CFLAGS = -I../../include
 CFLAGS += -std=gnu99
 CFLAGS += -ggdb
@@ -48,6 +48,10 @@ CFLAGS += -fno-common
 CFLAGS += $(EXTRA_CFLAGS)
 
 CSTYLE = ../../../utils/cstyle
+
+ifneq ($(USE_LIBUNWIND),)
+CFLAGS += $(shell pkg-config --cflags libunwind) -DUSE_LIBUNWIND
+endif
 
 all test: $(TARGET)
 

@@ -531,4 +531,8 @@ int ut_pthread_join(const char *file, int line, const char *func,
 
 extern unsigned long Ut_pagesize;
 
+void ut_dump_backtrace(void);
+void ut_sighandler(int);
+void ut_register_sighandlers(void);
+
 #endif	/* unittest.h */
