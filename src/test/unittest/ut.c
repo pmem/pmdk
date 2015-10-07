@@ -320,6 +320,9 @@ ut_start(const char *file, int line, const char *func,
 
 	va_start(ap, fmt);
 
+	if (getenv("UNITTEST_NO_SIGHANDLERS") == NULL)
+		ut_register_sighandlers();
+
 	if (getenv("UNITTEST_QUIET") != NULL)
 		Quiet++;
 
