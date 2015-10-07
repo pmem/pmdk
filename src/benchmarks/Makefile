@@ -33,6 +33,7 @@
 #
 # Makefile -- build all benchmarks
 #
+
 vpath %.c ../libpmemobj
 vpath %.c ../common
 
@@ -56,9 +57,10 @@ SRC=pmembench.c\
     blk.c\
     pmem_memset.c\
     pmem_memcpy.c\
+    pmemobj_gen.c\
     obj_pmalloc.c\
     obj_locks.c\
-    pmemobj_gen.c
+    obj_lanes.c
 
 # Configuration file without the .cfg extension
 CONFIGS=pmembench_log\
@@ -67,7 +69,8 @@ CONFIGS=pmembench_log\
 	pmembench_memcpy\
 	pmembench_obj_pmalloc\
 	pmembench_obj_gen\
-	pmembench_obj_locks
+	pmembench_obj_locks\
+	pmembench_obj_lanes
 
 LIBS_PATH=../nondebug
 CSTYLE = ../../utils/cstyle
@@ -135,7 +138,7 @@ run: $(BENCHMARK) $(CONFIGS)
 
 .PHONY: all clean clobber run cstyle no-glib $(CONFIGS)
 
-PMEMOBJ_SYMBOLS=pmalloc pfree
+PMEMOBJ_SYMBOLS=pmalloc pfree lane_hold lane_release
 
 pmemobj.o: $(LIBS_PATH)/libpmemobj/libpmemobj_unscoped.o
 	objcopy --localize-hidden $(addprefix -G, $(PMEMOBJ_SYMBOLS)) $< $@
