@@ -65,31 +65,28 @@ libpmemobj \- persistent memory transactional object store
 .sp
 .B Locking:
 .sp
-.BI "void pmemobj_mutex_zero(PMEMobjpool *" pop ", PMEMmutex *" mutexp );
-.BI "int pmemobj_mutex_lock(PMEMobjpool *" pop ", PMEMmutex *" mutexp );
-.BI "int pmemobj_mutex_trylock(PMEMobjpool *" pop ", PMEMmutex *" mutexp );
-.BI "int pmemobj_mutex_unlock(PMEMobjpool *" pop ", PMEMmutex *" mutexp );
+.BI "void pmemobj_mutex_init(PMEMobjpool *" pop ", PMEMmutex *" mutexp );
+.BI "int pmemobj_mutex_lock(PMEMmutex *" mutexp );
+.BI "int pmemobj_mutex_trylock(PMEMmutex *" mutexp );
+.BI "int pmemobj_mutex_unlock(PMEMmutex *" mutexp );
 .sp
-.BI "void pmemobj_rwlock_zero(PMEMobjpool *" pop ", PMEMrwlock *" rwlockp );
-.BI "int pmemobj_rwlock_rdlock(PMEMobjpool *" pop ", PMEMrwlock *" rwlockp );
-.BI "int pmemobj_rwlock_wrlock(PMEMobjpool *" pop ", PMEMrwlock *" rwlockp );
-.BI "int pmemobj_rwlock_timedrdlock(PMEMobjpool *" pop ,
-.BI "    PMEMrwlock *restrict " rwlockp ,
+.BI "void pmemobj_rwlock_init(PMEMobjpool *" pop ", PMEMrwlock *" rwlockp );
+.BI "int pmemobj_rwlock_rdlock(PMEMrwlock *" rwlockp );
+.BI "int pmemobj_rwlock_wrlock(PMEMrwlock *" rwlockp );
+.BI "int pmemobj_rwlock_timedrdlock(PMEMrwlock *restrict " rwlockp ,
 .BI "    const struct timespec *restrict " abstime );
-.BI "int pmemobj_rwlock_timedwrlock(PMEMobjpool *" pop ,
-.BI "    PMEMrwlock *restrict " rwlockp ,
+.BI "int pmemobj_rwlock_timedwrlock(PMEMrwlock *restrict " rwlockp ,
 .BI "    const struct timespec *restrict " abstime );
-.BI "int pmemobj_rwlock_tryrdlock(PMEMobjpool *" pop ", PMEMrwlock *" rwlockp );
-.BI "int pmemobj_rwlock_trywrlock(PMEMobjpool *" pop ", PMEMrwlock *" rwlockp );
-.BI "int pmemobj_rwlock_unlock(PMEMobjpool *" pop ", PMEMrwlock *" rwlockp );
+.BI "int pmemobj_rwlock_tryrdlock(PMEMrwlock *" rwlockp );
+.BI "int pmemobj_rwlock_trywrlock(PMEMrwlock *" rwlockp );
+.BI "int pmemobj_rwlock_unlock(PMEMrwlock *" rwlockp );
 .sp
-.BI "void pmemobj_cond_zero(PMEMobjpool *" pop ", PMEMcond *" condp );
-.BI "int pmemobj_cond_broadcast(PMEMobjpool *" pop ", PMEMcond *" condp );
-.BI "int pmemobj_cond_signal(PMEMobjpool *" pop ", PMEMcond *" condp );
-.BI "int pmemobj_cond_timedwait(PMEMobjpool *" pop ", PMEMcond *restrict " condp ,
+.BI "void pmemobj_cond_init(PMEMobjpool *" pop ", PMEMcond *" condp );
+.BI "int pmemobj_cond_broadcast(PMEMcond *" condp );
+.BI "int pmemobj_cond_signal(PMEMcond *" condp );
+.BI "int pmemobj_cond_timedwait(PMEMcond *restrict " condp ,
 .BI "    PMEMmutex *restrict " mutexp ", const struct timespec *restrict " abstime );
-.BI "int pmemobj_cond_wait(PMEMobjpool *" pop ", PMEMcond *" condp ,
-.BI "    PMEMmutex *restrict " mutexp );
+.BI "int pmemobj_cond_wait(MEMcond *" condp ", PMEMmutex *restrict " mutexp );
 .sp
 .B Persistent object identifier:
 .sp
@@ -723,21 +720,14 @@ or
 .I PMEMcond
 type respectively.
 .PP
-.BI "void pmemobj_mutex_zero(PMEMobjpool *" pop ", PMEMmutex *" mutexp );
+.BI "void pmemobj_mutex_init(PMEMobjpool *" pop ", PMEMmutex *" mutexp );
 .IP
 The
-.BR pmemobj_mutex_zero ()
+.BR pmemobj_mutex_init ()
 function explicitly initializes pmem-aware mutex pointed by
-.I mutexp
-by zeroing it.
-Initialization is not necessary if the object containing the mutex has been
-allocated using one of
-.BR pmemobj_zalloc ()
-or
-.BR pmemobj_tx_zalloc ()
-functions.
+.IR mutexp .
 .PP
-.BI "int pmemobj_mutex_lock(PMEMobjpool *" pop ", PMEMmutex *" mutexp );
+.BI "int pmemobj_mutex_lock(PMEMmutex *" mutexp );
 .IP
 The
 .BR pmemobj_mutex_lock ()
@@ -746,10 +736,9 @@ function locks pmem-aware mutex pointed by
 If the mutex is already locked, the calling thread will block until the
 mutex becomes available.
 If this is the first use of the mutex since opening of the pool
-.IR pop ,
 the mutex is automatically reinitialized and then locked.
 .PP
-.BI "int pmemobj_mutex_trylock(PMEMobjpool *" pop ", PMEMmutex *" mutexp );
+.BI "int pmemobj_mutex_trylock(PMEMmutex *" mutexp );
 .IP
 The
 .BR pmemobj_mutex_trylock ()
@@ -759,10 +748,9 @@ If the mutex is already locked,
 .BR pthread_mutex_trylock ()
 will not block waiting for the mutex, but will return an error condition.
 If this is the first use of the mutex since opening of the pool
-.I pop
 the mutex is automatically reinitialized and then locked.
 .PP
-.BI "int pmemobj_mutex_unlock(PMEMobjpool *" pop ", PMEMmutex *" mutexp );
+.BI "int pmemobj_mutex_unlock(PMEMmutex *" mutexp );
 .IP
 The
 .BR pmemobj_mutex_unlock ()
@@ -772,22 +760,15 @@ Undefined behavior follows if a thread tries to unlock a mutex that has
 not been locked by it, or if a thread tries to release a mutex that is already
 unlocked or not initialized.
 .PP
-.BI "void pmemobj_rwlock_zero(PMEMobjpool *" pop ", PMEMrwlock *" rwlockp );
+.BI "void pmemobj_rwlock_init(PMEMobjpool *" pop ", PMEMrwlock *" rwlockp );
 .IP
 The
-.BR pmemobj_rwlock_zero ()
+.BR pmemobj_rwlock_init ()
 function is used to explicitly initialize pmem-aware read/write lock pointed
 by
-.I rwlockp
-by zeroing it.
-Initialization is not necessary if the object containing the lock has been
-allocated using one of
-.BR pmemobj_zalloc ()
-or
-.BR pmemobj_tx_zalloc ()
-functions.
+.IR rwlockp .
 .PP
-.BI "int pmemobj_rwlock_rdlock(PMEMobjpool *" pop ", PMEMrwlock *" rwlockp );
+.BI "int pmemobj_rwlock_rdlock(PMEMrwlock *" rwlockp );
 .IP
 The
 .BR pmemobj_rwlock_rdlock ()
@@ -798,12 +779,9 @@ threads are presently blocked on the lock.  If the read lock cannot be
 immediately acquired, the calling thread blocks until it can acquire the
 lock.
 If this is the first use of the lock since opening of the pool
-.IR pop ,
 the lock is automatically reinitialized and then acquired.
 .PP
-.BI "int pmemobj_rwlock_timedrdlock(PMEMobjpool *" pop ,
-.br
-.BI "    PMEMrwlock *restrict " rwlockp ,
+.BI "int pmemobj_rwlock_timedrdlock(PMEMrwlock *restrict " rwlockp ,
 .br
 .BI "    const struct timespec *restrict "abstime );
 .IP
@@ -820,7 +798,7 @@ must be called once for each lock obtained.
 The results of acquiring a read lock while the calling thread holds a
 write lock are undefined.
 .PP
-.BI "int pmemobj_rwlock_wrlock(PMEMobjpool *" pop ", PMEMrwlock *" rwlockp );
+.BI "int pmemobj_rwlock_wrlock(PMEMrwlock *" rwlockp );
 .IP
 The
 .BR pmemobj_rwlock_wrlock ()
@@ -830,9 +808,7 @@ If this is the first use of the lock since opening of the pool
 .IR pop ,
 the lock is automatically reinitialized and then acquired.
 .PP
-.BI "int pmemobj_rwlock_timedwrlock(PMEMobjpool *" pop ,
-.br
-.BI "    PMEMrwlock *restrict " rwlockp ,
+.BI "int pmemobj_rwlock_timedwrlock(PMEMrwlock *restrict " rwlockp ,
 .br
 .BI "    const struct timespec *restrict " abstime );
 .IP
@@ -842,7 +818,7 @@ performs the same action, but will not wait beyond
 .I abstime
 to obtain the lock before returning.
 .PP
-.BI "int pmemobj_rwlock_tryrdlock(PMEMobjpool *" pop ", PMEMrwlock *" rwlockp );
+.BI "int pmemobj_rwlock_tryrdlock(PMEMrwlock *" rwlockp );
 .IP
 The
 .BR pmemobj_rwlock_tryrdlock ()
@@ -853,7 +829,7 @@ but does not block if the lock cannot be immediately obtained.
 The results are undefined if the calling thread already holds the lock at
 the time the call is made.
 .PP
-.BI "int pmemobj_rwlock_trywrlock(PMEMobjpool *" pop ", PMEMrwlock *" rwlockp );
+.BI "int pmemobj_rwlock_trywrlock(PMEMrwlock *" rwlockp );
 .IP
 The
 .BR pmemobj_rwlock_trywrlock ()
@@ -864,7 +840,7 @@ but does not block if the lock cannot be immediately obtained.
 The results are undefined if the calling thread already holds the lock at
 the time the call is made.
 .PP
-.BI "int pmemobj_rwlock_unlock(PMEMobjpool *" pop ", PMEMrwlock *" rwlockp );
+.BI "int pmemobj_rwlock_unlock(PMEMrwlock *" rwlockp );
 .IP
 The
 .BR pmemobj_rwlock_unlock ()
@@ -875,21 +851,15 @@ function is used to release the read/write lock previously obtained by
 or
 .BR pmemobj_rwlock_trywrlock ().
 .PP
-.BI "void pmemobj_cond_zero(PMEMobjpool *" pop ", PMEMcond *" condp );
+.BI "void pmemobj_cond_init(PMEMobjpool *" pop ", PMEMcond *" condp );
 .IP
 The
-.BR pmemobj_cond_zero ()
-function explicitly initializes pmem-aware condition variable by zeroing it.
-Initialization is not necessary if the object containing the condition
-variable has been allocated using one of
-.BR pmemobj_zalloc ()
-or
-.BR pmemobj_tx_zalloc ()
-functions.
+.BR pmemobj_cond_init ()
+function explicitly initializes pmem-aware condition variable.
 .PP
-.BI "int pmemobj_cond_broadcast(PMEMobjpool *" pop ", PMEMcond *" condp );
+.BI "int pmemobj_cond_broadcast(PMEMcond *" condp );
 .sp
-.BI "int pmemobj_cond_signal(PMEMobjpool *" pop ", PMEMcond *" condp );
+.BI "int pmemobj_cond_signal(PMEMcond *" condp );
 .IP
 The difference between
 .BR pmemobj_cond_broadcast ()
@@ -905,13 +875,13 @@ in which threads are unblocked.  The same mutex used for waiting must be held
 while calling either function.  Although neither function strictly enforces
 this requirement, undefined behavior may follow if the mutex is not held.
 .PP
-.BI "int pmemobj_cond_timedwait(PMEMobjpool *" pop ", PMEMcond *restrict " condp ,
+.BI "int pmemobj_cond_timedwait(PMEMcond *restrict " condp ,
 .br
 .BI "    PMEMmutex *restrict " mutexp ,
 .br
 .BI "    const struct timespec *restrict " abstime );
 .sp
-.BI "int pmemobj_cond_wait(PMEMobjpool *" pop ", PMEMcond *" condp ,
+.BI "int pmemobj_cond_wait(PMEMcond *" condp ,
 .br
 .BI "    PMEMmutex *restrict " mutexp );
 .IP

@@ -97,11 +97,11 @@ do_aborted_nested_tx(PMEMobjpool *pop, TOID(struct obj) oid, int value)
 		o = oid;
 
 		while (!TOID_IS_NULL(o)) {
-			if (pmemobj_mutex_trylock(pop, &D_RW(o)->lock)) {
+			if (pmemobj_mutex_trylock(&D_RW(o)->lock)) {
 				OUT("trylock failed");
 			} else {
 				OUT("trylock succeeded");
-				pmemobj_mutex_unlock(pop, &D_RW(o)->lock);
+				pmemobj_mutex_unlock(&D_RW(o)->lock);
 			}
 			o = D_RO(o)->next;
 		}
@@ -136,6 +136,7 @@ main(int argc, char *argv[])
 		FATAL("!pmemobj_create");
 
 	TOID(struct root_obj) root = POBJ_ROOT(pop, struct root_obj);
+	pmemobj_mutex_init(pop, &D_RW(root)->lock);
 
 	TX_BEGIN_LOCK(pop, TX_LOCK_MUTEX, &D_RW(root)->lock) {
 		TX_ADD(root);
@@ -143,12 +144,12 @@ main(int argc, char *argv[])
 		TOID(struct obj) o;
 		o = D_RW(root)->head;
 		D_RW(o)->data = 100;
-		pmemobj_mutex_zero(pop, &D_RW(o)->lock);
+		pmemobj_mutex_init(pop, &D_RW(o)->lock);
 		for (int i = 0; i < 3; i++) {
 			D_RW(o)->next = TX_NEW(struct obj);
 			o = D_RO(o)->next;
 			D_RW(o)->data = 101 + i;
-			pmemobj_mutex_zero(pop, &D_RW(o)->lock);
+			pmemobj_mutex_init(pop, &D_RW(o)->lock);
 		}
 		TOID_ASSIGN(D_RW(o)->next, OID_NULL);
 	} TX_END;

@@ -93,6 +93,7 @@ main(int argc, char *argv[])
 	void *lock = NULL;
 
 	if (argv[2][0] == 'y') {
+		pmemobj_mutex_init(pop, &D_RW(root)->lock);
 		lock_type = TX_LOCK_MUTEX;
 		lock = &D_RW(root)->lock;
 	}

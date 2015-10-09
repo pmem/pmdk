@@ -117,6 +117,8 @@ typedef void *(*memset_fn)(PMEMobjpool *pop, void *dest, int c, size_t len);
 
 extern unsigned long Pagesize;
 
+extern struct cuckoo *pools;
+
 struct pmemobjpool {
 	struct pool_hdr hdr;	/* memory pool header */
 

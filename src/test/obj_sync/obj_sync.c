@@ -43,6 +43,8 @@
 #include "list.h"
 #include "obj.h"
 
+struct cuckoo *pools;
+
 #define	DATA_SIZE 128
 
 #define	FATAL_USAGE() FATAL("usage: obj_sync [mrc] <num_threads> <runs>\n")
@@ -52,6 +54,7 @@ typedef void *(*worker)(void *);
 
 /* the mock pmemobj pool */
 static PMEMobjpool Mock_pop;
+#define	MOCK_POP_UUID_LO 5
 
 /* the tested object containing persistent synchronization primitives */
 static struct mock_obj {
@@ -87,12 +90,20 @@ FUNC_MOCK(pthread_cond_init, int,
 	}
 FUNC_MOCK_END
 
+FUNC_MOCK(cuckoo_get, void *, struct cuckoo *c, uint64_t key)
+	FUNC_MOCK_RUN_DEFAULT {
+		ASSERTeq(key, MOCK_POP_UUID_LO);
+		return &Mock_pop;
+	}
+FUNC_MOCK_END
+
 /*
  * mock_open_pool -- (internal) simulate pool opening
  */
 static void
 mock_open_pool(PMEMobjpool *pop)
 {
+	pop->uuid_lo = MOCK_POP_UUID_LO;
 	__sync_fetch_and_add(&pop->run_id, 2);
 }
 
@@ -102,12 +113,12 @@ mock_open_pool(PMEMobjpool *pop)
 static void *
 mutex_write_worker(void *arg)
 {
-	if (pmemobj_mutex_lock(&Mock_pop, &Test_obj->mutex)) {
+	if (pmemobj_mutex_lock(&Test_obj->mutex)) {
 		ERR("pmemobj_mutex_lock");
 		return NULL;
 	}
 	memset(Test_obj->data, (int)(uintptr_t)arg, DATA_SIZE);
-	if (pmemobj_mutex_unlock(&Mock_pop, &Test_obj->mutex))
+	if (pmemobj_mutex_unlock(&Test_obj->mutex))
 		ERR("pmemobj_mutex_unlock");
 
 	return NULL;
@@ -119,14 +130,14 @@ mutex_write_worker(void *arg)
 static void *
 mutex_check_worker(void *arg)
 {
-	if (pmemobj_mutex_lock(&Mock_pop, &Test_obj->mutex)) {
+	if (pmemobj_mutex_lock(&Test_obj->mutex)) {
 		ERR("pmemobj_mutex_lock");
 		return NULL;
 	}
 	uint8_t val = Test_obj->data[0];
 	for (int i = 1; i < DATA_SIZE; i++)
 		ASSERTeq(Test_obj->data[i], val);
-	if (pmemobj_mutex_unlock(&Mock_pop, &Test_obj->mutex))
+	if (pmemobj_mutex_unlock(&Test_obj->mutex))
 		ERR("pmemobj_mutex_unlock");
 
 	return NULL;
@@ -138,14 +149,14 @@ mutex_check_worker(void *arg)
 static void *
 cond_write_worker(void *arg)
 {
-	if (pmemobj_mutex_lock(&Mock_pop, &Test_obj->mutex))
+	if (pmemobj_mutex_lock(&Test_obj->mutex))
 		return NULL;
 
 	memset(Test_obj->data, (int)(uintptr_t)arg, DATA_SIZE);
 	Test_obj->check_data = 1;
-	if (pmemobj_cond_signal(&Mock_pop, &Test_obj->cond))
+	if (pmemobj_cond_signal(&Test_obj->cond))
 		ERR("pmemobj_cond_signal");
-	pmemobj_mutex_unlock(&Mock_pop, &Test_obj->mutex);
+	pmemobj_mutex_unlock(&Test_obj->mutex);
 
 	return NULL;
 }
@@ -156,18 +167,18 @@ cond_write_worker(void *arg)
 static void *
 cond_check_worker(void *arg)
 {
-	if (pmemobj_mutex_lock(&Mock_pop, &Test_obj->mutex))
+	if (pmemobj_mutex_lock(&Test_obj->mutex))
 		return NULL;
 
 	while (Test_obj->check_data != 1) {
-		if (pmemobj_cond_wait(&Mock_pop, &Test_obj->cond,
+		if (pmemobj_cond_wait(&Test_obj->cond,
 					&Test_obj->mutex))
 			ERR("pmemobj_cond_wait");
 	}
 	uint8_t val = Test_obj->data[0];
 	for (int i = 1; i < DATA_SIZE; i++)
 		ASSERTeq(Test_obj->data[i], val);
-	pmemobj_mutex_unlock(&Mock_pop, &Test_obj->mutex);
+	pmemobj_mutex_unlock(&Test_obj->mutex);
 
 	return NULL;
 }
@@ -178,12 +189,12 @@ cond_check_worker(void *arg)
 static void *
 rwlock_write_worker(void *arg)
 {
-	if (pmemobj_rwlock_wrlock(&Mock_pop, &Test_obj->rwlock)) {
+	if (pmemobj_rwlock_wrlock(&Test_obj->rwlock)) {
 		ERR("pmemobj_rwlock_wrlock");
 		return NULL;
 	}
 	memset(Test_obj->data, (int)(uintptr_t)arg, DATA_SIZE);
-	if (pmemobj_rwlock_unlock(&Mock_pop, &Test_obj->rwlock))
+	if (pmemobj_rwlock_unlock(&Test_obj->rwlock))
 		ERR("pmemobj_rwlock_unlock");
 
 	return NULL;
@@ -195,14 +206,14 @@ rwlock_write_worker(void *arg)
 static void *
 rwlock_check_worker(void *arg)
 {
-	if (pmemobj_rwlock_rdlock(&Mock_pop, &Test_obj->rwlock)) {
+	if (pmemobj_rwlock_rdlock(&Test_obj->rwlock)) {
 		ERR("pmemobj_rwlock_rdlock");
 		return NULL;
 	}
 	uint8_t val = Test_obj->data[0];
 	for (int i = 1; i < DATA_SIZE; i++)
 		ASSERTeq(Test_obj->data[i], val);
-	if (pmemobj_rwlock_unlock(&Mock_pop, &Test_obj->rwlock))
+	if (pmemobj_rwlock_unlock(&Test_obj->rwlock))
 		ERR("pmemobj_rwlock_unlock");
 
 	return NULL;
@@ -282,10 +293,10 @@ main(int argc, char *argv[])
 	mock_open_pool(&Mock_pop);
 	Mock_pop.persist = obj_sync_persist;
 	Test_obj = MALLOC(sizeof (struct mock_obj));
-	/* zero-initialize the test object */
-	pmemobj_mutex_zero(&Mock_pop, &Test_obj->mutex);
-	pmemobj_cond_zero(&Mock_pop, &Test_obj->cond);
-	pmemobj_rwlock_zero(&Mock_pop, &Test_obj->rwlock);
+	/* initialize the test object */
+	pmemobj_mutex_init(&Mock_pop, &Test_obj->mutex);
+	pmemobj_cond_init(&Mock_pop, &Test_obj->cond);
+	pmemobj_rwlock_init(&Mock_pop, &Test_obj->rwlock);
 	Test_obj->check_data = 0;
 	memset(&Test_obj->data, 0, DATA_SIZE);
 

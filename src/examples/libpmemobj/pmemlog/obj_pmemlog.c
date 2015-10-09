@@ -107,8 +107,27 @@ pmemlog_open(const char *path)
 PMEMlogpool *
 pmemlog_create(const char *path, size_t poolsize, mode_t mode)
 {
-	return (PMEMlogpool *)pmemobj_create(path, LAYOUT_NAME,
+	PMEMobjpool *pop = pmemobj_create(path, LAYOUT_NAME,
 				poolsize, mode);
+
+	PMEMoid baseoid = pmemobj_root(pop, sizeof (struct base));
+	struct base *bp = pmemobj_direct(baseoid);
+
+	/* set the return point */
+	jmp_buf env;
+	if (setjmp(env)) {
+		/* end the transaction */
+		pmemobj_tx_end();
+		return NULL;
+	}
+
+	pmemobj_tx_begin(pop, env);
+	pmemobj_tx_add_range(baseoid, 0, sizeof (struct base));
+	pmemobj_rwlock_init(pop, &bp->rwlock);
+	pmemobj_tx_commit();
+	pmemobj_tx_end();
+
+	return (PMEMlogpool *)pop;
 }
 
 /*
@@ -245,12 +264,12 @@ pmemlog_tell(PMEMlogpool *plp)
 	struct base *bp = pmemobj_direct(pmemobj_root(pop,
 				sizeof (struct base)));
 
-	if (pmemobj_rwlock_rdlock(pop, &bp->rwlock) != 0)
+	if (pmemobj_rwlock_rdlock(&bp->rwlock) != 0)
 		return 0;
 
 	off_t bytes_written = bp->bytes_written;
 
-	pmemobj_rwlock_unlock(pop, &bp->rwlock);
+	pmemobj_rwlock_unlock(&bp->rwlock);
 
 	return bytes_written;
 }
@@ -307,7 +326,7 @@ pmemlog_walk(PMEMlogpool *plp, size_t chunksize,
 	struct base *bp = pmemobj_direct(pmemobj_root(pop,
 						sizeof (struct base)));
 
-	if (pmemobj_rwlock_rdlock(pop, &bp->rwlock) != 0)
+	if (pmemobj_rwlock_rdlock(&bp->rwlock) != 0)
 		return;
 
 	/* process all chunks */
@@ -317,7 +336,7 @@ pmemlog_walk(PMEMlogpool *plp, size_t chunksize,
 		next = pmemobj_direct(next->hdr.next);
 	}
 
-	pmemobj_rwlock_unlock(pop, &bp->rwlock);
+	pmemobj_rwlock_unlock(&bp->rwlock);
 }
 
 /*

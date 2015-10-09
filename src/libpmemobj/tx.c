@@ -380,6 +380,8 @@ struct tx_range_data {
 	SLIST_ENTRY(tx_range_data) tx_range;
 };
 
+static size_t lock_sizes[] = {0, _POBJ_CL_ALIGNMENT, _POBJ_CL_ALIGNMENT * 2};
+
 /*
  * tx_restore_range -- (internal) restore a single range from undo log
  *
@@ -391,8 +393,8 @@ static void
 tx_restore_range(PMEMobjpool *pop, struct tx_range *range)
 {
 	/* XXX - change to compile-time check */
-	ASSERTeq(sizeof (PMEMmutex), _POBJ_CL_ALIGNMENT);
-	ASSERTeq(sizeof (PMEMrwlock), _POBJ_CL_ALIGNMENT);
+	ASSERTeq(sizeof (PMEMmutex), lock_sizes[TX_LOCK_MUTEX]);
+	ASSERTeq(sizeof (PMEMrwlock), lock_sizes[TX_LOCK_RWLOCK]);
 	ASSERTeq(sizeof (PMEMcond), _POBJ_CL_ALIGNMENT);
 
 	struct lane_tx_runtime *runtime =
@@ -418,8 +420,8 @@ tx_restore_range(PMEMobjpool *pop, struct tx_range *range)
 	/* check if there are any locks within given memory range */
 	SLIST_FOREACH(txl, &(runtime->tx_locks), tx_lock) {
 		void *lock_begin = txl->lock.mutex;
-		/* all PMEM locks have the same size */
-		void *lock_end = (char *)lock_begin + _POBJ_CL_ALIGNMENT;
+		void *lock_end = (char *)lock_begin +
+			lock_sizes[txl->lock_type];
 
 		SLIST_FOREACH(txr, &tx_ranges, tx_range) {
 			if ((lock_begin >= txr->begin &&
@@ -810,13 +812,11 @@ add_to_tx_and_lock(struct lane_tx_runtime *lane, enum pobj_tx_lock type,
 	switch (txl->lock_type) {
 		case TX_LOCK_MUTEX:
 			txl->lock.mutex = lock;
-			retval = pmemobj_mutex_lock(lane->pop,
-				txl->lock.mutex);
+			retval = pmemobj_mutex_lock(txl->lock.mutex);
 			break;
 		case TX_LOCK_RWLOCK:
 			txl->lock.rwlock = lock;
-			retval = pmemobj_rwlock_wrlock(lane->pop,
-				txl->lock.rwlock);
+			retval = pmemobj_rwlock_wrlock(txl->lock.rwlock);
 			break;
 		default:
 			ERR("Unrecognized lock type");
@@ -843,12 +843,10 @@ release_and_free_tx_locks(struct lane_tx_runtime *lane)
 		SLIST_REMOVE_HEAD(&lane->tx_locks, tx_lock);
 		switch (tx_lock->lock_type) {
 			case TX_LOCK_MUTEX:
-				pmemobj_mutex_unlock(lane->pop,
-					tx_lock->lock.mutex);
+				pmemobj_mutex_unlock(tx_lock->lock.mutex);
 				break;
 			case TX_LOCK_RWLOCK:
-				pmemobj_rwlock_unlock(lane->pop,
-					tx_lock->lock.rwlock);
+				pmemobj_rwlock_unlock(tx_lock->lock.rwlock);
 				break;
 			default:
 				ERR("Unrecognized lock type");
@@ -1722,6 +1720,14 @@ lane_transaction_construct(PMEMobjpool *pop, struct lane_section *section)
 	if (section->runtime == NULL)
 		return ENOMEM;
 	memset(section->runtime, 0, sizeof (struct lane_tx_runtime));
+
+	struct lane_tx_layout *layout =
+		(struct lane_tx_layout *)section->layout;
+
+	POBJ_LIST_INIT(pop, &layout->undo_alloc);
+	POBJ_LIST_INIT(pop, &layout->undo_free);
+	POBJ_LIST_INIT(pop, &layout->undo_set);
+	POBJ_LIST_INIT(pop, &layout->undo_set_cache);
 
 	return 0;
 }

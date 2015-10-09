@@ -52,7 +52,7 @@
 #include "heap_layout.h"
 #include "valgrind_internal.h"
 
-static struct cuckoo *pools;
+struct cuckoo *pools;
 int _pobj_cache_invalidate;
 __thread struct _pobj_pcache _pobj_cached_pool;
 
@@ -449,6 +449,27 @@ pmemobj_boot(PMEMobjpool *pop)
 }
 
 /*
+ * pmemobj_obj_store_init -- (internal) initalizes object store lists
+ */
+static void
+pmemobj_obj_store_init(PMEMobjpool *pop)
+{
+	pop->uuid_lo = pmemobj_get_uuid_lo(pop);
+	pop->store = (struct object_store *)
+			((uintptr_t)pop + pop->obj_store_offset);
+
+	POBJ_LIST_INIT(pop, &pop->store->root.head);
+
+	for (int i = 0; i < PMEMOBJ_NUM_OID_TYPES; ++i)
+		POBJ_LIST_INIT(pop, &pop->store->bytype[i].head);
+
+	pmem_msync(pop->store, sizeof (*pop->store));
+
+	pmemobj_mutex_init(pop, &pop->rootlock);
+	pmem_msync(&pop->rootlock, sizeof (pop->rootlock));
+}
+
+/*
  * pmemobj_descr_create -- (internal) create obj pool descriptor
  */
 static int
@@ -488,7 +509,8 @@ pmemobj_descr_create(PMEMobjpool *pop, const char *layout, size_t poolsize)
 		pop->nlanes * sizeof (struct lane_layout);
 	pop->obj_store_size = (PMEMOBJ_NUM_OID_TYPES + 1) *
 		sizeof (struct object_store_item);
-		/* + 1 - for root object */
+
+	/* + 1 - for root object */
 	void *store = (void *)((uintptr_t)pop + pop->obj_store_offset);
 	memset(store, 0, pop->obj_store_size);
 	pmem_msync(store, pop->obj_store_size);
@@ -502,6 +524,8 @@ pmemobj_descr_create(PMEMobjpool *pop, const char *layout, size_t poolsize)
 		ERR("!heap_init");
 		return -1;
 	}
+
+	pmemobj_obj_store_init(pop);
 
 	util_checksum(dscp, OBJ_DSC_P_SIZE, &pop->checksum, 1);
 
@@ -638,13 +662,13 @@ pmemobj_runtime_init(PMEMobjpool *pop, int rdonly, int boot)
 			((uintptr_t)pop + pop->obj_store_offset);
 
 	if (boot) {
-		if ((errno = pmemobj_boot(pop)) != 0)
-			return -1;
-
 		if ((errno = cuckoo_insert(pools, pop->uuid_lo, pop)) != 0) {
 			ERR("!cuckoo_insert");
 			return -1;
 		}
+
+		if ((errno = pmemobj_boot(pop)) != 0)
+			return -1;
 	}
 
 	/*
@@ -1665,7 +1689,7 @@ pmemobj_root(PMEMobjpool *pop, size_t size)
 
 	PMEMoid root;
 
-	pmemobj_mutex_lock(pop, &pop->rootlock);
+	pmemobj_mutex_lock(&pop->rootlock);
 	if (pop->store->root.head.pe_first.off == 0)
 		/* root object list is empty */
 		obj_alloc_root(pop, pop->store, size);
@@ -1673,13 +1697,13 @@ pmemobj_root(PMEMobjpool *pop, size_t size)
 		size_t old_size = pmemobj_root_size(pop);
 		if (size > old_size)
 			if (obj_realloc_root(pop, pop->store, size, old_size)) {
-				pmemobj_mutex_unlock(pop, &pop->rootlock);
+				pmemobj_mutex_unlock(&pop->rootlock);
 				LOG(2, "obj_realloc_root failed");
 				return OID_NULL;
 			}
 	}
 	root = pop->store->root.head.pe_first;
-	pmemobj_mutex_unlock(pop, &pop->rootlock);
+	pmemobj_mutex_unlock(&pop->rootlock);
 	return root;
 }
 

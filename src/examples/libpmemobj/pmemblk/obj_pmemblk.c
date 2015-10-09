@@ -101,6 +101,8 @@ pmemblk_map(PMEMobjpool *pop, size_t bsize, size_t fsize)
 		size_t pool_size = fsize * USABLE_SIZE;
 		D_RW(bp)->nblocks = pool_size / bsize;
 		D_RW(bp)->data = TX_ZALLOC(uint8_t, pool_size);
+		for (int i = 0; i < MAX_THREADS; ++i)
+			pmemobj_mutex_init(pop, &D_RW(bp)->locks[i]);
 	} TX_ONABORT {
 		retval = -1;
 	} TX_END
@@ -206,11 +208,11 @@ pmemblk_read(PMEMblkpool *pbp, void *buf, off_t blockno)
 	if (blockno >= D_RO(bp)->nblocks)
 		return 1;
 
-	pmemobj_mutex_lock(pop, &D_RW(bp)->locks[blockno % MAX_THREADS]);
+	pmemobj_mutex_lock(&D_RW(bp)->locks[blockno % MAX_THREADS]);
 	size_t block_off = blockno * D_RO(bp)->bsize;
 	uint8_t *src = D_RW(D_RW(bp)->data) + block_off;
 	memcpy(buf, src, D_RO(bp)->bsize);
-	pmemobj_mutex_unlock(pop, &D_RW(bp)->locks[blockno % MAX_THREADS]);
+	pmemobj_mutex_unlock(&D_RW(bp)->locks[blockno % MAX_THREADS]);
 
 	return 0;
 }

@@ -114,53 +114,53 @@ const char *pmemobj_errormsg(void);
 typedef union padded_pmemmutex {
 	char padding[_POBJ_CL_ALIGNMENT];
 	struct {
-		uint64_t runid;
 		pthread_mutex_t mutex;
+		uint64_t runid;
+		uint64_t pool_uuid_lo;
 	} pmemmutex;
 } PMEMmutex;
 
 typedef union padded_pmemrwlock {
-	char padding[_POBJ_CL_ALIGNMENT];
+	char padding[_POBJ_CL_ALIGNMENT * 2];
 	struct {
-		uint64_t runid;
 		pthread_rwlock_t rwlock;
+		uint64_t runid;
+		uint64_t pool_uuid_lo;
 	} pmemrwlock;
 } PMEMrwlock;
 
 typedef union padded_pmemcond {
 	char padding[_POBJ_CL_ALIGNMENT];
 	struct {
-		uint64_t runid;
 		pthread_cond_t cond;
+		uint64_t runid;
+		uint64_t pool_uuid_lo;
 	} pmemcond;
 } PMEMcond;
 
-void pmemobj_mutex_zero(PMEMobjpool *pop, PMEMmutex *mutexp);
-int pmemobj_mutex_lock(PMEMobjpool *pop, PMEMmutex *mutexp);
-int pmemobj_mutex_trylock(PMEMobjpool *pop, PMEMmutex *mutexp);
-int pmemobj_mutex_unlock(PMEMobjpool *pop, PMEMmutex *mutexp);
+void pmemobj_mutex_init(PMEMobjpool *pop, PMEMmutex *mutexp);
+int pmemobj_mutex_lock(PMEMmutex *mutexp);
+int pmemobj_mutex_trylock(PMEMmutex *mutexp);
+int pmemobj_mutex_unlock(PMEMmutex *mutexp);
 
-void pmemobj_rwlock_zero(PMEMobjpool *pop, PMEMrwlock *rwlockp);
-int pmemobj_rwlock_rdlock(PMEMobjpool *pop, PMEMrwlock *rwlockp);
-int pmemobj_rwlock_wrlock(PMEMobjpool *pop, PMEMrwlock *rwlockp);
-int pmemobj_rwlock_timedrdlock(PMEMobjpool *pop,
-	PMEMrwlock *__restrict rwlockp,
+void pmemobj_rwlock_init(PMEMobjpool *pop, PMEMrwlock *rwlockp);
+int pmemobj_rwlock_rdlock(PMEMrwlock *rwlockp);
+int pmemobj_rwlock_wrlock(PMEMrwlock *rwlockp);
+int pmemobj_rwlock_timedrdlock(PMEMrwlock *__restrict rwlockp,
 	const struct timespec *__restrict abs_timeout);
-int pmemobj_rwlock_timedwrlock(PMEMobjpool *pop,
-	PMEMrwlock *__restrict rwlockp,
+int pmemobj_rwlock_timedwrlock(PMEMrwlock *__restrict rwlockp,
 	const struct timespec *__restrict abs_timeout);
-int pmemobj_rwlock_tryrdlock(PMEMobjpool *pop, PMEMrwlock *rwlockp);
-int pmemobj_rwlock_trywrlock(PMEMobjpool *pop, PMEMrwlock *rwlockp);
-int pmemobj_rwlock_unlock(PMEMobjpool *pop, PMEMrwlock *rwlockp);
+int pmemobj_rwlock_tryrdlock(PMEMrwlock *rwlockp);
+int pmemobj_rwlock_trywrlock(PMEMrwlock *rwlockp);
+int pmemobj_rwlock_unlock(PMEMrwlock *rwlockp);
 
-void pmemobj_cond_zero(PMEMobjpool *pop, PMEMcond *condp);
-int pmemobj_cond_broadcast(PMEMobjpool *pop, PMEMcond *condp);
-int pmemobj_cond_signal(PMEMobjpool *pop, PMEMcond *condp);
-int pmemobj_cond_timedwait(PMEMobjpool *pop, PMEMcond *__restrict condp,
+void pmemobj_cond_init(PMEMobjpool *pop, PMEMcond *condp);
+int pmemobj_cond_broadcast(PMEMcond *condp);
+int pmemobj_cond_signal(PMEMcond *condp);
+int pmemobj_cond_timedwait(PMEMcond *__restrict condp,
 	PMEMmutex *__restrict mutexp,
 	const struct timespec *__restrict abstime);
-int pmemobj_cond_wait(PMEMobjpool *pop, PMEMcond *condp,
-	PMEMmutex *__restrict mutexp);
+int pmemobj_cond_wait(PMEMcond *condp, PMEMmutex *__restrict mutexp);
 
 /*
  * Persistent memory object
@@ -607,6 +607,9 @@ struct name {\
 	TOID(type) pe_first;\
 	PMEMmutex lock;\
 }
+
+#define	POBJ_LIST_INIT(pop, head)\
+pmemobj_mutex_init((pop), &(head)->lock)
 
 int pmemobj_list_insert(PMEMobjpool *pop, size_t pe_offset, void *head,
 	PMEMoid dest, int before, PMEMoid oid);

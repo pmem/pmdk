@@ -201,6 +201,10 @@ main(int argc, char *argv[])
 
 	test_obj.mutexes = CALLOC(NUM_LOCKS, sizeof (PMEMmutex));
 	test_obj.rwlocks = CALLOC(NUM_LOCKS, sizeof (PMEMrwlock));
+	for (int i = 0; i < NUM_LOCKS; ++i) {
+		pmemobj_mutex_init(test_obj.pop, &test_obj.mutexes[i]);
+		pmemobj_rwlock_init(test_obj.pop, &test_obj.rwlocks[i]);
+	}
 
 	if (multithread) {
 		run_mt_test(do_tx, &test_obj);
