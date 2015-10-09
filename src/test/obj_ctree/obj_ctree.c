@@ -186,6 +186,8 @@ test_ctree_remove()
 
 	/* remove root */
 	ASSERT(ctree_remove(t, TEST_VAL_B, 1) == TEST_VAL_B);
+
+	ctree_delete(t);
 }
 
 int

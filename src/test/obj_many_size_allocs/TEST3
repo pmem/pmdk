@@ -47,8 +47,6 @@ setup
 
 export PMEM_IS_PMEM_FORCE=1
 
-export MEMCHECK_OPTS="--leak-check=full"
-
 create_holey_file 16 $DIR/testfile1
 
 expect_normal_exit\

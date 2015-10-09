@@ -1459,6 +1459,7 @@ pool_set_file_close(struct pool_set_file *file)
 		close(file->fd);
 	}
 	free(file->fname);
+	free(file);
 }
 
 /*

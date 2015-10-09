@@ -194,10 +194,10 @@ out:
 
 	return err;
 
-error_internal_malloc:
-	Free(nleaf);
 error_duplicate:
 	Free(n);
+error_internal_malloc:
+	Free(nleaf);
 error_leaf_malloc:
 	if ((err_out = pthread_mutex_unlock(&t->lock)) != 0) {
 		errno = err_out;

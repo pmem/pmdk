@@ -85,8 +85,8 @@ do_memmove(int fd, char *dest, char *src, char *file_name, off_t dest_off,
 	off_t src_off, off_t off, off_t bytes)
 {
 	void *ret;
-	char *src1 = malloc(bytes);
-	char *buf = malloc(bytes);
+	char *src1 = MALLOC(bytes);
+	char *buf = MALLOC(bytes);
 	char old;
 
 	memset(buf, 0, bytes);
@@ -144,6 +144,8 @@ do_memmove(int fd, char *dest, char *src, char *file_name, off_t dest_off,
 					file_name, bytes / 2);
 		}
 	}
+	FREE(src1);
+	FREE(buf);
 }
 
 #define	USAGE() do { FATAL("usage: %s file  b:length [d:{offset}] "\
