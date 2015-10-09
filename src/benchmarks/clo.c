@@ -793,6 +793,7 @@ benchmark_clo_parse(int argc, char *argv[], struct benchmark_clo *clos,
 			ret = -1;
 			goto out;
 		}
+
 		/* invoke parser according to type of CLO */
 		assert(clo->type < CLO_TYPE_MAX);
 		ret = clo_parse[clo->type](clo, optarg, clovec);
@@ -841,6 +842,7 @@ benchmark_clo_parse_scenario(struct scenario *scenario,
 		struct clo_vec *clovec)
 {
 	struct kv *kv;
+
 	FOREACH_KV(kv, scenario) {
 		struct benchmark_clo *clo =
 			clo_get_by_long(clos, nclos, kv->key);
@@ -865,6 +867,94 @@ benchmark_clo_parse_scenario(struct scenario *scenario,
 }
 
 /*
+ * benchmark_override_clos_in_scenario - parse the command line arguments and
+ * override/add the parameters in/to the scenario by replacing/adding the kv
+ * struct in/to the scenario.
+ *
+ * - scenario - scenario with key value arguments
+ * - argc     - command line arguments number
+ * - argv     - command line arguments vector
+ * - clos     - description of available command line options
+ * - nclos    - number of available command line options
+ */
+int
+benchmark_override_clos_in_scenario(struct scenario *scenario,
+				    int argc, char *argv[],
+				    struct benchmark_clo *clos, size_t nclos)
+{
+	char *optstr;
+	struct option *options;
+	int ret = 0;
+	int opt;
+	int optindex;
+	const char *true_str = "true";
+
+	/* convert CLOs to option string and long options structure */
+	optstr = clo_get_optstr(clos, nclos);
+	options = clo_get_long_options(clos, nclos);
+
+	/* parse CLOs as long and/or short options */
+	while ((opt = getopt_long(argc, argv, optstr,
+				options, &optindex)) != -1) {
+		struct benchmark_clo *clo = NULL;
+		if (opt) {
+			clo = clo_get_by_short(clos, nclos, opt);
+		} else {
+			assert(optindex < nclos);
+			clo = &clos[optindex];
+		}
+		if (!clo) {
+			ret = -1;
+			goto out;
+		}
+
+		/* Check if the given clo is defined in the scenario */
+		struct kv *kv = find_kv_in_scenario(clo->opt_long, scenario);
+		if (kv) { /* replace the value in the scenario */
+			if (optarg != NULL && clo->type != CLO_TYPE_FLAG) {
+				free(kv->value);
+				kv->value = strdup(optarg);
+			} else if (optarg == NULL &&
+					clo->type == CLO_TYPE_FLAG) {
+				free(kv->value);
+				kv->value = strdup(true_str);
+			} else {
+				ret = -1;
+				goto out;
+			}
+		} else { /* add a new param to the scenario */
+			if (optarg != NULL && clo->type != CLO_TYPE_FLAG) {
+				kv = kv_alloc(clo->opt_long, optarg);
+				TAILQ_INSERT_TAIL(&scenario->head, kv, next);
+			} else if (optarg == NULL &&
+					clo->type == CLO_TYPE_FLAG) {
+				kv = kv_alloc(clo->opt_long, true_str);
+				TAILQ_INSERT_TAIL(&scenario->head, kv, next);
+			} else {
+				ret = -1;
+				goto out;
+			}
+		}
+	}
+
+	if (optind < argc) {
+		fprintf(stderr, "Unknown option: %s\n", argv[optind]);
+		ret = -1;
+		goto out;
+	}
+
+out:
+	free(options);
+	free(optstr);
+
+	if (ret)
+		errno = EINVAL;
+
+	return ret;
+}
+
+
+/*
  * benchmark_clo_str -- converts command line option to string
  *
  * According to command line option type and parameters, converts
@@ -875,4 +965,50 @@ benchmark_clo_str(struct benchmark_clo *clo, void *args, size_t size)
 {
 	assert(clo->type < CLO_TYPE_MAX);
 	return clo_str[clo->type](clo, args, size);
+}
+
+/*
+ * clo_get_scenarios - search the command line arguments for scenarios listed in
+ * available_scenarios and put them in found_scenarios. Returns the number of
+ * found scenarios in the cmd line or -1 on error. The passed cmd line
+ * args should contain the scenario name(s) as the first argument(s) - starting
+ * from index 0
+ */
+int
+clo_get_scenarios(int argc, char *argv[],
+			struct scenarios *available_scenarios,
+			struct scenarios *found_scenarios)
+{
+	assert(argv != NULL);
+	assert(available_scenarios != NULL);
+	assert(found_scenarios != NULL);
+
+	if (argc <= 0) {
+		fprintf(stderr,
+			"clo get scenarios, argc invalid value: %d\n", argc);
+		return -1;
+	}
+	int tmp_argc = argc;
+	char **tmp_argv = argv;
+
+	do {
+		struct scenario *scenario =
+			scenarios_get_scenario(available_scenarios, *tmp_argv);
+
+		if (!scenario) {
+			fprintf(stderr, "unknown scenario: %s\n", *tmp_argv);
+			return -1;
+		}
+
+		struct scenario *new_scenario = clone_scenario(scenario);
+		assert(new_scenario != NULL);
+
+		TAILQ_INSERT_TAIL(&found_scenarios->head,
+					new_scenario, next);
+		tmp_argc--;
+		tmp_argv++;
+	} while (tmp_argc &&
+		contains_scenarios(tmp_argc, tmp_argv, available_scenarios));
+
+	return argc - tmp_argc;
 }
