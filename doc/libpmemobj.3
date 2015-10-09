@@ -159,6 +159,9 @@ libpmemobj \- persistent memory transactional object store
 .B Root object management:
 .sp
 .BI "PMEMoid pmemobj_root(PMEMobjpool *" pop ", size_t " size );
+.BI "PMEMoid pmemobj_root_construct(PMEMobjpool *" pop ", size_t " size,
+.BI "    void (*" constructor ")(PMEMobjpool *" pop ", void *" ptr ", void *" arg "),
+.BI "    void *" arg );
 .BI "size_t pmemobj_root_size(PMEMobjpool *" pop );
 .sp
 .BI "POBJ_ROOT(PMEMobjpool *" pop ", " TYPE )
@@ -1396,6 +1399,22 @@ function shall not fail, except for the case if the requested object size
 is larger than the maximum allocation size supported for given pool,
 or if there is not enough free space in the pool to satisfy the reallocation
 of the root object.  In such case, OID_NULL is returned.
+.PP
+.PP
+.BI "PMEMoid pmemobj_root_construct(PMEMobjpool *" pop ", size_t " size,
+.BI "    void (*" constructor ")(PMEMobjpool *" pop ", void *" ptr ", void *" arg "),
+.BI "    void *" arg );
+.IP
+The
+.BR pmemobj_root_construct ()
+performs the same actions as the
+.BR pmemobj_root ()
+function, but instead of zeroing the newly allocated object a
+.I constructor
+function is called. The constructor is also called on reallocations. The
+.BR pmemobj_root_size ()
+can be used in the constructor to check whether it's the first call to the
+constructor.
 .PP
 .BI "POBJ_ROOT(PMEMobjpool *" pop ", " TYPE )
 .IP

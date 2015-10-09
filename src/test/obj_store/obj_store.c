@@ -89,7 +89,6 @@ tobject_construct(PMEMobjpool *pop, void *ptr, void *arg)
 	pmemobj_persist(pop, tobj, sizeof (*tobj));
 }
 
-
 static void
 test_root_object(const char *path)
 {
@@ -162,6 +161,50 @@ test_root_object(const char *path)
 	ASSERTeq(strncmp(D_RO(rootg)->name, ROOT_NAME, MAX_ROOT_NAME), 0);
 	ASSERTeq(D_RO(rootg)->value, ROOT_VALUE);
 	ASSERTeq(strncmp(D_RO(rootg)->name2, ROOT_NAME, MAX_ROOT_NAME), 0);
+
+	pmemobj_close(pop);
+}
+
+static void
+root_construct(PMEMobjpool *pop, void *ptr, void *arg)
+{
+	ASSERTeq(pmemobj_root_size(pop), 0);
+	struct root *r = ptr;
+	r->value = 1;
+}
+
+static void
+root_reconstruct(PMEMobjpool *pop, void *ptr, void *arg)
+{
+	ASSERTeq(pmemobj_root_size(pop), sizeof (struct root));
+	struct root *r = ptr;
+	r->value = 2;
+}
+
+static void
+test_root_object_construct(const char *path)
+{
+	PMEMobjpool *pop = NULL;
+	TOID(struct root) root;
+
+	/* create a pool */
+	if ((pop = pmemobj_create(path, LAYOUT_NAME, 0,
+					S_IWUSR | S_IRUSR)) == NULL)
+		FATAL("!pmemobj_create: %s", path);
+
+	/* there should be no root object */
+	ASSERTeq(pmemobj_root_size(pop), 0);
+
+	/* create root object */
+	TOID_ASSIGN(root, pmemobj_root_construct(pop, sizeof (struct root),
+		root_construct, NULL));
+	ASSERT(TOID_IS_NULL(root) == 0);
+	ASSERTeq(pmemobj_root_size(pop), sizeof (struct root));
+	ASSERTeq(D_RW(root)->value, 1);
+
+	TOID_ASSIGN(root, pmemobj_root_construct(pop, sizeof (struct root) + 1,
+		root_reconstruct, NULL));
+	ASSERTeq(D_RW(root)->value, 2);
 
 	pmemobj_close(pop);
 }
@@ -451,16 +494,19 @@ main(int argc, char *argv[])
 	START(argc, argv, "obj_store");
 
 	if (argc != 3)
-		FATAL("usage: %s file-name op:r|a|f|u|n|s", argv[0]);
+		FATAL("usage: %s file-name op:r|c|a|f|u|n|s", argv[0]);
 
 	const char *path = argv[1];
 
-	if (strchr("rafuns", argv[2][0]) == NULL || argv[2][1] != '\0')
-		FATAL("op must be r or a or f or u or n or s");
+	if (strchr("rcafuns", argv[2][0]) == NULL || argv[2][1] != '\0')
+		FATAL("op must be r or c or a or f or u or n or s");
 
 	switch (argv[2][0]) {
 		case 'r':
 			test_root_object(path);
+			break;
+		case 'c':
+			test_root_object_construct(path);
 			break;
 		case 'a':
 			test_alloc_free(path);

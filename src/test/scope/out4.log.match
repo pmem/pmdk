@@ -35,6 +35,7 @@ pmemobj_persist
 pmemobj_pool
 pmemobj_realloc
 pmemobj_root
+pmemobj_root_construct
 pmemobj_root_size
 pmemobj_rwlock_rdlock
 pmemobj_rwlock_timedrdlock
@@ -99,6 +100,7 @@ pmemobj_persist
 pmemobj_pool
 pmemobj_realloc
 pmemobj_root
+pmemobj_root_construct
 pmemobj_root_size
 pmemobj_rwlock_rdlock
 pmemobj_rwlock_timedrdlock
@@ -163,6 +165,7 @@ pmemobj_persist
 pmemobj_pool
 pmemobj_realloc
 pmemobj_root
+pmemobj_root_construct
 pmemobj_root_size
 pmemobj_rwlock_rdlock
 pmemobj_rwlock_timedrdlock
@@ -227,6 +230,7 @@ pmemobj_persist
 pmemobj_pool
 pmemobj_realloc
 pmemobj_root
+pmemobj_root_construct
 pmemobj_root_size
 pmemobj_rwlock_rdlock
 pmemobj_rwlock_timedrdlock

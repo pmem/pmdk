@@ -420,6 +420,13 @@ int pmemobj_type_num(PMEMoid oid);
 PMEMoid pmemobj_root(PMEMobjpool *pop, size_t size);
 
 /*
+ * Same as above, but calls the constructor function when the object is first
+ * created and on all subsequent reallocations.
+ */
+PMEMoid pmemobj_root_construct(PMEMobjpool *pop, size_t size,
+	void (*constructor)(PMEMobjpool *pop, void *ptr, void *arg), void *arg);
+
+/*
  * Returns the size in bytes of the root object. Always equal to the requested
  * size.
  */
