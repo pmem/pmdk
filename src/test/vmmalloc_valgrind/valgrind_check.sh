@@ -35,6 +35,7 @@
 #	valgrind package is installed
 #
 function require_valgrind() {
+	require_no_asan
 	VALGRINDEXE=`which valgrind 2>/dev/null` && return
 	echo "$UNITTEST_NAME: SKIP valgrind package required"
 	exit 0
