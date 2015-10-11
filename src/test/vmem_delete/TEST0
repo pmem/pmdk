@@ -45,6 +45,9 @@ memcheck force-disable
 
 setup
 
+# this test invokes sigsegvs by design
+export ASAN_OPTIONS=handle_segv=0
+
 expect_normal_exit ./vmem_delete$EXESUFFIX h f m c r a s d
 
 check
