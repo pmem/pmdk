@@ -43,6 +43,7 @@ export UNITTEST_NUM=4
 require_fs_type local
 # there's no point in testing statically linked builds
 require_build_type debug
+require_no_asan
 
 setup
 

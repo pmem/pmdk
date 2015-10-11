@@ -43,6 +43,7 @@ export UNITTEST_NUM=6
 require_fs_type local
 # there's no point in testing statically linked builds
 require_build_type debug
+require_no_asan
 
 # Valgrind does not call vmmalloc's malloc implementation from library
 # loaded with RTLD_DEEPBIND.
