@@ -1405,16 +1405,15 @@ main(int argc, char *argv[])
 	}
 
 error:
-	if (psp != NULL) {
-		if (psp->args) {
-			for (int i = 0; i < psp->argc; i++)
-				pmemspoil_free_fields(&psp->args[i]);
-			free(psp->args);
-		}
-		free(psp);
+	if (psp->args) {
+		for (int i = 0; i < psp->argc; i++)
+			pmemspoil_free_fields(&psp->args[i]);
+		free(psp->args);
 	}
 
 	pool_set_file_close(psp->pfile);
+
+	free(psp);
 
 	return ret;
 }
