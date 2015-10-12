@@ -155,6 +155,10 @@ with the **USE_VG_PMEMCHECK** flag, for example:
 For Valgrind memcheck support, supply **USE_VG_MEMCHECK** flag.
 **USE_VALGRIND** flag enables both.
 
+To test the libraries with AddressSanitizer and UndefinedBehaviorSanitizer, run:
+```
+	$ make EXTRA_CFLAGS="-fsanitize=address,undefined" EXTRA_LDFLAGS="-fsanitize=address,undefined" clobber all test check
+```
 
 ### Contacts ###
 
