@@ -7,7 +7,7 @@ The pmemobjfs is a simple implementation of FUSE file system using the
 transactional API of libpmemobj.
 
 To create a file system layout run the following command:
-	$ mkfs.pmemobjfs <file>
+	$ mkfs.pmemobjfs [-s <size>] [-b <block_size>] <file>
 
 To mount the filesystem run the following command:
 	$ pmemobjfs -s -odefault_permissions,hard_remove,allow_other <file> <dir>
