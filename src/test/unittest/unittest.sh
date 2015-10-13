@@ -433,6 +433,7 @@ function memcheck() {
 #	valgrind package is installed
 #
 function require_valgrind() {
+	require_no_asan
 	VALGRINDEXE=`which valgrind 2>/dev/null` && return
 	echo "$UNITTEST_NAME: SKIP valgrind package required"
 	exit 0
@@ -573,6 +574,40 @@ function require_valgrind_dev_3_10() {
 		grep -q "VALGRIND_VERSION_3_10_OR_LATER" && return
 	echo "$UNITTEST_NAME: SKIP valgrind-devel package (ver 3.10 or later) required"
 	exit 0
+}
+
+#
+# require_no_asan_for - continue script execution only if passed binary does
+#	NOT require libasan
+#
+function require_no_asan_for() {
+	ASAN_ENABLED=`nm $1 | grep __asan_ | wc -l`
+	if [ "$ASAN_ENABLED" != "0" ]; then
+		echo "$UNITTEST_NAME: SKIP: ASAN enabled"
+		exit 0
+	fi
+}
+
+#
+# require_no_asan - continue script execution only if libpmem does NOT require
+#	libasan
+#
+function require_no_asan() {
+	case "$BUILD"
+	in
+	debug)
+		require_no_asan_for ../../debug/libpmem.so
+		;;
+	nondebug)
+		require_no_asan_for ../../nondebug/libpmem.so
+		;;
+	static-debug)
+		require_no_asan_for ../../debug/libpmem.a
+		;;
+	static-nondebug)
+		require_no_asan_for ../../nondebug/libpmem.a
+		;;
+	esac
 }
 
 #

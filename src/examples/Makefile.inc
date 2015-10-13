@@ -40,8 +40,8 @@ CSTYLE = $(TOP)utils/cstyle
 INCDIR ?= $(TOP_SRC)include
 LIBDIR ?= $(TOP_SRC)debug
 
-CFLAGS = -std=gnu99 -ggdb -Wall -Werror
-LDFLAGS = -Wl,-rpath=$(LIBDIR) -L$(LIBDIR)
+CFLAGS = -std=gnu99 -ggdb -Wall -Werror $(EXTRA_CFLAGS)
+LDFLAGS = -Wl,-rpath=$(LIBDIR) -L$(LIBDIR) $(EXTRA_LDFLAGS)
 INCS = -I$(INCDIR)
 
 all-dirs:     TARGET = all

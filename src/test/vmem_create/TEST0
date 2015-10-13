@@ -44,6 +44,9 @@ require_fs_type local
 
 setup
 
+# this test invokes sigsegvs by design
+export ASAN_OPTIONS=handle_segv=0
+
 expect_normal_exit ./vmem_create$EXESUFFIX $DIR
 
 check

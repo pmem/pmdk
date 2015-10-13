@@ -77,7 +77,7 @@ struct {
 	int unit_max;
 } bucket_proto[MAX_BUCKETS];
 
-#define	BIT_IS_CLR(a, i)	(!((a) & (1L << (i))))
+#define	BIT_IS_CLR(a, i)	(!((a) & (1ULL << (i))))
 
 struct active_run {
 	uint32_t chunk_id;
@@ -855,7 +855,7 @@ heap_get_block_header(PMEMobjpool *pop, struct memory_block m,
 	}
 
 	struct chunk_run *r = (struct chunk_run *)&z->chunks[m.chunk_id];
-	uint64_t bmask = ((1L << m.size_idx) - 1L) <<
+	uint64_t bmask = ((1ULL << m.size_idx) - 1ULL) <<
 			(m.block_off % BITS_PER_VALUE);
 
 	int bpos = m.block_off / BITS_PER_VALUE;

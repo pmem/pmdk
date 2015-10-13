@@ -112,7 +112,7 @@ bucket_new(size_t unit_size, int unit_max)
 		int unused_values = unused_bits / BITS_PER_VALUE;
 		b->bitmap_nval = MAX_BITMAP_VALUES - unused_values;
 		unused_bits -= (unused_values * BITS_PER_VALUE);
-		b->bitmap_lastval = (((1L << unused_bits) - 1L) <<
+		b->bitmap_lastval = (((1ULL << unused_bits) - 1ULL) <<
 					(BITS_PER_VALUE - unused_bits));
 	} else {
 		b->bitmap_nval = 0;
