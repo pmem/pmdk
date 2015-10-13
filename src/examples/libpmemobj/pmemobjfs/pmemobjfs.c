@@ -2289,7 +2289,7 @@ pmemobjfs_mkfs_main(int argc, char *argv[])
 		switch (opt) {
 		case 'h':
 			printf(usage_str, argv[0]);
-			break;
+			return 0;
 		case 'b':
 			if (parse_size(optarg, &bsize)) {
 				fprintf(stderr, "error: invalid block size "
