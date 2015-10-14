@@ -1,4 +1,3 @@
-#!/bin/bash -e
 #
 # Copyright (c) 2015, Intel Corporation
 #
@@ -32,34 +31,16 @@
 #
 
 #
-# src/test/obj_memcheck/TEST0 -- unit test for obj_memcheck
+# src/test/obj_realloc/Makefile -- build obj_realloc unit test
 #
-export UNITTEST_NAME=obj_memcheck/TEST0
-export UNITTEST_NUM=0
 
-# standard unit test setup
-. ../unittest/unittest.sh
+TARGET = obj_realloc
+OBJS = obj_realloc.o
 
-require_valgrind_memcheck
-require_fs_type non-pmem
+LIBPMEM=y
+LIBPMEMOBJ=y
 
-memcheck force-enable
+include ../Makefile.inc
 
-setup
-
-export PMEMOBJ_VG_CHECK_UNDEF=1
-export VALIDATE_MEMCHECK_LOG=0
-export MEMCHECK_OPTS="$MEMCHECK_OPTS --show-reachable=yes"
-
-if ! eval LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH LD_PRELOAD=$TEST_LD_PRELOAD $TRACE valgrind ./obj_memcheck$EXESUFFIX m 2>/dev/null; then
-	echo "$UNITTEST_NAME: SKIP valgrind with bug"
-	exit 0
-fi
-
-expect_normal_exit ./obj_memcheck$EXESUFFIX t1 $DIR/testfile
-
-mv ${MEMCHECK_LOG_FILE} memcheck${UNITTEST_NUM}.log
-
-check
-
-pass
+CFLAGS += -I../../libpmemobj
+CFLAGS += -I../../common

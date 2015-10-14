@@ -32,33 +32,26 @@
 #
 
 #
-# src/test/obj_memcheck/TEST0 -- unit test for obj_memcheck
+# src/test/obj_realloc/TEST1 -- unit test for pmemobj_realloc and
+# pmemobj_zrealloc
 #
-export UNITTEST_NAME=obj_memcheck/TEST0
-export UNITTEST_NUM=0
+export UNITTEST_NAME=obj_realloc/TEST1
+export UNITTEST_NUM=1
 
 # standard unit test setup
 . ../unittest/unittest.sh
 
-require_valgrind_memcheck
-require_fs_type non-pmem
-
-memcheck force-enable
+require_valgrind_pmemcheck
 
 setup
 
-export PMEMOBJ_VG_CHECK_UNDEF=1
-export VALIDATE_MEMCHECK_LOG=0
-export MEMCHECK_OPTS="$MEMCHECK_OPTS --show-reachable=yes"
+rm -f $DIR/testfile1
+expect_normal_exit $PMEMPOOL$EXESUFFIX\
+	create obj --layout realloc --size=64M $DIR/testfile1
 
-if ! eval LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH LD_PRELOAD=$TEST_LD_PRELOAD $TRACE valgrind ./obj_memcheck$EXESUFFIX m 2>/dev/null; then
-	echo "$UNITTEST_NAME: SKIP valgrind with bug"
-	exit 0
-fi
-
-expect_normal_exit ./obj_memcheck$EXESUFFIX t1 $DIR/testfile
-
-mv ${MEMCHECK_LOG_FILE} memcheck${UNITTEST_NUM}.log
+expect_normal_exit valgrind --tool=pmemcheck\
+    --log-file=valgrind$UNITTEST_NUM.log\
+    ./obj_realloc$EXESUFFIX $DIR/testfile1
 
 check
 
