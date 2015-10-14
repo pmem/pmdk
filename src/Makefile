@@ -78,7 +78,7 @@ ifeq ($(custom_build),)
 	$(MAKE) -C $* install DEBUG=1
 endif
 
-%-uninstall: %
+%-uninstall:
 	$(MAKE) -C $* uninstall
 ifeq ($(custom_build),)
 	$(MAKE) -C $* uninstall DEBUG=1
