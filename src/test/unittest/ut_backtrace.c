@@ -156,6 +156,7 @@ ut_sighandler(int sig)
 	ERR("Signal %d, backtrace:", sig);
 	ut_dump_backtrace();
 	ERR("\n");
+	exit(128 + sig);
 }
 
 /*
