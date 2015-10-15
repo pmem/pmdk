@@ -67,6 +67,12 @@ define arch32_error_msg
 
 endef
 
+TESTCMD := $(CC) $(CFLAGS) -dM -E -x c /dev/null -o /dev/null
+TESTBUILD := $(shell $(TESTCMD) && echo 1 || echo 0)
+ifneq ($(TESTBUILD), 1)
+$(error "$(TESTCMD)" failed)
+endif
+
 LP64 := $(shell $(CC) $(CFLAGS) -dM -E -x c /dev/null | grep -Ec "__SIZEOF_LONG__.+8|__SIZEOF_POINTER__.+8" )
 ifneq ($(LP64), 2)
 $(error $(arch32_error_msg))
