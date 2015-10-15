@@ -678,6 +678,8 @@ pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp,
 
 	util_convert2h_pool_hdr(&hdr);
 
+	memcpy(paramsp->signature, hdr.signature, sizeof (paramsp->signature));
+
 	/*
 	 * Check if file is a part of pool set by comparing
 	 * the UUID with the next part UUID. If it is the same

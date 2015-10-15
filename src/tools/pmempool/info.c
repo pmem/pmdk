@@ -681,14 +681,13 @@ pmempool_info_file(struct pmem_info *pip, const char *file_name)
 		pip->type = pip->params.type;
 	}
 
-	if (PMEM_POOL_TYPE_UNKNOWN == pip->type) {
-		/*
-		 * This means don't know what pool type should be parsed
-		 * this happens when can't determine pool type of file
-		 * by parsing signature and force flag is not set.
-		 */
+	if (PMEM_POOL_TYPE_NONE == pip->type) {
 		ret = -1;
 		outv_err("%s: cannot determine type of pool\n", file_name);
+	} else if (PMEM_POOL_TYPE_UNKNOWN == pip->type) {
+		ret = -1;
+		outv_err("%s: unknown pool type -- '%s'\n", file_name,
+				pip->params.signature);
 	} else {
 		if (util_options_verify(pip->opts, pip->type))
 			return -1;
@@ -731,9 +730,9 @@ pmempool_info_file(struct pmem_info *pip, const char *file_name)
 			ret = -1;
 			break;
 		}
-	}
 out_close:
-	pool_set_file_close(pip->pfile);
+		pool_set_file_close(pip->pfile);
+	}
 
 	return ret;
 }

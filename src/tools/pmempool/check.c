@@ -1054,8 +1054,15 @@ pmempool_check_pool_hdr_single(struct pmempool_check *pcp,
 			return CHECK_RESULT_NOT_CONSISTENT;
 	} else {
 		if (cs_valid) {
-			outv(2, "pool header checksum correct\n");
-			return CHECK_RESULT_CONSISTENT;
+			pmem_pool_type_t type = pmem_pool_type_parse_hdr(&hdr);
+			if (type == PMEM_POOL_TYPE_UNKNOWN) {
+				outv(1, "invalid signature\n");
+				if (!pcp->repair)
+					return CHECK_RESULT_NOT_CONSISTENT;
+			} else {
+				outv(2, "pool header checksum correct\n");
+				return CHECK_RESULT_CONSISTENT;
+			}
 		} else {
 			outv(1, "incorrect pool header checksum\n");
 			if (!pcp->repair)

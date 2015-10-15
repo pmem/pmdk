@@ -435,7 +435,6 @@ pmempool_create_func(char *appname, int argc, char *argv[])
 			outv(1, "  size  : %s\n",
 					out_get_size_str(pc.params.size, 2));
 			if (pc.params.type == PMEM_POOL_TYPE_BLK) {
-				pc.params.blk.bsize = pc.params.blk.bsize;
 				outv(1, "  bsize : %s\n",
 					out_get_size_str(
 						pc.params.blk.bsize, 0));
