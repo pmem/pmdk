@@ -129,6 +129,7 @@ util_unmap_hdr(struct pool_set_part *part)
 		if (munmap(part->hdr, part->hdrsize) != 0) {
 			ERR("!munmap: %s", part->path);
 		}
+		VALGRIND_REMOVE_PMEM_MAPPING(part->hdr, part->hdrsize);
 		part->hdr = NULL;
 		part->hdrsize = 0;
 	}
