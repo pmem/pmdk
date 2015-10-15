@@ -42,6 +42,7 @@
 #include "lane.h"
 #include "redo.h"
 #include "list.h"
+#include "cuckoo.h"
 #include "obj.h"
 #include "out.h"
 #include "valgrind_internal.h"
@@ -105,18 +106,20 @@ get_lock(uint64_t pop_runid, volatile uint64_t *runid, void *lock,
 }
 
 /*
- * pmemobj_mutex_zero -- zero-initialize a pmem resident mutex
+ * pmemobj_mutex_init -- initialize a pmem resident mutex
  *
  * This function is not MT safe.
  */
 void
-pmemobj_mutex_zero(PMEMobjpool *pop, PMEMmutex *mutexp)
+pmemobj_mutex_init(PMEMobjpool *pop, PMEMmutex *mutexp)
 {
 	LOG(3, "pop %p mutex %p", pop, mutexp);
 
+	mutexp->pmemmutex.pool_uuid_lo = pop->uuid_lo;
 	mutexp->pmemmutex.runid = 0;
-	pop->persist(pop, &mutexp->pmemmutex.runid,
-				sizeof (mutexp->pmemmutex.runid));
+	if (pop->persist)
+		pop->persist(pop, &mutexp->pmemmutex,
+				sizeof (mutexp->pmemmutex));
 }
 
 /*
@@ -126,10 +129,11 @@ pmemobj_mutex_zero(PMEMobjpool *pop, PMEMmutex *mutexp)
  * POSIX counterpart.
  */
 int
-pmemobj_mutex_lock(PMEMobjpool *pop, PMEMmutex *mutexp)
+pmemobj_mutex_lock(PMEMmutex *mutexp)
 {
-	LOG(3, "pop %p mutex %p", pop, mutexp);
+	LOG(3, "mutex %p", mutexp);
 
+	PMEMobjpool *pop = cuckoo_get(pools, mutexp->pmemmutex.pool_uuid_lo);
 	pthread_mutex_t *mutex = GET_MUTEX(pop, mutexp);
 	if (mutex == NULL)
 		return EINVAL;
@@ -144,10 +148,11 @@ pmemobj_mutex_lock(PMEMobjpool *pop, PMEMmutex *mutexp)
  * POSIX counterpart.
  */
 int
-pmemobj_mutex_trylock(PMEMobjpool *pop, PMEMmutex *mutexp)
+pmemobj_mutex_trylock(PMEMmutex *mutexp)
 {
-	LOG(3, "pop %p mutex %p", pop, mutexp);
+	LOG(3, "mutex %p", mutexp);
 
+	PMEMobjpool *pop = cuckoo_get(pools, mutexp->pmemmutex.pool_uuid_lo);
 	pthread_mutex_t *mutex = GET_MUTEX(pop, mutexp);
 	if (mutex == NULL)
 		return EINVAL;
@@ -159,10 +164,11 @@ pmemobj_mutex_trylock(PMEMobjpool *pop, PMEMmutex *mutexp)
  * pmemobj_mutex_unlock -- unlock a pmem resident mutex
  */
 int
-pmemobj_mutex_unlock(PMEMobjpool *pop, PMEMmutex *mutexp)
+pmemobj_mutex_unlock(PMEMmutex *mutexp)
 {
-	LOG(3, "pop %p mutex %p", pop, mutexp);
+	LOG(3, "mutex %p", mutexp);
 
+	PMEMobjpool *pop = cuckoo_get(pools, mutexp->pmemmutex.pool_uuid_lo);
 	/* XXX potential performance improvement - move GET to debug version */
 	pthread_mutex_t *mutex = GET_MUTEX(pop, mutexp);
 	if (mutex == NULL)
@@ -172,18 +178,19 @@ pmemobj_mutex_unlock(PMEMobjpool *pop, PMEMmutex *mutexp)
 }
 
 /*
- * pmemobj_rwlock_zero -- zero-initialize a pmem resident rwlock
+ * pmemobj_rwlock_init -- initialize a pmem resident rwlock
  *
  * This function is not MT safe.
  */
 void
-pmemobj_rwlock_zero(PMEMobjpool *pop, PMEMrwlock *rwlockp)
+pmemobj_rwlock_init(PMEMobjpool *pop, PMEMrwlock *rwlockp)
 {
 	LOG(3, "pop %p rwlock %p", pop, rwlockp);
 
+	rwlockp->pmemrwlock.pool_uuid_lo = pop->uuid_lo;
 	rwlockp->pmemrwlock.runid = 0;
-	pop->persist(pop, &rwlockp->pmemrwlock.runid,
-				sizeof (rwlockp->pmemrwlock.runid));
+	pop->persist(pop, &rwlockp->pmemrwlock,
+				sizeof (rwlockp->pmemrwlock));
 }
 
 /*
@@ -193,10 +200,11 @@ pmemobj_rwlock_zero(PMEMobjpool *pop, PMEMrwlock *rwlockp)
  * POSIX counterpart.
  */
 int
-pmemobj_rwlock_rdlock(PMEMobjpool *pop, PMEMrwlock *rwlockp)
+pmemobj_rwlock_rdlock(PMEMrwlock *rwlockp)
 {
-	LOG(3, "pop %p rwlock %p", pop, rwlockp);
+	LOG(3, "rwlock %p", rwlockp);
 
+	PMEMobjpool *pop = cuckoo_get(pools, rwlockp->pmemrwlock.pool_uuid_lo);
 	pthread_rwlock_t *rwlock = GET_RWLOCK(pop, rwlockp);
 	if (rwlock == NULL)
 		return EINVAL;
@@ -211,10 +219,11 @@ pmemobj_rwlock_rdlock(PMEMobjpool *pop, PMEMrwlock *rwlockp)
  * POSIX counterpart.
  */
 int
-pmemobj_rwlock_wrlock(PMEMobjpool *pop, PMEMrwlock *rwlockp)
+pmemobj_rwlock_wrlock(PMEMrwlock *rwlockp)
 {
-	LOG(3, "pop %p rwlock %p", pop, rwlockp);
+	LOG(3, "rwlock %p", rwlockp);
 
+	PMEMobjpool *pop = cuckoo_get(pools, rwlockp->pmemrwlock.pool_uuid_lo);
 	pthread_rwlock_t *rwlock = GET_RWLOCK(pop, rwlockp);
 	if (rwlock == NULL)
 		return EINVAL;
@@ -229,12 +238,13 @@ pmemobj_rwlock_wrlock(PMEMobjpool *pop, PMEMrwlock *rwlockp)
  * its POSIX counterpart.
  */
 int
-pmemobj_rwlock_timedrdlock(PMEMobjpool *pop, PMEMrwlock *__restrict rwlockp,
+pmemobj_rwlock_timedrdlock(PMEMrwlock *__restrict rwlockp,
 			const struct timespec *__restrict abs_timeout)
 {
-	LOG(3, "pop %p rwlock %p timeout sec %ld nsec %ld", pop, rwlockp,
+	LOG(3, "rwlock %p timeout sec %ld nsec %ld", rwlockp,
 		abs_timeout->tv_sec, abs_timeout->tv_nsec);
 
+	PMEMobjpool *pop = cuckoo_get(pools, rwlockp->pmemrwlock.pool_uuid_lo);
 	pthread_rwlock_t *rwlock = GET_RWLOCK(pop, rwlockp);
 	if (rwlock == NULL)
 		return EINVAL;
@@ -249,12 +259,13 @@ pmemobj_rwlock_timedrdlock(PMEMobjpool *pop, PMEMrwlock *__restrict rwlockp,
  * its POSIX counterpart.
  */
 int
-pmemobj_rwlock_timedwrlock(PMEMobjpool *pop, PMEMrwlock *__restrict rwlockp,
+pmemobj_rwlock_timedwrlock(PMEMrwlock *__restrict rwlockp,
 			const struct timespec *__restrict abs_timeout)
 {
-	LOG(3, "pop %p rwlock %p timeout sec %ld nsec %ld", pop, rwlockp,
+	LOG(3, "rwlock %p timeout sec %ld nsec %ld", rwlockp,
 		abs_timeout->tv_sec, abs_timeout->tv_nsec);
 
+	PMEMobjpool *pop = cuckoo_get(pools, rwlockp->pmemrwlock.pool_uuid_lo);
 	pthread_rwlock_t *rwlock = GET_RWLOCK(pop, rwlockp);
 	if (rwlock == NULL)
 		return EINVAL;
@@ -269,10 +280,11 @@ pmemobj_rwlock_timedwrlock(PMEMobjpool *pop, PMEMrwlock *__restrict rwlockp,
  * POSIX counterpart.
  */
 int
-pmemobj_rwlock_tryrdlock(PMEMobjpool *pop, PMEMrwlock *rwlockp)
+pmemobj_rwlock_tryrdlock(PMEMrwlock *rwlockp)
 {
-	LOG(3, "pop %p rwlock %p", pop, rwlockp);
+	LOG(3, "rwlock %p", rwlockp);
 
+	PMEMobjpool *pop = cuckoo_get(pools, rwlockp->pmemrwlock.pool_uuid_lo);
 	pthread_rwlock_t *rwlock = GET_RWLOCK(pop, rwlockp);
 	if (rwlock == NULL)
 		return EINVAL;
@@ -287,10 +299,11 @@ pmemobj_rwlock_tryrdlock(PMEMobjpool *pop, PMEMrwlock *rwlockp)
  * POSIX counterpart.
  */
 int
-pmemobj_rwlock_trywrlock(PMEMobjpool *pop, PMEMrwlock *rwlockp)
+pmemobj_rwlock_trywrlock(PMEMrwlock *rwlockp)
 {
-	LOG(3, "pop %p rwlock %p", pop, rwlockp);
+	LOG(3, "rwlock %p", rwlockp);
 
+	PMEMobjpool *pop = cuckoo_get(pools, rwlockp->pmemrwlock.pool_uuid_lo);
 	pthread_rwlock_t *rwlock = GET_RWLOCK(pop, rwlockp);
 	if (rwlock == NULL)
 		return EINVAL;
@@ -302,10 +315,11 @@ pmemobj_rwlock_trywrlock(PMEMobjpool *pop, PMEMrwlock *rwlockp)
  * pmemobj_rwlock_unlock -- unlock a pmem resident rwlock
  */
 int
-pmemobj_rwlock_unlock(PMEMobjpool *pop, PMEMrwlock *rwlockp)
+pmemobj_rwlock_unlock(PMEMrwlock *rwlockp)
 {
-	LOG(3, "pop %p rwlock %p", pop, rwlockp);
+	LOG(3, "rwlock %p", rwlockp);
 
+	PMEMobjpool *pop = cuckoo_get(pools, rwlockp->pmemrwlock.pool_uuid_lo);
 	/* XXX potential performance improvement - move GET to debug version */
 	pthread_rwlock_t *rwlock = GET_RWLOCK(pop, rwlockp);
 	if (rwlock == NULL)
@@ -315,18 +329,19 @@ pmemobj_rwlock_unlock(PMEMobjpool *pop, PMEMrwlock *rwlockp)
 }
 
 /*
- * pmemobj_cond_zero -- zero-initialize a pmem resident condition variable
+ * pmemobj_cond_init -- initialize a pmem resident condition variable
  *
  * This function is not MT safe.
  */
 void
-pmemobj_cond_zero(PMEMobjpool *pop, PMEMcond *condp)
+pmemobj_cond_init(PMEMobjpool *pop, PMEMcond *condp)
 {
 	LOG(3, "pop %p cond %p", pop, condp);
 
+	condp->pmemcond.pool_uuid_lo = pop->uuid_lo;
 	condp->pmemcond.runid = 0;
-	pop->persist(pop, &condp->pmemcond.runid,
-			sizeof (condp->pmemcond.runid));
+	pop->persist(pop, &condp->pmemcond,
+			sizeof (condp->pmemcond));
 }
 
 /*
@@ -336,10 +351,11 @@ pmemobj_cond_zero(PMEMobjpool *pop, PMEMcond *condp)
  * POSIX counterpart.
  */
 int
-pmemobj_cond_broadcast(PMEMobjpool *pop, PMEMcond *condp)
+pmemobj_cond_broadcast(PMEMcond *condp)
 {
-	LOG(3, "pop %p cond %p", pop, condp);
+	LOG(3, "cond %p", condp);
 
+	PMEMobjpool *pop = cuckoo_get(pools, condp->pmemcond.pool_uuid_lo);
 	pthread_cond_t *cond = GET_COND(pop, condp);
 	if (cond == NULL)
 		return EINVAL;
@@ -354,10 +370,11 @@ pmemobj_cond_broadcast(PMEMobjpool *pop, PMEMcond *condp)
  * POSIX counterpart.
  */
 int
-pmemobj_cond_signal(PMEMobjpool *pop, PMEMcond *condp)
+pmemobj_cond_signal(PMEMcond *condp)
 {
-	LOG(3, "pop %p cond %p", pop, condp);
+	LOG(3, "cond %p", condp);
 
+	PMEMobjpool *pop = cuckoo_get(pools, condp->pmemcond.pool_uuid_lo);
 	pthread_cond_t *cond = GET_COND(pop, condp);
 	if (cond == NULL)
 		return EINVAL;
@@ -372,13 +389,16 @@ pmemobj_cond_signal(PMEMobjpool *pop, PMEMcond *condp)
  * POSIX counterpart.
  */
 int
-pmemobj_cond_timedwait(PMEMobjpool *pop, PMEMcond *__restrict condp,
+pmemobj_cond_timedwait(PMEMcond *__restrict condp,
 			PMEMmutex *__restrict mutexp,
 			const struct timespec *__restrict abstime)
 {
-	LOG(3, "pop %p cond %p mutex %p abstime sec %ld nsec %ld", pop, condp,
+	LOG(3, "cond %p mutex %p abstime sec %ld nsec %ld", condp,
 		mutexp, abstime->tv_sec, abstime->tv_nsec);
 
+	ASSERT(condp->pmemcond.pool_uuid_lo == mutexp->pmemmutex.pool_uuid_lo);
+
+	PMEMobjpool *pop = cuckoo_get(pools, condp->pmemcond.pool_uuid_lo);
 	pthread_cond_t *cond = GET_COND(pop, condp);
 	pthread_mutex_t *mutex = GET_MUTEX(pop, mutexp);
 	if ((cond == NULL) || (mutex == NULL))
@@ -394,11 +414,13 @@ pmemobj_cond_timedwait(PMEMobjpool *pop, PMEMcond *__restrict condp,
  * POSIX counterpart.
  */
 int
-pmemobj_cond_wait(PMEMobjpool *pop, PMEMcond *condp,
+pmemobj_cond_wait(PMEMcond *condp,
 			PMEMmutex *__restrict mutexp)
 {
-	LOG(3, "pop %p cond %p mutex %p", pop, condp, mutexp);
+	LOG(3, "cond %p mutex %p", condp, mutexp);
+	ASSERT(condp->pmemcond.pool_uuid_lo == mutexp->pmemmutex.pool_uuid_lo);
 
+	PMEMobjpool *pop = cuckoo_get(pools, condp->pmemcond.pool_uuid_lo);
 	pthread_cond_t *cond = GET_COND(pop, condp);
 	pthread_mutex_t *mutex = GET_MUTEX(pop, mutexp);
 	if ((cond == NULL) || (mutex == NULL))

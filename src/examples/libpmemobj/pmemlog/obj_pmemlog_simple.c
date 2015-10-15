@@ -112,6 +112,7 @@ pmemlog_map(PMEMobjpool *pop, size_t fsize)
 		D_RW(bp)->log = TX_ALLOC(struct log, pool_size);
 		D_RW(D_RW(bp)->log)->hdr.data_size =
 				pool_size - sizeof (struct log_hdr);
+		pmemobj_rwlock_init(pop, &D_RW(bp)->rwlock);
 	} TX_ONABORT {
 		retval = -1;
 	} TX_END
@@ -303,7 +304,7 @@ pmemlog_walk(PMEMlogpool *plp, size_t chunksize,
 
 	/* acquire a rdlock here */
 	int err;
-	if ((err = pmemobj_rwlock_rdlock(pop, &D_RW(bp)->rwlock)) != 0) {
+	if ((err = pmemobj_rwlock_rdlock(&D_RW(bp)->rwlock)) != 0) {
 		errno = err;
 		return;
 	}
@@ -322,7 +323,7 @@ pmemlog_walk(PMEMlogpool *plp, size_t chunksize,
 		read_ptr += read_size;
 	}
 
-	pmemobj_rwlock_unlock(pop, &D_RW(bp)->rwlock);
+	pmemobj_rwlock_unlock(&D_RW(bp)->rwlock);
 }
 
 /*

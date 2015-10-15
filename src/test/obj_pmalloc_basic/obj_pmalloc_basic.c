@@ -46,7 +46,7 @@
 #include "unittest.h"
 #include "valgrind_internal.h"
 
-#define	MOCK_POOL_SIZE PMEMOBJ_MIN_POOL
+#define	MOCK_POOL_SIZE PMEMOBJ_MIN_POOL * 2
 #define	TEST_MEGA_ALLOC_SIZE (1024 * 1024)
 #define	TEST_HUGE_ALLOC_SIZE (255 * 1024)
 #define	TEST_SMALL_ALLOC_SIZE (200)
@@ -59,7 +59,7 @@
 
 struct mock_pop {
 	PMEMobjpool p;
-	char lanes[LANE_SECTION_LEN];
+	char lanes[LANE_SECTION_LEN * 3];
 	uint64_t ptr;
 };
 
@@ -174,6 +174,7 @@ test_mock_pool_allocs()
 	mock_pop->persist = obj_persist;
 	mock_pop->flush = obj_flush;
 	mock_pop->drain = obj_drain;
+	pmemobj_mutex_init(mock_pop, &mock_pop->rootlock);
 
 	heap_init(mock_pop);
 	heap_boot(mock_pop);

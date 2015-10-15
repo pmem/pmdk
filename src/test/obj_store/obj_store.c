@@ -107,9 +107,12 @@ test_root_object(const char *path)
 
 	/* create root object */
 	TOID_ASSIGN(root, pmemobj_root(pop, sizeof (struct root)));
+
 	ASSERT(TOID_IS_NULL(root) == 0);
 	ASSERTeq(pmemobj_root_size(pop), sizeof (struct root));
 	ASSERT(util_is_zeroed(D_RO(root), sizeof (struct root)));
+
+	POBJ_LIST_INIT(pop, &D_RW(root)->lhead);
 
 	/* fill in root object */
 	strncpy(D_RW(root)->name, ROOT_NAME, MAX_ROOT_NAME);
@@ -343,6 +346,8 @@ test_user_lists(const char *path)
 	ASSERT(TOID_IS_NULL(root) == 0);
 	ASSERTeq(pmemobj_root_size(pop), sizeof (struct root));
 	ASSERT(util_is_zeroed(D_RW(root), sizeof (struct root)));
+
+	POBJ_LIST_INIT(pop, &D_RW(root)->lhead);
 
 	/* fill in root object */
 	strncpy(D_RW(root)->name, ROOT_NAME, MAX_ROOT_NAME);

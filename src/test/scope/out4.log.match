@@ -9,10 +9,10 @@ pmemobj_check
 pmemobj_check_version
 pmemobj_close
 pmemobj_cond_broadcast
+pmemobj_cond_init
 pmemobj_cond_signal
 pmemobj_cond_timedwait
 pmemobj_cond_wait
-pmemobj_cond_zero
 pmemobj_create
 pmemobj_drain
 pmemobj_errormsg
@@ -25,10 +25,10 @@ pmemobj_list_move
 pmemobj_list_remove
 pmemobj_memcpy_persist
 pmemobj_memset_persist
+pmemobj_mutex_init
 pmemobj_mutex_lock
 pmemobj_mutex_trylock
 pmemobj_mutex_unlock
-pmemobj_mutex_zero
 pmemobj_next
 pmemobj_open
 pmemobj_persist
@@ -36,6 +36,7 @@ pmemobj_pool
 pmemobj_realloc
 pmemobj_root
 pmemobj_root_size
+pmemobj_rwlock_init
 pmemobj_rwlock_rdlock
 pmemobj_rwlock_timedrdlock
 pmemobj_rwlock_timedwrlock
@@ -43,7 +44,6 @@ pmemobj_rwlock_tryrdlock
 pmemobj_rwlock_trywrlock
 pmemobj_rwlock_unlock
 pmemobj_rwlock_wrlock
-pmemobj_rwlock_zero
 pmemobj_set_funcs
 pmemobj_strdup
 pmemobj_tx_abort
@@ -73,10 +73,10 @@ pmemobj_check
 pmemobj_check_version
 pmemobj_close
 pmemobj_cond_broadcast
+pmemobj_cond_init
 pmemobj_cond_signal
 pmemobj_cond_timedwait
 pmemobj_cond_wait
-pmemobj_cond_zero
 pmemobj_create
 pmemobj_drain
 pmemobj_errormsg
@@ -89,10 +89,10 @@ pmemobj_list_move
 pmemobj_list_remove
 pmemobj_memcpy_persist
 pmemobj_memset_persist
+pmemobj_mutex_init
 pmemobj_mutex_lock
 pmemobj_mutex_trylock
 pmemobj_mutex_unlock
-pmemobj_mutex_zero
 pmemobj_next
 pmemobj_open
 pmemobj_persist
@@ -100,6 +100,7 @@ pmemobj_pool
 pmemobj_realloc
 pmemobj_root
 pmemobj_root_size
+pmemobj_rwlock_init
 pmemobj_rwlock_rdlock
 pmemobj_rwlock_timedrdlock
 pmemobj_rwlock_timedwrlock
@@ -107,7 +108,6 @@ pmemobj_rwlock_tryrdlock
 pmemobj_rwlock_trywrlock
 pmemobj_rwlock_unlock
 pmemobj_rwlock_wrlock
-pmemobj_rwlock_zero
 pmemobj_set_funcs
 pmemobj_strdup
 pmemobj_tx_abort
@@ -137,10 +137,10 @@ pmemobj_check
 pmemobj_check_version
 pmemobj_close
 pmemobj_cond_broadcast
+pmemobj_cond_init
 pmemobj_cond_signal
 pmemobj_cond_timedwait
 pmemobj_cond_wait
-pmemobj_cond_zero
 pmemobj_create
 pmemobj_drain
 pmemobj_errormsg
@@ -153,10 +153,10 @@ pmemobj_list_move
 pmemobj_list_remove
 pmemobj_memcpy_persist
 pmemobj_memset_persist
+pmemobj_mutex_init
 pmemobj_mutex_lock
 pmemobj_mutex_trylock
 pmemobj_mutex_unlock
-pmemobj_mutex_zero
 pmemobj_next
 pmemobj_open
 pmemobj_persist
@@ -164,6 +164,7 @@ pmemobj_pool
 pmemobj_realloc
 pmemobj_root
 pmemobj_root_size
+pmemobj_rwlock_init
 pmemobj_rwlock_rdlock
 pmemobj_rwlock_timedrdlock
 pmemobj_rwlock_timedwrlock
@@ -171,7 +172,6 @@ pmemobj_rwlock_tryrdlock
 pmemobj_rwlock_trywrlock
 pmemobj_rwlock_unlock
 pmemobj_rwlock_wrlock
-pmemobj_rwlock_zero
 pmemobj_set_funcs
 pmemobj_strdup
 pmemobj_tx_abort
@@ -201,10 +201,10 @@ pmemobj_check
 pmemobj_check_version
 pmemobj_close
 pmemobj_cond_broadcast
+pmemobj_cond_init
 pmemobj_cond_signal
 pmemobj_cond_timedwait
 pmemobj_cond_wait
-pmemobj_cond_zero
 pmemobj_create
 pmemobj_drain
 pmemobj_errormsg
@@ -217,10 +217,10 @@ pmemobj_list_move
 pmemobj_list_remove
 pmemobj_memcpy_persist
 pmemobj_memset_persist
+pmemobj_mutex_init
 pmemobj_mutex_lock
 pmemobj_mutex_trylock
 pmemobj_mutex_unlock
-pmemobj_mutex_zero
 pmemobj_next
 pmemobj_open
 pmemobj_persist
@@ -228,6 +228,7 @@ pmemobj_pool
 pmemobj_realloc
 pmemobj_root
 pmemobj_root_size
+pmemobj_rwlock_init
 pmemobj_rwlock_rdlock
 pmemobj_rwlock_timedrdlock
 pmemobj_rwlock_timedwrlock
@@ -235,7 +236,6 @@ pmemobj_rwlock_tryrdlock
 pmemobj_rwlock_trywrlock
 pmemobj_rwlock_unlock
 pmemobj_rwlock_wrlock
-pmemobj_rwlock_zero
 pmemobj_set_funcs
 pmemobj_strdup
 pmemobj_tx_abort

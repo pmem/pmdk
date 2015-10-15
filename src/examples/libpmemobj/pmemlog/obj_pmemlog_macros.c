@@ -267,7 +267,7 @@ pmemlog_walk(PMEMlogpool *plp, size_t chunksize,
 	bp = POBJ_ROOT(pop, struct base);
 
 	/* acquire a read lock */
-	if (pmemobj_rwlock_rdlock(pop, &D_RW(bp)->rwlock) != 0)
+	if (pmemobj_rwlock_rdlock(&D_RW(bp)->rwlock) != 0)
 		return;
 
 	TOID(struct log) next;
@@ -279,7 +279,7 @@ pmemlog_walk(PMEMlogpool *plp, size_t chunksize,
 		next = D_RO(next)->hdr.next;
 	}
 
-	pmemobj_rwlock_unlock(pop, &D_RW(bp)->rwlock);
+	pmemobj_rwlock_unlock(&D_RW(bp)->rwlock);
 }
 
 /*

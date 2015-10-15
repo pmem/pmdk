@@ -278,6 +278,9 @@ test_list_api(PMEMobjpool *pop)
 	TOID(struct dummy_node) first;
 	TOID(struct dummy_node) iter;
 
+	POBJ_LIST_INIT(pop, &D_RW(root)->dummies);
+	POBJ_LIST_INIT(pop, &D_RW(root)->moved);
+
 	POBJ_LIST_FOREACH_REVERSE(iter, &D_RO(root)->dummies, plist) {
 		OUT("POBJ_LIST_FOREACH_REVERSE: dummy_node %d",
 					D_RO(iter)->value);
@@ -414,6 +417,8 @@ test_tx_api(PMEMobjpool *pop)
 	TOID_ASSIGN(root, pmemobj_root(pop, sizeof (struct dummy_root)));
 
 	int *vstate = NULL; /* volatile state */
+
+	pmemobj_mutex_init(pop, &D_RW(root)->lock);
 
 	TX_BEGIN_LOCK(pop, TX_LOCK_MUTEX, &D_RW(root)->lock) {
 		vstate = MALLOC(sizeof (*vstate));
