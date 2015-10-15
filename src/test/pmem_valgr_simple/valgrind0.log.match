@@ -1,4 +1,4 @@
-==$(N)== pmemcheck-$(N).$(N), a simple persistent store checker
+==$(N)== pmemcheck-$(N).$(nW), a simple persistent store checker
 ==$(N)== Copyright (c) $(N)-$(N), Intel Corporation
 ==$(N)== Using $(*)
 ==$(N)== Command: ./pmem_valgr_simple$(nW) $(nW) $(N) $(N)
@@ -13,7 +13,8 @@
 ==$(N)==    by 0x$(nW): main (pmem_valgr_simple.c:82)
 ==$(N)== 	Address: 0x$(nW)	size: 8	state: DIRTY
 ==$(N)== [2]    at 0x$(nW): main (pmem_valgr_simple.c:77)
-==$(N)== 	Address: 0x$(nW)	size: 2	state: FLUSHED
+$(OPT)==$(N)== 	Address: 0x$(nW)	size: 2	state: FLUSHED
+$(OPT)==$(N)== 	Address: 0x$(nW)	size: 2	state: FENCED
 ==$(N)== Total memory not made persistent: 14
 $(OPT)==$(N)== 
 $(OPT)==$(N)== Number of overwritten stores: 1
