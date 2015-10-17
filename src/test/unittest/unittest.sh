@@ -307,16 +307,17 @@ function expect_normal_exit() {
 		else
 			msg="failed with exit code $ret"
 		fi
+		[ -t 1 ] && command -v tput >/dev/null && msg="$(tput setaf 1)$msg$(tput sgr0)"
 
 		if [ -f err$UNITTEST_NUM.log ]; then
 			if [ "$UNITTEST_QUIET" = "1" ]; then
-				echo "$UNITTEST_NAME $msg. err$UNITTEST_NUM.log below."
+				echo -e "$UNITTEST_NAME $msg. err$UNITTEST_NUM.log below."
 				cat err$UNITTEST_NUM.log
 			else
-				echo "$UNITTEST_NAME $msg. err$UNITTEST_NUM.log above."
+				echo -e "$UNITTEST_NAME $msg. err$UNITTEST_NUM.log above."
 			fi
 		else
-			echo "$UNITTEST_NAME $msg."
+			echo -e "$UNITTEST_NAME $msg."
 		fi
 
 		if [ "$RUN_MEMCHECK" ]; then
@@ -332,7 +333,9 @@ function expect_normal_exit() {
 		TRACE="$OLDTRACE"
 		if [ -f $MEMCHECK_LOG_FILE -a "${VALIDATE_MEMCHECK_LOG}" = "1" ]; then
 			if ! grep "ERROR SUMMARY: 0 errors" $MEMCHECK_LOG_FILE >/dev/null; then
-				echo $UNITTEST_NAME failed with Valgrind. See $MEMCHECK_LOG_FILE. First 20 lines below.
+				msg="failed"
+				[ -t 1 ] && command -v tput >/dev/null && msg="$(tput setaf 1)$msg$(tput sgr0)"
+				echo -e "$UNITTEST_NAME $msg with Valgrind. See $MEMCHECK_LOG_FILE. First 20 lines below."
 				paste -d " " <(yes $UNITTEST_NAME $MEMCHECK_LOG_FILE | head -n 20) <(head -n 20 $MEMCHECK_LOG_FILE)
 				false
 			fi
@@ -645,7 +648,9 @@ function check() {
 # pass -- print message that the test has passed
 #
 function pass() {
-	echo $UNITTEST_NAME: PASS
+	msg="PASS"
+	[ -t 1 ] && command -v tput >/dev/null && msg="$(tput setaf 2)$msg$(tput sgr0)"
+	echo -e "$UNITTEST_NAME: $msg"
 	rm --one-file-system -rf -- $DIR
 }
 
