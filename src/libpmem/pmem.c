@@ -1107,16 +1107,16 @@ pmem_init(void)
 		char line[PROCMAXLEN];	/* for fgets() */
 
 		while (fgets(line, PROCMAXLEN, fp) != NULL) {
-			static const char flags[] = "flags\t\t: ";
+			static const char flagspfx[] = "flags\t\t: ";
 			static const char clflush[] = " clflush ";
 			static const char clwb[] = " clwb ";
 			static const char clflushopt[] = " clflushopt ";
 			static const char pcommit[] = " pcommit ";
 			static const char sse2[] = " sse2 ";
 
-			if (strncmp(flags, line, sizeof (flags) - 1) == 0) {
+			if (strncmp(flagspfx, line, sizeof (flagspfx) - 1) == 0) {
 				/* start of list of flags */
-				char *flags = &line[sizeof (flags) - 1];
+				char *flags = &line[sizeof (flagspfx) - 2];
 
 				/* change ending newline to space delimiter */
 				char *nl = strrchr(line, '\n');
