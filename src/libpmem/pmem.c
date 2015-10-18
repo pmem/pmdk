@@ -1116,18 +1116,6 @@ pmem_parse_cpuinfo(char *line)
 		LOG(3, "clflush supported");
 	}
 
-	if (strstr(flags, clwb) != NULL) {
-		LOG(3, "clwb supported");
-
-		char *e = getenv("PMEM_NO_CLWB");
-		if (e && strcmp(e, "1") == 0)
-			LOG(3, "PMEM_NO_CLWB forced no clwb");
-		else {
-			Func_flush = flush_clwb;
-			Func_predrain_fence = predrain_fence_sfence;
-		}
-	}
-
 	if (strstr(flags, clflushopt) != NULL) {
 		LOG(3, "clflushopt supported");
 
@@ -1136,6 +1124,18 @@ pmem_parse_cpuinfo(char *line)
 			LOG(3, "PMEM_NO_CLFLUSHOPT forced no clflushopt");
 		else {
 			Func_flush = flush_clflushopt;
+			Func_predrain_fence = predrain_fence_sfence;
+		}
+	}
+
+	if (strstr(flags, clwb) != NULL) {
+		LOG(3, "clwb supported");
+
+		char *e = getenv("PMEM_NO_CLWB");
+		if (e && strcmp(e, "1") == 0)
+			LOG(3, "PMEM_NO_CLWB forced no clwb");
+		else {
+			Func_flush = flush_clwb;
 			Func_predrain_fence = predrain_fence_sfence;
 		}
 	}
