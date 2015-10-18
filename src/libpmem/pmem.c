@@ -1086,6 +1086,88 @@ pmem_memset_persist(void *pmemdest, int c, size_t len)
 }
 
 /*
+ * pmem_parse_cpuinfo -- parses one line from /proc/cpuinfo
+ *
+ * Returns 1 when line contains flags, 0 otherwise.
+ */
+static int
+pmem_parse_cpuinfo(char *line)
+{
+	static const char flagspfx[] = "flags\t\t: ";
+	static const char clflush[] = " clflush ";
+	static const char clwb[] = " clwb ";
+	static const char clflushopt[] = " clflushopt ";
+	static const char pcommit[] = " pcommit ";
+	static const char sse2[] = " sse2 ";
+
+	if (strncmp(flagspfx, line, sizeof (flagspfx) - 1) != 0)
+		return 0;
+
+	/* start of list of flags */
+	char *flags = &line[sizeof (flagspfx) - 2];
+
+	/* change ending newline to space delimiter */
+	char *nl = strrchr(line, '\n');
+	if (nl)
+		*nl = ' ';
+
+	if (strstr(flags, clflush) != NULL) {
+		Func_is_pmem = is_pmem_proc;
+		LOG(3, "clflush supported");
+	}
+
+	if (strstr(flags, clwb) != NULL) {
+		LOG(3, "clwb supported");
+
+		char *e = getenv("PMEM_NO_CLWB");
+		if (e && strcmp(e, "1") == 0)
+			LOG(3, "PMEM_NO_CLWB forced no clwb");
+		else {
+			Func_flush = flush_clwb;
+			Func_predrain_fence = predrain_fence_sfence;
+		}
+	}
+
+	if (strstr(flags, clflushopt) != NULL) {
+		LOG(3, "clflushopt supported");
+
+		char *e = getenv("PMEM_NO_CLFLUSHOPT");
+		if (e && strcmp(e, "1") == 0)
+			LOG(3, "PMEM_NO_CLFLUSHOPT forced no clflushopt");
+		else {
+			Func_flush = flush_clflushopt;
+			Func_predrain_fence = predrain_fence_sfence;
+		}
+	}
+
+	if (strstr(flags, pcommit) != NULL) {
+		LOG(3, "pcommit supported");
+
+		char *e = getenv("PMEM_NO_PCOMMIT");
+		if (e && strcmp(e, "1") == 0)
+			LOG(3, "PMEM_NO_PCOMMIT forced no pcommit");
+		else {
+			Func_drain = drain_pcommit;
+			Has_hw_drain = 1;
+		}
+	}
+
+	if (strstr(flags, sse2) != NULL) {
+		LOG(3, "movnt supported");
+
+		char *e = getenv("PMEM_NO_MOVNT");
+		if (e && strcmp(e, "1") == 0)
+			LOG(3, "PMEM_NO_MOVNT forced no movnt");
+		else {
+			Func_memmove_nodrain = memmove_nodrain_movnt;
+			Func_memset_nodrain = memset_nodrain_movnt;
+		}
+	}
+
+	return 1;
+}
+
+/*
  * pmem_init -- load-time initialization for pmem.c
  *
  * Called automatically by the run-time loader.
@@ -1107,85 +1189,8 @@ pmem_init(void)
 		char line[PROCMAXLEN];	/* for fgets() */
 
 		while (fgets(line, PROCMAXLEN, fp) != NULL) {
-			static const char flagspfx[] = "flags\t\t: ";
-			static const char clflush[] = " clflush ";
-			static const char clwb[] = " clwb ";
-			static const char clflushopt[] = " clflushopt ";
-			static const char pcommit[] = " pcommit ";
-			static const char sse2[] = " sse2 ";
-
-			if (strncmp(flagspfx, line, sizeof (flagspfx) - 1) == 0) {
-				/* start of list of flags */
-				char *flags = &line[sizeof (flagspfx) - 2];
-
-				/* change ending newline to space delimiter */
-				char *nl = strrchr(line, '\n');
-				if (nl)
-					*nl = ' ';
-
-				if (strstr(flags, clflush) != NULL) {
-					Func_is_pmem = is_pmem_proc;
-					LOG(3, "clflush supported");
-				}
-
-				if (strstr(flags, clwb) != NULL) {
-					LOG(3, "clwb supported");
-
-					char *e = getenv("PMEM_NO_CLWB");
-					if (e && strcmp(e, "1") == 0)
-						LOG(3, "PMEM_NO_CLWB "
-							"forced no clwb");
-					else {
-						Func_flush = flush_clwb;
-						Func_predrain_fence =
-							predrain_fence_sfence;
-					}
-				}
-
-				if (strstr(flags, clflushopt) != NULL) {
-					LOG(3, "clflushopt supported");
-
-					char *e = getenv("PMEM_NO_CLFLUSHOPT");
-					if (e && strcmp(e, "1") == 0)
-						LOG(3, "PMEM_NO_CLFLUSHOPT "
-							"forced no clflushopt");
-					else {
-						Func_flush = flush_clflushopt;
-						Func_predrain_fence =
-							predrain_fence_sfence;
-					}
-				}
-
-				if (strstr(flags, pcommit) != NULL) {
-					LOG(3, "pcommit supported");
-
-					char *e = getenv("PMEM_NO_PCOMMIT");
-					if (e && strcmp(e, "1") == 0)
-						LOG(3, "PMEM_NO_PCOMMIT "
-							"forced no pcommit");
-					else {
-						Func_drain = drain_pcommit;
-						Has_hw_drain = 1;
-					}
-				}
-
-				if (strstr(flags, sse2) != NULL) {
-					LOG(3, "movnt supported");
-
-					char *e = getenv("PMEM_NO_MOVNT");
-					if (e && strcmp(e, "1") == 0)
-						LOG(3, "PMEM_NO_MOVNT "
-							"forced no movnt");
-					else {
-						Func_memmove_nodrain =
-							memmove_nodrain_movnt;
-						Func_memset_nodrain =
-							memset_nodrain_movnt;
-					}
-				}
-
+			if (pmem_parse_cpuinfo(line))
 				break;
-			}
 		}
 
 		fclose(fp);
