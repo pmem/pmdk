@@ -1140,6 +1140,15 @@ pmem_parse_cpuinfo(char *line)
 		}
 	}
 
+	if (Func_flush == flush_clwb)
+		LOG(3, "using clwb");
+	else if (Func_flush == flush_clflushopt)
+		LOG(3, "using clflushopt");
+	else if (Func_flush == flush_clflush)
+		LOG(3, "using clflush");
+	else
+		ASSERT(0);
+
 	if (strstr(flags, pcommit) != NULL) {
 		LOG(3, "pcommit supported");
 
@@ -1152,6 +1161,13 @@ pmem_parse_cpuinfo(char *line)
 		}
 	}
 
+	if (Func_drain == drain_pcommit)
+		LOG(3, "using pcommit");
+	else if (Func_drain == drain_no_pcommit)
+		LOG(3, "not using pcommit");
+	else
+		ASSERT(0);
+
 	if (strstr(flags, sse2) != NULL) {
 		LOG(3, "movnt supported");
 
@@ -1163,6 +1179,13 @@ pmem_parse_cpuinfo(char *line)
 			Func_memset_nodrain = memset_nodrain_movnt;
 		}
 	}
+
+	if (Func_memmove_nodrain == memmove_nodrain_movnt)
+		LOG(3, "using movnt");
+	else if (Func_memmove_nodrain == memmove_nodrain_normal)
+		LOG(3, "not using movnt");
+	else
+		ASSERT(0);
 
 	return 1;
 }
