@@ -455,7 +455,7 @@ pmem_msync(const void *addr, size_t len)
 	len += (uintptr_t)addr & (Pagesize - 1);
 
 	/* round addr down to page boundary */
-	uintptr_t uptr = (uintptr_t)addr & ~(Pagesize - 1);
+	uintptr_t uptr = (uintptr_t)addr & ~((uintptr_t)Pagesize - 1);
 
 	/*
 	 * msync accepts addresses aligned to page boundary, so we may sync
@@ -1219,6 +1219,60 @@ pmem_init(void)
 		}
 
 		fclose(fp);
+	}
+#else
+
+	if (is_cpu_clflush_present()) {
+		Func_is_pmem = is_pmem_proc;
+		LOG(3, "clflush supported");
+	}
+
+	if (is_cpu_clflushopt_present()) {
+		LOG(3, "clflushopt supported");
+
+		char *e = getenv("PMEM_NO_CLFLUSHOPT");
+		if (e && strcmp(e, "1") == 0)
+			LOG(3, "PMEM_NO_CLFLUSHOPT forced no clflushopt");
+		else {
+			Func_flush = flush_clflushopt;
+			Func_predrain_fence = predrain_fence_sfence;
+		}
+	}
+
+	if (is_cpu_clwb_present()) {
+		LOG(3, "clwb supported");
+
+		char *e = getenv("PMEM_NO_CLWB");
+		if (e && strcmp(e, "1") == 0)
+			LOG(3, "PMEM_NO_CLWB forced no clwb");
+		else {
+			Func_flush = flush_clwb;
+			Func_predrain_fence = predrain_fence_sfence;
+		}
+	}
+
+	if (is_cpu_pcommit_present()) {
+		LOG(3, "pcommit supported");
+
+		char *e = getenv("PMEM_NO_PCOMMIT");
+		if (e && strcmp(e, "1") == 0)
+			LOG(3, "PMEM_NO_PCOMMIT forced no pcommit");
+		else {
+			Func_drain = drain_pcommit;
+			Has_hw_drain = 1;
+		}
+	}
+
+	if (is_cpu_sse2_present()) {
+		LOG(3, "movnt supported");
+
+		char *e = getenv("PMEM_NO_MOVNT");
+		if (e && strcmp(e, "1") == 0)
+			LOG(3, "PMEM_NO_MOVNT forced no movnt");
+		else {
+			Func_memmove_nodrain = memmove_nodrain_movnt;
+			Func_memset_nodrain = memset_nodrain_movnt;
+		}
 	}
 #endif
 

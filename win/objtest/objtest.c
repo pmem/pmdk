@@ -48,6 +48,7 @@ extern "C" {
 #endif
 void libpmem_init(void);
 void libpmem_fini(void);
+void pmem_init(void);
 void libpmemobj_init(void);
 void libpmemobj_fini(void);
 #ifdef __cplusplus
@@ -203,6 +204,7 @@ main(int argc, const char *argv[])
 {
 	/* XXX - library constructors */
 	libpmem_init();
+	pmem_init();
 	libpmemobj_init();
 
 	const char *msg = pmem_check_version(PMEM_MAJOR_VERSION,
