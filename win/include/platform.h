@@ -94,3 +94,10 @@ __sync_bool_compare_and_swap(volatile uint64_t *ptr,
 #define	strsep(line, sep) NULL
 #define	mkstemp(n) 0
 #define	posix_fallocate(fd, p, size) 0
+
+int is_cpu_genuine_intel(void);
+int is_cpu_sse2_present(void);
+int is_cpu_clflush_present(void);
+int is_cpu_clflushopt_present(void);
+int is_cpu_clwb_present(void);
+int is_cpu_pcommit_present(void);

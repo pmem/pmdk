@@ -721,10 +721,10 @@ util_range_ro(void *addr, size_t len)
 	 */
 
 	/* increase len by the amount we gain when we round addr down */
-	len += (uintptr_t)addr & (Pagesize - 1);
+	len += (uintptr_t)addr & ((uintptr_t)Pagesize - 1);
 
 	/* round addr down to page boundary */
-	uptr = (uintptr_t)addr & ~(Pagesize - 1);
+	uptr = (uintptr_t)addr & ~((uintptr_t)Pagesize - 1);
 
 	if ((retval = mprotect((void *)uptr, len, PROT_READ)) < 0)
 		ERR("!mprotect: PROT_READ");
@@ -750,10 +750,10 @@ util_range_rw(void *addr, size_t len)
 	 */
 
 	/* increase len by the amount we gain when we round addr down */
-	len += (uintptr_t)addr & (Pagesize - 1);
+	len += (uintptr_t)addr & ((uintptr_t)Pagesize - 1);
 
 	/* round addr down to page boundary */
-	uptr = (uintptr_t)addr & ~(Pagesize - 1);
+	uptr = (uintptr_t)addr & ~((uintptr_t)Pagesize - 1);
 
 	if ((retval = mprotect((void *)uptr, len, PROT_READ|PROT_WRITE)) < 0)
 		ERR("!mprotect: PROT_READ|PROT_WRITE");
@@ -779,10 +779,10 @@ util_range_none(void *addr, size_t len)
 	 */
 
 	/* increase len by the amount we gain when we round addr down */
-	len += (uintptr_t)addr & (Pagesize - 1);
+	len += (uintptr_t)addr & ((uintptr_t)Pagesize - 1);
 
 	/* round addr down to page boundary */
-	uptr = (uintptr_t)addr & ~(Pagesize - 1);
+	uptr = (uintptr_t)addr & ~((uintptr_t)Pagesize - 1);
 
 	if ((retval = mprotect((void *)uptr, len, PROT_NONE)) < 0)
 		ERR("!mprotect: PROT_NONE");
