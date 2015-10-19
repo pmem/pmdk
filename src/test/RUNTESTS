@@ -127,6 +127,7 @@ runtest() {
 				[ $retval = 124 -o $retval = 137 ] && errmsg='timed out'
 
 				[ $retval != 0 ] && {
+					[ -t 1 ] && command -v tput >/dev/null && errmsg="$(tput setaf 1)$errmsg$(tput sgr0)"
 					echo "RUNTESTS: stopping: $1/$runscript $errmsg, TEST=$testtype FS=$fs BUILD=$build"
 					exit 1
 				}
