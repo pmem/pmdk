@@ -60,6 +60,6 @@ void mmap_fini(void);
 
 void *mmap(void *addr, size_t len, int prot, int flags, int fd, size_t offset);
 int munmap(void *addr, size_t len);
+int msync(void *addr, size_t len, int flags);
 
-#define	mprotect(ptr, len, prot) 0
-#define	msync(ptr, len, flags) 0
+int mprotect(void *addr, size_t len, int prot);
