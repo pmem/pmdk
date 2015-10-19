@@ -277,7 +277,6 @@ predrain_fence_sfence(void)
 	LOG(15, NULL);
 
 	_mm_sfence();	/* ensure CLWB or CLFLUSHOPT completes before PCOMMIT */
-	VALGRIND_DO_FENCE;
 }
 
 /*
@@ -314,9 +313,7 @@ drain_pcommit(void)
 
 	Func_predrain_fence();
 	_mm_pcommit();
-	VALGRIND_DO_COMMIT;
 	_mm_sfence();
-	VALGRIND_DO_FENCE;
 }
 
 /*
@@ -356,8 +353,6 @@ flush_clflush(void *addr, size_t len)
 	for (uptr = (uintptr_t)addr & ~(FLUSH_ALIGN - 1);
 		uptr < (uintptr_t)addr + len; uptr += FLUSH_ALIGN)
 		_mm_clflush((char *)uptr);
-
-	VALGRIND_DO_FLUSH(addr, len);
 }
 
 /*
@@ -378,8 +373,6 @@ flush_clwb(void *addr, size_t len)
 		uptr < (uintptr_t)addr + len; uptr += FLUSH_ALIGN) {
 		_mm_clwb((char *)uptr);
 	}
-
-	VALGRIND_DO_FLUSH(addr, len);
 }
 
 /*
@@ -400,8 +393,6 @@ flush_clflushopt(void *addr, size_t len)
 		uptr < (uintptr_t)addr + len; uptr += FLUSH_ALIGN) {
 		_mm_clflushopt((char *)uptr);
 	}
-
-	VALGRIND_DO_FLUSH(addr, len);
 }
 
 /*
