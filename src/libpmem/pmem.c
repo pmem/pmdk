@@ -459,7 +459,7 @@ pmem_msync(const void *addr, size_t len)
 	len += (uintptr_t)addr & (Pagesize - 1);
 
 	/* round addr down to page boundary */
-	uintptr_t uptr = (uintptr_t)addr & ~(Pagesize - 1);
+	uintptr_t uptr = (uintptr_t)addr & ~((uintptr_t)Pagesize - 1);
 
 	/*
 	 * msync accepts addresses aligned to page boundary, so we may sync
