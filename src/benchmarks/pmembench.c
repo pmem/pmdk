@@ -60,6 +60,7 @@ struct pmembench
 	char **argv;
 	struct scenario *scenario;
 	struct clo_vec *clovec;
+	bool override_clos;
 };
 
 /*
@@ -403,12 +404,29 @@ static int
 pmembench_parse_clo(struct pmembench *pb, struct benchmark *bench,
 		struct clo_vec *clovec)
 {
-	if (!pb->scenario)
+	if (!pb->scenario) {
 		return benchmark_clo_parse(pb->argc, pb->argv, bench->clos,
-				bench->nclos, clovec);
-	else
-		return benchmark_clo_parse_scenario(pb->scenario, bench->clos,
-				bench->nclos, clovec);
+						bench->nclos, clovec);
+	}
+
+	if (pb->override_clos) {
+		/*
+		 * Use only ARRAY_SIZE(pmembench_clos) clos - these are the
+		 * general clos and are placed at the beginning of the
+		 * clos array.
+		 */
+		int ret = benchmark_override_clos_in_scenario(pb->scenario,
+					pb->argc, pb->argv, bench->clos,
+					ARRAY_SIZE(pmembench_clos));
+		/* reset for the next benchmark in the config file */
+		optind = 1;
+
+		if (ret)
+			return ret;
+	}
+
+	return benchmark_clo_parse_scenario(pb->scenario, bench->clos,
+						bench->nclos, clovec);
 }
 
 /*
@@ -553,6 +571,7 @@ pmembench_print_usage()
 	printf("Usage: $ pmembench [-h|--help] [-v|--version]"
 			"\t[<benchmark>[<args>]]\n");
 	printf("\t\t\t\t\t\t[<config>[<scenario>]]\n");
+	printf("\t\t\t\t\t\t[<config>[<scenario>[<common_args>]]]\n");
 }
 
 /*
@@ -583,6 +602,10 @@ pmembench_print_examples()
 	printf("or\n");
 	printf("$ pmembench <config_file> <name_of_scenario>\n");
 	printf(" # runs the specified scenario from config file\n");
+	printf("$ pmembench <config_file> <name_of_scenario_1> "
+		"<name_of_scenario_2> <common_args>\n");
+	printf(" # runs the specified scenarios from config file and overwrites"
+		" the given common_args from the config file\n");
 }
 
 /*
@@ -785,6 +808,7 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 out:
 out_release_args:
 	clo_vec_free(clovec);
+
 out_old_wd:
 	/* restore the original working directory */
 	if (wd != NULL) { /* Only if PMEMBENCH_DIR env var was defined */
@@ -793,6 +817,7 @@ out_old_wd:
 			ret = -1;
 		}
 	}
+
 out_release_clos:
 	pmembench_release_clos(bench);
 	return ret;
@@ -851,7 +876,7 @@ pmembench_run_config(struct pmembench *pb, const char *config)
 	assert(cr != NULL);
 
 	int ret = 0;
-	int i;
+
 	if ((ret = config_reader_read(cr, config)))
 		goto out;
 
@@ -861,24 +886,48 @@ pmembench_run_config(struct pmembench *pb, const char *config)
 
 	assert(ss != NULL);
 
-
 	if (pb->argc == 1) {
 		if ((ret = pmembench_run_scenarios(pb, ss)) != 0)
 			goto out_scenarios;
 	} else {
-		for (i = 1; i < pb->argc; i++) {
-			char *name = pb->argv[i];
-			struct scenario *scenario =
-				scenarios_get_scenario(ss, name);
-			if (!scenario) {
-				fprintf(stderr, "unknown scenario: %s\n", name);
-				ret = -1;
+		/* Skip the config file name in cmd line params */
+		int tmp_argc = pb->argc - 1;
+		char **tmp_argv = pb->argv + 1;
+
+		if (!contains_scenarios(tmp_argc, tmp_argv, ss)) {
+			/* no scenarios in cmd line arguments - parse params */
+			pb->override_clos = true;
+			if ((ret = pmembench_run_scenarios(pb, ss)) != 0)
 				goto out_scenarios;
+		} else { /* scenarios in cmd line */
+			struct scenarios *cmd_ss = scenarios_alloc();
+			assert(cmd_ss != NULL);
+
+			int parsed_scenarios =
+				clo_get_scenarios(tmp_argc, tmp_argv,
+							ss, cmd_ss);
+			if (parsed_scenarios < 0)
+				goto out_cmd;
+
+			/*
+			 * If there are any cmd line args left, treat
+			 * them as config file params override.
+			 */
+			if (tmp_argc - parsed_scenarios)
+				pb->override_clos = true;
+
+			/*
+			 * Skip the scenarios in the cmd line,
+			 * pmembench_run_scenarios does not expect them and will
+			 * fail otherwise.
+			 */
+			pb->argc -= parsed_scenarios;
+			pb->argv += parsed_scenarios;
+			if ((ret = pmembench_run_scenarios(pb, cmd_ss)) != 0) {
+				goto out_cmd;
 			}
-			if (pmembench_run_scenario(pb, scenario) != 0) {
-				ret = -1;
-				goto out_scenarios;
-			}
+out_cmd:
+			scenarios_free(cmd_ss);
 		}
 	}
 

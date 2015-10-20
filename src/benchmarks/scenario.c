@@ -150,3 +150,60 @@ scenarios_get_scenario(struct scenarios *ss, const char *name)
 	}
 	return NULL;
 }
+
+/*
+ * contains_scenarios -- check if cmd line args contain any scenarios from ss
+ */
+bool
+contains_scenarios(int argc, char **argv, struct scenarios *ss)
+{
+	assert(argv != NULL);
+	assert(argc > 0);
+	assert(ss != NULL);
+
+	for (int i = 0; i < argc; i++) {
+		if (scenarios_get_scenario(ss, argv[i]))
+			return true;
+	}
+	return false;
+}
+
+/*
+ * clone_scenario -- alloc a new scenario and copy all data from src scenario
+ */
+struct scenario *
+clone_scenario(struct scenario *src_scenario)
+{
+	assert(src_scenario != NULL);
+
+	struct scenario *new_scenario = scenario_alloc(src_scenario->name,
+						src_scenario->benchmark);
+	assert(new_scenario != NULL);
+
+	struct kv *src_kv;
+
+	FOREACH_KV(src_kv, src_scenario) {
+		struct kv *new_kv = kv_alloc(src_kv->key, src_kv->value);
+		assert(new_kv != NULL);
+
+		TAILQ_INSERT_TAIL(&new_scenario->head, new_kv, next);
+	}
+
+	return new_scenario;
+}
+/*
+ * find_kv_in_scenario - find a kv in the given scenario with the given key
+ * value. Function returns the pointer to the kv structure containing the key or
+ * NULL if it is not found
+ */
+struct kv *
+find_kv_in_scenario(const char *key, const struct scenario *scenario)
+{
+	struct kv *kv;
+
+	FOREACH_KV(kv, scenario) {
+		if (strcmp(kv->key, key) == 0)
+			return kv;
+	}
+	return NULL;
+}
