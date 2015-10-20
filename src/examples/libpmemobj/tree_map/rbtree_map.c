@@ -49,17 +49,11 @@ NODE_P(NODE_P(_n))
 #define	NODE_PARENT_AT(_n, _rbc)\
 D_RW(NODE_P(_n))->slots[_rbc]
 
-#define	NODE_PARENT_LEFT(_n)\
-NODE_PARENT_AT(_n, RB_LEFT)
-
 #define	NODE_PARENT_RIGHT(_n)\
 NODE_PARENT_AT(_n, RB_RIGHT)
 
 #define	NODE_IS(_n, _rbc)\
 TOID_EQUALS(_n, NODE_PARENT_AT(_n, _rbc))
-
-#define	NODE_IS_LEFT(_n)\
-TOID_EQUALS(_n, NODE_PARENT_LEFT(_n))
 
 #define	NODE_IS_RIGHT(_n)\
 TOID_EQUALS(_n, NODE_PARENT_RIGHT(_n))
@@ -202,7 +196,7 @@ tree_map_insert_bst(TOID(struct tree_map) map, TOID(struct tree_map_node) n)
 /*
  * tree_map_recolor -- (internal) restores red-black tree properties
  */
-TOID(struct tree_map_node)
+static TOID(struct tree_map_node)
 tree_map_recolor(TOID(struct tree_map) map,
 	TOID(struct tree_map_node) n, enum rb_children c)
 {

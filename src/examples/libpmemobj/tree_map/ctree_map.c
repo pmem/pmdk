@@ -172,7 +172,7 @@ tree_map_insert(PMEMobjpool *pop,
 /*
  * tree_map_get_leaf -- (internal) searches for a leaf of the key
  */
-struct tree_map_entry *
+static struct tree_map_entry *
 tree_map_get_leaf(TOID(struct tree_map) map,
 	uint64_t key, struct tree_map_entry **parent)
 {
