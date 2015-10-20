@@ -519,6 +519,8 @@ tree_map_get_in_node(TOID(struct tree_map_node) node, uint64_t key)
 PMEMoid
 tree_map_get(TOID(struct tree_map) map, uint64_t key)
 {
+	if (TOID_IS_NULL(D_RO(map)->root))
+		return OID_NULL;
 	return tree_map_get_in_node(D_RO(map)->root, key);
 }
 
