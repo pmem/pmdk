@@ -36,6 +36,18 @@
 #include <pthread.h>
 #include "benchmark.h"
 
+enum benchmark_worker_state {
+	WORKER_STATE_IDLE,
+	WORKER_STATE_INIT,
+	WORKER_STATE_INITIALIZED,
+	WORKER_STATE_RUN,
+	WORKER_STATE_END,
+	WORKER_STATE_EXIT,
+	WORKER_STATE_DONE,
+
+	MAX_WORKER_STATE,
+};
+
 struct benchmark_worker
 {
 	pthread_t thread;
@@ -43,11 +55,23 @@ struct benchmark_worker
 	struct benchmark_args *args;
 	struct worker_info info;
 	int ret;
+	int ret_init;
+	int ret_exit;
 	int (*func)(struct benchmark *bench, struct benchmark_args *args,
 			struct worker_info *info);
+	int (*init)(struct benchmark *bench, struct benchmark_args *args,
+			struct worker_info *info);
+	int (*exit)(struct benchmark *bench, struct benchmark_args *args,
+			struct worker_info *info);
+	pthread_cond_t cond;
+	pthread_mutex_t lock;
+	enum benchmark_worker_state state;
 };
 
 struct benchmark_worker *benchmark_worker_alloc(void);
 void benchmark_worker_free(struct benchmark_worker *);
+
+int benchmark_worker_init(struct benchmark_worker *);
+int benchmark_worker_exit(struct benchmark_worker *);
 int benchmark_worker_run(struct benchmark_worker *);
 int benchmark_worker_join(struct benchmark_worker *);

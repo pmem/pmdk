@@ -39,23 +39,25 @@
 #include "benchmark_worker.h"
 
 /*
- * benchmark_worker_alloc -- allocate benchmark worker
+ * worker_state_wait -- wait on worker state
  */
-struct benchmark_worker *
-benchmark_worker_alloc(void)
+static void
+worker_state_wait(struct benchmark_worker *worker,
+		enum benchmark_worker_state state)
 {
-	struct benchmark_worker *w = calloc(1, sizeof (*w));
-	assert(w != NULL);
-	return w;
+	while (worker->state == state)
+		pthread_cond_wait(&worker->cond, &worker->lock);
 }
 
 /*
- * benchmark_worker_free -- release benchmark worker
+ * worker_state_set -- set worker state
  */
-void
-benchmark_worker_free(struct benchmark_worker *w)
+static void
+worker_state_set(struct benchmark_worker *worker,
+		enum benchmark_worker_state state)
 {
-	free(w);
+	worker->state = state;
+	pthread_cond_signal(&worker->cond);
 }
 
 /*
@@ -65,27 +67,144 @@ static void *
 thread_func(void *arg)
 {
 	assert(arg != NULL);
+	struct benchmark_worker *worker = arg;
 
-	struct benchmark_worker *worker = (struct benchmark_worker *)arg;
+	pthread_mutex_lock(&worker->lock);
+
+	worker_state_wait(worker, WORKER_STATE_IDLE);
+
+	if (worker->init)
+		worker->ret_init = worker->init(worker->bench,
+				worker->args, &worker->info);
+
+	worker_state_set(worker, WORKER_STATE_INITIALIZED);
+
+	worker_state_wait(worker, WORKER_STATE_INITIALIZED);
+
 	worker->ret = worker->func(worker->bench, worker->args, &worker->info);
 
+	worker_state_set(worker, WORKER_STATE_END);
+	worker_state_wait(worker, WORKER_STATE_END);
+
+	if (worker->exit)
+		worker->ret_exit = worker->exit(worker->bench,
+				worker->args, &worker->info);
+
+	worker_state_set(worker, WORKER_STATE_DONE);
+
+	pthread_mutex_unlock(&worker->lock);
 	return NULL;
+}
+
+/*
+ * benchmark_worker_alloc -- allocate benchmark worker
+ */
+struct benchmark_worker *
+benchmark_worker_alloc(void)
+{
+	struct benchmark_worker *w = calloc(1, sizeof (*w));
+	if (!w)
+		return NULL;
+
+	if (pthread_mutex_init(&w->lock, NULL))
+		goto err_free_worker;
+
+	if (pthread_cond_init(&w->cond, NULL))
+		goto err_free_worker;
+
+	if (pthread_create(&w->thread, NULL, thread_func, w))
+		goto err_destroy_cond;
+
+	return w;
+err_destroy_cond:
+	pthread_cond_destroy(&w->cond);
+err_free_worker:
+	free(w);
+
+	return NULL;
+}
+
+/*
+ * benchmark_worker_free -- release benchmark worker
+ */
+void
+benchmark_worker_free(struct benchmark_worker *w)
+{
+	pthread_join(w->thread, NULL);
+	pthread_cond_destroy(&w->cond);
+	free(w);
+}
+
+/*
+ * benchmark_worker_init -- call init function for worker
+ */
+int
+benchmark_worker_init(struct benchmark_worker *worker)
+{
+	pthread_mutex_lock(&worker->lock);
+
+	worker_state_set(worker, WORKER_STATE_INIT);
+	worker_state_wait(worker, WORKER_STATE_INIT);
+
+	int ret = worker->ret_init;
+
+	pthread_mutex_unlock(&worker->lock);
+
+	return ret;
+}
+
+/*
+ * benchmark_worker_exit -- call exit function for worker
+ */
+int
+benchmark_worker_exit(struct benchmark_worker *worker)
+{
+	pthread_mutex_lock(&worker->lock);
+
+	worker_state_set(worker, WORKER_STATE_EXIT);
+	worker_state_wait(worker, WORKER_STATE_EXIT);
+
+	int ret = worker->ret_exit;
+
+	pthread_mutex_unlock(&worker->lock);
+
+	return ret;
 }
 
 /*
  * benchmark_worker_run -- run benchmark worker
  */
 int
-benchmark_worker_run(struct benchmark_worker *w)
+benchmark_worker_run(struct benchmark_worker *worker)
 {
-	return pthread_create(&w->thread, NULL, thread_func, w);
+	int ret = 0;
+
+	pthread_mutex_lock(&worker->lock);
+
+	if (worker->state != WORKER_STATE_INITIALIZED) {
+		ret = -1;
+		goto unlock;
+	}
+
+	worker_state_set(worker, WORKER_STATE_RUN);
+
+unlock:
+	pthread_mutex_unlock(&worker->lock);
+
+	return ret;
 }
 
 /*
  * benchmark_worker_join -- join benchmark worker
  */
 int
-benchmark_worker_join(struct benchmark_worker *w)
+benchmark_worker_join(struct benchmark_worker *worker)
 {
-	return pthread_join(w->thread, NULL);
+	pthread_mutex_lock(&worker->lock);
+
+	worker_state_wait(worker, WORKER_STATE_RUN);
+
+	pthread_mutex_unlock(&worker->lock);
+
+	return 0;
 }
