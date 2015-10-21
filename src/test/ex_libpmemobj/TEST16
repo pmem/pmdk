@@ -1,3 +1,4 @@
+#!/bin/bash -e
 #
 # Copyright (c) 2015-2016, Intel Corporation
 #
@@ -31,16 +32,42 @@
 #
 
 #
-# examples/libpmemobj/pminvaders/Makefile -- build the pminvaders examples
+# src/test/ex_libpmemobj/TEST16 -- unit test for libpmemobj examples
 #
-NCURSES := $(shell pkg-config ncurses && echo "y" || echo "n")
-ifeq ($(NCURSES),y)
-PROGS = pminvaders pminvaders2
-endif
+export UNITTEST_NAME=ex_libpmemobj/TEST16
+export UNITTEST_NUM=16
 
-LIBS = -lpmemobj -lpmem -pthread $(shell pkg-config --libs ncurses)
+# standard unit test setup
+. ../unittest/unittest.sh
 
-include ../../Makefile.inc
+require_build_type debug nondebug
+require_fs_type pmem
 
-pminvaders: pminvaders.o
-pminvaders2: pminvaders2.o
+pkg-config ncurses 2>&1 > /dev/null
+if [ $? -ne 0 ]; then
+	echo "$UNITTEST_NAME: SKIP ncurses required"
+	exit 0
+fi
+
+setup
+
+EX_PATH=../../examples/libpmemobj/pminvaders
+INPUT=$DIR/input.txt
+
+dd if=/dev/zero bs=1k count=4 2>>prep$UNITTEST_NUM.log | tr '\0' ' ' >> $INPUT
+echo -n oooo >> $INPUT
+dd if=/dev/zero bs=1k count=4 2>>prep$UNITTEST_NUM.log | tr '\0' ' ' >> $INPUT
+echo -n ppppppp >> $INPUT
+dd if=/dev/zero bs=1k count=4 2>>prep$UNITTEST_NUM.log | tr '\0' ' ' >> $INPUT
+echo -n ooo >> $INPUT
+dd if=/dev/zero bs=1k count=4 2>>prep$UNITTEST_NUM.log | tr '\0' ' ' >> $INPUT
+echo -n q >> $INPUT
+
+if [ -t 1 -a -z "$NOTTY" ]
+then
+	expect_normal_exit $EX_PATH/pminvaders2 $DIR/testfile1 < $INPUT
+else
+	expect_normal_exit $EX_PATH/pminvaders2 $DIR/testfile1 >/dev/null < $INPUT
+fi
+
+pass
