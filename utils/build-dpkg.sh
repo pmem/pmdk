@@ -430,7 +430,7 @@ EOF
 cat << EOF > debian/libvmmalloc.lintian-overrides
 $ITP_BUG_EXCUSE
 new-package-should-close-itp-bug
-libvmem: package-name-doesnt-match-sonames
+libvmmalloc: package-name-doesnt-match-sonames
 EOF
 
 cat << EOF > debian/libvmmalloc-dev.install
