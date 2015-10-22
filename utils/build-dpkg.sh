@@ -219,6 +219,9 @@ cat << EOF > debian/rules
 override_dh_strip:
 	dh_strip --dbg-package=$PACKAGE_NAME-dbg
 
+override_dh_auto_install:
+	dh_auto_install -- prefix=/usr
+
 override_dh_install:
 	mkdir -p debian/tmp/usr/share/nvml/
 	cp utils/nvml.magic debian/tmp/usr/share/nvml/
@@ -427,7 +430,7 @@ EOF
 cat << EOF > debian/libvmmalloc.lintian-overrides
 $ITP_BUG_EXCUSE
 new-package-should-close-itp-bug
-libvmem: package-name-doesnt-match-sonames
+libvmmalloc: package-name-doesnt-match-sonames
 EOF
 
 cat << EOF > debian/libvmmalloc-dev.install
