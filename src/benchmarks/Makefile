@@ -57,6 +57,7 @@ SRC=pmembench.c\
     pmem_memset.c\
     pmem_memcpy.c\
     obj_pmalloc.c\
+    obj_locks.c\
     pmemobj_gen.c
 
 # Configuration file without the .cfg extension
@@ -65,7 +66,8 @@ CONFIGS=pmembench_log\
 	pmembench_memset\
 	pmembench_memcpy\
 	pmembench_obj_pmalloc\
-	pmembench_obj_gen
+	pmembench_obj_gen\
+	pmembench_obj_locks
 
 LIBS_PATH=../nondebug
 CSTYLE = ../../utils/cstyle
