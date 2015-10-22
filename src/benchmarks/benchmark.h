@@ -67,6 +67,7 @@
 #ifndef	ARRAY_SIZE
 #define	ARRAY_SIZE(x)	(sizeof (x) / sizeof (x[0]))
 #endif
+#define	RRAND(max, min) (rand() % ((max) - (min)) + (min))
 
 struct benchmark;
 
