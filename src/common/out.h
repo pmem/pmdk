@@ -35,59 +35,97 @@
  */
 
 #include <stdarg.h>
+#include <stdlib.h>
 
 #ifdef	DEBUG
 
+#define	OUT_LOG out_log
+#define	OUT_NONL out_nonl
+#define	OUT_FATAL out_fatal
+#define	OUT_FATAL_ABORT out_fatal
+
+#else
+
+static __attribute__((always_inline)) inline void
+out_log_discard(const char *file, int line, const char *func, int level,
+		const char *fmt, ...)
+{
+	(void) file;
+	(void) line;
+	(void) func;
+	(void) level;
+	(void) fmt;
+}
+
+static __attribute__((always_inline)) inline void
+out_nonl_discard(int level, const char *fmt, ...)
+{
+	(void) level;
+	(void) fmt;
+}
+
+static __attribute__((always_inline)) inline void
+out_fatal_discard(const char *file, int line, const char *func,
+		const char *fmt, ...)
+{
+	(void) file;
+	(void) line;
+	(void) func;
+	(void) fmt;
+}
+
+static __attribute__((always_inline)) __attribute__((noreturn)) inline void
+out_fatal_abort(const char *file, int line, const char *func,
+		const char *fmt, ...)
+{
+	(void) file;
+	(void) line;
+	(void) func;
+	(void) fmt;
+
+	abort();
+}
+
+#define	OUT_LOG out_log_discard
+#define	OUT_NONL out_nonl_discard
+#define	OUT_FATAL out_fatal_discard
+#define	OUT_FATAL_ABORT out_fatal_abort
+
+#endif
+
 /* produce debug/trace output */
 #define	LOG(level, ...)\
-	out_log(__FILE__, __LINE__, __func__, level, __VA_ARGS__)
+	OUT_LOG(__FILE__, __LINE__, __func__, level, __VA_ARGS__)
 
 /* produce debug/trace output without prefix and new line */
 #define	LOG_NONL(level, ...)\
-	out_nonl(level, __VA_ARGS__)
+	OUT_NONL(level, __VA_ARGS__)
 
 /* produce output and exit */
 #define	FATAL(...)\
-	out_fatal(__FILE__, __LINE__, __func__, __VA_ARGS__)
+	OUT_FATAL_ABORT(__FILE__, __LINE__, __func__, __VA_ARGS__)
 
 /* assert a condition is true */
 #define	ASSERT(cnd)\
-	((void)((cnd) || (out_fatal(__FILE__, __LINE__, __func__,\
+	((void)((cnd) || (OUT_FATAL(__FILE__, __LINE__, __func__,\
 	"assertion failure: %s", #cnd), 0)))
 
 /* assertion with extra info printed if assertion fails */
 #define	ASSERTinfo(cnd, info)\
-	((void)((cnd) || (out_fatal(__FILE__, __LINE__, __func__,\
+	((void)((cnd) || (OUT_FATAL(__FILE__, __LINE__, __func__,\
 	"assertion failure: %s (%s = %s)", #cnd, #info, info), 0)))
 
 /* assert two integer values are equal */
 #define	ASSERTeq(lhs, rhs)\
-	((void)(((lhs) == (rhs)) || (out_fatal(__FILE__, __LINE__, __func__,\
+	((void)(((lhs) == (rhs)) || (OUT_FATAL(__FILE__, __LINE__, __func__,\
 	"assertion failure: %s (0x%llx) == %s (0x%llx)", #lhs,\
 	(unsigned long long)(lhs), #rhs, (unsigned long long)(rhs)), 0)))
 
 /* assert two integer values are not equal */
 #define	ASSERTne(lhs, rhs)\
-	((void)(((lhs) != (rhs)) || (out_fatal(__FILE__, __LINE__, __func__,\
+	((void)(((lhs) != (rhs)) || (OUT_FATAL(__FILE__, __LINE__, __func__,\
 	"assertion failure: %s (0x%llx) != %s (0x%llx)", #lhs,\
 	(unsigned long long)(lhs), #rhs, (unsigned long long)(rhs)), 0)))
-
-#else
-
-/*
- * nondebug versions...
- */
-#define	LOG(level, ...)
-#define	LOG_NONL(level, ...)
-#define	ASSERT(cnd)
-#define	ASSERTinfo(cnd, info)
-#define	ASSERTeq(lhs, rhs)
-#define	ASSERTne(lhs, rhs)
-
-/* shouldn't get called, but if it does, don't continue to run */
-#define	FATAL(...) abort()
-
-#endif	/* DEBUG */
 
 #define	ERR(...)\
 	out_err(__FILE__, __LINE__, __func__, __VA_ARGS__)

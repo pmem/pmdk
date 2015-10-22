@@ -80,9 +80,7 @@
 #include "out.h"
 #include "valgrind_internal.h"
 
-#ifdef DEBUG
 #define	HUGE (2 * 1024 * 1024)
-#endif
 
 /*
  * private to this file...

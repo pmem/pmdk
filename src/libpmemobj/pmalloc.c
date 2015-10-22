@@ -47,7 +47,6 @@
 #include "heap.h"
 #include "bucket.h"
 #include "heap_layout.h"
-#include "out.h"
 #include "valgrind_internal.h"
 
 enum alloc_op_redo {

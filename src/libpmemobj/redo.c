@@ -138,7 +138,9 @@ redo_log_process(PMEMobjpool *pop, struct redo_log *redo,
 {
 	LOG(15, "redo %p nentries %zu", redo, nentries);
 
+#ifdef	DEBUG
 	ASSERTeq(redo_log_check(pop, redo, nentries), 0);
+#endif
 
 	uint64_t *val;
 	while ((redo->offset & REDO_FINISH_FLAG) == 0) {
