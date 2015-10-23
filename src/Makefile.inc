@@ -151,7 +151,7 @@ all: $(objdir) $(libdir) $(EXTRA_TARGETS) $(LIB_AR) $(LIB_SO_SONAME) $(LIB_SO_RE
 $(objdir) $(libdir):
 	$(MKDIR) -p $@
 
-$(LIB_SO_REAL): $(OBJS) $(EXTRA_OBJS)
+$(LIB_SO_REAL): $(OBJS) $(EXTRA_OBJS) $(LIB_MAP)
 	$(CC) $(LDFLAGS) -shared -Wl,--version-script=$(LIB_MAP),-soname,$(LIB_SONAME) -o $@ $(OBJS) $(EXTRA_OBJS) $(LIBS)
 
 $(LIB_SO_SONAME): $(LIB_SO_REAL)
