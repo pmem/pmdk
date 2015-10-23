@@ -37,6 +37,26 @@
 #include <pthread.h>
 #include <time.h>
 
+#include <sys/types.h>
+#include <sys/timeb.h>
+
+
+#define	TIMED_LOCK(action, ts) {\
+	if ((action) == TRUE)\
+		return 0;\
+	long long et = (ts)->tv_sec * 1000 + (ts)->tv_nsec / 1000000;\
+	while (1) {\
+		struct __timeb64 t;\
+		_ftime64(&t);\
+		if (t.time * 1000 + t.millitm >= et)\
+			return ETIMEDOUT;\
+		if ((action) == TRUE)\
+			return 0;\
+		Sleep(1);\
+	}\
+	return ETIMEDOUT;\
+}
+
 
 #ifdef USE_WIN_MUTEX
 
@@ -83,15 +103,15 @@ int
 pthread_mutex_init(pthread_mutex_t *restrict mutex,
 	const pthread_mutexattr_t *restrict attr)
 {
-	/* XXX - errno */
-	InitializeCriticalSection(mutex); /* XXX - use spin count? */
+	(void) attr;
+
+	InitializeCriticalSection(mutex);
 	return 0;
 }
 
 int
 pthread_mutex_destroy(pthread_mutex_t *restrict mutex)
 {
-	/* XXX - errno */
 	DeleteCriticalSection(mutex);
 	return 0;
 }
@@ -99,7 +119,6 @@ pthread_mutex_destroy(pthread_mutex_t *restrict mutex)
 int
 pthread_mutex_lock(pthread_mutex_t *restrict mutex)
 {
-	/* XXX - errno */
 	EnterCriticalSection(mutex);
 	return 0;
 }
@@ -107,8 +126,7 @@ pthread_mutex_lock(pthread_mutex_t *restrict mutex)
 int
 pthread_mutex_trylock(pthread_mutex_t *restrict mutex)
 {
-	/* XXX - errno */
-	return TryEnterCriticalSection(mutex) == FALSE;
+	return (TryEnterCriticalSection(mutex) == FALSE) ? 0 : EBUSY;
 }
 
 /* XXX - non POSIX */
@@ -116,26 +134,12 @@ int
 pthread_mutex_timedlock(pthread_mutex_t *restrict mutex,
 	const struct timespec *abstime)
 {
-	if (TryEnterCriticalSection(mutex) == TRUE)
-		return 0;
-
-	time_t etime = time(NULL) + abstime->tv_sec +
-					abstime->tv_nsec / 1000000;
-	while (1) {
-		Sleep(1);
-		if (TryEnterCriticalSection(mutex) == TRUE)
-			return 0;
-		if (time(NULL) >= etime)
-			break;
-	}
-
-	return 1; /* XXX - errno */
+	TIMED_LOCK(TryEnterCriticalSection(mutex), abstime);
 }
 
 int
 pthread_mutex_unlock(pthread_mutex_t *restrict mutex)
 {
-	/* XXX - errno */
 	LeaveCriticalSection(mutex);
 	return 0;
 }
@@ -146,9 +150,10 @@ pthread_mutex_unlock(pthread_mutex_t *restrict mutex)
 
 int
 pthread_rwlock_init(pthread_rwlock_t *restrict rwlock,
-			const pthread_rwlockattr_t *restrict attr)
+	const pthread_rwlockattr_t *restrict attr)
 {
-	/* XXX - errno */
+	(void) attr;
+
 	InitializeSRWLock(rwlock);
 	return 0;
 }
@@ -156,13 +161,15 @@ pthread_rwlock_init(pthread_rwlock_t *restrict rwlock,
 int
 pthread_rwlock_destroy(pthread_rwlock_t *restrict rwlock)
 {
+	/* do nothing */
+	(void) rwlock;
+
 	return 0;
 }
 
 int
 pthread_rwlock_rdlock(pthread_rwlock_t *restrict rwlock)
 {
-	/* XXX - errno */
 	AcquireSRWLockShared(rwlock);
 	return 0;
 }
@@ -170,7 +177,6 @@ pthread_rwlock_rdlock(pthread_rwlock_t *restrict rwlock)
 int
 pthread_rwlock_wrlock(pthread_rwlock_t *restrict rwlock)
 {
-	/* XXX - errno */
 	AcquireSRWLockExclusive(rwlock);
 	return 0;
 }
@@ -178,55 +184,27 @@ pthread_rwlock_wrlock(pthread_rwlock_t *restrict rwlock)
 int
 pthread_rwlock_tryrdlock(pthread_rwlock_t *restrict rwlock)
 {
-	/* XXX - errno */
-	return TryAcquireSRWLockShared(rwlock) == FALSE;
+	return (TryAcquireSRWLockShared(rwlock) == FALSE) ? 0 : EBUSY;
 }
 
 int
 pthread_rwlock_trywrlock(pthread_rwlock_t *restrict rwlock)
 {
-	/* XXX - errno */
-	return TryAcquireSRWLockExclusive(rwlock) == FALSE;
+	return (TryAcquireSRWLockExclusive(rwlock) == FALSE) ? 0 : EBUSY;
 }
 
 int
 pthread_rwlock_timedrdlock(pthread_rwlock_t *restrict rwlock,
 	const struct timespec *abstime)
 {
-	if (TryAcquireSRWLockShared(rwlock) == TRUE)
-		return 0;
-
-	time_t etime = time(NULL) + abstime->tv_sec +
-					abstime->tv_nsec / 1000000;
-	while (1) {
-		Sleep(1);
-		if (TryAcquireSRWLockShared(rwlock) == TRUE)
-			return 0;
-		if (time(NULL) >= etime)
-			break;
-	}
-
-	return 1; /* XXX - errno */
+	TIMED_LOCK(TryAcquireSRWLockShared(rwlock), abstime);
 }
 
 int
 pthread_rwlock_timedwrlock(pthread_rwlock_t *restrict rwlock,
 	const struct timespec *abstime)
 {
-	if (TryAcquireSRWLockExclusive(rwlock) == TRUE)
-		return 0;
-
-	time_t etime = time(NULL) + abstime->tv_sec +
-					abstime->tv_nsec / 1000000;
-	while (1) {
-		Sleep(1);
-		if (TryAcquireSRWLockExclusive(rwlock) == TRUE)
-			return 0;
-		if (time(NULL) >= etime)
-			break;
-	}
-
-	return 1; /* XXX - errno */
+	TIMED_LOCK(TryAcquireSRWLockExclusive(rwlock), abstime);
 }
 
 int
@@ -244,6 +222,8 @@ int
 pthread_cond_init(pthread_cond_t *restrict cond,
 	const pthread_condattr_t *restrict attr)
 {
+	(void) attr;
+
 	InitializeConditionVariable(cond);
 	return 0;
 }
@@ -251,6 +231,9 @@ pthread_cond_init(pthread_cond_t *restrict cond,
 int
 pthread_cond_destroy(pthread_cond_t *restrict cond)
 {
+	/* do nothing */
+	(void) cond;
+
 	return 0;
 }
 
@@ -274,7 +257,8 @@ pthread_cond_timedwait(pthread_cond_t *restrict cond,
 {
 	DWORD ms = (DWORD)(abstime->tv_sec * 1000 +
 					abstime->tv_nsec / 1000000);
-	return SleepConditionVariableCS(cond, mutex, ms) == FALSE;
+	return (SleepConditionVariableCS(cond, mutex, ms) == FALSE)
+							? 0 : ETIMEDOUT;
 }
 
 int
