@@ -40,4 +40,3 @@ SOURCE = libpmem.c pmem.c $(COMMON)/util.c $(COMMON)/out.c
 include ../Makefile.inc
 
 CFLAGS += -DNO_LIBPTHREAD
-LIBS += -luuid
