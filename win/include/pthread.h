@@ -37,7 +37,7 @@
 #include <stdint.h>
 
 
-/* #define	USE_WIN_SRWLOCK */
+#define	USE_WIN_SRWLOCK
 
 #ifdef USE_WIN_MUTEX
 #define	pthread_mutex_t	HANDLE
