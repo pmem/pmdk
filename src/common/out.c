@@ -83,6 +83,31 @@ Last_errormsg_key_alloc()
 	 */
 	VALGRIND_ANNOTATE_HAPPENS_AFTER(&Last_errormsg_key_once);
 }
+
+static inline void
+Last_errormsg_fini()
+{
+	void *p = pthread_getspecific(Last_errormsg_key);
+	if (p) {
+		free(p);
+		pthread_setspecific(Last_errormsg_key, NULL);
+	}
+}
+
+static inline const char *
+Last_errormsg_get()
+{
+	Last_errormsg_key_alloc();
+
+	char *errormsg = pthread_getspecific(Last_errormsg_key);
+	if (errormsg == NULL) {
+		errormsg = malloc(MAXPRINT);
+		int ret = pthread_setspecific(Last_errormsg_key, errormsg);
+		if (ret)
+			FATAL("!pthread_setspecific");
+	}
+	return errormsg;
+}
 #else
 
 /*
@@ -98,7 +123,23 @@ Last_errormsg_key_alloc()
 
 static __thread char Last_errormsg[MAXPRINT];
 
-#endif
+static inline void
+Last_errormsg_key_alloc()
+{
+}
+
+static inline void
+Last_errormsg_fini()
+{
+}
+
+static inline const char *
+Last_errormsg_get()
+{
+	return Last_errormsg;
+}
+
+#endif /* NO_LIBPTHREAD */
 
 #ifdef	DEBUG
 /*
@@ -205,9 +246,7 @@ out_init(const char *log_prefix, const char *log_level_var,
 	LOG(1, "%s", memcheck_msg);
 #endif /* USE_VG_MEMCHECK */
 
-#ifndef NO_LIBPTHREAD
 	Last_errormsg_key_alloc();
-#endif
 }
 
 /*
@@ -223,13 +262,7 @@ out_fini()
 		Out_fp = stderr;
 	}
 
-#ifndef NO_LIBPTHREAD
-	void *p = pthread_getspecific(Last_errormsg_key);
-	if (p) {
-		free(p);
-		pthread_setspecific(Last_errormsg_key, NULL);
-	}
-#endif
+	Last_errormsg_fini();
 }
 
 /*
@@ -456,18 +489,5 @@ out_err(const char *file, int line, const char *func,
 const char *
 out_get_errormsg(void)
 {
-#ifndef NO_LIBPTHREAD
-	Last_errormsg_key_alloc();
-
-	char *errormsg = pthread_getspecific(Last_errormsg_key);
-	if (errormsg == NULL) {
-		errormsg = malloc(MAXPRINT);
-		int ret = pthread_setspecific(Last_errormsg_key, errormsg);
-		if (ret)
-			FATAL("!pthread_setspecific");
-	}
-	return errormsg;
-#else
-	return Last_errormsg;
-#endif
+	return Last_errormsg_get();
 }
