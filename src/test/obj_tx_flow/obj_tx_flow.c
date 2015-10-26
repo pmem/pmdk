@@ -143,7 +143,7 @@ main(int argc, char *argv[])
 	} TX_ONABORT {
 		ASSERT(a == TEST_VALUE_A);
 		ASSERT(b == TEST_VALUE_B);
-		ASSERT(c = TEST_VALUE_C);
+		ASSERT(c == TEST_VALUE_C);
 		a = TEST_VALUE_B;
 	} TX_FINALLY {
 		ASSERT(a == TEST_VALUE_B);

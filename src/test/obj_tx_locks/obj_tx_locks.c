@@ -158,7 +158,7 @@ do_aborted_nested_tx(void *arg)
 	} TX_ONABORT {
 		ASSERT(data->a == TEST_VALUE_A);
 		ASSERT(data->b == TEST_VALUE_B);
-		ASSERT(data->c = TEST_VALUE_C);
+		ASSERT(data->c == TEST_VALUE_C);
 		data->a = TEST_VALUE_B;
 	} TX_FINALLY {
 		ASSERT(data->a == TEST_VALUE_B);
