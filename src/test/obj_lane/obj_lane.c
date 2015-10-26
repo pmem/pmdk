@@ -228,7 +228,7 @@ test_lane_hold_release()
 
 	struct mock_pop pop = {
 		.p = {
-			.nlanes = MAX_MOCK_LANES,
+			.nlanes = 1,
 			.lanes = &mock_lane
 		}
 	};
