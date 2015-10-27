@@ -50,11 +50,4 @@ check_file $POOL
 check_signature PMEMBLK $POOL
 check_arena $POOL
 
-# PMEMBLK with layout using block number 10
-rm -rf $POOL
-expect_normal_exit $PMEMPOOL$EXESUFFIX create -w10 blk 512 $POOL
-check_file $POOL
-check_signature PMEMBLK $POOL
-check_arena $POOL
-
 pass
