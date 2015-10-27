@@ -48,11 +48,14 @@
 #include "list.h"
 #include "pmalloc.h"
 #include "cuckoo.h"
+#include "ctree.h"
 #include "obj.h"
 #include "heap_layout.h"
 #include "valgrind_internal.h"
 
-static struct cuckoo *pools;
+static struct cuckoo *pools_ht; /* hash table used for searching by UUID */
+static struct ctree *pools_tree; /* tree used for searching by address */
+
 int _pobj_cache_invalidate;
 __thread struct _pobj_pcache _pobj_cached_pool;
 
@@ -68,9 +71,13 @@ obj_init(void)
 
 	COMPILE_ERROR_ON(sizeof (struct pmemobjpool) != 8192);
 
-	pools = cuckoo_new();
-	if (pools == NULL)
+	pools_ht = cuckoo_new();
+	if (pools_ht == NULL)
 		FATAL("!cuckoo_new");
+
+	pools_tree = ctree_new();
+	if (pools_tree == NULL)
+		FATAL("!ctree_new");
 }
 
 /*
@@ -82,7 +89,8 @@ void
 obj_fini(void)
 {
 	LOG(3, NULL);
-	cuckoo_delete(pools);
+	cuckoo_delete(pools_ht);
+	ctree_delete(pools_tree);
 }
 
 /*
@@ -641,8 +649,14 @@ pmemobj_runtime_init(PMEMobjpool *pop, int rdonly, int boot)
 		if ((errno = pmemobj_boot(pop)) != 0)
 			return -1;
 
-		if ((errno = cuckoo_insert(pools, pop->uuid_lo, pop)) != 0) {
+		if ((errno = cuckoo_insert(pools_ht, pop->uuid_lo, pop)) != 0) {
 			ERR("!cuckoo_insert");
+			return -1;
+		}
+
+		if ((errno = ctree_insert(pools_tree, (uint64_t)pop, pop->size))
+				!= 0) {
+			ERR("!ctree_insert");
 			return -1;
 		}
 	}
@@ -956,8 +970,12 @@ pmemobj_close(PMEMobjpool *pop)
 
 	_pobj_cache_invalidate++;
 
-	if (cuckoo_remove(pools, pop->uuid_lo) != pop) {
-		ERR("!cuckoo_remove");
+	if (cuckoo_remove(pools_ht, pop->uuid_lo) != pop) {
+		ERR("cuckoo_remove");
+	}
+
+	if (ctree_remove(pools_tree, (uint64_t)pop, 1) != (uint64_t)pop) {
+		ERR("ctree_remove");
 	}
 
 	if (_pobj_cached_pool.pop == pop) {
@@ -1014,12 +1032,36 @@ pmemobj_check(const char *path, const char *layout)
 }
 
 /*
- * pmemobj_pool -- returns the pool handle associated with the oid
+ * pmemobj_pool_by_oid -- returns the pool handle associated with the oid
  */
 PMEMobjpool *
-pmemobj_pool(PMEMoid oid)
+pmemobj_pool_by_oid(PMEMoid oid)
 {
-	return cuckoo_get(pools, oid.pool_uuid_lo);
+	LOG(3, "oid.off 0x%016jx", oid.off);
+
+	return cuckoo_get(pools_ht, oid.pool_uuid_lo);
+}
+
+/*
+ * pmemobj_pool_by_ptr -- returns the pool handle associated with the address
+ */
+PMEMobjpool *
+pmemobj_pool_by_ptr(const void *addr)
+{
+	LOG(3, "addr %p", addr);
+
+	uint64_t key = (uint64_t)addr;
+	size_t pool_size = ctree_find_le(pools_tree, &key);
+
+	if (pool_size == 0)
+		return NULL;
+
+	ptrdiff_t addr_off = (uint64_t)addr - key;
+
+	if (pool_size <= addr_off)
+		return NULL;
+
+	return (PMEMobjpool *)key;
 }
 
 /* arguments for constructor_alloc_bytype */
@@ -1476,7 +1518,7 @@ pmemobj_free(PMEMoid *oidp)
 	if (oidp->off == 0)
 		return;
 
-	PMEMobjpool *pop = cuckoo_get(pools, oidp->pool_uuid_lo);
+	PMEMobjpool *pop = pmemobj_pool_by_oid(*oidp);
 
 	ASSERTne(pop, NULL);
 	ASSERT(OBJ_OID_IS_VALID(pop, *oidp));
@@ -1495,7 +1537,7 @@ pmemobj_alloc_usable_size(PMEMoid oid)
 	if (oid.off == 0)
 		return 0;
 
-	PMEMobjpool *pop = cuckoo_get(pools, oid.pool_uuid_lo);
+	PMEMobjpool *pop = pmemobj_pool_by_oid(oid);
 
 	ASSERTne(pop, NULL);
 	ASSERT(OBJ_OID_IS_VALID(pop, oid));
@@ -1761,7 +1803,7 @@ pmemobj_next(PMEMoid oid)
 	if (oid.off == 0)
 		return OID_NULL;
 
-	PMEMobjpool *pop = cuckoo_get(pools, oid.pool_uuid_lo);
+	PMEMobjpool *pop = pmemobj_pool_by_oid(oid);
 
 	ASSERTne(pop, NULL);
 	ASSERT(OBJ_OID_IS_VALID(pop, oid));
