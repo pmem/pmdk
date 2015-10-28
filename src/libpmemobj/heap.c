@@ -825,8 +825,10 @@ heap_get_exact_block(PMEMobjpool *pop, struct bucket *b,
 	if (bucket_lock(b) != 0)
 		return EAGAIN;
 
-	if (bucket_get_rm_block_exact(b, *m) != 0)
+	if (bucket_get_rm_block_exact(b, *m) != 0) {
+		bucket_unlock(b);
 		return ENOMEM;
+	}
 
 	if (units != m->size_idx)
 		heap_recycle_block(pop, b, m, units);
