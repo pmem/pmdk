@@ -84,7 +84,6 @@ static const struct pmempool_info_args pmempool_info_args_default = {
 	.human		= false,
 	.force		= false,
 	.type		= PMEM_POOL_TYPE_NONE,
-	.use_range	= false,
 	.vlevel		= VERBOSE_DEFAULT,
 	.vdata		= VERBOSE_SILENT,
 	.vhdrdump	= VERBOSE_SILENT,
@@ -138,7 +137,7 @@ static const struct option long_options[] = {
 	{"map",		no_argument,		0, 'm' | OPT_BLK},
 	{"flog",	no_argument,		0, 'g' | OPT_BLK},
 	{"backup",	no_argument,		0, 'B' | OPT_BLK},
-	{"lanes",	optional_argument,	0, 'l' | OPT_OBJ},
+	{"lanes",	no_argument,		0, 'l' | OPT_OBJ},
 	{"recovery",	no_argument,		0, 'R' | OPT_OBJ},
 	{"section",	required_argument,	0, 'S' | OPT_OBJ},
 	{"object-store", no_argument,		0, 'O' | OPT_OBJ},
@@ -148,8 +147,8 @@ static const struct option long_options[] = {
 	{"oob-header",	no_argument,		0, 'a' | OPT_OBJ},
 	{"root",	no_argument,		0, 'o' | OPT_OBJ},
 	{"heap",	no_argument,		0, 'H' | OPT_OBJ},
-	{"zones",	optional_argument,	0, 'Z' | OPT_OBJ},
-	{"chunks",	optional_argument,	0, 'C' | OPT_OBJ},
+	{"zones",	no_argument,		0, 'Z' | OPT_OBJ},
+	{"chunks",	no_argument,		0, 'C' | OPT_OBJ},
 	{"chunk-type",	required_argument,	0, 'T' | OPT_OBJ},
 	{"bitmap",	no_argument,		0, 'b' | OPT_OBJ},
 	{"replica",	required_argument,	0, 'p' | OPT_OBJ},
@@ -185,12 +184,8 @@ static const struct option_requirement option_requirements[] = {
 	{
 		.opt	= 'r',
 		.type	= PMEM_POOL_TYPE_OBJ,
-		.req	= OPT_REQ0('O'),
-	},
-	{
-		.opt	= 'r',
-		.type	= PMEM_POOL_TYPE_OBJ,
-		.req	= OPT_REQ0('a') | OPT_REQ1('A')
+		.req	= OPT_REQ0('O') | OPT_REQ1('Z') |
+			OPT_REQ2('C') | OPT_REQ3('l'),
 	},
 	{
 		.opt	= 'R',
@@ -357,10 +352,11 @@ parse_args(char *appname, int argc, char *argv[],
 
 		return -1;
 	}
-	while ((opt = util_options_getopt(argc, argv,
-			"vhnf:ezuF:L:c:dmxVw:gBsr:l::RS:OEC::Z::HT:bot:aAp:",
-			opts)) != -1) {
 
+	struct ranges *rangesp = &argsp->ranges;
+	while ((opt = util_options_getopt(argc, argv,
+			"vhnf:ezuF:L:c:dmxVw:gBsr:lRS:OECZHT:bot:aAp:",
+			opts)) != -1) {
 
 		switch (opt) {
 		case 'v':
@@ -393,13 +389,15 @@ parse_args(char *appname, int argc, char *argv[],
 			argsp->blk.skip_no_flag = true;
 			break;
 		case 'r':
-			if (util_parse_ranges(optarg, &argsp->ranges,
-						ENTIRE_UINT64)) {
+			if (util_parse_ranges(optarg, rangesp, ENTIRE_UINT64)) {
 				outv_err("'%s' -- cannot parse range(s)\n",
 						optarg);
 				return -1;
 			}
-			argsp->use_range = true;
+
+			if (rangesp == &argsp->ranges)
+				argsp->use_range = 1;
+
 			break;
 		case 'd':
 			argsp->vdata = VERBOSE_DEFAULT;
@@ -429,12 +427,7 @@ parse_args(char *appname, int argc, char *argv[],
 			break;
 		case 'l':
 			argsp->obj.vlanes = VERBOSE_DEFAULT;
-			if (util_parse_ranges(optarg, &argsp->obj.lane_ranges,
-						ENTIRE_UINT64)) {
-				outv_err("%s -- cannot parse lanes range(s)\n",
-						optarg);
-				return -1;
-			}
+			rangesp = &argsp->obj.lane_ranges;
 			break;
 		case 'R':
 			argsp->obj.lanes_recovery = true;
@@ -450,6 +443,7 @@ parse_args(char *appname, int argc, char *argv[],
 			break;
 		case 'O':
 			argsp->obj.vobjects = VERBOSE_DEFAULT;
+			rangesp = &argsp->ranges;
 			break;
 		case 'a':
 			argsp->obj.voobhdr = VERBOSE_DEFAULT;
@@ -462,21 +456,11 @@ parse_args(char *appname, int argc, char *argv[],
 			break;
 		case 'Z':
 			argsp->obj.vzonehdr = VERBOSE_DEFAULT;
-			if (util_parse_ranges(optarg, &argsp->obj.zone_ranges,
-						ENTIRE_UINT64)) {
-				outv_err("'%s' -- cannot parse zones "
-						"range(s)\n", optarg);
-				return -1;
-			}
+			rangesp = &argsp->obj.zone_ranges;
 			break;
 		case 'C':
 			argsp->obj.vchunkhdr = VERBOSE_DEFAULT;
-			if (util_parse_ranges(optarg, &argsp->obj.chunk_ranges,
-						ENTIRE_UINT64)) {
-				outv_err("'%s' -- cannot parse"
-					" chunks range(s)\n", optarg);
-				return -1;
-			}
+			rangesp = &argsp->obj.chunk_ranges;
 			break;
 		case 'H':
 			argsp->obj.vheap = VERBOSE_DEFAULT;

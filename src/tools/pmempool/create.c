@@ -125,7 +125,7 @@ static const struct option long_options[] = {
 	{"max-size",	no_argument,		0,	'M' | OPT_ALL},
 	{"inherit",	required_argument,	0,	'i' | OPT_ALL},
 	{"mode",	required_argument,	0,	'm' | OPT_ALL},
-	{"write-layout", optional_argument,	0,	'w' | OPT_BLK},
+	{"write-layout", no_argument,		0,	'w' | OPT_BLK},
 	{"layout",	required_argument,	0,	'l' | OPT_OBJ},
 	{0,		0,			0,	 0 },
 };
@@ -284,7 +284,7 @@ pmempool_create_parse_args(struct pmempool_create *pcp, char *appname,
 		int argc, char *argv[], struct options *opts)
 {
 	int opt, ret;
-	while ((opt = util_options_getopt(argc, argv, "vhi:s:Mm:l:w::",
+	while ((opt = util_options_getopt(argc, argv, "vhi:s:Mm:l:w",
 			opts)) != -1) {
 		switch (opt) {
 		case 'v':
@@ -315,15 +315,7 @@ pmempool_create_parse_args(struct pmempool_create *pcp, char *appname,
 			pcp->inherit_fname = optarg;
 			break;
 		case 'w':
-			if (optarg) {
-				if (optarg[0] == '-') {
-					outv_err("value must be >= 0 -- 'w'");
-					return -1;
-				}
-				pcp->blk_layout = atoll(optarg);
-			} else {
-				pcp->blk_layout = 0;
-			}
+			pcp->blk_layout = 0;
 			break;
 		case 'l':
 			pcp->layout = optarg;

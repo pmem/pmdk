@@ -168,7 +168,7 @@ section for details).
 .B -r, --range
 <range>
 .RS 8
-Range of blocks/data chunks/objects. See
+Range of blocks/data chunks/objects/zone headers/chunk headers/lanes. See
 .B RANGE
 section for details about range format.
 .RE
@@ -289,7 +289,11 @@ one of the following options may be used.
 .B -l, --lanes [<range>]
 .RS 8
 Print information about lanes. If range is not specified all lanes are
-displayed. See
+displayed. The range can be specified using
+.B -r
+option right after the
+.B -l
+option. See
 .B RANGE
 section for details about range format.
 .RE
@@ -373,7 +377,7 @@ Print information about
 heap. By default only a heap header is displayed.
 .RE
 .PP
-.B -Z, --zones [<range>]
+.B -Z, --zones
 .RS 8
 If the
 .B -H, --heap
@@ -387,7 +391,11 @@ of zones. This option requires
 .B -H, --heap
 or
 .B -s, --stats
-options. See
+options. The range can be specified using
+.B -r
+option right after the
+.B -Z
+option. See
 .B RANGE
 section for details about range format.
 .RE
@@ -411,7 +419,11 @@ within a zone. This option requires
 .B -H, --heap
 or
 .B -s, --stats
-options. See
+options. The range can be specified using
+.B -r
+option right after the
+.B -C
+option. See
 .B RANGE
 section for details about range format.
 .RE
