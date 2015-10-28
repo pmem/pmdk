@@ -50,7 +50,7 @@
  * The factor used for PMEM pool size calculation, accounts for metadata,
  * fragmentation and etc.
  */
-#define	FACTOR 4
+#define	FACTOR 8
 
 /* The minimum allocation size that pmalloc can perform */
 #define	ALLOC_MIN_SIZE 64
@@ -240,8 +240,10 @@ pmalloc_exit(struct benchmark *bench, struct benchmark_args *args)
 {
 	struct obj_bench *ob = pmembench_get_priv(bench);
 
-	for (size_t i = 0; i < args->n_ops_per_thread * args->n_threads; i++)
-		pfree(ob->pop, &ob->offs[i], 0);
+	for (size_t i = 0; i < args->n_ops_per_thread * args->n_threads; i++) {
+		if (ob->offs[i])
+			pfree(ob->pop, &ob->offs[i], 0);
+	}
 
 	return obj_exit(bench, args);
 }

@@ -74,7 +74,6 @@ CONFIGS=pmembench_log\
 	pmembench_obj_locks\
 	pmembench_obj_lanes
 
-LIBS_PATH=../nondebug
 CSTYLE = ../../utils/cstyle
 OBJS=$(SRC:.c=.o)
 LDFLAGS = -L$(LIBS_PATH)
@@ -99,8 +98,10 @@ OBJS += pmemobj.o
 
 ifeq ($(DEBUG),)
 CFLAGS += -O3
+LIBS_PATH=../nondebug
 else
 CFLAGS += -ggdb
+LIBS_PATH=../debug
 endif
 
 GLIB_TEST_PROG="\#include <glib.h>\nint main(){return 0;}"
