@@ -131,6 +131,7 @@ struct options {
 
 struct pmem_pool_params {
 	pmem_pool_type_t type;
+	char signature[POOL_HDR_SIG_LEN];
 	uint64_t size;
 	mode_t mode;
 	int is_poolset;

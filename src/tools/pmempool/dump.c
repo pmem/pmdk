@@ -345,10 +345,7 @@ pmempool_dump_func(char *appname, int argc, char *argv[])
 
 	struct pmem_pool_params params;
 	/* parse pool type and block size for pmem blk pool */
-	if (pmem_pool_parse_params(pd.fname, &params, 1)) {
-		ret = -1;
-		goto out;
-	}
+	pmem_pool_parse_params(pd.fname, &params, 1);
 
 	switch (params.type) {
 	case PMEM_POOL_TYPE_LOG:
@@ -359,18 +356,24 @@ pmempool_dump_func(char *appname, int argc, char *argv[])
 		ret = pmempool_dump_blk(&pd);
 		break;
 	case PMEM_POOL_TYPE_OBJ:
-		outv_err("obj pool file not supported\n");
+		outv_err("%s: PMEMOBJ pool not supported\n", pd.fname);
 		ret = -1;
-		break;
+		goto out;
+	case PMEM_POOL_TYPE_UNKNOWN:
+		outv_err("%s: unknown pool type -- '%s'\n", pd.fname,
+				params.signature);
+		ret = -1;
+		goto out;
 	default:
-		outv_err("%s: pool file corrupted\n", pd.fname);
+		outv_err("%s: cannot determine type of pool\n", pd.fname);
 		ret = -1;
+		goto out;
 	}
 
-out:
 	if (ret)
-		outv_err("dumping pool file failed\n");
+		outv_err("%s: dumping pool file failed\n", pd.fname);
 
+out:
 	if (pd.ofh != stdout)
 		fclose(pd.ofh);
 
