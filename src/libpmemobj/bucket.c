@@ -108,17 +108,25 @@ bucket_new(size_t unit_size, int unit_max)
 
 	if (bucket_is_small(b)) {
 		b->bitmap_nallocs = RUNSIZE / unit_size;
+
+		ASSERT(b->bitmap_nallocs <= RUN_BITMAP_SIZE);
+
 		int unused_bits = RUN_BITMAP_SIZE - b->bitmap_nallocs;
 		int unused_values = unused_bits / BITS_PER_VALUE;
 		b->bitmap_nval = MAX_BITMAP_VALUES - unused_values;
 		unused_bits -= (unused_values * BITS_PER_VALUE);
-		b->bitmap_lastval = (((1ULL << unused_bits) - 1ULL) <<
-					(BITS_PER_VALUE - unused_bits));
+
+		ASSERT(unused_bits >= 0);
+
+		b->bitmap_lastval = unused_bits ?
+			(((1ULL << unused_bits) - 1ULL) <<
+				(BITS_PER_VALUE - unused_bits)) : 0;
 	} else {
 		b->bitmap_nval = 0;
 		b->bitmap_lastval = 0;
 		b->bitmap_nallocs = 0;
 	}
+
 	return b;
 
 error_mutex_init:

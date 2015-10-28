@@ -39,10 +39,14 @@
 #include "unittest.h"
 #include "heap.h"
 #include "bucket.h"
+#include "redo.h"
+#include "heap_layout.h"
 
-#define	TEST_UNIT_SIZE 1
+#define	TEST_UNIT_SIZE 128
 #define	TEST_MAX_UNIT 1
+
 #define	TEST_SIZE 5
+#define	TEST_SIZE_UNITS 1
 
 #define	MOCK_CRIT	((void *)0xABC)
 
@@ -118,6 +122,21 @@ test_new_delete_bucket()
 }
 
 static void
+test_bucket_bitmap_correctness()
+{
+	struct bucket *b = bucket_new((RUNSIZE / 10), TEST_MAX_UNIT);
+	ASSERT(b != NULL);
+
+	/* 54 set (not available for allocs), and 10 clear (available) */
+	uint64_t bitmap_lastval =
+	0b1111111111111111111111111111111111111111111111111111110000000000;
+
+	ASSERTeq(bucket_bitmap_lastval(b), bitmap_lastval);
+
+	bucket_delete(b);
+}
+
+static void
 test_bucket()
 {
 	struct bucket *b = bucket_new(TEST_UNIT_SIZE, TEST_MAX_UNIT);
@@ -125,9 +144,11 @@ test_bucket()
 
 	ASSERT(bucket_unit_size(b) == TEST_UNIT_SIZE);
 	ASSERT(bucket_is_small(b));
-	ASSERT(bucket_calc_units(b, TEST_SIZE) == TEST_SIZE);
+	ASSERT(bucket_calc_units(b, TEST_SIZE) == TEST_SIZE_UNITS);
 	ASSERT(bucket_lock(b) == 0);
 	bucket_unlock(b);
+
+	bucket_delete(b);
 }
 
 static void
@@ -179,6 +200,7 @@ main(int argc, char *argv[])
 	test_bucket();
 	test_bucket_insert_get();
 	test_bucket_remove();
+	test_bucket_bitmap_correctness();
 
 	DONE(NULL);
 }
