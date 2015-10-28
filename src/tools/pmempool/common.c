@@ -1166,7 +1166,7 @@ util_opt_check_requirements(const struct options *opts,
 			int req_idx =
 				util_opt_get_index(opts, tmp & OPT_REQ_MASK);
 
-			if (isset(opts->bitmap, req_idx)) {
+			if (req_idx >= 0 && isset(opts->bitmap, req_idx)) {
 				set++;
 				break;
 			}
