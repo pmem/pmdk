@@ -874,10 +874,10 @@ err:
 }
 
 #define	REP(set, r)\
-	((set)->replica[(r) % (set)->nreplicas])
+	((set)->replica[((set)->nreplicas + (r)) % (set)->nreplicas])
 
 #define	PART(rep, p)\
-	((rep)->part[(p) % (rep)->nparts])
+	((rep)->part[((rep)->nparts + (p)) % (rep)->nparts])
 
 #define	HDR(rep, p)\
 	((struct pool_hdr *)(PART(rep, p).hdr))
