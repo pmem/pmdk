@@ -397,17 +397,24 @@ err:
 void *
 util_map_tmpfile(const char *dir, size_t size)
 {
+	int oerrno;
 	int fd = util_tmpfile(dir, size);
-	void *base;
-	if ((base = util_map(fd, size, 0)) == NULL)
+	if (fd == -1) {
+		LOG(2, "cannot create temporary file in dir %s", dir);
 		goto err;
+	}
+
+	void *base;
+	if ((base = util_map(fd, size, 0)) == NULL) {
+		LOG(2, "cannot mmap temporary file");
+		goto err;
+	}
 
 	(void) close(fd);
 	return base;
 
 err:
-	ERR("cannot mmap temporary file");
-	int oerrno = errno;
+	oerrno = errno;
 	if (fd != -1)
 		(void) close(fd);
 	errno = oerrno;
