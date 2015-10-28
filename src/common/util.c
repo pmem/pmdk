@@ -493,7 +493,7 @@ util_convert_hdr(struct pool_hdr *hdrp)
 		return 0;
 	}
 
-	LOG(3, "valid header, signature \"%s\"", hdrp->signature);
+	LOG(3, "valid header, signature \"%.8s\"", hdrp->signature);
 	return 1;
 }
 

@@ -890,7 +890,7 @@ util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 	size_t hdrsize, const char *sig, uint32_t major, uint32_t compat,
 	uint32_t incompat, uint32_t ro_compat)
 {
-	LOG(3, "set %p repidx %u partidx %u hdrsize %zu sig %s major %u "
+	LOG(3, "set %p repidx %u partidx %u hdrsize %zu sig %.8s major %u "
 		"compat %#x incompat %#x ro_comapt %#x",
 		set, repidx, partidx, hdrsize,
 		sig, major, compat, incompat, ro_compat);
@@ -916,7 +916,7 @@ util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 	pmem_msync(descp, hdrsize - sizeof (*hdrp));
 
 	/* create pool's header */
-	strncpy(hdrp->signature, sig, POOL_HDR_SIG_LEN);
+	memcpy(hdrp->signature, sig, POOL_HDR_SIG_LEN);
 	hdrp->major = htole32(major);
 	hdrp->compat_features = htole32(compat);
 	hdrp->incompat_features = htole32(incompat);
@@ -967,7 +967,7 @@ util_header_check(struct pool_set *set, unsigned repidx, unsigned partidx,
 	const char *sig, uint32_t major, uint32_t compat, uint32_t incompat,
 	uint32_t ro_compat)
 {
-	LOG(3, "set %p repidx %u partidx %u sig %s major %u "
+	LOG(3, "set %p repidx %u partidx %u sig %.8s major %u "
 		"compat %#x incompat %#x ro_comapt %#x",
 		set, repidx, partidx, sig, major, compat, incompat, ro_compat);
 
@@ -985,8 +985,8 @@ util_header_check(struct pool_set *set, unsigned repidx, unsigned partidx,
 	}
 
 	/* valid header found */
-	if (strncmp(hdr.signature, sig, POOL_HDR_SIG_LEN)) {
-		ERR("wrong pool type: \"%s\"", hdr.signature);
+	if (memcmp(hdr.signature, sig, POOL_HDR_SIG_LEN)) {
+		ERR("wrong pool type: \"%.8s\"", hdr.signature);
 		errno = EINVAL;
 		return -1;
 	}
@@ -1057,7 +1057,7 @@ util_replica_create(struct pool_set *set, unsigned repidx, int flags,
 	size_t hdrsize, const char *sig,
 	uint32_t major, uint32_t compat, uint32_t incompat, uint32_t ro_compat)
 {
-	LOG(3, "set %p repidx %u flags %d hdrsize %zu sig %s major %u "
+	LOG(3, "set %p repidx %u flags %d hdrsize %zu sig %.8s major %u "
 		"compat %#x incompat %#x ro_comapt %#x",
 		set, repidx, flags, hdrsize, sig, major,
 		compat, incompat, ro_compat);
@@ -1183,7 +1183,7 @@ util_pool_create(struct pool_set **setp, const char *path, size_t poolsize,
 	uint32_t major, uint32_t compat, uint32_t incompat, uint32_t ro_compat)
 {
 	LOG(3, "setp %p path %s poolsize %zu minsize %zu "
-		"hdrsize %zu sig %s major %u "
+		"hdrsize %zu sig %.8s major %u "
 		"compat %#x incompat %#x ro_comapt %#x",
 		setp, path, poolsize, minsize, hdrsize,
 		sig, major, compat, incompat, ro_compat);
@@ -1381,7 +1381,7 @@ util_pool_open(struct pool_set **setp, const char *path, int rdonly,
 	uint32_t major, uint32_t compat, uint32_t incompat, uint32_t ro_compat)
 {
 	LOG(3, "setp %p path %s rdonly %d minsize %zu "
-		"hdrsize %zu sig %s major %u "
+		"hdrsize %zu sig %.8s major %u "
 		"compat %#x incompat %#x ro_comapt %#x",
 		setp, path, rdonly, minsize, hdrsize,
 		sig, major, compat, incompat, ro_compat);

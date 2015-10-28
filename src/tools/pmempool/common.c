@@ -66,11 +66,11 @@ typedef const char *(*enum_to_str_fn)(int);
 pmem_pool_type_t
 pmem_pool_type_parse_hdr(const struct pool_hdr *hdrp)
 {
-	if (strncmp(hdrp->signature, LOG_HDR_SIG, POOL_HDR_SIG_LEN) == 0)
+	if (memcmp(hdrp->signature, LOG_HDR_SIG, POOL_HDR_SIG_LEN) == 0)
 		return PMEM_POOL_TYPE_LOG;
-	else if (strncmp(hdrp->signature, BLK_HDR_SIG, POOL_HDR_SIG_LEN) == 0)
+	else if (memcmp(hdrp->signature, BLK_HDR_SIG, POOL_HDR_SIG_LEN) == 0)
 		return PMEM_POOL_TYPE_BLK;
-	else if (strncmp(hdrp->signature, OBJ_HDR_SIG, POOL_HDR_SIG_LEN) == 0)
+	else if (memcmp(hdrp->signature, OBJ_HDR_SIG, POOL_HDR_SIG_LEN) == 0)
 		return PMEM_POOL_TYPE_OBJ;
 	else
 		return PMEM_POOL_TYPE_UNKNOWN;
@@ -720,7 +720,7 @@ pmem_default_pool_hdr(pmem_pool_type_t type, struct pool_hdr *hdrp)
 	const char *sig = out_get_pool_signature(type);
 	assert(sig);
 
-	strncpy(hdrp->signature, sig, POOL_HDR_SIG_LEN);
+	memcpy(hdrp->signature, sig, POOL_HDR_SIG_LEN);
 
 	switch (type) {
 	case PMEM_POOL_TYPE_LOG:
