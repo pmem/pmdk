@@ -56,7 +56,10 @@ static const char *Log_prefix;
 static int Log_level;
 static FILE *Out_fp;
 
+#ifndef NO_LIBPTHREAD
+
 #define	MAXPRINT 8192	/* maximum expected log line */
+
 static pthread_once_t Last_errormsg_key_once = PTHREAD_ONCE_INIT;
 static pthread_key_t Last_errormsg_key;
 
@@ -80,6 +83,63 @@ Last_errormsg_key_alloc()
 	 */
 	VALGRIND_ANNOTATE_HAPPENS_AFTER(&Last_errormsg_key_once);
 }
+
+static inline void
+Last_errormsg_fini()
+{
+	void *p = pthread_getspecific(Last_errormsg_key);
+	if (p) {
+		free(p);
+		pthread_setspecific(Last_errormsg_key, NULL);
+	}
+}
+
+static inline const char *
+Last_errormsg_get()
+{
+	Last_errormsg_key_alloc();
+
+	char *errormsg = pthread_getspecific(Last_errormsg_key);
+	if (errormsg == NULL) {
+		errormsg = malloc(MAXPRINT);
+		int ret = pthread_setspecific(Last_errormsg_key, errormsg);
+		if (ret)
+			FATAL("!pthread_setspecific");
+	}
+	return errormsg;
+}
+#else
+
+/*
+ * We don't want libpmem to depend on libpthread.  Instead of using pthread
+ * API to dynamically allocate thread-specific error message buffer, we put
+ * it into TLS.  However, keeping a pretty large static buffer (8K) in TLS
+ * may lead to some issues, so the maximum message length is reduced.
+ * Fortunately, it looks like the longest error message in libpmem should
+ * not be longer than about 90 chars (in case of pmem_check_version()).
+ */
+
+#define	MAXPRINT 256	/* maximum expected log line for libpmem */
+
+static __thread char Last_errormsg[MAXPRINT];
+
+static inline void
+Last_errormsg_key_alloc()
+{
+}
+
+static inline void
+Last_errormsg_fini()
+{
+}
+
+static inline const char *
+Last_errormsg_get()
+{
+	return Last_errormsg;
+}
+
+#endif /* NO_LIBPTHREAD */
 
 #ifdef	DEBUG
 /*
@@ -185,6 +245,7 @@ out_init(const char *log_prefix, const char *log_level_var,
 			"compiled with support for Valgrind memcheck";
 	LOG(1, "%s", memcheck_msg);
 #endif /* USE_VG_MEMCHECK */
+
 	Last_errormsg_key_alloc();
 }
 
@@ -201,11 +262,7 @@ out_fini()
 		Out_fp = stderr;
 	}
 
-	void *p = pthread_getspecific(Last_errormsg_key);
-	if (p) {
-		free(p);
-		pthread_setspecific(Last_errormsg_key, NULL);
-	}
+	Last_errormsg_fini();
 }
 
 /*
@@ -311,7 +368,8 @@ out_error(const char *file, int line, const char *func,
 	int cc = 0;
 	const char *sep = "";
 	const char *errstr = "";
-	char *Last_errormsg = (char *)out_get_errormsg();
+
+	char *errormsg = (char *)out_get_errormsg();
 
 	if (fmt) {
 		if (*fmt == '!') {
@@ -319,8 +377,8 @@ out_error(const char *file, int line, const char *func,
 			sep = ": ";
 			errstr = strerror(errno);
 		}
-		cc += Vsnprintf(&Last_errormsg[cc], MAXPRINT, fmt, ap);
-		out_snprintf(&Last_errormsg[cc], MAXPRINT - cc, "%s%s",
+		cc += Vsnprintf(&errormsg[cc], MAXPRINT, fmt, ap);
+		out_snprintf(&errormsg[cc], MAXPRINT - cc, "%s%s",
 				sep, errstr);
 	}
 
@@ -334,7 +392,7 @@ out_error(const char *file, int line, const char *func,
 					"<%s>: <1> [%s:%d %s] ",
 					Log_prefix, file, line, func);
 
-		out_snprintf(&buf[cc], MAXPRINT - cc, "%s%s", Last_errormsg,
+		out_snprintf(&buf[cc], MAXPRINT - cc, "%s%s", errormsg,
 				suffix);
 
 		Print(buf);
@@ -431,15 +489,5 @@ out_err(const char *file, int line, const char *func,
 const char *
 out_get_errormsg(void)
 {
-	Last_errormsg_key_alloc();
-
-	char *Last_errormsg = pthread_getspecific(Last_errormsg_key);
-	if (Last_errormsg == NULL) {
-		Last_errormsg = malloc(MAXPRINT);
-		int ret = pthread_setspecific(Last_errormsg_key, Last_errormsg);
-		if (ret)
-			FATAL("!pthread_setspecific");
-	}
-
-	return Last_errormsg;
+	return Last_errormsg_get();
 }
