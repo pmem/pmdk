@@ -1246,7 +1246,10 @@ pmemobj_tx_end()
 
 		tx.stage = TX_STAGE_NONE;
 		release_and_free_tx_locks(lane);
-		lane_release(lane->pop);
+		if (lane_release(lane->pop)) {
+			LOG(2, "lane_release failed");
+			ASSERT(0);
+		}
 		tx.section = NULL;
 	} else {
 		/* resume the next transaction */
