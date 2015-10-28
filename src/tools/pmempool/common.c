@@ -959,9 +959,13 @@ ask(char op, char *answers, char def_ans, const char *fmt, va_list ap)
 				printf("/");
 		}
 		printf("] ");
-		ans = tolower(getchar());
+		int c = getchar();
+		if (c == EOF)
+			ans = def_ans;
+		else
+			ans = tolower(c);
 		if (ans != '\n')
-			getchar();
+			(void) getchar();
 	} while (ans != '\n' && strchr(answers, ans) == NULL);
 
 	char ret = ans == '\n' ? def_ans : ans;
