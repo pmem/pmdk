@@ -535,7 +535,7 @@ function require_valgrind_dev_3_7() {
         #include <valgrind/valgrind.h>
         #if defined (VALGRIND_RESIZEINPLACE_BLOCK)
         VALGRIND_VERSION_3_7_OR_LATER
-        #endif" | gcc -E - 2>&1 | \
+        #endif" | gcc ${EXTRA_CFLAGS} -E - 2>&1 | \
 		grep -q "VALGRIND_VERSION_3_7_OR_LATER" && return
 	echo "$UNITTEST_NAME: SKIP valgrind-devel package (ver 3.7 or later) required"
 	exit 0
@@ -554,7 +554,7 @@ function require_valgrind_dev_3_8() {
              ((__VALGRIND_MAJOR__ == 3) && (__VALGRIND_MINOR__ >= 8))
         VALGRIND_VERSION_3_8_OR_LATER
         #endif
-        #endif" | gcc -E - 2>&1 | \
+        #endif" | gcc ${EXTRA_CFLAGS} -E - 2>&1 | \
 		grep -q "VALGRIND_VERSION_3_8_OR_LATER" && return
 	echo "$UNITTEST_NAME: SKIP valgrind-devel package (ver 3.8 or later) required"
 	exit 0
@@ -573,7 +573,7 @@ function require_valgrind_dev_3_10() {
              ((__VALGRIND_MAJOR__ == 3) && (__VALGRIND_MINOR__ >= 10))
         VALGRIND_VERSION_3_10_OR_LATER
         #endif
-        #endif" | gcc -E - 2>&1 | \
+        #endif" | gcc ${EXTRA_CFLAGS} -E - 2>&1 | \
 		grep -q "VALGRIND_VERSION_3_10_OR_LATER" && return
 	echo "$UNITTEST_NAME: SKIP valgrind-devel package (ver 3.10 or later) required"
 	exit 0
