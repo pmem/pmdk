@@ -706,7 +706,8 @@ pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp,
 	else
 		munmap(addr, stat_buf.st_size);
 out_close:
-	close(fd);
+	if (fd >= 0)
+		(void) close(fd);
 	return ret;
 }
 
