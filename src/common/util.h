@@ -201,6 +201,7 @@ int util_is_zeroed(const void *addr, size_t len);
 int util_feature_check(struct pool_hdr *hdrp, uint32_t incompat,
 				uint32_t ro_compat, uint32_t compat);
 
+char *util_map_hint_unused(void *addr, size_t len, size_t align);
 char *util_map_hint(size_t len);
 
 int util_poolset_parse(const char *path, int fd, struct pool_set **setp);

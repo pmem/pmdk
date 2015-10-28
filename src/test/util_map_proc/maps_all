@@ -54,5 +54,4 @@
 7fff02165000-7fff02190000 rw-p 00000000 00:00 0                          [dummy]
 7fff02190000-7fff02191000 r-xp 00000000 00:00 0                          [vdso]
 7fff02191000-800000000000 r-xp 00000000 00:00 0                          [dummy]
-0000800000000000-ffffffffff600000 rw-p 00000000 00:00 0                  [dummy]
 ffffffffff600000-ffffffffff601000 r-xp 00000000 00:00 0                  [vsyscall]

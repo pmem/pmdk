@@ -1,5 +1,6 @@
+#!/bin/bash -e
 #
-# Copyright (c) 2014-2015, Intel Corporation
+# Copyright (c) 2015, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,15 +32,28 @@
 #
 
 #
-# src/test/util_map_proc/Makefile -- build util_map_proc unit test
+# src/test/util_map_proc/TEST4 -- unit test for util_map /proc parsing
 #
-vpath %.c ../../common
-vpath %.h ../../common
-TARGET = util_map_proc
-OBJS = util_map_proc.o util.o out.o
+export UNITTEST_NAME=util_map_proc/TEST4
+export UNITTEST_NUM=4
 
-out.o: CFLAGS += -DSRCVERSION=\"utversion\"
+# standard unit test setup
+. ../unittest/unittest.sh
 
-include ../Makefile.inc
-INCS += -I../../common
-LIBS += -ldl
+require_fs_type local
+
+setup
+
+export PMEM_MMAP_HINT=2E000000000
+
+# there should be an unused region for each length
+expect_normal_exit ./util_map_proc$EXESUFFIX maps_all\
+     0x0000100000\
+     0x0001000000\
+     0x0040000000\
+     0x0400000000\
+     0x4000000000
+
+check
+
+pass

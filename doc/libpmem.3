@@ -37,7 +37,7 @@
 .\" or
 .\"	groff -man -Tascii libpmem.3
 .\"
-.TH libpmem 3 "pmem API version 0.8.4" "NVM Library"
+.TH libpmem 3 "pmem API version 0.8.5" "NVM Library"
 .SH NAME
 libpmem \- persistent memory support library
 .SH SYNOPSIS
@@ -719,6 +719,23 @@ It has no effect if
 .B PMEM_NO_MOVNT
 variable is set to 1.
 This variable is intended for use during library testing.
+.PP
+.BI PMEM_MMAP_HINT= val
+This environment variable allows overriding the hint address used by
+.BR pmem_map ().
+If set, it also disables mapping address randomization.
+This variable is intended for use during library testing and debugging.
+Setting it to some fairly large value (i.e. 0x10000000000) will very likely
+result in mapping the file at the specified address (if not used) or at the
+first unused region above given address, without adding any random offset.
+When debugging, this makes it easier to calculate the actual address
+of the persistent memory block, based on its offset in the file.  In case of
+.B libpmemobj
+it simplifies conversion of a persistent object identifier (OID) into a direct
+pointer to the object.
+.B NOTE: Setting this environment variable affects all the NVM libraries,
+disabling mapping address randomization and causing the specified address
+to be used as a hint about where to place the mapping.
 .SH EXAMPLES
 .PP
 The following example uses

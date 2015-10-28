@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright (c) 2014-2015, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -40,8 +40,11 @@
 
 #include <dlfcn.h>
 #include "unittest.h"
-#include "util_wrap.h"
+#include "util.h"
 
+#define	MEGABYTE ((uintptr_t)1 << 20)
+#define	GIGABYTE ((uintptr_t)1 << 30)
+#define	TERABYTE ((uintptr_t)1 << 40)
 
 char *Sfile;
 
@@ -72,16 +75,30 @@ main(int argc, char *argv[])
 {
 	START(argc, argv, "util_map_proc");
 
+	util_init();
+
 	if (argc < 3)
 		FATAL("usage: %s maps_file len [len]...", argv[0]);
 
 	Sfile = argv[1];
 
 	for (int arg = 2; arg < argc; arg++) {
-		size_t len;
+		size_t len = (size_t)strtoull(argv[arg], NULL, 0);
 
-		len = (size_t)strtoull(argv[arg], NULL, 0);
-		OUT("len %zu: %p", len, util_map_hint_wrap(len));
+		size_t align = Ut_pagesize;
+		if (len >= 2 * GIGABYTE)
+			align = GIGABYTE;
+		else if (len >= 4 * MEGABYTE)
+			align = 2 * MEGABYTE;
+
+		void *h1 =
+			util_map_hint_unused((void *)TERABYTE, len, GIGABYTE);
+		void *h2 = util_map_hint(len);
+		if (h1 != NULL)
+			ASSERTeq((uintptr_t)h1 & (GIGABYTE - 1), 0);
+		if (h2 != NULL)
+			ASSERTeq((uintptr_t)h2 & (align - 1), 0);
+		OUT("len %zu: %p %p", len, h1, h2);
 	}
 
 	DONE(NULL);

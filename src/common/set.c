@@ -47,12 +47,10 @@
 #include <stddef.h>
 #include <time.h>
 #include <uuid/uuid.h>
-
 #include <ctype.h>
 #include <linux/limits.h>
 
 #include "libpmem.h"
-
 #include "util.h"
 #include "out.h"
 #include "valgrind_internal.h"
@@ -1069,7 +1067,7 @@ util_replica_create(struct pool_set *set, unsigned repidx, int flags,
 	rep->repsize -= (rep->nparts - 1) * hdrsize;
 
 	/* determine a hint address for mmap() */
-	void *addr = util_map_hint(rep->repsize); /* XXX - randomize */
+	void *addr = util_map_hint(rep->repsize);
 	if (addr == NULL) {
 		ERR("cannot find a contiguous region of given size");
 		return -1;
@@ -1250,7 +1248,7 @@ util_replica_open(struct pool_set *set, unsigned repidx, int flags,
 	rep->repsize -= (rep->nparts - 1) * hdrsize;
 
 	/* determine a hint address for mmap() */
-	void *addr = util_map_hint(rep->repsize); /* XXX - randomize */
+	void *addr = util_map_hint(rep->repsize);
 	if (addr == NULL) {
 		ERR("cannot find a contiguous region of given size");
 		return -1;
