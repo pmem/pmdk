@@ -793,27 +793,7 @@ util_file_open(const char *path, size_t *size, size_t minsize, int flags)
 	LOG(3, "path %s size %p minsize %zu flags %d", path, size, minsize,
 			flags);
 
-	if (size || minsize) {
-		if (size)
-			ASSERTeq(*size, 0);
-
-		struct stat stbuf;
-		if (stat(path, &stbuf) < 0) {
-			ERR("!stat %s", path);
-			return -1;
-		}
-
-		if (stbuf.st_size < minsize) {
-			ERR("size %lld smaller than %zu",
-					(long long)stbuf.st_size, minsize);
-			errno = EINVAL;
-			return -1;
-		}
-
-		if (size)
-			*size = stbuf.st_size;
-	}
-
+	int oerrno;
 	int fd;
 	if ((fd = open(path, flags)) < 0) {
 		ERR("!open %s", path);
@@ -822,9 +802,37 @@ util_file_open(const char *path, size_t *size, size_t minsize, int flags)
 
 	if (flock(fd, LOCK_EX | LOCK_NB) < 0) {
 		ERR("!flock");
-		close(fd);
+		(void) close(fd);
 		return -1;
 	}
 
+	if (size || minsize) {
+		if (size)
+			ASSERTeq(*size, 0);
+
+		struct stat stbuf;
+		if (fstat(fd, &stbuf) < 0) {
+			ERR("!fstat %s", path);
+			goto err;
+		}
+
+		if (stbuf.st_size < minsize) {
+			ERR("size %lld smaller than %zu",
+					(long long)stbuf.st_size, minsize);
+			errno = EINVAL;
+			goto err;
+		}
+
+		if (size)
+			*size = stbuf.st_size;
+	}
+
 	return fd;
+err:
+	oerrno = errno;
+	if (flock(fd, LOCK_UN))
+		ERR("!flock unlock");
+	(void) close(fd);
+	errno = oerrno;
+	return -1;
 }
