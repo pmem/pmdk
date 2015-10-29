@@ -2061,35 +2061,12 @@ pmempool_check_btt_map_flog(struct pmempool_check *pcp)
 	TAILQ_FOREACH(arenap, &pcp->arenas, next) {
 		outv(2, "arena %u: checking map and flog\n", narena);
 		ret = pmempool_check_arena_map_flog(pcp, arenap);
-		if (ret != CHECK_RESULT_CONSISTENT &&
-			ret != CHECK_RESULT_CONSISTENT) {
+		if (ret != CHECK_RESULT_CONSISTENT)
 			break;
-		}
 		narena++;
 	}
 
 	return ret;
-}
-
-/*
- * pmempool_check_write_pool_hdr -- write pool header
- */
-static check_result_t
-pmempool_check_write_pool_hdr(struct pmempool_check *pcp)
-{
-	return CHECK_RESULT_CONSISTENT;
-	if (!pcp->repair || !pcp->exec)
-		return CHECK_RESULT_CONSISTENT;
-
-	if (pmempool_check_write(pcp, &pcp->hdr.pool,
-				sizeof (pcp->hdr.pool), 0)) {
-		if (errno)
-			warn("%s", pcp->fname);
-		outv_err("writing pool header failed\n");
-		return CHECK_RESULT_CANNOT_REPAIR;
-	}
-
-	return CHECK_RESULT_CONSISTENT;
 }
 
 /*
@@ -2210,12 +2187,6 @@ static const struct pmempool_check_step pmempool_check_steps[] = {
 		.type	= PMEM_POOL_TYPE_BLK,
 		.func	= pmempool_check_btt_map_flog,
 		.part	= false,
-	},
-	{
-		.type	= PMEM_POOL_TYPE_LOG |
-				PMEM_POOL_TYPE_BLK,
-		.func	= pmempool_check_write_pool_hdr,
-		.part	= true,
 	},
 	{
 		.type	= PMEM_POOL_TYPE_LOG,
