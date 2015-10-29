@@ -197,12 +197,14 @@ FUNC_MOCK_RUN_DEFAULT {
 	struct stat stbuf;
 	if (fstat(fd, &stbuf) < 0) {
 		OUT("!fstat");
+		(void) close(fd);
 		return NULL;
 	}
 
 	void *addr = pmem_map(fd);
 	if (!addr) {
 		OUT("!%s: pmem_map", fname);
+		(void) close(fd);
 		return NULL;
 	}
 

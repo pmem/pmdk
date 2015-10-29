@@ -116,6 +116,7 @@ pmemobj_open_mock(const char *fname)
 	struct stat stbuf;
 	if (fstat(fd, &stbuf) < 0) {
 		OUT("!fstat");
+		(void) close(fd);
 
 		return NULL;
 	}
@@ -125,6 +126,7 @@ pmemobj_open_mock(const char *fname)
 	void *addr = pmem_map(fd);
 	if (!addr) {
 		OUT("!%s: pmem_map", fname);
+		(void) close(fd);
 
 		return NULL;
 	}
