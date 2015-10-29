@@ -361,8 +361,10 @@ util_tmpfile(const char *dir, size_t size)
 	sigfillset(&set);
 	(void) sigprocmask(SIG_BLOCK, &set, &oldset);
 
-	int fd;
-	if ((fd = mkstemp(fullname)) < 0) {
+	mode_t prev_umask = umask(S_IRWXG | S_IRWXO);
+	int fd = mkstemp(fullname);
+	umask(prev_umask);
+	if (fd < 0) {
 		ERR("!mkstemp");
 		goto err;
 	}
