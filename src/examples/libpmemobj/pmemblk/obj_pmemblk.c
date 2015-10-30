@@ -118,7 +118,10 @@ pmemblk_open(const char *path, size_t bsize)
 	if (pop == NULL)
 		return NULL;
 	struct stat buf;
-	stat(path, &buf);
+	if (stat(path, &buf)) {
+		perror("stat");
+		return NULL;
+	}
 
 	return pmemblk_map(pop, bsize, buf.st_size) ? NULL : (PMEMblkpool *)pop;
 
