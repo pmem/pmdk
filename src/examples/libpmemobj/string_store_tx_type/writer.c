@@ -57,7 +57,10 @@ main(int argc, char *argv[])
 	}
 
 	char buf[MAX_BUF_LEN];
-	scanf("%9s", buf);
+	if (scanf("%9s", buf) == EOF) {
+		fprintf(stderr, "EOF\n");
+		return 1;
+	}
 
 	TOID(struct my_root) root = POBJ_ROOT(pop, struct my_root);
 

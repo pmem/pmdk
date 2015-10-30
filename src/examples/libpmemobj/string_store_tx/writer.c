@@ -60,7 +60,10 @@ main(int argc, char *argv[])
 	struct my_root *rootp = pmemobj_direct(root);
 
 	char buf[MAX_BUF_LEN];
-	scanf("%9s", buf);
+	if (scanf("%9s", buf) == EOF) {
+		fprintf(stderr, "EOF\n");
+		return 1;
+	}
 
 	TX_BEGIN(pop) {
 		pmemobj_tx_add_range(root, 0, sizeof (struct my_root));
