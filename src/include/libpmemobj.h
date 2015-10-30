@@ -342,7 +342,7 @@ pmemobj_direct(PMEMoid oid)
 }
 
 #define	DIRECT_RW(o) (\
-{typeof((o)) _o; _o.oid = _o.oid;\
+{typeof((o)) _o; _o._type = NULL; (void)_o;\
 (typeof(*(o)._type) *)pmemobj_direct((o).oid); })
 #define	DIRECT_RO(o) ((const typeof(*(o)._type) *)pmemobj_direct((o).oid))
 
