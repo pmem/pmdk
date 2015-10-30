@@ -60,6 +60,8 @@
 #define	EMPTY_MEMORY_BLOCK (struct memory_block)\
 {0, 0, 0, 0}
 
+#define	NCACHES_PER_CPU	2
+
 /*
  * Percentage of memory block units from a single run that can be migrated
  * from a cache bucket to auxiliary bucket in a single drain call.
@@ -1246,9 +1248,19 @@ heap_vg_boot(PMEMobjpool *pop)
  * heap_get_ncpus -- (internal) returns the number of available CPUs
  */
 static int
-heap_get_ncpus()
+heap_get_ncpus(void)
 {
 	return sysconf(_SC_NPROCESSORS_ONLN);
+}
+
+/*
+ * heap_get_ncaches -- (internal) returns the number of bucket caches according
+ * to number of cpus and number of caches per cpu.
+ */
+static int
+heap_get_ncaches(void)
+{
+	return NCACHES_PER_CPU * heap_get_ncpus();
 }
 
 /*
@@ -1266,7 +1278,7 @@ heap_boot(PMEMobjpool *pop)
 		goto error_heap_malloc;
 	}
 
-	h->caches = Malloc(sizeof (struct bucket_cache) * heap_get_ncpus());
+	h->caches = Malloc(sizeof (struct bucket_cache) * heap_get_ncaches());
 	if (h->caches == NULL) {
 		err = ENOMEM;
 		goto error_heap_cache_malloc;
@@ -1283,7 +1295,7 @@ heap_boot(PMEMobjpool *pop)
 		if ((err = pthread_mutex_init(&h->run_locks[i], NULL)) != 0)
 			goto error_lock_init;
 
-	h->ncaches = heap_get_ncpus();
+	h->ncaches = heap_get_ncaches();
 	memset(h->last_drained, 0, sizeof (h->last_drained));
 
 	pop->heap = h;
