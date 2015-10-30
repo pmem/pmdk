@@ -1701,22 +1701,32 @@ PMEMoid pmemobj_root_construct(PMEMobjpool *pop, size_t size,
 
 	PMEMoid root;
 
-	pmemobj_mutex_lock(pop, &pop->rootlock);
+	if ((errno = pmemobj_mutex_lock(pop, &pop->rootlock))) {
+		ERR("!pmemobj_mutex_lock");
+		return OID_NULL;
+	}
+
 	if (pop->store->root.head.pe_first.off == 0)
 		/* root object list is empty */
 		obj_alloc_root(pop, pop->store, size, constructor, arg);
 	else {
 		size_t old_size = pmemobj_root_size(pop);
-		if (size > old_size)
-			if (obj_realloc_root(pop, pop->store, size, old_size,
-				constructor, arg)) {
-				pmemobj_mutex_unlock(pop, &pop->rootlock);
-				LOG(2, "obj_realloc_root failed");
-				return OID_NULL;
+		if (size > old_size && obj_realloc_root(pop, pop->store, size,
+				old_size, constructor, arg)) {
+			errno = pmemobj_mutex_unlock(pop, &pop->rootlock);
+			if (errno) {
+				ERR("!pmemobj_mutex_unlock");
+				ASSERT(0);
 			}
+			LOG(2, "obj_realloc_root failed");
+			return OID_NULL;
+		}
 	}
 	root = pop->store->root.head.pe_first;
-	pmemobj_mutex_unlock(pop, &pop->rootlock);
+	if ((errno = pmemobj_mutex_unlock(pop, &pop->rootlock))) {
+		ERR("!pmemobj_mutex_unlock");
+		ASSERT(0);
+	}
 	return root;
 }
 
