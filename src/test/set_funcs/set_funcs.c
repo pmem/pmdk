@@ -40,6 +40,8 @@
 #define	LOG 2
 #define	VMEM_ 3
 
+#define	VMEM_POOLS 4
+
 static struct counters {
 	int mallocs;
 	int frees;
@@ -269,17 +271,24 @@ test_vmem(const char *dir)
 {
 	memset(cnt, 0, sizeof (cnt));
 
-	VMEM *v = vmem_create(dir, VMEM_MIN_POOL);
+	VMEM *v[VMEM_POOLS];
+	void *ptr[VMEM_POOLS];
 
-	vmem_delete(v);
+	for (int i = 0; i < VMEM_POOLS; i++) {
+		v[i] = vmem_create(dir, VMEM_MIN_POOL);
+		ptr[i] = vmem_malloc(v[i], 64);
+		vmem_free(v[i], ptr[i]);
+	}
 
+	for (int i = 0; i < VMEM_POOLS; i++)
+		vmem_delete(v[i]);
 
 	OUT("vmem_mallocs: %d", cnt[VMEM_].mallocs);
 	OUT("vmem_frees: %d", cnt[VMEM_].frees);
 	OUT("vmem_reallocs: %d", cnt[VMEM_].reallocs);
 	OUT("vmem_strdups: %d", cnt[VMEM_].strdups);
 
-	if (cnt[VMEM_].mallocs == 0 || cnt[VMEM_].frees == 0)
+	if (cnt[VMEM_].mallocs == 0 && cnt[VMEM_].frees == 0)
 		FATAL("VMEM mallocs: %d, frees: %d", cnt[VMEM_].mallocs,
 				cnt[VMEM_].frees);
 	for (int i = 0; i < 4; ++i) {
@@ -288,7 +297,7 @@ test_vmem(const char *dir)
 		if (cnt[i].mallocs || cnt[i].frees)
 			FATAL("VMEM allocation used %d functions", i);
 	}
-	if (cnt[VMEM_].mallocs + cnt[VMEM_].strdups != cnt[VMEM_].frees)
+	if (cnt[VMEM_].mallocs + cnt[VMEM_].strdups > cnt[VMEM_].frees + 4)
 		FATAL("VMEM memory leak");
 }
 

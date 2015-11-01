@@ -381,10 +381,13 @@ extern size_t	opt_narenas;
 extern bool	in_valgrind;
 
 /* Number of CPUs. */
-extern unsigned		ncpus;
+extern unsigned	ncpus;
 
 extern unsigned	npools;
-extern pool_t	*pools[POOLS_MAX];
+extern unsigned	npools_cnt;
+
+extern pool_t	base_pool;
+extern pool_t	**pools;
 
 extern malloc_mutex_t	pools_lock;
 extern void	*(*je_base_malloc)(size_t);
@@ -392,6 +395,7 @@ extern void	(*je_base_free)(void *);
 extern bool	pools_shared_data_create(void);
 
 arena_t	*arenas_extend(pool_t *pool, unsigned ind);
+bool	arenas_tsd_extend(tsd_pool_t *tsd, unsigned len);
 void	arenas_cleanup(void *arg);
 arena_t	*choose_arena_hard(pool_t *pool);
 void	jemalloc_prefork(void);
@@ -601,6 +605,12 @@ choose_arena(arena_t *arena)
 	pool = arena->pool;
 	tsd = arenas_tsd_get();
 
+	/* expand arenas array if necessary */
+	if ((tsd->npools <= pool->pool_id) &&
+	    arenas_tsd_extend(tsd, pool->pool_id)) {
+		return (NULL);
+	}
+
 	if ( (tsd->seqno[pool->pool_id] != pool->seqno) || 
 		(ret = tsd->arenas[pool->pool_id]) == NULL) {
 		ret = choose_arena_hard(pool);
@@ -679,7 +689,7 @@ JEMALLOC_ALWAYS_INLINE void *
 imalloc(size_t size)
 {
 	arena_t dummy;
-	DUMMY_ARENA_INITIALIZE(dummy, pools[0]);
+	DUMMY_ARENA_INITIALIZE(dummy, &base_pool);
 	return (imalloct(size, true, &dummy));
 }
 
@@ -704,7 +714,7 @@ JEMALLOC_ALWAYS_INLINE void *
 icalloc(size_t size)
 {
 	arena_t dummy;
-	DUMMY_ARENA_INITIALIZE(dummy, pools[0]);
+	DUMMY_ARENA_INITIALIZE(dummy, &base_pool);
 	return (icalloct(size, true, &dummy));
 }
 
@@ -745,7 +755,7 @@ JEMALLOC_ALWAYS_INLINE void *
 ipalloc(size_t usize, size_t alignment, bool zero)
 {
 	arena_t dummy;
-	DUMMY_ARENA_INITIALIZE(dummy, pools[0]);
+	DUMMY_ARENA_INITIALIZE(dummy, &base_pool);
 	return (ipalloct(usize, alignment, zero, true, &dummy));
 }
 
@@ -809,18 +819,25 @@ JEMALLOC_ALWAYS_INLINE size_t
 ivsalloc(const void *ptr, bool demote)
 {
 	int i;
-	for (i = 0; i < POOLS_MAX; ++i) {
-	    pool_t *pool = pools[i];
+
+	malloc_mutex_lock(&pools_lock);
+
+	unsigned n = npools;
+	for (i = 0; i < n; ++i) {
+		pool_t *pool = pools[i];
 		if (pool == NULL)
 			continue;
 
-	    /* Return 0 if ptr is not within a chunk managed by jemalloc. */
-	    if (rtree_get(pool->chunks_rtree, (uintptr_t)CHUNK_ADDR2BASE(ptr)) != 0)
+		/* Return 0 if ptr is not within a chunk managed by jemalloc. */
+		if (rtree_get(pool->chunks_rtree,
+				 (uintptr_t)CHUNK_ADDR2BASE(ptr)) != 0)
 		break;
 	}
 
-	if (i == POOLS_MAX)
-		return (0);
+	malloc_mutex_unlock(&pools_lock);
+
+	if (i == n)
+		return 0;
 
 	return (isalloc(ptr, demote));
 }
@@ -852,7 +869,6 @@ JEMALLOC_ALWAYS_INLINE void
 idalloct(void *ptr, bool try_tcache)
 {
 	arena_chunk_t *chunk;
-	pool_t *base_pool = pools[0];
 
 	assert(ptr != NULL);
 
@@ -860,7 +876,7 @@ idalloct(void *ptr, bool try_tcache)
 	if (chunk != ptr)
 		arena_dalloc(chunk, ptr, try_tcache);
 	else
-		huge_dalloc(base_pool, ptr);
+		huge_dalloc(&base_pool, ptr);
 }
 
 JEMALLOC_ALWAYS_INLINE void
@@ -979,7 +995,7 @@ JEMALLOC_ALWAYS_INLINE void *
 iralloc(void *ptr, size_t size, size_t extra, size_t alignment, bool zero)
 {
 	arena_t dummy;
-	DUMMY_ARENA_INITIALIZE(dummy, pools[0]);
+	DUMMY_ARENA_INITIALIZE(dummy, &base_pool);
 	return (iralloct(ptr, size, extra, alignment, zero, true, true, &dummy));
 }
 
@@ -1010,7 +1026,7 @@ ixalloc(void *ptr, size_t size, size_t extra, size_t alignment, bool zero)
 	if (size <= arena_maxclass)
 		return (arena_ralloc_no_move(ptr, oldsize, size, extra, zero));
 	else
-		return (huge_ralloc_no_move(pools[0], ptr, oldsize, size, extra, zero));
+		return (huge_ralloc_no_move(&base_pool, ptr, oldsize, size, extra, zero));
 }
 
 malloc_tsd_externs(thread_allocated, thread_allocated_t)

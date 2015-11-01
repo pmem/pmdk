@@ -33,43 +33,28 @@
 /*
  * vmem_multiple_pools.c -- unit test for vmem_multiple_pools
  *
- * usage: vmem_multiple_pools directory
+ * usage: vmem_multiple_pools directory npools [nthreads]
  */
 
 #include "unittest.h"
 
-#define	TEST_POOLS_MAX (9)
-#define	TEST_REPEAT_CREATE_POOLS (30)
+#define	TEST_REPEAT_CREATE_POOLS (10)
 
-int
-main(int argc, char *argv[])
+static char **mem_pools;
+static VMEM **pools;
+static int npools;
+static const char *dir;
+
+static void *
+thread_func(void *arg)
 {
-	const unsigned mem_pools_size = TEST_POOLS_MAX / 2 + TEST_POOLS_MAX % 2;
-	char *mem_pools[mem_pools_size];
-	VMEM *pools[TEST_POOLS_MAX];
+	int start_idx = *(int *)arg;
 
-	memset(pools, 0, sizeof (pools));
+	for (int repeat = 0; repeat < TEST_REPEAT_CREATE_POOLS; ++repeat) {
+		for (int idx = 0; idx < npools; ++idx) {
+			int pool_id = start_idx + idx;
 
-	START(argc, argv, "vmem_multiple_pools");
-
-	if (argc < 2 || argc > 3)
-		FATAL("usage: %s directory", argv[0]);
-
-	const char *dir = argv[1];
-
-	/* create and destroy pools multiple times */
-	size_t repeat;
-	size_t pool_id;
-
-	for (pool_id = 0; pool_id < mem_pools_size; ++pool_id) {
-		/* allocate memory for function vmem_create_in_region() */
-		mem_pools[pool_id] = MMAP_ANON_ALIGNED(VMEM_MIN_POOL, 4 << 20);
-	}
-
-	for (repeat = 0; repeat < TEST_REPEAT_CREATE_POOLS; ++repeat) {
-		for (pool_id = 0; pool_id < TEST_POOLS_MAX; ++pool_id) {
-
-			/* delete old pool with this same id if exist */
+			/* delete old pool with the same id if exist */
 			if (pools[pool_id] != NULL) {
 				vmem_delete(pools[pool_id]);
 				pools[pool_id] = NULL;
@@ -97,12 +82,57 @@ main(int argc, char *argv[])
 		}
 	}
 
-	for (pool_id = 0; pool_id < TEST_POOLS_MAX; ++pool_id) {
+	return NULL;
+}
+
+int
+main(int argc, char *argv[])
+{
+	int nthreads = 1;
+
+	START(argc, argv, "vmem_multiple_pools");
+
+	if (argc < 3 || argc > 4)
+		FATAL("usage: %s directory npools [nthreads]", argv[0]);
+
+	dir = argv[1];
+
+	npools = atoi(argv[2]);
+
+	if (argc > 3)
+		nthreads = atoi(argv[3]);
+
+	OUT("create %d pools in %d thread(s)", npools, nthreads);
+
+	const unsigned mem_pools_size = (npools / 2 + npools % 2) * nthreads;
+	mem_pools = MALLOC(mem_pools_size * sizeof (char *));
+	pools = CALLOC(npools * nthreads, sizeof (VMEM *));
+	pthread_t threads[nthreads];
+	int pool_idx[nthreads];
+
+	for (int pool_id = 0; pool_id < mem_pools_size; ++pool_id) {
+		/* allocate memory for function vmem_create_in_region() */
+		mem_pools[pool_id] = MMAP_ANON_ALIGNED(VMEM_MIN_POOL, 4 << 20);
+	}
+
+	/* create and destroy pools multiple times */
+	for (int t = 0; t < nthreads; t++) {
+		pool_idx[t] = npools * t;
+		PTHREAD_CREATE(&threads[t], NULL, thread_func, &pool_idx[t]);
+	}
+
+	for (int t = 0; t < nthreads; t++)
+		PTHREAD_JOIN(threads[t], NULL);
+
+	for (int pool_id = 0; pool_id < npools; ++pool_id) {
 		if (pools[pool_id] != NULL) {
 			vmem_delete(pools[pool_id]);
 			pools[pool_id] = NULL;
 		}
 	}
+
+	FREE(mem_pools);
+	FREE(pools);
 
 	DONE(NULL);
 }

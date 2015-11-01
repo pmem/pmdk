@@ -12,9 +12,8 @@ static malloc_tsd_cleanup_t cleanups[MALLOC_TSD_CLEANUPS_MAX];
 void *
 malloc_tsd_malloc(size_t size)
 {
-	pool_t *base_pool = pools[0];
 	/* Avoid choose_arena() in order to dodge bootstrapping issues. */
-	return (arena_malloc(base_pool->arenas[0], size, false, false));
+	return (arena_malloc(base_pool.arenas[0], size, false, false));
 }
 
 void

@@ -83,6 +83,8 @@ main(int argc, char *argv[])
 	v.sa_flags = 0;
 	v.sa_handler = signal_handler;
 	SIGACTION(SIGSEGV, &v, NULL);
+	SIGACTION(SIGABRT, &v, NULL);
+	SIGACTION(SIGILL, &v, NULL);
 
 	/* go through all arguments one by one */
 	for (int arg = 1; arg < argc; arg++) {
@@ -168,7 +170,11 @@ main(int argc, char *argv[])
 			OUT("Testing vmem_delete...");
 			if (!sigsetjmp(Jmp, 1)) {
 				vmem_delete(vmp);
-				OUT("\tvmem_delete succeeded");
+				if (errno != 0)
+					OUT("\tvmem_delete failed: %s",
+						vmem_errormsg());
+				else
+					OUT("\tvmem_delete succeeded");
 			}
 			break;
 		}

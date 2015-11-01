@@ -711,7 +711,7 @@ ctl_refresh_pool(pool_t *pool)
 static void
 ctl_refresh(void)
 {
-	for (int i = 0; i < POOLS_MAX; ++i) {
+	for (int i = 0; i < npools; ++i) {
 		if (pools[i] != NULL) {
 			ctl_refresh_pool(pools[i]);
 		}
@@ -769,7 +769,7 @@ ctl_init(void)
 {
 	bool ret;
 	malloc_mutex_lock(&ctl_mtx);
-	for (int i = 0; i < POOLS_MAX; ++i) {
+	for (int i = 0; i < npools; ++i) {
 		if (pools[i] != NULL && pools[i]->ctl_initialized == false) {
 			if (ctl_init_pool(pools[i])) {
 				ret = true;
@@ -1251,12 +1251,45 @@ thread_arena_ctl(const size_t *mib, size_t miblen, void *oldp, size_t *oldlenp,
 	pool_t *pool;
 	arena_t dummy;
 
-	if (pool_ind >= POOLS_MAX)
+	if (pool_ind >= npools)
 		return (ENOENT);
 
 	pool = pools[pool_ind];
 	DUMMY_ARENA_INITIALIZE(dummy, pool);
 	tsd_tcache_t *tcache_tsd = tcache_tsd_get();
+
+	if (tcache_tsd->npools <= pool_ind) {
+		assert(pool_ind < POOLS_MAX);
+
+		size_t npools = 1 << (32 - __builtin_clz(pool_ind + 1));
+		if (npools < POOLS_MIN)
+			npools = POOLS_MIN;
+
+		unsigned *tseqno = je_base_malloc(npools * sizeof (unsigned));
+		if (tseqno == NULL)
+			return (ENOMEM);
+
+		if (tcache_tsd->seqno != NULL)
+			memcpy(tseqno, tcache_tsd->seqno, tcache_tsd->npools * sizeof (unsigned));
+		memset(&tseqno[tcache_tsd->npools], 0, (npools - tcache_tsd->npools) * sizeof (unsigned));
+
+		tcache_t **tcaches = je_base_malloc(npools * sizeof (tcache_t *));
+		if (tcaches == NULL) {
+			je_base_free(tseqno);
+			return (ENOMEM);
+		}
+
+		if (tcache_tsd->tcaches != NULL)
+			memcpy(tcaches, tcache_tsd->tcaches, tcache_tsd->npools * sizeof (tcache_t *));
+		memset(&tcaches[tcache_tsd->npools], 0, (npools - tcache_tsd->npools) * sizeof (tcache_t *));
+
+		je_base_free(tcache_tsd->seqno);
+		tcache_tsd->seqno = tseqno;
+		je_base_free(tcache_tsd->tcaches);
+		tcache_tsd->tcaches = tcaches;
+
+		tcache_tsd->npools = npools;
+	}
 
 	malloc_mutex_lock(&ctl_mtx);
 	newind = oldind = choose_arena(&dummy)->ind;
@@ -1349,15 +1382,13 @@ thread_tcache_flush_ctl(const size_t *mib, size_t miblen, void *oldp,
 {
 	int ret;
 
-	pool_t *pool = pools[0];
-
 	if (config_tcache == false)
 		return (ENOENT);
 
 	READONLY();
 	WRITEONLY();
 
-	tcache_flush(pool);
+	tcache_flush(pools[0]);
 
 	ret = 0;
 label_return:
@@ -1395,7 +1426,7 @@ arena_i_purge_ctl(const size_t *mib, size_t miblen, void *oldp, size_t *oldlenp,
 {
 	int ret;
 
-	if (mib[1] >= POOLS_MAX)
+	if (mib[1] >= npools)
 		return (ENOENT);
 
 	READONLY();
@@ -1422,7 +1453,7 @@ arena_i_dss_ctl(const size_t *mib, size_t miblen, void *oldp, size_t *oldlenp,
 	dss_prec_t dss_prec = dss_prec_limit;
 	pool_t *pool;
 
-	if (pool_ind >= POOLS_MAX)
+	if (pool_ind >= npools)
 		return (ENOENT);
 
 	malloc_mutex_lock(&ctl_mtx);
@@ -1475,7 +1506,7 @@ arena_i_chunk_alloc_ctl(const size_t *mib, size_t miblen, void *oldp,
 	arena_t *arena;
 	pool_t *pool;
 
-	if (pool_ind >= POOLS_MAX)
+	if (pool_ind >= npools)
 		return (ENOENT);
 
 	malloc_mutex_lock(&ctl_mtx);
@@ -1511,7 +1542,7 @@ arena_i_chunk_dalloc_ctl(const size_t *mib, size_t miblen, void *oldp,
 	arena_t *arena;
 	pool_t *pool;
 
-	if (pool_ind >= POOLS_MAX)
+	if (pool_ind >= npools)
 		return (ENOENT);
 
 	malloc_mutex_lock(&ctl_mtx);
@@ -1643,7 +1674,7 @@ arenas_extend_ctl(const size_t *mib, size_t miblen, void *oldp, size_t *oldlenp,
 	unsigned pool_ind = mib[1];
 	pool_t *pool;
 
-	if (pool_ind >= POOLS_MAX)
+	if (pool_ind >= npools)
 		return (ENOENT);
 
 	pool = pools[pool_ind];
@@ -1679,7 +1710,7 @@ pools_npools_ctl(const size_t *mib, size_t miblen, void *oldp, size_t *oldlenp,
                ret = EINVAL;
                goto label_return;
        }
-       _npools = npools;
+       _npools = npools_cnt;
        READ(_npools, unsigned);
 
        ret = 0;
@@ -1737,7 +1768,7 @@ pool_i_index(const size_t *mib, size_t miblen, size_t i)
        const ctl_named_node_t * ret;
 
        malloc_mutex_lock(&ctl_mtx);
-       if (i > POOLS_MAX) {
+       if (i > npools) {
                ret = NULL;
                goto label_return;
        }
@@ -1927,7 +1958,7 @@ thread_pool_i_index(const size_t *mib, size_t miblen, size_t i)
 	const ctl_named_node_t *ret;
 
 	malloc_mutex_lock(&ctl_mtx);
-	if (i > POOLS_MAX) {
+	if (i > npools) {
 		ret = NULL;
 		goto label_return;
 	}
