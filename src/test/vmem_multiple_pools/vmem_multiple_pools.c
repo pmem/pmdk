@@ -88,19 +88,14 @@ thread_func(void *arg)
 int
 main(int argc, char *argv[])
 {
-	int nthreads = 1;
-
 	START(argc, argv, "vmem_multiple_pools");
 
-	if (argc < 3 || argc > 4)
-		FATAL("usage: %s directory npools [nthreads]", argv[0]);
+	if (argc < 4)
+		FATAL("usage: %s directory npools nthreads", argv[0]);
 
 	dir = argv[1];
-
 	npools = atoi(argv[2]);
-
-	if (argc > 3)
-		nthreads = atoi(argv[3]);
+	int nthreads = atoi(argv[3]);
 
 	OUT("create %d pools in %d thread(s)", npools, nthreads);
 
