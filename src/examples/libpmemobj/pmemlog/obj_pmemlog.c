@@ -288,6 +288,7 @@ pmemlog_rewind(PMEMlogpool *plp)
 
 	bp->head = OID_NULL;
 	bp->tail = OID_NULL;
+	bp->bytes_written = 0;
 
 	pmemobj_tx_commit();
 	pmemobj_tx_end();

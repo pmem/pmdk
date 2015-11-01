@@ -94,13 +94,25 @@ dec_keys(uint64_t key, PMEMoid value, void *arg)
 	return 0;
 }
 
-int main(int argc, const char *argv[]) {
+int
+main(int argc, const char *argv[])
+{
 	if (argc < 2) {
-		printf("usage: %s file-name\n", argv[0]);
+		printf("usage: %s file-name [nops]\n", argv[0]);
 		return 1;
 	}
 
 	const char *path = argv[1];
+	int nops = MAX_INSERTS;
+
+	if (argc > 2) {
+		nops = atoi(argv[2]);
+		if (nops <= 0 || nops > MAX_INSERTS) {
+			fprintf(stderr, "number of operations must be "
+				"in range 1..%u\n", MAX_INSERTS);
+			return 1;
+		}
+	}
 
 	PMEMobjpool *pop;
 	srand(time(NULL));
@@ -127,7 +139,7 @@ int main(int argc, const char *argv[]) {
 	TX_BEGIN(pop) {
 		tree_map_new(pop, &D_RW(root)->map);
 
-		for (int i = 0; i < MAX_INSERTS; ++i) {
+		for (int i = 0; i < nops; ++i) {
 			/* new_store_item is transactional! */
 			tree_map_insert(pop, D_RO(root)->map, rand(),
 				new_store_item().oid);
