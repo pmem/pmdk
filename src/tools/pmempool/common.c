@@ -151,7 +151,7 @@ util_parse_size(const char *str, uint64_t *sizep)
 	uint64_t size = 0;
 	int shift = 0;
 	char unit[3] = {0};
-	int ret = sscanf(str, "%lu%3s", &size, unit);
+	int ret = sscanf(str, "%lu%2s", &size, unit);
 	if (ret <= 0)
 		return -1;
 	if (ret == 2) {

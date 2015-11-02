@@ -79,7 +79,7 @@ static int
 vsnprintf_custom_function(char *str, size_t size, const char *format,
 		va_list ap)
 {
-	char format2[strlen(format) * 2];
+	char format2[strlen(format) * 3];
 	int i = 0;
 
 	while (*format != '\0') {
