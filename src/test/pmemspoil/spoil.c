@@ -1152,8 +1152,8 @@ pmemspoil_process_oob(struct pmemspoil *psp,
 	struct oob_header *oob = ENTRY_TO_OOB_HDR(entry);
 
 	PROCESS_BEGIN(psp, pfp) {
-		PROCESS_FIELD(oob, internal_type, uint16_t);
-		PROCESS_FIELD(oob, user_type, uint16_t);
+		PROCESS_FIELD(&oob->data, internal_type, uint16_t);
+		PROCESS_FIELD(&oob->data, user_type, uint16_t);
 		PROCESS_FIELD(oob, size, uint64_t);
 	} PROCESS_END
 

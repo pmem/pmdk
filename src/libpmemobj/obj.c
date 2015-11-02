@@ -297,8 +297,8 @@ pmemobj_vg_register_object(struct pmemobjpool *pop, PMEMoid oid, int is_root)
 				sizeof (oob->size));
 
 	/* no one should touch it */
-	VALGRIND_DO_MAKE_MEM_NOACCESS(pop, &oob->padding,
-			sizeof (oob->padding));
+	VALGRIND_DO_MAKE_MEM_NOACCESS(pop, &oob->data.padding,
+			sizeof (oob->data.padding));
 }
 
 /*
@@ -1043,14 +1043,15 @@ constructor_alloc_bytype(PMEMobjpool *pop, void *ptr, void *arg)
 	struct oob_header *pobj = OOB_HEADER_FROM_PTR(ptr);
 	struct carg_bytype *carg = arg;
 
-	pobj->internal_type = TYPE_ALLOCATED;
-	pobj->user_type = carg->user_type;
-	pop->persist(pop, &pobj->internal_type,
+	pobj->data.internal_type = TYPE_ALLOCATED;
+	pobj->data.user_type = carg->user_type;
+	pop->persist(pop, &pobj->data.internal_type,
 		/* there's no padding between these, so we can add sizes */
-		sizeof (pobj->internal_type) + sizeof (pobj->user_type));
+		sizeof (pobj->data.internal_type) +
+		sizeof (pobj->data.user_type));
 
-	VALGRIND_DO_MAKE_MEM_NOACCESS(pop, &pobj->padding,
-			sizeof (pobj->padding));
+	VALGRIND_DO_MAKE_MEM_NOACCESS(pop, &pobj->data.padding,
+			sizeof (pobj->data.padding));
 
 	if (carg->constructor)
 		carg->constructor(pop, ptr, carg->arg);
@@ -1175,9 +1176,9 @@ obj_free(PMEMobjpool *pop, PMEMoid *oidp)
 {
 	struct oob_header *pobj = OOB_HEADER_FROM_OID(pop, *oidp);
 
-	ASSERT(pobj->user_type < PMEMOBJ_NUM_OID_TYPES);
+	ASSERT(pobj->data.user_type < PMEMOBJ_NUM_OID_TYPES);
 
-	void *lhead = &pop->store->bytype[pobj->user_type].head;
+	void *lhead = &pop->store->bytype[pobj->data.user_type].head;
 	if (list_remove_free(pop, lhead, 0, NULL, oidp))
 		LOG(2, "list_remove_free failed");
 }
@@ -1225,7 +1226,7 @@ obj_realloc_common(PMEMobjpool *pop, struct object_store *store,
 	carg.user_type = type_num;
 
 	struct oob_header *pobj = OOB_HEADER_FROM_OID(pop, *oidp);
-	uint16_t user_type_old = pobj->user_type;
+	uint16_t user_type_old = pobj->data.user_type;
 
 	ASSERT(user_type_old < PMEMOBJ_NUM_OID_TYPES);
 
@@ -1247,7 +1248,8 @@ obj_realloc_common(PMEMobjpool *pop, struct object_store *store,
 		return ret;
 	} else {
 		struct list_head *lhead_new = &store->bytype[type_num].head;
-		uint64_t user_type_offset = OOB_OFFSET_OF(*oidp, user_type);
+		uint64_t user_type_offset =
+				OOB_OFFSET_OF(*oidp, data.user_type);
 		int ret = list_realloc_move(pop, lhead_old, lhead_new, 0, NULL,
 				size, constr_realloc, &carg, user_type_offset,
 				type_num, oidp);
@@ -1280,14 +1282,15 @@ constructor_realloc(PMEMobjpool *pop, void *ptr, void *arg)
 
 	pop->memcpy_persist(pop, ptr, carg->ptr, cpy_size);
 
-	pobj->internal_type = TYPE_ALLOCATED;
-	pobj->user_type = carg->user_type;
-	pop->persist(pop, &pobj->internal_type,
+	pobj->data.internal_type = TYPE_ALLOCATED;
+	pobj->data.user_type = carg->user_type;
+	pop->persist(pop, &pobj->data.internal_type,
 		/* there's no padding between these, so we can add sizes */
-		sizeof (pobj->internal_type) + sizeof (pobj->user_type));
+		sizeof (pobj->data.internal_type) +
+		sizeof (pobj->data.user_type));
 
-	VALGRIND_DO_MAKE_MEM_NOACCESS(pop, &pobj->padding,
-			sizeof (pobj->padding));
+	VALGRIND_DO_MAKE_MEM_NOACCESS(pop, &pobj->data.padding,
+			sizeof (pobj->data.padding));
 }
 
 /*
@@ -1310,15 +1313,15 @@ constructor_zrealloc(PMEMobjpool *pop, void *ptr, void *arg)
 
 		pop->memcpy_persist(pop, ptr, carg->ptr, cpy_size);
 
-		pobj->internal_type = TYPE_ALLOCATED;
-		pobj->user_type = carg->user_type;
-		pop->persist(pop, &pobj->internal_type,
+		pobj->data.internal_type = TYPE_ALLOCATED;
+		pobj->data.user_type = carg->user_type;
+		pop->persist(pop, &pobj->data.internal_type,
 		/* there's no padding between these, so we can add sizes */
-			sizeof (pobj->internal_type) +
-			sizeof (pobj->user_type));
+			sizeof (pobj->data.internal_type) +
+			sizeof (pobj->data.user_type));
 
-		VALGRIND_DO_MAKE_MEM_NOACCESS(pop, &pobj->padding,
-				sizeof (pobj->padding));
+		VALGRIND_DO_MAKE_MEM_NOACCESS(pop, &pobj->data.padding,
+				sizeof (pobj->data.padding));
 	}
 
 	if (carg->new_size > carg->old_size) {
@@ -1551,7 +1554,7 @@ pmemobj_type_num(PMEMoid oid)
 	void *ptr = pmemobj_direct(oid);
 
 	struct oob_header *oobh = OOB_HEADER_FROM_PTR(ptr);
-	return oobh->user_type;
+	return oobh->data.user_type;
 }
 
 /* arguments for constructor_alloc_root */
@@ -1578,18 +1581,19 @@ constructor_alloc_root(PMEMobjpool *pop, void *ptr, void *arg)
 
 	pop->memset_persist(pop, ptr, 0, carg->size);
 
-	ro->internal_type = TYPE_ALLOCATED;
-	ro->user_type = POBJ_ROOT_TYPE_NUM;
+	ro->data.internal_type = TYPE_ALLOCATED;
+	ro->data.user_type = POBJ_ROOT_TYPE_NUM;
 	ro->size = carg->size;
 
 	VALGRIND_REMOVE_FROM_TX(ro, OBJ_OOB_SIZE + carg->size);
 
 	pop->persist(pop, &ro->size,
 		/* there's no padding between these, so we can add sizes */
-		sizeof (ro->size) + sizeof (ro->internal_type) +
-		sizeof (ro->user_type));
+		sizeof (ro->size) + sizeof (ro->data.internal_type) +
+		sizeof (ro->data.user_type));
 
-	VALGRIND_DO_MAKE_MEM_NOACCESS(pop, &ro->padding, sizeof (ro->padding));
+	VALGRIND_DO_MAKE_MEM_NOACCESS(pop, &ro->data.padding,
+			sizeof (ro->data.padding));
 }
 
 /*
@@ -1719,7 +1723,7 @@ pmemobj_next(PMEMoid oid)
 	ASSERT(OBJ_OID_IS_VALID(pop, oid));
 
 	struct oob_header *pobj = OOB_HEADER_FROM_OID(pop, oid);
-	uint16_t user_type = pobj->user_type;
+	uint16_t user_type = pobj->data.user_type;
 
 	ASSERT(user_type < PMEMOBJ_NUM_OID_TYPES);
 
@@ -1813,9 +1817,9 @@ pmemobj_list_remove(PMEMobjpool *pop, size_t pe_offset, void *head,
 	if (free) {
 		struct oob_header *pobj = OOB_HEADER_FROM_OID(pop, oid);
 
-		ASSERT(pobj->user_type < PMEMOBJ_NUM_OID_TYPES);
+		ASSERT(pobj->data.user_type < PMEMOBJ_NUM_OID_TYPES);
 
-		void *lhead = &pop->store->bytype[pobj->user_type].head;
+		void *lhead = &pop->store->bytype[pobj->data.user_type].head;
 		return list_remove_free(pop, lhead, pe_offset, head, &oid);
 	} else
 		return list_remove(pop, pe_offset, head, oid);
