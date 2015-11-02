@@ -348,7 +348,7 @@ function expect_normal_exit() {
 #
 function expect_abnormal_exit() {
 	set +e
-	eval $ECHO LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH LD_PRELOAD=$TEST_LD_PRELOAD \
+	eval $ECHO ASAN_OPTIONS="detect_leaks=0 ${ASAN_OPTIONS}" LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH LD_PRELOAD=$TEST_LD_PRELOAD \
 	$TRACE $*
 	set -e
 }
