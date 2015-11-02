@@ -1343,12 +1343,16 @@ util_heap_get_bitmap_params(uint64_t block_size, uint64_t *nallocsp,
 		uint64_t *nvalsp, uint64_t *last_valp)
 {
 	uint64_t nallocs = RUNSIZE / block_size;
+	assert(nallocs <= RUN_BITMAP_SIZE);
+
 	int unused_bits = RUN_BITMAP_SIZE - nallocs;
 	int unused_values = unused_bits / BITS_PER_VALUE;
 	uint64_t nvals = MAX_BITMAP_VALUES - unused_values;
 	unused_bits -= unused_values * BITS_PER_VALUE;
-	uint64_t last_val = (((1ULL << unused_bits) - 1ULL) <<
-				(BITS_PER_VALUE - unused_bits));
+	assert(unused_bits >= 0);
+	uint64_t last_val = unused_bits ? (((1ULL << unused_bits) - 1ULL) <<
+				(BITS_PER_VALUE - unused_bits)) : 0;
+
 	if (nvals >= MAX_BITMAP_VALUES || nvals == 0)
 		return -1;
 
