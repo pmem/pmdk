@@ -35,6 +35,7 @@
  */
 
 #include <inttypes.h>
+#include <sys/param.h>
 
 #include "unittest.h"
 #include "util.h"
@@ -105,7 +106,8 @@ FUNC_MOCK_RUN_DEFAULT {
 		pop->persist(pop, alloc, sizeof (*alloc));
 		*off = hheader->offset + sizeof (*alloc);
 		pop->persist(pop, off, sizeof (uint64_t));
-		hheader->offset += size + sizeof (*alloc);
+		hheader->offset += roundup(size, sizeof (uint64_t));
+		hheader->offset += sizeof (*alloc);
 		hheader->size -= size + sizeof (*alloc);
 		pop->persist(pop, hheader, sizeof (*hheader));
 		return 0;

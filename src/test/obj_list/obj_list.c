@@ -35,6 +35,7 @@
  */
 
 #include <stddef.h>
+#include <sys/param.h>
 
 #include "unittest.h"
 #include "util.h"
@@ -169,6 +170,17 @@ obj_drain(PMEMobjpool *pop)
 }
 
 /*
+ * linear_alloc -- allocates `size` bytes (rounded up to 8 bytes) and returns
+ * offset to the allocated object
+ */
+static uint64_t
+linear_alloc(uint64_t *cur_offset, size_t size)
+{
+	uint64_t ret = *cur_offset;
+	*cur_offset += roundup(size, sizeof (uint64_t));
+	return ret;
+}
+/*
  * pmemobj_open -- pmemobj_open mock
  *
  * This function initializes the pmemobj pool for purposes of this
@@ -220,40 +232,35 @@ FUNC_MOCK_RUN_DEFAULT {
 	Pop->heap_size = Pop->size - Pop->heap_offset;
 	uint64_t heap_offset = HEAP_OFFSET;
 
-	Heap_offset = (uint64_t *)((uintptr_t)Pop + heap_offset);
-	heap_offset += sizeof (*Heap_offset);
+	Heap_offset = (uint64_t *)((uintptr_t)Pop +
+			linear_alloc(&heap_offset, sizeof (*Heap_offset)));
 
-	Id = (int *)((uintptr_t)Pop + heap_offset);
-	heap_offset += sizeof (*Id);
+	Id = (int *)((uintptr_t)Pop + linear_alloc(&heap_offset, sizeof (*Id)));
 
 	/* Alloc lane layout */
-	Lane_section.layout = (void *)((uintptr_t)Pop + heap_offset);
-	heap_offset += LANE_SECTION_LEN;
+	Lane_section.layout = (void *)((uintptr_t)Pop +
+			linear_alloc(&heap_offset, LANE_SECTION_LEN));
 
 	/* Alloc in band lists */
 	List.oid.pool_uuid_lo = Pop->uuid_lo;
-	List.oid.off = heap_offset;
-	heap_offset += sizeof (struct list);
+	List.oid.off = linear_alloc(&heap_offset, sizeof (struct list));
 
 	List_sec.oid.pool_uuid_lo = Pop->uuid_lo;
-	List_sec.oid.off = heap_offset;
-	heap_offset += sizeof (struct list);
+	List_sec.oid.off = linear_alloc(&heap_offset, sizeof (struct list));
 
 	/* Alloc out of band lists */
 	List_oob.oid.pool_uuid_lo = Pop->uuid_lo;
-	List_oob.oid.off = heap_offset;
-	heap_offset += sizeof (struct oob_list);
+	List_oob.oid.off = linear_alloc(&heap_offset, sizeof (struct oob_list));
 
 	List_oob_sec.oid.pool_uuid_lo = Pop->uuid_lo;
-	List_oob_sec.oid.off = heap_offset;
-	heap_offset += sizeof (struct oob_list);
+	List_oob_sec.oid.off =
+			linear_alloc(&heap_offset, sizeof (struct oob_list));
 
-	Item = (void *)((uintptr_t)Pop + heap_offset);
-	heap_offset += sizeof (*Item);
+	Item = (void *)((uintptr_t)Pop +
+			linear_alloc(&heap_offset, sizeof (*Item)));
 	Item->oid.pool_uuid_lo = Pop->uuid_lo;
-	Item->oid.off = heap_offset;
+	Item->oid.off = linear_alloc(&heap_offset, sizeof (struct oob_item));
 	Pop->persist(Pop, Item, sizeof (*Item));
-	heap_offset += sizeof (struct oob_item);
 
 	if (*Heap_offset == 0) {
 		*Heap_offset = heap_offset;
