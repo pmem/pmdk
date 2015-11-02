@@ -110,6 +110,7 @@ mv $SOURCE $PACKAGE_SOURCE
 # keep descriptive values separately from this script.
 #
 cat << EOF > $RPM_SPEC_FILE
+
 %if 0%{?suse_version} != 0
 %define package_group System
 %define dist .suse%{suse_version}
@@ -339,6 +340,10 @@ make -s pcheck
 
 %clean
 make clobber
+
+%if 0%{?__debug_package} == 0
+%debug_package
+%endif
 
 %changelog
 EOF
