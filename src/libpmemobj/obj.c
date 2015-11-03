@@ -1248,11 +1248,20 @@ obj_realloc_common(PMEMobjpool *pop, struct object_store *store,
 		return ret;
 	} else {
 		struct list_head *lhead_new = &store->bytype[type_num].head;
-		uint64_t user_type_offset =
-				OOB_OFFSET_OF(*oidp, data.user_type);
+
+		/*
+		 * Redo log updates 8 byte entries, so we have to prepare
+		 * full 8-byte value even if we want to update smaller field
+		 * (here: user_type).
+		 */
+		struct oob_header_data d = pobj->data;
+		d.user_type = type_num;
+
+		uint64_t data_offset = OOB_OFFSET_OF(*oidp, data);
+
 		int ret = list_realloc_move(pop, lhead_old, lhead_new, 0, NULL,
-				size, constr_realloc, &carg, user_type_offset,
-				type_num, oidp);
+				size, constr_realloc, &carg, data_offset,
+				*((uint64_t *)&d), oidp);
 		if (ret)
 			LOG(2, "list_realloc_move failed");
 

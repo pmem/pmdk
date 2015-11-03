@@ -101,6 +101,22 @@ test_free(PMEMobjpool *pop)
 	ASSERT(TOID_IS_NULL(D_RO(root)->obj));
 }
 
+static int check_integrity = 1;
+
+/*
+ * fill_buffer -- fill buffer with random data and return its checksum
+ */
+static uint64_t
+fill_buffer(unsigned char *buf, size_t size)
+{
+	uint64_t csum;
+	for (size_t i = 0; i < size; ++i)
+		buf[i] = rand() % 255;
+	pmem_persist(buf, size);
+	util_checksum(buf, size, &csum, 1);
+	return csum;
+}
+
 /*
  * test_realloc -- test single reallocation
  */
@@ -115,7 +131,20 @@ test_realloc(PMEMobjpool *pop, size_t size_from, size_t size_to,
 			size_from, type_from, NULL, NULL);
 	ASSERTeq(ret, 0);
 	ASSERT(!TOID_IS_NULL(D_RO(root)->obj));
-	ASSERT(pmemobj_alloc_usable_size(D_RO(root)->obj.oid) >= size_from);
+	size_t usable_size_from =
+			pmemobj_alloc_usable_size(D_RO(root)->obj.oid);
+
+	ASSERT(usable_size_from >= size_from);
+
+	size_t check_size;
+	uint64_t checksum;
+
+	if (check_integrity) {
+		check_size = size_to >= usable_size_from ?
+				usable_size_from : size_to;
+		checksum = fill_buffer((void *)D_RW(D_RW(root)->obj),
+				check_size);
+	}
 
 	if (zrealloc) {
 		ret = pmemobj_zrealloc(pop, &D_RW(root)->obj.oid,
@@ -123,6 +152,12 @@ test_realloc(PMEMobjpool *pop, size_t size_from, size_t size_to,
 	} else {
 		ret = pmemobj_realloc(pop, &D_RW(root)->obj.oid,
 				size_to, type_to);
+	}
+
+	if (check_integrity) {
+		if (util_checksum(D_RW(D_RW(root)->obj), check_size, &checksum,
+				0) == 0)
+			ASSERTinfo(0, "memory corruption");
 	}
 
 	ASSERTeq(ret, 0);
@@ -181,12 +216,15 @@ main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_realloc");
 
-	if (argc != 2)
-		FATAL("usage: %s [file]", argv[0]);
+	if (argc < 2)
+		FATAL("usage: %s file [check_integrity]", argv[0]);
 
 	PMEMobjpool *pop = pmemobj_open(argv[1], POBJ_LAYOUT_NAME(realloc));
 	if (!pop)
 		FATAL("!pmemobj_open");
+
+	if (argc >= 3)
+		check_integrity = atoi(argv[2]);
 
 	/* initialize sizes */
 	for (int i = 0; i < MAX_ALLOC_CLASS - 1; i++)
