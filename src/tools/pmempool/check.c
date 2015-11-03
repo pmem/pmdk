@@ -1549,17 +1549,17 @@ pmempool_check_btt_info(struct pmempool_check *pcp)
 	 */
 	uint64_t offset = 2 * BTT_ALIGNMENT;
 	uint64_t nextoff = 0;
-	ssize_t ret = 0;
 	check_result_t result = CHECK_RESULT_CONSISTENT;
 	do {
 		struct arena *arenap = calloc(1, sizeof (struct arena));
 		if (!arenap)
 			err(1, "Cannot allocate memory for arena");
+
 		offset += nextoff;
 
 		/* read the BTT Info header at well known offset */
-		if ((ret = pmempool_check_read(pcp, &arenap->btt_info,
-			sizeof (arenap->btt_info), offset)) != 0) {
+		if (pmempool_check_read(pcp, &arenap->btt_info,
+			sizeof (arenap->btt_info), offset) != 0) {
 			if (errno)
 				warn("%s", pcp->fname);
 			outv_err("arena %u: cannot read BTT Info header\n",
@@ -1655,7 +1655,7 @@ pmempool_check_btt_info(struct pmempool_check *pcp)
 
 				return CHECK_RESULT_CANNOT_REPAIR;
 			} else {
-				ret = CHECK_RESULT_REPAIRED;
+				result = CHECK_RESULT_REPAIRED;
 			}
 		}
 
@@ -1672,7 +1672,7 @@ pmempool_check_btt_info(struct pmempool_check *pcp)
 			pmempool_check_insert_arena(pcp, arenap);
 			nextoff = le64toh(arenap->btt_info.nextoff);
 		}
-	} while (nextoff > 0 && ret >= 0);
+	} while (nextoff > 0);
 
 	return result;
 }
