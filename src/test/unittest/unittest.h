@@ -84,6 +84,10 @@
 #ifndef	_UNITTEST_H
 #define	_UNITTEST_H 1
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -510,9 +514,9 @@ int ut_sigaction(const char *file, int line, const char *func,
  * pthreads...
  */
 int ut_pthread_create(const char *file, int line, const char *func,
-    pthread_t *restrict thread,
-    const pthread_attr_t *restrict attr,
-    void *(*start_routine)(void *), void *restrict arg);
+    pthread_t *__restrict thread,
+    const pthread_attr_t *__restrict attr,
+    void *(*start_routine)(void *), void *__restrict arg);
 int ut_pthread_join(const char *file, int line, const char *func,
     pthread_t thread, void **value_ptr);
 
@@ -577,5 +581,9 @@ void ut_sighandler(int);
 void ut_register_sighandlers(void);
 
 uint16_t ut_checksum(uint8_t *addr, size_t len);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif	/* unittest.h */
