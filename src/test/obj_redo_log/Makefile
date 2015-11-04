@@ -41,8 +41,6 @@ vpath %.c ../../common
 TARGET = obj_redo_log
 OBJS = obj_redo_log.o redo.o util.o out.o
 
-out.o: CFLAGS += -DSRCVERSION=\"utversion\"
-
 LIBPMEM=y
 
 include ../Makefile.inc

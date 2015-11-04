@@ -108,6 +108,10 @@ fi
 echo >> .env
 echo "EXTRA_CFLAGS+=-include `pwd`/config.h" >> .env
 
+VERSION="`git describe 2>/dev/null || cat .version`"
+echo SRCVERSION=$VERSION >> .env
+echo "#define SRCVERSION \"$VERSION\"" >> .config.h
+
 mv .env Makefile.env
 mv .config.h config.h
 rm .test.c

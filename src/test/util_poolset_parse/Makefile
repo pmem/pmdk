@@ -40,7 +40,7 @@ vpath %.h ../../common
 TARGET = util_poolset_parse
 OBJS = util_poolset_parse.o util.o set.o out.o
 
-out.o: CFLAGS += -DDEBUG -DSRCVERSION=\"utversion\"
+out.o: CFLAGS += -DDEBUG
 util.o: CFLAGS += -DDEBUG
 set.o: CFLAGS += -DDEBUG $(UUID_CFLAGS)
 

@@ -57,8 +57,7 @@
 # DESTDIR variable e.g.: "make install DESTDIR=/opt"
 # You can override the prefix within DESTDIR using prefix variable
 # e.g.: "make install prefix=/usr"
-
-export SRCVERSION = $(shell git describe 2>/dev/null || cat .version)
+-include Makefile.env
 
 export prefix = /usr/local
 

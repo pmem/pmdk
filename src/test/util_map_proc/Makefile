@@ -40,8 +40,6 @@ vpath %.h ../../common
 TARGET = util_map_proc
 OBJS = util_map_proc.o util.o out.o
 
-out.o: CFLAGS += -DSRCVERSION=\"utversion\"
-
 include ../Makefile.inc
 INCS += -I../../common
 LIBS += -ldl

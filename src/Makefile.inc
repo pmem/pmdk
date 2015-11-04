@@ -54,7 +54,6 @@ CFLAGS += -Wunused-macros
 CFLAGS += -pthread
 CFLAGS += -fno-common
 CFLAGS += $(EXTRA_CFLAGS)
-CFLAGS += -DSRCVERSION=\"$(SRCVERSION)\"
 
 LDFLAGS += -Wl,-z,relro -Wl,--fatal-warnings -Wl,--warn-common $(EXTRA_LDFLAGS)
 

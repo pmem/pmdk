@@ -40,7 +40,5 @@ vpath %.h ../../common
 TARGET = util_file_open
 OBJS = util_file_open.o util.o out.o
 
-out.o: CFLAGS += -DSRCVERSION=\"utversion\"
-
 include ../Makefile.inc
 INCS += -I../../common

@@ -43,8 +43,6 @@ OBJS = obj_heap.o heap.o util.o bucket.o ctree.o out.o lane.o
 
 LIBPMEM=y
 
-out.o: CFLAGS += -DSRCVERSION=\"utversion\"
-
 include ../Makefile.inc
 
 LDFLAGS += $(call extract_funcs, obj_heap.c)

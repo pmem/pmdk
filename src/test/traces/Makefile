@@ -41,8 +41,6 @@ vpath %.h ../../common
 TARGET = traces
 OBJS = traces.o out.o util.o
 
-out.o: CFLAGS += -DSRCVERSION=\"utversion\"
-
 include ../Makefile.inc
 
 #Test debug output

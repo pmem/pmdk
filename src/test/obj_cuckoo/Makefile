@@ -43,8 +43,6 @@ OBJS = obj_cuckoo.o cuckoo.o util.o out.o
 
 LIBPMEM=y
 
-out.o: CFLAGS += -DSRCVERSION=\"utversion\"
-
 include ../Makefile.inc
 
 LDFLAGS += $(call extract_funcs, obj_cuckoo.c)

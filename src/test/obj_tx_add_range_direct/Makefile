@@ -45,8 +45,6 @@ OBJS = obj_tx_add_range_direct.o util.o out.o
 LIBPMEM=y
 LIBPMEMOBJ=y
 
-out.o: CFLAGS += -DSRCVERSION=\"utversion\"
-
 include ../Makefile.inc
 
 INCS += -I../../libpmemobj/ -I../../common/

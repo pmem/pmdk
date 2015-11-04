@@ -43,5 +43,5 @@ include ../Makefile.inc
 INCS += -I../../common
 LDFLAGS += -Wl,--wrap=open
 
-out.o: CFLAGS += -DDEBUG -DSRCVERSION=\"utversion\"
+out.o: CFLAGS += -DDEBUG
 util.o: CFLAGS += -DDEBUG

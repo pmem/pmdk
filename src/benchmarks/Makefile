@@ -92,7 +92,6 @@ CFLAGS += $(EXTRA_CFLAGS)
 CFLAGS += -I../include
 CFLAGS += -I../libpmemobj
 CFLAGS += -I../common
-CFLAGS += -DSRCVERSION=\"$(SRCVERSION)\"
 CFLAGS += $(GLIB20_CFLAGS)
 LIBS += $(GLIB20_LIBS)
 

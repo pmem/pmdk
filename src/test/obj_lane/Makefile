@@ -43,8 +43,6 @@ OBJS = obj_lane.o lane.o util.o out.o
 
 LIBPMEM=y
 
-out.o: CFLAGS += -DSRCVERSION=\"utversion\"
-
 include ../Makefile.inc
 
 INCS += -I../../libpmemobj/ -I../../common/

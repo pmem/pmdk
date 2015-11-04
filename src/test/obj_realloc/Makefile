@@ -47,5 +47,3 @@ include ../Makefile.inc
 
 CFLAGS += -I../../libpmemobj
 CFLAGS += -I../../common
-
-out.o: CFLAGS += -DSRCVERSION=\"utversion\"
