@@ -1124,6 +1124,8 @@ struct carg_realloc {
 	size_t old_size;
 	size_t new_size;
 	unsigned int user_type;
+	void (*constructor)(PMEMobjpool *pop, void *ptr, void *arg);
+	void *arg;
 };
 
 /*
@@ -1224,6 +1226,8 @@ obj_realloc_common(PMEMobjpool *pop, struct object_store *store,
 	carg.new_size = size;
 	carg.old_size = pmemobj_alloc_usable_size(*oidp);
 	carg.user_type = type_num;
+	carg.constructor = NULL;
+	carg.arg = NULL;
 
 	struct oob_header *pobj = OOB_HEADER_FROM_OID(pop, *oidp);
 	uint16_t user_type_old = pobj->data.user_type;
@@ -1352,11 +1356,18 @@ constructor_zrealloc_root(PMEMobjpool *pop, void *ptr, void *arg)
 	ASSERTne(ptr, NULL);
 	ASSERTne(arg, NULL);
 
+	struct carg_realloc *carg = arg;
+
 	VALGRIND_ADD_TO_TX(OOB_HEADER_FROM_PTR(ptr),
-		((struct carg_realloc *)arg)->new_size + OBJ_OOB_SIZE);
+		carg->new_size + OBJ_OOB_SIZE);
+
 	constructor_zrealloc(pop, ptr, arg);
+
+	if (carg->constructor)
+		carg->constructor(pop, ptr, carg->arg);
+
 	VALGRIND_REMOVE_FROM_TX(OOB_HEADER_FROM_PTR(ptr),
-		((struct carg_realloc *)arg)->new_size + OBJ_OOB_SIZE);
+		carg->new_size + OBJ_OOB_SIZE);
 }
 
 /*
@@ -1569,6 +1580,8 @@ pmemobj_type_num(PMEMoid oid)
 /* arguments for constructor_alloc_root */
 struct carg_root {
 	size_t size;
+	void (*constructor)(PMEMobjpool *pop, void *ptr, void *arg);
+	void *arg;
 };
 
 /*
@@ -1588,7 +1601,10 @@ constructor_alloc_root(PMEMobjpool *pop, void *ptr, void *arg)
 	/* temporarily add atomic root allocation to pmemcheck transaction */
 	VALGRIND_ADD_TO_TX(ro, OBJ_OOB_SIZE + carg->size);
 
-	pop->memset_persist(pop, ptr, 0, carg->size);
+	if (carg->constructor)
+		carg->constructor(pop, ptr, carg->arg);
+	else
+		pop->memset_persist(pop, ptr, 0, carg->size);
 
 	ro->data.internal_type = TYPE_ALLOCATED;
 	ro->data.user_type = POBJ_ROOT_TYPE_NUM;
@@ -1609,7 +1625,8 @@ constructor_alloc_root(PMEMobjpool *pop, void *ptr, void *arg)
  * obj_alloc_root -- (internal) allocate root object
  */
 static int
-obj_alloc_root(PMEMobjpool *pop, struct object_store *store, size_t size)
+obj_alloc_root(PMEMobjpool *pop, struct object_store *store, size_t size,
+	void (*constructor)(PMEMobjpool *pop, void *ptr, void *arg), void *arg)
 {
 	LOG(3, "pop %p store %p size %zu", pop, store, size);
 
@@ -1617,6 +1634,8 @@ obj_alloc_root(PMEMobjpool *pop, struct object_store *store, size_t size)
 	struct carg_root carg;
 
 	carg.size = size;
+	carg.constructor = constructor;
+	carg.arg = arg;
 
 	return list_insert_new(pop, lhead, 0, NULL, OID_NULL, 0,
 				size, constructor_alloc_root, &carg, NULL);
@@ -1627,7 +1646,8 @@ obj_alloc_root(PMEMobjpool *pop, struct object_store *store, size_t size)
  */
 static int
 obj_realloc_root(PMEMobjpool *pop, struct object_store *store, size_t size,
-	size_t old_size)
+	size_t old_size,
+	void (*constructor)(PMEMobjpool *pop, void *ptr, void *arg), void *arg)
 {
 	LOG(3, "pop %p store %p size %zu old_size %zu",
 		pop, store, size, old_size);
@@ -1640,6 +1660,8 @@ obj_realloc_root(PMEMobjpool *pop, struct object_store *store, size_t size,
 	carg.old_size = old_size;
 	carg.new_size = size;
 	carg.user_type = POBJ_ROOT_TYPE_NUM;
+	carg.constructor = constructor;
+	carg.arg = arg;
 
 	return list_realloc(pop, lhead, 0, NULL, size,
 				constructor_zrealloc_root, &carg,
@@ -1663,12 +1685,13 @@ pmemobj_root_size(PMEMobjpool *pop)
 }
 
 /*
- * pmemobj_root -- returns root object
+ * pmemobj_root_construct -- returns root object
  */
-PMEMoid
-pmemobj_root(PMEMobjpool *pop, size_t size)
+PMEMoid pmemobj_root_construct(PMEMobjpool *pop, size_t size,
+	void (*constructor)(PMEMobjpool *pop, void *ptr, void *arg), void *arg)
 {
-	LOG(3, "pop %p size %zu", pop, size);
+	LOG(3, "pop %p size %zu constructor %p args %p", pop, size, constructor,
+		arg);
 
 	if (size > PMEMOBJ_MAX_ALLOC_SIZE) {
 		ERR("requested size too large");
@@ -1681,11 +1704,12 @@ pmemobj_root(PMEMobjpool *pop, size_t size)
 	pmemobj_mutex_lock(pop, &pop->rootlock);
 	if (pop->store->root.head.pe_first.off == 0)
 		/* root object list is empty */
-		obj_alloc_root(pop, pop->store, size);
+		obj_alloc_root(pop, pop->store, size, constructor, arg);
 	else {
 		size_t old_size = pmemobj_root_size(pop);
 		if (size > old_size)
-			if (obj_realloc_root(pop, pop->store, size, old_size)) {
+			if (obj_realloc_root(pop, pop->store, size, old_size,
+				constructor, arg)) {
 				pmemobj_mutex_unlock(pop, &pop->rootlock);
 				LOG(2, "obj_realloc_root failed");
 				return OID_NULL;
@@ -1694,6 +1718,17 @@ pmemobj_root(PMEMobjpool *pop, size_t size)
 	root = pop->store->root.head.pe_first;
 	pmemobj_mutex_unlock(pop, &pop->rootlock);
 	return root;
+}
+
+/*
+ * pmemobj_root -- returns root object
+ */
+PMEMoid
+pmemobj_root(PMEMobjpool *pop, size_t size)
+{
+	LOG(3, "pop %p size %zu", pop, size);
+
+	return pmemobj_root_construct(pop, size, NULL, NULL);
 }
 
 /*
