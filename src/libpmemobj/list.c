@@ -841,7 +841,6 @@ list_insert_new(PMEMobjpool *pop, struct list_head *oob_head,
 	/* clear the obj_offset in lane section */
 	redo_log_store_last(pop, redo, redo_index, sec_off_off, 0);
 
-	ASSERT(redo_index <= REDO_NUM_ENTRIES);
 	redo_log_process(pop, redo, REDO_NUM_ENTRIES);
 
 	ret = 0;
@@ -946,7 +945,6 @@ list_insert(PMEMobjpool *pop,
 
 	redo_log_set_last(pop, redo, redo_index - 1);
 
-	ASSERT(redo_index <= REDO_NUM_ENTRIES);
 	redo_log_process(pop, redo, REDO_NUM_ENTRIES);
 
 	out_ret = pmemobj_mutex_unlock(pop, &head->lock);
@@ -1060,7 +1058,6 @@ list_remove_free(PMEMobjpool *pop, struct list_head *oob_head,
 
 	redo_log_store_last(pop, redo, redo_index, sec_off_off, obj_offset);
 
-	ASSERT(redo_index <= REDO_NUM_ENTRIES);
 	redo_log_process(pop, redo, REDO_NUM_ENTRIES);
 
 	if (head) {
@@ -1163,7 +1160,6 @@ list_remove(PMEMobjpool *pop,
 
 	redo_log_set_last(pop, redo, redo_index - 1);
 
-	ASSERT(redo_index <= REDO_NUM_ENTRIES);
 	redo_log_process(pop, redo, REDO_NUM_ENTRIES);
 
 	out_ret = pmemobj_mutex_unlock(pop, &head->lock);
@@ -1260,7 +1256,6 @@ list_move_oob(PMEMobjpool *pop,
 
 	redo_log_set_last(pop, redo, redo_index - 1);
 
-	ASSERT(redo_index <= REDO_NUM_ENTRIES);
 	redo_log_process(pop, redo, REDO_NUM_ENTRIES);
 
 	out_ret = list_mutexes_unlock(pop, head_new, head_old);
@@ -1381,7 +1376,6 @@ list_move(PMEMobjpool *pop,
 
 	redo_log_set_last(pop, redo, redo_index - 1);
 
-	ASSERT(redo_index <= REDO_NUM_ENTRIES);
 	redo_log_process(pop, redo, REDO_NUM_ENTRIES);
 
 	out_ret = list_mutexes_unlock(pop, head_new, head_old);
@@ -1592,7 +1586,6 @@ list_realloc(PMEMobjpool *pop, struct list_head *oob_head,
 		redo_log_store_last(pop, redo, redo_index,
 				sec_off_off, obj_offset);
 
-		ASSERT(redo_index <= REDO_NUM_ENTRIES);
 		redo_log_process(pop, redo, REDO_NUM_ENTRIES);
 
 		/* free the old object */
@@ -1844,7 +1837,6 @@ list_realloc_move(PMEMobjpool *pop, struct list_head *oob_head_old,
 
 	redo_log_set_last(pop, redo, redo_index - 1);
 
-	ASSERT(redo_index <= REDO_NUM_ENTRIES);
 	redo_log_process(pop, redo, REDO_NUM_ENTRIES);
 
 	if (!in_place) {

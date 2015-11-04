@@ -85,6 +85,7 @@ redo_log_store(PMEMobjpool *pop, struct redo_log *redo, size_t index,
 			redo, index, offset, value);
 
 	ASSERTeq(offset & REDO_FINISH_FLAG, 0);
+	ASSERT(index < REDO_NUM_ENTRIES);
 
 	redo[index].offset = offset;
 	redo[index].value = value;
@@ -101,6 +102,7 @@ redo_log_store_last(PMEMobjpool *pop, struct redo_log *redo, size_t index,
 			redo, index, offset, value);
 
 	ASSERTeq(offset & REDO_FINISH_FLAG, 0);
+	ASSERT(index < REDO_NUM_ENTRIES);
 
 	/* store value of last entry */
 	redo[index].value = value;
@@ -120,6 +122,8 @@ void
 redo_log_set_last(PMEMobjpool *pop, struct redo_log *redo, size_t index)
 {
 	LOG(15, "redo %p index %zu", redo, index);
+
+	ASSERT(index < REDO_NUM_ENTRIES);
 
 	/* persist all redo log entries */
 	pop->persist(pop, redo, (index + 1) * sizeof (struct redo_log));
