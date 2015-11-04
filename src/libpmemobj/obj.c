@@ -1847,6 +1847,11 @@ pmemobj_list_insert(PMEMobjpool *pop, size_t pe_offset, void *head,
 	ASSERT(OBJ_OID_IS_VALID(pop, oid));
 	ASSERT(OBJ_OID_IS_VALID(pop, dest));
 
+	if (pe_offset >= pop->size) {
+		ERR("pe_offset (%lu) too big", pe_offset);
+		return EINVAL;
+	}
+
 	return list_insert(pop, pe_offset, head, dest, before, oid);
 }
 
@@ -1882,6 +1887,12 @@ pmemobj_list_insert_new(PMEMobjpool *pop, size_t pe_offset, void *head,
 		return OID_NULL;
 	}
 
+	if (pe_offset >= pop->size) {
+		ERR("pe_offset (%lu) too big", pe_offset);
+		errno = EINVAL;
+		return OID_NULL;
+	}
+
 	struct list_head *lhead = &pop->store->bytype[type_num].head;
 	struct carg_bytype carg;
 
@@ -1909,6 +1920,11 @@ pmemobj_list_remove(PMEMobjpool *pop, size_t pe_offset, void *head,
 	/* log notice message if used inside a transaction */
 	_POBJ_DEBUG_NOTICE_IN_TX();
 	ASSERT(OBJ_OID_IS_VALID(pop, oid));
+
+	if (pe_offset >= pop->size) {
+		ERR("pe_offset (%lu) too big", pe_offset);
+		return EINVAL;
+	}
 
 	if (free) {
 		struct oob_header *pobj = OOB_HEADER_FROM_OID(pop, oid);
@@ -1940,6 +1956,16 @@ pmemobj_list_move(PMEMobjpool *pop, size_t pe_old_offset, void *head_old,
 
 	ASSERT(OBJ_OID_IS_VALID(pop, oid));
 	ASSERT(OBJ_OID_IS_VALID(pop, dest));
+
+	if (pe_old_offset >= pop->size) {
+		ERR("pe_old_offset (%lu) too big", pe_old_offset);
+		return EINVAL;
+	}
+
+	if (pe_new_offset >= pop->size) {
+		ERR("pe_new_offset (%lu) too big", pe_new_offset);
+		return EINVAL;
+	}
 
 	return list_move(pop, pe_old_offset, head_old,
 				pe_new_offset, head_new,
