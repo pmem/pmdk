@@ -56,7 +56,7 @@ TARGET_STATIC_DEBUG=$(TARGET).static-debug
 
 LIBSDIR=../..
 
-LIBS += -pthread -luuid
+LIBS += -pthread
 
 ifeq ($(LIBPMEMBLK), y)
 DYNAMIC_LIBS += -lpmemblk

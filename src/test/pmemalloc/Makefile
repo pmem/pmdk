@@ -43,5 +43,6 @@ LIBPMEM=y
 LIBPMEMOBJ=y
 
 CFLAGS += -I../../libpmemobj
+LIBS += $(UUID_LIBS)
 
 include ../../tools/Makefile.inc

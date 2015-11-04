@@ -51,9 +51,8 @@ CFLAGS += $(EXTRA_CFLAGS)
 
 CSTYLE = ../../../utils/cstyle
 
-ifneq ($(USE_LIBUNWIND),)
-CFLAGS += $(shell pkg-config --cflags libunwind) -DUSE_LIBUNWIND
-endif
+CFLAGS += $(LIBUNWIND_CFLAGS)
+CFLAGS += $(UUID_CFLAGS)
 
 all test: $(TARGET)
 

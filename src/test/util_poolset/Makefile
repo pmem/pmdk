@@ -42,7 +42,7 @@ OBJS = util_poolset.o mocks.o util.o set.o out.o
 
 out.o: CFLAGS += -DDEBUG -DSRCVERSION=\"utversion\"
 util.o: CFLAGS += -DDEBUG
-set.o: CFLAGS += -DDEBUG
+set.o: CFLAGS += -DDEBUG $(UUID_CFLAGS)
 
 LIBPMEM=y
 

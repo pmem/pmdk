@@ -41,13 +41,9 @@ LIBS_DIR=../..
 
 UT = ../unittest/libut.a
 LIBS = $(UT)
-
-ifneq ($(USE_LIBUNWIND),)
-LIBS += -ldl $(shell pkg-config --libs libunwind)
-endif
-
+LIBS += $(LIBUNWIND_LIBS)
 LIBS += -L$(LIBS_DIR)/debug
-LIBS += -luuid -pthread
+LIBS += $(UUID_LIBS) -pthread
 
 ifeq ($(LIBPMEMBLK), y)
 DYNAMIC_LIBS += -lpmemblk

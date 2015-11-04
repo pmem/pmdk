@@ -41,8 +41,7 @@ vpath %.c ../common
 
 BENCHMARK = pmembench
 
-GLIB:= $(shell pkg-config glib-2.0 && echo "y" || echo "n")
-ifeq ($(GLIB),y)
+ifeq ($(USE_GLIB20),1)
 TARGET = $(BENCHMARK)
 else
 TARGET = no-glib
@@ -80,7 +79,7 @@ CSTYLE = ../../utils/cstyle
 OBJS=$(SRC:.c=.o)
 LDFLAGS = -L$(LIBS_PATH)
 LDFLAGS += $(EXTRA_LDFLAGS)
-LIBS += -lpmemobj -lpmemlog -lpmemblk -lpmem -lvmem -pthread -lm -luuid
+LIBS += -lpmemobj -lpmemlog -lpmemblk -lpmem -lvmem -pthread -lm $(UUID_LIBS)
 CFLAGS  = -std=gnu99
 CFLAGS += -Wall
 CFLAGS += -Werror
@@ -88,13 +87,14 @@ CFLAGS += -Wmissing-prototypes
 CFLAGS += -Wpointer-arith
 CFLAGS += -Wunused-macros
 CFLAGS += -pthread
+CFLAGS += $(UUID_CFLAGS)
 CFLAGS += $(EXTRA_CFLAGS)
 CFLAGS += -I../include
 CFLAGS += -I../libpmemobj
 CFLAGS += -I../common
 CFLAGS += -DSRCVERSION=\"$(SRCVERSION)\"
-CFLAGS += $(shell pkg-config --cflags glib-2.0)
-LIBS += $(shell pkg-config --libs glib-2.0)
+CFLAGS += $(GLIB20_CFLAGS)
+LIBS += $(GLIB20_LIBS)
 
 OBJS += pmemobj.o
 

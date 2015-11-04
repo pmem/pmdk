@@ -45,6 +45,7 @@ OBJS = obj_pmalloc_basic.o pmalloc.o bucket.o redo.o heap.o lane.o ctree.o\
 LIBPMEM=y
 
 out.o: CFLAGS += -DSRCVERSION=\"utversion\"
+set.o: CFLAGS += $(UUID_CFLAGS)
 
 include ../Makefile.inc
 

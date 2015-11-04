@@ -129,7 +129,7 @@
 #include <stdint.h>
 #include <pthread.h>
 #include <endian.h>
-#include <uuid/uuid.h>
+#include <uuid.h>
 
 #include "out.h"
 #include "util.h"

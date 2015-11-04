@@ -41,4 +41,5 @@ SOURCE = libpmemlog.c log.c $(COMMON)/util.c $(COMMON)/set.c $(COMMON)/out.c
 
 include ../Makefile.inc
 
-LIBS += -luuid -pthread -lpmem
+CFLAGS += $(UUID_CFLAGS)
+LIBS += $(UUID_LIBS) -pthread -lpmem

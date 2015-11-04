@@ -65,4 +65,7 @@ BASH_COMP_FILES = pmempool.sh
 
 include ../Makefile.inc
 
+CFLAGS += $(UUID_CFLAGS)
+LIBS += $(UUID_LIBS)
+
 .PHONY: test check

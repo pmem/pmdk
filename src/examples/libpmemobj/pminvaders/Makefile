@@ -36,13 +36,14 @@
 
 include ../Makefile.env
 
-NCURSES := $(shell pkg-config ncurses && echo "y" || echo "n")
-ifeq ($(NCURSES),y)
+ifeq ($(USE_NCURSES),1)
 PROGS = pminvaders
 endif
 
-LIBS = -lpmemobj -lpmem -pthread $(shell pkg-config --libs ncurses)
+LIBS = -lpmemobj -lpmem -pthread $(NCURSES_LIBS)
 
 include ../../Makefile.inc
+
+CFLAGS += $(NCURSES_CFLAGS)
 
 pminvaders: pminvaders.o

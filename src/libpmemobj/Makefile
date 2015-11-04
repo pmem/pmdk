@@ -43,4 +43,5 @@ SOURCE = libpmemobj.c obj.c redo.c pmalloc.c lane.c list.c ctree.c bucket.c\
 
 include ../Makefile.inc
 
-LIBS += -luuid -pthread -lpmem
+CFLAGS += $(UUID_CFLAGS)
+LIBS += $(UUID_LIBS) -pthread -lpmem

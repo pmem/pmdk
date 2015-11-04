@@ -532,7 +532,7 @@ function set_valgrind_exe_name() {
 function require_valgrind_dev_3_7() {
 	require_valgrind
 	echo "
-        #include <valgrind/valgrind.h>
+        #include <valgrind.h>
         #if defined (VALGRIND_RESIZEINPLACE_BLOCK)
         VALGRIND_VERSION_3_7_OR_LATER
         #endif" | gcc ${EXTRA_CFLAGS} -E - 2>&1 | \
@@ -548,7 +548,7 @@ function require_valgrind_dev_3_7() {
 function require_valgrind_dev_3_8() {
 	require_valgrind
 	echo "
-        #include <valgrind/valgrind.h>
+        #include <valgrind.h>
         #if defined (__VALGRIND_MAJOR__) && defined (__VALGRIND_MINOR__)
         #if (__VALGRIND_MAJOR__ > 3) || \
              ((__VALGRIND_MAJOR__ == 3) && (__VALGRIND_MINOR__ >= 8))
@@ -567,7 +567,7 @@ function require_valgrind_dev_3_8() {
 function require_valgrind_dev_3_10() {
 	require_valgrind
 	echo "
-        #include <valgrind/valgrind.h>
+        #include <valgrind.h>
         #if defined (__VALGRIND_MAJOR__) && defined (__VALGRIND_MINOR__)
         #if (__VALGRIND_MAJOR__ > 3) || \
              ((__VALGRIND_MAJOR__ == 3) && (__VALGRIND_MINOR__ >= 10))

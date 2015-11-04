@@ -69,6 +69,7 @@ dpkg: override DESTDIR=$(CURDIR)/$(DPKG_BUILDDIR)
 rpm dpkg: override prefix=/usr
 
 all:
+	@if [ ! -f Makefile.env ]; then ./configure; fi
 	$(MAKE) -C src $@
 	$(MAKE) -C doc $@
 
@@ -80,7 +81,7 @@ clean:
 clobber:
 	$(MAKE) -C src $@
 	$(MAKE) -C doc $@
-	$(RM) -r $(RPM_BUILDDIR) $(DPKG_BUILDDIR) rpm dpkg
+	$(RM) -r $(RPM_BUILDDIR) $(DPKG_BUILDDIR) rpm dpkg Makefile.env
 
 test check pcheck: all
 	$(MAKE) -C src $@

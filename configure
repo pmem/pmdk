@@ -1,0 +1,101 @@
+#!/bin/sh
+
+if [ "$CC" = "" ]; then
+	CC=cc
+fi
+
+if ! $CC -dM -E -x c /dev/null -o /dev/null; then
+	exit 1
+fi
+
+echo "CC=$CC" > .env
+echo "EXTRA_CFLAGS=$CFLAGS" >> .env
+echo "EXTRA_LDFLAGS=$LDFLAGS" >> .env
+echo >> .env
+
+if pkg-config --exists uuid; then
+	echo UUID_CFLAGS="`pkg-config --cflags uuid`" >> .env
+	echo UUID_LIBS="`pkg-config --libs uuid`" >> .env
+	echo EXTRA_CFLAGS+="-DHAVE_UUID" >> .env
+	echo USE_UUID=1 >> .env
+	echo "libuuid found"
+else
+	echo USE_UUID=0 >> .env
+	echo "libuuid NOT found"
+	exit
+fi
+echo >> .env
+
+if pkg-config --exists valgrind; then
+	VG_CFLAGS=`pkg-config --cflags valgrind`
+	echo VALGRIND_CFLAGS="$VG_CFLAGS" >> .env
+	echo EXTRA_CFLAGS+="$VG_CFLAGS -DUSE_VG_MEMCHECK -DUSE_VG_HELGRIND" >> .env
+	printf "#include <pmemcheck.h>\nint main(){return 0;}" > .test.c
+	echo "valgrind found"
+	if $CC $VG_CFLAGS .test.c -o /dev/null 2>/dev/null; then
+		echo EXTRA_CFLAGS+=" -DUSE_VG_PMEMCHECK" >> .env
+		echo USE_VG_PMEMCHECK=1 >> .env
+		echo "valgrind/pmemcheck found"
+	else
+		echo "valgrind/pmemcheck NOT found"
+	fi
+	echo USE_VG_MEMCHECK=1 >> .env
+	echo USE_VG_HELGRIND=1 >> .env
+else
+	echo "valgrind NOT found"
+	echo USE_VG_MEMCHECK=0 >> .env
+	echo USE_VG_HELGRIND=0 >> .env
+	echo USE_VG_PMEMCHECK=0 >> .env
+fi
+echo >> .env
+
+if pkg-config --exists libunwind; then
+	echo LIBUNWIND_CFLAGS="`pkg-config --cflags libunwind`" >> .env
+	echo LIBUNWIND_LIBS="`pkg-config --libs libunwind`" >> .env
+	echo EXTRA_CFLAGS+="-DHAVE_LIBUNWIND" >> .env
+	echo USE_LIBUNWIND=1 >> .env
+	echo "libunwind found"
+else
+	echo USE_LIBUNWIND=0 >> .env
+	echo "libunwind NOT found"
+fi
+echo >> .env
+
+if pkg-config --exists ncurses; then
+	echo NCURSES_CFLAGS="`pkg-config --cflags ncurses`" >> .env
+	echo NCURSES_LIBS="`pkg-config --libs ncurses`" >> .env
+	echo EXTRA_CFLAGS+="-DHAVE_NCURSES" >> .env
+	echo USE_NCURSES=1 >> .env
+	echo "libncurses found"
+else
+	echo USE_NCURSES=0 >> .env
+	echo "libncurses NOT found"
+fi
+echo >> .env
+
+if pkg-config --exists fuse; then
+	echo FUSE_CFLAGS="`pkg-config --cflags fuse`" >> .env
+	echo FUSE_LIBS="`pkg-config --libs fuse`" >> .env
+	echo EXTRA_CFLAGS+="-DHAVE_FUSE" >> .env
+	echo USE_FUSE=1 >> .env
+	echo "libfuse found"
+else
+	echo USE_FUSE=0 >> .env
+	echo "libfuse NOT found"
+fi
+echo >> .env
+
+if pkg-config --exists glib-2.0; then
+	echo GLIB20_CFLAGS="`pkg-config --cflags glib-2.0`" >> .env
+	echo GLIB20_LIBS="`pkg-config --libs glib-2.0`" >> .env
+	echo EXTRA_CFLAGS+="-DHAVE_GLIB20" >> .env
+	echo USE_GLIB20=1 >> .env
+	echo "glib-2.0 found"
+else
+	echo USE_GLIB20=0 >> .env
+	echo "glib-2.0 NOT found"
+fi
+echo >> .env
+
+mv .env Makefile.env
+rm .test.c

@@ -49,6 +49,8 @@ CFLAGS += -I../../common
 CFLAGS += -I../../libpmemlog
 CFLAGS += -I../../libpmemblk
 CFLAGS += -I../../libpmemobj
+CFLAGS += $(UUID_CFLAGS)
+LIBS += $(UUID_LIBS)
 
 CLEAN_FILES = *.log
 

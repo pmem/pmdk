@@ -33,8 +33,8 @@
 #include "unittest.h"
 
 #if defined(USE_VG_MEMCHECK) || defined(USE_VALGRIND)
-#include <valgrind/valgrind.h>
-#include <valgrind/memcheck.h>
+#include <valgrind.h>
+#include <memcheck.h>
 #endif
 
 /*
