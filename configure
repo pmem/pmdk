@@ -8,6 +8,12 @@ if ! $CC -dM -E -x c /dev/null -o /dev/null; then
 	exit 1
 fi
 
+LP64=`$CC $CFLAGS -dM -E -x c /dev/null | grep -Ec "__SIZEOF_LONG__.+8|__SIZEOF_POINTER__.+8"`
+if [ "$LP64" != "2" ]; then
+	echo "32-bit builds are not supported. Please use 64-bit platform/compiler"
+	exit 1
+fi
+
 echo "CC=$CC" > .env
 echo "EXTRA_CFLAGS=$CFLAGS" >> .env
 echo "EXTRA_LDFLAGS=$LDFLAGS" >> .env
