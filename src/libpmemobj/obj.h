@@ -165,6 +165,12 @@ struct pmemobjpool {
 	char unused2[1824];
 };
 
+struct oob_header_data {
+	uint16_t internal_type;
+	uint16_t user_type;
+	uint8_t padding[4];
+};
+
 /*
  * Out-Of-Band Header - it is padded to 48B to fit one cache line (64B)
  * together with allocator's header (of size 16B) located just before it.
@@ -172,9 +178,7 @@ struct pmemobjpool {
 struct oob_header {
 	struct list_entry oob;
 	size_t size;		/* used only in root object */
-	uint16_t internal_type;
-	uint16_t user_type;
-	uint8_t padding[4];
+	struct oob_header_data data;
 };
 
 enum internal_type {

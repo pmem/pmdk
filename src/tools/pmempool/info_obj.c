@@ -315,12 +315,13 @@ info_obj_oob_hdr(struct pmem_info *pip, int v, struct pmemobjpool *pop,
 	outv_field(v, "Prev",
 		out_get_pmemoid_str(oob->oob.pe_prev, pip->obj.uuid_lo));
 	outv_field(v, "Internal Type", "%s",
-		out_get_internal_type_str(oob->internal_type));
+		out_get_internal_type_str(oob->data.internal_type));
 
-	if (oob->user_type == POBJ_ROOT_TYPE_NUM)
-		outv_field(v, "User Type", "%u [root object]", oob->user_type);
+	if (oob->data.user_type == POBJ_ROOT_TYPE_NUM)
+		outv_field(v, "User Type", "%u [root object]",
+				oob->data.user_type);
 	else
-		outv_field(v, "User Type", "%u", oob->user_type);
+		outv_field(v, "User Type", "%u", oob->data.user_type);
 }
 
 /*
@@ -486,7 +487,7 @@ info_obj_store_object_cb(struct pmem_info *pip, int v, int vnum,
 {
 	struct allocation_header *alloc = ENTRY_TO_ALLOC_HDR(entryp);
 	struct oob_header *oob = ENTRY_TO_OOB_HDR(entryp);
-	assert(oob->user_type < PMEMOBJ_NUM_OID_TYPES);
+	assert(oob->data.user_type < PMEMOBJ_NUM_OID_TYPES);
 
 	uint64_t real_size = alloc->size -
 		sizeof (struct allocation_header) - sizeof (struct oob_header);
@@ -503,8 +504,8 @@ info_obj_store_object_cb(struct pmem_info *pip, int v, int vnum,
 	pip->obj.stats.n_total_objects++;
 	pip->obj.stats.n_total_bytes += real_size;
 
-	pip->obj.stats.n_type_objects[oob->user_type]++;
-	pip->obj.stats.n_type_bytes[oob->user_type] += real_size;
+	pip->obj.stats.n_type_objects[oob->data.user_type]++;
+	pip->obj.stats.n_type_bytes[oob->data.user_type] += real_size;
 
 	obj_object_cb(pip, v, vnum, pop, entryp, i);
 }

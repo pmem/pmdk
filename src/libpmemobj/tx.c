@@ -118,16 +118,16 @@ constructor_tx_alloc(PMEMobjpool *pop, void *ptr, void *arg)
 	 * no need to flush and persist because this
 	 * will be done in pre-commit phase
 	 */
-	oobh->internal_type = TYPE_NONE;
-	oobh->user_type = args->type_num;
+	oobh->data.internal_type = TYPE_NONE;
+	oobh->data.user_type = args->type_num;
 
 	VALGRIND_REMOVE_FROM_TX(oobh, OBJ_OOB_SIZE);
 
 	/* do not report changes to the new object */
 	VALGRIND_ADD_TO_TX(ptr, args->size);
 
-	VALGRIND_DO_MAKE_MEM_NOACCESS(pop, &oobh->padding,
-			sizeof (oobh->padding));
+	VALGRIND_DO_MAKE_MEM_NOACCESS(pop, &oobh->data.padding,
+			sizeof (oobh->data.padding));
 }
 
 /*
@@ -152,16 +152,16 @@ constructor_tx_zalloc(PMEMobjpool *pop, void *ptr, void *arg)
 	 * no need to flush and persist because this
 	 * will be done in pre-commit phase
 	 */
-	oobh->internal_type = TYPE_NONE;
-	oobh->user_type = args->type_num;
+	oobh->data.internal_type = TYPE_NONE;
+	oobh->data.user_type = args->type_num;
 
 	VALGRIND_REMOVE_FROM_TX(oobh, OBJ_OOB_SIZE);
 
 	/* do not report changes to the new object */
 	VALGRIND_ADD_TO_TX(ptr, args->size);
 
-	VALGRIND_DO_MAKE_MEM_NOACCESS(pop, &oobh->padding,
-			sizeof (oobh->padding));
+	VALGRIND_DO_MAKE_MEM_NOACCESS(pop, &oobh->data.padding,
+			sizeof (oobh->data.padding));
 
 	memset(ptr, 0, args->size);
 }
@@ -224,16 +224,16 @@ constructor_tx_copy(PMEMobjpool *pop, void *ptr, void *arg)
 	 * no need to flush and persist because this
 	 * will be done in pre-commit phase
 	 */
-	oobh->internal_type = TYPE_NONE;
-	oobh->user_type = args->type_num;
+	oobh->data.internal_type = TYPE_NONE;
+	oobh->data.user_type = args->type_num;
 
 	VALGRIND_REMOVE_FROM_TX(oobh, OBJ_OOB_SIZE);
 
 	/* do not report changes made to the copy */
 	VALGRIND_ADD_TO_TX(ptr, args->size);
 
-	VALGRIND_DO_MAKE_MEM_NOACCESS(pop, &oobh->padding,
-			sizeof (oobh->padding));
+	VALGRIND_DO_MAKE_MEM_NOACCESS(pop, &oobh->data.padding,
+			sizeof (oobh->data.padding));
 
 	memcpy(ptr, args->ptr, args->copy_size);
 }
@@ -260,16 +260,16 @@ constructor_tx_copy_zero(PMEMobjpool *pop, void *ptr, void *arg)
 	 * no need to flush and persist because this
 	 * will be done in pre-commit phase
 	 */
-	oobh->internal_type = TYPE_NONE;
-	oobh->user_type = args->type_num;
+	oobh->data.internal_type = TYPE_NONE;
+	oobh->data.user_type = args->type_num;
 
 	VALGRIND_REMOVE_FROM_TX(oobh, OBJ_OOB_SIZE);
 
 	/* do not report changes made to the copy */
 	VALGRIND_ADD_TO_TX(ptr, args->size);
 
-	VALGRIND_DO_MAKE_MEM_NOACCESS(pop, &oobh->padding,
-			sizeof (oobh->padding));
+	VALGRIND_DO_MAKE_MEM_NOACCESS(pop, &oobh->data.padding,
+			sizeof (oobh->data.padding));
 
 	memcpy(ptr, args->ptr, args->copy_size);
 	if (args->size > args->copy_size) {
@@ -355,10 +355,10 @@ tx_abort_free(PMEMobjpool *pop, struct lane_tx_layout *layout)
 		obj = layout->undo_free.pe_first;
 
 		struct oob_header *oobh = OOB_HEADER_FROM_OID(pop, obj);
-		ASSERT(oobh->user_type < PMEMOBJ_NUM_OID_TYPES);
+		ASSERT(oobh->data.user_type < PMEMOBJ_NUM_OID_TYPES);
 
 		struct object_store_item *obj_list =
-			&pop->store->bytype[oobh->user_type];
+			&pop->store->bytype[oobh->data.user_type];
 
 		/* move all objects back to object store */
 		ret = list_move_oob(pop,
@@ -585,19 +585,19 @@ tx_pre_commit_alloc(PMEMobjpool *pop, struct lane_tx_layout *layout)
 		 * In such case we need to know that the object
 		 * is on undo log list and not in object store.
 		 */
-		oobh->internal_type = TYPE_ALLOCATED;
+		oobh->data.internal_type = TYPE_ALLOCATED;
 
 		VALGRIND_REMOVE_FROM_TX(oobh, OBJ_OOB_SIZE);
 
 		size_t size = pmalloc_usable_size(pop,
 				iter.off - OBJ_OOB_SIZE);
 
-		VALGRIND_DO_MAKE_MEM_DEFINED(pop, oobh->padding,
-				sizeof (oobh->padding));
+		VALGRIND_DO_MAKE_MEM_DEFINED(pop, oobh->data.padding,
+				sizeof (oobh->data.padding));
 		/* flush and persist the whole allocated area and oob header */
 		pop->persist(pop, oobh, size);
-		VALGRIND_DO_MAKE_MEM_NOACCESS(pop, oobh->padding,
-				sizeof (oobh->padding));
+		VALGRIND_DO_MAKE_MEM_NOACCESS(pop, oobh->data.padding,
+				sizeof (oobh->data.padding));
 	}
 }
 
@@ -638,10 +638,10 @@ tx_post_commit_alloc(PMEMobjpool *pop, struct lane_tx_layout *layout)
 		obj = layout->undo_alloc.pe_first;
 
 		struct oob_header *oobh = OOB_HEADER_FROM_OID(pop, obj);
-		ASSERT(oobh->user_type < PMEMOBJ_NUM_OID_TYPES);
+		ASSERT(oobh->data.user_type < PMEMOBJ_NUM_OID_TYPES);
 
 		struct object_store_item *obj_list =
-			&pop->store->bytype[oobh->user_type];
+			&pop->store->bytype[oobh->data.user_type];
 
 		/* move object to object store */
 		ret = list_move_oob(pop,
@@ -1546,7 +1546,7 @@ pmemobj_tx_add_range(PMEMoid oid, uint64_t hoff, size_t size)
 	 * the object was allocated within this transaction
 	 * and there is no need to create a snapshot.
 	 */
-	if (oobh->internal_type == TYPE_ALLOCATED)
+	if (oobh->data.internal_type == TYPE_ALLOCATED)
 		return pmemobj_tx_add_common(&args);
 
 	return 0;
@@ -1678,17 +1678,17 @@ pmemobj_tx_free(PMEMoid oid)
 		(struct lane_tx_layout *)tx.section->layout;
 
 	struct oob_header *oobh = OOB_HEADER_FROM_OID(lane->pop, oid);
-	ASSERT(oobh->user_type < PMEMOBJ_NUM_OID_TYPES);
+	ASSERT(oobh->data.user_type < PMEMOBJ_NUM_OID_TYPES);
 
-	if (oobh->internal_type == TYPE_ALLOCATED) {
+	if (oobh->data.internal_type == TYPE_ALLOCATED) {
 		/* the object is in object store */
 		struct object_store_item *obj_list =
-			&lane->pop->store->bytype[oobh->user_type];
+			&lane->pop->store->bytype[oobh->data.user_type];
 
 		return list_move_oob(lane->pop, &obj_list->head,
 				&layout->undo_free, oid);
 	} else {
-		ASSERTeq(oobh->internal_type, TYPE_NONE);
+		ASSERTeq(oobh->data.internal_type, TYPE_NONE);
 #ifdef USE_VG_PMEMCHECK
 		size_t size = pmalloc_usable_size(lane->pop,
 				oid.off - OBJ_OOB_SIZE);
@@ -1838,12 +1838,12 @@ lane_transaction_check(PMEMobjpool *pop,
 		iter = oob_list_next(pop, &tx_sec->undo_alloc, iter)) {
 
 		struct oob_header *oobh = OOB_HEADER_FROM_OID(pop, iter);
-		if (oobh->internal_type != TYPE_NONE) {
+		if (oobh->data.internal_type != TYPE_NONE) {
 			ERR("tx lane: invalid internal type");
 			return -1;
 		}
 
-		if (oobh->user_type >= PMEMOBJ_NUM_OID_TYPES) {
+		if (oobh->data.user_type >= PMEMOBJ_NUM_OID_TYPES) {
 			ERR("tx lane: invalid user type");
 			return -1;
 		}
@@ -1854,12 +1854,12 @@ lane_transaction_check(PMEMobjpool *pop,
 		iter = oob_list_next(pop, &tx_sec->undo_free, iter)) {
 
 		struct oob_header *oobh = OOB_HEADER_FROM_OID(pop, iter);
-		if (oobh->internal_type != TYPE_ALLOCATED) {
+		if (oobh->data.internal_type != TYPE_ALLOCATED) {
 			ERR("tx lane: invalid internal type");
 			return -1;
 		}
 
-		if (oobh->user_type >= PMEMOBJ_NUM_OID_TYPES) {
+		if (oobh->data.user_type >= PMEMOBJ_NUM_OID_TYPES) {
 			ERR("tx lane: invalid user type");
 			return -1;
 		}
