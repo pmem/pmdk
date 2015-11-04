@@ -41,6 +41,11 @@ LIBS_DIR=../..
 
 UT = ../unittest/libut.a
 LIBS = $(UT)
+
+ifneq ($(USE_LIBUNWIND),)
+LIBS += -ldl $(shell pkg-config --libs libunwind || echo -lunwind)
+endif
+
 LIBS += -L$(LIBS_DIR)/debug
 LIBS += -luuid -pthread
 
@@ -102,10 +107,6 @@ CFLAGS += -Wunused-macros
 CFLAGS += -fno-common
 CFLAGS += $(EXTRA_CFLAGS)
 LDFLAGS = -Wl,--warn-common -Wl,--fatal-warnings $(EXTRA_LDFLAGS)
-
-ifneq ($(USE_LIBUNWIND),)
-LDFLAGS += -ldl $(shell pkg-config --libs libunwind)
-endif
 
 #
 # By default debug and non-debug static versions are built.
