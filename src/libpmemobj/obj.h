@@ -115,6 +115,7 @@ typedef void *(*memcpy_fn)(PMEMobjpool *pop, void *dest, const void *src,
 					size_t len);
 typedef void *(*memset_fn)(PMEMobjpool *pop, void *dest, int c, size_t len);
 
+typedef uint16_t type_num_t;
 extern unsigned long Pagesize;
 
 struct pmemobjpool {
@@ -167,7 +168,7 @@ struct pmemobjpool {
 
 struct oob_header_data {
 	uint16_t internal_type;
-	uint16_t user_type;
+	type_num_t user_type;
 	uint8_t padding[4];
 };
 

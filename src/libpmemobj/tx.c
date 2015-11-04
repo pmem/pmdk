@@ -79,12 +79,12 @@ struct lane_tx_runtime {
 };
 
 struct tx_alloc_args {
-	unsigned int type_num;
+	type_num_t type_num;
 	size_t size;
 };
 
 struct tx_alloc_copy_args {
-	unsigned int type_num;
+	type_num_t type_num;
 	size_t size;
 	const void *ptr;
 	size_t copy_size;
@@ -479,10 +479,12 @@ tx_restore_range(PMEMobjpool *pop, struct tx_range *range)
 		txr = SLIST_FIRST(&tx_ranges);
 		SLIST_REMOVE_HEAD(&tx_ranges, tx_range);
 		/* restore partial range data from snapshot */
-		pop->memcpy_persist(pop, txr->begin,
-				&range->data[
-					(char *)txr->begin - (char *)dst_ptr],
-					(char *)txr->end - (char *)txr->begin);
+		ASSERT((char *)txr->begin >= (char *)dst_ptr);
+		uint8_t *src = &range->data[
+				(char *)txr->begin - (char *)dst_ptr];
+		ASSERT((char *)txr->end >= (char *)txr->begin);
+		size_t size = (size_t)((char *)txr->end - (char *)txr->begin);
+		pop->memcpy_persist(pop, txr->begin, src, size);
 		Free(txr);
 	}
 }
@@ -863,7 +865,7 @@ release_and_free_tx_locks(struct lane_tx_runtime *lane)
  * tx_alloc_common -- (internal) common function for alloc and zalloc
  */
 static PMEMoid
-tx_alloc_common(size_t size, unsigned int type_num,
+tx_alloc_common(size_t size, type_num_t type_num,
 	void (*constructor)(PMEMobjpool *pop, void *ptr, void *arg))
 {
 	LOG(3, NULL);
@@ -881,12 +883,8 @@ tx_alloc_common(size_t size, unsigned int type_num,
 		return OID_NULL;
 	}
 
-	if (type_num >= PMEMOBJ_NUM_OID_TYPES) {
-		ERR("invalid type_num %d", type_num);
-		errno = EINVAL;
-		pmemobj_tx_abort(EINVAL);
-		return OID_NULL;
-	}
+	/* callers should have checked this */
+	ASSERT(type_num < PMEMOBJ_NUM_OID_TYPES);
 
 	struct lane_tx_runtime *lane =
 		(struct lane_tx_runtime *)tx.section->runtime;
@@ -923,7 +921,7 @@ err_oom:
  * tx_alloc_copy_common -- (internal) common function for alloc with data copy
  */
 static PMEMoid
-tx_alloc_copy_common(size_t size, unsigned int type_num, const void *ptr,
+tx_alloc_copy_common(size_t size, type_num_t type_num, const void *ptr,
 	size_t copy_size, void (*constructor)(PMEMobjpool *pop, void *ptr,
 	void *arg))
 {
@@ -936,12 +934,8 @@ tx_alloc_copy_common(size_t size, unsigned int type_num, const void *ptr,
 		return OID_NULL;
 	}
 
-	if (type_num >= PMEMOBJ_NUM_OID_TYPES) {
-		ERR("invalid type_num %d", type_num);
-		errno = EINVAL;
-		pmemobj_tx_abort(EINVAL);
-		return OID_NULL;
-	}
+	/* callers should have checked this */
+	ASSERT(type_num < PMEMOBJ_NUM_OID_TYPES);
 
 	struct lane_tx_runtime *lane =
 		(struct lane_tx_runtime *)tx.section->runtime;
@@ -1004,7 +998,8 @@ tx_realloc_common(PMEMoid oid, size_t size, unsigned int type_num,
 
 	/* if oid is NULL just alloc */
 	if (OBJ_OID_IS_NULL(oid))
-		return tx_alloc_common(size, type_num, constructor_alloc);
+		return tx_alloc_common(size, (type_num_t)type_num,
+				constructor_alloc);
 
 	ASSERT(OBJ_OID_IS_VALID(lane->pop, oid));
 
@@ -1025,7 +1020,7 @@ tx_realloc_common(PMEMoid oid, size_t size, unsigned int type_num,
 
 	size_t copy_size = old_size < size ? old_size : size;
 
-	PMEMoid new_obj = tx_alloc_copy_common(size, type_num,
+	PMEMoid new_obj = tx_alloc_copy_common(size, (type_num_t)type_num,
 			ptr, copy_size, constructor_realloc);
 
 	if (!OBJ_OID_IS_NULL(new_obj)) {
@@ -1503,9 +1498,15 @@ pmemobj_tx_add_range_direct(void *ptr, size_t size)
 	struct lane_tx_runtime *lane =
 		(struct lane_tx_runtime *)tx.section->runtime;
 
+	if ((char *)ptr < (char *)lane->pop ||
+			(char *)ptr >= (char *)lane->pop + lane->pop->size) {
+		ERR("object outside of pool");
+		return EINVAL;
+	}
+
 	struct tx_add_range_args args = {
 		.pop = lane->pop,
-		.offset = (char *)ptr - (char *)lane->pop,
+		.offset = (uint64_t)((char *)ptr - (char *)lane->pop),
 		.size = size
 	};
 
@@ -1570,7 +1571,15 @@ pmemobj_tx_alloc(size_t size, unsigned int type_num)
 		return OID_NULL;
 	}
 
-	return tx_alloc_common(size, type_num, constructor_tx_alloc);
+	if (type_num >= PMEMOBJ_NUM_OID_TYPES) {
+		ERR("invalid type_num %d", type_num);
+		errno = EINVAL;
+		pmemobj_tx_abort(EINVAL);
+		return OID_NULL;
+	}
+
+	return tx_alloc_common(size, (type_num_t)type_num,
+			constructor_tx_alloc);
 }
 
 /*
@@ -1588,7 +1597,15 @@ pmemobj_tx_zalloc(size_t size, unsigned int type_num)
 		return OID_NULL;
 	}
 
-	return tx_alloc_common(size, type_num, constructor_tx_zalloc);
+	if (type_num >= PMEMOBJ_NUM_OID_TYPES) {
+		ERR("invalid type_num %d", type_num);
+		errno = EINVAL;
+		pmemobj_tx_abort(EINVAL);
+		return OID_NULL;
+	}
+
+	return tx_alloc_common(size, (type_num_t)type_num,
+			constructor_tx_zalloc);
 }
 
 /*
@@ -1637,15 +1654,22 @@ pmemobj_tx_strdup(const char *s, unsigned int type_num)
 		return OID_NULL;
 	}
 
+	if (type_num >= PMEMOBJ_NUM_OID_TYPES) {
+		ERR("invalid type_num %d", type_num);
+		errno = EINVAL;
+		pmemobj_tx_abort(EINVAL);
+		return OID_NULL;
+	}
+
 	size_t len = strlen(s);
 
 	if (len == 0)
-		return tx_alloc_common(sizeof (char), type_num,
+		return tx_alloc_common(sizeof (char), (type_num_t)type_num,
 				constructor_tx_zalloc);
 
 	size_t size = (len + 1) * sizeof (char);
 
-	return tx_alloc_copy_common(size, type_num, s, size,
+	return tx_alloc_copy_common(size, (type_num_t)type_num, s, size,
 			constructor_tx_copy);
 }
 

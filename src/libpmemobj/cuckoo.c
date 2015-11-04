@@ -54,7 +54,7 @@ struct cuckoo_slot {
 };
 
 struct cuckoo {
-	int size; /* number of hash table slots */
+	unsigned size; /* number of hash table slots */
 	struct cuckoo_slot *tab;
 };
 
@@ -63,10 +63,10 @@ static const struct cuckoo_slot null_slot = {0, NULL};
 /*
  * hash_mod -- (internal) first hash function
  */
-static int
+static unsigned
 hash_mod(struct cuckoo *c, uint64_t key)
 {
-	return key % c->size;
+	return (unsigned)(key % c->size);
 }
 
 /*
@@ -74,7 +74,7 @@ hash_mod(struct cuckoo *c, uint64_t key)
  *
  * Based on Austin Appleby MurmurHash3 64-bit finalizer.
  */
-static int
+static unsigned
 hash_mixer(struct cuckoo *c, uint64_t key)
 {
 	key ^= key >> 33;
@@ -82,10 +82,10 @@ hash_mixer(struct cuckoo *c, uint64_t key)
 	key ^= key >> 33;
 	key *= 0xc4ceb9fe1a85ec53;
 	key ^= key >> 33;
-	return key % c->size;
+	return (unsigned)(key % c->size);
 }
 
-static int
+static unsigned
 (*hash_funcs[MAX_HASH_FUNCS])(struct cuckoo *c, uint64_t key) = {
 	hash_mod,
 	hash_mixer
@@ -136,7 +136,7 @@ static int
 cuckoo_insert_try(struct cuckoo *c, struct cuckoo_slot *src)
 {
 	struct cuckoo_slot srct;
-	int h[MAX_HASH_FUNCS] = {0};
+	unsigned h[MAX_HASH_FUNCS] = {0};
 	for (int n = 0; n < MAX_INSERTS; ++n) {
 		for (int i = 0; i < MAX_HASH_FUNCS; ++i) {
 			h[i] = hash_funcs[i](c, src->key);
@@ -163,7 +163,7 @@ cuckoo_insert_try(struct cuckoo *c, struct cuckoo_slot *src)
 static int
 cuckoo_grow(struct cuckoo *c)
 {
-	int oldsize = c->size;
+	unsigned oldsize = c->size;
 	struct cuckoo_slot *oldtab = c->tab;
 
 	int n;
@@ -177,7 +177,7 @@ cuckoo_grow(struct cuckoo *c)
 		memset(c->tab, 0, tab_rawsize);
 
 		c->size *= 2;
-		int i;
+		unsigned i;
 		for (i = 0; i < oldsize; ++i) {
 			struct cuckoo_slot s = oldtab[i];
 			if (s.value != NULL && (cuckoo_insert_try(c, &s) != 0))
@@ -226,7 +226,7 @@ static struct cuckoo_slot *
 cuckoo_find_slot(struct cuckoo *c, uint64_t key)
 {
 	for (int i = 0; i < MAX_HASH_FUNCS; ++i) {
-		int h = hash_funcs[i](c, key);
+		unsigned h = hash_funcs[i](c, key);
 		if (c->tab[h].key == key)
 			return &c->tab[h];
 	}

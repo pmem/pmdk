@@ -36,13 +36,13 @@
 
 struct bucket;
 
-struct bucket *bucket_new(size_t unit_size, int unit_max);
+struct bucket *bucket_new(size_t unit_size, unsigned unit_max);
 void bucket_delete(struct bucket *b);
 
 int bucket_is_small(struct bucket *b);
 uint32_t bucket_calc_units(struct bucket *b, size_t size);
 size_t bucket_unit_size(struct bucket *b);
-size_t bucket_unit_max(struct bucket *b);
+unsigned bucket_unit_max(struct bucket *b);
 void bucket_insert_block(PMEMobjpool *pop, struct bucket *b,
 	struct memory_block m);
 int bucket_get_rm_block_bestfit(struct bucket *b, struct memory_block *m);
@@ -50,7 +50,7 @@ int bucket_get_rm_block_exact(struct bucket *b, struct memory_block m);
 int bucket_get_block_exact(struct bucket *b, struct memory_block m);
 int bucket_lock(struct bucket *b);
 int bucket_is_empty(struct bucket *b);
-int bucket_bitmap_nval(struct bucket *b);
+unsigned bucket_bitmap_nval(struct bucket *b);
 uint64_t bucket_bitmap_lastval(struct bucket *b);
-int bucket_bitmap_nallocs(struct bucket *b);
+unsigned bucket_bitmap_nallocs(struct bucket *b);
 void bucket_unlock(struct bucket *b);

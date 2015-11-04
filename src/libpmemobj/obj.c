@@ -417,13 +417,13 @@ pmemobj_vg_boot(struct pmemobjpool *pop)
 	LOG(4, "pop %p", pop);
 
 	PMEMoid oid;
-	int rs = pmemobj_root_size(pop);
+	size_t rs = pmemobj_root_size(pop);
 	if (rs) {
 		oid = pmemobj_root(pop, rs);
 		pmemobj_vg_register_object(pop, oid, 1);
 	}
 
-	for (int i = 0; i < PMEMOBJ_NUM_OID_TYPES; ++i) {
+	for (unsigned i = 0; i < PMEMOBJ_NUM_OID_TYPES; ++i) {
 		for (oid = pmemobj_first(pop, i); !OID_IS_NULL(oid);
 				oid = pmemobj_next(oid))
 			pmemobj_vg_register_object(pop, oid, 0);
@@ -1056,7 +1056,8 @@ pmemobj_pool_by_ptr(const void *addr)
 	if (pool_size == 0)
 		return NULL;
 
-	ptrdiff_t addr_off = (uint64_t)addr - key;
+	ASSERT((uint64_t)addr >= key);
+	uint64_t addr_off = (uint64_t)addr - key;
 
 	if (pool_size <= addr_off)
 		return NULL;
@@ -1066,7 +1067,7 @@ pmemobj_pool_by_ptr(const void *addr)
 
 /* arguments for constructor_alloc_bytype */
 struct carg_bytype {
-	uint16_t user_type;
+	type_num_t user_type;
 	void (*constructor)(PMEMobjpool *pop, void *ptr, void *arg);
 	void *arg;
 };
@@ -1104,16 +1105,11 @@ constructor_alloc_bytype(PMEMobjpool *pop, void *ptr, void *arg)
  */
 static int
 obj_alloc_construct(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
-	unsigned int type_num, void (*constructor)(PMEMobjpool *pop, void *ptr,
+	type_num_t type_num, void (*constructor)(PMEMobjpool *pop, void *ptr,
 	void *arg), void *arg)
 {
-	if (type_num >= PMEMOBJ_NUM_OID_TYPES) {
-		errno = EINVAL;
-		ERR("!obj_alloc_construct");
-		LOG(2, "type_num has to be in range [0, %i]",
-			PMEMOBJ_NUM_OID_TYPES - 1);
-		return -1;
-	}
+	/* callers should have checked this */
+	ASSERT(type_num < PMEMOBJ_NUM_OID_TYPES);
 
 	if (size > PMEMOBJ_MAX_ALLOC_SIZE) {
 		ERR("requested size too large");
@@ -1152,7 +1148,14 @@ pmemobj_alloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 		return -1;
 	}
 
-	return obj_alloc_construct(pop, oidp, size, type_num, constructor, arg);
+	if (type_num >= PMEMOBJ_NUM_OID_TYPES) {
+		errno = EINVAL;
+		ERR("invalid type_num %u", type_num);
+		return -1;
+	}
+
+	return obj_alloc_construct(pop, oidp, size, (type_num_t)type_num,
+			constructor, arg);
 }
 
 /* arguments for constructor_zalloc */
@@ -1165,7 +1168,7 @@ struct carg_realloc {
 	void *ptr;
 	size_t old_size;
 	size_t new_size;
-	unsigned int user_type;
+	type_num_t user_type;
 	void (*constructor)(PMEMobjpool *pop, void *ptr, void *arg);
 	void *arg;
 };
@@ -1205,10 +1208,16 @@ pmemobj_zalloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 		return -1;
 	}
 
+	if (type_num >= PMEMOBJ_NUM_OID_TYPES) {
+		errno = EINVAL;
+		ERR("invalid type_num %u", type_num);
+		return -1;
+	}
+
 	struct carg_alloc carg;
 	carg.size = size;
 
-	return obj_alloc_construct(pop, oidp, size, type_num,
+	return obj_alloc_construct(pop, oidp, size, (type_num_t)type_num,
 					constructor_zalloc, &carg);
 }
 
@@ -1233,7 +1242,7 @@ obj_free(PMEMobjpool *pop, PMEMoid *oidp)
  */
 static int
 obj_realloc_common(PMEMobjpool *pop, struct object_store *store,
-	PMEMoid *oidp, size_t size, unsigned int type_num,
+	PMEMoid *oidp, size_t size, type_num_t type_num,
 	void (*constr_alloc)(PMEMobjpool *pop, void *ptr, void *arg),
 	void (*constr_realloc)(PMEMobjpool *pop, void *ptr, void *arg))
 {
@@ -1272,17 +1281,11 @@ obj_realloc_common(PMEMobjpool *pop, struct object_store *store,
 	carg.arg = NULL;
 
 	struct oob_header *pobj = OOB_HEADER_FROM_OID(pop, *oidp);
-	uint16_t user_type_old = pobj->data.user_type;
+	type_num_t user_type_old = pobj->data.user_type;
 
+	/* callers should have checked this */
+	ASSERT(type_num < PMEMOBJ_NUM_OID_TYPES);
 	ASSERT(user_type_old < PMEMOBJ_NUM_OID_TYPES);
-
-	if (type_num >= PMEMOBJ_NUM_OID_TYPES) {
-		errno = EINVAL;
-		ERR("!obj_realloc_construct");
-		LOG(2, "type_num has to be in range [0, %u]",
-		    PMEMOBJ_NUM_OID_TYPES - 1);
-		return -1;
-	}
 
 	struct list_head *lhead_old = &store->bytype[user_type_old].head;
 	if (type_num == user_type_old) {
@@ -1426,8 +1429,14 @@ pmemobj_realloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 	_POBJ_DEBUG_NOTICE_IN_TX();
 	ASSERT(OBJ_OID_IS_VALID(pop, *oidp));
 
-	return obj_realloc_common(pop, pop->store, oidp, size, type_num,
-			NULL, constructor_realloc);
+	if (type_num >= PMEMOBJ_NUM_OID_TYPES) {
+		errno = EINVAL;
+		ERR("invalid type_num %u", type_num);
+		return -1;
+	}
+
+	return obj_realloc_common(pop, pop->store, oidp, size,
+			(type_num_t)type_num, NULL, constructor_realloc);
 }
 
 /*
@@ -1444,8 +1453,15 @@ pmemobj_zrealloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 	_POBJ_DEBUG_NOTICE_IN_TX();
 	ASSERT(OBJ_OID_IS_VALID(pop, *oidp));
 
-	return obj_realloc_common(pop, pop->store, oidp, size, type_num,
-			constructor_zalloc, constructor_zrealloc);
+	if (type_num >= PMEMOBJ_NUM_OID_TYPES) {
+		errno = EINVAL;
+		ERR("invalid type_num %u", type_num);
+		return -1;
+	}
+
+	return obj_realloc_common(pop, pop->store, oidp, size,
+			(type_num_t)type_num, constructor_zalloc,
+			constructor_zrealloc);
 }
 
 /* arguments for constructor_strdup */
@@ -1485,9 +1501,7 @@ pmemobj_strdup(PMEMobjpool *pop, PMEMoid *oidp, const char *s,
 
 	if (type_num >= PMEMOBJ_NUM_OID_TYPES) {
 		errno = EINVAL;
-		ERR("!pmemobj_strdup");
-		LOG(2, "type_num has to be in range [0, %i]",
-		    PMEMOBJ_NUM_OID_TYPES - 1);
+		ERR("invalid type_num %u", type_num);
 		return -1;
 	}
 
@@ -1500,7 +1514,7 @@ pmemobj_strdup(PMEMobjpool *pop, PMEMoid *oidp, const char *s,
 	carg.size = (strlen(s) + 1) * sizeof (char);
 	carg.s = s;
 
-	return obj_alloc_construct(pop, oidp, carg.size, type_num,
+	return obj_alloc_construct(pop, oidp, carg.size, (type_num_t)type_num,
 					constructor_strdup, &carg);
 }
 
@@ -1819,7 +1833,7 @@ pmemobj_next(PMEMoid oid)
 	ASSERT(OBJ_OID_IS_VALID(pop, oid));
 
 	struct oob_header *pobj = OOB_HEADER_FROM_OID(pop, oid);
-	uint16_t user_type = pobj->data.user_type;
+	type_num_t user_type = pobj->data.user_type;
 
 	ASSERT(user_type < PMEMOBJ_NUM_OID_TYPES);
 
@@ -1896,7 +1910,7 @@ pmemobj_list_insert_new(PMEMobjpool *pop, size_t pe_offset, void *head,
 	struct list_head *lhead = &pop->store->bytype[type_num].head;
 	struct carg_bytype carg;
 
-	carg.user_type = type_num;
+	carg.user_type = (type_num_t)type_num;
 	carg.constructor = constructor;
 	carg.arg = arg;
 

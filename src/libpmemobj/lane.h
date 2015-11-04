@@ -78,7 +78,7 @@ struct section_operations {
 };
 
 extern struct section_operations *Section_ops[MAX_LANE_SECTION];
-extern __thread int Lane_idx;
+extern __thread unsigned Lane_idx;
 
 int lane_boot(PMEMobjpool *pop);
 int lane_cleanup(PMEMobjpool *pop);

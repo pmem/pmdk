@@ -75,7 +75,7 @@
 
 static struct {
 	size_t unit_size;
-	int unit_max;
+	unsigned unit_max;
 } bucket_proto[MAX_BUCKETS];
 
 #define	BIT_IS_CLR(a, i)	(!((a) & (1ULL << (i))))
@@ -98,12 +98,12 @@ struct pmalloc_heap {
 	pthread_mutex_t active_run_lock;
 	uint8_t *bucket_map;
 	pthread_mutex_t run_locks[MAX_RUN_LOCKS];
-	int max_zone;
-	int zones_exhausted;
-	int last_run_max_size;
+	unsigned max_zone;
+	unsigned zones_exhausted;
+	size_t last_run_max_size;
 
 	struct bucket_cache *caches;
-	int ncaches;
+	unsigned ncaches;
 	uint32_t last_drained[MAX_BUCKETS - 1];
 };
 
@@ -156,10 +156,10 @@ heap_get_layout(PMEMobjpool *pop)
 /*
  * heap_max_zone -- (internal) calculates how many zones can the heap fit
  */
-static int
+static unsigned
 heap_max_zone(size_t size)
 {
-	int max_zone = 0;
+	unsigned max_zone = 0;
 	size -= sizeof (struct heap_header);
 
 	while (size >= ZONE_MIN_SIZE) {
@@ -174,17 +174,24 @@ heap_max_zone(size_t size)
  * get_zone_size_idx -- (internal) calculates zone size index
  */
 static uint32_t
-get_zone_size_idx(uint32_t zone_id, int max_zone, size_t heap_size)
+get_zone_size_idx(uint32_t zone_id, unsigned max_zone, size_t heap_size)
 {
+	ASSERT(max_zone > 0);
 	if (zone_id < max_zone - 1)
 		return MAX_CHUNK - 1;
 
+	ASSERT(heap_size >= zone_id * ZONE_MAX_SIZE);
 	size_t zone_raw_size = heap_size - zone_id * ZONE_MAX_SIZE;
 
+	ASSERT(zone_raw_size >= (sizeof (struct zone_header) +
+			sizeof (struct chunk_header) * MAX_CHUNK));
 	zone_raw_size -= sizeof (struct zone_header) +
-		(sizeof (struct chunk_header) * MAX_CHUNK);
+		sizeof (struct chunk_header) * MAX_CHUNK;
 
-	return zone_raw_size / CHUNKSIZE;
+	size_t zone_size_idx = zone_raw_size / CHUNKSIZE;
+	ASSERT(zone_size_idx <= UINT32_MAX);
+
+	return (uint32_t)zone_size_idx;
 }
 
 /*
@@ -264,9 +271,11 @@ heap_init_run(PMEMobjpool *pop, struct bucket *b, struct chunk_header *hdr,
 	/* set all the bits */
 	memset(run->bitmap, 0xFF, sizeof (run->bitmap));
 
+	unsigned nval = bucket_bitmap_nval(b);
+	ASSERT(nval > 0);
 	/* clear only the bits available for allocations from this bucket */
-	memset(run->bitmap, 0, sizeof (uint64_t) * (bucket_bitmap_nval(b) - 1));
-	run->bitmap[bucket_bitmap_nval(b) - 1] = bucket_bitmap_lastval(b);
+	memset(run->bitmap, 0, sizeof (uint64_t) * (nval - 1));
+	run->bitmap[nval - 1] = bucket_bitmap_lastval(b);
 	VALGRIND_REMOVE_FROM_TX(run, sizeof (*run));
 
 	pop->persist(pop, run->bitmap, sizeof (run->bitmap));
@@ -288,7 +297,7 @@ heap_run_insert(PMEMobjpool *pop, struct bucket *b, uint32_t chunk_id,
 	ASSERT(size_idx <= BITS_PER_VALUE);
 	ASSERT(block_off + size_idx <= bucket_bitmap_nallocs(b));
 
-	size_t unit_max = bucket_unit_max(b);
+	unsigned unit_max = bucket_unit_max(b);
 	struct memory_block m = {chunk_id, zone_id,
 		unit_max - (block_off % 4), block_off};
 
@@ -297,7 +306,9 @@ heap_run_insert(PMEMobjpool *pop, struct bucket *b, uint32_t chunk_id,
 
 	do {
 		bucket_insert_block(pop, b, m);
-		m.block_off += m.size_idx;
+		ASSERT(m.size_idx <= UINT16_MAX);
+		ASSERT(m.block_off + m.size_idx <= UINT16_MAX);
+		m.block_off = (uint16_t)(m.block_off + (uint16_t)m.size_idx);
 		size_idx -= m.size_idx;
 		m.size_idx = size_idx > unit_max ? unit_max : size_idx;
 	} while (size_idx != 0);
@@ -320,29 +331,33 @@ heap_process_run_metadata(PMEMobjpool *pop, struct bucket *b,
 	struct chunk_run *run,
 	uint32_t chunk_id, uint32_t zone_id)
 {
-	uint16_t run_bits = RUNSIZE / run->block_size;
+	ASSERT(RUNSIZE / run->block_size <= UINT16_MAX);
+	uint16_t run_bits = (uint16_t)(RUNSIZE / run->block_size);
 	ASSERT(run_bits < (MAX_BITMAP_VALUES * BITS_PER_VALUE));
 	uint16_t block_off = 0;
 	uint16_t block_size_idx = 0;
 
-	for (int i = 0; i < bucket_bitmap_nval(b); ++i) {
+	for (unsigned i = 0; i < bucket_bitmap_nval(b); ++i) {
 		uint64_t v = run->bitmap[i];
-		block_off = BITS_PER_VALUE * i;
+		ASSERT(BITS_PER_VALUE * i <= UINT16_MAX);
+		block_off = (uint16_t)(BITS_PER_VALUE * i);
 		if (v == 0) {
 			heap_run_insert(pop, b, chunk_id, zone_id,
 				BITS_PER_VALUE, block_off);
 			continue;
-		} else if (v == ~0L) {
+		} else if (v == ~(uint64_t)0) {
 			continue;
 		}
 
-		for (int j = 0; j < BITS_PER_VALUE; ++j) {
+		for (unsigned j = 0; j < BITS_PER_VALUE; ++j) {
 			if (BIT_IS_CLR(v, j)) {
 				block_size_idx++;
 			} else if (block_size_idx != 0) {
+				ASSERT(block_off >= block_size_idx);
+
 				heap_run_insert(pop, b, chunk_id, zone_id,
 					block_size_idx,
-					block_off - block_size_idx);
+					(uint16_t)(block_off - block_size_idx));
 				block_size_idx = 0;
 			}
 
@@ -353,8 +368,11 @@ heap_process_run_metadata(PMEMobjpool *pop, struct bucket *b,
 		}
 
 		if (block_size_idx != 0) {
+			ASSERT(block_off >= block_size_idx);
+
 			heap_run_insert(pop, b, chunk_id, zone_id,
-				block_size_idx, block_off - block_size_idx);
+					block_size_idx,
+					(uint16_t)(block_off - block_size_idx));
 			block_size_idx = 0;
 		}
 	}
@@ -436,7 +454,7 @@ static int
 heap_run_is_empty(struct chunk_run *run)
 {
 	for (int i = 0; i < MAX_BITMAP_VALUES; ++i)
-		if (run->bitmap[i] != ~0L)
+		if (run->bitmap[i] != ~(uint64_t)0)
 			return 0;
 
 	return 1;
@@ -603,7 +621,7 @@ heap_ensure_bucket_filled(PMEMobjpool *pop, struct bucket *b)
 static struct bucket *
 heap_get_cache_bucket(struct pmalloc_heap *heap, int bucket_id)
 {
-	ASSERT(Lane_idx != -1);
+	ASSERT(Lane_idx != UINT32_MAX);
 
 	return heap->caches[Lane_idx % heap->ncaches].buckets[bucket_id];
 }
@@ -702,25 +720,26 @@ heap_drain_to_auxiliary(PMEMobjpool *pop, struct bucket *auxb,
 {
 	struct pmalloc_heap *h = pop->heap;
 
-	int total_drained = 0;
-	int drained_cache = 0;
+	unsigned total_drained = 0;
+	unsigned drained_cache = 0;
 
 	struct memory_block m;
 	struct bucket *b;
 	int b_id = h->bucket_map[bucket_unit_size(auxb)];
 
 	/* max units drained from a single bucket cache */
-	int units_per_bucket = bucket_bitmap_nallocs(auxb) *
-				MAX_UNITS_PCT_DRAINED_CACHE;
+	unsigned units_per_bucket = (unsigned)(bucket_bitmap_nallocs(auxb) *
+				MAX_UNITS_PCT_DRAINED_CACHE);
 
 	/* max units drained from all of the bucket caches */
-	int units_total = bucket_bitmap_nallocs(auxb) *
+	unsigned units_total = bucket_bitmap_nallocs(auxb) *
 			MAX_UNITS_PCT_DRAINED_TOTAL;
 
-	int cache_id;
+	unsigned cache_id;
 	int ret;
 
-	for (int i = 0; i < h->ncaches && total_drained < units_total; ++i) {
+	for (unsigned i = 0;
+			i < h->ncaches && total_drained < units_total; ++i) {
 		cache_id = __sync_fetch_and_add(&h->last_drained[b_id], 1)
 				% h->ncaches;
 
@@ -774,7 +793,7 @@ static int
 heap_buckets_init(PMEMobjpool *pop)
 {
 	struct pmalloc_heap *h = pop->heap;
-	int i;
+	size_t i;
 
 	for (i = 0; i < MAX_BUCKETS - 1; ++i)
 		SLIST_INIT(&h->active_runs[i]);
@@ -797,7 +816,7 @@ heap_buckets_init(PMEMobjpool *pop)
 				bucket_proto[i - 1].unit_max;
 	}
 
-	bucket_proto[i].unit_max = -1;
+	bucket_proto[i].unit_max = UINT32_MAX;
 	bucket_proto[i].unit_size = CHUNKSIZE;
 
 	h->last_run_max_size = bucket_proto[i - 1].unit_size *
@@ -821,7 +840,7 @@ heap_buckets_init(PMEMobjpool *pop)
 		 * next pick the smallest fit.
 		 */
 		h->bucket_map[i] = MAX_BUCKETS - 2;
-		for (int j = 0; j < MAX_BUCKETS - 2; ++j) {
+		for (unsigned char j = 0; j < MAX_BUCKETS - 2; ++j) {
 			/*
 			 * Skip the last unit, so that the distribution
 			 * of buckets in the map is better.
@@ -841,8 +860,8 @@ heap_buckets_init(PMEMobjpool *pop)
 error_bucket_new:
 	Free(h->bucket_map);
 
-	for (i = i - 1; i >= 0; --i)
-		bucket_delete(h->buckets[i]);
+	for (; i >= 1; --i)
+		bucket_delete(h->buckets[i - 1]);
 error_bucket_map_malloc:
 
 	return ENOMEM;
@@ -878,8 +897,10 @@ heap_recycle_block(PMEMobjpool *pop, struct bucket *b, struct memory_block *m,
 	uint32_t units)
 {
 	if (bucket_is_small(b)) {
+		ASSERT(units <= UINT16_MAX);
+		ASSERT(m->block_off + units <= UINT16_MAX);
 		struct memory_block r = {m->chunk_id, m->zone_id,
-			m->size_idx - units, m->block_off + units};
+			m->size_idx - units, (uint16_t)(m->block_off + units)};
 		bucket_insert_block(pop, b, r);
 	} else {
 		heap_resize_chunk(pop, m->chunk_id, m->zone_id, units);
@@ -1035,14 +1056,14 @@ heap_block_is_allocated(PMEMobjpool *pop, struct memory_block m)
 
 	struct chunk_run *r = (struct chunk_run *)&z->chunks[m.chunk_id];
 
-	int v = m.block_off / BITS_PER_VALUE;
+	unsigned v = m.block_off / BITS_PER_VALUE;
 	uint64_t bitmap = r->bitmap[v];
-	int b = m.block_off % BITS_PER_VALUE;
+	unsigned b = m.block_off % BITS_PER_VALUE;
 
-	int b_last = b + m.size_idx;
+	unsigned b_last = b + m.size_idx;
 	ASSERT(b_last <= BITS_PER_VALUE);
 
-	for (int i = b; i < b_last; ++i)
+	for (unsigned i = b; i < b_last; ++i)
 		if (!BIT_IS_CLR(bitmap, i))
 			return 1;
 
@@ -1055,27 +1076,31 @@ heap_block_is_allocated(PMEMobjpool *pop, struct memory_block m)
  */
 static int
 heap_run_get_block(PMEMobjpool *pop, struct chunk_run *r,
-	struct memory_block *mblock, uint16_t size_idx, uint16_t block_off,
+	struct memory_block *mblock, uint32_t size_idx, uint16_t block_off,
 	int prev)
 {
-	int v = block_off / BITS_PER_VALUE;
-	int b = block_off % BITS_PER_VALUE;
+	unsigned v = block_off / BITS_PER_VALUE;
+	unsigned b = block_off % BITS_PER_VALUE;
 
 	if (prev) {
-		int i;
-		for (i = b - 1;
-			(i + 1) % RUN_UNIT_MAX && BIT_IS_CLR(r->bitmap[v], i);
-			--i);
+		unsigned i;
+		for (i = b;
+			i % RUN_UNIT_MAX && BIT_IS_CLR(r->bitmap[v], i - 1);
+			--i)
+			;
 
-		mblock->block_off = (v * BITS_PER_VALUE) + (i + 1);
-		mblock->size_idx = block_off - mblock->block_off;
+		mblock->block_off = (uint16_t)(v * BITS_PER_VALUE + i);
+		ASSERT(block_off >= mblock->block_off);
+		mblock->size_idx = (uint16_t)(block_off - mblock->block_off);
 	} else { /* next */
-		int i;
+		unsigned i;
 		for (i = b + size_idx;
 			i % RUN_UNIT_MAX && BIT_IS_CLR(r->bitmap[v], i);
-			++i);
+			++i)
+			;
 
-		mblock->block_off = block_off + size_idx;
+		ASSERT((uint64_t)block_off + size_idx <= UINT16_MAX);
+		mblock->block_off = (uint16_t)(block_off + size_idx);
 		mblock->size_idx = i - (b + size_idx);
 	}
 
@@ -1238,7 +1263,8 @@ traverse_bucket_run(struct bucket *b, struct memory_block m,
 
 		size_idx_sum += m.size_idx;
 
-		m.block_off += RUN_UNIT_MAX;
+		ASSERT((uint32_t)m.block_off + RUN_UNIT_MAX <= UINT16_MAX);
+		m.block_off = (uint16_t)(m.block_off + RUN_UNIT_MAX);
 		if (m.block_off + RUN_UNIT_MAX > bucket_bitmap_nallocs(b))
 			m.size_idx = bucket_bitmap_nallocs(b) - m.block_off;
 		else
@@ -1268,8 +1294,9 @@ heap_degrade_run_if_empty(PMEMobjpool *pop, struct bucket *b,
 	if ((err = pthread_mutex_lock(heap_get_run_lock(pop, m.chunk_id))) != 0)
 		goto out_bucket;
 
-	int i;
-	for (i = 0; i < bucket_bitmap_nval(b) - 1; ++i)
+	unsigned i;
+	unsigned nval = bucket_bitmap_nval(b);
+	for (i = 0; nval > 0 && i < nval - 1; ++i)
 		if (run->bitmap[i] != 0)
 			goto out;
 
@@ -1339,6 +1366,7 @@ heap_vg_boot(PMEMobjpool *pop)
 
 	/* mark unused part of the last zone as not accessible */
 	struct pmalloc_heap *h = pop->heap;
+	ASSERT(h->max_zone > 0);
 	struct zone *last_zone = &h->layout->zones[h->max_zone - 1];
 	void *unused = &last_zone->chunks[last_zone->header.size_idx];
 	VALGRIND_DO_MAKE_MEM_NOACCESS(pop, unused,
@@ -1349,17 +1377,20 @@ heap_vg_boot(PMEMobjpool *pop)
 /*
  * heap_get_ncpus -- (internal) returns the number of available CPUs
  */
-static int
+static unsigned
 heap_get_ncpus(void)
 {
-	return sysconf(_SC_NPROCESSORS_ONLN);
+	long cpus = sysconf(_SC_NPROCESSORS_ONLN);
+	if (cpus < 1)
+		cpus = 1;
+	return (unsigned)cpus;
 }
 
 /*
  * heap_get_ncaches -- (internal) returns the number of bucket caches according
  * to number of cpus and number of caches per cpu.
  */
-static int
+static unsigned
 heap_get_ncaches(void)
 {
 	return NCACHES_PER_CPU * heap_get_ncpus();
@@ -1380,7 +1411,8 @@ heap_boot(PMEMobjpool *pop)
 		goto error_heap_malloc;
 	}
 
-	h->caches = Malloc(sizeof (struct bucket_cache) * heap_get_ncaches());
+	h->ncaches = heap_get_ncaches();
+	h->caches = Malloc(sizeof (struct bucket_cache) * h->ncaches);
 	if (h->caches == NULL) {
 		err = ENOMEM;
 		goto error_heap_cache_malloc;
@@ -1397,7 +1429,6 @@ heap_boot(PMEMobjpool *pop)
 		if ((err = pthread_mutex_init(&h->run_locks[i], NULL)) != 0)
 			goto error_lock_init;
 
-	h->ncaches = heap_get_ncaches();
 	memset(h->last_drained, 0, sizeof (h->last_drained));
 
 	pop->heap = h;
@@ -1405,7 +1436,7 @@ heap_boot(PMEMobjpool *pop)
 	if ((err = heap_buckets_init(pop)) != 0)
 		goto error_buckets_init;
 
-	int i;
+	unsigned i;
 	for (i = 0; i < h->ncaches; ++i)
 		if (bucket_cache_init(pop, &h->caches[i]) != 0)
 			goto error_cache_init;
@@ -1417,8 +1448,8 @@ heap_boot(PMEMobjpool *pop)
 	return 0;
 
 error_cache_init:
-	for (i = i - 1; i >= 0; --i)
-		bucket_cache_destroy(&h->caches[i]);
+	for (; i >= 1; --i)
+		bucket_cache_destroy(&h->caches[i - 1]);
 error_buckets_init:
 	/* there's really no point in destroying the locks */
 error_lock_init:
@@ -1466,9 +1497,9 @@ heap_vg_open(PMEMobjpool *pop)
 	VALGRIND_DO_MAKE_MEM_DEFINED(pop, &layout->header,
 			sizeof (layout->header));
 
-	int zones = heap_max_zone(pop->heap_size);
+	unsigned zones = heap_max_zone(pop->heap_size);
 
-	for (int i = 0; i < zones; ++i) {
+	for (unsigned i = 0; i < zones; ++i) {
 		struct zone *z = &layout->zones[i];
 		uint32_t chunks;
 
@@ -1529,8 +1560,8 @@ heap_init(PMEMobjpool *pop)
 	heap_write_header(&layout->header, pop->heap_size);
 	pmem_msync(&layout->header, sizeof (struct heap_header));
 
-	int zones = heap_max_zone(pop->heap_size);
-	for (int i = 0; i < zones; ++i) {
+	unsigned zones = heap_max_zone(pop->heap_size);
+	for (unsigned i = 0; i < zones; ++i) {
 		memset(&layout->zones[i].header, 0,
 				sizeof (layout->zones[i].header));
 
@@ -1567,7 +1598,7 @@ heap_cleanup(PMEMobjpool *pop)
 
 	Free(pop->heap->bucket_map);
 
-	for (int i = 0; i < pop->heap->ncaches; ++i)
+	for (unsigned i = 0; i < pop->heap->ncaches; ++i)
 		bucket_cache_destroy(&pop->heap->caches[i]);
 
 	Free(pop->heap->caches);
@@ -1704,7 +1735,7 @@ heap_check(PMEMobjpool *pop)
 	if (heap_verify_header(&layout->header))
 		return -1;
 
-	for (int i = 0; i < heap_max_zone(layout->header.size); ++i) {
+	for (unsigned i = 0; i < heap_max_zone(layout->header.size); ++i) {
 		if (heap_verify_zone(&layout->zones[i]))
 			return -1;
 	}
