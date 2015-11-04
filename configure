@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -e
 
 if [ "$CC" = "" ]; then
 	CC=cc
@@ -22,8 +22,8 @@ echo >> .env
 echo -n > .config.h
 
 if pkg-config --exists uuid; then
-	echo UUID_CFLAGS="`pkg-config --cflags uuid`" >> .env
-	echo UUID_LIBS="`pkg-config --libs uuid`" >> .env
+	echo UUID_CFLAGS=`pkg-config --cflags uuid` >> .env
+	echo UUID_LIBS=`pkg-config --libs uuid` >> .env
 	echo "#define HAVE_UUID" >> .config.h
 	echo USE_UUID=1 >> .env
 	echo "libuuid found"
@@ -34,10 +34,14 @@ else
 fi
 echo >> .env
 
-if pkg-config --exists valgrind; then
+if [ "$USE_VALGRIND" = "" ]; then
+	USE_VALGRIND=1
+fi
+
+if pkg-config --exists valgrind && [ "$USE_VALGRIND" = "1" ]; then
 	VG_CFLAGS=`pkg-config --cflags valgrind`
-	echo VALGRIND_CFLAGS="$VG_CFLAGS" >> .env
-	echo EXTRA_CFLAGS+="$VG_CFLAGS" >> .env
+	echo VALGRIND_CFLAGS=$VG_CFLAGS >> .env
+	echo EXTRA_CFLAGS+=$VG_CFLAGS >> .env
 	echo "#define USE_VG_MEMCHECK" >> .config.h
 	echo "#define USE_VG_HELGRIND" >> .config.h
 	printf "#include <pmemcheck.h>\nint main(){return 0;}" > .test.c
@@ -59,9 +63,13 @@ else
 fi
 echo >> .env
 
-if pkg-config --exists libunwind; then
-	echo LIBUNWIND_CFLAGS="`pkg-config --cflags libunwind`" >> .env
-	echo LIBUNWIND_LIBS="`pkg-config --libs libunwind`" >> .env
+if [ "$USE_LIBUNWIND" = "" ]; then
+	USE_LIBUNWIND=1
+fi
+
+if pkg-config --exists libunwind && [ "$USE_LIBUNWIND" = "1" ]; then
+	echo LIBUNWIND_CFLAGS=`pkg-config --cflags libunwind` >> .env
+	echo LIBUNWIND_LIBS=`pkg-config --libs libunwind` >> .env
 	echo "#define HAVE_LIBUNWIND" >> .config.h
 	echo USE_LIBUNWIND=1 >> .env
 	echo "libunwind found"
@@ -71,9 +79,13 @@ else
 fi
 echo >> .env
 
-if pkg-config --exists ncurses; then
-	echo NCURSES_CFLAGS="`pkg-config --cflags ncurses`" >> .env
-	echo NCURSES_LIBS="`pkg-config --libs ncurses`" >> .env
+if [ "$USE_NCURSES" = "" ]; then
+	USE_NCURSES=1
+fi
+
+if pkg-config --exists ncurses && [ "$USE_NCURSES" = "1" ]; then
+	echo NCURSES_CFLAGS=`pkg-config --cflags ncurses` >> .env
+	echo NCURSES_LIBS=`pkg-config --libs ncurses` >> .env
 	echo "#define HAVE_NCURSES" >> .config.h
 	echo USE_NCURSES=1 >> .env
 	echo "libncurses found"
@@ -83,9 +95,13 @@ else
 fi
 echo >> .env
 
-if pkg-config --exists fuse; then
-	echo FUSE_CFLAGS="`pkg-config --cflags fuse`" >> .env
-	echo FUSE_LIBS="`pkg-config --libs fuse`" >> .env
+if [ "$USE_FUSE" = "" ]; then
+	USE_FUSE=1
+fi
+
+if pkg-config --exists fuse && [ "$USE_FUSE" = "1" ]; then
+	echo FUSE_CFLAGS=`pkg-config --cflags fuse` >> .env
+	echo FUSE_LIBS=`pkg-config --libs fuse` >> .env
 	echo "#define HAVE_FUSE" >> .config.h
 	echo USE_FUSE=1 >> .env
 	echo "libfuse found"
@@ -95,9 +111,13 @@ else
 fi
 echo >> .env
 
-if pkg-config --exists glib-2.0; then
-	echo GLIB20_CFLAGS="`pkg-config --cflags glib-2.0`" >> .env
-	echo GLIB20_LIBS="`pkg-config --libs glib-2.0`" >> .env
+if [ "$USE_GLIB20" = "" ]; then
+	USE_GLIB20=1
+fi
+
+if pkg-config --exists glib-2.0 && [ "$USE_GLIB20" = "1" ]; then
+	echo GLIB20_CFLAGS=`pkg-config --cflags glib-2.0` >> .env
+	echo GLIB20_LIBS=`pkg-config --libs glib-2.0` >> .env
 	echo "#define HAVE_GLIB20" >> .config.h
 	echo USE_GLIB20=1 >> .env
 	echo "glib-2.0 found"
@@ -114,4 +134,4 @@ echo "#define SRCVERSION \"$VERSION\"" >> .config.h
 
 mv .env Makefile.env
 mv .config.h config.h
-rm .test.c
+rm -f .test.c
