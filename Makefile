@@ -81,7 +81,7 @@ clean:
 clobber:
 	$(MAKE) -C src $@
 	$(MAKE) -C doc $@
-	$(RM) -r $(RPM_BUILDDIR) $(DPKG_BUILDDIR) rpm dpkg Makefile.env
+	$(RM) -r $(RPM_BUILDDIR) $(DPKG_BUILDDIR) rpm dpkg Makefile.env config.h
 
 test check pcheck: all
 	$(MAKE) -C src $@
