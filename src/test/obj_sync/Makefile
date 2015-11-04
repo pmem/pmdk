@@ -33,6 +33,8 @@
 #
 # src/test/obj_sync/Makefile -- build obj_sync unit test
 #
+include ../Makefile.env
+
 vpath %.c ../../libpmemobj
 vpath %.c ../../common
 

@@ -31,6 +31,8 @@
 # Makefile -- Makefile for pmemalloc tool
 #
 
+include ../Makefile.env
+
 CSTYLE = ../../../utils/cstyle
 
 TARGET = pmemalloc

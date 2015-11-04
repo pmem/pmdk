@@ -33,6 +33,8 @@
 #
 # src/test/obj_tx_add_range/Makefile -- build obj_tx_add_range unit test
 #
+include ../Makefile.env
+
 vpath %.c ../../libpmemobj
 vpath %.c ../../common
 

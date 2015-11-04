@@ -33,6 +33,8 @@
 #
 # src/test/pmempool_info/Makefile -- build pmempool info unittest
 #
+include ../Makefile.env
+
 USE_PMEMWRITE=y
 USE_PMEMALLOC=y
 

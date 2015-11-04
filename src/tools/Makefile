@@ -31,6 +31,8 @@
 # Makefile -- top Makefile for tools
 #
 
+include ../Makefile.env
+
 TARGETS = pmempool
 SCOPEDIRS=$(TARGETS)
 SCOPEFILES=$(foreach dir, $(SCOPEDIRS), $(shell find $(dir) -name *.[ch] ))

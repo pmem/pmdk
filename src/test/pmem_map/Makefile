@@ -33,6 +33,8 @@
 #
 # src/test/pmem_map/Makefile -- build pmem_map() unit test
 #
+include ../Makefile.env
+
 TARGET = pmem_map
 OBJS = pmem_map.o
 

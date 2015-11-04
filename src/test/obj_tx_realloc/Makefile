@@ -33,6 +33,8 @@
 #
 # src/test/obj_tx_realloc/Makefile -- build obj_tx_realloc unit test
 #
+include ../Makefile.env
+
 vpath %.c ../../libpmemobj
 vpath %.c ../../common
 

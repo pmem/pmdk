@@ -33,6 +33,8 @@
 #
 # src/test/obj_list/Makefile -- build obj_list test
 #
+include ../Makefile.env
+
 vpath %.c ../../libpmemobj
 vpath %.c ../../common
 

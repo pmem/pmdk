@@ -33,6 +33,8 @@
 #
 # src/test/blk_rw_mt/Makefile -- build blk_rw_mt unit test
 #
+include ../Makefile.env
+
 TARGET = blk_rw_mt
 OBJS = blk_rw_mt.o
 

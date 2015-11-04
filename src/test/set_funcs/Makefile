@@ -33,6 +33,8 @@
 #
 # src/test/set_funcs/Makefile -- build set_funcs unit test
 #
+include ../Makefile.env
+
 TARGET = set_funcs
 OBJS = set_funcs.o
 

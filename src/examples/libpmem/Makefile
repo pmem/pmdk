@@ -34,6 +34,8 @@
 # examples/libpmem/Makefile -- build the libpmem examples
 #
 
+include ../Makefile.env
+
 PROGS = manpage simple_copy full_copy
 
 LIBS = -lpmem -pthread

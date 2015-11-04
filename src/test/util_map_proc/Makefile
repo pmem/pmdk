@@ -33,6 +33,8 @@
 #
 # src/test/util_map_proc/Makefile -- build util_map_proc unit test
 #
+include ../Makefile.env
+
 vpath %.c ../../common
 vpath %.h ../../common
 TARGET = util_map_proc

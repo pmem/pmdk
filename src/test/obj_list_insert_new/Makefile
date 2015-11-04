@@ -33,5 +33,6 @@
 #
 # src/test/obj_list_insert_new/Makefile -- build obj_list_insert_new unittest
 #
+include ../Makefile.env
 
 include ../obj_list/Makefile.inc

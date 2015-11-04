@@ -33,6 +33,8 @@
 #
 # src/test/obj_lane/Makefile -- build obj_lane unit test
 #
+include ../Makefile.env
+
 vpath %.c ../../libpmemobj
 vpath %.c ../../common
 

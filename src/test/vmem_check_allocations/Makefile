@@ -33,6 +33,8 @@
 #
 # src/test/vmem_check_allocations/Makefile -- build vmem_check_allocations unit test
 #
+include ../Makefile.env
+
 TARGET = vmem_check_allocations
 OBJS = vmem_check_allocations.o
 

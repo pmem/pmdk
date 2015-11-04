@@ -33,6 +33,8 @@
 #
 # src/test/obj_pmalloc_basic/Makefile -- build obj_pmalloc_basic unit test
 #
+include ../Makefile.env
+
 vpath %.c ../../libpmemobj
 vpath %.c ../../common
 

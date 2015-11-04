@@ -34,6 +34,8 @@
 # examples/libpmemobj/pmemobjfs/Makefile -- build simple fuse base on libpmemobj
 #
 
+include ../Makefile.env
+
 vpath %.c ../tree_map/
 
 FUSE := $(shell pkg-config fuse && echo "y" || echo "n")

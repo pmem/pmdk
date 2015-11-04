@@ -33,6 +33,8 @@
 #
 # src/test/obj_direct/Makefile -- build obj_direct unit test
 #
+include ../Makefile.env
+
 vpath %.c ../../libpmemobj
 vpath %.c ../../common
 

@@ -33,6 +33,8 @@
 #
 # src/test/vmem_aligned_alloc/Makefile -- build vmem_aligned_alloc unit test
 #
+include ../Makefile.env
+
 TARGET = vmem_aligned_alloc
 OBJS = vmem_aligned_alloc.o
 

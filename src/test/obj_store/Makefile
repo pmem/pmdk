@@ -33,6 +33,8 @@
 #
 # src/test/obj_store/Makefile -- build obj_store unit test
 #
+include ../Makefile.env
+
 vpath %.c ../../libpmemobj
 vpath %.c ../../common
 

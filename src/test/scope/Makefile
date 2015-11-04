@@ -33,4 +33,6 @@
 #
 # src/test/scope/Makefile -- build scope unit test
 #
+include ../Makefile.env
+
 include ../Makefile.inc

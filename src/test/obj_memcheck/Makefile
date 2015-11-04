@@ -33,6 +33,8 @@
 #
 # src/test/obj_memcheck/Makefile -- build obj_memcheck unit test
 #
+include ../Makefile.env
+
 TARGET = obj_memcheck
 OBJS = obj_memcheck.o
 

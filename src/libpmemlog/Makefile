@@ -32,6 +32,8 @@
 # src/libpmemlog/Makefile -- Makefile for libpmemlog
 #
 
+include ../Makefile.env
+
 LIBRARY_NAME = pmemlog
 LIBRARY_SO_VERSION = 1
 LIBRARY_VERSION = 0.0

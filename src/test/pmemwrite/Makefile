@@ -31,6 +31,8 @@
 # Makefile -- Makefile for pmemwrite tool
 #
 
+include ../Makefile.env
+
 vpath %.c ../../
 vpath %.c ../../tools/pmempool
 vpath %.c ../../common

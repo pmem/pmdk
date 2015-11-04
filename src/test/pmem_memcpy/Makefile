@@ -33,6 +33,8 @@
 #
 # src/test/pmem_memcpy/Makefile -- build pmem_memcpy unit test
 #
+include ../Makefile.env
+
 TARGET = pmem_memcpy
 OBJS = pmem_memcpy.o
 

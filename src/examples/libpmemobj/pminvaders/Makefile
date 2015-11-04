@@ -33,6 +33,9 @@
 #
 # examples/libpmemobj/pminvaders/Makefile -- build the non-tx example
 #
+
+include ../Makefile.env
+
 NCURSES := $(shell pkg-config ncurses && echo "y" || echo "n")
 ifeq ($(NCURSES),y)
 PROGS = pminvaders

@@ -33,6 +33,8 @@
 #
 # src/test/vmem_check_version/Makefile -- build vmem_check_version unit test
 #
+include ../Makefile.env
+
 TARGET = vmem_check_version
 OBJS = vmem_check_version.o
 

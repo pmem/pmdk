@@ -33,6 +33,8 @@
 #
 # src/test/traces/Makefile -- build traces unit test
 #
+include ../Makefile.env
+
 vpath %.c ../../common
 vpath %.h ../../common
 

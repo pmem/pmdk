@@ -33,6 +33,8 @@
 #
 # src/test/obj_redo_log/Makefile -- build obj_redo_log unit test
 #
+include ../Makefile.env
+
 vpath %.c ../../libpmemobj
 vpath %.c ../../common
 

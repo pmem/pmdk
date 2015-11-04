@@ -33,6 +33,8 @@
 #
 # src/test/pmem_movnt/Makefile -- build pmem_movnt unit test
 #
+include ../Makefile.env
+
 TARGET = pmem_movnt
 OBJS = pmem_movnt.o
 

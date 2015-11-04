@@ -33,6 +33,8 @@
 #
 # src/test/obj_heap/Makefile -- build heap unit test
 #
+include ../Makefile.env
+
 vpath %.c ../../libpmemobj
 vpath %.c ../../common
 

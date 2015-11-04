@@ -33,6 +33,8 @@
 #
 # src/test/blk_pool_lock/Makefile -- build blk_pool_lock unit test
 #
+include ../Makefile.env
+
 TARGET = blk_pool_lock
 OBJS = blk_pool_lock.o
 

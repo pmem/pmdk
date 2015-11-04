@@ -33,6 +33,8 @@
 #
 # src/test/vmem_create_error/Makefile -- build vmem_create_error unit test
 #
+include ../Makefile.env
+
 TARGET = vmem_create_error
 OBJS = vmem_create_error.o
 

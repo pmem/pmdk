@@ -33,6 +33,7 @@
 #
 # src/test/pmem_valgr_simple/Makefile -- build pmem_valgr_simple unit test
 #
+include ../Makefile.env
 
 vpath %.h ../../common
 TARGET = pmem_valgr_simple

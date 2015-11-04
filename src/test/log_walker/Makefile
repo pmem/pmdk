@@ -33,6 +33,8 @@
 #
 # src/test/log_walker/Makefile -- build log_walker unit test
 #
+include ../Makefile.env
+
 TARGET = log_walker
 OBJS = log_walker.o
 

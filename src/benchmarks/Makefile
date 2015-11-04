@@ -34,6 +34,8 @@
 # Makefile -- build all benchmarks
 #
 
+include ../Makefile.env
+
 vpath %.c ../libpmemobj
 vpath %.c ../common
 

@@ -33,6 +33,8 @@
 #
 # src/test/traces_pmem/Makefile -- build traces for library pmem
 #
+include ../Makefile.env
+
 TARGET = traces_pmem
 OBJS = traces_pmem.o
 

@@ -33,6 +33,8 @@
 #
 # src/test/vmem_out_of_memory/Makefile -- build vmem_out_of_memory unit test
 #
+include ../Makefile.env
+
 TARGET = vmem_out_of_memory
 OBJS = vmem_out_of_memory.o
 

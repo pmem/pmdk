@@ -33,6 +33,8 @@
 #
 # src/test/out_err_mt/Makefile -- build unit test for error messages
 #
+include ../Makefile.env
+
 vpath %.c ../../common
 vpath %.h ../../common
 

@@ -33,6 +33,8 @@
 #
 # src/test/checksum/Makefile -- build checksum unit test
 #
+include ../Makefile.env
+
 vpath %.c ../../common
 vpath %.h ../.. ../../include
 vpath %.h ../.. ../../common

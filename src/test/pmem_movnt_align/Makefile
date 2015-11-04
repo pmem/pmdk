@@ -33,6 +33,8 @@
 #
 # src/test/pmem_movnt_align/Makefile -- build pmem_movnt_align unittest
 #
+include ../Makefile.env
+
 TARGET = pmem_movnt_align
 OBJS = pmem_movnt_align.o
 

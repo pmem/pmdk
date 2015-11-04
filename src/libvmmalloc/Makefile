@@ -32,6 +32,8 @@
 # src/libvmmalloc/Makefile -- Makefile for libvmmalloc
 #
 
+include ../Makefile.env
+
 LIBRARY_NAME = vmmalloc
 LIBRARY_SO_VERSION = 1
 LIBRARY_VERSION = 0.0

@@ -33,6 +33,8 @@
 #
 # src/test/pmem_is_pmem_proc/Makefile -- build pmem_is_pmem_proc unit test
 #
+include ../Makefile.env
+
 TARGET = pmem_is_pmem_proc
 OBJS = pmem_is_pmem_proc.o
 

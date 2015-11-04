@@ -32,6 +32,7 @@
 # src/jemalloc/Makefile.nvml -- Makefile for building jemalloc
 # inside NVML tree
 #
+include ../../Makefile.env
 
 EXTRA_TARGETS = jemalloc
 

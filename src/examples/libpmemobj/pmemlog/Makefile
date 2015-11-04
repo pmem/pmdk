@@ -33,6 +33,8 @@
 #
 # examples/libpmemobj/pmemlog/Makefile -- build obj implementations of pmemlog
 #
+include ../Makefile.env
+
 PROGS = obj_pmemlog obj_pmemlog_macros obj_pmemlog_minimal obj_pmemlog_simple
 
 LIBS = -lpmemobj -lpmem -pthread

@@ -33,6 +33,8 @@
 #
 # src/test/pmem_memset/Makefile -- build pmem_memset unit test
 #
+include ../Makefile.env
+
 TARGET = pmem_memset
 OBJS = pmem_memset.o
 

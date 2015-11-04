@@ -33,6 +33,8 @@
 #
 # src/test/vmem_stats/Makefile -- build vmem_stats unit test
 #
+include ../Makefile.env
+
 TARGET = vmem_stats
 OBJS = vmem_stats.o
 

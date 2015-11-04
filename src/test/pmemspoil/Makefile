@@ -30,6 +30,7 @@
 #
 # Makefile -- Makefile for pmemspoil tool
 #
+include ../Makefile.env
 
 vpath %.c ../../
 vpath %.c ../../tools/pmempool

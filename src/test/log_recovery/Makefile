@@ -33,6 +33,8 @@
 #
 # src/test/log_recovery/Makefile -- build log_recovery unit test
 #
+include ../Makefile.env
+
 vpath %.h ../..
 TARGET = log_recovery
 OBJS = log_recovery.o

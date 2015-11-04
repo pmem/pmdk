@@ -33,6 +33,8 @@
 #
 # src/test/vmem_multiple_pools/Makefile -- build vmem_multiple_pools unit test
 #
+include ../Makefile.env
+
 TARGET = vmem_multiple_pools
 OBJS = vmem_multiple_pools.o
 

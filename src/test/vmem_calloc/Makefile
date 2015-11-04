@@ -33,6 +33,8 @@
 #
 # src/test/vmem_calloc/Makefile -- build vmem_calloc unit test
 #
+include ../Makefile.env
+
 TARGET = vmem_calloc
 OBJS = vmem_calloc.o
 

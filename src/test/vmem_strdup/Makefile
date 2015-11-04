@@ -33,6 +33,8 @@
 #
 # src/test/vmem_strdup/Makefile -- build vmem_strdup unit test
 #
+include ../Makefile.env
+
 TARGET = vmem_strdup
 OBJS =vmem_strdup.o
 

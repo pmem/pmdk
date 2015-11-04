@@ -32,6 +32,8 @@
 # src/libvmem/Makefile -- Makefile for libvmem
 #
 
+include ../Makefile.env
+
 LIBRARY_NAME = vmem
 LIBRARY_SO_VERSION = 1
 LIBRARY_VERSION = 0.0

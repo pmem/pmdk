@@ -33,6 +33,8 @@
 #
 # src/test/util_file_create/Makefile -- build util_file_create unit test
 #
+include ../Makefile.env
+
 vpath %.c ../../common
 vpath %.h ../../common
 TARGET = util_file_create

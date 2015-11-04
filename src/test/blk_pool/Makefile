@@ -33,6 +33,8 @@
 #
 # src/test/blk_pool/Makefile -- build blk_pool unit test
 #
+include ../Makefile.env
+
 TARGET = blk_pool
 OBJS = blk_pool.o
 

@@ -32,6 +32,8 @@
 # src/libpmem/Makefile -- Makefile for libpmem
 #
 
+include ../Makefile.env
+
 LIBRARY_NAME = pmem
 LIBRARY_SO_VERSION = 1
 LIBRARY_VERSION = 0.0

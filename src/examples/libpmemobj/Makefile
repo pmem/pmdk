@@ -33,6 +33,9 @@
 #
 # examples/libpmemobj/Makefile -- build the libpmemobj examples
 #
+
+include ../Makefile.env
+
 PROGS = manpage btree pi
 DIRS = pminvaders pmemlog pmemblk string_store string_store_tx\
 	string_store_tx_type hashset tree_map pmemobjfs

@@ -33,6 +33,8 @@
 #
 # src/test/obj_tx_strdup/Makefile -- build obj_tx_strdup unit test
 #
+include ../Makefile.env
+
 vpath %.c ../../libpmemobj
 vpath %.c ../../common
 

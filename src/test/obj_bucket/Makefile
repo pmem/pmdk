@@ -33,6 +33,8 @@
 #
 # src/test/obj_bucket/Makefile -- build bucket unit test
 #
+include ../Makefile.env
+
 vpath %.c ../../libpmemobj
 vpath %.c ../../common
 

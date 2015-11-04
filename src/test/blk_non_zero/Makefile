@@ -33,6 +33,8 @@
 #
 # src/test/blk_non_zero/Makefile -- build blk_non_zero unit test
 #
+include ../Makefile.env
+
 TARGET = blk_non_zero
 OBJS = blk_non_zero.o
 

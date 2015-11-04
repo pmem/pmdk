@@ -33,6 +33,8 @@
 #
 # src/test/util_poolset/Makefile -- build util_poolset unit test
 #
+include ../Makefile.env
+
 vpath %.c ../../common
 vpath %.h ../../common
 TARGET = util_poolset

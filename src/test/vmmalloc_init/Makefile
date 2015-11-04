@@ -33,6 +33,8 @@
 #
 # src/test/vmmalloc_init/Makefile -- build vmmalloc_init unit test
 #
+include ../Makefile.env
+
 TARGET = vmmalloc_init
 OBJS = vmmalloc_init.o
 

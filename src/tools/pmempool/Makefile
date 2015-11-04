@@ -31,6 +31,8 @@
 # Makefile -- top Makefile for pmempool
 #
 
+include ../Makefile.env
+
 vpath %.c ../../
 vpath %.c ../../common
 vpath %.c ../../libpmemblk

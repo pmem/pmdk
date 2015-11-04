@@ -33,6 +33,8 @@
 #
 # src/test/arch_flags/Makefile -- build arch_flags unit test
 #
+include ../Makefile.env
+
 vpath %.c ../../common
 TARGET = arch_flags
 OBJS = arch_flags.o util.o out.o

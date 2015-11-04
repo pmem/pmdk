@@ -33,6 +33,8 @@
 #
 # src/test/obj_ctree/Makefile -- build crit-bit tree unit test
 #
+include ../Makefile.env
+
 vpath %.c ../../libpmemobj
 vpath %.c ../../common
 
