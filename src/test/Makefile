@@ -85,6 +85,7 @@ OBJ_TESTS = \
        obj_list_remove\
        obj_list_remove_free\
        obj_list_valgrind\
+       obj_list_macro\
        obj_memcheck\
        obj_out_of_memory\
        obj_pmalloc_basic\
