@@ -52,7 +52,7 @@
 # from HEAD to 'path_to_dir/nvml' directory.
 #
 # As root, use "make install" to install the library in the usual
-# locations (/usr/lib, /usr/include, and /usr/share/man).
+# locations (/usr/local/lib, /usr/local/include, and /usr/local/share/man).
 # You can provide custom directory prefix for installation using
 # DESTDIR variable e.g.: "make install DESTDIR=/opt"
 # You can override the prefix within DESTDIR using prefix variable
