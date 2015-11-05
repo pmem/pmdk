@@ -33,6 +33,8 @@
 #
 # src/test/log_basic/Makefile -- build log_basic unit test
 #
+include ../Makefile.env
+
 TARGET = log_basic
 OBJS = log_basic.o
 

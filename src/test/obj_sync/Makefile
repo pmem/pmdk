@@ -33,13 +33,13 @@
 #
 # src/test/obj_sync/Makefile -- build obj_sync unit test
 #
+include ../Makefile.env
+
 vpath %.c ../../libpmemobj
 vpath %.c ../../common
 
 TARGET = obj_sync
 OBJS = obj_sync.o sync.o util.o out.o
-
-out.o: CFLAGS += -DSRCVERSION=\"utversion\"
 
 LIBPMEM=y
 

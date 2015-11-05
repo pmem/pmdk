@@ -32,6 +32,8 @@
 # src/common/Makefile -- Makefile for common
 #
 
+include ../Makefile.env
+
 CSTYLE = ../../utils/cstyle
 
 cstyle:

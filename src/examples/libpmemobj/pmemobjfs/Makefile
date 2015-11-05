@@ -34,10 +34,11 @@
 # examples/libpmemobj/pmemobjfs/Makefile -- build simple fuse base on libpmemobj
 #
 
+include ../Makefile.env
+
 vpath %.c ../tree_map/
 
-FUSE := $(shell pkg-config fuse && echo "y" || echo "n")
-ifeq ($(FUSE), y)
+ifeq ($(USE_FUSE), 1)
 LINKS = mkfs.pmemobjfs\
        pmemobjfs.tx_begin\
        pmemobjfs.tx_commit\
@@ -50,8 +51,8 @@ clean-progs: clean-links
 
 include ../../Makefile.inc
 
-LIBS += -lpmemobj -lpmem -pthread $(shell pkg-config --libs fuse)
-CFLAGS += $(shell pkg-config --cflags fuse)
+LIBS += -lpmemobj -lpmem -pthread $(FUSE_LIBS)
+CFLAGS += $(FUSE_CFLAGS)
 CFLAGS += -I../tree_map
 CFLAGS += -DFUSE_USE_VERSION=28
 

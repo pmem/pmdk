@@ -57,8 +57,7 @@
 # DESTDIR variable e.g.: "make install DESTDIR=/opt"
 # You can override the prefix within DESTDIR using prefix variable
 # e.g.: "make install prefix=/usr"
-
-export SRCVERSION = $(shell git describe 2>/dev/null || cat .version)
+-include Makefile.env
 
 export prefix = /usr/local
 
@@ -69,6 +68,7 @@ dpkg: override DESTDIR=$(CURDIR)/$(DPKG_BUILDDIR)
 rpm dpkg: override prefix=/usr
 
 all:
+	@if [ ! -f Makefile.env ]; then ./configure; fi
 	$(MAKE) -C src $@
 	$(MAKE) -C doc $@
 
@@ -80,7 +80,7 @@ clean:
 clobber:
 	$(MAKE) -C src $@
 	$(MAKE) -C doc $@
-	$(RM) -r $(RPM_BUILDDIR) $(DPKG_BUILDDIR) rpm dpkg
+	$(RM) -r $(RPM_BUILDDIR) $(DPKG_BUILDDIR) rpm dpkg Makefile.env config.h
 
 test check pcheck: all
 	$(MAKE) -C src $@

@@ -33,6 +33,8 @@
 #
 # src/test/vmem_pages_purging/Makefile -- build vmem_pages_purging unit test
 #
+include ../Makefile.env
+
 TARGET = vmem_pages_purging
 OBJS = vmem_pages_purging.o
 

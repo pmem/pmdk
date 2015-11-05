@@ -33,6 +33,8 @@
 #
 # src/test/blk_nblock/Makefile -- build blk_nblock unit test
 #
+include ../Makefile.env
+
 TARGET = blk_nblock
 OBJS = blk_nblock.o
 

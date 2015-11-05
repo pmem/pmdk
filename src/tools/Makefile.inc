@@ -43,7 +43,6 @@ CFLAGS += -Wunused-macros
 CFLAGS += -fno-common
 CFLAGS += $(EXTRA_CFLAGS)
 CFLAGS += -O2 -D_FORTIFY_SOURCE=2
-CFLAGS += -DSRCVERSION='"$(SRCVERSION)"'
 LDFLAGS += -Wl,-z,relro -Wl,--warn-common -Wl,--fatal-warnings $(EXTRA_LDFLAGS) -L../../nondebug
 TOOLSDIR=$(prefix)/bin
 TARGET_DIR=$(DESTDIR)$(TOOLSDIR)
@@ -56,7 +55,7 @@ TARGET_STATIC_DEBUG=$(TARGET).static-debug
 
 LIBSDIR=../..
 
-LIBS += -pthread -luuid
+LIBS += -pthread
 
 ifeq ($(LIBPMEMBLK), y)
 DYNAMIC_LIBS += -lpmemblk

@@ -33,6 +33,8 @@
 #
 # src/test/obj_lane/Makefile -- build obj_lane unit test
 #
+include ../Makefile.env
+
 vpath %.c ../../libpmemobj
 vpath %.c ../../common
 
@@ -40,8 +42,6 @@ TARGET = obj_lane
 OBJS = obj_lane.o lane.o util.o out.o
 
 LIBPMEM=y
-
-out.o: CFLAGS += -DSRCVERSION=\"utversion\"
 
 include ../Makefile.inc
 

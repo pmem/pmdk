@@ -33,6 +33,9 @@
 #
 # examples/libpmemobj/string_store/Makefile -- build the intro 1 example
 #
+
+include ../Makefile.env
+
 PROGS = writer reader
 
 LIBS = -lpmemobj -lpmem -pthread

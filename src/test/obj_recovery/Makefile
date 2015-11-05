@@ -33,6 +33,8 @@
 #
 # src/test/obj_recovery/Makefile -- build obj_recovery unit test
 #
+include ../Makefile.env
+
 vpath %.c ../../libpmemobj
 vpath %.c ../../common
 

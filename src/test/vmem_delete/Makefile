@@ -33,6 +33,8 @@
 #
 # src/test/vmem_delete/Makefile -- build vmem_delete unit test
 #
+include ../Makefile.env
+
 TARGET = vmem_delete
 OBJS = vmem_delete.o
 

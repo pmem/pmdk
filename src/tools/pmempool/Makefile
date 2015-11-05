@@ -31,6 +31,8 @@
 # Makefile -- top Makefile for pmempool
 #
 
+include ../Makefile.env
+
 vpath %.c ../../
 vpath %.c ../../common
 vpath %.c ../../libpmemblk
@@ -62,5 +64,8 @@ MANPAGES = ../../../doc/pmempool.1\
 BASH_COMP_FILES = pmempool.sh
 
 include ../Makefile.inc
+
+CFLAGS += $(UUID_CFLAGS)
+LIBS += $(UUID_LIBS)
 
 .PHONY: test check

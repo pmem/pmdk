@@ -32,6 +32,8 @@
 # src/libpmemlog/Makefile -- Makefile for libpmemlog
 #
 
+include ../Makefile.env
+
 LIBRARY_NAME = pmemlog
 LIBRARY_SO_VERSION = 1
 LIBRARY_VERSION = 0.0
@@ -39,4 +41,5 @@ SOURCE = libpmemlog.c log.c $(COMMON)/util.c $(COMMON)/set.c $(COMMON)/out.c
 
 include ../Makefile.inc
 
-LIBS += -luuid -pthread -lpmem
+CFLAGS += $(UUID_CFLAGS)
+LIBS += $(UUID_LIBS) -pthread -lpmem

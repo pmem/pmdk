@@ -33,6 +33,8 @@
 #
 # src/test/vmmalloc_malloc_usable_size/Makefile -- build vmmalloc_malloc_usable_size unit test
 #
+include ../Makefile.env
+
 TARGET = vmmalloc_malloc_usable_size
 OBJS = vmmalloc_malloc_usable_size.o
 

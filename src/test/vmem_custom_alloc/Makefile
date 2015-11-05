@@ -33,6 +33,8 @@
 #
 # src/test/vmem_custom_alloc/Makefile -- build vmem_custom_alloc unit test
 #
+include ../Makefile.env
+
 TARGET = vmem_custom_alloc
 OBJS = vmem_custom_alloc.o
 

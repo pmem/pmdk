@@ -33,6 +33,8 @@
 #
 # src/test/blk_recovery/Makefile -- build blk_recovery unit test
 #
+include ../Makefile.env
+
 vpath %.h ../..
 TARGET = blk_recovery
 OBJS = blk_recovery.o

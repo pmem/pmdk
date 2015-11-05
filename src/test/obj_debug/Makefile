@@ -33,6 +33,8 @@
 #
 # src/test/obj_debug/Makefile -- build obj_debug unit test
 #
+include ../Makefile.env
+
 TARGET = obj_debug
 OBJS = obj_debug.o
 

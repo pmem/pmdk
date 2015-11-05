@@ -33,6 +33,8 @@
 #
 # src/test/log_pool/Makefile -- build log_pool unit test
 #
+include ../Makefile.env
+
 TARGET = log_pool
 OBJS = log_pool.o
 

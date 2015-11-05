@@ -33,6 +33,8 @@
 #
 # src/test/obj_recreate/Makefile -- build obj_recreate test
 #
+include ../Makefile.env
+
 TARGET = obj_recreate
 OBJS = obj_recreate.o
 

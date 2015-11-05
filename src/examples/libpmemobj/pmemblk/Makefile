@@ -33,6 +33,9 @@
 #
 # examples/libpmemobj/pmemblk/Makefile -- build obj implementations of pmemblk
 #
+
+include ../Makefile.env
+
 PROGS = obj_pmemblk
 
 LIBS = -lpmemobj -lpmem -pthread

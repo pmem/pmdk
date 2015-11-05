@@ -30,6 +30,7 @@
 #
 # Makefile -- Makefile for pmemspoil tool
 #
+include ../Makefile.env
 
 vpath %.c ../../
 vpath %.c ../../tools/pmempool
@@ -48,6 +49,8 @@ CFLAGS += -I../../common
 CFLAGS += -I../../libpmemlog
 CFLAGS += -I../../libpmemblk
 CFLAGS += -I../../libpmemobj
+CFLAGS += $(UUID_CFLAGS)
+LIBS += $(UUID_LIBS)
 
 CLEAN_FILES = *.log
 

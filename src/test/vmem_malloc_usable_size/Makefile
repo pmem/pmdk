@@ -33,6 +33,8 @@
 #
 # src/test/vmem_malloc_usable_size/Makefile -- build vmem_malloc_usable_size unit test
 #
+include ../Makefile.env
+
 TARGET = vmem_malloc_usable_size
 OBJS =vmem_malloc_usable_size.o
 

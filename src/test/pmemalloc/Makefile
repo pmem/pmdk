@@ -31,6 +31,8 @@
 # Makefile -- Makefile for pmemalloc tool
 #
 
+include ../Makefile.env
+
 CSTYLE = ../../../utils/cstyle
 
 TARGET = pmemalloc
@@ -41,5 +43,6 @@ LIBPMEM=y
 LIBPMEMOBJ=y
 
 CFLAGS += -I../../libpmemobj
+LIBS += $(UUID_LIBS)
 
 include ../../tools/Makefile.inc

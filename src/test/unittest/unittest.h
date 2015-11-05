@@ -99,7 +99,6 @@
 #include <sys/mman.h>
 #include <sys/file.h>
 #include <sys/mount.h>
-#include <uuid/uuid.h>
 #include <fcntl.h>
 #include <signal.h>
 #include <errno.h>

@@ -33,6 +33,8 @@
 #
 # src/test/obj_tx_flow/Makefile -- build obj_tx_flow unit test
 #
+include ../Makefile.env
+
 vpath %.c ../../libpmemobj
 vpath %.c ../../common
 

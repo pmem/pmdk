@@ -33,6 +33,8 @@
 #
 # src/test/vmem_realloc_inplace/Makefile -- build vmem_realloc_inplace unit test
 #
+include ../Makefile.env
+
 TARGET = vmem_realloc_inplace
 OBJS = vmem_realloc_inplace.o
 

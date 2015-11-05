@@ -33,6 +33,9 @@
 #
 # examples/libpmemblk/assetdb/Makefile -- build the assetdb example
 #
+
+include ../Makefile.env
+
 PROGS = asset_load asset_list asset_checkout asset_checkin
 
 LIBS = -lpmemblk -lpmem -pthread

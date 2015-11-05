@@ -33,6 +33,8 @@
 #
 # src/test/vmmalloc_check_allocations/Makefile -- build vmmalloc_check_allocations unit test
 #
+include ../Makefile.env
+
 TARGET = vmmalloc_check_allocations
 OBJS = vmmalloc_check_allocations.o
 

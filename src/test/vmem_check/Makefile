@@ -33,6 +33,7 @@
 #
 # src/test/vmem_check/Makefile -- build vmem_check unit test
 #
+include ../Makefile.env
 
 vpath %.h ../..
 TARGET = vmem_check

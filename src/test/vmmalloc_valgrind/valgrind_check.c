@@ -35,8 +35,8 @@
  * of Valgrind headers
  */
 
-#include <valgrind/valgrind.h>
-#include <valgrind/memcheck.h>
+#include <valgrind.h>
+#include <memcheck.h>
 
 #if defined(VALGRIND_RESIZEINPLACE_BLOCK)
 VALGRIND_VERSION_3_7_OR_LATER

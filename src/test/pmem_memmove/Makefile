@@ -33,6 +33,8 @@
 #
 # src/test/pmem_memmove/Makefile -- build pmem_memmove unit test
 #
+include ../Makefile.env
+
 TARGET = pmem_memmove
 OBJS = pmem_memmove.o
 

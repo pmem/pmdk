@@ -33,4 +33,6 @@
 #
 # src/test/pmempool_rm/Makefile -- build pmempool rm unittest
 #
+include ../Makefile.env
+
 include ../Makefile.inc

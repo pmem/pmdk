@@ -33,6 +33,8 @@
 #
 # src/test/obj_pmalloc_oom_mt/Makefile -- build obj_pmalloc_oom_mt test
 #
+include ../Makefile.env
+
 TARGET = obj_pmalloc_oom_mt
 OBJS = obj_pmalloc_oom_mt.o
 

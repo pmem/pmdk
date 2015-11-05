@@ -32,6 +32,8 @@
 # src/libpmemblk/Makefile -- Makefile for libpmemblk
 #
 
+include ../Makefile.env
+
 LIBRARY_NAME = pmemblk
 LIBRARY_SO_VERSION = 1
 LIBRARY_VERSION = 0.0
@@ -40,4 +42,5 @@ SOURCE = libpmemblk.c blk.c btt.c $(COMMON)/util.c $(COMMON)/set.c\
 
 include ../Makefile.inc
 
-LIBS += -luuid -pthread -lpmem
+CFLAGS += $(UUID_CFLAGS)
+LIBS += $(UUID_LIBS) -pthread -lpmem

@@ -33,6 +33,8 @@
 #
 # src/test/obj_out_of_memory/Makefile -- build obj_out_of_memory test
 #
+include ../Makefile.env
+
 TARGET = obj_out_of_memory
 OBJS = obj_out_of_memory.o
 

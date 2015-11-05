@@ -33,6 +33,8 @@
 #
 # src/test/vmmalloc_memalign/Makefile -- build vmmalloc_memalign unit test
 #
+include ../Makefile.env
+
 TARGET = vmmalloc_memalign
 OBJS = vmmalloc_memalign.o
 EXTRA_DEPS = libaa.so

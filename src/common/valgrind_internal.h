@@ -43,13 +43,13 @@
 #if defined(USE_VG_PMEMCHECK) || defined(USE_VG_HELGRIND) ||\
 	defined(USE_VG_MEMCHECK)
 extern int On_valgrind;
-#include <valgrind/valgrind.h>
+#include <valgrind.h>
 #else
 #define	On_valgrind (0)
 #endif
 
 #ifdef USE_VG_HELGRIND
-#include <valgrind/helgrind.h>
+#include <helgrind.h>
 
 #define	VALGRIND_ANNOTATE_HAPPENS_BEFORE(obj) do {\
 	if (On_valgrind) \
@@ -71,7 +71,7 @@ extern int On_valgrind;
 
 #ifdef USE_VG_PMEMCHECK
 
-#include <valgrind/pmemcheck.h>
+#include <pmemcheck.h>
 
 #define	VALGRIND_REGISTER_PMEM_MAPPING(addr, len) do {\
 	if (On_valgrind)\
@@ -328,7 +328,7 @@ extern int On_valgrind;
 
 #ifdef USE_VG_MEMCHECK
 
-#include <valgrind/memcheck.h>
+#include <memcheck.h>
 
 #define	VALGRIND_DO_DISABLE_ERROR_REPORTING do {\
 	if (On_valgrind)\

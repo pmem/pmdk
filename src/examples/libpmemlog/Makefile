@@ -33,6 +33,9 @@
 #
 # examples/libpmemlog/Makefile -- build the libpmemlog examples
 #
+
+include ../Makefile.env
+
 PROGS = manpage
 DIRS = logfile
 

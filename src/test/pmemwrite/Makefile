@@ -31,6 +31,8 @@
 # Makefile -- Makefile for pmemwrite tool
 #
 
+include ../Makefile.env
+
 vpath %.c ../../
 vpath %.c ../../tools/pmempool
 vpath %.c ../../common
@@ -49,5 +51,8 @@ CFLAGS += -I../../common
 CFLAGS += -I../../libpmemlog
 CFLAGS += -I../../libpmemblk
 CFLAGS += -I../../libpmemobj
+CFLAGS += $(UUID_CFLAGS)
+
+LIBS += $(UUID_LIBS)
 
 include ../../tools/Makefile.inc

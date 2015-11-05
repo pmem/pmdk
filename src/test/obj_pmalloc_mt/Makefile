@@ -33,6 +33,8 @@
 #
 # src/test/obj_pmalloc_mt/Makefile -- build obj_pmalloc_mt unit test
 #
+include ../Makefile.env
+
 vpath %.c ../../libpmemobj
 vpath %.c ../../common
 
@@ -42,7 +44,7 @@ OBJS = obj_pmalloc_mt.o pmalloc.o bucket.o redo.o heap.o lane.o ctree.o\
 
 LIBPMEM=y
 
-out.o: CFLAGS += -DSRCVERSION=\"utversion\"
+set.o: CFLAGS += $(UUID_CFLAGS)
 
 include ../Makefile.inc
 

@@ -33,6 +33,8 @@
 #
 # src/test/obj_list/Makefile -- build obj_list test
 #
+include ../Makefile.env
+
 vpath %.c ../../libpmemobj
 vpath %.c ../../common
 
@@ -46,4 +48,4 @@ CFLAGS += -g -DDEBUG
 LDFLAGS += $(call extract_funcs, obj_list.c)
 INCS += -I../../libpmemobj/ -I../../common/
 
-out.o: CFLAGS += -DDEBUG -DSRCVERSION=\"utversion\"
+out.o: CFLAGS += -DDEBUG

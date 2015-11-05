@@ -33,6 +33,8 @@
 #
 # src/test/arch_flags/Makefile -- build arch_flags unit test
 #
+include ../Makefile.env
+
 vpath %.c ../../common
 TARGET = arch_flags
 OBJS = arch_flags.o util.o out.o
@@ -41,5 +43,5 @@ include ../Makefile.inc
 INCS += -I../../common
 LDFLAGS += -Wl,--wrap=open
 
-out.o: CFLAGS += -DDEBUG -DSRCVERSION=\"utversion\"
+out.o: CFLAGS += -DDEBUG
 util.o: CFLAGS += -DDEBUG

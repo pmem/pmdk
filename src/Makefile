@@ -32,6 +32,8 @@
 # src/Makefile -- Makefile for NVML
 #
 
+include ../Makefile.env
+
 CSTYLE = ../utils/cstyle
 TARGETS = libpmem libvmem libpmemblk libpmemlog libpmemobj libvmmalloc tools
 ALL_TARGETS = $(TARGETS) examples benchmarks

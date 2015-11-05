@@ -33,6 +33,9 @@
 #
 # examples/libpmemblk/Makefile -- build the libpmemblk examples
 #
+
+include ../Makefile.env
+
 PROGS = manpage
 DIRS = assetdb
 

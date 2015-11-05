@@ -33,6 +33,9 @@
 #
 # examples/logfile/Makefile -- build the NVM Library examples
 #
+
+include ../Makefile.env
+
 PROGS = addlog printlog
 
 LIBS = -lpmemlog -lpmem -pthread

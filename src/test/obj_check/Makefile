@@ -33,6 +33,8 @@
 #
 # src/test/obj_check/Makefile -- build obj_check test
 #
+include ../Makefile.env
+
 TARGET = obj_check
 OBJS = obj_check.o
 

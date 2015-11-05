@@ -54,29 +54,8 @@ CFLAGS += -Wunused-macros
 CFLAGS += -pthread
 CFLAGS += -fno-common
 CFLAGS += $(EXTRA_CFLAGS)
-CFLAGS += -DSRCVERSION=\"$(SRCVERSION)\"
 
 LDFLAGS += -Wl,-z,relro -Wl,--fatal-warnings -Wl,--warn-common $(EXTRA_LDFLAGS)
-
-define arch32_error_msg
-
-##################################################
-###  32-bit builds of NVML are not supported!  ###
-###  Please, use 64-bit platform/compiler.     ###
-##################################################
-
-endef
-
-TESTCMD := $(CC) $(CFLAGS) -dM -E -x c /dev/null -o /dev/null
-TESTBUILD := $(shell $(TESTCMD) && echo 1 || echo 0)
-ifneq ($(TESTBUILD), 1)
-$(error "$(TESTCMD)" failed)
-endif
-
-LP64 := $(shell $(CC) $(CFLAGS) -dM -E -x c /dev/null | grep -Ec "__SIZEOF_LONG__.+8|__SIZEOF_POINTER__.+8" )
-ifneq ($(LP64), 2)
-$(error $(arch32_error_msg))
-endif
 
 ifeq ($(shell uname -m), x86_64)
 ifneq ($(wildcard $(prefix)/lib64),)

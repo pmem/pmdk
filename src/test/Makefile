@@ -36,6 +36,8 @@
 # Makefile -- build all unit tests
 #
 
+include ../Makefile.env
+
 TEST_DEPS = \
        unittest\
        pmemspoil\

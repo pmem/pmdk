@@ -46,7 +46,7 @@
 #include <errno.h>
 #include <stddef.h>
 #include <time.h>
-#include <uuid/uuid.h>
+#include <uuid.h>
 #include <ctype.h>
 #include <linux/limits.h>
 

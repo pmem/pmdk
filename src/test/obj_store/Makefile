@@ -33,6 +33,8 @@
 #
 # src/test/obj_store/Makefile -- build obj_store unit test
 #
+include ../Makefile.env
+
 vpath %.c ../../libpmemobj
 vpath %.c ../../common
 
@@ -49,4 +51,5 @@ CFLAGS += -g -DDEBUG
 LDFLAGS += $(call extract_funcs, obj_store_mocks.c)
 INCS += -I../../libpmemobj/ -I../../common/
 
-out.o: CFLAGS += -DDEBUG -DSRCVERSION=\"utversion\"
+out.o: CFLAGS += -DDEBUG
+set.o: CFLAGS += $(UUID_CFLAGS)

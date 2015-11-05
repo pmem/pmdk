@@ -33,5 +33,6 @@
 #
 # src/test/obj_list_remove_free/Makefile -- build obj_list_remove_free unittest
 #
+include ../Makefile.env
 
 include ../obj_list/Makefile.inc

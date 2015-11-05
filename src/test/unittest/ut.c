@@ -40,6 +40,7 @@
  */
 
 #include "unittest.h"
+#include <uuid.h>
 
 /* RHEL5 seems to be missing decls, even though libc supports them */
 extern DIR *fdopendir(int fd);

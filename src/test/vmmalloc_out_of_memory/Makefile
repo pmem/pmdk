@@ -33,6 +33,8 @@
 #
 # src/test/vmmalloc_out_of_memory/Makefile -- build vmmalloc_out_of_memory unit test
 #
+include ../Makefile.env
+
 TARGET = vmmalloc_out_of_memory
 OBJS = vmmalloc_out_of_memory.o
 

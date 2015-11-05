@@ -12,3 +12,5 @@ dpkgbuild/
 rpm/
 dpkg/
 .deps
+/Makefile.env
+/config.h

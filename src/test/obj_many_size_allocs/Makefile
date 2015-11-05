@@ -33,6 +33,8 @@
 #
 # src/test/obj_many_size_allocs/Makefile -- build obj_many_size_allocs test
 #
+include ../Makefile.env
+
 TARGET = obj_many_size_allocs
 OBJS = obj_many_size_allocs.o
 

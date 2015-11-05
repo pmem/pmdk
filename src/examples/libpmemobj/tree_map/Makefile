@@ -33,6 +33,9 @@
 #
 # examples/libpmemobj/tree_map/Makefile -- build the tree map example
 #
+
+include ../Makefile.env
+
 PROGS = data_store_ctree data_store_btree data_store_rbtree
 
 LIBS = -lpmemobj -pthread

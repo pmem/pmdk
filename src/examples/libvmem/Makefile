@@ -33,6 +33,9 @@
 #
 # examples/libvmem/Makefile -- build the libvmem examples
 #
+
+include ../Makefile.env
+
 PROGS = manpage
 
 LIBS = -lvmem -pthread

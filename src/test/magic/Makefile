@@ -33,4 +33,6 @@
 #
 # src/test/magic/Makefile -- build unittest for magic file
 #
+include ../Makefile.env
+
 include ../Makefile.inc

@@ -33,13 +33,13 @@
 #
 # src/test/out_err_mt/Makefile -- build unit test for error messages
 #
+include ../Makefile.env
+
 vpath %.c ../../common
 vpath %.h ../../common
 
 TARGET = out_err_mt
 OBJS = out_err_mt.o util.o out.o
-
-out.o: CFLAGS += -DSRCVERSION=\"utversion\"
 
 LIBPMEM=y
 LIBPMEMLOG=y

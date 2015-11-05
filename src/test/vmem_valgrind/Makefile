@@ -33,6 +33,8 @@
 #
 # src/test/vmem_valgrind/Makefile -- build vmem_valgrind unit test
 #
+include ../Makefile.env
+
 TARGET = vmem_valgrind
 OBJS =vmem_valgrind.o
 

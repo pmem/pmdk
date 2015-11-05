@@ -33,6 +33,8 @@
 #
 # src/test/obj_realloc/Makefile -- build obj_realloc unit test
 #
+include ../Makefile.env
+
 vpath %.c ../../common
 
 TARGET = obj_realloc
@@ -45,5 +47,3 @@ include ../Makefile.inc
 
 CFLAGS += -I../../libpmemobj
 CFLAGS += -I../../common
-
-out.o: CFLAGS += -DSRCVERSION=\"utversion\"

@@ -33,6 +33,8 @@
 #
 # src/test/vmem_mix_allocations/Makefile -- build vmem_mix_allocations unit test
 #
+include ../Makefile.env
+
 TARGET = vmem_mix_allocations
 OBJS = vmem_mix_allocations.o
 

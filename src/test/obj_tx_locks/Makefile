@@ -33,6 +33,8 @@
 #
 # src/test/obj_tx_locks/Makefile -- build obj_tx_locks unit test
 #
+include ../Makefile.env
+
 vpath %.c ../../libpmemobj
 vpath %.c ../../common
 

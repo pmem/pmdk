@@ -33,6 +33,8 @@
 #
 # src/test/obj_heap_state/Makefile -- build obj_heap_state test
 #
+include ../Makefile.env
+
 TARGET = obj_heap_state
 OBJS = obj_heap_state.o
 

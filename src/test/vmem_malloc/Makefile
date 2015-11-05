@@ -33,6 +33,8 @@
 #
 # src/test/vmem_malloc/Makefile -- build vmem_malloc unit test
 #
+include ../Makefile.env
+
 TARGET = vmem_malloc
 OBJS = vmem_malloc.o
 

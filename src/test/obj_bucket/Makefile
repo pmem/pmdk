@@ -33,6 +33,8 @@
 #
 # src/test/obj_bucket/Makefile -- build bucket unit test
 #
+include ../Makefile.env
+
 vpath %.c ../../libpmemobj
 vpath %.c ../../common
 
@@ -40,8 +42,6 @@ TARGET = obj_bucket
 OBJS = obj_bucket.o ctree.o bucket.o util.o out.o heap.o lane.o
 
 LIBPMEM=y
-
-out.o: CFLAGS += -DSRCVERSION=\"utversion\"
 
 include ../Makefile.inc
 

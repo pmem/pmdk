@@ -33,13 +33,13 @@
 #
 # src/test/out_err/Makefile -- build unit test for out_err()
 #
+include ../Makefile.env
+
 vpath %.c ../../common
 vpath %.h ../../common
 
 TARGET = out_err
 OBJS = out_err.o out.o util.o
-
-out.o: CFLAGS += -DSRCVERSION=\"utversion\"
 
 include ../Makefile.inc
 

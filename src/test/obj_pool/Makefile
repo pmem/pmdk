@@ -33,6 +33,8 @@
 #
 # src/test/obj_pool/Makefile -- build obj_pool unit test
 #
+include ../Makefile.env
+
 TARGET = obj_pool
 OBJS = obj_pool.o
 

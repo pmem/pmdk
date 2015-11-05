@@ -34,6 +34,8 @@
 # src/test/obj_tx_add_range_direct/Makefile -- build obj_tx_add_range_direct
 # unit test
 #
+include ../Makefile.env
+
 vpath %.c ../../libpmemobj
 vpath %.c ../../common
 
@@ -42,8 +44,6 @@ OBJS = obj_tx_add_range_direct.o util.o out.o
 
 LIBPMEM=y
 LIBPMEMOBJ=y
-
-out.o: CFLAGS += -DSRCVERSION=\"utversion\"
 
 include ../Makefile.inc
 

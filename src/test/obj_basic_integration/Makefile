@@ -33,6 +33,8 @@
 #
 # src/test/obj_basic_integration/Makefile -- build obj_basic_integration test
 #
+include ../Makefile.env
+
 TARGET = obj_basic_integration
 OBJS = obj_basic_integration.o
 

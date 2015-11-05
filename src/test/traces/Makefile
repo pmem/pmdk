@@ -33,13 +33,13 @@
 #
 # src/test/traces/Makefile -- build traces unit test
 #
+include ../Makefile.env
+
 vpath %.c ../../common
 vpath %.h ../../common
 
 TARGET = traces
 OBJS = traces.o out.o util.o
-
-out.o: CFLAGS += -DSRCVERSION=\"utversion\"
 
 include ../Makefile.inc
 

@@ -33,12 +33,12 @@
 #
 # src/test/util_file_open/Makefile -- build util_file_open unit test
 #
+include ../Makefile.env
+
 vpath %.c ../../common
 vpath %.h ../../common
 TARGET = util_file_open
 OBJS = util_file_open.o util.o out.o
-
-out.o: CFLAGS += -DSRCVERSION=\"utversion\"
 
 include ../Makefile.inc
 INCS += -I../../common
