@@ -69,6 +69,7 @@
 
 use strict;
 use Getopt::Std;
+select STDERR;
 
 my $Me = $0;
 $Me =~ s,.*/,,;

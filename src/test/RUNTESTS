@@ -41,7 +41,7 @@
 usage()
 {
 	[ "$1" ] && echo Error: $1
-	cat <<EOF
+	cat >&2 <<EOF
 Usage: $0 [ -nv ] [ -b build-type ] [ -t test-type ] [ -f fs-type ]
 	    [ -o timeout ] [-s test-file ] [ -m memcheck ] [tests...]
     build-types: debug, nondebug, static-debug, static-nondebug, all (default)
@@ -64,11 +64,11 @@ EOF
 runtest() {
 	export UNITTEST_QUIET=1
 	[ -f "$1/TEST0" ] || {
-		echo FAIL: $1: test not found.
+		echo FAIL: $1: test not found. >&2
 		exit 1
 	}
 	[ -x "$1/TEST0" ] || {
-		echo FAIL: $1: test not executable.
+		echo FAIL: $1: test not executable. >&2
 		exit 1
 	}
 
@@ -127,8 +127,8 @@ runtest() {
 				[ $retval = 124 -o $retval = 137 ] && errmsg='timed out'
 
 				[ $retval != 0 ] && {
-					[ -t 1 ] && command -v tput >/dev/null && errmsg="$(tput setaf 1)$errmsg$(tput sgr0)"
-					echo "RUNTESTS: stopping: $1/$runscript $errmsg, TEST=$testtype FS=$fs BUILD=$build"
+					[ -t 2 ] && command -v tput >/dev/null && errmsg="$(tput setaf 1)$errmsg$(tput sgr0)"
+					echo "RUNTESTS: stopping: $1/$runscript $errmsg, TEST=$testtype FS=$fs BUILD=$build" >&2
 					exit 1
 				}
 			done
@@ -139,7 +139,7 @@ runtest() {
 }
 
 [ -f testconfig.sh ] || {
-	cat <<EOF
+	cat >&2 <<EOF
 RUNTESTS: stopping because no testconfig.sh is found.
           to create one:
                cp testconfig.sh.example testconfig.sh
