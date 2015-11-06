@@ -276,7 +276,6 @@ TOID(t)\
  * Begin of layout declaration
  */
 #define	POBJ_LAYOUT_BEGIN(name)\
-const char *_pobj_layout_##name##_name = #name;\
 typedef uint8_t _pobj_layout_##name##_ref[__COUNTER__]
 
 /*
@@ -306,7 +305,7 @@ TOID_DECLARE_ROOT(t);
 /*
  * Name of declared layout
  */
-#define	POBJ_LAYOUT_NAME(name) _pobj_layout_##name##_name
+#define	POBJ_LAYOUT_NAME(name) #name
 
 PMEMobjpool *pmemobj_pool(PMEMoid oid);
 
