@@ -298,7 +298,7 @@ static int
 exit_bench_mutex(struct mutex_bench *mb)
 {
 	if (mb->pa->use_pthread) {
-		/* deinit pthread mutex objects */
+		/* deinitialize pthread mutex objects */
 		for (unsigned i = 0; i < mb->pa->n_locks; i++) {
 			pthread_mutex_t *p = (pthread_mutex_t *)&mb->locks[i];
 			pthread_mutex_destroy(p);
@@ -381,7 +381,7 @@ static int
 exit_bench_rwlock(struct mutex_bench *mb)
 {
 	if (mb->pa->use_pthread) {
-		/* deinit pthread mutex objects */
+		/* deinitialize pthread mutex objects */
 		for (unsigned int i = 0; i < mb->pa->n_locks; i++) {
 			pthread_rwlock_t *p = (pthread_rwlock_t *)&mb->locks[i];
 			pthread_rwlock_destroy(p);
@@ -442,7 +442,7 @@ init_bench_vmutex(struct mutex_bench *mb)
 
 	mb->locks = D_RW(D_RW(mb->root)->locks);
 
-	/* initialize PMEM volatile emutexes */
+	/* initialize PMEM volatile mutexes */
 	for (unsigned i = 0; i < mb->pa->n_locks; i++) {
 		PMEM_volatile_mutex *p = (PMEM_volatile_mutex *)&mb->locks[i];
 		p->volatile_pmemmutex.runid = mb->pa->runid_initial_value;

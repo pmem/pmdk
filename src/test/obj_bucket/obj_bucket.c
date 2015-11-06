@@ -127,7 +127,7 @@ test_bucket_bitmap_correctness()
 	struct bucket *b = bucket_new((RUNSIZE / 10), TEST_MAX_UNIT);
 	ASSERT(b != NULL);
 
-	/* 54 set (not available for allocs), and 10 clear (available) */
+	/* 54 set (not available for allocations), and 10 clear (available) */
 	uint64_t bitmap_lastval =
 	0b1111111111111111111111111111111111111111111111111111110000000000;
 

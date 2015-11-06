@@ -37,7 +37,7 @@
 .\" or
 .\"	groff -man -Tascii libpmemobj.3
 .\"
-.TH libpmemobj 3 "pmemobj API version 0.4.16" "NVM Library"
+.TH libpmemobj 3 "pmemobj API version 0.4.17" "NVM Library"
 .SH NAME
 libpmemobj \- persistent memory transactional object store
 .SH SYNOPSIS
@@ -159,7 +159,7 @@ libpmemobj \- persistent memory transactional object store
 .B Root object management:
 .sp
 .BI "PMEMoid pmemobj_root(PMEMobjpool *" pop ", size_t " size );
-.BI "PMEMoid pmemobj_root_construct(PMEMobjpool *" pop ", size_t " size,
+.BI "PMEMoid pmemobj_root_construct(PMEMobjpool *" pop ", size_t " size ,
 .BI "    void (*" constructor ")(PMEMobjpool *" pop ", void *" ptr ", void *" arg "),
 .BI "    void *" arg );
 .BI "size_t pmemobj_root_size(PMEMobjpool *" pop );
@@ -1401,7 +1401,7 @@ or if there is not enough free space in the pool to satisfy the reallocation
 of the root object.  In such case, OID_NULL is returned.
 .PP
 .PP
-.BI "PMEMoid pmemobj_root_construct(PMEMobjpool *" pop ", size_t " size,
+.BI "PMEMoid pmemobj_root_construct(PMEMobjpool *" pop ", size_t " size ,
 .BI "    void (*" constructor ")(PMEMobjpool *" pop ", void *" ptr ", void *" arg "),
 .BI "    void *" arg );
 .IP

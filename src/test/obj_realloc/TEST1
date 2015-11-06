@@ -50,7 +50,7 @@ expect_normal_exit $PMEMPOOL$EXESUFFIX\
 
 # last parameter disables integrity tests, because they are veeeeeery slow
 # under pmemcheck (19 minutes vs 7 seconds)
-# TODO: enable after pmemcheck optimization
+# XXX enable after pmemcheck optimization
 expect_normal_exit valgrind --tool=pmemcheck\
     --log-file=valgrind$UNITTEST_NUM.log\
     ./obj_realloc$EXESUFFIX $DIR/testfile1 0
