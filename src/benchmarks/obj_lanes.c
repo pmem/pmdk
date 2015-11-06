@@ -123,7 +123,7 @@ err:
 }
 
 /*
- * lanes_exit -- benchmakr clean up
+ * lanes_exit -- benchmark clean up
  */
 static int
 lanes_exit(struct benchmark *bench, struct benchmark_args *args)
