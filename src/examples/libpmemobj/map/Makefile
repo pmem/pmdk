@@ -29,13 +29,52 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-PROGS = hashset_atomic hashset_tx
 
-LIBS = -lpmemobj -lpmem -pthread
+#
+# examples/libpmemobj/map/Makefile -- build the map example
+#
+
+PROGS = mapcli data_store
+LIBRARIES = map_ctree map_btree map_rbtree\
+	    map_hashmap_atomic map_hashmap_tx\
+	    map
+
+LIBS = -lpmemobj -pthread
 
 include ../../Makefile.inc
 
-hashset_atomic: hashset_atomic.o main.o
+CFLAGS += -I../
+CFLAGS += -I../hashmap
+CFLAGS += -I../tree_map
 
-hashset_tx: hashset_tx.o main.o
+mapcli: mapcli.o libmap.a
+data_store: data_store.o libmap.a
 
+libmap_ctree.o: map_ctree.o map.o ../tree_map/libctree_map.a
+libmap_btree.o: map_btree.o map.o ../tree_map/libbtree_map.a
+libmap_rbtree.o: map_rbtree.o map.o ../tree_map/librbtree_map.a
+libmap_hashmap_atomic.o: map_hashmap_atomic.o map.o ../hashmap/libhashmap_atomic.a
+libmap_hashmap_tx.o: map_hashmap_tx.o map.o ../hashmap/libhashmap_tx.a
+
+libmap.o: map.o map_ctree.o map_btree.o map_rbtree.o\
+	map_hashmap_atomic.o map_hashmap_tx.o\
+	../tree_map/libctree_map.a\
+	../tree_map/libbtree_map.a\
+	../tree_map/librbtree_map.a\
+	../hashmap/libhashmap_atomic.a\
+	../hashmap/libhashmap_tx.a
+
+../tree_map/libctree_map.a:
+	$(MAKE) -C ../tree_map ctree_map
+
+../tree_map/libbtree_map.a:
+	$(MAKE) -C ../tree_map btree_map
+
+../tree_map/librbtree_map.a:
+	$(MAKE) -C ../tree_map rbtree_map
+
+../hashmap/libhashmap_atomic.a:
+	$(MAKE) -C ../hashmap hashmap_atomic
+
+../hashmap/libhashmap_tx.a:
+	$(MAKE) -C ../hashmap hashmap_tx

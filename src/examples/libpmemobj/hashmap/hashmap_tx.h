@@ -29,51 +29,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#ifndef	HASHMAP_TX_H
+#define	HASHMAP_TX_H
 
-/*
- * tree_map.c -- universal tree_map functions
- */
+#include <stddef.h>
+#include <stdint.h>
+#include <hashmap.h>
+#include <libpmemobj.h>
 
-#include "tree_map.h"
+#ifndef	HASHMAP_TX_TYPE_OFFSET
+#define	HASHMAP_TX_TYPE_OFFSET 1004
+#endif
 
-/*
- * tree_map_insert_new -- allocates a new object and inserts it into the tree
- */
-int
-tree_map_insert_new(PMEMobjpool *pop,
-	TOID(struct tree_map) map, uint64_t key, size_t size,
-		unsigned int type_num,
-		void (*constructor)(PMEMobjpool *pop, void *ptr, void *arg),
-		void *arg)
-{
-	int ret = 0;
+struct hashmap_tx;
+TOID_DECLARE(struct hashmap_tx, HASHMAP_TX_TYPE_OFFSET + 0);
 
-	TX_BEGIN(pop) {
-		PMEMoid n = pmemobj_tx_alloc(size, type_num);
-		constructor(pop, pmemobj_direct(n), arg);
-		tree_map_insert(pop, map, key, n);
-	} TX_ONABORT {
-		ret = 1;
-	} TX_END
+int hm_tx_check(PMEMobjpool *pop, TOID(struct hashmap_tx) hashmap);
+int hm_tx_new(PMEMobjpool *pop, TOID(struct hashmap_tx) *map, void *arg);
+int hm_tx_init(PMEMobjpool *pop, TOID(struct hashmap_tx) hashmap);
+int hm_tx_insert(PMEMobjpool *pop, TOID(struct hashmap_tx) hashmap,
+		uint64_t key, PMEMoid value);
+PMEMoid hm_tx_remove(PMEMobjpool *pop, TOID(struct hashmap_tx) hashmap,
+		uint64_t key);
+PMEMoid hm_tx_get(PMEMobjpool *pop, TOID(struct hashmap_tx) hashmap,
+		uint64_t key);
+int hm_tx_lookup(PMEMobjpool *pop, TOID(struct hashmap_tx) hashmap,
+		uint64_t key);
+int hm_tx_foreach(PMEMobjpool *pop, TOID(struct hashmap_tx) hashmap,
+	int (*cb)(uint64_t key, PMEMoid value, void *arg), void *arg);
+size_t hm_tx_count(PMEMobjpool *pop, TOID(struct hashmap_tx) hashmap);
+int hm_tx_cmd(PMEMobjpool *pop, TOID(struct hashmap_tx) hashmap,
+		unsigned cmd, uint64_t arg);
 
-	return ret;
-}
-
-/*
- * tree_map_remove_free -- removes and frees an object from the tree
- */
-int
-tree_map_remove_free(PMEMobjpool *pop,
-	TOID(struct tree_map) map, uint64_t key)
-{
-	int ret = 0;
-
-	TX_BEGIN(pop) {
-		PMEMoid val = tree_map_remove(pop, map, key);
-		pmemobj_free(&val);
-	} TX_ONABORT {
-		ret = 1;
-	} TX_END
-
-	return ret;
-}
+#endif /* HASHMAP_TX_H */

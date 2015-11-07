@@ -36,9 +36,9 @@
 
 #include <assert.h>
 #include <errno.h>
-#include "tree_map.h"
+#include "rbtree_map.h"
 
-TOID_DECLARE(struct tree_map_node, TREE_MAP_TYPE_OFFSET + 1);
+TOID_DECLARE(struct tree_map_node, RBTREE_MAP_TYPE_OFFSET + 1);
 
 #define	NODE_P(_n)\
 D_RW(_n)->parent
@@ -89,21 +89,21 @@ struct tree_map_node {
 	TOID(struct tree_map_node) slots[MAX_RB];
 };
 
-struct tree_map {
+struct rbtree_map {
 	TOID(struct tree_map_node) sentinel;
 	TOID(struct tree_map_node) root;
 };
 
 /*
- * tree_map_new -- allocates a new red-black tree instance
+ * rbtree_map_new -- allocates a new red-black tree instance
  */
 int
-tree_map_new(PMEMobjpool *pop, TOID(struct tree_map) *map)
+rbtree_map_new(PMEMobjpool *pop, TOID(struct rbtree_map) *map, void *arg)
 {
 	int ret = 0;
 	TX_BEGIN(pop) {
 		pmemobj_tx_add_range_direct(map, sizeof (*map));
-		*map = TX_ZNEW(struct tree_map);
+		*map = TX_ZNEW(struct rbtree_map);
 
 		TOID(struct tree_map_node) s = TX_ZNEW(struct tree_map_node);
 		D_RW(s)->color = COLOR_BLACK;
@@ -127,17 +127,46 @@ tree_map_new(PMEMobjpool *pop, TOID(struct tree_map) *map)
 }
 
 /*
- * tree_map_delete -- cleanups and frees crit-bit tree instance
+ * rbtree_map_clear_node -- (internal) clears this node and its children
+ */
+static void
+rbtree_map_clear_node(TOID(struct tree_map_node) p)
+{
+	rbtree_map_clear_node(D_RO(p)->slots[RB_LEFT]);
+	rbtree_map_clear_node(D_RO(p)->slots[RB_RIGHT]);
+
+	pmemobj_tx_free(p.oid);
+}
+
+
+/*
+ * rbtree_map_clear -- removes all elements from the map
  */
 int
-tree_map_delete(PMEMobjpool *pop, TOID(struct tree_map) *map)
+rbtree_map_clear(PMEMobjpool *pop, TOID(struct rbtree_map) map)
+{
+	TX_BEGIN(pop) {
+		rbtree_map_clear_node(D_RW(map)->root);
+		TX_ADD_FIELD(map, root);
+		D_RW(map)->root = TOID_NULL(struct tree_map_node);
+	} TX_END
+
+	return 0;
+}
+
+
+/*
+ * rbtree_map_delete -- cleanups and frees crit-bit tree instance
+ */
+int
+rbtree_map_delete(PMEMobjpool *pop, TOID(struct rbtree_map) *map)
 {
 	int ret = 0;
 	TX_BEGIN(pop) {
-		tree_map_clear(pop, *map);
+		rbtree_map_clear(pop, *map);
 		pmemobj_tx_add_range_direct(map, sizeof (*map));
 		TX_FREE(*map);
-		*map = TOID_NULL(struct tree_map);
+		*map = TOID_NULL(struct rbtree_map);
 	} TX_ONABORT {
 		ret = 1;
 	} TX_END
@@ -146,10 +175,10 @@ tree_map_delete(PMEMobjpool *pop, TOID(struct tree_map) *map)
 }
 
 /*
- * tree_map_rotate -- (internal) performs a left/right rotation around a node
+ * rbtree_map_rotate -- (internal) performs a left/right rotation around a node
  */
 static void
-tree_map_rotate(TOID(struct tree_map) map,
+rbtree_map_rotate(TOID(struct rbtree_map) map,
 	TOID(struct tree_map_node) node, enum rb_children c)
 {
 	TOID(struct tree_map_node) child = D_RO(node)->slots[!c];
@@ -172,10 +201,10 @@ tree_map_rotate(TOID(struct tree_map) map,
 }
 
 /*
- * tree_map_insert_bst -- (internal) inserts a node in regular BST fashion
+ * rbtree_map_insert_bst -- (internal) inserts a node in regular BST fashion
  */
 static void
-tree_map_insert_bst(TOID(struct tree_map) map, TOID(struct tree_map_node) n)
+rbtree_map_insert_bst(TOID(struct rbtree_map) map, TOID(struct tree_map_node) n)
 {
 	TOID(struct tree_map_node) parent = D_RO(map)->root;
 	TOID(struct tree_map_node) *dst = &RB_FIRST(map);
@@ -194,10 +223,10 @@ tree_map_insert_bst(TOID(struct tree_map) map, TOID(struct tree_map_node) n)
 }
 
 /*
- * tree_map_recolor -- (internal) restores red-black tree properties
+ * rbtree_map_recolor -- (internal) restores red-black tree properties
  */
 static TOID(struct tree_map_node)
-tree_map_recolor(TOID(struct tree_map) map,
+rbtree_map_recolor(TOID(struct rbtree_map) map,
 	TOID(struct tree_map_node) n, enum rb_children c)
 {
 	TOID(struct tree_map_node) uncle = D_RO(NODE_GRANDP(n))->slots[!c];
@@ -210,23 +239,23 @@ tree_map_recolor(TOID(struct tree_map) map,
 	} else {
 		if (NODE_IS(n, !c)) {
 			n = NODE_P(n);
-			tree_map_rotate(map, n, c);
+			rbtree_map_rotate(map, n, c);
 		}
 
 		TX_SET(NODE_P(n), color, COLOR_BLACK);
 		TX_SET(NODE_GRANDP(n), color, COLOR_RED);
-		tree_map_rotate(map, NODE_GRANDP(n), !c);
+		rbtree_map_rotate(map, NODE_GRANDP(n), !c);
 	}
 
 	return n;
 }
 
 /*
- * tree_map_insert -- inserts a new key-value pair into the map
+ * rbtree_map_insert -- inserts a new key-value pair into the map
  */
 int
-tree_map_insert(PMEMobjpool *pop,
-	TOID(struct tree_map) map, uint64_t key, PMEMoid value)
+rbtree_map_insert(PMEMobjpool *pop, TOID(struct rbtree_map) map,
+	uint64_t key, PMEMoid value)
 {
 	int ret = 0;
 
@@ -235,11 +264,12 @@ tree_map_insert(PMEMobjpool *pop,
 		D_RW(n)->key = key;
 		D_RW(n)->value = value;
 
-		tree_map_insert_bst(map, n);
+		rbtree_map_insert_bst(map, n);
 
 		D_RW(n)->color = COLOR_RED;
 		while (D_RO(NODE_P(n))->color == COLOR_RED)
-			n = tree_map_recolor(map, n, NODE_LOCATION(NODE_P(n)));
+			n = rbtree_map_recolor(map, n,
+					NODE_LOCATION(NODE_P(n)));
 
 		TX_SET(RB_FIRST(map), color, COLOR_BLACK);
 	} TX_END
@@ -248,10 +278,10 @@ tree_map_insert(PMEMobjpool *pop,
 }
 
 /*
- * tree_map_successor -- (internal) returns the successor of a node
+ * rbtree_map_successor -- (internal) returns the successor of a node
  */
 static TOID(struct tree_map_node)
-tree_map_successor(TOID(struct tree_map) map, TOID(struct tree_map_node) n)
+rbtree_map_successor(TOID(struct rbtree_map) map, TOID(struct tree_map_node) n)
 {
 	TOID(struct tree_map_node) dst = RB_FIRST(map);
 	TOID(struct tree_map_node) s = D_RO(map)->sentinel;
@@ -273,10 +303,10 @@ tree_map_successor(TOID(struct tree_map) map, TOID(struct tree_map_node) n)
 }
 
 /*
- * tree_map_find_node -- (internal) returns the node that contains the key
+ * rbtree_map_find_node -- (internal) returns the node that contains the key
  */
 static TOID(struct tree_map_node)
-tree_map_find_node(TOID(struct tree_map) map, uint64_t key)
+rbtree_map_find_node(TOID(struct rbtree_map) map, uint64_t key)
 {
 	TOID(struct tree_map_node) dst = RB_FIRST(map);
 	TOID(struct tree_map_node) s = D_RO(map)->sentinel;
@@ -292,17 +322,17 @@ tree_map_find_node(TOID(struct tree_map) map, uint64_t key)
 }
 
 /*
- * tree_map_repair_branch -- (internal) restores red-black tree in one branch
+ * rbtree_map_repair_branch -- (internal) restores red-black tree in one branch
  */
 static TOID(struct tree_map_node)
-tree_map_repair_branch(TOID(struct tree_map) map,
+rbtree_map_repair_branch(TOID(struct rbtree_map) map,
 	TOID(struct tree_map_node) n, enum rb_children c)
 {
 	TOID(struct tree_map_node) sb = NODE_PARENT_AT(n, !c); /* sibling */
 	if (D_RO(sb)->color == COLOR_RED) {
 		TX_SET(sb, color, COLOR_BLACK);
 		TX_SET(NODE_P(n), color, COLOR_RED);
-		tree_map_rotate(map, NODE_P(n), c);
+		rbtree_map_rotate(map, NODE_P(n), c);
 		sb = NODE_PARENT_AT(n, !c);
 	}
 
@@ -314,13 +344,13 @@ tree_map_repair_branch(TOID(struct tree_map) map,
 		if (D_RO(D_RO(sb)->slots[!c])->color == COLOR_BLACK) {
 			TX_SET(D_RW(sb)->slots[c], color, COLOR_BLACK);
 			TX_SET(sb, color, COLOR_RED);
-			tree_map_rotate(map, sb, !c);
+			rbtree_map_rotate(map, sb, !c);
 			sb = NODE_PARENT_AT(n, !c);
 		}
 		TX_SET(sb, color, D_RO(NODE_P(n))->color);
 		TX_SET(NODE_P(n), color, COLOR_BLACK);
 		TX_SET(D_RW(sb)->slots[!c], color, COLOR_BLACK);
-		tree_map_rotate(map, NODE_P(n), c);
+		rbtree_map_rotate(map, NODE_P(n), c);
 
 		return TOID_NULL(struct tree_map_node);
 	}
@@ -329,25 +359,26 @@ tree_map_repair_branch(TOID(struct tree_map) map,
 }
 
 /*
- * tree_map_repair -- (internal) restores red-black tree properties after remove
+ * rbtree_map_repair -- (internal) restores red-black tree properties
+ * after remove
  */
 static void
-tree_map_repair(TOID(struct tree_map) map, TOID(struct tree_map_node) n)
+rbtree_map_repair(TOID(struct rbtree_map) map, TOID(struct tree_map_node) n)
 {
 	/* if left, repair right sibling, otherwise repair left sibling. */
 	while (!TOID_IS_NULL(n) && D_RO(n)->color == COLOR_BLACK)
-		n = tree_map_repair_branch(map, n, NODE_LOCATION(n));
+		n = rbtree_map_repair_branch(map, n, NODE_LOCATION(n));
 }
 
 /*
- * tree_map_remove -- removes key-value pair from the map
+ * rbtree_map_remove -- removes key-value pair from the map
  */
 PMEMoid
-tree_map_remove(PMEMobjpool *pop, TOID(struct tree_map) map, uint64_t key)
+rbtree_map_remove(PMEMobjpool *pop, TOID(struct rbtree_map) map, uint64_t key)
 {
 	PMEMoid ret = OID_NULL;
 
-	TOID(struct tree_map_node) n = tree_map_find_node(map, key);
+	TOID(struct tree_map_node) n = rbtree_map_find_node(map, key);
 	if (TOID_IS_NULL(n))
 		return ret;
 
@@ -358,7 +389,7 @@ tree_map_remove(PMEMobjpool *pop, TOID(struct tree_map) map, uint64_t key)
 
 	TOID(struct tree_map_node) y = (NODE_IS_NULL(D_RO(n)->slots[RB_LEFT]) ||
 					NODE_IS_NULL(D_RO(n)->slots[RB_RIGHT]))
-					? n : tree_map_successor(map, n);
+					? n : rbtree_map_successor(map, n);
 
 	TOID(struct tree_map_node) x = NODE_IS_NULL(D_RO(y)->slots[RB_LEFT]) ?
 			D_RO(y)->slots[RB_RIGHT] : D_RO(y)->slots[RB_LEFT];
@@ -373,7 +404,7 @@ tree_map_remove(PMEMobjpool *pop, TOID(struct tree_map) map, uint64_t key)
 		}
 
 		if (D_RO(y)->color == COLOR_BLACK)
-			tree_map_repair(map, x);
+			rbtree_map_repair(map, x);
 
 		if (!TOID_EQUALS(y, n)) {
 			TX_ADD(y);
@@ -393,40 +424,12 @@ tree_map_remove(PMEMobjpool *pop, TOID(struct tree_map) map, uint64_t key)
 }
 
 /*
- * tree_map_clear_node -- (internal) clears this node and its children
- */
-static void
-tree_map_clear_node(TOID(struct tree_map_node) p)
-{
-	tree_map_clear_node(D_RO(p)->slots[RB_LEFT]);
-	tree_map_clear_node(D_RO(p)->slots[RB_RIGHT]);
-
-	pmemobj_tx_free(p.oid);
-}
-
-/*
- * tree_map_clear -- removes all elements from the map
- */
-int
-tree_map_clear(PMEMobjpool *pop,
-	TOID(struct tree_map) map)
-{
-	TX_BEGIN(pop) {
-		tree_map_clear_node(D_RW(map)->root);
-		TX_ADD_FIELD(map, root);
-		D_RW(map)->root = TOID_NULL(struct tree_map_node);
-	} TX_END
-
-	return 0;
-}
-
-/*
- * tree_map_get -- searches for a value of the key
+ * rbtree_map_get -- searches for a value of the key
  */
 PMEMoid
-tree_map_get(TOID(struct tree_map) map, uint64_t key)
+rbtree_map_get(PMEMobjpool *pop, TOID(struct rbtree_map) map, uint64_t key)
 {
-	TOID(struct tree_map_node) node = tree_map_find_node(map, key);
+	TOID(struct tree_map_node) node = rbtree_map_find_node(map, key);
 	if (TOID_IS_NULL(node))
 		return OID_NULL;
 
@@ -434,10 +437,24 @@ tree_map_get(TOID(struct tree_map) map, uint64_t key)
 }
 
 /*
- * tree_map_foreach_node -- (internal) recursively traverses tree
+ * rbtree_map_lookup -- searches if key exists
+ */
+int
+rbtree_map_lookup(PMEMobjpool *pop, TOID(struct rbtree_map) map, uint64_t key)
+{
+	TOID(struct tree_map_node) node = rbtree_map_find_node(map, key);
+	if (TOID_IS_NULL(node))
+		return 0;
+
+	return 1;
+}
+
+/*
+ * rbtree_map_foreach_node -- (internal) recursively traverses tree
  */
 static int
-tree_map_foreach_node(TOID(struct tree_map) map, TOID(struct tree_map_node) p,
+rbtree_map_foreach_node(TOID(struct rbtree_map) map,
+	TOID(struct tree_map_node) p,
 	int (*cb)(uint64_t key, PMEMoid value, void *arg), void *arg)
 {
 	int ret = 0;
@@ -445,10 +462,10 @@ tree_map_foreach_node(TOID(struct tree_map) map, TOID(struct tree_map_node) p,
 	if (TOID_EQUALS(p, D_RO(map)->sentinel))
 		return 0;
 
-	if ((ret = tree_map_foreach_node(map,
+	if ((ret = rbtree_map_foreach_node(map,
 		D_RO(p)->slots[RB_LEFT], cb, arg)) == 0) {
 		if ((ret = cb(D_RO(p)->key, D_RO(p)->value, arg)) == 0)
-			tree_map_foreach_node(map,
+			rbtree_map_foreach_node(map,
 				D_RO(p)->slots[RB_RIGHT], cb, arg);
 	}
 
@@ -456,20 +473,70 @@ tree_map_foreach_node(TOID(struct tree_map) map, TOID(struct tree_map_node) p,
 }
 
 /*
- * tree_map_foreach -- initiates recursive traversal
+ * rbtree_map_foreach -- initiates recursive traversal
  */
 int
-tree_map_foreach(TOID(struct tree_map) map,
+rbtree_map_foreach(PMEMobjpool *pop, TOID(struct rbtree_map) map,
 	int (*cb)(uint64_t key, PMEMoid value, void *arg), void *arg)
 {
-	return tree_map_foreach_node(map, RB_FIRST(map), cb, arg);
+	return rbtree_map_foreach_node(map, RB_FIRST(map), cb, arg);
 }
 
 /*
- * tree_map_is_empty -- checks whether the tree map is empty
+ * rbtree_map_is_empty -- checks whether the tree map is empty
  */
 int
-tree_map_is_empty(TOID(struct tree_map) map)
+rbtree_map_is_empty(PMEMobjpool *pop, TOID(struct rbtree_map) map)
 {
 	return TOID_IS_NULL(RB_FIRST(map));
+}
+
+/*
+ * rbtree_map_check -- check if given persistent object is a tree map
+ */
+int
+rbtree_map_check(PMEMobjpool *pop, TOID(struct rbtree_map) map)
+{
+	return !TOID_VALID(map);
+}
+
+/*
+ * rbtree_map_insert_new -- allocates a new object and inserts it into the tree
+ */
+int
+rbtree_map_insert_new(PMEMobjpool *pop, TOID(struct rbtree_map) map,
+		uint64_t key, size_t size, unsigned int type_num,
+		void (*constructor)(PMEMobjpool *pop, void *ptr, void *arg),
+		void *arg)
+{
+	int ret = 0;
+
+	TX_BEGIN(pop) {
+		PMEMoid n = pmemobj_tx_alloc(size, type_num);
+		constructor(pop, pmemobj_direct(n), arg);
+		rbtree_map_insert(pop, map, key, n);
+	} TX_ONABORT {
+		ret = 1;
+	} TX_END
+
+	return ret;
+}
+
+/*
+ * rbtree_map_remove_free -- removes and frees an object from the tree
+ */
+int
+rbtree_map_remove_free(PMEMobjpool *pop, TOID(struct rbtree_map) map,
+		uint64_t key)
+{
+	int ret = 0;
+
+	TX_BEGIN(pop) {
+		PMEMoid val = rbtree_map_remove(pop, map, key);
+		pmemobj_free(&val);
+	} TX_ONABORT {
+		ret = 1;
+	} TX_END
+
+	return ret;
 }

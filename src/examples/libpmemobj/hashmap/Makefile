@@ -30,33 +30,11 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-#
-# src/test/ex_libpmemobj/Makefile -- build ex_libpmemobj unittest
-#
+LIBRARIES = hashmap_atomic hashmap_tx
 
-include ../Makefile.inc
+LIBS = -lpmemobj -lpmem -pthread
 
-NCURSES := $(shell pkg-config ncurses && echo "y" || echo "n")
+include ../../Makefile.inc
 
-EXAMPLES=$(EX_LIBPMEMOBJ)/pi \
-	$(EX_LIBPMEMOBJ)/btree \
-	$(EX_LIBPMEMOBJ)/map/mapcli \
-	$(EX_LIBPMEMOBJ)/map/data_store \
-	$(EX_LIBPMEMOBJ)/string_store/writer \
-	$(EX_LIBPMEMOBJ)/string_store/reader \
-	$(EX_LIBPMEMOBJ)/string_store_tx/writer \
-	$(EX_LIBPMEMOBJ)/string_store_tx/reader \
-	$(EX_LIBPMEMOBJ)/string_store_tx_type/writer \
-	$(EX_LIBPMEMOBJ)/string_store_tx_type/reader \
-	$(EX_LIBPMEMOBJ)/pmemblk/obj_pmemblk \
-	$(EX_LIBPMEMOBJ)/pmemlog/obj_pmemlog \
-	$(EX_LIBPMEMOBJ)/pmemlog/obj_pmemlog_minimal \
-	$(EX_LIBPMEMOBJ)/pmemlog/obj_pmemlog_simple \
-	$(EX_LIBPMEMOBJ)/pmemlog/obj_pmemlog_macros
-
-ifeq ($(NCURSES),y)
-EXAMPLES += $(EX_LIBPMEMOBJ)/pminvaders/pminvaders
-endif
-
-all: $(EXAMPLES)
-	$(MAKE) -C $(EX_LIBPMEMOBJ)
+libhashmap_atomic.o: hashmap_atomic.o
+libhashmap_tx.o: hashmap_tx.o

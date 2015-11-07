@@ -35,6 +35,7 @@
 #
 
 vpath %.c ../tree_map/
+vpath %.c ../map/
 
 FUSE := $(shell pkg-config fuse && echo "y" || echo "n")
 ifeq ($(FUSE), y)
@@ -53,7 +54,9 @@ include ../../Makefile.inc
 LIBS += -lpmemobj -lpmem -pthread $(shell pkg-config --libs fuse)
 CFLAGS += $(shell pkg-config --cflags fuse)
 CFLAGS += -I../tree_map
+CFLAGS += -I../map
 CFLAGS += -DFUSE_USE_VERSION=28
+CFLAGS += -DUSE_CTREE
 
 $(LINKS): pmemobjfs
 	ln -sf pmemobjfs $@
@@ -61,6 +64,8 @@ $(LINKS): pmemobjfs
 clean-links:
 	$(RM) $(LINKS)
 
-pmemobjfs: pmemobjfs.o ctree_map.o tree_map.o
+pmemobjfs: pmemobjfs.o ../map/libmap_ctree.a
+../map/libmap_ctree.a:
+	$(MAKE) -C ../map map_ctree
 
 .PHONY: clean-links

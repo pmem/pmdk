@@ -29,30 +29,43 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef	HASHSET_H
-#define	HASHSET_H
 
-/* common API provided by both implementations */
+/*
+ * rbtree_map.h -- TreeMap sorted collection implementation
+ */
 
-#include <stddef.h>
-#include <stdint.h>
+#ifndef	RBTREE_MAP_H
+#define	RBTREE_MAP_H
 
-const char *hs_layout_name(void);
+#include <libpmemobj.h>
 
-void hs_create(PMEMobjpool *pop, uint32_t seed);
-
-void hs_init(PMEMobjpool *pop);
-
-void hs_rebuild(PMEMobjpool *pop, size_t new_len);
-
-int hs_insert(PMEMobjpool *pop, uint64_t value);
-
-int hs_remove(PMEMobjpool *pop, uint64_t value);
-
-void hs_print(PMEMobjpool *pop);
-
-void hs_debug(PMEMobjpool *pop);
-
-int hs_check(PMEMobjpool *pop, uint64_t value);
-
+#ifndef	RBTREE_MAP_TYPE_OFFSET
+#define	RBTREE_MAP_TYPE_OFFSET 1016
 #endif
+
+struct rbtree_map;
+TOID_DECLARE(struct rbtree_map, RBTREE_MAP_TYPE_OFFSET + 0);
+
+int rbtree_map_check(PMEMobjpool *pop, TOID(struct rbtree_map) map);
+int rbtree_map_new(PMEMobjpool *pop, TOID(struct rbtree_map) *map, void *arg);
+int rbtree_map_delete(PMEMobjpool *pop, TOID(struct rbtree_map) *map);
+int rbtree_map_insert(PMEMobjpool *pop, TOID(struct rbtree_map) map,
+	uint64_t key, PMEMoid value);
+int rbtree_map_insert_new(PMEMobjpool *pop, TOID(struct rbtree_map) map,
+		uint64_t key, size_t size, unsigned int type_num,
+		void (*constructor)(PMEMobjpool *pop, void *ptr, void *arg),
+		void *arg);
+PMEMoid rbtree_map_remove(PMEMobjpool *pop, TOID(struct rbtree_map) map,
+		uint64_t key);
+int rbtree_map_remove_free(PMEMobjpool *pop, TOID(struct rbtree_map) map,
+		uint64_t key);
+int rbtree_map_clear(PMEMobjpool *pop, TOID(struct rbtree_map) map);
+PMEMoid rbtree_map_get(PMEMobjpool *pop, TOID(struct rbtree_map) map,
+		uint64_t key);
+int rbtree_map_lookup(PMEMobjpool *pop, TOID(struct rbtree_map) map,
+		uint64_t key);
+int rbtree_map_foreach(PMEMobjpool *pop, TOID(struct rbtree_map) map,
+	int (*cb)(uint64_t key, PMEMoid value, void *arg), void *arg);
+int rbtree_map_is_empty(PMEMobjpool *pop, TOID(struct rbtree_map) map);
+
+#endif /* RBTREE_MAP_H */

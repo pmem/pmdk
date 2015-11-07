@@ -46,7 +46,8 @@
 #include <sys/ioctl.h>
 #include <linux/kdev_t.h>
 
-#include "tree_map.h"
+#include <map.h>
+#include <map_ctree.h>
 
 #ifndef	PMEMOBJFS_TRACK_BLOCKS
 #define	PMEMOBJFS_TRACK_BLOCKS	1
@@ -84,6 +85,7 @@ if (log_fh) {\
  */
 struct pmemobjfs {
 	PMEMobjpool *pop;
+	struct map_ctx *mapc;
 	uint64_t pool_uuid_lo;
 	int ioctl_cmd;
 	uint64_t ioctl_off;
@@ -191,7 +193,7 @@ POBJ_LAYOUT_END(pmemobjfs);
  */
 struct objfs_super {
 	TOID(struct objfs_inode) root_inode;	/* root dir inode */
-	TOID(struct tree_map) opened;		/* map of opened files / dirs */
+	TOID(struct map) opened;		/* map of opened files / dirs */
 	uint64_t block_size;			/* size of data block */
 };
 
@@ -220,7 +222,7 @@ struct objfs_dir {
  * struct objfs_file -- pmemobjfs file structure
  */
 struct objfs_file {
-	TOID(struct tree_map) blocks;	/* blocks map */
+	TOID(struct map) blocks;	/* blocks map */
 };
 
 /*
@@ -333,7 +335,7 @@ pmemobjfs_inode_init_file(struct pmemobjfs *objfs,
 		TOID(struct objfs_inode) inode)
 {
 	TX_BEGIN(objfs->pop) {
-		tree_map_new(objfs->pop, &D_RW(inode)->file.blocks);
+		map_new(objfs->mapc, &D_RW(inode)->file.blocks, NULL);
 	} TX_END
 }
 
@@ -345,7 +347,7 @@ pmemobjfs_inode_destroy_file(struct pmemobjfs *objfs,
 		TOID(struct objfs_inode) inode)
 {
 	TX_BEGIN(objfs->pop) {
-		tree_map_delete(objfs->pop, &D_RW(inode)->file.blocks);
+		map_delete(objfs->mapc, &D_RW(inode)->file.blocks);
 	} TX_END
 }
 
@@ -632,7 +634,7 @@ pmemobjfs_file_get_block(struct pmemobjfs *objfs,
 {
 	TOID(objfs_block_t) block;
 	PMEMoid block_oid =
-		tree_map_get(D_RO(inode)->file.blocks, GET_KEY(offset));
+		map_get(objfs->mapc, D_RO(inode)->file.blocks, GET_KEY(offset));
 	TOID_ASSIGN(block, block_oid);
 	return block;
 }
@@ -650,7 +652,7 @@ pmemobjfs_file_get_block_for_write(struct pmemobjfs *objfs,
 		TX_BEGIN(objfs->pop) {
 			block = TX_ALLOC(objfs_block_t,
 					objfs->block_size);
-			tree_map_insert(objfs->pop, D_RW(inode)->file.blocks,
+			map_insert(objfs->mapc, D_RW(inode)->file.blocks,
 					GET_KEY(offset), block.oid);
 		} TX_ONABORT {
 			block = TOID_NULL(objfs_block_t);
@@ -691,7 +693,7 @@ pmemobjfs_truncate(struct pmemobjfs *objfs,
 			uint64_t boff = (off + 1) / objfs->block_size;
 
 			for (uint64_t o = boff; o <= old_boff; o++) {
-				tree_map_remove_free(objfs->pop,
+				map_remove_free(objfs->mapc,
 					D_RW(inode)->file.blocks, GET_KEY(o));
 			}
 		}
@@ -1146,7 +1148,7 @@ pmemobjfs_open(struct pmemobjfs *objfs, TOID(struct objfs_inode) inode)
 
 	TX_BEGIN(objfs->pop) {
 		/* insert inode to opened inodes map */
-		tree_map_insert(objfs->pop, D_RW(super)->opened,
+		map_insert(objfs->mapc, D_RW(super)->opened,
 				inode.oid.off, inode.oid);
 		/* hold inode */
 		pmemobjfs_inode_hold(objfs, inode);
@@ -1171,7 +1173,7 @@ pmemobjfs_close(struct pmemobjfs *objfs,
 
 	TX_BEGIN(objfs->pop) {
 		/* remove inode from opened inodes map */
-		tree_map_remove(objfs->pop, D_RW(super)->opened,
+		map_remove(objfs->mapc, D_RW(super)->opened,
 				inode.oid.off);
 		/* release inode */
 		pmemobjfs_inode_put(objfs, inode);
@@ -1466,7 +1468,7 @@ pmemobjfs_put_opened_cb(uint64_t key, PMEMoid value, void *arg)
 	 * Set current value to OID_NULL so the tree_map_clear won't
 	 * free this inode and release the inode.
 	 */
-	tree_map_insert(objfs->pop, D_RW(super)->opened,
+	map_insert(objfs->mapc, D_RW(super)->opened,
 			key, OID_NULL);
 	pmemobjfs_inode_put(objfs, inode);
 
@@ -2110,10 +2112,10 @@ pmemobjfs_fuse_init(struct fuse_conn_info *conn)
 
 	TX_BEGIN(objfs->pop) {
 		/* release all opened inodes */
-		tree_map_foreach(D_RW(super)->opened, pmemobjfs_put_opened_cb,
-				objfs);
+		map_foreach(objfs->mapc, D_RW(super)->opened,
+				pmemobjfs_put_opened_cb, objfs);
 		/* clear opened inodes map */
-		tree_map_clear(objfs->pop, D_RW(super)->opened);
+		map_clear(objfs->mapc, D_RW(super)->opened);
 	} TX_ONABORT {
 		objfs = NULL;
 	} TX_END
@@ -2176,13 +2178,23 @@ pmemobjfs_mkfs(const char *fname, size_t size, size_t bsize, mode_t mode)
 	if (!objfs)
 		return -1;
 
+	int ret = 0;
+
 	objfs->block_size = bsize;
 
 	objfs->pop = pmemobj_create(fname, POBJ_LAYOUT_NAME(pmemobjfs),
 			size, mode);
 	if (!objfs->pop) {
 		fprintf(stderr, "error: %s\n", pmemobj_errormsg());
-		return -1;
+		ret = -1;
+		goto out_free_objfs;
+	}
+
+	objfs->mapc = map_ctx_init(MAP_CTREE, objfs->pop);
+	if (!objfs->mapc) {
+		perror("map_ctx_init");
+		ret = -1;
+		goto out_close_pop;
 	}
 
 	TOID(struct objfs_super) super =
@@ -2193,14 +2205,13 @@ pmemobjfs_mkfs(const char *fname, size_t size, size_t bsize, mode_t mode)
 	mode_t mask = umask(0);
 	umask(mask);
 
-	int ret = 0;
 	TX_BEGIN(objfs->pop) {
 		/* inherit permissions from umask */
 		uint64_t root_flags = S_IFDIR | (~mask & 0777);
 		TX_ADD(super);
 
 		/* create an opened files map */
-		tree_map_new(objfs->pop, &D_RW(super)->opened);
+		map_new(objfs->mapc, &D_RW(super)->opened, NULL);
 
 		/* create root inode, inherit uid and gid from current user */
 		D_RW(super)->root_inode =
@@ -2213,7 +2224,10 @@ pmemobjfs_mkfs(const char *fname, size_t size, size_t bsize, mode_t mode)
 		ret = -ECANCELED;
 	} TX_END
 
+	map_ctx_free(objfs->mapc);
+out_close_pop:
 	pmemobj_close(objfs->pop);
+out_free_objfs:
 	free(objfs);
 
 	return ret;
@@ -2424,13 +2438,19 @@ main(int argc, char *argv[])
 	}
 
 	int ret = 0;
+	objfs->mapc = map_ctx_init(MAP_CTREE, objfs->pop);
+	if (!objfs->mapc) {
+		perror("map_ctx_init");
+		ret = -1;
+		goto out;
+	}
+
 	objfs->pop = pmemobj_open(fname, POBJ_LAYOUT_NAME(pmemobjfs));
 	if (objfs->pop == NULL) {
 		perror("pmemobj_open");
 		ret = -1;
 		goto out;
 	}
-
 	argv[argc - 2] = argv[argc - 1];
 	argv[argc - 1] = NULL;
 	argc--;

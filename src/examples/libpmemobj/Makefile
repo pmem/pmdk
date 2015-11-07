@@ -35,11 +35,14 @@
 #
 PROGS = manpage btree pi
 DIRS = pminvaders pmemlog pmemblk string_store string_store_tx\
-	string_store_tx_type hashset tree_map pmemobjfs
+	string_store_tx_type hashmap tree_map pmemobjfs map
 
 LIBS = -lpmemobj -lpmem -pthread -lm -pthread
 
 include ../Makefile.inc
+
+map: hashmap tree_map
+pmemobjfs: map
 
 manpage: manpage.o
 btree: btree.o
