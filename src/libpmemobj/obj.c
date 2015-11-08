@@ -60,6 +60,12 @@ int _pobj_cache_invalidate;
 __thread struct _pobj_pcache _pobj_cached_pool;
 
 /*
+ * User may decide to map all pools with MAP_PRIVATE flag using
+ * PMEMOBJ_COW environment variable.
+ */
+static int Open_cow;
+
+/*
  * obj_init -- initialization of obj
  *
  * Called by constructor.
@@ -70,6 +76,12 @@ obj_init(void)
 	LOG(3, NULL);
 
 	COMPILE_ERROR_ON(sizeof (struct pmemobjpool) != 8192);
+
+#ifdef USE_COW_ENV
+	char *env = getenv("PMEMOBJ_COW");
+	if (env)
+		Open_cow = atoi(env);
+#endif
 
 	pools_ht = cuckoo_new();
 	if (pools_ht == NULL)
@@ -931,7 +943,7 @@ pmemobj_open(const char *path, const char *layout)
 {
 	LOG(3, "path %s layout %s", path, layout);
 
-	return pmemobj_open_common(path, layout, 0, 1);
+	return pmemobj_open_common(path, layout, Open_cow, 1);
 }
 
 /*
