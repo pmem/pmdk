@@ -181,7 +181,9 @@ heap_class_to_size(int class)
 static uint32_t
 get_bitmap_size(struct chunk_run *run)
 {
-	return RUNSIZE / run->block_size;
+	uint64_t size = RUNSIZE / run->block_size;
+	assert(size <= UINT32_MAX);
+	return (uint32_t)size;
 }
 
 /*
@@ -210,12 +212,12 @@ get_bitmap_reserved(struct chunk_run *run, uint32_t *reserved)
  * get_bitmap_str -- get bitmap single value string
  */
 static const char *
-get_bitmap_str(uint64_t val, int values)
+get_bitmap_str(uint64_t val, unsigned values)
 {
 	static char buff[BITMAP_BUFF_SIZE];
 
-	int j = 0;
-	for (int i = 0; i < values && j < BITMAP_BUFF_SIZE - 3; i++) {
+	unsigned j = 0;
+	for (unsigned i = 0; i < values && j < BITMAP_BUFF_SIZE - 3; i++) {
 		buff[j++] = ((val & ((uint64_t)1 << i)) ? 'x' : '.');
 		if ((i + 1) % RUN_UNIT_MAX == 0)
 			buff[j++] = ' ';
@@ -403,7 +405,7 @@ static void
 info_obj_lane_section(struct pmem_info *pip, int v, struct pmemobjpool *pop,
 	struct lane_layout *lane, enum lane_section_type type)
 {
-	if (!(pip->args.obj.lane_sections & (1 << type)))
+	if (!(pip->args.obj.lane_sections & (1U << type)))
 		return;
 
 	outv_nl(v);
@@ -524,13 +526,13 @@ info_obj_store(struct pmem_info *pip, int v, struct pmemobjpool *pop)
 			pip->args.obj.voobhdr ||
 			pip->args.vdata);
 
-	uint16_t i;
+	uint64_t i;
 	struct range *curp;
 	FOREACH_RANGE(curp, &pip->args.obj.object_ranges) {
 		for (i = curp->first; i <= curp->last &&
 				i < PMEMOBJ_NUM_OID_TYPES; i++) {
 			snprintf(buff, TYPE_NUM_BUFF_SIZE,
-					"Type number %4u", i);
+					"Type number %4lu", i);
 
 			info_obj_list(pip, v, vnum, pop,
 				&obj_store->bytype[i].head, buff,
@@ -593,12 +595,12 @@ info_obj_run_bitmap(int v, struct chunk_run *run)
 		}
 	} else {
 		/* print only used values for lower verbosity */
-		int i;
+		uint32_t i;
 		for (i = 0; i < get_bitmap_size(run) / BITS_PER_VALUE; i++)
 			outv(v, "%s\n", get_bitmap_str(run->bitmap[i],
 						BITS_PER_VALUE));
 
-		int mod = get_bitmap_size(run) % BITS_PER_VALUE;
+		unsigned mod = get_bitmap_size(run) % BITS_PER_VALUE;
 		if (mod != 0) {
 			outv(v, "%s\n", get_bitmap_str(run->bitmap[i], mod));
 		}
@@ -677,7 +679,7 @@ info_obj_zone_chunks(struct pmem_info *pip, struct pmemobjpool *pop,
 		enum chunk_type type = zone->chunk_headers[c].type;
 		uint64_t size_idx = zone->chunk_headers[c].size_idx;
 		if (util_ranges_contain(&pip->args.obj.chunk_ranges, c)) {
-			if (pip->args.obj.chunk_types & (1 << type)) {
+			if (pip->args.obj.chunk_types & (1U << type)) {
 				stats->n_chunks++;
 				stats->n_chunks_type[type]++;
 
@@ -922,7 +924,7 @@ info_obj_stats_chunks(struct pmem_info *pip, int v,
 	outv_field(v, "Number of chunks", "%lu", stats->n_chunks);
 
 	out_indent(1);
-	for (int type = 0; type < MAX_CHUNK_TYPE; type++) {
+	for (unsigned type = 0; type < MAX_CHUNK_TYPE; type++) {
 		double type_perc = 100.0 *
 			(double)stats->n_chunks_type[type] /
 			(double)stats->n_chunks;
@@ -940,7 +942,7 @@ info_obj_stats_chunks(struct pmem_info *pip, int v,
 				stats->size_chunks, pip->args.human));
 
 	out_indent(1);
-	for (int type = 0; type < MAX_CHUNK_TYPE; type++) {
+	for (unsigned type = 0; type < MAX_CHUNK_TYPE; type++) {
 		double type_perc = 100.0 *
 			(double)stats->size_chunks_type[type] /
 			(double)stats->size_chunks;

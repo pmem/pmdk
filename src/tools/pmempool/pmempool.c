@@ -184,7 +184,7 @@ print_help(char *appname)
 	printf("  -h, --help           display this help and exit\n");
 	printf("\n");
 	printf("The available commands are:\n");
-	int i;
+	unsigned i;
 	for (i = 0; i < COMMANDS_NUMBER; i++)
 		printf("%s\t- %s\n", commands[i].name, commands[i].brief);
 	printf("\n");
@@ -197,7 +197,7 @@ print_help(char *appname)
 static struct command *
 get_command(char *cmd_str)
 {
-	int i;
+	unsigned i;
 	for (i = 0; i < COMMANDS_NUMBER; i++) {
 		if (strcmp(cmd_str, commands[i].name) == 0)
 			return &commands[i];

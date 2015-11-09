@@ -34,6 +34,7 @@
  * output.c -- definitions of output printing related functions
  */
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -305,7 +306,7 @@ out_get_size_str(uint64_t size, int human)
 	} else {
 		int i = -1;
 		double dsize = (double)size;
-		double csize = size;
+		uint64_t csize = size;
 
 		while (csize >= 1024 && i < nunits) {
 			csize /= 1024;
@@ -377,15 +378,18 @@ static int
 out_get_ascii_str(char *str, size_t str_len, const uint8_t *datap, size_t len)
 {
 	int c = 0;
-	int i;
+	size_t i;
 	char pch;
 
 	if (str_len < len)
 		return -1;
 
 	for (i = 0; i < len; i++) {
-		pch = out_get_printable_ascii(datap[i]);
-		c += snprintf(str + c, str_len - c, "%c", pch);
+		pch = out_get_printable_ascii((char)datap[i]);
+		int t = snprintf(str + c, str_len - (size_t)c, "%c", pch);
+		if (t < 0)
+			return -1;
+		c += t;
 	}
 
 	return c;
@@ -401,16 +405,24 @@ static int
 out_get_hex_str(char *str, size_t str_len, const uint8_t *datap, size_t len)
 {
 	int c = 0;
-	int i;
+	size_t i;
+	int t;
 
 	if (str_len < (3 * len + 1))
 		return -1;
 
 	for (i = 0; i < len; i++) {
 		/* add space after n*8 byte */
-		if (i && (i % 8) == 0)
-			c += snprintf(str + c, str_len - c, " ");
-		c += snprintf(str + c, str_len - c, "%02x ", datap[i]);
+		if (i && (i % 8) == 0) {
+			t = snprintf(str + c, str_len - (size_t)c, " ");
+			if (t < 0)
+				return -1;
+			c += t;
+		}
+		t = snprintf(str + c, str_len - (size_t)c, "%02x ", datap[i]);
+		if (t < 0)
+			return -1;
+		c += t;
 	}
 
 	return c;
@@ -591,7 +603,7 @@ out_get_lane_section_str(enum lane_section_type type)
  * out_get_tx_state_str -- get transaction state string
  */
 const char *
-out_get_tx_state_str(enum tx_state state)
+out_get_tx_state_str(uint64_t state)
 {
 	switch (state) {
 	case TX_STATE_NONE:
@@ -607,7 +619,7 @@ out_get_tx_state_str(enum tx_state state)
  * out_get_chunk_type_str -- get chunk type string
  */
 const char *
-out_get_chunk_type_str(enum chunk_type type)
+out_get_chunk_type_str(unsigned type)
 {
 	switch (type) {
 	case CHUNK_TYPE_FOOTER:

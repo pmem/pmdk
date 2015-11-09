@@ -69,7 +69,7 @@ struct arena {
 	struct btt_info btt_info; /* BTT Info header */
 	uint32_t id;		/* arena id */
 	bool valid;		/* BTT Info header checksum is valid */
-	off_t offset;		/* offset in file */
+	uint64_t offset;	/* offset in file */
 	uint8_t *flog;		/* flog entries */
 	size_t flogsize;	/* flog area size */
 	uint32_t *map;		/* map entries */
@@ -130,7 +130,7 @@ struct pmempool_check_step {
  */
 static int
 pmempool_check_write(struct pmempool_check *pcp, void *buff,
-		size_t nbytes, off_t off)
+		size_t nbytes, uint64_t off)
 {
 	return pool_set_file_write(pcp->pfile, buff, nbytes, off);
 }
@@ -140,7 +140,7 @@ pmempool_check_write(struct pmempool_check *pcp, void *buff,
  */
 static int
 pmempool_check_read(struct pmempool_check *pcp, void *buff,
-		size_t nbytes, off_t off)
+		size_t nbytes, uint64_t off)
 {
 	return pool_set_file_read(pcp->pfile, buff, nbytes, off);
 }
@@ -201,6 +201,8 @@ pmempool_check_nsmap(void *ns, unsigned lane, void **addrp, size_t len,
 {
 	struct btt_context *nsc = (struct btt_context *)ns;
 
+	assert((ssize_t)len >= 0);
+
 	if (off + len >= nsc->len) {
 		errno = EINVAL;
 		return -1;
@@ -212,7 +214,7 @@ pmempool_check_nsmap(void *ns, unsigned lane, void **addrp, size_t len,
 	 */
 	*addrp = (char *)nsc->addr + off;
 
-	return len;
+	return (ssize_t)len;
 }
 
 /*
@@ -506,9 +508,9 @@ pmempool_check_create_backup(struct pmempool_check *pcp)
  * - Convert BTT Info header to host endianness.
  * - Return the BTT Info header by pointer.
  */
-static off_t
+static uint64_t
 pmempool_check_get_first_valid_btt(struct pmempool_check *pcp, struct btt_info
-		*infop, off_t offset)
+		*infop, uint64_t offset)
 {
 	/*
 	 * Starting at offset, read every page and check for
@@ -537,7 +539,7 @@ static int
 pmempool_check_get_first_valid_arena(struct pmempool_check *pcp,
 		struct arena *arenap)
 {
-	off_t offset = pmempool_check_get_first_valid_btt(pcp,
+	uint64_t offset = pmempool_check_get_first_valid_btt(pcp,
 			&arenap->btt_info, 2 * BTT_ALIGNMENT);
 
 	if (offset) {
@@ -678,7 +680,7 @@ pmempool_check_supported(pmem_pool_type_t type)
 static check_result_t
 pmempool_check_pool_hdr_gen(struct pmempool_check *pcp, struct pool_hdr *hdrp)
 {
-	if (hdrp->crtime > pcp->pfile->mtime) {
+	if (hdrp->crtime > (uint64_t)pcp->pfile->mtime) {
 		outv(1, "pool_hdr.crtime is not valid\n");
 		if (ask_Yn(pcp->ans, "Do you want to set it to file's "
 			"modtime [%s]?", out_get_time_str(
@@ -686,7 +688,7 @@ pmempool_check_pool_hdr_gen(struct pmempool_check *pcp, struct pool_hdr *hdrp)
 			outv(1, "setting pool_hdr.crtime to file's "
 				"modtime: %s\n",
 				out_get_time_str(pcp->pfile->mtime));
-			hdrp->crtime = pcp->pfile->mtime;
+			hdrp->crtime = (uint64_t)pcp->pfile->mtime;
 		} else {
 			return CHECK_RESULT_CANNOT_REPAIR;
 		}
@@ -1226,7 +1228,7 @@ pmempool_check_read_pmemlog(struct pmempool_check *pcp)
 	ptr += sizeof (pcp->hdr.log.hdr);
 
 	size_t size = sizeof (pcp->hdr.log) - sizeof (pcp->hdr.log.hdr);
-	off_t offset = sizeof (pcp->hdr.log.hdr);
+	uint64_t offset = sizeof (pcp->hdr.log.hdr);
 
 	if (pmempool_check_read(pcp, ptr, size, offset)) {
 		if (errno)
@@ -1259,7 +1261,7 @@ pmempool_check_read_pmemblk(struct pmempool_check *pcp)
 	ptr += sizeof (pcp->hdr.blk.hdr);
 
 	size_t size = sizeof (pcp->hdr.blk) - sizeof (pcp->hdr.blk.hdr);
-	off_t offset = sizeof (pcp->hdr.blk.hdr);
+	uint64_t offset = sizeof (pcp->hdr.blk.hdr);
 
 	if (pmempool_check_read(pcp, ptr, size, offset)) {
 		if (errno)
@@ -1429,7 +1431,7 @@ pmempool_check_check_btt(struct btt_info *infop)
  */
 static int
 pmempool_check_btt_info_advanced_repair(struct pmempool_check *pcp,
-		off_t startoff, off_t endoff)
+		uint64_t startoff, uint64_t endoff)
 {
 	bool eof = false;
 	if (!endoff) {
@@ -1569,7 +1571,7 @@ pmempool_check_btt_info(struct pmempool_check *pcp)
 
 		arenap->id = pcp->narenas;
 
-		off_t advanced_repair_endoff = 0;
+		uint64_t advanced_repair_endoff = 0;
 		bool advanced_repair = false;
 
 		if (util_check_memory((const uint8_t *)&arenap->btt_info,
@@ -1603,10 +1605,10 @@ pmempool_check_btt_info(struct pmempool_check *pcp)
 			 * we know the BTT Info size and arena minimum size so
 			 * we can start searching at some higher offset.
 			 */
-			off_t search_off = offset + BTT_MIN_SIZE -
+			uint64_t search_off = offset + BTT_MIN_SIZE -
 				sizeof (struct btt_info);
 
-			off_t b_off = 0;
+			uint64_t b_off = 0;
 			/*
 			 * Read first valid BTT Info to bttc buffer
 			 * check whether this BTT Info header is the
@@ -1701,8 +1703,8 @@ pmempool_check_check_flog(struct btt_flog *flog_alpha,
 	 * - 0x10, 0x21 - the first half is current entry
 	 * - 0x01, 0x12 - the second half is current entry
 	 */
-	uint8_t seqc = ((flog_alpha->seq & 0xf) << 4) |
-			(flog_beta->seq & 0xf);
+	uint8_t seqc = (uint8_t)(((flog_alpha->seq & 0xf) << 4) |
+			(flog_beta->seq & 0xf));
 	switch (seqc) {
 	case 0x10:
 	case 0x21:
@@ -1731,7 +1733,7 @@ pmempool_check_write_flog(struct pmempool_check *pcp, struct arena *arenap)
 	uint64_t flogoff = arenap->offset + arenap->btt_info.flogoff;
 
 	uint8_t *ptr = arenap->flog;
-	int i;
+	uint32_t i;
 	for (i = 0; i < arenap->btt_info.nfree; i++) {
 		struct btt_flog *flog_alpha = (struct btt_flog *)ptr;
 		struct btt_flog *flog_beta = (struct btt_flog *)(ptr +
@@ -1782,7 +1784,7 @@ pmempool_check_read_flog(struct pmempool_check *pcp, struct arena *arenap)
 	}
 
 	uint8_t *ptr = arenap->flog;
-	int i;
+	uint32_t i;
 	for (i = 0; i < arenap->btt_info.nfree; i++) {
 		struct btt_flog *flog_alpha = (struct btt_flog *)ptr;
 		struct btt_flog *flog_beta = (struct btt_flog *)(ptr +
@@ -1809,7 +1811,7 @@ pmempool_check_write_map(struct pmempool_check *pcp, struct arena *arenap)
 
 	uint64_t mapoff = arenap->offset + arenap->btt_info.mapoff;
 
-	int i;
+	uint32_t i;
 	for (i = 0; i < arenap->btt_info.external_nlba; i++)
 		arenap->map[i] = htole32(arenap->map[i]);
 
@@ -1849,7 +1851,7 @@ pmempool_check_read_map(struct pmempool_check *pcp, struct arena *arenap)
 		return -1;
 	}
 
-	int i;
+	uint32_t i;
 	for (i = 0; i < arenap->btt_info.external_nlba; i++)
 		arenap->map[i] = le32toh(arenap->map[i]);
 
@@ -1874,7 +1876,7 @@ pmempool_check_arena_map_flog(struct pmempool_check *pcp,
 
 	/* create bitmap for checking duplicated blocks */
 	uint32_t bitmapsize = howmany(arenap->btt_info.internal_nlba, 8);
-	char *bitmap = malloc(bitmapsize);
+	uint8_t *bitmap = malloc(bitmapsize);
 	if (!bitmap)
 		err(1, "Cannot allocate memory for blocks bitmap");
 	memset(bitmap, 0, bitmapsize);
@@ -1897,12 +1899,12 @@ pmempool_check_arena_map_flog(struct pmempool_check *pcp,
 
 		/* add duplicated and invalid entries to list */
 		if (entry < arenap->btt_info.internal_nlba) {
-			if (isset(bitmap, entry)) {
+			if (util_isset(bitmap, entry)) {
 				outv(1, "arena %u: map entry %u duplicated "
 					"at %u\n", arenap->id, entry, i);
 				list_push(list_inval, i);
 			} else {
-				setbit(bitmap, entry);
+				util_setbit(bitmap, entry);
 			}
 		} else {
 			outv(1, "arena %u: invalid map entry at %u\n",
@@ -1932,12 +1934,12 @@ pmempool_check_arena_map_flog(struct pmempool_check *pcp,
 			uint32_t entry = flog_cur->old_map &
 				BTT_MAP_ENTRY_LBA_MASK;
 
-			if (isset(bitmap, entry)) {
+			if (util_isset(bitmap, entry)) {
 				outv(1, "arena %u: duplicated flog entry "
 					"at %u\n", arenap->id, entry, i);
 				list_push(list_flog_inval, i);
 			} else {
-				setbit(bitmap, entry);
+				util_setbit(bitmap, entry);
 			}
 		} else {
 			outv(1, "arena %u: invalid flog entry at %u\n",
@@ -1950,7 +1952,7 @@ pmempool_check_arena_map_flog(struct pmempool_check *pcp,
 
 	/* check unmapped blocks and insert to list */
 	for (i = 0; i < arenap->btt_info.internal_nlba; i++) {
-		if (!isset(bitmap, i)) {
+		if (!util_isset(bitmap, i)) {
 			outv(1, "arena %u: unmapped block %u\n", arenap->id, i);
 			list_push(list_unmap, i);
 		}
@@ -2254,7 +2256,7 @@ pmempool_check_all_steps(struct pmempool_check *pcp)
 	if (pcp->repair && pcp->backup && pcp->exec) {
 		if (pmempool_check_create_backup(pcp)) {
 			outv_err("unable to create backup file\n");
-			return -1;
+			return CHECK_RESULT_ERROR;
 		}
 	}
 

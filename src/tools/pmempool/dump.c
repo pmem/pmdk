@@ -34,6 +34,7 @@
  * create.c -- pmempool create command source file
  */
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <getopt.h>
@@ -191,16 +192,25 @@ static int
 pmempool_dump_log(struct pmempool_dump *pdp)
 {
 	PMEMlogpool *plp = pmemlog_open(pdp->fname);
-
 	if (!plp) {
 		warn("%s", pdp->fname);
 		return -1;
 	}
 
 	if (LIST_EMPTY(&pdp->ranges.head)) {
+		off_t off = pmemlog_tell(plp);
+		if (off < 0) {
+			warn("%s", pdp->fname);
+			pmemlog_close(plp);
+			return -1;
+		}
+
+		if (off == 0)
+			goto end;
+
 		struct range entire;
 		entire.first = 0;
-		entire.last = pmemlog_tell(plp) - 1;
+		entire.last = (uint64_t)off - 1;
 		if (pdp->chunksize)
 			entire.last = entire.last / pdp->chunksize;
 		util_ranges_add(&pdp->ranges, entire);
@@ -209,6 +219,7 @@ pmempool_dump_log(struct pmempool_dump *pdp)
 	pdp->chunkcnt = 0;
 	pmemlog_walk(plp, pdp->chunksize, pmempool_dump_log_process_chunk, pdp);
 
+end:
 	pmemlog_close(plp);
 
 	return 0;
@@ -242,10 +253,12 @@ pmempool_dump_blk(struct pmempool_dump *pdp)
 
 	uint64_t i;
 	struct range *curp = NULL;
+	assert((off_t)entire.last >= 0);
 	LIST_FOREACH(curp, &pdp->ranges.head, next) {
+		assert((off_t)curp->last >= 0);
 		for (i = curp->first;
 				i <= curp->last && i <= entire.last; i++) {
-			if (pmemblk_read(pbp, buff, i)) {
+			if (pmemblk_read(pbp, buff, (off_t)i)) {
 				ret = -1;
 				outv_err("reading block number %lu "
 					"failed\n", i);

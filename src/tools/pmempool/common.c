@@ -56,7 +56,7 @@
 #include "libpmemlog.h"
 #include "libpmemobj.h"
 
-#define	REQ_BUFF_SIZE	2048
+#define	REQ_BUFF_SIZE	2048U
 
 typedef const char *(*enum_to_str_fn)(int);
 
@@ -202,7 +202,7 @@ util_parse_mode(const char *str, mode_t *mode)
 	while (digits < 3 && *str != '\0') {
 		if (*str < '0' || *str > '7')
 			return -1;
-		m = (m << 3) | (*str - '0');
+		m = (m << 3) | (unsigned)(*str - '0');
 		digits++;
 		str++;
 	}
@@ -644,7 +644,8 @@ pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp,
 		goto out_close;
 	}
 
-	paramsp->size = stat_buf.st_size;
+	assert(stat_buf.st_size >= 0);
+	paramsp->size = (uint64_t)stat_buf.st_size;
 	paramsp->mode = stat_buf.st_mode;
 
 	void *addr = NULL;
@@ -666,7 +667,7 @@ pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp,
 		paramsp->size = set->poolsize;
 		addr = set->replica[0]->part[0].addr;
 	} else {
-		addr = mmap(NULL, stat_buf.st_size,
+		addr = mmap(NULL, (uint64_t)stat_buf.st_size,
 				PROT_READ, MAP_PRIVATE, fd, 0);
 		if (addr == MAP_FAILED) {
 			ret = -1;
@@ -705,7 +706,7 @@ pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp,
 	if (paramsp->is_poolset)
 		util_poolset_close(set, 0);
 	else
-		munmap(addr, stat_buf.st_size);
+		munmap(addr, (uint64_t)stat_buf.st_size);
 out_close:
 	if (fd >= 0)
 		(void) close(fd);
@@ -901,9 +902,10 @@ util_get_max_bsize(uint64_t fsize)
 	uint32_t internal_nlba = 2 * nfree;
 
 	/* compute flog size */
-	int flog_size = nfree *
-		roundup(2 * sizeof (struct btt_flog), BTT_FLOG_PAIR_ALIGN);
-	flog_size = roundup(flog_size, BTT_ALIGNMENT);
+	uint32_t flog_size = nfree *
+		(uint32_t)roundup(2 * sizeof (struct btt_flog),
+				BTT_FLOG_PAIR_ALIGN);
+	flog_size = (uint32_t)roundup(flog_size, BTT_ALIGNMENT);
 
 	/* compute arena size from file size */
 	uint64_t arena_size = fsize;
@@ -918,8 +920,9 @@ util_get_max_bsize(uint64_t fsize)
 	arena_size -= flog_size;
 
 	/* compute maximum internal LBA size */
-	uint32_t internal_lbasize = (arena_size - BTT_ALIGNMENT) /
+	uint64_t internal_lbasize = (arena_size - BTT_ALIGNMENT) /
 			internal_nlba - BTT_MAP_ENTRY_SIZE;
+	assert(internal_lbasize <= UINT32_MAX);
 
 	if (internal_lbasize < BTT_MIN_LBA_SIZE)
 		internal_lbasize = BTT_MIN_LBA_SIZE;
@@ -928,7 +931,7 @@ util_get_max_bsize(uint64_t fsize)
 		roundup(internal_lbasize, BTT_INTERNAL_LBA_ALIGNMENT)
 			- BTT_INTERNAL_LBA_ALIGNMENT;
 
-	return internal_lbasize;
+	return (uint32_t)internal_lbasize;
 }
 
 /*
@@ -952,10 +955,10 @@ ask(char op, char *answers, char def_ans, const char *fmt, va_list ap)
 		vprintf(fmt, ap);
 		size_t len = strlen(answers);
 		size_t i;
-		char def_anslo = tolower(def_ans);
+		char def_anslo = (char)tolower(def_ans);
 		printf(" [");
 		for (i = 0; i < len; i++) {
-			char anslo = tolower(answers[i]);
+			char anslo = (char)tolower(answers[i]);
 			printf("%c", anslo == def_anslo ?
 					toupper(anslo) : anslo);
 			if (i != len - 1)
@@ -966,7 +969,7 @@ ask(char op, char *answers, char def_ans, const char *fmt, va_list ap)
 		if (c == EOF)
 			ans = def_anslo;
 		else
-			ans = tolower(c);
+			ans = (char)tolower(c);
 		if (ans != '\n')
 			(void) getchar();
 	} while (ans != '\n' && strchr(answers, ans) == NULL);
@@ -1173,7 +1176,7 @@ util_opt_check_requirements(const struct options *opts,
 			int req_idx =
 				util_opt_get_index(opts, tmp & OPT_REQ_MASK);
 
-			if (req_idx >= 0 && isset(opts->bitmap, req_idx)) {
+			if (req_idx >= 0 && util_isset(opts->bitmap, req_idx)) {
 				set++;
 				break;
 			}
@@ -1195,36 +1198,55 @@ util_opt_print_requirements(const struct options *opts,
 		const struct option_requirement *req)
 {
 	char buff[REQ_BUFF_SIZE];
-	int n = 0;
+	unsigned n = 0;
 	uint64_t tmp;
 	const struct option *opt =
 		&opts->options[util_opt_get_index(opts, req->opt)];
-	n += snprintf(&buff[n], REQ_BUFF_SIZE - n,
+	int sn;
+
+	sn = snprintf(&buff[n], REQ_BUFF_SIZE - n,
 			"option [-%c|--%s] requires: ", opt->val, opt->name);
+	assert(sn >= 0);
+	if (sn >= 0)
+		n += (unsigned)sn;
+
 	size_t rc = 0;
 	while ((tmp = req->req) != 0) {
-		if (rc != 0)
-			n += snprintf(&buff[n], REQ_BUFF_SIZE - n, " and ");
+		if (rc != 0) {
+			sn = snprintf(&buff[n], REQ_BUFF_SIZE - n, " and ");
+			assert(sn >= 0);
+			if (sn >= 0)
+				n += (unsigned)sn;
+		}
 
 		size_t c = 0;
 		while (tmp) {
 			if (c == 0)
-				n += snprintf(&buff[n], REQ_BUFF_SIZE - n, "[");
+				sn = snprintf(&buff[n], REQ_BUFF_SIZE - n, "[");
 			else
-				n += snprintf(&buff[n], REQ_BUFF_SIZE - n, "|");
+				sn = snprintf(&buff[n], REQ_BUFF_SIZE - n, "|");
+			assert(sn >= 0);
+			if (sn >= 0)
+				n += (unsigned)sn;
 
 			int req_opt_ind =
 				util_opt_get_index(opts, tmp & OPT_REQ_MASK);
 			const struct option *req_option =
 				&opts->options[req_opt_ind];
 
-			n += snprintf(&buff[n], REQ_BUFF_SIZE - n,
+			sn = snprintf(&buff[n], REQ_BUFF_SIZE - n,
 				"-%c|--%s", req_option->val, req_option->name);
+			assert(sn >= 0);
+			if (sn >= 0)
+				n += (unsigned)sn;
 
 			tmp >>= OPT_REQ_SHIFT;
 			c++;
 		}
-		n += snprintf(&buff[n], REQ_BUFF_SIZE - n, "]");
+		sn = snprintf(&buff[n], REQ_BUFF_SIZE - n, "]");
+		assert(sn >= 0);
+		if (sn >= 0)
+			n += (unsigned)sn;
 
 		req++;
 		rc++;
@@ -1295,7 +1317,7 @@ util_options_getopt(int argc, char *argv[], const char *optstr,
 	int option_index = util_opt_get_index(opts, opt);
 	assert(option_index >= 0);
 
-	setbit(opts->bitmap, option_index);
+	util_setbit((uint8_t *)opts->bitmap, (unsigned)option_index);
 
 	return opt;
 }
@@ -1307,7 +1329,7 @@ int
 util_options_verify(const struct options *opts, pmem_pool_type_t type)
 {
 	for (size_t i = 0; i < opts->noptions; i++) {
-		if (isset(opts->bitmap, i)) {
+		if (util_isset(opts->bitmap, i)) {
 			if (util_opt_verify_type(opts, type, i))
 				return -1;
 
@@ -1323,10 +1345,10 @@ util_options_verify(const struct options *opts, pmem_pool_type_t type)
 /*
  * util_heap_max_zone -- get number of zones
  */
-int
+unsigned
 util_heap_max_zone(size_t size)
 {
-	int max_zone = 0;
+	unsigned max_zone = 0;
 	size -= sizeof (struct heap_header);
 
 	while (size >= ZONE_MIN_SIZE) {
@@ -1349,13 +1371,20 @@ int
 util_heap_get_bitmap_params(uint64_t block_size, uint64_t *nallocsp,
 		uint64_t *nvalsp, uint64_t *last_valp)
 {
-	uint64_t nallocs = RUNSIZE / block_size;
-	assert(nallocs <= RUN_BITMAP_SIZE);
+	assert(RUNSIZE / block_size <= UINT32_MAX);
+	uint32_t nallocs = (uint32_t)(RUNSIZE / block_size);
 
-	int unused_bits = RUN_BITMAP_SIZE - nallocs;
-	int unused_values = unused_bits / BITS_PER_VALUE;
+	assert(nallocs <= RUN_BITMAP_SIZE);
+	unsigned unused_bits = RUN_BITMAP_SIZE - nallocs;
+
+	unsigned unused_values = unused_bits / BITS_PER_VALUE;
+
+	assert(MAX_BITMAP_VALUES >= unused_values);
 	uint64_t nvals = MAX_BITMAP_VALUES - unused_values;
+
+	assert(unused_bits >= unused_values * BITS_PER_VALUE);
 	unused_bits -= unused_values * BITS_PER_VALUE;
+
 	assert(unused_bits >= 0);
 	uint64_t last_val = unused_bits ? (((1ULL << unused_bits) - 1ULL) <<
 				(BITS_PER_VALUE - unused_bits)) : 0;
@@ -1480,7 +1509,7 @@ pool_set_file_close(struct pool_set_file *file)
  */
 int
 pool_set_file_read(struct pool_set_file *file, void *buff,
-		size_t nbytes, off_t off)
+		size_t nbytes, uint64_t off)
 {
 	if (off + nbytes > file->size)
 		return -1;
@@ -1495,7 +1524,7 @@ pool_set_file_read(struct pool_set_file *file, void *buff,
  */
 int
 pool_set_file_write(struct pool_set_file *file, void *buff,
-		size_t nbytes, off_t off)
+		size_t nbytes, uint64_t off)
 {
 	if (off + nbytes > file->size)
 		return -1;
@@ -1530,7 +1559,7 @@ pool_set_file_set_replica(struct pool_set_file *file, size_t replica)
  * pool_set_file_map -- return mapped address at given offset
  */
 void *
-pool_set_file_map(struct pool_set_file *file, off_t offset)
+pool_set_file_map(struct pool_set_file *file, uint64_t offset)
 {
 	if (file->addr == MAP_FAILED)
 		return NULL;

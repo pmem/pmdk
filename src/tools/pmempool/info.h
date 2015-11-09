@@ -163,7 +163,7 @@ int pmempool_info_func(char *appname, int argc, char *argv[]);
 void pmempool_info_help(char *appname);
 
 int pmempool_info_read(struct pmem_info *pip, void *buff,
-		size_t nbytes, off_t off);
+		size_t nbytes, uint64_t off);
 int pmempool_info_blk(struct pmem_info *pip);
 int pmempool_info_log(struct pmem_info *pip);
 int pmempool_info_obj(struct pmem_info *pip);
