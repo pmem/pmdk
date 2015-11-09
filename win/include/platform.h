@@ -50,6 +50,10 @@
 #define	ssize_t long long int
 #define	typeof decltype
 
+/* dummy */
+#define	sigset_t int
+#define	DIR int
+
 
 __inline int
 __builtin_clzll(uint64_t val)
@@ -87,6 +91,9 @@ __sync_bool_compare_and_swap(volatile uint64_t *ptr,
 
 #define	LOCK_EX 0
 #define	LOCK_NB 0
+
+#define	S_IRUSR S_IREAD
+#define	S_IWUSR S_IWRITE
 
 #define	flock(fd, flags) 0
 #define	fchmod(fd, mode) 0

@@ -46,7 +46,7 @@ struct cargs {
 static int
 test_constructor(PMEMobjpool *pop, void *addr, void *args)
 {
-	struct cargs *a = args;
+	struct cargs *a = (struct cargs *)args;
 	pmemobj_memset_persist(pop, addr, rand() % 256, a->size / 2);
 
 	return 0;
