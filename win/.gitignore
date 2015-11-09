@@ -1,5 +1,7 @@
 *.sdf
 *.opensdf
+*.log
+*.suo
 .vs/
 x64/
 Generated files/
