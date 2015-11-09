@@ -92,7 +92,7 @@ fi
 curtestdir=test_$curtestdir
 
 if [ ! -n "$UNITTEST_NUM" ]; then
-	echo "UNITTEST_NUM does not have a value"
+	echo "UNITTEST_NUM does not have a value" >&2
 	exit 1
 fi
 
@@ -307,23 +307,23 @@ function expect_normal_exit() {
 		else
 			msg="failed with exit code $ret"
 		fi
-		[ -t 1 ] && command -v tput >/dev/null && msg="$(tput setaf 1)$msg$(tput sgr0)"
+		[ -t 2 ] && command -v tput >/dev/null && msg="$(tput setaf 1)$msg$(tput sgr0)"
 
 		if [ -f err$UNITTEST_NUM.log ]; then
 			if [ "$UNITTEST_QUIET" = "1" ]; then
-				echo -e "$UNITTEST_NAME $msg. err$UNITTEST_NUM.log below."
-				cat err$UNITTEST_NUM.log
+				echo -e "$UNITTEST_NAME $msg. err$UNITTEST_NUM.log below." >&2
+				cat err$UNITTEST_NUM.log >&2
 			else
-				echo -e "$UNITTEST_NAME $msg. err$UNITTEST_NUM.log above."
+				echo -e "$UNITTEST_NAME $msg. err$UNITTEST_NUM.log above." >&2
 			fi
 		else
-			echo -e "$UNITTEST_NAME $msg."
+			echo -e "$UNITTEST_NAME $msg." >&2
 		fi
 
 		if [ "$RUN_MEMCHECK" ]; then
-			echo "$MEMCHECK_LOG_FILE below."
+			echo "$MEMCHECK_LOG_FILE below." >&2
 			ln=`wc -l < $MEMCHECK_LOG_FILE`
-			paste -d " " <(yes $UNITTEST_NAME $MEMCHECK_LOG_FILE | head -n $ln) <(head -n $ln $MEMCHECK_LOG_FILE)
+			paste -d " " <(yes $UNITTEST_NAME $MEMCHECK_LOG_FILE | head -n $ln) <(head -n $ln $MEMCHECK_LOG_FILE) >&2
 		fi
 
 		false
@@ -334,9 +334,9 @@ function expect_normal_exit() {
 		if [ -f $MEMCHECK_LOG_FILE -a "${VALIDATE_MEMCHECK_LOG}" = "1" ]; then
 			if ! grep "ERROR SUMMARY: 0 errors" $MEMCHECK_LOG_FILE >/dev/null; then
 				msg="failed"
-				[ -t 1 ] && command -v tput >/dev/null && msg="$(tput setaf 1)$msg$(tput sgr0)"
-				echo -e "$UNITTEST_NAME $msg with Valgrind. See $MEMCHECK_LOG_FILE. First 20 lines below."
-				paste -d " " <(yes $UNITTEST_NAME $MEMCHECK_LOG_FILE | head -n 20) <(head -n 20 $MEMCHECK_LOG_FILE)
+				[ -t 2 ] && command -v tput >/dev/null && msg="$(tput setaf 1)$msg$(tput sgr0)"
+				echo -e "$UNITTEST_NAME $msg with Valgrind. See $MEMCHECK_LOG_FILE. First 20 lines below." >&2
+				paste -d " " <(yes $UNITTEST_NAME $MEMCHECK_LOG_FILE | head -n 20) <(head -n 20 $MEMCHECK_LOG_FILE) >&2
 				false
 			fi
 		fi
@@ -426,7 +426,7 @@ function memcheck() {
 			exit 0
 		fi
 	else
-		echo "invalid memcheck parameter"
+		echo "invalid memcheck parameter" >&2
 		exit 1
 	fi
 }
@@ -683,7 +683,7 @@ check_file()
 {
 	if [ ! -f $1 ]
 	then
-		echo "Missing file: ${1}"
+		echo "Missing file: ${1}" >&2
 		exit 1
 	fi
 }
@@ -708,7 +708,7 @@ check_no_files()
 	do
 		if [ -f $file ]
 		then
-			echo "Not deleted file: ${file}"
+			echo "Not deleted file: ${file}" >&2
 			exit 1
 		fi
 	done
@@ -741,7 +741,7 @@ check_size()
 
 	if [[ $size != $file_size ]]
 	then
-		echo "error: wrong size ${file_size} != ${size}"
+		echo "error: wrong size ${file_size} != ${size}" >&2
 		exit 1
 	fi
 }
@@ -757,7 +757,7 @@ check_mode()
 
 	if [[ $mode != $file_mode ]]
 	then
-		echo "error: wrong mode ${file_mode} != ${mode}"
+		echo "error: wrong mode ${file_mode} != ${mode}" >&2
 		exit 1
 	fi
 }
@@ -773,7 +773,7 @@ check_signature()
 
 	if [[ $sig != $file_sig ]]
 	then
-		echo "error: $file: signature doesn't match ${file_sig} != ${sig}"
+		echo "error: $file: signature doesn't match ${file_sig} != ${sig}" >&2
 		exit 1
 	fi
 }
@@ -803,7 +803,7 @@ check_layout()
 
 	if [[ $layout != $file_layout ]]
 	then
-		echo "error: layout doesn't match ${file_layout} != ${layout}"
+		echo "error: layout doesn't match ${file_layout} != ${layout}" >&2
 		exit 1
 	fi
 }
@@ -818,7 +818,7 @@ check_arena()
 
 	if [[ $sig != $ARENA_SIG ]]
 	then
-		echo "error: can't find arena signature"
+		echo "error: can't find arena signature" >&2
 		exit 1
 	fi
 }

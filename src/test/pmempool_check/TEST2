@@ -50,7 +50,7 @@ rm -rf $LOG && touch $LOG
 expect_normal_exit $PMEMPOOL$EXESUFFIX create blk 512 $POOL
 check_file $POOL
 $PMEMSPOIL $POOL pool_hdr.signature=ERROR
-expect_normal_exit $PMEMPOOL$EXESUFFIX check -b $POOL_BACKUP -r $POOL >/dev/null || true
+expect_abnormal_exit $PMEMPOOL$EXESUFFIX check -b $POOL_BACKUP -r $POOL >/dev/null
 check_file ${POOL_BACKUP}
 
 pass
