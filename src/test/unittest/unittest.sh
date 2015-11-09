@@ -288,11 +288,17 @@ function expect_normal_exit() {
 		rm -f $MEMCHECK_LOG_FILE
 		if echo "$*" | grep -v valgrind >/dev/null; then
 			if [ "$MEMCHECK_DONT_CHECK_LEAKS" != "1" ]; then
+				export OLD_MEMCHECK_OPTS="$MEMCHECK_OPTS"
 				export MEMCHECK_OPTS="$MEMCHECK_OPTS --leak-check=full"
 			fi
 
 			TRACE="valgrind --log-file=$MEMCHECK_LOG_FILE $MEMCHECK_OPTS $TRACE"
 		fi
+	fi
+
+	if [ "$MEMCHECK_DONT_CHECK_LEAKS" = "1" ]; then
+		export OLD_ASAN_OPTIONS="${ASAN_OPTIONS}"
+		export ASAN_OPTIONS="detect_leaks=0 ${ASAN_OPTIONS}"
 	fi
 
 	set +e
@@ -340,6 +346,14 @@ function expect_normal_exit() {
 				false
 			fi
 		fi
+
+		if [ "$MEMCHECK_DONT_CHECK_LEAKS" != "1" ]; then
+			export MEMCHECK_OPTS="$OLD_MEMCHECK_OPTS"
+		fi
+	fi
+
+	if [ "$MEMCHECK_DONT_CHECK_LEAKS" = "1" ]; then
+		export ASAN_OPTIONS="${OLD_ASAN_OPTIONS}"
 	fi
 }
 
@@ -348,7 +362,7 @@ function expect_normal_exit() {
 #
 function expect_abnormal_exit() {
 	set +e
-	eval $ECHO LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH LD_PRELOAD=$TEST_LD_PRELOAD \
+	eval $ECHO ASAN_OPTIONS="detect_leaks=0 ${ASAN_OPTIONS}" LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH LD_PRELOAD=$TEST_LD_PRELOAD \
 	$TRACE $*
 	set -e
 }
