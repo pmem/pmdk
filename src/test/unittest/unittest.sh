@@ -161,7 +161,7 @@ function create_file() {
 # A given first kilobytes of the file is zeroed out.
 #
 # example, to create two files, each 1GB in size, with first 4K zeroed
-#	create_file_rand 1024 4 testfile1 testfile2
+#	create_nonzeroed_file 1024 4 testfile1 testfile2
 #
 function create_nonzeroed_file() {
 	offset=$2
@@ -169,8 +169,8 @@ function create_nonzeroed_file() {
 	shift 2
 	for file in $*
 	do
-		truncate -s ${offset}K $file
-		dd if=/dev/zero bs=1K count=${size} 2>/dev/null | tr '\0' '\132' >> $file
+		truncate -s ${offset}K $file >> prep$UNITTEST_NUM.log
+		dd if=/dev/zero bs=1K count=${size} 2>>prep$UNITTEST_NUM.log | tr '\0' '\132' >> $file
 	done
 }
 
@@ -211,7 +211,7 @@ function create_holey_file() {
 #            n - create non-zeroed file
 #            h - create non-zeroed file, but with zeroed header (first 4KB)
 #   fsize - (optional) the actual size of the part file (if 'cmd' is not 'x')
-#   mode  - same format as for 'chmod' command
+#   mode  - (optional) same format as for 'chmod' command
 #
 # example:
 #   The following command define a pool set consisting of two parts: 16MB
@@ -257,17 +257,17 @@ function create_poolset() {
 			;;
 		z)
 			# zeroed (holey) file
-			truncate -s $asize $fpath
+			truncate -s $asize $fpath >> prep$UNITTEST_NUM.log
 			;;
 		n)
 			# non-zeroed file
-			dd if=/dev/zero bs=$asize count=1 2>/dev/null | tr '\0' '\132' >> $fpath
+			dd if=/dev/zero bs=$asize count=1 2>>prep$UNITTEST_NUM.log | tr '\0' '\132' >> $fpath
 			;;
 		h)
 			# non-zeroed file, except 4K header
-			truncate -s 4K $fpath
-			dd if=/dev/zero bs=$asize count=1 2>/dev/null | tr '\0' '\132' >> $fpath
-			truncate -s $asize $fpath
+			truncate -s 4K $fpath >> prep$UNITTEST_NUM.log
+			dd if=/dev/zero bs=$asize count=1 2>>prep$UNITTEST_NUM.log | tr '\0' '\132' >> $fpath
+			truncate -s $asize $fpath >> prep$UNITTEST_NUM.log
 			;;
 		esac
 
