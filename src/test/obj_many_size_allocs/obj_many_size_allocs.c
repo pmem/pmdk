@@ -52,7 +52,7 @@ struct cargs {
 static void
 test_constructor(PMEMobjpool *pop, void *addr, void *args)
 {
-	struct cargs *a = args;
+	struct cargs *a = (struct cargs *)args;
 	/* do not use pmem_memset_persit() here */
 	pmemobj_memset_persist(pop, addr, a->size % 256, a->size);
 }
