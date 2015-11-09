@@ -786,8 +786,8 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 		pmembench_print_help_single(bench);
 		goto out;
 	}
-	if (clovec->nargs > 1)
-		pmembench_print_header(pb, bench, clovec);
+
+	pmembench_print_header(pb, bench, clovec);
 
 	size_t args_i;
 	for (args_i = 0; args_i < clovec->nargs; args_i++) {

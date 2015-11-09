@@ -36,6 +36,29 @@
 #include <pthread.h>
 #include "benchmark.h"
 
+/*
+ *
+ * The following table shows valid state transitions upon specified
+ * API calls and operations performed by the worker thread:
+ *
+ * +========================+==========================+=============+
+ * |       Application      |           State          |    Worker   |
+ * +========================+==========================+=============+
+ * | benchmark_worker_alloc | WORKER_STATE_IDLE        | wait        |
+ * +------------------------+--------------------------+-------------+
+ * | benchmark_worker_init  | WORKER_STATE_INIT        | invoke init |
+ * +------------------------+--------------------------+-------------+
+ * | wait                   | WORKER_STATE_INITIALIZED | end of init |
+ * +------------------------+--------------------------+-------------+
+ * | benchmark_worker_run   | WORKER_STATE_RUN         | invoke func |
+ * +------------------------+--------------------------+-------------+
+ * | benchmark_worker_join  | WORKER_STATE_END         | end of func |
+ * +------------------------+--------------------------+-------------+
+ * | benchmark_worker_exit  | WORKER_STATE_EXIT        | invoke exit |
+ * +------------------------+--------------------------+-------------+
+ * | wait                   | WORKER_STATE_DONE        | end of exit |
+ * +------------------------+--------------------------+-------------+
+ */
 enum benchmark_worker_state {
 	WORKER_STATE_IDLE,
 	WORKER_STATE_INIT,
