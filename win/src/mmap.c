@@ -113,19 +113,27 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, size_t offset)
 
 	DWORD protect = 0;
 	if ((prot & PROT_READ) && (prot & PROT_WRITE)) {
-		protect |= PAGE_READWRITE;
-		if (prot & PROT_EXEC)
-			protect |= PAGE_EXECUTE_READWRITE;
+		if (flags & MAP_PRIVATE) {
+			if (prot & PROT_EXEC)
+				protect = PAGE_EXECUTE_WRITECOPY;
+			else
+				protect = PAGE_WRITECOPY;
+		} else {
+			if (prot & PROT_EXEC)
+				protect = PAGE_EXECUTE_READWRITE;
+			else
+				protect = PAGE_READWRITE;
+		}
 	} else if (prot & PROT_READ) {
-		protect |= PAGE_READONLY;
 		if (prot & PROT_EXEC)
-			protect |= PAGE_EXECUTE_READ;
+			protect = PAGE_EXECUTE_READ;
+		else
+			protect = PAGE_READONLY;
 	} else {
-		protect |= PAGE_NOACCESS;
+		/* XXX - PAGE_NOACCESS  */
+		ERR("file mapping with NOACCESS is not supported");
+		return MAP_FAILED;
 	}
-
-	if (flags & MAP_PRIVATE)
-		protect |= PAGE_WRITECOPY;
 
 	/* XXX - MAP_NORESERVE */
 

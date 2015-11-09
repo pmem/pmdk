@@ -268,6 +268,12 @@ lane_check(PMEMobjpool *pop)
 	uint64_t j; /* lane index */
 	struct lane_layout *layout;
 
+#ifdef WIN32
+	section_ops[LANE_SECTION_ALLOCATOR] = &allocator_ops;
+	section_ops[LANE_SECTION_LIST] = &list_ops;
+	section_ops[LANE_SECTION_TRANSACTION] = &transaction_ops;
+#endif
+
 	for (i = 0; i < MAX_LANE_SECTION; ++i) {
 		for (j = 0; j < pop->nlanes; ++j) {
 			layout = lane_get_layout(pop, j);
