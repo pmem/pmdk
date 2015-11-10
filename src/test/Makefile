@@ -161,7 +161,8 @@ TEST = blk_nblock\
        obj_check\
        obj_out_of_memory\
        obj_pmalloc_oom_mt\
-       obj_realloc
+       obj_realloc\
+       obj_pool_lookup
 
 all     : TARGET = all
 clean   : TARGET = clean
