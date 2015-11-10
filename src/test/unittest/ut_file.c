@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright (c) 2014-2015, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -122,46 +122,46 @@ ut_access(const char *file, int line, const char *func, const char *path,
 /*
  * ut_write -- a write that can't return -1
  */
-int
+size_t
 ut_write(const char *file, int line, const char *func, int fd,
     const void *buf, size_t count)
 {
-	int retval = write(fd, buf, count);
+	ssize_t retval = write(fd, buf, count);
 
 	if (retval < 0)
 		ut_fatal(file, line, func, "!write: %d", fd);
 
-	return retval;
+	return (size_t)retval;
 }
 
 /*
  * ut_read -- a read that can't return -1
  */
-int
+size_t
 ut_read(const char *file, int line, const char *func, int fd,
     void *buf, size_t count)
 {
-	int retval = read(fd, buf, count);
+	ssize_t retval = read(fd, buf, count);
 
 	if (retval < 0)
 		ut_fatal(file, line, func, "!read: %d", fd);
 
-	return retval;
+	return (size_t)retval;
 }
 
 /*
  * ut_readlink -- a readlink that can't return -1
  */
-int
+size_t
 ut_readlink(const char *file, int line, const char *func, const char *path,
     void *buf, size_t count)
 {
-	int retval = readlink(path, buf, count);
+	ssize_t retval = readlink(path, buf, count);
 
 	if (retval < 0)
 		ut_fatal(file, line, func, "!readlink: %s", path);
 
-	return retval;
+	return (size_t)retval;
 }
 
 /*
@@ -171,9 +171,9 @@ off_t
 ut_lseek(const char *file, int line, const char *func, int fd,
     off_t offset, int whence)
 {
-	int retval = lseek(fd, offset, whence);
+	off_t retval = lseek(fd, offset, whence);
 
-	if (retval == (off_t)-1)
+	if (retval == -1)
 		ut_fatal(file, line, func, "!lseek: %d", fd);
 
 	return retval;

@@ -264,14 +264,14 @@ int ut_unlink(const char *file, int line, const char *func, const char *path);
 int ut_access(const char *file, int line, const char *func, const char *path,
     int mode);
 
-int ut_write(const char *file, int line, const char *func, int fd,
+size_t ut_write(const char *file, int line, const char *func, int fd,
     const void *buf, size_t len);
 
-int ut_read(const char *file, int line, const char *func, int fd,
+size_t ut_read(const char *file, int line, const char *func, int fd,
     void *buf, size_t len);
 
-int ut_readlink(const char *file, int line, const char *func, const char *path,
-    void *buf, size_t len);
+size_t ut_readlink(const char *file, int line, const char *func,
+    const char *path, void *buf, size_t len);
 
 int ut_fcntl(const char *file, int line, const char *func, int fd,
     int cmd, int num, ...);
