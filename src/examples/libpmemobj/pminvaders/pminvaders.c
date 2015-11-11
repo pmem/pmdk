@@ -311,17 +311,35 @@ process_player(int input)
 	/* weapon cooldown tick */
 	timer_tick(&D_RW(plr)->timer);
 
-	if (input == KEY_LEFT) {
-		uint16_t dstx = D_RO(plr)->x - 1;
-		if (dstx != 0)
-			D_RW(plr)->x = dstx;
-	} else if (input == KEY_RIGHT) {
-		uint16_t dstx = D_RO(plr)->x + 1;
-		if (dstx != GAME_WIDTH - 1)
-			D_RW(plr)->x = dstx;
-	} else if (input == ' ' && D_RO(plr)->timer == 0) {
-		D_RW(plr)->timer = MAX_PLAYER_TIMER;
-		POBJ_NEW(pop, NULL, struct bullet, create_bullet, D_RW(plr));
+	switch (input) {
+	case KEY_LEFT:
+	case 'o':
+		{
+			uint16_t dstx = D_RO(plr)->x - 1;
+			if (dstx != 0)
+				D_RW(plr)->x = dstx;
+		}
+		break;
+
+	case KEY_RIGHT:
+	case 'p':
+		{
+			uint16_t dstx = D_RO(plr)->x + 1;
+			if (dstx != GAME_WIDTH - 1)
+				D_RW(plr)->x = dstx;
+		}
+		break;
+
+	case ' ':
+		if (D_RO(plr)->timer == 0) {
+			D_RW(plr)->timer = MAX_PLAYER_TIMER;
+			POBJ_NEW(pop, NULL, struct bullet,
+					create_bullet, D_RW(plr));
+		}
+		break;
+
+	default:
+		break;
 	}
 
 	pmemobj_persist(pop, D_RW(plr), sizeof (struct player));
