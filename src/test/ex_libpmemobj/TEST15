@@ -63,6 +63,13 @@ echo -n ooo >> $INPUT
 dd if=/dev/zero bs=1k count=4 2>>prep$UNITTEST_NUM.log | tr '\0' ' ' >> $INPUT
 echo -n q >> $INPUT
 
-expect_normal_exit $EX_PATH/pminvaders $DIR/testfile1 < $INPUT
+if [ -t 1 -a -z "$NOTTY" ]
+then
+	out="/dev/stdout"
+else
+	out="/dev/null"
+fi
+
+expect_normal_exit $EX_PATH/pminvaders $DIR/testfile1 >$out < $INPUT
 
 pass
