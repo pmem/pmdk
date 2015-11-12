@@ -249,6 +249,7 @@ pmemlog_rewind(PMEMlogpool *plp)
 
 		D_RW(bp)->head = TOID_NULL(struct log);
 		D_RW(bp)->tail = TOID_NULL(struct log);
+		D_RW(bp)->bytes_written = 0;
 	} TX_END
 }
 

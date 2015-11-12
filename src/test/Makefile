@@ -180,6 +180,12 @@ VMMALLOC_TESTS = \
        vmmalloc_valgrind\
        vmmalloc_valloc
 
+EXAMPLES_TESTS = \
+       ex_libpmem\
+       ex_libpmemblk\
+       ex_libpmemlog\
+       ex_libpmemobj
+
 TESTS = \
        $(OBJ_TESTS)\
        $(BLK_TESTS)\
@@ -188,7 +194,8 @@ TESTS = \
        $(PMEM_TESTS)\
        $(PMEMPOOL_TESTS)\
        $(VMEM_TESTS)\
-       $(VMMALLOC_TESTS)
+       $(VMMALLOC_TESTS)\
+       $(EXAMPLES_TESTS)
 
 all     : TARGET = all
 clean   : TARGET = clean

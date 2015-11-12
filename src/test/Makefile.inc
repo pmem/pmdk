@@ -39,6 +39,12 @@
 
 LIBS_DIR=../..
 
+EXAMPLES_DIR=../../examples
+EX_LIBPMEM=$(EXAMPLES_DIR)/libpmem
+EX_LIBPMEMBLK=$(EXAMPLES_DIR)/libpmemblk
+EX_LIBPMEMLOG=$(EXAMPLES_DIR)/libpmemlog
+EX_LIBPMEMOBJ=$(EXAMPLES_DIR)/libpmemobj
+
 UT = ../unittest/libut.a
 LIBS = $(UT)
 

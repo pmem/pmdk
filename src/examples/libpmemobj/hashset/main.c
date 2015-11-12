@@ -189,7 +189,10 @@ main(int argc, char *argv[])
 	}
 
 	char buf[INPUT_BUF_LEN];
-	printf("Type 'h' for help\n$ ");
+
+	if (isatty(fileno(stdout)))
+		printf("Type 'h' for help\n$ ");
+
 	while (fgets(buf, sizeof (buf), stdin)) {
 		if (buf[0] == 0 || buf[0] == '\n')
 			continue;
@@ -229,7 +232,8 @@ main(int argc, char *argv[])
 				break;
 		}
 
-		printf("$ ");
+		if (isatty(fileno(stdout)))
+			printf("$ ");
 	}
 
 	pmemobj_close(pop);
