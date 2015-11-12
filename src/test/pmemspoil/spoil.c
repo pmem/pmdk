@@ -119,7 +119,7 @@ if (pmemspoil_check_field(_pfp, STR(_name))) {\
 	if (_pfp->cur->index >= (_max)) {\
 		PROCESS_STATE = PROCESS_STATE_ERROR_MSG;\
 	} else {\
-		typeof(_arg) a = _arg;\
+		typeof (_arg) a = _arg;\
 		pmemspoil_next_field(_pfp);\
 		if (pmemspoil_process_##_name(_psp, _pfp, a))\
 			PROCESS_STATE = PROCESS_STATE_ERROR;\
@@ -134,7 +134,7 @@ if (pmemspoil_check_field(_pfp, (_name))) {\
 	if (_pfp->cur->index >= (_max)) {\
 		PROCESS_STATE = PROCESS_STATE_ERROR_MSG;\
 	} else {\
-		typeof(_arg) a = _arg;\
+		typeof (_arg) a = _arg;\
 		pmemspoil_next_field(_pfp);\
 		if (pmemspoil_process_##_func(_psp, _pfp, a))\
 			PROCESS_STATE = PROCESS_STATE_ERROR;\
