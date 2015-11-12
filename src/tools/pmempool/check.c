@@ -941,14 +941,14 @@ pmempool_check_pool_hdr_default(struct pmempool_check *pcp,
 {
 	int repaired = 0;
 	int cannot_repair = 0;
-	if (strncmp(hdrp->signature, def_hdrp->signature, POOL_HDR_SIG_LEN)) {
+	if (memcmp(hdrp->signature, def_hdrp->signature, POOL_HDR_SIG_LEN)) {
 		outv(1, "pool_hdr.signature is not valid\n");
 		if (ask_Yn(pcp->ans, "Do you want to set "
-			"pool_hdr.signature to %s?", def_hdrp->signature)
+			"pool_hdr.signature to %.8s?", def_hdrp->signature)
 				== 'y') {
-			outv(1, "setting pool_hdr.signature to %s\n",
+			outv(1, "setting pool_hdr.signature to %.8s\n",
 					def_hdrp->signature);
-			strncpy(hdrp->signature, def_hdrp->signature,
+			memcpy(hdrp->signature, def_hdrp->signature,
 					POOL_HDR_SIG_LEN);
 			repaired = 1;
 		} else {

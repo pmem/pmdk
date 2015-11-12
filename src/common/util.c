@@ -361,8 +361,10 @@ util_tmpfile(const char *dir, size_t size)
 	sigfillset(&set);
 	(void) sigprocmask(SIG_BLOCK, &set, &oldset);
 
-	int fd;
-	if ((fd = mkstemp(fullname)) < 0) {
+	mode_t prev_umask = umask(S_IRWXG | S_IRWXO);
+	int fd = mkstemp(fullname);
+	umask(prev_umask);
+	if (fd < 0) {
 		ERR("!mkstemp");
 		goto err;
 	}
@@ -397,17 +399,24 @@ err:
 void *
 util_map_tmpfile(const char *dir, size_t size)
 {
+	int oerrno;
 	int fd = util_tmpfile(dir, size);
-	void *base;
-	if ((base = util_map(fd, size, 0)) == NULL)
+	if (fd == -1) {
+		LOG(2, "cannot create temporary file in dir %s", dir);
 		goto err;
+	}
+
+	void *base;
+	if ((base = util_map(fd, size, 0)) == NULL) {
+		LOG(2, "cannot mmap temporary file");
+		goto err;
+	}
 
 	(void) close(fd);
 	return base;
 
 err:
-	ERR("cannot mmap temporary file");
-	int oerrno = errno;
+	oerrno = errno;
 	if (fd != -1)
 		(void) close(fd);
 	errno = oerrno;
@@ -493,7 +502,7 @@ util_convert_hdr(struct pool_hdr *hdrp)
 		return 0;
 	}
 
-	LOG(3, "valid header, signature \"%s\"", hdrp->signature);
+	LOG(3, "valid header, signature \"%.8s\"", hdrp->signature);
 	return 1;
 }
 
@@ -784,27 +793,7 @@ util_file_open(const char *path, size_t *size, size_t minsize, int flags)
 	LOG(3, "path %s size %p minsize %zu flags %d", path, size, minsize,
 			flags);
 
-	if (size || minsize) {
-		if (size)
-			ASSERTeq(*size, 0);
-
-		struct stat stbuf;
-		if (stat(path, &stbuf) < 0) {
-			ERR("!stat %s", path);
-			return -1;
-		}
-
-		if (stbuf.st_size < minsize) {
-			ERR("size %lld smaller than %zu",
-					(long long)stbuf.st_size, minsize);
-			errno = EINVAL;
-			return -1;
-		}
-
-		if (size)
-			*size = stbuf.st_size;
-	}
-
+	int oerrno;
 	int fd;
 	if ((fd = open(path, flags)) < 0) {
 		ERR("!open %s", path);
@@ -813,9 +802,37 @@ util_file_open(const char *path, size_t *size, size_t minsize, int flags)
 
 	if (flock(fd, LOCK_EX | LOCK_NB) < 0) {
 		ERR("!flock");
-		close(fd);
+		(void) close(fd);
 		return -1;
 	}
 
+	if (size || minsize) {
+		if (size)
+			ASSERTeq(*size, 0);
+
+		struct stat stbuf;
+		if (fstat(fd, &stbuf) < 0) {
+			ERR("!fstat %s", path);
+			goto err;
+		}
+
+		if (stbuf.st_size < minsize) {
+			ERR("size %lld smaller than %zu",
+					(long long)stbuf.st_size, minsize);
+			errno = EINVAL;
+			goto err;
+		}
+
+		if (size)
+			*size = stbuf.st_size;
+	}
+
 	return fd;
+err:
+	oerrno = errno;
+	if (flock(fd, LOCK_UN))
+		ERR("!flock unlock");
+	(void) close(fd);
+	errno = oerrno;
+	return -1;
 }

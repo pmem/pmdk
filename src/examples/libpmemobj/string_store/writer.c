@@ -60,7 +60,10 @@ main(int argc, char *argv[])
 	struct my_root *rootp = pmemobj_direct(root);
 
 	char buf[MAX_BUF_LEN];
-	scanf("%9s", buf);
+	if (scanf("%9s", buf) == EOF) {
+		fprintf(stderr, "EOF\n");
+		return 1;
+	}
 
 	rootp->len = strlen(buf);
 	pmemobj_persist(pop, &rootp->len, sizeof (rootp->len));

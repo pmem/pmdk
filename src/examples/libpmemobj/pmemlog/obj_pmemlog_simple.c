@@ -129,7 +129,10 @@ pmemlog_open(const char *path)
 				POBJ_LAYOUT_NAME(obj_pmemlog_simple));
 	assert(pop != NULL);
 	struct stat buf;
-	stat(path, &buf);
+	if (stat(path, &buf)) {
+		perror("stat");
+		return NULL;
+	}
 
 	return pmemlog_map(pop, buf.st_size) ? NULL : (PMEMlogpool *)pop;
 }
@@ -146,7 +149,10 @@ pmemlog_create(const char *path, size_t poolsize, mode_t mode)
 				poolsize, mode);
 	assert(pop != NULL);
 	struct stat buf;
-	stat(path, &buf);
+	if (stat(path, &buf)) {
+		perror("stat");
+		return NULL;
+	}
 
 	return pmemlog_map(pop, buf.st_size) ? NULL : (PMEMlogpool *)pop;
 }

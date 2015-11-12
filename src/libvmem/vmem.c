@@ -168,7 +168,7 @@ vmem_create(const char *dir, size_t size)
 	/* store opaque info at beginning of mapped area */
 	struct vmem *vmp = addr;
 	memset(&vmp->hdr, '\0', sizeof (vmp->hdr));
-	strncpy(vmp->hdr.signature, VMEM_HDR_SIG, POOL_HDR_SIG_LEN);
+	memcpy(vmp->hdr.signature, VMEM_HDR_SIG, POOL_HDR_SIG_LEN);
 	vmp->addr = addr;
 	vmp->size = size;
 	vmp->caller_mapped = 0;
@@ -217,7 +217,7 @@ vmem_create_in_region(void *addr, size_t size)
 	/* store opaque info at beginning of mapped area */
 	struct vmem *vmp = addr;
 	memset(&vmp->hdr, '\0', sizeof (vmp->hdr));
-	strncpy(vmp->hdr.signature, VMEM_HDR_SIG, POOL_HDR_SIG_LEN);
+	memcpy(vmp->hdr.signature, VMEM_HDR_SIG, POOL_HDR_SIG_LEN);
 	vmp->addr = addr;
 	vmp->size = size;
 	vmp->caller_mapped = 1;

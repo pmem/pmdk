@@ -979,9 +979,9 @@ pmemspoil_process_pmemlog(struct pmemspoil *psp,
 		return -1;
 
 	PROCESS_BEGIN(psp, pfp) {
-		PROCESS_FIELD_LE(&pmemlog, start_offset, uint32_t);
-		PROCESS_FIELD_LE(&pmemlog, end_offset, uint32_t);
-		PROCESS_FIELD_LE(&pmemlog, write_offset, uint32_t);
+		PROCESS_FIELD_LE(&pmemlog, start_offset, uint64_t);
+		PROCESS_FIELD_LE(&pmemlog, end_offset, uint64_t);
+		PROCESS_FIELD_LE(&pmemlog, write_offset, uint64_t);
 	} PROCESS_END
 
 	if (PROCESS_STATE == PROCESS_STATE_FIELD) {

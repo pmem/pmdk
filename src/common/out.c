@@ -88,7 +88,7 @@ Last_errormsg_fini()
 	void *p = pthread_getspecific(Last_errormsg_key);
 	if (p) {
 		free(p);
-		pthread_setspecific(Last_errormsg_key, NULL);
+		(void) pthread_setspecific(Last_errormsg_key, NULL);
 	}
 }
 

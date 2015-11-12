@@ -66,11 +66,11 @@ typedef const char *(*enum_to_str_fn)(int);
 pmem_pool_type_t
 pmem_pool_type_parse_hdr(const struct pool_hdr *hdrp)
 {
-	if (strncmp(hdrp->signature, LOG_HDR_SIG, POOL_HDR_SIG_LEN) == 0)
+	if (memcmp(hdrp->signature, LOG_HDR_SIG, POOL_HDR_SIG_LEN) == 0)
 		return PMEM_POOL_TYPE_LOG;
-	else if (strncmp(hdrp->signature, BLK_HDR_SIG, POOL_HDR_SIG_LEN) == 0)
+	else if (memcmp(hdrp->signature, BLK_HDR_SIG, POOL_HDR_SIG_LEN) == 0)
 		return PMEM_POOL_TYPE_BLK;
-	else if (strncmp(hdrp->signature, OBJ_HDR_SIG, POOL_HDR_SIG_LEN) == 0)
+	else if (memcmp(hdrp->signature, OBJ_HDR_SIG, POOL_HDR_SIG_LEN) == 0)
 		return PMEM_POOL_TYPE_OBJ;
 	else
 		return PMEM_POOL_TYPE_UNKNOWN;
@@ -706,7 +706,8 @@ pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp,
 	else
 		munmap(addr, stat_buf.st_size);
 out_close:
-	close(fd);
+	if (fd >= 0)
+		(void) close(fd);
 	return ret;
 }
 
@@ -720,7 +721,7 @@ pmem_default_pool_hdr(pmem_pool_type_t type, struct pool_hdr *hdrp)
 	const char *sig = out_get_pool_signature(type);
 	assert(sig);
 
-	strncpy(hdrp->signature, sig, POOL_HDR_SIG_LEN);
+	memcpy(hdrp->signature, sig, POOL_HDR_SIG_LEN);
 
 	switch (type) {
 	case PMEM_POOL_TYPE_LOG:
@@ -959,9 +960,13 @@ ask(char op, char *answers, char def_ans, const char *fmt, va_list ap)
 				printf("/");
 		}
 		printf("] ");
-		ans = tolower(getchar());
+		int c = getchar();
+		if (c == EOF)
+			ans = def_ans;
+		else
+			ans = tolower(c);
 		if (ans != '\n')
-			getchar();
+			(void) getchar();
 	} while (ans != '\n' && strchr(answers, ans) == NULL);
 
 	char ret = ans == '\n' ? def_ans : ans;
@@ -1166,7 +1171,7 @@ util_opt_check_requirements(const struct options *opts,
 			int req_idx =
 				util_opt_get_index(opts, tmp & OPT_REQ_MASK);
 
-			if (isset(opts->bitmap, req_idx)) {
+			if (req_idx >= 0 && isset(opts->bitmap, req_idx)) {
 				set++;
 				break;
 			}

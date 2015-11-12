@@ -86,17 +86,19 @@ pmemwrite_log(struct pmemwrite *pwp)
 	}
 
 	int i;
+	int ret = 0;
 	for (i = 0; i < pwp->nargs; i++) {
 		size_t len = strlen(pwp->args[i]);
 		if (pmemlog_append(plp, pwp->args[i], len)) {
 			warn("%s", pwp->fname);
-			return -1;
+			ret = -1;
+			break;
 		}
 	}
 
 	pmemlog_close(plp);
 
-	return 0;
+	return ret;
 }
 
 /*
@@ -140,7 +142,7 @@ pmemwrite_blk(struct pmemwrite *pwp)
 			ret = pmemblk_write(pbp, blk, blockno);
 			free(buff);
 			if (ret)
-				return -1;
+				goto end;
 		/* <blockno>:<flag> - set <flag> flag on <blockno> */
 		} else if (sscanf(pwp->args[i], "%" SCNu64 ":%c",
 					&blockno, &flag) == 2) {
@@ -153,17 +155,20 @@ pmemwrite_blk(struct pmemwrite *pwp)
 				break;
 			default:
 				outv_err("Invalid flag '%c'\n", flag);
-				return -1;
+				ret = -1;
+				goto end;
 			}
 			if (ret) {
 				warn("%s", pwp->fname);
-				return -1;
+				goto end;
 			}
 		} else {
 			outv_err("Invalid argument '%s'\n", pwp->args[i]);
-			return -1;
+			ret = -1;
+			goto end;
 		}
 	}
+end:
 	free(blk);
 
 nomem:
