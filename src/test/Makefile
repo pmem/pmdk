@@ -40,8 +40,7 @@ TEST_DEPS = \
        unittest\
        pmemspoil\
        pmemwrite\
-       pmemalloc\
-       obj_list
+       pmemalloc
 
 BLK_TESTS = \
        blk_nblock\
@@ -59,6 +58,7 @@ LOG_TESTS = \
        log_recovery\
        log_walker
 
+OBJ_DEPS = obj_list
 # long tests first
 OBJ_TESTS = \
        obj_basic_integration\
@@ -187,6 +187,8 @@ EXAMPLES_TESTS = \
        ex_libpmemobj
 
 TESTS = \
+       $(TEST_DEPS)\
+       $(OBJ_DEPS)\
        $(OBJ_TESTS)\
        $(BLK_TESTS)\
        $(LOG_TESTS)\
@@ -215,10 +217,11 @@ all test cstyle: $(TESTS)
 
 clean clobber: $(TESTS)
 
-$(TEST_DEPS):
-	$(MAKE) -C $@ $(TARGET)
+$(OBJ_DEPS) $(OBJ_TESTS) $(BLK_TESTS) $(LOG_TESTS) $(OTHER_TESTS) $(PMEM_TESTS) $(PMEMPOOL_TESTS) $(VMEM_TESTS) $(VMMALLOC_TESTS): $(TEST_DEPS)
 
-$(TESTS): $(TEST_DEPS)
+$(OBJ_TESTS): $(OBJ_DEPS)
+
+$(TESTS):
 	$(MAKE) -C $@ $(TARGET)
 
 memcheck-summary:
