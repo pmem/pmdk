@@ -63,3 +63,5 @@ endif
 
 all: $(EXAMPLES)
 	$(MAKE) -C $(EX_LIBPMEMOBJ)
+
+pcheck: export NOTTY=1
