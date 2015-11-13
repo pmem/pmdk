@@ -40,10 +40,11 @@
 #include "unittest.h"
 
 #define	THREADS 32
-#define	OPS_PER_THREAD 1000
-#define	ALLOC_SIZE 350
+#define	OPS_PER_THREAD 10000
+#define	ALLOC_SIZE 100
 #define	REALLOC_SIZE (ALLOC_SIZE * 3)
 #define	FRAGMENTATION 3
+#define	MIX_RERUNS 2
 
 struct root {
 	uint64_t offs[THREADS][OPS_PER_THREAD];
@@ -94,6 +95,63 @@ free_worker(void *arg)
 	return NULL;
 }
 
+static void *
+mix_worker(void *arg)
+{
+	struct worker_args *a = arg;
+
+	/*
+	 * The mix scenario is ran twice to increase the chances of run
+	 * contention.
+	 */
+	for (int i = 0; i < MIX_RERUNS; ++i) {
+		for (int i = 0; i < OPS_PER_THREAD; ++i) {
+			pmalloc(a->pop, &a->r->offs[a->idx][i], ALLOC_SIZE, 0);
+			ASSERTne(a->r->offs[a->idx][i], 0);
+		}
+
+		for (int i = 0; i < OPS_PER_THREAD; ++i) {
+			pfree(a->pop, &a->r->offs[a->idx][i], 0);
+			ASSERTeq(a->r->offs[a->idx][i], 0);
+		}
+	}
+
+	return NULL;
+}
+
+static void *
+tx_worker(void *arg)
+{
+	struct worker_args *a = arg;
+
+	/*
+	 * Allocate objects until exhaustion, once that happens the transaction
+	 * will automatically abort and all of the objects will be freed.
+	 */
+	TX_BEGIN(a->pop) {
+		for (;;) /* this is NOT an infinite loop */
+			pmemobj_tx_alloc(ALLOC_SIZE, a->idx);
+	} TX_END
+
+	return NULL;
+}
+
+static void *
+alloc_free_worker(void *arg)
+{
+	struct worker_args *a = arg;
+
+	PMEMoid oid;
+	for (int i = 0; i < OPS_PER_THREAD; ++i) {
+		int err = pmemobj_alloc(a->pop, &oid, ALLOC_SIZE,
+				0, NULL, NULL);
+		ASSERTeq(err, 0);
+		pmemobj_free(&oid);
+	}
+
+	return NULL;
+}
+
 static void
 run_worker(void *(worker_func)(void *arg), struct worker_args args[])
 {
@@ -114,8 +172,17 @@ main(int argc, char *argv[])
 	if (argc != 2)
 		FATAL("usage: %s [file]", argv[0]);
 
-	PMEMobjpool *pop = pmemobj_create(argv[1], "TEST",
+	PMEMobjpool *pop;
+
+	if (access(argv[1], F_OK) != 0) {
+		pop = pmemobj_create(argv[1], "TEST",
 		THREADS * OPS_PER_THREAD * ALLOC_SIZE * FRAGMENTATION, 0666);
+	} else {
+		if ((pop = pmemobj_open(argv[1], "TEST")) == NULL) {
+			printf("failed to open pool\n");
+			return 1;
+		}
+	}
 
 	if (pop == NULL)
 		FATAL("!pmemobj_create");
@@ -135,6 +202,9 @@ main(int argc, char *argv[])
 	run_worker(alloc_worker, args);
 	run_worker(realloc_worker, args);
 	run_worker(free_worker, args);
+	run_worker(mix_worker, args);
+	run_worker(tx_worker, args);
+	run_worker(alloc_free_worker, args);
 
 	DONE(NULL);
 }
