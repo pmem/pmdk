@@ -40,8 +40,6 @@ export UNITTEST_NUM=1
 # standard unit test setup
 . ../unittest/unittest.sh
 
-. ./valgrind_check.sh
-
 require_fs_type local pmem
 # there's no point in testing statically linked builds
 require_build_type debug nondebug
