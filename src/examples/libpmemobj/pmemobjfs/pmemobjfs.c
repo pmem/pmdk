@@ -106,8 +106,8 @@ struct {\
 }
 
 #define	PDLL_HEAD_INIT(head) do {\
-	((head)).first = ((typeof((head).first))OID_NULL);\
-	((head)).last = ((typeof((head).first))OID_NULL);\
+	((head)).first = ((typeof ((head).first))OID_NULL);\
+	((head)).last = ((typeof ((head).first))OID_NULL);\
 } while (0)
 
 #define	PDLL_FOREACH(entry, head, field)\
@@ -124,13 +124,13 @@ for (entry = ((head)).first; !TOID_IS_NULL(entry) &&\
 	TX_ADD_FIELD(entry, field);\
 	D_RW(entry)->field.next = head.first;\
 	D_RW(entry)->field.prev =\
-		(typeof(D_RW(entry)->field.prev))OID_NULL;\
+		(typeof (D_RW(entry)->field.prev))OID_NULL;\
 	head.first = entry;\
 	if (TOID_IS_NULL(head.last)) {\
 		pmemobj_tx_add_range_direct(&head.last, sizeof (head.last));\
 		head.last = entry;\
 	}\
-	typeof(entry) next = D_RO(entry)->field.next;\
+	typeof (entry) next = D_RO(entry)->field.next;\
 	if (!TOID_IS_NULL(next)) {\
 		pmemobj_tx_add_range_direct(&D_RW(next)->field.prev,\
 				sizeof (D_RW(next)->field.prev));\
@@ -143,25 +143,25 @@ for (entry = ((head)).first; !TOID_IS_NULL(entry) &&\
 		TOID_EQUALS(head.last, entry)) {\
 		pmemobj_tx_add_range_direct(&head.first, sizeof (head.first));\
 		pmemobj_tx_add_range_direct(&head.last, sizeof (head.last));\
-		head.first = (typeof(D_RW(entry)->field.prev))OID_NULL;\
-		head.last = (typeof(D_RW(entry)->field.prev))OID_NULL;\
+		head.first = (typeof (D_RW(entry)->field.prev))OID_NULL;\
+		head.last = (typeof (D_RW(entry)->field.prev))OID_NULL;\
 	} else if (TOID_EQUALS(head.first, entry)) {\
-		typeof(entry) next = D_RW(entry)->field.next;\
+		typeof (entry) next = D_RW(entry)->field.next;\
 		pmemobj_tx_add_range_direct(&D_RW(next)->field.prev,\
 				sizeof (D_RW(next)->field.prev));\
 		pmemobj_tx_add_range_direct(&head.first, sizeof (head.first));\
 		head.first = D_RO(entry)->field.next;\
 		D_RW(next)->field.prev.oid = OID_NULL;\
 	} else if (TOID_EQUALS(head.last, entry)) {\
-		typeof(entry) prev = D_RW(entry)->field.prev;\
+		typeof (entry) prev = D_RW(entry)->field.prev;\
 		pmemobj_tx_add_range_direct(&D_RW(prev)->field.next,\
 				sizeof (D_RW(prev)->field.next));\
 		pmemobj_tx_add_range_direct(&head.last, sizeof (head.last));\
 		head.last = D_RO(entry)->field.prev;\
 		D_RW(prev)->field.next.oid = OID_NULL;\
 	} else {\
-		typeof(entry) prev = D_RW(entry)->field.prev;\
-		typeof(entry) next = D_RW(entry)->field.next;\
+		typeof (entry) prev = D_RW(entry)->field.prev;\
+		typeof (entry) next = D_RW(entry)->field.next;\
 		pmemobj_tx_add_range_direct(&D_RW(prev)->field.next,\
 				sizeof (D_RW(prev)->field.next));\
 		pmemobj_tx_add_range_direct(&D_RW(next)->field.prev,\
