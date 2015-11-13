@@ -341,9 +341,9 @@ pmemobj_direct(PMEMoid oid)
 }
 
 #define	DIRECT_RW(o) (\
-{typeof((o)) _o; _o._type = NULL; (void)_o;\
-(typeof(*(o)._type) *)pmemobj_direct((o).oid); })
-#define	DIRECT_RO(o) ((const typeof(*(o)._type) *)pmemobj_direct((o).oid))
+{typeof (o) _o; _o._type = NULL; (void)_o;\
+(typeof (*(o)._type) *)pmemobj_direct((o).oid); })
+#define	DIRECT_RO(o) ((const typeof (*(o)._type) *)pmemobj_direct((o).oid))
 
 #define	D_RW	DIRECT_RW
 #define	D_RO	DIRECT_RO
@@ -490,7 +490,7 @@ PMEMoid pmemobj_next(PMEMoid oid);
 _pobj_ret; })
 
 #define	POBJ_NEXT(o) (\
-{ typeof((o)) _pobj_ret = (typeof((o)))pmemobj_next((o).oid);\
+{ typeof (o) _pobj_ret = (typeof (o))pmemobj_next((o).oid);\
 _pobj_ret; })
 
 #define	POBJ_NEW(pop, o, t, constr, arg) (\
@@ -582,7 +582,7 @@ for (_POBJ_DEBUG_NOTICE_IN_TX_FOR("POBJ_FOREACH_SAFE")\
  */
 #define	POBJ_FOREACH_TYPE(pop, var)\
 for (_POBJ_DEBUG_NOTICE_IN_TX_FOR("POBJ_FOREACH_TYPE")\
-	var = (typeof((var)))pmemobj_first((pop),\
+	var = (typeof (var))pmemobj_first((pop),\
 		TOID_TYPE_NUM_OF(var));\
 		TOID_IS_NULL(var) == 0;\
 		var = POBJ_NEXT(var))
@@ -593,7 +593,7 @@ for (_POBJ_DEBUG_NOTICE_IN_TX_FOR("POBJ_FOREACH_TYPE")\
  */
 #define	POBJ_FOREACH_SAFE_TYPE(pop, var, nvar)\
 for (_POBJ_DEBUG_NOTICE_IN_TX_FOR("POBJ_FOREACH_SAFE_TYPE")\
-	var = (typeof((var)))pmemobj_first((pop),\
+	var = (typeof (var))pmemobj_first((pop),\
 	TOID_TYPE_NUM_OF(var));\
 	TOID_IS_NULL(var) == 0 &&\
 	(nvar = POBJ_NEXT(var), 1);\
@@ -949,7 +949,7 @@ int pmemobj_tx_free(PMEMoid oid);
 pmemobj_tx_add_range((o).oid, 0, sizeof (*(o)._type))
 
 #define	TX_ADD_FIELD(o, field)\
-pmemobj_tx_add_range((o).oid, offsetof(typeof(*(o)._type), field),\
+pmemobj_tx_add_range((o).oid, offsetof(typeof (*(o)._type), field),\
 		sizeof (D_RO(o)->field))
 
 #define	TX_NEW(t) (\
@@ -969,11 +969,11 @@ TOID_TYPE_NUM(t)); _pobj_ret; })
 TOID_TYPE_NUM(t)); _pobj_ret; })
 
 #define	TX_REALLOC(o, size) (\
-{ typeof((o)) _pobj_ret = (typeof((o)))pmemobj_tx_realloc((o).oid, (size),\
+{ typeof (o) _pobj_ret = (typeof (o))pmemobj_tx_realloc((o).oid, (size),\
 TOID_TYPE_NUM_OF(o)); _pobj_ret; })
 
 #define	TX_ZREALLOC(o, size) (\
-{ typeof((o)) _pobj_ret = (typeof((o)))pmemobj_tx_zrealloc((o).oid, (size),\
+{ typeof (o) _pobj_ret = (typeof (o))pmemobj_tx_zrealloc((o).oid, (size),\
 TOID_TYPE_NUM_OF(o)); _pobj_ret; })
 
 #define	TX_STRDUP(s, type_num)\
