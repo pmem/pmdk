@@ -31,13 +31,16 @@
 #
 
 #
-# Makefile -- build all benchmarks
+# src/benchmarks/Makefile -- build all benchmarks
 #
 OBJCOPY=objcopy
 
 vpath %.c ../examples/libpmemobj/tree_map
 vpath %.c ../examples/libpmemobj/map
 vpath %.c ../examples/libpmemobj/hashmap
+
+TOP := $(dir $(lastword $(MAKEFILE_LIST)))/../..
+include $(TOP)/src/common.inc
 
 vpath %.c ../libpmemobj
 vpath %.c ../common
@@ -81,7 +84,6 @@ CONFIGS=pmembench_log\
 	pmembench_obj_lanes\
 	pmembench_map
 
-CSTYLE = ../../utils/cstyle
 OBJS=$(SRC:.c=.o)
 LDFLAGS = -L$(LIBS_PATH)
 LDFLAGS += -L../examples/libpmemobj/map
@@ -146,7 +148,7 @@ clobber: clean
 	$(RM) *.csv
 
 cstyle:
-	$(CSTYLE) -pP *.[ch]
+	$(CSTYLE) *.[ch]
 
 $(CONFIGS):
 	LD_LIBRARY_PATH=$(LIBS_PATH) ./$(BENCHMARK) $@.cfg > $@.csv

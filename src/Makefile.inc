@@ -31,12 +31,8 @@
 # src/Makefile.inc -- common Makefile rules for NVM library
 #
 
-LN = ln
-OBJCOPY = objcopy
-MKDIR = mkdir
-INSTALL = install
-CP = cp
-CSTYLE = ../../utils/cstyle
+TOP := $(dir $(lastword $(MAKEFILE_LIST)))/..
+include $(TOP)/src/common.inc
 
 INCLUDE = ../include
 
@@ -56,6 +52,9 @@ CFLAGS += -pthread
 CFLAGS += -fno-common
 CFLAGS += $(EXTRA_CFLAGS)
 CFLAGS += -DSRCVERSION=\"$(SRCVERSION)\"
+ifeq ($(call check_flag, -Wunreachable-code-return), y)
+CFLAGS += -Wunreachable-code-return
+endif
 
 LDFLAGS += -Wl,-z,relro -Wl,--fatal-warnings -Wl,--warn-common $(EXTRA_LDFLAGS)
 
@@ -188,7 +187,7 @@ clobber: clean $(EXTRA_TARGETS_CLOBBER)
 	$(RM) -r $(objdir)/.deps
 
 cstyle:
-	$(CSTYLE) -pP *.[ch]
+	$(CSTYLE) *.[ch]
 
 $(objdir)/%.o: %.c
 	@mkdir -p $(objdir)/.deps

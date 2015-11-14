@@ -33,12 +33,13 @@
 #
 # examples/Makefile.inc -- build the NVM Library examples
 #
-TOP_SRC := ../$(dir $(lastword $(MAKEFILE_LIST)))
-TOP := ../$(TOP_SRC)
-CSTYLE = $(TOP)utils/cstyle
+TOP_SRC := $(dir $(lastword $(MAKEFILE_LIST)))/..
+TOP := $(TOP_SRC)/..
 
-INCDIR ?= $(TOP_SRC)include
-LIBDIR ?= $(TOP_SRC)debug
+include $(TOP)/src/common.inc
+
+INCDIR ?= $(TOP_SRC)/include
+LIBDIR ?= $(TOP_SRC)/debug
 
 CFLAGS = -std=gnu99 -ggdb -Wall -Werror $(EXTRA_CFLAGS)
 LDFLAGS = -Wl,-rpath=$(LIBDIR) -L$(LIBDIR) $(EXTRA_LDFLAGS)
@@ -83,7 +84,7 @@ endif
 
 cstyle:
 ifneq ($(PROGS)$(LIBRARIES),)
-	$(CSTYLE) -pP *.[ch]
+	$(CSTYLE) *.[ch]
 endif
 
 clean-progs clean-libraries:

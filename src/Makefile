@@ -31,8 +31,9 @@
 #
 # src/Makefile -- Makefile for NVML
 #
+TOP := $(dir $(lastword $(MAKEFILE_LIST)))/..
+include $(TOP)/src/common.inc
 
-CSTYLE = ../utils/cstyle
 TARGETS = libpmem libvmem libpmemblk libpmemlog libpmemobj libvmmalloc tools
 ALL_TARGETS = $(TARGETS) examples benchmarks
 CLEAN_TARGETS = $(ALL_TARGETS) test jemalloc
@@ -128,7 +129,7 @@ uninstall:
 	$(foreach f, $(HEADERS_INSTALL), $(RM) $(HEADERS_DESTDIR)/$(notdir $(f)))
 
 cstyle:
-	$(CSTYLE) -pP include/*.h
+	$(CSTYLE) include/*.h
 
 cscope:
 	cscope -q -b $(SCOPEFILES)

@@ -31,6 +31,9 @@
 # src/tools/Makefile.inc -- Makefile include for all tools
 #
 
+TOP := $(dir $(lastword $(MAKEFILE_LIST)))/../..
+include $(TOP)/src/common.inc
+
 INCS += -I. -I..
 INCS += -I../..
 INCS += -I../../include
@@ -45,12 +48,15 @@ CFLAGS += -fno-common
 CFLAGS += $(EXTRA_CFLAGS)
 CFLAGS += -O2 -D_FORTIFY_SOURCE=2
 CFLAGS += -DSRCVERSION='"$(SRCVERSION)"'
+ifeq ($(call check_flag, -Wunreachable-code-return), y)
+CFLAGS += -Wunreachable-code-return
+endif
+
 LDFLAGS += -Wl,-z,relro -Wl,--warn-common -Wl,--fatal-warnings $(EXTRA_LDFLAGS) -L../../nondebug
 TOOLSDIR=$(prefix)/bin
 TARGET_DIR=$(DESTDIR)$(TOOLSDIR)
 BASH_COMP_FILES ?=
 BASH_COMP_DIR =$(DESTDIR)/etc/bash_completion.d/
-CSTYLE=../../../utils/cstyle
 
 TARGET_STATIC_NONDEBUG=$(TARGET).static-nondebug
 TARGET_STATIC_DEBUG=$(TARGET).static-debug
@@ -101,7 +107,7 @@ clobber: clean
 	$(RM) -r .deps
 
 cstyle:
-	$(CSTYLE) -pP *.[ch]
+	$(CSTYLE) *.[ch]
 
 install: all
 ifneq ($(TARGET),)

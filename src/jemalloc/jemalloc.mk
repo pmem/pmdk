@@ -61,6 +61,7 @@ CFLAGS_FILTER += -Wmissing-prototypes
 CFLAGS_FILTER += -Wpointer-arith
 CFLAGS_FILTER += -Wunused-macros
 CFLAGS_FILTER += -Wmissing-field-initializers
+CFLAGS_FILTER += -Wunreachable-code-return
 JEMALLOC_CFLAGS=$(filter-out $(CFLAGS_FILTER), $(CFLAGS))
 JEMALLOC_REMOVE_LDFLAGS_TMP = -Wl,--warn-common
 JEMALLOC_LDFLAGS=$(filter-out $(JEMALLOC_REMOVE_LDFLAGS_TMP), $(LDFLAGS))

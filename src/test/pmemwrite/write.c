@@ -217,8 +217,8 @@ main(int argc, char *argv[])
 	case PMEM_POOL_TYPE_LOG:
 		return pmemwrite_log(&pwrite);
 	default:
-		return -1;
+		break;
 	}
 
-	return 0;
+	return -1;
 }

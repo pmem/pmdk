@@ -92,10 +92,8 @@ vmem_init(void)
 	if (initialized)
 		return;
 
-	if ((errno = pthread_mutex_lock(&lock))) {
+	if ((errno = pthread_mutex_lock(&lock)))
 		FATAL("!pthread_mutex_lock");
-		return;
-	}
 
 	if (!initialized) {
 		out_init(VMEM_LOG_PREFIX, VMEM_LOG_LEVEL_VAR,
