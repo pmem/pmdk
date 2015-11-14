@@ -248,7 +248,7 @@ static const struct option_requirement option_requirements[] = {
 		.type	= PMEM_POOL_TYPE_OBJ,
 		.req	= OPT_REQ0('O') | OPT_REQ1('o'),
 	},
-	{ 0,  0 }
+	{ 0,  0, 0}
 };
 
 /*

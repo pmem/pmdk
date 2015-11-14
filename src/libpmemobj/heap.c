@@ -1108,13 +1108,13 @@ heap_free_block(PMEMobjpool *pop, struct bucket *b,
 {
 	struct memory_block *blocks[3] = {NULL, &m, NULL};
 
-	struct memory_block prev = {0};
+	struct memory_block prev = {0, 0, 0, 0};
 	if (heap_get_adjacent_free_block(pop, &prev, m, 1) == 0 &&
 		bucket_get_rm_block_exact(b, prev) == 0) {
 		blocks[0] = &prev;
 	}
 
-	struct memory_block next = {0};
+	struct memory_block next = {0, 0, 0, 0};
 	if (heap_get_adjacent_free_block(pop, &next, m, 0) == 0 &&
 		bucket_get_rm_block_exact(b, next) == 0) {
 		blocks[2] = &next;
