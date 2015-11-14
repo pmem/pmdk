@@ -318,7 +318,7 @@ list_free(struct list *list)
 /*
  * pmempool_check_btt_ns_callback -- callbacks for btt API
  */
-struct ns_callback pmempool_check_btt_ns_callback = {
+static struct ns_callback pmempool_check_btt_ns_callback = {
 	.nsread = pmempool_check_nsread,
 	.nswrite = pmempool_check_nswrite,
 	.nsmap = pmempool_check_nsmap,
@@ -329,7 +329,7 @@ struct ns_callback pmempool_check_btt_ns_callback = {
 /*
  * pmempool_check_default -- default arguments for check command
  */
-const struct pmempool_check pmempool_check_default = {
+static const struct pmempool_check pmempool_check_default = {
 	.verbose	= 1,
 	.fname		= NULL,
 	.repair		= false,

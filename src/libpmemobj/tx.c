@@ -1881,7 +1881,7 @@ lane_transaction_boot(PMEMobjpool *pop)
 	return 0;
 }
 
-struct section_operations transaction_ops = {
+static struct section_operations transaction_ops = {
 	.construct = lane_transaction_construct,
 	.destruct = lane_transaction_destruct,
 	.recover = lane_transaction_recovery,

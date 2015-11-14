@@ -74,7 +74,7 @@
  */
 #define	MAX_UNITS_PCT_DRAINED_TOTAL 2 /* 200% */
 
-struct {
+static struct {
 	size_t unit_size;
 	int unit_max;
 } bucket_proto[MAX_BUCKETS];

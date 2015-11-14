@@ -53,7 +53,9 @@ struct pmemwrite
 	char *fname;	/* file name */
 	int nargs;	/* number of arguments */
 	char **args;	/* list of arguments */
-} pwrite = {
+};
+
+static struct pmemwrite pwrite = {
 	.fname = NULL,
 	.nargs = 0,
 	.args = NULL,

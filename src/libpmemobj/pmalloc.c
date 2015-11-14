@@ -533,7 +533,7 @@ lane_allocator_boot(PMEMobjpool *pop)
 	return heap_boot(pop);
 }
 
-struct section_operations allocator_ops = {
+static struct section_operations allocator_ops = {
 	.construct = lane_allocator_construct,
 	.destruct = lane_allocator_destruct,
 	.recover = lane_allocator_recovery,

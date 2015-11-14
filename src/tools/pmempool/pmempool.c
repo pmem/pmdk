@@ -108,7 +108,7 @@ help_func(char *appname, int argc, char *argv[])
 /*
  * commands -- definition of all pmempool commands
  */
-struct command commands[] = {
+static struct command commands[] = {
 	{
 		.name = "info",
 		.brief = "print information and statistics about a pool",

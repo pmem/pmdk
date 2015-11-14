@@ -74,7 +74,7 @@ struct pmempool_create {
 /*
  * pmempool_create_default -- default args for create command
  */
-const struct pmempool_create pmempool_create_default = {
+static const struct pmempool_create pmempool_create_default = {
 	.verbose	= 0,
 	.fname		= NULL,
 	.fexists	= 0,

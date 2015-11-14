@@ -54,6 +54,9 @@ CFLAGS += $(EXTRA_CFLAGS)
 ifeq ($(call check_flag, -Wunreachable-code-return), y)
 CFLAGS += -Wunreachable-code-return
 endif
+ifeq ($(call check_flag, -Wmissing-variable-declarations), y)
+CFLAGS += -Wmissing-variable-declarations
+endif
 
 ifneq ($(USE_LIBUNWIND),)
 CFLAGS += $(shell pkg-config --cflags libunwind) -DUSE_LIBUNWIND

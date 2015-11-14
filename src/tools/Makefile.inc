@@ -51,6 +51,9 @@ CFLAGS += -DSRCVERSION='"$(SRCVERSION)"'
 ifeq ($(call check_flag, -Wunreachable-code-return), y)
 CFLAGS += -Wunreachable-code-return
 endif
+ifeq ($(call check_flag, -Wmissing-variable-declarations), y)
+CFLAGS += -Wmissing-variable-declarations
+endif
 
 LDFLAGS += -Wl,-z,relro -Wl,--warn-common -Wl,--fatal-warnings $(EXTRA_LDFLAGS) -L../../nondebug
 TOOLSDIR=$(prefix)/bin
