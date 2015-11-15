@@ -108,7 +108,6 @@ for ((entry) = PLIST_OFF_TO_PTR(pop, (head)->pe_first.off);\
  * pmem_pool_type_t -- pool types
  */
 typedef enum {
-	PMEM_POOL_TYPE_NONE	= 0x00,
 	PMEM_POOL_TYPE_LOG	= 0x01,
 	PMEM_POOL_TYPE_BLK	= 0x02,
 	PMEM_POOL_TYPE_OBJ	= 0x04,

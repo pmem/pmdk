@@ -2287,50 +2287,44 @@ pmempool_check_func(char *appname, int argc, char *argv[])
 	out_set_vlevel(pc.verbose);
 
 	if (pmem_pool_parse_params(pc.fname, &pc.params, 0)) {
-		perror(pc.fname);
+		if (errno)
+			perror(pc.fname);
+		else
+			outv_err("%s: cannot determine type of pool\n",
+				pc.fname);
 		return -1;
 	}
 
-	/*
-	 * The PMEM_POOL_TYPE_NONE means no such file or
-	 * cannot read file so it doesn't make any sense
-	 * to call pmem*_check().
-	 */
-	if (pc.params.type == PMEM_POOL_TYPE_NONE) {
-		warn("%s", pc.fname);
-		ret = -1;
-	} else {
-		int rdonly = !(pc.repair && pc.exec);
-		pc.pfile = pool_set_file_open(pc.fname, rdonly, 0);
-		if (!pc.pfile) {
-			perror(pc.fname);
-			return -1;
-		}
-		res = pmempool_check_all_steps(&pc);
+	int rdonly = !(pc.repair && pc.exec);
+	pc.pfile = pool_set_file_open(pc.fname, rdonly, 0);
+	if (!pc.pfile) {
+		perror(pc.fname);
+		return -1;
+	}
+	res = pmempool_check_all_steps(&pc);
 
-		pool_set_file_close(pc.pfile);
-		switch (res) {
-		case CHECK_RESULT_CONSISTENT:
-			outv(2, "%s: consistent\n", pc.fname);
-			ret = 0;
-			break;
-		case CHECK_RESULT_NOT_CONSISTENT:
-			outv(1, "%s: not consistent\n", pc.fname);
-			ret = -1;
-			break;
-		case CHECK_RESULT_REPAIRED:
-			outv(1, "%s: repaired\n", pc.fname);
-			ret = 0;
-			break;
-		case CHECK_RESULT_CANNOT_REPAIR:
-			outv(1, "%s: cannot repair\n", pc.fname);
-			ret = -1;
-			break;
-		case CHECK_RESULT_ERROR:
-			outv_err("repairing failed\n");
-			ret = -1;
-			break;
-		}
+	pool_set_file_close(pc.pfile);
+	switch (res) {
+	case CHECK_RESULT_CONSISTENT:
+		outv(2, "%s: consistent\n", pc.fname);
+		ret = 0;
+		break;
+	case CHECK_RESULT_NOT_CONSISTENT:
+		outv(1, "%s: not consistent\n", pc.fname);
+		ret = -1;
+		break;
+	case CHECK_RESULT_REPAIRED:
+		outv(1, "%s: repaired\n", pc.fname);
+		ret = 0;
+		break;
+	case CHECK_RESULT_CANNOT_REPAIR:
+		outv(1, "%s: cannot repair\n", pc.fname);
+		ret = -1;
+		break;
+	case CHECK_RESULT_ERROR:
+		outv_err("repairing failed\n");
+		ret = -1;
+		break;
 	}
 
 	pmempool_check_clear_arenas(&pc);
