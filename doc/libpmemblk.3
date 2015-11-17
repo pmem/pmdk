@@ -186,6 +186,13 @@ provided is non-zero,
 .BR pmemblk_open ()
 will verify the given block size matches the block size used when
 the pool was created.
+Otherwise,
+.BR pmemblk_open ()
+will open the pool without verification of the block size. The
+.I bsize
+can be determined using the
+.BR pmemblk_bsize ()
+function.
 If an error prevents the pool from being opened,
 .BR pmemblk_open ()
 returns NULL and sets errno appropriately.  A block size mismatch with the
