@@ -86,7 +86,7 @@ const struct pmempool_create pmempool_create_default = {
 	.blk_layout	= UINT64_MAX,
 	.layout		= NULL,
 	.params		= {
-		.type	= PMEM_POOL_TYPE_NONE,
+		.type	= PMEM_POOL_TYPE_UNKNOWN,
 		.size	= 0,
 		.mode	= DEFAULT_MODE,
 	}
@@ -411,13 +411,15 @@ pmempool_create_func(char *appname, int argc, char *argv[])
 		 */
 		outv(1, "Parsing '%s' file:\n", pc.inherit_fname);
 		if (pmem_pool_parse_params(pc.inherit_fname, &pc.params, 1)) {
-			perror(pc.inherit_fname);
+			if (errno)
+				perror(pc.inherit_fname);
+			else
+				outv_err("%s: cannot determine type of pool\n",
+					pc.inherit_fname);
 			return -1;
 		}
 
-		if (PMEM_POOL_TYPE_NONE == pc.params.type) {
-			err(1, "%s", pc.inherit_fname);
-		} else if (PMEM_POOL_TYPE_UNKNOWN == pc.params.type) {
+		if (PMEM_POOL_TYPE_UNKNOWN == pc.params.type) {
 			outv_err("'%s' -- unknown pool type\n",
 					pc.inherit_fname);
 			return -1;

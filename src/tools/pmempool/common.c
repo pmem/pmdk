@@ -629,7 +629,7 @@ pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp,
 		int check)
 {
 	struct stat stat_buf;
-	paramsp->type = PMEM_POOL_TYPE_NONE;
+	paramsp->type = PMEM_POOL_TYPE_UNKNOWN;
 
 	paramsp->is_poolset = pmem_pool_check_pool_set(fname) == 0;
 	int fd = util_file_open(fname, NULL, 0, O_RDONLY);
@@ -637,14 +637,15 @@ pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp,
 		return -1;
 
 	int ret = 0;
+
 	/* get file size and mode */
-	if (fstat(fd, &stat_buf) == 0) {
-		paramsp->size = stat_buf.st_size;
-		paramsp->mode = stat_buf.st_mode;
-	} else {
+	if (fstat(fd, &stat_buf)) {
 		ret = -1;
 		goto out_close;
 	}
+
+	paramsp->size = stat_buf.st_size;
+	paramsp->mode = stat_buf.st_mode;
 
 	void *addr = NULL;
 	struct pool_set *set = NULL;

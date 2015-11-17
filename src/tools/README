@@ -10,6 +10,7 @@ This file contains the high-level description of pmempool utility.
 	   2.2. check
 	   2.3. create
 	   2.4. dump
+	   2.5. rm
 	3. Source code
 	4. Packaging
 	5. Versioning
@@ -42,6 +43,9 @@ Currently there is a following set of commands available:
 	* dump		- Dumps usable data from pool in hexadecimal or binary
 			  format.
 
+	* rm		- Removes pool file or all pool files listed in poolset
+			  configuration file.
+
 This file contains high-level description of available commands and their
 features. For details about usage and available command line arguments please
 refer to specific manual pages. There is one common manual page with description
@@ -51,6 +55,7 @@ in detail:
 	pmempool-check(1)
 	pmempool-create(1)
 	pmempool-dump(1)
+	pmempool-rm(1)
 
 Subsequent sections contain detailed description of each command, information
 about the source code, packaging and versioning scheme.
@@ -216,6 +221,21 @@ Below is the description of available features:
 
  * In case of pmem log pool type it is possible to set size of chunk and range
    of chunks to dump in either absolute or relative manner.
+
+2.5. rm
+-------
+
+The pmempool *rm* command is a simple helper utility which removes pool files
+created using either NVML libraries or pmempool *create* command.
+
+ * The main feature is to parse the poolset configuration file and remove all
+   listed pool files.
+
+ * It is possible to run the pmempool *rm* command in interactive mode, where
+   before removing each file the user must confirm the removal operation.
+
+ * The command line interface is similar to interface provided by standard,
+   system *rm* command.
 
 3. Source code
 --------------

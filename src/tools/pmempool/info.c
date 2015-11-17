@@ -41,6 +41,7 @@
 #include <getopt.h>
 #include <stdbool.h>
 #include <err.h>
+#include <errno.h>
 #include <inttypes.h>
 #include <assert.h>
 #include <sys/param.h>
@@ -83,7 +84,7 @@ static const struct pmempool_info_args pmempool_info_args_default = {
 	.col_width	= 24,
 	.human		= false,
 	.force		= false,
-	.type		= PMEM_POOL_TYPE_NONE,
+	.type		= PMEM_POOL_TYPE_UNKNOWN,
 	.vlevel		= VERBOSE_DEFAULT,
 	.vdata		= VERBOSE_SILENT,
 	.vhdrdump	= VERBOSE_SILENT,
@@ -657,7 +658,10 @@ pmempool_info_file(struct pmem_info *pip, const char *file_name)
 		pip->type = pip->args.type;
 	} else {
 		if (pmem_pool_parse_params(file_name, &pip->params, 1)) {
-			outv_err("%s: cannot determine type of pool\n",
+			if (errno)
+				perror(file_name);
+			else
+				outv_err("%s: cannot determine type of pool\n",
 					file_name);
 			return -1;
 		}
@@ -665,10 +669,7 @@ pmempool_info_file(struct pmem_info *pip, const char *file_name)
 		pip->type = pip->params.type;
 	}
 
-	if (PMEM_POOL_TYPE_NONE == pip->type) {
-		ret = -1;
-		outv_err("%s: cannot determine type of pool\n", file_name);
-	} else if (PMEM_POOL_TYPE_UNKNOWN == pip->type) {
+	if (PMEM_POOL_TYPE_UNKNOWN == pip->type) {
 		ret = -1;
 		outv_err("%s: unknown pool type -- '%s'\n", file_name,
 				pip->params.signature);
