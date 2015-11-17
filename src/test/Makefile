@@ -38,9 +38,7 @@
 
 TEST_DEPS = \
        unittest\
-       pmemspoil\
-       pmemwrite\
-       pmemalloc
+       tools
 
 BLK_TESTS = \
        blk_nblock\

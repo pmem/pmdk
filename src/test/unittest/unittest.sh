@@ -668,11 +668,12 @@ function pass() {
 	rm --one-file-system -rf -- $DIR
 }
 
+TOOLS=../tools
 # Paths to some useful tools
 [ -n "$PMEMPOOL" ] || PMEMPOOL=../../tools/pmempool/pmempool
-[ -n "$PMEMSPOIL" ] || PMEMSPOIL=../pmemspoil/pmemspoil.static-nondebug
-[ -n "$PMEMWRITE" ] || PMEMWRITE=../pmemwrite/pmemwrite
-[ -n "$PMEMALLOC" ] || PMEMALLOC=../pmemalloc/pmemalloc
+[ -n "$PMEMSPOIL" ] || PMEMSPOIL=$TOOLS/pmemspoil/pmemspoil.static-nondebug
+[ -n "$PMEMWRITE" ] || PMEMWRITE=$TOOLS/pmemwrite/pmemwrite
+[ -n "$PMEMALLOC" ] || PMEMALLOC=$TOOLS/pmemalloc/pmemalloc
 
 # Length of pool file's signature
 SIG_LEN=8

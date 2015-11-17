@@ -1,6 +1,6 @@
 Linux NVM Library
 
-This is src/test/pmemalloc/README.
+This is src/test/tools/pmemalloc/README.
 
 This directory contains a simple application for allocating objects
 from pmemobj pool.

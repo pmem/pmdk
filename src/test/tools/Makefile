@@ -1,4 +1,5 @@
-# Copyright (c) 2014-2015, Intel Corporation
+#
+# Copyright (c) 2015, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -28,26 +29,26 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# Makefile -- Makefile for pmemwrite tool
+
+#
+# src/test/tools/Makefile -- build unit test helpers
 #
 
-vpath %.c ../../
-vpath %.c ../../tools/pmempool
-vpath %.c ../../common
-CSTYLE = ../../../utils/cstyle
+DIRS = \
+       pmemspoil\
+       pmemwrite\
+       pmemalloc
 
-TARGET = pmemwrite
+all     : TARGET = all
+clean   : TARGET = clean
+clobber : TARGET = clobber
+cstyle  : TARGET = cstyle
 
-OBJS = common.o output.o util.o set.o write.o
+all cstyle clean clobber: $(DIRS)
 
-LIBPMEM=y
-LIBPMEMBLK=y
-LIBPMEMLOG=y
+$(DIRS):
+	$(MAKE) -C $@ $(TARGET)
 
-CFLAGS += -I../../tools/pmempool
-CFLAGS += -I../../common
-CFLAGS += -I../../libpmemlog
-CFLAGS += -I../../libpmemblk
-CFLAGS += -I../../libpmemobj
+test check pcheck:
 
-include ../../tools/Makefile.inc
+.PHONY: all clean clobber cstyle check pcheck $(DIRS)
