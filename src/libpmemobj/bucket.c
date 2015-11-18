@@ -217,7 +217,7 @@ bucket_calc_units(struct bucket *b, size_t size)
 /*
  * bucket_insert_block -- inserts a new memory block into the container
  */
-int
+void
 bucket_insert_block(PMEMobjpool *pop, struct bucket *b, struct memory_block m)
 {
 	ASSERT(m.chunk_id < MAX_CHUNK);
@@ -235,7 +235,11 @@ bucket_insert_block(PMEMobjpool *pop, struct bucket *b, struct memory_block m)
 	uint64_t key = CHUNK_KEY_PACK(m.zone_id, m.chunk_id, m.block_off,
 				m.size_idx);
 
-	return ctree_insert(b->tree, key, 0);
+	int ret = ctree_insert(b->tree, key, 0);
+	if (ret != 0) {
+		ERR("Failed to create volatile state of memory block");
+		ASSERT(0);
+	}
 }
 
 /*

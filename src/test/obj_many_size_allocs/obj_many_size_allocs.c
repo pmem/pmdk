@@ -42,6 +42,9 @@
 #define	LAYOUT_NAME "many_size_allocs"
 #define	TEST_ALLOC_SIZE 2048
 
+#define	LAZY_LOAD_SIZE 10
+#define	LAZY_LOAD_BIG_SIZE 150
+
 struct cargs {
 	size_t size;
 };
@@ -84,6 +87,28 @@ test_allocs(PMEMobjpool *pop, const char *path)
 	pmemobj_close(pop);
 }
 
+static void
+test_lazy_load(PMEMobjpool *pop, const char *path)
+{
+	PMEMoid oid[3];
+
+	int ret = pmemobj_alloc(pop, &oid[0], LAZY_LOAD_SIZE, 0, NULL, NULL);
+	ASSERTeq(ret, 0);
+	ret = pmemobj_alloc(pop, &oid[1], LAZY_LOAD_SIZE, 0, NULL, NULL);
+	ASSERTeq(ret, 0);
+	ret = pmemobj_alloc(pop, &oid[2], LAZY_LOAD_SIZE, 0, NULL, NULL);
+	ASSERTeq(ret, 0);
+
+	pmemobj_close(pop);
+	ASSERT((pop = pmemobj_open(path, LAYOUT_NAME)) != NULL);
+
+	pmemobj_free(&oid[1]);
+
+	ret = pmemobj_alloc(pop, &oid[1], LAZY_LOAD_BIG_SIZE, 0, NULL, NULL);
+	ASSERTeq(ret, 0);
+}
+
+
 int
 main(int argc, char *argv[])
 {
@@ -100,6 +125,7 @@ main(int argc, char *argv[])
 			0, S_IWUSR | S_IRUSR)) == NULL)
 		FATAL("!pmemobj_create: %s", path);
 
+	test_lazy_load(pop, path);
 	test_allocs(pop, path);
 
 	DONE(NULL);
