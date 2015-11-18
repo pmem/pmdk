@@ -36,11 +36,13 @@
 
 #include <assert.h>
 #include <errno.h>
-#include "tree_map.h"
+#include <stdlib.h>
+
+#include "ctree_map.h"
 
 #define	BIT_IS_SET(n, i) (!!((n) & (1L << (i))))
 
-TOID_DECLARE(struct tree_map_node, TREE_MAP_TYPE_OFFSET + 1);
+TOID_DECLARE(struct tree_map_node, CTREE_MAP_TYPE_OFFSET + 1);
 
 struct tree_map_entry {
 	uint64_t key;
@@ -52,7 +54,7 @@ struct tree_map_node {
 	struct tree_map_entry entries[2];
 };
 
-struct tree_map {
+struct ctree_map {
 	struct tree_map_entry root;
 };
 
@@ -66,15 +68,16 @@ find_crit_bit(uint64_t lhs, uint64_t rhs)
 }
 
 /*
- * tree_map_new -- allocates a new crit-bit tree instance
+ * ctree_map_new -- allocates a new crit-bit tree instance
  */
 int
-tree_map_new(PMEMobjpool *pop, TOID(struct tree_map) *map)
+ctree_map_new(PMEMobjpool *pop, TOID(struct ctree_map) *map, void *arg)
 {
 	int ret = 0;
+
 	TX_BEGIN(pop) {
 		pmemobj_tx_add_range_direct(map, sizeof (*map));
-		*map = TX_ZNEW(struct tree_map);
+		*map = TX_ZNEW(struct ctree_map);
 	} TX_ONABORT {
 		ret = 1;
 	} TX_END
@@ -83,29 +86,62 @@ tree_map_new(PMEMobjpool *pop, TOID(struct tree_map) *map)
 }
 
 /*
- * tree_map_delete -- cleanups and frees crit-bit tree instance
- */
-int
-tree_map_delete(PMEMobjpool *pop, TOID(struct tree_map) *map)
-{
-	int ret = 0;
-	TX_BEGIN(pop) {
-		tree_map_clear(pop, *map);
-		pmemobj_tx_add_range_direct(map, sizeof (*map));
-		TX_FREE(*map);
-		*map = TOID_NULL(struct tree_map);
-	} TX_ONABORT {
-		ret = 1;
-	} TX_END
-
-	return ret;
-}
-
-/*
- * tree_map_insert_leaf -- (internal) inserts a new leaf at the position
+ * ctree_map_clear_node -- (internal) clears this node and its children
  */
 static void
-tree_map_insert_leaf(struct tree_map_entry *p,
+ctree_map_clear_node(PMEMoid p)
+{
+	if (OID_INSTANCEOF(p, struct tree_map_node)) {
+		TOID(struct tree_map_node) node;
+		TOID_ASSIGN(node, p);
+
+		ctree_map_clear_node(D_RW(node)->entries[0].slot);
+		ctree_map_clear_node(D_RW(node)->entries[1].slot);
+	}
+
+	pmemobj_tx_free(p);
+}
+
+
+/*
+ * ctree_map_clear -- removes all elements from the map
+ */
+int
+ctree_map_clear(PMEMobjpool *pop, TOID(struct ctree_map) map)
+{
+	TX_BEGIN(pop) {
+		ctree_map_clear_node(D_RW(map)->root.slot);
+		TX_ADD_FIELD(map, root);
+		D_RW(map)->root.slot = OID_NULL;
+	} TX_END
+
+	return 0;
+}
+
+/*
+ * ctree_map_delete -- cleanups and frees crit-bit tree instance
+ */
+int
+ctree_map_delete(PMEMobjpool *pop, TOID(struct ctree_map) *map)
+{
+	int ret = 0;
+	TX_BEGIN(pop) {
+		ctree_map_clear(pop, *map);
+		pmemobj_tx_add_range_direct(map, sizeof (*map));
+		TX_FREE(*map);
+		*map = TOID_NULL(struct ctree_map);
+	} TX_ONABORT {
+		ret = 1;
+	} TX_END
+
+	return ret;
+}
+
+/*
+ * ctree_map_insert_leaf -- (internal) inserts a new leaf at the position
+ */
+static void
+ctree_map_insert_leaf(struct tree_map_entry *p,
 	struct tree_map_entry e, int diff)
 {
 	TOID(struct tree_map_node) new_node = TX_NEW(struct tree_map_node);
@@ -137,11 +173,34 @@ tree_map_insert_leaf(struct tree_map_entry *p,
 }
 
 /*
- * tree_map_insert -- inserts a new key-value pair into the map
+ * ctree_map_insert_new -- allocates a new object and inserts it into the tree
  */
 int
-tree_map_insert(PMEMobjpool *pop,
-	TOID(struct tree_map) map, uint64_t key, PMEMoid value)
+ctree_map_insert_new(PMEMobjpool *pop, TOID(struct ctree_map) map,
+		uint64_t key, size_t size, unsigned int type_num,
+		void (*constructor)(PMEMobjpool *pop, void *ptr, void *arg),
+		void *arg)
+{
+	int ret = 0;
+
+	TX_BEGIN(pop) {
+		PMEMoid n = pmemobj_tx_alloc(size, type_num);
+		constructor(pop, pmemobj_direct(n), arg);
+		ctree_map_insert(pop, map, key, n);
+	} TX_ONABORT {
+		ret = 1;
+	} TX_END
+
+	return ret;
+}
+
+
+/*
+ * ctree_map_insert -- inserts a new key-value pair into the map
+ */
+int
+ctree_map_insert(PMEMobjpool *pop, TOID(struct ctree_map) map,
+	uint64_t key, PMEMoid value)
 {
 	struct tree_map_entry *p = &D_RW(map)->root;
 	int ret = 0;
@@ -159,7 +218,7 @@ tree_map_insert(PMEMobjpool *pop,
 			pmemobj_tx_add_range_direct(p, sizeof (*p));
 			*p = e;
 		} else {
-			tree_map_insert_leaf(&D_RW(map)->root, e,
+			ctree_map_insert_leaf(&D_RW(map)->root, e,
 					find_crit_bit(p->key, key));
 		}
 	} TX_ONABORT {
@@ -170,11 +229,11 @@ tree_map_insert(PMEMobjpool *pop,
 }
 
 /*
- * tree_map_get_leaf -- (internal) searches for a leaf of the key
+ * ctree_map_get_leaf -- (internal) searches for a leaf of the key
  */
-struct tree_map_entry *
-tree_map_get_leaf(TOID(struct tree_map) map,
-	uint64_t key, struct tree_map_entry **parent)
+static struct tree_map_entry *
+ctree_map_get_leaf(TOID(struct ctree_map) map, uint64_t key,
+	struct tree_map_entry **parent)
 {
 	struct tree_map_entry *n = &D_RW(map)->root;
 	struct tree_map_entry *p = NULL;
@@ -198,13 +257,32 @@ tree_map_get_leaf(TOID(struct tree_map) map,
 }
 
 /*
- * tree_map_remove -- removes key-value pair from the map
+ * ctree_map_remove_free -- removes and frees an object from the tree
+ */
+int
+ctree_map_remove_free(PMEMobjpool *pop, TOID(struct ctree_map) map,
+		uint64_t key)
+{
+	int ret = 0;
+
+	TX_BEGIN(pop) {
+		PMEMoid val = ctree_map_remove(pop, map, key);
+		pmemobj_free(&val);
+	} TX_ONABORT {
+		ret = 1;
+	} TX_END
+
+	return ret;
+}
+
+/*
+ * ctree_map_remove -- removes key-value pair from the map
  */
 PMEMoid
-tree_map_remove(PMEMobjpool *pop, TOID(struct tree_map) map, uint64_t key)
+ctree_map_remove(PMEMobjpool *pop, TOID(struct ctree_map) map, uint64_t key)
 {
 	struct tree_map_entry *parent = NULL;
-	struct tree_map_entry *leaf = tree_map_get_leaf(map, key, &parent);
+	struct tree_map_entry *leaf = ctree_map_get_leaf(map, key, &parent);
 	if (leaf == NULL)
 		return OID_NULL;
 
@@ -241,53 +319,31 @@ tree_map_remove(PMEMobjpool *pop, TOID(struct tree_map) map, uint64_t key)
 }
 
 /*
- * tree_map_clear_node -- (internal) clears this node and its children
- */
-static void
-tree_map_clear_node(PMEMoid p)
-{
-	if (OID_INSTANCEOF(p, struct tree_map_node)) {
-		TOID(struct tree_map_node) node;
-		TOID_ASSIGN(node, p);
-
-		tree_map_clear_node(D_RW(node)->entries[0].slot);
-		tree_map_clear_node(D_RW(node)->entries[1].slot);
-	}
-
-	pmemobj_tx_free(p);
-}
-
-/*
- * tree_map_clear -- removes all elements from the map
- */
-int
-tree_map_clear(PMEMobjpool *pop,
-	TOID(struct tree_map) map)
-{
-	TX_BEGIN(pop) {
-		tree_map_clear_node(D_RW(map)->root.slot);
-		TX_ADD_FIELD(map, root);
-		D_RW(map)->root.slot = OID_NULL;
-	} TX_END
-
-	return 0;
-}
-
-/*
- * tree_map_get -- searches for a value of the key
+ * ctree_map_get -- searches for a value of the key
  */
 PMEMoid
-tree_map_get(TOID(struct tree_map) map, uint64_t key)
+ctree_map_get(PMEMobjpool *pop, TOID(struct ctree_map) map, uint64_t key)
 {
-	struct tree_map_entry *entry = tree_map_get_leaf(map, key, NULL);
+	struct tree_map_entry *entry = ctree_map_get_leaf(map, key, NULL);
 	return entry ? entry->slot : OID_NULL;
 }
 
 /*
- * tree_map_foreach_node -- (internal) recursively traverses tree
+ * ctree_map_lookup -- searches if a key exists
+ */
+int
+ctree_map_lookup(PMEMobjpool *pop, TOID(struct ctree_map) map,
+		uint64_t key)
+{
+	struct tree_map_entry *entry = ctree_map_get_leaf(map, key, NULL);
+	return entry != NULL;
+}
+
+/*
+ * ctree_map_foreach_node -- (internal) recursively traverses tree
  */
 static int
-tree_map_foreach_node(struct tree_map_entry e,
+ctree_map_foreach_node(struct tree_map_entry e,
 	int (*cb)(uint64_t key, PMEMoid value, void *arg), void *arg)
 {
 	int ret = 0;
@@ -296,8 +352,9 @@ tree_map_foreach_node(struct tree_map_entry e,
 		TOID(struct tree_map_node) node;
 		TOID_ASSIGN(node, e.slot);
 
-		if (tree_map_foreach_node(D_RO(node)->entries[0], cb, arg) == 0)
-			tree_map_foreach_node(D_RO(node)->entries[1], cb, arg);
+		if (ctree_map_foreach_node(D_RO(node)->entries[0],
+					cb, arg) == 0)
+			ctree_map_foreach_node(D_RO(node)->entries[1], cb, arg);
 	} else { /* leaf */
 		ret = cb(e.key, e.slot, arg);
 	}
@@ -306,23 +363,32 @@ tree_map_foreach_node(struct tree_map_entry e,
 }
 
 /*
- * tree_map_foreach -- initiates recursive traversal
+ * ctree_map_foreach -- initiates recursive traversal
  */
 int
-tree_map_foreach(TOID(struct tree_map) map,
+ctree_map_foreach(PMEMobjpool *pop, TOID(struct ctree_map) map,
 	int (*cb)(uint64_t key, PMEMoid value, void *arg), void *arg)
 {
 	if (OID_IS_NULL(D_RO(map)->root.slot))
 		return 0;
 
-	return tree_map_foreach_node(D_RO(map)->root, cb, arg);
+	return ctree_map_foreach_node(D_RO(map)->root, cb, arg);
 }
 
 /*
- * tree_map_is_empty -- checks whether the tree map is empty
+ * ctree_map_is_empty -- checks whether the tree map is empty
  */
 int
-tree_map_is_empty(TOID(struct tree_map) map)
+ctree_map_is_empty(PMEMobjpool *pop, TOID(struct ctree_map) map)
 {
 	return D_RO(map)->root.key == 0;
+}
+
+/*
+ * ctree_map_check -- check if given persistent object is a tree map
+ */
+int
+ctree_map_check(PMEMobjpool *pop, TOID(struct ctree_map) map)
+{
+	return !TOID_VALID(map);
 }

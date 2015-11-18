@@ -212,7 +212,7 @@ static struct benchmark_clo pmembench_clos[] = {
 	},
 	{
 		.opt_short	= 'm',
-		.opt_long	= "mode",
+		.opt_long	= "fmode",
 		.type		= CLO_TYPE_UINT,
 		.descr		= "File mode",
 		.off		= clo_field_offset(struct benchmark_args,
@@ -467,11 +467,9 @@ pmembench_init_workers(struct benchmark_worker **workers, size_t nworkers,
 		workers[i]->bench = bench;
 		workers[i]->args = args;
 		workers[i]->func = pmembench_run_worker;
-		if (bench->info->init_worker) {
-			if (bench->info->init_worker(bench, args,
-						&workers[i]->info) != 0)
-				return -1;
-		}
+		workers[i]->init = bench->info->init_worker;
+		workers[i]->exit = bench->info->free_worker;
+		benchmark_worker_init(workers[i]);
 	}
 	return 0;
 }
@@ -788,8 +786,8 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 		pmembench_print_help_single(bench);
 		goto out;
 	}
-	if (clovec->nargs > 1)
-		pmembench_print_header(pb, bench, clovec);
+
+	pmembench_print_header(pb, bench, clovec);
 
 	size_t args_i;
 	for (args_i = 0; args_i < clovec->nargs; args_i++) {
@@ -850,9 +848,7 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 			pmembench_print_results(bench, args, diff, &latency);
 		}
 		for (i = 0; i < args->n_threads; i++) {
-			if (bench->info->free_worker)
-				bench->info->free_worker(bench, args,
-						&workers[i]->info);
+			benchmark_worker_exit(workers[i]);
 
 			free(workers[i]->info.opinfo);
 			benchmark_worker_free(workers[i]);

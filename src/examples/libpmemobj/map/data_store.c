@@ -41,7 +41,12 @@
 #include <unistd.h>
 #include <time.h>
 #include <assert.h>
-#include "tree_map.h"
+#include "map.h"
+#include "map_ctree.h"
+#include "map_btree.h"
+#include "map_rbtree.h"
+#include "map_hashmap_atomic.h"
+#include "map_hashmap_tx.h"
 
 POBJ_LAYOUT_BEGIN(data_store);
 POBJ_LAYOUT_ROOT(data_store, struct store_root);
@@ -58,7 +63,7 @@ struct store_item {
 };
 
 struct store_root {
-	TOID(struct tree_map) map;
+	TOID(struct map) map;
 };
 
 /*
@@ -94,19 +99,46 @@ dec_keys(uint64_t key, PMEMoid value, void *arg)
 	return 0;
 }
 
-int
-main(int argc, const char *argv[])
+/*
+ * parse_map_type -- parse type of map
+ */
+static const struct map_ops *
+parse_map_type(const char *type)
 {
-	if (argc < 2) {
-		printf("usage: %s file-name [nops]\n", argv[0]);
+	if (strcmp(type, "ctree") == 0)
+		return MAP_CTREE;
+	else if (strcmp(type, "btree") == 0)
+		return MAP_BTREE;
+	else if (strcmp(type, "rbtree") == 0)
+		return MAP_RBTREE;
+	else if (strcmp(type, "hashmap_atomic") == 0)
+		return MAP_HASHMAP_ATOMIC;
+	else if (strcmp(type, "hashmap_tx") == 0)
+		return MAP_HASHMAP_TX;
+	return NULL;
+
+}
+
+int main(int argc, const char *argv[]) {
+	if (argc < 3) {
+		printf("usage: %s "
+			"<ctree|btree|rbtree|hashmap_atomic|hashmap_tx>"
+			" file-name [nops]\n", argv[0]);
 		return 1;
 	}
 
-	const char *path = argv[1];
+	const char *type = argv[1];
+	const char *path = argv[2];
+	const struct map_ops *map_ops = parse_map_type(type);
+	if (!map_ops) {
+		fprintf(stderr, "invalid map type -- '%s'\n", type);
+		return 1;
+	}
+
 	int nops = MAX_INSERTS;
 
-	if (argc > 2) {
-		nops = atoi(argv[2]);
+	if (argc > 3) {
+		nops = atoi(argv[3]);
 		if (nops <= 0 || nops > MAX_INSERTS) {
 			fprintf(stderr, "number of operations must be "
 				"in range 1..%u\n", MAX_INSERTS);
@@ -132,27 +164,36 @@ main(int argc, const char *argv[])
 	}
 
 	TOID(struct store_root) root = POBJ_ROOT(pop, struct store_root);
-	if (!TOID_IS_NULL(D_RO(root)->map)) /* delete the map if it exists */
-		tree_map_delete(pop, &D_RW(root)->map);
+
+	struct map_ctx *mapc = map_ctx_init(map_ops, pop);
+	if (!mapc) {
+		perror("cannot allocate map context\n");
+		return 1;
+	}
+	/* delete the map if it exists */
+	if (!map_check(mapc, D_RW(root)->map))
+		map_delete(mapc, &D_RW(root)->map);
 
 	/* insert random items in a transaction */
 	TX_BEGIN(pop) {
-		tree_map_new(pop, &D_RW(root)->map);
+		map_new(mapc, &D_RW(root)->map, NULL);
 
 		for (int i = 0; i < nops; ++i) {
 			/* new_store_item is transactional! */
-			tree_map_insert(pop, D_RO(root)->map, rand(),
-				new_store_item().oid);
+			map_insert(mapc, D_RW(root)->map, rand(),
+					new_store_item().oid);
 		}
-
+	} TX_ONABORT {
+		perror("transaction aborted\n");
+		return -1;
 	} TX_END
 
 	/* count the items */
-	tree_map_foreach(D_RO(root)->map, get_keys, NULL);
+	map_foreach(mapc, D_RW(root)->map, get_keys, NULL);
 
 	/* remove the items without outer transaction */
 	for (int i = 0; i < nkeys; ++i) {
-		PMEMoid item = tree_map_remove(pop, D_RO(root)->map, keys[i]);
+		PMEMoid item = map_remove(mapc, D_RW(root)->map, keys[i]);
 
 		assert(!OID_IS_NULL(item));
 		assert(OID_INSTANCEOF(item, struct store_item));
@@ -161,7 +202,7 @@ main(int argc, const char *argv[])
 	uint64_t old_nkeys = nkeys;
 
 	/* tree should be empty */
-	tree_map_foreach(D_RO(root)->map, dec_keys, NULL);
+	map_foreach(mapc, D_RW(root)->map, dec_keys, NULL);
 	assert(old_nkeys == nkeys);
 
 	pmemobj_close(pop);

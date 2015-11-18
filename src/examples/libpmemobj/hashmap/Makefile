@@ -1,4 +1,3 @@
-#!/bin/bash -e
 #
 # Copyright (c) 2015, Intel Corporation
 #
@@ -31,23 +30,11 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-#
-# src/test/ex_libpmemobj/TEST6 -- unit test for libpmemobj examples
-#
-export UNITTEST_NAME=ex_libpmemobj/TEST6
-export UNITTEST_NUM=6
+LIBRARIES = hashmap_atomic hashmap_tx
 
-# standard unit test setup
-. ../unittest/unittest.sh
+LIBS = -lpmemobj -lpmem -pthread
 
-require_build_type debug nondebug
+include ../../Makefile.inc
 
-setup
-
-EX_PATH=../../examples/libpmemobj/map
-
-expect_normal_exit $EX_PATH/data_store rbtree $DIR/testfile1 5 > out$UNITTEST_NUM.log 2>&1
-
-check
-
-pass
+libhashmap_atomic.o: hashmap_atomic.o
+libhashmap_tx.o: hashmap_tx.o

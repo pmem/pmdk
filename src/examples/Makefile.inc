@@ -42,38 +42,67 @@ LIBDIR ?= $(TOP_SRC)debug
 
 CFLAGS = -std=gnu99 -ggdb -Wall -Werror $(EXTRA_CFLAGS)
 LDFLAGS = -Wl,-rpath=$(LIBDIR) -L$(LIBDIR) $(EXTRA_LDFLAGS)
-INCS = -I$(INCDIR)
+INCS = -I$(INCDIR) -I.
 
 all-dirs:     TARGET = all
 clean-dirs:   TARGET = clean
 clobber-dirs: TARGET = clobber
 cstyle-dirs:  TARGET = cstyle
 
-all: $(if $(DIRS), all-dirs, ) $(if $(PROGS), all-progs, )
-clean: $(if $(DIRS), clean-dirs, ) $(if $(PROGS), clean-progs, )
-clobber: $(if $(DIRS), clobber-dirs, ) $(if $(PROGS), clobber-progs, )
-cstyle: $(if $(DIRS), cstyle-dirs, ) $(if $(PROGS), cstyle-progs, )
+all: $(if $(DIRS), all-dirs) $(if $(PROGS), all-progs) $(if $(LIBRARIES), all-libraries)
+clean: $(if $(DIRS), clean-dirs) $(if $(PROGS), clean-progs) $(if $(LIBRARIES), clean-libraries)
+clobber: $(if $(DIRS), clobber-dirs) $(if $(PROGS), clobber-progs) $(if $(LIBRARIES), clobber-libraries)
+cstyle: $(if $(DIRS), cstyle-dirs)
+
+DYNAMIC_LIBRARIES = $(addprefix lib, $(addsuffix .so, $(LIBRARIES)))
+STATIC_LIBRARIES = $(addprefix lib, $(addsuffix .a, $(LIBRARIES)))
 
 all-dirs clean-dirs clobber-dirs cstyle-dirs: $(DIRS)
 all-progs: $(PROGS)
+all-libraries: $(DYNAMIC_LIBRARIES) $(STATIC_LIBRARIES)
+
+$(foreach l, $(LIBRARIES), $(eval lib$(l).so: lib$(l).o))
+$(foreach l, $(LIBRARIES), $(eval lib$(l).a: lib$(l).o))
+$(foreach l, $(LIBRARIES), $(eval lib$(l).o: CFLAGS+=-fPIC))
+$(foreach l, $(LIBRARIES), $(eval $(l): lib$(l).so lib$(l).a))
+$(foreach l, $(LIBRARIES), $(eval .PHONY: $(l)))
 
 $(DIRS):
 	$(MAKE) -C $@ $(TARGET)
 
 clobber-progs: clean-progs
+clobber-libraries: clean-libraries
+
+clobber-progs clobber-libraries:
+ifneq ($(PROGS),)
 	$(RM) $(PROGS)
+endif
+ifneq ($(LIBRARIES),)
+	$(RM) $(DYNAMIC_LIBRARIES) $(STATIC_LIBRARIES)
+endif
 
-clean-progs:
-	$(RM) *.o
-
-cstyle-progs:
+cstyle:
+ifneq ($(PROGS)$(LIBRARIES),)
 	$(CSTYLE) -pP *.[ch]
+endif
+
+clean-progs clean-libraries:
+	$(RM) *.o
 
 .c.o:
 	$(CC) -c -o $@ $(CFLAGS) $(INCS) $<
 
 $(PROGS):
 	$(CC) -o $@ $(LDFLAGS) $^ $(LIBS)
+
+lib%.o:
+	$(LD) -o $@ -r $^
+
+$(STATIC_LIBRARIES):
+	$(AR) rv $@ $<
+
+$(DYNAMIC_LIBRARIES):
+	$(CC) -shared -o $@ $(LDFLAGS) -Wl,-shared,-soname=$@ $<
 
 .PHONY: all clean clobber cstyle\
 	all-dirs clean-dirs clobber-dirs cstyle-dirs\

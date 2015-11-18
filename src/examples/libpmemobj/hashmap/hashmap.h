@@ -29,48 +29,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#ifndef	HASHMAP_H
+#define	HASHMAP_H
 
-/*
- * tree_map.c -- TreeMap sorted collection implementation
- */
+/* common API provided by both implementations */
 
-#ifndef	TREE_MAP_H
-#define	TREE_MAP_H
+#include <stddef.h>
+#include <stdint.h>
 
-#include <libpmemobj.h>
+struct hashmap_args {
+	uint32_t seed;
+};
 
-#define	TREE_MAP_TYPE_OFFSET 1000
-TOID_DECLARE(struct tree_map, TREE_MAP_TYPE_OFFSET + 0);
+enum hashmap_cmd {
+	HASHMAP_CMD_REBUILD,
+	HASHMAP_CMD_DEBUG,
+};
 
-struct tree_map;
-
-int tree_map_new(PMEMobjpool *pop, TOID(struct tree_map) *map);
-
-int tree_map_delete(PMEMobjpool *pop, TOID(struct tree_map) *map);
-
-int tree_map_insert(PMEMobjpool *pop,
-	TOID(struct tree_map) map, uint64_t key, PMEMoid value);
-
-int tree_map_insert_new(PMEMobjpool *pop,
-	TOID(struct tree_map) map, uint64_t key, size_t size,
-		unsigned int type_num,
-		void (*constructor)(PMEMobjpool *pop, void *ptr, void *arg),
-		void *arg);
-
-PMEMoid tree_map_remove(PMEMobjpool *pop,
-	TOID(struct tree_map) map, uint64_t key);
-
-int tree_map_remove_free(PMEMobjpool *pop,
-	TOID(struct tree_map) map, uint64_t key);
-
-int tree_map_clear(PMEMobjpool *pop,
-	TOID(struct tree_map) map);
-
-PMEMoid tree_map_get(TOID(struct tree_map) map, uint64_t key);
-
-int tree_map_foreach(TOID(struct tree_map) map,
-	int (*cb)(uint64_t key, PMEMoid value, void *arg), void *arg);
-
-int tree_map_is_empty(TOID(struct tree_map) map);
-
-#endif /* TREE_MAP_H */
+#endif /* HASHMAP_H */

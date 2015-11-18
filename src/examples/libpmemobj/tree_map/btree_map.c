@@ -37,9 +37,9 @@
 #include <assert.h>
 #include <errno.h>
 #include <stdio.h>
-#include "tree_map.h"
+#include "btree_map.h"
 
-TOID_DECLARE(struct tree_map_node, TREE_MAP_TYPE_OFFSET + 1);
+TOID_DECLARE(struct tree_map_node, BTREE_MAP_TYPE_OFFSET + 1);
 
 #define	BTREE_ORDER 8 /* can't be odd */
 #define	BTREE_MIN ((BTREE_ORDER / 2) - 1) /* min number of keys per node */
@@ -58,20 +58,21 @@ struct tree_map_node {
 	TOID(struct tree_map_node) slots[BTREE_ORDER];
 };
 
-struct tree_map {
+struct btree_map {
 	TOID(struct tree_map_node) root;
 };
 
 /*
- * tree_map_new -- allocates a new crit-bit tree instance
+ * btree_map_new -- allocates a new crit-bit tree instance
  */
 int
-tree_map_new(PMEMobjpool *pop, TOID(struct tree_map) *map)
+btree_map_new(PMEMobjpool *pop, TOID(struct btree_map) *map, void *arg)
 {
 	int ret = 0;
+
 	TX_BEGIN(pop) {
 		pmemobj_tx_add_range_direct(map, sizeof (*map));
-		*map = TX_ZNEW(struct tree_map);
+		*map = TX_ZNEW(struct btree_map);
 	} TX_ONABORT {
 		ret = 1;
 	} TX_END
@@ -80,29 +81,60 @@ tree_map_new(PMEMobjpool *pop, TOID(struct tree_map) *map)
 }
 
 /*
- * tree_map_delete -- cleanups and frees crit-bit tree instance
- */
-int
-tree_map_delete(PMEMobjpool *pop, TOID(struct tree_map) *map)
-{
-	int ret = 0;
-	TX_BEGIN(pop) {
-		tree_map_clear(pop, *map);
-		pmemobj_tx_add_range_direct(map, sizeof (*map));
-		TX_FREE(*map);
-		*map = TOID_NULL(struct tree_map);
-	} TX_ONABORT {
-		ret = 1;
-	} TX_END
-
-	return ret;
-}
-
-/*
- * tree_map_insert_item_at -- (internal) inserts an item at position
+ * btree_map_clear_node -- (internal) removes all elements from the node
  */
 static void
-tree_map_insert_item_at(TOID(struct tree_map_node) node, int pos,
+btree_map_clear_node(TOID(struct tree_map_node) node)
+{
+	for (int i = 0; i < D_RO(node)->n; ++i) {
+		btree_map_clear_node(D_RO(node)->slots[i]);
+	}
+
+	TX_FREE(node);
+}
+
+
+/*
+ * btree_map_clear -- removes all elements from the map
+ */
+int
+btree_map_clear(PMEMobjpool *pop, TOID(struct btree_map) map)
+{
+	int ret = 0;
+	TX_BEGIN(pop) {
+		btree_map_clear_node(D_RO(map)->root);
+	} TX_ONABORT {
+		ret = 1;
+	} TX_END
+
+	return ret;
+}
+
+
+/*
+ * btree_map_delete -- cleanups and frees crit-bit tree instance
+ */
+int
+btree_map_delete(PMEMobjpool *pop, TOID(struct btree_map) *map)
+{
+	int ret = 0;
+	TX_BEGIN(pop) {
+		btree_map_clear(pop, *map);
+		pmemobj_tx_add_range_direct(map, sizeof (*map));
+		TX_FREE(*map);
+		*map = TOID_NULL(struct btree_map);
+	} TX_ONABORT {
+		ret = 1;
+	} TX_END
+
+	return ret;
+}
+
+/*
+ * btree_map_insert_item_at -- (internal) inserts an item at position
+ */
+static void
+btree_map_insert_item_at(TOID(struct tree_map_node) node, int pos,
 	struct tree_map_node_item item)
 {
 	D_RW(node)->items[pos] = item;
@@ -110,22 +142,23 @@ tree_map_insert_item_at(TOID(struct tree_map_node) node, int pos,
 }
 
 /*
- * tree_map_insert_empty -- (internal) inserts an item into an empty node
+ * btree_map_insert_empty -- (internal) inserts an item into an empty node
  */
 static void
-tree_map_insert_empty(TOID(struct tree_map) map, struct tree_map_node_item item)
+btree_map_insert_empty(TOID(struct btree_map) map,
+	struct tree_map_node_item item)
 {
 	TX_ADD_FIELD(map, root);
 	D_RW(map)->root = TX_ZNEW(struct tree_map_node);
 
-	tree_map_insert_item_at(D_RO(map)->root, 0, item);
+	btree_map_insert_item_at(D_RO(map)->root, 0, item);
 }
 
 /*
- * tree_map_insert_node -- (internal) inserts and makes space for new node
+ * btree_map_insert_node -- (internal) inserts and makes space for new node
  */
 static void
-tree_map_insert_node(TOID(struct tree_map_node) node, int p,
+btree_map_insert_node(TOID(struct tree_map_node) node, int p,
 	struct tree_map_node_item item,
 	TOID(struct tree_map_node) left, TOID(struct tree_map_node) right)
 {
@@ -139,14 +172,14 @@ tree_map_insert_node(TOID(struct tree_map_node) node, int p,
 	}
 	D_RW(node)->slots[p] = left;
 	D_RW(node)->slots[p + 1] = right;
-	tree_map_insert_item_at(node, p, item);
+	btree_map_insert_item_at(node, p, item);
 }
 
 /*
- * tree_map_create_split_node -- (internal) splits a node into two
+ * btree_map_create_split_node -- (internal) splits a node into two
  */
 static TOID(struct tree_map_node)
-tree_map_create_split_node(TOID(struct tree_map_node) node,
+btree_map_create_split_node(TOID(struct tree_map_node) node,
 	struct tree_map_node_item *m)
 {
 	TOID(struct tree_map_node) right = TX_ZNEW(struct tree_map_node);
@@ -172,19 +205,20 @@ tree_map_create_split_node(TOID(struct tree_map_node) node,
 }
 
 /*
- * tree_map_find_dest_node -- (internal) finds a place to insert the new key at
+ * btree_map_find_dest_node -- (internal) finds a place to insert the new key at
  */
 static TOID(struct tree_map_node)
-tree_map_find_dest_node(TOID(struct tree_map) map, TOID(struct tree_map_node) n,
-	TOID(struct tree_map_node) parent, uint64_t key, int *p)
+btree_map_find_dest_node(TOID(struct btree_map) map,
+	TOID(struct tree_map_node) n, TOID(struct tree_map_node) parent,
+	uint64_t key, int *p)
 {
 	if (D_RO(n)->n == BTREE_ORDER - 1) { /* node is full, perform a split */
 		struct tree_map_node_item m;
 		TOID(struct tree_map_node) right =
-			tree_map_create_split_node(n, &m);
+			btree_map_create_split_node(n, &m);
 
 		if (!TOID_IS_NULL(parent)) {
-			tree_map_insert_node(parent, *p, m, n, right);
+			btree_map_insert_node(parent, *p, m, n, right);
 			if (key > m.key) /* select node to continue search */
 				n = right;
 		} else { /* replacing root node, the tree grows in height */
@@ -211,7 +245,7 @@ tree_map_find_dest_node(TOID(struct tree_map) map, TOID(struct tree_map_node) n,
 		 */
 		if (D_RO(n)->n == i || D_RO(n)->items[i].key > key) {
 			return TOID_IS_NULL(D_RO(n)->slots[i]) ? n :
-				tree_map_find_dest_node(map,
+				btree_map_find_dest_node(map,
 					D_RO(n)->slots[i], n, key, p);
 		}
 	}
@@ -220,14 +254,14 @@ tree_map_find_dest_node(TOID(struct tree_map) map, TOID(struct tree_map_node) n,
 	 * The key is bigger than the last node element, go one level deeper
 	 * in the rightmost child.
 	 */
-	return tree_map_find_dest_node(map, D_RO(n)->slots[i], n, key, p);
+	return btree_map_find_dest_node(map, D_RO(n)->slots[i], n, key, p);
 }
 
 /*
- * tree_map_insert_item -- (internal) inserts and makes space for new item
+ * btree_map_insert_item -- (internal) inserts and makes space for new item
  */
 static void
-tree_map_insert_item(TOID(struct tree_map_node) node, int p,
+btree_map_insert_item(TOID(struct tree_map_node) node, int p,
 	struct tree_map_node_item item)
 {
 	TX_ADD(node);
@@ -235,29 +269,38 @@ tree_map_insert_item(TOID(struct tree_map_node) node, int p,
 		memmove(&D_RW(node)->items[p + 1], &D_RW(node)->items[p],
 		sizeof (struct tree_map_node_item) * ((BTREE_ORDER - 2 - p)));
 	}
-	tree_map_insert_item_at(node, p, item);
+	btree_map_insert_item_at(node, p, item);
 }
 
 /*
- * tree_map_insert -- inserts a new key-value pair into the map
+ * btree_map_is_empty -- checks whether the tree map is empty
  */
 int
-tree_map_insert(PMEMobjpool *pop,
-	TOID(struct tree_map) map, uint64_t key, PMEMoid value)
+btree_map_is_empty(PMEMobjpool *pop, TOID(struct btree_map) map)
+{
+	return TOID_IS_NULL(D_RO(map)->root) || D_RO(D_RO(map)->root)->n == 0;
+}
+
+/*
+ * btree_map_insert -- inserts a new key-value pair into the map
+ */
+int
+btree_map_insert(PMEMobjpool *pop, TOID(struct btree_map) map,
+	uint64_t key, PMEMoid value)
 {
 	struct tree_map_node_item item = {key, value};
 	TX_BEGIN(pop) {
-		if (tree_map_is_empty(map)) {
-			tree_map_insert_empty(map, item);
+		if (btree_map_is_empty(pop, map)) {
+			btree_map_insert_empty(map, item);
 		} else {
 			int p; /* position at the dest node to insert */
 			TOID(struct tree_map_node) parent =
 				TOID_NULL(struct tree_map_node);
 			TOID(struct tree_map_node) dest =
-				tree_map_find_dest_node(map, D_RW(map)->root,
+				btree_map_find_dest_node(map, D_RW(map)->root,
 					parent, key, &p);
 
-			tree_map_insert_item(dest, p, item);
+			btree_map_insert_item(dest, p, item);
 		}
 	} TX_END
 
@@ -265,16 +308,16 @@ tree_map_insert(PMEMobjpool *pop,
 }
 
 /*
- * tree_map_rotate_right -- (internal) takes one element from right sibling
+ * btree_map_rotate_right -- (internal) takes one element from right sibling
  */
 static void
-tree_map_rotate_right(TOID(struct tree_map_node) rsb,
+btree_map_rotate_right(TOID(struct tree_map_node) rsb,
 	TOID(struct tree_map_node) node,
 	TOID(struct tree_map_node) parent, int p)
 {
 	/* move the separator from parent to the deficient node */
 	struct tree_map_node_item sep = D_RO(parent)->items[p];
-	tree_map_insert_item(node, D_RO(node)->n, sep);
+	btree_map_insert_item(node, D_RO(node)->n, sep);
 
 	/* the first element of the right sibling is the new separator */
 	TX_ADD_FIELD(parent, items[p]);
@@ -295,16 +338,16 @@ tree_map_rotate_right(TOID(struct tree_map_node) rsb,
 }
 
 /*
- * tree_map_rotate_left -- (internal) takes one element from left sibling
+ * btree_map_rotate_left -- (internal) takes one element from left sibling
  */
 static void
-tree_map_rotate_left(TOID(struct tree_map_node) lsb,
+btree_map_rotate_left(TOID(struct tree_map_node) lsb,
 	TOID(struct tree_map_node) node,
 	TOID(struct tree_map_node) parent, int p)
 {
 	/* move the separator from parent to the deficient node */
 	struct tree_map_node_item sep = D_RO(parent)->items[p - 1];
-	tree_map_insert_item(node, 0, sep);
+	btree_map_insert_item(node, 0, sep);
 
 	/* the last element of the left sibling is the new separator */
 	TX_ADD_FIELD(parent, items[p - 1]);
@@ -323,10 +366,10 @@ tree_map_rotate_left(TOID(struct tree_map_node) lsb,
 }
 
 /*
- * tree_map_merge -- (internal) merges node and right sibling
+ * btree_map_merge -- (internal) merges node and right sibling
  */
 static void
-tree_map_merge(TOID(struct tree_map) map, TOID(struct tree_map_node) rn,
+btree_map_merge(TOID(struct btree_map) map, TOID(struct tree_map_node) rn,
 	TOID(struct tree_map_node) node,
 	TOID(struct tree_map_node) parent, int p)
 {
@@ -365,10 +408,10 @@ tree_map_merge(TOID(struct tree_map) map, TOID(struct tree_map_node) rn,
 }
 
 /*
- * tree_map_rebalance -- (internal) performs tree rebalance
+ * btree_map_rebalance -- (internal) performs tree rebalance
  */
 static void
-tree_map_rebalance(TOID(struct tree_map) map, TOID(struct tree_map_node) node,
+btree_map_rebalance(TOID(struct btree_map) map, TOID(struct tree_map_node) node,
 	TOID(struct tree_map_node) parent, int p)
 {
 	TOID(struct tree_map_node) rsb = p >= D_RO(parent)->n ?
@@ -377,20 +420,20 @@ tree_map_rebalance(TOID(struct tree_map) map, TOID(struct tree_map_node) node,
 		TOID_NULL(struct tree_map_node) : D_RO(parent)->slots[p - 1];
 
 	if (!TOID_IS_NULL(rsb) && D_RO(rsb)->n > BTREE_MIN)
-		tree_map_rotate_right(rsb, node, parent, p);
+		btree_map_rotate_right(rsb, node, parent, p);
 	else if (!TOID_IS_NULL(lsb) && D_RO(lsb)->n > BTREE_MIN)
-		tree_map_rotate_left(lsb, node, parent, p);
+		btree_map_rotate_left(lsb, node, parent, p);
 	else if (TOID_IS_NULL(rsb)) /* always merge with rightmost node */
-		tree_map_merge(map, node, lsb, parent, p - 1);
+		btree_map_merge(map, node, lsb, parent, p - 1);
 	else
-		tree_map_merge(map, rsb, node, parent, p);
+		btree_map_merge(map, rsb, node, parent, p);
 }
 
 /*
- * tree_map_remove_from_node -- (internal) removes element from node
+ * btree_map_remove_from_node -- (internal) removes element from node
  */
 static void
-tree_map_remove_from_node(TOID(struct tree_map) map,
+btree_map_remove_from_node(TOID(struct btree_map) map,
 	TOID(struct tree_map_node) node,
 	TOID(struct tree_map_node) parent, int p)
 {
@@ -412,9 +455,9 @@ tree_map_remove_from_node(TOID(struct tree_map) map,
 	TOID(struct tree_map_node) rchild = D_RW(node)->slots[p + 1];
 	TX_ADD_FIELD(node, items[p]);
 	D_RW(node)->items[p] = D_RO(rchild)->items[0];
-	tree_map_remove_from_node(map, rchild, node, 0);
+	btree_map_remove_from_node(map, rchild, node, 0);
 	if (D_RO(rchild)->n < BTREE_MIN) /* right child can be deficient now */
-		tree_map_rebalance(map, rchild, node, p + 1);
+		btree_map_rebalance(map, rchild, node, p + 1);
 }
 
 #define	NODE_CONTAINS_ITEM(_n, _i, _k)\
@@ -425,21 +468,22 @@ tree_map_remove_from_node(TOID(struct tree_map) map,
 !TOID_IS_NULL(D_RO(_n)->slots[_i])
 
 /*
- * tree_map_remove_item -- (internal) removes item from node
+ * btree_map_remove_item -- (internal) removes item from node
  */
 static PMEMoid
-tree_map_remove_item(TOID(struct tree_map) map, TOID(struct tree_map_node) node,
-	TOID(struct tree_map_node) parent, uint64_t key, int p)
+btree_map_remove_item(TOID(struct btree_map) map,
+	TOID(struct tree_map_node) node, TOID(struct tree_map_node) parent,
+	uint64_t key, int p)
 {
 	PMEMoid ret = OID_NULL;
 	int i = 0;
 	for (; i <= D_RO(node)->n; ++i) {
 		if (NODE_CONTAINS_ITEM(node, i, key)) {
-			tree_map_remove_from_node(map, node, parent, i);
+			btree_map_remove_from_node(map, node, parent, i);
 			ret = D_RO(node)->items[i].value;
 			break;
 		} else if (NODE_CHILD_CAN_CONTAIN_ITEM(node, i, key)) {
-			ret = tree_map_remove_item(map, D_RO(node)->slots[i],
+			ret = btree_map_remove_item(map, D_RO(node)->slots[i],
 				node, key, i);
 			break;
 		}
@@ -447,20 +491,20 @@ tree_map_remove_item(TOID(struct tree_map) map, TOID(struct tree_map_node) node,
 
 	/* check for deficient nodes walking up */
 	if (!TOID_IS_NULL(parent) && D_RO(node)->n < BTREE_MIN)
-		tree_map_rebalance(map, node, parent, p);
+		btree_map_rebalance(map, node, parent, p);
 
 	return ret;
 }
 
 /*
- * tree_map_remove -- removes key-value pair from the map
+ * btree_map_remove -- removes key-value pair from the map
  */
 PMEMoid
-tree_map_remove(PMEMobjpool *pop, TOID(struct tree_map) map, uint64_t key)
+btree_map_remove(PMEMobjpool *pop, TOID(struct btree_map) map, uint64_t key)
 {
 	PMEMoid ret = OID_NULL;
 	TX_BEGIN(pop) {
-		ret = tree_map_remove_item(map, D_RW(map)->root,
+		ret = btree_map_remove_item(map, D_RW(map)->root,
 				TOID_NULL(struct tree_map_node), key, 0);
 	} TX_END
 
@@ -468,72 +512,72 @@ tree_map_remove(PMEMobjpool *pop, TOID(struct tree_map) map, uint64_t key)
 }
 
 /*
- * tree_map_clear_node -- (internal) removes all elements from the node
- */
-static void
-tree_map_clear_node(TOID(struct tree_map_node) node)
-{
-	for (int i = 0; i < D_RO(node)->n; ++i) {
-		tree_map_clear_node(D_RO(node)->slots[i]);
-	}
-
-	TX_FREE(node);
-}
-
-/*
- * tree_map_clear -- removes all elements from the map
- */
-int
-tree_map_clear(PMEMobjpool *pop,
-	TOID(struct tree_map) map)
-{
-	int ret = 0;
-	TX_BEGIN(pop) {
-		tree_map_clear_node(D_RO(map)->root);
-	} TX_ONABORT {
-		ret = 1;
-	} TX_END
-
-	return ret;
-}
-
-/*
- * tree_map_get_in_node -- (internal) searches for a value in the node
+ * btree_map_get_in_node -- (internal) searches for a value in the node
  */
 static PMEMoid
-tree_map_get_in_node(TOID(struct tree_map_node) node, uint64_t key)
+btree_map_get_in_node(TOID(struct tree_map_node) node, uint64_t key)
 {
 	for (int i = 0; i <= D_RO(node)->n; ++i) {
 		if (NODE_CONTAINS_ITEM(node, i, key))
 			return D_RO(node)->items[i].value;
 		else if (NODE_CHILD_CAN_CONTAIN_ITEM(node, i, key))
-			return tree_map_get_in_node(D_RO(node)->slots[i], key);
+			return btree_map_get_in_node(D_RO(node)->slots[i], key);
 	}
 
 	return OID_NULL;
 }
 
 /*
- * tree_map_get -- searches for a value of the key
+ * btree_map_get -- searches for a value of the key
  */
 PMEMoid
-tree_map_get(TOID(struct tree_map) map, uint64_t key)
+btree_map_get(PMEMobjpool *pop, TOID(struct btree_map) map, uint64_t key)
 {
-	return tree_map_get_in_node(D_RO(map)->root, key);
+	if (TOID_IS_NULL(D_RO(map)->root))
+		return OID_NULL;
+	return btree_map_get_in_node(D_RO(map)->root, key);
 }
 
 /*
- * tree_map_foreach_node -- (internal) recursively traverses tree
+ * btree_map_lookup_in_node -- (internal) searches for key if exists
  */
 static int
-tree_map_foreach_node(const TOID(struct tree_map_node) p,
+btree_map_lookup_in_node(TOID(struct tree_map_node) node, uint64_t key)
+{
+	for (int i = 0; i <= D_RO(node)->n; ++i) {
+		if (NODE_CONTAINS_ITEM(node, i, key))
+			return 1;
+		else if (NODE_CHILD_CAN_CONTAIN_ITEM(node, i, key))
+			return btree_map_lookup_in_node(
+					D_RO(node)->slots[i], key);
+	}
+
+	return 0;
+}
+
+/*
+ * btree_map_lookup -- searches if key exists
+ */
+int
+btree_map_lookup(PMEMobjpool *pop, TOID(struct btree_map) map, uint64_t key)
+{
+	if (TOID_IS_NULL(D_RO(map)->root))
+		return 0;
+	return btree_map_lookup_in_node(D_RO(map)->root, key);
+}
+
+/*
+ * btree_map_foreach_node -- (internal) recursively traverses tree
+ */
+static int
+btree_map_foreach_node(const TOID(struct tree_map_node) p,
 	int (*cb)(uint64_t key, PMEMoid, void *arg), void *arg)
 {
 	if (TOID_IS_NULL(p))
 		return 0;
 
 	for (int i = 0; i <= D_RO(p)->n; ++i) {
-		if (tree_map_foreach_node(D_RO(p)->slots[i], cb, arg) != 0)
+		if (btree_map_foreach_node(D_RO(p)->slots[i], cb, arg) != 0)
 			return 1;
 
 		if (i != D_RO(p)->n && D_RO(p)->items[i].key != 0) {
@@ -546,20 +590,61 @@ tree_map_foreach_node(const TOID(struct tree_map_node) p,
 }
 
 /*
- * tree_map_foreach -- initiates recursive traversal
+ * btree_map_foreach -- initiates recursive traversal
  */
 int
-tree_map_foreach(TOID(struct tree_map) map,
+btree_map_foreach(PMEMobjpool *pop, TOID(struct btree_map) map,
 	int (*cb)(uint64_t key, PMEMoid value, void *arg), void *arg)
 {
-	return tree_map_foreach_node(D_RO(map)->root, cb, arg);
+	return btree_map_foreach_node(D_RO(map)->root, cb, arg);
 }
 
 /*
- * tree_map_is_empty -- checks whether the tree map is empty
+ * ctree_map_check -- check if given persistent object is a tree map
  */
 int
-tree_map_is_empty(TOID(struct tree_map) map)
+btree_map_check(PMEMobjpool *pop, TOID(struct btree_map) map)
 {
-	return TOID_IS_NULL(D_RO(map)->root) || D_RO(D_RO(map)->root)->n == 0;
+	return !TOID_VALID(map);
+}
+
+/*
+ * btree_map_insert_new -- allocates a new object and inserts it into the tree
+ */
+int
+btree_map_insert_new(PMEMobjpool *pop, TOID(struct btree_map) map,
+		uint64_t key, size_t size, unsigned int type_num,
+		void (*constructor)(PMEMobjpool *pop, void *ptr, void *arg),
+		void *arg)
+{
+	int ret = 0;
+
+	TX_BEGIN(pop) {
+		PMEMoid n = pmemobj_tx_alloc(size, type_num);
+		constructor(pop, pmemobj_direct(n), arg);
+		btree_map_insert(pop, map, key, n);
+	} TX_ONABORT {
+		ret = 1;
+	} TX_END
+
+	return ret;
+}
+
+/*
+ * btree_map_remove_free -- removes and frees an object from the tree
+ */
+int
+btree_map_remove_free(PMEMobjpool *pop, TOID(struct btree_map) map,
+		uint64_t key)
+{
+	int ret = 0;
+
+	TX_BEGIN(pop) {
+		PMEMoid val = btree_map_remove(pop, map, key);
+		pmemobj_free(&val);
+	} TX_ONABORT {
+		ret = 1;
+	} TX_END
+
+	return ret;
 }

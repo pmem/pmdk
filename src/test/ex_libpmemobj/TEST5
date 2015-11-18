@@ -44,9 +44,9 @@ require_build_type debug nondebug
 
 setup
 
-EX_PATH=../../examples/libpmemobj/tree_map
+EX_PATH=../../examples/libpmemobj/map
 
-expect_normal_exit $EX_PATH/data_store_btree $DIR/testfile1 5 > out$UNITTEST_NUM.log 2>&1
+expect_normal_exit $EX_PATH/data_store btree $DIR/testfile1 5 > out$UNITTEST_NUM.log 2>&1
 
 check
 

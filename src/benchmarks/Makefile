@@ -33,6 +33,11 @@
 #
 # Makefile -- build all benchmarks
 #
+OBJCOPY=objcopy
+
+vpath %.c ../examples/libpmemobj/tree_map
+vpath %.c ../examples/libpmemobj/map
+vpath %.c ../examples/libpmemobj/hashmap
 
 vpath %.c ../libpmemobj
 vpath %.c ../common
@@ -61,7 +66,8 @@ SRC=pmembench.c\
     pmemobj_gen.c\
     obj_pmalloc.c\
     obj_locks.c\
-    obj_lanes.c
+    obj_lanes.c\
+    map_bench.c
 
 # Configuration file without the .cfg extension
 CONFIGS=pmembench_log\
@@ -72,11 +78,13 @@ CONFIGS=pmembench_log\
 	pmembench_obj_pmalloc\
 	pmembench_obj_gen\
 	pmembench_obj_locks\
-	pmembench_obj_lanes
+	pmembench_obj_lanes\
+	pmembench_map
 
 CSTYLE = ../../utils/cstyle
 OBJS=$(SRC:.c=.o)
 LDFLAGS = -L$(LIBS_PATH)
+LDFLAGS += -L../examples/libpmemobj/map
 LDFLAGS += $(EXTRA_LDFLAGS)
 LIBS += -lpmemobj -lpmemlog -lpmemblk -lpmem -lvmem -pthread -lm -luuid
 CFLAGS  = -std=gnu99
@@ -90,9 +98,12 @@ CFLAGS += $(EXTRA_CFLAGS)
 CFLAGS += -I../include
 CFLAGS += -I../libpmemobj
 CFLAGS += -I../common
-CFLAGS += -DSRCVERSION=\"$(SRCVERSION)\"
+CFLAGS += -I../examples/libpmemobj/map
 CFLAGS += $(shell pkg-config --cflags glib-2.0)
 LIBS += $(shell pkg-config --libs glib-2.0)
+
+LIBMAP_DIR=../examples/libpmemobj/map
+LIBMAP=$(LIBMAP_DIR)/libmap.a
 
 OBJS += pmemobj.o
 
@@ -120,8 +131,11 @@ no-glib:
 %.o: %.c
 	$(CC) -c $(CFLAGS) $< -o $@
 
-$(BENCHMARK): $(OBJS)
-	$(CC) -o $@ $(LDFLAGS) $(OBJS) $(LIBS)
+$(BENCHMARK): $(OBJS) $(LIBMAP)
+	$(CC) -o $@ $(LDFLAGS) $^ $(LIBS)
+
+$(LIBMAP):
+	$(MAKE) -C $(LIBMAP_DIR) map
 
 clean:
 	$(RM) $(OBJS)

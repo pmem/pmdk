@@ -40,17 +40,14 @@ NCURSES := $(shell pkg-config ncurses && echo "y" || echo "n")
 
 EXAMPLES=$(EX_LIBPMEMOBJ)/pi \
 	$(EX_LIBPMEMOBJ)/btree \
-	$(EX_LIBPMEMOBJ)/hashset/hashset_atomic \
-	$(EX_LIBPMEMOBJ)/hashset/hashset_tx \
+	$(EX_LIBPMEMOBJ)/map/mapcli \
+	$(EX_LIBPMEMOBJ)/map/data_store \
 	$(EX_LIBPMEMOBJ)/string_store/writer \
 	$(EX_LIBPMEMOBJ)/string_store/reader \
 	$(EX_LIBPMEMOBJ)/string_store_tx/writer \
 	$(EX_LIBPMEMOBJ)/string_store_tx/reader \
 	$(EX_LIBPMEMOBJ)/string_store_tx_type/writer \
 	$(EX_LIBPMEMOBJ)/string_store_tx_type/reader \
-	$(EX_LIBPMEMOBJ)/tree_map/data_store_btree \
-	$(EX_LIBPMEMOBJ)/tree_map/data_store_ctree \
-	$(EX_LIBPMEMOBJ)/tree_map/data_store_rbtree \
 	$(EX_LIBPMEMOBJ)/pmemblk/obj_pmemblk \
 	$(EX_LIBPMEMOBJ)/pmemlog/obj_pmemlog \
 	$(EX_LIBPMEMOBJ)/pmemlog/obj_pmemlog_minimal \

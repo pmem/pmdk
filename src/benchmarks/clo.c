@@ -89,13 +89,24 @@ static int
 clo_parse_str(struct benchmark_clo *clo, const char *arg,
 		struct clo_vec *clovec)
 {
+	struct clo_vec_vlist *vlist = clo_vec_vlist_alloc();
+	assert(vlist != NULL);
+
 	char *str = strdup(arg);
 	assert(str != NULL);
-
 	clo_vec_add_alloc(clovec, str);
-	clo_vec_memcpy(clovec, clo->off, sizeof (str), &str);
 
-	return 0;
+	char *next = strtok(str, ",");
+	while (next) {
+		clo_vec_vlist_add(vlist, &next, sizeof (next));
+		next = strtok(NULL, ",");
+	}
+
+	int ret = clo_vec_memcpy_list(clovec, clo->off, sizeof (str), vlist);
+
+	clo_vec_vlist_free(vlist);
+
+	return ret;
 }
 
 /*

@@ -65,6 +65,7 @@ clean: $(CLEAN_TARGETS:=-clean)
 clobber: $(CLOBBER_TARGETS:=-clobber)
 cstyle: $(CSTYLE_TARGETS:=-cstyle)
 examples benchmarks: $(TARGETS)
+benchmarks: examples
 
 custom_build = $(DEBUG)$(OBJDIR)
 
