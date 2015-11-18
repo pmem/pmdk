@@ -88,6 +88,7 @@ OBJ_TESTS = \
        obj_list_macro\
        obj_memcheck\
        obj_out_of_memory\
+       obj_persist_count\
        obj_pmalloc_basic\
        obj_pmalloc_mt\
        obj_pmalloc_oom_mt\
