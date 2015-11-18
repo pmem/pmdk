@@ -50,7 +50,7 @@ struct root {
 };
 
 #define	swap(a, b) do {\
-	typeof((a)) _tmp = (a);\
+	typeof ((a)) _tmp = (a);\
 	(a) = (b);\
 	(b) = _tmp;\
 } while (0)
