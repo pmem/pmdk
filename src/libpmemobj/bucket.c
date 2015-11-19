@@ -315,6 +315,8 @@ bucket_lock(struct bucket *b)
 void
 bucket_unlock(struct bucket *b)
 {
-	if ((errno = pthread_mutex_unlock(&b->lock)) != 0)
-		ERR("!pthread_mutex_unlock");
+	if (pthread_mutex_unlock(&b->lock) != 0) {
+		ERR("pthread_mutex_unlock");
+		ASSERT(0);
+	}
 }

@@ -737,6 +737,11 @@ heap_drain_to_auxiliary(PMEMobjpool *pop, struct bucket *auxb,
 
 		drained_cache = 0;
 
+		if ((ret = bucket_lock(b)) != 0) {
+			ERR("Failed to acquire bucket lock for migration");
+			ASSERT(0);
+		}
+
 		/*
 		 * XXX: Draining should make effort not to split runs
 		 * between buckets because that will increase contention on
@@ -760,6 +765,8 @@ heap_drain_to_auxiliary(PMEMobjpool *pop, struct bucket *auxb,
 			drained_cache += m.size_idx;
 			bucket_insert_block(pop, auxb, m);
 		}
+
+		bucket_unlock(b);
 
 		total_drained += drained_cache;
 	}
@@ -1260,8 +1267,11 @@ heap_degrade_run_if_empty(PMEMobjpool *pop, struct bucket *b,
 	struct chunk_run *run = (struct chunk_run *)&z->chunks[m.chunk_id];
 
 	int err = 0;
-	if ((err = pthread_mutex_lock(heap_get_run_lock(pop, m.chunk_id))) != 0)
+	if ((err = bucket_lock(b)) != 0)
 		return err;
+
+	if ((err = pthread_mutex_lock(heap_get_run_lock(pop, m.chunk_id))) != 0)
+		goto out_bucket;
 
 	int i;
 	for (i = 0; i < bucket_bitmap_nval(b) - 1; ++i)
@@ -1313,6 +1323,9 @@ out:
 		ERR("Failed to release run lock");
 		ASSERT(0);
 	}
+
+out_bucket:
+	bucket_unlock(b);
 
 	return err;
 }
