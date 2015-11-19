@@ -49,10 +49,10 @@
 #include "obj.h"
 #include "valgrind_internal.h"
 
-__thread int lane_idx = -1;
-static int next_lane_idx = 0;
+__thread int Lane_idx = -1;
+static int Next_lane_idx = 0;
 
-struct section_operations *section_ops[MAX_LANE_SECTION];
+struct section_operations *Section_ops[MAX_LANE_SECTION];
 
 /*
  * lane_get_layout -- (internal) calculates the real pointer of the lane layout
@@ -107,7 +107,7 @@ lane_init(PMEMobjpool *pop, struct lane *lane, struct lane_layout *layout)
 	for (i = 0; i < MAX_LANE_SECTION; ++i) {
 		lane->sections[i].runtime = NULL;
 		lane->sections[i].layout = &layout->sections[i];
-		err = section_ops[i]->construct(pop, &lane->sections[i]);
+		err = Section_ops[i]->construct(pop, &lane->sections[i]);
 		if (err != 0) {
 			ERR("!lane_construct_ops %d", i);
 			goto error_section_construct;
@@ -118,7 +118,7 @@ lane_init(PMEMobjpool *pop, struct lane *lane, struct lane_layout *layout)
 
 error_section_construct:
 	for (i = i - 1; i >= 0; --i)
-		if (section_ops[i]->destruct(pop, &lane->sections[i]) != 0)
+		if (Section_ops[i]->destruct(pop, &lane->sections[i]) != 0)
 			ERR("!lane_destruct_ops %d", i);
 error_lock_attr_destroy:
 	if (pthread_mutex_destroy(lane->lock) != 0)
@@ -142,7 +142,7 @@ lane_destroy(PMEMobjpool *pop, struct lane *lane)
 	int err = 0;
 
 	for (int i = 0; i < MAX_LANE_SECTION; ++i) {
-		err = section_ops[i]->destruct(pop, &lane->sections[i]);
+		err = Section_ops[i]->destruct(pop, &lane->sections[i]);
 		if (err != 0)
 			ERR("!lane_destruct_ops %d", i);
 	}
@@ -233,7 +233,7 @@ lane_recover_and_section_boot(PMEMobjpool *pop)
 	for (i = 0; i < MAX_LANE_SECTION; ++i) {
 		for (j = 0; j < pop->nlanes; ++j) {
 			layout = lane_get_layout(pop, j);
-			err = section_ops[i]->recover(pop,
+			err = Section_ops[i]->recover(pop,
 				&layout->sections[i]);
 
 			if (err != 0) {
@@ -243,7 +243,7 @@ lane_recover_and_section_boot(PMEMobjpool *pop)
 			}
 		}
 
-		if ((err = section_ops[i]->boot(pop)) != 0) {
+		if ((err = Section_ops[i]->boot(pop)) != 0) {
 			LOG(2, "section_ops->init %d %d", i, err);
 			return err;
 		}
@@ -266,7 +266,7 @@ lane_check(PMEMobjpool *pop)
 	for (i = 0; i < MAX_LANE_SECTION; ++i) {
 		for (j = 0; j < pop->nlanes; ++j) {
 			layout = lane_get_layout(pop, j);
-			err = section_ops[i]->check(pop, &layout->sections[i]);
+			err = Section_ops[i]->check(pop, &layout->sections[i]);
 
 			if (err) {
 				LOG(2, "section_ops->check %d %d %d",
@@ -292,10 +292,10 @@ lane_hold(PMEMobjpool *pop, struct lane_section **section,
 
 	int err = 0;
 
-	if (lane_idx == -1)
-		lane_idx = __sync_fetch_and_add(&next_lane_idx, 1);
+	if (Lane_idx == -1)
+		Lane_idx = __sync_fetch_and_add(&Next_lane_idx, 1);
 
-	struct lane *lane = &pop->lanes[lane_idx % pop->nlanes];
+	struct lane *lane = &pop->lanes[Lane_idx % pop->nlanes];
 
 	if ((err = pthread_mutex_lock(lane->lock)) != 0)
 		ERR("!pthread_mutex_lock");
@@ -311,12 +311,12 @@ lane_hold(PMEMobjpool *pop, struct lane_section **section,
 int
 lane_release(PMEMobjpool *pop)
 {
-	ASSERT(lane_idx >= 0);
+	ASSERT(Lane_idx >= 0);
 	ASSERTne(pop->lanes, NULL);
 
 	int err = 0;
 
-	struct lane *lane = &pop->lanes[lane_idx % pop->nlanes];
+	struct lane *lane = &pop->lanes[Lane_idx % pop->nlanes];
 
 	if ((err = pthread_mutex_unlock(lane->lock)) != 0)
 		ERR("!pthread_mutex_unlock");

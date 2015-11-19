@@ -952,18 +952,19 @@ ask(char op, char *answers, char def_ans, const char *fmt, va_list ap)
 		vprintf(fmt, ap);
 		size_t len = strlen(answers);
 		size_t i;
-		char def_ansl = tolower(def_ans);
+		char def_anslo = tolower(def_ans);
 		printf(" [");
 		for (i = 0; i < len; i++) {
-			char ans = tolower(answers[i]);
-			printf("%c", ans == def_ansl ? toupper(ans) : ans);
+			char anslo = tolower(answers[i]);
+			printf("%c", anslo == def_anslo ?
+					toupper(anslo) : anslo);
 			if (i != len - 1)
 				printf("/");
 		}
 		printf("] ");
 		int c = getchar();
 		if (c == EOF)
-			ans = def_ans;
+			ans = def_anslo;
 		else
 			ans = tolower(c);
 		if (ans != '\n')

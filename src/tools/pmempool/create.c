@@ -482,7 +482,7 @@ pmempool_create_func(char *appname, int argc, char *argv[])
 		if (pc.max_size) {
 			outv(1, "Maximum size option passed "
 				"- getting available space of file system.\n");
-			int ret = pmempool_get_max_size(pc.fname,
+			ret = pmempool_get_max_size(pc.fname,
 					&pc.params.size);
 			if (ret) {
 				outv_err("cannot get available space of fs\n");

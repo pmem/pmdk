@@ -476,7 +476,7 @@ tx_restore_range(PMEMobjpool *pop, struct tx_range *range)
 	void *dst_ptr = OBJ_OFF_TO_PTR(pop, range->offset);
 
 	while (!SLIST_EMPTY(&tx_ranges)) {
-		struct tx_range_data *txr = SLIST_FIRST(&tx_ranges);
+		txr = SLIST_FIRST(&tx_ranges);
 		SLIST_REMOVE_HEAD(&tx_ranges, tx_range);
 		/* restore partial range data from snapshot */
 		pop->memcpy_persist(pop, txr->begin,

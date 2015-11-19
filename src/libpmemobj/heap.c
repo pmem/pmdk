@@ -534,9 +534,9 @@ heap_get_default_bucket(PMEMobjpool *pop)
 static struct bucket *
 heap_get_cache_bucket(struct pmalloc_heap *heap, int bucket_id)
 {
-	ASSERT(lane_idx != -1);
+	ASSERT(Lane_idx != -1);
 
-	return heap->caches[lane_idx % heap->ncaches].buckets[bucket_id];
+	return heap->caches[Lane_idx % heap->ncaches].buckets[bucket_id];
 }
 
 /*
@@ -665,7 +665,7 @@ heap_buckets_init(PMEMobjpool *pop)
 	struct pmalloc_heap *h = pop->heap;
 	int i;
 
-	for (int i = 0; i < MAX_BUCKETS - 1; ++i)
+	for (i = 0; i < MAX_BUCKETS - 1; ++i)
 		SLIST_INIT(&h->active_runs[i]);
 
 	bucket_proto[0].unit_max = RUN_UNIT_MAX;
@@ -992,8 +992,8 @@ heap_get_chunk(PMEMobjpool *pop, struct zone *z, struct chunk_header *hdr,
 		if (chunk_id == 0)
 			return ENOENT;
 
-		struct chunk_header *hdr = &z->chunk_headers[chunk_id - 1];
-		m->chunk_id = chunk_id - hdr->size_idx;
+		struct chunk_header *prev_hdr = &z->chunk_headers[chunk_id - 1];
+		m->chunk_id = chunk_id - prev_hdr->size_idx;
 
 		if (z->chunk_headers[m->chunk_id].type != CHUNK_TYPE_FREE)
 			return ENOENT;
