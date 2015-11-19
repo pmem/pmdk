@@ -56,7 +56,7 @@ struct bucket_cache;
 
 struct bucket *heap_get_best_bucket(PMEMobjpool *pop, size_t size);
 struct bucket *heap_get_chunk_bucket(PMEMobjpool *pop,
-		uint32_t zone_id, uint32_t chunk_id);
+		uint32_t chunk_id, uint32_t zone_id);
 struct bucket *heap_get_auxiliary_bucket(PMEMobjpool *pop, size_t size);
 void heap_drain_to_auxiliary(PMEMobjpool *pop, struct bucket *auxb,
 	uint32_t size_idx);

@@ -415,7 +415,7 @@ pfree(PMEMobjpool *pop, uint64_t *off, uint64_t data_off)
 		return err;
 
 	struct bucket *b = heap_get_chunk_bucket(pop,
-			alloc->zone_id, alloc->chunk_id);
+		alloc->chunk_id, alloc->zone_id);
 
 	struct memory_block m = get_mblock_from_alloc(pop, b, alloc);
 
@@ -443,27 +443,20 @@ pfree(PMEMobjpool *pop, uint64_t *off, uint64_t data_off)
 
 	redo_log_process(pop, sec->redo, MAX_ALLOC_OP_REDO);
 
-	/*
-	 * There's no point in rolling back redo log changes because the
-	 * volatile errors don't break the persistent state.
-	 */
-	if (bucket_insert_block(pop, b, res) != 0) {
-		ERR("Failed to update the heap volatile state");
-		ASSERT(0);
-	}
-
 	if (heap_unlock_if_run(pop, m) != 0) {
 		ERR("Failed to release run lock");
 		ASSERT(0);
 	}
 
+	VALGRIND_DO_MEMPOOL_FREE(pop,
+			(char *)alloc + sizeof (*alloc) + data_off);
+
+	bucket_insert_block(pop, b, res);
+
 	if (bucket_is_small(b) && heap_degrade_run_if_empty(pop, b, res) != 0) {
 		ERR("Failed to degrade run");
 		ASSERT(0);
 	}
-
-	VALGRIND_DO_MEMPOOL_FREE(pop,
-			(char *)alloc + sizeof (*alloc) + data_off);
 
 out:
 	if (lane_release(pop) != 0) {
