@@ -27,13 +27,18 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
 #
-# src/common/Makefile -- Makefile for common
+# src/Makefile.inc -- common Makefile rules for NVM library
 #
 
-TOP := $(dir $(lastword $(MAKEFILE_LIST)))/../..
-include $(TOP)/src/common.inc
+TOP := $(dir $(lastword $(MAKEFILE_LIST)))/..
 
-cstyle:
-	$(CSTYLE) *.[ch]
+LN = ln
+OBJCOPY = objcopy
+MKDIR = mkdir
+INSTALL = install
+CP = cp
+CSTYLE = $(TOP)/utils/cstyle -pP
+
+check_flag = $(shell echo "int main(){return 0;}" |\
+	$(CC) $(CFLAGS) $(1) -x c -o /dev/null - 2>/dev/null && echo y || echo n)

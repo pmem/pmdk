@@ -37,6 +37,10 @@
 # for each unit test overrides the defaults as necessary.
 #
 
+TOP := $(dir $(lastword $(MAKEFILE_LIST)))/../..
+
+include $(TOP)/src/common.inc
+
 LIBS_DIR=../..
 
 EXAMPLES_DIR=../../examples
@@ -159,7 +163,7 @@ clobber: clean
 
 cstyle:
 ifneq ($(TARGET),)
-	../../../utils/cstyle -pP *.[ch]
+	$(CSTYLE) *.[ch]
 endif
 
 TST=$(shell basename `pwd`)

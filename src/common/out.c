@@ -48,7 +48,7 @@
 #include "out.h"
 #include "valgrind_internal.h"
 
-char nvml_src_version[] = "SRCVERSION:" SRCVERSION;
+static char nvml_src_version[] = "SRCVERSION:" SRCVERSION;
 
 static const char *Log_prefix;
 static int Log_level;

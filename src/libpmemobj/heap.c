@@ -73,7 +73,7 @@
  */
 #define	MAX_UNITS_PCT_DRAINED_TOTAL 2 /* 200% */
 
-struct {
+static struct {
 	size_t unit_size;
 	int unit_max;
 } bucket_proto[MAX_BUCKETS];
@@ -608,9 +608,9 @@ heap_get_default_bucket(PMEMobjpool *pop)
 static struct bucket *
 heap_get_cache_bucket(struct pmalloc_heap *heap, int bucket_id)
 {
-	ASSERT(lane_idx != -1);
+	ASSERT(Lane_idx != -1);
 
-	return heap->caches[lane_idx % heap->ncaches].buckets[bucket_id];
+	return heap->caches[Lane_idx % heap->ncaches].buckets[bucket_id];
 }
 
 /*
@@ -774,7 +774,7 @@ heap_buckets_init(PMEMobjpool *pop)
 	struct pmalloc_heap *h = pop->heap;
 	int i;
 
-	for (int i = 0; i < MAX_BUCKETS - 1; ++i)
+	for (i = 0; i < MAX_BUCKETS - 1; ++i)
 		SLIST_INIT(&h->active_runs[i]);
 
 	bucket_proto[0].unit_max = RUN_UNIT_MAX;
@@ -1094,8 +1094,8 @@ heap_get_chunk(PMEMobjpool *pop, struct zone *z, struct chunk_header *hdr,
 		if (chunk_id == 0)
 			return ENOENT;
 
-		struct chunk_header *hdr = &z->chunk_headers[chunk_id - 1];
-		m->chunk_id = chunk_id - hdr->size_idx;
+		struct chunk_header *prev_hdr = &z->chunk_headers[chunk_id - 1];
+		m->chunk_id = chunk_id - prev_hdr->size_idx;
 
 		if (z->chunk_headers[m->chunk_id].type != CHUNK_TYPE_FREE)
 			return ENOENT;
@@ -1201,13 +1201,13 @@ heap_free_block(PMEMobjpool *pop, struct bucket *b,
 {
 	struct memory_block *blocks[3] = {NULL, &m, NULL};
 
-	struct memory_block prev = {0};
+	struct memory_block prev = {0, 0, 0, 0};
 	if (heap_get_adjacent_free_block(pop, &prev, m, 1) == 0 &&
 		bucket_get_rm_block_exact(b, prev) == 0) {
 		blocks[0] = &prev;
 	}
 
-	struct memory_block next = {0};
+	struct memory_block next = {0, 0, 0, 0};
 	if (heap_get_adjacent_free_block(pop, &next, m, 0) == 0 &&
 		bucket_get_rm_block_exact(b, next) == 0) {
 		blocks[2] = &next;

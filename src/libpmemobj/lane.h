@@ -77,8 +77,8 @@ struct section_operations {
 	section_global_op boot;
 };
 
-extern struct section_operations *section_ops[MAX_LANE_SECTION];
-extern __thread int lane_idx;
+extern struct section_operations *Section_ops[MAX_LANE_SECTION];
+extern __thread int Lane_idx;
 
 int lane_boot(PMEMobjpool *pop);
 int lane_cleanup(PMEMobjpool *pop);
@@ -91,4 +91,4 @@ int lane_release(PMEMobjpool *pop);
 
 #define	SECTION_PARM(n, ops)\
 __attribute__((constructor)) static void _section_parm_##n(void)\
-{ section_ops[n] = ops; }
+{ Section_ops[n] = ops; }

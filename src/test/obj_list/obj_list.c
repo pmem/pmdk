@@ -505,7 +505,7 @@ FUNC_MOCK_RET_ALWAYS(pmemobj_mutex_unlock, int, 0, PMEMobjpool *pop,
  */
 FUNC_MOCK(lane_recover_and_section_boot, int, PMEMobjpool *pop)
 	FUNC_MOCK_RUN_DEFAULT {
-		return section_ops[LANE_SECTION_LIST]->recover(Pop,
+		return Section_ops[LANE_SECTION_LIST]->recover(Pop,
 				Lane_section.layout);
 	}
 FUNC_MOCK_END

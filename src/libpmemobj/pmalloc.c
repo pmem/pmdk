@@ -328,7 +328,7 @@ prealloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
 	if ((err = heap_lock_if_run(pop, cnt)) != 0)
 		goto out_lane;
 
-	struct memory_block next = {0};
+	struct memory_block next = {0, 0, 0, 0};
 	if ((err = heap_get_adjacent_free_block(pop, &next, cnt, 0)) != 0)
 		goto out;
 
@@ -526,7 +526,7 @@ lane_allocator_boot(PMEMobjpool *pop)
 	return heap_boot(pop);
 }
 
-struct section_operations allocator_ops = {
+static struct section_operations allocator_ops = {
 	.construct = lane_allocator_construct,
 	.destruct = lane_allocator_destruct,
 	.recover = lane_allocator_recovery,

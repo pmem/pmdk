@@ -72,10 +72,10 @@
 #define	min(a, b) ((a) < (b) ? (a) : (b))
 #define	ENTIRE_UINT64 (\
 {\
-struct range ret = {\
+struct range _entire_uint64 = {\
 	.first = 0,\
 	.last = UINT64_MAX\
-}; ret; })
+}; _entire_uint64; })
 
 #define	FOREACH_RANGE(range, ranges)\
 	LIST_FOREACH(range, &(ranges)->head, next)

@@ -69,6 +69,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <malloc.h>
 
 #include "libvmem.h"
 #include "libvmmalloc.h"
@@ -307,14 +308,14 @@ malloc_usable_size(void *ptr)
  * with RTLD_DEEPBIND flag, all the references to libc's malloc(3) functions
  * will be redirected to libvmmalloc.
  */
-void *(*__malloc_hook) (size_t size, const void *caller) =
-		(void *)malloc;
-void *(*__realloc_hook) (void *ptr, size_t size, const void *caller) =
-		(void *)realloc;
-void (*__free_hook) (void *ptr, const void *caller) =
-		(void *)free;
-void (*__memalign_hook) (size_t size, size_t alignment, const void *caller) =
-		(void *)memalign;
+void *(*__MALLOC_HOOK_VOLATILE __malloc_hook) (size_t size,
+	const void *caller) = (void *)malloc;
+void *(*__MALLOC_HOOK_VOLATILE __realloc_hook) (void *ptr, size_t size,
+	const void *caller) = (void *)realloc;
+void (*__MALLOC_HOOK_VOLATILE __free_hook) (void *ptr, const void *caller) =
+	(void *)free;
+void *(*__MALLOC_HOOK_VOLATILE __memalign_hook) (size_t size, size_t alignment,
+	const void *caller) = (void *)memalign;
 #endif
 
 /*

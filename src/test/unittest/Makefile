@@ -33,6 +33,10 @@
 #
 # src/test/unittest/Makefile -- build unittest support library
 #
+
+TOP := $(dir $(lastword $(MAKEFILE_LIST)))/../../..
+include $(TOP)/src/common.inc
+
 TARGET = libut.a
 OBJS = ut.o ut_alloc.o ut_file.o ut_pthread.o ut_signal.o ut_backtrace.o
 CFLAGS = -I../../include
@@ -43,11 +47,16 @@ CFLAGS += -Werror
 CFLAGS += -Wmissing-prototypes
 CFLAGS += -Wpointer-arith
 CFLAGS += -Wunused-macros
+CFLAGS += -Wmissing-field-initializers
 CFLAGS += -pthread
 CFLAGS += -fno-common
 CFLAGS += $(EXTRA_CFLAGS)
-
-CSTYLE = ../../../utils/cstyle
+ifeq ($(call check_flag, -Wunreachable-code-return), y)
+CFLAGS += -Wunreachable-code-return
+endif
+ifeq ($(call check_flag, -Wmissing-variable-declarations), y)
+CFLAGS += -Wmissing-variable-declarations
+endif
 
 ifneq ($(USE_LIBUNWIND),)
 CFLAGS += $(shell pkg-config --cflags libunwind) -DUSE_LIBUNWIND
@@ -70,7 +79,7 @@ clean:
 	$(RM) *.o core a.out
 
 cstyle:
-	$(CSTYLE) -pP *.[ch]
+	$(CSTYLE) *.[ch]
 
 clobber: clean
 	$(RM) $(TARGET)

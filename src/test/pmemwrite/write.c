@@ -53,7 +53,9 @@ struct pmemwrite
 	char *fname;	/* file name */
 	int nargs;	/* number of arguments */
 	char **args;	/* list of arguments */
-} pwrite = {
+};
+
+static struct pmemwrite pwrite = {
 	.fname = NULL,
 	.nargs = 0,
 	.args = NULL,
@@ -217,8 +219,8 @@ main(int argc, char *argv[])
 	case PMEM_POOL_TYPE_LOG:
 		return pmemwrite_log(&pwrite);
 	default:
-		return -1;
+		break;
 	}
 
-	return 0;
+	return -1;
 }

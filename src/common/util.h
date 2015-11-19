@@ -34,6 +34,8 @@
  * util.h -- internal definitions for util module
  */
 
+extern unsigned long Pagesize;
+
 /*
  * overridable names for malloc & friends used by this library
  */

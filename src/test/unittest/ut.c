@@ -155,7 +155,8 @@ static struct fd_lut {
 	int fdnum;
 	char *fdfile;
 } *Fd_lut;
-int Fd_errcount;
+
+static int Fd_errcount;
 
 /*
  * open_file_add -- add an open file to the lut
