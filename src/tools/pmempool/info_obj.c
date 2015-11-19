@@ -75,8 +75,7 @@ lane_need_recovery_redo(struct redo_log *redo, size_t nentries)
  * lane_need_recovery_list -- return 1 if list's section needs recovery
  */
 static int
-lane_need_recovery_list(struct pmem_info *pip,
-		struct lane_section_layout *layout)
+lane_need_recovery_list(struct lane_section_layout *layout)
 {
 	struct lane_list_section *section = (struct lane_list_section *)layout;
 
@@ -93,8 +92,7 @@ lane_need_recovery_list(struct pmem_info *pip,
  * lane_need_recovery_alloc -- return 1 if allocator's section needs recovery
  */
 static int
-lane_need_recovery_alloc(struct pmem_info *pip,
-		struct lane_section_layout *layout)
+lane_need_recovery_alloc(struct lane_section_layout *layout)
 {
 	struct allocator_lane_section *section =
 		(struct allocator_lane_section *)layout;
@@ -107,8 +105,7 @@ lane_need_recovery_alloc(struct pmem_info *pip,
  * lane_need_recovery_tx -- return 1 if transaction's section needs recovery
  */
 static int
-lane_need_recovery_tx(struct pmem_info *pip,
-		struct lane_section_layout *layout)
+lane_need_recovery_tx(struct lane_section_layout *layout)
 {
 	struct lane_tx_layout *section = (struct lane_tx_layout *)layout;
 
@@ -127,13 +124,13 @@ lane_need_recovery_tx(struct pmem_info *pip,
  * lane_need_recovery -- return 1 if lane section needs recovery
  */
 static int
-lane_need_recovery(struct pmem_info *pip, struct lane_layout *lane)
+lane_need_recovery(struct lane_layout *lane)
 {
-	int alloc = lane_need_recovery_alloc(pip,
+	int alloc = lane_need_recovery_alloc(
 			&lane->sections[LANE_SECTION_ALLOCATOR]);
-	int list = lane_need_recovery_list(pip,
+	int list = lane_need_recovery_list(
 			&lane->sections[LANE_SECTION_LIST]);
-	int tx = lane_need_recovery_tx(pip,
+	int tx = lane_need_recovery_tx(
 			&lane->sections[LANE_SECTION_TRANSACTION]);
 
 	return alloc || list || tx;
@@ -233,8 +230,7 @@ get_bitmap_str(uint64_t val, int values)
  * info_obj_redo -- print redo log entries
  */
 static void
-info_obj_redo(struct pmem_info *pip, int v, struct redo_log *redo,
-		size_t nentries)
+info_obj_redo(int v, struct redo_log *redo, size_t nentries)
 {
 	outv_field(v, "Redo log entries", "%lu", nentries);
 	for (size_t i = 0; i < nentries; i++) {
@@ -253,19 +249,18 @@ info_obj_redo(struct pmem_info *pip, int v, struct redo_log *redo,
  * info_obj_lane_alloc -- print allocator's lane section
  */
 static void
-info_obj_lane_alloc(struct pmem_info *pip, int v, struct pmemobjpool *pop,
-		struct lane_section_layout *layout)
+info_obj_lane_alloc(int v, struct lane_section_layout *layout)
 {
 	struct allocator_lane_section *section =
 		(struct allocator_lane_section *)layout;
-	info_obj_redo(pip, v, &section->redo[0], REDO_LOG_SIZE);
+	info_obj_redo(v, &section->redo[0], REDO_LOG_SIZE);
 }
 
 /*
  * info_obj_lane_list -- print list's lane section
  */
 static void
-info_obj_lane_list(struct pmem_info *pip, int v, struct pmemobjpool *pop,
+info_obj_lane_list(struct pmem_info *pip, int v,
 		struct lane_section_layout *layout)
 {
 	struct lane_list_section *section = (struct lane_list_section *)layout;
@@ -273,7 +268,7 @@ info_obj_lane_list(struct pmem_info *pip, int v, struct pmemobjpool *pop,
 	outv_field(v, "Object offset", "0x%016lx", section->obj_offset);
 	outv_field(v, "Object size", "%s",
 			out_get_size_str(section->obj_size, pip->args.human));
-	info_obj_redo(pip, v, &section->redo[0], REDO_NUM_ENTRIES);
+	info_obj_redo(v, &section->redo[0], REDO_NUM_ENTRIES);
 }
 
 /*
@@ -328,7 +323,7 @@ info_obj_oob_hdr(struct pmem_info *pip, int v, struct pmemobjpool *pop,
  * info_obj_alloc_hdr -- print allocation header
  */
 static void
-info_obj_alloc_hdr(struct pmem_info *pip, int v, struct pmemobjpool *pop,
+info_obj_alloc_hdr(struct pmem_info *pip, int v,
 		struct allocation_header *alloc)
 {
 	outv_title(v, "Allocation Header");
@@ -356,7 +351,7 @@ obj_object_cb(struct pmem_info *pip, int v, int vnum, struct pmemobjpool *pop,
 	outv_field(vnum, "Offset", "0x%016lx", PTR_TO_OFF(pop, data));
 
 	out_indent(1);
-	info_obj_alloc_hdr(pip, v && pip->args.obj.valloc, pop, alloc);
+	info_obj_alloc_hdr(pip, v && pip->args.obj.valloc, alloc);
 	info_obj_oob_hdr(pip, v && pip->args.obj.voobhdr, pop, oob);
 
 	outv_hexdump(v && pip->args.vdata, data,
@@ -423,10 +418,10 @@ info_obj_lane_section(struct pmem_info *pip, int v, struct pmemobjpool *pop,
 	out_indent(1);
 	switch (type) {
 	case LANE_SECTION_ALLOCATOR:
-		info_obj_lane_alloc(pip, v, pop, &lane->sections[type]);
+		info_obj_lane_alloc(v, &lane->sections[type]);
 		break;
 	case LANE_SECTION_LIST:
-		info_obj_lane_list(pip, v, pop, &lane->sections[type]);
+		info_obj_lane_list(pip, v, &lane->sections[type]);
 		break;
 	case LANE_SECTION_TRANSACTION:
 		info_obj_lane_tx(pip, v, pop, &lane->sections[type]);
@@ -461,7 +456,7 @@ info_obj_lanes(struct pmem_info *pip, int v,
 
 			/* For -R check print lane only if needs recovery */
 			if (pip->args.obj.lanes_recovery &&
-				!lane_need_recovery(pip, &lanes[i]))
+				!lane_need_recovery(&lanes[i]))
 				continue;
 
 			outv_title(v, "Lane", "%d", i);
@@ -575,7 +570,7 @@ info_obj_heap(struct pmem_info *pip, int v,
  */
 static void
 info_obj_zone_hdr(struct pmem_info *pip, int v, struct pmemobjpool *pop,
-		size_t i, struct zone_header *zone)
+		struct zone_header *zone)
 {
 	outv_hexdump(v && pip->args.vhdrdump, zone, sizeof (*zone),
 			PTR_TO_OFF(pop, zone), 1);
@@ -674,7 +669,7 @@ info_obj_chunk_hdr(struct pmem_info *pip, int v, struct pmemobjpool *pop,
  * info_obj_zone_chunks -- print chunk headers from specified zone
  */
 static void
-info_obj_zone_chunks(struct pmem_info *pip, int v, struct pmemobjpool *pop,
+info_obj_zone_chunks(struct pmem_info *pip, struct pmemobjpool *pop,
 		struct zone *zone, struct pmem_obj_zone_stats *stats)
 {
 	uint64_t c = 0;
@@ -769,12 +764,10 @@ info_obj_zones_chunks(struct pmem_info *pip, struct pmemobjpool *pop)
 
 			info_obj_zone_hdr(pip, pip->args.obj.vheap &&
 					pip->args.obj.vzonehdr,
-					pop, i, &zone->header);
+					pop, &zone->header);
 
 			out_indent(1);
-			info_obj_zone_chunks(pip, pip->args.obj.vheap &&
-					pip->args.obj.vchunkhdr,
-					pop, zone,
+			info_obj_zone_chunks(pip, pop, zone,
 					&pip->obj.stats.zone_stats[i]);
 			out_indent(-1);
 		}

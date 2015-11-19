@@ -403,8 +403,7 @@ info_btt_info(struct pmem_info *pip, int v, struct btt_info *infop)
  * info_btt_layout -- print information about BTT layout
  */
 static int
-info_btt_layout(struct pmem_info *pip, struct pmemblk *pbp,
-		off_t btt_off)
+info_btt_layout(struct pmem_info *pip, off_t btt_off)
 {
 	int ret = 0;
 
@@ -546,7 +545,7 @@ pmempool_info_blk(struct pmem_info *pip)
 	info_blk_descriptor(pip, VERBOSE_DEFAULT, pbp);
 
 	ssize_t btt_off = (char *)pbp->data - (char *)pbp->addr;
-	ret = info_btt_layout(pip, pbp, btt_off);
+	ret = info_btt_layout(pip, btt_off);
 
 	free(pbp);
 
