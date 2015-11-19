@@ -1901,7 +1901,7 @@ btt_check(struct btt *bttp)
 
 	/* for each arena... */
 	struct arena *arenap = bttp->arenas;
-	for (int i = 0; i < bttp->narena; i++) {
+	for (int i = 0; i < bttp->narena; i++, arenap++) {
 		/*
 		 * Perform the consistency checks for the arena.
 		 */
