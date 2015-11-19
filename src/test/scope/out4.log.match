@@ -32,7 +32,8 @@ pmemobj_mutex_zero
 pmemobj_next
 pmemobj_open
 pmemobj_persist
-pmemobj_pool
+pmemobj_pool_by_oid
+pmemobj_pool_by_ptr
 pmemobj_realloc
 pmemobj_root
 pmemobj_root_construct
@@ -97,7 +98,8 @@ pmemobj_mutex_zero
 pmemobj_next
 pmemobj_open
 pmemobj_persist
-pmemobj_pool
+pmemobj_pool_by_oid
+pmemobj_pool_by_ptr
 pmemobj_realloc
 pmemobj_root
 pmemobj_root_construct
@@ -162,7 +164,8 @@ pmemobj_mutex_zero
 pmemobj_next
 pmemobj_open
 pmemobj_persist
-pmemobj_pool
+pmemobj_pool_by_oid
+pmemobj_pool_by_ptr
 pmemobj_realloc
 pmemobj_root
 pmemobj_root_construct
@@ -227,7 +230,8 @@ pmemobj_mutex_zero
 pmemobj_next
 pmemobj_open
 pmemobj_persist
-pmemobj_pool
+pmemobj_pool_by_oid
+pmemobj_pool_by_ptr
 pmemobj_realloc
 pmemobj_root
 pmemobj_root_construct
