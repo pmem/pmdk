@@ -676,8 +676,7 @@ pmempool_check_supported(pmem_pool_type_t type)
  * pmempool_check_pool_hdr_gen -- generate pool hdr values
  */
 static check_result_t
-pmempool_check_pool_hdr_gen(struct pmempool_check *pcp, struct pool_hdr *hdrp,
-		int regenerate_uuids)
+pmempool_check_pool_hdr_gen(struct pmempool_check *pcp, struct pool_hdr *hdrp)
 {
 	if (hdrp->crtime > pcp->pfile->mtime) {
 		outv(1, "pool_hdr.crtime is not valid\n");
@@ -1126,7 +1125,7 @@ pmempool_check_pool_hdr_single(struct pmempool_check *pcp,
 
 	util_convert2h_pool_hdr(&hdr);
 
-	check_result_t ret_gen = pmempool_check_pool_hdr_gen(pcp, &hdr, 0);
+	check_result_t ret_gen = pmempool_check_pool_hdr_gen(pcp, &hdr);
 	if (ret_gen == CHECK_RESULT_REPAIRED)
 		goto out_repaired;
 
@@ -1681,7 +1680,7 @@ pmempool_check_btt_info(struct pmempool_check *pcp)
  * pmempool_check_check_flog -- return valid flog entry
  */
 static struct btt_flog *
-pmempool_check_check_flog(struct arena *arenap, struct btt_flog *flog_alpha,
+pmempool_check_check_flog(struct btt_flog *flog_alpha,
 		struct btt_flog *flog_beta)
 {
 	struct btt_flog *ret = NULL;
@@ -1925,7 +1924,7 @@ pmempool_check_arena_map_flog(struct pmempool_check *pcp,
 		 * by checking sequence number.
 		 */
 		struct btt_flog *flog_cur =
-			pmempool_check_check_flog(arenap, flog_alpha,
+			pmempool_check_check_flog(flog_alpha,
 					flog_beta);
 
 		/* insert invalid and duplicated indexes to list */
