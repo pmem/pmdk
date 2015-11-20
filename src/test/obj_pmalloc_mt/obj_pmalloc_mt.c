@@ -40,7 +40,7 @@
 #include "unittest.h"
 
 #define	THREADS 32
-#define	OPS_PER_THREAD 10000
+#define	OPS_PER_THREAD 1000
 #define	ALLOC_SIZE 100
 #define	REALLOC_SIZE (ALLOC_SIZE * 3)
 #define	FRAGMENTATION 3

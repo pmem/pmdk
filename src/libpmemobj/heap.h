@@ -60,7 +60,6 @@ struct bucket *heap_get_chunk_bucket(PMEMobjpool *pop,
 struct bucket *heap_get_auxiliary_bucket(PMEMobjpool *pop, size_t size);
 void heap_drain_to_auxiliary(PMEMobjpool *pop, struct bucket *auxb,
 	uint32_t size_idx);
-struct bucket *heap_get_default_bucket(PMEMobjpool *pop);
 void *heap_get_block_data(PMEMobjpool *pop, struct memory_block m);
 void *heap_get_block_header(PMEMobjpool *pop, struct memory_block m,
 	enum heap_op op, uint64_t *op_result);
