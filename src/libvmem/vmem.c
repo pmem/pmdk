@@ -247,7 +247,13 @@ vmem_delete(VMEM *vmp)
 {
 	LOG(3, "vmp %p", vmp);
 
-	je_vmem_pool_delete((pool_t *)((uintptr_t)vmp + Header_size));
+	int ret = je_vmem_pool_delete((pool_t *)((uintptr_t)vmp + Header_size));
+	if (ret != 0) {
+		ERR("invalid pool handle: %p", vmp);
+		errno = EINVAL;
+		return;
+	}
+
 	util_range_rw(vmp->addr, sizeof (struct pool_hdr));
 
 	if (vmp->caller_mapped == 0)

@@ -276,7 +276,9 @@ huge_salloc(const void *ptr)
 	size_t ret = 0;
 	int i;
 	extent_node_t *node, key;
-	for (i = 0; i < POOLS_MAX; ++i) {
+
+	malloc_mutex_lock(&pools_lock);
+	for (i = 0; i < npools; ++i) {
 		pool_t *pool = pools[i];
 		if (pool == NULL)
 			continue;
@@ -293,6 +295,7 @@ huge_salloc(const void *ptr)
 			break;
 	}
 
+	malloc_mutex_unlock(&pools_lock);
 	return (ret);
 }
 
@@ -320,7 +323,8 @@ huge_prof_ctx_get(const void *ptr)
 	int i;
 	extent_node_t *node, key;
 
-	for (i = 0; i < POOLS_MAX; ++i) {
+	malloc_mutex_lock(&pools_lock);
+	for (i = 0; i < npools; ++i) {
 		pool_t *pool = pools[i];
 		if (pool == NULL)
 			continue;
@@ -336,6 +340,7 @@ huge_prof_ctx_get(const void *ptr)
 		if (ret != NULL)
 			break;
 	}
+	malloc_mutex_unlock(&pools_lock);
 
 	return (ret);
 }
@@ -346,7 +351,8 @@ huge_prof_ctx_set(const void *ptr, prof_ctx_t *ctx)
 	extent_node_t *node, key;
 	int i;
 
-	for (i = 0; i < POOLS_MAX; ++i) {
+	malloc_mutex_lock(&pools_lock);
+	for (i = 0; i < npools; ++i) {
 		pool_t *pool = pools[i];
 		if (pool == NULL)
 			continue;
@@ -363,6 +369,7 @@ huge_prof_ctx_set(const void *ptr, prof_ctx_t *ctx)
 		if (node != NULL)
 			break;
 	}
+	malloc_mutex_unlock(&pools_lock);
 }
 
 bool

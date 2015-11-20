@@ -43,7 +43,7 @@
 
 static int custom_allocs;
 static int custom_alloc_calls;
-static int expect_create_pool;
+static int expect_malloc;
 
 /*
  * malloc_null -- custom malloc function with error
@@ -133,28 +133,26 @@ pool_test(const char *dir)
 		vmp = vmem_create_in_region(mem_pool, VMEM_MIN_POOL);
 	}
 
-	if (expect_create_pool == 0) {
-		ASSERTeq(vmp, NULL);
-		DONE(NULL);
-	} else {
-		if (vmp == NULL) {
-			if (dir == NULL) {
-				FATAL("!vmem_create_in_region");
-			} else {
-				FATAL("!vmem_create");
-			}
+	if (vmp == NULL) {
+		if (dir == NULL) {
+			FATAL("!vmem_create_in_region");
+		} else {
+			FATAL("!vmem_create");
 		}
 	}
 
 	char *test = vmem_malloc(vmp, strlen(TEST_STRING_VALUE) + 1);
-	ASSERTne(test, NULL);
 
-	strcpy(test, TEST_STRING_VALUE);
-	ASSERTeq(strcmp(test, TEST_STRING_VALUE), 0);
+	if (expect_malloc == 0) {
+		ASSERTeq(test, NULL);
+	} else {
+		strcpy(test, TEST_STRING_VALUE);
+		ASSERTeq(strcmp(test, TEST_STRING_VALUE), 0);
 
-	ASSERT(vmem_malloc_usable_size(vmp, test) > 0);
+		ASSERT(vmem_malloc_usable_size(vmp, test) > 0);
 
-	vmem_free(vmp, test);
+		vmem_free(vmp, test);
+	}
 
 	vmem_delete(vmp);
 }
@@ -173,13 +171,13 @@ main(int argc, char *argv[])
 		case '0': {
 			/* use default allocator */
 			expect_custom_alloc = 0;
-			expect_create_pool = 1;
+			expect_malloc = 1;
 			break;
 		}
 		case '1': {
 			/* error in custom malloc function */
 			expect_custom_alloc = 1;
-			expect_create_pool = 0;
+			expect_malloc = 0;
 			vmem_set_funcs(malloc_null, free_custom,
 				realloc_custom, strdup_custom, NULL);
 			break;
@@ -187,7 +185,7 @@ main(int argc, char *argv[])
 		case '2': {
 			/* use custom alloc functions */
 			expect_custom_alloc = 1;
-			expect_create_pool = 1;
+			expect_malloc = 1;
 			vmem_set_funcs(malloc_custom, free_custom,
 				realloc_custom, strdup_custom, NULL);
 			break;

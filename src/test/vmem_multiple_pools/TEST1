@@ -32,10 +32,10 @@
 #
 
 #
-# src/test/vmem_multiple_pools/TEST0 -- unit test for vmem_multiple_pools
+# src/test/vmem_multiple_pools/TEST1 -- unit test for vmem_multiple_pools
 #
-export UNITTEST_NAME=vmem_multiple_pools/TEST0
-export UNITTEST_NUM=0
+export UNITTEST_NAME=vmem_multiple_pools/TEST1
+export UNITTEST_NUM=1
 
 # standard unit test setup
 . ../unittest/unittest.sh
@@ -45,7 +45,7 @@ require_build_type debug nondebug
 
 setup
 
-expect_normal_exit ./vmem_multiple_pools$EXESUFFIX $DIR 128 1
+expect_normal_exit ./vmem_multiple_pools$EXESUFFIX $DIR 16 16
 
 check
 

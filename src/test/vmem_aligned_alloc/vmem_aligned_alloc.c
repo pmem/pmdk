@@ -127,7 +127,6 @@ main(int argc, char *argv[])
 	/* test with address alignment from 2B to 4MB */
 	for (alignment = 2; alignment <= 4 * 1024 * 1024; alignment *= 2) {
 
-		custom_alloc_calls = 0;
 		if (dir == NULL) {
 			vmp = vmem_create_in_region(mem_pool,
 				VMEM_MIN_POOL);
@@ -170,12 +169,11 @@ main(int argc, char *argv[])
 		}
 
 		vmem_delete(vmp);
-
-		/* check memory leaks */
-		ASSERTne(custom_alloc_calls, 0);
-		ASSERTeq(custom_allocs, 0);
 	}
 
+	/* check memory leaks */
+	ASSERTne(custom_alloc_calls, 0);
+	ASSERTeq(custom_allocs, 0);
 
 	DONE(NULL);
 }

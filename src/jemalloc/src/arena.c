@@ -1698,6 +1698,9 @@ arena_malloc_small(arena_t *arena, size_t size, bool zero)
 	arena_run_t *run;
 	size_t binind;
 
+	if (arena == NULL)
+		return NULL;
+
 	binind = small_size2bin(size);
 	assert(binind < NBINS);
 	bin = &arena->bins[binind];
@@ -1749,6 +1752,9 @@ arena_malloc_large(arena_t *arena, size_t size, bool zero)
 {
 	void *ret;
 	UNUSED bool idump;
+
+	if (arena == NULL)
+		return NULL;
 
 	/* Large allocation. */
 	size = PAGE_CEILING(size);
