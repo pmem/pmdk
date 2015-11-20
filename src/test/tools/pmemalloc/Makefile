@@ -28,38 +28,18 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# Makefile -- top Makefile for pmempool
+# Makefile -- Makefile for pmemalloc tool
 #
 
-TOP = ../../..
-vpath %.c $(TOP)/src/common
-vpath %.c $(TOP)/src/libpmemblk
+TOP = ../../../..
 
-TARGET = pmempool
+TARGET = pmemalloc
 
-OBJS = pmempool.o info.o info_blk.o info_log.o info_obj.o create.o dump.o\
-       common.o output.o util.o check.o btt.o set.o rm.o
+OBJS = pmemalloc.o
 
 LIBPMEM=y
-LIBPMEMBLK=y
 LIBPMEMOBJ=y
-LIBPMEMLOG=y
 
-INCS += -I$(TOP)/src/common
-INCS += -I$(TOP)/src/libpmemlog
-INCS += -I$(TOP)/src/libpmemblk
-INCS += -I$(TOP)/src/libpmemobj
+CFLAGS += -I$(TOP)/src/libpmemobj
 
-common.o: CFLAGS += -D__USE_UNIX98
-
-MANPAGES = $(TOP)/doc/pmempool.1\
-           $(TOP)/doc/pmempool-info.1\
-	   $(TOP)/doc/pmempool-create.1\
-	   $(TOP)/doc/pmempool-check.1\
-	   $(TOP)/doc/pmempool-dump.1
-
-BASH_COMP_FILES = pmempool.sh
-
-include ../Makefile.inc
-
-.PHONY: test check
+include $(TOP)/src/tools/Makefile.inc

@@ -179,25 +179,27 @@ pcheck: $(TSTCHECKS)
 
 test: all
 
-../pmemspoil/pmemspoil:
-	$(MAKE) -C ../pmemspoil all
+TOOLS=../tools
+
+$(TOOLS)/pmemspoil/pmemspoil:
+	$(MAKE) -C $(TOOLS)/pmemspoil all
 
 ifeq ($(USE_PMEMSPOIL), y)
-all: ../pmemspoil/pmemspoil
+all: $(TOOLS)/pmemspoil/pmemspoil
 endif
 
-../pmemwrite/pmemwrite:
-	$(MAKE) -C ../pmemwrite all
+$(TOOLS)/pmemwrite/pmemwrite:
+	$(MAKE) -C $(TOOLS)/pmemwrite all
 
 ifeq ($(USE_PMEMWRITE), y)
-all: ../pmemwrite/pmemwrite
+all: $(TOOLS)/pmemwrite/pmemwrite
 endif
 
-../pmemalloc/pmemalloc:
-	$(MAKE) -C ../pmemalloc all
+$(TOOLS)/pmemalloc/pmemalloc:
+	$(MAKE) -C $(TOOLS)/pmemalloc all
 
 ifeq ($(USE_PMEMALLOC), y)
-all: ../pmemalloc/pmemalloc
+all: $(TOOLS)/pmemalloc/pmemalloc
 endif
 
 .PHONY: all check clean clobber cstyle pcheck test $(TSTCHECKS)

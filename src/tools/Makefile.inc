@@ -34,9 +34,8 @@
 TOP := $(dir $(lastword $(MAKEFILE_LIST)))/../..
 include $(TOP)/src/common.inc
 
-INCS += -I. -I..
-INCS += -I../..
-INCS += -I../../include
+INCS += -I.
+INCS += -I$(TOP)/src/include
 CFLAGS += -std=gnu99
 CFLAGS += -Wall
 CFLAGS += -Werror
@@ -58,16 +57,17 @@ ifeq ($(call check_flag, -Wmissing-variable-declarations), y)
 CFLAGS += -Wmissing-variable-declarations
 endif
 
-LDFLAGS += -Wl,-z,relro -Wl,--warn-common -Wl,--fatal-warnings $(EXTRA_LDFLAGS) -L../../nondebug
+LDFLAGS += -Wl,-z,relro -Wl,--warn-common -Wl,--fatal-warnings $(EXTRA_LDFLAGS) -L$(TOP)/src/nondebug
 TOOLSDIR=$(prefix)/bin
 TARGET_DIR=$(DESTDIR)$(TOOLSDIR)
 BASH_COMP_FILES ?=
 BASH_COMP_DIR =$(DESTDIR)/etc/bash_completion.d/
+CSTYLE=$(TOP)/utils/cstyle
 
 TARGET_STATIC_NONDEBUG=$(TARGET).static-nondebug
 TARGET_STATIC_DEBUG=$(TARGET).static-debug
 
-LIBSDIR=../..
+LIBSDIR=$(TOP)/src
 
 LIBS += -pthread -luuid
 

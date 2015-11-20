@@ -28,18 +28,27 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# Makefile -- Makefile for pmemalloc tool
+# Makefile -- Makefile for pmemspoil tool
 #
 
-CSTYLE = ../../../utils/cstyle
+TOP=../../../..
+vpath %.c $(TOP)/src/tools/pmempool
+vpath %.c $(TOP)/src/common
+CSTYLE = $(TOP)/utils/cstyle
 
-TARGET = pmemalloc
+TARGET = pmemspoil
 
-OBJS = pmemalloc.o
+OBJS = common.o output.o util.o set.o spoil.o
 
 LIBPMEM=y
-LIBPMEMOBJ=y
 
-CFLAGS += -I../../libpmemobj
+LDFLAGS += -L$(TOP)/src/nondebug/
+CFLAGS += -I$(TOP)/src/tools/pmempool
+CFLAGS += -I$(TOP)/src/common
+CFLAGS += -I$(TOP)/src/libpmemlog
+CFLAGS += -I$(TOP)/src/libpmemblk
+CFLAGS += -I$(TOP)/src/libpmemobj
 
-include ../../tools/Makefile.inc
+CLEAN_FILES = *.log
+
+include $(TOP)/src/tools/Makefile.inc
