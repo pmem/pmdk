@@ -175,6 +175,7 @@ int main(int argc, const char *argv[]) {
 		map_delete(mapc, &D_RW(root)->map);
 
 	/* insert random items in a transaction */
+	int aborted = 0;
 	TX_BEGIN(pop) {
 		map_new(mapc, &D_RW(root)->map, NULL);
 
@@ -185,8 +186,12 @@ int main(int argc, const char *argv[]) {
 		}
 	} TX_ONABORT {
 		perror("transaction aborted\n");
-		return -1;
+		map_ctx_free(mapc);
+		aborted = 1;
 	} TX_END
+
+	if (aborted)
+		return -1;
 
 	/* count the items */
 	map_foreach(mapc, D_RW(root)->map, get_keys, NULL);
@@ -205,6 +210,7 @@ int main(int argc, const char *argv[]) {
 	map_foreach(mapc, D_RW(root)->map, dec_keys, NULL);
 	assert(old_nkeys == nkeys);
 
+	map_ctx_free(mapc);
 	pmemobj_close(pop);
 
 	return 0;
