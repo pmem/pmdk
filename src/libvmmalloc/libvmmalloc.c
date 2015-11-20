@@ -303,6 +303,11 @@ malloc_usable_size(void *ptr)
 }
 
 #if (defined(__GLIBC__) && !defined(__UCLIBC__))
+
+#ifndef __MALLOC_HOOK_VOLATILE
+#define	__MALLOC_HOOK_VOLATILE
+#endif
+
 /*
  * Interpose malloc hooks in glibc.  Even if the application uses dlopen
  * with RTLD_DEEPBIND flag, all the references to libc's malloc(3) functions
