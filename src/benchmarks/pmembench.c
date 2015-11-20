@@ -347,10 +347,18 @@ pmembench_run_worker(struct benchmark *bench, struct benchmark_args *args,
 	uint64_t ops = args->n_ops_per_thread;
 
 	for (i = 0; i < ops; i++) {
+		if (bench->info->op_init) {
+			if (bench->info->op_init(bench, &winfo->opinfo[i]))
+				return -1;
+		}
 		benchmark_time_get(&winfo->opinfo[i].t_start);
 		if (bench->info->operation(bench, &winfo->opinfo[i]))
 			return -1;
 		benchmark_time_get(&winfo->opinfo[i].t_end);
+		if (bench->info->op_exit) {
+			if (bench->info->op_exit(bench, &winfo->opinfo[i]))
+				return -1;
+		}
 	}
 
 	return 0;

@@ -271,6 +271,8 @@ struct benchmark_info
 	int (*free_worker)(struct benchmark *bench, struct benchmark_args *args,
 			struct worker_info *worker);
 	int (*operation)(struct benchmark *bench, struct operation_info *info);
+	int (*op_init)(struct benchmark *bench, struct operation_info *info);
+	int (*op_exit)(struct benchmark *bench, struct operation_info *info);
 	bool multithread;
 	bool multiops;
 	bool measure_time;
