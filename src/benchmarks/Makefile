@@ -70,7 +70,8 @@ SRC=pmembench.c\
     obj_pmalloc.c\
     obj_locks.c\
     obj_lanes.c\
-    map_bench.c
+    map_bench.c\
+    pmemobj_tx.c
 
 # Configuration file without the .cfg extension
 CONFIGS=pmembench_log\
@@ -82,7 +83,8 @@ CONFIGS=pmembench_log\
 	pmembench_obj_gen\
 	pmembench_obj_locks\
 	pmembench_obj_lanes\
-	pmembench_map
+	pmembench_map\
+	pmembench_tx
 
 OBJS=$(SRC:.c=.o)
 LDFLAGS = -L$(LIBS_PATH)
