@@ -30,6 +30,9 @@ huge_palloc(arena_t *arena, size_t size, size_t alignment, bool zero)
 	 */
 	is_zeroed = zero;
 	arena = choose_arena(arena);
+	if (arena == NULL)
+		return (NULL);
+
 	pool = arena->pool;
 
 	/* Allocate an extent node with which to track the chunk. */

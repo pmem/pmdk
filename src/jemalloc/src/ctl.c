@@ -1292,7 +1292,12 @@ thread_arena_ctl(const size_t *mib, size_t miblen, void *oldp, size_t *oldlenp,
 	}
 
 	malloc_mutex_lock(&ctl_mtx);
-	newind = oldind = choose_arena(&dummy)->ind;
+	arena_t *arena = choose_arena(&dummy);
+	if (arena == NULL) {
+		ret = EFAULT;
+		goto label_return;
+	}
+	newind = oldind = arena->ind;
 	WRITE(newind, unsigned);
 	READ(oldind, unsigned);
 	if (newind != oldind) {
