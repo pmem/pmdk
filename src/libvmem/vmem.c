@@ -52,7 +52,7 @@
 /*
  * private to this file...
  */
-static unsigned Header_size;
+static size_t Header_size;
 
 /*
  * print_jemalloc_messages -- custom print function, for jemalloc

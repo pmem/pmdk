@@ -74,19 +74,19 @@
 
 struct bucket {
 	size_t unit_size;
-	int unit_max;
+	unsigned unit_max;
 	struct ctree *tree;
 	pthread_mutex_t lock;
 	uint64_t bitmap_lastval;
-	int bitmap_nval;
-	int bitmap_nallocs;
+	unsigned bitmap_nval;
+	unsigned bitmap_nallocs;
 };
 
 /*
  * bucket_new -- allocates and initializes bucket instance
  */
 struct bucket *
-bucket_new(size_t unit_size, int unit_max)
+bucket_new(size_t unit_size, unsigned unit_max)
 {
 	ASSERT(unit_size > 0);
 
@@ -107,16 +107,19 @@ bucket_new(size_t unit_size, int unit_max)
 	b->unit_max = unit_max;
 
 	if (bucket_is_small(b)) {
-		b->bitmap_nallocs = RUNSIZE / unit_size;
+		ASSERT(RUNSIZE / unit_size <= UINT32_MAX);
+		b->bitmap_nallocs = (unsigned)(RUNSIZE / unit_size);
 
 		ASSERT(b->bitmap_nallocs <= RUN_BITMAP_SIZE);
+		unsigned unused_bits = RUN_BITMAP_SIZE - b->bitmap_nallocs;
 
-		int unused_bits = RUN_BITMAP_SIZE - b->bitmap_nallocs;
-		int unused_values = unused_bits / BITS_PER_VALUE;
+		unsigned unused_values = unused_bits / BITS_PER_VALUE;
+
+		ASSERT(MAX_BITMAP_VALUES >= unused_values);
 		b->bitmap_nval = MAX_BITMAP_VALUES - unused_values;
-		unused_bits -= (unused_values * BITS_PER_VALUE);
 
-		ASSERT(unused_bits >= 0);
+		ASSERT(unused_bits >= unused_values * BITS_PER_VALUE);
+		unused_bits -= unused_values * BITS_PER_VALUE;
 
 		b->bitmap_lastval = unused_bits ?
 			(((1ULL << unused_bits) - 1ULL) <<
@@ -153,7 +156,7 @@ bucket_delete(struct bucket *b)
 /*
  * bucket_bitmap_nallocs -- returns maximum number of allocations per run
  */
-int
+unsigned
 bucket_bitmap_nallocs(struct bucket *b)
 {
 	return b->bitmap_nallocs;
@@ -162,7 +165,7 @@ bucket_bitmap_nallocs(struct bucket *b)
 /*
  * bucket_bitmap_nval -- returns maximum number of bitmap u64 values
  */
-int
+unsigned
 bucket_bitmap_nval(struct bucket *b)
 {
 	return b->bitmap_nval;
@@ -189,7 +192,7 @@ bucket_unit_size(struct bucket *b)
 /*
  * bucket_unit_max -- returns unit max of a bucket
  */
-size_t
+unsigned
 bucket_unit_max(struct bucket *b)
 {
 	return b->unit_max;
@@ -211,7 +214,9 @@ uint32_t
 bucket_calc_units(struct bucket *b, size_t size)
 {
 	ASSERT(size != 0);
-	return ((size - 1) / b->unit_size) + 1;
+	size = ((size - 1) / b->unit_size) + 1;
+	ASSERT(size <= UINT32_MAX);
+	return (uint32_t)size;
 }
 
 /*

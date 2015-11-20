@@ -91,19 +91,16 @@ static const char *parser_errstr[PARSER_MAX_CODE] = {
  * util_map_part -- (internal) map a header of a pool set
  */
 static int
-util_map_hdr(struct pool_set_part *part, size_t size,
-		off_t offset, int flags)
+util_map_hdr(struct pool_set_part *part, size_t size, int flags)
 {
-	LOG(3, "part %p size %zu offset %ju flags %d",
-		part, size, offset, flags);
+	LOG(3, "part %p size %zu flags %d", part, size, flags);
 
 	ASSERTne(size, 0);
 	ASSERTeq(size % Pagesize, 0);
-	ASSERTeq(offset % Pagesize, 0);
 
 	part->hdrsize = size;
 	part->hdr = mmap(NULL, part->hdrsize,
-		PROT_READ|PROT_WRITE, flags, part->fd, offset);
+		PROT_READ|PROT_WRITE, flags, part->fd, 0);
 
 	if (part->hdr == MAP_FAILED) {
 		ERR("!mmap: %s", part->path);
@@ -111,7 +108,7 @@ util_map_hdr(struct pool_set_part *part, size_t size,
 	}
 
 	VALGRIND_REGISTER_PMEM_MAPPING(part->hdr, part->hdrsize);
-	VALGRIND_REGISTER_PMEM_FILE(part->fd, part->hdr, part->hdrsize, offset);
+	VALGRIND_REGISTER_PMEM_FILE(part->fd, part->hdr, part->hdrsize, 0);
 
 	return 0;
 }
@@ -141,20 +138,21 @@ util_unmap_hdr(struct pool_set_part *part)
  */
 static int
 util_map_part(struct pool_set_part *part, void *addr, size_t size,
-	off_t offset, int flags)
+	size_t offset, int flags)
 {
-	LOG(3, "part %p addr %p size %zu offset %ju flags %d",
+	LOG(3, "part %p addr %p size %zu offset %zu flags %d",
 		part, addr, size, offset, flags);
 
 	ASSERTeq((uintptr_t)addr % Pagesize, 0);
 	ASSERTeq(offset % Pagesize, 0);
 	ASSERTeq(size % Pagesize, 0);
+	ASSERT(((off_t)offset) >= 0);
 
 	part->size = size ? size :
 		(part->filesize & ~(Pagesize - 1)) - offset;
 
 	part->addr = mmap(addr, part->size,
-		PROT_READ|PROT_WRITE, flags, part->fd, offset);
+		PROT_READ|PROT_WRITE, flags, part->fd, (off_t)offset);
 
 	if (part->addr == MAP_FAILED) {
 		ERR("!mmap: %s", part->path);
@@ -264,10 +262,11 @@ util_poolset_chmod(struct pool_set *set, mode_t mode)
 				return -1;
 			}
 
-			if (st.st_mode & ~S_IFMT) {
+			if (st.st_mode & ~(unsigned)S_IFMT) {
 				LOG(1, "file permissions changed during pool "
 					"initialization, file: %s (%o)",
-					part->path, st.st_mode & ~S_IFMT);
+					part->path,
+					st.st_mode & ~(unsigned)S_IFMT);
 			}
 
 			if (fchmod(part->fd, mode)) {
@@ -757,7 +756,11 @@ util_poolset_create(struct pool_set **setp, const char *path, size_t poolsize,
 		return -1;
 
 	char signature[POOLSET_HDR_SIG_LEN];
-	ret = read(fd, signature, POOLSET_HDR_SIG_LEN);
+	/*
+	 * read returns ssize_t, but we know it will return value between -1
+	 * and POOLSET_HDR_SIG_LEN (11), so we can safely cast it to int
+	 */
+	ret = (int)read(fd, signature, POOLSET_HDR_SIG_LEN);
 	if (ret < 0) {
 		ERR("!read %d", fd);
 		goto err;
@@ -825,7 +828,11 @@ util_poolset_open(struct pool_set **setp, const char *path, size_t minsize)
 		return -1;
 
 	char signature[POOLSET_HDR_SIG_LEN];
-	ret = read(fd, signature, POOLSET_HDR_SIG_LEN);
+	/*
+	 * read returns ssize_t, but we know it will return value between -1
+	 * and POOLSET_HDR_SIG_LEN (11), so we can safely cast it to int
+	 */
+	ret = (int)read(fd, signature, POOLSET_HDR_SIG_LEN);
 	if (ret < 0) {
 		ERR("!read %d", fd);
 		goto err;
@@ -1085,8 +1092,7 @@ util_replica_create(struct pool_set *set, unsigned repidx, int flags,
 
 	/* map all headers - don't care about the address */
 	for (unsigned p = 0; p < rep->nparts; p++) {
-		if (util_map_hdr(&rep->part[p],
-				hdrsize, 0, flags) != 0) {
+		if (util_map_hdr(&rep->part[p], hdrsize, flags) != 0) {
 			LOG(2, "header mapping failed - part #%d", p);
 			goto err;
 		}
@@ -1266,8 +1272,7 @@ util_replica_open(struct pool_set *set, unsigned repidx, int flags,
 
 	/* map all headers - don't care about the address */
 	for (unsigned p = 0; p < rep->nparts; p++) {
-		if (util_map_hdr(&rep->part[p],
-				hdrsize, 0, flags) != 0) {
+		if (util_map_hdr(&rep->part[p], hdrsize, flags) != 0) {
 			LOG(2, "header mapping failed - part #%d", p);
 			goto err;
 		}

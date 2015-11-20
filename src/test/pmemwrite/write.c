@@ -127,14 +127,14 @@ pmemwrite_blk(struct pmemwrite *pwp)
 	}
 
 	for (i = 0; i < pwp->nargs; i++) {
-		uint64_t blockno;
+		int64_t blockno;
 		char *buff = NULL;
 		char flag;
 		/* <blockno>:w:<string> - write string to <blockno> */
-		if (sscanf(pwp->args[i], "%" SCNu64 ":w:%m[^:]",
+		if (sscanf(pwp->args[i], "%" SCNi64 ":w:%m[^:]",
 					&blockno, &buff) == 2) {
 			memset(blk, 0, blksize);
-			int bufflen = strlen(buff);
+			size_t bufflen = strlen(buff);
 			if (bufflen > blksize) {
 				outv_err("String is longer than block size. "
 					"Truncating.\n");
@@ -146,7 +146,7 @@ pmemwrite_blk(struct pmemwrite *pwp)
 			if (ret)
 				goto end;
 		/* <blockno>:<flag> - set <flag> flag on <blockno> */
-		} else if (sscanf(pwp->args[i], "%" SCNu64 ":%c",
+		} else if (sscanf(pwp->args[i], "%" SCNi64 ":%c",
 					&blockno, &flag) == 2) {
 			switch (flag) {
 			case 'z':

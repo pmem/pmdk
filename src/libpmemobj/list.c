@@ -49,7 +49,7 @@
 #define	NEXT_OFF (offsetof(struct list_entry, pe_next) + offsetof(PMEMoid, off))
 #define	OOB_ENTRY_OFF (offsetof(struct oob_header, oob))
 #define	OOB_ENTRY_OFF_REV \
-((ssize_t)offsetof(struct oob_header, oob) - OBJ_OOB_SIZE)
+((ssize_t)offsetof(struct oob_header, oob) - (ssize_t)OBJ_OOB_SIZE)
 
 /*
  * list_args_common -- common arguments for operations on list
@@ -240,6 +240,23 @@ list_update_head(PMEMobjpool *pop,
 }
 
 /*
+ * u64_add_offset -- (internal) add signed offset to unsigned integer and check
+ * for overflows
+ */
+static void
+u64_add_offset(uint64_t *value, ssize_t off)
+{
+	uint64_t prev = *value;
+	if (off >= 0) {
+		*value += (size_t)off;
+		ASSERT(*value >= prev); /* detect overflow */
+	} else {
+		*value -= (size_t)-off;
+		ASSERT(*value < prev);
+	}
+}
+
+/*
  * list_replace_item -- (internal) replace not-first element on a single list
  */
 static size_t
@@ -256,10 +273,11 @@ list_replace_item(PMEMobjpool *pop,
 	*prev_offset = args->entry_ptr->pe_prev.off;
 
 	/* modify prev->next and next->prev offsets */
-	uint64_t prev_next_off = args->entry_ptr->pe_prev.off +
-		args_common->pe_offset + NEXT_OFF;
-	uint64_t next_prev_off = args->entry_ptr->pe_next.off +
-		args_common->pe_offset + PREV_OFF;
+	uint64_t prev_next_off = args->entry_ptr->pe_prev.off + NEXT_OFF;
+	u64_add_offset(&prev_next_off, args_common->pe_offset);
+
+	uint64_t next_prev_off = args->entry_ptr->pe_next.off + PREV_OFF;
+	u64_add_offset(&next_prev_off, args_common->pe_offset);
 
 	redo_log_store(pop, redo, redo_index + 0, prev_next_off,
 			args_common->obj_doffset);
@@ -403,8 +421,10 @@ list_fill_entry_redo_log(PMEMobjpool *pop,
 	}
 
 	/* set current->next and current->prev using redo log */
-	uint64_t next_off_off = args->obj_doffset + args->pe_offset + NEXT_OFF;
-	uint64_t prev_off_off = args->obj_doffset + args->pe_offset + PREV_OFF;
+	uint64_t next_off_off = args->obj_doffset + NEXT_OFF;
+	uint64_t prev_off_off = args->obj_doffset + PREV_OFF;
+	u64_add_offset(&next_off_off, args->pe_offset);
+	u64_add_offset(&prev_off_off, args->pe_offset);
 
 	redo_log_store(pop, redo, redo_index + 0, next_off_off, next_offset);
 	redo_log_store(pop, redo, redo_index + 1, prev_off_off, prev_offset);
@@ -431,9 +451,11 @@ list_remove_single(PMEMobjpool *pop,
 	} else {
 		/* set next->prev = prev and prev->next = next */
 		uint64_t next_off = args->entry_ptr->pe_next.off;
-		uint64_t next_prev_off = next_off + args->pe_offset + PREV_OFF;
+		uint64_t next_prev_off = next_off + PREV_OFF;
+		u64_add_offset(&next_prev_off, args->pe_offset);
 		uint64_t prev_off = args->entry_ptr->pe_prev.off;
-		uint64_t prev_next_off = prev_off + args->pe_offset + NEXT_OFF;
+		uint64_t prev_next_off = prev_off + NEXT_OFF;
+		u64_add_offset(&prev_next_off, args->pe_offset);
 
 		redo_log_store(pop, redo, redo_index + 0,
 				next_prev_off, prev_off);
@@ -467,10 +489,11 @@ list_insert_before(PMEMobjpool *pop,
 	*prev_offset = args->dest_entry_ptr->pe_prev.off;
 
 	/* dest->prev = current and dest->prev->next = current */
-	uint64_t dest_prev_off = args->dest.off +
-		args_common->pe_offset + PREV_OFF;
+	uint64_t dest_prev_off = args->dest.off + PREV_OFF;
+	u64_add_offset(&dest_prev_off, args_common->pe_offset);
 	uint64_t dest_prev_next_off = args->dest_entry_ptr->pe_prev.off +
-		args_common->pe_offset + NEXT_OFF;
+					NEXT_OFF;
+	u64_add_offset(&dest_prev_next_off, args_common->pe_offset);
 
 	redo_log_store(pop, redo, redo_index + 0,
 			dest_prev_off, args_common->obj_doffset);
@@ -496,10 +519,11 @@ list_insert_after(PMEMobjpool *pop,
 	*prev_offset = args->dest.off;
 
 	/* dest->next = current and dest->next->prev = current */
-	uint64_t dest_next_off = args->dest.off +
-		args_common->pe_offset + NEXT_OFF;
+	uint64_t dest_next_off = args->dest.off + NEXT_OFF;
+	u64_add_offset(&dest_next_off, args_common->pe_offset);
 	uint64_t dest_next_prev_off = args->dest_entry_ptr->pe_next.off +
-		args_common->pe_offset + PREV_OFF;
+					PREV_OFF;
+	u64_add_offset(&dest_next_prev_off, args_common->pe_offset);
 
 	redo_log_store(pop, redo, redo_index + 0,
 			dest_next_off, args_common->obj_doffset);
@@ -644,10 +668,11 @@ list_realloc_replace(PMEMobjpool *pop,
 			.obj_doffset = obj_doffset,
 		};
 
+		ASSERT((ssize_t)pe_offset >= 0);
 		struct list_args_common args_common = {
 			.obj_doffset = new_obj_doffset,
 			.entry_ptr = new_entry_ptr,
-			.pe_offset = pe_offset,
+			.pe_offset = (ssize_t)pe_offset,
 		};
 
 		uint64_t next_offset;
@@ -765,6 +790,8 @@ list_insert_new(PMEMobjpool *pop, struct list_head *oob_head,
 	list_fill_entry_persist(pop, oob_entry_ptr, oob_next_off, oob_prev_off);
 
 	if (head) {
+		ASSERT((ssize_t)pe_offset >= 0);
+
 		dest = list_get_dest(pop, head, dest, pe_offset, before);
 
 		struct list_entry *entry_ptr =
@@ -785,7 +812,7 @@ list_insert_new(PMEMobjpool *pop, struct list_head *oob_head,
 		struct list_args_common args_common = {
 			.obj_doffset = obj_doffset,
 			.entry_ptr = entry_ptr,
-			.pe_offset = pe_offset,
+			.pe_offset = (ssize_t)pe_offset,
 		};
 
 		uint64_t next_offset;
@@ -814,7 +841,6 @@ list_insert_new(PMEMobjpool *pop, struct list_head *oob_head,
 	/* clear the obj_offset in lane section */
 	redo_log_store_last(pop, redo, redo_index, sec_off_off, 0);
 
-	ASSERT(redo_index <= REDO_NUM_ENTRIES);
 	redo_log_process(pop, redo, REDO_NUM_ENTRIES);
 
 	ret = 0;
@@ -882,6 +908,7 @@ list_insert(PMEMobjpool *pop,
 	struct redo_log *redo = section->redo;
 	size_t redo_index = 0;
 
+	ASSERT((ssize_t)pe_offset >= 0);
 	dest = list_get_dest(pop, head, dest, pe_offset, before);
 
 	struct list_entry *entry_ptr =
@@ -902,7 +929,7 @@ list_insert(PMEMobjpool *pop,
 	struct list_args_common args_common = {
 		.obj_doffset = oid.off,
 		.entry_ptr = entry_ptr,
-		.pe_offset = pe_offset,
+		.pe_offset = (ssize_t)pe_offset,
 	};
 
 	uint64_t next_offset;
@@ -918,7 +945,6 @@ list_insert(PMEMobjpool *pop,
 
 	redo_log_set_last(pop, redo, redo_index - 1);
 
-	ASSERT(redo_index <= REDO_NUM_ENTRIES);
 	redo_log_process(pop, redo, REDO_NUM_ENTRIES);
 
 	out_ret = pmemobj_mutex_unlock(pop, &head->lock);
@@ -1006,12 +1032,14 @@ list_remove_free(PMEMobjpool *pop, struct list_head *oob_head,
 	redo_index = list_remove_single(pop, redo, redo_index, &oob_args);
 
 	if (head) {
+		ASSERT((ssize_t)pe_offset >= 0);
+
 		struct list_entry *entry_ptr =
 			(struct list_entry *)OBJ_OFF_TO_PTR(pop,
 					obj_doffset + pe_offset);
 
 		struct list_args_remove args = {
-			.pe_offset = pe_offset,
+			.pe_offset = (ssize_t)pe_offset,
 			.head = head,
 			.entry_ptr = entry_ptr,
 			.obj_doffset = obj_doffset
@@ -1030,7 +1058,6 @@ list_remove_free(PMEMobjpool *pop, struct list_head *oob_head,
 
 	redo_log_store_last(pop, redo, redo_index, sec_off_off, obj_offset);
 
-	ASSERT(redo_index <= REDO_NUM_ENTRIES);
 	redo_log_process(pop, redo, REDO_NUM_ENTRIES);
 
 	if (head) {
@@ -1105,12 +1132,14 @@ list_remove(PMEMobjpool *pop,
 	struct redo_log *redo = section->redo;
 	size_t redo_index = 0;
 
+	ASSERT((ssize_t)pe_offset >= 0);
+
 	struct list_entry *entry_ptr =
 		(struct list_entry *)OBJ_OFF_TO_PTR(pop,
 				oid.off + pe_offset);
 
 	struct list_args_remove args = {
-		.pe_offset = pe_offset,
+		.pe_offset = (ssize_t)pe_offset,
 		.head = head,
 		.entry_ptr = entry_ptr,
 		.obj_doffset = oid.off,
@@ -1119,7 +1148,7 @@ list_remove(PMEMobjpool *pop,
 	struct list_args_common args_common = {
 		.obj_doffset = oid.off,
 		.entry_ptr = entry_ptr,
-		.pe_offset = pe_offset,
+		.pe_offset = (ssize_t)pe_offset,
 	};
 
 	/* remove element from user list */
@@ -1131,7 +1160,6 @@ list_remove(PMEMobjpool *pop,
 
 	redo_log_set_last(pop, redo, redo_index - 1);
 
-	ASSERT(redo_index <= REDO_NUM_ENTRIES);
 	redo_log_process(pop, redo, REDO_NUM_ENTRIES);
 
 	out_ret = pmemobj_mutex_unlock(pop, &head->lock);
@@ -1228,7 +1256,6 @@ list_move_oob(PMEMobjpool *pop,
 
 	redo_log_set_last(pop, redo, redo_index - 1);
 
-	ASSERT(redo_index <= REDO_NUM_ENTRIES);
 	redo_log_process(pop, redo, REDO_NUM_ENTRIES);
 
 	out_ret = list_mutexes_unlock(pop, head_new, head_old);
@@ -1308,8 +1335,9 @@ list_move(PMEMobjpool *pop,
 		(struct list_entry *)OBJ_OFF_TO_PTR(pop,
 				dest.off + pe_offset_new);
 
+	ASSERT((ssize_t)pe_offset_old >= 0);
 	struct list_args_remove args_remove = {
-		.pe_offset = pe_offset_old,
+		.pe_offset = (ssize_t)pe_offset_old,
 		.head = head_old,
 		.entry_ptr = entry_ptr_old,
 		.obj_doffset = oid.off,
@@ -1322,10 +1350,11 @@ list_move(PMEMobjpool *pop,
 		.before = before,
 	};
 
+	ASSERT((ssize_t)pe_offset_new >= 0);
 	struct list_args_common args_common = {
 		.obj_doffset = oid.off,
 		.entry_ptr = entry_ptr_new,
-		.pe_offset = pe_offset_new,
+		.pe_offset = (ssize_t)pe_offset_new,
 	};
 
 	uint64_t next_offset;
@@ -1347,7 +1376,6 @@ list_move(PMEMobjpool *pop,
 
 	redo_log_set_last(pop, redo, redo_index - 1);
 
-	ASSERT(redo_index <= REDO_NUM_ENTRIES);
 	redo_log_process(pop, redo, REDO_NUM_ENTRIES);
 
 	out_ret = list_mutexes_unlock(pop, head_new, head_old);
@@ -1558,7 +1586,6 @@ list_realloc(PMEMobjpool *pop, struct list_head *oob_head,
 		redo_log_store_last(pop, redo, redo_index,
 				sec_off_off, obj_offset);
 
-		ASSERT(redo_index <= REDO_NUM_ENTRIES);
 		redo_log_process(pop, redo, REDO_NUM_ENTRIES);
 
 		/* free the old object */
@@ -1810,7 +1837,6 @@ list_realloc_move(PMEMobjpool *pop, struct list_head *oob_head_old,
 
 	redo_log_set_last(pop, redo, redo_index - 1);
 
-	ASSERT(redo_index <= REDO_NUM_ENTRIES);
 	redo_log_process(pop, redo, REDO_NUM_ENTRIES);
 
 	if (!in_place) {

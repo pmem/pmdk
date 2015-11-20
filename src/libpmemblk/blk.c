@@ -58,9 +58,9 @@
  * lane_enter -- (internal) acquire a unique lane number
  */
 static int
-lane_enter(PMEMblkpool *pbp)
+lane_enter(PMEMblkpool *pbp, unsigned *lane)
 {
-	int mylane;
+	unsigned mylane;
 
 	mylane = __sync_fetch_and_add(&pbp->next_lane, 1) % pbp->nlane;
 
@@ -70,14 +70,16 @@ lane_enter(PMEMblkpool *pbp)
 		return -1;
 	}
 
-	return mylane;
+	*lane = mylane;
+
+	return 0;
 }
 
 /*
  * lane_exit -- (internal) drop lane lock
  */
 static void
-lane_exit(PMEMblkpool *pbp, int mylane)
+lane_exit(PMEMblkpool *pbp, unsigned mylane)
 {
 	int oerrno = errno;
 	if ((errno = pthread_mutex_unlock(&pbp->locks[mylane])))
@@ -92,16 +94,15 @@ lane_exit(PMEMblkpool *pbp, int mylane)
  * do I/O on the memory pool containing the BTT layout.
  */
 static int
-nsread(void *ns, int lane, void *buf, size_t count, off_t off)
+nsread(void *ns, unsigned lane, void *buf, size_t count, uint64_t off)
 {
 	struct pmemblk *pbp = (struct pmemblk *)ns;
 
-	LOG(13, "pbp %p lane %d count %zu off %lld",
-			pbp, lane, count, (long long)off);
+	LOG(13, "pbp %p lane %u count %zu off %ju", pbp, lane, count, off);
 
 	if (off + count > pbp->datasize) {
-		ERR("offset + count (%lld) past end of data area (%zu)",
-				(long long)off + count, pbp->datasize);
+		ERR("offset + count (%zu) past end of data area (%zu)",
+				off + count, pbp->datasize);
 		errno = EINVAL;
 		return -1;
 	}
@@ -118,16 +119,16 @@ nsread(void *ns, int lane, void *buf, size_t count, off_t off)
  * do I/O on the memory pool containing the BTT layout.
  */
 static int
-nswrite(void *ns, int lane, const void *buf, size_t count, off_t off)
+nswrite(void *ns, unsigned lane, const void *buf, size_t count,
+		uint64_t off)
 {
 	struct pmemblk *pbp = (struct pmemblk *)ns;
 
-	LOG(13, "pbp %p lane %d count %zu off %lld",
-			pbp, lane, count, (long long)off);
+	LOG(13, "pbp %p lane %u count %zu off %ju", pbp, lane, count, off);
 
 	if (off + count > pbp->datasize) {
-		ERR("offset + count (%lld) past end of data area (%zu)",
-				(long long)off + count, pbp->datasize);
+		ERR("offset + count (%zu) past end of data area (%zu)",
+				off + count, pbp->datasize);
 		errno = EINVAL;
 		return -1;
 	}
@@ -178,16 +179,17 @@ nswrite(void *ns, int lane, const void *buf, size_t count, off_t off)
  * do I/O on the memory pool containing the BTT layout.
  */
 static ssize_t
-nsmap(void *ns, int lane, void **addrp, size_t len, off_t off)
+nsmap(void *ns, unsigned lane, void **addrp, size_t len, uint64_t off)
 {
 	struct pmemblk *pbp = (struct pmemblk *)ns;
 
-	LOG(12, "pbp %p lane %d len %zu off %lld",
-			pbp, lane, len, (long long)off);
+	LOG(12, "pbp %p lane %u len %zu off %ju", pbp, lane, len, off);
+
+	ASSERT(((ssize_t)len) >= 0);
 
 	if (off + len >= pbp->datasize) {
-		ERR("offset + len (%lld) past end of data area (%zu)",
-				(long long)off + len, pbp->datasize - 1);
+		ERR("offset + len (%zu) past end of data area (%zu)",
+				off + len, pbp->datasize - 1);
 		errno = EINVAL;
 		return -1;
 	}
@@ -200,7 +202,7 @@ nsmap(void *ns, int lane, void **addrp, size_t len, off_t off)
 
 	LOG(12, "returning addr %p", *addrp);
 
-	return len;
+	return (ssize_t)len;
 }
 
 /*
@@ -215,11 +217,11 @@ nsmap(void *ns, int lane, void **addrp, size_t len, off_t off)
  * do I/O on the memory pool containing the BTT layout.
  */
 static void
-nssync(void *ns, int lane, void *addr, size_t len)
+nssync(void *ns, unsigned lane, void *addr, size_t len)
 {
 	struct pmemblk *pbp = (struct pmemblk *)ns;
 
-	LOG(12, "pbp %p lane %d addr %p len %zu", pbp, lane, addr, len);
+	LOG(12, "pbp %p lane %u addr %p len %zu", pbp, lane, addr, len);
 
 	if (pbp->is_pmem)
 		pmem_persist(addr, len);
@@ -234,16 +236,15 @@ nssync(void *ns, int lane, void *addr, size_t len)
  * zero the memory pool containing the BTT layout.
  */
 static int
-nszero(void *ns, int lane, size_t count, off_t off)
+nszero(void *ns, unsigned lane, size_t count, uint64_t off)
 {
 	struct pmemblk *pbp = (struct pmemblk *)ns;
 
-	LOG(13, "pbp %p lane %d count %zu off %lld",
-			pbp, lane, count, (long long)off);
+	LOG(13, "pbp %p lane %u count %zu off %ju", pbp, lane, count, off);
 
 	if (off + count > pbp->datasize) {
-		ERR("offset + count (%lld) past end of data area (%zu)",
-				(long long)off + count, pbp->datasize);
+		ERR("offset + count (%zu) past end of data area (%zu)",
+				off + count, pbp->datasize);
 		errno = EINVAL;
 		return -1;
 	}
@@ -275,9 +276,9 @@ static struct ns_callback ns_cb = {
  * pmemblk_descr_create -- (internal) create block memory pool descriptor
  */
 static int
-pmemblk_descr_create(PMEMblkpool *pbp, size_t bsize, int zeroed)
+pmemblk_descr_create(PMEMblkpool *pbp, uint32_t bsize, int zeroed)
 {
-	LOG(3, "pbp %p bsize %zu zeroed %d", pbp, bsize, zeroed);
+	LOG(3, "pbp %p bsize %u zeroed %d", pbp, bsize, zeroed);
 
 	/* create the required metadata */
 	pbp->bsize = htole32(bsize);
@@ -335,12 +336,14 @@ pmemblk_runtime_init(PMEMblkpool *pbp, size_t bsize, int rdonly, int is_pmem)
 	pbp->is_pmem = is_pmem;
 	pbp->data = (char *)pbp->addr +
 			roundup(sizeof (*pbp), BLK_FORMAT_DATA_ALIGN);
-	pbp->datasize = ((char *)pbp->addr + pbp->size) - (char *)pbp->data;
+	ASSERT(((char *)pbp->addr + pbp->size) >= (char *)pbp->data);
+	pbp->datasize = (size_t)
+			(((char *)pbp->addr + pbp->size) - (char *)pbp->data);
 
 	LOG(4, "data area %p data size %zu bsize %zu",
 		pbp->data, pbp->datasize, bsize);
 
-	int ncpus = sysconf(_SC_NPROCESSORS_ONLN);
+	long ncpus = sysconf(_SC_NPROCESSORS_ONLN);
 	if (ncpus < 1)
 		ncpus = 1;
 
@@ -351,7 +354,7 @@ pmemblk_runtime_init(PMEMblkpool *pbp, size_t bsize, int rdonly, int is_pmem)
 	pthread_mutex_t *locks = NULL;
 
 	bttp = btt_init(pbp->datasize, (uint32_t)bsize, pbp->hdr.poolset_uuid,
-			ncpus * 2, pbp, &ns_cb);
+			(unsigned)ncpus * 2, pbp, &ns_cb);
 
 	if (bttp == NULL)
 		goto err;	/* btt_init set errno, called LOG */
@@ -365,7 +368,7 @@ pmemblk_runtime_init(PMEMblkpool *pbp, size_t bsize, int rdonly, int is_pmem)
 		goto err;
 	}
 
-	for (int i = 0; i < pbp->nlane; i++)
+	for (unsigned i = 0; i < pbp->nlane; i++)
 		if ((errno = pthread_mutex_init(&locks[i], NULL))) {
 			ERR("!pthread_mutex_init");
 			goto err;
@@ -422,6 +425,12 @@ pmemblk_create(const char *path, size_t bsize, size_t poolsize,
 		return NULL;
 	}
 
+	if (bsize > UINT32_MAX) {
+		ERR("Invalid block size %zu", bsize);
+		errno = EINVAL;
+		return NULL;
+	}
+
 	struct pool_set *set;
 
 	if (util_pool_create(&set, path, poolsize, PMEMBLK_MIN_POOL,
@@ -451,7 +460,7 @@ pmemblk_create(const char *path, size_t bsize, size_t poolsize,
 	}
 
 	/* create pool descriptor */
-	if (pmemblk_descr_create(pbp, bsize, set->zeroed) != 0) {
+	if (pmemblk_descr_create(pbp, (uint32_t)bsize, set->zeroed) != 0) {
 		LOG(2, "descriptor creation failed");
 		goto err;
 	}
@@ -571,7 +580,7 @@ pmemblk_close(PMEMblkpool *pbp)
 
 	btt_fini(pbp->bttp);
 	if (pbp->locks) {
-		for (int i = 0; i < pbp->nlane; i++)
+		for (unsigned i = 0; i < pbp->nlane; i++)
 			pthread_mutex_destroy(&pbp->locks[i]);
 		Free((void *)pbp->locks);
 	}
@@ -615,12 +624,18 @@ pmemblk_read(PMEMblkpool *pbp, void *buf, off_t blockno)
 {
 	LOG(3, "pbp %p buf %p blockno %lld", pbp, buf, (long long)blockno);
 
-	int lane = lane_enter(pbp);
+	if (blockno < 0) {
+		ERR("negative block number");
+		errno = EINVAL;
+		return -1;
+	}
 
-	if (lane < 0)
+	unsigned lane;
+
+	if (lane_enter(pbp, &lane) < 0)
 		return -1;
 
-	int err = btt_read(pbp->bttp, lane, blockno, buf);
+	int err = btt_read(pbp->bttp, lane, (uint64_t)blockno, buf);
 
 	lane_exit(pbp, lane);
 
@@ -641,12 +656,18 @@ pmemblk_write(PMEMblkpool *pbp, const void *buf, off_t blockno)
 		return -1;
 	}
 
-	int lane = lane_enter(pbp);
+	if (blockno < 0) {
+		ERR("negative block number");
+		errno = EINVAL;
+		return -1;
+	}
 
-	if (lane < 0)
+	unsigned lane;
+
+	if (lane_enter(pbp, &lane) < 0)
 		return -1;
 
-	int err = btt_write(pbp->bttp, lane, blockno, buf);
+	int err = btt_write(pbp->bttp, lane, (uint64_t)blockno, buf);
 
 	lane_exit(pbp, lane);
 
@@ -667,12 +688,18 @@ pmemblk_set_zero(PMEMblkpool *pbp, off_t blockno)
 		return -1;
 	}
 
-	int lane = lane_enter(pbp);
+	if (blockno < 0) {
+		ERR("negative block number");
+		errno = EINVAL;
+		return -1;
+	}
 
-	if (lane < 0)
+	unsigned lane;
+
+	if (lane_enter(pbp, &lane) < 0)
 		return -1;
 
-	int err = btt_set_zero(pbp->bttp, lane, blockno);
+	int err = btt_set_zero(pbp->bttp, lane, (uint64_t)blockno);
 
 	lane_exit(pbp, lane);
 
@@ -693,12 +720,18 @@ pmemblk_set_error(PMEMblkpool *pbp, off_t blockno)
 		return -1;
 	}
 
-	int lane = lane_enter(pbp);
+	if (blockno < 0) {
+		ERR("negative block number");
+		errno = EINVAL;
+		return -1;
+	}
 
-	if (lane < 0)
+	unsigned lane;
+
+	if (lane_enter(pbp, &lane) < 0)
 		return -1;
 
-	int err = btt_set_error(pbp->bttp, lane, blockno);
+	int err = btt_set_error(pbp->bttp, lane, (uint64_t)blockno);
 
 	lane_exit(pbp, lane);
 

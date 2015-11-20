@@ -53,7 +53,7 @@
  */
 static int
 pmempool_info_get_range(struct pmem_info *pip, struct range *rangep,
-		struct range *curp, uint32_t max, off_t offset)
+		struct range *curp, uint32_t max, uint64_t offset)
 {
 	/* not using range */
 	if (!pip->args.use_range) {
@@ -112,8 +112,8 @@ info_blk_skip_block(struct pmem_info *pip, int is_zero,
  * info_btt_data -- print block data and corresponding flags from map
  */
 static int
-info_btt_data(struct pmem_info *pip, int v,
-	struct btt_info *infop, off_t arena_off, off_t offset, off_t *countp)
+info_btt_data(struct pmem_info *pip, int v, struct btt_info *infop,
+		uint64_t arena_off, uint64_t offset, uint64_t *countp)
 {
 	if (!outv_check(v))
 		return 0;
@@ -137,7 +137,7 @@ info_btt_data(struct pmem_info *pip, int v,
 		goto error;
 	}
 
-	uint32_t i;
+	uint64_t i;
 	struct range *curp = NULL;
 	struct range range;
 	FOREACH_RANGE(curp, &pip->args.ranges) {
@@ -153,7 +153,7 @@ info_btt_data(struct pmem_info *pip, int v,
 			int is_error = (map_entry & ~BTT_MAP_ENTRY_LBA_MASK)
 				== BTT_MAP_ENTRY_ERROR;
 
-			uint32_t blockno = is_init ? i :
+			uint64_t blockno = is_init ? i :
 					map_entry & BTT_MAP_ENTRY_LBA_MASK;
 
 			if (info_blk_skip_block(pip,
@@ -161,7 +161,7 @@ info_btt_data(struct pmem_info *pip, int v,
 				continue;
 
 			/* compute block's data address */
-			off_t block_off = arena_off + infop->dataoff +
+			uint64_t block_off = arena_off + infop->dataoff +
 				blockno * infop->internal_lbasize;
 
 			if (pmempool_info_read(pip, block_buff,
@@ -200,8 +200,8 @@ error:
  */
 static int
 info_btt_map(struct pmem_info *pip, int v,
-		struct btt_info *infop, off_t arena_off,
-		off_t offset, off_t *count)
+		struct btt_info *infop, uint64_t arena_off,
+		uint64_t offset, uint64_t *count)
 {
 	if (!outv_check(v) && !outv_check(pip->args.vstats))
 		return 0;
@@ -223,7 +223,7 @@ info_btt_map(struct pmem_info *pip, int v,
 
 	uint32_t arena_count = 0;
 
-	int i;
+	uint64_t i;
 	struct range *curp = NULL;
 	struct range range;
 	FOREACH_RANGE(curp, &pip->args.ranges) {
@@ -282,7 +282,7 @@ info_btt_flog_convert(struct btt_flog *flogp)
  */
 static int
 info_btt_flog(struct pmem_info *pip, int v,
-		struct btt_info *infop, off_t arena_off)
+		struct btt_info *infop, uint64_t arena_off)
 {
 	if (!outv_check(v))
 		return 0;
@@ -307,7 +307,7 @@ info_btt_flog(struct pmem_info *pip, int v,
 	outv_title(v, "PMEM BLK BTT FLOG");
 
 	uint8_t *ptr = buff;
-	int i;
+	uint32_t i;
 	for (i = 0; i < infop->nfree; i++) {
 		flogp = (struct btt_flog *)ptr;
 		flogpp = flogp + 1;
@@ -419,11 +419,11 @@ info_btt_layout(struct pmem_info *pip, off_t btt_off)
 		err(1, "Cannot allocate memory for BTT Info structure");
 
 	int narena = 0;
-	off_t cur_lba = 0;
-	off_t count_data = 0;
-	off_t count_map = 0;
-	off_t offset = btt_off;
-	off_t nextoff = 0;
+	uint64_t cur_lba = 0;
+	uint64_t count_data = 0;
+	uint64_t count_map = 0;
+	uint64_t offset = (uint64_t)btt_off;
+	uint64_t nextoff = 0;
 
 	do {
 		/* read btt info area */

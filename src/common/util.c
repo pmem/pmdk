@@ -93,7 +93,7 @@ Strdup_func Strdup = strdup;
 #if defined(USE_VG_PMEMCHECK) || defined(USE_VG_HELGRIND) ||\
 	defined(USE_VG_MEMCHECK)
 /* initialized to true if the process is running inside Valgrind */
-int On_valgrind;
+unsigned On_valgrind;
 #endif
 
 static int Mmap_no_random;
@@ -196,7 +196,7 @@ util_map_hint_unused(void *minaddr, size_t len, size_t align)
 		if (sscanf(line, "%p-%p", &lo, &hi) == 2) {
 			LOG(4, "%p-%p", lo, hi);
 			if (lo > raddr) {
-				if (lo - raddr >= len) {
+				if ((uintptr_t)(lo - raddr) >= len) {
 					LOG(4, "unused region of size %zu "
 							"found at %p",
 							lo - raddr, raddr);
@@ -357,6 +357,12 @@ util_tmpfile(const char *dir, size_t size)
 	(void) strcpy(fullname, dir);
 	(void) strcat(fullname, template);
 
+	if (((off_t)size) < 0) {
+		ERR("invalid size (%zu) for off_t", size);
+		errno = EFBIG;
+		return -1;
+	}
+
 	sigset_t set, oldset;
 	sigfillset(&set);
 	(void) sigprocmask(SIG_BLOCK, &set, &oldset);
@@ -374,7 +380,7 @@ util_tmpfile(const char *dir, size_t size)
 
 	LOG(3, "unlinked file is \"%s\"", fullname);
 
-	if ((errno = posix_fallocate(fd, 0, size)) != 0) {
+	if ((errno = posix_fallocate(fd, 0, (off_t)size)) != 0) {
 		ERR("!posix_fallocate");
 		goto err;
 	}
@@ -752,6 +758,12 @@ util_file_create(const char *path, size_t size, size_t minsize)
 		return -1;
 	}
 
+	if (((off_t)size) < 0) {
+		ERR("invalid size (%zu) for off_t", size);
+		errno = EFBIG;
+		return -1;
+	}
+
 	int fd;
 	/*
 	 * Create file without any permission. It will be granted once
@@ -767,7 +779,7 @@ util_file_create(const char *path, size_t size, size_t minsize)
 		goto err;
 	}
 
-	if ((errno = posix_fallocate(fd, 0, size)) != 0) {
+	if ((errno = posix_fallocate(fd, 0, (off_t)size)) != 0) {
 		ERR("!posix_fallocate");
 		goto err;
 	}
@@ -815,16 +827,21 @@ util_file_open(const char *path, size_t *size, size_t minsize, int flags)
 			ERR("!fstat %s", path);
 			goto err;
 		}
+		if (stbuf.st_size < 0) {
+			ERR("stat %s: negative size", path);
+			errno = EINVAL;
+			goto err;
+		}
 
-		if (stbuf.st_size < minsize) {
-			ERR("size %lld smaller than %zu",
-					(long long)stbuf.st_size, minsize);
+		if ((size_t)stbuf.st_size < minsize) {
+			ERR("size %zu smaller than %zu",
+					(size_t)stbuf.st_size, minsize);
 			errno = EINVAL;
 			goto err;
 		}
 
 		if (size)
-			*size = stbuf.st_size;
+			*size = (size_t)stbuf.st_size;
 	}
 
 	return fd;

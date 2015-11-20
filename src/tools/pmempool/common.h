@@ -160,11 +160,11 @@ struct pool_set_file *pool_set_file_open(const char *fname,
 		int rdonly, int check);
 void pool_set_file_close(struct pool_set_file *file);
 int pool_set_file_read(struct pool_set_file *file, void *buff,
-		size_t nbytes, off_t off);
+		size_t nbytes, uint64_t off);
 int pool_set_file_write(struct pool_set_file *file, void *buff,
-		size_t nbytes, off_t off);
+		size_t nbytes, uint64_t off);
 int pool_set_file_set_replica(struct pool_set_file *file, size_t replica);
-void *pool_set_file_map(struct pool_set_file *file, off_t offset);
+void *pool_set_file_map(struct pool_set_file *file, uint64_t offset);
 int pool_set_file_map_headers(struct pool_set_file *file,
 		int rdonly, size_t hdrsize);
 void pool_set_file_unmap_headers(struct pool_set_file *file);
@@ -222,7 +222,7 @@ char ask(char op, char *answers, char def_ans, const char *fmt, va_list ap);
 char ask_yn(char op, char def_ans, const char *fmt, va_list ap);
 char ask_Yn(char op, const char *fmt, ...);
 char ask_yN(char op, const char *fmt, ...);
-int util_heap_max_zone(size_t size);
+unsigned util_heap_max_zone(size_t size);
 int util_heap_get_bitmap_params(uint64_t block_size, uint64_t *nallocsp,
 		uint64_t *nvalsp, uint64_t *last_valp);
 size_t util_plist_nelements(struct pmemobjpool *pop, struct list_head *headp);
@@ -232,5 +232,5 @@ struct list_entry *util_plist_get_entry(struct pmemobjpool *pop,
 static inline uint32_t
 util_count_ones(uint64_t val)
 {
-	return __builtin_popcountll(val);
+	return (uint32_t)__builtin_popcountll(val);
 }

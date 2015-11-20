@@ -37,7 +37,7 @@
 /*
  * Finish flag at the least significant bit
  */
-#define	REDO_FINISH_FLAG	(1<<0)
+#define	REDO_FINISH_FLAG	((uint64_t)1<<0)
 #define	REDO_FLAG_MASK		(~REDO_FINISH_FLAG)
 
 /*

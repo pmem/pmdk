@@ -49,8 +49,8 @@
 #include "obj.h"
 #include "valgrind_internal.h"
 
-__thread int Lane_idx = -1;
-static int Next_lane_idx = 0;
+__thread unsigned Lane_idx = UINT32_MAX;
+static unsigned Next_lane_idx = 0;
 
 struct section_operations *Section_ops[MAX_LANE_SECTION];
 
@@ -58,7 +58,7 @@ struct section_operations *Section_ops[MAX_LANE_SECTION];
  * lane_get_layout -- (internal) calculates the real pointer of the lane layout
  */
 static struct lane_layout *
-lane_get_layout(PMEMobjpool *pop, int lane_idx)
+lane_get_layout(PMEMobjpool *pop, uint64_t lane_idx)
 {
 	return (void *)((char *)pop + pop->lanes_offset +
 		sizeof (struct lane_layout) * lane_idx);
@@ -176,7 +176,7 @@ lane_boot(PMEMobjpool *pop)
 	/* add lanes to pmemcheck ignored list */
 	VALGRIND_ADD_TO_GLOBAL_TX_IGNORE((char *)pop + pop->lanes_offset,
 		(sizeof (struct lane_layout) * pop->nlanes));
-	int i;
+	uint64_t i;
 	for (i = 0; i < pop->nlanes; ++i) {
 		struct lane_layout *layout = lane_get_layout(pop, i);
 
@@ -189,8 +189,8 @@ lane_boot(PMEMobjpool *pop)
 	return 0;
 
 error_lane_init:
-	for (i = i - 1; i >= 0; --i)
-		if (lane_destroy(pop, &pop->lanes[i]) != 0)
+	for (; i >= 1; --i)
+		if (lane_destroy(pop, &pop->lanes[i - 1]) != 0)
 			ERR("!lane_destroy");
 	Free(pop->lanes);
 	pop->lanes = NULL;
@@ -209,7 +209,7 @@ lane_cleanup(PMEMobjpool *pop)
 
 	int err = 0;
 
-	for (int i = 0; i < pop->nlanes; ++i)
+	for (uint64_t i = 0; i < pop->nlanes; ++i)
 		if ((err = lane_destroy(pop, &pop->lanes[i])) != 0)
 			ERR("!lane_destroy");
 
@@ -227,7 +227,7 @@ lane_recover_and_section_boot(PMEMobjpool *pop)
 {
 	int err = 0;
 	int i; /* section index */
-	int j; /* lane index */
+	uint64_t j; /* lane index */
 	struct lane_layout *layout;
 
 	for (i = 0; i < MAX_LANE_SECTION; ++i) {
@@ -237,7 +237,7 @@ lane_recover_and_section_boot(PMEMobjpool *pop)
 				&layout->sections[i]);
 
 			if (err != 0) {
-				LOG(2, "section_ops->recover %d %d %d",
+				LOG(2, "section_ops->recover %d %ju %d",
 					i, j, err);
 				return err;
 			}
@@ -260,7 +260,7 @@ lane_check(PMEMobjpool *pop)
 {
 	int err = 0;
 	int i; /* section index */
-	int j; /* lane index */
+	uint64_t j; /* lane index */
 	struct lane_layout *layout;
 
 	for (i = 0; i < MAX_LANE_SECTION; ++i) {
@@ -269,7 +269,7 @@ lane_check(PMEMobjpool *pop)
 			err = Section_ops[i]->check(pop, &layout->sections[i]);
 
 			if (err) {
-				LOG(2, "section_ops->check %d %d %d",
+				LOG(2, "section_ops->check %d %ju %d",
 					i, j, err);
 
 				return err;
@@ -292,8 +292,11 @@ lane_hold(PMEMobjpool *pop, struct lane_section **section,
 
 	int err = 0;
 
-	if (Lane_idx == -1)
-		Lane_idx = __sync_fetch_and_add(&Next_lane_idx, 1);
+	if (Lane_idx == UINT32_MAX) {
+		do {
+			Lane_idx = __sync_fetch_and_add(&Next_lane_idx, 1);
+		} while (Lane_idx == UINT32_MAX); /* handles wraparound */
+	}
 
 	struct lane *lane = &pop->lanes[Lane_idx % pop->nlanes];
 
@@ -311,7 +314,7 @@ lane_hold(PMEMobjpool *pop, struct lane_section **section,
 int
 lane_release(PMEMobjpool *pop)
 {
-	ASSERT(Lane_idx >= 0);
+	ASSERT(Lane_idx != UINT32_MAX);
 	ASSERTne(pop->lanes, NULL);
 
 	int err = 0;

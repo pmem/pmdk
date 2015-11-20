@@ -52,7 +52,7 @@ struct pmemblk {
 	uint32_t bsize;			/* block size */
 
 	/* flag indicating if the pool was zero-initialized */
-	unsigned char is_zeroed;
+	int is_zeroed;
 
 	/* some run-time state, allocated out of memory pool... */
 	void *addr;			/* mapped region */
@@ -63,7 +63,7 @@ struct pmemblk {
 	size_t datasize;		/* size of data area */
 	size_t nlba;			/* number of LBAs in pool */
 	struct btt *bttp;		/* btt handle */
-	int nlane;			/* number of lanes */
+	unsigned nlane;			/* number of lanes */
 	unsigned next_lane;		/* used to rotate through lanes */
 	pthread_mutex_t *locks;		/* one per lane */
 
@@ -74,4 +74,4 @@ struct pmemblk {
 };
 
 /* data area starts at this alignment after the struct pmemblk above */
-#define	BLK_FORMAT_DATA_ALIGN 4096
+#define	BLK_FORMAT_DATA_ALIGN ((uintptr_t)4096)

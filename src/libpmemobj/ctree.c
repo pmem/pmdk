@@ -48,7 +48,7 @@
 #include "out.h"
 #include "ctree.h"
 
-#define	BIT_IS_SET(n, i) (!!((n) & (1L << (i))))
+#define	BIT_IS_SET(n, i) (!!((n) & (((uint64_t)1) << (i))))
 
 /* internal nodes have LSB of the pointer set, leafs do not */
 #define	NODE_IS_INTERNAL(node) (BIT_IS_SET((uintptr_t)(node), 0))
@@ -57,7 +57,7 @@
 
 struct node {
 	void *slots[2]; /* slots for either internal or leaf nodes */
-	int diff;	/* most significant differing bit */
+	unsigned diff;	/* most significant differing bit */
 };
 
 struct node_leaf {
@@ -73,10 +73,12 @@ struct ctree {
 /*
  * find_crit_bit -- (internal) finds the most significant differing bit
  */
-static int
+static unsigned
 find_crit_bit(uint64_t lhs, uint64_t rhs)
 {
-	return 64 - __builtin_clzll(lhs ^ rhs) - 1;
+	/* __builtin_clzll is undefined for 0 */
+	ASSERTne(lhs ^ rhs, 0);
+	return 64 - (unsigned)__builtin_clzll(lhs ^ rhs) - 1;
 }
 
 /*
@@ -244,7 +246,7 @@ ctree_find_le(struct ctree *t, uint64_t *key)
 	if (dst == NULL || dst->key == *key)
 		goto out;
 
-	uint64_t diff = find_crit_bit(dst->key, *key);
+	unsigned diff = find_crit_bit(dst->key, *key);
 
 	struct node *top = NULL;
 	dst = t->root;
@@ -317,7 +319,7 @@ ctree_remove(struct ctree *t, uint64_t key, int eq)
 		goto out;
 	}
 
-	uint64_t diff = find_crit_bit(k, key);
+	unsigned diff = find_crit_bit(k, key);
 
 	void **top = NULL; /* top pointer */
 	void **topp = NULL; /* top parent */

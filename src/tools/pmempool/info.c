@@ -492,8 +492,16 @@ parse_args(char *appname, int argc, char *argv[],
 			argsp->obj.vbitmap = VERBOSE_DEFAULT;
 			break;
 		case 'p':
-			argsp->obj.replica = atoll(optarg);
+		{
+			long long ll = atoll(optarg);
+			if (ll < 0) {
+				outv_err("'%s' -- replica cannot be negative\n",
+						optarg);
+				return -1;
+			}
+			argsp->obj.replica = (size_t)ll;
 			break;
+		}
 		default:
 			print_usage(appname);
 			return -1;
@@ -529,7 +537,8 @@ parse_args(char *appname, int argc, char *argv[],
  * pmempool_info_read -- read data from file
  */
 int
-pmempool_info_read(struct pmem_info *pip, void *buff, size_t nbytes, off_t off)
+pmempool_info_read(struct pmem_info *pip, void *buff, size_t nbytes,
+		uint64_t off)
 {
 	return pool_set_file_read(pip->pfile, buff, nbytes, off);
 }
@@ -607,13 +616,13 @@ pmempool_info_pool_hdr(struct pmem_info *pip, int v)
 	outv_field(v, "Alignment Descriptor", "%s",
 			out_get_alignment_desc_str(ad, cur_ad));
 
-	for (int i = 0; i < alignment_desc_n; i++) {
-		int a = GET_ALIGNMENT(ad, i);
+	for (size_t i = 0; i < alignment_desc_n; i++) {
+		uint64_t a = GET_ALIGNMENT(ad, i);
 		if (ad == cur_ad) {
 			outv_field(v + 1, alignment_desc_str[i],
 					"%2d", a);
 		} else {
-			int av = GET_ALIGNMENT(cur_ad, i);
+			uint64_t av = GET_ALIGNMENT(cur_ad, i);
 			if (a == av) {
 				outv_field(v + 1, alignment_desc_str[i],
 					"%2d [OK]", a);

@@ -49,6 +49,7 @@
 #include <sys/mman.h>
 #include <libgen.h>
 #include <err.h>
+#include <assert.h>
 #include "common.h"
 #include "output.h"
 
@@ -209,7 +210,7 @@ struct field {
 	struct field *next;
 	struct field *prev;
 	char *name;
-	uint64_t index;
+	uint32_t index;
 	int is_func;
 };
 
@@ -232,10 +233,10 @@ struct pmemspoil {
 	char *fname;
 	struct pool_set_file *pfile;
 	struct pmemspoil_list *args;
-	int argc;
+	unsigned argc;
 	void *addr;
 	size_t size;
-	int replica;
+	unsigned replica;
 };
 
 typedef enum chunk_type chunk_type_t;
@@ -330,7 +331,7 @@ pmemspoil_help(char *appname)
  * pmemspoil_read -- read data from pool
  */
 static int
-pmemspoil_read(struct pmemspoil *psp, void *buff, size_t nbytes, off_t off)
+pmemspoil_read(struct pmemspoil *psp, void *buff, size_t nbytes, uint64_t off)
 {
 	return pool_set_file_read(psp->pfile, buff, nbytes, off);
 }
@@ -339,7 +340,7 @@ pmemspoil_read(struct pmemspoil *psp, void *buff, size_t nbytes, off_t off)
  * pmemspoil_write -- write data to pool
  */
 static int
-pmemspoil_write(struct pmemspoil *psp, void *buff, size_t nbytes, off_t off)
+pmemspoil_write(struct pmemspoil *psp, void *buff, size_t nbytes, uint64_t off)
 {
 	return pool_set_file_write(psp->pfile, buff, nbytes, off);
 }
@@ -461,6 +462,7 @@ pmemspoil_parse_args(struct pmemspoil *psp, char *appname,
 		int argc, char *argv[])
 {
 	int opt;
+	int t;
 	while ((opt = getopt_long(argc, argv, "v?r:",
 			long_options, NULL)) != -1) {
 		switch (opt) {
@@ -471,7 +473,12 @@ pmemspoil_parse_args(struct pmemspoil *psp, char *appname,
 			pmemspoil_help(appname);
 			exit(EXIT_SUCCESS);
 		case 'r':
-			psp->replica = atoi(optarg);
+			t = atoi(optarg);
+			if (t < 0) {
+				print_usage(appname);
+				exit(EXIT_FAILURE);
+			}
+			psp->replica = (unsigned)t;
 			break;
 		default:
 			print_usage(appname);
@@ -484,12 +491,12 @@ pmemspoil_parse_args(struct pmemspoil *psp, char *appname,
 		psp->fname = argv[ind];
 		ind++;
 
-		psp->argc = (argc - ind);
-		psp->args = calloc(psp->argc *
-					sizeof (struct pmemspoil_list), 1);
+		assert(argc >= ind);
+		psp->argc = (unsigned)(argc - ind);
+		psp->args = calloc(psp->argc, sizeof (struct pmemspoil_list));
 		if (!psp->args)
 			err(1, NULL);
-		int i;
+		unsigned i;
 		for (i = 0; i < psp->argc; i++) {
 			char *str = argv[ind];
 			if (pmemspoil_parse_fields(str, &psp->args[i])) {
@@ -520,7 +527,7 @@ pmemspoil_get_arena_offset(struct pmemspoil *psp, uint32_t id)
 
 	infop->nextoff = 2 * BTT_ALIGNMENT;
 
-	off_t offset = 0;
+	uint64_t offset = 0;
 	ssize_t ret = 0;
 	id++;
 	while (id > 0) {
@@ -653,7 +660,7 @@ pmemspoil_process_chunk_type_t(struct pmemspoil *psp,
 		return -1;
 
 	/* ignore 'le' */
-	*valp = (enum chunk_type)(__builtin_ffsll(types) - 1);
+	*valp = (enum chunk_type)(__builtin_ffsll((long long)types) - 1);
 
 	return 0;
 }
@@ -956,7 +963,7 @@ pmemspoil_process_pmemblk(struct pmemspoil *psp,
 
 		PROCESS(arena,
 			pmemspoil_get_arena_offset(psp, PROCESS_INDEX),
-			UINT64_MAX);
+			UINT32_MAX);
 	} PROCESS_END
 
 	if (PROCESS_STATE == PROCESS_STATE_FIELD) {
@@ -1398,7 +1405,7 @@ main(int argc, char *argv[])
 
 	out_set_prefix(psp->fname);
 
-	for (int i = 0; i < psp->argc; i++) {
+	for (unsigned i = 0; i < psp->argc; i++) {
 		ret = pmemspoil_process(psp, &psp->args[i]);
 		if (ret)
 			goto error;
@@ -1406,7 +1413,7 @@ main(int argc, char *argv[])
 
 error:
 	if (psp->args) {
-		for (int i = 0; i < psp->argc; i++)
+		for (unsigned i = 0; i < psp->argc; i++)
 			pmemspoil_free_fields(&psp->args[i]);
 		free(psp->args);
 	}

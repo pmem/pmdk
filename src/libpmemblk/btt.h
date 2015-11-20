@@ -36,25 +36,25 @@
 
 /* callback functions passed to btt_init() */
 struct ns_callback {
-	int (*nsread)(void *ns, int lane,
-		void *buf, size_t count, off_t off);
-	int (*nswrite)(void *ns, int lane,
-		const void *buf, size_t count, off_t off);
-	int (*nszero)(void *ns, int lane, size_t count, off_t off);
-	ssize_t (*nsmap)(void *ns, int lane, void **addrp,
-			size_t len, off_t off);
-	void (*nssync)(void *ns, int lane, void *addr, size_t len);
+	int (*nsread)(void *ns, unsigned lane,
+		void *buf, size_t count, uint64_t off);
+	int (*nswrite)(void *ns, unsigned lane,
+		const void *buf, size_t count, uint64_t off);
+	int (*nszero)(void *ns, unsigned lane, size_t count, uint64_t off);
+	ssize_t (*nsmap)(void *ns, unsigned lane, void **addrp,
+			size_t len, uint64_t off);
+	void (*nssync)(void *ns, unsigned lane, void *addr, size_t len);
 
 	int ns_is_zeroed;
 };
 
 struct btt *btt_init(uint64_t rawsize, uint32_t lbasize, uint8_t parent_uuid[],
-		int maxlane, void *ns, const struct ns_callback *ns_cbp);
-int btt_nlane(struct btt *bttp);
+		unsigned maxlane, void *ns, const struct ns_callback *ns_cbp);
+unsigned btt_nlane(struct btt *bttp);
 size_t btt_nlba(struct btt *bttp);
-int btt_read(struct btt *bttp, int lane, uint64_t lba, void *buf);
-int btt_write(struct btt *bttp, int lane, uint64_t lba, const void *buf);
-int btt_set_zero(struct btt *bttp, int lane, uint64_t lba);
-int btt_set_error(struct btt *bttp, int lane, uint64_t lba);
+int btt_read(struct btt *bttp, unsigned lane, uint64_t lba, void *buf);
+int btt_write(struct btt *bttp, unsigned lane, uint64_t lba, const void *buf);
+int btt_set_zero(struct btt *bttp, unsigned lane, uint64_t lba);
+int btt_set_error(struct btt *bttp, unsigned lane, uint64_t lba);
 int btt_check(struct btt *bttp);
 void btt_fini(struct btt *bttp);

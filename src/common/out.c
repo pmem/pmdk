@@ -151,7 +151,7 @@ getexecname(void)
 {
 	char procpath[PATH_MAX];
 	static char namepath[PATH_MAX];
-	int cc;
+	ssize_t cc;
 
 	snprintf(procpath, PATH_MAX, "/proc/%d/exe", getpid());
 
@@ -195,7 +195,7 @@ out_init(const char *log_prefix, const char *log_level_var,
 	}
 
 	if ((log_file = getenv(log_file_var)) != NULL) {
-		int cc = strlen(log_file);
+		size_t cc = strlen(log_file);
 
 		/* reserve more than enough space for a PID + '\0' */
 		char log_file_pid[cc + 30];
@@ -330,14 +330,21 @@ out_common(const char *file, int line, const char *func, int level,
 {
 	int oerrno = errno;
 	char buf[MAXPRINT];
-	int cc = 0;
+	unsigned cc = 0;
+	int ret;
 	const char *sep = "";
 	const char *errstr = "";
 
-	if (file)
-		cc += out_snprintf(&buf[cc], MAXPRINT - cc,
+	if (file) {
+		ret = out_snprintf(&buf[cc], MAXPRINT - cc,
 				"<%s>: <%d> [%s:%d %s] ",
 				Log_prefix, level, file, line, func);
+		if (ret < 0) {
+			Print("out_snprintf failed");
+			goto end;
+		}
+		cc += (unsigned)ret;
+	}
 
 	if (fmt) {
 		if (*fmt == '!') {
@@ -345,13 +352,19 @@ out_common(const char *file, int line, const char *func, int level,
 			sep = ": ";
 			errstr = strerror(errno);
 		}
-		cc += Vsnprintf(&buf[cc], MAXPRINT - cc, fmt, ap);
+		ret = Vsnprintf(&buf[cc], MAXPRINT - cc, fmt, ap);
+		if (ret < 0) {
+			Print("Vsnprintf failed");
+			goto end;
+		}
+		cc += (unsigned)ret;
 	}
 
 	out_snprintf(&buf[cc], MAXPRINT - cc, "%s%s%s", sep, errstr, suffix);
 
 	Print(buf);
 
+end:
 	errno = oerrno;
 }
 
@@ -363,7 +376,8 @@ out_error(const char *file, int line, const char *func,
 		const char *suffix, const char *fmt, va_list ap)
 {
 	int oerrno = errno;
-	int cc = 0;
+	unsigned cc = 0;
+	int ret;
 	const char *sep = "";
 	const char *errstr = "";
 
@@ -375,7 +389,12 @@ out_error(const char *file, int line, const char *func,
 			sep = ": ";
 			errstr = strerror(errno);
 		}
-		cc += Vsnprintf(&errormsg[cc], MAXPRINT, fmt, ap);
+		ret = Vsnprintf(&errormsg[cc], MAXPRINT, fmt, ap);
+		if (ret < 0) {
+			strcpy(errormsg, "Vsnprintf failed");
+			goto end;
+		}
+		cc += (unsigned)ret;
 		out_snprintf(&errormsg[cc], MAXPRINT - cc, "%s%s",
 				sep, errstr);
 	}
@@ -385,10 +404,16 @@ out_error(const char *file, int line, const char *func,
 		char buf[MAXPRINT];
 		cc = 0;
 
-		if (file)
-			cc += out_snprintf(&buf[cc], MAXPRINT,
+		if (file) {
+			ret = out_snprintf(&buf[cc], MAXPRINT,
 					"<%s>: <1> [%s:%d %s] ",
 					Log_prefix, file, line, func);
+			if (ret < 0) {
+				Print("out_snprintf failed");
+				goto end;
+			}
+			cc += (unsigned)ret;
+		}
 
 		out_snprintf(&buf[cc], MAXPRINT - cc, "%s%s", errormsg,
 				suffix);
@@ -397,6 +422,7 @@ out_error(const char *file, int line, const char *func,
 	}
 #endif
 
+end:
 	errno = oerrno;
 }
 

@@ -225,3 +225,11 @@ int util_pool_open(struct pool_set **setp, const char *path, int rdonly,
 	uint32_t major, uint32_t compat, uint32_t incompat, uint32_t ro_compat);
 
 #define	COMPILE_ERROR_ON(cond) ((void)sizeof (char[(cond) ? -1 : 1]))
+
+/* setbit macro substitution which properly deals with types */
+static inline void util_setbit(uint8_t *b, uint32_t i)
+{
+	b[i / 8] = (uint8_t)(b[i / 8] | (uint8_t)(1 << (i % 8)));
+}
+#define	util_isset(a, i) isset(a, i)
+#define	util_isclr(a, i) isclr(a, i)

@@ -51,6 +51,8 @@ int
 main(int argc, char *argv[])
 {
 	int opt;
+	int tmpi;
+	long long tmpl;
 	size_t size = 0;
 	size_t root_size = 0;
 	unsigned int type_num = 0;
@@ -66,13 +68,28 @@ main(int argc, char *argv[])
 	while ((opt = getopt(argc, argv, "r:o:t:e:sf")) != -1) {
 		switch (opt) {
 		case 'r':
-			root_size = atoll(optarg);
+			tmpl = atoll(optarg);
+			if (tmpl < 0) {
+				USAGE();
+				return -1;
+			}
+			root_size = (size_t)tmpl;
 			break;
 		case 'o':
-			size = atoll(optarg);
+			tmpl = atoll(optarg);
+			if (tmpl < 0) {
+				USAGE();
+				return -1;
+			}
+			size = (size_t)tmpl;
 			break;
 		case 't':
-			type_num = atoi(optarg);
+			tmpi = atoi(optarg);
+			if (tmpi < 0) {
+				USAGE();
+				return -1;
+			}
+			type_num = (unsigned)tmpi;
 			break;
 		case 'e':
 			exit_at = optarg[0];

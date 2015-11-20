@@ -83,7 +83,7 @@ info_log_data(struct pmem_info *pip, int v, struct pmemlog *plp)
 		 * Walk through used data with fixed chunk size
 		 * passed by user.
 		 */
-		uint32_t nchunks = size_used / pip->args.log.walk;
+		uint64_t nchunks = size_used / pip->args.log.walk;
 
 		outv_title(v, "PMEMLOG data [chunks: total = %lu size = %ld]",
 				nchunks, pip->args.log.walk);

@@ -66,7 +66,7 @@ struct pmempool_create {
 	struct pmem_pool_params params;
 	char *str_bsize;
 	uint64_t csize;
-	uint64_t blk_layout;
+	int write_btt_layout;
 	char *layout;
 	struct options *opts;
 };
@@ -83,7 +83,7 @@ static const struct pmempool_create pmempool_create_default = {
 	.str_type	= NULL,
 	.str_bsize	= NULL,
 	.csize		= 0,
-	.blk_layout	= UINT64_MAX,
+	.write_btt_layout = 0,
 	.layout		= NULL,
 	.params		= {
 		.type	= PMEM_POOL_TYPE_UNKNOWN,
@@ -203,30 +203,21 @@ pmempool_create_blk(struct pmempool_create *pcp)
 
 	outv(1, "Creating pmem blk pool with block size %s\n",
 		out_get_size_str(pcp->params.blk.bsize, 1));
+
 	PMEMblkpool *pbp = pmemblk_create(pcp->fname, pcp->params.blk.bsize,
 			pcp->params.size, pcp->params.mode);
-
 	if (!pbp) {
 		outv_err("'%s' -- %s\n", pcp->fname, pmemblk_errormsg());
 		return -1;
 	}
-	size_t nblock = pmemblk_nblock(pbp);
-	if (pcp->blk_layout != UINT64_MAX) {
-		if (pcp->blk_layout >= nblock) {
-			outv_err("'%s' -- block number must be"
-				" >= 0 and  < %ld\n",
-				pcp->layout, nblock);
-			ret = -1;
-		} else {
-			outv(1, "Writing BTT layout using block %lu.\n",
-					pcp->blk_layout);
 
-			if (pmemblk_set_error(pbp, pcp->blk_layout) ||
-				pmemblk_set_zero(pbp, pcp->blk_layout)) {
-				outv_err("writing BTT layout to block"
-					" %ld failed\n", pcp->blk_layout);
-				ret = -1;
-			}
+	if (pcp->write_btt_layout) {
+		outv(1, "Writing BTT layout using block %lu.\n",
+				pcp->write_btt_layout);
+
+		if (pmemblk_set_error(pbp, 0) || pmemblk_set_zero(pbp, 0)) {
+			outv_err("writing BTT layout to block 0 failed\n");
+			ret = -1;
 		}
 	}
 
@@ -315,7 +306,7 @@ pmempool_create_parse_args(struct pmempool_create *pcp, char *appname,
 			pcp->inherit_fname = optarg;
 			break;
 		case 'w':
-			pcp->blk_layout = 0;
+			pcp->write_btt_layout = 1;
 			break;
 		case 'l':
 			pcp->layout = optarg;

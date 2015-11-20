@@ -75,7 +75,8 @@ static void
 vout(int flags, const char *prepend, const char *fmt, va_list ap)
 {
 	char buf[MAXPRINT];
-	int cc = 0;
+	unsigned cc = 0;
+	int sn;
 	int quiet = Quiet;
 	const char *sep = "";
 	const char *errstr = "";
@@ -87,8 +88,12 @@ vout(int flags, const char *prepend, const char *fmt, va_list ap)
 	if (flags & OF_NONL)
 		nl = "";
 
-	if (flags & OF_NAME && Testname)
-		cc += snprintf(&buf[cc], MAXPRINT - cc, "%s: ", Testname);
+	if (flags & OF_NAME && Testname) {
+		sn = snprintf(&buf[cc], MAXPRINT - cc, "%s: ", Testname);
+		if (sn < 0)
+			abort();
+		cc += (unsigned)sn;
+	}
 
 	if (prepend) {
 		const char *colon = "";
@@ -96,7 +101,10 @@ vout(int flags, const char *prepend, const char *fmt, va_list ap)
 		if (fmt)
 			colon = ": ";
 
-		cc += snprintf(&buf[cc], MAXPRINT - cc, "%s%s", prepend, colon);
+		sn = snprintf(&buf[cc], MAXPRINT - cc, "%s%s", prepend, colon);
+		if (sn < 0)
+			abort();
+		cc += (unsigned)sn;
 	}
 
 	if (fmt) {
@@ -105,7 +113,10 @@ vout(int flags, const char *prepend, const char *fmt, va_list ap)
 			sep = ": ";
 			errstr = strerror(errno);
 		}
-		cc += vsnprintf(&buf[cc], MAXPRINT - cc, fmt, ap);
+		sn = vsnprintf(&buf[cc], MAXPRINT - cc, fmt, ap);
+		if (sn < 0)
+			abort();
+		cc += (unsigned)sn;
 	}
 
 	snprintf(&buf[cc], MAXPRINT - cc, "%s%s%s", sep, errstr, nl);
@@ -257,7 +268,7 @@ record_open_files()
 	while ((dp = readdir(dirp)) != NULL) {
 		int fdnum;
 		char fdfile[PATH_MAX];
-		int cc;
+		ssize_t cc;
 
 		if (*dp->d_name == '.')
 			continue;
@@ -288,7 +299,7 @@ check_open_files()
 	while ((dp = readdir(dirp)) != NULL) {
 		int fdnum;
 		char fdfile[PATH_MAX];
-		int cc;
+		ssize_t cc;
 
 		if (*dp->d_name == '.')
 			continue;
@@ -371,7 +382,10 @@ ut_start(const char *file, int line, const char *func,
 
 	record_open_files();
 
-	Ut_pagesize = sysconf(_SC_PAGESIZE);
+	long long sc = sysconf(_SC_PAGESIZE);
+	if (sc < 0)
+		abort();
+	Ut_pagesize = (unsigned long)sc;
 
 	errno = saveerrno;
 }
