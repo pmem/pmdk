@@ -405,6 +405,11 @@ malloc_init_base_pool(void)
 	}
 
 	pools = base_calloc(&base_pool, sizeof(pool_t *), POOLS_MIN);
+	if (pools == NULL) {
+		malloc_mutex_unlock(&pool_base_lock);
+		return (true);
+	}
+
 	pools[0] = &base_pool;
 	pools[0]->seqno = ++pool_seqno;
 	npools_cnt++;
