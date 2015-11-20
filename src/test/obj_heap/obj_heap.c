@@ -84,7 +84,7 @@ test_heap()
 
 	ASSERT(bucket_unit_size(b_small) < bucket_unit_size(b_big));
 
-	struct bucket *b_def = heap_get_default_bucket(pop);
+	struct bucket *b_def = heap_get_best_bucket(pop, CHUNKSIZE);
 	ASSERT(bucket_unit_size(b_def) == CHUNKSIZE);
 
 	/* new small buckets should be empty */

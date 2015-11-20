@@ -556,14 +556,21 @@ out:
 }
 
 /*
+ * heap_get_default_bucket --
+ *	(internal) returns the bucket with CHUNKSIZE unit size
+ */
+static struct bucket *
+heap_get_default_bucket(PMEMobjpool *pop)
+{
+	return pop->heap->buckets[DEFAULT_BUCKET];
+}
+
+/*
  * heap_ensure_bucket_filled -- (internal) refills the bucket if needed
  */
 static int
-heap_ensure_bucket_filled(PMEMobjpool *pop, struct bucket *b, int force)
+heap_ensure_bucket_filled(PMEMobjpool *pop, struct bucket *b)
 {
-	if (!force && !bucket_is_empty(b))
-		return 0;
-
 	if (!bucket_is_small(b)) {
 		/* not much to do here apart from using the next zone */
 		return heap_populate_buckets(pop);
@@ -588,18 +595,6 @@ heap_ensure_bucket_filled(PMEMobjpool *pop, struct bucket *b, int force)
 	}
 
 	return 0;
-}
-
-/*
- * heap_get_default_bucket -- returns the bucket with CHUNKSIZE unit size
- */
-struct bucket *
-heap_get_default_bucket(PMEMobjpool *pop)
-{
-	struct bucket *b = pop->heap->buckets[DEFAULT_BUCKET];
-
-	heap_ensure_bucket_filled(pop, b, 0);
-	return b;
 }
 
 /*
@@ -907,7 +902,7 @@ heap_get_bestfit_block(PMEMobjpool *pop, struct bucket *b,
 	uint32_t units = m->size_idx;
 
 	while (bucket_get_rm_block_bestfit(b, m) != 0) {
-		if (heap_ensure_bucket_filled(pop, b, 1) == ENOMEM) {
+		if (heap_ensure_bucket_filled(pop, b) == ENOMEM) {
 			bucket_unlock(b);
 			return ENOMEM;
 		}
@@ -1295,7 +1290,7 @@ heap_degrade_run_if_empty(PMEMobjpool *pop, struct bucket *b,
 		ASSERT(0);
 	}
 
-	struct bucket *defb = pop->heap->buckets[DEFAULT_BUCKET];
+	struct bucket *defb = heap_get_default_bucket(pop);
 	if ((err = bucket_lock(defb)) != 0) {
 		ERR("Failed to lock default bucket");
 		ASSERT(0);
@@ -1309,6 +1304,7 @@ heap_degrade_run_if_empty(PMEMobjpool *pop, struct bucket *b,
 	uint64_t op_result;
 	struct memory_block fm =
 			heap_free_block(pop, defb, m, &mhdr, &op_result);
+
 	VALGRIND_ADD_TO_TX(mhdr, sizeof (*mhdr));
 	*mhdr = op_result;
 	VALGRIND_REMOVE_FROM_TX(mhdr, sizeof (*mhdr));
