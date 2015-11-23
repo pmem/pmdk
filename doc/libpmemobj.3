@@ -37,7 +37,7 @@
 .\" or
 .\"	groff -man -Tascii libpmemobj.3
 .\"
-.TH libpmemobj 3 "pmemobj API version 0.4.17" "NVM Library"
+.TH libpmemobj 3 "pmemobj API version 0.4.18" "NVM Library"
 .SH NAME
 libpmemobj \- persistent memory transactional object store
 .SH SYNOPSIS
@@ -667,6 +667,12 @@ text file, which must start with the line containing a
 string,
 followed by the specification of all the pool parts in the next lines.
 For each part, the file size and the absolute path must be provided.
+The minimum file size of each part of the pool set is the same as the
+minimum size allowed for a transactional object store consisting
+of one file.  It is defined in
+.B <libpmemobj.h>
+as
+.BR PMEMOBJ_MIN_POOL .
 Sections defining the replica sets are optional.  There could be multiple
 replica sections and each must start with the line containing a
 .I "REPLICA"
