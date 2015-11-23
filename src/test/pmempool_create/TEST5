@@ -43,9 +43,12 @@ require_fs_type pmem non-pmem
 setup
 
 POOL=$DIR/file.pool
+POOL2=$DIR/file.pool2
 
 # PMEMBLK
 expect_abnormal_exit $PMEMPOOL$EXESUFFIX create blk $POOL 2> err5.log
+
+expect_abnormal_exit $PMEMPOOL$EXESUFFIX create blk 4294967296 $POOL2 2>> err5.log
 
 check
 
