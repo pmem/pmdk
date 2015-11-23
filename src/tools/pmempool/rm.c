@@ -111,7 +111,6 @@ static void
 rm_file(const char *file)
 {
 	int write_protected = access(file, W_OK) != 0;
-
 	char cask = 'y';
 	switch (ask_mode) {
 	case ASK_ALWAYS:
@@ -131,7 +130,6 @@ rm_file(const char *file)
 			err(1, "cannot remove file '%s'", file);
 		outv(1, "removed '%s'\n", file);
 	}
-
 }
 
 /*
@@ -161,6 +159,19 @@ rm_poolset(const char *file)
 		for (unsigned p = 0; p < set->replica[r]->nparts; p++) {
 			const char *part_file = set->replica[r]->part[p].path;
 			outv(2, "part file   : %s\n", part_file);
+
+			int exists = access(part_file, F_OK) == 0;
+			if (!exists) {
+				/*
+				 * Ignore not accessible file if force
+				 * flag is set
+				 */
+				if (force)
+					continue;
+
+				err(1, "cannot remove file '%s'", part_file);
+			}
+
 			rm_file(part_file);
 		}
 	}
@@ -202,8 +213,8 @@ pmempool_rm_func(char *appname, int argc, char *argv[])
 
 	out_set_vlevel(vlevel);
 
-	while (optind < argc) {
-		char *file = argv[optind];
+	for (int i = optind; i < argc; i++) {
+		char *file = argv[i];
 		/* check if file exists and we can read it */
 		int exists = access(file, F_OK | R_OK) == 0;
 		if (!exists) {
@@ -227,8 +238,6 @@ pmempool_rm_func(char *appname, int argc, char *argv[])
 		} else {
 			rm_file(file);
 		}
-
-		optind++;
 	}
 
 	return 0;
