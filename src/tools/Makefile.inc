@@ -45,7 +45,9 @@ CFLAGS += -Wunused-macros
 CFLAGS += -Wmissing-field-initializers
 CFLAGS += -Wsign-conversion
 CFLAGS += -Wsign-compare
-#CFLAGS += -Wconversion
+ifeq ($(call check_Wconversion), y)
+CFLAGS += -Wconversion
+endif
 CFLAGS += -fno-common
 CFLAGS += $(EXTRA_CFLAGS)
 CFLAGS += -O2 -D_FORTIFY_SOURCE=2
