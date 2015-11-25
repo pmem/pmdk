@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 #
 # Copyright (c) 2015, Intel Corporation
 #
@@ -30,57 +31,22 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-#
-# examples/libpmemobj/map/Makefile -- build the map example
-#
+set -euo pipefail
 
-PROGS = mapcli data_store
-LIBRARIES = map_ctree map_btree map_rbtree\
-	    map_hashmap_atomic map_hashmap_tx\
-	    map
+MAP=ctree
+PORT=9100
+POOL=$1
 
-LIBUV := $(shell pkg-config libuv && echo "y" || echo "n")
-ifeq ($(LIBUV),y)
-PROGS += kv_server
-endif
+# start a new server instance
+./kv_server $MAP $POOL $PORT &
 
-LIBS = -lpmemobj -pthread $(shell pkg-config --libs libuv)
+# wait for the server to properly start
+sleep 1
 
-include ../../Makefile.inc
+# insert a new key value pair and disconnect
+RESP=`echo -e "INSERT foo bar\nGET foo\nBYE" | nc 127.0.0.1 $PORT`
+echo $RESP
 
-CFLAGS += -I../
-CFLAGS += -I../hashmap
-CFLAGS += -I../tree_map
-
-mapcli: mapcli.o libmap.a
-data_store: data_store.o libmap.a
-kv_server: kv_server.o libmap.a
-
-libmap_ctree.o: map_ctree.o map.o ../tree_map/libctree_map.a
-libmap_btree.o: map_btree.o map.o ../tree_map/libbtree_map.a
-libmap_rbtree.o: map_rbtree.o map.o ../tree_map/librbtree_map.a
-libmap_hashmap_atomic.o: map_hashmap_atomic.o map.o ../hashmap/libhashmap_atomic.a
-libmap_hashmap_tx.o: map_hashmap_tx.o map.o ../hashmap/libhashmap_tx.a
-
-libmap.o: map.o map_ctree.o map_btree.o map_rbtree.o\
-	map_hashmap_atomic.o map_hashmap_tx.o\
-	../tree_map/libctree_map.a\
-	../tree_map/libbtree_map.a\
-	../tree_map/librbtree_map.a\
-	../hashmap/libhashmap_atomic.a\
-	../hashmap/libhashmap_tx.a
-
-../tree_map/libctree_map.a:
-	$(MAKE) -C ../tree_map ctree_map
-
-../tree_map/libbtree_map.a:
-	$(MAKE) -C ../tree_map btree_map
-
-../tree_map/librbtree_map.a:
-	$(MAKE) -C ../tree_map rbtree_map
-
-../hashmap/libhashmap_atomic.a:
-	$(MAKE) -C ../hashmap hashmap_atomic
-
-../hashmap/libhashmap_tx.a:
-	$(MAKE) -C ../hashmap hashmap_tx
+# remove previously inserted key value pair and shutdown the server
+RESP=`echo -e "GET foo\nREMOVE foo\nGET foo\nKILL" | nc 127.0.0.1 $PORT`
+echo $RESP
