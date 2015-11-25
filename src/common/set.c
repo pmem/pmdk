@@ -1084,7 +1084,7 @@ util_replica_create(struct pool_set *set, unsigned repidx, int flags,
 	rep->repsize -= (rep->nparts - 1) * hdrsize;
 
 	/* determine a hint address for mmap() */
-	void *addr = util_map_hint(rep->repsize);
+	void *addr = util_map_hint(rep->repsize, 0);
 	if (addr == NULL) {
 		ERR("cannot find a contiguous region of given size");
 		return -1;
@@ -1264,7 +1264,7 @@ util_replica_open(struct pool_set *set, unsigned repidx, int flags,
 	rep->repsize -= (rep->nparts - 1) * hdrsize;
 
 	/* determine a hint address for mmap() */
-	void *addr = util_map_hint(rep->repsize);
+	void *addr = util_map_hint(rep->repsize, 0);
 	if (addr == NULL) {
 		ERR("cannot find a contiguous region of given size");
 		return -1;

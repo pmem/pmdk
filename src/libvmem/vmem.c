@@ -160,7 +160,7 @@ vmem_create(const char *dir, size_t size)
 	size = roundup(size, Pagesize);
 
 	void *addr;
-	if ((addr = util_map_tmpfile(dir, size)) == NULL)
+	if ((addr = util_map_tmpfile(dir, size, 4 << 20)) == NULL)
 		return NULL;
 
 	/* store opaque info at beginning of mapped area */
