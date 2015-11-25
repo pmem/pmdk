@@ -390,10 +390,9 @@ struct tx_range_data {
 static void
 tx_restore_range(PMEMobjpool *pop, struct tx_range *range)
 {
-	/* XXX - change to compile-time check */
-	ASSERTeq(sizeof (PMEMmutex), _POBJ_CL_ALIGNMENT);
-	ASSERTeq(sizeof (PMEMrwlock), _POBJ_CL_ALIGNMENT);
-	ASSERTeq(sizeof (PMEMcond), _POBJ_CL_ALIGNMENT);
+	COMPILE_ERROR_ON(sizeof (PMEMmutex) != _POBJ_CL_ALIGNMENT);
+	COMPILE_ERROR_ON(sizeof (PMEMrwlock) != _POBJ_CL_ALIGNMENT);
+	COMPILE_ERROR_ON(sizeof (PMEMcond) != _POBJ_CL_ALIGNMENT);
 
 	struct lane_tx_runtime *runtime =
 			(struct lane_tx_runtime *)tx.section->runtime;
