@@ -37,7 +37,7 @@
 # for each unit test overrides the defaults as necessary.
 #
 
-TOP := $(dir $(lastword $(MAKEFILE_LIST)))/../..
+TOP := $(dir $(lastword $(MAKEFILE_LIST)))../..
 
 include $(TOP)/src/common.inc
 

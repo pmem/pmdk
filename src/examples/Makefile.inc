@@ -33,7 +33,7 @@
 #
 # examples/Makefile.inc -- build the NVM Library examples
 #
-TOP_SRC := $(dir $(lastword $(MAKEFILE_LIST)))/..
+TOP_SRC := $(dir $(lastword $(MAKEFILE_LIST)))..
 TOP := $(TOP_SRC)/..
 
 include $(TOP)/src/common.inc

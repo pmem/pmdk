@@ -31,7 +31,7 @@
 # src/Makefile.inc -- common Makefile rules for NVM library
 #
 
-TOP := $(dir $(lastword $(MAKEFILE_LIST)))/..
+TOP := $(dir $(lastword $(MAKEFILE_LIST)))..
 include $(TOP)/src/common.inc
 
 INCLUDE = ../include
