@@ -114,6 +114,7 @@ OTHER_TESTS = \
        magic\
        out_err\
        out_err_mt\
+       pmemspoil\
        scope\
        set_funcs\
        traces\
