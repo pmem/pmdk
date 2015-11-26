@@ -172,10 +172,12 @@ static inline PMEMoid
 list_get_dest(PMEMobjpool *pop, struct list_head *head, PMEMoid dest,
 		uint64_t pe_offset, int before)
 {
+	ASSERT(before == POBJ_LIST_DEST_HEAD || before == POBJ_LIST_DEST_TAIL);
+
 	if (dest.off)
 		return dest;
 
-	if (head->pe_first.off == 0 || before)
+	if (head->pe_first.off == 0 || before == POBJ_LIST_DEST_HEAD)
 		return head->pe_first;
 
 	struct list_entry *first_ptr = (struct list_entry *)OBJ_OFF_TO_PTR(pop,
