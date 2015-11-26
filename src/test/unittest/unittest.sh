@@ -364,7 +364,17 @@ function expect_abnormal_exit() {
 	set +e
 	eval $ECHO ASAN_OPTIONS="detect_leaks=0 ${ASAN_OPTIONS}" LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH LD_PRELOAD=$TEST_LD_PRELOAD \
 	$TRACE $*
+	ret=$?
 	set -e
+
+	if [ "$ret" -eq "0" ]; then
+		msg="succeeded"
+		[ -t 2 ] && command -v tput >/dev/null && msg="$(tput setaf 1)$msg$(tput sgr0)"
+
+		echo -e "$UNITTEST_NAME command $msg unexpectedly." >&2
+
+		false
+	fi
 }
 
 #
