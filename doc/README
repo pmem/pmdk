@@ -51,6 +51,9 @@ pmempool-dump(1) -- Dump user data from specified pool
     Man page source is in pmempool-dump.1
     HTML formatted version: http://pmem.io/nvml/pmempool/pmempool-dump.1.html
 
+pmempool-rm(1) -- Remove pool file or pool files from poolset
+    Man page source is in pmempool-rm.1
+    HTML formatted version: http://pmem.io/nvml/pmempool/pmempool-rm.1.html
 
 These man pages provide the API specification for the corresponding libraries
 in this source tree, so any updates to one should be tested, reviewed, and
