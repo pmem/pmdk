@@ -1422,6 +1422,8 @@ int
 pmemobj_realloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 		unsigned int type_num)
 {
+	ASSERTne(oidp, NULL);
+
 	LOG(3, "pop %p oid.off 0x%016jx size %zu type_num %u",
 		pop, oidp->off, size, type_num);
 
@@ -1446,6 +1448,8 @@ int
 pmemobj_zrealloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 		unsigned int type_num)
 {
+	ASSERTne(oidp, NULL);
+
 	LOG(3, "pop %p oid.off 0x%016jx size %zu type_num %u",
 		pop, oidp->off, size, type_num);
 
@@ -1524,6 +1528,8 @@ pmemobj_strdup(PMEMobjpool *pop, PMEMoid *oidp, const char *s,
 void
 pmemobj_free(PMEMoid *oidp)
 {
+	ASSERTne(oidp, NULL);
+
 	LOG(3, "oid.off 0x%016jx", oidp->off);
 
 	/* log notice message if used inside a transaction */

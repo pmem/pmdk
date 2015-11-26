@@ -1587,7 +1587,9 @@ or
 .BR pmemobj_zrealloc ().
 If
 .I oidp
-points to
+is NULL or if it points to the root object's OID,
+behavior of the function is undefined.
+If it points to
 .IR OID_NULL ,
 no operation is performed. It sets the
 .I oidp
@@ -1625,7 +1627,9 @@ If the new size is larger than the old size, the added memory will
 be initialized.
 If
 .I oidp
-points to
+is NULL or if it points to the root object's OID,
+behavior of the function is undefined.
+If it points to
 .IR OID_NULL ,
 then the call is equivalent to
 .BI "pmemobj_alloc(" pop ", " size ", " type_num ")."
@@ -1684,7 +1688,9 @@ up to the minimum of the old and new sizes.
 If the new size is larger than the old size, the added memory will be zeroed.
 If
 .I oidp
-points to
+is NULL or if it points to the root object's OID,
+behavior of the function is undefined.
+If it points to
 .IR OID_NULL ,
 then the call is equivalent to
 .BI "pmemobj_zalloc(" pop ", " size ", " type_num ")."
