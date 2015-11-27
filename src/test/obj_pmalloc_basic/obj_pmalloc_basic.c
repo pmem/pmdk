@@ -154,7 +154,7 @@ test_realloc(size_t org, size_t dest)
 static void
 test_mock_pool_allocs()
 {
-	addr = MALLOC(MOCK_POOL_SIZE);
+	addr = ZALLOC(MOCK_POOL_SIZE);
 	mock_pop = &addr->p;
 	mock_pop->addr = addr;
 	mock_pop->size = MOCK_POOL_SIZE;
