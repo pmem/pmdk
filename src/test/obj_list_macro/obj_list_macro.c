@@ -367,8 +367,8 @@ main(int argc, char *argv[])
 						S_IWUSR | S_IRUSR)) == NULL)
 		FATAL("!pmemobj_create");
 
-	POBJ_NEW(pop, &List, struct list, NULL, NULL);
-	POBJ_NEW(pop, &List_sec, struct list, NULL, NULL);
+	POBJ_ZNEW(pop, &List, struct list);
+	POBJ_ZNEW(pop, &List_sec, struct list);
 	int i;
 	for (i = 2; i < argc; i++) {
 		switch (argv[i][0]) {
