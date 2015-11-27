@@ -37,7 +37,7 @@
 .\" or
 .\"	groff -man -Tascii libpmemblk.3
 .\"
-.TH libpmemblk 3 "pmemblk API version 0.8.3" "NVM Library"
+.TH libpmemblk 3 "pmemblk API version 0.8.4" "NVM Library"
 .SH NAME
 libpmemblk \- persistent memory resident array of blocks
 .SH SYNOPSIS
@@ -315,6 +315,12 @@ text file, which must start with the line containing a
 string,
 followed by the specification of all the pool parts in the next lines.
 For each part, the file size and the absolute path must be provided.
+The minimum file size of each part of the pool set is the same as the
+minimum size allowed for a block pool consisting
+of one file.  It is defined in
+.B <libpmemblk.h>
+as
+.BR PMEMBLK_MIN_POOL .
 Lines starting with "#" character are ignored.
 .PP
 Here is the example "myblkpool.set" file:
