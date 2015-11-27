@@ -37,7 +37,7 @@
 .\" or
 .\"	groff -man -Tascii libpmemlog.3
 .\"
-.TH libpmemlog 3 "pmemlog API version 0.8.3" "NVM Library"
+.TH libpmemlog 3 "pmemlog API version 0.8.4" "NVM Library"
 .SH NAME
 libpmemlog \- persistent memory resident log file
 .SH SYNOPSIS
@@ -289,6 +289,12 @@ text file, which must start with the line containing a
 string,
 followed by the specification of all the pool parts in the next lines.
 For each part, the file size and the absolute path must be provided.
+The minimum file size of each part of the pool set is the same as the
+minimum size allowed for a log pool consisting
+of one file.  It is defined in
+.B <libpmemlog.h>
+as
+.BR PMEMLOG_MIN_POOL .
 Lines starting with "#" character are ignored.
 .PP
 Here is the example "mylogpool.set" file:
