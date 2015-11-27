@@ -41,6 +41,7 @@ export UNITTEST_NUM=5
 . ../unittest/unittest.sh
 
 require_fs_type local
+memcheck force-disable
 
 setup
 
