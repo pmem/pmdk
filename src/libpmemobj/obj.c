@@ -1299,6 +1299,14 @@ obj_realloc_common(PMEMobjpool *pop, struct object_store *store,
 		struct list_head *lhead_new = &store->bytype[type_num].head;
 
 		/*
+		 * Header padding doubles as a redzone to check for header
+		 * overwrites. Disable it temporarily so we can modify the type
+		 * number.
+		 */
+		VALGRIND_DO_MAKE_MEM_DEFINED(pop, &pobj->data.padding,
+				sizeof (pobj->data.padding));
+
+		/*
 		 * Redo log updates 8 byte entries, so we have to prepare
 		 * full 8-byte value even if we want to update smaller field
 		 * (here: user_type).
@@ -1313,6 +1321,9 @@ obj_realloc_common(PMEMobjpool *pop, struct object_store *store,
 				*((uint64_t *)&d), oidp);
 		if (ret)
 			LOG(2, "list_realloc_move failed");
+
+		VALGRIND_DO_MAKE_MEM_NOACCESS(pop, &pobj->data.padding,
+				sizeof (pobj->data.padding));
 
 		return ret;
 	}
