@@ -116,8 +116,11 @@ main(int argc, char *argv[])
 	/* atomically add it all to the log */
 	if (pmemlog_appendv(plp, iovp, iovcnt) < 0) {
 		perror("pmemlog_appendv");
+		free(iovp);
 		exit(1);
 	}
+
+	free(iovp);
 
 	pmemlog_close(plp);
 }
