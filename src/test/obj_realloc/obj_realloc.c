@@ -106,15 +106,13 @@ static int check_integrity = 1;
 /*
  * fill_buffer -- fill buffer with random data and return its checksum
  */
-static uint64_t
+static uint16_t
 fill_buffer(unsigned char *buf, size_t size)
 {
-	uint64_t csum;
 	for (size_t i = 0; i < size; ++i)
 		buf[i] = rand() % 255;
 	pmem_persist(buf, size);
-	util_checksum(buf, size, &csum, 1);
-	return csum;
+	return ut_checksum(buf, size);
 }
 
 /*
@@ -137,7 +135,7 @@ test_realloc(PMEMobjpool *pop, size_t size_from, size_t size_to,
 	ASSERT(usable_size_from >= size_from);
 
 	size_t check_size;
-	uint64_t checksum;
+	uint16_t checksum;
 
 	if (check_integrity) {
 		check_size = size_to >= usable_size_from ?
@@ -155,8 +153,9 @@ test_realloc(PMEMobjpool *pop, size_t size_from, size_t size_to,
 	}
 
 	if (check_integrity) {
-		if (util_checksum(D_RW(D_RW(root)->obj), check_size, &checksum,
-				0) == 0)
+		uint16_t checksum2 = ut_checksum(
+				(void *)D_RW(D_RW(root)->obj), check_size);
+		if (checksum2 != checksum)
 			ASSERTinfo(0, "memory corruption");
 	}
 

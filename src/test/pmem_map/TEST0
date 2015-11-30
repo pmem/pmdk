@@ -42,6 +42,8 @@ export UNITTEST_NUM=0
 
 require_fs_type local
 
+memcheck force-disable
+
 setup
 
 # this test invokes sigsegvs by design

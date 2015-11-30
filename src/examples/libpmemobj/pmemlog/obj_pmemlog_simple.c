@@ -109,7 +109,7 @@ pmemlog_map(PMEMobjpool *pop, size_t fsize)
 
 	TX_BEGIN(pop) {
 		TX_ADD(bp);
-		D_RW(bp)->log = TX_ALLOC(struct log, pool_size);
+		D_RW(bp)->log = TX_ZALLOC(struct log, pool_size);
 		D_RW(D_RW(bp)->log)->hdr.data_size =
 				pool_size - sizeof (struct log_hdr);
 	} TX_ONABORT {

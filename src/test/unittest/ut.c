@@ -478,3 +478,20 @@ ut_err(const char *file, int line, const char *func,
 
 	errno = saveerrno;
 }
+
+/*
+ * ut_checksum -- compute checksum using Fletcher16 algorithm
+ */
+uint16_t
+ut_checksum(uint8_t *addr, size_t len)
+{
+	uint16_t sum1 = 0;
+	uint16_t sum2 = 0;
+
+	for (size_t i = 0; i < len; ++i) {
+		sum1 = (sum1 + addr[i]) % 255;
+		sum2 = (sum2 + sum1) % 255;
+	}
+
+	return (sum2 << 8) | sum1;
+}
