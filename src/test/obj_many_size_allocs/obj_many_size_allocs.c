@@ -66,7 +66,7 @@ test_allocs(PMEMobjpool *pop, const char *path)
 		FATAL("pmemobj_alloc(0) succeeded");
 
 	for (int i = 1; i < TEST_ALLOC_SIZE; ++i) {
-		struct cargs args = { i };
+		struct cargs args = { (size_t)i };
 		if (pmemobj_alloc(pop, &oid[i], i, 0,
 				test_constructor, &args) != 0)
 			FATAL("!pmemobj_alloc");
