@@ -55,8 +55,8 @@
 #define	OBJ_LANES_OFFSET	8192	/* lanes offset (8kB) */
 #define	OBJ_NLANES		1024	/* number of lanes */
 
-#define	MAX_CACHED_RANGE_SIZE 16
-#define	MAX_CACHED_RANGES 254 /* calculated to be exactly 8192 bytes */
+#define	MAX_CACHED_RANGE_SIZE 32
+#define	MAX_CACHED_RANGES 127 /* calculated to be exactly 8192 bytes */
 
 #define	OBJ_OOB_SIZE		(sizeof (struct oob_header))
 #define	OBJ_OFF_TO_PTR(pop, off) ((void *)((uintptr_t)(pop) + (off)))
