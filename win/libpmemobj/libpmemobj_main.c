@@ -34,16 +34,12 @@
  * libpmemobj_main.c -- entry point for libpmemobj.dll
  */
 
-void libpmemobj_init(void);
-void libpmemobj_fini(void);
-
 int APIENTRY
 DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
 {
 	switch (dwReason)
 	{
 	case DLL_PROCESS_ATTACH:
-		libpmemobj_init();
 		break;
 
 	case DLL_THREAD_ATTACH:
@@ -51,7 +47,6 @@ DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
 		break;
 
 	case DLL_PROCESS_DETACH:
-		libpmemobj_fini();
 		break;
 	}
 	return TRUE;

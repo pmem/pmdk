@@ -56,7 +56,9 @@
 __attribute__((constructor))
 static void
 #else
-void
+static void WINAPI libpmemobj_fini(void);
+
+void WINAPI
 #endif
 libpmemobj_init(void)
 {
@@ -66,6 +68,10 @@ libpmemobj_init(void)
 	LOG(3, NULL);
 	util_init();
 	obj_init();
+
+#ifdef WIN32
+	atexit(libpmemobj_fini);
+#endif
 }
 
 /*
@@ -77,7 +83,7 @@ libpmemobj_init(void)
 __attribute__((destructor))
 static void
 #else
-void
+static void WINAPI
 #endif
 libpmemobj_fini(void)
 {

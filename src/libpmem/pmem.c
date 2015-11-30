@@ -1196,7 +1196,7 @@ pmem_parse_cpuinfo(char *line)
 __attribute__((constructor))
 static void
 #else
-void
+static void WINAPI
 #endif
 pmem_init(void)
 {
@@ -1314,3 +1314,18 @@ pmem_init(void)
 			Func_is_pmem = is_pmem_always;
 	}
 }
+
+#ifdef _WIN32
+void WINAPI libpmem_init(void);
+
+/*
+ * library constructor functions
+ */
+#pragma section(".CRT$XCU", read)
+__declspec(allocate(".CRT$XCU"))
+static const void (WINAPI *_pmem_init)(void) = pmem_init;
+
+#pragma section(".CRT$XCU", read)
+__declspec(allocate(".CRT$XCU"))
+const void (WINAPI *_libpmem_init)(void) = libpmem_init;
+#endif

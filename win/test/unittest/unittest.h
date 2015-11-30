@@ -113,18 +113,6 @@
 #include <libvmem.h>
 
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-	void libpmem_init(void);
-	void libpmem_fini(void);
-	void pmem_init(void);
-	void libpmemobj_init(void);
-	void libpmemobj_fini(void);
-#ifdef __cplusplus
-}
-#endif
-
 /*
  * unit test support...
  */
@@ -147,12 +135,8 @@ void ut_err(const char *file, int line, const char *func,
 	__attribute__((format(printf, 4, 5)));
 
 /* indicate the start of the test */
-#define	START(argc, argv, ...) {\
-    ut_start(__FILE__, __LINE__, __func__, argc, argv, __VA_ARGS__);\
-    libpmem_init();\
-    pmem_init();\
-    libpmemobj_init();\
-}
+#define	START(argc, argv, ...)\
+    ut_start(__FILE__, __LINE__, __func__, argc, argv, __VA_ARGS__)
 
 /* normal exit from test */
 #define	DONE(...)\
