@@ -1299,7 +1299,7 @@ obj_realloc_common(PMEMobjpool *pop, struct object_store *store,
 		struct list_head *lhead_new = &store->bytype[type_num].head;
 
 		/*
-		 * Header padding doubles as a redzone to check for header
+		 * Header padding doubles as a red zone to check for header
 		 * overwrites. Disable it temporarily so we can modify the type
 		 * number.
 		 */
