@@ -992,6 +992,13 @@ tx_realloc_common(PMEMoid oid, size_t size, unsigned int type_num,
 		return OID_NULL;
 	}
 
+	if (type_num >= PMEMOBJ_NUM_OID_TYPES) {
+		ERR("invalid type_num %d", type_num);
+		errno = EINVAL;
+		pmemobj_tx_abort(EINVAL);
+		return OID_NULL;
+	}
+
 	struct lane_tx_runtime *lane =
 		(struct lane_tx_runtime *)tx.section->runtime;
 
