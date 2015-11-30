@@ -16,6 +16,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\test\obj_heap_state\obj_heap_state.c" />
+    <ClCompile Include="..\..\src\file.c" />
     <ClCompile Include="..\unittest\ut.c" />
     <ClCompile Include="..\unittest\ut_alloc.c" />
     <ClCompile Include="..\unittest\ut_file.c" />

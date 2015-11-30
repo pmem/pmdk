@@ -16,6 +16,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\test\obj_many_size_allocs\obj_many_size_allocs.c" />
+    <ClCompile Include="..\..\src\file.c" />
     <ClCompile Include="..\unittest\ut.c" />
     <ClCompile Include="..\unittest\ut_alloc.c" />
     <ClCompile Include="..\unittest\ut_file.c" />
