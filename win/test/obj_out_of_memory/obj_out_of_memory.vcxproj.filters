@@ -27,5 +27,8 @@
     <ClCompile Include="..\..\..\src\test\obj_out_of_memory\obj_out_of_memory.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\file.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

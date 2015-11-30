@@ -30,6 +30,7 @@
     <ClCompile Include="..\..\src\libpmemobj\redo.c" />
     <ClCompile Include="..\..\src\libpmemobj\sync.c" />
     <ClCompile Include="..\..\src\libpmemobj\tx.c" />
+    <ClCompile Include="..\src\file.c" />
     <ClCompile Include="..\src\mmap.c" />
     <ClCompile Include="..\src\pthread.c" />
     <ClCompile Include="libpmemobj_main.c">

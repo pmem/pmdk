@@ -380,7 +380,8 @@ util_tmpfile(const char *dir, size_t size)
 
 	int fd = -1;
 
-#ifndef WIN32
+#if 1
+
 	static char template[] = "/vmem.XXXXXX";
 	char fullname[PATH_MAX];
 
@@ -413,6 +414,7 @@ util_tmpfile(const char *dir, size_t size)
 		ERR("!posix_fallocate");
 		goto err;
 	}
+
 #else
 	char fullName[MAX_PATH];
 	UINT fileNo;
@@ -458,20 +460,11 @@ util_tmpfile(const char *dir, size_t size)
 
 err:
 	LOG(1, "return -1");
-#ifndef WIN32
 	int oerrno = errno;
 	(void) sigprocmask(SIG_SETMASK, &oldset, NULL);
 	if (fd != -1)
 		(void) close(fd);
-
 	errno = oerrno;
-#else
-	int oerrno = GetLastError();
-	if (fd != INVALID_HANDLE_VALUE)
-		(void) CloseHandle((HANDLE)fd);
-
-	SetLastError(oerrno);
-#endif
 	return -1;
 }
 
@@ -856,16 +849,24 @@ util_file_create(const char *path, size_t size, size_t minsize)
 	}
 
 	int fd;
-	/*
-	 * Create file without any permission. It will be granted once
-	 * initialization completes.
-	 */
 
 #ifndef WIN32
+	/*
+	* Create file without any permission. It will be granted once
+	* initialization completes.
+	*/
+
 	if ((fd = open(path, O_RDWR|O_CREAT|O_EXCL, 0)) < 0) {
 		ERR("!open %s", path);
 		return -1;
 	}
+#else
+	if ((fd = open(path, O_RDWR | O_CREAT | O_EXCL,
+						S_IWRITE | S_IREAD)) < 0) {
+		ERR("!open %s", path);
+		return -1;
+	}
+#endif
 
 	if (flock(fd, LOCK_EX | LOCK_NB) < 0) {
 		ERR("!flock");
@@ -876,68 +877,17 @@ util_file_create(const char *path, size_t size, size_t minsize)
 		ERR("!posix_fallocate");
 		goto err;
 	}
-#else
-
-#if 1
-	if ((fd = open(path, O_RDWR|O_CREAT|O_EXCL, S_IWRITE | S_IREAD)) < 0) {
-		ERR("!open %s", path);
-		return -1;
-	}
-
-	if (chsize(fd, (long)size)) {
-		ERR("!chsize %s", path);
-		goto err;
-	}
-#else
-	fd = CreateFileA(path,
-			GENERIC_READ | GENERIC_WRITE,
-			0, /* share mode is exclusive */
-			NULL,
-			CREATE_ALWAYS,
-			FILE_ATTRIBUTE_NORMAL,
-			NULL);
-
-	if (fd == INVALID_HANDLE_VALUE) {
-		ERR("!open %s", path);
-		return -1;
-	}
-
-	LARGE_INTEGER fileLength;
-	fileLength.QuadPart = size;
-
-	HANDLE fh = _get_osfhandle(fd);
-	if (SetFilePointerEx(fh, fileLength, NULL, FILE_BEGIN) == 0) {
-		ERR("!SetFilePointerEx %s", path);
-		goto err;
-	}
-
-	if (SetEndOfFile(fh) == 0) {
-		ERR("!SetEndOfFile %s", path);
-		goto err;
-	}
-#endif
-
-#endif
 
 	return fd;
 
 err:
 	LOG(4, "error clean up");
 
-#if 1 /* #ifndef WIN32 */
 	int oerrno = errno;
 	if (fd != -1)
 		(void) close(fd);
 	unlink(path);
 	errno = oerrno;
-#else
-	int oerrno = GetLastError();
-	if (fd != INVALID_HANDLE_VALUE) {
-		(void) CloseHandle(fh);
-		DeleteFileA(path);
-	}
-	SetLastError(oerrno);
-#endif
 	return -1;
 }
 
@@ -947,8 +897,8 @@ err:
 int
 util_file_open(const char *path, size_t *size, size_t minsize, int flags)
 {
-	LOG(3, "path %s size %p minsize %zu flags %d", path, size, minsize,
-			flags);
+	LOG(3, "path %s size %p minsize %zu flags %d",
+			path, size, minsize, flags);
 
 	int oerrno;
 	int fd;
@@ -966,8 +916,6 @@ util_file_open(const char *path, size_t *size, size_t minsize, int flags)
 	if (size || minsize) {
 		if (size)
 			ASSERTeq(*size, 0);
-
-#if 1 /* #ifndef WIN32 */
 
 		struct stat stbuf;
 		if (fstat(fd, &stbuf) < 0) {
@@ -989,53 +937,7 @@ util_file_open(const char *path, size_t *size, size_t minsize, int flags)
 
 		if (size)
 			*size = (size_t)stbuf.st_size;
-#else
-	WIN32_FILE_ATTRIBUTE_DATA fileData;
-
-	if (!GetFileAttributesExA(path, GetFileExInfoStandard, &fileData)) {
-		ERR("!GetFileAttributesEx %s", path);
-		return -1;
 	}
-
-	size_t fileSize = (fileData.nFileSizeHigh << 32) |
-				fileData.nFileSizeLow;
-
-	if (fileSize < minsize) {
-		ERR("size %zu smaller than %zu", fileSize, minsize);
-		SetLastError(ERROR_INVALID_PARAMETER);
-		return -1;
-	}
-
-	if (size)
-		*size = fileSize;
-#endif
-	}
-
-#ifndef WIN32
-	if ((fd = open(path, flags)) < 0) {
-		ERR("!open %s", path);
-		return -1;
-	}
-
-	if (flock(fd, LOCK_EX | LOCK_NB) < 0) {
-		ERR("!flock");
-		close(fd);
-		return -1;
-	}
-#else
-	fd = CreateFileA(path,
-			GENERIC_READ | GENERIC_WRITE,
-			0, /* share mode is exclusive */
-			NULL,
-			OPEN_EXISTING,
-			FILE_ATTRIBUTE_NORMAL,
-			NULL);
-
-	if (fd == INVALID_HANDLE_VALUE) {
-		ERR("!CreateFile %s", path);
-		return -1;
-	}
-#endif
 
 	return fd;
 err:

@@ -55,6 +55,9 @@
     <ClCompile Include="..\src\mmap.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\file.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\libpmemobj\heap_layout.h">

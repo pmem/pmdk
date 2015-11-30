@@ -34,11 +34,15 @@
  * platform.h -- dirty hacks to compile linux code on windows
  */
 
+#pragma once
+
 #include <windows.h>
 #include <stdint.h>
 #include <io.h>
 #include <process.h>
 #include <listentry.h>
+#include <fcntl.h>
+#include <sys/types.h>
 
 
 #define	PATH_MAX MAX_PATH
@@ -91,18 +95,35 @@ __sync_bool_compare_and_swap(volatile uint64_t *ptr,
 	return (old == oldval);
 }
 
-#define	LOCK_EX 0
-#define	LOCK_NB 0
-
 #define	S_IRUSR S_IREAD
 #define	S_IWUSR S_IWRITE
 
-#define	flock(fd, flags) 0
 #define	fchmod(fd, mode) 0
 #define	setlinebuf(o)
 #define	strsep(line, sep) NULL
-#define	mkstemp(n) 0
-#define	posix_fallocate(fd, p, size) 0
+
+#define unlink _unlink
+
+#define	SIG_BLOCK 0
+#define	SIG_SETMASK 0
+
+
+__inline int
+sigfillset(sigset_t *set)
+{
+	(void) set;
+	return 0;
+}
+
+__inline int
+sigprocmask(int how, const sigset_t *set, sigset_t *oldset)
+{
+	(void) how;
+	(void) set;
+	(void) oldset;
+	return 0;
+}
+
 
 int is_cpu_genuine_intel(void);
 int is_cpu_sse2_present(void);
@@ -110,3 +131,7 @@ int is_cpu_clflush_present(void);
 int is_cpu_clflushopt_present(void);
 int is_cpu_clwb_present(void);
 int is_cpu_pcommit_present(void);
+
+
+int mkstemp(char *temp);
+int posix_fallocate(int fd, off_t offset, off_t size);
