@@ -62,8 +62,9 @@ static unsigned Log_alignment;
 static pthread_once_t Last_errormsg_key_once = PTHREAD_ONCE_INIT;
 static pthread_key_t Last_errormsg_key;
 
+
 static void
-_Last_errormsg_key_alloc()
+_Last_errormsg_key_alloc(void)
 {
 	int pth_ret = pthread_key_create(&Last_errormsg_key, free);
 	if (pth_ret)
@@ -73,7 +74,7 @@ _Last_errormsg_key_alloc()
 }
 
 static void
-Last_errormsg_key_alloc()
+Last_errormsg_key_alloc(void)
 {
 	pthread_once(&Last_errormsg_key_once, _Last_errormsg_key_alloc);
 	/*
@@ -204,6 +205,8 @@ out_init(const char *log_prefix, const char *log_level_var,
 
 		/* reserve more than enough space for a PID + '\0' */
 		char *log_file_pid = malloc(cc + 30);
+		if (log_file_pid == NULL)
+			abort();
 
 		if (cc > 0 && log_file[cc - 1] == '-') {
 			snprintf(log_file_pid, cc + 30, "%s%d",

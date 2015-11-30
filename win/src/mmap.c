@@ -72,7 +72,7 @@ mmap_fini(void)
 {
 	LOG(3, NULL);
 
-	if (FileMappingListMutex = NULL)
+	if (FileMappingListMutex == NULL)
 		return;
 
 	/*
@@ -285,7 +285,7 @@ msync(void *addr, size_t len, int flags)
 			if (FlushFileBuffers(
 					mappingTracker->FileHandle) == 0)
 				ERR("!FlushFileBuffers %d",
-					mappingTracker->FileHandle);
+					mappingTracker->FileHandle); /* XXX */
 			else
 				retval = 0;
 
