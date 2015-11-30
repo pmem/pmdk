@@ -324,6 +324,7 @@ TOID_DECLARE_ROOT(t);
 PMEMobjpool *pmemobj_pool_by_ptr(const void *addr);
 PMEMobjpool *pmemobj_pool_by_oid(PMEMoid oid);
 
+#ifndef WIN32
 
 extern int _pobj_cache_invalidate;
 extern __thread struct _pobj_pcache {
@@ -355,6 +356,16 @@ pmemobj_direct(PMEMoid oid)
 
 	return (void *)((uintptr_t)_pobj_cached_pool.pop + oid.off);
 }
+
+#else /* WIN32 */
+
+/*
+ * Returns the direct pointer of an object.
+ */
+void *pmemobj_direct(PMEMoid oid);
+
+#endif /* WIN32 */
+
 
 #ifndef WIN32
 
