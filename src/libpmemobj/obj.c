@@ -1889,3 +1889,14 @@ _pobj_debug_notice(const char *api_name, const char *file, int line)
 	}
 #endif /* DEBUG */
 }
+
+#ifdef WIN32
+void WINAPI libpmemobj_init(void);
+
+/*
+ * library constructor function
+ */
+#pragma section(".CRT$XCU", read)
+__declspec(allocate(".CRT$XCU"))
+const void (WINAPI *_libpmemobj_init)(void) = libpmemobj_init;
+#endif

@@ -43,18 +43,6 @@
 static char Filename[] = "C:\\temp\\testfile.bin";
 static char Layout[] = "objtest";
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-void libpmem_init(void);
-void libpmem_fini(void);
-void pmem_init(void);
-void libpmemobj_init(void);
-void libpmemobj_fini(void);
-#ifdef __cplusplus
-}
-#endif
-
 TOID_DECLARE_ROOT(struct myroot);
 TOID_DECLARE(struct myobj, 1);
 
@@ -202,11 +190,6 @@ test_root(PMEMobjpool *pop)
 int
 main(int argc, const char *argv[])
 {
-	/* XXX - library constructors */
-	libpmem_init();
-	pmem_init();
-	libpmemobj_init();
-
 	const char *msg = pmem_check_version(PMEM_MAJOR_VERSION,
 				PMEM_MINOR_VERSION);
 	if (msg) {
@@ -264,10 +247,6 @@ main(int argc, const char *argv[])
 	}
 
 	pmemobj_close(pop);
-
-	/* XXX - library destructors */
-	libpmemobj_fini();
-	libpmem_fini();
 
 	return 0;
 }
