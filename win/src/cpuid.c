@@ -45,7 +45,7 @@
 int
 is_cpu_genuine_intel(void)
 {
-	int cpuinfo[4];
+	int cpuinfo[4] = { 0 };
 
 	union {
 		char name[0x20];
@@ -70,7 +70,7 @@ is_cpu_genuine_intel(void)
 int
 is_cpu_sse2_present()
 {
-	int cpuinfo[4];
+	int cpuinfo[4] = { 0 };
 
 	__cpuid(cpuinfo, 0x01);
 	return (cpuinfo[EDX_IDX] & (1 << 26)) != 0;
@@ -82,7 +82,7 @@ is_cpu_sse2_present()
 int
 is_cpu_clflush_present()
 {
-	int cpuinfo[4];
+	int cpuinfo[4] = { 0 };
 
 	__cpuid(cpuinfo, 0x01);
 	return (cpuinfo[EDX_IDX] & (1 << 19)) != 0;
@@ -94,7 +94,7 @@ is_cpu_clflush_present()
 int
 is_cpu_clflushopt_present()
 {
-	int cpuinfo[4];
+	int cpuinfo[4] = { 0 };
 
 	if (!is_cpu_genuine_intel())
 		return 0;
@@ -108,7 +108,7 @@ is_cpu_clflushopt_present()
 int
 is_cpu_clwb_present()
 {
-	int cpuinfo[4];
+	int cpuinfo[4] = { 0 };
 
 	if (!is_cpu_genuine_intel())
 		return 0;
@@ -122,7 +122,7 @@ is_cpu_clwb_present()
 int
 is_cpu_pcommit_present()
 {
-	int cpuinfo[4];
+	int cpuinfo[4] = { 0 };
 
 	if (!is_cpu_genuine_intel())
 		return 0;
