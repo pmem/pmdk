@@ -36,7 +36,7 @@
 vpath %.c ../../common
 
 TARGET = obj_realloc
-OBJS = obj_realloc.o util.o out.o
+OBJS = obj_realloc.o
 
 LIBPMEM=y
 LIBPMEMOBJ=y
@@ -45,5 +45,3 @@ include ../Makefile.inc
 
 CFLAGS += -I../../libpmemobj
 CFLAGS += -I../../common
-
-out.o: CFLAGS += -DSRCVERSION=\"utversion\"

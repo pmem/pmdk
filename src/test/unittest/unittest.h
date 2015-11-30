@@ -535,4 +535,6 @@ void ut_dump_backtrace(void);
 void ut_sighandler(int);
 void ut_register_sighandlers(void);
 
+uint16_t ut_checksum(uint8_t *addr, size_t len);
+
 #endif	/* unittest.h */
