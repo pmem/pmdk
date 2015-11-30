@@ -31,7 +31,7 @@
  */
 
 /*
- * fake pthread.h
+ * pthread.h -- (imperfect) POSIX threads for Windows
  */
 
 #ifndef __PTHREAD_H__
@@ -40,12 +40,12 @@
 #include <stdint.h>
 
 
-#define	USE_WIN_SRWLOCK
+/* #define	USE_WIN_SRWLOCK */
 
 #ifdef USE_WIN_MUTEX
-#define	pthread_mutex_t	HANDLE
+#define	pthread_mutex_t HANDLE
 #else
-#define	pthread_mutex_t	CRITICAL_SECTION
+#define	pthread_mutex_t CRITICAL_SECTION
 #endif
 
 #ifdef USE_WIN_SRWLOCK
@@ -68,16 +68,19 @@
 
 #define	pthread_t int
 #define	pthread_attr_t int
-#define	pthread_once_t int
-#define	pthread_key_t int
+#define	pthread_once_t long
+#define	pthread_key_t DWORD
 
 #define	PTHREAD_MUTEX_RECURSIVE 0
 #define	PTHREAD_ONCE_INIT 0
 
-#define	pthread_key_create(k, d) 0
-#define	pthread_getspecific(k) NULL
-#define	pthread_setspecific(k, v) 0
-#define	pthread_once(k, f) 0
+
+int pthread_once(pthread_once_t *o, void (*func)(void));
+
+int pthread_key_create(pthread_key_t *key, void (*destructor)(void *));
+int pthread_key_delete(pthread_key_t key);
+int pthread_setspecific(pthread_key_t key, const void *value);
+void *pthread_getspecific(pthread_key_t key);
 
 
 int pthread_mutex_init(pthread_mutex_t *restrict mutex,

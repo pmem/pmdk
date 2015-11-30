@@ -31,12 +31,11 @@
  */
 
 /*
- * pthread.c -- fake pthread locks
+ * pthread.c -- (imperfect) POSIX threads for Windows
  */
 
 #include <pthread.h>
 #include <time.h>
-
 #include <sys/types.h>
 #include <sys/timeb.h>
 
@@ -266,4 +265,51 @@ pthread_cond_wait(pthread_cond_t *restrict cond,
 	pthread_mutex_t *restrict mutex)
 {
 	return SleepConditionVariableCS(cond, mutex, INFINITE) == FALSE;
+}
+
+
+int
+pthread_once(pthread_once_t *once, void (*func)(void))
+{
+	if (!_InterlockedCompareExchange(once, 1, 0)) {
+		func();
+	}
+	return 0;
+}
+
+int
+pthread_key_create(pthread_key_t *key, void (*destructor)(void *))
+{
+	/* XXX - destructor not supported */
+
+	*key = TlsAlloc();
+	if (*key == TLS_OUT_OF_INDEXES)
+		return EAGAIN;
+	if (!TlsSetValue(*key, NULL)) /* XXX - not needed? */
+		return ENOMEM;
+	return 0;
+}
+
+int
+pthread_key_delete(pthread_key_t key)
+{
+	/* XXX - destructor not supported */
+
+	if (!TlsFree(key))
+		return EINVAL;
+	return 0;
+}
+
+int
+pthread_setspecific(pthread_key_t key, const void *value)
+{
+	if (!TlsSetValue(key, (LPVOID)value))
+		return ENOENT;
+	return 0;
+}
+
+void *
+pthread_getspecific(pthread_key_t key)
+{
+	return TlsGetValue(key);
 }
