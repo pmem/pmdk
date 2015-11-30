@@ -23,6 +23,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Static-Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\src\cpuid.c" />
+    <ClCompile Include="..\src\file.c" />
     <ClCompile Include="..\src\mmap.c" />
     <ClCompile Include="..\src\pthread.c" />
   </ItemGroup>
