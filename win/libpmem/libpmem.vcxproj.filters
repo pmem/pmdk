@@ -29,6 +29,12 @@
     <ClCompile Include="..\src\cpuid.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\mmap.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\pthread.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\common\out.h">
