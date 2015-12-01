@@ -34,8 +34,7 @@
  * pthread.h -- (imperfect) POSIX threads for Windows
  */
 
-#ifndef __PTHREAD_H__
-#define	__PTHREAD_H__
+#pragma once
 
 #include <stdint.h>
 
@@ -134,4 +133,3 @@ int pthread_cond_timedwait(pthread_cond_t *restrict cond,
 int pthread_cond_wait(pthread_cond_t *restrict cond,
 	pthread_mutex_t *restrict mutex);
 
-#endif

@@ -31,8 +31,10 @@
  */
 
 /*
- * fake mman.h
+ * sys/mman.h
  */
+
+#pragma once
 
 #define	PROT_NONE	0x0
 #define	PROT_READ	0x1

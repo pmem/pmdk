@@ -1,3 +1,3 @@
 /*
- * fake limits.h
+ * fake linux/limits.h
  */
