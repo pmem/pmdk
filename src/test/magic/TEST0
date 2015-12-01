@@ -33,12 +33,16 @@
 #
 # magic/TEST0 -- test for magic file script
 #
-export UNITTEST_NAME=pmempool/test/magic/TEST0
+export UNITTEST_NAME=magic/TEST0
 export UNITTEST_NUM=0
 
 . ../unittest/unittest.sh
 
 require_build_type nondebug
+
+# There is no point in testing the file command using memcheck
+# because even if it does report any problems we can't fix it
+memcheck force-disable
 
 setup
 
