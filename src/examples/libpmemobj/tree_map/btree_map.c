@@ -430,6 +430,21 @@ btree_map_rebalance(TOID(struct btree_map) map, TOID(struct tree_map_node) node,
 }
 
 /*
+ * btree_map_get_leftmost_leaf -- (internal) searches for the successor
+ */
+static TOID(struct tree_map_node)
+btree_map_get_leftmost_leaf(TOID(struct btree_map) map,
+	TOID(struct tree_map_node) n, TOID(struct tree_map_node) *p)
+{
+	if (TOID_IS_NULL(D_RO(n)->slots[0]))
+		return n;
+
+	*p = n;
+
+	return btree_map_get_leftmost_leaf(map, D_RO(n)->slots[0], p);
+}
+
+/*
  * btree_map_remove_from_node -- (internal) removes element from node
  */
 static void
@@ -439,7 +454,7 @@ btree_map_remove_from_node(TOID(struct btree_map) map,
 {
 	if (TOID_IS_NULL(D_RO(node)->slots[0])) { /* leaf */
 		TX_ADD(node);
-		if (p == BTREE_ORDER - 2)
+		if (D_RO(node)->n == 1 || p == BTREE_ORDER - 2)
 			D_RW(node)->items[p] = EMPTY_ITEM;
 		else if (D_RO(node)->n != 1) {
 			memmove(&D_RW(node)->items[p],
@@ -447,17 +462,25 @@ btree_map_remove_from_node(TOID(struct btree_map) map,
 				sizeof (struct tree_map_node_item) *
 				(D_RO(node)->n - p));
 		}
+
 		D_RW(node)->n -= 1;
 		return;
 	}
 
-	/* can't delete from non-leaf nodes, remove from right child */
+	/* can't delete from non-leaf nodes, remove successor */
 	TOID(struct tree_map_node) rchild = D_RW(node)->slots[p + 1];
+	TOID(struct tree_map_node) lp = node;
+	TOID(struct tree_map_node) lm =
+		btree_map_get_leftmost_leaf(map, rchild, &lp);
+
 	TX_ADD_FIELD(node, items[p]);
-	D_RW(node)->items[p] = D_RO(rchild)->items[0];
-	btree_map_remove_from_node(map, rchild, node, 0);
-	if (D_RO(rchild)->n < BTREE_MIN) /* right child can be deficient now */
-		btree_map_rebalance(map, rchild, node, p + 1);
+	D_RW(node)->items[p] = D_RO(lm)->items[0];
+
+	btree_map_remove_from_node(map, lm, lp, 0);
+
+	if (D_RO(lm)->n < BTREE_MIN) /* right child can be deficient now */
+		btree_map_rebalance(map, lm, lp,
+			TOID_EQUALS(lp, node) ? p + 1 : 0);
 }
 
 #define	NODE_CONTAINS_ITEM(_n, _i, _k)\
@@ -476,11 +499,10 @@ btree_map_remove_item(TOID(struct btree_map) map,
 	uint64_t key, int p)
 {
 	PMEMoid ret = OID_NULL;
-	int i = 0;
-	for (; i <= D_RO(node)->n; ++i) {
+	for (int i = 0; i <= D_RO(node)->n; ++i) {
 		if (NODE_CONTAINS_ITEM(node, i, key)) {
-			btree_map_remove_from_node(map, node, parent, i);
 			ret = D_RO(node)->items[i].value;
+			btree_map_remove_from_node(map, node, parent, i);
 			break;
 		} else if (NODE_CHILD_CAN_CONTAIN_ITEM(node, i, key)) {
 			ret = btree_map_remove_item(map, D_RO(node)->slots[i],
