@@ -4,7 +4,9 @@ branches:
   - win-poc
 os: Visual Studio 2015
 configuration:
+- Debug
 - Static-Debug
+- Release
 platform: x64
 build:
   project: win/NVML.sln
