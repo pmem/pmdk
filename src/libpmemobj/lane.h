@@ -35,6 +35,13 @@
  */
 #define	LANE_SECTION_LEN 1024
 
+/*
+ * Distance between lanes used by threads required to prevent threads from
+ * false sharing part of lanes array. Used if properly spread lanes are
+ * available. Otherwise less spread out lanes would be used.
+ */
+#define	LANE_JUMP (64 / sizeof (uint64_t))
+
 enum lane_section_type {
 	LANE_SECTION_ALLOCATOR,
 	LANE_SECTION_LIST,
@@ -60,8 +67,13 @@ struct lane_layout {
 
 struct lane {
 	/* volatile state */
-	pthread_mutex_t *lock;
 	struct lane_section sections[MAX_LANE_SECTION];
+};
+
+struct lane_descriptor {
+	unsigned next_lane_idx;
+	uint64_t *lane_locks;
+	struct lane *lane;
 };
 
 typedef int (*section_layout_op)(PMEMobjpool *pop,
@@ -78,8 +90,17 @@ struct section_operations {
 	section_global_op boot;
 };
 
+struct lane_info {
+	uint64_t pop_uuid_lo;
+	uint64_t lane_idx;
+	unsigned long nest_count;
+	struct lane_info *prev, *next;
+};
+
 extern struct section_operations *Section_ops[MAX_LANE_SECTION];
-extern __thread unsigned Lane_idx;
+
+void lane_info_boot(void);
+void lane_info_destroy(void);
 
 int lane_boot(PMEMobjpool *pop);
 void lane_cleanup(PMEMobjpool *pop);

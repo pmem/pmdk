@@ -41,6 +41,7 @@
 #include <errno.h>
 
 #include "libpmemobj.h"
+#include "cuckoo.h"
 #include "lane.h"
 #include "util.h"
 #include "out.h"
@@ -52,10 +53,111 @@
 #include "obj.h"
 #include "valgrind_internal.h"
 
-__thread unsigned Lane_idx = UINT32_MAX;
-static unsigned Next_lane_idx = 0;
+static pthread_key_t Lane_info_key;
+
+static __thread struct cuckoo *Lane_info_ht;
+static __thread struct lane_info *Lane_info_records;
+static __thread struct lane_info *Lane_info_cache;
 
 struct section_operations *Section_ops[MAX_LANE_SECTION];
+
+/*
+ * lane_info_destroy -- destroy lane info hash table
+ */
+inline void
+lane_info_destroy()
+{
+	ASSERTne(Lane_info_ht, NULL);
+
+	cuckoo_delete(Lane_info_ht);
+	struct lane_info *record;
+	struct lane_info *head = Lane_info_records;
+	while (head != NULL) {
+		record = head;
+		head = head->next;
+		Free(record);
+	}
+
+	Lane_info_ht = NULL;
+	Lane_info_records = NULL;
+	Lane_info_cache = NULL;
+}
+
+/*
+ * lane_info_ht_destroy -- (internal) destructor for thread shared data
+ */
+static inline void
+lane_info_ht_destroy(void *ht)
+{
+	lane_info_destroy();
+}
+
+/*
+ * lane_info_create -- (internal) destructor for thread shared data
+ */
+static inline void
+lane_info_create()
+{
+	Lane_info_ht = cuckoo_new();
+	if (Lane_info_ht == NULL)
+		FATAL("cuckoo_new");
+}
+
+/*
+ * lane_info_boot -- initialize lane info hash table and lane info key
+ */
+inline void
+lane_info_boot()
+{
+	lane_info_create();
+
+	int result = pthread_key_create(&Lane_info_key, lane_info_ht_destroy);
+	if (result != 0) {
+		errno = result;
+		FATAL("!pthread_key_create");
+	}
+}
+
+/*
+ * lane_info_ht_boot -- (internal) boot lane info and add it to thread shared
+ *	data
+ */
+static inline void
+lane_info_ht_boot()
+{
+	lane_info_create();
+	int result = pthread_setspecific(Lane_info_key, Lane_info_ht);
+	if (result != 0) {
+		errno = result;
+		FATAL("!pthread_setspecific");
+	}
+}
+
+/*
+ * lane_info_cleanup -- remove lane info record regarding pool being deleted
+ */
+static inline void
+lane_info_cleanup(PMEMobjpool *pop)
+{
+	ASSERTne(Lane_info_ht, NULL);
+
+	struct lane_info *info = cuckoo_remove(Lane_info_ht, pop->uuid_lo);
+	if (likely(info != NULL)) {
+		if (info->prev)
+			info->prev->next = info->next;
+
+		if (info->next)
+			info->next->prev = info->prev;
+
+		if (Lane_info_cache == info)
+			Lane_info_cache = NULL;
+
+		if (Lane_info_records == info)
+			Lane_info_records = info->next;
+
+		Free(info);
+	}
+}
 
 /*
  * lane_get_layout -- (internal) calculates the real pointer of the lane layout
@@ -71,18 +173,11 @@ lane_get_layout(PMEMobjpool *pop, uint64_t lane_idx)
  * lane_init -- (internal) initializes a single lane runtime variables
  */
 static int
-lane_init(PMEMobjpool *pop, struct lane *lane, struct lane_layout *layout,
-		pthread_mutex_t *mtx, pthread_mutexattr_t *attr)
+lane_init(PMEMobjpool *pop, struct lane *lane, struct lane_layout *layout)
 {
 	ASSERTne(lane, NULL);
-	ASSERTne(mtx, NULL);
-	ASSERTne(attr, NULL);
 
 	int err;
-
-	util_mutex_init(mtx, attr);
-
-	lane->lock = mtx;
 
 	int i;
 	for (i = 0; i < MAX_LANE_SECTION; ++i) {
@@ -101,7 +196,6 @@ error_section_construct:
 	for (i = i - 1; i >= 0; --i)
 		Section_ops[i]->destruct(pop, &lane->sections[i]);
 
-	util_mutex_destroy(lane->lock);
 	return err;
 }
 
@@ -113,8 +207,6 @@ lane_destroy(PMEMobjpool *pop, struct lane *lane)
 {
 	for (int i = 0; i < MAX_LANE_SECTION; ++i)
 		Section_ops[i]->destruct(pop, &lane->sections[i]);
-
-	util_mutex_destroy(lane->lock);
 }
 
 /*
@@ -123,34 +215,22 @@ lane_destroy(PMEMobjpool *pop, struct lane *lane)
 int
 lane_boot(PMEMobjpool *pop)
 {
-	ASSERTeq(pop->lanes, NULL);
+	int err = 0;
 
-	int err;
-
-	pthread_mutexattr_t lock_attr;
-	if ((err = pthread_mutexattr_init(&lock_attr)) != 0) {
-		ERR("!pthread_mutexattr_init");
-		goto error_lanes_malloc;
-	}
-
-	if ((err = pthread_mutexattr_settype(
-			&lock_attr, PTHREAD_MUTEX_RECURSIVE)) != 0) {
-		ERR("!pthread_mutexattr_settype");
-		goto error_lanes_malloc;
-	}
-
-	pop->lanes = Malloc(sizeof (struct lane) * pop->nlanes);
-	if (pop->lanes == NULL) {
+	pop->lanes_desc.lane = Malloc(sizeof (struct lane) * pop->nlanes);
+	if (pop->lanes_desc.lane == NULL) {
 		err = ENOMEM;
 		ERR("!Malloc of volatile lanes");
 		goto error_lanes_malloc;
 	}
 
-	pop->lane_locks = Malloc(sizeof (pthread_mutex_t) * pop->nlanes);
-	if (pop->lane_locks == NULL) {
-		err = ENOMEM;
+	pop->lanes_desc.next_lane_idx = 0;
+
+	pop->lanes_desc.lane_locks =
+		Zalloc(sizeof (*pop->lanes_desc.lane_locks) * pop->nlanes);
+	if (pop->lanes_desc.lane_locks == NULL) {
 		ERR("!Malloc for lane locks");
-		goto error_lock_malloc;
+		goto error_locks_malloc;
 	}
 
 	/* add lanes to pmemcheck ignored list */
@@ -161,36 +241,25 @@ lane_boot(PMEMobjpool *pop)
 	for (i = 0; i < pop->nlanes; ++i) {
 		struct lane_layout *layout = lane_get_layout(pop, i);
 
-		if ((err = lane_init(pop, &pop->lanes[i], layout,
-				&pop->lane_locks[i], &lock_attr)) != 0) {
+		if ((err = lane_init(pop, &pop->lanes_desc.lane[i],
+				layout)) != 0) {
 			ERR("!lane_init");
 			goto error_lane_init;
 		}
-	}
-
-	if (pthread_mutexattr_destroy(&lock_attr) != 0) {
-		ERR("!pthread_mutexattr_destroy");
-		goto error_mutexattr_destroy;
 	}
 
 	return 0;
 
 error_lane_init:
 	for (; i >= 1; --i)
-		lane_destroy(pop, &pop->lanes[i - 1]);
+		lane_destroy(pop, &pop->lanes_desc.lane[i - 1]);
 
-	Free(pop->lane_locks);
-	pop->lane_locks = NULL;
-
-error_lock_malloc:
-	Free(pop->lanes);
-	pop->lanes = NULL;
-
+	Free(pop->lanes_desc.lane_locks);
+	pop->lanes_desc.lane_locks = NULL;
+error_locks_malloc:
+	Free(pop->lanes_desc.lane);
+	pop->lanes_desc.lane = NULL;
 error_lanes_malloc:
-	if (pthread_mutexattr_destroy(&lock_attr) != 0)
-		ERR("!pthread_mutexattr_destroy");
-
-error_mutexattr_destroy:
 	return err;
 }
 
@@ -200,16 +269,15 @@ error_mutexattr_destroy:
 void
 lane_cleanup(PMEMobjpool *pop)
 {
-	ASSERTne(pop->lanes, NULL);
-
 	for (uint64_t i = 0; i < pop->nlanes; ++i)
-		lane_destroy(pop, &pop->lanes[i]);
+		lane_destroy(pop, &pop->lanes_desc.lane[i]);
 
-	Free(pop->lane_locks);
-	pop->lane_locks = NULL;
+	Free(pop->lanes_desc.lane);
+	pop->lanes_desc.lane = NULL;
+	Free(pop->lanes_desc.lane_locks);
+	pop->lanes_desc.lane_locks = NULL;
 
-	Free(pop->lanes);
-	pop->lanes = NULL;
+	lane_info_cleanup(pop);
 }
 
 /*
@@ -274,6 +342,69 @@ lane_check(PMEMobjpool *pop)
 }
 
 /*
+ * get_lane -- (internal) get free lane index
+ */
+static inline void
+get_lane(uint64_t *locks, uint64_t *index, uint64_t nlocks)
+{
+	while (1) {
+		do {
+			*index %= nlocks;
+			if (likely(__sync_bool_compare_and_swap(
+					&locks[*index], 0, 1)))
+				return;
+
+			++(*index);
+		} while (*index < nlocks);
+
+		sched_yield();
+	}
+}
+
+/*
+ * get_lane_info_record -- (internal) get lane record attached to memory pool
+ *	or first free
+ */
+static inline struct lane_info *
+get_lane_info_record(PMEMobjpool *pop)
+{
+	if (likely(Lane_info_cache != NULL &&
+			Lane_info_cache->pop_uuid_lo == pop->uuid_lo)) {
+		return Lane_info_cache;
+	}
+
+	if (unlikely(Lane_info_ht == NULL)) {
+		lane_info_ht_boot();
+	}
+
+	struct lane_info *info = cuckoo_get(Lane_info_ht, pop->uuid_lo);
+
+	if (unlikely(info == NULL)) {
+		info = Malloc(sizeof (struct lane_info));
+		if (unlikely(info == NULL)) {
+			FATAL("Malloc");
+		}
+		info->pop_uuid_lo = pop->uuid_lo;
+		info->lane_idx = UINT64_MAX;
+		info->nest_count = 0;
+		info->next = Lane_info_records;
+		info->prev = NULL;
+		if (Lane_info_records) {
+			Lane_info_records->prev = info;
+		}
+		Lane_info_records = info;
+
+		if (unlikely(!cuckoo_insert(
+				Lane_info_ht, pop->uuid_lo, info) == 0)) {
+			FATAL("cuckoo_insert");
+		}
+	}
+
+	Lane_info_cache = info;
+	return info;
+}
+
+/*
  * lane_hold -- grabs a per-thread lane in a round-robin fashion
  */
 void
@@ -281,19 +412,20 @@ lane_hold(PMEMobjpool *pop, struct lane_section **section,
 	enum lane_section_type type)
 {
 	ASSERTne(section, NULL);
-	ASSERTne(pop->lanes, NULL);
 
-	if (Lane_idx == UINT32_MAX) {
-		do {
-			Lane_idx = __sync_fetch_and_add(&Next_lane_idx, 1);
-		} while (Lane_idx == UINT32_MAX); /* handles wraparound */
-	}
+	struct lane_info *lane = get_lane_info_record(pop);
+	while (unlikely(lane->lane_idx == UINT64_MAX)) {
+		/* initial wrap to next CL */
+		lane->lane_idx = __sync_fetch_and_add(
+			&pop->lanes_desc.next_lane_idx, LANE_JUMP);
+	} /* handles wraparound */
 
-	struct lane *lane = &pop->lanes[Lane_idx % pop->nlanes];
+	uint64_t *llocks = pop->lanes_desc.lane_locks;
+	/* grab next free lane */
+	if (!lane->nest_count++)
+		get_lane(llocks, &lane->lane_idx, pop->nlanes);
 
-	util_mutex_lock(lane->lock);
-
-	*section = &lane->sections[type];
+	*section = &pop->lanes_desc.lane[lane->lane_idx].sections[type];
 }
 
 /*
@@ -302,10 +434,19 @@ lane_hold(PMEMobjpool *pop, struct lane_section **section,
 void
 lane_release(PMEMobjpool *pop)
 {
-	ASSERT(Lane_idx != UINT32_MAX);
-	ASSERTne(pop->lanes, NULL);
+	struct lane_info *lane = get_lane_info_record(pop);
 
-	struct lane *lane = &pop->lanes[Lane_idx % pop->nlanes];
+	ASSERTne(lane, NULL);
+	ASSERTne(lane->lane_idx, UINT64_MAX);
+	ASSERTne(lane->nest_count, 0);
 
-	util_mutex_unlock(lane->lock);
+	if (unlikely(lane->nest_count == 0)) {
+		FATAL("lane_release");
+	} else if (--(lane->nest_count) == 0) {
+		if (unlikely(!__sync_bool_compare_and_swap(
+				&pop->lanes_desc.lane_locks[lane->lane_idx],
+				1, 0))) {
+			FATAL("__sync_bool_compare_and_swap");
+		}
+	}
 }

@@ -56,7 +56,7 @@
 
 #define	MAX_RUN_LOCKS 1024
 
-#define	USE_PER_LANE_BUCKETS
+#define	USE_PER_THREAD_BUCKETS
 
 #define	EMPTY_MEMORY_BLOCK (struct memory_block)\
 {0, 0, 0, 0}
@@ -128,6 +128,9 @@ struct pmalloc_heap {
 	unsigned ncaches;
 	uint32_t last_drained[MAX_BUCKETS];
 };
+
+static __thread unsigned Cache_idx = UINT32_MAX;
+static unsigned Next_cache_idx;
 
 /*
  * bucket_group_init -- (internal) creates new bucket group instance
@@ -627,12 +630,21 @@ heap_ensure_bucket_filled(PMEMobjpool *pop, struct bucket *b)
 }
 
 /*
- * heap_get_cache_bucket -- (internal) returns the bucket cache for given id
+ * heap_get_cache_bucket -- (internal) returns the bucket for given id from
+ *	semi-per-thread cache
  */
 static struct bucket *
-heap_get_cache_bucket(PMEMobjpool *pop, int id)
+heap_get_cache_bucket(struct pmalloc_heap *heap, int bucket_id)
 {
-	return pop->heap->caches[Lane_idx % pop->heap->ncaches].buckets[id];
+	/*
+	 * Choose cache index only once in a threads lifetime.
+	 * Sadly there are no thread exclusivity guarantees.
+	 */
+	while (Cache_idx == UINT32_MAX) {
+		Cache_idx = __sync_fetch_and_add(&Next_cache_idx, 1);
+	}
+
+	return heap->caches[Cache_idx % heap->ncaches].buckets[bucket_id];
 }
 
 /*
@@ -642,8 +654,9 @@ struct bucket *
 heap_get_best_bucket(PMEMobjpool *pop, size_t size)
 {
 	if (size <= pop->heap->last_run_max_size) {
-#ifdef USE_PER_LANE_BUCKETS
-		return heap_get_cache_bucket(pop, SIZE_TO_BID(pop->heap, size));
+#ifdef USE_PER_THREAD_BUCKETS
+		return heap_get_cache_bucket(pop->heap,
+			SIZE_TO_BID(pop->heap, size));
 #else
 		return pop->heap->buckets[SIZE_TO_BID(pop->heap, size)];
 #endif
@@ -761,7 +774,7 @@ heap_drain_to_auxiliary(PMEMobjpool *pop, struct bucket *auxb,
 		b = h->caches[cache_id].buckets[b_id];
 
 		/* don't drain from the deficient (requesting) cache */
-		if (heap_get_cache_bucket(pop, b_id) == b)
+		if (heap_get_cache_bucket(h, b_id) == b)
 			continue;
 
 		drained_cache = 0;

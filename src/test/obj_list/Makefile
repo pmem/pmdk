@@ -37,7 +37,7 @@ vpath %.c ../../libpmemobj
 vpath %.c ../../common
 
 TARGET = obj_list
-OBJS = obj_list.o list.o redo.o util.o out.o lane.o sync.o
+OBJS = obj_list.o list.o redo.o util.o out.o cuckoo.o lane.o sync.o
 
 LIBPMEM=y
 
