@@ -46,13 +46,15 @@
 #define	__attribute__(a)
 #define	__func__ __FUNCTION__
 #define	restrict __restrict
-#define	mode_t int
-#define	ssize_t long long int
 #define	typeof decltype
 
-/* dummy */
-#define	sigset_t int
-#define	DIR int
+
+typedef int mode_t;
+typedef long long int ssize_t;
+
+/* XXX - dummy */
+typedef int sigset_t;
+typedef int DIR;
 
 
 __inline int
