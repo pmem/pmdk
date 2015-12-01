@@ -78,8 +78,6 @@ test_heap()
 	UT_ASSERT(heap_boot(pop) == 0);
 	UT_ASSERT(pop->heap != NULL);
 
-	Lane_idx = 0;
-
 	struct bucket *b_small = heap_get_best_bucket(pop, 1);
 	struct bucket *b_big = heap_get_best_bucket(pop, 2048);
 

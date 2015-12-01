@@ -152,8 +152,8 @@ struct pmemobjpool {
 	int is_pmem;		/* true if pool is PMEM */
 	int rdonly;		/* true if pool is opened read-only */
 	struct pmalloc_heap *heap; /* allocator heap */
-	struct lane *lanes;
-	pthread_mutex_t *lane_locks;
+	struct lane_descriptor lanes_desc;
+	struct object_store *store; /* object store */
 	uint64_t uuid_lo;
 
 	struct pmemobjpool *replica;	/* next replica */
@@ -174,7 +174,7 @@ struct pmemobjpool {
 
 	PMEMmutex rootlock;	/* root object lock */
 	int is_master_replica;
-	char unused2[1816];
+	char unused2[1804];
 };
 
 /*

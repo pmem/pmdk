@@ -92,6 +92,8 @@ obj_init(void)
 	pools_tree = ctree_new();
 	if (pools_tree == NULL)
 		FATAL("!ctree_new");
+
+	lane_info_boot();
 }
 
 /*
@@ -105,6 +107,8 @@ obj_fini(void)
 	LOG(3, NULL);
 	cuckoo_delete(pools_ht);
 	ctree_delete(pools_tree);
+
+	lane_info_destroy();
 }
 
 /*
@@ -633,7 +637,6 @@ pmemobj_runtime_init(PMEMobjpool *pop, int rdonly, int boot)
 	 * created here, so no need to worry about byte-order.
 	 */
 	pop->rdonly = rdonly;
-	pop->lanes = NULL;
 
 	pop->uuid_lo = pmemobj_get_uuid_lo(pop);
 
