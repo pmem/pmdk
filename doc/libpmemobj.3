@@ -37,7 +37,7 @@
 .\" or
 .\"	groff -man -Tascii libpmemobj.3
 .\"
-.TH libpmemobj 3 "pmemobj API version 0.4.18" "NVM Library"
+.TH libpmemobj 3 "pmemobj API version 0.4.19" "NVM Library"
 .SH NAME
 libpmemobj \- persistent memory transactional object store
 .SH SYNOPSIS
@@ -204,6 +204,8 @@ libpmemobj \- persistent memory transactional object store
 .BI "POBJ_LIST_EMPTY(POBJ_LIST_HEAD *" head )
 .BI "POBJ_LIST_NEXT(TOID " elm ", POBJ_LIST_ENTRY " FIELD )
 .BI "POBJ_LIST_PREV(TOID " elm ", POBJ_LIST_ENTRY " FIELD )
+.B POBJ_LIST_DEST_HEAD
+.B POBJ_LIST_DEST_TAIL
 .sp
 .BI "POBJ_LIST_FOREACH(TOID " var ", POBJ_LIST_HEAD *" head ", POBJ_LIST_ENTRY " FIELD )
 .BI "POBJ_LIST_FOREACH_REVERSE(TOID " var ", POBJ_LIST_HEAD *" head ", POBJ_LIST_ENTRY " FIELD )
@@ -1989,7 +1991,13 @@ If
 value is OID_NULL, the object is inserted at the head or at the end of the list,
 depending on the
 .I before
-flag value.
+flag value. If value is 1 the object is inserted at the head, if value is 0 the
+object is inserted at the end of the list. The relevant values are available
+through
+.B POBJ_LIST_DEST_HEAD
+and
+.B POBJ_LIST_DEST_TAIL
+defines respectively.
 The argument
 .I pe_offset
 declares an offset of the structure that connects the elements in the list.
@@ -2032,7 +2040,13 @@ If
 value is OID_NULL, the object is inserted at the head or at the end of the list,
 depending on the
 .I before
-flag value.
+flag value. If value is 1 the object is inserted at the head, if value is 0 the
+object is inserted at the end of the list. The relevant values are available
+through
+.B POBJ_LIST_DEST_HEAD
+and
+.B POBJ_LIST_DEST_TAIL
+defines respectively.
 The argument
 .I pe_offset
 declares an offset of the structure that connects the elements in the list.
@@ -2115,7 +2129,13 @@ If
 value is OID_NULL, the object is inserted at the head or at the end of the
 second list, depending on the
 .I before
-flag value.
+flag value. If value is 1 the object is inserted at the head, if value is 0 the
+object is inserted at the end of the list. The relevant values are available
+through
+.B POBJ_LIST_DEST_HEAD
+and
+.B POBJ_LIST_DEST_TAIL
+defines respectively.
 The arguments
 .I pe_old_offset
 and
