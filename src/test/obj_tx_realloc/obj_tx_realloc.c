@@ -49,6 +49,7 @@ enum type_number {
 	TYPE_NO_TX,
 	TYPE_COMMIT,
 	TYPE_ABORT,
+	TYPE_TYPE,
 	TYPE_COMMIT_ZERO,
 	TYPE_COMMIT_ZERO_MACRO,
 	TYPE_ABORT_ZERO,
@@ -193,6 +194,26 @@ do_tx_realloc_huge(PMEMobjpool *pop)
 
 	TOID_ASSIGN(obj, pmemobj_next(obj.oid));
 	ASSERT(TOID_IS_NULL(obj));
+}
+
+/*
+ * do_tx_realloc_type_num -- reallocate an object and try to change type to
+ * invalid
+ */
+static void
+do_tx_realloc_type_num(PMEMobjpool *pop)
+{
+	TOID(struct object) obj;
+
+	TX_BEGIN(pop) {
+		TOID_ASSIGN(obj, do_tx_alloc(pop, TYPE_TYPE, TEST_VALUE_1));
+		size_t new_size = 2 * pmemobj_alloc_usable_size(obj.oid);
+
+		TOID_ASSIGN(obj, pmemobj_tx_realloc(obj.oid,
+			new_size, PMEMOBJ_NUM_OID_TYPES));
+	} TX_ONCOMMIT {
+		ASSERT(0);
+	} TX_END
 }
 
 /*
@@ -387,6 +408,26 @@ do_tx_zrealloc_huge(PMEMobjpool *pop)
 }
 
 /*
+ * do_tx_zrealloc_type_num -- reallocate an object and try to change type to
+ * invalid
+ */
+static void
+do_tx_zrealloc_type_num(PMEMobjpool *pop)
+{
+	TOID(struct object) obj;
+
+	TX_BEGIN(pop) {
+		TOID_ASSIGN(obj, do_tx_alloc(pop, TYPE_TYPE, TEST_VALUE_1));
+		size_t new_size = 2 * pmemobj_alloc_usable_size(obj.oid);
+
+		TOID_ASSIGN(obj, pmemobj_tx_zrealloc(obj.oid,
+			new_size, PMEMOBJ_NUM_OID_TYPES));
+	} TX_ONCOMMIT {
+		ASSERT(0);
+	} TX_END
+}
+
+/*
  * do_tx_realloc_alloc_commit -- reallocate an allocated object
  * and commit the transaction
  */
@@ -489,12 +530,14 @@ main(int argc, char *argv[])
 	do_tx_realloc_commit(pop);
 	do_tx_realloc_abort(pop);
 	do_tx_realloc_huge(pop);
+	do_tx_realloc_type_num(pop);
 	do_tx_zrealloc_commit(pop);
 	do_tx_zrealloc_commit_macro(pop);
 	do_tx_zrealloc_abort(pop);
 	do_tx_zrealloc_abort_macro(pop);
 	do_tx_zrealloc_huge(pop);
 	do_tx_zrealloc_huge_macro(pop);
+	do_tx_zrealloc_type_num(pop);
 	do_tx_realloc_alloc_commit(pop);
 	do_tx_realloc_alloc_abort(pop);
 
