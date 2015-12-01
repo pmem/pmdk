@@ -4,10 +4,12 @@ branches:
   - win-poc
 os: Visual Studio 2015
 configuration:
-- Debug
 - Static-Debug
+- Debug
 - Release
 platform: x64
 build:
   project: win/NVML.sln
   verbosity: minimal
+test_script:
+- cmd: c:\projects\nvml\win\test\test_run.bat
