@@ -31,7 +31,9 @@
  */
 
 /*
- * fake sys/param.h
+ * sys/param.h
  */
+
+#pragma once
 
 #define	roundup(x, y)	((((x)+((y)-1))/(y))*(y))

@@ -31,8 +31,10 @@
  */
 
 /*
- * fake uuid.h
+ * uuid/uuid.h
  */
+
+#pragma once
 
 #include <objbase.h>
 
