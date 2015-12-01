@@ -1,3 +1,3 @@
 /*
- * fake wait.h
+ * fake sys/wait.h
  */

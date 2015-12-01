@@ -1,3 +1,3 @@
 /*
- * fake mount.h
+ * fake sys/mount.h
  */

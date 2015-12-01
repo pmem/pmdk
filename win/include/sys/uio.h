@@ -1,3 +1,3 @@
 /*
- * fake uio.h
+ * fake sys/uio.h
  */

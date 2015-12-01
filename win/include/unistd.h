@@ -31,8 +31,10 @@
  */
 
 /*
- * fake unistd.h
+ * unistd.h
  */
+
+#pragma once
 
 #define	F_OK 0
 
