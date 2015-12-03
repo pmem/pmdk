@@ -1,5 +1,5 @@
 <!-- Creator     : groff version 1.18.1.4 -->
-<!-- CreationDate: Tue Sep 22 08:36:11 2015 -->
+<!-- CreationDate: Thu Dec  3 16:49:08 2015 -->
 <html>
 <head>
 <meta name="generator" content="groff -Thtml, see www.gnu.org">
@@ -151,7 +151,8 @@ int pmemobj_strdup(PMEMobjpool *</b><i>pop</i><b>, PMEMoid *</b><i>oidp</i><b>, 
     unsigned int</b> <i>type_num</i><b>);
 void pmemobj_free(PMEMoid *</b><i>oidp</i><b>);
 size_t pmemobj_alloc_usable_size(PMEMoid</b> <i>oid</i><b>);
-PMEMobjpool *pmemobj_pool(PMEMoid</b> <i>oid</i><b>);
+PMEMobjpool *pmemobj_pool_by_oid(PMEMoid</b> <i>oid</i><b>);
+PMEMobjpool *pmemobj_pool_by_ptr(const void *</b><i>addr</i><b>);
 void *pmemobj_direct(PMEMoid</b> <i>oid</i><b>);
 int pmemobj_type_num(PMEMoid</b> <i>oid</i><b>);
 
@@ -170,6 +171,9 @@ POBJ_FREE(PMEMobjpool *</b><i>pop</i><b>, TOID *</b><i>oidp</i><b>)
 Root object management:
 
 PMEMoid pmemobj_root(PMEMobjpool *</b><i>pop</i><b>, size_t</b> <i>size</i><b>);
+PMEMoid pmemobj_root_construct(PMEMobjpool *</b><i>pop</i><b>, size_t</b> <i>size</i><b>,
+    void (*</b><i>constructor</i><b>)(PMEMobjpool *</b><i>pop</i><b>, void *</b><i>ptr</i><b>, void *</b><i>arg</i><b>),
+    void *</b><i>arg</i><b>);
 size_t pmemobj_root_size(PMEMobjpool *</b><i>pop</i><b>);
 
 POBJ_ROOT(PMEMobjpool *</b><i>pop</i><b>,</b> <i>TYPE</i><b>)
@@ -211,6 +215,8 @@ POBJ_LIST_LAST(POBJ_LIST_HEAD *</b><i>head</i><b>, POBJ_LIST_ENTRY</b> <i>FIELD<
 POBJ_LIST_EMPTY(POBJ_LIST_HEAD *</b><i>head</i><b>)
 POBJ_LIST_NEXT(TOID</b> <i>elm</i><b>, POBJ_LIST_ENTRY</b> <i>FIELD</i><b>)
 POBJ_LIST_PREV(TOID</b> <i>elm</i><b>, POBJ_LIST_ENTRY</b> <i>FIELD</i><b>)
+POBJ_LIST_DEST_HEAD
+POBJ_LIST_DEST_TAIL
 
 POBJ_LIST_FOREACH(TOID</b> <i>var</i><b>, POBJ_LIST_HEAD *</b><i>head</i><b>, POBJ_LIST_ENTRY</b> <i>FIELD</i><b>)
 POBJ_LIST_FOREACH_REVERSE(TOID</b> <i>var</i><b>, POBJ_LIST_HEAD *</b><i>head</i><b>, POBJ_LIST_ENTRY</b> <i>FIELD</i><b>)
@@ -650,11 +656,10 @@ filesystem.</p>
 <p>To improve reliability and eliminate the single point of
 failure, all the changes of the data stored in the
 persistent memory pool could be also automatically written
-to a local or remote pool replicas, thereby providing a
-backup for a persistent memory pool by producing a
-<i>mirrored pool set</i>. In practice, the pool replicas may
-be considered the binary copies of the &quot;master&quot;
-pool set.</p>
+to local pool replicas, thereby providing a backup for a
+persistent memory pool by producing a <i>mirrored pool
+set</i>. In practice, the pool replicas may be considered
+binary copies of the &quot;master&quot; pool set.</p>
 <!-- INDENTATION -->
 <p>Creation of all the parts of the pool set and the
 associated replica sets can be done with the
@@ -688,10 +693,14 @@ returns NULL and sets errno appropriately.</p>
 the line containing a <i>PMEMPOOLSET</i> string, followed by
 the specification of all the pool parts in the next lines.
 For each part, the file size and the absolute path must be
-provided. Sections defining the replica sets are optional.
-There could be multiple replica sections and each must start
-with the line containing a <i>REPLICA</i> string. Lines
-starting with &quot;#&quot; character are ignored.</p>
+provided. The minimum file size of each part of the pool set
+is the same as the minimum size allowed for a transactional
+object store consisting of one file. It is defined in
+<b>&lt;libpmemobj.h&gt;</b> as <b>PMEMOBJ_MIN_POOL</b>.
+Sections defining the replica sets are optional. There could
+be multiple replica sections and each must start with the
+line containing a <i>REPLICA</i> string. Lines starting with
+&quot;#&quot; character are ignored.</p>
 <!-- INDENTATION -->
 <p>Here is the example &quot;myobjpool.set&quot; file:</p>
 </td>
@@ -1243,7 +1252,7 @@ is passed as an argument, function returns -1.</p>
 <tr valign="top" align="left">
 <td width="10%"></td>
 <td width="89%">
-<p><b>PMEMobjpool *pmemobj_pool(PMEMoid</b>
+<p><b>PMEMobjpool *pmemobj_pool_by_oid(PMEMoid</b>
 <i>oid</i><b>);</b></p>
 </td>
 </table>
@@ -1253,10 +1262,32 @@ is passed as an argument, function returns -1.</p>
 <tr valign="top" align="left">
 <td width="20%"></td>
 <td width="79%">
-<p>The <b>pmemobj_pool</b>() function returns a handle to
-the pool which contains the object represented by
+<p>The <b>pmemobj_pool_by_oid</b>() function returns a
+handle to the pool which contains the object represented by
 <i>oid</i>. If the pool is not open or OID_NULL is passed as
 an argument, function returns NULL.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>PMEMobjpool *pmemobj_pool_by_ptr(const void
+*</b><i>addr</i><b>);</b></p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="20%"></td>
+<td width="79%">
+<p>The <b>pmemobj_pool_by_ptr</b>() function returns a
+handle to the pool which contains the address. If the
+address does not belong to any open pool, function returns
+NULL.</p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -2031,6 +2062,34 @@ returned.</p>
 <tr valign="top" align="left">
 <td width="10%"></td>
 <td width="89%">
+<p><b>PMEMoid pmemobj_root_construct(PMEMobjpool
+*</b><i>pop</i><b>, size_t</b> <i>size</i><b>, void
+(*</b><i>constructor</i><b>)(PMEMobjpool *</b><i>pop</i><b>,
+void *</b><i>ptr</i><b>, void *</b><i>arg</i><b>), void
+*</b><i>arg</i><b>);</b></p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="20%"></td>
+<td width="79%">
+<p>The <b>pmemobj_root_construct</b>() performs the same
+actions as the <b>pmemobj_root</b>() function, but instead
+of zeroing the newly allocated object a <i>constructor</i>
+function is called. The constructor is also called on
+reallocations. The <b>pmemobj_root_size</b>() can be used in
+the constructor to check whether it&rsquo;s the first call
+to the constructor.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
 <p><b>POBJ_ROOT(PMEMobjpool *</b><i>pop</i><b>,</b>
 <i>TYPE</i><b>)</b></p>
 </td>
@@ -2202,11 +2261,13 @@ heap. It frees the memory space represented by <i>oidp</i>,
 which must have been returned by a previous call to
 <b>pmemobj_alloc</b>(), <b>pmemobj_zalloc</b>(),
 <b>pmemobj_realloc</b>(), or <b>pmemobj_zrealloc</b>(). If
-<i>oidp</i> points to <i>OID_NULL</i>, no operation is
-performed. It sets the <i>oidp</i> to <i>OID_NULL</i> value
-after freeing the memory. If the <i>oidp</i> points to
-memory location from the <b>pmemobj</b> heap the <i>oidp</i>
-is changed atomically.</p>
+<i>oidp</i> is NULL or if it points to the root
+object&rsquo;s OID, behavior of the function is undefined.
+If it points to <i>OID_NULL</i>, no operation is performed.
+It sets the <i>oidp</i> to <i>OID_NULL</i> value after
+freeing the memory. If the <i>oidp</i> points to memory
+location from the <b>pmemobj</b> heap the <i>oidp</i> is
+changed atomically.</p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -2236,8 +2297,10 @@ with given <i>type_num</i>. The contents will be unchanged
 in the range from the start of the region up to the minimum
 of the old and new sizes. If the new size is larger than the
 old size, the added memory will <i>not</i> be initialized.
-If <i>oidp</i> points to <i>OID_NULL</i>, then the call is
-equivalent to <b>pmemobj_alloc(</b><i>pop</i><b>,</b>
+If <i>oidp</i> is NULL or if it points to the root
+object&rsquo;s OID, behavior of the function is undefined.
+If it points to <i>OID_NULL</i>, then the call is equivalent
+to <b>pmemobj_alloc(</b><i>pop</i><b>,</b>
 <i>size</i><b>,</b> <i>type_num</i><b>).</b> If <i>size</i>
 is equal to zero, and <i>oidp</i> is not <i>OID_NULL</i>,
 then the call is equivalent to
@@ -2281,8 +2344,10 @@ added or moved to the internal container associated with
 given <i>type_num</i>. The contents will be unchanged in the
 range from the start of the region up to the minimum of the
 old and new sizes. If the new size is larger than the old
-size, the added memory will be zeroed. If <i>oidp</i> points
-to <i>OID_NULL</i>, then the call is equivalent to
+size, the added memory will be zeroed. If <i>oidp</i> is
+NULL or if it points to the root object&rsquo;s OID,
+behavior of the function is undefined. If it points to
+<i>OID_NULL</i>, then the call is equivalent to
 <b>pmemobj_zalloc(</b><i>pop</i><b>,</b> <i>size</i><b>,</b>
 <i>type_num</i><b>).</b> If <i>size</i> is equal to zero,
 and <i>oidp</i> doesn&rsquo;t point to <i>OID_NULL</i>, then
@@ -2571,11 +2636,11 @@ support the following functionality:</p>
        cols="4" cellspacing="0" cellpadding="0">
 <tr valign="top" align="left">
 <td width="11%"></td>
-<td width="2%">
+<td width="1%">
 
 <p>*</p>
 </td>
-<td width="2%"></td>
+<td width="4%"></td>
 <td width="82%">
 
 <p>Insertion of an object at the head of the list, or at
@@ -2583,11 +2648,11 @@ the end of the list.</p>
 </td>
 <tr valign="top" align="left">
 <td width="11%"></td>
-<td width="2%">
+<td width="1%">
 
 <p>*</p>
 </td>
-<td width="2%"></td>
+<td width="4%"></td>
 <td width="82%">
 
 <p>Insertion of an object before or after any element in
@@ -2595,11 +2660,11 @@ the list.</p>
 </td>
 <tr valign="top" align="left">
 <td width="11%"></td>
-<td width="2%">
+<td width="1%">
 
 <p>*</p>
 </td>
-<td width="2%"></td>
+<td width="4%"></td>
 <td width="82%">
 
 <p>Atomic allocation and insertion of a new object at the
@@ -2607,11 +2672,11 @@ head of the list, or at the end of the list.</p>
 </td>
 <tr valign="top" align="left">
 <td width="11%"></td>
-<td width="2%">
+<td width="1%">
 
 <p>*</p>
 </td>
-<td width="2%"></td>
+<td width="4%"></td>
 <td width="82%">
 
 <p>Atomic allocation and insertion of a new object before
@@ -2619,11 +2684,11 @@ or after any element in the list.</p>
 </td>
 <tr valign="top" align="left">
 <td width="11%"></td>
-<td width="2%">
+<td width="1%">
 
 <p>*</p>
 </td>
-<td width="2%"></td>
+<td width="4%"></td>
 <td width="82%">
 
 <p>Atomic moving of an element from one list to the
@@ -2631,22 +2696,22 @@ specific location on another list.</p>
 </td>
 <tr valign="top" align="left">
 <td width="11%"></td>
-<td width="2%">
+<td width="1%">
 
 <p>*</p>
 </td>
-<td width="2%"></td>
+<td width="4%"></td>
 <td width="82%">
 
 <p>Removal of any object in the list.</p>
 </td>
 <tr valign="top" align="left">
 <td width="11%"></td>
-<td width="2%">
+<td width="1%">
 
 <p>*</p>
 </td>
-<td width="2%"></td>
+<td width="4%"></td>
 <td width="82%">
 
 <p>Atomic removal and freeing of any object in the
@@ -2654,11 +2719,11 @@ list.</p>
 </td>
 <tr valign="top" align="left">
 <td width="11%"></td>
-<td width="2%">
+<td width="1%">
 
 <p>*</p>
 </td>
-<td width="2%"></td>
+<td width="4%"></td>
 <td width="82%">
 
 <p>Forward or backward traversal through the list.</p>
@@ -2714,14 +2779,18 @@ list referenced by <i>head</i>. Depending on the value of
 flag <i>before</i>, the object is added before or after the
 element <i>dest</i>. If <i>dest</i> value is OID_NULL, the
 object is inserted at the head or at the end of the list,
-depending on the <i>before</i> flag value. The argument
-<i>pe_offset</i> declares an offset of the structure that
-connects the elements in the list. All the handles
-<i>head</i>, <i>dest</i> and <i>oid</i> must point to the
-objects allocated from the same memory pool <i>pop</i>. The
-<i>head</i> and <i>oid</i> cannot be OID_NULL. On success,
-zero is returned. On error, -1 is returned and errno is
-set.</p>
+depending on the <i>before</i> flag value. If value is 1 the
+object is inserted at the head, if value is 0 the object is
+inserted at the end of the list. The relevant values are
+available through <b>POBJ_LIST_DEST_HEAD</b> and
+<b>POBJ_LIST_DEST_TAIL</b> defines respectively. The
+argument <i>pe_offset</i> declares an offset of the
+structure that connects the elements in the list. All the
+handles <i>head</i>, <i>dest</i> and <i>oid</i> must point
+to the objects allocated from the same memory pool
+<i>pop</i>. The <i>head</i> and <i>oid</i> cannot be
+OID_NULL. On success, zero is returned. On error, -1 is
+returned and errno is set.</p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -2754,20 +2823,24 @@ allocates a new object of given <i>size</i> and type
 the newly allocated object is added before or after the
 element <i>dest</i>. If <i>dest</i> value is OID_NULL, the
 object is inserted at the head or at the end of the list,
-depending on the <i>before</i> flag value. The argument
-<i>pe_offset</i> declares an offset of the structure that
-connects the elements in the list. All the handles
-<i>head</i>, <i>dest</i> must point to the objects allocated
-from the same memory pool <i>pop</i>. Before returning, it
-calls the <b>constructor</b> function passing the pool
-handle <i>pop</i>, the pointer to the newly allocated object
-in <i>ptr</i> along with the <i>arg</i> argument. It is
-guaranteed that allocated object is either properly
-initialized or, if the allocation is interrupted before the
-constructor completes, the memory space reserved for the
-object is reclaimed. The <i>head</i> cannot be OID_NULL. The
-allocated object is also also added to the internal
-container associated with given <i>type_num</i>. as
+depending on the <i>before</i> flag value. If value is 1 the
+object is inserted at the head, if value is 0 the object is
+inserted at the end of the list. The relevant values are
+available through <b>POBJ_LIST_DEST_HEAD</b> and
+<b>POBJ_LIST_DEST_TAIL</b> defines respectively. The
+argument <i>pe_offset</i> declares an offset of the
+structure that connects the elements in the list. All the
+handles <i>head</i>, <i>dest</i> must point to the objects
+allocated from the same memory pool <i>pop</i>. Before
+returning, it calls the <b>constructor</b> function passing
+the pool handle <i>pop</i>, the pointer to the newly
+allocated object in <i>ptr</i> along with the <i>arg</i>
+argument. It is guaranteed that allocated object is either
+properly initialized or, if the allocation is interrupted
+before the constructor completes, the memory space reserved
+for the object is reclaimed. The <i>head</i> cannot be
+OID_NULL. The allocated object is also also added to the
+internal container associated with given <i>type_num</i>. as
 described in section <b>OBJECT CONTAINERS</b>. On success,
 it returns a handle to the newly allocated object. On error,
 OID_NULL is returned and errno is set.</p>
@@ -2832,13 +2905,17 @@ Depending on the value of flag <i>before</i>, the newly
 allocated object is added before or after the element
 <i>dest</i>. If <i>dest</i> value is OID_NULL, the object is
 inserted at the head or at the end of the second list,
-depending on the <i>before</i> flag value. The arguments
-<i>pe_old_offset</i> and <i>pe_new_offset</i> declare the
-offsets of the structures that connects the elements in the
-old and new lists respectively. All the handles
-<i>head_old</i>, <i>head_new</i>, <i>dest</i> and <i>oid</i>
-must point to the objects allocated from the same memory
-pool <i>pop</i>. <i>head_old</i>, <i>head_new</i> and
+depending on the <i>before</i> flag value. If value is 1 the
+object is inserted at the head, if value is 0 the object is
+inserted at the end of the list. The relevant values are
+available through <b>POBJ_LIST_DEST_HEAD</b> and
+<b>POBJ_LIST_DEST_TAIL</b> defines respectively. The
+arguments <i>pe_old_offset</i> and <i>pe_new_offset</i>
+declare the offsets of the structures that connects the
+elements in the old and new lists respectively. All the
+handles <i>head_old</i>, <i>head_new</i>, <i>dest</i> and
+<i>oid</i> must point to the objects allocated from the same
+memory pool <i>pop</i>. <i>head_old</i>, <i>head_new</i> and
 <i>oid</i> cannot be OID_NULL. On success, zero is returned.
 On error, -1 is returned and errno is set.</p>
 </td>

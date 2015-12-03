@@ -1,5 +1,5 @@
 <!-- Creator     : groff version 1.18.1.4 -->
-<!-- CreationDate: Tue Sep 22 08:36:11 2015 -->
+<!-- CreationDate: Thu Dec  3 16:49:08 2015 -->
 <html>
 <head>
 <meta name="generator" content="groff -Thtml, see www.gnu.org">
@@ -52,6 +52,7 @@ int pmem_is_pmem(void *</b><i>addr</i><b>, size_t</b> <i>len</i><b>);
 void pmem_persist(void *</b><i>addr</i><b>, size_t</b> <i>len</i><b>);
 int pmem_msync(void *</b><i>addr</i><b>, size_t</b> <i>len</i><b>);
 void *pmem_map(int</b> <i>fd</i><b>);
+int pmem_unmap(void *</b><i>addr</i><b>, size_t</b> <i>len</i><b>);
 
 Partial flushing operations:
 
@@ -292,7 +293,34 @@ extra steps to make large page mappings more likely. On
 success, <b>pmem_map</b>() returns a pointer to mapped area.
 On error, NULL is returned, and errno is set appropriately.
 To delete mappings created with <b>pmem_map</b>(), use
-<b>munmap</b>(2).</p>
+<b>pmem_unmap</b>().</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>int pmem_unmap(void *</b><i>addr</i><b>, size_t</b>
+<i>len</i><b>);</b></p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="20%"></td>
+<td width="79%">
+<p>The <b>pmem_unmap</b>() function deletes all the mappings
+for the specified address range, and causes further
+references to addresses within the range to generate invalid
+memory references. It will use the address specified by the
+parameter <i>addr</i>, where <i>addr</i> must be a
+previously mapped region. <b>pmem_unmap</b>() will delete
+the mappings using the <b>munmap</b>(2), On success,
+<b>pmem_unmap</b>() returns zero. On error, -1 is returned,
+and errno is set appropriately.</p>
 </td>
 </table>
 <a name="PARTIAL FLUSHING OPERATIONS"></a>
@@ -855,6 +883,31 @@ It has no effect if <b>PMEM_NO_MOVNT</b> variable is set to
 testing.</p>
 </td>
 </table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>PMEM_MMAP_HINT=</b><i>val</i> This environment
+variable allows overriding the hint address used by
+<b>pmem_map</b>(). If set, it also disables mapping address
+randomization. This variable is intended for use during
+library testing and debugging. Setting it to some fairly
+large value (i.e. 0x10000000000) will very likely result in
+mapping the file at the specified address (if not used) or
+at the first unused region above given address, without
+adding any random offset. When debugging, this makes it
+easier to calculate the actual address of the persistent
+memory block, based on its offset in the file. In case of
+<b>libpmemobj</b> it simplifies conversion of a persistent
+object identifier (OID) into a direct pointer to the object.
+<b>NOTE: Setting this environment variable affects all the
+NVM libraries,</b> disabling mapping address randomization
+and causing the specified address to be used as a hint about
+where to place the mapping.</p>
+</td>
+</table>
 <a name="EXAMPLES"></a>
 <h2>EXAMPLES</h2>
 <!-- INDENTATION -->
@@ -930,6 +983,13 @@ main(int argc, char *argv[])
         pmem_persist(pmemaddr, PMEM_LEN);
     else
         pmem_msync(pmemaddr, PMEM_LEN);
+
+   /*
+     * Delete the mappings. The region is also
+     * automatically unmapped when the process is
+     * terminated.
+     */
+    pmem_unmap(pmemaddr, PMEM_LEN);
 }
 </pre>
 </td>

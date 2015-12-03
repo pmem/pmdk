@@ -1,5 +1,5 @@
 <!-- Creator     : groff version 1.18.1.4 -->
-<!-- CreationDate: Tue Sep 22 08:36:11 2015 -->
+<!-- CreationDate: Thu Dec  3 16:49:08 2015 -->
 <html>
 <head>
 <meta name="generator" content="groff -Thtml, see www.gnu.org">
@@ -110,9 +110,9 @@ type of memory mapped file.</p>
 log file, updated atomically (the updates cannot be
 <i>torn</i> by program interruption such as power failures).
 This library builds on the low-level pmem support provided
-by <b>libpmem</b>, handling the transactional update of the
-log, flushing to persistence, and recovery for the
-application.</p>
+by <b>libpmem</b>(3)<b>,</b> handling the transactional
+update of the log, flushing to persistence, and recovery for
+the application.</p>
 <!-- INDENTATION -->
 <p><b>libpmemlog</b> is one of a collection of persistent
 memory libraries available, the others are:</p>
@@ -284,8 +284,11 @@ appropriately.</p>
 the line containing a <i>PMEMPOOLSET</i> string, followed by
 the specification of all the pool parts in the next lines.
 For each part, the file size and the absolute path must be
-provided. Lines starting with &quot;#&quot; character are
-ignored.</p>
+provided. The minimum file size of each part of the pool set
+is the same as the minimum size allowed for a log pool
+consisting of one file. It is defined in
+<b>&lt;libpmemlog.h&gt;</b> as <b>PMEMLOG_MIN_POOL</b>.
+Lines starting with &quot;#&quot; character are ignored.</p>
 <!-- INDENTATION -->
 <p>Here is the example &quot;mylogpool.set&quot; file:</p>
 </td>
@@ -516,8 +519,8 @@ tells the <i>process_chunk</i> function how much data buf is
 holding. The callback function should return 1 if
 <b>pmemlog_walk</b>() should continue walking through the
 log, or 0 to terminate the walk. The callback function is
-called while holding <b>libpmem</b> internal locks that make
-calls atomic, so the callback function must not try to
+called while holding <b>libpmemlog</b> internal locks that
+make calls atomic, so the callback function must not try to
 append to the log itself or deadlock will occur.</p>
 </td>
 </table>

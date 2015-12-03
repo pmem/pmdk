@@ -1,5 +1,5 @@
 <!-- Creator     : groff version 1.18.1.4 -->
-<!-- CreationDate: Tue Sep 22 08:36:11 2015 -->
+<!-- CreationDate: Thu Dec  3 16:49:07 2015 -->
 <html>
 <head>
 <meta name="generator" content="groff -Thtml, see www.gnu.org">
@@ -171,8 +171,9 @@ or in <i>chunks</i> if <b>-w</b> option is used (See
 <tr valign="top" align="left">
 <td width="21%"></td>
 <td width="77%">
-<p>Range of blocks/data chunks/objects. See <b>RANGE</b>
-section for details about range format.</p></td>
+<p>Range of blocks/data chunks/objects/zone headers/chunk
+headers/lanes. See <b>RANGE</b> section for details about
+range format.</p></td>
 </table>
 <!-- INDENTATION -->
 <table width="100%" border=0 rules="none" frame="void"
@@ -420,8 +421,10 @@ options may be used.</p>
 <td width="21%"></td>
 <td width="77%">
 <p>Print information about lanes. If range is not specified
-all lanes are displayed. See <b>RANGE</b> section for
-details about range format.</p></td>
+all lanes are displayed. The range can be specified using
+<b>-r</b> option right after the <b>-l</b> option. See
+<b>RANGE</b> section for details about range
+format.</p></td>
 </table>
 <!-- INDENTATION -->
 <table width="100%" border=0 rules="none" frame="void"
@@ -589,7 +592,7 @@ only a heap header is displayed.</p></td>
 <tr valign="top" align="left">
 <td width="10%"></td>
 <td width="89%">
-<p><b>-Z, --zones [&lt;range&gt;]</b></p></td>
+<p><b>-Z, --zones</b></p></td>
 </table>
 <!-- INDENTATION -->
 <table width="100%" border=0 rules="none" frame="void"
@@ -602,8 +605,10 @@ information about zones from specified range. If the <b>-O,
 --object-store</b> option is used, print information about
 objects only from specified range of zones. This option
 requires <b>-O, --object-store</b> , <b>-H, --heap</b> or
-<b>-s, --stats</b> options. See <b>RANGE</b> section for
-details about range format.</p></td>
+<b>-s, --stats</b> options. The range can be specified using
+<b>-r</b> option right after the <b>-Z</b> option. See
+<b>RANGE</b> section for details about range
+format.</p></td>
 </table>
 <!-- INDENTATION -->
 <table width="100%" border=0 rules="none" frame="void"
@@ -626,8 +631,10 @@ information about chunks of types <b>used , free</b> and
 option is used, print information about objects from
 specified range of chunks within a zone. This option
 requires <b>-O, --object-store</b> , <b>-H, --heap</b> or
-<b>-s, --stats</b> options. See <b>RANGE</b> section for
-details about range format.</p></td>
+<b>-s, --stats</b> options. The range can be specified using
+<b>-r</b> option right after the <b>-C</b> option. See
+<b>RANGE</b> section for details about range
+format.</p></td>
 </table>
 <!-- INDENTATION -->
 <table width="100%" border=0 rules="none" frame="void"
@@ -913,12 +920,12 @@ any flag.</p>
 <table width="100%" border=0 rules="none" frame="void"
        cols="4" cellspacing="0" cellpadding="0">
 <tr valign="top" align="left">
-<td width="11%"></td>
+<td width="13%"></td>
 <td width="7%">
 
 <p><b>NOTE:</b></p>
 </td>
-<td width="2%"></td>
+<td width="1%"></td>
 <td width="77%">
 
 <p>In case of pmemblk, statistics are evaluated for blocks
@@ -1037,12 +1044,12 @@ number.</p></td>
 <table width="100%" border=0 rules="none" frame="void"
        cols="4" cellspacing="0" cellpadding="0">
 <tr valign="top" align="left">
-<td width="13%"></td>
+<td width="11%"></td>
 <td width="5%">
 
 <p><b>Zone</b></p>
 </td>
-<td width="2%"></td>
+<td width="4%"></td>
 <td width="77%">
 
 <p>The zone&rsquo;s statistics are presented for each zone

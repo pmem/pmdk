@@ -1,5 +1,5 @@
 <!-- Creator     : groff version 1.18.1.4 -->
-<!-- CreationDate: Tue Sep 22 08:36:11 2015 -->
+<!-- CreationDate: Thu Dec  3 16:49:07 2015 -->
 <html>
 <head>
 <meta name="generator" content="groff -Thtml, see www.gnu.org">
@@ -207,7 +207,7 @@ writing zero data to specified block number. By default the
 <b>0</b>. Please refer to <b>libpmemblk</b>(3) for
 details.</p>
 <!-- INDENTATION -->
-<p><b>-w, --write-layout [&lt;blockno&gt;]</b></p></td>
+<p><b>-w, --write-layout</b></p></td>
 </table>
 <!-- INDENTATION -->
 <table width="100%" border=0 rules="none" frame="void"
@@ -216,8 +216,7 @@ details.</p>
 <td width="21%"></td>
 <td width="77%">
 <p>Force writing <b>BTT</b> layout by performing <i>write
-operation</i> to <b>&lt;blockno&gt;</b> block. Default is
-0.</p></td>
+operation</i> to block number zero.</p></td>
 </table>
 <!-- INDENTATION -->
 <table width="100%" border=0 rules="none" frame="void"
@@ -291,7 +290,7 @@ block size 512 bytes</p>
 <tr valign="top" align="left">
 <td width="10%"></td>
 <td width="89%">
-<p>pmempool create blk --size=4G --write-layout=1 1K
+<p>pmempool create blk --size=4G --write-layout 1K
 pool.blk</p></td>
 </table>
 <!-- INDENTATION -->
