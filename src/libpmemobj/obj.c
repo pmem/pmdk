@@ -1294,6 +1294,11 @@ obj_realloc_common(PMEMobjpool *pop, struct object_store *store,
 		if (ret)
 			LOG(2, "list_realloc failed");
 
+		/* oidp could be different, so we need to get the ptr again */
+		VALGRIND_DO_MAKE_MEM_NOACCESS(pop,
+			&OOB_HEADER_FROM_OID(pop, *oidp)->data.padding,
+			sizeof (OOB_HEADER_FROM_OID(pop, *oidp)->data.padding));
+
 		return ret;
 	} else {
 		struct list_head *lhead_new = &store->bytype[type_num].head;
@@ -1303,8 +1308,9 @@ obj_realloc_common(PMEMobjpool *pop, struct object_store *store,
 		 * overwrites. Disable it temporarily so we can modify the type
 		 * number.
 		 */
-		VALGRIND_DO_MAKE_MEM_DEFINED(pop, &pobj->data.padding,
-				sizeof (pobj->data.padding));
+		VALGRIND_DO_MAKE_MEM_DEFINED(pop,
+			&OOB_HEADER_FROM_OID(pop, *oidp)->data.padding,
+			sizeof (OOB_HEADER_FROM_OID(pop, *oidp)->data.padding));
 
 		/*
 		 * Redo log updates 8 byte entries, so we have to prepare
@@ -1322,8 +1328,10 @@ obj_realloc_common(PMEMobjpool *pop, struct object_store *store,
 		if (ret)
 			LOG(2, "list_realloc_move failed");
 
-		VALGRIND_DO_MAKE_MEM_NOACCESS(pop, &pobj->data.padding,
-				sizeof (pobj->data.padding));
+		/* oidp could be different, so we need to get the ptr again */
+		VALGRIND_DO_MAKE_MEM_NOACCESS(pop,
+			&OOB_HEADER_FROM_OID(pop, *oidp)->data.padding,
+			sizeof (OOB_HEADER_FROM_OID(pop, *oidp)->data.padding));
 
 		return ret;
 	}
@@ -1357,9 +1365,6 @@ constructor_realloc(PMEMobjpool *pop, void *ptr, void *arg)
 		/* there's no padding between these, so we can add sizes */
 		sizeof (pobj->data.internal_type) +
 		sizeof (pobj->data.user_type));
-
-	VALGRIND_DO_MAKE_MEM_NOACCESS(pop, &pobj->data.padding,
-			sizeof (pobj->data.padding));
 }
 
 /*
@@ -1388,9 +1393,6 @@ constructor_zrealloc(PMEMobjpool *pop, void *ptr, void *arg)
 		/* there's no padding between these, so we can add sizes */
 			sizeof (pobj->data.internal_type) +
 			sizeof (pobj->data.user_type));
-
-		VALGRIND_DO_MAKE_MEM_NOACCESS(pop, &pobj->data.padding,
-				sizeof (pobj->data.padding));
 	}
 
 	if (carg->new_size > carg->old_size) {
@@ -1418,6 +1420,11 @@ constructor_zrealloc_root(PMEMobjpool *pop, void *ptr, void *arg)
 		carg->new_size + OBJ_OOB_SIZE);
 
 	constructor_zrealloc(pop, ptr, arg);
+
+	/* activate the padding redzone */
+	VALGRIND_DO_MAKE_MEM_NOACCESS(pop,
+		&OOB_HEADER_FROM_PTR(ptr)->data.padding,
+		sizeof (OOB_HEADER_FROM_PTR(ptr)->data.padding));
 
 	if (carg->constructor)
 		carg->constructor(pop, ptr, carg->arg);
