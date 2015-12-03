@@ -1,3 +1,22 @@
+Wed Dec 04 2015 Krzysztof Czurylo <krzysztof.czurylo@intel.com>
+
+	* Version 0.4
+	This NVML version primarily focuses on improving code quality
+	and reliability.  In addition to a couple of bug fixes,
+	the changes include:
+		- benchmarks for libpmemobj, libpmemblk and libvmem
+		- additional pmemobj tests and examples
+		- pool mapping address randomization
+		- added pmempool "rm" command
+		- eliminated libpmem dependency on libpthread
+		- enabled extra warnings
+		- minor performance improvements
+	Man pages are all complete.
+	This release is considered "Beta quality" by the team, having
+	been thoroughly validated, including significant performance analysis.
+	The pmempool command does not yet support "check" and "repair"
+	operations for pmemobj type pools.
+
 Sun Sep 13 2015 Andy Rudoff <andy.rudoff@intel.com>
 
 	* Version 0.3
