@@ -98,14 +98,16 @@ util_map_hdr(struct pool_set_part *part, size_t size, int flags)
 	ASSERTne(size, 0);
 	ASSERTeq(size % Pagesize, 0);
 
-	part->hdrsize = size;
-	part->hdr = mmap(NULL, part->hdrsize,
+	void *hdrp = mmap(NULL, size,
 		PROT_READ|PROT_WRITE, flags, part->fd, 0);
 
-	if (part->hdr == MAP_FAILED) {
+	if (hdrp == MAP_FAILED) {
 		ERR("!mmap: %s", part->path);
 		return -1;
 	}
+
+	part->hdrsize = size;
+	part->hdr = hdrp;
 
 	VALGRIND_REGISTER_PMEM_MAPPING(part->hdr, part->hdrsize);
 	VALGRIND_REGISTER_PMEM_FILE(part->fd, part->hdr, part->hdrsize, 0);
@@ -148,16 +150,19 @@ util_map_part(struct pool_set_part *part, void *addr, size_t size,
 	ASSERTeq(size % Pagesize, 0);
 	ASSERT(((off_t)offset) >= 0);
 
-	part->size = size ? size :
-		(part->filesize & ~(Pagesize - 1)) - offset;
+	if (!size)
+		size = (part->filesize & ~(Pagesize - 1)) - offset;
 
-	part->addr = mmap(addr, part->size,
+	void *addrp = mmap(addr, size,
 		PROT_READ|PROT_WRITE, flags, part->fd, (off_t)offset);
 
-	if (part->addr == MAP_FAILED) {
+	if (addrp == MAP_FAILED) {
 		ERR("!mmap: %s", part->path);
 		return -1;
 	}
+
+	part->addr = addrp;
+	part->size = size;
 
 	if (addr != NULL && (flags & MAP_FIXED) && part->addr != addr) {
 		ERR("!mmap: %s", part->path);
@@ -184,7 +189,10 @@ util_unmap_part(struct pool_set_part *part)
 		if (munmap(part->addr, part->size) != 0) {
 			ERR("!munmap: %s", part->path);
 		}
+
 		VALGRIND_REMOVE_PMEM_MAPPING(part->addr, part->size);
+		part->addr = NULL;
+		part->size = 0;
 	}
 
 	return 0;
@@ -413,8 +421,9 @@ util_parse_add_part(struct pool_set *set, const char *path, size_t filesize)
 	rep->part[p].path = path;
 	rep->part[p].filesize = filesize;
 	rep->part[p].fd = -1;
-	rep->part[p].addr = NULL;
 	rep->part[p].created = 0;
+	rep->part[p].hdr = NULL;
+	rep->part[p].addr = NULL;
 
 	return 0;
 }
@@ -446,13 +455,11 @@ util_parse_add_replica(struct pool_set **setp)
 		ERR("!Malloc");
 		return -1;
 	}
+	memset(rep, 0, sizeof (struct pool_replica));
 
 	unsigned r = set->nreplicas++;
 
 	set->replica[r] = rep;
-
-	rep->nparts = 0;
-	rep->repsize = 0;
 
 	return 0;
 }
@@ -509,9 +516,7 @@ util_poolset_parse(const char *path, int fd, struct pool_set **setp)
 		ERR("!Malloc for pool set");
 		goto err;
 	}
-
-	set->nreplicas = 0;
-	set->poolsize = 0;
+	memset(set, 0, sizeof (struct pool_set));
 
 	/* check also if the last character is '\n' */
 	if (s && strncmp(line, POOLSET_HDR_SIG, POOLSET_HDR_SIG_LEN) == 0 &&
@@ -625,6 +630,8 @@ util_poolset_single(const char *path, size_t filesize, int fd, int create)
 		ERR("!Malloc for pool set");
 		return NULL;
 	}
+	memset(set, 0, sizeof (struct pool_set) +
+			sizeof (struct pool_replica *));
 
 	struct pool_replica *rep;
 	rep = Malloc(sizeof (struct pool_replica) +
@@ -634,12 +641,15 @@ util_poolset_single(const char *path, size_t filesize, int fd, int create)
 		Free(set);
 		return NULL;
 	}
+
 	set->replica[0] = rep;
 
 	rep->part[0].filesize = filesize;
 	rep->part[0].path = Strdup(path);
 	rep->part[0].fd = fd;
 	rep->part[0].created = create;
+	rep->part[0].hdr = NULL;
+	rep->part[0].addr = NULL;
 
 	rep->nparts = 1;
 	/* round down to the nearest page boundary */
