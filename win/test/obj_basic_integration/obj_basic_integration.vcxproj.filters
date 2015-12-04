@@ -18,17 +18,5 @@
     <ClCompile Include="..\..\..\src\test\obj_basic_integration\obj_basic_integration.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\unittest\ut.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\unittest\ut_file.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\unittest\ut_alloc.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\file.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
 </Project>

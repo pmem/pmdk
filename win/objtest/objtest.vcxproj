@@ -59,91 +59,65 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LinkIncremental>true</LinkIncremental>
-    <LibraryPath>$(LibraryPath);</LibraryPath>
     <GenerateManifest>false</GenerateManifest>
-    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Static-Debug|x64'">
-    <LinkIncremental>true</LinkIncremental>
-    <LibraryPath>$(OutDir)\libpmem;$(OutDir)\libpmemobj;$(LibraryPath)</LibraryPath>
     <GenerateManifest>false</GenerateManifest>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LinkIncremental>false</LinkIncremental>
+    <GenerateManifest>false</GenerateManifest>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;WINAPI_PARTITION_SYSTEM;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(ProjectDir)\..\..\src\include;$(ProjectDir)\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAs>CompileAsC</CompileAs>
       <ForcedIncludeFiles>platform.h</ForcedIncludeFiles>
-      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <ExceptionHandling>false</ExceptionHandling>
-      <BrowseInformation>true</BrowseInformation>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(ProjectDir)\..\libpmemobj\x64\Debug;$(ProjectDir)\..\libpmem\x64\Debug</AdditionalLibraryDirectories>
-      <AdditionalDependencies>$(ProjectDir)..\$(IntermediateOutputPath)libpmem\libpmem.lib;$(ProjectDir)..\$(IntermediateOutputPath)libpmemobj\libpmemobj.lib;$(WindowsSDK_LibraryPath)\$(PlatformTarget)\kernel32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libpmem.lib;libpmemobj.lib;$(WindowsSDK_LibraryPath)\$(PlatformTarget)\kernel32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
-    <ProjectReference>
-      <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
-    </ProjectReference>
+    <ProjectReference />
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Static-Debug|x64'">
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;WINAPI_PARTITION_SYSTEM;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(ProjectDir)\..\..\src\include;$(ProjectDir)\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAs>CompileAsC</CompileAs>
       <ForcedIncludeFiles>platform.h</ForcedIncludeFiles>
-      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <ExceptionHandling>false</ExceptionHandling>
-      <BrowseInformation>true</BrowseInformation>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
-      <SDLCheck>true</SDLCheck>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(ProjectDir)\..\libpmemobj\x64\Static-Debug;$(ProjectDir)\..\libpmem\x64\Static-Debug</AdditionalLibraryDirectories>
-      <AdditionalDependencies>$(ProjectDir)..\$(IntermediateOutputPath)libpmem\libpmem.lib;$(ProjectDir)..\$(IntermediateOutputPath)libpmemobj\libpmemobj.lib;$(WindowsSDK_LibraryPath)\$(PlatformTarget)\kernel32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libpmem.lib;libpmemobj.lib;$(WindowsSDK_LibraryPath)\$(PlatformTarget)\kernel32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
-    <ProjectReference>
-      <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
-    </ProjectReference>
+    <ProjectReference />
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <Optimization>MaxSpeed</Optimization>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;WINAPI_PARTITION_SYSTEM;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(ProjectDir)\..\..\src\include;$(ProjectDir)\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ExceptionHandling>false</ExceptionHandling>
-      <BrowseInformation>true</BrowseInformation>
       <CompileAs>CompileAsC</CompileAs>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
       <ForcedIncludeFiles>platform.h</ForcedIncludeFiles>
-      <WholeProgramOptimization>false</WholeProgramOptimization>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>$(ProjectDir)\..\libpmemobj\x64\Release;$(ProjectDir)\..\libpmem\x64\Release</AdditionalLibraryDirectories>
-      <AdditionalDependencies>$(ProjectDir)..\$(IntermediateOutputPath)libpmem\libpmem.lib;$(ProjectDir)..\$(IntermediateOutputPath)libpmemobj\libpmemobj.lib;$(WindowsSDK_LibraryPath)\$(PlatformTarget)\kernel32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libpmem.lib;libpmemobj.lib;$(WindowsSDK_LibraryPath)\$(PlatformTarget)\kernel32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

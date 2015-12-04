@@ -15,19 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\unittest\ut.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\unittest\ut_file.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\unittest\ut_alloc.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\src\test\obj_heap_state\obj_heap_state.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\file.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
