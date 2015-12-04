@@ -253,7 +253,6 @@ ut_stat(const char *file, int line, const char *func, const char *path,
 	return retval;
 }
 
-#ifndef WIN32
 /*
  * ut_mmap -- a mmap call that cannot return MAP_FAILED
  */
@@ -288,6 +287,7 @@ ut_munmap(const char *file, int line, const char *func, void *addr,
 	return retval;
 }
 
+#ifndef WIN32
 /*
  * ut_mprotect -- a mprotect call that cannot return -1
  */

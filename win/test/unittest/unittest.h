@@ -112,6 +112,9 @@
 #include <libpmemobj.h>
 #include <libvmem.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /*
  * unit test support...
@@ -537,4 +540,7 @@ int ut_pthread_join(const char *file, int line, const char *func,
 
 extern unsigned long Ut_pagesize;
 
+#ifdef __cplusplus
+}
+#endif
 #endif	/* unittest.h */

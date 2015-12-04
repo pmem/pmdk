@@ -105,15 +105,18 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <GenerateManifest>false</GenerateManifest>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Static-Debug|x64'">
     <GenerateManifest>false</GenerateManifest>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
     <TargetExt>.lib</TargetExt>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <GenerateManifest>false</GenerateManifest>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -121,22 +124,19 @@
       <CompileAsWinRT>false</CompileAsWinRT>
       <ForcedIncludeFiles>platform.h</ForcedIncludeFiles>
       <ExceptionHandling>false</ExceptionHandling>
-      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <CompileAs>CompileAsC</CompileAs>
       <AdditionalIncludeDirectories>$(ProjectDir)\..\..\src\include;$(ProjectDir)\..\..\src\common;$(ProjectDir)\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>SRCVERSION="1.0";_CRT_SECURE_NO_WARNINGS;DEBUG;_CRT_USE_WINAPI_FAMILY_DESKTOP_APP;WINAPI_PARTITION_SYSTEM;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
       <BrowseInformation>true</BrowseInformation>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <ForcedUsingFiles>$(ProjectDir)\..\include;%(ForcedUsingFiles)</ForcedUsingFiles>
       <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
-      <AdditionalDependencies>$(ProjectDir)..\$(IntermediateOutputPath)libpmem\libpmem.lib;$(WindowsSDK_LibraryPath)\$(PlatformTarget)\kernel32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(OutDir)\libpmem;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libpmem.lib;$(WindowsSDK_LibraryPath)\$(PlatformTarget)\kernel32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(OutDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <ModuleDefinitionFile>libpmemobj.def</ModuleDefinitionFile>
     </Link>
     <ProjectReference>
@@ -149,14 +149,12 @@
       <CompileAsWinRT>false</CompileAsWinRT>
       <ForcedIncludeFiles>platform.h</ForcedIncludeFiles>
       <ExceptionHandling>false</ExceptionHandling>
-      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <CompileAs>CompileAsC</CompileAs>
       <AdditionalIncludeDirectories>$(ProjectDir)\..\..\src\include;$(ProjectDir)\..\..\src\common;$(ProjectDir)\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>SRCVERSION="1.0";_CRT_SECURE_NO_WARNINGS;DEBUG;_CRT_USE_WINAPI_FAMILY_DESKTOP_APP;WINAPI_PARTITION_SYSTEM;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
       <BrowseInformation>true</BrowseInformation>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <ForcedUsingFiles>$(ProjectDir)\..\include;%(ForcedUsingFiles)</ForcedUsingFiles>
       <WarningLevel>Level3</WarningLevel>
     </ClCompile>
     <Link>
@@ -174,23 +172,20 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <CompileAsWinRT>false</CompileAsWinRT>
       <CompileAs>CompileAsC</CompileAs>
       <AdditionalIncludeDirectories>$(ProjectDir)\..\..\src\include;$(ProjectDir)\..\..\src\common;$(ProjectDir)\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>SRCVERSION="1.0";_CRT_SECURE_NO_WARNINGS;_CRT_USE_WINAPI_FAMILY_DESKTOP_APP;WINAPI_PARTITION_SYSTEM;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BrowseInformation>true</BrowseInformation>
       <ForcedIncludeFiles>platform.h</ForcedIncludeFiles>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
-      <ForcedUsingFiles>$(ProjectDir)\..\include;%(ForcedUsingFiles)</ForcedUsingFiles>
-      <WholeProgramOptimization>false</WholeProgramOptimization>
+      <CompileAsWinRT>false</CompileAsWinRT>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
       <ModuleDefinitionFile>libpmemobj.def</ModuleDefinitionFile>
-      <AdditionalDependencies>$(ProjectDir)..\$(IntermediateOutputPath)libpmem\libpmem.lib;$(WindowsSDK_LibraryPath)\$(PlatformTarget)\kernel32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
+      <AdditionalDependencies>libpmem.lib;$(WindowsSDK_LibraryPath)\$(PlatformTarget)\kernel32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(OutDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
