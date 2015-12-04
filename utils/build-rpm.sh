@@ -316,6 +316,7 @@ Usefull applications for administration and diagnostic purposes.
 %{_mandir}/man1/pmempool-create.1.gz
 %{_mandir}/man1/pmempool-dump.1.gz
 %{_mandir}/man1/pmempool-check.1.gz
+%{_mandir}/man1/pmempool-rm.1.gz
 %{_sysconfdir}/bash_completion.d/pmempool.sh
 
 %prep

@@ -469,6 +469,7 @@ usr/share/man/man1/pmempool-create.1.gz
 usr/share/man/man1/pmempool-info.1.gz
 usr/share/man/man1/pmempool-dump.1.gz
 usr/share/man/man1/pmempool-check.1.gz
+usr/share/man/man1/pmempool-rm.1.gz
 etc/bash_completion.d/pmempool.sh
 EOF
 
