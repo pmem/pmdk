@@ -34,6 +34,30 @@ rem  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 set TEST_DIR=..\x64\Static-Debug
 set POOL_FILE=.\testfile
 
+echo ===========     LIBPMEMBLK    =============
+
+del /F /Q %POOL_FILE%
+fsutil file createnew %POOL_FILE% 33554432
+%TEST_DIR%\blk_nblock 512:%POOL_FILE%
+echo ===========================================
+
+del /F /Q %POOL_FILE%
+fsutil file createnew %POOL_FILE% 33554432
+%TEST_DIR%\blk_non_zero 512 %POOL_FILE% c 0 r:0 r:1 r:34217 r:34218 z:0 z:1 r:0 e:3 r:4
+echo ===========================================
+
+del /F /Q %POOL_FILE%
+fsutil file createnew %POOL_FILE% 33554432
+%TEST_DIR%\blk_pool c %POOL_FILE% 4096 0 0640
+echo ===========================================
+
+del /F /Q %POOL_FILE%
+fsutil file createnew %POOL_FILE% 33554432
+%TEST_DIR%\blk_rw 512 %POOL_FILE% c r:0 r:1 w:1 r:1 z:0 z:1 r:0
+echo ===========================================
+
+
+echo ===========     LIBPMEMOBJ    =============
 
 del /F /Q %POOL_FILE%
 fsutil file createnew %POOL_FILE% 16777216

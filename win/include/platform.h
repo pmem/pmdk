@@ -73,6 +73,11 @@ __builtin_clzll(uint64_t val)
 }
 
 __inline uint64_t
+__sync_fetch_and_or(volatile uint64_t *a, uint64_t val) {
+	return _InterlockedOr64((LONG64 *)a, (LONG64)val);
+}
+
+__inline uint64_t
 __sync_fetch_and_and(volatile uint64_t *a, uint64_t val) {
 	return _InterlockedAnd64((LONG64 *)a, (LONG64)val);
 }
@@ -94,6 +99,13 @@ __sync_bool_compare_and_swap(volatile uint64_t *ptr,
 		(LONG64)newval, (LONG64)oldval);
 	return (old == oldval);
 }
+
+__inline void
+__sync_synchronize()
+{
+	MemoryBarrier();
+}
+
 
 #define	S_IRUSR S_IREAD
 #define	S_IWUSR S_IWRITE

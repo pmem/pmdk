@@ -34,6 +34,8 @@
  * blk.h -- internal definitions for libpmem blk module
  */
 
+#include <pthread.h>
+
 #define	PMEMBLK_LOG_PREFIX "libpmemblk"
 #define	PMEMBLK_LOG_LEVEL_VAR "PMEMBLK_LOG_LEVEL"
 #define	PMEMBLK_LOG_FILE_VAR "PMEMBLK_LOG_FILE"
