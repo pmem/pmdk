@@ -861,9 +861,9 @@ util_file_create(const char *path, size_t size, size_t minsize)
 
 #ifndef WIN32
 	/*
-	* Create file without any permission. It will be granted once
-	* initialization completes.
-	*/
+	 * Create file without any permission. It will be granted once
+	 * initialization completes.
+	 */
 
 	if ((fd = open(path, O_RDWR|O_CREAT|O_EXCL, 0)) < 0) {
 		ERR("!open %s", path);
