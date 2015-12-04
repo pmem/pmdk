@@ -148,14 +148,16 @@ main(int argc, char *argv[])
 
 	OUT("is zeroed:\t%d", is_zeroed(path));
 
+	unsigned char *buf = MALLOC(Bsize);
+	if (buf == NULL)
+		FATAL("cannot allocate buf");
+
 	/* map each file argument with the given map type */
 	for (; read_arg < argc; read_arg++) {
 		if (strchr("rwze", argv[read_arg][0]) == NULL ||
 				argv[read_arg][1] != ':')
 			FATAL("op must be r: or w: or z: or e:");
 		off_t lba = strtoul(&argv[read_arg][2], NULL, 0);
-
-		unsigned char buf[Bsize];
 
 		switch (argv[read_arg][0]) {
 		case 'r':
@@ -188,6 +190,8 @@ main(int argc, char *argv[])
 			break;
 		}
 	}
+
+	FREE(buf);
 
 	pmemblk_close(handle);
 

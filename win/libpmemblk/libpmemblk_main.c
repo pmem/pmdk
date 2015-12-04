@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2015, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,16 +31,23 @@
  */
 
 /*
- * sys/param.h
+ * libpmemblk_main.c -- entry point for libpmemblk.dll
  */
 
-#pragma once
+int APIENTRY
+DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
+{
+	switch (dwReason)
+	{
+	case DLL_PROCESS_ATTACH:
+		break;
 
-#define	roundup(x, y)	((((x) + ((y) - 1)) / (y)) * (y))
-#define	howmany(x, y)	(((x) + ((y) - 1)) / (y))
+	case DLL_THREAD_ATTACH:
+	case DLL_THREAD_DETACH:
+		break;
 
-#define	BPB 8	/* bits per byte */
-
-#define	setbit(b, i)	((b)[(i) / BPB] |= 1 << ((i) % BPB))
-#define	isset(b, i)	((b)[(i) / BPB] & (1 << ((i) % BPB)))
-#define	isclr(b, i)	(((b)[(i) / BPB] & (1 << ((i) % BPB))) == 0)
+	case DLL_PROCESS_DETACH:
+		break;
+	}
+	return TRUE;
+}
