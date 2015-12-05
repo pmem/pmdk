@@ -12,4 +12,7 @@ build:
   project: win/NVML.sln
   verbosity: minimal
 test_script:
-- cmd: c:\projects\nvml\win\test\test_run.bat
+- cmd: >-
+    cd c:\projects\nvml\win\test
+
+    test_run.bat
