@@ -406,7 +406,7 @@ FUNC_MOCK_END
  */
 FUNC_MOCK(pmalloc_construct, int, PMEMobjpool *pop, uint64_t *off,
 	size_t size, void (*constructor)(PMEMobjpool *pop, void *ptr,
-	void *arg), void *arg, uint64_t data_off)
+	size_t usable_size, void *arg), void *arg, uint64_t data_off)
 	FUNC_MOCK_RUN_DEFAULT {
 		size = 2 * (size - OOB_OFF) + OOB_OFF;
 		uint64_t *alloc_size = (uint64_t *)((uintptr_t)Pop +
@@ -421,7 +421,7 @@ FUNC_MOCK(pmalloc_construct, int, PMEMobjpool *pop, uint64_t *off,
 		Pop->persist(Pop, Heap_offset, sizeof (*Heap_offset));
 
 		void *ptr = (void *)((uintptr_t)Pop + *off + data_off);
-		constructor(pop, ptr, arg);
+		constructor(pop, ptr, size, arg);
 
 		return 0;
 	}
@@ -459,12 +459,12 @@ FUNC_MOCK_END
  */
 FUNC_MOCK(prealloc_construct, int, PMEMobjpool *pop, uint64_t *off,
 	size_t size, void (*constructor)(PMEMobjpool *pop, void *ptr,
-	void *arg), void *arg, uint64_t data_off)
+	size_t usable_size, void *arg), void *arg, uint64_t data_off)
 	FUNC_MOCK_RUN_DEFAULT {
 		int ret = prealloc(pop, off, size, data_off);
 		if (!ret) {
 			void *ptr = (void *)((uintptr_t)Pop + *off + data_off);
-			constructor(pop, ptr, arg);
+			constructor(pop, ptr, size, arg);
 		}
 		return ret;
 	}
@@ -810,7 +810,7 @@ do_print_reverse(PMEMobjpool *pop, const char *arg)
  * new value
  */
 static void
-item_constructor(PMEMobjpool *pop, void *ptr, void *arg)
+item_constructor(PMEMobjpool *pop, void *ptr, size_t usable_size, void *arg)
 {
 	int id = *(int *)arg;
 	struct item *item = (struct item *)ptr;
@@ -830,7 +830,7 @@ struct realloc_arg {
  * id and argument value
  */
 static void
-realloc_constructor(PMEMobjpool *pop, void *ptr, void *arg)
+realloc_constructor(PMEMobjpool *pop, void *ptr, size_t usable_size, void *arg)
 {
 	struct realloc_arg *rarg = arg;
 	struct item *item = (struct item *)ptr;
