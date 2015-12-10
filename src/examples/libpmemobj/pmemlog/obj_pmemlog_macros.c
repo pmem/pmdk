@@ -183,7 +183,8 @@ pmemlog_appendv(PMEMlogpool *plp, const struct iovec *iov, int iovcnt)
 	TX_BEGIN_LOCK(pop, TX_LOCK_RWLOCK, &D_RW(bp)->rwlock, TX_LOCK_NONE) {
 		/* add the base object and tail entry to the undo log */
 		TX_ADD(bp);
-		TX_ADD(D_RW(bp)->tail);
+		if (!TOID_IS_NULL(D_RO(bp)->tail))
+			TX_ADD(D_RW(bp)->tail);
 		/* append the data */
 		for (int i = 0; i < iovcnt; ++i) {
 			char *buf = iov[i].iov_base;
@@ -360,8 +361,10 @@ main(int argc, char *argv[])
 		switch (*argv[i]) {
 			case 'a': {
 				printf("append: %s\n", argv[i] + 2);
-				pmemlog_append(plp, argv[i] + 2,
-					strlen(argv[i] + 2));
+				if (pmemlog_append(plp, argv[i] + 2,
+					strlen(argv[i] + 2)))
+					fprintf(stderr, "pmemlog_append"
+						" error\n");
 				break;
 			}
 			case 'v': {
@@ -370,7 +373,9 @@ main(int argc, char *argv[])
 				struct iovec *iov = malloc(count
 						* sizeof (struct iovec));
 				fill_iovec(iov, argv[i] + 2);
-				pmemlog_appendv(plp, iov, count);
+				if (pmemlog_appendv(plp, iov, count))
+					fprintf(stderr, "pmemlog_appendv"
+						" error\n");
 				free(iov);
 				break;
 			}
