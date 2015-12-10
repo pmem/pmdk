@@ -65,11 +65,9 @@ echo -n q >> $INPUT
 
 if [ -t 1 -a -z "$NOTTY" ]
 then
-	out="/dev/stdout"
+	expect_normal_exit $EX_PATH/pminvaders $DIR/testfile1 < $INPUT
 else
-	out="/dev/null"
+	expect_normal_exit $EX_PATH/pminvaders $DIR/testfile1 >/dev/null < $INPUT
 fi
-
-expect_normal_exit $EX_PATH/pminvaders $DIR/testfile1 >$out < $INPUT
 
 pass
