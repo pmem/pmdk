@@ -50,12 +50,6 @@ main(int argc, char *argv[])
 
 	START(argc, argv, "vmmalloc_init");
 
-	/* check if malloc hooks are pointing to libvmmalloc */
-	ASSERTeq((void *)__malloc_hook, (void *)malloc);
-	ASSERTeq((void *)__free_hook, (void *)free);
-	ASSERTeq((void *)__realloc_hook, (void *)realloc);
-	ASSERTeq((void *)__memalign_hook, (void *)memalign);
-
 	if (argc > 2)
 		FATAL("usage: %s [d|l]", argv[0]);
 
