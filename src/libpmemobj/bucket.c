@@ -73,21 +73,18 @@
 #define	CHUNK_KEY_GET_SIZE_IDX(k)\
 ((uint16_t)((k & 0xFFFF000000000000) >> 48))
 
-struct bucket {
-	size_t unit_size;
-	unsigned unit_max;
+struct block_container_ctree {
+	struct block_container super;
 	struct ctree *tree;
-	pthread_mutex_t lock;
-	uint64_t bitmap_lastval;
-	unsigned bitmap_nval;
-	unsigned bitmap_nallocs;
 };
 
+#ifdef USE_VG_MEMCHECK
 /*
- * bucket_new -- allocates and initializes bucket instance
+ * bucket_vg_mark_noaccess -- (internal) marks memory block as no access for vg
  */
-struct bucket *
-bucket_new(size_t unit_size, unsigned unit_max)
+static void
+bucket_vg_mark_noaccess(PMEMobjpool *pop, struct block_container *bc,
+	struct memory_block m)
 {
 	ASSERT(unit_size > 0);
 
@@ -101,34 +98,25 @@ bucket_new(size_t unit_size, unsigned unit_max)
 
 	util_mutex_init(&b->lock, NULL);
 
-	b->unit_size = unit_size;
-	b->unit_max = unit_max;
+/*
+ * bucket_tree_insert_block -- inserts a new memory block into the container
+ */
+static int
+bucket_tree_insert_block(struct block_container *bc, PMEMobjpool *pop,
+	struct memory_block m)
+{
+	ASSERT(m.chunk_id < MAX_CHUNK);
+	ASSERT(m.zone_id < UINT16_MAX);
+	ASSERTne(m.size_idx, 0);
 
-	if (bucket_is_small(b)) {
-		ASSERT(RUNSIZE / unit_size <= UINT32_MAX);
-		b->bitmap_nallocs = (unsigned)(RUNSIZE / unit_size);
+	struct block_container_ctree *c = (struct block_container_ctree *)bc;
 
-		ASSERT(b->bitmap_nallocs <= RUN_BITMAP_SIZE);
-		unsigned unused_bits = RUN_BITMAP_SIZE - b->bitmap_nallocs;
+#ifdef USE_VG_MEMCHECK
+	bucket_vg_mark_noaccess(pop, bc, m);
+#endif
 
-		unsigned unused_values = unused_bits / BITS_PER_VALUE;
-
-		ASSERT(MAX_BITMAP_VALUES >= unused_values);
-		b->bitmap_nval = MAX_BITMAP_VALUES - unused_values;
-
-		ASSERT(unused_bits >= unused_values * BITS_PER_VALUE);
-		unused_bits -= unused_values * BITS_PER_VALUE;
-
-		b->bitmap_lastval = unused_bits ?
-			(((1ULL << unused_bits) - 1ULL) <<
-				(BITS_PER_VALUE - unused_bits)) : 0;
-	} else {
-		b->bitmap_nval = 0;
-		b->bitmap_lastval = 0;
-		b->bitmap_nallocs = 0;
-	}
-
-	return b;
+	uint64_t key = CHUNK_KEY_PACK(m.zone_id, m.chunk_id, m.block_off,
+				m.size_idx);
 
 error_tree_new:
 	Free(b);
@@ -137,103 +125,139 @@ error_bucket_malloc:
 }
 
 /*
- * bucket_delete -- cleanups and deallocates bucket instance
+ * bucket_tree_get_rm_block_bestfit --
+ *	removes and returns the best-fit memory block for size
  */
-void
-bucket_delete(struct bucket *b)
+static int
+bucket_tree_get_rm_block_bestfit(struct block_container *bc,
+	struct memory_block *m)
 {
 	util_mutex_destroy(&b->lock);
 
-	ctree_delete(b->tree);
-	Free(b);
+	struct block_container_ctree *c = (struct block_container_ctree *)bc;
+
+	if ((key = ctree_remove(c->tree, key, 0)) == 0)
+		return ENOMEM;
+
+	m->chunk_id = CHUNK_KEY_GET_CHUNK_ID(key);
+	m->zone_id = CHUNK_KEY_GET_ZONE_ID(key);
+	m->block_off = CHUNK_KEY_GET_BLOCK_OFF(key);
+	m->size_idx = CHUNK_KEY_GET_SIZE_IDX(key);
+
+	return 0;
 }
 
 /*
- * bucket_bitmap_nallocs -- returns maximum number of allocations per run
+ * bucket_tree_get_rm_block_exact -- removes exact match memory block
  */
-unsigned
-bucket_bitmap_nallocs(struct bucket *b)
+static int
+bucket_tree_get_rm_block_exact(struct block_container *bc,
+	struct memory_block m)
 {
-	return b->bitmap_nallocs;
-}
-
-/*
- * bucket_bitmap_nval -- returns maximum number of bitmap u64 values
- */
-unsigned
-bucket_bitmap_nval(struct bucket *b)
-{
-	return b->bitmap_nval;
-}
-
-/*
- * bucket_bitmap_lastval -- returns the last value of an empty run bitmap
- */
-uint64_t
-bucket_bitmap_lastval(struct bucket *b)
-{
-	return b->bitmap_lastval;
-}
-
-/*
- * bucket_unit_size -- returns unit size of a bucket
- */
-size_t
-bucket_unit_size(struct bucket *b)
-{
-	return b->unit_size;
-}
-
-/*
- * bucket_unit_max -- returns unit max of a bucket
- */
-unsigned
-bucket_unit_max(struct bucket *b)
-{
-	return b->unit_max;
-}
-
-/*
- * bucket_is_small -- returns whether the bucket handles small allocations
- */
-int
-bucket_is_small(struct bucket *b)
-{
-	return b->unit_size != CHUNKSIZE;
-}
-
-/*
- * bucket_calc_units -- calculates the number of units requested size requires
- */
-uint32_t
-bucket_calc_units(struct bucket *b, size_t size)
-{
-	ASSERT(size != 0);
-	size = ((size - 1) / b->unit_size) + 1;
-	ASSERT(size <= UINT32_MAX);
-	return (uint32_t)size;
-}
-
-/*
- * bucket_insert_block -- inserts a new memory block into the container
- */
-void
-bucket_insert_block(PMEMobjpool *pop, struct bucket *b, struct memory_block m)
-{
-	ASSERT(m.chunk_id < MAX_CHUNK);
-	ASSERT(m.zone_id < UINT16_MAX);
-	ASSERT(m.size_idx != 0);
-
-#ifdef USE_VG_MEMCHECK
-	if (On_valgrind) {
-		size_t rsize = m.size_idx * bucket_unit_size(b);
-		void *block_data = heap_get_block_data(pop, m);
-		VALGRIND_DO_MAKE_MEM_NOACCESS(pop, block_data, rsize);
-	}
-#endif
-
 	uint64_t key = CHUNK_KEY_PACK(m.zone_id, m.chunk_id, m.block_off,
-				m.size_idx);
+			m.size_idx);
+
+	struct block_container_ctree *c = (struct block_container_ctree *)bc;
+
+	if ((key = ctree_remove(c->tree, key, 1)) == 0)
+		return ENOMEM;
+
+	return 0;
+}
+
+/*
+ * bucket_tree_get_block_exact -- finds exact match memory block
+ */
+static int
+bucket_tree_get_block_exact(struct block_container *bc, struct memory_block m)
+{
+	uint64_t key = CHUNK_KEY_PACK(m.zone_id, m.chunk_id, m.block_off,
+			m.size_idx);
+
+	struct block_container_ctree *c = (struct block_container_ctree *)bc;
+
+	return ctree_find(c->tree, key) == key ? 0 : ENOMEM;
+}
+
+/*
+ * bucket_tree_is_empty -- checks whether the bucket is empty
+ */
+static int
+bucket_tree_is_empty(struct block_container *bc)
+{
+	struct block_container_ctree *c = (struct block_container_ctree *)bc;
+	return ctree_is_empty(c->tree);
+}
+
+static struct block_container_ops container_ctree_ops = {
+	.insert = bucket_tree_insert_block,
+	.get_rm_exact = bucket_tree_get_rm_block_exact,
+	.get_rm_bestfit = bucket_tree_get_rm_block_bestfit,
+	.get_exact = bucket_tree_get_block_exact,
+	.is_empty = bucket_tree_is_empty
+};
+
+/*
+ * bucket_tree_create -- (internal) creates a new tree-based container
+ */
+static struct block_container *
+bucket_tree_create(size_t unit_size)
+{
+	struct block_container_ctree *bc = Malloc(sizeof (*bc));
+	if (bc == NULL)
+		goto error_container_malloc;
+
+	bc->super.type = CONTAINER_CTREE;
+	bc->super.unit_size = unit_size;
+
+	bc->tree = ctree_new();
+	if (bc->tree == NULL)
+		goto error_ctree_new;
+
+	return (struct block_container *)bc;
+
+error_ctree_new:
+	Free(bc);
+
+error_container_malloc:
+	return NULL;
+}
+
+/*
+ * bucket_tree_delete -- (internal) deletes a tree container
+ */
+static void
+bucket_tree_delete(struct block_container *bc)
+{
+	struct block_container_ctree *c = (struct block_container_ctree *)bc;
+	ctree_delete(c->tree);
+	Free(bc);
+}
+
+static struct {
+	struct block_container_ops *ops;
+	struct block_container *(*create)(size_t unit_size);
+	void (*delete)(struct block_container *c);
+} block_containers[MAX_CONTAINER_TYPE] = {
+	{NULL, NULL, NULL},
+	{&container_ctree_ops, bucket_tree_create, bucket_tree_delete},
+};
+
+/*
+ * bucket_run_create -- (internal) creates a run bucket
+ */
+static struct bucket *
+bucket_run_create(size_t unit_size, unsigned unit_max)
+{
+	struct bucket_run *b = Malloc(sizeof (*b));
+	if (b == NULL)
+		return NULL;
+
+	b->super.type = BUCKET_RUN;
+	b->unit_max = unit_max;
+
+	ASSERT(RUN_NALLOCS(unit_size) <= UINT32_MAX);
+	b->bitmap_nallocs = (unsigned)(RUN_NALLOCS(unit_size));
 
 	int ret = ctree_insert(b->tree, key, 0);
 	if (ret != 0) {
@@ -245,66 +269,66 @@ bucket_insert_block(PMEMobjpool *pop, struct bucket *b, struct memory_block m)
 	}
 }
 
-/*
- * bucket_get_rm_block_bestfit --
- *	removes and returns the best-fit memory block for size
- */
-int
-bucket_get_rm_block_bestfit(struct bucket *b, struct memory_block *m)
-{
-	uint64_t key = CHUNK_KEY_PACK(m->zone_id, m->chunk_id, m->block_off,
-			m->size_idx);
+	unsigned unused_values = unused_bits / BITS_PER_VALUE;
 
-	if ((key = ctree_remove(b->tree, key, 0)) == 0)
-		return ENOMEM;
+	ASSERT(MAX_BITMAP_VALUES >= unused_values);
+	b->bitmap_nval = MAX_BITMAP_VALUES - unused_values;
 
-	m->chunk_id = CHUNK_KEY_GET_CHUNK_ID(key);
-	m->zone_id = CHUNK_KEY_GET_ZONE_ID(key);
-	m->block_off = CHUNK_KEY_GET_BLOCK_OFF(key);
-	m->size_idx = CHUNK_KEY_GET_SIZE_IDX(key);
+	ASSERT(unused_bits >= unused_values * BITS_PER_VALUE);
+	unused_bits -= unused_values * BITS_PER_VALUE;
 
+	b->bitmap_lastval = unused_bits ?
+		(((1ULL << unused_bits) - 1ULL) <<
+			(BITS_PER_VALUE - unused_bits)) : 0;
 
-	return 0;
+	return (struct bucket *)b;
 }
 
 /*
- * bucket_get_rm_block_exact -- removes exact match memory block
+ * bucket_huge_create -- (internal) creates a huge bucket
  */
-int
-bucket_get_rm_block_exact(struct bucket *b, struct memory_block m)
+static struct bucket *
+bucket_huge_create(size_t unit_size, unsigned unit_max)
 {
-	uint64_t key = CHUNK_KEY_PACK(m.zone_id, m.chunk_id, m.block_off,
-			m.size_idx);
+	struct bucket_huge *b = Malloc(sizeof (*b));
+	if (b == NULL)
+		return NULL;
 
-	if ((key = ctree_remove(b->tree, key, 1)) == 0)
-		return ENOMEM;
+	b->super.type = BUCKET_HUGE;
 
-	return 0;
+	return (struct bucket *)b;
 }
 
 /*
- * bucket_get_block_exact -- finds exact match memory block
+ * bucket_common_delete -- (internal) deletes a bucket
  */
-int
-bucket_get_block_exact(struct bucket *b, struct memory_block m)
+static void
+bucket_common_delete(struct bucket *b)
 {
-	uint64_t key = CHUNK_KEY_PACK(m.zone_id, m.chunk_id, m.block_off,
-			m.size_idx);
+	Free(b);
+}
 
-	return ctree_find(b->tree, key) == key ? 0 : ENOMEM;
+static struct {
+	struct bucket *(*create)(size_t unit_size, unsigned unit_max);
+	void (*delete)(struct bucket *b);
+} bucket_types[MAX_BUCKET_TYPE] = {
+	{NULL, NULL},
+	{bucket_huge_create, bucket_common_delete},
+	{bucket_run_create, bucket_common_delete}
+};
+
+/*
+ * bucket_calc_units -- calculates the number of units requested size requires
+ */
+static uint32_t
+bucket_calc_units(struct bucket *b, size_t size)
+{
+	ASSERTne(size, 0);
+	return ((size - 1) / b->unit_size) + 1;
 }
 
 /*
- * bucket_is_empty -- checks whether the bucket is empty
- */
-int
-bucket_is_empty(struct bucket *b)
-{
-	return ctree_is_empty(b->tree);
-}
-
-/*
- * bucket_lock -- acquire bucket lock
+ * bucket_new -- allocates and initializes bucket instance
  */
 void
 bucket_lock(struct bucket *b)
@@ -313,10 +337,10 @@ bucket_lock(struct bucket *b)
 }
 
 /*
- * bucket_unlock -- release bucket lock
+ * bucket_delete -- cleanups and deallocates bucket instance
  */
 void
-bucket_unlock(struct bucket *b)
+bucket_delete(struct bucket *b)
 {
 	util_mutex_unlock(&b->lock);
 }

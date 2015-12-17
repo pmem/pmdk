@@ -82,14 +82,14 @@ test_heap()
 	struct bucket *b_small = heap_get_best_bucket(pop, 0);
 	struct bucket *b_big = heap_get_best_bucket(pop, 1024);
 
-	ASSERT(bucket_unit_size(b_small) < bucket_unit_size(b_big));
+	ASSERT(b_small->unit_size < b_big->unit_size);
 
 	struct bucket *b_def = heap_get_best_bucket(pop, CHUNKSIZE);
-	ASSERT(bucket_unit_size(b_def) == CHUNKSIZE);
+	ASSERT(b_def->unit_size == CHUNKSIZE);
 
 	/* new small buckets should be empty */
-	ASSERT(bucket_is_empty(b_small));
-	ASSERT(bucket_is_empty(b_big));
+	ASSERT(b_small->type == BUCKET_RUN);
+	ASSERT(b_big->type == BUCKET_RUN);
 
 	struct memory_block blocks[MAX_BLOCKS] = {
 		{0, 0, 1, 0},

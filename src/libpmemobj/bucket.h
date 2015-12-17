@@ -34,10 +34,56 @@
  * bucket.h -- internal definitions for bucket
  */
 
-struct bucket;
+#define	RUN_NALLOCS(_bs)\
+((RUNSIZE / ((_bs))))
 
-struct bucket *bucket_new(size_t unit_size, unsigned unit_max);
-void bucket_delete(struct bucket *b);
+enum block_container_type {
+	CONTAINER_UNKNOWN,
+	CONTAINER_CTREE,
+
+	MAX_CONTAINER_TYPE
+};
+
+struct block_container {
+	enum block_container_type type;
+	size_t unit_size; /* required only for valgrind... */
+};
+
+struct block_container_ops {
+	int (*insert)(struct block_container *c, PMEMobjpool *pop,
+		struct memory_block m);
+	int (*get_rm_exact)(struct block_container *c, struct memory_block m);
+	int (*get_rm_bestfit)(struct block_container *c,
+		struct memory_block *m);
+	int (*get_exact)(struct block_container *c, struct memory_block m);
+	int (*is_empty)(struct block_container *c);
+};
+
+#define	CNT_OP(_b, _op, ...)\
+(_b)->c_ops->_op((_b)->container, ##__VA_ARGS__)
+
+enum bucket_type {
+	BUCKET_UNKNOWN,
+	BUCKET_HUGE,
+	BUCKET_RUN,
+
+	MAX_BUCKET_TYPE
+};
+
+struct bucket {
+	enum bucket_type type;
+
+	/*
+	 * Identifier of this bucket in the heap's bucket map.
+	 */
+	int id;
+
+	/*
+	 * Size of a single memory block in bytes.
+	 */
+	size_t unit_size;
+
+	uint32_t (*calc_units)(struct bucket *b, size_t size);
 
 int bucket_is_small(struct bucket *b);
 uint32_t bucket_calc_units(struct bucket *b, size_t size);
