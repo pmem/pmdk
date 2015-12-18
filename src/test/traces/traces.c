@@ -45,6 +45,10 @@
 #include "out.h"
 #undef ERR
 #undef FATAL
+#undef ASSERT_rt
+#undef ASSERTinfo_rt
+#undef ASSERTeq_rt
+#undef ASSERTne_rt
 #undef ASSERT
 #undef ASSERTinfo
 #undef ASSERTeq
