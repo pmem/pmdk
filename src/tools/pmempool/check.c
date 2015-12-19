@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2015, Intel Corporation
+ * Copyright (c) 2014-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -60,6 +60,9 @@
 
 #define	PREFIX_BUFF_SIZE	1024
 static char prefix_buff[PREFIX_BUFF_SIZE];
+
+static const unsigned Nseq[] = { 0, 2, 3, 1 };
+#define	NSEQ(seq) (Nseq[(seq) & 3])
 
 /*
  * arena -- internal structure for holding BTT Info and offset
@@ -1679,46 +1682,44 @@ pmempool_check_btt_info(struct pmempool_check *pcp)
 }
 
 /*
+ * pmempool_check_flog_seq -- check FLOG sequence number value
+ */
+static int
+pmempool_check_flog_seq(uint32_t seq)
+{
+	return seq == 0 || seq == 1 || seq == 2 || seq == 3;
+}
+
+/*
  * pmempool_check_check_flog -- return valid flog entry
  */
 static struct btt_flog *
 pmempool_check_check_flog(struct btt_flog *flog_alpha,
 		struct btt_flog *flog_beta)
 {
-	struct btt_flog *ret = NULL;
-
 	/*
-	 * Valid seq numbers are 1 or 2.
 	 * The interesting cases are:
 	 * - no valid seq numbers:  layout consistency error
 	 * - one valid seq number:  that's the current entry
 	 * - two valid seq numbers: higher number is current entry
 	 * - identical seq numbers: layout consistency error
-	 *
-	 * The following is the combination of two seq numbers.
-	 * The higher byte is the first half of flog entry and
-	 * the lower byte is the second half of flog entry.
-	 *
-	 * The valid values though are:
-	 * - 0x10, 0x21 - the first half is current entry
-	 * - 0x01, 0x12 - the second half is current entry
 	 */
-	uint8_t seqc = (uint8_t)(((flog_alpha->seq & 0xf) << 4) |
-			(flog_beta->seq & 0xf));
-	switch (seqc) {
-	case 0x10:
-	case 0x21:
-		ret = flog_alpha;
-		break;
-	case 0x01:
-	case 0x12:
-		ret = flog_beta;
-		break;
-	default:
-		ret = NULL;
-	}
+	if (!pmempool_check_flog_seq(flog_alpha->seq))
+		return NULL;
+	if (!pmempool_check_flog_seq(flog_beta->seq))
+		return NULL;
+	if (flog_alpha->seq == flog_beta->seq)
+		return NULL;
 
-	return ret;
+	if (flog_alpha->seq == 0)
+		return flog_beta;
+	if (flog_beta->seq == 0)
+		return flog_alpha;
+
+	if (NSEQ(flog_alpha->seq) == flog_beta->seq)
+		return flog_beta;
+
+	return flog_alpha;
 }
 
 /*
