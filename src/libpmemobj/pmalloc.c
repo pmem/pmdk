@@ -138,8 +138,8 @@ get_mblock_from_alloc(PMEMobjpool *pop, struct bucket *b,
 static int
 persist_alloc(PMEMobjpool *pop, struct lane_section *lane,
 	struct memory_block m, uint64_t real_size, uint64_t *off,
-	void (*constructor)(PMEMobjpool *pop, void *ptr, void *arg),
-	void *arg, uint64_t data_off)
+	void (*constructor)(PMEMobjpool *pop, void *ptr, size_t usable_size,
+	void *arg), void *arg, uint64_t data_off)
 {
 	int err;
 
@@ -168,7 +168,9 @@ persist_alloc(PMEMobjpool *pop, struct lane_section *lane,
 	alloc_write_header(pop, block_data, m.chunk_id, m.zone_id, real_size);
 
 	if (constructor != NULL)
-		constructor(pop, userdatap, arg);
+		constructor(pop, userdatap,
+			real_size - sizeof (struct allocation_header) -
+			data_off, arg);
 
 	if ((err = heap_lock_if_run(pop, m)) != 0) {
 		VALGRIND_DO_MEMPOOL_FREE(pop, userdatap);
@@ -218,8 +220,8 @@ pmalloc(PMEMobjpool *pop, uint64_t *off, size_t size, uint64_t data_off)
  */
 int
 pmalloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
-	void (*constructor)(PMEMobjpool *pop, void *ptr, void *arg),
-	void *arg, uint64_t data_off)
+	void (*constructor)(PMEMobjpool *pop, void *ptr,
+	size_t usable_size, void *arg), void *arg, uint64_t data_off)
 {
 	int err = 0;
 
@@ -303,8 +305,8 @@ prealloc(PMEMobjpool *pop, uint64_t *off, size_t size, uint64_t data_off)
  */
 int
 prealloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
-	void (*constructor)(PMEMobjpool *pop, void *ptr, void *arg), void *arg,
-	uint64_t data_off)
+	void (*constructor)(PMEMobjpool *pop, void *ptr,
+	size_t usable_size, void *arg), void *arg, uint64_t data_off)
 {
 	if (size <= pmalloc_usable_size(pop, *off))
 		return 0;
@@ -361,7 +363,9 @@ prealloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
 		real_size  - sizeof (struct allocation_header) - data_off);
 
 	if (constructor != NULL)
-		constructor(pop, userdatap, arg);
+		constructor(pop, userdatap,
+			real_size - sizeof (struct allocation_header) -
+			data_off, arg);
 
 	struct allocator_lane_section *sec =
 		(struct allocator_lane_section *)lane->layout;

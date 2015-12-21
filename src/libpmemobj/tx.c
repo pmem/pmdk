@@ -80,7 +80,6 @@ struct lane_tx_runtime {
 
 struct tx_alloc_args {
 	type_num_t type_num;
-	size_t size;
 };
 
 struct tx_alloc_copy_args {
@@ -100,7 +99,7 @@ struct tx_add_range_args {
  * constructor_tx_alloc -- (internal) constructor for normal alloc
  */
 static void
-constructor_tx_alloc(PMEMobjpool *pop, void *ptr, void *arg)
+constructor_tx_alloc(PMEMobjpool *pop, void *ptr, size_t usable_size, void *arg)
 {
 	LOG(3, NULL);
 
@@ -124,7 +123,7 @@ constructor_tx_alloc(PMEMobjpool *pop, void *ptr, void *arg)
 	VALGRIND_REMOVE_FROM_TX(oobh, OBJ_OOB_SIZE);
 
 	/* do not report changes to the new object */
-	VALGRIND_ADD_TO_TX(ptr, args->size);
+	VALGRIND_ADD_TO_TX(ptr, usable_size);
 
 	VALGRIND_DO_MAKE_MEM_NOACCESS(pop, &oobh->data.padding,
 			sizeof (oobh->data.padding));
@@ -134,7 +133,8 @@ constructor_tx_alloc(PMEMobjpool *pop, void *ptr, void *arg)
  * constructor_tx_zalloc -- (internal) constructor for zalloc
  */
 static void
-constructor_tx_zalloc(PMEMobjpool *pop, void *ptr, void *arg)
+constructor_tx_zalloc(PMEMobjpool *pop, void *ptr,
+	size_t usable_size, void *arg)
 {
 	LOG(3, NULL);
 
@@ -158,19 +158,20 @@ constructor_tx_zalloc(PMEMobjpool *pop, void *ptr, void *arg)
 	VALGRIND_REMOVE_FROM_TX(oobh, OBJ_OOB_SIZE);
 
 	/* do not report changes to the new object */
-	VALGRIND_ADD_TO_TX(ptr, args->size);
+	VALGRIND_ADD_TO_TX(ptr, usable_size);
 
 	VALGRIND_DO_MAKE_MEM_NOACCESS(pop, &oobh->data.padding,
 			sizeof (oobh->data.padding));
 
-	memset(ptr, 0, args->size);
+	memset(ptr, 0, usable_size);
 }
 
 /*
  * constructor_tx_add_range -- (internal) constructor for add_range
  */
 static void
-constructor_tx_add_range(PMEMobjpool *pop, void *ptr, void *arg)
+constructor_tx_add_range(PMEMobjpool *pop, void *ptr,
+	size_t usable_size, void *arg)
 {
 	LOG(3, NULL);
 
@@ -207,7 +208,7 @@ constructor_tx_add_range(PMEMobjpool *pop, void *ptr, void *arg)
  * constructor_tx_copy -- (internal) copy constructor
  */
 static void
-constructor_tx_copy(PMEMobjpool *pop, void *ptr, void *arg)
+constructor_tx_copy(PMEMobjpool *pop, void *ptr, size_t usable_size, void *arg)
 {
 	LOG(3, NULL);
 
@@ -243,7 +244,8 @@ constructor_tx_copy(PMEMobjpool *pop, void *ptr, void *arg)
  * the non-copied area
  */
 static void
-constructor_tx_copy_zero(PMEMobjpool *pop, void *ptr, void *arg)
+constructor_tx_copy_zero(PMEMobjpool *pop, void *ptr,
+	size_t usable_size, void *arg)
 {
 	LOG(3, NULL);
 
@@ -266,15 +268,15 @@ constructor_tx_copy_zero(PMEMobjpool *pop, void *ptr, void *arg)
 	VALGRIND_REMOVE_FROM_TX(oobh, OBJ_OOB_SIZE);
 
 	/* do not report changes made to the copy */
-	VALGRIND_ADD_TO_TX(ptr, args->size);
+	VALGRIND_ADD_TO_TX(ptr, usable_size);
 
 	VALGRIND_DO_MAKE_MEM_NOACCESS(pop, &oobh->data.padding,
 			sizeof (oobh->data.padding));
 
 	memcpy(ptr, args->ptr, args->copy_size);
-	if (args->size > args->copy_size) {
+	if (usable_size > args->copy_size) {
 		void *zero_ptr = (void *)((uintptr_t)ptr + args->copy_size);
-		size_t zero_size = args->size - args->copy_size;
+		size_t zero_size = usable_size - args->copy_size;
 		memset(zero_ptr, 0, zero_size);
 	}
 }
@@ -865,7 +867,8 @@ release_and_free_tx_locks(struct lane_tx_runtime *lane)
  */
 static PMEMoid
 tx_alloc_common(size_t size, type_num_t type_num,
-	void (*constructor)(PMEMobjpool *pop, void *ptr, void *arg))
+	void (*constructor)(PMEMobjpool *pop, void *ptr,
+	size_t usable_size, void *arg))
 {
 	LOG(3, NULL);
 
@@ -893,7 +896,6 @@ tx_alloc_common(size_t size, type_num_t type_num,
 
 	struct tx_alloc_args args = {
 		.type_num = type_num,
-		.size = size,
 	};
 
 	/* allocate object to undo log */
@@ -922,7 +924,7 @@ err_oom:
 static PMEMoid
 tx_alloc_copy_common(size_t size, type_num_t type_num, const void *ptr,
 	size_t copy_size, void (*constructor)(PMEMobjpool *pop, void *ptr,
-	void *arg))
+	size_t usable_size, void *arg))
 {
 	LOG(3, NULL);
 
@@ -974,8 +976,10 @@ err_oom:
  */
 static PMEMoid
 tx_realloc_common(PMEMoid oid, size_t size, unsigned int type_num,
-	void (*constructor_alloc)(PMEMobjpool *pop, void *ptr, void *arg),
-	void (*constructor_realloc)(PMEMobjpool *pop, void *ptr, void *arg))
+	void (*constructor_alloc)(PMEMobjpool *pop, void *ptr,
+		size_t usable_size, void *arg),
+	void (*constructor_realloc)(PMEMobjpool *pop, void *ptr,
+		size_t usable_size, void *arg))
 {
 	LOG(3, NULL);
 
@@ -1313,7 +1317,8 @@ pmemobj_tx_add_large(struct lane_tx_layout *layout,
  * constructor_tx_range_cache -- (internal) cache constructor
  */
 static void
-constructor_tx_range_cache(PMEMobjpool *pop, void *ptr, void *arg)
+constructor_tx_range_cache(PMEMobjpool *pop, void *ptr,
+	size_t usable_size, void *arg)
 {
 	LOG(3, NULL);
 

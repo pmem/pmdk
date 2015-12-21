@@ -637,15 +637,19 @@ list_realloc_replace(PMEMobjpool *pop,
 	struct list_head *head, uint64_t pe_offset,
 	size_t old_size,
 	uint64_t obj_offset, uint64_t new_obj_offset,
-	void (*constructor)(PMEMobjpool *pop, void *ptr, void *arg), void *arg,
+	void (*constructor)(PMEMobjpool *pop, void *ptr,
+	size_t usable_size, void *arg), void *arg,
 	uint64_t field_offset, uint64_t field_value)
 {
 	uint64_t obj_doffset = obj_offset + OBJ_OOB_SIZE;
 	uint64_t new_obj_doffset = new_obj_offset + OBJ_OOB_SIZE;
 
+	size_t usable_size = pmalloc_usable_size(pop, new_obj_offset)
+		- OBJ_OOB_SIZE;
+
 	/* call the constructor manually */
 	void *ptr = OBJ_OFF_TO_PTR(pop, new_obj_doffset);
-	constructor(pop, ptr, arg);
+	constructor(pop, ptr, usable_size, arg);
 
 	if (field_offset) {
 		redo_index = list_set_user_field(pop,
@@ -711,7 +715,7 @@ int
 list_insert_new(PMEMobjpool *pop, struct list_head *oob_head,
 	size_t pe_offset, struct list_head *head, PMEMoid dest, int before,
 	size_t size, void (*constructor)(PMEMobjpool *pop, void *ptr,
-	void *arg), void *arg,	PMEMoid *oidp)
+	size_t usable_size, void *arg), void *arg, PMEMoid *oidp)
 {
 	LOG(3, NULL);
 	ASSERTne(oob_head, NULL);
@@ -1411,8 +1415,8 @@ int
 list_realloc(PMEMobjpool *pop, struct list_head *oob_head,
 	size_t pe_offset, struct list_head *head,
 	size_t size, void (*constructor)(PMEMobjpool *pop, void *ptr,
-	void *arg), void *arg, uint64_t field_offset, uint64_t field_value,
-	PMEMoid *oidp)
+	size_t usable_size, void *arg), void *arg, uint64_t field_offset,
+	uint64_t field_value, PMEMoid *oidp)
 {
 	LOG(3, NULL);
 	ASSERTne(oob_head, NULL);
@@ -1640,8 +1644,8 @@ int
 list_realloc_move(PMEMobjpool *pop, struct list_head *oob_head_old,
 	struct list_head *oob_head_new, size_t pe_offset,
 	struct list_head *head, size_t size,
-	void (*constructor)(PMEMobjpool *pop, void *ptr, void *arg), void *arg,
-	uint64_t field_offset, uint64_t field_value,
+	void (*constructor)(PMEMobjpool *pop, void *ptr, size_t usable_size,
+	void *arg), void *arg, uint64_t field_offset, uint64_t field_value,
 	PMEMoid *oidp)
 {
 	LOG(3, NULL);

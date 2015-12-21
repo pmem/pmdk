@@ -125,8 +125,14 @@ test_realloc(PMEMobjpool *pop, size_t size_from, size_t size_to,
 	TOID(struct root) root = POBJ_ROOT(pop, struct root);
 	ASSERT(TOID_IS_NULL(D_RO(root)->obj));
 
-	int ret = pmemobj_alloc(pop, &D_RW(root)->obj.oid,
+	int ret;
+	if (zrealloc)
+		ret = pmemobj_zalloc(pop, &D_RW(root)->obj.oid,
+			size_from, type_from);
+	else
+		ret = pmemobj_alloc(pop, &D_RW(root)->obj.oid,
 			size_from, type_from, NULL, NULL);
+
 	ASSERTeq(ret, 0);
 	ASSERT(!TOID_IS_NULL(D_RO(root)->obj));
 	size_t usable_size_from =
@@ -137,7 +143,10 @@ test_realloc(PMEMobjpool *pop, size_t size_from, size_t size_to,
 	size_t check_size;
 	uint16_t checksum;
 
-	if (check_integrity) {
+	if (zrealloc) {
+		ASSERT(util_is_zeroed(D_RO(D_RO(root)->obj),
+					size_from));
+	} else if (check_integrity) {
 		check_size = size_to >= usable_size_from ?
 				usable_size_from : size_to;
 		checksum = fill_buffer((void *)D_RW(D_RW(root)->obj),
@@ -152,24 +161,17 @@ test_realloc(PMEMobjpool *pop, size_t size_from, size_t size_to,
 				size_to, type_to);
 	}
 
-	if (check_integrity) {
-		uint16_t checksum2 = ut_checksum(
-				(void *)D_RW(D_RW(root)->obj), check_size);
-		if (checksum2 != checksum)
-			ASSERTinfo(0, "memory corruption");
-	}
-
 	ASSERTeq(ret, 0);
 	ASSERT(!TOID_IS_NULL(D_RO(root)->obj));
 	ASSERT(pmemobj_alloc_usable_size(D_RO(root)->obj.oid) >= size_to);
 
-	if (zrealloc && size_to > size_from) {
-		size_t zsize = size_to - size_from;
-		char buff[zsize];
-		memset(buff, 0, zsize);
-		char *alloc = (char *)D_RO(D_RO(root)->obj);
-		int is_zeroed = !memcmp(&alloc[size_from], buff, zsize);
-		ASSERTeq(is_zeroed, 1);
+	if (zrealloc) {
+		ASSERT(util_is_zeroed(D_RO(D_RO(root)->obj), size_to));
+	} else if (check_integrity) {
+		uint16_t checksum2 = ut_checksum(
+				(void *)D_RW(D_RW(root)->obj), check_size);
+		if (checksum2 != checksum)
+			ASSERTinfo(0, "memory corruption");
 	}
 
 	pmemobj_free(&D_RW(root)->obj.oid);
@@ -181,10 +183,10 @@ test_realloc(PMEMobjpool *pop, size_t size_from, size_t size_to,
  */
 static void
 test_realloc_sizes(PMEMobjpool *pop, unsigned type_from,
-		unsigned type_to, int zrealloc)
+		unsigned type_to, int zrealloc, int size_diff)
 {
 	for (int i = 0; i < MAX_ALLOC_CLASS; i++) {
-		size_t size_from = sizes[i] - ALLOC_HDR;
+		size_t size_from = sizes[i] - ALLOC_HDR - size_diff;
 
 		for (int j = 2; j <= MAX_ALLOC_MUL; j++) {
 			size_t inc_size_to = sizes[i] * j - ALLOC_HDR;
@@ -237,13 +239,16 @@ main(int argc, char *argv[])
 	test_free(pop);
 
 	/* test realloc without changing type number */
-	test_realloc_sizes(pop, 0, 0, 0);
+	test_realloc_sizes(pop, 0, 0, 0, 0);
 	/* test realloc with changing type number */
-	test_realloc_sizes(pop, 0, 1, 0);
-	/* test zrealloc without changing type number */
-	test_realloc_sizes(pop, 0, 0, 1);
-	/* test zrealloc with changing type number */
-	test_realloc_sizes(pop, 0, 1, 1);
+	test_realloc_sizes(pop, 0, 1, 0, 0);
+	/* test zrealloc without changing type number... */
+	test_realloc_sizes(pop, 0, 0, 1, 8);
+	test_realloc_sizes(pop, 0, 0, 1, 0);
+	/* test zrealloc with changing type number... */
+	test_realloc_sizes(pop, 0, 1, 1, 8);
+	test_realloc_sizes(pop, 0, 1, 1, 0);
+
 
 	pmemobj_close(pop);
 
