@@ -418,6 +418,7 @@ function require_test_type() {
 # require_fs_type -- only allow script to continue for a certain fs type
 #
 function require_fs_type() {
+	req_fs_type=1
 	for type in $*
 	do
 		[ "$type" = "$FS" ] && return
@@ -643,6 +644,12 @@ function require_no_asan() {
 function setup() {
 	# make sure we have a well defined locale for string operations here
 	export LC_ALL="C"
+
+	# skip checks in local dir when test did not require any fs type
+	# (in such cases local is equal to either non-pmem or pmem)
+	if [ "$FS" = "local" -a "$req_fs_type" != "1" ]; then
+		exit 0
+	fi
 
 	if [ "$MEMCHECK" = "force-enable" ]; then
 		export RUN_MEMCHECK=1
