@@ -34,7 +34,7 @@
 # src/test/unittest/Makefile -- build unittest support library
 #
 
-TOP := $(dir $(lastword $(MAKEFILE_LIST)))/../../..
+TOP := $(dir $(lastword $(MAKEFILE_LIST)))../../..
 include $(TOP)/src/common.inc
 
 TARGET = libut.a

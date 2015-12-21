@@ -32,7 +32,7 @@
 # src/common/Makefile -- Makefile for common
 #
 
-TOP := $(dir $(lastword $(MAKEFILE_LIST)))/../..
+TOP := $(dir $(lastword $(MAKEFILE_LIST)))../..
 include $(TOP)/src/common.inc
 
 cstyle:

@@ -31,7 +31,7 @@
 #
 # src/Makefile -- Makefile for NVML
 #
-TOP := $(dir $(lastword $(MAKEFILE_LIST)))/..
+TOP := $(dir $(lastword $(MAKEFILE_LIST)))..
 include $(TOP)/src/common.inc
 
 TARGETS = libpmem libvmem libpmemblk libpmemlog libpmemobj libvmmalloc tools

@@ -31,7 +31,7 @@
 # src/tools/Makefile.inc -- Makefile include for all tools
 #
 
-TOP := $(dir $(lastword $(MAKEFILE_LIST)))/../..
+TOP := $(dir $(lastword $(MAKEFILE_LIST)))../..
 include $(TOP)/src/common.inc
 
 INCS += -I.
