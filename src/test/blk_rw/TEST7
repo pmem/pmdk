@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright (c) 2015, Intel Corporation
+# Copyright (c) 2015-2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -60,6 +60,8 @@ expect_normal_exit valgrind --tool=pmemcheck\
 		e:4 z:4 r:4\
 		w:5 e:5 z:5 r:5\
 		w:6 z:6 e:6 r:6
+
+check_pool $DIR/testfile1
 
 check
 

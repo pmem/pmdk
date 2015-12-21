@@ -232,6 +232,11 @@ TEST_BUILD = all
 TEST_FS = all
 TEST_TIME = 3m
 MEMCHECK = auto
+CHECK_POOL =
+
+ifeq ($(CHECK_POOL),y)
+CHECK_POOL_OPT="-c"
+endif
 
 all test cstyle: $(TESTS_BUILD)
 
@@ -254,7 +259,7 @@ memcheck-summary-leaks:
 	grep "in use at exit" */memcheck*.log | grep -v " 0 bytes in 0 blocks" || true
 
 check: test
-	@./RUNTESTS -b $(TEST_BUILD) -t $(TEST_TYPE) -f $(TEST_FS) -o $(TEST_TIME) -m $(MEMCHECK) $(TESTS)
+	@./RUNTESTS -b $(TEST_BUILD) -t $(TEST_TYPE) -f $(TEST_FS) -o $(TEST_TIME) -m $(MEMCHECK) $(CHECK_POOL_OPT) $(TESTS)
 	@echo "No failures."
 
 pcheck: $(TESTS_BUILD)

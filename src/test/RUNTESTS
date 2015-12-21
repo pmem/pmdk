@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (c) 2014-2015, Intel Corporation
+# Copyright (c) 2014-2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -43,7 +43,7 @@ usage()
 	[ "$1" ] && echo Error: $1
 	cat >&2 <<EOF
 Usage: $0 [ -nv ] [ -b build-type ] [ -t test-type ] [ -f fs-type ]
-	    [ -o timeout ] [-s test-file ] [ -m memcheck ] [tests...]
+	    [ -o timeout ] [-s test-file ] [ -m memcheck ] [ -c ] [tests...]
     build-types: debug, nondebug, static-debug, static-nondebug, all (default)
      test-types: check (default), short, long
        fs-types: local, pmem, non-pmem, all (default)
@@ -54,6 +54,7 @@ Usage: $0 [ -nv ] [ -b build-type ] [ -t test-type ] [ -f fs-type ]
        memcheck: auto (default, enable/disable based on test requirements),
                  force-enable (enable when test does not require memcheck, but
                                obey test's explicit memcheck disable)
+             -c: run pmempool check on pool files
 EOF
 	exit 1
 }
@@ -116,10 +117,12 @@ runtest() {
 				elif [ "$use_timeout" -a "$testtype" = "check" ]
 				then
 					[ "$verbose" ] && echo "RUNTESTS: Running: (in ./$1) TEST=$testtype FS=$fs BUILD=$build ./$runscript"
-					MEMCHECK=$memcheck TEST=$testtype FS=$fs BUILD=$build timeout --foreground $killopt $time ./$runscript
+					MEMCHECK=$memcheck CHECK_POOL=$check_pool VERBOSE=$verbose\
+						TEST=$testtype FS=$fs BUILD=$build timeout --foreground $killopt $time ./$runscript
 				else
 					[ "$verbose" ] && echo "RUNTESTS: Running: (in ./$1) TEST=$testtype FS=$fs BUILD=$build ./$runscript"
-					MEMCHECK=$memcheck TEST=$testtype FS=$fs BUILD=$build ./$runscript
+					MEMCHECK=$memcheck CHECK_POOL=$check_pool VERBOSE=$verbose\
+						TEST=$testtype FS=$fs BUILD=$build ./$runscript
 				fi
 
 				retval=$?
@@ -162,11 +165,12 @@ time='3m'
 use_timeout="ok"
 testfile=all
 memcheck=auto
+check_pool=0
 
 #
 # command-line argument processing...
 #
-args=`getopt nvb:t:f:o:s:m: $*`
+args=`getopt nvb:t:f:o:s:m:c $*`
 [ $? != 0 ] && usage
 set -- $args
 for arg
@@ -238,6 +242,10 @@ do
 		testfile="$2"
 		shift 2
 		;;
+	-c)
+		check_pool=1
+		shift
+		;;
 	--)
 		shift
 		break
@@ -253,6 +261,13 @@ done
 	echo "    test-type: $testtype"
 	echo "    fs-type: $fstype"
 	echo "    memcheck: $memcheck"
+	if [ "$check_pool" ]
+	then
+		check_pool_str="yes"
+	else
+		check_pool_str="no"
+	fi
+	echo "    check-pool: $check_pool_str"
 	echo Tests: $*
 }
 

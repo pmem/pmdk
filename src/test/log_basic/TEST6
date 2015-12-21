@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright (c) 2015, Intel Corporation
+# Copyright (c) 2015-2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -49,6 +49,8 @@ setup
 create_poolset $DIR/testset1 2M:$DIR/testfile1:x 2M:$DIR/testfile2:x
 
 expect_normal_exit ./log_basic$EXESUFFIX $DIR/testset1 n
+
+check_pool $DIR/testset1
 
 check
 

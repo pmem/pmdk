@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright (c) 2015, Intel Corporation
+# Copyright (c) 2015-2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -54,6 +54,8 @@ expect_normal_exit $EX_PATH/asset_checkout $DIR/testfile1 2 Joe >> out$UNITTEST_
 expect_normal_exit $EX_PATH/asset_list $DIR/testfile1 >> out$UNITTEST_NUM.log 2>&1
 expect_normal_exit $EX_PATH/asset_checkin $DIR/testfile1 2 >> out$UNITTEST_NUM.log 2>&1
 expect_normal_exit $EX_PATH/asset_list $DIR/testfile1 >> out$UNITTEST_NUM.log 2>&1
+
+check_pool $DIR/testfile1
 
 check
 

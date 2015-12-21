@@ -37,6 +37,8 @@
 [ "$FS" ] || export FS=local
 [ "$BUILD" ] || export BUILD=debug
 [ "$MEMCHECK" ] || export MEMCHECK=auto
+[ "$CHECK_POOL" ] || export CHECK_POOL=0
+[ "$VERBOSE" ] || export VERBOSE=0
 
 TOOLS=../tools
 # Paths to some useful tools
@@ -160,6 +162,8 @@ export VALIDATE_MEMCHECK_LOG=1
 if [ -z "$UT_DUMP_LINES" ]; then
 	UT_DUMP_LINES=30
 fi
+
+export CHECK_POOL_LOG_FILE=check_pool_${BUILD}_${UNITTEST_NUM}.log
 
 #
 # create_file -- create zeroed out files of a given length in megs
@@ -420,6 +424,33 @@ function expect_abnormal_exit() {
 		echo -e "$UNITTEST_NAME command $msg unexpectedly." >&2
 
 		false
+	fi
+}
+
+#
+# check_pool -- run pmempool check on specified pool file
+#
+function check_pool() {
+	if [ "$CHECK_POOL" == "1" ]
+	then
+		if [ "$VERBOSE" != "0" ]
+		then
+			echo "$UNITTEST_NAME: checking consistency of pool ${1}"
+		fi
+		${PMEMPOOL}.static-nondebug check $1 2>&1 1>>$CHECK_POOL_LOG_FILE
+	fi
+}
+
+#
+# check_pools -- run pmempool check on specified pool files
+#
+function check_pools() {
+	if [ "$CHECK_POOL" == "1" ]
+	then
+		for f in $*
+		do
+			check_pool $f
+		done
 	fi
 }
 
@@ -750,6 +781,9 @@ function setup() {
 	fi
 
 	echo "$UNITTEST_NAME: SETUP ($TEST/$FS/$BUILD$MCSTR)"
+
+	rm -f check_pool_${BUILD}_${UNITTEST_NUM}.log
+
 	if [ -d "$DIR" ]; then
 		rm --one-file-system -rf -- $DIR
 	fi
@@ -813,17 +847,25 @@ check_files()
 }
 
 #
+# check_no_file -- check if file has been deleted and print error message if not
+#
+check_no_file()
+{
+	if [ -f $1 ]
+	then
+		echo "Not deleted file: ${1}" >&2
+		exit 1
+	fi
+}
+
+#
 # check_no_files -- check if files has been deleted and print error message if not
 #
 check_no_files()
 {
 	for file in $*
 	do
-		if [ -f $file ]
-		then
-			echo "Not deleted file: ${file}" >&2
-			exit 1
-		fi
+		check_no_file $file
 	done
 }
 
