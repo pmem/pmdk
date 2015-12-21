@@ -9,6 +9,7 @@ $(*)file.pool: repaired
 checking pool header
 pool header checksum correct
 checking pmemblk header
+no BTT layout
 pmemblk header correct
 checking BTT Info headers
 BTT Layout not written
@@ -25,6 +26,7 @@ $(*)file.pool: repaired
 checking pool header
 pool header checksum correct
 checking pmemblk header
+no BTT layout
 pmemblk header correct
 checking BTT Info headers
 BTT Layout not written
@@ -44,6 +46,7 @@ $(*)file.pool: repaired
 checking pool header
 pool header checksum correct
 checking pmemblk header
+no BTT layout
 pmemblk header correct
 checking BTT Info headers
 BTT Layout not written
