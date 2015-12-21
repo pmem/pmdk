@@ -11,8 +11,8 @@ can be found in the
 [releases area on GitHub](https://github.com/pmem/nvml/releases).
 
 **Note: The NVM Library is still under development and has been validated
-to "alpha" quality, meaning it is fully functional with no known
-critical bugs, but performance and reliability work is still ongoing.**
+to "beta" quality, meaning it is fully functional with no known
+critical bugs, but performance work is still ongoing.**
 
 The NVM Library is actually six separate libraries:
 
