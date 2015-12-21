@@ -72,6 +72,7 @@ struct arena {
 	struct btt_info btt_info; /* BTT Info header */
 	uint32_t id;		/* arena id */
 	bool valid;		/* BTT Info header checksum is valid */
+	bool zeroed;		/* BTT Info header is zeroed */
 	uint64_t offset;	/* offset in file */
 	uint8_t *flog;		/* flog entries */
 	size_t flogsize;	/* flog area size */
@@ -542,13 +543,43 @@ static int
 pmempool_check_get_first_valid_arena(struct pmempool_check *pcp,
 		struct arena *arenap)
 {
-	uint64_t offset = pmempool_check_get_first_valid_btt(pcp,
-			&arenap->btt_info, 2 * BTT_ALIGNMENT);
+	uint64_t offset = 2 * BTT_ALIGNMENT;
+	int backup = 0;
+	struct btt_info *infop = &arenap->btt_info;
+	arenap->zeroed = true;
 
-	if (offset) {
-		arenap->valid = true;
-		arenap->offset = offset;
-		return 1;
+	uint64_t last_offset = (pcp->pfile->size & ~(BTT_ALIGNMENT - 1))
+			- BTT_ALIGNMENT;
+	/*
+	 * Starting at offset, read every page and check for
+	 * valid BTT Info Header. Check signature and checksum.
+	 */
+	while (!pmempool_check_read(pcp, infop, sizeof (*infop), offset)) {
+		bool zeroed = !util_check_memory((const uint8_t *)infop,
+				sizeof (*infop), 0);
+		arenap->zeroed = arenap->zeroed && zeroed;
+
+		if (memcmp(infop->sig, BTT_INFO_SIG,
+					BTTINFO_SIG_LEN) == 0 &&
+			util_checksum(infop, sizeof (*infop),
+				&infop->checksum, 0)) {
+
+			util_convert2h_btt_info(infop);
+			arenap->valid = true;
+			arenap->offset = offset;
+			return 1;
+		}
+
+		if (!backup) {
+			if (pcp->pfile->size > BTT_MAX_ARENA)
+				offset += BTT_MAX_ARENA - BTT_ALIGNMENT;
+			else
+				offset = last_offset;
+		} else {
+			offset += BTT_ALIGNMENT;
+		}
+
+		backup = !backup;
 	}
 
 	return 0;
@@ -1401,8 +1432,9 @@ pmempool_check_pmemblk(struct pmempool_check *pcp)
 				return CHECK_RESULT_NOT_CONSISTENT;
 			}
 		}
+	} else if (pcp->bttc.zeroed) {
+		outv(2, "no BTT layout\n");
 	} else {
-
 		if (pcp->hdr.blk.bsize < BTT_MIN_LBA_SIZE ||
 			util_check_bsize(pcp->hdr.blk.bsize,
 				pcp->pfile->size)) {
@@ -1875,12 +1907,16 @@ pmempool_check_arena_map_flog(struct pmempool_check *pcp,
 	if (pmempool_check_read_map(pcp, arenap))
 		return CHECK_RESULT_ERROR;
 
-	/* create bitmap for checking duplicated blocks */
+	/* create bitmaps for checking duplicated blocks */
 	uint32_t bitmapsize = howmany(arenap->btt_info.internal_nlba, 8);
-	uint8_t *bitmap = malloc(bitmapsize);
+	uint8_t *bitmap = calloc(bitmapsize, 1);
 	if (!bitmap)
 		err(1, "Cannot allocate memory for blocks bitmap");
-	memset(bitmap, 0, bitmapsize);
+
+	uint8_t *fbitmap = calloc(bitmapsize, 1);
+	if (!fbitmap)
+		err(1, "Cannot allocate memory for flog bitmap");
+
 
 	/* list of invalid map entries */
 	struct list *list_inval = list_alloc();
@@ -1934,13 +1970,55 @@ pmempool_check_arena_map_flog(struct pmempool_check *pcp,
 		if (flog_cur) {
 			uint32_t entry = flog_cur->old_map &
 				BTT_MAP_ENTRY_LBA_MASK;
+			uint32_t new_entry = flog_cur->new_map &
+				BTT_MAP_ENTRY_LBA_MASK;
 
-			if (util_isset(bitmap, entry)) {
+			/*
+			 * Check if lba is in extranal_nlba range,
+			 * and check if both old_map and new_map are
+			 * in internal_nlba range.
+			 */
+			if (flog_cur->lba >= arenap->btt_info.external_nlba ||
+				entry >= arenap->btt_info.internal_nlba ||
+				new_entry >= arenap->btt_info.internal_nlba) {
+				outv(1, "arena %u: invalid flog entry "
+					"at %u\n", arenap->id, entry, i);
+				list_push(list_flog_inval, i);
+			}
+
+			if (util_isset(fbitmap, entry)) {
+				/*
+				 * Here we have two flog entries which holds
+				 * the same free block.
+				 */
 				outv(1, "arena %u: duplicated flog entry "
 					"at %u\n", arenap->id, entry, i);
 				list_push(list_flog_inval, i);
+			} else if (util_isset(bitmap, entry)) {
+				/* here we have probably an unfinished write */
+
+				if (util_isset(bitmap, new_entry)) {
+					/*
+					 * Both old_map and new_map are already
+					 * used in map.
+					 */
+					outv(1, "arena %u: duplicated flog "
+						"entry at %u\n", arenap->id,
+						entry, i);
+					list_push(list_flog_inval, i);
+				} else {
+					/*
+					 * Unfinished write. Next time pool
+					 * is opened, the map will be updated
+					 * to new_map.
+					 */
+					util_setbit(bitmap, new_entry);
+					util_setbit(fbitmap, entry);
+				}
 			} else {
+				/* totally fine case */
 				util_setbit(bitmap, entry);
+				util_setbit(fbitmap, entry);
 			}
 		} else {
 			outv(1, "arena %u: invalid flog entry at %u\n",
@@ -2041,6 +2119,7 @@ out:
 	list_free(list_inval);
 	list_free(list_flog_inval);
 	list_free(list_unmap);
+	free(fbitmap);
 	free(bitmap);
 
 	return ret;
