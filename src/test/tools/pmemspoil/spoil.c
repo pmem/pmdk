@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2015, Intel Corporation
+ * Copyright (c) 2014-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -237,6 +237,7 @@ struct pmemspoil {
 	void *addr;
 	size_t size;
 	unsigned replica;
+	uint64_t arena_offset;
 };
 
 typedef enum chunk_type chunk_type_t;
@@ -787,16 +788,16 @@ pmemspoil_process_btt_info_struct(struct pmemspoil *psp,
  */
 static int
 pmemspoil_process_btt_info_backup(struct pmemspoil *psp,
-		struct pmemspoil_list *pfp, uint64_t arena_offset)
+		struct pmemspoil_list *pfp, uint32_t index)
 {
 	struct btt_info btt_info_backup;
 
 	if (pmemspoil_read(psp, &btt_info_backup, sizeof (btt_info_backup),
-				arena_offset))
+				psp->arena_offset))
 		return -1;
 
-	uint64_t backup_offset = arena_offset +
-					le64toh(btt_info_backup.infooff);
+	uint64_t backup_offset = psp->arena_offset +
+			le64toh(btt_info_backup.infooff);
 
 	return pmemspoil_process_btt_info_struct(psp, pfp, backup_offset);
 }
@@ -806,9 +807,9 @@ pmemspoil_process_btt_info_backup(struct pmemspoil *psp,
  */
 static int
 pmemspoil_process_btt_info(struct pmemspoil *psp,
-		struct pmemspoil_list *pfp, uint64_t arena_offset)
+		struct pmemspoil_list *pfp, uint32_t index)
 {
-	return pmemspoil_process_btt_info_struct(psp, pfp, arena_offset);
+	return pmemspoil_process_btt_info_struct(psp, pfp, psp->arena_offset);
 }
 
 /*
@@ -816,16 +817,17 @@ pmemspoil_process_btt_info(struct pmemspoil *psp,
  */
 static int
 pmemspoil_process_btt_map(struct pmemspoil *psp,
-		struct pmemspoil_list *pfp, uint64_t arena_offset)
+		struct pmemspoil_list *pfp, uint32_t index)
 {
 	struct btt_info btt_info;
 
-	if (pmemspoil_read(psp, &btt_info, sizeof (btt_info), arena_offset))
+	if (pmemspoil_read(psp, &btt_info, sizeof (btt_info),
+			psp->arena_offset))
 		return -1;
 
 	util_convert2h_btt_info(&btt_info);
 
-	uint64_t mapoff = arena_offset + btt_info.mapoff;
+	uint64_t mapoff = psp->arena_offset + btt_info.mapoff;
 	uint64_t mapsize = roundup(btt_info.external_nlba * BTT_MAP_ENTRY_SIZE,
 							BTT_ALIGNMENT);
 
@@ -842,7 +844,7 @@ pmemspoil_process_btt_map(struct pmemspoil *psp,
 		    sscanf(pfp->value, "%u", &v) != 1) {
 			ret = -1;
 		} else {
-			mapp[pfp->head->next->index] = v;
+			mapp[index] = v;
 			if (pmemspoil_write(psp, mapp, mapsize, mapoff))
 				ret = -1;
 		}
@@ -857,7 +859,8 @@ pmemspoil_process_btt_map(struct pmemspoil *psp,
  */
 static int
 pmemspoil_process_btt_nflog(struct pmemspoil *psp,
-		struct pmemspoil_list *pfp, uint64_t arena_offset, int off)
+	struct pmemspoil_list *pfp, uint64_t arena_offset, int off,
+	uint32_t index)
 {
 	struct btt_info btt_info;
 	if (pmemspoil_read(psp, &btt_info, sizeof (btt_info), arena_offset))
@@ -882,7 +885,7 @@ pmemspoil_process_btt_nflog(struct pmemspoil *psp,
 	}
 
 	struct btt_flog *flog_entryp = (struct btt_flog *)(flogp +
-			pfp->head->next->index * BTT_FLOG_PAIR_ALIGN);
+			index * BTT_FLOG_PAIR_ALIGN);
 	if (off)
 		flog_entryp++;
 
@@ -911,9 +914,10 @@ error:
  */
 static int
 pmemspoil_process_btt_flog(struct pmemspoil *psp, struct pmemspoil_list *pfp,
-		uint64_t arena_offset)
+		uint32_t index)
 {
-	return pmemspoil_process_btt_nflog(psp, pfp, arena_offset, 0);
+	return pmemspoil_process_btt_nflog(psp, pfp,
+		psp->arena_offset, 0, index);
 }
 
 /*
@@ -921,9 +925,10 @@ pmemspoil_process_btt_flog(struct pmemspoil *psp, struct pmemspoil_list *pfp,
  */
 static int
 pmemspoil_process_btt_flog_prime(struct pmemspoil *psp,
-		struct pmemspoil_list *pfp, uint64_t arena_offset)
+		struct pmemspoil_list *pfp, uint32_t index)
 {
-	return pmemspoil_process_btt_nflog(psp, pfp, arena_offset, 1);
+	return pmemspoil_process_btt_nflog(psp, pfp,
+		psp->arena_offset, 1, index);
 }
 
 /*
@@ -936,12 +941,19 @@ pmemspoil_process_arena(struct pmemspoil *psp,
 	if (!arena_offset)
 		return -1;
 
+	struct btt_info btt_info;
+	if (pmemspoil_read(psp, &btt_info, sizeof (btt_info), arena_offset))
+		return -1;
+
+	util_convert2h_btt_info(&btt_info);
+	psp->arena_offset = arena_offset;
+
 	PROCESS_BEGIN(psp, pfp) {
-		PROCESS(btt_info, arena_offset, 1);
-		PROCESS(btt_info_backup, arena_offset, 1);
-		PROCESS(btt_map, arena_offset, 1);
-		PROCESS(btt_flog, arena_offset, 1);
-		PROCESS(btt_flog_prime, arena_offset, 1);
+		PROCESS(btt_info, PROCESS_INDEX, 1);
+		PROCESS(btt_info_backup, PROCESS_INDEX, 1);
+		PROCESS(btt_map, PROCESS_INDEX, btt_info.external_nlba);
+		PROCESS(btt_flog, PROCESS_INDEX, btt_info.nfree);
+		PROCESS(btt_flog_prime, PROCESS_INDEX, btt_info.nfree);
 	} PROCESS_END
 
 	return PROCESS_RET;
