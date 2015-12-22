@@ -93,7 +93,7 @@ Strdup_func Strdup = strdup;
 #if defined(USE_VG_PMEMCHECK) || defined(USE_VG_HELGRIND) ||\
 	defined(USE_VG_MEMCHECK)
 /* initialized to true if the process is running inside Valgrind */
-unsigned On_valgrind;
+unsigned _On_valgrind;
 #endif
 
 static int Mmap_no_random;
@@ -132,7 +132,7 @@ util_init(void)
 
 #if defined(USE_VG_PMEMCHECK) || defined(USE_VG_HELGRIND) ||\
 	defined(USE_VG_MEMCHECK)
-	On_valgrind = RUNNING_ON_VALGRIND;
+	_On_valgrind = RUNNING_ON_VALGRIND;
 #endif
 }
 
