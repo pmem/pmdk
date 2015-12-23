@@ -489,8 +489,8 @@ ut_checksum(uint8_t *addr, size_t len)
 	uint16_t sum2 = 0;
 
 	for (size_t i = 0; i < len; ++i) {
-		sum1 = (sum1 + addr[i]) % 255;
-		sum2 = (sum2 + sum1) % 255;
+		sum1 = (uint16_t)(sum1 + addr[i]) % 255;
+		sum2 = (uint16_t)(sum2 + sum1) % 255;
 	}
 
 	return (uint16_t)(sum2 << 8) | sum1;
