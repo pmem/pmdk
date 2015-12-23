@@ -305,6 +305,10 @@ main(int argc, char *argv[])
 				int count = count_iovec(argv[i] + 2);
 				struct iovec *iov = malloc(count
 						* sizeof (struct iovec));
+				if (iov == NULL) {
+					fprintf(stderr, "malloc error\n");
+					return 1;
+				}
 				fill_iovec(iov, argv[i] + 2);
 				if (pmemlog_appendv(plp, iov, count))
 					fprintf(stderr, "pmemlog_appendv"
