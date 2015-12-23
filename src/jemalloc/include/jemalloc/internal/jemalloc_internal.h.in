@@ -982,9 +982,33 @@ iralloct(void *ptr, size_t size, size_t extra, size_t alignment, bool zero,
 	}
 
 	if (size + extra <= arena_maxclass) {
-		return (arena_ralloc(arena, ptr, oldsize, size, extra,
+		void *ret;
+
+		ret = arena_ralloc(arena, ptr, oldsize, size, extra,
 		    alignment, zero, try_tcache_alloc,
-		    try_tcache_dalloc));
+		    try_tcache_dalloc);
+
+		if ((ret != NULL) || (size + extra > oldsize))
+			return (ret);
+
+		if (oldsize > chunksize) {
+			ret = huge_ralloc(arena, ptr, oldsize, chunksize, 0,
+			    alignment, zero, try_tcache_dalloc);
+
+			if (ret != NULL) {
+				void *ret2;
+
+				/* Now, it should succeed... */
+				ret2 = arena_ralloc(arena, ret, chunksize, size,
+				    extra, alignment, zero, try_tcache_alloc,
+				    try_tcache_dalloc);
+
+				if (ret2 != NULL)
+					ret = ret2;
+			}
+		}
+
+		return (ret != NULL) ? (ret) : (ptr);
 	} else {
 		return (huge_ralloc(arena, ptr, oldsize, size, extra,
 		    alignment, zero, try_tcache_dalloc));

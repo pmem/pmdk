@@ -1350,7 +1350,7 @@ je_realloc(void *ptr, size_t size)
 		}
 		set_errno(ENOMEM);
 	}
-	if (config_stats && ret != NULL) {
+	if (config_stats && ret != NULL && ret != ptr) {
 		thread_allocated_t *ta;
 		assert(usize == isalloc(ret, config_prof));
 		ta = thread_allocated_tsd_get();
@@ -1358,8 +1358,9 @@ je_realloc(void *ptr, size_t size)
 		ta->deallocated += old_usize;
 	}
 	UTRACE(ptr, size, ret);
-	JEMALLOC_VALGRIND_REALLOC(true, ret, usize, true, ptr, old_usize,
-	    old_rzsize, true, false);
+	if (ret != ptr)
+		JEMALLOC_VALGRIND_REALLOC(true, ret, usize, true, ptr, old_usize,
+		    old_rzsize, true, false);
 	return (ret);
 }
 
@@ -2191,7 +2192,7 @@ je_pool_ralloc(pool_t *pool, void *ptr, size_t size)
 		}
 		set_errno(ENOMEM);
 	}
-	if (config_stats && ret != NULL) {
+	if (config_stats && ret != NULL && ret != ptr) {
 		thread_allocated_t *ta;
 		assert(usize == isalloc(ret, config_prof));
 		ta = thread_allocated_tsd_get();
@@ -2199,8 +2200,9 @@ je_pool_ralloc(pool_t *pool, void *ptr, size_t size)
 		ta->deallocated += old_usize;
 	}
 	UTRACE(ptr, size, ret);
-	JEMALLOC_VALGRIND_REALLOC(true, ret, usize, true, ptr, old_usize,
-	    old_rzsize, true, false);
+	if (ret != ptr)
+		JEMALLOC_VALGRIND_REALLOC(true, ret, usize, true, ptr, old_usize,
+		    old_rzsize, true, false);
 	return (ret);
 }
 
