@@ -60,13 +60,13 @@ bool pool_new(pool_t *pool, unsigned pool_id)
 /* Release the arenas associated with a pool. */
 void pool_destroy(pool_t *pool)
 {
-	int i;
+	int i, j;
 	for (i = 0; i < pool->narenas_total; ++i) {
 		if (pool->arenas[i] != NULL) {
 			arena_t *arena = pool->arenas[i];
 			arena_purge_all(arena);
-			for (i = 0; i < NBINS; i++)
-				malloc_mutex_destroy(&arena->bins[i].lock);
+			for (j = 0; j < NBINS; j++)
+				malloc_mutex_destroy(&arena->bins[j].lock);
 			malloc_mutex_destroy(&arena->lock);
 		}
 	}
