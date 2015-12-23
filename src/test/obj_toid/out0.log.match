@@ -1,0 +1,3 @@
+obj_toid/TEST0: START: obj_toid
+ ./obj_toid$(nW) $(nW)testfile1
+obj_toid/TEST0: Done

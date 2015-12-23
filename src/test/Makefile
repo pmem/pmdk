@@ -96,6 +96,7 @@ OBJ_TESTS = \
        obj_recreate\
        obj_redo_log\
        obj_store\
+       obj_toid\
        obj_tx_alloc\
        obj_tx_add_range\
        obj_tx_add_range_direct\
