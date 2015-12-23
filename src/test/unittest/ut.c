@@ -493,5 +493,5 @@ ut_checksum(uint8_t *addr, size_t len)
 		sum2 = (sum2 + sum1) % 255;
 	}
 
-	return (sum2 << 8) | sum1;
+	return (uint16_t)(sum2 << 8) | sum1;
 }
