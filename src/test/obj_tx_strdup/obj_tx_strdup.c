@@ -60,31 +60,6 @@ enum type_number {
 
 #define	TEST_STR_1	"Test string 1"
 #define	TEST_STR_2	"Test string 2"
-#define	MAX_FUNC	2
-
-typedef void (*fn_tx_strdup)(TOID(char) *str, const char *s,
-						unsigned type_num);
-static unsigned counter;
-
-/*
- * tx_strdup -- duplicate a string using pmemobj_tx_strdup
- */
-static void
-tx_strdup(TOID(char) *str, const char *s, unsigned type_num)
-{
-	TOID_ASSIGN(*str, pmemobj_tx_strdup(s, type_num));
-}
-
-/*
- * tx_strdup_macro -- duplicate a string using macro
- */
-static void
-tx_strdup_macro(TOID(char) *str, const char *s, unsigned type_num)
-{
-	TOID_ASSIGN(*str, TX_STRDUP(s, type_num));
-}
-
-fn_tx_strdup do_tx_strdup[MAX_FUNC] = {tx_strdup, tx_strdup_macro};
 
 /*
  * do_tx_strdup_no_tx -- duplicate a string without a transaction
@@ -93,7 +68,7 @@ static void
 do_tx_strdup_no_tx(PMEMobjpool *pop)
 {
 	TOID(char) str;
-	do_tx_strdup[counter](&str, TEST_STR_1, TYPE_NO_TX);
+	TOID_ASSIGN(str, pmemobj_tx_strdup(TEST_STR_1, TYPE_NO_TX));
 	ASSERT(TOID_IS_NULL(str));
 
 	TOID_ASSIGN(str, pmemobj_first(pop, TYPE_NO_TX));
@@ -108,7 +83,7 @@ do_tx_strdup_commit(PMEMobjpool *pop)
 {
 	TOID(char) str;
 	TX_BEGIN(pop) {
-		do_tx_strdup[counter](&str, TEST_STR_1, TYPE_COMMIT);
+		TOID_ASSIGN(str, pmemobj_tx_strdup(TEST_STR_1, TYPE_COMMIT));
 		ASSERT(!TOID_IS_NULL(str));
 	} TX_ONABORT {
 		ASSERT(0);
@@ -127,7 +102,7 @@ do_tx_strdup_abort(PMEMobjpool *pop)
 {
 	TOID(char) str;
 	TX_BEGIN(pop) {
-		do_tx_strdup[counter](&str, TEST_STR_1, TYPE_ABORT);
+		TOID_ASSIGN(str, pmemobj_tx_strdup(TEST_STR_1, TYPE_ABORT));
 		ASSERT(!TOID_IS_NULL(str));
 		pmemobj_tx_abort(-1);
 	} TX_ONCOMMIT {
@@ -146,7 +121,7 @@ do_tx_strdup_null(PMEMobjpool *pop)
 {
 	TOID(char) str;
 	TX_BEGIN(pop) {
-		do_tx_strdup[counter](&str, NULL, TYPE_ABORT);
+		TOID_ASSIGN(str, pmemobj_tx_strdup(NULL, TYPE_ABORT));
 		ASSERT(0); /* should not get to this point */
 	} TX_ONCOMMIT {
 		ASSERT(0);
@@ -165,7 +140,8 @@ do_tx_strdup_free_commit(PMEMobjpool *pop)
 {
 	TOID(char) str;
 	TX_BEGIN(pop) {
-		do_tx_strdup[counter](&str, TEST_STR_1, TYPE_FREE_COMMIT);
+		TOID_ASSIGN(str, pmemobj_tx_strdup(TEST_STR_1,
+					TYPE_FREE_COMMIT));
 		ASSERT(!TOID_IS_NULL(str));
 		int ret = pmemobj_tx_free(str.oid);
 		ASSERTeq(ret, 0);
@@ -186,7 +162,8 @@ do_tx_strdup_free_abort(PMEMobjpool *pop)
 {
 	TOID(char) str;
 	TX_BEGIN(pop) {
-		do_tx_strdup[counter](&str, TEST_STR_1, TYPE_FREE_ABORT);
+		TOID_ASSIGN(str,
+			pmemobj_tx_strdup(TEST_STR_1, TYPE_FREE_ABORT));
 		ASSERT(!TOID_IS_NULL(str));
 		int ret = pmemobj_tx_free(str.oid);
 		ASSERTeq(ret, 0);
@@ -210,11 +187,12 @@ do_tx_strdup_commit_nested(PMEMobjpool *pop)
 	TOID(char) str2;
 
 	TX_BEGIN(pop) {
-		do_tx_strdup[counter](&str1, TEST_STR_1, TYPE_COMMIT_NESTED1);
+		TOID_ASSIGN(str1, pmemobj_tx_strdup(TEST_STR_1,
+				TYPE_COMMIT_NESTED1));
 		ASSERT(!TOID_IS_NULL(str1));
 		TX_BEGIN(pop) {
-			do_tx_strdup[counter](&str2, TEST_STR_2,
-						TYPE_COMMIT_NESTED2);
+			TOID_ASSIGN(str2, pmemobj_tx_strdup(TEST_STR_2,
+					TYPE_COMMIT_NESTED2));
 			ASSERT(!TOID_IS_NULL(str2));
 		} TX_ONABORT {
 			ASSERT(0);
@@ -243,11 +221,12 @@ do_tx_strdup_abort_nested(PMEMobjpool *pop)
 	TOID(char) str2;
 
 	TX_BEGIN(pop) {
-		do_tx_strdup[counter](&str1, TEST_STR_1, TYPE_ABORT_NESTED1);
+		TOID_ASSIGN(str1, pmemobj_tx_strdup(TEST_STR_1,
+				TYPE_ABORT_NESTED1));
 		ASSERT(!TOID_IS_NULL(str1));
 		TX_BEGIN(pop) {
-			do_tx_strdup[counter](&str2, TEST_STR_2,
-							TYPE_ABORT_NESTED2);
+			TOID_ASSIGN(str2, pmemobj_tx_strdup(TEST_STR_2,
+					TYPE_ABORT_NESTED2));
 			ASSERT(!TOID_IS_NULL(str2));
 			pmemobj_tx_abort(-1);
 		} TX_ONCOMMIT {
@@ -275,12 +254,12 @@ do_tx_strdup_abort_after_nested(PMEMobjpool *pop)
 	TOID(char) str2;
 
 	TX_BEGIN(pop) {
-		do_tx_strdup[counter](&str1, TEST_STR_1,
-						TYPE_ABORT_AFTER_NESTED1);
+		TOID_ASSIGN(str1, pmemobj_tx_strdup(TEST_STR_1,
+				TYPE_ABORT_AFTER_NESTED1));
 		ASSERT(!TOID_IS_NULL(str1));
 		TX_BEGIN(pop) {
-			do_tx_strdup[counter](&str2, TEST_STR_2,
-						TYPE_ABORT_AFTER_NESTED2);
+			TOID_ASSIGN(str2, pmemobj_tx_strdup(TEST_STR_2,
+					TYPE_ABORT_AFTER_NESTED2));
 			ASSERT(!TOID_IS_NULL(str2));
 		} TX_ONABORT {
 			ASSERT(0);
@@ -311,17 +290,16 @@ main(int argc, char *argv[])
 	    S_IWUSR | S_IRUSR)) == NULL)
 		FATAL("!pmemobj_create");
 
-	for (counter = 0; counter < MAX_FUNC; counter++) {
-		do_tx_strdup_no_tx(pop);
-		do_tx_strdup_commit(pop);
-		do_tx_strdup_abort(pop);
-		do_tx_strdup_null(pop);
-		do_tx_strdup_free_commit(pop);
-		do_tx_strdup_free_abort(pop);
-		do_tx_strdup_commit_nested(pop);
-		do_tx_strdup_abort_nested(pop);
-		do_tx_strdup_abort_after_nested(pop);
-	}
+	do_tx_strdup_no_tx(pop);
+	do_tx_strdup_commit(pop);
+	do_tx_strdup_abort(pop);
+	do_tx_strdup_null(pop);
+	do_tx_strdup_free_commit(pop);
+	do_tx_strdup_free_abort(pop);
+	do_tx_strdup_commit_nested(pop);
+	do_tx_strdup_abort_nested(pop);
+	do_tx_strdup_abort_after_nested(pop);
+
 	pmemobj_close(pop);
 
 	DONE(NULL);
