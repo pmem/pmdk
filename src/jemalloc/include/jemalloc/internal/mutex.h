@@ -80,6 +80,7 @@ void	malloc_rwlock_postfork_child(malloc_rwlock_t *rwlock);
 #ifndef JEMALLOC_ENABLE_INLINE
 void	malloc_mutex_lock(malloc_mutex_t *mutex);
 void	malloc_mutex_unlock(malloc_mutex_t *mutex);
+void	malloc_mutex_destroy(malloc_mutex_t *mutex);
 #if (!defined(_WIN32) && !defined(JEMALLOC_OSSPIN) && !defined(JEMALLOC_MUTEX_INIT_CB))
 bool	malloc_rwlock_init(malloc_rwlock_t *rwlock);
 #endif
@@ -118,6 +119,14 @@ malloc_mutex_unlock(malloc_mutex_t *mutex)
 		pthread_mutex_unlock(&mutex->lock);
 #endif
 	}
+}
+
+JEMALLOC_INLINE void
+malloc_mutex_destroy(malloc_mutex_t *mutex)
+{
+#if (!defined(_WIN32) && !defined(JEMALLOC_OSSPIN) && !defined(JEMALLOC_MUTEX_INIT_CB))
+	pthread_mutex_destroy(&mutex->lock);
+#endif
 }
 
 JEMALLOC_INLINE void

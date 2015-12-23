@@ -445,7 +445,6 @@ pool_new
 pool_destroy
 pools_lock
 pool_base_lock
-pool_boot
 pool_prefork
 pool_postfork_parent
 pool_postfork_child
