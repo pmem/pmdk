@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,25 +32,18 @@
 #
 
 #
-# src/test/pmem_isa_proc/TEST6 -- unit test for pmem isa /proc parsing
+# src/test/util_cpuid/TEST0 -- unit test for CPU features detection
 #
-export UNITTEST_NAME=pmem_isa_proc/TEST6
-export UNITTEST_NUM=6
+export UNITTEST_NAME=util_cpuid/TEST0
+export UNITTEST_NUM=0
 
 # standard unit test setup
 . ../unittest/unittest.sh
 
 require_fs_type none
-require_build_type debug
 
 setup
 
-export PFILE=cpuinfo_sse2
-expect_normal_exit ./pmem_isa_proc$EXESUFFIX
-set +e
-grep 'movnt.*supported' pmem$UNITTEST_NUM.log > grep$UNITTEST_NUM.log
-set -e
-
-check
+expect_normal_exit ./util_cpuid$EXESUFFIX
 
 pass

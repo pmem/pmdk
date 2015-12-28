@@ -140,6 +140,7 @@ OTHER_TESTS = \
        traces\
        traces_custom_function\
        traces_pmem\
+       util_cpuid\
        util_uuid_generate\
        util_file_create\
        util_file_open\
@@ -151,7 +152,6 @@ OTHER_TESTS = \
        util_poolset_foreach
 
 PMEM_TESTS = \
-       pmem_isa_proc\
        pmem_is_pmem\
        pmem_is_pmem_proc\
        pmem_map\

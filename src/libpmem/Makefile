@@ -35,7 +35,7 @@
 LIBRARY_NAME = pmem
 LIBRARY_SO_VERSION = 1
 LIBRARY_VERSION = 0.0
-SOURCE = libpmem.c pmem.c $(COMMON)/util.c $(COMMON)/out.c
+SOURCE = libpmem.c pmem.c $(COMMON)/util.c $(COMMON)/out.c $(COMMON)/cpu.c
 
 include ../Makefile.inc
 
