@@ -48,8 +48,6 @@
 
 struct memset_bench;
 
-typedef size_t (*offset_fn) (struct memset_bench *mb,
-					struct operation_info *info);
 typedef int (*operation_fn) (void *dest, int c, size_t len);
 
 /*
@@ -71,14 +69,13 @@ struct memset_args
  */
 struct memset_bench {
 	struct memset_args *pargs; /* benchmark specific arguments */
-	size_t *randoms;	/* random address offsets */
-	int n_randoms;		/* number of random elements */
+	uint64_t *offsets;	/* random/sequential address offsets */
+	int n_offsets;		/* number of random elements */
 	int const_b;		/* memset() value */
 	size_t fsize;		/* file size */
 	int fd;			/* file descriptor */
 	int flags;		/* flags for open() */
 	void *pmem_addr;	/* mapped file address */
-	offset_fn func_dest;	/* destination offset function */
 	operation_fn func_op;	/* operation function */
 };
 
@@ -175,53 +172,46 @@ parse_op_mode(const char *arg)
 }
 
 /*
- * mode_seq -- returns chunk index for sequential mode
+ * init_offsets -- initialize offsets[] array depending on the selected mode
  */
-static uint64_t
-mode_seq(struct memset_bench *mb, struct operation_info *info)
+static int
+init_offsets(struct benchmark_args *args, struct memset_bench *mb,
+	enum operation_mode op_mode)
 {
-	return info->worker->index * info->args->n_ops_per_thread
-		+ info->index;
-}
+	uint64_t n_threads = args->n_threads;
+	uint64_t n_ops = args->n_ops_per_thread;
 
-/*
- * mode_stat -- returns chunk index for static mode
- */
-static uint64_t
-mode_stat(struct memset_bench *mb, struct operation_info *info)
-{
-	return info->worker->index * mb->pargs->chunk_size;
-}
-
-/*
- * mode_rand -- returns chunk index for random mode
- */
-static uint64_t
-mode_rand(struct memset_bench *mb, struct operation_info *info)
-{
-	assert(info->index < mb->n_randoms);
-	return info->worker->index * info->args->n_ops_per_thread
-					+ mb->randoms[info->index];
-}
-
-/*
- * assign_mode_func -- returns offset function based on operation string
- */
-static offset_fn
-assign_mode_func(const char *option)
-{
-	enum operation_mode op_mode = parse_op_mode(option);
-
-	switch (op_mode) {
-		case OP_MODE_STAT:
-			return mode_stat;
-		case OP_MODE_SEQ:
-			return mode_seq;
-		case OP_MODE_RAND:
-			return mode_rand;
-		default:
-			return NULL;
+	mb->n_offsets = n_ops * n_threads;
+	mb->offsets = malloc(mb->n_offsets * sizeof (*mb->offsets));
+	if (!mb->offsets) {
+		perror("malloc");
+		return -1;
 	}
+
+	unsigned int seed = mb->pargs->seed;
+
+	for (uint64_t i = 0; i < n_threads; i++) {
+		for (uint64_t j = 0; j < n_ops; j++) {
+			uint64_t o;
+			switch (op_mode) {
+				case OP_MODE_STAT:
+					o = i;
+					break;
+				case OP_MODE_SEQ:
+					o = i * n_ops + j;
+					break;
+				case OP_MODE_RAND:
+					o = i * n_ops + rand_r(&seed) % n_ops;
+					break;
+				default:
+					assert(0);
+					return -1;
+			}
+			mb->offsets[i * n_ops + j] = o * mb->pargs->chunk_size;
+		}
+	}
+
+	return 0;
 }
 
 /*
@@ -304,8 +294,13 @@ memset_op(struct benchmark *bench, struct operation_info *info)
 {
 	struct memset_bench *mb =
 		(struct memset_bench *)pmembench_get_priv(bench);
-	uint64_t offset = mb->func_dest(mb, info);
-	void *dest = (char *)mb->pmem_addr + offset + mb->pargs->dest_off;
+
+	assert(info->index < mb->n_offsets);
+
+	uint64_t idx = info->worker->index * info->args->n_ops_per_thread
+						+ info->index;
+	void *dest = (char *)mb->pmem_addr + mb->offsets[idx]
+						+ mb->pargs->dest_off;
 	int c = mb->const_b;
 	size_t len = mb->pargs->chunk_size;
 
@@ -345,22 +340,15 @@ memset_init(struct benchmark *bench, struct benchmark_args *args)
 
 	size_t size = MAX_OFFSET + mb->pargs->chunk_size;
 	size_t large = size * args->n_ops_per_thread * args->n_threads;
-
 	size_t small = size * args->n_threads;
 
 	mb->fsize = (op_mode == OP_MODE_STAT) ? small : large;
 
-	mb->n_randoms = args->n_ops_per_thread * args->n_threads;
-	mb->randoms = malloc(mb->n_randoms * sizeof (*mb->randoms));
-	if (!mb->randoms) {
-		perror("malloc");
+	/* initialize offsets[] array depending on benchmark args */
+	if (init_offsets(args, mb, op_mode) < 0) {
 		ret = -1;
 		goto err_free_mb;
 	}
-
-	unsigned int seed = mb->pargs->seed;
-	for (int i = 0; i < mb->n_randoms; i++)
-		mb->randoms[i] = rand_r(&seed) % args->n_ops_per_thread;
 
 	mb->flags = O_CREAT | O_EXCL | O_RDWR;
 
@@ -369,7 +357,7 @@ memset_init(struct benchmark *bench, struct benchmark_args *args)
 	if (mb->fd == -1) {
 		perror(args->fname);
 		ret = -1;
-		goto err_free_randoms;
+		goto err_free_offsets;
 	}
 
 	/* allocate the pmem */
@@ -385,15 +373,6 @@ memset_init(struct benchmark *bench, struct benchmark_args *args)
 		perror("pmem_map");
 		ret = -1;
 		goto err_close_file;
-	}
-
-	/* set proper func_dest() depending on benchmark args */
-	mb->func_dest = assign_mode_func(mb->pargs->mode);
-	if (mb->func_dest == NULL) {
-		fprintf(stderr, "wrong mode parameter -- '%s'",
-				mb->pargs->mode);
-		ret = -1;
-		goto err_unmap;
 	}
 
 	if (mb->pargs->memset)
@@ -419,11 +398,11 @@ memset_init(struct benchmark *bench, struct benchmark_args *args)
 	return 0;
 
 err_unmap:
-	munmap(mb->pmem_addr, mb->fsize);
+	pmem_unmap(mb->pmem_addr, mb->fsize);
 err_close_file:
 	close(mb->fd);
-err_free_randoms:
-	free(mb->randoms);
+err_free_offsets:
+	free(mb->offsets);
 err_free_mb:
 	free(mb);
 
@@ -438,8 +417,8 @@ memset_exit(struct benchmark *bench, struct benchmark_args *args)
 {
 	struct memset_bench *mb =
 		(struct memset_bench *)pmembench_get_priv(bench);
-	munmap(mb->pmem_addr, mb->fsize);
-	free(mb->randoms);
+	pmem_unmap(mb->pmem_addr, mb->fsize);
+	free(mb->offsets);
 	free(mb);
 	return 0;
 }
