@@ -31,15 +31,13 @@
 #
 
 #
-# src/test/obj_first/Makefile -- build obj_first unit test
+# src/test/obj_first_next/Makefile -- build obj_first_next unit test
 #
 
-TARGET = obj_first
-OBJS = obj_first.o
+TARGET = obj_first_next
+OBJS = obj_first_next.o
 
 LIBPMEM=y
 LIBPMEMOBJ=y
 
 include ../Makefile.inc
-
-INCS += -I../../libpmemobj/ -I../../common/
