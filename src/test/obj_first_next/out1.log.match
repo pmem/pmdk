@@ -1,5 +1,5 @@
-obj_first/TEST0: START: obj_first
- ./obj_first$(nW) $(nW)testfile a:0:1 a:0:0 a:1:1 a:0:2 a:1:2 P:0 P:1 f:0 f:1 r:0:0 r:1:0 P:0 P:1 f:0 f:1 a:0:3 a:1:3 P:0 P:1 f:0 f:1
+obj_first_next/TEST1: START: obj_first_next
+ ./obj_first_next$(nW) $(nW)testfile a:0:1 a:0:0 a:1:1 a:0:2 a:1:2 P:0 P:1 f:0 f:1 r:0:0 r:1:0 P:0 P:1 f:0 f:1 a:0:3 a:1:3 P:0 P:1 f:0 f:1
 constructor(id = 1)
 constructor(id = 0)
 constructor(id = 1)
@@ -32,4 +32,4 @@ id = 2
 id = 3
 first id = 0
 first id = 2
-obj_first/TEST0: Done
+obj_first_next/TEST1: Done

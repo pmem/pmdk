@@ -1,11 +1,11 @@
 Linux NVM Library
 
-This is src/test/obj_first/README.
+This is src/test/obj_first_next/README.
 
-This directory contains a unit test for POBJ_FIRST.
+This directory contains a unit test for POBJ_NEXT and POBJ_FIRST macros.
 
 Syntax:
-$ obj_first <fname> <operation>..
+$ obj_first_next <fname> <operation>..
 
 Operations:
  - P:<type_num>        - print all objects from <list> in normal order
@@ -13,9 +13,11 @@ Operations:
                          and set <id> to id using constructor
  - r:<type_num>:<num>  - remove <num> object on internal list of objects with type
                          number equal to <type_num>
+ - n:<type_num>:<num>  - return id of <num> + 1 object on internal list of objects
+                         with type_number equal to <type_num>
  - f:<type_num>        - return id of first object on internal list of objects with
                          type_number equal to <type_num>
 
 <list>:
-- 1 - objects with type number equal to 0
-- 2 - objects with type number equal to 1
+- 0 - objects with type number equal to 0
+- 1 - objects with type number equal to 1

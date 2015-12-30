@@ -107,7 +107,7 @@ OBJ_TESTS = \
        obj_tx_realloc\
        obj_tx_strdup\
        obj_pool_lookup\
-       obj_first
+       obj_first_next
 
 OTHER_TESTS = \
        arch_flags\
