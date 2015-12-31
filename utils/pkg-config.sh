@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (c) 2014, Intel Corporation
+# Copyright (c) 2014-2015, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -34,7 +34,7 @@
 PACKAGE_NAME="nvml"
 
 # Name and email of package maintainer
-PACKAGE_MAINTAINER="Andy Rudoff <andy.rudoff@intel.com>"
+PACKAGE_MAINTAINER="Krzysztof Czurylo <krzysztof.czurylo@intel.com>"
 
 # Brief description of the package
 PACKAGE_SUMMARY="Non-Volatile Memory Library"
