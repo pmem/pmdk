@@ -45,8 +45,6 @@
 #define	VMEM_FORMAT_INCOMPAT 0x0000
 #define	VMEM_FORMAT_RO_COMPAT 0x0000
 
-extern unsigned long Pagesize;
-
 struct vmem {
 	struct pool_hdr hdr;	/* memory pool header */
 
