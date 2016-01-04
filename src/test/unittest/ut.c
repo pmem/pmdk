@@ -152,9 +152,9 @@ out(int flags, const char *fmt, ...)
  * prefix -- emit the trace line prefix
  */
 static void
-prefix(const char *file, int line, const char *func)
+prefix(const char *file, int line, const char *func, int flags)
 {
-	out(OF_NONL|OF_TRACE, "{%s:%d %s} ", file, line, func);
+	out(OF_NONL|OF_TRACE|flags, "{%s:%d %s} ", file, line, func);
 }
 
 /*
@@ -366,7 +366,7 @@ ut_start(const char *file, int line, const char *func,
 	setlinebuf(Tracefp);
 	setlinebuf(stdout);
 
-	prefix(file, line, func);
+	prefix(file, line, func, 0);
 	vout(OF_LOUD|OF_NAME, "START", fmt, ap);
 
 	out(OF_NONL, 0, "     args:");
@@ -403,7 +403,7 @@ ut_done(const char *file, int line, const char *func,
 
 	check_open_files();
 
-	prefix(file, line, func);
+	prefix(file, line, func, 0);
 	vout(OF_NAME, "Done", fmt, ap);
 
 	va_end(ap);
@@ -431,7 +431,7 @@ ut_fatal(const char *file, int line, const char *func,
 
 	va_start(ap, fmt);
 
-	prefix(file, line, func);
+	prefix(file, line, func, OF_ERR);
 	vout(OF_ERR|OF_NAME, "Error", fmt, ap);
 
 	va_end(ap);
@@ -451,7 +451,7 @@ ut_out(const char *file, int line, const char *func,
 
 	va_start(ap, fmt);
 
-	prefix(file, line, func);
+	prefix(file, line, func, 0);
 	vout(0, NULL, fmt, ap);
 
 	va_end(ap);
@@ -471,7 +471,7 @@ ut_err(const char *file, int line, const char *func,
 
 	va_start(ap, fmt);
 
-	prefix(file, line, func);
+	prefix(file, line, func, OF_ERR);
 	vout(OF_ERR|OF_NAME, NULL, fmt, ap);
 
 	va_end(ap);
