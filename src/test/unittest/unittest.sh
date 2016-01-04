@@ -139,6 +139,9 @@ export VMMALLOC_LOG_FILE=vmmalloc$UNITTEST_NUM.log
 
 export MEMCHECK_LOG_FILE=memcheck_${BUILD}_${UNITTEST_NUM}.log
 export VALIDATE_MEMCHECK_LOG=1
+if [ -z "$UT_DUMP_LINES" ]; then
+	UT_DUMP_LINES=30
+fi
 
 #
 # create_file -- create zeroed out files of a given length in megs
@@ -279,6 +282,20 @@ function create_poolset() {
 	done
 }
 
+function dump_last_n_lines() {
+	if [ -f $1 ]; then
+		ln=`wc -l < $1`
+		if [ $ln -gt $UT_DUMP_LINES ]; then
+			echo -e "Last $UT_DUMP_LINES lines of $1 below (whole file has $ln lines)." >&2
+			ln=$UT_DUMP_LINES
+		else
+			echo -e "$1 below." >&2
+		fi
+		paste -d " " <(yes $UNITTEST_NAME $1 | head -n $ln) <(tail -n $ln $1) >&2
+		echo >&2
+	fi
+}
+
 #
 # expect_normal_exit -- run a given command, expect it to exit 0
 #
@@ -330,6 +347,17 @@ function expect_normal_exit() {
 			echo "$MEMCHECK_LOG_FILE below." >&2
 			ln=`wc -l < $MEMCHECK_LOG_FILE`
 			paste -d " " <(yes $UNITTEST_NAME $MEMCHECK_LOG_FILE | head -n $ln) <(head -n $ln $MEMCHECK_LOG_FILE) >&2
+		fi
+
+		# ignore Ctrl-C
+		if [ $ret != 130 ]; then
+			dump_last_n_lines out$UNITTEST_NUM.log
+			dump_last_n_lines $PMEM_LOG_FILE
+			dump_last_n_lines $PMEMOBJ_LOG_FILE
+			dump_last_n_lines $PMEMLOG_LOG_FILE
+			dump_last_n_lines $PMEMBLK_LOG_FILE
+			dump_last_n_lines $VMEM_LOG_FILE
+			dump_last_n_lines $VMMALLOC_LOG_FILE
 		fi
 
 		false
