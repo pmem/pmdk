@@ -32,21 +32,14 @@
 #
 
 TOP = ../../../..
-vpath %.c $(TOP)/src/tools/pmempool
-vpath %.c $(TOP)/src/common
 
 TARGET = pmemwrite
 
-OBJS = common.o output.o util.o set.o write.o
+OBJS = write.o
 
 LIBPMEM=y
 LIBPMEMBLK=y
 LIBPMEMLOG=y
-
-CFLAGS += -I$(TOP)/src/tools/pmempool
-CFLAGS += -I$(TOP)/src/common
-CFLAGS += -I$(TOP)/src/libpmemlog
-CFLAGS += -I$(TOP)/src/libpmemblk
-CFLAGS += -I$(TOP)/src/libpmemobj
+TOOLS_COMMON=y
 
 include $(TOP)/src/tools/Makefile.inc

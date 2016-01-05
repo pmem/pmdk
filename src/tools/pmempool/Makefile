@@ -32,25 +32,25 @@
 #
 
 TOP = ../../..
-vpath %.c $(TOP)/src/common
-vpath %.c $(TOP)/src/libpmemblk
 
 TARGET = pmempool
 
-OBJS = pmempool.o info.o info_blk.o info_log.o info_obj.o create.o dump.o\
-       common.o output.o util.o check.o btt.o set.o rm.o
+OBJS = pmempool.o\
+       info.o info_blk.o info_log.o info_obj.o\
+       create.o dump.o check.o rm.o
 
 LIBPMEM=y
 LIBPMEMBLK=y
 LIBPMEMOBJ=y
 LIBPMEMLOG=y
+TOOLS_COMMON=y
+
+LIBPMEMBLK_PRIV=btt_init btt_write btt_fini
 
 INCS += -I$(TOP)/src/common
 INCS += -I$(TOP)/src/libpmemlog
 INCS += -I$(TOP)/src/libpmemblk
 INCS += -I$(TOP)/src/libpmemobj
-
-common.o: CFLAGS += -D__USE_UNIX98
 
 MANPAGES = $(TOP)/doc/pmempool.1\
            $(TOP)/doc/pmempool-info.1\

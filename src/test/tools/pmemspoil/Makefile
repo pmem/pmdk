@@ -32,23 +32,12 @@
 #
 
 TOP=../../../..
-vpath %.c $(TOP)/src/tools/pmempool
-vpath %.c $(TOP)/src/common
-CSTYLE = $(TOP)/utils/cstyle
 
 TARGET = pmemspoil
 
-OBJS = common.o output.o util.o set.o spoil.o
+OBJS = spoil.o
 
 LIBPMEM=y
-
-LDFLAGS += -L$(TOP)/src/nondebug/
-CFLAGS += -I$(TOP)/src/tools/pmempool
-CFLAGS += -I$(TOP)/src/common
-CFLAGS += -I$(TOP)/src/libpmemlog
-CFLAGS += -I$(TOP)/src/libpmemblk
-CFLAGS += -I$(TOP)/src/libpmemobj
-
-CLEAN_FILES = *.log
+TOOLS_COMMON=y
 
 include $(TOP)/src/tools/Makefile.inc
