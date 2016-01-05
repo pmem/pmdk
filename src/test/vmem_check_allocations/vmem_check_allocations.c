@@ -76,6 +76,9 @@ main(int argc, char *argv[])
 			vmp = vmem_create(dir, VMEM_MIN_POOL);
 			if (vmp == NULL)
 				FATAL("!vmem_create");
+
+			/* vmem_create should align pool to 4MB */
+			ASSERTeq(((uintptr_t)vmp) & ((4 << 20) - 1), 0);
 		}
 
 		memset(allocs, 0, sizeof (allocs));

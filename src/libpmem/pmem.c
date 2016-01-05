@@ -630,7 +630,7 @@ pmem_map(int fd)
 	}
 
 	void *addr;
-	if ((addr = util_map(fd, (size_t)stbuf.st_size, 0)) == NULL)
+	if ((addr = util_map(fd, (size_t)stbuf.st_size, 0, 0)) == NULL)
 		return NULL;    /* util_map() set errno, called LOG */
 
 	LOG(3, "returning %p", addr);

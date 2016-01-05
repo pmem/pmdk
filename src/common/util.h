@@ -54,11 +54,11 @@ void util_set_alloc_funcs(
 		void (*free_func)(void *ptr),
 		void *(*realloc_func)(void *ptr, size_t size),
 		char *(*strdup_func)(const char *s));
-void *util_map(int fd, size_t len, int cow);
+void *util_map(int fd, size_t len, int cow, size_t req_align);
 int util_unmap(void *addr, size_t len);
 
 int util_tmpfile(const char *dir, size_t size);
-void *util_map_tmpfile(const char *dir, size_t size);
+void *util_map_tmpfile(const char *dir, size_t size, size_t req_align);
 
 /*
  * Number of bits per type in alignment descriptor
@@ -204,7 +204,7 @@ int util_feature_check(struct pool_hdr *hdrp, uint32_t incompat,
 				uint32_t ro_compat, uint32_t compat);
 
 char *util_map_hint_unused(void *addr, size_t len, size_t align);
-char *util_map_hint(size_t len);
+char *util_map_hint(size_t len, size_t req_align);
 
 int util_poolset_parse(const char *path, int fd, struct pool_set **setp);
 void util_poolset_close(struct pool_set *set, int del);

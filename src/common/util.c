@@ -252,9 +252,9 @@ util_map_hint_unused(void *minaddr, size_t len, size_t align)
  * address.
  */
 char *
-util_map_hint(size_t len)
+util_map_hint(size_t len, size_t req_align)
 {
-	LOG(3, "len %zu", len);
+	LOG(3, "len %zu req_align %zu", len, req_align);
 
 	char *addr;
 
@@ -264,7 +264,9 @@ util_map_hint(size_t len)
 	 * twice as big as the page size.
 	 */
 	size_t align = Pagesize;
-	if (len >= 2 * GIGABYTE)
+	if (req_align)
+		align = req_align;
+	else if (len >= 2 * GIGABYTE)
 		align = GIGABYTE;
 	else if (len >= 4 * MEGABYTE)
 		align = 2 * MEGABYTE;
@@ -304,12 +306,12 @@ util_map_hint(size_t len)
  * If cow is set, the file is mapped copy-on-write.
  */
 void *
-util_map(int fd, size_t len, int cow)
+util_map(int fd, size_t len, int cow, size_t req_align)
 {
-	LOG(3, "fd %d len %zu cow %d", fd, len, cow);
+	LOG(3, "fd %d len %zu cow %d req_align %zu", fd, len, cow, req_align);
 
 	void *base;
-	void *addr = util_map_hint(len);
+	void *addr = util_map_hint(len, req_align);
 
 	if ((base = mmap(addr, len, PROT_READ|PROT_WRITE,
 			(cow) ? MAP_PRIVATE|MAP_NORESERVE : MAP_SHARED,
@@ -403,7 +405,7 @@ err:
  * size must be multiple of page size.
  */
 void *
-util_map_tmpfile(const char *dir, size_t size)
+util_map_tmpfile(const char *dir, size_t size, size_t req_align)
 {
 	int oerrno;
 	int fd = util_tmpfile(dir, size);
@@ -413,7 +415,7 @@ util_map_tmpfile(const char *dir, size_t size)
 	}
 
 	void *base;
-	if ((base = util_map(fd, size, 0)) == NULL) {
+	if ((base = util_map(fd, size, 0, req_align)) == NULL) {
 		LOG(2, "cannot mmap temporary file");
 		goto err;
 	}
