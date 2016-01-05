@@ -971,7 +971,7 @@ chunk_get_chunk_hdr_value(struct chunk_header hdr, uint16_t type,
 	uint32_t size_idx)
 {
 	uint64_t val;
-	ASSERT(sizeof (struct chunk_header) == sizeof (uint64_t));
+	COMPILE_ERROR_ON(sizeof (struct chunk_header) != sizeof (uint64_t));
 
 	hdr.type = type;
 	hdr.size_idx = size_idx;

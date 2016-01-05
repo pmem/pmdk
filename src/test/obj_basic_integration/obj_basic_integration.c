@@ -273,7 +273,7 @@ test_list_api(PMEMobjpool *pop)
 	int nodes_count = 0;
 
 	ASSERTeq(pmemobj_type_num(root.oid), POBJ_ROOT_TYPE_NUM);
-	ASSERTeq(TOID_TYPE_NUM_OF(root), POBJ_ROOT_TYPE_NUM);
+	UT_COMPILE_ERROR_ON(TOID_TYPE_NUM_OF(root) != POBJ_ROOT_TYPE_NUM);
 
 	TOID(struct dummy_node) first;
 	TOID(struct dummy_node) iter;

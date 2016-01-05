@@ -155,31 +155,72 @@ void ut_err(const char *file, int line, const char *func,
     ut_err(__FILE__, __LINE__, __func__, __VA_ARGS__)
 
 
+#define	UT_COMPILE_ERROR_ON(cond) ((void)sizeof (char[(cond) ? -1 : 1]))
+
 /*
  * assertions...
  */
 
-/* assert a condition is true */
-#define	ASSERT(cnd)\
+/* assert a condition is true at runtime */
+#define	ASSERT_rt(cnd)\
 	((void)((cnd) || (ut_fatal(__FILE__, __LINE__, __func__,\
 	"assertion failure: %s", #cnd), 0)))
 
-/* assertion with extra info printed if assertion fails */
-#define	ASSERTinfo(cnd, info) \
+/* assertion with extra info printed if assertion fails at runtime */
+#define	ASSERTinfo_rt(cnd, info) \
 	((void)((cnd) || (ut_fatal(__FILE__, __LINE__, __func__,\
 	"assertion failure: %s (%s = %s)", #cnd, #info, info), 0)))
 
-/* assert two integer values are equal */
-#define	ASSERTeq(lhs, rhs)\
+/* assert two integer values are equal at runtime */
+#define	ASSERTeq_rt(lhs, rhs)\
 	((void)(((lhs) == (rhs)) || (ut_fatal(__FILE__, __LINE__, __func__,\
 	"assertion failure: %s (0x%llx) == %s (0x%llx)", #lhs,\
 	(unsigned long long)(lhs), #rhs, (unsigned long long)(rhs)), 0)))
 
-/* assert two integer values are not equal */
-#define	ASSERTne(lhs, rhs)\
+/* assert two integer values are not equal at runtime */
+#define	ASSERTne_rt(lhs, rhs)\
 	((void)(((lhs) != (rhs)) || (ut_fatal(__FILE__, __LINE__, __func__,\
 	"assertion failure: %s (0x%llx) != %s (0x%llx)", #lhs,\
 	(unsigned long long)(lhs), #rhs, (unsigned long long)(rhs)), 0)))
+
+/* assert a condition is true */
+#define	ASSERT(cnd)\
+	do {\
+		/*\
+		 * Detect useless asserts on always true expression. Please use\
+		 * UT_COMPILE_ERROR_ON(!cnd) or ASSERT_rt(cnd) in such cases.\
+		 */\
+		if (__builtin_constant_p(cnd))\
+			UT_COMPILE_ERROR_ON(cnd);\
+		ASSERT_rt(cnd);\
+	} while (0)
+
+/* assertion with extra info printed if assertion fails */
+#define	ASSERTinfo(cnd, info) \
+	do {\
+		/* See comment in ASSERT. */\
+		if (__builtin_constant_p(cnd))\
+			UT_COMPILE_ERROR_ON(cnd);\
+		ASSERTinfo_rt(cnd, info);\
+	} while (0)
+
+/* assert two integer values are equal */
+#define	ASSERTeq(lhs, rhs)\
+	do {\
+		/* See comment in ASSERT. */\
+		if (__builtin_constant_p(lhs) && __builtin_constant_p(rhs))\
+			UT_COMPILE_ERROR_ON((lhs) == (rhs));\
+		ASSERTeq_rt(lhs, rhs);\
+	} while (0)
+
+/* assert two integer values are not equal */
+#define	ASSERTne(lhs, rhs)\
+	do {\
+		/* See comment in ASSERT. */\
+		if (__builtin_constant_p(lhs) && __builtin_constant_p(rhs))\
+			UT_COMPILE_ERROR_ON((lhs) != (rhs));\
+		ASSERTne_rt(lhs, rhs);\
+	} while (0)
 
 /* assert pointer is fits range of [start, start + size) */
 #define	ASSERTrange(ptr, start, size)\

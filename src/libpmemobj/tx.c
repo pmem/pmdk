@@ -1290,7 +1290,7 @@ pmemobj_tx_process()
 		tx.stage = TX_STAGE_NONE;
 		break;
 	case MAX_TX_STAGE:
-		ASSERT(1);
+		ASSERT(0);
 	}
 
 	return 0;

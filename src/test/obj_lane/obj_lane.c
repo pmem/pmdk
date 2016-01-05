@@ -249,9 +249,11 @@ test_lane_hold_release()
 static void
 test_lane_sizes(void)
 {
-	ASSERT(sizeof (struct lane_tx_layout) <= LANE_SECTION_LEN);
-	ASSERT(sizeof (struct allocator_lane_section) <= LANE_SECTION_LEN);
-	ASSERT(sizeof (struct lane_list_section) <= LANE_SECTION_LEN);
+	UT_COMPILE_ERROR_ON(sizeof (struct lane_tx_layout) > LANE_SECTION_LEN);
+	UT_COMPILE_ERROR_ON(sizeof (struct allocator_lane_section) >
+				LANE_SECTION_LEN);
+	UT_COMPILE_ERROR_ON(sizeof (struct lane_list_section) >
+				LANE_SECTION_LEN);
 }
 
 int
