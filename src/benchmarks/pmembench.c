@@ -379,11 +379,13 @@ pmembench_run_worker(struct benchmark *bench, struct worker_info *winfo)
 			if (bench->info->op_init(bench, &winfo->opinfo[i]))
 				return -1;
 		}
+
 		benchmark_time_get(&start);
 		if (bench->info->operation(bench, &winfo->opinfo[i]))
 			return -1;
 		benchmark_time_get(&stop);
 		benchmark_time_diff(&winfo->opinfo[i].t_diff, &start, &stop);
+
 		if (bench->info->op_exit) {
 			if (bench->info->op_exit(bench, &winfo->opinfo[i]))
 				return -1;
