@@ -36,6 +36,7 @@
 
 extern unsigned long Pagesize;
 
+
 /*
  * overridable names for malloc & friends used by this library
  */
@@ -111,19 +112,24 @@ struct arch_flags {
  * below are stored in little-endian byte order.
  */
 #define	POOL_HDR_SIG_LEN 8
-#define	POOL_HDR_UUID_LEN 16
+#define	POOL_HDR_UUID_LEN	16 /* uuid byte length */
+#define	POOL_HDR_UUID_STR_LEN	37 /* uuid string length */
+#define	POOL_HDR_UUID_GEN_FILE	"/proc/sys/kernel/random/uuid"
+
+typedef unsigned char uuid_t[POOL_HDR_UUID_LEN]; /* 16 byte binary uuid value */
+
 struct pool_hdr {
 	char signature[POOL_HDR_SIG_LEN];
 	uint32_t major;			/* format major version number */
 	uint32_t compat_features;	/* mask: compatible "may" features */
 	uint32_t incompat_features;	/* mask: "must support" features */
 	uint32_t ro_compat_features;	/* mask: force RO if unsupported */
-	unsigned char poolset_uuid[POOL_HDR_UUID_LEN]; /* pool set UUID */
-	unsigned char uuid[POOL_HDR_UUID_LEN]; /* UUID of this file */
-	unsigned char prev_part_uuid[POOL_HDR_UUID_LEN]; /* prev part */
-	unsigned char next_part_uuid[POOL_HDR_UUID_LEN]; /* next part */
-	unsigned char prev_repl_uuid[POOL_HDR_UUID_LEN]; /* prev replica */
-	unsigned char next_repl_uuid[POOL_HDR_UUID_LEN]; /* next replica */
+	uuid_t poolset_uuid; /* pool set UUID */
+	uuid_t uuid; /* UUID of this file */
+	uuid_t prev_part_uuid; /* prev part */
+	uuid_t next_part_uuid; /* next part */
+	uuid_t prev_repl_uuid; /* prev replica */
+	uuid_t next_repl_uuid; /* next replica */
 	uint64_t crtime;		/* when created (seconds since epoch) */
 	struct arch_flags arch_flags;	/* architecture identification flags */
 	unsigned char unused[3944];	/* must be zero */
@@ -173,7 +179,7 @@ struct pool_set_part {
 	void *addr;		/* base address of the mapping */
 	size_t size;		/* size of the mapping - page aligned */
 	int rdonly;
-	unsigned char uuid[POOL_HDR_UUID_LEN];
+	uuid_t uuid;
 };
 
 struct pool_replica {
@@ -185,11 +191,24 @@ struct pool_replica {
 
 struct pool_set {
 	unsigned nreplicas;
-	unsigned char uuid[POOL_HDR_UUID_LEN];
+	uuid_t uuid;
 	int rdonly;
 	int zeroed;		/* true if all the parts are new files */
 	size_t poolsize;	/* the smallest replica size */
 	struct pool_replica *replica[];
+};
+
+/*
+ * Structure for binary version of uuid. From RFC4122,
+ * https://tools.ietf.org/html/rfc4122
+ */
+struct uuid {
+	uint32_t time_low;
+	uint16_t time_mid;
+	uint16_t time_hi_and_ver;
+	uint8_t clock_seq_hi;
+	uint8_t	clock_seq_low;
+	uint8_t node[6];
 };
 
 void util_init(void);
@@ -214,6 +233,10 @@ void util_poolset_fdclose(struct pool_set *set);
 
 int util_file_create(const char *path, size_t size, size_t minsize);
 int util_file_open(const char *path, size_t *size, size_t minsize, int flags);
+int util_uuid_to_string(uuid_t u, char *buf);
+int util_uuid_from_string(const char uuid[POOL_HDR_UUID_STR_LEN],
+	struct uuid *ud);
+int util_uuid_generate(uuid_t uuid);
 
 int util_pool_create(struct pool_set **setp, const char *path, size_t poolsize,
 	size_t minsize, size_t hdrsize, const char *sig,
@@ -223,6 +246,7 @@ int util_pool_open_nocheck(struct pool_set **setp, const char *path, int rdonly,
 int util_pool_open(struct pool_set **setp, const char *path, int rdonly,
 	size_t minsize, size_t hdrsize, const char *sig,
 	uint32_t major, uint32_t compat, uint32_t incompat, uint32_t ro_compat);
+
 
 #define	COMPILE_ERROR_ON(cond) ((void)sizeof (char[(cond) ? -1 : 1]))
 

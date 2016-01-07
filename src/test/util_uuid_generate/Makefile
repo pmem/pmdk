@@ -1,4 +1,5 @@
-# Copyright (c) 2014-2016, Intel Corporation
+#
+# Copyright (c) 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -27,17 +28,21 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-#
-# src/libpmemblk/Makefile -- Makefile for libpmemblk
 #
 
-LIBRARY_NAME = pmemblk
-LIBRARY_SO_VERSION = 1
-LIBRARY_VERSION = 0.0
-SOURCE = libpmemblk.c blk.c btt.c $(COMMON)/util.c $(COMMON)/set.c\
-	$(COMMON)/out.c
+#
+# src/test/util_uuid_generate/Makefile -- create a uuid and verify it
+#
+vpath %.c ../../common
+vpath %.h ../../common
+TARGET = util_uuid_generate
+OBJS = util_uuid_generate.o util.o set.o out.o
 
+out.o: CFLAGS += -DDEBUG -DSRCVERSION=\"utversion\"
+util.o: CFLAGS += -DDEBUG
+set.o: CFLAGS += -DDEBUG
+
+LIBPMEM=y
 include ../Makefile.inc
 
-LIBS += -pthread -lpmem
+INCS += -I../../common

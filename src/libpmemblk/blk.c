@@ -42,7 +42,6 @@
 #include <errno.h>
 #include <time.h>
 #include <stdint.h>
-#include <uuid/uuid.h>
 #include <pthread.h>
 
 #include "libpmem.h"

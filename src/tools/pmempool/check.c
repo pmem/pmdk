@@ -759,7 +759,12 @@ pmempool_check_uuids_single(struct pmempool_check *pcp, struct pool_hdr *hdrp)
 				return CHECK_RESULT_CANNOT_REPAIR;
 			}
 
-			uuid_generate(hdrp->uuid);
+			int ret = util_uuid_generate(hdrp->uuid);
+			if (ret < 0) {
+				outv(1, "uuid generation failed\n");
+				return CHECK_RESULT_CANNOT_REPAIR;
+			}
+
 			outv(1, "setting UUIDs to: %s\n",
 				out_get_uuid_str(hdrp->uuid));
 			pmempool_check_set_all_uuids(&hdrp->uuid, 5, 0);
