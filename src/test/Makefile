@@ -127,6 +127,7 @@ OTHER_TESTS = \
        traces\
        traces_custom_function\
        traces_pmem\
+       util_uuid_generate\
        util_file_create\
        util_file_open\
        util_map_proc\

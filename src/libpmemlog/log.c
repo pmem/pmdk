@@ -43,7 +43,6 @@
 #include <time.h>
 #include <stdint.h>
 #include <pthread.h>
-#include <uuid/uuid.h>
 #include <endian.h>
 
 #include "libpmem.h"

@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright (c) 2014-2015, Intel Corporation
+# Copyright (c) 2014-2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -132,7 +132,6 @@ BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildRequires:	gcc glibc-devel
 BuildRequires:	autoconf, automake, make
-BuildRequires:	libuuid-devel
 BuildArch:	x86_64
 
 %description
@@ -304,7 +303,6 @@ Development files for NVML libvmmalloc library
 %package tools
 Group:		%{package_group}
 Summary:	Tools for %{name}
-Requires:	libuuid-devel
 
 %description tools
 Usefull applications for administration and diagnostic purposes.
