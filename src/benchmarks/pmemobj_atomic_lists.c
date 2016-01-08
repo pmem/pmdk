@@ -295,7 +295,7 @@ enum type_mode {
 static struct element
 position_head(struct obj_worker *obj_worker, unsigned op_idx)
 {
-	struct element head;
+	struct element head = {0};
 	head.before = true;
 	if (!obj_bench.args->queue)
 		head.itemp = POBJ_LIST_FIRST(&obj_worker->head);
@@ -310,7 +310,7 @@ position_head(struct obj_worker *obj_worker, unsigned op_idx)
 static struct element
 position_tail(struct obj_worker *obj_worker, unsigned op_idx)
 {
-	struct element tail;
+	struct element tail = {0};
 	tail.before = false;
 	if (!obj_bench.args->queue)
 		tail.itemp = POBJ_LIST_LAST(&obj_worker->head, field);
@@ -366,7 +366,7 @@ obj_get_item(struct obj_worker *obj_worker, unsigned idx)
 static struct element
 position_rand(struct obj_worker *obj_worker, unsigned op_idx)
 {
-	struct element elm;
+	struct element elm = {0};
 	elm.before = true;
 	if (!obj_bench.args->queue)
 		elm.itemp = obj_get_item(obj_worker,
