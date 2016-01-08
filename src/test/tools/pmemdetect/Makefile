@@ -1,5 +1,4 @@
-#
-# Copyright (c) 2015-2016, Intel Corporation
+# Copyright (c) 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -29,28 +28,16 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
-#
-# src/test/tools/Makefile -- build unit test helpers
+# Makefile -- Makefile for pmemdetect tool
 #
 
-DIRS = \
-       pmemspoil\
-       pmemwrite\
-       pmemalloc\
-       pmemobjcli\
-       pmemdetect
+TOP = ../../../..
 
-all     : TARGET = all
-clean   : TARGET = clean
-clobber : TARGET = clobber
-cstyle  : TARGET = cstyle
+TARGET = pmemdetect
 
-all cstyle clean clobber: $(DIRS)
+OBJS = pmemdetect.o
 
-$(DIRS):
-	$(MAKE) -C $@ $(TARGET)
+LIBPMEM=y
+TOOLS_COMMON=y
 
-test check pcheck:
-
-.PHONY: all clean clobber cstyle check pcheck $(DIRS)
+include $(TOP)/src/tools/Makefile.inc
