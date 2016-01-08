@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Intel Corporation
+ * Copyright (c) 2015-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -68,40 +68,21 @@ lane_get_layout(PMEMobjpool *pop, uint64_t lane_idx)
  * lane_init -- (internal) initializes a single lane runtime variables
  */
 static int
-lane_init(PMEMobjpool *pop, struct lane *lane, struct lane_layout *layout)
+lane_init(PMEMobjpool *pop, struct lane *lane, struct lane_layout *layout,
+		pthread_mutex_t *mtx, pthread_mutexattr_t *attr)
 {
 	ASSERTne(lane, NULL);
+	ASSERTne(mtx, NULL);
+	ASSERTne(attr, NULL);
 
-	int err = 0;
+	int err;
 
-	lane->lock = Malloc(sizeof (*lane->lock));
-	if (lane->lock == NULL) {
-		err = ENOMEM;
-		ERR("!Malloc for lane lock");
-		goto error_lock_malloc;
-	}
-
-	pthread_mutexattr_t lock_attr;
-	if ((err = pthread_mutexattr_init(&lock_attr)) != 0) {
-		ERR("!pthread_mutexattr_init");
-		goto error_lock_attr_init;
-	}
-
-	if ((err = pthread_mutexattr_settype(
-		&lock_attr, PTHREAD_MUTEX_RECURSIVE)) != 0) {
-		ERR("!pthread_mutexattr_settype");
-		goto error_lock_attr_set;
-	}
-
-	if ((err = pthread_mutex_init(lane->lock, &lock_attr)) != 0) {
+	if ((err = pthread_mutex_init(mtx, attr)) != 0) {
 		ERR("!pthread_mutex_init");
-		goto error_lock_init;
+		return err;
 	}
 
-	if ((err = pthread_mutexattr_destroy(&lock_attr)) != 0) {
-		ERR("!pthread_mutexattr_destroy");
-		goto error_lock_attr_destroy;
-	}
+	lane->lock = mtx;
 
 	int i;
 	for (i = 0; i < MAX_LANE_SECTION; ++i) {
@@ -117,19 +98,14 @@ lane_init(PMEMobjpool *pop, struct lane *lane, struct lane_layout *layout)
 	return 0;
 
 error_section_construct:
-	for (i = i - 1; i >= 0; --i)
+	for (i = i - 1; i >= 0; --i) {
 		if (Section_ops[i]->destruct(pop, &lane->sections[i]) != 0)
 			ERR("!lane_destruct_ops %d", i);
-error_lock_attr_destroy:
+	}
+
 	if (pthread_mutex_destroy(lane->lock) != 0)
 		ERR("!pthread_mutex_destroy");
-error_lock_init:
-error_lock_attr_set:
-	if (pthread_mutexattr_destroy(&lock_attr) != 0)
-		ERR("!pthread_mutexattr_destroy");
-error_lock_attr_init:
-	Free(lane->lock);
-error_lock_malloc:
+
 	return err;
 }
 
@@ -139,7 +115,7 @@ error_lock_malloc:
 static int
 lane_destroy(PMEMobjpool *pop, struct lane *lane)
 {
-	int err = 0;
+	int err;
 
 	for (int i = 0; i < MAX_LANE_SECTION; ++i) {
 		err = Section_ops[i]->destruct(pop, &lane->sections[i]);
@@ -149,8 +125,6 @@ lane_destroy(PMEMobjpool *pop, struct lane *lane)
 
 	if ((err = pthread_mutex_destroy(lane->lock)) != 0)
 		ERR("!pthread_mutex_destroy");
-
-	Free(lane->lock);
 
 	return err;
 }
@@ -163,27 +137,52 @@ lane_boot(PMEMobjpool *pop)
 {
 	ASSERTeq(pop->lanes, NULL);
 
-	int err = 0;
+	int err;
+
+	pthread_mutexattr_t lock_attr;
+	if ((err = pthread_mutexattr_init(&lock_attr)) != 0) {
+		ERR("!pthread_mutexattr_init");
+		goto error_lanes_malloc;
+	}
+
+	if ((err = pthread_mutexattr_settype(
+			&lock_attr, PTHREAD_MUTEX_RECURSIVE)) != 0) {
+		ERR("!pthread_mutexattr_settype");
+		goto error_lanes_malloc;
+	}
 
 	pop->lanes = Malloc(sizeof (struct lane) * pop->nlanes);
-
 	if (pop->lanes == NULL) {
-		ERR("!Malloc of volatile lanes");
 		err = ENOMEM;
+		ERR("!Malloc of volatile lanes");
 		goto error_lanes_malloc;
+	}
+
+	pop->lane_locks = Malloc(sizeof (pthread_mutex_t) * pop->nlanes);
+	if (pop->lane_locks == NULL) {
+		err = ENOMEM;
+		ERR("!Malloc for lane locks");
+		goto error_lock_malloc;
 	}
 
 	/* add lanes to pmemcheck ignored list */
 	VALGRIND_ADD_TO_GLOBAL_TX_IGNORE((char *)pop + pop->lanes_offset,
 		(sizeof (struct lane_layout) * pop->nlanes));
+
 	uint64_t i;
 	for (i = 0; i < pop->nlanes; ++i) {
 		struct lane_layout *layout = lane_get_layout(pop, i);
 
-		if ((err = lane_init(pop, &pop->lanes[i], layout)) != 0) {
+		if ((err = lane_init(pop, &pop->lanes[i], layout,
+				&pop->lane_locks[i], &lock_attr)) != 0) {
 			ERR("!lane_init");
 			goto error_lane_init;
 		}
+	}
+
+	if (pthread_mutexattr_destroy(&lock_attr) != 0) {
+		ERR("!pthread_mutexattr_destroy");
+		goto error_mutexattr_destroy;
 	}
 
 	return 0;
@@ -192,10 +191,19 @@ error_lane_init:
 	for (; i >= 1; --i)
 		if (lane_destroy(pop, &pop->lanes[i - 1]) != 0)
 			ERR("!lane_destroy");
+
+	Free(pop->lane_locks);
+	pop->lane_locks = NULL;
+
+error_lock_malloc:
 	Free(pop->lanes);
 	pop->lanes = NULL;
 
 error_lanes_malloc:
+	if (pthread_mutexattr_destroy(&lock_attr) != 0)
+		ERR("!pthread_mutexattr_destroy");
+
+error_mutexattr_destroy:
 	return err;
 }
 
@@ -212,6 +220,9 @@ lane_cleanup(PMEMobjpool *pop)
 	for (uint64_t i = 0; i < pop->nlanes; ++i)
 		if ((err = lane_destroy(pop, &pop->lanes[i])) != 0)
 			ERR("!lane_destroy");
+
+	Free(pop->lane_locks);
+	pop->lane_locks = NULL;
 
 	Free(pop->lanes);
 	pop->lanes = NULL;
@@ -290,7 +301,7 @@ lane_hold(PMEMobjpool *pop, struct lane_section **section,
 	ASSERTne(section, NULL);
 	ASSERTne(pop->lanes, NULL);
 
-	int err = 0;
+	int err;
 
 	if (Lane_idx == UINT32_MAX) {
 		do {
@@ -317,7 +328,7 @@ lane_release(PMEMobjpool *pop)
 	ASSERT(Lane_idx != UINT32_MAX);
 	ASSERTne(pop->lanes, NULL);
 
-	int err = 0;
+	int err;
 
 	struct lane *lane = &pop->lanes[Lane_idx % pop->nlanes];
 
