@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -29,28 +29,24 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+TOP := $(dir $(lastword $(MAKEFILE_LIST)))../../../../
+include $(TOP)/src/common.inc
 
-#
-# examples/libpmemobj/Makefile -- build the libpmemobj examples
-#
-include ../../common.inc
-
-PROGS = manpage btree pi
-DIRS = pminvaders pmemlog pmemblk string_store string_store_tx\
-	string_store_tx_type hashmap tree_map pmemobjfs map libart array
-
-ifeq ($(call check_cxx_flags, -std=c++11), y)
-DIRS += cpp pman
+NCURSES := $(call check_package, ncurses)
+ifeq ($(NCURSES),y)
+PROGS = pman
+else
+$(info NOTE: Skipping pman because ncurses is missing \
+-- see src/examples/libpmemobj/pman/README for details.)
 endif
 
-LIBS = -lpmemobj -lpmem -pthread -lm -pthread
+LIBS = -lpmemobj -lpmem -pthread
 
-include ../Makefile.inc
+ifeq ($(NCURSES),y)
+LIBS += $(shell $(PKG_CONFIG) --libs ncurses)
+endif
 
-map: hashmap tree_map
-pmemobjfs: map
+COMPILE_LANG = cpp
+include ../../Makefile.inc
 
-manpage: manpage.o
-btree: btree.o
-pi: pi.o
-queue: queue.o
+pman: pman.o
