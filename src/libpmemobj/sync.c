@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Intel Corporation
+ * Copyright (c) 2015-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -69,39 +69,55 @@ get_lock((pop)->run_id,\
 	sizeof ((condp)->pmemcond.cond))
 
 /*
- * get_lock -- (internal) atomically initialize and return a lock
+ * _get_lock -- (internal) atomically initialize and return a lock
  */
 static void *
-get_lock(uint64_t pop_runid, volatile uint64_t *runid, void *lock,
+_get_lock(uint64_t pop_runid, volatile uint64_t *runid, void *lock,
 	int (*init_lock)(void *lock, void *arg), size_t size)
 {
 	LOG(15, "pop_runid %ju runid %ju lock %p init_lock %p", pop_runid,
 		*runid, lock, init_lock);
 
 	uint64_t tmp_runid;
+
+	VALGRIND_REMOVE_PMEM_MAPPING(runid, sizeof (*runid));
+	VALGRIND_REMOVE_PMEM_MAPPING(lock, size);
+
 	while ((tmp_runid = *runid) != pop_runid) {
-		if ((tmp_runid != (pop_runid - 1))) {
-			VALGRIND_REMOVE_PMEM_MAPPING(runid, sizeof (*runid));
-			VALGRIND_REMOVE_PMEM_MAPPING(lock, size);
+		if (tmp_runid == pop_runid - 1)
+			continue;
 
-			if (__sync_bool_compare_and_swap(runid,
-					tmp_runid, (pop_runid - 1))) {
-				if (init_lock(lock, NULL)) {
-					ERR("error initializing lock");
-					__sync_fetch_and_and(runid, 0);
-					return NULL;
-				}
+		if (!__sync_bool_compare_and_swap(runid, tmp_runid,
+				pop_runid - 1))
+			continue;
 
-				if (__sync_bool_compare_and_swap(
-						runid, (pop_runid - 1),
-						pop_runid) == 0) {
-					ERR("error setting lock runid");
-					return NULL;
-				}
-			}
+		if (init_lock(lock, NULL)) {
+			ERR("error initializing lock");
+			__sync_fetch_and_and(runid, 0);
+			return NULL;
+		}
+
+		if (__sync_bool_compare_and_swap(runid, pop_runid - 1,
+				pop_runid) == 0) {
+			ERR("error setting lock runid");
+			return NULL;
 		}
 	}
+
 	return lock;
+}
+
+/*
+ * get_lock -- (internal) atomically initialize and return a lock
+ */
+static inline void *
+get_lock(uint64_t pop_runid, volatile uint64_t *runid, void *lock,
+	int (*init_lock)(void *lock, void *arg), size_t size)
+{
+	if (likely(*runid == pop_runid))
+		return lock;
+
+	return _get_lock(pop_runid, runid, lock, init_lock, size);
 }
 
 /*

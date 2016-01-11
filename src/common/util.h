@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2015, Intel Corporation
+ * Copyright (c) 2014-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -233,3 +233,13 @@ static inline void util_setbit(uint8_t *b, uint32_t i)
 }
 #define	util_isset(a, i) isset(a, i)
 #define	util_isclr(a, i) isclr(a, i)
+
+#if !defined(likely)
+#if defined(__GNUC__)
+#define	likely(x) __builtin_expect(!!(x), 1)
+#define	unlikely(x) __builtin_expect(!!(x), 0)
+#else
+#define	likely(x) (!!(x))
+#define	unlikely(x) (!!(x))
+#endif
+#endif
