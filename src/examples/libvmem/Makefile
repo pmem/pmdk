@@ -34,6 +34,7 @@
 # examples/libvmem/Makefile -- build the libvmem examples
 #
 PROGS = manpage
+DIRS = libart
 
 LIBS = -lvmem -pthread
 
