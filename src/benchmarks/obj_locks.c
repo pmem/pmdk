@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Intel Corporation
+ * Copyright (c) 2015-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -161,7 +161,7 @@ struct mutex_bench {
 #define	GET_VOLATILE_MUTEX(pop, mutexp)\
 get_lock((pop)->run_id,\
 	&(mutexp)->volatile_pmemmutex.runid,\
-	&(mutexp)->volatile_pmemmutex.mutexp,\
+	(mutexp)->volatile_pmemmutex.mutexp,\
 	(void *)volatile_mutex_init,\
 	sizeof ((mutexp)->volatile_pmemmutex.mutexp))
 
@@ -170,14 +170,14 @@ get_lock((pop)->run_id,\
  */
 static void *
 get_lock(uint64_t pop_runid, volatile uint64_t *runid, void *lock,
-	int (*init_lock)(void *lock, void *arg), size_t size)
+	int (*init_lock)(void **lock, void *arg), size_t size)
 {
 	uint64_t tmp_runid;
 	while ((tmp_runid = *runid) != pop_runid) {
 		if ((tmp_runid != (pop_runid - 1))) {
 			if (__sync_bool_compare_and_swap(runid,
 					tmp_runid, (pop_runid - 1))) {
-				if (init_lock(lock, NULL)) {
+				if (init_lock(&lock, NULL)) {
 					__sync_fetch_and_and(runid, 0);
 					return NULL;
 				}
