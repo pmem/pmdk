@@ -1,6 +1,6 @@
 @echo off
 
-rem  Copyright (c) 2015, Intel Corporation
+rem  Copyright (c) 2015-2016, Intel Corporation
 rem
 rem  Redistribution and use in source and binary forms, with or without
 rem  modification, are permitted provided that the following conditions
@@ -33,6 +33,20 @@ rem  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 set TEST_DIR=..\x64\Static-Debug
 set POOL_FILE=.\testfile
+
+
+echo ===========     LIBPMEMLOG    =============
+
+del /F /Q %POOL_FILE%
+fsutil file createnew %POOL_FILE% 2097152
+%TEST_DIR%\log_basic %POOL_FILE% a n t w r t w v n t w r t w
+echo ===========================================
+
+del /F /Q %POOL_FILE%
+fsutil file createnew %POOL_FILE% 2097152
+%TEST_DIR%\log_pool c %POOL_FILE% 0 0640
+echo ===========================================
+
 
 echo ===========     LIBPMEMBLK    =============
 
