@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright (c) 2015, Intel Corporation
+# Copyright (c) 2015-2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -45,7 +45,7 @@ unset PMEM_LOG_FILE
 unset PMEMOBJ_LOG_LEVEL
 unset PMEMOBJ_LOG_FILE
 
-require_fs_type local
+require_fs_type any
 require_build_type debug nondebug
 require_valgrind_dev_3_10
 
