@@ -40,7 +40,7 @@ export UNITTEST_NUM=0
 # standard unit test setup
 . ../unittest/unittest.sh
 
-require_fs_type local
+require_fs_type any
 require_unlimited_vm
 
 # this test creates huge files
