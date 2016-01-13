@@ -33,8 +33,8 @@
 
 #include <sys/mman.h>
 
-#include "util.h"
-#include "out.h"
+//#include "util.h"
+//#include "out.h"
 
 
 /*
@@ -59,7 +59,7 @@ HANDLE FileMappingListMutex = NULL;
 void
 mmap_init(void)
 {
-	LOG(3, NULL);
+	//LOG(3, NULL);
 
 	InitializeListHead(&FileMappingListHead);
 
@@ -70,7 +70,7 @@ mmap_init(void)
 void
 mmap_fini(void)
 {
-	LOG(3, NULL);
+	//LOG(3, NULL);
 
 	if (FileMappingListMutex == NULL)
 		return;
@@ -98,7 +98,7 @@ mmap_fini(void)
 		if (mappingTracker->FileMappingHandle != NULL)
 			CloseHandle(mappingTracker->FileMappingHandle);
 
-		Free(mappingTracker);
+		free(mappingTracker);
 	}
 }
 
@@ -108,8 +108,8 @@ mmap_fini(void)
 void *
 mmap(void *addr, size_t len, int prot, int flags, int fd, size_t offset)
 {
-	LOG(3, "addr %p len %zu prot %d flags %d fd %d offset %ju",
-		addr, len, prot, flags, fd, offset);
+	//LOG(3, "addr %p len %zu prot %d flags %d fd %d offset %ju",
+	//	addr, len, prot, flags, fd, offset);
 
 	DWORD protect = 0;
 	if ((prot & PROT_READ) && (prot & PROT_WRITE)) {
@@ -131,7 +131,7 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, size_t offset)
 			protect = PAGE_READONLY;
 	} else {
 		/* XXX - PAGE_NOACCESS  */
-		ERR("file mapping with NOACCESS is not supported");
+		//ERR("file mapping with NOACCESS is not supported");
 		return MAP_FAILED;
 	}
 
@@ -147,7 +147,7 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, size_t offset)
 					NULL);
 
 	if (fileMapping == NULL) {
-		ERR("!CreateFileMapping %zu bytes", len);
+		//ERR("!CreateFileMapping %zu bytes", len);
 		return MAP_FAILED;
 	}
 
@@ -165,7 +165,7 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, size_t offset)
 
 	if (base == NULL) {
 		CloseHandle(fileMapping);
-		ERR("!MapViewOfFile %zu bytes", len);
+		//ERR("!MapViewOfFile %zu bytes", len);
 		return MAP_FAILED;
 	}
 
@@ -176,11 +176,11 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, size_t offset)
 	 */
 
 	PFILE_MAPPING_TRACKER mappingTracker =
-			Malloc(sizeof (FILE_MAPPING_TRACKER));
+			malloc(sizeof (FILE_MAPPING_TRACKER));
 
 	if (mappingTracker == NULL) {
 		CloseHandle(fileMapping);
-		ERR("!Malloc");
+		//ERR("!Malloc");
 		return MAP_FAILED;
 	}
 
@@ -193,7 +193,7 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, size_t offset)
 	InsertHeadList(&FileMappingListHead, &mappingTracker->ListEntry);
 	ReleaseMutex(FileMappingListMutex);
 
-	LOG(3, "mapped at %p", base);
+	//LOG(3, "mapped at %p", base);
 
 	return base;
 }
@@ -204,7 +204,7 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, size_t offset)
 int
 munmap(void *addr, size_t len)
 {
-	LOG(3, "addr %p len %zu", addr, len);
+	//LOG(3, "addr %p len %zu", addr, len);
 
 	PLIST_ENTRY listEntry;
 	int retval = -1;
@@ -230,13 +230,14 @@ munmap(void *addr, size_t len)
 			haveMutex = FALSE;
 
 			if (UnmapViewOfFile(mappingTracker->BaseAddress) == 0)
-				ERR("!UnmapViewOfFile %p",
-					mappingTracker->BaseAddress);
+				//ERR("!UnmapViewOfFile %p",
+				//	mappingTracker->BaseAddress);
+				;
 			else
 				retval = 0;
 
 			CloseHandle(mappingTracker->FileMappingHandle);
-			Free(mappingTracker);
+			free(mappingTracker);
 
 			break;
 		}
@@ -259,10 +260,10 @@ munmap(void *addr, size_t len)
 int
 msync(void *addr, size_t len, int flags)
 {
-	LOG(3, "addr %p len %zu flags %d", addr, len, flags);
+	//LOG(3, "addr %p len %zu flags %d", addr, len, flags);
 
 	if (FlushViewOfFile(addr, len) == 0) {
-		ERR("!FlushViewOfFile: addr %p len %zu", addr, len);
+		//ERR("!FlushViewOfFile: addr %p len %zu", addr, len);
 		return -1;
 	}
 
@@ -284,8 +285,9 @@ msync(void *addr, size_t len, int flags)
 
 			if (FlushFileBuffers(
 					mappingTracker->FileHandle) == 0)
-				ERR("!FlushFileBuffers %d",
-					mappingTracker->FileHandle); /* XXX */
+				//ERR("!FlushFileBuffers %d",
+				//	mappingTracker->FileHandle); /* XXX */
+				;
 			else
 				retval = 0;
 
@@ -307,7 +309,7 @@ msync(void *addr, size_t len, int flags)
 int
 mprotect(void *addr, size_t len, int prot)
 {
-	LOG(3, "addr %p len %zu prot %d", addr, len, prot);
+	//LOG(3, "addr %p len %zu prot %d", addr, len, prot);
 
 	DWORD protect = 0;
 	if ((prot & PROT_READ) && (prot & PROT_WRITE)) {
@@ -324,8 +326,8 @@ mprotect(void *addr, size_t len, int prot)
 
 	DWORD oldprot;
 	if (VirtualProtect(addr, len, protect, &oldprot) == 0) {
-		ERR("!VirtualProtect: addr %p len %zu, prot %d",
-			addr, len, prot);
+		//ERR("!VirtualProtect: addr %p len %zu, prot %d",
+		//	addr, len, prot);
 		return -1;
 	}
 
