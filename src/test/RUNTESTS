@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (c) 2014-2015, Intel Corporation
+# Copyright (c) 2014-2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -46,7 +46,7 @@ Usage: $0 [ -nv ] [ -b build-type ] [ -t test-type ] [ -f fs-type ]
 	    [ -o timeout ] [-s test-file ] [ -m memcheck ] [tests...]
     build-types: debug, nondebug, static-debug, static-nondebug, all (default)
      test-types: check (default), short, long
-       fs-types: local, pmem, non-pmem, all (default)
+       fs-types: local, pmem, non-pmem, none, all (default)
         timeout: floating point number with an optional suffix: 's' for seconds
 		 (the default), 'm' for minutes, 'h' for hours or 'd' for days.
 		 Default value is 3 minutes.
@@ -78,7 +78,7 @@ runtest() {
 	# make list of fs-types and build-types to test
 	#
 	fss=$fstype
-	[ "$fss" = all ] && fss="local pmem non-pmem"
+	[ "$fss" = all ] && fss="none local pmem non-pmem"
 	builds=$buildtype
 	[ "$builds" = all ] && builds="debug nondebug static-debug static-nondebug"
 	runscripts=$testfile
@@ -211,7 +211,7 @@ do
 		shift 2
 		case "$fstype"
 		in
-		local|pmem|non-pmem|all)
+		none|local|pmem|non-pmem|all)
 			;;
 		*)
 			usage "bad fs-type: $fstype"

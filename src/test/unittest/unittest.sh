@@ -118,6 +118,9 @@ else
 	non-pmem)
 		DIR=$NON_PMEM_FS_DIR/$curtestdir$UNITTEST_NUM
 		;;
+	none)
+		DIR=/dev/null/not_existing_dir/$curtestdir$UNITTEST_NUM
+		;;
 	esac
 	[ "$DIR" ] || {
 		[ "$UNITTEST_QUIET" ] || echo "$UNITTEST_NAME: SKIP fs-type $FS (not configured)"
@@ -739,6 +742,11 @@ function setup() {
 		exit 0
 	fi
 
+	# fs type "none" must be explicitly enabled
+	if [ "$FS" = "none" -a "$req_fs_type" != "1" ]; then
+		exit 0
+	fi
+
 	if [ "$MEMCHECK" = "force-enable" ]; then
 		export RUN_MEMCHECK=1
 	fi
@@ -750,10 +758,13 @@ function setup() {
 	fi
 
 	echo "$UNITTEST_NAME: SETUP ($TEST/$FS/$BUILD$MCSTR)"
-	if [ -d "$DIR" ]; then
-		rm --one-file-system -rf -- $DIR
+	if [ "$FS" != "none" ]; then
+		if [ -d "$DIR" ]; then
+			rm --one-file-system -rf -- $DIR
+		fi
+
+		mkdir $DIR
 	fi
-	mkdir $DIR
 }
 
 #
@@ -770,7 +781,9 @@ function pass() {
 	msg="PASS"
 	[ -t 1 ] && command -v tput >/dev/null && msg="$(tput setaf 2)$msg$(tput sgr0)"
 	echo -e "$UNITTEST_NAME: $msg"
-	rm --one-file-system -rf -- $DIR
+	if [ "$FS" != "none" ]; then
+		rm --one-file-system -rf -- $DIR
+	fi
 }
 
 # Length of pool file's signature
