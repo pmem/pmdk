@@ -52,7 +52,7 @@ Usage: $0 [ -hnv ] [ -b build-type ] [ -t test-type ] [ -f fs-type ]
 -t test-type	run only specified test type
 		test-type: check (default), short, long
 -f fs-type	run tests only on specified file systems
-		fs-type: local, pmem, non-pmem, all (default)
+		fs-type: local, pmem, non-pmem, none, all (default)
 -o timeout	set timeout for test execution
 		timeout: floating point number with an optional suffix: 's' for seconds
 		(the default), 'm' for minutes, 'h' for hours or 'd' for days.
@@ -88,7 +88,7 @@ runtest() {
 	# make list of fs-types and build-types to test
 	#
 	fss=$fstype
-	[ "$fss" = all ] && fss="local pmem non-pmem"
+	[ "$fss" = all ] && fss="none local pmem non-pmem"
 	builds=$buildtype
 	[ "$builds" = all ] && builds="debug nondebug static-debug static-nondebug"
 	runscripts=$testfile
@@ -224,7 +224,7 @@ do
 		shift 2
 		case "$fstype"
 		in
-		local|pmem|non-pmem|all)
+		none|local|pmem|non-pmem|all)
 			;;
 		*)
 			usage "bad fs-type: $fstype"
