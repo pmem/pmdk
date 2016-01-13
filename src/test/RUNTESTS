@@ -46,7 +46,7 @@ Usage: $0 [ -nv ] [ -b build-type ] [ -t test-type ] [ -f fs-type ]
 	    [ -o timeout ] [-s test-file ] [ -m memcheck ] [tests...]
     build-types: debug, nondebug, static-debug, static-nondebug, all (default)
      test-types: check (default), short, long
-       fs-types: pmem, non-pmem, none, all (default)
+       fs-types: pmem, non-pmem, any, none, all (default)
         timeout: floating point number with an optional suffix: 's' for seconds
 		 (the default), 'm' for minutes, 'h' for hours or 'd' for days.
 		 Default value is 3 minutes.
@@ -78,7 +78,7 @@ runtest() {
 	# make list of fs-types and build-types to test
 	#
 	fss=$fstype
-	[ "$fss" = all ] && fss="none pmem non-pmem"
+	[ "$fss" = all ] && fss="none pmem non-pmem any"
 	builds=$buildtype
 	[ "$builds" = all ] && builds="debug nondebug static-debug static-nondebug"
 	runscripts=$testfile
@@ -94,6 +94,10 @@ runtest() {
 		}
 		[ "$fs" = non-pmem -a -z "$NON_PMEM_FS_DIR" ] && {
 			non_pmem_skip=1
+			continue
+		}
+
+		[ "$fs" = any -a -z "$PMEM_FS_DIR" -a -z "$NON_PMEM_FS_DIR" ] && {
 			continue
 		}
 
@@ -207,7 +211,7 @@ do
 		shift 2
 		case "$fstype"
 		in
-		none|pmem|non-pmem|all)
+		none|pmem|non-pmem|any|all)
 			;;
 		*)
 			usage "bad fs-type: $fstype"

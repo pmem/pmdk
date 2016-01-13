@@ -34,7 +34,7 @@
 
 # defaults
 [ "$TEST" ] || export TEST=check
-[ "$FS" ] || export FS=non-pmem
+[ "$FS" ] || export FS=any
 [ "$BUILD" ] || export BUILD=debug
 [ "$MEMCHECK" ] || export MEMCHECK=auto
 
@@ -104,6 +104,7 @@ if [ ! -n "$UNITTEST_NUM" ]; then
 	exit 1
 fi
 
+REAL_FS=$FS
 if [ "$DIR" ]; then
 	DIR=$DIR/$curtestdir$UNITTEST_NUM
 else
@@ -114,6 +115,18 @@ else
 		;;
 	non-pmem)
 		DIR=$NON_PMEM_FS_DIR/$curtestdir$UNITTEST_NUM
+		;;
+	any)
+		if [ "$PMEM_FS_DIR" != "" ]; then
+			DIR=$PMEM_FS_DIR/$curtestdir$UNITTEST_NUM
+			REAL_FS=pmem
+		elif [ "$NON_PMEM_FS_DIR" != "" ]; then
+			DIR=$NON_PMEM_FS_DIR/$curtestdir$UNITTEST_NUM
+			REAL_FS=non-pmem
+		else
+			echo "$UNITTEST_NAME: fs-type=any and both env vars are empty" >&2
+			exit 1
+		fi
 		;;
 	none)
 		DIR=/dev/null/not_existing_dir/$curtestdir$UNITTEST_NUM
@@ -738,6 +751,11 @@ function setup() {
 		exit 0
 	fi
 
+	# fs type "any" must be explicitly enabled
+	if [ "$FS" = "any" -a "$req_fs_type" != "1" ]; then
+		exit 0
+	fi
+
 	if [ "$MEMCHECK" = "force-enable" ]; then
 		export RUN_MEMCHECK=1
 	fi
@@ -748,7 +766,7 @@ function setup() {
 		MCSTR=""
 	fi
 
-	echo "$UNITTEST_NAME: SETUP ($TEST/$FS/$BUILD$MCSTR)"
+	echo "$UNITTEST_NAME: SETUP ($TEST/$REAL_FS/$BUILD$MCSTR)"
 	if [ "$FS" != "none" ]; then
 		if [ -d "$DIR" ]; then
 			rm --one-file-system -rf -- $DIR
