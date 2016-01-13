@@ -67,16 +67,53 @@ main(int argc, char *argv[])
 			FATAL("!vmem_create");
 	}
 
-	int *test = vmem_malloc(vmp, 12 * 1024 * 1024);
-	ASSERTne(test, NULL);
+	int *test1 = vmem_malloc(vmp, 12 * 1024 * 1024);
+	ASSERTne(test1, NULL);
 
-	test = vmem_realloc(vmp, test, 6 * 1024 * 1024);
-	ASSERTne(test, NULL);
+	int *test1r = vmem_realloc(vmp, test1, 6 * 1024 * 1024);
+	ASSERTeq(test1r, test1);
 
-	test = vmem_realloc(vmp, test, 12 * 1024 * 1024);
-	ASSERTne(test, NULL);
+	test1r = vmem_realloc(vmp, test1, 12 * 1024 * 1024);
+	ASSERTeq(test1r, test1);
 
-	vmem_free(vmp, test);
+	test1r = vmem_realloc(vmp, test1, 8 * 1024 * 1024);
+	ASSERTeq(test1r, test1);
+
+	int *test2 = vmem_malloc(vmp, 4 * 1024 * 1024);
+	ASSERTne(test2, NULL);
+
+	/* 4MB => 16B */
+	int *test2r = vmem_realloc(vmp, test2, 16);
+	/*
+	 * There is no space left in the pool, so shrinking from huge to small
+	 * size would normally fail (no space to allocate new arena chunk).
+	 * However, we can return the pointer to the original allocation (not
+	 * resized), which is still better than NULL...
+	 */
+	ASSERTeq(test2r, test2);
+
+	/* ... but the usable size is still 4MB. */
+	ASSERTeq(vmem_malloc_usable_size(vmp, test2r), 4 * 1024 * 1024);
+
+	/* 8MB => 16B */
+	test1r = vmem_realloc(vmp, test1, 16);
+	/*
+	 * If the old size of the allocation is larger than
+	 * the chunk size (4MB), we can reallocate it to 4MB first (in place),
+	 * releasing some space, which makes it possible to do the actual
+	 * shrinking...
+	 */
+	ASSERTne(test1r, NULL);
+	ASSERTne(test1r, test1);
+	ASSERTeq(vmem_malloc_usable_size(vmp, test1r), 16);
+
+	/* ... and leaves some memory for new allocations. */
+	int *test3 = vmem_malloc(vmp, 4 * 1024 * 1024);
+	ASSERTne(test3, NULL);
+
+	vmem_free(vmp, test1r);
+	vmem_free(vmp, test2r);
+	vmem_free(vmp, test3);
 
 	vmem_delete(vmp);
 
