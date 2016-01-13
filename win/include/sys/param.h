@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Intel Corporation
+ * Copyright (c) 2015-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -44,3 +44,6 @@
 #define	setbit(b, i)	((b)[(i) / BPB] |= 1 << ((i) % BPB))
 #define	isset(b, i)	((b)[(i) / BPB] & (1 << ((i) % BPB)))
 #define	isclr(b, i)	(((b)[(i) / BPB] & (1 << ((i) % BPB))) == 0)
+
+#define	MIN(a, b) (((a) < (b)) ? (a) : (b))
+#define	MAX(a, b) (((a) > (b)) ? (a) : (b))

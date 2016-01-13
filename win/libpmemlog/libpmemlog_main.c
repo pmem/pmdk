@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,12 +31,23 @@
  */
 
 /*
- * sys/uio.h
+ * libpmemlog_main.c -- entry point for libpmemlog.dll
  */
 
-#pragma once
+int APIENTRY
+DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
+{
+	switch (dwReason)
+	{
+	case DLL_PROCESS_ATTACH:
+		break;
 
-struct iovec {
-        void  *iov_base;
-        size_t iov_len;
-};
+	case DLL_THREAD_ATTACH:
+	case DLL_THREAD_DETACH:
+		break;
+
+	case DLL_PROCESS_DETACH:
+		break;
+	}
+	return TRUE;
+}
