@@ -39,7 +39,7 @@ echo ===========     LIBPMEMLOG    =============
 
 del /F /Q %POOL_FILE%
 fsutil file createnew %POOL_FILE% 2097152
-%TEST_DIR%\log_basic %POOL_FILE% a n t w r t w v n t w r t w
+%TEST_DIR%\log_basic %POOL_FILE% n t a w r t w v n t w r t w
 echo ===========================================
 
 del /F /Q %POOL_FILE%
