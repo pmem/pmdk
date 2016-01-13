@@ -34,7 +34,7 @@
 
 # defaults
 [ "$TEST" ] || export TEST=check
-[ "$FS" ] || export FS=local
+[ "$FS" ] || export FS=non-pmem
 [ "$BUILD" ] || export BUILD=debug
 [ "$MEMCHECK" ] || export MEMCHECK=auto
 [ "$CHECK_POOL" ] || export CHECK_POOL=0
@@ -111,9 +111,6 @@ if [ "$DIR" ]; then
 else
 	case "$FS"
 	in
-	local)
-		DIR=$LOCAL_FS_DIR/$curtestdir$UNITTEST_NUM
-		;;
 	pmem)
 		DIR=$PMEM_FS_DIR/$curtestdir$UNITTEST_NUM
 		;;
@@ -766,12 +763,6 @@ function require_no_asan() {
 function setup() {
 	# make sure we have a well defined locale for string operations here
 	export LC_ALL="C"
-
-	# skip checks in local dir when test did not require any fs type
-	# (in such cases local is equal to either non-pmem or pmem)
-	if [ "$FS" = "local" -a "$req_fs_type" != "1" ]; then
-		exit 0
-	fi
 
 	# fs type "none" must be explicitly enabled
 	if [ "$FS" = "none" -a "$req_fs_type" != "1" ]; then
