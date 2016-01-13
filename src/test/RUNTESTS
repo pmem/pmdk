@@ -46,7 +46,7 @@ Usage: $0 [ -nv ] [ -b build-type ] [ -t test-type ] [ -f fs-type ]
 	    [ -o timeout ] [-s test-file ] [ -m memcheck ] [tests...]
     build-types: debug, nondebug, static-debug, static-nondebug, all (default)
      test-types: check (default), short, long
-       fs-types: local, pmem, non-pmem, none, all (default)
+       fs-types: pmem, non-pmem, none, all (default)
         timeout: floating point number with an optional suffix: 's' for seconds
 		 (the default), 'm' for minutes, 'h' for hours or 'd' for days.
 		 Default value is 3 minutes.
@@ -78,7 +78,7 @@ runtest() {
 	# make list of fs-types and build-types to test
 	#
 	fss=$fstype
-	[ "$fss" = all ] && fss="none local pmem non-pmem"
+	[ "$fss" = all ] && fss="none pmem non-pmem"
 	builds=$buildtype
 	[ "$builds" = all ] && builds="debug nondebug static-debug static-nondebug"
 	runscripts=$testfile
@@ -88,10 +88,6 @@ runtest() {
 	for fs in $fss
 	do
 		# don't bother trying when fs-type isn't available...
-		[ "$fs" = local -a -z "$LOCAL_FS_DIR" ] && {
-			local_skip=1
-			continue
-		}
 		[ "$fs" = pmem -a -z "$PMEM_FS_DIR" ] && {
 			pmem_skip=1
 			continue
@@ -211,7 +207,7 @@ do
 		shift 2
 		case "$fstype"
 		in
-		none|local|pmem|non-pmem|all)
+		none|pmem|non-pmem|all)
 			;;
 		*)
 			usage "bad fs-type: $fstype"
@@ -280,7 +276,6 @@ else
 		runtest `dirname $testdir`
 	done
 fi
-[ "$local_skip" ] && echo "SKIPPED fs-type \"local\" runs: testconfig.sh doesn't set LOCAL_FS_DIR"
 [ "$pmem_skip" ] && echo "SKIPPED fs-type \"pmem\" runs: testconfig.sh doesn't set PMEM_FS_DIR"
 [ "$non_pmem_skip" ] && echo "SKIPPED fs-type \"non-pmem\" runs: testconfig.sh doesn't set NON_PMEM_FS_DIR"
 exit 0
