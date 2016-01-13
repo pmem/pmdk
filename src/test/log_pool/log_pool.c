@@ -57,7 +57,7 @@ pool_create(const char *path, size_t poolsize, unsigned mode)
 		STAT(path, &stbuf);
 
 		OUT("%s: file size %zu usable space %zu mode 0%o",
-				path, stbuf.st_size,
+				path, (size_t)stbuf.st_size,
 				pmemlog_nbyte(plp),
 				stbuf.st_mode & 0777);
 
