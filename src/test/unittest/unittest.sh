@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2014-2015, Intel Corporation
+# Copyright (c) 2014-2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -640,6 +640,21 @@ function require_no_asan_for() {
 	ASAN_ENABLED=`nm $1 | grep __asan_ | wc -l`
 	if [ "$ASAN_ENABLED" != "0" ]; then
 		echo "$UNITTEST_NAME: SKIP: ASAN enabled"
+		exit 0
+	fi
+}
+
+#
+# require_cxx11 -- continue script execution only if C++11 supporting compiler
+#	is installed
+#
+function require_cxx11() {
+	CXX11_AVAILABLE=`echo "int main(){return 0;}" |\
+		$CXX -std=c++11 -x c++ -o /dev/null - 2>/dev/null &&\
+		echo y || echo n`
+
+	if [ "$CXX11_AVAILABLE" == "n" ]; then
+		echo "$UNITTEST_NAME: SKIP: C++11 required"
 		exit 0
 	fi
 }

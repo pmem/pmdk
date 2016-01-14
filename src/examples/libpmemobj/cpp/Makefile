@@ -1,4 +1,5 @@
-# Copyright (c) 2014-2016, Intel Corporation
+#
+# Copyright (c) 2015, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -28,23 +29,11 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# src/Makefile.inc -- common Makefile rules for NVM library
-#
+PROGS = queue
 
-TOP := $(dir $(lastword $(MAKEFILE_LIST)))..
+LIBS = -lpmemobj -lpmem -pthread
 
-LN = ln
-OBJCOPY = objcopy
-MKDIR = mkdir
-INSTALL = install
-CP = cp
-CSTYLE = $(TOP)/utils/cstyle -pP
+LANG = cpp
+include ../../Makefile.inc
 
-check_flag = $(shell echo "int main(){return 0;}" |\
-	$(CC) $(CFLAGS) $(1) -x c -o /dev/null - 2>/dev/null && echo y || echo n)
-
-check_cxx_flags = $(shell echo "int main(){return 0;}" |\
-	$(CC) $(1) -x c++ -o /dev/null - 2>/dev/null && echo y || echo n)
-
-check_Wconversion = $(shell echo "long int random(void); char test(void); char test(void){char a = 0; char b = 'a'; char ret = random() == 1 ? a : b; return ret;}" |\
-	$(CC) -c $(CFLAGS) -Wconversion -x c -o /dev/null - 2>/dev/null && echo y || echo n)
+queue: queue.o

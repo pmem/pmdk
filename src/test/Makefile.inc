@@ -50,7 +50,7 @@ EX_LIBPMEMLOG=$(EXAMPLES_DIR)/libpmemlog
 EX_LIBPMEMOBJ=$(EXAMPLES_DIR)/libpmemobj
 
 UT = ../unittest/libut.a
-LIBS = $(UT)
+LIBS += $(UT)
 
 ifneq ($(USE_LIBUNWIND),)
 LIBS += -ldl $(shell pkg-config --libs libunwind || echo -lunwind)
@@ -107,16 +107,30 @@ extract_funcs = $(shell \
     awk '{print "-Wl,--wrap="$$0}')
 
 INCS = -I../unittest -I../../include
+
+COMMON_FLAGS  = -ggdb
+COMMON_FLAGS += -Wall
+COMMON_FLAGS += -Werror
+COMMON_FLAGS += -Wpointer-arith
+COMMON_FLAGS += -Wunused-macros
+COMMON_FLAGS += -fno-common
+
+CXXFLAGS  = -std=c++11
+CXXFLAGS += -ggdb
+CXXFLAGS += $(EXTRA_CXXFLAGS)
+CXXFLAGS += $(COMMON_FLAGS)
+
 CFLAGS  = -std=gnu99
-CFLAGS += -ggdb
-CFLAGS += -Wall
-CFLAGS += -Werror
 CFLAGS += -Wmissing-prototypes
-CFLAGS += -Wpointer-arith
-CFLAGS += -Wunused-macros
-CFLAGS += -fno-common
 CFLAGS += $(EXTRA_CFLAGS)
+CFLAGS += $(COMMON_FLAGS)
+
 LDFLAGS = -Wl,--warn-common -Wl,--fatal-warnings $(EXTRA_LDFLAGS)
+
+LINKER=$(CC)
+ifeq ($(LANG), cpp)
+LINKER=$(CXX)
+endif
 
 #
 # By default debug and non-debug static versions are built.
@@ -138,21 +152,30 @@ $(UT):
 	$(MAKE) -C ../unittest
 
 $(TARGET_STATIC_DEBUG): $(OBJS) $(UT) $(STATIC_DEBUG_LIBS) $(EXTRA_DEPS)
-	$(CC) -o $@ $(LDFLAGS) $(OBJS) $(STATIC_DEBUG_LIBS) $(LIBS)
+	$(LINKER) -o $@ $(LDFLAGS) $(OBJS) $(STATIC_DEBUG_LIBS) $(LIBS)
 
 $(TARGET_STATIC_NONDEBUG): $(OBJS) $(UT) $(STATIC_NONDEBUG_LIBS) $(EXTRA_DEPS)
-	$(CC) -o $@ $(LDFLAGS) $(OBJS) $(STATIC_NONDEBUG_LIBS) $(LIBS)
+	$(LINKER) -o $@ $(LDFLAGS) $(OBJS) $(STATIC_NONDEBUG_LIBS) $(LIBS)
 
 $(TARGET): $(OBJS) $(UT) $(EXTRA_DEPS)
-	$(CC) -o $@ $(LDFLAGS) $(OBJS) $(DYNAMIC_LIBS) $(LIBS)
+	$(LINKER) -o $@ $(LDFLAGS) $(OBJS) $(DYNAMIC_LIBS) $(LIBS)
 
-.c.o:
-	@mkdir -p .deps
-	$(CC) -MD -c $(CFLAGS) $(INCS) $< -o $@
+define create-deps
 	@cp $*.d .deps/$*.P; \
 	sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
 	    -e '/^$$/ d' -e 's/$$/ :/' < $*.d >> .deps/$*.P; \
 	$(RM) -f $*.d
+endef
+
+%.o: %.c
+	@mkdir -p .deps
+	$(CC) -MD -c $(CFLAGS) $(INCS) $< -o $@
+	$(create-deps)
+
+%.o: %.cpp
+	@mkdir -p .deps
+	$(CXX) -MD -c $(CXXFLAGS) $(INCS) $< -o $@
+	$(create-deps)
 
 clean:
 	$(RM) *.o */*.o core a.out *.log testfile*

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2015, Intel Corporation
+ * Copyright (c) 2015-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,35 +31,81 @@
  */
 
 /*
- * ut_pthread.c -- unit test wrappers for pthread routines
+ * p.hpp -- resides on pmem property template
  */
 
-#include "unittest.h"
+#ifndef P_HPP
+#define P_HPP
 
-/*
- * ut_pthread_create -- a pthread_create that cannot return an error
- */
-int
-ut_pthread_create(const char *file, int line, const char *func,
-    pthread_t *__restrict thread,
-    const pthread_attr_t *__restrict attr,
-    void *(*start_routine)(void *), void *__restrict arg)
+#include <memory>
+#include "libpmemobj.h"
+
+#include "libpmemobj/detail/specialization.hpp"
+
+namespace nvml
 {
-	if ((errno = pthread_create(thread, attr, start_routine, arg)) != 0)
-		ut_fatal(file, line, func, "!pthread_create");
 
-	return 0;
-}
-
-/*
- * ut_pthread_join -- a pthread_join that cannot return an error
- */
-int
-ut_pthread_join(const char *file, int line, const char *func,
-    pthread_t thread, void **value_ptr)
+namespace obj
 {
-	if ((errno = pthread_join(thread, value_ptr)) != 0)
-		ut_fatal(file, line, func, "!pthread_join");
+	/*
+	 * Resides on pmem class.
+	 *
+	 * p class is a property-like template class that has to be used for all
+	 * variables (excluding persistent pointers) which are used in a pmemobj
+	 * transactions. The only thing it does is creating snapshots of the
+	 * object when modified in the transaction scope.
+	 */
+	template<typename T>
+	class p
+	{
+		typedef p<T> this_type;
+	public:
+		p(const T &_val) noexcept : val{_val}
+		{
+		}
 
-	return 0;
-}
+		p() = default;
+
+		p& operator=(const p &rhs) noexcept
+		{
+			if (pmemobj_tx_stage() == TX_STAGE_WORK)
+				pmemobj_tx_add_range_direct(this, sizeof(T));
+
+			this_type(rhs).swap(*this);
+
+			return *this;
+		}
+
+		operator T() const noexcept
+		{
+			return val;
+		}
+
+		/*
+		 * Swaps two p objects of the same type.
+		 */
+		void swap(p &other) noexcept
+		{
+			std::swap(val, other.val);
+		}
+	private:
+		T val;
+	};
+
+	/*
+	 * Swaps two p objects of the same type.
+	 *
+	 * Non-member swap function as required by Swappable concept.
+	 * en.cppreference.com/w/cpp/concept/Swappable
+	 */
+	template<class T> inline void
+	swap(p<T> & a, p<T> & b) noexcept
+	{
+		a.swap(b);
+	}
+
+} /* namespace obj */
+
+} /* namespace nvml */
+
+#endif /* P_HPP */
