@@ -1,5 +1,5 @@
 .\"
-.\" Copyright (c) 2014-2015, Intel Corporation
+.\" Copyright (c) 2014-2016, Intel Corporation
 .\"
 .\" Redistribution and use in source and binary forms, with or without
 .\" modification, are permitted provided that the following conditions
@@ -155,7 +155,7 @@ libpmemobj \- persistent memory transactional object store
 .BI "POBJ_ZALLOC(PMEMobjpool *" pop ", TOID *" oidp ", " TYPE ", size_t " size )
 .BI "POBJ_REALLOC(PMEMobjpool *" pop ", TOID *" oidp ", " TYPE ", size_t " size )
 .BI "POBJ_ZREALLOC(PMEMobjpool *" pop ", TOID *" oidp ", " TYPE ", size_t " size )
-.BI "POBJ_FREE(PMEMobjpool *" pop ", TOID *" oidp )
+.BI "POBJ_FREE(TOID *" oidp )
 .sp
 .B Root object management:
 .sp
@@ -244,6 +244,12 @@ libpmemobj \- persistent memory transactional object store
 .BI "POBJ_LIST_MOVE_ELEMENT_TAIL(PMEMobjpool *" pop ", POBJ_LIST_HEAD *" head ,
 .BI "    POBJ_LIST_HEAD *" head_new ", TOID " elm ", POBJ_LIST_ENTRY " FIELD ,
 .BI "    POBJ_LIST_ENTRY " field_new )
+.BI "POBJ_LIST_MOVE_ELEMENT_AFTER(PMEMobjpool *" pop ", POBJ_LIST_HEAD *" head ,
+.BI "    POBJ_LIST_HEAD *" head_new ", TOID " listelm ", TOID " elm ,
+.BI "    POBJ_LIST_ENTRY " FIELD ", POBJ_LIST_ENTRY " field_new )
+.BI "POBJ_LIST_MOVE_ELEMENT_BEFORE(PMEMobjpool *" pop ", POBJ_LIST_HEAD *" head ,
+.BI "    POBJ_LIST_HEAD *" head_new ", TOID " listelm ", TOID " elm ,
+.BI "    POBJ_LIST_ENTRY " FIELD ", POBJ_LIST_ENTRY " field_new )
 .sp
 .B Transactional object manipulation:
 .sp
@@ -1899,7 +1905,7 @@ Instead of taking a pointer to
 it takes a pointer to typed OID of
 .BR TYPE .
 .PP
-.BI "POBJ_FREE(PMEMobjpool *" pop ", TOID *" oidp )
+.BI "POBJ_FREE(TOID *" oidp )
 .IP
 The
 .B POBJ_FREE
@@ -3024,10 +3030,10 @@ changes to
 .IR TX_STAGE_ONABORT ,
 OID_NULL is returned, and errno is set appropriately.
 .PP
-.BI "TX_NEW(" TYPE  )
+.BI "TX_ZNEW(" TYPE  )
 .IP
 The
-.BR TX_NEW ()
+.BR TX_ZNEW ()
 macro transactionally allocates a new zeroed object of given
 .I TYPE
 and assigns it a type number read from the typed OID.
