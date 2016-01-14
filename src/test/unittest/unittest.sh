@@ -38,6 +38,14 @@
 [ "$BUILD" ] || export BUILD=debug
 [ "$MEMCHECK" ] || export MEMCHECK=auto
 
+TOOLS=../tools
+# Paths to some useful tools
+[ -n "$PMEMPOOL" ] || PMEMPOOL=../../tools/pmempool/pmempool
+[ -n "$PMEMSPOIL" ] || PMEMSPOIL=$TOOLS/pmemspoil/pmemspoil.static-nondebug
+[ -n "$PMEMWRITE" ] || PMEMWRITE=$TOOLS/pmemwrite/pmemwrite
+[ -n "$PMEMALLOC" ] || PMEMALLOC=$TOOLS/pmemalloc/pmemalloc
+[ -n "$PMEMDETECT" ] || PMEMDETECT=$TOOLS/pmemdetect/pmemdetect.static-nondebug
+
 # force globs to fail if they don't match
 shopt -s failglob
 
@@ -97,7 +105,7 @@ if [ ! -n "$UNITTEST_NUM" ]; then
 fi
 
 if [ "$DIR" ]; then
-	 DIR=$DIR/$curtestdir$UNITTEST_NUM
+	DIR=$DIR/$curtestdir$UNITTEST_NUM
 else
 	case "$FS"
 	in
@@ -115,6 +123,16 @@ else
 		[ "$UNITTEST_QUIET" ] || echo "$UNITTEST_NAME: SKIP fs-type $FS (not configured)"
 		exit 0
 	}
+fi
+
+if [ -d "$PMEM_FS_DIR" ]; then
+	$PMEMDETECT "$PMEM_FS_DIR" && true
+	PMEM_IS_PMEM=$?
+fi
+
+if [ -d "$NON_PMEM_FS_DIR" ]; then
+	$PMEMDETECT "$NON_PMEM_FS_DIR" && true
+	NON_PMEM_IS_PMEM=$?
 fi
 
 #
@@ -443,13 +461,40 @@ function require_test_type() {
 }
 
 #
+# require_pmem -- only allow script to continue for a real PMEM device
+#
+function require_pmem() {
+	[ $PMEM_IS_PMEM -eq 0 ] && return
+	echo "error: PMEM_FS_DIR=$PMEM_FS_DIR does not point to a PMEM device"
+	exit 1
+}
+
+#
+# require_non_pmem -- only allow script to continue for a non-PMEM device
+#
+function require_non_pmem() {
+	[ $NON_PMEM_IS_PMEM -ne 0 ] && return
+	echo "error: NON_PMEM_FS_DIR=$NON_PMEM_FS_DIR does not point to a non-PMEM device"
+	exit 1
+}
+
+#
 # require_fs_type -- only allow script to continue for a certain fs type
 #
 function require_fs_type() {
 	req_fs_type=1
 	for type in $*
 	do
-		[ "$type" = "$FS" ] && return
+		[ "$type" = "$FS" ] &&
+		case "$FS"
+		in
+		pmem)
+			require_pmem && return
+			;;
+		non-pmem)
+			require_non_pmem && return
+			;;
+		esac
 	done
 	[ "$UNITTEST_QUIET" ] || echo "$UNITTEST_NAME: SKIP fs-type $FS ($* required)"
 	exit 0
@@ -491,7 +536,7 @@ function memcheck() {
 function require_valgrind() {
 	require_no_asan
 	VALGRINDEXE=`which valgrind 2>/dev/null` && return
-	echo "$UNITTEST_NAME: SKIP valgrind package required"
+	echo "error: $UNITTEST_NAME: SKIP valgrind package required"
 	exit 0
 }
 
@@ -727,13 +772,6 @@ function pass() {
 	echo -e "$UNITTEST_NAME: $msg"
 	rm --one-file-system -rf -- $DIR
 }
-
-TOOLS=../tools
-# Paths to some useful tools
-[ -n "$PMEMPOOL" ] || PMEMPOOL=../../tools/pmempool/pmempool
-[ -n "$PMEMSPOIL" ] || PMEMSPOIL=$TOOLS/pmemspoil/pmemspoil.static-nondebug
-[ -n "$PMEMWRITE" ] || PMEMWRITE=$TOOLS/pmemwrite/pmemwrite
-[ -n "$PMEMALLOC" ] || PMEMALLOC=$TOOLS/pmemalloc/pmemalloc
 
 # Length of pool file's signature
 SIG_LEN=8

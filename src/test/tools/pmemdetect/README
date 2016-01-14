@@ -1,0 +1,13 @@
+Linux NVM Library
+
+This is src/test/tools/pmemdetect/README.
+
+This directory contains a simple application for PMEM-aware filesystem
+detection.  If the 'path' argument points to a directory on a PMEM device,
+the program exits with a status code indicating success.  Otherwise,
+the status code indicates failure.
+
+It's used as a helper program by some unit tests.
+
+Usage:
+	$ pmemdetect <path>
