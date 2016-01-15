@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Intel Corporation
+ * Copyright (c) 2015-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -93,22 +93,6 @@ do_tx_alloc(PMEMobjpool *pop, int type_num, size_t value)
 	} TX_END
 
 	return obj.oid;
-}
-
-/*
- * do_tx_realloc_no_tx -- reallocate an object without a transaction
- */
-static void
-do_tx_realloc_no_tx(PMEMobjpool *pop)
-{
-	TOID(struct object) obj;
-	TOID_ASSIGN(obj, do_tx_alloc(pop, TYPE_NO_TX, TEST_VALUE_1));
-	ASSERT(!TOID_IS_NULL(obj));
-
-	TOID(struct object) obj_r;
-	TOID_ASSIGN(obj_r, pmemobj_tx_realloc(obj.oid,
-			2 * sizeof (struct object), TYPE_NO_TX));
-	ASSERT(TOID_IS_NULL(obj_r));
 }
 
 /*
@@ -526,7 +510,6 @@ main(int argc, char *argv[])
 		FATAL("!pmemobj_create");
 
 	do_tx_root_realloc(pop);
-	do_tx_realloc_no_tx(pop);
 	do_tx_realloc_commit(pop);
 	do_tx_realloc_abort(pop);
 	do_tx_realloc_huge(pop);

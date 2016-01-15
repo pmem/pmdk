@@ -795,18 +795,20 @@ int pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...);
 /*
  * Aborts current transaction
  *
- * Must be called during TX_STAGE_WORK. Otherwise, has no effect.
+ * Causes transition to TX_STAGE_ONABORT.
  *
- * Always causes transition to TX_STAGE_ONABORT.
+ * This function must be called during TX_STAGE_WORK.
  */
 void pmemobj_tx_abort(int errnum);
 
 /*
  * Commits current transaction
  *
- * If successful and called during TX_STAGE_WORK, transaction stage changes
- * to TX_STAGE_ONCOMMIT and function returns zero. Otherwise, stage changes
- * to TX_STAGE_ONABORT and an error number is returned.
+ * If successful, transaction stage changes to TX_STAGE_ONCOMMIT and function
+ * returns zero. Otherwise, stage changes to TX_STAGE_ONABORT and an error
+ * number is returned.
+ *
+ * This function must be called during TX_STAGE_WORK.
  */
 int pmemobj_tx_commit(void);
 
@@ -820,6 +822,8 @@ int pmemobj_tx_commit(void);
  *
  * If transaction was successful, returns 0. Otherwise returns error code set
  * by pmemobj_tx_abort.
+ *
+ * This function must *not* be called during TX_STAGE_WORK.
  */
 int pmemobj_tx_end(void);
 
@@ -829,6 +833,8 @@ int pmemobj_tx_end(void);
  * be obtained by calling pmemobj_tx_stage.
  *
  * If successful, function returns zero. Otherwise, an error number is returned.
+ *
+ * This function must be called in transaction.
  */
 int pmemobj_tx_process(void);
 
@@ -894,8 +900,10 @@ _POBJ_TX_BEGIN(pop, ##__VA_ARGS__)
  * range. In case of failure or abort, all the changes within this range will
  * be rolled-back automatically.
  *
- * If successful and called during TX_STAGE_WORK, function returns zero.
+ * If successful, returns zero.
  * Otherwise, state changes to TX_STAGE_ONABORT and an error number is returned.
+ *
+ * This function must be called during TX_STAGE_WORK.
  */
 int pmemobj_tx_add_range(PMEMoid oid, uint64_t off, size_t size);
 
@@ -906,56 +914,70 @@ int pmemobj_tx_add_range(PMEMoid oid, uint64_t off, size_t size);
  * be rolled-back automatically. The supplied block of memory has to be within
  * the given pool.
  *
- * If successful and called during TX_STAGE_WORK, function returns zero.
+ * If successful, returns zero.
  * Otherwise, state changes to TX_STAGE_ONABORT and an error number is returned.
+ *
+ * This function must be called during TX_STAGE_WORK.
  */
 int pmemobj_tx_add_range_direct(void *ptr, size_t size);
 
 /*
  * Transactionally allocates a new object.
  *
- * If successful and called during TX_STAGE_WORK, function returns PMEMoid.
+ * If successful, returns PMEMoid.
  * Otherwise, state changes to TX_STAGE_ONABORT and an OID_NULL is returned.
+ *
+ * This function must be called during TX_STAGE_WORK.
  */
 PMEMoid pmemobj_tx_alloc(size_t size, unsigned int type_num);
 
 /*
  * Transactionally allocates new zeroed object.
  *
- * If successful and called during TX_STAGE_WORK, function returns PMEMoid.
+ * If successful, returns PMEMoid.
  * Otherwise, state changes to TX_STAGE_ONABORT and an OID_NULL is returned.
+ *
+ * This function must be called during TX_STAGE_WORK.
  */
 PMEMoid pmemobj_tx_zalloc(size_t size, unsigned int type_num);
 
 /*
  * Transactionally resizes an existing object.
  *
- * If successful and called during TX_STAGE_WORK, function returns PMEMoid.
+ * If successful, returns PMEMoid.
  * Otherwise, state changes to TX_STAGE_ONABORT and an OID_NULL is returned.
+ *
+ * This function must be called during TX_STAGE_WORK.
  */
 PMEMoid pmemobj_tx_realloc(PMEMoid oid, size_t size, unsigned int type_num);
 
 /*
  * Transactionally resizes an existing object, if extended new space is zeroed.
  *
- * If successful and called during TX_STAGE_WORK, function returns PMEMoid.
+ * If successful, returns PMEMoid.
  * Otherwise, state changes to TX_STAGE_ONABORT and an OID_NULL is returned.
+ *
+ * This function must be called during TX_STAGE_WORK.
  */
 PMEMoid pmemobj_tx_zrealloc(PMEMoid oid, size_t size, unsigned int type_num);
 
 /*
  * Transactionally allocates a new object with duplicate of the string s.
  *
- * If successful and called during TX_STAGE_WORK, function returns PMEMoid.
+ * If successful, returns PMEMoid.
  * Otherwise, state changes to TX_STAGE_ONABORT and an OID_NULL is returned.
+ *
+ * This function must be called during TX_STAGE_WORK.
  */
 PMEMoid pmemobj_tx_strdup(const char *s, unsigned int type_num);
 
 /*
  * Transactionally frees an existing object.
  *
- * If successful and called during TX_STAGE_WORK, function returns zero.
+ * If successful, returns zero.
  * Otherwise, state changes to TX_STAGE_ONABORT and an error number is returned.
+ *
+ * This function must be called during TX_STAGE_WORK.
  */
 int pmemobj_tx_free(PMEMoid oid);
 

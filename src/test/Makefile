@@ -104,6 +104,7 @@ OBJ_TESTS = \
        obj_tx_add_range_direct\
        obj_tx_flow\
        obj_tx_free\
+       obj_tx_invalid\
        obj_tx_locks\
        obj_tx_locks_abort\
        obj_tx_realloc\

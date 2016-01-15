@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Intel Corporation
+ * Copyright (c) 2015-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -80,23 +80,6 @@ do_tx_alloc(PMEMobjpool *pop, int type_num)
 	} TX_END
 
 	return ret;
-}
-
-/*
- * do_tx_free_no_tx -- try to free object without transaction
- */
-static void
-do_tx_free_no_tx(PMEMobjpool *pop)
-{
-	int ret;
-	PMEMoid oid = do_tx_alloc(pop, TYPE_FREE_NO_TX);
-
-	ret = pmemobj_tx_free(oid);
-	ASSERTne(ret, 0);
-
-	TOID(struct object) obj;
-	TOID_ASSIGN(obj, pmemobj_first(pop, TYPE_FREE_NO_TX));
-	ASSERT(!TOID_IS_NULL(obj));
 }
 
 /*
@@ -382,8 +365,6 @@ main(int argc, char *argv[])
 	    S_IWUSR | S_IRUSR)) == NULL)
 		FATAL("!pmemobj_create");
 
-	do_tx_free_no_tx(pop);
-	VALGRIND_WRITE_STATS;
 	do_tx_free_wrong_uuid(pop);
 	VALGRIND_WRITE_STATS;
 	do_tx_free_null_oid(pop);

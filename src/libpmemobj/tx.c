@@ -117,6 +117,18 @@ pmemobj_tx_abort_null(int errnum)
 	return OID_NULL;
 }
 
+/* ASSERT_IN_TX -- checks whether there's open transaction */
+#define	ASSERT_IN_TX() do {\
+	if (tx.stage == TX_STAGE_NONE)\
+		FATAL("%s called outside of transaction", __func__);\
+} while (0)
+
+/* ASSERT_TX_STAGE_WORK -- checks whether current transaction stage is WORK */
+#define	ASSERT_TX_STAGE_WORK() do {\
+	if (tx.stage != TX_STAGE_WORK)\
+		FATAL("%s called in invalid stage %d", __func__, tx.stage);\
+} while (0)
+
 /*
  * constructor_tx_alloc -- (internal) constructor for normal alloc
  */
@@ -894,12 +906,6 @@ tx_alloc_common(size_t size, type_num_t type_num,
 {
 	LOG(3, NULL);
 
-	if (tx.stage != TX_STAGE_WORK) {
-		ERR("invalid tx stage");
-		errno = EINVAL;
-		return OID_NULL;
-	}
-
 	if (size > PMEMOBJ_MAX_ALLOC_SIZE) {
 		ERR("requested size too large");
 		return pmemobj_tx_abort_null(ENOMEM);
@@ -995,12 +1001,6 @@ tx_realloc_common(PMEMoid oid, size_t size, unsigned int type_num,
 {
 	LOG(3, NULL);
 
-	if (tx.stage != TX_STAGE_WORK) {
-		ERR("invalid tx stage");
-		errno = EINVAL;
-		return OID_NULL;
-	}
-
 	if (size > PMEMOBJ_MAX_ALLOC_SIZE) {
 		ERR("requested size too large");
 		return pmemobj_tx_abort_null(ENOMEM);
@@ -1088,8 +1088,7 @@ pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...)
 
 		lane->pop = pop;
 	} else {
-		err = EINVAL;
-		goto err_abort;
+		FATAL("Invalid stage %d to begin new transaction", tx.stage);
 	}
 
 	struct tx_data *txd = Malloc(sizeof (*txd));
@@ -1152,8 +1151,10 @@ pmemobj_tx_abort(int errnum)
 {
 	LOG(3, NULL);
 
+	ASSERT_IN_TX();
+	ASSERT_TX_STAGE_WORK();
+
 	ASSERT(tx.section != NULL);
-	ASSERT(tx.stage == TX_STAGE_WORK);
 
 	tx.stage = TX_STAGE_ONABORT;
 	struct lane_tx_runtime *lane = tx.section->runtime;
@@ -1184,8 +1185,10 @@ pmemobj_tx_errno(void)
 {
 	LOG(3, NULL);
 
-	ASSERTeq(tx.stage, TX_STAGE_ONABORT);
-	ASSERT(tx.section != NULL);
+	if (tx.stage != TX_STAGE_ONABORT)
+		FATAL("pmemobj_tx_errno called in invalid stage %d", tx.stage);
+
+	ASSERTne(tx.section, NULL);
 
 	struct lane_tx_runtime *lane = tx.section->runtime;
 	struct tx_data *txd = SLIST_FIRST(&lane->tx_entries);
@@ -1202,8 +1205,10 @@ pmemobj_tx_commit()
 	LOG(3, NULL);
 	int ret = 0;
 
+	ASSERT_IN_TX();
+	ASSERT_TX_STAGE_WORK();
+
 	ASSERT(tx.section != NULL);
-	ASSERT(tx.stage == TX_STAGE_WORK);
 
 	struct lane_tx_runtime *lane =
 		(struct lane_tx_runtime *)tx.section->runtime;
@@ -1246,12 +1251,12 @@ int
 pmemobj_tx_end()
 {
 	LOG(3, NULL);
-	ASSERT(tx.stage != TX_STAGE_WORK);
 
-	if (tx.section == NULL) {
-		tx.stage = TX_STAGE_NONE;
-		return 0;
-	}
+	if (tx.stage == TX_STAGE_WORK)
+		FATAL("pmemobj_tx_end called without pmemobj_tx_commit");
+
+	if (tx.section == NULL)
+		FATAL("pmemobj_tx_end called without pmemobj_tx_begin");
 
 	struct lane_tx_runtime *lane = tx.section->runtime;
 	struct tx_data *txd = SLIST_FIRST(&lane->tx_entries);
@@ -1304,8 +1309,8 @@ pmemobj_tx_process()
 {
 	LOG(3, NULL);
 
-	ASSERT(tx.section != NULL);
-	ASSERT(tx.stage != TX_STAGE_NONE);
+	ASSERT_IN_TX();
+	ASSERTne(tx.section, NULL);
 
 	switch (tx.stage) {
 	case TX_STAGE_NONE:
@@ -1530,10 +1535,8 @@ pmemobj_tx_add_range_direct(void *ptr, size_t size)
 {
 	LOG(3, NULL);
 
-	if (tx.stage != TX_STAGE_WORK) {
-		ERR("invalid tx stage");
-		return EINVAL;
-	}
+	ASSERT_IN_TX();
+	ASSERT_TX_STAGE_WORK();
 
 	struct lane_tx_runtime *lane =
 		(struct lane_tx_runtime *)tx.section->runtime;
@@ -1561,10 +1564,8 @@ pmemobj_tx_add_range(PMEMoid oid, uint64_t hoff, size_t size)
 {
 	LOG(3, NULL);
 
-	if (tx.stage != TX_STAGE_WORK) {
-		ERR("invalid tx stage");
-		return EINVAL;
-	}
+	ASSERT_IN_TX();
+	ASSERT_TX_STAGE_WORK();
 
 	struct lane_tx_runtime *lane =
 		(struct lane_tx_runtime *)tx.section->runtime;
@@ -1602,6 +1603,9 @@ pmemobj_tx_alloc(size_t size, unsigned int type_num)
 {
 	LOG(3, NULL);
 
+	ASSERT_IN_TX();
+	ASSERT_TX_STAGE_WORK();
+
 	if (size == 0) {
 		ERR("allocation with size 0");
 		return pmemobj_tx_abort_null(EINVAL);
@@ -1623,6 +1627,9 @@ PMEMoid
 pmemobj_tx_zalloc(size_t size, unsigned int type_num)
 {
 	LOG(3, NULL);
+
+	ASSERT_IN_TX();
+	ASSERT_TX_STAGE_WORK();
 
 	if (size == 0) {
 		ERR("allocation with size 0");
@@ -1646,6 +1653,9 @@ pmemobj_tx_realloc(PMEMoid oid, size_t size, unsigned int type_num)
 {
 	LOG(3, NULL);
 
+	ASSERT_IN_TX();
+	ASSERT_TX_STAGE_WORK();
+
 	return tx_realloc_common(oid, size, type_num,
 			constructor_tx_alloc, constructor_tx_copy);
 }
@@ -1659,6 +1669,9 @@ pmemobj_tx_zrealloc(PMEMoid oid, size_t size, unsigned int type_num)
 {
 	LOG(3, NULL);
 
+	ASSERT_IN_TX();
+	ASSERT_TX_STAGE_WORK();
+
 	return tx_realloc_common(oid, size, type_num,
 			constructor_tx_zalloc, constructor_tx_copy_zero);
 }
@@ -1671,11 +1684,8 @@ pmemobj_tx_strdup(const char *s, unsigned int type_num)
 {
 	LOG(3, NULL);
 
-	if (tx.stage != TX_STAGE_WORK) {
-		ERR("invalid tx stage");
-		errno = EINVAL;
-		return OID_NULL;
-	}
+	ASSERT_IN_TX();
+	ASSERT_TX_STAGE_WORK();
 
 	if (NULL == s) {
 		ERR("cannot duplicate NULL string");
@@ -1707,11 +1717,8 @@ pmemobj_tx_free(PMEMoid oid)
 {
 	LOG(3, NULL);
 
-	if (tx.stage != TX_STAGE_WORK) {
-		ERR("invalid tx stage");
-		errno = EINVAL;
-		return EINVAL;
-	}
+	ASSERT_IN_TX();
+	ASSERT_TX_STAGE_WORK();
 
 	if (OBJ_OID_IS_NULL(oid))
 		return 0;

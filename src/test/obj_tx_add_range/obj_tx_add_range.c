@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Intel Corporation
+ * Copyright (c) 2015-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -385,20 +385,6 @@ do_tx_add_range_commit(PMEMobjpool *pop)
 }
 
 /*
- * do_tx_add_range_no_tx -- call pmemobj_tx_add_range without transaction
- */
-static void
-do_tx_add_range_no_tx(PMEMobjpool *pop)
-{
-	int ret;
-	TOID(struct object) obj;
-	TOID_ASSIGN(obj, do_tx_zalloc(pop, TYPE_OBJ));
-
-	ret = pmemobj_tx_add_range(obj.oid, VALUE_OFF, VALUE_SIZE);
-	ASSERTne(ret, 0);
-}
-
-/*
  * do_tx_add_range_overlapping -- call pmemobj_tx_add_range with overlapping
  */
 static void
@@ -541,9 +527,6 @@ main(int argc, char *argv[])
 	    S_IWUSR | S_IRUSR)) == NULL)
 		FATAL("!pmemobj_create");
 
-
-	do_tx_add_range_no_tx(pop);
-	VALGRIND_WRITE_STATS;
 	do_tx_add_range_commit(pop);
 	VALGRIND_WRITE_STATS;
 	do_tx_add_range_abort(pop);
