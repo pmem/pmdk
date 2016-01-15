@@ -328,12 +328,11 @@ tx_set_state(PMEMobjpool *pop, struct lane_tx_layout *layout, uint64_t state)
 /*
  * tx_clear_undo_log -- (internal) clear undo log pointed by head
  */
-static int
+static void
 tx_clear_undo_log(PMEMobjpool *pop, struct list_head *head, int vg_clean)
 {
 	LOG(3, NULL);
 
-	int ret;
 	PMEMoid obj;
 	while (!OBJ_LIST_EMPTY(head)) {
 		obj = head->pe_first;
@@ -354,38 +353,29 @@ tx_clear_undo_log(PMEMobjpool *pop, struct list_head *head, int vg_clean)
 #endif
 
 		/* remove and free all elements from undo log */
-		ret = list_remove_free(pop, head, 0, NULL, &obj);
-
-		ASSERTeq(ret, 0);
-		if (ret) {
-			LOG(2, "list_remove_free failed");
-			return ret;
-		}
+		list_remove_free_oob(pop, head, &obj);
 	}
-
-	return 0;
 }
 
 /*
  * tx_abort_alloc -- (internal) abort all allocated objects
  */
-static int
+static void
 tx_abort_alloc(PMEMobjpool *pop, struct lane_tx_layout *layout)
 {
 	LOG(3, NULL);
 
-	return tx_clear_undo_log(pop, &layout->undo_alloc, 1);
+	tx_clear_undo_log(pop, &layout->undo_alloc, 1);
 }
 
 /*
  * tx_abort_free -- (internal) abort all freeing objects
  */
-static int
+static void
 tx_abort_free(PMEMobjpool *pop, struct lane_tx_layout *layout)
 {
 	LOG(3, NULL);
 
-	int ret;
 	PMEMoid obj;
 	while (!OBJ_LIST_EMPTY(&layout->undo_free)) {
 		obj = layout->undo_free.pe_first;
@@ -397,17 +387,8 @@ tx_abort_free(PMEMobjpool *pop, struct lane_tx_layout *layout)
 			&pop->store->bytype[oobh->data.user_type];
 
 		/* move all objects back to object store */
-		ret = list_move_oob(pop,
-				&layout->undo_free, &obj_list->head, obj);
-
-		ASSERTeq(ret, 0);
-		if (ret) {
-			LOG(2, "list_move_oob failed");
-			return ret;
-		}
+		list_move_oob(pop, &layout->undo_free, &obj_list->head, obj);
 	}
-
-	return 0;
 }
 
 struct tx_range_data {
@@ -580,7 +561,7 @@ tx_abort_recover_range(PMEMobjpool *pop, struct tx_range *range)
 /*
  * tx_abort_set -- (internal) abort all set operations
  */
-static int
+static void
 tx_abort_set(PMEMobjpool *pop, struct lane_tx_layout *layout, int recovery)
 {
 	LOG(3, NULL);
@@ -590,10 +571,8 @@ tx_abort_set(PMEMobjpool *pop, struct lane_tx_layout *layout, int recovery)
 	else
 		tx_foreach_set(pop, layout, tx_abort_restore_range);
 
-	int ret = tx_clear_undo_log(pop, &layout->undo_set_cache, 0);
-	ret |= tx_clear_undo_log(pop, &layout->undo_set, 0);
-
-	return ret;
+	tx_clear_undo_log(pop, &layout->undo_set_cache, 0);
+	tx_clear_undo_log(pop, &layout->undo_set, 0);
 }
 
 /*
@@ -664,13 +643,13 @@ tx_pre_commit_set(PMEMobjpool *pop, struct lane_tx_layout *layout)
  * tx_post_commit_alloc -- (internal) do post commit operations for
  * allocated objects
  */
-static int
+static void
 tx_post_commit_alloc(PMEMobjpool *pop, struct lane_tx_layout *layout)
 {
 	LOG(3, NULL);
 
 	PMEMoid obj;
-	int ret;
+
 	while (!OBJ_LIST_EMPTY(&layout->undo_alloc)) {
 		obj = layout->undo_alloc.pe_first;
 
@@ -681,51 +660,39 @@ tx_post_commit_alloc(PMEMobjpool *pop, struct lane_tx_layout *layout)
 			&pop->store->bytype[oobh->data.user_type];
 
 		/* move object to object store */
-		ret = list_move_oob(pop,
-				&layout->undo_alloc, &obj_list->head, obj);
-
-		ASSERTeq(ret, 0);
-		if (ret) {
-			LOG(2, "list_move_oob failed");
-			return ret;
-		}
+		list_move_oob(pop, &layout->undo_alloc, &obj_list->head, obj);
 	}
-
-	return 0;
 }
 
 /*
  * tx_post_commit_free -- (internal) do post commit operations for
  * freeing objects
  */
-static int
+static void
 tx_post_commit_free(PMEMobjpool *pop, struct lane_tx_layout *layout)
 {
 	LOG(3, NULL);
 
-	return tx_clear_undo_log(pop, &layout->undo_free, 0);
+	tx_clear_undo_log(pop, &layout->undo_free, 0);
 }
 
 /*
  * tx_post_commit_set -- (internal) do post commit operations for
  * add range
  */
-static int
+static void
 tx_post_commit_set(PMEMobjpool *pop, struct lane_tx_layout *layout)
 {
 	LOG(3, NULL);
 
 	struct list_head *head = &layout->undo_set_cache;
-	int ret = 0;
 	PMEMoid obj = head->pe_first; /* first cache object */
 
 	/* clear all the undo log caches except for the last one */
 	while (head->pe_first.off != oob_list_last(pop, head).off) {
 		obj = head->pe_first;
 
-		ret = list_remove_free(pop, head, 0, NULL, &obj);
-
-		ASSERTeq(ret, 0);
+		list_remove_free_oob(pop, head, &obj);
 	}
 
 	if (!OID_IS_NULL(obj)) {
@@ -738,9 +705,7 @@ tx_post_commit_set(PMEMobjpool *pop, struct lane_tx_layout *layout)
 		VALGRIND_REMOVE_FROM_TX(cache, sizeof (struct tx_range_cache));
 	}
 
-	ret |= tx_clear_undo_log(pop, &layout->undo_set, 0);
-
-	return ret;
+	tx_clear_undo_log(pop, &layout->undo_set, 0);
 }
 
 /*
@@ -758,69 +723,27 @@ tx_pre_commit(PMEMobjpool *pop, struct lane_tx_layout *layout)
 /*
  * tx_post_commit -- (internal) do post commit operations
  */
-static int
+static void
 tx_post_commit(PMEMobjpool *pop, struct lane_tx_layout *layout)
 {
 	LOG(3, NULL);
 
-	int ret;
-
-	ret = tx_post_commit_set(pop, layout);
-	ASSERTeq(ret, 0);
-	if (ret) {
-		LOG(2, "tx_post_commit_set failed");
-		return ret;
-	}
-
-	ret = tx_post_commit_alloc(pop, layout);
-	ASSERTeq(ret, 0);
-	if (ret) {
-		LOG(2, "tx_post_commit_alloc failed");
-		return ret;
-	}
-
-	ret = tx_post_commit_free(pop, layout);
-	ASSERTeq(ret, 0);
-	if (ret) {
-		LOG(2, "tx_post_commit_free failed");
-		return ret;
-	}
-
-	return 0;
+	tx_post_commit_set(pop, layout);
+	tx_post_commit_alloc(pop, layout);
+	tx_post_commit_free(pop, layout);
 }
 
 /*
  * tx_abort -- (internal) abort all allocated objects
  */
-static int
+static void
 tx_abort(PMEMobjpool *pop, struct lane_tx_layout *layout, int recovery)
 {
 	LOG(3, NULL);
 
-	int ret;
-
-	ret = tx_abort_set(pop, layout, recovery);
-	ASSERTeq(ret, 0);
-	if (ret) {
-		LOG(2, "tx_abort_set failed");
-		return ret;
-	}
-
-	ret = tx_abort_alloc(pop, layout);
-	ASSERTeq(ret, 0);
-	if (ret) {
-		LOG(2, "tx_abort_alloc failed");
-		return ret;
-	}
-
-	ret = tx_abort_free(pop, layout);
-	ASSERTeq(ret, 0);
-	if (ret) {
-		LOG(2, "tx_abort_free failed");
-		return ret;
-	}
-
-	return 0;
+	tx_abort_set(pop, layout, recovery);
+	tx_abort_alloc(pop, layout);
+	tx_abort_free(pop, layout);
 }
 
 /*
@@ -926,9 +849,8 @@ tx_alloc_common(size_t size, type_num_t type_num,
 
 	/* allocate object to undo log */
 	PMEMoid retoid = OID_NULL;
-	list_insert_new(lane->pop, &layout->undo_alloc,
-			0, NULL, OID_NULL, 0,
-			size, constructor, &args, &retoid);
+	list_insert_new_oob(lane->pop, &layout->undo_alloc, size, constructor,
+			&args, &retoid);
 
 	if (OBJ_OID_IS_NULL(retoid) ||
 		ctree_insert(lane->ranges, retoid.off, size) != 0)
@@ -974,8 +896,7 @@ tx_alloc_copy_common(size_t size, type_num_t type_num, const void *ptr,
 
 	/* allocate object to undo log */
 	PMEMoid retoid;
-	int ret = list_insert_new(lane->pop, &layout->undo_alloc,
-			0, NULL, OID_NULL, 0,
+	int ret = list_insert_new_oob(lane->pop, &layout->undo_alloc,
 			size, constructor, &args, &retoid);
 
 	if (ret || OBJ_OID_IS_NULL(retoid) ||
@@ -1046,14 +967,8 @@ tx_realloc_common(PMEMoid oid, size_t size, unsigned int type_num,
 			ERR("pmemobj_tx_free failed");
 			struct lane_tx_layout *layout =
 				(struct lane_tx_layout *)tx.section->layout;
-			int ret = list_remove_free(lane->pop,
-					&layout->undo_alloc,
-					0, NULL, &new_obj);
-			/* XXX fatal error */
-			ASSERTeq(ret, 0);
-			if (ret)
-				ERR("list_remove_free failed");
-
+			list_remove_free_oob(lane->pop, &layout->undo_alloc,
+					&new_obj);
 			return OID_NULL;
 		}
 	}
@@ -1206,7 +1121,6 @@ int
 pmemobj_tx_commit()
 {
 	LOG(3, NULL);
-	int ret = 0;
 
 	ASSERT_IN_TX();
 	ASSERT_TX_STAGE_WORK();
@@ -1230,21 +1144,15 @@ pmemobj_tx_commit()
 		tx_set_state(lane->pop, layout, TX_STATE_COMMITTED);
 
 		/* post commit phase */
-		ret = tx_post_commit(lane->pop, layout);
-		ASSERTeq(ret, 0);
+		tx_post_commit(lane->pop, layout);
 
-		if (!ret) {
-			/* clear transaction state */
-			tx_set_state(lane->pop, layout, TX_STATE_NONE);
-		} else {
-			/* XXX need to handle this case somehow */
-			LOG(2, "tx_post_commit failed");
-		}
+		/* clear transaction state */
+		tx_set_state(lane->pop, layout, TX_STATE_NONE);
 	}
 
 	tx.stage = TX_STAGE_ONCOMMIT;
 
-	return ret;
+	return 0;
 }
 
 /*
@@ -1343,8 +1251,7 @@ pmemobj_tx_add_large(struct lane_tx_layout *layout,
 {
 	/* insert snapshot to undo log */
 	PMEMoid snapshot;
-	int ret = list_insert_new(args->pop, &layout->undo_set, 0,
-			NULL, OID_NULL, 0,
+	int ret = list_insert_new_oob(args->pop, &layout->undo_set,
 			args->size + sizeof (struct tx_range),
 			constructor_tx_add_range, args, &snapshot);
 
@@ -1386,8 +1293,8 @@ pmemobj_tx_get_range_cache(PMEMobjpool *pop, struct lane_tx_layout *layout)
 	if (cache == NULL || cache->range[MAX_CACHED_RANGES - 1].offset != 0) {
 		/* no existing cache, allocate a new one */
 		PMEMoid ncache_oid;
-		if (list_insert_new(pop, &layout->undo_set_cache,
-			0, NULL, OID_NULL, 0, sizeof (struct tx_range_cache),
+		if (list_insert_new_oob(pop, &layout->undo_set_cache,
+			sizeof (struct tx_range_cache),
 			constructor_tx_range_cache, NULL, &ncache_oid) != 0)
 			return NULL;
 
@@ -1741,13 +1648,12 @@ pmemobj_tx_free(PMEMoid oid)
 	struct oob_header *oobh = OOB_HEADER_FROM_OID(lane->pop, oid);
 	ASSERT(oobh->data.user_type < PMEMOBJ_NUM_OID_TYPES);
 
-	int ret;
 	if (oobh->data.internal_type == TYPE_ALLOCATED) {
 		/* the object is in object store */
 		struct object_store_item *obj_list =
 			&lane->pop->store->bytype[oobh->data.user_type];
 
-		ret = list_move_oob(lane->pop, &obj_list->head,
+		list_move_oob(lane->pop, &obj_list->head,
 				&layout->undo_free, oid);
 	} else {
 		ASSERTeq(oobh->data.internal_type, TYPE_NONE);
@@ -1767,14 +1673,10 @@ pmemobj_tx_free(PMEMoid oid)
 		 * The object has been allocated within the same transaction
 		 * so we can just remove and free the object from undo log.
 		 */
-		ret = list_remove_free(lane->pop, &layout->undo_alloc,
-				0, NULL, &oid);
+		list_remove_free_oob(lane->pop, &layout->undo_alloc, &oid);
 	}
 
-	if (ret)
-		pmemobj_tx_abort(ret);
-
-	return ret;
+	return 0;
 }
 
 /*
@@ -1843,12 +1745,8 @@ lane_transaction_recovery(PMEMobjpool *pop,
 		 * process the undo log, do the post commit phase
 		 * and clear the transaction state.
 		 */
-		ret = tx_post_commit(pop, layout);
-		if (!ret) {
-			tx_set_state(pop, layout, TX_STATE_NONE);
-		} else {
-			ERR("tx_post_commit failed");
-		}
+		tx_post_commit(pop, layout);
+		tx_set_state(pop, layout, TX_STATE_NONE);
 	} else {
 #ifdef USE_VG_MEMCHECK
 		if (On_valgrind) {

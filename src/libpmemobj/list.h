@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Intel Corporation
+ * Copyright (c) 2015-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -60,20 +60,35 @@ struct list_head {
 	PMEMmutex lock;
 };
 
-int list_insert_new(PMEMobjpool *pop, struct list_head *oob_head,
-	size_t pe_offset, struct list_head *head, PMEMoid dest, int before,
+int list_insert_new_oob(PMEMobjpool *pop, struct list_head *oob_head,
 	size_t size, void (*constructor)(PMEMobjpool *pop, void *ptr,
 	size_t usable_size, void *arg), void *arg, PMEMoid *oidp);
 
-int list_realloc(PMEMobjpool *pop, struct list_head *oob_head,
-	size_t pe_offset, struct list_head *head, size_t size,
+int list_insert_new_user(PMEMobjpool *pop, struct list_head *oob_head,
+	size_t pe_offset, struct list_head *user_head, PMEMoid dest, int before,
+	size_t size, void (*constructor)(PMEMobjpool *pop, void *ptr,
+	size_t usable_size, void *arg), void *arg, PMEMoid *oidp);
+
+int list_realloc_oob(PMEMobjpool *pop, struct list_head *oob_head, size_t size,
 	void (*constructor)(PMEMobjpool *pop, void *ptr, size_t usable_size,
 	void *arg), void *arg, uint64_t field_offset, uint64_t field_value,
 	PMEMoid *oidp);
 
-int list_realloc_move(PMEMobjpool *pop, struct list_head *oob_head_old,
+int list_realloc_user(PMEMobjpool *pop, struct list_head *oob_head,
+	size_t pe_offset, struct list_head *user_head, size_t size,
+	void (*constructor)(PMEMobjpool *pop, void *ptr, size_t usable_size,
+	void *arg), void *arg, uint64_t field_offset, uint64_t field_value,
+	PMEMoid *oidp);
+
+int list_realloc_move_oob(PMEMobjpool *pop, struct list_head *oob_head_old,
+	struct list_head *oob_head_new, size_t size,
+	void (*constructor)(PMEMobjpool *pop, void *ptr, size_t usable_size,
+	void *arg), void *arg, uint64_t field_offset, uint64_t field_value,
+	PMEMoid *oidp);
+
+int list_realloc_move_user(PMEMobjpool *pop, struct list_head *oob_head_old,
 	struct list_head *oob_head_new, size_t pe_offset,
-	struct list_head *head, size_t size,
+	struct list_head *user_head, size_t size,
 	void (*constructor)(PMEMobjpool *pop, void *ptr, size_t usable_size,
 	void *arg), void *arg, uint64_t field_offset, uint64_t field_value,
 	PMEMoid *oidp);
@@ -82,8 +97,11 @@ int list_insert(PMEMobjpool *pop,
 	size_t pe_offset, struct list_head *head, PMEMoid dest, int before,
 	PMEMoid oid);
 
-int list_remove_free(PMEMobjpool *pop, struct list_head *oob_head,
-	size_t pe_offset, struct list_head *head,
+void list_remove_free_oob(PMEMobjpool *pop, struct list_head *oob_head,
+	PMEMoid *oidp);
+
+int list_remove_free_user(PMEMobjpool *pop, struct list_head *oob_head,
+	size_t pe_offset, struct list_head *user_head,
 	PMEMoid *oidp);
 
 int list_remove(PMEMobjpool *pop,
@@ -95,6 +113,6 @@ int list_move(PMEMobjpool *pop,
 	size_t pe_offset_new, struct list_head *head_new,
 	PMEMoid dest, int before, PMEMoid oid);
 
-int list_move_oob(PMEMobjpool *pop,
+void list_move_oob(PMEMobjpool *pop,
 	struct list_head *head_old, struct list_head *head_new,
 	PMEMoid oid);

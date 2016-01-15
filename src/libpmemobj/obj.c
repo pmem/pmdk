@@ -1144,8 +1144,8 @@ obj_alloc_construct(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 	carg.constructor = constructor;
 	carg.arg = arg;
 
-	return list_insert_new(pop, lhead, 0, NULL, OID_NULL, 0, size,
-				constructor_alloc_bytype, &carg, oidp);
+	return list_insert_new_oob(pop, lhead, size, constructor_alloc_bytype,
+			&carg, oidp);
 }
 
 /*
@@ -1229,8 +1229,7 @@ obj_free(PMEMobjpool *pop, PMEMoid *oidp)
 	ASSERT(pobj->data.user_type < PMEMOBJ_NUM_OID_TYPES);
 
 	void *lhead = &pop->store->bytype[pobj->data.user_type].head;
-	if (list_remove_free(pop, lhead, 0, NULL, oidp))
-		LOG(2, "list_remove_free failed");
+	list_remove_free_oob(pop, lhead, oidp);
 }
 
 /*
@@ -1322,7 +1321,7 @@ obj_realloc_common(PMEMobjpool *pop, struct object_store *store,
 
 	struct list_head *lhead_old = &store->bytype[user_type_old].head;
 	if (type_num == user_type_old) {
-		int ret = list_realloc(pop, lhead_old, 0, NULL, size,
+		int ret = list_realloc_oob(pop, lhead_old, size,
 				constructor_realloc, &carg, 0, 0, oidp);
 		if (ret)
 			LOG(2, "list_realloc failed");
@@ -1355,9 +1354,9 @@ obj_realloc_common(PMEMobjpool *pop, struct object_store *store,
 
 		uint64_t data_offset = OOB_OFFSET_OF(*oidp, data);
 
-		int ret = list_realloc_move(pop, lhead_old, lhead_new, 0, NULL,
-				size, constructor_realloc, &carg, data_offset,
-				*((uint64_t *)&d), oidp);
+		int ret = list_realloc_move_oob(pop, lhead_old, lhead_new,
+				size, constructor_realloc, &carg,
+				data_offset, *((uint64_t *)&d), oidp);
 		if (ret)
 			LOG(2, "list_realloc_move failed");
 
@@ -1685,8 +1684,8 @@ obj_alloc_root(PMEMobjpool *pop, struct object_store *store, size_t size,
 	carg.constructor = constructor;
 	carg.arg = arg;
 
-	return list_insert_new(pop, lhead, 0, NULL, OID_NULL, 0,
-				size, constructor_alloc_root, &carg, NULL);
+	return list_insert_new_oob(pop, lhead, size, constructor_alloc_root,
+			&carg, NULL);
 }
 
 /*
@@ -1712,9 +1711,8 @@ obj_realloc_root(PMEMobjpool *pop, struct object_store *store, size_t size,
 	carg.zero_init = 1;
 	carg.arg = arg;
 
-	return list_realloc(pop, lhead, 0, NULL, size,
-				constructor_zrealloc_root, &carg,
-				size_offset, size, &lhead->pe_first);
+	return list_realloc_oob(pop, lhead, size, constructor_zrealloc_root,
+			&carg, size_offset, size, &lhead->pe_first);
 }
 
 /*
@@ -1750,10 +1748,7 @@ PMEMoid pmemobj_root_construct(PMEMobjpool *pop, size_t size,
 
 	PMEMoid root;
 
-	if ((errno = pmemobj_mutex_lock(pop, &pop->rootlock))) {
-		ERR("!pmemobj_mutex_lock");
-		return OID_NULL;
-	}
+	pmemobj_mutex_lock_nofail(pop, &pop->rootlock);
 
 	if (pop->store->root.head.pe_first.off == 0)
 		/* root object list is empty */
@@ -1902,7 +1897,7 @@ pmemobj_list_insert_new(PMEMobjpool *pop, size_t pe_offset, void *head,
 	carg.zero_init = 0;
 
 	PMEMoid retoid = OID_NULL;
-	list_insert_new(pop, lhead,
+	list_insert_new_user(pop, lhead,
 			pe_offset, head, dest, before,
 			size, constructor_alloc_bytype, &carg, &retoid);
 	return retoid;
@@ -1933,7 +1928,7 @@ pmemobj_list_remove(PMEMobjpool *pop, size_t pe_offset, void *head,
 		ASSERT(pobj->data.user_type < PMEMOBJ_NUM_OID_TYPES);
 
 		void *lhead = &pop->store->bytype[pobj->data.user_type].head;
-		return list_remove_free(pop, lhead, pe_offset, head, &oid);
+		return list_remove_free_user(pop, lhead, pe_offset, head, &oid);
 	} else
 		return list_remove(pop, pe_offset, head, oid);
 }

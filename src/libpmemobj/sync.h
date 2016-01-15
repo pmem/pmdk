@@ -37,6 +37,21 @@
  */
 
 /*
+ * pmemobj_mutex_lock_nofail -- pmemobj_mutex_lock variant that never
+ * fails from caller perspective. If pmemobj_mutex_lock failed, this function
+ * aborts the program.
+ */
+static inline void
+pmemobj_mutex_lock_nofail(PMEMobjpool *pop, PMEMmutex *mutexp)
+{
+	int ret = pmemobj_mutex_lock(pop, mutexp);
+	if (ret) {
+		errno = ret;
+		FATAL("!pmemobj_mutex_lock");
+	}
+}
+
+/*
  * pmemobj_mutex_unlock_nofail -- pmemobj_mutex_unlock variant that never
  * fails from caller perspective. If pmemobj_mutex_unlock failed, this function
  * aborts the program.
@@ -50,3 +65,5 @@ pmemobj_mutex_unlock_nofail(PMEMobjpool *pop, PMEMmutex *mutexp)
 		FATAL("!pmemobj_mutex_unlock");
 	}
 }
+
+int pmemobj_mutex_assert_locked(PMEMobjpool *pop, PMEMmutex *mutexp);
