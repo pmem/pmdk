@@ -295,8 +295,7 @@ lane_hold(PMEMobjpool *pop, struct lane_section **section,
 
 	struct lane *lane = &pop->lanes[Lane_idx % pop->nlanes];
 
-	if ((err = pthread_mutex_lock(lane->lock)) != 0)
-		ERR("!pthread_mutex_lock");
+	util_mutex_lock(lane->lock);
 
 	*section = &lane->sections[type];
 

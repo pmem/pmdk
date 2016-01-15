@@ -53,6 +53,21 @@ util_mutex_destroy(pthread_mutex_t *m)
 }
 
 /*
+ * util_mutex_lock -- pthread_mutex_lock variant that never fails from
+ * caller perspective. If pthread_mutex_lock failed, this function aborts
+ * the program.
+ */
+static inline void
+util_mutex_lock(pthread_mutex_t *m)
+{
+	int tmp = pthread_mutex_lock(m);
+	if (tmp) {
+		errno = tmp;
+		FATAL("!pthread_mutex_lock");
+	}
+}
+
+/*
  * util_mutex_unlock -- pthread_mutex_unlock variant that never fails from
  * caller perspective. If pthread_mutex_unlock failed, this function aborts
  * the program.

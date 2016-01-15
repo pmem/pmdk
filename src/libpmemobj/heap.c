@@ -420,7 +420,7 @@ static void
 heap_reuse_run(PMEMobjpool *pop, struct bucket *b,
 	uint32_t chunk_id, uint32_t zone_id)
 {
-	pthread_mutex_lock(heap_get_run_lock(pop, chunk_id));
+	util_mutex_lock(heap_get_run_lock(pop, chunk_id));
 
 	struct pmalloc_heap *h = pop->heap;
 	struct zone *z = &h->layout->zones[zone_id];
@@ -547,10 +547,7 @@ static int
 heap_get_active_run(struct pmalloc_heap *h, int bucket_idx,
 	struct memory_block *m)
 {
-	if (pthread_mutex_lock(&h->active_run_lock) != 0) {
-		ERR("failed to acquire active run lock");
-		return 0;
-	}
+	util_mutex_lock(&h->active_run_lock);
 
 	int ret = 0;
 
@@ -1173,8 +1170,10 @@ heap_lock_if_run(PMEMobjpool *pop, struct memory_block m)
 	struct chunk_header *hdr =
 		&pop->heap->layout->zones[m.zone_id].chunk_headers[m.chunk_id];
 
-	return hdr->type == CHUNK_TYPE_RUN ?
-		pthread_mutex_lock(heap_get_run_lock(pop, m.chunk_id)) : 0;
+	if (hdr->type == CHUNK_TYPE_RUN)
+		util_mutex_lock(heap_get_run_lock(pop, m.chunk_id));
+
+	return 0;
 }
 
 /*
@@ -1293,8 +1292,7 @@ heap_degrade_run_if_empty(PMEMobjpool *pop, struct bucket *b,
 	if ((err = bucket_lock(b)) != 0)
 		return err;
 
-	if ((err = pthread_mutex_lock(heap_get_run_lock(pop, m.chunk_id))) != 0)
-		goto out_bucket;
+	util_mutex_lock(heap_get_run_lock(pop, m.chunk_id));
 
 	unsigned i;
 	unsigned nval = bucket_bitmap_nval(b);
@@ -1343,7 +1341,6 @@ heap_degrade_run_if_empty(PMEMobjpool *pop, struct bucket *b,
 
 out:
 	util_mutex_unlock(heap_get_run_lock(pop, m.chunk_id));
-out_bucket:
 	bucket_unlock(b);
 
 	return err;

@@ -66,10 +66,7 @@ lane_enter(PMEMblkpool *pbp, unsigned *lane)
 	mylane = __sync_fetch_and_add(&pbp->next_lane, 1) % pbp->nlane;
 
 	/* lane selected, grab the per-lane lock */
-	if ((errno = pthread_mutex_lock(&pbp->locks[mylane]))) {
-		ERR("!pthread_mutex_lock");
-		return -1;
-	}
+	util_mutex_lock(&pbp->locks[mylane]);
 
 	*lane = mylane;
 
@@ -135,10 +132,7 @@ nswrite(void *ns, unsigned lane, const void *buf, size_t count,
 
 #ifdef DEBUG
 	/* grab debug write lock */
-	if ((errno = pthread_mutex_lock(&pbp->write_lock))) {
-		ERR("!pthread_mutex_lock");
-		return -1;
-	}
+	util_mutex_lock(&pbp->write_lock);
 #endif
 
 	/* unprotect the memory (debug version only) */

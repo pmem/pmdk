@@ -127,10 +127,9 @@ ctree_insert(struct ctree *t, uint64_t key, uint64_t value)
 {
 	void **dst = &t->root;
 	struct node *a = NULL;
-	int err;
+	int err = 0;
 
-	if ((err = pthread_mutex_lock(&t->lock)) != 0)
-		return err;
+	util_mutex_lock(&t->lock);
 
 	/* descend the path until a best matching key is found */
 	while (NODE_IS_INTERNAL(*dst)) {
@@ -279,12 +278,7 @@ ctree_remove(struct ctree *t, uint64_t key, int eq)
 	void **dst = &t->root; /* node to remove ref */
 	struct node *a = NULL; /* internal node */
 
-	int err;
-	if ((err = pthread_mutex_lock(&t->lock)) != 0) {
-		errno = err;
-		ERR("!pthread_mutex_lock");
-		return 0;
-	}
+	util_mutex_lock(&t->lock);
 
 	struct node_leaf *l = NULL;
 	uint64_t k = 0;
@@ -381,12 +375,7 @@ out:
 int
 ctree_is_empty(struct ctree *t)
 {
-	int err;
-	if ((err = pthread_mutex_lock(&t->lock)) != 0) {
-		errno = err;
-		ERR("!pthread_mutex_lock");
-		return errno;
-	}
+	util_mutex_lock(&t->lock);
 
 	int ret = t->root == NULL;
 

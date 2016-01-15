@@ -314,7 +314,8 @@ bucket_is_empty(struct bucket *b)
 int
 bucket_lock(struct bucket *b)
 {
-	return pthread_mutex_lock(&b->lock);
+	util_mutex_lock(&b->lock);
+	return 0;
 }
 
 /*

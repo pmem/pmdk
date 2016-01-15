@@ -624,10 +624,7 @@ arena_setf(struct btt *bttp, struct arena *arenap, unsigned lane, uint32_t setf)
 	struct btt_info info;
 
 	/* protect from simultaneous writes to the layout */
-	if ((errno = pthread_mutex_lock(&arenap->info_lock))) {
-		ERR("!pthread_mutex_lock");
-		return -1;
-	}
+	util_mutex_lock(&arenap->info_lock);
 
 	if ((*bttp->ns_cbp->nsread)(bttp->ns, lane, &info,
 			sizeof (info), arena_off) < 0) {
@@ -1465,10 +1462,7 @@ map_lock(struct btt *bttp, unsigned lane, struct arena *arenap,
 	 */
 	uint32_t map_lock_num = premap_lba * BTT_MAP_ENTRY_SIZE /
 			BTT_MAP_LOCK_ALIGN % bttp->nfree;
-	if ((errno = pthread_mutex_lock(&arenap->map_locks[map_lock_num]))) {
-		ERR("!pthread_mutex_lock");
-		return -1;
-	}
+	util_mutex_lock(&arenap->map_locks[map_lock_num]);
 
 	/* read the old map entry */
 	if ((*bttp->ns_cbp->nsread)(bttp->ns, lane, entryp,
@@ -1552,10 +1546,8 @@ btt_write(struct btt *bttp, unsigned lane, uint64_t lba, const void *buf)
 	if (!bttp->laidout) {
 		int err = 0;
 
-		if ((errno = pthread_mutex_lock(&bttp->layout_write_mutex))) {
-			ERR("!pthread_mutex_lock");
-			return -1;
-		}
+		util_mutex_lock(&bttp->layout_write_mutex);
+
 		if (!bttp->laidout)
 			err = write_layout(bttp, lane, 1);
 
@@ -1665,10 +1657,8 @@ map_entry_setf(struct btt *bttp, unsigned lane, uint64_t lba, uint32_t setf)
 		 * the metadata layout at this point.
 		 */
 		int err = 0;
-		if ((errno = pthread_mutex_lock(&bttp->layout_write_mutex))) {
-			ERR("!pthread_mutex_lock");
-			return -1;
-		}
+		util_mutex_lock(&bttp->layout_write_mutex);
+
 		if (!bttp->laidout)
 			err = write_layout(bttp, lane, 1);
 
