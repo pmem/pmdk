@@ -43,6 +43,7 @@
 #include "libpmemobj.h"
 #include "util.h"
 #include "out.h"
+#include "sys_util.h"
 #include "redo.h"
 #include "heap_layout.h"
 #include "heap.h"
@@ -50,7 +51,6 @@
 #include "ctree.h"
 #include "lane.h"
 #include "list.h"
-#include "sys_util.h"
 #include "obj.h"
 #include "valgrind_internal.h"
 
@@ -86,20 +86,17 @@ static void
 bucket_vg_mark_noaccess(PMEMobjpool *pop, struct block_container *bc,
 	struct memory_block m)
 {
-	ASSERT(unit_size > 0);
-
-	struct bucket *b = Malloc(sizeof (*b));
-	if (b == NULL)
-		goto error_bucket_malloc;
-
-	b->tree = ctree_new();
-	if (b->tree == NULL)
-		goto error_tree_new;
-
-	util_mutex_init(&b->lock, NULL);
+	if (On_valgrind) {
+		size_t rsize = m.size_idx * bc->unit_size;
+		void *block_data = heap_get_block_data(pop, m);
+		VALGRIND_DO_MAKE_MEM_NOACCESS(pop, block_data, rsize);
+	}
+}
+#endif
 
 /*
- * bucket_tree_insert_block -- inserts a new memory block into the container
+ * bucket_tree_insert_block -- (internal) inserts a new memory block
+ *	into the container
  */
 static int
 bucket_tree_insert_block(struct block_container *bc, PMEMobjpool *pop,
@@ -118,21 +115,19 @@ bucket_tree_insert_block(struct block_container *bc, PMEMobjpool *pop,
 	uint64_t key = CHUNK_KEY_PACK(m.zone_id, m.chunk_id, m.block_off,
 				m.size_idx);
 
-error_tree_new:
-	Free(b);
-error_bucket_malloc:
-	return NULL;
+	return ctree_insert(c->tree, key, 0);
 }
 
 /*
- * bucket_tree_get_rm_block_bestfit --
- *	removes and returns the best-fit memory block for size
+ * bucket_tree_get_rm_block_bestfit -- (internal) removes and returns the
+ *	best-fit memory block for size
  */
 static int
 bucket_tree_get_rm_block_bestfit(struct block_container *bc,
 	struct memory_block *m)
 {
-	util_mutex_destroy(&b->lock);
+	uint64_t key = CHUNK_KEY_PACK(m->zone_id, m->chunk_id, m->block_off,
+			m->size_idx);
 
 	struct block_container_ctree *c = (struct block_container_ctree *)bc;
 
@@ -148,7 +143,7 @@ bucket_tree_get_rm_block_bestfit(struct block_container *bc,
 }
 
 /*
- * bucket_tree_get_rm_block_exact -- removes exact match memory block
+ * bucket_tree_get_rm_block_exact -- (internal) removes exact match memory block
  */
 static int
 bucket_tree_get_rm_block_exact(struct block_container *bc,
@@ -166,7 +161,7 @@ bucket_tree_get_rm_block_exact(struct block_container *bc,
 }
 
 /*
- * bucket_tree_get_block_exact -- finds exact match memory block
+ * bucket_tree_get_block_exact -- (internal) finds exact match memory block
  */
 static int
 bucket_tree_get_block_exact(struct block_container *bc, struct memory_block m)
@@ -180,7 +175,7 @@ bucket_tree_get_block_exact(struct block_container *bc, struct memory_block m)
 }
 
 /*
- * bucket_tree_is_empty -- checks whether the bucket is empty
+ * bucket_tree_is_empty -- (internal) checks whether the bucket is empty
  */
 static int
 bucket_tree_is_empty(struct block_container *bc)
@@ -259,15 +254,8 @@ bucket_run_create(size_t unit_size, unsigned unit_max)
 	ASSERT(RUN_NALLOCS(unit_size) <= UINT32_MAX);
 	b->bitmap_nallocs = (unsigned)(RUN_NALLOCS(unit_size));
 
-	int ret = ctree_insert(b->tree, key, 0);
-	if (ret != 0) {
-		if (ret == EEXIST)
-			FATAL("Bucket tree already contains key %llu\n",
-					(unsigned long long)key);
-		ERR("Failed to create volatile state of memory block");
-		ASSERT(0);
-	}
-}
+	ASSERT(b->bitmap_nallocs <= RUN_BITMAP_SIZE);
+	unsigned unused_bits = RUN_BITMAP_SIZE - b->bitmap_nallocs;
 
 	unsigned unused_values = unused_bits / BITS_PER_VALUE;
 
@@ -318,22 +306,49 @@ static struct {
 };
 
 /*
- * bucket_calc_units -- calculates the number of units requested size requires
+ * bucket_calc_units -- (internal) calculates the number of units requested
+ *	size requires
  */
 static uint32_t
 bucket_calc_units(struct bucket *b, size_t size)
 {
 	ASSERTne(size, 0);
-	return ((size - 1) / b->unit_size) + 1;
+	return (uint32_t)(((size - 1) / b->unit_size) + 1);
 }
 
 /*
  * bucket_new -- allocates and initializes bucket instance
  */
-void
-bucket_lock(struct bucket *b)
+struct bucket *
+bucket_new(uint8_t id, enum bucket_type type, enum block_container_type ctype,
+	size_t unit_size, unsigned unit_max)
 {
-	util_mutex_lock(&b->lock);
+	ASSERT(unit_size > 0);
+
+	struct bucket *b = bucket_types[type].create(unit_size, unit_max);
+	if (b == NULL)
+		goto error_bucket_malloc;
+
+	b->id = id;
+	b->calc_units = bucket_calc_units;
+
+	b->container = block_containers[ctype].create(unit_size);
+	if (b->container == NULL)
+		goto error_container_create;
+
+	b->container->unit_size = unit_size;
+
+	util_mutex_init(&b->lock, NULL);
+
+	b->c_ops = block_containers[ctype].ops;
+	b->unit_size = unit_size;
+
+	return b;
+
+error_container_create:
+	bucket_types[type].delete(b);
+error_bucket_malloc:
+	return NULL;
 }
 
 /*
@@ -342,5 +357,8 @@ bucket_lock(struct bucket *b)
 void
 bucket_delete(struct bucket *b)
 {
-	util_mutex_unlock(&b->lock);
+	util_mutex_destroy(&b->lock);
+
+	block_containers[b->container->type].delete(b->container);
+	bucket_types[b->type].delete(b);
 }

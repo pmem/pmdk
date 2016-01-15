@@ -258,7 +258,7 @@ pmalloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
 	 * Now that the memory is reserved we can go ahead with making the
 	 * allocation persistent.
 	 */
-	uint64_t real_size = bucket_unit_size(b) * m.size_idx;
+	uint64_t real_size = b->unit_size * m.size_idx;
 	persist_alloc(pop, lane, m, real_size, off, constructor, arg, data_off);
 	err = 0;
 out:
@@ -316,7 +316,7 @@ prealloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
 	heap_lock_if_run(pop, cnt);
 
 	struct memory_block next = {0, 0, 0, 0};
-	if ((err = heap_get_adjacent_free_block(pop, &next, cnt, 0)) != 0)
+	if ((err = heap_get_adjacent_free_block(pop, b, &next, cnt, 0)) != 0)
 		goto out;
 
 	if (next.size_idx < add_size_idx) {
@@ -427,7 +427,7 @@ pfree(PMEMobjpool *pop, uint64_t *off, uint64_t data_off)
 
 	CNT_OP(b, insert, pop, res);
 
-	if (bucket_is_small(b))
+	if (b->type == BUCKET_RUN)
 		heap_degrade_run_if_empty(pop, b, res);
 
 	lane_release(pop);

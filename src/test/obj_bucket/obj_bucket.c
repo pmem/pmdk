@@ -133,11 +133,9 @@ test_bucket()
 		TEST_UNIT_SIZE, TEST_MAX_UNIT);
 	ASSERT(b != NULL);
 
-	ASSERT(bucket_unit_size(b) == TEST_UNIT_SIZE);
-	ASSERT(bucket_is_small(b));
-	ASSERT(bucket_calc_units(b, TEST_SIZE) == TEST_SIZE_UNITS);
-	bucket_lock(b);
-	bucket_unlock(b);
+	ASSERT(b->unit_size == TEST_UNIT_SIZE);
+	ASSERT(b->type == BUCKET_HUGE);
+	ASSERT(b->calc_units(b, TEST_SIZE) == TEST_SIZE_UNITS);
 
 	bucket_delete(b);
 }

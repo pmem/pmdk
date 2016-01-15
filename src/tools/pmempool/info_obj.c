@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2015, Intel Corporation
+ * Copyright (c) 2014-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -52,6 +52,7 @@
 
 #define	PTR_TO_OFF(pop, ptr) ((uintptr_t)ptr - (uintptr_t)pop)
 
+#define	DEFAULT_BUCKET MAX_BUCKETS
 
 typedef void (*list_callback_fn)(struct pmem_info *pip, int v, int vnum,
 		struct pmemobjpool *pop, struct list_entry *entry, size_t i);
@@ -642,7 +643,7 @@ info_obj_chunk_hdr(struct pmem_info *pip, int v, struct pmemobjpool *pop,
 				PTR_TO_OFF(pop, run), 1);
 
 		int class = heap_size_to_class(run->block_size);
-		if (class >= 0 && class < MAX_BUCKETS) {
+		if (class >= 0 && class < MAX_CLASS_STATS) {
 			outv_field(v, "Block size", "%s",
 					out_get_size_str(run->block_size,
 						pip->args.human));
@@ -868,7 +869,7 @@ info_obj_stats_alloc_classes(struct pmem_info *pip, int v,
 	uint64_t total_used = 0;
 
 	out_indent(1);
-	for (int class = 0; class < MAX_BUCKETS; class++) {
+	for (int class = 0; class < MAX_CLASS_STATS; class++) {
 		uint64_t class_size = heap_class_to_size(class);
 		double used_perc = 100.0 *
 			(double)stats->class_stats[class].n_used /
