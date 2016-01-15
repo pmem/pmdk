@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2015, Intel Corporation
+ * Copyright (c) 2014-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -655,14 +655,14 @@ arena_setf(struct btt *bttp, struct arena *arenap, unsigned lane, uint32_t setf)
 
 	oerrno = errno;
 	if ((errno = pthread_mutex_unlock(&arenap->info_lock)))
-		ERR("!pthread_mutex_unlock");
+		FATAL("!pthread_mutex_unlock");
 	errno = oerrno;
 	return 0;
 
 err:
 	oerrno = errno;
 	if ((errno = pthread_mutex_unlock(&arenap->info_lock)))
-		ERR("!pthread_mutex_unlock");
+		FATAL("!pthread_mutex_unlock");
 	errno = oerrno;
 	return -1;
 }
@@ -1483,7 +1483,7 @@ map_lock(struct btt *bttp, unsigned lane, struct arena *arenap,
 		int oerrno = errno;
 		if ((errno = pthread_mutex_unlock(
 					&arenap->map_locks[map_lock_num])))
-			ERR("!pthread_mutex_unlock");
+			FATAL("!pthread_mutex_unlock");
 		errno = oerrno;
 		return -1;
 	}
@@ -1514,7 +1514,7 @@ map_abort(struct btt *bttp, unsigned lane, struct arena *arenap,
 			BTT_MAP_LOCK_ALIGN % bttp->nfree;
 	int oerrno = errno;
 	if ((errno = pthread_mutex_unlock(&arenap->map_locks[map_lock_num])))
-		ERR("!pthread_mutex_unlock");
+		FATAL("!pthread_mutex_unlock");
 	errno = oerrno;
 }
 
@@ -1541,7 +1541,7 @@ map_unlock(struct btt *bttp, unsigned lane, struct arena *arenap,
 
 	int oerrno = errno;
 	if ((errno = pthread_mutex_unlock(&arenap->map_locks[map_lock_num])))
-		ERR("!pthread_mutex_unlock");
+		FATAL("!pthread_mutex_unlock");
 	errno = oerrno;
 
 	LOG(9, "unlocked map[%d]: %u%s%s", premap_lba,
@@ -1578,7 +1578,7 @@ btt_write(struct btt *bttp, unsigned lane, uint64_t lba, const void *buf)
 
 		int oerrno = errno;
 		if ((errno = pthread_mutex_unlock(&bttp->layout_write_mutex)))
-			ERR("!pthread_mutex_unlock");
+			FATAL("!pthread_mutex_unlock");
 		errno = oerrno;
 
 		if (err < 0)
@@ -1694,7 +1694,7 @@ map_entry_setf(struct btt *bttp, unsigned lane, uint64_t lba, uint32_t setf)
 
 		int oerrno = errno;
 		if ((errno = pthread_mutex_unlock(&bttp->layout_write_mutex)))
-			ERR("!pthread_mutex_unlock");
+			FATAL("!pthread_mutex_unlock");
 		errno = oerrno;
 
 		if (err < 0)

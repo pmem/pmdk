@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2015, Intel Corporation
+ * Copyright (c) 2014-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -83,7 +83,7 @@ lane_exit(PMEMblkpool *pbp, unsigned mylane)
 {
 	int oerrno = errno;
 	if ((errno = pthread_mutex_unlock(&pbp->locks[mylane])))
-		ERR("!pthread_mutex_unlock");
+		FATAL("!pthread_mutex_unlock");
 	errno = oerrno;
 }
 
@@ -157,7 +157,7 @@ nswrite(void *ns, unsigned lane, const void *buf, size_t count,
 #ifdef DEBUG
 	/* release debug write lock */
 	if ((errno = pthread_mutex_unlock(&pbp->write_lock)))
-		ERR("!pthread_mutex_unlock");
+		FATAL("!pthread_mutex_unlock");
 #endif
 
 	if (pbp->is_pmem)
