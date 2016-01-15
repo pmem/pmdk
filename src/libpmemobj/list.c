@@ -146,19 +146,30 @@ err:
 /*
  * list_mutexes_unlock -- (internal) release one or two locks
  */
-static inline int
+static inline void
 list_mutexes_unlock(PMEMobjpool *pop,
 	struct list_head *head1, struct list_head *head2)
 {
 	ASSERTne(head1, NULL);
+	int err;
 
-	if (!head2)
-		return pmemobj_mutex_unlock(pop, &head1->lock);
+	if (!head2) {
+		if ((err = pmemobj_mutex_unlock(pop, &head1->lock))) {
+			errno = err;
+			FATAL("!pmemobj_mutex_unlock");
+		}
+		return;
+	}
 
-	int ret1 = pmemobj_mutex_unlock(pop, &head1->lock);
-	int ret2 = pmemobj_mutex_unlock(pop, &head2->lock);
+	if ((err = pmemobj_mutex_unlock(pop, &head1->lock))) {
+		errno = err;
+		FATAL("!pmemobj_mutex_unlock");
+	}
 
-	return ret2 ? ret2 : ret1;
+	if ((err = pmemobj_mutex_unlock(pop, &head2->lock))) {
+		errno = err;
+		FATAL("!pmemobj_mutex_unlock");
+	}
 }
 
 /*
@@ -853,15 +864,17 @@ list_insert_new(PMEMobjpool *pop, struct list_head *oob_head,
 
 	if (head) {
 		out_ret = pmemobj_mutex_unlock(pop, &head->lock);
-		ASSERTeq(out_ret, 0);
-		if (out_ret)
-			LOG(2, "pmemobj_mutex_unlock failed");
+		if (out_ret) {
+			errno = out_ret;
+			FATAL("!pmemobj_mutex_unlock");
+		}
 	}
 err_lock:
 	out_ret = pmemobj_mutex_unlock(pop, &oob_head->lock);
-	ASSERTeq(out_ret, 0);
-	if (out_ret)
-		LOG(2, "pmemobj_mutex_unlock failed");
+	if (out_ret) {
+		errno = out_ret;
+		FATAL("!pmemobj_mutex_unlock");
+	}
 err_pmalloc:
 err_oob_lock:
 	lane_release(pop);
@@ -951,9 +964,10 @@ list_insert(PMEMobjpool *pop,
 	redo_log_process(pop, redo, REDO_NUM_ENTRIES);
 
 	out_ret = pmemobj_mutex_unlock(pop, &head->lock);
-	ASSERTeq(out_ret, 0);
-	if (out_ret)
-		LOG(2, "pmemobj_mutex_unlock failed");
+	if (out_ret) {
+		errno = out_ret;
+		FATAL("!pmemobj_mutex_unlock");
+	}
 err:
 	lane_release(pop);
 
@@ -1062,9 +1076,10 @@ list_remove_free(PMEMobjpool *pop, struct list_head *oob_head,
 
 	if (head) {
 		out_ret = pmemobj_mutex_unlock(pop, &head->lock);
-		ASSERTeq(out_ret, 0);
-		if (out_ret)
-			LOG(2, "pmemobj_mutex_unlock failed");
+		if (out_ret) {
+			errno = out_ret;
+			FATAL("!pmemobj_mutex_unlock");
+		}
 	}
 
 	/*
@@ -1081,9 +1096,10 @@ list_remove_free(PMEMobjpool *pop, struct list_head *oob_head,
 
 err_lock:
 	out_ret = pmemobj_mutex_unlock(pop, &oob_head->lock);
-	ASSERTeq(out_ret, 0);
-	if (out_ret)
-		LOG(2, "pmemobj_mutex_unlock failed");
+	if (out_ret) {
+		errno = out_ret;
+		FATAL("!pmemobj_mutex_unlock");
+	}
 err_oob_lock:
 	lane_release(pop);
 
@@ -1160,9 +1176,10 @@ list_remove(PMEMobjpool *pop,
 	redo_log_process(pop, redo, REDO_NUM_ENTRIES);
 
 	out_ret = pmemobj_mutex_unlock(pop, &head->lock);
-	ASSERTeq(out_ret, 0);
-	if (out_ret)
-		LOG(2, "pmemobj_mutex_unlock failed");
+	if (out_ret) {
+		errno = out_ret;
+		FATAL("!pmemobj_mutex_unlock");
+	}
 err:
 	lane_release(pop);
 
@@ -1187,7 +1204,6 @@ list_move_oob(PMEMobjpool *pop,
 	ASSERTne(head_new, NULL);
 
 	int ret;
-	int out_ret;
 
 	struct lane_section *lane_section;
 
@@ -1252,10 +1268,7 @@ list_move_oob(PMEMobjpool *pop,
 
 	redo_log_process(pop, redo, REDO_NUM_ENTRIES);
 
-	out_ret = list_mutexes_unlock(pop, head_new, head_old);
-	ASSERTeq(out_ret, 0);
-	if (out_ret)
-		LOG(2, "list_mutexes_unlock failed");
+	list_mutexes_unlock(pop, head_new, head_old);
 err:
 	lane_release(pop);
 
@@ -1285,7 +1298,6 @@ list_move(PMEMobjpool *pop,
 	ASSERTne(head_new, NULL);
 
 	int ret;
-	int out_ret;
 
 	struct lane_section *lane_section;
 
@@ -1369,10 +1381,7 @@ list_move(PMEMobjpool *pop,
 
 	redo_log_process(pop, redo, REDO_NUM_ENTRIES);
 
-	out_ret = list_mutexes_unlock(pop, head_new, head_old);
-	ASSERTeq(out_ret, 0);
-	if (out_ret)
-		LOG(2, "list_mutexes_unlock failed");
+	list_mutexes_unlock(pop, head_new, head_old);
 err:
 	lane_release(pop);
 
@@ -1589,16 +1598,18 @@ list_realloc(PMEMobjpool *pop, struct list_head *oob_head,
 err_unlock:
 	if (head) {
 		out_ret = pmemobj_mutex_unlock(pop, &head->lock);
-		ASSERTeq(out_ret, 0);
-		if (out_ret)
-			LOG(2, "pmemobj_mutex_unlock failed");
+		if (out_ret) {
+			errno = out_ret;
+			FATAL("!pmemobj_mutex_unlock");
+		}
 	}
 
 err_lock:
 	out_ret = pmemobj_mutex_unlock(pop, &oob_head->lock);
-	ASSERTeq(out_ret, 0);
-	if (out_ret)
-		LOG(2, "pmemobj_mutex_unlock failed");
+	if (out_ret) {
+		errno = out_ret;
+		FATAL("!pmemobj_mutex_unlock");
+	}
 err_oob_lock:
 	lane_release(pop);
 
@@ -1840,15 +1851,13 @@ list_realloc_move(PMEMobjpool *pop, struct list_head *oob_head_old,
 err_unlock:
 	if (head) {
 		out_ret = pmemobj_mutex_unlock(pop, &head->lock);
-		ASSERTeq(out_ret, 0);
-		if (out_ret)
-			LOG(2, "pmemobj_mutex_unlock failed");
+		if (out_ret) {
+			errno = out_ret;
+			FATAL("!pmemobj_mutex_unlock");
+		}
 	}
 err_lock:
-	out_ret = list_mutexes_unlock(pop, oob_head_new, oob_head_old);
-	ASSERTeq(out_ret, 0);
-	if (out_ret)
-		LOG(2, "list_mutexes_unlock failed");
+	list_mutexes_unlock(pop, oob_head_new, oob_head_old);
 err_oob_lock:
 	lane_release(pop);
 

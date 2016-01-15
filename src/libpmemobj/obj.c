@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2015, Intel Corporation
+ * Copyright (c) 2014-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -1764,19 +1764,15 @@ PMEMoid pmemobj_root_construct(PMEMobjpool *pop, size_t size,
 		if (size > old_size && obj_realloc_root(pop, pop->store, size,
 				old_size, constructor, arg)) {
 			errno = pmemobj_mutex_unlock(pop, &pop->rootlock);
-			if (errno) {
-				ERR("!pmemobj_mutex_unlock");
-				ASSERT(0);
-			}
+			if (errno)
+				FATAL("!pmemobj_mutex_unlock");
 			LOG(2, "obj_realloc_root failed");
 			return OID_NULL;
 		}
 	}
 	root = pop->store->root.head.pe_first;
-	if ((errno = pmemobj_mutex_unlock(pop, &pop->rootlock))) {
-		ERR("!pmemobj_mutex_unlock");
-		ASSERT(0);
-	}
+	if ((errno = pmemobj_mutex_unlock(pop, &pop->rootlock)))
+		FATAL("!pmemobj_mutex_unlock");
 	return root;
 }
 
