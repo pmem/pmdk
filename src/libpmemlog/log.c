@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2015, Intel Corporation
+ * Copyright (c) 2014-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -335,7 +335,7 @@ pmemlog_nbyte(PMEMlogpool *plp)
 	LOG(4, "plp %p nbyte %zu", plp, size);
 
 	if ((errno = pthread_rwlock_unlock(plp->rwlockp)))
-		ERR("!pthread_rwlock_unlock");
+		FATAL("!pthread_rwlock_unlock");
 
 	return size;
 }
@@ -446,7 +446,7 @@ pmemlog_append(PMEMlogpool *plp, const void *buf, size_t count)
 
 	int oerrno = errno;
 	if ((errno = pthread_rwlock_unlock(plp->rwlockp)))
-		ERR("!pthread_rwlock_unlock");
+		FATAL("!pthread_rwlock_unlock");
 	errno = oerrno;
 
 	return ret;
@@ -534,7 +534,7 @@ pmemlog_appendv(PMEMlogpool *plp, const struct iovec *iov, int iovcnt)
 
 	int oerrno = errno;
 	if ((errno = pthread_rwlock_unlock(plp->rwlockp)))
-		ERR("!pthread_rwlock_unlock");
+		FATAL("!pthread_rwlock_unlock");
 	errno = oerrno;
 
 	return ret;
@@ -560,7 +560,7 @@ pmemlog_tell(PMEMlogpool *plp)
 	LOG(4, "write offset %lld", (long long)wp);
 
 	if ((errno = pthread_rwlock_unlock(plp->rwlockp)))
-		ERR("!pthread_rwlock_unlock");
+		FATAL("!pthread_rwlock_unlock");
 
 	return wp;
 }
@@ -599,7 +599,7 @@ pmemlog_rewind(PMEMlogpool *plp)
 			LOG_FORMAT_DATA_ALIGN);
 
 	if ((errno = pthread_rwlock_unlock(plp->rwlockp)))
-		ERR("!pthread_rwlock_unlock");
+		FATAL("!pthread_rwlock_unlock");
 }
 
 /*
@@ -648,7 +648,7 @@ pmemlog_walk(PMEMlogpool *plp, size_t chunksize,
 	}
 
 	if ((errno = pthread_rwlock_unlock(plp->rwlockp)))
-		ERR("!pthread_rwlock_unlock");
+		FATAL("!pthread_rwlock_unlock");
 }
 
 /*
