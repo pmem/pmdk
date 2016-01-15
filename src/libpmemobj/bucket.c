@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Intel Corporation
+ * Copyright (c) 2015-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -320,8 +320,9 @@ bucket_lock(struct bucket *b)
 void
 bucket_unlock(struct bucket *b)
 {
-	if (pthread_mutex_unlock(&b->lock) != 0) {
-		ERR("pthread_mutex_unlock");
-		ASSERT(0);
+	int err;
+	if ((err = pthread_mutex_unlock(&b->lock))) {
+		errno = err;
+		FATAL("!pthread_mutex_unlock");
 	}
 }

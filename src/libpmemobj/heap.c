@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Intel Corporation
+ * Copyright (c) 2015-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -443,8 +443,12 @@ heap_reuse_run(PMEMobjpool *pop, struct bucket *b,
 
 	heap_process_run_metadata(pop, b, run, chunk_id, zone_id);
 
+	int err;
 out:
-	pthread_mutex_unlock(heap_get_run_lock(pop, chunk_id));
+	if ((err = pthread_mutex_unlock(heap_get_run_lock(pop, chunk_id)))) {
+		errno = err;
+		FATAL("!pthread_mutex_unlock");
+	}
 }
 
 /*
@@ -566,9 +570,12 @@ heap_get_active_run(struct pmalloc_heap *h, int bucket_idx,
 
 	Free(arun);
 
+	int err;
 out:
-	if (pthread_mutex_unlock(&h->active_run_lock) != 0)
-		ERR("failed to release active run lock");
+	if ((err = pthread_mutex_unlock(&h->active_run_lock))) {
+		errno = err;
+		FATAL("!pthread_mutex_unlock");
+	}
 
 	return ret;
 }
@@ -1180,14 +1187,20 @@ heap_lock_if_run(PMEMobjpool *pop, struct memory_block m)
 /*
  * heap_unlock_if_run -- release a run lock
  */
-int
+void
 heap_unlock_if_run(PMEMobjpool *pop, struct memory_block m)
 {
 	struct chunk_header *hdr =
 		&pop->heap->layout->zones[m.zone_id].chunk_headers[m.chunk_id];
 
-	return hdr->type == CHUNK_TYPE_RUN ?
-		pthread_mutex_unlock(heap_get_run_lock(pop, m.chunk_id)) : 0;
+	if (hdr->type == CHUNK_TYPE_RUN) {
+		pthread_mutex_t *mutex = heap_get_run_lock(pop, m.chunk_id);
+		int err = pthread_mutex_unlock(mutex);
+		if (err) {
+			errno = err;
+			FATAL("!pthread_mutex_unlock");
+		}
+	}
 }
 
 /*
@@ -1341,10 +1354,11 @@ heap_degrade_run_if_empty(PMEMobjpool *pop, struct bucket *b,
 
 	bucket_unlock(defb);
 
+	int err2;
 out:
-	if (pthread_mutex_unlock(heap_get_run_lock(pop, m.chunk_id)) != 0) {
-		ERR("Failed to release run lock");
-		ASSERT(0);
+	if ((err2 = pthread_mutex_unlock(heap_get_run_lock(pop, m.chunk_id)))) {
+		errno = err2;
+		FATAL("!pthread_mutex_unlock");
 	}
 
 out_bucket:

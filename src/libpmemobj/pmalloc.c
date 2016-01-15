@@ -189,10 +189,7 @@ persist_alloc(PMEMobjpool *pop, struct lane_section *lane,
 
 	redo_log_process(pop, sec->redo, MAX_ALLOC_OP_REDO);
 
-	if (heap_unlock_if_run(pop, m) != 0) {
-		ERR("Failed to release run lock");
-		ASSERT(0);
-	}
+	heap_unlock_if_run(pop, m);
 
 	return err;
 }
@@ -375,11 +372,7 @@ prealloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
 	redo_log_process(pop, sec->redo, MAX_ALLOC_OP_REDO);
 
 out:
-	if (heap_unlock_if_run(pop, cnt) != 0) {
-		ERR("Failed to release run lock");
-		ASSERT(0);
-	}
-
+	heap_unlock_if_run(pop, cnt);
 out_lane:
 	lane_release(pop);
 
@@ -443,10 +436,7 @@ pfree(PMEMobjpool *pop, uint64_t *off, uint64_t data_off)
 
 	redo_log_process(pop, sec->redo, MAX_ALLOC_OP_REDO);
 
-	if (heap_unlock_if_run(pop, m) != 0) {
-		ERR("Failed to release run lock");
-		ASSERT(0);
-	}
+	heap_unlock_if_run(pop, m);
 
 	VALGRIND_DO_MEMPOOL_FREE(pop,
 			(char *)alloc + sizeof (*alloc) + data_off);

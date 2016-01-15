@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Intel Corporation
+ * Copyright (c) 2015-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -189,21 +189,21 @@ ctree_insert(struct ctree *t, uint64_t key, uint64_t value)
 	NODE_INTERNAL_SET(*dst, n);
 
 out:
-	if ((err_out = pthread_mutex_unlock(&t->lock)) != 0) {
+	if ((err_out = pthread_mutex_unlock(&t->lock))) {
 		errno = err_out;
-		ERR("!pthread_mutex_unlock");
+		FATAL("!pthread_mutex_unlock");
 	}
 
-	return err;
+	return 0;
 
 error_duplicate:
 	Free(n);
 error_internal_malloc:
 	Free(nleaf);
 error_leaf_malloc:
-	if ((err_out = pthread_mutex_unlock(&t->lock)) != 0) {
+	if ((err_out = pthread_mutex_unlock(&t->lock))) {
 		errno = err_out;
-		ERR("!pthread_mutex_unlock");
+		FATAL("!pthread_mutex_unlock");
 	}
 
 	return err;
@@ -380,9 +380,9 @@ remove:
 	}
 
 out:
-	if ((err = pthread_mutex_unlock(&t->lock)) != 0) {
+	if ((err = pthread_mutex_unlock(&t->lock))) {
 		errno = err;
-		ERR("!pthread_mutex_unlock");
+		FATAL("!pthread_mutex_unlock");
 	}
 
 	return k;
@@ -403,9 +403,9 @@ ctree_is_empty(struct ctree *t)
 
 	int ret = t->root == NULL;
 
-	if ((err = pthread_mutex_unlock(&t->lock)) != 0) {
+	if ((err = pthread_mutex_unlock(&t->lock))) {
 		errno = err;
-		ERR("!pthread_mutex_unlock");
+		FATAL("!pthread_mutex_unlock");
 	}
 
 	return ret;
