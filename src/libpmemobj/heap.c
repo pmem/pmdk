@@ -1599,7 +1599,7 @@ heap_init(PMEMobjpool *pop)
  *
  * If successful function returns zero. Otherwise an error number is returned.
  */
-int
+void
 heap_cleanup(PMEMobjpool *pop)
 {
 	int err;
@@ -1636,8 +1636,6 @@ heap_cleanup(PMEMobjpool *pop)
 	Free(pop->heap);
 
 	pop->heap = NULL;
-
-	return 0;
 }
 
 /*

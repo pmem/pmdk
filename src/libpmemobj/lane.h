@@ -82,7 +82,7 @@ extern struct section_operations *Section_ops[MAX_LANE_SECTION];
 extern __thread unsigned Lane_idx;
 
 int lane_boot(PMEMobjpool *pop);
-int lane_cleanup(PMEMobjpool *pop);
+void lane_cleanup(PMEMobjpool *pop);
 int lane_recover_and_section_boot(PMEMobjpool *pop);
 int lane_check(PMEMobjpool *pop);
 

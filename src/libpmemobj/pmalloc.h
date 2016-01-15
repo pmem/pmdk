@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Intel Corporation
+ * Copyright (c) 2015-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -37,7 +37,7 @@
 int heap_boot(PMEMobjpool *pop);
 int heap_init(PMEMobjpool *pop);
 void heap_vg_open(PMEMobjpool *pop);
-int heap_cleanup(PMEMobjpool *pop);
+void heap_cleanup(PMEMobjpool *pop);
 int heap_check(PMEMobjpool *pop);
 
 int pmalloc(PMEMobjpool *pop, uint64_t *off, size_t size, uint64_t data_off);

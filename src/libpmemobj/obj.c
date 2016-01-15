@@ -954,11 +954,9 @@ pmemobj_cleanup(PMEMobjpool *pop)
 {
 	LOG(3, "pop %p", pop);
 
-	if ((errno = heap_cleanup(pop)) != 0)
-		ERR("!heap_cleanup");
+	heap_cleanup(pop);
 
-	if ((errno = lane_cleanup(pop)) != 0)
-		ERR("!lane_cleanup");
+	lane_cleanup(pop);
 
 	VALGRIND_DO_DESTROY_MEMPOOL(pop);
 

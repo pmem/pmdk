@@ -148,7 +148,7 @@ test_lane_boot_cleanup_ok()
 		}
 	}
 
-	ASSERTeq(lane_cleanup(&pop.p), 0);
+	lane_cleanup(&pop.p);
 	ASSERTeq(pop.p.lanes, NULL);
 }
 

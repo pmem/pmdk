@@ -113,7 +113,7 @@ error_section_construct:
 /*
  * lane_destroy -- cleanups a single lane runtime variables
  */
-static int
+static void
 lane_destroy(PMEMobjpool *pop, struct lane *lane)
 {
 	int err;
@@ -125,8 +125,6 @@ lane_destroy(PMEMobjpool *pop, struct lane *lane)
 		errno = err;
 		FATAL("!pthread_mutex_destroy");
 	}
-
-	return 0;
 }
 
 /*
@@ -189,8 +187,7 @@ lane_boot(PMEMobjpool *pop)
 
 error_lane_init:
 	for (; i >= 1; --i)
-		if (lane_destroy(pop, &pop->lanes[i - 1]) != 0)
-			ERR("!lane_destroy");
+		lane_destroy(pop, &pop->lanes[i - 1]);
 
 	Free(pop->lane_locks);
 	pop->lane_locks = NULL;
@@ -210,24 +207,19 @@ error_mutexattr_destroy:
 /*
  * lane_cleanup -- destroys all lanes
  */
-int
+void
 lane_cleanup(PMEMobjpool *pop)
 {
 	ASSERTne(pop->lanes, NULL);
 
-	int err = 0;
-
 	for (uint64_t i = 0; i < pop->nlanes; ++i)
-		if ((err = lane_destroy(pop, &pop->lanes[i])) != 0)
-			ERR("!lane_destroy");
+		lane_destroy(pop, &pop->lanes[i]);
 
 	Free(pop->lane_locks);
 	pop->lane_locks = NULL;
 
 	Free(pop->lanes);
 	pop->lanes = NULL;
-
-	return err;
 }
 
 /*
