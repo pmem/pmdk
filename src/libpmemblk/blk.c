@@ -58,7 +58,7 @@
 /*
  * lane_enter -- (internal) acquire a unique lane number
  */
-static int
+static void
 lane_enter(PMEMblkpool *pbp, unsigned *lane)
 {
 	unsigned mylane;
@@ -69,8 +69,6 @@ lane_enter(PMEMblkpool *pbp, unsigned *lane)
 	util_mutex_lock(&pbp->locks[mylane]);
 
 	*lane = mylane;
-
-	return 0;
 }
 
 /*
@@ -617,8 +615,7 @@ pmemblk_read(PMEMblkpool *pbp, void *buf, off_t blockno)
 
 	unsigned lane;
 
-	if (lane_enter(pbp, &lane) < 0)
-		return -1;
+	lane_enter(pbp, &lane);
 
 	int err = btt_read(pbp->bttp, lane, (uint64_t)blockno, buf);
 
@@ -649,8 +646,7 @@ pmemblk_write(PMEMblkpool *pbp, const void *buf, off_t blockno)
 
 	unsigned lane;
 
-	if (lane_enter(pbp, &lane) < 0)
-		return -1;
+	lane_enter(pbp, &lane);
 
 	int err = btt_write(pbp->bttp, lane, (uint64_t)blockno, buf);
 
@@ -681,8 +677,7 @@ pmemblk_set_zero(PMEMblkpool *pbp, off_t blockno)
 
 	unsigned lane;
 
-	if (lane_enter(pbp, &lane) < 0)
-		return -1;
+	lane_enter(pbp, &lane);
 
 	int err = btt_set_zero(pbp->bttp, lane, (uint64_t)blockno);
 
@@ -713,8 +708,7 @@ pmemblk_set_error(PMEMblkpool *pbp, off_t blockno)
 
 	unsigned lane;
 
-	if (lane_enter(pbp, &lane) < 0)
-		return -1;
+	lane_enter(pbp, &lane);
 
 	int err = btt_set_error(pbp->bttp, lane, (uint64_t)blockno);
 
