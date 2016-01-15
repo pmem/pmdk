@@ -1770,12 +1770,10 @@ lane_transaction_construct(PMEMobjpool *pop, struct lane_section *section)
 /*
  * lane_transaction_destruct -- destroy transaction lane section
  */
-static int
+static void
 lane_transaction_destruct(PMEMobjpool *pop, struct lane_section *section)
 {
 	Free(section->runtime);
-
-	return 0;
 }
 
 #ifdef USE_VG_MEMCHECK

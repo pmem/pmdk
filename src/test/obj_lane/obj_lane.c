@@ -75,11 +75,10 @@ lane_noop_construct(PMEMobjpool *pop, struct lane_section *section)
 	return 0;
 }
 
-static int
+static void
 lane_noop_destruct(PMEMobjpool *pop, struct lane_section *section)
 {
 	OUT("lane_noop_destruct");
-	return 0;
 }
 
 static int recovery_check_fail;

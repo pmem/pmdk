@@ -99,10 +99,8 @@ lane_init(PMEMobjpool *pop, struct lane *lane, struct lane_layout *layout,
 
 	int err_tmp;
 error_section_construct:
-	for (i = i - 1; i >= 0; --i) {
-		if (Section_ops[i]->destruct(pop, &lane->sections[i]) != 0)
-			ERR("!lane_destruct_ops %d", i);
-	}
+	for (i = i - 1; i >= 0; --i)
+		Section_ops[i]->destruct(pop, &lane->sections[i]);
 
 	if ((err_tmp = pthread_mutex_destroy(lane->lock))) {
 		errno = err_tmp;
@@ -120,11 +118,8 @@ lane_destroy(PMEMobjpool *pop, struct lane *lane)
 {
 	int err;
 
-	for (int i = 0; i < MAX_LANE_SECTION; ++i) {
-		err = Section_ops[i]->destruct(pop, &lane->sections[i]);
-		if (err != 0)
-			ERR("!lane_destruct_ops %d", i);
-	}
+	for (int i = 0; i < MAX_LANE_SECTION; ++i)
+		Section_ops[i]->destruct(pop, &lane->sections[i]);
 
 	if ((err = pthread_mutex_destroy(lane->lock))) {
 		errno = err;

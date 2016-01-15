@@ -66,12 +66,13 @@ struct lane {
 
 typedef int (*section_layout_op)(PMEMobjpool *pop,
 	struct lane_section_layout *layout);
-typedef int (*section_op)(PMEMobjpool *pop, struct lane_section *section);
+typedef int (*section_constr)(PMEMobjpool *pop, struct lane_section *section);
+typedef void (*section_destr)(PMEMobjpool *pop, struct lane_section *section);
 typedef int (*section_global_op)(PMEMobjpool *pop);
 
 struct section_operations {
-	section_op construct;
-	section_op destruct;
+	section_constr construct;
+	section_destr destruct;
 	section_layout_op check;
 	section_layout_op recover;
 	section_global_op boot;

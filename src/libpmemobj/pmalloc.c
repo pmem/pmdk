@@ -466,10 +466,10 @@ lane_allocator_construct(PMEMobjpool *pop, struct lane_section *section)
 /*
  * lane_allocator_destruct -- destroy allocator lane section
  */
-static int
+static void
 lane_allocator_destruct(PMEMobjpool *pop, struct lane_section *section)
 {
-	return 0;
+	/* nop */
 }
 
 /*

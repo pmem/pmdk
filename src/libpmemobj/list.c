@@ -1971,11 +1971,10 @@ lane_list_construct(PMEMobjpool *pop, struct lane_section *section)
 /*
  * lane_list_destruct -- (internal) destroy list lane section
  */
-static int
+static void
 lane_list_destruct(PMEMobjpool *pop, struct lane_section *section)
 {
 	/* nop */
-	return 0;
 }
 
 /*
