@@ -79,6 +79,11 @@ struct section_operations {
 };
 
 extern struct section_operations *Section_ops[MAX_LANE_SECTION];
+
+extern struct section_operations allocator_ops;
+extern struct section_operations list_ops;
+extern struct section_operations transaction_ops;
+
 extern __thread unsigned Lane_idx;
 
 int lane_boot(PMEMobjpool *pop);
