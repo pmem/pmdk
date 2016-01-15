@@ -311,11 +311,10 @@ bucket_is_empty(struct bucket *b)
 /*
  * bucket_lock -- acquire bucket lock
  */
-int
+void
 bucket_lock(struct bucket *b)
 {
 	util_mutex_lock(&b->lock);
-	return 0;
 }
 
 /*

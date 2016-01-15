@@ -748,10 +748,7 @@ heap_drain_to_auxiliary(PMEMobjpool *pop, struct bucket *auxb,
 
 		drained_cache = 0;
 
-		if ((ret = bucket_lock(b)) != 0) {
-			ERR("Failed to acquire bucket lock for migration");
-			ASSERT(0);
-		}
+		bucket_lock(b);
 
 		/*
 		 * XXX: Draining should make effort not to split runs
@@ -914,8 +911,7 @@ int
 heap_get_bestfit_block(PMEMobjpool *pop, struct bucket *b,
 	struct memory_block *m)
 {
-	if (bucket_lock(b) != 0)
-		return EAGAIN;
+	bucket_lock(b);
 
 	uint32_t units = m->size_idx;
 
@@ -944,8 +940,7 @@ int
 heap_get_exact_block(PMEMobjpool *pop, struct bucket *b,
 	struct memory_block *m, uint32_t units)
 {
-	if (bucket_lock(b) != 0)
-		return EAGAIN;
+	bucket_lock(b);
 
 	if (bucket_get_rm_block_exact(b, *m) != 0) {
 		bucket_unlock(b);
@@ -1164,7 +1159,7 @@ int heap_get_adjacent_free_block(PMEMobjpool *pop, struct memory_block *m,
 /*
  * heap_lock_if_run -- acquire a run lock
  */
-int
+void
 heap_lock_if_run(PMEMobjpool *pop, struct memory_block m)
 {
 	struct chunk_header *hdr =
@@ -1172,8 +1167,6 @@ heap_lock_if_run(PMEMobjpool *pop, struct memory_block m)
 
 	if (hdr->type == CHUNK_TYPE_RUN)
 		util_mutex_lock(heap_get_run_lock(pop, m.chunk_id));
-
-	return 0;
 }
 
 /*
@@ -1278,7 +1271,7 @@ traverse_bucket_run(struct bucket *b, struct memory_block m,
 /*
  * heap_degrade_run_if_empty -- makes a chunk out of an empty run
  */
-int
+void
 heap_degrade_run_if_empty(PMEMobjpool *pop, struct bucket *b,
 	struct memory_block m)
 {
@@ -1288,9 +1281,7 @@ heap_degrade_run_if_empty(PMEMobjpool *pop, struct bucket *b,
 
 	struct chunk_run *run = (struct chunk_run *)&z->chunks[m.chunk_id];
 
-	int err = 0;
-	if ((err = bucket_lock(b)) != 0)
-		return err;
+	bucket_lock(b);
 
 	util_mutex_lock(heap_get_run_lock(pop, m.chunk_id));
 
@@ -1316,10 +1307,7 @@ heap_degrade_run_if_empty(PMEMobjpool *pop, struct bucket *b,
 		FATAL("Persistent/volatile state mismatch");
 
 	struct bucket *defb = heap_get_default_bucket(pop);
-	if ((err = bucket_lock(defb)) != 0) {
-		ERR("Failed to lock default bucket");
-		ASSERT(0);
-	}
+	bucket_lock(defb);
 
 	m.block_off = 0;
 	m.size_idx = 1;
@@ -1342,8 +1330,6 @@ heap_degrade_run_if_empty(PMEMobjpool *pop, struct bucket *b,
 out:
 	util_mutex_unlock(heap_get_run_lock(pop, m.chunk_id));
 	bucket_unlock(b);
-
-	return err;
 }
 
 #ifdef USE_VG_MEMCHECK

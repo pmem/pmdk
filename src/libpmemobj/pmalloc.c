@@ -135,14 +135,12 @@ get_mblock_from_alloc(PMEMobjpool *pop, struct bucket *b,
  * persist_alloc -- (internal) performs a persistent allocation of the
  *	memory block previously reserved by volatile bucket
  */
-static int
+static void
 persist_alloc(PMEMobjpool *pop, struct lane_section *lane,
 	struct memory_block m, uint64_t real_size, uint64_t *off,
 	void (*constructor)(PMEMobjpool *pop, void *ptr, size_t usable_size,
 	void *arg), void *arg, uint64_t data_off)
 {
-	int err;
-
 #ifdef DEBUG
 	if (heap_block_is_allocated(pop, m)) {
 		ERR("heap corruption");
@@ -172,10 +170,7 @@ persist_alloc(PMEMobjpool *pop, struct lane_section *lane,
 			real_size - sizeof (struct allocation_header) -
 			data_off, arg);
 
-	if ((err = heap_lock_if_run(pop, m)) != 0) {
-		VALGRIND_DO_MEMPOOL_FREE(pop, userdatap);
-		return err;
-	}
+	heap_lock_if_run(pop, m);
 
 	void *hdr = heap_get_block_header(pop, m, HEAP_OP_ALLOC, &op_result);
 
@@ -190,8 +185,6 @@ persist_alloc(PMEMobjpool *pop, struct lane_section *lane,
 	redo_log_process(pop, sec->redo, MAX_ALLOC_OP_REDO);
 
 	heap_unlock_if_run(pop, m);
-
-	return err;
 }
 
 /*
@@ -266,9 +259,8 @@ pmalloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
 	 * allocation persistent.
 	 */
 	uint64_t real_size = bucket_unit_size(b) * m.size_idx;
-	err = persist_alloc(pop, lane, m, real_size, off,
-		constructor, arg, data_off);
-
+	persist_alloc(pop, lane, m, real_size, off, constructor, arg, data_off);
+	err = 0;
 out:
 	lane_release(pop);
 
@@ -321,8 +313,7 @@ prealloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
 
 	struct memory_block cnt = get_mblock_from_alloc(pop, b, alloc);
 
-	if ((err = heap_lock_if_run(pop, cnt)) != 0)
-		goto out_lane;
+	heap_lock_if_run(pop, cnt);
 
 	struct memory_block next = {0, 0, 0, 0};
 	if ((err = heap_get_adjacent_free_block(pop, &next, cnt, 0)) != 0)
@@ -371,7 +362,6 @@ prealloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
 
 out:
 	heap_unlock_if_run(pop, cnt);
-out_lane:
 	lane_release(pop);
 
 	return err;
@@ -394,12 +384,10 @@ pmalloc_usable_size(PMEMobjpool *pop, uint64_t off)
  *
  * If successful function returns zero. Otherwise an error number is returned.
  */
-int
+void
 pfree(PMEMobjpool *pop, uint64_t *off, uint64_t data_off)
 {
 	struct allocation_header *alloc = alloc_get_header(pop, *off);
-
-	int err;
 
 	struct lane_section *lane;
 	lane_hold(pop, &lane, LANE_SECTION_ALLOCATOR);
@@ -416,8 +404,7 @@ pfree(PMEMobjpool *pop, uint64_t *off, uint64_t data_off)
 	}
 #endif /* DEBUG */
 
-	if ((err = heap_lock_if_run(pop, m)) != 0)
-		goto out;
+	heap_lock_if_run(pop, m);
 
 	uint64_t op_result;
 	void *hdr;
@@ -440,15 +427,10 @@ pfree(PMEMobjpool *pop, uint64_t *off, uint64_t data_off)
 
 	bucket_insert_block(pop, b, res);
 
-	if (bucket_is_small(b) && heap_degrade_run_if_empty(pop, b, res) != 0) {
-		ERR("Failed to degrade run");
-		ASSERT(0);
-	}
+	if (bucket_is_small(b))
+		heap_degrade_run_if_empty(pop, b, res);
 
-out:
 	lane_release(pop);
-
-	return err;
 }
 
 /*

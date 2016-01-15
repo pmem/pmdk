@@ -1046,14 +1046,7 @@ list_remove_free(PMEMobjpool *pop, struct list_head *oob_head,
 	 * Don't need to fill next and prev offsets of removing element
 	 * because the element is freed.
 	 */
-	if ((ret = pfree(pop, &section->obj_offset, OBJ_OOB_SIZE))) {
-		errno = ret;
-		ERR("!pfree");
-		ret = -1;
-	} else {
-		ret = 0;
-	}
-
+	pfree(pop, &section->obj_offset, OBJ_OOB_SIZE);
 err_lock:
 	pmemobj_mutex_unlock_nofail(pop, &oob_head->lock);
 err_oob_lock:
@@ -1524,12 +1517,7 @@ list_realloc(PMEMobjpool *pop, struct list_head *oob_head,
 		redo_log_process(pop, redo, REDO_NUM_ENTRIES);
 
 		/* free the old object */
-		if ((ret = pfree(pop, &section->obj_offset, OBJ_OOB_SIZE))) {
-			errno = ret;
-			ERR("!pfree");
-			ret = -1;
-			goto err_unlock;
-		}
+		pfree(pop, &section->obj_offset, OBJ_OOB_SIZE);
 	}
 
 	ret = 0;
@@ -1764,12 +1752,7 @@ list_realloc_move(PMEMobjpool *pop, struct list_head *oob_head_old,
 		ASSERTne(section->obj_offset, 0);
 
 		/* realloc not in place so free the old object */
-		if ((ret = pfree(pop, &section->obj_offset, OBJ_OOB_SIZE))) {
-			errno = ret;
-			ERR("!pfree");
-			ret = -1;
-			goto err_unlock;
-		}
+		pfree(pop, &section->obj_offset, OBJ_OOB_SIZE);
 	}
 
 	ret = 0;
@@ -1838,11 +1821,7 @@ lane_list_recovery(PMEMobjpool *pop, struct lane_section_layout *section_layout)
 
 	} else if (section->obj_offset) {
 		/* alloc or free recovery */
-		if ((ret = pfree(pop, &section->obj_offset, OBJ_OOB_SIZE))) {
-			errno = ret;
-			ERR("!pfree");
-			ret = -1;
-		}
+		pfree(pop, &section->obj_offset, OBJ_OOB_SIZE);
 	}
 err:
 	return ret;

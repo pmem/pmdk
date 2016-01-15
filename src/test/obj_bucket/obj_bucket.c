@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Intel Corporation
+ * Copyright (c) 2015-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -145,7 +145,7 @@ test_bucket()
 	ASSERT(bucket_unit_size(b) == TEST_UNIT_SIZE);
 	ASSERT(bucket_is_small(b));
 	ASSERT(bucket_calc_units(b, TEST_SIZE) == TEST_SIZE_UNITS);
-	ASSERT(bucket_lock(b) == 0);
+	bucket_lock(b);
 	bucket_unlock(b);
 
 	bucket_delete(b);

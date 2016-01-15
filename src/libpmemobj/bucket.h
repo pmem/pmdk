@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Intel Corporation
+ * Copyright (c) 2015-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -48,7 +48,7 @@ void bucket_insert_block(PMEMobjpool *pop, struct bucket *b,
 int bucket_get_rm_block_bestfit(struct bucket *b, struct memory_block *m);
 int bucket_get_rm_block_exact(struct bucket *b, struct memory_block m);
 int bucket_get_block_exact(struct bucket *b, struct memory_block m);
-int bucket_lock(struct bucket *b);
+void bucket_lock(struct bucket *b);
 int bucket_is_empty(struct bucket *b);
 unsigned bucket_bitmap_nval(struct bucket *b);
 uint64_t bucket_bitmap_lastval(struct bucket *b);
