@@ -1421,6 +1421,7 @@ pmemobj_tx_add_common(struct tx_add_range_args *args)
 		(args->offset + args->size) >
 		(args->pop->heap_offset + args->pop->heap_size)) {
 		ERR("object outside of heap");
+		pmemobj_tx_abort(EINVAL);
 		return EINVAL;
 	}
 
@@ -1509,6 +1510,7 @@ pmemobj_tx_add_range_direct(void *ptr, size_t size)
 	if ((char *)ptr < (char *)lane->pop ||
 			(char *)ptr >= (char *)lane->pop + lane->pop->size) {
 		ERR("object outside of pool");
+		pmemobj_tx_abort(EINVAL);
 		return EINVAL;
 	}
 
@@ -1715,12 +1717,13 @@ pmemobj_tx_free(PMEMoid oid)
 	struct oob_header *oobh = OOB_HEADER_FROM_OID(lane->pop, oid);
 	ASSERT(oobh->data.user_type < PMEMOBJ_NUM_OID_TYPES);
 
+	int ret;
 	if (oobh->data.internal_type == TYPE_ALLOCATED) {
 		/* the object is in object store */
 		struct object_store_item *obj_list =
 			&lane->pop->store->bytype[oobh->data.user_type];
 
-		return list_move_oob(lane->pop, &obj_list->head,
+		ret = list_move_oob(lane->pop, &obj_list->head,
 				&layout->undo_free, oid);
 	} else {
 		ASSERTeq(oobh->data.internal_type, TYPE_NONE);
@@ -1742,9 +1745,14 @@ pmemobj_tx_free(PMEMoid oid)
 		 * The object has been allocated within the same transaction
 		 * so we can just remove and free the object from undo log.
 		 */
-		return list_remove_free(lane->pop, &layout->undo_alloc,
+		ret = list_remove_free(lane->pop, &layout->undo_alloc,
 				0, NULL, &oid);
 	}
+
+	if (ret)
+		pmemobj_tx_abort(ret);
+
+	return ret;
 }
 
 /*
