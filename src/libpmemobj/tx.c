@@ -96,6 +96,28 @@ struct tx_add_range_args {
 };
 
 /*
+ * pmemobj_tx_abort_err -- (internal) pmemobj_tx_abort variant that returns
+ * error code
+ */
+static inline int
+pmemobj_tx_abort_err(int errnum)
+{
+	pmemobj_tx_abort(errnum);
+	return errnum;
+}
+
+/*
+ * pmemobj_tx_abort_null -- (internal) pmemobj_tx_abort variant that returns
+ * null PMEMoid
+ */
+static inline PMEMoid
+pmemobj_tx_abort_null(int errnum)
+{
+	pmemobj_tx_abort(errnum);
+	return OID_NULL;
+}
+
+/*
  * constructor_tx_alloc -- (internal) constructor for normal alloc
  */
 static void
@@ -881,8 +903,7 @@ tx_alloc_common(size_t size, type_num_t type_num,
 	if (size > PMEMOBJ_MAX_ALLOC_SIZE) {
 		ERR("requested size too large");
 		errno = ENOMEM;
-		pmemobj_tx_abort(EINVAL);
-		return OID_NULL;
+		return pmemobj_tx_abort_null(EINVAL);
 	}
 
 	/* callers should have checked this */
@@ -913,9 +934,7 @@ tx_alloc_common(size_t size, type_num_t type_num,
 err_oom:
 	ERR("out of memory");
 	errno = ENOMEM;
-	pmemobj_tx_abort(ENOMEM);
-
-	return OID_NULL;
+	return pmemobj_tx_abort_null(ENOMEM);
 }
 
 /*
@@ -931,8 +950,7 @@ tx_alloc_copy_common(size_t size, type_num_t type_num, const void *ptr,
 	if (size > PMEMOBJ_MAX_ALLOC_SIZE) {
 		ERR("requested size too large");
 		errno = ENOMEM;
-		pmemobj_tx_abort(EINVAL);
-		return OID_NULL;
+		return pmemobj_tx_abort_null(EINVAL);
 	}
 
 	/* callers should have checked this */
@@ -966,9 +984,7 @@ tx_alloc_copy_common(size_t size, type_num_t type_num, const void *ptr,
 err_oom:
 	ERR("out of memory");
 	errno = ENOMEM;
-	pmemobj_tx_abort(ENOMEM);
-
-	return OID_NULL;
+	return pmemobj_tx_abort_null(ENOMEM);
 }
 
 /*
@@ -992,15 +1008,13 @@ tx_realloc_common(PMEMoid oid, size_t size, unsigned int type_num,
 	if (size > PMEMOBJ_MAX_ALLOC_SIZE) {
 		ERR("requested size too large");
 		errno = ENOMEM;
-		pmemobj_tx_abort(EINVAL);
-		return OID_NULL;
+		return pmemobj_tx_abort_null(EINVAL);
 	}
 
 	if (type_num >= PMEMOBJ_NUM_OID_TYPES) {
 		ERR("invalid type_num %d", type_num);
 		errno = EINVAL;
-		pmemobj_tx_abort(EINVAL);
-		return OID_NULL;
+		return pmemobj_tx_abort_null(EINVAL);
 	}
 
 	struct lane_tx_runtime *lane =
@@ -1421,8 +1435,7 @@ pmemobj_tx_add_common(struct tx_add_range_args *args)
 		(args->offset + args->size) >
 		(args->pop->heap_offset + args->pop->heap_size)) {
 		ERR("object outside of heap");
-		pmemobj_tx_abort(EINVAL);
-		return EINVAL;
+		return pmemobj_tx_abort_err(EINVAL);
 	}
 
 	struct lane_tx_runtime *runtime = tx.section->runtime;
@@ -1510,8 +1523,7 @@ pmemobj_tx_add_range_direct(void *ptr, size_t size)
 	if ((char *)ptr < (char *)lane->pop ||
 			(char *)ptr >= (char *)lane->pop + lane->pop->size) {
 		ERR("object outside of pool");
-		pmemobj_tx_abort(EINVAL);
-		return EINVAL;
+		return pmemobj_tx_abort_err(EINVAL);
 	}
 
 	struct tx_add_range_args args = {
@@ -1541,9 +1553,7 @@ pmemobj_tx_add_range(PMEMoid oid, uint64_t hoff, size_t size)
 
 	if (oid.pool_uuid_lo != lane->pop->uuid_lo) {
 		ERR("invalid pool uuid");
-		pmemobj_tx_abort(EINVAL);
-
-		return EINVAL;
+		return pmemobj_tx_abort_err(EINVAL);
 	}
 	ASSERT(OBJ_OID_IS_VALID(lane->pop, oid));
 
@@ -1577,15 +1587,13 @@ pmemobj_tx_alloc(size_t size, unsigned int type_num)
 	if (size == 0) {
 		ERR("allocation with size 0");
 		errno = EINVAL;
-		pmemobj_tx_abort(EINVAL);
-		return OID_NULL;
+		return pmemobj_tx_abort_null(EINVAL);
 	}
 
 	if (type_num >= PMEMOBJ_NUM_OID_TYPES) {
 		ERR("invalid type_num %d", type_num);
 		errno = EINVAL;
-		pmemobj_tx_abort(EINVAL);
-		return OID_NULL;
+		return pmemobj_tx_abort_null(EINVAL);
 	}
 
 	return tx_alloc_common(size, (type_num_t)type_num,
@@ -1603,15 +1611,13 @@ pmemobj_tx_zalloc(size_t size, unsigned int type_num)
 	if (size == 0) {
 		ERR("allocation with size 0");
 		errno = EINVAL;
-		pmemobj_tx_abort(EINVAL);
-		return OID_NULL;
+		return pmemobj_tx_abort_null(EINVAL);
 	}
 
 	if (type_num >= PMEMOBJ_NUM_OID_TYPES) {
 		ERR("invalid type_num %d", type_num);
 		errno = EINVAL;
-		pmemobj_tx_abort(EINVAL);
-		return OID_NULL;
+		return pmemobj_tx_abort_null(EINVAL);
 	}
 
 	return tx_alloc_common(size, (type_num_t)type_num,
@@ -1660,15 +1666,13 @@ pmemobj_tx_strdup(const char *s, unsigned int type_num)
 	if (NULL == s) {
 		ERR("cannot duplicate NULL string");
 		errno = EINVAL;
-		pmemobj_tx_abort(EINVAL);
-		return OID_NULL;
+		return pmemobj_tx_abort_null(EINVAL);
 	}
 
 	if (type_num >= PMEMOBJ_NUM_OID_TYPES) {
 		ERR("invalid type_num %d", type_num);
 		errno = EINVAL;
-		pmemobj_tx_abort(EINVAL);
-		return OID_NULL;
+		return pmemobj_tx_abort_null(EINVAL);
 	}
 
 	size_t len = strlen(s);
@@ -1706,8 +1710,7 @@ pmemobj_tx_free(PMEMoid oid)
 	if (lane->pop->uuid_lo != oid.pool_uuid_lo) {
 		ERR("invalid pool uuid");
 		errno = EINVAL;
-		pmemobj_tx_abort(EINVAL);
-		return EINVAL;
+		return pmemobj_tx_abort_err(EINVAL);
 	}
 	ASSERT(OBJ_OID_IS_VALID(lane->pop, oid));
 
