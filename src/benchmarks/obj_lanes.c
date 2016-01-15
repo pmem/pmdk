@@ -146,12 +146,7 @@ lanes_op(struct benchmark *bench, struct operation_info *info)
 	struct lane_section *section;
 
 	for (int i = 0; i < OPERATION_REPEAT_COUNT; i++) {
-		int ret = lane_hold(ob->pop, &section, ob->lane_type);
-		if (ret != 0) {
-			fprintf(stderr, "lane_hold error %d: %s\n", ret,
-					pmemobj_errormsg());
-			return ret;
-		}
+		lane_hold(ob->pop, &section, ob->lane_type);
 
 		lane_release(ob->pop);
 	}

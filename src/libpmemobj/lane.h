@@ -86,7 +86,7 @@ void lane_cleanup(PMEMobjpool *pop);
 int lane_recover_and_section_boot(PMEMobjpool *pop);
 int lane_check(PMEMobjpool *pop);
 
-int lane_hold(PMEMobjpool *pop, struct lane_section **section,
+void lane_hold(PMEMobjpool *pop, struct lane_section **section,
 	enum lane_section_type type);
 void lane_release(PMEMobjpool *pop);
 

@@ -725,10 +725,7 @@ list_insert_new(PMEMobjpool *pop, struct list_head *oob_head,
 
 	struct lane_section *lane_section;
 
-	if ((ret = lane_hold(pop, &lane_section, LANE_SECTION_LIST))) {
-		LOG(2, "lane_hold failed");
-		return ret;
-	}
+	lane_hold(pop, &lane_section, LANE_SECTION_LIST);
 
 	ASSERTne(lane_section, NULL);
 	ASSERTne(lane_section->layout, NULL);
@@ -885,10 +882,7 @@ list_insert(PMEMobjpool *pop,
 
 	struct lane_section *lane_section;
 
-	if ((ret = lane_hold(pop, &lane_section, LANE_SECTION_LIST))) {
-		LOG(2, "lane_hold failed");
-		return ret;
-	}
+	lane_hold(pop, &lane_section, LANE_SECTION_LIST);
 
 	if ((ret = pmemobj_mutex_lock(pop, &head->lock))) {
 		LOG(2, "pmemobj_mutex_lock failed");
@@ -970,10 +964,7 @@ list_remove_free(PMEMobjpool *pop, struct list_head *oob_head,
 
 	struct lane_section *lane_section;
 
-	if ((ret = lane_hold(pop, &lane_section, LANE_SECTION_LIST))) {
-		LOG(2, "lane_hold failed");
-		return ret;
-	}
+	lane_hold(pop, &lane_section, LANE_SECTION_LIST);
 
 	ASSERTne(lane_section, NULL);
 	ASSERTne(lane_section->layout, NULL);
@@ -1091,10 +1082,7 @@ list_remove(PMEMobjpool *pop,
 
 	struct lane_section *lane_section;
 
-	if ((ret = lane_hold(pop, &lane_section, LANE_SECTION_LIST))) {
-		LOG(2, "lane_hold failed");
-		return ret;
-	}
+	lane_hold(pop, &lane_section, LANE_SECTION_LIST);
 
 	ASSERTne(lane_section, NULL);
 	ASSERTne(lane_section->layout, NULL);
@@ -1167,10 +1155,7 @@ list_move_oob(PMEMobjpool *pop,
 
 	struct lane_section *lane_section;
 
-	if ((ret = lane_hold(pop, &lane_section, LANE_SECTION_LIST))) {
-		LOG(2, "lane_hold failed");
-		return ret;
-	}
+	lane_hold(pop, &lane_section, LANE_SECTION_LIST);
 
 	ASSERTne(lane_section, NULL);
 	ASSERTne(lane_section->layout, NULL);
@@ -1261,10 +1246,7 @@ list_move(PMEMobjpool *pop,
 
 	struct lane_section *lane_section;
 
-	if ((ret = lane_hold(pop, &lane_section, LANE_SECTION_LIST))) {
-		LOG(2, "lane_hold failed");
-		return ret;
-	}
+	lane_hold(pop, &lane_section, LANE_SECTION_LIST);
 
 	ASSERTne(lane_section, NULL);
 	ASSERTne(lane_section->layout, NULL);
@@ -1378,10 +1360,7 @@ list_realloc(PMEMobjpool *pop, struct list_head *oob_head,
 
 	struct lane_section *lane_section;
 
-	if ((ret = lane_hold(pop, &lane_section, LANE_SECTION_LIST))) {
-		LOG(2, "lane_hold failed");
-		return ret;
-	}
+	lane_hold(pop, &lane_section, LANE_SECTION_LIST);
 
 	ASSERTne(lane_section, NULL);
 	ASSERTne(lane_section->layout, NULL);
@@ -1598,10 +1577,7 @@ list_realloc_move(PMEMobjpool *pop, struct list_head *oob_head_old,
 
 	struct lane_section *lane_section;
 
-	if ((ret = lane_hold(pop, &lane_section, LANE_SECTION_LIST))) {
-		LOG(2, "lane_hold failed");
-		return ret;
-	}
+	lane_hold(pop, &lane_section, LANE_SECTION_LIST);
 
 	ASSERTne(lane_section, NULL);
 	ASSERTne(lane_section->layout, NULL);

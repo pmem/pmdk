@@ -278,14 +278,12 @@ lane_check(PMEMobjpool *pop)
 /*
  * lane_hold -- grabs a per-thread lane in a round-robin fashion
  */
-int
+void
 lane_hold(PMEMobjpool *pop, struct lane_section **section,
 	enum lane_section_type type)
 {
 	ASSERTne(section, NULL);
 	ASSERTne(pop->lanes, NULL);
-
-	int err;
 
 	if (Lane_idx == UINT32_MAX) {
 		do {
@@ -298,8 +296,6 @@ lane_hold(PMEMobjpool *pop, struct lane_section **section,
 	util_mutex_lock(lane->lock);
 
 	*section = &lane->sections[type];
-
-	return err;
 }
 
 /*

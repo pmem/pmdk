@@ -220,11 +220,10 @@ pmalloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
 	void (*constructor)(PMEMobjpool *pop, void *ptr,
 	size_t usable_size, void *arg), void *arg, uint64_t data_off)
 {
-	int err = 0;
+	int err;
 
 	struct lane_section *lane;
-	if ((err = lane_hold(pop, &lane, LANE_SECTION_ALLOCATOR)) != 0)
-		return err;
+	lane_hold(pop, &lane, LANE_SECTION_ALLOCATOR);
 
 	size_t sizeh = size + sizeof (struct allocation_header);
 
@@ -307,13 +306,12 @@ prealloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
 
 	size_t sizeh = size + sizeof (struct allocation_header);
 
-	int err = 0;
+	int err;
 
 	struct allocation_header *alloc = alloc_get_header(pop, *off);
 
 	struct lane_section *lane;
-	if ((err = lane_hold(pop, &lane, LANE_SECTION_ALLOCATOR)) != 0)
-		return err;
+	lane_hold(pop, &lane, LANE_SECTION_ALLOCATOR);
 
 	struct bucket *b = heap_get_best_bucket(pop, alloc->size);
 
@@ -401,11 +399,10 @@ pfree(PMEMobjpool *pop, uint64_t *off, uint64_t data_off)
 {
 	struct allocation_header *alloc = alloc_get_header(pop, *off);
 
-	int err = 0;
+	int err;
 
 	struct lane_section *lane;
-	if ((err = lane_hold(pop, &lane, LANE_SECTION_ALLOCATOR)) != 0)
-		return err;
+	lane_hold(pop, &lane, LANE_SECTION_ALLOCATOR);
 
 	struct bucket *b = heap_get_chunk_bucket(pop,
 		alloc->chunk_id, alloc->zone_id);

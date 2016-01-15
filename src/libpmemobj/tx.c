@@ -1076,9 +1076,7 @@ pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...)
 	if (tx.stage == TX_STAGE_WORK) {
 		lane = tx.section->runtime;
 	} else if (tx.stage == TX_STAGE_NONE) {
-		err = lane_hold(pop, &tx.section, LANE_SECTION_TRANSACTION);
-		if (err)
-			goto err_abort;
+		lane_hold(pop, &tx.section, LANE_SECTION_TRANSACTION);
 
 		lane = tx.section->runtime;
 		SLIST_INIT(&lane->tx_entries);

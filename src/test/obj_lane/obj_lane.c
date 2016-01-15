@@ -243,9 +243,9 @@ test_lane_hold_release()
 	base_ptr = &pop.p;
 
 	struct lane_section *sec;
-	ASSERTeq(lane_hold(&pop.p, &sec, LANE_SECTION_ALLOCATOR), 0);
+	lane_hold(&pop.p, &sec, LANE_SECTION_ALLOCATOR);
 	ASSERTeq(sec->runtime, MOCK_RUNTIME);
-	ASSERTeq(lane_hold(&pop.p, &sec, LANE_SECTION_LIST), 0);
+	lane_hold(&pop.p, &sec, LANE_SECTION_LIST);
 	ASSERTeq(sec->runtime, MOCK_RUNTIME_2);
 
 	lane_release(&pop.p);
