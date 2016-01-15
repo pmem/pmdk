@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Intel Corporation
+ * Copyright (c) 2015-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -274,10 +274,7 @@ pmalloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
 		constructor, arg, data_off);
 
 out:
-	if (lane_release(pop) != 0) {
-		ERR("Failed to release the lane");
-		ASSERT(0);
-	}
+	lane_release(pop);
 
 	return err;
 }
@@ -384,10 +381,7 @@ out:
 	}
 
 out_lane:
-	if (lane_release(pop) != 0) {
-		ERR("Failed to release the lane");
-		ASSERT(0);
-	}
+	lane_release(pop);
 
 	return err;
 }
@@ -465,10 +459,7 @@ pfree(PMEMobjpool *pop, uint64_t *off, uint64_t data_off)
 	}
 
 out:
-	if (lane_release(pop) != 0) {
-		ERR("Failed to release the lane");
-		ASSERT(0);
-	}
+	lane_release(pop);
 
 	return err;
 }

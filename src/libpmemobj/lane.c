@@ -322,18 +322,17 @@ lane_hold(PMEMobjpool *pop, struct lane_section **section,
 /*
  * lane_release -- drops the per-thread lane
  */
-int
+void
 lane_release(PMEMobjpool *pop)
 {
 	ASSERT(Lane_idx != UINT32_MAX);
 	ASSERTne(pop->lanes, NULL);
 
-	int err;
-
 	struct lane *lane = &pop->lanes[Lane_idx % pop->nlanes];
 
-	if ((err = pthread_mutex_unlock(lane->lock)) != 0)
-		ERR("!pthread_mutex_unlock");
-
-	return err;
+	int err;
+	if ((err = pthread_mutex_unlock(lane->lock))) {
+		errno = err;
+		FATAL("!pthread_mutex_unlock");
+	}
 }

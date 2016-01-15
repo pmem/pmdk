@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Intel Corporation
+ * Copyright (c) 2015-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -87,7 +87,7 @@ int lane_check(PMEMobjpool *pop);
 
 int lane_hold(PMEMobjpool *pop, struct lane_section **section,
 	enum lane_section_type type);
-int lane_release(PMEMobjpool *pop);
+void lane_release(PMEMobjpool *pop);
 
 #define	SECTION_PARM(n, ops)\
 __attribute__((constructor)) static void _section_parm_##n(void)\

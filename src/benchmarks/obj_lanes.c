@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Intel Corporation
+ * Copyright (c) 2015-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -153,12 +153,7 @@ lanes_op(struct benchmark *bench, struct operation_info *info)
 			return ret;
 		}
 
-		ret = lane_release(ob->pop);
-		if (ret != 0) {
-			fprintf(stderr, "lane_release error %d: %s\n", ret,
-					pmemobj_errormsg());
-			return ret;
-		}
+		lane_release(ob->pop);
 	}
 
 	return 0;

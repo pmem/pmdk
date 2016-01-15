@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Intel Corporation
+ * Copyright (c) 2015-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -864,10 +864,7 @@ err_lock:
 		LOG(2, "pmemobj_mutex_unlock failed");
 err_pmalloc:
 err_oob_lock:
-	out_ret = lane_release(pop);
-	ASSERTeq(out_ret, 0);
-	if (out_ret)
-		LOG(2, "lane_release failed");
+	lane_release(pop);
 
 	return ret;
 }
@@ -958,10 +955,7 @@ list_insert(PMEMobjpool *pop,
 	if (out_ret)
 		LOG(2, "pmemobj_mutex_unlock failed");
 err:
-	out_ret = lane_release(pop);
-	ASSERTeq(out_ret, 0);
-	if (out_ret)
-		LOG(2, "lane_release failed");
+	lane_release(pop);
 
 	return ret;
 }
@@ -1091,10 +1085,7 @@ err_lock:
 	if (out_ret)
 		LOG(2, "pmemobj_mutex_unlock failed");
 err_oob_lock:
-	out_ret = lane_release(pop);
-	ASSERTeq(out_ret, 0);
-	if (out_ret)
-		LOG(2, "lane_release failed");
+	lane_release(pop);
 
 	return ret;
 }
@@ -1173,10 +1164,7 @@ list_remove(PMEMobjpool *pop,
 	if (out_ret)
 		LOG(2, "pmemobj_mutex_unlock failed");
 err:
-	out_ret = lane_release(pop);
-	ASSERTeq(out_ret, 0);
-	if (out_ret)
-		LOG(2, "lane_release failed");
+	lane_release(pop);
 
 	return ret;
 }
@@ -1269,10 +1257,7 @@ list_move_oob(PMEMobjpool *pop,
 	if (out_ret)
 		LOG(2, "list_mutexes_unlock failed");
 err:
-	out_ret = lane_release(pop);
-	ASSERTeq(out_ret, 0);
-	if (out_ret)
-		LOG(2, "lane_release failed");
+	lane_release(pop);
 
 	return ret;
 }
@@ -1389,10 +1374,7 @@ list_move(PMEMobjpool *pop,
 	if (out_ret)
 		LOG(2, "list_mutexes_unlock failed");
 err:
-	out_ret = lane_release(pop);
-	ASSERTeq(out_ret, 0);
-	if (out_ret)
-		LOG(2, "lane_release failed");
+	lane_release(pop);
 
 	return ret;
 }
@@ -1618,10 +1600,7 @@ err_lock:
 	if (out_ret)
 		LOG(2, "pmemobj_mutex_unlock failed");
 err_oob_lock:
-	out_ret = lane_release(pop);
-	ASSERTeq(out_ret, 0);
-	if (out_ret)
-		LOG(2, "lane_release failed");
+	lane_release(pop);
 
 	return ret;
 }
@@ -1871,10 +1850,7 @@ err_lock:
 	if (out_ret)
 		LOG(2, "list_mutexes_unlock failed");
 err_oob_lock:
-	out_ret = lane_release(pop);
-	ASSERTeq(out_ret, 0);
-	if (out_ret)
-		LOG(2, "lane_release failed");
+	lane_release(pop);
 
 	return ret;
 }
