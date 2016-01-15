@@ -251,10 +251,10 @@ libpmemobj \- persistent memory transactional object store
 .sp
 .BI "int pmemobj_tx_begin(PMEMobjpool *" pop ", jmp_buf *" env ", enum " tx_lock ", " ... );
 .BI "void pmemobj_tx_abort(int " errnum );
-.BI "int pmemobj_tx_commit(void);
+.BI "void pmemobj_tx_commit(void);
 .BI "int pmemobj_tx_end(void);
 .BI "int pmemobj_tx_errno(void);
-.BI "int pmemobj_tx_process(void);
+.BI "void pmemobj_tx_process(void);
 .sp
 .BI "int pmemobj_tx_add_range(PMEMoid " oid ", uint64_t " off ", size_t " size );
 .BI "int pmemobj_tx_add_range_direct(void *" ptr ", size_t " size );
@@ -2634,7 +2634,7 @@ aborts the current transaction and causes transition to
 This function must be called during
 .IR TX_STAGE_WORK .
 .PP
-.BI "int pmemobj_tx_commit(void);
+.BI "void pmemobj_tx_commit(void);
 .IP
 The
 .BR pmemobj_tx_commit ()
@@ -2642,7 +2642,6 @@ function commits the current open transaction and causes transition to
 .I TX_STAGE_ONCOMMIT
 stage.  If called in context of the outer-most transaction,
 all the changes may be considered as durably written upon successful completion.
-If successful returns 0.  Otherwise, an error number is returned.
 This function must be called during
 .IR TX_STAGE_WORK .
 .PP
@@ -2680,7 +2679,7 @@ The
 .BR pmemobj_tx_errno ()
 function returns last transaction error code.
 .PP
-.BI "int pmemobj_tx_process(void);
+.BI "void pmemobj_tx_process(void);
 .IP
 The
 .BR pmemobj_tx_process ()
@@ -2688,7 +2687,6 @@ function performs the actions associated with current stage of the transaction,
 and makes the transition to the next stage. It must be called in transaction.
 Current stage must always be obtained by a call to
 .BR pmemobj_tx_stage ().
-If successful, function returns zero.  Otherwise, an error number is returned.
 .PP
 .BI "int pmemobj_tx_add_range(PMEMoid " oid ", uint64_t " off ", size_t " size );
 .IP

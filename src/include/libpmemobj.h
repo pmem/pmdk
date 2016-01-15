@@ -804,13 +804,9 @@ void pmemobj_tx_abort(int errnum);
 /*
  * Commits current transaction
  *
- * If successful, transaction stage changes to TX_STAGE_ONCOMMIT and function
- * returns zero. Otherwise, stage changes to TX_STAGE_ONABORT and an error
- * number is returned.
- *
  * This function must be called during TX_STAGE_WORK.
  */
-int pmemobj_tx_commit(void);
+void pmemobj_tx_commit(void);
 
 /*
  * Cleanups current transaction. Must always be called after pmemobj_tx_begin,
@@ -832,11 +828,9 @@ int pmemobj_tx_end(void);
  * and makes the transition to the next stage. Current stage must always
  * be obtained by calling pmemobj_tx_stage.
  *
- * If successful, function returns zero. Otherwise, an error number is returned.
- *
  * This function must be called in transaction.
  */
-int pmemobj_tx_process(void);
+void pmemobj_tx_process(void);
 
 /*
  * Returns last transaction error code.

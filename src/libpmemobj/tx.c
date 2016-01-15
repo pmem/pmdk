@@ -1117,7 +1117,7 @@ pmemobj_tx_errno(void)
 /*
  * pmemobj_tx_commit -- commits current transaction
  */
-int
+void
 pmemobj_tx_commit()
 {
 	LOG(3, NULL);
@@ -1151,8 +1151,6 @@ pmemobj_tx_commit()
 	}
 
 	tx.stage = TX_STAGE_ONCOMMIT;
-
-	return 0;
 }
 
 /*
@@ -1215,7 +1213,7 @@ pmemobj_tx_end()
 /*
  * pmemobj_tx_process -- processes current transaction stage
  */
-int
+void
 pmemobj_tx_process()
 {
 	LOG(3, NULL);
@@ -1227,7 +1225,8 @@ pmemobj_tx_process()
 	case TX_STAGE_NONE:
 		break;
 	case TX_STAGE_WORK:
-		return pmemobj_tx_commit();
+		pmemobj_tx_commit();
+		return;
 	case TX_STAGE_ONABORT:
 	case TX_STAGE_ONCOMMIT:
 		tx.stage = TX_STAGE_FINALLY;
@@ -1238,8 +1237,6 @@ pmemobj_tx_process()
 	case MAX_TX_STAGE:
 		ASSERT(0);
 	}
-
-	return 0;
 }
 
 /*
