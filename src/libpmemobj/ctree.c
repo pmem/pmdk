@@ -116,7 +116,7 @@ ctree_delete(struct ctree *t)
 
 	if ((err = pthread_mutex_destroy(&t->lock)) != 0) {
 		errno = err;
-		ERR("!pthread_mutex_destroy");
+		FATAL("!pthread_mutex_destroy");
 	}
 
 	Free(t);
@@ -163,7 +163,7 @@ ctree_insert(struct ctree *t, uint64_t key, uint64_t value)
 	}
 
 	if (dstleaf->key == key) {
-		err = EINVAL;
+		err = EEXIST;
 		goto error_duplicate;
 	}
 

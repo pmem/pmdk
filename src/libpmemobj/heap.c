@@ -1325,10 +1325,8 @@ heap_degrade_run_if_empty(PMEMobjpool *pop, struct bucket *b,
 		goto out;
 	}
 
-	if (traverse_bucket_run(b, m, bucket_get_rm_block_exact) != 0) {
-		ERR("Persistent/volatile state mismatch");
-		ASSERT(0);
-	}
+	if (traverse_bucket_run(b, m, bucket_get_rm_block_exact))
+		FATAL("Persistent/volatile state mismatch");
 
 	struct bucket *defb = heap_get_default_bucket(pop);
 	if ((err = bucket_lock(defb)) != 0) {
@@ -1604,11 +1602,16 @@ heap_init(PMEMobjpool *pop)
 int
 heap_cleanup(PMEMobjpool *pop)
 {
+	int err;
+
 	for (int i = 0; i < MAX_BUCKETS; ++i)
 		bucket_delete(pop->heap->buckets[i]);
 
 	for (int i = 0; i < MAX_RUN_LOCKS; ++i)
-		pthread_mutex_destroy(&pop->heap->run_locks[i]);
+		if ((err = pthread_mutex_destroy(&pop->heap->run_locks[i]))) {
+			errno = err;
+			FATAL("!pthread_mutex_destroy");
+		}
 
 	Free(pop->heap->bucket_map);
 
@@ -1617,7 +1620,10 @@ heap_cleanup(PMEMobjpool *pop)
 
 	Free(pop->heap->caches);
 
-	pthread_mutex_destroy(&pop->heap->active_run_lock);
+	if ((err = pthread_mutex_destroy(&pop->heap->active_run_lock))) {
+		errno = err;
+		FATAL("!pthread_mutex_destroy");
+	}
 
 	struct active_run *r;
 	for (int i = 0; i < MAX_BUCKETS - 1; ++i) {

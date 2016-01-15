@@ -146,8 +146,8 @@ error_bucket_malloc:
 void
 bucket_delete(struct bucket *b)
 {
-	if ((errno = pthread_mutex_destroy(&b->lock)) != 0)
-		ERR("!pthread_mutex_destroy");
+	if ((errno = pthread_mutex_destroy(&b->lock)))
+		FATAL("!pthread_mutex_destroy");
 
 	ctree_delete(b->tree);
 	Free(b);
@@ -242,6 +242,9 @@ bucket_insert_block(PMEMobjpool *pop, struct bucket *b, struct memory_block m)
 
 	int ret = ctree_insert(b->tree, key, 0);
 	if (ret != 0) {
+		if (ret == EEXIST)
+			FATAL("Bucket tree already contains key %llu\n",
+					(unsigned long long)key);
 		ERR("Failed to create volatile state of memory block");
 		ASSERT(0);
 	}

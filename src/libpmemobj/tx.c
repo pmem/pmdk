@@ -1736,10 +1736,8 @@ pmemobj_tx_free(PMEMoid oid)
 		VALGRIND_REMOVE_FROM_TX(oobh, pmalloc_usable_size(lane->pop,
 				oid.off - OBJ_OOB_SIZE));
 
-		if (ctree_remove(lane->ranges, oid.off, 1) != oid.off) {
-			ERR("TX undo state mismatch");
-			ASSERT(0);
-		}
+		if (ctree_remove(lane->ranges, oid.off, 1) != oid.off)
+			FATAL("TX undo state mismatch");
 
 		/*
 		 * The object has been allocated within the same transaction
