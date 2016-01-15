@@ -1076,8 +1076,8 @@ pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...)
 	if (tx.stage == TX_STAGE_WORK) {
 		lane = tx.section->runtime;
 	} else if (tx.stage == TX_STAGE_NONE) {
-		if ((err = lane_hold(pop, &tx.section,
-			LANE_SECTION_TRANSACTION)) != 0)
+		err = lane_hold(pop, &tx.section, LANE_SECTION_TRANSACTION);
+		if (err)
 			goto err_abort;
 
 		lane = tx.section->runtime;
@@ -1094,7 +1094,7 @@ pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...)
 
 	struct tx_data *txd = Malloc(sizeof (*txd));
 	if (txd == NULL) {
-		err = ENOMEM;
+		err = errno;
 		goto err_abort;
 	}
 
@@ -1106,26 +1106,30 @@ pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...)
 
 	SLIST_INSERT_HEAD(&lane->tx_entries, txd, tx_entry);
 
+	tx.stage = TX_STAGE_WORK;
+
 	/* handle locks */
 	va_list argp;
 	va_start(argp, env);
 	enum pobj_tx_lock lock_type;
 
 	while ((lock_type = va_arg(argp, enum pobj_tx_lock)) != TX_LOCK_NONE) {
-		if ((err = add_to_tx_and_lock(lane,
-				lock_type, va_arg(argp, void *))) != 0) {
+		err = add_to_tx_and_lock(lane, lock_type, va_arg(argp, void *));
+		if (err) {
 			va_end(argp);
 			goto err_abort;
 		}
 	}
 	va_end(argp);
 
-	tx.stage = TX_STAGE_WORK;
 	ASSERT(err == 0);
 	return 0;
 
 err_abort:
-	tx.stage = TX_STAGE_ONABORT;
+	if (tx.stage == TX_STAGE_WORK)
+		pmemobj_tx_abort(err);
+	else
+		tx.stage = TX_STAGE_ONABORT;
 	return err;
 }
 
