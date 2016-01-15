@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2015, Intel Corporation
+ * Copyright (c) 2014-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -51,6 +51,7 @@ extern "C" {
 #define	__STDC_LIMIT_MACROS
 #endif
 
+#include <errno.h>
 #include <sys/types.h>
 #include <setjmp.h>
 #include <stdint.h>
@@ -816,8 +817,11 @@ int pmemobj_tx_commit(void);
  * If called during TX_STAGE_NONE, has no effect.
  *
  * Always causes transition to TX_STAGE_NONE.
+ *
+ * If transaction was successful, returns 0. Otherwise returns error code set
+ * by pmemobj_tx_abort.
  */
-void pmemobj_tx_end(void);
+int pmemobj_tx_end(void);
 
 /*
  * Performs the actions associated with current stage of the transaction,
@@ -828,11 +832,18 @@ void pmemobj_tx_end(void);
  */
 int pmemobj_tx_process(void);
 
+/*
+ * Returns last transaction error code.
+ */
+int pmemobj_tx_errno(void);
+
 #define	_POBJ_TX_BEGIN(pop, ...)\
 {\
 	jmp_buf _tx_env;\
 	int _stage = TX_STAGE_NONE;\
-	setjmp(_tx_env);\
+	int _pobj_errno;\
+	if (setjmp(_tx_env))\
+		errno = pmemobj_tx_errno();\
 	if (_stage == TX_STAGE_NONE)\
 		pmemobj_tx_begin(pop, _tx_env, __VA_ARGS__, TX_LOCK_NONE);\
 	while ((_stage = pmemobj_tx_stage()) != TX_STAGE_NONE) {\
@@ -867,7 +878,9 @@ _POBJ_TX_BEGIN(pop, ##__VA_ARGS__)
 				break;\
 		}\
 	}\
-	pmemobj_tx_end();\
+	_pobj_errno = pmemobj_tx_end();\
+	if (_pobj_errno)\
+		errno = _pobj_errno;\
 }
 
 /*

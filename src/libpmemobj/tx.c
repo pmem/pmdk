@@ -902,8 +902,7 @@ tx_alloc_common(size_t size, type_num_t type_num,
 
 	if (size > PMEMOBJ_MAX_ALLOC_SIZE) {
 		ERR("requested size too large");
-		errno = ENOMEM;
-		return pmemobj_tx_abort_null(EINVAL);
+		return pmemobj_tx_abort_null(ENOMEM);
 	}
 
 	/* callers should have checked this */
@@ -933,7 +932,6 @@ tx_alloc_common(size_t size, type_num_t type_num,
 
 err_oom:
 	ERR("out of memory");
-	errno = ENOMEM;
 	return pmemobj_tx_abort_null(ENOMEM);
 }
 
@@ -949,8 +947,7 @@ tx_alloc_copy_common(size_t size, type_num_t type_num, const void *ptr,
 
 	if (size > PMEMOBJ_MAX_ALLOC_SIZE) {
 		ERR("requested size too large");
-		errno = ENOMEM;
-		return pmemobj_tx_abort_null(EINVAL);
+		return pmemobj_tx_abort_null(ENOMEM);
 	}
 
 	/* callers should have checked this */
@@ -983,7 +980,6 @@ tx_alloc_copy_common(size_t size, type_num_t type_num, const void *ptr,
 
 err_oom:
 	ERR("out of memory");
-	errno = ENOMEM;
 	return pmemobj_tx_abort_null(ENOMEM);
 }
 
@@ -1007,13 +1003,11 @@ tx_realloc_common(PMEMoid oid, size_t size, unsigned int type_num,
 
 	if (size > PMEMOBJ_MAX_ALLOC_SIZE) {
 		ERR("requested size too large");
-		errno = ENOMEM;
-		return pmemobj_tx_abort_null(EINVAL);
+		return pmemobj_tx_abort_null(ENOMEM);
 	}
 
 	if (type_num >= PMEMOBJ_NUM_OID_TYPES) {
 		ERR("invalid type_num %d", type_num);
-		errno = EINVAL;
 		return pmemobj_tx_abort_null(EINVAL);
 	}
 
@@ -1174,6 +1168,25 @@ pmemobj_tx_abort(int errnum)
 	txd->errnum = errnum;
 	if (!util_is_zeroed(txd->env, sizeof (jmp_buf)))
 		longjmp(txd->env, errnum);
+	else
+		errno = errnum;
+}
+
+/*
+ * pmemobj_tx_errno -- returns last transaction error code
+ */
+int
+pmemobj_tx_errno(void)
+{
+	LOG(3, NULL);
+
+	ASSERTeq(tx.stage, TX_STAGE_ONABORT);
+	ASSERT(tx.section != NULL);
+
+	struct lane_tx_runtime *lane = tx.section->runtime;
+	struct tx_data *txd = SLIST_FIRST(&lane->tx_entries);
+
+	return txd->errnum;
 }
 
 /*
@@ -1225,7 +1238,7 @@ pmemobj_tx_commit()
 /*
  * pmemobj_tx_end -- ends current transaction
  */
-void
+int
 pmemobj_tx_end()
 {
 	LOG(3, NULL);
@@ -1233,7 +1246,7 @@ pmemobj_tx_end()
 
 	if (tx.section == NULL) {
 		tx.stage = TX_STAGE_NONE;
-		return;
+		return 0;
 	}
 
 	struct lane_tx_runtime *lane = tx.section->runtime;
@@ -1275,6 +1288,8 @@ pmemobj_tx_end()
 		if (errnum)
 			pmemobj_tx_abort(errnum);
 	}
+
+	return errnum;
 }
 
 /*
@@ -1496,11 +1511,10 @@ pmemobj_tx_add_common(struct tx_add_range_args *args)
 
 	if (ret != 0) {
 		ERR("out of memory");
-		errno = ENOMEM;
-		pmemobj_tx_abort(ENOMEM);
+		return pmemobj_tx_abort_err(ENOMEM);
 	}
 
-	return ret;
+	return 0;
 }
 
 /*
@@ -1586,13 +1600,11 @@ pmemobj_tx_alloc(size_t size, unsigned int type_num)
 
 	if (size == 0) {
 		ERR("allocation with size 0");
-		errno = EINVAL;
 		return pmemobj_tx_abort_null(EINVAL);
 	}
 
 	if (type_num >= PMEMOBJ_NUM_OID_TYPES) {
 		ERR("invalid type_num %d", type_num);
-		errno = EINVAL;
 		return pmemobj_tx_abort_null(EINVAL);
 	}
 
@@ -1610,13 +1622,11 @@ pmemobj_tx_zalloc(size_t size, unsigned int type_num)
 
 	if (size == 0) {
 		ERR("allocation with size 0");
-		errno = EINVAL;
 		return pmemobj_tx_abort_null(EINVAL);
 	}
 
 	if (type_num >= PMEMOBJ_NUM_OID_TYPES) {
 		ERR("invalid type_num %d", type_num);
-		errno = EINVAL;
 		return pmemobj_tx_abort_null(EINVAL);
 	}
 
@@ -1665,13 +1675,11 @@ pmemobj_tx_strdup(const char *s, unsigned int type_num)
 
 	if (NULL == s) {
 		ERR("cannot duplicate NULL string");
-		errno = EINVAL;
 		return pmemobj_tx_abort_null(EINVAL);
 	}
 
 	if (type_num >= PMEMOBJ_NUM_OID_TYPES) {
 		ERR("invalid type_num %d", type_num);
-		errno = EINVAL;
 		return pmemobj_tx_abort_null(EINVAL);
 	}
 
@@ -1709,7 +1717,6 @@ pmemobj_tx_free(PMEMoid oid)
 
 	if (lane->pop->uuid_lo != oid.pool_uuid_lo) {
 		ERR("invalid pool uuid");
-		errno = EINVAL;
 		return pmemobj_tx_abort_err(EINVAL);
 	}
 	ASSERT(OBJ_OID_IS_VALID(lane->pop, oid));

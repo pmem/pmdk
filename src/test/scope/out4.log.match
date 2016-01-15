@@ -55,6 +55,7 @@ pmemobj_tx_alloc
 pmemobj_tx_begin
 pmemobj_tx_commit
 pmemobj_tx_end
+pmemobj_tx_errno
 pmemobj_tx_free
 pmemobj_tx_process
 pmemobj_tx_realloc
@@ -121,6 +122,7 @@ pmemobj_tx_alloc
 pmemobj_tx_begin
 pmemobj_tx_commit
 pmemobj_tx_end
+pmemobj_tx_errno
 pmemobj_tx_free
 pmemobj_tx_process
 pmemobj_tx_realloc
@@ -187,6 +189,7 @@ pmemobj_tx_alloc
 pmemobj_tx_begin
 pmemobj_tx_commit
 pmemobj_tx_end
+pmemobj_tx_errno
 pmemobj_tx_free
 pmemobj_tx_process
 pmemobj_tx_realloc
@@ -253,6 +256,7 @@ pmemobj_tx_alloc
 pmemobj_tx_begin
 pmemobj_tx_commit
 pmemobj_tx_end
+pmemobj_tx_errno
 pmemobj_tx_free
 pmemobj_tx_process
 pmemobj_tx_realloc

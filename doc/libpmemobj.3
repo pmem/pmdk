@@ -1,5 +1,5 @@
 .\"
-.\" Copyright (c) 2014-2015, Intel Corporation
+.\" Copyright (c) 2014-2016, Intel Corporation
 .\"
 .\" Redistribution and use in source and binary forms, with or without
 .\" modification, are permitted provided that the following conditions
@@ -37,7 +37,7 @@
 .\" or
 .\"	groff -man -Tascii libpmemobj.3
 .\"
-.TH libpmemobj 3 "pmemobj API version 0.4.19" "NVM Library"
+.TH libpmemobj 3 "pmemobj API version 0.4.20" "NVM Library"
 .SH NAME
 libpmemobj \- persistent memory transactional object store
 .SH SYNOPSIS
@@ -252,7 +252,8 @@ libpmemobj \- persistent memory transactional object store
 .BI "int pmemobj_tx_begin(PMEMobjpool *" pop ", jmp_buf *" env ", enum " tx_lock ", " ... );
 .BI "void pmemobj_tx_abort(int " errnum );
 .BI "int pmemobj_tx_commit(void);
-.BI "void pmemobj_tx_end(void);
+.BI "int pmemobj_tx_end(void);
+.BI "int pmemobj_tx_errno(void);
 .BI "int pmemobj_tx_process(void);
 .sp
 .BI "int pmemobj_tx_add_range(PMEMoid " oid ", uint64_t " off ", size_t " size );
@@ -2645,7 +2646,7 @@ If successful returns 0.  Otherwise, an error number is returned.
 It has no effect if called during the stage other than
 .IR TX_STAGE_WORK .
 .PP
-.BI "void pmemobj_tx_end(void);
+.BI "int pmemobj_tx_end(void);
 .IP
 The
 .BR pmemobj_tx_end ()
@@ -2664,6 +2665,17 @@ even if starting the transaction failed.  It has no effect if called
 during
 .I TX_STAGE_NONE
 stage.
+If transaction was successful, returns 0. Otherwise returns error code set by
+.BR pmemobj_tx_abort ().
+Note that
+.BR pmemobj_tx_abort ()
+can be called internally by the library.
+.PP
+.BI "int pmemobj_tx_errno(void);
+.IP
+The
+.BR pmemobj_tx_errno ()
+function returns last transaction error code.
 .PP
 .BI "int pmemobj_tx_process(void);
 .IP
@@ -2923,6 +2935,7 @@ macro cleans up and closes the transaction started by
 or
 .BR TX_BEGIN_LOCK ()
 macro.  It is mandatory to terminate each transaction with this macro.
+If the transaction was aborted, errno is set appropriately.
 .PP
 Similarly to the macros controlling the transaction flow, the
 .B libpmemobj
