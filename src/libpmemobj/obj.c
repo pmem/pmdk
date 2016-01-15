@@ -101,7 +101,7 @@ pmemobj_direct(PMEMoid oid)
 	    pcache->uuid_lo != oid.pool_uuid_lo) {
 		pcache->invalidate = _pobj_cache_invalidate;
 
-		if ((pcache->pop = pmemobj_pool(oid)) == NULL) {
+		if ((pcache->pop = pmemobj_pool_by_oid(oid)) == NULL) {
 			pcache->uuid_lo = 0;
 			return NULL;
 		}

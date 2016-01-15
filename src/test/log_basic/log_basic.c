@@ -169,13 +169,11 @@ do_rewind(PMEMlogpool *plp)
 static int
 printit(const void *buf, size_t len, void *arg)
 {
-	char *str = MALLOC(len + 1);
+	char *str = alloca(len + 1);
 
 	strncpy(str, buf, len);
 	str[len] = '\0';
 	OUT("%s", str);
-
-	FREE(str);
 
 	return 1;
 }

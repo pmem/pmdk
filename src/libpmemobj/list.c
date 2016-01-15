@@ -1357,7 +1357,7 @@ lane_list_boot(PMEMobjpool *pop)
 	return 0;
 }
 
-static struct section_operations list_ops = {
+struct section_operations list_ops = {
 	.construct = lane_list_construct,
 	.destruct = lane_list_destruct,
 	.recover = lane_list_recovery,
