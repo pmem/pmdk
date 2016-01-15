@@ -90,19 +90,13 @@ ctree_new()
 {
 	struct ctree *t = Malloc(sizeof (*t));
 	if (t == NULL)
-		goto error_ctree_malloc;
+		return NULL;
 
-	if (pthread_mutex_init(&t->lock, NULL) != 0)
-		goto error_lock_init;
+	util_mutex_init(&t->lock, NULL);
 
 	t->root = NULL;
 
 	return t;
-
-error_lock_init:
-	Free(t);
-error_ctree_malloc:
-	return NULL;
 }
 
 /*

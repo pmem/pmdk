@@ -78,10 +78,7 @@ lane_init(PMEMobjpool *pop, struct lane *lane, struct lane_layout *layout,
 
 	int err;
 
-	if ((err = pthread_mutex_init(mtx, attr)) != 0) {
-		ERR("!pthread_mutex_init");
-		return err;
-	}
+	util_mutex_init(mtx, attr);
 
 	lane->lock = mtx;
 
@@ -103,7 +100,6 @@ error_section_construct:
 		Section_ops[i]->destruct(pop, &lane->sections[i]);
 
 	util_mutex_destroy(lane->lock);
-
 	return err;
 }
 

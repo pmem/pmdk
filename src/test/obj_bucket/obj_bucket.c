@@ -62,14 +62,6 @@ FUNC_MOCK(malloc, void *, size_t size)
 	}
 FUNC_MOCK_END
 
-FUNC_MOCK(pthread_mutex_init, int,
-	pthread_mutex_t *mutex, const pthread_mutexattr_t *attr)
-	FUNC_MOCK_RUN_RET_DEFAULT_REAL(pthread_mutex_init, mutex, attr)
-	FUNC_MOCK_RUN(0) {
-		return -1;
-	}
-FUNC_MOCK_END
-
 FUNC_MOCK(ctree_new, struct ctree *, void)
 	FUNC_MOCK_RUN_RET_DEFAULT(MOCK_CRIT)
 	FUNC_MOCK_RUN(0) {
@@ -107,10 +99,6 @@ test_new_delete_bucket()
 	ASSERT(b == NULL);
 
 	/* b->ctree fail */
-	b = bucket_new(1, 1);
-	ASSERT(b == NULL);
-
-	/* b->lock init fail */
 	b = bucket_new(1, 1);
 	ASSERT(b == NULL);
 

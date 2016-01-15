@@ -99,10 +99,7 @@ bucket_new(size_t unit_size, unsigned unit_max)
 	if (b->tree == NULL)
 		goto error_tree_new;
 
-	if ((errno = pthread_mutex_init(&b->lock, NULL)) != 0) {
-		ERR("!pthread_mutex_init");
-		goto error_mutex_init;
-	}
+	util_mutex_init(&b->lock, NULL);
 
 	b->unit_size = unit_size;
 	b->unit_max = unit_max;
@@ -133,8 +130,6 @@ bucket_new(size_t unit_size, unsigned unit_max)
 
 	return b;
 
-error_mutex_init:
-	ctree_delete(b->tree);
 error_tree_new:
 	Free(b);
 error_bucket_malloc:

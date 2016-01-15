@@ -746,7 +746,7 @@ build_map_locks(struct btt *bttp, struct arena *arenap)
 		return -1;
 	}
 	for (uint32_t lane = 0; lane < bttp->nfree; lane++)
-		pthread_mutex_init(&arenap->map_locks[lane], NULL);
+		util_mutex_init(&arenap->map_locks[lane], NULL);
 
 	return 0;
 }
@@ -789,7 +789,7 @@ read_arena(struct btt *bttp, unsigned lane, uint64_t arena_off,
 		return -1;
 
 	/* initialize the per arena info block lock */
-	pthread_mutex_init(&arenap->info_lock, NULL);
+	util_mutex_init(&arenap->info_lock, NULL);
 
 	return 0;
 }
@@ -1270,7 +1270,7 @@ btt_init(uint64_t rawsize, uint32_t lbasize, uint8_t parent_uuid[],
 
 	memset(bttp, '\0', sizeof (*bttp));
 
-	pthread_mutex_init(&bttp->layout_write_mutex, NULL);
+	util_mutex_init(&bttp->layout_write_mutex, NULL);
 	memcpy(bttp->parent_uuid, parent_uuid, BTTINFO_UUID_LEN);
 	bttp->rawsize = rawsize;
 	bttp->lbasize = lbasize;

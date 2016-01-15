@@ -360,19 +360,13 @@ pmemblk_runtime_init(PMEMblkpool *pbp, size_t bsize, int rdonly, int is_pmem)
 	}
 
 	for (unsigned i = 0; i < pbp->nlane; i++)
-		if ((errno = pthread_mutex_init(&locks[i], NULL))) {
-			ERR("!pthread_mutex_init");
-			goto err;
-		}
+		util_mutex_init(&locks[i], NULL);
 
 	pbp->locks = locks;
 
 #ifdef DEBUG
 	/* initialize debug lock */
-	if ((errno = pthread_mutex_init(&pbp->write_lock, NULL))) {
-		ERR("!pthread_mutex_init");
-		goto err;
-	}
+	util_mutex_init(&pbp->write_lock, NULL);
 #endif
 
 	/*

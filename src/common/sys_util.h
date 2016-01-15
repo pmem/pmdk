@@ -38,6 +38,21 @@
 #include <pthread.h>
 
 /*
+ * util_mutex_init -- pthread_mutex_init variant that never fails from
+ * caller perspective. If pthread_mutex_init failed, this function aborts
+ * the program.
+ */
+static inline void
+util_mutex_init(pthread_mutex_t *m, const pthread_mutexattr_t *mutexattr)
+{
+	int tmp = pthread_mutex_init(m, mutexattr);
+	if (tmp) {
+		errno = tmp;
+		FATAL("!pthread_mutex_init");
+	}
+}
+
+/*
  * util_mutex_destroy -- pthread_mutex_destroy variant that never fails from
  * caller perspective. If pthread_mutex_destroy failed, this function aborts
  * the program.

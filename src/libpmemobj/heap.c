@@ -1401,12 +1401,10 @@ heap_boot(PMEMobjpool *pop)
 	h->zones_exhausted = 0;
 	h->layout = heap_get_layout(pop);
 
-	if ((err = pthread_mutex_init(&h->active_run_lock, NULL)) != 0)
-		goto error_lock_init;
+	util_mutex_init(&h->active_run_lock, NULL);
 
 	for (int i = 0; i < MAX_RUN_LOCKS; ++i)
-		if ((err = pthread_mutex_init(&h->run_locks[i], NULL)) != 0)
-			goto error_lock_init;
+		util_mutex_init(&h->run_locks[i], NULL);
 
 	memset(h->last_drained, 0, sizeof (h->last_drained));
 
@@ -1431,7 +1429,6 @@ error_cache_init:
 		bucket_cache_destroy(&h->caches[i - 1]);
 error_buckets_init:
 	/* there's really no point in destroying the locks */
-error_lock_init:
 	Free(h->caches);
 error_heap_cache_malloc:
 	Free(h);

@@ -58,27 +58,14 @@ FUNC_MOCK(malloc, void *, size_t size)
 	}
 FUNC_MOCK_END
 
-FUNC_MOCK(pthread_mutex_init, int,
-	pthread_mutex_t *mutex, const pthread_mutexattr_t *attr)
-	FUNC_MOCK_RUN_RET_DEFAULT_REAL(pthread_mutex_init, mutex, attr)
-	FUNC_MOCK_RUN(TEST_NEW_DELETE + 0) {
-		return -1;
-	}
-FUNC_MOCK_END
-
 static void
 test_ctree_new_delete_empty()
 {
 	struct ctree *t = NULL;
 
 	FUNC_MOCK_RCOUNTER_SET(malloc, TEST_NEW_DELETE);
-	FUNC_MOCK_RCOUNTER_SET(pthread_mutex_init, TEST_NEW_DELETE);
 
 	/* t Malloc fail */
-	t = ctree_new();
-	ASSERT(t == NULL);
-
-	/* t->lock pthread_mutex_init fail */
 	t = ctree_new();
 	ASSERT(t == NULL);
 
@@ -96,7 +83,6 @@ test_ctree_insert()
 	ASSERT(t != NULL);
 
 	FUNC_MOCK_RCOUNTER_SET(malloc, TEST_INSERT);
-	FUNC_MOCK_RCOUNTER_SET(pthread_mutex_init, TEST_INSERT);
 
 	ASSERT(ctree_is_empty(t));
 
@@ -152,7 +138,6 @@ test_ctree_remove()
 	ASSERT(t != NULL);
 
 	FUNC_MOCK_RCOUNTER_SET(malloc, TEST_REMOVE);
-	FUNC_MOCK_RCOUNTER_SET(pthread_mutex_init, TEST_REMOVE);
 
 	/* remove from empty tree */
 	ASSERT(ctree_remove(t, TEST_VAL_A, 0) == 0);
