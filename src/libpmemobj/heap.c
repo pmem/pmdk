@@ -50,6 +50,7 @@
 #include "list.h"
 #include "obj.h"
 #include "pmalloc.h"
+#include "sys_util.h"
 #include "valgrind_internal.h"
 
 #define	MAX_RUN_LOCKS 1024
@@ -443,12 +444,8 @@ heap_reuse_run(PMEMobjpool *pop, struct bucket *b,
 
 	heap_process_run_metadata(pop, b, run, chunk_id, zone_id);
 
-	int err;
 out:
-	if ((err = pthread_mutex_unlock(heap_get_run_lock(pop, chunk_id)))) {
-		errno = err;
-		FATAL("!pthread_mutex_unlock");
-	}
+	util_mutex_unlock(heap_get_run_lock(pop, chunk_id));
 }
 
 /*
@@ -570,12 +567,8 @@ heap_get_active_run(struct pmalloc_heap *h, int bucket_idx,
 
 	Free(arun);
 
-	int err;
 out:
-	if ((err = pthread_mutex_unlock(&h->active_run_lock))) {
-		errno = err;
-		FATAL("!pthread_mutex_unlock");
-	}
+	util_mutex_unlock(&h->active_run_lock);
 
 	return ret;
 }
@@ -1195,11 +1188,7 @@ heap_unlock_if_run(PMEMobjpool *pop, struct memory_block m)
 
 	if (hdr->type == CHUNK_TYPE_RUN) {
 		pthread_mutex_t *mutex = heap_get_run_lock(pop, m.chunk_id);
-		int err = pthread_mutex_unlock(mutex);
-		if (err) {
-			errno = err;
-			FATAL("!pthread_mutex_unlock");
-		}
+		util_mutex_unlock(mutex);
 	}
 }
 
@@ -1352,13 +1341,8 @@ heap_degrade_run_if_empty(PMEMobjpool *pop, struct bucket *b,
 
 	bucket_unlock(defb);
 
-	int err2;
 out:
-	if ((err2 = pthread_mutex_unlock(heap_get_run_lock(pop, m.chunk_id)))) {
-		errno = err2;
-		FATAL("!pthread_mutex_unlock");
-	}
-
+	util_mutex_unlock(heap_get_run_lock(pop, m.chunk_id));
 out_bucket:
 	bucket_unlock(b);
 
@@ -1602,16 +1586,11 @@ heap_init(PMEMobjpool *pop)
 void
 heap_cleanup(PMEMobjpool *pop)
 {
-	int err;
-
 	for (int i = 0; i < MAX_BUCKETS; ++i)
 		bucket_delete(pop->heap->buckets[i]);
 
 	for (int i = 0; i < MAX_RUN_LOCKS; ++i)
-		if ((err = pthread_mutex_destroy(&pop->heap->run_locks[i]))) {
-			errno = err;
-			FATAL("!pthread_mutex_destroy");
-		}
+		util_mutex_destroy(&pop->heap->run_locks[i]);
 
 	Free(pop->heap->bucket_map);
 
@@ -1620,10 +1599,7 @@ heap_cleanup(PMEMobjpool *pop)
 
 	Free(pop->heap->caches);
 
-	if ((err = pthread_mutex_destroy(&pop->heap->active_run_lock))) {
-		errno = err;
-		FATAL("!pthread_mutex_destroy");
-	}
+	util_mutex_destroy(&pop->heap->active_run_lock);
 
 	struct active_run *r;
 	for (int i = 0; i < MAX_BUCKETS - 1; ++i) {

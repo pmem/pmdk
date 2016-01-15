@@ -46,6 +46,7 @@
 #include "out.h"
 #include "redo.h"
 #include "list.h"
+#include "sys_util.h"
 #include "obj.h"
 #include "valgrind_internal.h"
 
@@ -97,15 +98,11 @@ lane_init(PMEMobjpool *pop, struct lane *lane, struct lane_layout *layout,
 
 	return 0;
 
-	int err_tmp;
 error_section_construct:
 	for (i = i - 1; i >= 0; --i)
 		Section_ops[i]->destruct(pop, &lane->sections[i]);
 
-	if ((err_tmp = pthread_mutex_destroy(lane->lock))) {
-		errno = err_tmp;
-		FATAL("!pthread_mutex_destroy");
-	}
+	util_mutex_destroy(lane->lock);
 
 	return err;
 }
@@ -116,15 +113,10 @@ error_section_construct:
 static void
 lane_destroy(PMEMobjpool *pop, struct lane *lane)
 {
-	int err;
-
 	for (int i = 0; i < MAX_LANE_SECTION; ++i)
 		Section_ops[i]->destruct(pop, &lane->sections[i]);
 
-	if ((err = pthread_mutex_destroy(lane->lock))) {
-		errno = err;
-		FATAL("!pthread_mutex_destroy");
-	}
+	util_mutex_destroy(lane->lock);
 }
 
 /*
@@ -322,9 +314,5 @@ lane_release(PMEMobjpool *pop)
 
 	struct lane *lane = &pop->lanes[Lane_idx % pop->nlanes];
 
-	int err;
-	if ((err = pthread_mutex_unlock(lane->lock))) {
-		errno = err;
-		FATAL("!pthread_mutex_unlock");
-	}
+	util_mutex_unlock(lane->lock);
 }

@@ -43,6 +43,7 @@
 #include "util.h"
 #include "obj.h"
 #include "out.h"
+#include "sync.h"
 #include "valgrind_internal.h"
 
 #define	PREV_OFF (offsetof(struct list_entry, pe_prev) + offsetof(PMEMoid, off))
@@ -151,25 +152,14 @@ list_mutexes_unlock(PMEMobjpool *pop,
 	struct list_head *head1, struct list_head *head2)
 {
 	ASSERTne(head1, NULL);
-	int err;
 
 	if (!head2) {
-		if ((err = pmemobj_mutex_unlock(pop, &head1->lock))) {
-			errno = err;
-			FATAL("!pmemobj_mutex_unlock");
-		}
+		pmemobj_mutex_unlock_nofail(pop, &head1->lock);
 		return;
 	}
 
-	if ((err = pmemobj_mutex_unlock(pop, &head1->lock))) {
-		errno = err;
-		FATAL("!pmemobj_mutex_unlock");
-	}
-
-	if ((err = pmemobj_mutex_unlock(pop, &head2->lock))) {
-		errno = err;
-		FATAL("!pmemobj_mutex_unlock");
-	}
+	pmemobj_mutex_unlock_nofail(pop, &head1->lock);
+	pmemobj_mutex_unlock_nofail(pop, &head2->lock);
 }
 
 /*
@@ -732,7 +722,6 @@ list_insert_new(PMEMobjpool *pop, struct list_head *oob_head,
 	ASSERTne(oob_head, NULL);
 
 	int ret;
-	int out_ret;
 
 	struct lane_section *lane_section;
 
@@ -862,19 +851,10 @@ list_insert_new(PMEMobjpool *pop, struct list_head *oob_head,
 
 	ret = 0;
 
-	if (head) {
-		out_ret = pmemobj_mutex_unlock(pop, &head->lock);
-		if (out_ret) {
-			errno = out_ret;
-			FATAL("!pmemobj_mutex_unlock");
-		}
-	}
+	if (head)
+		pmemobj_mutex_unlock_nofail(pop, &head->lock);
 err_lock:
-	out_ret = pmemobj_mutex_unlock(pop, &oob_head->lock);
-	if (out_ret) {
-		errno = out_ret;
-		FATAL("!pmemobj_mutex_unlock");
-	}
+	pmemobj_mutex_unlock_nofail(pop, &oob_head->lock);
 err_pmalloc:
 err_oob_lock:
 	lane_release(pop);
@@ -902,7 +882,6 @@ list_insert(PMEMobjpool *pop,
 	ASSERTne(head, NULL);
 
 	int ret;
-	int out_ret;
 
 	struct lane_section *lane_section;
 
@@ -963,11 +942,7 @@ list_insert(PMEMobjpool *pop,
 
 	redo_log_process(pop, redo, REDO_NUM_ENTRIES);
 
-	out_ret = pmemobj_mutex_unlock(pop, &head->lock);
-	if (out_ret) {
-		errno = out_ret;
-		FATAL("!pmemobj_mutex_unlock");
-	}
+	pmemobj_mutex_unlock_nofail(pop, &head->lock);
 err:
 	lane_release(pop);
 
@@ -992,7 +967,6 @@ list_remove_free(PMEMobjpool *pop, struct list_head *oob_head,
 	ASSERTne(oob_head, NULL);
 
 	int ret;
-	int out_ret;
 
 	struct lane_section *lane_section;
 
@@ -1074,13 +1048,8 @@ list_remove_free(PMEMobjpool *pop, struct list_head *oob_head,
 
 	redo_log_process(pop, redo, REDO_NUM_ENTRIES);
 
-	if (head) {
-		out_ret = pmemobj_mutex_unlock(pop, &head->lock);
-		if (out_ret) {
-			errno = out_ret;
-			FATAL("!pmemobj_mutex_unlock");
-		}
-	}
+	if (head)
+		pmemobj_mutex_unlock_nofail(pop, &head->lock);
 
 	/*
 	 * Don't need to fill next and prev offsets of removing element
@@ -1095,11 +1064,7 @@ list_remove_free(PMEMobjpool *pop, struct list_head *oob_head,
 	}
 
 err_lock:
-	out_ret = pmemobj_mutex_unlock(pop, &oob_head->lock);
-	if (out_ret) {
-		errno = out_ret;
-		FATAL("!pmemobj_mutex_unlock");
-	}
+	pmemobj_mutex_unlock_nofail(pop, &oob_head->lock);
 err_oob_lock:
 	lane_release(pop);
 
@@ -1123,7 +1088,6 @@ list_remove(PMEMobjpool *pop,
 	ASSERTne(head, NULL);
 
 	int ret;
-	int out_ret;
 
 	struct lane_section *lane_section;
 
@@ -1175,11 +1139,7 @@ list_remove(PMEMobjpool *pop,
 
 	redo_log_process(pop, redo, REDO_NUM_ENTRIES);
 
-	out_ret = pmemobj_mutex_unlock(pop, &head->lock);
-	if (out_ret) {
-		errno = out_ret;
-		FATAL("!pmemobj_mutex_unlock");
-	}
+	pmemobj_mutex_unlock_nofail(pop, &head->lock);
 err:
 	lane_release(pop);
 
@@ -1415,7 +1375,6 @@ list_realloc(PMEMobjpool *pop, struct list_head *oob_head,
 	ASSERTne(constructor, NULL);
 
 	int ret;
-	int out_ret;
 
 	struct lane_section *lane_section;
 
@@ -1596,20 +1555,11 @@ list_realloc(PMEMobjpool *pop, struct list_head *oob_head,
 
 	ret = 0;
 err_unlock:
-	if (head) {
-		out_ret = pmemobj_mutex_unlock(pop, &head->lock);
-		if (out_ret) {
-			errno = out_ret;
-			FATAL("!pmemobj_mutex_unlock");
-		}
-	}
+	if (head)
+		pmemobj_mutex_unlock_nofail(pop, &head->lock);
 
 err_lock:
-	out_ret = pmemobj_mutex_unlock(pop, &oob_head->lock);
-	if (out_ret) {
-		errno = out_ret;
-		FATAL("!pmemobj_mutex_unlock");
-	}
+	pmemobj_mutex_unlock_nofail(pop, &oob_head->lock);
 err_oob_lock:
 	lane_release(pop);
 
@@ -1645,7 +1595,6 @@ list_realloc_move(PMEMobjpool *pop, struct list_head *oob_head_old,
 	ASSERTne(constructor, NULL);
 
 	int ret;
-	int out_ret;
 
 	struct lane_section *lane_section;
 
@@ -1849,13 +1798,8 @@ list_realloc_move(PMEMobjpool *pop, struct list_head *oob_head_old,
 
 	ret = 0;
 err_unlock:
-	if (head) {
-		out_ret = pmemobj_mutex_unlock(pop, &head->lock);
-		if (out_ret) {
-			errno = out_ret;
-			FATAL("!pmemobj_mutex_unlock");
-		}
-	}
+	if (head)
+		pmemobj_mutex_unlock_nofail(pop, &head->lock);
 err_lock:
 	list_mutexes_unlock(pop, oob_head_new, oob_head_old);
 err_oob_lock:

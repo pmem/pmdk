@@ -47,6 +47,7 @@
 #include "jemalloc.h"
 #include "util.h"
 #include "out.h"
+#include "sys_util.h"
 #include "vmem.h"
 
 /*
@@ -87,7 +88,6 @@ vmem_init(void)
 {
 	static bool initialized = false;
 	static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
-	int oerrno;
 
 	if (initialized)
 		return;
@@ -110,10 +110,7 @@ vmem_init(void)
 		initialized = true;
 	}
 
-	oerrno = errno;
-	if ((errno = pthread_mutex_unlock(&lock)))
-		FATAL("!pthread_mutex_unlock");
-	errno = oerrno;
+	util_mutex_unlock(&lock);
 }
 
 /*

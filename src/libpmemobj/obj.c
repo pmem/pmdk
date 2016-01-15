@@ -50,6 +50,7 @@
 #include "cuckoo.h"
 #include "ctree.h"
 #include "obj.h"
+#include "sync.h"
 #include "heap_layout.h"
 #include "valgrind_internal.h"
 
@@ -1761,16 +1762,13 @@ PMEMoid pmemobj_root_construct(PMEMobjpool *pop, size_t size,
 		size_t old_size = pmemobj_root_size(pop);
 		if (size > old_size && obj_realloc_root(pop, pop->store, size,
 				old_size, constructor, arg)) {
-			errno = pmemobj_mutex_unlock(pop, &pop->rootlock);
-			if (errno)
-				FATAL("!pmemobj_mutex_unlock");
+			pmemobj_mutex_unlock_nofail(pop, &pop->rootlock);
 			LOG(2, "obj_realloc_root failed");
 			return OID_NULL;
 		}
 	}
 	root = pop->store->root.head.pe_first;
-	if ((errno = pmemobj_mutex_unlock(pop, &pop->rootlock)))
-		FATAL("!pmemobj_mutex_unlock");
+	pmemobj_mutex_unlock_nofail(pop, &pop->rootlock);
 	return root;
 }
 

@@ -135,6 +135,7 @@
 #include "util.h"
 #include "btt.h"
 #include "btt_layout.h"
+#include "sys_util.h"
 
 /*
  * The opaque btt handle containing state tracked by this module
@@ -628,8 +629,6 @@ arena_setf(struct btt *bttp, struct arena *arenap, unsigned lane, uint32_t setf)
 		return -1;
 	}
 
-	int oerrno;
-
 	if ((*bttp->ns_cbp->nsread)(bttp->ns, lane, &info,
 			sizeof (info), arena_off) < 0) {
 		goto err;
@@ -653,17 +652,11 @@ arena_setf(struct btt *bttp, struct arena *arenap, unsigned lane, uint32_t setf)
 		goto err;
 	}
 
-	oerrno = errno;
-	if ((errno = pthread_mutex_unlock(&arenap->info_lock)))
-		FATAL("!pthread_mutex_unlock");
-	errno = oerrno;
+	util_mutex_unlock(&arenap->info_lock);
 	return 0;
 
 err:
-	oerrno = errno;
-	if ((errno = pthread_mutex_unlock(&arenap->info_lock)))
-		FATAL("!pthread_mutex_unlock");
-	errno = oerrno;
+	util_mutex_unlock(&arenap->info_lock);
 	return -1;
 }
 
@@ -1480,11 +1473,7 @@ map_lock(struct btt *bttp, unsigned lane, struct arena *arenap,
 	/* read the old map entry */
 	if ((*bttp->ns_cbp->nsread)(bttp->ns, lane, entryp,
 				sizeof (uint32_t), map_entry_off) < 0) {
-		int oerrno = errno;
-		if ((errno = pthread_mutex_unlock(
-					&arenap->map_locks[map_lock_num])))
-			FATAL("!pthread_mutex_unlock");
-		errno = oerrno;
+		util_mutex_unlock(&arenap->map_locks[map_lock_num]);
 		return -1;
 	}
 
@@ -1512,10 +1501,7 @@ map_abort(struct btt *bttp, unsigned lane, struct arena *arenap,
 
 	uint32_t map_lock_num = premap_lba * BTT_MAP_ENTRY_SIZE /
 			BTT_MAP_LOCK_ALIGN % bttp->nfree;
-	int oerrno = errno;
-	if ((errno = pthread_mutex_unlock(&arenap->map_locks[map_lock_num])))
-		FATAL("!pthread_mutex_unlock");
-	errno = oerrno;
+	util_mutex_unlock(&arenap->map_locks[map_lock_num]);
 }
 
 /*
@@ -1539,10 +1525,7 @@ map_unlock(struct btt *bttp, unsigned lane, struct arena *arenap,
 			premap_lba * BTT_MAP_ENTRY_SIZE / BTT_MAP_LOCK_ALIGN
 			% bttp->nfree;
 
-	int oerrno = errno;
-	if ((errno = pthread_mutex_unlock(&arenap->map_locks[map_lock_num])))
-		FATAL("!pthread_mutex_unlock");
-	errno = oerrno;
+	util_mutex_unlock(&arenap->map_locks[map_lock_num]);
 
 	LOG(9, "unlocked map[%d]: %u%s%s", premap_lba,
 			entry & BTT_MAP_ENTRY_LBA_MASK,
@@ -1576,10 +1559,7 @@ btt_write(struct btt *bttp, unsigned lane, uint64_t lba, const void *buf)
 		if (!bttp->laidout)
 			err = write_layout(bttp, lane, 1);
 
-		int oerrno = errno;
-		if ((errno = pthread_mutex_unlock(&bttp->layout_write_mutex)))
-			FATAL("!pthread_mutex_unlock");
-		errno = oerrno;
+		util_mutex_unlock(&bttp->layout_write_mutex);
 
 		if (err < 0)
 			return err;
@@ -1692,10 +1672,7 @@ map_entry_setf(struct btt *bttp, unsigned lane, uint64_t lba, uint32_t setf)
 		if (!bttp->laidout)
 			err = write_layout(bttp, lane, 1);
 
-		int oerrno = errno;
-		if ((errno = pthread_mutex_unlock(&bttp->layout_write_mutex)))
-			FATAL("!pthread_mutex_unlock");
-		errno = oerrno;
+		util_mutex_unlock(&bttp->layout_write_mutex);
 
 		if (err < 0)
 			return err;

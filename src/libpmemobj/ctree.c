@@ -46,6 +46,7 @@
 #include <errno.h>
 #include "util.h"
 #include "out.h"
+#include "sys_util.h"
 #include "ctree.h"
 
 #define	BIT_IS_SET(n, i) (!!((n) & (((uint64_t)1) << (i))))
@@ -110,14 +111,10 @@ error_ctree_malloc:
 void
 ctree_delete(struct ctree *t)
 {
-	int err;
 	while (t->root)
 		ctree_remove(t, 0, 0);
 
-	if ((err = pthread_mutex_destroy(&t->lock)) != 0) {
-		errno = err;
-		FATAL("!pthread_mutex_destroy");
-	}
+	util_mutex_destroy(&t->lock);
 
 	Free(t);
 }
@@ -131,7 +128,6 @@ ctree_insert(struct ctree *t, uint64_t key, uint64_t value)
 	void **dst = &t->root;
 	struct node *a = NULL;
 	int err;
-	int err_out;
 
 	if ((err = pthread_mutex_lock(&t->lock)) != 0)
 		return err;
@@ -189,10 +185,7 @@ ctree_insert(struct ctree *t, uint64_t key, uint64_t value)
 	NODE_INTERNAL_SET(*dst, n);
 
 out:
-	if ((err_out = pthread_mutex_unlock(&t->lock))) {
-		errno = err_out;
-		FATAL("!pthread_mutex_unlock");
-	}
+	util_mutex_unlock(&t->lock);
 
 	return 0;
 
@@ -201,10 +194,7 @@ error_duplicate:
 error_internal_malloc:
 	Free(nleaf);
 error_leaf_malloc:
-	if ((err_out = pthread_mutex_unlock(&t->lock))) {
-		errno = err_out;
-		FATAL("!pthread_mutex_unlock");
-	}
+	util_mutex_unlock(&t->lock);
 
 	return err;
 }
@@ -380,10 +370,7 @@ remove:
 	}
 
 out:
-	if ((err = pthread_mutex_unlock(&t->lock))) {
-		errno = err;
-		FATAL("!pthread_mutex_unlock");
-	}
+	util_mutex_unlock(&t->lock);
 
 	return k;
 }
@@ -403,10 +390,7 @@ ctree_is_empty(struct ctree *t)
 
 	int ret = t->root == NULL;
 
-	if ((err = pthread_mutex_unlock(&t->lock))) {
-		errno = err;
-		FATAL("!pthread_mutex_unlock");
-	}
+	util_mutex_unlock(&t->lock);
 
 	return ret;
 }

@@ -50,6 +50,7 @@
 #include "ctree.h"
 #include "lane.h"
 #include "list.h"
+#include "sys_util.h"
 #include "obj.h"
 #include "valgrind_internal.h"
 
@@ -146,8 +147,7 @@ error_bucket_malloc:
 void
 bucket_delete(struct bucket *b)
 {
-	if ((errno = pthread_mutex_destroy(&b->lock)))
-		FATAL("!pthread_mutex_destroy");
+	util_mutex_destroy(&b->lock);
 
 	ctree_delete(b->tree);
 	Free(b);
@@ -323,9 +323,5 @@ bucket_lock(struct bucket *b)
 void
 bucket_unlock(struct bucket *b)
 {
-	int err;
-	if ((err = pthread_mutex_unlock(&b->lock))) {
-		errno = err;
-		FATAL("!pthread_mutex_unlock");
-	}
+	util_mutex_unlock(&b->lock);
 }

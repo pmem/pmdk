@@ -52,6 +52,7 @@
 #include "out.h"
 #include "btt.h"
 #include "blk.h"
+#include "sys_util.h"
 #include "valgrind_internal.h"
 
 /*
@@ -81,10 +82,7 @@ lane_enter(PMEMblkpool *pbp, unsigned *lane)
 static void
 lane_exit(PMEMblkpool *pbp, unsigned mylane)
 {
-	int oerrno = errno;
-	if ((errno = pthread_mutex_unlock(&pbp->locks[mylane])))
-		FATAL("!pthread_mutex_unlock");
-	errno = oerrno;
+	util_mutex_unlock(&pbp->locks[mylane]);
 }
 
 /*
@@ -156,8 +154,7 @@ nswrite(void *ns, unsigned lane, const void *buf, size_t count,
 
 #ifdef DEBUG
 	/* release debug write lock */
-	if ((errno = pthread_mutex_unlock(&pbp->write_lock)))
-		FATAL("!pthread_mutex_unlock");
+	util_mutex_unlock(&pbp->write_lock);
 #endif
 
 	if (pbp->is_pmem)
