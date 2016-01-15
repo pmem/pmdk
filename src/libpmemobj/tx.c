@@ -1068,14 +1068,19 @@ int
 pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...)
 {
 	LOG(3, NULL);
-	VALGRIND_START_TX;
 
 	int err = 0;
 
 	struct lane_tx_runtime *lane = NULL;
 	if (tx.stage == TX_STAGE_WORK) {
 		lane = tx.section->runtime;
+		if (lane->pop != pop)
+			return pmemobj_tx_abort_err(EINVAL);
+
+		VALGRIND_START_TX;
 	} else if (tx.stage == TX_STAGE_NONE) {
+		VALGRIND_START_TX;
+
 		lane_hold(pop, &tx.section, LANE_SECTION_TRANSACTION);
 
 		lane = tx.section->runtime;
