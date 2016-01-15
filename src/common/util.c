@@ -278,6 +278,7 @@ util_map_hint(size_t len, size_t req_align)
 {
 	LOG(3, "len %zu req_align %zu", len, req_align);
 
+#ifndef WIN32
 	char *addr;
 
 	/*
@@ -317,6 +318,9 @@ util_map_hint(size_t len, size_t req_align)
 	LOG(4, "hint %p", addr);
 
 	return addr;
+#else
+	return NULL;
+#endif
 }
 
 /*
@@ -381,7 +385,6 @@ util_tmpfile(const char *dir, size_t size)
 	int fd = -1;
 
 #if 1
-
 	static char template[] = "/vmem.XXXXXX";
 	char fullname[PATH_MAX];
 
@@ -398,9 +401,16 @@ util_tmpfile(const char *dir, size_t size)
 	sigfillset(&set);
 	(void) sigprocmask(SIG_BLOCK, &set, &oldset);
 
+#ifndef WIN32
 	mode_t prev_umask = umask(S_IRWXG | S_IRWXO);
+#endif
+
 	fd = mkstemp(fullname);
+
+#ifndef WIN32
 	umask(prev_umask);
+#endif
+
 	if (fd < 0) {
 		ERR("!mkstemp");
 		goto err;

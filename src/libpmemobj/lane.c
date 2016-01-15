@@ -89,9 +89,9 @@ lane_init(PMEMobjpool *pop, struct lane *lane, struct lane_layout *layout,
 	lane->lock = mtx;
 
 #ifdef WIN32
-	section_ops[LANE_SECTION_ALLOCATOR] =  &allocator_ops;
-	section_ops[LANE_SECTION_LIST] =  &list_ops;
-	section_ops[LANE_SECTION_TRANSACTION] =  &transaction_ops;
+	Section_ops[LANE_SECTION_ALLOCATOR] = &allocator_ops;
+	Section_ops[LANE_SECTION_LIST] = &list_ops;
+	Section_ops[LANE_SECTION_TRANSACTION] = &transaction_ops;
 #endif
 
 	int i;
@@ -267,9 +267,9 @@ lane_check(PMEMobjpool *pop)
 	struct lane_layout *layout;
 
 #ifdef WIN32
-	section_ops[LANE_SECTION_ALLOCATOR] = &allocator_ops;
-	section_ops[LANE_SECTION_LIST] = &list_ops;
-	section_ops[LANE_SECTION_TRANSACTION] = &transaction_ops;
+	Section_ops[LANE_SECTION_ALLOCATOR] = &allocator_ops;
+	Section_ops[LANE_SECTION_LIST] = &list_ops;
+	Section_ops[LANE_SECTION_TRANSACTION] = &transaction_ops;
 #endif
 
 	for (i = 0; i < MAX_LANE_SECTION; ++i) {
