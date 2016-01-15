@@ -123,33 +123,33 @@ main(int argc, char *argv[])
 		switch (argv[arg][0]) {
 		case 'r':
 			if (pmemblk_read(handle, buf, lba) < 0)
-				OUT("!read      lba %zu", (size_t)lba);
+				OUT("!read      lba %lld", (long long)lba);
 			else
-				OUT("read      lba %zu: %s", (size_t)lba,
+				OUT("read      lba %lld: %s", (long long)lba,
 					ident(buf));
 			break;
 
 		case 'w':
 			construct(buf);
 			if (pmemblk_write(handle, buf, lba) < 0)
-				OUT("!write     lba %zu", (size_t)lba);
+				OUT("!write     lba %lld", (long long)lba);
 			else
-				OUT("write     lba %zu: %s", (size_t)lba,
+				OUT("write     lba %lld: %s", (long long)lba,
 					ident(buf));
 			break;
 
 		case 'z':
 			if (pmemblk_set_zero(handle, lba) < 0)
-				OUT("!set_zero  lba %zu", (size_t)lba);
+				OUT("!set_zero  lba %lld", (long long)lba);
 			else
-				OUT("set_zero  lba %zu", (size_t)lba);
+				OUT("set_zero  lba %lld", (long long)lba);
 			break;
 
 		case 'e':
 			if (pmemblk_set_error(handle, lba) < 0)
-				OUT("!set_error lba %zu", (size_t)lba);
+				OUT("!set_error lba %lld", (long long)lba);
 			else
-				OUT("set_error lba %zu", (size_t)lba);
+				OUT("set_error lba %lld", (long long)lba);
 			break;
 		}
 	}
