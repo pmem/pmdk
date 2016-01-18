@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Intel Corporation
+ * Copyright (c) 2015-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -79,11 +79,10 @@ struct benchmark_worker
 	struct worker_info info;
 	int ret;
 	int ret_init;
-	int ret_exit;
 	int (*func)(struct benchmark *bench, struct worker_info *info);
 	int (*init)(struct benchmark *bench, struct benchmark_args *args,
 			struct worker_info *info);
-	int (*exit)(struct benchmark *bench, struct benchmark_args *args,
+	void (*exit)(struct benchmark *bench, struct benchmark_args *args,
 			struct worker_info *info);
 	pthread_cond_t cond;
 	pthread_mutex_t lock;
@@ -94,6 +93,6 @@ struct benchmark_worker *benchmark_worker_alloc(void);
 void benchmark_worker_free(struct benchmark_worker *);
 
 int benchmark_worker_init(struct benchmark_worker *);
-int benchmark_worker_exit(struct benchmark_worker *);
+void benchmark_worker_exit(struct benchmark_worker *);
 int benchmark_worker_run(struct benchmark_worker *);
 int benchmark_worker_join(struct benchmark_worker *);

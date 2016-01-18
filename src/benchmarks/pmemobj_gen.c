@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Intel Corporation
+ * Copyright (c) 2015-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -610,7 +610,7 @@ pobj_open_op(struct benchmark *bench, struct operation_info *info)
 /*
  * pobj_free_worker -- worker exit function
  */
-static int
+static void
 pobj_free_worker(struct benchmark *bench, struct benchmark_args
 					*args, struct worker_info *worker)
 {
@@ -620,7 +620,6 @@ pobj_free_worker(struct benchmark *bench, struct benchmark_args
 		pmemobj_free(&pw->oids[i]);
 	free(pw->oids);
 	free(pw);
-	return 0;
 }
 
 static struct benchmark_info obj_open = {

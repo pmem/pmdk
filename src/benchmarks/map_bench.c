@@ -262,7 +262,7 @@ err_free_worker:
  * map_common_free_worker -- common cleanup worker function for map_*
  * benchmarks
  */
-static int
+static void
 map_common_free_worker(struct benchmark *bench, struct benchmark_args *args,
 		struct worker_info *worker)
 {
@@ -274,7 +274,6 @@ map_common_free_worker(struct benchmark *bench, struct benchmark_args *args,
 	}
 	free(tworker->keys);
 	free(tworker);
-	return 0;
 }
 
 /*

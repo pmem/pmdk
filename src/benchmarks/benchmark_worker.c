@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Intel Corporation
+ * Copyright (c) 2015-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -97,8 +97,7 @@ thread_func(void *arg)
 		WORKER_STATE_END, WORKER_STATE_EXIT);
 
 	if (worker->exit)
-		worker->ret_exit = worker->exit(worker->bench,
-				worker->args, &worker->info);
+		worker->exit(worker->bench, worker->args, &worker->info);
 
 	worker_state_transition(worker,
 		WORKER_STATE_EXIT, WORKER_STATE_DONE);
@@ -170,7 +169,7 @@ benchmark_worker_init(struct benchmark_worker *worker)
 /*
  * benchmark_worker_exit -- call exit function for worker
  */
-int
+void
 benchmark_worker_exit(struct benchmark_worker *worker)
 {
 	pthread_mutex_lock(&worker->lock);
@@ -181,11 +180,7 @@ benchmark_worker_exit(struct benchmark_worker *worker)
 	worker_state_wait_for_transition(worker,
 		WORKER_STATE_EXIT, WORKER_STATE_DONE);
 
-	int ret = worker->ret_exit;
-
 	pthread_mutex_unlock(&worker->lock);
-
-	return ret;
 }
 
 /*

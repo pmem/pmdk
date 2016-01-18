@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Intel Corporation
+ * Copyright (c) 2015-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -505,7 +505,7 @@ err:
  * queue_free_worker_list -- special part for the worker de-initialization when
  * queue flag is true. Releases items directly from atomic list.
  */
-static int
+static void
 queue_free_worker_list(struct obj_worker *obj_worker)
 {
 	while (!CIRCLEQ_EMPTY(&obj_worker->headq)) {
@@ -514,14 +514,13 @@ queue_free_worker_list(struct obj_worker *obj_worker)
 		free(tmp);
 	}
 	free(obj_worker->items);
-	return 0;
 }
 
 /*
  * obj_free_worker_list -- special part for the worker de-initialization when
  * queue flag is false. Releases items directly from atomic list.
  */
-static int
+static void
 obj_free_worker_list(struct obj_worker *obj_worker)
 {
 	while (!POBJ_LIST_EMPTY(&obj_worker->head)) {
@@ -530,33 +529,30 @@ obj_free_worker_list(struct obj_worker *obj_worker)
 				tmp, field);
 	}
 	free(obj_worker->oids);
-	return 0;
 }
 
 /*
  * obj_free_worker_items -- special part for the worker de-initialization when
  * queue flag is false. Releases items used for create pmemobj list.
  */
-static int
+static void
 obj_free_worker_items(struct obj_worker *obj_worker)
 {
 	for (size_t i = 0; i < obj_worker->n_elm; i++)
 		POBJ_FREE(&obj_worker->oids[i]);
 	free(obj_worker->oids);
-	return 0;
 }
 
 /*
  * queue_free_worker_items -- special part for the worker de-initialization
  * when queue flag set. Releases used for create circle queue.
  */
-static int
+static void
 queue_free_worker_items(struct obj_worker *obj_worker)
 {
 	for (size_t i = 0; i < obj_worker->n_elm; i++)
 		free(obj_worker->items[i]);
 	free(obj_worker->items);
-	return 0;
 }
 
 /*
@@ -759,29 +755,26 @@ get_move_item(struct benchmark *bench, struct operation_info *info)
 	return get_item(bench, info);
 }
 
-static int
+static void
 free_worker(struct obj_worker *obj_worker)
 {
 	if (obj_bench.position_mode == POSITION_MODE_RAND)
 		free(obj_worker->positions);
 	free(obj_worker);
-	return 0;
 }
 
 /*
  * free_worker_list -- worker de-initialization function for: obj_insert_new,
  * obj_remove_free, obj_move. Requires releasing objects directly from list.
  */
-static int
+static void
 free_worker_list(struct benchmark *bench, struct benchmark_args *args,
 						struct worker_info *worker)
 {
 	struct obj_worker *obj_worker = worker->priv;
-	int ret = obj_bench.args->queue ?
-				queue_free_worker_list(obj_worker) :
+	obj_bench.args->queue ?	queue_free_worker_list(obj_worker) :
 				obj_free_worker_list(obj_worker);
 	free_worker(obj_worker);
-	return ret;
 }
 
 /*
@@ -789,23 +782,22 @@ free_worker_list(struct benchmark *bench, struct benchmark_args *args,
  * obj_remove benchmarks, where deallocation can't be performed directly on the
  * list and where is possibility of using queue flag.
  */
-static int
+static void
 free_worker_items(struct benchmark *bench, struct benchmark_args *args,
 						struct worker_info *worker)
 {
 	struct obj_worker *obj_worker = worker->priv;
 	struct obj_list_args *obj_args = args->opts;
-	int ret = obj_args->queue ? queue_free_worker_items(obj_worker) :
+	obj_args->queue ? queue_free_worker_items(obj_worker) :
 					obj_free_worker_items(obj_worker);
 	free_worker(obj_worker);
-	return ret;
 }
 
 /*
  * obj_move_free_worker -- special part for the worker de-initialization
  * function of obj_move benchmarks.
  */
-static int
+static void
 obj_move_free_worker(struct benchmark *bench, struct benchmark_args *args,
 						struct worker_info *worker)
 {
@@ -819,7 +811,7 @@ obj_move_free_worker(struct benchmark *bench, struct benchmark_args *args,
 	if (obj_bench.position_mode == POSITION_MODE_RAND)
 		free(obj_worker->list_move->positions);
 	free(obj_worker->list_move);
-	return free_worker_list(bench, args, worker);
+	free_worker_list(bench, args, worker);
 }
 
 /*
