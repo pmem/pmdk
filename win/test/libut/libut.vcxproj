@@ -22,7 +22,7 @@
     <ClCompile Include="..\unittest\ut_file.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\src\test\unittest\unittest.h" />
+    <ClInclude Include="..\unittest\unittest.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{CE3F2DFB-8470-4802-AD37-21CAF6CB2681}</ProjectGuid>
