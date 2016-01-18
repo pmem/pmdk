@@ -13,8 +13,8 @@
  *       the documentation and/or other materials provided with the
  *       distribution.
  *
- *     * Neither the name of Fujitsu Technology Solutions GmbH nor the names 
- *       of its contributors may be used to endorse or promote products 
+ *     * Neither the name of Fujitsu Technology Solutions GmbH nor the names
+ *       of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
@@ -52,7 +52,7 @@
  */
 
 #ifndef _ARTTREE_H
-#define _ARTTREE_H
+#define	_ARTTREE_H
 
 #ifdef __cplusplus
 extern "C" {

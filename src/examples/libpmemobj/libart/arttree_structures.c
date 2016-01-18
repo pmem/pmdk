@@ -13,8 +13,8 @@
  *       the documentation and/or other materials provided with the
  *       distribution.
  *
- *     * Neither the name of Fujitsu Technology Solutions GmbH nor the names 
- *       of its contributors may be used to endorse or promote products 
+ *     * Neither the name of Fujitsu Technology Solutions GmbH nor the names
+ *       of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
@@ -65,31 +65,31 @@
 
 #include <stdarg.h>
 
-#define APPNAME "examine_arttree"
-#define SRCVERSION "0.1"
+#define	APPNAME "examine_arttree"
+#define	SRCVERSION "0.1"
 
 size_t art_node_sizes[art_node_types] = {
-	sizeof(art_node4),
-	sizeof(art_node16),
-	sizeof(art_node48),
-	sizeof(art_node256),
-	sizeof(art_leaf),
-	sizeof(art_node_u),
-	sizeof(art_node),
-        sizeof(art_tree_root),
-        sizeof(var_string),
+	sizeof (art_node4),
+	sizeof (art_node16),
+	sizeof (art_node48),
+	sizeof (art_node256),
+	sizeof (art_leaf),
+	sizeof (art_node_u),
+	sizeof (art_node),
+	sizeof (art_tree_root),
+	sizeof (var_string),
 };
 
 char *art_node_names[art_node_types] = {
-   "art_node4",
-   "art_node16",
-   "art_node48",
-   "art_node256",
-   "art_leaf",
-   "art_node_u",
-   "art_node",
-   "art_tree_root",
-   "var_string"
+	"art_node4",
+	"art_node16",
+	"art_node48",
+	"art_node256",
+	"art_leaf",
+	"art_node_u",
+	"art_node",
+	"art_tree_root",
+	"var_string"
 };
 
 /*
@@ -113,24 +113,29 @@ struct command {
 /*
  * number of arttree_structures commands
  */
-#define COMMANDS_NUMBER (sizeof(commands)/sizeof(commands[0]))
+#define	COMMANDS_NUMBER (sizeof (commands) / sizeof (commands[0]))
 
 static void print_help(char *appname);
 static void print_usage(char *appname);
 static void print_version(char *appname);
-static int quit_func(char *appname, struct pmem_context *ctx, int argc, char *argv[]);
+static int quit_func(char *appname, struct pmem_context *ctx,
+	int argc, char *argv[]);
 static void quit_help(char *appname);
-static int set_root_func(char *appname, struct pmem_context *ctx, int argc, char *argv[]);
+static int set_root_func(char *appname, struct pmem_context *ctx,
+	int argc, char *argv[]);
 static void set_root_help(char *appname);
-static int help_func(char *appname, struct pmem_context *ctx, int argc, char *argv[]);
+static int help_func(char *appname, struct pmem_context *ctx,
+	int argc, char *argv[]);
 static void help_help(char *appname);
 static struct command *get_command(char *cmd_str);
 static int ctx_init(struct pmem_context *ctx, char *filename);
 
-static int arttree_structures_func(char *appname, struct pmem_context *ctx, int ac, char *av[]);
+static int arttree_structures_func(char *appname, struct pmem_context *ctx,
+	int ac, char *av[]);
 static void arttree_structures_help(char *appname);
 
-static int arttree_info_func(char *appname, struct pmem_context *ctx, int ac, char *av[]);
+static int arttree_info_func(char *appname, struct pmem_context *ctx,
+	int ac, char *av[]);
 static void arttree_info_help(char *appname);
 
 extern int arttree_examine_func();
@@ -151,7 +156,8 @@ struct command commands[] = {
 	},
 	{
 		.name = "info",
-		.brief = "print information and statistics about a art tree pool",
+		.brief = "print information and statistics"
+		    "about a art tree pool",
 		.func = arttree_info_func,
 		.help = arttree_info_help,
 	},
@@ -276,7 +282,7 @@ set_root_func(char *appname, struct pmem_context *ctx, int argc, char *argv[])
 		set_root_help(appname);
 		retval = 1;
 	}
-        return(retval);
+	return (retval);
 }
 
 /*
@@ -295,9 +301,9 @@ quit_help(char *appname)
 static int
 quit_func(char *appname, struct pmem_context *ctx, int argc, char *argv[])
 {
-        printf("\n");
-        exit(0);
-        return(0);
+	printf("\n");
+	exit(0);
+	return (0);
 }
 
 /*
@@ -340,124 +346,115 @@ static void
 arttree_structures_help(char *appname)
 {
 
-    printf("%s %s\n", appname, arttree_structures_help_str);
-
-    return;
+	printf("%s %s\n", appname, arttree_structures_help_str);
 } /* arttree_structures_help() */
 
 static int
-arttree_structures_func(char *appname, struct pmem_context *ctx, int ac, char *av[])
+arttree_structures_func(char *appname, struct pmem_context *ctx,
+	int ac, char *av[])
 {
 
-    (void)appname;
-    (void)ac;
-    (void)av;
+	(void) appname;
+	(void) ac;
+	(void) av;
 
-    printf(
-        "typedef struct pmemoid {\n"
-        " uint64_t pool_uuid_lo;\n"
-        " uint64_t off;\n"
-        "} PMEMoid;\n"
-    );
-    printf("sizeof(PMEMoid) = %ld\n\n\n", sizeof(PMEMoid));
+	printf(
+	    "typedef struct pmemoid {\n"
+	    " uint64_t pool_uuid_lo;\n"
+	    " uint64_t off;\n"
+	    "} PMEMoid;\n");
+	printf("sizeof (PMEMoid) = %ld\n\n\n", sizeof (PMEMoid));
 
-    printf(
-        "struct _art_node_u; typedef struct _art_node_u art_node_u;\n"
-        "struct _art_node_u { \n"
-        "    uint8_t art_node_type; \n"
-        "    uint8_t art_node_tag; \n"
-        "};\n"
-    );
-    printf("sizeof(art_node_u) = %ld\n\n\n", sizeof(art_node_u));
+	printf(
+	    "struct _art_node_u; typedef struct _art_node_u art_node_u;\n"
+	    "struct _art_node_u { \n"
+	    "    uint8_t art_node_type; \n"
+	    "    uint8_t art_node_tag; \n"
+	    "};\n");
+	printf("sizeof (art_node_u) = %ld\n\n\n", sizeof (art_node_u));
 
-    printf(
-        "struct _art_node; typedef struct _art_node art_node;\n"
-        "struct _art_node {\n"
-        "    uint8_t type;\n"
-        "    uint8_t num_children;\n"
-        "    uint32_t partial_len;\n"
-        "    unsigned char partial[10];\n"
-        "};\n"
-    );
-    printf("sizeof(art_node) = %ld\n\n\n", sizeof(art_node));
+	printf(
+	    "struct _art_node; typedef struct _art_node art_node;\n"
+	    "struct _art_node {\n"
+	    "    uint8_t type;\n"
+	    "    uint8_t num_children;\n"
+	    "    uint32_t partial_len;\n"
+	    "    unsigned char partial[10];\n"
+	    "};\n");
+	printf("sizeof (art_node) = %ld\n\n\n", sizeof (art_node));
 
-    printf(
-        "typedef uint8_t _toid_art_node_toid_type_num[8];\n"
-    );
-    printf("sizeof(_toid_art_node_toid_type_num[8]) = %ld\n\n\n", sizeof(_toid_art_node_toid_type_num[8]));
+	printf(
+	    "typedef uint8_t _toid_art_node_toid_type_num[8];\n");
+	printf("sizeof (_toid_art_node_toid_type_num[8]) = %ld\n\n\n",
+	    sizeof (_toid_art_node_toid_type_num[8]));
 
-    printf(
-        "union _toid_art_node_u_toid {\n"
-        "    PMEMoid oid;\n"
-        "    art_node_u *_type;\n"
-        "    _toid_art_node_u_toid_type_num *_type_num;\n"
-        "};\n"
-    );
-    printf("sizeof(union _toid_art_node_u_toid) = %ld\n\n\n", sizeof(union _toid_art_node_u_toid));
+	printf(
+	    "union _toid_art_node_u_toid {\n"
+	    "    PMEMoid oid;\n"
+	    "    art_node_u *_type;\n"
+	    "    _toid_art_node_u_toid_type_num *_type_num;\n"
+	    "};\n");
+	printf("sizeof (union _toid_art_node_u_toid) = %ld\n\n\n",
+	    sizeof (union _toid_art_node_u_toid));
 
-    printf(
-        "typedef uint8_t _toid_art_node_toid_type_num[8];\n"
-    );
-    printf("sizeof(_toid_art_node_toid_type_num[8]) = %ld\n\n\n", sizeof(_toid_art_node_toid_type_num[8]));
+	printf(
+	    "typedef uint8_t _toid_art_node_toid_type_num[8];\n");
+	printf("sizeof (_toid_art_node_toid_type_num[8]) = %ld\n\n\n",
+	    sizeof (_toid_art_node_toid_type_num[8]));
 
-    printf(
-        "union _toid_art_node_toid {\n"
-        "    PMEMoid oid; \n"
-        "    art_node *_type; \n"
-        "    _toid_art_node_toid_type_num *_type_num;\n"
-        "};\n"
-    );
-    printf("sizeof(union _toid_art_node_toid) = %ld\n\n\n", sizeof(union _toid_art_node_toid));
+	printf(
+	    "union _toid_art_node_toid {\n"
+	    "    PMEMoid oid; \n"
+	    "    art_node *_type; \n"
+	    "    _toid_art_node_toid_type_num *_type_num;\n"
+	    "};\n");
+	printf("sizeof (union _toid_art_node_toid) = %ld\n\n\n",
+	    sizeof (union _toid_art_node_toid));
 
-    printf(
-        "struct _art_node4; typedef struct _art_node4 art_node4;\n"
-        "struct _art_node4 {\n"
-        "    art_node n;\n"
-        "    unsigned char keys[4];\n"
-        "    union _toid_art_node_u_toid children[4];\n"
-        "};\n"
-    );
-    printf("sizeof(art_node4) = %ld\n\n\n", sizeof(art_node4));
+	printf(
+	    "struct _art_node4; typedef struct _art_node4 art_node4;\n"
+	    "struct _art_node4 {\n"
+	    "    art_node n;\n"
+	    "    unsigned char keys[4];\n"
+	    "    union _toid_art_node_u_toid children[4];\n"
+	    "};\n");
+	printf("sizeof (art_node4) = %ld\n\n\n", sizeof (art_node4));
 
-    printf(
-        "struct _art_node16; typedef struct _art_node16 art_node16;\n"
-        "struct _art_node16 {\n"
-        "    art_node n;\n"
-        "    unsigned char keys[16];\n"
-        "    union _toid_art_node_u_toid children[16];\n"
-        "};\n"
-    );
-    printf("sizeof(art_node16) = %ld\n\n\n", sizeof(art_node16));
+	printf(
+	    "struct _art_node16; typedef struct _art_node16 art_node16;\n"
+	    "struct _art_node16 {\n"
+	    "    art_node n;\n"
+	    "    unsigned char keys[16];\n"
+	    "    union _toid_art_node_u_toid children[16];\n"
+	    "};\n");
+	printf("sizeof (art_node16) = %ld\n\n\n", sizeof (art_node16));
 
-    printf(
-        "struct _art_node48; typedef struct _art_node48 art_node48;\n"
-        "struct _art_node48 {\n"
-        "    art_node n;\n"
-        "    unsigned char keys[256];\n"
-        "    union _toid_art_node_u_toid children[48];\n"
-        "};\n"
-    );
-    printf("sizeof(art_node48) = %ld\n\n\n", sizeof(art_node48));
+	printf(
+	    "struct _art_node48; typedef struct _art_node48 art_node48;\n"
+	    "struct _art_node48 {\n"
+	    "    art_node n;\n"
+	    "    unsigned char keys[256];\n"
+	    "    union _toid_art_node_u_toid children[48];\n"
+	    "};\n");
+	printf("sizeof (art_node48) = %ld\n\n\n", sizeof (art_node48));
 
-    printf(
-        "struct _art_node256; typedef struct _art_node256 art_node256;\n"
-        "struct _art_node256 {\n"
-        "    art_ndoe n;\n"
-        "    union _toid_art_node_u_toid children[256];\n"
-        "};\n"
-    );
-    printf("sizeof(art_node256) = %ld\n\n\n", sizeof(art_node256));
+	printf(
+	    "struct _art_node256; typedef struct _art_node256 art_node256;\n"
+	    "struct _art_node256 {\n"
+	    "    art_ndoe n;\n"
+	    "    union _toid_art_node_u_toid children[256];\n"
+	    "};\n");
+	printf("sizeof (art_node256) = %ld\n\n\n", sizeof (art_node256));
 
-    printf(
-        "struct _art_leaf; typedef struct _art_leaf art_leaf;\n"
-        "struct _art_leaf {\n"
-        "    union _toid_var_string_toid value;\n"
-        "    union _toid_var_string_toid key;\n"
-        "};\n"
-    );
-    printf("sizeof(art_leaf) = %ld\n\n\n", sizeof(art_leaf));
+	printf(
+	    "struct _art_leaf; typedef struct _art_leaf art_leaf;\n"
+	    "struct _art_leaf {\n"
+	    "    union _toid_var_string_toid value;\n"
+	    "    union _toid_var_string_toid key;\n"
+	    "};\n");
+	printf("sizeof (art_leaf) = %ld\n\n\n", sizeof (art_leaf));
 
-    return(0);
+	return (0);
 } /* arttree_structures_func() */
 
 static const char *arttree_info_help_str =
@@ -468,19 +465,17 @@ static void
 arttree_info_help(char *appname)
 {
 
-    printf("%s %s\n", appname, arttree_info_help_str);
-
-    return;
+	printf("%s %s\n", appname, arttree_info_help_str);
 } /* arttree_info_help() */
 
 static int
 arttree_info_func(char *appname, struct pmem_context *ctx, int ac, char *av[])
 {
-    int ret = 0;
+	int ret = 0;
 
-    printf("%s: %s not yet implemented\n", appname, __FUNCTION__);
+	printf("%s: %s not yet implemented\n", appname, __FUNCTION__);
 
-    return ret;
+	return ret;
 } /* arttree_info_func() */
 
 /*
@@ -489,114 +484,118 @@ arttree_info_func(char *appname, struct pmem_context *ctx, int ac, char *av[])
 static struct command *
 get_command(char *cmd_str)
 {
-    int i;
+	int i;
 
-    if (cmd_str == NULL) { return NULL; }
+	if (cmd_str == NULL) {
+		return NULL;
+	}
 
-    for (i = 0; i < COMMANDS_NUMBER; i++) {
-        if (strcmp(cmd_str, commands[i].name) == 0)
-            return &commands[i];
-    }
+	for (i = 0; i < COMMANDS_NUMBER; i++) {
+		if (strcmp(cmd_str, commands[i].name) == 0)
+			return &commands[i];
+	}
 
-    return NULL;
+	return NULL;
 }
 
 static int
 ctx_init(struct pmem_context *ctx, char *filename)
 {
-    int errors = 0;
+	int errors = 0;
 
-    if (filename == NULL) errors++;
-    if (ctx == NULL)      errors++;
+	if (filename == NULL) errors++;
+	if (ctx == NULL) errors++;
 
-    if (!errors) {
-        ctx->filename = strdup(filename);
-        ctx->fd = -1;
-        ctx->art_tree_root_offset = 0;
+	if (!errors) {
+		ctx->filename = strdup(filename);
+		ctx->fd = -1;
+		ctx->art_tree_root_offset = 0;
 
-        if (access(ctx->filename, F_OK) == 0) {
-            ctx->fd = open(ctx->filename, O_RDONLY);
-        } else {
-            errors++;
-        }
-    }
+		if (access(ctx->filename, F_OK) == 0) {
+			ctx->fd = open(ctx->filename, O_RDONLY);
+		} else {
+			errors++;
+		}
+	}
 
-    /* get system pagesize */
-    ctx->sys_pagesize = sysconf(_SC_PAGESIZE);
+	/* get system pagesize */
+	ctx->sys_pagesize = sysconf(_SC_PAGESIZE);
 
-    return(errors);
+	return (errors);
 }
 
 int
 main(int ac, char *av[])
 {
-    int opt;
-    int option_index;
-    int ret;
-    size_t len;
-    ssize_t read;
-    char *cmd_str;
-    char *args[20];
-    int nargs;
-    char *line;
-    struct command *cmdp;
+	int opt;
+	int option_index;
+	int ret;
+	size_t len;
+	ssize_t read;
+	char *cmd_str;
+	char *args[20];
+	int nargs;
+	char *line;
+	struct command *cmdp;
 
-    while ((opt = getopt_long(ac, av, "h",
-                    long_options, &option_index)) != -1) {
-        switch (opt) {
-        case 'h':
-            print_help(APPNAME);
-            return(0);
-        default:
-            print_usage(APPNAME);
-            return(-1);
-        }
-    }
+	while ((opt = getopt_long(ac, av, "h",
+			    long_options, &option_index)) != -1) {
+		switch (opt) {
+		case 'h':
+			print_help(APPNAME);
+			return (0);
+		default:
+			print_usage(APPNAME);
+			return (-1);
+		}
+	}
 
-    if (optind >= ac) {
-        fprintf(stderr, "ERROR: missing arguments\n");
-        print_usage(APPNAME);
-        return(-1);
-    }
+	if (optind >= ac) {
+		fprintf(stderr, "ERROR: missing arguments\n");
+		print_usage(APPNAME);
+		return (-1);
+	}
 
-    ctx_init(&ctx, av[optind]);
+	ctx_init(&ctx, av[optind]);
 
-    if (optind + 1 < ac) {
-        /* execute command as given on command line */
-        cmd_str = av[optind + 1];
-        cmdp = get_command(cmd_str);
-        if (cmdp != NULL) {
-            ret = cmdp->func(APPNAME, &ctx, ac-2, av+2);
-        }
-   } else {
-        /* interactive mode: read commands and execute them */
-        line = NULL;
-        printf("\n> ");
-        while ((read = getline(&line, &len, stdin)) != -1) {
-             // printf("DEBUG: processing input line [%s] len %ld\n", line, read);
-             if (line[read-1] == '\n') { line[read-1] = '\0'; }
-             args[0] = strtok(line, " ");
-             cmdp = get_command(args[0]);
-             if (cmdp == NULL) {
-                 printf("[%s]: command not supported\n", args[0] ? args[0] : "NULL");
-                 printf("\n> ");
-                 continue;
-             }
-             nargs = 1;
-             while (1) {
-                 args[nargs] = strtok(NULL, " ");
-                 if (args[nargs] == NULL) {
-                     break;
-                 }
-                 nargs++;
-             }
-             ret = cmdp->func(APPNAME, &ctx, nargs, args);
-             printf("\n> ");
-        }
-        if (line != NULL) {
-            free(line);
-        }
-   }
+	if (optind + 1 < ac) {
+		/* execute command as given on command line */
+		cmd_str = av[optind + 1];
+		cmdp = get_command(cmd_str);
+		if (cmdp != NULL) {
+			ret = cmdp->func(APPNAME, &ctx, ac - 2, av + 2);
+		}
+	} else {
+		/* interactive mode: read commands and execute them */
+		line = NULL;
+		printf("\n> ");
+		while ((read = getline(&line, &len, stdin)) != -1) {
+			if (line[read - 1] == '\n') {
+				line[read - 1] = '\0';
+			}
+			args[0] = strtok(line, " ");
+			cmdp = get_command(args[0]);
+			if (cmdp == NULL) {
+				printf("[%s]: command not supported\n",
+				    args[0] ? args[0] : "NULL");
+				printf("\n> ");
+				continue;
+			}
+			nargs = 1;
+			while (1) {
+				args[nargs] = strtok(NULL, " ");
+				if (args[nargs] == NULL) {
+					break;
+				}
+				nargs++;
+			}
+			ret = cmdp->func(APPNAME, &ctx, nargs, args);
+			printf("\n> ");
+		}
+		if (line != NULL) {
+			free(line);
+		}
+	}
 
-    return ret;
+	return ret;
 }

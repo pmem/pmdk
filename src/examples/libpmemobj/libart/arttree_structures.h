@@ -13,8 +13,8 @@
  *       the documentation and/or other materials provided with the
  *       distribution.
  *
- *     * Neither the name of Fujitsu Technology Solutions GmbH nor the names 
- *       of its contributors may be used to endorse or promote products 
+ *     * Neither the name of Fujitsu Technology Solutions GmbH nor the names
+ *       of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
@@ -51,10 +51,10 @@
  * ===========================================================================
  */
 #ifndef _ARTTREE_STRUCTURES_H
-#define _ARTTREE_STRUCTURES_H
+#define	_ARTTREE_STRUCTURES_H
 
 
-#define MAX_PREFIX_LEN 10
+#define	MAX_PREFIX_LEN 10
 
 /*
  * pmem_context -- strcuture for pmempool file
@@ -66,15 +66,15 @@ struct pmem_context {
     uint64_t   art_tree_root_offset;
 };
 
-struct _art_node_u;   typedef struct _art_node_u   art_node_u;
-struct _art_node;     typedef struct _art_node     art_node;
-struct _art_node4;    typedef struct _art_node4    art_node4;
-struct _art_node16;   typedef struct _art_node16   art_node16;
-struct _art_node48;   typedef struct _art_node48   art_node48;
-struct _art_node256;  typedef struct _art_node256  art_node256;
-struct _var_string;   typedef struct _var_string   var_string;
-struct _art_leaf;     typedef struct _art_leaf     art_leaf;
-struct _art_tree_root;typedef struct _art_tree_root art_tree_root;
+struct _art_node_u;	typedef struct _art_node_u	art_node_u;
+struct _art_node;	typedef struct _art_node	art_node;
+struct _art_node4;	typedef struct _art_node4	art_node4;
+struct _art_node16;	typedef struct _art_node16	art_node16;
+struct _art_node48;	typedef struct _art_node48	art_node48;
+struct _art_node256;	typedef struct _art_node256	art_node256;
+struct _var_string;	typedef struct _var_string	var_string;
+struct _art_leaf;	typedef struct _art_leaf	art_leaf;
+struct _art_tree_root;	typedef struct _art_tree_root	art_tree_root;
 
 typedef uint8_t art_tree_root_toid_type_num[65535];
 typedef uint8_t _toid_art_node_u_toid_type_num[2];
@@ -87,14 +87,14 @@ typedef uint8_t _toid_art_leaf_toid_type_num[8];
 typedef uint8_t _toid_var_string_toid_type_num[9];
 
 typedef struct pmemoid {
- uint64_t pool_uuid_lo;
- uint64_t off;
+	uint64_t pool_uuid_lo;
+	uint64_t off;
 } PMEMoid;
-
+
 union _toid_art_node_u_toid {
-    PMEMoid oid;
-    art_node_u *_type;
-    _toid_art_node_u_toid_type_num *_type_num;
+	PMEMoid oid;
+	art_node_u *_type;
+	_toid_art_node_u_toid_type_num *_type_num;
 };
 
 union art_tree_root_toid {
@@ -104,118 +104,118 @@ union art_tree_root_toid {
 };
 
 union _toid_art_node_toid {
-    PMEMoid oid; 
-    art_node *_type; 
-    _toid_art_node_toid_type_num *_type_num;
+	PMEMoid oid;
+	art_node *_type;
+	_toid_art_node_toid_type_num *_type_num;
 };
 
 union _toid_art_node4_toid {
-     PMEMoid oid;
-     art_node4 *_type;
-     _toid_art_node4_toid_type_num *_type_num;
+	PMEMoid oid;
+	art_node4 *_type;
+	_toid_art_node4_toid_type_num *_type_num;
 };
 
 union _toid_art_node16_toid {
-     PMEMoid oid;
-     art_node16 *_type;
-     _toid_art_node16_toid_type_num *_type_num;
+	PMEMoid oid;
+	art_node16 *_type;
+	_toid_art_node16_toid_type_num *_type_num;
 };
 
 union _toid_art_node48_toid {
-     PMEMoid oid;
-     art_node48 *_type;
-     _toid_art_node48_toid_type_num *_type_num;
+	PMEMoid oid;
+	art_node48 *_type;
+	_toid_art_node48_toid_type_num *_type_num;
 };
 
 union _toid_art_node256_toid {
-     PMEMoid oid;
-     art_node256 *_type;
-     _toid_art_node256_toid_type_num *_type_num;
+	PMEMoid oid;
+	art_node256 *_type;
+	_toid_art_node256_toid_type_num *_type_num;
 };
 
 union _toid_var_string_toid {
-    PMEMoid oid;
-    var_string *_type;
-    _toid_var_string_toid_type_num *_type_num;
+	PMEMoid oid;
+	var_string *_type;
+	_toid_var_string_toid_type_num *_type_num;
 };
 
 union _toid_art_leaf_toid {
-     PMEMoid oid;
-     art_leaf *_type;
-     _toid_art_leaf_toid_type_num *_type_num;
+	PMEMoid oid;
+	art_leaf *_type;
+	_toid_art_leaf_toid_type_num *_type_num;
 };
-
+
 struct _art_tree_root {
-    int size;
-    union _toid_art_node_u_toid root;
+	int size;
+	union _toid_art_node_u_toid root;
 };
 
 struct _art_node {
-    // uint8_t type;
-    uint8_t num_children;
-    uint32_t partial_len;
-    unsigned char partial[MAX_PREFIX_LEN];
+	// uint8_t type;
+	uint8_t num_children;
+	uint32_t partial_len;
+	unsigned char partial[MAX_PREFIX_LEN];
 };
 
 struct _art_node4 {
-    art_node n;
-    unsigned char keys[4];
-    union _toid_art_node_u_toid children[4];
+	art_node n;
+	unsigned char keys[4];
+	union _toid_art_node_u_toid children[4];
 };
 
 struct _art_node16 {
-    art_node n;
-    unsigned char keys[16];
-    union _toid_art_node_u_toid children[16];
+	art_node n;
+	unsigned char keys[16];
+	union _toid_art_node_u_toid children[16];
 };
 
 struct _art_node48 {
-    art_node n;
-    unsigned char keys[256];
-    union _toid_art_node_u_toid children[48];
+	art_node n;
+	unsigned char keys[256];
+	union _toid_art_node_u_toid children[48];
 };
 
 struct _art_node256 {
-    art_node n;
-    union _toid_art_node_u_toid children[256];
+	art_node n;
+	union _toid_art_node_u_toid children[256];
 };
 
 struct _var_string {
-    size_t len;
-    unsigned char s[];
+	size_t len;
+	unsigned char s[];
 };
 
 struct _art_leaf {
-    union _toid_var_string_toid value;
-    union _toid_var_string_toid key;
+	union _toid_var_string_toid value;
+	union _toid_var_string_toid key;
 };
 
-struct _art_node_u { 
-    uint8_t art_node_type; 
-    uint8_t art_node_tag; 
-    union {
-        union _toid_art_node4_toid an4;
-        union _toid_art_node16_toid an16;
-        union _toid_art_node48_toid an48;
-        union _toid_art_node256_toid an256;
-        union _toid_art_leaf_toid al;
-    } u;
+struct _art_node_u {
+	uint8_t art_node_type;
+	uint8_t art_node_tag;
+	union {
+		union _toid_art_node4_toid an4;
+		union _toid_art_node16_toid an16;
+		union _toid_art_node48_toid an48;
+		union _toid_art_node256_toid an256;
+		union _toid_art_leaf_toid al;
+	} u;
 };
 
 typedef enum {
-   ART_NODE4      = 0,
-   ART_NODE16     = 1,
-   ART_NODE48     = 2,
-   ART_NODE256    = 3,
-   ART_LEAF       = 4,
-   ART_NODE_U     = 5,
-   ART_NODE       = 6,
-   ART_TREE_ROOT  = 7,
-   VAR_STRING     = 8,
-   art_node_types = 9   /* number of different art_nodes */
+	ART_NODE4	= 0,
+	ART_NODE16	= 1,
+	ART_NODE48	= 2,
+	ART_NODE256	= 3,
+	ART_LEAF	= 4,
+	ART_NODE_U	= 5,
+	ART_NODE	= 6,
+	ART_TREE_ROOT	= 7,
+	VAR_STRING	= 8,
+	art_node_types	= 9   /* number of different art_nodes */
 } art_node_type;
 
-#define VALID_NODE_TYPE(n) (((n) >= 0) && ((n) < art_node_types))
+#define	VALID_NODE_TYPE(n) (((n) >= 0) && ((n) < art_node_types))
 
 extern size_t art_node_sizes[];
 extern char *art_node_names[];
