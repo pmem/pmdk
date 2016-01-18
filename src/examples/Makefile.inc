@@ -47,7 +47,7 @@ LDFLAGS = -Wl,-rpath=$(LIBDIR) -L$(LIBDIR) $(EXTRA_LDFLAGS)
 INCS = -I$(INCDIR) -I.
 
 LINKER=$(CC)
-ifeq ($(LANG), cpp)
+ifeq ($(COMPILE_LANG), cpp)
 LINKER=$(CXX)
 endif
 

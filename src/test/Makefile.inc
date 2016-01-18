@@ -128,7 +128,7 @@ CFLAGS += $(COMMON_FLAGS)
 LDFLAGS = -Wl,--warn-common -Wl,--fatal-warnings $(EXTRA_LDFLAGS)
 
 LINKER=$(CC)
-ifeq ($(LANG), cpp)
+ifeq ($(COMPILE_LANG), cpp)
 LINKER=$(CXX)
 endif
 
