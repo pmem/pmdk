@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2014-2015, Intel Corporation
+# Copyright (c) 2014-2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -134,7 +134,12 @@ no-glib:
 	@echo "glib-2.0 development package required"
 
 %.o: %.c
-	$(CC) -c $(CFLAGS) $< -o $@
+	@mkdir -p .deps
+	$(CC) -MD -c -o $@ $(CFLAGS) $<
+	@$(CP) $*.d .deps/$*.P; \
+	sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
+	    -e '/^$$/ d' -e 's/$$/ :/' < $*.d >> .deps/$*.P; \
+	$(RM) -f $*.d
 
 $(BENCHMARK): $(OBJS) $(LIBMAP)
 	$(CC) -o $@ $(LDFLAGS) $^ $(LIBS)
@@ -149,6 +154,7 @@ clean:
 clobber: clean
 	$(RM) $(BENCHMARK)
 	$(RM) *.csv
+	$(RM) -r .deps
 
 cstyle:
 	$(CSTYLE) *.[ch]
@@ -164,3 +170,5 @@ PMEMOBJ_SYMBOLS=pmalloc pfree lane_hold lane_release
 
 pmemobj.o: $(LIBS_PATH)/libpmemobj/libpmemobj_unscoped.o
 	objcopy --localize-hidden $(addprefix -G, $(PMEMOBJ_SYMBOLS)) $< $@
+
+-include .deps/*.P
