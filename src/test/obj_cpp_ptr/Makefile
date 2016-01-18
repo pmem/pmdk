@@ -35,7 +35,7 @@
 #
 TARGET = obj_cpp_ptr
 OBJS = obj_cpp_ptr.o
-LANG = cpp
+COMPILE_LANG = cpp
 
 LIBPMEM=y
 LIBPMEMOBJ=y
