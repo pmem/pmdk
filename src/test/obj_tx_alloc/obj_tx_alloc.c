@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Intel Corporation
+ * Copyright (c) 2015-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -490,17 +490,6 @@ do_tx_zalloc_commit(PMEMobjpool *pop)
 }
 
 /*
- * do_tx_alloc_no_tx -- allocates object without transaction
- */
-static void
-do_tx_alloc_no_tx(PMEMobjpool *pop)
-{
-	TOID(struct object) obj;
-	TOID_ASSIGN(obj, pmemobj_tx_alloc(sizeof (struct object), TYPE_NO_TX));
-	ASSERT(TOID_IS_NULL(obj));
-}
-
-/*
  * do_tx_root -- retrieve root inside of transaction
  */
 static void
@@ -533,8 +522,6 @@ main(int argc, char *argv[])
 		FATAL("!pmemobj_create");
 
 	do_tx_root(pop);
-	VALGRIND_WRITE_STATS;
-	do_tx_alloc_no_tx(pop);
 	VALGRIND_WRITE_STATS;
 	do_tx_alloc_commit(pop);
 	VALGRIND_WRITE_STATS;

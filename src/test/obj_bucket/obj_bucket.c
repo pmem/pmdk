@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Intel Corporation
+ * Copyright (c) 2015-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -62,14 +62,6 @@ FUNC_MOCK(malloc, void *, size_t size)
 	}
 FUNC_MOCK_END
 
-FUNC_MOCK(pthread_mutex_init, int,
-	pthread_mutex_t *mutex, const pthread_mutexattr_t *attr)
-	FUNC_MOCK_RUN_RET_DEFAULT_REAL(pthread_mutex_init, mutex, attr)
-	FUNC_MOCK_RUN(0) {
-		return -1;
-	}
-FUNC_MOCK_END
-
 FUNC_MOCK(ctree_new, struct ctree *, void)
 	FUNC_MOCK_RUN_RET_DEFAULT(MOCK_CRIT)
 	FUNC_MOCK_RUN(0) {
@@ -110,10 +102,6 @@ test_new_delete_bucket()
 	b = bucket_new(1, 1);
 	ASSERT(b == NULL);
 
-	/* b->lock init fail */
-	b = bucket_new(1, 1);
-	ASSERT(b == NULL);
-
 	/* all ok */
 	b = bucket_new(1, 1);
 	ASSERT(b != NULL);
@@ -145,7 +133,7 @@ test_bucket()
 	ASSERT(bucket_unit_size(b) == TEST_UNIT_SIZE);
 	ASSERT(bucket_is_small(b));
 	ASSERT(bucket_calc_units(b, TEST_SIZE) == TEST_SIZE_UNITS);
-	ASSERT(bucket_lock(b) == 0);
+	bucket_lock(b);
 	bucket_unlock(b);
 
 	bucket_delete(b);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2015, Intel Corporation
+ * Copyright (c) 2014-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -47,6 +47,7 @@
 #include "jemalloc.h"
 #include "util.h"
 #include "out.h"
+#include "sys_util.h"
 #include "vmem.h"
 
 /*
@@ -87,13 +88,11 @@ vmem_init(void)
 {
 	static bool initialized = false;
 	static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
-	int oerrno;
 
 	if (initialized)
 		return;
 
-	if ((errno = pthread_mutex_lock(&lock)))
-		FATAL("!pthread_mutex_lock");
+	util_mutex_lock(&lock);
 
 	if (!initialized) {
 		out_init(VMEM_LOG_PREFIX, VMEM_LOG_LEVEL_VAR,
@@ -110,10 +109,7 @@ vmem_init(void)
 		initialized = true;
 	}
 
-	oerrno = errno;
-	if ((errno = pthread_mutex_unlock(&lock)))
-		ERR("!pthread_mutex_unlock");
-	errno = oerrno;
+	util_mutex_unlock(&lock);
 }
 
 /*

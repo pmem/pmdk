@@ -37,7 +37,7 @@
 .\" or
 .\"	groff -man -Tascii libpmemobj.3
 .\"
-.TH libpmemobj 3 "pmemobj API version 0.4.19" "NVM Library"
+.TH libpmemobj 3 "pmemobj API version 0.4.21" "NVM Library"
 .SH NAME
 libpmemobj \- persistent memory transactional object store
 .SH SYNOPSIS
@@ -257,9 +257,10 @@ libpmemobj \- persistent memory transactional object store
 .sp
 .BI "int pmemobj_tx_begin(PMEMobjpool *" pop ", jmp_buf *" env ", enum " tx_lock ", " ... );
 .BI "void pmemobj_tx_abort(int " errnum );
-.BI "int pmemobj_tx_commit(void);
-.BI "void pmemobj_tx_end(void);
-.BI "int pmemobj_tx_process(void);
+.BI "void pmemobj_tx_commit(void);
+.BI "int pmemobj_tx_end(void);
+.BI "int pmemobj_tx_errno(void);
+.BI "void pmemobj_tx_process(void);
 .sp
 .BI "int pmemobj_tx_add_range(PMEMoid " oid ", uint64_t " off ", size_t " size );
 .BI "int pmemobj_tx_add_range_direct(void *" ptr ", size_t " size );
@@ -2636,10 +2637,10 @@ The
 .BR pmemobj_tx_abort ()
 aborts the current transaction and causes transition to
 .IR TX_STAGE_ONABORT .
-It has no effect if called during the stage other than
+This function must be called during
 .IR TX_STAGE_WORK .
 .PP
-.BI "int pmemobj_tx_commit(void);
+.BI "void pmemobj_tx_commit(void);
 .IP
 The
 .BR pmemobj_tx_commit ()
@@ -2647,11 +2648,10 @@ function commits the current open transaction and causes transition to
 .I TX_STAGE_ONCOMMIT
 stage.  If called in context of the outer-most transaction,
 all the changes may be considered as durably written upon successful completion.
-If successful returns 0.  Otherwise, an error number is returned.
-It has no effect if called during the stage other than
+This function must be called during
 .IR TX_STAGE_WORK .
 .PP
-.BI "void pmemobj_tx_end(void);
+.BI "int pmemobj_tx_end(void);
 .IP
 The
 .BR pmemobj_tx_end ()
@@ -2669,17 +2669,30 @@ Must always be called for each
 even if starting the transaction failed.  It has no effect if called
 during
 .I TX_STAGE_NONE
-stage.
+stage and must
+.I not
+be called during
+.IR TX_STAGE_WORK .
+If transaction was successful, returns 0. Otherwise returns error code set by
+.BR pmemobj_tx_abort ().
+Note that
+.BR pmemobj_tx_abort ()
+can be called internally by the library.
 .PP
-.BI "int pmemobj_tx_process(void);
+.BI "int pmemobj_tx_errno(void);
+.IP
+The
+.BR pmemobj_tx_errno ()
+function returns last transaction error code.
+.PP
+.BI "void pmemobj_tx_process(void);
 .IP
 The
 .BR pmemobj_tx_process ()
 function performs the actions associated with current stage of the transaction,
-and makes the transition to the next stage.  Current stage must always
-be obtained by a call to
+and makes the transition to the next stage. It must be called in transaction.
+Current stage must always be obtained by a call to
 .BR pmemobj_tx_stage ().
-If successful, function returns zero.  Otherwise, an error number is returned.
 .PP
 .BI "int pmemobj_tx_add_range(PMEMoid " oid ", uint64_t " off ", size_t " size );
 .IP
@@ -2695,11 +2708,11 @@ and saves it to the undo log.  The application is then free to directly modify
 the object in that memory range.  In case of a failure or abort, all the changes
 within this range will be rolled-back.  The supplied block of memory has to be within
 the pool registered in the transaction.
-If successful and called during
-.I TX_STAGE_WORK
-function returns zero.  Otherwise, state changes to
+If successful, returns zero.  Otherwise, state changes to
 .I TX_STAGE_ONABORT
 and an error number is returned.
+This function must be called during
+.IR TX_STAGE_WORK .
 .PP
 .BI "int pmemobj_tx_add_range_direct(void *" ptr ", size_t " size );
 .IP
@@ -2717,11 +2730,11 @@ in the virtual memory space and saves it to the undo log.  The application is th
 free to directly modify the object in that memory range.  In case of a failure
 or abort, all the changes within this range will be rolled-back.  The supplied
 block of memory has to be within the pool registered in the transaction.
-If successful and called during
-.I TX_STAGE_WORK
-function returns zero.  Otherwise, state changes to
+If successful, returns zero.  Otherwise, state changes to
 .I TX_STAGE_ONABORT
 and an error number is returned.
+This function must be called during
+.IR TX_STAGE_WORK .
 .PP
 .BI "PMEMoid pmemobj_tx_alloc(size_t " size ", unsigned int " type_num );
 .IP
@@ -2737,15 +2750,15 @@ added to the internal object containers of given
 only after the transaction is committed, making the objects visible to the
 .B POBJ_FOREACH_*
 macros.
-If successful and called during
-.I TX_STAGE_WORK
-function returns a handle to the newly allocated object.  Otherwise, stage
+If successful, returns a handle to the newly allocated object.  Otherwise, stage
 changes to
 .IR TX_STAGE_ONABORT ,
 OID_NULL is returned, and errno is set appropriately.
 If
 .I size
 equals 0, OID_NULL is returned and errno is set appropriately.
+This function must be called during
+.IR TX_STAGE_WORK .
 .PP
 .BI "PMEMoid pmemobj_tx_zalloc(size_t " size ", unsigned int " type_num );
 .IP
@@ -2755,15 +2768,15 @@ function transactionally allocates new zeroed object of given
 .I size
 and
 .IR type_num .
-If successful and called during
-.I TX_STAGE_WORK
-function returns a handle to the newly allocated object.  Otherwise, stage
+If successful, returns a handle to the newly allocated object.  Otherwise, stage
 changes to
 .IR TX_STAGE_ONABORT ,
 OID_NULL is returned, and errno is set appropriately.
 If
 .I size
 equals 0, OID_NULL is returned and errno is set appropriately.
+This function must be called during
+.IR TX_STAGE_WORK .
 .PP
 .BI "PMEMoid pmemobj_tx_realloc(PMEMoid " oid ", size_t " size ,
 .br
@@ -2788,13 +2801,13 @@ is not OID_NULL, then the call is equivalent to
 If the new size is larger than the old size, the added memory will
 .I not
 be initialized.
-If successful and called during
-.I TX_STAGE_WORK
-function returns returns a handle to the resized object.  Otherwise, stage
+If successful, returns returns a handle to the resized object.  Otherwise, stage
 changes to
 .IR TX_STAGE_ONABORT ,
 OID_NULL is returned, and errno is set appropriately.
 Note that the object handle value may change in result of reallocation.
+This function must be called during
+.IR TX_STAGE_WORK .
 .PP
 .BI "PMEMoid pmemobj_tx_zrealloc(PMEMoid " oid ", size_t " size ,
 .br
@@ -2807,13 +2820,13 @@ function transactionally resizes an existing object to the given
 and changes its type to
 .IR type_num .
 If the new size is larger than the old size, the extended new space is zeroed.
-If successful and called during
-.I TX_STAGE_WORK
-function returns returns a handle to the resized object.  Otherwise, stage
+If successful, returns returns a handle to the resized object.  Otherwise, stage
 changes to
 .IR TX_STAGE_ONABORT ,
 OID_NULL is returned, and errno is set appropriately.
 Note that the object handle value may change in result of reallocation.
+This function must be called during
+.IR TX_STAGE_WORK .
 .PP
 .BI "PMEMoid pmemobj_tx_strdup(const char *" s ", unsigned int " type_num );
 .IP
@@ -2824,12 +2837,12 @@ string
 .I s
 and assigns it a type
 .IR type_num .
-If successful and called during
-.I TX_STAGE_WORK
-function returns a handle to the newly allocated object.  Otherwise, stage
+If successful, returns a handle to the newly allocated object.  Otherwise, stage
 changes to
 .IR TX_STAGE_ONABORT ,
 OID_NULL is returned, and errno is set appropriately.
+This function must be called during
+.IR TX_STAGE_WORK .
 .PP
 .BI "int pmemobj_tx_free(PMEMoid " oid );
 .IP
@@ -2837,11 +2850,11 @@ The
 .BR pmemobj_tx_free ()
 function transactionally frees an existing object referenced by
 .IR oid .
-If successful and called during
-.I TX_STAGE_WORK
-function returns zero. Otherwise, stage changes to
+If successful, returns zero. Otherwise, stage changes to
 .I TX_STAGE_ONABORT
 and an error number is returned.
+This function must be called during
+.IR TX_STAGE_WORK .
 .PP
 In addition to the above API, the
 .B libpmemobj
@@ -2929,6 +2942,7 @@ macro cleans up and closes the transaction started by
 or
 .BR TX_BEGIN_LOCK ()
 macro.  It is mandatory to terminate each transaction with this macro.
+If the transaction was aborted, errno is set appropriately.
 .PP
 Similarly to the macros controlling the transaction flow, the
 .B libpmemobj

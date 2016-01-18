@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Intel Corporation
+ * Copyright (c) 2015-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -896,7 +896,7 @@ out:
 /*
  * obj_tx_free_worker -- common part for the worker de-initialization.
  */
-static int
+static void
 obj_tx_free_worker(struct benchmark *bench, struct benchmark_args *args,
 						struct worker_info *worker)
 {
@@ -907,7 +907,6 @@ obj_tx_free_worker(struct benchmark *bench, struct benchmark_args *args,
 	else
 		free(obj_worker->oids);
 	free(obj_worker);
-	return 0;
 }
 
 /*
@@ -915,14 +914,14 @@ obj_tx_free_worker(struct benchmark *bench, struct benchmark_args *args,
  * de-initialization for benchmarks, which requires deallocation of
  * all of objects.
  */
-static int
+static void
 obj_tx_free_worker_free_obj(struct benchmark *bench, struct benchmark_args
 					*args, struct worker_info *worker)
 {
 	struct obj_tx_bench *obj_bench = pmembench_get_priv(bench);
 	for (unsigned int i = 0; i < obj_bench->n_objs; i++)
 		free_op[obj_bench->lib_mode](obj_bench, worker, i);
-	return obj_tx_free_worker(bench, args, worker);
+	obj_tx_free_worker(bench, args, worker);
 }
 
 /*

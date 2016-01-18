@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2016, Intel Corporation
+ * Copyright (c) 2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -26,29 +26,44 @@
  * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
  * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY LOG OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <errno.h>
+
 /*
- * pmalloc.h -- internal definitions for persistent malloc
+ * sync.h -- internal to obj synchronization API
  */
 
-int heap_boot(PMEMobjpool *pop);
-int heap_init(PMEMobjpool *pop);
-void heap_vg_open(PMEMobjpool *pop);
-void heap_cleanup(PMEMobjpool *pop);
-int heap_check(PMEMobjpool *pop);
+/*
+ * pmemobj_mutex_lock_nofail -- pmemobj_mutex_lock variant that never
+ * fails from caller perspective. If pmemobj_mutex_lock failed, this function
+ * aborts the program.
+ */
+static inline void
+pmemobj_mutex_lock_nofail(PMEMobjpool *pop, PMEMmutex *mutexp)
+{
+	int ret = pmemobj_mutex_lock(pop, mutexp);
+	if (ret) {
+		errno = ret;
+		FATAL("!pmemobj_mutex_lock");
+	}
+}
 
-int pmalloc(PMEMobjpool *pop, uint64_t *off, size_t size, uint64_t data_off);
-int pmalloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
-	void (*constructor)(PMEMobjpool *pop, void *ptr, size_t usable_size,
-	void *arg), void *arg, uint64_t data_off);
+/*
+ * pmemobj_mutex_unlock_nofail -- pmemobj_mutex_unlock variant that never
+ * fails from caller perspective. If pmemobj_mutex_unlock failed, this function
+ * aborts the program.
+ */
+static inline void
+pmemobj_mutex_unlock_nofail(PMEMobjpool *pop, PMEMmutex *mutexp)
+{
+	int ret = pmemobj_mutex_unlock(pop, mutexp);
+	if (ret) {
+		errno = ret;
+		FATAL("!pmemobj_mutex_unlock");
+	}
+}
 
-int prealloc(PMEMobjpool *pop, uint64_t *off, size_t size, uint64_t data_off);
-int prealloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
-	void (*constructor)(PMEMobjpool *pop, void *ptr, size_t usable_size,
-	void *arg), void *arg, uint64_t data_off);
-
-size_t pmalloc_usable_size(PMEMobjpool *pop, uint64_t off);
-void pfree(PMEMobjpool *pop, uint64_t *off, uint64_t data_off);
+int pmemobj_mutex_assert_locked(PMEMobjpool *pop, PMEMmutex *mutexp);

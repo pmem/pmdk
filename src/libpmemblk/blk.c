@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2015, Intel Corporation
+ * Copyright (c) 2014-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -52,12 +52,13 @@
 #include "out.h"
 #include "btt.h"
 #include "blk.h"
+#include "sys_util.h"
 #include "valgrind_internal.h"
 
 /*
  * lane_enter -- (internal) acquire a unique lane number
  */
-static int
+static void
 lane_enter(PMEMblkpool *pbp, unsigned *lane)
 {
 	unsigned mylane;
@@ -65,14 +66,9 @@ lane_enter(PMEMblkpool *pbp, unsigned *lane)
 	mylane = __sync_fetch_and_add(&pbp->next_lane, 1) % pbp->nlane;
 
 	/* lane selected, grab the per-lane lock */
-	if ((errno = pthread_mutex_lock(&pbp->locks[mylane]))) {
-		ERR("!pthread_mutex_lock");
-		return -1;
-	}
+	util_mutex_lock(&pbp->locks[mylane]);
 
 	*lane = mylane;
-
-	return 0;
 }
 
 /*
@@ -81,10 +77,7 @@ lane_enter(PMEMblkpool *pbp, unsigned *lane)
 static void
 lane_exit(PMEMblkpool *pbp, unsigned mylane)
 {
-	int oerrno = errno;
-	if ((errno = pthread_mutex_unlock(&pbp->locks[mylane])))
-		ERR("!pthread_mutex_unlock");
-	errno = oerrno;
+	util_mutex_unlock(&pbp->locks[mylane]);
 }
 
 /*
@@ -137,10 +130,7 @@ nswrite(void *ns, unsigned lane, const void *buf, size_t count,
 
 #ifdef DEBUG
 	/* grab debug write lock */
-	if ((errno = pthread_mutex_lock(&pbp->write_lock))) {
-		ERR("!pthread_mutex_lock");
-		return -1;
-	}
+	util_mutex_lock(&pbp->write_lock);
 #endif
 
 	/* unprotect the memory (debug version only) */
@@ -156,8 +146,7 @@ nswrite(void *ns, unsigned lane, const void *buf, size_t count,
 
 #ifdef DEBUG
 	/* release debug write lock */
-	if ((errno = pthread_mutex_unlock(&pbp->write_lock)))
-		ERR("!pthread_mutex_unlock");
+	util_mutex_unlock(&pbp->write_lock);
 #endif
 
 	if (pbp->is_pmem)
@@ -369,19 +358,13 @@ pmemblk_runtime_init(PMEMblkpool *pbp, size_t bsize, int rdonly, int is_pmem)
 	}
 
 	for (unsigned i = 0; i < pbp->nlane; i++)
-		if ((errno = pthread_mutex_init(&locks[i], NULL))) {
-			ERR("!pthread_mutex_init");
-			goto err;
-		}
+		util_mutex_init(&locks[i], NULL);
 
 	pbp->locks = locks;
 
 #ifdef DEBUG
 	/* initialize debug lock */
-	if ((errno = pthread_mutex_init(&pbp->write_lock, NULL))) {
-		ERR("!pthread_mutex_init");
-		goto err;
-	}
+	util_mutex_init(&pbp->write_lock, NULL);
 #endif
 
 	/*
@@ -632,8 +615,7 @@ pmemblk_read(PMEMblkpool *pbp, void *buf, off_t blockno)
 
 	unsigned lane;
 
-	if (lane_enter(pbp, &lane) < 0)
-		return -1;
+	lane_enter(pbp, &lane);
 
 	int err = btt_read(pbp->bttp, lane, (uint64_t)blockno, buf);
 
@@ -664,8 +646,7 @@ pmemblk_write(PMEMblkpool *pbp, const void *buf, off_t blockno)
 
 	unsigned lane;
 
-	if (lane_enter(pbp, &lane) < 0)
-		return -1;
+	lane_enter(pbp, &lane);
 
 	int err = btt_write(pbp->bttp, lane, (uint64_t)blockno, buf);
 
@@ -696,8 +677,7 @@ pmemblk_set_zero(PMEMblkpool *pbp, off_t blockno)
 
 	unsigned lane;
 
-	if (lane_enter(pbp, &lane) < 0)
-		return -1;
+	lane_enter(pbp, &lane);
 
 	int err = btt_set_zero(pbp->bttp, lane, (uint64_t)blockno);
 
@@ -728,8 +708,7 @@ pmemblk_set_error(PMEMblkpool *pbp, off_t blockno)
 
 	unsigned lane;
 
-	if (lane_enter(pbp, &lane) < 0)
-		return -1;
+	lane_enter(pbp, &lane);
 
 	int err = btt_set_error(pbp->bttp, lane, (uint64_t)blockno);
 

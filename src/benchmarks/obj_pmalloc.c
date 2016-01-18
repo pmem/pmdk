@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Intel Corporation
+ * Copyright (c) 2015-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -290,11 +290,7 @@ pfree_op(struct benchmark *bench, struct operation_info *info)
 	unsigned i = info->index + info->worker->index *
 					info->args->n_ops_per_thread;
 
-	int ret = pfree(ob->pop, &ob->offs[i], 0);
-	if (ret) {
-		fprintf(stderr, "pfree ret: %d\n", ret);
-		return ret;
-	}
+	pfree(ob->pop, &ob->offs[i], 0);
 
 	return 0;
 }

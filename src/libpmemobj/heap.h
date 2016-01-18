@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Intel Corporation
+ * Copyright (c) 2015-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -70,14 +70,14 @@ struct memory_block heap_coalesce(PMEMobjpool *pop,
 int heap_get_adjacent_free_block(PMEMobjpool *pop, struct memory_block *m,
 	struct memory_block cnt, int prev);
 
-int heap_lock_if_run(PMEMobjpool *pop, struct memory_block m);
-int heap_unlock_if_run(PMEMobjpool *pop, struct memory_block m);
+void heap_lock_if_run(PMEMobjpool *pop, struct memory_block m);
+void heap_unlock_if_run(PMEMobjpool *pop, struct memory_block m);
 
 int heap_get_bestfit_block(PMEMobjpool *pop, struct bucket *b,
 	struct memory_block *m);
 int heap_get_exact_block(PMEMobjpool *pop, struct bucket *b,
 	struct memory_block *m, uint32_t new_size_idx);
-int heap_degrade_run_if_empty(PMEMobjpool *pop, struct bucket *b,
+void heap_degrade_run_if_empty(PMEMobjpool *pop, struct bucket *b,
 	struct memory_block m);
 
 struct memory_block heap_free_block(PMEMobjpool *pop, struct bucket *b,

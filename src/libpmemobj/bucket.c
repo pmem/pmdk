@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Intel Corporation
+ * Copyright (c) 2015-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -50,6 +50,7 @@
 #include "ctree.h"
 #include "lane.h"
 #include "list.h"
+#include "sys_util.h"
 #include "obj.h"
 #include "valgrind_internal.h"
 
@@ -98,10 +99,7 @@ bucket_new(size_t unit_size, unsigned unit_max)
 	if (b->tree == NULL)
 		goto error_tree_new;
 
-	if ((errno = pthread_mutex_init(&b->lock, NULL)) != 0) {
-		ERR("!pthread_mutex_init");
-		goto error_mutex_init;
-	}
+	util_mutex_init(&b->lock, NULL);
 
 	b->unit_size = unit_size;
 	b->unit_max = unit_max;
@@ -132,8 +130,6 @@ bucket_new(size_t unit_size, unsigned unit_max)
 
 	return b;
 
-error_mutex_init:
-	ctree_delete(b->tree);
 error_tree_new:
 	Free(b);
 error_bucket_malloc:
@@ -146,8 +142,7 @@ error_bucket_malloc:
 void
 bucket_delete(struct bucket *b)
 {
-	if ((errno = pthread_mutex_destroy(&b->lock)) != 0)
-		ERR("!pthread_mutex_destroy");
+	util_mutex_destroy(&b->lock);
 
 	ctree_delete(b->tree);
 	Free(b);
@@ -242,6 +237,9 @@ bucket_insert_block(PMEMobjpool *pop, struct bucket *b, struct memory_block m)
 
 	int ret = ctree_insert(b->tree, key, 0);
 	if (ret != 0) {
+		if (ret == EEXIST)
+			FATAL("Bucket tree already contains key %llu\n",
+					(unsigned long long)key);
 		ERR("Failed to create volatile state of memory block");
 		ASSERT(0);
 	}
@@ -308,10 +306,10 @@ bucket_is_empty(struct bucket *b)
 /*
  * bucket_lock -- acquire bucket lock
  */
-int
+void
 bucket_lock(struct bucket *b)
 {
-	return pthread_mutex_lock(&b->lock);
+	util_mutex_lock(&b->lock);
 }
 
 /*
@@ -320,8 +318,5 @@ bucket_lock(struct bucket *b)
 void
 bucket_unlock(struct bucket *b)
 {
-	if (pthread_mutex_unlock(&b->lock) != 0) {
-		ERR("pthread_mutex_unlock");
-		ASSERT(0);
-	}
+	util_mutex_unlock(&b->lock);
 }

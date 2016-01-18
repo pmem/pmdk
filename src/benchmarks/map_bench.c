@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Intel Corporation
+ * Copyright (c) 2015-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -262,20 +262,18 @@ err_free_worker:
  * map_common_free_worker -- common cleanup worker function for map_*
  * benchmarks
  */
-static int
+static void
 map_common_free_worker(struct benchmark *bench, struct benchmark_args *args,
 		struct worker_info *worker)
 {
 	struct map_bench_worker *tworker = worker->priv;
 	struct map_bench_args *targs = args->opts;
-	int ret = 0;
 	if (targs->ext_tx) {
-		ret = pmemobj_tx_commit();
+		pmemobj_tx_commit();
 		pmemobj_tx_end();
 	}
 	free(tworker->keys);
 	free(tworker);
-	return ret;
 }
 
 /*

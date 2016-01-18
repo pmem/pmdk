@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Intel Corporation
+ * Copyright (c) 2015-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -492,7 +492,7 @@ err_free_worker_info:
 /*
  * log_free_worker -- cleanup benchmark worker
  */
-static int
+static void
 log_free_worker(struct benchmark *bench, struct benchmark_args *args,
 		struct worker_info *worker)
 {
@@ -505,8 +505,6 @@ log_free_worker(struct benchmark *bench, struct benchmark_args *args,
 	free(worker_info->rand_sizes);
 	free(worker_info->vec_sizes);
 	free(worker_info);
-
-	return 0;
 }
 
 /*

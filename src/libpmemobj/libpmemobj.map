@@ -83,6 +83,7 @@ libpmemobj.so {
 		pmemobj_tx_abort;
 		pmemobj_tx_commit;
 		pmemobj_tx_end;
+		pmemobj_tx_errno;
 		pmemobj_tx_process;
 		pmemobj_tx_add_range;
 		pmemobj_tx_add_range_direct;

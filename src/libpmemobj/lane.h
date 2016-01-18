@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Intel Corporation
+ * Copyright (c) 2015-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -66,12 +66,13 @@ struct lane {
 
 typedef int (*section_layout_op)(PMEMobjpool *pop,
 	struct lane_section_layout *layout);
-typedef int (*section_op)(PMEMobjpool *pop, struct lane_section *section);
+typedef int (*section_constr)(PMEMobjpool *pop, struct lane_section *section);
+typedef void (*section_destr)(PMEMobjpool *pop, struct lane_section *section);
 typedef int (*section_global_op)(PMEMobjpool *pop);
 
 struct section_operations {
-	section_op construct;
-	section_op destruct;
+	section_constr construct;
+	section_destr destruct;
 	section_layout_op check;
 	section_layout_op recover;
 	section_global_op boot;
@@ -81,13 +82,13 @@ extern struct section_operations *Section_ops[MAX_LANE_SECTION];
 extern __thread unsigned Lane_idx;
 
 int lane_boot(PMEMobjpool *pop);
-int lane_cleanup(PMEMobjpool *pop);
+void lane_cleanup(PMEMobjpool *pop);
 int lane_recover_and_section_boot(PMEMobjpool *pop);
 int lane_check(PMEMobjpool *pop);
 
-int lane_hold(PMEMobjpool *pop, struct lane_section **section,
+void lane_hold(PMEMobjpool *pop, struct lane_section **section,
 	enum lane_section_type type);
-int lane_release(PMEMobjpool *pop);
+void lane_release(PMEMobjpool *pop);
 
 #define	SECTION_PARM(n, ops)\
 __attribute__((constructor)) static void _section_parm_##n(void)\

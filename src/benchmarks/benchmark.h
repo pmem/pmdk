@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Intel Corporation
+ * Copyright (c) 2015-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -268,7 +268,8 @@ struct benchmark_info
 	int (*exit)(struct benchmark *bench, struct benchmark_args *args);
 	int (*init_worker)(struct benchmark *bench, struct benchmark_args *args,
 			struct worker_info *worker);
-	int (*free_worker)(struct benchmark *bench, struct benchmark_args *args,
+	void (*free_worker)(struct benchmark *bench,
+			struct benchmark_args *args,
 			struct worker_info *worker);
 	int (*operation)(struct benchmark *bench, struct operation_info *info);
 	int (*op_init)(struct benchmark *bench, struct operation_info *info);

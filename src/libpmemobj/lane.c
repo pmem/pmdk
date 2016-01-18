@@ -46,6 +46,7 @@
 #include "out.h"
 #include "redo.h"
 #include "list.h"
+#include "sys_util.h"
 #include "obj.h"
 #include "valgrind_internal.h"
 
@@ -77,10 +78,7 @@ lane_init(PMEMobjpool *pop, struct lane *lane, struct lane_layout *layout,
 
 	int err;
 
-	if ((err = pthread_mutex_init(mtx, attr)) != 0) {
-		ERR("!pthread_mutex_init");
-		return err;
-	}
+	util_mutex_init(mtx, attr);
 
 	lane->lock = mtx;
 
@@ -98,35 +96,23 @@ lane_init(PMEMobjpool *pop, struct lane *lane, struct lane_layout *layout,
 	return 0;
 
 error_section_construct:
-	for (i = i - 1; i >= 0; --i) {
-		if (Section_ops[i]->destruct(pop, &lane->sections[i]) != 0)
-			ERR("!lane_destruct_ops %d", i);
-	}
+	for (i = i - 1; i >= 0; --i)
+		Section_ops[i]->destruct(pop, &lane->sections[i]);
 
-	if (pthread_mutex_destroy(lane->lock) != 0)
-		ERR("!pthread_mutex_destroy");
-
+	util_mutex_destroy(lane->lock);
 	return err;
 }
 
 /*
  * lane_destroy -- cleanups a single lane runtime variables
  */
-static int
+static void
 lane_destroy(PMEMobjpool *pop, struct lane *lane)
 {
-	int err;
+	for (int i = 0; i < MAX_LANE_SECTION; ++i)
+		Section_ops[i]->destruct(pop, &lane->sections[i]);
 
-	for (int i = 0; i < MAX_LANE_SECTION; ++i) {
-		err = Section_ops[i]->destruct(pop, &lane->sections[i]);
-		if (err != 0)
-			ERR("!lane_destruct_ops %d", i);
-	}
-
-	if ((err = pthread_mutex_destroy(lane->lock)) != 0)
-		ERR("!pthread_mutex_destroy");
-
-	return err;
+	util_mutex_destroy(lane->lock);
 }
 
 /*
@@ -189,8 +175,7 @@ lane_boot(PMEMobjpool *pop)
 
 error_lane_init:
 	for (; i >= 1; --i)
-		if (lane_destroy(pop, &pop->lanes[i - 1]) != 0)
-			ERR("!lane_destroy");
+		lane_destroy(pop, &pop->lanes[i - 1]);
 
 	Free(pop->lane_locks);
 	pop->lane_locks = NULL;
@@ -210,24 +195,19 @@ error_mutexattr_destroy:
 /*
  * lane_cleanup -- destroys all lanes
  */
-int
+void
 lane_cleanup(PMEMobjpool *pop)
 {
 	ASSERTne(pop->lanes, NULL);
 
-	int err = 0;
-
 	for (uint64_t i = 0; i < pop->nlanes; ++i)
-		if ((err = lane_destroy(pop, &pop->lanes[i])) != 0)
-			ERR("!lane_destroy");
+		lane_destroy(pop, &pop->lanes[i]);
 
 	Free(pop->lane_locks);
 	pop->lane_locks = NULL;
 
 	Free(pop->lanes);
 	pop->lanes = NULL;
-
-	return err;
 }
 
 /*
@@ -294,14 +274,12 @@ lane_check(PMEMobjpool *pop)
 /*
  * lane_hold -- grabs a per-thread lane in a round-robin fashion
  */
-int
+void
 lane_hold(PMEMobjpool *pop, struct lane_section **section,
 	enum lane_section_type type)
 {
 	ASSERTne(section, NULL);
 	ASSERTne(pop->lanes, NULL);
-
-	int err;
 
 	if (Lane_idx == UINT32_MAX) {
 		do {
@@ -311,29 +289,21 @@ lane_hold(PMEMobjpool *pop, struct lane_section **section,
 
 	struct lane *lane = &pop->lanes[Lane_idx % pop->nlanes];
 
-	if ((err = pthread_mutex_lock(lane->lock)) != 0)
-		ERR("!pthread_mutex_lock");
+	util_mutex_lock(lane->lock);
 
 	*section = &lane->sections[type];
-
-	return err;
 }
 
 /*
  * lane_release -- drops the per-thread lane
  */
-int
+void
 lane_release(PMEMobjpool *pop)
 {
 	ASSERT(Lane_idx != UINT32_MAX);
 	ASSERTne(pop->lanes, NULL);
 
-	int err;
-
 	struct lane *lane = &pop->lanes[Lane_idx % pop->nlanes];
 
-	if ((err = pthread_mutex_unlock(lane->lock)) != 0)
-		ERR("!pthread_mutex_unlock");
-
-	return err;
+	util_mutex_unlock(lane->lock);
 }

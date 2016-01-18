@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Intel Corporation
+ * Copyright (c) 2015-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -43,6 +43,7 @@
 #include "util.h"
 #include "obj.h"
 #include "out.h"
+#include "sync.h"
 #include "valgrind_internal.h"
 
 #define	PREV_OFF (offsetof(struct list_entry, pe_prev) + offsetof(PMEMoid, off))
@@ -144,21 +145,50 @@ err:
 }
 
 /*
+ * list_mutexes_lock_nofail -- (internal) grab one or two locks in ascending
+ * address order
+ */
+static inline void
+list_mutexes_lock_nofail(PMEMobjpool *pop,
+	struct list_head *head1, struct list_head *head2)
+{
+	ASSERTne(head1, NULL);
+
+	if (!head2) {
+		pmemobj_mutex_lock_nofail(pop, &head1->lock);
+		return;
+	}
+
+	PMEMmutex *lock1;
+	PMEMmutex *lock2;
+	if ((uintptr_t)&head1->lock < (uintptr_t)&head2->lock) {
+		lock1 = &head1->lock;
+		lock2 = &head2->lock;
+	} else {
+		lock1 = &head2->lock;
+		lock2 = &head1->lock;
+	}
+
+	pmemobj_mutex_lock_nofail(pop, lock1);
+	pmemobj_mutex_lock_nofail(pop, lock2);
+}
+
+/*
  * list_mutexes_unlock -- (internal) release one or two locks
  */
-static inline int
+static inline void
 list_mutexes_unlock(PMEMobjpool *pop,
 	struct list_head *head1, struct list_head *head2)
 {
 	ASSERTne(head1, NULL);
 
-	if (!head2)
-		return pmemobj_mutex_unlock(pop, &head1->lock);
+	if (!head2) {
+		pmemobj_mutex_unlock_nofail(pop, &head1->lock);
+		return;
+	}
 
-	int ret1 = pmemobj_mutex_unlock(pop, &head1->lock);
-	int ret2 = pmemobj_mutex_unlock(pop, &head2->lock);
-
-	return ret2 ? ret2 : ret1;
+	pmemobj_mutex_unlock_nofail(pop, &head1->lock);
+	pmemobj_mutex_unlock_nofail(pop, &head2->lock);
 }
 
 /*
@@ -703,7 +733,7 @@ list_realloc_replace(PMEMobjpool *pop,
  * pop         - pmemobj pool handle
  * oob_head    - oob list head
  * pe_offset   - offset to list entry on user list relative to user data
- * head        - user list head
+ * user_head   - user list head, must be locked if not NULL
  * dest        - destination on user list
  * before      - insert before/after destination on user list
  * size        - size of allocation, will be increased by OBJ_OOB_SIZE
@@ -711,9 +741,9 @@ list_realloc_replace(PMEMobjpool *pop,
  * arg         - argument for object's constructor
  * oidp        - pointer to target object ID
  */
-int
+static int
 list_insert_new(PMEMobjpool *pop, struct list_head *oob_head,
-	size_t pe_offset, struct list_head *head, PMEMoid dest, int before,
+	size_t pe_offset, struct list_head *user_head, PMEMoid dest, int before,
 	size_t size, void (*constructor)(PMEMobjpool *pop, void *ptr,
 	size_t usable_size, void *arg), void *arg, PMEMoid *oidp)
 {
@@ -721,14 +751,17 @@ list_insert_new(PMEMobjpool *pop, struct list_head *oob_head,
 	ASSERTne(oob_head, NULL);
 
 	int ret;
-	int out_ret;
 
 	struct lane_section *lane_section;
 
-	if ((ret = lane_hold(pop, &lane_section, LANE_SECTION_LIST))) {
-		LOG(2, "lane_hold failed");
-		return ret;
+#ifdef DEBUG
+	if (user_head) {
+		int r = pmemobj_mutex_assert_locked(pop, &user_head->lock);
+		ASSERTeq(r, 0);
 	}
+#endif
+
+	lane_hold(pop, &lane_section, LANE_SECTION_LIST);
 
 	ASSERTne(lane_section, NULL);
 	ASSERTne(lane_section->layout, NULL);
@@ -766,17 +799,7 @@ list_insert_new(PMEMobjpool *pop, struct list_head *oob_head,
 	 *
 	 * XXX performance improvement: initialize oob locks at pool opening
 	 */
-	if ((ret = pmemobj_mutex_lock(pop, &oob_head->lock))) {
-		LOG(2, "pmemobj_mutex_lock failed");
-		goto err_oob_lock;
-	}
-
-	if (head) {
-		if ((ret = pmemobj_mutex_lock(pop, &head->lock))) {
-			LOG(2, "pmemobj_mutex_lock failed");
-			goto err_lock;
-		}
-	}
+	pmemobj_mutex_lock_nofail(pop, &oob_head->lock);
 
 	uint64_t obj_offset = section->obj_offset;
 	uint64_t obj_doffset = obj_offset + OBJ_OOB_SIZE;
@@ -795,10 +818,10 @@ list_insert_new(PMEMobjpool *pop, struct list_head *oob_head,
 	/* don't need to use redo log for filling new element */
 	list_fill_entry_persist(pop, oob_entry_ptr, oob_next_off, oob_prev_off);
 
-	if (head) {
+	if (user_head) {
 		ASSERT((ssize_t)pe_offset >= 0);
 
-		dest = list_get_dest(pop, head, dest, pe_offset, before);
+		dest = list_get_dest(pop, user_head, dest, pe_offset, before);
 
 		struct list_entry *entry_ptr =
 			(struct list_entry *)OBJ_OFF_TO_PTR(pop,
@@ -811,7 +834,7 @@ list_insert_new(PMEMobjpool *pop, struct list_head *oob_head,
 		struct list_args_insert args = {
 			.dest = dest,
 			.dest_entry_ptr = dest_entry_ptr,
-			.head = head,
+			.head = user_head,
 			.before = before,
 		};
 
@@ -851,23 +874,65 @@ list_insert_new(PMEMobjpool *pop, struct list_head *oob_head,
 
 	ret = 0;
 
-	if (head) {
-		out_ret = pmemobj_mutex_unlock(pop, &head->lock);
-		ASSERTeq(out_ret, 0);
-		if (out_ret)
-			LOG(2, "pmemobj_mutex_unlock failed");
-	}
-err_lock:
-	out_ret = pmemobj_mutex_unlock(pop, &oob_head->lock);
-	ASSERTeq(out_ret, 0);
-	if (out_ret)
-		LOG(2, "pmemobj_mutex_unlock failed");
+	pmemobj_mutex_unlock_nofail(pop, &oob_head->lock);
 err_pmalloc:
-err_oob_lock:
-	out_ret = lane_release(pop);
-	ASSERTeq(out_ret, 0);
-	if (out_ret)
-		LOG(2, "lane_release failed");
+	lane_release(pop);
+
+	return ret;
+}
+
+/*
+ * list_insert_new_oob -- allocate and insert element to oob list
+ *
+ * pop         - pmemobj pool handle
+ * oob_head    - oob list head
+ * size        - size of allocation, will be increased by OBJ_OOB_SIZE
+ * constructor - object's constructor
+ * arg         - argument for object's constructor
+ * oidp        - pointer to target object ID
+ */
+int
+list_insert_new_oob(PMEMobjpool *pop, struct list_head *oob_head,
+	size_t size, void (*constructor)(PMEMobjpool *pop, void *ptr,
+	size_t usable_size, void *arg), void *arg, PMEMoid *oidp)
+{
+	return list_insert_new(pop, oob_head, 0, NULL, OID_NULL,
+			0, size, constructor, arg, oidp);
+}
+
+/*
+ * list_insert_new_user -- allocate and insert element to oob and user lists
+ *
+ * pop         - pmemobj pool handle
+ * oob_head    - oob list head
+ * pe_offset   - offset to list entry on user list relative to user data
+ * user_head   - user list head
+ * dest        - destination on user list
+ * before      - insert before/after destination on user list
+ * size        - size of allocation, will be increased by OBJ_OOB_SIZE
+ * constructor - object's constructor
+ * arg         - argument for object's constructor
+ * oidp        - pointer to target object ID
+ */
+int
+list_insert_new_user(PMEMobjpool *pop, struct list_head *oob_head,
+	size_t pe_offset, struct list_head *user_head, PMEMoid dest, int before,
+	size_t size, void (*constructor)(PMEMobjpool *pop, void *ptr,
+	size_t usable_size, void *arg), void *arg, PMEMoid *oidp)
+{
+	int ret;
+	if (user_head) {
+		if ((ret = pmemobj_mutex_lock(pop, &user_head->lock))) {
+			LOG(2, "pmemobj_mutex_lock failed");
+			return ret;
+		}
+	}
+
+	ret = list_insert_new(pop, oob_head, pe_offset, user_head,
+			dest, before, size, constructor, arg, oidp);
+
+	if (user_head)
+		pmemobj_mutex_unlock_nofail(pop, &user_head->lock);
 
 	return ret;
 }
@@ -892,14 +957,10 @@ list_insert(PMEMobjpool *pop,
 	ASSERTne(head, NULL);
 
 	int ret;
-	int out_ret;
 
 	struct lane_section *lane_section;
 
-	if ((ret = lane_hold(pop, &lane_section, LANE_SECTION_LIST))) {
-		LOG(2, "lane_hold failed");
-		return ret;
-	}
+	lane_hold(pop, &lane_section, LANE_SECTION_LIST);
 
 	if ((ret = pmemobj_mutex_lock(pop, &head->lock))) {
 		LOG(2, "pmemobj_mutex_lock failed");
@@ -953,15 +1014,9 @@ list_insert(PMEMobjpool *pop,
 
 	redo_log_process(pop, redo, REDO_NUM_ENTRIES);
 
-	out_ret = pmemobj_mutex_unlock(pop, &head->lock);
-	ASSERTeq(out_ret, 0);
-	if (out_ret)
-		LOG(2, "pmemobj_mutex_unlock failed");
+	pmemobj_mutex_unlock_nofail(pop, &head->lock);
 err:
-	out_ret = lane_release(pop);
-	ASSERTeq(out_ret, 0);
-	if (out_ret)
-		LOG(2, "lane_release failed");
+	lane_release(pop);
 
 	return ret;
 }
@@ -972,26 +1027,27 @@ err:
  * pop         - pmemobj pool handle
  * oob_head    - oob list head
  * pe_offset   - offset to list entry on user list relative to user data
- * head        - user list head
+ * user_head   - user list head, *must* be locked if not NULL
  * oidp        - pointer to target object ID
  */
-int
+static void
 list_remove_free(PMEMobjpool *pop, struct list_head *oob_head,
-	size_t pe_offset, struct list_head *head,
+	size_t pe_offset, struct list_head *user_head,
 	PMEMoid *oidp)
 {
 	LOG(3, NULL);
 	ASSERTne(oob_head, NULL);
 
-	int ret;
-	int out_ret;
+#ifdef DEBUG
+	if (user_head) {
+		int r = pmemobj_mutex_assert_locked(pop, &user_head->lock);
+		ASSERTeq(r, 0);
+	}
+#endif
 
 	struct lane_section *lane_section;
 
-	if ((ret = lane_hold(pop, &lane_section, LANE_SECTION_LIST))) {
-		LOG(2, "lane_hold failed");
-		return ret;
-	}
+	lane_hold(pop, &lane_section, LANE_SECTION_LIST);
 
 	ASSERTne(lane_section, NULL);
 	ASSERTne(lane_section->layout, NULL);
@@ -1002,17 +1058,7 @@ list_remove_free(PMEMobjpool *pop, struct list_head *oob_head,
 	 *
 	 * XXX performance improvement: initialize oob locks at pool opening
 	 */
-	if ((ret = pmemobj_mutex_lock(pop, &oob_head->lock))) {
-		LOG(2, "pmemobj_mutex_lock failed");
-		goto err_oob_lock;
-	}
-
-	if (head) {
-		if ((ret = pmemobj_mutex_lock(pop, &head->lock))) {
-			LOG(2, "pmemobj_mutex_lock failed");
-			goto err_lock;
-		}
-	}
+	pmemobj_mutex_lock_nofail(pop, &oob_head->lock);
 
 	struct lane_list_section *section =
 		(struct lane_list_section *)lane_section->layout;
@@ -1037,7 +1083,7 @@ list_remove_free(PMEMobjpool *pop, struct list_head *oob_head,
 	/* remove from oob list */
 	redo_index = list_remove_single(pop, redo, redo_index, &oob_args);
 
-	if (head) {
+	if (user_head) {
 		ASSERT((ssize_t)pe_offset >= 0);
 
 		struct list_entry *entry_ptr =
@@ -1046,7 +1092,7 @@ list_remove_free(PMEMobjpool *pop, struct list_head *oob_head,
 
 		struct list_args_remove args = {
 			.pe_offset = (ssize_t)pe_offset,
-			.head = head,
+			.head = user_head,
 			.entry_ptr = entry_ptr,
 			.obj_doffset = obj_doffset
 		};
@@ -1066,37 +1112,59 @@ list_remove_free(PMEMobjpool *pop, struct list_head *oob_head,
 
 	redo_log_process(pop, redo, REDO_NUM_ENTRIES);
 
-	if (head) {
-		out_ret = pmemobj_mutex_unlock(pop, &head->lock);
-		ASSERTeq(out_ret, 0);
-		if (out_ret)
-			LOG(2, "pmemobj_mutex_unlock failed");
-	}
-
 	/*
 	 * Don't need to fill next and prev offsets of removing element
 	 * because the element is freed.
 	 */
-	if ((ret = pfree(pop, &section->obj_offset, OBJ_OOB_SIZE))) {
-		errno = ret;
-		ERR("!pfree");
-		ret = -1;
-	} else {
-		ret = 0;
+	pfree(pop, &section->obj_offset, OBJ_OOB_SIZE);
+	pmemobj_mutex_unlock_nofail(pop, &oob_head->lock);
+	lane_release(pop);
+}
+
+/*
+ * list_remove_free_oob -- remove from two lists and free an object
+ *
+ * pop         - pmemobj pool handle
+ * oob_head    - oob list head
+ * oidp        - pointer to target object ID
+ */
+void
+list_remove_free_oob(PMEMobjpool *pop, struct list_head *oob_head,
+		PMEMoid *oidp)
+{
+	list_remove_free(pop, oob_head, 0, NULL, oidp);
+}
+
+/*
+ * list_remove_free_user -- remove from two lists and free an object
+ *
+ * pop         - pmemobj pool handle
+ * oob_head    - oob list head
+ * pe_offset   - offset to list entry on user list relative to user data
+ * user_head   - user list head
+ * oidp        - pointer to target object ID
+ */
+int
+list_remove_free_user(PMEMobjpool *pop, struct list_head *oob_head,
+	size_t pe_offset, struct list_head *user_head,
+	PMEMoid *oidp)
+{
+	LOG(3, NULL);
+
+	if (user_head) {
+		int ret;
+		if ((ret = pmemobj_mutex_lock(pop, &user_head->lock))) {
+			LOG(2, "pmemobj_mutex_lock failed");
+			return ret;
+		}
 	}
 
-err_lock:
-	out_ret = pmemobj_mutex_unlock(pop, &oob_head->lock);
-	ASSERTeq(out_ret, 0);
-	if (out_ret)
-		LOG(2, "pmemobj_mutex_unlock failed");
-err_oob_lock:
-	out_ret = lane_release(pop);
-	ASSERTeq(out_ret, 0);
-	if (out_ret)
-		LOG(2, "lane_release failed");
+	list_remove_free(pop, oob_head, pe_offset, user_head, oidp);
 
-	return ret;
+	if (user_head)
+		pmemobj_mutex_unlock_nofail(pop, &user_head->lock);
+
+	return 0;
 }
 
 /*
@@ -1116,14 +1184,10 @@ list_remove(PMEMobjpool *pop,
 	ASSERTne(head, NULL);
 
 	int ret;
-	int out_ret;
 
 	struct lane_section *lane_section;
 
-	if ((ret = lane_hold(pop, &lane_section, LANE_SECTION_LIST))) {
-		LOG(2, "lane_hold failed");
-		return ret;
-	}
+	lane_hold(pop, &lane_section, LANE_SECTION_LIST);
 
 	ASSERTne(lane_section, NULL);
 	ASSERTne(lane_section->layout, NULL);
@@ -1168,15 +1232,9 @@ list_remove(PMEMobjpool *pop,
 
 	redo_log_process(pop, redo, REDO_NUM_ENTRIES);
 
-	out_ret = pmemobj_mutex_unlock(pop, &head->lock);
-	ASSERTeq(out_ret, 0);
-	if (out_ret)
-		LOG(2, "pmemobj_mutex_unlock failed");
+	pmemobj_mutex_unlock_nofail(pop, &head->lock);
 err:
-	out_ret = lane_release(pop);
-	ASSERTeq(out_ret, 0);
-	if (out_ret)
-		LOG(2, "lane_release failed");
+	lane_release(pop);
 
 	return ret;
 }
@@ -1189,7 +1247,7 @@ err:
  * head_old - new list head
  * oid      - target object ID
  */
-int
+void
 list_move_oob(PMEMobjpool *pop,
 	struct list_head *head_old, struct list_head *head_new,
 	PMEMoid oid)
@@ -1198,15 +1256,9 @@ list_move_oob(PMEMobjpool *pop,
 	ASSERTne(head_old, NULL);
 	ASSERTne(head_new, NULL);
 
-	int ret;
-	int out_ret;
-
 	struct lane_section *lane_section;
 
-	if ((ret = lane_hold(pop, &lane_section, LANE_SECTION_LIST))) {
-		LOG(2, "lane_hold failed");
-		return ret;
-	}
+	lane_hold(pop, &lane_section, LANE_SECTION_LIST);
 
 	ASSERTne(lane_section, NULL);
 	ASSERTne(lane_section->layout, NULL);
@@ -1216,10 +1268,7 @@ list_move_oob(PMEMobjpool *pop,
 	 *
 	 * XXX performance improvement: initialize oob locks at pool opening
 	 */
-	if ((ret = list_mutexes_lock(pop, head_new, head_old))) {
-		LOG(2, "list_mutexes_lock failed");
-		goto err;
-	}
+	list_mutexes_lock_nofail(pop, head_new, head_old);
 
 	struct lane_list_section *section =
 		(struct lane_list_section *)lane_section->layout;
@@ -1264,17 +1313,9 @@ list_move_oob(PMEMobjpool *pop,
 
 	redo_log_process(pop, redo, REDO_NUM_ENTRIES);
 
-	out_ret = list_mutexes_unlock(pop, head_new, head_old);
-	ASSERTeq(out_ret, 0);
-	if (out_ret)
-		LOG(2, "list_mutexes_unlock failed");
-err:
-	out_ret = lane_release(pop);
-	ASSERTeq(out_ret, 0);
-	if (out_ret)
-		LOG(2, "lane_release failed");
+	list_mutexes_unlock(pop, head_new, head_old);
 
-	return ret;
+	lane_release(pop);
 }
 
 /*
@@ -1300,14 +1341,10 @@ list_move(PMEMobjpool *pop,
 	ASSERTne(head_new, NULL);
 
 	int ret;
-	int out_ret;
 
 	struct lane_section *lane_section;
 
-	if ((ret = lane_hold(pop, &lane_section, LANE_SECTION_LIST))) {
-		LOG(2, "lane_hold failed");
-		return ret;
-	}
+	lane_hold(pop, &lane_section, LANE_SECTION_LIST);
 
 	ASSERTne(lane_section, NULL);
 	ASSERTne(lane_section->layout, NULL);
@@ -1384,15 +1421,9 @@ list_move(PMEMobjpool *pop,
 
 	redo_log_process(pop, redo, REDO_NUM_ENTRIES);
 
-	out_ret = list_mutexes_unlock(pop, head_new, head_old);
-	ASSERTeq(out_ret, 0);
-	if (out_ret)
-		LOG(2, "list_mutexes_unlock failed");
+	list_mutexes_unlock(pop, head_new, head_old);
 err:
-	out_ret = lane_release(pop);
-	ASSERTeq(out_ret, 0);
-	if (out_ret)
-		LOG(2, "lane_release failed");
+	lane_release(pop);
 
 	return ret;
 }
@@ -1403,7 +1434,7 @@ err:
  * pop          - pmemobj pool handle
  * oob_head     - oob list head
  * pe_offset    - offset to list entry on user list relative to user data
- * head         - user list head
+ * user_head    - user list head, *must* be locked if not NULL
  * size         - size of allocation, will be increased by OBJ_OOB_SIZE
  * constructor  - object's constructor
  * arg          - argument for object's constructor
@@ -1411,9 +1442,9 @@ err:
  * field_value  - user's field value
  * oidp         - pointer to target object ID
  */
-int
+static int
 list_realloc(PMEMobjpool *pop, struct list_head *oob_head,
-	size_t pe_offset, struct list_head *head,
+	size_t pe_offset, struct list_head *user_head,
 	size_t size, void (*constructor)(PMEMobjpool *pop, void *ptr,
 	size_t usable_size, void *arg), void *arg, uint64_t field_offset,
 	uint64_t field_value, PMEMoid *oidp)
@@ -1424,14 +1455,17 @@ list_realloc(PMEMobjpool *pop, struct list_head *oob_head,
 	ASSERTne(constructor, NULL);
 
 	int ret;
-	int out_ret;
 
 	struct lane_section *lane_section;
 
-	if ((ret = lane_hold(pop, &lane_section, LANE_SECTION_LIST))) {
-		LOG(2, "lane_hold failed");
-		return ret;
+#ifdef DEBUG
+	if (user_head) {
+		int r = pmemobj_mutex_assert_locked(pop, &user_head->lock);
+		ASSERTeq(r, 0);
 	}
+#endif
+
+	lane_hold(pop, &lane_section, LANE_SECTION_LIST);
 
 	ASSERTne(lane_section, NULL);
 	ASSERTne(lane_section->layout, NULL);
@@ -1442,17 +1476,7 @@ list_realloc(PMEMobjpool *pop, struct list_head *oob_head,
 	 *
 	 * XXX performance improvement: initialize oob locks at pool opening
 	 */
-	if ((ret = pmemobj_mutex_lock(pop, &oob_head->lock))) {
-		LOG(2, "pmemobj_mutex_lock failed");
-		goto err_oob_lock;
-	}
-
-	if (head) {
-		if ((ret = pmemobj_mutex_lock(pop, &head->lock))) {
-			LOG(2, "pmemobj_mutex_lock failed");
-			goto err_lock;
-		}
-	}
+	pmemobj_mutex_lock_nofail(pop, &oob_head->lock);
 
 	/* increase allocation size by oob header size */
 	size += OBJ_OOB_SIZE;
@@ -1545,7 +1569,7 @@ list_realloc(PMEMobjpool *pop, struct list_head *oob_head,
 
 		redo_index = list_realloc_replace(pop,
 				redo, redo_index,
-				head, pe_offset, old_size,
+				user_head, pe_offset, old_size,
 				obj_offset, new_obj_offset,
 				constructor, arg,
 				field_offset, field_value);
@@ -1595,33 +1619,75 @@ list_realloc(PMEMobjpool *pop, struct list_head *oob_head,
 		redo_log_process(pop, redo, REDO_NUM_ENTRIES);
 
 		/* free the old object */
-		if ((ret = pfree(pop, &section->obj_offset, OBJ_OOB_SIZE))) {
-			errno = ret;
-			ERR("!pfree");
-			ret = -1;
-			goto err_unlock;
-		}
+		pfree(pop, &section->obj_offset, OBJ_OOB_SIZE);
 	}
 
 	ret = 0;
+
 err_unlock:
-	if (head) {
-		out_ret = pmemobj_mutex_unlock(pop, &head->lock);
-		ASSERTeq(out_ret, 0);
-		if (out_ret)
-			LOG(2, "pmemobj_mutex_unlock failed");
+	pmemobj_mutex_unlock_nofail(pop, &oob_head->lock);
+	lane_release(pop);
+
+	return ret;
+}
+
+/*
+ * list_realloc_oob -- realloc list member
+ *
+ * pop          - pmemobj pool handle
+ * oob_head     - oob list head
+ * size         - size of allocation, will be increased by OBJ_OOB_SIZE
+ * constructor  - object's constructor
+ * arg          - argument for object's constructor
+ * field_offset - offset to user's field
+ * field_value  - user's field value
+ * oidp         - pointer to target object ID
+ */
+int
+list_realloc_oob(PMEMobjpool *pop, struct list_head *oob_head,
+	size_t size, void (*constructor)(PMEMobjpool *pop, void *ptr,
+	size_t usable_size, void *arg), void *arg, uint64_t field_offset,
+	uint64_t field_value, PMEMoid *oidp)
+{
+	return list_realloc(pop, oob_head, 0, NULL, size, constructor, arg,
+			field_offset, field_value, oidp);
+}
+
+/*
+ * list_realloc_user -- realloc list member
+ *
+ * pop          - pmemobj pool handle
+ * oob_head     - oob list head
+ * pe_offset    - offset to list entry on user list relative to user data
+ * user_head    - user list head
+ * size         - size of allocation, will be increased by OBJ_OOB_SIZE
+ * constructor  - object's constructor
+ * arg          - argument for object's constructor
+ * field_offset - offset to user's field
+ * field_value  - user's field value
+ * oidp         - pointer to target object ID
+ */
+int
+list_realloc_user(PMEMobjpool *pop, struct list_head *oob_head,
+	size_t pe_offset, struct list_head *user_head,
+	size_t size, void (*constructor)(PMEMobjpool *pop, void *ptr,
+	size_t usable_size, void *arg), void *arg, uint64_t field_offset,
+	uint64_t field_value, PMEMoid *oidp)
+{
+	int ret;
+
+	if (user_head) {
+		if ((ret = pmemobj_mutex_lock(pop, &user_head->lock))) {
+			LOG(2, "pmemobj_mutex_lock failed");
+			return ret;
+		}
 	}
 
-err_lock:
-	out_ret = pmemobj_mutex_unlock(pop, &oob_head->lock);
-	ASSERTeq(out_ret, 0);
-	if (out_ret)
-		LOG(2, "pmemobj_mutex_unlock failed");
-err_oob_lock:
-	out_ret = lane_release(pop);
-	ASSERTeq(out_ret, 0);
-	if (out_ret)
-		LOG(2, "lane_release failed");
+	ret = list_realloc(pop, oob_head, pe_offset, user_head, size,
+			constructor, arg, field_offset, field_value, oidp);
+
+	if (user_head)
+		pmemobj_mutex_unlock_nofail(pop, &user_head->lock);
 
 	return ret;
 }
@@ -1632,7 +1698,7 @@ err_oob_lock:
  * oob_head_old - old oob list head
  * oob_head_new - new oob list head
  * pe_offset    - offset to list entry on user list relative to user data
- * head         - user list head
+ * user_head    - user list head, *must* be locked if not NULL
  * size         - size of allocation, will be increased by OBJ_OOB_SIZE
  * constructor  - object's constructor
  * arg          - argument for object's constructor
@@ -1640,10 +1706,10 @@ err_oob_lock:
  * field_value  - user's field value
  * oidp         - pointer to target object ID
  */
-int
+static int
 list_realloc_move(PMEMobjpool *pop, struct list_head *oob_head_old,
 	struct list_head *oob_head_new, size_t pe_offset,
-	struct list_head *head, size_t size,
+	struct list_head *user_head, size_t size,
 	void (*constructor)(PMEMobjpool *pop, void *ptr, size_t usable_size,
 	void *arg), void *arg, uint64_t field_offset, uint64_t field_value,
 	PMEMoid *oidp)
@@ -1654,15 +1720,18 @@ list_realloc_move(PMEMobjpool *pop, struct list_head *oob_head_old,
 	ASSERTne(oob_head_new, NULL);
 	ASSERTne(constructor, NULL);
 
+#ifdef DEBUG
+	if (user_head) {
+		int r = pmemobj_mutex_assert_locked(pop, &user_head->lock);
+		ASSERTeq(r, 0);
+	}
+#endif
+
 	int ret;
-	int out_ret;
 
 	struct lane_section *lane_section;
 
-	if ((ret = lane_hold(pop, &lane_section, LANE_SECTION_LIST))) {
-		LOG(2, "lane_hold failed");
-		return ret;
-	}
+	lane_hold(pop, &lane_section, LANE_SECTION_LIST);
 
 	ASSERTne(lane_section, NULL);
 	ASSERTne(lane_section->layout, NULL);
@@ -1680,17 +1749,7 @@ list_realloc_move(PMEMobjpool *pop, struct list_head *oob_head_old,
 	 *
 	 * XXX performance improvement: initialize oob locks at pool opening
 	 */
-	if ((ret = list_mutexes_lock(pop, oob_head_new, oob_head_old)) < 0) {
-		LOG(2, "list_mutexes_lock failed");
-		goto err_oob_lock;
-	}
-
-	if (head) {
-		if ((ret = pmemobj_mutex_lock(pop, &head->lock))) {
-			LOG(2, "pmemobj_mutex_lock failed");
-			goto err_lock;
-		}
-	}
+	list_mutexes_lock_nofail(pop, oob_head_new, oob_head_old);
 
 	uint64_t obj_doffset = oidp->off;
 	uint64_t obj_offset = obj_doffset - OBJ_OOB_SIZE;
@@ -1781,7 +1840,7 @@ list_realloc_move(PMEMobjpool *pop, struct list_head *oob_head_old,
 
 		redo_index = list_realloc_replace(pop,
 				redo, redo_index,
-				head, pe_offset, old_size,
+				user_head, pe_offset, old_size,
 				obj_offset, new_obj_offset,
 				constructor, arg,
 				field_offset, field_value);
@@ -1849,32 +1908,78 @@ list_realloc_move(PMEMobjpool *pop, struct list_head *oob_head_old,
 		ASSERTne(section->obj_offset, 0);
 
 		/* realloc not in place so free the old object */
-		if ((ret = pfree(pop, &section->obj_offset, OBJ_OOB_SIZE))) {
-			errno = ret;
-			ERR("!pfree");
-			ret = -1;
-			goto err_unlock;
-		}
+		pfree(pop, &section->obj_offset, OBJ_OOB_SIZE);
 	}
 
 	ret = 0;
 err_unlock:
-	if (head) {
-		out_ret = pmemobj_mutex_unlock(pop, &head->lock);
-		ASSERTeq(out_ret, 0);
-		if (out_ret)
-			LOG(2, "pmemobj_mutex_unlock failed");
+	list_mutexes_unlock(pop, oob_head_new, oob_head_old);
+	lane_release(pop);
+
+	return ret;
+}
+
+/*
+ * list_realloc_move_oob -- realloc and move an element
+ * pop          - pmemobj pool handle
+ * oob_head_old - old oob list head
+ * oob_head_new - new oob list head
+ * size         - size of allocation, will be increased by OBJ_OOB_SIZE
+ * constructor  - object's constructor
+ * arg          - argument for object's constructor
+ * field_offset - offset to user's field
+ * field_value  - user's field value
+ * oidp         - pointer to target object ID
+ */
+int
+list_realloc_move_oob(PMEMobjpool *pop, struct list_head *oob_head_old,
+	struct list_head *oob_head_new, size_t size,
+	void (*constructor)(PMEMobjpool *pop, void *ptr, size_t usable_size,
+	void *arg), void *arg, uint64_t field_offset, uint64_t field_value,
+	PMEMoid *oidp)
+{
+	return list_realloc_move(pop, oob_head_old, oob_head_new,
+			0, NULL, size, constructor, arg, field_offset,
+			field_value, oidp);
+}
+
+/*
+ * list_realloc_move_user -- realloc and move an element
+ * pop          - pmemobj pool handle
+ * oob_head_old - old oob list head
+ * oob_head_new - new oob list head
+ * pe_offset    - offset to list entry on user list relative to user data
+ * user_head    - user list head
+ * size         - size of allocation, will be increased by OBJ_OOB_SIZE
+ * constructor  - object's constructor
+ * arg          - argument for object's constructor
+ * field_offset - offset to user's field
+ * field_value  - user's field value
+ * oidp         - pointer to target object ID
+ */
+int
+list_realloc_move_user(PMEMobjpool *pop, struct list_head *oob_head_old,
+	struct list_head *oob_head_new, size_t pe_offset,
+	struct list_head *user_head, size_t size,
+	void (*constructor)(PMEMobjpool *pop, void *ptr, size_t usable_size,
+	void *arg), void *arg, uint64_t field_offset, uint64_t field_value,
+	PMEMoid *oidp)
+{
+	int ret;
+
+	if (user_head) {
+		if ((ret = pmemobj_mutex_lock(pop, &user_head->lock))) {
+			LOG(2, "pmemobj_mutex_lock failed");
+			return ret;
+		}
 	}
-err_lock:
-	out_ret = list_mutexes_unlock(pop, oob_head_new, oob_head_old);
-	ASSERTeq(out_ret, 0);
-	if (out_ret)
-		LOG(2, "list_mutexes_unlock failed");
-err_oob_lock:
-	out_ret = lane_release(pop);
-	ASSERTeq(out_ret, 0);
-	if (out_ret)
-		LOG(2, "lane_release failed");
+
+	ret = list_realloc_move(pop, oob_head_old, oob_head_new, pe_offset,
+			user_head, size, constructor, arg, field_offset,
+			field_value, oidp);
+
+	if (user_head)
+		pmemobj_mutex_unlock_nofail(pop, &user_head->lock);
 
 	return ret;
 }
@@ -1933,11 +2038,7 @@ lane_list_recovery(PMEMobjpool *pop, struct lane_section_layout *section_layout)
 
 	} else if (section->obj_offset) {
 		/* alloc or free recovery */
-		if ((ret = pfree(pop, &section->obj_offset, OBJ_OOB_SIZE))) {
-			errno = ret;
-			ERR("!pfree");
-			ret = -1;
-		}
+		pfree(pop, &section->obj_offset, OBJ_OOB_SIZE);
 	}
 err:
 	return ret;
@@ -1986,11 +2087,10 @@ lane_list_construct(PMEMobjpool *pop, struct lane_section *section)
 /*
  * lane_list_destruct -- (internal) destroy list lane section
  */
-static int
+static void
 lane_list_destruct(PMEMobjpool *pop, struct lane_section *section)
 {
 	/* nop */
-	return 0;
 }
 
 /*

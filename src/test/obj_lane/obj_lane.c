@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Intel Corporation
+ * Copyright (c) 2015-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -75,11 +75,10 @@ lane_noop_construct(PMEMobjpool *pop, struct lane_section *section)
 	return 0;
 }
 
-static int
+static void
 lane_noop_destruct(PMEMobjpool *pop, struct lane_section *section)
 {
 	OUT("lane_noop_destruct");
-	return 0;
 }
 
 static int recovery_check_fail;
@@ -149,7 +148,7 @@ test_lane_boot_cleanup_ok()
 		}
 	}
 
-	ASSERTeq(lane_cleanup(&pop.p), 0);
+	lane_cleanup(&pop.p);
 	ASSERTeq(pop.p.lanes, NULL);
 }
 
@@ -209,6 +208,14 @@ test_lane_recovery_check_fail()
 	ASSERTne(lane_check(&pop.p), 0);
 }
 
+sigjmp_buf Jmp;
+
+static void
+signal_handler(int sig)
+{
+	siglongjmp(Jmp, 1);
+}
+
 static void
 test_lane_hold_release()
 {
@@ -236,14 +243,22 @@ test_lane_hold_release()
 	base_ptr = &pop.p;
 
 	struct lane_section *sec;
-	ASSERTeq(lane_hold(&pop.p, &sec, LANE_SECTION_ALLOCATOR), 0);
+	lane_hold(&pop.p, &sec, LANE_SECTION_ALLOCATOR);
 	ASSERTeq(sec->runtime, MOCK_RUNTIME);
-	ASSERTeq(lane_hold(&pop.p, &sec, LANE_SECTION_LIST), 0);
+	lane_hold(&pop.p, &sec, LANE_SECTION_LIST);
 	ASSERTeq(sec->runtime, MOCK_RUNTIME_2);
 
-	ASSERTeq(lane_release(&pop.p), 0);
-	ASSERTeq(lane_release(&pop.p), 0);
-	ASSERTne(lane_release(&pop.p), 0); /* only two sections were held */
+	lane_release(&pop.p);
+	lane_release(&pop.p);
+
+	void *old = signal(SIGABRT, signal_handler);
+
+	if (!sigsetjmp(Jmp, 1)) {
+		lane_release(&pop.p); /* only two sections were held */
+		ERR("we should not get here");
+	}
+
+	signal(SIGABRT, old);
 }
 
 static void

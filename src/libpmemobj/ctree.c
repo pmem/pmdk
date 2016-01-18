@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Intel Corporation
+ * Copyright (c) 2015-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -46,6 +46,7 @@
 #include <errno.h>
 #include "util.h"
 #include "out.h"
+#include "sys_util.h"
 #include "ctree.h"
 
 #define	BIT_IS_SET(n, i) (!!((n) & (((uint64_t)1) << (i))))
@@ -89,19 +90,13 @@ ctree_new()
 {
 	struct ctree *t = Malloc(sizeof (*t));
 	if (t == NULL)
-		goto error_ctree_malloc;
+		return NULL;
 
-	if (pthread_mutex_init(&t->lock, NULL) != 0)
-		goto error_lock_init;
+	util_mutex_init(&t->lock, NULL);
 
 	t->root = NULL;
 
 	return t;
-
-error_lock_init:
-	Free(t);
-error_ctree_malloc:
-	return NULL;
 }
 
 /*
@@ -110,14 +105,10 @@ error_ctree_malloc:
 void
 ctree_delete(struct ctree *t)
 {
-	int err;
 	while (t->root)
 		ctree_remove(t, 0, 0);
 
-	if ((err = pthread_mutex_destroy(&t->lock)) != 0) {
-		errno = err;
-		ERR("!pthread_mutex_destroy");
-	}
+	util_mutex_destroy(&t->lock);
 
 	Free(t);
 }
@@ -130,11 +121,9 @@ ctree_insert(struct ctree *t, uint64_t key, uint64_t value)
 {
 	void **dst = &t->root;
 	struct node *a = NULL;
-	int err;
-	int err_out;
+	int err = 0;
 
-	if ((err = pthread_mutex_lock(&t->lock)) != 0)
-		return err;
+	util_mutex_lock(&t->lock);
 
 	/* descend the path until a best matching key is found */
 	while (NODE_IS_INTERNAL(*dst)) {
@@ -163,7 +152,7 @@ ctree_insert(struct ctree *t, uint64_t key, uint64_t value)
 	}
 
 	if (dstleaf->key == key) {
-		err = EINVAL;
+		err = EEXIST;
 		goto error_duplicate;
 	}
 
@@ -189,22 +178,16 @@ ctree_insert(struct ctree *t, uint64_t key, uint64_t value)
 	NODE_INTERNAL_SET(*dst, n);
 
 out:
-	if ((err_out = pthread_mutex_unlock(&t->lock)) != 0) {
-		errno = err_out;
-		ERR("!pthread_mutex_unlock");
-	}
+	util_mutex_unlock(&t->lock);
 
-	return err;
+	return 0;
 
 error_duplicate:
 	Free(n);
 error_internal_malloc:
 	Free(nleaf);
 error_leaf_malloc:
-	if ((err_out = pthread_mutex_unlock(&t->lock)) != 0) {
-		errno = err_out;
-		ERR("!pthread_mutex_unlock");
-	}
+	util_mutex_unlock(&t->lock);
 
 	return err;
 }
@@ -289,12 +272,7 @@ ctree_remove(struct ctree *t, uint64_t key, int eq)
 	void **dst = &t->root; /* node to remove ref */
 	struct node *a = NULL; /* internal node */
 
-	int err;
-	if ((err = pthread_mutex_lock(&t->lock)) != 0) {
-		errno = err;
-		ERR("!pthread_mutex_lock");
-		return 0;
-	}
+	util_mutex_lock(&t->lock);
 
 	struct node_leaf *l = NULL;
 	uint64_t k = 0;
@@ -380,10 +358,7 @@ remove:
 	}
 
 out:
-	if ((err = pthread_mutex_unlock(&t->lock)) != 0) {
-		errno = err;
-		ERR("!pthread_mutex_unlock");
-	}
+	util_mutex_unlock(&t->lock);
 
 	return k;
 }
@@ -394,19 +369,11 @@ out:
 int
 ctree_is_empty(struct ctree *t)
 {
-	int err;
-	if ((err = pthread_mutex_lock(&t->lock)) != 0) {
-		errno = err;
-		ERR("!pthread_mutex_lock");
-		return errno;
-	}
+	util_mutex_lock(&t->lock);
 
 	int ret = t->root == NULL;
 
-	if ((err = pthread_mutex_unlock(&t->lock)) != 0) {
-		errno = err;
-		ERR("!pthread_mutex_unlock");
-	}
+	util_mutex_unlock(&t->lock);
 
 	return ret;
 }

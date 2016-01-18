@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Intel Corporation
+ * Copyright (c) 2015-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -135,14 +135,12 @@ get_mblock_from_alloc(PMEMobjpool *pop, struct bucket *b,
  * persist_alloc -- (internal) performs a persistent allocation of the
  *	memory block previously reserved by volatile bucket
  */
-static int
+static void
 persist_alloc(PMEMobjpool *pop, struct lane_section *lane,
 	struct memory_block m, uint64_t real_size, uint64_t *off,
 	void (*constructor)(PMEMobjpool *pop, void *ptr, size_t usable_size,
 	void *arg), void *arg, uint64_t data_off)
 {
-	int err;
-
 #ifdef DEBUG
 	if (heap_block_is_allocated(pop, m)) {
 		ERR("heap corruption");
@@ -172,10 +170,7 @@ persist_alloc(PMEMobjpool *pop, struct lane_section *lane,
 			real_size - sizeof (struct allocation_header) -
 			data_off, arg);
 
-	if ((err = heap_lock_if_run(pop, m)) != 0) {
-		VALGRIND_DO_MEMPOOL_FREE(pop, userdatap);
-		return err;
-	}
+	heap_lock_if_run(pop, m);
 
 	void *hdr = heap_get_block_header(pop, m, HEAP_OP_ALLOC, &op_result);
 
@@ -189,12 +184,7 @@ persist_alloc(PMEMobjpool *pop, struct lane_section *lane,
 
 	redo_log_process(pop, sec->redo, MAX_ALLOC_OP_REDO);
 
-	if (heap_unlock_if_run(pop, m) != 0) {
-		ERR("Failed to release run lock");
-		ASSERT(0);
-	}
-
-	return err;
+	heap_unlock_if_run(pop, m);
 }
 
 /*
@@ -223,11 +213,10 @@ pmalloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
 	void (*constructor)(PMEMobjpool *pop, void *ptr,
 	size_t usable_size, void *arg), void *arg, uint64_t data_off)
 {
-	int err = 0;
+	int err;
 
 	struct lane_section *lane;
-	if ((err = lane_hold(pop, &lane, LANE_SECTION_ALLOCATOR)) != 0)
-		return err;
+	lane_hold(pop, &lane, LANE_SECTION_ALLOCATOR);
 
 	size_t sizeh = size + sizeof (struct allocation_header);
 
@@ -270,14 +259,10 @@ pmalloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
 	 * allocation persistent.
 	 */
 	uint64_t real_size = bucket_unit_size(b) * m.size_idx;
-	err = persist_alloc(pop, lane, m, real_size, off,
-		constructor, arg, data_off);
-
+	persist_alloc(pop, lane, m, real_size, off, constructor, arg, data_off);
+	err = 0;
 out:
-	if (lane_release(pop) != 0) {
-		ERR("Failed to release the lane");
-		ASSERT(0);
-	}
+	lane_release(pop);
 
 	return err;
 }
@@ -313,13 +298,12 @@ prealloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
 
 	size_t sizeh = size + sizeof (struct allocation_header);
 
-	int err = 0;
+	int err;
 
 	struct allocation_header *alloc = alloc_get_header(pop, *off);
 
 	struct lane_section *lane;
-	if ((err = lane_hold(pop, &lane, LANE_SECTION_ALLOCATOR)) != 0)
-		return err;
+	lane_hold(pop, &lane, LANE_SECTION_ALLOCATOR);
 
 	struct bucket *b = heap_get_best_bucket(pop, alloc->size);
 
@@ -329,8 +313,7 @@ prealloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
 
 	struct memory_block cnt = get_mblock_from_alloc(pop, b, alloc);
 
-	if ((err = heap_lock_if_run(pop, cnt)) != 0)
-		goto out_lane;
+	heap_lock_if_run(pop, cnt);
 
 	struct memory_block next = {0, 0, 0, 0};
 	if ((err = heap_get_adjacent_free_block(pop, &next, cnt, 0)) != 0)
@@ -378,16 +361,8 @@ prealloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
 	redo_log_process(pop, sec->redo, MAX_ALLOC_OP_REDO);
 
 out:
-	if (heap_unlock_if_run(pop, cnt) != 0) {
-		ERR("Failed to release run lock");
-		ASSERT(0);
-	}
-
-out_lane:
-	if (lane_release(pop) != 0) {
-		ERR("Failed to release the lane");
-		ASSERT(0);
-	}
+	heap_unlock_if_run(pop, cnt);
+	lane_release(pop);
 
 	return err;
 }
@@ -409,16 +384,13 @@ pmalloc_usable_size(PMEMobjpool *pop, uint64_t off)
  *
  * If successful function returns zero. Otherwise an error number is returned.
  */
-int
+void
 pfree(PMEMobjpool *pop, uint64_t *off, uint64_t data_off)
 {
 	struct allocation_header *alloc = alloc_get_header(pop, *off);
 
-	int err = 0;
-
 	struct lane_section *lane;
-	if ((err = lane_hold(pop, &lane, LANE_SECTION_ALLOCATOR)) != 0)
-		return err;
+	lane_hold(pop, &lane, LANE_SECTION_ALLOCATOR);
 
 	struct bucket *b = heap_get_chunk_bucket(pop,
 		alloc->chunk_id, alloc->zone_id);
@@ -432,8 +404,7 @@ pfree(PMEMobjpool *pop, uint64_t *off, uint64_t data_off)
 	}
 #endif /* DEBUG */
 
-	if ((err = heap_lock_if_run(pop, m)) != 0)
-		goto out;
+	heap_lock_if_run(pop, m);
 
 	uint64_t op_result;
 	void *hdr;
@@ -449,28 +420,17 @@ pfree(PMEMobjpool *pop, uint64_t *off, uint64_t data_off)
 
 	redo_log_process(pop, sec->redo, MAX_ALLOC_OP_REDO);
 
-	if (heap_unlock_if_run(pop, m) != 0) {
-		ERR("Failed to release run lock");
-		ASSERT(0);
-	}
+	heap_unlock_if_run(pop, m);
 
 	VALGRIND_DO_MEMPOOL_FREE(pop,
 			(char *)alloc + sizeof (*alloc) + data_off);
 
 	bucket_insert_block(pop, b, res);
 
-	if (bucket_is_small(b) && heap_degrade_run_if_empty(pop, b, res) != 0) {
-		ERR("Failed to degrade run");
-		ASSERT(0);
-	}
+	if (bucket_is_small(b))
+		heap_degrade_run_if_empty(pop, b, res);
 
-out:
-	if (lane_release(pop) != 0) {
-		ERR("Failed to release the lane");
-		ASSERT(0);
-	}
-
-	return err;
+	lane_release(pop);
 }
 
 /*
@@ -485,10 +445,10 @@ lane_allocator_construct(PMEMobjpool *pop, struct lane_section *section)
 /*
  * lane_allocator_destruct -- destroy allocator lane section
  */
-static int
+static void
 lane_allocator_destruct(PMEMobjpool *pop, struct lane_section *section)
 {
-	return 0;
+	/* nop */
 }
 
 /*

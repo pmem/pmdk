@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2015, Intel Corporation
+ * Copyright (c) 2014-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -52,6 +52,7 @@
 #include "util.h"
 #include "out.h"
 #include "log.h"
+#include "sys_util.h"
 #include "valgrind_internal.h"
 
 /*
@@ -334,8 +335,7 @@ pmemlog_nbyte(PMEMlogpool *plp)
 	size_t size = le64toh(plp->end_offset) - le64toh(plp->start_offset);
 	LOG(4, "plp %p nbyte %zu", plp, size);
 
-	if ((errno = pthread_rwlock_unlock(plp->rwlockp)))
-		ERR("!pthread_rwlock_unlock");
+	util_rwlock_unlock(plp->rwlockp);
 
 	return size;
 }
@@ -444,10 +444,7 @@ pmemlog_append(PMEMlogpool *plp, const void *buf, size_t count)
 	if (ret == 0)
 		pmemlog_persist(plp, write_offset);
 
-	int oerrno = errno;
-	if ((errno = pthread_rwlock_unlock(plp->rwlockp)))
-		ERR("!pthread_rwlock_unlock");
-	errno = oerrno;
+	util_rwlock_unlock(plp->rwlockp);
 
 	return ret;
 }
@@ -532,10 +529,7 @@ pmemlog_appendv(PMEMlogpool *plp, const struct iovec *iov, int iovcnt)
 	if (ret == 0)
 		pmemlog_persist(plp, write_offset);
 
-	int oerrno = errno;
-	if ((errno = pthread_rwlock_unlock(plp->rwlockp)))
-		ERR("!pthread_rwlock_unlock");
-	errno = oerrno;
+	util_rwlock_unlock(plp->rwlockp);
 
 	return ret;
 }
@@ -559,8 +553,7 @@ pmemlog_tell(PMEMlogpool *plp)
 
 	LOG(4, "write offset %lld", (long long)wp);
 
-	if ((errno = pthread_rwlock_unlock(plp->rwlockp)))
-		ERR("!pthread_rwlock_unlock");
+	util_rwlock_unlock(plp->rwlockp);
 
 	return wp;
 }
@@ -598,8 +591,7 @@ pmemlog_rewind(PMEMlogpool *plp)
 	RANGE_RO((char *)plp->addr + sizeof (struct pool_hdr),
 			LOG_FORMAT_DATA_ALIGN);
 
-	if ((errno = pthread_rwlock_unlock(plp->rwlockp)))
-		ERR("!pthread_rwlock_unlock");
+	util_rwlock_unlock(plp->rwlockp);
 }
 
 /*
@@ -647,8 +639,7 @@ pmemlog_walk(PMEMlogpool *plp, size_t chunksize,
 		}
 	}
 
-	if ((errno = pthread_rwlock_unlock(plp->rwlockp)))
-		ERR("!pthread_rwlock_unlock");
+	util_rwlock_unlock(plp->rwlockp);
 }
 
 /*

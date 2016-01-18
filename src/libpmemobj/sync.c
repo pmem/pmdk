@@ -44,6 +44,8 @@
 #include "list.h"
 #include "obj.h"
 #include "out.h"
+#include "sync.h"
+#include "sys_util.h"
 #include "valgrind_internal.h"
 
 #define	GET_MUTEX(pop, mutexp)\
@@ -151,6 +153,34 @@ pmemobj_mutex_lock(PMEMobjpool *pop, PMEMmutex *mutexp)
 		return EINVAL;
 
 	return pthread_mutex_lock(mutex);
+}
+
+/*
+ * pmemobj_mutex_assert_locked -- checks whether mutex is locked.
+ *
+ * Returns 0 when mutex is locked.
+ */
+int
+pmemobj_mutex_assert_locked(PMEMobjpool *pop, PMEMmutex *mutexp)
+{
+	LOG(3, "pop %p mutex %p", pop, mutexp);
+
+	pthread_mutex_t *mutex = GET_MUTEX(pop, mutexp);
+	if (mutex == NULL)
+		return EINVAL;
+
+	int ret = pthread_mutex_trylock(mutex);
+	if (ret == EBUSY)
+		return 0;
+	if (ret == 0) {
+		util_mutex_unlock(mutex);
+		/*
+		 * There's no good error code for this case. EINVAL is used for
+		 * something else here.
+		 */
+		return ENODEV;
+	}
+	return ret;
 }
 
 /*

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Intel Corporation
+ * Copyright (c) 2015-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -85,20 +85,6 @@ tx_strdup_macro(TOID(char) *str, const char *s, unsigned type_num)
 }
 
 fn_tx_strdup do_tx_strdup[MAX_FUNC] = {tx_strdup, tx_strdup_macro};
-
-/*
- * do_tx_strdup_no_tx -- duplicate a string without a transaction
- */
-static void
-do_tx_strdup_no_tx(PMEMobjpool *pop)
-{
-	TOID(char) str;
-	do_tx_strdup[counter](&str, TEST_STR_1, TYPE_NO_TX);
-	ASSERT(TOID_IS_NULL(str));
-
-	TOID_ASSIGN(str, pmemobj_first(pop, TYPE_NO_TX));
-	ASSERT(TOID_IS_NULL(str));
-}
 
 /*
  * do_tx_strdup_commit -- duplicate a string and commit the transaction
@@ -312,7 +298,6 @@ main(int argc, char *argv[])
 		FATAL("!pmemobj_create");
 
 	for (counter = 0; counter < MAX_FUNC; counter++) {
-		do_tx_strdup_no_tx(pop);
 		do_tx_strdup_commit(pop);
 		do_tx_strdup_abort(pop);
 		do_tx_strdup_null(pop);
