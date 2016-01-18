@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2014-2015, Intel Corporation
+# Copyright (c) 2014-2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -160,12 +160,7 @@ $(TARGET_STATIC_NONDEBUG): $(OBJS) $(UT) $(STATIC_NONDEBUG_LIBS) $(EXTRA_DEPS)
 $(TARGET): $(OBJS) $(UT) $(EXTRA_DEPS)
 	$(LINKER) -o $@ $(LDFLAGS) $(OBJS) $(DYNAMIC_LIBS) $(LIBS)
 
-define create-deps
-	@cp $*.d .deps/$*.P; \
-	sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
-	    -e '/^$$/ d' -e 's/$$/ :/' < $*.d >> .deps/$*.P; \
-	$(RM) -f $*.d
-endef
+objdir=.
 
 %.o: %.c
 	@mkdir -p .deps
