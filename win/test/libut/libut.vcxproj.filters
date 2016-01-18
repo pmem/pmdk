@@ -32,7 +32,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\src\test\unittest\unittest.h">
+    <ClInclude Include="..\unittest\unittest.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
