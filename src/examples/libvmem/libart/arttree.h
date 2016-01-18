@@ -13,8 +13,8 @@
  *       the documentation and/or other materials provided with the
  *       distribution.
  *
- *     * Neither the name of Fujitsu Technology Solutions GmbH nor the names 
- *       of its contributors may be used to endorse or promote products 
+ *     * Neither the name of Fujitsu Technology Solutions GmbH nor the names
+ *       of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
@@ -32,7 +32,7 @@
 
 /*
  * ==========================================================================
- * 
+ *
  *     Filename:  arttree.h
  *
  *  Description:  implement ART tree using libvmem based on libart
@@ -49,10 +49,10 @@
  * Organization:  FUJITSU TECHNOLOGY SOLUTIONS GMBH
  * ==========================================================================
  */
-#ifndef _ARTTREE_H
-#define _ARTTREE_H
+#ifndef	_ARTTREE_H
+#define	_ARTTREE_H
 
-#ifdef __cplusplus
+#ifdef	__cplusplus
 extern "C" {
 #endif
 
