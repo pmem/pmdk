@@ -133,13 +133,12 @@ default: $(TARGET)
 no-glib:
 	@echo "glib-2.0 development package required"
 
+objdir=.
+
 %.o: %.c
 	@mkdir -p .deps
 	$(CC) -MD -c -o $@ $(CFLAGS) $<
-	@$(CP) $*.d .deps/$*.P; \
-	sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
-	    -e '/^$$/ d' -e 's/$$/ :/' < $*.d >> .deps/$*.P; \
-	$(RM) -f $*.d
+	$(create-deps)
 
 $(BENCHMARK): $(OBJS) $(LIBMAP)
 	$(CC) -o $@ $(LDFLAGS) $^ $(LIBS)
