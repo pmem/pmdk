@@ -47,7 +47,7 @@
 #include <stdexcept>
 #include <iostream>
 
-#define LAYOUT "queue"
+#define	LAYOUT "queue"
 
 namespace {
 
@@ -190,7 +190,7 @@ main(int argc, char *argv[])
 	}
 
 	persistent_ptr<pmem_queue> q = pmemobj_root(pop, sizeof (pmem_queue));
-	switch(op) {
+	switch (op) {
 		case QUEUE_PUSH:
 			q->push(pop, atoll(argv[3]));
 		break;
