@@ -101,14 +101,14 @@ calc_block_offset(PMEMobjpool *pop, struct bucket *b,
 	struct allocation_header *alloc)
 {
 	uint16_t block_off = 0;
-	if (bucket_is_small(b)) {
+	if (b->type == BUCKET_RUN) {
 		struct memory_block m = {alloc->chunk_id, alloc->zone_id, 0, 0};
 		void *data = heap_get_block_data(pop, m);
 		uintptr_t diff = (uintptr_t)alloc - (uintptr_t)data;
 		ASSERT(diff <= RUNSIZE);
-		ASSERT((size_t)diff / bucket_unit_size(b) <= UINT16_MAX);
-		ASSERT(diff % bucket_unit_size(b) == 0);
-		block_off = (uint16_t)((size_t)diff / bucket_unit_size(b));
+		ASSERT((size_t)diff / b->unit_size <= UINT16_MAX);
+		ASSERT(diff % b->unit_size == 0);
+		block_off = (uint16_t)((size_t)diff / b->unit_size);
 	}
 
 	return block_off;
@@ -124,7 +124,7 @@ get_mblock_from_alloc(PMEMobjpool *pop, struct bucket *b,
 	struct memory_block mblock = {
 		alloc->chunk_id,
 		alloc->zone_id,
-		bucket_calc_units(b, alloc->size),
+		b->calc_units(b, alloc->size),
 		calc_block_offset(pop, b, alloc)
 	};
 
@@ -224,11 +224,11 @@ pmalloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
 
 	struct memory_block m = {0, 0, 0, 0};
 
-	m.size_idx = bucket_calc_units(b, sizeh);
+	m.size_idx = b->calc_units(b, sizeh);
 
 	err = heap_get_bestfit_block(pop, b, &m);
 
-	if (err == ENOMEM && !bucket_is_small(b))
+	if (err == ENOMEM && b->type == BUCKET_HUGE)
 		goto out; /* there's only one huge bucket */
 
 	if (err == ENOMEM) {
@@ -258,7 +258,7 @@ pmalloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
 	 * Now that the memory is reserved we can go ahead with making the
 	 * allocation persistent.
 	 */
-	uint64_t real_size = bucket_unit_size(b) * m.size_idx;
+	uint64_t real_size = b->unit_size * m.size_idx;
 	persist_alloc(pop, lane, m, real_size, off, constructor, arg, data_off);
 	err = 0;
 out:
@@ -307,16 +307,16 @@ prealloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
 
 	struct bucket *b = heap_get_best_bucket(pop, alloc->size);
 
-	uint32_t add_size_idx = bucket_calc_units(b, sizeh - alloc->size);
-	uint32_t new_size_idx = bucket_calc_units(b, sizeh);
-	uint64_t real_size = new_size_idx * bucket_unit_size(b);
+	uint32_t add_size_idx = b->calc_units(b, sizeh - alloc->size);
+	uint32_t new_size_idx = b->calc_units(b, sizeh);
+	uint64_t real_size = new_size_idx * b->unit_size;
 
 	struct memory_block cnt = get_mblock_from_alloc(pop, b, alloc);
 
 	heap_lock_if_run(pop, cnt);
 
 	struct memory_block next = {0, 0, 0, 0};
-	if ((err = heap_get_adjacent_free_block(pop, &next, cnt, 0)) != 0)
+	if ((err = heap_get_adjacent_free_block(pop, b, &next, cnt, 0)) != 0)
 		goto out;
 
 	if (next.size_idx < add_size_idx) {
@@ -425,9 +425,9 @@ pfree(PMEMobjpool *pop, uint64_t *off, uint64_t data_off)
 	VALGRIND_DO_MEMPOOL_FREE(pop,
 			(char *)alloc + sizeof (*alloc) + data_off);
 
-	bucket_insert_block(pop, b, res);
+	CNT_OP(b, insert, pop, res);
 
-	if (bucket_is_small(b))
+	if (b->type == BUCKET_RUN)
 		heap_degrade_run_if_empty(pop, b, res);
 
 	lane_release(pop);

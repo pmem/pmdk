@@ -34,8 +34,7 @@
  * heap.h -- internal definitions for heap
  */
 
-#define	MAX_BUCKETS 6
-#define	DEFAULT_BUCKET 5
+#define	MAX_BUCKETS UINT8_MAX
 #define	RUN_UNIT_MAX 4U
 
 enum heap_op {
@@ -67,8 +66,8 @@ struct memory_block heap_coalesce(PMEMobjpool *pop,
 	struct memory_block *blocks[], int n, enum heap_op op,
 	void **hdr, uint64_t *op_result);
 
-int heap_get_adjacent_free_block(PMEMobjpool *pop, struct memory_block *m,
-	struct memory_block cnt, int prev);
+int heap_get_adjacent_free_block(PMEMobjpool *pop, struct bucket *b,
+	struct memory_block *m, struct memory_block cnt, int prev);
 
 void heap_lock_if_run(PMEMobjpool *pop, struct memory_block m);
 void heap_unlock_if_run(PMEMobjpool *pop, struct memory_block m);

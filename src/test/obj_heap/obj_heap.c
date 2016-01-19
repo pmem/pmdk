@@ -82,14 +82,14 @@ test_heap()
 	struct bucket *b_small = heap_get_best_bucket(pop, 0);
 	struct bucket *b_big = heap_get_best_bucket(pop, 1024);
 
-	ASSERT(bucket_unit_size(b_small) < bucket_unit_size(b_big));
+	ASSERT(b_small->unit_size < b_big->unit_size);
 
 	struct bucket *b_def = heap_get_best_bucket(pop, CHUNKSIZE);
-	ASSERT(bucket_unit_size(b_def) == CHUNKSIZE);
+	ASSERT(b_def->unit_size == CHUNKSIZE);
 
 	/* new small buckets should be empty */
-	ASSERT(bucket_is_empty(b_small));
-	ASSERT(bucket_is_empty(b_big));
+	ASSERT(b_small->type == BUCKET_RUN);
+	ASSERT(b_big->type == BUCKET_RUN);
 
 	struct memory_block blocks[MAX_BLOCKS] = {
 		{0, 0, 1, 0},
@@ -105,17 +105,17 @@ test_heap()
 	struct memory_block *blocksp[MAX_BLOCKS] = {NULL};
 
 	struct memory_block prev;
-	heap_get_adjacent_free_block(pop, &prev, blocks[1], 1);
+	heap_get_adjacent_free_block(pop, b_def, &prev, blocks[1], 1);
 	ASSERT(prev.chunk_id == blocks[0].chunk_id);
 	blocksp[0] = &prev;
 
 	struct memory_block cnt;
-	heap_get_adjacent_free_block(pop, &cnt, blocks[0], 0);
+	heap_get_adjacent_free_block(pop, b_def, &cnt, blocks[0], 0);
 	ASSERT(cnt.chunk_id == blocks[1].chunk_id);
 	blocksp[1] = &cnt;
 
 	struct memory_block next;
-	heap_get_adjacent_free_block(pop, &next, blocks[1], 0);
+	heap_get_adjacent_free_block(pop, b_def, &next, blocks[1], 0);
 	ASSERT(next.chunk_id == blocks[2].chunk_id);
 	blocksp[2] = &next;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Intel Corporation
+ * Copyright (c) 2015-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -50,7 +50,7 @@
 #define	MAX_ALLOC_SIZE	CHUNKSIZE
 #define	ALLOC_CLASS_MUL	RUN_UNIT_MAX
 #define	MAX_ALLOC_MUL	RUN_UNIT_MAX
-#define	MAX_ALLOC_CLASS	MAX_BUCKETS
+#define	MAX_ALLOC_CLASS	5
 #define	ALLOC_HDR	(OBJ_OOB_SIZE + sizeof (struct allocation_header))
 
 POBJ_LAYOUT_BEGIN(realloc);
