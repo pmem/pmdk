@@ -852,9 +852,13 @@ heap_buckets_init(PMEMobjpool *pop)
 		SLIST_INIT(&h->active_runs[i]);
 
 	h->bucket_map = Malloc(CHUNKSIZE);
+	if (h->bucket_map == NULL)
+		goto error_bucket_map_malloc;
 
 	h->default_bucket = bucket_new(MAX_BUCKETS, BUCKET_HUGE,
 		CONTAINER_CTREE, CHUNKSIZE, UINT32_MAX);
+	if (h->default_bucket == NULL)
+		goto error_default_bucket_new;
 
 	/*
 	 * To take use of every single bit available in the run the unit size
@@ -896,6 +900,10 @@ error_bucket_create:
 	for (unsigned i = 0; i < h->ncaches; ++i)
 		bucket_group_destroy(h->caches[i].buckets);
 
+error_default_bucket_new:
+	Free(h->bucket_map);
+
+error_bucket_map_malloc:
 	return ENOMEM;
 }
 
@@ -1352,8 +1360,7 @@ heap_degrade_run_if_empty(PMEMobjpool *pop, struct bucket *b,
 	}
 
 	if (traverse_bucket_run(b, m, b->c_ops->get_rm_exact) != 0) {
-		ERR("Persistent/volatile state mismatch");
-		ASSERT(0);
+		FATAL("Persistent/volatile state mismatch");
 	}
 
 	struct bucket *defb = heap_get_default_bucket(pop);
