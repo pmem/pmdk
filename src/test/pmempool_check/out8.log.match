@@ -24,6 +24,7 @@ replica 0 part 2: pool header checksum correct
 replica 0 part 3: checking pool header
 replica 0 part 3: pool header checksum correct
 checking pmemblk header
+no BTT layout
 pmemblk header correct
 checking BTT Info headers
 BTT Layout not written

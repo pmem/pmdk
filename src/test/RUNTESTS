@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (c) 2014-2015, Intel Corporation
+# Copyright (c) 2014-2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -42,18 +42,28 @@ usage()
 {
 	[ "$1" ] && echo Error: $1
 	cat >&2 <<EOF
-Usage: $0 [ -nv ] [ -b build-type ] [ -t test-type ] [ -f fs-type ]
-	    [ -o timeout ] [-s test-file ] [ -m memcheck ] [tests...]
-    build-types: debug, nondebug, static-debug, static-nondebug, all (default)
-     test-types: check (default), short, long
-       fs-types: local, pmem, non-pmem, all (default)
-        timeout: floating point number with an optional suffix: 's' for seconds
-		 (the default), 'm' for minutes, 'h' for hours or 'd' for days.
-		 Default value is 3 minutes.
-      test-file: all (default), TEST0, TEST1, ...
-       memcheck: auto (default, enable/disable based on test requirements),
-                 force-enable (enable when test does not require memcheck, but
-                               obey test's explicit memcheck disable)
+Usage: $0 [ -hnv ] [ -b build-type ] [ -t test-type ] [ -f fs-type ]
+	    [ -o timeout ] [ -s test-file ] [ -m memcheck ] [ -c ] [tests...]
+-h		print this help message
+-n		dry run
+-v		be verbose
+-b build-type	run only specified build type
+		build-type: debug, nondebug, static-debug, static-nondebug, all (default)
+-t test-type	run only specified test type
+		test-type: check (default), short, long
+-f fs-type	run tests only on specified file systems
+		fs-type: local, pmem, non-pmem, all (default)
+-o timeout	set timeout for test execution
+		timeout: floating point number with an optional suffix: 's' for seconds
+		(the default), 'm' for minutes, 'h' for hours or 'd' for days.
+		Default value is 3 minutes.
+-s test-file	run only specified test file
+		test-file: all (default), TEST0, TEST1, ...
+-m memcheck	run tests with memcheck
+		memcheck: auto (default, enable/disable based on test requirements),
+		force-enable (enable when test does not require memcheck, but
+		obey test's explicit memcheck disable)
+-c		check pool files with pmempool check utility
 EOF
 	exit 1
 }
@@ -116,10 +126,12 @@ runtest() {
 				elif [ "$use_timeout" -a "$testtype" = "check" ]
 				then
 					[ "$verbose" ] && echo "RUNTESTS: Running: (in ./$1) TEST=$testtype FS=$fs BUILD=$build ./$runscript"
-					MEMCHECK=$memcheck TEST=$testtype FS=$fs BUILD=$build timeout --foreground $killopt $time ./$runscript
+					MEMCHECK=$memcheck CHECK_POOL=$check_pool VERBOSE=$verbose\
+						TEST=$testtype FS=$fs BUILD=$build timeout --foreground $killopt $time ./$runscript
 				else
 					[ "$verbose" ] && echo "RUNTESTS: Running: (in ./$1) TEST=$testtype FS=$fs BUILD=$build ./$runscript"
-					MEMCHECK=$memcheck TEST=$testtype FS=$fs BUILD=$build ./$runscript
+					MEMCHECK=$memcheck CHECK_POOL=$check_pool VERBOSE=$verbose\
+						TEST=$testtype FS=$fs BUILD=$build ./$runscript
 				fi
 
 				retval=$?
@@ -162,11 +174,12 @@ time='3m'
 use_timeout="ok"
 testfile=all
 memcheck=auto
+check_pool=0
 
 #
 # command-line argument processing...
 #
-args=`getopt nvb:t:f:o:s:m: $*`
+args=`getopt nvb:t:f:o:s:m:c $*`
 [ $? != 0 ] && usage
 set -- $args
 for arg
@@ -238,6 +251,10 @@ do
 		testfile="$2"
 		shift 2
 		;;
+	-c)
+		check_pool=1
+		shift
+		;;
 	--)
 		shift
 		break
@@ -253,6 +270,13 @@ done
 	echo "    test-type: $testtype"
 	echo "    fs-type: $fstype"
 	echo "    memcheck: $memcheck"
+	if [ "$check_pool" ]
+	then
+		check_pool_str="yes"
+	else
+		check_pool_str="no"
+	fi
+	echo "    check-pool: $check_pool_str"
 	echo Tests: $*
 }
 

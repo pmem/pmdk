@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright (c) 2014-2015, Intel Corporation
+# Copyright (c) 2014-2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -55,6 +55,8 @@ truncate -s $MIN_POOL_SIZE $DIR/testfile1
 #
 expect_normal_exit ./blk_rw$EXESUFFIX 512 $DIR/testfile1 c\
 	r:0 r:1 r:32201 r:32202 z:0 z:1 r:0
+
+check_pool $DIR/testfile1
 
 check
 

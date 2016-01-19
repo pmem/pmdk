@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright (c) 2014-2015, Intel Corporation
+# Copyright (c) 2014-2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -48,6 +48,8 @@ setup
 truncate -s 1G $DIR/testfile1
 # 5 threads, each doing 80 random I/Os
 expect_normal_exit ./blk_rw_mt$EXESUFFIX 4096 $DIR/testfile1 123 5 80
+
+check_pool $DIR/testfile1
 
 check
 
