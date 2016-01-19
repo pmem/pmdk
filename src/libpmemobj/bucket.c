@@ -209,7 +209,7 @@ bucket_tree_create(size_t unit_size)
 	if (bc->tree == NULL)
 		goto error_ctree_new;
 
-	return (struct block_container *)bc;
+	return &bc->super;
 
 error_ctree_new:
 	Free(bc);
@@ -269,7 +269,7 @@ bucket_run_create(size_t unit_size, unsigned unit_max)
 		(((1ULL << unused_bits) - 1ULL) <<
 			(BITS_PER_VALUE - unused_bits)) : 0;
 
-	return (struct bucket *)b;
+	return &b->super;
 }
 
 /*
@@ -284,7 +284,7 @@ bucket_huge_create(size_t unit_size, unsigned unit_max)
 
 	b->super.type = BUCKET_HUGE;
 
-	return (struct bucket *)b;
+	return &b->super;
 }
 
 /*
