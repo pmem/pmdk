@@ -76,6 +76,30 @@
 
 #define	BIT_IS_CLR(a, i)	(!((a) & (1ULL << (i))))
 
+/*
+ * The last size that is handled by runs.
+ */
+#define	MAX_RUN_SIZE (CHUNKSIZE / 2)
+
+/*
+ * Allocation categories are used for allocation classes generation. Each one
+ * defines the biggest handled size (in alloc blocks) and step of the generation
+ * process. The bigger the step the bigger is the acceptable internal
+ * fragmentation. For each category the internal fragmentation can be calculated
+ * as: step/size. So for step == 1 the acceptable fragmentation is 0% and so on.
+ */
+#define	MAX_ALLOC_CATEGORIES 5
+static struct {
+	size_t size;
+	size_t step;
+} categories[MAX_ALLOC_CATEGORIES] = {
+	{2, 0}, /* dummy category - the first allocation class is predefined */
+	{16, 1},
+	{64, 2},
+	{256, 4},
+	{512, 8}
+};
+
 struct active_run {
 	uint32_t chunk_id;
 	uint32_t zone_id;
@@ -286,7 +310,7 @@ heap_run_insert(PMEMobjpool *pop, struct bucket *b, uint32_t chunk_id,
 
 	unsigned unit_max = r->unit_max;
 	struct memory_block m = {chunk_id, zone_id,
-		unit_max - (block_off % 4), block_off};
+		unit_max - (block_off % unit_max), block_off};
 
 	if (m.size_idx > size_idx)
 		m.size_idx = size_idx;
@@ -474,7 +498,7 @@ heap_register_active_run(struct pmalloc_heap *h, struct chunk_run *run,
 	arun->chunk_id = chunk_id;
 	arun->zone_id = zone_id;
 
-	int bucket_idx = h->bucket_map[run->block_size];
+	int bucket_idx = SIZE_TO_BID(h, run->block_size);
 	SLIST_INSERT_HEAD(&h->active_runs[bucket_idx], arun, run);
 }
 
@@ -621,9 +645,9 @@ heap_get_best_bucket(PMEMobjpool *pop, size_t size)
 	if (size <= pop->heap->last_run_max_size) {
 #ifdef USE_PER_LANE_BUCKETS
 		return heap_get_cache_bucket(pop->heap,
-			pop->heap->bucket_map[size]);
+			SIZE_TO_BID(pop->heap, size));
 #else
-		return pop->heap->buckets[pop->heap->bucket_map[size]];
+		return pop->heap->buckets[SIZE_TO_BID(pop->heap, size)];
 #endif
 	} else {
 		return pop->heap->default_bucket;
@@ -694,7 +718,7 @@ heap_get_auxiliary_bucket(PMEMobjpool *pop, size_t size)
 {
 	ASSERT(size <= pop->heap->last_run_max_size);
 
-	return pop->heap->buckets[pop->heap->bucket_map[size]];
+	return pop->heap->buckets[SIZE_TO_BID(pop->heap, size)];
 }
 
 /*
@@ -840,6 +864,27 @@ heap_register_bucket_range(struct pmalloc_heap *h, uint8_t bucket,
 }
 
 /*
+ * heap_find_or_create_best_alloc_class -- (internal) searches for the biggest
+ *	bucket allocation class for which unit_size is evenly divisible by n.
+ */
+static uint8_t
+heap_find_or_create_best_alloc_class(struct pmalloc_heap *h, size_t n)
+{
+	COMPILE_ERROR_ON(MAX_BUCKETS > UINT8_MAX);
+
+	for (int i = MAX_BUCKETS; i >= 0; --i) {
+		if (h->buckets[i] == NULL)
+			continue;
+
+		if (n % h->buckets[i]->unit_size == 0 &&
+			n / h->buckets[i]->unit_size <= RUN_UNIT_MAX)
+			return (uint8_t)i;
+	}
+
+	return heap_create_alloc_class_buckets(h, n, RUN_UNIT_MAX);
+}
+
+/*
  * heap_buckets_init -- (internal) initializes bucket instances
  */
 static int
@@ -851,7 +896,8 @@ heap_buckets_init(PMEMobjpool *pop)
 	for (i = 0; i < MAX_BUCKETS; ++i)
 		SLIST_INIT(&h->active_runs[i]);
 
-	h->bucket_map = Malloc(CHUNKSIZE);
+	h->last_run_max_size = MAX_RUN_SIZE;
+	h->bucket_map = Malloc((MAX_RUN_SIZE / ALLOC_BLOCK_SIZE) + 1);
 	if (h->bucket_map == NULL)
 		goto error_bucket_map_malloc;
 
@@ -867,28 +913,33 @@ heap_buckets_init(PMEMobjpool *pop)
 	 * cacheline alignment a little bit of memory at the end of the run
 	 * is left unused.
 	 */
-	size_t size = MIN_RUN_SIZE;
-	size_t prev_size = 0;
-	uint8_t slot;
+	size_t size = 0;
+	uint8_t slot = heap_create_alloc_class_buckets(h,
+		MIN_RUN_SIZE, RUN_UNIT_MAX);
+	if (slot == MAX_BUCKETS)
+		goto error_bucket_create;
 
-	for (;;) {
-		slot = heap_create_alloc_class_buckets(h, size, RUN_UNIT_MAX);
+	heap_register_bucket_range(h, slot, 0, 2);
 
-		if (slot == MAX_BUCKETS)
-			goto error_bucket_create;
+	for (int c = 1; c < MAX_ALLOC_CATEGORIES; ++c) {
+		for (size_t i = categories[c - 1].size + 1;
+			i <= categories[c].size; i += categories[c].step) {
 
-		heap_register_bucket_range(h, slot,
-			prev_size, size * (RUN_UNIT_MAX - 1));
+			size = i + (categories[c].step - 1);
+			if ((slot = heap_find_or_create_best_alloc_class(h,
+				size * ALLOC_BLOCK_SIZE)) == MAX_BUCKETS)
+				goto error_bucket_create;
 
-		prev_size = size * (RUN_UNIT_MAX - 1);
-
-		size = size * RUN_UNIT_MAX;
-
-		if (size >= (RUNSIZE / RUN_UNIT_MAX))
-			break;
+			heap_register_bucket_range(h, slot, i, size);
+		}
 	}
 
-	h->last_run_max_size = prev_size;
+	/* pick the largest bucket and fill the rest of the map */
+	for (slot = MAX_BUCKETS; slot > 0 && h->buckets[slot] == NULL; --slot)
+		;
+
+	heap_register_bucket_range(h, slot, size,
+		MAX_RUN_SIZE / ALLOC_BLOCK_SIZE);
 
 	heap_populate_buckets(pop);
 

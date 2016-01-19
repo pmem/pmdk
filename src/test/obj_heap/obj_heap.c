@@ -79,8 +79,8 @@ test_heap()
 
 	Lane_idx = 0;
 
-	struct bucket *b_small = heap_get_best_bucket(pop, 0);
-	struct bucket *b_big = heap_get_best_bucket(pop, 1024);
+	struct bucket *b_small = heap_get_best_bucket(pop, 1);
+	struct bucket *b_big = heap_get_best_bucket(pop, 2048);
 
 	ASSERT(b_small->unit_size < b_big->unit_size);
 

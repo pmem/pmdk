@@ -35,7 +35,23 @@
  */
 
 #define	MAX_BUCKETS UINT8_MAX
-#define	RUN_UNIT_MAX 4U
+#define	RUN_UNIT_MAX 8U
+
+/*
+ * Every allocation has to be a multiple of a cacheline because we need to
+ * ensure proper alignment of every pmem structure.
+ */
+#define	ALLOC_BLOCK_SIZE _POBJ_CL_ALIGNMENT
+
+/*
+ * Converts size (in bytes) to number of allocation blocks.
+ */
+#define	SIZE_TO_ALLOC_BLOCKS(_s) (1 + (((_s) - 1) / ALLOC_BLOCK_SIZE))
+
+/*
+ * Converts size (in bytes) to bucket index.
+ */
+#define	SIZE_TO_BID(_h, _s) ((_h)->bucket_map[SIZE_TO_ALLOC_BLOCKS(_s)])
 
 enum heap_op {
 	HEAP_OP_ALLOC,
