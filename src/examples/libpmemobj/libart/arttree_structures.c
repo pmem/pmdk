@@ -529,14 +529,14 @@ main(int ac, char *av[])
 {
 	int opt;
 	int option_index;
-	int ret;
+	int ret = 0;
 	size_t len;
 	ssize_t read;
 	char *cmd_str;
 	char *args[20];
 	int nargs;
 	char *line;
-	struct command *cmdp;
+	struct command *cmdp = NULL;
 
 	while ((opt = getopt_long(ac, av, "h",
 			    long_options, &option_index)) != -1) {
