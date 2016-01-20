@@ -62,6 +62,8 @@ TEST26 (fail)	existing file, file length >= min required size, layout == NULL
 TEST27 (pass)	existing file, file length >= min required size, layout == NULL
 TEST28 (pass)	existing file, file length >= min required size, layout != NULL
 		layout matches the value from pool header
+TEST29 (fail)	existing poolset file, file length >= min required size, layout == NULL
+		bad format of the poolset file
 
 - each case outputs:
 	- error, if error happened
