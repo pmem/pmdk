@@ -13,8 +13,8 @@
 #       the documentation and/or other materials provided with the
 #       distribution.
 #
-#     * Neither the name of Fujitsu Technology Solutions GmbH nor the names 
-#       of its contributors may be used to endorse or promote products 
+#     * Neither the name of Fujitsu Technology Solutions GmbH nor the names
+#       of its contributors may be used to endorse or promote products
 #       derived from this software without specific prior written permission.
 #
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
@@ -34,7 +34,7 @@
 # examples/libpmemobj/libart/Makefile -- build libart port to libpmemobj
 #
 
-PROGS = 
+PROGS =
 ARTTREE = arttree
 ANALYZE = arttree_structures
 ANALYZE_OBJS = arttree_structures.o arttree_examine.o arttree_search.o
@@ -88,4 +88,4 @@ $(ARTTREE): $(ARTTREE).o $(LIBART_SO)
 $(DIRS):
 	$(MAKE) -C $@ $(TARGET)
 
-.PHONY: all clean clobber cstyle $(DIRS) 
+.PHONY: all clean clobber cstyle $(DIRS)
