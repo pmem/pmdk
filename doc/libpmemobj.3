@@ -37,7 +37,7 @@
 .\" or
 .\"	groff -man -Tascii libpmemobj.3
 .\"
-.TH libpmemobj 3 "pmemobj API version 0.4.22" "NVM Library"
+.TH libpmemobj 3 "pmemobj API version 0.4.23" "NVM Library"
 .SH NAME
 libpmemobj \- persistent memory transactional object store
 .SH SYNOPSIS
@@ -2909,17 +2909,27 @@ operations that are to be performed atomically.
 .B TX_ONABORT
 .IP
 The
-.BR TX_ONABORT ()
+.BR TX_ONABORT
 macro starts a block of code that will be executed only if starting the
 transaction fails due to an error in
 .BR pmemobj_tx_begin (),
 or if the transaction is aborted.
-This block is optional.
+This block is optional, but in practice it should not be omitted. If it's
+desirable to crash the application when transaction aborts and there's no
+.BR TX_ONABORT
+section, application can define
+.BR POBJ_TX_CRASH_ON_NO_ONABORT
+macro before inclusion of
+.BR <libpmemobj.h> .
+It provides default
+.BR TX_ONABORT
+section which just calls
+.BR abort (3).
 .PP
 .B TX_ONCOMMIT
 .IP
 The
-.BR TX_ONCOMMIT ()
+.BR TX_ONCOMMIT
 macro starts a block of code that will be executed only if the transaction
 is successfully committed, which means that the execution of code in
 .B TX_BEGIN
@@ -2930,14 +2940,14 @@ This block is optional.
 .B TX_FINALLY
 .IP
 The
-.BR TX_FINALLY ()
+.BR TX_FINALLY
 macro starts a block of code that will be executed regardless of whether
 the transaction is committed or aborted.  This block is optional.
 .PP
 .B TX_END
 .IP
 The
-.BR TX_END ()
+.BR TX_END
 macro cleans up and closes the transaction started by
 .BR TX_BEGIN ()
 or

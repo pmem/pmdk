@@ -837,6 +837,15 @@ void pmemobj_tx_process(void);
  */
 int pmemobj_tx_errno(void);
 
+#ifdef POBJ_TX_CRASH_ON_NO_ONABORT
+#define	TX_ONABORT_CHECK do {\
+		if (_stage == TX_STAGE_ONABORT)\
+			abort();\
+	} while (0)
+#else
+#define	TX_ONABORT_CHECK do {} while (0)
+#endif
+
 #define	_POBJ_TX_BEGIN(pop, ...)\
 {\
 	jmp_buf _tx_env;\
@@ -878,6 +887,7 @@ _POBJ_TX_BEGIN(pop, ##__VA_ARGS__)
 				pmemobj_tx_process();\
 				break;\
 			default:\
+				TX_ONABORT_CHECK;\
 				pmemobj_tx_process();\
 				break;\
 		}\
