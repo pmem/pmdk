@@ -269,7 +269,7 @@ leaf_matches(struct search_ctx *ctx, art_leaf *n,
 		return 1;
 	// HACK for stupid null-terminated strings....
 	// if (n_key->len != key_len)
-	// 	return 1;
+	//	return 1;
 	if (n_key->len != key_len + 1)
 		return 1;
 	return (memcmp(n_key->s, key, key_len));
