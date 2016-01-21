@@ -34,21 +34,36 @@
  * pmalloc.h -- internal definitions for persistent malloc
  */
 
+struct operation_entry {
+	uint64_t *ptr;
+	uint64_t value;
+};
+
 int heap_boot(PMEMobjpool *pop);
 int heap_init(PMEMobjpool *pop);
 void heap_vg_open(PMEMobjpool *pop);
 void heap_cleanup(PMEMobjpool *pop);
 int heap_check(PMEMobjpool *pop);
 
-int pmalloc(PMEMobjpool *pop, uint64_t *off, size_t size, uint64_t data_off);
+int pmalloc(PMEMobjpool *pop, uint64_t *off, size_t size);
 int pmalloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
 	void (*constructor)(PMEMobjpool *pop, void *ptr, size_t usable_size,
-	void *arg), void *arg, uint64_t data_off);
+	void *arg), void *arg);
+int
+palloc_operation(PMEMobjpool *pop,
+	uint64_t off, uint64_t *dest_off, size_t size,
+	void (*constructor)
+		(PMEMobjpool *pop, void *ptr, size_t usable_size, void *arg),
+	void *arg, struct operation_entry *entries, size_t nentries);
 
-int prealloc(PMEMobjpool *pop, uint64_t *off, size_t size, uint64_t data_off);
+
+int prealloc(PMEMobjpool *pop, uint64_t *off, size_t size);
 int prealloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
 	void (*constructor)(PMEMobjpool *pop, void *ptr, size_t usable_size,
-	void *arg), void *arg, uint64_t data_off);
+	void *arg), void *arg);
+
+uint64_t pmalloc_first(PMEMobjpool *pop);
+uint64_t pmalloc_next(PMEMobjpool *pop, uint64_t off);
 
 size_t pmalloc_usable_size(PMEMobjpool *pop, uint64_t off);
-void pfree(PMEMobjpool *pop, uint64_t *off, uint64_t data_off);
+void pfree(PMEMobjpool *pop, uint64_t *off);

@@ -36,10 +36,10 @@
 #include <stdint.h>
 
 #include "libpmemobj.h"
+#include "redo.h"
 #include "pmalloc.h"
 #include "util.h"
 #include "lane.h"
-#include "redo.h"
 #include "list.h"
 #include "obj.h"
 #include "heap_layout.h"
@@ -102,6 +102,16 @@ obj_drain(PMEMobjpool *pop)
 	pop->drain_local();
 }
 
+/*
+ * obj_memcpy -- pmemobj version of memcpy w/o replication
+ */
+static void *
+obj_memcpy(PMEMobjpool *pop, void *dest, const void *src, size_t len)
+{
+	memcpy(dest, src, len);
+	return dest;
+}
+
 static void
 test_oom_allocs(size_t size)
 {
@@ -110,7 +120,7 @@ test_oom_allocs(size_t size)
 
 	size_t count = 0;
 	for (;;) {
-		if (pmalloc(mock_pop, &addr->ptr, size, 0)) {
+		if (pmalloc(mock_pop, &addr->ptr, size)) {
 			break;
 		}
 		ASSERT(addr->ptr != 0);
@@ -119,7 +129,7 @@ test_oom_allocs(size_t size)
 
 	for (int i = 0; i < count; ++i) {
 		addr->ptr = allocs[i];
-		pfree(mock_pop, &addr->ptr, 0);
+		pfree(mock_pop, &addr->ptr);
 		ASSERT(addr->ptr == 0);
 	}
 	ASSERT(count != 0);
@@ -131,9 +141,9 @@ test_malloc_free_loop(size_t size)
 {
 	int err;
 	for (int i = 0; i < MAX_MALLOC_FREE_LOOP; ++i) {
-		err = pmalloc(mock_pop, &addr->ptr, size, 0);
+		err = pmalloc(mock_pop, &addr->ptr, size);
 		ASSERTeq(err, 0);
-		pfree(mock_pop, &addr->ptr, 0);
+		pfree(mock_pop, &addr->ptr);
 	}
 }
 
@@ -141,13 +151,13 @@ static void
 test_realloc(size_t org, size_t dest)
 {
 	int err;
-	err = pmalloc(mock_pop, &addr->ptr, org, 0);
+	err = pmalloc(mock_pop, &addr->ptr, org);
 	ASSERTeq(err, 0);
 	ASSERT(pmalloc_usable_size(mock_pop, addr->ptr) >= org);
-	err = prealloc(mock_pop, &addr->ptr, dest, 0);
+	err = prealloc(mock_pop, &addr->ptr, dest);
 	ASSERTeq(err, 0);
 	ASSERT(pmalloc_usable_size(mock_pop, addr->ptr) >= dest);
-	pfree(mock_pop, &addr->ptr, 0);
+	pfree(mock_pop, &addr->ptr);
 }
 
 static void
@@ -173,6 +183,7 @@ test_mock_pool_allocs()
 	mock_pop->persist = obj_persist;
 	mock_pop->flush = obj_flush;
 	mock_pop->drain = obj_drain;
+	mock_pop->memcpy_persist = obj_memcpy;
 
 	heap_init(mock_pop);
 	heap_boot(mock_pop);

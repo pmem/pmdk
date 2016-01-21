@@ -200,7 +200,7 @@ list_mutexes_unlock(PMEMobjpool *pop,
  */
 static inline PMEMoid
 list_get_dest(PMEMobjpool *pop, struct list_head *head, PMEMoid dest,
-		uint64_t pe_offset, int before)
+		ssize_t pe_offset, int before)
 {
 	ASSERT(before == POBJ_LIST_DEST_HEAD || before == POBJ_LIST_DEST_TAIL);
 
@@ -211,7 +211,7 @@ list_get_dest(PMEMobjpool *pop, struct list_head *head, PMEMoid dest,
 		return head->pe_first;
 
 	struct list_entry *first_ptr = (struct list_entry *)OBJ_OFF_TO_PTR(pop,
-			head->pe_first.off + pe_offset);
+			(uintptr_t)((ssize_t)head->pe_first.off + pe_offset));
 
 	return first_ptr->pe_prev;
 }
@@ -285,112 +285,6 @@ u64_add_offset(uint64_t *value, ssize_t off)
 	} else {
 		*value -= (size_t)-off;
 		ASSERT(*value < prev);
-	}
-}
-
-/*
- * list_replace_item -- (internal) replace not-first element on a single list
- */
-static size_t
-list_replace_item(PMEMobjpool *pop,
-	struct redo_log *redo, size_t redo_index,
-	struct list_args_reinsert *args,
-	struct list_args_common *args_common,
-	uint64_t *next_offset, uint64_t *prev_offset)
-{
-	LOG(15, NULL);
-
-	/* return next and prev offsets values */
-	*next_offset = args->entry_ptr->pe_next.off;
-	*prev_offset = args->entry_ptr->pe_prev.off;
-
-	/* modify prev->next and next->prev offsets */
-	uint64_t prev_next_off = args->entry_ptr->pe_prev.off + NEXT_OFF;
-	u64_add_offset(&prev_next_off, args_common->pe_offset);
-
-	uint64_t next_prev_off = args->entry_ptr->pe_next.off + PREV_OFF;
-	u64_add_offset(&next_prev_off, args_common->pe_offset);
-
-	redo_log_store(pop, redo, redo_index + 0, prev_next_off,
-			args_common->obj_doffset);
-	redo_log_store(pop, redo, redo_index + 1, next_prev_off,
-			args_common->obj_doffset);
-
-	return redo_index + 2;
-}
-
-/*
- * list_replace_single -- (internal) replace an element on a single list
- */
-static size_t
-list_replace_single(PMEMobjpool *pop,
-	struct redo_log *redo, size_t redo_index,
-	struct list_args_reinsert *args, struct list_args_common *args_common,
-	uint64_t *next_offset, uint64_t *prev_offset)
-{
-	LOG(15, NULL);
-
-	if (args->entry_ptr->pe_next.off == args->obj_doffset) {
-		ASSERTeq(args->entry_ptr->pe_prev.off, args->obj_doffset);
-		ASSERTeq(args->head->pe_first.off, args->obj_doffset);
-
-		/* replacing the only one element on list */
-		*next_offset = args_common->obj_doffset;
-		*prev_offset = args_common->obj_doffset;
-
-		return list_update_head(pop, redo, redo_index,
-				args->head, args_common->obj_doffset);
-	} else {
-		/* replacing nth element on list */
-		redo_index = list_replace_item(pop, redo, redo_index,
-				args, args_common, next_offset, prev_offset);
-
-		/* modify head if reinserting element is the first one */
-		if (args->head->pe_first.off == args->obj_doffset) {
-			return list_update_head(pop, redo, redo_index,
-					args->head, args_common->obj_doffset);
-		} else {
-			return redo_index;
-		}
-	}
-}
-
-/*
- * list_set_user_field -- (internal) set user's field using redo log
- */
-static size_t
-list_set_user_field(PMEMobjpool *pop,
-	struct redo_log *redo, size_t redo_index,
-	uint64_t field_offset, uint64_t field_value,
-	uint64_t old_offset, uint64_t old_size,
-	uint64_t new_offset)
-{
-	LOG(15, NULL);
-	if (field_offset >= old_offset &&
-		field_offset < old_offset + old_size) {
-		ASSERT(field_offset + sizeof (uint64_t)
-				<= old_offset + old_size);
-		/*
-		 * The user's field is inside the object so we don't need to
-		 * use redo log - just normal store + persist.
-		 */
-		uint64_t new_field_offset = field_offset -
-			old_offset + new_offset;
-
-		uint64_t *field = OBJ_OFF_TO_PTR(pop, new_field_offset);
-		/* temp add custom field change to valgrind transaction */
-		VALGRIND_ADD_TO_TX(field, sizeof (*field));
-		*field = field_value;
-		VALGRIND_REMOVE_FROM_TX(field, sizeof (*field));
-		pop->persist(pop, field, sizeof (*field));
-
-		return redo_index;
-	} else {
-		/* field outside the object */
-		redo_log_store(pop, redo, redo_index,
-				field_offset, field_value);
-
-		return redo_index + 1;
 	}
 }
 
@@ -659,75 +553,6 @@ list_insert_oob(PMEMobjpool *pop, struct redo_log *redo, size_t redo_index,
 }
 
 /*
- * list_realloc_replace -- (internal) realloc and replace element
- */
-static size_t
-list_realloc_replace(PMEMobjpool *pop,
-	struct redo_log *redo, size_t redo_index,
-	struct list_head *head, uint64_t pe_offset,
-	size_t old_size,
-	uint64_t obj_offset, uint64_t new_obj_offset,
-	void (*constructor)(PMEMobjpool *pop, void *ptr,
-	size_t usable_size, void *arg), void *arg,
-	uint64_t field_offset, uint64_t field_value)
-{
-	uint64_t obj_doffset = obj_offset + OBJ_OOB_SIZE;
-	uint64_t new_obj_doffset = new_obj_offset + OBJ_OOB_SIZE;
-
-	size_t usable_size = pmalloc_usable_size(pop, new_obj_offset)
-		- OBJ_OOB_SIZE;
-
-	/* call the constructor manually */
-	void *ptr = OBJ_OFF_TO_PTR(pop, new_obj_doffset);
-	constructor(pop, ptr, usable_size, arg);
-
-	if (field_offset) {
-		redo_index = list_set_user_field(pop,
-				redo, redo_index,
-				field_offset, field_value,
-				obj_offset, old_size,
-				new_obj_offset);
-	}
-
-	if (head) {
-		struct list_entry *entry_ptr =
-			(struct list_entry *)OBJ_OFF_TO_PTR(pop,
-					obj_doffset + pe_offset);
-
-		struct list_entry *new_entry_ptr =
-			(struct list_entry *)OBJ_OFF_TO_PTR(pop,
-					new_obj_doffset + pe_offset);
-
-		struct list_args_reinsert args_reinsert = {
-			.head = head,
-			.entry_ptr = entry_ptr,
-			.obj_doffset = obj_doffset,
-		};
-
-		ASSERT((ssize_t)pe_offset >= 0);
-		struct list_args_common args_common = {
-			.obj_doffset = new_obj_doffset,
-			.entry_ptr = new_entry_ptr,
-			.pe_offset = (ssize_t)pe_offset,
-		};
-
-		uint64_t next_offset;
-		uint64_t prev_offset;
-
-		/* replace element on user list */
-		redo_index = list_replace_single(pop, redo, redo_index,
-				&args_reinsert, &args_common,
-				&next_offset, &prev_offset);
-
-		/* fill next and prev offsets of new entry */
-		list_fill_entry_persist(pop, new_entry_ptr,
-				next_offset, prev_offset);
-	}
-
-	return redo_index;
-}
-
-/*
  * list_insert_new -- allocate and insert element to oob and user lists
  *
  * pop         - pmemobj pool handle
@@ -748,7 +573,7 @@ list_insert_new(PMEMobjpool *pop, struct list_head *oob_head,
 	size_t usable_size, void *arg), void *arg, PMEMoid *oidp)
 {
 	LOG(3, NULL);
-	ASSERTne(oob_head, NULL);
+	ASSERT(oob_head != NULL || user_head != NULL);
 
 	int ret;
 
@@ -777,14 +602,14 @@ list_insert_new(PMEMobjpool *pop, struct list_head *oob_head,
 	if (constructor) {
 		if ((ret = pmalloc_construct(pop,
 				&section->obj_offset, size,
-				constructor, arg, OBJ_OOB_SIZE))) {
+				constructor, arg))) {
 			errno = ret;
 			ERR("!pmalloc_construct");
 			ret = -1;
 			goto err_pmalloc;
 		}
 	} else {
-		ret = pmalloc(pop, &section->obj_offset, size, OBJ_OOB_SIZE);
+		ret = pmalloc(pop, &section->obj_offset, size);
 		if (ret) {
 			errno = ret;
 			ERR("!pmalloc");
@@ -793,35 +618,33 @@ list_insert_new(PMEMobjpool *pop, struct list_head *oob_head,
 		}
 	}
 
-	/*
-	 * In case of oob list and user list grab the oob list lock
-	 * first.
-	 *
-	 * XXX performance improvement: initialize oob locks at pool opening
-	 */
-	pmemobj_mutex_lock_nofail(pop, &oob_head->lock);
+	uint64_t obj_doffset = section->obj_offset;
+	if (oob_head) {
+		pmemobj_mutex_lock_nofail(pop, &oob_head->lock);
 
-	uint64_t obj_offset = section->obj_offset;
-	uint64_t obj_doffset = obj_offset + OBJ_OOB_SIZE;
+		uint64_t obj_offset = obj_doffset - OBJ_OOB_SIZE;
 
-	struct list_entry *oob_entry_ptr =
-		(struct list_entry *)OBJ_OFF_TO_PTR(pop,
-			obj_offset + OOB_ENTRY_OFF);
+		struct list_entry *oob_entry_ptr =
+			(struct list_entry *)OBJ_OFF_TO_PTR(pop,
+				obj_offset + OOB_ENTRY_OFF);
 
-	uint64_t oob_next_off;
-	uint64_t oob_prev_off;
+		uint64_t oob_next_off;
+		uint64_t oob_prev_off;
 
-	/* insert element to oob list */
-	redo_index = list_insert_oob(pop, redo, redo_index,
-			oob_head, obj_doffset, &oob_next_off, &oob_prev_off);
+		/* insert element to oob list */
+		redo_index = list_insert_oob(pop, redo, redo_index, oob_head,
+			obj_doffset, &oob_next_off, &oob_prev_off);
 
-	/* don't need to use redo log for filling new element */
-	list_fill_entry_persist(pop, oob_entry_ptr, oob_next_off, oob_prev_off);
+		/* don't need to use redo log for filling new element */
+		list_fill_entry_persist(pop,
+			oob_entry_ptr, oob_next_off, oob_prev_off);
+	}
 
 	if (user_head) {
 		ASSERT((ssize_t)pe_offset >= 0);
 
-		dest = list_get_dest(pop, user_head, dest, pe_offset, before);
+		dest = list_get_dest(pop, user_head, dest,
+			(ssize_t)pe_offset, before);
 
 		struct list_entry *entry_ptr =
 			(struct list_entry *)OBJ_OFF_TO_PTR(pop,
@@ -874,7 +697,9 @@ list_insert_new(PMEMobjpool *pop, struct list_head *oob_head,
 
 	ret = 0;
 
-	pmemobj_mutex_unlock_nofail(pop, &oob_head->lock);
+	if (oob_head)
+		pmemobj_mutex_unlock_nofail(pop, &oob_head->lock);
+
 err_pmalloc:
 	lane_release(pop);
 
@@ -949,7 +774,7 @@ list_insert_new_user(PMEMobjpool *pop, struct list_head *oob_head,
  */
 int
 list_insert(PMEMobjpool *pop,
-	size_t pe_offset, struct list_head *head,
+	ssize_t pe_offset, struct list_head *head,
 	PMEMoid dest, int before,
 	PMEMoid oid)
 {
@@ -975,16 +800,15 @@ list_insert(PMEMobjpool *pop,
 	struct redo_log *redo = section->redo;
 	size_t redo_index = 0;
 
-	ASSERT((ssize_t)pe_offset >= 0);
 	dest = list_get_dest(pop, head, dest, pe_offset, before);
 
 	struct list_entry *entry_ptr =
 		(struct list_entry *)OBJ_OFF_TO_PTR(pop,
-				oid.off + pe_offset);
+			(uintptr_t)((ssize_t)oid.off + pe_offset));
 
 	struct list_entry *dest_entry_ptr =
 		(struct list_entry *)OBJ_OFF_TO_PTR(pop,
-				dest.off + pe_offset);
+			(uintptr_t)((ssize_t)dest.off + pe_offset));
 
 	struct list_args_insert args = {
 		.dest = dest,
@@ -1036,7 +860,7 @@ list_remove_free(PMEMobjpool *pop, struct list_head *oob_head,
 	PMEMoid *oidp)
 {
 	LOG(3, NULL);
-	ASSERTne(oob_head, NULL);
+	ASSERT(oob_head != NULL || user_head != NULL);
 
 #ifdef DEBUG
 	if (user_head) {
@@ -1052,14 +876,6 @@ list_remove_free(PMEMobjpool *pop, struct list_head *oob_head,
 	ASSERTne(lane_section, NULL);
 	ASSERTne(lane_section->layout, NULL);
 
-	/*
-	 * In case of oob list and user list grab the oob list lock
-	 * first.
-	 *
-	 * XXX performance improvement: initialize oob locks at pool opening
-	 */
-	pmemobj_mutex_lock_nofail(pop, &oob_head->lock);
-
 	struct lane_list_section *section =
 		(struct lane_list_section *)lane_section->layout;
 	uint64_t sec_off_off = OBJ_PTR_TO_OFF(pop, &section->obj_offset);
@@ -1069,19 +885,23 @@ list_remove_free(PMEMobjpool *pop, struct list_head *oob_head,
 	uint64_t obj_doffset = oidp->off;
 	uint64_t obj_offset = obj_doffset - OBJ_OOB_SIZE;
 
-	struct list_entry *oob_entry_ptr =
-		(struct list_entry *)OBJ_OFF_TO_PTR(pop,
-				obj_offset + OOB_ENTRY_OFF);
+	if (oob_head) {
+		pmemobj_mutex_lock_nofail(pop, &oob_head->lock);
 
-	struct list_args_remove oob_args = {
-		.pe_offset = OOB_ENTRY_OFF_REV,
-		.head = oob_head,
-		.entry_ptr = oob_entry_ptr,
-		.obj_doffset = obj_doffset
-	};
+		struct list_entry *oob_entry_ptr =
+			(struct list_entry *)OBJ_OFF_TO_PTR(pop,
+					obj_offset + OOB_ENTRY_OFF);
 
-	/* remove from oob list */
-	redo_index = list_remove_single(pop, redo, redo_index, &oob_args);
+		struct list_args_remove oob_args = {
+			.pe_offset = OOB_ENTRY_OFF_REV,
+			.head = oob_head,
+			.entry_ptr = oob_entry_ptr,
+			.obj_doffset = obj_doffset
+		};
+
+		/* remove from oob list */
+		redo_index = list_remove_single(pop, redo, redo_index, &oob_args);
+	}
 
 	if (user_head) {
 		ASSERT((ssize_t)pe_offset >= 0);
@@ -1108,7 +928,7 @@ list_remove_free(PMEMobjpool *pop, struct list_head *oob_head,
 	else
 		oidp->off = 0;
 
-	redo_log_store_last(pop, redo, redo_index, sec_off_off, obj_offset);
+	redo_log_store_last(pop, redo, redo_index, sec_off_off, obj_doffset);
 
 	redo_log_process(pop, redo, REDO_NUM_ENTRIES);
 
@@ -1116,8 +936,10 @@ list_remove_free(PMEMobjpool *pop, struct list_head *oob_head,
 	 * Don't need to fill next and prev offsets of removing element
 	 * because the element is freed.
 	 */
-	pfree(pop, &section->obj_offset, OBJ_OOB_SIZE);
-	pmemobj_mutex_unlock_nofail(pop, &oob_head->lock);
+	pfree(pop, &section->obj_offset);
+	if (oob_head)
+		pmemobj_mutex_unlock_nofail(pop, &oob_head->lock);
+
 	lane_release(pop);
 }
 
@@ -1177,7 +999,7 @@ list_remove_free_user(PMEMobjpool *pop, struct list_head *oob_head,
  */
 int
 list_remove(PMEMobjpool *pop,
-	size_t pe_offset, struct list_head *head,
+	ssize_t pe_offset, struct list_head *head,
 	PMEMoid oid)
 {
 	LOG(3, NULL);
@@ -1202,11 +1024,9 @@ list_remove(PMEMobjpool *pop,
 	struct redo_log *redo = section->redo;
 	size_t redo_index = 0;
 
-	ASSERT((ssize_t)pe_offset >= 0);
-
 	struct list_entry *entry_ptr =
 		(struct list_entry *)OBJ_OFF_TO_PTR(pop,
-				oid.off + pe_offset);
+				oid.off + (size_t)pe_offset);
 
 	struct list_args_remove args = {
 		.pe_offset = (ssize_t)pe_offset,
@@ -1365,7 +1185,8 @@ list_move(PMEMobjpool *pop,
 	struct redo_log *redo = section->redo;
 	size_t redo_index = 0;
 
-	dest = list_get_dest(pop, head_new, dest, pe_offset_new, before);
+	dest = list_get_dest(pop, head_new, dest,
+		(ssize_t)pe_offset_new, before);
 
 	struct list_entry *entry_ptr_old =
 		(struct list_entry *)OBJ_OFF_TO_PTR(pop,
@@ -1459,562 +1280,6 @@ err:
 }
 
 /*
- * list_realloc -- realloc list member
- *
- * pop          - pmemobj pool handle
- * oob_head     - oob list head
- * pe_offset    - offset to list entry on user list relative to user data
- * user_head    - user list head, *must* be locked if not NULL
- * size         - size of allocation, will be increased by OBJ_OOB_SIZE
- * constructor  - object's constructor
- * arg          - argument for object's constructor
- * field_offset - offset to user's field
- * field_value  - user's field value
- * oidp         - pointer to target object ID
- */
-static int
-list_realloc(PMEMobjpool *pop, struct list_head *oob_head,
-	size_t pe_offset, struct list_head *user_head,
-	size_t size, void (*constructor)(PMEMobjpool *pop, void *ptr,
-	size_t usable_size, void *arg), void *arg, uint64_t field_offset,
-	uint64_t field_value, PMEMoid *oidp)
-{
-	LOG(3, NULL);
-	ASSERTne(oob_head, NULL);
-	ASSERTne(oidp, NULL);
-	ASSERTne(constructor, NULL);
-
-	int ret;
-
-	struct lane_section *lane_section;
-
-#ifdef DEBUG
-	if (user_head) {
-		int r = pmemobj_mutex_assert_locked(pop, &user_head->lock);
-		ASSERTeq(r, 0);
-	}
-#endif
-
-	lane_hold(pop, &lane_section, LANE_SECTION_LIST);
-
-	ASSERTne(lane_section, NULL);
-	ASSERTne(lane_section->layout, NULL);
-
-	/*
-	 * In case of oob list and user list grab the oob list lock
-	 * first.
-	 *
-	 * XXX performance improvement: initialize oob locks at pool opening
-	 */
-	pmemobj_mutex_lock_nofail(pop, &oob_head->lock);
-
-	/* increase allocation size by oob header size */
-	size += OBJ_OOB_SIZE;
-	struct lane_list_section *section =
-		(struct lane_list_section *)lane_section->layout;
-	struct redo_log *redo = section->redo;
-	size_t redo_index = 0;
-	uint64_t obj_doffset = oidp->off;
-	uint64_t obj_offset = obj_doffset - OBJ_OOB_SIZE;
-	uint64_t old_size = pmalloc_usable_size(pop, obj_offset);
-	uint64_t sec_off_off = OBJ_PTR_TO_OFF(pop, &section->obj_offset);
-
-	/*
-	 * The following steps must be in consistency with the recovery
-	 * process:
-	 *
-	 * 1. Set the old size field in lane section.
-	 * 2. Set the allocation's offset field in lane section.
-	 * 3. Perform realloc.
-	 * 4. Clear the size field using redo log
-	 * 5. Clear the offset field using redo log.
-	 * 6. Process the redo log.
-	 */
-	section->obj_size = old_size;
-	pop->persist(pop, &section->obj_size, sizeof (section->obj_size));
-
-	section->obj_offset = obj_offset;
-	pop->persist(pop, &section->obj_offset, sizeof (section->obj_offset));
-
-	/*
-	 * The user must be aware that any changes in
-	 * old area when reallocating in place won't be
-	 * made atomically.
-	 */
-	ret = prealloc_construct(pop,
-			&section->obj_offset, size,
-			constructor, arg, OBJ_OOB_SIZE);
-
-	if (!ret) {
-		uint64_t sec_size_off = OBJ_PTR_TO_OFF(pop, &section->obj_size);
-
-		/* clear offset and size field in lane section */
-		redo_log_store(pop, redo, 0, sec_size_off, 0);
-		redo_log_store(pop, redo, 1, sec_off_off, 0);
-
-		if (field_offset)
-			/* set user's field */
-			redo_log_store_last(pop, redo, 2,
-					field_offset, field_value);
-		else
-			redo_log_set_last(pop, redo, 1);
-
-		redo_log_process(pop, redo, REDO_NUM_ENTRIES);
-	} else {
-		/*
-		 * If realloc in-place failed clear the obj_offset and obj_size.
-		 */
-		section->obj_offset = 0;
-		pop->persist(pop, &section->obj_offset,
-				sizeof (section->obj_offset));
-
-		section->obj_size = 0;
-		pop->persist(pop, &section->obj_size,
-				sizeof (section->obj_size));
-
-		/*
-		 * Realloc in place is not possible so we need to perform
-		 * the following steps:
-		 *
-		 * 1. Allocate memory with new size.
-		 * 2. Memcpy.
-		 * 3. Reinsert the new element to first list using redo log.
-		 * 4. Reinsert the new element to second list using redo log.
-		 * 5. Optionally set the user's field using redo log.
-		 * 6. Set the offset field in section to old allocation using
-		 *    redo log.
-		 * 7. Process the redo log.
-		 * 8. Free the old allocation.
-		 */
-		ret = pmalloc(pop, &section->obj_offset, size, OBJ_OOB_SIZE);
-		if (ret) {
-			errno = ret;
-			ERR("!pmalloc");
-			ret = -1;
-			goto err_unlock;
-		}
-
-		uint64_t new_obj_offset = section->obj_offset;
-		uint64_t new_obj_doffset = new_obj_offset + OBJ_OOB_SIZE;
-
-		redo_index = list_realloc_replace(pop,
-				redo, redo_index,
-				user_head, pe_offset, old_size,
-				obj_offset, new_obj_offset,
-				constructor, arg,
-				field_offset, field_value);
-
-		struct list_entry *oob_entry_ptr =
-			(struct list_entry *)OBJ_OFF_TO_PTR(pop,
-					obj_offset + OOB_ENTRY_OFF);
-
-		struct list_entry *oob_new_entry_ptr =
-			(struct list_entry *)OBJ_OFF_TO_PTR(pop,
-					new_obj_offset + OOB_ENTRY_OFF);
-
-		struct list_args_reinsert oob_args_reinsert = {
-			.head = oob_head,
-			.entry_ptr = oob_entry_ptr,
-			.obj_doffset = obj_doffset,
-		};
-
-		struct list_args_common oob_args_common = {
-			.obj_doffset = new_obj_doffset,
-			.entry_ptr = oob_new_entry_ptr,
-			.pe_offset = OOB_ENTRY_OFF_REV,
-		};
-
-		uint64_t next_offset;
-		uint64_t prev_offset;
-
-		/* replace new item in first list */
-		redo_index = list_replace_single(pop, redo, redo_index,
-				&oob_args_reinsert, &oob_args_common,
-				&next_offset, &prev_offset);
-
-		/* fill next and prev offsets of new entry without redo log */
-		list_fill_entry_persist(pop, oob_new_entry_ptr,
-				next_offset, prev_offset);
-
-		if (OBJ_PTR_IS_VALID(pop, oidp))
-			redo_index = list_set_oid_redo_log(pop, redo,
-					redo_index, oidp, new_obj_doffset, 1);
-		else
-			oidp->off = new_obj_doffset;
-
-		/* set offset for pfree */
-		redo_log_store_last(pop, redo, redo_index,
-				sec_off_off, obj_offset);
-
-		redo_log_process(pop, redo, REDO_NUM_ENTRIES);
-
-		/* free the old object */
-		pfree(pop, &section->obj_offset, OBJ_OOB_SIZE);
-	}
-
-	ret = 0;
-
-err_unlock:
-	pmemobj_mutex_unlock_nofail(pop, &oob_head->lock);
-	lane_release(pop);
-
-	return ret;
-}
-
-/*
- * list_realloc_oob -- realloc list member
- *
- * pop          - pmemobj pool handle
- * oob_head     - oob list head
- * size         - size of allocation, will be increased by OBJ_OOB_SIZE
- * constructor  - object's constructor
- * arg          - argument for object's constructor
- * field_offset - offset to user's field
- * field_value  - user's field value
- * oidp         - pointer to target object ID
- */
-int
-list_realloc_oob(PMEMobjpool *pop, struct list_head *oob_head,
-	size_t size, void (*constructor)(PMEMobjpool *pop, void *ptr,
-	size_t usable_size, void *arg), void *arg, uint64_t field_offset,
-	uint64_t field_value, PMEMoid *oidp)
-{
-	return list_realloc(pop, oob_head, 0, NULL, size, constructor, arg,
-			field_offset, field_value, oidp);
-}
-
-/*
- * list_realloc_user -- realloc list member
- *
- * pop          - pmemobj pool handle
- * oob_head     - oob list head
- * pe_offset    - offset to list entry on user list relative to user data
- * user_head    - user list head
- * size         - size of allocation, will be increased by OBJ_OOB_SIZE
- * constructor  - object's constructor
- * arg          - argument for object's constructor
- * field_offset - offset to user's field
- * field_value  - user's field value
- * oidp         - pointer to target object ID
- */
-int
-list_realloc_user(PMEMobjpool *pop, struct list_head *oob_head,
-	size_t pe_offset, struct list_head *user_head,
-	size_t size, void (*constructor)(PMEMobjpool *pop, void *ptr,
-	size_t usable_size, void *arg), void *arg, uint64_t field_offset,
-	uint64_t field_value, PMEMoid *oidp)
-{
-	int ret;
-
-	if (user_head) {
-		if ((ret = pmemobj_mutex_lock(pop, &user_head->lock))) {
-			LOG(2, "pmemobj_mutex_lock failed");
-			return ret;
-		}
-	}
-
-	ret = list_realloc(pop, oob_head, pe_offset, user_head, size,
-			constructor, arg, field_offset, field_value, oidp);
-
-	if (user_head)
-		pmemobj_mutex_unlock_nofail(pop, &user_head->lock);
-
-	return ret;
-}
-
-/*
- * list_realloc_move -- realloc and move an element
- * pop          - pmemobj pool handle
- * oob_head_old - old oob list head
- * oob_head_new - new oob list head
- * pe_offset    - offset to list entry on user list relative to user data
- * user_head    - user list head, *must* be locked if not NULL
- * size         - size of allocation, will be increased by OBJ_OOB_SIZE
- * constructor  - object's constructor
- * arg          - argument for object's constructor
- * field_offset - offset to user's field
- * field_value  - user's field value
- * oidp         - pointer to target object ID
- */
-static int
-list_realloc_move(PMEMobjpool *pop, struct list_head *oob_head_old,
-	struct list_head *oob_head_new, size_t pe_offset,
-	struct list_head *user_head, size_t size,
-	void (*constructor)(PMEMobjpool *pop, void *ptr, size_t usable_size,
-	void *arg), void *arg, uint64_t field_offset, uint64_t field_value,
-	PMEMoid *oidp)
-{
-	LOG(3, NULL);
-
-	ASSERTne(oob_head_old, NULL);
-	ASSERTne(oob_head_new, NULL);
-	ASSERTne(constructor, NULL);
-
-#ifdef DEBUG
-	if (user_head) {
-		int r = pmemobj_mutex_assert_locked(pop, &user_head->lock);
-		ASSERTeq(r, 0);
-	}
-#endif
-
-	int ret;
-
-	struct lane_section *lane_section;
-
-	lane_hold(pop, &lane_section, LANE_SECTION_LIST);
-
-	ASSERTne(lane_section, NULL);
-	ASSERTne(lane_section->layout, NULL);
-
-	/* increase allocation size by oob header size */
-	size += OBJ_OOB_SIZE;
-	struct lane_list_section *section =
-		(struct lane_list_section *)lane_section->layout;
-	struct redo_log *redo = section->redo;
-	size_t redo_index = 0;
-
-	/*
-	 * In case of oob lists and user list grab the oob list locks
-	 * first. The oob list locks are grabbed in specified order.
-	 *
-	 * XXX performance improvement: initialize oob locks at pool opening
-	 */
-	list_mutexes_lock_nofail(pop, oob_head_new, oob_head_old);
-
-	uint64_t obj_doffset = oidp->off;
-	uint64_t obj_offset = obj_doffset - OBJ_OOB_SIZE;
-	uint64_t new_obj_doffset = obj_doffset;
-	uint64_t new_obj_offset = obj_offset;
-	uint64_t old_size = pmalloc_usable_size(pop, obj_offset);
-	uint64_t sec_off_off = OBJ_PTR_TO_OFF(pop, &section->obj_offset);
-	int in_place = 0;
-
-	/*
-	 * The following steps may be in consistency with the recovery
-	 * process:
-	 *
-	 * 1. Set the old size field in lane section.
-	 * 2. Set the allocation's offset field in lane section.
-	 * 3. Perform realloc.
-	 * 4. Clear the size field using redo log
-	 * 5. Clear the offset field using redo log.
-	 * 6. Process the redo log.
-	 */
-	section->obj_size = old_size;
-	pop->persist(pop, &section->obj_size, sizeof (section->obj_size));
-
-	section->obj_offset = obj_offset;
-	pop->persist(pop, &section->obj_offset, sizeof (section->obj_offset));
-
-	/*
-	 * The user must be aware that any changes in
-	 * old area when reallocating in place won't be
-	 * made atomically.
-	 */
-	ret = prealloc_construct(pop,
-			&section->obj_offset, size,
-			constructor, arg, OBJ_OOB_SIZE);
-
-	if (!ret) {
-		uint64_t sec_size_off = OBJ_PTR_TO_OFF(pop, &section->obj_size);
-
-		/* clear offset and size field in lane section */
-		redo_log_store(pop, redo, redo_index + 0, sec_size_off, 0);
-		redo_log_store(pop, redo, redo_index + 1, sec_off_off, 0);
-		redo_index += 2;
-
-		/* set user's field */
-		if (field_offset) {
-			redo_log_store(pop, redo, redo_index + 0,
-					field_offset, field_value);
-			redo_index += 1;
-		}
-
-		in_place = 1;
-	} else {
-		/*
-		 * If realloc in-place failed clear the obj_offset and obj_size.
-		 */
-		section->obj_offset = 0;
-		pop->persist(pop, &section->obj_offset,
-				sizeof (section->obj_offset));
-
-		section->obj_size = 0;
-		pop->persist(pop, &section->obj_size,
-				sizeof (section->obj_size));
-
-		/*
-		 * Realloc in place is not possible so we need to perform
-		 * the following steps:
-		 *
-		 * 1. Allocate memory with new size.
-		 * 2. Memcpy.
-		 * 3. Reinsert the new element to first list using redo log.
-		 * 4. Reinsert the new element to second list using redo log.
-		 * 5. Optionally set the user's field using redo log.
-		 * 6. Set the offset field in section to old allocation using
-		 *    redo log.
-		 * 7. Process the redo log.
-		 * 8. Free the old allocation.
-		 */
-		ret = pmalloc(pop, &section->obj_offset, size, OBJ_OOB_SIZE);
-		if (ret) {
-			errno = ret;
-			ERR("!pmalloc");
-			ret = -1;
-			goto err_unlock;
-		}
-
-		new_obj_offset = section->obj_offset;
-		new_obj_doffset = new_obj_offset + OBJ_OOB_SIZE;
-
-		redo_index = list_realloc_replace(pop,
-				redo, redo_index,
-				user_head, pe_offset, old_size,
-				obj_offset, new_obj_offset,
-				constructor, arg,
-				field_offset, field_value);
-
-		/* set offset for pfree */
-		redo_log_store(pop, redo, redo_index,
-				sec_off_off, obj_offset);
-		redo_index += 1;
-
-		if (OBJ_PTR_IS_VALID(pop, oidp))
-			redo_index = list_set_oid_redo_log(pop, redo,
-					redo_index, oidp, new_obj_doffset, 1);
-		else
-			oidp->off = new_obj_doffset;
-	}
-
-	struct list_entry *entry_ptr_old =
-		(struct list_entry *)OBJ_OFF_TO_PTR(pop,
-				obj_offset + OOB_ENTRY_OFF);
-	struct list_entry *entry_ptr_new =
-		(struct list_entry *)OBJ_OFF_TO_PTR(pop,
-				new_obj_offset + OOB_ENTRY_OFF);
-
-	struct list_args_remove args_remove = {
-		.pe_offset = OOB_ENTRY_OFF_REV,
-		.head = oob_head_old,
-		.entry_ptr = entry_ptr_old,
-		.obj_doffset = obj_doffset,
-	};
-
-	struct list_args_common args_common = {
-		.obj_doffset = new_obj_doffset,
-		.entry_ptr = entry_ptr_new,
-		.pe_offset = OOB_ENTRY_OFF_REV,
-	};
-
-	uint64_t next_offset;
-	uint64_t prev_offset;
-
-	/* remove from old oob list */
-	redo_index = list_remove_single(pop, redo, redo_index, &args_remove);
-
-	/* insert to new oob list */
-	redo_index = list_insert_oob(pop, redo, redo_index, oob_head_new,
-			new_obj_doffset, &next_offset, &prev_offset);
-
-	if (in_place) {
-		/* realloc in place so we need to use redo log */
-		redo_index = list_fill_entry_redo_log(pop, redo, redo_index,
-				&args_common, next_offset, prev_offset, 0);
-	} else {
-		/*
-		 * Realloc not in place so no need to modify next and prev
-		 * offsets using redo log.
-		 */
-		list_fill_entry_persist(pop, entry_ptr_new,
-				next_offset, prev_offset);
-	}
-
-	redo_log_set_last(pop, redo, redo_index - 1);
-
-	redo_log_process(pop, redo, REDO_NUM_ENTRIES);
-
-	if (!in_place) {
-		ASSERTne(section->obj_offset, 0);
-
-		/* realloc not in place so free the old object */
-		pfree(pop, &section->obj_offset, OBJ_OOB_SIZE);
-	}
-
-	ret = 0;
-err_unlock:
-	list_mutexes_unlock(pop, oob_head_new, oob_head_old);
-	lane_release(pop);
-
-	return ret;
-}
-
-/*
- * list_realloc_move_oob -- realloc and move an element
- * pop          - pmemobj pool handle
- * oob_head_old - old oob list head
- * oob_head_new - new oob list head
- * size         - size of allocation, will be increased by OBJ_OOB_SIZE
- * constructor  - object's constructor
- * arg          - argument for object's constructor
- * field_offset - offset to user's field
- * field_value  - user's field value
- * oidp         - pointer to target object ID
- */
-int
-list_realloc_move_oob(PMEMobjpool *pop, struct list_head *oob_head_old,
-	struct list_head *oob_head_new, size_t size,
-	void (*constructor)(PMEMobjpool *pop, void *ptr, size_t usable_size,
-	void *arg), void *arg, uint64_t field_offset, uint64_t field_value,
-	PMEMoid *oidp)
-{
-	return list_realloc_move(pop, oob_head_old, oob_head_new,
-			0, NULL, size, constructor, arg, field_offset,
-			field_value, oidp);
-}
-
-/*
- * list_realloc_move_user -- realloc and move an element
- * pop          - pmemobj pool handle
- * oob_head_old - old oob list head
- * oob_head_new - new oob list head
- * pe_offset    - offset to list entry on user list relative to user data
- * user_head    - user list head
- * size         - size of allocation, will be increased by OBJ_OOB_SIZE
- * constructor  - object's constructor
- * arg          - argument for object's constructor
- * field_offset - offset to user's field
- * field_value  - user's field value
- * oidp         - pointer to target object ID
- */
-int
-list_realloc_move_user(PMEMobjpool *pop, struct list_head *oob_head_old,
-	struct list_head *oob_head_new, size_t pe_offset,
-	struct list_head *user_head, size_t size,
-	void (*constructor)(PMEMobjpool *pop, void *ptr, size_t usable_size,
-	void *arg), void *arg, uint64_t field_offset, uint64_t field_value,
-	PMEMoid *oidp)
-{
-	int ret;
-
-	if (user_head) {
-		if ((ret = pmemobj_mutex_lock(pop, &user_head->lock))) {
-			LOG(2, "pmemobj_mutex_lock failed");
-			return ret;
-		}
-	}
-
-	ret = list_realloc_move(pop, oob_head_old, oob_head_new, pe_offset,
-			user_head, size, constructor, arg, field_offset,
-			field_value, oidp);
-
-	if (user_head)
-		pmemobj_mutex_unlock_nofail(pop, &user_head->lock);
-
-	return ret;
-}
-
-/*
  * lane_list_recovery -- (internal) recover the list section of the lane
  */
 static int
@@ -2025,53 +1290,14 @@ lane_list_recovery(PMEMobjpool *pop, struct lane_section_layout *section_layout)
 	struct lane_list_section *section =
 		(struct lane_list_section *)section_layout;
 
-	int ret = 0;
-
 	redo_log_recover(pop, section->redo, REDO_NUM_ENTRIES);
 
-	if (section->obj_size) {
-		/* realloc recovery */
-		if (section->obj_offset) {
-			size_t size = pmalloc_usable_size(pop,
-					section->obj_offset);
-			if (size != section->obj_size) {
-				/*
-				 * If both size and offset are non-zero and the
-				 * real allocation size is different than
-				 * stored in lane section it means the realloc
-				 * was performed but the finish flag was not set
-				 * so we need to rollback the realloc.
-				 */
-				ret = prealloc(pop, &section->obj_offset, size,
-						OBJ_OOB_SIZE);
-				if (ret) {
-					errno = ret;
-					ERR("!prealloc");
-					goto err;
-				}
-			}
-			/*
-			 * Size and offset was set but the realloc was not made
-			 * so just clear the offset and size.
-			 */
-			section->obj_offset = 0;
-			pop->persist(pop, &section->obj_offset,
-					sizeof (section->obj_offset));
-		}
-		/*
-		 * The size was set but offset was not set so just clear the
-		 * size field.
-		 */
-		section->obj_size = 0;
-		pop->persist(pop, &section->obj_size,
-				sizeof (section->obj_size));
-
-	} else if (section->obj_offset) {
+	if (section->obj_offset) {
 		/* alloc or free recovery */
-		pfree(pop, &section->obj_offset, OBJ_OOB_SIZE);
+		pfree(pop, &section->obj_offset);
 	}
-err:
-	return ret;
+
+	return 0;
 }
 
 /*

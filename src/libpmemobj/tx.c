@@ -329,8 +329,8 @@ tx_set_state(PMEMobjpool *pop, struct lane_tx_layout *layout, uint64_t state)
  * tx_clear_undo_log -- (internal) clear undo log pointed by head
  */
 static void
-tx_clear_undo_log(PMEMobjpool *pop, struct list_head *head, int vg_clean,
-		int vg_tx_remove)
+tx_clear_undo_log(PMEMobjpool *pop, struct list_head *head, int free,
+	int vg_clean, int vg_tx_remove)
 {
 	LOG(3, NULL);
 
@@ -364,8 +364,12 @@ tx_clear_undo_log(PMEMobjpool *pop, struct list_head *head, int vg_clean,
 		}
 #endif
 
-		/* remove and free all elements from undo log */
-		list_remove_free_oob(pop, head, &obj);
+		if (free) {
+			/* remove and free all elements from undo log */
+			list_remove_free_oob(pop, head, &obj);
+		} else {
+			list_remove(pop, -1 * (ssize_t)OBJ_OOB_SIZE, head, obj);
+		}
 	}
 }
 
@@ -377,7 +381,7 @@ tx_abort_alloc(PMEMobjpool *pop, struct lane_tx_layout *layout)
 {
 	LOG(3, NULL);
 
-	tx_clear_undo_log(pop, &layout->undo_alloc, 1, 1);
+	tx_clear_undo_log(pop, &layout->undo_alloc, 1, 1, 1);
 }
 
 /*
@@ -388,30 +392,7 @@ tx_abort_free(PMEMobjpool *pop, struct lane_tx_layout *layout)
 {
 	LOG(3, NULL);
 
-	PMEMoid obj;
-	while (!OBJ_LIST_EMPTY(&layout->undo_free)) {
-		obj = layout->undo_free.pe_first;
-
-		struct oob_header *oobh = OOB_HEADER_FROM_OID(pop, obj);
-		ASSERT(oobh->data.user_type < PMEMOBJ_NUM_OID_TYPES);
-
-#ifdef	USE_VG_PMEMCHECK
-		/*
-		 * This function can be called from transaction
-		 * recovery, so in such case pmemobj_alloc_usable_size
-		 * is not yet available. Use pmalloc version.
-		 */
-		size_t size = pmalloc_usable_size(pop,
-				obj.off - OBJ_OOB_SIZE) - OBJ_OOB_SIZE;
-		VALGRIND_REMOVE_FROM_TX(OBJ_OFF_TO_PTR(pop, obj.off), size);
-#endif
-
-		struct object_store_item *obj_list =
-			&pop->store->bytype[oobh->data.user_type];
-
-		/* move all objects back to object store */
-		list_move_oob(pop, &layout->undo_free, &obj_list->head, obj);
-	}
+	tx_clear_undo_log(pop, &layout->undo_alloc, 0, 1, 1);
 }
 
 struct tx_range_data {
@@ -596,8 +577,8 @@ tx_abort_set(PMEMobjpool *pop, struct lane_tx_layout *layout, int recovery)
 	else
 		tx_foreach_set(pop, layout, tx_abort_restore_range);
 
-	tx_clear_undo_log(pop, &layout->undo_set_cache, 0, 0);
-	tx_clear_undo_log(pop, &layout->undo_set, 0, 0);
+	tx_clear_undo_log(pop, &layout->undo_set_cache, 0, 1, 0);
+	tx_clear_undo_log(pop, &layout->undo_set, 0, 1, 0);
 }
 
 /*
@@ -611,8 +592,7 @@ tx_pre_commit_alloc(PMEMobjpool *pop, struct lane_tx_layout *layout)
 
 	PMEMoid iter;
 	for (iter = layout->undo_alloc.pe_first; !OBJ_OID_IS_NULL(iter);
-		iter = oob_list_next(pop,
-			&layout->undo_alloc, iter)) {
+		iter = oob_list_next(pop, &layout->undo_alloc, iter)) {
 
 		struct oob_header *oobh = OOB_HEADER_FROM_OID(pop, iter);
 
@@ -678,17 +658,8 @@ tx_post_commit_alloc(PMEMobjpool *pop, struct lane_tx_layout *layout)
 	while (!OBJ_LIST_EMPTY(&layout->undo_alloc)) {
 		obj = layout->undo_alloc.pe_first;
 
-		struct oob_header *oobh = OOB_HEADER_FROM_OID(pop, obj);
-		ASSERT(oobh->data.user_type < PMEMOBJ_NUM_OID_TYPES);
-
-		VALGRIND_REMOVE_FROM_TX(OBJ_OFF_TO_PTR(pop, obj.off),
-					pmemobj_alloc_usable_size(obj));
-
-		struct object_store_item *obj_list =
-			&pop->store->bytype[oobh->data.user_type];
-
-		/* move object to object store */
-		list_move_oob(pop, &layout->undo_alloc, &obj_list->head, obj);
+		list_remove(pop, -1 * (ssize_t)OBJ_OOB_SIZE,
+			&layout->undo_alloc, obj);
 	}
 }
 
@@ -701,7 +672,7 @@ tx_post_commit_free(PMEMobjpool *pop, struct lane_tx_layout *layout)
 {
 	LOG(3, NULL);
 
-	tx_clear_undo_log(pop, &layout->undo_free, 0, 1);
+	tx_clear_undo_log(pop, &layout->undo_free, 1, 0, 1);
 }
 
 #ifdef	USE_VG_PMEMCHECK
@@ -750,7 +721,7 @@ tx_post_commit_set(PMEMobjpool *pop, struct lane_tx_layout *layout)
 		VALGRIND_REMOVE_FROM_TX(cache, sizeof (struct tx_range_cache));
 	}
 
-	tx_clear_undo_log(pop, &layout->undo_set, 0, 0);
+	tx_clear_undo_log(pop, &layout->undo_set, 1, 0, 0);
 }
 
 /*
@@ -1692,11 +1663,8 @@ pmemobj_tx_free(PMEMoid oid)
 
 	if (oobh->data.internal_type == TYPE_ALLOCATED) {
 		/* the object is in object store */
-		struct object_store_item *obj_list =
-			&lane->pop->store->bytype[oobh->data.user_type];
-
-		list_move_oob(lane->pop, &obj_list->head,
-				&layout->undo_free, oid);
+		list_insert(lane->pop, -1 * (ssize_t)OBJ_OOB_SIZE,
+			&layout->undo_free, OID_NULL, 0, oid);
 	} else {
 		ASSERTeq(oobh->data.internal_type, TYPE_NONE);
 #ifdef USE_VG_PMEMCHECK

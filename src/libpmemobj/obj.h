@@ -70,13 +70,9 @@
 	((off) >= (pop)->lanes_offset &&\
 	(off) < (pop)->lanes_offset +\
 	(pop)->nlanes * sizeof (struct lane_layout))
-#define	OBJ_OFF_FROM_OBJ_STORE(pop, off)\
-	((off) >= (pop)->obj_store_offset &&\
-	(off) < (pop)->obj_store_offset + (pop)->obj_store_size)
 
 #define	OBJ_OFF_IS_VALID(pop, off)\
-	(OBJ_OFF_FROM_HEAP(pop, off) ||\
-	OBJ_OFF_FROM_OBJ_STORE(pop, off))
+	(OBJ_OFF_FROM_HEAP(pop, off))
 
 #define	OBJ_PTR_IS_VALID(pop, ptr)\
 	OBJ_OFF_IS_VALID(pop, OBJ_PTR_TO_OFF(pop, ptr))
@@ -125,8 +121,7 @@ struct pmemobjpool {
 	char layout[PMEMOBJ_MAX_LAYOUT];
 	uint64_t lanes_offset;
 	uint64_t nlanes;
-	uint64_t obj_store_offset;
-	uint64_t obj_store_size;
+	uint64_t root_offset;
 	uint64_t heap_offset;
 	uint64_t heap_size;
 	unsigned char unused[OBJ_DSC_P_UNUSED]; /* must be zero */
@@ -143,7 +138,6 @@ struct pmemobjpool {
 	struct pmalloc_heap *heap; /* allocator heap */
 	struct lane *lanes;
 	pthread_mutex_t *lane_locks;
-	struct object_store *store; /* object store */
 	uint64_t uuid_lo;
 
 	struct pmemobjpool *replica;	/* next replica */
@@ -164,7 +158,7 @@ struct pmemobjpool {
 
 	PMEMmutex rootlock;	/* root object lock */
 	int is_master_replica;
-	char unused2[1816];
+	char unused2[1832];
 };
 
 struct oob_header_data {
@@ -188,17 +182,6 @@ enum internal_type {
 	TYPE_ALLOCATED,
 
 	MAX_INTERNAL_TYPE
-};
-
-/* single object store item */
-struct object_store_item {
-	struct list_head head;
-	uint8_t padding[OBJ_STORE_ITEM_PADDING];
-};
-
-struct object_store {
-	struct object_store_item root;
-	struct object_store_item bytype[PMEMOBJ_NUM_OID_TYPES];
 };
 
 enum tx_state {

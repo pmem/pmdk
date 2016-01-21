@@ -44,6 +44,7 @@
 
 #include "libpmemobj.h"
 #include "benchmark.h"
+#include "redo.h"
 #include "pmalloc.h"
 
 /*
