@@ -72,6 +72,7 @@ OBJ_TESTS = \
        obj_cuckoo\
        obj_debug\
        obj_direct\
+       obj_first_next\
        obj_heap\
        obj_heap_state\
        obj_lane\
@@ -94,10 +95,12 @@ OBJ_TESTS = \
        obj_pmalloc_oom_mt\
        obj_pool\
        obj_pool_lock\
+       obj_pool_lookup\
        obj_recovery\
        obj_recreate\
        obj_redo_log\
        obj_store\
+       obj_strdup\
        obj_toid\
        obj_tx_alloc\
        obj_tx_add_range\
@@ -108,9 +111,7 @@ OBJ_TESTS = \
        obj_tx_locks\
        obj_tx_locks_abort\
        obj_tx_realloc\
-       obj_tx_strdup\
-       obj_pool_lookup\
-       obj_first_next
+       obj_tx_strdup
 
 OBJ_CPP_TESTS = \
 	obj_cpp_ptr\
