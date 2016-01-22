@@ -37,11 +37,6 @@
  *
  *  Description:  implement ART tree using libvmem based on libart
  *
- *      Version:  1.0
- *      Created:  12/08/2015 11:00:00 AM
- *     Revision:  none
- *     Compiler:  gcc
- *
  *       Author:  Andreas Bluemle, Dieter Kasper
  *                Andreas.Bluemle.external@ts.fujitsu.com
  *                dieter.kasper@ts.fujitsu.com

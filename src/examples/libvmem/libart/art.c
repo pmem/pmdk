@@ -37,17 +37,20 @@
  *
  *  Description:  implement ART tree using libvmem based on libart
  *
- *      Version:  1.0
- *      Created:  12/08/2015 11:00:00 AM
- *     Revision:  none
- *     Compiler:  gcc
- *
  *       Author:  Andreas Bluemle, Dieter Kasper
  *                Andreas.Bluemle.external@ts.fujitsu.com
  *                dieter.kasper@ts.fujitsu.com
  *
  * Organization:  FUJITSU TECHNOLOGY SOLUTIONS GMBH
  * ==========================================================================
+ */
+
+/*
+ * based on https://github.com/armon/libart/src/art.c
+ *
+ * Copyright (c) 2012, Armon Dadgar
+ * All rights reserved.
+ *
  */
 #include <stdlib.h>
 #include <string.h>
@@ -232,13 +235,13 @@ find_child(art_node *n, unsigned char c)
 		p.p3 = (art_node48 *) n;
 		i = p.p3->keys[c];
 		if (i)
-			return (&p.p3->children[i - 1]);
+			return &p.p3->children[i - 1];
 		break;
 
 	case NODE256:
 		p.p4 = (art_node256 *) n;
 		if (p.p4->children[c])
-			return (&p.p4->children[c]);
+			return &p.p4->children[c];
 		break;
 
 	default:

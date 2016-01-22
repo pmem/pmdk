@@ -37,11 +37,6 @@
  *
  *    Description:  implement ART tree using libpmemobj based on libart
  *
- *        Version:  1.0
- *        Created:  12/08/2015 11:00:00 AM
- *       Revision:  none
- *       Compiler:  gcc
- *
  *       Author:  Andreas Bluemle, Dieter Kasper
  *                Andreas.Bluemle.external@ts.fujitsu.com
  *                dieter.kasper@ts.fujitsu.com
@@ -133,7 +128,7 @@ struct ds_context my_context;
 
 static void usage(char *progname);
 int initialize_context(struct ds_context *ctx, int ac, char *av[]);
-int add_elements(struct ds_context *ctx); // PMEMobjpool *vmp
+int add_elements(struct ds_context *ctx);
 ssize_t read_line(struct ds_context *ctx, unsigned char **line);
 void exit_handler(struct ds_context *ctx);
 int art_tree_map_init(struct datastore *ds, struct ds_context *ctx);
@@ -323,7 +318,7 @@ initialize_context(struct ds_context *ctx, int ac, char *av[])
 		ctx->dirname = strdup(av[optind]);
 	}
 
-	return (errors);
+	return errors;
 }
 
 void
@@ -362,7 +357,7 @@ art_tree_map_init(struct datastore *ds, struct ds_context *ctx)
 		}
 	}
 
-	return (errors);
+	return errors;
 }
 
 /*
@@ -436,7 +431,7 @@ map_lookup(struct str2int_map *map, char *name)
 			break;
 		}
 	}
-	return (value);
+	return value;
 
 }
 
@@ -478,7 +473,7 @@ quit_func(char *appname, struct ds_context *ctx, int argc, char *argv[])
 {
 	printf("\n");
 	exit(0);
-	return (0);
+	return 0;
 }
 
 static void
@@ -520,7 +515,7 @@ set_output_func(char *appname, struct ds_context *ctx, int ac, char *av[])
 		outv_err("set_output: too many arguments [%d]\n", ac);
 		errors++;
 	}
-	return (errors);
+	return errors;
 }
 
 /*
@@ -620,7 +615,7 @@ arttree_fill_func(char *appname, struct ds_context *ctx, int ac, char *av[])
 		ctx->input = stdin;
 	}
 
-	return (errors);
+	return errors;
 }
 
 static void
@@ -655,7 +650,7 @@ asciidump(unsigned char *s, int32_t len)
 	}
 	*p = '\0'; p++;
 
-	return (outbuf);
+	return outbuf;
 }
 
 static void
@@ -828,7 +823,7 @@ arttree_examine_func(char *appname, struct ds_context *ctx, int ac, char *av[])
 		arttree_examine(ctx, (void *)(ctx->address), ctx->type);
 	}
 
-	return (errors);
+	return errors;
 }
 
 static void
@@ -877,7 +872,7 @@ arttree_search_func(char *appname, struct ds_context *ctx, int ac, char *av[])
 		}
 	}
 
-	return (errors);
+	return errors;
 }
 
 static void
@@ -921,7 +916,7 @@ arttree_delete_func(char *appname, struct ds_context *ctx, int ac, char *av[])
 		}
 	}
 
-	return (errors);
+	return errors;
 }
 
 static void
@@ -942,7 +937,7 @@ arttree_dump_func(char *appname, struct ds_context *ctx, int ac, char *av[])
 
 	art_iter(ctx->art_tree, dump_art_leaf_callback, NULL);
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -966,7 +961,7 @@ arttree_graph_func(char *appname, struct ds_context *ctx, int ac, char *av[])
 	fprintf(ctx->output, "digraph g {\nrankdir=LR;\n");
 	art_iter2(ctx->art_tree, dump_art_tree_graph, NULL);
 	fprintf(ctx->output, "}\n");
-	return (0);
+	return 0;
 }
 
 static void
@@ -1085,7 +1080,7 @@ add_elements(struct ds_context *ctx)
 		}
 	}
 
-	return (errors);
+	return errors;
 }
 
 ssize_t
@@ -1110,7 +1105,7 @@ dump_art_leaf_callback(void *data,
 		key_len, asciidump((unsigned char *)key, key_len),
 		val_len, asciidump((unsigned char *)val, val_len));
 	fflush(my_context.output);
-	return (0);
+	return 0;
 }
 
 /*
@@ -1187,7 +1182,7 @@ dump_art_tree_graph(void *data,
 	int idx;
 
 	if (data == NULL) {
-		return (0);
+		return 0;
 	}
 	cbd = (cb_data *)data;
 
@@ -1210,7 +1205,7 @@ dump_art_tree_graph(void *data,
 		fprintf(my_context.output,
 			"N%lx -> N%lx;\n",
 			(uint64_t)al, (uint64_t)al->value);
-		return (0);
+		return 0;
 	}
 
 	switch (cbd->node_type) {
@@ -1274,7 +1269,7 @@ dump_art_tree_graph(void *data,
 	default:
 		break;
 	}
-	return (0);
+	return 0;
 }
 
 /*
