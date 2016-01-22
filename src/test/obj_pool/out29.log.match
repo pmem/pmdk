@@ -1,0 +1,4 @@
+obj_pool/TEST29: START: obj_pool
+ ./obj_pool$(nW) o ./pool.set NULL
+./pool.set: pmemobj_open: Invalid argument
+obj_pool/TEST29: Done

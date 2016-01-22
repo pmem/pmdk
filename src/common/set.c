@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Intel Corporation
+ * Copyright (c) 2015-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -602,6 +602,7 @@ util_poolset_parse(const char *path, int fd, struct pool_set **setp)
 		return 0;
 	} else {
 		ERR("%s [%s:%d]", path, parser_errstr[result], nlines);
+		errno = EINVAL;
 	}
 
 err:
