@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2016, FUJITSU TECHNOLOGY SOLUTIONS GMBH
+ * Copyright (c) 2012, Armon Dadgar All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -48,8 +49,6 @@
 /*
  * based on gihub/armon/libart/src/art.c
  *
- * Copyright (c) 2012, Armon Dadgar
- * All rights reserved.
  */
 
 
@@ -96,7 +95,7 @@ static int longest_common_prefix(TOID(art_leaf) l1, TOID(art_leaf) l2,
 			    int depth);
 static int prefix_mismatch(TOID(art_node_u) n, unsigned char *key,
 			    int key_len, int depth);
-#ifdef FOOBAR
+#ifdef LIBART_ITER_PREFIX
 static int leaf_prefix_matches(TOID(art_leaf) n,
 			    const unsigned char *prefix, int prefix_len);
 #endif
@@ -1377,7 +1376,7 @@ art_iter(PMEMobjpool *pop, art_callback cb, void *data)
 	return recursive_iter(D_RO(t)->root, cb, data);
 }
 
-#ifdef FOOBAR /* {  */
+#ifdef LIBART_ITER_PREFIX /* {  */
 /*
  * Checks if a leaf prefix matches
  * @return 0 on success.
@@ -1459,7 +1458,7 @@ art_iter_prefix(art_tree *t,
 	}
 	return 0;
 }
-#endif /* } FOOBAR */
+#endif /* } LIBART_ITER_PREFIX */
 
 int
 fill_leaf(PMEMobjpool *pop, TOID(art_leaf) al,
