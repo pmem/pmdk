@@ -31,7 +31,19 @@
 #
 
 #
-# examples/libpmemobj/libart/Makefile -- build libart port to libpmemobj
+# ===========================================================================
+#
+#      Filename:  Makefile
+#
+#   Description:  build libart port to libpmemobj
+#
+#        Author:  Andreas Bluemle, Dieter Kasper
+#                 Andreas.Bluemle.external@ts.fujitsu.com
+#                 dieter.kasper@ts.fujitsu.com
+#
+#  Organization:  FUJITSU TECHNOLOGY SOLUTIONS GMBH
+#
+# ===========================================================================
 #
 
 PROGS =

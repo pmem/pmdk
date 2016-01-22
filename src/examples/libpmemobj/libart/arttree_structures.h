@@ -37,11 +37,6 @@
  *
  *    Description:  known structures of the ART tree
  *
- *        Version:  1.0
- *        Created:  10/23/2015 01:49:01 PM
- *       Revision:  none
- *       Compiler:  gcc
- *
  *         Author:  Andreas Bluemle, Dieter Kasper
  *                  Andreas.Bluemle.external@ts.fujitsu.com
  *                  dieter.kasper@ts.fujitsu.com

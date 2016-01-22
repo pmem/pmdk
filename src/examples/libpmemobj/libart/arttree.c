@@ -37,11 +37,6 @@
  *
  *    Description:  implement ART tree using libpmemobj based on libart
  *
- *        Version:  1.0
- *        Created:  10/19/2015 11:32:41 AM
- *       Revision:  none
- *       Compiler:  gcc
- *
  *         Author:  Andreas Bluemle, Dieter Kasper
  *                  Andreas.Bluemle.external@ts.fujitsu.com
  *                  dieter.kasper@ts.fujitsu.com
@@ -91,9 +86,9 @@ struct ds_context
 	int	fd;		/* file descriptor for file io mode */
 };
 
-#define	FILL 1<<1
-#define	DUMP 1<<2
-#define	GRAPH 1<<3
+#define	FILL (1<<1)
+#define	DUMP (1<<2)
+#define	GRAPH (1<<3)
 
 struct ds_context my_context;
 
@@ -106,7 +101,7 @@ extern TOID(art_node_u) null_art_node_u;
 
 int initialize_context(struct ds_context *ctx, int ac, char *av[]);
 int initialize_pool(struct ds_context *ctx);
-int add_elements(struct ds_context *ctx); // PMEMobjpool *pop
+int add_elements(struct ds_context *ctx);
 ssize_t read_line(unsigned char **line);
 void exit_handler(struct ds_context *ctx);
 int art_tree_map_init(struct datastore *ds, struct ds_context *ctx);
@@ -176,7 +171,7 @@ initialize_context(struct ds_context *ctx, int ac, char *av[])
 		ctx->filename = strdup(av[optind]);
 	}
 
-	return (errors);
+	return errors;
 }
 
 void
@@ -250,7 +245,7 @@ art_tree_map_init(struct datastore *ds, struct ds_context *ctx)
 		}
 	}
 
-	return (errors);
+	return errors;
 }
 
 /*
@@ -272,7 +267,9 @@ usage(char *progname)
 	printf("       f fill     create and fill art tree\n");
 	printf("       d dump     dump art tree\n");
 	printf("       g graph    dump art tree as a graphviz dot graph\n");
-	printf("\nfilling an art tree is done by reading key value pairs\n"
+	printf("  -n   <number>   number of key-value pairs to insert"
+	    " into the art tree\n");
+	printf("\nfilling an art tree is done by reading key-value pairs\n"
 	    "from standard input.\n"
 	    "Both keys and values are single line only.\n");
 }
@@ -355,7 +352,7 @@ add_elements(struct ds_context *ctx)
 		}
 	}
 
-	return (errors);
+	return errors;
 }
 
 ssize_t
@@ -395,7 +392,7 @@ dump_art_leaf_callback(void *data,
 		    val_len,
 		    val != NULL ? (char *)val : (char *)"NULL");
 	}
-	return (0);
+	return 0;
 }
 
 static void
@@ -514,5 +511,5 @@ dump_art_node_callback(void *data,
 		printf("leaf: key len %d = [%s], value len %d = [%s]\n",
 		    key_len, key, val_len, val);
 	}
-	return (0);
+	return 0;
 }

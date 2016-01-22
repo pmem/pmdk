@@ -38,11 +38,6 @@
  *    Description:  Examine pmem structures; structures and unions taken from
  *                  the preprocessor output of a libpmemobj compatible program.
  *
- *        Version:  1.0
- *        Created:  10/20/2015 11:16:58 AM
- *       Revision:  none
- *       Compiler:  gcc
- *
  *         Author:  Andreas Bluemle, Dieter Kasper
  *                  Andreas.Bluemle.external@ts.fujitsu.com
  *                  dieter.kasper@ts.fujitsu.com
@@ -282,7 +277,7 @@ set_root_func(char *appname, struct pmem_context *ctx, int argc, char *argv[])
 		set_root_help(appname);
 		retval = 1;
 	}
-	return (retval);
+	return retval;
 }
 
 /*
@@ -303,7 +298,7 @@ quit_func(char *appname, struct pmem_context *ctx, int argc, char *argv[])
 {
 	printf("\n");
 	exit(0);
-	return (0);
+	return 0;
 }
 
 /*
@@ -454,7 +449,7 @@ arttree_structures_func(char *appname, struct pmem_context *ctx,
 	    "};\n");
 	printf("sizeof (art_leaf) = %ld\n\n\n", sizeof (art_leaf));
 
-	return (0);
+	return 0;
 } /* arttree_structures_func() */
 
 static const char *arttree_info_help_str =
@@ -521,7 +516,7 @@ ctx_init(struct pmem_context *ctx, char *filename)
 	/* get system pagesize */
 	ctx->sys_pagesize = sysconf(_SC_PAGESIZE);
 
-	return (errors);
+	return errors;
 }
 
 int
@@ -543,17 +538,17 @@ main(int ac, char *av[])
 		switch (opt) {
 		case 'h':
 			print_help(APPNAME);
-			return (0);
+			return 0;
 		default:
 			print_usage(APPNAME);
-			return (-1);
+			return -1;
 		}
 	}
 
 	if (optind >= ac) {
 		fprintf(stderr, "ERROR: missing arguments\n");
 		print_usage(APPNAME);
-		return (-1);
+		return -1;
 	}
 
 	ctx_init(&ctx, av[optind]);

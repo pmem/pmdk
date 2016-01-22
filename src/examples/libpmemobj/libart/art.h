@@ -37,11 +37,6 @@
  *
  *    Description:  header file for art tree on pmem implementation
  *
- *        Version:  1.0
- *        Created:  10/22/2015 09:16:56 AM
- *       Revision:  none
- *       Compiler:  gcc
- *
  *         Author:  Andreas Bluemle, Dieter Kasper
  *                  Andreas.Bluemle.external@ts.fujitsu.com
  *                  dieter.kasper@ts.fujitsu.com
@@ -49,6 +44,13 @@
  *   Organization:  FUJITSU TECHNOLOGY SOLUTIONS GMBH
  *
  * ===========================================================================
+ */
+
+/*
+ * based on gihub/armon/libart/src/art.h
+ *
+ * Copyright (c) 2012, Armon Dadgar
+ * All rights reserved.
  */
 
 #ifndef	_ART_H

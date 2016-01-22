@@ -37,11 +37,6 @@
  *
  *    Description:  implementation of search function for ART tree
  *
- *        Version:  1.0
- *        Created:  11/26/2015 04:24:21 PM
- *       Revision:  none
- *       Compiler:  gcc
- *
  *         Author:  Andreas Bluemle, Dieter Kasper
  *                  Andreas.Bluemle.external@ts.fujitsu.com
  *                  dieter.kasper@ts.fujitsu.com
@@ -135,7 +130,7 @@ struct search s_funcs[] = {
 static inline int
 min(int a, int b)
 {
-	return (a < b ? b : a);
+	return (a < b) ? b : a;
 }
 
 /*
@@ -158,13 +153,13 @@ arttree_search_func(char *appname, struct pmem_context *ctx, int ac, char *av[])
 
 	value = NULL;
 	if (ctx == NULL) {
-		return (-1);
+		return -1;
 	}
 
 	if (s_ctx == NULL) {
 		s_ctx = (struct search_ctx *)malloc(sizeof (struct search_ctx));
 		if (s_ctx == NULL) {
-		    return (-1);
+		    return -1;
 		}
 		memset(s_ctx, 0, sizeof (struct search_ctx));
 	}
@@ -204,7 +199,7 @@ arttree_search_func(char *appname, struct pmem_context *ctx, int ac, char *av[])
 	}
 	free(s_ctx);
 
-	return (errors);
+	return errors;
 } /* arttree_search_func() */
 
 static int
@@ -228,7 +223,7 @@ search_parse_args(char *appname, int ac, char *av[], struct search_ctx *s_ctx)
 		s_ctx->search_key = (unsigned char *)strdup(av[optind + 0]);
 	}
 
-	return (ret);
+	return ret;
 } /* search_parse_args() */
 
 static void
@@ -272,7 +267,7 @@ leaf_matches(struct search_ctx *ctx, art_leaf *n,
 	//	return 1;
 	if (n_key->len != key_len + 1)
 		return 1;
-	return (memcmp(n_key->s, key, key_len));
+	return memcmp(n_key->s, key, key_len);
 }
 
 static int
@@ -283,9 +278,9 @@ check_prefix(art_node *n, unsigned char *key, int key_len, int depth)
 
 	for (idx = 0; idx < max_cmp; idx++) {
 		if (n->partial[idx] != key[depth + idx])
-			return (idx);
+			return idx;
 	}
-	return (idx);
+	return idx;
 }
 
 static uint64_t
@@ -308,7 +303,7 @@ find_child(art_node *n, int node_type, unsigned char c)
 			printf("%c ", p.p1->keys[i]);
 			if (p.p1->keys[i] == c) {
 				printf("]\n");
-				return (p.p1->children[i].oid.off);
+				return p.p1->children[i].oid.off;
 			}
 		}
 		break;
@@ -318,7 +313,7 @@ find_child(art_node *n, int node_type, unsigned char c)
 			printf("%c ", p.p2->keys[i]);
 			if (p.p2->keys[i] == c) {
 				printf("]\n");
-				return (p.p2->children[i].oid.off);
+				return p.p2->children[i].oid.off;
 			}
 		}
 		break;
@@ -328,7 +323,7 @@ find_child(art_node *n, int node_type, unsigned char c)
 		printf("%d ", p.p3->keys[c]);
 		if (i) {
 			printf("]\n");
-			return (p.p3->children[i - 1].oid.off);
+			return p.p3->children[i - 1].oid.off;
 		}
 		break;
 
@@ -337,14 +332,14 @@ find_child(art_node *n, int node_type, unsigned char c)
 		printf("0x%lx", p.p4->children[c].oid.off);
 		if (p.p4->children[c].oid.off != 0) {
 			printf("]\n");
-			return (p.p4->children[c].oid.off);
+			return p.p4->children[c].oid.off;
 		}
 		break;
 	default:
 		abort();
 	}
 	printf("]\n");
-	return (0);
+	return 0;
 }
 
 static uint64_t
@@ -372,7 +367,7 @@ get_offset_an(art_node_u *au)
 		break;
 	}
 
-	return (offset);
+	return offset;
 }
 
 static void *
@@ -385,7 +380,7 @@ get_node(struct search_ctx *ctx, int node_type, uint64_t off)
 	void *p;
 
 	if (!VALID_NODE_TYPE(node_type)) {
-		return (NULL);
+		return NULL;
 	}
 
 	fd = ctx->pmem_ctx->fd;
@@ -406,7 +401,7 @@ get_node(struct search_ctx *ctx, int node_type, uint64_t off)
 		p = mmap(NULL, off_in_page + new_len,
 		    PROT_READ, MAP_SHARED, fd, off_pages);
 	}
-	return (p + off_in_page);
+	return p + off_in_page;
 }
 
 static char *
@@ -450,7 +445,7 @@ search_key(char *appname, struct search_ctx *ctx)
 					n_value = (var_string *)
 					    get_node(ctx, VAR_STRING,
 					    ((art_leaf *)p_an)->value.oid.off);
-					return ((char *)(n_value->s));
+					return (char *)(n_value->s);
 				}
 			}
 			an = (art_node *)p_an;
@@ -459,7 +454,7 @@ search_key(char *appname, struct search_ctx *ctx)
 					    key_len, depth);
 				if (prefix_len !=
 				    min(MAX_PREFIX_LEN, an->partial_len)) {
-					return (NULL);
+					return NULL;
 				}
 				depth = depth + an->partial_len;
 			}
@@ -475,9 +470,9 @@ search_key(char *appname, struct search_ctx *ctx)
 	}
 
 	if (errors) {
-		return (NULL);
+		return NULL;
 	} else {
-		return (value);
+		return value;
 	}
 }
 

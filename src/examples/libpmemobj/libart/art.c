@@ -31,20 +31,11 @@
  */
 
 /*
- * abc.c -- implementation of ... TBD
- */
-
-/*
  * ===========================================================================
  *
  *       Filename:  art.c
  *
  *    Description:  implement ART tree using libpmemobj based on libart
- *
- *        Version:  1.0
- *        Created:  10/19/2015 11:32:41 AM
- *       Revision:  none
- *       Compiler:  gcc
  *
  *         Author:  Andreas Bluemle, Dieter Kasper
  *                  Andreas.Bluemle.external@ts.fujitsu.com
@@ -53,6 +44,14 @@
  *   Organization:  FUJITSU TECHNOLOGY SOLUTIONS GMBH
  * ============================================================================
  */
+
+/*
+ * based on gihub/armon/libart/src/art.c
+ *
+ * Copyright (c) 2012, Armon Dadgar
+ * All rights reserved.
+ */
+
 
 #include <assert.h>
 #include <errno.h>
@@ -76,7 +75,7 @@ TOID(art_node_u) null_art_node_u;
 int art_tree_init(PMEMobjpool *pop, int *newpool);
 TOID(art_node_u) make_leaf(PMEMobjpool *pop, const unsigned char *key,
 		    int key_len, void *value, int val_len);
-int fill_leaf(PMEMobjpool *pop, TOID(art_leaf)al, const unsigned char *key,
+int fill_leaf(PMEMobjpool *pop, TOID(art_leaf) al, const unsigned char *key,
 		    int key_len, void *value, int val_len);
 TOID(art_node_u) alloc_node(PMEMobjpool *pop, art_node_type node_type);
 
@@ -85,56 +84,59 @@ TOID(var_string) art_insert(PMEMobjpool *pop, const unsigned char *key,
 TOID(var_string) art_delete(PMEMobjpool *pop, const unsigned char *key,
 		    int key_len, void *value, int val_len);
 static TOID(var_string) recursive_insert(PMEMobjpool *pop,
-			    TOID(art_node_u)n, TOID(art_node_u) *ref,
+			    TOID(art_node_u) n, TOID(art_node_u) *ref,
 			    const unsigned char *key, int key_len,
 			    void *value, int val_len, int depth, int *old_val);
 static TOID(art_leaf) recursive_delete(PMEMobjpool *pop,
-			    TOID(art_node_u)n, TOID(art_node_u) *ref,
+			    TOID(art_node_u) n, TOID(art_node_u) *ref,
 			    const unsigned char *key, int key_len, int depth);
-static int leaf_matches(TOID(art_leaf)n, const unsigned char *key,
+static int leaf_matches(TOID(art_leaf) n, const unsigned char *key,
 			    int key_len, int depth);
-static int longest_common_prefix(TOID(art_leaf)l1, TOID(art_leaf)l2, int depth);
-static int prefix_mismatch(TOID(art_node_u)n, unsigned char *key,
+static int longest_common_prefix(TOID(art_leaf) l1, TOID(art_leaf) l2,
+			    int depth);
+static int prefix_mismatch(TOID(art_node_u) n, unsigned char *key,
 			    int key_len, int depth);
-// static int leaf_prefix_matches(TOID(art_leaf)n,
-//		    const unsigned char *prefix, int prefix_len);
-static TOID(art_leaf) minimum(TOID(art_node_u)n_u);
-static TOID(art_leaf) maximum(TOID(art_node_u)n_u);
+#ifdef FOOBAR
+static int leaf_prefix_matches(TOID(art_leaf) n,
+			    const unsigned char *prefix, int prefix_len);
+#endif
+static TOID(art_leaf) minimum(TOID(art_node_u) n_u);
+static TOID(art_leaf) maximum(TOID(art_node_u) n_u);
 static void copy_header(art_node *dest, art_node *src);
-static void add_child(PMEMobjpool *pop, TOID(art_node_u)n,
-			    TOID(art_node_u)*ref, unsigned char c,
-			    TOID(art_node_u)child);
-static void add_child4(PMEMobjpool *pop, TOID(art_node4)n,
-			    TOID(art_node_u)*ref, unsigned char c,
-			    TOID(art_node_u)child);
-static void add_child16(PMEMobjpool *pop, TOID(art_node16)n,
-			    TOID(art_node_u)*ref, unsigned char c,
-			    TOID(art_node_u)child);
-static void add_child48(PMEMobjpool *pop, TOID(art_node48)n,
-			    TOID(art_node_u)*ref, unsigned char c,
-			    TOID(art_node_u)child);
-static void add_child256(PMEMobjpool *pop, TOID(art_node256)n,
-			    TOID(art_node_u)*ref, unsigned char c,
-			    TOID(art_node_u)child);
-static void remove_child(PMEMobjpool *pop, TOID(art_node_u)n,
-			    TOID(art_node_u)*ref, unsigned char c,
-			    TOID(art_node_u)*l);
-static void remove_child4(PMEMobjpool *pop, TOID(art_node4)n,
-			    TOID(art_node_u)*ref, TOID(art_node_u)*l);
-static void remove_child16(PMEMobjpool *pop, TOID(art_node16)n,
-			    TOID(art_node_u)*ref, TOID(art_node_u)*l);
-static void remove_child48(PMEMobjpool *pop, TOID(art_node48)n,
-			    TOID(art_node_u)*ref, unsigned char c);
-static void remove_child256(PMEMobjpool *pop, TOID(art_node256)n,
-			    TOID(art_node_u)*ref, unsigned char c);
-static TOID(art_node_u)* find_child(TOID(art_node_u)n, unsigned char c);
+static void add_child(PMEMobjpool *pop, TOID(art_node_u) n,
+			    TOID(art_node_u) *ref, unsigned char c,
+			    TOID(art_node_u) child);
+static void add_child4(PMEMobjpool *pop, TOID(art_node4) n,
+			    TOID(art_node_u) *ref, unsigned char c,
+			    TOID(art_node_u) child);
+static void add_child16(PMEMobjpool *pop, TOID(art_node16) n,
+			    TOID(art_node_u) *ref, unsigned char c,
+			    TOID(art_node_u) child);
+static void add_child48(PMEMobjpool *pop, TOID(art_node48) n,
+			    TOID(art_node_u) *ref, unsigned char c,
+			    TOID(art_node_u) child);
+static void add_child256(PMEMobjpool *pop, TOID(art_node256) n,
+			    TOID(art_node_u) *ref, unsigned char c,
+			    TOID(art_node_u) child);
+static void remove_child(PMEMobjpool *pop, TOID(art_node_u) n,
+			    TOID(art_node_u) *ref, unsigned char c,
+			    TOID(art_node_u) *l);
+static void remove_child4(PMEMobjpool *pop, TOID(art_node4) n,
+			    TOID(art_node_u) *ref, TOID(art_node_u) *l);
+static void remove_child16(PMEMobjpool *pop, TOID(art_node16) n,
+			    TOID(art_node_u) *ref, TOID(art_node_u) *l);
+static void remove_child48(PMEMobjpool *pop, TOID(art_node48) n,
+			    TOID(art_node_u) *ref, unsigned char c);
+static void remove_child256(PMEMobjpool *pop, TOID(art_node256) n,
+			    TOID(art_node_u) *ref, unsigned char c);
+static TOID(art_node_u)* find_child(TOID(art_node_u) n, unsigned char c);
 static int check_prefix(const art_node *n, const unsigned char *key,
 			    int key_len, int depth);
-static int leaf_matches(TOID(art_leaf)n, const unsigned char *key,
+static int leaf_matches(TOID(art_leaf) n, const unsigned char *key,
 			    int key_len, int depth);
-TOID(art_leaf) art_minimum(TOID(struct art_tree_root)t);
-TOID(art_leaf) art_maximum(TOID(struct art_tree_root)t);
-static void destroy_node(TOID(art_node_u)n_u);
+TOID(art_leaf) art_minimum(TOID(struct art_tree_root) t);
+TOID(art_leaf) art_maximum(TOID(struct art_tree_root) t);
+static void destroy_node(TOID(art_node_u) n_u);
 int art_iter(PMEMobjpool *pop, art_callback cb, void *data);
 
 static void PMEMOIDcopy(PMEMoid *dest, const PMEMoid *src, const int n);
@@ -243,12 +245,12 @@ art_tree_init(PMEMobjpool *pop, int *newpool)
 		} TX_END
 	}
 
-	return (errors);
+	return errors;
 }
 
 // Recursively destroys the tree
 static void
-destroy_node(TOID(art_node_u)n_u)
+destroy_node(TOID(art_node_u) n_u)
 {
 	// Break if null
 	if (TOID_IS_NULL(n_u))
@@ -311,7 +313,7 @@ destroy_node(TOID(art_node_u)n_u)
  * @return 0 on success.
  */
 int
-art_tree_destroy(TOID(struct art_tree_root)t)
+art_tree_destroy(TOID(struct art_tree_root) t)
 {
 	destroy_node(D_RO(t)->root);
 	return 0;
@@ -323,27 +325,27 @@ art_tree_destroy(TOID(struct art_tree_root)t)
 
 #ifndef BROKEN_GCC_C99_INLINE
 uint64_t
-art_size(TOID(struct art_tree_root)t)
+art_size(TOID(struct art_tree_root) t)
 {
-	return (D_RW(t)->size);
+	return D_RW(t)->size;
 }
 #endif
 
 static TOID(art_node_u)*
-find_child(TOID(art_node_u)n, unsigned char c)
+find_child(TOID(art_node_u) n, unsigned char c)
 {
 	int i, mask, bitfield;
-	TOID(art_node4)an4;
-	TOID(art_node16)an16;
-	TOID(art_node48)an48;
-	TOID(art_node256)an256;
+	TOID(art_node4)    an4;
+	TOID(art_node16)   an16;
+	TOID(art_node48)   an48;
+	TOID(art_node256)  an256;
 
 	switch (D_RO(n)->art_node_type) {
 	case NODE4:
 		an4 = D_RO(n)->u.an4;
 		for (i = 0; i < D_RO(an4)->n.num_children; i++) {
 			if (D_RO(an4)->keys[i] == c) {
-				return (&(D_RW(an4)->children[i]));
+				return &(D_RW(an4)->children[i]);
 			}
 		}
 		break;
@@ -366,8 +368,7 @@ find_child(TOID(art_node_u)n, unsigned char c)
 		 * the index.
 		 */
 		if (bitfield) {
-			return (
-			    &(D_RW(an16)->children[__builtin_ctz(bitfield)]));
+			return &(D_RW(an16)->children[__builtin_ctz(bitfield)]);
 		}
 		break;
 	}
@@ -376,14 +377,14 @@ find_child(TOID(art_node_u)n, unsigned char c)
 	    an48 = D_RO(n)->u.an48;
 	    i = D_RO(an48)->keys[c];
 	    if (i) {
-		return (&(D_RW(an48)->children[i - 1]));
+		return &(D_RW(an48)->children[i - 1]);
 	    }
 	    break;
 
 	case NODE256:
 	    an256 = D_RO(n)->u.an256;
 	    if (!TOID_IS_NULL(D_RO(an256)->children[c])) {
-		return (&(D_RW(an256)->children[c]));
+		return &(D_RW(an256)->children[c]);
 	    }
 	    break;
 
@@ -421,7 +422,7 @@ check_prefix(const art_node *n,
  * @return 0 on success.
  */
 static int
-leaf_matches(TOID(art_leaf)n, const unsigned char *key, int key_len, int depth)
+leaf_matches(TOID(art_leaf) n, const unsigned char *key, int key_len, int depth)
 {
 	(void) depth;
 	// Fail if the key lengths are different
@@ -441,7 +442,7 @@ leaf_matches(TOID(art_leaf)n, const unsigned char *key, int key_len, int depth)
  * the value pointer is returned.
  */
 TOID(var_string)
-art_search(TOID(struct art_tree_root)t, const unsigned char *key, int key_len)
+art_search(TOID(struct art_tree_root) t, const unsigned char *key, int key_len)
 {
 	TOID(art_node_u) *child;
 	TOID(art_node_u) n = D_RO(t)->root;
@@ -491,11 +492,11 @@ art_search(TOID(struct art_tree_root)t, const unsigned char *key, int key_len)
 
 // Find the minimum leaf under a node
 static TOID(art_leaf)
-minimum(TOID(art_node_u)n_u)
+minimum(TOID(art_node_u) n_u)
 {
-	TOID(art_node4) an4;
-	TOID(art_node16) an16;
-	TOID(art_node48) an48;
+	TOID(art_node4)   an4;
+	TOID(art_node16)  an16;
+	TOID(art_node48)  an48;
 	TOID(art_node256) an256;
 
 	// Handle base cases
@@ -532,7 +533,7 @@ minimum(TOID(art_node_u)n_u)
 
 // Find the maximum leaf under a node
 static TOID(art_leaf)
-maximum(TOID(art_node_u)n_u)
+maximum(TOID(art_node_u) n_u)
 {
 	TOID(art_node4)		an4;
 	TOID(art_node16)	an16;
@@ -578,7 +579,7 @@ maximum(TOID(art_node_u)n_u)
  * Returns the minimum valued leaf
  */
 TOID(art_leaf)
-art_minimum(TOID(struct art_tree_root)t)
+art_minimum(TOID(struct art_tree_root) t)
 {
 	return minimum(D_RO(t)->root);
 }
@@ -587,7 +588,7 @@ art_minimum(TOID(struct art_tree_root)t)
  * Returns the maximum valued leaf
  */
 TOID(art_leaf)
-art_maximum(TOID(struct art_tree_root)t)
+art_maximum(TOID(struct art_tree_root) t)
 {
 	return maximum(D_RO(t)->root);
 }
@@ -605,10 +606,10 @@ make_leaf(PMEMobjpool *pop,
 }
 
 static int
-longest_common_prefix(TOID(art_leaf)l1, TOID(art_leaf)l2, int depth)
+longest_common_prefix(TOID(art_leaf) l1, TOID(art_leaf) l2, int depth)
 {
-	TOID(var_string)l1_key = D_RO(l1)->key;
-	TOID(var_string)l2_key = D_RO(l2)->key;
+	TOID(var_string) l1_key = D_RO(l1)->key;
+	TOID(var_string) l2_key = D_RO(l2)->key;
 	int max_cmp;
 	int idx;
 
@@ -631,8 +632,8 @@ copy_header(art_node *dest, art_node *src)
 }
 
 static void
-add_child256(PMEMobjpool *pop, TOID(art_node256)n, TOID(art_node_u)*ref,
-	unsigned char c, TOID(art_node_u)child)
+add_child256(PMEMobjpool *pop, TOID(art_node256) n, TOID(art_node_u) *ref,
+	unsigned char c, TOID(art_node_u) child)
 {
 	art_node *n_an;
 
@@ -643,8 +644,8 @@ add_child256(PMEMobjpool *pop, TOID(art_node256)n, TOID(art_node_u)*ref,
 }
 
 static void
-add_child48(PMEMobjpool *pop, TOID(art_node48)n, TOID(art_node_u)*ref,
-	unsigned char c, TOID(art_node_u)child)
+add_child48(PMEMobjpool *pop, TOID(art_node48) n, TOID(art_node_u) *ref,
+	unsigned char c, TOID(art_node_u) child)
 {
 	art_node *n_an;
 
@@ -657,8 +658,8 @@ add_child48(PMEMobjpool *pop, TOID(art_node48)n, TOID(art_node_u)*ref,
 		D_RW(n)->keys[c] = pos + 1;
 		n_an->num_children++;
 	} else {
-		TOID(art_node_u)new_u = alloc_node(pop, NODE256);
-		TOID(art_node256)new   = D_RO(new_u)->u.an256;
+		TOID(art_node_u)  new_u = alloc_node(pop, NODE256);
+		TOID(art_node256) new   = D_RO(new_u)->u.an256;
 		for (int i = 0; i < 256; i++) {
 			if (D_RO(n)->keys[i]) {
 				D_RW(new)->children[i] =
@@ -673,8 +674,8 @@ add_child48(PMEMobjpool *pop, TOID(art_node48)n, TOID(art_node_u)*ref,
 }
 
 static void
-add_child16(PMEMobjpool *pop, TOID(art_node16)n, TOID(art_node_u)*ref,
-	unsigned char c, TOID(art_node_u)child)
+add_child16(PMEMobjpool *pop, TOID(art_node16) n, TOID(art_node_u)*ref,
+	unsigned char c, TOID(art_node_u) child)
 {
 	art_node *n_an;
 
@@ -710,8 +711,8 @@ add_child16(PMEMobjpool *pop, TOID(art_node16)n, TOID(art_node_u)*ref,
 		n_an->num_children++;
 
 	} else {
-		TOID(art_node_u)new_u = alloc_node(pop, NODE48);
-		TOID(art_node48)new   = D_RO(new_u)->u.an48;
+		TOID(art_node_u) new_u = alloc_node(pop, NODE48);
+		TOID(art_node48) new   = D_RO(new_u)->u.an48;
 
 		// Copy the child pointers and populate the key map
 		PMEMOIDcopy(&(D_RW(new)->children[0].oid),
@@ -728,8 +729,8 @@ add_child16(PMEMobjpool *pop, TOID(art_node16)n, TOID(art_node_u)*ref,
 }
 
 static void
-add_child4(PMEMobjpool *pop, TOID(art_node4)n, TOID(art_node_u)*ref,
-	unsigned char c, TOID(art_node_u)child)
+add_child4(PMEMobjpool *pop, TOID(art_node4) n, TOID(art_node_u) *ref,
+	unsigned char c, TOID(art_node_u) child)
 {
 	art_node *n_an;
 
@@ -752,8 +753,8 @@ add_child4(PMEMobjpool *pop, TOID(art_node4)n, TOID(art_node_u)*ref,
 		D_RW(n)->children[idx] = child;
 		n_an->num_children++;
 	} else {
-		TOID(art_node_u)new_u = alloc_node(pop, NODE16);
-		TOID(art_node16)new   = D_RO(new_u)->u.an16;
+		TOID(art_node_u) new_u = alloc_node(pop, NODE16);
+		TOID(art_node16) new   = D_RO(new_u)->u.an16;
 
 		// Copy the child pointers and the key map
 		PMEMOIDcopy(&(D_RW(new)->children[0].oid),
@@ -767,8 +768,8 @@ add_child4(PMEMobjpool *pop, TOID(art_node4)n, TOID(art_node_u)*ref,
 }
 
 static void
-add_child(PMEMobjpool *pop, TOID(art_node_u)n, TOID(art_node_u)*ref,
-	unsigned char c, TOID(art_node_u)child)
+add_child(PMEMobjpool *pop, TOID(art_node_u) n, TOID(art_node_u) *ref,
+	unsigned char c, TOID(art_node_u) child)
 {
 	TX_BEGIN(pop) {
 		switch (D_RO(n)->art_node_type) {
@@ -791,7 +792,7 @@ add_child(PMEMobjpool *pop, TOID(art_node_u)n, TOID(art_node_u)*ref,
 }
 
 static int
-prefix_mismatch(TOID(art_node_u)n, unsigned char *key, int key_len, int depth)
+prefix_mismatch(TOID(art_node_u) n, unsigned char *key, int key_len, int depth)
 {
 	const art_node *n_an;
 	int max_cmp;
@@ -813,7 +814,7 @@ prefix_mismatch(TOID(art_node_u)n, unsigned char *key, int key_len, int depth)
 	// If the prefix is short we can avoid finding a leaf
 	if (n_an->partial_len > MAX_PREFIX_LEN) {
 		// Prefix is longer than what we've checked, find a leaf
-		TOID(art_leaf)l = minimum(n);
+		TOID(art_leaf) l = minimum(n);
 		max_cmp = min(D_RO(D_RO(l)->key)->len, key_len) - depth;
 		for (; idx < max_cmp; idx++) {
 			if (D_RO(D_RO(l)->key)->s[idx + depth] !=
@@ -825,7 +826,7 @@ prefix_mismatch(TOID(art_node_u)n, unsigned char *key, int key_len, int depth)
 }
 
 static TOID(var_string)
-recursive_insert(PMEMobjpool *pop, TOID(art_node_u)n, TOID(art_node_u) *ref,
+recursive_insert(PMEMobjpool *pop, TOID(art_node_u) n, TOID(art_node_u) *ref,
 	const unsigned char *key, int key_len,
 	void *value, int val_len, int depth, int *old)
 {
@@ -843,7 +844,7 @@ recursive_insert(PMEMobjpool *pop, TOID(art_node_u)n, TOID(art_node_u) *ref,
 		} TX_FINALLY {
 			retval = null_var_string;
 		} TX_END
-			return (retval);
+		return retval;
 	}
 
 	// If we are at a leaf, we need to replace it with a node
@@ -863,24 +864,24 @@ recursive_insert(PMEMobjpool *pop, TOID(art_node_u)n, TOID(art_node_u) *ref,
 			} TX_FINALLY {
 				retval = old_val;
 			} TX_END
-			return (retval);
+			return retval;
 		}
 
 		TX_BEGIN(pop) {
 			// New value, we must split the leaf into a node4
 			TX_ADD(*ref);
-			TOID(art_node_u)new_u	= alloc_node(pop, NODE4);
+			TOID(art_node_u) new_u	= alloc_node(pop, NODE4);
 			TX_ADD(new_u);
-			TOID(art_node4)new	= D_RO(new_u)->u.an4;
+			TOID(art_node4)  new	= D_RO(new_u)->u.an4;
 			TX_ADD(new);
 			art_node *new_n		= &(D_RW(new)->n);
 
 			// Create a new leaf
 
-			TOID(art_node_u)l2_u =
+			TOID(art_node_u) l2_u =
 			    make_leaf(pop, key, key_len, value, val_len);
 			TX_ADD(l2_u);
-			TOID(art_leaf)l2 = D_RO(l2_u)->u.al;
+			TOID(art_leaf) l2 = D_RO(l2_u)->u.al;
 
 			// Determine longest prefix
 			int longest_prefix =
@@ -901,7 +902,7 @@ recursive_insert(PMEMobjpool *pop, TOID(art_node_u)n, TOID(art_node_u) *ref,
 		} TX_FINALLY {
 			retval = null_var_string;
 		} TX_END
-		return (retval);
+		return retval;
 	}
 
 	// Check if given node has a prefix
@@ -924,9 +925,9 @@ recursive_insert(PMEMobjpool *pop, TOID(art_node_u)n, TOID(art_node_u) *ref,
 		TX_BEGIN(pop) {
 			// Create a new node
 			TX_ADD(*ref);
-			TOID(art_node_u)new_u	= alloc_node(pop, NODE4);
+			TOID(art_node_u) new_u	= alloc_node(pop, NODE4);
 			TX_ADD(new_u);
-			TOID(art_node4)new	= D_RO(new_u)->u.an4;
+			TOID(art_node4)  new	= D_RO(new_u)->u.an4;
 			TX_ADD(new);
 			art_node *new_n		= &(D_RW(new)->n);
 
@@ -972,7 +973,7 @@ recursive_insert(PMEMobjpool *pop, TOID(art_node_u)n, TOID(art_node_u) *ref,
 		} TX_FINALLY {
 			retval = null_var_string;
 		} TX_END
-		return (retval);
+		return retval;
 	}
 
 RECURSE_SEARCH:;
@@ -996,7 +997,7 @@ RECURSE_SEARCH:;
 		retval = null_var_string;
 	} TX_END;
 
-	return (retval);
+	return retval;
 }
 
 /*
@@ -1035,7 +1036,7 @@ art_insert(PMEMobjpool *pop,
 
 static void
 remove_child256(PMEMobjpool *pop,
-	TOID(art_node256)n, TOID(art_node_u)*ref, unsigned char c)
+	TOID(art_node256) n, TOID(art_node_u) *ref, unsigned char c)
 {
 	art_node *n_an = &(D_RW(n)->n);
 	D_RW(n)->children[c].oid = OID_NULL;
@@ -1044,14 +1045,14 @@ remove_child256(PMEMobjpool *pop,
 	// Resize to a node48 on underflow, not immediately to prevent
 	// trashing if we sit on the 48/49 boundary
 	if (n_an->num_children == 37) {
-		TOID(art_node_u)new_u = alloc_node(pop, NODE48);
-		TOID(art_node48)new_an48 = D_RO(new_u)->u.an48;
+		TOID(art_node_u) new_u = alloc_node(pop, NODE48);
+		TOID(art_node48) new_an48 = D_RO(new_u)->u.an48;
 		*ref = new_u;
 		copy_header(&(D_RW(new_an48)->n), n_an);
 
 		int pos = 0;
 		for (int i = 0; i < 256; i++) {
-			if (!(TOID_IS_NULL(D_RO(n)->children[i]))) {
+			if (!TOID_IS_NULL(D_RO(n)->children[i])) {
 				D_RW(new_an48)->children[pos] =
 				    D_RO(n)->children[i];
 				D_RW(new_an48)->keys[i] = pos + 1;
@@ -1064,7 +1065,7 @@ remove_child256(PMEMobjpool *pop,
 
 static void
 remove_child48(PMEMobjpool *pop,
-	TOID(art_node48)n, TOID(art_node_u)*ref, unsigned char c)
+	TOID(art_node48) n, TOID(art_node_u) *ref, unsigned char c)
 {
 	int pos = D_RO(n)->keys[c];
 	art_node *n_an   = &(D_RW(n)->n);
@@ -1073,8 +1074,8 @@ remove_child48(PMEMobjpool *pop,
 	n_an->num_children--;
 
 	if (n_an->num_children == 12) {
-		TOID(art_node_u)new_u = alloc_node(pop, NODE16);
-		TOID(art_node16)new_an16 = D_RO(new_u)->u.an16;
+		TOID(art_node_u) new_u = alloc_node(pop, NODE16);
+		TOID(art_node16) new_an16 = D_RO(new_u)->u.an16;
 		*ref = new_u;
 		copy_header(&(D_RW(new_an16)->n), n_an);
 
@@ -1094,7 +1095,7 @@ remove_child48(PMEMobjpool *pop,
 
 static void
 remove_child16(PMEMobjpool *pop,
-	TOID(art_node16)n, TOID(art_node_u)*ref, TOID(art_node_u)*l)
+	TOID(art_node16) n, TOID(art_node_u) *ref, TOID(art_node_u) *l)
 {
 	/* XXX: check distance calculation */
 	int pos = (l - &(D_RO(n)->children[0])) / sizeof (TOID(art_node_u));
@@ -1108,8 +1109,8 @@ remove_child16(PMEMobjpool *pop,
 	(*num_children)--;
 
 	if (*num_children == 3) {
-		TOID(art_node_u)new_u	= alloc_node(pop, NODE4);
-		TOID(art_node4)new_an4	= D_RO(new_u)->u.an4;
+		TOID(art_node_u) new_u	 = alloc_node(pop, NODE4);
+		TOID(art_node4)  new_an4 = D_RO(new_u)->u.an4;
 		*ref = new_u;
 		copy_header(&(D_RW(new_an4)->n), &(D_RW(n)->n));
 		memcpy(D_RW(new_an4)->keys, D_RO(n)->keys, 4);
@@ -1121,7 +1122,7 @@ remove_child16(PMEMobjpool *pop,
 
 static void
 remove_child4(PMEMobjpool *pop,
-	TOID(art_node4)n, TOID(art_node_u)*ref, TOID(art_node_u)*l)
+	TOID(art_node4) n, TOID(art_node_u) *ref, TOID(art_node_u) *l)
 {
 	/* XXX: check distance calculation */
 	int pos = (l - &(D_RO(n)->children[0])) / sizeof (TOID(art_node_u));
@@ -1165,8 +1166,8 @@ remove_child4(PMEMobjpool *pop,
 
 static void
 remove_child(PMEMobjpool *pop,
-	TOID(art_node_u)n, TOID(art_node_u)*ref,
-	unsigned char c, TOID(art_node_u)*l)
+	TOID(art_node_u) n, TOID(art_node_u) *ref,
+	unsigned char c, TOID(art_node_u) *l)
 {
 	switch (D_RO(n)->art_node_type) {
 	case NODE4:
@@ -1184,7 +1185,7 @@ remove_child(PMEMobjpool *pop,
 
 static TOID(art_leaf)
 recursive_delete(PMEMobjpool *pop,
-	TOID(art_node_u)n, TOID(art_node_u) *ref,
+	TOID(art_node_u) n, TOID(art_node_u) *ref,
 	const unsigned char *key, int key_len, int depth)
 {
 	const art_node *n_an;
@@ -1254,7 +1255,7 @@ art_delete(PMEMobjpool *pop,
 	const unsigned char *key, int key_len, void *value, int val_len)
 {
 	TOID(struct art_tree_root)root = POBJ_ROOT(pop, struct art_tree_root);
-	TOID(art_leaf)l;
+	TOID(art_leaf) l;
 
 	l = recursive_delete(pop, D_RO(root)->root,
 		    &D_RW(root)->root, key, key_len, 0);
@@ -1372,17 +1373,17 @@ recursive_iter(TOID(art_node_u)n, art_callback cb, void *data)
 int
 art_iter(PMEMobjpool *pop, art_callback cb, void *data)
 {
-	TOID(struct art_tree_root)t = POBJ_ROOT(pop, struct art_tree_root);
+	TOID(struct art_tree_root) t = POBJ_ROOT(pop, struct art_tree_root);
 	return recursive_iter(D_RO(t)->root, cb, data);
 }
 
-#ifdef TBD /* {  */
+#ifdef FOOBAR /* {  */
 /*
  * Checks if a leaf prefix matches
  * @return 0 on success.
  */
 static int
-leaf_prefix_matches(TOID(art_leaf)n,
+leaf_prefix_matches(TOID(art_leaf) n,
 	const unsigned char *prefix, int prefix_len)
 {
 	// Fail if the key length is too short
@@ -1458,10 +1459,10 @@ art_iter_prefix(art_tree *t,
 	}
 	return 0;
 }
-#endif /* } TBD */
+#endif /* } FOOBAR */
 
 int
-fill_leaf(PMEMobjpool *pop, TOID(art_leaf)al,
+fill_leaf(PMEMobjpool *pop, TOID(art_leaf) al,
 	const unsigned char *key, int key_len, void *value, int val_len)
 {
 	int retval = 0;

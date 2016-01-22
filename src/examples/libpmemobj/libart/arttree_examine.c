@@ -37,11 +37,6 @@
  *
  *    Description:  implementation of examine function for ART tree structures
  *
- *        Version:  1.0
- *        Created:  10/23/2015 04:24:21 PM
- *       Revision:  none
- *       Compiler:  gcc
- *
  *         Author:  Andreas Bluemle, Dieter Kasper
  *                  Andreas.Bluemle.external@ts.fujitsu.com
  *                  dieter.kasper@ts.fujitsu.com
@@ -217,7 +212,7 @@ arttree_examine_func(char *appname, struct pmem_context *ctx,
 	struct examine *ex;
 
 	if (ctx == NULL) {
-		return (-1);
+		return -1;
 	}
 
 	if (ex_ctx == NULL) {
@@ -225,7 +220,7 @@ arttree_examine_func(char *appname, struct pmem_context *ctx,
 		    malloc(sizeof (struct examine_ctx));
 		memset(ex_ctx, 0, sizeof (struct examine_ctx));
 		if (ex_ctx == NULL) {
-			return (-1);
+			return -1;
 		}
 	}
 
@@ -243,7 +238,7 @@ arttree_examine_func(char *appname, struct pmem_context *ctx,
 			ex->func(appname, ex_ctx, offset);
 		}
 	}
-	return (errors);
+	return errors;
 } /* arttree_examine_func() */
 
 static int
@@ -269,7 +264,7 @@ examine_parse_args(char *appname, int ac, char *av[],
 		ex_ctx->type_name	= strdup(av[optind + 1]);
 	}
 
-	return (ret);
+	return ret;
 }
 
 static void
@@ -324,7 +319,7 @@ examine_PMEMoid(char *appname, struct examine_ctx *ctx, off_t off)
 		errors++;
 	}
 
-	return (errors);
+	return errors;
 }
 
 static int
@@ -350,7 +345,7 @@ examine_art_tree_root(char *appname, struct examine_ctx *ctx, off_t off)
 		errors++;
 	}
 
-	return (errors);
+	return errors;
 }
 
 static int
@@ -438,7 +433,7 @@ examine_art_node4(char *appname, struct examine_ctx *ctx, off_t off)
 		errors++;
 	}
 
-	return (errors);
+	return errors;
 }
 
 static int
@@ -475,7 +470,7 @@ examine_art_node16(char *appname, struct examine_ctx *ctx, off_t off)
 		errors++;
 	}
 
-	return (errors);
+	return errors;
 }
 
 static int
@@ -512,7 +507,7 @@ examine_art_node48(char *appname, struct examine_ctx *ctx, off_t off)
 		errors++;
 	}
 
-	return (errors);
+	return errors;
 }
 
 static int
@@ -545,7 +540,7 @@ examine_art_node256(char *appname, struct examine_ctx *ctx, off_t off)
 		errors++;
 	}
 
-	return (errors);
+	return errors;
 }
 
 #if 0
@@ -578,7 +573,7 @@ examine_art_node(char *appname, struct examine_ctx *ctx, off_t off)
 		errors++;
 	}
 
-	return (errors);
+	return errors;
 }
 #else
 static int
@@ -596,7 +591,7 @@ examine_art_node(art_node *an)
 	printf("\n]");
 	printf("\n};\n");
 
-	return (0);
+	return 0;
 }
 #endif
 
@@ -623,7 +618,7 @@ examine_art_leaf(char *appname, struct examine_ctx *ctx, off_t off)
 		errors++;
 	}
 
-	return (errors);
+	return errors;
 }
 
 static int
@@ -648,5 +643,5 @@ examine_var_string(char *appname, struct examine_ctx *ctx, off_t off)
 		errors++;
 	}
 
-	return (errors);
+	return errors;
 }
