@@ -2683,7 +2683,8 @@ can be called internally by the library.
 .IP
 The
 .BR pmemobj_tx_errno ()
-function returns last transaction error code.
+function returns last transaction error code. It must be called only during
+.IR TX_STAGE_ONABORT .
 .PP
 .BI "void pmemobj_tx_process(void);
 .IP
