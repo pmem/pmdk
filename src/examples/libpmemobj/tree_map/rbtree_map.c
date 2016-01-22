@@ -130,12 +130,17 @@ rbtree_map_new(PMEMobjpool *pop, TOID(struct rbtree_map) *map, void *arg)
  * rbtree_map_clear_node -- (internal) clears this node and its children
  */
 static void
-rbtree_map_clear_node(TOID(struct tree_map_node) p)
+rbtree_map_clear_node(TOID(struct rbtree_map) map, TOID(struct tree_map_node) p)
 {
-	rbtree_map_clear_node(D_RO(p)->slots[RB_LEFT]);
-	rbtree_map_clear_node(D_RO(p)->slots[RB_RIGHT]);
+	TOID(struct tree_map_node) s = D_RO(map)->sentinel;
 
-	pmemobj_tx_free(p.oid);
+	if (!NODE_IS_NULL(D_RO(p)->slots[RB_LEFT]))
+		rbtree_map_clear_node(map, D_RO(p)->slots[RB_LEFT]);
+
+	if (!NODE_IS_NULL(D_RO(p)->slots[RB_RIGHT]))
+		rbtree_map_clear_node(map, D_RO(p)->slots[RB_RIGHT]);
+
+	TX_FREE(p);
 }
 
 
@@ -146,9 +151,14 @@ int
 rbtree_map_clear(PMEMobjpool *pop, TOID(struct rbtree_map) map)
 {
 	TX_BEGIN(pop) {
-		rbtree_map_clear_node(D_RW(map)->root);
+		rbtree_map_clear_node(map, D_RW(map)->root);
 		TX_ADD_FIELD(map, root);
+		TX_ADD_FIELD(map, sentinel);
+
+		TX_FREE(D_RW(map)->sentinel);
+
 		D_RW(map)->root = TOID_NULL(struct tree_map_node);
+		D_RW(map)->sentinel = TOID_NULL(struct tree_map_node);
 	} TX_END
 
 	return 0;
