@@ -170,7 +170,6 @@ pmemlog_create(const char *path, size_t poolsize, mode_t mode)
 	struct pool_set *set;
 
 	if (util_pool_create(&set, path, poolsize, PMEMLOG_MIN_POOL,
-			roundup(sizeof (struct pmemlog), Pagesize),
 			LOG_HDR_SIG, LOG_FORMAT_MAJOR,
 			LOG_FORMAT_COMPAT, LOG_FORMAT_INCOMPAT,
 			LOG_FORMAT_RO_COMPAT) != 0) {
@@ -239,7 +238,6 @@ pmemlog_open_common(const char *path, int cow)
 	struct pool_set *set;
 
 	if (util_pool_open(&set, path, cow, PMEMLOG_MIN_POOL,
-			roundup(sizeof (struct pmemlog), Pagesize),
 			LOG_HDR_SIG, LOG_FORMAT_MAJOR,
 			LOG_FORMAT_COMPAT, LOG_FORMAT_INCOMPAT,
 			LOG_FORMAT_RO_COMPAT) != 0) {

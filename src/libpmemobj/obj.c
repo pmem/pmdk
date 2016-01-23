@@ -705,7 +705,6 @@ pmemobj_create(const char *path, const char *layout, size_t poolsize,
 	struct pool_set *set;
 
 	if (util_pool_create(&set, path, poolsize, PMEMOBJ_MIN_POOL,
-			roundup(sizeof (struct pmemobjpool), Pagesize),
 			OBJ_HDR_SIG, OBJ_FORMAT_MAJOR,
 			OBJ_FORMAT_COMPAT, OBJ_FORMAT_INCOMPAT,
 			OBJ_FORMAT_RO_COMPAT) != 0) {
@@ -823,7 +822,6 @@ pmemobj_open_common(const char *path, const char *layout, int cow, int boot)
 	struct pool_set *set;
 
 	if (util_pool_open(&set, path, cow, PMEMOBJ_MIN_POOL,
-			roundup(sizeof (struct pmemobjpool), Pagesize),
 			OBJ_HDR_SIG, OBJ_FORMAT_MAJOR,
 			OBJ_FORMAT_COMPAT, OBJ_FORMAT_INCOMPAT,
 			OBJ_FORMAT_RO_COMPAT) != 0) {
