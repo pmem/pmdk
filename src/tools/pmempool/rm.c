@@ -132,51 +132,42 @@ rm_file(const char *file)
 	}
 }
 
+static int
+rm_poolset_cb(const char *part_file, void *arg)
+{
+	outv(2, "part file   : %s\n", part_file);
+
+	int exists = access(part_file, F_OK) == 0;
+	if (!exists) {
+		/*
+		 * Ignore not accessible file if force
+		 * flag is set
+		 */
+		if (force)
+			return 0;
+
+		err(1, "cannot remove file '%s'", part_file);
+	}
+
+	rm_file(part_file);
+
+	return 0;
+}
+
 /*
  * rm_poolset -- remove files parsed from poolset file
  */
 static void
 rm_poolset(const char *file)
 {
-	int fd = open(file, O_RDONLY);
-	if (fd < 0) {
-		perror(file);
-		exit(EXIT_FAILURE);
-	}
-
-	struct pool_set *set;
-	int is_poolset = util_poolset_parse(file, fd, &set);
-	close(fd);
-	if (is_poolset) {
+	int ret = util_poolset_foreach_part(file, rm_poolset_cb, NULL);
+	if (ret) {
 		if (!force) {
 			outv_err("cannot parse poolset file '%s'\n", file);
 			exit(1);
 		}
 		return;
 	}
-
-	for (unsigned r = 0; r < set->nreplicas; r++) {
-		for (unsigned p = 0; p < set->replica[r]->nparts; p++) {
-			const char *part_file = set->replica[r]->part[p].path;
-			outv(2, "part file   : %s\n", part_file);
-
-			int exists = access(part_file, F_OK) == 0;
-			if (!exists) {
-				/*
-				 * Ignore not accessible file if force
-				 * flag is set
-				 */
-				if (force)
-					continue;
-
-				err(1, "cannot remove file '%s'", part_file);
-			}
-
-			rm_file(part_file);
-		}
-	}
-
-	util_poolset_free(set);
 }
 
 /*
@@ -224,7 +215,7 @@ pmempool_rm_func(char *appname, int argc, char *argv[])
 			err(1, "cannot remove '%s'", file);
 		}
 
-		int is_poolset = pmem_pool_check_pool_set(file) == 0;
+		int is_poolset = util_is_poolset(file);
 
 		if (is_poolset)
 			outv(2, "poolset file: %s\n", file);
