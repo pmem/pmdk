@@ -94,30 +94,6 @@ pmem_pool_type_parse_str(const char *str)
 }
 
 /*
- * pmem_pool_check_pool_set -- returns 0 for poolset file
- */
-int
-pmem_pool_check_pool_set(const char *fname)
-{
-	int fd = util_file_open(fname, NULL, 0, O_RDONLY);
-	if (fd < 0)
-		return -1;
-
-	int ret = 0;
-	char poolset[POOLSET_HDR_SIG_LEN];
-	if (read(fd, poolset, sizeof (poolset)) != sizeof (poolset)) {
-		ret = -1;
-		goto out;
-	}
-
-	if (strncmp(poolset, POOLSET_HDR_SIG, POOLSET_HDR_SIG_LEN))
-		ret = 1;
-out:
-	close(fd);
-	return ret;
-}
-
-/*
  * util_validate_checksum -- validate checksum and return valid one
  */
 int
@@ -606,7 +582,7 @@ pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp,
 	struct stat stat_buf;
 	paramsp->type = PMEM_POOL_TYPE_UNKNOWN;
 
-	paramsp->is_poolset = pmem_pool_check_pool_set(fname) == 0;
+	paramsp->is_poolset = util_is_poolset(fname) == 1;
 	int fd = util_file_open(fname, NULL, 0, O_RDONLY);
 	if (fd < 0)
 		return -1;

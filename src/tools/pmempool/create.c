@@ -358,7 +358,7 @@ pmempool_create_func(char *appname, int argc, char *argv[])
 	umask(0);
 
 	pc.fexists = access(pc.fname, F_OK) == 0;
-	int is_poolset = pc.fexists && !pmem_pool_check_pool_set(pc.fname);
+	int is_poolset = util_is_poolset(pc.fname) == 1;
 
 	/*
 	 * Parse pool type and other parameters if --inherit option
@@ -389,8 +389,7 @@ pmempool_create_func(char *appname, int argc, char *argv[])
 		}
 
 	} else if (pc.inherit_fname) {
-		int is_inherit_poolset = !access(pc.inherit_fname, F_OK) &&
-			!pmem_pool_check_pool_set(pc.inherit_fname);
+		int is_inherit_poolset = util_is_poolset(pc.inherit_fname) == 1;
 		if (is_inherit_poolset || is_poolset) {
 			outv_err("-i|--inherit is not supported for "
 					"poolset file\n");
