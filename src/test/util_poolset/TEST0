@@ -48,7 +48,6 @@ export TEST_LOG_LEVEL=4
 export TEST_LOG_FILE=./test$UNITTEST_NUM.log
 
 MIN_POOL=$((32 * 1024))
-HDR_SIZE=8192
 
 mkdir -p $DIR/subdir1
 mkdir -p $DIR/subdir2
@@ -107,7 +106,7 @@ create_poolset $DIR/testset26 32K:$DIR/testfile261:z 64K:$DIR/testfile262:z \
 	r 40K:$DIR/testfile263 r 96K:$DIR/testfile264 # pass - pmem/non-pmem
 
 
-expect_normal_exit ./util_poolset$EXESUFFIX c $MIN_POOL $HDR_SIZE\
+expect_normal_exit ./util_poolset$EXESUFFIX c $MIN_POOL\
 	$DIR/testset0 $DIR/testset1\
 	$DIR/testset2 $DIR/testset3\
 	$DIR/testset4 $DIR/testset5\

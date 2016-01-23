@@ -136,6 +136,8 @@ struct pool_hdr {
 	uint64_t checksum;		/* checksum of above fields */
 };
 
+#define	POOL_HDR_SIZE	(sizeof (struct pool_hdr))
+
 int util_checksum(void *addr, size_t len, uint64_t *csump, int insert);
 int util_convert_hdr(struct pool_hdr *hdrp);
 int util_get_arch_flags(struct arch_flags *arch_flags);
@@ -230,7 +232,10 @@ void util_poolset_close(struct pool_set *set, int del);
 void util_poolset_free(struct pool_set *set);
 int util_poolset_chmod(struct pool_set *set, mode_t mode);
 void util_poolset_fdclose(struct pool_set *set);
-
+int util_is_poolset(const char *path);
+int util_poolset_foreach_part(const char *path,
+	int (*cb)(const char *part_file, void *arg), void *arg);
+size_t util_poolset_size(const char *path);
 int util_file_create(const char *path, size_t size, size_t minsize);
 int util_file_open(const char *path, size_t *size, size_t minsize, int flags);
 int util_uuid_to_string(uuid_t u, char *buf);
@@ -239,12 +244,12 @@ int util_uuid_from_string(const char uuid[POOL_HDR_UUID_STR_LEN],
 int util_uuid_generate(uuid_t uuid);
 
 int util_pool_create(struct pool_set **setp, const char *path, size_t poolsize,
-	size_t minsize, size_t hdrsize, const char *sig,
+	size_t minsize, const char *sig,
 	uint32_t major, uint32_t compat, uint32_t incompat, uint32_t ro_compat);
-int util_pool_open_nocheck(struct pool_set **setp, const char *path, int rdonly,
-		size_t hdrsize);
+int util_pool_open_nocheck(struct pool_set **setp, const char *path,
+		int rdonly);
 int util_pool_open(struct pool_set **setp, const char *path, int rdonly,
-	size_t minsize, size_t hdrsize, const char *sig,
+	size_t minsize, const char *sig,
 	uint32_t major, uint32_t compat, uint32_t incompat, uint32_t ro_compat);
 
 

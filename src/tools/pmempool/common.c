@@ -514,35 +514,13 @@ pmem_pool_get_min_size(pmem_pool_type_t type)
 }
 
 /*
- * pmem_pool_get_hdr_size -- return size of header for specified type
- */
-size_t
-pmem_pool_get_hdr_size(pmem_pool_type_t type)
-{
-	switch (type) {
-	case PMEM_POOL_TYPE_LOG:
-		return sizeof (struct pmemlog);
-	case PMEM_POOL_TYPE_BLK:
-		return sizeof (struct pmemblk);
-	case PMEM_POOL_TYPE_OBJ:
-		return sizeof (struct pmemobjpool);
-	default:
-		break;
-	}
-
-	return 0;
-}
-
-/*
  * util_poolset_map -- map poolset
  */
 int
 util_poolset_map(const char *fname, struct pool_set **poolset, int rdonly)
 {
-	if (pmem_pool_check_pool_set(fname) != 0) {
-		return util_pool_open_nocheck(poolset, fname, rdonly,
-					DEFAULT_HDR_SIZE);
-	}
+	if (util_is_poolset(fname) != 1)
+		return util_pool_open_nocheck(poolset, fname, rdonly);
 
 	int fd = util_file_open(fname, NULL, 0, O_RDONLY);
 	if (fd < 0)
@@ -593,15 +571,12 @@ util_poolset_map(const char *fname, struct pool_set **poolset, int rdonly)
 	/* get minimum size based on pool type for util_pool_open */
 	size_t minsize = pmem_pool_get_min_size(type);
 
-	size_t hdrsize = pmem_pool_get_hdr_size(type);
-
 	/*
 	 * Open the poolset, the values passed to util_pool_open are read
 	 * from the first poolset file, these values are then compared with
 	 * the values from all headers of poolset files.
 	 */
 	if (util_pool_open(poolset, fname, rdonly, minsize,
-			roundup(hdrsize, Pagesize),
 			hdr.signature, hdr.major,
 			hdr.compat_features,
 			hdr.incompat_features,
@@ -659,8 +634,7 @@ pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp,
 			if (util_poolset_map(fname, &set, 1))
 				return -1;
 		} else {
-			if (util_pool_open_nocheck(&set, fname, 1,
-						DEFAULT_HDR_SIZE))
+			if (util_pool_open_nocheck(&set, fname, 1))
 				return -1;
 		}
 
@@ -1459,7 +1433,7 @@ pool_set_file_open(const char *fname,
 			goto err_free_fname;
 	} else {
 		if (util_pool_open_nocheck(&file->poolset, file->fname,
-				rdonly, DEFAULT_HDR_SIZE))
+				rdonly))
 			goto err_free_fname;
 	}
 

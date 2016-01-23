@@ -102,7 +102,7 @@ for ((entry) = PLIST_OFF_TO_PTR(pop, (head)->pe_first.off);\
 #define	ENTRY_TO_DATA(entry)\
 ((void *)((uintptr_t)(entry) + sizeof (struct oob_header)))
 
-#define	DEFAULT_HDR_SIZE 8192
+#define	DEFAULT_HDR_SIZE 4096
 
 /*
  * pmem_pool_type_t -- pool types

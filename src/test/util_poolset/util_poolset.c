@@ -71,15 +71,15 @@ void out_fini(void);
  * - pool_size == min(replica_size)
  */
 static void
-poolset_info(const char *fname, struct pool_set *set, size_t hdrsize, int o)
+poolset_info(const char *fname, struct pool_set *set, int o)
 {
 	if (o)
-		OUT("%s: opened: hdrsize %zu nreps %d poolsize %zu rdonly %d",
-			fname, hdrsize, set->nreplicas, set->poolsize,
+		OUT("%s: opened: nreps %d poolsize %zu rdonly %d",
+			fname, set->nreplicas, set->poolsize,
 			set->rdonly);
 	else
-		OUT("%s: created: hdrsize %zu nreps %d poolsize %zu zeroed %d",
-			fname, hdrsize, set->nreplicas, set->poolsize,
+		OUT("%s: created: nreps %d poolsize %zu zeroed %d",
+			fname, set->nreplicas, set->poolsize,
 			set->zeroed);
 
 	size_t poolsize = SIZE_MAX;
@@ -98,10 +98,10 @@ poolset_info(const char *fname, struct pool_set *set, size_t hdrsize, int o)
 			size_t partsize = (part->filesize & ~(Ut_pagesize - 1));
 			repsize += partsize;
 			if (i > 0)
-				ASSERTeq(part->size, partsize - hdrsize);
+				ASSERTeq(part->size, partsize - POOL_HDR_SIZE);
 		}
 
-		repsize -= (rep->nparts - 1) * hdrsize;
+		repsize -= (rep->nparts - 1) * POOL_HDR_SIZE;
 		ASSERTeq(rep->repsize, repsize);
 		ASSERTeq(rep->part[0].size, repsize);
 
@@ -157,7 +157,7 @@ main(int argc, char *argv[])
 			MAJOR_VERSION, MINOR_VERSION);
 	util_init();
 
-	if (argc < 6)
+	if (argc < 5)
 		FATAL("usage: %s cmd minlen hdrsize [mockopts] setfile ...",
 			argv[0]);
 
@@ -166,31 +166,30 @@ main(int argc, char *argv[])
 	int ret;
 
 	size_t minsize = strtoul(argv[2], &fname, 0);
-	size_t hdrsize = strtoul(argv[3], &fname, 0);
 
-	for (int arg = 4; arg < argc; arg++) {
+	for (int arg = 3; arg < argc; arg++) {
 		arg += mock_options(argv[arg]);
 		fname = argv[arg];
 
 		switch (argv[1][0]) {
 		case 'c':
-			ret = util_pool_create(&set, fname, 0, minsize, hdrsize,
+			ret = util_pool_create(&set, fname, 0, minsize,
 				SIG, 1, 0, 0, 0);
 			if (ret == -1)
 				OUT("!%s: util_pool_create", fname);
 			else {
 				util_poolset_chmod(set, S_IWUSR | S_IRUSR);
-				poolset_info(fname, set, hdrsize, 0);
+				poolset_info(fname, set, 0);
 				util_poolset_close(set, 0); /* do not delete */
 			}
 			break;
 		case 'o':
 			ret = util_pool_open(&set, fname, 0 /* rdonly */,
-				minsize, hdrsize, SIG, 1, 0, 0, 0);
+				minsize, SIG, 1, 0, 0, 0);
 			if (ret == -1)
 				OUT("!%s: util_pool_open", fname);
 			else {
-				poolset_info(fname, set, hdrsize, 1);
+				poolset_info(fname, set, 1);
 				util_poolset_close(set, 0); /* do not delete */
 			}
 			break;

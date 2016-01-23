@@ -135,7 +135,10 @@ OTHER_TESTS = \
        util_file_open\
        util_map_proc\
        util_poolset\
-       util_poolset_parse
+       util_poolset_parse\
+       util_is_poolset\
+       util_poolset_size\
+       util_poolset_foreach
 
 PMEM_TESTS = \
        pmem_isa_proc\
