@@ -994,8 +994,18 @@ obj_init(struct benchmark *bench, struct benchmark_args *args)
 		size_t psize = (args->n_ops_per_thread + obj_bench.min_len + 1)
 					* obj_size *
 					args->n_threads * FACTOR;
-		if (psize < PMEMOBJ_MIN_POOL)
-			psize = PMEMOBJ_MIN_POOL;
+		if (args->is_poolset) {
+			if (args->fsize < psize) {
+				fprintf(stderr, "insufficient size "
+						"of poolset\n");
+				goto free_all;
+			}
+
+			psize = 0;
+		} else {
+			if (psize < PMEMOBJ_MIN_POOL)
+				psize = PMEMOBJ_MIN_POOL;
+		}
 
 		/* Create pmemobj pool. */
 		if ((obj_bench.pop = pmemobj_create(args->fname, LAYOUT_NAME,
@@ -1045,7 +1055,8 @@ static struct benchmark_info obj_insert = {
 	.clos		= obj_list_clo,
 	.nclos		= ARRAY_SIZE(obj_list_clo),
 	.opts_size	= sizeof (struct obj_list_args),
-	.rm_file	= true
+	.rm_file	= true,
+	.allow_poolset	= true,
 };
 REGISTER_BENCHMARK(obj_insert);
 
@@ -1065,7 +1076,8 @@ static struct benchmark_info obj_remove = {
 	.clos		= obj_list_clo,
 	.nclos		= ARRAY_SIZE(obj_list_clo),
 	.opts_size	= sizeof (struct obj_list_args),
-	.rm_file	= true
+	.rm_file	= true,
+	.allow_poolset	= true,
 };
 REGISTER_BENCHMARK(obj_remove);
 
@@ -1084,7 +1096,8 @@ static struct benchmark_info obj_insert_new = {
 	.clos		= obj_list_clo,
 	.nclos		= ARRAY_SIZE(obj_list_clo) - 1,
 	.opts_size	= sizeof (struct obj_list_args),
-	.rm_file	= true
+	.rm_file	= true,
+	.allow_poolset	= true,
 };
 REGISTER_BENCHMARK(obj_insert_new);
 
@@ -1104,7 +1117,8 @@ static struct benchmark_info obj_remove_free = {
 	.clos		= obj_list_clo,
 	.nclos		= ARRAY_SIZE(obj_list_clo) - 1,
 	.opts_size	= sizeof (struct obj_list_args),
-	.rm_file	= true
+	.rm_file	= true,
+	.allow_poolset	= true,
 };
 REGISTER_BENCHMARK(obj_remove_free);
 
@@ -1123,6 +1137,7 @@ static struct benchmark_info obj_move = {
 	.clos		= obj_list_clo,
 	.nclos		= ARRAY_SIZE(obj_list_clo) - 1,
 	.opts_size	= sizeof (struct obj_list_args),
-	.rm_file	= true
+	.rm_file	= true,
+	.allow_poolset	= true,
 };
 REGISTER_BENCHMARK(obj_move);

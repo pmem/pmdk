@@ -129,8 +129,17 @@ obj_init(struct benchmark *bench, struct benchmark_args *args)
 
 	/* multiply by FACTOR for metadata, fragmentation, etc. */
 	poolsize = poolsize * FACTOR;
-	if (poolsize < PMEMOBJ_MIN_POOL)
-		poolsize = PMEMOBJ_MIN_POOL;
+
+	if (args->is_poolset) {
+		if (args->fsize < poolsize) {
+			fprintf(stderr, "insufficient size of poolset\n");
+			goto free_ob;
+		}
+		poolsize = 0;
+	} else {
+		if (poolsize < PMEMOBJ_MIN_POOL)
+			poolsize = PMEMOBJ_MIN_POOL;
+	}
 
 	ob->pop = pmemobj_create(args->fname, POBJ_LAYOUT_NAME(pmalloc_layout),
 			poolsize, args->fmode);
@@ -351,7 +360,8 @@ static struct benchmark_info pmalloc_info = {
 	.clos		= pmalloc_clo,
 	.nclos		= ARRAY_SIZE(pmalloc_clo),
 	.opts_size	= sizeof (struct prog_args),
-	.rm_file	= true
+	.rm_file	= true,
+	.allow_poolset	= true,
 };
 
 /*
@@ -369,7 +379,8 @@ static struct benchmark_info pfree_info = {
 	.clos		= pmalloc_clo,
 	.nclos		= ARRAY_SIZE(pmalloc_clo),
 	.opts_size	= sizeof (struct prog_args),
-	.rm_file	= true
+	.rm_file	= true,
+	.allow_poolset	= true,
 };
 
 REGISTER_BENCHMARK(pmalloc_info);

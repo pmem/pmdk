@@ -389,6 +389,12 @@ pobj_init(struct benchmark *bench, struct benchmark_args *args)
 							args->n_threads : 1;
 	bench_priv->pool = bench_priv->n_pools > 1 ? diff_num : one_num;
 	bench_priv->obj = !bench_priv->args_priv->one_obj ? diff_num : one_num;
+
+	if (args->is_poolset && bench_priv->n_pools > 1) {
+		fprintf(stderr, "cannot use poolset for multiple pools,"
+				" please use -P|--one-pool option instead");
+		return -1;
+	}
 	/*
 	 * Multiplication by FACTOR prevents from out of memory error
 	 * as the actual size of the allocated persistent objects
@@ -446,6 +452,7 @@ pobj_init(struct benchmark *bench, struct benchmark_args *args)
 		goto free_pop;
 	}
 	if (bench_priv->n_pools > 1) {
+		assert(!args->is_poolset);
 		mkdir(args->fname, DIR_MODE);
 		if (access(args->fname, F_OK) != 0) {
 			fprintf(stderr, "cannot create directory\n");
@@ -469,6 +476,14 @@ pobj_init(struct benchmark *bench, struct benchmark_args *args)
 			}
 		}
 	} else {
+		if (args->is_poolset) {
+			if (args->fsize < psize) {
+				fprintf(stderr, "insufficient size of "
+					"poolset\n");
+				goto free_pools;
+			}
+			psize = 0;
+		}
 		bench_priv->sets[0] = (const char *)args->fname;
 		bench_priv->pop[0] = pmemobj_create(bench_priv->sets[0],
 				LAYOUT_NAME, psize, FILE_MODE);
@@ -636,7 +651,8 @@ static struct benchmark_info obj_open = {
 	.clos		= pobj_open_clo,
 	.nclos		= ARRAY_SIZE(pobj_open_clo),
 	.opts_size	= sizeof (struct pobj_args),
-	.rm_file	= true
+	.rm_file	= true,
+	.allow_poolset	= true,
 };
 
 REGISTER_BENCHMARK(obj_open);
@@ -655,7 +671,8 @@ static struct benchmark_info obj_direct = {
 	.clos		= pobj_direct_clo,
 	.nclos		= ARRAY_SIZE(pobj_direct_clo),
 	.opts_size	= sizeof (struct pobj_args),
-	.rm_file	= true
+	.rm_file	= true,
+	.allow_poolset	= true,
 };
 
 REGISTER_BENCHMARK(obj_direct);
