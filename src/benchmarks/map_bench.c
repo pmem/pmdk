@@ -401,8 +401,18 @@ map_common_init(struct benchmark *bench, struct benchmark_args *args)
 	map_bench->nkeys = args->n_threads * args->n_ops_per_thread;
 	map_bench->init_nkeys = map_bench->nkeys;
 	map_bench->pool_size = map_bench->nkeys * SIZE_PER_KEY;
-	if (map_bench->pool_size < PMEMOBJ_MIN_POOL)
-		map_bench->pool_size = PMEMOBJ_MIN_POOL;
+
+	if (args->is_poolset) {
+		if (args->fsize < map_bench->pool_size) {
+			fprintf(stderr, "insufficient poolset size\n");
+			goto err_free_bench;
+		}
+
+		map_bench->pool_size = 0;
+	} else {
+		if (map_bench->pool_size < PMEMOBJ_MIN_POOL)
+			map_bench->pool_size = PMEMOBJ_MIN_POOL;
+	}
 
 	map_bench->pop = pmemobj_create(args->fname, "map_bench",
 			map_bench->pool_size, args->fmode);
@@ -582,7 +592,8 @@ static struct benchmark_info map_insert_info = {
 	.clos		= map_bench_clos,
 	.nclos		= ARRAY_SIZE(map_bench_clos),
 	.opts_size	= sizeof (struct map_bench_args),
-	.rm_file	= true
+	.rm_file	= true,
+	.allow_poolset	= true,
 };
 REGISTER_BENCHMARK(map_insert_info);
 
@@ -600,7 +611,8 @@ static struct benchmark_info map_remove_info = {
 	.clos		= map_bench_clos,
 	.nclos		= ARRAY_SIZE(map_bench_clos),
 	.opts_size	= sizeof (struct map_bench_args),
-	.rm_file	= true
+	.rm_file	= true,
+	.allow_poolset	= true,
 };
 REGISTER_BENCHMARK(map_remove_info);
 
@@ -618,6 +630,7 @@ static struct benchmark_info map_get_info = {
 	.clos		= map_bench_clos,
 	.nclos		= ARRAY_SIZE(map_bench_clos),
 	.opts_size	= sizeof (struct map_bench_args),
-	.rm_file	= true
+	.rm_file	= true,
+	.allow_poolset	= true,
 };
 REGISTER_BENCHMARK(map_get_info);

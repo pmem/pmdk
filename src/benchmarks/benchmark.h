@@ -82,6 +82,7 @@ struct benchmark_args
 {
 	const char *fname;		/* path to test file */
 	size_t fsize;			/* size of test file */
+	bool is_poolset;		/* test file is a poolset */
 	mode_t fmode;			/* test file's permissions */
 	unsigned int n_threads;		/* number of working threads */
 	uint64_t n_ops_per_thread;	/* number of operations per thread */
@@ -240,6 +241,9 @@ struct operation_info
  * operation	: Callback function which does the main job of benchmark.
  * rm_file	: Indicates whether the test file should be removed by
  *                framework before the init function will be called.
+ * allow_poolset: Indicates whether benchmark may use poolset files.
+ *                If set to false and fname points to a poolset, an error
+ *                will be returned.
  * According to multithread and single_operation flags it may be
  * invoked in different ways:
  *  +-------------+----------+-------------------------------------+
@@ -278,6 +282,7 @@ struct benchmark_info
 	bool multiops;
 	bool measure_time;
 	bool rm_file;
+	bool allow_poolset;
 };
 
 void *pmembench_get_priv(struct benchmark *bench);

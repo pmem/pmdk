@@ -566,6 +566,15 @@ locks_init(struct benchmark *bench, struct benchmark_args *args)
 	/* reserve some space for metadata */
 	size_t poolsize = mb->pa->n_locks * sizeof (lock_t) + PMEMOBJ_MIN_POOL;
 
+	if (args->is_poolset) {
+		if (args->fsize < poolsize) {
+			fprintf(stderr, "insufficient size of poolset\n");
+			goto err_free_mb;
+		}
+
+		poolsize = 0;
+	}
+
 	mb->pop = pmemobj_create(args->fname,
 			POBJ_LAYOUT_NAME(pmembench_lock_layout),
 			poolsize, args->fmode);
@@ -730,7 +739,8 @@ static struct benchmark_info locks_info = {
 	.clos		= locks_clo,
 	.nclos		= ARRAY_SIZE(locks_clo),
 	.opts_size	= sizeof (struct prog_args),
-	.rm_file	= true
+	.rm_file	= true,
+	.allow_poolset	= true,
 };
 
 REGISTER_BENCHMARK(locks_info);

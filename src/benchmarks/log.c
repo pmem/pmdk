@@ -548,6 +548,15 @@ log_init(struct benchmark *bench, struct benchmark_args *args)
 	if (lb->psize < PMEMLOG_MIN_POOL)
 		lb->psize = PMEMLOG_MIN_POOL;
 
+	if (args->is_poolset) {
+		if (lb->psize > args->fsize) {
+			fprintf(stderr, "insufficient size of poolset\n");
+			return -1;
+		}
+
+		lb->psize = 0;
+	}
+
 	struct benchmark_info *bench_info = pmembench_get_info(bench);
 
 	if (!lb->args->fileio) {
@@ -637,7 +646,8 @@ static struct benchmark_info log_append_info = {
 	.clos		= log_clo,
 	.nclos		= ARRAY_SIZE(log_clo),
 	.opts_size	= sizeof (struct prog_args),
-	.rm_file	= true
+	.rm_file	= true,
+	.allow_poolset	= true,
 };
 
 /* log_read benchmark info */
@@ -655,7 +665,8 @@ static struct benchmark_info log_read_info = {
 	.clos		= log_clo,
 	.nclos		= ARRAY_SIZE(log_clo) - 1, /* without vector */
 	.opts_size	= sizeof (struct prog_args),
-	.rm_file	= true
+	.rm_file	= true,
+	.allow_poolset	= true,
 };
 
 REGISTER_BENCHMARK(log_append_info);

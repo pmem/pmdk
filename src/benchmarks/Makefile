@@ -59,6 +59,9 @@ default: $(TARGET)
 SRC=pmembench.c\
     benchmark_time.c\
     benchmark_worker.c\
+    util.c\
+    out.c\
+    set.c\
     clo.c\
     clo_vec.c\
     config_reader.c\
@@ -110,6 +113,7 @@ CFLAGS += -I../include
 CFLAGS += -I../libpmemobj
 CFLAGS += -I../common
 CFLAGS += -I../examples/libpmemobj/map
+CFLAGS += -DSRCVERSION='"$(SRCVERSION)"'
 ifeq ($(GLIB),y)
 CFLAGS += $(shell $(PKG_CONFIG) --cflags glib-2.0)
 LIBS += $(shell $(PKG_CONFIG) --libs glib-2.0)

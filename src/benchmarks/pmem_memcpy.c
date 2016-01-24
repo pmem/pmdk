@@ -629,6 +629,7 @@ static struct benchmark_info pmem_memcpy = {
 	.nclos		= ARRAY_SIZE(pmem_memcpy_clo),
 	.opts_size	= sizeof (struct pmem_args),
 	.rm_file	= true,
+	.allow_poolset	= false,
 };
 
 REGISTER_BENCHMARK(pmem_memcpy);

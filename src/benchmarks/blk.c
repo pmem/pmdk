@@ -331,6 +331,15 @@ blk_init(struct blk_bench *bb, struct benchmark_args *args)
 		return -1;
 	}
 
+	if (args->is_poolset) {
+		if (args->fsize < ba->fsize) {
+			fprintf(stderr, "insufficient size of poolset\n");
+			return -1;
+		}
+
+		ba->fsize = 0;
+	}
+
 	bb->fd = -1;
 	/*
 	 * Create pmemblk in order to get the number of blocks
@@ -340,6 +349,7 @@ blk_init(struct blk_bench *bb, struct benchmark_args *args)
 			ba->fsize, args->fmode);
 	if (bb->pbp == NULL) {
 		perror("pmemblk_create");
+		return -1;
 	}
 
 	bb->nblocks = pmemblk_nblock(bb->pbp);
@@ -467,7 +477,6 @@ blk_exit(struct benchmark *bench, struct benchmark_args *args)
 }
 
 static struct benchmark_info blk_read_info = {
-
 	.name		= "blk_read",
 	.brief		= "Benchmark for blk_read() operation",
 	.init		= blk_read_init,
@@ -481,13 +490,12 @@ static struct benchmark_info blk_read_info = {
 	.nclos		= ARRAY_SIZE(blk_clo),
 	.opts_size	= sizeof (struct blk_args),
 	.rm_file	= true,
-
+	.allow_poolset	= true,
 };
 
 REGISTER_BENCHMARK(blk_read_info);
 
 static struct benchmark_info blk_write_info = {
-
 	.name		= "blk_write",
 	.brief		= "Benchmark for blk_write() operation",
 	.init		= blk_write_init,
@@ -501,7 +509,7 @@ static struct benchmark_info blk_write_info = {
 	.nclos		= ARRAY_SIZE(blk_clo),
 	.opts_size	= sizeof (struct blk_args),
 	.rm_file	= true,
-
+	.allow_poolset	= true,
 };
 
 REGISTER_BENCHMARK(blk_write_info);

@@ -437,7 +437,8 @@ static struct benchmark_info memset_info = {
 	.clos		= memset_clo,
 	.nclos		= ARRAY_SIZE(memset_clo),
 	.opts_size	= sizeof (struct memset_args),
-	.rm_file	= true
+	.rm_file	= true,
+	.allow_poolset	= false,
 };
 
 REGISTER_BENCHMARK(memset_info);

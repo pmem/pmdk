@@ -707,7 +707,6 @@ err:
 }
 
 static struct benchmark_info vmem_malloc_bench = {
-
 	.name		= "vmem_malloc",
 	.brief		= "vmem_malloc() benchmark",
 	.init		= vmem_init,
@@ -721,12 +720,11 @@ static struct benchmark_info vmem_malloc_bench = {
 	.nclos		= ARRAY_SIZE(vmem_clo) - 3,
 	.opts_size	= sizeof (struct vmem_args),
 	.rm_file	= true,
-
+	.allow_poolset	= false,
 };
 REGISTER_BENCHMARK(vmem_malloc_bench);
 
 static struct benchmark_info vmem_mix_bench = {
-
 	.name		= "vmem_mix",
 	.brief		= "vmem_malloc() and vmem_free() bechmark",
 	.init		= vmem_mix_init,
@@ -740,12 +738,11 @@ static struct benchmark_info vmem_mix_bench = {
 	.nclos		= ARRAY_SIZE(vmem_clo) - 3,
 	.opts_size	= sizeof (struct vmem_args),
 	.rm_file	= true,
-
+	.allow_poolset	= false,
 };
 REGISTER_BENCHMARK(vmem_mix_bench);
 
 static struct benchmark_info vmem_free_bench = {
-
 	.name		= "vmem_free",
 	.brief		= "vmem_free() benchmark",
 	.init		= vmem_init,
@@ -759,12 +756,11 @@ static struct benchmark_info vmem_free_bench = {
 	.nclos		= ARRAY_SIZE(vmem_clo) - 2,
 	.opts_size	= sizeof (struct vmem_args),
 	.rm_file	= true,
-
+	.allow_poolset	= false,
 };
 REGISTER_BENCHMARK(vmem_free_bench);
 
 static struct benchmark_info vmem_realloc_bench = {
-
 	.name		= "vmem_realloc",
 	.brief		= "Multithread benchmark vmem - realloc",
 	.init		= vmem_realloc_init,
@@ -778,6 +774,6 @@ static struct benchmark_info vmem_realloc_bench = {
 	.nclos		= ARRAY_SIZE(vmem_clo),
 	.opts_size	= sizeof (struct vmem_args),
 	.rm_file	= true,
-
+	.allow_poolset	= false,
 };
 REGISTER_BENCHMARK(vmem_realloc_bench);
