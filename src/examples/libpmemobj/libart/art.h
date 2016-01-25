@@ -48,8 +48,7 @@
  */
 
 /*
- * based on gihub/armon/libart/src/art.h
- *
+ * based on https://github.com/armon/libart/src/art.h
  */
 
 #ifndef	_ART_H

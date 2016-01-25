@@ -47,8 +47,7 @@
  */
 
 /*
- * based on gihub/armon/libart/src/art.c
- *
+ * based on https://github.com/armon/libart/src/art.c
  */
 
 
@@ -637,6 +636,9 @@ add_child256(PMEMobjpool *pop, TOID(art_node256) n, TOID(art_node_u) *ref,
 	art_node *n_an;
 
 	(void) ref;
+
+	TX_ADD(n);
+
 	n_an = &(D_RW(n)->n);
 	n_an->num_children++;
 	D_RW(n)->children[c] = child;
@@ -651,6 +653,7 @@ add_child48(PMEMobjpool *pop, TOID(art_node48) n, TOID(art_node_u) *ref,
 	n_an = &(D_RW(n)->n);
 	if (n_an->num_children < 48) {
 		int pos = 0;
+		TX_ADD(n);
 		while (!(TOID_IS_NULL(D_RO(n)->children[pos])))
 			pos++;
 		D_RW(n)->children[pos] = child;
@@ -659,6 +662,10 @@ add_child48(PMEMobjpool *pop, TOID(art_node48) n, TOID(art_node_u) *ref,
 	} else {
 		TOID(art_node_u)  new_u = alloc_node(pop, NODE256);
 		TOID(art_node256) new   = D_RO(new_u)->u.an256;
+
+		pmemobj_tx_add_range_direct(ref, sizeof (TOID(art_node_u)));
+		TX_ADD(new_u);
+
 		for (int i = 0; i < 256; i++) {
 			if (D_RO(n)->keys[i]) {
 				D_RW(new)->children[i] =
@@ -681,6 +688,8 @@ add_child16(PMEMobjpool *pop, TOID(art_node16) n, TOID(art_node_u)*ref,
 	n_an = &(D_RW(n)->n);
 	if (n_an->num_children < 16) {
 		__m128i cmp;
+
+		TX_ADD(n);
 
 		// Compare the key to all 16 stored keys
 		cmp = _mm_cmplt_epi8(_mm_set1_epi8(c),
@@ -713,6 +722,9 @@ add_child16(PMEMobjpool *pop, TOID(art_node16) n, TOID(art_node_u)*ref,
 		TOID(art_node_u) new_u = alloc_node(pop, NODE48);
 		TOID(art_node48) new   = D_RO(new_u)->u.an48;
 
+		pmemobj_tx_add_range_direct(ref, sizeof (TOID(art_node_u)));
+		TX_ADD(new_u);
+
 		// Copy the child pointers and populate the key map
 		PMEMOIDcopy(&(D_RW(new)->children[0].oid),
 		    &(D_RO(n)->children[0].oid),
@@ -736,6 +748,7 @@ add_child4(PMEMobjpool *pop, TOID(art_node4) n, TOID(art_node_u) *ref,
 	n_an = &(D_RW(n)->n);
 	if (n_an->num_children < 4) {
 		int idx;
+		TX_ADD(n);
 		for (idx = 0; idx < n_an->num_children; idx++) {
 			if (c < D_RO(n)->keys[idx]) break;
 		}
@@ -754,6 +767,9 @@ add_child4(PMEMobjpool *pop, TOID(art_node4) n, TOID(art_node_u) *ref,
 	} else {
 		TOID(art_node_u) new_u = alloc_node(pop, NODE16);
 		TOID(art_node16) new   = D_RO(new_u)->u.an16;
+
+		pmemobj_tx_add_range_direct(ref, sizeof (TOID(art_node_u)));
+		TX_ADD(new_u);
 
 		// Copy the child pointers and the key map
 		PMEMOIDcopy(&(D_RW(new)->children[0].oid),
@@ -868,7 +884,7 @@ recursive_insert(PMEMobjpool *pop, TOID(art_node_u) n, TOID(art_node_u) *ref,
 
 		TX_BEGIN(pop) {
 			// New value, we must split the leaf into a node4
-			TX_ADD(*ref);
+			pmemobj_tx_add_range_direct(ref, sizeof (TOID(art_node_u)));
 			TOID(art_node_u) new_u	= alloc_node(pop, NODE4);
 			TX_ADD(new_u);
 			TOID(art_node4)  new	= D_RO(new_u)->u.an4;
@@ -922,8 +938,11 @@ recursive_insert(PMEMobjpool *pop, TOID(art_node_u) n, TOID(art_node_u) *ref,
 		}
 
 		TX_BEGIN(pop) {
+			pmemobj_tx_add_range(n.oid,
+			    offsetof(art_node_u, u), sizeof(art_node));
 			// Create a new node
-			TX_ADD(*ref);
+			pmemobj_tx_add_range_direct(ref, sizeof (TOID(art_node_u)));
+			pmemobj_tx_add_range_direct(n_an, sizeof (art_node));
 			TOID(art_node_u) new_u	= alloc_node(pop, NODE4);
 			TX_ADD(new_u);
 			TOID(art_node4)  new	= D_RO(new_u)->u.an4;
