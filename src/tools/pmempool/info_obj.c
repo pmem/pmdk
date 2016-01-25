@@ -149,14 +149,7 @@ heap_size_to_class(size_t size)
 	if (size == CHUNKSIZE)
 		return DEFAULT_BUCKET;
 
-	int class = 0;
-
-	while (size != MIN_RUN_SIZE) {
-		size = size / RUN_UNIT_MAX;
-		class++;
-	}
-
-	return class;
+	return (int)SIZE_TO_ALLOC_BLOCKS(size);
 }
 
 /*
@@ -168,12 +161,7 @@ heap_class_to_size(int class)
 	if (class == DEFAULT_BUCKET)
 		return CHUNKSIZE;
 
-	uint64_t size = MIN_RUN_SIZE;
-
-	for (int i = 0; i < class; i++)
-		size = size * RUN_UNIT_MAX;
-
-	return size;
+	return (uint64_t)(class * ALLOC_BLOCK_SIZE);
 }
 
 /*
