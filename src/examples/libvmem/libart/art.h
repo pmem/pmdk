@@ -46,8 +46,7 @@
  * ==========================================================================
  */
 /*
- * based on https://github.com/armon/libart/src/art.c
- *
+ * based on https://github.com/armon/libart/src/art.h
  */
 #include <stdint.h>
 #ifndef	ART_H
