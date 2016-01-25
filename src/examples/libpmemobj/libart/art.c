@@ -884,7 +884,8 @@ recursive_insert(PMEMobjpool *pop, TOID(art_node_u) n, TOID(art_node_u) *ref,
 
 		TX_BEGIN(pop) {
 			// New value, we must split the leaf into a node4
-			pmemobj_tx_add_range_direct(ref, sizeof (TOID(art_node_u)));
+			pmemobj_tx_add_range_direct(ref,
+			    sizeof (TOID(art_node_u)));
 			TOID(art_node_u) new_u	= alloc_node(pop, NODE4);
 			TX_ADD(new_u);
 			TOID(art_node4)  new	= D_RO(new_u)->u.an4;
@@ -939,9 +940,10 @@ recursive_insert(PMEMobjpool *pop, TOID(art_node_u) n, TOID(art_node_u) *ref,
 
 		TX_BEGIN(pop) {
 			pmemobj_tx_add_range(n.oid,
-			    offsetof(art_node_u, u), sizeof(art_node));
+			    offsetof(art_node_u, u), sizeof (art_node));
 			// Create a new node
-			pmemobj_tx_add_range_direct(ref, sizeof (TOID(art_node_u)));
+			pmemobj_tx_add_range_direct(ref,
+			    sizeof (TOID(art_node_u)));
 			pmemobj_tx_add_range_direct(n_an, sizeof (art_node));
 			TOID(art_node_u) new_u	= alloc_node(pop, NODE4);
 			TX_ADD(new_u);
