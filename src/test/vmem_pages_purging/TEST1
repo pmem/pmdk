@@ -43,7 +43,7 @@ export UNITTEST_NUM=1
 # standard unit test setup
 . ../unittest/unittest.sh
 
-require_fs_type non-pmem pmem
+require_fs_type any
 
 setup
 

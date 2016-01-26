@@ -40,7 +40,7 @@ export UNITTEST_NUM=4
 # standard unit test setup
 . ../unittest/unittest.sh
 
-require_fs_type non-pmem pmem
+require_fs_type any
 require_build_type debug nondebug
 require_valgrind_dev_3_8
 
