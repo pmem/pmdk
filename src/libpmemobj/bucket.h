@@ -37,6 +37,9 @@
 #define	RUN_NALLOCS(_bs)\
 ((RUNSIZE / ((_bs))))
 
+#define	CALC_SIZE_IDX(_unit_size, _size)\
+((uint32_t)(((_size - 1) / _unit_size) + 1))
+
 enum block_container_type {
 	CONTAINER_UNKNOWN,
 	CONTAINER_CTREE,

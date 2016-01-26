@@ -691,6 +691,11 @@ struct bucket *
 heap_get_chunk_bucket(PMEMobjpool *pop, uint32_t chunk_id, uint32_t zone_id)
 {
 	ASSERT(zone_id < pop->heap->max_zone);
+
+	/* This zone wasn't processed yet, so no associated bucket */
+	if (zone_id >= pop->heap->zones_exhausted)
+		return NULL;
+
 	struct zone *z = &pop->heap->layout->zones[zone_id];
 
 	ASSERT(chunk_id < z->header.size_idx);
@@ -1243,6 +1248,9 @@ heap_get_chunk(PMEMobjpool *pop, struct zone *z, struct chunk_header *hdr,
 int heap_get_adjacent_free_block(PMEMobjpool *pop, struct bucket *b,
 	struct memory_block *m, struct memory_block cnt, int prev)
 {
+	if (b == NULL)
+		return EINVAL;
+
 	struct zone *z = &pop->heap->layout->zones[cnt.zone_id];
 	struct chunk_header *hdr = &z->chunk_headers[cnt.chunk_id];
 	m->zone_id = cnt.zone_id;
@@ -1438,6 +1446,25 @@ heap_degrade_run_if_empty(PMEMobjpool *pop, struct bucket *b,
 out:
 	util_mutex_unlock(heap_get_run_lock(pop, m.chunk_id));
 	util_mutex_unlock(&b->lock);
+}
+
+size_t
+heap_get_chunk_block_size(PMEMobjpool *pop, struct memory_block m)
+{
+	struct zone *z = &pop->heap->layout->zones[m.zone_id];
+	struct chunk_header *hdr = &z->chunk_headers[m.chunk_id];
+
+	if (hdr->type == CHUNK_TYPE_USED || hdr->type == CHUNK_TYPE_FREE) {
+		return CHUNKSIZE;
+	} else if (hdr->type == CHUNK_TYPE_RUN) {
+		struct chunk_run *run =
+			(struct chunk_run *)&z->chunks[m.chunk_id];
+
+		return run->block_size;
+	}
+
+	/* unreachable */
+	FATAL("possible zone chunks metadata corruption");
 }
 
 #ifdef USE_VG_MEMCHECK

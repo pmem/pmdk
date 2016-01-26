@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Intel Corporation
+ * Copyright (c) 2015-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -101,11 +101,21 @@ main(int argc, char *argv[])
 
 		ASSERTeq(pmemobj_check(path, LAYOUT_NAME), 1);
 
+		/*
+		 * To prevent subsequent opens from receiving exactly the same
+		 * volatile memory addresses a dummy malloc has to be made.
+		 * This can expose issues in which traces of previous volatile
+		 * state are leftover in the persistent pool.
+		 */
+		void *heap_touch = MALLOC(1);
+
 		ASSERTne(pop = pmemobj_open(path, LAYOUT_NAME), NULL);
 
 		test_free(pop);
 
 		pmemobj_close(pop);
+
+		FREE(heap_touch);
 	}
 
 	DONE(NULL);

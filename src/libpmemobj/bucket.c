@@ -313,7 +313,7 @@ static uint32_t
 bucket_calc_units(struct bucket *b, size_t size)
 {
 	ASSERTne(size, 0);
-	return (uint32_t)(((size - 1) / b->unit_size) + 1);
+	return CALC_SIZE_IDX(b->unit_size, size);
 }
 
 /*
