@@ -34,7 +34,7 @@
 
 # defaults
 [ "$TEST" ] || export TEST=check
-[ "$FS" ] || export FS=local
+[ "$FS" ] || export FS=any
 [ "$BUILD" ] || export BUILD=debug
 [ "$MEMCHECK" ] || export MEMCHECK=auto
 [ "$CHECK_POOL" ] || export CHECK_POOL=0
@@ -106,19 +106,32 @@ if [ ! -n "$UNITTEST_NUM" ]; then
 	exit 1
 fi
 
+REAL_FS=$FS
 if [ "$DIR" ]; then
 	DIR=$DIR/$curtestdir$UNITTEST_NUM
 else
 	case "$FS"
 	in
-	local)
-		DIR=$LOCAL_FS_DIR/$curtestdir$UNITTEST_NUM
-		;;
 	pmem)
 		DIR=$PMEM_FS_DIR/$curtestdir$UNITTEST_NUM
 		;;
 	non-pmem)
 		DIR=$NON_PMEM_FS_DIR/$curtestdir$UNITTEST_NUM
+		;;
+	any)
+		if [ "$PMEM_FS_DIR" != "" ]; then
+			DIR=$PMEM_FS_DIR/$curtestdir$UNITTEST_NUM
+			REAL_FS=pmem
+		elif [ "$NON_PMEM_FS_DIR" != "" ]; then
+			DIR=$NON_PMEM_FS_DIR/$curtestdir$UNITTEST_NUM
+			REAL_FS=non-pmem
+		else
+			echo "$UNITTEST_NAME: fs-type=any and both env vars are empty" >&2
+			exit 1
+		fi
+		;;
+	none)
+		DIR=/dev/null/not_existing_dir/$curtestdir$UNITTEST_NUM
 		;;
 	esac
 	[ "$DIR" ] || {
@@ -764,9 +777,13 @@ function setup() {
 	# make sure we have a well defined locale for string operations here
 	export LC_ALL="C"
 
-	# skip checks in local dir when test did not require any fs type
-	# (in such cases local is equal to either non-pmem or pmem)
-	if [ "$FS" = "local" -a "$req_fs_type" != "1" ]; then
+	# fs type "none" must be explicitly enabled
+	if [ "$FS" = "none" -a "$req_fs_type" != "1" ]; then
+		exit 0
+	fi
+
+	# fs type "any" must be explicitly enabled
+	if [ "$FS" = "any" -a "$req_fs_type" != "1" ]; then
 		exit 0
 	fi
 
@@ -780,14 +797,17 @@ function setup() {
 		MCSTR=""
 	fi
 
-	echo "$UNITTEST_NAME: SETUP ($TEST/$FS/$BUILD$MCSTR)"
+	echo "$UNITTEST_NAME: SETUP ($TEST/$REAL_FS/$BUILD$MCSTR)"
 
 	rm -f check_pool_${BUILD}_${UNITTEST_NUM}.log
 
-	if [ -d "$DIR" ]; then
-		rm --one-file-system -rf -- $DIR
+	if [ "$FS" != "none" ]; then
+		if [ -d "$DIR" ]; then
+			rm --one-file-system -rf -- $DIR
+		fi
+
+		mkdir $DIR
 	fi
-	mkdir $DIR
 }
 
 #
@@ -804,7 +824,9 @@ function pass() {
 	msg="PASS"
 	[ -t 1 ] && command -v tput >/dev/null && msg="$(tput setaf 2)$msg$(tput sgr0)"
 	echo -e "$UNITTEST_NAME: $msg"
-	rm --one-file-system -rf -- $DIR
+	if [ "$FS" != "none" ]; then
+		rm --one-file-system -rf -- $DIR
+	fi
 }
 
 # Length of pool file's signature
