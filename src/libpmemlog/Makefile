@@ -1,4 +1,4 @@
-# Copyright (c) 2014-2015, Intel Corporation
+# Copyright (c) 2014-2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -39,4 +39,4 @@ SOURCE = libpmemlog.c log.c $(COMMON)/util.c $(COMMON)/set.c $(COMMON)/out.c
 
 include ../Makefile.inc
 
-LIBS += -luuid -pthread -lpmem
+LIBS +=  -pthread -lpmem

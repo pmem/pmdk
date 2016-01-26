@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2015, Intel Corporation
+ * Copyright (c) 2014-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,7 +34,6 @@
  * output.h -- declarations of output printing related functions
  */
 
-#include <uuid/uuid.h>
 #include <time.h>
 #include <stdint.h>
 #include <stdio.h>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2015, Intel Corporation
+ * Copyright (c) 2014-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -337,8 +337,11 @@ out_get_uuid_str(uuid_t uuid)
 {
 	static char uuid_str[UUID_STR_MAX] = {0, };
 
-	uuid_unparse(uuid, uuid_str);
-
+	int ret = util_uuid_to_string(uuid, uuid_str);
+	if (ret != 0) {
+		outv(2, "failed to covert uuid to string");
+		return NULL;
+	}
 	return uuid_str;
 }
 

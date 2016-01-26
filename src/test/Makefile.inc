@@ -57,7 +57,7 @@ LIBS += -ldl $(shell pkg-config --libs libunwind || echo -lunwind)
 endif
 
 LIBS += -L$(LIBS_DIR)/debug
-LIBS += -luuid -pthread
+LIBS += -pthread
 
 ifeq ($(LIBPMEMBLK), y)
 DYNAMIC_LIBS += -lpmemblk

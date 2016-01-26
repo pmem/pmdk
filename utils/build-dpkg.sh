@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright (c) 2014-2015, Intel Corporation
+# Copyright (c) 2014-2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -111,7 +111,7 @@ Maintainer: $PACKAGE_MAINTAINER
 Section: misc
 Priority: optional
 Standards-version: 3.9.4
-Build-Depends: debhelper (>= 9), uuid-dev
+Build-Depends: debhelper (>= 9)
 
 Package: libpmem
 Architecture: any
@@ -122,7 +122,7 @@ Description: NVML libpmem library
 Package: libpmem-dev
 Section: libdevel
 Architecture: any
-Depends: libpmem (=\${binary:Version}), uuid-dev, \${shlibs:Depends}, \${misc:Depends}
+Depends: libpmem (=\${binary:Version}), \${shlibs:Depends}, \${misc:Depends}
 Description: Development files for libpmem
  Development files for libpmem library.
 
@@ -135,7 +135,7 @@ Description: NVML libpmemblk library
 Package: libpmemblk-dev
 Section: libdevel
 Architecture: any
-Depends: libpmemblk (=\${binary:Version}), uuid-dev, \${shlibs:Depends}, \${misc:Depends}
+Depends: libpmemblk (=\${binary:Version}), \${shlibs:Depends}, \${misc:Depends}
 Description: Development files for libpmemblk
  Development files for libpmemblk library.
 
@@ -148,7 +148,7 @@ Description: NVML libpmemlog library
 Package: libpmemlog-dev
 Section: libdevel
 Architecture: any
-Depends: libpmemlog (=\${binary:Version}), uuid-dev, \${shlibs:Depends}, \${misc:Depends}
+Depends: libpmemlog (=\${binary:Version}),  \${shlibs:Depends}, \${misc:Depends}
 Description: Development files for libpmemlog
  Development files for libpmemlog library.
 
@@ -161,7 +161,7 @@ Description: NVML libpmemobj library
 Package: libpmemobj-dev
 Section: libdevel
 Architecture: any
-Depends: libpmemobj (=\${binary:Version}), uuid-dev, \${shlibs:Depends}, \${misc:Depends}
+Depends: libpmemobj (=\${binary:Version}), \${shlibs:Depends}, \${misc:Depends}
 Description: Development files for libpmemobj
  Development files for libpmemobj-dev library.
 
@@ -174,7 +174,7 @@ Description: NVML libvmem library
 Package: libvmem-dev
 Section: libdevel
 Architecture: any
-Depends: libvmem (=\${binary:Version}), uuid-dev, \${shlibs:Depends}, \${misc:Depends}
+Depends: libvmem (=\${binary:Version}), \${shlibs:Depends}, \${misc:Depends}
 Description: Development files for libvmem
  Development files for libvmem library.
 
@@ -187,7 +187,7 @@ Description: NVML libvmmalloc library
 Package: libvmmalloc-dev
 Section: libdevel
 Architecture: any
-Depends: libvmmalloc (=\${binary:Version}), uuid-dev, \${shlibs:Depends}, \${misc:Depends}
+Depends: libvmmalloc (=\${binary:Version}), \${shlibs:Depends}, \${misc:Depends}
 Description: Development files for libvmmalloc
  Development files for libvmmalloc library.
 
@@ -195,7 +195,7 @@ Package: $PACKAGE_NAME-dbg
 Section: debug
 Priority: extra
 Architecture: any
-Depends: libvmem (=\${binary:Version}), libvmmalloc (=\${binary:Version}), libpmem (=\${binary:Version}), libpmemblk (=\${binary:Version}), libpmemlog (=\${binary:Version}), libpmemobj (=\${binary:Version}), uuid-dev, \${misc:Depends}
+Depends: libvmem (=\${binary:Version}), libvmmalloc (=\${binary:Version}), libpmem (=\${binary:Version}), libpmemblk (=\${binary:Version}), libpmemlog (=\${binary:Version}), libpmemobj (=\${binary:Version}), \${misc:Depends}
 Description: Debug symbols for NVML libraries
  Debug symbols for all NVML libraries.
 

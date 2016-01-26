@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2015, Intel Corporation
+ * Copyright (c) 2014-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -375,10 +375,6 @@ ut_start(const char *file, int line, const char *func,
 	out(0, NULL);
 
 	va_end(ap);
-
-	/* generate a uuid so the leaked fd gets recorded */
-	uuid_t u;
-	uuid_generate(u);
 
 	record_open_files();
 
