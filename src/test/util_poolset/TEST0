@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright (c) 2015, Intel Corporation
+# Copyright (c) 2015-2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -153,7 +153,7 @@ check_no_files $DIR/testfile41 $DIR/testfile42\
 	$DIR/testfile252
 
 
-grep "<1>" $TEST_LOG_FILE | sed -e "s/^.*\]\ //g" > ./grep$UNITTEST_NUM.log
+grep "<1>" $TEST_LOG_FILE | sed -e "s/^.*\][ ]*//g" > ./grep$UNITTEST_NUM.log
 
 check
 

@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright (c) 2015, Intel Corporation
+# Copyright (c) 2015-2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -52,7 +52,7 @@ export PMEM_MOVNT_THRESHOLD=-15
 
 expect_normal_exit ./pmem_movnt$EXESUFFIX
 egrep "PMEM_MOVNT_THRESHOLD|pmem_flush" pmem$UNITTEST_NUM.log | \
-    sed -e 's/^.* len //g' -e 's/^.*] //g' > grep$UNITTEST_NUM.log
+    sed -e 's/^.* len //g' -e 's/^.*][ ]*//g' > grep$UNITTEST_NUM.log
 
 check
 
