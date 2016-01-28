@@ -38,6 +38,7 @@ VERSION 1.0
 
 EXPORTS
 	pmem_map
+	pmem_unmap
 	pmem_is_pmem
 	pmem_persist
 	pmem_msync
