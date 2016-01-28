@@ -2170,10 +2170,6 @@ static struct fuse_operations pmemobjfs_ops = {
 static int
 pmemobjfs_mkfs(const char *fname, size_t size, size_t bsize, mode_t mode)
 {
-	/* remove file if exists */
-	if (access(fname, F_OK) == 0)
-		remove(fname);
-
 	struct pmemobjfs *objfs = calloc(1, sizeof (*objfs));
 	if (!objfs)
 		return -1;
@@ -2299,6 +2295,7 @@ pmemobjfs_mkfs_main(int argc, char *argv[])
 	uint64_t bsize = PMEMOBJFS_MIN_BLOCK_SIZE;
 	int opt;
 	const char *optstr = "hs:b:";
+	int size_used = 0;
 	while ((opt = getopt(argc, argv, optstr)) != -1) {
 		switch (opt) {
 		case 'h':
@@ -2317,6 +2314,7 @@ pmemobjfs_mkfs_main(int argc, char *argv[])
 					"value specified  -- '%s'\n", optarg);
 				return -1;
 			}
+			size_used = 1;
 			break;
 		}
 	}
@@ -2326,10 +2324,21 @@ pmemobjfs_mkfs_main(int argc, char *argv[])
 		return -1;
 	}
 
-	if (size < PMEMOBJ_MIN_POOL) {
-		fprintf(stderr, "error: minimum size is %lu\n",
-				PMEMOBJ_MIN_POOL);
-		return -1;
+	const char *path = argv[optind];
+
+	if (!access(path, F_OK)) {
+		if (size_used) {
+			fprintf(stderr, "error: cannot use size option "
+					"for existing file\n");
+			return -1;
+		}
+		size = 0;
+	} else {
+		if (size < PMEMOBJ_MIN_POOL) {
+			fprintf(stderr, "error: minimum size is %lu\n",
+					PMEMOBJ_MIN_POOL);
+			return -1;
+		}
 	}
 
 	if (bsize < PMEMOBJFS_MIN_BLOCK_SIZE) {
@@ -2337,8 +2346,6 @@ pmemobjfs_mkfs_main(int argc, char *argv[])
 				PMEMOBJFS_MIN_BLOCK_SIZE);
 		return -1;
 	}
-
-	const char *path = argv[optind];
 
 	return pmemobjfs_mkfs(path, size, bsize, 0777);
 
