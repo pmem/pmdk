@@ -2438,12 +2438,6 @@ main(int argc, char *argv[])
 	}
 
 	int ret = 0;
-	objfs->mapc = map_ctx_init(MAP_CTREE, objfs->pop);
-	if (!objfs->mapc) {
-		perror("map_ctx_init");
-		ret = -1;
-		goto out;
-	}
 
 	objfs->pop = pmemobj_open(fname, POBJ_LAYOUT_NAME(pmemobjfs));
 	if (objfs->pop == NULL) {
@@ -2451,6 +2445,14 @@ main(int argc, char *argv[])
 		ret = -1;
 		goto out;
 	}
+
+	objfs->mapc = map_ctx_init(MAP_CTREE, objfs->pop);
+	if (!objfs->mapc) {
+		perror("map_ctx_init");
+		ret = -1;
+		goto out;
+	}
+
 	argv[argc - 2] = argv[argc - 1];
 	argv[argc - 1] = NULL;
 	argc--;
