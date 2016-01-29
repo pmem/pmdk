@@ -232,6 +232,19 @@ Depends: libpmemobj (=\${binary:Version}), \${shlibs:Depends}, \${misc:Depends}
 Description: Development files for libpmemobj
  Development files for libpmemobj-dev library.
 
+Package: libpmempool
+Architecture: any
+Depends: libpmem (=\${binary:Version}), \${shlibs:Depends}, \${misc:Depends}
+Description: NVML libpmempool library
+ NVML library for Persistent Memory support - pool management library.
+
+Package: libpmempool-dev
+Section: libdevel
+Architecture: any
+Depends: libpmempool (=\${binary:Version}), \${shlibs:Depends}, \${misc:Depends}
+Description: Development files for libpmempool
+ Development files for libpmempool library.
+
 Package: libvmem
 Architecture: any
 Depends: \${shlibs:Depends}, \${misc:Depends}
@@ -262,7 +275,7 @@ Package: $PACKAGE_NAME-dbg
 Section: debug
 Priority: extra
 Architecture: any
-Depends: libvmem (=\${binary:Version}), libvmmalloc (=\${binary:Version}), libpmem (=\${binary:Version}), libpmemblk (=\${binary:Version}), libpmemlog (=\${binary:Version}), libpmemobj (=\${binary:Version}), \${misc:Depends}
+Depends: libvmem (=\${binary:Version}), libvmmalloc (=\${binary:Version}), libpmem (=\${binary:Version}), libpmemblk (=\${binary:Version}), libpmemlog (=\${binary:Version}), libpmemobj (=\${binary:Version}), libpmempool (=\${binary:Version}), \${misc:Depends}
 Description: Debug symbols for NVML libraries
  Debug symbols for all NVML libraries.
 
@@ -443,6 +456,40 @@ interest man-db
 EOF
 
 cat << EOF > debian/libpmemobj-dev.lintian-overrides
+$ITP_BUG_EXCUSE
+new-package-should-close-itp-bug
+# The following warnings are triggered by a bug in debhelper:
+# http://bugs.debian.org/204975
+postinst-has-useless-call-to-ldconfig
+postrm-has-useless-call-to-ldconfig
+# We do not want to compile with -O2 for debug version
+hardening-no-fortify-functions usr/lib/nvml_dbg/*
+EOF
+
+cat << EOF > debian/libpmempool.install
+usr/lib/libpmempool.so.*
+EOF
+
+cat << EOF > debian/libpmempool.lintian-overrides
+$ITP_BUG_EXCUSE
+new-package-should-close-itp-bug
+libpmempool: package-name-doesnt-match-sonames
+EOF
+
+cat << EOF > debian/libpmempool-dev.install
+usr/lib/nvml_debug/libpmempool.a usr/lib/nvml_dbg/
+usr/lib/nvml_debug/libpmempool.so usr/lib/nvml_dbg/
+usr/lib/nvml_debug/libpmempool.so.* usr/lib/nvml_dbg/
+usr/lib/libpmempool.so
+usr/include/libpmempool.h
+usr/share/man/man3/libpmempool.3.gz
+EOF
+
+cat << EOF > debian/libpmempool-dev.triggers
+interest man-db
+EOF
+
+cat << EOF > debian/libpmempool-dev.lintian-overrides
 $ITP_BUG_EXCUSE
 new-package-should-close-itp-bug
 # The following warnings are triggered by a bug in debhelper:

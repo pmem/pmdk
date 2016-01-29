@@ -524,7 +524,7 @@ pmempool_check_get_first_valid_btt(struct pmempool_check *pcp, struct btt_info
 			util_checksum(infop, sizeof(*infop),
 				&infop->checksum, 0)) {
 
-			util_convert2h_btt_info(infop);
+			btt_info_convert2h(infop);
 			return offset;
 		}
 
@@ -562,7 +562,7 @@ pmempool_check_get_first_valid_arena(struct pmempool_check *pcp,
 			util_checksum(infop, sizeof(*infop),
 				&infop->checksum, 0)) {
 
-			util_convert2h_btt_info(infop);
+			btt_info_convert2h(infop);
 			arenap->valid = true;
 			arenap->offset = offset;
 			return 1;
@@ -726,7 +726,7 @@ pmempool_check_pool_hdr_gen(struct pmempool_check *pcp, struct pool_hdr *hdrp)
 		}
 	}
 
-	util_convert2le_pool_hdr(hdrp);
+	util_convert2le_hdr(hdrp);
 
 	if (ask_Yn(pcp->ans, "Do you want to regenerate checksum?")
 			== 'n')
@@ -737,7 +737,7 @@ pmempool_check_pool_hdr_gen(struct pmempool_check *pcp, struct pool_hdr *hdrp)
 	outv(1, "setting pool_hdr.checksum to: 0x%x\n",
 			le32toh(hdrp->checksum));
 
-	util_convert2h_pool_hdr(hdrp);
+	util_convert2h_hdr_nocheck(hdrp);
 
 	return CHECK_RESULT_REPAIRED;
 }
@@ -1129,7 +1129,7 @@ pmempool_check_pool_hdr_single(struct pmempool_check *pcp,
 	 * for some default values
 	 */
 
-	util_convert2h_pool_hdr(&hdr);
+	util_convert2h_hdr_nocheck(&hdr);
 	struct pool_hdr def_hdr;
 	pmem_default_pool_hdr(pcp->params.type, &def_hdr);
 
@@ -1154,7 +1154,7 @@ pmempool_check_pool_hdr_single(struct pmempool_check *pcp,
 			return ret;
 	}
 
-	util_convert2le_pool_hdr(&hdr);
+	util_convert2le_hdr(&hdr);
 
 	cs_valid = util_pool_hdr_valid(&hdr);
 
@@ -1162,7 +1162,7 @@ pmempool_check_pool_hdr_single(struct pmempool_check *pcp,
 		goto out_repaired;
 	}
 
-	util_convert2h_pool_hdr(&hdr);
+	util_convert2h_hdr_nocheck(&hdr);
 
 	check_result_t ret_gen = pmempool_check_pool_hdr_gen(pcp, &hdr);
 	if (ret_gen == CHECK_RESULT_REPAIRED)
@@ -1275,7 +1275,7 @@ pmempool_check_read_pmemlog(struct pmempool_check *pcp)
 	}
 
 	/* endianness conversion */
-	util_convert2h_pmemlog(&pcp->hdr.log);
+	pmemlog_convert2h(&pcp->hdr.log);
 
 	return 0;
 }
@@ -1775,8 +1775,8 @@ pmempool_check_write_flog(struct pmempool_check *pcp, struct arena *arenap)
 		struct btt_flog *flog_beta = (struct btt_flog *)(ptr +
 				sizeof(struct btt_flog));
 
-		util_convert2le_btt_flog(flog_alpha);
-		util_convert2le_btt_flog(flog_beta);
+		btt_flog_convert2le(flog_alpha);
+		btt_flog_convert2le(flog_beta);
 
 		ptr += BTT_FLOG_PAIR_ALIGN;
 	}
@@ -1826,8 +1826,8 @@ pmempool_check_read_flog(struct pmempool_check *pcp, struct arena *arenap)
 		struct btt_flog *flog_beta = (struct btt_flog *)(ptr +
 				sizeof(struct btt_flog));
 
-		util_convert2h_btt_flog(flog_alpha);
-		util_convert2h_btt_flog(flog_beta);
+		btt_flog_convert2h(flog_alpha);
+		btt_flog_convert2h(flog_beta);
 
 		ptr += BTT_FLOG_PAIR_ALIGN;
 	}
@@ -2202,7 +2202,7 @@ pmempool_check_write_blk(struct pmempool_check *pcp)
 	struct arena *arenap;
 	TAILQ_FOREACH(arenap, &pcp->arenas, next) {
 
-		util_convert2le_btt_info(&arenap->btt_info);
+		btt_info_convert2le(&arenap->btt_info);
 
 		if (pcp->uuid_op == UUID_REGENERATED) {
 			memcpy(arenap->btt_info.parent_uuid,

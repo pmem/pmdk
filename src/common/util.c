@@ -280,6 +280,41 @@ util_checksum(void *addr, size_t len, uint64_t *csump, int insert)
 }
 
 /*
+ * util_convert2le_hdr -- convert pool_hdr into little-endian byte order
+ */
+void
+util_convert2le_hdr(struct pool_hdr *hdrp)
+{
+	hdrp->major = htole32(hdrp->major);
+	hdrp->compat_features = htole32(hdrp->compat_features);
+	hdrp->incompat_features = htole32(hdrp->incompat_features);
+	hdrp->ro_compat_features = htole32(hdrp->ro_compat_features);
+	hdrp->arch_flags.alignment_desc =
+		htole64(hdrp->arch_flags.alignment_desc);
+	hdrp->arch_flags.e_machine = htole16(hdrp->arch_flags.e_machine);
+	hdrp->crtime = htole64(hdrp->crtime);
+	hdrp->checksum = htole64(hdrp->checksum);
+}
+
+/*
+ * util_convert2h_hdr_nocheck -- convert pool_hdr into host byte order
+ */
+void
+util_convert2h_hdr_nocheck(struct pool_hdr *hdrp)
+{
+	hdrp->major = le32toh(hdrp->major);
+	hdrp->compat_features = le32toh(hdrp->compat_features);
+	hdrp->incompat_features = le32toh(hdrp->incompat_features);
+	hdrp->ro_compat_features = le32toh(hdrp->ro_compat_features);
+	hdrp->crtime = le64toh(hdrp->crtime);
+	hdrp->arch_flags.e_machine =
+		le16toh(hdrp->arch_flags.e_machine);
+	hdrp->arch_flags.alignment_desc =
+		le64toh(hdrp->arch_flags.alignment_desc);
+	hdrp->checksum = le64toh(hdrp->checksum);
+}
+
+/*
  * util_convert_hdr -- convert header to host byte order & validate
  *
  * Returns true if header is valid, and all the integer fields are
@@ -292,20 +327,13 @@ util_convert_hdr(struct pool_hdr *hdrp)
 {
 	LOG(3, "hdrp %p", hdrp);
 
+	util_convert2h_hdr_nocheck(hdrp);
+
 	/* to be valid, a header must have a major version of at least 1 */
-	if ((hdrp->major = le32toh(hdrp->major)) == 0) {
+	if (hdrp->major == 0) {
 		ERR("invalid major version (0)");
 		return 0;
 	}
-	hdrp->compat_features = le32toh(hdrp->compat_features);
-	hdrp->incompat_features = le32toh(hdrp->incompat_features);
-	hdrp->ro_compat_features = le32toh(hdrp->ro_compat_features);
-	hdrp->crtime = le64toh(hdrp->crtime);
-	hdrp->arch_flags.e_machine =
-		le16toh(hdrp->arch_flags.e_machine);
-	hdrp->arch_flags.alignment_desc =
-		le64toh(hdrp->arch_flags.alignment_desc);
-	hdrp->checksum = le64toh(hdrp->checksum);
 
 	/* and to be valid, the fields must checksum correctly */
 	if (!util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum, 0)) {

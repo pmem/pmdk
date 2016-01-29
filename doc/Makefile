@@ -36,8 +36,8 @@
 
 include ../src/common.inc
 
-MANPAGES_3 = libpmem.3 libpmemblk.3 libpmemlog.3 libpmemobj.3 libvmem.3 \
-	libvmmalloc.3
+MANPAGES_3 = libpmem.3 libpmemblk.3 libpmemlog.3 libpmemobj.3 libpmempool.3 \
+	libvmem.3 libvmmalloc.3
 MANPAGES_1 = pmempool.1 pmempool-info.1 pmempool-create.1 \
 	pmempool-check.1 pmempool-dump.1 pmempool-rm.1
 MANPAGES_3_NOINSTALL = librpmem.3

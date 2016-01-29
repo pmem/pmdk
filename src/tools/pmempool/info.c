@@ -579,7 +579,7 @@ pmempool_info_pool_hdr(struct pmem_info *pip, int v)
 	outv(v, "POOL Header:\n");
 	outv_hexdump(pip->args.vhdrdump, hdr, sizeof(*hdr), 0, 1);
 
-	util_convert2h_pool_hdr(hdr);
+	util_convert2h_hdr_nocheck(hdr);
 
 	outv_field(v, "Signature", "%.*s%s", POOL_HDR_SIG_LEN,
 			hdr->signature,

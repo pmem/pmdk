@@ -113,6 +113,7 @@ extern "C" {
 #include <libpmemblk.h>
 #include <libpmemlog.h>
 #include <libpmemobj.h>
+#include <libpmempool.h>
 #include <libvmem.h>
 
 /* XXX - eliminate duplicated definitions in unittest.h and util.h */

@@ -148,6 +148,8 @@ struct pool_hdr {
 
 #define POOL_HDR_SIZE	(sizeof(struct pool_hdr))
 
+void util_convert2le_hdr(struct pool_hdr *hdrp);
+void util_convert2h_hdr_nocheck(struct pool_hdr *hdrp);
 int util_checksum(void *addr, size_t len, uint64_t *csump, int insert);
 int util_convert_hdr(struct pool_hdr *hdrp);
 int util_get_arch_flags(struct arch_flags *arch_flags);
@@ -221,6 +223,15 @@ struct pool_set {
 	struct pool_replica *replica[];
 };
 
+#define REP(set, r)\
+	((set)->replica[((set)->nreplicas + (r)) % (set)->nreplicas])
+
+#define PART(rep, p)\
+	((rep)->part[((rep)->nparts + (p)) % (rep)->nparts])
+
+#define HDR(rep, p)\
+	((struct pool_hdr *)(PART(rep, p).hdr))
+
 /*
  * Structure for binary version of uuid. From RFC4122,
  * https://tools.ietf.org/html/rfc4122
@@ -276,6 +287,9 @@ int util_pool_create_uuids(struct pool_set **setp, const char *path,
 	const unsigned char *next_repl_uuid,
 	const unsigned char *arch_flags);
 
+int util_map_hdr(struct pool_set_part *part, int flags);
+int util_unmap_hdr(struct pool_set_part *part);
+
 int util_pool_open_nocheck(struct pool_set **setp, const char *path,
 		int rdonly);
 int util_pool_open(struct pool_set **setp, const char *path, int rdonly,
@@ -290,13 +304,29 @@ int util_pool_open_remote(struct pool_set **setp, const char *path, int rdonly,
 
 int util_parse_size(const char *str, size_t *sizep);
 
-/* setbit macro substitution which properly deals with types */
-static inline void util_setbit(uint8_t *b, uint32_t i)
+/*
+ * util_setbit -- setbit macro substitution which properly deals with types
+ */
+static inline void
+util_setbit(uint8_t *b, uint32_t i)
 {
 	b[i / 8] = (uint8_t)(b[i / 8] | (uint8_t)(1 << (i % 8)));
 }
+
+/*
+ * util_clrbit -- clrbit macro substitution which properly deals with types
+ */
+static inline void
+util_clrbit(uint8_t *b, uint32_t i)
+{
+	b[i / 8] = (uint8_t)(b[i / 8] & (uint8_t)(~(1 << (i % 8))));
+}
+
 #define util_isset(a, i) isset(a, i)
 #define util_isclr(a, i) isclr(a, i)
+
+#define util_flag_isset(a, f) ((a) & (f))
+#define util_flag_isclr(a, f) (((a) & (f)) == 0)
 
 #if !defined(likely)
 #if defined(__GNUC__)

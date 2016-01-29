@@ -1,0 +1,436 @@
+.\"
+.\" Copyright 2016, Intel Corporation
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\"
+.\"    * Redistributions of source code must retain the above copyright
+.\"       notice, this list of conditions and the following disclaimer.
+.\"
+.\"     * Redistributions in binary form must reproduce the above copyright
+.\"       notice, this list of conditions and the following disclaimer in
+.\"       the documentation and/or other materials provided with the
+.\"       distribution.
+.\"
+.\"     * Neither the name of the copyright holder nor the names of its
+.\"       contributors may be used to endorse or promote products derived
+.\"       from this software without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+.\" "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+.\" LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+.\" A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+.\" OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+.\" SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+.\" LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+.\" DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+.\" THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+.\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+.\" OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+.\"
+.\"
+.\" libpmempool.3 -- man page for libpmempool
+.\"
+.\" Format this man page with:
+.\"	man -l libpmempool.3
+.\" or
+.\"	groff -man -Tascii libpmempool.3
+.\"
+.TH libpmempool 3 "pmempool API version 1.0.0" "NVM Library"
+.SH NAME
+libpmempool \- pool management library
+.SH SYNOPSIS
+.nf
+.B #include <libpmempool.h>
+.sp
+.B cc -std=gnu99 ... -lpmempool -lpmem
+.sp
+.B Health check functions:
+.sp
+.BI "PMEMpoolcheck *pmempool_check_init(struct pmempool_check_args *" args ,
+.BI "    size_t " args_size ");"
+.BI "struct pmempool_check_status *pmempool_check(PMEMpoolcheck *" ppc );
+.BI "enum pmempool_check_result pmempool_check_end(PMEMpoolcheck *" ppc );
+.sp
+.B Library API versioning:
+.sp
+.BI "const char *pmempool_check_version("
+.BI "    unsigned " major_required ,
+.BI "    unsigned " minor_required );
+.sp
+.B Error handling:
+.sp
+.B const char *pmempool_errormsg(void);
+.fi
+.sp
+.SH DESCRIPTION
+.PP
+.B libpmempool
+provides a set of utilities for off-line analysis and manipulation of a
+.IR pool .
+By
+.I pool
+in this manpage we mean pmemobj pool, pmemblk pool, pmemlog pool or BTT layout,
+independent of the underlying storage.
+Some of
+.B libpmempool
+functions are required to work without any impact on processed
+.I pool
+but some of them may create a new or modify an existing one.
+.PP
+.B libpmempool
+is for applications that need high reliability or built-in troubleshooting.
+It may be useful for testing and debugging purposes also.
+.PP
+Currently
+.B libpmempool
+implements only consistency check and repair functions.
+.sp
+.SH POOL CHECKING FUNCTIONS
+.PP
+To perform check provided by
+.BR libpmempool ", a"
+.I check context
+must be first initialized using
+.BR pmempool_check_init ()
+function described in this section. Once initialized
+.I check context
+is represented by an opaque handle, of type
+.IR "PMEMpoolcheck *" ,
+which is passed to all of the other functions described in this section.
+.PP
+To execute check
+.BR pmempool_check ()
+must be called iteratively. Each call resumes check till new status will be
+generated. Each status is represented by
+.B struct pmempool_check_status *
+structure. It may carry various types of messages described in this section.
+.PP
+When check is completed
+.BR pmempool_check ()
+returns NULL pointer.
+Check must be finalized using
+.BR pmempool_check_end ().
+It returns
+.B enum pmempool_check_result
+describing result of the whole check.
+.PP
+.nf
+.BI "PMEMpoolcheck *pmempool_check_init(struct pmempool_check_args *" args ,
+.BI "    size_t " args_size ");"
+.fi
+.IP
+The
+.BR pmempool_check_init ()
+initializes
+.IR "check context" ". " args
+describes parameters of the
+.IR "check context" .
+.I args_size
+should be equal to the size of the
+.BR "struct pmempool_check_args" .
+.B struct pmempool_check_args
+is defined as follows:
+.IP
+.nf
+struct pmempool_check_args {
+    const char *path;                   /* path to the pool to check */
+    const char *backup_path;            /* optional backup path */
+    enum pmempool_pool_type pool_type;  /* type of the pool */
+    int flags;                          /* parameters */
+};
+.fi
+.IP
+.I flags
+accepts any combination of the following values (ORed):
+.IP
+.BR "" * " PMEMPOOL_CHECK_REPAIR"
+- perform repairs
+.IP
+.BR "" * " PMEMPOOL_CHECK_DRY_RUN"
+- emulate repairs
+.IP
+.BR "" * " PMEMPOOL_CHECK_ADVANCED"
+- perform hazardous repairs
+.IP
+.BR "" * " PMEMPOOL_CHECK_ALWAYS_YES"
+- do not ask before repairs
+.IP
+.BR "" * " PMEMPOOL_CHECK_VERBOSE"
+- generate info statuses
+.IP
+.BR "" * " PMEMPOOL_CHECK_FORMAT_STR"
+- generate string format statuses
+.IP
+If provided parameters are invalid or initialization process fails
+.BR pmempool_check_init ()
+returns NULL and sets errno appropriately.
+.I pool_type
+has to match type of the
+.I pool
+being processed.
+You can turn on pool type detection by setting
+.I pool_type
+to
+.B PMEMPOOL_POOL_TYPE_DETECT.
+Pool type detection fail ends check.
+.IP
+This is an example of a
+.I check context
+initialization:
+.IP
+.nf
+struct pmempool_check_args args = {
+    .path           = "/path/to/blk.pool",
+    .backup_path    = NULL,
+    .pool_type      = PMEMPOOL_POOL_TYPE_BLK,
+    .flags          = PMEMPOOL_CHECK_REPAIR | PMEMPOOL_CHECK_DRY_RUN |
+        PMEMPOOL_CHECK_VERBOSE | PMEMPOOL_CHECK_FORMAT_STR
+};
+
+PMEMpoolcheck *ppc = pmempool_check_init(&args, sizeof(args));
+.fi
+.IP
+The check will process a
+.I pool
+of type
+.B PMEMPOOL_POOL_TYPE_BLK
+located in the path /path/to/blk.pool. Before check it will not create a backup
+of the
+.IR "pool " ( "backup_path " == " " NULL).
+If the check will find any issues it will try to perform repair steps
+.BR "" ( PMEMPOOL_CHECK_REPAIR ),
+but it will not make any changes to the
+.I pool
+.BR "" ( PMEMPOOL_CHECK_DRY_RUN )
+and it will not perform any dangerous repair steps
+.BR "" "(no " PMEMPOOL_CHECK_ADVANCED ).
+The check will ask before performing any repair steps
+.BR "" "(no " PMEMPOOL_CHECK_ALWAYS_YES ).
+It will also generate detailed information about the check
+.BR "" ( PMEMPOOL_CHECK_VERBOSE ).
+.B PMEMPOOL_CHECK_FORMAT_STR
+flag indicates string format statuses
+.BR "" ( "struct pmempool_check_status" ).
+Currently it is the only supported status format so this flag is required.
+.PP
+.BI "struct pmempool_check_status *pmempool_check(PMEMpoolcheck *" ppc );
+.IP
+The
+.BR pmempool_check ()
+function starts or resumes the check indicated by
+.IR ppc .
+When next status will be generated it pauses the check and returns a pointer to
+the
+.B struct pmempool_check_status
+structure:
+.IP
+.nf
+struct pmempool_check_status {
+    enum pmempool_check_msg_type type;  /* type of the status */
+    struct {
+        const char *msg;                /* status message string */
+        const char *answer;             /* answer to message if applicable */
+    } str;
+};
+.fi
+.IP
+This structure can describe three types of statuses:
+.IP
+.BR "" * " PMEMPOOL_CHECK_MSG_TYPE_INFO"
+- detailed information about the check. Generated only if a
+.B PMEMPOOL_CHECK_VERBOSE
+flag was set.
+.IP
+.BR "" * " PMEMPOOL_CHECK_MSG_TYPE_ERROR"
+- encountered error
+.IP
+.BR "" * " PMEMPOOL_CHECK_MSG_TYPE_QUESTION"
+- question. Generated only if an
+.B PMEMPOOL_CHECK_ALWAYS_YES
+flag was not set. It requires
+.I answer
+to be set to "yes" or "no" before continuing.
+.IP
+After calling
+.BR pmempool_check ()
+again the previously provided
+.B struct pmempool_check_status *
+pointer must be considered invalid. When the check completes
+.BR pmempool_check ()
+returns NULL pointer.
+.PP
+.BI "enum pmempool_check_result pmempool_check_end(PMEMpoolcheck *" ppc );
+.IP
+The
+.BR pmempool_check_end ()
+function finalizes the check and releases all related resources.
+.I ppc
+is not a valid pointer after calling
+.BR pmempool_check_end ().
+It returns
+.B enum pmempool_check_result
+summarizing result of the finalized check.
+.BR pmempool_check_end ()
+can return one of the following values:
+.IP
+.BR "" * " PMEMPOOL_CHECK_RESULT_CONSISTENT"
+- the
+.I pool
+is consistent
+.IP
+.BR "" * " PMEMPOOL_CHECK_RESULT_NOT_CONSISTENT"
+- the
+.I pool
+is not consistent
+.IP
+.BR "" * " PMEMPOOL_CHECK_RESULT_REPAIRED"
+- the
+.I pool
+has issues but all repair steps completed succesfully
+.IP
+.BR "" * " PMEMPOOL_CHECK_RESULT_CANNOT_REPAIR"
+- the
+.I pool
+has issues which can not be repaired
+.IP
+.BR "" * " PMEMPOOL_CHECK_RESULT_ERROR"
+- the
+.I pool
+has errors or the check encountered issue
+.SH LIBRARY API VERSIONING
+.PP
+This section describes how the library API is versioned, allowing applications
+to work with an evolving API.
+.PP
+.BI "const char *pmempool_check_version("
+.br
+.BI "    unsigned " major_required ,
+.br
+.BI "    unsigned " minor_required );
+.IP
+The
+.BR pmempool_check_version ()
+function is used to see if the installed
+.B libpmempool
+supports the version of the library API required by an application.
+The easiest way to do this for the application is to supply the compile-time
+version information, supplied by defines in
+.BR <libpmempool.h> ,
+like this:
+.IP
+.nf
+reason = pmempool_check_version(PMEMPOOL_MAJOR_VERSION, PMEMPOOL_MINOR_VERSION);
+if (reason != NULL) {
+    /* version check failed, reason string tells you why */
+}
+.fi
+.IP
+Any mismatch in the major version number is considered a failure,
+but a library with a newer minor version number will pass this check since
+increasing minor versions imply backwards compatibility.
+.IP
+An application can also check specifically for the existence of an interface
+by checking for the version where that interface was introduced.
+These versions are documented in this man page as follows: unless otherwise
+specified, all interfaces described here are available in version 1.0 of the
+library. Interfaces added after version 1.0 will contain the text introduced
+in version x.y in the section of this manual describing the feature.
+.IP
+When the version check performed by
+.BR pmempool_check_version ()
+is successful, the return value is NULL. Otherwise the return value is a
+static string describing the reason for failing the version check.
+The string returned by
+.BR pmempool_check_version ()
+must not be modified or freed.
+.SH DEBUGGING AND ERROR HANDLING
+.PP
+Two versions of
+.B libpmempool
+are typically available on a development system. The normal version, accessed
+when a program is linked using the
+.B -lpmempool
+option, is optimized for performance. That version skips checks that impact
+performance and exceptionally logs any trace information or performs any
+run-time assertions. If an error is detected during the call to
+.B libpmempool
+function, an application may retrieve an error message describing the reason of
+failure using the following function:
+.PP
+.BI "const char *pmempool_errormsg(void);
+.IP
+The
+.BR pmempool_errormsg ()
+function returns a pointer to a static buffer containing the last error message
+logged for current thread. The error message may include description of the
+corresponding error code (if errno was set), as returned by
+.BR strerror (3).
+The error message buffer is thread-local; errors encountered in one thread do
+not affect its value in other threads. The buffer is never cleared by any
+library function; its content is significant only when the return value of the
+immediately preceding call to
+.B libpmempool
+function indicated an error, or if errno was set. The application must not
+modify or free the error message string, but it may be modified by subsequent
+calls to other library functions.
+.PP
+A second version of
+.BR libpmempool ,
+accessed when a program uses the libraries under
+.BR /usr/lib/nvml_debug ,
+contains run-time assertions and trace points. The typical way to access the
+debug version is to set the environment variable
+.BR "LD_LIBRARY_PATH " to " /usr/lib/nvml_debug " or " /usr/lib64/nvml_debug"
+depending on where the debug libraries are installed on the system.
+The trace points in the debug version of the library are enabled using the
+environment variable
+.BR PMEMPOOL_LOG_LEVEL ,
+which can be set to the following values:
+.IP 0
+This is the default level when
+.B PMEMPOOL_LOG_LEVEL
+is not set. No log messages are emitted at this level.
+.IP 1
+Additional details on any errors detected are logged (in addition to returning
+the errno-based errors as usual). The same information may be retrieved using
+.BR pmempool_errormsg ().
+.IP 2
+A trace of basic operations is logged.
+.IP 3
+This level enables a very verbose amount of function call tracing in the library.
+.IP 4
+This level enables voluminous and fairly obscure tracing information that is
+likely only useful to the libpmempool developers.
+.PP
+The environment variable
+.B PMEMPOOL_LOG_FILE
+specifies a file name where all logging information should be written.
+If the last character in the name is "-", the PID of the current process will be
+appended to the file name when the log file is created. If
+.B PMEMPOOL_LOG_FILE
+is not set, the logging output goes to stderr.
+.PP
+Setting the environment variable
+.B PMEMPOOL_LOG_FILE
+has no effect on the non-debug version of
+.BR libpmempool .
+.SH ACKNOWLEDGEMENTS
+.PP
+.B libpmempool
+builds on the persistent memory programming model recommended by the SNIA NVM
+Programming Technical Work Group:
+.IP
+http://snia.org/nvmp
+.SH "SEE ALSO"
+.BR mmap (2),
+.BR munmap (2),
+.BR msync (2),
+.BR strerror (3),
+.BR libpmemobj (3),
+.BR libpmemblk (3),
+.BR libpmemlog (3),
+.BR libpmem (3)
+and
+.BR http://pmem.io .

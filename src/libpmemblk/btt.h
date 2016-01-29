@@ -48,6 +48,8 @@ struct ns_callback {
 	int ns_is_zeroed;
 };
 
+struct btt_info;
+
 struct btt *btt_init(uint64_t rawsize, uint32_t lbasize, uint8_t parent_uuid[],
 		unsigned maxlane, void *ns, const struct ns_callback *ns_cbp);
 unsigned btt_nlane(struct btt *bttp);
@@ -58,3 +60,16 @@ int btt_set_zero(struct btt *bttp, unsigned lane, uint64_t lba);
 int btt_set_error(struct btt *bttp, unsigned lane, uint64_t lba);
 int btt_check(struct btt *bttp);
 void btt_fini(struct btt *bttp);
+
+uint64_t btt_flog_size(uint32_t nfree);
+uint64_t btt_map_size(uint32_t external_nlba);
+uint64_t btt_arena_datasize(uint64_t arena_size, uint32_t nfree);
+int btt_info_set(struct btt_info *info, uint32_t external_lbasize,
+	uint32_t nfree, uint64_t arena_size, uint64_t space_left);
+
+struct btt_flog *btt_flog_get_valid(struct btt_flog *flog_pair, int *next);
+int map_entry_is_initial(uint32_t map_entry);
+void btt_info_convert2h(struct btt_info *infop);
+void btt_info_convert2le(struct btt_info *infop);
+void btt_flog_convert2h(struct btt_flog *flogp);
+void btt_flog_convert2le(struct btt_flog *flogp);

@@ -55,6 +55,7 @@
 #include "libpmemblk.h"
 #include "libpmemlog.h"
 #include "libpmemobj.h"
+#include "btt.h"
 
 #define REQ_BUFF_SIZE	2048U
 
@@ -153,7 +154,7 @@ util_get_pool_type_second_page(const void *pool_base_addr)
 
 	void *sec_page_addr = (char *)pool_base_addr + DEFAULT_HDR_SIZE;
 	memcpy(&bttinfo, sec_page_addr, sizeof(bttinfo));
-	util_convert2h_btt_info(&bttinfo);
+	btt_info_convert2h(&bttinfo);
 
 	if (util_is_zeroed(&bttinfo, sizeof(bttinfo)))
 		return PMEM_POOL_TYPE_UNKNOWN;
@@ -542,7 +543,7 @@ util_poolset_map(const char *fname, struct pool_set **poolset, int rdonly)
 	util_poolset_free(set);
 	close(fd);
 
-	util_convert2h_pool_hdr(&hdr);
+	util_convert2h_hdr_nocheck(&hdr);
 
 	/* parse pool type from first pool set file */
 	pmem_pool_type_t type = pmem_pool_type_parse_hdr(&hdr);
@@ -637,7 +638,7 @@ pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp,
 	struct pool_hdr hdr;
 	memcpy(&hdr, addr, sizeof(hdr));
 
-	util_convert2h_pool_hdr(&hdr);
+	util_convert2h_hdr_nocheck(&hdr);
 
 	memcpy(paramsp->signature, hdr.signature, sizeof(paramsp->signature));
 
@@ -708,128 +709,6 @@ pmem_default_pool_hdr(pmem_pool_type_t type, struct pool_hdr *hdrp)
 	default:
 		break;
 	}
-}
-
-/*
- * util_pool_hdr_convert -- convert pool header to host byte order
- */
-void
-util_convert2h_pool_hdr(struct pool_hdr *hdrp)
-{
-	hdrp->compat_features = le32toh(hdrp->compat_features);
-	hdrp->incompat_features = le32toh(hdrp->incompat_features);
-	hdrp->ro_compat_features = le32toh(hdrp->ro_compat_features);
-	hdrp->arch_flags.alignment_desc =
-		le64toh(hdrp->arch_flags.alignment_desc);
-	hdrp->arch_flags.e_machine = le16toh(hdrp->arch_flags.e_machine);
-	hdrp->crtime = le64toh(hdrp->crtime);
-	hdrp->checksum = le64toh(hdrp->checksum);
-}
-
-/*
- * util_pool_hdr_convert -- convert pool header to LE byte order
- */
-void
-util_convert2le_pool_hdr(struct pool_hdr *hdrp)
-{
-	hdrp->compat_features = htole32(hdrp->compat_features);
-	hdrp->incompat_features = htole32(hdrp->incompat_features);
-	hdrp->ro_compat_features = htole32(hdrp->ro_compat_features);
-	hdrp->arch_flags.alignment_desc =
-		htole64(hdrp->arch_flags.alignment_desc);
-	hdrp->arch_flags.e_machine = htole16(hdrp->arch_flags.e_machine);
-	hdrp->crtime = htole64(hdrp->crtime);
-	hdrp->checksum = htole64(hdrp->checksum);
-}
-
-/*
- * util_convert_btt_info -- convert btt_info header to host byte order
- */
-void
-util_convert2h_btt_info(struct btt_info *infop)
-{
-	infop->flags = le32toh(infop->flags);
-	infop->minor = le16toh(infop->minor);
-	infop->external_lbasize = le32toh(infop->external_lbasize);
-	infop->external_nlba = le32toh(infop->external_nlba);
-	infop->internal_lbasize = le32toh(infop->internal_lbasize);
-	infop->internal_nlba = le32toh(infop->internal_nlba);
-	infop->nfree = le32toh(infop->nfree);
-	infop->infosize = le32toh(infop->infosize);
-	infop->nextoff = le64toh(infop->nextoff);
-	infop->dataoff = le64toh(infop->dataoff);
-	infop->mapoff = le64toh(infop->mapoff);
-	infop->flogoff = le64toh(infop->flogoff);
-	infop->infooff = le64toh(infop->infooff);
-	infop->checksum = le64toh(infop->checksum);
-}
-
-/*
- * util_convert_btt_info -- convert btt_info header to LE byte order
- */
-void
-util_convert2le_btt_info(struct btt_info *infop)
-{
-	infop->flags = htole64(infop->flags);
-	infop->minor = htole16(infop->minor);
-	infop->external_lbasize = htole32(infop->external_lbasize);
-	infop->external_nlba = htole32(infop->external_nlba);
-	infop->internal_lbasize = htole32(infop->internal_lbasize);
-	infop->internal_nlba = htole32(infop->internal_nlba);
-	infop->nfree = htole32(infop->nfree);
-	infop->infosize = htole32(infop->infosize);
-	infop->nextoff = htole64(infop->nextoff);
-	infop->dataoff = htole64(infop->dataoff);
-	infop->mapoff = htole64(infop->mapoff);
-	infop->flogoff = htole64(infop->flogoff);
-	infop->infooff = htole64(infop->infooff);
-	infop->checksum = htole64(infop->checksum);
-}
-
-/*
- * util_convert2h_btt_flog -- convert btt_flog to host byte order
- */
-void
-util_convert2h_btt_flog(struct btt_flog *flogp)
-{
-	flogp->lba = le32toh(flogp->lba);
-	flogp->old_map = le32toh(flogp->old_map);
-	flogp->new_map = le32toh(flogp->new_map);
-	flogp->seq = le32toh(flogp->seq);
-}
-
-/*
- * util_convert2le_btt_flog -- convert btt_flog to LE byte order
- */
-void
-util_convert2le_btt_flog(struct btt_flog *flogp)
-{
-	flogp->lba = htole32(flogp->lba);
-	flogp->old_map = htole32(flogp->old_map);
-	flogp->new_map = htole32(flogp->new_map);
-	flogp->seq = htole32(flogp->seq);
-}
-
-/*
- * util_convert2h_pmemlog -- convert pmemlog structure to host byte order
- */
-void
-util_convert2h_pmemlog(struct pmemlog *plp)
-{
-	plp->start_offset = le64toh(plp->start_offset);
-	plp->end_offset = le64toh(plp->end_offset);
-	plp->write_offset = le64toh(plp->write_offset);
-}
-
-/*
- * util_convert2le_pmemlog -- convert pmemlog structure to LE byte order
- */
-void
-util_convert2le_pmemlog(struct pmemlog *plp)
-{
-	plp->start_offset = htole64(plp->start_offset);
-	plp->end_offset = htole64(plp->end_offset);
-	plp->write_offset = htole64(plp->write_offset);
 }
 
 /*
