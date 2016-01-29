@@ -64,6 +64,12 @@ endif
 LIBS += -L$(LIBS_DIR)/debug
 LIBS += -pthread
 
+ifeq ($(LIBPMEMPOOL), y)
+DYNAMIC_LIBS += -lpmempool
+STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libpmempool.a
+STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/libpmempool.a
+endif
+
 ifeq ($(LIBPMEMBLK), y)
 DYNAMIC_LIBS += -lpmemblk
 STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libpmemblk.a

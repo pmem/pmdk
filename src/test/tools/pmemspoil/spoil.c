@@ -738,6 +738,7 @@ pmemspoil_process_btt_info_struct(struct pmemspoil *psp,
 
 	PROCESS_BEGIN(psp, pfp) {
 		PROCESS_FIELD(&btt_info, sig, char);
+		PROCESS_FIELD(&btt_info, uuid, char);
 		PROCESS_FIELD(&btt_info, parent_uuid, char);
 		PROCESS_FIELD_LE(&btt_info, flags, uint32_t);
 		PROCESS_FIELD_LE(&btt_info, major, uint16_t);
