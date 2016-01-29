@@ -1029,15 +1029,6 @@ err:
 	return ret;
 }
 
-#define REP(set, r)\
-	((set)->replica[((set)->nreplicas + (r)) % (set)->nreplicas])
-
-#define PART(rep, p)\
-	((rep)->part[((rep)->nparts + (p)) % (rep)->nparts])
-
-#define HDR(rep, p)\
-	((struct pool_hdr *)(PART(rep, p).hdr))
-
 /*
  * util_header_create -- (internal) create header of a single pool set file
  */

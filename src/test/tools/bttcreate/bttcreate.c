@@ -203,6 +203,8 @@ print_result(struct bbtcreate_options *opts)
 int
 main(int argc, char *argv[])
 {
+	out_init(0, 0, 0, 0, 0);
+
 	int opt;
 	size_t size;
 	int fd;

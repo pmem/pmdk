@@ -1,0 +1,8 @@
+libpmempool_bttdev/TEST0: START: libpmempool_bttdev
+ ./libpmempool_bttdev$(nW) $(nW) -r 1
+checking BTT Info headers
+arena 0: BTT Info header checksum correct
+checking BTT Map and Flog
+arena 0: checking BTT Map and Flog
+status = consistent
+libpmempool_bttdev/TEST0: Done

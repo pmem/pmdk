@@ -1,0 +1,6 @@
+libpmempool_bttdev/TEST1: START: libpmempool_bttdev
+ ./libpmempool_bttdev$(nW) $(nW) -r 1
+checking BTT Info headers
+can not find any valid BTT Info
+status = not consistent
+libpmempool_bttdev/TEST1: Done

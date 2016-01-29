@@ -1,0 +1,18 @@
+libpmempool_bttdev/TEST2: START: libpmempool_bttdev
+ ./libpmempool_bttdev$(nW) $(nW) -r 1
+checking BTT Info headers
+arena 0: BTT Info header checksum correct
+arena 0: BTT Info backup checksum incorrect. Do you want to restore it from BTT Info header?
+checking BTT Map and Flog
+arena 0: checking BTT Map and Flog
+status = repaired
+libpmempool_bttdev/TEST2: Done
+libpmempool_bttdev/TEST2: START: libpmempool_bttdev
+ ./libpmempool_bttdev$(nW) $(nW) -r 1
+checking BTT Info headers
+arena 0: BTT Info header checksum incorrect. Restore BTT Info from backup?
+arena 0: restoring BTT Info header from backup
+checking BTT Map and Flog
+arena 0: checking BTT Map and Flog
+status = repaired
+libpmempool_bttdev/TEST2: Done

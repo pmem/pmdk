@@ -221,6 +221,15 @@ struct pool_set {
 	struct pool_replica *replica[];
 };
 
+#define REP(set, r)\
+	((set)->replica[((set)->nreplicas + (r)) % (set)->nreplicas])
+
+#define PART(rep, p)\
+	((rep)->part[((rep)->nparts + (p)) % (rep)->nparts])
+
+#define HDR(rep, p)\
+	((struct pool_hdr *)(PART(rep, p).hdr))
+
 /*
  * Structure for binary version of uuid. From RFC4122,
  * https://tools.ietf.org/html/rfc4122
@@ -288,11 +297,24 @@ int util_pool_open_remote(struct pool_set **setp, const char *path, int rdonly,
 
 int util_parse_size(const char *str, size_t *sizep);
 
-/* setbit macro substitution which properly deals with types */
-static inline void util_setbit(uint8_t *b, uint32_t i)
+/*
+ * util_setbit -- setbit macro substitution which properly deals with types
+ */
+static inline void
+util_setbit(uint8_t *b, uint32_t i)
 {
 	b[i / 8] = (uint8_t)(b[i / 8] | (uint8_t)(1 << (i % 8)));
 }
+
+/*
+ * util_clrbit -- clrbit macro substitution which properly deals with types
+ */
+static inline void
+util_clrbit(uint8_t *b, uint32_t i)
+{
+	b[i / 8] = (uint8_t)(b[i / 8] & (uint8_t)(~(1 << (i % 8))));
+}
+
 #define util_isset(a, i) isset(a, i)
 #define util_isclr(a, i) isclr(a, i)
 

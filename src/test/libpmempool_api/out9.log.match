@@ -1,0 +1,4 @@
+libpmempool_api/TEST9: START: libpmempool_api
+ ./libpmempool_api$(nW) $(nW) -t blk
+Error: Invalid argument
+libpmempool_api/TEST9: Done

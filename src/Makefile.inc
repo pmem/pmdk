@@ -151,6 +151,12 @@ EXTRA_TARGETS_CLEAN = $(EXTRA_TARGETS:=-clean)
 EXTRA_TARGETS_CLOBBER = $(EXTRA_TARGETS:=-clobber)
 endif
 
+PMEMBLK_PRIV_OBJ=$(LIB_OUTDIR)/libpmemblk/libpmemblk_unscoped.o
+
+ifneq ($(LIBPMEMBLK_PRIV_FUNCS),)
+OBJS += pmemblk_priv_funcs.o
+endif
+
 all: $(objdir) $(LIB_OUTDIR) $(EXTRA_TARGETS) $(LIB_AR) $(LIB_SO_SONAME) $(LIB_SO_REAL) $(LIB_SO)
 
 $(objdir) $(LIB_OUTDIR):
@@ -173,6 +179,9 @@ $(LIB_AR_ALL): $(LIB_AR_UNSCOPED) $(LIB_MAP)
 
 $(LIB_AR_UNSCOPED): $(OBJS) $(EXTRA_OBJS)
 	$(LD) -o $@ -r $(OBJS) $(EXTRA_OBJS)
+
+$(PMEMBLK_PRIV_OBJ):
+	$(MAKE) -C $(LIBSDIR) libpmemblk
 
 install: all
 	$(INSTALL) -d $(LIBS_DESTDIR)
