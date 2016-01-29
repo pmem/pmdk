@@ -207,6 +207,10 @@ extern int art_iter(PMEMobjpool *pop, art_callback cb, void *data);
 extern TOID(var_string) art_insert(PMEMobjpool *pop,
 		const unsigned char *key, int key_len,
 		void *value, int val_len);
+extern TOID(var_string) art_search(PMEMobjpool *pop,
+		const unsigned char *key, int key_len);
+extern TOID(var_string) art_delete(PMEMobjpool *pop,
+		const unsigned char *key, int key_len);
 
 #ifdef __cplusplus
 }

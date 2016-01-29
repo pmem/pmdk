@@ -84,11 +84,18 @@ struct ds_context
 	bool	fileio;
 	unsigned int fmode;
 	int	fd;		/* file descriptor for file io mode */
+	unsigned char	*key;		/* for SEARCH, INSERT and REMOVE */
+	uint32_t		key_len;
+	unsigned char	*value;	/* for INSERT */
+	uint32_t		val_len;
 };
 
 #define	FILL (1<<1)
 #define	DUMP (1<<2)
 #define	GRAPH (1<<3)
+#define	INSERT (1<<4)
+#define	SEARCH (1<<5)
+#define	REMOVE (1<<5)
 
 struct ds_context my_context;
 
@@ -102,6 +109,9 @@ extern TOID(art_node_u) null_art_node_u;
 int initialize_context(struct ds_context *ctx, int ac, char *av[]);
 int initialize_pool(struct ds_context *ctx);
 int add_elements(struct ds_context *ctx);
+int insert_element(struct ds_context *ctx);
+int search_element(struct ds_context *ctx);
+int delete_element(struct ds_context *ctx);
 ssize_t read_line(unsigned char **line);
 void exit_handler(struct ds_context *ctx);
 int art_tree_map_init(struct datastore *ds, struct ds_context *ctx);
@@ -113,6 +123,7 @@ static int dump_art_node_callback(void *data,
 		const unsigned char *key, uint32_t key_len,
 		const unsigned char *val, uint32_t val_len);
 static void print_node_info(char *nodetype, uint64_t off, const art_node *an);
+static int parse_keyval(struct ds_context *ctx, char *arg, int mode);
 
 int
 initialize_context(struct ds_context *ctx, int ac, char *av[])
@@ -147,6 +158,18 @@ initialize_context(struct ds_context *ctx, int ac, char *av[])
 					ctx->mode |= DUMP;
 				} else if (mode == 'g') {
 					ctx->mode |= GRAPH;
+				} else if (mode == 'i') {
+					ctx->mode |= INSERT;
+					parse_keyval(ctx, av[optind], INSERT);
+					optind++;
+				} else if (mode == 's') {
+					ctx->mode |= SEARCH;
+					parse_keyval(ctx, av[optind], SEARCH);
+					optind++;
+				} else if (mode == 'r') {
+					ctx->mode |= REMOVE;
+					parse_keyval(ctx, av[optind], REMOVE);
+					optind++;
 				} else {
 					errors++;
 				}
@@ -169,6 +192,33 @@ initialize_context(struct ds_context *ctx, int ac, char *av[])
 
 	if (!errors) {
 		ctx->filename = strdup(av[optind]);
+	}
+
+	return errors;
+}
+
+static int parse_keyval(struct ds_context *ctx, char *arg, int mode)
+{
+	int errors = 0;
+	char *p;
+
+	p = strtok(arg, ":");
+	if (p == NULL) {
+		errors++;
+	}
+
+	if (!errors) {
+		if (ctx->mode & (SEARCH|REMOVE|INSERT)) {
+			ctx->key = (unsigned char *)strdup(p);
+			ctx->key_len = strlen(p) + 1;
+		}
+		if (ctx->mode & INSERT) {
+			p = strtok(NULL, ":");
+			ctx->value = (unsigned char *)strdup(p);
+			if (p != NULL) {
+				ctx->val_len = strlen(p) + 1;
+			}
+		}
 	}
 
 	return errors;
@@ -265,6 +315,9 @@ usage(char *progname)
 	printf("usage: %s -m [f|d|g] file\n", progname);
 	printf("  -m   mode   known modes are\n");
 	printf("       f fill     create and fill art tree\n");
+	printf("       i insert   insert an element into the art tree\n");
+	printf("       s search   search for a key in the art tree\n");
+	printf("       r remove   remove an element from the art tree\n");
 	printf("       d dump     dump art tree\n");
 	printf("       g graph    dump art tree as a graphviz dot graph\n");
 	printf("  -n   <number>   number of key-value pairs to insert"
@@ -300,6 +353,27 @@ main(int argc, char *argv[])
 	if ((my_context.mode & FILL)) {
 		if (add_elements(&my_context)) {
 			perror("add elements");
+			return 1;
+		}
+	}
+
+	if ((my_context.mode & INSERT)) {
+		if (insert_element(&my_context)) {
+			perror("insert elements");
+			return 1;
+		}
+	}
+
+	if ((my_context.mode & SEARCH)) {
+		if (search_element(&my_context)) {
+			perror("search elements");
+			return 1;
+		}
+	}
+
+	if ((my_context.mode & REMOVE)) {
+		if (delete_element(&my_context)) {
+			perror("delete elements");
 			return 1;
 		}
 	}
@@ -350,6 +424,76 @@ add_elements(struct ds_context *ctx)
 			if (value != NULL)
 				free(value);
 		}
+	}
+
+	return errors;
+}
+
+int
+insert_element(struct ds_context *ctx)
+{
+	PMEMobjpool *pop;
+	int errors = 0;
+
+	if (ctx == NULL) {
+		errors++;
+	} else if (ctx->pop == NULL) {
+		errors++;
+	}
+
+	if (!errors) {
+		pop = ctx->pop;
+
+		art_insert(pop, ctx->key, ctx->key_len,
+		    ctx->value, ctx->val_len);
+	}
+
+	return errors;
+}
+
+int
+search_element(struct ds_context *ctx)
+{
+	PMEMobjpool *pop;
+	TOID(var_string) value;
+	int errors = 0;
+
+	if (ctx == NULL) {
+		errors++;
+	} else if (ctx->pop == NULL) {
+		errors++;
+	}
+
+	if (!errors) {
+		pop = ctx->pop;
+		printf("search key [%s]: ", (char *)ctx->key);
+		value = art_search(pop, ctx->key, ctx->key_len);
+		if (TOID_IS_NULL(value)) {
+			printf("not found\n");
+		} else {
+			printf("value [%s]\n", D_RO(value)->s);
+		}
+	}
+
+	return errors;
+}
+
+int
+delete_element(struct ds_context *ctx)
+{
+	PMEMobjpool *pop;
+	int errors = 0;
+
+	if (ctx == NULL) {
+		errors++;
+	} else if (ctx->pop == NULL) {
+		errors++;
+	}
+
+	if (!errors) {
+		pop = ctx->pop;
+
+		art_delete(pop, ctx->key, ctx->key_len);
 	}
 
 	return errors;
