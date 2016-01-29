@@ -294,6 +294,32 @@ Development files for NVML libpmemobj library
 %{_includedir}/libpmemobj.h
 %{_mandir}/man3/libpmemobj.3.gz
 
+%package -n libpmempool
+Summary: libpmempool library
+Group: %{package_group}/Libraries
+%description -n libpmempool
+NVML libpmempool library
+
+%files -n libpmempool
+%defattr(-,root,root,-)
+%{_libdir}/libpmempool.so.*
+
+%package -n libpmempool-devel
+Summary: libpmempool development library
+Group: Development/Libraries
+%description -n libpmempool-devel
+Development files for NVML libpmempool library
+
+%files -n libpmempool-devel
+%defattr(-,root,root,-)
+%{_libdir}/libpmempool.so
+%{_libdir}/libpmempool.a
+%{_libdir}/nvml_debug/libpmempool.so
+%{_libdir}/nvml_debug/libpmempool.so.*
+%{_libdir}/nvml_debug/libpmempool.a
+%{_includedir}/libpmempool.h
+%{_mandir}/man3/libpmempool.3.gz
+
 %package -n libvmem
 Summary: libvmem library
 Group: %{package_group}/Libraries

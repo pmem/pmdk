@@ -84,29 +84,30 @@ pmemlog_descr_check(PMEMlogpool *plp, size_t poolsize)
 {
 	LOG(3, "plp %p poolsize %zu", plp, poolsize);
 
-	uint64_t hdr_start = le64toh(plp->start_offset);
-	uint64_t hdr_end = le64toh(plp->end_offset);
-	uint64_t hdr_write = le64toh(plp->write_offset);
+	struct pmemlog hdr = *plp;
+	util_convert2h_pmemlog(&hdr);
 
-	if ((hdr_start != roundup(sizeof(*plp), LOG_FORMAT_DATA_ALIGN)) ||
-			(hdr_end != poolsize) || (hdr_start > hdr_end)) {
+	if ((hdr.start_offset !=
+			roundup(sizeof(*plp), LOG_FORMAT_DATA_ALIGN)) ||
+			(hdr.end_offset != poolsize) ||
+			(hdr.start_offset > hdr.end_offset)) {
 		ERR("wrong start/end offsets (start: %ju end: %ju), "
 			"pool size %zu",
-			hdr_start, hdr_end, poolsize);
+			hdr.start_offset, hdr.end_offset, poolsize);
 		errno = EINVAL;
 		return -1;
 	}
 
-	if ((hdr_write > hdr_end) || (hdr_write < hdr_start)) {
-		ERR("wrong write offset "
-			"(start: %ju end: %ju write: %ju)",
-			hdr_start, hdr_end, hdr_write);
+	if ((hdr.write_offset > hdr.end_offset) || (hdr.write_offset <
+			hdr.start_offset)) {
+		ERR("wrong write offset (start: %ju end: %ju write: %ju)",
+			hdr.start_offset, hdr.end_offset, hdr.write_offset);
 		errno = EINVAL;
 		return -1;
 	}
 
 	LOG(3, "start: %ju, end: %ju, write: %ju",
-		hdr_start, hdr_end, hdr_write);
+		hdr.start_offset, hdr.end_offset, hdr.write_offset);
 
 	return 0;
 }
