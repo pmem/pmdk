@@ -119,6 +119,12 @@ extern unsigned long long Pagesize;
 
 typedef uint64_t type_num_t;
 
+struct lane_descriptor {
+	unsigned next_lane_idx;
+	uint64_t *lane_locks;
+	struct lane *lane;
+};
+
 struct pmemobjpool {
 	struct pool_hdr hdr;	/* memory pool header */
 

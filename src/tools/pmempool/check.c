@@ -726,7 +726,7 @@ pmempool_check_pool_hdr_gen(struct pmempool_check *pcp, struct pool_hdr *hdrp)
 		}
 	}
 
-	util_convert2le_pool_hdr(hdrp);
+	util_convert2le_hdr(hdrp);
 
 	if (ask_Yn(pcp->ans, "Do you want to regenerate checksum?")
 			== 'n')
@@ -737,7 +737,7 @@ pmempool_check_pool_hdr_gen(struct pmempool_check *pcp, struct pool_hdr *hdrp)
 	outv(1, "setting pool_hdr.checksum to: 0x%x\n",
 			le32toh(hdrp->checksum));
 
-	util_convert2h_pool_hdr(hdrp);
+	util_convert2h_hdr_nocheck(hdrp);
 
 	return CHECK_RESULT_REPAIRED;
 }
@@ -1129,7 +1129,7 @@ pmempool_check_pool_hdr_single(struct pmempool_check *pcp,
 	 * for some default values
 	 */
 
-	util_convert2h_pool_hdr(&hdr);
+	util_convert2h_hdr_nocheck(&hdr);
 	struct pool_hdr def_hdr;
 	pmem_default_pool_hdr(pcp->params.type, &def_hdr);
 
@@ -1154,7 +1154,7 @@ pmempool_check_pool_hdr_single(struct pmempool_check *pcp,
 			return ret;
 	}
 
-	util_convert2le_pool_hdr(&hdr);
+	util_convert2le_hdr(&hdr);
 
 	cs_valid = util_pool_hdr_valid(&hdr);
 
@@ -1162,7 +1162,7 @@ pmempool_check_pool_hdr_single(struct pmempool_check *pcp,
 		goto out_repaired;
 	}
 
-	util_convert2h_pool_hdr(&hdr);
+	util_convert2h_hdr_nocheck(&hdr);
 
 	check_result_t ret_gen = pmempool_check_pool_hdr_gen(pcp, &hdr);
 	if (ret_gen == CHECK_RESULT_REPAIRED)

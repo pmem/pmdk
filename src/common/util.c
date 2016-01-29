@@ -51,6 +51,8 @@
 
 #include "util.h"
 #include "out.h"
+#include "log.h"
+#include "btt_layout.h"
 #include "valgrind_internal.h"
 
 /* library-wide page size */
@@ -280,6 +282,41 @@ util_checksum(void *addr, size_t len, uint64_t *csump, int insert)
 }
 
 /*
+ * util_convert2le_hdr -- convert pool_hdr into little-endian byte order
+ */
+void
+util_convert2le_hdr(struct pool_hdr *hdrp)
+{
+	hdrp->major = htole32(hdrp->major);
+	hdrp->compat_features = htole32(hdrp->compat_features);
+	hdrp->incompat_features = htole32(hdrp->incompat_features);
+	hdrp->ro_compat_features = htole32(hdrp->ro_compat_features);
+	hdrp->arch_flags.alignment_desc =
+		htole64(hdrp->arch_flags.alignment_desc);
+	hdrp->arch_flags.e_machine = htole16(hdrp->arch_flags.e_machine);
+	hdrp->crtime = htole64(hdrp->crtime);
+	hdrp->checksum = htole64(hdrp->checksum);
+}
+
+/*
+ * util_convert2h_hdr_nocheck -- convert pool_hdr into host byte order
+ */
+void
+util_convert2h_hdr_nocheck(struct pool_hdr *hdrp)
+{
+	hdrp->major = le32toh(hdrp->major);
+	hdrp->compat_features = le32toh(hdrp->compat_features);
+	hdrp->incompat_features = le32toh(hdrp->incompat_features);
+	hdrp->ro_compat_features = le32toh(hdrp->ro_compat_features);
+	hdrp->crtime = le64toh(hdrp->crtime);
+	hdrp->arch_flags.e_machine =
+		le16toh(hdrp->arch_flags.e_machine);
+	hdrp->arch_flags.alignment_desc =
+		le64toh(hdrp->arch_flags.alignment_desc);
+	hdrp->checksum = le64toh(hdrp->checksum);
+}
+
+/*
  * util_convert_hdr -- convert header to host byte order & validate
  *
  * Returns true if header is valid, and all the integer fields are
@@ -292,20 +329,13 @@ util_convert_hdr(struct pool_hdr *hdrp)
 {
 	LOG(3, "hdrp %p", hdrp);
 
+	util_convert2h_hdr_nocheck(hdrp);
+
 	/* to be valid, a header must have a major version of at least 1 */
-	if ((hdrp->major = le32toh(hdrp->major)) == 0) {
+	if (hdrp->major == 0) {
 		ERR("invalid major version (0)");
 		return 0;
 	}
-	hdrp->compat_features = le32toh(hdrp->compat_features);
-	hdrp->incompat_features = le32toh(hdrp->incompat_features);
-	hdrp->ro_compat_features = le32toh(hdrp->ro_compat_features);
-	hdrp->crtime = le64toh(hdrp->crtime);
-	hdrp->arch_flags.e_machine =
-		le16toh(hdrp->arch_flags.e_machine);
-	hdrp->arch_flags.alignment_desc =
-		le64toh(hdrp->arch_flags.alignment_desc);
-	hdrp->checksum = le64toh(hdrp->checksum);
 
 	/* and to be valid, the fields must checksum correctly */
 	if (!util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum, 0)) {
@@ -628,4 +658,94 @@ err:
 	(void) close(fd);
 	errno = oerrno;
 	return -1;
+}
+
+/*
+ * util_convert2h_btt_info -- convert btt_info to host byte order
+ */
+void
+util_convert2h_btt_info(struct btt_info *infop)
+{
+	infop->flags = le32toh(infop->flags);
+	infop->major = le16toh(infop->major);
+	infop->minor = le16toh(infop->minor);
+	infop->external_lbasize = le32toh(infop->external_lbasize);
+	infop->external_nlba = le32toh(infop->external_nlba);
+	infop->internal_lbasize = le32toh(infop->internal_lbasize);
+	infop->internal_nlba = le32toh(infop->internal_nlba);
+	infop->nfree = le32toh(infop->nfree);
+	infop->infosize = le32toh(infop->infosize);
+	infop->nextoff = le64toh(infop->nextoff);
+	infop->dataoff = le64toh(infop->dataoff);
+	infop->mapoff = le64toh(infop->mapoff);
+	infop->flogoff = le64toh(infop->flogoff);
+	infop->infooff = le64toh(infop->infooff);
+}
+
+/*
+ * util_convert2le_btt_info -- convert btt_info to little-endian byte order
+ */
+void
+util_convert2le_btt_info(struct btt_info *infop)
+{
+	infop->flags = le32toh(infop->flags);
+	infop->major = le16toh(infop->major);
+	infop->minor = le16toh(infop->minor);
+	infop->external_lbasize = le32toh(infop->external_lbasize);
+	infop->external_nlba = le32toh(infop->external_nlba);
+	infop->internal_lbasize = le32toh(infop->internal_lbasize);
+	infop->internal_nlba = le32toh(infop->internal_nlba);
+	infop->nfree = le32toh(infop->nfree);
+	infop->infosize = le32toh(infop->infosize);
+	infop->nextoff = le64toh(infop->nextoff);
+	infop->dataoff = le64toh(infop->dataoff);
+	infop->mapoff = le64toh(infop->mapoff);
+	infop->flogoff = le64toh(infop->flogoff);
+	infop->infooff = le64toh(infop->infooff);
+}
+
+/*
+ * util_convert2h_btt_flog -- convert btt_flog to host byte order
+ */
+void
+util_convert2h_btt_flog(struct btt_flog *flogp)
+{
+	flogp->lba = le32toh(flogp->lba);
+	flogp->old_map = le32toh(flogp->old_map);
+	flogp->new_map = le32toh(flogp->new_map);
+	flogp->seq = le32toh(flogp->seq);
+}
+
+/*
+ * util_convert2le_btt_flog -- convert btt_flog to LE byte order
+ */
+void
+util_convert2le_btt_flog(struct btt_flog *flogp)
+{
+	flogp->lba = htole32(flogp->lba);
+	flogp->old_map = htole32(flogp->old_map);
+	flogp->new_map = htole32(flogp->new_map);
+	flogp->seq = htole32(flogp->seq);
+}
+
+/*
+ * util_convert2h_pmemlog -- convert pmemlog structure to host byte order
+ */
+void
+util_convert2h_pmemlog(struct pmemlog *plp)
+{
+	plp->start_offset = le64toh(plp->start_offset);
+	plp->end_offset = le64toh(plp->end_offset);
+	plp->write_offset = le64toh(plp->write_offset);
+}
+
+/*
+ * util_convert2le_pmemlog -- convert pmemlog structure to LE byte order
+ */
+void
+util_convert2le_pmemlog(struct pmemlog *plp)
+{
+	plp->start_offset = htole64(plp->start_offset);
+	plp->end_offset = htole64(plp->end_offset);
+	plp->write_offset = htole64(plp->write_offset);
 }

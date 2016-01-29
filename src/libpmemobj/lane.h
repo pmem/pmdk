@@ -70,12 +70,6 @@ struct lane {
 	struct lane_section sections[MAX_LANE_SECTION];
 };
 
-struct lane_descriptor {
-	unsigned next_lane_idx;
-	uint64_t *lane_locks;
-	struct lane *lane;
-};
-
 typedef int (*section_layout_op)(PMEMobjpool *pop,
 	struct lane_section_layout *layout);
 typedef int (*section_constr)(PMEMobjpool *pop, struct lane_section *section);

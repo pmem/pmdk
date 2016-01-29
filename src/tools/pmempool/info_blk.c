@@ -266,18 +266,6 @@ error:
 }
 
 /*
- * info_btt_flog_convert -- convert flog entry
- */
-static void
-info_btt_flog_convert(struct btt_flog *flogp)
-{
-	flogp->lba = le32toh(flogp->lba);
-	flogp->old_map = le32toh(flogp->old_map);
-	flogp->new_map = le32toh(flogp->new_map);
-	flogp->seq = le32toh(flogp->seq);
-}
-
-/*
  * info_btt_flog -- print all flog entries
  */
 static int
@@ -312,8 +300,8 @@ info_btt_flog(struct pmem_info *pip, int v,
 		flogp = (struct btt_flog *)ptr;
 		flogpp = flogp + 1;
 
-		info_btt_flog_convert(flogp);
-		info_btt_flog_convert(flogpp);
+		util_convert2h_btt_flog(flogp);
+		util_convert2h_btt_flog(flogpp);
 
 		outv(v, "%010d:\n", i);
 		outv_field(v, "LBA", "0x%08x", flogp->lba);
