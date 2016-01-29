@@ -1,0 +1,12 @@
+libpmempool_api/TEST13: START: libpmempool_test
+ ./libpmempool_test$(nW) $(nW) -s 0
+Error: Invalid argument
+libpmempool_api/TEST13: Done
+libpmempool_api/TEST13: START: libpmempool_test
+ ./libpmempool_test$(nW) $(nW) -s 999999
+checking pool header
+pool header checksum correct
+checking pmemlog header
+pmemlog header correct
+status = consistent
+libpmempool_api/TEST13: Done

@@ -1,0 +1,4 @@
+libpmempool_api/TEST7: START: libpmempool_test
+ ./libpmempool_test$(nW) $(nW) -r 0 -y 1
+Error: Invalid argument
+libpmempool_api/TEST7: Done
