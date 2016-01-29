@@ -1,0 +1,8 @@
+libpmempool_api/TEST0: START: libpmempool_test
+ ./libpmempool_test$(nW) $(nW) -d 1 -a 0 -r 1
+checking pool header
+pool header checksum correct
+checking pmemlog header
+pmemlog header correct
+status = consistent
+libpmempool_api/TEST0: Done

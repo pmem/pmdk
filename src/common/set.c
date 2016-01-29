@@ -102,9 +102,9 @@ struct suff {
 };
 
 /*
- * util_map_part -- (internal) map a header of a pool set
+ * util_map_part -- map a header of a pool set
  */
-static int
+int
 util_map_hdr(struct pool_set_part *part, int flags)
 {
 	LOG(3, "part %p flags %d", part, flags);
@@ -132,7 +132,7 @@ util_map_hdr(struct pool_set_part *part, int flags)
 /*
  * util_unmap_hdr -- unmap pool set part header
  */
-static int
+int
 util_unmap_hdr(struct pool_set_part *part)
 {
 	if (part->hdr != NULL && part->hdrsize != 0) {
@@ -1029,15 +1029,6 @@ err:
 	return ret;
 }
 
-#define REP(set, r)\
-	((set)->replica[((set)->nreplicas + (r)) % (set)->nreplicas])
-
-#define PART(rep, p)\
-	((rep)->part[((rep)->nparts + (p)) % (rep)->nparts])
-
-#define HDR(rep, p)\
-	((struct pool_hdr *)(PART(rep, p).hdr))
-
 /*
  * util_header_create -- (internal) create header of a single pool set file
  */
@@ -1075,10 +1066,10 @@ util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 
 	/* create pool's header */
 	memcpy(hdrp->signature, sig, POOL_HDR_SIG_LEN);
-	hdrp->major = htole32(major);
-	hdrp->compat_features = htole32(compat);
-	hdrp->incompat_features = htole32(incompat);
-	hdrp->ro_compat_features = htole32(ro_compat);
+	hdrp->major = major;
+	hdrp->compat_features = compat;
+	hdrp->incompat_features = incompat;
+	hdrp->ro_compat_features = ro_compat;
 
 	memcpy(hdrp->poolset_uuid, set->uuid, POOL_HDR_UUID_LEN);
 
@@ -1104,7 +1095,7 @@ util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 			POOL_HDR_UUID_LEN);
 	}
 
-	hdrp->crtime = htole64((uint64_t)time(NULL));
+	hdrp->crtime = (uint64_t)time(NULL);
 
 	if (util_get_arch_flags(&hdrp->arch_flags)) {
 		ERR("Reading architecture flags failed");
@@ -1112,11 +1103,7 @@ util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 		return -1;
 	}
 
-	hdrp->arch_flags.alignment_desc =
-		htole64(hdrp->arch_flags.alignment_desc);
-	hdrp->arch_flags.e_machine =
-		htole16(hdrp->arch_flags.e_machine);
-
+	util_convert2le_hdr(hdrp);
 	util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum, 1);
 
 	/* store pool's header */
