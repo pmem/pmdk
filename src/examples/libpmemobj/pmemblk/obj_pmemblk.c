@@ -278,7 +278,7 @@ main(int argc, char *argv[])
 {
 	if (argc < 4) {
 		fprintf(stderr, "usage: %s [co] file blk_size"\
-			" [cmd[:blk_num[:data]]...]", argv[0]);
+			" [cmd[:blk_num[:data]]...]\n", argv[0]);
 		return 1;
 	}
 
@@ -293,7 +293,7 @@ main(int argc, char *argv[])
 		pbp = pmemblk_open(argv[2], bsize);
 	} else {
 		fprintf(stderr, "usage: %s [co] file blk_size"
-			" [cmd[:blk_num[:data]]...]", argv[0]);
+			" [cmd[:blk_num[:data]]...]\n", argv[0]);
 		return 1;
 	}
 
