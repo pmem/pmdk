@@ -98,6 +98,8 @@ void heap_degrade_run_if_empty(PMEMobjpool *pop, struct bucket *b,
 struct memory_block heap_free_block(PMEMobjpool *pop, struct bucket *b,
 	struct memory_block m, void *hdr, uint64_t *op_result);
 
+size_t heap_get_chunk_block_size(PMEMobjpool *pop, struct memory_block m);
+
 #ifdef DEBUG
 int heap_block_is_allocated(PMEMobjpool *pop, struct memory_block m);
 #endif /* DEBUG */

@@ -97,18 +97,18 @@ pop_offset(PMEMobjpool *pop, void *ptr)
  * calc_block_offset -- (internal) calculates the block offset of allocation
  */
 static uint16_t
-calc_block_offset(PMEMobjpool *pop, struct bucket *b,
-	struct allocation_header *alloc)
+calc_block_offset(PMEMobjpool *pop, struct allocation_header *alloc,
+	size_t unit_size)
 {
 	uint16_t block_off = 0;
-	if (b->type == BUCKET_RUN) {
+	if (unit_size != CHUNKSIZE) {
 		struct memory_block m = {alloc->chunk_id, alloc->zone_id, 0, 0};
 		void *data = heap_get_block_data(pop, m);
 		uintptr_t diff = (uintptr_t)alloc - (uintptr_t)data;
 		ASSERT(diff <= RUNSIZE);
-		ASSERT((size_t)diff / b->unit_size <= UINT16_MAX);
-		ASSERT(diff % b->unit_size == 0);
-		block_off = (uint16_t)((size_t)diff / b->unit_size);
+		ASSERT((size_t)diff / unit_size <= UINT16_MAX);
+		ASSERT(diff % unit_size == 0);
+		block_off = (uint16_t)((size_t)diff / unit_size);
 	}
 
 	return block_off;
@@ -118,15 +118,18 @@ calc_block_offset(PMEMobjpool *pop, struct bucket *b,
  * get_mblock_from_alloc -- (internal) returns allocation memory block
  */
 static struct memory_block
-get_mblock_from_alloc(PMEMobjpool *pop, struct bucket *b,
-	struct allocation_header *alloc)
+get_mblock_from_alloc(PMEMobjpool *pop, struct allocation_header *alloc)
 {
 	struct memory_block mblock = {
 		alloc->chunk_id,
 		alloc->zone_id,
-		b->calc_units(b, alloc->size),
-		calc_block_offset(pop, b, alloc)
+		0,
+		0
 	};
+
+	uint64_t unit_size = heap_get_chunk_block_size(pop, mblock);
+	mblock.block_off = calc_block_offset(pop, alloc, unit_size);
+	mblock.size_idx = CALC_SIZE_IDX(unit_size, alloc->size);
 
 	return mblock;
 }
@@ -311,7 +314,7 @@ prealloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
 	uint32_t new_size_idx = b->calc_units(b, sizeh);
 	uint64_t real_size = new_size_idx * b->unit_size;
 
-	struct memory_block cnt = get_mblock_from_alloc(pop, b, alloc);
+	struct memory_block cnt = get_mblock_from_alloc(pop, alloc);
 
 	heap_lock_if_run(pop, cnt);
 
@@ -324,8 +327,7 @@ prealloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
 		goto out;
 	}
 
-	if ((err = heap_get_exact_block(pop, b, &next,
-		add_size_idx)) != 0)
+	if ((err = heap_get_exact_block(pop, b, &next, add_size_idx)) != 0)
 		goto out;
 
 	struct memory_block *blocks[2] = {&cnt, &next};
@@ -395,7 +397,7 @@ pfree(PMEMobjpool *pop, uint64_t *off, uint64_t data_off)
 	struct bucket *b = heap_get_chunk_bucket(pop,
 		alloc->chunk_id, alloc->zone_id);
 
-	struct memory_block m = get_mblock_from_alloc(pop, b, alloc);
+	struct memory_block m = get_mblock_from_alloc(pop, alloc);
 
 #ifdef DEBUG
 	if (!heap_block_is_allocated(pop, m)) {
@@ -425,10 +427,13 @@ pfree(PMEMobjpool *pop, uint64_t *off, uint64_t data_off)
 	VALGRIND_DO_MEMPOOL_FREE(pop,
 			(char *)alloc + sizeof (*alloc) + data_off);
 
-	CNT_OP(b, insert, pop, res);
+	/* we might have been operating on inactive run */
+	if (b != NULL) {
+		CNT_OP(b, insert, pop, res);
 
-	if (b->type == BUCKET_RUN)
-		heap_degrade_run_if_empty(pop, b, res);
+		if (b->type == BUCKET_RUN)
+			heap_degrade_run_if_empty(pop, b, res);
+	}
 
 	lane_release(pop);
 }
