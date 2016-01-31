@@ -174,7 +174,7 @@ obj_norep_memset_persist(PMEMobjpool *pop, void *dest, int c, size_t len)
  * obj_norep_persist -- (internal) persist w/o replication
  */
 static void
-obj_norep_persist(PMEMobjpool *pop, void *addr, size_t len)
+obj_norep_persist(PMEMobjpool *pop, const void *addr, size_t len)
 {
 	LOG(15, "pop %p addr %p len %zu", pop, addr, len);
 
@@ -185,7 +185,7 @@ obj_norep_persist(PMEMobjpool *pop, void *addr, size_t len)
  * obj_norep_flush -- (internal) flush w/o replication
  */
 static void
-obj_norep_flush(PMEMobjpool *pop, void *addr, size_t len)
+obj_norep_flush(PMEMobjpool *pop, const void *addr, size_t len)
 {
 	LOG(15, "pop %p addr %p len %zu", pop, addr, len);
 
@@ -242,7 +242,7 @@ obj_rep_memset_persist(PMEMobjpool *pop, void *dest, int c, size_t len)
  * obj_rep_persist -- (internal) persist with replication
  */
 static void
-obj_rep_persist(PMEMobjpool *pop, void *addr, size_t len)
+obj_rep_persist(PMEMobjpool *pop, const void *addr, size_t len)
 {
 	LOG(15, "pop %p addr %p len %zu", pop, addr, len);
 
@@ -259,7 +259,7 @@ obj_rep_persist(PMEMobjpool *pop, void *addr, size_t len)
  * obj_rep_flush -- (internal) flush with replication
  */
 static void
-obj_rep_flush(PMEMobjpool *pop, void *addr, size_t len)
+obj_rep_flush(PMEMobjpool *pop, const void *addr, size_t len)
 {
 	LOG(15, "pop %p addr %p len %zu", pop, addr, len);
 
@@ -1577,7 +1577,7 @@ pmemobj_memset_persist(PMEMobjpool *pop, void *dest, int c, size_t len)
  * pmemobj_persist -- pmemobj version of pmem_persist
  */
 void
-pmemobj_persist(PMEMobjpool *pop, void *addr, size_t len)
+pmemobj_persist(PMEMobjpool *pop, const void *addr, size_t len)
 {
 	LOG(15, "pop %p addr %p len %zu", pop, addr, len);
 
@@ -1588,7 +1588,7 @@ pmemobj_persist(PMEMobjpool *pop, void *addr, size_t len)
  * pmemobj_flush -- pmemobj version of pmem_flush
  */
 void
-pmemobj_flush(PMEMobjpool *pop, void *addr, size_t len)
+pmemobj_flush(PMEMobjpool *pop, const void *addr, size_t len)
 {
 	LOG(15, "pop %p addr %p len %zu", pop, addr, len);
 

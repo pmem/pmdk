@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2015, Intel Corporation
+ * Copyright (c) 2014-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -102,14 +102,14 @@
 #define	OBJ_STORE_ITEM_PADDING\
 	(_POBJ_CL_ALIGNMENT - (sizeof (struct list_head) % _POBJ_CL_ALIGNMENT))
 
-typedef void (*persist_local_fn)(void *, size_t);
-typedef void (*flush_local_fn)(void *, size_t);
+typedef void (*persist_local_fn)(const void *, size_t);
+typedef void (*flush_local_fn)(const void *, size_t);
 typedef void (*drain_local_fn)(void);
 typedef void *(*memcpy_local_fn)(void *dest, const void *src, size_t len);
 typedef void *(*memset_local_fn)(void *dest, int c, size_t len);
 
-typedef void (*persist_fn)(PMEMobjpool *pop, void *, size_t);
-typedef void (*flush_fn)(PMEMobjpool *pop, void *, size_t);
+typedef void (*persist_fn)(PMEMobjpool *pop, const void *, size_t);
+typedef void (*flush_fn)(PMEMobjpool *pop, const void *, size_t);
 typedef void (*drain_fn)(PMEMobjpool *pop);
 typedef void *(*memcpy_fn)(PMEMobjpool *pop, void *dest, const void *src,
 					size_t len);

@@ -456,12 +456,12 @@ void *pmemobj_memset_persist(PMEMobjpool *pop, void *dest, int c, size_t len);
 /*
  * Pmemobj version of pmem_persist.
  */
-void pmemobj_persist(PMEMobjpool *pop, void *addr, size_t len);
+void pmemobj_persist(PMEMobjpool *pop, const void *addr, size_t len);
 
 /*
  * Pmemobj version of pmem_flush.
  */
-void pmemobj_flush(PMEMobjpool *pop, void *addr, size_t len);
+void pmemobj_flush(PMEMobjpool *pop, const void *addr, size_t len);
 
 /*
  * Pmemobj version of pmem_drain.

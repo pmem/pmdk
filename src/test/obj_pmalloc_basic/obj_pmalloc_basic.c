@@ -79,7 +79,7 @@ drain_empty(void)
  * obj_persist -- pmemobj version of pmem_persist w/o replication
  */
 static void
-obj_persist(PMEMobjpool *pop, void *addr, size_t len)
+obj_persist(PMEMobjpool *pop, const void *addr, size_t len)
 {
 	pop->persist_local(addr, len);
 }
@@ -88,7 +88,7 @@ obj_persist(PMEMobjpool *pop, void *addr, size_t len)
  * obj_flush -- pmemobj version of pmem_flush w/o replication
  */
 static void
-obj_flush(PMEMobjpool *pop, void *addr, size_t len)
+obj_flush(PMEMobjpool *pop, const void *addr, size_t len)
 {
 	pop->flush_local(addr, len);
 }

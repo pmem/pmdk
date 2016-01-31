@@ -56,7 +56,7 @@ struct mock_pop {
 };
 
 static void
-obj_heap_persist(PMEMobjpool *pop, void *ptr, size_t sz)
+obj_heap_persist(PMEMobjpool *pop, const void *ptr, size_t sz)
 {
 	pmem_msync(ptr, sz);
 }

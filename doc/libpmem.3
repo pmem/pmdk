@@ -1,5 +1,5 @@
 .\"
-.\" Copyright (c) 2014-2015, Intel Corporation
+.\" Copyright (c) 2014-2016, Intel Corporation
 .\"
 .\" Redistribution and use in source and binary forms, with or without
 .\" modification, are permitted provided that the following conditions
@@ -37,7 +37,7 @@
 .\" or
 .\"	groff -man -Tascii libpmem.3
 .\"
-.TH libpmem 3 "pmem API version 0.8.5" "NVM Library"
+.TH libpmem 3 "pmem API version 0.8.6" "NVM Library"
 .SH NAME
 libpmem \- persistent memory support library
 .SH SYNOPSIS
@@ -48,15 +48,15 @@ libpmem \- persistent memory support library
 .sp
 .B Most commonly used functions:
 .sp
-.BI "int pmem_is_pmem(void *" addr ", size_t " len );
-.BI "void pmem_persist(void *" addr ", size_t " len );
-.BI "int pmem_msync(void *" addr ", size_t " len );
+.BI "int pmem_is_pmem(const void *" addr ", size_t " len );
+.BI "void pmem_persist(const void *" addr ", size_t " len );
+.BI "int pmem_msync(const void *" addr ", size_t " len );
 .BI "void *pmem_map(int " fd );
 .BI "int pmem_unmap(void *" addr ", size_t " len );
 .sp
 .B Partial flushing operations:
 .sp
-.BI "void pmem_flush(void *" addr ", size_t " len );
+.BI "void pmem_flush(const void *" addr ", size_t " len );
 .BI "void pmem_drain(void);"
 .BI "int pmem_has_hw_drain(void);"
 .sp
@@ -139,7 +139,7 @@ and that wish to take on the responsibility for flushing stores to
 persistence will find the functions described in this section
 to be the most commonly used.
 .PP
-.BI "int pmem_is_pmem(void *" addr ", size_t " len );
+.BI "int pmem_is_pmem(const void *" addr ", size_t " len );
 .IP
 The
 .BR pmem_is_pmem ()
@@ -174,7 +174,7 @@ returns false may not do anything useful -- use
 .BR msync (2)
 instead.
 .PP
-.BI "void pmem_persist(void *" addr ", size_t " len );
+.BI "void pmem_persist(const void *" addr ", size_t " len );
 .IP
 Force any changes in the range
 .IR "" [ addr ", " addr + len )
@@ -209,7 +209,7 @@ before
 .BR pmem_persist ()
 is called.
 .PP
-.BI "int pmem_msync(void *" addr ", size_t " len );
+.BI "int pmem_msync(const void *" addr ", size_t " len );
 .IP
 The function
 .BR pmem_msync ()
@@ -309,7 +309,7 @@ than the
 .BR pmem_persist ()
 function described above.
 .PP
-.BI "void pmem_flush(void *" addr ", size_t " len );
+.BI "void pmem_flush(const void *" addr ", size_t " len );
 .br
 .BI "void pmem_drain(void);"
 .IP
@@ -321,7 +321,7 @@ can be thought of as this:
 .IP
 .nf
 void
-pmem_persist(void *addr, size_t len)
+pmem_persist(const void *addr, size_t len)
 {
     /* flush the processor caches */
     pmem_flush(addr, len);

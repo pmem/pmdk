@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2015, Intel Corporation
+ * Copyright (c) 2014-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -340,7 +340,7 @@ pmem_drain(void)
  * flush_clflush -- (internal) flush the CPU cache, using clflush
  */
 static void
-flush_clflush(void *addr, size_t len)
+flush_clflush(const void *addr, size_t len)
 {
 	LOG(15, "addr %p len %zu", addr, len);
 
@@ -359,7 +359,7 @@ flush_clflush(void *addr, size_t len)
  * flush_clwb -- (internal) flush the CPU cache, using clwb
  */
 static void
-flush_clwb(void *addr, size_t len)
+flush_clwb(const void *addr, size_t len)
 {
 	LOG(15, "addr %p len %zu", addr, len);
 
@@ -379,7 +379,7 @@ flush_clwb(void *addr, size_t len)
  * flush_clflushopt -- (internal) flush the CPU cache, using clflushopt
  */
 static void
-flush_clflushopt(void *addr, size_t len)
+flush_clflushopt(const void *addr, size_t len)
 {
 	LOG(15, "addr %p len %zu", addr, len);
 
@@ -402,13 +402,13 @@ flush_clflushopt(void *addr, size_t len)
  * Func_flush is set to flush_clflushopt().  That's the most common case
  * on modern hardware that supports persistent memory.
  */
-static void (*Func_flush)(void *, size_t) = flush_clflush;
+static void (*Func_flush)(const void *, size_t) = flush_clflush;
 
 /*
  * pmem_flush -- flush processor cache for the given range
  */
 void
-pmem_flush(void *addr, size_t len)
+pmem_flush(const void *addr, size_t len)
 {
 	LOG(10, "addr %p len %zu", addr, len);
 
@@ -421,7 +421,7 @@ pmem_flush(void *addr, size_t len)
  * pmem_persist -- make any cached changes to a range of pmem persistent
  */
 void
-pmem_persist(void *addr, size_t len)
+pmem_persist(const void *addr, size_t len)
 {
 	LOG(15, "addr %p len %zu", addr, len);
 
@@ -437,7 +437,7 @@ pmem_persist(void *addr, size_t len)
  * pmem_persist() which is only safe where pmem_is_pmem() returns true.
  */
 int
-pmem_msync(void *addr, size_t len)
+pmem_msync(const void *addr, size_t len)
 {
 	LOG(15, "addr %p len %zu", addr, len);
 
@@ -479,7 +479,7 @@ pmem_msync(void *addr, size_t len)
  * is_pmem_always -- (internal) always true version of pmem_is_pmem()
  */
 static int
-is_pmem_always(void *addr, size_t len)
+is_pmem_always(const void *addr, size_t len)
 {
 	LOG(3, NULL);
 
@@ -490,7 +490,7 @@ is_pmem_always(void *addr, size_t len)
  * is_pmem_never -- (internal) never true version of pmem_is_pmem()
  */
 static int
-is_pmem_never(void *addr, size_t len)
+is_pmem_never(const void *addr, size_t len)
 {
 	LOG(3, NULL);
 
@@ -518,9 +518,9 @@ is_pmem_never(void *addr, size_t len)
  * in which case it stops the loop and returns immediately.
  */
 static int
-is_pmem_proc(void *addr, size_t len)
+is_pmem_proc(const void *addr, size_t len)
 {
-	char *caddr = addr;
+	const char *caddr = addr;
 
 	FILE *fp;
 	if ((fp = fopen("/proc/self/smaps", "r")) == NULL) {
@@ -598,13 +598,13 @@ is_pmem_proc(void *addr, size_t len)
  * Func_is_pmem is set to is_pmem_proc().  That's the most common case
  * on modern hardware.
  */
-static int (*Func_is_pmem)(void *addr, size_t len) = is_pmem_never;
+static int (*Func_is_pmem)(const void *addr, size_t len) = is_pmem_never;
 
 /*
  * pmem_is_pmem -- return true if entire range is persistent Memory
  */
 int
-pmem_is_pmem(void *addr, size_t len)
+pmem_is_pmem(const void *addr, size_t len)
 {
 	LOG(10, "addr %p len %zu", addr, len);
 
