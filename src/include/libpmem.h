@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2015, Intel Corporation
+ * Copyright (c) 2014-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -51,10 +51,10 @@ extern "C" {
 
 void *pmem_map(int fd);
 int pmem_unmap(void *addr, size_t len);
-int pmem_is_pmem(void *addr, size_t len);
-void pmem_persist(void *addr, size_t len);
-int pmem_msync(void *addr, size_t len);
-void pmem_flush(void *addr, size_t len);
+int pmem_is_pmem(const void *addr, size_t len);
+void pmem_persist(const void *addr, size_t len);
+int pmem_msync(const void *addr, size_t len);
+void pmem_flush(const void *addr, size_t len);
 void pmem_drain(void);
 int pmem_has_hw_drain(void);
 void *pmem_memmove_persist(void *pmemdest, const void *src, size_t len);

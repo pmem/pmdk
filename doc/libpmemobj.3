@@ -37,7 +37,7 @@
 .\" or
 .\"	groff -man -Tascii libpmemobj.3
 .\"
-.TH libpmemobj 3 "pmemobj API version 0.4.21" "NVM Library"
+.TH libpmemobj 3 "pmemobj API version 0.4.22" "NVM Library"
 .SH NAME
 libpmemobj \- persistent memory transactional object store
 .SH SYNOPSIS
@@ -59,8 +59,8 @@ libpmemobj \- persistent memory transactional object store
 .BI "     const void *" src ", size_t " len );
 .BI "void *pmemobj_memset_persist(PMEMobjpool *" pop ", void *" dest ,
 .BI "     int " c ", size_t " len );
-.BI "void pmemobj_persist(PMEMobjpool *" pop ", void *" addr ", size_t " len );
-.BI "void pmemobj_flush(PMEMobjpool *" pop ", void *" addr ", size_t " len );
+.BI "void pmemobj_persist(PMEMobjpool *" pop ", const void *" addr ", size_t " len );
+.BI "void pmemobj_flush(PMEMobjpool *" pop ", const void *" addr ", size_t " len );
 .BI "void pmemobj_drain(PMEMobjpool *" pop );
 .sp
 .B Locking:
@@ -500,7 +500,7 @@ to use these functions in conjunction with
 objects, instead of using low-level memory manipulations functions from
 .BR libpmem .
 .PP
-.BI "void pmemobj_persist(PMEMobjpool *" pop ", void *" addr ", size_t " len );
+.BI "void pmemobj_persist(PMEMobjpool *" pop ", const void *" addr ", size_t " len );
 .IP
 Forces any changes in the range
 .IR "" [ addr ", " addr + len )
@@ -535,7 +535,7 @@ before
 .BR pmemobj_persist ()
 is called.
 .PP
-.BI "void pmemobj_flush(PMEMobjpool *" pop ", void *" addr ", size_t " len );
+.BI "void pmemobj_flush(PMEMobjpool *" pop ", const void *" addr ", size_t " len );
 .br
 .BI "void pmemobj_drain(PMEMobjpool *" pop );
 .IP
@@ -547,7 +547,7 @@ can be thought of as this:
 .IP
 .nf
 void
-pmemobj_persist(PMEMobjpool *" pop ", void *addr, size_t len)
+pmemobj_persist(PMEMobjpool *pop, const void *addr, size_t len)
 {
     /* flush the processor caches */
     pmemobj_flush(pop, addr, len);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Intel Corporation
+ * Copyright (c) 2015-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -233,7 +233,7 @@ cleanup(char test_type)
 }
 
 static void
-obj_sync_persist(PMEMobjpool *pop, void *ptr, size_t sz)
+obj_sync_persist(PMEMobjpool *pop, const void *ptr, size_t sz)
 {
 	pmem_msync(ptr, sz);
 }
