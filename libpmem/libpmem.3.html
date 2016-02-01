@@ -1,5 +1,5 @@
 <!-- Creator     : groff version 1.18.1.4 -->
-<!-- CreationDate: Thu Dec  3 16:49:08 2015 -->
+<!-- CreationDate: Mon Feb  1 08:03:57 2016 -->
 <html>
 <head>
 <meta name="generator" content="groff -Thtml, see www.gnu.org">
@@ -48,15 +48,15 @@ cc ... -lpmem
 
 Most commonly used functions:
 
-int pmem_is_pmem(void *</b><i>addr</i><b>, size_t</b> <i>len</i><b>);
-void pmem_persist(void *</b><i>addr</i><b>, size_t</b> <i>len</i><b>);
-int pmem_msync(void *</b><i>addr</i><b>, size_t</b> <i>len</i><b>);
+int pmem_is_pmem(const void *</b><i>addr</i><b>, size_t</b> <i>len</i><b>);
+void pmem_persist(const void *</b><i>addr</i><b>, size_t</b> <i>len</i><b>);
+int pmem_msync(const void *</b><i>addr</i><b>, size_t</b> <i>len</i><b>);
 void *pmem_map(int</b> <i>fd</i><b>);
 int pmem_unmap(void *</b><i>addr</i><b>, size_t</b> <i>len</i><b>);
 
 Partial flushing operations:
 
-void pmem_flush(void *</b><i>addr</i><b>, size_t</b> <i>len</i><b>);
+void pmem_flush(const void *</b><i>addr</i><b>, size_t</b> <i>len</i><b>);
 void pmem_drain(void);
 int pmem_has_hw_drain(void);
 
@@ -154,8 +154,8 @@ responsibility for flushing stores to persistence will find
 the functions described in this section to be the most
 commonly used.</p>
 <!-- INDENTATION -->
-<p><b>int pmem_is_pmem(void *</b><i>addr</i><b>, size_t</b>
-<i>len</i><b>);</b></p>
+<p><b>int pmem_is_pmem(const void *</b><i>addr</i><b>,
+size_t</b> <i>len</i><b>);</b></p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -192,8 +192,8 @@ useful -- use <b>msync</b>(2) instead.</p>
 <tr valign="top" align="left">
 <td width="10%"></td>
 <td width="89%">
-<p><b>void pmem_persist(void *</b><i>addr</i><b>, size_t</b>
-<i>len</i><b>);</b></p>
+<p><b>void pmem_persist(const void *</b><i>addr</i><b>,
+size_t</b> <i>len</i><b>);</b></p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -227,8 +227,8 @@ any time before <b>pmem_persist</b>() is called.</p>
 <tr valign="top" align="left">
 <td width="10%"></td>
 <td width="89%">
-<p><b>int pmem_msync(void *</b><i>addr</i><b>, size_t</b>
-<i>len</i><b>);</b></p>
+<p><b>int pmem_msync(const void *</b><i>addr</i><b>,
+size_t</b> <i>len</i><b>);</b></p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -337,8 +337,8 @@ where an application needs more control of the flushing
 operations than the <b>pmem_persist</b>() function described
 above.</p>
 <!-- INDENTATION -->
-<p><b>void pmem_flush(void *</b><i>addr</i><b>, size_t</b>
-<i>len</i><b>);<br>
+<p><b>void pmem_flush(const void *</b><i>addr</i><b>,
+size_t</b> <i>len</i><b>);<br>
 void pmem_drain(void);</b></p>
 </td>
 </table>
@@ -353,7 +353,7 @@ void pmem_drain(void);</b></p>
 <b>pmem_persist</b>() can be thought of as this:</p>
 <!-- INDENTATION -->
 <pre>void
-pmem_persist(void *addr, size_t len)
+pmem_persist(const void *addr, size_t len)
 {
     /* flush the processor caches */
     pmem_flush(addr, len);

@@ -1,5 +1,5 @@
 <!-- Creator     : groff version 1.18.1.4 -->
-<!-- CreationDate: Thu Dec  3 16:49:08 2015 -->
+<!-- CreationDate: Mon Feb  1 08:03:57 2016 -->
 <html>
 <head>
 <meta name="generator" content="groff -Thtml, see www.gnu.org">
@@ -70,8 +70,8 @@ void *pmemobj_memcpy_persist(PMEMobjpool *</b><i>pop</i><b>, void *</b><i>dest</
      const void *</b><i>src</i><b>, size_t</b> <i>len</i><b>);
 void *pmemobj_memset_persist(PMEMobjpool *</b><i>pop</i><b>, void *</b><i>dest</i><b>,
      int</b> <i>c</i><b>, size_t</b> <i>len</i><b>);
-void pmemobj_persist(PMEMobjpool *</b><i>pop</i><b>, void *</b><i>addr</i><b>, size_t</b> <i>len</i><b>);
-void pmemobj_flush(PMEMobjpool *</b><i>pop</i><b>, void *</b><i>addr</i><b>, size_t</b> <i>len</i><b>);
+void pmemobj_persist(PMEMobjpool *</b><i>pop</i><b>, const void *</b><i>addr</i><b>, size_t</b> <i>len</i><b>);
+void pmemobj_flush(PMEMobjpool *</b><i>pop</i><b>, const void *</b><i>addr</i><b>, size_t</b> <i>len</i><b>);
 void pmemobj_drain(PMEMobjpool *</b><i>pop</i><b>);
 
 Locking:
@@ -166,7 +166,7 @@ POBJ_ZNEW(PMEMobjpool *</b><i>pop</i><b>, TOID *</b><i>oidp</i><b>,</b> <i>TYPE<
 POBJ_ZALLOC(PMEMobjpool *</b><i>pop</i><b>, TOID *</b><i>oidp</i><b>,</b> <i>TYPE</i><b>, size_t</b> <i>size</i><b>)
 POBJ_REALLOC(PMEMobjpool *</b><i>pop</i><b>, TOID *</b><i>oidp</i><b>,</b> <i>TYPE</i><b>, size_t</b> <i>size</i><b>)
 POBJ_ZREALLOC(PMEMobjpool *</b><i>pop</i><b>, TOID *</b><i>oidp</i><b>,</b> <i>TYPE</i><b>, size_t</b> <i>size</i><b>)
-POBJ_FREE(PMEMobjpool *</b><i>pop</i><b>, TOID *</b><i>oidp</i><b>)
+POBJ_FREE(TOID *</b><i>oidp</i><b>)
 
 Root object management:
 
@@ -255,6 +255,12 @@ POBJ_LIST_MOVE_ELEMENT_HEAD(PMEMobjpool *</b><i>pop</i><b>, POBJ_LIST_HEAD *</b>
 POBJ_LIST_MOVE_ELEMENT_TAIL(PMEMobjpool *</b><i>pop</i><b>, POBJ_LIST_HEAD *</b><i>head</i><b>,
     POBJ_LIST_HEAD *</b><i>head_new</i><b>, TOID</b> <i>elm</i><b>, POBJ_LIST_ENTRY</b> <i>FIELD</i><b>,
     POBJ_LIST_ENTRY</b> <i>field_new</i><b>)
+POBJ_LIST_MOVE_ELEMENT_AFTER(PMEMobjpool *</b><i>pop</i><b>, POBJ_LIST_HEAD *</b><i>head</i><b>,
+    POBJ_LIST_HEAD *</b><i>head_new</i><b>, TOID</b> <i>listelm</i><b>, TOID</b> <i>elm</i><b>,
+    POBJ_LIST_ENTRY</b> <i>FIELD</i><b>, POBJ_LIST_ENTRY</b> <i>field_new</i><b>)
+POBJ_LIST_MOVE_ELEMENT_BEFORE(PMEMobjpool *</b><i>pop</i><b>, POBJ_LIST_HEAD *</b><i>head</i><b>,
+    POBJ_LIST_HEAD *</b><i>head_new</i><b>, TOID</b> <i>listelm</i><b>, TOID</b> <i>elm</i><b>,
+    POBJ_LIST_ENTRY</b> <i>FIELD</i><b>, POBJ_LIST_ENTRY</b> <i>field_new</i><b>)
 
 Transactional object manipulation:
 
@@ -262,9 +268,10 @@ enum tx_stage pmemobj_tx_stage(void);
 
 int pmemobj_tx_begin(PMEMobjpool *</b><i>pop</i><b>, jmp_buf *</b><i>env</i><b>, enum</b> <i>tx_lock</i><b>,</b> <i>...</i><b>);
 void pmemobj_tx_abort(int</b> <i>errnum</i><b>);
-int pmemobj_tx_commit(void);
-void pmemobj_tx_end(void);
-int pmemobj_tx_process(void);
+void pmemobj_tx_commit(void);
+int pmemobj_tx_end(void);
+int pmemobj_tx_errno(void);
+void pmemobj_tx_process(void);
 
 int pmemobj_tx_add_range(PMEMoid</b> <i>oid</i><b>, uint64_t</b> <i>off</i><b>, size_t</b> <i>size</i><b>);
 int pmemobj_tx_add_range_direct(void *</b><i>ptr</i><b>, size_t</b> <i>size</i><b>);
@@ -522,7 +529,8 @@ objects, instead of using low-level memory manipulations
 functions from <b>libpmem</b>.</p>
 <!-- INDENTATION -->
 <p><b>void pmemobj_persist(PMEMobjpool *</b><i>pop</i><b>,
-void *</b><i>addr</i><b>, size_t</b> <i>len</i><b>);</b></p>
+const void *</b><i>addr</i><b>, size_t</b>
+<i>len</i><b>);</b></p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -557,7 +565,8 @@ at any time before <b>pmemobj_persist</b>() is called.</p>
 <td width="10%"></td>
 <td width="89%">
 <p><b>void pmemobj_flush(PMEMobjpool *</b><i>pop</i><b>,
-void *</b><i>addr</i><b>, size_t</b> <i>len</i><b>);<br>
+const void *</b><i>addr</i><b>, size_t</b>
+<i>len</i><b>);<br>
 void pmemobj_drain(PMEMobjpool *</b><i>pop</i><b>);</b></p>
 </td>
 </table>
@@ -572,7 +581,7 @@ void pmemobj_drain(PMEMobjpool *</b><i>pop</i><b>);</b></p>
 <b>pmemobj_persist</b>() can be thought of as this:</p>
 <!-- INDENTATION -->
 <pre>void
-pmemobj_persist(PMEMobjpool *&quot; pop &quot;, void *addr, size_t len)
+pmemobj_persist(PMEMobjpool *pop, const void *addr, size_t len)
 {
     /* flush the processor caches */
     pmemobj_flush(pop, addr, len);
@@ -2591,8 +2600,7 @@ pointer to typed OID of <b>TYPE</b>.</p>
 <tr valign="top" align="left">
 <td width="10%"></td>
 <td width="89%">
-<p><b>POBJ_FREE(PMEMobjpool *</b><i>pop</i><b>, TOID
-*</b><i>oidp</i><b>)</b></p>
+<p><b>POBJ_FREE(TOID *</b><i>oidp</i><b>)</b></p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -3657,8 +3665,8 @@ is returned.</p>
 <td width="79%">
 <p>The <b>pmemobj_tx_abort</b>() aborts the current
 transaction and causes transition to
-<i>TX_STAGE_ONABORT</i>. It has no effect if called during
-the stage other than <i>TX_STAGE_WORK</i>.</p>
+<i>TX_STAGE_ONABORT</i>. This function must be called during
+<i>TX_STAGE_WORK</i>.</p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -3667,7 +3675,7 @@ the stage other than <i>TX_STAGE_WORK</i>.</p>
 <tr valign="top" align="left">
 <td width="10%"></td>
 <td width="89%">
-<p><b>int pmemobj_tx_commit(void);</b></p>
+<p><b>void pmemobj_tx_commit(void);</b></p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -3680,10 +3688,8 @@ the stage other than <i>TX_STAGE_WORK</i>.</p>
 current open transaction and causes transition to
 <i>TX_STAGE_ONCOMMIT</i> stage. If called in context of the
 outer-most transaction, all the changes may be considered as
-durably written upon successful completion. If successful
-returns 0. Otherwise, an error number is returned. It has no
-effect if called during the stage other than
-<i>TX_STAGE_WORK</i>.</p>
+durably written upon successful completion. This function
+must be called during <i>TX_STAGE_WORK</i>.</p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -3692,7 +3698,7 @@ effect if called during the stage other than
 <tr valign="top" align="left">
 <td width="10%"></td>
 <td width="89%">
-<p><b>void pmemobj_tx_end(void);</b></p>
+<p><b>int pmemobj_tx_end(void);</b></p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -3711,7 +3717,12 @@ returns to the context of the outer transaction with
 <i>TX_STAGE_WORK</i> stage without releasing any locks. Must
 always be called for each <b>pmemobj_tx_begin</b>(), even if
 starting the transaction failed. It has no effect if called
-during <i>TX_STAGE_NONE</i> stage.</p>
+during <i>TX_STAGE_NONE</i> stage and must <i>not</i> be
+called during <i>TX_STAGE_WORK</i>. If transaction was
+successful, returns 0. Otherwise returns error code set by
+<b>pmemobj_tx_abort</b>(). Note that
+<b>pmemobj_tx_abort</b>() can be called internally by the
+library.</p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -3720,7 +3731,27 @@ during <i>TX_STAGE_NONE</i> stage.</p>
 <tr valign="top" align="left">
 <td width="10%"></td>
 <td width="89%">
-<p><b>int pmemobj_tx_process(void);</b></p>
+<p><b>int pmemobj_tx_errno(void);</b></p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="20%"></td>
+<td width="79%">
+<p>The <b>pmemobj_tx_errno</b>() function returns last
+transaction error code. It must be called only during
+<i>TX_STAGE_ONABORT</i>.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>void pmemobj_tx_process(void);</b></p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -3731,10 +3762,9 @@ during <i>TX_STAGE_NONE</i> stage.</p>
 <td width="79%">
 <p>The <b>pmemobj_tx_process</b>() function performs the
 actions associated with current stage of the transaction,
-and makes the transition to the next stage. Current stage
-must always be obtained by a call to
-<b>pmemobj_tx_stage</b>(). If successful, function returns
-zero. Otherwise, an error number is returned.</p>
+and makes the transition to the next stage. It must be
+called in transaction. Current stage must always be obtained
+by a call to <b>pmemobj_tx_stage</b>().</p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -3762,10 +3792,10 @@ The application is then free to directly modify the object
 in that memory range. In case of a failure or abort, all the
 changes within this range will be rolled-back. The supplied
 block of memory has to be within the pool registered in the
-transaction. If successful and called during
-<i>TX_STAGE_WORK</i> function returns zero. Otherwise, state
+transaction. If successful, returns zero. Otherwise, state
 changes to <i>TX_STAGE_ONABORT</i> and an error number is
-returned.</p>
+returned. This function must be called during
+<i>TX_STAGE_WORK</i>.</p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -3794,10 +3824,11 @@ saves it to the undo log. The application is then free to
 directly modify the object in that memory range. In case of
 a failure or abort, all the changes within this range will
 be rolled-back. The supplied block of memory has to be
-within the pool registered in the transaction. If successful
-and called during <i>TX_STAGE_WORK</i> function returns
-zero. Otherwise, state changes to <i>TX_STAGE_ONABORT</i>
-and an error number is returned.</p>
+within the pool registered in the transaction. If
+successful, returns zero. Otherwise, state changes to
+<i>TX_STAGE_ONABORT</i> and an error number is returned.
+This function must be called during
+<i>TX_STAGE_WORK</i>.</p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -3822,12 +3853,12 @@ contrast to the non-transactional allocations, the objects
 are added to the internal object containers of given
 <i>type_num</i> only after the transaction is committed,
 making the objects visible to the <b>POBJ_FOREACH_*</b>
-macros. If successful and called during <i>TX_STAGE_WORK</i>
-function returns a handle to the newly allocated object.
-Otherwise, stage changes to <i>TX_STAGE_ONABORT</i>,
-OID_NULL is returned, and errno is set appropriately. If
-<i>size</i> equals 0, OID_NULL is returned and errno is set
-appropriately.</p>
+macros. If successful, returns a handle to the newly
+allocated object. Otherwise, stage changes to
+<i>TX_STAGE_ONABORT</i>, OID_NULL is returned, and errno is
+set appropriately. If <i>size</i> equals 0, OID_NULL is
+returned and errno is set appropriately. This function must
+be called during <i>TX_STAGE_WORK</i>.</p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -3848,12 +3879,12 @@ unsigned int</b> <i>type_num</i><b>);</b></p>
 <td width="79%">
 <p>The pmemobj_tx_zalloc () function transactionally
 allocates new zeroed object of given <i>size</i> and
-<i>type_num</i>. If successful and called during
-<i>TX_STAGE_WORK</i> function returns a handle to the newly
-allocated object. Otherwise, stage changes to
+<i>type_num</i>. If successful, returns a handle to the
+newly allocated object. Otherwise, stage changes to
 <i>TX_STAGE_ONABORT</i>, OID_NULL is returned, and errno is
 set appropriately. If <i>size</i> equals 0, OID_NULL is
-returned and errno is set appropriately.</p>
+returned and errno is set appropriately. This function must
+be called during <i>TX_STAGE_WORK</i>.</p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -3883,12 +3914,12 @@ is equal to zero and <i>oid</i> is not OID_NULL, then the
 call is equivalent to
 <b>pmemobj_tx_free(</b><i>oid</i><b>).</b> If the new size
 is larger than the old size, the added memory will
-<i>not</i> be initialized. If successful and called during
-<i>TX_STAGE_WORK</i> function returns returns a handle to
-the resized object. Otherwise, stage changes to
+<i>not</i> be initialized. If successful, returns returns a
+handle to the resized object. Otherwise, stage changes to
 <i>TX_STAGE_ONABORT</i>, OID_NULL is returned, and errno is
 set appropriately. Note that the object handle value may
-change in result of reallocation.</p>
+change in result of reallocation. This function must be
+called during <i>TX_STAGE_WORK</i>.</p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -3912,12 +3943,12 @@ unsigned int</b> <i>type_num</i><b>);</b></p>
 resizes an existing object to the given <i>size</i> and
 changes its type to <i>type_num</i>. If the new size is
 larger than the old size, the extended new space is zeroed.
-If successful and called during <i>TX_STAGE_WORK</i>
-function returns returns a handle to the resized object.
-Otherwise, stage changes to <i>TX_STAGE_ONABORT</i>,
+If successful, returns returns a handle to the resized
+object. Otherwise, stage changes to <i>TX_STAGE_ONABORT</i>,
 OID_NULL is returned, and errno is set appropriately. Note
 that the object handle value may change in result of
-reallocation.</p>
+reallocation. This function must be called during
+<i>TX_STAGE_WORK</i>.</p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -3939,10 +3970,10 @@ unsigned int</b> <i>type_num</i><b>);</b></p>
 <p>The <b>pmemobj_tx_strdup</b>() function transactionally
 allocates a new object containing a duplicate of the string
 <i>s</i> and assigns it a type <i>type_num</i>. If
-successful and called during <i>TX_STAGE_WORK</i> function
-returns a handle to the newly allocated object. Otherwise,
-stage changes to <i>TX_STAGE_ONABORT</i>, OID_NULL is
-returned, and errno is set appropriately.</p>
+successful, returns a handle to the newly allocated object.
+Otherwise, stage changes to <i>TX_STAGE_ONABORT</i>,
+OID_NULL is returned, and errno is set appropriately. This
+function must be called during <i>TX_STAGE_WORK</i>.</p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -3963,9 +3994,10 @@ returned, and errno is set appropriately.</p>
 <td width="79%">
 <p>The <b>pmemobj_tx_free</b>() function transactionally
 frees an existing object referenced by <i>oid</i>. If
-successful and called during <i>TX_STAGE_WORK</i> function
-returns zero. Otherwise, stage changes to
-<i>TX_STAGE_ONABORT</i> and an error number is returned.</p>
+successful, returns zero. Otherwise, stage changes to
+<i>TX_STAGE_ONABORT</i> and an error number is returned.
+This function must be called during
+<i>TX_STAGE_WORK</i>.</p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -4239,7 +4271,8 @@ committed or aborted. This block is optional.</p>
 <p>The <b>TX_END</b>() macro cleans up and closes the
 transaction started by <b>TX_BEGIN</b>() or
 <b>TX_BEGIN_LOCK</b>() macro. It is mandatory to terminate
-each transaction with this macro.</p>
+each transaction with this macro. If the transaction was
+aborted, errno is set appropriately.</p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -4421,7 +4454,7 @@ set appropriately.</p>
 <tr valign="top" align="left">
 <td width="10%"></td>
 <td width="89%">
-<p><b>TX_NEW(</b><i>TYPE</i><b>)</b></p>
+<p><b>TX_ZNEW(</b><i>TYPE</i><b>)</b></p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -4430,8 +4463,8 @@ set appropriately.</p>
 <tr valign="top" align="left">
 <td width="20%"></td>
 <td width="79%">
-<p>The <b>TX_NEW</b>() macro transactionally allocates a new
-zeroed object of given <i>TYPE</i> and assigns it a type
+<p>The <b>TX_ZNEW</b>() macro transactionally allocates a
+new zeroed object of given <i>TYPE</i> and assigns it a type
 number read from the typed OID. The allocation size is
 determined from the size of the user-defined structure
 <i>TYPE</i>. If successful and called during
