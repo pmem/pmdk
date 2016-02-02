@@ -165,7 +165,7 @@ namespace obj
 		element_type *
 		get() const noexcept
 		{
-			return (element_type *)pmemobj_direct(oid);
+			return (element_type *)pmemobj_direct(this->oid);
 		}
 
 		/*
@@ -174,7 +174,7 @@ namespace obj
 		void
 		swap(persistent_ptr &other) noexcept
 		{
-			std::swap(oid, other.oid);
+			std::swap(this->oid, other.oid);
 		}
 
 		/* unspecified bool type */
@@ -183,7 +183,8 @@ namespace obj
 
 		operator unspecified_bool_type() const noexcept
 		{
-			return OID_IS_NULL(oid) ? 0 : &persistent_ptr<T>::get;
+			return OID_IS_NULL(this->oid) ? 0 :
+					&persistent_ptr<T>::get;
 		}
 
 		explicit operator bool() const noexcept
@@ -199,7 +200,7 @@ namespace obj
 		const PMEMoid &
 		raw() const noexcept
 		{
-			return oid;
+			return this->oid;
 		}
 
 		/*
@@ -210,7 +211,7 @@ namespace obj
 		PMEMoid *
 		raw_ptr() noexcept
 		{
-			return &oid;
+			return &this->oid;
 		}
 	private:
 		PMEMoid oid;

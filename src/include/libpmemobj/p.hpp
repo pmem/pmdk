@@ -78,7 +78,34 @@ namespace obj
 
 		operator T() const noexcept
 		{
-			return val;
+			return this->val;
+		}
+
+		template<typename Y>
+		p &operator=(const p<Y> &rhs) noexcept
+		{
+			static_assert(std::is_convertible<Y, T>::value,
+				"assignment of inconvertible types");
+
+			if (pmemobj_tx_stage() == TX_STAGE_WORK)
+				pmemobj_tx_add_range_direct(this, sizeof(T));
+
+			this_type(rhs).swap(*this);
+
+			return *this;
+		}
+
+		T &get_rw()
+		{
+			if (pmemobj_tx_stage() == TX_STAGE_WORK)
+				pmemobj_tx_add_range_direct(this, sizeof(T));
+
+			return this->val;
+		}
+
+		const T &get_ro() const
+		{
+			return this->val;
 		}
 
 		/*
@@ -86,7 +113,7 @@ namespace obj
 		 */
 		void swap(p &other) noexcept
 		{
-			std::swap(val, other.val);
+			std::swap(this->val, other.val);
 		}
 	private:
 		T val;
