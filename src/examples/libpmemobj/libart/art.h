@@ -190,7 +190,6 @@ typedef struct _cb_data {
  */
 #define	IS_LEAF(x) ((x->art_node_type == art_leaf_t))
 #define	SET_LEAF(x) ((x->art_node_tag = art_leaf_t))
-// #define	LEAF_RAW(x) ((D_RO)x->u.al)
 
 #define	COPY_BLOB(_obj, _blob, _len) \
     D_RW(_obj)->len = _len; \

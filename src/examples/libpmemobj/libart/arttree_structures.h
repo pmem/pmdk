@@ -52,7 +52,7 @@
 #define	MAX_PREFIX_LEN 10
 
 /*
- * pmem_context -- strcuture for pmempool file
+ * pmem_context -- structure for pmempool file
  */
 struct pmem_context {
     char *filename;

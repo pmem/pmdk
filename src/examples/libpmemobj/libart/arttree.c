@@ -75,19 +75,19 @@ struct datastore
  */
 struct ds_context
 {
-	char	*filename;	/* name of pool file */
-	int	mode;		/* operation mode */
-	int	insertions;	/* number of insert operations to perform */
-	int	newpool;	/* complete new memory pool */
-	size_t	psize;		/* size of pool */
-	PMEMobjpool *pop;	/* pmeobj handle */
-	bool	fileio;
+	char *filename;	/* name of pool file */
+	int mode;		/* operation mode */
+	int insertions;	/* number of insert operations to perform */
+	int newpool;		/* complete new memory pool */
+	size_t psize;		/* size of pool */
+	PMEMobjpool *pop;	/* pmemobj handle */
+	bool fileio;
 	unsigned int fmode;
-	int	fd;		/* file descriptor for file io mode */
-	unsigned char	*key;		/* for SEARCH, INSERT and REMOVE */
-	uint32_t		key_len;
-	unsigned char	*value;	/* for INSERT */
-	uint32_t		val_len;
+	int fd;		/* file descriptor for file io mode */
+	unsigned char *key;		/* for SEARCH, INSERT and REMOVE */
+	uint32_t key_len;
+	unsigned char *value;	/* for INSERT */
+	uint32_t val_len;
 };
 
 #define	FILL (1<<1)
@@ -137,14 +137,14 @@ initialize_context(struct ds_context *ctx, int ac, char *av[])
 	}
 
 	if (!errors) {
-		ctx->filename	= NULL;
-		ctx->psize	= PMEMOBJ_MIN_POOL;
-		ctx->newpool	= 0;
-		ctx->pop	= NULL;
-		ctx->fileio	= false;
-		ctx->fmode	= 0666;
-		ctx->mode	= 0;
-		ctx->fd		= -1;
+		ctx->filename = NULL;
+		ctx->psize = PMEMOBJ_MIN_POOL;
+		ctx->newpool = 0;
+		ctx->pop = NULL;
+		ctx->fileio = false;
+		ctx->fmode = 0666;
+		ctx->mode = 0;
+		ctx->fd	 = -1;
 	}
 
 	if (!errors) {
@@ -578,7 +578,7 @@ dump_art_node_callback(void *data,
 		switch (D_RO(cbd->node)->art_node_type) {
 		case NODE4:
 			an4 = D_RO(cbd->node)->u.an4;
-			an  = &(D_RO(an4)->n);
+			an = &(D_RO(an4)->n);
 			child = D_RO(an4)->children[cbd->child_idx];
 			if (!TOID_IS_NULL(child)) {
 				print_node_info("node4",
@@ -591,7 +591,7 @@ dump_art_node_callback(void *data,
 			break;
 		case NODE16:
 			an16 = D_RO(cbd->node)->u.an16;
-			an   = &(D_RO(an16)->n);
+			an = &(D_RO(an16)->n);
 			child = D_RO(an16)->children[cbd->child_idx];
 			if (!TOID_IS_NULL(child)) {
 				print_node_info("node16",
@@ -604,7 +604,7 @@ dump_art_node_callback(void *data,
 			break;
 		case NODE48:
 			an48 = D_RO(cbd->node)->u.an48;
-			an   = &(D_RO(an48)->n);
+			an = &(D_RO(an48)->n);
 			child = D_RO(an48)->children[cbd->child_idx];
 			if (!TOID_IS_NULL(child)) {
 				print_node_info("node48",
@@ -617,7 +617,7 @@ dump_art_node_callback(void *data,
 			break;
 		case NODE256:
 			an256 = D_RO(cbd->node)->u.an256;
-			an    = &(D_RO(an256)->n);
+			an = &(D_RO(an256)->n);
 			child = D_RO(an256)->children[cbd->child_idx];
 			if (!TOID_IS_NULL(child)) {
 				print_node_info("node256",

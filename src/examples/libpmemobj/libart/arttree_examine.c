@@ -138,14 +138,14 @@ struct examine ex_funcs[] = {
 	{
 		.name = "PMEMobj",
 		.brief = "examine PMEMoid structure",
-		.func  = examine_PMEMoid,
-		.help  = NULL,
+		.func = examine_PMEMoid,
+		.help = NULL,
 	},
 	{
 		.name = "art_tree_root",
 		.brief = "examine art_tree_root structure",
-		.func  = examine_art_tree_root,
-		.help  = NULL,
+		.func = examine_art_tree_root,
+		.help = NULL,
 	},
 	{
 		.name = "art_node_u",
@@ -260,8 +260,8 @@ examine_parse_args(char *appname, int ac, char *av[],
 		}
 	}
 	if (ret == 0) {
-		ex_ctx->offset_string	= strdup(av[optind + 0]);
-		ex_ctx->type_name	= strdup(av[optind + 1]);
+		ex_ctx->offset_string = strdup(av[optind + 0]);
+		ex_ctx->type_name = strdup(av[optind + 1]);
 	}
 
 	return ret;
