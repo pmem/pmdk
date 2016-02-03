@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2016, FUJITSU TECHNOLOGY SOLUTIONS GMBH
- * Copyright (c) 2012, Armon Dadgar All rights reserved.
+ * Copyright (c) 2012, Armon Dadgar. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -14,8 +14,8 @@
  *       the documentation and/or other materials provided with the
  *       distribution.
  *
- *     * Neither the name of Fujitsu Technology Solutions GmbH nor the names
- *       of its contributors may be used to endorse or promote products
+ *     * Neither the name of Copyright holders nor the names
+ *       of their contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
