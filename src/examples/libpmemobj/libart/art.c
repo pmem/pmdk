@@ -656,7 +656,6 @@ add_child48(PMEMobjpool *pop, TOID(art_node48) n, TOID(art_node_u) *ref,
 		TOID(art_node256) newnode = D_RO(newnode_u)->u.an256;
 
 		pmemobj_tx_add_range_direct(ref, sizeof (TOID(art_node_u)));
-		TX_ADD(newnode_u);
 
 		for (int i = 0; i < 256; i++) {
 			if (D_RO(n)->keys[i]) {
@@ -714,9 +713,6 @@ add_child16(PMEMobjpool *pop, TOID(art_node16) n, TOID(art_node_u)*ref,
 		TOID(art_node_u) newnode_u = alloc_node(pop, NODE48);
 		TOID(art_node48) newnode = D_RO(newnode_u)->u.an48;
 
-		pmemobj_tx_add_range_direct(ref, sizeof (TOID(art_node_u)));
-		TX_ADD(newnode_u);
-
 		// Copy the child pointers and populate the key map
 		PMEMOIDcopy(&(D_RW(newnode)->children[0].oid),
 		    &(D_RO(n)->children[0].oid),
@@ -761,7 +757,6 @@ add_child4(PMEMobjpool *pop, TOID(art_node4) n, TOID(art_node_u) *ref,
 		TOID(art_node16) newnode = D_RO(newnode_u)->u.an16;
 
 		pmemobj_tx_add_range_direct(ref, sizeof (TOID(art_node_u)));
-		TX_ADD(newnode_u);
 
 		// Copy the child pointers and the key map
 		PMEMOIDcopy(&(D_RW(newnode)->children[0].oid),
@@ -864,16 +859,13 @@ recursive_insert(PMEMobjpool *pop, TOID(art_node_u) n, TOID(art_node_u) *ref,
 		pmemobj_tx_add_range_direct(ref,
 		    sizeof (TOID(art_node_u)));
 		TOID(art_node_u) newnode_u = alloc_node(pop, NODE4);
-		TX_ADD(newnode_u);
 		TOID(art_node4)  newnode = D_RO(newnode_u)->u.an4;
-		TX_ADD(newnode);
 		art_node *newnode_n = &(D_RW(newnode)->n);
 
 		// Create a new leaf
 
 		TOID(art_node_u) l2_u =
 		    make_leaf(pop, key, key_len, value, val_len);
-		TX_ADD(l2_u);
 		TOID(art_leaf) l2 = D_RO(l2_u)->u.al;
 
 		// Determine longest prefix
@@ -910,16 +902,12 @@ recursive_insert(PMEMobjpool *pop, TOID(art_node_u) n, TOID(art_node_u) *ref,
 			goto RECURSE_SEARCH;
 		}
 
-		pmemobj_tx_add_range(n.oid,
-		    offsetof(art_node_u, u), sizeof (art_node));
 		// Create a new node
 		pmemobj_tx_add_range_direct(ref,
 		    sizeof (TOID(art_node_u)));
 		pmemobj_tx_add_range_direct(n_an, sizeof (art_node));
 		TOID(art_node_u) newnode_u = alloc_node(pop, NODE4);
-		TX_ADD(newnode_u);
 		TOID(art_node4)  newnode = D_RO(newnode_u)->u.an4;
-		TX_ADD(newnode);
 		art_node *newnode_n = &(D_RW(newnode)->n);
 
 		*ref = newnode_u;
@@ -956,7 +944,6 @@ recursive_insert(PMEMobjpool *pop, TOID(art_node_u) n, TOID(art_node_u) *ref,
 		// Insert the new leaf
 		TOID(art_node_u) l =
 		    make_leaf(pop, key, key_len, value, val_len);
-		TX_ADD(l);
 		SET_LEAF(D_RW(l));
 		add_child4(pop, newnode, ref, key[depth + prefix_diff], l);
 		return null_var_string;

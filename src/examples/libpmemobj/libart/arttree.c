@@ -148,7 +148,7 @@ initialize_context(struct ds_context *ctx, int ac, char *av[])
 	}
 
 	if (!errors) {
-		while ((opt = getopt(ac, av, "m:n:")) != -1) {
+		while ((opt = getopt(ac, av, "s:m:n:")) != -1) {
 			switch (opt) {
 			case 'm':
 				mode = optarg[0];
@@ -180,6 +180,17 @@ initialize_context(struct ds_context *ctx, int ac, char *av[])
 				if (insertions != LONG_MIN &&
 				    insertions != LONG_MAX) {
 					ctx->insertions = insertions;
+				}
+				break;
+			}
+			case 's': {
+				long int poolsize;
+				poolsize = strtol(optarg, NULL, 0);
+				if (poolsize != LONG_MIN &&
+				    poolsize != LONG_MAX) {
+					if (poolsize > PMEMOBJ_MIN_POOL) {
+						ctx->psize = poolsize;
+					}
 				}
 				break;
 			}
@@ -322,6 +333,8 @@ usage(char *progname)
 	printf("       g graph    dump art tree as a graphviz dot graph\n");
 	printf("  -n   <number>   number of key-value pairs to insert"
 	    " into the art tree\n");
+	printf("  -s   <size>     size in bytes of the memory pool"
+	    " (minimum and default: 8 MB)");
 	printf("\nfilling an art tree is done by reading key-value pairs\n"
 	    "from standard input.\n"
 	    "Both keys and values are single line only.\n");
