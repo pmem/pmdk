@@ -206,4 +206,6 @@ main(int argc, char *argv[])
 	}
 
 	pmemobj_close(pop);
+
+	return 0;
 }
