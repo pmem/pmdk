@@ -308,18 +308,6 @@ art_tree_destroy(TOID(struct art_tree_root) t)
 	return 0;
 }
 
-/*
- * Returns the size of the ART tree.
- */
-
-#ifndef BROKEN_GCC_C99_INLINE
-uint64_t
-art_size(TOID(struct art_tree_root) t)
-{
-	return D_RW(t)->size;
-}
-#endif
-
 static TOID(art_node_u)*
 find_child(TOID(art_node_u) n, unsigned char c)
 {
@@ -966,6 +954,17 @@ RECURSE_SEARCH:;
 	retval = null_var_string;
 
 	return retval;
+}
+
+/*
+ * Returns the size of the ART tree
+ */
+uint64_t
+art_size(PMEMobjpool *pop)
+{
+	TOID(struct art_tree_root) root;
+	root = POBJ_ROOT(pop, struct art_tree_root);
+	return D_RO(root)->size;
 }
 
 /*

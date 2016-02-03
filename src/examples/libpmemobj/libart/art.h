@@ -202,6 +202,7 @@ typedef int(*art_callback)(void *data,
 		const unsigned char *value, uint32_t val_len);
 
 extern int art_tree_init(PMEMobjpool *pop, int *newpool);
+extern uint64_t art_size(PMEMobjpool *pop);
 extern int art_iter(PMEMobjpool *pop, art_callback cb, void *data);
 extern TOID(var_string) art_insert(PMEMobjpool *pop,
 		const unsigned char *key, int key_len,
