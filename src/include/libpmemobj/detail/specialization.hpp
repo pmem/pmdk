@@ -115,7 +115,7 @@ namespace detail
 	template<typename T>
 	struct sp_member_access
 	{
-		typedef T* type;
+		typedef T *type;
 	};
 
 	template<typename T>
@@ -135,7 +135,7 @@ namespace detail
 	template<typename T>
 	struct sp_array_access
 	{
-		typedef void type;
+		typedef T &type;
 	};
 
 	template<typename T>
