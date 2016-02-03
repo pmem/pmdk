@@ -36,8 +36,8 @@
  * Based on Boost library smart_ptr implementation.
  */
 
-#ifndef SPECIALIZATION_HPP
-#define SPECIALIZATION_HPP
+#ifndef PMEMOBJ_SPECIALIZATION_HPP
+#define PMEMOBJ_SPECIALIZATION_HPP
 
 #include <memory>
 
@@ -115,7 +115,7 @@ namespace detail
 	template<typename T>
 	struct sp_member_access
 	{
-		typedef T* type;
+		typedef T *type;
 	};
 
 	template<typename T>
@@ -135,7 +135,7 @@ namespace detail
 	template<typename T>
 	struct sp_array_access
 	{
-		typedef void type;
+		typedef T &type;
 	};
 
 	template<typename T>
@@ -168,4 +168,4 @@ namespace detail
 
 } /* namespace nvml */
 
-#endif /* SPECIALIZATION_HPP */
+#endif /* PMEMOBJ_SPECIALIZATION_HPP */
