@@ -115,7 +115,8 @@ OBJ_TESTS = \
 OBJ_CPP_TESTS = \
 	obj_cpp_ptr\
 	obj_cpp_p_ext\
-	obj_cpp_pool
+	obj_cpp_pool\
+	obj_cpp_ptr_arith
 
 OTHER_TESTS = \
        arch_flags\
