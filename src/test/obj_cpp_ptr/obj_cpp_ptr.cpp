@@ -76,6 +76,9 @@ get_temp()
 void
 test_ptr_operators_null()
 {
+	persistent_ptr<int> int_default_null;
+	test_null_ptr(int_default_null);
+
 	persistent_ptr<int> int_explicit_ptr_null = nullptr;
 	test_null_ptr(int_explicit_ptr_null);
 

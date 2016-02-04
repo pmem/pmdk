@@ -67,7 +67,10 @@ namespace obj
 		/* used for easy underlying type access */
 		typedef typename nvml::detail::sp_element<T>::type element_type;
 
-		persistent_ptr() = default;
+		/* default constructor is NULL-initialized */
+		persistent_ptr() : oid(OID_NULL)
+		{
+		}
 
 		/*
 		 * Curly braces initialization is not used because the
