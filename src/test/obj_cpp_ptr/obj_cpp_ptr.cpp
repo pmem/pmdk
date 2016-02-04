@@ -85,11 +85,6 @@ test_ptr_operators_null()
 	persistent_ptr<int> int_explicit_oid_null = OID_NULL;
 	test_null_ptr(int_explicit_oid_null);
 
-	persistent_ptr<float> float_base = nullptr;
-	persistent_ptr<int> int_converted = float_base;
-	int_converted = float_base;
-	test_null_ptr(int_converted);
-
 	persistent_ptr<int> int_base = nullptr;
 	persistent_ptr<int> int_same = int_base;
 	int_same = int_base;
