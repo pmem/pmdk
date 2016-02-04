@@ -530,7 +530,7 @@ function require_fs_type() {
 	for type in $*
 	do
 		[ "$type" = "$FS" ] &&
-		case "$FS"
+		case "$REAL_FS"
 		in
 		pmem)
 			require_pmem && return
