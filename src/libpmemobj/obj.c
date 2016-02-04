@@ -1459,7 +1459,7 @@ struct carg_strdup {
 };
 
 /*
- * constructor_strdup -- (internal) constructor of pmemobj_strndup
+ * constructor_strdup -- (internal) constructor of pmemobj_strdup
  */
 static void
 constructor_strdup(PMEMobjpool *pop, void *ptr, void *arg)
@@ -1476,7 +1476,7 @@ constructor_strdup(PMEMobjpool *pop, void *ptr, void *arg)
 }
 
 /*
- * pmemobj_strndup -- allocates a new object with duplicate of the string s.
+ * pmemobj_strdup -- allocates a new object with duplicate of the string s.
  */
 int
 pmemobj_strdup(PMEMobjpool *pop, PMEMoid *oidp, const char *s,
