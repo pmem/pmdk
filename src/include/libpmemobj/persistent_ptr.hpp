@@ -86,12 +86,11 @@ namespace obj
 			verify_type();
 		}
 
-		template<typename Y>
+		template<typename Y, typename = typename
+		std::enable_if<std::is_convertible<Y*, T*>::value>::type>
 		persistent_ptr(const persistent_ptr<Y> &r) noexcept : oid(r.oid)
 		{
 			verify_type();
-			static_assert(std::is_convertible<Y, T>::value,
-				"constructor from inconvertible type");
 		}
 
 		persistent_ptr(const persistent_ptr &r) noexcept : oid(r.oid)
@@ -117,13 +116,11 @@ namespace obj
 			return *this;
 		}
 
-		template<typename Y>
+		template<typename Y, typename = typename
+		std::enable_if<std::is_convertible<Y*, T*>::value>::type>
 		persistent_ptr &
 		operator=(const persistent_ptr<Y> &r) noexcept
 		{
-			static_assert(std::is_convertible<Y, T>::value,
-				"assignment of inconvertible types");
-
 			if (pmemobj_tx_stage() == TX_STAGE_WORK) {
 				pmemobj_tx_add_range_direct(this,
 					sizeof (*this));
