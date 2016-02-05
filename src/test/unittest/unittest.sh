@@ -538,6 +538,9 @@ function require_fs_type() {
 		non-pmem)
 			require_non_pmem && return
 			;;
+		none)
+			return
+			;;
 		esac
 	done
 	[ "$UNITTEST_QUIET" ] || echo "$UNITTEST_NAME: SKIP fs-type $FS ($* required)"
