@@ -4,9 +4,20 @@ This is benchmarks/README.
 
 This directory contains benchmarks for NVM Library.
 
+In order to build benchmarks you need to install glib-2.0 development
+package.
+
+On rpm based systems run:
+	$ yum install glib2-devel
+or
+	$ dnf install glib2-devel
+
+On dpkg based systems run:
+	$ apt-get install libglib2.0-dev
+
 Benchmarks may be built and run from this directory using:
 	$ make
 	$ make run
 
-The subdirectories here contain benchmarks, which each subdirectory
-containing one benchmark and corresponding scripts.
+See how to run benchmarks manually using:
+	$ ./pmembench --help

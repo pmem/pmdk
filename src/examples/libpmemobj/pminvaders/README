@@ -15,6 +15,17 @@ and internal collections.
 The second version is fully based on the transactional API and does not
 use internal pmemobj collections.
 
+In order to build both variants of the game you need to install ncurses
+development package.
+
+On rpm based systems run:
+	$ yum install ncurses-devel
+or
+	$ dnf install ncurses-devel
+
+On dpkg based systems run:
+	$ apt-get install libncurses5-dev
+
 To launch the game:
 	./pminvaders [game session file]
 or:

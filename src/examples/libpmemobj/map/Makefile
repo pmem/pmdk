@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2015, Intel Corporation
+# Copyright (c) 2015-2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -33,18 +33,27 @@
 #
 # examples/libpmemobj/map/Makefile -- build the map example
 #
+TOP := $(dir $(lastword $(MAKEFILE_LIST)))../../../../
+include $(TOP)/src/common.inc
 
 PROGS = mapcli data_store
 LIBRARIES = map_ctree map_btree map_rbtree\
 	    map_hashmap_atomic map_hashmap_tx\
 	    map
 
-LIBUV := $(shell pkg-config libuv && echo "y" || echo "n")
+LIBUV := $(call check_package, libuv)
 ifeq ($(LIBUV),y)
 PROGS += kv_server
+else
+$(info Skipping kv_server because libuv is missing \
+-- see src/examples/libpmemobj/map/README for details.)
 endif
 
-LIBS = -lpmemobj -pthread $(shell pkg-config --libs libuv)
+LIBS = -lpmemobj -pthread
+
+ifeq ($(LIBUV),y)
+LIBS += $(shell $(PKG_CONFIG) --libs libuv)
+endif
 
 include ../../Makefile.inc
 
