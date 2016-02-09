@@ -64,7 +64,12 @@ CFLAGS += -Wmissing-variable-declarations
 endif
 
 ifneq ($(USE_LIBUNWIND),)
-CFLAGS += $(shell pkg-config --cflags libunwind) -DUSE_LIBUNWIND
+
+ifeq ($(call check_package, libunwind), y)
+CFLAGS += $(shell $(PKG_CONFIG) --cflags libunwind)
+endif
+
+CFLAGS += -DUSE_LIBUNWIND
 endif
 
 all test: $(TARGET)

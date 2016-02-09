@@ -560,6 +560,23 @@ function require_build_type() {
 }
 
 #
+# require_pkg -- only allow script to continue if specified package exists
+#
+function require_pkg() {
+	if ! command -v pkg-config
+	then
+		echo "$UNITTEST_NAME: SKIP pkg-config required"
+		exit 0
+	fi
+
+	if ! pkg-config $1
+	then
+		echo "$UNITTEST_NAME: SKIP '$1' package required"
+		exit 0
+	fi
+}
+
+#
 # memcheck -- only allow script to continue when memcheck's settings match
 #
 function memcheck() {
