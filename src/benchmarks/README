@@ -8,5 +8,13 @@ Benchmarks may be built and run from this directory using:
 	$ make
 	$ make run
 
-The subdirectories here contain benchmarks, which each subdirectory
-containing one benchmark and corresponding scripts.
+See how to run benchmarks manually using:
+	$ ./pmembench --help
+
+** DEPENDENCIES: **
+In order to build benchmarks you need to install glib-2.0 development
+package.
+
+rpm-based systems : glibX-devel (where X is the API/ABI version)
+dpkg-based systems: libglibX-dev (where X is the API/ABI version)
+

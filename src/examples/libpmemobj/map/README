@@ -36,3 +36,10 @@ q - quit
 ** NOTE: **
 Please note that some of functions may not be implemented by all types of map.
 In such case the application will abort with proper message.
+
+** DEPENDENCIES: **
+In order to build kv_server you need to install libuv development
+package.
+
+rpm-based systems : libuv-devel
+dpkg-based systems: libuvX-dev (where X is the API/ABI version)

@@ -33,14 +33,26 @@
 #
 # examples/libpmemobj/pminvaders/Makefile -- build the pminvaders examples
 #
-NCURSES := $(shell pkg-config ncurses && echo "y" || echo "n")
+TOP := $(dir $(lastword $(MAKEFILE_LIST)))../../../../
+
+include $(TOP)/src/common.inc
+
+NCURSES := $(call check_package, ncurses)
 ifeq ($(NCURSES),y)
 PROGS = pminvaders pminvaders2
+else
+$(info NOTE: Skipping pminvaders and pminvaders2 because ncurses is missing \
+-- see src/examples/libpmemobj/pminvaders/README for details.)
 endif
 
-LIBS = -lpmemobj -lpmem -pthread $(shell pkg-config --libs ncurses)
+LIBS = -lpmemobj -lpmem -pthread
+
+ifeq ($(NCURSES),y)
+LIBS += $(shell $(PKG_CONFIG) --libs ncurses)
+endif
 
 include ../../Makefile.inc
+
 
 pminvaders: pminvaders.o
 pminvaders2: pminvaders2.o
