@@ -6,6 +6,17 @@ This directory contains an example application implemented using libpmemobj.
 The pmemobjfs is a simple implementation of FUSE file system using the
 transactional API of libpmemobj.
 
+In order to build pmemobjfs you need to install fuse development
+package.
+
+On rpm based systems run:
+	$ yum install fuse-devel
+or
+	$ dnf install fuse-devel
+
+On dpkg based systems run:
+	$ apt-get install libfuse-dev
+
 To create a file system layout run the following command:
 	$ mkfs.pmemobjfs [-s <size>] [-b <block_size>] <file>
 

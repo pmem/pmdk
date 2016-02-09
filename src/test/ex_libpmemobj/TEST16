@@ -42,12 +42,7 @@ export UNITTEST_NUM=16
 
 require_build_type debug nondebug
 require_fs_type pmem
-
-pkg-config ncurses 2>&1 > /dev/null
-if [ $? -ne 0 ]; then
-	echo "$UNITTEST_NAME: SKIP ncurses required"
-	exit 0
-fi
+require_pkg ncurses
 
 setup
 

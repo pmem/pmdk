@@ -36,3 +36,18 @@ q - quit
 ** NOTE: **
 Please note that some of functions may not be implemented by all types of map.
 In such case the application will abort with proper message.
+
+In order to build kv_server you need to install libuv development
+package.
+
+On rpm based systems run:
+	$ yum install libuv-devel
+or
+	$ dnf install libuv-devel
+
+On dpkg based systems run:
+	$ apt-get install libuv0.10-dev
+
+Benchmarks may be built and run from this directory using:
+	$ make
+	$ make run
