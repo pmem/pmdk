@@ -50,3 +50,10 @@ $ ls /mnt/pmemobjfs/dir1
 $ pmemobjfs.tx_abort
 $ ls /mnt/pmemobjfs/dir1
 file1
+
+** DEPENDENCIES: **
+In order to build pmemobjfs you need to install fuse development
+package.
+
+rpm-based systems : fuse-devel
+dpkg-based systems: libfuse-dev

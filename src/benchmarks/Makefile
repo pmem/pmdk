@@ -46,12 +46,15 @@ vpath %.c ../common
 
 BENCHMARK = pmembench
 
-GLIB:= $(shell pkg-config glib-2.0 && echo "y" || echo "n")
+GLIB:= $(call check_package, glib-2.0)
 ifeq ($(GLIB),y)
 TARGET = $(BENCHMARK)
 else
-TARGET = no-glib
+$(info NOTE: Skipping pmembench because glib-2.0 is missing \
+-- see src/benchmarks/README for details.)
 endif
+
+default: $(TARGET)
 
 SRC=pmembench.c\
     benchmark_time.c\
@@ -107,8 +110,10 @@ CFLAGS += -I../include
 CFLAGS += -I../libpmemobj
 CFLAGS += -I../common
 CFLAGS += -I../examples/libpmemobj/map
-CFLAGS += $(shell pkg-config --cflags glib-2.0)
-LIBS += $(shell pkg-config --libs glib-2.0)
+ifeq ($(GLIB),y)
+CFLAGS += $(shell $(PKG_CONFIG) --cflags glib-2.0)
+LIBS += $(shell $(PKG_CONFIG) --libs glib-2.0)
+endif
 
 LIBMAP_DIR=../examples/libpmemobj/map
 LIBMAP=$(LIBMAP_DIR)/libmap.a
@@ -130,11 +135,6 @@ GLIB_SILENCE := $(shell printf $(GLIB_TEST_PROG) |\
 ifeq ($(GLIB_SILENCE), y)
 CFLAGS += -Wno-unknown-attributes
 endif
-
-default: $(TARGET)
-
-no-glib:
-	@echo "glib-2.0 development package required"
 
 objdir=.
 
@@ -166,7 +166,7 @@ $(CONFIGS):
 
 run: $(BENCHMARK) $(CONFIGS)
 
-.PHONY: all clean clobber run cstyle no-glib $(CONFIGS)
+.PHONY: all clean clobber run cstyle $(CONFIGS)
 
 PMEMOBJ_SYMBOLS=pmalloc pfree lane_hold lane_release
 

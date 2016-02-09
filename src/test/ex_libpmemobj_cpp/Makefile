@@ -36,8 +36,6 @@
 
 include ../Makefile.inc
 
-NCURSES := $(shell pkg-config ncurses && echo "y" || echo "n")
-
 EXAMPLES=$(EX_LIBPMEMOBJ)/cpp/queue
 
 all: $(EXAMPLES)

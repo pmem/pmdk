@@ -53,7 +53,12 @@ UT = ../unittest/libut.a
 LIBS += $(UT)
 
 ifneq ($(USE_LIBUNWIND),)
-LIBS += -ldl $(shell pkg-config --libs libunwind || echo -lunwind)
+LIBS += -ldl
+ifeq ($(call check_package, libunwind), y)
+LIBS += $(shell $(PKG_CONFIG) --libs libunwind)
+else
+LIBS += -lunwind
+endif
 endif
 
 LIBS += -L$(LIBS_DIR)/debug
