@@ -55,6 +55,20 @@
 #define	POCLI_INBUF_LEN	4096
 struct pocli;
 
+TOID_DECLARE(struct item, 1);
+
+/*
+ * item -- structure used to connect elements in lists.
+ */
+struct item {
+	POBJ_LIST_ENTRY(struct item) field;
+};
+
+/*
+ * plist -- structure used as a list entry.
+ */
+POBJ_LIST_HEAD(plist, struct item);
+
 /*
  * struct pocli_ctx -- pmemobjcli context structure for commands
  */
@@ -156,10 +170,10 @@ pocli_printf(struct pocli_ctx *ctx, const char *fmt, ...)
 }
 
 /*
- * pocli_args_type_num -- parse type number
+ * pocli_args_number -- parse type number
  */
 static enum pocli_ret
-pocli_args_type_num(struct pocli_args *args, int arg, unsigned *type_num)
+pocli_args_number(struct pocli_args *args, int arg, unsigned *type_num)
 {
 	assert(args != NULL);
 	assert(arg >= 0 && arg < args->argc);
@@ -313,6 +327,29 @@ pocli_args_obj(struct pocli_ctx *ctx, struct pocli_args *args,
 }
 
 /*
+ * pocli_args_list_elm -- parse object's descriptor and checks if it's on list
+ */
+static enum pocli_ret
+pocli_args_list_elm(struct pocli_ctx *ctx, struct pocli_args *args,
+		int arg, PMEMoid **oidp, struct plist *head)
+{
+	enum pocli_ret ret;
+	ret = pocli_args_obj(ctx, args, arg, oidp);
+	if (ret)
+		return ret;
+	if (*oidp == NULL)
+		return POCLI_RET_OK;
+	TOID(struct item) tmp;
+	POBJ_LIST_FOREACH(tmp, head, field) {
+		if (OID_EQUALS(tmp.oid, **oidp))
+			return POCLI_RET_OK;
+	}
+
+	return pocli_err(ctx, POCLI_ERR_PARS,
+		"object %s is not member of given list\n", args->argv[arg]);
+}
+
+/*
  * pocli_pmemobj_direct -- pmemobj_direct() command
  */
 static enum pocli_ret
@@ -416,7 +453,7 @@ pocli_pmemobj_root(struct pocli_ctx *ctx, struct pocli_args *args)
 
 	ctx->root = root;
 
-	pocli_printf(ctx, "%s(%llu): off = 0x%jx uuid = 0x%jx\n",
+	pocli_printf(ctx, "%s(%zu): off = 0x%jx uuid = 0x%jx\n",
 			args->argv[0], size, ctx->root.off,
 			ctx->root.pool_uuid_lo);
 
@@ -441,10 +478,12 @@ pocli_pmemobj_root_size(struct pocli_ctx *ctx, struct pocli_args *args)
 }
 
 /*
- * pocli_pmemobj_zalloc -- pmemobj_zalloc() command
+ * pocli_pmemobj_do_alloc -- pmemobj_alloc and pmemobj_zalloc() common part
  */
 static enum pocli_ret
-pocli_pmemobj_zalloc(struct pocli_ctx *ctx, struct pocli_args *args)
+pocli_pmemobj_do_alloc(struct pocli_ctx *ctx, struct pocli_args *args,
+	int (fn_alloc)(PMEMobjpool *pop, PMEMoid *oid, size_t size,
+							uint64_t type_num))
 {
 	if (args->argc != 4)
 		return POCLI_ERR_ARGS;
@@ -462,7 +501,7 @@ pocli_pmemobj_zalloc(struct pocli_ctx *ctx, struct pocli_args *args)
 		return pocli_err(ctx, POCLI_ERR_ARGS,
 				"cannot allocate to root object\n");
 
-	ret = pocli_args_type_num(args, 2, &type_num);
+	ret = pocli_args_number(args, 2, &type_num);
 	if (ret)
 		return ret;
 
@@ -470,19 +509,49 @@ pocli_pmemobj_zalloc(struct pocli_ctx *ctx, struct pocli_args *args)
 	if (ret)
 		return ret;
 
-	int r = pmemobj_zalloc(ctx->pop, oidp, size, type_num);
+	int r = fn_alloc(ctx->pop, oidp, size, type_num);
 
-	pocli_printf(ctx, "%s(%s, %llu, %u): %d\n",
+	pocli_printf(ctx, "%s(%s, %zu, %llu): %d\n",
 		args->argv[0], args->argv[1], size, type_num, r);
 
 	return ret;
 }
 
 /*
- * pocli_pmemobj_zrealloc -- pmemobj_zrealloc() command
+ * do_alloc -- wrapper for pmemobj_alloc() function with default constructor.
+ */
+static int
+do_alloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size, uint64_t type_num)
+{
+	return pmemobj_alloc(pop, oidp, size, type_num, NULL, NULL);
+}
+
+/*
+ * pocli_pmemobj_alloc -- pmemobj_alloc() command
  */
 static enum pocli_ret
-pocli_pmemobj_zrealloc(struct pocli_ctx *ctx, struct pocli_args *args)
+pocli_pmemobj_alloc(struct pocli_ctx *ctx, struct pocli_args *args)
+{
+	return pocli_pmemobj_do_alloc(ctx, args, do_alloc);
+}
+
+/*
+ * pocli_pmemobj_zalloc -- pmemobj_zalloc() command
+ */
+static enum pocli_ret
+pocli_pmemobj_zalloc(struct pocli_ctx *ctx, struct pocli_args *args)
+{
+	return pocli_pmemobj_do_alloc(ctx, args, pmemobj_zalloc);
+}
+
+/*
+ * pocli_pmemobj_do_realloc -- pmemobj_realloc and pmemobj_zrealloc() commands
+ * common part
+ */
+static enum pocli_ret
+pocli_pmemobj_do_realloc(struct pocli_ctx *ctx, struct pocli_args *args,
+	int (*fn_realloc)(PMEMobjpool *pop, PMEMoid *oid, size_t size,
+							uint64_t type_num))
 {
 	if (args->argc != 4)
 		return POCLI_ERR_ARGS;
@@ -504,7 +573,7 @@ pocli_pmemobj_zrealloc(struct pocli_ctx *ctx, struct pocli_args *args)
 		return pocli_err(ctx, POCLI_ERR_ARGS,
 				"cannot reallocate to root object\n");
 
-	ret = pocli_args_type_num(args, 2, &type_num);
+	ret = pocli_args_number(args, 2, &type_num);
 	if (ret)
 		return ret;
 
@@ -512,12 +581,32 @@ pocli_pmemobj_zrealloc(struct pocli_ctx *ctx, struct pocli_args *args)
 	if (ret)
 		return ret;
 
-	int r = pmemobj_zrealloc(ctx->pop, oidp, size, type_num);
+	int r = fn_realloc(ctx->pop, oidp, size, type_num);
 
-	pocli_printf(ctx, "%s(%s, %llu, %u): %d\n",
-		args->argv[0], args->argv[1], size, type_num, r);
+	pocli_printf(ctx, "%s(%s, %zu, %llu): %d off = 0x%llx uuid = 0x%llx\n",
+				args->argv[0], args->argv[1], size, type_num,
+				r, oidp->off, oidp->pool_uuid_lo);
+
 
 	return ret;
+}
+
+/*
+ * pocli_pmemobj_realloc -- pmemobj_realloc() command
+ */
+static enum pocli_ret
+pocli_pmemobj_realloc(struct pocli_ctx *ctx, struct pocli_args *args)
+{
+	return pocli_pmemobj_do_realloc(ctx, args, pmemobj_realloc);
+}
+
+/*
+ * pocli_pmemobj_zrealloc -- pmemobj_zrealloc() command
+ */
+static enum pocli_ret
+pocli_pmemobj_zrealloc(struct pocli_ctx *ctx, struct pocli_args *args)
+{
+	return pocli_pmemobj_do_realloc(ctx, args, pmemobj_zrealloc);
 }
 
 /*
@@ -543,10 +632,485 @@ pocli_pmemobj_free(struct pocli_ctx *ctx, struct pocli_args *args)
 		return pocli_err(ctx, POCLI_ERR_ARGS,
 				"cannot free root object\n");
 
+	void *oidp_tmp = pmemobj_direct(*oidp);
 	pmemobj_free(oidp);
 
 	pocli_printf(ctx, "%s(%p): off = 0x%llx uuid = 0x%llx\n",
-		args->argv[0], oidp, oidp->off, oidp->pool_uuid_lo);
+		args->argv[0], oidp_tmp, oidp->off, oidp->pool_uuid_lo);
+
+	return ret;
+}
+
+/*
+ * pocli_pmemobj_strdup -- pmemobj_strdup() command
+ */
+static enum pocli_ret
+pocli_pmemobj_strdup(struct pocli_ctx *ctx, struct pocli_args *args)
+{
+	if (args->argc != 4)
+		return POCLI_ERR_ARGS;
+
+	PMEMoid *oidp = NULL;
+	unsigned type_num;
+	enum pocli_ret ret;
+	ret = pocli_args_obj(ctx, args, 1, &oidp);
+	if (ret)
+		return ret;
+	if (oidp == &ctx->root)
+		return pocli_err(ctx, POCLI_ERR_ARGS,
+					"cannot use root object\n");
+
+	ret = pocli_args_number(args, 3, &type_num);
+	if (ret)
+		return ret;
+
+	int r = pmemobj_strdup(ctx->pop, oidp, args->argv[2], type_num);
+	if (r != POCLI_RET_OK)
+		return pocli_err(ctx, POCLI_ERR_ARGS,
+					"pmemobj_strdup() failed\n");
+
+	pocli_printf(ctx, "%s(%s, %s, %llu): %d\n",
+				args->argv[0], args->argv[1], args->argv[2],
+								type_num, r);
+	return ret;
+}
+
+/*
+ * pocli_pmemobj_first -- pmemobj_first() command
+ */
+static enum pocli_ret
+pocli_pmemobj_first(struct pocli_ctx *ctx, struct pocli_args *args)
+{
+	if (args->argc != 1)
+		return POCLI_ERR_ARGS;
+
+	PMEMoid oidp = pmemobj_first(ctx->pop);
+	if (OID_IS_NULL(oidp))
+		return pocli_err(ctx, POCLI_ERR_ARGS,
+					"pmemobj_first() failed\n");
+
+	pocli_printf(ctx, "%s: off = 0x%llx uuid = 0x%llx\n",
+				args->argv[0], oidp.off, oidp.pool_uuid_lo);
+
+	return POCLI_RET_OK;
+}
+
+/*
+ * pocli_pmemobj_next -- pmemobj_next() command
+ */
+static enum pocli_ret
+pocli_pmemobj_next(struct pocli_ctx *ctx, struct pocli_args *args)
+{
+	if (args->argc != 2)
+		return POCLI_ERR_ARGS;
+
+	PMEMoid *oidp;
+	PMEMoid oidp_next;
+	enum pocli_ret ret;
+	ret = pocli_args_obj(ctx, args, 1, &oidp);
+	if (ret)
+		return ret;
+
+	oidp_next = pmemobj_next(*oidp);
+
+	pocli_printf(ctx, "%s(%p): off = 0x%llx uuid = 0x%llx\n",
+			args->argv[0], pmemobj_direct(*oidp), oidp_next.off,
+							oidp_next.pool_uuid_lo);
+
+	return ret;
+}
+
+/*
+ * pocli_pmemobj_memcpy_persist -- pmemobj_memcpy_persist() command
+ */
+static enum pocli_ret
+pocli_pmemobj_memcpy_persist(struct pocli_ctx *ctx, struct pocli_args *args)
+{
+	if (args->argc != 6)
+		return POCLI_ERR_ARGS;
+
+	PMEMoid *dest;
+	PMEMoid *src;
+	enum pocli_ret ret;
+	unsigned offset;
+	unsigned len;
+
+	if ((ret = pocli_args_obj(ctx, args, 1, &dest)))
+		return ret;
+	if ((ret = pocli_args_number(args, 2, &offset)))
+		return ret;
+
+	char *dest_p = pmemobj_direct(*dest);
+	dest_p += offset;
+
+	if ((ret = pocli_args_obj(ctx, args, 3, &src)))
+		return ret;
+	if ((ret = pocli_args_number(args, 4, &offset)))
+		return ret;
+
+	char *src_p = pmemobj_direct(*src);
+	src_p += offset;
+
+	if ((ret = pocli_args_number(args, 5, &len)))
+		return ret;
+
+	void *result = pmemobj_memcpy_persist(ctx->pop, dest_p, src_p, len);
+
+	pocli_printf(ctx, "%s(%p, %p, %u): ptr = %p\n",
+			args->argv[0], dest_p, src_p, len, result);
+
+	return ret;
+}
+
+/*
+ * pocli_pmemobj_memset_persist -- pmemobj_memset_persist() command
+ */
+static enum pocli_ret
+pocli_pmemobj_memset_persist(struct pocli_ctx *ctx, struct pocli_args *args)
+{
+	if (args->argc != 5)
+		return POCLI_ERR_ARGS;
+
+	PMEMoid *oid;
+	enum pocli_ret ret;
+	unsigned offset;
+	unsigned len;
+	unsigned c;
+
+	if ((ret = pocli_args_obj(ctx, args, 1, &oid)))
+		return ret;
+	if ((ret = pocli_args_number(args, 2, &offset)))
+		return ret;
+
+	char *dest_p = pmemobj_direct(*oid);
+	dest_p += offset;
+
+	if ((ret = pocli_args_number(args, 3, &c)))
+		return ret;
+	if ((ret = pocli_args_number(args, 4, &len)))
+		return ret;
+
+	void *result = pmemobj_memset_persist(ctx->pop, dest_p, (int)c, len);
+
+	pocli_printf(ctx, "%s(%p, %u, %d): ptr = %p\n",
+			args->argv[0], dest_p, c, len, result);
+
+	return ret;
+}
+
+/*
+ * pocli_pmemobj_do_persist -- common part of pmemobj_persist() and
+ * pmemobj_flush() command
+ */
+static enum pocli_ret
+pocli_pmemobj_do_persist(struct pocli_ctx *ctx, struct pocli_args *args,
+	void (*fn_persist)(PMEMobjpool *pop, const void *addr, size_t len))
+{
+	if (args->argc != 4)
+		return POCLI_ERR_ARGS;
+
+	PMEMoid *oid;
+	enum pocli_ret ret;
+	unsigned offset;
+	unsigned len;
+
+	if ((ret = pocli_args_obj(ctx, args, 1, &oid)))
+		return ret;
+	if ((ret = pocli_args_number(args, 2, &offset)))
+		return ret;
+	char *dest_p = pmemobj_direct(*oid);
+	dest_p += offset;
+
+	if ((ret = pocli_args_number(args, 3, &len)))
+		return ret;
+
+	fn_persist(ctx->pop, dest_p, len);
+
+	pocli_printf(ctx, "%s(%p, %u)\n",
+			args->argv[0], dest_p, len);
+
+	return ret;
+}
+
+/*
+ * pocli_pmemobj_persist -- pmemobj_persist() command
+ */
+static enum pocli_ret
+pocli_pmemobj_persist(struct pocli_ctx *ctx, struct pocli_args *args)
+{
+	return pocli_pmemobj_do_persist(ctx, args, pmemobj_persist);
+}
+
+/*
+ * pocli_pmemobj_flush -- pmemobj_flush() command
+ */
+static enum pocli_ret
+pocli_pmemobj_flush(struct pocli_ctx *ctx, struct pocli_args *args)
+{
+	return pocli_pmemobj_do_persist(ctx, args, pmemobj_flush);
+}
+
+/*
+ * pocli_pmemobj_drain -- pmemobj_drain() command
+ */
+static enum pocli_ret
+pocli_pmemobj_drain(struct pocli_ctx *ctx, struct pocli_args *args)
+{
+	if (args->argc != 1)
+		return POCLI_ERR_ARGS;
+
+	pmemobj_drain(ctx->pop);
+
+	pocli_printf(ctx, "%s\n", args->argv[0]);
+
+	return POCLI_RET_OK;
+}
+
+/*
+ * pocli_pmemobj_pool_by_ptr -- pmemobj_pool_by_ptr() command
+ */
+static enum pocli_ret
+pocli_pmemobj_pool_by_ptr(struct pocli_ctx *ctx, struct pocli_args *args)
+{
+	if (args->argc != 3)
+		return POCLI_ERR_ARGS;
+
+	PMEMoid *oid;
+	enum pocli_ret ret;
+	unsigned offset;
+
+
+	if ((ret = pocli_args_obj(ctx, args, 1, &oid)))
+		return ret;
+	if ((ret = pocli_args_number(args, 2, &offset)))
+		return ret;
+	char *dest_p = pmemobj_direct(*oid);
+	dest_p += offset;
+
+	PMEMobjpool *pop = pmemobj_pool_by_ptr(dest_p);
+
+	pocli_printf(ctx, "%s(%p): uuid = 0x%llx\n",
+			args->argv[0], dest_p, pop->uuid_lo);
+
+	return ret;
+}
+
+/*
+ * pocli_pmemobj_pool_by_oid -- pmemobj_pool_by_oid() command
+ */
+static enum pocli_ret
+pocli_pmemobj_pool_by_oid(struct pocli_ctx *ctx, struct pocli_args *args)
+{
+	if (args->argc != 2)
+		return POCLI_ERR_ARGS;
+
+	PMEMoid *oid;
+	enum pocli_ret ret;
+
+	if ((ret = pocli_args_obj(ctx, args, 1, &oid)))
+		return ret;
+	PMEMobjpool *pop = pmemobj_pool_by_oid(*oid);
+
+	pocli_printf(ctx, "%s(%p): uuid = 0x%llx\n",
+			args->argv[0], pmemobj_direct(*oid), pop->uuid_lo);
+	return ret;
+}
+
+/*
+ * pocli_pmemobj_list_insert -- pmemobj_list_insert() command
+ */
+static enum pocli_ret
+pocli_pmemobj_list_insert(struct pocli_ctx *ctx, struct pocli_args *args)
+{
+	if (args->argc != 5)
+		return POCLI_ERR_ARGS;
+
+	PMEMoid *dest;
+	PMEMoid *oid;
+	PMEMoid *head_oid;
+	enum pocli_ret ret;
+	unsigned before;
+
+	if ((ret = pocli_args_obj(ctx, args, 1, &oid)))
+		return ret;
+
+	if (pocli_args_obj(ctx, args, 2, &head_oid))
+		return ret;
+
+	struct plist *head = pmemobj_direct(*head_oid);
+
+	if ((ret = pocli_args_list_elm(ctx, args, 3, &dest, head)))
+		return ret;
+	if (dest == NULL)
+		dest = &OID_NULL;
+
+	if ((ret = pocli_args_number(args, 4, &before)))
+		return ret;
+	if (before > 1)
+		return pocli_err(ctx, POCLI_ERR_ARGS,
+				"Before flag different than 0 or 1\n");
+
+	int r = pmemobj_list_insert(ctx->pop, offsetof(struct item, field),
+						head, *dest, (int)before, *oid);
+	if (r != POCLI_RET_OK)
+		return pocli_err(ctx, POCLI_ERR_ARGS,
+					"pmemobj_list_insert() failed\n");
+	pocli_printf(ctx, "%s(%p, %s, %p, %u): %d\n",
+			args->argv[0], pmemobj_direct(*oid), args->argv[2],
+			dest, before, r);
+
+	return ret;
+}
+
+/*
+ * pocli_pmemobj_list_insert_new -- pmemobj_list_insert_new() command
+ */
+static enum pocli_ret
+pocli_pmemobj_list_insert_new(struct pocli_ctx *ctx, struct pocli_args *args)
+{
+	if (args->argc != 7)
+		return POCLI_ERR_ARGS;
+
+	PMEMoid *dest;
+	PMEMoid *oid;
+	PMEMoid *head_oid;
+	enum pocli_ret ret;
+	unsigned before;
+	unsigned type_num;
+	unsigned size;
+
+	if ((ret = pocli_args_obj(ctx, args, 1, &oid)))
+		return ret;
+	if (oid == &ctx->root)
+		return pocli_err(ctx, POCLI_ERR_ARGS,
+					"cannot allocate to root object\n");
+
+	if ((ret = pocli_args_obj(ctx, args, 2, &head_oid)))
+		return ret;
+
+	struct plist *head = pmemobj_direct(*head_oid);
+
+	if ((ret = pocli_args_list_elm(ctx, args, 3, &dest, head)))
+		return ret;
+	if (dest == NULL)
+		dest = &OID_NULL;
+
+	if ((ret = pocli_args_number(args, 4, &before)))
+		return ret;
+	if (before > 1)
+		return pocli_err(ctx, POCLI_ERR_ARGS,
+				"Before flag different than 0 or 1\n");
+
+	if ((ret = pocli_args_number(args, 5, &type_num)))
+		return ret;
+	if ((ret = pocli_args_number(args, 6, &size)))
+		return ret;
+
+	*oid = pmemobj_list_insert_new(ctx->pop, offsetof(struct item, field),
+			head, *dest, (int)before, size, type_num, NULL, NULL);
+	if (OID_IS_NULL(*oid))
+		return pocli_err(ctx, POCLI_ERR_ARGS,
+					"pmemobj_list_insert_new() failed\n");
+
+	pocli_printf(ctx, "%s(%s, %p, %u, %llu, %zu): off = 0x%jx uuid = 0x%jx"
+				" ptr = %p\n", args->argv[0], args->argv[2],
+				dest, before, type_num, size, oid->off,
+				oid->pool_uuid_lo, pmemobj_direct(*oid));
+
+	return ret;
+}
+
+/*
+ * pocli_pmemobj_list_remove -- pmemobj_list_remove() command
+ */
+static enum pocli_ret
+pocli_pmemobj_list_remove(struct pocli_ctx *ctx, struct pocli_args *args)
+{
+	if (args->argc != 4)
+		return POCLI_ERR_ARGS;
+
+	PMEMoid *oid;
+	PMEMoid *head_oid;
+	enum pocli_ret ret;
+	unsigned if_free;
+
+	if ((ret = pocli_args_obj(ctx, args, 2, &head_oid)))
+		return ret;
+
+	struct plist *head = pmemobj_direct(*head_oid);
+
+	if ((ret = pocli_args_list_elm(ctx, args, 1, &oid, head)))
+		return ret;
+
+	if ((ret = pocli_args_number(args, 3, &if_free)))
+		return ret;
+	if (if_free > 1)
+		return pocli_err(ctx, POCLI_ERR_ARGS,
+					"Free flag different than 0 or 1\n");
+
+	void *oidp =  pmemobj_direct(*oid);
+	int r = pmemobj_list_remove(ctx->pop, offsetof(struct item, field),
+						head, *oid, (int)if_free);
+	if (r != POCLI_RET_OK)
+		return pocli_err(ctx, POCLI_ERR_ARGS,
+					"pmemobj_list_remove() failed\n");
+
+	pocli_printf(ctx, "%s(%p, %s, %u): off = 0x%jx uuid = 0x%jx\n",
+				args->argv[0], oidp, args->argv[2], if_free,
+				oid->off, oid->pool_uuid_lo);
+
+	return ret;
+}
+
+/*
+ * pocli_pmemobj_list_move -- pmemobj_list_move() command
+ */
+static enum pocli_ret
+pocli_pmemobj_list_move(struct pocli_ctx *ctx, struct pocli_args *args)
+{
+	if (args->argc != 6)
+		return POCLI_ERR_ARGS;
+
+	PMEMoid *dest;
+	PMEMoid *oid;
+	PMEMoid *head_oid;
+	enum pocli_ret ret;
+	unsigned before;
+	size_t offset = offsetof(struct item, field);
+
+	if ((ret = pocli_args_obj(ctx, args, 2, &head_oid)))
+		return ret;
+
+	struct plist *head_src = pmemobj_direct(*head_oid);
+
+	if ((ret = pocli_args_obj(ctx, args, 3, &head_oid)))
+		return ret;
+
+	struct plist *head_dest = pmemobj_direct(*head_oid);
+
+	if ((ret = pocli_args_list_elm(ctx, args, 1, &oid, head_src)))
+		return ret;
+
+	if ((ret = pocli_args_list_elm(ctx, args, 4, &dest, head_dest)))
+		return ret;
+	if (dest == NULL)
+		dest = &OID_NULL;
+
+	if ((ret = pocli_args_number(args, 5, &before)))
+		return ret;
+	if (before > 1)
+		return pocli_err(ctx, POCLI_ERR_ARGS,
+				"Before flag different than 0 or 1\n");
+
+	int r = pmemobj_list_move(ctx->pop, offset, head_src, offset, head_dest,
+						*dest, (int)before, *oid);
+	if (r != POCLI_RET_OK)
+		return pocli_err(ctx, POCLI_ERR_ARGS,
+					"pmemobj_list_move() failed\n");
+
+	pocli_printf(ctx, "%s(%p, %s, %s, %p, %u): %d\n", args->argv[0],
+			pmemobj_direct(*oid), args->argv[2], args->argv[3],
+			pmemobj_direct(*dest), before, r);
 
 	return ret;
 }
@@ -673,9 +1237,21 @@ static struct pocli_cmd pocli_commands[] = {
 		.usage		= "<obj>",
 	},
 	{
+		.name		= "pmemobj_alloc",
+		.name_short	= "pa",
+		.func		= pocli_pmemobj_alloc,
+		.usage		= "<obj> <type_num> <size>",
+	},
+	{
 		.name		= "pmemobj_zalloc",
 		.name_short	= "pza",
 		.func		= pocli_pmemobj_zalloc,
+		.usage		= "<obj> <type_num> <size>",
+	},
+	{
+		.name		= "pmemobj_realloc",
+		.name_short	= "pre",
+		.func		= pocli_pmemobj_realloc,
 		.usage		= "<obj> <type_num> <size>",
 	},
 	{
@@ -696,6 +1272,92 @@ static struct pocli_cmd pocli_commands[] = {
 		.func		= pocli_pmemobj_type_num,
 		.usage		= "<obj>",
 	},
+	{
+		.name		= "pmemobj_strdup",
+		.name_short	= "psd",
+		.func		= pocli_pmemobj_strdup,
+		.usage		= "<obj> <string> <type_num>",
+	},
+	{
+		.name		= "pmemobj_first",
+		.name_short	= "pfi",
+		.func		= pocli_pmemobj_first,
+		.usage		= "<type_num>",
+	},
+	{
+		.name		= "pmemobj_next",
+		.name_short	= "pn",
+		.func		= pocli_pmemobj_next,
+		.usage		= "<obj>",
+	},
+	{
+		.name		= "pmemobj_memcpy_persist",
+		.name_short	= "pmcp",
+		.func		= pocli_pmemobj_memcpy_persist,
+		.usage		= "<dest> <off_dest> <src> <off_src> <len>",
+	},
+	{
+		.name		= "pmemobj_memset_persist",
+		.name_short	= "pmsp",
+		.func		= pocli_pmemobj_memset_persist,
+		.usage		= "<obj> <offset> <pattern> <len>",
+	},
+	{
+		.name		= "pmemobj_persist",
+		.name_short	= "pp",
+		.func		= pocli_pmemobj_persist,
+		.usage		= "<obj> <offset> <len>",
+	},
+	{
+		.name		= "pmemobj_flush",
+		.name_short	= "pfl",
+		.func		= pocli_pmemobj_flush,
+		.usage		= "<obj> <offset> <len>",
+	},
+	{
+		.name		= "pmemobj_drain",
+		.name_short	= "pd",
+		.func		= pocli_pmemobj_drain,
+		.usage		= "",
+	},
+	{
+		.name		= "pmemobj_pool_by_oid",
+		.name_short	= "ppbo",
+		.func		= pocli_pmemobj_pool_by_oid,
+		.usage		= "<obj>",
+	},
+	{
+		.name		= "pmemobj_pool_by_ptr",
+		.name_short	= "ppbp",
+		.func		= pocli_pmemobj_pool_by_ptr,
+		.usage		= "<obj> <offset>",
+	},
+	{
+		.name		= "pmemobj_list_insert",
+		.name_short	= "pli",
+		.func		= pocli_pmemobj_list_insert,
+		.usage		= "<obj> <head> <dest> <before>",
+	},
+	{
+		.name		= "pmemobj_list_insert_new",
+		.name_short	= "plin",
+		.func		= pocli_pmemobj_list_insert_new,
+		.usage		= "<obj> <head> <dest> <before>"
+							" <size> <type_num>",
+	},
+	{
+		.name		= "pmemobj_list_remove",
+		.name_short	= "plr",
+		.func		= pocli_pmemobj_list_remove,
+		.usage		= "<obj> <head> <free>",
+	},
+	{
+		.name		= "pmemobj_list_move",
+		.name_short	= "plm",
+		.func		= pocli_pmemobj_list_move,
+		.usage		= "<obj> <head_src> <head_dest> "
+							"<dest> <before>",
+	}
 };
 
 #define	POCLI_NCOMMANDS	(sizeof (pocli_commands) / sizeof (pocli_commands[0]))
