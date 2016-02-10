@@ -1023,6 +1023,30 @@ do_move(PMEMobjpool *pop, const char *arg)
 }
 
 /*
+ * do_move_one_list -- move element within one list
+ */
+static void
+do_move_one_list(PMEMobjpool *pop, const char *arg)
+{
+	int n;
+	int d;
+	int before;
+	if (sscanf(arg, "M:%d:%d:%d", &n, &before, &d) != 3)
+		FATAL_USAGE_MOVE();
+
+	if (list_move(pop,
+		offsetof(struct item, next),
+		(struct list_head *)&D_RW(List)->head,
+		offsetof(struct item, next),
+		(struct list_head *)&D_RW(List)->head,
+		get_item_list(List.oid, d),
+		before,
+		get_item_list(List.oid, n))) {
+		FATAL("list_move(List, List) failed");
+	}
+}
+
+/*
  * do_realloc -- reallocate element on list
  */
 static void
@@ -1191,6 +1215,9 @@ main(int argc, char *argv[])
 			break;
 		case 'm':
 			do_move(pop, argv[i]);
+			break;
+		case 'M':
+			do_move_one_list(pop, argv[i]);
 			break;
 		case 's':
 			do_realloc(pop, argv[i]);

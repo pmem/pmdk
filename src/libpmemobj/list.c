@@ -154,7 +154,7 @@ list_mutexes_lock_nofail(PMEMobjpool *pop,
 {
 	ASSERTne(head1, NULL);
 
-	if (!head2) {
+	if (!head2 || head1 == head2) {
 		pmemobj_mutex_lock_nofail(pop, &head1->lock);
 		return;
 	}
@@ -182,7 +182,7 @@ list_mutexes_unlock(PMEMobjpool *pop,
 {
 	ASSERTne(head1, NULL);
 
-	if (!head2) {
+	if (!head2 || head1 == head2) {
 		pmemobj_mutex_unlock_nofail(pop, &head1->lock);
 		return;
 	}
@@ -1255,6 +1255,7 @@ list_move_oob(PMEMobjpool *pop,
 	LOG(3, NULL);
 	ASSERTne(head_old, NULL);
 	ASSERTne(head_new, NULL);
+	ASSERTne(head_old, head_new);
 
 	struct lane_section *lane_section;
 
@@ -1378,6 +1379,33 @@ list_move(PMEMobjpool *pop,
 		(struct list_entry *)OBJ_OFF_TO_PTR(pop,
 				dest.off + pe_offset_new);
 
+	if (head_old == head_new) {
+		/* moving within the same list */
+
+		if (dest.off == oid.off)
+			goto unlock;
+
+		if (before && dest_entry_ptr->pe_prev.off == oid.off) {
+			if (head_old->pe_first.off != dest.off)
+				goto unlock;
+
+			redo_index = list_update_head(pop, redo, redo_index,
+					head_old, oid.off);
+
+			goto redo_last;
+		}
+
+		if (!before && dest_entry_ptr->pe_next.off == oid.off) {
+			if (head_old->pe_first.off != oid.off)
+				goto unlock;
+
+			redo_index = list_update_head(pop, redo, redo_index,
+					head_old, entry_ptr_old->pe_next.off);
+
+			goto redo_last;
+		}
+	}
+
 	ASSERT((ssize_t)pe_offset_old >= 0);
 	struct list_args_remove args_remove = {
 		.pe_offset = (ssize_t)pe_offset_old,
@@ -1417,10 +1445,12 @@ list_move(PMEMobjpool *pop,
 	redo_index = list_fill_entry_redo_log(pop, redo, redo_index,
 			&args_common, next_offset, prev_offset, set_uuid);
 
+redo_last:
 	redo_log_set_last(pop, redo, redo_index - 1);
 
 	redo_log_process(pop, redo, REDO_NUM_ENTRIES);
 
+unlock:
 	list_mutexes_unlock(pop, head_new, head_old);
 err:
 	lane_release(pop);

@@ -28,6 +28,9 @@ Operations:
  - m:<num>:<where>:<dest>
                    - move <num> element from one "in band" list before/after <dest>
 		     on second "in band" list
+ - M:<num>:<where>:<dest>
+                   - move <num> element from one "in band" list before/after <dest>
+		     on the same "in band" list
  - o:<num>         - move <num> element from one "out of band" list to second
                      "out of band" list
  - s:<num>:<list>:<nlists>:<m>:<id>:<constr>
@@ -52,15 +55,15 @@ Operations:
  - 0 - after the element
  - 1 - before the element
 
- <from>:
+<from>:
  - 1 - from "out of band" list only
  - 2 - from "in band" and "out of band" lists
 
 <list>:
-- 1 - "out of band" list
-- 2 - "in band" list
-- 3 - second "out of band" list
-- 4 - second "in band" list
+ - 1 - "out of band" list
+ - 2 - "in band" list
+ - 3 - second "out of band" list
+ - 4 - second "in band" list
 
 <when>:
 - after_finish  - after redo_log_set_last or redo_log_store_last
