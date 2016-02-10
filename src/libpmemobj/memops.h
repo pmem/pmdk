@@ -31,34 +31,29 @@
  */
 
 /*
- * pmalloc.h -- internal definitions for persistent malloc
+ * memops.h -- aggregated memory operations helper definitions
  */
 
-int heap_boot(PMEMobjpool *pop);
-int heap_init(PMEMobjpool *pop);
-void heap_vg_open(PMEMobjpool *pop);
-void heap_cleanup(PMEMobjpool *pop);
-int heap_check(PMEMobjpool *pop);
+enum operation_type {
+	OPERATION_SET,
+	OPERATION_AND,
+	OPERATION_OR,
 
-int pmalloc(PMEMobjpool *pop, uint64_t *off, size_t size);
-int pmalloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
-	void (*constructor)(PMEMobjpool *pop, void *ptr, size_t usable_size,
-	void *arg), void *arg);
-int
-palloc_operation(PMEMobjpool *pop,
-	uint64_t off, uint64_t *dest_off, size_t size,
-	void (*constructor)
-		(PMEMobjpool *pop, void *ptr, size_t usable_size, void *arg),
-	void *arg, struct operation_entry *entries, size_t nentries);
+	MAX_OPERATION_TYPE
+};
 
+struct operation_entry {
+	uint64_t *ptr;
+	uint64_t value;
+	enum operation_type type;
+};
 
-int prealloc(PMEMobjpool *pop, uint64_t *off, size_t size);
-int prealloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
-	void (*constructor)(PMEMobjpool *pop, void *ptr, size_t usable_size,
-	void *arg), void *arg);
+struct operation_context;
 
-uint64_t pmalloc_first(PMEMobjpool *pop);
-uint64_t pmalloc_next(PMEMobjpool *pop, uint64_t off);
-
-size_t pmalloc_usable_size(PMEMobjpool *pop, uint64_t off);
-void pfree(PMEMobjpool *pop, uint64_t *off);
+struct operation_context *operation_init(PMEMobjpool *pop, struct redo_log *redo);
+void operation_add_entry(struct operation_context *ctx,
+	void *ptr, uint64_t value, enum operation_type type);
+void operation_add_entries(struct operation_context *ctx,
+	struct operation_entry *entries, size_t nentries);
+void operation_process(struct operation_context *ctx);
+void operation_delete(struct operation_context *ctx);

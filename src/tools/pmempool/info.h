@@ -138,8 +138,6 @@ struct pmem_obj_zone_stats {
 struct pmem_obj_stats {
 	uint64_t n_total_objects;
 	uint64_t n_total_bytes;
-	uint64_t n_type_objects[PMEMOBJ_NUM_OID_TYPES];
-	uint64_t n_type_bytes[PMEMOBJ_NUM_OID_TYPES];
 	uint64_t n_zones;
 	uint64_t n_zones_used;
 	struct pmem_obj_zone_stats *zone_stats;

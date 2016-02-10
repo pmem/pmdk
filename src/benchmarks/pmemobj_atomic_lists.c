@@ -982,7 +982,7 @@ obj_init(struct benchmark *bench, struct benchmark_args *args)
 		obj_bench.fn_type_num = type_num_modes[obj_bench.type_mode];
 		if (obj_bench.type_mode == TYPE_MODE_RAND) {
 			obj_bench.random_types = random_values(1,
-				PMEMOBJ_NUM_OID_TYPES, obj_bench.max_len, 0);
+				UINT32_MAX, obj_bench.max_len, 0);
 			if (obj_bench.random_types == NULL)
 				return -1;
 		}

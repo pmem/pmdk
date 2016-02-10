@@ -39,6 +39,7 @@
 #include "unittest.h"
 #include "libpmemobj.h"
 #include "redo.h"
+#include "memops.h"
 #include "heap.h"
 #include "util.h"
 #include "lane.h"

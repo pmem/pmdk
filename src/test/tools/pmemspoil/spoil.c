@@ -1171,8 +1171,7 @@ pmemspoil_process_oob(struct pmemspoil *psp,
 	struct oob_header *oob = ENTRY_TO_OOB_HDR(entry);
 
 	PROCESS_BEGIN(psp, pfp) {
-		PROCESS_FIELD(&oob->data, internal_type, uint16_t);
-		PROCESS_FIELD(&oob->data, user_type, uint16_t);
+		PROCESS_FIELD(oob, type_num, uint64_t);
 		PROCESS_FIELD(oob, size, uint64_t);
 	} PROCESS_END
 
@@ -1267,7 +1266,6 @@ pmemspoil_process_sec_list(struct pmemspoil *psp,
 	size_t redo_size = REDO_NUM_ENTRIES;
 	PROCESS_BEGIN(psp, pfp) {
 		PROCESS_FIELD(sec, obj_offset, uint64_t);
-		PROCESS_FIELD(sec, obj_size, uint64_t);
 		PROCESS(redo_log, &sec->redo[PROCESS_INDEX], redo_size);
 	} PROCESS_END
 
@@ -1297,7 +1295,7 @@ pmemspoil_process_lane(struct pmemspoil *psp, struct pmemspoil_list *pfp,
 
 	return PROCESS_RET;
 }
-
+#if 0
 /*
  * pmemspoil_process_obj_store -- process object store structures
  */
@@ -1312,7 +1310,7 @@ pmemspoil_process_obj_store(struct pmemspoil *psp,
 	} PROCESS_END
 	return PROCESS_RET;
 }
-
+#endif
 /*
  * pmemspoil_process_pmemobj -- process pmemobj data structures
  */
@@ -1323,8 +1321,6 @@ pmemspoil_process_pmemobj(struct pmemspoil *psp,
 	struct pmemobjpool *pop = psp->addr;
 	struct heap_layout *hlayout = (void *)((char *)pop + pop->heap_offset);
 	struct lane_layout *lanes = (void *)((char *)pop + pop->lanes_offset);
-	struct object_store *obj_store =
-			(void *)((char *)pop + pop->obj_store_offset);
 
 	PROCESS_BEGIN(psp, pfp) {
 		struct checksum_args checksum_args = {
@@ -1336,8 +1332,6 @@ pmemspoil_process_pmemobj(struct pmemspoil *psp,
 		PROCESS_FIELD(pop, layout, char);
 		PROCESS_FIELD(pop, lanes_offset, uint64_t);
 		PROCESS_FIELD(pop, nlanes, uint64_t);
-		PROCESS_FIELD(pop, obj_store_offset, uint64_t);
-		PROCESS_FIELD(pop, obj_store_size, uint64_t);
 		PROCESS_FIELD(pop, heap_offset, uint64_t);
 		PROCESS_FIELD(pop, heap_size, uint64_t);
 		PROCESS_FIELD(pop, unused, char);
@@ -1348,7 +1342,6 @@ pmemspoil_process_pmemobj(struct pmemspoil *psp,
 
 		PROCESS(heap, hlayout, 1);
 		PROCESS(lane, &lanes[PROCESS_INDEX], pop->nlanes);
-		PROCESS(obj_store, obj_store, 1);
 	} PROCESS_END
 
 	return PROCESS_RET;

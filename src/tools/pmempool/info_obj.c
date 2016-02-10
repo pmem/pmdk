@@ -46,7 +46,9 @@
 #include "info.h"
 
 #define	BITMAP_BUFF_SIZE 1024
+#if 0
 #define	TYPE_NUM_BUFF_SIZE 32
+#endif
 
 #define	OFF_TO_PTR(pop, off) ((void *)((uintptr_t)(pop) + (off)));
 
@@ -85,8 +87,7 @@ lane_need_recovery_list(struct lane_section_layout *layout)
 	 * object's offset or size are nonzero.
 	 */
 	return lane_need_recovery_redo(&section->redo[0], REDO_NUM_ENTRIES) ||
-		section->obj_offset ||
-		section->obj_size;
+		section->obj_offset;
 }
 
 /*
@@ -257,8 +258,6 @@ info_obj_lane_list(struct pmem_info *pip, int v,
 	struct lane_list_section *section = (struct lane_list_section *)layout;
 
 	outv_field(v, "Object offset", "0x%016lx", section->obj_offset);
-	outv_field(v, "Object size", "%s",
-			out_get_size_str(section->obj_size, pip->args.human));
 	info_obj_redo(v, &section->redo[0], REDO_NUM_ENTRIES);
 }
 
@@ -300,14 +299,7 @@ info_obj_oob_hdr(struct pmem_info *pip, int v, struct pmemobjpool *pop,
 		out_get_pmemoid_str(oob->oob.pe_next, pip->obj.uuid_lo));
 	outv_field(v, "Prev",
 		out_get_pmemoid_str(oob->oob.pe_prev, pip->obj.uuid_lo));
-	outv_field(v, "Internal Type", "%s",
-		out_get_internal_type_str(oob->data.internal_type));
-
-	if (oob->data.user_type == POBJ_ROOT_TYPE_NUM)
-		outv_field(v, "User Type", "%u [root object]",
-				oob->data.user_type);
-	else
-		outv_field(v, "User Type", "%u", oob->data.user_type);
+	outv_field(v, "User Type", "%u", oob->type_num);
 }
 
 /*
@@ -463,7 +455,7 @@ info_obj_lanes(struct pmem_info *pip, int v,
 		}
 	}
 }
-
+#if 0
 /*
  * info_obj_store_object_cb -- callback for objects from object store
  */
@@ -472,8 +464,6 @@ info_obj_store_object_cb(struct pmem_info *pip, int v, int vnum,
 		struct pmemobjpool *pop, struct list_entry *entryp, size_t i)
 {
 	struct allocation_header *alloc = ENTRY_TO_ALLOC_HDR(entryp);
-	struct oob_header *oob = ENTRY_TO_OOB_HDR(entryp);
-	assert(oob->data.user_type < PMEMOBJ_NUM_OID_TYPES);
 
 	uint64_t real_size = alloc->size -
 		sizeof (struct allocation_header) - sizeof (struct oob_header);
@@ -490,8 +480,6 @@ info_obj_store_object_cb(struct pmem_info *pip, int v, int vnum,
 	pip->obj.stats.n_total_objects++;
 	pip->obj.stats.n_total_bytes += real_size;
 
-	pip->obj.stats.n_type_objects[oob->data.user_type]++;
-	pip->obj.stats.n_type_bytes[oob->data.user_type] += real_size;
 
 	obj_object_cb(pip, v, vnum, pop, entryp, i);
 }
@@ -529,7 +517,7 @@ info_obj_store(struct pmem_info *pip, int v, struct pmemobjpool *pop)
 		}
 	}
 }
-
+#endif
 /*
  * info_obj_heap -- print pmemobj heap headers
  */
@@ -703,10 +691,7 @@ static void
 info_obj_root_obj(struct pmem_info *pip, int v,
 		struct pmemobjpool *pop)
 {
-	struct object_store *obj_store = OFF_TO_PTR(pop,
-			pop->obj_store_offset);
-	struct list_entry *entry = PLIST_OFF_TO_PTR(pop,
-			obj_store->root.head.pe_first.off);
+	struct list_entry *entry = OFF_TO_PTR(pop, pop->root_offset);
 
 	if (entry == NULL) {
 		outv(v, "\nNo root object...\n");
@@ -791,9 +776,6 @@ info_obj_descriptor(struct pmem_info *pip, int v,
 	outv_field(v, "Layout", layout);
 	outv_field(v, "Lanes offset", "0x%lx", pop->lanes_offset);
 	outv_field(v, "Number of lanes", "%lu", pop->nlanes);
-	outv_field(v, "Object store offset", "0x%lx", pop->obj_store_offset);
-	outv_field(v, "Object store size", "%s",
-			out_get_size_str(pop->obj_store_size, pip->args.human));
 	outv_field(v, "Heap offset", "0x%lx", pop->heap_offset);
 	outv_field(v, "Heap size", "%lu", pop->heap_size);
 	outv_field(v, "Checksum", "%s", out_get_checksum(dscp, OBJ_DSC_P_SIZE,
@@ -802,7 +784,7 @@ info_obj_descriptor(struct pmem_info *pip, int v,
 	/* run id with -v option */
 	outv_field(v + 1, "Run id", "%lu", pop->run_id);
 }
-
+#if 0
 /*
  * info_obj_stats_obj_store -- print object store's statistics
  */
@@ -845,7 +827,7 @@ info_obj_stats_obj_store(struct pmem_info *pip, int v,
 	}
 	out_indent(-1);
 }
-
+#endif
 /*
  * info_boj_stats_alloc_classes -- print allocation classes' statistics
  */
@@ -1017,7 +999,7 @@ info_obj_stats(struct pmem_info *pip, int v)
 	outv_title(v, "Statistics");
 
 	outv_title(v, "Objects");
-	info_obj_stats_obj_store(pip, v, stats);
+	/*info_obj_stats_obj_store(pip, v, stats);*/
 
 	outv_title(v, "Heap");
 	info_obj_stats_zones(pip, v, stats, &total);
@@ -1073,7 +1055,7 @@ pmempool_info_obj(struct pmem_info *pip)
 	info_obj_descriptor(pip, VERBOSE_DEFAULT, pop);
 	info_obj_lanes(pip, pip->args.obj.vlanes, pop);
 	info_obj_root_obj(pip, pip->args.obj.vroot, pop);
-	info_obj_store(pip, pip->args.obj.vobjects, pop);
+	/*info_obj_store(pip, pip->args.obj.vobjects, pop);*/
 	info_obj_heap(pip, pip->args.obj.vheap, pop);
 	info_obj_zones_chunks(pip, pop);
 	info_obj_stats(pip, pip->args.vstats);

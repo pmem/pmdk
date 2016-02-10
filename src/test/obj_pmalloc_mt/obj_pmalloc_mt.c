@@ -36,6 +36,8 @@
 #include <stdint.h>
 
 #include "libpmemobj.h"
+#include "redo.h"
+#include "memops.h"
 #include "pmalloc.h"
 #include "unittest.h"
 
@@ -62,7 +64,7 @@ alloc_worker(void *arg)
 	struct worker_args *a = arg;
 
 	for (int i = 0; i < OPS_PER_THREAD; ++i) {
-		pmalloc(a->pop, &a->r->offs[a->idx][i], ALLOC_SIZE, 0);
+		pmalloc(a->pop, &a->r->offs[a->idx][i], ALLOC_SIZE);
 		ASSERTne(a->r->offs[a->idx][i], 0);
 	}
 
@@ -75,7 +77,7 @@ realloc_worker(void *arg)
 	struct worker_args *a = arg;
 
 	for (int i = 0; i < OPS_PER_THREAD; ++i) {
-		prealloc(a->pop, &a->r->offs[a->idx][i], REALLOC_SIZE, 0);
+		prealloc(a->pop, &a->r->offs[a->idx][i], REALLOC_SIZE);
 		ASSERTne(a->r->offs[a->idx][i], 0);
 	}
 
@@ -88,7 +90,7 @@ free_worker(void *arg)
 	struct worker_args *a = arg;
 
 	for (int i = 0; i < OPS_PER_THREAD; ++i) {
-		pfree(a->pop, &a->r->offs[a->idx][i], 0);
+		pfree(a->pop, &a->r->offs[a->idx][i]);
 		ASSERTeq(a->r->offs[a->idx][i], 0);
 	}
 
@@ -106,12 +108,12 @@ mix_worker(void *arg)
 	 */
 	for (int i = 0; i < MIX_RERUNS; ++i) {
 		for (int i = 0; i < OPS_PER_THREAD; ++i) {
-			pmalloc(a->pop, &a->r->offs[a->idx][i], ALLOC_SIZE, 0);
+			pmalloc(a->pop, &a->r->offs[a->idx][i], ALLOC_SIZE);
 			ASSERTne(a->r->offs[a->idx][i], 0);
 		}
 
 		for (int i = 0; i < OPS_PER_THREAD; ++i) {
-			pfree(a->pop, &a->r->offs[a->idx][i], 0);
+			pfree(a->pop, &a->r->offs[a->idx][i]);
 			ASSERTeq(a->r->offs[a->idx][i], 0);
 		}
 	}

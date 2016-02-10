@@ -33,13 +33,11 @@
 /*
  * obj_bucket.c -- unit test for bucket
  */
-#include <stdint.h>
-#include <pthread.h>
-
 #include "unittest.h"
+#include "redo.h"
+#include "memops.h"
 #include "heap.h"
 #include "bucket.h"
-#include "redo.h"
 #include "heap_layout.h"
 
 #define	TEST_UNIT_SIZE 128
@@ -57,14 +55,14 @@
 
 FUNC_MOCK(malloc, void *, size_t size)
 	FUNC_MOCK_RUN_RET_DEFAULT_REAL(malloc, size)
-	FUNC_MOCK_RUN(0) { /* b malloc */
+	FUNC_MOCK_RUN(2) { /* +2 because of allocs for init, b malloc */
 		return NULL;
 	}
 FUNC_MOCK_END
 
 FUNC_MOCK(ctree_new, struct ctree *, void)
 	FUNC_MOCK_RUN_RET_DEFAULT(MOCK_CRIT)
-	FUNC_MOCK_RUN(0) {
+	FUNC_MOCK_RUN(1) { /* +1 because of ctree new in init */
 		return NULL;
 	}
 FUNC_MOCK_END

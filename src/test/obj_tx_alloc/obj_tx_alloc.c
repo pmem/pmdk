@@ -158,13 +158,13 @@ do_tx_alloc_abort_after_nested(PMEMobjpool *pop)
 	/* check the obj1 object */
 	ASSERT(TOID_IS_NULL(obj1));
 
-	first.oid = pmemobj_first(pop, TYPE_ABORT_AFTER_NESTED1);
+	first.oid = POBJ_FIRST_TYPE_NUM(pop, TYPE_ABORT_AFTER_NESTED1);
 	ASSERT(TOID_IS_NULL(first));
 
 	/* check the obj2 object */
 	ASSERT(TOID_IS_NULL(obj2));
 
-	first.oid = pmemobj_first(pop, TYPE_ABORT_AFTER_NESTED2);
+	first.oid = POBJ_FIRST_TYPE_NUM(pop, TYPE_ABORT_AFTER_NESTED2);
 	ASSERT(TOID_IS_NULL(first));
 }
 
@@ -212,13 +212,13 @@ do_tx_alloc_abort_nested(PMEMobjpool *pop)
 	/* check the obj1 object */
 	ASSERT(TOID_IS_NULL(obj1));
 
-	first.oid = pmemobj_first(pop, TYPE_ABORT_NESTED1);
+	first.oid = POBJ_FIRST_TYPE_NUM(pop, TYPE_ABORT_NESTED1);
 	ASSERT(TOID_IS_NULL(first));
 
 	/* check the obj2 object */
 	ASSERT(TOID_IS_NULL(obj2));
 
-	first.oid = pmemobj_first(pop, TYPE_ABORT_NESTED2);
+	first.oid = POBJ_FIRST_TYPE_NUM(pop, TYPE_ABORT_NESTED2);
 	ASSERT(TOID_IS_NULL(first));
 }
 
@@ -265,19 +265,19 @@ do_tx_alloc_commit_nested(PMEMobjpool *pop)
 	TOID(struct object) next;
 
 	/* check the obj1 object */
-	TOID_ASSIGN(first, pmemobj_first(pop, TYPE_COMMIT_NESTED1));
+	TOID_ASSIGN(first, POBJ_FIRST_TYPE_NUM(pop, TYPE_COMMIT_NESTED1));
 	ASSERT(TOID_EQUALS(first, obj1));
 	ASSERTeq(D_RO(first)->value, TEST_VALUE_1);
 
-	TOID_ASSIGN(next, pmemobj_next(first.oid));
+	TOID_ASSIGN(next, POBJ_NEXT_TYPE_NUM(first.oid));
 	ASSERT(TOID_IS_NULL(next));
 
 	/* check the obj2 object */
-	TOID_ASSIGN(first, pmemobj_first(pop, TYPE_COMMIT_NESTED2));
+	TOID_ASSIGN(first, POBJ_FIRST_TYPE_NUM(pop, TYPE_COMMIT_NESTED2));
 	ASSERT(TOID_EQUALS(first, obj2));
 	ASSERTeq(D_RO(first)->value, TEST_VALUE_2);
 
-	TOID_ASSIGN(next, pmemobj_next(first.oid));
+	TOID_ASSIGN(next, POBJ_NEXT_TYPE_NUM(first.oid));
 	ASSERT(TOID_IS_NULL(next));
 }
 
@@ -304,7 +304,7 @@ do_tx_alloc_abort(PMEMobjpool *pop)
 	ASSERT(TOID_IS_NULL(obj));
 
 	TOID(struct object) first;
-	TOID_ASSIGN(first, pmemobj_first(pop, TYPE_ABORT));
+	TOID_ASSIGN(first, POBJ_FIRST_TYPE_NUM(pop, TYPE_ABORT));
 	ASSERT(TOID_IS_NULL(first));
 }
 
@@ -327,7 +327,7 @@ do_tx_alloc_zerolen(PMEMobjpool *pop)
 	ASSERT(TOID_IS_NULL(obj));
 
 	TOID(struct object) first;
-	TOID_ASSIGN(first, pmemobj_first(pop, TYPE_ABORT));
+	TOID_ASSIGN(first, POBJ_FIRST_TYPE_NUM(pop, TYPE_ABORT));
 	ASSERT(TOID_IS_NULL(first));
 }
 
@@ -351,7 +351,7 @@ do_tx_alloc_huge(PMEMobjpool *pop)
 	ASSERT(TOID_IS_NULL(obj));
 
 	TOID(struct object) first;
-	TOID_ASSIGN(first, pmemobj_first(pop, TYPE_ABORT));
+	TOID_ASSIGN(first, POBJ_FIRST_TYPE_NUM(pop, TYPE_ABORT));
 	ASSERT(TOID_IS_NULL(first));
 }
 
@@ -375,7 +375,7 @@ do_tx_alloc_commit(PMEMobjpool *pop)
 	} TX_END
 
 	TOID(struct object) first;
-	TOID_ASSIGN(first, pmemobj_first(pop, TYPE_COMMIT));
+	TOID_ASSIGN(first, POBJ_FIRST_TYPE_NUM(pop, TYPE_COMMIT));
 	ASSERT(TOID_EQUALS(first, obj));
 	ASSERTeq(D_RO(first)->value, D_RO(obj)->value);
 
@@ -408,7 +408,7 @@ do_tx_zalloc_abort(PMEMobjpool *pop)
 	ASSERT(TOID_IS_NULL(obj));
 
 	TOID(struct object) first;
-	TOID_ASSIGN(first, pmemobj_first(pop, TYPE_ZEROED_ABORT));
+	TOID_ASSIGN(first, POBJ_FIRST_TYPE_NUM(pop, TYPE_ZEROED_ABORT));
 	ASSERT(TOID_IS_NULL(first));
 }
 
@@ -431,7 +431,7 @@ do_tx_zalloc_zerolen(PMEMobjpool *pop)
 	ASSERT(TOID_IS_NULL(obj));
 
 	TOID(struct object) first;
-	TOID_ASSIGN(first, pmemobj_first(pop, TYPE_ZEROED_ABORT));
+	TOID_ASSIGN(first, POBJ_FIRST_TYPE_NUM(pop, TYPE_ZEROED_ABORT));
 	ASSERT(TOID_IS_NULL(first));
 }
 
@@ -455,7 +455,7 @@ do_tx_zalloc_huge(PMEMobjpool *pop)
 	ASSERT(TOID_IS_NULL(obj));
 
 	TOID(struct object) first;
-	TOID_ASSIGN(first, pmemobj_first(pop, TYPE_ZEROED_ABORT));
+	TOID_ASSIGN(first, POBJ_FIRST_TYPE_NUM(pop, TYPE_ZEROED_ABORT));
 	ASSERT(TOID_IS_NULL(first));
 }
 
@@ -480,7 +480,7 @@ do_tx_zalloc_commit(PMEMobjpool *pop)
 	} TX_END
 
 	TOID(struct object) first;
-	TOID_ASSIGN(first, pmemobj_first(pop, TYPE_ZEROED_COMMIT));
+	TOID_ASSIGN(first, POBJ_FIRST_TYPE_NUM(pop, TYPE_ZEROED_COMMIT));
 	ASSERT(TOID_EQUALS(first, obj));
 	ASSERTeq(D_RO(first)->value, D_RO(obj)->value);
 

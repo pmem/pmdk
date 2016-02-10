@@ -46,6 +46,7 @@
 #include "sys_util.h"
 #include "redo.h"
 #include "heap_layout.h"
+#include "memops.h"
 #include "heap.h"
 #include "bucket.h"
 #include "ctree.h"

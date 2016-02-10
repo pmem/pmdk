@@ -39,6 +39,7 @@
 #include "lane.h"
 #include "redo.h"
 #include "list.h"
+#include "memops.h"
 #include "pmalloc.h"
 #include "util.h"
 #include "obj.h"

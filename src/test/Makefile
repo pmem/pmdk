@@ -80,8 +80,6 @@ OBJ_TESTS = \
        obj_list_insert_new\
        obj_list_move\
        obj_list_move_oob\
-       obj_list_realloc\
-       obj_list_realloc_move\
        obj_list_recovery\
        obj_list_remove\
        obj_list_remove_free\
@@ -99,7 +97,6 @@ OBJ_TESTS = \
        obj_recovery\
        obj_recreate\
        obj_redo_log\
-       obj_store\
        obj_strdup\
        obj_toid\
        obj_tx_alloc\

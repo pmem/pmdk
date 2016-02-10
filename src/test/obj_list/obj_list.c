@@ -43,6 +43,7 @@
 #include "redo.h"
 #include "list.h"
 #include "obj.h"
+#include "memops.h"
 #include "pmalloc.h"
 
 /* offset to "in band" item */
@@ -124,11 +125,6 @@ TOID(struct oob_item) *Item;
 	FATAL("usage: obj_list <file> m:<num>:<where>:<num>")
 #define	FATAL_USAGE_MOVE_OOB()\
 	FATAL("usage: obj_list <file> o:<num>")
-#define	FATAL_USAGE_REALLOC()\
-	FATAL("usage: obj_list <file> s:<num>:<list>:<nlists>:<id>:<constr>")
-#define	FATAL_USAGE_REALLOC_MOVE()\
-	FATAL("usage: obj_list <file> "\
-	"e:<num>:<from>:<before>:<num>:<to>:<size>:<id>:<constr>:<realloc>")
 #define	FATAL_USAGE_FAIL()\
 	FATAL("usage: obj_list <file> "\
 	"F:<after_finish|before_finish|after_process>")
@@ -342,8 +338,7 @@ FUNC_MOCK(pmemobj_alloc, PMEMoid, PMEMobjpool *pop, PMEMoid *oidp,
 	FUNC_MOCK_RUN_DEFAULT {
 		PMEMoid oid = {0, 0};
 		oid.pool_uuid_lo = 0;
-		pmalloc(NULL, &oid.off, size, OOB_OFF);
-		oid.off += OOB_OFF;
+		pmalloc(NULL, &oid.off, size);
 		if (oidp) {
 			*oidp = oid;
 			Pop->persist(Pop, oidp, sizeof (*oidp));
@@ -357,8 +352,7 @@ FUNC_MOCK_END
  * Allocates the memory using linear allocator.
  * Prints the id of allocated struct oob_item for tracking purposes.
  */
-FUNC_MOCK(pmalloc, int, PMEMobjpool *pop, uint64_t *ptr, size_t size,
-		uint64_t data_off)
+FUNC_MOCK(pmalloc, int, PMEMobjpool *pop, uint64_t *ptr, size_t size)
 	FUNC_MOCK_RUN_DEFAULT {
 		size = 2 * (size - OOB_OFF) + OOB_OFF;
 		uint64_t *alloc_size = (uint64_t *)((uintptr_t)Pop
@@ -372,13 +366,14 @@ FUNC_MOCK(pmalloc, int, PMEMobjpool *pop, uint64_t *ptr, size_t size,
 		struct oob_item *item =
 			(struct oob_item *)((uintptr_t)Pop + *ptr);
 
+		*ptr += OOB_OFF;
 		item->item.id = *Id;
 		Pop->persist(Pop, &item->item.id, sizeof (item->item.id));
 
 		(*Id)++;
 		Pop->persist(Pop, Id, sizeof (*Id));
 
-		*Heap_offset = *Heap_offset + sizeof (uint64_t) + size;
+		*Heap_offset = *Heap_offset + sizeof (uint64_t) + size + OOB_OFF;
 		Pop->persist(Pop, Heap_offset, sizeof (*Heap_offset));
 
 		OUT("pmalloc(id = %d)", item->item.id);
@@ -391,10 +386,10 @@ FUNC_MOCK_END
  *
  * Just prints freeing struct oob_item id. Doesn't free the memory.
  */
-FUNC_MOCK(pfree, int, PMEMobjpool *pop, uint64_t *ptr, uint64_t data_off)
+FUNC_MOCK(pfree, int, PMEMobjpool *pop, uint64_t *ptr)
 	FUNC_MOCK_RUN_DEFAULT {
 		struct oob_item *item =
-			(struct oob_item *)((uintptr_t)Pop + *ptr);
+			(struct oob_item *)((uintptr_t)Pop + *ptr - OOB_OFF);
 		OUT("pfree(id = %d)", item->item.id);
 		*ptr = 0;
 		Pop->persist(Pop, ptr, sizeof (*ptr));
@@ -411,7 +406,7 @@ FUNC_MOCK_END
  */
 FUNC_MOCK(pmalloc_construct, int, PMEMobjpool *pop, uint64_t *off,
 	size_t size, void (*constructor)(PMEMobjpool *pop, void *ptr,
-	size_t usable_size, void *arg), void *arg, uint64_t data_off)
+	size_t usable_size, void *arg), void *arg)
 	FUNC_MOCK_RUN_DEFAULT {
 		size = 2 * (size - OOB_OFF) + OOB_OFF;
 		uint64_t *alloc_size = (uint64_t *)((uintptr_t)Pop +
@@ -419,13 +414,13 @@ FUNC_MOCK(pmalloc_construct, int, PMEMobjpool *pop, uint64_t *off,
 		*alloc_size = size;
 		Pop->persist(Pop, alloc_size, sizeof (*alloc_size));
 
-		*off = *Heap_offset + sizeof (uint64_t);
+		*off = *Heap_offset + sizeof (uint64_t) + OOB_OFF;
 		Pop->persist(Pop, off, sizeof (*off));
 
 		*Heap_offset = *Heap_offset + sizeof (uint64_t) + size;
 		Pop->persist(Pop, Heap_offset, sizeof (*Heap_offset));
 
-		void *ptr = (void *)((uintptr_t)Pop + *off + data_off);
+		void *ptr = (void *)((uintptr_t)Pop + *off);
 		constructor(pop, ptr, size, arg);
 
 		return 0;
@@ -435,8 +430,7 @@ FUNC_MOCK_END
 /*
  * prealloc -- prealloc mock
  */
-FUNC_MOCK(prealloc, int, PMEMobjpool *pop, uint64_t *off, size_t size,
-		uint64_t data_off)
+FUNC_MOCK(prealloc, int, PMEMobjpool *pop, uint64_t *off, size_t size)
 	FUNC_MOCK_RUN_DEFAULT {
 		uint64_t *alloc_size = (uint64_t *)((uintptr_t)Pop +
 				*off - sizeof (uint64_t));
@@ -464,11 +458,11 @@ FUNC_MOCK_END
  */
 FUNC_MOCK(prealloc_construct, int, PMEMobjpool *pop, uint64_t *off,
 	size_t size, void (*constructor)(PMEMobjpool *pop, void *ptr,
-	size_t usable_size, void *arg), void *arg, uint64_t data_off)
+	size_t usable_size, void *arg), void *arg)
 	FUNC_MOCK_RUN_DEFAULT {
-		int ret = prealloc(pop, off, size, data_off);
+		int ret = prealloc(pop, off, size);
 		if (!ret) {
-			void *ptr = (void *)((uintptr_t)Pop + *off + data_off);
+			void *ptr = (void *)((uintptr_t)Pop + *off + OOB_OFF);
 			constructor(pop, ptr, size, arg);
 		}
 		return ret;
@@ -819,24 +813,6 @@ struct realloc_arg {
 };
 
 /*
- * realloc_constructor -- constructor which prints only the item's
- * id and argument value
- */
-static void
-realloc_constructor(PMEMobjpool *pop, void *ptr, size_t usable_size, void *arg)
-{
-	struct realloc_arg *rarg = arg;
-	struct item *item = (struct item *)ptr;
-	if (ptr != rarg->ptr) {
-		size_t cpy_size = rarg->old_size < rarg->new_size ?
-			rarg->old_size : rarg->new_size;
-		memcpy(ptr, rarg->ptr, cpy_size);
-		pop->persist(pop, ptr, cpy_size);
-	}
-	OUT("realloc_constructor(id = %d)", item->id);
-}
-
-/*
  * do_insert_new -- insert new element to list
  */
 static void
@@ -883,7 +859,6 @@ do_insert_new(PMEMobjpool *pop, const char *arg)
 	}
 }
 
-
 /*
  * do_insert -- insert element to list
  */
@@ -896,7 +871,8 @@ do_insert(PMEMobjpool *pop, const char *arg)
 			&before, &n) != 2)
 		FATAL_USAGE_INSERT();
 
-	pmemobj_alloc(pop, (PMEMoid *)Item,
+	PMEMoid it;
+	pmemobj_alloc(pop, &it,
 			sizeof (struct oob_item), 0, NULL, NULL);
 
 	if (list_insert(pop,
@@ -904,7 +880,7 @@ do_insert(PMEMobjpool *pop, const char *arg)
 		(struct list_head *)&D_RW(List)->head,
 		get_item_list(List.oid, n),
 		before,
-		Item->oid)) {
+		it)) {
 		FATAL("list_insert(List) failed");
 	}
 }
@@ -1010,140 +986,6 @@ do_move(PMEMobjpool *pop, const char *arg)
 }
 
 /*
- * do_move_one_list -- move element within one list
- */
-static void
-do_move_one_list(PMEMobjpool *pop, const char *arg)
-{
-	int n;
-	int d;
-	int before;
-	if (sscanf(arg, "M:%d:%d:%d", &n, &before, &d) != 3)
-		FATAL_USAGE_MOVE();
-
-	if (list_move(pop,
-		offsetof(struct item, next),
-		(struct list_head *)&D_RW(List)->head,
-		offsetof(struct item, next),
-		(struct list_head *)&D_RW(List)->head,
-		get_item_list(List.oid, d),
-		before,
-		get_item_list(List.oid, n))) {
-		FATAL("list_move(List, List) failed");
-	}
-}
-
-/*
- * do_realloc -- reallocate element on list
- */
-static void
-do_realloc(PMEMobjpool *pop, const char *arg)
-{
-	int n;
-	int L;
-	int N;
-	int s;
-	int id;
-	if (sscanf(arg, "s:%d:%d:%d:%d:%d", &n, &L, &N, &s, &id) != 5)
-		FATAL_USAGE_REALLOC();
-
-	if (L == 1) {
-		Item->oid = get_item_oob_list(List_oob.oid, n);
-	} else if (L == 2) {
-		Item->oid = get_item_list(List.oid, n);
-	} else {
-		FATAL_USAGE_REALLOC();
-	}
-	Pop->persist(Pop, Item, sizeof (*Item));
-
-	size_t size = s * sizeof (struct item);
-
-	struct realloc_arg rarg = {
-		.ptr = OBJ_OFF_TO_PTR(pop, Item->oid.off),
-		.old_size = pmemobj_alloc_usable_size(Item->oid),
-		.new_size = size,
-	};
-
-	if (N == 1) {
-		if (list_realloc_user(pop,
-			(struct list_head *)&D_RW(List_oob)->head,
-			0,
-			NULL,
-			size,
-			realloc_constructor,
-			&rarg,
-			Item->oid.off + offsetof(struct item, id),
-			id,
-			(PMEMoid *)Item)) {
-			FATAL("list_realloc(List) failed");
-		}
-	} else if (N == 2) {
-		if (list_realloc_user(pop,
-			(struct list_head *)&D_RW(List_oob)->head,
-			offsetof(struct item, next),
-			(struct list_head *)&D_RW(List)->head,
-			size,
-			realloc_constructor,
-			&rarg,
-			Item->oid.off + offsetof(struct item, id),
-			id,
-			(PMEMoid *)Item)) {
-			FATAL("list_realloc(List, List_oob) failed");
-		}
-	} else {
-		FATAL_USAGE_REALLOC();
-	}
-	TOID(struct item) item;
-	TOID_ASSIGN(item, Item->oid);
-	OUT("realloc(id = %d)", D_RO(item)->id);
-}
-
-/*
- * do_realloc_move -- reallocate and move object
- */
-static void
-do_realloc_move(PMEMobjpool *pop, const char *arg)
-{
-	int n;
-	int s;
-	int id;
-	int r;
-	if (sscanf(arg, "e:%d:%d:%d:%d",
-			&n, &s, &id, &r) != 4)
-		FATAL_USAGE_REALLOC_MOVE();
-	uint64_t pe_offset = 0;
-	struct list_head *head = NULL;
-	if (r) {
-		pe_offset = offsetof(struct item, next);
-		head = (struct list_head *)&D_RW(List)->head;
-	}
-	Item->oid = get_item_oob_list(List_oob.oid, n);
-	Pop->persist(Pop, Item, sizeof (*Item));
-	size_t size = s * sizeof (struct item);
-	struct realloc_arg rarg = {
-		.ptr = OBJ_OFF_TO_PTR(pop, Item->oid.off),
-		.old_size = pmemobj_alloc_usable_size(Item->oid),
-		.new_size = size
-	};
-	if (list_realloc_move_user(pop,
-		(struct list_head *)&D_RW(List_oob)->head,
-		(struct list_head *)&D_RW(List_oob_sec)->head,
-		pe_offset,
-		head,
-		size,
-		realloc_constructor,
-		&rarg,
-		Item->oid.off + offsetof(struct item, id),
-		id,
-		(PMEMoid *)Item)) {
-		FATAL("list_realloc_move(List_oob, List_oob_sec) failed");
-	}
-	TOID(struct item) item;
-	TOID_ASSIGN(item, Item->oid);
-	OUT("realloc_move(id = %d)", D_RO(item)->id);
-}
-
-/*
  * do_fail -- fail after specified event
  */
 static void
@@ -1204,15 +1046,6 @@ main(int argc, char *argv[])
 			break;
 		case 'm':
 			do_move(pop, argv[i]);
-			break;
-		case 'M':
-			do_move_one_list(pop, argv[i]);
-			break;
-		case 's':
-			do_realloc(pop, argv[i]);
-			break;
-		case 'e':
-			do_realloc_move(pop, argv[i]);
 			break;
 		case 'V':
 			lane_recover_and_section_boot(pop);

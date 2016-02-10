@@ -59,17 +59,6 @@ do_toid_valid(PMEMobjpool *pop)
 }
 
 /*
- * do_toid_valid_null -- validates if type number of TOID_NULL is equal to
- * object's metadata
- */
-static void
-do_toid_valid_null(PMEMobjpool *pop)
-{
-	TOID(struct obj) obj = TOID_NULL(struct obj);
-	ASSERT(!TOID_VALID(obj));
-}
-
-/*
  * do_toid_no_valid -- validates if type number is not equal to
  * object's metadata
  */
@@ -98,16 +87,6 @@ do_direct_simple(PMEMobjpool *pop)
 	POBJ_FREE(&obj);
 }
 
-/*
- * do_direct_null - checks if DIRECT_RO macro correctly reads from empty TOID
- */
-static void
-do_direct_null(PMEMobjpool *pop)
-{
-	TOID(struct obj) obj = TOID_NULL(struct obj);
-	ASSERTeq(DIRECT_RO(obj), NULL);
-}
-
 int
 main(int argc, char *argv[])
 {
@@ -122,10 +101,8 @@ main(int argc, char *argv[])
 		FATAL("!pmemobj_create");
 
 	do_toid_valid(pop);
-	do_toid_valid_null(pop);
 	do_toid_no_valid(pop);
 	do_direct_simple(pop);
-	do_direct_null(pop);
 
 	pmemobj_close(pop);
 

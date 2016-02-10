@@ -1070,8 +1070,8 @@ obj_tx_init(struct benchmark *bench, struct benchmark_args *args)
 
 	obj_bench.fn_type_num = type_num_fn[obj_bench.type_mode];
 	if (obj_bench.type_mode == NUM_MODE_RAND) {
-		obj_bench.random_types = rand_values(1, PMEMOBJ_NUM_OID_TYPES
-						- 1, args->n_ops_per_thread);
+		obj_bench.random_types = rand_values(1, UINT32_MAX,
+				args->n_ops_per_thread);
 			if (obj_bench.random_types == NULL)
 				return -1;
 	}

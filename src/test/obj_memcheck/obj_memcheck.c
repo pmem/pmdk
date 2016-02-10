@@ -71,7 +71,7 @@ test_memcheck_bug()
 }
 
 static void
-test_everything(const char *path, int overwrite_oob)
+test_everything(const char *path)
 {
 	PMEMobjpool *pop = NULL;
 
@@ -105,12 +105,6 @@ test_everything(const char *path, int overwrite_oob)
 	s2 = D_RW(rt->s2);
 	memset(s2, 0, pmemobj_alloc_usable_size(rt->s2.oid));
 	s2->fld = 12; /* ok */
-
-	if (overwrite_oob) {
-		/* overwrite padding from oob_header */
-		char *t = (void *)s2;
-		t[-1] = 0x66;
-	}
 
 	/* invalid write */
 	s2->dyn[100000] = 9;
@@ -151,7 +145,7 @@ test_everything(const char *path, int overwrite_oob)
 
 static void usage(const char *a)
 {
-	FATAL("usage: %s [m|t0|t1] file-name", a);
+	FATAL("usage: %s [m|t] file-name", a);
 }
 
 int
@@ -164,14 +158,10 @@ main(int argc, char *argv[])
 
 	if (strcmp(argv[1], "m") == 0)
 		test_memcheck_bug();
-	else if (strcmp(argv[1], "t0") == 0) {
+	else if (strcmp(argv[1], "t") == 0) {
 		if (argc < 3)
 			usage(argv[0]);
-		test_everything(argv[2], 0);
-	} else if (strcmp(argv[1], "t1") == 0) {
-		if (argc < 3)
-			usage(argv[0]);
-		test_everything(argv[2], 1);
+		test_everything(argv[2]);
 	} else
 		usage(argv[0]);
 

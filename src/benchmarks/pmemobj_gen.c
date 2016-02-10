@@ -359,7 +359,7 @@ random_types(struct pobj_bench *bench_priv, struct benchmark_args *args)
 		return -1;
 	}
 	for (size_t i = 0; i < bench_priv->args_priv->n_objs; i++)
-		bench_priv->random_types[i] = rand() % PMEMOBJ_NUM_OID_TYPES;
+		bench_priv->random_types[i] = rand() % UINT32_MAX;
 	return 0;
 }
 

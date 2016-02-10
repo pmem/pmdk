@@ -46,6 +46,7 @@
 #include "redo.h"
 #include "list.h"
 #include "obj.h"
+#include "memops.h"
 #include "heap.h"
 #include "btt_layout.h"
 #include "heap_layout.h"

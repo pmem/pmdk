@@ -62,12 +62,14 @@
 	(1<<LANE_SECTION_TRANSACTION)|\
 	(1<<LANE_SECTION_LIST))
 
+#if 0
 #define	ENTIRE_TYPE_NUM (\
 {\
 struct range ret = {\
 	.first = 0,\
 	.last = PMEMOBJ_NUM_OID_TYPES - 1,\
 }; ret; })
+#endif
 
 #define	GET_ALIGNMENT(ad, x)\
 (1 + (((ad) >> (ALIGNMENT_DESC_BITS * (x))) & ((1 << ALIGNMENT_DESC_BITS) - 1)))
@@ -480,6 +482,7 @@ parse_args(char *appname, int argc, char *argv[],
 		case 'o':
 			argsp->obj.vroot = VERBOSE_DEFAULT;
 			break;
+#if 0
 		case 't':
 			if (util_parse_ranges(optarg,
 				&argsp->obj.object_ranges, ENTIRE_TYPE_NUM)) {
@@ -488,6 +491,7 @@ parse_args(char *appname, int argc, char *argv[],
 				return -1;
 			}
 			break;
+#endif
 		case 'b':
 			argsp->obj.vbitmap = VERBOSE_DEFAULT;
 			break;
@@ -518,8 +522,10 @@ parse_args(char *appname, int argc, char *argv[],
 	if (!argsp->use_range)
 		util_ranges_add(&argsp->ranges, ENTIRE_UINT64);
 
+#if 0
 	if (util_ranges_empty(&argsp->obj.object_ranges))
 		util_ranges_add(&argsp->obj.object_ranges, ENTIRE_TYPE_NUM);
+#endif
 
 	if (util_ranges_empty(&argsp->obj.lane_ranges))
 		util_ranges_add(&argsp->obj.lane_ranges, ENTIRE_UINT64);

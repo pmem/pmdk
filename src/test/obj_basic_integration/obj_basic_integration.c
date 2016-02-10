@@ -112,17 +112,17 @@ test_alloc_api(PMEMobjpool *pop)
 	}
 
 	PMEMoid oid_iter;
-	int type_iter;
-	POBJ_FOREACH(pop, oid_iter, type_iter) {
-		ASSERT(type_iter == TOID_TYPE_NUM(struct dummy_node) ||
-			type_iter == TOID_TYPE_NUM(struct dummy_node_c));
+	int nodes_count = 0;
+	POBJ_FOREACH(pop, oid_iter) {
+		nodes_count++;
 	}
+	ASSERTne(nodes_count, 0);
 
 	POBJ_FREE(&node_zeroed);
 	POBJ_FREE(&node_constructed);
 
-	int nodes_count = 0;
-	POBJ_FOREACH(pop, oid_iter, type_iter) {
+	nodes_count = 0;
+	POBJ_FOREACH(pop, oid_iter) {
 		nodes_count++;
 	}
 	ASSERTeq(nodes_count, 0);
@@ -150,9 +150,6 @@ test_alloc_api(PMEMobjpool *pop)
 			sizeof (struct dummy_node));
 
 	POBJ_FREE(&node_zeroed);
-
-	ASSERTeq(pmemobj_type_num(node_zeroed.oid), -1);
-	ASSERTeq(pmemobj_type_num(OID_NULL), -1);
 
 	int err = 0;
 

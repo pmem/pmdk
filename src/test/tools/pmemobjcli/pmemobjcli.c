@@ -359,9 +359,9 @@ pocli_pmemobj_type_num(struct pocli_ctx *ctx, struct pocli_args *args)
 		return pocli_err(ctx, POCLI_ERR_ARGS,
 			"invalid object -- '%s'\n", args->argv[1]);
 
-	int type_num = pmemobj_type_num(*oidp);
+	uint64_t type_num = pmemobj_type_num(*oidp);
 
-	pocli_printf(ctx, "%s(%s): type num = %d\n",
+	pocli_printf(ctx, "%s(%s): type num = %lu\n",
 			args->argv[0], args->argv[1], type_num);
 
 	return POCLI_RET_OK;

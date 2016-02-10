@@ -259,8 +259,7 @@ static void
 do_cleanup()
 {
 	PMEMoid oid, oid_tmp;
-	unsigned int type_num;
-	POBJ_FOREACH_SAFE(pop, oid, oid_tmp, type_num)
+	POBJ_FOREACH_SAFE(pop, oid, oid_tmp)
 		pmemobj_free(&oid);
 }
 

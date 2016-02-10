@@ -53,8 +53,7 @@ oom_worker(void *arg)
 		allocated++;
 
 	PMEMoid iter, iter2;
-	int type;
-	POBJ_FOREACH_SAFE(pop, iter, iter2, type)
+	POBJ_FOREACH_SAFE(pop, iter, iter2)
 		pmemobj_free(&iter);
 
 	return NULL;

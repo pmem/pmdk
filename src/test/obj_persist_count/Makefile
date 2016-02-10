@@ -39,7 +39,7 @@ vpath %.c ../../common
 TARGET = obj_persist_count
 
 OBJS = obj_persist_count.o pmalloc.o bucket.o redo.o heap.o lane.o ctree.o\
-    util.o set.o out.o obj.o cuckoo.o list.o sync.o tx.o libpmemobj.o
+    util.o set.o out.o obj.o cuckoo.o list.o sync.o tx.o memops.o libpmemobj.o
 
 LIBPMEM=y
 LIBPMEMOBJ=y

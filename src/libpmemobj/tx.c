@@ -46,6 +46,7 @@
 #include "list.h"
 #include "obj.h"
 #include "out.h"
+#include "memops.h"
 #include "pmalloc.h"
 #include "ctree.h"
 #include "valgrind_internal.h"
@@ -151,16 +152,12 @@ constructor_tx_alloc(PMEMobjpool *pop, void *ptr, size_t usable_size, void *arg)
 	 * no need to flush and persist because this
 	 * will be done in pre-commit phase
 	 */
-	oobh->data.internal_type = TYPE_NONE;
-	oobh->data.user_type = args->type_num;
+	oobh->type_num = args->type_num;
 
 	VALGRIND_REMOVE_FROM_TX(oobh, OBJ_OOB_SIZE);
 
 	/* do not report changes to the new object */
 	VALGRIND_ADD_TO_TX(ptr, usable_size);
-
-	VALGRIND_DO_MAKE_MEM_NOACCESS(pop, &oobh->data.padding,
-			sizeof (oobh->data.padding));
 }
 
 /*
@@ -186,16 +183,12 @@ constructor_tx_zalloc(PMEMobjpool *pop, void *ptr,
 	 * no need to flush and persist because this
 	 * will be done in pre-commit phase
 	 */
-	oobh->data.internal_type = TYPE_NONE;
-	oobh->data.user_type = args->type_num;
+	oobh->type_num = args->type_num;
 
 	VALGRIND_REMOVE_FROM_TX(oobh, OBJ_OOB_SIZE);
 
 	/* do not report changes to the new object */
 	VALGRIND_ADD_TO_TX(ptr, usable_size);
-
-	VALGRIND_DO_MAKE_MEM_NOACCESS(pop, &oobh->data.padding,
-			sizeof (oobh->data.padding));
 
 	memset(ptr, 0, usable_size);
 }
@@ -259,16 +252,12 @@ constructor_tx_copy(PMEMobjpool *pop, void *ptr, size_t usable_size, void *arg)
 	 * no need to flush and persist because this
 	 * will be done in pre-commit phase
 	 */
-	oobh->data.internal_type = TYPE_NONE;
-	oobh->data.user_type = args->type_num;
+	oobh->type_num = args->type_num;
 
 	VALGRIND_REMOVE_FROM_TX(oobh, OBJ_OOB_SIZE);
 
 	/* do not report changes made to the copy */
 	VALGRIND_ADD_TO_TX(ptr, args->size);
-
-	VALGRIND_DO_MAKE_MEM_NOACCESS(pop, &oobh->data.padding,
-			sizeof (oobh->data.padding));
 
 	memcpy(ptr, args->ptr, args->copy_size);
 }
@@ -296,16 +285,12 @@ constructor_tx_copy_zero(PMEMobjpool *pop, void *ptr,
 	 * no need to flush and persist because this
 	 * will be done in pre-commit phase
 	 */
-	oobh->data.internal_type = TYPE_NONE;
-	oobh->data.user_type = args->type_num;
+	oobh->type_num = args->type_num;
 
 	VALGRIND_REMOVE_FROM_TX(oobh, OBJ_OOB_SIZE);
 
 	/* do not report changes made to the copy */
 	VALGRIND_ADD_TO_TX(ptr, usable_size);
-
-	VALGRIND_DO_MAKE_MEM_NOACCESS(pop, &oobh->data.padding,
-			sizeof (oobh->data.padding));
 
 	memcpy(ptr, args->ptr, args->copy_size);
 	if (usable_size > args->copy_size) {
@@ -346,8 +331,7 @@ tx_clear_undo_log(PMEMobjpool *pop, struct list_head *head, int free,
 		 */
 		if (vg_clean) {
 			struct oob_header *oobh = OOB_HEADER_FROM_OID(pop, obj);
-			size_t size = pmalloc_usable_size(pop,
-				obj.off - OBJ_OOB_SIZE);
+			size_t size = pmalloc_usable_size(pop, obj.off);
 
 			VALGRIND_SET_CLEAN(oobh, size);
 		}
@@ -596,29 +580,10 @@ tx_pre_commit_alloc(PMEMobjpool *pop, struct lane_tx_layout *layout)
 
 		struct oob_header *oobh = OOB_HEADER_FROM_OID(pop, iter);
 
-		VALGRIND_ADD_TO_TX(oobh, OBJ_OOB_SIZE);
+		size_t size = pmalloc_usable_size(pop, iter.off);
 
-		/*
-		 * Set object as allocated.
-		 * This must be done in pre-commit phase instead of at
-		 * allocation time in order to handle properly the case when
-		 * the object is allocated and freed in the same transaction.
-		 * In such case we need to know that the object
-		 * is on undo log list and not in object store.
-		 */
-		oobh->data.internal_type = TYPE_ALLOCATED;
-
-		VALGRIND_REMOVE_FROM_TX(oobh, OBJ_OOB_SIZE);
-
-		size_t size = pmalloc_usable_size(pop,
-				iter.off - OBJ_OOB_SIZE);
-
-		VALGRIND_DO_MAKE_MEM_DEFINED(pop, oobh->data.padding,
-				sizeof (oobh->data.padding));
 		/* flush and persist the whole allocated area and oob header */
 		pop->persist(pop, oobh, size);
-		VALGRIND_DO_MAKE_MEM_NOACCESS(pop, oobh->data.padding,
-				sizeof (oobh->data.padding));
 	}
 }
 
@@ -850,9 +815,6 @@ tx_alloc_common(size_t size, type_num_t type_num,
 		return pmemobj_tx_abort_null(ENOMEM);
 	}
 
-	/* callers should have checked this */
-	ASSERT(type_num < PMEMOBJ_NUM_OID_TYPES);
-
 	struct lane_tx_runtime *lane =
 		(struct lane_tx_runtime *)tx.section->runtime;
 
@@ -894,9 +856,6 @@ tx_alloc_copy_common(size_t size, type_num_t type_num, const void *ptr,
 		return pmemobj_tx_abort_null(ENOMEM);
 	}
 
-	/* callers should have checked this */
-	ASSERT(type_num < PMEMOBJ_NUM_OID_TYPES);
-
 	struct lane_tx_runtime *lane =
 		(struct lane_tx_runtime *)tx.section->runtime;
 
@@ -930,7 +889,7 @@ err_oom:
  * tx_realloc_common -- (internal) common function for tx realloc
  */
 static PMEMoid
-tx_realloc_common(PMEMoid oid, size_t size, unsigned int type_num,
+tx_realloc_common(PMEMoid oid, size_t size, uint64_t type_num,
 	void (*constructor_alloc)(PMEMobjpool *pop, void *ptr,
 		size_t usable_size, void *arg),
 	void (*constructor_realloc)(PMEMobjpool *pop, void *ptr,
@@ -941,11 +900,6 @@ tx_realloc_common(PMEMoid oid, size_t size, unsigned int type_num,
 	if (size > PMEMOBJ_MAX_ALLOC_SIZE) {
 		ERR("requested size too large");
 		return pmemobj_tx_abort_null(ENOMEM);
-	}
-
-	if (type_num >= PMEMOBJ_NUM_OID_TYPES) {
-		ERR("invalid type_num %d", type_num);
-		return pmemobj_tx_abort_null(EINVAL);
 	}
 
 	struct lane_tx_runtime *lane =
@@ -971,7 +925,7 @@ tx_realloc_common(PMEMoid oid, size_t size, unsigned int type_num,
 	/* oid is not NULL and size is not 0 so do realloc by alloc and free */
 	void *ptr = OBJ_OFF_TO_PTR(lane->pop, oid.off);
 	size_t old_size = pmalloc_usable_size(lane->pop,
-			oid.off - OBJ_OOB_SIZE) - OBJ_OOB_SIZE;
+			oid.off) - OBJ_OOB_SIZE;
 
 	size_t copy_size = old_size < size ? old_size : size;
 
@@ -1499,8 +1453,6 @@ pmemobj_tx_add_range(PMEMoid oid, uint64_t hoff, size_t size)
 	}
 	ASSERT(OBJ_OID_IS_VALID(lane->pop, oid));
 
-	struct oob_header *oobh = OOB_HEADER_FROM_OID(lane->pop, oid);
-
 	struct tx_add_range_args args = {
 		.pop = lane->pop,
 		.offset = oid.off + hoff,
@@ -1508,11 +1460,11 @@ pmemobj_tx_add_range(PMEMoid oid, uint64_t hoff, size_t size)
 	};
 
 	/*
-	 * If internal type is not equal to TYPE_ALLOCATED it means
+	 * If internal type is in undo log it means
 	 * the object was allocated within this transaction
 	 * and there is no need to create a snapshot.
 	 */
-	if (oobh->data.internal_type == TYPE_ALLOCATED)
+	if (!OBJ_OID_IS_IN_UNDO_LOG(lane->pop, oid))
 		return pmemobj_tx_add_common(&args);
 
 	return 0;
@@ -1522,7 +1474,7 @@ pmemobj_tx_add_range(PMEMoid oid, uint64_t hoff, size_t size)
  * pmemobj_tx_alloc -- allocates a new object
  */
 PMEMoid
-pmemobj_tx_alloc(size_t size, unsigned int type_num)
+pmemobj_tx_alloc(size_t size, uint64_t type_num)
 {
 	LOG(3, NULL);
 
@@ -1534,10 +1486,6 @@ pmemobj_tx_alloc(size_t size, unsigned int type_num)
 		return pmemobj_tx_abort_null(EINVAL);
 	}
 
-	if (type_num >= PMEMOBJ_NUM_OID_TYPES) {
-		ERR("invalid type_num %d", type_num);
-		return pmemobj_tx_abort_null(EINVAL);
-	}
 
 	return tx_alloc_common(size, (type_num_t)type_num,
 			constructor_tx_alloc);
@@ -1547,7 +1495,7 @@ pmemobj_tx_alloc(size_t size, unsigned int type_num)
  * pmemobj_tx_zalloc -- allocates a new zeroed object
  */
 PMEMoid
-pmemobj_tx_zalloc(size_t size, unsigned int type_num)
+pmemobj_tx_zalloc(size_t size, uint64_t type_num)
 {
 	LOG(3, NULL);
 
@@ -1556,11 +1504,6 @@ pmemobj_tx_zalloc(size_t size, unsigned int type_num)
 
 	if (size == 0) {
 		ERR("allocation with size 0");
-		return pmemobj_tx_abort_null(EINVAL);
-	}
-
-	if (type_num >= PMEMOBJ_NUM_OID_TYPES) {
-		ERR("invalid type_num %d", type_num);
 		return pmemobj_tx_abort_null(EINVAL);
 	}
 
@@ -1572,7 +1515,7 @@ pmemobj_tx_zalloc(size_t size, unsigned int type_num)
  * pmemobj_tx_realloc -- resizes an existing object
  */
 PMEMoid
-pmemobj_tx_realloc(PMEMoid oid, size_t size, unsigned int type_num)
+pmemobj_tx_realloc(PMEMoid oid, size_t size, uint64_t type_num)
 {
 	LOG(3, NULL);
 
@@ -1588,7 +1531,7 @@ pmemobj_tx_realloc(PMEMoid oid, size_t size, unsigned int type_num)
  * pmemobj_zrealloc -- resizes an existing object, any new space is zeroed.
  */
 PMEMoid
-pmemobj_tx_zrealloc(PMEMoid oid, size_t size, unsigned int type_num)
+pmemobj_tx_zrealloc(PMEMoid oid, size_t size, uint64_t type_num)
 {
 	LOG(3, NULL);
 
@@ -1603,7 +1546,7 @@ pmemobj_tx_zrealloc(PMEMoid oid, size_t size, unsigned int type_num)
  * pmemobj_tx_strdup -- allocates a new object with duplicate of the string s.
  */
 PMEMoid
-pmemobj_tx_strdup(const char *s, unsigned int type_num)
+pmemobj_tx_strdup(const char *s, uint64_t type_num)
 {
 	LOG(3, NULL);
 
@@ -1612,11 +1555,6 @@ pmemobj_tx_strdup(const char *s, unsigned int type_num)
 
 	if (NULL == s) {
 		ERR("cannot duplicate NULL string");
-		return pmemobj_tx_abort_null(EINVAL);
-	}
-
-	if (type_num >= PMEMOBJ_NUM_OID_TYPES) {
-		ERR("invalid type_num %d", type_num);
 		return pmemobj_tx_abort_null(EINVAL);
 	}
 
@@ -1658,23 +1596,19 @@ pmemobj_tx_free(PMEMoid oid)
 	struct lane_tx_layout *layout =
 		(struct lane_tx_layout *)tx.section->layout;
 
-	struct oob_header *oobh = OOB_HEADER_FROM_OID(lane->pop, oid);
-	ASSERT(oobh->data.user_type < PMEMOBJ_NUM_OID_TYPES);
-
-	if (oobh->data.internal_type == TYPE_ALLOCATED) {
+	if (!OBJ_OID_IS_IN_UNDO_LOG(lane->pop, oid)) {
 		/* the object is in object store */
 		list_insert(lane->pop, -1 * (ssize_t)OBJ_OOB_SIZE,
 			&layout->undo_free, OID_NULL, 0, oid);
 	} else {
-		ASSERTeq(oobh->data.internal_type, TYPE_NONE);
+		struct oob_header *oobh = OOB_HEADER_FROM_OID(lane->pop, oid);
 #ifdef USE_VG_PMEMCHECK
-		size_t size = pmalloc_usable_size(lane->pop,
-				oid.off - OBJ_OOB_SIZE);
+		size_t size = pmalloc_usable_size(lane->pop, oid.off);
 
 		VALGRIND_SET_CLEAN(oobh, size);
 #endif
 		VALGRIND_REMOVE_FROM_TX(oobh, pmalloc_usable_size(lane->pop,
-				oid.off - OBJ_OOB_SIZE));
+				oid.off));
 
 		if (ctree_remove(lane->ranges, oid.off, 1) != oid.off)
 			FATAL("TX undo state mismatch");
@@ -1727,8 +1661,7 @@ tx_abort_register_valgrind(PMEMobjpool *pop, struct list_head *head)
 		 * because pool has not been registered yet.
 		 */
 		void *p = (char *)pop + iter.off;
-		size_t sz = pmalloc_usable_size(pop,
-				iter.off - OBJ_OOB_SIZE) - OBJ_OOB_SIZE;
+		size_t sz = pmalloc_usable_size(pop, iter.off) - OBJ_OOB_SIZE;
 
 		VALGRIND_DO_MEMPOOL_ALLOC(pop, p, sz);
 		VALGRIND_DO_MAKE_MEM_DEFINED(pop, p, sz);
@@ -1799,38 +1732,6 @@ lane_transaction_check(PMEMobjpool *pop,
 		if (!OBJ_OFF_FROM_HEAP(pop, range->offset) ||
 			!OBJ_OFF_FROM_HEAP(pop, range->offset + range->size)) {
 			ERR("tx_lane: invalid offset in tx range object");
-			return -1;
-		}
-	}
-
-	/* check undo log for allocations */
-	for (iter = tx_sec->undo_alloc.pe_first; !OBJ_OID_IS_NULL(iter);
-		iter = oob_list_next(pop, &tx_sec->undo_alloc, iter)) {
-
-		struct oob_header *oobh = OOB_HEADER_FROM_OID(pop, iter);
-		if (oobh->data.internal_type != TYPE_NONE) {
-			ERR("tx lane: invalid internal type");
-			return -1;
-		}
-
-		if (oobh->data.user_type >= PMEMOBJ_NUM_OID_TYPES) {
-			ERR("tx lane: invalid user type");
-			return -1;
-		}
-	}
-
-	/* check undo log for free operation */
-	for (iter = tx_sec->undo_free.pe_first; !OBJ_OID_IS_NULL(iter);
-		iter = oob_list_next(pop, &tx_sec->undo_free, iter)) {
-
-		struct oob_header *oobh = OOB_HEADER_FROM_OID(pop, iter);
-		if (oobh->data.internal_type != TYPE_ALLOCATED) {
-			ERR("tx lane: invalid internal type");
-			return -1;
-		}
-
-		if (oobh->data.user_type >= PMEMOBJ_NUM_OID_TYPES) {
-			ERR("tx lane: invalid user type");
 			return -1;
 		}
 	}

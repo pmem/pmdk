@@ -50,7 +50,7 @@
 /* size of the persistent part of PMEMOBJ pool descriptor (2kB) */
 #define	OBJ_DSC_P_SIZE		2048
 /* size of unused part of the persistent part of PMEMOBJ pool descriptor */
-#define	OBJ_DSC_P_UNUSED	(OBJ_DSC_P_SIZE - PMEMOBJ_MAX_LAYOUT - 56)
+#define	OBJ_DSC_P_UNUSED	(OBJ_DSC_P_SIZE - PMEMOBJ_MAX_LAYOUT - 40)
 
 #define	OBJ_LANES_OFFSET	8192	/* lanes offset (8kB) */
 #define	OBJ_NLANES		1024	/* number of lanes */
@@ -72,7 +72,9 @@
 	(pop)->nlanes * sizeof (struct lane_layout))
 
 #define	OBJ_OFF_IS_VALID(pop, off)\
-	(OBJ_OFF_FROM_HEAP(pop, off))
+	((OBJ_OFF_FROM_HEAP(pop, off) ||\
+	(OBJ_PTR_TO_OFF(pop, &pop->root_offset) == off)) ||\
+	(OBJ_OFF_FROM_LANES(pop, off)))
 
 #define	OBJ_PTR_IS_VALID(pop, ptr)\
 	OBJ_OFF_IS_VALID(pop, OBJ_PTR_TO_OFF(pop, ptr))
@@ -86,8 +88,15 @@
 		o.off < (pop)->heap_offset + (pop)->heap_size);\
 	})
 
+#define	OOB_HEADER_FROM_OFF(pop, off)\
+	((struct oob_header *)((uintptr_t)(pop) + (off) - OBJ_OOB_SIZE))
+
 #define	OOB_HEADER_FROM_OID(pop, oid)\
 	((struct oob_header *)((uintptr_t)(pop) + (oid).off - OBJ_OOB_SIZE))
+
+#define OBJ_OID_IS_IN_UNDO_LOG(pop, oid)\
+	(OOB_HEADER_FROM_OID(pop, oid)->oob.pe_next.off != 0 &&\
+	OOB_HEADER_FROM_OID(pop, oid)->oob.pe_prev.off != 0)
 
 #define	OOB_HEADER_FROM_PTR(ptr)\
 	((struct oob_header *)((uintptr_t)(ptr) - OBJ_OOB_SIZE))
@@ -111,8 +120,9 @@ typedef void *(*memcpy_fn)(PMEMobjpool *pop, void *dest, const void *src,
 					size_t len);
 typedef void *(*memset_fn)(PMEMobjpool *pop, void *dest, int c, size_t len);
 
-typedef uint16_t type_num_t;
 extern unsigned long Pagesize;
+
+typedef uint64_t type_num_t;
 
 struct pmemobjpool {
 	struct pool_hdr hdr;	/* memory pool header */
@@ -121,11 +131,12 @@ struct pmemobjpool {
 	char layout[PMEMOBJ_MAX_LAYOUT];
 	uint64_t lanes_offset;
 	uint64_t nlanes;
-	uint64_t root_offset;
 	uint64_t heap_offset;
 	uint64_t heap_size;
 	unsigned char unused[OBJ_DSC_P_UNUSED]; /* must be zero */
 	uint64_t checksum;	/* checksum of above fields */
+
+	uint64_t root_offset;
 
 	/* unique runID for this program run - persistent but not checksummed */
 	uint64_t run_id;
@@ -158,13 +169,7 @@ struct pmemobjpool {
 
 	PMEMmutex rootlock;	/* root object lock */
 	int is_master_replica;
-	char unused2[1832];
-};
-
-struct oob_header_data {
-	uint16_t internal_type;
-	type_num_t user_type;
-	uint8_t padding[4];
+	char unused2[1816];
 };
 
 /*
@@ -174,7 +179,7 @@ struct oob_header_data {
 struct oob_header {
 	struct list_entry oob;
 	size_t size;		/* used only in root object */
-	struct oob_header_data data;
+	uint64_t type_num;
 };
 
 enum internal_type {

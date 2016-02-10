@@ -37,6 +37,7 @@
 
 #include "libpmemobj.h"
 #include "redo.h"
+#include "memops.h"
 #include "pmalloc.h"
 #include "util.h"
 #include "lane.h"

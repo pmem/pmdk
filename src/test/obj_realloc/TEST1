@@ -42,11 +42,14 @@ export UNITTEST_NUM=1
 . ../unittest/unittest.sh
 
 require_valgrind_pmemcheck
+require_fs_type pmem
 
 setup
 
 expect_normal_exit $PMEMPOOL$EXESUFFIX\
 	create obj --layout realloc --size=64M $DIR/testfile1
+
+export PMEM_IS_PMEM_FORCE=1
 
 # last parameter disables integrity tests, because they are veeeeeery slow
 # under pmemcheck (19 minutes vs 7 seconds)

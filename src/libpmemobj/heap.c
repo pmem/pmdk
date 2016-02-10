@@ -41,8 +41,9 @@
 #include "libpmem.h"
 #include "libpmemobj.h"
 #include "util.h"
-#include "heap.h"
 #include "redo.h"
+#include "memops.h"
+#include "heap.h"
 #include "heap_layout.h"
 #include "bucket.h"
 #include "lane.h"
@@ -649,7 +650,7 @@ heap_get_best_bucket(PMEMobjpool *pop, size_t size)
 {
 	if (size <= pop->heap->last_run_max_size) {
 #ifdef USE_PER_LANE_BUCKETS
-		return heap_get_cache_bucket(pop, pop->heap->bucket_map[size]);
+		return heap_get_cache_bucket(pop, SIZE_TO_BID(pop->heap, size));
 #else
 		return pop->heap->buckets[SIZE_TO_BID(pop->heap, size)];
 #endif
@@ -1083,19 +1084,21 @@ chunk_get_chunk_hdr_value(struct chunk_header hdr, uint16_t type,
 }
 
 /*
- * heap_get_block_header -- returns the header of the memory block
+ * heap_prep_block_header_operation -- returns the header of the memory block
  */
-void *
-heap_get_block_header(PMEMobjpool *pop, struct memory_block m,
-	enum heap_op op, uint64_t *op_result)
+void
+heap_prep_block_header_operation(PMEMobjpool *pop, struct memory_block m,
+	enum heap_op op, struct operation_context *ctx)
 {
 	struct zone *z = &pop->heap->layout->zones[m.zone_id];
 	struct chunk_header *hdr = &z->chunk_headers[m.chunk_id];
 
 	if (hdr->type != CHUNK_TYPE_RUN) {
-		*op_result = chunk_get_chunk_hdr_value(*hdr,
+		uint64_t val = chunk_get_chunk_hdr_value(*hdr,
 			op == HEAP_OP_ALLOC ? CHUNK_TYPE_USED : CHUNK_TYPE_FREE,
 			m.size_idx);
+
+		operation_add_entry(ctx, hdr, val, OPERATION_SET);
 
 		VALGRIND_DO_MAKE_MEM_NOACCESS(pop, hdr + 1,
 				(hdr->size_idx - 1) *
@@ -1103,7 +1106,7 @@ heap_get_block_header(PMEMobjpool *pop, struct memory_block m,
 
 		heap_chunk_write_footer(pop, hdr, m.size_idx);
 
-		return hdr;
+		return;
 	}
 
 	struct chunk_run *r = (struct chunk_run *)&z->chunks[m.chunk_id];
@@ -1111,12 +1114,12 @@ heap_get_block_header(PMEMobjpool *pop, struct memory_block m,
 			(m.block_off % BITS_PER_VALUE);
 
 	int bpos = m.block_off / BITS_PER_VALUE;
-	if (op == HEAP_OP_FREE)
-		*op_result = r->bitmap[bpos] & ~bmask;
+	if (op == HEAP_OP_ALLOC)
+		operation_add_entry(ctx, &r->bitmap[bpos],
+			bmask, OPERATION_OR);
 	else
-		*op_result = r->bitmap[bpos] | bmask;
-
-	return &r->bitmap[bpos];
+		operation_add_entry(ctx, &r->bitmap[bpos],
+			~bmask, OPERATION_AND);
 }
 
 /*
@@ -1306,7 +1309,7 @@ heap_unlock_if_run(PMEMobjpool *pop, struct memory_block m)
 struct memory_block
 heap_coalesce(PMEMobjpool *pop,
 	struct memory_block *blocks[], int n, enum heap_op op,
-	void **hdr, uint64_t *op_result)
+	struct operation_context *ctx)
 {
 	struct memory_block ret;
 	struct memory_block *b = NULL;
@@ -1324,7 +1327,7 @@ heap_coalesce(PMEMobjpool *pop,
 	ret.zone_id = b->zone_id;
 	ret.block_off = b->block_off;
 
-	*hdr = heap_get_block_header(pop, ret, op, op_result);
+	heap_prep_block_header_operation(pop, ret, op, ctx);
 
 	return ret;
 }
@@ -1334,7 +1337,7 @@ heap_coalesce(PMEMobjpool *pop,
  */
 struct memory_block
 heap_free_block(PMEMobjpool *pop, struct bucket *b,
-	struct memory_block m, void *hdr, uint64_t *op_result)
+	struct memory_block m, struct operation_context *ctx)
 {
 	struct memory_block *blocks[3] = {NULL, &m, NULL};
 
@@ -1351,7 +1354,7 @@ heap_free_block(PMEMobjpool *pop, struct bucket *b,
 	}
 
 	struct memory_block res = heap_coalesce(pop, blocks, 3, HEAP_OP_FREE,
-		hdr, op_result);
+		ctx);
 
 	return res;
 }
@@ -1435,15 +1438,14 @@ heap_degrade_run_if_empty(PMEMobjpool *pop, struct bucket *b,
 	m.size_idx = 1;
 	heap_chunk_init(pop, hdr, CHUNK_TYPE_FREE, m.size_idx);
 
-	uint64_t *mhdr;
-	uint64_t op_result;
-	struct memory_block fm =
-			heap_free_block(pop, defb, m, &mhdr, &op_result);
-
-	VALGRIND_ADD_TO_TX(mhdr, sizeof (*mhdr));
-	*mhdr = op_result;
-	VALGRIND_REMOVE_FROM_TX(mhdr, sizeof (*mhdr));
-	pop->persist(pop, mhdr, sizeof (*mhdr));
+	/*
+	 * The redo log ptr can be NULL if we are sure that there's only one
+	 * persistent value modification in the entire operation context.
+	 */
+	struct operation_context *ctx = operation_init(pop, NULL);
+	struct memory_block fm = heap_free_block(pop, defb, m, ctx);
+	operation_process(ctx);
+	operation_delete(ctx);
 
 	CNT_OP(defb, insert, pop, fm);
 
@@ -1884,8 +1886,8 @@ heap_run_foreach_object(PMEMobjpool *pop, object_callback cb, void *arg,
 
 	struct allocation_header *alloc;
 
-	uint64_t i = start.block_off / BITS_PER_VALUE;
-	uint64_t block_start = start.block_off % BITS_PER_VALUE;
+	uint64_t i = 0; //start.block_off / BITS_PER_VALUE;
+	uint64_t block_start = 0; //start.block_off % BITS_PER_VALUE;
 
 	for (; i < bitmap_nval; ++i) {
 		uint64_t v = run->bitmap[i];

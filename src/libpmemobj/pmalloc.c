@@ -39,6 +39,7 @@
 #include "libpmemobj.h"
 #include "util.h"
 #include "redo.h"
+#include "memops.h"
 #include "pmalloc.h"
 #include "lane.h"
 #include "list.h"
@@ -54,13 +55,6 @@ enum alloc_op_redo {
 	ALLOC_OP_REDO_HEADER,
 
 	MAX_ALLOC_OP_REDO
-};
-
-enum operation_entry_type {
-	ENTRY_PERSISTENT,
-	ENTRY_TRANSIENT,
-
-	MAX_OPERATION_ENTRY_TYPE
 };
 
 /*
@@ -79,139 +73,8 @@ enum operation_entry_type {
 #define	MEMORY_BLOCK_IS_EMPTY(_m)\
 ((_m).size_idx == 0)
 
-#define	MAX_TRANSIENT_ENTRIES 2 /* PMEMoid offset and pool_uuid_lo */
-#define	MAX_PERSITENT_ENTRIES REDO_LOG_SIZE
-
-#define	OP_EN(_ptr, _value) (struct operation_entry)\
-{_ptr, _value}
-
-
 #define	ALLOC_GET_HEADER(_pop, _off) (struct allocation_header *)\
-((char *)OBJ_OFF_TO_PTR((_pop), (_off))\
-- sizeof (struct allocation_header) - DATA_OFF)
-
-/*
- * operation_context -- context of an ongoing palloc operation
- */
-struct operation_context {
-	PMEMobjpool *pop;
-
-	size_t nentries[MAX_OPERATION_ENTRY_TYPE];
-	struct operation_entry
-		entries[MAX_OPERATION_ENTRY_TYPE][MAX_PERSITENT_ENTRIES];
-};
-
-/*
- * operation_init -- (internal) initializes a new palloc operation
- */
-static struct operation_context *
-operation_init(PMEMobjpool *pop)
-{
-	struct operation_context *ctx = Malloc(sizeof (*ctx));
-
-	if (ctx == NULL)
-		goto out;
-
-	ctx->pop = pop;
-	ctx->nentries[ENTRY_PERSISTENT] = 0;
-	ctx->nentries[ENTRY_TRANSIENT] = 0;
-
-out:
-	return ctx;
-}
-
-/*
- * operation_add_entry -- (internal) adds new entry to the current operation
- */
-static void
-operation_add_entry(struct operation_context *ctx, void *ptr, uint64_t value)
-{
-	ASSERT(ctx->nentries[ENTRY_PERSISTENT] <= MAX_PERSITENT_ENTRIES);
-	ASSERT(ctx->nentries[ENTRY_TRANSIENT] <= MAX_TRANSIENT_ENTRIES);
-
-	enum operation_entry_type entry_type =
-		OBJ_PTR_IS_VALID(ctx->pop, ptr) ?
-		ENTRY_PERSISTENT : ENTRY_TRANSIENT;
-
-	ctx->entries[entry_type][ctx->nentries[entry_type]] = OP_EN(ptr, value);
-
-	ctx->nentries[entry_type]++;
-}
-
-/*
- * operation_add_entries -- (internal) adds new entries to the current operation
- */
-static void
-operation_add_entries(struct operation_context *ctx,
-	struct operation_entry *entries, size_t nentries)
-{
-	for (size_t i = 0; i < nentries; ++i) {
-		operation_add_entry(ctx, entries[i].ptr, entries[i].value);
-	}
-}
-
-/*
- * operation_process_persistent_redo -- (internal) process using redo
- */
-static void
-operation_process_persistent_redo(struct operation_context *ctx)
-{
-	struct lane_section *lane;
-	struct operation_entry *e;
-
-	lane_hold(ctx->pop, &lane, LANE_SECTION_ALLOCATOR);
-	struct allocator_lane_section *sec =
-		(struct allocator_lane_section *)lane->layout;
-
-	size_t i;
-	for (i = 0; i < ctx->nentries[ENTRY_PERSISTENT]; ++i) {
-		e = &ctx->entries[ENTRY_PERSISTENT][0];
-
-
-		redo_log_store(ctx->pop, sec->redo, i,
-			OBJ_PTR_TO_OFF(ctx->pop, e->ptr), e->value);
-	}
-
-	redo_log_set_last(ctx->pop, sec->redo, i - 1);
-	redo_log_process(ctx->pop, sec->redo, i);
-
-	lane_release(ctx->pop);
-}
-
-/*
- * operation_process -- (internal) processes registered operations
- */
-static void
-operation_process(struct operation_context *ctx)
-{
-	struct operation_entry *e;
-
-	for (size_t i = 0; i < ctx->nentries[ENTRY_TRANSIENT]; ++i) {
-		e = &ctx->entries[ENTRY_TRANSIENT][i];
-		*e->ptr = e->value;
-	}
-
-	/*
-	 * If there's exactly one persistent entry there's no need to involve
-	 * the redo log. We can simply assign the value, the operation will be
-	 * atomic.
-	 */
-	if (ctx->nentries[ENTRY_PERSISTENT] == 1) {
-		e = &ctx->entries[ENTRY_PERSISTENT][0];
-		*e->ptr = e->value;
-	} else if (ctx->nentries[ENTRY_PERSISTENT] != 0) {
-		operation_process_persistent_redo(ctx);
-	}
-}
-
-/*
- * operation_delete -- (internal) deletes current operation context
- */
-static void
-operation_delete(struct operation_context *ctx)
-{
-	Free(ctx);
-}
+((char *)OBJ_OFF_TO_PTR((_pop), (_off)) - ALLOC_OFF)
 
 /*
  * alloc_write_header -- (internal) creates allocation header
@@ -370,49 +233,64 @@ palloc_operation(PMEMobjpool *pop,
 	}
 
 	/* if allocation or reallocation, reserve new memory */
-	if (size != 0 && (alloc == NULL || alloc->size != sizeh)) {
+	if (size != 0) {
+		if (alloc != NULL && alloc->size == sizeh) /* no-op */
+			goto out;
+
 		if ((ret = alloc_reserve_block(pop, &nb, sizeh)) != 0)
 			goto out;
 	}
 
-	struct operation_context *ctx = operation_init(pop);
+	struct lane_section *lane;
+	lane_hold(pop, &lane, LANE_SECTION_ALLOCATOR);
+	struct allocator_lane_section *sec =
+		(struct allocator_lane_section *)lane->layout;
+
+	struct operation_context *ctx = operation_init(pop, sec->redo);
 	operation_add_entries(ctx, entries, nentries);
 
 	uint64_t offset_value = 0; /* the resulting offset */
 
 	/* lock and persistently free the existing memory block */
 	if (!MEMORY_BLOCK_IS_EMPTY(m)) {
+#ifdef DEBUG
+		if (!heap_block_is_allocated(pop, m)) {
+			ERR("Double free or heap corruption");
+			ASSERT(0);
+		}
+#endif /* DEBUG */
+
 		heap_lock_if_run(pop, m);
-
-		uint64_t op_result;
-		uint64_t *hdr;
-		rb = heap_free_block(pop, b, m, &hdr, &op_result);
+		rb = heap_free_block(pop, b, m, ctx);
 		offset_value = 0;
-
-		operation_add_entry(ctx, hdr, op_result);
 	}
 
 	if (!MEMORY_BLOCK_IS_EMPTY(nb)) {
+#ifdef DEBUG
+		if (heap_block_is_allocated(pop, nb)) {
+			ERR("heap corruption");
+			ASSERT(0);
+		}
+#endif /* DEBUG */
 		alloc_prep_block(pop, nb, constructor, arg, &offset_value);
 
 		heap_lock_if_run(pop, nb);
 
-		uint64_t alloc_op_result;
-		uint64_t *alloc_hdr = heap_get_block_header(pop, nb,
-			HEAP_OP_ALLOC, &alloc_op_result);
-
-		operation_add_entry(ctx, alloc_hdr, alloc_op_result);
+		heap_prep_block_header_operation(pop, nb, HEAP_OP_ALLOC, ctx);
 	}
 
 	/* not in-place realloc */
-	if (!MEMORY_BLOCK_IS_EMPTY(m) && !MEMORY_BLOCK_IS_EMPTY(nb))
+	if (!MEMORY_BLOCK_IS_EMPTY(m) && !MEMORY_BLOCK_IS_EMPTY(nb)) {
+		size_t old_size = alloc->size;
+		size_t to_cpy = old_size > sizeh ? sizeh : old_size;
 		pop->memcpy_persist(pop,
 			OBJ_OFF_TO_PTR(pop, offset_value),
 			OBJ_OFF_TO_PTR(pop, off),
-			USABLE_SIZE(alloc));
+			to_cpy - ALLOC_OFF);
+	}
 
 	if (dest_off != NULL)
-		operation_add_entry(ctx, dest_off, offset_value);
+		operation_add_entry(ctx, dest_off, offset_value, OPERATION_SET);
 
 	operation_process(ctx);
 
@@ -424,18 +302,23 @@ palloc_operation(PMEMobjpool *pop,
 		heap_unlock_if_run(pop, m);
 
 		VALGRIND_DO_MEMPOOL_FREE(pop,
-				(char *)heap_get_block_data(pop, m) +
-				sizeof (struct allocation_header) + DATA_OFF);
+			(char *)heap_get_block_data(pop, m) + ALLOC_OFF);
 
 		/* we might have been operating on inactive run */
 		if (b != NULL) {
 			CNT_OP(b, insert, pop, rb);
-
+#ifdef DEBUG
+			if (heap_block_is_allocated(pop, rb)) {
+				ERR("heap corruption");
+				ASSERT(0);
+			}
+#endif /* DEBUG */
 			if (b->type == BUCKET_RUN)
 				heap_degrade_run_if_empty(pop, b, rb);
 		}
 	}
 
+	lane_release(pop);
 	operation_delete(ctx);
 
 out:
@@ -553,8 +436,15 @@ pmalloc_search_cb(uint64_t off, void *arg)
 uint64_t
 pmalloc_first(PMEMobjpool *pop)
 {
+	uint64_t off_search = UINT64_MAX;
+	struct memory_block m = {0, 0, 0, 0};
 
-	return 0;
+	heap_foreach_object(pop, pmalloc_search_cb, &off_search, m);
+
+	if (off_search == UINT64_MAX)
+		return 0;
+
+	return off_search + sizeof (struct allocation_header);
 }
 
 /*
