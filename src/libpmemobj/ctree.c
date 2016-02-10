@@ -201,15 +201,22 @@ ctree_find(struct ctree *t, uint64_t key)
 	struct node_leaf *dst = t->root;
 	struct node *a = NULL;
 
+	util_mutex_lock(&t->lock);
+
 	while (NODE_IS_INTERNAL(dst)) {
 		a = NODE_INTERNAL_GET(dst);
 		dst = a->slots[BIT_IS_SET(key, a->diff)];
 	}
 
+	uint64_t ret;
 	if (dst && dst->key == key)
-		return key;
+		ret = key;
 	else
-		return 0;
+		ret = 0;
+
+	util_mutex_unlock(&t->lock);
+
+	return ret;
 }
 
 /*
@@ -220,6 +227,8 @@ ctree_find_le(struct ctree *t, uint64_t *key)
 {
 	struct node_leaf *dst = t->root;
 	struct node *a = NULL;
+
+	util_mutex_lock(&t->lock);
 
 	while (NODE_IS_INTERNAL(dst)) {
 		a = NODE_INTERNAL_GET(dst);
@@ -259,7 +268,9 @@ ctree_find_le(struct ctree *t, uint64_t *key)
 
 out:
 	*key = dst ? dst->key : 0;
-	return dst ? dst->value : 0;
+	uint64_t ret = dst ? dst->value : 0;
+	util_mutex_unlock(&t->lock);
+	return ret;
 }
 
 /*
