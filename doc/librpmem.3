@@ -1,0 +1,109 @@
+.\"
+.\" Copyright 2016, Intel Corporation
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\"
+.\"     * Redistributions of source code must retain the above copyright
+.\"       notice, this list of conditions and the following disclaimer.
+.\"
+.\"     * Redistributions in binary form must reproduce the above copyright
+.\"       notice, this list of conditions and the following disclaimer in
+.\"       the documentation and/or other materials provided with the
+.\"       distribution.
+.\"
+.\"     * Neither the name of the copyright holder nor the names of its
+.\"       contributors may be used to endorse or promote products derived
+.\"       from this software without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+.\" "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+.\" LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+.\" A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+.\" OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+.\" SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+.\" LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+.\" DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+.\" THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+.\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+.\" OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+.\"
+.\"
+.\" librpmem.3 -- man page for librpmem
+.\"
+.\" Format this man page with:
+.\"	man -l librpmem.3
+.\" or
+.\"	groff -man -Tascii librpmem.3
+.\"
+.TH librpmem 3 "remote pmem API version 0.1" "NVM Library"
+.SH NAME
+librpmem \- remote persistent memory library
+.SH SYNOPSIS
+.nf
+.B #include <librpmem.h>
+.sp
+.B cc ... -lrpmem
+.sp
+.B Most commonly used functions:
+.sp
+.BI "RPMEMpool *rpmem_create(const char *" target ", const char *" pool_set_name ,
+.BI "		void *" pool_addr ", size_t " pool_size ", unsigned " nlanes ",
+.BI "		const struct rpmem_pool_attr *" create_attr ");
+.BI
+.BI "RPMEMpool *rpmem_open(const char *" target ", const char *" pool_set_name ,
+.BI "		void *" pool_addr ", size_t " pool_size ", unsigned " nlanes ",
+.BI "		struct rpmem_pool_attr *" create_attr ");
+.BI
+.BI "int rpmem_remove(const char *" target ", const char *" pool_set_name );
+.BI "int rpmem_close(RPMEMpool *" rpp );
+.BI
+.BI "int rpmem_persist(RPMEMpool *" rpp ", size_t " offset ", size_t " length ", unsigned " lane );
+.BI "int rpmem_read(RPMEMpool *" rpp ", void *" buff ", size_t " length ", size_t " offset );
+.sp
+.sp
+.B Library API versioning:
+.sp
+.BI "const char *rpmem_check_version("
+.BI "    unsigned " major_required ,
+.BI "    unsigned " minor_required );
+.fi
+.sp
+.B Error handling:
+.sp
+.BI "const char *rpmem_errormsg(void);
+.fi
+.sp
+.SH DESCRIPTION
+.PP
+XXX
+.SH MOST COMMONLY USED FUNCTIONS
+.PP
+XXX
+.SH LIBRARY API VERSIONING
+.PP
+XXX
+.SH DEBUGGING AND ERROR HANDLING
+.PP
+XXX
+.SH ENVIRONMENT VARIABLES
+.PP
+XXX
+.SH EXAMPLES
+.PP
+XXX
+.SH ACKNOWLEDGEMENTS
+.PP
+.B librpmem
+builds on the persistent memory programming model
+recommended by the SNIA NVM Programming Technical Work Group:
+.IP
+http://snia.org/nvmp
+.SH "SEE ALSO"
+.BR libpmem (3),
+.BR libpmemobj (3),
+.BR libpmemblk (3),
+.BR libpmemlog (3),
+and
+.BR http://pmem.io .

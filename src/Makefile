@@ -1,3 +1,4 @@
+#
 # Copyright 2014-2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
@@ -35,7 +36,7 @@ TOP := $(dir $(lastword $(MAKEFILE_LIST)))..
 include $(TOP)/src/common.inc
 
 TARGETS = libpmem libvmem libpmemblk libpmemlog libpmemobj libvmmalloc tools
-ALL_TARGETS = $(TARGETS) examples benchmarks
+ALL_TARGETS = $(TARGETS) librpmem examples benchmarks
 CLEAN_TARGETS = $(ALL_TARGETS) test jemalloc
 CLOBBER_TARGETS = $(ALL_TARGETS) test jemalloc
 CSTYLE_TARGETS = $(ALL_TARGETS) common test

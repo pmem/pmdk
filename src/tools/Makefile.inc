@@ -34,6 +34,8 @@
 TOP := $(dir $(lastword $(MAKEFILE_LIST)))../..
 include $(TOP)/src/common.inc
 
+INSTALL_TARGET ?= y
+
 INCS += -I.
 INCS += -I$(TOP)/src/include
 CFLAGS += -std=gnu99
@@ -157,6 +159,7 @@ cstyle:
 	$(CSTYLE) *.[ch]
 
 install: all
+ifeq ($(INSTALL_TARGET),y)
 ifneq ($(TARGET),)
 	install -d $(TARGET_DIR)
 	install -p -m 0755 $(TARGET) $(TARGET_DIR)
@@ -165,13 +168,16 @@ ifneq ($(BASH_COMP_FILES),)
 	install -d $(BASH_COMP_DIR)
 	install -p -m 0644 $(BASH_COMP_FILES) $(BASH_COMP_DIR)
 endif
+endif
 
 uninstall:
+ifeq ($(INSTALL_TARGET),y)
 ifneq ($(TARGET),)
 	$(RM) $(TARGET_DIR)/$(TARGET)
 endif
 ifneq ($(BASH_COMP_FILES),)
 	$(RM) $(BASH_COMP_DIR)/$(BASH_COMP_FILES)
+endif
 endif
 
 %.gz: %
