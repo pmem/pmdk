@@ -90,10 +90,6 @@ $(ANALYZE): $(ANALYZE_OBJS)
 $(LIBART_SO): art.o
 	$(CC) $(LDFLAGS) -shared -o $(LIBART_SO).so art.o
 
-var_strings: var_strings.o
-
-unions: unions.o
-
 $(ARTTREE): $(ARTTREE).o $(LIBART_SO)
 	$(CC) -o $@ $(ARTTREE).o $(LIBS) $(LIBART)
 
