@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright (c) 2015, Intel Corporation
+# Copyright (c) 2015-2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -41,12 +41,15 @@ export UNITTEST_NUM=0
 # standard unit test setup
 . ../unittest/unittest.sh
 
+require_fs_type any
+
 setup
 
 rm -f $DIR/testfile1
 expect_normal_exit $PMEMPOOL$EXESUFFIX\
 	create obj --layout realloc --size=64M $DIR/testfile1
 
+export PMEM_IS_PMEM_FORCE=1
 expect_normal_exit ./obj_realloc$EXESUFFIX $DIR/testfile1
 
 check
