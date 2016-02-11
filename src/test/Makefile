@@ -190,6 +190,7 @@ VMMALLOC_TESTS = \
        vmmalloc_out_of_memory\
        vmmalloc_realloc\
        vmmalloc_valgrind\
+       vmmalloc_valloc
 
 EXAMPLES_TESTS = \
        ex_libpmem\
