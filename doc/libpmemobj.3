@@ -2564,6 +2564,10 @@ Committing the nested transaction does not commit the outer
 transaction, however errors in the nested transaction are propagated up to
 the outer-most level, resulting in the interruption of the entire transaction.
 .PP
+Please see the
+.B CAVEATS
+section for known limitations of the transactional API.
+.PP
 .BI "enum tx_stage pmemobj_tx_stage(void);
 .IP
 The
@@ -3149,6 +3153,66 @@ If successful and called during
 it returns zero.  Otherwise, stage changes to
 .I TX_STAGE_ONABORT
 and an error number is returned.
+.PP
+.SH CAVEATS
+.PP
+The transaction flow control is governed by the
+.BR setjmp "(3)/" longjmp (3)
+macros and they are used in both the macro and function flavors of the API.
+The transaction will longjmp on transaction abort.  This has one major drawback
+which is described in the ISO C standard subsection 7.13.2.1.  It says that
+.B the values of objects of automatic storage duration that are local to
+.B the function containing the setjmp invocation that do not have
+.B volatile-qualified type and have been changed between the setjmp invocation
+.B and longjmp call are indeterminate.
+.PP
+The following example illustrates the issue described above.
+.IP
+.nf
+int *bad_example_1 = NULL;
+int *bad_example_2 = NULL;
+int *bad_example_3 = NULL;
+volatile int *good_example = NULL;
+
+TX_BEGIN(Pop) {
+        bad_example_1 = malloc(...);
+        bad_example_2 = malloc(...);
+        bad_example_3 = malloc(...);
+        good_example = malloc(...);
+        ...
+        pmemobj_tx_abort(); /* manual or library abort called here */
+} TX_ONCOMMIT {
+        /*
+         * This section is longjmp-safe
+         */
+} TX_ONABORT {
+        /*
+         * This section is not longjmp-safe
+         */
+
+         free(bad_example_1); /* undefined behavior */
+         free(good_example); /* OK */
+} TX_FINALLY {
+        /*
+         * This section is not longjmp-safe on transaction abort only
+         */
+
+         free(bad_example_2); /* undefined behavior */
+} TX_END
+
+free(bad_example_3); /* undefined behavior */
+.fi
+.PP
+Objects which are not volatile-qualified, are of automatic storage duration and
+have been changed between the invocations of
+.BR setjmp (3)
+and
+.BR longjmp (3)
+(that also means within the work section of the transaction after TX_BEGIN)
+should not be used after a transaction abort or should be used with utmost care.
+This also includes code after the
+.B TX_END
+macro.
 .SH LIBRARY API VERSIONING
 .PP
 This section describes how the library API is versioned,
