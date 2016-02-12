@@ -117,50 +117,6 @@ util_pool_hdr_valid(struct pool_hdr *hdrp)
 		util_checksum(hdrp, sizeof (*hdrp), &hdrp->checksum, 0);
 }
 
-
-/*
- * util_parse_size -- parse size from string
- */
-int
-util_parse_size(const char *str, uint64_t *sizep)
-{
-	uint64_t size = 0;
-	int shift = 0;
-	char unit[3] = {0};
-	int ret = sscanf(str, "%lu%2s", &size, unit);
-	if (ret <= 0)
-		return -1;
-	if (ret == 2) {
-		if ((unit[1] != '\0' && unit[1] != 'B') ||
-			unit[2] != '\0')
-			return -1;
-		switch (unit[0]) {
-		case 'K':
-			shift = 10;
-			break;
-		case 'M':
-			shift = 20;
-			break;
-		case 'G':
-			shift = 30;
-			break;
-		case 'T':
-			shift = 40;
-			break;
-		case 'P':
-			shift = 50;
-			break;
-		default:
-			return -1;
-		}
-	}
-
-	if (sizep)
-		*sizep = size << shift;
-
-	return 0;
-}
-
 /*
  * util_parse_mode -- parse file mode from octal string
  */

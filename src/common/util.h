@@ -67,6 +67,13 @@ void *util_map_tmpfile(const char *dir, size_t size, size_t req_align);
 #define	ALIGNMENT_DESC_BITS		4
 
 /*
+ * Macro calculates number of elements in given table
+ */
+#ifndef	ARRAY_SIZE
+#define	ARRAY_SIZE(x)	(sizeof (x) / sizeof ((x)[0]))
+#endif
+
+/*
  * architecture identification flags
  *
  * These flags allow to unambiguously determine the architecture
@@ -251,6 +258,7 @@ int util_pool_open_nocheck(struct pool_set **setp, const char *path,
 int util_pool_open(struct pool_set **setp, const char *path, int rdonly,
 	size_t minsize, const char *sig,
 	uint32_t major, uint32_t compat, uint32_t incompat, uint32_t ro_compat);
+int util_parse_size(const char *str, uint64_t *sizep);
 
 
 #define	COMPILE_ERROR_ON(cond) ((void)sizeof (char[(cond) ? -1 : 1]))
