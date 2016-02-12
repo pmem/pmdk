@@ -741,6 +741,10 @@ function require_no_asan_for() {
 #	is installed
 #
 function require_cxx11() {
+	if [ -z "$CXX" ]; then
+		CXX=c++
+	fi
+
 	CXX11_AVAILABLE=`echo "int main(){return 0;}" |\
 		$CXX -std=c++11 -x c++ -o /dev/null - 2>/dev/null &&\
 		echo y || echo n`
