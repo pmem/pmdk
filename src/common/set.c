@@ -90,6 +90,11 @@ static const char *parser_errstr[PARSER_MAX_CODE] = {
 	"" /* format correct */
 };
 
+struct suff {
+	const char *suff;
+	uint64_t mag;
+};
+
 /*
  * util_map_part -- (internal) map a header of a pool set
  */
@@ -330,7 +335,9 @@ parser_get_next_token(char **line)
 static enum parser_codes
 parser_read_line(char *line, size_t *size, char **path)
 {
-	char *size_str, *path_str, *endptr;
+	int ret;
+	char *size_str;
+	char *path_str;
 
 	size_str = parser_get_next_token(&line);
 	path_str = parser_get_next_token(&line);
@@ -350,50 +357,12 @@ parser_read_line(char *line, size_t *size, char **path)
 	if (path_str[0] != '/')
 		return PARSER_WRONG_PATH; /* must be an absolute path */
 
-	*path = Strdup(path_str);
-
-	/* check format of size */
-	int ufound = 0;
-	*size = strtoull(size_str, &endptr, 10);
-	while (endptr && endptr[0] != '\0') {
-		if ((endptr[0] == 'b' || endptr[0] == 'B') &&
-		    (endptr[1] == '\0'))
-			return PARSER_CONTINUE;
-
-		if (ufound) {
-			Free(*path);
-			*path = NULL;
-			return PARSER_WRONG_SIZE;
-		}
-
-		/* multiply size by a unit */
-		switch (endptr[0]) {
-			case 'k':
-			case 'K':
-				*size *= 1ULL << 10; /* 1 KB */
-				break;
-			case 'm':
-			case 'M':
-				*size *= 1ULL << 20; /* 1 MB */
-				break;
-			case 'g':
-			case 'G':
-				*size *= 1ULL << 30; /* 1 GB */
-				break;
-			case 't':
-			case 'T':
-				*size *= 1ULL << 40; /* 1 TB */
-				break;
-			default:
-				Free(*path);
-				*path = NULL;
-				return PARSER_WRONG_SIZE;
-		}
-
-		ufound = 1;
-		endptr++;
+	ret = util_parse_size(size_str, size);
+	if (ret != 0 || *size == 0) {
+		return PARSER_WRONG_SIZE;
 	}
 
+	*path = Strdup(path_str);
 	return PARSER_CONTINUE;
 }
 
@@ -1677,4 +1646,54 @@ util_poolset_size(const char *path)
 err_close:
 	close(fd);
 	return size;
+}
+
+/*
+ * util_parse_size -- parse size from string
+ */
+int
+util_parse_size(const char *str, uint64_t *sizep)
+{
+	const struct suff suffixes[] = {
+		{ "B", 1 },
+		{ "K", 1UL << 10 },		/* JEDEC */
+		{ "M", 1UL << 20 },
+		{ "G", 1UL << 30 },
+		{ "T", 1UL << 40 },
+		{ "P", 1UL << 50 },
+		{ "KiB", 1UL << 10 },		/* IEC */
+		{ "MiB", 1UL << 20 },
+		{ "GiB", 1UL << 30 },
+		{ "TiB", 1UL << 40 },
+		{ "PiB", 1UL << 50 },
+		{ "kB", 1000UL },		/* SI */
+		{ "MB", 1000UL * 1000 },
+		{ "GB", 1000UL * 1000 * 1000 },
+		{ "TB", 1000UL * 1000 * 1000 * 1000 },
+		{ "PB", 1000UL * 1000 * 1000 * 1000 * 1000 }
+	};
+
+	int res = -1;
+	unsigned i;
+	uint64_t size = 0;
+	char unit[4] = {0};
+
+	int ret = sscanf(str, "%lu%4s", &size, unit);
+	if (ret == 1) {
+		res = 0;
+	} else if (ret == 2) {
+		for (i = 0; i < ARRAY_SIZE(suffixes); ++i) {
+			if (strcmp(suffixes[i].suff, unit) == 0) {
+				size = size * suffixes[i].mag;
+				res = 0;
+				break;
+			}
+		}
+	} else {
+		return -1;
+	}
+
+	if (sizep && res == 0)
+		*sizep = size;
+	return res;
 }
