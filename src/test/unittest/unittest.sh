@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2014-2016, Intel Corporation
+# Copyright 2014-2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -13,7 +13,7 @@
 #       the documentation and/or other materials provided with the
 #       distribution.
 #
-#     * Neither the name of Intel Corporation nor the names of its
+#     * Neither the name of the copyright holder nor the names of its
 #       contributors may be used to endorse or promote products derived
 #       from this software without specific prior written permission.
 #
@@ -603,7 +603,7 @@ function require_valgrind_pmemcheck() {
         fi
 
 	valgrind --tool=pmemcheck --help 2>&1 | \
-		grep -q "pmemcheck is Copyright (c)" && true
+		grep -q "pmemcheck is Copyright" && true
         if [ $? -ne 0 ]; then
             echo "$UNITTEST_NAME: SKIP valgrind package with pmemcheck required"
             exit 0;
