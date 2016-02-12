@@ -1,4 +1,4 @@
-highlighter: pygments
+highlighter: rouge
 
 gems:
   - jekyll-mentions
