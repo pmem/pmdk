@@ -117,13 +117,13 @@ COMMON_FLAGS += -fno-common
 
 CXXFLAGS  = -std=c++11
 CXXFLAGS += -ggdb
-CXXFLAGS += $(EXTRA_CXXFLAGS)
 CXXFLAGS += $(COMMON_FLAGS)
+CXXFLAGS += $(EXTRA_CXXFLAGS)
 
 CFLAGS  = -std=gnu99
 CFLAGS += -Wmissing-prototypes
-CFLAGS += $(EXTRA_CFLAGS)
 CFLAGS += $(COMMON_FLAGS)
+CFLAGS += $(EXTRA_CFLAGS)
 
 LDFLAGS = -Wl,--warn-common -Wl,--fatal-warnings $(EXTRA_LDFLAGS)
 
