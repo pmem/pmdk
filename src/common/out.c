@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2015, Intel Corporation
+ * Copyright (c) 2014-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -321,6 +321,10 @@ out_snprintf(char *str, size_t size, const char *format, ...)
 	return (ret);
 }
 
+#ifndef	PREFIX_LEN
+#define	PREFIX_LEN 60
+#endif
+
 /*
  * out_common -- common output code, all output goes through here
  */
@@ -336,6 +340,9 @@ out_common(const char *file, int line, const char *func, int level,
 	const char *errstr = "";
 
 	if (file) {
+		char *f = rindex(file, '/');
+		if (f)
+			file = f + 1;
 		ret = out_snprintf(&buf[cc], MAXPRINT - cc,
 				"<%s>: <%d> [%s:%d %s] ",
 				Log_prefix, level, file, line, func);
@@ -344,6 +351,10 @@ out_common(const char *file, int line, const char *func, int level,
 			goto end;
 		}
 		cc += (unsigned)ret;
+		if (cc < PREFIX_LEN) {
+			memset(buf + cc, ' ', PREFIX_LEN - cc);
+			cc = PREFIX_LEN;
+		}
 	}
 
 	if (fmt) {
@@ -405,6 +416,9 @@ out_error(const char *file, int line, const char *func,
 		cc = 0;
 
 		if (file) {
+			char *f = rindex(file, '/');
+			if (f)
+				file = f + 1;
 			ret = out_snprintf(&buf[cc], MAXPRINT,
 					"<%s>: <1> [%s:%d %s] ",
 					Log_prefix, file, line, func);
@@ -413,6 +427,10 @@ out_error(const char *file, int line, const char *func,
 				goto end;
 			}
 			cc += (unsigned)ret;
+			if (cc < PREFIX_LEN) {
+				memset(buf + cc, ' ', PREFIX_LEN - cc);
+				cc = PREFIX_LEN;
+			}
 		}
 
 		out_snprintf(&buf[cc], MAXPRINT - cc, "%s%s", errormsg,
