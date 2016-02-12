@@ -103,6 +103,7 @@ public:
 	void
 	push(PMEMobjpool *pop, uint64_t value)
 	{
+		int error = 0;
 		TX_BEGIN(pop) {
 			persistent_ptr<pmem_entry> n =
 				pmemobj_tx_alloc(sizeof (pmem_entry), 0);
@@ -116,8 +117,12 @@ public:
 				tail = n;
 			}
 		} TX_ONABORT {
-			throw std::runtime_error("transaction aborted");
+			error = 1;
+
 		} TX_END
+
+		if (error)
+			throw std::runtime_error("transaction aborted");
 	}
 
 	/*
@@ -127,9 +132,10 @@ public:
 	pop(PMEMobjpool *pop)
 	{
 		uint64_t ret = 0;
+		int error = 0;
 		TX_BEGIN(pop) {
 			if (head == nullptr)
-				throw std::logic_error("empty queue");
+				pmemobj_tx_abort(EINVAL);
 
 			ret = head->value;
 			auto n = head->next;
@@ -140,8 +146,11 @@ public:
 			if (head == nullptr)
 				tail = nullptr;
 		} TX_ONABORT {
-			throw std::runtime_error("transaction aborted");
+			error = 1;
 		} TX_END
+
+		if (error)
+			throw std::runtime_error("transaction aborted");
 
 		return ret;
 	}
