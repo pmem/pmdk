@@ -61,7 +61,7 @@ typedef int (*worker_fn)(struct blk_bench *, struct benchmark_args *,
  */
 struct blk_args {
 	bool file_io;		/* use file-io */
-	unsigned int fsize;	/* file size */
+	size_t fsize;		/* file size */
 	bool no_warmup;		/* don't do warmup */
 	unsigned int seed;	/* seed for randomization */
 	bool rand;		/* random blocks */
@@ -106,7 +106,7 @@ static struct benchmark_clo blk_clo[] = {
 	{
 		.opt_short	= 'r',
 		.opt_long	= "random",
-		.descr		= "Use random sizes for append/read",
+		.descr		= "Use random block numbers for write/read",
 		.off		= clo_field_offset(struct blk_args, rand),
 		.type		= CLO_TYPE_FLAG
 	},
@@ -282,7 +282,7 @@ blk_init_worker(struct benchmark *bench, struct benchmark_args *args,
 		}
 	} else {
 		for (size_t i = 0; i < args->n_ops_per_thread; i++)
-			bworker->blocks[i] = i;
+			bworker->blocks[i] = i % bb->blocks_per_thread;
 	}
 
 	worker->priv = bworker;
