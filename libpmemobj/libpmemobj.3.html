@@ -1,5 +1,5 @@
 <!-- Creator     : groff version 1.18.1.4 -->
-<!-- CreationDate: Mon Feb  1 08:03:57 2016 -->
+<!-- CreationDate: Fri Feb 12 11:37:30 2016 -->
 <html>
 <head>
 <meta name="generator" content="groff -Thtml, see www.gnu.org">
@@ -25,6 +25,7 @@
 <a href="#NON-TRANSACTIONAL PERSISTENT ATOMIC LISTS">NON-TRANSACTIONAL PERSISTENT ATOMIC LISTS</a><br>
 <a href="#TYPE-SAFE NON-TRANSACTIONAL PERSISTENT ATOMIC LISTS">TYPE-SAFE NON-TRANSACTIONAL PERSISTENT ATOMIC LISTS</a><br>
 <a href="#TRANSACTIONAL OBJECT MANIPULATION">TRANSACTIONAL OBJECT MANIPULATION</a><br>
+<a href="#CAVEATS">CAVEATS</a><br>
 <a href="#LIBRARY API VERSIONING">LIBRARY API VERSIONING</a><br>
 <a href="#MANAGING LIBRARY BEHAVIOR">MANAGING LIBRARY BEHAVIOR</a><br>
 <a href="#DEBUGGING AND ERROR HANDLING">DEBUGGING AND ERROR HANDLING</a><br>
@@ -3575,6 +3576,9 @@ transaction, however errors in the nested transaction are
 propagated up to the outer-most level, resulting in the
 interruption of the entire transaction.</p>
 <!-- INDENTATION -->
+<p>Please see the <b>CAVEATS</b> section for known
+limitations of the transactional API.</p>
+<!-- INDENTATION -->
 <p><b>enum tx_stage pmemobj_tx_stage(void);</b></p>
 </td>
 </table>
@@ -4204,10 +4208,17 @@ atomically.</p>
 <tr valign="top" align="left">
 <td width="20%"></td>
 <td width="79%">
-<p>The <b>TX_ONABORT</b>() macro starts a block of code that
+<p>The <b>TX_ONABORT</b> macro starts a block of code that
 will be executed only if starting the transaction fails due
 to an error in <b>pmemobj_tx_begin</b>(), or if the
-transaction is aborted. This block is optional.</p>
+transaction is aborted. This block is optional, but in
+practice it should not be omitted. If it&rsquo;s desirable
+to crash the application when transaction aborts and
+there&rsquo;s no <b>TX_ONABORT</b> section, application can
+define <b>POBJ_TX_CRASH_ON_NO_ONABORT</b> macro before
+inclusion of <b>&lt;libpmemobj.h&gt;</b>. It provides
+default <b>TX_ONABORT</b> section which just calls
+<b>abort</b>(3).</p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -4225,12 +4236,12 @@ transaction is aborted. This block is optional.</p>
 <tr valign="top" align="left">
 <td width="20%"></td>
 <td width="79%">
-<p>The <b>TX_ONCOMMIT</b>() macro starts a block of code
-that will be executed only if the transaction is
-successfully committed, which means that the execution of
-code in <b>TX_BEGIN</b> block has not been interrupted by an
-error or by a call to <b>pmemobj_tx_abort</b>(). This block
-is optional.</p>
+<p>The <b>TX_ONCOMMIT</b> macro starts a block of code that
+will be executed only if the transaction is successfully
+committed, which means that the execution of code in
+<b>TX_BEGIN</b> block has not been interrupted by an error
+or by a call to <b>pmemobj_tx_abort</b>(). This block is
+optional.</p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -4248,7 +4259,7 @@ is optional.</p>
 <tr valign="top" align="left">
 <td width="20%"></td>
 <td width="79%">
-<p>The <b>TX_FINALLY</b>() macro starts a block of code that
+<p>The <b>TX_FINALLY</b> macro starts a block of code that
 will be executed regardless of whether the transaction is
 committed or aborted. This block is optional.</p>
 </td>
@@ -4268,7 +4279,7 @@ committed or aborted. This block is optional.</p>
 <tr valign="top" align="left">
 <td width="20%"></td>
 <td width="79%">
-<p>The <b>TX_END</b>() macro cleans up and closes the
+<p>The <b>TX_END</b> macro cleans up and closes the
 transaction started by <b>TX_BEGIN</b>() or
 <b>TX_BEGIN_LOCK</b>() macro. It is mandatory to terminate
 each transaction with this macro. If the transaction was
@@ -4595,6 +4606,87 @@ is OID_NULL, no operation is performed. If successful and
 called during <i>TX_STAGE_WORK</i> it returns zero.
 Otherwise, stage changes to <i>TX_STAGE_ONABORT</i> and an
 error number is returned.</p>
+</td>
+</table>
+<a name="CAVEATS"></a>
+<h2>CAVEATS</h2>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>The transaction flow control is governed by the
+<b>setjmp</b>(3)/<b>longjmp</b>(3) macros and they are used
+in both the macro and function flavors of the API. The
+transaction will longjmp on transaction abort. This has one
+major drawback which is described in the ISO C standard
+subsection 7.13.2.1. It says that <b>the values of objects
+of automatic storage duration that are local to the function
+containing the setjmp invocation that do not have
+volatile-qualified type and have been changed between the
+setjmp invocation and longjmp call are
+indeterminate.</b></p>
+<!-- INDENTATION -->
+<p>The following example illustrates the issue described
+above.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="20%"></td>
+<td width="79%">
+<pre>int *bad_example_1 = NULL;
+int *bad_example_2 = NULL;
+int *bad_example_3 = NULL;
+volatile int *good_example = NULL;
+
+TX_BEGIN(Pop) {
+        bad_example_1 = malloc(...);
+        bad_example_2 = malloc(...);
+        bad_example_3 = malloc(...);
+        good_example = malloc(...);
+        ...
+        pmemobj_tx_abort(); /* manual or library abort called here */
+} TX_ONCOMMIT {
+        /*
+         * This section is longjmp-safe
+         */
+} TX_ONABORT {
+        /*
+         * This section is not longjmp-safe
+         */
+
+        free(bad_example_1); /* undefined behavior */
+         free(good_example); /* OK */
+} TX_FINALLY {
+        /*
+         * This section is not longjmp-safe on transaction abort only
+         */
+
+        free(bad_example_2); /* undefined behavior */
+} TX_END
+
+free(bad_example_3); /* undefined behavior */
+</pre>
+</td>
+</table>
+<!-- INDENTATION -->
+
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>Objects which are not volatile-qualified, are of
+automatic storage duration and have been changed between the
+invocations of <b>setjmp</b>(3) and <b>longjmp</b>(3) (that
+also means within the work section of the transaction after
+TX_BEGIN) should not be used after a transaction abort or
+should be used with utmost care. This also includes code
+after the <b>TX_END</b> macro.</p>
 </td>
 </table>
 <a name="LIBRARY API VERSIONING"></a>
