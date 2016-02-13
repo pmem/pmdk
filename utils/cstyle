@@ -577,14 +577,14 @@ line: while (<$filehandle>) {
 	if (/\S   *(&&|\|\|)/ || /(&&|\|\|)   *\S/) {
 		err("more than one space around boolean operator");
 	}
-	if (/\b(for|if|while|switch|sizeof|typeof|return|case)\(/) {
+	if (/\b(for|if|while|switch|sizeof|typeof|__typeof__return|case)\(/) {
 		err("missing space between keyword and paren");
 	}
 	if (/(\b(for|if|while|switch|return)\b.*){2,}/ && !/^#define/) {
 		# multiple "case" and "sizeof" allowed
 		err("more than one keyword on line");
 	}
-	if (/\b(for|if|while|switch|sizeof|typeof|return|case)\s\s+\(/ &&
+	if (/\b(for|if|while|switch|sizeof|typeof|__typeof__return|case)\s\s+\(/ &&
 	    !/^#if\s+\(/) {
 		err("extra space between keyword and paren");
 	}
@@ -593,7 +593,7 @@ line: while (<$filehandle>) {
 	if (/\w\s\(/) {
 		my $s = $_;
 		# strip off all keywords on the line
-		s/\b(for|if|while|switch|return|case|sizeof|typeof)\s\(/XXX(/g;
+		s/\b(for|if|while|switch|return|case|sizeof|typeof|__typeof__)\s\(/XXX(/g;
 		s/#elif\s\(/XXX(/g;
 		s/^#define\s+\w+\s+\(/XXX(/;
 		# do not match things like "void (*f)();"

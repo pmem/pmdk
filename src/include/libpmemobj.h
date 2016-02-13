@@ -375,9 +375,9 @@ void *pmemobj_direct(PMEMoid oid);
 #ifndef WIN32
 
 #define	DIRECT_RW(o) (\
-{__typeof__(o) _o; _o._type = NULL; (void)_o;\
-(__typeof__(*(o)._type) *)pmemobj_direct((o).oid); })
-#define	DIRECT_RO(o) ((const __typeof__(*(o)._type) *)pmemobj_direct((o).oid))
+{__typeof__ (o) _o; _o._type = NULL; (void)_o;\
+(__typeof__ (*(o)._type) *)pmemobj_direct((o).oid); })
+#define	DIRECT_RO(o) ((const __typeof__ (*(o)._type) *)pmemobj_direct((o).oid))
 
 #else /* WIN32 */
 
@@ -385,8 +385,8 @@ void *pmemobj_direct(PMEMoid oid);
 #define	DIRECT_RW(o) (pmemobj_direct((o).oid))
 #define	DIRECT_RO(o) (pmemobj_direct((o).oid))
 #else
-#define	DIRECT_RW(o) ((typeof ((o)._type))pmemobj_direct((o).oid))
-#define	DIRECT_RO(o) ((const typeof ((o)._type))pmemobj_direct((o).oid))
+#define	DIRECT_RW(o) ((__typeof__ ((o)._type))pmemobj_direct((o).oid))
+#define	DIRECT_RO(o) ((const __typeof__ ((o)._type))pmemobj_direct((o).oid))
 #endif
 
 #endif /* WIN32 */
@@ -539,14 +539,14 @@ PMEMoid pmemobj_next(PMEMoid oid);
 _pobj_ret; })
 
 #define	POBJ_NEXT(o) (\
-{ __typeof__(o) _pobj_ret = (__typeof__(o))pmemobj_next((o).oid);\
+{ __typeof__ (o) _pobj_ret = (__typeof__ (o))pmemobj_next((o).oid);\
 _pobj_ret; })
 
 #else
 
 #define	POBJ_FIRST(pop, t) ((TOID(t))pmemobj_first((pop), TOID_TYPE_NUM(t)))
 
-#define	POBJ_NEXT(o) ((typeof (o))pmemobj_next((o).oid))
+#define	POBJ_NEXT(o) ((__typeof__ (o))pmemobj_next((o).oid))
 
 #endif
 
@@ -652,7 +652,7 @@ for (_POBJ_DEBUG_NOTICE_IN_TX_FOR("POBJ_FOREACH_SAFE")\
  */
 #define	POBJ_FOREACH_TYPE(pop, var)\
 for (_POBJ_DEBUG_NOTICE_IN_TX_FOR("POBJ_FOREACH_TYPE")\
-	var = (__typeof__(var))pmemobj_first((pop),\
+	var = (__typeof__ (var))pmemobj_first((pop),\
 		TOID_TYPE_NUM_OF(var));\
 		TOID_IS_NULL(var) == 0;\
 		var = POBJ_NEXT(var))
@@ -663,7 +663,7 @@ for (_POBJ_DEBUG_NOTICE_IN_TX_FOR("POBJ_FOREACH_TYPE")\
  */
 #define	POBJ_FOREACH_SAFE_TYPE(pop, var, nvar)\
 for (_POBJ_DEBUG_NOTICE_IN_TX_FOR("POBJ_FOREACH_SAFE_TYPE")\
-	var = (__typeof__(var))pmemobj_first((pop),\
+	var = (__typeof__ (var))pmemobj_first((pop),\
 	TOID_TYPE_NUM_OF(var));\
 	TOID_IS_NULL(var) == 0 &&\
 	(nvar = POBJ_NEXT(var), 1);\
@@ -1076,10 +1076,10 @@ pmemobj_tx_add_range_direct(&(p)->field, sizeof ((p)->field))
 #ifndef WIN32
 
 #define	_TX_ALLOC(func, t, ...) (\
-{ TOID(t) _pobj_ret = (TOID(t))func(__VA_ARGS__); _pobj_ret; })
+{TOID(t) _pobj_ret = (TOID(t))func(__VA_ARGS__); _pobj_ret; })
 #define	_TX_REALLOC(func, o, ...) (\
-{ __typeof__ (o) _pobj_ret =\
-    (__typeof__ (o))func((o).oid, __VA_ARGS__); _pobj_ret; })
+{ __typeof__ (o) _pobj_ret = (__typeof__ (o))func((o).oid, __VA_ARGS__);\
+_pobj_ret; })
 
 #else /* WIN32 */
 

@@ -52,6 +52,7 @@
 #define	__func__ __FUNCTION__
 #define	restrict __restrict
 #define	typeof decltype
+#define	__typeof__ decltype
 
 
 typedef int mode_t;
