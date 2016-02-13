@@ -54,8 +54,18 @@ The source tree is organized as follows:
 * **utils** -- utilities used during build & test
 * **CONTRIBUTING.md** -- instructions for people wishing to contribute
 
-To build this library, you may need to install some required packages on
-the build system.  See the **before_install:** rules in the
+To build this library, you may need to install the following required packages
+on the build system:
+
+* **autoconf**
+* **pkg-config**
+
+Some tests and example applications require additional packages, but they
+do not interrupt building if they are missing. An appropriate message is
+displayed instead. For details please read the ** DEPENDENCIES ** section
+in appropriate README file.
+
+See the **before_install:** rules in the
 [.travis.yml](https://github.com/pmem/nvml/blob/master/.travis.yml)
 file at the top level of the repository to get an idea what packages
 were required to build on the _travis-ci_ (Ubuntu-based) systems.
@@ -105,13 +115,13 @@ To build rpm packages on rpm-based distributions:
 ```
 	$ make rpm
 ```
-**Prerequisites:** rpmbuild
+** DEPENDENCIES: ** rpmbuild
 
 To build dpkg packages on Debian-based distributions:
 ```
 	$ make dpkg
 ```
-**Prerequisites:** devscripts
+** DEPENDENCIES: ** devscripts
 
 (*) By default all code is built with -Werror flag which fails the whole build
 when compiler emits any warning. It's very useful during development, but can be
