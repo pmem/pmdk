@@ -2673,14 +2673,11 @@ transaction with
 stage without releasing any locks.
 Must always be called for each
 .BR pmemobj_tx_begin (),
-even if starting the transaction failed.  It has no effect if called
-during
-.I TX_STAGE_NONE
-stage and must
+even if starting the transaction failed.  This function must
 .I not
 be called during
 .IR TX_STAGE_WORK .
-If transaction was successful, returns 0. Otherwise returns error code set by
+If transaction was successful, returns 0.  Otherwise returns error code set by
 .BR pmemobj_tx_abort ().
 Note that
 .BR pmemobj_tx_abort ()
