@@ -37,7 +37,7 @@
 .\" or
 .\"	groff -man -Tascii libpmemobj.3
 .\"
-.TH libpmemobj 3 "pmemobj API version 0.4.25" "NVM Library"
+.TH libpmemobj 3 "pmemobj API version 0.4.26" "NVM Library"
 .SH NAME
 libpmemobj \- persistent memory transactional object store
 .SH SYNOPSIS
@@ -1428,7 +1428,9 @@ of the root object.  In such case, OID_NULL is returned.
 .PP
 .PP
 .BI "PMEMoid pmemobj_root_construct(PMEMobjpool *" pop ", size_t " size ,
+.br
 .BI "    void (*" constructor ")(PMEMobjpool *" pop ", void *" ptr ", void *" arg "),
+.br
 .BI "    void *" arg );
 .IP
 The
@@ -1437,7 +1439,7 @@ performs the same actions as the
 .BR pmemobj_root ()
 function, but instead of zeroing the newly allocated object a
 .I constructor
-function is called. The constructor is also called on reallocations. The
+function is called.  The constructor is also called on reallocations.  The
 .BR pmemobj_root_size ()
 can be used in the constructor to check whether it's the first call to the
 constructor.
