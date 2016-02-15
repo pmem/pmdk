@@ -70,6 +70,7 @@ namespace obj
 		/* default constructor is NULL-initialized */
 		persistent_ptr() : oid(OID_NULL)
 		{
+			verify_type();
 		}
 
 		/*
