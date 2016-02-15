@@ -877,7 +877,7 @@ heap_find_or_create_best_alloc_class(struct pmalloc_heap *h, size_t n)
 {
 	COMPILE_ERROR_ON(MAX_BUCKETS > UINT8_MAX);
 
-	for (int i = MAX_BUCKETS; i >= 0; --i) {
+	for (int i = MAX_BUCKETS - 1; i >= 0; --i) {
 		if (h->buckets[i] == NULL)
 			continue;
 
@@ -940,7 +940,9 @@ heap_buckets_init(PMEMobjpool *pop)
 	}
 
 	/* pick the largest bucket and fill the rest of the map */
-	for (slot = MAX_BUCKETS; slot > 0 && h->buckets[slot] == NULL; --slot)
+	for (slot = MAX_BUCKETS - 1;
+			slot > 0 && h->buckets[slot] == NULL;
+			--slot)
 		;
 
 	heap_register_bucket_range(h, slot, size,
