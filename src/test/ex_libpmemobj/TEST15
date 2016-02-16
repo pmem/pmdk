@@ -67,7 +67,7 @@ if [ -t 1 -a -z "$NOTTY" ]
 then
 	expect_normal_exit $EX_PATH/pminvaders $DIR/testfile1 < $INPUT
 else
-	expect_normal_exit $EX_PATH/pminvaders $DIR/testfile1 >/dev/null < $INPUT
+	expect_normal_exit $EX_PATH/pminvaders $DIR/testfile1 >/dev/null 2>/dev/null < $INPUT
 fi
 
 pass
