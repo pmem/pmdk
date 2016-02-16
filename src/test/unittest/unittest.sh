@@ -811,6 +811,9 @@ function setup() {
 
 		mkdir $DIR
 	fi
+	if [ "$TM" = "1" ]; then
+		start_time=$(date +%s.%N)
+	fi
 }
 
 #
@@ -824,9 +827,17 @@ function check() {
 # pass -- print message that the test has passed
 #
 function pass() {
+	if [ "$TM" = "1" ]; then
+		end_time=$(date +%s.%N)
+		tm=$(date -d "0 $end_time sec - $start_time sec" +%H:%M:%S.%N | \
+			sed -e "s/^00://g" -e "s/^00://g" -e "s/\([0-9]*\)\.\([0-9][0-9][0-9]\).*/\1.\2/")
+		tm="\t\t\t[$tm s]"
+	else
+		tm=""
+	fi
 	msg="PASS"
 	[ -t 1 ] && command -v tput >/dev/null && msg="$(tput setaf 2)$msg$(tput sgr0)"
-	echo -e "$UNITTEST_NAME: $msg"
+	echo -e "$UNITTEST_NAME: $msg$tm"
 	if [ "$FS" != "none" ]; then
 		rm --one-file-system -rf -- $DIR
 	fi
