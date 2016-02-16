@@ -34,6 +34,9 @@
  * pext.hpp -- convenience extensions for the resides on pmem property template
  */
 
+#ifndef PEXT_HPP
+#define PEXT_HPP
+
 #include <iostream>
 #include "libpmemobj/p.hpp"
 
@@ -305,3 +308,5 @@ p<T> &operator>>=(p<T> &lhs, const Y &rhs)
 } /* namespace obj */
 
 } /* namespace nvml */
+
+#endif /* PEXT_HPP */
