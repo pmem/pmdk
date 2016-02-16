@@ -427,6 +427,46 @@ do_tx_commit_and_abort(PMEMobjpool *pop)
 	ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
 }
 
+/*
+ * test_add_direct_macros -- test TX_ADD_DIRECT, TX_ADD_FIELD_DIRECT and
+ * TX_SET_DIRECT
+ */
+static void
+test_add_direct_macros(PMEMobjpool *pop)
+{
+	TOID(struct object) obj;
+	TOID_ASSIGN(obj, do_tx_zalloc(pop, TYPE_OBJ));
+
+	TX_BEGIN(pop) {
+		struct object *o = D_RW(obj);
+		TX_SET_DIRECT(o, value, TEST_VALUE_1);
+	} TX_ONABORT {
+		ASSERT(0);
+	} TX_END
+
+	ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
+
+	TX_BEGIN(pop) {
+		struct object *o = D_RW(obj);
+		TX_ADD_DIRECT(o);
+		o->value = TEST_VALUE_2;
+	} TX_ONABORT {
+		ASSERT(0);
+	} TX_END
+
+	ASSERTeq(D_RO(obj)->value, TEST_VALUE_2);
+
+	TX_BEGIN(pop) {
+		struct object *o = D_RW(obj);
+		TX_ADD_FIELD_DIRECT(o, value);
+		o->value = TEST_VALUE_1;
+	} TX_ONABORT {
+		ASSERT(0);
+	} TX_END
+
+	ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -460,6 +500,8 @@ main(int argc, char *argv[])
 	do_tx_add_range_alloc_abort(pop);
 	VALGRIND_WRITE_STATS;
 	do_tx_commit_and_abort(pop);
+	VALGRIND_WRITE_STATS;
+	test_add_direct_macros(pop);
 	VALGRIND_WRITE_STATS;
 
 	pmemobj_close(pop);
