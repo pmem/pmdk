@@ -992,6 +992,12 @@ pmemobj_tx_add_range((o).oid, 0, sizeof (*(o)._type))
 pmemobj_tx_add_range((o).oid, offsetof(__typeof__ (*(o)._type), field),\
 		sizeof (D_RO(o)->field))
 
+#define	TX_ADD_DIRECT(p)\
+pmemobj_tx_add_range_direct(p, sizeof (*p))
+
+#define	TX_ADD_FIELD_DIRECT(p, field)\
+pmemobj_tx_add_range_direct(&(p)->field, sizeof ((p)->field))
+
 #define	TX_NEW(t) (\
 { TOID(t) _pobj_ret = (TOID(t))pmemobj_tx_alloc(sizeof (t),\
 TOID_TYPE_NUM(t)); _pobj_ret; })
@@ -1028,6 +1034,11 @@ pmemobj_tx_free((o).oid)
 {\
 	TX_ADD_FIELD(o, field);\
 	D_RW(o)->field = value; })
+
+#define	TX_SET_DIRECT(p, field, value) (\
+{\
+	TX_ADD_FIELD_DIRECT(p, field);\
+	p->field = value; })
 
 static inline void *
 TX_MEMCPY(void *dest, const void *src, size_t num)

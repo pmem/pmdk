@@ -37,7 +37,7 @@
 .\" or
 .\"	groff -man -Tascii libpmemobj.3
 .\"
-.TH libpmemobj 3 "pmemobj API version 0.4.24" "NVM Library"
+.TH libpmemobj 3 "pmemobj API version 0.4.25" "NVM Library"
 .SH NAME
 libpmemobj \- persistent memory transactional object store
 .SH SYNOPSIS
@@ -280,6 +280,8 @@ libpmemobj \- persistent memory transactional object store
 .sp
 .BI "TX_ADD(TOID " o )
 .BI "TX_ADD_FIELD(TOID " o ", " FIELD )
+.BI "TX_ADD_DIRECT(TYPE *" p )
+.BI "TX_ADD_FIELD_DIRECT(TYPE *" p ", " FIELD )
 .sp
 .BI "TX_NEW(" TYPE )
 .BI "TX_ALLOC(" TYPE ", size_t " size )
@@ -291,6 +293,7 @@ libpmemobj \- persistent memory transactional object store
 .BI "TX_FREE(TOID " o )
 .sp
 .BI "TX_SET(TOID " o ", " FIELD ", " VALUE )
+.BI "TX_SET_DIRECT(TYPE *" p ", " FIELD ", " VALUE )
 .BI "TX_MEMCPY(const void *" dest ", const void *" src ", size_t " num )
 .BI "TX_MEMSET(const void *" dest ", int " c ", size_t " num )
 .sp
@@ -2990,6 +2993,29 @@ and saves it in the undo log.  The object size is determined from its
 The application is then free to directly modify the object.  In case of
 a failure or abort, all the changes within the object will be rolled-back.
 .PP
+.BI "TX_ADD_FIELD_DIRECT(TYPE *" p ", " FIELD )
+.IP
+The
+.BR TX_ADD_FIELD_DIRECT ()
+macro saves in the undo log the current value of given
+.I FIELD
+of the object referenced by (direct) pointer
+.IR p .
+The application is then free to directly modify the specified
+.IR FIELD .
+In case of a failure or abort, the saved value will be restored.
+.PP
+.BI "TX_ADD_DIRECT(TYPE *" p )
+.IP
+The
+.BR TX_ADD_DIRECT ()
+macro takes a "snapshot" of the entire object referenced by (direct) pointer
+.I p
+and saves it in the undo log.  The object size is determined from its
+.IR TYPE .
+The application is then free to directly modify the object.  In case of
+a failure or abort, all the changes within the object will be rolled-back.
+.PP
 .BI "TX_SET(TOID " o ", " FIELD ", " VALUE )
 .IP
 The
@@ -2998,6 +3024,18 @@ macro saves in the undo log the current value of given
 .I FIELD
 of the object referenced by a handle
 .IR o ,
+and then set its new
+.IR VALUE .
+In case of a failure or abort, the saved value will be restored.
+.PP
+.BI "TX_SET_DIRECT(TYPE *" p ", " FIELD ", " VALUE )
+.IP
+The
+.B TX_SET_DIRECT
+macro saves in the undo log the current value of given
+.I FIELD
+of the object referenced by (direct) pointer
+.IR p ,
 and then set its new
 .IR VALUE .
 In case of a failure or abort, the saved value will be restored.
