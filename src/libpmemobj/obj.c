@@ -1734,7 +1734,8 @@ pmemobj_root_size(PMEMobjpool *pop)
 /*
  * pmemobj_root_construct -- returns root object
  */
-PMEMoid pmemobj_root_construct(PMEMobjpool *pop, size_t size,
+PMEMoid
+pmemobj_root_construct(PMEMobjpool *pop, size_t size,
 	void (*constructor)(PMEMobjpool *pop, void *ptr, void *arg), void *arg)
 {
 	LOG(3, "pop %p size %zu constructor %p args %p", pop, size, constructor,
