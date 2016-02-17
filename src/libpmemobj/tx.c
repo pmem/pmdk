@@ -329,7 +329,8 @@ tx_set_state(PMEMobjpool *pop, struct lane_tx_layout *layout, uint64_t state)
  * tx_clear_undo_log -- (internal) clear undo log pointed by head
  */
 static void
-tx_clear_undo_log(PMEMobjpool *pop, struct list_head *head, int vg_clean)
+tx_clear_undo_log(PMEMobjpool *pop, struct list_head *head, int vg_clean,
+		int vg_tx_remove)
 {
 	LOG(3, NULL);
 
@@ -350,6 +351,17 @@ tx_clear_undo_log(PMEMobjpool *pop, struct list_head *head, int vg_clean)
 
 			VALGRIND_SET_CLEAN(oobh, size);
 		}
+		if (vg_tx_remove) {
+			/*
+			 * This function can be called from transaction
+			 * recovery, so in such case pmemobj_alloc_usable_size
+			 * is not yet available. Use pmalloc version.
+			 */
+			size_t size = pmalloc_usable_size(pop,
+					obj.off - OBJ_OOB_SIZE) - OBJ_OOB_SIZE;
+			VALGRIND_REMOVE_FROM_TX(OBJ_OFF_TO_PTR(pop, obj.off),
+					size);
+		}
 #endif
 
 		/* remove and free all elements from undo log */
@@ -365,7 +377,7 @@ tx_abort_alloc(PMEMobjpool *pop, struct lane_tx_layout *layout)
 {
 	LOG(3, NULL);
 
-	tx_clear_undo_log(pop, &layout->undo_alloc, 1);
+	tx_clear_undo_log(pop, &layout->undo_alloc, 1, 1);
 }
 
 /*
@@ -382,6 +394,17 @@ tx_abort_free(PMEMobjpool *pop, struct lane_tx_layout *layout)
 
 		struct oob_header *oobh = OOB_HEADER_FROM_OID(pop, obj);
 		ASSERT(oobh->data.user_type < PMEMOBJ_NUM_OID_TYPES);
+
+#ifdef	USE_VG_PMEMCHECK
+		/*
+		 * This function can be called from transaction
+		 * recovery, so in such case pmemobj_alloc_usable_size
+		 * is not yet available. Use pmalloc version.
+		 */
+		size_t size = pmalloc_usable_size(pop,
+				obj.off - OBJ_OOB_SIZE) - OBJ_OOB_SIZE;
+		VALGRIND_REMOVE_FROM_TX(OBJ_OFF_TO_PTR(pop, obj.off), size);
+#endif
 
 		struct object_store_item *obj_list =
 			&pop->store->bytype[oobh->data.user_type];
@@ -546,6 +569,8 @@ static void
 tx_abort_restore_range(PMEMobjpool *pop, struct tx_range *range)
 {
 	tx_restore_range(pop, range);
+	VALGRIND_REMOVE_FROM_TX(OBJ_OFF_TO_PTR(pop, range->offset),
+			range->size);
 }
 
 /*
@@ -571,8 +596,8 @@ tx_abort_set(PMEMobjpool *pop, struct lane_tx_layout *layout, int recovery)
 	else
 		tx_foreach_set(pop, layout, tx_abort_restore_range);
 
-	tx_clear_undo_log(pop, &layout->undo_set_cache, 0);
-	tx_clear_undo_log(pop, &layout->undo_set, 0);
+	tx_clear_undo_log(pop, &layout->undo_set_cache, 0, 0);
+	tx_clear_undo_log(pop, &layout->undo_set, 0, 0);
 }
 
 /*
@@ -656,6 +681,9 @@ tx_post_commit_alloc(PMEMobjpool *pop, struct lane_tx_layout *layout)
 		struct oob_header *oobh = OOB_HEADER_FROM_OID(pop, obj);
 		ASSERT(oobh->data.user_type < PMEMOBJ_NUM_OID_TYPES);
 
+		VALGRIND_REMOVE_FROM_TX(OBJ_OFF_TO_PTR(pop, obj.off),
+					pmemobj_alloc_usable_size(obj));
+
 		struct object_store_item *obj_list =
 			&pop->store->bytype[oobh->data.user_type];
 
@@ -673,8 +701,21 @@ tx_post_commit_free(PMEMobjpool *pop, struct lane_tx_layout *layout)
 {
 	LOG(3, NULL);
 
-	tx_clear_undo_log(pop, &layout->undo_free, 0);
+	tx_clear_undo_log(pop, &layout->undo_free, 0, 1);
 }
+
+#ifdef	USE_VG_PMEMCHECK
+/*
+ * tx_post_commit_range_vg_tx_remove -- (internal) removes object from
+ * transaction tracked by pmemcheck
+ */
+static void
+tx_post_commit_range_vg_tx_remove(PMEMobjpool *pop, struct tx_range *range)
+{
+	VALGRIND_REMOVE_FROM_TX(OBJ_OFF_TO_PTR(pop, range->offset),
+			range->size);
+}
+#endif
 
 /*
  * tx_post_commit_set -- (internal) do post commit operations for
@@ -684,6 +725,10 @@ static void
 tx_post_commit_set(PMEMobjpool *pop, struct lane_tx_layout *layout)
 {
 	LOG(3, NULL);
+
+#ifdef	USE_VG_PMEMCHECK
+	tx_foreach_set(pop, layout, tx_post_commit_range_vg_tx_remove);
+#endif
 
 	struct list_head *head = &layout->undo_set_cache;
 	PMEMoid obj = head->pe_first; /* first cache object */
@@ -705,7 +750,7 @@ tx_post_commit_set(PMEMobjpool *pop, struct lane_tx_layout *layout)
 		VALGRIND_REMOVE_FROM_TX(cache, sizeof (struct tx_range_cache));
 	}
 
-	tx_clear_undo_log(pop, &layout->undo_set, 0);
+	tx_clear_undo_log(pop, &layout->undo_set, 0, 0);
 }
 
 /*
