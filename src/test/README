@@ -120,6 +120,9 @@ unit test framework also looks for several other variables:
 
 		$ MEMCHECK=force-enable ./TEST0
 
+	Display test run times:
+		$ TM=1 ./TEST0
+
 
 DETAILS ON HOW TO WRITE UNIT TESTS
 
