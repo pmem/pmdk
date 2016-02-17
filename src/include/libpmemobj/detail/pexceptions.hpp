@@ -30,8 +30,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef PEXEPTIONS_HPP
-#define PEXEPTIONS_HPP
+#ifndef PMEMOBJ_PEXEPTIONS_HPP
+#define PMEMOBJ_PEXEPTIONS_HPP
 
 #include <stdexcept>
 
@@ -52,4 +52,4 @@ namespace nvml {
 
 
 
-#endif /* PEXEPTIONS_HPP */
+#endif /* PMEMOBJ_PEXEPTIONS_HPP */

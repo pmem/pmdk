@@ -36,8 +36,8 @@
  * Based on Boost library smart_ptr implementation.
  */
 
-#ifndef SPECIALIZATION_HPP
-#define SPECIALIZATION_HPP
+#ifndef PMEMOBJ_SPECIALIZATION_HPP
+#define PMEMOBJ_SPECIALIZATION_HPP
 
 #include <memory>
 
@@ -168,4 +168,4 @@ namespace detail
 
 } /* namespace nvml */
 
-#endif /* SPECIALIZATION_HPP */
+#endif /* PMEMOBJ_SPECIALIZATION_HPP */

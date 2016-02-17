@@ -34,8 +34,8 @@
  * pool.hpp -- cpp pmemobj pool implementation
  */
 
-#ifndef POOL_H
-#define POOL_H
+#ifndef PMEMOBJ_POOL_HPP
+#define PMEMOBJ_POOL_HPP
 
 #include <sys/stat.h>
 
@@ -198,4 +198,4 @@ namespace obj
 
 } /* namespace nvml */
 
-#endif /* POOL_HPP */
+#endif /* PMEMOBJ_POOL_HPP */

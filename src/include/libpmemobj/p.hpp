@@ -34,8 +34,8 @@
  * p.hpp -- resides on pmem property template
  */
 
-#ifndef P_HPP
-#define P_HPP
+#ifndef PMEMOBJ_P_HPP
+#define PMEMOBJ_P_HPP
 
 #include <memory>
 #include "libpmemobj.h"
@@ -135,4 +135,4 @@ namespace obj
 
 } /* namespace nvml */
 
-#endif /* P_HPP */
+#endif /* PMEMOBJ_P_HPP */
