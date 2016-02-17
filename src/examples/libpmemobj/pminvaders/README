@@ -30,3 +30,10 @@ Controls:
 
 If you want to run this demo on non-pmem storage, set the PMEM_IS_PMEM_FORCE
 environment variable, so that the library does not issue msync calls.
+
+** DEPENDENCIES: **
+In order to build both variants of the game you need to install ncurses
+development package.
+
+rpm-based systems : ncurses-devel
+dpkg-based systems: libncursesX-dev (where X is the API/ABI version)

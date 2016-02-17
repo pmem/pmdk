@@ -36,7 +36,7 @@
 
 include ../Makefile.inc
 
-NCURSES := $(shell pkg-config ncurses && echo "y" || echo "n")
+NCURSES := $(call check_package, ncurses)
 
 EXAMPLES=$(EX_LIBPMEMOBJ)/pi \
 	$(EX_LIBPMEMOBJ)/btree \
@@ -56,6 +56,9 @@ EXAMPLES=$(EX_LIBPMEMOBJ)/pi \
 
 ifeq ($(NCURSES),y)
 EXAMPLES += $(EX_LIBPMEMOBJ)/pminvaders/pminvaders
+else
+$(info NOTE: Skipping pminvaders test because ncurses is missing \
+-- see src/examples/libpmemobj/pminvaders/README for details.)
 endif
 
 all: $(EXAMPLES)

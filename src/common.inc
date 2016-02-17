@@ -39,6 +39,13 @@ MKDIR = mkdir
 INSTALL = install
 CP = cp
 CSTYLE = $(TOP)/utils/cstyle -pP
+PKG_CONFIG = pkg-config
+
+ifeq ($(shell command -v $(PKG_CONFIG) && echo y || echo n), n)
+$(error $(PKG_CONFIG) not found)
+endif
+
+check_package = $(shell $(PKG_CONFIG) $(1) && echo y || echo n)
 
 check_flag = $(shell echo "int main(){return 0;}" |\
 	$(CC) $(CFLAGS) $(1) -x c -o /dev/null - 2>/dev/null && echo y || echo n)
