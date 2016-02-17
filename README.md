@@ -82,6 +82,14 @@ this command at the top level:
 	$ make
 ```
 
+If you want to compile, and hopefully run the builtin tests, with a different
+compiler, you have to provide the `CC` and `CXX` variables. For example:
+```
+	$ make CC=clang CXX=clang++
+```
+
+These variables are independent and setting `CC=clang` does not set `CXX=clang++`.
+
 Once the make completes (*), all the libraries are built and the examples
 under `src/examples` are built as well.  You can play with the library
 within the build tree, or install it locally on your machine.  Installing
