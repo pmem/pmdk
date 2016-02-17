@@ -34,8 +34,8 @@
  * persistent_ptr.hpp -- persistent smart pointer
  */
 
-#ifndef PERSISTENT_PTR_HPP
-#define PERSISTENT_PTR_HPP
+#ifndef PMEMOBJ_PERSISTENT_PTR_HPP
+#define PMEMOBJ_PERSISTENT_PTR_HPP
 
 #include <memory>
 #include <assert.h>
@@ -248,4 +248,4 @@ namespace obj
 
 } /* namespace nvml */
 
-#endif /* PERSISTENT_PTR_HPP */
+#endif /* PMEMOBJ_PERSISTENT_PTR_HPP */
