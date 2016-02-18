@@ -38,10 +38,12 @@
 #define PMEMOBJ_PERSISTENT_PTR_HPP
 
 #include <memory>
-#include <assert.h>
-#include "libpmemobj.h"
+#include <cassert>
+#include <ostream>
 
+#include "libpmemobj.h"
 #include "libpmemobj/detail/specialization.hpp"
+#include "libpmemobj/detail/common.hpp"
 
 namespace nvml
 {
@@ -67,7 +69,9 @@ namespace obj
 		/* used for easy underlying type access */
 		typedef typename nvml::detail::sp_element<T>::type element_type;
 
-		/* default constructor is NULL-initialized */
+		/*
+		 * Default constructor is NULL-initialized.
+		 */
 		persistent_ptr() : oid(OID_NULL)
 		{
 			verify_type();
@@ -79,17 +83,25 @@ namespace obj
 		 * constructor in there.
 		 */
 
-		/* default null constructor, zeroes the PMEMoid */
+		/*
+		 *  Default null constructor, zeroes the PMEMoid.
+		 */
 		persistent_ptr(std::nullptr_t) noexcept : oid(OID_NULL)
 		{
 			verify_type();
 		}
 
+		/*
+		 * PMEMoid constructor.
+		 */
 		persistent_ptr(PMEMoid o) noexcept : oid(o)
 		{
 			verify_type();
 		}
 
+		/*
+		 * Converting constructor from a different persistent_ptr<>.
+		 */
 		template<typename Y, typename = typename
 		std::enable_if<std::is_convertible<Y*, T*>::value>::type>
 		persistent_ptr(const persistent_ptr<Y> &r) noexcept : oid(r.oid)
@@ -97,56 +109,73 @@ namespace obj
 			verify_type();
 		}
 
+		/*
+		 * Copy constructor.
+		 */
 		persistent_ptr(const persistent_ptr &r) noexcept : oid(r.oid)
 		{
 			verify_type();
 		}
 
+		/*
+		 * Defaulted move constructor.
+		 */
 		persistent_ptr(persistent_ptr &&r) noexcept = default;
 
+		/*
+		 * Defaulted move assignment operator.
+		 */
 		persistent_ptr &
 		operator=(persistent_ptr &&r) noexcept = default;
 
+		/*
+		 * Assignment operator.
+		 */
 		persistent_ptr &
 		operator=(const persistent_ptr &r) noexcept
 		{
-			if (pmemobj_tx_stage() == TX_STAGE_WORK) {
-				pmemobj_tx_add_range_direct(this,
-					sizeof (*this));
-			}
-
+			detail::conditional_add_to_tx(this);
 			this_type(r).swap(*this);
 
 			return *this;
 		}
 
+		/*
+		 * Converting assignment operator from a different
+		 * persistent_ptr<>.
+		 */
 		template<typename Y, typename = typename
 		std::enable_if<std::is_convertible<Y*, T*>::value>::type>
 		persistent_ptr &
 		operator=(const persistent_ptr<Y> &r) noexcept
 		{
-			if (pmemobj_tx_stage() == TX_STAGE_WORK) {
-				pmemobj_tx_add_range_direct(this,
-					sizeof (*this));
-			}
-
+			detail::conditional_add_to_tx(this);
 			this_type(r).swap(*this);
 
 			return *this;
 		}
 
+		/*
+		 * Dereference operator.
+		 */
 		typename nvml::detail::sp_dereference<T>::type
 			operator*() const noexcept
 		{
 			return *get();
 		}
 
+		/*
+		 * Member access operator.
+		 */
 		typename nvml::detail::sp_member_access<T>::type
 			operator->() const noexcept
 		{
 			return get();
 		}
 
+		/*
+		 * Array access operator.
+		 */
 		typename nvml::detail::sp_array_access<T>::type
 			operator[](std::ptrdiff_t i) const noexcept
 		{
@@ -178,16 +207,22 @@ namespace obj
 			std::swap(this->oid, other.oid);
 		}
 
-		/* unspecified bool type */
+		/* Unspecified bool type. */
 		typedef element_type *
 			(persistent_ptr<T>::*unspecified_bool_type)() const;
 
+		/*
+		 * Unspecified bool type conversion operator.
+		 */
 		operator unspecified_bool_type() const noexcept
 		{
 			return OID_IS_NULL(this->oid) ? 0 :
 					&persistent_ptr<T>::get;
 		}
 
+		/*
+		 * Bool conversion operator.
+		 */
 		explicit operator bool() const noexcept
 		{
 			return get() != nullptr;
@@ -212,9 +247,76 @@ namespace obj
 		PMEMoid *
 		raw_ptr() noexcept
 		{
-			return &this->oid;
+			return &(this->oid);
+		}
+
+		/*
+		 * Prefix increment operator.
+		 */
+		inline persistent_ptr<T> &operator++()
+		{
+			detail::conditional_add_to_tx(this);
+			this->oid.off += sizeof(T);
+
+			return *this;
+		}
+
+		/*
+		 * Postfix increment operator.
+		 */
+		inline persistent_ptr<T> operator++(int)
+		{
+			PMEMoid noid = this->oid;
+			++(*this);
+
+			return persistent_ptr<T>(noid);
+		}
+
+		/*
+		 * Prefix decrement operator.
+		 */
+		inline persistent_ptr<T> &operator--()
+		{
+			detail::conditional_add_to_tx(this);
+			this->oid.off -= sizeof(T);
+
+			return *this;
+		}
+
+		/*
+		 * Postfix decrement operator.
+		 */
+		inline persistent_ptr<T> operator--(int)
+		{
+			PMEMoid noid = this->oid;
+			--(*this);
+
+			return persistent_ptr<T>(noid);
+		}
+
+		/*
+		 * Addition assignment operator.
+		 */
+		inline persistent_ptr<T> &operator+=(std::ptrdiff_t s)
+		{
+			detail::conditional_add_to_tx(this);
+			this->oid.off += s * sizeof(T);
+
+			return *this;
+		}
+
+		/*
+		 * Subtraction assignment operator.
+		 */
+		inline persistent_ptr<T> &operator-=(std::ptrdiff_t s)
+		{
+			detail::conditional_add_to_tx(this);
+			this->oid.off -= s * sizeof(T);
+
+			return *this;
 		}
 	private:
+		/* The underlying PMEMoid of the held object. */
 		PMEMoid oid;
 
 		/*
@@ -242,6 +344,210 @@ namespace obj
 	swap(persistent_ptr<T> & a, persistent_ptr<T> & b) noexcept
 	{
 		a.swap(b);
+	}
+
+	/*
+	 * Equality operator.
+	 *
+	 * This checks if underlying PMEMoids are equal.
+	 */
+	template<typename T, typename Y> inline bool
+	operator==(const persistent_ptr<T> &lhs,
+			const persistent_ptr<Y> &rhs) noexcept
+	{
+		return OID_EQUALS(lhs.raw(), rhs.raw());
+	}
+
+	/*
+	 * Inequality operator.
+	 */
+	template<typename T, typename Y> inline bool
+	operator!=(const persistent_ptr<T> &lhs,
+			const persistent_ptr<Y> &rhs) noexcept
+	{
+		return !(lhs == rhs);
+	}
+
+	/*
+	 * Less than operator.
+	 *
+	 * Returns true if the uuid_lo of lhs is less than the uuid_lo of rhs,
+	 * should they be equal, the offsets are compared. Returns false
+	 * otherwise.
+	 */
+	template<typename T, typename Y> inline bool
+	operator<(const persistent_ptr<T> &lhs,
+			const persistent_ptr<Y> &rhs) noexcept
+	{
+		if (lhs.raw().pool_uuid_lo == rhs.raw().pool_uuid_lo)
+			return lhs.raw().off < rhs.raw().off;
+		else
+			return lhs.raw().pool_uuid_lo < rhs.raw().pool_uuid_lo;
+	}
+
+	/*
+	 * Less or equal than operator.
+	 *
+	 * See less than operator for comparison rules.
+	 */
+	template<typename T, typename Y> inline bool
+	operator<=(const persistent_ptr<T> &lhs,
+			const persistent_ptr<Y> &rhs) noexcept
+	{
+		return !(rhs < lhs);
+	}
+
+	/*
+	 * Greater than operator.
+	 *
+	 * See less than operator for comparison rules.
+	 */
+	template<typename T, typename Y> inline bool
+	operator>(const persistent_ptr<T> &lhs,
+			const persistent_ptr<Y> &rhs) noexcept
+	{
+		return (rhs < lhs);
+	}
+
+	/*
+	 * Greater or equal than operator.
+	 *
+	 * See less than operator for comparison rules.
+	 */
+	template<typename T, typename Y> inline bool
+	operator>=(const persistent_ptr<T> &lhs,
+			const persistent_ptr<Y> &rhs) noexcept
+	{
+		return !(lhs < rhs);
+	}
+
+	/* nullptr comparisons */
+
+	/*
+	 * Compare a persistent_ptr with a null pointer.
+	 */
+	template<typename T> inline bool
+	operator<(const persistent_ptr<T> &lhs, std::nullptr_t) noexcept
+	{
+		return std::less<T*>()(lhs.get(), nullptr);
+	}
+
+	/*
+	 * Compare a persistent_ptr with a null pointer.
+	 */
+	template<typename T> inline bool
+	operator<(std::nullptr_t, const persistent_ptr<T> &rhs) noexcept
+	{
+		return std::less<T*>()(nullptr, rhs.get());
+	}
+
+	/*
+	 * Compare a persistent_ptr with a null pointer.
+	 */
+	template<typename T> inline bool
+	operator<=(const persistent_ptr<T>& lhs, std::nullptr_t) noexcept
+	{
+		return !(nullptr < lhs);
+	}
+
+	/*
+	 * Compare a persistent_ptr with a null pointer.
+	 */
+	template<typename T> inline bool
+	operator<=(std::nullptr_t, const persistent_ptr<T>& rhs) noexcept
+	{
+		return !(rhs < nullptr);
+	}
+
+	/*
+	 * Compare a persistent_ptr with a null pointer.
+	 */
+	template<typename T> inline bool
+	operator>(const persistent_ptr<T>& lhs, std::nullptr_t) noexcept
+	{
+		return nullptr < lhs;
+	}
+
+	/*
+	 * Compare a persistent_ptr with a null pointer.
+	 */
+	template<typename T> inline bool
+	operator>(std::nullptr_t, const persistent_ptr<T>& rhs) noexcept
+	{
+		return rhs < nullptr;
+	}
+
+	/*
+	 * Compare a persistent_ptr with a null pointer.
+	 */
+	template<typename T> inline bool
+	operator>=(const persistent_ptr<T>& lhs, std::nullptr_t) noexcept
+	{
+		return !(lhs < nullptr);
+	}
+
+	/*
+	 * Compare a persistent_ptr with a null pointer.
+	 */
+	template<typename T> inline bool
+	operator>=(std::nullptr_t, const persistent_ptr<T>& rhs) noexcept
+	{
+		return !(nullptr < rhs);
+	}
+
+	/*
+	 * Addition operator for persistent pointers.
+	 */
+	template<typename T>
+	inline persistent_ptr<T> operator+(const persistent_ptr<T> &lhs,
+			std::size_t s)
+	{
+		PMEMoid noid;
+		noid.pool_uuid_lo = lhs.raw().pool_uuid_lo;
+		noid.off = lhs.raw().off + (s * sizeof(T));
+		return persistent_ptr<T>(noid);
+	}
+
+	/*
+	 * Subtraction operator for persistent pointers.
+	 */
+	template<typename T>
+	inline persistent_ptr<T> operator-(const persistent_ptr<T> &lhs,
+			std::size_t s)
+	{
+		PMEMoid noid;
+		noid.pool_uuid_lo = lhs.raw().pool_uuid_lo;
+		noid.off = lhs.raw().off - (s * sizeof(T));
+		return persistent_ptr<T>(noid);
+	}
+
+	/*
+	 * Subtraction operator for persistent pointers of identical type.
+	 *
+	 * Calculates the offset difference of PMEMoids in terms of represented
+	 * objects. Calculating the difference of pointers from objects of
+	 * different pools is not allowed.
+	 */
+	template<typename T>
+	inline ptrdiff_t operator-(const persistent_ptr<T> &lhs,
+			const persistent_ptr<T> &rhs)
+	{
+		assert(lhs.raw().pool_uuid_lo == rhs.raw().pool_uuid_lo);
+		ptrdiff_t d = lhs.raw().off - rhs.raw().off;
+
+		return d / sizeof (T);
+	}
+
+	/*
+	 * Ostream operator for the persistent pointer.
+	 */
+	template<typename T> std::ostream &
+	operator<<(std::ostream &os, const persistent_ptr<T> &pptr)
+	{
+		PMEMoid raw_oid = pptr.raw();
+		os << std::hex << "0x" << raw_oid.pool_uuid_lo
+				<< ", 0x" << raw_oid.off << std::dec;
+		return os;
 	}
 
 } /* namespace obj */

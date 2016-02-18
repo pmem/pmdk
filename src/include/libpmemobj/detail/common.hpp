@@ -30,33 +30,32 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef PMEMOBJ_PEXCEPTIONS_HPP
-#define PMEMOBJ_PEXCEPTIONS_HPP
+#ifndef PMEMOBJ_COMMON_HPP
+#define PMEMOBJ_COMMON_HPP
 
-#include <stdexcept>
+#include "libpmemobj/detail/pexceptions.hpp"
 
 namespace nvml {
 
-	/*
-	 * Custom pool error class.
-	 *
-	 * Thrown when there is a runtime problem with some action on the
-	 * pool.
-	 */
-	class pool_error : public std::runtime_error {
-	public:
-		using std::runtime_error::runtime_error;
-	};
+namespace detail {
 
-	/*
-	 * Custom transaction error class.
-	 * Thrown when there is a runtime problem with a transaction.
-	 */
-	class transaction_error : public std::runtime_error
+	template<typename T>
+	inline void conditional_add_to_tx(T *that)
 	{
-		using std::runtime_error::runtime_error;
-	};
+		/* 'that' is not in any open pool */
+		if (!pmemobj_pool_by_ptr(that))
+			return;
+
+		if (pmemobj_tx_stage() != TX_STAGE_WORK)
+			return;
+
+		if (pmemobj_tx_add_range_direct(that, sizeof (*that)))
+			throw transaction_error("Could not add an object to the"
+					" transaction.");
+	}
+
+}  /* namespace detail */
 
 }  /* namespace nvml */
 
-#endif /* PMEMOBJ_PEXCEPTIONS_HPP */
+#endif /* PMEMOBJ_COMMON_HPP */
