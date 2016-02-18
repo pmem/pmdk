@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2016, FUJITSU TECHNOLOGY SOLUTIONS GMBH
- * Copyright (c) 2012, Armon Dadgar. All rights reserved.
+ * Copyright 2016, FUJITSU TECHNOLOGY SOLUTIONS GMBH
+ * Copyright 2012, Armon Dadgar. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
