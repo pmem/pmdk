@@ -46,7 +46,8 @@
 #include "benchmark.h"
 
 #define	LAYOUT_NAME "benchmark"
-#define	FACTOR 16
+#define	FACTOR ((float)(1.2))
+#define	ALLOC_OVERHEAD 64
 /*
  * operations number is limited to prevent stack overflow during
  * performing recursive functions.
@@ -1049,7 +1050,9 @@ obj_tx_init(struct benchmark *bench, struct benchmark_args *args)
 	 */
 	size_t dsize = obj_bench.obj_args->rsize > args->dsize ?
 					obj_bench.obj_args->rsize : args->dsize;
-	size_t psize = args->n_ops_per_thread * dsize * args->n_threads;
+
+	size_t psize = args->n_ops_per_thread *
+		(dsize + ALLOC_OVERHEAD) * args->n_threads;
 	if (psize < PMEMOBJ_MIN_POOL)
 		psize = PMEMOBJ_MIN_POOL;
 	psize *= FACTOR;
