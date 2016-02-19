@@ -563,7 +563,7 @@ function require_build_type() {
 # require_pkg -- only allow script to continue if specified package exists
 #
 function require_pkg() {
-	if ! command -v pkg-config
+	if ! command -v pkg-config 1>/dev/null
 	then
 		echo "$UNITTEST_NAME: SKIP pkg-config required"
 		exit 0
