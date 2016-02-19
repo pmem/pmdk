@@ -44,6 +44,8 @@
 #
 # Use "make cstyle" to run cstyle on all C source files
 #
+# Use "make check-license" to check copyright and license in all source files
+#
 # Use "make rpm" to build rpm packages
 #
 # Use "make dpkg" to build dpkg packages
@@ -96,6 +98,11 @@ cstyle:
 	@utils/check_whitespace
 	@echo Done.
 
+check-license:
+	$(MAKE) -C utils $@
+	@utils/check_license/check-headers.sh
+	@echo Done.
+
 source:
 	$(if $(shell git rev-parse 2>&1), $(error Not a git repository))
 	$(if $(shell git status --porcelain), $(error Working directory is dirty: $(shell git status --porcelain)))
@@ -115,5 +122,5 @@ install uninstall:
 	$(MAKE) -C src $@
 	$(MAKE) -C doc $@
 
-.PHONY: all clean clobber test check cstyle install uninstall\
+.PHONY: all clean clobber test check cstyle check-license install uninstall\
 	source rpm dpkg pkg-clean pcheck $(SUBDIRS)
