@@ -43,8 +43,11 @@
 #include "libpmemlog.h"
 #include "benchmark.h"
 
-/* size of pool header and pool descriptor */
-#define	POOL_HDR_SIZE (2 * 4096)
+/*
+ * Size of pool header, pool descriptor
+ * and additional page alignment overhead
+ */
+#define	POOL_HDR_SIZE (3 * 4096)
 #define	MIN_VEC_SIZE 1
 
 /*
