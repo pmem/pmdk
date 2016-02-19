@@ -38,13 +38,14 @@ export UNITTEST_NUM=2
 . ../unittest/unittest.sh
 
 require_cxx11
-require_valgrind
+require_valgrind_memcheck
+memcheck force-enable
 
 setup
 
-expect_normal_exit\
-    valgrind --log-file=valgrind$UNITTEST_NUM.log\
-    ./obj_cpp_ptr_arith$EXESUFFIX $DIR/testfile1
+expect_normal_exit ./obj_cpp_ptr_arith$EXESUFFIX $DIR/testfile1
+
+mv ${MEMCHECK_LOG_FILE} memcheck${UNITTEST_NUM}.log
 
 check
 
