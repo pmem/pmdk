@@ -225,6 +225,11 @@ ifeq ($(USE_PMEMALLOC), y)
 all: $(TOOLS)/pmemalloc/pmemalloc
 endif
 
+$(TOOLS)/pmemdetect/pmemdetect.static-nondebug:
+	$(MAKE) -C $(TOOLS)/pmemdetect all
+
+all: $(TOOLS)/pmemdetect/pmemdetect.static-nondebug
+
 .PHONY: all check clean clobber cstyle pcheck test $(TSTCHECKS)
 
 -include .deps/*.P
