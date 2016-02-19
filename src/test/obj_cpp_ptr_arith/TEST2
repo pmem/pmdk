@@ -43,6 +43,8 @@ memcheck force-enable
 
 setup
 
+export MEMCHECK_OPTS="--suppressions=../memcheck-stdcpp.supp"
+
 expect_normal_exit ./obj_cpp_ptr_arith$EXESUFFIX $DIR/testfile1
 
 mv ${MEMCHECK_LOG_FILE} memcheck${UNITTEST_NUM}.log
