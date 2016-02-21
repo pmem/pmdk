@@ -476,7 +476,7 @@ void pmemobj_drain(PMEMobjpool *pop);
 PMEMoid pmemobj_first(PMEMobjpool *pop);
 
 /*
- * Returns the next object (in order of allocations) of the same type.
+ * Returns the next object of the same type.
  */
 PMEMoid pmemobj_next(PMEMoid oid);
 
@@ -488,29 +488,17 @@ while (!OID_IS_NULL(_pobj_ret) &&\
 };\
 _pobj_ret; })
 
-#define	POBJ_FIRST(pop, t) (\
-{ TOID(t) _pobj_ret = (TOID(t))pmemobj_first(pop);\
-while (!TOID_IS_NULL(_pobj_ret) &&\
-	pmemobj_type_num(_pobj_ret.oid) != TOID_TYPE_NUM(t)) {\
-	_pobj_ret.oid = pmemobj_next(_pobj_ret.oid);\
-};\
-_pobj_ret; })
+#define	POBJ_FIRST(pop, t) ((TOID(t))POBJ_FIRST_TYPE_NUM(pop, TOID_TYPE_NUM(t)))
 
 #define	POBJ_NEXT_TYPE_NUM(o) (\
 { PMEMoid _pobj_ret = o;\
 do {\
 	_pobj_ret = pmemobj_next(_pobj_ret);\
-} while(!OID_IS_NULL(_pobj_ret) &&\
+} while (!OID_IS_NULL(_pobj_ret) &&\
 	pmemobj_type_num(_pobj_ret) != pmemobj_type_num(o));\
 _pobj_ret; })
 
-#define	POBJ_NEXT(o) (\
-{ __typeof__(o) _pobj_ret = o;\
-do {\
-	_pobj_ret.oid = pmemobj_next(_pobj_ret.oid);\
-} while(!TOID_IS_NULL(_pobj_ret) &&\
-	pmemobj_type_num(_pobj_ret.oid) != pmemobj_type_num(o.oid));\
-_pobj_ret; })
+#define	POBJ_NEXT(o) ((__typeof__(o))POBJ_NEXT_TYPE_NUM(o.oid))
 
 #define	POBJ_NEW(pop, o, t, constr, arg) (\
 { TOID(t) *_pobj_tmp = (o);\
@@ -594,21 +582,20 @@ for (_POBJ_DEBUG_NOTICE_IN_TX_FOR("POBJ_FOREACH_SAFE")\
 		(varoid).off != 0 && (nvaroid = pmemobj_next(varoid), 1);\
 		varoid = nvaroid)
 
-#define TYPEOF(var)  (__typeof__ (*((var)._type)))
-
-
 /*
  * Iterates through every object of the specified type.
  */
 #define	POBJ_FOREACH_TYPE(pop, var)\
-POBJ_FOREACH(pop, var.oid) if (pmemobj_type_num(var.oid) == TOID_TYPE_NUM_OF(var))
+POBJ_FOREACH(pop, var.oid)\
+if (pmemobj_type_num(var.oid) == TOID_TYPE_NUM_OF(var))
 
 /*
  * Safe variant of POBJ_FOREACH_TYPE in which pmemobj_free on var
  * is allowed.
  */
 #define	POBJ_FOREACH_SAFE_TYPE(pop, var, nvar)\
-POBJ_FOREACH_SAFE(pop, var.oid, nvar.oid) if (pmemobj_type_num(var.oid) == TOID_TYPE_NUM_OF(var))
+POBJ_FOREACH_SAFE(pop, var.oid, nvar.oid)\
+if (pmemobj_type_num(var.oid) == TOID_TYPE_NUM_OF(var))
 
 /*
  * Non-transactional persistent atomic circular doubly-linked list

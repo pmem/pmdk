@@ -632,13 +632,6 @@ heap_ensure_bucket_filled(PMEMobjpool *pop, struct bucket *b)
 static struct bucket *
 heap_get_cache_bucket(PMEMobjpool *pop, int id)
 {
-	/* trigger a lane selection by holding and then releasing the lane */
-	if (Lane_idx == UINT32_MAX) {
-		struct lane_section *s;
-		lane_hold(pop, &s, LANE_SECTION_ALLOCATOR);
-		lane_release(pop);
-	}
-
 	return pop->heap->caches[Lane_idx % pop->heap->ncaches].buckets[id];
 }
 
@@ -1406,6 +1399,16 @@ heap_degrade_run_if_empty(PMEMobjpool *pop, struct bucket *b,
 	ASSERTeq(b->type, BUCKET_RUN);
 	struct bucket_run *r = (struct bucket_run *)b;
 
+	/*
+	 * The redo log ptr can be NULL if we are sure that there's only one
+	 * persistent value modification in the entire operation context.
+	 */
+	struct operation_context *ctx = operation_init(pop, NULL);
+	if (ctx == NULL) {
+		ERR("Failed to initialize memory operation context");
+		return;
+	}
+
 	util_mutex_lock(&b->lock);
 	util_mutex_lock(heap_get_run_lock(pop, m.chunk_id));
 
@@ -1438,20 +1441,15 @@ heap_degrade_run_if_empty(PMEMobjpool *pop, struct bucket *b,
 	m.size_idx = 1;
 	heap_chunk_init(pop, hdr, CHUNK_TYPE_FREE, m.size_idx);
 
-	/*
-	 * The redo log ptr can be NULL if we are sure that there's only one
-	 * persistent value modification in the entire operation context.
-	 */
-	struct operation_context *ctx = operation_init(pop, NULL);
 	struct memory_block fm = heap_free_block(pop, defb, m, ctx);
 	operation_process(ctx);
-	operation_delete(ctx);
 
 	CNT_OP(defb, insert, pop, fm);
 
 	util_mutex_unlock(&defb->lock);
 
 out:
+	operation_delete(ctx);
 	util_mutex_unlock(heap_get_run_lock(pop, m.chunk_id));
 	util_mutex_unlock(&b->lock);
 }
@@ -1547,14 +1545,12 @@ heap_boot(PMEMobjpool *pop)
 	util_mutex_init(&h->active_run_lock, NULL);
 
 	pthread_mutexattr_t lock_attr;
-	if ((err = pthread_mutexattr_init(&lock_attr)) != 0) {
-		ERR("!pthread_mutexattr_init");
-	}
+	if ((err = pthread_mutexattr_init(&lock_attr)) != 0)
+		FATAL("!pthread_mutexattr_init");
 
 	if ((err = pthread_mutexattr_settype(
-			&lock_attr, PTHREAD_MUTEX_RECURSIVE)) != 0) {
-		ERR("!pthread_mutexattr_settype");
-	}
+			&lock_attr, PTHREAD_MUTEX_RECURSIVE)) != 0)
+		FATAL("!pthread_mutexattr_settype");
 
 	for (int i = 0; i < MAX_RUN_LOCKS; ++i)
 		util_mutex_init(&h->run_locks[i], &lock_attr);
@@ -1886,8 +1882,8 @@ heap_run_foreach_object(PMEMobjpool *pop, object_callback cb, void *arg,
 
 	struct allocation_header *alloc;
 
-	uint64_t i = 0; //start.block_off / BITS_PER_VALUE;
-	uint64_t block_start = 0; //start.block_off % BITS_PER_VALUE;
+	uint64_t i = 0;
+	uint64_t block_start = 0;
 
 	for (; i < bitmap_nval; ++i) {
 		uint64_t v = run->bitmap[i];

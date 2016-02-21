@@ -901,7 +901,8 @@ list_remove_free(PMEMobjpool *pop, struct list_head *oob_head,
 		};
 
 		/* remove from oob list */
-		redo_index = list_remove_single(pop, redo, redo_index, &oob_args);
+		redo_index = list_remove_single(pop, redo,
+			redo_index, &oob_args);
 	}
 
 	if (user_head) {

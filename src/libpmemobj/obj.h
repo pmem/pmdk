@@ -58,13 +58,6 @@
 #define	MAX_CACHED_RANGE_SIZE 32
 #define	MAX_CACHED_RANGES 127 /* calculated to be exactly 8192 bytes */
 
-/*
- * Stored in the 'size' field of oobh header, determines whether the object
- * is internal or not. Internal objects are skipped in pmemobj iteration
- * functions.
- */
-#define OBJ_INTERNAL_OBJECT_MASK ((1ULL)<<63)
-
 #define	OBJ_OOB_SIZE		(sizeof (struct oob_header))
 #define	OBJ_OFF_TO_PTR(pop, off) ((void *)((uintptr_t)(pop) + (off)))
 #define	OBJ_PTR_TO_OFF(pop, ptr) ((uintptr_t)(ptr) - (uintptr_t)(pop))
@@ -101,7 +94,7 @@
 #define	OOB_HEADER_FROM_OID(pop, oid)\
 	((struct oob_header *)((uintptr_t)(pop) + (oid).off - OBJ_OOB_SIZE))
 
-#define OBJ_OID_IS_IN_UNDO_LOG(pop, oid)\
+#define	OBJ_OID_IS_IN_UNDO_LOG(pop, oid)\
 	(OOB_HEADER_FROM_OID(pop, oid)->oob.pe_next.off != 0 &&\
 	OOB_HEADER_FROM_OID(pop, oid)->oob.pe_prev.off != 0)
 
@@ -180,6 +173,13 @@ struct pmemobjpool {
 };
 
 /*
+ * Stored in the 'size' field of oobh header, determines whether the object
+ * is internal or not. Internal objects are skipped in pmemobj iteration
+ * functions.
+ */
+#define	OBJ_INTERNAL_OBJECT_MASK ((1ULL) << 63)
+
+/*
  * Out-Of-Band Header - it is padded to 48B to fit one cache line (64B)
  * together with allocator's header (of size 16B) located just before it.
  */
@@ -188,6 +188,7 @@ struct oob_header {
 
 	/* used only in root object, last bit used as a mask */
 	size_t size;
+
 	uint64_t type_num;
 };
 

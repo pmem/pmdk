@@ -21,11 +21,10 @@ PMEM OBJ Header:
 Layout                   : pmempool
 Lanes offset             : $(*)
 Number of lanes          : $(*)
-Object store offset      : $(*)
-Object store size        : $(*)
 Heap offset              : $(*)
 Heap size                : $(*)
 Checksum                 : $(*) [OK]
+Root offset              : $(*)
 
 Lane:
 
@@ -38,7 +37,6 @@ Lane:
 
  Lane section             : list
   Object offset            : $(*)
-  Object size              : $(*)
   Redo log entries         : 63
   0000000000: Offset: $(*) Value: $(*) Finish flag: 0
   0000000001: Offset: $(*) Value: $(*) Finish flag: 0
@@ -110,15 +108,14 @@ Lane:
 
    Object                   : 0
    Offset                   : $(*)
-    
-OOB Header:
+
+    OOB Header:
     Next                     : off: $(*) pool_uuid_lo: $(*) [OK]
     Prev                     : off: $(*) pool_uuid_lo: $(*) [OK]
-    Internal Type            : none
-    User Type                : 1
-
+    Type Number              : $(*)
   Undo Log - free          : 0 elements
   Undo Log - set           : 0 elements
+  Undo Log - set cache     : 0 elements
 
 POOL Header:
 Signature                : PMEMOBJ
@@ -143,11 +140,25 @@ PMEM OBJ Header:
 Layout                   : pmempool
 Lanes offset             : $(*)
 Number of lanes          : $(*)
-Object store offset      : $(*)
-Object store size        : $(*)
 Heap offset              : $(*)
 Heap size                : $(*)
 Checksum                 : $(*) [OK]
+Root offset              : $(*)
+
+Lane:
+
+ Lane section             : tx
+  State                    : none
+  Undo Log - alloc         : 0 elements
+  Undo Log - free          : 0 elements
+  Undo Log - set           : 0 elements
+  Undo Log - set cache     : 1 element
+
+   Object                   : 0
+   Offset                   : $(*)
+
+   Tx range cache:
+    0000000000: Offset: 0x00000000003c2180 Size: 1
 
 POOL Header:
 Signature                : PMEMOBJ
@@ -172,11 +183,55 @@ PMEM OBJ Header:
 Layout                   : pmempool
 Lanes offset             : $(*)
 Number of lanes          : $(*)
-Object store offset      : $(*)
-Object store size        : $(*)
 Heap offset              : $(*)
 Heap size                : $(*)
 Checksum                 : $(*) [OK]
+Root offset              : $(*)
+
+Lane:
+
+ Lane section             : tx
+  State                    : none
+  Undo Log - alloc         : 0 elements
+  Undo Log - free          : 0 elements
+  Undo Log - set           : 1 element
+
+   Object                   : 0
+   Offset                   : $(*)
+
+   Tx range:
+    Offset                   : $(*)
+    Size                     : 1024
+
+  Undo Log - set cache     : 0 elements
+
+POOL Header:
+Signature                : PMEMOBJ
+Major                    : $(*)
+Mandatory features       : $(*)
+Not mandatory features   : $(*)
+Forced RO                : $(*)
+Pool set UUID            : $(*)
+UUID                     : $(*)
+Previous part UUID       : $(*)
+Next part UUID           : $(*)
+Previous replica UUID    : $(*)
+Next replica UUID        : $(*)
+Creation Time            : $(*)
+Alignment Descriptor     : $(*)
+Class                    : $(*)
+Data                     : $(*)
+Machine                  : $(*)
+Checksum                 : $(*) [OK]
+
+PMEM OBJ Header:
+Layout                   : pmempool
+Lanes offset             : $(*)
+Number of lanes          : $(*)
+Heap offset              : $(*)
+Heap size                : $(*)
+Checksum                 : $(*) [OK]
+Root offset              : $(*)
 
 Lane:
 
@@ -187,11 +242,18 @@ Lane:
 
    Object                   : 0
    Offset                   : $(*)
-    
-OOB Header:
+
+    OOB Header:
     Next                     : off: $(*) pool_uuid_lo: $(*) [OK]
     Prev                     : off: $(*) pool_uuid_lo: $(*) [OK]
-    Internal Type            : allocated
-    User Type                : 1
-
+    Type Number              : 0x0000000000000001
   Undo Log - set           : 0 elements
+  Undo Log - set cache     : 1 element
+
+   Object                   : 0
+   Offset                   : $(*)
+
+    OOB Header:
+    Next                     : off: $(*) pool_uuid_lo: $(*) [OK]
+    Prev                     : off: $(*) pool_uuid_lo: $(*) [OK]
+    Type Number              : 0x0000000000000000

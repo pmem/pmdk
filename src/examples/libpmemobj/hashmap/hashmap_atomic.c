@@ -498,7 +498,7 @@ hm_atomic_init(PMEMobjpool *pop, TOID(struct hashmap_atomic) hashmap)
 int
 hm_atomic_check(PMEMobjpool *pop, TOID(struct hashmap_atomic) hashmap)
 {
-	return !TOID_VALID(hashmap);
+	return TOID_IS_NULL(hashmap) || !TOID_VALID(hashmap);
 }
 
 /*

@@ -417,7 +417,7 @@ hm_tx_new(PMEMobjpool *pop, TOID(struct hashmap_tx) *map, void *arg)
 int
 hm_tx_check(PMEMobjpool *pop, TOID(struct hashmap_tx) hashmap)
 {
-	return !TOID_VALID(hashmap);
+	return TOID_IS_NULL(hashmap) || !TOID_VALID(hashmap);
 }
 
 /*

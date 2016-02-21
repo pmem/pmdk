@@ -350,7 +350,7 @@ tx_clear_undo_log(PMEMobjpool *pop, struct list_head *head, int free,
 			 * is not yet available. Use pmalloc version.
 			 */
 			size_t size = pmalloc_usable_size(pop,
-					obj.off - OBJ_OOB_SIZE) - OBJ_OOB_SIZE;
+					obj.off) - OBJ_OOB_SIZE;
 			VALGRIND_REMOVE_FROM_TX(OBJ_OFF_TO_PTR(pop, obj.off),
 					size);
 		}

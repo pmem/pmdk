@@ -373,7 +373,8 @@ FUNC_MOCK(pmalloc, int, PMEMobjpool *pop, uint64_t *ptr, size_t size)
 		(*Id)++;
 		Pop->persist(Pop, Id, sizeof (*Id));
 
-		*Heap_offset = *Heap_offset + sizeof (uint64_t) + size + OOB_OFF;
+		*Heap_offset = *Heap_offset + sizeof (uint64_t) +
+			size + OOB_OFF;
 		Pop->persist(Pop, Heap_offset, sizeof (*Heap_offset));
 
 		OUT("pmalloc(id = %d)", item->item.id);
@@ -986,6 +987,30 @@ do_move(PMEMobjpool *pop, const char *arg)
 }
 
 /*
+ * do_move_one_list -- move element within one list
+ */
+static void
+do_move_one_list(PMEMobjpool *pop, const char *arg)
+{
+	int n;
+	int d;
+	int before;
+	if (sscanf(arg, "M:%d:%d:%d", &n, &before, &d) != 3)
+		FATAL_USAGE_MOVE();
+
+	if (list_move(pop,
+		offsetof(struct item, next),
+		(struct list_head *)&D_RW(List)->head,
+		offsetof(struct item, next),
+		(struct list_head *)&D_RW(List)->head,
+		get_item_list(List.oid, d),
+		before,
+		get_item_list(List.oid, n))) {
+		FATAL("list_move(List, List) failed");
+	}
+}
+
+/*
  * do_fail -- fail after specified event
  */
 static void
@@ -1046,6 +1071,9 @@ main(int argc, char *argv[])
 			break;
 		case 'm':
 			do_move(pop, argv[i]);
+			break;
+		case 'M':
+			do_move_one_list(pop, argv[i]);
 			break;
 		case 'V':
 			lane_recover_and_section_boot(pop);

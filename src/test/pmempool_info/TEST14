@@ -52,12 +52,13 @@ expect_abnormal_exit $PMEMALLOC$EXESUFFIX -o 1 -t 1 -ea $POOL
 expect_normal_exit $PMEMPOOL$EXESUFFIX info -l -R -a $POOL >> $LOG
 echo >> $LOG
 expect_abnormal_exit $PMEMALLOC$EXESUFFIX -o 1 -t 1 -s -es $POOL
-expect_normal_exit $PMEMPOOL$EXESUFFIX info -l -R -a -Stx,list $POOL >> $LOG
+expect_normal_exit $PMEMPOOL$EXESUFFIX info -l -R -Stx $POOL >> $LOG
+echo >> $LOG
+expect_abnormal_exit $PMEMALLOC$EXESUFFIX -o 1024 -t 1 -s -es $POOL
+expect_normal_exit $PMEMPOOL$EXESUFFIX info -l -R -Stx $POOL >> $LOG
 echo >> $LOG
 expect_abnormal_exit $PMEMALLOC$EXESUFFIX -o 1 -t 1 -s -f -ef $POOL
 expect_normal_exit $PMEMPOOL$EXESUFFIX info -l -R -a -Stx $POOL >> $LOG
-
-rm -f $POOL
 
 check
 

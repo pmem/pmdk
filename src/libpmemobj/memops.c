@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016, Intel Corporation
+ * Copyright 2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -55,14 +55,9 @@ enum operation_entry_type {
 #define	MAX_TRANSIENT_ENTRIES 10
 #define	MAX_PERSITENT_ENTRIES 10
 
-#define PERFORM_LOGIC_OPERATION(_field, _value, _type)\
-if ((_type) == OPERATION_AND) (_field) &= (_value);\
-else if ((_type) == OPERATION_OR) (_field) |= (_value);\
-else ASSERT(0);
-
 /*
-* operation_context -- context of an ongoing palloc operation
-*/
+ * operation_context -- context of an ongoing palloc operation
+ */
 struct operation_context {
 	PMEMobjpool *pop;
 	struct redo_log *redo;
@@ -73,8 +68,8 @@ struct operation_context {
 };
 
 /*
-* operation_init -- initializes a new palloc operation
-*/
+ * operation_init -- initializes a new palloc operation
+ */
 struct operation_context *
 operation_init(PMEMobjpool *pop, struct redo_log *redo)
 {
@@ -93,8 +88,27 @@ out:
 }
 
 /*
-* operation_add_entry -- adds new entry to the current operation
-*/
+ * operation_perform -- (internal) performs a logic operation on the field
+ */
+static inline void
+operation_perform(uint64_t *field, uint64_t value,
+	enum operation_type op_type)
+{
+	switch (op_type) {
+		case OPERATION_AND:
+			*field &= value;
+		break;
+		case OPERATION_OR:
+			*field |= value;
+		break;
+		default:
+			ASSERT(0); /* unreachable */
+	}
+}
+
+/*
+ * operation_add_entry -- adds new entry to the current operation
+ */
 void
 operation_add_entry(struct operation_context *ctx, void *ptr, uint64_t value,
 	enum operation_type type)
@@ -112,10 +126,10 @@ operation_add_entry(struct operation_context *ctx, void *ptr, uint64_t value,
 	if (type == OPERATION_AND || type == OPERATION_OR) {
 		struct operation_entry *e; /* existing entry */
 		for (size_t i = 0; i < ctx->nentries[entry_type]; ++i) {
-			e = &ctx->entries[ENTRY_PERSISTENT][i];
+			e = &ctx->entries[entry_type][i];
 			/* update existing and exit, no reason to add new op */
 			if (e->ptr == ptr) {
-				PERFORM_LOGIC_OPERATION(e->value, value, type);
+				operation_perform(&e->value, value, type);
 
 				return;
 			}
@@ -123,7 +137,7 @@ operation_add_entry(struct operation_context *ctx, void *ptr, uint64_t value,
 
 		/* change the new entry to current value and apply logic op */
 		en.value = *(uint64_t *)ptr;
-		PERFORM_LOGIC_OPERATION(en.value, value, type);
+		operation_perform(&en.value, value, type);
 
 	}
 
@@ -133,8 +147,8 @@ operation_add_entry(struct operation_context *ctx, void *ptr, uint64_t value,
 }
 
 /*
-* operation_add_entries -- adds new entries to the current operation
-*/
+ * operation_add_entries -- adds new entries to the current operation
+ */
 void
 operation_add_entries(struct operation_context *ctx,
 	struct operation_entry *entries, size_t nentries)
@@ -146,8 +160,8 @@ operation_add_entries(struct operation_context *ctx,
 }
 
 /*
-* operation_process_persistent_redo -- (internal) process using redo
-*/
+ * operation_process_persistent_redo -- (internal) process using redo
+ */
 static void
 operation_process_persistent_redo(struct operation_context *ctx)
 {
@@ -166,8 +180,8 @@ operation_process_persistent_redo(struct operation_context *ctx)
 }
 
 /*
-* operation_process -- processes registered operations
-*/
+ * operation_process -- processes registered operations
+ */
 void
 operation_process(struct operation_context *ctx)
 {
@@ -198,8 +212,8 @@ operation_process(struct operation_context *ctx)
 }
 
 /*
-* operation_delete -- deletes current operation context
-*/
+ * operation_delete -- deletes current operation context
+ */
 void
 operation_delete(struct operation_context *ctx)
 {

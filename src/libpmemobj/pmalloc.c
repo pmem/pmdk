@@ -206,7 +206,7 @@ alloc_prep_block(PMEMobjpool *pop, struct memory_block m,
 
 /*
  * palloc_operation -- persistent memory operation. Takes a NULL pointer
- * 	or an existing memory block and modifies it to occupy, at least, 'size'
+ *	or an existing memory block and modifies it to occupy, at least, 'size'
  *	number of bytes.
  */
 int
@@ -226,6 +226,9 @@ palloc_operation(PMEMobjpool *pop,
 
 	int ret = 0;
 
+	struct lane_section *lane;
+	lane_hold(pop, &lane, LANE_SECTION_ALLOCATOR);
+
 	if (off != 0) {
 		alloc = ALLOC_GET_HEADER(pop, off);
 		b = heap_get_chunk_bucket(pop, alloc->chunk_id, alloc->zone_id);
@@ -241,12 +244,16 @@ palloc_operation(PMEMobjpool *pop,
 			goto out;
 	}
 
-	struct lane_section *lane;
-	lane_hold(pop, &lane, LANE_SECTION_ALLOCATOR);
 	struct allocator_lane_section *sec =
 		(struct allocator_lane_section *)lane->layout;
 
 	struct operation_context *ctx = operation_init(pop, sec->redo);
+	if (ctx == NULL) {
+		ERR("Failed to initialize memory operation context");
+		ret = ENOMEM;
+		goto out;
+	}
+
 	operation_add_entries(ctx, entries, nentries);
 
 	uint64_t offset_value = 0; /* the resulting offset */
@@ -317,11 +324,11 @@ palloc_operation(PMEMobjpool *pop,
 				heap_degrade_run_if_empty(pop, b, rb);
 		}
 	}
-
-	lane_release(pop);
 	operation_delete(ctx);
 
 out:
+	lane_release(pop);
+
 	return ret;
 }
 

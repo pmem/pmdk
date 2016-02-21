@@ -1295,22 +1295,7 @@ pmemspoil_process_lane(struct pmemspoil *psp, struct pmemspoil_list *pfp,
 
 	return PROCESS_RET;
 }
-#if 0
-/*
- * pmemspoil_process_obj_store -- process object store structures
- */
-static int
-pmemspoil_process_obj_store(struct pmemspoil *psp,
-		struct pmemspoil_list *pfp, struct object_store *obj_store)
-{
-	PROCESS_BEGIN(psp, pfp) {
-		PROCESS_NAME("type", list,
-			&obj_store->bytype[PROCESS_INDEX].head,
-			PMEMOBJ_NUM_OID_TYPES);
-	} PROCESS_END
-	return PROCESS_RET;
-}
-#endif
+
 /*
  * pmemspoil_process_pmemobj -- process pmemobj data structures
  */

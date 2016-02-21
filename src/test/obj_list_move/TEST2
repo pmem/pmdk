@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,33 +32,27 @@
 #
 
 #
-# src/test/obj_realloc/TEST1 -- unit test for pmemobj_realloc and
-# pmemobj_zrealloc
+# src/test/obj_list_move/TEST2 -- unit test for list_move
 #
-export UNITTEST_NAME=obj_realloc/TEST1
-export UNITTEST_NUM=1
+export UNITTEST_NAME=obj_list_move/TEST2
+export UNITTEST_NUM=2
 
 # standard unit test setup
 . ../unittest/unittest.sh
 
-require_valgrind_pmemcheck
-
-# XXX reduce the number of reallocs performed under pmemcheck so that the
-# execution time is reasonable and within the time limit (5 minutes) on both
-# pmem and non-pmem fs types.
-require_fs_type pmem
-
 setup
 
-expect_normal_exit $PMEMPOOL$EXESUFFIX\
-	create obj --layout realloc --size=64M $DIR/testfile1
-
-# last parameter disables integrity tests, because they are veeeeeery slow
-# under pmemcheck (19 minutes vs 7 seconds)
-# XXX enable after pmemcheck optimization
-expect_normal_exit valgrind --tool=pmemcheck\
-    --log-file=valgrind$UNITTEST_NUM.log\
-    ./obj_realloc$EXESUFFIX $DIR/testfile1 0
+truncate -s1M $DIR/testfile
+expect_normal_exit ../obj_list/obj_list$EXESUFFIX $DIR/testfile\
+	i:0:-1 i:0:-1 i:0:-1 i:0:-1 i:0:-1 i:0:-1 P:2 R:2\
+	M:0:0:0 P:2 R:2\
+	M:0:1:0 P:2 R:2\
+	M:0:1:1 P:2 R:2\
+	M:1:0:0 P:2 R:2\
+	M:-1:1:0 P:2 R:2\
+	M:0:0:-1 P:2 R:2\
+	M:0:0:3 P:2 R:2\
+	M:3:1:0 P:2 R:2\
 
 check
 

@@ -310,13 +310,6 @@ pmemobj_vg_register_object(struct pmemobjpool *pop, PMEMoid oid, int is_root)
 
 	VALGRIND_DO_MEMPOOL_ALLOC(pop, addr, sz);
 	VALGRIND_DO_MAKE_MEM_DEFINED(pop, addr - headers, sz + headers);
-
-	struct oob_header *oob = OOB_HEADER_FROM_PTR(addr);
-
-	if (!is_root)
-		/* no one should touch it */
-		VALGRIND_DO_MAKE_MEM_NOACCESS(pop, &oob->size,
-				sizeof (oob->size));
 }
 
 /*
@@ -490,6 +483,7 @@ pmemobj_descr_create(PMEMobjpool *pop, const char *layout, size_t poolsize)
 
 	pop->lanes_offset = OBJ_LANES_OFFSET;
 	pop->nlanes = OBJ_NLANES;
+	pop->root_offset = 0;
 
 	/* zero all lanes */
 	void *lanes_layout = (void *)((uintptr_t)pop +
@@ -1082,7 +1076,7 @@ constructor_alloc_bytype(PMEMobjpool *pop, void *ptr,
 	struct oob_header *pobj = OOB_HEADER_FROM_PTR(ptr);
 	struct carg_bytype *carg = arg;
 
-	/* zero-initialize OOB list */
+	/* zero-initialize OOB list, could be replaced with nodrain variant */
 	pop->memset_persist(pop, &pobj->oob, 0, sizeof (pobj->oob));
 
 	pobj->type_num = carg->user_type;
@@ -1121,13 +1115,13 @@ obj_alloc_construct(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 	carg.constructor = constructor;
 	carg.arg = arg;
 
-	struct operation_entry l = {&oidp->pool_uuid_lo, pop->uuid_lo,
+	struct operation_entry e = {&oidp->pool_uuid_lo, pop->uuid_lo,
 		OPERATION_SET};
 
 	return palloc_operation(pop, 0, oidp != NULL ? &oidp->off : NULL,
 		size + OBJ_OOB_SIZE,
 		constructor_alloc_bytype, &carg,
-		oidp != NULL ? &l : NULL, oidp != NULL ? 1 : 0);
+		oidp != NULL ? &e : NULL, oidp != NULL ? 1 : 0);
 }
 
 /*
@@ -1138,8 +1132,9 @@ pmemobj_alloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 	uint64_t type_num, void (*constructor)(PMEMobjpool *pop, void *ptr,
 	void *arg), void *arg)
 {
-	LOG(3, "pop %p oidp %p size %zu type_num %lu constructor %p arg %p",
-		pop, oidp, size, type_num, constructor, arg);
+	LOG(3, "pop %p oidp %p size %zu type_num %llx constructor %p arg %p",
+		pop, oidp, size, (unsigned long long)type_num,
+		constructor, arg);
 
 	/* log notice message if used inside a transaction */
 	_POBJ_DEBUG_NOTICE_IN_TX();
@@ -1172,8 +1167,8 @@ int
 pmemobj_zalloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 		uint64_t type_num)
 {
-	LOG(3, "pop %p oidp %p size %zu type_num %lu",
-			pop, oidp, size, type_num);
+	LOG(3, "pop %p oidp %p size %zu type_num %llx",
+			pop, oidp, size, (unsigned long long)type_num);
 
 	/* log notice message if used inside a transaction */
 	_POBJ_DEBUG_NOTICE_IN_TX();
@@ -1196,8 +1191,8 @@ obj_free(PMEMobjpool *pop, PMEMoid *oidp)
 {
 	ASSERT(oidp != NULL);
 
-	struct operation_entry l = {&oidp->pool_uuid_lo, 0, OPERATION_SET};
-	palloc_operation(pop, oidp->off, &oidp->off, 0, NULL, NULL, &l, 1);
+	struct operation_entry e = {&oidp->pool_uuid_lo, 0, OPERATION_SET};
+	palloc_operation(pop, oidp->off, &oidp->off, 0, NULL, NULL, &e, 1);
 }
 
 /*
@@ -1214,7 +1209,7 @@ constructor_realloc(PMEMobjpool *pop, void *ptr, size_t usable_size, void *arg)
 	struct carg_realloc *carg = arg;
 	struct oob_header *pobj = OOB_HEADER_FROM_PTR(ptr);
 
-	/* zero-initialize OOB list */
+	/* zero-initialize OOB list, could be replaced with nodrain variant */
 	pop->memset_persist(pop, &pobj->oob, 0, sizeof (pobj->oob));
 
 	if (ptr != carg->ptr) {
@@ -1242,7 +1237,6 @@ static int
 obj_realloc_common(PMEMobjpool *pop,
 	PMEMoid *oidp, size_t size, type_num_t type_num, int zero_init)
 {
-
 	/* if OID is NULL just allocate memory */
 	if (OBJ_OID_IS_NULL(*oidp)) {
 		/* if size is 0 - do nothing */
@@ -1623,7 +1617,7 @@ pmemobj_root_size(PMEMobjpool *pop)
 	if (pop->root_offset) {
 		struct oob_header *ro =
 			OOB_HEADER_FROM_OFF(pop, pop->root_offset);
-		return ro->size;
+		return ro->size & ~OBJ_INTERNAL_OBJECT_MASK;
 	} else
 		return 0;
 }
@@ -1649,7 +1643,6 @@ pmemobj_root_construct(PMEMobjpool *pop, size_t size,
 	pmemobj_mutex_lock_nofail(pop, &pop->rootlock);
 
 	if (pop->root_offset == 0)
-		/* root object list is empty */
 		obj_alloc_root(pop, size, constructor, arg);
 	else {
 		size_t old_size = pmemobj_root_size(pop);

@@ -21,45 +21,10 @@ PMEM OBJ Header:
 Layout                   : pmempool
 Lanes offset             : $(*)
 Number of lanes          : $(*)
-Object store offset      : $(*)
-Object store size        : $(*)
 Heap offset              : $(*)
 Heap size                : $(*)
 Checksum                 : $(*) [OK]
-
-Object store:
-Type number    1         : 1 element
-
- Object                   : 0
- Offset                   : $(*)
-  
-Allocation Header:
-  Zone id                  : $(*)
-  Chunk id                 : $(*)
-  Size                     : $(*)
-  
-OOB Header:
-  Next                     : off: $(*) pool_uuid_lo: $(*) [OK]
-  Prev                     : off: $(*) pool_uuid_lo: $(*) [OK]
-  Internal Type            : allocated
-  User Type                : 1
-
-Type number    2         : 1 element
-
- Object                   : 0
- Offset                   : $(*)
-  
-Allocation Header:
-  Zone id                  : $(*)
-  Chunk id                 : $(*)
-  Size                     : $(*)
-  
-OOB Header:
-  Next                     : off: $(*) pool_uuid_lo: $(*) [OK]
-  Prev                     : off: $(*) pool_uuid_lo: $(*) [OK]
-  Internal Type            : allocated
-  User Type                : 2
-
+Root offset              : $(*)
 
 PMEMOBJ Heap Header:
 Signature                : MEMORY_HEAP_HDR
@@ -76,8 +41,21 @@ Size idx                 : $(*)
  
  Chunk                    : 0
  Type                     : used
- Flags                    : $(*)
- Size idx                 : $(*)
+ Flags                    : 0x0 
+ Size idx                 : 5
+
+  Object                   : $(*)
+  Offset                   : $(*)
+
+   Allocation Header:
+   Zone id                  : $(*)
+   Chunk id                 : $(*)
+   Size                     : $(*)
+
+   OOB Header:
+   Next                     : off: $(*) pool_uuid_lo: $(*) [OK]
+   Prev                     : off: $(*) pool_uuid_lo: $(*) [OK]
+   Type Number              : $(*)
  
  Chunk                    : $(*)
  Type                     : run
@@ -85,6 +63,19 @@ Size idx                 : $(*)
  Size idx                 : $(*)
  Block size               : $(*)
  Bitmap                   : $(*)
+
+  Object                   : $(*)
+  Offset                   : $(*)
+
+   Allocation Header:
+   Zone id                  : $(*)
+   Chunk id                 : $(*)
+   Size                     : $(*)
+
+   OOB Header:
+   Next                     : off: $(*) pool_uuid_lo: $(*) [OK]
+   Prev                     : off: $(*) pool_uuid_lo: $(*) [OK]
+   Type Number              : $(*)
  
  Chunk                    : $(*)
  Type                     : free
@@ -110,8 +101,8 @@ Objects by type:
 Heap:
 Number of zones          : 1
 Number of used zones     : 1 [100 %]
- 
-Zone:
+
+ Zone:
  Number of chunks         : $(*)
   free                     : $(*)
   used                     : $(*)
@@ -121,8 +112,8 @@ Zone:
   free                     : $(*)
   used                     : $(*)
   run                      : $(*)
- 
-Zone's allocation classes:
+
+ Zone's allocation classes:
 
   Unit size                : $(*)
   Units                    : $(*)

@@ -162,8 +162,6 @@ main(int argc, char *argv[])
 	VALGRIND_DO_ENABLE_ERROR_REPORTING;
 	print_errors("pmem_msync");
 
-	print_errors("pmemobj_tx_abort");
-
 	pmemlog_append(plp, NULL, PMEMLOG_MIN_POOL);
 	print_errors("pmemlog_append");
 

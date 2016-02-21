@@ -21,11 +21,10 @@ PMEM OBJ Header:
 Layout                   : pmempool
 Lanes offset             : $(*)
 Number of lanes          : $(*)
-Object store offset      : $(*)
-Object store size        : $(*)
 Heap offset              : $(*)
 Heap size                : $(*)
 Checksum                 : $(*) [OK]
+Root offset              : $(*)
 
 No root object...
 
@@ -52,23 +51,21 @@ PMEM OBJ Header:
 Layout                   : pmempool
 Lanes offset             : $(*)
 Number of lanes          : $(*)
-Object store offset      : $(*)
-Object store size        : $(*)
 Heap offset              : $(*)
 Heap size                : $(*)
 Checksum                 : $(*) [OK]
+Root offset              : $(*)
 
 Root object:
 Offset                   : $(*)
 Size                     : 1
- 
-Allocation Header:
+
+ Allocation Header:
  Zone id                  : $(*)
  Chunk id                 : $(*)
  Size                     : $(*)
- 
-OOB Header:
+
+ OOB Header:
  Next                     : off: $(*) pool_uuid_lo: $(*) [OK]
  Prev                     : off: $(*) pool_uuid_lo: $(*) [OK]
- Internal Type            : allocated
- User Type                : 65535 [root object]
+ Type Number              : $(*)

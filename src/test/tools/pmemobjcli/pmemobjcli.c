@@ -361,7 +361,7 @@ pocli_pmemobj_type_num(struct pocli_ctx *ctx, struct pocli_args *args)
 
 	uint64_t type_num = pmemobj_type_num(*oidp);
 
-	pocli_printf(ctx, "%s(%s): type num = %lu\n",
+	pocli_printf(ctx, "%s(%s): type num = %llu\n",
 			args->argv[0], args->argv[1], type_num);
 
 	return POCLI_RET_OK;

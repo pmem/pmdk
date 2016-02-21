@@ -159,11 +159,14 @@ outv_err_vargs(const char *fmt, va_list ap)
 }
 
 /*
- * out_indent -- change indentation level by factor
+ * outv_indent -- change indentation level by factor
  */
 void
-out_indent(int i)
+outv_indent(int vlevel, int i)
 {
+	if (!outv_check(vlevel))
+		return;
+
 	out_indent_str[out_indent_level] = INDENT_CHAR;
 	out_indent_level += i;
 	if (out_indent_level < 0)
@@ -201,13 +204,14 @@ outv(int vlevel, const char *fmt, ...)
 {
 	va_list ap;
 
-	if (outv_check(vlevel)) {
-		_out_prefix();
-		_out_indent();
-		va_start(ap, fmt);
-		vfprintf(out_fh, fmt, ap);
-		va_end(ap);
-	}
+	if (!outv_check(vlevel))
+		return;
+
+	_out_prefix();
+	_out_indent();
+	va_start(ap, fmt);
+	vfprintf(out_fh, fmt, ap);
+	va_end(ap);
 }
 
 /*
@@ -216,25 +220,27 @@ outv(int vlevel, const char *fmt, ...)
 void
 outv_nl(int vlevel)
 {
-	if (outv_check(vlevel)) {
-		_out_prefix();
-		fprintf(out_fh, "\n");
-	}
+	if (!outv_check(vlevel))
+		return;
+
+	_out_prefix();
+	fprintf(out_fh, "\n");
 }
 
 void
 outv_title(int vlevel, const char *fmt, ...)
 {
 	va_list ap;
-	if (outv_check(vlevel)) {
-		_out_prefix();
-		_out_indent();
-		fprintf(out_fh, "\n");
-		va_start(ap, fmt);
-		vfprintf(out_fh, fmt, ap);
-		va_end(ap);
-		fprintf(out_fh, ":\n");
-	}
+	if (!outv_check(vlevel))
+		return;
+
+	fprintf(out_fh, "\n");
+	_out_prefix();
+	_out_indent();
+	va_start(ap, fmt);
+	vfprintf(out_fh, fmt, ap);
+	va_end(ap);
+	fprintf(out_fh, ":\n");
 }
 
 /*
@@ -251,15 +257,16 @@ outv_field(int vlevel, const char *field, const char *fmt, ...)
 {
 	va_list ap;
 
-	if (outv_check(vlevel)) {
-		_out_prefix();
-		_out_indent();
-		va_start(ap, fmt);
-		fprintf(out_fh, "%-*s : ", out_column_width, field);
-		vfprintf(out_fh, fmt, ap);
-		fprintf(out_fh, "\n");
-		va_end(ap);
-	}
+	if (!outv_check(vlevel))
+		return;
+
+	_out_prefix();
+	_out_indent();
+	va_start(ap, fmt);
+	fprintf(out_fh, "%-*s : ", out_column_width, field);
+	vfprintf(out_fh, fmt, ap);
+	fprintf(out_fh, "\n");
+	va_end(ap);
 }
 
 /*

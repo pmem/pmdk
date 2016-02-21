@@ -46,9 +46,6 @@
 #include "info.h"
 
 #define	BITMAP_BUFF_SIZE 1024
-#if 0
-#define	TYPE_NUM_BUFF_SIZE 32
-#endif
 
 #define	OFF_TO_PTR(pop, off) ((void *)((uintptr_t)(pop) + (off)));
 
@@ -57,7 +54,7 @@
 #define	DEFAULT_BUCKET MAX_BUCKETS
 
 typedef void (*list_callback_fn)(struct pmem_info *pip, int v, int vnum,
-		struct pmemobjpool *pop, struct list_entry *entry, size_t i);
+		struct list_entry *entry, size_t i);
 
 /*
  * lane_need_recovery_redo -- return 1 if redo log needs recovery
@@ -78,7 +75,8 @@ lane_need_recovery_redo(struct redo_log *redo, size_t nentries)
  * lane_need_recovery_list -- return 1 if list's section needs recovery
  */
 static int
-lane_need_recovery_list(struct lane_section_layout *layout)
+lane_need_recovery_list(struct pmem_info *pip,
+	struct lane_section_layout *layout)
 {
 	struct lane_list_section *section = (struct lane_list_section *)layout;
 
@@ -94,7 +92,8 @@ lane_need_recovery_list(struct lane_section_layout *layout)
  * lane_need_recovery_alloc -- return 1 if allocator's section needs recovery
  */
 static int
-lane_need_recovery_alloc(struct lane_section_layout *layout)
+lane_need_recovery_alloc(struct pmem_info *pip,
+	struct lane_section_layout *layout)
 {
 	struct allocator_lane_section *section =
 		(struct allocator_lane_section *)layout;
@@ -107,9 +106,21 @@ lane_need_recovery_alloc(struct lane_section_layout *layout)
  * lane_need_recovery_tx -- return 1 if transaction's section needs recovery
  */
 static int
-lane_need_recovery_tx(struct lane_section_layout *layout)
+lane_need_recovery_tx(struct pmem_info *pip,
+	struct lane_section_layout *layout)
 {
 	struct lane_tx_layout *section = (struct lane_tx_layout *)layout;
+
+	int set_cache = 0;
+
+	struct list_entry *entryp = PLIST_FIRST(pip->obj.pop,
+			&section->undo_set_cache);
+	if (entryp) {
+		struct tx_range_cache *cache = ENTRY_TO_DATA(entryp);
+		struct tx_range *range = (struct tx_range *)&cache->range[0];
+
+		set_cache = (range->offset && range->size);
+	}
 
 	/*
 	 * The transaction section needs recovery
@@ -119,20 +130,21 @@ lane_need_recovery_tx(struct lane_section_layout *layout)
 	return section->state == TX_STATE_NONE &&
 		(!PLIST_EMPTY(&section->undo_alloc) ||
 		!PLIST_EMPTY(&section->undo_free) ||
-		!PLIST_EMPTY(&section->undo_set));
+		!PLIST_EMPTY(&section->undo_set) ||
+		set_cache);
 }
 
 /*
  * lane_need_recovery -- return 1 if lane section needs recovery
  */
 static int
-lane_need_recovery(struct lane_layout *lane)
+lane_need_recovery(struct pmem_info *pip, struct lane_layout *lane)
 {
-	int alloc = lane_need_recovery_alloc(
+	int alloc = lane_need_recovery_alloc(pip,
 			&lane->sections[LANE_SECTION_ALLOCATOR]);
-	int list = lane_need_recovery_list(
+	int list = lane_need_recovery_list(pip,
 			&lane->sections[LANE_SECTION_LIST]);
-	int tx = lane_need_recovery_tx(
+	int tx = lane_need_recovery_tx(pip,
 			&lane->sections[LANE_SECTION_TRANSACTION]);
 
 	return alloc || list || tx;
@@ -219,6 +231,37 @@ get_bitmap_str(uint64_t val, unsigned values)
 }
 
 /*
+ * pmem_obj_stats_get_type -- get stats for specified type number
+ */
+static struct pmem_obj_type_stats *
+pmem_obj_stats_get_type(struct pmem_obj_stats *stats, uint64_t type_num)
+{
+	struct pmem_obj_type_stats *type;
+	struct pmem_obj_type_stats *type_dest = NULL;
+	TAILQ_FOREACH(type, &stats->type_stats, next) {
+		if (type->type_num == type_num)
+			return type;
+
+		if (!type_dest && type->type_num > type_num)
+			type_dest = type;
+	}
+
+	type = calloc(1, sizeof (*type));
+	if (!type) {
+		outv_err("cannot allocate memory for type stats\n");
+		exit(EXIT_FAILURE);
+	}
+
+	type->type_num = type_num;
+	if (type_dest)
+		TAILQ_INSERT_BEFORE(type_dest, type, next);
+	else
+		TAILQ_INSERT_TAIL(&stats->type_stats, type, next);
+
+	return type;
+}
+
+/*
  * info_obj_redo -- print redo log entries
  */
 static void
@@ -253,7 +296,7 @@ info_obj_lane_alloc(int v, struct lane_section_layout *layout)
  */
 static void
 info_obj_lane_list(struct pmem_info *pip, int v,
-		struct lane_section_layout *layout)
+	struct lane_section_layout *layout)
 {
 	struct lane_list_section *section = (struct lane_list_section *)layout;
 
@@ -266,40 +309,43 @@ info_obj_lane_list(struct pmem_info *pip, int v,
  * callback function for each element
  */
 static void
-info_obj_list(struct pmem_info *pip, int v, int vnum, struct pmemobjpool *pop,
+info_obj_list(struct pmem_info *pip, int vnum, int vobj,
 	struct list_head *headp, const char *name, list_callback_fn cb)
 {
-	size_t nelements = util_plist_nelements(pop, headp);
+	size_t nelements = util_plist_nelements(pip->obj.pop, headp);
+
 	if (pip->args.obj.ignore_empty_obj && nelements == 0)
 		return;
 
-	outv_field(v, name, "%lu element%s",
-				nelements, nelements != 1 ? "s" : "");
-	out_indent(1);
+	outv_field(vnum, name, "%lu element%s", nelements,
+			nelements != 1 ? "s" : "");
+
+	outv_indent(vobj, 1);
+
 	size_t i = 0;
 	struct list_entry *entryp;
-	PLIST_FOREACH(entryp, pop, headp) {
-		cb(pip, v, vnum, pop, entryp, i);
+	PLIST_FOREACH(entryp, pip->obj.pop, headp) {
+		cb(pip, vobj, vobj, entryp, i);
 		i++;
 	}
-	out_indent(-1);
+
+	outv_indent(vobj, -1);
 }
 
 /*
  * info_obj_oob_hdr -- print OOB header
  */
 static void
-info_obj_oob_hdr(struct pmem_info *pip, int v, struct pmemobjpool *pop,
-		struct oob_header *oob)
+info_obj_oob_hdr(struct pmem_info *pip, int v, struct oob_header *oob)
 {
 	outv_title(v, "OOB Header");
 	outv_hexdump(v && pip->args.vhdrdump, oob, sizeof (*oob),
-		PTR_TO_OFF(pop, oob), 1);
-	outv_field(v, "Next",
-		out_get_pmemoid_str(oob->oob.pe_next, pip->obj.uuid_lo));
-	outv_field(v, "Prev",
-		out_get_pmemoid_str(oob->oob.pe_prev, pip->obj.uuid_lo));
-	outv_field(v, "User Type", "%u", oob->type_num);
+		PTR_TO_OFF(pip->obj.pop, oob), 1);
+	outv_field(v, "Next", out_get_pmemoid_str(oob->oob.pe_next,
+				pip->obj.uuid_lo));
+	outv_field(v, "Prev", out_get_pmemoid_str(oob->oob.pe_prev,
+				pip->obj.uuid_lo));
+	outv_field(v, "Type Number", "0x%016lx", oob->type_num);
 }
 
 /*
@@ -307,98 +353,134 @@ info_obj_oob_hdr(struct pmem_info *pip, int v, struct pmemobjpool *pop,
  */
 static void
 info_obj_alloc_hdr(struct pmem_info *pip, int v,
-		struct allocation_header *alloc)
+	struct allocation_header *alloc)
 {
 	outv_title(v, "Allocation Header");
 	outv_hexdump(v && pip->args.vhdrdump, alloc,
-			sizeof (*alloc), PTR_TO_OFF(pip->obj.addr, alloc), 1);
+			sizeof (*alloc), PTR_TO_OFF(pip->obj.pop, alloc), 1);
 	outv_field(v, "Zone id", "%u", alloc->zone_id);
 	outv_field(v, "Chunk id", "%u", alloc->chunk_id);
-	outv_field(v, "Size", "%s",
-			out_get_size_str(alloc->size, pip->args.human));
+	outv_field(v, "Size", "%s", out_get_size_str(alloc->size,
+				pip->args.human));
 }
 
 /*
- * obj_object_cb -- callback for objects
+ * info_obj_object_hdr -- print object headers and data
  */
 static void
-obj_object_cb(struct pmem_info *pip, int v, int vnum, struct pmemobjpool *pop,
-		struct list_entry *entryp, size_t i)
+info_obj_object_hdr(struct pmem_info *pip, int v, int vid,
+	struct list_entry *entryp, uint64_t id)
 {
+	struct pmemobjpool *pop = pip->obj.pop;
 	struct oob_header *oob = ENTRY_TO_OOB_HDR(entryp);
 	struct allocation_header *alloc = ENTRY_TO_ALLOC_HDR(entryp);
 	void *data = ENTRY_TO_DATA(entryp);
 
-	outv_nl(vnum);
-	outv_field(vnum, "Object", "%lu", i);
-	outv_field(vnum, "Offset", "0x%016lx", PTR_TO_OFF(pop, data));
+	outv_nl(vid);
+	outv_field(vid, "Object", "%lu", id);
+	outv_field(vid, "Offset", "0x%016lx", PTR_TO_OFF(pop, data));
 
-	out_indent(1);
-	info_obj_alloc_hdr(pip, v && pip->args.obj.valloc, alloc);
-	info_obj_oob_hdr(pip, v && pip->args.obj.voobhdr, pop, oob);
+	int vahdr = v && pip->args.obj.valloc;
+	int voobh = v && pip->args.obj.voobhdr;
+
+	outv_indent(vahdr || voobh, 1);
+
+	info_obj_alloc_hdr(pip, vahdr, alloc);
+	info_obj_oob_hdr(pip, voobh, oob);
 
 	outv_hexdump(v && pip->args.vdata, data,
-			alloc->size, PTR_TO_OFF(pip->obj.addr, data), 1);
-	outv_nl(vnum);
-	out_indent(-1);
+			alloc->size, PTR_TO_OFF(pip->obj.pop, data), 1);
+
+	outv_indent(vahdr || voobh, -1);
 }
 
 /*
  * set_entry_cb -- callback for set objects from undo log
  */
 static void
-set_entry_cb(struct pmem_info *pip, int v, int vnum, struct pmemobjpool *pop,
-		struct list_entry *entryp, size_t i)
+set_entry_cb(struct pmem_info *pip, int v, int vid, struct list_entry *entryp,
+	size_t i)
 {
 	struct tx_range *range = ENTRY_TO_TX_RANGE(entryp);
-	obj_object_cb(pip, v, vnum, pop, entryp, i);
+	info_obj_object_hdr(pip, v, vid, entryp, i);
 
-	outv_title(vnum, "Tx range");
-	outv_field(vnum, "Offset", "0x%016lx", range->offset);
-	outv_field(vnum, "Size", "%s",
+	outv_title(v, "Tx range");
+	outv_indent(v, 1);
+	outv_field(v, "Offset", "0x%016lx", range->offset);
+	outv_field(v, "Size", "%s", out_get_size_str(range->size,
+				pip->args.human));
+	outv_indent(v, -1);
+	outv_nl(v);
+}
+
+/*
+ * set_entry_cache_cb -- callback for set cache objects from undo log
+ */
+static void
+set_entry_cache_cb(struct pmem_info *pip, int v, int vid,
+	struct list_entry *entryp, size_t i)
+{
+	struct tx_range_cache *cache = ENTRY_TO_TX_RANGE(entryp);
+	info_obj_object_hdr(pip, v, vid, entryp, i);
+
+	int title = 0;
+	for (int i = 0; i < MAX_CACHED_RANGES; ++i) {
+		struct tx_range *range = (struct tx_range *)&cache->range[i];
+		if (range->offset == 0 || range->size == 0)
+			break;
+
+		if (!title) {
+			outv_title(v, "Tx range cache");
+			outv_indent(v, 1);
+			title = 1;
+		}
+		outv(v, "%010u: Offset: 0x%016lx Size: %s\n", i, range->offset,
 			out_get_size_str(range->size, pip->args.human));
+	}
+	if (title)
+		outv_indent(v, -1);
 }
 
 /*
  * info_obj_lane_tx -- print transaction's lane section
  */
 static void
-info_obj_lane_tx(struct pmem_info *pip, int v, struct pmemobjpool *pop,
-		struct lane_section_layout *layout)
+info_obj_lane_tx(struct pmem_info *pip, int v,
+	struct lane_section_layout *layout)
 {
 	struct lane_tx_layout *section = (struct lane_tx_layout *)layout;
 
 	outv_field(v, "State", "%s", out_get_tx_state_str(section->state));
 
-	int vnum = v && (pip->args.obj.valloc || pip->args.obj.voobhdr);
-	info_obj_list(pip, v, vnum, pop, &section->undo_alloc,
-			"Undo Log - alloc", obj_object_cb);
-	info_obj_list(pip, v, vnum, pop, &section->undo_free,
-			"Undo Log - free", obj_object_cb);
-	info_obj_list(pip, v, vnum, pop, &section->undo_set,
+	int vobj = v && (pip->args.obj.valloc || pip->args.obj.voobhdr);
+	info_obj_list(pip, v, vobj, &section->undo_alloc,
+			"Undo Log - alloc", info_obj_object_hdr);
+	info_obj_list(pip, v, vobj, &section->undo_free,
+			"Undo Log - free", info_obj_object_hdr);
+	info_obj_list(pip, v, v, &section->undo_set,
 			"Undo Log - set", set_entry_cb);
+	info_obj_list(pip, v, v, &section->undo_set_cache,
+			"Undo Log - set cache", set_entry_cache_cb);
 }
 
 /*
  * info_obj_lane_section -- print lane's section
  */
 static void
-info_obj_lane_section(struct pmem_info *pip, int v, struct pmemobjpool *pop,
-	struct lane_layout *lane, enum lane_section_type type)
+info_obj_lane_section(struct pmem_info *pip, int v, struct lane_layout *lane,
+	enum lane_section_type type)
 {
 	if (!(pip->args.obj.lane_sections & (1U << type)))
 		return;
 
 	outv_nl(v);
-	outv_field(v, "Lane section", "%s",
-		out_get_lane_section_str(type));
-	outv_hexdump(v && pip->args.vhdrdump,
-			&lane->sections[type],
-			LANE_SECTION_LEN,
-			PTR_TO_OFF(pop, &lane->sections[type]),
-			1);
+	outv_field(v, "Lane section", "%s", out_get_lane_section_str(type));
 
-	out_indent(1);
+	size_t lane_off = PTR_TO_OFF(pip->obj.pop, &lane->sections[type]);
+	outv_hexdump(v && pip->args.vhdrdump, &lane->sections[type],
+			LANE_SECTION_LEN, lane_off, 1);
+
+	outv_indent(v, 1);
 	switch (type) {
 	case LANE_SECTION_ALLOCATOR:
 		info_obj_lane_alloc(v, &lane->sections[type]);
@@ -407,124 +489,66 @@ info_obj_lane_section(struct pmem_info *pip, int v, struct pmemobjpool *pop,
 		info_obj_lane_list(pip, v, &lane->sections[type]);
 		break;
 	case LANE_SECTION_TRANSACTION:
-		info_obj_lane_tx(pip, v, pop, &lane->sections[type]);
+		info_obj_lane_tx(pip, v, &lane->sections[type]);
 		break;
 	default:
 		break;
 	}
-	out_indent(-1);
+	outv_indent(v, -1);
 }
 
 /*
  * info_obj_lanes -- print lanes structures
  */
 static void
-info_obj_lanes(struct pmem_info *pip, int v,
-		struct pmemobjpool *pop)
+info_obj_lanes(struct pmem_info *pip)
 {
+	int v = pip->args.obj.vlanes;
+
 	if (!outv_check(v))
 		return;
 
+	struct pmemobjpool *pop = pip->obj.pop;
 	/*
 	 * Iterate through all lanes from specified range and print
 	 * specified sections.
 	 */
-	struct lane_layout *lanes = (void *)((char *)pip->obj.addr +
+	struct lane_layout *lanes = (void *)((char *)pip->obj.pop +
 			pop->lanes_offset);
-	uint64_t i;
 	struct range *curp = NULL;
 	FOREACH_RANGE(curp, &pip->args.obj.lane_ranges) {
-		for (i = curp->first;
+		for (uint64_t i = curp->first;
 			i <= curp->last && i < pop->nlanes; i++) {
 
 			/* For -R check print lane only if needs recovery */
 			if (pip->args.obj.lanes_recovery &&
-				!lane_need_recovery(&lanes[i]))
+				!lane_need_recovery(pip, &lanes[i]))
 				continue;
 
 			outv_title(v, "Lane", "%d", i);
 
-			out_indent(1);
-			info_obj_lane_section(pip, v, pop, &lanes[i],
+			outv_indent(v, 1);
+
+			info_obj_lane_section(pip, v, &lanes[i],
 					LANE_SECTION_ALLOCATOR);
-			info_obj_lane_section(pip, v, pop, &lanes[i],
+			info_obj_lane_section(pip, v, &lanes[i],
 					LANE_SECTION_LIST);
-			info_obj_lane_section(pip, v, pop, &lanes[i],
+			info_obj_lane_section(pip, v, &lanes[i],
 					LANE_SECTION_TRANSACTION);
-			out_indent(-1);
+
+			outv_indent(v, -1);
 		}
 	}
 }
-#if 0
-/*
- * info_obj_store_object_cb -- callback for objects from object store
- */
-static void
-info_obj_store_object_cb(struct pmem_info *pip, int v, int vnum,
-		struct pmemobjpool *pop, struct list_entry *entryp, size_t i)
-{
-	struct allocation_header *alloc = ENTRY_TO_ALLOC_HDR(entryp);
 
-	uint64_t real_size = alloc->size -
-		sizeof (struct allocation_header) - sizeof (struct oob_header);
-
-	if (!util_ranges_contain(&pip->args.ranges, i))
-		return;
-
-	if (!util_ranges_contain(&pip->args.obj.zone_ranges, alloc->zone_id))
-		return;
-
-	if (!util_ranges_contain(&pip->args.obj.chunk_ranges, alloc->chunk_id))
-		return;
-
-	pip->obj.stats.n_total_objects++;
-	pip->obj.stats.n_total_bytes += real_size;
-
-
-	obj_object_cb(pip, v, vnum, pop, entryp, i);
-}
-
-/*
- * info_obj_store -- print information about object store
- */
-static void
-info_obj_store(struct pmem_info *pip, int v, struct pmemobjpool *pop)
-{
-	if (!outv_check(v) && !outv_check(pip->args.vstats))
-		return;
-
-	char buff[TYPE_NUM_BUFF_SIZE];
-	struct object_store *obj_store = OFF_TO_PTR(pop, pop->obj_store_offset);
-
-	outv_title(v, "Object store");
-
-	/* verbosity level for the object number */
-	int vnum = v && (pip->args.obj.valloc ||
-			pip->args.obj.voobhdr ||
-			pip->args.vdata);
-
-	uint64_t i;
-	struct range *curp;
-	FOREACH_RANGE(curp, &pip->args.obj.object_ranges) {
-		for (i = curp->first; i <= curp->last &&
-				i < PMEMOBJ_NUM_OID_TYPES; i++) {
-			snprintf(buff, TYPE_NUM_BUFF_SIZE,
-					"Type number %4lu", i);
-
-			info_obj_list(pip, v, vnum, pop,
-				&obj_store->bytype[i].head, buff,
-				info_obj_store_object_cb);
-		}
-	}
-}
-#endif
 /*
  * info_obj_heap -- print pmemobj heap headers
  */
 static void
-info_obj_heap(struct pmem_info *pip, int v,
-		struct pmemobjpool *pop)
+info_obj_heap(struct pmem_info *pip)
 {
+	int v = pip->args.obj.vheap;
+	struct pmemobjpool *pop = pip->obj.pop;
 	struct heap_layout *layout = OFF_TO_PTR(pop, pop->heap_offset);
 	struct heap_header *heap = &layout->header;
 
@@ -548,13 +572,83 @@ info_obj_heap(struct pmem_info *pip, int v,
  * info_obj_zone -- print information about zone
  */
 static void
-info_obj_zone_hdr(struct pmem_info *pip, int v, struct pmemobjpool *pop,
-		struct zone_header *zone)
+info_obj_zone_hdr(struct pmem_info *pip, int v, struct zone_header *zone)
 {
 	outv_hexdump(v && pip->args.vhdrdump, zone, sizeof (*zone),
-			PTR_TO_OFF(pop, zone), 1);
+			PTR_TO_OFF(pip->obj.pop, zone), 1);
 	outv_field(v, "Magic", "%s", out_get_zone_magic_str(zone->magic));
 	outv_field(v, "Size idx", "%u", zone->size_idx);
+}
+
+/*
+ * info_obj_object -- print information about object
+ */
+static void
+info_obj_object(struct pmem_info *pip, struct obj_header *objh,
+	uint64_t objid)
+{
+	uint64_t real_size = objh->ahdr.size - sizeof (struct obj_header);
+
+	if (!util_ranges_contain(&pip->args.ranges, objid))
+		return;
+
+	if (!util_ranges_contain(&pip->args.obj.type_ranges,
+			objh->oobh.type_num))
+		return;
+
+	if (!util_ranges_contain(&pip->args.obj.zone_ranges,
+			objh->ahdr.zone_id))
+		return;
+
+	if (!util_ranges_contain(&pip->args.obj.chunk_ranges,
+			objh->ahdr.chunk_id))
+		return;
+
+	pip->obj.stats.n_total_objects++;
+	pip->obj.stats.n_total_bytes += real_size;
+
+	struct pmem_obj_type_stats *type_stats =
+		pmem_obj_stats_get_type(&pip->obj.stats, objh->oobh.type_num);
+
+	type_stats->n_objects++;
+	type_stats->n_bytes += real_size;
+
+	int vid = pip->args.obj.vobjects;
+	int v = pip->args.obj.vobjects;
+	outv_indent(v, 1);
+	info_obj_object_hdr(pip, v, vid, &objh->oobh.oob, objid);
+	outv_indent(v, -1);
+}
+
+/*
+ * info_obj_run_objects -- print information about objects from chunk run
+ */
+static void
+info_obj_run_objects(struct pmem_info *pip, int v, struct chunk_run *run)
+{
+	uint32_t bsize = get_bitmap_size(run);
+	uint32_t i = 0;
+	while (i < bsize) {
+		uint32_t nval = i / BITS_PER_VALUE;
+		uint64_t bval = run->bitmap[nval];
+		uint32_t nbit = i % BITS_PER_VALUE;
+
+		if (!(bval & (1ULL << nbit))) {
+			i++;
+			continue;
+		}
+
+		struct obj_header *objh =
+			(struct obj_header *)&run->data[run->block_size * i];
+
+		/* skip root object */
+		if (!objh->oobh.size) {
+			info_obj_object(pip, objh, pip->obj.objid);
+			pip->obj.objid++;
+		}
+
+		i += (uint32_t)(objh->ahdr.size / run->block_size);
+	}
 }
 
 /*
@@ -563,6 +657,8 @@ info_obj_zone_hdr(struct pmem_info *pip, int v, struct pmemobjpool *pop,
 static void
 info_obj_run_bitmap(int v, struct chunk_run *run)
 {
+	uint32_t bsize = get_bitmap_size(run);
+
 	if (outv_check(v) && outv_check(VERBOSE_MAX)) {
 		/* print all values from bitmap for higher verbosity */
 		for (int i = 0; i < MAX_BITMAP_VALUES; i++) {
@@ -573,11 +669,11 @@ info_obj_run_bitmap(int v, struct chunk_run *run)
 	} else {
 		/* print only used values for lower verbosity */
 		uint32_t i;
-		for (i = 0; i < get_bitmap_size(run) / BITS_PER_VALUE; i++)
+		for (i = 0; i < bsize / BITS_PER_VALUE; i++)
 			outv(v, "%s\n", get_bitmap_str(run->bitmap[i],
 						BITS_PER_VALUE));
 
-		unsigned mod = get_bitmap_size(run) % BITS_PER_VALUE;
+		unsigned mod = bsize % BITS_PER_VALUE;
 		if (mod != 0) {
 			outv(v, "%s\n", get_bitmap_str(run->bitmap[i], mod));
 		}
@@ -585,15 +681,18 @@ info_obj_run_bitmap(int v, struct chunk_run *run)
 }
 
 /*
- * info_obj_chunk_hdr -- print chunk header
+ * info_obj_chunk -- print chunk info
  */
 static void
-info_obj_chunk_hdr(struct pmem_info *pip, int v, struct pmemobjpool *pop,
-		uint64_t c, struct chunk_header *chunk_hdr, struct chunk *chunk,
-		struct pmem_obj_zone_stats *stats)
+info_obj_chunk(struct pmem_info *pip, uint64_t c,
+	struct chunk_header *chunk_hdr, struct chunk *chunk,
+	struct pmem_obj_zone_stats *stats)
 {
+	int v = pip->args.obj.vchunkhdr;
 	outv(v, "\n");
 	outv_field(v, "Chunk", "%lu", c);
+
+	struct pmemobjpool *pop = pip->obj.pop;
 
 	outv_hexdump(v && pip->args.vhdrdump, chunk_hdr, sizeof (*chunk_hdr),
 			PTR_TO_OFF(pop, chunk_hdr), 1);
@@ -602,6 +701,7 @@ info_obj_chunk_hdr(struct pmem_info *pip, int v, struct pmemobjpool *pop,
 	outv_field(v, "Flags", "0x%x %s", chunk_hdr->flags,
 			out_get_chunk_flags(chunk_hdr->flags));
 	outv_field(v, "Size idx", "%lu", chunk_hdr->size_idx);
+
 	if (chunk_hdr->type == CHUNK_TYPE_USED ||
 		chunk_hdr->type == CHUNK_TYPE_FREE) {
 		stats->class_stats[DEFAULT_BUCKET].n_units +=
@@ -610,7 +710,17 @@ info_obj_chunk_hdr(struct pmem_info *pip, int v, struct pmemobjpool *pop,
 		if (chunk_hdr->type == CHUNK_TYPE_USED) {
 			stats->class_stats[DEFAULT_BUCKET].n_used +=
 				chunk_hdr->size_idx;
+
+			struct obj_header *objh =
+				(struct obj_header *)chunk->data;
+
+			/* skip root object */
+			if (!objh->oobh.size) {
+				info_obj_object(pip, objh, pip->obj.objid);
+				pip->obj.objid++;
+			}
 		}
+
 	} else if (chunk_hdr->type == CHUNK_TYPE_RUN) {
 		struct chunk_run *run = (struct chunk_run *)chunk;
 
@@ -636,6 +746,8 @@ info_obj_chunk_hdr(struct pmem_info *pip, int v, struct pmemobjpool *pop,
 			}
 
 			info_obj_run_bitmap(v && pip->args.obj.vbitmap, run);
+			info_obj_run_objects(pip, v && pip->args.obj.vobjects,
+					run);
 		} else {
 			outv_field(v, "Block size", "%s [invalid!]",
 					out_get_size_str(run->block_size,
@@ -648,8 +760,8 @@ info_obj_chunk_hdr(struct pmem_info *pip, int v, struct pmemobjpool *pop,
  * info_obj_zone_chunks -- print chunk headers from specified zone
  */
 static void
-info_obj_zone_chunks(struct pmem_info *pip, struct pmemobjpool *pop,
-		struct zone *zone, struct pmem_obj_zone_stats *stats)
+info_obj_zone_chunks(struct pmem_info *pip, struct zone *zone,
+	struct pmem_obj_zone_stats *stats)
 {
 	uint64_t c = 0;
 	while (c < zone->header.size_idx) {
@@ -663,19 +775,16 @@ info_obj_zone_chunks(struct pmem_info *pip, struct pmemobjpool *pop,
 				stats->size_chunks += size_idx;
 				stats->size_chunks_type[type] += size_idx;
 
-				info_obj_chunk_hdr(pip, pip->args.obj.vchunkhdr,
-						pop, c,
-						&zone->chunk_headers[c],
+				info_obj_chunk(pip, c, &zone->chunk_headers[c],
 						&zone->chunks[c], stats);
 
 			}
+
 			if (size_idx > 1 && type != CHUNK_TYPE_RUN &&
 				pip->args.obj.chunk_types &
 				(1 << CHUNK_TYPE_FOOTER)) {
 				size_t f = c + size_idx - 1;
-				info_obj_chunk_hdr(pip, pip->args.obj.vchunkhdr,
-					pop, f,
-					&zone->chunk_headers[f],
+				info_obj_chunk(pip, f, &zone->chunk_headers[f],
 					&zone->chunks[f], stats);
 			}
 		}
@@ -688,35 +797,41 @@ info_obj_zone_chunks(struct pmem_info *pip, struct pmemobjpool *pop,
  * info_obj_root_obj -- print root object
  */
 static void
-info_obj_root_obj(struct pmem_info *pip, int v,
-		struct pmemobjpool *pop)
+info_obj_root_obj(struct pmem_info *pip)
 {
-	struct list_entry *entry = OFF_TO_PTR(pop, pop->root_offset);
+	int v = pip->args.obj.vroot;
 
-	if (entry == NULL) {
+	struct pmemobjpool *pop = pip->obj.pop;
+	if (!pop->root_offset) {
 		outv(v, "\nNo root object...\n");
-	} else {
-		struct oob_header *oob = ENTRY_TO_OOB_HDR(entry);
-		void *data = ENTRY_TO_DATA(entry);
-
-		outv(v, "\nRoot object:\n");
-		outv_field(v, "Offset", "0x%016x", PTR_TO_OFF(pop, data));
-		outv_field(v, "Size",
-				out_get_size_str(oob->size, pip->args.human));
-
-		obj_object_cb(pip, v, VERBOSE_SILENT, pop, entry, 0);
+		return;
 	}
+
+	void *data = OFF_TO_PTR(pop, pop->root_offset);
+	struct obj_header *objh = OBJH_FROM_PTR(data);
+
+	outv_title(v, "Root object");
+	outv_field(v, "Offset", "0x%016x", PTR_TO_OFF(pop, data));
+	uint64_t root_size = objh->oobh.size & ~OBJ_INTERNAL_OBJECT_MASK;
+	outv_field(v, "Size",
+			out_get_size_str(root_size, pip->args.human));
+
+	/* do not print object id and offset for root object */
+	info_obj_object_hdr(pip, v, VERBOSE_SILENT, &objh->oobh.oob, 0);
 }
 
 /*
  * info_obj_zones -- print zones and chunks
  */
 static void
-info_obj_zones_chunks(struct pmem_info *pip, struct pmemobjpool *pop)
+info_obj_zones_chunks(struct pmem_info *pip)
 {
-	if (!outv_check(pip->args.obj.vheap) && !outv_check(pip->args.vstats))
+	if (!outv_check(pip->args.obj.vheap) &&
+		!outv_check(pip->args.vstats) &&
+		!outv_check(pip->args.obj.vobjects))
 		return;
 
+	struct pmemobjpool *pop = pip->obj.pop;
 	struct heap_layout *layout = OFF_TO_PTR(pop, pop->heap_offset);
 	size_t maxzone = util_heap_max_zone(pop->heap_size);
 	pip->obj.stats.n_zones = maxzone;
@@ -740,12 +855,12 @@ info_obj_zones_chunks(struct pmem_info *pip, struct pmemobjpool *pop)
 
 			info_obj_zone_hdr(pip, pip->args.obj.vheap &&
 					pip->args.obj.vzonehdr,
-					pop, &zone->header);
+					&zone->header);
 
-			out_indent(1);
-			info_obj_zone_chunks(pip, pop, zone,
+			outv_indent(vvv, 1);
+			info_obj_zone_chunks(pip, zone,
 					&pip->obj.stats.zone_stats[i]);
-			out_indent(-1);
+			outv_indent(vvv, -1);
 		}
 	}
 }
@@ -754,20 +869,25 @@ info_obj_zones_chunks(struct pmem_info *pip, struct pmemobjpool *pop)
  * info_obj_descriptor -- print pmemobj descriptor
  */
 static void
-info_obj_descriptor(struct pmem_info *pip, int v,
-		struct pmemobjpool *pop)
+info_obj_descriptor(struct pmem_info *pip)
 {
+	int v = VERBOSE_DEFAULT;
+
 	if (!outv_check(v))
 		return;
 
 	outv(v, "\nPMEM OBJ Header:\n");
+	struct pmemobjpool *pop = pip->obj.pop;
 
-	outv_hexdump(pip->args.vhdrdump, (uint8_t *)pop + sizeof (pop->hdr),
-		sizeof (*pop) - sizeof (pop->hdr), sizeof (pop->hdr), 1);
+	uint8_t *hdrptr = (uint8_t *)pop + sizeof (pop->hdr);
+	size_t hdrsize = sizeof (*pop) - sizeof (pop->hdr);
+	size_t hdroff = sizeof (pop->hdr);
+	outv_hexdump(pip->args.vhdrdump, hdrptr, hdrsize, hdroff, 1);
 
 	/* check if layout is zeroed */
 	char *layout = util_check_memory((uint8_t *)pop->layout,
-			sizeof (pop->layout), 0) ? pop->layout : "(null)";
+			sizeof (pop->layout), 0) ?
+			pop->layout : "(null)";
 
 	/* address for checksum */
 	void *dscp = (void *)((uintptr_t)(&pop->hdr) +
@@ -780,17 +900,18 @@ info_obj_descriptor(struct pmem_info *pip, int v,
 	outv_field(v, "Heap size", "%lu", pop->heap_size);
 	outv_field(v, "Checksum", "%s", out_get_checksum(dscp, OBJ_DSC_P_SIZE,
 				&pop->checksum));
+	outv_field(v, "Root offset", "0x%lx", pop->root_offset);
 
 	/* run id with -v option */
 	outv_field(v + 1, "Run id", "%lu", pop->run_id);
 }
-#if 0
+
 /*
- * info_obj_stats_obj_store -- print object store's statistics
+ * info_obj_stats_objjects -- print objects' statistics
  */
 static void
-info_obj_stats_obj_store(struct pmem_info *pip, int v,
-		struct pmem_obj_stats *stats)
+info_obj_stats_objects(struct pmem_info *pip, int v,
+	struct pmem_obj_stats *stats)
 {
 	outv_field(v, "Number of objects", "%lu",
 			stats->n_total_objects);
@@ -798,47 +919,45 @@ info_obj_stats_obj_store(struct pmem_info *pip, int v,
 			stats->n_total_bytes, pip->args.human));
 
 	outv_title(v, "Objects by type");
-	out_indent(1);
-	struct range *type_curp;
-	FOREACH_RANGE(type_curp, &pip->args.obj.object_ranges) {
-		for (size_t i = type_curp->first; i <= type_curp->last &&
-				i < PMEMOBJ_NUM_OID_TYPES; i++) {
-			if (!stats->n_type_objects[i])
-				continue;
 
-			double n_objects_perc = 100.0 *
-				(double)stats->n_type_objects[i] /
-				(double)stats->n_total_objects;
-			double n_bytes_perc = 100.0 *
-				(double)stats->n_type_bytes[i] /
-				(double)stats->n_total_bytes;
+	outv_indent(v, 1);
+	struct pmem_obj_type_stats *type_stats;
+	TAILQ_FOREACH(type_stats, &pip->obj.stats.type_stats, next) {
+		if (!type_stats->n_objects)
+			continue;
 
-			outv_nl(v);
-			outv_field(v, "Type number", "%lu", i);
-			outv_field(v, "Number of objects", "%lu [%s]",
-				stats->n_type_objects[i],
-				out_get_percentage(n_objects_perc));
-			outv_field(v, "Number of bytes", "%s [%s]",
-				out_get_size_str(
-					stats->n_type_bytes[i],
-					pip->args.human),
-				out_get_percentage(n_bytes_perc));
-		}
+		double n_objects_perc = 100.0 *
+			(double)type_stats->n_objects /
+			(double)stats->n_total_objects;
+		double n_bytes_perc = 100.0 *
+			(double)type_stats->n_bytes /
+			(double)stats->n_total_bytes;
+
+		outv_nl(v);
+		outv_field(v, "Type number", "%lu", type_stats->type_num);
+		outv_field(v, "Number of objects", "%lu [%s]",
+			type_stats->n_objects,
+			out_get_percentage(n_objects_perc));
+		outv_field(v, "Number of bytes", "%s [%s]",
+			out_get_size_str(
+				type_stats->n_bytes,
+				pip->args.human),
+			out_get_percentage(n_bytes_perc));
 	}
-	out_indent(-1);
+	outv_indent(v, -1);
 }
-#endif
+
 /*
  * info_boj_stats_alloc_classes -- print allocation classes' statistics
  */
 static void
 info_obj_stats_alloc_classes(struct pmem_info *pip, int v,
-		struct pmem_obj_zone_stats *stats)
+	struct pmem_obj_zone_stats *stats)
 {
 	uint64_t total_bytes = 0;
 	uint64_t total_used = 0;
 
-	out_indent(1);
+	outv_indent(v, 1);
 	for (int class = 0; class < MAX_CLASS_STATS; class++) {
 		uint64_t class_size = heap_class_to_size(class);
 		double used_perc = 100.0 *
@@ -872,7 +991,7 @@ info_obj_stats_alloc_classes(struct pmem_info *pip, int v,
 				out_get_size_str(used, pip->args.human),
 				out_get_percentage(used_bytes_perc));
 	}
-	out_indent(-1);
+	outv_indent(v, -1);
 
 	double used_bytes_perc = total_bytes ? 100.0 *
 		(double)total_used / (double)total_bytes : 0.0;
@@ -890,11 +1009,11 @@ info_obj_stats_alloc_classes(struct pmem_info *pip, int v,
  */
 static void
 info_obj_stats_chunks(struct pmem_info *pip, int v,
-		struct pmem_obj_zone_stats *stats)
+	struct pmem_obj_zone_stats *stats)
 {
 	outv_field(v, "Number of chunks", "%lu", stats->n_chunks);
 
-	out_indent(1);
+	outv_indent(v, 1);
 	for (unsigned type = 0; type < MAX_CHUNK_TYPE; type++) {
 		double type_perc = 100.0 *
 			(double)stats->n_chunks_type[type] /
@@ -906,13 +1025,13 @@ info_obj_stats_chunks(struct pmem_info *pip, int v,
 				out_get_percentage(type_perc));
 		}
 	}
-	out_indent(-1);
+	outv_indent(v, -1);
 
 	outv_nl(v);
 	outv_field(v, "Total chunks size", "%s", out_get_size_str(
 				stats->size_chunks, pip->args.human));
 
-	out_indent(1);
+	outv_indent(v, 1);
 	for (unsigned type = 0; type < MAX_CHUNK_TYPE; type++) {
 		double type_perc = 100.0 *
 			(double)stats->size_chunks_type[type] /
@@ -925,7 +1044,7 @@ info_obj_stats_chunks(struct pmem_info *pip, int v,
 		}
 
 	}
-	out_indent(-1);
+	outv_indent(v, -1);
 }
 
 /*
@@ -933,7 +1052,7 @@ info_obj_stats_chunks(struct pmem_info *pip, int v,
  */
 static void
 info_obj_add_zone_stats(struct pmem_obj_zone_stats *total,
-		struct pmem_obj_zone_stats *stats)
+	struct pmem_obj_zone_stats *stats)
 {
 	total->n_chunks += stats->n_chunks;
 	total->size_chunks += stats->size_chunks;
@@ -958,7 +1077,7 @@ info_obj_add_zone_stats(struct pmem_obj_zone_stats *total,
  */
 static void
 info_obj_stats_zones(struct pmem_info *pip, int v, struct pmem_obj_stats *stats,
-		struct pmem_obj_zone_stats *total)
+	struct pmem_obj_zone_stats *total)
 {
 	double used_zones_perc = 100.0 * (double)stats->n_zones_used /
 		(double)stats->n_zones;
@@ -967,7 +1086,7 @@ info_obj_stats_zones(struct pmem_info *pip, int v, struct pmem_obj_stats *stats,
 	outv_field(v, "Number of used zones", "%lu [%s]", stats->n_zones_used,
 			out_get_percentage(used_zones_perc));
 
-	out_indent(1);
+	outv_indent(v, 1);
 	for (uint64_t i = 0; i < stats->n_zones_used; i++) {
 		outv_title(v, "Zone", "%lu", i);
 
@@ -980,15 +1099,17 @@ info_obj_stats_zones(struct pmem_info *pip, int v, struct pmem_obj_stats *stats,
 
 		info_obj_add_zone_stats(total, zstats);
 	}
-	out_indent(-1);
+	outv_indent(v, -1);
 }
 
 /*
  * info_obj_stats -- print statistics
  */
 static void
-info_obj_stats(struct pmem_info *pip, int v)
+info_obj_stats(struct pmem_info *pip)
 {
+	int v = pip->args.vstats;
+
 	if (!outv_check(v))
 		return;
 
@@ -999,7 +1120,7 @@ info_obj_stats(struct pmem_info *pip, int v)
 	outv_title(v, "Statistics");
 
 	outv_title(v, "Objects");
-	/*info_obj_stats_obj_store(pip, v, stats);*/
+	info_obj_stats_objects(pip, v, stats);
 
 	outv_title(v, "Heap");
 	info_obj_stats_zones(pip, v, stats, &total);
@@ -1020,7 +1141,7 @@ static struct pmem_info *Pip;
 static void
 info_obj_sa_sigaction(int signum, siginfo_t *info, void *context)
 {
-	uintptr_t offset = (uintptr_t)info->si_addr - (uintptr_t)Pip->obj.addr;
+	uintptr_t offset = (uintptr_t)info->si_addr - (uintptr_t)Pip->obj.pop;
 	outv_err("Invalid offset 0x%lx\n", offset);
 	exit(EXIT_FAILURE);
 }
@@ -1036,8 +1157,8 @@ static struct sigaction info_obj_sigaction = {
 int
 pmempool_info_obj(struct pmem_info *pip)
 {
-	pip->obj.addr = pool_set_file_map(pip->pfile, 0);
-	if (pip->obj.addr == NULL)
+	pip->obj.pop = pool_set_file_map(pip->pfile, 0);
+	if (pip->obj.pop == NULL)
 		return -1;
 
 	pip->obj.size = pip->pfile->size;
@@ -1048,17 +1169,14 @@ pmempool_info_obj(struct pmem_info *pip)
 		return -1;
 	}
 
-	struct pmemobjpool *pop = pip->obj.addr;
+	pip->obj.uuid_lo = pmemobj_get_uuid_lo(pip->obj.pop);
 
-	pip->obj.uuid_lo = pmemobj_get_uuid_lo(pop);
-
-	info_obj_descriptor(pip, VERBOSE_DEFAULT, pop);
-	info_obj_lanes(pip, pip->args.obj.vlanes, pop);
-	info_obj_root_obj(pip, pip->args.obj.vroot, pop);
-	/*info_obj_store(pip, pip->args.obj.vobjects, pop);*/
-	info_obj_heap(pip, pip->args.obj.vheap, pop);
-	info_obj_zones_chunks(pip, pop);
-	info_obj_stats(pip, pip->args.vstats);
+	info_obj_descriptor(pip);
+	info_obj_lanes(pip);
+	info_obj_root_obj(pip);
+	info_obj_heap(pip);
+	info_obj_zones_chunks(pip);
+	info_obj_stats(pip);
 
 	return 0;
 }

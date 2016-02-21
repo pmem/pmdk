@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016, Intel Corporation
+ * Copyright 2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -50,7 +50,8 @@ struct operation_entry {
 
 struct operation_context;
 
-struct operation_context *operation_init(PMEMobjpool *pop, struct redo_log *redo);
+struct operation_context *operation_init(PMEMobjpool *pop,
+	struct redo_log *redo);
 void operation_add_entry(struct operation_context *ctx,
 	void *ptr, uint64_t value, enum operation_type type);
 void operation_add_entries(struct operation_context *ctx,
