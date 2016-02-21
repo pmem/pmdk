@@ -50,7 +50,13 @@ CFLAGS += -Wconversion
 endif
 CFLAGS += -fno-common
 CFLAGS += $(EXTRA_CFLAGS)
+
+ifeq ($(DEBUG),)
 CFLAGS += -O2 -D_FORTIFY_SOURCE=2
+else
+CFLAGS += -ggdb
+endif
+
 CFLAGS += -DSRCVERSION='"$(SRCVERSION)"'
 ifeq ($(call check_flag, -Wunreachable-code-return), y)
 CFLAGS += -Wunreachable-code-return
