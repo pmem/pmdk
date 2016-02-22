@@ -195,7 +195,7 @@ typedef struct pmemoid {
 	(lhs).oid.pool_uuid_lo == (rhs).oid.pool_uuid_lo)
 
 /* type number of root object */
-#define	POBJ_ROOT_TYPE_NUM 65000
+#define	POBJ_ROOT_TYPE_NUM 0
 #define	_toid_struct
 #define	_toid_union
 #define	_toid_enum

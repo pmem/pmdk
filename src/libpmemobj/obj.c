@@ -1086,8 +1086,9 @@ constructor_alloc_bytype(PMEMobjpool *pop, void *ptr,
 	pop->memset_persist(pop, &pobj->oob, 0, sizeof (pobj->oob));
 
 	pobj->type_num = carg->user_type;
+	pobj->size = 0;
 
-	pop->flush(pop, &pobj->type_num, sizeof (pobj->type_num));
+	pop->flush(pop, pobj, sizeof (*pobj));
 
 	if (carg->zero_init)
 		pop->memset_persist(pop, ptr, 0, usable_size);
@@ -1149,7 +1150,7 @@ pmemobj_alloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 		return -1;
 	}
 
-	return obj_alloc_construct(pop, oidp, size, (type_num_t)type_num,
+	return obj_alloc_construct(pop, oidp, size, type_num,
 			0, constructor, arg);
 }
 
@@ -1183,7 +1184,7 @@ pmemobj_zalloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 		return -1;
 	}
 
-	return obj_alloc_construct(pop, oidp, size, (type_num_t)type_num,
+	return obj_alloc_construct(pop, oidp, size, type_num,
 					1, NULL, NULL);
 }
 
@@ -1218,7 +1219,8 @@ constructor_realloc(PMEMobjpool *pop, void *ptr, size_t usable_size, void *arg)
 
 	if (ptr != carg->ptr) {
 		pobj->type_num = carg->user_type;
-		pop->flush(pop, &pobj->type_num, sizeof (pobj->type_num));
+		pobj->size = 0;
+		pop->flush(pop, pobj, sizeof (*pobj));
 	}
 
 	if (!carg->zero_init)
@@ -1310,12 +1312,11 @@ constructor_zrealloc_root(PMEMobjpool *pop, void *ptr,
 
 	struct oob_header *pobj = OOB_HEADER_FROM_PTR(ptr);
 
+	constructor_realloc(pop, ptr, usable_size, arg);
 	if (ptr != carg->ptr) {
-		pobj->size = carg->new_size;
+		pobj->size = carg->new_size | OBJ_INTERNAL_OBJECT_MASK;
 		pop->flush(pop, &pobj->size, sizeof (pobj->size));
 	}
-
-	constructor_realloc(pop, ptr, usable_size, arg);
 
 	if (carg->constructor)
 		carg->constructor(pop, ptr, carg->arg);
@@ -1559,7 +1560,7 @@ constructor_alloc_root(PMEMobjpool *pop, void *ptr,
 		pop->memset_persist(pop, ptr, 0, usable_size);
 
 	ro->type_num = POBJ_ROOT_TYPE_NUM;
-	ro->size = carg->size;
+	ro->size = carg->size | OBJ_INTERNAL_OBJECT_MASK;
 
 	VALGRIND_REMOVE_FROM_TX(ro, OBJ_OOB_SIZE + usable_size);
 
@@ -1691,6 +1692,11 @@ pmemobj_first(PMEMobjpool *pop)
 	if (off != 0) {
 		ret.off = off + OBJ_OOB_SIZE;
 		ret.pool_uuid_lo = pop->uuid_lo;
+
+		struct oob_header *oobh = OOB_HEADER_FROM_OFF(pop, ret.off);
+		if (oobh->size & OBJ_INTERNAL_OBJECT_MASK) {
+			return pmemobj_next(ret);
+		}
 	}
 
 	return ret;
@@ -1717,6 +1723,11 @@ pmemobj_next(PMEMoid oid)
 	if (off != 0) {
 		ret.off = off + OBJ_OOB_SIZE;
 		ret.pool_uuid_lo = pop->uuid_lo;
+
+		struct oob_header *oobh = OOB_HEADER_FROM_OFF(pop, ret.off);
+		if (oobh->size & OBJ_INTERNAL_OBJECT_MASK) {
+			return pmemobj_next(ret);
+		}
 	}
 
 	return ret;

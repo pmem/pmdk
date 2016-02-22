@@ -58,6 +58,13 @@
 #define	MAX_CACHED_RANGE_SIZE 32
 #define	MAX_CACHED_RANGES 127 /* calculated to be exactly 8192 bytes */
 
+/*
+ * Stored in the 'size' field of oobh header, determines whether the object
+ * is internal or not. Internal objects are skipped in pmemobj iteration
+ * functions.
+ */
+#define OBJ_INTERNAL_OBJECT_MASK ((1ULL)<<63)
+
 #define	OBJ_OOB_SIZE		(sizeof (struct oob_header))
 #define	OBJ_OFF_TO_PTR(pop, off) ((void *)((uintptr_t)(pop) + (off)))
 #define	OBJ_PTR_TO_OFF(pop, ptr) ((uintptr_t)(ptr) - (uintptr_t)(pop))
@@ -178,7 +185,9 @@ struct pmemobjpool {
  */
 struct oob_header {
 	struct list_entry oob;
-	size_t size;		/* used only in root object */
+
+	/* used only in root object, last bit used as a mask */
+	size_t size;
 	uint64_t type_num;
 };
 

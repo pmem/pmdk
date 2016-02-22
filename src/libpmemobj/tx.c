@@ -153,6 +153,7 @@ constructor_tx_alloc(PMEMobjpool *pop, void *ptr, size_t usable_size, void *arg)
 	 * will be done in pre-commit phase
 	 */
 	oobh->type_num = args->type_num;
+	oobh->size = 0;
 
 	VALGRIND_REMOVE_FROM_TX(oobh, OBJ_OOB_SIZE);
 
@@ -184,6 +185,7 @@ constructor_tx_zalloc(PMEMobjpool *pop, void *ptr,
 	 * will be done in pre-commit phase
 	 */
 	oobh->type_num = args->type_num;
+	oobh->size = 0;
 
 	VALGRIND_REMOVE_FROM_TX(oobh, OBJ_OOB_SIZE);
 
@@ -208,10 +210,14 @@ constructor_tx_add_range(PMEMobjpool *pop, void *ptr,
 	struct tx_add_range_args *args = arg;
 	struct tx_range *range = ptr;
 
+	struct oob_header *oobh = OOB_HEADER_FROM_PTR(ptr);
 	/* temporarily add the object copy to the transaction */
-	VALGRIND_ADD_TO_TX(OOB_HEADER_FROM_PTR(ptr),
+	VALGRIND_ADD_TO_TX(oobh,
 				sizeof (struct tx_range) + args->size
 				+ OBJ_OOB_SIZE);
+
+	oobh->size = OBJ_INTERNAL_OBJECT_MASK;
+	pop->flush(pop, &oobh->size, sizeof (oobh->size));
 
 	range->offset = args->offset;
 	range->size = args->size;
@@ -223,7 +229,7 @@ constructor_tx_add_range(PMEMobjpool *pop, void *ptr,
 	/* memcpy data and persist */
 	pop->memcpy_persist(pop, range->data, src, args->size);
 
-	VALGRIND_REMOVE_FROM_TX(OOB_HEADER_FROM_PTR(ptr),
+	VALGRIND_REMOVE_FROM_TX(oobh,
 				sizeof (struct tx_range) + args->size
 				+ OBJ_OOB_SIZE);
 
@@ -253,6 +259,7 @@ constructor_tx_copy(PMEMobjpool *pop, void *ptr, size_t usable_size, void *arg)
 	 * will be done in pre-commit phase
 	 */
 	oobh->type_num = args->type_num;
+	oobh->size = 0;
 
 	VALGRIND_REMOVE_FROM_TX(oobh, OBJ_OOB_SIZE);
 
@@ -286,6 +293,7 @@ constructor_tx_copy_zero(PMEMobjpool *pop, void *ptr,
 	 * will be done in pre-commit phase
 	 */
 	oobh->type_num = args->type_num;
+	oobh->size = 0;
 
 	VALGRIND_REMOVE_FROM_TX(oobh, OBJ_OOB_SIZE);
 
@@ -1236,12 +1244,18 @@ constructor_tx_range_cache(PMEMobjpool *pop, void *ptr,
 
 	ASSERTne(ptr, NULL);
 
+	struct oob_header *oobh = OOB_HEADER_FROM_PTR(ptr);
 	/* temporarily add the object copy to the transaction */
-	VALGRIND_ADD_TO_TX(ptr, sizeof (struct tx_range_cache));
+	VALGRIND_ADD_TO_TX(oobh,
+		OBJ_OOB_SIZE + sizeof (struct tx_range_cache));
+
+	oobh->size = OBJ_INTERNAL_OBJECT_MASK;
+	pop->flush(pop, &oobh->size, sizeof (oobh->size));
 
 	pop->memset_persist(pop, ptr, 0, sizeof (struct tx_range_cache));
 
-	VALGRIND_REMOVE_FROM_TX(ptr, sizeof (struct tx_range_cache));
+	VALGRIND_REMOVE_FROM_TX(oobh,
+		OBJ_OOB_SIZE + sizeof (struct tx_range_cache));
 }
 
 /*
