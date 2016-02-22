@@ -37,7 +37,7 @@
 .\" or
 .\"	groff -man -Tascii libpmemobj.3
 .\"
-.TH libpmemobj 3 "pmemobj API version 0.4.25" "NVM Library"
+.TH libpmemobj 3 "pmemobj API version 0.4.27" "NVM Library"
 .SH NAME
 libpmemobj \- persistent memory transactional object store
 .SH SYNOPSIS
@@ -1428,7 +1428,9 @@ of the root object.  In such case, OID_NULL is returned.
 .PP
 .PP
 .BI "PMEMoid pmemobj_root_construct(PMEMobjpool *" pop ", size_t " size ,
+.br
 .BI "    void (*" constructor ")(PMEMobjpool *" pop ", void *" ptr ", void *" arg "),
+.br
 .BI "    void *" arg );
 .IP
 The
@@ -1437,7 +1439,7 @@ performs the same actions as the
 .BR pmemobj_root ()
 function, but instead of zeroing the newly allocated object a
 .I constructor
-function is called. The constructor is also called on reallocations. The
+function is called.  The constructor is also called on reallocations.  The
 .BR pmemobj_root_size ()
 can be used in the constructor to check whether it's the first call to the
 constructor.
@@ -2001,8 +2003,8 @@ If
 value is OID_NULL, the object is inserted at the head or at the end of the list,
 depending on the
 .I before
-flag value. If value is 1 the object is inserted at the head, if value is 0 the
-object is inserted at the end of the list. The relevant values are available
+flag value.  If value is 1 the object is inserted at the head, if value is 0 the
+object is inserted at the end of the list.  The relevant values are available
 through
 .B POBJ_LIST_DEST_HEAD
 and
@@ -2050,8 +2052,8 @@ If
 value is OID_NULL, the object is inserted at the head or at the end of the list,
 depending on the
 .I before
-flag value. If value is 1 the object is inserted at the head, if value is 0 the
-object is inserted at the end of the list. The relevant values are available
+flag value.  If value is 1 the object is inserted at the head, if value is 0 the
+object is inserted at the end of the list.  The relevant values are available
 through
 .B POBJ_LIST_DEST_HEAD
 and
@@ -2139,8 +2141,8 @@ If
 value is OID_NULL, the object is inserted at the head or at the end of the
 second list, depending on the
 .I before
-flag value. If value is 1 the object is inserted at the head, if value is 0 the
-object is inserted at the end of the list. The relevant values are available
+flag value.  If value is 1 the object is inserted at the head, if value is 0 the
+object is inserted at the end of the list.  The relevant values are available
 through
 .B POBJ_LIST_DEST_HEAD
 and
@@ -2328,6 +2330,9 @@ into the list referenced by
 .I head
 after the element
 .IR listelm .
+If
+.I listelm
+value is TOID_NULL, the object is inserted at the end of the list.
 .PP
 .BI "POBJ_LIST_INSERT_BEFORE(PMEMobjpool *" pop ", POBJ_LIST_HEAD *" head ,
 .br
@@ -2341,6 +2346,9 @@ into the list referenced by
 .I head
 before the element
 .IR listelm .
+If
+.I listelm
+value is TOID_NULL, the object is inserted at the head of the list.
 .PP
 .BI "POBJ_LIST_INSERT_NEW_HEAD(PMEMobjpool *" pop ", POBJ_LIST_HEAD *" head ,
 .br
@@ -2394,6 +2402,9 @@ and inserts it into the list referenced by
 .I head
 after the element
 .IR listelm .
+If
+.I listelm
+value is TOID_NULL, the object is inserted at the end of the list.
 The newly allocated object is also added to the internal object
 container associated with with a type number which is retrieved from the typed OID of
 the first element on list.
@@ -2414,6 +2425,9 @@ and inserts it into the list referenced by
 .I head
 before the element
 .IR listelm .
+If
+.I listelm
+value is TOID_NULL, the object is inserted at the head of the list.
 The newly allocated object is also added to the internal object
 container associated with with a type number which is retrieved from the typed OID of
 the first element on list.
@@ -2501,6 +2515,9 @@ and inserts it into the list referenced by
 .I head_new
 after the element
 .IR listelm .
+If
+.I listelm
+value is TOID_NULL, the object is inserted at the end of the list.
 The
 .I field
 and
@@ -2525,6 +2542,9 @@ and inserts it into the list referenced by
 .I head_new
 before the element
 .IR listelm .
+If
+.I listelm
+value is TOID_NULL, the object is inserted at the head of the list.
 The
 .I field
 and
@@ -2673,14 +2693,11 @@ transaction with
 stage without releasing any locks.
 Must always be called for each
 .BR pmemobj_tx_begin (),
-even if starting the transaction failed.  It has no effect if called
-during
-.I TX_STAGE_NONE
-stage and must
+even if starting the transaction failed.  This function must
 .I not
 be called during
 .IR TX_STAGE_WORK .
-If transaction was successful, returns 0. Otherwise returns error code set by
+If transaction was successful, returns 0.  Otherwise returns error code set by
 .BR pmemobj_tx_abort ().
 Note that
 .BR pmemobj_tx_abort ()
