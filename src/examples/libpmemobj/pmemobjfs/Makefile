@@ -39,7 +39,9 @@ include $(TOP)/src/common.inc
 vpath %.c ../tree_map/
 vpath %.c ../map/
 
-FUSE := $(call check_package, fuse)
+FUSE_REQ_VER = 2.9.1
+
+FUSE := $(call check_package, fuse --atleast-version $(FUSE_REQ_VER))
 ifeq ($(FUSE), y)
 LINKS = mkfs.pmemobjfs\
        pmemobjfs.tx_begin\
@@ -47,7 +49,7 @@ LINKS = mkfs.pmemobjfs\
        pmemobjfs.tx_abort
 PROGS = pmemobjfs
 else
-$(info NOTE: Skipping pmemobjfs because fuse is missing \
+$(info NOTE: Skipping pmemobjfs because fuse (version >= $(FUSE_REQ_VER)) is missing \
 -- see src/examples/libpmemobj/pmemobjfs/README for details.)
 endif
 
