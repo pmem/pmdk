@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2016, FUJITSU TECHNOLOGY SOLUTIONS GMBH
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,14 +31,62 @@
 #
 
 #
-# examples/libvmem/Makefile -- build the libvmem examples
+# ==========================================================================
 #
-PROGS = manpage
-DIRS = libart
+#     Filename:  Makefile
+#
+#  Description:  implement ART tree using libvmem based on libart
+#
+#       Author:  Andreas Bluemle, Dieter Kasper
+#                Andreas.Bluemle.external@ts.fujitsu.com
+#                dieter.kasper@ts.fujitsu.com
+#
+# Organization:  FUJITSU TECHNOLOGY SOLUTIONS GMBH
+# ==========================================================================
+#
+PROGS =
+ARTTREE = arttree
+LIBART_SO = libart
 
-LIBS = -lvmem -pthread
+INCDIR ?= ../../../include
+LIBDIR ?= ../../../debug
 
-include ../Makefile.inc
+INCS = -I$(INCDIR)
+LIBS = -Wl,-rpath=$(LIBDIR) -L$(LIBDIR) -lvmem -pthread
+LIBART = -Wl,-rpath=. -L. -lart
+CFLAGS = -std=gnu99 -DDEBUG -ggdb -Wall -Werror -fPIC
+CSTYLE = ../../../../utils/cstyle
+LDFLAGS += -Wl,-z,relro -Wl,--fatal-warnings -Wl,--warn-common $(EXTRA_LDFLAGS)
 
-manpage: manpage.o
+all:     TARGET = all
+clean:   TARGET = clean
+clobber: TARGET = clobber
+cstyle:  TARGET = cstyle
 
+all: $(PROGS) $(ARTTREE)
+
+clean: $(DIRS)
+	$(RM) *.o *.so $(PROGS) $(ARTTREE) core a.out
+
+clobber: clean $(DIRS)
+	$(RM) $(PROGS)
+
+cstyle: $(DIRS)
+	$(CSTYLE) -pP *.[ch]
+
+.c.o:
+	$(CC) -c -o $@ $(CFLAGS) $(INCS) $<
+
+$(PROGS):
+	$(CC) -o $@ $< $(LIBS)
+
+$(LIBART_SO): art.o
+	$(CC) $(LDFLAGS) -shared -o $(LIBART_SO).so art.o
+
+$(ARTTREE): $(ARTTREE).o $(LIBART_SO)
+	$(CC) -o $@ $(ARTTREE).o $(LIBS) $(LIBART)
+
+$(DIRS):
+	$(MAKE) -C $@ $(TARGET)
+
+.PHONY: all clean clobber cstyle $(DIRS)
