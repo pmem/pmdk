@@ -118,7 +118,7 @@ list_mutexes_lock(PMEMobjpool *pop,
 {
 	ASSERTne(head1, NULL);
 
-	if (!head2)
+	if (!head2 || head1 == head2)
 		return pmemobj_mutex_lock(pop, &head1->lock);
 
 	PMEMmutex *lock1;
