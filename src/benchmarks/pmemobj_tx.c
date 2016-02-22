@@ -599,9 +599,9 @@ obj_op_tx(struct obj_tx_bench *obj_bench, struct worker_info *worker,
 			if (obj_bench->op_mode == OP_MODE_ABORT_NESTED)
 				pmemobj_tx_abort(-1);
 		} else {
-		obj_worker->tx_level++;
+			obj_worker->tx_level++;
 			ret = obj_op_tx(obj_bench, worker, idx);
-			if (obj_worker->tx_level == 1 && obj_bench->op_mode ==
+			if (--obj_worker->tx_level == 0 && obj_bench->op_mode ==
 								OP_MODE_ABORT)
 				pmemobj_tx_abort(-1);
 		}
@@ -1050,12 +1050,20 @@ obj_tx_init(struct benchmark *bench, struct benchmark_args *args)
 	 */
 	size_t dsize = obj_bench.obj_args->rsize > args->dsize ?
 					obj_bench.obj_args->rsize : args->dsize;
-
 	size_t psize = args->n_ops_per_thread *
 		(dsize + ALLOC_OVERHEAD) * args->n_threads;
+
 	if (psize < PMEMOBJ_MIN_POOL)
 		psize = PMEMOBJ_MIN_POOL;
 	psize *= FACTOR;
+
+	/*
+	 * When adding all allocated objects to undo log there is necessary
+	 * to prepare larger pool to prevent out of memory error.
+	 */
+	if (obj_bench.op_mode == OP_MODE_ALL_OBJ ||
+				obj_bench.op_mode == OP_MODE_ALL_OBJ_NESTED)
+		psize +=  psize * FACTOR;
 
 	obj_bench.op_mode = parse_op[obj_bench.obj_args->parse_mode](
 						obj_bench.obj_args->operation);
