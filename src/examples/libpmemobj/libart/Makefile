@@ -1,5 +1,6 @@
 #
 # Copyright 2016, FUJITSU TECHNOLOGY SOLUTIONS GMBH
+# Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -46,54 +47,17 @@
 # ===========================================================================
 #
 
-PROGS =
-ARTTREE = arttree
-ANALYZE = arttree_structures
-ANALYZE_OBJS = arttree_structures.o arttree_examine.o arttree_search.o
-LIBART_SO = libart
+PROGS = arttree arttree_structures
+LIBRARIES = art
 
-INCDIR ?= ../../../include
-LIBDIR ?= ../../../debug
+include ../../Makefile.inc
 
-INCS = -I$(INCDIR)
-LIBS = -Wl,-rpath=$(LIBDIR) -L$(LIBDIR) -lpmemobj -pthread
-LIBART = -Wl,-rpath=. -L. -lart
-CFLAGS = -std=gnu99 -DDEBUG -ggdb -Wall -Werror -fPIC
-CSTYLE = ../../../../utils/cstyle
-LDFLAGS += -Wl,-z,relro -Wl,--fatal-warnings -Wl,--warn-common $(EXTRA_LDFLAGS)
+LIBS = -lpmemobj -pthread -lart
 
-all:     TARGET = all
-clean:   TARGET = clean
-clobber: TARGET = clobber
-cstyle:  TARGET = cstyle
+$(PROGS): | $(DYNAMIC_LIBRARIES)
+$(PROGS): LDFLAGS += -Wl,-rpath=. -L.
 
-all: $(PROGS) $(ANALYZE) $(ARTTREE)
+libart.o: art.o
 
-clean: $(DIRS)
-	$(RM) *.o *.so $(PROGS) $(ANALYZE) $(ARTTREE) core a.out
-
-clobber: clean $(DIRS)
-	$(RM) $(PROGS)
-
-cstyle: $(DIRS)
-	$(CSTYLE) -pP *.[ch]
-
-.c.o:
-	$(CC) -c -o $@ $(CFLAGS) $(INCS) $<
-
-$(PROGS):
-	$(CC) -o $@ $< $(LIBS)
-
-$(ANALYZE): $(ANALYZE_OBJS)
-	$(CC) -o $@ $(ANALYZE_OBJS) $(LIBS)
-
-$(LIBART_SO): art.o
-	$(CC) $(LDFLAGS) -shared -o $(LIBART_SO).so art.o
-
-$(ARTTREE): $(ARTTREE).o $(LIBART_SO)
-	$(CC) -o $@ $(ARTTREE).o $(LIBS) $(LIBART)
-
-$(DIRS):
-	$(MAKE) -C $@ $(TARGET)
-
-.PHONY: all clean clobber cstyle $(DIRS)
+arttree: arttree.o
+arttree_structures: arttree_structures.o arttree_examine.o arttree_search.o

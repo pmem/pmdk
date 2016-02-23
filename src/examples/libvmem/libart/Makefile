@@ -1,5 +1,6 @@
 #
 # Copyright 2016, FUJITSU TECHNOLOGY SOLUTIONS GMBH
+# Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -44,49 +45,17 @@
 # Organization:  FUJITSU TECHNOLOGY SOLUTIONS GMBH
 # ==========================================================================
 #
-PROGS =
-ARTTREE = arttree
-LIBART_SO = libart
 
-INCDIR ?= ../../../include
-LIBDIR ?= ../../../debug
+PROGS = arttree
+LIBRARIES = art
 
-INCS = -I$(INCDIR)
-LIBS = -Wl,-rpath=$(LIBDIR) -L$(LIBDIR) -lvmem -pthread
-LIBART = -Wl,-rpath=. -L. -lart
-CFLAGS = -std=gnu99 -DDEBUG -ggdb -Wall -Werror -fPIC
-CSTYLE = ../../../../utils/cstyle
-LDFLAGS += -Wl,-z,relro -Wl,--fatal-warnings -Wl,--warn-common $(EXTRA_LDFLAGS)
+include ../../Makefile.inc
 
-all:     TARGET = all
-clean:   TARGET = clean
-clobber: TARGET = clobber
-cstyle:  TARGET = cstyle
+LIBS = -lvmem -pthread -lart
 
-all: $(PROGS) $(ARTTREE)
+$(PROGS): | $(DYNAMIC_LIBRARIES)
+$(PROGS): LDFLAGS += -Wl,-rpath=. -L.
 
-clean: $(DIRS)
-	$(RM) *.o *.so $(PROGS) $(ARTTREE) core a.out
+libart.o: art.o
 
-clobber: clean $(DIRS)
-	$(RM) $(PROGS)
-
-cstyle: $(DIRS)
-	$(CSTYLE) -pP *.[ch]
-
-.c.o:
-	$(CC) -c -o $@ $(CFLAGS) $(INCS) $<
-
-$(PROGS):
-	$(CC) -o $@ $< $(LIBS)
-
-$(LIBART_SO): art.o
-	$(CC) $(LDFLAGS) -shared -o $(LIBART_SO).so art.o
-
-$(ARTTREE): $(ARTTREE).o $(LIBART_SO)
-	$(CC) -o $@ $(ARTTREE).o $(LIBS) $(LIBART)
-
-$(DIRS):
-	$(MAKE) -C $@ $(TARGET)
-
-.PHONY: all clean clobber cstyle $(DIRS)
+arttree: arttree.o
