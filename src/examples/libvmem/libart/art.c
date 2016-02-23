@@ -543,7 +543,8 @@ add_child4(VMEM *vmp, art_node4 *n, art_node **ref, unsigned char c,
 		}
 
 		// Shift to make room
-		memmove(n->keys + idx + 1, n->keys + idx, n->n.num_children - idx);
+		memmove(n->keys + idx + 1, n->keys + idx,
+		    n->n.num_children - idx);
 		memmove(n->children + idx + 1, n->children + idx,
 		    (n->n.num_children - idx) * sizeof (void *));
 
