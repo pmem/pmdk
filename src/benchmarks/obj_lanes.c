@@ -100,10 +100,11 @@ lanes_init(struct benchmark *bench, struct benchmark_args *args)
 	pmembench_set_priv(bench, ob);
 
 	ob->pa = args->opts;
+	size_t psize = args->is_poolset ? 0 : PMEMOBJ_MIN_POOL;
 
 	/* create pmemobj pool */
 	ob->pop = pmemobj_create(args->fname,
-			"obj_lanes", PMEMOBJ_MIN_POOL, args->fmode);
+			"obj_lanes", psize, args->fmode);
 	if (ob->pop == NULL) {
 		fprintf(stderr, "%s\n", pmemobj_errormsg());
 		goto err;
@@ -183,7 +184,8 @@ static struct benchmark_info lanes_info = {
 	.clos		= lanes_clo,
 	.nclos		= ARRAY_SIZE(lanes_clo),
 	.opts_size	= sizeof (struct prog_args),
-	.rm_file	= true
+	.rm_file	= true,
+	.allow_poolset	= true,
 };
 
 REGISTER_BENCHMARK(lanes_info);

@@ -46,7 +46,6 @@ export TEST_LOG_LEVEL=4
 export TEST_LOG_FILE=./test$UNITTEST_NUM.log
 
 MIN_POOL=$((32 * 1024))
-HDR_SIZE=8192
 
 create_poolset $DIR/testset1 32K:$DIR/testfile11:z:32K # pass
 create_poolset $DIR/testset2 32K:$DIR/testfile21:x \
@@ -71,7 +70,7 @@ create_poolset $DIR/testset11 32769:$DIR/testfile111:z:32769 \
 	36863:$DIR/testfile112:z:36863 36864:$DIR/testfile113:xz:36864 # pass
 
 
-expect_normal_exit ./util_poolset$EXESUFFIX o $MIN_POOL $HDR_SIZE\
+expect_normal_exit ./util_poolset$EXESUFFIX o $MIN_POOL\
 	$DIR/testset0 $DIR/testset1\
 	-mo:$DIR/testset2 $DIR/testset2\
 	$DIR/testset3 $DIR/testset4\

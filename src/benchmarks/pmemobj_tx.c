@@ -1081,14 +1081,23 @@ obj_tx_init(struct benchmark *bench, struct benchmark_args *args)
 	if (obj_bench.sizes == NULL)
 		goto free_random_types;
 
-	if (obj_bench.lib_mode != LIB_MODE_DRAM) {
-		/* Create pmemobj pool. */
-		obj_bench.pop = pmemobj_create(args->fname, LAYOUT_NAME,
-							psize, args->fmode);
-		if (obj_bench.pop == NULL) {
-			perror("pmemobj_create");
+	if (obj_bench.lib_mode == LIB_MODE_DRAM)
+		return 0;
+
+	/* Create pmemobj pool. */
+	if (args->is_poolset) {
+		if (args->fsize < psize) {
+			fprintf(stderr, "insufficient size of poolset\n");
 			goto free_all;
 		}
+
+		psize = 0;
+	}
+	obj_bench.pop = pmemobj_create(args->fname, LAYOUT_NAME,
+						psize, args->fmode);
+	if (obj_bench.pop == NULL) {
+		perror("pmemobj_create");
+		goto free_all;
 	}
 
 	return 0;
@@ -1143,7 +1152,8 @@ static struct benchmark_info obj_tx_alloc = {
 	.clos		= obj_tx_clo,
 	.nclos		= ARRAY_SIZE(obj_tx_clo) - 3,
 	.opts_size	= sizeof (struct obj_tx_args),
-	.rm_file	= true
+	.rm_file	= true,
+	.allow_poolset	= true,
 };
 
 REGISTER_BENCHMARK(obj_tx_alloc);
@@ -1162,7 +1172,8 @@ static struct benchmark_info obj_tx_free = {
 	.clos		= obj_tx_clo,
 	.nclos		= ARRAY_SIZE(obj_tx_clo) - 3,
 	.opts_size	= sizeof (struct obj_tx_args),
-	.rm_file	= true
+	.rm_file	= true,
+	.allow_poolset	= true,
 };
 
 REGISTER_BENCHMARK(obj_tx_free);
@@ -1181,7 +1192,8 @@ static struct benchmark_info obj_tx_realloc = {
 	.clos		= obj_tx_clo,
 	.nclos		= ARRAY_SIZE(obj_tx_clo),
 	.opts_size	= sizeof (struct obj_tx_args),
-	.rm_file	= true
+	.rm_file	= true,
+	.allow_poolset	= true,
 };
 
 REGISTER_BENCHMARK(obj_tx_realloc);
@@ -1200,7 +1212,8 @@ static struct benchmark_info obj_tx_add_range = {
 	.clos		= obj_tx_clo,
 	.nclos		= ARRAY_SIZE(obj_tx_clo) - 5,
 	.opts_size	= sizeof (struct obj_tx_args),
-	.rm_file	= true
+	.rm_file	= true,
+	.allow_poolset	= true,
 };
 
 REGISTER_BENCHMARK(obj_tx_add_range);

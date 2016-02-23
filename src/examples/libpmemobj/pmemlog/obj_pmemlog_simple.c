@@ -383,7 +383,7 @@ main(int argc, char *argv[])
 {
 
 	if (argc < 2) {
-		fprintf(stderr, "usage: %s [o,c] file [val...]", argv[0]);
+		fprintf(stderr, "usage: %s [o,c] file [val...]\n", argv[0]);
 		return 1;
 	}
 
@@ -393,7 +393,7 @@ main(int argc, char *argv[])
 	} else if (strncmp(argv[1], "o", 1) == 0) {
 		plp = pmemlog_open(argv[2]);
 	} else {
-		fprintf(stderr, "usage: %s [o,c] file [val...]", argv[0]);
+		fprintf(stderr, "usage: %s [o,c] file [val...]\n", argv[0]);
 		return 1;
 	}
 

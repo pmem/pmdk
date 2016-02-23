@@ -45,6 +45,7 @@
 #include <sys/queue.h>
 #include <linux/limits.h>
 #include <dirent.h>
+#include <errno.h>
 
 #include "benchmark.h"
 #include "benchmark_worker.h"
@@ -52,6 +53,7 @@
 #include "clo_vec.h"
 #include "clo.h"
 #include "config_reader.h"
+#include "util.h"
 
 /*
  * struct pmembench -- main context
@@ -825,35 +827,52 @@ out:
 }
 
 /*
+ * remove_part_cb -- callback function for removing all pool set part files
+ */
+static int
+remove_part_cb(const char *part_file, void *arg)
+{
+	if (access(part_file, F_OK) == 0)
+		return remove(part_file);
+	return 0;
+}
+
+/*
  * pmembench_remove_file -- remove file or directory if exists
  */
 static int
-pmembench_remove_file(const char *dname)
+pmembench_remove_file(const char *path)
 {
 	int ret = 0;
 	DIR *dir;
 	struct dirent *d;
 	char *tmp;
-	dir = opendir(dname);
+	dir = opendir(path);
 	if (dir == NULL) {
-		if (access(dname, F_OK) == 0)
-			remove(dname);
+		if (access(path, F_OK) == 0) {
+			ret = util_is_poolset(path);
+			if (ret == 0) {
+				return remove(path);
+			} else if (ret == 1) {
+				return util_poolset_foreach_part(path,
+						remove_part_cb, NULL);
+			}
+		}
 		return ret;
 	}
 
 	while ((d = readdir(dir)) != NULL) {
 		if (strcmp(d->d_name, ".") == 0 || strcmp(d->d_name, "..") == 0)
 			continue;
-		tmp = malloc(strlen(dname) + strlen(d->d_name) + 2);
-		sprintf(tmp, "%s/%s", dname, d->d_name);
+		tmp = malloc(strlen(path) + strlen(d->d_name) + 2);
+		sprintf(tmp, "%s/%s", path, d->d_name);
 		ret = (d->d_type == DT_DIR) ? pmembench_remove_file(tmp)
 								: remove(tmp);
 		free(tmp);
 		if (ret != 0)
 			return ret;
 	}
-	ret = rmdir(dname);
-	return ret;
+	return rmdir(path);
 }
 
 /*
@@ -921,6 +940,19 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 		args = clo_vec_get_args(clovec, args_i);
 		args->opts = (void *)((uintptr_t)args +
 				sizeof (struct benchmark_args));
+		args->is_poolset = util_is_poolset(args->fname) == 1;
+		if (args->is_poolset) {
+			if (!bench->info->allow_poolset) {
+				fprintf(stderr, "poolset files "
+					"not supported\n");
+				goto out;
+			}
+			args->fsize = util_poolset_size(args->fname);
+			if (!args->fsize) {
+				fprintf(stderr, "invalid size of poolset");
+				goto out;
+			}
+		}
 
 		size_t n_threads = !bench->info->multithread ? 1 :
 						args->n_threads;
@@ -1141,6 +1173,7 @@ out:
 int
 main(int argc, char *argv[])
 {
+	util_init();
 	int ret = 0;
 	struct pmembench *pb = calloc(1, sizeof (*pb));
 	assert(pb != NULL);
