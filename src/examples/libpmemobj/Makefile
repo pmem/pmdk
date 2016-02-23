@@ -37,7 +37,7 @@ include ../../common.inc
 
 PROGS = manpage btree pi
 DIRS = pminvaders pmemlog pmemblk string_store string_store_tx\
-	string_store_tx_type hashmap tree_map pmemobjfs map
+	string_store_tx_type hashmap tree_map pmemobjfs map libart
 
 ifeq ($(call check_cxx_flags, -std=c++11), y)
 DIRS += cpp
