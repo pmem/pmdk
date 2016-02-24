@@ -56,7 +56,7 @@ clean-dirs:   TARGET = clean
 clobber-dirs: TARGET = clobber
 cstyle-dirs:  TARGET = cstyle
 
-all: $(if $(DIRS), all-dirs) $(if $(PROGS), all-progs) $(if $(LIBRARIES), all-libraries)
+all: $(if $(DIRS), all-dirs) $(if $(LIBRARIES), all-libraries) $(if $(PROGS), all-progs)
 clean: $(if $(DIRS), clean-dirs) $(if $(PROGS), clean-progs) $(if $(LIBRARIES), clean-libraries)
 clobber: $(if $(DIRS), clobber-dirs) $(if $(PROGS), clobber-progs) $(if $(LIBRARIES), clobber-libraries)
 cstyle: $(if $(DIRS), cstyle-dirs)
