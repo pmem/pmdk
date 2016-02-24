@@ -44,6 +44,8 @@
 #
 # Use "make cstyle" to run cstyle on all C source files
 #
+# Use "make check-license" to check copyright and license in all source files
+#
 # Use "make rpm" to build rpm packages
 #
 # Use "make dpkg" to build dpkg packages
@@ -77,11 +79,13 @@ all:
 clean:
 	$(MAKE) -C src $@
 	$(MAKE) -C doc $@
+	$(MAKE) -C utils $@
 	$(RM) -r $(RPM_BUILDDIR) $(DPKG_BUILDDIR)
 
 clobber:
 	$(MAKE) -C src $@
 	$(MAKE) -C doc $@
+	$(MAKE) -C utils $@
 	$(RM) -r $(RPM_BUILDDIR) $(DPKG_BUILDDIR) rpm dpkg
 
 test check pcheck: all
@@ -89,8 +93,14 @@ test check pcheck: all
 
 cstyle:
 	$(MAKE) -C src $@
+	$(MAKE) -C utils $@
 	@echo Checking files for whitespace issues...
 	@utils/check_whitespace
+	@echo Done.
+
+check-license:
+	$(MAKE) -C utils $@
+	@utils/check_license/check-headers.sh
 	@echo Done.
 
 source:
@@ -112,5 +122,5 @@ install uninstall:
 	$(MAKE) -C src $@
 	$(MAKE) -C doc $@
 
-.PHONY: all clean clobber test check cstyle install uninstall\
+.PHONY: all clean clobber test check cstyle check-license install uninstall\
 	source rpm dpkg pkg-clean pcheck $(SUBDIRS)
