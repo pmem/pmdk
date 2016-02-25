@@ -192,6 +192,10 @@ sub match {
 	}
 
 	if ($output ne '') {
+		if (!$opt_v) {
+			print "[MATCHING FAILED, COMPLETE FILE ($ofile) BELOW]\n$all_lines\n[EOF]\n";
+		}
+
 		# make it a little more print-friendly...
 		$output =~ s/\n/\\n/g;
 		die "line $line_pat: unexpected output: \"$output\"\n";
