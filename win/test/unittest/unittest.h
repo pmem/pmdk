@@ -160,6 +160,8 @@ void ut_err(const char *file, int line, const char *func,
     ut_err(__FILE__, __LINE__, __func__, __VA_ARGS__)
 
 
+#define	UT_COMPILE_ERROR_ON(cond) ((void)sizeof (char[(cond) ? -1 : 1]))
+
 /*
  * assertions...
  */

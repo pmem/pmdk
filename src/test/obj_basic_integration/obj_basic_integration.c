@@ -520,7 +520,7 @@ test_tx_api(PMEMobjpool *pop)
 
 	errno = 0;
 	TX_BEGIN(pop) {
-		TX_BEGIN((void *)(uintptr_t)7) {
+		TX_BEGIN((PMEMobjpool *)(uintptr_t)7) {
 		} TX_ONCOMMIT {
 			UT_ASSERT(0);
 		} TX_END

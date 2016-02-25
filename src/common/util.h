@@ -124,6 +124,13 @@ struct arch_flags {
 #define	POOL_HDR_UUID_STR_LEN	37 /* uuid string length */
 #define	POOL_HDR_UUID_GEN_FILE	"/proc/sys/kernel/random/uuid"
 
+#ifdef WIN32
+#ifdef uuid_t
+#undef uuid_t
+#endif
+#endif
+
+
 typedef unsigned char uuid_t[POOL_HDR_UUID_LEN]; /* 16 byte binary uuid value */
 
 struct pool_hdr {
