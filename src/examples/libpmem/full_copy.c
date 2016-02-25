@@ -107,9 +107,10 @@ int
 main(int argc, char *argv[])
 {
 	int srcfd;
-	int dstfd;
 	struct stat stbuf;
 	char *pmemaddr;
+	size_t mapped_len;
+	int is_pmem;
 
 	if (argc != 3) {
 		fprintf(stderr, "usage: %s src-file dst-file\n", argv[0]);
@@ -122,39 +123,28 @@ main(int argc, char *argv[])
 		exit(1);
 	}
 
-	/* create a pmem file */
-	if ((dstfd = open(argv[2], O_CREAT|O_EXCL|O_RDWR, 0666)) < 0) {
-		perror(argv[2]);
-		exit(1);
-	}
-
 	/* find the size of the src-file */
 	if (fstat(srcfd, &stbuf) < 0) {
 		perror("fstat");
 		exit(1);
 	}
 
-	/* allocate the pmem */
-	if ((errno = posix_fallocate(dstfd, 0, stbuf.st_size)) != 0) {
-		perror("posix_fallocate");
+	/* create a pmem file and memory map it */
+	if ((pmemaddr = pmem_map_file(argv[2], stbuf.st_size,
+				PMEM_FILE_CREATE|PMEM_FILE_EXCL,
+				0666, &mapped_len, &is_pmem)) == NULL) {
+		perror("pmem_map_file");
 		exit(1);
 	}
-
-	/* memory map it */
-	if ((pmemaddr = pmem_map(dstfd)) == NULL) {
-		perror("pmem_map");
-		exit(1);
-	}
-	close(dstfd);
 
 	/* determine if range is true pmem, call appropriate copy routine */
-	if (pmem_is_pmem(pmemaddr, stbuf.st_size))
+	if (is_pmem)
 		do_copy_to_pmem(pmemaddr, srcfd, stbuf.st_size);
 	else
 		do_copy_to_non_pmem(pmemaddr, srcfd, stbuf.st_size);
 
 	close(srcfd);
-	pmem_unmap(pmemaddr, stbuf.st_size);
+	pmem_unmap(pmemaddr, mapped_len);
 
 	exit(0);
 }

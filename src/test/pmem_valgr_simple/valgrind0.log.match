@@ -7,12 +7,12 @@
 ==$(N)== 
 ==$(N)== Number of stores not made persistent: 3
 ==$(N)== Stores not made persistent properly:
-==$(N)== [0]    at 0x$(X): main (pmem_valgr_simple.c:64)
+==$(N)== [0]    at 0x$(X): main (pmem_valgr_simple.c:$(N))
 ==$(N)== 	Address: 0x$(X)	size: 4	state: DIRTY
 ==$(N)== [1]    at 0x$(X): $(nW)memset ($(*))
-==$(N)==    by 0x$(X): main (pmem_valgr_simple.c:82)
+==$(N)==    by 0x$(X): main (pmem_valgr_simple.c:$(N))
 ==$(N)== 	Address: 0x$(X)	size: 8	state: DIRTY
-==$(N)== [2]    at 0x$(X): main (pmem_valgr_simple.c:77)
+==$(N)== [2]    at 0x$(X): main (pmem_valgr_simple.c:$(N))
 $(OPT)==$(N)== 	Address: 0x$(X)	size: 2	state: FLUSHED
 $(OPT)==$(N)== 	Address: 0x$(X)	size: 2	state: FENCED
 ==$(N)== Total memory not made persistent: 14
@@ -20,5 +20,5 @@ $(OPT)==$(N)==
 $(OPT)==$(N)== Number of overwritten stores: 1
 $(OPT)==$(N)== Overwritten stores before they were made persistent:
 $(OPT)==$(N)== [0]    at 0x$(X): $(nW)memset ($(*))
-$(OPT)==$(N)==    by 0x$(X): main (pmem_valgr_simple.c:82)
+$(OPT)==$(N)==    by 0x$(X): main (pmem_valgr_simple.c:$(N))
 $(OPT)==$(N)== 	Address: 0x$(X)	size: 8	state: DIRTY

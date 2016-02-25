@@ -47,48 +47,35 @@
 /* using 4k of pmem for this example */
 #define	PMEM_LEN 4096
 
+#define	PATH "/pmem-fs/myfile"
+
 int
 main(int argc, char *argv[])
 {
-	int fd;
 	char *pmemaddr;
+	size_t mapped_len;
 	int is_pmem;
 
-	/* create a pmem file */
-	if ((fd = open("/pmem-fs/myfile", O_CREAT|O_RDWR, 0666)) < 0) {
-		perror("open");
+	/* create a pmem file and memory map it */
+	if ((pmemaddr = pmem_map_file(PATH, PMEM_LEN, PMEM_FILE_CREATE,
+				0666, &mapped_len, &is_pmem)) == NULL) {
+		perror("pmem_map_file");
 		exit(1);
 	}
-
-	/* allocate the pmem */
-	if ((errno = posix_fallocate(fd, 0, PMEM_LEN)) != 0) {
-		perror("posix_fallocate");
-		exit(1);
-	}
-
-	/* memory map it */
-	if ((pmemaddr = pmem_map(fd)) == NULL) {
-		perror("pmem_map");
-		exit(1);
-	}
-	close(fd);
-
-	/* determine if range is true pmem */
-	is_pmem = pmem_is_pmem(pmemaddr, PMEM_LEN);
 
 	/* store a string to the persistent memory */
 	strcpy(pmemaddr, "hello, persistent memory");
 
 	/* flush above strcpy to persistence */
 	if (is_pmem)
-		pmem_persist(pmemaddr, PMEM_LEN);
+		pmem_persist(pmemaddr, mapped_len);
 	else
-		pmem_msync(pmemaddr, PMEM_LEN);
+		pmem_msync(pmemaddr, mapped_len);
 
 	/*
 	 * Delete the mappings. The region is also
 	 * automatically unmapped when the process is
 	 * terminated.
 	 */
-	pmem_unmap(pmemaddr, PMEM_LEN);
+	pmem_unmap(pmemaddr, mapped_len);
 }

@@ -4,9 +4,24 @@ This is src/test/pmem_map/README.
 
 This directory contains a unit test for pmem_map().
 
-The program in pmem_map.c takes a file name as an argument.
+The program in pmem_map.c takes a path, file length, flags, mode,
+use_mapped_len and use_is_pmem flags.
 
-Initially, the first 4k of the file is populated with some pattern
+The accepted flags in 'flags' string are:
+'C' - PMEM_FILE_CREATE
+'T' - PMEM_FILE_TMPFILE
+'E' - PMEM_FILE_EXCL
+'S' - PMEM_FILE_SPARSE
+'-' or '0' - no flag
+'X' - not supported flag
+
+'mode' - an an octal number that specifies the file mode
+
+Example:
+$ pmem_map /mnt/pmem/testfile 4096 CTS 0644 1 1 ...
+
+If the file is successfully mapped to memory, and it is not a temporary file,
+then initially the first 4k of the file is populated with some pattern
 using write(). The file content is verified after successful mapping
 with pmem_map(). Then, the program overwrites the first 4k of the
 mapped memory region with another pattern, unmaps the file, and

@@ -39,3 +39,5 @@ OBJS = pmem_map.o
 LIBPMEM=y
 
 include ../Makefile.inc
+
+LIBS += -ldl

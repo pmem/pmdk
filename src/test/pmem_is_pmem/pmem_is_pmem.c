@@ -54,7 +54,7 @@ main(int argc, char *argv[])
 	void *addr =
 		MMAP(0, stbuf.st_size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
 
-	close(fd);
+	CLOSE(fd);
 
 	OUT("%d", pmem_is_pmem(addr, stbuf.st_size));
 

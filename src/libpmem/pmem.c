@@ -204,6 +204,9 @@
 #include <stdint.h>
 #include <string.h>
 #include <xmmintrin.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 #include "libpmem.h"
 
@@ -612,33 +615,149 @@ pmem_is_pmem(const void *addr, size_t len)
 	return Func_is_pmem(addr, len);
 }
 
+#define	PMEM_FILE_ALL_FLAGS\
+	(PMEM_FILE_CREATE|PMEM_FILE_EXCL|PMEM_FILE_SPARSE|PMEM_FILE_TMPFILE)
+
+#ifndef USE_O_TMPFILE
+#ifdef O_TMPFILE
+#define	USE_O_TMPFILE 1
+#else
+#define	USE_O_TMPFILE 0
+#endif
+#endif
+
 /*
- * pmem_map -- map the entire file for read/write access
+ * pmem_map_file -- create or open the file and map it to memory
  */
 void *
-pmem_map(int fd)
+pmem_map_file(const char *path, size_t len, int flags, mode_t mode,
+	size_t *mapped_lenp, int *is_pmemp)
 {
-	LOG(3, "fd %d", fd);
+	LOG(3, "path \"%s\" size %zu flags %x mode %o mapped_lenp %p "
+		"is_pmemp %p", path, len, flags, mode, mapped_lenp, is_pmemp);
 
-	struct stat stbuf;
-	if (fstat(fd, &stbuf) < 0) {
-		ERR("!fstat");
+	int oerrno;
+	int fd;
+	int open_flags = O_RDWR;
+	int delete_on_err = 0;
+
+	if (flags & ~(PMEM_FILE_ALL_FLAGS)) {
+		ERR("invalid flag specified %x", flags);
+		errno = EINVAL;
 		return NULL;
 	}
-	if (stbuf.st_size < 0) {
-		ERR("fstat: negative size");
+
+	if (flags & PMEM_FILE_CREATE) {
+		if ((off_t)len < 0) {
+			ERR("invalid file length %zu", len);
+			errno = EINVAL;
+			return NULL;
+		}
+		open_flags |= O_CREAT;
+	}
+
+	if (flags & PMEM_FILE_EXCL)
+		open_flags |= O_EXCL;
+
+	if ((len != 0) && !(flags & PMEM_FILE_CREATE)) {
+		ERR("non-zero 'len' not allowed without PMEM_FILE_CREATE");
+		errno = EINVAL;
 		return NULL;
+	}
+
+	if ((len == 0) && (flags & PMEM_FILE_CREATE)) {
+		ERR("zero 'len' not allowed with PMEM_FILE_CREATE");
+		errno = EINVAL;
+		return NULL;
+	}
+
+	if ((flags & PMEM_FILE_TMPFILE) && !(flags & PMEM_FILE_CREATE)) {
+		ERR("PMEM_FILE_TMPFILE not allowed without PMEM_FILE_CREATE");
+		errno = EINVAL;
+		return NULL;
+	}
+
+#if USE_O_TMPFILE
+
+	if (flags & PMEM_FILE_TMPFILE)
+		open_flags |= O_TMPFILE;
+
+	if ((fd = open(path, open_flags, mode)) < 0) {
+		ERR("!open %s", path);
+		return NULL;
+	}
+
+#else
+
+	if (flags & PMEM_FILE_TMPFILE) {
+		if ((fd = util_tmpfile(path, "/pmem.XXXXXX")) < 0) {
+			return NULL;
+		}
+	} else {
+		if ((fd = open(path, open_flags, mode)) < 0) {
+			ERR("!open %s", path);
+			return NULL;
+		}
+		if ((flags & PMEM_FILE_CREATE) && (flags & PMEM_FILE_EXCL))
+			delete_on_err = 1;
+	}
+
+#endif
+
+	if (flags & PMEM_FILE_CREATE) {
+		if (flags & PMEM_FILE_SPARSE) {
+			if (ftruncate(fd, (off_t)len) != 0) {
+				ERR("!ftruncate");
+				goto err;
+			}
+		} else {
+			if ((errno = posix_fallocate(fd, 0, (off_t)len)) != 0) {
+				ERR("!posix_fallocate");
+				goto err;
+			}
+		}
+	} else {
+		struct stat stbuf;
+
+		if (fstat(fd, &stbuf) < 0) {
+			ERR("!fstat %s", path);
+			goto err;
+		}
+		if (stbuf.st_size < 0) {
+			ERR("stat %s: negative size", path);
+			errno = EINVAL;
+			goto err;
+		}
+
+		len = (size_t)stbuf.st_size;
 	}
 
 	void *addr;
-	if ((addr = util_map(fd, (size_t)stbuf.st_size, 0, 0)) == NULL)
-		return NULL;    /* util_map() set errno, called LOG */
+	if ((addr = util_map(fd, len, 0, 0)) == NULL)
+		goto err;    /* util_map() set errno, called LOG */
+
+	if (mapped_lenp != NULL)
+		*mapped_lenp = len;
+
+	if (is_pmemp != NULL)
+		*is_pmemp = pmem_is_pmem(addr, len);
 
 	LOG(3, "returning %p", addr);
 
-	VALGRIND_REGISTER_PMEM_MAPPING(addr, stbuf.st_size);
-	VALGRIND_REGISTER_PMEM_FILE(fd, addr, stbuf.st_size, 0);
+	VALGRIND_REGISTER_PMEM_MAPPING(addr, len);
+	VALGRIND_REGISTER_PMEM_FILE(fd, addr, len, 0);
+
+	(void) close(fd);
+
 	return addr;
+
+err:
+	oerrno = errno;
+	(void) close(fd);
+	if (delete_on_err)
+		(void) unlink(path);
+	errno = oerrno;
+	return NULL;
 }
 
 /*

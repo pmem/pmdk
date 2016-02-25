@@ -73,8 +73,6 @@ struct memset_bench {
 	int n_offsets;		/* number of random elements */
 	int const_b;		/* memset() value */
 	size_t fsize;		/* file size */
-	int fd;			/* file descriptor */
-	int flags;		/* flags for open() */
 	void *pmem_addr;	/* mapped file address */
 	operation_fn func_op;	/* operation function */
 };
@@ -350,29 +348,13 @@ memset_init(struct benchmark *bench, struct benchmark_args *args)
 		goto err_free_mb;
 	}
 
-	mb->flags = O_CREAT | O_EXCL | O_RDWR;
-
-	/* create a pmem file */
-	mb->fd = open(args->fname, mb->flags, args->fmode);
-	if (mb->fd == -1) {
+	/* create a pmem file and memory map it */
+	if ((mb->pmem_addr = pmem_map_file(args->fname, mb->fsize,
+				PMEM_FILE_CREATE|PMEM_FILE_EXCL,
+				args->fmode, NULL, NULL)) == NULL) {
 		perror(args->fname);
 		ret = -1;
 		goto err_free_offsets;
-	}
-
-	/* allocate the pmem */
-	if ((errno = posix_fallocate(mb->fd, 0, mb->fsize)) != 0) {
-		perror("posix_fallocate");
-		ret = -1;
-		goto err_close_file;
-	}
-
-	/* memory map it */
-	mb->pmem_addr = pmem_map(mb->fd);
-	if (mb->pmem_addr == NULL) {
-		perror("pmem_map");
-		ret = -1;
-		goto err_close_file;
 	}
 
 	if (mb->pargs->memset)
@@ -391,16 +373,12 @@ memset_init(struct benchmark *bench, struct benchmark_args *args)
 		}
 	}
 
-	close(mb->fd);
-
 	pmembench_set_priv(bench, mb);
 
 	return 0;
 
 err_unmap:
 	pmem_unmap(mb->pmem_addr, mb->fsize);
-err_close_file:
-	close(mb->fd);
 err_free_offsets:
 	free(mb->offsets);
 err_free_mb:

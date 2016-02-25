@@ -55,9 +55,9 @@ int
 main(int argc, char *argv[])
 {
 	int srcfd;
-	int dstfd;
 	char buf[BUF_LEN];
 	char *pmemaddr;
+	size_t mapped_len;
 	int is_pmem;
 	int cc;
 
@@ -72,31 +72,17 @@ main(int argc, char *argv[])
 		exit(1);
 	}
 
-	/* create a pmem file */
-	if ((dstfd = open(argv[2], O_CREAT|O_EXCL|O_RDWR, 0666)) < 0) {
-		perror(argv[2]);
+	/* create a pmem file and memory map it */
+	if ((pmemaddr = pmem_map_file(argv[2], BUF_LEN,
+				PMEM_FILE_CREATE|PMEM_FILE_EXCL,
+				0666, &mapped_len, &is_pmem)) == NULL) {
+		perror("pmem_map_file");
 		exit(1);
 	}
-
-	/* allocate the pmem */
-	if ((errno = posix_fallocate(dstfd, 0, BUF_LEN)) != 0) {
-		perror("posix_fallocate");
-		exit(1);
-	}
-
-	/* memory map it */
-	if ((pmemaddr = pmem_map(dstfd)) == NULL) {
-		perror("pmem_map");
-		exit(1);
-	}
-	close(dstfd);
-
-	/* determine if range is true pmem */
-	is_pmem = pmem_is_pmem(pmemaddr, BUF_LEN);
 
 	/* read up to BUF_LEN from srcfd */
 	if ((cc = read(srcfd, buf, BUF_LEN)) < 0) {
-		pmem_unmap(pmemaddr, BUF_LEN);
+		pmem_unmap(pmemaddr, mapped_len);
 		perror("read");
 		exit(1);
 	}
@@ -110,7 +96,7 @@ main(int argc, char *argv[])
 	}
 
 	close(srcfd);
-	pmem_unmap(pmemaddr, BUF_LEN);
+	pmem_unmap(pmemaddr, mapped_len);
 
 	exit(0);
 }

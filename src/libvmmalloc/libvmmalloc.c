@@ -361,13 +361,21 @@ libvmmalloc_create(const char *dir, size_t size)
 	/* silently enforce multiple of page size */
 	size = roundup(size, Pagesize);
 
-	Fd = util_tmpfile(dir, size);
+	Fd = util_tmpfile(dir, "/vmem.XXXXXX");
 	if (Fd == -1)
 		return NULL;
 
-	void *addr;
-	if ((addr = util_map(Fd, size, 0, 4 << 20)) == NULL)
+	if ((errno = posix_fallocate(Fd, 0, (off_t)size)) != 0) {
+		ERR("!posix_fallocate");
+		(void) close(Fd);
 		return NULL;
+	}
+
+	void *addr;
+	if ((addr = util_map(Fd, size, 0, 4 << 20)) == NULL) {
+		(void) close(Fd);
+		return NULL;
+	}
 
 	/* store opaque info at beginning of mapped area */
 	struct vmem *vmp = addr;
@@ -405,9 +413,15 @@ libvmmalloc_clone(void)
 {
 	LOG(3, NULL);
 
-	Fd_clone = util_tmpfile(Dir, Vmp->size);
+	Fd_clone = util_tmpfile(Dir, "/vmem.XXXXXX");
 	if (Fd_clone == -1)
 		return NULL;
+
+	if ((errno = posix_fallocate(Fd_clone, 0, (off_t)Vmp->size)) != 0) {
+		ERR("!posix_fallocate");
+		(void) close(Fd_clone);
+		return NULL;
+	}
 
 	void *addr = mmap(NULL, Vmp->size, PROT_READ|PROT_WRITE,
 			MAP_SHARED, Fd_clone, 0);

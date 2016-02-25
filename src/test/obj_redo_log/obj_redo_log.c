@@ -106,38 +106,22 @@ obj_drain(PMEMobjpool *pop)
 static PMEMobjpool *
 pmemobj_open_mock(const char *fname)
 {
-	int fd = open(fname, O_RDWR);
-	if (fd == -1) {
-		OUT("!%s: open", fname);
+	size_t size;
+	int is_pmem;
 
-		return NULL;
-	}
-
-	struct stat stbuf;
-	if (fstat(fd, &stbuf) < 0) {
-		OUT("!fstat");
-		(void) close(fd);
-
-		return NULL;
-	}
-
-	ASSERT(stbuf.st_size > PMEMOBJ_POOL_HDR_SIZE);
-
-	void *addr = pmem_map(fd);
+	void *addr = pmem_map_file(fname, 0, 0, 0, &size, &is_pmem);
 	if (!addr) {
-		OUT("!%s: pmem_map", fname);
-		(void) close(fd);
-
+		OUT("!%s: pmem_map_file", fname);
 		return NULL;
 	}
 
-	close(fd);
+	ASSERT(size > PMEMOBJ_POOL_HDR_SIZE);
 
 	PMEMobjpool *pop = (PMEMobjpool *)addr;
 	VALGRIND_REMOVE_PMEM_MAPPING((char *)addr + sizeof (pop->hdr), 4096);
 	pop->addr = addr;
-	pop->size = stbuf.st_size;
-	pop->is_pmem = pmem_is_pmem(addr, stbuf.st_size);
+	pop->size = size;
+	pop->is_pmem = is_pmem;
 	pop->rdonly = 0;
 
 	if (pop->is_pmem) {

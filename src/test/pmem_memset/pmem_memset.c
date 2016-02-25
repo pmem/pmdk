@@ -42,7 +42,7 @@ int
 main(int argc, char *argv[])
 {
 	int fd;
-	struct stat stbuf;
+	size_t mapped_len;
 	char *dest;
 	char *dest1;
 	char *ret;
@@ -53,16 +53,15 @@ main(int argc, char *argv[])
 		FATAL("usage: %s file offset length", argv[0]);
 
 	fd = OPEN(argv[1], O_RDWR);
+
+	/* open a pmem file and memory map it */
+	if ((dest = pmem_map_file(argv[1], 0, 0, 0, &mapped_len, NULL)) == NULL)
+		FATAL("!Could not mmap %s\n", argv[1]);
+
 	int dest_off = atoi(argv[2]);
 	size_t bytes = strtoul(argv[3], NULL, 0);
 
 	char buf[bytes];
-
-	FSTAT(fd, &stbuf);
-
-	dest = pmem_map(fd);
-	if (dest == NULL)
-		FATAL("!Could not mmap %s\n", argv[1]);
 
 	memset(dest, 0, bytes);
 	dest1 = malloc(bytes);
@@ -101,7 +100,8 @@ main(int argc, char *argv[])
 			ERR("%s: first %zu bytes do not match",
 				argv[1], bytes / 2);
 	}
-	MUNMAP(dest, stbuf.st_size);
+
+	pmem_unmap(dest, mapped_len);
 
 	CLOSE(fd);
 
