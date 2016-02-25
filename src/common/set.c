@@ -1246,6 +1246,7 @@ util_uuid_from_string(const char *uuid, struct uuid *ud)
 	return 0;
 }
 
+#ifndef WIN32
 /*
  * util_uuid_generate -- generate a uuid
  *
@@ -1280,6 +1281,16 @@ util_uuid_generate(uuid_t uuid)
 
 	return 0;
 }
+#else
+
+int
+util_uuid_generate(uuid_t uuid)
+{
+	CoCreateGuid((GUID *)(uuid));
+	return 0;
+}
+
+#endif
 
 /*
  * util_pool_create -- create a new memory pool (set or a single file)
