@@ -127,6 +127,8 @@ out_fatal_abort(const char *file, int line, const char *func,
 	"assertion failure: %s (0x%llx) != %s (0x%llx)", #lhs,\
 	(unsigned long long)(lhs), #rhs, (unsigned long long)(rhs)), 0)))
 
+#ifndef WIN32
+
 /* assert a condition is true */
 #define	ASSERT(cnd)\
 	do {\
@@ -165,6 +167,23 @@ out_fatal_abort(const char *file, int line, const char *func,
 			COMPILE_ERROR_ON((lhs) != (rhs));\
 		ASSERTne_rt(lhs, rhs);\
 	} while (0)
+
+#else /* WIN32 */
+
+/* assert a condition is true */
+#define	ASSERT(cnd) ASSERT_rt(cnd)
+
+/* assertion with extra info printed if assertion fails */
+#define	ASSERTinfo(cnd, info) ASSERTinfo_rt(cnd)
+
+/* assert two integer values are equal */
+#define	ASSERTeq(lhs, rhs) ASSERTeq_rt(lhs, rhs)
+
+/* assert two integer values are not equal */
+#define	ASSERTne(lhs, rhs) ASSERTne_rt(lhs, rhs)
+
+#endif /* WIN32 */
+
 
 #define	ERR(...)\
 	out_err(__FILE__, __LINE__, __func__, __VA_ARGS__)

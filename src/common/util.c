@@ -338,8 +338,6 @@ util_map(int fd, size_t len, int cow, size_t req_align)
 
 	void *base;
 
-#ifndef WIN32
-
 	void *addr = util_map_hint(len, req_align);
 
 	if ((base = mmap(addr, len, PROT_READ|PROT_WRITE,

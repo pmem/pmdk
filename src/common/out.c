@@ -341,7 +341,7 @@ out_common(const char *file, int line, const char *func, int level,
 	const char *errstr = "";
 
 	if (file) {
-		char *f = rindex(file, '/');
+		char *f = strrchr(file, '/');
 		if (f)
 			file = f + 1;
 		ret = out_snprintf(&buf[cc], MAXPRINT - cc,
@@ -413,7 +413,7 @@ out_error(const char *file, int line, const char *func,
 		cc = 0;
 
 		if (file) {
-			char *f = rindex(file, '/');
+			char *f = strrchr(file, '/');
 			if (f)
 				file = f + 1;
 			ret = out_snprintf(&buf[cc], MAXPRINT,

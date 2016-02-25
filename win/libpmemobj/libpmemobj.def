@@ -93,6 +93,7 @@ EXPORTS
 	pmemobj_tx_zrealloc
 	pmemobj_tx_strdup
 	pmemobj_tx_free
+	pmemobj_tx_errno
 	pmemobj_memcpy_persist
 	pmemobj_memset_persist
 	pmemobj_persist
