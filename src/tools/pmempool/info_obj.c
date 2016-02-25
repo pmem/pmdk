@@ -892,8 +892,8 @@ info_obj_stats_alloc_classes(struct pmem_info *pip, int v,
 	}
 	out_indent(-1);
 
-	double used_bytes_perc = 100.0 *
-		(double)total_used / (double)total_bytes;
+	double used_bytes_perc = total_bytes ? 100.0 *
+		(double)total_used / (double)total_bytes : 0.0;
 
 	outv_nl(v);
 	outv_field(v, "Total bytes", "%s",
