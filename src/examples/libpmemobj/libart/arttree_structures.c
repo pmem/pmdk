@@ -1,5 +1,6 @@
 /*
  * Copyright 2016, FUJITSU TECHNOLOGY SOLUTIONS GMBH
+ * Copyright 2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -56,6 +57,7 @@
 #include <getopt.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <assert.h>
 #include "arttree_structures.h"
 
 #include <stdarg.h>
@@ -500,6 +502,7 @@ ctx_init(struct pmem_context *ctx, char *filename)
 
 	if (!errors) {
 		ctx->filename = strdup(filename);
+		assert(ctx->filename != NULL);
 		ctx->fd = -1;
 		ctx->art_tree_root_offset = 0;
 
@@ -508,10 +511,10 @@ ctx_init(struct pmem_context *ctx, char *filename)
 		} else {
 			errors++;
 		}
-	}
 
-	/* get system pagesize */
-	ctx->sys_pagesize = sysconf(_SC_PAGESIZE);
+		/* get system pagesize */
+		ctx->sys_pagesize = sysconf(_SC_PAGESIZE);
+	}
 
 	return errors;
 }
