@@ -298,8 +298,7 @@ initialize_context(struct ds_context *ctx, int ac, char *av[])
 			case 'n': {
 				long int insertions;
 				insertions = strtol(optarg, NULL, 0);
-				if (insertions != LONG_MIN &&
-				    insertions != LONG_MAX) {
+				if (insertions > 0 && insertions < LONG_MAX) {
 					ctx->insertions = insertions;
 				}
 				break;
@@ -561,7 +560,7 @@ arttree_fill_func(char *appname, struct ds_context *ctx, int ac, char *av[])
 		case 'n': {
 			long int insertions;
 			insertions = strtol(optarg, NULL, 0);
-			if (insertions != LONG_MIN && insertions != LONG_MAX) {
+			if (insertions > 0 && insertions < LONG_MAX) {
 				ctx->insertions = insertions;
 			}
 			break;

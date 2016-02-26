@@ -61,6 +61,13 @@ extern "C" {
 #define	NODE48  3
 #define	NODE256 4
 
+#define	CHILDREN4	4
+#define	CHILDREN16	16
+#define	CHILDREN48	48
+#define	CHILDREN256	256
+
+#define	KEYS256		256
+
 #define	MAX_PREFIX_LEN 10
 
 #if defined(__GNUC__) && !defined(__clang__)
@@ -94,8 +101,8 @@ typedef struct {
  */
 typedef struct {
 	art_node n;
-	unsigned char keys[4];
-	art_node *children[4];
+	unsigned char keys[CHILDREN4];
+	art_node *children[CHILDREN4];
 } art_node4;
 
 /*
@@ -103,8 +110,8 @@ typedef struct {
  */
 typedef struct {
 	art_node n;
-	unsigned char keys[16];
-	art_node *children[16];
+	unsigned char keys[CHILDREN16];
+	art_node *children[CHILDREN16];
 } art_node16;
 
 /*
@@ -113,8 +120,8 @@ typedef struct {
  */
 typedef struct {
 	art_node n;
-	unsigned char keys[256];
-	art_node *children[48];
+	unsigned char keys[KEYS256];
+	art_node *children[CHILDREN48];
 } art_node48;
 
 /*
@@ -122,7 +129,7 @@ typedef struct {
  */
 typedef struct {
 	art_node n;
-	art_node *children[256];
+	art_node *children[CHILDREN256];
 } art_node256;
 
 /*

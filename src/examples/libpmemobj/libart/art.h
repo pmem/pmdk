@@ -60,6 +60,13 @@ extern "C" {
 
 #define	MAX_PREFIX_LEN 10
 
+#define	CHILDREN4	4
+#define	CHILDREN16	16
+#define	CHILDREN48	48
+#define	CHILDREN256	256
+
+#define	KEYS256		256
+
 typedef enum {
 	NODE4		= 0,
 	NODE16		= 1,
@@ -120,8 +127,8 @@ struct _art_node {
  */
 struct _art_node4 {
 	art_node n;
-	unsigned char keys[4];
-	TOID(art_node_u) children[4];
+	unsigned char keys[CHILDREN4];
+	TOID(art_node_u) children[CHILDREN4];
 };
 
 /*
@@ -129,8 +136,8 @@ struct _art_node4 {
  */
 struct _art_node16 {
 	art_node n;
-	unsigned char keys[16];
-	TOID(art_node_u) children[16];
+	unsigned char keys[CHILDREN16];
+	TOID(art_node_u) children[CHILDREN16];
 };
 
 /*
@@ -138,8 +145,8 @@ struct _art_node16 {
  */
 struct _art_node48 {
 	art_node n;
-	unsigned char keys[256];
-	TOID(art_node_u) children[48];
+	unsigned char keys[KEYS256];
+	TOID(art_node_u) children[CHILDREN48];
 };
 
 /*
@@ -147,7 +154,7 @@ struct _art_node48 {
  */
 struct _art_node256 {
 	art_node n;
-	TOID(art_node_u) children[256];
+	TOID(art_node_u) children[CHILDREN256];
 };
 
 /*
