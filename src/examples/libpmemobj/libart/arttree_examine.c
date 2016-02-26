@@ -1,5 +1,6 @@
 /*
  * Copyright 2016, FUJITSU TECHNOLOGY SOLUTIONS GMBH
+ * Copyright 2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -54,6 +55,7 @@
 #include <getopt.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <assert.h>
 #include <sys/mman.h>
 #include "arttree_structures.h"
 
@@ -211,10 +213,10 @@ arttree_examine_func(char *appname, struct pmem_context *ctx,
 	if (ex_ctx == NULL) {
 		ex_ctx = (struct examine_ctx *)
 		    malloc(sizeof (struct examine_ctx));
-		memset(ex_ctx, 0, sizeof (struct examine_ctx));
 		if (ex_ctx == NULL) {
 			return -1;
 		}
+		memset(ex_ctx, 0, sizeof (struct examine_ctx));
 	}
 
 	ex_ctx->pmem_ctx = ctx;
