@@ -45,6 +45,7 @@
 #define	LICENSE_MAX_LEN		2048
 #define	COPYRIGHT		"Copyright "
 #define	COPYRIGHT_LEN		10
+#define	INTEL_CORP		"Intel Corporation"
 #define	YEAR_MIN		1900
 #define	YEAR_MAX		9999
 #define	YEAR_INIT_MIN		9999
@@ -320,6 +321,7 @@ verify_license(const char *path_to_check, char *pattern)
 	int min_year_first = YEAR_INIT_MIN;
 	int max_year_last = YEAR_INIT_MAX;
 	char *err_str = NULL;
+	int intel = 0;
 
 	if ((file_to_check = open(path_to_check, O_RDONLY)) == -1) {
 		ERROR("open(): %s: %s", strerror(errno), path_to_check);
@@ -343,8 +345,13 @@ verify_license(const char *path_to_check, char *pattern)
 	while ((copyright = strstr(copyright, COPYRIGHT)) != NULL) {
 		copyright += COPYRIGHT_LEN;
 
+		/* look for 'Intel Corporation' */
+		char *eol = strchr(copyright, '\n');
+		intel = (strncmp(eol - strlen(INTEL_CORP), INTEL_CORP,
+					strlen(INTEL_CORP)) == 0) ? 1 : 0;
+
 		/* look for the first year */
-		if (!isdigit(*copyright)) {
+		if (intel && !isdigit(*copyright)) {
 			err_str = "no digit just after the 'Copyright ' string";
 			break;
 		}
@@ -361,32 +368,35 @@ verify_license(const char *path_to_check, char *pattern)
 		if (year_first > max_year_last)
 			max_year_last = year_first;
 
-		/* check if there is the second year */
-		if (*copyright == ',')
-			continue;
-		else if (*copyright != '-') {
-			err_str = "'-' or ',' expected after the first year";
-			break;
-		}
-		copyright++;
+		if (intel) {
+			/* check if there is the second year */
+			if (*copyright == ',')
+				continue;
+			else if (*copyright != '-') {
+				err_str = "'-' or ',' expected after "
+					"the first year";
+				break;
+			}
+			copyright++;
 
-		/* look for the second year */
-		if (!isdigit(*copyright)) {
-			err_str = "no digit after '-'";
-			break;
-		}
+			/* look for the second year */
+			if (!isdigit(*copyright)) {
+				err_str = "no digit after '-'";
+				break;
+			}
 
-		year_last = atoi(copyright);
-		if (year_last < YEAR_MIN || year_last > YEAR_MAX) {
-			err_str = "the second year is wrong";
-			break;
+			year_last = atoi(copyright);
+			if (year_last < YEAR_MIN || year_last > YEAR_MAX) {
+				err_str = "the second year is wrong";
+				break;
+			}
+			copyright += YEAR_LEN;
 		}
-		copyright += YEAR_LEN;
 
 		if (year_last > max_year_last)
 			max_year_last = year_last;
 
-		if (*copyright != ',') {
+		if (intel && *copyright != ',') {
 			err_str = "',' expected after the second year";
 			break;
 		}
