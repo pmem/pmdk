@@ -42,6 +42,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
+#include <assert.h>
 #include <libpmemobj.h>
 
 /*
@@ -178,7 +179,7 @@ main(int argc, char *argv[])
 {
 	if (argc < 3) {
 		printf("usage: %s file-name "
-			"[print|done|todo|finish|calc [# of threads] [ops]]\n",
+			"[print|done|todo|finish|calc <# of threads> <ops>]\n",
 			argv[0]);
 		return 1;
 	}
@@ -232,8 +233,15 @@ main(int argc, char *argv[])
 			}
 		} break;
 		case 'c': { /* calculate pi */
+			if (argc < 5) {
+				printf("usage: %s file-name "
+					"calc <# of threads> <ops>\n",
+					argv[0]);
+				return 1;
+			}
 			int threads = atoi(argv[3]);
 			int ops = atoi(argv[4]);
+			assert((threads > 0) && (ops > 0));
 			if (prep_todo_list(threads, ops) == -1)
 				printf("pending todo tasks\n");
 			else
