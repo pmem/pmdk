@@ -81,9 +81,12 @@ fi
 
 FILES=`git ls-tree -r --name-only HEAD | \
 	grep -v -E -e 'jemalloc' | \
+	grep -v -E -e 'queue.h' | \
+	grep -v -E -e 'ListEntry.h' |\
 	grep    -E -e '*\.[ch]$' -e '*\.[ch]pp$' -e '*\.[12345]$' -e '*\.sh$' \
 		   -e '*\.py$' -e '*\.map$' -e 'Makefile*' -e 'TEST*' | \
 	xargs`
+
 FILES="$FILES $NVML/src/common.inc $NVML/src/jemalloc/jemalloc.mk \
 	$NVML/src/test/match $NVML/utils/check_whitespace $NVML/LICENSE"
 
