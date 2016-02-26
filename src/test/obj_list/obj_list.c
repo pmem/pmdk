@@ -208,7 +208,8 @@ FUNC_MOCK_RUN_DEFAULT {
 		return NULL;
 	}
 
-	close(fd);
+	(void) close(fd);
+
 	Pop = (PMEMobjpool *)addr;
 	Pop->addr = Pop;
 	Pop->size = stbuf.st_size;
@@ -270,6 +271,10 @@ FUNC_MOCK_RUN_DEFAULT {
 	}
 
 	Pop->persist(Pop, Pop, HEAP_OFFSET);
+
+	Pop->run_id += 2;
+	Pop->persist(Pop, &Pop->run_id, sizeof (Pop->run_id));
+
 	return Pop;
 }
 FUNC_MOCK_END
@@ -487,24 +492,6 @@ FUNC_MOCK(pmemobj_alloc_usable_size, size_t, PMEMoid oid)
 		return size - OOB_OFF;
 	}
 FUNC_MOCK_END
-
-/*
- * pmemobj_mutex_lock -- pmemobj_mutex_lock mock
- */
-FUNC_MOCK_RET_ALWAYS(pmemobj_mutex_lock, int, 0, PMEMobjpool *pop,
-		PMEMmutex *mutexp);
-
-/*
- * pmemobj_mutex_unlock -- pmemobj_mutex_unlock mock
- */
-FUNC_MOCK_RET_ALWAYS(pmemobj_mutex_unlock, int, 0, PMEMobjpool *pop,
-		PMEMmutex *mutexp);
-
-/*
- * pmemobj_mutex_assert_locked -- pmemobj_mutex_unlock mock
- */
-FUNC_MOCK_RET_ALWAYS(pmemobj_mutex_assert_locked, int, 0, PMEMobjpool *pop,
-		PMEMmutex *mutexp);
 
 /*
  * lane_recover_and_section_boot -- lane_recover_and_section_boot mock
@@ -1181,6 +1168,8 @@ main(int argc, char *argv[])
 		FATAL_USAGE();
 
 	const char *path = argv[1];
+
+	util_init(); /* to initialize On_valgrind flag */
 
 	UT_COMPILE_ERROR_ON(OOB_OFF != 48);
 	PMEMobjpool *pop = pmemobj_open(path, NULL);
