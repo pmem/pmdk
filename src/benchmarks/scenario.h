@@ -48,6 +48,7 @@ struct scenario
 	TAILQ_HEAD(scenariohead, kv) head;
 	char *name;
 	char *benchmark;
+	char *group;
 };
 
 struct scenarios
@@ -63,6 +64,7 @@ void kv_free(struct kv *kv);
 
 struct scenario *scenario_alloc(const char *name, const char *bench);
 void scenario_free(struct scenario *s);
+void scenario_set_group(struct scenario *s, const char *group);
 
 struct scenarios *scenarios_alloc(void);
 void scenarios_free(struct scenarios *scenarios);
