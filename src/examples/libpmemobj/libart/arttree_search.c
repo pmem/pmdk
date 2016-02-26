@@ -1,5 +1,6 @@
 /*
  * Copyright 2016, FUJITSU TECHNOLOGY SOLUTIONS GMBH
+ * Copyright 2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -54,6 +55,7 @@
 #include <getopt.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <assert.h>
 #include <sys/mman.h>
 #include "arttree_structures.h"
 
@@ -434,6 +436,7 @@ search_key(char *appname, struct search_ctx *ctx)
 		while (p_au) {
 			p_an = get_node(ctx, p_au->art_node_type,
 				    get_offset_an(p_au));
+			assert(p_an != NULL);
 			if (p_au->art_node_type == ART_LEAF) {
 				if (!leaf_matches(ctx, (art_leaf *)p_an,
 				    ctx->search_key, key_len, depth)) {
