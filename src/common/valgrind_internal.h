@@ -38,10 +38,11 @@
 #define	USE_VG_PMEMCHECK
 #define	USE_VG_HELGRIND
 #define	USE_VG_MEMCHECK
+#define	USE_VG_DRD
 #endif
 
 #if defined(USE_VG_PMEMCHECK) || defined(USE_VG_HELGRIND) ||\
-	defined(USE_VG_MEMCHECK)
+	defined(USE_VG_MEMCHECK) || defined(USE_VG_DRD)
 extern unsigned _On_valgrind;
 #define	On_valgrind __builtin_expect(_On_valgrind, 0)
 #include <valgrind/valgrind.h>
@@ -51,6 +52,7 @@ extern unsigned _On_valgrind;
 
 #ifdef USE_VG_HELGRIND
 #include <valgrind/helgrind.h>
+#include <valgrind/drd.h>
 
 #define	VALGRIND_ANNOTATE_HAPPENS_BEFORE(obj) do {\
 	if (On_valgrind) \
@@ -67,6 +69,41 @@ extern unsigned _On_valgrind;
 #define	VALGRIND_ANNOTATE_HAPPENS_BEFORE(obj) do { (void)(obj); } while (0)
 
 #define	VALGRIND_ANNOTATE_HAPPENS_AFTER(obj) do { (void)(obj); } while (0)
+
+#endif
+
+#ifdef USE_VG_DRD
+#include <valgrind/drd.h>
+
+#define	VALGRIND_ANNOTATE_IGNORE_READS_BEGIN() do {\
+	if (On_valgrind) \
+	ANNOTATE_IGNORE_READS_BEGIN();\
+} while (0)
+
+#define	VALGRIND_ANNOTATE_IGNORE_READS_END() do {\
+	if (On_valgrind) \
+	ANNOTATE_IGNORE_READS_END();\
+} while (0)
+
+#define	VALGRIND_ANNOTATE_IGNORE_WRITES_BEGIN() do {\
+	if (On_valgrind) \
+	ANNOTATE_IGNORE_WRITES_BEGIN();\
+} while (0)
+
+#define	VALGRIND_ANNOTATE_IGNORE_WRITES_END() do {\
+	if (On_valgrind) \
+	ANNOTATE_IGNORE_WRITES_END();\
+} while (0)
+
+#else
+
+#define	VALGRIND_ANNOTATE_IGNORE_READS_BEGIN() do {} while (0)
+
+#define	VALGRIND_ANNOTATE_IGNORE_READS_END() do {} while (0)
+
+#define	VALGRIND_ANNOTATE_IGNORE_WRITES_BEGIN() do {} while (0)
+
+#define	VALGRIND_ANNOTATE_IGNORE_WRITES_END() do {} while (0)
 
 #endif
 
