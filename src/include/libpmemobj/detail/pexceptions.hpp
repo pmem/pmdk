@@ -30,31 +30,51 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/*
+ * pexceptions.hpp -- custom exceptions
+ */
+
 #ifndef PMEMOBJ_PEXCEPTIONS_HPP
 #define PMEMOBJ_PEXCEPTIONS_HPP
 
 #include <stdexcept>
+#include <system_error>
 
 namespace nvml {
 
-	/*
+	/**
 	 * Custom pool error class.
 	 *
 	 * Thrown when there is a runtime problem with some action on the
 	 * pool.
 	 */
-	class pool_error : public std::runtime_error {
+	class pool_error : public std::runtime_error
+	{
 	public:
 		using std::runtime_error::runtime_error;
 	};
 
-	/*
+	/**
 	 * Custom transaction error class.
+	 *
 	 * Thrown when there is a runtime problem with a transaction.
 	 */
 	class transaction_error : public std::runtime_error
 	{
+	public:
 		using std::runtime_error::runtime_error;
+	};
+
+	/**
+	 * Custom lock error class.
+	 *
+	 * Thrown when there is a runtime system error with an operation
+	 * on a lock.
+	 */
+	class lock_error : public std::system_error
+	{
+	public:
+		using std::system_error::system_error;
 	};
 
 }  /* namespace nvml */

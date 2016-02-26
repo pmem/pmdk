@@ -40,7 +40,7 @@
 #include <sys/stat.h>
 
 #include "libpmemobj.h"
-#include "detail/pexceptions.hpp"
+#include "libpmemobj/detail/pexceptions.hpp"
 #include "libpmemobj/persistent_ptr.hpp"
 
 namespace nvml
@@ -178,6 +178,18 @@ namespace obj
 
 			pmemobj_close(this->pop);
 			this->pop = nullptr;
+		}
+
+		/*
+		 * Get the C style handle to the pool.
+		 *
+		 * Necessary to be able to use the pool with the C API.
+		 *
+		 * Returns the pools opaque handle.
+		 */
+		PMEMobjpool *get_handle() noexcept
+		{
+			return this->pop;
 		}
 
 	private:

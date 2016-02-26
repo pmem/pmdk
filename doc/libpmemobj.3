@@ -263,7 +263,7 @@ libpmemobj \- persistent memory transactional object store
 .BI "void pmemobj_tx_process(void);
 .sp
 .BI "int pmemobj_tx_add_range(PMEMoid " oid ", uint64_t " off ", size_t " size );
-.BI "int pmemobj_tx_add_range_direct(void *" ptr ", size_t " size );
+.BI "int pmemobj_tx_add_range_direct(const void *" ptr ", size_t " size );
 .BI "PMEMoid pmemobj_tx_alloc(size_t " size ", unsigned int " type_num );
 .BI "PMEMoid pmemobj_tx_zalloc(size_t " size ", unsigned int " type_num );
 .BI "PMEMoid pmemobj_tx_realloc(PMEMoid " oid ", size_t " size ", unsigned int " type_num );
@@ -2739,7 +2739,7 @@ and an error number is returned.
 This function must be called during
 .IR TX_STAGE_WORK .
 .PP
-.BI "int pmemobj_tx_add_range_direct(void *" ptr ", size_t " size );
+.BI "int pmemobj_tx_add_range_direct(const void *" ptr ", size_t " size );
 .IP
 The
 .BR pmemobj_tx_add_range_direct ()

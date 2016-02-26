@@ -116,7 +116,15 @@ OBJ_CPP_TESTS = \
 	obj_cpp_ptr\
 	obj_cpp_p_ext\
 	obj_cpp_pool\
-	obj_cpp_ptr_arith
+	obj_cpp_ptr_arith\
+	obj_cpp_mutex_posix\
+	obj_cpp_shared_mutex_posix\
+
+CHRONO_TESTS = \
+	obj_cpp_mutex\
+	obj_cpp_shared_mutex\
+	obj_cpp_cond_var\
+	obj_cpp_cond_var_posix
 
 OTHER_TESTS = \
        arch_flags\
@@ -220,6 +228,10 @@ TESTS = \
 ifeq ($(call check_cxx_flags, -std=c++11), y)
 TESTS += $(OBJ_CPP_TESTS)
 TESTS += $(CPP_EXAMPLE_TESTS)
+endif
+
+ifeq ($(call check_cxx_chrono), y)
+TESTS += $(CHRONO_TESTS)
 endif
 
 TESTS_BUILD = \
