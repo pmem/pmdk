@@ -43,6 +43,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include <time.h>
+#include <assert.h>
 #include <libpmemblk.h>
 
 #include "asset.h"
@@ -61,10 +62,11 @@ main(int argc, char *argv[])
 
 	const char *path = argv[1];
 	assetid = atoi(argv[2]);
+	assert(assetid > 0);
 
 	/* open an array of atomically writable elements */
 	if ((pbp = pmemblk_open(path, sizeof (struct asset))) == NULL) {
-		perror(path);
+		perror("pmemblk_open");
 		exit(1);
 	}
 
