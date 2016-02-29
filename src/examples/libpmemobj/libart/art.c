@@ -503,6 +503,7 @@ minimum(TOID(art_node_u) n_u)
 		while (!(D_RO(an48)->keys[idx]))
 			idx++;
 		idx = D_RO(an48)->keys[idx] - 1;
+		assert(idx < 48);
 		return minimum(D_RO(an48)->children[idx]);
 	case NODE256:
 		an256 = D_RO(n_u)->u.an256;
@@ -547,6 +548,7 @@ maximum(TOID(art_node_u) n_u)
 		while (!(D_RO(an48)->keys[idx]))
 			idx--;
 		idx = D_RO(an48)->keys[idx] - 1;
+		assert(idx < 48);
 		return maximum(D_RO(an48)->children[idx]);
 	case NODE256:
 		an256 = D_RO(n_u)->u.an256;
@@ -738,6 +740,7 @@ add_child4(PMEMobjpool *pop, TOID(art_node4) n, TOID(art_node_u) *ref,
 		// Shift to make room
 		memmove(D_RW(n)->keys + idx + 1, D_RO(n)->keys + idx,
 		    n_an->num_children - idx);
+		assert((idx + 1) < 4);
 		PMEMOIDmove(&(D_RW(n)->children[idx + 1].oid),
 		    &(D_RW(n)->children[idx].oid),
 		n_an->num_children - idx);
@@ -1032,6 +1035,7 @@ remove_child256(PMEMobjpool *pop,
 		int pos = 0;
 		for (int i = 0; i < 256; i++) {
 			if (!TOID_IS_NULL(D_RO(n)->children[i])) {
+				assert(pos < 48);
 				D_RW(newnode_an48)->children[pos] =
 				    D_RO(n)->children[i];
 				D_RW(newnode_an48)->keys[i] = pos + 1;
@@ -1068,6 +1072,7 @@ remove_child48(PMEMobjpool *pop,
 		for (int i = 0; i < 256; i++) {
 			pos = D_RO(n)->keys[i];
 			if (pos) {
+				assert(child < 16);
 				D_RW(newnode_an16)->keys[child] = i;
 				D_RW(newnode_an16)->children[child] =
 				    D_RO(n)->children[pos - 1];

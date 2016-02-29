@@ -1,6 +1,7 @@
 /*
  * Copyright 2016, FUJITSU TECHNOLOGY SOLUTIONS GMBH
  * Copyright 2012, Armon Dadgar. All rights reserved.
+ * Copyright 2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -89,6 +90,7 @@ alloc_node(VMEM *vmp, uint8_t type)
 	default:
 		abort();
 	}
+	assert(n != NULL);
 	n->type = type;
 	return n;
 }
@@ -353,6 +355,7 @@ minimum(const art_node *n)
 		while (!((art_node48 *)n)->keys[idx])
 			idx++;
 		idx = ((art_node48 *)n)->keys[idx] - 1;
+		assert(idx < 48);
 		return minimum(((art_node48 *) n)->children[idx]);
 	case NODE256:
 		idx = 0;
@@ -387,6 +390,7 @@ maximum(const art_node *n)
 		while (!((art_node48 *)n)->keys[idx])
 			idx--;
 		idx = ((art_node48 *)n)->keys[idx] - 1;
+		assert(idx < 48);
 		return maximum(((art_node48 *)n)->children[idx]);
 	case NODE256:
 		idx = 255;
@@ -421,6 +425,7 @@ make_leaf(VMEM *vmp, const unsigned char *key, int key_len, void *value,
 	    int val_len)
 {
 	art_leaf *l = vmem_malloc(vmp, sizeof (art_leaf) + key_len + val_len);
+	assert(l != NULL);
 	l->key_len = key_len;
 	l->val_len = val_len;
 	l->key = &(l->data[0]) + 0;
@@ -603,6 +608,7 @@ prefix_mismatch(const art_node *n, const unsigned char *key, int key_len,
 	if (n->partial_len > MAX_PREFIX_LEN) {
 		// Prefix is longer than what we've checked, find a leaf
 		art_leaf *l = minimum(n);
+		assert(l != NULL);
 		max_cmp = min(l->key_len, key_len) - depth;
 		for (; idx < max_cmp; idx++) {
 			if (l->key[idx + depth] != key[depth + idx])
@@ -682,6 +688,7 @@ recursive_insert(VMEM *vmp, art_node *n, art_node **ref,
 		} else {
 			n->partial_len -= (prefix_diff + 1);
 			art_leaf *l = minimum(n);
+			assert(l != NULL);
 			add_child4(vmp, new, ref,
 			    l->key[depth + prefix_diff], n);
 			memcpy(n->partial, l->key + depth + prefix_diff + 1,
@@ -748,6 +755,7 @@ remove_child256(VMEM *vmp, art_node256 *n, art_node **ref,
 		int pos = 0;
 		for (int i = 0; i < 256; i++) {
 			if (n->children[i]) {
+				assert(pos < 48);
 				new->children[pos] = n->children[i];
 				new->keys[i] = pos + 1;
 				pos++;
@@ -774,6 +782,7 @@ remove_child48(VMEM *vmp, art_node48 *n, art_node **ref, unsigned char c)
 		for (int i = 0; i < 256; i++) {
 			pos = n->keys[i];
 			if (pos) {
+				assert(child < 16);
 				new->keys[child] = i;
 				new->children[child] = n->children[pos - 1];
 				child++;
@@ -1165,6 +1174,7 @@ art_iter_prefix(art_tree *t, const unsigned char *key, int key_len,
 		// If the depth matches the prefix, we need to handle this node
 		if (depth == key_len) {
 			art_leaf *l = minimum(n);
+			assert(l != NULL);
 			if (!leaf_prefix_matches(l, key, key_len))
 				return recursive_iter(n, cb, data);
 			return 0;

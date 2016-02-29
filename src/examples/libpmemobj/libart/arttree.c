@@ -1,5 +1,6 @@
 /*
  * Copyright 2016, FUJITSU TECHNOLOGY SOLUTIONS GMBH
+ * Copyright 2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -177,8 +178,7 @@ initialize_context(struct ds_context *ctx, int ac, char *av[])
 			case 'n': {
 				long int insertions;
 				insertions = strtol(optarg, NULL, 0);
-				if (insertions != LONG_MIN &&
-				    insertions != LONG_MAX) {
+				if (insertions > 0 && insertions < LONG_MAX) {
 					ctx->insertions = insertions;
 				}
 				break;
@@ -186,11 +186,8 @@ initialize_context(struct ds_context *ctx, int ac, char *av[])
 			case 's': {
 				long int poolsize;
 				poolsize = strtol(optarg, NULL, 0);
-				if (poolsize != LONG_MIN &&
-				    poolsize != LONG_MAX) {
-					if (poolsize > PMEMOBJ_MIN_POOL) {
-						ctx->psize = poolsize;
-					}
+				if (poolsize >= PMEMOBJ_MIN_POOL) {
+					ctx->psize = poolsize;
 				}
 				break;
 			}
@@ -221,14 +218,15 @@ static int parse_keyval(struct ds_context *ctx, char *arg, int mode)
 	if (!errors) {
 		if (ctx->mode & (SEARCH|REMOVE|INSERT)) {
 			ctx->key = (unsigned char *)strdup(p);
+			assert(ctx->key != NULL);
 			ctx->key_len = strlen(p) + 1;
 		}
 		if (ctx->mode & INSERT) {
 			p = strtok(NULL, ":");
+			assert(p != NULL);
 			ctx->value = (unsigned char *)strdup(p);
-			if (p != NULL) {
-				ctx->val_len = strlen(p) + 1;
-			}
+			assert(ctx->value != NULL);
+			ctx->val_len = strlen(p) + 1;
 		}
 	}
 

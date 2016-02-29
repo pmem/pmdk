@@ -1,5 +1,6 @@
 /*
  * Copyright 2016, FUJITSU TECHNOLOGY SOLUTIONS GMBH
+ * Copyright 2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -297,8 +298,7 @@ initialize_context(struct ds_context *ctx, int ac, char *av[])
 			case 'n': {
 				long int insertions;
 				insertions = strtol(optarg, NULL, 0);
-				if (insertions != LONG_MIN &&
-				    insertions != LONG_MAX) {
+				if (insertions > 0 && insertions < LONG_MAX) {
 					ctx->insertions = insertions;
 				}
 				break;
@@ -339,7 +339,6 @@ int
 art_tree_map_init(struct datastore *ds, struct ds_context *ctx)
 {
 	int errors = 0;
-	char *error_string;
 
 	/* calculate a required pool size */
 	if (ctx->psize < VMEM_MIN_POOL)
@@ -347,13 +346,12 @@ art_tree_map_init(struct datastore *ds, struct ds_context *ctx)
 
 	if (!ctx->fileio) {
 		if (access(ctx->dirname, F_OK) == 0) {
-			error_string = "vmem_create";
 			ctx->vmp = vmem_create(ctx->dirname, ctx->psize);
+			if (ctx->vmp == NULL) {
+				perror("vmem_create");
+				errors++;
+			}
 			ctx->newpool = 1;
-		}
-		if (ctx->vmp == NULL) {
-			perror(error_string);
-			errors++;
 		}
 	}
 
@@ -562,7 +560,7 @@ arttree_fill_func(char *appname, struct ds_context *ctx, int ac, char *av[])
 		case 'n': {
 			long int insertions;
 			insertions = strtol(optarg, NULL, 0);
-			if (insertions != LONG_MIN && insertions != LONG_MAX) {
+			if (insertions > 0 && insertions < LONG_MAX) {
 				ctx->insertions = insertions;
 			}
 			break;
@@ -851,6 +849,7 @@ arttree_search_func(char *appname, struct ds_context *ctx, int ac, char *av[])
 
 	if (ac > 1) {
 		ctx->key = (unsigned char *)strdup(av[1]);
+		assert(ctx->key != NULL);
 	} else {
 		outv_err("search: missing key\n");
 		arttree_search_help(appname);
@@ -896,6 +895,7 @@ arttree_delete_func(char *appname, struct ds_context *ctx, int ac, char *av[])
 
 	if (ac > 1) {
 		ctx->key = (unsigned char *)strdup(av[1]);
+		assert(ctx->key != NULL);
 	} else {
 		outv_err("delete: missing key\n");
 		arttree_delete_help(appname);
@@ -997,6 +997,7 @@ main(int argc, char *argv[])
 
 	my_context.art_tree = (art_tree *)vmem_malloc(my_context.vmp,
 						sizeof (art_tree));
+	assert(my_context.art_tree != NULL);
 	if (art_tree_init(my_context.art_tree)) {
 		perror("art tree setup");
 		return 1;
