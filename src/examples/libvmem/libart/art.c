@@ -390,7 +390,7 @@ maximum(const art_node *n)
 		while (!((art_node48 *)n)->keys[idx])
 			idx--;
 		idx = ((art_node48 *)n)->keys[idx] - 1;
-		assert(idx < 48);
+		assert((idx >= 0) && (idx < 48));
 		return maximum(((art_node48 *)n)->children[idx]);
 	case NODE256:
 		idx = 255;
