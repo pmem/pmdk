@@ -85,6 +85,8 @@ scenario_alloc(const char *name, const char *bench)
 	s->benchmark = strdup(bench);
 	assert(s->benchmark != NULL);
 
+	s->group = NULL;
+
 	return s;
 }
 
@@ -102,9 +104,20 @@ scenario_free(struct scenario *s)
 		kv_free(kv);
 	}
 
+	free(s->group);
 	free(s->name);
 	free(s->benchmark);
 	free(s);
+}
+
+/*
+ * scenario_set_group -- set group of scenario
+ */
+void
+scenario_set_group(struct scenario *s, const char *group)
+{
+	assert(s != NULL);
+	s->group = strdup(group);
 }
 
 /*

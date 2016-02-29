@@ -405,8 +405,13 @@ pmembench_print_header(struct pmembench *pb, struct benchmark *bench,
 		struct clo_vec *clovec)
 {
 	if (pb->scenario) {
-		printf("%s: %s [%ld]\n", pb->scenario->name,
-			bench->info->name, clovec->nargs);
+		printf("%s: %s [%ld]%s%s%s\n",
+			pb->scenario->name,
+			bench->info->name,
+			clovec->nargs,
+			pb->scenario->group ? " [group: " : "",
+			pb->scenario->group ? : "",
+			pb->scenario->group ? "]" : "");
 	} else {
 		printf("%s [%ld]\n", bench->info->name, clovec->nargs);
 	}

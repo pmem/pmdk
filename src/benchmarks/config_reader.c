@@ -43,8 +43,8 @@
 #include "config_reader.h"
 
 #define	SECTION_GLOBAL	"global"
-#define	SECTION_CONFIG	"config"
 #define	KEY_BENCHMARK	"bench"
+#define	KEY_GROUP	"group"
 
 /*
  * config_reader -- handle structure
@@ -105,10 +105,7 @@ config_reader_free(struct config_reader *cr)
 static int
 is_scenario(const char *name)
 {
-	if (strcmp(name, SECTION_GLOBAL) == 0 ||
-		strcmp(name, SECTION_CONFIG) == 0)
-		return 0;
-	return 1;
+	return strcmp(name, SECTION_GLOBAL);
 }
 
 /*
@@ -119,7 +116,8 @@ is_scenario(const char *name)
 static int
 is_argument(const char *name)
 {
-	return strcmp(name, KEY_BENCHMARK);
+	return strcmp(name, KEY_BENCHMARK) != 0 &&
+		strcmp(name, KEY_GROUP) != 0;
 }
 
 /*
@@ -173,7 +171,7 @@ config_reader_get_scenarios(struct config_reader *cr,
 	for (g = 0; g < ngroups; g++) {
 		/*
 		 * Check whether a group is a scenario
-		 * or global or config sections.
+		 * or global section.
 		 */
 		if (!is_scenario(groups[g]))
 			continue;
@@ -211,6 +209,9 @@ config_reader_get_scenarios(struct config_reader *cr,
 						gkeys[k], NULL) == TRUE)
 					continue;
 
+				if (!is_argument(gkeys[k]))
+					continue;
+
 				char *value = g_key_file_get_value(cr->key_file,
 							SECTION_GLOBAL,
 							gkeys[k], NULL);
@@ -231,6 +232,20 @@ config_reader_get_scenarios(struct config_reader *cr,
 
 				TAILQ_INSERT_TAIL(&scenario->head, kv, next);
 			}
+		}
+
+		/* check for group name */
+		if (g_key_file_has_key(cr->key_file, groups[g],
+				KEY_GROUP, NULL) != FALSE) {
+			gchar *group = g_key_file_get_value(cr->key_file,
+					groups[g], KEY_GROUP, NULL);
+			assert(group != NULL);
+			scenario_set_group(scenario, group);
+		} else if (g_key_file_has_key(cr->key_file, SECTION_GLOBAL,
+				KEY_GROUP, NULL) != FALSE) {
+			gchar *group = g_key_file_get_value(cr->key_file,
+					SECTION_GLOBAL, KEY_GROUP, NULL);
+			scenario_set_group(scenario, group);
 		}
 
 		gsize nkeys;
