@@ -178,8 +178,7 @@ initialize_context(struct ds_context *ctx, int ac, char *av[])
 			case 'n': {
 				long int insertions;
 				insertions = strtol(optarg, NULL, 0);
-				if (insertions != LONG_MIN &&
-				    insertions != LONG_MAX) {
+				if (insertions > 0 && insertions < LONG_MAX) {
 					ctx->insertions = insertions;
 				}
 				break;
@@ -187,11 +186,8 @@ initialize_context(struct ds_context *ctx, int ac, char *av[])
 			case 's': {
 				long int poolsize;
 				poolsize = strtol(optarg, NULL, 0);
-				if (poolsize != LONG_MIN &&
-				    poolsize != LONG_MAX) {
-					if (poolsize > PMEMOBJ_MIN_POOL) {
-						ctx->psize = poolsize;
-					}
+				if (poolsize >= PMEMOBJ_MIN_POOL) {
+					ctx->psize = poolsize;
 				}
 				break;
 			}

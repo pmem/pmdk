@@ -355,6 +355,7 @@ minimum(const art_node *n)
 		while (!((art_node48 *)n)->keys[idx])
 			idx++;
 		idx = ((art_node48 *)n)->keys[idx] - 1;
+		assert(idx < 48);
 		return minimum(((art_node48 *) n)->children[idx]);
 	case NODE256:
 		idx = 0;
@@ -389,6 +390,7 @@ maximum(const art_node *n)
 		while (!((art_node48 *)n)->keys[idx])
 			idx--;
 		idx = ((art_node48 *)n)->keys[idx] - 1;
+		assert(idx < 48);
 		return maximum(((art_node48 *)n)->children[idx]);
 	case NODE256:
 		idx = 255;
@@ -753,6 +755,7 @@ remove_child256(VMEM *vmp, art_node256 *n, art_node **ref,
 		int pos = 0;
 		for (int i = 0; i < 256; i++) {
 			if (n->children[i]) {
+				assert(pos < 48);
 				new->children[pos] = n->children[i];
 				new->keys[i] = pos + 1;
 				pos++;
@@ -779,6 +782,7 @@ remove_child48(VMEM *vmp, art_node48 *n, art_node **ref, unsigned char c)
 		for (int i = 0; i < 256; i++) {
 			pos = n->keys[i];
 			if (pos) {
+				assert(child < 16);
 				new->keys[child] = i;
 				new->children[child] = n->children[pos - 1];
 				child++;
