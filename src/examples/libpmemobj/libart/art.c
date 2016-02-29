@@ -548,7 +548,7 @@ maximum(TOID(art_node_u) n_u)
 		while (!(D_RO(an48)->keys[idx]))
 			idx--;
 		idx = D_RO(an48)->keys[idx] - 1;
-		assert(idx < 48);
+		assert((idx >= 0) && (idx < 48));
 		return maximum(D_RO(an48)->children[idx]);
 	case NODE256:
 		an256 = D_RO(n_u)->u.an256;
