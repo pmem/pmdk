@@ -1,1 +1,1 @@
-<libvmmalloc>: <4> [$(*) malloc] size 4321
+<libvmmalloc>: <4> [$(*) malloc]$(W)size 4321

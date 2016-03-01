@@ -53,6 +53,7 @@ static char nvml_src_version[] = "SRCVERSION:" SRCVERSION;
 static const char *Log_prefix;
 static int Log_level;
 static FILE *Out_fp;
+static unsigned Log_alignment;
 
 #ifndef NO_LIBPTHREAD
 
@@ -214,6 +215,13 @@ out_init(const char *log_prefix, const char *log_level_var,
 	}
 #endif	/* DEBUG */
 
+	char *log_alignment = getenv("NVML_LOG_ALIGN");
+	if (log_alignment) {
+		int align = atoi(log_alignment);
+		if (align > 0)
+			Log_alignment = (unsigned)align;
+	}
+
 	if (Out_fp == NULL)
 		Out_fp = stderr;
 	else
@@ -347,6 +355,10 @@ out_common(const char *file, int line, const char *func, int level,
 			goto end;
 		}
 		cc += (unsigned)ret;
+		if (cc < Log_alignment) {
+			memset(buf + cc, ' ', Log_alignment - cc);
+			cc = Log_alignment;
+		}
 	}
 
 	if (fmt) {
@@ -419,6 +431,10 @@ out_error(const char *file, int line, const char *func,
 				goto end;
 			}
 			cc += (unsigned)ret;
+			if (cc < Log_alignment) {
+				memset(buf + cc, ' ', Log_alignment - cc);
+				cc = Log_alignment;
+			}
 		}
 
 		out_snprintf(&buf[cc], MAXPRINT - cc, "%s%s", errormsg,
