@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,27 +31,13 @@
 #
 
 #
-# examples/libpmemobj/Makefile -- build the libpmemobj examples
+# src/test/ex_linkedlist/Makefile -- build ex_linkedlist unittest
 #
-include ../../common.inc
-
-PROGS = manpage btree pi
-DIRS = pminvaders pmemlog pmemblk string_store string_store_tx\
-	string_store_tx_type hashmap tree_map pmemobjfs map libart array\
-	linkedlist
-
-ifeq ($(call check_cxx_flags, -std=c++11), y)
-DIRS += cpp pman
-endif
-
-LIBS = -lpmemobj -lpmem -pthread -lm -pthread
 
 include ../Makefile.inc
 
-map: hashmap tree_map
-pmemobjfs: map
+EXAMPLES=$(EX_LIBPMEMOBJ)/linkedlist
 
-manpage: manpage.o
-btree: btree.o
-pi: pi.o
-queue: queue.o
+all: $(EXAMPLES)
+	$(MAKE) -C $(EX_LIBPMEMOBJ)
+
