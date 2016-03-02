@@ -795,6 +795,21 @@ function require_no_asan() {
 }
 
 #
+# require_binary -- continue script execution only if the binary has been compiled
+#
+# In case of conditional compilation, skip this test.
+#
+function require_binary() {
+	grep -r -m 1 "^" . | grep "^Binary file" &> /dev/null && true
+	if [ $? -ne 0 ]; then
+		echo "$UNITTEST_NAME: SKIP no binary because of conditional compilation"
+		exit 0
+	fi
+
+	return
+}
+
+#
 # setup -- print message that test setup is commencing
 #
 function setup() {

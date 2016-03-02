@@ -1483,7 +1483,7 @@ pmemobj_tx_add_common(struct tx_add_range_args *args)
  *					transaction
  */
 int
-pmemobj_tx_add_range_direct(void *ptr, size_t size)
+pmemobj_tx_add_range_direct(const void *ptr, size_t size)
 {
 	LOG(3, NULL);
 

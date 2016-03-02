@@ -923,7 +923,7 @@ int pmemobj_tx_add_range(PMEMoid oid, uint64_t off, size_t size);
  *
  * This function must be called during TX_STAGE_WORK.
  */
-int pmemobj_tx_add_range_direct(void *ptr, size_t size);
+int pmemobj_tx_add_range_direct(const void *ptr, size_t size);
 
 /*
  * Transactionally allocates a new object.

@@ -31,44 +31,47 @@
  */
 
 /*
- * common.hpp -- commonly used functionality
+ * conversions.hpp -- commonly used conversions
  */
 
-#ifndef PMEMOBJ_COMMON_HPP
-#define PMEMOBJ_COMMON_HPP
+#ifndef PMEMOBJ_CONVERSIONS_HPP
+#define PMEMOBJ_CONVERSIONS_HPP
 
-#include "libpmemobj/detail/pexceptions.hpp"
-#include "libpmemobj.h"
+#include <chrono>
+#include <time.h>
 
 namespace nvml {
 
 namespace detail {
 
 	/**
-	 * Conditionally add an object to a transaction.
+	 * Convert std::chrono::time_point to posix timespec.
 	 *
-	 * Adds `*that` to the transaction if it is within a pmemobj pool and
-	 * there is an active transaction. Does nothing otherwise.
+	 * @param[in] timepoint point in time to be converted.
 	 *
-	 * @param[in] that pointer to the object being added to the transaction.
+	 * @return converted timespec structure.
 	 */
-	template<typename T>
-	inline void conditional_add_to_tx(const T *that)
+	template<typename Clock, typename Duration = typename Clock::duration>
+	struct timespec timepoint_to_timespec(
+			const std::chrono::time_point<Clock,
+			Duration> &timepoint)
 	{
-		/* 'that' is not in any open pool */
-		if (!pmemobj_pool_by_ptr(that))
-			return;
+		struct timespec ts;
+		auto rel_duration = timepoint.time_since_epoch();
+		const auto sec =
+			std::chrono::duration_cast
+			<std::chrono::seconds>(rel_duration);
 
-		if (pmemobj_tx_stage() != TX_STAGE_WORK)
-			return;
+		ts.tv_sec = sec.count();
+		ts.tv_nsec = std::chrono::duration_cast
+				<std::chrono::nanoseconds>
+				(rel_duration - sec).count();
 
-		if (pmemobj_tx_add_range_direct(that, sizeof (*that)))
-			throw transaction_error("Could not add an object to the"
-					" transaction.");
+		return std::move(ts);
 	}
 
 }  /* namespace detail */
 
 }  /* namespace nvml */
 
-#endif /* PMEMOBJ_COMMON_HPP */
+#endif /* PMEMOBJ_CONVERSIONS_HPP */
