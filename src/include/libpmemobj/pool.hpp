@@ -42,12 +42,14 @@
 #include "libpmemobj.h"
 #include "libpmemobj/detail/pexceptions.hpp"
 #include "libpmemobj/persistent_ptr.hpp"
+#include "libpmemobj/p.hpp"
 
 namespace nvml
 {
 
 namespace obj
 {
+	template <typename T> class persistent_ptr;
 
 	/**
 	 * The non-template pool base class.
@@ -69,7 +71,7 @@ namespace obj
 		 *
 		 * Prohibits base class object initialization.
 		 */
-		pool_base() = default;
+		pool_base() noexcept = default;
 	};
 
 	/**
@@ -86,34 +88,34 @@ namespace obj
 		/**
 		 * Defaulted constructor.
 		 */
-		pool() : pop(nullptr) {}
+		pool() noexcept : pop(nullptr) {}
 
 		/**
 		 * Defaulted copy constructor.
 		 */
-		pool(const pool&) = default;
+		pool(const pool&) noexcept = default;
 
 		/**
 		 * Defaulted move constructor.
 		 */
-		pool(pool&&) = default;
+		pool(pool&&) noexcept = default;
 
 		/**
 		 * Defaulted copy assignment operator.
 		 */
-		pool &operator=(const pool&) = default;
+		pool &operator=(const pool&) noexcept = default;
 
 		/**
 		 * Defaulted move assignment operator.
 		 */
-		pool &operator=(pool&&) = default;
+		pool &operator=(pool&&) noexcept = default;
 
 		/**
 		 * Retrieves pool's root object.
 		 *
 		 * @return persistent pointer to the root object.
 		 */
-		persistent_ptr<T> get_root()
+		persistent_ptr<T> get_root() noexcept
 		{
 			persistent_ptr<T> root = pmemobj_root(this->pop,
 					sizeof (T));
@@ -183,7 +185,7 @@ namespace obj
 		 * @return -1 on error, 1 if file is consistent, 0 otherwise.
 		 */
 		static int check(const std::string &path,
-				const std::string &layout)
+				const std::string &layout) noexcept
 		{
 			return pmemobj_check(path.c_str(), layout.c_str());
 		}
@@ -203,6 +205,113 @@ namespace obj
 		}
 
 		/**
+		 * Performs persist operation on a given chunk of memory.
+		 *
+		 * @param[in] addr address of memory chunk
+		 * @param[in] len size of memory chunk
+		 */
+		void persist(const void *addr, size_t len) noexcept
+		{
+			pmemobj_persist(this->pop, addr, len);
+		}
+
+		/**
+		 * Performs persist operation on a given pmem property.
+		 *
+		 * @param[in] prop Resides on pmem property
+		 */
+		template <typename Y>
+		void persist(const p<Y> &prop) noexcept
+		{
+			pmemobj_persist(this->pop, &prop, sizeof (Y));
+		}
+
+		/**
+		 * Performs persist operation on a given persistent object.
+		 *
+		 * @param[in] ptr Persistent pointer to object
+		 */
+		template <typename Y>
+		void persist(const persistent_ptr<Y> &ptr) noexcept
+		{
+			pmemobj_persist(this->pop, &ptr, sizeof (ptr));
+		}
+
+		/**
+		 * Performs flush operation on a given chunk of memory.
+		 *
+		 * @param[in] addr address of memory chunk
+		 * @param[in] len size of memory chunk
+		 */
+		void flush(const void *addr, size_t len) noexcept
+		{
+			pmemobj_flush(this->pop, addr, len);
+		}
+
+		/**
+		 * Performs flush operation on a given pmem property.
+		 *
+		 * @param[in] prop Resides on pmem property
+		 */
+		template <typename Y>
+		void flush(const p<Y> &prop) noexcept
+		{
+			pmemobj_flush(this->pop, &prop, sizeof (Y));
+		}
+
+		/**
+		 * Performs flush operation on a given persistent object.
+		 *
+		 * @param[in] ptr Persistent pointer to object
+		 */
+		template <typename Y>
+		void flush(const persistent_ptr<Y> &ptr) noexcept
+		{
+			pmemobj_flush(this->pop, &ptr, sizeof (ptr));
+		}
+
+		/**
+		 * Performs drain operation.
+		 */
+		void drain(void) noexcept
+		{
+			pmemobj_drain(this->pop);
+		}
+
+
+		/**
+		 * Performs memcpy and persist operation on a given chunk of
+		 * memory.
+		 *
+		 * @param[in] dest destination memory address
+		 * @param[in] src source memory address
+		 * @param[in] len size of memory chunk
+		 *
+		 * @return A pointer to dest
+		 */
+		void *memcpy_persist(void *dest,
+			const void *src, size_t len) noexcept
+		{
+			return pmemobj_memcpy_persist(this->pop, dest,
+					src, len);
+		}
+
+		/**
+		 * Performs memset and persist operation on a given chunk of
+		 * memory.
+		 *
+		 * @param[in] dest destination memory address
+		 * @param[in] c constant value to fill the memory
+		 * @param[in] len size of memory chunk
+		 *
+		 * @return A pointer to dest
+		 */
+		void *memset_persist(void *dest, int c, size_t len) noexcept
+		{
+			return pmemobj_memset_persist(this->pop, dest, c, len);
+		}
+
+		/*
 		 * Gets the C style handle to the pool.
 		 *
 		 * Necessary to be able to use the pool with the C API.
@@ -220,7 +329,7 @@ namespace obj
 		 *
 		 * Enforce using factory methods for object creation.
 		 */
-		pool(pmemobjpool *_pop) : pop(_pop)
+		pool(pmemobjpool *_pop) noexcept : pop(_pop)
 		{
 		}
 
