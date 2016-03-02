@@ -1,5 +1,6 @@
+#!/bin/bash -e
 #
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,28 +32,26 @@
 #
 
 #
-# examples/libpmemobj/Makefile -- build the libpmemobj examples
+# src/test/ex_linkedlist/TEST1 -- unit test for linkedlist example
 #
-include ../../common.inc
+# Do not enable mult-stores flag.
+# When this flag is on test reports overwritten store errors
+# due to loop which repeatedly add an element to the list which results
+# in multiply stores to the same field. This is not en error considering
+# the transactional nature of the test.
 
-PROGS = manpage btree pi lists
-DIRS = pminvaders pmemlog pmemblk string_store string_store_tx\
-	string_store_tx_type hashmap tree_map pmemobjfs map libart array\
-	linkedlist
+export UNITTEST_NAME=ex_linkedlist/TEST1
+export UNITTEST_NUM=1
 
-ifeq ($(call check_cxx_flags, -std=c++11), y)
-DIRS += cpp pman
-endif
+# standard unit test setup
+. ../unittest/unittest.sh
 
-LIBS = -lpmemobj -lpmem -pthread -lm -pthread
+require_build_type debug nondebug
+configure_valgrind pmemcheck force-enable
+setup
 
-include ../Makefile.inc
+expect_normal_exit ./ex_linkedlist$EXESUFFIX $DIR/testfile
 
-map: hashmap tree_map
-pmemobjfs: map
+check
 
-manpage: manpage.o
-btree: btree.o
-pi: pi.o
-queue: queue.o
-lists: lists.o
+pass

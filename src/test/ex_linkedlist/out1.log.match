@@ -1,0 +1,14 @@
+ex_linkedlist/TEST1: START: ex_linkedlist
+ ./ex_linkedlist $(nW)
+POBJ_TAILQ_INSERT_HEAD, POBJ_TAILQ_INSERT_TAIL
+POBJ_TAILQ_INSERT_BEFORE, POBJ_TAILQ_INSERT_AFTER
+POBJ_TAILQ_MOVE_ELEMENT_HEAD, POBJ_TAILQ_MOVE_ELEMENT_TAIL
+POBJ_TAILQ_REMOVE
+POBJ_SLIST_INSERT_HEAD
+POBJ_SLIST_INSERT_AFTER
+POBJ_SLIST_REMOVE_FREE Remove intermediate element
+POBJ_SLIST_REMOVE_HEAD
+POBJ_SLIST_INSERT_AFTER, POBJ_SLIST_REMOVE_FREE Insert to tail and remove from tail
+Outcome for tail queue is correct!
+Outcome for singly linked list is correct!
+ex_linkedlist/TEST1: Done
