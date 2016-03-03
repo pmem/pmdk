@@ -135,13 +135,23 @@ namespace obj
 		/**
 		 * Defaulted move constructor.
 		 */
-		persistent_ptr(persistent_ptr &&r) noexcept = default;
+		persistent_ptr(persistent_ptr &&r) noexcept :
+			oid(std::move(r.oid))
+		{
+			verify_type();
+		}
 
 		/**
 		 * Defaulted move assignment operator.
 		 */
 		persistent_ptr &
-		operator=(persistent_ptr &&r) noexcept = default;
+		operator=(persistent_ptr &&r)
+		{
+			detail::conditional_add_to_tx(this);
+			this->oid = std::move(r.oid);
+
+			return *this;
+		}
 
 		/**
 		 * Assignment operator.

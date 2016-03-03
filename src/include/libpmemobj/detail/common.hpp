@@ -44,7 +44,7 @@ namespace nvml {
 
 namespace detail {
 
-	/**
+	/*
 	 * Conditionally add an object to a transaction.
 	 *
 	 * Adds `*that` to the transaction if it is within a pmemobj pool and
@@ -65,6 +65,15 @@ namespace detail {
 		if (pmemobj_tx_add_range_direct(that, sizeof (*that)))
 			throw transaction_error("Could not add an object to the"
 					" transaction.");
+	}
+
+	/*
+	 * Return type number for given type.
+	 */
+	template<typename T>
+	constexpr uint64_t type_num()
+	{
+		return typeid(T).hash_code() % PMEMOBJ_NUM_OID_TYPES;
 	}
 
 }  /* namespace detail */
