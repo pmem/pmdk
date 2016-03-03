@@ -84,6 +84,7 @@ struct map_bench_worker {
 
 struct map_bench {
 	struct map_ctx *mapc;
+	pthread_mutex_t lock;
 	PMEMobjpool *pop;
 	off_t pool_size;
 
@@ -146,6 +147,32 @@ static struct benchmark_clo map_bench_clos[] = {
 };
 
 /*
+ * mutex_lock_nofail -- locks mutex and aborts if locking failed
+ */
+static void
+mutex_lock_nofail(pthread_mutex_t *lock)
+{
+	errno = pthread_mutex_lock(lock);
+	if (errno) {
+		perror("pthread_mutex_lock");
+		abort();
+	}
+}
+
+/*
+ * mutex_unlock_nofail -- unlocks mutex and aborts if unlocking failed
+ */
+static void
+mutex_unlock_nofail(pthread_mutex_t *lock)
+{
+	errno = pthread_mutex_unlock(lock);
+	if (errno) {
+		perror("pthread_mutex_unlock");
+		abort();
+	}
+}
+
+/*
  * get_key -- return 64-bit random key
  */
 static uint64_t
@@ -185,7 +212,11 @@ map_remove_op(struct benchmark *bench, struct operation_info *info)
 	struct map_bench_worker *tworker = info->worker->priv;
 	uint64_t key = tworker->keys[info->index];
 
+	mutex_lock_nofail(&map_bench->lock);
+
 	PMEMoid ret = map_remove(map_bench->mapc, map_bench->map, key);
+
+	mutex_unlock_nofail(&map_bench->lock);
 
 	return !OID_IS_NULL(ret);
 }
@@ -200,7 +231,13 @@ map_insert_op(struct benchmark *bench, struct operation_info *info)
 	struct map_bench_worker *tworker = info->worker->priv;
 	uint64_t key = tworker->keys[info->index];
 
-	return map_insert(map_bench->mapc, map_bench->map, key, OID_NULL);
+	mutex_lock_nofail(&map_bench->lock);
+
+	int ret = map_insert(map_bench->mapc, map_bench->map, key, OID_NULL);
+
+	mutex_unlock_nofail(&map_bench->lock);
+
+	return ret;
 }
 
 /*
@@ -213,7 +250,11 @@ map_get_op(struct benchmark *bench, struct operation_info *info)
 	struct map_bench_worker *tworker = info->worker->priv;
 	uint64_t key = tworker->keys[info->index];
 
+	mutex_lock_nofail(&map_bench->lock);
+
 	PMEMoid ret = map_get(map_bench->mapc, map_bench->map, key);
+
+	mutex_unlock_nofail(&map_bench->lock);
 
 	return !OID_IS_NULL(ret);
 }
@@ -421,10 +462,16 @@ map_common_init(struct benchmark *bench, struct benchmark_args *args)
 		goto err_free_bench;
 	}
 
+	errno = pthread_mutex_init(&map_bench->lock, NULL);
+	if (errno) {
+		perror("pthread_mutex_init");
+		goto err_close;
+	}
+
 	map_bench->mapc = map_ctx_init(ops, map_bench->pop);
 	if (!map_bench->mapc) {
 		perror("map_ctx_init");
-		goto err_close;
+		goto err_destroy_lock;
 	}
 
 	map_bench->root = POBJ_ROOT(map_bench->pop, struct root);
@@ -444,6 +491,8 @@ map_common_init(struct benchmark *bench, struct benchmark_args *args)
 	return 0;
 err_free_map:
 	map_ctx_free(map_bench->mapc);
+err_destroy_lock:
+	pthread_mutex_destroy(&map_bench->lock);
 err_close:
 	pmemobj_close(map_bench->pop);
 err_free_bench:
@@ -458,6 +507,9 @@ static int
 map_common_exit(struct benchmark *bench, struct benchmark_args *args)
 {
 	struct map_bench *tree = pmembench_get_priv(bench);
+
+	pthread_mutex_destroy(&tree->lock);
+	map_ctx_free(tree->mapc);
 	pmemobj_close(tree->pop);
 	free(tree);
 	return 0;
@@ -481,6 +533,9 @@ map_keys_init(struct benchmark *bench, struct benchmark_args *args)
 	}
 
 	int ret = 0;
+
+	mutex_lock_nofail(&map_bench->lock);
+
 	TX_BEGIN(map_bench->pop) {
 		for (size_t i = 0; i < map_bench->nkeys; i++) {
 			uint64_t key;
@@ -501,6 +556,8 @@ map_keys_init(struct benchmark *bench, struct benchmark_args *args)
 	} TX_ONABORT {
 		ret = -1;
 	} TX_END
+
+	mutex_unlock_nofail(&map_bench->lock);
 
 	if (!ret)
 		return 0;
