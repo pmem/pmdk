@@ -64,7 +64,8 @@ namespace obj {
 	 * @throw transaction_alloc_error on transactional allocation failure.
 	 */
 	template<typename T, typename... Args>
-	typename detail::pp_if_not_array<T>::type make_persistent(Args &&... args)
+	typename detail::pp_if_not_array<T>::type
+	make_persistent(Args &&... args)
 	{
 		if (pmemobj_tx_stage() != TX_STAGE_WORK)
 			throw transaction_scope_error("refusing to allocate "

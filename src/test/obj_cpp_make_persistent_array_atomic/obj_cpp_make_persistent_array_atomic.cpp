@@ -31,7 +31,8 @@
  */
 
 /*
- * obj_cpp_make_persistent.cpp -- cpp make_persistent test for objects
+ * obj_cpp_make_persistent_array_atomic.cpp -- cpp make_persistent test for
+ * arrays
  */
 
 #include "unittest.h"
@@ -39,7 +40,7 @@
 #include <libpmemobj/persistent_ptr.hpp>
 #include <libpmemobj/p.hpp>
 #include <libpmemobj/pool.hpp>
-#include <libpmemobj/make_persistent.hpp>
+#include <libpmemobj/make_persistent_array_atomic.hpp>
 
 #define LAYOUT "cpp"
 
@@ -56,122 +57,114 @@ public:
 			this->arr[i] = 1;
 	}
 
-	foo(int val) : bar(val) {
-		for (int i = 0; i < TEST_ARR_SIZE; ++i)
-			this->arr[i] = val;
-	}
-
-	foo(int val, char arr_val) : bar(val) {
-		for (int i = 0; i < TEST_ARR_SIZE; ++i)
-			this->arr[i] = arr_val;
-	}
-
 	/*
 	 * Assert values of foo.
 	 */
-	void check_foo(int val, char arr_val)
+	void check_foo()
 	{
-		ASSERTeq(val, this->bar);
+		ASSERTeq(1, this->bar);
 		for (int i = 0; i < TEST_ARR_SIZE; ++i)
-			ASSERTeq(arr_val, this->arr[i]);
+			ASSERTeq(1, this->arr[i]);
 	}
+
+	~foo() = default;
 
 	p<int> bar;
 	p<char> arr[TEST_ARR_SIZE];
 };
 
 struct root {
-	persistent_ptr<foo> pfoo;
+	persistent_ptr<foo[]> pfoo;
+};
+
+class bar {
+public:
+	bar() {
+		/* throw any exception */
+		throw 1;
+	}
 };
 
 /*
- * test_make_no_args -- (internal) test make_persitent without arguments
+ * test_make_one_d -- (internal) test make_persitent of a 1d array
  */
 void
-test_make_no_args(pool<struct root> &pop)
+test_make_one_d(pool_base &pop)
 {
-	persistent_ptr<root> r = pop.get_root();
+	persistent_ptr<foo[]> pfoo;
+	make_persistent_atomic<foo[]>(pop, pfoo, 5);
+	for (int i = 0; i < 5; ++i)
+		pfoo[i].check_foo();
 
-	TX_BEGIN(pop.get_handle()) {
-		ASSERT(r->pfoo == nullptr);
+	delete_persistent_atomic<foo[]>(pfoo, 5);
+	ASSERT(pfoo == nullptr);
 
-		r->pfoo = make_persistent<foo>();
-		r->pfoo->check_foo(1, 1);
+	make_persistent_atomic<foo[]>(pop, pfoo, 6);
+	for (int i = 0; i < 6; ++i)
+		pfoo[i].check_foo();
 
-		delete_persistent<foo>(r->pfoo);
-		ASSERT(r->pfoo == nullptr);
+	delete_persistent_atomic<foo[]>(pfoo, 6);
+	ASSERT(pfoo == nullptr);
 
-	} TX_ONABORT {
-		ASSERT(0);
-	} TX_END
+	persistent_ptr<foo[5]> pfooN;
+	make_persistent_atomic<foo[5]>(pop, pfooN);
+	for (int i = 0; i < 5; ++i)
+		pfooN[i].check_foo();
 
-	ASSERT(r->pfoo == nullptr);
+	delete_persistent_atomic<foo[5]>(pfooN);
+	ASSERT(pfooN == nullptr);
 }
 
 /*
- * test_make_args -- (internal) test make_persitent with arguments
+ * test_make_two_d -- (internal) test make_persitent of a 2d array
  */
 void
-test_make_args(pool<struct root> &pop)
+test_make_two_d(pool_base &pop)
 {
-	persistent_ptr<root> r = pop.get_root();
-	TX_BEGIN(pop.get_handle()) {
-		ASSERT(r->pfoo == nullptr);
+	persistent_ptr<foo[][2]> pfoo;
+	make_persistent_atomic<foo[][2]>(pop, pfoo, 5);
+	for (int i = 0; i < 5; ++i)
+		for (int j = 0; j < 2; j++)
+			pfoo[i][j].check_foo();
 
-		pmemobj_tx_add_range_direct(&r->pfoo, sizeof(r->pfoo));
-		r->pfoo = make_persistent<foo>(2);
-		r->pfoo->check_foo(2, 2);
+	delete_persistent_atomic<foo[][2]>(pfoo, 5);
+	ASSERT(pfoo == nullptr);
 
-		delete_persistent<foo>(r->pfoo);
-		ASSERT(r->pfoo == nullptr);
+	persistent_ptr<foo[][3]> pfoo2;
+	make_persistent_atomic<foo[][3]>(pop, pfoo2, 6);
+	for (int i = 0; i < 6; ++i)
+		for (int j = 0; j < 3; j++)
+			pfoo2[i][j].check_foo();
 
-		r->pfoo = make_persistent<foo>(3, 4);
-		r->pfoo->check_foo(3, 4);
+	delete_persistent_atomic<foo[][3]>(pfoo2, 6);
+	ASSERT(pfoo2 == nullptr);
 
-		delete_persistent<foo>(r->pfoo);
-		ASSERT(r->pfoo == nullptr);
+	persistent_ptr<foo[5][2]> pfooN;
+	make_persistent_atomic<foo[5][2]>(pop, pfooN);
+	for (int i = 0; i < 5; ++i)
+		for (int j = 0; j < 2; j++)
+			pfooN[i][j].check_foo();
 
-	} TX_ONABORT {
-		ASSERT(0);
-	} TX_END
-
-	ASSERT(r->pfoo == nullptr);
+	delete_persistent_atomic<foo[5][2]>(pfooN);
+	ASSERT(pfooN == nullptr);
 }
 
 /*
- * test_additional_delete -- (internal) test double delete and delete rollback
+ * test_constructor_exception -- (internal) test exceptions thrown in
+ * constructors
  */
 void
-test_additional_delete(pool<struct root> &pop)
+test_constructor_exception(pool_base &pop)
 {
-	persistent_ptr<root> r = pop.get_root();
+	persistent_ptr<bar[]> pfoo;
+	bool except = false;
+	try {
+		make_persistent_atomic<bar[]>(pop, pfoo, 5);
+	} catch (std::bad_alloc &ba) {
+		except = true;
+	}
 
-	TX_BEGIN(pop.get_handle()) {
-		ASSERT(r->pfoo == nullptr);
-
-		r->pfoo = make_persistent<foo>();
-		r->pfoo->check_foo(1, 1);
-	} TX_END
-
-	TX_BEGIN(pop.get_handle()) {
-		ASSERT(r->pfoo != nullptr);
-		delete_persistent<foo>(r->pfoo);
-		ASSERT(r->pfoo == nullptr);
-		delete_persistent<foo>(r->pfoo);
-		ASSERT(r->pfoo == nullptr);
-
-		pmemobj_tx_abort(EINVAL);
-	} TX_END
-
-	ASSERT(r->pfoo != nullptr);
-	r->pfoo->check_foo(1, 1);
-
-	TX_BEGIN(pop.get_handle()) {
-		ASSERT(r->pfoo != nullptr);
-		delete_persistent<foo>(r->pfoo);
-	} TX_END
-
-	ASSERT(r->pfoo == nullptr);
+	ASSERT(except);
 }
 
 }
@@ -179,7 +172,7 @@ test_additional_delete(pool<struct root> &pop)
 int
 main(int argc, char *argv[])
 {
-	START(argc, argv, "obj_cpp_make_persistent");
+	START(argc, argv, "obj_cpp_make_persistent_array_atomic");
 
 	if (argc != 2)
 		FATAL("usage: %s file-name", argv[0]);
@@ -195,9 +188,9 @@ main(int argc, char *argv[])
 		FATAL("!pool::create: %s %s", pe.what(), path);
 	}
 
-	test_make_no_args(pop);
-	test_make_args(pop);
-	test_additional_delete(pop);
+	test_make_one_d(pop);
+	test_make_two_d(pop);
+	test_constructor_exception(pop);
 
 	pop.close();
 

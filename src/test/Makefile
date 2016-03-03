@@ -120,7 +120,9 @@ OBJ_CPP_TESTS = \
 	obj_cpp_shared_mutex_posix\
 	obj_cpp_pool_primitives\
 	obj_cpp_make_persistent\
-	obj_cpp_make_persistent_atomic
+	obj_cpp_make_persistent_atomic\
+	obj_cpp_make_persistent_array\
+	obj_cpp_make_persistent_array_atomic
 
 CHRONO_TESTS = \
 	obj_cpp_mutex\

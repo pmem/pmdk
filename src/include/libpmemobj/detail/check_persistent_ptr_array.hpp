@@ -68,6 +68,36 @@ namespace detail {
 	{
 	};
 
+	/*
+	 * Typedef checking if given type is an array.
+	 */
+	template<typename T>
+	struct pp_if_array;
+
+	/*
+	 * Typedef checking if given type is an array.
+	 */
+	template<typename T>
+	struct pp_if_array<T[]>
+	{
+		typedef obj::persistent_ptr<T[]> type;
+	};
+
+	/*
+	 * Typedef checking if given type is an array.
+	 */
+	template<typename T>
+	struct pp_if_size_array;
+
+	/*
+	 * Typedef checking if given type is an array.
+	 */
+	template<typename T, size_t N>
+	struct pp_if_size_array<T[N]>
+	{
+		typedef obj::persistent_ptr<T[N]> type;
+	};
+
 }  /* namespace detail */
 
 }  /* namespace nvml */

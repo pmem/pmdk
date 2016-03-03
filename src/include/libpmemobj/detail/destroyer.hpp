@@ -31,17 +31,12 @@
  */
 
 /*
- * make_persistent_impl.hpp -- implementation details of atomic allocation
- * and construction.
+ * destroyer.hpp -- functions for destroying arrays
  */
 
-#ifndef LIBPMEMOBJ_MAKE_ATOMIC_IMPL_HPP
-#define LIBPMEMOBJ_MAKE_ATOMIC_IMPL_HPP
+#ifndef LIBPMEMOBJ_DESTROYER_HPP
+#define LIBPMEMOBJ_DESTROYER_HPP
 
-#include <new>
-
-#include "libpmemobj/detail/integer_sequence.hpp"
-#include "libpmemobj/detail/destroyer.hpp"
 #include "libpmemobj/detail/array_traits.hpp"
 
 namespace nvml {
@@ -49,65 +44,73 @@ namespace nvml {
 namespace detail {
 
 	/*
-	 * Calls the objects constructor.
-	 *
-	 * Unpacks the tuple to get constructor's parameters.
-	 */
-	template<typename T, size_t... Indices, typename... Args>
-	void create_object(void *ptr, index_sequence<Indices...>,
-			std::tuple<Args...> &tuple)
-	{
-		new (ptr) T(std::get<Indices>(tuple)...);
-	}
-
-	/*
-	 * C-style function called by the allocator.
-	 *
-	 * The arg is a tuple containing constructor parameters.
-	 */
-	template<typename T, typename... Args>
-	int obj_constructor(PMEMobjpool *pop, void *ptr, void *arg)
-	{
-		auto *arg_pack = static_cast<std::tuple<Args...> *>(arg);
-
-		typedef typename make_index_sequence<Args...>::type index;
-		try {
-			create_object<T>(ptr, index(), *arg_pack);
-		} catch (...) {
-			return -1;
-		}
-
-		pmemobj_persist(pop, ptr, sizeof(T));
-
-		return 0;
-	}
-
-	/*
-	 * Constructor used for atomic array allocations.
-	 *
-	 * Returns -1 if an exception was thrown during T's construction,
-	 * 0 otherwise.
+	 * Template for checking if T is not an array.
 	 */
 	template<typename T>
-	int array_constructor(PMEMobjpool *pop, void *ptr, void *arg)
+	struct if_not_array {
+		typedef T type;
+	};
+
+	/*
+	 * Template for checking if T is not an array.
+	 */
+	template<typename T>
+	struct if_not_array<T[]>;
+
+	/*
+	 * Template for checking if T is not an array.
+	 */
+	template<typename T, size_t N>
+	struct if_not_array<T[N]>;
+
+	/*
+	 * Template for checking if T is an array.
+	 */
+	template<typename T>
+	struct if_size_array ;
+
+	/*
+	 * Template for checking if T is an array.
+	 */
+	template<typename T>
+	struct if_size_array<T[]>;
+
+	/*
+	 * Template for checking if T is an array.
+	 */
+	template<typename T, size_t N>
+	struct if_size_array<T[N]> {
+		typedef T type[N];
+	};
+
+	/*
+	 * Calls object's destructor.
+	 */
+	template<typename T>
+	void destroy(typename if_not_array<T>::type &arg)
 	{
-		std::size_t N = *static_cast<std::size_t*>(arg);
+		arg.~T();
+	}
 
-		T *tptr = static_cast<T*>(ptr);
-		try {
-			for (std::size_t i = 0; i < N; ++i)
-				::new (tptr + i) T();
-		} catch (...) {
-			return -1;
-		}
+	/*
+	 * Recursively calls array's elements' destructors.
+	 */
+	template<typename T>
+	void destroy(typename if_size_array<T>::type &arg)
+	{
+		typedef typename detail::pp_array_type<T>::type I;
+		enum {
+			N = pp_array_elems<T>::elems
+		};
 
-		pmemobj_persist(pop, ptr, sizeof(T) * N);
-
-		return 0;
+		for (std::size_t i = 0; i < N; ++i)
+			destroy<I>(arg[N - 1 - i]);
 	}
 
 }  /* namespace detail */
 
 }  /* namespace nvml */
 
-#endif /* LIBPMEMOBJ_MAKE_ATOMIC_IMPL_HPP */
+
+
+#endif /* LIBPMEMOBJ_DESTROYER_HPP */
