@@ -43,11 +43,16 @@
 #include "map_hashmap_atomic.h"
 #include "map_hashmap_tx.h"
 
+#define	FACTOR	2
+#define	ALLOC_OVERHEAD	64
+
 TOID_DECLARE_ROOT(struct root);
 
 struct root {
 	TOID(struct map) map;
 };
+
+#define	OBJ_TYPE_NUM	1
 
 #define	swap(a, b) do {\
 	typeof ((a)) _tmp = (a);\
@@ -75,6 +80,7 @@ struct map_bench_args {
 	uint64_t max_key;
 	char *type;
 	bool ext_tx;
+	bool alloc;
 };
 
 struct map_bench_worker {
@@ -91,9 +97,16 @@ struct map_bench {
 	size_t nkeys;
 	size_t init_nkeys;
 	uint64_t *keys;
+	struct benchmark_args *args;
+	struct map_bench_args *margs;
 
 	TOID(struct root) root;
+	PMEMoid root_oid;
 	TOID(struct map) map;
+
+	int (*insert)(struct map_bench *, uint64_t);
+	int (*remove)(struct map_bench *, uint64_t);
+	int (*get)(struct map_bench *, uint64_t);
 };
 
 static struct benchmark_clo map_bench_clos[] = {
@@ -142,6 +155,15 @@ static struct benchmark_clo map_bench_clos[] = {
 				" (works with single thread only)",
 		.off		= clo_field_offset(struct map_bench_args,
 						ext_tx),
+		.type		= CLO_TYPE_FLAG,
+	},
+	{
+		.opt_short	= 'A',
+		.opt_long	= "alloc",
+		.descr		= "Allocate object of specified size "
+					"when inserting",
+		.off		= clo_field_offset(struct map_bench_args,
+						alloc),
 		.type		= CLO_TYPE_FLAG,
 	},
 };
@@ -203,6 +225,37 @@ parse_map_type(const char *str)
 }
 
 /*
+ * map_remove_free_op -- remove and free object from map
+ */
+static int
+map_remove_free_op(struct map_bench *map_bench, uint64_t key)
+{
+	volatile int ret = 0;
+	TX_BEGIN(map_bench->pop) {
+		PMEMoid val = map_remove(map_bench->mapc, map_bench->map, key);
+		if (OID_IS_NULL(val))
+			ret = -1;
+		else
+			pmemobj_tx_free(val);
+	} TX_ONABORT {
+		ret = -1;
+	} TX_END
+
+	return ret;
+}
+
+/*
+ * map_remove_root_op -- remove root object from map
+ */
+static int
+map_remove_root_op(struct map_bench *map_bench, uint64_t key)
+{
+	PMEMoid val = map_remove(map_bench->mapc, map_bench->map, key);
+
+	return !OID_EQUALS(val, map_bench->root_oid);
+}
+
+/*
  * map_remove_op -- main operation for map_remove benchmark
  */
 static int
@@ -214,11 +267,40 @@ map_remove_op(struct benchmark *bench, struct operation_info *info)
 
 	mutex_lock_nofail(&map_bench->lock);
 
-	PMEMoid ret = map_remove(map_bench->mapc, map_bench->map, key);
+	int ret = map_bench->remove(map_bench, key);
 
 	mutex_unlock_nofail(&map_bench->lock);
 
-	return !OID_IS_NULL(ret);
+	return ret;
+}
+
+/*
+ * map_insert_alloc_op -- allocate an object and insert to map
+ */
+static int
+map_insert_alloc_op(struct map_bench *map_bench, uint64_t key)
+{
+	int ret = 0;
+
+	TX_BEGIN(map_bench->pop) {
+		PMEMoid oid = pmemobj_tx_alloc(map_bench->args->dsize,
+				OBJ_TYPE_NUM);
+		ret = map_insert(map_bench->mapc, map_bench->map, key, oid);
+	} TX_ONABORT {
+		ret = -1;
+	} TX_END
+
+	return ret;
+}
+
+/*
+ * map_insert_root_op -- insert root object to map
+ */
+static int
+map_insert_root_op(struct map_bench *map_bench, uint64_t key)
+{
+	return map_insert(map_bench->mapc, map_bench->map, key,
+			map_bench->root_oid);
 }
 
 /*
@@ -233,11 +315,33 @@ map_insert_op(struct benchmark *bench, struct operation_info *info)
 
 	mutex_lock_nofail(&map_bench->lock);
 
-	int ret = map_insert(map_bench->mapc, map_bench->map, key, OID_NULL);
+	int ret = map_bench->insert(map_bench, key);
 
 	mutex_unlock_nofail(&map_bench->lock);
 
 	return ret;
+}
+
+/*
+ * map_get_obj_op -- get object from map at specified key
+ */
+static int
+map_get_obj_op(struct map_bench *map_bench, uint64_t key)
+{
+	PMEMoid val = map_get(map_bench->mapc, map_bench->map, key);
+
+	return OID_IS_NULL(val);
+}
+
+/*
+ * map_get_root_op -- get root object from map at specified key
+ */
+static int
+map_get_root_op(struct map_bench *map_bench, uint64_t key)
+{
+	PMEMoid val = map_get(map_bench->mapc, map_bench->map, key);
+
+	return !OID_EQUALS(val, map_bench->root_oid);
 }
 
 /*
@@ -252,11 +356,11 @@ map_get_op(struct benchmark *bench, struct operation_info *info)
 
 	mutex_lock_nofail(&map_bench->lock);
 
-	PMEMoid ret = map_get(map_bench->mapc, map_bench->map, key);
+	int ret = map_bench->get(map_bench, key);
 
 	mutex_unlock_nofail(&map_bench->lock);
 
-	return !OID_IS_NULL(ret);
+	return ret;
 }
 
 /*
@@ -424,24 +528,39 @@ map_common_init(struct benchmark *bench, struct benchmark_args *args)
 		return -1;
 	}
 
-	struct map_bench_args *targs = args->opts;
+	map_bench->args = args;
+	map_bench->margs = args->opts;
 
-	const struct map_ops *ops = parse_map_type(targs->type);
+	const struct map_ops *ops = parse_map_type(map_bench->margs->type);
 	if (!ops) {
 		fprintf(stderr, "invalid map type value specified -- '%s'\n",
-				targs->type);
+				map_bench->margs->type);
 		goto err_free_bench;
 	}
 
-	if (targs->ext_tx && args->n_threads > 1) {
+	if (map_bench->margs->ext_tx && args->n_threads > 1) {
 		fprintf(stderr, "external transaction "
 			"requires single thread\n");
 		goto err_free_bench;
 	}
 
+	if (map_bench->margs->alloc) {
+		map_bench->insert = map_insert_alloc_op;
+		map_bench->remove = map_remove_free_op;
+		map_bench->get = map_get_obj_op;
+	} else {
+		map_bench->insert = map_insert_root_op;
+		map_bench->remove = map_remove_root_op;
+		map_bench->get = map_get_root_op;
+	}
+
 	map_bench->nkeys = args->n_threads * args->n_ops_per_thread;
 	map_bench->init_nkeys = map_bench->nkeys;
-	map_bench->pool_size = map_bench->nkeys * SIZE_PER_KEY;
+	size_t size_per_key = map_bench->margs->alloc ?
+		SIZE_PER_KEY :
+		SIZE_PER_KEY + map_bench->args->dsize + ALLOC_OVERHEAD;
+
+	map_bench->pool_size = map_bench->nkeys * size_per_key * FACTOR;
 
 	if (args->is_poolset) {
 		if (args->fsize < map_bench->pool_size) {
@@ -479,6 +598,8 @@ map_common_init(struct benchmark *bench, struct benchmark_args *args)
 		fprintf(stderr, "pmemobj_root: %s\n", pmemobj_errormsg());
 		goto err_free_map;
 	}
+
+	map_bench->root_oid = map_bench->root.oid;
 
 	if (map_new(map_bench->mapc, &D_RW(map_bench->root)->map, NULL)) {
 		perror("map_new");
@@ -546,8 +667,14 @@ map_keys_init(struct benchmark *bench, struct benchmark_args *args)
 						map_bench->map, key);
 			} while (!OID_IS_NULL(oid));
 
+			if (targs->alloc)
+				oid = pmemobj_tx_alloc(args->dsize,
+						OBJ_TYPE_NUM);
+			else
+				oid = map_bench->root_oid;
+
 			ret = map_insert(map_bench->mapc,
-					map_bench->map, key, OID_NULL);
+					map_bench->map, key, oid);
 			if (ret)
 				break;
 
