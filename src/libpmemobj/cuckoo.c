@@ -105,11 +105,9 @@ cuckoo_new()
 
 	c->size = INITIAL_SIZE;
 	size_t tab_rawsize = c->size * sizeof (struct cuckoo_slot);
-	c->tab = Malloc(tab_rawsize);
+	c->tab = Zalloc(tab_rawsize);
 	if (c->tab == NULL)
 		goto error_tab_malloc;
-
-	memset(c->tab, 0, tab_rawsize);
 
 	return c;
 
@@ -169,12 +167,11 @@ cuckoo_grow(struct cuckoo *c)
 	int n;
 	for (n = 0; n < MAX_GROWS; ++n) {
 		size_t tab_rawsize = c->size * 2 * sizeof (struct cuckoo_slot);
-		c->tab = Malloc(tab_rawsize);
+		c->tab = Zalloc(tab_rawsize);
 		if (c->tab == NULL) {
 			c->tab = oldtab;
 			return ENOMEM;
 		}
-		memset(c->tab, 0, tab_rawsize);
 
 		c->size *= 2;
 		unsigned i;

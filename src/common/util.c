@@ -90,6 +90,18 @@ Free_func Free = free;
 Realloc_func Realloc = realloc;
 Strdup_func Strdup = strdup;
 
+/*
+ * Zalloc -- allocate zeroed memory
+ */
+void *
+Zalloc(size_t sz)
+{
+	void *ret = Malloc(sz);
+	if (!ret)
+		return NULL;
+	return memset(ret, 0, sz);
+}
+
 #if defined(USE_VG_PMEMCHECK) || defined(USE_VG_HELGRIND) ||\
 	defined(USE_VG_MEMCHECK)
 /* initialized to true if the process is running inside Valgrind */

@@ -1727,10 +1727,9 @@ pmemobj_tx_free(PMEMoid oid)
 static int
 lane_transaction_construct(PMEMobjpool *pop, struct lane_section *section)
 {
-	section->runtime = Malloc(sizeof (struct lane_tx_runtime));
+	section->runtime = Zalloc(sizeof (struct lane_tx_runtime));
 	if (section->runtime == NULL)
 		return ENOMEM;
-	memset(section->runtime, 0, sizeof (struct lane_tx_runtime));
 
 	return 0;
 }
