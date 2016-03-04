@@ -5,7 +5,7 @@
    fun:malloc
    obj:*/libstdc++.so.*
    fun:call_init.part.0
-   fun:call_init
+   ...
    fun:_dl_init
    obj:*/ld-*.so
 }
