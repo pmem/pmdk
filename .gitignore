@@ -12,3 +12,4 @@ dpkgbuild/
 rpm/
 dpkg/
 .deps
+.vscode
