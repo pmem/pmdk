@@ -37,6 +37,7 @@
 use strict;
 use warnings;
 
+use File::Basename;
 use File::Find;
 
 my $Me = $0;
@@ -67,7 +68,7 @@ sub check_whitespace {
 	my ($full, $file) = @_;
 	my $fh;
 
-	open($fh, '<', $file) or die "$full $!\n";
+	open($fh, '<', $full) or die "$full $!\n";
 
 	my $line = 0;
 	my $eol;
@@ -93,28 +94,107 @@ sub check_whitespace {
 	err("$full: noeol") unless $eol;
 }
 
-# descend directory structure, finding interesting files to check
-find(sub {
-		my $full = $File::Find::name;
+sub check_whitespace_with_exc {
+	my ($full) = @_;
 
-		if ($full eq './.git' ||
-		    $full eq './src/jemalloc' ||
-		    $full eq './src/debug' ||
-		    $full eq './src/nondebug' ||
-		    $full eq './rpmbuild' ||
-		    $full eq './dpkgbuild') {
-			$File::Find::prune = 1;
-			return;
+	$_ = $full;
+
+	return 0 if /^[.\/]*src\/jemalloc.*/;
+
+	$_ = basename($full);
+
+	return 0 unless /^(README.*|LICENSE.*|Makefile.*|.gitignore|TEST.*|RUNTESTS|check_whitespace|.*\.([chp13]|sh|map))$/;
+	return 0 if -z;
+
+	check_whitespace($full, $_);
+	return 1;
+}
+
+my $verbose = 0;
+my $force = 0;
+my $recursive = 0;
+
+sub check {
+	my ($file) = @_;
+	my $r;
+
+	if ($force) {
+		$r = check_whitespace($file, basename($file));
+	} else {
+		$r = check_whitespace_with_exc($file);
+	}
+
+	if ($verbose) {
+		if ($r == 0) {
+			printf("skipped $file\n");
+		} else {
+			printf("checked $file\n");
 		}
+	}
+}
 
-		return unless -f;
+my @files = ();
 
-		return unless /^(README.*|LICENSE.*|Makefile.*|.gitignore|TEST.*|RUNTESTS|check_whitespace|.*\.([chp13]|sh|map))$/;
+foreach my $arg (@ARGV) {
+	if ($arg eq '-v') {
+		$verbose = 1;
+		next;
+	}
+	if ($arg eq '-f') {
+		$force = 1;
+		next;
+	}
+	if ($arg eq '-r') {
+		$recursive = 1;
+		next;
+	}
+	if ($arg eq '-g') {
+		@files = `git ls-tree -r --name-only HEAD`;
+		chomp(@files);
+		next;
+	}
+	if ($arg eq '-h') {
+		printf "Options:
+     -g - check all files tracked by git
+     -r dir - recursively check all files in specified directory
+     -v verbose - print whether file was checked or not
+     -f force - disable blacklist\n";
+		exit 1;
+	}
 
-		return if -z;
+	if ($recursive == 1) {
+		find(sub {
+			my $full = $File::Find::name;
 
-		check_whitespace($full, $_);
+			if (!$force &&
+			   ($full eq './.git' ||
+			    $full eq './src/jemalloc' ||
+			    $full eq './src/debug' ||
+			    $full eq './src/nondebug' ||
+			    $full eq './rpmbuild' ||
+			    $full eq './dpkgbuild')) {
+				$File::Find::prune = 1;
+				return;
+			}
 
-	}, '.');
+			return unless -f;
+
+			push @files, $full;
+		}, $arg);
+
+		$recursive = 0;
+		next;
+	}
+
+	push @files, $arg;
+}
+
+if (!@files) {
+	printf "Empty file list!\n";
+}
+
+foreach (@files) {
+	check($_);
+}
 
 exit $Errcount;

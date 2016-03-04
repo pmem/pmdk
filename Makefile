@@ -95,7 +95,7 @@ cstyle:
 	$(MAKE) -C src $@
 	$(MAKE) -C utils $@
 	@echo Checking files for whitespace issues...
-	@utils/check_whitespace
+	@utils/check_whitespace -g
 	@echo Done.
 
 check-license:
