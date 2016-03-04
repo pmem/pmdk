@@ -50,7 +50,7 @@ namespace nvml
 
 namespace obj
 {
-	/*
+	/**
 	 * Persistent pointer class.
 	 *
 	 * persistent_ptr implements a smart ptr. It encapsulates the PMEMoid
@@ -66,11 +66,14 @@ namespace obj
 
 		typedef persistent_ptr<T> this_type;
 	public:
-		/* used for easy underlying type access */
+		/**
+		 * Type of an actual object with all qualifier removed,
+		 * used for easy underlying type access
+		 */
 		typedef typename nvml::detail::sp_element<T>::type element_type;
 
-		/*
-		 * Default constructor is NULL-initialized.
+		/**
+		 * Default constructor, zeroes the PMEMoid.
 		 */
 		persistent_ptr() : oid(OID_NULL)
 		{
@@ -83,7 +86,7 @@ namespace obj
 		 * constructor in there.
 		 */
 
-		/*
+		/**
 		 *  Default null constructor, zeroes the PMEMoid.
 		 */
 		persistent_ptr(std::nullptr_t) noexcept : oid(OID_NULL)
@@ -91,16 +94,23 @@ namespace obj
 			verify_type();
 		}
 
-		/*
+		/**
 		 * PMEMoid constructor.
+		 *
+		 * Provided for easy interoperability between C++ and C API's.
+		 *
+		 * @param oid C-style persistent pointer
 		 */
-		persistent_ptr(PMEMoid o) noexcept : oid(o)
+		persistent_ptr(PMEMoid oid) noexcept : oid(oid)
 		{
 			verify_type();
 		}
 
-		/*
-		 * Converting constructor from a different persistent_ptr<>.
+		/**
+		 * Copy constructor from a different persistent_ptr<>.
+		 *
+		 * Available only for convertible types.
+		 *
 		 */
 		template<typename Y, typename = typename
 		std::enable_if<std::is_convertible<Y*, T*>::value>::type>
@@ -111,28 +121,37 @@ namespace obj
 
 		/*
 		 * Copy constructor.
+		 *
+		 * @param r Persistent pointer to the same type.
 		 */
 		persistent_ptr(const persistent_ptr &r) noexcept : oid(r.oid)
 		{
 			verify_type();
 		}
 
-		/*
+		/**
 		 * Defaulted move constructor.
 		 */
 		persistent_ptr(persistent_ptr &&r) noexcept = default;
 
-		/*
+		/**
 		 * Defaulted move assignment operator.
 		 */
 		persistent_ptr &
 		operator=(persistent_ptr &&r) noexcept = default;
 
-		/*
+		/**
 		 * Assignment operator.
+		 *
+		 * Persistent pointer assignment within a transaction
+		 * automatically registers this operation so that a rollback
+		 * is possible.
+		 *
+		 * @throw nvml::transaction_error when adding the object to the
+		 *	transaction failed.
 		 */
 		persistent_ptr &
-		operator=(const persistent_ptr &r) noexcept
+		operator=(const persistent_ptr &r)
 		{
 			detail::conditional_add_to_tx(this);
 			this_type(r).swap(*this);
@@ -140,14 +159,21 @@ namespace obj
 			return *this;
 		}
 
-		/*
+		/**
 		 * Converting assignment operator from a different
 		 * persistent_ptr<>.
+		 *
+		 * Available only for convertible types.
+		 * Just like regular assignment, also automatically registers
+		 * itself in a transaction.
+		 *
+		 * @throw nvml::transaction_error when adding the object to the
+		 *	transaction failed.
 		 */
 		template<typename Y, typename = typename
 		std::enable_if<std::is_convertible<Y*, T*>::value>::type>
 		persistent_ptr &
-		operator=(const persistent_ptr<Y> &r) noexcept
+		operator=(const persistent_ptr<Y> &r)
 		{
 			detail::conditional_add_to_tx(this);
 			this_type(r).swap(*this);
@@ -155,7 +181,7 @@ namespace obj
 			return *this;
 		}
 
-		/*
+		/**
 		 * Dereference operator.
 		 */
 		typename nvml::detail::sp_dereference<T>::type
@@ -164,7 +190,7 @@ namespace obj
 			return *get();
 		}
 
-		/*
+		/**
 		 * Member access operator.
 		 */
 		typename nvml::detail::sp_member_access<T>::type
@@ -173,8 +199,10 @@ namespace obj
 			return get();
 		}
 
-		/*
+		/**
 		 * Array access operator.
+		 *
+		 * Contains run-time bounds checking for static arrays.
 		 */
 		typename nvml::detail::sp_array_access<T>::type
 			operator[](std::ptrdiff_t i) const noexcept
@@ -187,10 +215,12 @@ namespace obj
 			return get()[i];
 		}
 
-		/*
+		/**
 		 * Get a direct pointer.
 		 *
-		 * Calculates and returns a direct pointer to the object.
+		 * Performs a calculations on the underlying C-style pointer.
+		 *
+		 * @return a direct pointer to the object.
 		 */
 		element_type *
 		get() const noexcept
@@ -198,7 +228,7 @@ namespace obj
 			return (element_type *)pmemobj_direct(this->oid);
 		}
 
-		/*
+		/**
 		 * Swaps two persistent_ptr objects of the same type.
 		 */
 		void
@@ -228,10 +258,12 @@ namespace obj
 			return get() != nullptr;
 		}
 
-		/*
+		/**
 		 * Get PMEMoid encapsulated by this object.
 		 *
 		 * For C API compatibility.
+		 *
+		 * @return const reference to the PMEMoid
 		 */
 		const PMEMoid &
 		raw() const noexcept
@@ -239,10 +271,12 @@ namespace obj
 			return this->oid;
 		}
 
-		/*
+		/**
 		 * Get pointer to PMEMoid encapsulated by this object.
 		 *
 		 * For C API compatibility.
+		 *
+		 * @return pointer to the PMEMoid
 		 */
 		PMEMoid *
 		raw_ptr() noexcept
@@ -250,7 +284,7 @@ namespace obj
 			return &(this->oid);
 		}
 
-		/*
+		/**
 		 * Prefix increment operator.
 		 */
 		inline persistent_ptr<T> &operator++()
@@ -261,7 +295,7 @@ namespace obj
 			return *this;
 		}
 
-		/*
+		/**
 		 * Postfix increment operator.
 		 */
 		inline persistent_ptr<T> operator++(int)
@@ -272,7 +306,7 @@ namespace obj
 			return persistent_ptr<T>(noid);
 		}
 
-		/*
+		/**
 		 * Prefix decrement operator.
 		 */
 		inline persistent_ptr<T> &operator--()
@@ -283,7 +317,7 @@ namespace obj
 			return *this;
 		}
 
-		/*
+		/**
 		 * Postfix decrement operator.
 		 */
 		inline persistent_ptr<T> operator--(int)
@@ -294,7 +328,7 @@ namespace obj
 			return persistent_ptr<T>(noid);
 		}
 
-		/*
+		/**
 		 * Addition assignment operator.
 		 */
 		inline persistent_ptr<T> &operator+=(std::ptrdiff_t s)
@@ -305,7 +339,7 @@ namespace obj
 			return *this;
 		}
 
-		/*
+		/**
 		 * Subtraction assignment operator.
 		 */
 		inline persistent_ptr<T> &operator-=(std::ptrdiff_t s)
@@ -334,7 +368,7 @@ namespace obj
 		}
 	};
 
-	/*
+	/**
 	 * Swaps two persistent_ptr objects of the same type.
 	 *
 	 * Non-member swap function as required by Swappable concept.
@@ -346,7 +380,7 @@ namespace obj
 		a.swap(b);
 	}
 
-	/*
+	/**
 	 * Equality operator.
 	 *
 	 * This checks if underlying PMEMoids are equal.
@@ -358,7 +392,7 @@ namespace obj
 		return OID_EQUALS(lhs.raw(), rhs.raw());
 	}
 
-	/*
+	/**
 	 * Inequality operator.
 	 */
 	template<typename T, typename Y> inline bool
@@ -368,10 +402,10 @@ namespace obj
 		return !(lhs == rhs);
 	}
 
-	/*
+	/**
 	 * Less than operator.
 	 *
-	 * Returns true if the uuid_lo of lhs is less than the uuid_lo of rhs,
+	 * @return true if the uuid_lo of lhs is less than the uuid_lo of rhs,
 	 * should they be equal, the offsets are compared. Returns false
 	 * otherwise.
 	 */
@@ -385,7 +419,7 @@ namespace obj
 			return lhs.raw().pool_uuid_lo < rhs.raw().pool_uuid_lo;
 	}
 
-	/*
+	/**
 	 * Less or equal than operator.
 	 *
 	 * See less than operator for comparison rules.
@@ -397,7 +431,7 @@ namespace obj
 		return !(rhs < lhs);
 	}
 
-	/*
+	/**
 	 * Greater than operator.
 	 *
 	 * See less than operator for comparison rules.
@@ -409,7 +443,7 @@ namespace obj
 		return (rhs < lhs);
 	}
 
-	/*
+	/**
 	 * Greater or equal than operator.
 	 *
 	 * See less than operator for comparison rules.
@@ -423,7 +457,7 @@ namespace obj
 
 	/* nullptr comparisons */
 
-	/*
+	/**
 	 * Compare a persistent_ptr with a null pointer.
 	 */
 	template<typename T> inline bool
@@ -432,7 +466,7 @@ namespace obj
 		return std::less<T*>()(lhs.get(), nullptr);
 	}
 
-	/*
+	/**
 	 * Compare a persistent_ptr with a null pointer.
 	 */
 	template<typename T> inline bool
@@ -441,7 +475,7 @@ namespace obj
 		return std::less<T*>()(nullptr, rhs.get());
 	}
 
-	/*
+	/**
 	 * Compare a persistent_ptr with a null pointer.
 	 */
 	template<typename T> inline bool
@@ -450,7 +484,7 @@ namespace obj
 		return !(nullptr < lhs);
 	}
 
-	/*
+	/**
 	 * Compare a persistent_ptr with a null pointer.
 	 */
 	template<typename T> inline bool
@@ -459,7 +493,7 @@ namespace obj
 		return !(rhs < nullptr);
 	}
 
-	/*
+	/**
 	 * Compare a persistent_ptr with a null pointer.
 	 */
 	template<typename T> inline bool
@@ -468,7 +502,7 @@ namespace obj
 		return nullptr < lhs;
 	}
 
-	/*
+	/**
 	 * Compare a persistent_ptr with a null pointer.
 	 */
 	template<typename T> inline bool
@@ -477,7 +511,7 @@ namespace obj
 		return rhs < nullptr;
 	}
 
-	/*
+	/**
 	 * Compare a persistent_ptr with a null pointer.
 	 */
 	template<typename T> inline bool
@@ -486,7 +520,7 @@ namespace obj
 		return !(lhs < nullptr);
 	}
 
-	/*
+	/**
 	 * Compare a persistent_ptr with a null pointer.
 	 */
 	template<typename T> inline bool
@@ -495,7 +529,7 @@ namespace obj
 		return !(nullptr < rhs);
 	}
 
-	/*
+	/**
 	 * Addition operator for persistent pointers.
 	 */
 	template<typename T>
@@ -508,7 +542,7 @@ namespace obj
 		return persistent_ptr<T>(noid);
 	}
 
-	/*
+	/**
 	 * Subtraction operator for persistent pointers.
 	 */
 	template<typename T>
@@ -521,7 +555,7 @@ namespace obj
 		return persistent_ptr<T>(noid);
 	}
 
-	/*
+	/**
 	 * Subtraction operator for persistent pointers of identical type.
 	 *
 	 * Calculates the offset difference of PMEMoids in terms of represented
@@ -538,7 +572,7 @@ namespace obj
 		return d / sizeof (T);
 	}
 
-	/*
+	/**
 	 * Ostream operator for the persistent pointer.
 	 */
 	template<typename T> std::ostream &

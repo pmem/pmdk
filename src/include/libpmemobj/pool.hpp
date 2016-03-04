@@ -49,19 +49,22 @@ namespace nvml
 namespace obj
 {
 
-	/*
+	/**
 	 * The non-template pool base class.
+	 *
+	 * This class is a non-template version of pool. It is useful for places
+	 * where providing pool template argument is undesirable.
 	 */
 	class pool_base {
 	public:
-		/*
+		/**
 		 * Default virtual destructor.
 		 */
 		virtual ~pool_base() noexcept = default;
 
 	protected:
 
-		/*
+		/**
 		 * Protected constructor
 		 *
 		 * Prohibits base class object initialization.
@@ -69,8 +72,8 @@ namespace obj
 		pool_base() = default;
 	};
 
-	/*
-	 * Pmemobj pool class
+	/**
+	 * PMEMobj pool class
 	 *
 	 * This class is the pmemobj pool handler. It provides basic primitives
 	 * for operations on pmemobj pools. The template parameter defines the
@@ -80,35 +83,35 @@ namespace obj
 	class pool : public pool_base
 	{
 	public:
-		/*
-		 * Default constructor.
+		/**
+		 * Defaulted constructor.
 		 */
 		pool() : pop(nullptr) {}
 
-		/*
-		 * Default copy constructor.
+		/**
+		 * Defaulted copy constructor.
 		 */
 		pool(const pool&) = default;
 
-		/*
-		 * Default move constructor.
+		/**
+		 * Defaulted move constructor.
 		 */
 		pool(pool&&) = default;
 
-		/*
-		 * Default copy assignment operator.
+		/**
+		 * Defaulted copy assignment operator.
 		 */
 		pool &operator=(const pool&) = default;
 
-		/*
-		 * Default move assignment operator.
+		/**
+		 * Defaulted move assignment operator.
 		 */
 		pool &operator=(pool&&) = default;
 
-		/*
-		 * Retrieve pool's root object.
+		/**
+		 * Retrieves pool's root object.
 		 *
-		 * Returns a persistent pointer to the root object.
+		 * @return persistent pointer to the root object.
 		 */
 		persistent_ptr<T> get_root()
 		{
@@ -117,12 +120,17 @@ namespace obj
 			return root;
 		}
 
-		/*
-		 * Open an existing pool/pool set.
+		/**
+		 * Opens an existing object store memory pool.
 		 *
-		 * Returns a handle to the opened pool.
+		 * @param path System path to the file containing the memory
+		 *	pool or a pool set.
+		 * @param layout Unique identifier of the pool as specified at
+		 *	pool creation time.
 		 *
-		 * Throws a pool_error on any pool open error.
+		 * @return handle to the opened pool.
+		 *
+		 * @throw nvml::pool_error when an error during opening occurs.
 		 */
 		static pool<T> open(const std::string &path,
 				const std::string &layout)
@@ -135,12 +143,21 @@ namespace obj
 			return pool(pop);
 		}
 
-		/*
-		 * Create a new pool/pool set.
+		/**
+		 * Creates a new transactional object store pool.
 		 *
-		 * Returns a handle to the created pool.
+		 * @param path System path to the file to be created. If exists
+		 *	the pool can be created in-place depending on the size
+		 *	parameter. Existing file must be zeroed.
+		 * @param layout Unique identifier of the pool, can be NULL or
+		 *	any NULL-terminated string.
+		 * @param size Size of the pool in bytes. If zero and the file
+		 *	exists the pool is created in-place.
+		 * @param mode File mode for the new file.
 		 *
-		 * Throws a pool_error on any pool create error.
+		 * @return handle to the created pool.
+		 *
+		 * @throw nvml::pool_error when an error during creation occurs.
 		 */
 		static pool<T> create(const std::string &path,
 				const std::string &layout,
@@ -155,10 +172,15 @@ namespace obj
 			return pool(pop);
 		}
 
-		/*
-		 * Check if a given pool is consistent.
+		/**
+		 * Checks if a given pool is consistent.
 		 *
-		 * Returns -1 on error, 1 if file is consistent, 0 otherwise.
+		 * @param path System path to the file containing the memory
+		 *	pool or a pool set.
+		 * @param layout Unique identifier of the pool as specified at
+		 *	pool creation time.
+		 *
+		 * @return -1 on error, 1 if file is consistent, 0 otherwise.
 		 */
 		static int check(const std::string &path,
 				const std::string &layout)
@@ -166,10 +188,10 @@ namespace obj
 			return pmemobj_check(path.c_str(), layout.c_str());
 		}
 
-		/*
+		/**
 		 * Closes the pool.
 		 *
-		 * Throws std::logic_error if the pool has already been closed.
+		 * @throw std::logic_error if the pool has already been closed.
 		 */
 		void close()
 		{
@@ -180,12 +202,12 @@ namespace obj
 			this->pop = nullptr;
 		}
 
-		/*
-		 * Get the C style handle to the pool.
+		/**
+		 * Gets the C style handle to the pool.
 		 *
 		 * Necessary to be able to use the pool with the C API.
 		 *
-		 * Returns the pools opaque handle.
+		 * @return pool opaque handle.
 		 */
 		PMEMobjpool *get_handle() noexcept
 		{
