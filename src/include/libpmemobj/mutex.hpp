@@ -94,7 +94,7 @@ namespace obj {
 		 * the same thread tries to lock a mutex it already owns,
 		 * the behavior is undefined.
 		 *
-		 * @return `true` on successful lock aquisition, `false`
+		 * @return `true` on successful lock acquisition, `false`
 		 * otherwise.
 		 *
 		 * @throw lock_error when an error occurs, this includes all
