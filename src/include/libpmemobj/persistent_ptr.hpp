@@ -44,12 +44,15 @@
 #include "libpmemobj.h"
 #include "libpmemobj/detail/specialization.hpp"
 #include "libpmemobj/detail/common.hpp"
+#include "libpmemobj/pool.hpp"
 
 namespace nvml
 {
 
 namespace obj
 {
+	template <typename T> class pool;
+
 	/**
 	 * Persistent pointer class.
 	 *
@@ -349,6 +352,63 @@ namespace obj
 
 			return *this;
 		}
+
+		/**
+		 * Persists the content of the underlying object.
+		 *
+		 * @param[in] pop Pmemobj pool
+		 */
+		template <typename Y>
+		void persist(pool<Y> &pop)
+		{
+			pop.persist(this->get(), sizeof (T));
+		}
+
+		/**
+		 * Persists what the persistent pointer points to.
+		 *
+		 * @throw pool_error when cannot get pool from persistent
+		 * pointer
+		 */
+		void persist(void)
+		{
+			pmemobjpool *pop = pmemobj_pool_by_oid(this->raw());
+
+			if (pop == nullptr)
+				throw pool_error("Cannot get pool from "
+						"persistent pointer");
+
+			pmemobj_persist(pop, this->get(), sizeof (T));
+		}
+
+		/**
+		 * Flushes what the persistent pointer points to.
+		 *
+		 * @param[in] pop Pmemobj pool
+		 */
+		template <typename Y>
+		void flush(pool<Y> &pop)
+		{
+			pop.flush(this->get(), sizeof (T));
+		}
+
+		/**
+		 * Flushes what the persistent pointer points to.
+		 *
+		 * @throw pool_error when cannot get pool from persistent
+		 * pointer
+		 */
+		void flush(void)
+		{
+			pmemobjpool *pop = pmemobj_pool_by_oid(this->raw());
+
+			if (pop == nullptr)
+				throw pool_error("Cannot get pool from "
+						"persistent pointer");
+
+			pmemobj_flush(pop, this->get(), sizeof (T));
+		}
+
 	private:
 		/* The underlying PMEMoid of the held object. */
 		PMEMoid oid;
