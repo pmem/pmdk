@@ -126,7 +126,7 @@ namespace obj
 		}
 
 		/**
-		 * Retrives read-write reference of the object.
+		 * Retrieves read-write reference of the object.
 		 *
 		 * The entire object is automatically added to the transaction.
 		 *
@@ -143,7 +143,7 @@ namespace obj
 		}
 
 		/**
-		 * Retrives read-only const reference of the object.
+		 * Retrieves read-only const reference of the object.
 		 *
 		 * This method has no transaction side effects.
 		 *
