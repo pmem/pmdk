@@ -41,13 +41,14 @@
 #include "libpmemobj.h"
 
 #include "libpmemobj/detail/specialization.hpp"
+#include "libpmemobj/detail/common.hpp"
 
 namespace nvml
 {
 
 namespace obj
 {
-	/*
+	/**
 	 * Resides on pmem class.
 	 *
 	 * p class is a property-like template class that has to be used for all
@@ -60,55 +61,100 @@ namespace obj
 	{
 		typedef p<T> this_type;
 	public:
+		/**
+		 * Value constructor.
+		 *
+		 * Directly assigns a value to the underlying storage.
+		 *
+		 * @param _val const reference to the value to be assigned.
+		 */
 		p(const T &_val) noexcept : val{_val}
 		{
 		}
 
+		/**
+		 * Defaulted constructor.
+		 */
 		p() = default;
 
-		p& operator=(const p &rhs) noexcept
+		/**
+		 * Assignment operator.
+		 *
+		 * The p<> class property assignment within a transaction
+		 * automatically registers this operation so that a rollback
+		 * is possible.
+		 *
+		 * @throw nvml::transaction_error when adding the object to the
+		 *	transaction failed.
+		 */
+		p& operator=(const p &rhs)
 		{
-			if (pmemobj_tx_stage() == TX_STAGE_WORK)
-				pmemobj_tx_add_range_direct(this, sizeof(T));
+			detail::conditional_add_to_tx(this);
 
 			this_type(rhs).swap(*this);
 
 			return *this;
 		}
 
+		/**
+		 * Converting assignment operator from a different p<>.
+		 *
+		 * Available only for convertible types.
+		 * Just like regular assignment, also automatically registers
+		 * itself in a transaction.
+		 *
+		 * @throw nvml::transaction_error when adding the object to the
+		 *	transaction failed.
+		 */
+		template<typename Y, typename = typename
+		std::enable_if<std::is_convertible<Y, T>::value>::type>
+		p &operator=(const p<Y> &rhs)
+		{
+			detail::conditional_add_to_tx(this);
+
+			this_type(rhs).swap(*this);
+
+			return *this;
+		}
+
+		/**
+		 * Conversion operator back to the underlying type.
+		 */
 		operator T() const noexcept
 		{
 			return this->val;
 		}
 
-		template<typename Y>
-		p &operator=(const p<Y> &rhs) noexcept
-		{
-			static_assert(std::is_convertible<Y, T>::value,
-				"assignment of inconvertible types");
-
-			if (pmemobj_tx_stage() == TX_STAGE_WORK)
-				pmemobj_tx_add_range_direct(this, sizeof(T));
-
-			this_type(rhs).swap(*this);
-
-			return *this;
-		}
-
+		/**
+		 * Retrives read-write reference of the object.
+		 *
+		 * The entire object is automatically added to the transaction.
+		 *
+		 * @return a reference to the object.
+		 *
+		 * @throw nvml::transaction_error when adding the object to the
+		 *	transaction failed.
+		 */
 		T &get_rw()
 		{
-			if (pmemobj_tx_stage() == TX_STAGE_WORK)
-				pmemobj_tx_add_range_direct(this, sizeof(T));
+			detail::conditional_add_to_tx(this);
 
 			return this->val;
 		}
 
-		const T &get_ro() const
+		/**
+		 * Retrives read-only const reference of the object.
+		 *
+		 * This method has no transaction side effects.
+		 *
+		 * @return a const reference to the object.
+		 */
+		const T &get_ro() const noexcept
 		{
 			return this->val;
 		}
 
-		/*
+		/**
 		 * Swaps two p objects of the same type.
 		 */
 		void swap(p &other) noexcept
@@ -119,7 +165,7 @@ namespace obj
 		T val;
 	};
 
-	/*
+	/**
 	 * Swaps two p objects of the same type.
 	 *
 	 * Non-member swap function as required by Swappable concept.
