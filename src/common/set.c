@@ -453,12 +453,11 @@ util_parse_add_replica(struct pool_set **setp)
 	*setp = set;
 
 	struct pool_replica *rep;
-	rep = Malloc(sizeof (struct pool_replica));
+	rep = Zalloc(sizeof (struct pool_replica));
 	if (rep == NULL) {
 		ERR("!Malloc");
 		return -1;
 	}
-	memset(rep, 0, sizeof (struct pool_replica));
 
 	unsigned r = set->nreplicas++;
 
@@ -536,12 +535,11 @@ util_poolset_parse(const char *path, int fd, struct pool_set **setp)
 	s = fgets(line, PARSER_MAX_LINE, fs);
 	nlines++;
 
-	set = Malloc(sizeof (struct pool_set));
+	set = Zalloc(sizeof (struct pool_set));
 	if (set == NULL) {
 		ERR("!Malloc for pool set");
 		goto err;
 	}
-	memset(set, 0, sizeof (struct pool_set));
 
 	/* check also if the last character is '\n' */
 	if (s && strncmp(line, POOLSET_HDR_SIG, POOLSET_HDR_SIG_LEN) == 0 &&
@@ -651,14 +649,12 @@ util_poolset_single(const char *path, size_t filesize, int fd, int create)
 			path, filesize, fd, create);
 
 	struct pool_set *set;
-	set = Malloc(sizeof (struct pool_set) +
+	set = Zalloc(sizeof (struct pool_set) +
 			sizeof (struct pool_replica *));
 	if (set == NULL) {
 		ERR("!Malloc for pool set");
 		return NULL;
 	}
-	memset(set, 0, sizeof (struct pool_set) +
-			sizeof (struct pool_replica *));
 
 	struct pool_replica *rep;
 	rep = Malloc(sizeof (struct pool_replica) +

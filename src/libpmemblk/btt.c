@@ -675,12 +675,11 @@ set_arena_error(struct btt *bttp, struct arena *arenap, unsigned lane)
 static int
 read_flogs(struct btt *bttp, unsigned lane, struct arena *arenap)
 {
-	if ((arenap->flogs = Malloc(bttp->nfree *
+	if ((arenap->flogs = Zalloc(bttp->nfree *
 			sizeof (struct flog_runtime))) == NULL) {
 		ERR("!Malloc for %u flog entries", bttp->nfree);
 		return -1;
 	}
-	memset(arenap->flogs, '\0', bttp->nfree * sizeof (struct flog_runtime));
 
 	/*
 	 * Load up the flog state.  read_flog_pair() will determine if
@@ -804,11 +803,10 @@ read_arenas(struct btt *bttp, unsigned lane, unsigned narena)
 {
 	LOG(3, "bttp %p lane %u narena %d", bttp, lane, narena);
 
-	if ((bttp->arenas = Malloc(narena * sizeof (*bttp->arenas))) == NULL) {
+	if ((bttp->arenas = Zalloc(narena * sizeof (*bttp->arenas))) == NULL) {
 		ERR("!Malloc for %u arenas", narena);
 		goto err;
 	}
-	memset(bttp->arenas, '\0', narena * sizeof (*bttp->arenas));
 
 	uint64_t arena_off = 0;
 	struct arena *arenap = bttp->arenas;
@@ -1265,14 +1263,12 @@ btt_init(uint64_t rawsize, uint32_t lbasize, uint8_t parent_uuid[],
 		return NULL;
 	}
 
-	struct btt *bttp = Malloc(sizeof (*bttp));
+	struct btt *bttp = Zalloc(sizeof (*bttp));
 
 	if (bttp == NULL) {
 		ERR("!Malloc %zu bytes", sizeof (*bttp));
 		return NULL;
 	}
-
-	memset(bttp, '\0', sizeof (*bttp));
 
 	util_mutex_init(&bttp->layout_write_mutex, NULL);
 	memcpy(bttp->parent_uuid, parent_uuid, BTTINFO_UUID_LEN);
@@ -1751,12 +1747,11 @@ check_arena(struct btt *bttp, struct arena *arenap)
 
 	uint64_t map_entry_off = arenap->mapoff;
 	uint32_t bitmapsize = howmany(arenap->internal_nlba, 8);
-	uint8_t *bitmap = Malloc(bitmapsize);
+	uint8_t *bitmap = Zalloc(bitmapsize);
 	if (bitmap == NULL) {
 		ERR("!Malloc for bitmap");
 		return -1;
 	}
-	memset(bitmap, '\0', bitmapsize);
 
 	/*
 	 * Go through every post-map LBA mentioned in the map and make sure

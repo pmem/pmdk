@@ -49,6 +49,7 @@ extern Malloc_func Malloc;
 extern Free_func Free;
 extern Realloc_func Realloc;
 extern Strdup_func Strdup;
+extern void *Zalloc(size_t sz);
 
 void util_set_alloc_funcs(
 		void *(*malloc_func)(size_t size),
