@@ -368,8 +368,7 @@ namespace obj
 		 *
 		 * @param[in] pop Pmemobj pool
 		 */
-		template <typename Y>
-		void persist(pool<Y> &pop)
+		void persist(pool_base &pop)
 		{
 			pop.persist(this->get(), sizeof (T));
 		}
@@ -396,8 +395,7 @@ namespace obj
 		 *
 		 * @param[in] pop Pmemobj pool
 		 */
-		template <typename Y>
-		void flush(pool<Y> &pop)
+		void flush(pool_base &pop)
 		{
 			pop.flush(this->get(), sizeof (T));
 		}
