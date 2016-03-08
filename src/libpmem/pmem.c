@@ -209,6 +209,7 @@
 
 #include "pmem.h"
 #include "util.h"
+#include "cpu.h"
 #include "out.h"
 #include "valgrind_internal.h"
 
@@ -1078,37 +1079,17 @@ pmem_memset_persist(void *pmemdest, int c, size_t len)
 }
 
 /*
- * pmem_parse_cpuinfo -- parses one line from /proc/cpuinfo
- *
- * Returns 1 when line contains flags, 0 otherwise.
+ * pmem_get_cpuinfo -- configure libpmem based on CPUID
  */
-static int
-pmem_parse_cpuinfo(char *line)
+static void
+pmem_get_cpuinfo(void)
 {
-	static const char flagspfx[] = "flags\t\t: ";
-	static const char clflush[] = " clflush ";
-	static const char clwb[] = " clwb ";
-	static const char clflushopt[] = " clflushopt ";
-	static const char pcommit[] = " pcommit ";
-	static const char sse2[] = " sse2 ";
-
-	if (strncmp(flagspfx, line, sizeof (flagspfx) - 1) != 0)
-		return 0;
-
-	/* start of list of flags */
-	char *flags = &line[sizeof (flagspfx) - 2];
-
-	/* change ending newline to space delimiter */
-	char *nl = strrchr(line, '\n');
-	if (nl)
-		*nl = ' ';
-
-	if (strstr(flags, clflush) != NULL) {
+	if (is_cpu_clflush_present()) {
 		Func_is_pmem = is_pmem_proc;
 		LOG(3, "clflush supported");
 	}
 
-	if (strstr(flags, clflushopt) != NULL) {
+	if (is_cpu_clflushopt_present()) {
 		LOG(3, "clflushopt supported");
 
 		char *e = getenv("PMEM_NO_CLFLUSHOPT");
@@ -1120,7 +1101,7 @@ pmem_parse_cpuinfo(char *line)
 		}
 	}
 
-	if (strstr(flags, clwb) != NULL) {
+	if (is_cpu_clwb_present()) {
 		LOG(3, "clwb supported");
 
 		char *e = getenv("PMEM_NO_CLWB");
@@ -1141,7 +1122,7 @@ pmem_parse_cpuinfo(char *line)
 	else
 		ASSERT(0);
 
-	if (strstr(flags, pcommit) != NULL) {
+	if (is_cpu_pcommit_present()) {
 		LOG(3, "pcommit supported");
 
 		char *e = getenv("PMEM_NO_PCOMMIT");
@@ -1160,7 +1141,7 @@ pmem_parse_cpuinfo(char *line)
 	else
 		ASSERT(0);
 
-	if (strstr(flags, sse2) != NULL) {
+	if (is_cpu_sse2_present()) {
 		LOG(3, "movnt supported");
 
 		char *e = getenv("PMEM_NO_MOVNT");
@@ -1178,38 +1159,17 @@ pmem_parse_cpuinfo(char *line)
 		LOG(3, "not using movnt");
 	else
 		ASSERT(0);
-
-	return 1;
 }
 
 /*
  * pmem_init -- load-time initialization for pmem.c
- *
- * Called automatically by the run-time loader.
  */
-__attribute__((constructor))
-static void
+void
 pmem_init(void)
 {
-	out_init(PMEM_LOG_PREFIX, PMEM_LOG_LEVEL_VAR, PMEM_LOG_FILE_VAR,
-			PMEM_MAJOR_VERSION, PMEM_MINOR_VERSION);
 	LOG(3, NULL);
-	util_init();
 
-	/* detect supported cache flush features */
-	FILE *fp;
-	if ((fp = fopen("/proc/cpuinfo", "r")) == NULL) {
-		ERR("!/proc/cpuinfo");
-	} else {
-		char line[PROCMAXLEN];	/* for fgets() */
-
-		while (fgets(line, PROCMAXLEN, fp) != NULL) {
-			if (pmem_parse_cpuinfo(line))
-				break;
-		}
-
-		fclose(fp);
-	}
+	pmem_get_cpuinfo();
 
 	/*
 	 * For testing, allow overriding the default threshold

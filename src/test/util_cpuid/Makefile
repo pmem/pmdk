@@ -1,6 +1,5 @@
-#!/bin/bash -e
 #
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,26 +31,13 @@
 #
 
 #
-# src/test/pmem_isa_proc/TEST11 -- unit test for pmem isa /proc parsing
+# src/test/util_cpuid/Makefile -- build util_cpu unit test
 #
-export UNITTEST_NAME=pmem_isa_proc/TEST11
-export UNITTEST_NUM=11
+vpath %.c ../../common
 
-# standard unit test setup
-. ../unittest/unittest.sh
+TARGET = util_cpuid
+OBJS = util_cpuid.o cpu.o
 
-require_fs_type none
-require_build_type debug
+include ../Makefile.inc
 
-setup
-
-export PMEM_NO_PCOMMIT=1
-export PFILE=cpuinfo_all
-expect_normal_exit ./pmem_isa_proc$EXESUFFIX
-set +e
-egrep 'pcommit|clwb|clflush|clflushopt|movnt' pmem$UNITTEST_NUM.log > grep$UNITTEST_NUM.log
-set -e
-
-check
-
-pass
+INCS += -I../../common/

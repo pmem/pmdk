@@ -56,6 +56,7 @@ libpmem_init(void)
 			PMEM_MAJOR_VERSION, PMEM_MINOR_VERSION);
 	LOG(3, NULL);
 	util_init();
+	pmem_init();
 }
 
 /*

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016, Intel Corporation
+ * Copyright 2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,48 +31,12 @@
  */
 
 /*
- * pmem_isa_proc.c -- unit test for libpmem isa /proc parsing
- *
- * usage: PFILE=file pmem_isa_proc
+ * cpu.h -- definitions for "cpu" module
  */
 
-#define	_GNU_SOURCE
-#include "unittest.h"
-
-#include <dlfcn.h>
-
-const char *Pfile;
-
-/*
- * fopen -- interpose on libc fopen()
- *
- * This catches opens to /proc/cpuinfo and sends them to the fake cpuinfo
- * file being tested.
- */
-FILE *
-fopen(const char *path, const char *mode)
-{
-	static FILE *(*fopen_ptr)(const char *path, const char *mode);
-
-	if (strcmp(path, "/proc/cpuinfo") == 0) {
-		Pfile = getenv("PFILE");
-		path = Pfile;
-	}
-
-	if (fopen_ptr == NULL)
-		fopen_ptr = dlsym(RTLD_NEXT, "fopen");
-
-	return (*fopen_ptr)(path, mode);
-}
-
-int
-main(int argc, char *argv[])
-{
-	START(argc, argv, "pmem_isa_proc");
-
-	OUT("redirected /proc/cpuinfo to %s", Pfile);
-
-	OUT("has_hw_drain: %d", pmem_has_hw_drain());
-
-	DONE(NULL);
-}
+int is_cpu_genuine_intel(void);
+int is_cpu_sse2_present(void);
+int is_cpu_clflush_present(void);
+int is_cpu_clflushopt_present(void);
+int is_cpu_clwb_present(void);
+int is_cpu_pcommit_present(void);
