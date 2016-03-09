@@ -627,7 +627,7 @@ btree_map_foreach(PMEMobjpool *pop, TOID(struct btree_map) map,
 int
 btree_map_check(PMEMobjpool *pop, TOID(struct btree_map) map)
 {
-	return !TOID_VALID(map);
+	return TOID_IS_NULL(map) || !TOID_VALID(map);
 }
 
 /*

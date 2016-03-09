@@ -100,7 +100,7 @@ do_tx_strdup_commit(PMEMobjpool *pop)
 		ASSERT(0);
 	} TX_END
 
-	TOID_ASSIGN(str, pmemobj_first(pop, TYPE_COMMIT));
+	TOID_ASSIGN(str, POBJ_FIRST_TYPE_NUM(pop, TYPE_COMMIT));
 	ASSERT(!TOID_IS_NULL(str));
 	ASSERTeq(strcmp(TEST_STR_1, D_RO(str)), 0);
 }
@@ -120,7 +120,7 @@ do_tx_strdup_abort(PMEMobjpool *pop)
 		ASSERT(0);
 	} TX_END
 
-	TOID_ASSIGN(str, pmemobj_first(pop, TYPE_ABORT));
+	TOID_ASSIGN(str, POBJ_FIRST_TYPE_NUM(pop, TYPE_ABORT));
 	ASSERT(TOID_IS_NULL(str));
 }
 
@@ -138,7 +138,7 @@ do_tx_strdup_null(PMEMobjpool *pop)
 		ASSERT(0);
 	} TX_END
 
-	TOID_ASSIGN(str, pmemobj_first(pop, TYPE_ABORT));
+	TOID_ASSIGN(str, POBJ_FIRST_TYPE_NUM(pop, TYPE_ABORT));
 	ASSERT(TOID_IS_NULL(str));
 }
 
@@ -159,7 +159,7 @@ do_tx_strdup_free_commit(PMEMobjpool *pop)
 		ASSERT(0);
 	} TX_END
 
-	TOID_ASSIGN(str, pmemobj_first(pop, TYPE_FREE_COMMIT));
+	TOID_ASSIGN(str, POBJ_FIRST_TYPE_NUM(pop, TYPE_FREE_COMMIT));
 	ASSERT(TOID_IS_NULL(str));
 }
 
@@ -181,7 +181,7 @@ do_tx_strdup_free_abort(PMEMobjpool *pop)
 		ASSERT(0);
 	} TX_END
 
-	TOID_ASSIGN(str, pmemobj_first(pop, TYPE_FREE_ABORT));
+	TOID_ASSIGN(str, POBJ_FIRST_TYPE_NUM(pop, TYPE_FREE_ABORT));
 	ASSERT(TOID_IS_NULL(str));
 }
 
@@ -209,11 +209,11 @@ do_tx_strdup_commit_nested(PMEMobjpool *pop)
 		ASSERT(0);
 	} TX_END
 
-	TOID_ASSIGN(str1, pmemobj_first(pop, TYPE_COMMIT_NESTED1));
+	TOID_ASSIGN(str1, POBJ_FIRST_TYPE_NUM(pop, TYPE_COMMIT_NESTED1));
 	ASSERT(!TOID_IS_NULL(str1));
 	ASSERTeq(strcmp(TEST_STR_1, D_RO(str1)), 0);
 
-	TOID_ASSIGN(str2, pmemobj_first(pop, TYPE_COMMIT_NESTED2));
+	TOID_ASSIGN(str2, POBJ_FIRST_TYPE_NUM(pop, TYPE_COMMIT_NESTED2));
 	ASSERT(!TOID_IS_NULL(str2));
 	ASSERTeq(strcmp(TEST_STR_2, D_RO(str2)), 0);
 }
@@ -243,10 +243,10 @@ do_tx_strdup_abort_nested(PMEMobjpool *pop)
 		ASSERT(0);
 	} TX_END
 
-	TOID_ASSIGN(str1, pmemobj_first(pop, TYPE_ABORT_NESTED1));
+	TOID_ASSIGN(str1, POBJ_FIRST_TYPE_NUM(pop, TYPE_ABORT_NESTED1));
 	ASSERT(TOID_IS_NULL(str1));
 
-	TOID_ASSIGN(str2, pmemobj_first(pop, TYPE_ABORT_NESTED2));
+	TOID_ASSIGN(str2, POBJ_FIRST_TYPE_NUM(pop, TYPE_ABORT_NESTED2));
 	ASSERT(TOID_IS_NULL(str2));
 }
 
@@ -277,10 +277,10 @@ do_tx_strdup_abort_after_nested(PMEMobjpool *pop)
 		ASSERT(0);
 	} TX_END
 
-	TOID_ASSIGN(str1, pmemobj_first(pop, TYPE_ABORT_AFTER_NESTED1));
+	TOID_ASSIGN(str1, POBJ_FIRST_TYPE_NUM(pop, TYPE_ABORT_AFTER_NESTED1));
 	ASSERT(TOID_IS_NULL(str1));
 
-	TOID_ASSIGN(str2, pmemobj_first(pop, TYPE_ABORT_AFTER_NESTED2));
+	TOID_ASSIGN(str2, POBJ_FIRST_TYPE_NUM(pop, TYPE_ABORT_AFTER_NESTED2));
 	ASSERT(TOID_IS_NULL(str2));
 }
 

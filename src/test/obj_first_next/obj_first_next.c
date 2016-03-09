@@ -259,9 +259,30 @@ static void
 do_cleanup()
 {
 	PMEMoid oid, oid_tmp;
-	unsigned int type_num;
-	POBJ_FOREACH_SAFE(pop, oid, oid_tmp, type_num)
+	POBJ_FOREACH_SAFE(pop, oid, oid_tmp)
 		pmemobj_free(&oid);
+}
+
+static void
+test_internal_object_mask(PMEMobjpool *pop)
+{
+	/* allocate root object */
+	PMEMoid root = pmemobj_root(pop, sizeof (struct type));
+
+	TX_BEGIN(pop) {
+		/* trigger creation of a range cache */
+		pmemobj_tx_add_range(root, 0, 8);
+	} TX_END
+
+	PMEMoid oid;
+	pmemobj_alloc(pop, &oid, sizeof (struct type), 0, NULL, NULL);
+	ASSERT(!OID_IS_NULL(oid));
+
+	/* verify that there's no root object nor range cache anywhere */
+	for (PMEMoid iter = pmemobj_first(pop); !OID_IS_NULL(iter);
+		iter = pmemobj_next(iter)) {
+		ASSERT(OID_EQUALS(iter, oid));
+	}
 }
 
 int
@@ -302,6 +323,9 @@ main(int argc, char *argv[])
 		}
 	}
 	do_cleanup();
+
+	test_internal_object_mask(pop);
+
 	pmemobj_close(pop);
 
 	DONE(NULL);

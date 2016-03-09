@@ -83,7 +83,6 @@ const char *pmemobj_check_version(
 #define	PMEMOBJ_MIN_POOL ((size_t)(1024 * 1024 * 8)) /* 8 MB */
 #define	PMEMOBJ_MAX_ALLOC_SIZE ((size_t)0x3FFDFFFC0)
 #define	PMEMOBJ_MAX_LAYOUT ((size_t)1024)
-#define	PMEMOBJ_NUM_OID_TYPES ((unsigned)1024)
 
 /*
  * Pool management...
@@ -196,7 +195,7 @@ typedef struct pmemoid {
 	(lhs).oid.pool_uuid_lo == (rhs).oid.pool_uuid_lo)
 
 /* type number of root object */
-#define	POBJ_ROOT_TYPE_NUM UINT16_MAX
+#define	POBJ_ROOT_TYPE_NUM 0
 #define	_toid_struct
 #define	_toid_union
 #define	_toid_enum
@@ -219,12 +218,6 @@ _toid_##t##_toid(PMEMoid _oid) : oid(_oid)\
 #endif
 
 /*
- * This will cause a compile-time error for typed OID's declared
- * with a type number exceeding the limit.
- */
-#define	_TOID_TYPE_NUM(i) ((i) < PMEMOBJ_NUM_OID_TYPES ? (i) : UINT64_MAX)
-
-/*
  * Declaration of typed OID
  */
 #define	_TOID_DECLARE(t, i)\
@@ -240,7 +233,7 @@ TOID(t)\
 /*
  * Declaration of typed OID of an object
  */
-#define	TOID_DECLARE(t, i) _TOID_DECLARE(t, _TOID_TYPE_NUM(i))
+#define	TOID_DECLARE(t, i) _TOID_DECLARE(t, i)
 
 /*
  * Declaration of typed OID of a root object
@@ -364,32 +357,32 @@ pmemobj_direct(PMEMoid oid)
  * memory reserved for the object is automatically reclaimed.
  */
 int pmemobj_alloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
-	unsigned int type_num, void (*constructor)(PMEMobjpool *pop, void *ptr,
+	uint64_t type_num, void (*constructor)(PMEMobjpool *pop, void *ptr,
 	void *arg), void *arg);
 
 /*
  * Allocates a new zeroed object from the pool.
  */
 int pmemobj_zalloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
-	unsigned int type_num);
+	uint64_t type_num);
 
 /*
  * Resizes an existing object.
  */
 int pmemobj_realloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
-	unsigned int type_num);
+	uint64_t type_num);
 
 /*
  * Resizes an existing object, if extended new space is zeroed.
  */
 int pmemobj_zrealloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
-	unsigned int type_num);
+	uint64_t type_num);
 
 /*
  * Allocates a new object with duplicate of the string s.
  */
 int pmemobj_strdup(PMEMobjpool *pop, PMEMoid *oidp, const char *s,
-	unsigned int type_num);
+	uint64_t type_num);
 
 /*
  * Frees an existing object.
@@ -407,7 +400,7 @@ size_t pmemobj_alloc_usable_size(PMEMoid oid);
 /*
  * Returns the type number of the object.
  */
-int pmemobj_type_num(PMEMoid oid);
+uint64_t pmemobj_type_num(PMEMoid oid);
 
 /*
  * If called for the first time on a newly created pool, the root object
@@ -480,20 +473,32 @@ void pmemobj_drain(PMEMobjpool *pop);
 /*
  * Returns the first object of the specified type number.
  */
-PMEMoid pmemobj_first(PMEMobjpool *pop, unsigned int type_num);
+PMEMoid pmemobj_first(PMEMobjpool *pop);
 
 /*
- * Returns the next object (in order of allocations) of the same type.
+ * Returns the next object of the same type.
  */
 PMEMoid pmemobj_next(PMEMoid oid);
 
-#define	POBJ_FIRST(pop, t) (\
-{ TOID(t) _pobj_ret = (TOID(t))pmemobj_first((pop), TOID_TYPE_NUM(t));\
+#define	POBJ_FIRST_TYPE_NUM(pop, type_num) (\
+{ PMEMoid _pobj_ret = pmemobj_first(pop);\
+while (!OID_IS_NULL(_pobj_ret) &&\
+	pmemobj_type_num(_pobj_ret) != type_num) {\
+	_pobj_ret = pmemobj_next(_pobj_ret);\
+};\
 _pobj_ret; })
 
-#define	POBJ_NEXT(o) (\
-{ __typeof__(o) _pobj_ret = (__typeof__(o))pmemobj_next((o).oid);\
+#define	POBJ_FIRST(pop, t) ((TOID(t))POBJ_FIRST_TYPE_NUM(pop, TOID_TYPE_NUM(t)))
+
+#define	POBJ_NEXT_TYPE_NUM(o) (\
+{ PMEMoid _pobj_ret = o;\
+do {\
+	_pobj_ret = pmemobj_next(_pobj_ret);\
+} while (!OID_IS_NULL(_pobj_ret) &&\
+	pmemobj_type_num(_pobj_ret) != pmemobj_type_num(o));\
 _pobj_ret; })
+
+#define	POBJ_NEXT(o) ((__typeof__(o))POBJ_NEXT_TYPE_NUM(o.oid))
 
 #define	POBJ_NEW(pop, o, t, constr, arg) (\
 { TOID(t) *_pobj_tmp = (o);\
@@ -563,19 +568,17 @@ void _pobj_debug_notice(const char *func_name, const char *file, int line);
 /*
  * Iterates through every existing allocated object.
  */
-#define	POBJ_FOREACH(pop, varoid, vartype_num)\
+#define	POBJ_FOREACH(pop, varoid)\
 for (_POBJ_DEBUG_NOTICE_IN_TX_FOR("POBJ_FOREACH")\
-	vartype_num = 0; vartype_num < PMEMOBJ_NUM_OID_TYPES; ++vartype_num)\
-	for (varoid = pmemobj_first(pop, vartype_num);\
+	varoid = pmemobj_first(pop);\
 		(varoid).off != 0; varoid = pmemobj_next(varoid))
 
 /*
  * Safe variant of POBJ_FOREACH in which pmemobj_free on varoid is allowed
  */
-#define	POBJ_FOREACH_SAFE(pop, varoid, nvaroid, vartype_num)\
+#define	POBJ_FOREACH_SAFE(pop, varoid, nvaroid)\
 for (_POBJ_DEBUG_NOTICE_IN_TX_FOR("POBJ_FOREACH_SAFE")\
-	vartype_num = 0; vartype_num < PMEMOBJ_NUM_OID_TYPES; ++vartype_num)\
-	for (varoid = pmemobj_first(pop, vartype_num);\
+	varoid = pmemobj_first(pop);\
 		(varoid).off != 0 && (nvaroid = pmemobj_next(varoid), 1);\
 		varoid = nvaroid)
 
@@ -583,23 +586,16 @@ for (_POBJ_DEBUG_NOTICE_IN_TX_FOR("POBJ_FOREACH_SAFE")\
  * Iterates through every object of the specified type.
  */
 #define	POBJ_FOREACH_TYPE(pop, var)\
-for (_POBJ_DEBUG_NOTICE_IN_TX_FOR("POBJ_FOREACH_TYPE")\
-	var = (__typeof__(var))pmemobj_first((pop),\
-		TOID_TYPE_NUM_OF(var));\
-		TOID_IS_NULL(var) == 0;\
-		var = POBJ_NEXT(var))
+POBJ_FOREACH(pop, var.oid)\
+if (pmemobj_type_num(var.oid) == TOID_TYPE_NUM_OF(var))
 
 /*
  * Safe variant of POBJ_FOREACH_TYPE in which pmemobj_free on var
  * is allowed.
  */
 #define	POBJ_FOREACH_SAFE_TYPE(pop, var, nvar)\
-for (_POBJ_DEBUG_NOTICE_IN_TX_FOR("POBJ_FOREACH_SAFE_TYPE")\
-	var = (__typeof__(var))pmemobj_first((pop),\
-	TOID_TYPE_NUM_OF(var));\
-	TOID_IS_NULL(var) == 0 &&\
-	(nvar = POBJ_NEXT(var), 1);\
-	var = nvar)
+POBJ_FOREACH_SAFE(pop, var.oid, nvar.oid)\
+if (pmemobj_type_num(var.oid) == TOID_TYPE_NUM_OF(var))
 
 /*
  * Non-transactional persistent atomic circular doubly-linked list
@@ -620,7 +616,7 @@ int pmemobj_list_insert(PMEMobjpool *pop, size_t pe_offset, void *head,
 	PMEMoid dest, int before, PMEMoid oid);
 
 PMEMoid pmemobj_list_insert_new(PMEMobjpool *pop, size_t pe_offset, void *head,
-	PMEMoid dest, int before, size_t size, unsigned int type_num,
+	PMEMoid dest, int before, size_t size, uint64_t type_num,
 	void (*constructor)(PMEMobjpool *pop, void *ptr, void *arg), void *arg);
 
 int pmemobj_list_remove(PMEMobjpool *pop, size_t pe_offset, void *head,
@@ -933,7 +929,7 @@ int pmemobj_tx_add_range_direct(const void *ptr, size_t size);
  *
  * This function must be called during TX_STAGE_WORK.
  */
-PMEMoid pmemobj_tx_alloc(size_t size, unsigned int type_num);
+PMEMoid pmemobj_tx_alloc(size_t size, uint64_t type_num);
 
 /*
  * Transactionally allocates new zeroed object.
@@ -943,7 +939,7 @@ PMEMoid pmemobj_tx_alloc(size_t size, unsigned int type_num);
  *
  * This function must be called during TX_STAGE_WORK.
  */
-PMEMoid pmemobj_tx_zalloc(size_t size, unsigned int type_num);
+PMEMoid pmemobj_tx_zalloc(size_t size, uint64_t type_num);
 
 /*
  * Transactionally resizes an existing object.
@@ -953,7 +949,7 @@ PMEMoid pmemobj_tx_zalloc(size_t size, unsigned int type_num);
  *
  * This function must be called during TX_STAGE_WORK.
  */
-PMEMoid pmemobj_tx_realloc(PMEMoid oid, size_t size, unsigned int type_num);
+PMEMoid pmemobj_tx_realloc(PMEMoid oid, size_t size, uint64_t type_num);
 
 /*
  * Transactionally resizes an existing object, if extended new space is zeroed.
@@ -963,7 +959,7 @@ PMEMoid pmemobj_tx_realloc(PMEMoid oid, size_t size, unsigned int type_num);
  *
  * This function must be called during TX_STAGE_WORK.
  */
-PMEMoid pmemobj_tx_zrealloc(PMEMoid oid, size_t size, unsigned int type_num);
+PMEMoid pmemobj_tx_zrealloc(PMEMoid oid, size_t size, uint64_t type_num);
 
 /*
  * Transactionally allocates a new object with duplicate of the string s.
@@ -973,7 +969,7 @@ PMEMoid pmemobj_tx_zrealloc(PMEMoid oid, size_t size, unsigned int type_num);
  *
  * This function must be called during TX_STAGE_WORK.
  */
-PMEMoid pmemobj_tx_strdup(const char *s, unsigned int type_num);
+PMEMoid pmemobj_tx_strdup(const char *s, uint64_t type_num);
 
 /*
  * Transactionally frees an existing object.

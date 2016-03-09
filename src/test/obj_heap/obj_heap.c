@@ -37,6 +37,7 @@
 #include "libpmemobj.h"
 #include "util.h"
 #include "redo.h"
+#include "memops.h"
 #include "heap_layout.h"
 #include "heap.h"
 #include "bucket.h"
@@ -119,12 +120,12 @@ test_heap()
 	ASSERT(next.chunk_id == blocks[2].chunk_id);
 	blocksp[2] = &next;
 
-	void *hdr;
-	uint64_t op_result;
+	struct operation_context *ctx = operation_init(pop, NULL);
 	struct memory_block result =
-		heap_coalesce(pop, blocksp, MAX_BLOCKS, HEAP_OP_FREE, &hdr,
-			&op_result);
-	*((uint64_t *)hdr) = op_result;
+		heap_coalesce(pop, blocksp, MAX_BLOCKS, HEAP_OP_FREE, ctx);
+	operation_process(ctx);
+	operation_delete(ctx);
+
 	ASSERT(result.size_idx == 3);
 	ASSERT(result.chunk_id == prev.chunk_id);
 

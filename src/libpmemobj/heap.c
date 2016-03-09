@@ -41,8 +41,9 @@
 #include "libpmem.h"
 #include "libpmemobj.h"
 #include "util.h"
-#include "heap.h"
 #include "redo.h"
+#include "memops.h"
+#include "heap.h"
 #include "heap_layout.h"
 #include "bucket.h"
 #include "lane.h"
@@ -629,11 +630,9 @@ heap_ensure_bucket_filled(PMEMobjpool *pop, struct bucket *b)
  * heap_get_cache_bucket -- (internal) returns the bucket cache for given id
  */
 static struct bucket *
-heap_get_cache_bucket(struct pmalloc_heap *heap, int bucket_id)
+heap_get_cache_bucket(PMEMobjpool *pop, int id)
 {
-	ASSERT(Lane_idx != UINT32_MAX);
-
-	return heap->caches[Lane_idx % heap->ncaches].buckets[bucket_id];
+	return pop->heap->caches[Lane_idx % pop->heap->ncaches].buckets[id];
 }
 
 /*
@@ -644,8 +643,7 @@ heap_get_best_bucket(PMEMobjpool *pop, size_t size)
 {
 	if (size <= pop->heap->last_run_max_size) {
 #ifdef USE_PER_LANE_BUCKETS
-		return heap_get_cache_bucket(pop->heap,
-			SIZE_TO_BID(pop->heap, size));
+		return heap_get_cache_bucket(pop, SIZE_TO_BID(pop->heap, size));
 #else
 		return pop->heap->buckets[SIZE_TO_BID(pop->heap, size)];
 #endif
@@ -763,7 +761,7 @@ heap_drain_to_auxiliary(PMEMobjpool *pop, struct bucket *auxb,
 		b = h->caches[cache_id].buckets[b_id];
 
 		/* don't drain from the deficient (requesting) cache */
-		if (heap_get_cache_bucket(h, b_id) == b)
+		if (heap_get_cache_bucket(pop, b_id) == b)
 			continue;
 
 		drained_cache = 0;
@@ -1079,19 +1077,21 @@ chunk_get_chunk_hdr_value(struct chunk_header hdr, uint16_t type,
 }
 
 /*
- * heap_get_block_header -- returns the header of the memory block
+ * heap_prep_block_header_operation -- returns the header of the memory block
  */
-void *
-heap_get_block_header(PMEMobjpool *pop, struct memory_block m,
-	enum heap_op op, uint64_t *op_result)
+void
+heap_prep_block_header_operation(PMEMobjpool *pop, struct memory_block m,
+	enum heap_op op, struct operation_context *ctx)
 {
 	struct zone *z = &pop->heap->layout->zones[m.zone_id];
 	struct chunk_header *hdr = &z->chunk_headers[m.chunk_id];
 
 	if (hdr->type != CHUNK_TYPE_RUN) {
-		*op_result = chunk_get_chunk_hdr_value(*hdr,
+		uint64_t val = chunk_get_chunk_hdr_value(*hdr,
 			op == HEAP_OP_ALLOC ? CHUNK_TYPE_USED : CHUNK_TYPE_FREE,
 			m.size_idx);
+
+		operation_add_entry(ctx, hdr, val, OPERATION_SET);
 
 		VALGRIND_DO_MAKE_MEM_NOACCESS(pop, hdr + 1,
 				(hdr->size_idx - 1) *
@@ -1099,7 +1099,7 @@ heap_get_block_header(PMEMobjpool *pop, struct memory_block m,
 
 		heap_chunk_write_footer(pop, hdr, m.size_idx);
 
-		return hdr;
+		return;
 	}
 
 	struct chunk_run *r = (struct chunk_run *)&z->chunks[m.chunk_id];
@@ -1107,12 +1107,12 @@ heap_get_block_header(PMEMobjpool *pop, struct memory_block m,
 			(m.block_off % BITS_PER_VALUE);
 
 	int bpos = m.block_off / BITS_PER_VALUE;
-	if (op == HEAP_OP_FREE)
-		*op_result = r->bitmap[bpos] & ~bmask;
+	if (op == HEAP_OP_ALLOC)
+		operation_add_entry(ctx, &r->bitmap[bpos],
+			bmask, OPERATION_OR);
 	else
-		*op_result = r->bitmap[bpos] | bmask;
-
-	return &r->bitmap[bpos];
+		operation_add_entry(ctx, &r->bitmap[bpos],
+			~bmask, OPERATION_AND);
 }
 
 /*
@@ -1302,7 +1302,7 @@ heap_unlock_if_run(PMEMobjpool *pop, struct memory_block m)
 struct memory_block
 heap_coalesce(PMEMobjpool *pop,
 	struct memory_block *blocks[], int n, enum heap_op op,
-	void **hdr, uint64_t *op_result)
+	struct operation_context *ctx)
 {
 	struct memory_block ret;
 	struct memory_block *b = NULL;
@@ -1320,7 +1320,7 @@ heap_coalesce(PMEMobjpool *pop,
 	ret.zone_id = b->zone_id;
 	ret.block_off = b->block_off;
 
-	*hdr = heap_get_block_header(pop, ret, op, op_result);
+	heap_prep_block_header_operation(pop, ret, op, ctx);
 
 	return ret;
 }
@@ -1330,7 +1330,7 @@ heap_coalesce(PMEMobjpool *pop,
  */
 struct memory_block
 heap_free_block(PMEMobjpool *pop, struct bucket *b,
-	struct memory_block m, void *hdr, uint64_t *op_result)
+	struct memory_block m, struct operation_context *ctx)
 {
 	struct memory_block *blocks[3] = {NULL, &m, NULL};
 
@@ -1347,7 +1347,7 @@ heap_free_block(PMEMobjpool *pop, struct bucket *b,
 	}
 
 	struct memory_block res = heap_coalesce(pop, blocks, 3, HEAP_OP_FREE,
-		hdr, op_result);
+		ctx);
 
 	return res;
 }
@@ -1399,6 +1399,16 @@ heap_degrade_run_if_empty(PMEMobjpool *pop, struct bucket *b,
 	ASSERTeq(b->type, BUCKET_RUN);
 	struct bucket_run *r = (struct bucket_run *)b;
 
+	/*
+	 * The redo log ptr can be NULL if we are sure that there's only one
+	 * persistent value modification in the entire operation context.
+	 */
+	struct operation_context *ctx = operation_init(pop, NULL);
+	if (ctx == NULL) {
+		ERR("Failed to initialize memory operation context");
+		return;
+	}
+
 	util_mutex_lock(&b->lock);
 	util_mutex_lock(heap_get_run_lock(pop, m.chunk_id));
 
@@ -1431,21 +1441,15 @@ heap_degrade_run_if_empty(PMEMobjpool *pop, struct bucket *b,
 	m.size_idx = 1;
 	heap_chunk_init(pop, hdr, CHUNK_TYPE_FREE, m.size_idx);
 
-	uint64_t *mhdr;
-	uint64_t op_result;
-	struct memory_block fm =
-			heap_free_block(pop, defb, m, &mhdr, &op_result);
-
-	VALGRIND_ADD_TO_TX(mhdr, sizeof (*mhdr));
-	*mhdr = op_result;
-	VALGRIND_REMOVE_FROM_TX(mhdr, sizeof (*mhdr));
-	pop->persist(pop, mhdr, sizeof (*mhdr));
+	struct memory_block fm = heap_free_block(pop, defb, m, ctx);
+	operation_process(ctx);
 
 	CNT_OP(defb, insert, pop, fm);
 
 	util_mutex_unlock(&defb->lock);
 
 out:
+	operation_delete(ctx);
 	util_mutex_unlock(heap_get_run_lock(pop, m.chunk_id));
 	util_mutex_unlock(&b->lock);
 }
@@ -1540,8 +1544,16 @@ heap_boot(PMEMobjpool *pop)
 
 	util_mutex_init(&h->active_run_lock, NULL);
 
+	pthread_mutexattr_t lock_attr;
+	if ((err = pthread_mutexattr_init(&lock_attr)) != 0)
+		FATAL("!pthread_mutexattr_init");
+
+	if ((err = pthread_mutexattr_settype(
+			&lock_attr, PTHREAD_MUTEX_RECURSIVE)) != 0)
+		FATAL("!pthread_mutexattr_settype");
+
 	for (int i = 0; i < MAX_RUN_LOCKS; ++i)
-		util_mutex_init(&h->run_locks[i], NULL);
+		util_mutex_init(&h->run_locks[i], &lock_attr);
 
 	memset(h->last_drained, 0, sizeof (h->last_drained));
 
@@ -1850,4 +1862,111 @@ heap_check(PMEMobjpool *pop)
 	}
 
 	return 0;
+}
+
+/*
+ * heap_run_foreach_object -- (internal) iterates through objects in a run
+ */
+static int
+heap_run_foreach_object(PMEMobjpool *pop, object_callback cb, void *arg,
+	struct chunk_run *run, struct memory_block start)
+{
+	uint64_t bs = run->block_size;
+	uint64_t block_off;
+
+	uint64_t bitmap_nallocs = RUN_NALLOCS(bs);
+	uint64_t unused_bits = RUN_BITMAP_SIZE - bitmap_nallocs;
+	uint64_t unused_values = unused_bits / BITS_PER_VALUE;
+	uint64_t bitmap_nval = MAX_BITMAP_VALUES - unused_values;
+	unused_bits -= unused_values * BITS_PER_VALUE;
+
+	struct allocation_header *alloc;
+
+	uint64_t i = 0;
+	uint64_t block_start = 0;
+
+	for (; i < bitmap_nval; ++i) {
+		uint64_t v = run->bitmap[i];
+		block_off = (BITS_PER_VALUE * (uint64_t)i);
+
+		for (uint64_t j = block_start; j < BITS_PER_VALUE; ) {
+
+			if (block_off + j >= bitmap_nallocs)
+				break;
+
+			if (!BIT_IS_CLR(v, j)) {
+				alloc = (struct allocation_header *)
+					(run->data + (block_off + j) * bs);
+				j += (alloc->size / bs);
+				if (cb(OBJ_PTR_TO_OFF(pop, alloc), arg) != 0)
+					return 1;
+			} else {
+				++j;
+			}
+		}
+		block_start = 0;
+	}
+
+	return 0;
+}
+
+/*
+ * heap_chunk_foreach_object -- (internal) iterates through objects in a chunk
+ */
+static int
+heap_chunk_foreach_object(PMEMobjpool *pop, object_callback cb, void *arg,
+	struct chunk_header *hdr, struct chunk *chunk,
+	struct memory_block start)
+{
+	switch (hdr->type) {
+		case CHUNK_TYPE_FREE:
+			return 0;
+		case CHUNK_TYPE_USED:
+			return cb(OBJ_PTR_TO_OFF(pop, chunk), arg);
+		case CHUNK_TYPE_RUN:
+			return heap_run_foreach_object(pop, cb, arg,
+				(struct chunk_run *)chunk, start);
+		default:
+			ASSERT(0);
+	}
+
+	return 0;
+}
+
+/*
+ * heap_zone_foreach_object -- (internal) iterates through objects in a zone
+ */
+static int
+heap_zone_foreach_object(PMEMobjpool *pop, object_callback cb, void *arg,
+	struct zone *zone, struct memory_block start)
+{
+	if (zone->header.magic == 0)
+		return 0;
+
+	uint32_t i;
+	for (i = start.chunk_id; i < zone->header.size_idx; ) {
+		if (heap_chunk_foreach_object(pop, cb, arg,
+			&zone->chunk_headers[i], &zone->chunks[i], start) != 0)
+			return 1;
+
+		i += zone->chunk_headers[i].size_idx;
+	}
+
+	return 0;
+}
+
+/*
+ * heap_foreach_object -- (internal) iterates through objects in the heap
+ */
+void
+heap_foreach_object(PMEMobjpool *pop, object_callback cb, void *arg,
+	struct memory_block start)
+{
+	struct heap_layout *layout = heap_get_layout(pop);
+
+	for (unsigned i = start.zone_id;
+		i < heap_max_zone(layout->header.size); ++i)
+		if (heap_zone_foreach_object(pop, cb, arg,
+			&layout->zones[i], start) != 0)
+			break;
 }

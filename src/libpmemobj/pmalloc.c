@@ -38,9 +38,10 @@
 
 #include "libpmemobj.h"
 #include "util.h"
+#include "redo.h"
+#include "memops.h"
 #include "pmalloc.h"
 #include "lane.h"
-#include "redo.h"
 #include "list.h"
 #include "obj.h"
 #include "out.h"
@@ -57,40 +58,37 @@ enum alloc_op_redo {
 };
 
 /*
+ * Number of bytes between end of allocation header and beginning of user data.
+ */
+#define	DATA_OFF OBJ_OOB_SIZE
+
+/*
+ * Number of bytes between beginning of memory block and beginning of user data.
+ */
+#define	ALLOC_OFF (DATA_OFF + sizeof (struct allocation_header))
+
+#define	USABLE_SIZE(_a)\
+((_a)->size - sizeof (struct allocation_header))
+
+#define	MEMORY_BLOCK_IS_EMPTY(_m)\
+((_m).size_idx == 0)
+
+#define	ALLOC_GET_HEADER(_pop, _off) (struct allocation_header *)\
+((char *)OBJ_OFF_TO_PTR((_pop), (_off)) - ALLOC_OFF)
+
+/*
  * alloc_write_header -- (internal) creates allocation header
  */
 static void
 alloc_write_header(PMEMobjpool *pop, struct allocation_header *alloc,
-	uint32_t chunk_id, uint32_t zone_id, uint64_t size)
+	struct memory_block m, uint64_t size)
 {
 	VALGRIND_ADD_TO_TX(alloc, sizeof (*alloc));
-	alloc->chunk_id = chunk_id;
+	alloc->chunk_id = m.chunk_id;
 	alloc->size = size;
-	alloc->zone_id = zone_id;
+	alloc->zone_id = m.zone_id;
 	VALGRIND_REMOVE_FROM_TX(alloc, sizeof (*alloc));
 	pop->persist(pop, alloc, sizeof (*alloc));
-}
-
-/*
- * alloc_get_header -- (internal) calculates the address of allocation header
- */
-static struct allocation_header *
-alloc_get_header(PMEMobjpool *pop, uint64_t off)
-{
-	void *ptr = (char *)pop + off;
-	struct allocation_header *alloc = (void *)((char *)ptr -
-			sizeof (*alloc));
-
-	return alloc;
-}
-
-/*
- * pop_offset -- (internal) calculates offset of ptr in the pool
- */
-static uint64_t
-pop_offset(PMEMobjpool *pop, void *ptr)
-{
-	return (uint64_t)ptr - (uint64_t)pop;
 }
 
 /*
@@ -135,59 +133,203 @@ get_mblock_from_alloc(PMEMobjpool *pop, struct allocation_header *alloc)
 }
 
 /*
- * persist_alloc -- (internal) performs a persistent allocation of the
- *	memory block previously reserved by volatile bucket
+ * alloc_reserve_block -- (internal) reserves a memory block in volatile state
+ */
+static int
+alloc_reserve_block(PMEMobjpool *pop, struct memory_block *m, size_t sizeh)
+{
+	struct bucket *b = heap_get_best_bucket(pop, sizeh);
+
+	m->size_idx = b->calc_units(b, sizeh);
+
+	int err = heap_get_bestfit_block(pop, b, m);
+
+	if (err == ENOMEM && b->type == BUCKET_HUGE)
+		return ENOMEM; /* there's only one huge bucket */
+
+	if (err == ENOMEM) {
+		/*
+		 * There's no more available memory in the common heap and in
+		 * this lane cache, fallback to the auxiliary (shared) bucket.
+		 */
+		b = heap_get_auxiliary_bucket(pop, sizeh);
+		err = heap_get_bestfit_block(pop, b, m);
+	}
+
+	if (err == ENOMEM) {
+		/*
+		 * The auxiliary bucket cannot satisfy our request, borrow
+		 * memory from other caches.
+		 */
+		heap_drain_to_auxiliary(pop, b, m->size_idx);
+		err = heap_get_bestfit_block(pop, b, m);
+	}
+
+	if (err == ENOMEM) {
+		/* we are completely out of memory */
+		return ENOMEM;
+	}
+
+	return 0;
+}
+
+/*
+ * alloc_prep_block -- (internal) prepares a memory block for allocation
  */
 static void
-persist_alloc(PMEMobjpool *pop, struct lane_section *lane,
-	struct memory_block m, uint64_t real_size, uint64_t *off,
-	void (*constructor)(PMEMobjpool *pop, void *ptr, size_t usable_size,
-	void *arg), void *arg, uint64_t data_off)
+alloc_prep_block(PMEMobjpool *pop, struct memory_block m,
+	void (*constructor)
+		(PMEMobjpool *pop, void *ptr, size_t usable_size, void *arg),
+	void *arg, uint64_t *offset_value)
 {
-#ifdef DEBUG
-	if (heap_block_is_allocated(pop, m)) {
-		ERR("heap corruption");
-		ASSERT(0);
-	}
-#endif /* DEBUG */
-
-	uint64_t op_result = 0;
-
 	void *block_data = heap_get_block_data(pop, m);
-	void *datap = (char *)block_data + sizeof (struct allocation_header);
-	void *userdatap = (char *)datap + data_off;
+	void *datap = (char *)block_data +
+		sizeof (struct allocation_header);
+	void *userdatap = (char *)datap + DATA_OFF;
+	uint64_t unit_size = heap_get_chunk_block_size(pop, m);
+	uint64_t real_size = unit_size * m.size_idx;
 
 	ASSERT((uint64_t)block_data % _POBJ_CL_ALIGNMENT == 0);
 
 	/* mark everything (including headers) as accessible */
 	VALGRIND_DO_MAKE_MEM_UNDEFINED(pop, block_data, real_size);
 	/* mark space as allocated */
-	VALGRIND_DO_MEMPOOL_ALLOC(pop, userdatap,
-			real_size -
-			sizeof (struct allocation_header) - data_off);
+	VALGRIND_DO_MEMPOOL_ALLOC(pop, userdatap, real_size - ALLOC_OFF);
 
-	alloc_write_header(pop, block_data, m.chunk_id, m.zone_id, real_size);
+	alloc_write_header(pop, block_data, m, real_size);
 
 	if (constructor != NULL)
-		constructor(pop, userdatap,
-			real_size - sizeof (struct allocation_header) -
-			data_off, arg);
+		constructor(pop, userdatap, real_size - ALLOC_OFF, arg);
 
-	heap_lock_if_run(pop, m);
+	*offset_value = OBJ_PTR_TO_OFF(pop, userdatap);
+}
 
-	void *hdr = heap_get_block_header(pop, m, HEAP_OP_ALLOC, &op_result);
+/*
+ * palloc_operation -- persistent memory operation. Takes a NULL pointer
+ *	or an existing memory block and modifies it to occupy, at least, 'size'
+ *	number of bytes.
+ */
+int
+palloc_operation(PMEMobjpool *pop,
+	uint64_t off, uint64_t *dest_off, size_t size,
+	void (*constructor)
+		(PMEMobjpool *pop, void *ptr, size_t usable_size, void *arg),
+	void *arg, struct operation_entry *entries, size_t nentries)
+{
+	struct bucket *b = NULL;
+	struct allocation_header *alloc = NULL;
+	struct memory_block m = {0, 0, 0, 0}; /* existing memory block */
+	struct memory_block nb = {0, 0, 0, 0}; /* new memory block */
+	struct memory_block rb = {0, 0, 0, 0}; /* reclaimed memory block */
+
+	size_t sizeh = size + sizeof (struct allocation_header);
+
+	int ret = 0;
+
+	struct lane_section *lane;
+	lane_hold(pop, &lane, LANE_SECTION_ALLOCATOR);
+
+	if (off != 0) {
+		alloc = ALLOC_GET_HEADER(pop, off);
+		b = heap_get_chunk_bucket(pop, alloc->chunk_id, alloc->zone_id);
+		m = get_mblock_from_alloc(pop, alloc);
+	}
+
+	/* if allocation or reallocation, reserve new memory */
+	if (size != 0) {
+		if (alloc != NULL && alloc->size == sizeh) /* no-op */
+			goto out;
+
+		if ((ret = alloc_reserve_block(pop, &nb, sizeh)) != 0)
+			goto out;
+	}
 
 	struct allocator_lane_section *sec =
 		(struct allocator_lane_section *)lane->layout;
 
-	redo_log_store(pop, sec->redo, ALLOC_OP_REDO_PTR_OFFSET,
-		pop_offset(pop, off), pop_offset(pop, datap));
-	redo_log_store_last(pop, sec->redo, ALLOC_OP_REDO_HEADER,
-		pop_offset(pop, hdr), op_result);
+	struct operation_context *ctx = operation_init(pop, sec->redo);
+	if (ctx == NULL) {
+		ERR("Failed to initialize memory operation context");
+		ret = ENOMEM;
+		goto out;
+	}
 
-	redo_log_process(pop, sec->redo, MAX_ALLOC_OP_REDO);
+	operation_add_entries(ctx, entries, nentries);
 
-	heap_unlock_if_run(pop, m);
+	uint64_t offset_value = 0; /* the resulting offset */
+
+	/* lock and persistently free the existing memory block */
+	if (!MEMORY_BLOCK_IS_EMPTY(m)) {
+#ifdef DEBUG
+		if (!heap_block_is_allocated(pop, m)) {
+			ERR("Double free or heap corruption");
+			ASSERT(0);
+		}
+#endif /* DEBUG */
+
+		heap_lock_if_run(pop, m);
+		rb = heap_free_block(pop, b, m, ctx);
+		offset_value = 0;
+	}
+
+	if (!MEMORY_BLOCK_IS_EMPTY(nb)) {
+#ifdef DEBUG
+		if (heap_block_is_allocated(pop, nb)) {
+			ERR("heap corruption");
+			ASSERT(0);
+		}
+#endif /* DEBUG */
+		alloc_prep_block(pop, nb, constructor, arg, &offset_value);
+
+		heap_lock_if_run(pop, nb);
+
+		heap_prep_block_header_operation(pop, nb, HEAP_OP_ALLOC, ctx);
+	}
+
+	/* not in-place realloc */
+	if (!MEMORY_BLOCK_IS_EMPTY(m) && !MEMORY_BLOCK_IS_EMPTY(nb)) {
+		size_t old_size = alloc->size;
+		size_t to_cpy = old_size > sizeh ? sizeh : old_size;
+		pop->memcpy_persist(pop,
+			OBJ_OFF_TO_PTR(pop, offset_value),
+			OBJ_OFF_TO_PTR(pop, off),
+			to_cpy - ALLOC_OFF);
+	}
+
+	if (dest_off != NULL)
+		operation_add_entry(ctx, dest_off, offset_value, OPERATION_SET);
+
+	operation_process(ctx);
+
+	if (!MEMORY_BLOCK_IS_EMPTY(nb)) {
+		heap_unlock_if_run(pop, nb);
+	}
+
+	if (!MEMORY_BLOCK_IS_EMPTY(m)) {
+		heap_unlock_if_run(pop, m);
+
+		VALGRIND_DO_MEMPOOL_FREE(pop,
+			(char *)heap_get_block_data(pop, m) + ALLOC_OFF);
+
+		/* we might have been operating on inactive run */
+		if (b != NULL) {
+			CNT_OP(b, insert, pop, rb);
+#ifdef DEBUG
+			if (heap_block_is_allocated(pop, rb)) {
+				ERR("heap corruption");
+				ASSERT(0);
+			}
+#endif /* DEBUG */
+			if (b->type == BUCKET_RUN)
+				heap_degrade_run_if_empty(pop, b, rb);
+		}
+	}
+	operation_delete(ctx);
+
+out:
+	lane_release(pop);
+
+	return ret;
 }
 
 /*
@@ -198,9 +340,9 @@ persist_alloc(PMEMobjpool *pop, struct lane_section *lane,
  * If successful function returns zero. Otherwise an error number is returned.
  */
 int
-pmalloc(PMEMobjpool *pop, uint64_t *off, size_t size, uint64_t data_off)
+pmalloc(PMEMobjpool *pop, uint64_t *off, size_t size)
 {
-	return pmalloc_construct(pop, off, size, NULL, NULL, data_off);
+	return palloc_operation(pop, 0, off, size, NULL, NULL, NULL, 0);
 }
 
 /*
@@ -214,60 +356,9 @@ pmalloc(PMEMobjpool *pop, uint64_t *off, size_t size, uint64_t data_off)
 int
 pmalloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
 	void (*constructor)(PMEMobjpool *pop, void *ptr,
-	size_t usable_size, void *arg), void *arg, uint64_t data_off)
+	size_t usable_size, void *arg), void *arg)
 {
-	int err;
-
-	struct lane_section *lane;
-	lane_hold(pop, &lane, LANE_SECTION_ALLOCATOR);
-
-	size_t sizeh = size + sizeof (struct allocation_header);
-
-	struct bucket *b = heap_get_best_bucket(pop, sizeh);
-
-	struct memory_block m = {0, 0, 0, 0};
-
-	m.size_idx = b->calc_units(b, sizeh);
-
-	err = heap_get_bestfit_block(pop, b, &m);
-
-	if (err == ENOMEM && b->type == BUCKET_HUGE)
-		goto out; /* there's only one huge bucket */
-
-	if (err == ENOMEM) {
-		/*
-		 * There's no more available memory in the common heap and in
-		 * this lane cache, fallback to the auxiliary (shared) bucket.
-		 */
-		b = heap_get_auxiliary_bucket(pop, sizeh);
-		err = heap_get_bestfit_block(pop, b, &m);
-	}
-
-	if (err == ENOMEM) {
-		/*
-		 * The auxiliary bucket cannot satisfy our request, borrow
-		 * memory from other caches.
-		 */
-		heap_drain_to_auxiliary(pop, b, m.size_idx);
-		err = heap_get_bestfit_block(pop, b, &m);
-	}
-
-	if (err == ENOMEM) {
-		/* we are completely out of memory */
-		goto out;
-	}
-
-	/*
-	 * Now that the memory is reserved we can go ahead with making the
-	 * allocation persistent.
-	 */
-	uint64_t real_size = b->unit_size * m.size_idx;
-	persist_alloc(pop, lane, m, real_size, off, constructor, arg, data_off);
-	err = 0;
-out:
-	lane_release(pop);
-
-	return err;
+	return palloc_operation(pop, 0, off, size, constructor, arg, NULL, 0);
 }
 
 /*
@@ -278,9 +369,9 @@ out:
  * If successful function returns zero. Otherwise an error number is returned.
  */
 int
-prealloc(PMEMobjpool *pop, uint64_t *off, size_t size, uint64_t data_off)
+prealloc(PMEMobjpool *pop, uint64_t *off, size_t size)
 {
-	return prealloc_construct(pop, off, size, NULL, NULL, data_off);
+	return palloc_operation(pop, *off, off, size, NULL, 0, NULL, 0);
 }
 
 /*
@@ -294,79 +385,10 @@ prealloc(PMEMobjpool *pop, uint64_t *off, size_t size, uint64_t data_off)
 int
 prealloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
 	void (*constructor)(PMEMobjpool *pop, void *ptr,
-	size_t usable_size, void *arg), void *arg, uint64_t data_off)
+	size_t usable_size, void *arg), void *arg)
 {
-	if (size <= pmalloc_usable_size(pop, *off))
-		return 0;
-
-	size_t sizeh = size + sizeof (struct allocation_header);
-
-	int err;
-
-	struct allocation_header *alloc = alloc_get_header(pop, *off);
-
-	struct lane_section *lane;
-	lane_hold(pop, &lane, LANE_SECTION_ALLOCATOR);
-
-	struct bucket *b = heap_get_best_bucket(pop, alloc->size);
-
-	uint32_t add_size_idx = b->calc_units(b, sizeh - alloc->size);
-	uint32_t new_size_idx = b->calc_units(b, sizeh);
-	uint64_t real_size = new_size_idx * b->unit_size;
-
-	struct memory_block cnt = get_mblock_from_alloc(pop, alloc);
-
-	heap_lock_if_run(pop, cnt);
-
-	struct memory_block next = {0, 0, 0, 0};
-	if ((err = heap_get_adjacent_free_block(pop, b, &next, cnt, 0)) != 0)
-		goto out;
-
-	if (next.size_idx < add_size_idx) {
-		err = ENOMEM;
-		goto out;
-	}
-
-	if ((err = heap_get_exact_block(pop, b, &next, add_size_idx)) != 0)
-		goto out;
-
-	struct memory_block *blocks[2] = {&cnt, &next};
-	uint64_t op_result;
-	void *hdr;
-	struct memory_block m =
-		heap_coalesce(pop, blocks, 2, HEAP_OP_ALLOC, &hdr, &op_result);
-
-	void *block_data = heap_get_block_data(pop, m);
-	void *datap = (char *)block_data + sizeof (struct allocation_header);
-	void *userdatap = (char *)datap + data_off;
-
-	/* mark new part as accessible and undefined */
-	VALGRIND_DO_MAKE_MEM_UNDEFINED(pop, (char *)block_data + alloc->size,
-			real_size - alloc->size);
-	/* resize allocated space */
-	VALGRIND_DO_MEMPOOL_CHANGE(pop, userdatap, userdatap,
-		real_size  - sizeof (struct allocation_header) - data_off);
-
-	if (constructor != NULL)
-		constructor(pop, userdatap,
-			real_size - sizeof (struct allocation_header) -
-			data_off, arg);
-
-	struct allocator_lane_section *sec =
-		(struct allocator_lane_section *)lane->layout;
-
-	redo_log_store(pop, sec->redo, ALLOC_OP_REDO_PTR_OFFSET,
-		pop_offset(pop, &alloc->size), real_size);
-	redo_log_store_last(pop, sec->redo, ALLOC_OP_REDO_HEADER,
-		pop_offset(pop, hdr), op_result);
-
-	redo_log_process(pop, sec->redo, MAX_ALLOC_OP_REDO);
-
-out:
-	heap_unlock_if_run(pop, cnt);
-	lane_release(pop);
-
-	return err;
+	return palloc_operation(pop, *off, off, size, constructor, arg,
+		NULL, 0);
 }
 
 /*
@@ -375,8 +397,7 @@ out:
 size_t
 pmalloc_usable_size(PMEMobjpool *pop, uint64_t off)
 {
-	return alloc_get_header(pop, off)->size -
-		sizeof (struct allocation_header);
+	return USABLE_SIZE(ALLOC_GET_HEADER(pop, off));
 }
 
 /*
@@ -387,55 +408,71 @@ pmalloc_usable_size(PMEMobjpool *pop, uint64_t off)
  * If successful function returns zero. Otherwise an error number is returned.
  */
 void
-pfree(PMEMobjpool *pop, uint64_t *off, uint64_t data_off)
+pfree(PMEMobjpool *pop, uint64_t *off)
 {
-	struct allocation_header *alloc = alloc_get_header(pop, *off);
+	int ret = palloc_operation(pop, *off, off, 0, NULL, NULL, NULL, 0);
+	ASSERTeq(ret, 0);
+}
 
-	struct lane_section *lane;
-	lane_hold(pop, &lane, LANE_SECTION_ALLOCATOR);
+/*
+ * pmalloc_search_cb -- (internal) foreach callback. If the argument is equal
+ *	to the current object offset then sets the argument to UINT64_MAX.
+ *	If the argument is UINT64_MAX it breaks the iteration and sets the
+ *	argument to the current object offset.
+ */
+static int
+pmalloc_search_cb(uint64_t off, void *arg)
+{
+	uint64_t *prev = arg;
 
-	struct bucket *b = heap_get_chunk_bucket(pop,
-		alloc->chunk_id, alloc->zone_id);
+	if (*prev == UINT64_MAX) {
+		*prev = off;
 
+		return 1;
+	}
+
+	if (off == *prev)
+		*prev = UINT64_MAX;
+
+	return 0;
+}
+
+/*
+ * pmalloc_first -- returns the first object from the heap.
+ */
+uint64_t
+pmalloc_first(PMEMobjpool *pop)
+{
+	uint64_t off_search = UINT64_MAX;
+	struct memory_block m = {0, 0, 0, 0};
+
+	heap_foreach_object(pop, pmalloc_search_cb, &off_search, m);
+
+	if (off_search == UINT64_MAX)
+		return 0;
+
+	return off_search + sizeof (struct allocation_header);
+}
+
+/*
+ * pmalloc_next -- returns the next object relative to 'off'.
+ */
+uint64_t
+pmalloc_next(PMEMobjpool *pop, uint64_t off)
+{
+	struct allocation_header *alloc = ALLOC_GET_HEADER(pop, off);
 	struct memory_block m = get_mblock_from_alloc(pop, alloc);
 
-#ifdef DEBUG
-	if (!heap_block_is_allocated(pop, m)) {
-		ERR("Double free or heap corruption");
-		ASSERT(0);
-	}
-#endif /* DEBUG */
+	uint64_t off_search = off - ALLOC_OFF;
 
-	heap_lock_if_run(pop, m);
+	heap_foreach_object(pop, pmalloc_search_cb, &off_search, m);
 
-	uint64_t op_result;
-	void *hdr;
-	struct memory_block res = heap_free_block(pop, b, m, &hdr, &op_result);
+	if (off_search == (off - ALLOC_OFF) ||
+		off_search == 0 ||
+		off_search == UINT64_MAX)
+		return 0;
 
-	struct allocator_lane_section *sec =
-		(struct allocator_lane_section *)lane->layout;
-
-	redo_log_store(pop, sec->redo, ALLOC_OP_REDO_PTR_OFFSET,
-		pop_offset(pop, off), 0);
-	redo_log_store_last(pop, sec->redo, ALLOC_OP_REDO_HEADER,
-		pop_offset(pop, hdr), op_result);
-
-	redo_log_process(pop, sec->redo, MAX_ALLOC_OP_REDO);
-
-	heap_unlock_if_run(pop, m);
-
-	VALGRIND_DO_MEMPOOL_FREE(pop,
-			(char *)alloc + sizeof (*alloc) + data_off);
-
-	/* we might have been operating on inactive run */
-	if (b != NULL) {
-		CNT_OP(b, insert, pop, res);
-
-		if (b->type == BUCKET_RUN)
-			heap_degrade_run_if_empty(pop, b, res);
-	}
-
-	lane_release(pop);
+	return off_search + sizeof (struct allocation_header);
 }
 
 /*

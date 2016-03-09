@@ -50,9 +50,7 @@
 static inline int
 redo_log_check_offset(PMEMobjpool *pop, uint64_t offset)
 {
-	return OBJ_OFF_FROM_LANES(pop, offset) ||
-		OBJ_OFF_FROM_OBJ_STORE(pop, offset) ||
-		OBJ_OFF_FROM_HEAP(pop, offset);
+	return OBJ_OFF_IS_VALID(pop, offset);
 }
 
 /*

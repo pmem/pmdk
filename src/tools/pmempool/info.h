@@ -106,7 +106,7 @@ struct pmempool_info_args {
 		uint64_t chunk_types;
 		size_t replica;
 		struct ranges lane_ranges;
-		struct ranges object_ranges;
+		struct ranges type_ranges;
 		struct ranges zone_ranges;
 		struct ranges chunk_ranges;
 	} obj;
@@ -135,14 +135,20 @@ struct pmem_obj_zone_stats {
 	struct pmem_obj_class_stats class_stats[MAX_CLASS_STATS];
 };
 
+struct pmem_obj_type_stats {
+	TAILQ_ENTRY(pmem_obj_type_stats) next;
+	uint64_t type_num;
+	uint64_t n_objects;
+	uint64_t n_bytes;
+};
+
 struct pmem_obj_stats {
 	uint64_t n_total_objects;
 	uint64_t n_total_bytes;
-	uint64_t n_type_objects[PMEMOBJ_NUM_OID_TYPES];
-	uint64_t n_type_bytes[PMEMOBJ_NUM_OID_TYPES];
 	uint64_t n_zones;
 	uint64_t n_zones_used;
 	struct pmem_obj_zone_stats *zone_stats;
+	TAILQ_HEAD(obj_type_stats_head, pmem_obj_type_stats) type_stats;
 };
 
 /*
@@ -160,10 +166,11 @@ struct pmem_info {
 		struct pmem_blk_stats stats;
 	} blk;
 	struct {
-		void *addr;		/* mapped file */
+		struct pmemobjpool *pop;
 		size_t size;
 		struct pmem_obj_stats stats;
 		uint64_t uuid_lo;
+		uint64_t objid;
 	} obj;
 };
 

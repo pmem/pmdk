@@ -148,7 +148,7 @@ do_tx_add_range_alloc_abort(PMEMobjpool *pop)
 		ASSERT(0);
 	} TX_END
 
-	TOID_ASSIGN(obj, pmemobj_first(pop, TYPE_OBJ_ABORT));
+	TOID_ASSIGN(obj, POBJ_FIRST_TYPE_NUM(pop, TYPE_OBJ_ABORT));
 	ASSERT(TOID_IS_NULL(obj));
 }
 

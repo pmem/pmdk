@@ -46,6 +46,7 @@
 #include "redo.h"
 #include "list.h"
 #include "obj.h"
+#include "memops.h"
 #include "heap.h"
 #include "btt_layout.h"
 #include "heap_layout.h"
@@ -89,6 +90,9 @@ for ((entry) = PLIST_OFF_TO_PTR(pop, (head)->pe_first.off);\
 	(entry) = ((entry)->pe_next.off == (head)->pe_first.off ?\
 	NULL : PLIST_OFF_TO_PTR(pop, (entry)->pe_next.off)))
 
+#define	PLIST_FIRST(pop, head)\
+((struct list_entry *)PLIST_OFF_TO_PTR(pop, (head)->pe_first.off))
+
 #define	PLIST_EMPTY(head) ((head)->pe_first.off == 0)
 
 #define	ENTRY_TO_OOB_HDR(entry) ((struct oob_header *)(entry))
@@ -102,7 +106,15 @@ for ((entry) = PLIST_OFF_TO_PTR(pop, (head)->pe_first.off);\
 #define	ENTRY_TO_DATA(entry)\
 ((void *)((uintptr_t)(entry) + sizeof (struct oob_header)))
 
+#define	OBJH_FROM_PTR(ptr)\
+((void *)((uintptr_t)ptr - sizeof (struct obj_header)))
+
 #define	DEFAULT_HDR_SIZE 4096
+
+struct obj_header {
+	struct allocation_header ahdr;
+	struct oob_header oobh;
+};
 
 /*
  * pmem_pool_type_t -- pool types

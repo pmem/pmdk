@@ -510,7 +510,7 @@ rbtree_map_is_empty(PMEMobjpool *pop, TOID(struct rbtree_map) map)
 int
 rbtree_map_check(PMEMobjpool *pop, TOID(struct rbtree_map) map)
 {
-	return !TOID_VALID(map);
+	return TOID_IS_NULL(map) || !TOID_VALID(map);
 }
 
 /*

@@ -77,10 +77,15 @@ main(int argc, char *argv[])
 			FATAL("!pmemobj_open %s", path);
 		}
 	}
-	PMEMoid oid = pmemobj_first(pop, 1);
-	if (OID_IS_NULL(oid))
+
+	PMEMoid oid = pmemobj_first(pop);
+
+	if (OID_IS_NULL(oid)) {
 		if (pmemobj_alloc(pop, &oid, 10, 1, NULL, NULL))
 			FATAL("!pmemobj_alloc");
+	} else {
+		ASSERTeq(pmemobj_type_num(oid), 1);
+	}
 
 	if (strcmp(argv[2], "alloc") == 0)
 		pmemobj_tx_alloc(10, 1);

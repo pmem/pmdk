@@ -46,7 +46,7 @@ void outv_err(const char *fmt, ...);
 void out_err(const char *file, int line, const char *func,
 		const char *fmt, ...);
 void outv_err_vargs(const char *fmt, va_list ap);
-void out_indent(int i);
+void outv_indent(int vlevel, int i);
 void outv(int vlevel, const char *fmt, ...);
 void outv_nl(int vlevel);
 int outv_check(int vlevel);

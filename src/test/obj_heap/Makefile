@@ -37,7 +37,8 @@ vpath %.c ../../libpmemobj
 vpath %.c ../../common
 
 TARGET = obj_heap
-OBJS = obj_heap.o heap.o util.o bucket.o ctree.o out.o lane.o
+OBJS = obj_heap.o pmalloc.o bucket.o redo.o heap.o lane.o ctree.o\
+    util.o set.o out.o obj.o cuckoo.o list.o sync.o tx.o memops.o libpmemobj.o
 
 LIBPMEM=y
 

@@ -207,7 +207,8 @@ ctree_map_insert(PMEMobjpool *pop, TOID(struct ctree_map) map,
 
 	/* descend the path until a best matching key is found */
 	TOID(struct tree_map_node) node;
-	while (OID_INSTANCEOF(p->slot, struct tree_map_node)) {
+	while (!OID_IS_NULL(p->slot) &&
+		OID_INSTANCEOF(p->slot, struct tree_map_node)) {
 		TOID_ASSIGN(node, p->slot);
 		p = &D_RW(node)->entries[BIT_IS_SET(key, D_RW(node)->diff)];
 	}
@@ -390,5 +391,5 @@ ctree_map_is_empty(PMEMobjpool *pop, TOID(struct ctree_map) map)
 int
 ctree_map_check(PMEMobjpool *pop, TOID(struct ctree_map) map)
 {
-	return !TOID_VALID(map);
+	return TOID_IS_NULL(map) || !TOID_VALID(map);
 }

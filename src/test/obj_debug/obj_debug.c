@@ -72,12 +72,11 @@ test_FOREACH(const char *path)
 	PMEMoid varoid, nvaroid;
 	TOID(struct root) root;
 	TOID(struct tobj) var, nvar;
-	int type = 0;
 
 #define	COMMANDS_FOREACH()\
 	do {\
-	POBJ_FOREACH(pop, varoid, type) {}\
-	POBJ_FOREACH_SAFE(pop, varoid, nvaroid, type) {}\
+	POBJ_FOREACH(pop, varoid) {}\
+	POBJ_FOREACH_SAFE(pop, varoid, nvaroid) {}\
 	POBJ_FOREACH_TYPE(pop, var) {}\
 	POBJ_FOREACH_SAFE_TYPE(pop, var, nvar) {}\
 	POBJ_LIST_FOREACH(var, &D_RW(root)->lhead, next) {}\

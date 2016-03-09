@@ -44,6 +44,8 @@
 
 #include "libpmemobj.h"
 #include "benchmark.h"
+#include "redo.h"
+#include "memops.h"
 #include "pmalloc.h"
 
 /*
@@ -231,7 +233,7 @@ pmalloc_op(struct benchmark *bench, struct operation_info *info)
 	unsigned i = info->index + info->worker->index *
 					info->args->n_ops_per_thread;
 
-	int ret = pmalloc(ob->pop, &ob->offs[i], ob->sizes[i], 0);
+	int ret = pmalloc(ob->pop, &ob->offs[i], ob->sizes[i]);
 	if (ret) {
 		fprintf(stderr, "pmalloc ret: %d\n", ret);
 		return ret;
@@ -251,7 +253,7 @@ pmalloc_exit(struct benchmark *bench, struct benchmark_args *args)
 
 	for (size_t i = 0; i < args->n_ops_per_thread * args->n_threads; i++) {
 		if (ob->offs[i])
-			pfree(ob->pop, &ob->offs[i], 0);
+			pfree(ob->pop, &ob->offs[i]);
 	}
 
 	return obj_exit(bench, args);
@@ -271,13 +273,13 @@ pfree_init(struct benchmark *bench, struct benchmark_args *args)
 	struct obj_bench *ob = pmembench_get_priv(bench);
 
 	for (size_t i = 0; i < args->n_ops_per_thread * args->n_threads; i++) {
-		ret = pmalloc(ob->pop, &ob->offs[i], ob->sizes[i], 0);
+		ret = pmalloc(ob->pop, &ob->offs[i], ob->sizes[i]);
 		if (ret) {
 			fprintf(stderr, "pmalloc at idx %lu ret: %s\n", i,
 				pmemobj_errormsg());
 			/* free the allocated memory */
 			while (i != 0) {
-				pfree(ob->pop, &ob->offs[i - 1], 0);
+				pfree(ob->pop, &ob->offs[i - 1]);
 				i--;
 			}
 			obj_exit(bench, args);
@@ -299,7 +301,7 @@ pfree_op(struct benchmark *bench, struct operation_info *info)
 	unsigned i = info->index + info->worker->index *
 					info->args->n_ops_per_thread;
 
-	pfree(ob->pop, &ob->offs[i], 0);
+	pfree(ob->pop, &ob->offs[i]);
 
 	return 0;
 }

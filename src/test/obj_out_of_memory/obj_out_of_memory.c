@@ -71,9 +71,8 @@ test_free(PMEMobjpool *pop)
 {
 	PMEMoid oid;
 	PMEMoid next;
-	int type_num;
 
-	POBJ_FOREACH_SAFE(pop, oid, next, type_num)
+	POBJ_FOREACH_SAFE(pop, oid, next)
 		pmemobj_free(&oid);
 }
 

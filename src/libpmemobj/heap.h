@@ -76,11 +76,11 @@ struct bucket *heap_get_auxiliary_bucket(PMEMobjpool *pop, size_t size);
 void heap_drain_to_auxiliary(PMEMobjpool *pop, struct bucket *auxb,
 	uint32_t size_idx);
 void *heap_get_block_data(PMEMobjpool *pop, struct memory_block m);
-void *heap_get_block_header(PMEMobjpool *pop, struct memory_block m,
-	enum heap_op op, uint64_t *op_result);
+void heap_prep_block_header_operation(PMEMobjpool *pop, struct memory_block m,
+	enum heap_op op, struct operation_context *ctx);
 struct memory_block heap_coalesce(PMEMobjpool *pop,
 	struct memory_block *blocks[], int n, enum heap_op op,
-	void **hdr, uint64_t *op_result);
+	struct operation_context *ctx);
 
 int heap_get_adjacent_free_block(PMEMobjpool *pop, struct bucket *b,
 	struct memory_block *m, struct memory_block cnt, int prev);
@@ -96,7 +96,13 @@ void heap_degrade_run_if_empty(PMEMobjpool *pop, struct bucket *b,
 	struct memory_block m);
 
 struct memory_block heap_free_block(PMEMobjpool *pop, struct bucket *b,
-	struct memory_block m, void *hdr, uint64_t *op_result);
+	struct memory_block m, struct operation_context *ctx);
+
+/* foreach callback, terminates iteration if return value is non-zero */
+typedef int (*object_callback)(uint64_t off, void *arg);
+
+void heap_foreach_object(PMEMobjpool *pop, object_callback cb,
+	void *arg, struct memory_block start);
 
 size_t heap_get_chunk_block_size(PMEMobjpool *pop, struct memory_block m);
 

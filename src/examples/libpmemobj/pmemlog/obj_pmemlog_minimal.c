@@ -190,9 +190,8 @@ pmemlog_rewind(PMEMlogpool *plp)
 	PMEMobjpool *pop = (PMEMobjpool *)plp;
 
 	PMEMoid iter, next;
-	int i;
 	/* go through each list and remove all entries */
-	POBJ_FOREACH_SAFE(pop, iter, next, i) {
+	POBJ_FOREACH_SAFE(pop, iter, next) {
 		pmemobj_free(&iter);
 	}
 }
@@ -210,9 +209,8 @@ pmemlog_walk(PMEMlogpool *plp, size_t chunksize,
 	PMEMobjpool *pop = (PMEMobjpool *)plp;
 
 	PMEMoid iter;
-	int type;
 	/* process each allocated object */
-	POBJ_FOREACH(pop, iter, type) {
+	POBJ_FOREACH(pop, iter) {
 		struct log *logptr = pmemobj_direct(iter);
 		(*process_chunk)(logptr->data, logptr->size, arg);
 	}

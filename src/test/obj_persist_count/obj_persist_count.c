@@ -34,6 +34,8 @@
  * obj_persist_count.c -- counting number of persists
  */
 #include "unittest.h"
+#include "redo.h"
+#include "memops.h"
 #include "pmalloc.h"
 
 static struct {
@@ -153,11 +155,18 @@ main(int argc, char *argv[])
 	} TX_END
 	print_reset_counters("tx_add");
 
-	pmalloc(pop, &f->dest, sizeof (f->val), 0);
+	pmalloc(pop, &f->dest, sizeof (f->val));
 	print_reset_counters("pmalloc");
 
-	pfree(pop, &f->dest, 0);
+	pfree(pop, &f->dest);
 	print_reset_counters("pfree");
+
+	uint64_t stack_var;
+	pmalloc(pop, &stack_var, sizeof (f->val));
+	print_reset_counters("pmalloc_stack");
+
+	pfree(pop, &stack_var);
+	print_reset_counters("pfree_stack");
 
 	pmemobj_close(pop);
 

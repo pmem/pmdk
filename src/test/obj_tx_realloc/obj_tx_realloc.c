@@ -114,12 +114,12 @@ do_tx_realloc_commit(PMEMobjpool *pop)
 		ASSERT(0);
 	} TX_END
 
-	TOID_ASSIGN(obj, pmemobj_first(pop, TYPE_COMMIT));
+	TOID_ASSIGN(obj, POBJ_FIRST_TYPE_NUM(pop, TYPE_COMMIT));
 	ASSERT(!TOID_IS_NULL(obj));
 	ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
 	ASSERT(pmemobj_alloc_usable_size(obj.oid) >= new_size);
 
-	TOID_ASSIGN(obj, pmemobj_next(obj.oid));
+	TOID_ASSIGN(obj, POBJ_NEXT_TYPE_NUM(obj.oid));
 	ASSERT(TOID_IS_NULL(obj));
 }
 
@@ -144,12 +144,12 @@ do_tx_realloc_abort(PMEMobjpool *pop)
 		ASSERT(0);
 	} TX_END
 
-	TOID_ASSIGN(obj, pmemobj_first(pop, TYPE_ABORT));
+	TOID_ASSIGN(obj, POBJ_FIRST_TYPE_NUM(pop, TYPE_ABORT));
 	ASSERT(!TOID_IS_NULL(obj));
 	ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
 	ASSERT(pmemobj_alloc_usable_size(obj.oid) < new_size);
 
-	TOID_ASSIGN(obj, pmemobj_next(obj.oid));
+	TOID_ASSIGN(obj, POBJ_NEXT_TYPE_NUM(obj.oid));
 	ASSERT(TOID_IS_NULL(obj));
 }
 
@@ -171,33 +171,13 @@ do_tx_realloc_huge(PMEMobjpool *pop)
 		ASSERT(0);
 	} TX_END
 
-	TOID_ASSIGN(obj, pmemobj_first(pop, TYPE_ABORT_HUGE));
+	TOID_ASSIGN(obj, POBJ_FIRST_TYPE_NUM(pop, TYPE_ABORT_HUGE));
 	ASSERT(!TOID_IS_NULL(obj));
 	ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
 	ASSERT(pmemobj_alloc_usable_size(obj.oid) < new_size);
 
-	TOID_ASSIGN(obj, pmemobj_next(obj.oid));
+	TOID_ASSIGN(obj, POBJ_NEXT_TYPE_NUM(obj.oid));
 	ASSERT(TOID_IS_NULL(obj));
-}
-
-/*
- * do_tx_realloc_type_num -- reallocate an object and try to change type to
- * invalid
- */
-static void
-do_tx_realloc_type_num(PMEMobjpool *pop)
-{
-	TOID(struct object) obj;
-
-	TX_BEGIN(pop) {
-		TOID_ASSIGN(obj, do_tx_alloc(pop, TYPE_TYPE, TEST_VALUE_1));
-		size_t new_size = 2 * pmemobj_alloc_usable_size(obj.oid);
-
-		TOID_ASSIGN(obj, pmemobj_tx_realloc(obj.oid,
-			new_size, PMEMOBJ_NUM_OID_TYPES));
-	} TX_ONCOMMIT {
-		ASSERT(0);
-	} TX_END
 }
 
 /*
@@ -223,15 +203,14 @@ do_tx_zrealloc_commit_macro(PMEMobjpool *pop)
 		ASSERT(0);
 	} TX_END
 
-	TOID_ASSIGN(obj, pmemobj_first(pop, TYPE_COMMIT_ZERO_MACRO));
+	TOID_ASSIGN(obj, POBJ_FIRST_TYPE_NUM(pop, TYPE_COMMIT_ZERO_MACRO));
 	ASSERT(!TOID_IS_NULL(obj));
 	ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
 	ASSERT(pmemobj_alloc_usable_size(obj.oid) >= new_size);
 	void *new_ptr = (void *)((uintptr_t)D_RW(obj) + old_size);
 	ASSERT(util_is_zeroed(new_ptr, new_size - old_size));
 
-
-	TOID_ASSIGN(obj, pmemobj_next(obj.oid));
+	TOID_ASSIGN(obj, POBJ_NEXT_TYPE_NUM(obj.oid));
 	ASSERT(TOID_IS_NULL(obj));
 }
 
@@ -258,7 +237,7 @@ do_tx_zrealloc_commit(PMEMobjpool *pop)
 		ASSERT(0);
 	} TX_END
 
-	TOID_ASSIGN(obj, pmemobj_first(pop, TYPE_COMMIT_ZERO));
+	TOID_ASSIGN(obj, POBJ_FIRST_TYPE_NUM(pop, TYPE_COMMIT_ZERO));
 	ASSERT(!TOID_IS_NULL(obj));
 	ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
 	ASSERT(pmemobj_alloc_usable_size(obj.oid) >= new_size);
@@ -266,7 +245,7 @@ do_tx_zrealloc_commit(PMEMobjpool *pop)
 	ASSERT(util_is_zeroed(new_ptr, new_size - old_size));
 
 
-	TOID_ASSIGN(obj, pmemobj_next(obj.oid));
+	TOID_ASSIGN(obj, POBJ_NEXT_TYPE_NUM(obj.oid));
 	ASSERT(TOID_IS_NULL(obj));
 }
 
@@ -294,11 +273,11 @@ do_tx_zrealloc_abort_macro(PMEMobjpool *pop)
 		ASSERT(0);
 	} TX_END
 
-	TOID_ASSIGN(obj, pmemobj_first(pop, TYPE_ABORT_ZERO_MACRO));
+	TOID_ASSIGN(obj, POBJ_FIRST_TYPE_NUM(pop, TYPE_ABORT_ZERO_MACRO));
 	ASSERT(!TOID_IS_NULL(obj));
 	ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
 	ASSERT(pmemobj_alloc_usable_size(obj.oid) < new_size);
-	TOID_ASSIGN(obj, pmemobj_next(obj.oid));
+	TOID_ASSIGN(obj, POBJ_NEXT_TYPE_NUM(obj.oid));
 	ASSERT(TOID_IS_NULL(obj));
 }
 
@@ -326,11 +305,11 @@ do_tx_zrealloc_abort(PMEMobjpool *pop)
 		ASSERT(0);
 	} TX_END
 
-	TOID_ASSIGN(obj, pmemobj_first(pop, TYPE_ABORT_ZERO));
+	TOID_ASSIGN(obj, POBJ_FIRST_TYPE_NUM(pop, TYPE_ABORT_ZERO));
 	ASSERT(!TOID_IS_NULL(obj));
 	ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
 	ASSERT(pmemobj_alloc_usable_size(obj.oid) < new_size);
-	TOID_ASSIGN(obj, pmemobj_next(obj.oid));
+	TOID_ASSIGN(obj, POBJ_NEXT_TYPE_NUM(obj.oid));
 	ASSERT(TOID_IS_NULL(obj));
 }
 
@@ -354,12 +333,12 @@ do_tx_zrealloc_huge_macro(PMEMobjpool *pop)
 		ASSERT(0);
 	} TX_END
 
-	TOID_ASSIGN(obj, pmemobj_first(pop, TYPE_ABORT_ZERO_HUGE_MACRO));
+	TOID_ASSIGN(obj, POBJ_FIRST_TYPE_NUM(pop, TYPE_ABORT_ZERO_HUGE_MACRO));
 	ASSERT(!TOID_IS_NULL(obj));
 	ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
 	ASSERT(pmemobj_alloc_usable_size(obj.oid) < new_size);
 
-	TOID_ASSIGN(obj, pmemobj_next(obj.oid));
+	TOID_ASSIGN(obj, POBJ_NEXT_TYPE_NUM(obj.oid));
 	ASSERT(TOID_IS_NULL(obj));
 }
 
@@ -382,33 +361,13 @@ do_tx_zrealloc_huge(PMEMobjpool *pop)
 		ASSERT(0);
 	} TX_END
 
-	TOID_ASSIGN(obj, pmemobj_first(pop, TYPE_ABORT_ZERO_HUGE));
+	TOID_ASSIGN(obj, POBJ_FIRST_TYPE_NUM(pop, TYPE_ABORT_ZERO_HUGE));
 	ASSERT(!TOID_IS_NULL(obj));
 	ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
 	ASSERT(pmemobj_alloc_usable_size(obj.oid) < new_size);
 
-	TOID_ASSIGN(obj, pmemobj_next(obj.oid));
+	TOID_ASSIGN(obj, POBJ_NEXT_TYPE_NUM(obj.oid));
 	ASSERT(TOID_IS_NULL(obj));
-}
-
-/*
- * do_tx_zrealloc_type_num -- reallocate an object and try to change type to
- * invalid
- */
-static void
-do_tx_zrealloc_type_num(PMEMobjpool *pop)
-{
-	TOID(struct object) obj;
-
-	TX_BEGIN(pop) {
-		TOID_ASSIGN(obj, do_tx_alloc(pop, TYPE_TYPE, TEST_VALUE_1));
-		size_t new_size = 2 * pmemobj_alloc_usable_size(obj.oid);
-
-		TOID_ASSIGN(obj, pmemobj_tx_zrealloc(obj.oid,
-			new_size, PMEMOBJ_NUM_OID_TYPES));
-	} TX_ONCOMMIT {
-		ASSERT(0);
-	} TX_END
 }
 
 /*
@@ -434,12 +393,12 @@ do_tx_realloc_alloc_commit(PMEMobjpool *pop)
 		ASSERT(0);
 	} TX_END
 
-	TOID_ASSIGN(obj, pmemobj_first(pop, TYPE_COMMIT_ALLOC));
+	TOID_ASSIGN(obj, POBJ_FIRST_TYPE_NUM(pop, TYPE_COMMIT_ALLOC));
 	ASSERT(!TOID_IS_NULL(obj));
 	ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
 	ASSERT(pmemobj_alloc_usable_size(obj.oid) >= new_size);
 
-	TOID_ASSIGN(obj, pmemobj_next(obj.oid));
+	TOID_ASSIGN(obj, POBJ_NEXT_TYPE_NUM(obj.oid));
 	ASSERT(TOID_IS_NULL(obj));
 }
 
@@ -468,7 +427,7 @@ do_tx_realloc_alloc_abort(PMEMobjpool *pop)
 		ASSERT(0);
 	} TX_END
 
-	TOID_ASSIGN(obj, pmemobj_first(pop, TYPE_ABORT_ALLOC));
+	TOID_ASSIGN(obj, POBJ_FIRST_TYPE_NUM(pop, TYPE_ABORT_ALLOC));
 	ASSERT(TOID_IS_NULL(obj));
 }
 
@@ -513,14 +472,12 @@ main(int argc, char *argv[])
 	do_tx_realloc_commit(pop);
 	do_tx_realloc_abort(pop);
 	do_tx_realloc_huge(pop);
-	do_tx_realloc_type_num(pop);
 	do_tx_zrealloc_commit(pop);
 	do_tx_zrealloc_commit_macro(pop);
 	do_tx_zrealloc_abort(pop);
 	do_tx_zrealloc_abort_macro(pop);
 	do_tx_zrealloc_huge(pop);
 	do_tx_zrealloc_huge_macro(pop);
-	do_tx_zrealloc_type_num(pop);
 	do_tx_realloc_alloc_commit(pop);
 	do_tx_realloc_alloc_abort(pop);
 

@@ -56,7 +56,7 @@ if ! eval LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH LD_PRELOAD=$TEST_LD_PRELOAD $TRA
 	exit 0
 fi
 
-expect_normal_exit ./obj_memcheck$EXESUFFIX t1 $DIR/testfile
+expect_normal_exit ./obj_memcheck$EXESUFFIX t $DIR/testfile
 
 mv ${MEMCHECK_LOG_FILE} memcheck${UNITTEST_NUM}.log
 

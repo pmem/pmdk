@@ -68,11 +68,10 @@ PMEM OBJ Header:
 Layout                   : pmempool
 Lanes offset             : $(*)
 Number of lanes          : $(*)
-Object store offset      : $(*)
-Object store size        : $(*)
 Heap offset              : $(*)
 Heap size                : $(*)
 Checksum                 : $(*) [OK]
+Root offset              : $(*)
 DIFF
 $(nW)
 < UUID                     : $(*)
