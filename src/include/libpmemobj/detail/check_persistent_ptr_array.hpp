@@ -31,72 +31,45 @@
  */
 
 /*
- * pexceptions.hpp -- custom exceptions
+ * check_persistent_ptr_array.hpp -- compile time type check for make_persistent
  */
 
-#ifndef PMEMOBJ_PEXCEPTIONS_HPP
-#define PMEMOBJ_PEXCEPTIONS_HPP
+#ifndef LIBPMEMOBJ_CHECK_PERSISTENT_PTR_ARRAY_HPP
+#define LIBPMEMOBJ_CHECK_PERSISTENT_PTR_ARRAY_HPP
 
-#include <stdexcept>
-#include <system_error>
+#include "libpmemobj/persistent_ptr.hpp"
 
 namespace nvml {
 
-	/**
-	 * Custom pool error class.
-	 *
-	 * Thrown when there is a runtime problem with some action on the
-	 * pool.
+namespace detail {
+
+	/*
+	 * Typedef checking if given type is not an array.
 	 */
-	class pool_error : public std::runtime_error
+	template<typename T >
+	struct pp_if_not_array
 	{
-	public:
-		using std::runtime_error::runtime_error;
+		typedef obj::persistent_ptr<T> type;
 	};
 
-	/**
-	 * Custom transaction error class.
-	 *
-	 * Thrown when there is a runtime problem with a transaction.
+	/*
+	 * Typedef checking if given type is not an array.
 	 */
-	class transaction_error : public std::runtime_error
+	template<typename T>
+	struct pp_if_not_array<T[]>
 	{
-	public:
-		using std::runtime_error::runtime_error;
 	};
 
-	/**
-	 * Custom lock error class.
-	 *
-	 * Thrown when there is a runtime system error with an operation
-	 * on a lock.
+	/*
+	 * Typedef checking if given type is not an array.
 	 */
-	class lock_error : public std::system_error
+	template<typename T, size_t N>
+	struct pp_if_not_array<T[N]>
 	{
-	public:
-		using std::system_error::system_error;
 	};
 
-	/**
-	 * Custom transaction error class.
-	 *
-	 * Thrown when there is a transactional allocation error.
-	 */
-	class transaction_alloc_error : public transaction_error {
-	public:
-		using transaction_error::transaction_error;
-	};
-
-	/**
-	 * Custom transaction error class.
-	 *
-	 * Thrown when there is an error with the scope of the transaction.
-	 */
-	class transaction_scope_error : public std::logic_error {
-	public:
-		using std::logic_error::logic_error;
-	};
+}  /* namespace detail */
 
 }  /* namespace nvml */
 
-#endif /* PMEMOBJ_PEXCEPTIONS_HPP */
+#endif /* LIBPMEMOBJ_CHECK_PERSISTENT_PTR_ARRAY_HPP */

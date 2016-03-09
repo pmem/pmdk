@@ -117,7 +117,8 @@ OBJ_CPP_TESTS = \
 	obj_cpp_ptr_arith\
 	obj_cpp_mutex_posix\
 	obj_cpp_shared_mutex_posix\
-	obj_cpp_pool_primitives
+	obj_cpp_pool_primitives\
+	obj_cpp_make_persistent
 
 CHRONO_TESTS = \
 	obj_cpp_mutex\
