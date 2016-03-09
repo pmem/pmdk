@@ -72,6 +72,7 @@ EXPORTS
 	pmemobj_alloc_usable_size
 	pmemobj_type_num
 	pmemobj_root
+	pmemobj_root_construct
 	pmemobj_root_size
 	pmemobj_first
 	pmemobj_next
