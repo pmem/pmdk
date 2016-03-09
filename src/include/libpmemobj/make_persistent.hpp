@@ -50,9 +50,9 @@ namespace nvml {
 namespace obj {
 
 	/**
-	 * Transactionaly allocate and construct an object of type T.
+	 * Transactionally allocate and construct an object of type T.
 	 *
-	 * This function can be used to transactionaly allocate an object.
+	 * This function can be used to Transactionally allocate an object.
 	 * Cannot be used for array types.
 	 *
 	 * @param[in,out] args a list of parameters passed to the constructor.
@@ -87,9 +87,9 @@ namespace obj {
 	}
 
 	/**
-	 * Transactionaly free an object of type T held in a persitent_ptr.
+	 * Transactionally free an object of type T held in a persitent_ptr.
 	 *
-	 * This function can be used to transactionaly free an object. Calls the
+	 * This function can be used to Transactionally free an object. Calls the
 	 * object's destructor before freeing memory. Cannot be used for array
 	 * types.
 	 *
