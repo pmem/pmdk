@@ -84,7 +84,7 @@ pthread_mutex_lock(pthread_mutex_t *restrict mutex)
 int
 pthread_mutex_trylock(pthread_mutex_t *restrict mutex)
 {
-	return (TryEnterCriticalSection(mutex) == FALSE) ? 0 : EBUSY;
+	return (TryEnterCriticalSection(mutex) == FALSE) ? EBUSY : 0;
 }
 
 /* XXX - non POSIX */
@@ -141,13 +141,13 @@ pthread_rwlock_wrlock(pthread_rwlock_t *restrict rwlock)
 int
 pthread_rwlock_tryrdlock(pthread_rwlock_t *restrict rwlock)
 {
-	return (TryAcquireSRWLockShared(rwlock) == FALSE) ? 0 : EBUSY;
+	return (TryAcquireSRWLockShared(rwlock) == FALSE) ? EBUSY : 0;
 }
 
 int
 pthread_rwlock_trywrlock(pthread_rwlock_t *restrict rwlock)
 {
-	return (TryAcquireSRWLockExclusive(rwlock) == FALSE) ? 0 : EBUSY;
+	return (TryAcquireSRWLockExclusive(rwlock) == FALSE) ? EBUSY : 0;
 }
 
 int
@@ -214,15 +214,19 @@ pthread_cond_timedwait(pthread_cond_t *restrict cond,
 {
 	DWORD ms = (DWORD)(abstime->tv_sec * 1000 +
 					abstime->tv_nsec / 1000000);
+
+	/* XXX - return error code based on GetLastError() */
 	return (SleepConditionVariableCS(cond, mutex, ms) == FALSE)
-							? 0 : ETIMEDOUT;
+							? ETIMEDOUT : 0;
 }
 
 int
 pthread_cond_wait(pthread_cond_t *restrict cond,
 	pthread_mutex_t *restrict mutex)
 {
-	return SleepConditionVariableCS(cond, mutex, INFINITE) == FALSE;
+	/* XXX - return error code based on GetLastError() */
+	return (SleepConditionVariableCS(cond, mutex, INFINITE) == FALSE)
+							? EINVAL : 0;
 }
 
 
