@@ -73,7 +73,7 @@ namespace detail {
 	template<typename T>
 	constexpr uint64_t type_num()
 	{
-		return typeid(T).hash_code() % PMEMOBJ_NUM_OID_TYPES;
+		return typeid(T).hash_code();
 	}
 
 }  /* namespace detail */
