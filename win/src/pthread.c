@@ -57,47 +57,6 @@
 }
 
 
-#ifdef USE_WIN_MUTEX
-
-int
-pthread_mutex_init(pthread_mutex_t *restrict mutex,
-	const pthread_mutexattr_t *restrict attr)
-{
-	/* XXX - errno */
-	*mutex = CreateMutex(NULL, FALSE, NULL);
-	return *mutex == NULL;
-}
-
-int
-pthread_mutex_destroy(pthread_mutex_t *restrict mutex)
-{
-	/* XXX - errno */
-	return 0;
-}
-
-int
-pthread_mutex_lock(pthread_mutex_t *restrict mutex)
-{
-	/* XXX - errno */
-	return WaitForSingleObject(*mutex, INFINITE) == WAIT_FAILED;
-}
-
-int
-pthread_mutex_trylock(pthread_mutex_t *restrict mutex)
-{
-	/* XXX - errno */
-	return WaitForSingleObject(*mutex, 0) == WAIT_FAILED;
-}
-
-int
-pthread_mutex_unlock(pthread_mutex_t *restrict mutex)
-{
-	/* XXX - errno */
-	return ReleaseMutex(*mutex) == FALSE;
-}
-
-#else
-
 int
 pthread_mutex_init(pthread_mutex_t *restrict mutex,
 	const pthread_mutexattr_t *restrict attr)
@@ -143,7 +102,6 @@ pthread_mutex_unlock(pthread_mutex_t *restrict mutex)
 	return 0;
 }
 
-#endif
 
 #ifdef USE_WIN_SRWLOCK
 

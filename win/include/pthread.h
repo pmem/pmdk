@@ -41,11 +41,7 @@
 
 /* #define	USE_WIN_SRWLOCK */
 
-#ifdef USE_WIN_MUTEX
-#define	pthread_mutex_t HANDLE
-#else
 #define	pthread_mutex_t CRITICAL_SECTION
-#endif
 
 #ifdef USE_WIN_SRWLOCK
 #define	pthread_rwlock_t SRWLOCK
