@@ -46,7 +46,7 @@
 #include "benchmark.h"
 
 #define	LAYOUT_NAME "benchmark"
-#define	FACTOR ((float)(1.2))
+#define	FACTOR 4
 #define	ALLOC_OVERHEAD 64
 /*
  * operations number is limited to prevent stack overflow during
