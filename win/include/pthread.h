@@ -39,36 +39,12 @@
 #include <stdint.h>
 
 
-/* #define	USE_WIN_SRWLOCK */
-
-#define	pthread_mutex_t CRITICAL_SECTION
-
-#ifdef USE_WIN_SRWLOCK
-#define	pthread_rwlock_t SRWLOCK
-#else
-#define	pthread_rwlock_t pthread_mutex_t
-#endif
-
-#define	pthread_cond_t CONDITION_VARIABLE
-
-
-#define	pthread_mutexattr_t int
-#define	pthread_rwlockattr_t int
-#define	pthread_condattr_t int
-
-#define	pthread_mutexattr_init(a) 0
-#define	pthread_mutexattr_settype(a, t) 0
-#define	pthread_mutexattr_destroy(a) 0
-
-
 #define	pthread_t int
 #define	pthread_attr_t int
 #define	pthread_once_t long
 #define	pthread_key_t DWORD
 
-#define	PTHREAD_MUTEX_RECURSIVE 0
 #define	PTHREAD_ONCE_INIT 0
-
 
 int pthread_once(pthread_once_t *o, void (*func)(void));
 
@@ -76,6 +52,67 @@ int pthread_key_create(pthread_key_t *key, void (*destructor)(void *));
 int pthread_key_delete(pthread_key_t key);
 int pthread_setspecific(pthread_key_t key, const void *value);
 void *pthread_getspecific(pthread_key_t key);
+
+
+
+#define	USE_WIN_SRWLOCK
+
+typedef struct {
+	unsigned attr;
+	CRITICAL_SECTION lock;
+} pthread_mutex_t;
+
+#ifdef USE_WIN_SRWLOCK
+
+typedef struct {
+	unsigned attr;
+	SRWLOCK lock;
+} pthread_rwlock_t;
+
+#else
+
+#define	pthread_rwlock_t pthread_mutex_t
+
+#endif
+
+typedef struct {
+	unsigned attr;
+	CONDITION_VARIABLE cond;
+} pthread_cond_t;
+
+
+#define	pthread_mutexattr_t int
+#define	pthread_rwlockattr_t int
+#define	pthread_condattr_t int
+
+
+/* Mutex types */
+enum
+{
+	PTHREAD_MUTEX_NORMAL = 0,
+	PTHREAD_MUTEX_RECURSIVE = 1,
+	PTHREAD_MUTEX_ERRORCHECK = 2,
+	PTHREAD_MUTEX_DEFAULT = PTHREAD_MUTEX_NORMAL
+};
+
+/* RWlock types */
+enum
+{
+	PTHREAD_RWLOCK_PREFER_READER = 0,
+	PTHREAD_RWLOCK_PREFER_WRITER = 1,
+	PTHREAD_RWLOCK_PREFER_WRITER_NONRECURSIVE = 2,
+	PTHREAD_RWLOCK_DEFAULT = PTHREAD_RWLOCK_PREFER_READER
+};
+
+
+
+int pthread_mutexattr_init(pthread_mutexattr_t *attr);
+int pthread_mutexattr_destroy(pthread_mutexattr_t *attr);
+
+int pthread_mutexattr_gettype(const pthread_mutexattr_t *restrict attr,
+	int *restrict type);
+int pthread_mutexattr_settype(pthread_mutexattr_t *attr, int type);
+
 
 
 int pthread_mutex_init(pthread_mutex_t *restrict mutex,
