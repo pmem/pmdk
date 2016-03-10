@@ -800,9 +800,8 @@ function require_no_asan() {
 # In case of conditional compilation, skip this test.
 #
 function require_binary() {
-	grep -r -m 1 "^" . | grep "^Binary file" &> /dev/null && true
-	if [ $? -ne 0 ]; then
-		echo "$UNITTEST_NAME: SKIP no binary because of conditional compilation"
+	if [ ! -x $1 ]; then
+		echo "$UNITTEST_NAME: SKIP no binary found"
 		exit 0
 	fi
 
