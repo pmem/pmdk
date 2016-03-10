@@ -319,6 +319,7 @@ main(int argc, char *argv[])
 			printf("$ ");
 	}
 
+	map_ctx_free(mapc);
 	pmemobj_close(pop);
 
 	return 0;
