@@ -40,7 +40,7 @@ export UNITTEST_NUM=0
 require_test_type long
 require_cxx11
 require_valgrind
-require_binary
+require_binary obj_cpp_cond_var_posix$EXESUFFIX
 
 setup
 

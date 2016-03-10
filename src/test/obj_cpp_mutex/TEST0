@@ -38,7 +38,7 @@ export UNITTEST_NUM=0
 . ../unittest/unittest.sh
 
 require_cxx11
-require_binary
+require_binary obj_cpp_mutex$EXESUFFIX
 
 setup
 
