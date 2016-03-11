@@ -184,9 +184,9 @@ pmemobj_mutex_assert_locked(PMEMobjpool *pop, PMEMmutex *mutexp)
 }
 
 /*
- * pmemobj_mutex_timedlock -- timedlock a pmem resident mutex
+ * pmemobj_mutex_timedlock -- lock a pmem resident mutex
  *
- * Atomically initializes and timedlocks a PMEMmutex, otherwise behaves as its
+ * Atomically initializes and locks a PMEMmutex, otherwise behaves as its
  * POSIX counterpart.
  */
 int
