@@ -384,7 +384,7 @@ tx_abort_free(PMEMobjpool *pop, struct lane_tx_layout *layout)
 {
 	LOG(3, NULL);
 
-	tx_clear_undo_log(pop, &layout->undo_alloc, 0, 1, 1);
+	tx_clear_undo_log(pop, &layout->undo_free, 0, 1, 1);
 }
 
 struct tx_range_data {

@@ -58,6 +58,7 @@ enum type_number {
 	TYPE_FREE_ABORT_AFTER_NESTED2,
 	TYPE_FREE_OOM,
 	TYPE_FREE_ALLOC,
+	TYPE_FREE_AFTER_ABORT,
 };
 
 TOID_DECLARE(struct object, 0);
@@ -322,6 +323,31 @@ do_tx_free_alloc_commit(PMEMobjpool *pop)
 	ASSERT(TOID_IS_NULL(obj));
 }
 
+/*
+ * do_tx_free_abort_free - allocate a new object, perform a transactional free
+ * in an aborted transaction and then to actually free the object.
+ *
+ * This can expose any issues with not properly handled free undo log.
+ */
+static void
+do_tx_free_abort_free(PMEMobjpool *pop)
+{
+	PMEMoid oid = do_tx_alloc(pop, TYPE_FREE_AFTER_ABORT);
+
+	TX_BEGIN(pop) {
+		pmemobj_tx_free(oid);
+		pmemobj_tx_abort(-1);
+	} TX_ONCOMMIT {
+		ASSERT(0);
+	} TX_END
+
+	TX_BEGIN(pop) {
+		pmemobj_tx_free(oid);
+	} TX_ONABORT {
+		ASSERT(0);
+	} TX_END
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -353,6 +379,8 @@ main(int argc, char *argv[])
 	do_tx_free_alloc_commit(pop);
 	VALGRIND_WRITE_STATS;
 	do_tx_free_alloc_abort(pop);
+	VALGRIND_WRITE_STATS;
+	do_tx_free_abort_free(pop);
 	VALGRIND_WRITE_STATS;
 
 	pmemobj_close(pop);
