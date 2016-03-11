@@ -43,6 +43,7 @@ libpmemobj.so {
 		pmemobj_check;
 		pmemobj_mutex_zero;
 		pmemobj_mutex_lock;
+		pmemobj_mutex_timedlock;
 		pmemobj_mutex_trylock;
 		pmemobj_mutex_unlock;
 		pmemobj_rwlock_zero;

@@ -26,6 +26,7 @@ pmemobj_list_remove
 pmemobj_memcpy_persist
 pmemobj_memset_persist
 pmemobj_mutex_lock
+pmemobj_mutex_timedlock
 pmemobj_mutex_trylock
 pmemobj_mutex_unlock
 pmemobj_mutex_zero
@@ -93,6 +94,7 @@ pmemobj_list_remove
 pmemobj_memcpy_persist
 pmemobj_memset_persist
 pmemobj_mutex_lock
+pmemobj_mutex_timedlock
 pmemobj_mutex_trylock
 pmemobj_mutex_unlock
 pmemobj_mutex_zero
@@ -160,6 +162,7 @@ pmemobj_list_remove
 pmemobj_memcpy_persist
 pmemobj_memset_persist
 pmemobj_mutex_lock
+pmemobj_mutex_timedlock
 pmemobj_mutex_trylock
 pmemobj_mutex_unlock
 pmemobj_mutex_zero
@@ -227,6 +230,7 @@ pmemobj_list_remove
 pmemobj_memcpy_persist
 pmemobj_memset_persist
 pmemobj_mutex_lock
+pmemobj_mutex_timedlock
 pmemobj_mutex_trylock
 pmemobj_mutex_unlock
 pmemobj_mutex_zero

@@ -184,6 +184,25 @@ pmemobj_mutex_assert_locked(PMEMobjpool *pop, PMEMmutex *mutexp)
 }
 
 /*
+ * pmemobj_mutex_timedlock -- timedlock a pmem resident mutex
+ *
+ * Atomically initializes and timedlocks a PMEMmutex, otherwise behaves as its
+ * POSIX counterpart.
+ */
+int
+pmemobj_mutex_timedlock(PMEMobjpool *pop, PMEMmutex *__restrict mutexp,
+		const struct timespec *__restrict abs_timeout)
+{
+	LOG(3, "pop %p mutex %p", pop, mutexp);
+
+	pthread_mutex_t *mutex = GET_MUTEX(pop, mutexp);
+	if (mutex == NULL)
+		return EINVAL;
+
+	return pthread_mutex_timedlock(mutex, abs_timeout);
+}
+
+/*
  * pmemobj_mutex_trylock -- trylock a pmem resident mutex
  *
  * Atomically initializes and trylocks a PMEMmutex, otherwise behaves as its

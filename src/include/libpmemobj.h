@@ -137,6 +137,8 @@ typedef union padded_pmemcond {
 
 void pmemobj_mutex_zero(PMEMobjpool *pop, PMEMmutex *mutexp);
 int pmemobj_mutex_lock(PMEMobjpool *pop, PMEMmutex *mutexp);
+int pmemobj_mutex_timedlock(PMEMobjpool *pop, PMEMmutex *__restrict mutexp,
+	const struct timespec *__restrict abs_timeout);
 int pmemobj_mutex_trylock(PMEMobjpool *pop, PMEMmutex *mutexp);
 int pmemobj_mutex_unlock(PMEMobjpool *pop, PMEMmutex *mutexp);
 

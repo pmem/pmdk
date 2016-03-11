@@ -37,7 +37,7 @@
 .\" or
 .\"	groff -man -Tascii libpmemobj.3
 .\"
-.TH libpmemobj 3 "pmemobj API version 0.4.27" "NVM Library"
+.TH libpmemobj 3 "pmemobj API version 0.4.28" "NVM Library"
 .SH NAME
 libpmemobj \- persistent memory transactional object store
 .SH SYNOPSIS
@@ -67,6 +67,9 @@ libpmemobj \- persistent memory transactional object store
 .sp
 .BI "void pmemobj_mutex_zero(PMEMobjpool *" pop ", PMEMmutex *" mutexp );
 .BI "int pmemobj_mutex_lock(PMEMobjpool *" pop ", PMEMmutex *" mutexp );
+.BI "int pmemobj_mutex_timedlock(PMEMobjpool *" pop ,
+.BI "    PMEMmutex *restrict " mutexp ,
+.BI "    const struct timespec *restrict " abs_timeout );
 .BI "int pmemobj_mutex_trylock(PMEMobjpool *" pop ", PMEMmutex *" mutexp );
 .BI "int pmemobj_mutex_unlock(PMEMobjpool *" pop ", PMEMmutex *" mutexp );
 .sp
@@ -771,6 +774,20 @@ mutex becomes available.
 If this is the first use of the mutex since opening of the pool
 .IR pop ,
 the mutex is automatically reinitialized and then locked.
+.PP
+.BI "int pmemobj_mutex_timedlock(PMEMobjpool *" pop ,
+.br
+.BI "    PMEMmutex *restrict " mutexp ,
+.br
+.BI "    const struct timespec *restrict "abs_timeout );
+.IP
+The
+.BR pmemobj_mutex_timedlock ()
+performs the same action as
+.BR pmemobj_mutex_lock (),
+but will not wait beyond
+.I abs_timeout
+to obtain the lock before returning.
 .PP
 .BI "int pmemobj_mutex_trylock(PMEMobjpool *" pop ", PMEMmutex *" mutexp );
 .IP
