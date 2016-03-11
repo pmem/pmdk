@@ -590,8 +590,8 @@ tx_pre_commit_alloc(PMEMobjpool *pop, struct lane_tx_layout *layout)
 
 		size_t size = pmalloc_usable_size(pop, iter.off);
 
-		/* flush and persist the whole allocated area and oob header */
-		pop->persist(pop, oobh, size);
+		/* flush the whole allocated area and oob header */
+		pop->flush(pop, oobh, size);
 	}
 }
 
@@ -602,7 +602,7 @@ static void
 tx_pre_commit_range_persist(PMEMobjpool *pop, struct tx_range *range)
 {
 	void *ptr = OBJ_OFF_TO_PTR(pop, range->offset);
-	pop->persist(pop, ptr, range->size);
+	pop->flush(pop, ptr, range->size);
 }
 
 /*
@@ -1114,18 +1114,21 @@ pmemobj_tx_commit()
 
 		struct lane_tx_layout *layout =
 			(struct lane_tx_layout *)tx.section->layout;
+		PMEMobjpool *pop = lane->pop;
 
 		/* pre-commit phase */
-		tx_pre_commit(lane->pop, layout);
+		tx_pre_commit(pop, layout);
+
+		pop->drain(pop);
 
 		/* set transaction state as committed */
-		tx_set_state(lane->pop, layout, TX_STATE_COMMITTED);
+		tx_set_state(pop, layout, TX_STATE_COMMITTED);
 
 		/* post commit phase */
-		tx_post_commit(lane->pop, layout);
+		tx_post_commit(pop, layout);
 
 		/* clear transaction state */
-		tx_set_state(lane->pop, layout, TX_STATE_NONE);
+		tx_set_state(pop, layout, TX_STATE_NONE);
 	}
 
 	tx.stage = TX_STAGE_ONCOMMIT;
