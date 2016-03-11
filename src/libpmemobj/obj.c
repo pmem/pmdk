@@ -135,7 +135,7 @@ nopmem_memcpy_persist(void *dest, const void *src, size_t len)
 static void *
 nopmem_memset_persist(void *dest, int c, size_t len)
 {
-	LOG(15, "dest %p c '%c' len %zu", dest, c, len);
+	LOG(15, "dest %p c 0x%02x len %zu", dest, c, len);
 
 	memset(dest, c, len);
 	pmem_msync(dest, len);
@@ -166,7 +166,7 @@ obj_norep_memcpy_persist(PMEMobjpool *pop, void *dest, const void *src,
 static void *
 obj_norep_memset_persist(PMEMobjpool *pop, void *dest, int c, size_t len)
 {
-	LOG(15, "pop %p dest %p c '%c' len %zu", pop, dest, c, len);
+	LOG(15, "pop %p dest %p c 0x%02x len %zu", pop, dest, c, len);
 
 	return pop->memset_persist_local(dest, c, len);
 }
@@ -228,7 +228,7 @@ obj_rep_memcpy_persist(PMEMobjpool *pop, void *dest, const void *src,
 static void *
 obj_rep_memset_persist(PMEMobjpool *pop, void *dest, int c, size_t len)
 {
-	LOG(15, "pop %p dest %p c '%c' len %zu", pop, dest, c, len);
+	LOG(15, "pop %p dest %p c 0x%02x len %zu", pop, dest, c, len);
 
 	PMEMobjpool *rep = pop->replica;
 	while (rep) {
@@ -1466,7 +1466,7 @@ pmemobj_memcpy_persist(PMEMobjpool *pop, void *dest, const void *src,
 void *
 pmemobj_memset_persist(PMEMobjpool *pop, void *dest, int c, size_t len)
 {
-	LOG(15, "pop %p dest %p c '%c' len %zu", pop, dest, c, len);
+	LOG(15, "pop %p dest %p c 0x%02x len %zu", pop, dest, c, len);
 
 	return pop->memset_persist(pop, dest, c, len);
 }
