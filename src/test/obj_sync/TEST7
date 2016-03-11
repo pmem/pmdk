@@ -1,5 +1,6 @@
+#!/bin/bash -e
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,21 +32,21 @@
 #
 
 #
-# src/test/obj_sync/Makefile -- build obj_sync unit test
+# src/test/obj_sync/TEST7 -- unit test for PMEM-resident locks
 #
-vpath %.c ../../libpmemobj
-vpath %.c ../../common
+export UNITTEST_NAME=obj_sync/TEST7
+export UNITTEST_NUM=7
 
-TARGET = obj_sync
-OBJS = obj_sync.o sync.o util.o out.o
-LIBS = -lrt
+# standard unit test setup
+. ../unittest/unittest.sh
 
-out.o: CFLAGS += -DSRCVERSION=\"utversion\"
+require_fs_type none
+require_build_type debug nondebug
 
-LIBPMEM=y
+setup
 
-include ../Makefile.inc
+expect_normal_exit ./obj_sync$EXESUFFIX t 50 300
 
-LDFLAGS += $(call extract_funcs, obj_sync.c)
+check
 
-INCS += -I../../libpmemobj/ -I../../common/
+pass
