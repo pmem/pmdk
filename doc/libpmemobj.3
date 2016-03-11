@@ -37,7 +37,7 @@
 .\" or
 .\"	groff -man -Tascii libpmemobj.3
 .\"
-.TH libpmemobj 3 "pmemobj API version 0.4.28" "NVM Library"
+.TH libpmemobj 3 "pmemobj API version 0.4.29" "NVM Library"
 .SH NAME
 libpmemobj \- persistent memory transactional object store
 .SH SYNOPSIS
@@ -255,6 +255,7 @@ libpmemobj \- persistent memory transactional object store
 .BI "enum tx_stage pmemobj_tx_stage(void);
 .sp
 .BI "int pmemobj_tx_begin(PMEMobjpool *" pop ", jmp_buf *" env ", enum " tx_lock ", " ... );
+.BI "int pmemobj_tx_lock(enum tx_lock " lock_type ", void *" lockp  );
 .BI "void pmemobj_tx_abort(int " errnum );
 .BI "void pmemobj_tx_commit(void);
 .BI "int pmemobj_tx_end(void);
@@ -2665,6 +2666,38 @@ and function
 returns zero.  Otherwise, stage changes to
 .I TX_STAGE_ONABORT
 and an error number is returned.
+.PP
+.BI "int pmemobj_tx_lock(enum tx_lock " lock_type ", void *" lockp  );
+.IP
+The
+.BR pmemobj_tx_lock ()
+function grabs a lock pointed by
+.I lockp
+and adds it to the current transaction.
+The lock type is specified by
+.I lock_type
+(
+.I TX_LOCK_MUTEX
+or
+.IR TX_LOCK_RWLOCK
+) and the pointer to the
+.I lockp
+of
+.I PMEMmutex
+or
+.I PMEMrwlock
+type. If successful,
+.I lockp
+is added to transaction, locked and function
+returns zero. Otherwise, stage changes to
+.I TX_STAGE_ONABORT
+and an error number is returned.
+In case of
+.I PMEMrwlock
+.I lock_type
+function acquires a write lock.
+This function must be called during
+.IR TX_STAGE_WORK .
 .PP
 .BI "void pmemobj_tx_abort(int " errnum );
 .IP
