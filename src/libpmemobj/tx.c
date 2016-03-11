@@ -1034,6 +1034,20 @@ err_abort:
 }
 
 /*
+ * pmemobj_tx_lock -- get lane from pool and add lock to transaction.
+ */
+int
+pmemobj_tx_lock(enum pobj_tx_lock type, void *lockp)
+{
+	ASSERT_IN_TX();
+	ASSERT_TX_STAGE_WORK();
+
+	struct lane_tx_runtime *lane = tx.section->runtime;
+
+	return add_to_tx_and_lock(lane, type, lockp);
+}
+
+/*
  * pmemobj_tx_stage -- returns current transaction stage
  */
 enum pobj_tx_stage
