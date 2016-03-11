@@ -184,6 +184,25 @@ pmemobj_mutex_assert_locked(PMEMobjpool *pop, PMEMmutex *mutexp)
 }
 
 /*
+ * pmemobj_mutex_timedlock -- lock a pmem resident mutex
+ *
+ * Atomically initializes and locks a PMEMmutex, otherwise behaves as its
+ * POSIX counterpart.
+ */
+int
+pmemobj_mutex_timedlock(PMEMobjpool *pop, PMEMmutex *__restrict mutexp,
+		const struct timespec *__restrict abs_timeout)
+{
+	LOG(3, "pop %p mutex %p", pop, mutexp);
+
+	pthread_mutex_t *mutex = GET_MUTEX(pop, mutexp);
+	if (mutex == NULL)
+		return EINVAL;
+
+	return pthread_mutex_timedlock(mutex, abs_timeout);
+}
+
+/*
  * pmemobj_mutex_trylock -- trylock a pmem resident mutex
  *
  * Atomically initializes and trylocks a PMEMmutex, otherwise behaves as its
@@ -420,17 +439,17 @@ pmemobj_cond_signal(PMEMobjpool *pop, PMEMcond *condp)
 int
 pmemobj_cond_timedwait(PMEMobjpool *pop, PMEMcond *__restrict condp,
 			PMEMmutex *__restrict mutexp,
-			const struct timespec *__restrict abstime)
+			const struct timespec *__restrict abs_timeout)
 {
 	LOG(3, "pop %p cond %p mutex %p abstime sec %ld nsec %ld", pop, condp,
-		mutexp, abstime->tv_sec, abstime->tv_nsec);
+		mutexp, abs_timeout->tv_sec, abs_timeout->tv_nsec);
 
 	pthread_cond_t *cond = GET_COND(pop, condp);
 	pthread_mutex_t *mutex = GET_MUTEX(pop, mutexp);
 	if ((cond == NULL) || (mutex == NULL))
 		return EINVAL;
 
-	return pthread_cond_timedwait(cond, mutex, abstime);
+	return pthread_cond_timedwait(cond, mutex, abs_timeout);
 }
 
 /*
