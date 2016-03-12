@@ -174,6 +174,10 @@ PMEMPOOL_TESTS = \
        pmempool_info\
        pmempool_rm
 
+RPMEM_TESTS =\
+       rpmemd_log\
+       rpmemd_dbg
+
 VMEM_TESTS = \
        vmem_aligned_alloc\
        vmem_calloc\
@@ -227,6 +231,7 @@ TESTS = \
        $(OTHER_TESTS)\
        $(PMEM_TESTS)\
        $(PMEMPOOL_TESTS)\
+       $(RPMEM_TESTS)\
        $(VMEM_TESTS)\
        $(VMMALLOC_TESTS)\
        $(EXAMPLES_TESTS)

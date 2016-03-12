@@ -34,18 +34,32 @@
  * rpmemd.c -- rpmemd main source file
  */
 
+#include <stdlib.h>
 #include <stdio.h>
 #include <getopt.h>
+#include <unistd.h>
 
-#define	DAEMON_NAME	"rpmemd"
+#include "rpmemd.h"
+#include "rpmemd_options.h"
+#include "rpmemd_log.h"
+
+static const char *optstr = "Vhvfo:l:";
+
+/* non-printable value because this will be just a long option */
+#define	OPT_SYSLOG	0xFF00
 
 /*
  * long_options -- command line arguments
  */
 static const struct option long_options[] = {
-	{"version",	no_argument,	0,	'V'},
-	{"help",	no_argument,	0,	'h'},
-	{0,		0,		0,	 0 },
+	{"version",	no_argument,		0,	'V'},
+	{"help",	no_argument,		0,	'h'},
+	{"verbose",	no_argument,		0,	'v'},
+	{"foreground",	no_argument,		0,	'f'},
+	{"log-file",	required_argument,	0,	'o'},
+	{"log-level",	required_argument,	0,	'l'},
+	{"use-syslog",	no_argument,		0,	OPT_SYSLOG},
+	{0,		0,			0,	 0 },
 };
 
 /*
@@ -66,21 +80,40 @@ print_usage(void)
 	printf("usage: %s [--version] [--help] [<args>]\n", DAEMON_NAME);
 }
 
+static const char *help_str = "\
+\n\
+Options:\n\
+  -V, --version            display version\n\
+  -h, --help               display this help and exit\n\
+  -v, --verbose            increase verbosity level\n\
+  -f, --foreground         run daemon in foreground\n\
+  -o, --log-file  <path>   use specified file instead of syslog\n\
+  -l, --log-level <level>  set log level value\n\
+      --use-syslog         use syslog(3) for logging messages\n\
+\n\
+For complete documentation see %s(1) manual page.\n\
+";
+
+static enum rpmemd_log_level
+str_to_log_level(const char *str)
+{
+	for (enum rpmemd_log_level i = 0; i < MAX_RPD_LOG; i++) {
+		if (strcmp(Rpmemd_log_level_str[i], str) == 0)
+			return i;
+	}
+
+	return MAX_RPD_LOG;
+}
+
 /*
- * print_help -- (internal) prints help message
+ * print_help -- prints help message
  */
 static void
 print_help(void)
 {
 	print_usage();
 	print_version();
-	printf("\n");
-	printf("Options:\n");
-	printf("  -V, --version        display version\n");
-	printf("  -h, --help           display this help and exit\n");
-	printf("\n");
-	printf("For complete documentation see %s(1) manual page.\n",
-			DAEMON_NAME);
+	printf(help_str, DAEMON_NAME);
 }
 
 int
@@ -89,7 +122,10 @@ main(int argc, char *argv[])
 	int opt;
 	int option_index;
 
-	while ((opt = getopt_long(2, argv, "Vh",
+	struct rpmemd_options opts;
+	rpmemd_options_default(&opts);
+
+	while ((opt = getopt_long(argc, argv, optstr,
 			long_options, &option_index)) != -1) {
 		switch (opt) {
 		case 'V':
@@ -98,11 +134,50 @@ main(int argc, char *argv[])
 		case 'h':
 			print_help();
 			return 0;
+		case 'f':
+			opts.foreground = true;
+			break;
+		case 'o':
+			opts.log_file = optarg;
+			break;
+		case 'l':
+			rpmemd_log_level = str_to_log_level(optarg);
+			if (rpmemd_log_level == MAX_RPD_LOG) {
+				fprintf(stderr, "invalid log level "
+					"specified -- '%s'\n", optarg);
+				return 1;
+			}
+			break;
+		case 'v':
+			if (rpmemd_log_level < MAX_RPD_LOG - 1)
+				rpmemd_log_level++;
+			break;
+		case OPT_SYSLOG:
+			opts.use_syslog = true;
+			break;
 		default:
 			print_usage();
 			return -1;
 		}
 	}
+
+	if (opts.foreground)
+		rpmemd_log_init(DAEMON_NAME, NULL, 0);
+	else
+		rpmemd_log_init(DAEMON_NAME, opts.log_file, opts.use_syslog);
+
+	RPMEMD_LOG(INFO, "%s version %s\n", DAEMON_NAME, SRCVERSION);
+	if (!opts.foreground) {
+		if (daemon(0, 0) < 0) {
+			RPMEMD_FATAL("!daemon");
+		}
+	}
+
+	while (1) {
+		/* XXX - placeholder */
+	}
+
+	rpmemd_log_close();
 
 	return 0;
 }
