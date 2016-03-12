@@ -1,3 +1,5 @@
+#!/bin/bash -e
+#
 # Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
@@ -28,24 +30,32 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# Makefile -- top Makefile for rpmemd
+
 #
+# src/test/rpmemd_log/TEST0 -- unit test for rpmemd_log module
+#
+#
+export UNITTEST_NAME=rpmemd_log/TEST0
+export UNITTEST_NUM=0
 
-TOP = ../../..
+# standard unit test setup
+. ../unittest/unittest.sh
 
-TARGET = rpmemd
+setup
 
-OBJS = rpmemd.o\
-       rpmemd_log.o
+rm -f	stdout$UNITTEST_NUM.log\
+	logfile$UNITTEST_NUM.log\
+	syslog$UNITTEST_NUM.log
 
-LIBPMEM=y
-TOOLS_COMMON=y
+expect_normal_exit ./rpmemd_log\
+	log stdout stdout$UNITTEST_NUM.log
 
-INCS += -I$(TOP)/src/common
-INCS += -I$(TOP)/src/librpmem
+expect_normal_exit ./rpmemd_log\
+	log file logfile$UNITTEST_NUM.log
 
-INSTALL_TARGET=n
+expect_normal_exit ./rpmemd_log\
+	log syslog syslog$UNITTEST_NUM.log
 
-include ../Makefile.inc
+check
 
-.PHONY: test check
+pass
