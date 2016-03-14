@@ -14,6 +14,6 @@ script:
   - if [ $MAKE_DPKG -eq 0 ]; then make check-license && make cstyle && make -j2 USE_LIBUNWIND=1 && make -j2 test USE_LIBUNWIND=1 && make check && make DESTDIR=/tmp source; fi
   - if [ $MAKE_DPKG -eq 1 ]; then make -j2 dpkg; fi
 env:
-  - MAKE_DPKG=0 EXTRA_CFLAGS=-DUSE_VALGRIND
-  - MAKE_DPKG=0 EXTRA_CFLAGS=
-  - MAKE_DPKG=1
+  - NOTTY=1 MAKE_DPKG=0 EXTRA_CFLAGS=-DUSE_VALGRIND
+  - NOTTY=1 MAKE_DPKG=0 EXTRA_CFLAGS=
+  - NOTTY=1 MAKE_DPKG=1
