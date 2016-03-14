@@ -1676,21 +1676,21 @@ util_parse_size(const char *str, size_t *sizep)
 {
 	const struct suff suffixes[] = {
 		{ "B", 1 },
-		{ "K", 1UL << 10 },		/* JEDEC */
-		{ "M", 1UL << 20 },
-		{ "G", 1UL << 30 },
-		{ "T", 1UL << 40 },
-		{ "P", 1UL << 50 },
-		{ "KiB", 1UL << 10 },		/* IEC */
-		{ "MiB", 1UL << 20 },
-		{ "GiB", 1UL << 30 },
-		{ "TiB", 1UL << 40 },
-		{ "PiB", 1UL << 50 },
-		{ "kB", 1000UL },		/* SI */
-		{ "MB", 1000UL * 1000 },
-		{ "GB", 1000UL * 1000 * 1000 },
-		{ "TB", 1000UL * 1000 * 1000 * 1000 },
-		{ "PB", 1000UL * 1000 * 1000 * 1000 * 1000 }
+		{ "K", 1ULL << 10 },		/* JEDEC */
+		{ "M", 1ULL << 20 },
+		{ "G", 1ULL << 30 },
+		{ "T", 1ULL << 40 },
+		{ "P", 1ULL << 50 },
+		{ "KiB", 1ULL << 10 },		/* IEC */
+		{ "MiB", 1ULL << 20 },
+		{ "GiB", 1ULL << 30 },
+		{ "TiB", 1ULL << 40 },
+		{ "PiB", 1ULL << 50 },
+		{ "kB", 1000ULL },		/* SI */
+		{ "MB", 1000ULL * 1000 },
+		{ "GB", 1000ULL * 1000 * 1000 },
+		{ "TB", 1000ULL * 1000 * 1000 * 1000 },
+		{ "PB", 1000ULL * 1000 * 1000 * 1000 * 1000 }
 	};
 
 	int res = -1;
@@ -1698,7 +1698,7 @@ util_parse_size(const char *str, size_t *sizep)
 	size_t size = 0;
 	char unit[4] = {0};
 
-	int ret = sscanf(str, "%lu%4s", &size, unit);
+	int ret = sscanf(str, "%llu%4s", &size, unit);
 	if (ret == 1) {
 		res = 0;
 	} else if (ret == 2) {

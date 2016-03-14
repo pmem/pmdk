@@ -26,10 +26,10 @@
     <ClCompile Include="..\..\src\common\util.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\cpuid.c">
+    <ClCompile Include="..\src\pthread.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\pthread.c">
+    <ClCompile Include="..\..\src\common\cpu.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

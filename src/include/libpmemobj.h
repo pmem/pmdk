@@ -240,7 +240,7 @@ _toid_##t##_toid(PMEMoid _oid) : oid(_oid)\
  * Declaration of typed OID
  */
 #define	_TOID_DECLARE(t, i)\
-typedef uint8_t _toid_##t##_toid_type_num[(i)];\
+typedef uint8_t _toid_##t##_toid_type_num[(i) + 1];\
 TOID(t)\
 {\
 	_TOID_CONSTR(t)\
@@ -262,12 +262,12 @@ TOID(t)\
 /*
  * Type number of specified type
  */
-#define	TOID_TYPE_NUM(t) (sizeof (_toid_##t##_toid_type_num))
+#define	TOID_TYPE_NUM(t) (sizeof (_toid_##t##_toid_type_num) - 1)
 
 /*
  * Type number of object read from typed OID
  */
-#define	TOID_TYPE_NUM_OF(o) (sizeof (*(o)._type_num))
+#define	TOID_TYPE_NUM_OF(o) (sizeof (*(o)._type_num) - 1)
 
 /*
  * NULL check

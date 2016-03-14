@@ -232,13 +232,14 @@ main(int argc, const char *argv[])
 	struct myobj *obj;
 	PMEMoid oid;
 	PMEMoid noid;
-	int type_num;
-	POBJ_FOREACH_SAFE(pop, oid, noid, type_num) {
+	uint64_t type_num = TOID_TYPE_NUM(struct myobj);
+
+	POBJ_FOREACH_SAFE(pop, oid, noid) {
 		obj = (struct myobj *)pmemobj_direct(oid);
 
 		printf("myobj: value = %d\n", obj->value);
 		printf("myobj: str = %s\n", obj->buf);
-		printf("myobj: type num = %d (%d)\n",
+		printf("myobj: type num = %llu (%llu)\n",
 					pmemobj_type_num(oid), type_num);
 		printf("myobj: usable size = %zu\n",
 					pmemobj_alloc_usable_size(oid));
