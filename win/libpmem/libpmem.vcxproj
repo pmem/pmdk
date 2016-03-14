@@ -15,6 +15,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\src\common\cpu.c" />
     <ClCompile Include="..\..\src\common\out.c" />
     <ClCompile Include="..\..\src\common\util.c" />
     <ClCompile Include="..\..\src\libpmem\libpmem.c" />
@@ -22,7 +23,6 @@
     <ClCompile Include="..\libpmem\libpmem_main.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Static-Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="..\src\cpuid.c" />
     <ClCompile Include="..\src\pthread.c" />
   </ItemGroup>
   <ItemGroup>
