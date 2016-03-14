@@ -42,9 +42,9 @@
 #include "heap.h"
 #include "bucket.h"
 #include "lane.h"
+#include "pmalloc.h"
 #include "list.h"
 #include "obj.h"
-#include "pmalloc.h"
 #include "unittest.h"
 
 #define	MOCK_POOL_SIZE PMEMOBJ_MIN_POOL

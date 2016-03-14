@@ -74,13 +74,15 @@ struct dummy_root {
 	POBJ_LIST_HEAD(moved_list, struct dummy_node) moved;
 };
 
-static void
+static int
 dummy_node_constructor(PMEMobjpool *pop, void *ptr, void *arg)
 {
 	struct dummy_node *n = ptr;
 	int *test_val = arg;
 	n->value = *test_val;
 	pmemobj_persist(pop, &n->value, sizeof (n->value));
+
+	return 0;
 }
 
 static void

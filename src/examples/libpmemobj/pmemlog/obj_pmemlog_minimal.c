@@ -81,7 +81,7 @@ struct create_args {
 /*
  * create_log_entry -- (internal) constructor for the log entry
  */
-static void
+static int
 create_log_entry(PMEMobjpool *pop, void *ptr, void *arg)
 {
 	struct log *logptr = ptr;
@@ -89,6 +89,8 @@ create_log_entry(PMEMobjpool *pop, void *ptr, void *arg)
 	logptr->size = carg->size;
 	pmemobj_persist(pop, &logptr->size, sizeof (logptr->size));
 	pmemobj_memcpy_persist(pop, logptr->data, carg->src, carg->size);
+
+	return 0;
 }
 
 /*

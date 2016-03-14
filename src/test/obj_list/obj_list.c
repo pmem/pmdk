@@ -41,10 +41,10 @@
 #include "util.h"
 #include "lane.h"
 #include "redo.h"
-#include "list.h"
-#include "obj.h"
 #include "memops.h"
 #include "pmalloc.h"
+#include "list.h"
+#include "obj.h"
 
 /* offset to "in band" item */
 #define	OOB_OFF	 (sizeof (struct oob_header))
@@ -784,7 +784,7 @@ do_print_reverse(PMEMobjpool *pop, const char *arg)
  * item_constructor -- constructor which sets the item's id to
  * new value
  */
-static void
+static int
 item_constructor(PMEMobjpool *pop, void *ptr, size_t usable_size, void *arg)
 {
 	int id = *(int *)arg;
@@ -792,6 +792,8 @@ item_constructor(PMEMobjpool *pop, void *ptr, size_t usable_size, void *arg)
 	item->id = id;
 	pop->persist(Pop, &item->id, sizeof (item->id));
 	OUT("constructor(id = %d)", id);
+
+	return 0;
 }
 
 struct realloc_arg {

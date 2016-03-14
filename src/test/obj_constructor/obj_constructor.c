@@ -31,61 +31,84 @@
  */
 
 /*
- * obj_heap_state.c -- volatile heap state verification test
+ * obj_constructor.c -- tests for constructor
  */
 
 #include <stddef.h>
 
 #include "unittest.h"
 
-#define	LAYOUT_NAME "heap_state"
-#define	ROOT_SIZE 256
-#define	ALLOCS 100
-#define	ALLOC_SIZE 50
+/*
+ * Layout definition
+ */
+POBJ_LAYOUT_BEGIN(constr);
+POBJ_LAYOUT_ROOT(constr, struct root);
+POBJ_LAYOUT_TOID(constr, struct node);
+POBJ_LAYOUT_END(constr);
 
-char buf[ALLOC_SIZE];
+struct root {
+	TOID(struct node) n;
+	POBJ_LIST_HEAD(head, struct node) list;
+};
+
+struct node {
+	POBJ_LIST_ENTRY(struct node) next;
+};
 
 static int
-test_constructor(PMEMobjpool *pop, void *addr, void *args)
+root_constr_cancel(PMEMobjpool *pop, void *ptr, void *arg)
 {
-	/* do not use pmem_memcpy_persist() here */
-	pmemobj_memcpy_persist(pop, addr, buf, ALLOC_SIZE);
+	return 1;
+}
 
-	return 0;
+static int
+node_constr_cancel(PMEMobjpool *pop, void *ptr, void *arg)
+{
+	return 1;
 }
 
 int
 main(int argc, char *argv[])
 {
-	START(argc, argv, "obj_heap_state");
+	START(argc, argv, "obj_constructor");
 
 	if (argc != 2)
 		FATAL("usage: %s file-name", argv[0]);
 
 	const char *path = argv[1];
 
-	for (int i = 0; i < ALLOC_SIZE; i++)
-		buf[i] = rand() % 256;
-
 	PMEMobjpool *pop = NULL;
 
-	if ((pop = pmemobj_create(path, LAYOUT_NAME,
+	int ret;
+	TOID(struct root) root;
+	TOID(struct node) node;
+
+	if ((pop = pmemobj_create(path, POBJ_LAYOUT_NAME(constr),
 			0, S_IWUSR | S_IRUSR)) == NULL)
 		FATAL("!pmemobj_create: %s", path);
 
-	pmemobj_root(pop, ROOT_SIZE); /* just to trigger allocation */
+	errno = 0;
+	root.oid = pmemobj_root_construct(pop, sizeof (struct root),
+			root_constr_cancel, NULL);
+	ASSERT(TOID_IS_NULL(root));
+	ASSERTeq(errno, ECANCELED);
 
-	pmemobj_close(pop);
+	root.oid = pmemobj_root_construct(pop, sizeof (struct root),
+			NULL, NULL);
+	ASSERT(!TOID_IS_NULL(root));
 
-	pop = pmemobj_open(path, LAYOUT_NAME);
-	ASSERTne(pop, NULL);
+	errno = 0;
+	ret = pmemobj_alloc(pop, NULL, sizeof (struct node), 1,
+			node_constr_cancel, NULL);
+	ASSERTeq(ret, -1);
+	ASSERTeq(errno, ECANCELED);
 
-	for (int i = 0; i < ALLOCS; ++i) {
-		PMEMoid oid;
-		pmemobj_alloc(pop, &oid, ALLOC_SIZE, 0,
-				test_constructor, NULL);
-		OUT("%d %lu", i, oid.off);
-	}
+	errno = 0;
+	node.oid = pmemobj_list_insert_new(pop, offsetof(struct node, next),
+			&D_RW(root)->list, OID_NULL, 0, sizeof (struct node),
+			1, node_constr_cancel, NULL);
+	ASSERT(TOID_IS_NULL(node));
+	ASSERTeq(errno, ECANCELED);
 
 	pmemobj_close(pop);
 

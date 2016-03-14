@@ -176,11 +176,9 @@ alloc_reserve_block(PMEMobjpool *pop, struct memory_block *m, size_t sizeh)
 /*
  * alloc_prep_block -- (internal) prepares a memory block for allocation
  */
-static void
+static int
 alloc_prep_block(PMEMobjpool *pop, struct memory_block m,
-	void (*constructor)
-		(PMEMobjpool *pop, void *ptr, size_t usable_size, void *arg),
-	void *arg, uint64_t *offset_value)
+	pmalloc_constr constructor, void *arg, uint64_t *offset_value)
 {
 	void *block_data = heap_get_block_data(pop, m);
 	void *datap = (char *)block_data +
@@ -198,10 +196,14 @@ alloc_prep_block(PMEMobjpool *pop, struct memory_block m,
 
 	alloc_write_header(pop, block_data, m, real_size);
 
+	int ret = 0;
 	if (constructor != NULL)
-		constructor(pop, userdatap, real_size - ALLOC_OFF, arg);
+		ret = constructor(pop, userdatap, real_size - ALLOC_OFF, arg);
 
-	*offset_value = OBJ_PTR_TO_OFF(pop, userdatap);
+	if (!ret)
+		*offset_value = OBJ_PTR_TO_OFF(pop, userdatap);
+
+	return ret;
 }
 
 /*
@@ -212,9 +214,8 @@ alloc_prep_block(PMEMobjpool *pop, struct memory_block m,
 int
 palloc_operation(PMEMobjpool *pop,
 	uint64_t off, uint64_t *dest_off, size_t size,
-	void (*constructor)
-		(PMEMobjpool *pop, void *ptr, size_t usable_size, void *arg),
-	void *arg, struct operation_entry *entries, size_t nentries)
+	pmalloc_constr constructor, void *arg,
+	struct operation_entry *entries, size_t nentries)
 {
 	struct bucket *b = NULL;
 	struct allocation_header *alloc = NULL;
@@ -279,7 +280,10 @@ palloc_operation(PMEMobjpool *pop,
 			ASSERT(0);
 		}
 #endif /* DEBUG */
-		alloc_prep_block(pop, nb, constructor, arg, &offset_value);
+		if (alloc_prep_block(pop, nb, constructor,
+				arg, &offset_value)) {
+			FATAL("not implemented");
+		}
 
 		heap_lock_if_run(pop, nb);
 
@@ -355,8 +359,7 @@ pmalloc(PMEMobjpool *pop, uint64_t *off, size_t size)
  */
 int
 pmalloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
-	void (*constructor)(PMEMobjpool *pop, void *ptr,
-	size_t usable_size, void *arg), void *arg)
+	pmalloc_constr constructor, void *arg)
 {
 	return palloc_operation(pop, 0, off, size, constructor, arg, NULL, 0);
 }
@@ -384,8 +387,7 @@ prealloc(PMEMobjpool *pop, uint64_t *off, size_t size)
  */
 int
 prealloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
-	void (*constructor)(PMEMobjpool *pop, void *ptr,
-	size_t usable_size, void *arg), void *arg)
+	pmalloc_constr constructor, void *arg)
 {
 	return palloc_operation(pop, *off, off, size, constructor, arg,
 		NULL, 0);
