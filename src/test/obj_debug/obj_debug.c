@@ -139,7 +139,7 @@ test_lists(const char *path)
 	pmemobj_close(pop);
 }
 
-static void
+static int
 int3_constructor(PMEMobjpool *pop, void *ptr, void *arg)
 {
 	struct int3_s *args = arg;
@@ -150,6 +150,8 @@ int3_constructor(PMEMobjpool *pop, void *ptr, void *arg)
 	val->i3 = args->i3;
 
 	pmemobj_persist(pop, val, sizeof (*val));
+
+	return 0;
 }
 
 static void

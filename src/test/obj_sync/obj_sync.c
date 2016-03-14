@@ -40,6 +40,8 @@
 #include "util.h"
 #include "lane.h"
 #include "redo.h"
+#include "memops.h"
+#include "pmalloc.h"
 #include "list.h"
 #include "obj.h"
 

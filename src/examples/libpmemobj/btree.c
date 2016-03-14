@@ -64,7 +64,7 @@ struct btree_node_arg {
 /*
  * btree_node_construct -- constructor of btree node
  */
-void
+int
 btree_node_construct(PMEMobjpool *pop, void *ptr, void *arg)
 {
 	struct btree_node *node = ptr;
@@ -76,6 +76,8 @@ btree_node_construct(PMEMobjpool *pop, void *ptr, void *arg)
 	node->slots[1] = TOID_NULL(struct btree_node);
 
 	pmemobj_persist(pop, node, a->size);
+
+	return 0;
 }
 
 /*

@@ -38,9 +38,9 @@
 #include "libpmemobj.h"
 #include "lane.h"
 #include "redo.h"
-#include "list.h"
 #include "memops.h"
 #include "pmalloc.h"
+#include "list.h"
 #include "util.h"
 #include "obj.h"
 #include "out.h"
@@ -570,7 +570,7 @@ list_insert_oob(PMEMobjpool *pop, struct redo_log *redo, size_t redo_index,
 static int
 list_insert_new(PMEMobjpool *pop, struct list_head *oob_head,
 	size_t pe_offset, struct list_head *user_head, PMEMoid dest, int before,
-	size_t size, void (*constructor)(PMEMobjpool *pop, void *ptr,
+	size_t size, int (*constructor)(PMEMobjpool *pop, void *ptr,
 	size_t usable_size, void *arg), void *arg, PMEMoid *oidp)
 {
 	LOG(3, NULL);
@@ -719,7 +719,7 @@ err_pmalloc:
  */
 int
 list_insert_new_oob(PMEMobjpool *pop, struct list_head *oob_head,
-	size_t size, void (*constructor)(PMEMobjpool *pop, void *ptr,
+	size_t size, int (*constructor)(PMEMobjpool *pop, void *ptr,
 	size_t usable_size, void *arg), void *arg, PMEMoid *oidp)
 {
 	return list_insert_new(pop, oob_head, 0, NULL, OID_NULL,
@@ -743,7 +743,7 @@ list_insert_new_oob(PMEMobjpool *pop, struct list_head *oob_head,
 int
 list_insert_new_user(PMEMobjpool *pop, struct list_head *oob_head,
 	size_t pe_offset, struct list_head *user_head, PMEMoid dest, int before,
-	size_t size, void (*constructor)(PMEMobjpool *pop, void *ptr,
+	size_t size, int (*constructor)(PMEMobjpool *pop, void *ptr,
 	size_t usable_size, void *arg), void *arg, PMEMoid *oidp)
 {
 	int ret;

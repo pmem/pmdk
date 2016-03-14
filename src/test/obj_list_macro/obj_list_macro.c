@@ -154,13 +154,15 @@ do_print_reverse(PMEMobjpool *pop, const char *arg)
  * item_constructor -- constructor which sets the item's id to
  * new value
  */
-static void
+static int
 item_constructor(PMEMobjpool *pop, void *ptr, void *arg)
 {
 	int id = *(int *)arg;
 	struct item *item = (struct item *)ptr;
 	item->id = id;
 	OUT("constructor(id = %d)", id);
+
+	return 0;
 }
 
 /*

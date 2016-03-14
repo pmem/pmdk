@@ -76,13 +76,15 @@ struct pi {
 /*
  * pi_task_construct -- task constructor
  */
-void
+int
 pi_task_construct(PMEMobjpool *pop, void *ptr, void *arg)
 {
 	struct pi_task *t = ptr;
 	struct pi_task_proto *p = arg;
 	t->proto = *p;
 	pmemobj_persist(pop, t, sizeof (*t));
+
+	return 0;
 }
 
 /*

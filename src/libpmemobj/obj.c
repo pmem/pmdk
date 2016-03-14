@@ -45,9 +45,9 @@
 #include "out.h"
 #include "lane.h"
 #include "redo.h"
-#include "list.h"
 #include "memops.h"
 #include "pmalloc.h"
+#include "list.h"
 #include "cuckoo.h"
 #include "ctree.h"
 #include "obj.h"
@@ -1057,14 +1057,14 @@ pmemobj_pool_by_ptr(const void *addr)
 struct carg_bytype {
 	type_num_t user_type;
 	int zero_init;
-	void (*constructor)(PMEMobjpool *pop, void *ptr, void *arg);
+	pmemobj_constr constructor;
 	void *arg;
 };
 
 /*
  * constructor_alloc_bytype -- (internal) constructor for obj_alloc_construct
  */
-static void
+static int
 constructor_alloc_bytype(PMEMobjpool *pop, void *ptr,
 	size_t usable_size, void *arg)
 {
@@ -1089,8 +1089,10 @@ constructor_alloc_bytype(PMEMobjpool *pop, void *ptr,
 	else
 		pop->drain(pop);
 
+	int ret = 0;
 	if (carg->constructor)
-		carg->constructor(pop, ptr, carg->arg);
+		ret = carg->constructor(pop, ptr, carg->arg);
+	return ret;
 }
 
 /*
@@ -1099,7 +1101,7 @@ constructor_alloc_bytype(PMEMobjpool *pop, void *ptr,
 static int
 obj_alloc_construct(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 	type_num_t type_num, int zero_init,
-	void (*constructor)(PMEMobjpool *pop, void *ptr, void *arg),
+	pmemobj_constr constructor,
 	void *arg)
 {
 	if (size > PMEMOBJ_MAX_ALLOC_SIZE) {
@@ -1129,8 +1131,7 @@ obj_alloc_construct(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
  */
 int
 pmemobj_alloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
-	uint64_t type_num, void (*constructor)(PMEMobjpool *pop, void *ptr,
-	void *arg), void *arg)
+	uint64_t type_num, pmemobj_constr constructor, void *arg)
 {
 	LOG(3, "pop %p oidp %p size %zu type_num %llx constructor %p arg %p",
 		pop, oidp, size, (unsigned long long)type_num,
@@ -1156,7 +1157,7 @@ struct carg_realloc {
 	size_t new_size;
 	int zero_init;
 	type_num_t user_type;
-	void (*constructor)(PMEMobjpool *pop, void *ptr, void *arg);
+	pmemobj_constr constructor;
 	void *arg;
 };
 
@@ -1198,7 +1199,7 @@ obj_free(PMEMobjpool *pop, PMEMoid *oidp)
 /*
  * constructor_realloc -- (internal) constructor for pmemobj_realloc
  */
-static void
+static int
 constructor_realloc(PMEMobjpool *pop, void *ptr, size_t usable_size, void *arg)
 {
 	LOG(3, "pop %p ptr %p arg %p", pop, ptr, arg);
@@ -1219,7 +1220,7 @@ constructor_realloc(PMEMobjpool *pop, void *ptr, size_t usable_size, void *arg)
 	}
 
 	if (!carg->zero_init)
-		return;
+		return 0;
 
 	if (usable_size > carg->old_size) {
 		size_t grow_len = usable_size - carg->old_size;
@@ -1227,6 +1228,8 @@ constructor_realloc(PMEMobjpool *pop, void *ptr, size_t usable_size, void *arg)
 
 		pop->memset_persist(pop, new_data_ptr, 0, grow_len);
 	}
+
+	return 0;
 }
 
 /*
@@ -1290,7 +1293,7 @@ obj_realloc_common(PMEMobjpool *pop,
 /*
  * constructor_zrealloc_root -- (internal) constructor for pmemobj_root
  */
-static void
+static int
 constructor_zrealloc_root(PMEMobjpool *pop, void *ptr,
 	size_t usable_size, void *arg)
 {
@@ -1312,11 +1315,14 @@ constructor_zrealloc_root(PMEMobjpool *pop, void *ptr,
 		pop->flush(pop, &pobj->size, sizeof (pobj->size));
 	}
 
+	int ret = 0;
 	if (carg->constructor)
-		carg->constructor(pop, ptr, carg->arg);
+		ret = carg->constructor(pop, ptr, carg->arg);
 
 	VALGRIND_REMOVE_FROM_TX(OOB_HEADER_FROM_PTR(ptr),
 		carg->new_size + OBJ_OOB_SIZE);
+
+	return ret;
 }
 
 /*
@@ -1366,7 +1372,7 @@ struct carg_strdup {
 /*
  * constructor_strdup -- (internal) constructor of pmemobj_strdup
  */
-static void
+static int
 constructor_strdup(PMEMobjpool *pop, void *ptr, void *arg)
 {
 	LOG(3, "pop %p ptr %p arg %p", pop, ptr, arg);
@@ -1378,6 +1384,8 @@ constructor_strdup(PMEMobjpool *pop, void *ptr, void *arg)
 
 	/* copy string */
 	pop->memcpy_persist(pop, ptr, carg->s, carg->size);
+
+	return 0;
 }
 
 /*
@@ -1523,14 +1531,14 @@ pmemobj_type_num(PMEMoid oid)
 /* arguments for constructor_alloc_root */
 struct carg_root {
 	size_t size;
-	void (*constructor)(PMEMobjpool *pop, void *ptr, void *arg);
+	pmemobj_constr constructor;
 	void *arg;
 };
 
 /*
  * constructor_alloc_root -- (internal) constructor for obj_alloc_root
  */
-static void
+static int
 constructor_alloc_root(PMEMobjpool *pop, void *ptr,
 	size_t usable_size, void *arg)
 {
@@ -1561,6 +1569,8 @@ constructor_alloc_root(PMEMobjpool *pop, void *ptr,
 	pop->persist(pop, &ro->size,
 		/* there's no padding between these, so we can add sizes */
 		sizeof (ro->size) + sizeof (ro->type_num));
+
+	return 0;
 }
 
 /*
@@ -1568,7 +1578,7 @@ constructor_alloc_root(PMEMobjpool *pop, void *ptr,
  */
 static int
 obj_alloc_root(PMEMobjpool *pop, size_t size,
-	void (*constructor)(PMEMobjpool *pop, void *ptr, void *arg), void *arg)
+	pmemobj_constr constructor, void *arg)
 {
 	LOG(3, "pop %p size %zu", pop, size);
 
@@ -1588,7 +1598,7 @@ obj_alloc_root(PMEMobjpool *pop, size_t size,
 static int
 obj_realloc_root(PMEMobjpool *pop, size_t size,
 	size_t old_size,
-	void (*constructor)(PMEMobjpool *pop, void *ptr, void *arg), void *arg)
+	pmemobj_constr constructor, void *arg)
 {
 	LOG(3, "pop %p size %zu old_size %zu", pop, size, old_size);
 
@@ -1627,7 +1637,7 @@ pmemobj_root_size(PMEMobjpool *pop)
  */
 PMEMoid
 pmemobj_root_construct(PMEMobjpool *pop, size_t size,
-	void (*constructor)(PMEMobjpool *pop, void *ptr, void *arg), void *arg)
+	pmemobj_constr constructor, void *arg)
 {
 	LOG(3, "pop %p size %zu constructor %p args %p", pop, size, constructor,
 		arg);
@@ -1757,8 +1767,7 @@ PMEMoid
 pmemobj_list_insert_new(PMEMobjpool *pop, size_t pe_offset, void *head,
 			PMEMoid dest, int before, size_t size,
 			uint64_t type_num,
-			void (*constructor)(PMEMobjpool *pop, void *ptr,
-			void *arg), void *arg)
+			pmemobj_constr constructor, void *arg)
 {
 	LOG(3, "pop %p pe_offset %zu head %p dest.off 0x%016jx before %d"
 	    " size %zu type_num %lu",

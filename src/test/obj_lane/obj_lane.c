@@ -46,6 +46,8 @@
 #include "lane.h"
 #include "redo.h"
 #include "heap_layout.h"
+#include "memops.h"
+#include "pmalloc.h"
 #include "list.h"
 #include "obj.h"
 

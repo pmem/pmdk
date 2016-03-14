@@ -88,7 +88,7 @@ struct hashmap_atomic {
 /*
  * create_entry -- entry initializer
  */
-static void
+static int
 create_entry(PMEMobjpool *pop, void *ptr, void *arg)
 {
 	struct entry *e = ptr;
@@ -100,12 +100,14 @@ create_entry(PMEMobjpool *pop, void *ptr, void *arg)
 	memset(&e->list, 0, sizeof (e->list));
 
 	pmemobj_persist(pop, e, sizeof (*e));
+
+	return 0;
 }
 
 /*
  * create_buckets -- buckets initializer
  */
-static void
+static int
 create_buckets(PMEMobjpool *pop, void *ptr, void *arg)
 {
 	struct buckets *b = ptr;
@@ -114,6 +116,8 @@ create_buckets(PMEMobjpool *pop, void *ptr, void *arg)
 	pmemobj_memset_persist(pop, &b->bucket, 0,
 			b->nbuckets * sizeof (b->bucket[0]));
 	pmemobj_persist(pop, &b->nbuckets, sizeof (b->nbuckets));
+
+	return 0;
 }
 
 /*

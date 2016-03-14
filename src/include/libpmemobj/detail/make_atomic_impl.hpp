@@ -64,7 +64,7 @@ namespace detail {
 	 * The arg is a tuple containing constructor parameters.
 	 */
 	template<typename T, typename... Args>
-	void obj_constructor(PMEMobjpool *pop, void *ptr, void *arg)
+	int obj_constructor(PMEMobjpool *pop, void *ptr, void *arg)
 	{
 		auto *arg_pack = static_cast<std::tuple<Args...> *>(arg);
 
@@ -72,6 +72,8 @@ namespace detail {
 		create_object<T>(ptr, index(), *arg_pack);
 
 		pmemobj_persist(pop, ptr, sizeof(T));
+
+		return 0;
 	}
 
 }  /* namespace detail */

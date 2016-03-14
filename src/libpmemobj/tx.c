@@ -43,11 +43,11 @@
 #include "util.h"
 #include "lane.h"
 #include "redo.h"
+#include "memops.h"
+#include "pmalloc.h"
 #include "list.h"
 #include "obj.h"
 #include "out.h"
-#include "memops.h"
-#include "pmalloc.h"
 #include "ctree.h"
 #include "valgrind_internal.h"
 
@@ -133,7 +133,7 @@ pmemobj_tx_abort_null(int errnum)
 /*
  * constructor_tx_alloc -- (internal) constructor for normal alloc
  */
-static void
+static int
 constructor_tx_alloc(PMEMobjpool *pop, void *ptr, size_t usable_size, void *arg)
 {
 	LOG(3, NULL);
@@ -159,12 +159,14 @@ constructor_tx_alloc(PMEMobjpool *pop, void *ptr, size_t usable_size, void *arg)
 
 	/* do not report changes to the new object */
 	VALGRIND_ADD_TO_TX(ptr, usable_size);
+
+	return 0;
 }
 
 /*
  * constructor_tx_zalloc -- (internal) constructor for zalloc
  */
-static void
+static int
 constructor_tx_zalloc(PMEMobjpool *pop, void *ptr,
 	size_t usable_size, void *arg)
 {
@@ -193,12 +195,14 @@ constructor_tx_zalloc(PMEMobjpool *pop, void *ptr,
 	VALGRIND_ADD_TO_TX(ptr, usable_size);
 
 	memset(ptr, 0, usable_size);
+
+	return 0;
 }
 
 /*
  * constructor_tx_add_range -- (internal) constructor for add_range
  */
-static void
+static int
 constructor_tx_add_range(PMEMobjpool *pop, void *ptr,
 	size_t usable_size, void *arg)
 {
@@ -235,12 +239,14 @@ constructor_tx_add_range(PMEMobjpool *pop, void *ptr,
 
 	/* do not report changes to the original object */
 	VALGRIND_ADD_TO_TX(src, args->size);
+
+	return 0;
 }
 
 /*
  * constructor_tx_copy -- (internal) copy constructor
  */
-static void
+static int
 constructor_tx_copy(PMEMobjpool *pop, void *ptr, size_t usable_size, void *arg)
 {
 	LOG(3, NULL);
@@ -267,13 +273,15 @@ constructor_tx_copy(PMEMobjpool *pop, void *ptr, size_t usable_size, void *arg)
 	VALGRIND_ADD_TO_TX(ptr, args->size);
 
 	memcpy(ptr, args->ptr, args->copy_size);
+
+	return 0;
 }
 
 /*
  * constructor_tx_copy_zero -- (internal) copy constructor which zeroes
  * the non-copied area
  */
-static void
+static int
 constructor_tx_copy_zero(PMEMobjpool *pop, void *ptr,
 	size_t usable_size, void *arg)
 {
@@ -306,6 +314,8 @@ constructor_tx_copy_zero(PMEMobjpool *pop, void *ptr,
 		size_t zero_size = usable_size - args->copy_size;
 		memset(zero_ptr, 0, zero_size);
 	}
+
+	return 0;
 }
 
 /*
@@ -812,9 +822,7 @@ release_and_free_tx_locks(struct lane_tx_runtime *lane)
  * tx_alloc_common -- (internal) common function for alloc and zalloc
  */
 static PMEMoid
-tx_alloc_common(size_t size, type_num_t type_num,
-	void (*constructor)(PMEMobjpool *pop, void *ptr,
-	size_t usable_size, void *arg))
+tx_alloc_common(size_t size, type_num_t type_num, pmalloc_constr constructor)
 {
 	LOG(3, NULL);
 
@@ -854,8 +862,7 @@ err_oom:
  */
 static PMEMoid
 tx_alloc_copy_common(size_t size, type_num_t type_num, const void *ptr,
-	size_t copy_size, void (*constructor)(PMEMobjpool *pop, void *ptr,
-	size_t usable_size, void *arg))
+	size_t copy_size, pmalloc_constr constructor)
 {
 	LOG(3, NULL);
 
@@ -898,10 +905,8 @@ err_oom:
  */
 static PMEMoid
 tx_realloc_common(PMEMoid oid, size_t size, uint64_t type_num,
-	void (*constructor_alloc)(PMEMobjpool *pop, void *ptr,
-		size_t usable_size, void *arg),
-	void (*constructor_realloc)(PMEMobjpool *pop, void *ptr,
-		size_t usable_size, void *arg))
+	pmalloc_constr constructor_alloc,
+	pmalloc_constr constructor_realloc)
 {
 	LOG(3, NULL);
 
@@ -1239,7 +1244,7 @@ pmemobj_tx_add_large(struct lane_tx_layout *layout,
 /*
  * constructor_tx_range_cache -- (internal) cache constructor
  */
-static void
+static int
 constructor_tx_range_cache(PMEMobjpool *pop, void *ptr,
 	size_t usable_size, void *arg)
 {
@@ -1259,6 +1264,8 @@ constructor_tx_range_cache(PMEMobjpool *pop, void *ptr,
 
 	VALGRIND_REMOVE_FROM_TX(oobh,
 		OBJ_OOB_SIZE + sizeof (struct tx_range_cache));
+
+	return 0;
 }
 
 /*

@@ -120,13 +120,15 @@ find_array(const char *name)
 /*
  * elm_constructor -- constructor of array_elm type object
  */
-static void
+static int
 elm_constructor(PMEMobjpool *pop, void *ptr, void *arg)
 {
 	struct array_elm *obj = ptr;
 	int *id = arg;
 	obj->id = *id;
 	pmemobj_persist(pop, obj, sizeof (*obj));
+
+	return 0;
 }
 
 /*

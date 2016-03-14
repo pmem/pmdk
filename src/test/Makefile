@@ -108,7 +108,8 @@ OBJ_TESTS = \
        obj_tx_locks\
        obj_tx_locks_abort\
        obj_tx_realloc\
-       obj_tx_strdup
+       obj_tx_strdup\
+       obj_constructor
 
 OBJ_CPP_TESTS = \
 	obj_cpp_ptr\

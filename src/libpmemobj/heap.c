@@ -48,9 +48,9 @@
 #include "bucket.h"
 #include "lane.h"
 #include "out.h"
+#include "pmalloc.h"
 #include "list.h"
 #include "obj.h"
-#include "pmalloc.h"
 #include "sys_util.h"
 #include "valgrind_internal.h"
 
