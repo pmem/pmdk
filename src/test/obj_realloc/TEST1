@@ -46,7 +46,7 @@ require_valgrind_pmemcheck
 # XXX reduce the number of reallocs performed under pmemcheck so that the
 # execution time is reasonable and within the time limit (5 minutes) on both
 # pmem and non-pmem fs types.
-require_fs_type pmem
+require_fs_type non-pmem
 
 setup
 
