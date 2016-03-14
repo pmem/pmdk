@@ -95,8 +95,12 @@ option to create a pool of maximum available size on underlying file system.
 
 The
 .I size
-argument may be passed with multiplicative suffixes K=1024, M=1024*1024
-and so on for G, T and P or the suffixes KB=1000, MB=1000*1000 and so on for GB, TB and PB.
+argument may be passed in format that permits only the upper-case character
+for byte - B as specified in IEC 80000-13, IEEE 1541 and the Metric
+Interchange Format. Standards accept SI units with obligatory B -
+kB, MB, GB ... which means multiplier by 1000 and IEC units with optional
+"iB" - KiB, MiB, GiB, ..., K, M, G, ... - which means multiplier by 1024.
+
 .SS "Available options:"
 .PP
 .B -s, --size
