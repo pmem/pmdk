@@ -259,7 +259,7 @@ int util_pool_open_nocheck(struct pool_set **setp, const char *path,
 int util_pool_open(struct pool_set **setp, const char *path, int rdonly,
 	size_t minsize, const char *sig,
 	uint32_t major, uint32_t compat, uint32_t incompat, uint32_t ro_compat);
-int util_parse_size(const char *str, uint64_t *sizep);
+int util_parse_size(const char *str, size_t *sizep);
 
 
 #define	COMPILE_ERROR_ON(cond) ((void)sizeof (char[(cond) ? -1 : 1]))

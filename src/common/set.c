@@ -1652,7 +1652,7 @@ err_close:
  * util_parse_size -- parse size from string
  */
 int
-util_parse_size(const char *str, uint64_t *sizep)
+util_parse_size(const char *str, size_t *sizep)
 {
 	const struct suff suffixes[] = {
 		{ "B", 1 },
@@ -1675,7 +1675,7 @@ util_parse_size(const char *str, uint64_t *sizep)
 
 	int res = -1;
 	unsigned i;
-	uint64_t size = 0;
+	size_t size = 0;
 	char unit[4] = {0};
 
 	int ret = sscanf(str, "%lu%4s", &size, unit);

@@ -15,6 +15,7 @@ util_parse_size/TEST0: START: util_parse_size
 11GB - correct 11000000000
 11TB - correct 11000000000000
 11PB - correct 11000000000000000
+1234 - correct 1234
 10k - incorrect
 10KB - incorrect
 10mB - incorrect

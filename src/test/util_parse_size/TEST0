@@ -45,7 +45,7 @@ require_fs_type none
 setup
 
 expect_normal_exit ./util_parse_size$EXESUFFIX 11K 11M 11G 11T 11P\
-		11KiB 11MiB 11GiB 11TiB 11PiB 11kB 11MB 11GB 11TB 11PB\
+		11KiB 11MiB 11GiB 11TiB 11PiB 11kB 11MB 11GB 11TB 11PB 1234\
 		10k 10KB 10mB 10mb 10Mb 10B B 10ki 10KiC KiD\
 		10Kiboli 10Kboli 10boli 10KiBoli
 
