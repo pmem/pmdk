@@ -32,7 +32,7 @@
 #
 # src/libpmemlog.map -- linker map file for libpmemlog
 #
-libpmemlog.so {
+LIBPMEMLOG_1.0 {
 	global:
 		pmemlog_check_version;
 		pmemlog_set_funcs;

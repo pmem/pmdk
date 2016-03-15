@@ -32,7 +32,7 @@
 #
 # src/libvmem.map -- linker map file for libvmem
 #
-libvmem.so {
+LIBVMEM_1.0 {
 	global:
 		vmem_create;
 		vmem_create_in_region;

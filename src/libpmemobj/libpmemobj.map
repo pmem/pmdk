@@ -32,7 +32,7 @@
 #
 # src/libpmemobj.map -- linker map file for libpmemobj
 #
-libpmemobj.so {
+LIBPMEMOBJ_1.0 {
 	global:
 		pmemobj_check_version;
 		pmemobj_set_funcs;

@@ -32,7 +32,7 @@
 #
 # src/libpmem.map -- linker map file for libpmem
 #
-libpmem.so {
+LIBPMEM_1.0 {
 	global:
 		pmem_map_file;
 		pmem_unmap;

@@ -32,7 +32,7 @@
 #
 # src/librpmem/librpmem.map -- linker map file for librpmem
 #
-librpmem.so {
+LIBRPMEM_0.1 {
 	global:
 		rpmem_create;
 		rpmem_open;
