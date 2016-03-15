@@ -41,16 +41,16 @@ export UNITTEST_NUM=0
 # standard unit test setup
 . ../unittest/unittest.sh
 
-# covered by TEST5
-memcheck force-disable
+require_fs_type any
 
 setup
 
 create_holey_file 8 $DIR/testfile1
 
+# This is a pretty length test on non-pmem devices, so force clflushes.
+export PMEM_IS_PMEM_FORCE=1
+
 expect_normal_exit\
     ./obj_constructor$EXESUFFIX $DIR/testfile1
-
-check
 
 pass
