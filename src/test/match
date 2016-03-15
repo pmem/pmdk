@@ -171,7 +171,19 @@ sub match {
 		if (s/\\\$\\\(OPT\\\)//) {
 			$opt = 1;
 		}
-		printf("%s:%-3d %s%s:%-3d       %s\n", $mfile, $line_pat, $pat, $ofile, $line_out, (split /\n/, $output)[0]) if $opt_v;
+
+		if ($opt_v) {
+			my @lines = split /\n/, $output;
+			my $line;
+			if (@lines) {
+				$line = $lines[0];
+			} else {
+				$line = "[EOF]";
+			}
+
+			printf("%s:%-3d %s%s:%-3d       %s\n", $mfile, $line_pat, $pat, $ofile, $line_out, $line);
+		}
+
 		print " => /$_/\n" if $opt_d;
 		print " [$output]\n" if $opt_d;
 		unless ($output =~ s/^$_//) {
