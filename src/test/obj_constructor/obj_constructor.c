@@ -87,21 +87,45 @@ main(int argc, char *argv[])
 			0, S_IWUSR | S_IRUSR)) == NULL)
 		FATAL("!pmemobj_create: %s", path);
 
+	/*
+	 * Allocate memory until OOM, so we can check later if the alloc
+	 * cancellation didn't damage the heap in any way.
+	 */
+	int allocs = 0;
+	while (pmemobj_alloc(pop, NULL, sizeof (struct node), 1,
+			NULL, NULL) == 0)
+		allocs++;
+
+	ASSERTne(allocs, 0);
+
+	PMEMoid oid;
+	PMEMoid next;
+	POBJ_FOREACH_SAFE(pop, oid, next)
+		pmemobj_free(&oid);
+
 	errno = 0;
 	root.oid = pmemobj_root_construct(pop, sizeof (struct root),
 			root_constr_cancel, NULL);
 	ASSERT(TOID_IS_NULL(root));
 	ASSERTeq(errno, ECANCELED);
 
-	root.oid = pmemobj_root_construct(pop, sizeof (struct root),
-			NULL, NULL);
-	ASSERT(!TOID_IS_NULL(root));
-
 	errno = 0;
 	ret = pmemobj_alloc(pop, NULL, sizeof (struct node), 1,
 			node_constr_cancel, NULL);
 	ASSERTeq(ret, -1);
 	ASSERTeq(errno, ECANCELED);
+
+	/* the same number of allocations should be possible. */
+	while (pmemobj_alloc(pop, NULL, sizeof (struct node), 1,
+			NULL, NULL) == 0)
+		allocs--;
+	ASSERTeq(allocs, 0);
+	POBJ_FOREACH_SAFE(pop, oid, next)
+		pmemobj_free(&oid);
+
+	root.oid = pmemobj_root_construct(pop, sizeof (struct root),
+			NULL, NULL);
+	ASSERT(!TOID_IS_NULL(root));
 
 	errno = 0;
 	node.oid = pmemobj_list_insert_new(pop, offsetof(struct node, next),

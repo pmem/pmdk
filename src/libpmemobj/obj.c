@@ -1547,6 +1547,8 @@ constructor_alloc_root(PMEMobjpool *pop, void *ptr,
 	ASSERTne(ptr, NULL);
 	ASSERTne(arg, NULL);
 
+	int ret = 0;
+
 	struct oob_header *ro = OOB_HEADER_FROM_PTR(ptr);
 	struct carg_root *carg = arg;
 
@@ -1557,7 +1559,7 @@ constructor_alloc_root(PMEMobjpool *pop, void *ptr,
 	pop->memset_persist(pop, &ro->oob, 0, sizeof (ro->oob));
 
 	if (carg->constructor)
-		carg->constructor(pop, ptr, carg->arg);
+		ret = carg->constructor(pop, ptr, carg->arg);
 	else
 		pop->memset_persist(pop, ptr, 0, usable_size);
 
@@ -1570,7 +1572,7 @@ constructor_alloc_root(PMEMobjpool *pop, void *ptr,
 		/* there's no padding between these, so we can add sizes */
 		sizeof (ro->size) + sizeof (ro->type_num));
 
-	return 0;
+	return ret;
 }
 
 /*

@@ -604,17 +604,13 @@ list_insert_new(PMEMobjpool *pop, struct list_head *oob_head,
 		if ((ret = pmalloc_construct(pop,
 				&section->obj_offset, size,
 				constructor, arg))) {
-			errno = ret;
 			ERR("!pmalloc_construct");
-			ret = -1;
 			goto err_pmalloc;
 		}
 	} else {
 		ret = pmalloc(pop, &section->obj_offset, size);
 		if (ret) {
-			errno = ret;
 			ERR("!pmalloc");
-			ret = -1;
 			goto err_pmalloc;
 		}
 	}

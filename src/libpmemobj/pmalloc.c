@@ -241,8 +241,10 @@ palloc_operation(PMEMobjpool *pop,
 		if (alloc != NULL && alloc->size == sizeh) /* no-op */
 			goto out;
 
-		if ((ret = alloc_reserve_block(pop, &nb, sizeh)) != 0)
+		if ((errno = alloc_reserve_block(pop, &nb, sizeh)) != 0) {
+			ret = -1;
 			goto out;
+		}
 	}
 
 	struct allocator_lane_section *sec =
@@ -251,7 +253,8 @@ palloc_operation(PMEMobjpool *pop,
 	struct operation_context *ctx = operation_init(pop, sec->redo);
 	if (ctx == NULL) {
 		ERR("Failed to initialize memory operation context");
-		ret = ENOMEM;
+		errno = ENOMEM;
+		ret = -1;
 		goto out;
 	}
 
@@ -280,9 +283,26 @@ palloc_operation(PMEMobjpool *pop,
 			ASSERT(0);
 		}
 #endif /* DEBUG */
+
 		if (alloc_prep_block(pop, nb, constructor,
-				arg, &offset_value)) {
-			FATAL("not implemented");
+				arg, &offset_value) != 0) {
+			/*
+			 * Constructor returned non-zero value which means
+			 * the memory block reservation has to be rolled back.
+			 */
+			struct bucket *newb = heap_get_chunk_bucket(pop,
+				nb.chunk_id, nb.zone_id);
+			ASSERTne(newb, NULL);
+			nb = heap_free_block(pop, newb, nb, NULL);
+			CNT_OP(newb, insert, pop, nb);
+
+			operation_delete(ctx);
+			if (newb->type == BUCKET_RUN)
+				heap_degrade_run_if_empty(pop, newb, nb);
+
+			ret = -1;
+			errno = ECANCELED;
+			goto out;
 		}
 
 		heap_lock_if_run(pop, nb);
