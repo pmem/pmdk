@@ -1,5 +1,5 @@
 <!-- Creator     : groff version 1.18.1.4 -->
-<!-- CreationDate: Mon Feb  1 08:03:57 2016 -->
+<!-- CreationDate: Tue Mar 15 06:42:55 2016 -->
 <html>
 <head>
 <meta name="generator" content="groff -Thtml, see www.gnu.org">
@@ -51,7 +51,8 @@ Most commonly used functions:
 int pmem_is_pmem(const void *</b><i>addr</i><b>, size_t</b> <i>len</i><b>);
 void pmem_persist(const void *</b><i>addr</i><b>, size_t</b> <i>len</i><b>);
 int pmem_msync(const void *</b><i>addr</i><b>, size_t</b> <i>len</i><b>);
-void *pmem_map(int</b> <i>fd</i><b>);
+void *pmem_map_file(const char *</b><i>path</i><b>, size_t</b> <i>len</i><b>, int</b> <i>flags</i><b>,
+    mode_t</b> <i>mode</i><b>, size_t *</b><i>mapped_lenp</i><b>, int *</b><i>is_pmemp</i><b>);
 int pmem_unmap(void *</b><i>addr</i><b>, size_t</b> <i>len</i><b>);
 
 Partial flushing operations:
@@ -275,7 +276,11 @@ to indicate an error.</p>
 <tr valign="top" align="left">
 <td width="10%"></td>
 <td width="89%">
-<p><b>void *pmem_map(int</b> <i>fd</i><b>);</b></p>
+<p><b>void *pmem_map_file(const char *</b><i>path</i><b>,
+size_t</b> <i>len</i><b>, int</b> <i>flags</i><b>,<br>
+mode_t</b> <i>mode</i><b>, size_t
+*</b><i>mapped_lenp</i><b>, int
+*</b><i>is_pmemp</i><b>);</b></p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -284,16 +289,58 @@ to indicate an error.</p>
 <tr valign="top" align="left">
 <td width="20%"></td>
 <td width="79%">
-<p>The <b>pmem_map</b>() function creates a new read/write
-mapping for the entire file referred by to file descriptor
-<i>fd</i>, where <i>fd</i> must be a file descriptor for a
-file opened for both reading and writing. <b>pmem_map</b>()
-will map the file using <b>mmap</b>(2), but it also takes
-extra steps to make large page mappings more likely. On
-success, <b>pmem_map</b>() returns a pointer to mapped area.
-On error, NULL is returned, and errno is set appropriately.
-To delete mappings created with <b>pmem_map</b>(), use
-<b>pmem_unmap</b>().</p>
+<p>Given a <i>path</i>, <b>pmem_map_file</b>() function
+creates a new read/write mapping for the named file. It will
+map the file using <b>mmap</b>(2), but it also takes extra
+steps to make large page mappings more likely.</p>
+<!-- INDENTATION -->
+<p>On success, <b>pmem_map_file</b>() returns a pointer to
+mapped area. If <i>mapped_lenp</i> is not NULL, the length
+of the mapping is also stored at the address it points to.
+The <i>is_pmemp</i> argument, if non-NULL, points to a flag
+that <b>pmem_is_pmem</b>() sets to say if the mapped file is
+actual pmem, or if <b>msync</b>() must be used to flush
+writes for the mapped range. On error, NULL is returned,
+errno is set appropriately, and <i>mapped_lenp</i> and
+<i>is_pmemp</i> are left untouched.</p>
+<!-- INDENTATION -->
+<p>The <i>flags</i> argument can be 0 or bitwise OR of one
+or more of the following file creation flags:</p>
+<!-- INDENTATION -->
+<p><b>PMEM_FILE_CREAT</b> - Create the named file if it does
+not exist. <i>len</i> must be non-zero and specifies the
+size of the file to be created. <i>mode</i> has the same
+meaning as for <b>open</b>(2) and specifies the mode to use
+in case a new file is created. If neither
+<b>PMEM_FILE_CREAT</b> nor <b>PMEM_FILE_TMPFILE</b> is
+specified, then <i>mode</i> is ignored.</p>
+<!-- INDENTATION -->
+<p><b>PMEM_FILE_EXCL</b> - Same meaning as <b>O_EXCL</b> on
+<b>open</b>(2) - Ensure that this call creates the file. If
+this flag is specified in conjunction with
+<b>PMEM_FILE_CREAT</b>, and pathname already exists, then
+<b>pmem_map_file</b>() will fail.</p>
+<!-- INDENTATION -->
+<p><b>PMEM_FILE_TMPFILE</b> - Same meaning as
+<b>O_TMPFILE</b> on <b>open</b>(2). Create a mapping for an
+unnamed temporary file. <b>PMEM_FILE_CREAT</b> and
+<i>len</i> must be specified and <i>path</i> must be an
+existing directory name.</p>
+<!-- INDENTATION -->
+<p><b>PMEM_FILE_SPARSE</b> - When creating a file, create a
+sparse (holey) file instead of calling
+<b>posix_fallocate</b>(2). Valid only if specified in
+conjunction with <b>PMEM_FILE_CREAT</b> or
+<b>PMEM_FILE_TMPFILE</b>, otherwise ignored.</p>
+<!-- INDENTATION -->
+<p>If creation flags are not supplied, then
+<b>pmem_map_file</b>() creates a mapping for an existing
+file. In such case, <i>len</i> should be zero. The entire
+file is mapped to memory; its length is used as the length
+of the mapping and returned via <i>mapped_lenp</i>.</p>
+<!-- INDENTATION -->
+<p>To delete mappings created with <b>pmem_map_file</b>(),
+use <b>pmem_unmap</b>().</p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -891,14 +938,14 @@ testing.</p>
 <td width="89%">
 <p><b>PMEM_MMAP_HINT=</b><i>val</i> This environment
 variable allows overriding the hint address used by
-<b>pmem_map</b>(). If set, it also disables mapping address
-randomization. This variable is intended for use during
-library testing and debugging. Setting it to some fairly
-large value (i.e. 0x10000000000) will very likely result in
-mapping the file at the specified address (if not used) or
-at the first unused region above given address, without
-adding any random offset. When debugging, this makes it
-easier to calculate the actual address of the persistent
+<b>pmem_map_file</b>(). If set, it also disables mapping
+address randomization. This variable is intended for use
+during library testing and debugging. Setting it to some
+fairly large value (i.e. 0x10000000000) will very likely
+result in mapping the file at the specified address (if not
+used) or at the first unused region above given address,
+without adding any random offset. When debugging, this makes
+it easier to calculate the actual address of the persistent
 memory block, based on its offset in the file. In case of
 <b>libpmemobj</b> it simplifies conversion of a persistent
 object identifier (OID) into a direct pointer to the object.
@@ -943,59 +990,337 @@ write to pmem. Use a transactional library such as
 #include &lt;libpmem.h&gt;
 
 /* using 4k of pmem for this example */
-#define PMEM_LEN 4096
-
-int
-main(int argc, char *argv[])
-{
-    int fd;
-    char *pmemaddr;
-    int is_pmem;
-
-   /* create a pmem file */
-    if ((fd = open(&quot;/pmem-fs/myfile&quot;,
-                         O_CREAT|O_RDWR, 0666)) &lt; 0) {
-        perror(&quot;open&quot;);
-        exit(1);
-    }
-
-   /* allocate the pmem */
-    if ((errno = posix_fallocate(fd, 0, PMEM_LEN)) != 0) {
-        perror(&quot;posix_fallocate&quot;);
-        exit(1);
-    }
-
-   /* memory map it */
-    if ((pmemaddr = pmem_map(fd)) == NULL) {
-        perror(&quot;pmem_map&quot;);
-        exit(1);
-    }
-    close(fd);
-
-   /* determine if range is true pmem */
-    is_pmem = pmem_is_pmem(pmemaddr, PMEM_LEN);
-
-   /* store a string to the persistent memory */
-    strcpy(pmemaddr, &quot;hello, persistent memory&quot;);
-
-   /* flush above strcpy to persistence */
-    if (is_pmem)
-        pmem_persist(pmemaddr, PMEM_LEN);
-    else
-        pmem_msync(pmemaddr, PMEM_LEN);
-
-   /*
-     * Delete the mappings. The region is also
-     * automatically unmapped when the process is
-     * terminated.
-     */
-    pmem_unmap(pmemaddr, PMEM_LEN);
-}
 </pre>
 </td>
 </table>
-<!-- INDENTATION -->
+<!-- TABS -->
 
+<table width="100%" border=0 rules="none" frame="void"
+       cols="5" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="20%"></td>
+<td width="7%">
+
+<p>#define</p>
+</td>
+<td width="7%"></td>
+<td width="7%">
+
+<p>PMEM_LEN 4096</p>
+</td>
+<td width="57%">
+</td>
+<tr valign="top" align="left">
+<td width="20%"></td>
+<td width="7%">
+
+<p>#define</p>
+</td>
+<td width="7%"></td>
+<td width="7%">
+
+<p>PATH &quot;/pmem-fs/myfile&quot;</p>
+</td>
+<td width="57%">
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="20%"></td>
+<td width="79%">
+<p>int<br>
+main(int argc, char *argv[])<br>
+{</p></td>
+</table>
+<!-- TABS -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="7" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="27%"></td>
+<td width="0%"></td>
+<td width="7%">
+
+<p>char *pmemaddr;</p>
+</td>
+<td width="7%"></td>
+<td width="7%"></td>
+<td width="7%"></td>
+<td width="42%">
+</td>
+<tr valign="top" align="left">
+<td width="27%"></td>
+<td width="0%"></td>
+<td width="7%">
+
+<p>size_t mapped_len;</p>
+</td>
+<td width="7%"></td>
+<td width="7%"></td>
+<td width="7%"></td>
+<td width="42%">
+</td>
+<tr valign="top" align="left">
+<td width="27%"></td>
+<td width="0%"></td>
+<td width="7%">
+
+<p>int is_pmem;</p>
+</td>
+<td width="7%"></td>
+<td width="7%"></td>
+<td width="7%"></td>
+<td width="42%">
+</td>
+<tr valign="top" align="left">
+<td width="27%"></td>
+<td width="0%"></td>
+<td width="7%">
+
+<p>/* create a pmem file and memory map it */</p>
+</td>
+<td width="7%"></td>
+<td width="7%"></td>
+<td width="7%"></td>
+<td width="42%">
+</td>
+<tr valign="top" align="left">
+<td width="27%"></td>
+<td width="0%"></td>
+<td width="7%">
+
+<p>if ((pmemaddr = pmem_map_file(PATH, PMEM_LEN,
+PMEM_FILE_CREATE,</p>
+</td>
+<td width="7%"></td>
+<td width="7%"></td>
+<td width="7%"></td>
+<td width="42%">
+</td>
+<tr valign="top" align="left">
+<td width="27%"></td>
+<td width="0%"></td>
+<td width="7%">
+</td>
+<td width="7%">
+</td>
+<td width="7%">
+</td>
+<td width="7%">
+
+<p>0666, &amp;mapped_len, &amp;is_pmem)) == NULL) {</p>
+</td>
+<td width="42%">
+</td>
+<tr valign="top" align="left">
+<td width="27%"></td>
+<td width="0%"></td>
+<td width="7%">
+</td>
+<td width="7%">
+
+<p>perror(&quot;pmem_map_file&quot;);</p>
+</td>
+<td width="7%"></td>
+<td width="7%"></td>
+<td width="42%">
+</td>
+<tr valign="top" align="left">
+<td width="27%"></td>
+<td width="0%"></td>
+<td width="7%">
+</td>
+<td width="7%">
+
+<p>exit(1);</p>
+</td>
+<td width="7%"></td>
+<td width="7%"></td>
+<td width="42%">
+</td>
+<tr valign="top" align="left">
+<td width="27%"></td>
+<td width="0%"></td>
+<td width="7%">
+
+<p>}</p>
+</td>
+<td width="7%"></td>
+<td width="7%"></td>
+<td width="7%"></td>
+<td width="42%">
+</td>
+<tr valign="top" align="left">
+<td width="27%"></td>
+<td width="0%"></td>
+<td width="7%">
+
+<p>/* store a string to the persistent memory */</p>
+</td>
+<td width="7%"></td>
+<td width="7%"></td>
+<td width="7%"></td>
+<td width="42%">
+</td>
+<tr valign="top" align="left">
+<td width="27%"></td>
+<td width="0%"></td>
+<td width="7%">
+
+<p>strcpy(pmemaddr, &quot;hello, persistent
+memory&quot;);</p>
+</td>
+<td width="7%"></td>
+<td width="7%"></td>
+<td width="7%"></td>
+<td width="42%">
+</td>
+<tr valign="top" align="left">
+<td width="27%"></td>
+<td width="0%"></td>
+<td width="7%">
+
+<p>/* flush above strcpy to persistence */</p>
+</td>
+<td width="7%"></td>
+<td width="7%"></td>
+<td width="7%"></td>
+<td width="42%">
+</td>
+<tr valign="top" align="left">
+<td width="27%"></td>
+<td width="0%"></td>
+<td width="7%">
+
+<p>if (is_pmem)</p>
+</td>
+<td width="7%"></td>
+<td width="7%"></td>
+<td width="7%"></td>
+<td width="42%">
+</td>
+<tr valign="top" align="left">
+<td width="27%"></td>
+<td width="0%"></td>
+<td width="7%">
+</td>
+<td width="7%">
+
+<p>pmem_persist(pmemaddr, mapped_len);</p>
+</td>
+<td width="7%"></td>
+<td width="7%"></td>
+<td width="42%">
+</td>
+<tr valign="top" align="left">
+<td width="27%"></td>
+<td width="0%"></td>
+<td width="7%">
+
+<p>else</p>
+</td>
+<td width="7%"></td>
+<td width="7%"></td>
+<td width="7%"></td>
+<td width="42%">
+</td>
+<tr valign="top" align="left">
+<td width="27%"></td>
+<td width="0%"></td>
+<td width="7%">
+</td>
+<td width="7%">
+
+<p>pmem_msync(pmemaddr, mapped_len);</p>
+</td>
+<td width="7%"></td>
+<td width="7%"></td>
+<td width="42%">
+</td>
+<tr valign="top" align="left">
+<td width="27%"></td>
+<td width="0%"></td>
+<td width="7%">
+
+<p>/*</p>
+</td>
+<td width="7%"></td>
+<td width="7%"></td>
+<td width="7%"></td>
+<td width="42%">
+</td>
+<tr valign="top" align="left">
+<td width="27%"></td>
+<td width="0%"></td>
+<td width="7%">
+
+<p>* Delete the mappings. The region is also</p>
+</td>
+<td width="7%"></td>
+<td width="7%"></td>
+<td width="7%"></td>
+<td width="42%">
+</td>
+<tr valign="top" align="left">
+<td width="27%"></td>
+<td width="0%"></td>
+<td width="7%">
+
+<p>* automatically unmapped when the process is</p>
+</td>
+<td width="7%"></td>
+<td width="7%"></td>
+<td width="7%"></td>
+<td width="42%">
+</td>
+<tr valign="top" align="left">
+<td width="27%"></td>
+<td width="0%"></td>
+<td width="7%">
+
+<p>* terminated.</p>
+</td>
+<td width="7%"></td>
+<td width="7%"></td>
+<td width="7%"></td>
+<td width="42%">
+</td>
+<tr valign="top" align="left">
+<td width="27%"></td>
+<td width="0%"></td>
+<td width="7%">
+
+<p>*/</p>
+</td>
+<td width="7%"></td>
+<td width="7%"></td>
+<td width="7%"></td>
+<td width="42%">
+</td>
+<tr valign="top" align="left">
+<td width="27%"></td>
+<td width="0%"></td>
+<td width="7%">
+
+<p>pmem_unmap(pmemaddr, mapped_len);</p>
+</td>
+<td width="7%"></td>
+<td width="7%"></td>
+<td width="7%"></td>
+<td width="42%">
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="20%"></td>
+<td width="79%">
+<p>}</p>
+</td>
+</table>
+<!-- INDENTATION -->
 <table width="100%" border=0 rules="none" frame="void"
        cols="2" cellspacing="0" cellpadding="0">
 <tr valign="top" align="left">
@@ -1035,8 +1360,8 @@ Technical Work Group:</p>
 <tr valign="top" align="left">
 <td width="10%"></td>
 <td width="89%">
-<p><b>mmap</b>(2), <b>munmap</b>(2), <b>msync</b>(2),
-<b>strerror</b>(3), <b>libpmemobj</b>(3),
+<p><b>open</b>(2), <b>mmap</b>(2), <b>munmap</b>(2),
+<b>msync</b>(2), <b>strerror</b>(3), <b>libpmemobj</b>(3),
 <b>libpmemblk</b>(3), <b>libpmemlog</b>(3),
 <b>libvmem</b>(3) and <b>http://pmem.io</b>.</p>
 </td>
