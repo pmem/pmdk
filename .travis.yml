@@ -9,6 +9,7 @@ before_install:
   - sudo apt-get install -y libunwind7-dev autoconf devscripts pkg-config
   - if [ "$EXTRA_CFLAGS" = "-DUSE_VALGRIND" ]; then sudo apt-get install -y valgrind; fi
   - cp src/test/testconfig.sh.example src/test/testconfig.sh
+  - perl -pi -e "s/^#PMEM_FS_DIR_FORCE_PMEM/PMEM_FS_DIR_FORCE_PMEM/" src/test/testconfig.sh
   - sudo mount -t tmpfs none /tmp -osize=4G
 script:
   - if [ $MAKE_DPKG -eq 0 ]; then make check-license && make cstyle && make -j2 USE_LIBUNWIND=1 && make -j2 test USE_LIBUNWIND=1 && make check && make DESTDIR=/tmp source; fi
