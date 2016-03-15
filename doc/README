@@ -59,6 +59,17 @@ These man pages provide the API specification for the corresponding libraries
 in this source tree, so any updates to one should be tested, reviewed, and
 committed with changes to the other.
 
+The following two files are initial man pages for experimental components
+still under development:
+
+librpmem(3) -- remote access to persistent memory
+    Man page source is in librmpem.3
+    HTML formatted version: http://pmem.io/nvml/rpmem/librpmem.3.html
+
+rpmemd(1) -- remote persistent memory daemon
+    Man page source is in rpmemd.1
+    HTML formatted version: http://pmem.io/nvml/rpmem/rpmemd.1.html
+
 To create more readable text files from the source, use:
 	$ make
 An even more convenient way to read these is to use the "man" command to

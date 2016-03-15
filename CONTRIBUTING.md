@@ -19,7 +19,7 @@ under the [BSD-style License used for the NVM Library](https://github.com/pmem/n
 **NOTE: Submitting your changes also means that you certify the following:**
 
 ```
-NVM Library Developer's Certificate of Origin
+Developer's Certificate of Origin 1.1
 
 By making a contribution to this project, I certify that:
 
