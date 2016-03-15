@@ -155,7 +155,6 @@ int
 main(int argc, char *argv[])
 {
 	int fd;
-	struct stat stbuf;
 	char *dest;
 	char *src;
 	off_t dest_off = 0;
@@ -163,11 +162,11 @@ main(int argc, char *argv[])
 	uint64_t bytes = 0;
 	int who = 0;
 	off_t overlap = 0;
+	size_t mapped_len;
 
 	START(argc, argv, "pmem_memmove");
 
 	fd = OPEN(argv[1], O_RDWR);
-	FSTAT(fd, &stbuf);
 
 	if (argc < 3)
 		USAGE();
@@ -216,22 +215,22 @@ main(int argc, char *argv[])
 	/* for overlap the src and dest must be created differently */
 	if (who == 0) {
 		/* src > dest */
-		dest = pmem_map(fd);
+		dest = pmem_map_file(argv[1], 0, 0, 0, &mapped_len, NULL);
 		if (dest == NULL)
 			FATAL("!could not mmap dest file %s", argv[1]);
 
-		src = MMAP(dest + stbuf.st_size, stbuf.st_size,
+		src = MMAP(dest + mapped_len, mapped_len,
 			PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS,
 			-1, 0);
 		/*
-		 * Its very unlikely that src would not be > dest. pmem_map
+		 * Its very unlikely that src would not be > dest. pmem_map_file
 		 * chooses the first unused address >= 1TB, large
 		 * enough to hold the give range, and 1GB aligned. Log
 		 * the error if the mapped addresses cannot be swapped
 		 * but allow the test to continue.
 		 */
 		if (src <= dest) {
-			swap_mappings(&dest, &src, stbuf.st_size, fd);
+			swap_mappings(&dest, &src, mapped_len, fd);
 			if (src <= dest)
 				ERR("cannot map files in memory order");
 		}
@@ -240,18 +239,18 @@ main(int argc, char *argv[])
 			0, bytes);
 
 		/* dest > src */
-		swap_mappings(&dest, &src, stbuf.st_size, fd);
+		swap_mappings(&dest, &src, mapped_len, fd);
 
 		if (dest <= src)
 			ERR("cannot map files in memory order");
 
 		do_memmove(fd, dest, src, argv[1], dest_off, src_off, 0,
 			bytes);
-		MUNMAP(dest, stbuf.st_size);
-		MUNMAP(src, stbuf.st_size);
+		MUNMAP(dest, mapped_len);
+		MUNMAP(src, mapped_len);
 	} else if (who == 1) {
 		/* src overlap with dest */
-		dest = pmem_map(fd);
+		dest = pmem_map_file(argv[1], 0, 0, 0, &mapped_len, NULL);
 		if (dest == NULL)
 			FATAL("!Could not mmap %s: \n", argv[1]);
 
@@ -259,10 +258,10 @@ main(int argc, char *argv[])
 		memset(dest, 0, bytes);
 		do_memmove(fd, dest, src, argv[1], dest_off, src_off,
 			overlap, bytes);
-		MUNMAP(dest, stbuf.st_size);
+		MUNMAP(dest, mapped_len);
 	} else {
 		/* dest overlap with src */
-		dest = pmem_map(fd);
+		dest = pmem_map_file(argv[1], 0, 0, 0, &mapped_len, NULL);
 		if (dest == NULL) {
 			FATAL("!Could not mmap %s: \n", argv[1]);
 		}
@@ -271,7 +270,7 @@ main(int argc, char *argv[])
 		memset(src, 0, bytes);
 		do_memmove(fd, dest, src, argv[1], dest_off, src_off,
 			overlap, bytes);
-		MUNMAP(src, stbuf.st_size);
+		MUNMAP(src, mapped_len);
 	}
 
 	CLOSE(fd);

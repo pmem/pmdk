@@ -59,7 +59,7 @@ void util_set_alloc_funcs(
 void *util_map(int fd, size_t len, int cow, size_t req_align);
 int util_unmap(void *addr, size_t len);
 
-int util_tmpfile(const char *dir, size_t size);
+int util_tmpfile(const char *dir, const char *templ);
 void *util_map_tmpfile(const char *dir, size_t size, size_t req_align);
 
 /*

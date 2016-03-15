@@ -126,12 +126,6 @@ struct pmem_bench
 	/* The size of the allocated buffer */
 	size_t bsize;
 
-	/*
-	 * File descriptor used to allocate and memory map the piece
-	 * of PMEM.
-	 */
-	int fd;
-
 	/* Pointer to the allocated volatile memory */
 	unsigned char *buf;
 
@@ -497,28 +491,14 @@ pmem_memcpy_init(struct benchmark *bench, struct benchmark_args *args)
 	for (size_t i = 0; i < pmb->n_rand_offsets; ++i)
 		pmb->rand_offsets[i] = rand() % args->n_ops_per_thread;
 
-
-	/* create a pmem file */
-	pmb->fd = open(args->fname, O_CREAT|O_EXCL|O_RDWR, args->fmode);
-	if (pmb->fd == -1) {
+	/* create a pmem file and memory map it */
+	if ((pmb->pmem_addr = pmem_map_file(args->fname, pmb->fsize,
+				PMEM_FILE_CREATE|PMEM_FILE_EXCL,
+				args->fmode, NULL, NULL)) == NULL) {
 		perror(args->fname);
 		ret = -1;
 		goto err_free_buf;
 	}
-
-	/* allocate the pmem */
-	if ((errno = posix_fallocate(pmb->fd, 0, pmb->fsize)) != 0) {
-		perror("posix_fallocate");
-		ret = -1;
-		goto err_close_file;
-	}
-	/* memory map it */
-	if ((pmb->pmem_addr = pmem_map(pmb->fd)) == NULL) {
-		perror("pmem_map");
-		ret = -1;
-		goto err_close_file;
-	}
-
 
 	if (op_type == OP_TYPE_READ) {
 		pmb->src_addr = pmb->pmem_addr;
@@ -544,8 +524,6 @@ pmem_memcpy_init(struct benchmark *bench, struct benchmark_args *args)
 		goto err_unmap;
 	}
 
-	close(pmb->fd);
-
 	if (pmb->pargs->memcpy) {
 		pmb->func_op = pmb->pargs->persist ?
 					libc_memcpy_persist : libc_memcpy;
@@ -557,10 +535,9 @@ pmem_memcpy_init(struct benchmark *bench, struct benchmark_args *args)
 	pmembench_set_priv(bench, pmb);
 
 	return 0;
+
 err_unmap:
-	munmap(pmb->pmem_addr, pmb->fsize);
-err_close_file:
-	close(pmb->fd);
+	pmem_unmap(pmb->pmem_addr, pmb->fsize);
 err_free_buf:
 	free(pmb->buf);
 err_free_pmb:

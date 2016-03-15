@@ -36,11 +36,46 @@
  * usage: pmem_map file
  */
 
+#define	_GNU_SOURCE
 #include "unittest.h"
+#include <stdlib.h>
+#include <dlfcn.h>
 
 #define	CHECK_BYTES 4096	/* bytes to compare before/after map call */
 
 sigjmp_buf Jmp;
+
+/*
+ * posix_fallocate -- interpose on libc posix_fallocate()
+ */
+int
+posix_fallocate(int fd, off_t offset, off_t len)
+{
+	OUT("posix_fallocate: off %ju len %ju", offset, len);
+
+	static int (*posix_fallocate_ptr)(int fd, off_t offset, off_t len);
+
+	if (posix_fallocate_ptr == NULL)
+		posix_fallocate_ptr = dlsym(RTLD_NEXT, "posix_fallocate");
+
+	return (*posix_fallocate_ptr)(fd, offset, len);
+}
+
+/*
+ * ftruncate -- interpose on libc ftruncate()
+ */
+int
+ftruncate(int fd, off_t len)
+{
+	OUT("ftruncate: len %ju", len);
+
+	static int (*ftruncate_ptr)(int fd, off_t len);
+
+	if (ftruncate_ptr == NULL)
+		ftruncate_ptr = dlsym(RTLD_NEXT, "ftruncate");
+
+	return (*ftruncate_ptr)(fd, len);
+}
 
 /*
  * signal_handler -- called on SIGSEGV
@@ -48,19 +83,55 @@ sigjmp_buf Jmp;
 static void
 signal_handler(int sig)
 {
-	OUT("signal: %s", strsignal(sig));
-
 	siglongjmp(Jmp, 1);
 }
 
-int
-main(int argc, char *argv[])
+#define	PMEM_FILE_ALL_FLAGS\
+	(PMEM_FILE_CREATE|PMEM_FILE_EXCL|PMEM_FILE_SPARSE|PMEM_FILE_TMPFILE)
+
+/*
+ * parse_flags -- parse 'flags' string
+ */
+static int
+parse_flags(const char *flags_str)
 {
-	START(argc, argv, "pmem_map");
+	int ret = 0;
+	while (*flags_str != '\0') {
+		switch (*flags_str) {
+		case '0':
+		case '-':
+			/* no flags */
+			break;
+		case 'T':
+			ret |= PMEM_FILE_TMPFILE;
+			break;
+		case 'S':
+			ret |= PMEM_FILE_SPARSE;
+			break;
+		case 'C':
+			ret |= PMEM_FILE_CREATE;
+			break;
+		case 'E':
+			ret |= PMEM_FILE_EXCL;
+			break;
+		case 'X':
+			/* not supported flag */
+			ret |= (PMEM_FILE_ALL_FLAGS + 1);
+			break;
+		default:
+			FATAL("unknown flags: %c", *flags_str);
+		}
+		flags_str++;
+	};
+	return ret;
+}
 
-	if (argc != 2)
-		FATAL("usage: %s file", argv[0]);
-
+/*
+ * do_check --
+ */
+static void
+do_check(int fd, void *addr, size_t mlen)
+{
 	/* arrange to catch SEGV */
 	struct sigaction v;
 	sigemptyset(&v.sa_mask);
@@ -68,37 +139,21 @@ main(int argc, char *argv[])
 	v.sa_handler = signal_handler;
 	SIGACTION(SIGSEGV, &v, NULL);
 
-	int fd;
-	void *addr;
-
-	fd = OPEN(argv[1], O_RDWR);
-
-	struct stat stbuf;
-	FSTAT(fd, &stbuf);
-
 	char pat[CHECK_BYTES];
 	char buf[CHECK_BYTES];
-
-	addr = pmem_map(fd);
-	if (addr == NULL) {
-		OUT("!pmem_map");
-		goto err;
-	}
 
 	/* write some pattern to the file */
 	memset(pat, 0x5A, CHECK_BYTES);
 	WRITE(fd, pat, CHECK_BYTES);
 
-
 	if (memcmp(pat, addr, CHECK_BYTES))
-		OUT("%s: first %d bytes do not match",
-			argv[1], CHECK_BYTES);
+		OUT("first %d bytes do not match", CHECK_BYTES);
 
 	/* fill up mapped region with new pattern */
 	memset(pat, 0xA5, CHECK_BYTES);
 	memcpy(addr, pat, CHECK_BYTES);
 
-	pmem_unmap(addr, stbuf.st_size);
+	pmem_unmap(addr, mlen);
 
 	if (!sigsetjmp(Jmp, 1)) {
 		/* same memcpy from above should now fail */
@@ -110,23 +165,88 @@ main(int argc, char *argv[])
 	LSEEK(fd, (off_t)0, SEEK_SET);
 	if (READ(fd, buf, CHECK_BYTES) == CHECK_BYTES) {
 		if (memcmp(pat, buf, CHECK_BYTES))
-			OUT("%s: first %d bytes do not match",
-				argv[1], CHECK_BYTES);
+			OUT("first %d bytes do not match", CHECK_BYTES);
 	}
+}
 
-	CLOSE(fd);
+int
+main(int argc, char *argv[])
+{
+	START(argc, argv, "pmem_map");
 
-	/* re-open the file with read-only access */
-	fd = OPEN(argv[1], O_RDONLY);
+	int fd;
+	void *addr;
+	size_t mlen;
+	size_t *mlenp;
+	const char *path;
+	unsigned long long len;
+	int flags;
+	int mode;
+	int is_pmem;
+	int *is_pmemp;
+	int use_mlen;
+	int use_is_pmem;
 
-	addr = pmem_map(fd);
-	if (addr != NULL) {
-		MUNMAP(addr, stbuf.st_size);
-		OUT("expected pmem_map failure");
+	if (argc < 7)
+		FATAL("usage: %s path len flags mode use_mlen use_is_pmem ...",
+				argv[0]);
+
+	for (int i = 1; i + 5 < argc; i += 6) {
+		path = argv[i];
+		len = strtoull(argv[i + 1], NULL, 0);
+		flags = parse_flags(argv[i + 2]);
+		mode = strtol(argv[i + 3], NULL, 8);
+		use_mlen = atoi(argv[i + 4]);
+		use_is_pmem = atoi(argv[i + 5]);
+
+		mlen = SIZE_MAX;
+		if (use_mlen)
+			mlenp = &mlen;
+		else
+			mlenp = NULL;
+
+		if (use_is_pmem)
+			is_pmemp = &is_pmem;
+		else
+			is_pmemp = NULL;
+
+		OUT("%s %lld %s %o %d %d",
+			path, len, argv[i + 2], mode, use_mlen, use_is_pmem);
+
+		addr = pmem_map_file(path, len, flags, mode, mlenp, is_pmemp);
+		if (addr == NULL) {
+			OUT("!pmem_map_file");
+			continue;
+		}
+
+		if (use_mlen) {
+			ASSERTne(mlen, SIZE_MAX);
+			OUT("mapped_len %zu", mlen);
+		} else {
+			mlen = len;
+		}
+
+		if (addr) {
+			if ((flags & PMEM_FILE_TMPFILE) == 0) {
+				fd = OPEN(argv[i], O_RDWR);
+
+				if (!use_mlen) {
+					struct stat stbuf;
+					FSTAT(fd, &stbuf);
+					mlen = stbuf.st_size;
+				}
+
+				if (fd != -1) {
+					do_check(fd, addr, mlen);
+					(void) CLOSE(fd);
+				} else {
+					OUT("!cannot open file: %s", argv[i]);
+				}
+			} else {
+				pmem_unmap(addr, mlen);
+			}
+		}
 	}
-
-err:
-	CLOSE(fd);
 
 	DONE(NULL);
 }

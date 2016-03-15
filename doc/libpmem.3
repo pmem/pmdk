@@ -37,7 +37,7 @@
 .\" or
 .\"	groff -man -Tascii libpmem.3
 .\"
-.TH libpmem 3 "pmem API version 0.8.6" "NVM Library"
+.TH libpmem 3 "pmem API version 0.8.7" "NVM Library"
 .SH NAME
 libpmem \- persistent memory support library
 .SH SYNOPSIS
@@ -51,7 +51,8 @@ libpmem \- persistent memory support library
 .BI "int pmem_is_pmem(const void *" addr ", size_t " len );
 .BI "void pmem_persist(const void *" addr ", size_t " len );
 .BI "int pmem_msync(const void *" addr ", size_t " len );
-.BI "void *pmem_map(int " fd );
+.BI "void *pmem_map_file(const char *" path ", size_t " len ", int " flags ,
+.BI "    mode_t " mode ", size_t *" mapped_lenp ", int *" is_pmemp );
 .BI "int pmem_unmap(void *" addr ", size_t " len );
 .sp
 .B Partial flushing operations:
@@ -258,26 +259,102 @@ is the return value of
 .BR msync (),
 which can return -1 and set errno to indicate an error.
 .PP
-.BI "void *pmem_map(int " fd );
+.BI "void *pmem_map_file(const char *" path ", size_t " len ", int " flags ,
+.br
+.BI "    mode_t " mode ", size_t *" mapped_lenp ", int *" is_pmemp );
 .IP
-The
-.BR pmem_map ()
-function creates a new read/write mapping for the entire file
-referred by to file descriptor
-.IR fd ,
-where
-.I fd
-must be a file descriptor for a file opened for both reading
-and writing.
-.BR pmem_map ()
-will map the file using
+Given a
+.IR path ,
+.BR pmem_map_file ()
+function creates a new read/write mapping for the named file.  It will map
+the file using
 .BR mmap (2),
 but it also takes extra steps to make large page mappings more
-likely.  On success,
-.BR pmem_map ()
-returns a pointer to mapped area.  On error, NULL is returned, and
-errno is set appropriately.  To delete mappings created with
-.BR pmem_map (),
+likely.
+.IP
+On success,
+.BR pmem_map_file ()
+returns a pointer to mapped area.  If
+.I mapped_lenp
+is not NULL, the length of the mapping is also stored at the address
+it points to.  The
+.I is_pmemp
+argument, if non-NULL, points to a flag that
+.BR pmem_is_pmem ()
+sets to say if the mapped file is actual pmem, or if
+.BR msync ()
+must be used to flush writes for the mapped range.
+On error, NULL is returned, errno is set appropriately, and
+.I mapped_lenp
+and
+.I is_pmemp
+are left untouched.
+.IP
+The
+.I flags
+argument can be 0 or bitwise OR of one or more of the following
+file creation flags:
+.IP
+.B PMEM_FILE_CREAT
+- Create the named file if it does not exist.
+.I len
+must be non-zero and specifies the size of the file to be created.
+.I mode
+has the same meaning as for
+.BR open (2)
+and specifies the mode to use in case a new file is created.
+If neither
+.B PMEM_FILE_CREAT
+nor
+.B PMEM_FILE_TMPFILE
+is specified, then
+.I mode
+is ignored.
+.IP
+.B PMEM_FILE_EXCL
+- Same meaning as
+.B O_EXCL
+on
+.BR open (2)
+- Ensure that this call creates the file.  If this flag is
+specified in conjunction with
+.BR PMEM_FILE_CREAT ,
+and pathname already exists, then
+.BR pmem_map_file ()
+will fail.
+.IP
+.B PMEM_FILE_TMPFILE
+- Same meaning as
+.B O_TMPFILE
+on
+.BR open (2).
+Create a mapping for an unnamed temporary file.
+.B PMEM_FILE_CREAT
+and
+.I len
+must be specified and
+.I path
+must be an existing directory name.
+.IP
+.B PMEM_FILE_SPARSE
+- When creating a file, create a sparse (holey) file instead of calling
+.BR posix_fallocate (2).
+Valid only if specified in conjunction with
+.B PMEM_FILE_CREAT
+or
+.BR PMEM_FILE_TMPFILE ,
+otherwise ignored.
+.IP
+If creation flags are not supplied, then
+.BR pmem_map_file ()
+creates a mapping for an existing file.  In such case,
+.I len
+should be zero.  The entire file is mapped to memory; its length is used
+as the length of the mapping and returned via
+.IR mapped_lenp .
+.IP
+To delete mappings created with
+.BR pmem_map_file (),
 use
 .BR pmem_unmap ().
 .PP
@@ -722,7 +799,7 @@ This variable is intended for use during library testing.
 .PP
 .BI PMEM_MMAP_HINT= val
 This environment variable allows overriding the hint address used by
-.BR pmem_map ().
+.BR pmem_map_file ().
 If set, it also disables mapping address randomization.
 This variable is intended for use during library testing and debugging.
 Setting it to some fairly large value (i.e. 0x10000000000) will very likely
@@ -764,53 +841,39 @@ to avoid torn updates.
 #include <libpmem.h>
 
 /* using 4k of pmem for this example */
-#define PMEM_LEN 4096
+#define	PMEM_LEN 4096
+
+#define	PATH "/pmem-fs/myfile"
 
 int
 main(int argc, char *argv[])
 {
-    int fd;
-    char *pmemaddr;
-    int is_pmem;
+	char *pmemaddr;
+	size_t mapped_len;
+	int is_pmem;
 
-    /* create a pmem file */
-    if ((fd = open("/pmem-fs/myfile",
-                         O_CREAT|O_RDWR, 0666)) < 0) {
-        perror("open");
-        exit(1);
-    }
+	/* create a pmem file and memory map it */
+	if ((pmemaddr = pmem_map_file(PATH, PMEM_LEN, PMEM_FILE_CREATE,
+				0666, &mapped_len, &is_pmem)) == NULL) {
+		perror("pmem_map_file");
+		exit(1);
+	}
 
-    /* allocate the pmem */
-    if ((errno = posix_fallocate(fd, 0, PMEM_LEN)) != 0) {
-        perror("posix_fallocate");
-        exit(1);
-    }
+	/* store a string to the persistent memory */
+	strcpy(pmemaddr, "hello, persistent memory");
 
-    /* memory map it */
-    if ((pmemaddr = pmem_map(fd)) == NULL) {
-        perror("pmem_map");
-        exit(1);
-    }
-    close(fd);
+	/* flush above strcpy to persistence */
+	if (is_pmem)
+		pmem_persist(pmemaddr, mapped_len);
+	else
+		pmem_msync(pmemaddr, mapped_len);
 
-    /* determine if range is true pmem */
-    is_pmem = pmem_is_pmem(pmemaddr, PMEM_LEN);
-
-    /* store a string to the persistent memory */
-    strcpy(pmemaddr, "hello, persistent memory");
-
-    /* flush above strcpy to persistence */
-    if (is_pmem)
-        pmem_persist(pmemaddr, PMEM_LEN);
-    else
-        pmem_msync(pmemaddr, PMEM_LEN);
-
-    /*
-     * Delete the mappings. The region is also
-     * automatically unmapped when the process is
-     * terminated.
-     */
-    pmem_unmap(pmemaddr, PMEM_LEN);
+	/*
+	 * Delete the mappings. The region is also
+	 * automatically unmapped when the process is
+	 * terminated.
+	 */
+	pmem_unmap(pmemaddr, mapped_len);
 }
 .fi
 .PP
@@ -826,6 +889,7 @@ recommended by the SNIA NVM Programming Technical Work Group:
 .IP
 http://snia.org/nvmp
 .SH "SEE ALSO"
+.BR open (2),
 .BR mmap (2),
 .BR munmap (2),
 .BR msync (2),

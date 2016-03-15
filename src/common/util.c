@@ -356,26 +356,18 @@ util_unmap(void *addr, size_t len)
 }
 
 /*
- * util_tmpfile -- reserve space in an unlinked file
- *
- * size must be multiple of page size.
+ * util_tmpfile --  (internal) create the temporary file
  */
 int
-util_tmpfile(const char *dir, size_t size)
+util_tmpfile(const char *dir, const char *templ)
 {
-	LOG(3, "dir %s size %zu", dir, size);
+	LOG(3, "dir \"%s\" template \"%s\"", dir, templ);
 
-	static char template[] = "/vmem.XXXXXX";
+	int oerrno;
 
-	char fullname[strlen(dir) + sizeof (template)];
+	char *fullname = alloca(strlen(dir) + sizeof (templ));
 	(void) strcpy(fullname, dir);
-	(void) strcat(fullname, template);
-
-	if (((off_t)size) < 0) {
-		ERR("invalid size (%zu) for off_t", size);
-		errno = EFBIG;
-		return -1;
-	}
+	(void) strcat(fullname, templ);
 
 	sigset_t set, oldset;
 	sigfillset(&set);
@@ -394,19 +386,11 @@ util_tmpfile(const char *dir, size_t size)
 
 	LOG(3, "unlinked file is \"%s\"", fullname);
 
-	if ((errno = posix_fallocate(fd, 0, (off_t)size)) != 0) {
-		ERR("!posix_fallocate");
-		goto err;
-	}
-
 	return fd;
 
 err:
-	LOG(1, "return -1");
-	int oerrno = errno;
+	oerrno = errno;
 	(void) sigprocmask(SIG_SETMASK, &oldset, NULL);
-	if (fd != -1)
-		(void) close(fd);
 	errno = oerrno;
 	return -1;
 }
@@ -420,9 +404,21 @@ void *
 util_map_tmpfile(const char *dir, size_t size, size_t req_align)
 {
 	int oerrno;
-	int fd = util_tmpfile(dir, size);
+
+	if (((off_t)size) < 0) {
+		ERR("invalid size (%zu) for off_t", size);
+		errno = EFBIG;
+		return NULL;
+	}
+
+	int fd = util_tmpfile(dir, "/vmem.XXXXXX");
 	if (fd == -1) {
 		LOG(2, "cannot create temporary file in dir %s", dir);
+		goto err;
+	}
+
+	if ((errno = posix_fallocate(fd, 0, (off_t)size)) != 0) {
+		ERR("!posix_fallocate");
 		goto err;
 	}
 

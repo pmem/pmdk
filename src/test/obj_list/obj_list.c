@@ -184,32 +184,19 @@ linear_alloc(uint64_t *cur_offset, size_t size)
  */
 FUNC_MOCK(pmemobj_open, PMEMobjpool *, char *fname, char *layout)
 FUNC_MOCK_RUN_DEFAULT {
-	int fd = open(fname, O_RDWR);
-	if (fd < 0) {
-		OUT("!%s: open", fname);
-		return NULL;
-	}
+	size_t size;
+	int is_pmem;
 
-	struct stat stbuf;
-	if (fstat(fd, &stbuf) < 0) {
-		OUT("!fstat");
-		(void) close(fd);
-		return NULL;
-	}
-
-	void *addr = pmem_map(fd);
+	void *addr = pmem_map_file(fname, 0, 0, 0, &size, &is_pmem);
 	if (!addr) {
-		OUT("!%s: pmem_map", fname);
-		(void) close(fd);
+		OUT("!%s: pmem_map_file", fname);
 		return NULL;
 	}
-
-	(void) close(fd);
 
 	Pop = (PMEMobjpool *)addr;
 	Pop->addr = Pop;
-	Pop->size = stbuf.st_size;
-	Pop->is_pmem = pmem_is_pmem(addr, stbuf.st_size);
+	Pop->size = size;
+	Pop->is_pmem = is_pmem;
 	Pop->rdonly = 0;
 	Pop->uuid_lo = 0x12345678;
 

@@ -34,7 +34,7 @@
 #
 libpmem.so {
 	global:
-		pmem_map;
+		pmem_map_file;
 		pmem_unmap;
 		pmem_is_pmem;
 		pmem_persist;

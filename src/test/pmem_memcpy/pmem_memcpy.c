@@ -124,7 +124,7 @@ main(int argc, char *argv[])
 	int fd;
 	char *dest;
 	char *src;
-	struct stat stbuf;
+	size_t mapped_len;
 
 	START(argc, argv, "pmem_memcpy");
 
@@ -136,24 +136,22 @@ main(int argc, char *argv[])
 	int src_off = atoi(argv[3]);
 	size_t bytes = strtoul(argv[4], NULL, 0);
 
-	FSTAT(fd, &stbuf);
-
 	/* src > dst */
-	dest = pmem_map(fd);
+	dest = pmem_map_file(argv[1], 0, 0, 0, &mapped_len, NULL);
 	if (dest == NULL)
 		FATAL("!could not map file: %s", argv[1]);
 
-	src = MMAP(dest + stbuf.st_size, stbuf.st_size, PROT_READ|PROT_WRITE,
+	src = MMAP(dest + mapped_len, mapped_len, PROT_READ|PROT_WRITE,
 		MAP_SHARED|MAP_ANONYMOUS, -1, 0);
 	/*
-	 * Its very unlikely that src would not be > dest. pmem_map
+	 * Its very unlikely that src would not be > dest. pmem_map_file
 	 * chooses the first unused address >= 1TB, large
 	 * enough to hold the give range, and 1GB aligned. If the
 	 * addresses did not get swapped to allow src > dst, log error
 	 * and allow test to continue.
 	 */
 	if (src <= dest) {
-		swap_mappings(&dest, &src, stbuf.st_size, fd);
+		swap_mappings(&dest, &src, mapped_len, fd);
 		if (src <= dest)
 			ERR("cannot map files in memory order");
 	}
@@ -164,15 +162,15 @@ main(int argc, char *argv[])
 	do_memcpy(fd, dest, dest_off, src, src_off, bytes, argv[1]);
 
 	/* dest > src */
-	swap_mappings(&dest, &src, stbuf.st_size, fd);
+	swap_mappings(&dest, &src, mapped_len, fd);
 
 	if (dest <= src) {
 		ERR("cannot map files in memory order");
 	}
 
 	do_memcpy(fd, dest, dest_off, src, src_off, bytes, argv[1]);
-	MUNMAP(dest, stbuf.st_size);
-	MUNMAP(src, stbuf.st_size);
+	MUNMAP(dest, mapped_len);
+	MUNMAP(src, mapped_len);
 
 	CLOSE(fd);
 

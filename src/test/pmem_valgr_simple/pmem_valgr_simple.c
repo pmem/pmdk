@@ -41,22 +41,19 @@
 int
 main(int argc, char *argv[])
 {
-	int fd;
-	struct stat stbuf;
+	size_t mapped_len;
 	char *dest;
+	int is_pmem;
 
 	START(argc, argv, "pmem_valgr_simple");
 
 	if (argc != 4)
 		FATAL("usage: %s file offset length", argv[0]);
 
-	fd = OPEN(argv[1], O_RDWR);
 	int dest_off = atoi(argv[2]);
 	size_t bytes = strtoul(argv[3], NULL, 0);
 
-	FSTAT(fd, &stbuf);
-
-	dest = pmem_map(fd);
+	dest = pmem_map_file(argv[1], 0, 0, 0, &mapped_len, &is_pmem);
 	if (dest == NULL)
 		FATAL("!Could not mmap %s\n", argv[1]);
 
@@ -67,7 +64,7 @@ main(int argc, char *argv[])
 	uint64_t *tmp64dst = (void *)((uintptr_t)dest + 4096);
 	*tmp64dst = 50;
 
-	if (pmem_is_pmem(dest, sizeof (*tmp64dst))) {
+	if (is_pmem) {
 		pmem_persist(tmp64dst, sizeof (*tmp64dst));
 	} else {
 		pmem_msync(tmp64dst, sizeof (*tmp64dst));
@@ -81,9 +78,7 @@ main(int argc, char *argv[])
 	/* shows strange behavior of memset in some cases */
 	memset(dest + dest_off, 0, bytes);
 
-	pmem_unmap(dest, stbuf.st_size);
-
-	CLOSE(fd);
+	pmem_unmap(dest, mapped_len);
 
 	DONE(NULL);
 }

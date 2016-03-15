@@ -49,7 +49,16 @@ extern "C" {
 
 #include <sys/types.h>
 
-void *pmem_map(int fd);
+/*
+ * flags supported by pmem_map_file()
+ */
+#define	PMEM_FILE_CREATE	(1 << 0)
+#define	PMEM_FILE_EXCL		(1 << 1)
+#define	PMEM_FILE_SPARSE	(1 << 2)
+#define	PMEM_FILE_TMPFILE	(1 << 3)
+
+void *pmem_map_file(const char *path, size_t len, int flags, mode_t mode,
+	size_t *mapped_lenp, int *is_pmemp);
 int pmem_unmap(void *addr, size_t len);
 int pmem_is_pmem(const void *addr, size_t len);
 void pmem_persist(const void *addr, size_t len);
