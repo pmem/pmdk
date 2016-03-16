@@ -64,6 +64,8 @@
 	}\
 } while (0)
 
+#define	RPMEMD_COMPILE_ERROR_ON(cond) ((void)sizeof (char[(cond) ? -1 : 1]))
+
 enum rpmemd_log_level {
 	RPD_LOG_ERR,
 	RPD_LOG_WARN,

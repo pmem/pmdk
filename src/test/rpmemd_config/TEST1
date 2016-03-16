@@ -1,0 +1,101 @@
+#!/bin/bash -e
+#
+# Copyright 2014-2016, Intel Corporation
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#
+#     * Redistributions of source code must retain the above copyright
+#       notice, this list of conditions and the following disclaimer.
+#
+#     * Redistributions in binary form must reproduce the above copyright
+#       notice, this list of conditions and the following disclaimer in
+#       the documentation and/or other materials provided with the
+#       distribution.
+#
+#     * Neither the name of the copyright holder nor the names of its
+#       contributors may be used to endorse or promote products derived
+#       from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+# OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+#
+# rpmemd_config/TEST2 -- test for rpmemd valid config file
+#
+export UNITTEST_NAME=rpmemd_config/TEST1
+export UNITTEST_NUM=1
+
+. ../unittest/unittest.sh
+
+require_fs_type pmem non-pmem
+
+setup
+
+RPMEMD=./rpmemd_config
+
+STDOUT=stdout${UNITTEST_NUM}.log
+rm -rf $STDOUT && touch $STDOUT
+
+CONFIG=in${UNITTEST_NUM}.conf
+rm -rf $CONFIG && touch $CONFIG
+
+WS="\t\t  \t\t  "
+WS=$(echo -e "$WS")
+UINT_MIN=0
+UINT16_MAX=65535
+UINT32_MAX=4294967295
+TOO_BIG_UINT16=65536
+
+cat << EOF >> $CONFIG
+# single line comment
+$WS# single line comment with useless white spaces
+${WS}port${WS}=${WS}0${WS}# line with useless white spaces and a comment
+port=$UINT_MIN # port=$TOO_BIG_UINT16 # commented out invalid line
+pid-file=/pid/file/path # valid pid-file path
+log-file=/log/file/path # valid log-file path
+poolset-dir=/dir/path # valid dir path
+enable-create=yes # valid enable-create value
+enable-create=no # valid enable-create value
+enable-remove=yes # valid enable-remove value
+enable-remove=no # valid enable-remove value
+persist-apm=yes # valid persist-apm value
+persist-apm=no # valid persist-apm value
+persist-general=yes # valid persist-general value
+persist-general=no # valid persist-general value
+provider-sockets=yes # valid provider-sockets value
+provider-sockets=no # valid provider-sockets value
+provider-verbs=yes # valid provider-verbs value
+provider-verbs=no # valid provider-verbs value
+use-syslog=yes # valid use-syslog value
+use-syslog=no # valid use-syslog value
+verify-pool-sets=yes # valid verify-pool-sets value
+verify-pool-sets=no # valid verify-pool-sets value
+verify-pool-sets=auto # valid verify-pool-sets value
+port=$UINT_MIN # min port value
+port=$UINT16_MAX # max port value
+max-lanes=$UINT_MIN # valid max-lanes
+max-lanes=$UINT32_MAX # valid max-lanes
+log-level=err # valid log-level
+log-level=warn # valid log-level
+log-level=notice # valid log-level
+log-level=info # valid log-level
+log-level=debug # valid log-level
+EOF
+
+expect_normal_exit $RPMEMD$EXESUFFIX -c $CONFIG 1>> $STDOUT
+expect_normal_exit $RPMEMD$EXESUFFIX --config $CONFIG 1>> $STDOUT
+
+check
+
+pass
