@@ -200,7 +200,7 @@ redo_log_check(PMEMobjpool *pop, struct redo_log *redo, size_t nentries)
 	size_t nflags = redo_log_nflags(redo, nentries);
 
 	if (nflags > 1) {
-		LOG(15, "redo %p to many finish flags", redo);
+		LOG(15, "redo %p too many finish flags", redo);
 		return -1;
 	}
 
