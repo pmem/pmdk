@@ -150,7 +150,7 @@ main(int argc, char *argv[])
 
 	unsigned char *buf = MALLOC(Bsize);
 	if (buf == NULL)
-		FATAL("cannot allocate buf");
+		UT_FATAL("cannot allocate buf");
 
 	/* map each file argument with the given map type */
 	for (; read_arg < argc; read_arg++) {

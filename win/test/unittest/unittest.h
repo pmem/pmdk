@@ -146,17 +146,15 @@ void ut_err(const char *file, int line, const char *func,
     ut_done(__FILE__, __LINE__, __func__, __VA_ARGS__)
 
 /* fatal error detected */
-#define	FATAL(...)\
+#define	UT_FATAL(...)\
     ut_fatal(__FILE__, __LINE__, __func__, __VA_ARGS__)
 
-#undef OUT
-
 /* normal output */
-#define	OUT(...)\
+#define	UT_OUT(...)\
     ut_out(__FILE__, __LINE__, __func__, __VA_ARGS__)
 
 /* error output */
-#define	ERR(...)\
+#define	UT_ERR(...)\
     ut_err(__FILE__, __LINE__, __func__, __VA_ARGS__)
 
 
@@ -167,29 +165,29 @@ void ut_err(const char *file, int line, const char *func,
  */
 
 /* assert a condition is true */
-#define	ASSERT(cnd)\
+#define	UT_ASSERT(cnd)\
 	((void)((cnd) || (ut_fatal(__FILE__, __LINE__, __func__,\
 	"assertion failure: %s", #cnd), 0)))
 
 /* assertion with extra info printed if assertion fails */
-#define	ASSERTinfo(cnd, info) \
+#define	UT_ASSERTinfo(cnd, info) \
 	((void)((cnd) || (ut_fatal(__FILE__, __LINE__, __func__,\
 	"assertion failure: %s (%s = %s)", #cnd, #info, info), 0)))
 
 /* assert two integer values are equal */
-#define	ASSERTeq(lhs, rhs)\
+#define	UT_ASSERTeq(lhs, rhs)\
 	((void)(((lhs) == (rhs)) || (ut_fatal(__FILE__, __LINE__, __func__,\
 	"assertion failure: %s (0x%llx) == %s (0x%llx)", #lhs,\
 	(unsigned long long)(lhs), #rhs, (unsigned long long)(rhs)), 0)))
 
 /* assert two integer values are not equal */
-#define	ASSERTne(lhs, rhs)\
+#define	UT_ASSERTne(lhs, rhs)\
 	((void)(((lhs) != (rhs)) || (ut_fatal(__FILE__, __LINE__, __func__,\
 	"assertion failure: %s (0x%llx) != %s (0x%llx)", #lhs,\
 	(unsigned long long)(lhs), #rhs, (unsigned long long)(rhs)), 0)))
 
 /* assert pointer is fits range of [start, start + size) */
-#define	ASSERTrange(ptr, start, size)\
+#define	UT_ASSERTrange(ptr, start, size)\
 	((void)(((uintptr_t)(ptr) >= (uintptr_t)(start) &&\
 	(uintptr_t)(ptr) < (uintptr_t)(start) + (uintptr_t)(size)) ||\
 	(ut_fatal(__FILE__, __LINE__, __func__,\

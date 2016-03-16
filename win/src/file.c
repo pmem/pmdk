@@ -92,3 +92,9 @@ flock(int fd, int operation)
 
 	return _locking(fd, flags, len);
 }
+
+int
+ftruncate(int fd, off_t length)
+{
+	return chsize(fd, length);
+}
