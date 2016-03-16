@@ -32,7 +32,7 @@ $(nW)/testfile11 4096 CX 666 1 1
 pmem_map_file: Invalid argument
 $(nW)/testfile12 2305843009213693951 CE 666 1 1
 posix_fallocate: off 0 len 2305843009213693951
-pmem_map_file: No space left on device
+pmem_map_file: $(*)
 $(nW) 0 T 666 1 1
 pmem_map_file: Invalid argument
 $(nW) 4096 T 666 1 1
