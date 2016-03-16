@@ -86,16 +86,6 @@ ifneq ($(LP64), 2)
 $(error $(arch32_error_msg))
 endif
 
-ifeq ($(shell uname -m), x86_64)
-ifneq ($(wildcard $(prefix)/lib64),)
-LIBDIR = $(prefix)/lib64
-else
-LIBDIR = $(prefix)/lib
-endif
-else
-LIBDIR = $(prefix)/lib
-endif
-
 LIBS_DESTDIR = $(DESTDIR)$(LIBDIR)/$(LIBS_DIR)
 
 ifeq ($(DEBUG),1)

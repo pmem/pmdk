@@ -268,6 +268,7 @@ usr/lib/nvml_debug/libpmem.a usr/lib/nvml_dbg/
 usr/lib/nvml_debug/libpmem.so	usr/lib/nvml_dbg/
 usr/lib/nvml_debug/libpmem.so.* usr/lib/nvml_dbg/
 usr/lib/libpmem.so
+usr/lib/pkgconfig/libpmem.pc
 usr/include/libpmem.h
 usr/share/man/man3/libpmem.3.gz
 EOF
@@ -302,6 +303,7 @@ usr/lib/nvml_debug/libpmemblk.a usr/lib/nvml_dbg/
 usr/lib/nvml_debug/libpmemblk.so usr/lib/nvml_dbg/
 usr/lib/nvml_debug/libpmemblk.so.* usr/lib/nvml_dbg/
 usr/lib/libpmemblk.so
+usr/lib/pkgconfig/libpmemblk.pc
 usr/include/libpmemblk.h
 usr/share/man/man3/libpmemblk.3.gz
 EOF
@@ -336,6 +338,7 @@ usr/lib/nvml_debug/libpmemlog.a usr/lib/nvml_dbg/
 usr/lib/nvml_debug/libpmemlog.so usr/lib/nvml_dbg/
 usr/lib/nvml_debug/libpmemlog.so.* usr/lib/nvml_dbg/
 usr/lib/libpmemlog.so
+usr/lib/pkgconfig/libpmemlog.pc
 usr/include/libpmemlog.h
 usr/share/man/man3/libpmemlog.3.gz
 EOF
@@ -370,6 +373,7 @@ usr/lib/nvml_debug/libpmemobj.a usr/lib/nvml_dbg/
 usr/lib/nvml_debug/libpmemobj.so usr/lib/nvml_dbg/
 usr/lib/nvml_debug/libpmemobj.so.* usr/lib/nvml_dbg/
 usr/lib/libpmemobj.so
+usr/lib/pkgconfig/libpmemobj.pc
 usr/include/libpmemobj.h
 usr/share/man/man3/libpmemobj.3.gz
 EOF
@@ -404,6 +408,7 @@ usr/lib/nvml_debug/libvmem.a usr/lib/nvml_dbg/
 usr/lib/nvml_debug/libvmem.so	usr/lib/nvml_dbg/
 usr/lib/nvml_debug/libvmem.so.* usr/lib/nvml_dbg/
 usr/lib/libvmem.so
+usr/lib/pkgconfig/libvmem.pc
 usr/include/libvmem.h
 usr/share/man/man3/libvmem.3.gz
 EOF
@@ -438,6 +443,7 @@ usr/lib/nvml_debug/libvmmalloc.a   usr/lib/nvml_dbg/
 usr/lib/nvml_debug/libvmmalloc.so   usr/lib/nvml_dbg/
 usr/lib/nvml_debug/libvmmalloc.so.* usr/lib/nvml_dbg/
 usr/lib/libvmmalloc.so
+usr/lib/pkgconfig/libvmmalloc.pc
 usr/include/libvmmalloc.h
 usr/share/man/man3/libvmmalloc.3.gz
 EOF

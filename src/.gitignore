@@ -1,6 +1,7 @@
 *.so
 *.so.*
 *.a
+*.pc
 tags
 TAGS
 cscope.in.out
