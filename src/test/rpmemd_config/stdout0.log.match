@@ -1,0 +1,148 @@
+rpmemd_config/TEST0: START: rpmemd_config
+pid_file:		/var/run/rpmemd.pid
+log_file		/var/log/rpmemd.log
+poolset_dir:		/etc/rpmemd
+enable_remove:		yes
+enable_create:		yes
+foreground:		no
+persist_apm:		no
+persist_general:	yes
+provider_sockets:	no
+provider_verbs:		yes
+use_syslog:		yes
+verify_pool_sets:	auto
+port:			7636
+max_lanes:		1024
+log_level:		err
+rpmemd_config/TEST0: START: rpmemd_config
+rpmemd version $(*)
+rpmemd_config/TEST0: START: rpmemd_config
+rpmemd version $(*)
+rpmemd_config/TEST0: START: rpmemd_config
+usage: $(*) [--version] [--help] [<args>]
+rpmemd version $(*)
+
+Options:
+  -c, --config <path>           configuration file location
+  -f, --foreground              run in foreground - do not run as a daemon
+  -h, --help                    display help message and exit
+  -V, --version                 display target daemon version and exit
+      --pid-file <paht>         PID file location
+      --log-file <paht>         log file location
+      --poolset-dir <path>      pool set files directory
+      --enable-create           permit create request
+      --enable-remove           permit remove request
+      --persist-apm             enable Appliance Durability Method
+      --persist-general         enable General Server Durability Mechanism
+      --provider-sockets        enable libfabric sockets fabric provider
+      --provider-verbs          enable libfabric verbs fabric provider
+      --use-syslog              use syslog(3) for logging messages
+      --verify-pool-sets        verify all pool set files
+      --port <port>             out-of-band connection port number
+      --max-lanes <lanes>       maximum allowed number of lanes
+      --log-level <level>       set log level value
+                                        err     error conditions
+                                        warn    warning conditions
+                                        notice  normal, but significant, condition
+                                        info    informational message
+                                        debug   debug-level message
+
+For complete documentation see rpmemd(1) manual page.
+rpmemd_config/TEST0: START: rpmemd_config
+usage: $(*) [--version] [--help] [<args>]
+rpmemd version $(*)
+
+Options:
+  -c, --config <path>           configuration file location
+  -f, --foreground              run in foreground - do not run as a daemon
+  -h, --help                    display help message and exit
+  -V, --version                 display target daemon version and exit
+      --pid-file <paht>         PID file location
+      --log-file <paht>         log file location
+      --poolset-dir <path>      pool set files directory
+      --enable-create           permit create request
+      --enable-remove           permit remove request
+      --persist-apm             enable Appliance Durability Method
+      --persist-general         enable General Server Durability Mechanism
+      --provider-sockets        enable libfabric sockets fabric provider
+      --provider-verbs          enable libfabric verbs fabric provider
+      --use-syslog              use syslog(3) for logging messages
+      --verify-pool-sets        verify all pool set files
+      --port <port>             out-of-band connection port number
+      --max-lanes <lanes>       maximum allowed number of lanes
+      --log-level <level>       set log level value
+                                        err     error conditions
+                                        warn    warning conditions
+                                        notice  normal, but significant, condition
+                                        info    informational message
+                                        debug   debug-level message
+
+For complete documentation see rpmemd(1) manual page.
+rpmemd_config/TEST0: START: rpmemd_config
+pid_file:		/var/run/rpmemd.pid
+log_file		/var/log/rpmemd.log
+poolset_dir:		/etc/rpmemd
+enable_remove:		yes
+enable_create:		yes
+foreground:		yes
+persist_apm:		no
+persist_general:	yes
+provider_sockets:	no
+provider_verbs:		yes
+use_syslog:		yes
+verify_pool_sets:	auto
+port:			7636
+max_lanes:		1024
+log_level:		err
+rpmemd_config/TEST0: START: rpmemd_config
+pid_file:		/var/run/rpmemd.pid
+log_file		/var/log/rpmemd.log
+poolset_dir:		/etc/rpmemd
+enable_remove:		yes
+enable_create:		yes
+foreground:		yes
+persist_apm:		no
+persist_general:	yes
+provider_sockets:	no
+provider_verbs:		yes
+use_syslog:		yes
+verify_pool_sets:	auto
+port:			7636
+max_lanes:		1024
+log_level:		err
+rpmemd_config/TEST0: START: rpmemd_config
+pid_file:		/var/run/rpmemd.pid
+log_file		/var/log/rpmemd.log
+poolset_dir:		/etc/rpmemd
+enable_remove:		yes
+enable_create:		yes
+foreground:		no
+persist_apm:		no
+persist_general:	yes
+provider_sockets:	no
+provider_verbs:		yes
+use_syslog:		yes
+verify_pool_sets:	auto
+port:			7636
+max_lanes:		1024
+log_level:		err
+rpmemd_config/TEST0: START: rpmemd_config
+pid_file:		/var/run/rpmemd.pid
+log_file		/var/log/rpmemd.log
+poolset_dir:		/etc/rpmemd
+enable_remove:		yes
+enable_create:		yes
+foreground:		no
+persist_apm:		no
+persist_general:	yes
+provider_sockets:	no
+provider_verbs:		yes
+use_syslog:		yes
+verify_pool_sets:	auto
+port:			7636
+max_lanes:		1024
+log_level:		err
+rpmemd_config/TEST0: START: rpmemd_config
+$(*): No such file or directory
+rpmemd_config/TEST0: START: rpmemd_config
+$(*): No such file or directory

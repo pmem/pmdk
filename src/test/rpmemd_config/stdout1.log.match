@@ -1,0 +1,32 @@
+rpmemd_config/TEST1: START: rpmemd_config
+pid_file:		/pid/file/path
+log_file		/log/file/path
+poolset_dir:		/dir/path
+enable_remove:		no
+enable_create:		no
+foreground:		no
+persist_apm:		no
+persist_general:	no
+provider_sockets:	no
+provider_verbs:		no
+use_syslog:		no
+verify_pool_sets:	auto
+port:			65535
+max_lanes:		4294967295
+log_level:		debug
+rpmemd_config/TEST1: START: rpmemd_config
+pid_file:		/pid/file/path
+log_file		/log/file/path
+poolset_dir:		/dir/path
+enable_remove:		no
+enable_create:		no
+foreground:		no
+persist_apm:		no
+persist_general:	no
+provider_sockets:	no
+provider_verbs:		no
+use_syslog:		no
+verify_pool_sets:	auto
+port:			65535
+max_lanes:		4294967295
+log_level:		debug

@@ -1,0 +1,84 @@
+Invalid config file line at $(*):1
+; invalid comment format
+Invalid config file line at $(*):1
+; invalid comment format
+Invalid config file line at $(*):1
+conn-wait-time=-1 # conn-wait-time value smaller than min
+Invalid config file line at $(*):1
+conn-wait-time=-1 # conn-wait-time value smaller than min
+Invalid config file line at $(*):1
+conn-wait-time=4294967296 # conn-wait-time value greater than max
+Invalid config file line at $(*):1
+conn-wait-time=4294967296 # conn-wait-time value greater than max
+Invalid config file line at $(*):1
+dir= 		 		# invalid dir path
+Invalid config file line at $(*):1
+dir= 		 		# invalid dir path
+Invalid config file line at $(*):1
+enable-create=invalid # invalid enable-create value
+Invalid config file line at $(*):1
+enable-create=invalid # invalid enable-create value
+Invalid config file line at $(*):1
+enable-remove=invalid # invalid enable-remove value
+Invalid config file line at $(*):1
+enable-remove=invalid # invalid enable-remove value
+Invalid config file line at $(*):1
+log-file= 		 		 # invalid log-file path
+Invalid config file line at $(*):1
+log-file= 		 		 # invalid log-file path
+Invalid config file line at $(*):1
+log-level=Invalid # invalid log-level
+Invalid config file line at $(*):1
+log-level=Invalid # invalid log-level
+Invalid config file line at $(*):1
+max-lanes=-1 # invalid max-lanes
+Invalid config file line at $(*):1
+max-lanes=-1 # invalid max-lanes
+Invalid config file line at $(*):1
+max-lanes=4294967296 # invalid max-lanes
+Invalid config file line at $(*):1
+max-lanes=4294967296 # invalid max-lanes
+Invalid config file line at $(*):1
+persist-apm=invalid # invalid persist-apm value
+Invalid config file line at $(*):1
+persist-apm=invalid # invalid persist-apm value
+Invalid config file line at $(*):1
+persist-general=invalid # invalid persist-general value
+Invalid config file line at $(*):1
+persist-general=invalid # invalid persist-general value
+Invalid config file line at $(*):1
+persist-write-commit=invalid # invalid persist-write-commit value
+Invalid config file line at $(*):1
+persist-write-commit=invalid # invalid persist-write-commit value
+Invalid config file line at $(*):1
+pid-file= 		 		# invalid pid-file path
+Invalid config file line at $(*):1
+pid-file= 		 		# invalid pid-file path
+Invalid config file line at $(*):1
+port=-1 # port value smaller than min
+Invalid config file line at $(*):1
+port=-1 # port value smaller than min
+Invalid config file line at $(*):1
+port=65536 # port value greater than max
+Invalid config file line at $(*):1
+port=65536 # port value greater than max
+Invalid config file line at $(*):1
+provider-psm=invalid # invalid provider-psm value
+Invalid config file line at $(*):1
+provider-psm=invalid # invalid provider-psm value
+Invalid config file line at $(*):1
+provider-sockets=invalid # invalid provider-sockets value
+Invalid config file line at $(*):1
+provider-sockets=invalid # invalid provider-sockets value
+Invalid config file line at $(*):1
+provider-verbs=invalid # invalid provider-verbs value
+Invalid config file line at $(*):1
+provider-verbs=invalid # invalid provider-verbs value
+Invalid config file line at $(*):1
+use-syslog=invalid # invalid use-syslog value
+Invalid config file line at $(*):1
+use-syslog=invalid # invalid use-syslog value
+Invalid config file line at $(*):1
+verify-pool-sets=invalid # invalid verify-pool-sets value
+Invalid config file line at $(*):1
+verify-pool-sets=invalid # invalid verify-pool-sets value
