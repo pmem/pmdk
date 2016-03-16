@@ -59,13 +59,11 @@ struct list_head {
 };
 
 int list_insert_new_oob(PMEMobjpool *pop, struct list_head *oob_head,
-	size_t size, void (*constructor)(PMEMobjpool *pop, void *ptr,
-	size_t usable_size, void *arg), void *arg, PMEMoid *oidp);
+	size_t size, pmalloc_constr constructor, void *arg, PMEMoid *oidp);
 
 int list_insert_new_user(PMEMobjpool *pop, struct list_head *oob_head,
 	size_t pe_offset, struct list_head *user_head, PMEMoid dest, int before,
-	size_t size, void (*constructor)(PMEMobjpool *pop, void *ptr,
-	size_t usable_size, void *arg), void *arg, PMEMoid *oidp);
+	size_t size, pmalloc_constr constructor, void *arg, PMEMoid *oidp);
 
 int list_insert(PMEMobjpool *pop,
 	ssize_t pe_offset, struct list_head *head, PMEMoid dest, int before,

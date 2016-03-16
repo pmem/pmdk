@@ -352,6 +352,8 @@ pmemobj_direct(PMEMoid oid)
  * aligned to the cache-line boundary.
  */
 
+typedef int (*pmemobj_constr)(PMEMobjpool *pop, void *ptr, void *arg);
+
 /*
  * Allocates a new object from the pool and calls a constructor function before
  * returning. It is guaranteed that allocated object is either properly
@@ -359,8 +361,7 @@ pmemobj_direct(PMEMoid oid)
  * memory reserved for the object is automatically reclaimed.
  */
 int pmemobj_alloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
-	uint64_t type_num, void (*constructor)(PMEMobjpool *pop, void *ptr,
-	void *arg), void *arg);
+	uint64_t type_num, pmemobj_constr constructor, void *arg);
 
 /*
  * Allocates a new zeroed object from the pool.
@@ -420,7 +421,7 @@ PMEMoid pmemobj_root(PMEMobjpool *pop, size_t size);
  * created and on all subsequent reallocations.
  */
 PMEMoid pmemobj_root_construct(PMEMobjpool *pop, size_t size,
-	void (*constructor)(PMEMobjpool *pop, void *ptr, void *arg), void *arg);
+	pmemobj_constr constructor, void *arg);
 
 /*
  * Returns the size in bytes of the root object. Always equal to the requested
@@ -619,7 +620,7 @@ int pmemobj_list_insert(PMEMobjpool *pop, size_t pe_offset, void *head,
 
 PMEMoid pmemobj_list_insert_new(PMEMobjpool *pop, size_t pe_offset, void *head,
 	PMEMoid dest, int before, size_t size, uint64_t type_num,
-	void (*constructor)(PMEMobjpool *pop, void *ptr, void *arg), void *arg);
+	pmemobj_constr constructor, void *arg);
 
 int pmemobj_list_remove(PMEMobjpool *pop, size_t pe_offset, void *head,
 	PMEMoid oid, int free);

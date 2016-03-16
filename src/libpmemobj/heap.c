@@ -48,9 +48,9 @@
 #include "bucket.h"
 #include "lane.h"
 #include "out.h"
+#include "pmalloc.h"
 #include "list.h"
 #include "obj.h"
-#include "pmalloc.h"
 #include "sys_util.h"
 #include "valgrind_internal.h"
 
@@ -1320,7 +1320,12 @@ heap_coalesce(PMEMobjpool *pop,
 	ret.zone_id = b->zone_id;
 	ret.block_off = b->block_off;
 
-	heap_prep_block_header_operation(pop, ret, op, ctx);
+	/*
+	 * Coalescing without context means a volatile rollback, so we don't
+	 * have to worry about difference of persistent/volatile states.
+	 */
+	if (ctx != NULL)
+		heap_prep_block_header_operation(pop, ret, op, ctx);
 
 	return ret;
 }

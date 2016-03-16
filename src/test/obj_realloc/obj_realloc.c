@@ -40,6 +40,7 @@
 #include "libpmemobj.h"
 #include "redo.h"
 #include "memops.h"
+#include "pmalloc.h"
 #include "heap.h"
 #include "util.h"
 #include "lane.h"

@@ -51,6 +51,7 @@
 #include "bucket.h"
 #include "ctree.h"
 #include "lane.h"
+#include "pmalloc.h"
 #include "list.h"
 #include "obj.h"
 #include "valgrind_internal.h"

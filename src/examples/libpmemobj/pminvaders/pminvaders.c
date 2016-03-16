@@ -114,7 +114,7 @@ static struct game_state *gstate;
 /*
  * create_alien -- constructor for aliens, spawn at random position
  */
-void
+int
 create_alien(PMEMobjpool *pop, void *ptr, void *arg)
 {
 	struct alien *a = ptr;
@@ -123,12 +123,14 @@ create_alien(PMEMobjpool *pop, void *ptr, void *arg)
 	a->timer = 1;
 
 	pmemobj_persist(pop, a, sizeof (*a));
+
+	return 0;
 }
 
 /*
  * create_player -- constructor for the player, spawn in the middle of the map
  */
-void
+int
 create_player(PMEMobjpool *pop, void *ptr, void *arg)
 {
 	struct player *p = ptr;
@@ -136,12 +138,14 @@ create_player(PMEMobjpool *pop, void *ptr, void *arg)
 	p->timer = 1;
 
 	pmemobj_persist(pop, p, sizeof (*p));
+
+	return 0;
 }
 
 /*
  * create_bullet -- constructor for bullets, spawn at the position of the player
  */
-void
+int
 create_bullet(PMEMobjpool *pop, void *ptr, void *arg)
 {
 	struct bullet *b = ptr;
@@ -152,6 +156,8 @@ create_bullet(PMEMobjpool *pop, void *ptr, void *arg)
 	b->timer = 1;
 
 	pmemobj_persist(pop, b, sizeof (*b));
+
+	return 0;
 }
 
 void

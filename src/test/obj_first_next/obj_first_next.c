@@ -120,26 +120,30 @@ fn_void do_print[] = {do_print_type, do_print_type_sec};
  * type_constructor -- constructor which sets the item's id to
  * new value
  */
-static void
+static int
 type_constructor(PMEMobjpool *pop, void *ptr, void *arg)
 {
 	int id = *(int *)arg;
 	struct type *item = (struct type *)ptr;
 	item->id = id;
 	OUT("constructor(id = %d)", id);
+
+	return 0;
 }
 
 /*
  * type_sec_constructor -- constructor which sets the item's id to
  * new value
  */
-static void
+static int
 type_sec_constructor(PMEMobjpool *pop, void *ptr, void *arg)
 {
 	int id = *(int *)arg;
 	struct type_sec *item = (struct type_sec *)ptr;
 	item->id = id;
 	OUT("constructor(id = %d)", id);
+
+	return 0;
 }
 
 /*

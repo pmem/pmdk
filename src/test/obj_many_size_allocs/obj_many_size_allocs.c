@@ -49,12 +49,14 @@ struct cargs {
 	size_t size;
 };
 
-static void
+static int
 test_constructor(PMEMobjpool *pop, void *addr, void *args)
 {
 	struct cargs *a = args;
 	/* do not use pmem_memset_persit() here */
 	pmemobj_memset_persist(pop, addr, a->size % 256, a->size);
+
+	return 0;
 }
 
 static void

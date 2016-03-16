@@ -130,9 +130,11 @@ libpmemobj \- persistent memory transactional object store
 .sp
 .B Non-transactional atomic allocations:
 .sp
+.BI "typedef int (*" pmemobj_constr ")(PMEMobjpool *" pop ,
+.BI "    void *" ptr ", void *" arg ");
+.sp
 .BI "int pmemobj_alloc(PMEMobjpool *" pop ", PMEMoid *" oidp ", size_t " size ,
-.BI "    uint64_t " type_num ", void (*" constructor ")(PMEMobjpool *" pop ,
-.BI "    void *" ptr ", void *" arg "), void *" arg );
+.BI "    uint64_t " type_num ", pmemobj_constr " constructor ", void *" arg );
 .BI "int pmemobj_zalloc(PMEMobjpool *" pop ", PMEMoid *" oidp ", size_t " size ,
 .BI "    uint64_t " type_num );
 .BI "int pmemobj_realloc(PMEMobjpool *" pop ", PMEMoid *" oidp ", size_t " size ,
@@ -149,11 +151,9 @@ libpmemobj \- persistent memory transactional object store
 .BI "uint64_t pmemobj_type_num(PMEMoid " oid );
 .sp
 .BI "POBJ_NEW(PMEMobjpool *" pop ", TOID *" oidp ", " TYPE ,
-.BI "    void (*" constructor ")(PMEMobjpool *" pop ", void *" ptr ", void *" arg ),
-.BI "    void *" arg )
+.BI "    pmemobj_constr " constructor ", void *" arg )
 .BI "POBJ_ALLOC(PMEMobjpool *" pop ", TOID *" oidp ", " TYPE ", size_t " size ,
-.BI "    void (*" constructor ")(PMEMobjpool *" pop ", void *" ptr ", void *" arg ),
-.BI "    void *" arg )
+.BI "    pmemobj_constr " constructor ", void *" arg )
 .BI "POBJ_ZNEW(PMEMobjpool *" pop ", TOID *" oidp ", " TYPE )
 .BI "POBJ_ZALLOC(PMEMobjpool *" pop ", TOID *" oidp ", " TYPE ", size_t " size )
 .BI "POBJ_REALLOC(PMEMobjpool *" pop ", TOID *" oidp ", " TYPE ", size_t " size )
@@ -164,8 +164,7 @@ libpmemobj \- persistent memory transactional object store
 .sp
 .BI "PMEMoid pmemobj_root(PMEMobjpool *" pop ", size_t " size );
 .BI "PMEMoid pmemobj_root_construct(PMEMobjpool *" pop ", size_t " size ,
-.BI "    void (*" constructor ")(PMEMobjpool *" pop ", void *" ptr ", void *" arg "),
-.BI "    void *" arg );
+.BI "    pmemobj_constr " constructor ", void *" arg );
 .BI "size_t pmemobj_root_size(PMEMobjpool *" pop );
 .sp
 .BI "POBJ_ROOT(PMEMobjpool *" pop ", " TYPE )
@@ -191,8 +190,7 @@ libpmemobj \- persistent memory transactional object store
 .BI "    PMEMoid " dest ", int " before ", PMEMoid " oid );
 .BI "PMEMoid pmemobj_list_insert_new(PMEMobjpool *" pop ", size_t " pe_offset ", void *" head ,
 .BI "    PMEMoid " dest ", int " before ", size_t " size ", uint64_t " type_num ,
-.BI "    void (*" constructor ")(PMEMobjpool *" pop ", void *" ptr ", void *" arg ),
-.BI "    void *" arg );
+.BI "    pmemobj_constr " constructor ", void *" arg );
 .BI "int pmemobj_list_remove(PMEMobjpool *" pop ", size_t " pe_offset ", void *" head ,
 .BI "    PMEMoid " oid ", int " free );
 .BI "int pmemobj_list_move(PMEMobjpool *" pop ,
@@ -224,20 +222,17 @@ libpmemobj \- persistent memory transactional object store
 .BI "    TOID " listelm ", TOID " elm ", POBJ_LIST_ENTRY " FIELD )
 .BI "POBJ_LIST_INSERT_NEW_HEAD(PMEMobjpool *" pop ", POBJ_LIST_HEAD *" head ,
 .BI "    POBJ_LIST_ENTRY " FIELD ", size_t " size ,
-.BI "    void (*" constructor ")(PMEMobjpool *" pop ", void *" ptr ", void *" arg ),
-.BI "    void *" arg )
+.BI "    pmemobj_constr " constructor ", void *" arg )
 .BI "POBJ_LIST_INSERT_NEW_TAIL(PMEMobjpool *" pop ", POBJ_LIST_HEAD *" head ,
 .BI "    POBJ_LIST_ENTRY " FIELD ", size_t " size ,
 .BI "    void (*" constructor ")(PMEMobjpool *" pop ", void *" ptr ", void *" arg ),
 .BI "    void *" arg )
 .BI "POBJ_LIST_INSERT_NEW_AFTER(PMEMobjpool *" pop ", POBJ_LIST_HEAD *" head ,
 .BI "    TOID " listelm ", POBJ_LIST_ENTRY " FIELD ", size_t " size ,
-.BI "    void (*" constructor ")(PMEMobjpool *" pop ", void *" ptr ", void *" arg ),
-.BI "    void *" arg )
+.BI "    pmemobj_constr " constructor ", void *" arg )
 .BI "POBJ_LIST_INSERT_NEW_BEFORE(PMEMobjpool *" pop ", POBJ_LIST_HEAD *" head ,
 .BI "    TOID " listelm ", POBJ_LIST_ENTRY " FIELD ", size_t " size ,
-.BI "    void (*" constructor ")(PMEMobjpool *" pop ", void *" ptr ", void *" arg ),
-.BI "    void *" arg )
+.BI "    pmemobj_constr " constructor ", void *" arg )
 .BI "POBJ_LIST_REMOVE(PMEMobjpool *" pop ", POBJ_LIST_HEAD *" head ,
 .BI "    TOID " elm ", POBJ_LIST_ENTRY " FIELD )
 .BI "POBJ_LIST_REMOVE_FREE(PMEMobjpool *" pop ", POBJ_LIST_HEAD *" head ,
@@ -1433,9 +1428,7 @@ of the root object.  In such case, OID_NULL is returned.
 .PP
 .BI "PMEMoid pmemobj_root_construct(PMEMobjpool *" pop ", size_t " size ,
 .br
-.BI "    void (*" constructor ")(PMEMobjpool *" pop ", void *" ptr ", void *" arg "),
-.br
-.BI "    void *" arg );
+.BI "    pmemobj_constr " constructor ", void *" arg )
 .IP
 The
 .BR pmemobj_root_construct ()
@@ -1443,7 +1436,13 @@ performs the same actions as the
 .BR pmemobj_root ()
 function, but instead of zeroing the newly allocated object a
 .I constructor
-function is called.  The constructor is also called on reallocations.  The
+function is called.  The constructor is also called on reallocations.
+If the constructor returns non-zero value the allocation is canceled,
+the
+.B OID_NULL
+value is returned from the caller and errno is set to
+.B ECANCELED .
+The
 .BR pmemobj_root_size ()
 can be used in the constructor to check whether it's the first call to the
 constructor.
@@ -1486,11 +1485,24 @@ will not be rolled-back if the transaction is aborted or interrupted.
 .PP
 The allocations are always aligned to the cache-line boundary.
 .PP
+.BI "typedef int (*" pmemobj_constr ")(PMEMobjpool *" pop ,
+.br
+.BI "    void *" ptr ", void *" arg ");
+.IP
+The
+.B pmemobj_constr
+type represents a constructor for atomic allocation from persistent memory heap
+associated with memory pool
+.IR pop .
+The
+.IR ptr
+is a pointer to allocating memory area and the
+.IR arg
+is an user-defined argument passed to an appropriate function.
+.PP
 .BI "int pmemobj_alloc(PMEMobjpool *" pop ", PMEMoid *" oidp ", size_t " size ,
 .br
-.BI "    uint64_t " type_num ", void (*" constructor ")(PMEMobjpool *" pop ,
-.br
-.BI "    void *" ptr ", void *" arg "), void *" arg );
+.BI "    uint64_t " type_num ", pmemobj_constr " constructor " , void *" arg );
 .IP
 The
 .B pmemobj_alloc
@@ -1527,6 +1539,9 @@ argument.
 It is guaranteed that allocated object is either
 properly initialized, or if the allocation is interrupted before the constructor
 completes, the memory space reserved for the object is reclaimed.
+If the constructor returns non-zero value the allocation is canceled,
+the -1 value is returned from the caller and errno is set to
+.B ECANCELED .
 The
 .I size
 can be any non-zero value, however due to internal padding and object metadata,
@@ -1808,9 +1823,7 @@ is OID_NULL, 0 is returned.
 .PP
 .BI "POBJ_NEW(PMEMobjpool *" pop ", TOID *" oidp ", " TYPE ,
 .br
-.BI "    void (*" constructor ")(PMEMobjpool *" pop ", void *" ptr ,
-.br
-.BI "    void *" arg "), void *" arg )
+.BI "    pmemobj_constr " constructor " , void *" arg )
 .IP
 The
 .B POBJ_NEW
@@ -1828,9 +1841,7 @@ it takes a pointer to typed OID of
 .PP
 .BI "POBJ_ALLOC(PMEMobjpool *" pop ", TOID *" oidp ", " TYPE ", size_t " size ,
 .br
-.BI "    void (*" constructor ")((PMEMobjpool *" pop ", void *" ptr ,
-.br
-.BI "    void *" arg "), void *" arg )
+.BI "    pmemobj_constr " constructor " , void *" arg )
 .IP
 The
 .B POBJ_ALLOC
@@ -2035,9 +2046,7 @@ On success, zero is returned. On error, -1 is returned and errno is set.
 .br
 .BI "    void *" head ", PMEMoid " dest ", int " before ", size_t " size ,
 .br
-.BI "    uint64_t " type_num ", void (*" constructor ")((PMEMobjpool *" pop ,
-.br
-.BI "    void *" ptr ", void *" arg "), void *" arg );
+.BI "    uint64_t " type_num ", pmemobj_constr " constructor ", void *" arg );
 .IP
 The
 .B pmemobj_list_insert_new
@@ -2083,6 +2092,9 @@ argument.
 It is guaranteed that allocated object is either
 properly initialized or, if the allocation is interrupted before the constructor
 completes, the memory space reserved for the object is reclaimed.
+If the constructor returns non-zero value the allocation is canceled,
+the -1 value is returned from the caller and errno is set to
+.B ECANCELED .
 The
 .I head
 cannot be OID_NULL.
@@ -2358,9 +2370,7 @@ value is TOID_NULL, the object is inserted at the head of the list.
 .br
 .BI "    POBJ_LIST_ENTRY " FIELD ", size_t " size ,
 .br
-.BI "    void (*" constructor ")((PMEMobjpool *" pop ", void *" ptr ,
-.br
-.BI "    void *" arg "), void *" arg )
+.BI "    pmemobj_constr " constructor " , void *" arg )
 .IP
 The macro
 .B POBJ_LIST_INSERT_NEW_HEAD
@@ -2376,9 +2386,7 @@ the first element on list.
 .br
 .BI "    POBJ_LIST_ENTRY " FIELD ", size_t " size ,
 .br
-.BI "    void (*" constructor ")((PMEMobjpool *" pop ", void *" ptr ,
-.br
-.BI "    void *" arg "), void *" arg )
+.BI "    pmemobj_constr " constructor " , void *" arg )
 .IP
 The macro
 .B POBJ_LIST_INSERT_NEW_TAIL
@@ -2394,9 +2402,7 @@ the first element on list.
 .br
 .BI "    TOID " listelm ", POBJ_LIST_ENTRY " FIELD ", size_t " size ,
 .br
-.BI "    void (*" constructor ")((PMEMobjpool *" pop ", void *" ptr ,
-.br
-.BI "    void *" arg "), void *" arg )
+.BI "    pmemobj_constr " constructor " , void *" arg )
 .IP
 The macro
 .B POBJ_LIST_INSERT_NEW_AFTER
@@ -2417,9 +2423,7 @@ the first element on list.
 .br
 .BI "    TOID " listelm ", POBJ_LIST_ENTRY " FIELD ", size_t " size ,
 .br
-.BI "    void (*" constructor ")((PMEMobjpool *" pop ", void *" ptr ,
-.br
-.BI "    void *" arg "), void *" arg )
+.BI "    pmemobj_constr " constructor " , void *" arg )
 .IP
 The macro
 .B POBJ_LIST_INSERT_NEW_BEFORE
