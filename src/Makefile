@@ -41,7 +41,7 @@ CLOBBER_TARGETS = $(ALL_TARGETS) test jemalloc
 CSTYLE_TARGETS = $(ALL_TARGETS) common test
 INSTALL_TARGETS = $(TARGETS)
 
-HEADERS_DESTDIR = $(DESTDIR)$(prefix)/include
+HEADERS_DESTDIR = $(DESTDIR)$(INCDIR)
 HEADERS_INSTALL = include/libpmem.h include/libvmem.h\
 		include/libpmemobj.h include/libpmemblk.h\
 		include/libpmemlog.h include/libvmmalloc.h

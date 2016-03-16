@@ -71,12 +71,21 @@ define create-deps
 	$(RM) -f $(objdir)/$*.d
 endef
 
-ifeq ($(shell uname -m), x86_64)
+ifneq ($(wildcard $(prefix)/x86_64-linux-gnu),)
+LIB_PREFIX ?= $(prefix)/x86_64-linux-gnu/lib
+endif
+
 ifneq ($(wildcard $(prefix)/lib64),)
-LIBDIR = $(prefix)/lib64
-else
-LIBDIR = $(prefix)/lib
+LIB_PREFIX ?= $(prefix)/lib64
 endif
-else
-LIBDIR = $(prefix)/lib
+
+LIB_PREFIX ?= $(prefix)/lib
+
+ifneq ($(wildcard $(prefix)/x86_64-linux-gnu),)
+INC_PREFIX ?= $(prefix)/x86_64-linux-gnu/include
 endif
+
+INC_PREFIX ?= $(prefix)/include/
+
+LIBDIR ?= $(LIB_PREFIX)
+INCDIR ?= $(INC_PREFIX)
