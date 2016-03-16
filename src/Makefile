@@ -46,6 +46,11 @@ HEADERS_INSTALL = include/libpmem.h include/libvmem.h\
 		include/libpmemobj.h include/libpmemblk.h\
 		include/libpmemlog.h include/libvmmalloc.h
 
+MAKE_PKG_CONFIG = $(TOP)/utils/make-pkg-config.sh
+PKG_CONFIG_DESTDIR = $(DESTDIR)$(LIBDIR)/pkgconfig/
+PKG_CONFIG_FILES = libpmem.pc libvmem.pc libvmmalloc.pc\
+		libpmemobj.pc libpmemlog.pc libpmemblk.pc
+
 SCOPE_SRC_DIRS = $(TARGETS) include jemalloc/src
 SCOPE_HDR_DIRS = $(TARGETS) include jemalloc/src\
 		jemalloc/include/jemalloc\
@@ -59,7 +64,7 @@ SCOPE_SRC_FILES = $(foreach d, $(SCOPE_SRC_DIRS), $(wildcard $(d)/*.c))
 SCOPE_HDR_FILES = $(foreach d, $(SCOPE_HDR_DIRS), $(wildcard $(D)/*.h))
 SCOPEFILES = $(SCOPE_SRC_FILES) $(SCOPE_HDR_FILES)
 
-all: $(ALL_TARGETS)
+all: $(ALL_TARGETS) pkg-config
 install: $(INSTALL_TARGETS:=-install)
 uninstall: $(INSTALL_TARGETS:=-uninstall)
 clean: $(CLEAN_TARGETS:=-clean)
@@ -73,6 +78,11 @@ custom_build = $(DEBUG)$(OBJDIR)
 libvmmalloc libvmem: jemalloc
 tools: libpmem libpmemblk libpmemlog
 libpmemblk libpmemlog libpmemobj: libpmem
+
+pkg-config: $(PKG_CONFIG_FILES)
+
+$(PKG_CONFIG_FILES): $(MAKE_PKG_CONFIG)
+	@$(MAKE_PKG_CONFIG) "$(prefix)" "$(DESTDIR)$(LIBDIR)" "$(SRCVERSION)"
 
 %-install: %
 	$(MAKE) -C $* install
@@ -124,9 +134,12 @@ endif
 install: all
 	install -d $(HEADERS_DESTDIR)
 	install -p -m 0644 $(HEADERS_INSTALL) $(HEADERS_DESTDIR)
+	install -d $(PKG_CONFIG_DESTDIR)
+	install -p -m 0644 $(PKG_CONFIG_FILES) $(PKG_CONFIG_DESTDIR)
 
 uninstall:
 	$(foreach f, $(HEADERS_INSTALL), $(RM) $(HEADERS_DESTDIR)/$(notdir $(f)))
+	$(foreach f, $(PKG_CONFIG_FILES), $(RM) $(PKG_CONFIG_DESTDIR)/$(notdir $(f)))
 
 cstyle:
 	$(CSTYLE) include/*.h

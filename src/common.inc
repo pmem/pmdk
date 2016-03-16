@@ -70,3 +70,13 @@ define create-deps
 	    -e '/^$$/ d' -e 's/$$/ :/' < $(objdir)/$*.d >> $(objdir)/.deps/$*.P; \
 	$(RM) -f $(objdir)/$*.d
 endef
+
+ifeq ($(shell uname -m), x86_64)
+ifneq ($(wildcard $(prefix)/lib64),)
+LIBDIR = $(prefix)/lib64
+else
+LIBDIR = $(prefix)/lib
+endif
+else
+LIBDIR = $(prefix)/lib
+endif
