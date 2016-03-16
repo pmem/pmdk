@@ -180,6 +180,7 @@ PMEMPOOL_TESTS = \
        pmempool_rm
 
 RPMEM_TESTS =\
+       rpmemd_config\
        rpmemd_log\
        rpmemd_dbg\
        rpmem_proto\

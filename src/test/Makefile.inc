@@ -182,7 +182,7 @@ objdir=.
 	$(create-deps)
 
 clean:
-	$(RM) *.o */*.o core a.out *.log testfile*
+	$(RM) *.o */*.o core a.out *.log *.conf testfile*
 
 clobber: clean
 	$(RM) $(TARGET) $(TARGET_STATIC_DEBUG) $(TARGET_STATIC_NONDEBUG)
