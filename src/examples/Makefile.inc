@@ -36,10 +36,10 @@
 TOP_SRC := $(dir $(lastword $(MAKEFILE_LIST)))..
 TOP := $(TOP_SRC)/..
 
-include $(TOP)/src/common.inc
+INCDIR = $(TOP_SRC)/include
+LIBDIR = $(TOP_SRC)/debug
 
-INCDIR ?= $(TOP_SRC)/include
-LIBDIR ?= $(TOP_SRC)/debug
+include $(TOP)/src/common.inc
 
 CXXFLAGS = -std=c++11 -ggdb -Wall -Werror $(EXTRA_CXXFLAGS)
 CFLAGS = -std=gnu99 -ggdb -Wall -Werror $(EXTRA_CFLAGS)
