@@ -63,7 +63,7 @@ struct carg {
 	char *str;
 };
 
-void
+int
 constr(PMEMobjpool *pop, void *ptr, void *arg)
 {
 	struct carg *a = (struct carg *)arg;
@@ -72,6 +72,8 @@ constr(PMEMobjpool *pop, void *ptr, void *arg)
 	o->value = a->value;
 	strncpy(o->buf, a->str, sizeof (o->buf));
 	o->buf[sizeof (o->buf) - 1] = '\0';
+
+	return 0;
 }
 
 
