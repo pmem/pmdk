@@ -31,26 +31,51 @@
  */
 
 /*
- * rpmemd_options.h -- rpmemd options declarations
+ * rpmemd_config.h -- internal definitions for rpmemd config
  */
 
+#include <stdint.h>
 #include <stdbool.h>
-#include <string.h>
 
-#define	RPMEMD_DEFAULT_LOG_FILE	("/var/log/" DAEMON_NAME ".log")
+#ifndef	RPMEMD_DEFAULT_CONFIG_FILE
+#define	RPMEMD_DEFAULT_CONFIG_FILE ("/etc/" DAEMON_NAME "/" DAEMON_NAME\
+	".conf")
+#endif
 
-struct rpmemd_options {
+#ifndef	RPMEMD_DEFAULT_PID_FILE
+#define	RPMEMD_DEFAULT_PID_FILE ("/var/run/" DAEMON_NAME ".pid")
+#endif
+
+#ifndef	RPMEMD_DEFAULT_LOG_FILE
+#define	RPMEMD_DEFAULT_LOG_FILE ("/var/log/" DAEMON_NAME ".log")
+#endif
+
+#ifndef	RPMEMD_DEFAULT_POOLSET_DIR
+#define	RPMEMD_DEFAULT_POOLSET_DIR ("/etc/" DAEMON_NAME)
+#endif
+
+#define	RPMEM_DEFAULT_PORT		7636
+#define	RPMEM_DEFAULT_MAX_LANES	1024
+
+struct rpmemd_config {
+	char *pid_file;
+	char *log_file;
+	char *poolset_dir;
+	bool enable_remove;
+	bool enable_create;
 	bool foreground;
+	bool persist_apm;
+	bool persist_general;
+	bool provider_sockets;
+	bool provider_verbs;
 	bool use_syslog;
-	const char *log_file;
+	bool verify_pool_sets;
+	bool verify_pool_sets_auto;
+	unsigned short port;
+	uint64_t max_lanes;
+	enum rpmemd_log_level log_level;
 };
 
-/*
- * rpmemd_options_default -- set default options for rpmem daemon
- */
-static inline void
-rpmemd_options_default(struct rpmemd_options *opts)
-{
-	memset(opts, 0, sizeof (*opts));
-	opts->log_file = RPMEMD_DEFAULT_LOG_FILE;
-}
+void rpmemd_config_set_default(struct rpmemd_config *config);
+int rpmemd_config_read(struct rpmemd_config *config, int argc, char *argv[]);
+void rpmemd_config_free(struct rpmemd_config *config);

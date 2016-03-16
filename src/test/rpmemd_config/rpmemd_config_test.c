@@ -31,42 +31,89 @@
  */
 
 /*
- * rpmemd.c -- rpmemd main source file
+ * rpmemd_log_test.c -- unit tests for rpmemd_log
  */
 
-#include <stdlib.h>
-#include <unistd.h>
+#include <stddef.h>
+#include <inttypes.h>
+#include <sys/param.h>
+#include <syslog.h>
 
-#include "rpmemd.h"
+#include "unittest.h"
 #include "rpmemd_log.h"
 #include "rpmemd_config.h"
+
+static const char *config_print_fmt =
+"pid_file:\t\t%s\n"
+"log_file\t\t%s\n"
+"poolset_dir:\t\t%s\n"
+"enable_remove:\t\t%s\n"
+"enable_create:\t\t%s\n"
+"foreground:\t\t%s\n"
+"persist_apm:\t\t%s\n"
+"persist_general:\t%s\n"
+"provider_sockets:\t%s\n"
+"provider_verbs:\t\t%s\n"
+"use_syslog:\t\t%s\n"
+"verify_pool_sets:\t%s\n"
+"port:\t\t\t%hu\n"
+"max_lanes:\t\t%" PRIu64 "\n"
+"log_level:\t\t%s\n";
+
+static inline const char *
+bool_to_str(bool v)
+{
+	return v ? "yes" : "no";
+}
+
+static inline const char *
+verify_pool_sets_to_str(struct rpmemd_config *config)
+{
+	return config->verify_pool_sets_auto ? "auto" :
+		bool_to_str(config->verify_pool_sets);
+}
+
+static inline void
+config_print(struct rpmemd_config *config)
+{
+	UT_ASSERT(config->log_level < MAX_RPD_LOG);
+
+	printf(
+		config_print_fmt,
+		config->pid_file,
+		config->log_file,
+		config->poolset_dir,
+		bool_to_str(config->enable_remove),
+		bool_to_str(config->enable_create),
+		bool_to_str(config->foreground),
+		bool_to_str(config->persist_apm),
+		bool_to_str(config->persist_general),
+		bool_to_str(config->provider_sockets),
+		bool_to_str(config->provider_verbs),
+		bool_to_str(config->use_syslog),
+		verify_pool_sets_to_str(config),
+		config->port,
+		config->max_lanes,
+		rpmemd_log_level_to_str(config->log_level));
+}
 
 int
 main(int argc, char *argv[])
 {
+	START(argc, argv, "rpmemd_config");
+
+	int ret = rpmemd_log_init("rpmemd_log", NULL, 0);
+	UT_ASSERTeq(ret, 0);
+
 	struct rpmemd_config config;
-	rpmemd_log_init(DAEMON_NAME, NULL, 0);
-	if (rpmemd_config_read(&config, argc, argv) != 0)
-		return 1;
 
-	rpmemd_log_level = config.log_level;
+	UT_ASSERT(rpmemd_config_read(&config, argc, argv) == 0);
 
-	if (!config.foreground)
-		rpmemd_log_init(DAEMON_NAME, config.log_file,
-			config.use_syslog);
-
-	RPMEMD_LOG(INFO, "%s version %s", DAEMON_NAME, SRCVERSION);
-	if (!config.foreground) {
-		if (daemon(0, 0) < 0) {
-			RPMEMD_FATAL("!daemon");
-		}
-	}
-
-	while (1) {
-		/* XXX - placeholder */
-	}
+	config_print(&config);
 
 	rpmemd_log_close();
 	rpmemd_config_free(&config);
+
+	DONE(NULL);
 	return 0;
 }
