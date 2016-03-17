@@ -49,7 +49,7 @@
 #include "sys_util.h"
 #include "ctree.h"
 
-#define	BIT_IS_SET(n, i) (!!((n) & (((uint64_t)1) << (i))))
+#define	BIT_IS_SET(n, i) (!!((n) & (1ULL << (i))))
 
 /* internal nodes have LSB of the pointer set, leafs do not */
 #define	NODE_IS_INTERNAL(node) (BIT_IS_SET((uintptr_t)(node), 0))
@@ -82,8 +82,9 @@ static unsigned
 find_crit_bit(uint64_t lhs, uint64_t rhs)
 {
 	/* __builtin_clzll is undefined for 0 */
-	ASSERTne(lhs ^ rhs, 0);
-	return 64 - (unsigned)__builtin_clzll(lhs ^ rhs) - 1;
+	uint64_t val = lhs ^ rhs;
+	ASSERTne(val, 0);
+	return 64 - (unsigned)__builtin_clzll(val) - 1;
 }
 
 /*
