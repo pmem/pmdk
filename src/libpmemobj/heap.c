@@ -1463,7 +1463,7 @@ out:
 size_t
 heap_get_chunk_block_size(PMEMobjpool *pop, struct memory_block m)
 {
-	struct zone *z = &pop->heap->layout->zones[m.zone_id];
+	struct zone *z = ZID_TO_ZONE(pop->heap->layout, m.zone_id);
 	struct chunk_header *hdr = &z->chunk_headers[m.chunk_id];
 
 	if (hdr->type == CHUNK_TYPE_USED || hdr->type == CHUNK_TYPE_FREE) {
@@ -1972,6 +1972,6 @@ heap_foreach_object(PMEMobjpool *pop, object_callback cb, void *arg,
 	for (unsigned i = start.zone_id;
 		i < heap_max_zone(layout->header.size); ++i)
 		if (heap_zone_foreach_object(pop, cb, arg,
-			&layout->zones[i], start) != 0)
+				ZID_TO_ZONE(layout, i), start) != 0)
 			break;
 }
