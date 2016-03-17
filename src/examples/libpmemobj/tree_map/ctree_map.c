@@ -40,7 +40,7 @@
 
 #include "ctree_map.h"
 
-#define	BIT_IS_SET(n, i) (!!((n) & (1L << (i))))
+#define	BIT_IS_SET(n, i) (!!((n) & (1ULL << (i))))
 
 TOID_DECLARE(struct tree_map_node, CTREE_MAP_TYPE_OFFSET + 1);
 
