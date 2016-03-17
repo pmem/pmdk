@@ -309,7 +309,7 @@ heap_run_insert(PMEMobjpool *pop, struct bucket *b, uint32_t chunk_id,
 	ASSERT(size_idx <= BITS_PER_VALUE);
 	ASSERT(block_off + size_idx <= r->bitmap_nallocs);
 
-	unsigned unit_max = r->unit_max;
+	uint32_t unit_max = r->unit_max;
 	struct memory_block m = {chunk_id, zone_id,
 		unit_max - (block_off % unit_max), block_off};
 
