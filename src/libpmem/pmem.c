@@ -203,7 +203,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-#include <xmmintrin.h>
+#include <emmintrin.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <unistd.h>
