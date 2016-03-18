@@ -42,7 +42,7 @@
 
 #define	ELF_FILE_NAME "/proc/self/exe"
 #define	FATAL_USAGE()\
-FATAL("usage: arch_flags <file>:<err>:<alignemnt_desc>:<reserved> <file>")
+UT_FATAL("usage: arch_flags <file>:<err>:<alignemnt_desc>:<reserved> <file>")
 #define	ARCH_FLAGS_LOG_PREFIX "arch_flags"
 #define	ARCH_FLAGS_LOG_LEVEL_VAR "ARCH_FLAGS_LOG_LEVEL"
 #define	ARCH_FLAGS_LOG_FILE_VAR "ARCH_FLAGS_LOG_FILE"
@@ -141,7 +141,7 @@ read_arch_flags(char *arg, struct arch_flags *arch_flags)
 	Open_ret = error;
 
 	ret = util_get_arch_flags(arch_flags);
-	OUT("get  : %d", ret);
+	UT_OUT("get  : %d", ret);
 
 	if (ret)
 		return 1;
@@ -183,7 +183,7 @@ main(int argc, char *argv[])
 			Open_path = arg2;
 			Open_ret = 0;
 			ret = util_check_arch_flags(&arch_flags);
-			OUT("check: %d", ret);
+			UT_OUT("check: %d", ret);
 		}
 	}
 

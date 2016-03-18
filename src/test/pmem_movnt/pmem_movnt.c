@@ -56,23 +56,23 @@ main(int argc, char *argv[])
 	for (size_t size = 1; size <= 4096; size *= 2) {
 		memset(dst, 0, 4096);
 		pmem_memcpy_nodrain(dst, src, size);
-		ASSERTeq(memcmp(src, dst, size), 0);
-		ASSERTeq(dst[size], 0);
+		UT_ASSERTeq(memcmp(src, dst, size), 0);
+		UT_ASSERTeq(dst[size], 0);
 	}
 
 	for (size_t size = 1; size <= 4096; size *= 2) {
 		memset(dst, 0, 4096);
 		pmem_memmove_nodrain(dst, src, size);
-		ASSERTeq(memcmp(src, dst, size), 0);
-		ASSERTeq(dst[size], 0);
+		UT_ASSERTeq(memcmp(src, dst, size), 0);
+		UT_ASSERTeq(dst[size], 0);
 	}
 
 	for (size_t size = 1; size <= 4096; size *= 2) {
 		memset(dst, 0, 4096);
 		pmem_memset_nodrain(dst, 0x77, size);
-		ASSERTeq(dst[0], 0x77);
-		ASSERTeq(dst[size - 1], 0x77);
-		ASSERTeq(dst[size], 0);
+		UT_ASSERTeq(dst[0], 0x77);
+		UT_ASSERTeq(dst[size - 1], 0x77);
+		UT_ASSERTeq(dst[size], 0);
 	}
 
 	FREE(dst);

@@ -51,7 +51,7 @@ main(int argc, char *argv[])
 	START(argc, argv, "vmem_create_in_region");
 
 	if (argc > 1)
-		FATAL("usage: %s", argv[0]);
+		UT_FATAL("usage: %s", argv[0]);
 
 	/* allocate memory for function vmem_create_in_region() */
 	void *mem_pool = MMAP_ANON_ALIGNED(VMEM_MIN_POOL, 4 << 20);
@@ -59,15 +59,15 @@ main(int argc, char *argv[])
 	vmp = vmem_create_in_region(mem_pool, VMEM_MIN_POOL);
 
 	if (vmp == NULL)
-		FATAL("!vmem_create_in_region");
+		UT_FATAL("!vmem_create_in_region");
 
 	for (i = 0; i < TEST_ALLOCATIONS; ++i) {
 		allocs[i] = vmem_malloc(vmp, sizeof (int));
 
-		ASSERTne(allocs[i], NULL);
+		UT_ASSERTne(allocs[i], NULL);
 
 		/* check that pointer came from mem_pool */
-		ASSERTrange(allocs[i], mem_pool, VMEM_MIN_POOL);
+		UT_ASSERTrange(allocs[i], mem_pool, VMEM_MIN_POOL);
 	}
 
 	for (i = 0; i < TEST_ALLOCATIONS; ++i) {

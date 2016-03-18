@@ -65,7 +65,7 @@ test_alloc(PMEMobjpool *pop, size_t size)
 		cnt++;
 	}
 
-	OUT("size: %zu allocs: %lu", size, cnt);
+	UT_OUT("size: %zu allocs: %lu", size, cnt);
 }
 
 static void
@@ -84,7 +84,7 @@ main(int argc, char *argv[])
 	START(argc, argv, "obj_out_of_memory");
 
 	if (argc < 3)
-		FATAL("usage: %s size filename ...", argv[0]);
+		UT_FATAL("usage: %s size filename ...", argv[0]);
 
 	size_t size = atoll(argv[1]);
 
@@ -94,13 +94,13 @@ main(int argc, char *argv[])
 		PMEMobjpool *pop = pmemobj_create(path, LAYOUT_NAME, 0,
 					S_IWUSR | S_IRUSR);
 		if (pop == NULL)
-			FATAL("!pmemobj_create: %s", path);
+			UT_FATAL("!pmemobj_create: %s", path);
 
 		test_alloc(pop, size);
 
 		pmemobj_close(pop);
 
-		ASSERTeq(pmemobj_check(path, LAYOUT_NAME), 1);
+		UT_ASSERTeq(pmemobj_check(path, LAYOUT_NAME), 1);
 
 		/*
 		 * To prevent subsequent opens from receiving exactly the same
@@ -110,7 +110,7 @@ main(int argc, char *argv[])
 		 */
 		void *heap_touch = MALLOC(1);
 
-		ASSERTne(pop = pmemobj_open(path, LAYOUT_NAME), NULL);
+		UT_ASSERTne(pop = pmemobj_open(path, LAYOUT_NAME), NULL);
 
 		test_free(pop);
 

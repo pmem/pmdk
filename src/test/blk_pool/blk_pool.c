@@ -51,12 +51,12 @@ pool_create(const char *path, size_t bsize, size_t poolsize, unsigned mode)
 	PMEMblkpool *pbp = pmemblk_create(path, bsize, poolsize, mode);
 
 	if (pbp == NULL)
-		OUT("!%s: pmemblk_create", path);
+		UT_OUT("!%s: pmemblk_create", path);
 	else {
 		struct stat stbuf;
 		STAT(path, &stbuf);
 
-		OUT("%s: file size %zu usable blocks %zu mode 0%o",
+		UT_OUT("%s: file size %zu usable blocks %zu mode 0%o",
 				path, stbuf.st_size,
 				pmemblk_nblock(pbp),
 				stbuf.st_mode & 0777);
@@ -66,11 +66,11 @@ pool_create(const char *path, size_t bsize, size_t poolsize, unsigned mode)
 		int result = pmemblk_check(path, bsize);
 
 		if (result < 0)
-			OUT("!%s: pmemblk_check", path);
+			UT_OUT("!%s: pmemblk_check", path);
 		else if (result == 0)
-			OUT("%s: pmemblk_check: not consistent", path);
+			UT_OUT("%s: pmemblk_check: not consistent", path);
 		else
-			ASSERTeq(pmemblk_check(path, bsize * 2), -1);
+			UT_ASSERTeq(pmemblk_check(path, bsize * 2), -1);
 	}
 }
 
@@ -79,9 +79,9 @@ pool_open(const char *path, size_t bsize)
 {
 	PMEMblkpool *pbp = pmemblk_open(path, bsize);
 	if (pbp == NULL)
-		OUT("!%s: pmemblk_open", path);
+		UT_OUT("!%s: pmemblk_open", path);
 	else {
-		OUT("%s: pmemblk_open: Success", path);
+		UT_OUT("%s: pmemblk_open: Success", path);
 		pmemblk_close(pbp);
 	}
 }
@@ -92,7 +92,7 @@ main(int argc, char *argv[])
 	START(argc, argv, "blk_pool");
 
 	if (argc < 4)
-		FATAL("usage: %s op path bsize [poolsize mode]", argv[0]);
+		UT_FATAL("usage: %s op path bsize [poolsize mode]", argv[0]);
 
 	size_t bsize = strtoul(argv[3], NULL, 0);
 	size_t poolsize;
@@ -111,7 +111,7 @@ main(int argc, char *argv[])
 		break;
 
 	default:
-		FATAL("unknown operation");
+		UT_FATAL("unknown operation");
 	}
 
 	DONE(NULL);

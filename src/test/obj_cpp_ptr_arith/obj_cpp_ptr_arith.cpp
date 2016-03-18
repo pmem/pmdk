@@ -63,7 +63,7 @@ prepare_array(PMEMobjpool *pop)
 	ret = pmemobj_alloc(pop, parr_vsize.raw_ptr(),
 		sizeof (T) * TEST_ARR_SIZE,
 		0, NULL, NULL);
-	ASSERTeq(ret, 0);
+	UT_ASSERTeq(ret, 0);
 
 	T *parray = parr_vsize.get();
 
@@ -72,11 +72,11 @@ prepare_array(PMEMobjpool *pop)
 			parray[i] = i;
 		}
 	} TX_ONABORT {
-		FATAL("Transactional prepare_array aborted");
+		UT_FATAL("Transactional prepare_array aborted");
 	} TX_END;
 
 	for (int i = 0; i < TEST_ARR_SIZE; ++i) {
-		ASSERTeq(parray[i], i);
+		UT_ASSERTeq(parray[i], i);
 	}
 
 	return parr_vsize;
@@ -92,55 +92,55 @@ test_arith(PMEMobjpool *pop)
 
 	/* test prefix postfix operators */
 	for (int i = 0; i < TEST_ARR_SIZE; ++i) {
-		ASSERTeq(*parr_vsize, i);
+		UT_ASSERTeq(*parr_vsize, i);
 		parr_vsize++;
 	}
 
 	for (int i = TEST_ARR_SIZE; i > 0; --i) {
 		parr_vsize--;
-		ASSERTeq(*parr_vsize, i - 1);
+		UT_ASSERTeq(*parr_vsize, i - 1);
 	}
 
 	for (int i = 0; i < TEST_ARR_SIZE; ++i) {
-		ASSERTeq(*parr_vsize, i);
+		UT_ASSERTeq(*parr_vsize, i);
 		++parr_vsize;
 	}
 
 	for (int i = TEST_ARR_SIZE; i > 0; --i) {
 		--parr_vsize;
-		ASSERTeq(*parr_vsize, i - 1);
+		UT_ASSERTeq(*parr_vsize, i - 1);
 	}
 
 	/* test addition assignment and subtraction */
 	parr_vsize += 2;
-	ASSERTeq(*parr_vsize, 2);
+	UT_ASSERTeq(*parr_vsize, 2);
 
 	parr_vsize -= 2;
-	ASSERTeq(*parr_vsize, 0);
+	UT_ASSERTeq(*parr_vsize, 0);
 
 	/* test strange invocations, parameter ignored */
 	parr_vsize.operator++(5);
-	ASSERTeq(*parr_vsize, 1);
+	UT_ASSERTeq(*parr_vsize, 1);
 
 	parr_vsize.operator--(2);
-	ASSERTeq(*parr_vsize, 0);
+	UT_ASSERTeq(*parr_vsize, 0);
 
 	/* test subtraction and addition */
 	for (int i = 0; i < TEST_ARR_SIZE; ++i)
-		ASSERTeq(*(parr_vsize + i), i);
+		UT_ASSERTeq(*(parr_vsize + i), i);
 
 	/* using STL one-pas-end style */
 	persistent_ptr<p<int>> parr_end = parr_vsize + TEST_ARR_SIZE;
 
 	for (int i = TEST_ARR_SIZE; i > 0; --i)
-		ASSERTeq(*(parr_end - i), TEST_ARR_SIZE - i);
+		UT_ASSERTeq(*(parr_end - i), TEST_ARR_SIZE - i);
 
-	ASSERTeq(parr_end - parr_vsize, TEST_ARR_SIZE);
+	UT_ASSERTeq(parr_end - parr_vsize, TEST_ARR_SIZE);
 
 	/* check ostream operator */
 	std::stringstream stream;
 	stream << parr_vsize;
-	OUT("%s", stream.str().c_str());
+	UT_OUT("%s", stream.str().c_str());
 }
 
 /*
@@ -153,36 +153,36 @@ test_relational(PMEMobjpool *pop)
 	persistent_ptr<p<int>> first_elem = prepare_array<p<int>>(pop);
 	persistent_ptr<p<int>> last_elem = first_elem + TEST_ARR_SIZE - 1;
 
-	ASSERT(first_elem != last_elem);
-	ASSERT(first_elem <= last_elem);
-	ASSERT(first_elem < last_elem);
-	ASSERT(last_elem > first_elem );
-	ASSERT(last_elem >= first_elem );
-	ASSERT(first_elem == first_elem);
-	ASSERT(first_elem >= first_elem);
-	ASSERT(first_elem <= first_elem);
+	UT_ASSERT(first_elem != last_elem);
+	UT_ASSERT(first_elem <= last_elem);
+	UT_ASSERT(first_elem < last_elem);
+	UT_ASSERT(last_elem > first_elem );
+	UT_ASSERT(last_elem >= first_elem );
+	UT_ASSERT(first_elem == first_elem);
+	UT_ASSERT(first_elem >= first_elem);
+	UT_ASSERT(first_elem <= first_elem);
 
 	/* nullptr comparisons */
-	ASSERT(first_elem != nullptr);
-	ASSERT(nullptr != first_elem);
-	ASSERT(!(first_elem == nullptr));
-	ASSERT(!(nullptr == first_elem));
+	UT_ASSERT(first_elem != nullptr);
+	UT_ASSERT(nullptr != first_elem);
+	UT_ASSERT(!(first_elem == nullptr));
+	UT_ASSERT(!(nullptr == first_elem));
 
-	ASSERT(nullptr < first_elem);
-	ASSERT(!(first_elem < nullptr));
-	ASSERT(nullptr <= first_elem);
-	ASSERT(!(first_elem <= nullptr));
+	UT_ASSERT(nullptr < first_elem);
+	UT_ASSERT(!(first_elem < nullptr));
+	UT_ASSERT(nullptr <= first_elem);
+	UT_ASSERT(!(first_elem <= nullptr));
 
-	ASSERT(first_elem > nullptr);
-	ASSERT(!(nullptr > first_elem));
-	ASSERT(first_elem >= nullptr);
-	ASSERT(!(nullptr >= first_elem));
+	UT_ASSERT(first_elem > nullptr);
+	UT_ASSERT(!(nullptr > first_elem));
+	UT_ASSERT(first_elem >= nullptr);
+	UT_ASSERT(!(nullptr >= first_elem));
 
 	persistent_ptr<p<double>> different_array =
 			prepare_array<p<double>>(pop);
 
 	/* only verify if this compiles */
-	ASSERT((first_elem < different_array) || true);
+	UT_ASSERT((first_elem < different_array) || true);
 }
 
 }
@@ -193,7 +193,7 @@ main(int argc, char *argv[])
 	START(argc, argv, "obj_cpp_ptr_arith");
 
 	if (argc != 2)
-		FATAL("usage: %s file-name", argv[0]);
+		UT_FATAL("usage: %s file-name", argv[0]);
 
 	const char *path = argv[1];
 
@@ -201,7 +201,7 @@ main(int argc, char *argv[])
 
 	if ((pop = pmemobj_create(path, LAYOUT, PMEMOBJ_MIN_POOL,
 			S_IWUSR | S_IRUSR)) == NULL)
-		FATAL("!pmemobj_create: %s", path);
+		UT_FATAL("!pmemobj_create: %s", path);
 
 	test_arith(pop);
 	test_relational(pop);

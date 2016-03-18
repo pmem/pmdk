@@ -58,7 +58,7 @@ main(int argc, char *argv[])
 	if (argc == 2) {
 		dir = argv[1];
 	} else if (argc > 2) {
-		FATAL("usage: %s [directory]", argv[0]);
+		UT_FATAL("usage: %s [directory]", argv[0]);
 	}
 
 	if (dir == NULL) {
@@ -67,11 +67,11 @@ main(int argc, char *argv[])
 
 		vmp = vmem_create_in_region(mem_pool, POOL_SIZE);
 		if (vmp == NULL)
-			FATAL("!vmem_create_in_region");
+			UT_FATAL("!vmem_create_in_region");
 	} else {
 		vmp = vmem_create(dir, POOL_SIZE);
 		if (vmp == NULL)
-			FATAL("!vmem_create");
+			UT_FATAL("!vmem_create");
 	}
 
 	obj_size = MAX_SIZE;
@@ -86,11 +86,11 @@ main(int argc, char *argv[])
 
 		/* check that pointer came from mem_pool */
 		if (dir == NULL)
-			ASSERTrange(ptr[i], mem_pool, POOL_SIZE);
+			UT_ASSERTrange(ptr[i], mem_pool, POOL_SIZE);
 	}
 
 	/* allocate more than half of pool size */
-	ASSERT(sum_alloc * 2 > POOL_SIZE);
+	UT_ASSERT(sum_alloc * 2 > POOL_SIZE);
 
 	while (i > 0)
 		vmem_free(vmp, ptr[--i]);

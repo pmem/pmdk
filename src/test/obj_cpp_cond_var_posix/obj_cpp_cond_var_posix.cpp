@@ -108,7 +108,7 @@ void *reader_mutex(void *arg)
 	while ((*proot)->counter != limit)
 		(*proot)->cond.wait((*proot)->pmutex);
 
-	ASSERTeq((*proot)->counter, limit);
+	UT_ASSERTeq((*proot)->counter, limit);
 	(*proot)->pmutex.unlock();
 
 	return nullptr;
@@ -125,7 +125,7 @@ void *reader_mutex_pred(void *arg)
 	(*proot)->cond.wait((*proot)->pmutex,
 			[&](){ return (*proot)->counter == limit; });
 
-	ASSERTeq((*proot)->counter, limit);
+	UT_ASSERTeq((*proot)->counter, limit);
 	(*proot)->pmutex.unlock();
 
 	return nullptr;
@@ -142,7 +142,7 @@ void *reader_lock(void *arg)
 	while ((*proot)->counter != limit)
 		(*proot)->cond.wait((*proot)->pmutex);
 
-	ASSERTeq((*proot)->counter, limit);
+	UT_ASSERTeq((*proot)->counter, limit);
 	lock.unlock();
 
 	return nullptr;
@@ -158,7 +158,7 @@ void *reader_lock_pred(void *arg)
 	std::unique_lock<mutex> lock((*proot)->pmutex);
 	(*proot)->cond.wait(lock, [&](){ return (*proot)->counter == limit; });
 
-	ASSERTeq((*proot)->counter, limit);
+	UT_ASSERTeq((*proot)->counter, limit);
 	lock.unlock();
 
 	return nullptr;
@@ -178,9 +178,9 @@ void *reader_mutex_until(void *arg)
 
 	auto now = std::chrono::system_clock::now();
 	if (ret == std::cv_status::timeout)
-		ASSERT(now >= until);
+		UT_ASSERT(now >= until);
 	else
-		ASSERTeq((*proot)->counter, limit);
+		UT_ASSERTeq((*proot)->counter, limit);
 	(*proot)->pmutex.unlock();
 
 	return nullptr;
@@ -201,9 +201,9 @@ void *reader_mutex_until_pred(void *arg)
 
 	auto now = std::chrono::system_clock::now();
 	if (ret == false)
-		ASSERT(now >= until);
+		UT_ASSERT(now >= until);
 	else
-		ASSERTeq((*proot)->counter, limit);
+		UT_ASSERTeq((*proot)->counter, limit);
 	(*proot)->pmutex.unlock();
 
 	return nullptr;
@@ -223,9 +223,9 @@ void *reader_lock_until(void *arg)
 
 	auto now = std::chrono::system_clock::now();
 	if (ret == std::cv_status::timeout)
-		ASSERT(now >= until);
+		UT_ASSERT(now >= until);
 	else
-		ASSERTeq((*proot)->counter, limit);
+		UT_ASSERTeq((*proot)->counter, limit);
 	lock.unlock();
 
 	return nullptr;
@@ -246,9 +246,9 @@ void *reader_lock_until_pred(void *arg)
 
 	auto now = std::chrono::system_clock::now();
 	if (ret == false)
-		ASSERT(now >= until);
+		UT_ASSERT(now >= until);
 	else
-		ASSERTeq((*proot)->counter, limit);
+		UT_ASSERTeq((*proot)->counter, limit);
 	lock.unlock();
 
 	return nullptr;
@@ -268,9 +268,9 @@ void *reader_mutex_for(void *arg)
 
 	auto now = std::chrono::system_clock::now();
 	if (ret == std::cv_status::timeout)
-		ASSERT(now >= until);
+		UT_ASSERT(now >= until);
 	else
-		ASSERTeq((*proot)->counter, limit);
+		UT_ASSERTeq((*proot)->counter, limit);
 	(*proot)->pmutex.unlock();
 
 	return nullptr;
@@ -291,9 +291,9 @@ void *reader_mutex_for_pred(void *arg)
 
 	auto now = std::chrono::system_clock::now();
 	if (ret == false)
-		ASSERT(now >= until);
+		UT_ASSERT(now >= until);
 	else
-		ASSERTeq((*proot)->counter, limit);
+		UT_ASSERTeq((*proot)->counter, limit);
 	(*proot)->pmutex.unlock();
 
 	return nullptr;
@@ -313,9 +313,9 @@ void *reader_lock_for(void *arg)
 
 	auto now = std::chrono::system_clock::now();
 	if (ret == std::cv_status::timeout)
-		ASSERT(now >= until);
+		UT_ASSERT(now >= until);
 	else
-		ASSERTeq((*proot)->counter, limit);
+		UT_ASSERTeq((*proot)->counter, limit);
 	lock.unlock();
 
 	return nullptr;
@@ -336,9 +336,9 @@ void *reader_lock_for_pred(void *arg)
 
 	auto now = std::chrono::system_clock::now();
 	if (ret == false)
-		ASSERT(now >= until);
+		UT_ASSERT(now >= until);
 	else
-		ASSERTeq((*proot)->counter, limit);
+		UT_ASSERTeq((*proot)->counter, limit);
 	lock.unlock();
 
 	return nullptr;
@@ -375,7 +375,7 @@ main(int argc, char *argv[])
 	START(argc, argv, "obj_cpp_cond_var_posix");
 
 	if (argc != 2)
-		FATAL("usage: %s file-name", argv[0]);
+		UT_FATAL("usage: %s file-name", argv[0]);
 
 	const char *path = argv[1];
 
@@ -385,7 +385,7 @@ main(int argc, char *argv[])
 		pop = pool<struct root>::create(path, LAYOUT, PMEMOBJ_MIN_POOL,
 			S_IWUSR | S_IRUSR);
 	} catch (nvml::pool_error &pe) {
-		FATAL("!pool::create: %s %s", pe.what(), path);
+		UT_FATAL("!pool::create: %s %s", pe.what(), path);
 	}
 
 	std::vector<reader_type> notify_functions({ reader_mutex,

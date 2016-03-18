@@ -46,7 +46,7 @@ main(int argc, char *argv[])
 	START(argc, argv, "util_file_create");
 
 	if (argc < 3)
-		FATAL("usage: %s minlen len:path...", argv[0]);
+		UT_FATAL("usage: %s minlen len:path...", argv[0]);
 
 	char *fname;
 	size_t minsize = strtoul(argv[1], &fname, 0);
@@ -54,14 +54,14 @@ main(int argc, char *argv[])
 	for (int arg = 2; arg < argc; arg++) {
 		size_t size = strtoul(argv[arg], &fname, 0);
 		if (*fname != ':')
-			FATAL("usage: %s minlen len:path...", argv[0]);
+			UT_FATAL("usage: %s minlen len:path...", argv[0]);
 		fname++;
 
 		int fd;
 		if ((fd = util_file_create(fname, size, minsize)) == -1)
-			OUT("!%s: util_file_create", fname);
+			UT_OUT("!%s: util_file_create", fname);
 		else {
-			OUT("%s: created", fname);
+			UT_OUT("%s: created", fname);
 			close(fd);
 		}
 	}

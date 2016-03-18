@@ -53,7 +53,7 @@
 #define	NANO_PER_ONE 1000000000LL
 #define	TIMEOUT (NANO_PER_ONE / 1000LL)
 
-#define	FATAL_USAGE() FATAL("usage: obj_sync [mrc] <num_threads> <runs>\n")
+#define	FATAL_USAGE() UT_FATAL("usage: obj_sync [mrc] <num_threads> <runs>\n")
 
 /* posix thread worker typedef */
 typedef void *(*worker)(void *);
@@ -112,12 +112,12 @@ static void *
 mutex_write_worker(void *arg)
 {
 	if (pmemobj_mutex_lock(&Mock_pop, &Test_obj->mutex)) {
-		ERR("pmemobj_mutex_lock");
+		UT_ERR("pmemobj_mutex_lock");
 		return NULL;
 	}
 	memset(Test_obj->data, (int)(uintptr_t)arg, DATA_SIZE);
 	if (pmemobj_mutex_unlock(&Mock_pop, &Test_obj->mutex))
-		ERR("pmemobj_mutex_unlock");
+		UT_ERR("pmemobj_mutex_unlock");
 
 	return NULL;
 }
@@ -129,14 +129,14 @@ static void *
 mutex_check_worker(void *arg)
 {
 	if (pmemobj_mutex_lock(&Mock_pop, &Test_obj->mutex)) {
-		ERR("pmemobj_mutex_lock");
+		UT_ERR("pmemobj_mutex_lock");
 		return NULL;
 	}
 	uint8_t val = Test_obj->data[0];
 	for (int i = 1; i < DATA_SIZE; i++)
-		ASSERTeq(Test_obj->data[i], val);
+		UT_ASSERTeq(Test_obj->data[i], val);
 	if (pmemobj_mutex_unlock(&Mock_pop, &Test_obj->mutex))
-		ERR("pmemobj_mutex_unlock");
+		UT_ERR("pmemobj_mutex_unlock");
 
 	return NULL;
 }
@@ -153,7 +153,7 @@ cond_write_worker(void *arg)
 	memset(Test_obj->data, (int)(uintptr_t)arg, DATA_SIZE);
 	Test_obj->check_data = 1;
 	if (pmemobj_cond_signal(&Mock_pop, &Test_obj->cond))
-		ERR("pmemobj_cond_signal");
+		UT_ERR("pmemobj_cond_signal");
 	pmemobj_mutex_unlock(&Mock_pop, &Test_obj->mutex);
 
 	return NULL;
@@ -171,11 +171,11 @@ cond_check_worker(void *arg)
 	while (Test_obj->check_data != 1) {
 		if (pmemobj_cond_wait(&Mock_pop, &Test_obj->cond,
 					&Test_obj->mutex))
-			ERR("pmemobj_cond_wait");
+			UT_ERR("pmemobj_cond_wait");
 	}
 	uint8_t val = Test_obj->data[0];
 	for (int i = 1; i < DATA_SIZE; i++)
-		ASSERTeq(Test_obj->data[i], val);
+		UT_ASSERTeq(Test_obj->data[i], val);
 	pmemobj_mutex_unlock(&Mock_pop, &Test_obj->mutex);
 
 	return NULL;
@@ -188,12 +188,12 @@ static void *
 rwlock_write_worker(void *arg)
 {
 	if (pmemobj_rwlock_wrlock(&Mock_pop, &Test_obj->rwlock)) {
-		ERR("pmemobj_rwlock_wrlock");
+		UT_ERR("pmemobj_rwlock_wrlock");
 		return NULL;
 	}
 	memset(Test_obj->data, (int)(uintptr_t)arg, DATA_SIZE);
 	if (pmemobj_rwlock_unlock(&Mock_pop, &Test_obj->rwlock))
-		ERR("pmemobj_rwlock_unlock");
+		UT_ERR("pmemobj_rwlock_unlock");
 
 	return NULL;
 }
@@ -205,14 +205,14 @@ static void *
 rwlock_check_worker(void *arg)
 {
 	if (pmemobj_rwlock_rdlock(&Mock_pop, &Test_obj->rwlock)) {
-		ERR("pmemobj_rwlock_rdlock");
+		UT_ERR("pmemobj_rwlock_rdlock");
 		return NULL;
 	}
 	uint8_t val = Test_obj->data[0];
 	for (int i = 1; i < DATA_SIZE; i++)
-		ASSERTeq(Test_obj->data[i], val);
+		UT_ASSERTeq(Test_obj->data[i], val);
 	if (pmemobj_rwlock_unlock(&Mock_pop, &Test_obj->rwlock))
-		ERR("pmemobj_rwlock_unlock");
+		UT_ERR("pmemobj_rwlock_unlock");
 
 	return NULL;
 }
@@ -250,10 +250,10 @@ timed_check_worker(void *arg)
 	clock_gettime(CLOCK_REALTIME, &t2);
 
 	if (ret == 0) {
-		ASSERTne(mutex_id, LOCKED_MUTEX);
+		UT_ASSERTne(mutex_id, LOCKED_MUTEX);
 		pmemobj_mutex_unlock(&Mock_pop, mtx);
 	} else if (ret == ETIMEDOUT) {
-		ASSERTeq(mutex_id, LOCKED_MUTEX);
+		UT_ASSERTeq(mutex_id, LOCKED_MUTEX);
 
 		t_diff.tv_sec = t2.tv_sec - t1.tv_sec;
 		t_diff.tv_nsec = t2.tv_nsec - t1.tv_nsec;
@@ -262,10 +262,10 @@ timed_check_worker(void *arg)
 			--t_diff.tv_sec;
 			t_diff.tv_nsec += NANO_PER_ONE;
 		}
-		ASSERT(t_diff.tv_sec * NANO_PER_ONE +
+		UT_ASSERT(t_diff.tv_sec * NANO_PER_ONE +
 				t_diff.tv_nsec >= TIMEOUT);
 	} else {
-		ERR("pmemobj_mutex_timedlock");
+		UT_ERR("pmemobj_mutex_timedlock");
 	}
 
 	return NULL;
@@ -343,7 +343,7 @@ main(int argc, char *argv[])
 
 	unsigned long num_threads = strtoul(argv[2], NULL, 10);
 	if (num_threads > MAX_THREAD_NUM)
-		FATAL("Do not use more than %d threads.\n", MAX_THREAD_NUM);
+		UT_FATAL("Do not use more than %d threads.\n", MAX_THREAD_NUM);
 
 	unsigned long runs = strtoul(argv[3], NULL, 10);
 

@@ -45,20 +45,20 @@ test_reopen(const char *path)
 	PMEMobjpool *pop1 = pmemobj_create(path, LAYOUT, PMEMOBJ_MIN_POOL,
 			S_IWUSR | S_IRUSR);
 	if (!pop1)
-		FATAL("!create");
+		UT_FATAL("!create");
 
 	PMEMobjpool *pop2 = pmemobj_open(path, LAYOUT);
 	if (pop2)
-		FATAL("pmemobj_open should not succeed");
+		UT_FATAL("pmemobj_open should not succeed");
 
 	if (errno != EWOULDBLOCK)
-		FATAL("!pmemobj_open failed but for unexpected reason");
+		UT_FATAL("!pmemobj_open failed but for unexpected reason");
 
 	pmemobj_close(pop1);
 
 	pop2 = pmemobj_open(path, LAYOUT);
 	if (!pop2)
-		FATAL("pmemobj_open should succeed after close");
+		UT_FATAL("pmemobj_open should succeed after close");
 
 	pmemobj_close(pop2);
 
@@ -72,7 +72,7 @@ test_open_in_different_process(const char *path, int sleep)
 	PMEMobjpool *pop;
 
 	if (pid < 0)
-		FATAL("fork failed");
+		UT_FATAL("fork failed");
 
 	if (pid == 0) {
 		/* child */
@@ -83,10 +83,10 @@ test_open_in_different_process(const char *path, int sleep)
 
 		pop = pmemobj_open(path, LAYOUT);
 		if (pop)
-			FATAL("pmemobj_open after fork should not succeed");
+			UT_FATAL("pmemobj_open after fork should not succeed");
 
 		if (errno != EWOULDBLOCK)
-			FATAL("!pmemobj_open after fork failed but for "
+			UT_FATAL("!pmemobj_open after fork failed but for "
 				"unexpected reason");
 
 		exit(0);
@@ -94,15 +94,15 @@ test_open_in_different_process(const char *path, int sleep)
 
 	pop = pmemobj_create(path, LAYOUT, PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR);
 	if (!pop)
-		FATAL("!create");
+		UT_FATAL("!create");
 
 	int status;
 
 	if (waitpid(pid, &status, 0) < 0)
-		FATAL("!waitpid failed");
+		UT_FATAL("!waitpid failed");
 
 	if (!WIFEXITED(status))
-		FATAL("child process failed");
+		UT_FATAL("child process failed");
 
 	pmemobj_close(pop);
 
@@ -115,7 +115,7 @@ main(int argc, char *argv[])
 	START(argc, argv, "obj_pool_lock");
 
 	if (argc < 2)
-		FATAL("usage: %s path", argv[0]);
+		UT_FATAL("usage: %s path", argv[0]);
 
 	test_reopen(argv[1]);
 

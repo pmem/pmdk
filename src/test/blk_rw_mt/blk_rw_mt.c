@@ -71,7 +71,7 @@ check(unsigned char *buf)
 
 	for (int i = 1; i < Bsize; i++)
 		if (buf[i] != val) {
-			OUT("{%u} TORN at byte %d", val, i);
+			UT_OUT("{%u} TORN at byte %d", val, i);
 			break;
 		}
 }
@@ -93,14 +93,14 @@ worker(void *arg)
 		if (rand_r(&myseed) % 2) {
 			/* read */
 			if (pmemblk_read(Handle, buf, lba) < 0)
-				OUT("!read      lba %zu", lba);
+				UT_OUT("!read      lba %zu", lba);
 			else
 				check(buf);
 		} else {
 			/* write */
 			construct(&ord, buf);
 			if (pmemblk_write(Handle, buf, lba) < 0)
-				OUT("!write     lba %zu", lba);
+				UT_OUT("!write     lba %zu", lba);
 		}
 	}
 
@@ -113,7 +113,7 @@ main(int argc, char *argv[])
 	START(argc, argv, "blk_rw_mt");
 
 	if (argc != 6)
-		FATAL("usage: %s bsize file seed nthread nops", argv[0]);
+		UT_FATAL("usage: %s bsize file seed nthread nops", argv[0]);
 
 	Bsize = strtoul(argv[1], NULL, 0);
 
@@ -121,7 +121,7 @@ main(int argc, char *argv[])
 
 	if ((Handle = pmemblk_create(path, Bsize, 0,
 			S_IWUSR | S_IRUSR)) == NULL)
-		FATAL("!%s: pmemblk_create", path);
+		UT_FATAL("!%s: pmemblk_create", path);
 
 	if (Nblock == 0)
 		Nblock = pmemblk_nblock(Handle);
@@ -129,7 +129,7 @@ main(int argc, char *argv[])
 	Nthread = strtoul(argv[4], NULL, 0);
 	Nops = strtoul(argv[5], NULL, 0);
 
-	OUT("%s block size %zu usable blocks %zu", argv[1], Bsize, Nblock);
+	UT_OUT("%s block size %zu usable blocks %zu", argv[1], Bsize, Nblock);
 
 	pthread_t threads[Nthread];
 
@@ -146,9 +146,9 @@ main(int argc, char *argv[])
 	/* XXX not ready to pass this part of the test yet */
 	int result = pmemblk_check(path, Bsize);
 	if (result < 0)
-		OUT("!%s: pmemblk_check", path);
+		UT_OUT("!%s: pmemblk_check", path);
 	else if (result == 0)
-		OUT("%s: pmemblk_check: not consistent", path);
+		UT_OUT("%s: pmemblk_check: not consistent", path);
 
 	DONE(NULL);
 }

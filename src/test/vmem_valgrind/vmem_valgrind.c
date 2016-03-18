@@ -119,14 +119,14 @@ main(int argc, char *argv[])
 	}
 
 	if (test_case < 0)
-		FATAL("usage: %s <test-number from 0 to 9> [directory]",
+		UT_FATAL("usage: %s <test-number from 0 to 9> [directory]",
 			argv[0]);
 
 	if (test_case < 5) {
-		OUT("use default allocator");
+		UT_OUT("use default allocator");
 		expect_custom_alloc = 0;
 	} else {
-		OUT("use custom alloc functions");
+		UT_OUT("use custom alloc functions");
 		test_case -= 5;
 		expect_custom_alloc = 1;
 		vmem_set_funcs(malloc_custom, free_custom,
@@ -139,38 +139,38 @@ main(int argc, char *argv[])
 
 		vmp = vmem_create_in_region(mem_pool, VMEM_MIN_POOL);
 		if (vmp == NULL)
-			FATAL("!vmem_create_in_region");
+			UT_FATAL("!vmem_create_in_region");
 	} else {
 		vmp = vmem_create(dir, VMEM_MIN_POOL);
 		if (vmp == NULL)
-			FATAL("!vmem_create");
+			UT_FATAL("!vmem_create");
 	}
 
 	switch (test_case) {
 		case 0: {
-			OUT("remove all allocations and delete pool");
+			UT_OUT("remove all allocations and delete pool");
 			ptr = vmem_malloc(vmp, sizeof (int));
 			if (ptr == NULL)
-				FATAL("!vmem_malloc");
+				UT_FATAL("!vmem_malloc");
 
 			vmem_free(vmp, ptr);
 			vmem_delete(vmp);
 			break;
 		}
 		case 1: {
-			OUT("only remove allocations");
+			UT_OUT("only remove allocations");
 			ptr = vmem_malloc(vmp, sizeof (int));
 			if (ptr == NULL)
-				FATAL("!vmem_malloc");
+				UT_FATAL("!vmem_malloc");
 
 			vmem_free(vmp, ptr);
 			break;
 		}
 		case 2: {
-			OUT("only delete pool");
+			UT_OUT("only delete pool");
 			ptr = vmem_malloc(vmp, sizeof (int));
 			if (ptr == NULL)
-				FATAL("!vmem_malloc");
+				UT_FATAL("!vmem_malloc");
 
 			vmem_delete(vmp);
 
@@ -179,20 +179,20 @@ main(int argc, char *argv[])
 			break;
 		}
 		case 3: {
-			OUT("memory leaks");
+			UT_OUT("memory leaks");
 			ptr = vmem_malloc(vmp, sizeof (int));
 			if (ptr == NULL)
-				FATAL("!vmem_malloc");
+				UT_FATAL("!vmem_malloc");
 
 			/* prevent reporting leaked memory as still reachable */
 			ptr = NULL;
 			break;
 		}
 		case 4: {
-			OUT("heap block overrun");
+			UT_OUT("heap block overrun");
 			ptr = vmem_malloc(vmp, 12 * sizeof (int));
 			if (ptr == NULL)
-				FATAL("!vmem_malloc");
+				UT_FATAL("!vmem_malloc");
 
 			/* heap block overrun */
 			ptr[12] = 7;
@@ -202,17 +202,17 @@ main(int argc, char *argv[])
 			break;
 		}
 		default: {
-			FATAL("!unknown test-number");
+			UT_FATAL("!unknown test-number");
 		}
 	}
 
 	/* check memory leak in custom allocator */
-	ASSERTeq(custom_allocs, 0);
+	UT_ASSERTeq(custom_allocs, 0);
 
 	if (expect_custom_alloc == 0) {
-		ASSERTeq(custom_alloc_calls, 0);
+		UT_ASSERTeq(custom_alloc_calls, 0);
 	} else {
-		ASSERTne(custom_alloc_calls, 0);
+		UT_ASSERTne(custom_alloc_calls, 0);
 	}
 
 	DONE(NULL);

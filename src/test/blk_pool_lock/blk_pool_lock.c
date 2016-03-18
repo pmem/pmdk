@@ -43,20 +43,20 @@ test_reopen(const char *path)
 	PMEMblkpool *blk1 = pmemblk_create(path, 4096, PMEMBLK_MIN_POOL,
 			S_IWUSR | S_IRUSR);
 	if (!blk1)
-		FATAL("!create");
+		UT_FATAL("!create");
 
 	PMEMblkpool *blk2 = pmemblk_open(path, 4096);
 	if (blk2)
-		FATAL("pmemblk_open should not succeed");
+		UT_FATAL("pmemblk_open should not succeed");
 
 	if (errno != EWOULDBLOCK)
-		FATAL("!pmemblk_open failed but for unexpected reason");
+		UT_FATAL("!pmemblk_open failed but for unexpected reason");
 
 	pmemblk_close(blk1);
 
 	blk2 = pmemblk_open(path, 4096);
 	if (!blk2)
-		FATAL("pmemobj_open should succeed after close");
+		UT_FATAL("pmemobj_open should succeed after close");
 
 	pmemblk_close(blk2);
 
@@ -70,7 +70,7 @@ test_open_in_different_process(const char *path, int sleep)
 	PMEMblkpool *blk;
 
 	if (pid < 0)
-		FATAL("fork failed");
+		UT_FATAL("fork failed");
 
 	if (pid == 0) {
 		/* child */
@@ -81,10 +81,10 @@ test_open_in_different_process(const char *path, int sleep)
 
 		blk = pmemblk_open(path, 4096);
 		if (blk)
-			FATAL("pmemblk_open after fork should not succeed");
+			UT_FATAL("pmemblk_open after fork should not succeed");
 
 		if (errno != EWOULDBLOCK)
-			FATAL("!pmemblk_open after fork failed but for "
+			UT_FATAL("!pmemblk_open after fork failed but for "
 				"unexpected reason");
 
 		exit(0);
@@ -92,15 +92,15 @@ test_open_in_different_process(const char *path, int sleep)
 
 	blk = pmemblk_create(path, 4096, PMEMBLK_MIN_POOL, S_IWUSR | S_IRUSR);
 	if (!blk)
-		FATAL("!create");
+		UT_FATAL("!create");
 
 	int status;
 
 	if (waitpid(pid, &status, 0) < 0)
-		FATAL("!waitpid failed");
+		UT_FATAL("!waitpid failed");
 
 	if (!WIFEXITED(status))
-		FATAL("child process failed");
+		UT_FATAL("child process failed");
 
 	pmemblk_close(blk);
 
@@ -113,7 +113,7 @@ main(int argc, char *argv[])
 	START(argc, argv, "blk_pool_lock");
 
 	if (argc < 2)
-		FATAL("usage: %s path", argv[0]);
+		UT_FATAL("usage: %s path", argv[0]);
 
 	test_reopen(argv[1]);
 

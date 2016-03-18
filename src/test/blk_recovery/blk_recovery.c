@@ -91,7 +91,7 @@ sigjmp_buf Jmp;
 static void
 signal_handler(int sig)
 {
-	OUT("signal: %s", strsignal(sig));
+	UT_OUT("signal: %s", strsignal(sig));
 
 	siglongjmp(Jmp, 1);
 }
@@ -102,7 +102,7 @@ main(int argc, char *argv[])
 	START(argc, argv, "blk_recovery");
 
 	if (argc != 5)
-		FATAL("usage: %s bsize file first_lba lba", argv[0]);
+		UT_FATAL("usage: %s bsize file first_lba lba", argv[0]);
 
 	Bsize = strtoul(argv[1], NULL, 0);
 	const char *path = argv[2];
@@ -110,9 +110,9 @@ main(int argc, char *argv[])
 	PMEMblkpool *handle;
 	if ((handle = pmemblk_create(path, Bsize, 0,
 			S_IWUSR | S_IRUSR)) == NULL)
-		FATAL("!%s: pmemblk_create", path);
+		UT_FATAL("!%s: pmemblk_create", path);
 
-	OUT("%s block size %zu usable blocks %zu",
+	UT_OUT("%s block size %zu usable blocks %zu",
 			argv[1], Bsize, pmemblk_nblock(handle));
 
 	/* write the first lba */
@@ -121,9 +121,9 @@ main(int argc, char *argv[])
 
 	construct(buf);
 	if (pmemblk_write(handle, buf, lba) < 0)
-		FATAL("!write     lba %zu", lba);
+		UT_FATAL("!write     lba %zu", lba);
 
-	OUT("write     lba %zu: %s", lba, ident(buf));
+	UT_OUT("write     lba %zu: %s", lba, ident(buf));
 
 	/* reach into the layout and write-protect the map */
 	struct btt_info *infop = (void *)((char *)handle +
@@ -132,7 +132,8 @@ main(int argc, char *argv[])
 	char *mapaddr = (char *)infop + le32toh(infop->mapoff);
 	char *flogaddr = (char *)infop + le32toh(infop->flogoff);
 
-	OUT("write-protecting map, length %zu", (size_t)(flogaddr - mapaddr));
+	UT_OUT("write-protecting map, length %zu",
+			(size_t)(flogaddr - mapaddr));
 	MPROTECT(mapaddr, (size_t)(flogaddr - mapaddr), PROT_READ);
 
 	/* arrange to catch SEGV */
@@ -149,20 +150,20 @@ main(int argc, char *argv[])
 
 	if (!sigsetjmp(Jmp, 1)) {
 		if (pmemblk_write(handle, buf, lba) < 0)
-			FATAL("!write     lba %zu", lba);
+			UT_FATAL("!write     lba %zu", lba);
 		else
-			FATAL("write     lba %zu: %s", lba, ident(buf));
+			UT_FATAL("write     lba %zu: %s", lba, ident(buf));
 	}
 
 	pmemblk_close(handle);
 
 	int result = pmemblk_check(path, Bsize);
 	if (result < 0)
-		OUT("!%s: pmemblk_check", path);
+		UT_OUT("!%s: pmemblk_check", path);
 	else if (result == 0)
-		OUT("%s: pmemblk_check: not consistent", path);
+		UT_OUT("%s: pmemblk_check: not consistent", path);
 	else
-		OUT("%s: consistent", path);
+		UT_OUT("%s: consistent", path);
 
 	DONE(NULL);
 }

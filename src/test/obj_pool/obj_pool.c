@@ -52,12 +52,12 @@ pool_create(const char *path, const char *layout, size_t poolsize,
 	PMEMobjpool *pop = pmemobj_create(path, layout, poolsize, mode);
 
 	if (pop == NULL)
-		OUT("!%s: pmemobj_create", path);
+		UT_OUT("!%s: pmemobj_create", path);
 	else {
 		struct stat stbuf;
 		STAT(path, &stbuf);
 
-		OUT("%s: file size %zu mode 0%o",
+		UT_OUT("%s: file size %zu mode 0%o",
 				path, stbuf.st_size,
 				stbuf.st_mode & 0777);
 
@@ -66,9 +66,9 @@ pool_create(const char *path, const char *layout, size_t poolsize,
 		int result = pmemobj_check(path, layout);
 
 		if (result < 0)
-			OUT("!%s: pmemobj_check", path);
+			UT_OUT("!%s: pmemobj_check", path);
 		else if (result == 0)
-			OUT("%s: pmemobj_check: not consistent", path);
+			UT_OUT("%s: pmemobj_check: not consistent", path);
 	}
 }
 
@@ -77,9 +77,9 @@ pool_open(const char *path, const char *layout)
 {
 	PMEMobjpool *pop = pmemobj_open(path, layout);
 	if (pop == NULL)
-		OUT("!%s: pmemobj_open", path);
+		UT_OUT("!%s: pmemobj_open", path);
 	else {
-		OUT("%s: pmemobj_open: Success", path);
+		UT_OUT("%s: pmemobj_open: Success", path);
 		pmemobj_close(pop);
 	}
 }
@@ -90,7 +90,7 @@ main(int argc, char *argv[])
 	START(argc, argv, "obj_pool");
 
 	if (argc < 4)
-		FATAL("usage: %s op path layout [poolsize mode]", argv[0]);
+		UT_FATAL("usage: %s op path layout [poolsize mode]", argv[0]);
 
 	char *layout = NULL;
 	size_t poolsize;
@@ -114,7 +114,7 @@ main(int argc, char *argv[])
 		break;
 
 	default:
-		FATAL("unknown operation");
+		UT_FATAL("unknown operation");
 	}
 
 	DONE(NULL);

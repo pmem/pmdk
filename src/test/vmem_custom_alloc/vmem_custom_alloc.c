@@ -135,21 +135,21 @@ pool_test(const char *dir)
 
 	if (vmp == NULL) {
 		if (dir == NULL) {
-			FATAL("!vmem_create_in_region");
+			UT_FATAL("!vmem_create_in_region");
 		} else {
-			FATAL("!vmem_create");
+			UT_FATAL("!vmem_create");
 		}
 	}
 
 	char *test = vmem_malloc(vmp, strlen(TEST_STRING_VALUE) + 1);
 
 	if (expect_malloc == 0) {
-		ASSERTeq(test, NULL);
+		UT_ASSERTeq(test, NULL);
 	} else {
 		strcpy(test, TEST_STRING_VALUE);
-		ASSERTeq(strcmp(test, TEST_STRING_VALUE), 0);
+		UT_ASSERTeq(strcmp(test, TEST_STRING_VALUE), 0);
 
-		ASSERT(vmem_malloc_usable_size(vmp, test) > 0);
+		UT_ASSERT(vmem_malloc_usable_size(vmp, test) > 0);
 
 		vmem_free(vmp, test);
 	}
@@ -165,7 +165,7 @@ main(int argc, char *argv[])
 	START(argc, argv, "vmem_custom_alloc");
 
 	if (argc < 2 || argc > 3 || strlen(argv[1]) != 1)
-		FATAL("usage: %s (0-2) [directory]", argv[0]);
+		UT_FATAL("usage: %s (0-2) [directory]", argv[0]);
 
 	switch (argv[1][0]) {
 		case '0': {
@@ -191,7 +191,7 @@ main(int argc, char *argv[])
 			break;
 		}
 		default: {
-			FATAL("usage: %s (0-2) [directory]", argv[0]);
+			UT_FATAL("usage: %s (0-2) [directory]", argv[0]);
 			break;
 		}
 	}
@@ -206,12 +206,12 @@ main(int argc, char *argv[])
 	}
 
 	/* check memory leak in custom allocator */
-	ASSERTeq(custom_allocs, 0);
+	UT_ASSERTeq(custom_allocs, 0);
 
 	if (expect_custom_alloc == 0) {
-		ASSERTeq(custom_alloc_calls, 0);
+		UT_ASSERTeq(custom_alloc_calls, 0);
 	} else {
-		ASSERTne(custom_alloc_calls, 0);
+		UT_ASSERTne(custom_alloc_calls, 0);
 	}
 
 	DONE(NULL);

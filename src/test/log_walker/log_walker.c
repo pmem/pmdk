@@ -59,13 +59,13 @@ do_append(PMEMlogpool *plp)
 		int rv = pmemlog_append(plp, str[i], strlen(str[i]));
 		switch (rv) {
 		case 0:
-			OUT("append   str[%i] %s", i, str[i]);
+			UT_OUT("append   str[%i] %s", i, str[i]);
 			break;
 		case -1:
-			OUT("!append   str[%i] %s", i, str[i]);
+			UT_OUT("!append   str[%i] %s", i, str[i]);
 			break;
 		default:
-			OUT("!append: wrong return value");
+			UT_OUT("!append: wrong return value");
 			break;
 		}
 	}
@@ -90,7 +90,7 @@ static void
 do_walk(PMEMlogpool *plp)
 {
 	pmemlog_walk(plp, 0, try_to_store, NULL);
-	OUT("walk all at once");
+	UT_OUT("walk all at once");
 }
 
 sigjmp_buf Jmp;
@@ -101,7 +101,7 @@ sigjmp_buf Jmp;
 static void
 signal_handler(int sig)
 {
-	OUT("signal: %s", strsignal(sig));
+	UT_OUT("signal: %s", strsignal(sig));
 
 	siglongjmp(Jmp, 1);
 }
@@ -114,7 +114,7 @@ main(int argc, char *argv[])
 	START(argc, argv, "log_walker");
 
 	if (argc != 2)
-		FATAL("usage: %s file-name", argv[0]);
+		UT_FATAL("usage: %s file-name", argv[0]);
 
 	const char *path = argv[1];
 
@@ -123,12 +123,12 @@ main(int argc, char *argv[])
 	/* pre-allocate 2MB of persistent memory */
 	errno = posix_fallocate(fd, (off_t)0, (size_t)(2 * 1024 * 1024));
 	if (errno != 0)
-		FATAL("!posix_fallocate");
+		UT_FATAL("!posix_fallocate");
 
 	CLOSE(fd);
 
 	if ((plp = pmemlog_create(path, 0, S_IWUSR | S_IRUSR)) == NULL)
-		FATAL("!pmemlog_create: %s", path);
+		UT_FATAL("!pmemlog_create: %s", path);
 
 	/* append some data */
 	do_append(plp);

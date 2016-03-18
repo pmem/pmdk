@@ -23,7 +23,7 @@ function. For example:
     FUNC_MOCK(malloc, void *, size_t size)
 	FUNC_MOCK_RUN_RET_DEFAULT_REAL(malloc, size)
 	FUNC_MOCK_RUN(2) {
-	    ASSERTeq(size, 8);
+	    UT_ASSERTeq(size, 8);
 	    return NULL;
 	}
     FUNC_MOCK_END

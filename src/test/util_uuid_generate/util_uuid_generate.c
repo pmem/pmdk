@@ -62,7 +62,7 @@ main(int argc, char *argv[])
 		 */
 		int fd = OPEN(POOL_HDR_UUID_GEN_FILE, O_RDONLY);
 		ssize_t num = READ(fd, uu, POOL_HDR_UUID_STR_LEN);
-		ASSERTeq(num, POOL_HDR_UUID_STR_LEN);
+		UT_ASSERTeq(num, POOL_HDR_UUID_STR_LEN);
 
 		uu[POOL_HDR_UUID_STR_LEN - 1] = '\0';
 
@@ -71,12 +71,12 @@ main(int argc, char *argv[])
 		 * uuid back to a string and compare strings.
 		 */
 		ret = util_uuid_from_string(uu, (struct uuid *)&uuid);
-		ASSERTeq(ret, 0);
+		UT_ASSERTeq(ret, 0);
 
 		ret = util_uuid_to_string(uuid, conv_uu);
-		ASSERTeq(ret, 0);
+		UT_ASSERTeq(ret, 0);
 
-		ASSERT(strncmp(uu, conv_uu, POOL_HDR_UUID_STR_LEN) == 0);
+		UT_ASSERT(strncmp(uu, conv_uu, POOL_HDR_UUID_STR_LEN) == 0);
 
 		/*
 		 * Generate uuid from util_uuid_generate and translate to
@@ -87,14 +87,14 @@ main(int argc, char *argv[])
 		memset(conv_uu, 0, POOL_HDR_UUID_STR_LEN);
 
 		ret = util_uuid_generate(uuid);
-		ASSERTeq(ret, 0);
+		UT_ASSERTeq(ret, 0);
 
 		ret = util_uuid_to_string(uuid, uu);
-		ASSERTeq(ret, 0);
+		UT_ASSERTeq(ret, 0);
 
 		ret  = util_uuid_from_string(uu, (struct uuid *)&uuid1);
-		ASSERTeq(ret, 0);
-		ASSERT(memcmp(&uuid, &uuid1, sizeof (uuid_t)) == 0);
+		UT_ASSERTeq(ret, 0);
+		UT_ASSERT(memcmp(&uuid, &uuid1, sizeof (uuid_t)) == 0);
 		CLOSE(fd);
 	} else {
 		/*
@@ -103,15 +103,15 @@ main(int argc, char *argv[])
 		if (strcmp(argv[2], "valid") == 0) {
 			ret = util_uuid_from_string(argv[1],
 				(struct uuid *)&uuid);
-			ASSERTeq(ret, 0);
+			UT_ASSERTeq(ret, 0);
 
 			ret = util_uuid_to_string(uuid, conv_uu);
-			ASSERTeq(ret, 0);
+			UT_ASSERTeq(ret, 0);
 		} else {
 			ret = util_uuid_from_string(argv[1],
 				(struct uuid *)&uuid);
-			ASSERT(ret < 0);
-			OUT("util_uuid_generate: invalid uuid string");
+			UT_ASSERT(ret < 0);
+			UT_OUT("util_uuid_generate: invalid uuid string");
 		}
 	}
 	DONE(NULL);

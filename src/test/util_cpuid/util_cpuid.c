@@ -67,19 +67,19 @@ parse_cpuinfo(char *line)
 		*nl = ' ';
 
 	int clflush_present = strstr(flags, clflush) != NULL;
-	ASSERTeq(is_cpu_clflush_present(), clflush_present);
+	UT_ASSERTeq(is_cpu_clflush_present(), clflush_present);
 
 	int clflushopt_present = strstr(flags, clflushopt) != NULL;
-	ASSERTeq(is_cpu_clflushopt_present(), clflushopt_present);
+	UT_ASSERTeq(is_cpu_clflushopt_present(), clflushopt_present);
 
 	int clwb_present = strstr(flags, clwb) != NULL;
-	ASSERTeq(is_cpu_clwb_present(), clwb_present);
+	UT_ASSERTeq(is_cpu_clwb_present(), clwb_present);
 
 	int pcommit_present = strstr(flags, pcommit) != NULL;
-	ASSERTeq(is_cpu_pcommit_present(), pcommit_present);
+	UT_ASSERTeq(is_cpu_pcommit_present(), pcommit_present);
 
 	int sse2_present = strstr(flags, sse2) != NULL;
-	ASSERTeq(is_cpu_sse2_present(), sse2_present);
+	UT_ASSERTeq(is_cpu_sse2_present(), sse2_present);
 
 	return 1;
 }
@@ -93,7 +93,7 @@ check_cpuinfo(void)
 	/* detect supported CPU features */
 	FILE *fp;
 	if ((fp = fopen("/proc/cpuinfo", "r")) == NULL) {
-		ERR("!/proc/cpuinfo");
+		UT_ERR("!/proc/cpuinfo");
 	} else {
 		char line[PROCMAXLEN];	/* for fgets() */
 

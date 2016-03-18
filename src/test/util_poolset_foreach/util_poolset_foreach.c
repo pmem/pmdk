@@ -60,7 +60,7 @@ static int
 cb(const char *name, void *arg)
 {
 	char *set_name = (char *)arg;
-	OUT("%s: %s", set_name, name);
+	UT_OUT("%s: %s", set_name, name);
 	return 0;
 }
 
@@ -74,14 +74,14 @@ main(int argc, char *argv[])
 	util_init();
 
 	if (argc < 2)
-		FATAL("usage: %s file...",
+		UT_FATAL("usage: %s file...",
 			argv[0]);
 
 	for (int i = 1; i < argc; i++) {
 		char *fname = argv[i];
 		int ret = util_poolset_foreach_part(fname, cb, fname);
 
-		OUT("util_poolset_foreach_part(%s): %d", fname, ret);
+		UT_OUT("util_poolset_foreach_part(%s): %d", fname, ret);
 	}
 	out_fini();
 

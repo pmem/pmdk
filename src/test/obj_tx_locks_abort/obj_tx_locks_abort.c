@@ -98,9 +98,9 @@ do_aborted_nested_tx(PMEMobjpool *pop, TOID(struct obj) oid, int value)
 
 		while (!TOID_IS_NULL(o)) {
 			if (pmemobj_mutex_trylock(pop, &D_RW(o)->lock)) {
-				OUT("trylock failed");
+				UT_OUT("trylock failed");
 			} else {
-				OUT("trylock succeeded");
+				UT_OUT("trylock succeeded");
 				pmemobj_mutex_unlock(pop, &D_RW(o)->lock);
 			}
 			o = D_RO(o)->next;
@@ -115,7 +115,7 @@ static void
 do_check(TOID(struct obj) o)
 {
 	while (!TOID_IS_NULL(o)) {
-		OUT("data = %d", D_RO(o)->data);
+		UT_OUT("data = %d", D_RO(o)->data);
 		o = D_RO(o)->next;
 	}
 }
@@ -128,12 +128,12 @@ main(int argc, char *argv[])
 	START(argc, argv, "obj_tx_locks_abort");
 
 	if (argc > 3)
-		FATAL("usage: %s <file>", argv[0]);
+		UT_FATAL("usage: %s <file>", argv[0]);
 
 	pop = pmemobj_create(argv[1], LAYOUT_NAME,
 			PMEMOBJ_MIN_POOL * 4, S_IWUSR | S_IRUSR);
 	if (pop == NULL)
-		FATAL("!pmemobj_create");
+		UT_FATAL("!pmemobj_create");
 
 	TOID(struct root_obj) root = POBJ_ROOT(pop, struct root_obj);
 
@@ -153,14 +153,14 @@ main(int argc, char *argv[])
 		TOID_ASSIGN(D_RW(o)->next, OID_NULL);
 	} TX_END;
 
-	OUT("initial state");
+	UT_OUT("initial state");
 	do_check(D_RO(root)->head);
 
-	OUT("nested tx");
+	UT_OUT("nested tx");
 	do_nested_tx(pop, D_RW(root)->head, 200);
 	do_check(D_RO(root)->head);
 
-	OUT("aborted nested tx");
+	UT_OUT("aborted nested tx");
 	do_aborted_nested_tx(pop, D_RW(root)->head, 300);
 	do_check(D_RO(root)->head);
 

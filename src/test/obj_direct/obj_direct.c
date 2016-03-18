@@ -54,12 +54,12 @@ static void *
 test_worker(void *arg)
 {
 	/* before pool is closed */
-	ASSERTne(pmemobj_direct(thread_oid), NULL);
+	UT_ASSERTne(pmemobj_direct(thread_oid), NULL);
 
 	flag = 0;
 	pthread_mutex_lock(&lock);
 	/* after pool is closed */
-	ASSERTeq(pmemobj_direct(thread_oid), NULL);
+	UT_ASSERTeq(pmemobj_direct(thread_oid), NULL);
 
 	pthread_mutex_unlock(&lock);
 
@@ -72,7 +72,7 @@ main(int argc, char *argv[])
 	START(argc, argv, "obj_direct");
 
 	if (argc != 3)
-		FATAL("usage: %s [directory] [# of pools]", argv[0]);
+		UT_FATAL("usage: %s [directory] [# of pools]", argv[0]);
 
 	int npools = atoi(argv[2]);
 	const char *dir = argv[1];
@@ -87,31 +87,31 @@ main(int argc, char *argv[])
 				S_IWUSR | S_IRUSR);
 
 		if (pops[i] == NULL)
-			FATAL("!pmemobj_create");
+			UT_FATAL("!pmemobj_create");
 	}
 
 	PMEMoid oids[npools];
 	PMEMoid tmpoids[npools];
 
 	oids[0] = OID_NULL;
-	ASSERTeq(pmemobj_direct(oids[0]), NULL);
+	UT_ASSERTeq(pmemobj_direct(oids[0]), NULL);
 
 	for (int i = 0; i < npools; ++i) {
 		oids[i] = (PMEMoid) {pops[i]->uuid_lo, 0};
-		ASSERTeq(pmemobj_direct(oids[i]), NULL);
+		UT_ASSERTeq(pmemobj_direct(oids[i]), NULL);
 
 		uint64_t off = pops[i]->heap_offset;
 		oids[i] = (PMEMoid) {pops[i]->uuid_lo, off};
-		ASSERTeq((char *)pmemobj_direct(oids[i]) - off,
+		UT_ASSERTeq((char *)pmemobj_direct(oids[i]) - off,
 			(char *)pops[i]);
 
 		r = pmemobj_alloc(pops[i], &tmpoids[i], 100, 1, NULL, NULL);
-		ASSERTeq(r, 0);
+		UT_ASSERTeq(r, 0);
 	}
 
 	r = pmemobj_alloc(pops[0], &thread_oid, 100, 2, NULL, NULL);
-	ASSERTeq(r, 0);
-	ASSERTne(pmemobj_direct(thread_oid), NULL);
+	UT_ASSERTeq(r, 0);
+	UT_ASSERTne(pmemobj_direct(thread_oid), NULL);
 
 	pthread_mutex_lock(&lock);
 
@@ -123,13 +123,13 @@ main(int argc, char *argv[])
 		;
 
 	for (int i = 0; i < npools; ++i) {
-		ASSERTne(pmemobj_direct(tmpoids[i]), NULL);
+		UT_ASSERTne(pmemobj_direct(tmpoids[i]), NULL);
 
 		pmemobj_free(&tmpoids[i]);
 
-		ASSERTeq(pmemobj_direct(tmpoids[i]), NULL);
+		UT_ASSERTeq(pmemobj_direct(tmpoids[i]), NULL);
 		pmemobj_close(pops[i]);
-		ASSERTeq(pmemobj_direct(oids[i]), NULL);
+		UT_ASSERTeq(pmemobj_direct(oids[i]), NULL);
 	}
 	pthread_mutex_unlock(&lock);
 

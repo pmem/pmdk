@@ -124,16 +124,16 @@ test_oom_allocs(size_t size)
 		if (pmalloc(mock_pop, &addr->ptr, size)) {
 			break;
 		}
-		ASSERT(addr->ptr != 0);
+		UT_ASSERT(addr->ptr != 0);
 		allocs[count++] = addr->ptr;
 	}
 
 	for (int i = 0; i < count; ++i) {
 		addr->ptr = allocs[i];
 		pfree(mock_pop, &addr->ptr);
-		ASSERT(addr->ptr == 0);
+		UT_ASSERT(addr->ptr == 0);
 	}
-	ASSERT(count != 0);
+	UT_ASSERT(count != 0);
 	FREE(allocs);
 }
 
@@ -143,7 +143,7 @@ test_malloc_free_loop(size_t size)
 	int err;
 	for (int i = 0; i < MAX_MALLOC_FREE_LOOP; ++i) {
 		err = pmalloc(mock_pop, &addr->ptr, size);
-		ASSERTeq(err, 0);
+		UT_ASSERTeq(err, 0);
 		pfree(mock_pop, &addr->ptr);
 	}
 }
@@ -153,11 +153,11 @@ test_realloc(size_t org, size_t dest)
 {
 	int err;
 	err = pmalloc(mock_pop, &addr->ptr, org);
-	ASSERTeq(err, 0);
-	ASSERT(pmalloc_usable_size(mock_pop, addr->ptr) >= org);
+	UT_ASSERTeq(err, 0);
+	UT_ASSERT(pmalloc_usable_size(mock_pop, addr->ptr) >= org);
 	err = prealloc(mock_pop, &addr->ptr, dest);
-	ASSERTeq(err, 0);
-	ASSERT(pmalloc_usable_size(mock_pop, addr->ptr) >= dest);
+	UT_ASSERTeq(err, 0);
+	UT_ASSERT(pmalloc_usable_size(mock_pop, addr->ptr) >= dest);
 	pfree(mock_pop, &addr->ptr);
 }
 
@@ -191,7 +191,7 @@ test_mock_pool_allocs()
 
 	lane_boot(mock_pop);
 
-	ASSERTne(mock_pop->heap, NULL);
+	UT_ASSERTne(mock_pop->heap, NULL);
 
 	test_malloc_free_loop(MALLOC_FREE_SIZE);
 
@@ -221,7 +221,7 @@ test_spec_compliance()
 		sizeof (struct allocation_header) -
 		sizeof (struct oob_header);
 
-	ASSERTeq(max_alloc, PMEMOBJ_MAX_ALLOC_SIZE);
+	UT_ASSERTeq(max_alloc, PMEMOBJ_MAX_ALLOC_SIZE);
 }
 
 int

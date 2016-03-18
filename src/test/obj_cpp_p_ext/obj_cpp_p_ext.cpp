@@ -73,8 +73,8 @@ persistent_ptr<root> init_foobar(pmemobjpool *pop)
 {
 	persistent_ptr<root> r = pmemobj_root(pop, sizeof (root));
 		TX_BEGIN(pop) {
-			ASSERT(r->bar_ptr == nullptr);
-			ASSERT(r->foo_ptr == nullptr);
+			UT_ASSERT(r->bar_ptr == nullptr);
+			UT_ASSERT(r->foo_ptr == nullptr);
 
 			r->bar_ptr = pmemobj_tx_alloc(sizeof (bar), 0);
 			r->foo_ptr = pmemobj_tx_alloc(sizeof (foo), 0);
@@ -86,7 +86,7 @@ persistent_ptr<root> init_foobar(pmemobjpool *pop)
 			r->foo_ptr->pint = 1;
 			r->foo_ptr->pllong = 2;
 		} TX_ONABORT {
-			ASSERT(0);
+			UT_ASSERT(0);
 		} TX_END
 
 	return r;
@@ -100,19 +100,19 @@ void cleanup_foobar(pmemobjpool *pop)
 	persistent_ptr<root> r = pmemobj_root(pop, sizeof (root));
 
 	TX_BEGIN(pop) {
-		ASSERT(r->bar_ptr != nullptr);
-		ASSERT(r->foo_ptr != nullptr);
+		UT_ASSERT(r->bar_ptr != nullptr);
+		UT_ASSERT(r->foo_ptr != nullptr);
 
 		pmemobj_tx_free(r->bar_ptr.raw());
 		r->bar_ptr = nullptr;
 		pmemobj_tx_free(r->foo_ptr.raw());
 		r->foo_ptr = nullptr;
 	} TX_ONABORT {
-		ASSERT(0);
+		UT_ASSERT(0);
 	} TX_END
 
-	ASSERT(r->bar_ptr == nullptr);
-	ASSERT(r->foo_ptr == nullptr);
+	UT_ASSERT(r->bar_ptr == nullptr);
+	UT_ASSERT(r->foo_ptr == nullptr);
 }
 
 /*
@@ -129,12 +129,12 @@ void arithmetic_test(pmemobjpool *pop)
 		r->foo_ptr->puchar += r->foo_ptr->puchar;
 		r->foo_ptr->puchar += r->foo_ptr->pint;
 		r->foo_ptr->puchar += 2;
-		ASSERTeq(r->foo_ptr->puchar, 3);
+		UT_ASSERTeq(r->foo_ptr->puchar, 3);
 
 		r->foo_ptr->pint = r->foo_ptr->pint + r->foo_ptr->puchar;
 		r->foo_ptr->pint = r->foo_ptr->pint + r->foo_ptr->pint;
 		r->foo_ptr->pint = r->foo_ptr->pllong + 8;
-		ASSERTeq(r->foo_ptr->pint, 10);
+		UT_ASSERTeq(r->foo_ptr->pint, 10);
 
 		/* for float assertions */
 		float epsilon = 0.001;
@@ -142,20 +142,20 @@ void arithmetic_test(pmemobjpool *pop)
 		/* subtraction */
 		r->bar_ptr->pdouble -= r->foo_ptr->puchar;
 		r->bar_ptr->pfloat -= 2;
-		ASSERT(std::fabs(r->bar_ptr->pdouble + 2) < epsilon);
-		ASSERT(std::fabs(r->bar_ptr->pfloat) < epsilon);
+		UT_ASSERT(std::fabs(r->bar_ptr->pdouble + 2) < epsilon);
+		UT_ASSERT(std::fabs(r->bar_ptr->pfloat) < epsilon);
 
 		r->bar_ptr->pfloat = r->bar_ptr->pfloat - r->bar_ptr->pdouble;
 		r->bar_ptr->pdouble = r->bar_ptr->pdouble - r->bar_ptr->pfloat;
-		ASSERT(std::fabs(r->bar_ptr->pfloat - 2) < epsilon);
-		ASSERT(std::fabs(r->bar_ptr->pdouble + 4) < epsilon);
+		UT_ASSERT(std::fabs(r->bar_ptr->pfloat - 2) < epsilon);
+		UT_ASSERT(std::fabs(r->bar_ptr->pdouble + 4) < epsilon);
 
 
 		/* multiplication */
 		r->foo_ptr->puchar *= r->foo_ptr->puchar;
 		r->foo_ptr->puchar *= r->foo_ptr->pint;
 		r->foo_ptr->puchar *= r->foo_ptr->pllong;
-		ASSERTeq(r->foo_ptr->puchar, 180);
+		UT_ASSERTeq(r->foo_ptr->puchar, 180);
 
 
 		r->foo_ptr->pint = r->foo_ptr->pint * r->foo_ptr->puchar;
@@ -175,24 +175,24 @@ void arithmetic_test(pmemobjpool *pop)
 		/* prefix */
 		++r->foo_ptr->pllong;
 		--r->foo_ptr->pllong;
-		ASSERTeq(r->foo_ptr->pllong, 2);
+		UT_ASSERTeq(r->foo_ptr->pllong, 2);
 
 		/* postfix */
 		r->foo_ptr->pllong++;
 		r->foo_ptr->pllong--;
-		ASSERTeq(r->foo_ptr->pllong, 2);
+		UT_ASSERTeq(r->foo_ptr->pllong, 2);
 
 		/* modulo */
 		r->foo_ptr->pllong = 12;
 		r->foo_ptr->pllong %= 7;
-		ASSERTeq(r->foo_ptr->pllong, 5);
+		UT_ASSERTeq(r->foo_ptr->pllong, 5);
 		r->foo_ptr->pllong = r->foo_ptr->pllong % 3;
-		ASSERTeq(r->foo_ptr->pllong, 2);
+		UT_ASSERTeq(r->foo_ptr->pllong, 2);
 		r->foo_ptr->pllong = r->foo_ptr->pllong % r->foo_ptr->pllong;
-		ASSERTeq(r->foo_ptr->pllong, 0);
+		UT_ASSERTeq(r->foo_ptr->pllong, 0);
 
 	} TX_ONABORT {
-		ASSERT(0);
+		UT_ASSERT(0);
 	} TX_END
 
 	cleanup_foobar(pop);
@@ -209,34 +209,34 @@ void bitwise_test(pmemobjpool *pop)
 		r->foo_ptr->puchar |= r->foo_ptr->pllong;
 		r->foo_ptr->puchar |= r->foo_ptr->pint;
 		r->foo_ptr->puchar |= 4;
-		ASSERTeq(r->foo_ptr->puchar, 7);
+		UT_ASSERTeq(r->foo_ptr->puchar, 7);
 
 		r->foo_ptr->pint = r->foo_ptr->pint | r->foo_ptr->puchar;
 		r->foo_ptr->pint = r->foo_ptr->pint | r->foo_ptr->pint;
 		r->foo_ptr->pint = r->foo_ptr->pllong | 0xF;
-		ASSERTeq(r->foo_ptr->pint, 15);
+		UT_ASSERTeq(r->foo_ptr->pint, 15);
 
 		/* AND */
 		r->foo_ptr->puchar &= r->foo_ptr->puchar;
 		r->foo_ptr->puchar &= r->foo_ptr->pint;
 		r->foo_ptr->puchar &= 2;
-		ASSERTeq(r->foo_ptr->puchar, 2);
+		UT_ASSERTeq(r->foo_ptr->puchar, 2);
 
 		r->foo_ptr->pint = r->foo_ptr->pint & r->foo_ptr->puchar;
 		r->foo_ptr->pint = r->foo_ptr->pint & r->foo_ptr->pint;
 		r->foo_ptr->pint = r->foo_ptr->pllong & 8;
-		ASSERTeq(r->foo_ptr->pint, 0);
+		UT_ASSERTeq(r->foo_ptr->pint, 0);
 
 		/* XOR */
 		r->foo_ptr->puchar ^= r->foo_ptr->puchar;
 		r->foo_ptr->puchar ^= r->foo_ptr->pint;
 		r->foo_ptr->puchar ^= 2;
-		ASSERTeq(r->foo_ptr->puchar, 2);
+		UT_ASSERTeq(r->foo_ptr->puchar, 2);
 
 		r->foo_ptr->pint = r->foo_ptr->pint ^ r->foo_ptr->puchar;
 		r->foo_ptr->pint = r->foo_ptr->pint ^ r->foo_ptr->pint;
 		r->foo_ptr->pint = r->foo_ptr->pllong ^ 8;
-		ASSERTeq(r->foo_ptr->pint, 10);
+		UT_ASSERTeq(r->foo_ptr->pint, 10);
 
 		/* RSHIFT */
 		r->foo_ptr->puchar = 255;
@@ -244,7 +244,7 @@ void bitwise_test(pmemobjpool *pop)
 		r->foo_ptr->puchar >>= r->foo_ptr->pllong;
 		r->foo_ptr->puchar = r->foo_ptr->pllong >> 2;
 		r->foo_ptr->puchar = r->foo_ptr->pllong >> r->foo_ptr->pllong;
-		ASSERTeq(r->foo_ptr->puchar, 0);
+		UT_ASSERTeq(r->foo_ptr->puchar, 0);
 
 		/* LSHIFT */
 		r->foo_ptr->puchar = 1;
@@ -252,14 +252,14 @@ void bitwise_test(pmemobjpool *pop)
 		r->foo_ptr->puchar <<= r->foo_ptr->pllong;
 		r->foo_ptr->puchar = r->foo_ptr->pllong << 2;
 		r->foo_ptr->puchar = r->foo_ptr->pllong << r->foo_ptr->pllong;
-		ASSERTeq(r->foo_ptr->puchar, 8);
+		UT_ASSERTeq(r->foo_ptr->puchar, 8);
 
 		/* COMPLEMENT */
 		r->foo_ptr->pint = 1;
-		ASSERTeq(~r->foo_ptr->pint, ~1);
+		UT_ASSERTeq(~r->foo_ptr->pint, ~1);
 
 	} TX_ONABORT {
-		ASSERT(0);
+		UT_ASSERT(0);
 	} TX_END
 
 	cleanup_foobar(pop);
@@ -280,9 +280,9 @@ void stream_test(pmemobjpool *pop)
 		r->bar_ptr->pdouble += 3.7;
 		stream << r->bar_ptr->pdouble;
 		stream >> r->foo_ptr->pint;
-		ASSERTeq(r->foo_ptr->pint, 16);
+		UT_ASSERTeq(r->foo_ptr->pint, 16);
 	} TX_ONABORT {
-		ASSERT(0);
+		UT_ASSERT(0);
 	} TX_END
 
 	cleanup_foobar(pop);
@@ -296,7 +296,7 @@ main(int argc, char *argv[])
 	START(argc, argv, "obj_cpp_p_ext");
 
 	if (argc != 2)
-		FATAL("usage: %s file-name", argv[0]);
+		UT_FATAL("usage: %s file-name", argv[0]);
 
 	const char *path = argv[1];
 
@@ -304,7 +304,7 @@ main(int argc, char *argv[])
 
 	if ((pop = pmemobj_create(path, LAYOUT, PMEMOBJ_MIN_POOL,
 			S_IWUSR | S_IRUSR)) == NULL)
-		FATAL("!pmemobj_create: %s", path);
+		UT_FATAL("!pmemobj_create: %s", path);
 
 	arithmetic_test(pop);
 	bitwise_test(pop);

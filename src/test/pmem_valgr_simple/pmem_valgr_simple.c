@@ -48,14 +48,14 @@ main(int argc, char *argv[])
 	START(argc, argv, "pmem_valgr_simple");
 
 	if (argc != 4)
-		FATAL("usage: %s file offset length", argv[0]);
+		UT_FATAL("usage: %s file offset length", argv[0]);
 
 	int dest_off = atoi(argv[2]);
 	size_t bytes = strtoul(argv[3], NULL, 0);
 
 	dest = pmem_map_file(argv[1], 0, 0, 0, &mapped_len, &is_pmem);
 	if (dest == NULL)
-		FATAL("!Could not mmap %s\n", argv[1]);
+		UT_FATAL("!Could not mmap %s\n", argv[1]);
 
 	/* these will not be made persistent */
 	*(int *)dest = 4;

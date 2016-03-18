@@ -78,7 +78,7 @@ main(int argc, char *argv[])
 	if (argc == 2) {
 		dir = argv[1];
 	} else if (argc > 2) {
-		FATAL("usage: %s [directory]", argv[0]);
+		UT_FATAL("usage: %s [directory]", argv[0]);
 	}
 
 	if (dir == NULL) {
@@ -87,23 +87,23 @@ main(int argc, char *argv[])
 
 		vmp = vmem_create_in_region(mem_pool, POOL_SIZE);
 		if (vmp == NULL)
-			FATAL("!vmem_create_in_region");
+			UT_FATAL("!vmem_create_in_region");
 	} else {
 		vmp = vmem_create(dir, POOL_SIZE);
 		if (vmp == NULL)
-			FATAL("!vmem_create");
+			UT_FATAL("!vmem_create");
 	}
 
-	ASSERTeq(vmem_malloc_usable_size(vmp, NULL), 0);
+	UT_ASSERTeq(vmem_malloc_usable_size(vmp, NULL), 0);
 
 	for (i = 0; i < (sizeof (Check_sizes) / sizeof (Check_sizes[0])); ++i) {
 		size = Check_sizes[i].size;
 		alloc = vmem_malloc(vmp, size);
-		ASSERTne(alloc, NULL);
+		UT_ASSERTne(alloc, NULL);
 		usable_size = vmem_malloc_usable_size(vmp, alloc);
-		ASSERT(usable_size >= size);
+		UT_ASSERT(usable_size >= size);
 		if (usable_size - size > Check_sizes[i].spacing) {
-			FATAL("Size %zu: spacing %zu is bigger"
+			UT_FATAL("Size %zu: spacing %zu is bigger"
 				"than expected: %zu", size,
 				(usable_size - size), Check_sizes[i].spacing);
 		}
@@ -111,7 +111,7 @@ main(int argc, char *argv[])
 		vmem_free(vmp, alloc);
 	}
 
-	ASSERTeq(vmem_check(vmp), 1);
+	UT_ASSERTeq(vmem_check(vmp), 1);
 
 	vmem_delete(vmp);
 

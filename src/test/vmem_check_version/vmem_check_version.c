@@ -41,19 +41,19 @@ main(int argc, char *argv[])
 {
 	START(argc, argv, "vmem_check_version");
 
-	OUT("compile-time libvmem version is %d.%d",
+	UT_OUT("compile-time libvmem version is %d.%d",
 			VMEM_MAJOR_VERSION, VMEM_MINOR_VERSION);
 
 	const char *errstr = vmem_check_version(VMEM_MAJOR_VERSION,
 			VMEM_MINOR_VERSION);
 
-	ASSERTinfo(errstr == NULL, errstr);
+	UT_ASSERTinfo(errstr == NULL, errstr);
 
 	errstr = vmem_check_version(VMEM_MAJOR_VERSION + 1, VMEM_MINOR_VERSION);
 
-	ASSERT(errstr != NULL);
+	UT_ASSERT(errstr != NULL);
 
-	OUT("for major version %d, vmem_check_version returned: %s",
+	UT_OUT("for major version %d, vmem_check_version returned: %s",
 			VMEM_MAJOR_VERSION + 1, errstr);
 
 	DONE(NULL);

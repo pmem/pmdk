@@ -74,11 +74,11 @@ static void
 poolset_info(const char *fname, struct pool_set *set, int o)
 {
 	if (o)
-		OUT("%s: opened: nreps %d poolsize %zu rdonly %d",
+		UT_OUT("%s: opened: nreps %d poolsize %zu rdonly %d",
 			fname, set->nreplicas, set->poolsize,
 			set->rdonly);
 	else
-		OUT("%s: created: nreps %d poolsize %zu zeroed %d",
+		UT_OUT("%s: created: nreps %d poolsize %zu zeroed %d",
 			fname, set->nreplicas, set->poolsize,
 			set->zeroed);
 
@@ -88,27 +88,28 @@ poolset_info(const char *fname, struct pool_set *set, int o)
 		struct pool_replica *rep = set->replica[r];
 		size_t repsize = 0;
 
-		OUT("  replica[%d]: nparts %d repsize %zu is_pmem %d",
+		UT_OUT("  replica[%d]: nparts %d repsize %zu is_pmem %d",
 			r, rep->nparts, rep->repsize, rep->is_pmem);
 
 		for (int i = 0; i < rep->nparts; i++) {
 			struct pool_set_part *part = &rep->part[i];
-			OUT("    part[%d] path %s filesize %zu size %zu",
+			UT_OUT("    part[%d] path %s filesize %zu size %zu",
 				i, part->path, part->filesize, part->size);
 			size_t partsize = (part->filesize & ~(Ut_pagesize - 1));
 			repsize += partsize;
 			if (i > 0)
-				ASSERTeq(part->size, partsize - POOL_HDR_SIZE);
+				UT_ASSERTeq(part->size,
+					partsize - POOL_HDR_SIZE);
 		}
 
 		repsize -= (rep->nparts - 1) * POOL_HDR_SIZE;
-		ASSERTeq(rep->repsize, repsize);
-		ASSERTeq(rep->part[0].size, repsize);
+		UT_ASSERTeq(rep->repsize, repsize);
+		UT_ASSERTeq(rep->part[0].size, repsize);
 
 		if (rep->repsize < poolsize)
 			poolsize = rep->repsize;
 	}
-	ASSERTeq(set->poolsize, poolsize);
+	UT_ASSERTeq(set->poolsize, poolsize);
 }
 
 /*
@@ -142,7 +143,7 @@ mock_options(const char *arg)
 		Is_pmem_len = atoll(&arg[4]);
 		break;
 	default:
-		FATAL("unknown mock option: %c", arg[2]);
+		UT_FATAL("unknown mock option: %c", arg[2]);
 	}
 
 	return 1;
@@ -158,7 +159,7 @@ main(int argc, char *argv[])
 	util_init();
 
 	if (argc < 5)
-		FATAL("usage: %s cmd minlen hdrsize [mockopts] setfile ...",
+		UT_FATAL("usage: %s cmd minlen hdrsize [mockopts] setfile ...",
 			argv[0]);
 
 	char *fname;
@@ -176,7 +177,7 @@ main(int argc, char *argv[])
 			ret = util_pool_create(&set, fname, 0, minsize,
 				SIG, 1, 0, 0, 0);
 			if (ret == -1)
-				OUT("!%s: util_pool_create", fname);
+				UT_OUT("!%s: util_pool_create", fname);
 			else {
 				util_poolset_chmod(set, S_IWUSR | S_IRUSR);
 				poolset_info(fname, set, 0);
@@ -187,7 +188,7 @@ main(int argc, char *argv[])
 			ret = util_pool_open(&set, fname, 0 /* rdonly */,
 				minsize, SIG, 1, 0, 0, 0);
 			if (ret == -1)
-				OUT("!%s: util_pool_open", fname);
+				UT_OUT("!%s: util_pool_open", fname);
 			else {
 				poolset_info(fname, set, 1);
 				util_poolset_close(set, 0); /* do not delete */

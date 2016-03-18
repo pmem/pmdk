@@ -56,7 +56,7 @@ main(int argc, char *argv[])
 	if (argc == 2) {
 		dir = argv[1];
 	} else if (argc > 2) {
-		FATAL("usage: %s [directory]", argv[0]);
+		UT_FATAL("usage: %s [directory]", argv[0]);
 	}
 
 	size_t object_size;
@@ -71,14 +71,14 @@ main(int argc, char *argv[])
 			vmp = vmem_create_in_region(mem_pool,
 				VMEM_MIN_POOL);
 			if (vmp == NULL)
-				FATAL("!vmem_create_in_region");
+				UT_FATAL("!vmem_create_in_region");
 		} else {
 			vmp = vmem_create(dir, VMEM_MIN_POOL);
 			if (vmp == NULL)
-				FATAL("!vmem_create");
+				UT_FATAL("!vmem_create");
 
 			/* vmem_create should align pool to 4MB */
-			ASSERTeq(((uintptr_t)vmp) & ((4 << 20) - 1), 0);
+			UT_ASSERTeq(((uintptr_t)vmp) & ((4 << 20) - 1), 0);
 		}
 
 		memset(allocs, 0, sizeof (allocs));
@@ -92,7 +92,7 @@ main(int argc, char *argv[])
 
 			/* check that pointer came from mem_pool */
 			if (dir == NULL) {
-				ASSERTrange(allocs[i],
+				UT_ASSERTrange(allocs[i],
 					mem_pool, VMEM_MIN_POOL);
 			}
 
@@ -100,14 +100,14 @@ main(int argc, char *argv[])
 			memset(allocs[i], (char)i, object_size);
 		}
 
-		ASSERT((i > 0) && (i + 1 < TEST_MAX_ALLOCATION_SIZE));
+		UT_ASSERT((i > 0) && (i + 1 < TEST_MAX_ALLOCATION_SIZE));
 
 		/* check for unexpected modifications of the data */
 		for (i = 0; i < TEST_ALLOCS_SIZE && allocs[i] != NULL; ++i) {
 			char *buffer = allocs[i];
 			for (j = 0; j < object_size; ++j) {
 				if (buffer[j] != (char)i)
-					FATAL("Content of data object was "
+					UT_FATAL("Content of data object was "
 						"modified unexpectedly for "
 						"object size: %zu, id: %zu",
 						object_size, j);

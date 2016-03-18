@@ -56,7 +56,7 @@ main(int argc, char *argv[])
 		prev = next;
 	}
 
-	ASSERTne(prev, NULL);
+	UT_ASSERTne(prev, NULL);
 
 	/* free all allocations */
 	while (prev != NULL) {

@@ -119,7 +119,7 @@ trylock_for_test(persistent_ptr<struct root> proot)
 	} else {
 		auto t2 = clk::now();
 		auto t_diff = t2 - t1;
-		ASSERT(t_diff >= timeout);
+		UT_ASSERT(t_diff >= timeout);
 	}
 
 	return;
@@ -140,7 +140,7 @@ trylock_until_test(persistent_ptr<struct root> proot)
 	} else {
 		auto t2 = clk::now();
 		auto t_diff = t2 - t1;
-		ASSERT(t_diff >= timeout);
+		UT_ASSERT(t_diff >= timeout);
 	}
 
 	return;
@@ -171,7 +171,7 @@ main(int argc, char *argv[])
 	START(argc, argv, "obj_cpp_timed_mtx");
 
 	if (argc != 2)
-		FATAL("usage: %s file-name", argv[0]);
+		UT_FATAL("usage: %s file-name", argv[0]);
 
 	const char *path = argv[1];
 
@@ -181,31 +181,31 @@ main(int argc, char *argv[])
 		pop = pool<struct root>::create(path, LAYOUT, PMEMOBJ_MIN_POOL,
 			S_IWUSR | S_IRUSR);
 	} catch (nvml::pool_error &pe) {
-		FATAL("!pool::create: %s %s", pe.what(), path);
+		UT_FATAL("!pool::create: %s %s", pe.what(), path);
 	}
 
 	timed_mtx_test(pop, increment_pint);
-	ASSERTeq(pop.get_root()->counter, num_threads * num_ops);
+	UT_ASSERTeq(pop.get_root()->counter, num_threads * num_ops);
 
 	timed_mtx_test(pop, decrement_pint);
-	ASSERTeq(pop.get_root()->counter, 0);
+	UT_ASSERTeq(pop.get_root()->counter, 0);
 
 	timed_mtx_test(pop, trylock_test);
-	ASSERTeq(pop.get_root()->counter, num_threads);
+	UT_ASSERTeq(pop.get_root()->counter, num_threads);
 
 	timed_mtx_test(pop, trylock_until_test);
-	ASSERTeq(pop.get_root()->counter, 0);
+	UT_ASSERTeq(pop.get_root()->counter, 0);
 
 	timed_mtx_test(pop, trylock_for_test);
-	ASSERTeq(pop.get_root()->counter, num_threads);
+	UT_ASSERTeq(pop.get_root()->counter, num_threads);
 
 	pop.get_root()->pmutex.lock();
 
 	timed_mtx_test(pop, trylock_until_test);
-	ASSERTeq(pop.get_root()->counter, num_threads);
+	UT_ASSERTeq(pop.get_root()->counter, num_threads);
 
 	timed_mtx_test(pop, trylock_for_test);
-	ASSERTeq(pop.get_root()->counter, num_threads);
+	UT_ASSERTeq(pop.get_root()->counter, num_threads);
 
 	pop.get_root()->pmutex.unlock();
 

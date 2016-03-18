@@ -66,19 +66,19 @@
  * all unit tests should use these exit calls:
  *
  *	DONE("message", ...);
- *	FATAL("message", ...);
+ *	UT_FATAL("message", ...);
  *
  * uniform stderr and stdout messages:
  *
- *	OUT("message", ...);
- *	ERR("message", ...);
+ *	UT_OUT("message", ...);
+ *	UT_ERR("message", ...);
  *
  * in all cases above, the message is printf-like, taking variable args.
  * the message can be NULL.  it can start with "!" in which case the "!" is
  * skipped and the message gets the errno string appended to it, like this:
  *
  *	if (somesyscall(..) < 0)
- *		FATAL("!my message");
+ *		UT_FATAL("!my message");
  */
 
 #ifndef	_UNITTEST_H
@@ -146,15 +146,15 @@ void ut_err(const char *file, int line, const char *func,
     ut_done(__FILE__, __LINE__, __func__, __VA_ARGS__)
 
 /* fatal error detected */
-#define	FATAL(...)\
+#define	UT_FATAL(...)\
     ut_fatal(__FILE__, __LINE__, __func__, __VA_ARGS__)
 
 /* normal output */
-#define	OUT(...)\
+#define	UT_OUT(...)\
     ut_out(__FILE__, __LINE__, __func__, __VA_ARGS__)
 
 /* error output */
-#define	ERR(...)\
+#define	UT_ERR(...)\
     ut_err(__FILE__, __LINE__, __func__, __VA_ARGS__)
 
 
@@ -165,68 +165,69 @@ void ut_err(const char *file, int line, const char *func,
  */
 
 /* assert a condition is true at runtime */
-#define	ASSERT_rt(cnd)\
+#define	UT_ASSERT_rt(cnd)\
 	((void)((cnd) || (ut_fatal(__FILE__, __LINE__, __func__,\
 	"assertion failure: %s", #cnd), 0)))
 
 /* assertion with extra info printed if assertion fails at runtime */
-#define	ASSERTinfo_rt(cnd, info) \
+#define	UT_ASSERTinfo_rt(cnd, info) \
 	((void)((cnd) || (ut_fatal(__FILE__, __LINE__, __func__,\
 	"assertion failure: %s (%s = %s)", #cnd, #info, info), 0)))
 
 /* assert two integer values are equal at runtime */
-#define	ASSERTeq_rt(lhs, rhs)\
+#define	UT_ASSERTeq_rt(lhs, rhs)\
 	((void)(((lhs) == (rhs)) || (ut_fatal(__FILE__, __LINE__, __func__,\
 	"assertion failure: %s (0x%llx) == %s (0x%llx)", #lhs,\
 	(unsigned long long)(lhs), #rhs, (unsigned long long)(rhs)), 0)))
 
 /* assert two integer values are not equal at runtime */
-#define	ASSERTne_rt(lhs, rhs)\
+#define	UT_ASSERTne_rt(lhs, rhs)\
 	((void)(((lhs) != (rhs)) || (ut_fatal(__FILE__, __LINE__, __func__,\
 	"assertion failure: %s (0x%llx) != %s (0x%llx)", #lhs,\
 	(unsigned long long)(lhs), #rhs, (unsigned long long)(rhs)), 0)))
 
 /* assert a condition is true */
-#define	ASSERT(cnd)\
+#define	UT_ASSERT(cnd)\
 	do {\
 		/*\
 		 * Detect useless asserts on always true expression. Please use\
-		 * UT_COMPILE_ERROR_ON(!cnd) or ASSERT_rt(cnd) in such cases.\
+		 * UT_COMPILE_ERROR_ON(!cnd) or UT_ASSERT_rt(cnd) in such\
+		 * cases.\
 		 */\
 		if (__builtin_constant_p(cnd))\
 			UT_COMPILE_ERROR_ON(cnd);\
-		ASSERT_rt(cnd);\
+		UT_ASSERT_rt(cnd);\
 	} while (0)
 
 /* assertion with extra info printed if assertion fails */
-#define	ASSERTinfo(cnd, info) \
+#define	UT_ASSERTinfo(cnd, info) \
 	do {\
-		/* See comment in ASSERT. */\
+		/* See comment in UT_ASSERT. */\
 		if (__builtin_constant_p(cnd))\
 			UT_COMPILE_ERROR_ON(cnd);\
-		ASSERTinfo_rt(cnd, info);\
+		UT_ASSERTinfo_rt(cnd, info);\
 	} while (0)
 
 /* assert two integer values are equal */
-#define	ASSERTeq(lhs, rhs)\
+#define	UT_ASSERTeq(lhs, rhs)\
 	do {\
-		/* See comment in ASSERT. */\
+		/* See comment in UT_ASSERT. */\
 		if (__builtin_constant_p(lhs) && __builtin_constant_p(rhs))\
 			UT_COMPILE_ERROR_ON((lhs) == (rhs));\
-		ASSERTeq_rt(lhs, rhs);\
+		UT_ASSERTeq_rt(lhs, rhs);\
 	} while (0)
 
 /* assert two integer values are not equal */
-#define	ASSERTne(lhs, rhs)\
+#define	UT_ASSERTne(lhs, rhs)\
 	do {\
-		/* See comment in ASSERT. */\
+		/* See comment in UT_ASSERT. */\
 		if (__builtin_constant_p(lhs) && __builtin_constant_p(rhs))\
 			UT_COMPILE_ERROR_ON((lhs) != (rhs));\
-		ASSERTne_rt(lhs, rhs);\
+		UT_ASSERTne_rt(lhs, rhs);\
 	} while (0)
 
 /* assert pointer is fits range of [start, start + size) */
-#define	ASSERTrange(ptr, start, size)\
+#define	UT_ASSERTrange(ptr, start, size)\
 	((void)(((uintptr_t)(ptr) >= (uintptr_t)(start) &&\
 	(uintptr_t)(ptr) < (uintptr_t)(start) + (uintptr_t)(size)) ||\
 	(ut_fatal(__FILE__, __LINE__, __func__,\

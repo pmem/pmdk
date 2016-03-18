@@ -73,24 +73,24 @@ test_heap()
 	pop->heap_offset = (uint64_t)((uint64_t)&mpop->heap - (uint64_t)mpop);
 	pop->persist = obj_heap_persist;
 
-	ASSERT(heap_check(pop) != 0);
-	ASSERT(heap_init(pop) == 0);
-	ASSERT(heap_boot(pop) == 0);
-	ASSERT(pop->heap != NULL);
+	UT_ASSERT(heap_check(pop) != 0);
+	UT_ASSERT(heap_init(pop) == 0);
+	UT_ASSERT(heap_boot(pop) == 0);
+	UT_ASSERT(pop->heap != NULL);
 
 	Lane_idx = 0;
 
 	struct bucket *b_small = heap_get_best_bucket(pop, 1);
 	struct bucket *b_big = heap_get_best_bucket(pop, 2048);
 
-	ASSERT(b_small->unit_size < b_big->unit_size);
+	UT_ASSERT(b_small->unit_size < b_big->unit_size);
 
 	struct bucket *b_def = heap_get_best_bucket(pop, CHUNKSIZE);
-	ASSERT(b_def->unit_size == CHUNKSIZE);
+	UT_ASSERT(b_def->unit_size == CHUNKSIZE);
 
 	/* new small buckets should be empty */
-	ASSERT(b_small->type == BUCKET_RUN);
-	ASSERT(b_big->type == BUCKET_RUN);
+	UT_ASSERT(b_small->type == BUCKET_RUN);
+	UT_ASSERT(b_big->type == BUCKET_RUN);
 
 	struct memory_block blocks[MAX_BLOCKS] = {
 		{0, 0, 1, 0},
@@ -100,24 +100,24 @@ test_heap()
 
 	for (int i = 0; i < MAX_BLOCKS; ++i) {
 		heap_get_bestfit_block(pop, b_def, &blocks[i]);
-		ASSERT(blocks[i].block_off == 0);
+		UT_ASSERT(blocks[i].block_off == 0);
 	}
 
 	struct memory_block *blocksp[MAX_BLOCKS] = {NULL};
 
 	struct memory_block prev;
 	heap_get_adjacent_free_block(pop, b_def, &prev, blocks[1], 1);
-	ASSERT(prev.chunk_id == blocks[0].chunk_id);
+	UT_ASSERT(prev.chunk_id == blocks[0].chunk_id);
 	blocksp[0] = &prev;
 
 	struct memory_block cnt;
 	heap_get_adjacent_free_block(pop, b_def, &cnt, blocks[0], 0);
-	ASSERT(cnt.chunk_id == blocks[1].chunk_id);
+	UT_ASSERT(cnt.chunk_id == blocks[1].chunk_id);
 	blocksp[1] = &cnt;
 
 	struct memory_block next;
 	heap_get_adjacent_free_block(pop, b_def, &next, blocks[1], 0);
-	ASSERT(next.chunk_id == blocks[2].chunk_id);
+	UT_ASSERT(next.chunk_id == blocks[2].chunk_id);
 	blocksp[2] = &next;
 
 	struct operation_context *ctx = operation_init(pop, NULL);
@@ -126,12 +126,12 @@ test_heap()
 	operation_process(ctx);
 	operation_delete(ctx);
 
-	ASSERT(result.size_idx == 3);
-	ASSERT(result.chunk_id == prev.chunk_id);
+	UT_ASSERT(result.size_idx == 3);
+	UT_ASSERT(result.chunk_id == prev.chunk_id);
 
-	ASSERT(heap_check(pop) == 0);
+	UT_ASSERT(heap_check(pop) == 0);
 	heap_cleanup(pop);
-	ASSERT(pop->heap == NULL);
+	UT_ASSERT(pop->heap == NULL);
 
 	Free(mpop);
 }

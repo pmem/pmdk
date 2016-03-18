@@ -97,27 +97,27 @@ do_tx_add_range_alloc_commit(PMEMobjpool *pop)
 	TOID(struct object) obj;
 	TX_BEGIN(pop) {
 		TOID_ASSIGN(obj, do_tx_zalloc(pop, TYPE_OBJ));
-		ASSERT(!TOID_IS_NULL(obj));
+		UT_ASSERT(!TOID_IS_NULL(obj));
 
 		ret = pmemobj_tx_add_range(obj.oid, VALUE_OFF, VALUE_SIZE);
-		ASSERTeq(ret, 0);
+		UT_ASSERTeq(ret, 0);
 
 		D_RW(obj)->value = TEST_VALUE_1;
 
 		ret = pmemobj_tx_add_range(obj.oid, DATA_OFF, DATA_SIZE);
-		ASSERTeq(ret, 0);
+		UT_ASSERTeq(ret, 0);
 
 		pmemobj_memset_persist(pop, D_RW(obj)->data, TEST_VALUE_2,
 			DATA_SIZE);
 	} TX_ONABORT {
-		ASSERT(0);
+		UT_ASSERT(0);
 	} TX_END
 
-	ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
+	UT_ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
 
 	size_t i;
 	for (i = 0; i < DATA_SIZE; i++)
-		ASSERTeq(D_RO(obj)->data[i], TEST_VALUE_2);
+		UT_ASSERTeq(D_RO(obj)->data[i], TEST_VALUE_2);
 }
 
 /*
@@ -131,26 +131,26 @@ do_tx_add_range_alloc_abort(PMEMobjpool *pop)
 	TOID(struct object) obj;
 	TX_BEGIN(pop) {
 		TOID_ASSIGN(obj, do_tx_zalloc(pop, TYPE_OBJ_ABORT));
-		ASSERT(!TOID_IS_NULL(obj));
+		UT_ASSERT(!TOID_IS_NULL(obj));
 
 		ret = pmemobj_tx_add_range(obj.oid, VALUE_OFF, VALUE_SIZE);
-		ASSERTeq(ret, 0);
+		UT_ASSERTeq(ret, 0);
 
 		D_RW(obj)->value = TEST_VALUE_1;
 
 		ret = pmemobj_tx_add_range(obj.oid, DATA_OFF, DATA_SIZE);
-		ASSERTeq(ret, 0);
+		UT_ASSERTeq(ret, 0);
 
 		pmemobj_memset_persist(pop, D_RW(obj)->data, TEST_VALUE_2,
 			DATA_SIZE);
 
 		pmemobj_tx_abort(-1);
 	} TX_ONCOMMIT {
-		ASSERT(0);
+		UT_ASSERT(0);
 	} TX_END
 
 	TOID_ASSIGN(obj, POBJ_FIRST_TYPE_NUM(pop, TYPE_OBJ_ABORT));
-	ASSERT(TOID_IS_NULL(obj));
+	UT_ASSERT(TOID_IS_NULL(obj));
 }
 
 /*
@@ -164,23 +164,23 @@ do_tx_add_range_twice_commit(PMEMobjpool *pop)
 	TOID(struct object) obj;
 
 	TOID_ASSIGN(obj, do_tx_zalloc(pop, TYPE_OBJ));
-	ASSERT(!TOID_IS_NULL(obj));
+	UT_ASSERT(!TOID_IS_NULL(obj));
 
 	TX_BEGIN(pop) {
 		ret = pmemobj_tx_add_range(obj.oid, VALUE_OFF, VALUE_SIZE);
-		ASSERTeq(ret, 0);
+		UT_ASSERTeq(ret, 0);
 
 		D_RW(obj)->value = TEST_VALUE_1;
 
 		ret = pmemobj_tx_add_range(obj.oid, VALUE_OFF, VALUE_SIZE);
-		ASSERTeq(ret, 0);
+		UT_ASSERTeq(ret, 0);
 
 		D_RW(obj)->value = TEST_VALUE_2;
 	} TX_ONABORT {
-		ASSERT(0);
+		UT_ASSERT(0);
 	} TX_END
 
-	ASSERTeq(D_RO(obj)->value, TEST_VALUE_2);
+	UT_ASSERTeq(D_RO(obj)->value, TEST_VALUE_2);
 }
 
 /*
@@ -194,25 +194,25 @@ do_tx_add_range_twice_abort(PMEMobjpool *pop)
 	TOID(struct object) obj;
 
 	TOID_ASSIGN(obj, do_tx_zalloc(pop, TYPE_OBJ));
-	ASSERT(!TOID_IS_NULL(obj));
+	UT_ASSERT(!TOID_IS_NULL(obj));
 
 	TX_BEGIN(pop) {
 		ret = pmemobj_tx_add_range(obj.oid, VALUE_OFF, VALUE_SIZE);
-		ASSERTeq(ret, 0);
+		UT_ASSERTeq(ret, 0);
 
 		D_RW(obj)->value = TEST_VALUE_1;
 
 		ret = pmemobj_tx_add_range(obj.oid, VALUE_OFF, VALUE_SIZE);
-		ASSERTeq(ret, 0);
+		UT_ASSERTeq(ret, 0);
 
 		D_RW(obj)->value = TEST_VALUE_2;
 
 		pmemobj_tx_abort(-1);
 	} TX_ONCOMMIT {
-		ASSERT(0);
+		UT_ASSERT(0);
 	} TX_END
 
-	ASSERTeq(D_RO(obj)->value, 0);
+	UT_ASSERTeq(D_RO(obj)->value, 0);
 }
 
 /*
@@ -230,31 +230,31 @@ do_tx_add_range_abort_after_nested(PMEMobjpool *pop)
 
 	TX_BEGIN(pop) {
 		ret = pmemobj_tx_add_range(obj1.oid, VALUE_OFF, VALUE_SIZE);
-		ASSERTeq(ret, 0);
+		UT_ASSERTeq(ret, 0);
 
 		D_RW(obj1)->value = TEST_VALUE_1;
 
 		TX_BEGIN(pop) {
 			ret = pmemobj_tx_add_range(obj2.oid,
 					DATA_OFF, DATA_SIZE);
-			ASSERTeq(ret, 0);
+			UT_ASSERTeq(ret, 0);
 
 			pmemobj_memset_persist(pop, D_RW(obj2)->data,
 				TEST_VALUE_2, DATA_SIZE);
 		} TX_ONABORT {
-			ASSERT(0);
+			UT_ASSERT(0);
 		} TX_END
 
 		pmemobj_tx_abort(-1);
 	} TX_ONCOMMIT {
-		ASSERT(0);
+		UT_ASSERT(0);
 	} TX_END
 
-	ASSERTeq(D_RO(obj1)->value, 0);
+	UT_ASSERTeq(D_RO(obj1)->value, 0);
 
 	size_t i;
 	for (i = 0; i < DATA_SIZE; i++)
-		ASSERTeq(D_RO(obj2)->data[i], 0);
+		UT_ASSERTeq(D_RO(obj2)->data[i], 0);
 }
 
 /*
@@ -272,31 +272,31 @@ do_tx_add_range_abort_nested(PMEMobjpool *pop)
 
 	TX_BEGIN(pop) {
 		ret = pmemobj_tx_add_range(obj1.oid, VALUE_OFF, VALUE_SIZE);
-		ASSERTeq(ret, 0);
+		UT_ASSERTeq(ret, 0);
 
 		D_RW(obj1)->value = TEST_VALUE_1;
 
 		TX_BEGIN(pop) {
 			ret = pmemobj_tx_add_range(obj2.oid,
 					DATA_OFF, DATA_SIZE);
-			ASSERTeq(ret, 0);
+			UT_ASSERTeq(ret, 0);
 
 			pmemobj_memset_persist(pop, D_RW(obj2)->data,
 				TEST_VALUE_2, DATA_SIZE);
 
 			pmemobj_tx_abort(-1);
 		} TX_ONCOMMIT {
-			ASSERT(0);
+			UT_ASSERT(0);
 		} TX_END
 	} TX_ONCOMMIT {
-		ASSERT(0);
+		UT_ASSERT(0);
 	} TX_END
 
-	ASSERTeq(D_RO(obj1)->value, 0);
+	UT_ASSERTeq(D_RO(obj1)->value, 0);
 
 	size_t i;
 	for (i = 0; i < DATA_SIZE; i++)
-		ASSERTeq(D_RO(obj2)->data[i], 0);
+		UT_ASSERTeq(D_RO(obj2)->data[i], 0);
 }
 
 /*
@@ -313,29 +313,29 @@ do_tx_add_range_commit_nested(PMEMobjpool *pop)
 
 	TX_BEGIN(pop) {
 		ret = pmemobj_tx_add_range(obj1.oid, VALUE_OFF, VALUE_SIZE);
-		ASSERTeq(ret, 0);
+		UT_ASSERTeq(ret, 0);
 
 		D_RW(obj1)->value = TEST_VALUE_1;
 
 		TX_BEGIN(pop) {
 			ret = pmemobj_tx_add_range(obj2.oid,
 					DATA_OFF, DATA_SIZE);
-			ASSERTeq(ret, 0);
+			UT_ASSERTeq(ret, 0);
 
 			pmemobj_memset_persist(pop, D_RW(obj2)->data,
 				TEST_VALUE_2, DATA_SIZE);
 		} TX_ONABORT {
-			ASSERT(0);
+			UT_ASSERT(0);
 		} TX_END
 	} TX_ONABORT {
-		ASSERT(0);
+		UT_ASSERT(0);
 	} TX_END
 
-	ASSERTeq(D_RO(obj1)->value, TEST_VALUE_1);
+	UT_ASSERTeq(D_RO(obj1)->value, TEST_VALUE_1);
 
 	size_t i;
 	for (i = 0; i < DATA_SIZE; i++)
-		ASSERTeq(D_RO(obj2)->data[i], TEST_VALUE_2);
+		UT_ASSERTeq(D_RO(obj2)->data[i], TEST_VALUE_2);
 }
 
 /*
@@ -350,16 +350,16 @@ do_tx_add_range_abort(PMEMobjpool *pop)
 
 	TX_BEGIN(pop) {
 		ret = pmemobj_tx_add_range(obj.oid, VALUE_OFF, VALUE_SIZE);
-		ASSERTeq(ret, 0);
+		UT_ASSERTeq(ret, 0);
 
 		D_RW(obj)->value = TEST_VALUE_1;
 
 		pmemobj_tx_abort(-1);
 	} TX_ONCOMMIT {
-		ASSERT(0);
+		UT_ASSERT(0);
 	} TX_END
 
-	ASSERTeq(D_RO(obj)->value, 0);
+	UT_ASSERTeq(D_RO(obj)->value, 0);
 }
 
 /*
@@ -374,14 +374,14 @@ do_tx_add_range_commit(PMEMobjpool *pop)
 
 	TX_BEGIN(pop) {
 		ret = pmemobj_tx_add_range(obj.oid, VALUE_OFF, VALUE_SIZE);
-		ASSERTeq(ret, 0);
+		UT_ASSERTeq(ret, 0);
 
 		D_RW(obj)->value = TEST_VALUE_1;
 	} TX_ONABORT {
-		ASSERT(0);
+		UT_ASSERT(0);
 	} TX_END
 
-	ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
+	UT_ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
 }
 
 /*
@@ -414,10 +414,10 @@ do_tx_add_range_overlapping(PMEMobjpool *pop)
 
 		pmemobj_tx_abort(-1);
 	} TX_ONCOMMIT {
-		ASSERT(0);
+		UT_ASSERT(0);
 	} TX_END
 
-	ASSERT(util_is_zeroed(D_RO(obj)->data, OVERLAP_SIZE));
+	UT_ASSERT(util_is_zeroed(D_RO(obj)->data, OVERLAP_SIZE));
 
 	/*
 	 * ++++----++++
@@ -438,10 +438,10 @@ do_tx_add_range_overlapping(PMEMobjpool *pop)
 
 		pmemobj_tx_abort(-1);
 	} TX_ONCOMMIT {
-		ASSERT(0);
+		UT_ASSERT(0);
 	} TX_END
 
-	ASSERT(util_is_zeroed(D_RO(obj)->data, OVERLAP_SIZE));
+	UT_ASSERT(util_is_zeroed(D_RO(obj)->data, OVERLAP_SIZE));
 
 	/*
 	 * ++++----++++
@@ -462,10 +462,10 @@ do_tx_add_range_overlapping(PMEMobjpool *pop)
 
 		pmemobj_tx_abort(-1);
 	} TX_ONCOMMIT {
-		ASSERT(0);
+		UT_ASSERT(0);
 	} TX_END
 
-	ASSERT(util_is_zeroed(D_RO(obj)->data, OVERLAP_SIZE));
+	UT_ASSERT(util_is_zeroed(D_RO(obj)->data, OVERLAP_SIZE));
 
 	/*
 	 * ++++-++-++++
@@ -489,10 +489,10 @@ do_tx_add_range_overlapping(PMEMobjpool *pop)
 
 		pmemobj_tx_abort(-1);
 	} TX_ONCOMMIT {
-		ASSERT(0);
+		UT_ASSERT(0);
 	} TX_END
 
-	ASSERT(util_is_zeroed(D_RO(obj)->data, OVERLAP_SIZE));
+	UT_ASSERT(util_is_zeroed(D_RO(obj)->data, OVERLAP_SIZE));
 
 	/*
 	 * ++++
@@ -507,10 +507,10 @@ do_tx_add_range_overlapping(PMEMobjpool *pop)
 
 		pmemobj_tx_abort(-1);
 	} TX_ONCOMMIT {
-		ASSERT(0);
+		UT_ASSERT(0);
 	} TX_END
 
-	ASSERT(util_is_zeroed(D_RO(obj)->data, OVERLAP_SIZE));
+	UT_ASSERT(util_is_zeroed(D_RO(obj)->data, OVERLAP_SIZE));
 }
 
 int
@@ -520,12 +520,12 @@ main(int argc, char *argv[])
 	util_init();
 
 	if (argc != 2)
-		FATAL("usage: %s [file]", argv[0]);
+		UT_FATAL("usage: %s [file]", argv[0]);
 
 	PMEMobjpool *pop;
 	if ((pop = pmemobj_create(argv[1], LAYOUT_NAME, PMEMOBJ_MIN_POOL,
 	    S_IWUSR | S_IRUSR)) == NULL)
-		FATAL("!pmemobj_create");
+		UT_FATAL("!pmemobj_create");
 
 	do_tx_add_range_commit(pop);
 	VALGRIND_WRITE_STATS;

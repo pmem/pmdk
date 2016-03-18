@@ -47,7 +47,7 @@ main(int argc, char *argv[])
 	START(argc, argv, "obj_direct");
 
 	if (argc != 3)
-		FATAL("usage: %s [directory] [# of pools]", argv[0]);
+		UT_FATAL("usage: %s [directory] [# of pools]", argv[0]);
 
 	int npools = atoi(argv[2]);
 	const char *dir = argv[1];
@@ -71,30 +71,30 @@ main(int argc, char *argv[])
 				PROT_READ | PROT_WRITE,
 				MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
 
-		ASSERTne(guard_after[i], NULL);
+		UT_ASSERTne(guard_after[i], NULL);
 
 		if (pops[i] == NULL)
-			FATAL("!pmemobj_create");
+			UT_FATAL("!pmemobj_create");
 	}
 
 	PMEMoid oids[npools];
 
 	for (int i = 0; i < npools; ++i) {
 		r = pmemobj_alloc(pops[i], &oids[i], ALLOC_SIZE, 1, NULL, NULL);
-		ASSERTeq(r, 0);
+		UT_ASSERTeq(r, 0);
 	}
 
 	PMEMoid invalid = {123, 321};
 
-	ASSERTeq(pmemobj_pool_by_oid(OID_NULL), NULL);
-	ASSERTeq(pmemobj_pool_by_oid(invalid), NULL);
+	UT_ASSERTeq(pmemobj_pool_by_oid(OID_NULL), NULL);
+	UT_ASSERTeq(pmemobj_pool_by_oid(invalid), NULL);
 
 	for (int i = 0; i < npools; ++i) {
-		ASSERTeq(pmemobj_pool_by_oid(oids[i]), pops[i]);
+		UT_ASSERTeq(pmemobj_pool_by_oid(oids[i]), pops[i]);
 	}
 
-	ASSERTeq(pmemobj_pool_by_ptr(NULL), NULL);
-	ASSERTeq(pmemobj_pool_by_ptr((void *)0xCBA), NULL);
+	UT_ASSERTeq(pmemobj_pool_by_ptr(NULL), NULL);
+	UT_ASSERTeq(pmemobj_pool_by_ptr((void *)0xCBA), NULL);
 
 	for (int i = 0; i < npools; ++i) {
 		void *before_pool = (char *)pops[i] - 1;
@@ -103,14 +103,14 @@ main(int argc, char *argv[])
 		void *middle = (char *)pops[i] + (PMEMOBJ_MIN_POOL / 2);
 		void *in_oid = (char *)pmemobj_direct(oids[i]) +
 			(ALLOC_SIZE / 2);
-		ASSERTeq(pmemobj_pool_by_ptr(before_pool), NULL);
-		ASSERTeq(pmemobj_pool_by_ptr(after_pool), NULL);
-		ASSERTeq(pmemobj_pool_by_ptr(edge), NULL);
-		ASSERTeq(pmemobj_pool_by_ptr(middle), pops[i]);
-		ASSERTeq(pmemobj_pool_by_ptr(in_oid), pops[i]);
+		UT_ASSERTeq(pmemobj_pool_by_ptr(before_pool), NULL);
+		UT_ASSERTeq(pmemobj_pool_by_ptr(after_pool), NULL);
+		UT_ASSERTeq(pmemobj_pool_by_ptr(edge), NULL);
+		UT_ASSERTeq(pmemobj_pool_by_ptr(middle), pops[i]);
+		UT_ASSERTeq(pmemobj_pool_by_ptr(in_oid), pops[i]);
 		pmemobj_close(pops[i]);
-		ASSERTeq(pmemobj_pool_by_ptr(middle), NULL);
-		ASSERTeq(pmemobj_pool_by_ptr(in_oid), NULL);
+		UT_ASSERTeq(pmemobj_pool_by_ptr(middle), NULL);
+		UT_ASSERTeq(pmemobj_pool_by_ptr(in_oid), NULL);
 
 		MUNMAP(guard_after[i], Ut_pagesize);
 	}

@@ -56,15 +56,15 @@ main(int argc, char *argv[])
 
 	for (i = 0; i < n; i++) {
 		ptr = calloc(1, count * sizeof (int));
-		ASSERTne(ptr, NULL);
+		UT_ASSERTne(ptr, NULL);
 
 		/* calloc should return zeroed memory */
 		for (j = 0; j < count; j++)
-			ASSERTeq(ptr[j], 0);
+			UT_ASSERTeq(ptr[j], 0);
 		for (j = 0; j < count; j++)
 			ptr[j] = test_value;
 		for (j = 0; j < count; j++)
-			ASSERTeq(ptr[j], test_value);
+			UT_ASSERTeq(ptr[j], test_value);
 
 		cfree(ptr);
 	}

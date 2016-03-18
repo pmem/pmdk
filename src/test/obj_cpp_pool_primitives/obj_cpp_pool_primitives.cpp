@@ -64,15 +64,15 @@ void
 pool_test_memset(pool<root> &pop)
 {
 	persistent_ptr<root> root = pop.get_root();
-	ASSERT(root != nullptr);
+	UT_ASSERT(root != nullptr);
 
 	void *ret = pop.memset_persist(&root->val, TEST_VAL,
 			sizeof (root->val));
-	ASSERTeq(ret, &root->val);
+	UT_ASSERTeq(ret, &root->val);
 
 	int c;
 	memset(&c, TEST_VAL, sizeof (c));
-	ASSERTeq(root->val, c);
+	UT_ASSERTeq(root->val, c);
 }
 
 /*
@@ -82,13 +82,13 @@ void
 pool_test_memcpy(pool<root> &pop)
 {
 	persistent_ptr<root> root = pop.get_root();
-	ASSERT(root != nullptr);
+	UT_ASSERT(root != nullptr);
 
 	int v = TEST_VAL;
 	void *ret = pop.memcpy_persist(&root->val, &v,
 			sizeof (root->val));
-	ASSERTeq(ret, &root->val);
-	ASSERTeq(root->val, v);
+	UT_ASSERTeq(ret, &root->val);
+	UT_ASSERTeq(root->val, v);
 }
 
 /*
@@ -107,7 +107,7 @@ void
 pool_test_flush(pool<root> &pop)
 {
 	persistent_ptr<root> root = pop.get_root();
-	ASSERT(root != nullptr);
+	UT_ASSERT(root != nullptr);
 
 	root->val = TEST_VAL;
 
@@ -121,7 +121,7 @@ void
 pool_test_flush_p(pool<root> &pop)
 {
 	persistent_ptr<root> root = pop.get_root();
-	ASSERT(root != nullptr);
+	UT_ASSERT(root != nullptr);
 
 	root->val = TEST_VAL;
 
@@ -135,7 +135,7 @@ void
 pool_test_flush_ptr(pool<root> &pop)
 {
 	persistent_ptr<root> root = pop.get_root();
-	ASSERT(root != nullptr);
+	UT_ASSERT(root != nullptr);
 
 	root->me = root;
 
@@ -150,7 +150,7 @@ void
 pool_test_flush_ptr_obj(pool<root> &pop)
 {
 	persistent_ptr<root> root = pop.get_root();
-	ASSERT(root != nullptr);
+	UT_ASSERT(root != nullptr);
 
 	root->me = root;
 	root->val = TEST_VAL;
@@ -166,7 +166,7 @@ void
 pool_test_flush_ptr_obj_no_pop(pool<root> &pop)
 {
 	persistent_ptr<root> root = pop.get_root();
-	ASSERT(root != nullptr);
+	UT_ASSERT(root != nullptr);
 
 	root->me = root;
 	root->val = TEST_VAL;
@@ -181,7 +181,7 @@ void
 pool_test_persist(pool<root> &pop)
 {
 	persistent_ptr<root> root = pop.get_root();
-	ASSERT(root != nullptr);
+	UT_ASSERT(root != nullptr);
 
 	root->val = TEST_VAL;
 
@@ -195,7 +195,7 @@ void
 pool_test_persist_p(pool<root> &pop)
 {
 	persistent_ptr<root> root = pop.get_root();
-	ASSERT(root != nullptr);
+	UT_ASSERT(root != nullptr);
 
 	root->val = TEST_VAL;
 
@@ -209,7 +209,7 @@ void
 pool_test_persist_ptr(pool<root> &pop)
 {
 	persistent_ptr<root> root = pop.get_root();
-	ASSERT(root != nullptr);
+	UT_ASSERT(root != nullptr);
 
 	root->me = root;
 
@@ -224,7 +224,7 @@ void
 pool_test_persist_ptr_obj(pool<root> &pop)
 {
 	persistent_ptr<root> root = pop.get_root();
-	ASSERT(root != nullptr);
+	UT_ASSERT(root != nullptr);
 
 	root->me = root;
 	root->val = TEST_VAL;
@@ -240,7 +240,7 @@ void
 pool_test_persist_ptr_obj_no_pop(pool<root> &pop)
 {
 	persistent_ptr<root> root = pop.get_root();
-	ASSERT(root != nullptr);
+	UT_ASSERT(root != nullptr);
 
 	root->me = root;
 	root->val = TEST_VAL;
@@ -258,7 +258,7 @@ pool_create(const char *path, const char *layout, size_t poolsize,
 	pool<root> pop = pool<root>::create(path, layout, poolsize,
 			mode);
 	persistent_ptr<root> root = pop.get_root();
-	ASSERT(root != nullptr);
+	UT_ASSERT(root != nullptr);
 
 	return pop;
 }
@@ -272,7 +272,7 @@ main(int argc, char *argv[])
 	START(argc, argv, "obj_cpp_pool_primitives");
 
 	if (argc != 2)
-		FATAL("usage: %s path", argv[0]);
+		UT_FATAL("usage: %s path", argv[0]);
 
 	pool<root> pop = pool_create(argv[1], "layout", 32 * MB, 0666);
 

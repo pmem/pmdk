@@ -67,11 +67,11 @@ test_ctree_new_delete_empty()
 
 	/* t Malloc fail */
 	t = ctree_new();
-	ASSERT(t == NULL);
+	UT_ASSERT(t == NULL);
 
 	/* all OK and delete */
 	t = ctree_new();
-	ASSERT(t != NULL);
+	UT_ASSERT(t != NULL);
 
 	ctree_delete(t);
 }
@@ -80,28 +80,28 @@ static void
 test_ctree_insert()
 {
 	struct ctree *t = ctree_new();
-	ASSERT(t != NULL);
+	UT_ASSERT(t != NULL);
 
 	FUNC_MOCK_RCOUNTER_SET(malloc, TEST_INSERT);
 
-	ASSERT(ctree_is_empty(t));
+	UT_ASSERT(ctree_is_empty(t));
 
 	/* leaf Malloc fail */
-	ASSERT(ctree_insert(t, TEST_VAL_A, 0) != 0);
+	UT_ASSERT(ctree_insert(t, TEST_VAL_A, 0) != 0);
 
 	/* all OK root */
-	ASSERT(ctree_insert(t, TEST_VAL_B, 0) == 0); /* insert +2 mallocs */
+	UT_ASSERT(ctree_insert(t, TEST_VAL_B, 0) == 0); /* insert +2 mallocs */
 
 	/* accessor Malloc fail */
-	ASSERT(ctree_insert(t, TEST_VAL_A, 0) != 0);
+	UT_ASSERT(ctree_insert(t, TEST_VAL_A, 0) != 0);
 
 	/* insert duplicate */
-	ASSERT(ctree_insert(t, TEST_VAL_B, 0) != 0);
+	UT_ASSERT(ctree_insert(t, TEST_VAL_B, 0) != 0);
 
 	/* all OK second */
-	ASSERT(ctree_insert(t, TEST_VAL_A, 0) == 0);
+	UT_ASSERT(ctree_insert(t, TEST_VAL_A, 0) == 0);
 
-	ASSERT(!ctree_is_empty(t));
+	UT_ASSERT(!ctree_is_empty(t));
 
 	ctree_delete(t);
 }
@@ -110,23 +110,23 @@ static void
 test_ctree_find()
 {
 	struct ctree *t = ctree_new();
-	ASSERT(t != NULL);
+	UT_ASSERT(t != NULL);
 
 	/* search empty tree */
 	uint64_t k = TEST_VAL_A;
-	ASSERT(ctree_find_le(t, &k) == 0);
+	UT_ASSERT(ctree_find_le(t, &k) == 0);
 
 	/* insert 2 valid elements */
-	ASSERT(ctree_insert(t, TEST_VAL_A, TEST_VAL_A) == 0);
-	ASSERT(ctree_insert(t, TEST_VAL_B, TEST_VAL_B) == 0);
+	UT_ASSERT(ctree_insert(t, TEST_VAL_A, TEST_VAL_A) == 0);
+	UT_ASSERT(ctree_insert(t, TEST_VAL_B, TEST_VAL_B) == 0);
 
 	/* search for values */
 	k = 0;
-	ASSERT(ctree_find_le(t, &k) == 0);
+	UT_ASSERT(ctree_find_le(t, &k) == 0);
 	k = TEST_VAL_A;
-	ASSERT(ctree_find_le(t, &k) == TEST_VAL_A);
+	UT_ASSERT(ctree_find_le(t, &k) == TEST_VAL_A);
 	k = TEST_VAL_B;
-	ASSERT(ctree_find_le(t, &k) == TEST_VAL_B);
+	UT_ASSERT(ctree_find_le(t, &k) == TEST_VAL_B);
 
 	ctree_delete(t);
 }
@@ -135,25 +135,25 @@ static void
 test_ctree_remove()
 {
 	struct ctree *t = ctree_new();
-	ASSERT(t != NULL);
+	UT_ASSERT(t != NULL);
 
 	FUNC_MOCK_RCOUNTER_SET(malloc, TEST_REMOVE);
 
 	/* remove from empty tree */
-	ASSERT(ctree_remove(t, TEST_VAL_A, 0) == 0);
+	UT_ASSERT(ctree_remove(t, TEST_VAL_A, 0) == 0);
 
 	/* insert 2 valid values */
-	ASSERT(ctree_insert(t, TEST_VAL_A, 0) == 0);
-	ASSERT(ctree_insert(t, TEST_VAL_B, 0) == 0);
+	UT_ASSERT(ctree_insert(t, TEST_VAL_A, 0) == 0);
+	UT_ASSERT(ctree_insert(t, TEST_VAL_B, 0) == 0);
 
 	/* fail to remove equal greater */
-	ASSERT(ctree_remove(t, TEST_VAL_C, 0) == 0);
+	UT_ASSERT(ctree_remove(t, TEST_VAL_C, 0) == 0);
 
 	/* remove accessor */
-	ASSERT(ctree_remove(t, TEST_VAL_A, 1) == TEST_VAL_A);
+	UT_ASSERT(ctree_remove(t, TEST_VAL_A, 1) == TEST_VAL_A);
 
 	/* remove root */
-	ASSERT(ctree_remove(t, TEST_VAL_B, 1) == TEST_VAL_B);
+	UT_ASSERT(ctree_remove(t, TEST_VAL_B, 1) == TEST_VAL_B);
 
 	ctree_delete(t);
 }

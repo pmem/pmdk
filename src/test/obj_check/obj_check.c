@@ -44,7 +44,7 @@ main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_check");
 	if (argc < 2) {
-		FATAL("usage: obj_check file");
+		UT_FATAL("usage: obj_check file");
 	}
 
 	const char *path = argv[1];
@@ -53,13 +53,13 @@ main(int argc, char *argv[])
 
 	switch (ret) {
 	case 1:
-		OUT("consistent");
+		UT_OUT("consistent");
 		break;
 	case 0:
-		OUT("not consistent: %s", pmemobj_errormsg());
+		UT_OUT("not consistent: %s", pmemobj_errormsg());
 		break;
 	default:
-		OUT("error: %s", pmemobj_errormsg());
+		UT_OUT("error: %s", pmemobj_errormsg());
 		break;
 	}
 

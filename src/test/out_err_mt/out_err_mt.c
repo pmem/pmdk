@@ -46,12 +46,12 @@
 static void
 print_errors(const char *msg)
 {
-	OUT("%s", msg);
-	OUT("PMEM: %s", pmem_errormsg());
-	OUT("PMEMOBJ: %s", pmemobj_errormsg());
-	OUT("PMEMLOG: %s", pmemlog_errormsg());
-	OUT("PMEMBLK: %s", pmemblk_errormsg());
-	OUT("VMEM: %s", vmem_errormsg());
+	UT_OUT("%s", msg);
+	UT_OUT("PMEM: %s", pmem_errormsg());
+	UT_OUT("PMEMOBJ: %s", pmemobj_errormsg());
+	UT_OUT("PMEMLOG: %s", pmemlog_errormsg());
+	UT_OUT("PMEMBLK: %s", pmemblk_errormsg());
+	UT_OUT("VMEM: %s", vmem_errormsg());
 }
 
 static void
@@ -64,37 +64,37 @@ check_errors(int ver)
 	ret = sscanf(pmem_errormsg(),
 		"libpmem major version mismatch (need %d, found %d)",
 		&err_need, &err_found);
-	ASSERTeq(ret, 2);
-	ASSERTeq(err_need, ver);
-	ASSERTeq(err_found, PMEM_MAJOR_VERSION);
+	UT_ASSERTeq(ret, 2);
+	UT_ASSERTeq(err_need, ver);
+	UT_ASSERTeq(err_found, PMEM_MAJOR_VERSION);
 
 	ret = sscanf(pmemobj_errormsg(),
 		"libpmemobj major version mismatch (need %d, found %d)",
 		&err_need, &err_found);
-	ASSERTeq(ret, 2);
-	ASSERTeq(err_need, ver);
-	ASSERTeq(err_found, PMEMOBJ_MAJOR_VERSION);
+	UT_ASSERTeq(ret, 2);
+	UT_ASSERTeq(err_need, ver);
+	UT_ASSERTeq(err_found, PMEMOBJ_MAJOR_VERSION);
 
 	ret = sscanf(pmemlog_errormsg(),
 		"libpmemlog major version mismatch (need %d, found %d)",
 		&err_need, &err_found);
-	ASSERTeq(ret, 2);
-	ASSERTeq(err_need, ver);
-	ASSERTeq(err_found, PMEMLOG_MAJOR_VERSION);
+	UT_ASSERTeq(ret, 2);
+	UT_ASSERTeq(err_need, ver);
+	UT_ASSERTeq(err_found, PMEMLOG_MAJOR_VERSION);
 
 	ret = sscanf(pmemblk_errormsg(),
 		"libpmemblk major version mismatch (need %d, found %d)",
 		&err_need, &err_found);
-	ASSERTeq(ret, 2);
-	ASSERTeq(err_need, ver);
-	ASSERTeq(err_found, PMEMBLK_MAJOR_VERSION);
+	UT_ASSERTeq(ret, 2);
+	UT_ASSERTeq(err_need, ver);
+	UT_ASSERTeq(err_found, PMEMBLK_MAJOR_VERSION);
 
 	ret = sscanf(vmem_errormsg(),
 		"libvmem major version mismatch (need %d, found %d)",
 		&err_need, &err_found);
-	ASSERTeq(ret, 2);
-	ASSERTeq(err_need, ver);
-	ASSERTeq(err_found, VMEM_MAJOR_VERSION);
+	UT_ASSERTeq(ret, 2);
+	UT_ASSERTeq(err_need, ver);
+	UT_ASSERTeq(err_found, VMEM_MAJOR_VERSION);
 }
 
 static void *
@@ -133,7 +133,8 @@ main(int argc, char *argv[])
 	START(argc, argv, "out_err_mt");
 
 	if (argc != 5)
-		FATAL("usage: %s filename1 filename2 filename3 dir", argv[0]);
+		UT_FATAL("usage: %s filename1 filename2 filename3 dir",
+				argv[0]);
 
 	PMEMobjpool *pop = pmemobj_create(argv[1], "test",
 		PMEMOBJ_MIN_POOL, 0666);
@@ -170,7 +171,7 @@ main(int argc, char *argv[])
 	print_errors("pmemblk_set_error");
 
 	VMEM *vmp2 = vmem_create_in_region(NULL, 1);
-	ASSERTeq(vmp2, NULL);
+	UT_ASSERTeq(vmp2, NULL);
 	print_errors("vmem_create_in_region");
 
 	run_mt_test(do_test);

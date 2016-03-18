@@ -108,7 +108,7 @@ main(int argc, char *argv[])
 	START(argc, argv, "vmem_stats");
 
 	if (argc > 3 || argc < 2) {
-		FATAL("usage: %s 0|1 [opts]", argv[0]);
+		UT_FATAL("usage: %s 0|1 [opts]", argv[0]);
 	} else {
 		expect_custom_alloc = atoi(argv[1]);
 		if (argc > 2)
@@ -123,16 +123,16 @@ main(int argc, char *argv[])
 
 	vmp_unused = vmem_create_in_region(mem_pool, VMEM_MIN_POOL);
 	if (vmp_unused == NULL)
-		FATAL("!vmem_create_in_region");
+		UT_FATAL("!vmem_create_in_region");
 
 	mem_pool = MMAP_ANON_ALIGNED(VMEM_MIN_POOL, 4 << 20);
 
 	vmp_used = vmem_create_in_region(mem_pool, VMEM_MIN_POOL);
 	if (vmp_used == NULL)
-		FATAL("!vmem_create_in_region");
+		UT_FATAL("!vmem_create_in_region");
 
 	int *test = vmem_malloc(vmp_used, sizeof (int)*100);
-	ASSERTne(test, NULL);
+	UT_ASSERTne(test, NULL);
 
 	vmem_stats_print(vmp_unused, opts);
 	vmem_stats_print(vmp_used, opts);
@@ -143,11 +143,11 @@ main(int argc, char *argv[])
 	vmem_delete(vmp_used);
 
 	/* check memory leak in custom allocator */
-	ASSERTeq(custom_allocs, 0);
+	UT_ASSERTeq(custom_allocs, 0);
 	if (expect_custom_alloc == 0) {
-		ASSERTeq(custom_alloc_calls, 0);
+		UT_ASSERTeq(custom_alloc_calls, 0);
 	} else {
-		ASSERTne(custom_alloc_calls, 0);
+		UT_ASSERTne(custom_alloc_calls, 0);
 	}
 
 	DONE(NULL);

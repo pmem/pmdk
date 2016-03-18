@@ -57,7 +57,8 @@ main(int argc, char *argv[])
 	START(argc, argv, "obj_recovery");
 
 	if (argc != 5)
-		FATAL("usage: %s [file] [lock: y/n] [cmd: c/o] [type: n/f/s]",
+		UT_FATAL("usage: %s [file] [lock: y/n] "
+			"[cmd: c/o] [type: n/f/s]",
 			argv[0]);
 
 	const char *path = argv[1];
@@ -73,17 +74,17 @@ main(int argc, char *argv[])
 	else if (argv[4][0] == 's')
 		type = TEST_SET;
 	else
-		FATAL("invalid type");
+		UT_FATAL("invalid type");
 
 	if (!exists) {
 		if ((pop = pmemobj_create(path, POBJ_LAYOUT_NAME(recovery),
 			0, S_IWUSR | S_IRUSR)) == NULL) {
-			FATAL("failed to create pool\n");
+			UT_FATAL("failed to create pool\n");
 		}
 	} else {
 		if ((pop = pmemobj_open(path, POBJ_LAYOUT_NAME(recovery)))
 						== NULL) {
-			FATAL("failed to open pool\n");
+			UT_FATAL("failed to open pool\n");
 		}
 	}
 
@@ -114,7 +115,7 @@ main(int argc, char *argv[])
 				exit(0); /* simulate a crash */
 			} TX_END
 		} else {
-			ASSERT(D_RW(D_RW(root)->foo)->bar == BAR_VALUE);
+			UT_ASSERT(D_RW(D_RW(root)->foo)->bar == BAR_VALUE);
 		}
 	} else if (type == TEST_NEW) {
 		if (!exists) {
@@ -126,7 +127,7 @@ main(int argc, char *argv[])
 			} TX_END
 
 		} else {
-			ASSERT(TOID_IS_NULL(D_RW(root)->foo));
+			UT_ASSERT(TOID_IS_NULL(D_RW(root)->foo));
 		}
 	} else { /* TEST_FREE */
 		if (!exists) {
@@ -146,11 +147,11 @@ main(int argc, char *argv[])
 			} TX_END
 
 		} else {
-			ASSERT(!TOID_IS_NULL(D_RW(root)->foo));
+			UT_ASSERT(!TOID_IS_NULL(D_RW(root)->foo));
 		}
 	}
 
-	ASSERT(pmemobj_check(path, POBJ_LAYOUT_NAME(recovery)));
+	UT_ASSERT(pmemobj_check(path, POBJ_LAYOUT_NAME(recovery)));
 
 	pmemobj_close(pop);
 

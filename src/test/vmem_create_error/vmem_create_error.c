@@ -48,22 +48,22 @@ main(int argc, char *argv[])
 	START(argc, argv, "vmem_create_error");
 
 	if (argc > 1)
-		FATAL("usage: %s", argv[0]);
+		UT_FATAL("usage: %s", argv[0]);
 
 	errno = 0;
 	vmp = vmem_create_in_region(mem_pool, 0);
-	ASSERTeq(vmp, NULL);
-	ASSERTeq(errno, EINVAL);
+	UT_ASSERTeq(vmp, NULL);
+	UT_ASSERTeq(errno, EINVAL);
 
 	errno = 0;
 	vmp = vmem_create("./", 0);
-	ASSERTeq(vmp, NULL);
-	ASSERTeq(errno, EINVAL);
+	UT_ASSERTeq(vmp, NULL);
+	UT_ASSERTeq(errno, EINVAL);
 
 	errno = 0;
 	vmp = vmem_create("invalid dir !@#$%^&*()=", VMEM_MIN_POOL);
-	ASSERTeq(vmp, NULL);
-	ASSERTne(errno, 0);
+	UT_ASSERTeq(vmp, NULL);
+	UT_ASSERTne(errno, 0);
 
 	DONE(NULL);
 }

@@ -43,16 +43,6 @@
 #include <sys/types.h>
 #include <stdarg.h>
 #include "unittest.h"
-#undef ERR
-#undef FATAL
-#undef ASSERT_rt
-#undef ASSERTinfo_rt
-#undef ASSERTeq_rt
-#undef ASSERTne_rt
-#undef ASSERT
-#undef ASSERTinfo
-#undef ASSERTeq
-#undef ASSERTne
 #include "out.h"
 
 int
@@ -66,25 +56,25 @@ main(int argc, char *argv[])
 
 	errno = 0;
 	ERR("ERR #%d", 1);
-	OUT("%s", out_get_errormsg());
+	UT_OUT("%s", out_get_errormsg());
 
 	errno = 0;
 	ERR("!ERR #%d", 2);
-	OUT("%s", out_get_errormsg());
+	UT_OUT("%s", out_get_errormsg());
 
 	errno = EINVAL;
 	ERR("!ERR #%d", 3);
-	OUT("%s", out_get_errormsg());
+	UT_OUT("%s", out_get_errormsg());
 
 	errno = EBADF;
 	out_err(__FILE__, 100, __func__,
 		"ERR1: %s:%d", strerror(errno), 1234);
-	OUT("%s", out_get_errormsg());
+	UT_OUT("%s", out_get_errormsg());
 
 	errno = EBADF;
 	out_err(NULL, 0, NULL,
 		"ERR2: %s:%d", strerror(errno), 1234);
-	OUT("%s", out_get_errormsg());
+	UT_OUT("%s", out_get_errormsg());
 
 	/* Cleanup */
 	out_fini();

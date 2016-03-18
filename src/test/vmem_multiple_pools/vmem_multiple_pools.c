@@ -65,19 +65,19 @@ thread_func(void *arg)
 				pools[pool_id] = vmem_create_in_region(
 					mem_pools[pool_id / 2], VMEM_MIN_POOL);
 				if (pools[pool_id] == NULL)
-					FATAL("!vmem_create_in_region");
+					UT_FATAL("!vmem_create_in_region");
 			} else {
 				/* for odd pool_id, create in file */
 				pools[pool_id] = vmem_create(dir,
 					VMEM_MIN_POOL);
 				if (pools[pool_id] == NULL)
-					FATAL("!vmem_create");
+					UT_FATAL("!vmem_create");
 			}
 
 			void *test = vmem_malloc(pools[pool_id],
 				sizeof (void *));
 
-			ASSERTne(test, NULL);
+			UT_ASSERTne(test, NULL);
 			vmem_free(pools[pool_id], test);
 		}
 	}
@@ -91,13 +91,13 @@ main(int argc, char *argv[])
 	START(argc, argv, "vmem_multiple_pools");
 
 	if (argc < 4)
-		FATAL("usage: %s directory npools nthreads", argv[0]);
+		UT_FATAL("usage: %s directory npools nthreads", argv[0]);
 
 	dir = argv[1];
 	npools = atoi(argv[2]);
 	int nthreads = atoi(argv[3]);
 
-	OUT("create %d pools in %d thread(s)", npools, nthreads);
+	UT_OUT("create %d pools in %d thread(s)", npools, nthreads);
 
 	const unsigned mem_pools_size = (npools / 2 + npools % 2) * nthreads;
 	mem_pools = MALLOC(mem_pools_size * sizeof (char *));

@@ -65,7 +65,7 @@ alloc_worker(void *arg)
 
 	for (int i = 0; i < OPS_PER_THREAD; ++i) {
 		pmalloc(a->pop, &a->r->offs[a->idx][i], ALLOC_SIZE);
-		ASSERTne(a->r->offs[a->idx][i], 0);
+		UT_ASSERTne(a->r->offs[a->idx][i], 0);
 	}
 
 	return NULL;
@@ -78,7 +78,7 @@ realloc_worker(void *arg)
 
 	for (int i = 0; i < OPS_PER_THREAD; ++i) {
 		prealloc(a->pop, &a->r->offs[a->idx][i], REALLOC_SIZE);
-		ASSERTne(a->r->offs[a->idx][i], 0);
+		UT_ASSERTne(a->r->offs[a->idx][i], 0);
 	}
 
 	return NULL;
@@ -91,7 +91,7 @@ free_worker(void *arg)
 
 	for (int i = 0; i < OPS_PER_THREAD; ++i) {
 		pfree(a->pop, &a->r->offs[a->idx][i]);
-		ASSERTeq(a->r->offs[a->idx][i], 0);
+		UT_ASSERTeq(a->r->offs[a->idx][i], 0);
 	}
 
 	return NULL;
@@ -109,12 +109,12 @@ mix_worker(void *arg)
 	for (int i = 0; i < MIX_RERUNS; ++i) {
 		for (int i = 0; i < OPS_PER_THREAD; ++i) {
 			pmalloc(a->pop, &a->r->offs[a->idx][i], ALLOC_SIZE);
-			ASSERTne(a->r->offs[a->idx][i], 0);
+			UT_ASSERTne(a->r->offs[a->idx][i], 0);
 		}
 
 		for (int i = 0; i < OPS_PER_THREAD; ++i) {
 			pfree(a->pop, &a->r->offs[a->idx][i]);
-			ASSERTeq(a->r->offs[a->idx][i], 0);
+			UT_ASSERTeq(a->r->offs[a->idx][i], 0);
 		}
 	}
 
@@ -147,7 +147,7 @@ alloc_free_worker(void *arg)
 	for (int i = 0; i < OPS_PER_THREAD; ++i) {
 		int err = pmemobj_alloc(a->pop, &oid, ALLOC_SIZE,
 				0, NULL, NULL);
-		ASSERTeq(err, 0);
+		UT_ASSERTeq(err, 0);
 		pmemobj_free(&oid);
 	}
 
@@ -172,7 +172,7 @@ main(int argc, char *argv[])
 	START(argc, argv, "obj_pmalloc_mt");
 
 	if (argc != 2)
-		FATAL("usage: %s [file]", argv[0]);
+		UT_FATAL("usage: %s [file]", argv[0]);
 
 	PMEMobjpool *pop;
 
@@ -187,11 +187,11 @@ main(int argc, char *argv[])
 	}
 
 	if (pop == NULL)
-		FATAL("!pmemobj_create");
+		UT_FATAL("!pmemobj_create");
 
 	PMEMoid oid = pmemobj_root(pop, sizeof (struct root));
 	struct root *r = pmemobj_direct(oid);
-	ASSERTne(r, NULL);
+	UT_ASSERTne(r, NULL);
 
 	struct worker_args args[THREADS];
 

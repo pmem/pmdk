@@ -114,7 +114,7 @@ main(int argc, char *argv[])
 	if (argc == 2) {
 		dir = argv[1];
 	} else if (argc > 2) {
-		FATAL("usage: %s [directory]", argv[0]);
+		UT_FATAL("usage: %s [directory]", argv[0]);
 	}
 
 	/* allocate memory for function vmem_create_in_region() */
@@ -131,11 +131,11 @@ main(int argc, char *argv[])
 			vmp = vmem_create_in_region(mem_pool,
 				VMEM_MIN_POOL);
 			if (vmp == NULL)
-				FATAL("!vmem_create_in_region");
+				UT_FATAL("!vmem_create_in_region");
 		} else {
 			vmp = vmem_create(dir, VMEM_MIN_POOL);
 			if (vmp == NULL)
-				FATAL("!vmem_create");
+				UT_FATAL("!vmem_create");
 		}
 
 		memset(ptrs, 0, MAX_ALLOCS * sizeof (ptrs[0]));
@@ -145,20 +145,20 @@ main(int argc, char *argv[])
 			ptrs[i] = ptr;
 
 			/* at least one allocation must succeed */
-			ASSERT(i != 0 || ptr != NULL);
+			UT_ASSERT(i != 0 || ptr != NULL);
 			if (ptr == NULL)
 				break;
 
 			/* ptr should be usable */
 			*ptr = test_value;
-			ASSERTeq(*ptr, test_value);
+			UT_ASSERTeq(*ptr, test_value);
 
 			/* check for correct address alignment */
-			ASSERTeq((uintptr_t)(ptr) & (alignment - 1), 0);
+			UT_ASSERTeq((uintptr_t)(ptr) & (alignment - 1), 0);
 
 			/* check that pointer came from mem_pool */
 			if (dir == NULL) {
-				ASSERTrange(ptr, mem_pool, VMEM_MIN_POOL);
+				UT_ASSERTrange(ptr, mem_pool, VMEM_MIN_POOL);
 			}
 		}
 
@@ -172,8 +172,8 @@ main(int argc, char *argv[])
 	}
 
 	/* check memory leaks */
-	ASSERTne(custom_alloc_calls, 0);
-	ASSERTeq(custom_allocs, 0);
+	UT_ASSERTne(custom_alloc_calls, 0);
+	UT_ASSERTeq(custom_allocs, 0);
 
 	DONE(NULL);
 }

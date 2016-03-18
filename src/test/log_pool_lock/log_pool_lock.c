@@ -43,20 +43,20 @@ test_reopen(const char *path)
 	PMEMlogpool *log1 = pmemlog_create(path, PMEMLOG_MIN_POOL,
 			S_IWUSR | S_IRUSR);
 	if (!log1)
-		FATAL("!create");
+		UT_FATAL("!create");
 
 	PMEMlogpool *log2 = pmemlog_open(path);
 	if (log2)
-		FATAL("pmemlog_open should not succeed");
+		UT_FATAL("pmemlog_open should not succeed");
 
 	if (errno != EWOULDBLOCK)
-		FATAL("!pmemlog_open failed but for unexpected reason");
+		UT_FATAL("!pmemlog_open failed but for unexpected reason");
 
 	pmemlog_close(log1);
 
 	log2 = pmemlog_open(path);
 	if (!log2)
-		FATAL("pmemlog_open should succeed after close");
+		UT_FATAL("pmemlog_open should succeed after close");
 
 	pmemlog_close(log2);
 
@@ -70,7 +70,7 @@ test_open_in_different_process(const char *path, int sleep)
 	PMEMlogpool *log;
 
 	if (pid < 0)
-		FATAL("fork failed");
+		UT_FATAL("fork failed");
 
 	if (pid == 0) {
 		/* child */
@@ -81,10 +81,10 @@ test_open_in_different_process(const char *path, int sleep)
 
 		log = pmemlog_open(path);
 		if (log)
-			FATAL("pmemlog_open after fork should not succeed");
+			UT_FATAL("pmemlog_open after fork should not succeed");
 
 		if (errno != EWOULDBLOCK)
-			FATAL("!pmemlog_open after fork failed but for "
+			UT_FATAL("!pmemlog_open after fork failed but for "
 				"unexpected reason");
 
 		exit(0);
@@ -92,15 +92,15 @@ test_open_in_different_process(const char *path, int sleep)
 
 	log = pmemlog_create(path, PMEMLOG_MIN_POOL, S_IWUSR | S_IRUSR);
 	if (!log)
-		FATAL("!create");
+		UT_FATAL("!create");
 
 	int status;
 
 	if (waitpid(pid, &status, 0) < 0)
-		FATAL("!waitpid failed");
+		UT_FATAL("!waitpid failed");
 
 	if (!WIFEXITED(status))
-		FATAL("child process failed");
+		UT_FATAL("child process failed");
 
 	pmemlog_close(log);
 
@@ -113,7 +113,7 @@ main(int argc, char *argv[])
 	START(argc, argv, "log_pool_lock");
 
 	if (argc < 2)
-		FATAL("usage: %s path", argv[0]);
+		UT_FATAL("usage: %s path", argv[0]);
 
 	test_reopen(argv[1]);
 

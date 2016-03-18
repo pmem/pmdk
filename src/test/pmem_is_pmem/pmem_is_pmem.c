@@ -44,7 +44,7 @@ main(int argc, char *argv[])
 	START(argc, argv, "pmem_is_pmem");
 
 	if (argc !=  2)
-		FATAL("usage: %s file", argv[0]);
+		UT_FATAL("usage: %s file", argv[0]);
 
 	int fd = OPEN(argv[1], O_RDWR);
 
@@ -56,7 +56,7 @@ main(int argc, char *argv[])
 
 	CLOSE(fd);
 
-	OUT("%d", pmem_is_pmem(addr, stbuf.st_size));
+	UT_OUT("%d", pmem_is_pmem(addr, stbuf.st_size));
 
 	DONE(NULL);
 }

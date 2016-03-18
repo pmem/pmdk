@@ -51,7 +51,7 @@ main(int argc, char *argv[])
 	if (argc == 2) {
 		dir = argv[1];
 	} else if (argc > 2) {
-		FATAL("usage: %s [directory]", argv[0]);
+		UT_FATAL("usage: %s [directory]", argv[0]);
 	}
 
 	if (dir == NULL) {
@@ -60,33 +60,33 @@ main(int argc, char *argv[])
 
 		vmp = vmem_create_in_region(mem_pool, VMEM_MIN_POOL);
 		if (vmp == NULL)
-			FATAL("!vmem_create_in_region");
+			UT_FATAL("!vmem_create_in_region");
 	} else {
 		vmp = vmem_create(dir, VMEM_MIN_POOL);
 		if (vmp == NULL)
-			FATAL("!vmem_create");
+			UT_FATAL("!vmem_create");
 	}
 
 	int *test = vmem_realloc(vmp, NULL, sizeof (int));
-	ASSERTne(test, NULL);
+	UT_ASSERTne(test, NULL);
 
 	test[0] = test_value;
-	ASSERTeq(test[0], test_value);
+	UT_ASSERTeq(test[0], test_value);
 
 	/* check that pointer came from mem_pool */
 	if (dir == NULL) {
-		ASSERTrange(test, mem_pool, VMEM_MIN_POOL);
+		UT_ASSERTrange(test, mem_pool, VMEM_MIN_POOL);
 	}
 
 	test = vmem_realloc(vmp, test, sizeof (int) * 10);
-	ASSERTne(test, NULL);
-	ASSERTeq(test[0], test_value);
+	UT_ASSERTne(test, NULL);
+	UT_ASSERTeq(test[0], test_value);
 	test[1] = test_value;
 	test[9] = test_value;
 
 	/* check that pointer came from mem_pool */
 	if (dir == NULL) {
-		ASSERTrange(test, mem_pool, VMEM_MIN_POOL);
+		UT_ASSERTrange(test, mem_pool, VMEM_MIN_POOL);
 	}
 
 	vmem_free(vmp, test);

@@ -52,11 +52,11 @@ namespace {
 void
 test_null_ptr(persistent_ptr<int> &f)
 {
-	ASSERT(OID_IS_NULL(f.raw()));
-	ASSERT((bool)f == false);
-	ASSERT(!f);
-	ASSERTeq(f.get(), NULL);
-	ASSERT(f == nullptr);
+	UT_ASSERT(OID_IS_NULL(f.raw()));
+	UT_ASSERT((bool)f == false);
+	UT_ASSERT(!f);
+	UT_ASSERTeq(f.get(), NULL);
+	UT_ASSERT(f == nullptr);
 }
 
 /*
@@ -132,20 +132,20 @@ test_ptr_atomic(PMEMobjpool *pop)
 	ret = pmemobj_alloc(pop, pfoo.raw_ptr(), sizeof (foo),
 		0, NULL, NULL);
 
-	ASSERTeq(ret, 0);
-	ASSERTne(pfoo.get(), NULL);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTne(pfoo.get(), NULL);
 
 	(*pfoo).bar = TEST_INT;
 	memset(&pfoo->arr, TEST_CHAR, sizeof (pfoo->arr));
 
 	for (auto c : pfoo->arr) {
-		ASSERTeq(c, TEST_CHAR);
+		UT_ASSERTeq(c, TEST_CHAR);
 	}
 
 	pmemobj_free(pfoo.raw_ptr());
 
-	ASSERTeq(ret, 0);
-	ASSERTeq(pfoo.get(), NULL);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(pfoo.get(), NULL);
 }
 
 /*
@@ -157,12 +157,12 @@ test_ptr_transactional(PMEMobjpool *pop)
 	persistent_ptr<root> r = pmemobj_root(pop, sizeof (root));
 
 	TX_BEGIN(pop) {
-		ASSERT(r->pfoo == nullptr);
+		UT_ASSERT(r->pfoo == nullptr);
 
 		r->pfoo = pmemobj_tx_alloc(sizeof (foo), 0);
 
 	} TX_ONABORT {
-		ASSERT(0);
+		UT_ASSERT(0);
 	} TX_END
 
 	persistent_ptr<foo> pfoo = r->pfoo;
@@ -171,31 +171,31 @@ test_ptr_transactional(PMEMobjpool *pop)
 		pfoo->bar = TEST_INT;
 		memset(&pfoo->arr, TEST_CHAR, sizeof (pfoo->arr));
 	} TX_ONABORT {
-		ASSERT(0);
+		UT_ASSERT(0);
 	} TX_END
 
-	ASSERTeq(pfoo->bar, TEST_INT);
+	UT_ASSERTeq(pfoo->bar, TEST_INT);
 	for (auto c : pfoo->arr) {
-		ASSERTeq(c, TEST_CHAR);
+		UT_ASSERTeq(c, TEST_CHAR);
 	}
 
 	TX_BEGIN(pop) {
 		pfoo->bar = 0;
 		pmemobj_tx_abort(-1);
 	} TX_ONCOMMIT {
-		ASSERT(0);
+		UT_ASSERT(0);
 	} TX_END
 
-	ASSERTeq(pfoo->bar, TEST_INT);
+	UT_ASSERTeq(pfoo->bar, TEST_INT);
 
 	TX_BEGIN(pop) {
 		pmemobj_tx_free(pfoo.raw());
 		r->pfoo = nullptr;
 	} TX_ONABORT {
-		ASSERT(0);
+		UT_ASSERT(0);
 	} TX_END
 
-	ASSERT(r->pfoo == nullptr);
+	UT_ASSERT(r->pfoo == nullptr);
 }
 
 /*
@@ -210,23 +210,23 @@ test_ptr_array(PMEMobjpool *pop)
 	ret = pmemobj_alloc(pop, parr_vsize.raw_ptr(),
 		sizeof (int) * TEST_ARR_SIZE,
 		0, NULL, NULL);
-	ASSERTeq(ret, 0);
+	UT_ASSERTeq(ret, 0);
 
 	for (int i = 0; i < TEST_ARR_SIZE; ++i)
 		parr_vsize[i] = i;
 
 	for (int i = 0; i < TEST_ARR_SIZE; ++i)
-		ASSERTeq(parr_vsize[i], i);
+		UT_ASSERTeq(parr_vsize[i], i);
 
 	persistent_ptr<root> r = pmemobj_root(pop, sizeof (root));
 
 	TX_BEGIN(pop) {
 		r->parr = pmemobj_tx_zalloc(sizeof (int) * TEST_ARR_SIZE, 0);
 	} TX_ONABORT {
-		ASSERT(0);
+		UT_ASSERT(0);
 	} TX_END
 
-	ASSERT(r->parr != nullptr);
+	UT_ASSERT(r->parr != nullptr);
 
 	TX_BEGIN(pop) {
 		for (int i = 0; i < TEST_ARR_SIZE; ++i)
@@ -234,11 +234,11 @@ test_ptr_array(PMEMobjpool *pop)
 
 		pmemobj_tx_abort(-1);
 	} TX_ONCOMMIT {
-		ASSERT(0);
+		UT_ASSERT(0);
 	} TX_END
 
 	for (int i = 0; i < TEST_ARR_SIZE; ++i)
-		ASSERTeq(r->parr[i], 0);
+		UT_ASSERTeq(r->parr[i], 0);
 }
 
 }
@@ -249,14 +249,14 @@ main(int argc, char *argv[])
 	START(argc, argv, "obj_cpp_ptr");
 
 	if (argc != 2)
-		FATAL("usage: %s file-name", argv[0]);
+		UT_FATAL("usage: %s file-name", argv[0]);
 
 	const char *path = argv[1];
 
 	PMEMobjpool *pop = NULL;
 
 	if ((pop = pmemobj_create(path, LAYOUT, PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR)) == NULL)
-		FATAL("!pmemobj_create: %s", path);
+		UT_FATAL("!pmemobj_create: %s", path);
 
 	test_ptr_operators_null();
 	test_ptr_atomic(pop);

@@ -68,7 +68,7 @@ static int construct_fail;
 static int
 lane_noop_construct(PMEMobjpool *pop, struct lane_section *section)
 {
-	OUT("lane_noop_construct");
+	UT_OUT("lane_noop_construct");
 	if (construct_fail)
 		return EINVAL;
 
@@ -80,7 +80,7 @@ lane_noop_construct(PMEMobjpool *pop, struct lane_section *section)
 static void
 lane_noop_destruct(PMEMobjpool *pop, struct lane_section *section)
 {
-	OUT("lane_noop_destruct");
+	UT_OUT("lane_noop_destruct");
 }
 
 static int recovery_check_fail;
@@ -89,7 +89,7 @@ static int
 lane_noop_recovery(PMEMobjpool *pop,
 	struct lane_section_layout *section)
 {
-	OUT("lane_noop_recovery %p", RPTR(section));
+	UT_OUT("lane_noop_recovery %p", RPTR(section));
 	if (recovery_check_fail)
 		return EINVAL;
 
@@ -100,7 +100,7 @@ static int
 lane_noop_check(PMEMobjpool *pop,
 	struct lane_section_layout *section)
 {
-	OUT("lane_noop_check %p", RPTR(section));
+	UT_OUT("lane_noop_check %p", RPTR(section));
 	if (recovery_check_fail)
 		return EINVAL;
 
@@ -110,7 +110,7 @@ lane_noop_check(PMEMobjpool *pop,
 static int
 lane_noop_boot(PMEMobjpool *pop)
 {
-	OUT("lane_noop_init");
+	UT_OUT("lane_noop_init");
 
 	return 0;
 }
@@ -139,19 +139,19 @@ test_lane_boot_cleanup_ok()
 	base_ptr = &pop.p;
 
 	pop.p.lanes_offset = (uint64_t)&pop.l - (uint64_t)&pop.p;
-	ASSERTeq(lane_boot(&pop.p), 0);
-	ASSERTne(pop.p.lanes, NULL);
+	UT_ASSERTeq(lane_boot(&pop.p), 0);
+	UT_ASSERTne(pop.p.lanes, NULL);
 	for (int i = 0; i < MAX_MOCK_LANES; ++i) {
 		for (int j = 0; j < MAX_LANE_SECTION; ++j) {
-			ASSERTeq(pop.p.lanes[i].sections[j].layout,
+			UT_ASSERTeq(pop.p.lanes[i].sections[j].layout,
 				&pop.l[i].sections[j]);
-			ASSERTeq(pop.p.lanes[i].sections[j].runtime,
+			UT_ASSERTeq(pop.p.lanes[i].sections[j].runtime,
 				MOCK_RUNTIME);
 		}
 	}
 
 	lane_cleanup(&pop.p);
-	ASSERTeq(pop.p.lanes, NULL);
+	UT_ASSERTeq(pop.p.lanes, NULL);
 }
 
 static void
@@ -168,11 +168,11 @@ test_lane_boot_fail()
 
 	construct_fail = 1;
 
-	ASSERTne(lane_boot(&pop.p), 0);
+	UT_ASSERTne(lane_boot(&pop.p), 0);
 
 	construct_fail = 0;
 
-	ASSERTeq(pop.p.lanes, NULL);
+	UT_ASSERTeq(pop.p.lanes, NULL);
 }
 
 static void
@@ -187,8 +187,8 @@ test_lane_recovery_check_ok()
 	base_ptr = &pop.p;
 	pop.p.lanes_offset = (uint64_t)&pop.l - (uint64_t)&pop.p;
 
-	ASSERTeq(lane_recover_and_section_boot(&pop.p), 0);
-	ASSERTeq(lane_check(&pop.p), 0);
+	UT_ASSERTeq(lane_recover_and_section_boot(&pop.p), 0);
+	UT_ASSERTeq(lane_check(&pop.p), 0);
 }
 
 static void
@@ -205,9 +205,9 @@ test_lane_recovery_check_fail()
 
 	recovery_check_fail = 1;
 
-	ASSERTne(lane_recover_and_section_boot(&pop.p), 0);
+	UT_ASSERTne(lane_recover_and_section_boot(&pop.p), 0);
 
-	ASSERTne(lane_check(&pop.p), 0);
+	UT_ASSERTne(lane_check(&pop.p), 0);
 }
 
 sigjmp_buf Jmp;
@@ -246,9 +246,9 @@ test_lane_hold_release()
 
 	struct lane_section *sec;
 	lane_hold(&pop.p, &sec, LANE_SECTION_ALLOCATOR);
-	ASSERTeq(sec->runtime, MOCK_RUNTIME);
+	UT_ASSERTeq(sec->runtime, MOCK_RUNTIME);
 	lane_hold(&pop.p, &sec, LANE_SECTION_LIST);
-	ASSERTeq(sec->runtime, MOCK_RUNTIME_2);
+	UT_ASSERTeq(sec->runtime, MOCK_RUNTIME_2);
 
 	lane_release(&pop.p);
 	lane_release(&pop.p);
@@ -257,7 +257,7 @@ test_lane_hold_release()
 
 	if (!sigsetjmp(Jmp, 1)) {
 		lane_release(&pop.p); /* only two sections were held */
-		ERR("we should not get here");
+		UT_ERR("we should not get here");
 	}
 
 	signal(SIGABRT, old);

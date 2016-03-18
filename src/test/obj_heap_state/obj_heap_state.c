@@ -60,7 +60,7 @@ main(int argc, char *argv[])
 	START(argc, argv, "obj_heap_state");
 
 	if (argc != 2)
-		FATAL("usage: %s file-name", argv[0]);
+		UT_FATAL("usage: %s file-name", argv[0]);
 
 	const char *path = argv[1];
 
@@ -71,20 +71,20 @@ main(int argc, char *argv[])
 
 	if ((pop = pmemobj_create(path, LAYOUT_NAME,
 			0, S_IWUSR | S_IRUSR)) == NULL)
-		FATAL("!pmemobj_create: %s", path);
+		UT_FATAL("!pmemobj_create: %s", path);
 
 	pmemobj_root(pop, ROOT_SIZE); /* just to trigger allocation */
 
 	pmemobj_close(pop);
 
 	pop = pmemobj_open(path, LAYOUT_NAME);
-	ASSERTne(pop, NULL);
+	UT_ASSERTne(pop, NULL);
 
 	for (int i = 0; i < ALLOCS; ++i) {
 		PMEMoid oid;
 		pmemobj_alloc(pop, &oid, ALLOC_SIZE, 0,
 				test_constructor, NULL);
-		OUT("%d %lu", i, oid.off);
+		UT_OUT("%d %lu", i, oid.off);
 	}
 
 	pmemobj_close(pop);

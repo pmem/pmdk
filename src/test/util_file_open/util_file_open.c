@@ -46,7 +46,7 @@ main(int argc, char *argv[])
 	START(argc, argv, "util_file_open");
 
 	if (argc < 3)
-		FATAL("usage: %s minlen path...", argv[0]);
+		UT_FATAL("usage: %s minlen path...", argv[0]);
 
 	char *fname;
 	size_t minsize = strtoul(argv[1], &fname, 0);
@@ -55,9 +55,9 @@ main(int argc, char *argv[])
 		size_t size = 0;
 		int fd = util_file_open(argv[arg], &size, minsize, O_RDWR);
 		if (fd == -1)
-			OUT("!%s: util_file_open", argv[arg]);
+			UT_OUT("!%s: util_file_open", argv[arg]);
 		else {
-			OUT("%s: open, len %zu", argv[arg], size);
+			UT_OUT("%s: open, len %zu", argv[arg], size);
 			close(fd);
 		}
 	}

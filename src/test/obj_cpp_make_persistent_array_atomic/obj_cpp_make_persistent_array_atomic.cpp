@@ -62,9 +62,9 @@ public:
 	 */
 	void check_foo()
 	{
-		ASSERTeq(1, this->bar);
+		UT_ASSERTeq(1, this->bar);
 		for (int i = 0; i < TEST_ARR_SIZE; ++i)
-			ASSERTeq(1, this->arr[i]);
+			UT_ASSERTeq(1, this->arr[i]);
 	}
 
 	~foo() = default;
@@ -97,14 +97,14 @@ test_make_one_d(pool_base &pop)
 		pfoo[i].check_foo();
 
 	delete_persistent_atomic<foo[]>(pfoo, 5);
-	ASSERT(pfoo == nullptr);
+	UT_ASSERT(pfoo == nullptr);
 
 	make_persistent_atomic<foo[]>(pop, pfoo, 6);
 	for (int i = 0; i < 6; ++i)
 		pfoo[i].check_foo();
 
 	delete_persistent_atomic<foo[]>(pfoo, 6);
-	ASSERT(pfoo == nullptr);
+	UT_ASSERT(pfoo == nullptr);
 
 	persistent_ptr<foo[5]> pfooN;
 	make_persistent_atomic<foo[5]>(pop, pfooN);
@@ -112,7 +112,7 @@ test_make_one_d(pool_base &pop)
 		pfooN[i].check_foo();
 
 	delete_persistent_atomic<foo[5]>(pfooN);
-	ASSERT(pfooN == nullptr);
+	UT_ASSERT(pfooN == nullptr);
 }
 
 /*
@@ -128,7 +128,7 @@ test_make_two_d(pool_base &pop)
 			pfoo[i][j].check_foo();
 
 	delete_persistent_atomic<foo[][2]>(pfoo, 5);
-	ASSERT(pfoo == nullptr);
+	UT_ASSERT(pfoo == nullptr);
 
 	persistent_ptr<foo[][3]> pfoo2;
 	make_persistent_atomic<foo[][3]>(pop, pfoo2, 6);
@@ -137,7 +137,7 @@ test_make_two_d(pool_base &pop)
 			pfoo2[i][j].check_foo();
 
 	delete_persistent_atomic<foo[][3]>(pfoo2, 6);
-	ASSERT(pfoo2 == nullptr);
+	UT_ASSERT(pfoo2 == nullptr);
 
 	persistent_ptr<foo[5][2]> pfooN;
 	make_persistent_atomic<foo[5][2]>(pop, pfooN);
@@ -146,7 +146,7 @@ test_make_two_d(pool_base &pop)
 			pfooN[i][j].check_foo();
 
 	delete_persistent_atomic<foo[5][2]>(pfooN);
-	ASSERT(pfooN == nullptr);
+	UT_ASSERT(pfooN == nullptr);
 }
 
 /*
@@ -164,7 +164,7 @@ test_constructor_exception(pool_base &pop)
 		except = true;
 	}
 
-	ASSERT(except);
+	UT_ASSERT(except);
 }
 
 }
@@ -175,7 +175,7 @@ main(int argc, char *argv[])
 	START(argc, argv, "obj_cpp_make_persistent_array_atomic");
 
 	if (argc != 2)
-		FATAL("usage: %s file-name", argv[0]);
+		UT_FATAL("usage: %s file-name", argv[0]);
 
 	const char *path = argv[1];
 
@@ -185,7 +185,7 @@ main(int argc, char *argv[])
 		pop = pool<struct root>::create(path, LAYOUT, PMEMOBJ_MIN_POOL,
 			S_IWUSR | S_IRUSR);
 	} catch (nvml::pool_error &pe) {
-		FATAL("!pool::create: %s %s", pe.what(), path);
+		UT_FATAL("!pool::create: %s %s", pe.what(), path);
 	}
 
 	test_make_one_d(pop);

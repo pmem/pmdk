@@ -59,7 +59,7 @@ main(int argc, char *argv[])
 	START(argc, argv, "obj_recreate");
 
 	if (argc < 2)
-		FATAL("usage: %s file-name [trunc]", argv[0]);
+		UT_FATAL("usage: %s file-name [trunc]", argv[0]);
 
 	const char *path = argv[1];
 
@@ -68,7 +68,7 @@ main(int argc, char *argv[])
 	/* create pool 2*N */
 	pop = pmemobj_create(path, LAYOUT_NAME, 2 * N, S_IWUSR | S_IRUSR);
 	if (pop == NULL)
-		FATAL("!pmemobj_create: %s", path);
+		UT_FATAL("!pmemobj_create: %s", path);
 
 	/* allocate 1.5*N */
 	TOID(struct root) root = (TOID(struct root))pmemobj_root(pop, 1.5 * N);
@@ -81,7 +81,7 @@ main(int argc, char *argv[])
 	int fd = OPEN(path, O_RDWR);
 
 	if (argc >= 3 && strcmp(argv[2], "trunc") == 0) {
-		OUT("truncating");
+		UT_OUT("truncating");
 		/* shrink file to N */
 		FTRUNCATE(fd, N);
 	}
@@ -95,17 +95,17 @@ main(int argc, char *argv[])
 	/* create pool on existing file */
 	pop = pmemobj_create(path, LAYOUT_NAME, 0, S_IWUSR | S_IRUSR);
 	if (pop == NULL)
-		FATAL("!pmemobj_create: %s", path);
+		UT_FATAL("!pmemobj_create: %s", path);
 
 	/* try to allocate 0.7*N */
 	root = (TOID(struct root))pmemobj_root(pop, 0.5 * N);
 
 	if (TOID_IS_NULL(root))
-		FATAL("couldn't allocate root object");
+		UT_FATAL("couldn't allocate root object");
 
 	/* validate root object is empty */
 	if (!TOID_IS_NULL(D_RW(root)->foo))
-		FATAL("root object is already filled after pmemobj_create!");
+		UT_FATAL("root object is already filled after pmemobj_create!");
 
 	pmemobj_close(pop);
 

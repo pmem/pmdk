@@ -94,15 +94,15 @@ test_new_delete_bucket()
 
 	/* b malloc fail */
 	b = bucket_new(1, BUCKET_HUGE, CONTAINER_CTREE, 1, 1);
-	ASSERT(b == NULL);
+	UT_ASSERT(b == NULL);
 
 	/* b->ctree fail */
 	b = bucket_new(2, BUCKET_HUGE, CONTAINER_CTREE, 1, 1);
-	ASSERT(b == NULL);
+	UT_ASSERT(b == NULL);
 
 	/* all ok */
 	b = bucket_new(4, BUCKET_HUGE, CONTAINER_CTREE, 1, 1);
-	ASSERT(b != NULL);
+	UT_ASSERT(b != NULL);
 
 	bucket_delete(b);
 }
@@ -112,14 +112,14 @@ test_bucket_bitmap_correctness()
 {
 	struct bucket *b = bucket_new(1, BUCKET_RUN, CONTAINER_CTREE,
 		(RUNSIZE / 10), TEST_MAX_UNIT);
-	ASSERT(b != NULL);
+	UT_ASSERT(b != NULL);
 
 	/* 54 set (not available for allocations), and 10 clear (available) */
 	uint64_t bitmap_lastval =
 	0b1111111111111111111111111111111111111111111111111111110000000000;
 
 	struct bucket_run *r = (struct bucket_run *)b;
-	ASSERTeq(r->bitmap_lastval, bitmap_lastval);
+	UT_ASSERTeq(r->bitmap_lastval, bitmap_lastval);
 
 	bucket_delete(b);
 }
@@ -129,11 +129,11 @@ test_bucket()
 {
 	struct bucket *b = bucket_new(1, BUCKET_HUGE, CONTAINER_CTREE,
 		TEST_UNIT_SIZE, TEST_MAX_UNIT);
-	ASSERT(b != NULL);
+	UT_ASSERT(b != NULL);
 
-	ASSERT(b->unit_size == TEST_UNIT_SIZE);
-	ASSERT(b->type == BUCKET_HUGE);
-	ASSERT(b->calc_units(b, TEST_SIZE) == TEST_SIZE_UNITS);
+	UT_ASSERT(b->unit_size == TEST_UNIT_SIZE);
+	UT_ASSERT(b->type == BUCKET_HUGE);
+	UT_ASSERT(b->calc_units(b, TEST_SIZE) == TEST_SIZE_UNITS);
 
 	bucket_delete(b);
 }
@@ -143,22 +143,22 @@ test_bucket_insert_get()
 {
 	struct bucket *b = bucket_new(1, BUCKET_RUN, CONTAINER_CTREE,
 		TEST_UNIT_SIZE, TEST_MAX_UNIT);
-	ASSERT(b != NULL);
+	UT_ASSERT(b != NULL);
 
 	struct memory_block m = {TEST_CHUNK_ID, TEST_ZONE_ID,
 		TEST_SIZE_IDX, TEST_BLOCK_OFF};
 
 	/* get from empty */
-	ASSERT(CNT_OP(b, get_rm_bestfit, &m) != 0);
+	UT_ASSERT(CNT_OP(b, get_rm_bestfit, &m) != 0);
 
-	ASSERT(CNT_OP(b, insert, NULL, m) == 0);
+	UT_ASSERT(CNT_OP(b, insert, NULL, m) == 0);
 
-	ASSERT(CNT_OP(b, get_rm_bestfit, &m) == 0);
+	UT_ASSERT(CNT_OP(b, get_rm_bestfit, &m) == 0);
 
-	ASSERT(m.chunk_id == TEST_CHUNK_ID);
-	ASSERT(m.zone_id == TEST_ZONE_ID);
-	ASSERT(m.size_idx == TEST_SIZE_IDX);
-	ASSERT(m.block_off == TEST_BLOCK_OFF);
+	UT_ASSERT(m.chunk_id == TEST_CHUNK_ID);
+	UT_ASSERT(m.zone_id == TEST_ZONE_ID);
+	UT_ASSERT(m.size_idx == TEST_SIZE_IDX);
+	UT_ASSERT(m.block_off == TEST_BLOCK_OFF);
 
 	bucket_delete(b);
 }
@@ -168,14 +168,14 @@ test_bucket_remove()
 {
 	struct bucket *b = bucket_new(1, BUCKET_RUN, CONTAINER_CTREE,
 		TEST_UNIT_SIZE, TEST_MAX_UNIT);
-	ASSERT(b != NULL);
+	UT_ASSERT(b != NULL);
 
 	struct memory_block m = {TEST_CHUNK_ID, TEST_ZONE_ID,
 		TEST_SIZE_IDX, TEST_BLOCK_OFF};
 
-	ASSERT(CNT_OP(b, insert, NULL, m) == 0);
+	UT_ASSERT(CNT_OP(b, insert, NULL, m) == 0);
 
-	ASSERT(CNT_OP(b, get_rm_exact, m) == 0);
+	UT_ASSERT(CNT_OP(b, get_rm_exact, m) == 0);
 
 	bucket_delete(b);
 }
