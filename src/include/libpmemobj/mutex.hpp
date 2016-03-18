@@ -145,6 +145,16 @@ namespace obj {
 		}
 
 		/**
+		 * The type of lock needed for the transaction API.
+		 *
+		 * @retun TX_LOCK_MUTEX
+		 */
+		enum pobj_tx_lock lock_type() const noexcept
+		{
+			return TX_LOCK_MUTEX;
+		}
+
+		/**
 		 * Deleted assignment operator.
 		 */
 		mutex &operator=(const mutex&) = delete;

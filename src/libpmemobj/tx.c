@@ -54,11 +54,11 @@
 struct tx_data {
 	SLIST_ENTRY(tx_data) tx_entry;
 	jmp_buf env;
-	int errnum;
 };
 
 static __thread struct {
 	enum pobj_tx_stage stage;
+	int last_errnum;
 	struct lane_section *section;
 } tx;
 
@@ -1009,7 +1009,7 @@ pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...)
 		goto err_abort;
 	}
 
-	txd->errnum = 0;
+	tx.last_errnum = 0;
 	if (env != NULL)
 		memcpy(txd->env, env, sizeof (jmp_buf));
 	else
@@ -1082,6 +1082,9 @@ pmemobj_tx_abort(int errnum)
 
 	ASSERT(tx.section != NULL);
 
+	if (errnum == 0)
+		errnum = ECANCELED;
+
 	tx.stage = TX_STAGE_ONABORT;
 	struct lane_tx_runtime *lane = tx.section->runtime;
 	struct tx_data *txd = SLIST_FIRST(&lane->tx_entries);
@@ -1096,7 +1099,7 @@ pmemobj_tx_abort(int errnum)
 		tx_abort(lane->pop, layout, 0 /* abort */);
 	}
 
-	txd->errnum = errnum;
+	tx.last_errnum = errnum;
 	if (!util_is_zeroed(txd->env, sizeof (jmp_buf)))
 		longjmp(txd->env, errnum);
 	else
@@ -1111,15 +1114,7 @@ pmemobj_tx_errno(void)
 {
 	LOG(3, NULL);
 
-	if (tx.stage != TX_STAGE_ONABORT)
-		FATAL("pmemobj_tx_errno called in invalid stage %d", tx.stage);
-
-	ASSERTne(tx.section, NULL);
-
-	struct lane_tx_runtime *lane = tx.section->runtime;
-	struct tx_data *txd = SLIST_FIRST(&lane->tx_entries);
-
-	return txd->errnum;
+	return tx.last_errnum;
 }
 
 /*
@@ -1182,7 +1177,6 @@ pmemobj_tx_end()
 	struct tx_data *txd = SLIST_FIRST(&lane->tx_entries);
 	SLIST_REMOVE_HEAD(&lane->tx_entries, tx_entry);
 
-	int errnum = txd->errnum;
 	Free(txd);
 
 	VALGRIND_END_TX;
@@ -1214,11 +1208,11 @@ pmemobj_tx_end()
 		tx.stage = TX_STAGE_WORK;
 
 		/* abort called within inner transaction, waterfall the error */
-		if (errnum)
-			pmemobj_tx_abort(errnum);
+		if (tx.last_errnum)
+			pmemobj_tx_abort(tx.last_errnum);
 	}
 
-	return errnum;
+	return tx.last_errnum;
 }
 
 /*
