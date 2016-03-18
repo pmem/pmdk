@@ -67,7 +67,7 @@ namespace detail {
 				<std::chrono::nanoseconds>
 				(rel_duration - sec).count();
 
-		return std::move(ts);
+		return ts;
 	}
 
 }  /* namespace detail */

@@ -2707,6 +2707,10 @@ aborts the current transaction and causes transition to
 .IR TX_STAGE_ONABORT .
 This function must be called during
 .IR TX_STAGE_WORK .
+If the passed
+.I errnum
+is equal to zero, it shall be set to
+.IR ECANCELED .
 .PP
 .BI "void pmemobj_tx_commit(void);
 .IP
@@ -2748,8 +2752,7 @@ can be called internally by the library.
 .IP
 The
 .BR pmemobj_tx_errno ()
-function returns last transaction error code. It must be called only during
-.IR TX_STAGE_ONABORT .
+function returns the error code of the last transaction.
 .PP
 .BI "void pmemobj_tx_process(void);
 .IP
@@ -3276,7 +3279,7 @@ TX_BEGIN(Pop) {
         bad_example_3 = malloc(...);
         good_example = malloc(...);
         ...
-        pmemobj_tx_abort(); /* manual or library abort called here */
+        pmemobj_tx_abort(EINVAL); /* manual or library abort called here */
 } TX_ONCOMMIT {
         /*
          * This section is longjmp-safe

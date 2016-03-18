@@ -56,7 +56,8 @@ namespace obj
 	 * This class is a non-template version of pool. It is useful for places
 	 * where providing pool template argument is undesirable.
 	 */
-	class pool_base {
+	class pool_base
+	{
 	public:
 		/**
 		 * Defaulted constructor.

@@ -218,6 +218,16 @@ namespace obj {
 		}
 
 		/**
+		 * The type of lock needed for the transaction API.
+		 *
+		 * @retun TX_LOCK_RWLOCK
+		 */
+		enum pobj_tx_lock lock_type() const noexcept
+		{
+			return TX_LOCK_RWLOCK;
+		}
+
+		/**
 		 * Deleted assignment operator.
 		 */
 		shared_mutex &operator=(const shared_mutex&) = delete;
