@@ -52,9 +52,9 @@ do_toid_valid(PMEMobjpool *pop)
 {
 	TOID(struct obj) obj;
 	POBJ_NEW(pop, &obj, struct obj, NULL, NULL);
-	ASSERT(!TOID_IS_NULL(obj));
+	UT_ASSERT(!TOID_IS_NULL(obj));
 
-	ASSERT(TOID_VALID(obj));
+	UT_ASSERT(TOID_VALID(obj));
 	POBJ_FREE(&obj);
 }
 
@@ -68,8 +68,8 @@ do_toid_no_valid(PMEMobjpool *pop)
 	TOID(struct obj) obj;
 	int ret = pmemobj_alloc(pop, &obj.oid, sizeof (struct obj), TEST_NUM,
 								NULL, NULL);
-	ASSERTeq(ret, 0);
-	ASSERT(!TOID_VALID(obj));
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERT(!TOID_VALID(obj));
 	POBJ_FREE(&obj);
 }
 
@@ -83,7 +83,7 @@ do_direct_simple(PMEMobjpool *pop)
 	TOID(struct obj) obj;
 	POBJ_NEW(pop, &obj, struct obj, NULL, NULL);
 	DIRECT_RW(obj)->id = TEST_NUM;
-	ASSERTeq(DIRECT_RO(obj)->id, TEST_NUM);
+	UT_ASSERTeq(DIRECT_RO(obj)->id, TEST_NUM);
 	POBJ_FREE(&obj);
 }
 
@@ -93,12 +93,12 @@ main(int argc, char *argv[])
 	START(argc, argv, "obj_toid");
 
 	if (argc != 2)
-		FATAL("usage: %s [file]", argv[0]);
+		UT_FATAL("usage: %s [file]", argv[0]);
 
 	PMEMobjpool *pop;
 	if ((pop = pmemobj_create(argv[1], LAYOUT_NAME, PMEMOBJ_MIN_POOL,
 	    S_IWUSR | S_IRUSR)) == NULL)
-		FATAL("!pmemobj_create");
+		UT_FATAL("!pmemobj_create");
 
 	do_toid_valid(pop);
 	do_toid_no_valid(pop);

@@ -79,13 +79,13 @@ static void
 test_alloc(PMEMobjpool *pop, size_t size)
 {
 	TOID(struct root) root = POBJ_ROOT(pop, struct root);
-	ASSERT(TOID_IS_NULL(D_RO(root)->obj));
+	UT_ASSERT(TOID_IS_NULL(D_RO(root)->obj));
 
 	int ret = pmemobj_realloc(pop, &D_RW(root)->obj.oid, size,
 			TOID_TYPE_NUM(struct object));
-	ASSERTeq(ret, 0);
-	ASSERT(!TOID_IS_NULL(D_RO(root)->obj));
-	ASSERT(pmemobj_alloc_usable_size(D_RO(root)->obj.oid) >= size);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERT(!TOID_IS_NULL(D_RO(root)->obj));
+	UT_ASSERT(pmemobj_alloc_usable_size(D_RO(root)->obj.oid) >= size);
 }
 
 /*
@@ -95,12 +95,12 @@ static void
 test_free(PMEMobjpool *pop)
 {
 	TOID(struct root) root = POBJ_ROOT(pop, struct root);
-	ASSERT(!TOID_IS_NULL(D_RO(root)->obj));
+	UT_ASSERT(!TOID_IS_NULL(D_RO(root)->obj));
 
 	int ret = pmemobj_realloc(pop, &D_RW(root)->obj.oid, 0,
 			TOID_TYPE_NUM(struct object));
-	ASSERTeq(ret, 0);
-	ASSERT(TOID_IS_NULL(D_RO(root)->obj));
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERT(TOID_IS_NULL(D_RO(root)->obj));
 }
 
 static int check_integrity = 1;
@@ -125,7 +125,7 @@ test_realloc(PMEMobjpool *pop, size_t size_from, size_t size_to,
 		unsigned type_from, unsigned type_to, int zrealloc)
 {
 	TOID(struct root) root = POBJ_ROOT(pop, struct root);
-	ASSERT(TOID_IS_NULL(D_RO(root)->obj));
+	UT_ASSERT(TOID_IS_NULL(D_RO(root)->obj));
 
 	int ret;
 	if (zrealloc)
@@ -135,18 +135,18 @@ test_realloc(PMEMobjpool *pop, size_t size_from, size_t size_to,
 		ret = pmemobj_alloc(pop, &D_RW(root)->obj.oid,
 			size_from, type_from, NULL, NULL);
 
-	ASSERTeq(ret, 0);
-	ASSERT(!TOID_IS_NULL(D_RO(root)->obj));
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERT(!TOID_IS_NULL(D_RO(root)->obj));
 	size_t usable_size_from =
 			pmemobj_alloc_usable_size(D_RO(root)->obj.oid);
 
-	ASSERT(usable_size_from >= size_from);
+	UT_ASSERT(usable_size_from >= size_from);
 
 	size_t check_size;
 	uint16_t checksum;
 
 	if (zrealloc) {
-		ASSERT(util_is_zeroed(D_RO(D_RO(root)->obj),
+		UT_ASSERT(util_is_zeroed(D_RO(D_RO(root)->obj),
 					size_from));
 	} else if (check_integrity) {
 		check_size = size_to >= usable_size_from ?
@@ -163,21 +163,21 @@ test_realloc(PMEMobjpool *pop, size_t size_from, size_t size_to,
 				size_to, type_to);
 	}
 
-	ASSERTeq(ret, 0);
-	ASSERT(!TOID_IS_NULL(D_RO(root)->obj));
-	ASSERT(pmemobj_alloc_usable_size(D_RO(root)->obj.oid) >= size_to);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERT(!TOID_IS_NULL(D_RO(root)->obj));
+	UT_ASSERT(pmemobj_alloc_usable_size(D_RO(root)->obj.oid) >= size_to);
 
 	if (zrealloc) {
-		ASSERT(util_is_zeroed(D_RO(D_RO(root)->obj), size_to));
+		UT_ASSERT(util_is_zeroed(D_RO(D_RO(root)->obj), size_to));
 	} else if (check_integrity) {
 		uint16_t checksum2 = ut_checksum(
 				(void *)D_RW(D_RW(root)->obj), check_size);
 		if (checksum2 != checksum)
-			ASSERTinfo(0, "memory corruption");
+			UT_ASSERTinfo(0, "memory corruption");
 	}
 
 	pmemobj_free(&D_RW(root)->obj.oid);
-	ASSERT(TOID_IS_NULL(D_RO(root)->obj));
+	UT_ASSERT(TOID_IS_NULL(D_RO(root)->obj));
 }
 
 /*
@@ -220,11 +220,11 @@ main(int argc, char *argv[])
 	START(argc, argv, "obj_realloc");
 
 	if (argc < 2)
-		FATAL("usage: %s file [check_integrity]", argv[0]);
+		UT_FATAL("usage: %s file [check_integrity]", argv[0]);
 
 	PMEMobjpool *pop = pmemobj_open(argv[1], POBJ_LAYOUT_NAME(realloc));
 	if (!pop)
-		FATAL("!pmemobj_open");
+		UT_FATAL("!pmemobj_open");
 
 	if (argc >= 3)
 		check_integrity = atoi(argv[2]);

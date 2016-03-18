@@ -51,29 +51,29 @@ main(int argc, char *argv[])
 	START(argc, argv, "vmmalloc_init");
 
 	if (argc > 2)
-		FATAL("usage: %s [d|l]", argv[0]);
+		UT_FATAL("usage: %s [d|l]", argv[0]);
 
 	if (argc == 2) {
 		switch (argv[1][0]) {
 		case 'd':
-			OUT("deep binding");
+			UT_OUT("deep binding");
 			handle = dlopen("./libtest.so",
 				RTLD_NOW | RTLD_LOCAL | RTLD_DEEPBIND);
 			break;
 		case 'l':
-			OUT("lazy binding");
+			UT_OUT("lazy binding");
 			handle = dlopen("./libtest.so", RTLD_LAZY);
 			break;
 		default:
-			FATAL("usage: %s [d|l]", argv[0]);
+			UT_FATAL("usage: %s [d|l]", argv[0]);
 		}
 
 		if (handle == NULL)
-			OUT("dlopen: %s", dlerror());
-		ASSERTne(handle, NULL);
+			UT_OUT("dlopen: %s", dlerror());
+		UT_ASSERTne(handle, NULL);
 
 		Falloc = dlsym(handle, "falloc");
-		ASSERTne(Falloc, NULL);
+		UT_ASSERTne(Falloc, NULL);
 	}
 
 	ptr = malloc(4321);

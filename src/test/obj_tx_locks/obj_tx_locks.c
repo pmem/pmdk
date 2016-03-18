@@ -69,12 +69,12 @@ do_tx(void *arg)
 	BEGIN_TX(data->pop, data->mutexes, data->rwlocks) {
 		data->a = TEST_VALUE_A;
 	} TX_ONCOMMIT {
-		ASSERT(data->a == TEST_VALUE_A);
+		UT_ASSERT(data->a == TEST_VALUE_A);
 		data->b = TEST_VALUE_B;
 	} TX_ONABORT { /* not called */
 		data->a = TEST_VALUE_B;
 	} TX_FINALLY {
-		ASSERT(data->b == TEST_VALUE_B);
+		UT_ASSERT(data->b == TEST_VALUE_B);
 		data->c = TEST_VALUE_C;
 	} TX_END
 
@@ -96,10 +96,10 @@ do_aborted_tx(void *arg)
 	} TX_ONCOMMIT { /* not called */
 		data->a = TEST_VALUE_B;
 	} TX_ONABORT {
-		ASSERT(data->a == TEST_VALUE_A);
+		UT_ASSERT(data->a == TEST_VALUE_A);
 		data->b = TEST_VALUE_B;
 	} TX_FINALLY {
-		ASSERT(data->b == TEST_VALUE_B);
+		UT_ASSERT(data->b == TEST_VALUE_B);
 		data->c = TEST_VALUE_C;
 	} TX_END
 
@@ -118,7 +118,7 @@ do_nested_tx(void *arg)
 		BEGIN_TX(data->pop, data->mutexes, data->rwlocks) {
 			data->a = TEST_VALUE_A;
 		} TX_ONCOMMIT {
-			ASSERT(data->a == TEST_VALUE_A);
+			UT_ASSERT(data->a == TEST_VALUE_A);
 			data->b = TEST_VALUE_B;
 		} TX_END
 	} TX_ONCOMMIT {
@@ -145,23 +145,23 @@ do_aborted_nested_tx(void *arg)
 		} TX_ONCOMMIT { /* not called */
 			data->a = TEST_VALUE_C;
 		} TX_ONABORT {
-			ASSERT(data->a == TEST_VALUE_A);
+			UT_ASSERT(data->a == TEST_VALUE_A);
 			data->b = TEST_VALUE_B;
 		} TX_FINALLY {
-			ASSERT(data->b == TEST_VALUE_B);
+			UT_ASSERT(data->b == TEST_VALUE_B);
 			data->c = TEST_VALUE_C;
 		} TX_END
 		data->a = TEST_VALUE_B;
 	} TX_ONCOMMIT { /* not called */
-		ASSERT(data->a == TEST_VALUE_A);
+		UT_ASSERT(data->a == TEST_VALUE_A);
 		data->c = TEST_VALUE_C;
 	} TX_ONABORT {
-		ASSERT(data->a == TEST_VALUE_A);
-		ASSERT(data->b == TEST_VALUE_B);
-		ASSERT(data->c == TEST_VALUE_C);
+		UT_ASSERT(data->a == TEST_VALUE_A);
+		UT_ASSERT(data->b == TEST_VALUE_B);
+		UT_ASSERT(data->c == TEST_VALUE_C);
 		data->a = TEST_VALUE_B;
 	} TX_FINALLY {
-		ASSERT(data->a == TEST_VALUE_B);
+		UT_ASSERT(data->a == TEST_VALUE_B);
 		data->b = TEST_VALUE_A;
 	} TX_END
 
@@ -186,17 +186,17 @@ main(int argc, char *argv[])
 	START(argc, argv, "obj_tx_locks");
 
 	if (argc > 3)
-		FATAL("usage: %s <file> [m]", argv[0]);
+		UT_FATAL("usage: %s <file> [m]", argv[0]);
 
 	if ((test_obj.pop = pmemobj_create(argv[1], LAYOUT_NAME,
 	    PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR)) == NULL)
-		FATAL("!pmemobj_create");
+		UT_FATAL("!pmemobj_create");
 
 	int multithread = 0;
 	if (argc == 3) {
 		multithread = (argv[2][0] == 'm');
 		if (!multithread)
-			FATAL("wrong test type supplied %c", argv[1][0]);
+			UT_FATAL("wrong test type supplied %c", argv[1][0]);
 	}
 
 	test_obj.mutexes = CALLOC(NUM_LOCKS, sizeof (PMEMmutex));
@@ -209,9 +209,9 @@ main(int argc, char *argv[])
 		do_tx(&test_obj);
 	}
 
-	ASSERT(test_obj.a == TEST_VALUE_A);
-	ASSERT(test_obj.b == TEST_VALUE_B);
-	ASSERT(test_obj.c == TEST_VALUE_C);
+	UT_ASSERT(test_obj.a == TEST_VALUE_A);
+	UT_ASSERT(test_obj.b == TEST_VALUE_B);
+	UT_ASSERT(test_obj.c == TEST_VALUE_C);
 
 	if (multithread) {
 		run_mt_test(do_aborted_tx, &test_obj);
@@ -220,9 +220,9 @@ main(int argc, char *argv[])
 		do_aborted_tx(&test_obj);
 	}
 
-	ASSERT(test_obj.a == TEST_VALUE_A);
-	ASSERT(test_obj.b == TEST_VALUE_B);
-	ASSERT(test_obj.c == TEST_VALUE_C);
+	UT_ASSERT(test_obj.a == TEST_VALUE_A);
+	UT_ASSERT(test_obj.b == TEST_VALUE_B);
+	UT_ASSERT(test_obj.c == TEST_VALUE_C);
 
 	if (multithread) {
 		run_mt_test(do_nested_tx, &test_obj);
@@ -231,9 +231,9 @@ main(int argc, char *argv[])
 		do_nested_tx(&test_obj);
 	}
 
-	ASSERT(test_obj.a == TEST_VALUE_A);
-	ASSERT(test_obj.b == TEST_VALUE_B);
-	ASSERT(test_obj.c == TEST_VALUE_C);
+	UT_ASSERT(test_obj.a == TEST_VALUE_A);
+	UT_ASSERT(test_obj.b == TEST_VALUE_B);
+	UT_ASSERT(test_obj.c == TEST_VALUE_C);
 
 	if (multithread) {
 		run_mt_test(do_aborted_nested_tx, &test_obj);
@@ -242,9 +242,9 @@ main(int argc, char *argv[])
 		do_aborted_nested_tx(&test_obj);
 	}
 
-	ASSERT(test_obj.a == TEST_VALUE_B);
-	ASSERT(test_obj.b == TEST_VALUE_A);
-	ASSERT(test_obj.c == TEST_VALUE_C);
+	UT_ASSERT(test_obj.a == TEST_VALUE_B);
+	UT_ASSERT(test_obj.b == TEST_VALUE_A);
+	UT_ASSERT(test_obj.c == TEST_VALUE_C);
 
 	pmemobj_close(test_obj.pop);
 

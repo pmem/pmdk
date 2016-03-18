@@ -138,7 +138,7 @@ main(int argc, char *argv[])
 	ptr = memalign(16, 4321);
 	free(ptr);
 
-	OUT("malloc %d realloc %d memalign %d free %d",
+	UT_OUT("malloc %d realloc %d memalign %d free %d",
 			malloc_cnt, realloc_cnt, memalign_cnt, free_cnt);
 
 	DONE(NULL);

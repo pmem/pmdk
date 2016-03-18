@@ -51,12 +51,12 @@ pool_create(const char *path, size_t poolsize, unsigned mode)
 	PMEMlogpool *plp = pmemlog_create(path, poolsize, mode);
 
 	if (plp == NULL)
-		OUT("!%s: pmemlog_create", path);
+		UT_OUT("!%s: pmemlog_create", path);
 	else {
 		struct stat stbuf;
 		STAT(path, &stbuf);
 
-		OUT("%s: file size %zu usable space %zu mode 0%o",
+		UT_OUT("%s: file size %zu usable space %zu mode 0%o",
 				path, stbuf.st_size,
 				pmemlog_nbyte(plp),
 				stbuf.st_mode & 0777);
@@ -66,9 +66,9 @@ pool_create(const char *path, size_t poolsize, unsigned mode)
 		int result = pmemlog_check(path);
 
 		if (result < 0)
-			OUT("!%s: pmemlog_check", path);
+			UT_OUT("!%s: pmemlog_check", path);
 		else if (result == 0)
-			OUT("%s: pmemlog_check: not consistent", path);
+			UT_OUT("%s: pmemlog_check: not consistent", path);
 	}
 }
 
@@ -77,9 +77,9 @@ pool_open(const char *path)
 {
 	PMEMlogpool *plp = pmemlog_open(path);
 	if (plp == NULL)
-		OUT("!%s: pmemlog_open", path);
+		UT_OUT("!%s: pmemlog_open", path);
 	else {
-		OUT("%s: pmemlog_open: Success", path);
+		UT_OUT("%s: pmemlog_open: Success", path);
 		pmemlog_close(plp);
 	}
 }
@@ -90,7 +90,7 @@ main(int argc, char *argv[])
 	START(argc, argv, "log_pool");
 
 	if (argc < 3)
-		FATAL("usage: %s op path [poolsize mode]", argv[0]);
+		UT_FATAL("usage: %s op path [poolsize mode]", argv[0]);
 
 	size_t poolsize;
 	unsigned mode;
@@ -108,7 +108,7 @@ main(int argc, char *argv[])
 		break;
 
 	default:
-		FATAL("unknown operation");
+		UT_FATAL("unknown operation");
 	}
 
 	DONE(NULL);

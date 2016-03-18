@@ -46,7 +46,7 @@
 static void
 usage(char *appname)
 {
-	FATAL("usage: %s [-z - use calloc] directory ", appname);
+	UT_FATAL("usage: %s [-z - use calloc] directory ", appname);
 }
 
 int
@@ -81,7 +81,7 @@ main(int argc, char *argv[])
 
 	vmp = vmem_create(dir, VMEM_MIN_POOL);
 	if (vmp == NULL)
-		FATAL("!vmem_create");
+		UT_FATAL("!vmem_create");
 
 	for (i = 0; i < n; i++) {
 		int *test = NULL;
@@ -89,17 +89,17 @@ main(int argc, char *argv[])
 			test = vmem_calloc(vmp, 1, count * sizeof (int));
 		else
 			test = vmem_malloc(vmp, count * sizeof (int));
-		ASSERTne(test, NULL);
+		UT_ASSERTne(test, NULL);
 
 		if (use_calloc) {
 			/* vmem_calloc should return zeroed memory */
 			for (j = 0; j < count; j++)
-				ASSERTeq(test[j], 0);
+				UT_ASSERTeq(test[j], 0);
 		}
 		for (j = 0; j < count; j++)
 			test[j] = test_value;
 		for (j = 0; j < count; j++)
-			ASSERTeq(test[j], test_value);
+			UT_ASSERTeq(test[j], test_value);
 
 		vmem_free(vmp, test);
 	}

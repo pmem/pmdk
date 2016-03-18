@@ -72,9 +72,9 @@ public:
 	 */
 	void check_foo(int val, char arr_val)
 	{
-		ASSERTeq(val, this->bar);
+		UT_ASSERTeq(val, this->bar);
 		for (int i = 0; i < TEST_ARR_SIZE; ++i)
-			ASSERTeq(arr_val, this->arr[i]);
+			UT_ASSERTeq(arr_val, this->arr[i]);
 	}
 
 	p<int> bar;
@@ -93,13 +93,13 @@ test_make_no_args(pool<struct root> &pop)
 {
 	persistent_ptr<root> r = pop.get_root();
 
-	ASSERT(r->pfoo == nullptr);
+	UT_ASSERT(r->pfoo == nullptr);
 
 	make_persistent_atomic<foo>(pop, r->pfoo);
 	r->pfoo->check_foo(1, 1);
 
 	delete_persistent_atomic<foo>(r->pfoo);
-	ASSERT(r->pfoo == nullptr);
+	UT_ASSERT(r->pfoo == nullptr);
 }
 
 /*
@@ -109,19 +109,19 @@ void
 test_make_args(pool<struct root> &pop)
 {
 	persistent_ptr<root> r = pop.get_root();
-	ASSERT(r->pfoo == nullptr);
+	UT_ASSERT(r->pfoo == nullptr);
 
 	make_persistent_atomic<foo>(pop, r->pfoo, 2);
 	r->pfoo->check_foo(2, 2);
 
 	delete_persistent_atomic<foo>(r->pfoo);
-	ASSERT(r->pfoo == nullptr);
+	UT_ASSERT(r->pfoo == nullptr);
 
 	make_persistent_atomic<foo>(pop, r->pfoo, 3, 4);
 	r->pfoo->check_foo(3, 4);
 
 	delete_persistent_atomic<foo>(r->pfoo);
-	ASSERT(r->pfoo == nullptr);
+	UT_ASSERT(r->pfoo == nullptr);
 }
 
 }
@@ -132,7 +132,7 @@ main(int argc, char *argv[])
 	START(argc, argv, "obj_cpp_make_persistent_atomic");
 
 	if (argc != 2)
-		FATAL("usage: %s file-name", argv[0]);
+		UT_FATAL("usage: %s file-name", argv[0]);
 
 	const char *path = argv[1];
 
@@ -142,7 +142,7 @@ main(int argc, char *argv[])
 		pop = pool<struct root>::create(path, LAYOUT, PMEMOBJ_MIN_POOL,
 			S_IWUSR | S_IRUSR);
 	} catch (nvml::pool_error &pe) {
-		FATAL("!pool::create: %s %s", pe.what(), path);
+		UT_FATAL("!pool::create: %s %s", pe.what(), path);
 	}
 
 	test_make_no_args(pop);

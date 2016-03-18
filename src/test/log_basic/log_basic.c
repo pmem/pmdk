@@ -48,7 +48,7 @@ static void
 do_nbyte(PMEMlogpool *plp)
 {
 	size_t nbyte = pmemlog_nbyte(plp);
-	OUT("usable size: %zu", nbyte);
+	UT_OUT("usable size: %zu", nbyte);
 }
 
 /*
@@ -70,13 +70,13 @@ do_append(PMEMlogpool *plp)
 		int rv = pmemlog_append(plp, str[i], strlen(str[i]));
 		switch (rv) {
 		case 0:
-			OUT("append   str[%i] %s", i, str[i]);
+			UT_OUT("append   str[%i] %s", i, str[i]);
 			break;
 		case -1:
-			OUT("!append   str[%i] %s", i, str[i]);
+			UT_OUT("!append   str[%i] %s", i, str[i]);
 			break;
 		default:
-			OUT("!append: wrong return value");
+			UT_OUT("!append: wrong return value");
 			break;
 		}
 	}
@@ -130,13 +130,13 @@ do_appendv(PMEMlogpool *plp)
 	int rv = pmemlog_appendv(plp, iov, 9);
 	switch (rv) {
 	case 0:
-		OUT("appendv");
+		UT_OUT("appendv");
 		break;
 	case -1:
-		OUT("!appendv");
+		UT_OUT("!appendv");
 		break;
 	default:
-		OUT("!appendv: wrong return value");
+		UT_OUT("!appendv: wrong return value");
 		break;
 	}
 }
@@ -148,7 +148,7 @@ static void
 do_tell(PMEMlogpool *plp)
 {
 	off_t tell = pmemlog_tell(plp);
-	OUT("tell %zu", tell);
+	UT_OUT("tell %zu", tell);
 }
 
 /*
@@ -158,7 +158,7 @@ static void
 do_rewind(PMEMlogpool *plp)
 {
 	pmemlog_rewind(plp);
-	OUT("rewind");
+	UT_OUT("rewind");
 }
 
 /*
@@ -173,7 +173,7 @@ printit(const void *buf, size_t len, void *arg)
 
 	strncpy(str, buf, len);
 	str[len] = '\0';
-	OUT("%s", str);
+	UT_OUT("%s", str);
 
 	return 1;
 }
@@ -187,9 +187,9 @@ static void
 do_walk(PMEMlogpool *plp)
 {
 	pmemlog_walk(plp, 0, printit, NULL);
-	OUT("walk all at once");
+	UT_OUT("walk all at once");
 	pmemlog_walk(plp, 16, printit, NULL);
-	OUT("walk by 16");
+	UT_OUT("walk by 16");
 }
 
 int
@@ -201,19 +201,19 @@ main(int argc, char *argv[])
 	START(argc, argv, "log_basic");
 
 	if (argc < 3)
-		FATAL("usage: %s file-name op:n|a|v|t|r|w", argv[0]);
+		UT_FATAL("usage: %s file-name op:n|a|v|t|r|w", argv[0]);
 
 	const char *path = argv[1];
 
 	if ((plp = pmemlog_create(path, 0, S_IWUSR | S_IRUSR)) == NULL)
-		FATAL("!pmemlog_create: %s", path);
+		UT_FATAL("!pmemlog_create: %s", path);
 
 	/* go through all arguments one by one */
 	for (int arg = 2; arg < argc; arg++) {
 		/* Scan the character of each argument. */
 		if (strchr("navtrw", argv[arg][0]) == NULL ||
 				argv[arg][1] != '\0')
-			FATAL("op must be n or a or v or t or r or w");
+			UT_FATAL("op must be n or a or v or t or r or w");
 
 		switch (argv[arg][0]) {
 		case 'n':
@@ -247,9 +247,9 @@ main(int argc, char *argv[])
 	/* check consistency again */
 	result = pmemlog_check(path);
 	if (result < 0)
-		OUT("!%s: pmemlog_check", path);
+		UT_OUT("!%s: pmemlog_check", path);
 	else if (result == 0)
-		OUT("%s: pmemlog_check: not consistent", path);
+		UT_OUT("%s: pmemlog_check: not consistent", path);
 
 	DONE(NULL);
 }

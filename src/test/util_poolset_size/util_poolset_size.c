@@ -66,14 +66,14 @@ main(int argc, char *argv[])
 	util_init();
 
 	if (argc < 2)
-		FATAL("usage: %s file...",
+		UT_FATAL("usage: %s file...",
 			argv[0]);
 
 	for (int i = 1; i < argc; i++) {
 		char *fname = argv[i];
 		size_t size = util_poolset_size(fname);
 
-		OUT("util_poolset_size(%s): %lu", fname, size);
+		UT_OUT("util_poolset_size(%s): %lu", fname, size);
 	}
 	out_fini();
 

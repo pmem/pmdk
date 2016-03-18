@@ -93,7 +93,7 @@ test_alloc_api(PMEMobjpool *pop)
 
 	POBJ_ZNEW(pop, &node_zeroed, struct dummy_node);
 
-	ASSERT(OID_INSTANCEOF(node_zeroed.oid, struct dummy_node));
+	UT_ASSERT(OID_INSTANCEOF(node_zeroed.oid, struct dummy_node));
 
 	int *test_val = MALLOC(sizeof (*test_val));
 	*test_val = TEST_VALUE;
@@ -105,12 +105,12 @@ test_alloc_api(PMEMobjpool *pop)
 	TOID(struct dummy_node) iter;
 
 	POBJ_FOREACH_TYPE(pop, iter) {
-		ASSERTeq(D_RO(iter)->value, 0);
+		UT_ASSERTeq(D_RO(iter)->value, 0);
 	}
 
 	TOID(struct dummy_node_c) iter_c;
 	POBJ_FOREACH_TYPE(pop, iter_c) {
-		ASSERTeq(D_RO(iter_c)->value, TEST_VALUE);
+		UT_ASSERTeq(D_RO(iter_c)->value, TEST_VALUE);
 	}
 
 	PMEMoid oid_iter;
@@ -118,7 +118,7 @@ test_alloc_api(PMEMobjpool *pop)
 	POBJ_FOREACH(pop, oid_iter) {
 		nodes_count++;
 	}
-	ASSERTne(nodes_count, 0);
+	UT_ASSERTne(nodes_count, 0);
 
 	POBJ_FREE(&node_zeroed);
 	POBJ_FREE(&node_constructed);
@@ -127,7 +127,7 @@ test_alloc_api(PMEMobjpool *pop)
 	POBJ_FOREACH(pop, oid_iter) {
 		nodes_count++;
 	}
-	ASSERTeq(nodes_count, 0);
+	UT_ASSERTeq(nodes_count, 0);
 
 	int val = 10;
 	POBJ_ALLOC(pop, &node_constructed, struct dummy_node_c,
@@ -137,13 +137,13 @@ test_alloc_api(PMEMobjpool *pop)
 	POBJ_REALLOC(pop, &node_constructed, struct dummy_node_c,
 			sizeof (struct dummy_node_c) + 1000);
 
-	ASSERTeq(pmemobj_type_num(node_constructed.oid),
+	UT_ASSERTeq(pmemobj_type_num(node_constructed.oid),
 			TOID_TYPE_NUM(struct dummy_node_c));
 
 	POBJ_ZREALLOC(pop, &node_constructed, struct dummy_node_c,
 			sizeof (struct dummy_node_c) + 2000);
 
-	ASSERTeq(pmemobj_type_num(node_constructed.oid),
+	UT_ASSERTeq(pmemobj_type_num(node_constructed.oid),
 			TOID_TYPE_NUM(struct dummy_node_c));
 
 	POBJ_FREE(&node_constructed);
@@ -156,21 +156,21 @@ test_alloc_api(PMEMobjpool *pop)
 	int err = 0;
 
 	err = pmemobj_alloc(pop, NULL, SIZE_MAX, 0, NULL, NULL);
-	ASSERTeq(err, -1);
-	ASSERTeq(errno, ENOMEM);
+	UT_ASSERTeq(err, -1);
+	UT_ASSERTeq(errno, ENOMEM);
 
 	err = pmemobj_zalloc(pop, NULL, SIZE_MAX, 0);
-	ASSERTeq(err, -1);
-	ASSERTeq(errno, ENOMEM);
+	UT_ASSERTeq(err, -1);
+	UT_ASSERTeq(errno, ENOMEM);
 
 	err = pmemobj_alloc(pop, NULL, PMEMOBJ_MAX_ALLOC_SIZE + 1, 0, NULL,
 		NULL);
-	ASSERTeq(err, -1);
-	ASSERTeq(errno, ENOMEM);
+	UT_ASSERTeq(err, -1);
+	UT_ASSERTeq(errno, ENOMEM);
 
 	err = pmemobj_zalloc(pop, NULL, PMEMOBJ_MAX_ALLOC_SIZE + 1, 0);
-	ASSERTeq(err, -1);
-	ASSERTeq(errno, ENOMEM);
+	UT_ASSERTeq(err, -1);
+	UT_ASSERTeq(errno, ENOMEM);
 }
 
 static void
@@ -180,88 +180,88 @@ test_realloc_api(PMEMobjpool *pop)
 	int ret;
 
 	ret = pmemobj_alloc(pop, &oid, 128, 0, NULL, NULL);
-	ASSERTeq(ret, 0);
-	ASSERT(!OID_IS_NULL(oid));
-	OUT("alloc: %u, size: %zu", 128,
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERT(!OID_IS_NULL(oid));
+	UT_OUT("alloc: %u, size: %zu", 128,
 			pmemobj_alloc_usable_size(oid));
 
 	/* grow */
 	ret = pmemobj_realloc(pop, &oid, 655360, 0);
-	ASSERTeq(ret, 0);
-	ASSERT(!OID_IS_NULL(oid));
-	OUT("realloc: %u => %u, size: %zu", 128, 655360,
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERT(!OID_IS_NULL(oid));
+	UT_OUT("realloc: %u => %u, size: %zu", 128, 655360,
 			pmemobj_alloc_usable_size(oid));
 
 	/* shrink */
 	ret = pmemobj_realloc(pop, &oid, 1, 0);
-	ASSERTeq(ret, 0);
-	ASSERT(!OID_IS_NULL(oid));
-	OUT("realloc: %u => %u, size: %zu", 655360, 1,
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERT(!OID_IS_NULL(oid));
+	UT_OUT("realloc: %u => %u, size: %zu", 655360, 1,
 			pmemobj_alloc_usable_size(oid));
 
 	/* free */
 	ret = pmemobj_realloc(pop, &oid, 0, 0);
-	ASSERTeq(ret, 0);
-	ASSERT(OID_IS_NULL(oid));
-	OUT("free");
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERT(OID_IS_NULL(oid));
+	UT_OUT("free");
 
 	/* alloc */
 	ret = pmemobj_realloc(pop, &oid, 777, 0);
-	ASSERTeq(ret, 0);
-	ASSERT(!OID_IS_NULL(oid));
-	OUT("realloc: %u => %u, size: %zu", 0, 777,
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERT(!OID_IS_NULL(oid));
+	UT_OUT("realloc: %u => %u, size: %zu", 0, 777,
 			pmemobj_alloc_usable_size(oid));
 
 	/* shrink */
 	ret = pmemobj_realloc(pop, &oid, 1, 0);
-	ASSERTeq(ret, 0);
-	ASSERT(!OID_IS_NULL(oid));
-	OUT("realloc: %u => %u, size: %zu", 777, 1,
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERT(!OID_IS_NULL(oid));
+	UT_OUT("realloc: %u => %u, size: %zu", 777, 1,
 			pmemobj_alloc_usable_size(oid));
 
 	pmemobj_free(&oid);
-	ASSERT(OID_IS_NULL(oid));
-	OUT("free");
+	UT_ASSERT(OID_IS_NULL(oid));
+	UT_OUT("free");
 
 	/* alloc */
 	ret = pmemobj_realloc(pop, &oid, 1, 0);
-	ASSERTeq(ret, 0);
-	ASSERT(!OID_IS_NULL(oid));
-	OUT("realloc: %u => %u, size: %zu", 0, 1,
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERT(!OID_IS_NULL(oid));
+	UT_OUT("realloc: %u => %u, size: %zu", 0, 1,
 			pmemobj_alloc_usable_size(oid));
 
 	/* do nothing */
 	ret = pmemobj_realloc(pop, &oid, 1, 0);
-	ASSERTeq(ret, 0);
-	ASSERT(!OID_IS_NULL(oid));
-	OUT("realloc: %u => %u, size: %zu", 1, 1,
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERT(!OID_IS_NULL(oid));
+	UT_OUT("realloc: %u => %u, size: %zu", 1, 1,
 			pmemobj_alloc_usable_size(oid));
 
 	pmemobj_free(&oid);
-	ASSERT(OID_IS_NULL(oid));
-	OUT("free");
+	UT_ASSERT(OID_IS_NULL(oid));
+	UT_OUT("free");
 
 	/* do nothing */
 	ret = pmemobj_realloc(pop, &oid, 0, 0);
-	ASSERTeq(ret, 0);
-	ASSERT(OID_IS_NULL(oid));
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERT(OID_IS_NULL(oid));
 
 	/* alloc */
 	ret = pmemobj_realloc(pop, &oid, 1, 0);
-	ASSERTeq(ret, 0);
-	ASSERT(!OID_IS_NULL(oid));
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERT(!OID_IS_NULL(oid));
 
 	/* grow beyond reasonable size */
 	ret = pmemobj_realloc(pop, &oid, SIZE_MAX, 0);
-	ASSERTeq(ret, -1);
-	ASSERTeq(errno, ENOMEM);
+	UT_ASSERTeq(ret, -1);
+	UT_ASSERTeq(errno, ENOMEM);
 
 	ret = pmemobj_realloc(pop, &oid, PMEMOBJ_MAX_ALLOC_SIZE + 1, 0);
-	ASSERTeq(ret, -1);
-	ASSERTeq(errno, ENOMEM);
+	UT_ASSERTeq(ret, -1);
+	UT_ASSERTeq(errno, ENOMEM);
 
 	pmemobj_free(&oid);
-	ASSERT(OID_IS_NULL(oid));
+	UT_ASSERT(OID_IS_NULL(oid));
 }
 
 static void
@@ -271,19 +271,19 @@ test_list_api(PMEMobjpool *pop)
 	root = POBJ_ROOT(pop, struct dummy_root);
 	int nodes_count = 0;
 
-	ASSERTeq(pmemobj_type_num(root.oid), POBJ_ROOT_TYPE_NUM);
+	UT_ASSERTeq(pmemobj_type_num(root.oid), POBJ_ROOT_TYPE_NUM);
 	UT_COMPILE_ERROR_ON(TOID_TYPE_NUM_OF(root) != POBJ_ROOT_TYPE_NUM);
 
 	TOID(struct dummy_node) first;
 	TOID(struct dummy_node) iter;
 
 	POBJ_LIST_FOREACH_REVERSE(iter, &D_RO(root)->dummies, plist) {
-		OUT("POBJ_LIST_FOREACH_REVERSE: dummy_node %d",
+		UT_OUT("POBJ_LIST_FOREACH_REVERSE: dummy_node %d",
 					D_RO(iter)->value);
 		nodes_count++;
 	}
 
-	ASSERTeq(nodes_count, 0);
+	UT_ASSERTeq(nodes_count, 0);
 
 	int test_val = TEST_VALUE;
 	PMEMoid ret;
@@ -292,15 +292,15 @@ test_list_api(PMEMobjpool *pop)
 	ret = POBJ_LIST_INSERT_NEW_HEAD(pop, &D_RW(root)->dummies, plist,
 			SIZE_MAX, dummy_node_constructor,
 			&test_val);
-	ASSERTeq(errno, ENOMEM);
-	ASSERT(OID_IS_NULL(ret));
+	UT_ASSERTeq(errno, ENOMEM);
+	UT_ASSERT(OID_IS_NULL(ret));
 
 	errno = 0;
 	ret = POBJ_LIST_INSERT_NEW_HEAD(pop, &D_RW(root)->dummies, plist,
 			PMEMOBJ_MAX_ALLOC_SIZE + 1, dummy_node_constructor,
 			&test_val);
-	ASSERTeq(errno, ENOMEM);
-	ASSERT(OID_IS_NULL(ret));
+	UT_ASSERTeq(errno, ENOMEM);
+	UT_ASSERT(OID_IS_NULL(ret));
 
 	POBJ_LIST_INSERT_NEW_HEAD(pop, &D_RW(root)->dummies, plist,
 			sizeof (struct dummy_node), dummy_node_constructor,
@@ -318,27 +318,27 @@ test_list_api(PMEMobjpool *pop)
 	nodes_count = 0;
 
 	POBJ_LIST_FOREACH(iter, &D_RO(root)->dummies, plist) {
-		OUT("POBJ_LIST_FOREACH: dummy_node %d", D_RO(iter)->value);
+		UT_OUT("POBJ_LIST_FOREACH: dummy_node %d", D_RO(iter)->value);
 		nodes_count++;
 	}
 
-	ASSERTeq(nodes_count, 3);
+	UT_ASSERTeq(nodes_count, 3);
 
 	/* now do the same, but w/o using FOREACH macro */
 	nodes_count = 0;
 	first = POBJ_LIST_FIRST(&D_RO(root)->dummies);
 	iter = first;
 	do {
-		OUT("POBJ_LIST_NEXT: dummy_node %d", D_RO(iter)->value);
+		UT_OUT("POBJ_LIST_NEXT: dummy_node %d", D_RO(iter)->value);
 		nodes_count++;
 		iter = POBJ_LIST_NEXT(iter, plist);
 	} while (!TOID_EQUALS(iter, first));
-	ASSERTeq(nodes_count, 3);
+	UT_ASSERTeq(nodes_count, 3);
 
 	POBJ_LIST_MOVE_ELEMENT_HEAD(pop, &D_RW(root)->dummies,
 		&D_RW(root)->moved, node, plist, plist_m);
 
-	ASSERTeq(POBJ_LIST_EMPTY(&D_RW(root)->moved), 0);
+	UT_ASSERTeq(POBJ_LIST_EMPTY(&D_RW(root)->moved), 0);
 
 	POBJ_LIST_MOVE_ELEMENT_HEAD(pop, &D_RW(root)->moved,
 		&D_RW(root)->dummies, node, plist_m, plist);
@@ -346,7 +346,7 @@ test_list_api(PMEMobjpool *pop)
 	POBJ_LIST_MOVE_ELEMENT_TAIL(pop, &D_RW(root)->dummies,
 		&D_RW(root)->moved, node, plist, plist_m);
 
-	ASSERTeq(POBJ_LIST_EMPTY(&D_RW(root)->moved), 0);
+	UT_ASSERTeq(POBJ_LIST_EMPTY(&D_RW(root)->moved), 0);
 
 	POBJ_LIST_MOVE_ELEMENT_TAIL(pop, &D_RW(root)->moved,
 		&D_RW(root)->dummies, node, plist_m, plist);
@@ -357,22 +357,22 @@ test_list_api(PMEMobjpool *pop)
 
 	nodes_count = 0;
 	POBJ_LIST_FOREACH_REVERSE(iter, &D_RO(root)->dummies, plist) {
-		OUT("POBJ_LIST_FOREACH_REVERSE: dummy_node %d",
+		UT_OUT("POBJ_LIST_FOREACH_REVERSE: dummy_node %d",
 					D_RO(iter)->value);
 		nodes_count++;
 	}
-	ASSERTeq(nodes_count, 2);
+	UT_ASSERTeq(nodes_count, 2);
 
 	/* now do the same, but w/o using FOREACH macro */
 	nodes_count = 0;
 	first = POBJ_LIST_FIRST(&D_RO(root)->dummies);
 	iter = first;
 	do {
-		OUT("POBJ_LIST_PREV: dummy_node %d", D_RO(iter)->value);
+		UT_OUT("POBJ_LIST_PREV: dummy_node %d", D_RO(iter)->value);
 		nodes_count++;
 		iter = POBJ_LIST_PREV(iter, plist);
 	} while (!TOID_EQUALS(iter, first));
-	ASSERTeq(nodes_count, 2);
+	UT_ASSERTeq(nodes_count, 2);
 
 	test_val++;
 	POBJ_LIST_INSERT_NEW_AFTER(pop, &D_RW(root)->dummies,
@@ -388,22 +388,22 @@ test_list_api(PMEMobjpool *pop)
 
 	nodes_count = 0;
 	POBJ_LIST_FOREACH_REVERSE(iter, &D_RO(root)->dummies, plist) {
-		OUT("POBJ_LIST_FOREACH_REVERSE: dummy_node %d",
+		UT_OUT("POBJ_LIST_FOREACH_REVERSE: dummy_node %d",
 					D_RO(iter)->value);
 		nodes_count++;
 	}
-	ASSERTeq(nodes_count, 4);
+	UT_ASSERTeq(nodes_count, 4);
 
 	/* now do the same, but w/o using FOREACH macro */
 	nodes_count = 0;
 	first = POBJ_LIST_LAST(&D_RO(root)->dummies, plist);
 	iter = first;
 	do {
-		OUT("POBJ_LIST_PREV: dummy_node %d", D_RO(iter)->value);
+		UT_OUT("POBJ_LIST_PREV: dummy_node %d", D_RO(iter)->value);
 		nodes_count++;
 		iter = POBJ_LIST_PREV(iter, plist);
 	} while (!TOID_EQUALS(iter, first));
-	ASSERTeq(nodes_count, 4);
+	UT_ASSERTeq(nodes_count, 4);
 }
 
 static void
@@ -425,45 +425,45 @@ test_tx_api(PMEMobjpool *pop)
 		vstate = NULL;
 	} TX_END
 
-	ASSERTeq(vstate, NULL);
-	ASSERTeq(D_RW(root)->value, TEST_VALUE);
+	UT_ASSERTeq(vstate, NULL);
+	UT_ASSERTeq(D_RW(root)->value, TEST_VALUE);
 
 	TX_BEGIN_LOCK(pop, TX_LOCK_MUTEX, &D_RW(root)->lock) {
 		TX_ADD(root);
 		D_RW(root)->node = TX_ALLOC(struct dummy_node, SIZE_MAX);
-		ASSERT(0); /* should not get to this point */
+		UT_ASSERT(0); /* should not get to this point */
 	} TX_ONABORT {
-		ASSERT(TOID_IS_NULL(D_RO(root)->node));
-		ASSERTeq(errno, ENOMEM);
+		UT_ASSERT(TOID_IS_NULL(D_RO(root)->node));
+		UT_ASSERTeq(errno, ENOMEM);
 	} TX_END
 
 	errno = 0;
 	TX_BEGIN_LOCK(pop, TX_LOCK_MUTEX, &D_RW(root)->lock) {
 		D_RW(root)->node = TX_ZALLOC(struct dummy_node, SIZE_MAX);
-		ASSERT(0); /* should not get to this point */
+		UT_ASSERT(0); /* should not get to this point */
 	} TX_ONABORT {
-		ASSERT(TOID_IS_NULL(D_RO(root)->node));
-		ASSERTeq(errno, ENOMEM);
+		UT_ASSERT(TOID_IS_NULL(D_RO(root)->node));
+		UT_ASSERTeq(errno, ENOMEM);
 	} TX_END
 
 	errno = 0;
 	TX_BEGIN_LOCK(pop, TX_LOCK_MUTEX, &D_RW(root)->lock) {
 		D_RW(root)->node = TX_ALLOC(struct dummy_node,
 			PMEMOBJ_MAX_ALLOC_SIZE + 1);
-		ASSERT(0); /* should not get to this point */
+		UT_ASSERT(0); /* should not get to this point */
 	} TX_ONABORT {
-		ASSERT(TOID_IS_NULL(D_RO(root)->node));
-		ASSERTeq(errno, ENOMEM);
+		UT_ASSERT(TOID_IS_NULL(D_RO(root)->node));
+		UT_ASSERTeq(errno, ENOMEM);
 	} TX_END
 
 	errno = 0;
 	TX_BEGIN_LOCK(pop, TX_LOCK_MUTEX, &D_RW(root)->lock) {
 		D_RW(root)->node = TX_ZALLOC(struct dummy_node,
 			PMEMOBJ_MAX_ALLOC_SIZE + 1);
-		ASSERT(0); /* should not get to this point */
+		UT_ASSERT(0); /* should not get to this point */
 	} TX_ONABORT {
-		ASSERT(TOID_IS_NULL(D_RO(root)->node));
-		ASSERTeq(errno, ENOMEM);
+		UT_ASSERT(TOID_IS_NULL(D_RO(root)->node));
+		UT_ASSERTeq(errno, ENOMEM);
 	} TX_END
 
 	errno = 0;
@@ -471,22 +471,22 @@ test_tx_api(PMEMobjpool *pop)
 		TX_ADD(root);
 		D_RW(root)->node = TX_ZNEW(struct dummy_node);
 		TX_REALLOC(D_RO(root)->node, SIZE_MAX);
-		ASSERT(0); /* should not get to this point */
+		UT_ASSERT(0); /* should not get to this point */
 	} TX_ONABORT {
-		ASSERTeq(errno, ENOMEM);
+		UT_ASSERTeq(errno, ENOMEM);
 	} TX_END
-	ASSERT(TOID_IS_NULL(D_RO(root)->node));
+	UT_ASSERT(TOID_IS_NULL(D_RO(root)->node));
 
 	errno = 0;
 	TX_BEGIN_LOCK(pop, TX_LOCK_MUTEX, &D_RW(root)->lock) {
 		TX_ADD(root);
 		D_RW(root)->node = TX_ZNEW(struct dummy_node);
 		TX_REALLOC(D_RO(root)->node, PMEMOBJ_MAX_ALLOC_SIZE + 1);
-		ASSERT(0); /* should not get to this point */
+		UT_ASSERT(0); /* should not get to this point */
 	} TX_ONABORT {
-		ASSERTeq(errno, ENOMEM);
+		UT_ASSERTeq(errno, ENOMEM);
 	} TX_END
-	ASSERT(TOID_IS_NULL(D_RO(root)->node));
+	UT_ASSERT(TOID_IS_NULL(D_RO(root)->node));
 
 	errno = 0;
 	TX_BEGIN_LOCK(pop, TX_LOCK_MUTEX, &D_RW(root)->lock) {
@@ -497,13 +497,13 @@ test_tx_api(PMEMobjpool *pop)
 			TEST_STR_LEN);
 		TX_SET(D_RW(root)->node, value, TEST_VALUE);
 	} TX_END
-	ASSERTeq(D_RW(D_RW(root)->node)->value, TEST_VALUE);
-	ASSERT(strncmp(D_RW(D_RW(root)->node)->teststr, TEST_STR,
+	UT_ASSERTeq(D_RW(D_RW(root)->node)->value, TEST_VALUE);
+	UT_ASSERT(strncmp(D_RW(D_RW(root)->node)->teststr, TEST_STR,
 		TEST_STR_LEN) == 0);
 
 	TX_BEGIN_LOCK(pop, TX_LOCK_MUTEX, &D_RW(root)->lock) {
 		TX_ADD(root);
-		ASSERT(!TOID_IS_NULL(D_RW(root)->node));
+		UT_ASSERT(!TOID_IS_NULL(D_RW(root)->node));
 		TX_FREE(D_RW(root)->node);
 		D_RW(root)->node = TOID_NULL(struct dummy_node);
 		TOID_ASSIGN(D_RW(root)->node, OID_NULL);
@@ -513,18 +513,18 @@ test_tx_api(PMEMobjpool *pop)
 	TX_BEGIN(pop) {
 		TX_BEGIN(NULL) {
 		} TX_ONCOMMIT {
-			ASSERT(0);
+			UT_ASSERT(0);
 		} TX_END
-		ASSERT(errno == EFAULT);
+		UT_ASSERT(errno == EFAULT);
 	} TX_END
 
 	errno = 0;
 	TX_BEGIN(pop) {
 		TX_BEGIN((void *)(uintptr_t)7) {
 		} TX_ONCOMMIT {
-			ASSERT(0);
+			UT_ASSERT(0);
 		} TX_END
-		ASSERT(errno == EINVAL);
+		UT_ASSERT(errno == EINVAL);
 	} TX_END
 }
 
@@ -534,7 +534,7 @@ main(int argc, char *argv[])
 	START(argc, argv, "obj_basic_integration");
 
 	if (argc != 2)
-		FATAL("usage: %s file-name", argv[0]);
+		UT_FATAL("usage: %s file-name", argv[0]);
 
 	const char *path = argv[1];
 
@@ -542,7 +542,7 @@ main(int argc, char *argv[])
 
 	if ((pop = pmemobj_create(path, POBJ_LAYOUT_NAME(basic),
 			0, S_IWUSR | S_IRUSR)) == NULL)
-		FATAL("!pmemobj_create: %s", path);
+		UT_FATAL("!pmemobj_create: %s", path);
 
 	test_alloc_api(pop);
 	test_realloc_api(pop);

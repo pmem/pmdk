@@ -65,13 +65,13 @@ main(int argc, char *argv[])
 	START(argc, argv, "obj_pmalloc_oom_mt");
 
 	if (argc != 2)
-		FATAL("usage: %s file-name", argv[0]);
+		UT_FATAL("usage: %s file-name", argv[0]);
 
 	const char *path = argv[1];
 
 	if ((pop = pmemobj_create(path, LAYOUT_NAME,
 			PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR)) == NULL)
-		FATAL("!pmemobj_create: %s", path);
+		UT_FATAL("!pmemobj_create: %s", path);
 
 	pthread_t t;
 	pthread_create(&t, NULL, oom_worker, NULL);
@@ -82,7 +82,7 @@ main(int argc, char *argv[])
 	pthread_create(&t, NULL, oom_worker, NULL);
 	pthread_join(t, NULL);
 
-	ASSERTeq(first_thread_allocated, allocated);
+	UT_ASSERTeq(first_thread_allocated, allocated);
 
 	pmemobj_close(pop);
 

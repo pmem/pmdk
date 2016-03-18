@@ -49,7 +49,7 @@ sigjmp_buf Jmp;
 static void
 signal_handler(int sig)
 {
-	OUT("\tsignal: %s", strsignal(sig));
+	UT_OUT("\tsignal: %s", strsignal(sig));
 
 	siglongjmp(Jmp, 1);
 }
@@ -63,18 +63,18 @@ main(int argc, char *argv[])
 	void *ptr;
 
 	if (argc < 2)
-		FATAL("usage: %s op:h|f|m|c|r|a|s|d", argv[0]);
+		UT_FATAL("usage: %s op:h|f|m|c|r|a|s|d", argv[0]);
 
 	/* allocate memory for function vmem_create_in_region() */
 	void *mem_pool = MMAP_ANON_ALIGNED(VMEM_MIN_POOL, 4 << 20);
 
 	vmp = vmem_create_in_region(mem_pool, VMEM_MIN_POOL);
 	if (vmp == NULL)
-		FATAL("!vmem_create_in_region");
+		UT_FATAL("!vmem_create_in_region");
 
 	ptr = vmem_malloc(vmp, sizeof (long long int));
 	if (ptr == NULL)
-		ERR("!vmem_malloc");
+		UT_ERR("!vmem_malloc");
 	vmem_delete(vmp);
 
 	/* arrange to catch SEGV */
@@ -91,90 +91,91 @@ main(int argc, char *argv[])
 		/* Scan the character of each argument. */
 		if (strchr("hfmcrasd", argv[arg][0]) == NULL ||
 				argv[arg][1] != '\0')
-			FATAL("op must be one of: h, f, m, c, r, a, s, d");
+			UT_FATAL("op must be one of: h, f, m, c, r, a, s, d");
 
 		switch (argv[arg][0]) {
 		case 'h':
-			OUT("Testing vmem_check...");
+			UT_OUT("Testing vmem_check...");
 			if (!sigsetjmp(Jmp, 1)) {
-				OUT("\tvmem_check returned %i",
+				UT_OUT("\tvmem_check returned %i",
 							vmem_check(vmp));
 			}
 			break;
 
 		case 'f':
-			OUT("Testing vmem_free...");
+			UT_OUT("Testing vmem_free...");
 			if (!sigsetjmp(Jmp, 1)) {
 				vmem_free(vmp, ptr);
-				OUT("\tvmem_free succeeded");
+				UT_OUT("\tvmem_free succeeded");
 			}
 			break;
 
 		case 'm':
-			OUT("Testing vmem_malloc...");
+			UT_OUT("Testing vmem_malloc...");
 			if (!sigsetjmp(Jmp, 1)) {
 				ptr = vmem_malloc(vmp, sizeof (long long int));
 				if (ptr != NULL)
-					OUT("\tvmem_malloc succeeded");
+					UT_OUT("\tvmem_malloc succeeded");
 				else
-					OUT("\tvmem_malloc returned NULL");
+					UT_OUT("\tvmem_malloc returned NULL");
 			}
 			break;
 
 		case 'c':
-			OUT("Testing vmem_calloc...");
+			UT_OUT("Testing vmem_calloc...");
 			if (!sigsetjmp(Jmp, 1)) {
 				ptr = vmem_calloc(vmp, 10, sizeof (int));
 				if (ptr != NULL)
-					OUT("\tvmem_calloc succeeded");
+					UT_OUT("\tvmem_calloc succeeded");
 				else
-					OUT("\tvmem_calloc returned NULL");
+					UT_OUT("\tvmem_calloc returned NULL");
 			}
 			break;
 
 		case 'r':
-			OUT("Testing vmem_realloc...");
+			UT_OUT("Testing vmem_realloc...");
 			if (!sigsetjmp(Jmp, 1)) {
 				ptr = vmem_realloc(vmp, ptr, 128);
 				if (ptr != NULL)
-					OUT("\tvmem_realloc succeeded");
+					UT_OUT("\tvmem_realloc succeeded");
 				else
-					OUT("\tvmem_realloc returned NULL");
+					UT_OUT("\tvmem_realloc returned NULL");
 			}
 			break;
 
 		case 'a':
-			OUT("Testing vmem_aligned_alloc...");
+			UT_OUT("Testing vmem_aligned_alloc...");
 			if (!sigsetjmp(Jmp, 1)) {
 				ptr = vmem_aligned_alloc(vmp, 128, 128);
 				if (ptr != NULL)
-					OUT("\tvmem_aligned_alloc succeeded");
+					UT_OUT("\tvmem_aligned_alloc "
+						"succeeded");
 				else
-					OUT("\tvmem_aligned_alloc"
+					UT_OUT("\tvmem_aligned_alloc"
 							" returned NULL");
 			}
 			break;
 
 		case 's':
-			OUT("Testing vmem_strdup...");
+			UT_OUT("Testing vmem_strdup...");
 			if (!sigsetjmp(Jmp, 1)) {
 				ptr = vmem_strdup(vmp, "Test string");
 				if (ptr != NULL)
-					OUT("\tvmem_strdup succeeded");
+					UT_OUT("\tvmem_strdup succeeded");
 				else
-					OUT("\tvmem_strdup returned NULL");
+					UT_OUT("\tvmem_strdup returned NULL");
 			}
 			break;
 
 		case 'd':
-			OUT("Testing vmem_delete...");
+			UT_OUT("Testing vmem_delete...");
 			if (!sigsetjmp(Jmp, 1)) {
 				vmem_delete(vmp);
 				if (errno != 0)
-					OUT("\tvmem_delete failed: %s",
+					UT_OUT("\tvmem_delete failed: %s",
 						vmem_errormsg());
 				else
-					OUT("\tvmem_delete succeeded");
+					UT_OUT("\tvmem_delete succeeded");
 			}
 			break;
 		}

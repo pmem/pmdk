@@ -51,7 +51,7 @@ sigjmp_buf Jmp;
 int
 posix_fallocate(int fd, off_t offset, off_t len)
 {
-	OUT("posix_fallocate: off %ju len %ju", offset, len);
+	UT_OUT("posix_fallocate: off %ju len %ju", offset, len);
 
 	static int (*posix_fallocate_ptr)(int fd, off_t offset, off_t len);
 
@@ -67,7 +67,7 @@ posix_fallocate(int fd, off_t offset, off_t len)
 int
 ftruncate(int fd, off_t len)
 {
-	OUT("ftruncate: len %ju", len);
+	UT_OUT("ftruncate: len %ju", len);
 
 	static int (*ftruncate_ptr)(int fd, off_t len);
 
@@ -119,7 +119,7 @@ parse_flags(const char *flags_str)
 			ret |= (PMEM_FILE_ALL_FLAGS + 1);
 			break;
 		default:
-			FATAL("unknown flags: %c", *flags_str);
+			UT_FATAL("unknown flags: %c", *flags_str);
 		}
 		flags_str++;
 	};
@@ -147,7 +147,7 @@ do_check(int fd, void *addr, size_t mlen)
 	WRITE(fd, pat, CHECK_BYTES);
 
 	if (memcmp(pat, addr, CHECK_BYTES))
-		OUT("first %d bytes do not match", CHECK_BYTES);
+		UT_OUT("first %d bytes do not match", CHECK_BYTES);
 
 	/* fill up mapped region with new pattern */
 	memset(pat, 0xA5, CHECK_BYTES);
@@ -159,13 +159,13 @@ do_check(int fd, void *addr, size_t mlen)
 		/* same memcpy from above should now fail */
 		memcpy(addr, pat, CHECK_BYTES);
 	} else {
-		OUT("unmap successful");
+		UT_OUT("unmap successful");
 	}
 
 	LSEEK(fd, (off_t)0, SEEK_SET);
 	if (READ(fd, buf, CHECK_BYTES) == CHECK_BYTES) {
 		if (memcmp(pat, buf, CHECK_BYTES))
-			OUT("first %d bytes do not match", CHECK_BYTES);
+			UT_OUT("first %d bytes do not match", CHECK_BYTES);
 	}
 }
 
@@ -188,8 +188,8 @@ main(int argc, char *argv[])
 	int use_is_pmem;
 
 	if (argc < 7)
-		FATAL("usage: %s path len flags mode use_mlen use_is_pmem ...",
-				argv[0]);
+		UT_FATAL("usage: %s path len flags mode use_mlen "
+				"use_is_pmem ...", argv[0]);
 
 	for (int i = 1; i + 5 < argc; i += 6) {
 		path = argv[i];
@@ -210,18 +210,18 @@ main(int argc, char *argv[])
 		else
 			is_pmemp = NULL;
 
-		OUT("%s %lld %s %o %d %d",
+		UT_OUT("%s %lld %s %o %d %d",
 			path, len, argv[i + 2], mode, use_mlen, use_is_pmem);
 
 		addr = pmem_map_file(path, len, flags, mode, mlenp, is_pmemp);
 		if (addr == NULL) {
-			OUT("!pmem_map_file");
+			UT_OUT("!pmem_map_file");
 			continue;
 		}
 
 		if (use_mlen) {
-			ASSERTne(mlen, SIZE_MAX);
-			OUT("mapped_len %zu", mlen);
+			UT_ASSERTne(mlen, SIZE_MAX);
+			UT_OUT("mapped_len %zu", mlen);
 		} else {
 			mlen = len;
 		}
@@ -240,7 +240,8 @@ main(int argc, char *argv[])
 					do_check(fd, addr, mlen);
 					(void) CLOSE(fd);
 				} else {
-					OUT("!cannot open file: %s", argv[i]);
+					UT_OUT("!cannot open file: %s",
+							argv[i]);
 				}
 			} else {
 				pmem_unmap(addr, mlen);

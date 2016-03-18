@@ -88,7 +88,7 @@ reset_counters(void)
 static void
 print_reset_counters(const char *task)
 {
-	OUT("%d\t;%d\t;%d\t;%d\t;%s",
+	UT_OUT("%d\t;%d\t;%d\t;%d\t;%s",
 		ops_counter.n_persist, ops_counter.n_msync,
 		ops_counter.n_flush, ops_counter.n_drain, task);
 
@@ -108,16 +108,16 @@ main(int argc, char *argv[])
 	START(argc, argv, "obj_persist_count");
 
 	if (argc != 2)
-		FATAL("usage: %s file-name", argv[0]);
+		UT_FATAL("usage: %s file-name", argv[0]);
 
 	const char *path = argv[1];
 
 	PMEMobjpool *pop;
 	if ((pop = pmemobj_create(path, "persist_count",
 			PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR)) == NULL)
-		FATAL("!pmemobj_create: %s", path);
+		UT_FATAL("!pmemobj_create: %s", path);
 
-	OUT("persist\t;msync\t;flush\t;drain\t;task");
+	UT_OUT("persist\t;msync\t;flush\t;drain\t;task");
 
 	print_reset_counters("pool_create");
 
@@ -126,12 +126,12 @@ main(int argc, char *argv[])
 	reset_counters();
 
 	PMEMoid root = pmemobj_root(pop, sizeof (struct foo));
-	ASSERT(!OID_IS_NULL(root));
+	UT_ASSERT(!OID_IS_NULL(root));
 	print_reset_counters("root_alloc");
 
 	PMEMoid oid;
 	int ret = pmemobj_alloc(pop, &oid, sizeof (struct foo), 0, NULL, NULL);
-	ASSERTeq(ret, 0);
+	UT_ASSERTeq(ret, 0);
 	print_reset_counters("atomic_alloc");
 
 	pmemobj_free(&oid);
@@ -141,7 +141,7 @@ main(int argc, char *argv[])
 
 	TX_BEGIN(pop) {
 		f->bar = pmemobj_tx_alloc(sizeof (struct foo), 0);
-		ASSERT(!OID_IS_NULL(f->bar));
+		UT_ASSERT(!OID_IS_NULL(f->bar));
 	} TX_END
 	print_reset_counters("tx_alloc");
 

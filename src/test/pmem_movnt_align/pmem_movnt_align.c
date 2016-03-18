@@ -66,7 +66,7 @@ check_func(void *dest, void *src, size_t len, mem_fn mem_func)
 	mem_func(dest, src, len);
 
 	if (memcmp(dest, src, len))
-		FATAL("memcpy/memmove failed");
+		UT_FATAL("memcpy/memmove failed");
 }
 
 /*
@@ -99,7 +99,7 @@ check_memset(void *dest, size_t len)
 	pmem_memset_persist(dest, 1, len);
 
 	if (memcmp(dest, buff, len))
-		FATAL("memset failed");
+		UT_FATAL("memset failed");
 }
 
 int
@@ -108,7 +108,7 @@ main(int argc, char *argv[])
 	START(argc, argv, "pmem_movnt_align");
 
 	if (argc != 2)
-		FATAL("usage: %s type", argv[0]);
+		UT_FATAL("usage: %s type", argv[0]);
 
 	char type = argv[1][0];
 
@@ -121,7 +121,7 @@ main(int argc, char *argv[])
 		src = MMAP_ANON_ALIGNED(N_BYTES, 0);
 		dst = MMAP_ANON_ALIGNED(N_BYTES, 0);
 		if (src == NULL || dst == NULL)
-			FATAL("!mmap");
+			UT_FATAL("!mmap");
 
 		/* check memcpy with 0 size */
 		check_memcpy(dst, src, 0);
@@ -147,7 +147,7 @@ main(int argc, char *argv[])
 		src = MMAP_ANON_ALIGNED(2 * N_BYTES - 4096, 0);
 		dst = src + N_BYTES - 4096;
 		if (src == NULL)
-			FATAL("!mmap");
+			UT_FATAL("!mmap");
 
 		/* check memmove in backward direction with 0 size */
 		check_memmove(dst, src, 0);
@@ -174,7 +174,7 @@ main(int argc, char *argv[])
 		dst = MMAP_ANON_ALIGNED(2 * N_BYTES - 4096, 0);
 		src = dst + N_BYTES - 4096;
 		if (src == NULL)
-			FATAL("!mmap");
+			UT_FATAL("!mmap");
 
 		/* check memmove in forward direction with 0 size */
 		check_memmove(dst, src, 0);
@@ -201,7 +201,7 @@ main(int argc, char *argv[])
 		/* mmap with guard pages */
 		dst = MMAP_ANON_ALIGNED(N_BYTES, 0);
 		if (dst == NULL)
-			FATAL("!mmap");
+			UT_FATAL("!mmap");
 
 		/* check memset with 0 size */
 		check_memset(dst, 0);
@@ -222,7 +222,7 @@ main(int argc, char *argv[])
 
 		break;
 	default:
-		FATAL("!wrong type of test");
+		UT_FATAL("!wrong type of test");
 		break;
 	}
 

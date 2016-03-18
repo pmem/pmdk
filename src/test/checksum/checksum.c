@@ -50,7 +50,7 @@
 static uint64_t
 fletcher64(void *addr, size_t len)
 {
-	ASSERT(len % 4 == 0);
+	UT_ASSERT(len % 4 == 0);
 	uint32_t *p32 = addr;
 	uint32_t *p32end = (uint32_t *)((char *)addr + len);
 	uint32_t lo32 = 0;
@@ -71,7 +71,7 @@ main(int argc, char *argv[])
 	START(argc, argv, "checksum");
 
 	if (argc < 2)
-		FATAL("usage: %s files...", argv[0]);
+		UT_FATAL("usage: %s files...", argv[0]);
 
 	for (int arg = 1; arg < argc; arg++) {
 		int fd = OPEN(argv[arg], O_RDONLY);
@@ -111,7 +111,7 @@ main(int argc, char *argv[])
 			/*
 			 * verify inserted checksum checks out
 			 */
-			ASSERT(util_checksum(addr, stbuf.st_size, ptr, 0));
+			UT_ASSERT(util_checksum(addr, stbuf.st_size, ptr, 0));
 
 			/* put a zero where the checksum was installed */
 			*ptr = 0;
@@ -125,14 +125,14 @@ main(int argc, char *argv[])
 			/*
 			 * verify checksum now fails
 			 */
-			ASSERT(!util_checksum(addr, stbuf.st_size, ptr, 0));
+			UT_ASSERT(!util_checksum(addr, stbuf.st_size, ptr, 0));
 
 			/*
 			 * verify the checksum matched the gold version
 			 */
-			ASSERTeq(csum, gold_csum);
+			UT_ASSERTeq(csum, gold_csum);
 
-			OUT("%s:%lu 0x%lx", argv[arg],
+			UT_OUT("%s:%lu 0x%lx", argv[arg],
 				(char *)ptr - (char *)addr, csum);
 
 			ptr++;

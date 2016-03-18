@@ -97,14 +97,14 @@ do_memmove(int fd, char *dest, char *src, char *file_name, off_t dest_off,
 	/* dest == src */
 	old = *(char *)(dest + dest_off);
 	ret = pmem_memmove_persist(dest + dest_off, dest + dest_off, bytes / 2);
-	ASSERTeq(ret, dest + dest_off);
-	ASSERTeq(*(char *)(dest + dest_off), old);
+	UT_ASSERTeq(ret, dest + dest_off);
+	UT_ASSERTeq(*(char *)(dest + dest_off), old);
 
 	/* len == 0 */
 	old = *(char *)(dest + dest_off);
 	ret = pmem_memmove_persist(dest + dest_off, src + src_off, 0);
-	ASSERTeq(ret, dest + dest_off);
-	ASSERTeq(*(char *)(dest + dest_off), old);
+	UT_ASSERTeq(ret, dest + dest_off);
+	UT_ASSERTeq(*(char *)(dest + dest_off), old);
 
 	/*
 	 * A side affect of the memmove call is that
@@ -113,11 +113,11 @@ do_memmove(int fd, char *dest, char *src, char *file_name, off_t dest_off,
 	 */
 	memcpy(src1, src, bytes / 2);
 	ret = pmem_memmove_persist(dest + dest_off, src + src_off, bytes / 2);
-	ASSERTeq(ret, dest + dest_off);
+	UT_ASSERTeq(ret, dest + dest_off);
 
 	/* memcmp will validate that what I expect in memory. */
 	if (memcmp(src1 + src_off, dest + dest_off, bytes / 2))
-		ERR("%s: %zu bytes do not match with memcmp",
+		UT_ERR("%s: %zu bytes do not match with memcmp",
 			file_name, bytes / 2);
 
 	/*
@@ -133,14 +133,14 @@ do_memmove(int fd, char *dest, char *src, char *file_name, off_t dest_off,
 		LSEEK(fd, (off_t)dest_off + off, SEEK_SET);
 		if (READ(fd, buf, bytes / 2) == bytes / 2) {
 			if (memcmp(src1 + src_off, buf, bytes / 2))
-				ERR("%s: first %zu bytes do not match",
+				UT_ERR("%s: first %zu bytes do not match",
 					file_name, bytes / 2);
 		}
 	} else {
 		LSEEK(fd, (off_t)dest_off, SEEK_SET);
 		if (READ(fd, buf, bytes / 2) == bytes / 2) {
 			if (memcmp(src1 + src_off, buf, bytes / 2))
-				ERR("%s: first %zu bytes do not match",
+				UT_ERR("%s: first %zu bytes do not match",
 					file_name, bytes / 2);
 		}
 	}
@@ -148,7 +148,7 @@ do_memmove(int fd, char *dest, char *src, char *file_name, off_t dest_off,
 	FREE(buf);
 }
 
-#define	USAGE() do { FATAL("usage: %s file  b:length [d:{offset}] "\
+#define	USAGE() do { UT_FATAL("usage: %s file  b:length [d:{offset}] "\
 	"[s:{offset}] [o:{1|2} S:{overlap}]", argv[0]); } while (0)
 
 int
@@ -174,32 +174,36 @@ main(int argc, char *argv[])
 	for (int arg = 2; arg < argc; arg++) {
 		if (strchr("dsboS",
 		    argv[arg][0]) == NULL || argv[arg][1] != ':')
-			FATAL("op must be d: or s: or b: or o: or S:");
+			UT_FATAL("op must be d: or s: or b: or o: or S:");
 
 		off_t val = strtoul(&argv[arg][2], NULL, 0);
 
 		switch (argv[arg][0]) {
 		case 'd':
 			if (val <= 0)
-				FATAL("bad offset (%lu) with d: option", val);
+				UT_FATAL("bad offset (%lu) with d: option",
+						val);
 			dest_off = val;
 			break;
 
 		case 's':
 			if (val <= 0)
-				FATAL("bad offset (%lu) with s: option", val);
+				UT_FATAL("bad offset (%lu) with s: option",
+						val);
 			src_off = val;
 			break;
 
 		case 'b':
 			if (val <= 0)
-				FATAL("bad length (%lu) with b: option", val);
+				UT_FATAL("bad length (%lu) with b: option",
+						val);
 			bytes = val;
 			break;
 
 		case 'o':
 			if (val != 1 && val != 2)
-				FATAL("bad val (%lu) with o: option", val);
+				UT_FATAL("bad val (%lu) with o: option",
+						val);
 			who = (int)val;
 			break;
 
@@ -217,7 +221,7 @@ main(int argc, char *argv[])
 		/* src > dest */
 		dest = pmem_map_file(argv[1], 0, 0, 0, &mapped_len, NULL);
 		if (dest == NULL)
-			FATAL("!could not mmap dest file %s", argv[1]);
+			UT_FATAL("!could not mmap dest file %s", argv[1]);
 
 		src = MMAP(dest + mapped_len, mapped_len,
 			PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS,
@@ -232,7 +236,7 @@ main(int argc, char *argv[])
 		if (src <= dest) {
 			swap_mappings(&dest, &src, mapped_len, fd);
 			if (src <= dest)
-				ERR("cannot map files in memory order");
+				UT_ERR("cannot map files in memory order");
 		}
 
 		do_memmove(fd, dest, src, argv[1], dest_off, src_off,
@@ -242,7 +246,7 @@ main(int argc, char *argv[])
 		swap_mappings(&dest, &src, mapped_len, fd);
 
 		if (dest <= src)
-			ERR("cannot map files in memory order");
+			UT_ERR("cannot map files in memory order");
 
 		do_memmove(fd, dest, src, argv[1], dest_off, src_off, 0,
 			bytes);
@@ -252,7 +256,7 @@ main(int argc, char *argv[])
 		/* src overlap with dest */
 		dest = pmem_map_file(argv[1], 0, 0, 0, &mapped_len, NULL);
 		if (dest == NULL)
-			FATAL("!Could not mmap %s: \n", argv[1]);
+			UT_FATAL("!Could not mmap %s: \n", argv[1]);
 
 		src = dest + overlap;
 		memset(dest, 0, bytes);
@@ -263,7 +267,7 @@ main(int argc, char *argv[])
 		/* dest overlap with src */
 		dest = pmem_map_file(argv[1], 0, 0, 0, &mapped_len, NULL);
 		if (dest == NULL) {
-			FATAL("!Could not mmap %s: \n", argv[1]);
+			UT_FATAL("!Could not mmap %s: \n", argv[1]);
 		}
 		src = dest;
 		dest = src + overlap;

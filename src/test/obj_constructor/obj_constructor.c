@@ -73,7 +73,7 @@ main(int argc, char *argv[])
 	START(argc, argv, "obj_constructor");
 
 	if (argc != 2)
-		FATAL("usage: %s file-name", argv[0]);
+		UT_FATAL("usage: %s file-name", argv[0]);
 
 	const char *path = argv[1];
 
@@ -85,7 +85,7 @@ main(int argc, char *argv[])
 
 	if ((pop = pmemobj_create(path, POBJ_LAYOUT_NAME(constr),
 			0, S_IWUSR | S_IRUSR)) == NULL)
-		FATAL("!pmemobj_create: %s", path);
+		UT_FATAL("!pmemobj_create: %s", path);
 
 	/*
 	 * Allocate memory until OOM, so we can check later if the alloc
@@ -96,7 +96,7 @@ main(int argc, char *argv[])
 			NULL, NULL) == 0)
 		allocs++;
 
-	ASSERTne(allocs, 0);
+	UT_ASSERTne(allocs, 0);
 
 	PMEMoid oid;
 	PMEMoid next;
@@ -106,33 +106,33 @@ main(int argc, char *argv[])
 	errno = 0;
 	root.oid = pmemobj_root_construct(pop, sizeof (struct root),
 			root_constr_cancel, NULL);
-	ASSERT(TOID_IS_NULL(root));
-	ASSERTeq(errno, ECANCELED);
+	UT_ASSERT(TOID_IS_NULL(root));
+	UT_ASSERTeq(errno, ECANCELED);
 
 	errno = 0;
 	ret = pmemobj_alloc(pop, NULL, sizeof (struct node), 1,
 			node_constr_cancel, NULL);
-	ASSERTeq(ret, -1);
-	ASSERTeq(errno, ECANCELED);
+	UT_ASSERTeq(ret, -1);
+	UT_ASSERTeq(errno, ECANCELED);
 
 	/* the same number of allocations should be possible. */
 	while (pmemobj_alloc(pop, NULL, sizeof (struct node), 1,
 			NULL, NULL) == 0)
 		allocs--;
-	ASSERTeq(allocs, 0);
+	UT_ASSERTeq(allocs, 0);
 	POBJ_FOREACH_SAFE(pop, oid, next)
 		pmemobj_free(&oid);
 
 	root.oid = pmemobj_root_construct(pop, sizeof (struct root),
 			NULL, NULL);
-	ASSERT(!TOID_IS_NULL(root));
+	UT_ASSERT(!TOID_IS_NULL(root));
 
 	errno = 0;
 	node.oid = pmemobj_list_insert_new(pop, offsetof(struct node, next),
 			&D_RW(root)->list, OID_NULL, 0, sizeof (struct node),
 			1, node_constr_cancel, NULL);
-	ASSERT(TOID_IS_NULL(node));
-	ASSERTeq(errno, ECANCELED);
+	UT_ASSERT(TOID_IS_NULL(node));
+	UT_ASSERTeq(errno, ECANCELED);
 
 	pmemobj_close(pop);
 

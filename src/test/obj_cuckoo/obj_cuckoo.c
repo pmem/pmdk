@@ -59,15 +59,15 @@ test_cuckoo_new_delete()
 
 	/* cuckoo malloc fail */
 	c = cuckoo_new();
-	ASSERT(c == NULL);
+	UT_ASSERT(c == NULL);
 
 	/* tab malloc fail */
 	c = cuckoo_new();
-	ASSERT(c == NULL);
+	UT_ASSERT(c == NULL);
 
 	/* all ok */
 	c = cuckoo_new();
-	ASSERT(c != NULL);
+	UT_ASSERT(c != NULL);
 
 	cuckoo_delete(c);
 }
@@ -76,22 +76,22 @@ static void
 test_insert_get_remove()
 {
 	struct cuckoo *c = cuckoo_new();
-	ASSERT(c != NULL);
+	UT_ASSERT(c != NULL);
 
 	for (int i = 0; i < TEST_INSERTS; ++i)
-		ASSERT(cuckoo_insert(c, i, TEST_VAL(i)) == 0);
+		UT_ASSERT(cuckoo_insert(c, i, TEST_VAL(i)) == 0);
 
 	for (int i = 0; i < TEST_INSERTS; ++i)
-		ASSERT(cuckoo_get(c, i) == TEST_VAL(i));
+		UT_ASSERT(cuckoo_get(c, i) == TEST_VAL(i));
 
 	for (int i = 0; i < TEST_INSERTS; ++i)
-		ASSERT(cuckoo_remove(c, i) == TEST_VAL(i));
+		UT_ASSERT(cuckoo_remove(c, i) == TEST_VAL(i));
 
 	for (int i = 0; i < TEST_INSERTS; ++i)
-		ASSERT(cuckoo_remove(c, i) == NULL);
+		UT_ASSERT(cuckoo_remove(c, i) == NULL);
 
 	for (int i = 0; i < TEST_INSERTS; ++i)
-		ASSERT(cuckoo_get(c, i) == NULL);
+		UT_ASSERT(cuckoo_get(c, i) == NULL);
 
 	cuckoo_delete(c);
 }

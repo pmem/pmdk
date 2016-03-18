@@ -59,21 +59,21 @@ TOID(struct list) List_sec;
 
 /* usage macros */
 #define	FATAL_USAGE()\
-	FATAL("usage: obj_list_macro <file> [PRnifr]")
+	UT_FATAL("usage: obj_list_macro <file> [PRnifr]")
 #define	FATAL_USAGE_PRINT()\
-	FATAL("usage: obj_list_macro <file> P:<list>")
+	UT_FATAL("usage: obj_list_macro <file> P:<list>")
 #define	FATAL_USAGE_PRINT_REVERSE()\
-	FATAL("usage: obj_list_macro <file> R:<list>")
+	UT_FATAL("usage: obj_list_macro <file> R:<list>")
 #define	FATAL_USAGE_INSERT()\
-	FATAL("usage: obj_list_macro <file> i:<where>:<num>[:<id>]")
+	UT_FATAL("usage: obj_list_macro <file> i:<where>:<num>[:<id>]")
 #define	FATAL_USAGE_INSERT_NEW()\
-	FATAL("usage: obj_list_macro <file> n:<where>:<num>[:<id>]")
+	UT_FATAL("usage: obj_list_macro <file> n:<where>:<num>[:<id>]")
 #define	FATAL_USAGE_REMOVE_FREE()\
-	FATAL("usage: obj_list_macro <file> f:<list>:<num>")
+	UT_FATAL("usage: obj_list_macro <file> f:<list>:<num>")
 #define	FATAL_USAGE_REMOVE()\
-	FATAL("usage: obj_list_macro <file> r:<list>:<num>")
+	UT_FATAL("usage: obj_list_macro <file> r:<list>:<num>")
 #define	FATAL_USAGE_MOVE()\
-	FATAL("usage: obj_list_macro <file> m:<num>:<where>:<num>")
+	UT_FATAL("usage: obj_list_macro <file> m:<num>:<where>:<num>")
 
 /*
  * get_item_list -- get nth item from list
@@ -111,14 +111,14 @@ do_print(PMEMobjpool *pop, const char *arg)
 
 	TOID(struct item) item;
 	if (L == 1) {
-		OUT("list:");
+		UT_OUT("list:");
 		POBJ_LIST_FOREACH(item, &D_RW(List)->head, next) {
-			OUT("id = %d", D_RO(item)->id);
+			UT_OUT("id = %d", D_RO(item)->id);
 		}
 	} else if (L == 2) {
-		OUT("list sec:");
+		UT_OUT("list sec:");
 		POBJ_LIST_FOREACH(item, &D_RW(List_sec)->head, next) {
-			OUT("id = %d", D_RO(item)->id);
+			UT_OUT("id = %d", D_RO(item)->id);
 		}
 	} else {
 		FATAL_USAGE_PRINT();
@@ -136,14 +136,14 @@ do_print_reverse(PMEMobjpool *pop, const char *arg)
 		FATAL_USAGE_PRINT_REVERSE();
 	TOID(struct item) item;
 	if (L == 1) {
-		OUT("list reverse:");
+		UT_OUT("list reverse:");
 		POBJ_LIST_FOREACH_REVERSE(item, &D_RW(List)->head, next) {
-			OUT("id = %d", D_RO(item)->id);
+			UT_OUT("id = %d", D_RO(item)->id);
 		}
 	} else if (L == 2) {
-		OUT("list sec reverse:");
+		UT_OUT("list sec reverse:");
 		POBJ_LIST_FOREACH_REVERSE(item, &D_RW(List_sec)->head, next) {
-			OUT("id = %d", D_RO(item)->id);
+			UT_OUT("id = %d", D_RO(item)->id);
 		}
 	} else {
 		FATAL_USAGE_PRINT_REVERSE();
@@ -160,7 +160,7 @@ item_constructor(PMEMobjpool *pop, void *ptr, void *arg)
 	int id = *(int *)arg;
 	struct item *item = (struct item *)ptr;
 	item->id = id;
-	OUT("constructor(id = %d)", id);
+	UT_OUT("constructor(id = %d)", id);
 
 	return 0;
 }
@@ -183,22 +183,22 @@ do_insert_new(PMEMobjpool *pop, const char *arg)
 		POBJ_LIST_INSERT_NEW_HEAD(pop, &D_RW(List)->head, next,
 				sizeof (struct item), item_constructor, &ptr);
 		if (POBJ_LIST_EMPTY(&D_RW(List)->head))
-			FATAL("POBJ_LIST_INSERT_NEW_HEAD");
+			UT_FATAL("POBJ_LIST_INSERT_NEW_HEAD");
 	} else {
 		item = get_item_list(List, n);
-		ASSERT(!TOID_IS_NULL(item));
+		UT_ASSERT(!TOID_IS_NULL(item));
 		if (!before) {
 			POBJ_LIST_INSERT_NEW_AFTER(pop, &D_RW(List)->head,
 					item, next, sizeof (struct item),
 					item_constructor, &ptr);
 			if (TOID_IS_NULL(POBJ_LIST_NEXT(item, next)))
-				FATAL("POBJ_LIST_INSERT_NEW_AFTER");
+				UT_FATAL("POBJ_LIST_INSERT_NEW_AFTER");
 		} else {
 			POBJ_LIST_INSERT_NEW_BEFORE(pop, &D_RW(List)->head,
 					item, next, sizeof (struct item),
 					item_constructor, &ptr);
 			if (TOID_IS_NULL(POBJ_LIST_PREV(item, next)))
-				FATAL("POBJ_LIST_INSERT_NEW_BEFORE");
+				UT_FATAL("POBJ_LIST_INSERT_NEW_BEFORE");
 		}
 	}
 }
@@ -219,25 +219,25 @@ do_insert(PMEMobjpool *pop, const char *arg)
 
 	TOID(struct item) item;
 	POBJ_NEW(pop, &item, struct item, item_constructor, &ptr);
-	ASSERT(!TOID_IS_NULL(item));
+	UT_ASSERT(!TOID_IS_NULL(item));
 	if (POBJ_LIST_EMPTY(&D_RW(List)->head)) {
 		POBJ_LIST_INSERT_HEAD(pop, &D_RW(List)->head,
 						item, next);
 		if (POBJ_LIST_EMPTY(&D_RW(List)->head))
-			FATAL("POBJ_LIST_INSERT_HEAD");
+			UT_FATAL("POBJ_LIST_INSERT_HEAD");
 	} else {
 		TOID(struct item) elm = get_item_list(List, n);
-		ASSERT(!TOID_IS_NULL(elm));
+		UT_ASSERT(!TOID_IS_NULL(elm));
 		if (!before) {
 			POBJ_LIST_INSERT_AFTER(pop, &D_RW(List)->head,
 							elm, item, next);
 			if (!TOID_EQUALS(item, POBJ_LIST_NEXT(elm, next)))
-				FATAL("POBJ_LIST_INSERT_AFTER");
+				UT_FATAL("POBJ_LIST_INSERT_AFTER");
 		} else {
 			POBJ_LIST_INSERT_BEFORE(pop, &D_RW(List)->head,
 							elm, item, next);
 			if (!TOID_EQUALS(item, POBJ_LIST_PREV(elm, next)))
-				FATAL("POBJ_LIST_INSERT_BEFORE");
+				UT_FATAL("POBJ_LIST_INSERT_BEFORE");
 		}
 	}
 }
@@ -265,10 +265,10 @@ do_remove_free(PMEMobjpool *pop, const char *arg)
 	if (POBJ_LIST_EMPTY(&D_RW(tmp_list)->head))
 		return;
 	item = get_item_list(tmp_list, n);
-	ASSERT(!TOID_IS_NULL(item));
+	UT_ASSERT(!TOID_IS_NULL(item));
 	if (POBJ_LIST_REMOVE_FREE(pop, &D_RW(tmp_list)->head,
 						item, next) != 0)
-		FATAL("POBJ_LIST_REMOVE_FREE");
+		UT_FATAL("POBJ_LIST_REMOVE_FREE");
 }
 
 /*
@@ -294,9 +294,9 @@ do_remove(PMEMobjpool *pop, const char *arg)
 	if (POBJ_LIST_EMPTY(&D_RW(tmp_list)->head))
 		return;
 	item = get_item_list(tmp_list, n);
-	ASSERT(!TOID_IS_NULL(item));
+	UT_ASSERT(!TOID_IS_NULL(item));
 	if (POBJ_LIST_REMOVE(pop, &D_RW(tmp_list)->head, item, next) != 0)
-		FATAL("POBJ_LIST_REMOVE");
+		UT_FATAL("POBJ_LIST_REMOVE");
 	POBJ_FREE(&item);
 }
 
@@ -319,7 +319,7 @@ do_move(PMEMobjpool *pop, const char *arg)
 				&D_RW(List_sec)->head,
 				get_item_list(List, n),
 				next, next) != 0) {
-			FATAL("POBJ_LIST_MOVE_ELEMENT_HEAD");
+			UT_FATAL("POBJ_LIST_MOVE_ELEMENT_HEAD");
 		}
 	} else {
 		if (before) {
@@ -329,7 +329,7 @@ do_move(PMEMobjpool *pop, const char *arg)
 					get_item_list(List_sec, d),
 					get_item_list(List, n),
 					next, next) != 0) {
-				FATAL("POBJ_LIST_MOVE_ELEMENT_BEFORE");
+				UT_FATAL("POBJ_LIST_MOVE_ELEMENT_BEFORE");
 			}
 		} else {
 			if (POBJ_LIST_MOVE_ELEMENT_AFTER(pop, &D_RW(List)->head,
@@ -337,7 +337,7 @@ do_move(PMEMobjpool *pop, const char *arg)
 					get_item_list(List_sec, d),
 					get_item_list(List, n),
 					next, next) != 0) {
-				FATAL("POBJ_LIST_MOVE_ELEMENT_AFTER");
+				UT_FATAL("POBJ_LIST_MOVE_ELEMENT_AFTER");
 			}
 		}
 	}
@@ -367,7 +367,7 @@ main(int argc, char *argv[])
 	PMEMobjpool *pop;
 	if ((pop = pmemobj_create(path, LAYOUT_NAME, PMEMOBJ_MIN_POOL,
 						S_IWUSR | S_IRUSR)) == NULL)
-		FATAL("!pmemobj_create");
+		UT_FATAL("!pmemobj_create");
 
 	POBJ_ZNEW(pop, &List, struct list);
 	POBJ_ZNEW(pop, &List_sec, struct list);

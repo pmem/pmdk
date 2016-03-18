@@ -80,7 +80,7 @@ void reader(persistent_ptr<struct root> proot)
 {
 	for (int i = 0; i < num_ops; ++i) {
 		proot->pmutex.lock_shared();
-		ASSERTeq(proot->counter % 2, 0);
+		UT_ASSERTeq(proot->counter % 2, 0);
 		proot->pmutex.unlock_shared();
 	}
 }
@@ -107,7 +107,7 @@ void reader_trylock(persistent_ptr<struct root> proot)
 {
 	for (;;) {
 		if (proot->pmutex.try_lock_shared()) {
-			ASSERTeq(proot->counter % 2, 0);
+			UT_ASSERTeq(proot->counter % 2, 0);
 			proot->pmutex.unlock_shared();
 			return;
 		}
@@ -143,7 +143,7 @@ main(int argc, char *argv[])
 	START(argc, argv, "obj_cpp_shared_mutex");
 
 	if (argc != 2)
-		FATAL("usage: %s file-name", argv[0]);
+		UT_FATAL("usage: %s file-name", argv[0]);
 
 	const char *path = argv[1];
 
@@ -153,17 +153,17 @@ main(int argc, char *argv[])
 		pop = pool<struct root>::create(path, LAYOUT, PMEMOBJ_MIN_POOL,
 			S_IWUSR | S_IRUSR);
 	} catch (nvml::pool_error &pe) {
-		FATAL("!pool::create: %s %s", pe.what(), path);
+		UT_FATAL("!pool::create: %s %s", pe.what(), path);
 	}
 
 	int expected = num_threads * num_ops * 2;
 	mutex_test(pop, writer, reader);
-	ASSERTeq(pop.get_root()->counter, expected);
+	UT_ASSERTeq(pop.get_root()->counter, expected);
 
 	/* trylocks are not tested as exhaustively */
 	expected -= num_threads * 2;
 	mutex_test(pop, writer_trylock, reader_trylock);
-	ASSERTeq(pop.get_root()->counter, expected);
+	UT_ASSERTeq(pop.get_root()->counter, expected);
 
 	/* pmemcheck related persist */
 	pmemobj_persist(pop.get_handle(), &(pop.get_root()->counter),

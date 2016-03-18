@@ -77,7 +77,7 @@ test_everything(const char *path)
 
 	if ((pop = pmemobj_create(path, POBJ_LAYOUT_NAME(mc),
 			PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR)) == NULL)
-		FATAL("!pmemobj_create: %s", path);
+		UT_FATAL("!pmemobj_create: %s", path);
 
 	struct root *rt = D_RW(POBJ_ROOT(pop, struct root));
 
@@ -145,7 +145,7 @@ test_everything(const char *path)
 
 static void usage(const char *a)
 {
-	FATAL("usage: %s [m|t] file-name", a);
+	UT_FATAL("usage: %s [m|t] file-name", a);
 }
 
 int

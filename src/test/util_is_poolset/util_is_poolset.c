@@ -66,14 +66,14 @@ main(int argc, char *argv[])
 	util_init();
 
 	if (argc < 2)
-		FATAL("usage: %s file...",
+		UT_FATAL("usage: %s file...",
 			argv[0]);
 
 	for (int i = 1; i < argc; i++) {
 		char *fname = argv[i];
 		int is_poolset = util_is_poolset(fname);
 
-		OUT("util_is_poolset(%s): %d", fname, is_poolset);
+		UT_OUT("util_is_poolset(%s): %d", fname, is_poolset);
 	}
 	out_fini();
 

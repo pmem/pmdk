@@ -65,25 +65,25 @@ test_allocs(PMEMobjpool *pop, const char *path)
 	PMEMoid oid[TEST_ALLOC_SIZE];
 
 	if (pmemobj_alloc(pop, &oid[0], 0, 0, NULL, NULL) == 0)
-		FATAL("pmemobj_alloc(0) succeeded");
+		UT_FATAL("pmemobj_alloc(0) succeeded");
 
 	for (int i = 1; i < TEST_ALLOC_SIZE; ++i) {
 		struct cargs args = { i };
 		if (pmemobj_alloc(pop, &oid[i], i, 0,
 				test_constructor, &args) != 0)
-			FATAL("!pmemobj_alloc");
-		ASSERT(!OID_IS_NULL(oid[i]));
+			UT_FATAL("!pmemobj_alloc");
+		UT_ASSERT(!OID_IS_NULL(oid[i]));
 	}
 
 	pmemobj_close(pop);
 
-	ASSERT(pmemobj_check(path, LAYOUT_NAME) == 1);
+	UT_ASSERT(pmemobj_check(path, LAYOUT_NAME) == 1);
 
-	ASSERT((pop = pmemobj_open(path, LAYOUT_NAME)) != NULL);
+	UT_ASSERT((pop = pmemobj_open(path, LAYOUT_NAME)) != NULL);
 
 	for (int i = 1; i < TEST_ALLOC_SIZE; ++i) {
 		pmemobj_free(&oid[i]);
-		ASSERT(OID_IS_NULL(oid[i]));
+		UT_ASSERT(OID_IS_NULL(oid[i]));
 	}
 
 	pmemobj_close(pop);
@@ -95,19 +95,19 @@ test_lazy_load(PMEMobjpool *pop, const char *path)
 	PMEMoid oid[3];
 
 	int ret = pmemobj_alloc(pop, &oid[0], LAZY_LOAD_SIZE, 0, NULL, NULL);
-	ASSERTeq(ret, 0);
+	UT_ASSERTeq(ret, 0);
 	ret = pmemobj_alloc(pop, &oid[1], LAZY_LOAD_SIZE, 0, NULL, NULL);
-	ASSERTeq(ret, 0);
+	UT_ASSERTeq(ret, 0);
 	ret = pmemobj_alloc(pop, &oid[2], LAZY_LOAD_SIZE, 0, NULL, NULL);
-	ASSERTeq(ret, 0);
+	UT_ASSERTeq(ret, 0);
 
 	pmemobj_close(pop);
-	ASSERT((pop = pmemobj_open(path, LAYOUT_NAME)) != NULL);
+	UT_ASSERT((pop = pmemobj_open(path, LAYOUT_NAME)) != NULL);
 
 	pmemobj_free(&oid[1]);
 
 	ret = pmemobj_alloc(pop, &oid[1], LAZY_LOAD_BIG_SIZE, 0, NULL, NULL);
-	ASSERTeq(ret, 0);
+	UT_ASSERTeq(ret, 0);
 }
 
 
@@ -117,7 +117,7 @@ main(int argc, char *argv[])
 	START(argc, argv, "obj_many_size_allocs");
 
 	if (argc != 2)
-		FATAL("usage: %s file-name", argv[0]);
+		UT_FATAL("usage: %s file-name", argv[0]);
 
 	const char *path = argv[1];
 
@@ -125,7 +125,7 @@ main(int argc, char *argv[])
 
 	if ((pop = pmemobj_create(path, LAYOUT_NAME,
 			0, S_IWUSR | S_IRUSR)) == NULL)
-		FATAL("!pmemobj_create: %s", path);
+		UT_FATAL("!pmemobj_create: %s", path);
 
 	test_lazy_load(pop, path);
 	test_allocs(pop, path);

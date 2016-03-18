@@ -52,7 +52,7 @@ main(int argc, char *argv[])
 	if (argc == 2) {
 		dir = argv[1];
 	} else if (argc > 2) {
-		FATAL("usage: %s [directory]", argv[0]);
+		UT_FATAL("usage: %s [directory]", argv[0]);
 	}
 
 	if (dir == NULL) {
@@ -60,27 +60,27 @@ main(int argc, char *argv[])
 		mem_pool = MMAP_ANON_ALIGNED(POOL_SIZE, 4 << 20);
 		vmp = vmem_create_in_region(mem_pool, POOL_SIZE);
 		if (vmp == NULL)
-			FATAL("!vmem_create_in_region");
+			UT_FATAL("!vmem_create_in_region");
 	} else {
 		vmp = vmem_create(dir, POOL_SIZE);
 		if (vmp == NULL)
-			FATAL("!vmem_create");
+			UT_FATAL("!vmem_create");
 	}
 
 	int *test1 = vmem_malloc(vmp, 12 * 1024 * 1024);
-	ASSERTne(test1, NULL);
+	UT_ASSERTne(test1, NULL);
 
 	int *test1r = vmem_realloc(vmp, test1, 6 * 1024 * 1024);
-	ASSERTeq(test1r, test1);
+	UT_ASSERTeq(test1r, test1);
 
 	test1r = vmem_realloc(vmp, test1, 12 * 1024 * 1024);
-	ASSERTeq(test1r, test1);
+	UT_ASSERTeq(test1r, test1);
 
 	test1r = vmem_realloc(vmp, test1, 8 * 1024 * 1024);
-	ASSERTeq(test1r, test1);
+	UT_ASSERTeq(test1r, test1);
 
 	int *test2 = vmem_malloc(vmp, 4 * 1024 * 1024);
-	ASSERTne(test2, NULL);
+	UT_ASSERTne(test2, NULL);
 
 	/* 4MB => 16B */
 	int *test2r = vmem_realloc(vmp, test2, 16);
@@ -90,10 +90,10 @@ main(int argc, char *argv[])
 	 * However, we can return the pointer to the original allocation (not
 	 * resized), which is still better than NULL...
 	 */
-	ASSERTeq(test2r, test2);
+	UT_ASSERTeq(test2r, test2);
 
 	/* ... but the usable size is still 4MB. */
-	ASSERTeq(vmem_malloc_usable_size(vmp, test2r), 4 * 1024 * 1024);
+	UT_ASSERTeq(vmem_malloc_usable_size(vmp, test2r), 4 * 1024 * 1024);
 
 	/* 8MB => 16B */
 	test1r = vmem_realloc(vmp, test1, 16);
@@ -103,13 +103,13 @@ main(int argc, char *argv[])
 	 * releasing some space, which makes it possible to do the actual
 	 * shrinking...
 	 */
-	ASSERTne(test1r, NULL);
-	ASSERTne(test1r, test1);
-	ASSERTeq(vmem_malloc_usable_size(vmp, test1r), 16);
+	UT_ASSERTne(test1r, NULL);
+	UT_ASSERTne(test1r, test1);
+	UT_ASSERTeq(vmem_malloc_usable_size(vmp, test1r), 16);
 
 	/* ... and leaves some memory for new allocations. */
 	int *test3 = vmem_malloc(vmp, 4 * 1024 * 1024);
-	ASSERTne(test3, NULL);
+	UT_ASSERTne(test3, NULL);
 
 	vmem_free(vmp, test1r);
 	vmem_free(vmp, test2r);

@@ -108,19 +108,19 @@ do_tx_realloc_commit(PMEMobjpool *pop)
 	TX_BEGIN(pop) {
 		TOID_ASSIGN(obj, pmemobj_tx_realloc(obj.oid,
 			new_size, TYPE_COMMIT));
-		ASSERT(!TOID_IS_NULL(obj));
-		ASSERT(pmemobj_alloc_usable_size(obj.oid) >= new_size);
+		UT_ASSERT(!TOID_IS_NULL(obj));
+		UT_ASSERT(pmemobj_alloc_usable_size(obj.oid) >= new_size);
 	} TX_ONABORT {
-		ASSERT(0);
+		UT_ASSERT(0);
 	} TX_END
 
 	TOID_ASSIGN(obj, POBJ_FIRST_TYPE_NUM(pop, TYPE_COMMIT));
-	ASSERT(!TOID_IS_NULL(obj));
-	ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
-	ASSERT(pmemobj_alloc_usable_size(obj.oid) >= new_size);
+	UT_ASSERT(!TOID_IS_NULL(obj));
+	UT_ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
+	UT_ASSERT(pmemobj_alloc_usable_size(obj.oid) >= new_size);
 
 	TOID_ASSIGN(obj, POBJ_NEXT_TYPE_NUM(obj.oid));
-	ASSERT(TOID_IS_NULL(obj));
+	UT_ASSERT(TOID_IS_NULL(obj));
 }
 
 /*
@@ -136,21 +136,21 @@ do_tx_realloc_abort(PMEMobjpool *pop)
 	TX_BEGIN(pop) {
 		TOID_ASSIGN(obj, pmemobj_tx_realloc(obj.oid,
 			new_size, TYPE_ABORT));
-		ASSERT(!TOID_IS_NULL(obj));
-		ASSERT(pmemobj_alloc_usable_size(obj.oid) >= new_size);
+		UT_ASSERT(!TOID_IS_NULL(obj));
+		UT_ASSERT(pmemobj_alloc_usable_size(obj.oid) >= new_size);
 
 		pmemobj_tx_abort(-1);
 	} TX_ONCOMMIT {
-		ASSERT(0);
+		UT_ASSERT(0);
 	} TX_END
 
 	TOID_ASSIGN(obj, POBJ_FIRST_TYPE_NUM(pop, TYPE_ABORT));
-	ASSERT(!TOID_IS_NULL(obj));
-	ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
-	ASSERT(pmemobj_alloc_usable_size(obj.oid) < new_size);
+	UT_ASSERT(!TOID_IS_NULL(obj));
+	UT_ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
+	UT_ASSERT(pmemobj_alloc_usable_size(obj.oid) < new_size);
 
 	TOID_ASSIGN(obj, POBJ_NEXT_TYPE_NUM(obj.oid));
-	ASSERT(TOID_IS_NULL(obj));
+	UT_ASSERT(TOID_IS_NULL(obj));
 }
 
 /*
@@ -166,18 +166,18 @@ do_tx_realloc_huge(PMEMobjpool *pop)
 	TX_BEGIN(pop) {
 		TOID_ASSIGN(obj, pmemobj_tx_realloc(obj.oid,
 			new_size, TYPE_ABORT_HUGE));
-		ASSERT(0); /* should not get to this point */
+		UT_ASSERT(0); /* should not get to this point */
 	} TX_ONCOMMIT {
-		ASSERT(0);
+		UT_ASSERT(0);
 	} TX_END
 
 	TOID_ASSIGN(obj, POBJ_FIRST_TYPE_NUM(pop, TYPE_ABORT_HUGE));
-	ASSERT(!TOID_IS_NULL(obj));
-	ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
-	ASSERT(pmemobj_alloc_usable_size(obj.oid) < new_size);
+	UT_ASSERT(!TOID_IS_NULL(obj));
+	UT_ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
+	UT_ASSERT(pmemobj_alloc_usable_size(obj.oid) < new_size);
 
 	TOID_ASSIGN(obj, POBJ_NEXT_TYPE_NUM(obj.oid));
-	ASSERT(TOID_IS_NULL(obj));
+	UT_ASSERT(TOID_IS_NULL(obj));
 }
 
 /*
@@ -195,23 +195,23 @@ do_tx_zrealloc_commit_macro(PMEMobjpool *pop)
 
 	TX_BEGIN(pop) {
 		obj = TX_ZREALLOC(obj, new_size);
-		ASSERT(!TOID_IS_NULL(obj));
-		ASSERT(pmemobj_alloc_usable_size(obj.oid) >= new_size);
+		UT_ASSERT(!TOID_IS_NULL(obj));
+		UT_ASSERT(pmemobj_alloc_usable_size(obj.oid) >= new_size);
 		void *new_ptr = (void *)((uintptr_t)D_RW(obj) + old_size);
-		ASSERT(util_is_zeroed(new_ptr, new_size - old_size));
+		UT_ASSERT(util_is_zeroed(new_ptr, new_size - old_size));
 	} TX_ONABORT {
-		ASSERT(0);
+		UT_ASSERT(0);
 	} TX_END
 
 	TOID_ASSIGN(obj, POBJ_FIRST_TYPE_NUM(pop, TYPE_COMMIT_ZERO_MACRO));
-	ASSERT(!TOID_IS_NULL(obj));
-	ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
-	ASSERT(pmemobj_alloc_usable_size(obj.oid) >= new_size);
+	UT_ASSERT(!TOID_IS_NULL(obj));
+	UT_ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
+	UT_ASSERT(pmemobj_alloc_usable_size(obj.oid) >= new_size);
 	void *new_ptr = (void *)((uintptr_t)D_RW(obj) + old_size);
-	ASSERT(util_is_zeroed(new_ptr, new_size - old_size));
+	UT_ASSERT(util_is_zeroed(new_ptr, new_size - old_size));
 
 	TOID_ASSIGN(obj, POBJ_NEXT_TYPE_NUM(obj.oid));
-	ASSERT(TOID_IS_NULL(obj));
+	UT_ASSERT(TOID_IS_NULL(obj));
 }
 
 /*
@@ -229,24 +229,24 @@ do_tx_zrealloc_commit(PMEMobjpool *pop)
 	TX_BEGIN(pop) {
 		TOID_ASSIGN(obj, pmemobj_tx_zrealloc(obj.oid,
 			new_size, TYPE_COMMIT_ZERO));
-		ASSERT(!TOID_IS_NULL(obj));
-		ASSERT(pmemobj_alloc_usable_size(obj.oid) >= new_size);
+		UT_ASSERT(!TOID_IS_NULL(obj));
+		UT_ASSERT(pmemobj_alloc_usable_size(obj.oid) >= new_size);
 		void *new_ptr = (void *)((uintptr_t)D_RW(obj) + old_size);
-		ASSERT(util_is_zeroed(new_ptr, new_size - old_size));
+		UT_ASSERT(util_is_zeroed(new_ptr, new_size - old_size));
 	} TX_ONABORT {
-		ASSERT(0);
+		UT_ASSERT(0);
 	} TX_END
 
 	TOID_ASSIGN(obj, POBJ_FIRST_TYPE_NUM(pop, TYPE_COMMIT_ZERO));
-	ASSERT(!TOID_IS_NULL(obj));
-	ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
-	ASSERT(pmemobj_alloc_usable_size(obj.oid) >= new_size);
+	UT_ASSERT(!TOID_IS_NULL(obj));
+	UT_ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
+	UT_ASSERT(pmemobj_alloc_usable_size(obj.oid) >= new_size);
 	void *new_ptr = (void *)((uintptr_t)D_RW(obj) + old_size);
-	ASSERT(util_is_zeroed(new_ptr, new_size - old_size));
+	UT_ASSERT(util_is_zeroed(new_ptr, new_size - old_size));
 
 
 	TOID_ASSIGN(obj, POBJ_NEXT_TYPE_NUM(obj.oid));
-	ASSERT(TOID_IS_NULL(obj));
+	UT_ASSERT(TOID_IS_NULL(obj));
 }
 
 /*
@@ -263,22 +263,22 @@ do_tx_zrealloc_abort_macro(PMEMobjpool *pop)
 
 	TX_BEGIN(pop) {
 		obj = TX_ZREALLOC(obj, new_size);
-		ASSERT(!TOID_IS_NULL(obj));
-		ASSERT(pmemobj_alloc_usable_size(obj.oid) >= new_size);
+		UT_ASSERT(!TOID_IS_NULL(obj));
+		UT_ASSERT(pmemobj_alloc_usable_size(obj.oid) >= new_size);
 		void *new_ptr = (void *)((uintptr_t)D_RW(obj) + old_size);
-		ASSERT(util_is_zeroed(new_ptr, new_size - old_size));
+		UT_ASSERT(util_is_zeroed(new_ptr, new_size - old_size));
 
 		pmemobj_tx_abort(-1);
 	} TX_ONCOMMIT {
-		ASSERT(0);
+		UT_ASSERT(0);
 	} TX_END
 
 	TOID_ASSIGN(obj, POBJ_FIRST_TYPE_NUM(pop, TYPE_ABORT_ZERO_MACRO));
-	ASSERT(!TOID_IS_NULL(obj));
-	ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
-	ASSERT(pmemobj_alloc_usable_size(obj.oid) < new_size);
+	UT_ASSERT(!TOID_IS_NULL(obj));
+	UT_ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
+	UT_ASSERT(pmemobj_alloc_usable_size(obj.oid) < new_size);
 	TOID_ASSIGN(obj, POBJ_NEXT_TYPE_NUM(obj.oid));
-	ASSERT(TOID_IS_NULL(obj));
+	UT_ASSERT(TOID_IS_NULL(obj));
 }
 
 /*
@@ -295,22 +295,22 @@ do_tx_zrealloc_abort(PMEMobjpool *pop)
 	TX_BEGIN(pop) {
 		TOID_ASSIGN(obj, pmemobj_tx_zrealloc(obj.oid,
 			new_size, TYPE_ABORT_ZERO));
-		ASSERT(!TOID_IS_NULL(obj));
-		ASSERT(pmemobj_alloc_usable_size(obj.oid) >= new_size);
+		UT_ASSERT(!TOID_IS_NULL(obj));
+		UT_ASSERT(pmemobj_alloc_usable_size(obj.oid) >= new_size);
 		void *new_ptr = (void *)((uintptr_t)D_RW(obj) + old_size);
-		ASSERT(util_is_zeroed(new_ptr, new_size - old_size));
+		UT_ASSERT(util_is_zeroed(new_ptr, new_size - old_size));
 
 		pmemobj_tx_abort(-1);
 	} TX_ONCOMMIT {
-		ASSERT(0);
+		UT_ASSERT(0);
 	} TX_END
 
 	TOID_ASSIGN(obj, POBJ_FIRST_TYPE_NUM(pop, TYPE_ABORT_ZERO));
-	ASSERT(!TOID_IS_NULL(obj));
-	ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
-	ASSERT(pmemobj_alloc_usable_size(obj.oid) < new_size);
+	UT_ASSERT(!TOID_IS_NULL(obj));
+	UT_ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
+	UT_ASSERT(pmemobj_alloc_usable_size(obj.oid) < new_size);
 	TOID_ASSIGN(obj, POBJ_NEXT_TYPE_NUM(obj.oid));
-	ASSERT(TOID_IS_NULL(obj));
+	UT_ASSERT(TOID_IS_NULL(obj));
 }
 
 /*
@@ -328,18 +328,18 @@ do_tx_zrealloc_huge_macro(PMEMobjpool *pop)
 
 	TX_BEGIN(pop) {
 		obj = TX_ZREALLOC(obj, PMEMOBJ_MAX_ALLOC_SIZE + 1);
-		ASSERT(0); /* should not get to this point */
+		UT_ASSERT(0); /* should not get to this point */
 	} TX_ONCOMMIT {
-		ASSERT(0);
+		UT_ASSERT(0);
 	} TX_END
 
 	TOID_ASSIGN(obj, POBJ_FIRST_TYPE_NUM(pop, TYPE_ABORT_ZERO_HUGE_MACRO));
-	ASSERT(!TOID_IS_NULL(obj));
-	ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
-	ASSERT(pmemobj_alloc_usable_size(obj.oid) < new_size);
+	UT_ASSERT(!TOID_IS_NULL(obj));
+	UT_ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
+	UT_ASSERT(pmemobj_alloc_usable_size(obj.oid) < new_size);
 
 	TOID_ASSIGN(obj, POBJ_NEXT_TYPE_NUM(obj.oid));
-	ASSERT(TOID_IS_NULL(obj));
+	UT_ASSERT(TOID_IS_NULL(obj));
 }
 
 /*
@@ -356,18 +356,18 @@ do_tx_zrealloc_huge(PMEMobjpool *pop)
 	TX_BEGIN(pop) {
 		TOID_ASSIGN(obj, pmemobj_tx_zrealloc(obj.oid,
 			PMEMOBJ_MAX_ALLOC_SIZE + 1, TYPE_ABORT_ZERO_HUGE));
-		ASSERT(0); /* should not get to this point */
+		UT_ASSERT(0); /* should not get to this point */
 	} TX_ONCOMMIT {
-		ASSERT(0);
+		UT_ASSERT(0);
 	} TX_END
 
 	TOID_ASSIGN(obj, POBJ_FIRST_TYPE_NUM(pop, TYPE_ABORT_ZERO_HUGE));
-	ASSERT(!TOID_IS_NULL(obj));
-	ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
-	ASSERT(pmemobj_alloc_usable_size(obj.oid) < new_size);
+	UT_ASSERT(!TOID_IS_NULL(obj));
+	UT_ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
+	UT_ASSERT(pmemobj_alloc_usable_size(obj.oid) < new_size);
 
 	TOID_ASSIGN(obj, POBJ_NEXT_TYPE_NUM(obj.oid));
-	ASSERT(TOID_IS_NULL(obj));
+	UT_ASSERT(TOID_IS_NULL(obj));
 }
 
 /*
@@ -383,23 +383,23 @@ do_tx_realloc_alloc_commit(PMEMobjpool *pop)
 	TX_BEGIN(pop) {
 		TOID_ASSIGN(obj, do_tx_alloc(pop, TYPE_COMMIT_ALLOC,
 					TEST_VALUE_1));
-		ASSERT(!TOID_IS_NULL(obj));
+		UT_ASSERT(!TOID_IS_NULL(obj));
 		new_size = 2 * pmemobj_alloc_usable_size(obj.oid);
 		TOID_ASSIGN(obj, pmemobj_tx_realloc(obj.oid,
 			new_size, TYPE_COMMIT_ALLOC));
-		ASSERT(!TOID_IS_NULL(obj));
-		ASSERT(pmemobj_alloc_usable_size(obj.oid) >= new_size);
+		UT_ASSERT(!TOID_IS_NULL(obj));
+		UT_ASSERT(pmemobj_alloc_usable_size(obj.oid) >= new_size);
 	} TX_ONABORT {
-		ASSERT(0);
+		UT_ASSERT(0);
 	} TX_END
 
 	TOID_ASSIGN(obj, POBJ_FIRST_TYPE_NUM(pop, TYPE_COMMIT_ALLOC));
-	ASSERT(!TOID_IS_NULL(obj));
-	ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
-	ASSERT(pmemobj_alloc_usable_size(obj.oid) >= new_size);
+	UT_ASSERT(!TOID_IS_NULL(obj));
+	UT_ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
+	UT_ASSERT(pmemobj_alloc_usable_size(obj.oid) >= new_size);
 
 	TOID_ASSIGN(obj, POBJ_NEXT_TYPE_NUM(obj.oid));
-	ASSERT(TOID_IS_NULL(obj));
+	UT_ASSERT(TOID_IS_NULL(obj));
 }
 
 /*
@@ -415,20 +415,20 @@ do_tx_realloc_alloc_abort(PMEMobjpool *pop)
 	TX_BEGIN(pop) {
 		TOID_ASSIGN(obj, do_tx_alloc(pop, TYPE_ABORT_ALLOC,
 					TEST_VALUE_1));
-		ASSERT(!TOID_IS_NULL(obj));
+		UT_ASSERT(!TOID_IS_NULL(obj));
 		new_size = 2 * pmemobj_alloc_usable_size(obj.oid);
 		TOID_ASSIGN(obj, pmemobj_tx_realloc(obj.oid,
 			new_size, TYPE_ABORT_ALLOC));
-		ASSERT(!TOID_IS_NULL(obj));
-		ASSERT(pmemobj_alloc_usable_size(obj.oid) >= new_size);
+		UT_ASSERT(!TOID_IS_NULL(obj));
+		UT_ASSERT(pmemobj_alloc_usable_size(obj.oid) >= new_size);
 
 		pmemobj_tx_abort(-1);
 	} TX_ONCOMMIT {
-		ASSERT(0);
+		UT_ASSERT(0);
 	} TX_END
 
 	TOID_ASSIGN(obj, POBJ_FIRST_TYPE_NUM(pop, TYPE_ABORT_ALLOC));
-	ASSERT(TOID_IS_NULL(obj));
+	UT_ASSERT(TOID_IS_NULL(obj));
 }
 
 
@@ -440,18 +440,18 @@ do_tx_root_realloc(PMEMobjpool *pop)
 {
 	TX_BEGIN(pop) {
 		PMEMoid root = pmemobj_root(pop, sizeof (struct object));
-		ASSERT(!OID_IS_NULL(root));
-		ASSERT(util_is_zeroed(pmemobj_direct(root),
+		UT_ASSERT(!OID_IS_NULL(root));
+		UT_ASSERT(util_is_zeroed(pmemobj_direct(root),
 				sizeof (struct object)));
-		ASSERTeq(sizeof (struct object), pmemobj_root_size(pop));
+		UT_ASSERTeq(sizeof (struct object), pmemobj_root_size(pop));
 
 		root = pmemobj_root(pop, 2 * sizeof (struct object));
-		ASSERT(!OID_IS_NULL(root));
-		ASSERT(util_is_zeroed(pmemobj_direct(root),
+		UT_ASSERT(!OID_IS_NULL(root));
+		UT_ASSERT(util_is_zeroed(pmemobj_direct(root),
 				2 * sizeof (struct object)));
-		ASSERTeq(2 * sizeof (struct object), pmemobj_root_size(pop));
+		UT_ASSERTeq(2 * sizeof (struct object), pmemobj_root_size(pop));
 	} TX_ONABORT {
-		ASSERT(0);
+		UT_ASSERT(0);
 	} TX_END
 }
 
@@ -461,12 +461,12 @@ main(int argc, char *argv[])
 	START(argc, argv, "obj_tx_realloc");
 
 	if (argc != 2)
-		FATAL("usage: %s [file]", argv[0]);
+		UT_FATAL("usage: %s [file]", argv[0]);
 
 	PMEMobjpool *pop;
 	if ((pop = pmemobj_create(argv[1], LAYOUT_NAME, 0,
 				S_IWUSR | S_IRUSR)) == NULL)
-		FATAL("!pmemobj_create");
+		UT_FATAL("!pmemobj_create");
 
 	do_tx_root_realloc(pop);
 	do_tx_realloc_commit(pop);

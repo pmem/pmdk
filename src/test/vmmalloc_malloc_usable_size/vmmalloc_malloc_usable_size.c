@@ -72,26 +72,26 @@ main(int argc, char *argv[])
 
 	START(argc, argv, "vmmalloc_malloc_usable_size");
 
-	ASSERTeq(malloc_usable_size(NULL), 0);
+	UT_ASSERTeq(malloc_usable_size(NULL), 0);
 
 	for (i = 0; i < (sizeof (Check_sizes) / sizeof (Check_sizes[0])); ++i) {
 		size = Check_sizes[i].size;
-		OUT("size %zu", size);
+		UT_OUT("size %zu", size);
 
 		ptr = malloc(size);
-		ASSERTne(ptr, NULL);
+		UT_ASSERTne(ptr, NULL);
 
 		usable_size = malloc_usable_size(ptr);
-		ASSERT(usable_size >= size);
+		UT_ASSERT(usable_size >= size);
 
 		if (usable_size - size > Check_sizes[i].spacing) {
-			FATAL("Size %zu: spacing %zu is bigger"
+			UT_FATAL("Size %zu: spacing %zu is bigger"
 				"than expected: %zu", size,
 				(usable_size - size), Check_sizes[i].spacing);
 		}
 
 		memset(ptr, 0xEE, usable_size);
-		ASSERTeq(*(unsigned char *)ptr, 0xEE);
+		UT_ASSERTeq(*(unsigned char *)ptr, 0xEE);
 
 		free(ptr);
 	}

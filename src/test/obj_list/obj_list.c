@@ -110,23 +110,23 @@ TOID(struct oob_item) *Item;
 
 /* usage macros */
 #define	FATAL_USAGE()\
-	FATAL("usage: obj_list <file> [PRnifr]")
+	UT_FATAL("usage: obj_list <file> [PRnifr]")
 #define	FATAL_USAGE_PRINT()\
-	FATAL("usage: obj_list <file> P:<list>")
+	UT_FATAL("usage: obj_list <file> P:<list>")
 #define	FATAL_USAGE_PRINT_REVERSE()\
-	FATAL("usage: obj_list <file> R:<list>")
+	UT_FATAL("usage: obj_list <file> R:<list>")
 #define	FATAL_USAGE_INSERT()\
-	FATAL("usage: obj_list <file> i:<where>:<num>")
+	UT_FATAL("usage: obj_list <file> i:<where>:<num>")
 #define	FATAL_USAGE_REMOVE_FREE()\
-	FATAL("usage: obj_list <file> f:<list>:<num>:<from>")
+	UT_FATAL("usage: obj_list <file> f:<list>:<num>:<from>")
 #define	FATAL_USAGE_REMOVE()\
-	FATAL("usage: obj_list <file> r:<num>")
+	UT_FATAL("usage: obj_list <file> r:<num>")
 #define	FATAL_USAGE_MOVE()\
-	FATAL("usage: obj_list <file> m:<num>:<where>:<num>")
+	UT_FATAL("usage: obj_list <file> m:<num>:<where>:<num>")
 #define	FATAL_USAGE_MOVE_OOB()\
-	FATAL("usage: obj_list <file> o:<num>")
+	UT_FATAL("usage: obj_list <file> o:<num>")
 #define	FATAL_USAGE_FAIL()\
-	FATAL("usage: obj_list <file> "\
+	UT_FATAL("usage: obj_list <file> "\
 	"F:<after_finish|before_finish|after_process>")
 
 /*
@@ -189,7 +189,7 @@ FUNC_MOCK_RUN_DEFAULT {
 
 	void *addr = pmem_map_file(fname, 0, 0, 0, &size, &is_pmem);
 	if (!addr) {
-		OUT("!%s: pmem_map_file", fname);
+		UT_OUT("!%s: pmem_map_file", fname);
 		return NULL;
 	}
 
@@ -364,7 +364,7 @@ FUNC_MOCK(pmalloc, int, PMEMobjpool *pop, uint64_t *ptr, size_t size)
 			size + OOB_OFF;
 		Pop->persist(Pop, Heap_offset, sizeof (*Heap_offset));
 
-		OUT("pmalloc(id = %d)", item->item.id);
+		UT_OUT("pmalloc(id = %d)", item->item.id);
 		return 0;
 	}
 FUNC_MOCK_END
@@ -378,7 +378,7 @@ FUNC_MOCK(pfree, int, PMEMobjpool *pop, uint64_t *ptr)
 	FUNC_MOCK_RUN_DEFAULT {
 		struct oob_item *item =
 			(struct oob_item *)((uintptr_t)Pop + *ptr - OOB_OFF);
-		OUT("pfree(id = %d)", item->item.id);
+		UT_OUT("pfree(id = %d)", item->item.id);
 		*ptr = 0;
 		Pop->persist(Pop, ptr, sizeof (*ptr));
 
@@ -428,12 +428,12 @@ FUNC_MOCK(prealloc, int, PMEMobjpool *pop, uint64_t *off, size_t size)
 			*alloc_size = size;
 			Pop->persist(Pop, alloc_size, sizeof (*alloc_size));
 
-			OUT("prealloc(id = %d, size = %zu) = true",
+			UT_OUT("prealloc(id = %d, size = %zu) = true",
 				item->id,
 				(size - OOB_OFF) / sizeof (struct item));
 			return 0;
 		} else {
-			OUT("prealloc(id = %d, size = %zu) = false",
+			UT_OUT("prealloc(id = %d, size = %zu) = false",
 				item->id,
 				(size - OOB_OFF) / sizeof (struct item));
 			return -1;
@@ -713,27 +713,27 @@ do_print(PMEMobjpool *pop, const char *arg)
 
 	if (L == 1) {
 		TOID(struct oob_item) oob_item;
-		OUT("oob list:");
+		UT_OUT("oob list:");
 		LIST_FOREACH_OOB(oob_item, List_oob, head) {
-			OUT("id = %d", D_RO(oob_item)->item.id);
+			UT_OUT("id = %d", D_RO(oob_item)->item.id);
 		}
 	} else if (L == 2) {
 		TOID(struct item) item;
-		OUT("list:");
+		UT_OUT("list:");
 		LIST_FOREACH(item, List, head, next) {
-			OUT("id = %d", D_RO(item)->id);
+			UT_OUT("id = %d", D_RO(item)->id);
 		}
 	} else if (L == 3) {
 		TOID(struct oob_item) oob_item;
-		OUT("oob list sec:");
+		UT_OUT("oob list sec:");
 		LIST_FOREACH_OOB(oob_item, List_oob_sec, head) {
-			OUT("id = %d", D_RO(oob_item)->item.id);
+			UT_OUT("id = %d", D_RO(oob_item)->item.id);
 		}
 	} else if (L == 4) {
 		TOID(struct item) item;
-		OUT("list sec:");
+		UT_OUT("list sec:");
 		LIST_FOREACH(item, List_sec, head, next) {
-			OUT("id = %d", D_RO(item)->id);
+			UT_OUT("id = %d", D_RO(item)->id);
 		}
 	} else {
 		FATAL_USAGE_PRINT();
@@ -751,29 +751,29 @@ do_print_reverse(PMEMobjpool *pop, const char *arg)
 		FATAL_USAGE_PRINT_REVERSE();
 	if (L == 1) {
 		TOID(struct oob_item) oob_item;
-		OUT("oob list reverse:");
+		UT_OUT("oob list reverse:");
 		LIST_FOREACH_REVERSE_OOB(oob_item,
 			List_oob, head) {
-			OUT("id = %d", D_RO(oob_item)->item.id);
+			UT_OUT("id = %d", D_RO(oob_item)->item.id);
 		}
 	} else if (L == 2) {
 		TOID(struct item) item;
-		OUT("list reverse:");
+		UT_OUT("list reverse:");
 		LIST_FOREACH_REVERSE(item, List, head, next) {
-			OUT("id = %d", D_RO(item)->id);
+			UT_OUT("id = %d", D_RO(item)->id);
 		}
 	} else if (L == 3) {
 		TOID(struct oob_item) oob_item;
-		OUT("oob list sec reverse:");
+		UT_OUT("oob list sec reverse:");
 		LIST_FOREACH_REVERSE_OOB(oob_item,
 			List_oob_sec, head) {
-			OUT("id = %d", D_RO(oob_item)->item.id);
+			UT_OUT("id = %d", D_RO(oob_item)->item.id);
 		}
 	} else if (L == 4) {
 		TOID(struct item) item;
-		OUT("list sec reverse:");
+		UT_OUT("list sec reverse:");
 		LIST_FOREACH_REVERSE(item, List_sec, head, next) {
-			OUT("id = %d", D_RO(item)->id);
+			UT_OUT("id = %d", D_RO(item)->id);
 		}
 	} else {
 		FATAL_USAGE_PRINT_REVERSE();
@@ -791,7 +791,7 @@ item_constructor(PMEMobjpool *pop, void *ptr, size_t usable_size, void *arg)
 	struct item *item = (struct item *)ptr;
 	item->id = id;
 	pop->persist(Pop, &item->id, sizeof (item->id));
-	OUT("constructor(id = %d)", id);
+	UT_OUT("constructor(id = %d)", id);
 
 	return 0;
 }
@@ -824,7 +824,7 @@ do_insert_new(PMEMobjpool *pop, const char *arg)
 			&id, (PMEMoid *)Item);
 
 		if (ret)
-			FATAL("list_insert_new(List, List_oob) failed");
+			UT_FATAL("list_insert_new(List, List_oob) failed");
 	} else if (ret == 2) {
 		ret = list_insert_new_user(pop,
 			(struct list_head *)&D_RW(List_oob)->head,
@@ -836,7 +836,7 @@ do_insert_new(PMEMobjpool *pop, const char *arg)
 			NULL, NULL, (PMEMoid *)Item);
 
 		if (ret)
-			FATAL("list_insert_new(List, List_oob) failed");
+			UT_FATAL("list_insert_new(List, List_oob) failed");
 	} else {
 		ret = list_insert_new_user(pop,
 			(struct list_head *)&D_RW(List_oob)->head,
@@ -845,7 +845,7 @@ do_insert_new(PMEMobjpool *pop, const char *arg)
 			NULL, NULL, (PMEMoid *)Item);
 
 		if (ret)
-			FATAL("list_insert_new(List_oob) failed");
+			UT_FATAL("list_insert_new(List_oob) failed");
 	}
 }
 
@@ -871,7 +871,7 @@ do_insert(PMEMobjpool *pop, const char *arg)
 		get_item_list(List.oid, n),
 		before,
 		it)) {
-		FATAL("list_insert(List) failed");
+		UT_FATAL("list_insert(List) failed");
 	}
 }
 
@@ -902,7 +902,7 @@ do_remove_free(PMEMobjpool *pop, const char *arg)
 			0,
 			NULL,
 			&oid)) {
-			FATAL("list_remove_free(List_oob) failed");
+			UT_FATAL("list_remove_free(List_oob) failed");
 		}
 	} else if (N == 2) {
 		if (list_remove_free_user(pop,
@@ -910,7 +910,7 @@ do_remove_free(PMEMobjpool *pop, const char *arg)
 			offsetof(struct item, next),
 			(struct list_head *)&D_RW(List)->head,
 			&oid)) {
-			FATAL("list_remove_free(List_oob, List) failed");
+			UT_FATAL("list_remove_free(List_oob, List) failed");
 		}
 	} else {
 		FATAL_USAGE_REMOVE_FREE();
@@ -931,7 +931,7 @@ do_remove(PMEMobjpool *pop, const char *arg)
 		offsetof(struct item, next),
 		(struct list_head *)&D_RW(List)->head,
 		get_item_list(List.oid, n))) {
-		FATAL("list_remove(List) failed");
+		UT_FATAL("list_remove(List) failed");
 	}
 }
 
@@ -971,7 +971,7 @@ do_move(PMEMobjpool *pop, const char *arg)
 		get_item_list(List_sec.oid, d),
 		before,
 		get_item_list(List.oid, n))) {
-		FATAL("list_move(List, List_sec) failed");
+		UT_FATAL("list_move(List, List_sec) failed");
 	}
 }
 
@@ -995,7 +995,7 @@ do_move_one_list(PMEMobjpool *pop, const char *arg)
 		get_item_list(List.oid, d),
 		before,
 		get_item_list(List.oid, n))) {
-		FATAL("list_move(List, List) failed");
+		UT_FATAL("list_move(List, List) failed");
 	}
 }
 
@@ -1029,10 +1029,10 @@ main(int argc, char *argv[])
 
 	UT_COMPILE_ERROR_ON(OOB_OFF != 48);
 	PMEMobjpool *pop = pmemobj_open(path, NULL);
-	ASSERTne(pop, NULL);
+	UT_ASSERTne(pop, NULL);
 
-	ASSERT(!TOID_IS_NULL(List));
-	ASSERT(!TOID_IS_NULL(List_oob));
+	UT_ASSERT(!TOID_IS_NULL(List));
+	UT_ASSERT(!TOID_IS_NULL(List_oob));
 
 	int i;
 	for (i = 2; i < argc; i++) {

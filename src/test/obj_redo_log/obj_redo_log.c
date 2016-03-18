@@ -67,7 +67,7 @@
 
 #include "unittest.h"
 
-#define	FATAL_USAGE()	FATAL("usage: obj_redo_log <fname> <redo_log_size> "\
+#define	FATAL_USAGE()	UT_FATAL("usage: obj_redo_log <fname> <redo_log_size> "\
 		"[sfFrePRC][<index>:<offset>:<value>]\n")
 
 #define	PMEMOBJ_POOL_HDR_SIZE	8192
@@ -113,11 +113,11 @@ pmemobj_open_mock(const char *fname)
 
 	void *addr = pmem_map_file(fname, 0, 0, 0, &size, &is_pmem);
 	if (!addr) {
-		OUT("!%s: pmem_map_file", fname);
+		UT_OUT("!%s: pmem_map_file", fname);
 		return NULL;
 	}
 
-	ASSERT(size > PMEMOBJ_POOL_HDR_SIZE);
+	UT_ASSERT(size > PMEMOBJ_POOL_HDR_SIZE);
 
 	PMEMobjpool *pop = (PMEMobjpool *)addr;
 	VALGRIND_REMOVE_PMEM_MAPPING((char *)addr + sizeof (pop->hdr), 4096);
@@ -159,9 +159,9 @@ main(int argc, char *argv[])
 		FATAL_USAGE();
 
 	PMEMobjpool *pop = pmemobj_open_mock(argv[1]);
-	ASSERTne(pop, NULL);
+	UT_ASSERTne(pop, NULL);
 
-	ASSERTeq(util_is_zeroed((char *)pop->addr + PMEMOBJ_POOL_HDR_SIZE,
+	UT_ASSERTeq(util_is_zeroed((char *)pop->addr + PMEMOBJ_POOL_HDR_SIZE,
 			pop->size - PMEMOBJ_POOL_HDR_SIZE), 1);
 
 	char *end = NULL;
@@ -170,7 +170,7 @@ main(int argc, char *argv[])
 	if (errno || !end || *end != '\0')
 		FATAL_USAGE();
 
-	ASSERT(pop->size >= redo_size * sizeof (struct redo_log));
+	UT_ASSERT(pop->size >= redo_size * sizeof (struct redo_log));
 
 	struct redo_log *redo = (struct redo_log *)pop->addr;
 
@@ -181,28 +181,28 @@ main(int argc, char *argv[])
 	size_t index;
 	for (i = 3; i < argc; i++) {
 		char *arg = argv[i];
-		ASSERTne(arg, NULL);
+		UT_ASSERTne(arg, NULL);
 
 		switch (arg[0]) {
 		case 's':
 			if (sscanf(arg, "s:%ld:0x%lx:0x%lx",
 					&index, &offset, &value) != 3)
 				FATAL_USAGE();
-			OUT("s:%ld:0x%08lx:0x%08lx", index, offset, value);
+			UT_OUT("s:%ld:0x%08lx:0x%08lx", index, offset, value);
 			redo_log_store(pop, redo, index, offset, value);
 			break;
 		case 'f':
 			if (sscanf(arg, "f:%ld:0x%lx:0x%lx",
 					&index, &offset, &value) != 3)
 				FATAL_USAGE();
-			OUT("f:%ld:0x%08lx:0x%08lx", index, offset, value);
+			UT_OUT("f:%ld:0x%08lx:0x%08lx", index, offset, value);
 			redo_log_store_last(pop, redo, index, offset,
 					value);
 			break;
 		case 'F':
 			if (sscanf(arg, "F:%ld", &index) != 1)
 				FATAL_USAGE();
-			OUT("F:%ld", index);
+			UT_OUT("F:%ld", index);
 			redo_log_set_last(pop, redo, index);
 			break;
 		case 'r':
@@ -211,7 +211,7 @@ main(int argc, char *argv[])
 
 			uint64_t *valp = (uint64_t *)((uintptr_t)pop->addr
 					+ offset);
-			OUT("r:0x%08lx:0x%08lx", offset, *valp);
+			UT_OUT("r:0x%08lx:0x%08lx", offset, *valp);
 			break;
 		case 'e':
 			if (sscanf(arg, "e:%ld", &index) != 1)
@@ -223,20 +223,20 @@ main(int argc, char *argv[])
 			offset = entry->offset & REDO_FLAG_MASK;
 			value = entry->value;
 
-			OUT("e:%ld:0x%08lx:%d:0x%08lx", index, offset,
+			UT_OUT("e:%ld:0x%08lx:%d:0x%08lx", index, offset,
 					flag, value);
 			break;
 		case 'P':
 			redo_log_process(pop, redo, redo_size);
-			OUT("P");
+			UT_OUT("P");
 			break;
 		case 'R':
 			redo_log_recover(pop, redo, redo_size);
-			OUT("R");
+			UT_OUT("R");
 			break;
 		case 'C':
 			ret = redo_log_check(pop, redo, redo_size);
-			OUT("C:%d", ret);
+			UT_OUT("C:%d", ret);
 			break;
 		default:
 			FATAL_USAGE();

@@ -58,7 +58,7 @@ static struct transaction_data {
 	ret += pmemobj_mutex_trylock((pop), &(mtx)[1]);\
 	ret += pmemobj_rwlock_trywrlock((pop), &(rwlock)[0]);\
 	ret += pmemobj_rwlock_trywrlock((pop), &(rwlock)[1]);\
-	ASSERTeq(ret, 0);\
+	UT_ASSERTeq(ret, 0);\
 	pmemobj_mutex_unlock((pop), &(mtx)[0]);\
 	pmemobj_mutex_unlock((pop), &(mtx)[1]);\
 	pmemobj_rwlock_unlock((pop), &(rwlock)[0]);\
@@ -66,13 +66,13 @@ static struct transaction_data {
 
 #define	IS_LOCKED(pop, mtx, rwlock)\
 	ret = pmemobj_mutex_trylock((pop), &(mtx)[0]);\
-	ASSERT(ret != 0);\
+	UT_ASSERT(ret != 0);\
 	ret = pmemobj_mutex_trylock((pop), &(mtx)[1]);\
-	ASSERT(ret != 0);\
+	UT_ASSERT(ret != 0);\
 	ret += pmemobj_rwlock_trywrlock((pop), &(rwlock)[0]);\
-	ASSERT(ret != 0);\
+	UT_ASSERT(ret != 0);\
 	ret += pmemobj_rwlock_trywrlock((pop), &(rwlock)[1]);\
-	ASSERT(ret != 0)
+	UT_ASSERT(ret != 0)
 
 /*
  * do_tx_add_locks -- (internal) transaction where locks are added after
@@ -87,7 +87,7 @@ do_tx_add_locks(struct transaction_data *data)
 		DO_LOCK(data->mutexes, data->rwlocks);
 		IS_LOCKED(data->pop, data->mutexes, data->rwlocks);
 	} TX_ONABORT { /* not called */
-		ASSERT(0);
+		UT_ASSERT(0);
 	} TX_END
 	IS_UNLOCKED(data->pop, data->mutexes, data->rwlocks);
 	return NULL;
@@ -109,7 +109,7 @@ do_tx_add_locks_nested(struct transaction_data *data)
 		} TX_END
 		IS_LOCKED(data->pop, data->mutexes, data->rwlocks);
 	} TX_ONABORT {
-		ASSERT(0);
+		UT_ASSERT(0);
 	} TX_END
 	IS_UNLOCKED(data->pop, data->mutexes, data->rwlocks);
 	return NULL;
@@ -134,7 +134,7 @@ do_tx_add_locks_nested_all(struct transaction_data *data)
 		} TX_END
 		IS_LOCKED(data->pop, data->mutexes, data->rwlocks);
 	} TX_ONABORT {
-		ASSERT(0);
+		UT_ASSERT(0);
 	} TX_END
 	IS_UNLOCKED(data->pop, data->mutexes, data->rwlocks);
 	return NULL;
@@ -147,11 +147,11 @@ main(int argc, char *argv[])
 	START(argc, argv, "obj_tx_lock");
 
 	if (argc != 2)
-		FATAL("usage: %s <file>", argv[0]);
+		UT_FATAL("usage: %s <file>", argv[0]);
 
 	if ((test_obj.pop = pmemobj_create(argv[1], LAYOUT_NAME,
 	    PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR)) == NULL)
-		FATAL("!pmemobj_create");
+		UT_FATAL("!pmemobj_create");
 
 	test_obj.mutexes = CALLOC(NUM_LOCKS, sizeof (PMEMmutex));
 	test_obj.rwlocks = CALLOC(NUM_LOCKS, sizeof (PMEMrwlock));

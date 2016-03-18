@@ -60,7 +60,7 @@ fopen(const char *path, const char *mode)
 	static FILE *(*fopen_ptr)(const char *path, const char *mode);
 
 	if (strcmp(path, "/proc/self/maps") == 0) {
-		OUT("redirecting /proc/self/maps to %s", Sfile);
+		UT_OUT("redirecting /proc/self/maps to %s", Sfile);
 		path = Sfile;
 	}
 
@@ -78,7 +78,7 @@ main(int argc, char *argv[])
 	util_init();
 
 	if (argc < 3)
-		FATAL("usage: %s maps_file len [len]...", argv[0]);
+		UT_FATAL("usage: %s maps_file len [len]...", argv[0]);
 
 	Sfile = argv[1];
 
@@ -95,10 +95,10 @@ main(int argc, char *argv[])
 			util_map_hint_unused((void *)TERABYTE, len, GIGABYTE);
 		void *h2 = util_map_hint(len, 0);
 		if (h1 != NULL)
-			ASSERTeq((uintptr_t)h1 & (GIGABYTE - 1), 0);
+			UT_ASSERTeq((uintptr_t)h1 & (GIGABYTE - 1), 0);
 		if (h2 != NULL)
-			ASSERTeq((uintptr_t)h2 & (align - 1), 0);
-		OUT("len %zu: %p %p", len, h1, h2);
+			UT_ASSERTeq((uintptr_t)h2 & (align - 1), 0);
+		UT_OUT("len %zu: %p %p", len, h1, h2);
 	}
 
 	DONE(NULL);
