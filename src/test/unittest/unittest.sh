@@ -42,11 +42,11 @@
 
 TOOLS=../tools
 # Paths to some useful tools
-[ -n "$PMEMPOOL" ] || PMEMPOOL=../../tools/pmempool/pmempool
-[ -n "$PMEMSPOIL" ] || PMEMSPOIL=$TOOLS/pmemspoil/pmemspoil.static-nondebug
-[ -n "$PMEMWRITE" ] || PMEMWRITE=$TOOLS/pmemwrite/pmemwrite
-[ -n "$PMEMALLOC" ] || PMEMALLOC=$TOOLS/pmemalloc/pmemalloc
-[ -n "$PMEMDETECT" ] || PMEMDETECT=$TOOLS/pmemdetect/pmemdetect.static-nondebug
+[ "$PMEMPOOL" ] || PMEMPOOL=../../tools/pmempool/pmempool
+[ "$PMEMSPOIL" ] || PMEMSPOIL=$TOOLS/pmemspoil/pmemspoil.static-nondebug
+[ "$PMEMWRITE" ] || PMEMWRITE=$TOOLS/pmemwrite/pmemwrite
+[ "$PMEMALLOC" ] || PMEMALLOC=$TOOLS/pmemalloc/pmemalloc
+[ "$PMEMDETECT" ] || PMEMDETECT=$TOOLS/pmemdetect/pmemdetect.static-nondebug
 
 # force globs to fail if they don't match
 shopt -s failglob
@@ -95,14 +95,20 @@ esac
 curtestdir=`basename $PWD`
 
 # just in case
-if [ ! -n "$curtestdir" ]; then
+if [ ! "$curtestdir" ]; then
+	echo "curtestdir does not have a value" >&2
 	exit 1
 fi
 
 curtestdir=test_$curtestdir
 
-if [ ! -n "$UNITTEST_NUM" ]; then
+if [ ! "$UNITTEST_NUM" ]; then
 	echo "UNITTEST_NUM does not have a value" >&2
+	exit 1
+fi
+
+if [ ! "$UNITTEST_NAME" ]; then
+	echo "UNITTEST_NAME does not have a value" >&2
 	exit 1
 fi
 
@@ -139,11 +145,11 @@ else
 	none)
 		DIR=/dev/null/not_existing_dir/$curtestdir$UNITTEST_NUM
 		;;
-	esac
-	[ "$DIR" ] || {
+	*)
 		[ "$UNITTEST_QUIET" ] || echo "$UNITTEST_NAME: SKIP fs-type $FS (not configured)"
 		exit 0
-	}
+                ;;
+        esac
 fi
 
 if [ -d "$PMEM_FS_DIR" ]; then
@@ -182,9 +188,8 @@ export VMMALLOC_LOG_FILE=vmmalloc$UNITTEST_NUM.log
 
 export MEMCHECK_LOG_FILE=memcheck_${BUILD}_${UNITTEST_NUM}.log
 export VALIDATE_MEMCHECK_LOG=1
-if [ -z "$UT_DUMP_LINES" ]; then
-	UT_DUMP_LINES=30
-fi
+
+[ "$UT_DUMP_LINES" ] || UT_DUMP_LINES=30
 
 export CHECK_POOL_LOG_FILE=check_pool_${BUILD}_${UNITTEST_NUM}.log
 
@@ -768,9 +773,7 @@ function require_no_asan_for() {
 #	is installed
 #
 function require_cxx11() {
-	if [ -z "$CXX" ]; then
-		CXX=c++
-	fi
+	[ "$CXX" ] || CXX=c++
 
 	CXX11_AVAILABLE=`echo "int main(){return 0;}" |\
 		$CXX -std=c++11 -x c++ -o /dev/null - 2>/dev/null &&\
