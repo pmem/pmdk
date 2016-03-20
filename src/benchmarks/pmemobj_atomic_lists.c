@@ -449,7 +449,7 @@ obj_init_list(struct worker_info *worker, size_t n_oids, size_t list_len)
 		size_t size = obj_bench.alloc_sizes[i];
 		PMEMoid *tmp = (PMEMoid *)&obj_worker->oids[i];
 		if (pmemobj_alloc(obj_bench.pop, tmp, size, type_num,
-							NULL, NULL) != 0)
+							NULL, NULL, 0) != 0)
 			goto err_oids;
 	}
 	for (i = 0; i < list_len; i++)

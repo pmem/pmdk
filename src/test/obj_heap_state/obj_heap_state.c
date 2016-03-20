@@ -73,7 +73,7 @@ main(int argc, char *argv[])
 			0, S_IWUSR | S_IRUSR, 0)) == NULL)
 		FATAL("!pmemobj_create: %s", path);
 
-	pmemobj_root(pop, ROOT_SIZE); /* just to trigger allocation */
+	pmemobj_root(pop, ROOT_SIZE, 0); /* just to trigger allocation */
 
 	pmemobj_close(pop);
 
@@ -83,7 +83,7 @@ main(int argc, char *argv[])
 	for (int i = 0; i < ALLOCS; ++i) {
 		PMEMoid oid;
 		pmemobj_alloc(pop, &oid, ALLOC_SIZE, 0,
-				test_constructor, NULL);
+				test_constructor, NULL, 0);
 		OUT("%d %lu", i, oid.off);
 	}
 

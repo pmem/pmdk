@@ -93,7 +93,7 @@ main(int argc, char *argv[])
 	 */
 	int allocs = 0;
 	while (pmemobj_alloc(pop, NULL, sizeof (struct node), 1,
-			NULL, NULL) == 0)
+			NULL, NULL, 0) == 0)
 		allocs++;
 
 	ASSERTne(allocs, 0);
@@ -105,26 +105,26 @@ main(int argc, char *argv[])
 
 	errno = 0;
 	root.oid = pmemobj_root_construct(pop, sizeof (struct root),
-			root_constr_cancel, NULL);
+			root_constr_cancel, NULL, 0);
 	ASSERT(TOID_IS_NULL(root));
 	ASSERTeq(errno, ECANCELED);
 
 	errno = 0;
 	ret = pmemobj_alloc(pop, NULL, sizeof (struct node), 1,
-			node_constr_cancel, NULL);
+			node_constr_cancel, NULL, 0);
 	ASSERTeq(ret, -1);
 	ASSERTeq(errno, ECANCELED);
 
 	/* the same number of allocations should be possible. */
 	while (pmemobj_alloc(pop, NULL, sizeof (struct node), 1,
-			NULL, NULL) == 0)
+			NULL, NULL, 0) == 0)
 		allocs--;
 	ASSERTeq(allocs, 0);
 	POBJ_FOREACH_SAFE(pop, oid, next)
 		pmemobj_free(&oid);
 
 	root.oid = pmemobj_root_construct(pop, sizeof (struct root),
-			NULL, NULL);
+			NULL, NULL, 0);
 	ASSERT(!TOID_IS_NULL(root));
 
 	errno = 0;

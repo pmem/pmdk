@@ -422,7 +422,7 @@ pmemobj_vg_boot(struct pmemobjpool *pop)
 	PMEMoid oid;
 	size_t rs = pmemobj_root_size(pop);
 	if (rs) {
-		oid = pmemobj_root(pop, rs);
+		oid = pmemobj_root(pop, rs, 0);
 		pmemobj_vg_register_object(pop, oid, 1);
 	}
 
@@ -1149,7 +1149,7 @@ obj_alloc_construct(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
  */
 int
 pmemobj_alloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
-	uint64_t type_num, pmemobj_constr constructor, void *arg)
+	uint64_t type_num, pmemobj_constr constructor, void *arg, int flags)
 {
 	LOG(3, "pop %p oidp %p size %zu type_num %llx constructor %p arg %p",
 		pop, oidp, size, (unsigned long long)type_num,
@@ -1160,6 +1160,12 @@ pmemobj_alloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 
 	if (size == 0) {
 		ERR("allocation with size 0");
+		errno = EINVAL;
+		return -1;
+	}
+
+	if (flags) {
+		ERR("unsupported flags %x", flags);
 		errno = EINVAL;
 		return -1;
 	}
@@ -1184,7 +1190,7 @@ struct carg_realloc {
  */
 int
 pmemobj_zalloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
-		uint64_t type_num)
+		uint64_t type_num, int flags)
 {
 	LOG(3, "pop %p oidp %p size %zu type_num %llx",
 			pop, oidp, size, (unsigned long long)type_num);
@@ -1194,6 +1200,12 @@ pmemobj_zalloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 
 	if (size == 0) {
 		ERR("allocation with size 0");
+		errno = EINVAL;
+		return -1;
+	}
+
+	if (flags) {
+		ERR("unsupported flags %x", flags);
 		errno = EINVAL;
 		return -1;
 	}
@@ -1255,9 +1267,15 @@ constructor_realloc(PMEMobjpool *pop, void *ptr, size_t usable_size, void *arg)
  *                          existing objects
  */
 static int
-obj_realloc_common(PMEMobjpool *pop,
-	PMEMoid *oidp, size_t size, type_num_t type_num, int zero_init)
+obj_realloc_common(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
+		type_num_t type_num, int zero_init, int flags)
 {
+	if (flags) {
+		ERR("unsupported flags %x", flags);
+		errno = EINVAL;
+		return -1;
+	}
+
 	/* if OID is NULL just allocate memory */
 	if (OBJ_OID_IS_NULL(*oidp)) {
 		/* if size is 0 - do nothing */
@@ -1348,7 +1366,7 @@ constructor_zrealloc_root(PMEMobjpool *pop, void *ptr,
  */
 int
 pmemobj_realloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
-		uint64_t type_num)
+		uint64_t type_num, int flags)
 {
 	ASSERTne(oidp, NULL);
 
@@ -1359,7 +1377,8 @@ pmemobj_realloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 	_POBJ_DEBUG_NOTICE_IN_TX();
 	ASSERT(OBJ_OID_IS_VALID(pop, *oidp));
 
-	return obj_realloc_common(pop, oidp, size, (type_num_t)type_num, 0);
+	return obj_realloc_common(pop, oidp, size, (type_num_t)type_num, 0,
+			flags);
 }
 
 /*
@@ -1367,7 +1386,7 @@ pmemobj_realloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
  */
 int
 pmemobj_zrealloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
-		uint64_t type_num)
+		uint64_t type_num, int flags)
 {
 	ASSERTne(oidp, NULL);
 
@@ -1378,7 +1397,8 @@ pmemobj_zrealloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 	_POBJ_DEBUG_NOTICE_IN_TX();
 	ASSERT(OBJ_OID_IS_VALID(pop, *oidp));
 
-	return obj_realloc_common(pop, oidp, size, (type_num_t)type_num, 1);
+	return obj_realloc_common(pop, oidp, size, (type_num_t)type_num, 1,
+			flags);
 }
 
 /* arguments for constructor_strdup */
@@ -1411,7 +1431,7 @@ constructor_strdup(PMEMobjpool *pop, void *ptr, void *arg)
  */
 int
 pmemobj_strdup(PMEMobjpool *pop, PMEMoid *oidp, const char *s,
-		uint64_t type_num)
+		uint64_t type_num, int flags)
 {
 	LOG(3, "pop %p oidp %p string %s type_num %lu", pop, oidp, s, type_num);
 
@@ -1419,6 +1439,12 @@ pmemobj_strdup(PMEMobjpool *pop, PMEMoid *oidp, const char *s,
 	_POBJ_DEBUG_NOTICE_IN_TX();
 
 	if (NULL == s) {
+		errno = EINVAL;
+		return -1;
+	}
+
+	if (flags) {
+		ERR("unsupported flags %x", flags);
 		errno = EINVAL;
 		return -1;
 	}
@@ -1657,7 +1683,7 @@ pmemobj_root_size(PMEMobjpool *pop)
  */
 PMEMoid
 pmemobj_root_construct(PMEMobjpool *pop, size_t size,
-	pmemobj_constr constructor, void *arg)
+	pmemobj_constr constructor, void *arg, int flags)
 {
 	LOG(3, "pop %p size %zu constructor %p args %p", pop, size, constructor,
 		arg);
@@ -1665,6 +1691,12 @@ pmemobj_root_construct(PMEMobjpool *pop, size_t size,
 	if (size > PMEMOBJ_MAX_ALLOC_SIZE) {
 		ERR("requested size too large");
 		errno = ENOMEM;
+		return OID_NULL;
+	}
+
+	if (flags) {
+		ERR("unsupported flags %x", flags);
+		errno = EINVAL;
 		return OID_NULL;
 	}
 
@@ -1694,11 +1726,11 @@ pmemobj_root_construct(PMEMobjpool *pop, size_t size,
  * pmemobj_root -- returns root object
  */
 PMEMoid
-pmemobj_root(PMEMobjpool *pop, size_t size)
+pmemobj_root(PMEMobjpool *pop, size_t size, int flags)
 {
 	LOG(3, "pop %p size %zu", pop, size);
 
-	return pmemobj_root_construct(pop, size, NULL, NULL);
+	return pmemobj_root_construct(pop, size, NULL, NULL, flags);
 }
 
 /*

@@ -71,7 +71,7 @@ struct root {
  */
 persistent_ptr<root> init_foobar(pmemobjpool *pop)
 {
-	persistent_ptr<root> r = pmemobj_root(pop, sizeof (root));
+	persistent_ptr<root> r = pmemobj_root(pop, sizeof (root), 0);
 		TX_BEGIN(pop) {
 			ASSERT(r->bar_ptr == nullptr);
 			ASSERT(r->foo_ptr == nullptr);
@@ -97,7 +97,7 @@ persistent_ptr<root> init_foobar(pmemobjpool *pop)
  */
 void cleanup_foobar(pmemobjpool *pop)
 {
-	persistent_ptr<root> r = pmemobj_root(pop, sizeof (root));
+	persistent_ptr<root> r = pmemobj_root(pop, sizeof (root), 0);
 
 	TX_BEGIN(pop) {
 		ASSERT(r->bar_ptr != nullptr);

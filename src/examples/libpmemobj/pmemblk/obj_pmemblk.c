@@ -193,7 +193,7 @@ pmemblk_nblock(PMEMblkpool *pbp)
 {
 	PMEMobjpool *pop = (PMEMobjpool *)pbp;
 	return ((struct base *)pmemobj_direct(pmemobj_root(pop,
-					sizeof (struct base))))->nblocks;
+					sizeof (struct base), 0)))->nblocks;
 }
 
 /*

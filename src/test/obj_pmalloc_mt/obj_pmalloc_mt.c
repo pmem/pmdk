@@ -146,7 +146,7 @@ alloc_free_worker(void *arg)
 	PMEMoid oid;
 	for (int i = 0; i < OPS_PER_THREAD; ++i) {
 		int err = pmemobj_alloc(a->pop, &oid, ALLOC_SIZE,
-				0, NULL, NULL);
+				0, NULL, NULL, 0);
 		ASSERTeq(err, 0);
 		pmemobj_free(&oid);
 	}
@@ -189,7 +189,7 @@ main(int argc, char *argv[])
 	if (pop == NULL)
 		FATAL("!pmemobj_create");
 
-	PMEMoid oid = pmemobj_root(pop, sizeof (struct root));
+	PMEMoid oid = pmemobj_root(pop, sizeof (struct root), 0);
 	struct root *r = pmemobj_direct(oid);
 	ASSERTne(r, NULL);
 

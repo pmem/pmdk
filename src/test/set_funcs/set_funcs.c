@@ -176,10 +176,10 @@ test_obj(const char *path)
 
 	PMEMoid oid;
 
-	if (pmemobj_alloc(pop, &oid, 10, 0, NULL, NULL))
+	if (pmemobj_alloc(pop, &oid, 10, 0, NULL, NULL, 0))
 		FATAL("!alloc");
 
-	if (pmemobj_realloc(pop, &oid, 100, 0))
+	if (pmemobj_realloc(pop, &oid, 100, 0, 0))
 		FATAL("!realloc");
 
 	pmemobj_free(&oid);

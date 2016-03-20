@@ -409,7 +409,7 @@ pocli_pmemobj_root(struct pocli_ctx *ctx, struct pocli_args *args)
 	if (ret)
 		return ret;
 
-	PMEMoid root = pmemobj_root(ctx->pop, size);
+	PMEMoid root = pmemobj_root(ctx->pop, size, 0);
 
 	if (OID_IS_NULL(root))
 		return pocli_err(ctx, POCLI_ERR_CMD, "pmemobj_root failed\n");
@@ -470,7 +470,7 @@ pocli_pmemobj_zalloc(struct pocli_ctx *ctx, struct pocli_args *args)
 	if (ret)
 		return ret;
 
-	int r = pmemobj_zalloc(ctx->pop, oidp, size, type_num);
+	int r = pmemobj_zalloc(ctx->pop, oidp, size, type_num, 0);
 
 	pocli_printf(ctx, "%s(%s, %llu, %u): %d\n",
 		args->argv[0], args->argv[1], size, type_num, r);
@@ -512,7 +512,7 @@ pocli_pmemobj_zrealloc(struct pocli_ctx *ctx, struct pocli_args *args)
 	if (ret)
 		return ret;
 
-	int r = pmemobj_zrealloc(ctx->pop, oidp, size, type_num);
+	int r = pmemobj_zrealloc(ctx->pop, oidp, size, type_num, 0);
 
 	pocli_printf(ctx, "%s(%s, %llu, %u): %d\n",
 		args->argv[0], args->argv[1], size, type_num, r);
@@ -801,7 +801,7 @@ pocli_alloc(FILE *input, const char *fname, const struct pocli_cmd *cmds,
 
 	size_t root_size = pmemobj_root_size(pcli->ctx.pop);
 	if (root_size)
-		pcli->ctx.root = pmemobj_root(pcli->ctx.pop, root_size);
+		pcli->ctx.root = pmemobj_root(pcli->ctx.pop, root_size, 0);
 
 	pcli->inbuf_len = inbuf_len;
 	pcli->inbuf = malloc(inbuf_len);

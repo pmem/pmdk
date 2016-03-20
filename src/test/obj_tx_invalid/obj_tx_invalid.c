@@ -81,7 +81,7 @@ main(int argc, char *argv[])
 	PMEMoid oid = pmemobj_first(pop);
 
 	if (OID_IS_NULL(oid)) {
-		if (pmemobj_alloc(pop, &oid, 10, 1, NULL, NULL))
+		if (pmemobj_alloc(pop, &oid, 10, 1, NULL, NULL, 0))
 			FATAL("!pmemobj_alloc");
 	} else {
 		ASSERTeq(pmemobj_type_num(oid), 1);

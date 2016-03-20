@@ -49,7 +49,7 @@ static void *
 oom_worker(void *arg)
 {
 	allocated = 0;
-	while (pmemobj_alloc(pop, NULL, TEST_ALLOC_SIZE, 0, NULL, NULL) == 0)
+	while (pmemobj_alloc(pop, NULL, TEST_ALLOC_SIZE, 0, NULL, NULL, 0) == 0)
 		allocated++;
 
 	PMEMoid iter, iter2;

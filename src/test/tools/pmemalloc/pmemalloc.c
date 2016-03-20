@@ -115,7 +115,7 @@ main(int argc, char *argv[])
 	}
 
 	if (root_size) {
-		PMEMoid oid = pmemobj_root(pop, root_size);
+		PMEMoid oid = pmemobj_root(pop, root_size, 0);
 		if (OID_IS_NULL(oid)) {
 			fprintf(stderr, "pmemobj_root: %s\n",
 					pmemobj_errormsg());

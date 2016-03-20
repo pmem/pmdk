@@ -440,13 +440,13 @@ static void
 do_tx_root_realloc(PMEMobjpool *pop)
 {
 	TX_BEGIN(pop) {
-		PMEMoid root = pmemobj_root(pop, sizeof (struct object));
+		PMEMoid root = pmemobj_root(pop, sizeof (struct object), 0);
 		ASSERT(!OID_IS_NULL(root));
 		ASSERT(util_is_zeroed(pmemobj_direct(root),
 				sizeof (struct object)));
 		ASSERTeq(sizeof (struct object), pmemobj_root_size(pop));
 
-		root = pmemobj_root(pop, 2 * sizeof (struct object));
+		root = pmemobj_root(pop, 2 * sizeof (struct object), 0);
 		ASSERT(!OID_IS_NULL(root));
 		ASSERT(util_is_zeroed(pmemobj_direct(root),
 				2 * sizeof (struct object)));

@@ -82,7 +82,7 @@ test_alloc(PMEMobjpool *pop, size_t size)
 	ASSERT(TOID_IS_NULL(D_RO(root)->obj));
 
 	int ret = pmemobj_realloc(pop, &D_RW(root)->obj.oid, size,
-			TOID_TYPE_NUM(struct object));
+			TOID_TYPE_NUM(struct object), 0);
 	ASSERTeq(ret, 0);
 	ASSERT(!TOID_IS_NULL(D_RO(root)->obj));
 	ASSERT(pmemobj_alloc_usable_size(D_RO(root)->obj.oid) >= size);
@@ -98,7 +98,7 @@ test_free(PMEMobjpool *pop)
 	ASSERT(!TOID_IS_NULL(D_RO(root)->obj));
 
 	int ret = pmemobj_realloc(pop, &D_RW(root)->obj.oid, 0,
-			TOID_TYPE_NUM(struct object));
+			TOID_TYPE_NUM(struct object), 0);
 	ASSERTeq(ret, 0);
 	ASSERT(TOID_IS_NULL(D_RO(root)->obj));
 }
@@ -130,10 +130,10 @@ test_realloc(PMEMobjpool *pop, size_t size_from, size_t size_to,
 	int ret;
 	if (zrealloc)
 		ret = pmemobj_zalloc(pop, &D_RW(root)->obj.oid,
-			size_from, type_from);
+			size_from, type_from, 0);
 	else
 		ret = pmemobj_alloc(pop, &D_RW(root)->obj.oid,
-			size_from, type_from, NULL, NULL);
+			size_from, type_from, NULL, NULL, 0);
 
 	ASSERTeq(ret, 0);
 	ASSERT(!TOID_IS_NULL(D_RO(root)->obj));
@@ -157,10 +157,10 @@ test_realloc(PMEMobjpool *pop, size_t size_from, size_t size_to,
 
 	if (zrealloc) {
 		ret = pmemobj_zrealloc(pop, &D_RW(root)->obj.oid,
-				size_to, type_to);
+				size_to, type_to, 0);
 	} else {
 		ret = pmemobj_realloc(pop, &D_RW(root)->obj.oid,
-				size_to, type_to);
+				size_to, type_to, 0);
 	}
 
 	ASSERTeq(ret, 0);

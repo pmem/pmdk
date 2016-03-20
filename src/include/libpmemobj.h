@@ -361,31 +361,31 @@ typedef int (*pmemobj_constr)(PMEMobjpool *pop, void *ptr, void *arg);
  * memory reserved for the object is automatically reclaimed.
  */
 int pmemobj_alloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
-	uint64_t type_num, pmemobj_constr constructor, void *arg);
+	uint64_t type_num, pmemobj_constr constructor, void *arg, int flags);
 
 /*
  * Allocates a new zeroed object from the pool.
  */
 int pmemobj_zalloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
-	uint64_t type_num);
+	uint64_t type_num, int flags);
 
 /*
  * Resizes an existing object.
  */
 int pmemobj_realloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
-	uint64_t type_num);
+	uint64_t type_num, int flags);
 
 /*
  * Resizes an existing object, if extended new space is zeroed.
  */
 int pmemobj_zrealloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
-	uint64_t type_num);
+	uint64_t type_num, int flags);
 
 /*
  * Allocates a new object with duplicate of the string s.
  */
 int pmemobj_strdup(PMEMobjpool *pop, PMEMoid *oidp, const char *s,
-	uint64_t type_num);
+	uint64_t type_num, int flags);
 
 /*
  * Frees an existing object.
@@ -414,14 +414,14 @@ uint64_t pmemobj_type_num(PMEMoid oid);
  *
  * This function is thread-safe.
  */
-PMEMoid pmemobj_root(PMEMobjpool *pop, size_t size);
+PMEMoid pmemobj_root(PMEMobjpool *pop, size_t size, int flags);
 
 /*
  * Same as above, but calls the constructor function when the object is first
  * created and on all subsequent reallocations.
  */
 PMEMoid pmemobj_root_construct(PMEMobjpool *pop, size_t size,
-	pmemobj_constr constructor, void *arg);
+	pmemobj_constr constructor, void *arg, int flags);
 
 /*
  * Returns the size in bytes of the root object. Always equal to the requested
@@ -507,37 +507,38 @@ _pobj_ret; })
 { TOID(t) *_pobj_tmp = (o);\
 PMEMoid *_pobj_oidp = _pobj_tmp ? &_pobj_tmp->oid : NULL;\
 pmemobj_alloc((pop), _pobj_oidp, sizeof (t), TOID_TYPE_NUM(t), (constr),\
-		(arg)); })
+		(arg), 0); })
 
 #define	POBJ_ALLOC(pop, o, t, size, constr, arg) (\
 { TOID(t) *_pobj_tmp = (o);\
 PMEMoid *_pobj_oidp = _pobj_tmp ? &_pobj_tmp->oid : NULL;\
-pmemobj_alloc((pop), _pobj_oidp, (size), TOID_TYPE_NUM(t), (constr), (arg)); })
+pmemobj_alloc((pop), _pobj_oidp, (size), TOID_TYPE_NUM(t), (constr), (arg), 0);\
+})
 
 #define	POBJ_ZNEW(pop, o, t) (\
 { TOID(t) *_pobj_tmp = (o);\
 PMEMoid *_pobj_oidp = _pobj_tmp ? &_pobj_tmp->oid : NULL;\
-pmemobj_zalloc((pop), _pobj_oidp, sizeof (t), TOID_TYPE_NUM(t)); })
+pmemobj_zalloc((pop), _pobj_oidp, sizeof (t), TOID_TYPE_NUM(t), 0); })
 
 #define	POBJ_ZALLOC(pop, o, t, size) (\
 { TOID(t) *_pobj_tmp = (o);\
 PMEMoid *_pobj_oidp = _pobj_tmp ? &_pobj_tmp->oid : NULL;\
-pmemobj_zalloc((pop), _pobj_oidp, (size), TOID_TYPE_NUM(t)); })
+pmemobj_zalloc((pop), _pobj_oidp, (size), TOID_TYPE_NUM(t), 0); })
 
 #define	POBJ_REALLOC(pop, o, t, size) (\
 { TOID(t) *_pobj_tmp = (o);\
 PMEMoid *_pobj_oidp = _pobj_tmp ? &_pobj_tmp->oid : NULL;\
-pmemobj_realloc((pop), _pobj_oidp, (size), TOID_TYPE_NUM(t)); })
+pmemobj_realloc((pop), _pobj_oidp, (size), TOID_TYPE_NUM(t), 0); })
 
 #define	POBJ_ZREALLOC(pop, o, t, size) (\
 { TOID(t) *_pobj_tmp = (o);\
 PMEMoid *_pobj_oidp = _pobj_tmp ? &_pobj_tmp->oid : NULL;\
-pmemobj_zrealloc((pop), _pobj_oidp, (size), TOID_TYPE_NUM_OF(*(o))); })
+pmemobj_zrealloc((pop), _pobj_oidp, (size), TOID_TYPE_NUM_OF(*(o)), 0); })
 
 #define	POBJ_FREE(o) pmemobj_free((PMEMoid *)(o))
 
 #define	POBJ_ROOT(pop, t) (\
-{ TOID(t) _pobj_ret = (TOID(t))pmemobj_root((pop), sizeof (t));\
+{ TOID(t) _pobj_ret = (TOID(t))pmemobj_root((pop), sizeof (t), 0);\
 _pobj_ret; })
 
 /*

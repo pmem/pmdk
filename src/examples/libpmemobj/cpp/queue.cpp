@@ -198,7 +198,8 @@ main(int argc, char *argv[])
 		}
 	}
 
-	persistent_ptr<pmem_queue> q = pmemobj_root(pop, sizeof (pmem_queue));
+	persistent_ptr<pmem_queue> q = pmemobj_root(pop, sizeof (pmem_queue),
+			0);
 	switch (op) {
 		case QUEUE_PUSH:
 			q->push(pop, atoll(argv[3]));

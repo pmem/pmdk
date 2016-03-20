@@ -87,7 +87,7 @@ test_FOREACH(const char *path)
 			PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR, 0)) == NULL)
 		FATAL("!pmemobj_create: %s", path);
 
-	TOID_ASSIGN(root, pmemobj_root(pop, sizeof (struct root)));
+	TOID_ASSIGN(root, pmemobj_root(pop, sizeof (struct root), 0));
 	POBJ_LIST_INSERT_NEW_HEAD(pop, &D_RW(root)->lhead, next,
 			sizeof (struct tobj), NULL, NULL);
 
@@ -126,7 +126,7 @@ test_lists(const char *path)
 			PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR, 0)) == NULL)
 		FATAL("!pmemobj_create: %s", path);
 
-	TOID_ASSIGN(root, pmemobj_root(pop, sizeof (struct root)));
+	TOID_ASSIGN(root, pmemobj_root(pop, sizeof (struct root), 0));
 
 	COMMANDS_LISTS();
 	TX_BEGIN(pop) {
@@ -167,7 +167,7 @@ test_alloc_construct(const char *path)
 		struct int3_s args = { 1, 2, 3 };
 		PMEMoid allocation;
 		pmemobj_alloc(pop, &allocation, sizeof (allocation), 1,
-				int3_constructor, &args);
+				int3_constructor, &args, 0);
 	} TX_ONABORT {
 		ASSERT(0);
 	} TX_END
@@ -185,7 +185,7 @@ test_double_free(const char *path)
 		FATAL("!pmemobj_create: %s", path);
 
 	PMEMoid oid, oid2;
-	int err = pmemobj_zalloc(pop, &oid, 100, 0);
+	int err = pmemobj_zalloc(pop, &oid, 100, 0, 0);
 	ASSERTeq(err, 0);
 	ASSERT(!OID_IS_NULL(oid));
 

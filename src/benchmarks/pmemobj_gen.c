@@ -578,7 +578,7 @@ pobj_init_worker(struct benchmark *bench, struct benchmark_args
 	for (i = 0; i < bench_priv->args_priv->n_objs; i++) {
 		size_t size = bench_priv->fn_size(bench_priv, i);
 		unsigned int type = bench_priv->fn_type_num(bench_priv, idx, i);
-		if (pmemobj_alloc(pop,	&pw->oids[i], size, type, NULL, NULL)
+		if (pmemobj_alloc(pop,	&pw->oids[i], size, type, NULL, NULL, 0)
 									!= 0) {
 			perror("pmemobj_alloc");
 			goto out;

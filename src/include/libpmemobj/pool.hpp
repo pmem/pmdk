@@ -370,7 +370,7 @@ namespace obj
 		persistent_ptr<T> get_root() noexcept
 		{
 			persistent_ptr<T> root = pmemobj_root(this->pop,
-					sizeof (T));
+					sizeof (T), 0);
 			return root;
 		}
 

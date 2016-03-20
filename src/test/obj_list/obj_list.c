@@ -863,7 +863,7 @@ do_insert(PMEMobjpool *pop, const char *arg)
 
 	PMEMoid it;
 	pmemobj_alloc(pop, &it,
-			sizeof (struct oob_item), 0, NULL, NULL);
+			sizeof (struct oob_item), 0, NULL, NULL, 0);
 
 	if (list_insert(pop,
 		offsetof(struct item, next),

@@ -64,13 +64,13 @@ test_allocs(PMEMobjpool *pop, const char *path)
 {
 	PMEMoid oid[TEST_ALLOC_SIZE];
 
-	if (pmemobj_alloc(pop, &oid[0], 0, 0, NULL, NULL) == 0)
+	if (pmemobj_alloc(pop, &oid[0], 0, 0, NULL, NULL, 0) == 0)
 		FATAL("pmemobj_alloc(0) succeeded");
 
 	for (int i = 1; i < TEST_ALLOC_SIZE; ++i) {
 		struct cargs args = { i };
 		if (pmemobj_alloc(pop, &oid[i], i, 0,
-				test_constructor, &args) != 0)
+				test_constructor, &args, 0) != 0)
 			FATAL("!pmemobj_alloc");
 		ASSERT(!OID_IS_NULL(oid[i]));
 	}
@@ -94,11 +94,11 @@ test_lazy_load(PMEMobjpool *pop, const char *path)
 {
 	PMEMoid oid[3];
 
-	int ret = pmemobj_alloc(pop, &oid[0], LAZY_LOAD_SIZE, 0, NULL, NULL);
+	int ret = pmemobj_alloc(pop, &oid[0], LAZY_LOAD_SIZE, 0, NULL, NULL, 0);
 	ASSERTeq(ret, 0);
-	ret = pmemobj_alloc(pop, &oid[1], LAZY_LOAD_SIZE, 0, NULL, NULL);
+	ret = pmemobj_alloc(pop, &oid[1], LAZY_LOAD_SIZE, 0, NULL, NULL, 0);
 	ASSERTeq(ret, 0);
-	ret = pmemobj_alloc(pop, &oid[2], LAZY_LOAD_SIZE, 0, NULL, NULL);
+	ret = pmemobj_alloc(pop, &oid[2], LAZY_LOAD_SIZE, 0, NULL, NULL, 0);
 	ASSERTeq(ret, 0);
 
 	pmemobj_close(pop);
@@ -106,7 +106,7 @@ test_lazy_load(PMEMobjpool *pop, const char *path)
 
 	pmemobj_free(&oid[1]);
 
-	ret = pmemobj_alloc(pop, &oid[1], LAZY_LOAD_BIG_SIZE, 0, NULL, NULL);
+	ret = pmemobj_alloc(pop, &oid[1], LAZY_LOAD_BIG_SIZE, 0, NULL, NULL, 0);
 	ASSERTeq(ret, 0);
 }
 

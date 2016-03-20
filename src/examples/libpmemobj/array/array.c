@@ -250,12 +250,12 @@ realloc_pmemoid(PMEMoid *info, size_t prev_size, size_t size)
 	TOID(PMEMoid) array;
 	TOID_ASSIGN(array, *info);
 	pmemobj_zrealloc(pop, &array.oid, sizeof (PMEMoid) * size,
-							TOID_TYPE_NUM(PMEMoid));
+						TOID_TYPE_NUM(PMEMoid), 0);
 
 	for (int i = prev_size; i < size; i++) {
 		if (pmemobj_alloc(pop, &D_RW(array)[i],
 			sizeof (struct array_elm), TOID_TYPE_NUM(PMEMoid),
-							elm_constructor, &i)) {
+						elm_constructor, &i, 0)) {
 			fprintf(stderr, "pmemobj_alloc\n");
 			assert(0);
 		}
@@ -273,7 +273,7 @@ realloc_toid(PMEMoid *info, size_t prev_size, size_t size)
 	TOID_ASSIGN(array, *info);
 	pmemobj_zrealloc(pop, &array.oid,
 			sizeof (TOID(struct array_elm)) * size,
-			TOID_TYPE_NUM_OF(array));
+			TOID_TYPE_NUM_OF(array), 0);
 	for (int i = prev_size; i < size; i++) {
 		POBJ_NEW(pop, &D_RW(array)[i], struct array_elm,
 						elm_constructor, &i);
@@ -335,7 +335,7 @@ alloc_pmemoid(size_t size)
 	for (int i = 0; i < size; i++) {
 		if (pmemobj_alloc(pop, &D_RW(array)[i],
 			sizeof (struct array_elm),
-			TOID_TYPE_NUM(PMEMoid), elm_constructor, &i)) {
+			TOID_TYPE_NUM(PMEMoid), elm_constructor, &i, 0)) {
 			fprintf(stderr, "pmemobj_alloc\n");
 		}
 	}

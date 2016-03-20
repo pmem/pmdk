@@ -80,7 +80,8 @@ main(int argc, char *argv[])
 	PMEMoid oids[npools];
 
 	for (int i = 0; i < npools; ++i) {
-		r = pmemobj_alloc(pops[i], &oids[i], ALLOC_SIZE, 1, NULL, NULL);
+		r = pmemobj_alloc(pops[i], &oids[i], ALLOC_SIZE, 1, NULL, NULL,
+				0);
 		ASSERTeq(r, 0);
 	}
 

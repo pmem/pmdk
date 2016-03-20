@@ -137,7 +137,7 @@ int
 pmemlog_append(PMEMlogpool *plp, const void *buf, size_t count)
 {
 	PMEMobjpool *pop = (PMEMobjpool *)plp;
-	PMEMoid baseoid = pmemobj_root(pop, sizeof (struct base));
+	PMEMoid baseoid = pmemobj_root(pop, sizeof (struct base), 0);
 	struct base *bp = pmemobj_direct(baseoid);
 
 	/* set the return point */
@@ -186,7 +186,7 @@ int
 pmemlog_appendv(PMEMlogpool *plp, const struct iovec *iov, int iovcnt)
 {
 	PMEMobjpool *pop = (PMEMobjpool *)plp;
-	PMEMoid baseoid = pmemobj_root(pop, sizeof (struct base));
+	PMEMoid baseoid = pmemobj_root(pop, sizeof (struct base), 0);
 	struct base *bp = pmemobj_direct(baseoid);
 
 	/* set the return point */
@@ -244,7 +244,7 @@ pmemlog_tell(PMEMlogpool *plp)
 {
 	PMEMobjpool *pop = (PMEMobjpool *)plp;
 	struct base *bp = pmemobj_direct(pmemobj_root(pop,
-				sizeof (struct base)));
+				sizeof (struct base), 0));
 
 	if (pmemobj_rwlock_rdlock(pop, &bp->rwlock) != 0)
 		return 0;
@@ -263,7 +263,7 @@ void
 pmemlog_rewind(PMEMlogpool *plp)
 {
 	PMEMobjpool *pop = (PMEMobjpool *)plp;
-	PMEMoid baseoid = pmemobj_root(pop, sizeof (struct base));
+	PMEMoid baseoid = pmemobj_root(pop, sizeof (struct base), 0);
 	struct base *bp = pmemobj_direct(baseoid);
 
 	/* set the return point */
@@ -307,7 +307,7 @@ pmemlog_walk(PMEMlogpool *plp, size_t chunksize,
 {
 	PMEMobjpool *pop = (PMEMobjpool *)plp;
 	struct base *bp = pmemobj_direct(pmemobj_root(pop,
-						sizeof (struct base)));
+						sizeof (struct base), 0));
 
 	if (pmemobj_rwlock_rdlock(pop, &bp->rwlock) != 0)
 		return;

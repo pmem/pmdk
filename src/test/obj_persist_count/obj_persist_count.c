@@ -122,15 +122,16 @@ main(int argc, char *argv[])
 	print_reset_counters("pool_create");
 
 	/* allocate one structure to create a run */
-	pmemobj_alloc(pop, NULL, sizeof (struct foo), 0, NULL, NULL);
+	pmemobj_alloc(pop, NULL, sizeof (struct foo), 0, NULL, NULL, 0);
 	reset_counters();
 
-	PMEMoid root = pmemobj_root(pop, sizeof (struct foo));
+	PMEMoid root = pmemobj_root(pop, sizeof (struct foo), 0);
 	ASSERT(!OID_IS_NULL(root));
 	print_reset_counters("root_alloc");
 
 	PMEMoid oid;
-	int ret = pmemobj_alloc(pop, &oid, sizeof (struct foo), 0, NULL, NULL);
+	int ret = pmemobj_alloc(pop, &oid, sizeof (struct foo), 0, NULL, NULL,
+			0);
 	ASSERTeq(ret, 0);
 	print_reset_counters("atomic_alloc");
 

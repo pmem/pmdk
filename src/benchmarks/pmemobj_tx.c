@@ -392,7 +392,7 @@ alloc_pmem(struct obj_tx_bench *obj_bench, struct worker_info *worker,
 	int type_num = obj_bench->fn_type_num(obj_bench, worker->index, idx);
 	struct obj_tx_worker *obj_worker = worker->priv;
 	if (pmemobj_alloc(obj_bench->pop, &obj_worker->oids[idx].oid,
-			obj_bench->sizes[idx], type_num, NULL, NULL) != 0) {
+			obj_bench->sizes[idx], type_num, NULL, NULL, 0) != 0) {
 		perror("pmemobj_alloc");
 		return -1;
 	}
@@ -485,7 +485,7 @@ realloc_pmem(struct obj_tx_bench *obj_bench, struct worker_info *worker,
 	if (obj_bench->obj_args->change_type)
 		type_num++;
 	if (pmemobj_realloc(obj_bench->pop, &obj_worker->oids[idx].oid,
-			obj_bench->resizes[idx], type_num) != 0) {
+			obj_bench->resizes[idx], type_num, 0) != 0) {
 		perror("pmemobj_realloc");
 		return -1;
 	}

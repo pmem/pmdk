@@ -271,7 +271,7 @@ static void
 test_internal_object_mask(PMEMobjpool *pop)
 {
 	/* allocate root object */
-	PMEMoid root = pmemobj_root(pop, sizeof (struct type));
+	PMEMoid root = pmemobj_root(pop, sizeof (struct type), 0);
 
 	TX_BEGIN(pop) {
 		/* trigger creation of a range cache */
@@ -279,7 +279,7 @@ test_internal_object_mask(PMEMobjpool *pop)
 	} TX_END
 
 	PMEMoid oid;
-	pmemobj_alloc(pop, &oid, sizeof (struct type), 0, NULL, NULL);
+	pmemobj_alloc(pop, &oid, sizeof (struct type), 0, NULL, NULL, 0);
 	ASSERT(!OID_IS_NULL(oid));
 
 	/* verify that there's no root object nor range cache anywhere */

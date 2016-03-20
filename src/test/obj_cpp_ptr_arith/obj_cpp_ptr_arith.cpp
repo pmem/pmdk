@@ -62,7 +62,7 @@ prepare_array(PMEMobjpool *pop)
 	persistent_ptr<T> parr_vsize;
 	ret = pmemobj_alloc(pop, parr_vsize.raw_ptr(),
 		sizeof (T) * TEST_ARR_SIZE,
-		0, NULL, NULL);
+		0, NULL, NULL, 0);
 	ASSERTeq(ret, 0);
 
 	T *parray = parr_vsize.get();

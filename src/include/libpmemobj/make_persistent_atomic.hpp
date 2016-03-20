@@ -71,7 +71,7 @@ namespace obj {
 		auto ret = pmemobj_alloc(pool.get_handle(), ptr.raw_ptr(),
 			sizeof (T), detail::type_num<T>(),
 			&detail::obj_constructor<T, Args...>,
-			static_cast<void*>(&arg_pack));
+			static_cast<void*>(&arg_pack), 0);
 
 		if (ret != 0)
 			throw std::bad_alloc();

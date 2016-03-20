@@ -67,7 +67,7 @@ do_toid_no_valid(PMEMobjpool *pop)
 {
 	TOID(struct obj) obj;
 	int ret = pmemobj_alloc(pop, &obj.oid, sizeof (struct obj), TEST_NUM,
-								NULL, NULL);
+								NULL, NULL, 0);
 	ASSERTeq(ret, 0);
 	ASSERT(!TOID_VALID(obj));
 	POBJ_FREE(&obj);

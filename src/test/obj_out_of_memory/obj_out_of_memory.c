@@ -60,7 +60,7 @@ test_alloc(PMEMobjpool *pop, size_t size)
 	while (1) {
 		struct cargs args = { size };
 		if (pmemobj_alloc(pop, NULL, size, 0,
-				test_constructor, &args) != 0)
+				test_constructor, &args, 0) != 0)
 			break;
 		cnt++;
 	}

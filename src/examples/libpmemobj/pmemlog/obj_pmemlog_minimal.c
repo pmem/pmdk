@@ -147,7 +147,7 @@ pmemlog_append(PMEMlogpool *plp, const void *buf, size_t count)
 	PMEMoid obj;
 	pmemobj_alloc(pop, &obj, obj_size,
 			0, create_log_entry,
-			&args);
+			&args, 0);
 
 	return 0;
 }
@@ -167,7 +167,7 @@ pmemlog_appendv(PMEMlogpool *plp, const struct iovec *iov, int iovcnt)
 		size_t obj_size = sizeof (size_t) + args.size;
 		/* alloc-construct to an internal list */
 		pmemobj_alloc(pop, NULL, obj_size,
-				0, create_log_entry, &args);
+				0, create_log_entry, &args, 0);
 	}
 
 	return 0;

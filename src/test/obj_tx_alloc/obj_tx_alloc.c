@@ -500,7 +500,7 @@ do_tx_root(PMEMobjpool *pop)
 {
 	size_t root_size = 24;
 	TX_BEGIN(pop) {
-		PMEMoid root = pmemobj_root(pop, root_size);
+		PMEMoid root = pmemobj_root(pop, root_size, 0);
 		ASSERT(!OID_IS_NULL(root));
 		ASSERT(util_is_zeroed(pmemobj_direct(root),
 				root_size));
