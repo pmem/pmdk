@@ -264,9 +264,7 @@ libpmemobj \- persistent memory transactional object store
 .BI "int pmemobj_tx_add_range(PMEMoid " oid ", uint64_t " off ", size_t " size ", int " flags );
 .BI "int pmemobj_tx_add_range_direct(const void *" ptr ", size_t " size ", int " flags );
 .BI "PMEMoid pmemobj_tx_alloc(size_t " size ", uint64_t " type_num ", int " flags );
-.BI "PMEMoid pmemobj_tx_zalloc(size_t " size ", uint64_t " type_num ", int " flags );
 .BI "PMEMoid pmemobj_tx_realloc(PMEMoid " oid ", size_t " size ", uint64_t " type_num ", int " flags );
-.BI "PMEMoid pmemobj_tx_zrealloc(PMEMoid " oid ", size_t " size ", uint64_t " type_num ", int " flags );
 .BI "PMEMoid pmemobj_tx_strdup(const char *" s ", uint64_t " type_num ", int " flags );
 .BI "int pmemobj_tx_free(PMEMoid " oid );
 .sp
@@ -732,7 +730,9 @@ locks, except that they are considered initialized by zeroing them.
 So allocating the locks with
 .BR pmemobj_zalloc ()
 or
-.BR pmemobj_tx_zalloc ()
+.BR pmemobj_tx_alloc ()
+with
+.BR PMEMOBJ_FLAG_ZERO
 does not require another initialization step.
 .PP
 The fundamental property of pmem-aware locks is their automatic
@@ -757,11 +757,12 @@ function explicitly initializes pmem-aware mutex pointed by
 .I mutexp
 by zeroing it.
 Initialization is not necessary if the object containing the mutex has been
-allocated using one of
+allocated using
 .BR pmemobj_zalloc ()
 or
-.BR pmemobj_tx_zalloc ()
-functions.
+.BR pmemobj_tx_alloc ()
+with
+.BR PMEMOBJ_FLAG_ZERO .
 .PP
 .BI "int pmemobj_mutex_lock(PMEMobjpool *" pop ", PMEMmutex *" mutexp );
 .IP
@@ -821,11 +822,12 @@ by
 .I rwlockp
 by zeroing it.
 Initialization is not necessary if the object containing the lock has been
-allocated using one of
+allocated using
 .BR pmemobj_zalloc ()
 or
-.BR pmemobj_tx_zalloc ()
-functions.
+.BR pmemobj_tx_alloc ()
+with
+.BR PMEMOBJ_FLAG_ZERO .
 .PP
 .BI "int pmemobj_rwlock_rdlock(PMEMobjpool *" pop ", PMEMrwlock *" rwlockp );
 .IP
@@ -921,11 +923,12 @@ The
 .BR pmemobj_cond_zero ()
 function explicitly initializes pmem-aware condition variable by zeroing it.
 Initialization is not necessary if the object containing the condition
-variable has been allocated using one of
+variable has been allocated using
 .BR pmemobj_zalloc ()
 or
-.BR pmemobj_tx_zalloc ()
-functions.
+.BR pmemobj_tx_alloc ()
+with
+.BR PMEMOBJ_FLAG_ZERO .
 .PP
 .BI "int pmemobj_cond_broadcast(PMEMobjpool *" pop ", PMEMcond *" condp );
 .sp
@@ -2781,34 +2784,16 @@ transactionally allocates a new object of given
 .I size
 and
 .IR type_num .
+.IR flags
+is a bitmask of 0 or more modifiers. For now only one modifier is defined:
+.IR PMEMOBJ_FLAG_ZERO ,
+which instructs the library to zero the allocated memory.
 In contrast to the non-transactional allocations, the objects are
 added to the internal object containers of given
 .I type_num
 only after the transaction is committed, making the objects visible to the
 .B POBJ_FOREACH_*
 macros.
-.I flags
-must be always equal to 0.
-If successful, returns a handle to the newly allocated object.  Otherwise, stage
-changes to
-.IR TX_STAGE_ONABORT ,
-OID_NULL is returned, and errno is set appropriately.
-If
-.I size
-equals 0, OID_NULL is returned and errno is set appropriately.
-This function must be called during
-.IR TX_STAGE_WORK .
-.PP
-.BI "PMEMoid pmemobj_tx_zalloc(size_t " size ", uint64_t " type_num ", int " flags );
-.IP
-The pmemobj_tx_zalloc ()
-.BR
-function transactionally allocates new zeroed object of given
-.I size
-and
-.IR type_num .
-.I flags
-must be always equal to 0.
 If successful, returns a handle to the newly allocated object.  Otherwise, stage
 changes to
 .IR TX_STAGE_ONABORT ,
@@ -2837,31 +2822,12 @@ is equal to zero and
 .I oid
 is not OID_NULL, then the call is equivalent to
 .BI "pmemobj_tx_free(" oid ")."
-If the new size is larger than the old size, the added memory will
-.I not
-be initialized.
-.I flags
-must be always equal to 0.
-If successful, returns returns a handle to the resized object.  Otherwise, stage
-changes to
-.IR TX_STAGE_ONABORT ,
-OID_NULL is returned, and errno is set appropriately.
-Note that the object handle value may change in result of reallocation.
-This function must be called during
-.IR TX_STAGE_WORK .
-.PP
-.BI "PMEMoid pmemobj_tx_zrealloc(PMEMoid " oid ", size_t " size ", uint64_t " type_num ", int " flags );
-.IP
-The
-.BR pmemobj_tx_zrealloc ()
-function transactionally resizes an existing object to the given
-.I size
-and changes its type to
-.IR type_num .
-If the new size is larger than the old size, the extended new space is zeroed.
-.I flags
-must be always equal to 0.
-If successful, returns returns a handle to the resized object.  Otherwise, stage
+.IR flags
+is a bitmask of 0 or more modifiers. For now only one modifier is defined:
+.IR PMEMOBJ_FLAG_ZERO ,
+which instructs the library to zero the new space if the new size is larger than
+the old size (otherwise it's left unitialized).
+If successful, returns a handle to the resized object.  Otherwise, stage
 changes to
 .IR TX_STAGE_ONABORT ,
 OID_NULL is returned, and errno is set appropriately.

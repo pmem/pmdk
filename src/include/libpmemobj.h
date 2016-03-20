@@ -896,6 +896,8 @@ _POBJ_TX_BEGIN(pop, ##__VA_ARGS__)
 		errno = _pobj_errno;\
 }
 
+#define	PMEMOBJ_FLAG_ZERO (1 << 0)
+
 /*
  * Takes a "snapshot" of the memory block of given size and located at given
  * offset 'off' in the object 'oid' and saves it in the undo log.
@@ -935,16 +937,6 @@ int pmemobj_tx_add_range_direct(const void *ptr, size_t size, int flags);
 PMEMoid pmemobj_tx_alloc(size_t size, uint64_t type_num, int flags);
 
 /*
- * Transactionally allocates new zeroed object.
- *
- * If successful, returns PMEMoid.
- * Otherwise, state changes to TX_STAGE_ONABORT and an OID_NULL is returned.
- *
- * This function must be called during TX_STAGE_WORK.
- */
-PMEMoid pmemobj_tx_zalloc(size_t size, uint64_t type_num, int flags);
-
-/*
  * Transactionally resizes an existing object.
  *
  * If successful, returns PMEMoid.
@@ -953,17 +945,6 @@ PMEMoid pmemobj_tx_zalloc(size_t size, uint64_t type_num, int flags);
  * This function must be called during TX_STAGE_WORK.
  */
 PMEMoid pmemobj_tx_realloc(PMEMoid oid, size_t size, uint64_t type_num,
-		int flags);
-
-/*
- * Transactionally resizes an existing object, if extended new space is zeroed.
- *
- * If successful, returns PMEMoid.
- * Otherwise, state changes to TX_STAGE_ONABORT and an OID_NULL is returned.
- *
- * This function must be called during TX_STAGE_WORK.
- */
-PMEMoid pmemobj_tx_zrealloc(PMEMoid oid, size_t size, uint64_t type_num,
 		int flags);
 
 /*
@@ -1008,12 +989,12 @@ TOID_TYPE_NUM(t), 0); _pobj_ret; })
 TOID_TYPE_NUM(t), 0); _pobj_ret; })
 
 #define	TX_ZNEW(t) (\
-{ TOID(t) _pobj_ret = (TOID(t))pmemobj_tx_zalloc(sizeof (t),\
-TOID_TYPE_NUM(t), 0); _pobj_ret; })
+{ TOID(t) _pobj_ret = (TOID(t))pmemobj_tx_alloc(sizeof (t),\
+TOID_TYPE_NUM(t), PMEMOBJ_FLAG_ZERO); _pobj_ret; })
 
 #define	TX_ZALLOC(t, size) (\
-{ TOID(t) _pobj_ret = (TOID(t))pmemobj_tx_zalloc((size),\
-TOID_TYPE_NUM(t), 0); _pobj_ret; })
+{ TOID(t) _pobj_ret = (TOID(t))pmemobj_tx_alloc((size),\
+TOID_TYPE_NUM(t), PMEMOBJ_FLAG_ZERO); _pobj_ret; })
 
 #define	TX_REALLOC(o, size) (\
 { __typeof__(o) _pobj_ret =\
@@ -1022,8 +1003,8 @@ TOID_TYPE_NUM_OF(o), 0); _pobj_ret; })
 
 #define	TX_ZREALLOC(o, size) (\
 { __typeof__(o) _pobj_ret =\
-(__typeof__(o))pmemobj_tx_zrealloc((o).oid, (size),\
-TOID_TYPE_NUM_OF(o), 0); _pobj_ret; })
+(__typeof__(o))pmemobj_tx_realloc((o).oid, (size),\
+TOID_TYPE_NUM_OF(o), PMEMOBJ_FLAG_ZERO); _pobj_ret; })
 
 #define	TX_STRDUP(s, type_num)\
 pmemobj_tx_strdup(s, type_num, 0)

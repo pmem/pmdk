@@ -221,7 +221,8 @@ test_ptr_array(PMEMobjpool *pop)
 	persistent_ptr<root> r = pmemobj_root(pop, sizeof (root));
 
 	TX_BEGIN(pop) {
-		r->parr = pmemobj_tx_zalloc(sizeof (int) * TEST_ARR_SIZE, 0, 0);
+		r->parr = pmemobj_tx_alloc(sizeof (int) * TEST_ARR_SIZE, 0,
+				PMEMOBJ_FLAG_ZERO);
 	} TX_ONABORT {
 		ASSERT(0);
 	} TX_END

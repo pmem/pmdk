@@ -73,7 +73,8 @@ do_tx_zalloc(PMEMobjpool *pop, int type_num)
 	PMEMoid ret = OID_NULL;
 
 	TX_BEGIN(pop) {
-		ret = pmemobj_tx_zalloc(sizeof (struct object), type_num, 0);
+		ret = pmemobj_tx_alloc(sizeof (struct object), type_num,
+				PMEMOBJ_FLAG_ZERO);
 	} TX_END
 
 	return ret;

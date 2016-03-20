@@ -31,7 +31,7 @@
  */
 
 /*
- * obj_tx_realloc.c -- unit test for pmemobj_tx_realloc and pmemobj_tx_zrealloc
+ * obj_tx_realloc.c -- unit test for pmemobj_tx_realloc
  */
 #include <sys/param.h>
 #include <string.h>
@@ -227,8 +227,8 @@ do_tx_zrealloc_commit(PMEMobjpool *pop)
 	size_t new_size = 2 * old_size;
 
 	TX_BEGIN(pop) {
-		TOID_ASSIGN(obj, pmemobj_tx_zrealloc(obj.oid,
-			new_size, TYPE_COMMIT_ZERO, 0));
+		TOID_ASSIGN(obj, pmemobj_tx_realloc(obj.oid,
+			new_size, TYPE_COMMIT_ZERO, PMEMOBJ_FLAG_ZERO));
 		ASSERT(!TOID_IS_NULL(obj));
 		ASSERT(pmemobj_alloc_usable_size(obj.oid) >= new_size);
 		void *new_ptr = (void *)((uintptr_t)D_RW(obj) + old_size);
@@ -293,8 +293,8 @@ do_tx_zrealloc_abort(PMEMobjpool *pop)
 	size_t new_size = 2 * old_size;
 
 	TX_BEGIN(pop) {
-		TOID_ASSIGN(obj, pmemobj_tx_zrealloc(obj.oid,
-			new_size, TYPE_ABORT_ZERO, 0));
+		TOID_ASSIGN(obj, pmemobj_tx_realloc(obj.oid,
+			new_size, TYPE_ABORT_ZERO, PMEMOBJ_FLAG_ZERO));
 		ASSERT(!TOID_IS_NULL(obj));
 		ASSERT(pmemobj_alloc_usable_size(obj.oid) >= new_size);
 		void *new_ptr = (void *)((uintptr_t)D_RW(obj) + old_size);
@@ -354,8 +354,9 @@ do_tx_zrealloc_huge(PMEMobjpool *pop)
 	size_t new_size = 2 * old_size;
 
 	TX_BEGIN(pop) {
-		TOID_ASSIGN(obj, pmemobj_tx_zrealloc(obj.oid,
-			PMEMOBJ_MAX_ALLOC_SIZE + 1, TYPE_ABORT_ZERO_HUGE, 0));
+		TOID_ASSIGN(obj, pmemobj_tx_realloc(obj.oid,
+			PMEMOBJ_MAX_ALLOC_SIZE + 1, TYPE_ABORT_ZERO_HUGE,
+			PMEMOBJ_FLAG_ZERO));
 		ASSERT(0); /* should not get to this point */
 	} TX_ONCOMMIT {
 		ASSERT(0);

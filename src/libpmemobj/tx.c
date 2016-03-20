@@ -81,6 +81,7 @@ struct lane_tx_runtime {
 
 struct tx_alloc_args {
 	type_num_t type_num;
+	int flags;
 };
 
 struct tx_alloc_copy_args {
@@ -88,6 +89,7 @@ struct tx_alloc_copy_args {
 	size_t size;
 	const void *ptr;
 	size_t copy_size;
+	int flags;
 };
 
 struct tx_add_range_args {
@@ -160,41 +162,8 @@ constructor_tx_alloc(PMEMobjpool *pop, void *ptr, size_t usable_size, void *arg)
 	/* do not report changes to the new object */
 	VALGRIND_ADD_TO_TX(ptr, usable_size);
 
-	return 0;
-}
-
-/*
- * constructor_tx_zalloc -- (internal) constructor for zalloc
- */
-static int
-constructor_tx_zalloc(PMEMobjpool *pop, void *ptr,
-	size_t usable_size, void *arg)
-{
-	LOG(3, NULL);
-
-	ASSERTne(ptr, NULL);
-	ASSERTne(arg, NULL);
-
-	struct tx_alloc_args *args = arg;
-
-	struct oob_header *oobh = OOB_HEADER_FROM_PTR(ptr);
-
-	/* temporarily add the OOB header */
-	VALGRIND_ADD_TO_TX(oobh, OBJ_OOB_SIZE);
-
-	/*
-	 * no need to flush and persist because this
-	 * will be done in pre-commit phase
-	 */
-	oobh->type_num = args->type_num;
-	oobh->size = 0;
-
-	VALGRIND_REMOVE_FROM_TX(oobh, OBJ_OOB_SIZE);
-
-	/* do not report changes to the new object */
-	VALGRIND_ADD_TO_TX(ptr, usable_size);
-
-	memset(ptr, 0, usable_size);
+	if (args->flags & PMEMOBJ_FLAG_ZERO)
+		memset(ptr, 0, usable_size);
 
 	return 0;
 }
@@ -270,46 +239,16 @@ constructor_tx_copy(PMEMobjpool *pop, void *ptr, size_t usable_size, void *arg)
 	VALGRIND_REMOVE_FROM_TX(oobh, OBJ_OOB_SIZE);
 
 	/* do not report changes made to the copy */
-	VALGRIND_ADD_TO_TX(ptr, args->size);
+	int zero = (args->flags & PMEMOBJ_FLAG_ZERO) &&
+			usable_size > args->copy_size;
+	if (zero)
+		VALGRIND_ADD_TO_TX(ptr, usable_size);
+	else
+		VALGRIND_ADD_TO_TX(ptr, args->size);
 
 	memcpy(ptr, args->ptr, args->copy_size);
 
-	return 0;
-}
-
-/*
- * constructor_tx_copy_zero -- (internal) copy constructor which zeroes
- * the non-copied area
- */
-static int
-constructor_tx_copy_zero(PMEMobjpool *pop, void *ptr,
-	size_t usable_size, void *arg)
-{
-	LOG(3, NULL);
-
-	ASSERTne(ptr, NULL);
-	ASSERTne(arg, NULL);
-
-	struct tx_alloc_copy_args *args = arg;
-	struct oob_header *oobh = OOB_HEADER_FROM_PTR(ptr);
-
-	/* temporarily add the OOB header */
-	VALGRIND_ADD_TO_TX(oobh, OBJ_OOB_SIZE);
-
-	/*
-	 * no need to flush and persist because this
-	 * will be done in pre-commit phase
-	 */
-	oobh->type_num = args->type_num;
-	oobh->size = 0;
-
-	VALGRIND_REMOVE_FROM_TX(oobh, OBJ_OOB_SIZE);
-
-	/* do not report changes made to the copy */
-	VALGRIND_ADD_TO_TX(ptr, usable_size);
-
-	memcpy(ptr, args->ptr, args->copy_size);
-	if (usable_size > args->copy_size) {
+	if (zero) {
 		void *zero_ptr = (void *)((uintptr_t)ptr + args->copy_size);
 		size_t zero_size = usable_size - args->copy_size;
 		memset(zero_ptr, 0, zero_size);
@@ -822,7 +761,8 @@ release_and_free_tx_locks(struct lane_tx_runtime *lane)
  * tx_alloc_common -- (internal) common function for alloc and zalloc
  */
 static PMEMoid
-tx_alloc_common(size_t size, type_num_t type_num, pmalloc_constr constructor)
+tx_alloc_common(size_t size, type_num_t type_num, pmalloc_constr constructor,
+		int flags)
 {
 	LOG(3, NULL);
 
@@ -839,6 +779,7 @@ tx_alloc_common(size_t size, type_num_t type_num, pmalloc_constr constructor)
 
 	struct tx_alloc_args args = {
 		.type_num = type_num,
+		.flags = flags,
 	};
 
 	/* allocate object to undo log */
@@ -862,7 +803,7 @@ err_oom:
  */
 static PMEMoid
 tx_alloc_copy_common(size_t size, type_num_t type_num, const void *ptr,
-	size_t copy_size, pmalloc_constr constructor)
+	size_t copy_size, pmalloc_constr constructor, int flags)
 {
 	LOG(3, NULL);
 
@@ -882,6 +823,7 @@ tx_alloc_copy_common(size_t size, type_num_t type_num, const void *ptr,
 		.size = size,
 		.ptr = ptr,
 		.copy_size = copy_size,
+		.flags = flags,
 	};
 
 	/* allocate object to undo log */
@@ -898,71 +840,6 @@ tx_alloc_copy_common(size_t size, type_num_t type_num, const void *ptr,
 err_oom:
 	ERR("out of memory");
 	return pmemobj_tx_abort_null(ENOMEM);
-}
-
-/*
- * tx_realloc_common -- (internal) common function for tx realloc
- */
-static PMEMoid
-tx_realloc_common(PMEMoid oid, size_t size, uint64_t type_num,
-	pmalloc_constr constructor_alloc,
-	pmalloc_constr constructor_realloc,
-	int flags)
-{
-	LOG(3, NULL);
-
-	if (size > PMEMOBJ_MAX_ALLOC_SIZE) {
-		ERR("requested size too large");
-		return pmemobj_tx_abort_null(ENOMEM);
-	}
-
-	if (flags) {
-		ERR("unsupported flags %x", flags);
-		return pmemobj_tx_abort_null(EINVAL);
-	}
-
-	struct lane_tx_runtime *lane =
-		(struct lane_tx_runtime *)tx.section->runtime;
-
-	/* if oid is NULL just alloc */
-	if (OBJ_OID_IS_NULL(oid))
-		return tx_alloc_common(size, (type_num_t)type_num,
-				constructor_alloc);
-
-	ASSERT(OBJ_OID_IS_VALID(lane->pop, oid));
-
-	/* if size is 0 just free */
-	if (size == 0) {
-		if (pmemobj_tx_free(oid)) {
-			ERR("pmemobj_tx_free failed");
-			return oid;
-		} else {
-			return OID_NULL;
-		}
-	}
-
-	/* oid is not NULL and size is not 0 so do realloc by alloc and free */
-	void *ptr = OBJ_OFF_TO_PTR(lane->pop, oid.off);
-	size_t old_size = pmalloc_usable_size(lane->pop,
-			oid.off) - OBJ_OOB_SIZE;
-
-	size_t copy_size = old_size < size ? old_size : size;
-
-	PMEMoid new_obj = tx_alloc_copy_common(size, (type_num_t)type_num,
-			ptr, copy_size, constructor_realloc);
-
-	if (!OBJ_OID_IS_NULL(new_obj)) {
-		if (pmemobj_tx_free(oid)) {
-			ERR("pmemobj_tx_free failed");
-			struct lane_tx_layout *layout =
-				(struct lane_tx_layout *)tx.section->layout;
-			list_remove_free_oob(lane->pop, &layout->undo_alloc,
-					&new_obj);
-			return OID_NULL;
-		}
-	}
-
-	return new_obj;
 }
 
 /*
@@ -1526,38 +1403,13 @@ pmemobj_tx_alloc(size_t size, uint64_t type_num, int flags)
 		return pmemobj_tx_abort_null(EINVAL);
 	}
 
-	if (flags) {
-		ERR("unsupported flags %x", flags);
+	if (flags & ~PMEMOBJ_FLAG_ZERO) {
+		ERR("unsupported flags %x", flags & ~PMEMOBJ_FLAG_ZERO);
 		return pmemobj_tx_abort_null(EINVAL);
 	}
 
 	return tx_alloc_common(size, (type_num_t)type_num,
-			constructor_tx_alloc);
-}
-
-/*
- * pmemobj_tx_zalloc -- allocates a new zeroed object
- */
-PMEMoid
-pmemobj_tx_zalloc(size_t size, uint64_t type_num, int flags)
-{
-	LOG(3, NULL);
-
-	ASSERT_IN_TX();
-	ASSERT_TX_STAGE_WORK();
-
-	if (size == 0) {
-		ERR("allocation with size 0");
-		return pmemobj_tx_abort_null(EINVAL);
-	}
-
-	if (flags) {
-		ERR("unsupported flags %x", flags);
-		return pmemobj_tx_abort_null(EINVAL);
-	}
-
-	return tx_alloc_common(size, (type_num_t)type_num,
-			constructor_tx_zalloc);
+			constructor_tx_alloc, flags);
 }
 
 /*
@@ -1571,24 +1423,58 @@ pmemobj_tx_realloc(PMEMoid oid, size_t size, uint64_t type_num, int flags)
 	ASSERT_IN_TX();
 	ASSERT_TX_STAGE_WORK();
 
-	return tx_realloc_common(oid, size, type_num,
-			constructor_tx_alloc, constructor_tx_copy, flags);
-}
+	if (size > PMEMOBJ_MAX_ALLOC_SIZE) {
+		ERR("requested size too large");
+		return pmemobj_tx_abort_null(ENOMEM);
+	}
 
+	if (flags & ~PMEMOBJ_FLAG_ZERO) {
+		ERR("unsupported flags %x", flags & ~PMEMOBJ_FLAG_ZERO);
+		return pmemobj_tx_abort_null(EINVAL);
+	}
 
-/*
- * pmemobj_zrealloc -- resizes an existing object, any new space is zeroed.
- */
-PMEMoid
-pmemobj_tx_zrealloc(PMEMoid oid, size_t size, uint64_t type_num, int flags)
-{
-	LOG(3, NULL);
+	struct lane_tx_runtime *lane =
+		(struct lane_tx_runtime *)tx.section->runtime;
 
-	ASSERT_IN_TX();
-	ASSERT_TX_STAGE_WORK();
+	/* if oid is NULL just alloc */
+	if (OBJ_OID_IS_NULL(oid))
+		return tx_alloc_common(size, (type_num_t)type_num,
+				constructor_tx_alloc, flags);
 
-	return tx_realloc_common(oid, size, type_num,
-			constructor_tx_zalloc, constructor_tx_copy_zero, flags);
+	ASSERT(OBJ_OID_IS_VALID(lane->pop, oid));
+
+	/* if size is 0 just free */
+	if (size == 0) {
+		if (pmemobj_tx_free(oid)) {
+			ERR("pmemobj_tx_free failed");
+			return oid;
+		} else {
+			return OID_NULL;
+		}
+	}
+
+	/* oid is not NULL and size is not 0 so do realloc by alloc and free */
+	void *ptr = OBJ_OFF_TO_PTR(lane->pop, oid.off);
+	size_t old_size = pmalloc_usable_size(lane->pop,
+			oid.off) - OBJ_OOB_SIZE;
+
+	size_t copy_size = old_size < size ? old_size : size;
+
+	PMEMoid new_obj = tx_alloc_copy_common(size, (type_num_t)type_num,
+			ptr, copy_size, constructor_tx_copy, flags);
+
+	if (!OBJ_OID_IS_NULL(new_obj)) {
+		if (pmemobj_tx_free(oid)) {
+			ERR("pmemobj_tx_free failed");
+			struct lane_tx_layout *layout =
+				(struct lane_tx_layout *)tx.section->layout;
+			list_remove_free_oob(lane->pop, &layout->undo_alloc,
+					&new_obj);
+			return OID_NULL;
+		}
+	}
+
+	return new_obj;
 }
 
 /*
@@ -1616,12 +1502,13 @@ pmemobj_tx_strdup(const char *s, uint64_t type_num, int flags)
 
 	if (len == 0)
 		return tx_alloc_common(sizeof (char), (type_num_t)type_num,
-				constructor_tx_zalloc);
+				constructor_tx_alloc,
+				flags | PMEMOBJ_FLAG_ZERO);
 
 	size_t size = (len + 1) * sizeof (char);
 
 	return tx_alloc_copy_common(size, (type_num_t)type_num, s, size,
-			constructor_tx_copy);
+			constructor_tx_copy, flags);
 }
 
 /*

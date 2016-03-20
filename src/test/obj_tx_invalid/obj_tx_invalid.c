@@ -116,31 +116,31 @@ main(int argc, char *argv[])
 	}
 
 	else if (strcmp(argv[2], "zalloc") == 0)
-		pmemobj_tx_zalloc(10, 1, 0);
+		pmemobj_tx_alloc(10, 1, PMEMOBJ_FLAG_ZERO);
 	else if (strcmp(argv[2], "zalloc-in-work") == 0) {
 		TX_BEGIN(pop) {
-			pmemobj_tx_zalloc(10, 1, 0);
+			pmemobj_tx_alloc(10, 1, PMEMOBJ_FLAG_ZERO);
 		} TX_END
 	} else if (strcmp(argv[2], "zalloc-in-abort") == 0) {
 		TX_BEGIN(pop) {
 			pmemobj_tx_abort(ENOMEM);
 		} TX_ONABORT {
-			pmemobj_tx_zalloc(10, 1, 0);
+			pmemobj_tx_alloc(10, 1, PMEMOBJ_FLAG_ZERO);
 		} TX_END
 	} else if (strcmp(argv[2], "zalloc-in-commit") == 0) {
 		TX_BEGIN(pop) {
 		} TX_ONCOMMIT {
-			pmemobj_tx_zalloc(10, 1, 0);
+			pmemobj_tx_alloc(10, 1, PMEMOBJ_FLAG_ZERO);
 		} TX_END
 	} else if (strcmp(argv[2], "zalloc-in-finally") == 0) {
 		TX_BEGIN(pop) {
 		} TX_FINALLY {
-			pmemobj_tx_zalloc(10, 1, 0);
+			pmemobj_tx_alloc(10, 1, PMEMOBJ_FLAG_ZERO);
 		} TX_END
 	} else if (strcmp(argv[2], "zalloc-after-tx") == 0) {
 		TX_BEGIN(pop) {
 		} TX_END
-		pmemobj_tx_zalloc(10, 1, 0);
+		pmemobj_tx_alloc(10, 1, PMEMOBJ_FLAG_ZERO);
 	}
 
 	else if (strcmp(argv[2], "strdup") == 0)
@@ -200,31 +200,31 @@ main(int argc, char *argv[])
 	}
 
 	else if (strcmp(argv[2], "zrealloc") == 0)
-		pmemobj_tx_zrealloc(oid, 10, 1, 0);
+		pmemobj_tx_realloc(oid, 10, 1, PMEMOBJ_FLAG_ZERO);
 	else if (strcmp(argv[2], "zrealloc-in-work") == 0) {
 		TX_BEGIN(pop) {
-			pmemobj_tx_zrealloc(oid, 10, 1, 0);
+			pmemobj_tx_realloc(oid, 10, 1, PMEMOBJ_FLAG_ZERO);
 		} TX_END
 	} else if (strcmp(argv[2], "zrealloc-in-abort") == 0) {
 		TX_BEGIN(pop) {
 			pmemobj_tx_abort(ENOMEM);
 		} TX_ONABORT {
-			pmemobj_tx_zrealloc(oid, 10, 1, 0);
+			pmemobj_tx_realloc(oid, 10, 1, PMEMOBJ_FLAG_ZERO);
 		} TX_END
 	} else if (strcmp(argv[2], "zrealloc-in-commit") == 0) {
 		TX_BEGIN(pop) {
 		} TX_ONCOMMIT {
-			pmemobj_tx_zrealloc(oid, 10, 1, 0);
+			pmemobj_tx_realloc(oid, 10, 1, PMEMOBJ_FLAG_ZERO);
 		} TX_END
 	} else if (strcmp(argv[2], "zrealloc-in-finally") == 0) {
 		TX_BEGIN(pop) {
 		} TX_FINALLY {
-			pmemobj_tx_zrealloc(oid, 10, 1, 0);
+			pmemobj_tx_realloc(oid, 10, 1, PMEMOBJ_FLAG_ZERO);
 		} TX_END
 	} else if (strcmp(argv[2], "zrealloc-after-tx") == 0) {
 		TX_BEGIN(pop) {
 		} TX_END
-		pmemobj_tx_zrealloc(oid, 10, 1, 0);
+		pmemobj_tx_realloc(oid, 10, 1, PMEMOBJ_FLAG_ZERO);
 	}
 
 	else if (strcmp(argv[2], "free") == 0)
