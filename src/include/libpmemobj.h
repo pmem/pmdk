@@ -354,6 +354,8 @@ pmemobj_direct(PMEMoid oid)
 
 typedef int (*pmemobj_constr)(PMEMobjpool *pop, void *ptr, void *arg);
 
+#define	PMEMOBJ_FLAG_ZERO (1 << 0)
+
 /*
  * Allocates a new object from the pool and calls a constructor function before
  * returning. It is guaranteed that allocated object is either properly
@@ -364,21 +366,9 @@ int pmemobj_alloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 	uint64_t type_num, pmemobj_constr constructor, void *arg, int flags);
 
 /*
- * Allocates a new zeroed object from the pool.
- */
-int pmemobj_zalloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
-	uint64_t type_num, int flags);
-
-/*
  * Resizes an existing object.
  */
 int pmemobj_realloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
-	uint64_t type_num, int flags);
-
-/*
- * Resizes an existing object, if extended new space is zeroed.
- */
-int pmemobj_zrealloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 	uint64_t type_num, int flags);
 
 /*
@@ -518,12 +508,14 @@ pmemobj_alloc((pop), _pobj_oidp, (size), TOID_TYPE_NUM(t), (constr), (arg), 0);\
 #define	POBJ_ZNEW(pop, o, t) (\
 { TOID(t) *_pobj_tmp = (o);\
 PMEMoid *_pobj_oidp = _pobj_tmp ? &_pobj_tmp->oid : NULL;\
-pmemobj_zalloc((pop), _pobj_oidp, sizeof (t), TOID_TYPE_NUM(t), 0); })
+pmemobj_alloc((pop), _pobj_oidp, sizeof (t), TOID_TYPE_NUM(t), NULL, NULL,\
+PMEMOBJ_FLAG_ZERO); })
 
 #define	POBJ_ZALLOC(pop, o, t, size) (\
 { TOID(t) *_pobj_tmp = (o);\
 PMEMoid *_pobj_oidp = _pobj_tmp ? &_pobj_tmp->oid : NULL;\
-pmemobj_zalloc((pop), _pobj_oidp, (size), TOID_TYPE_NUM(t), 0); })
+pmemobj_alloc((pop), _pobj_oidp, (size), TOID_TYPE_NUM(t), NULL, NULL,\
+PMEMOBJ_FLAG_ZERO); })
 
 #define	POBJ_REALLOC(pop, o, t, size) (\
 { TOID(t) *_pobj_tmp = (o);\
@@ -533,7 +525,8 @@ pmemobj_realloc((pop), _pobj_oidp, (size), TOID_TYPE_NUM(t), 0); })
 #define	POBJ_ZREALLOC(pop, o, t, size) (\
 { TOID(t) *_pobj_tmp = (o);\
 PMEMoid *_pobj_oidp = _pobj_tmp ? &_pobj_tmp->oid : NULL;\
-pmemobj_zrealloc((pop), _pobj_oidp, (size), TOID_TYPE_NUM_OF(*(o)), 0); })
+pmemobj_realloc((pop), _pobj_oidp, (size), TOID_TYPE_NUM_OF(*(o)),\
+PMEMOBJ_FLAG_ZERO); })
 
 #define	POBJ_FREE(o) pmemobj_free((PMEMoid *)(o))
 
@@ -896,8 +889,6 @@ _POBJ_TX_BEGIN(pop, ##__VA_ARGS__)
 	if (_pobj_errno)\
 		errno = _pobj_errno;\
 }
-
-#define	PMEMOBJ_FLAG_ZERO (1 << 0)
 
 /*
  * Takes a "snapshot" of the memory block of given size and located at given

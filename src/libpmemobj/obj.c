@@ -1074,9 +1074,9 @@ pmemobj_pool_by_ptr(const void *addr)
 /* arguments for constructor_alloc_bytype */
 struct carg_bytype {
 	type_num_t user_type;
-	int zero_init;
 	pmemobj_constr constructor;
 	void *arg;
+	int flags;
 };
 
 /*
@@ -1102,7 +1102,7 @@ constructor_alloc_bytype(PMEMobjpool *pop, void *ptr,
 
 	pop->flush(pop, pobj, sizeof (*pobj));
 
-	if (carg->zero_init)
+	if (carg->flags & PMEMOBJ_FLAG_ZERO)
 		pop->memset_persist(pop, ptr, 0, usable_size);
 	else
 		pop->drain(pop);
@@ -1118,9 +1118,10 @@ constructor_alloc_bytype(PMEMobjpool *pop, void *ptr,
  */
 static int
 obj_alloc_construct(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
-	type_num_t type_num, int zero_init,
+	type_num_t type_num,
 	pmemobj_constr constructor,
-	void *arg)
+	void *arg,
+	int flags)
 {
 	if (size > PMEMOBJ_MAX_ALLOC_SIZE) {
 		ERR("requested size too large");
@@ -1131,9 +1132,9 @@ obj_alloc_construct(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 	struct carg_bytype carg;
 
 	carg.user_type = type_num;
-	carg.zero_init = zero_init;
 	carg.constructor = constructor;
 	carg.arg = arg;
+	carg.flags = flags;
 
 	struct operation_entry e = {&oidp->pool_uuid_lo, pop->uuid_lo,
 		OPERATION_SET};
@@ -1164,14 +1165,14 @@ pmemobj_alloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 		return -1;
 	}
 
-	if (flags) {
-		ERR("unsupported flags %x", flags);
+	if (flags & ~PMEMOBJ_FLAG_ZERO) {
+		ERR("unsupported flags %x", flags & ~PMEMOBJ_FLAG_ZERO);
 		errno = EINVAL;
 		return -1;
 	}
 
-	return obj_alloc_construct(pop, oidp, size, type_num,
-			0, constructor, arg);
+	return obj_alloc_construct(pop, oidp, size, type_num, constructor, arg,
+			flags);
 }
 
 /* arguments for constructor_realloc and constructor_zrealloc */
@@ -1179,40 +1180,11 @@ struct carg_realloc {
 	void *ptr;
 	size_t old_size;
 	size_t new_size;
-	int zero_init;
 	type_num_t user_type;
 	pmemobj_constr constructor;
 	void *arg;
+	int flags;
 };
-
-/*
- * pmemobj_zalloc -- allocates a new zeroed object
- */
-int
-pmemobj_zalloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
-		uint64_t type_num, int flags)
-{
-	LOG(3, "pop %p oidp %p size %zu type_num %llx",
-			pop, oidp, size, (unsigned long long)type_num);
-
-	/* log notice message if used inside a transaction */
-	_POBJ_DEBUG_NOTICE_IN_TX();
-
-	if (size == 0) {
-		ERR("allocation with size 0");
-		errno = EINVAL;
-		return -1;
-	}
-
-	if (flags) {
-		ERR("unsupported flags %x", flags);
-		errno = EINVAL;
-		return -1;
-	}
-
-	return obj_alloc_construct(pop, oidp, size, type_num,
-					1, NULL, NULL);
-}
 
 /*
  * obj_free -- (internal) free an object
@@ -1249,10 +1221,7 @@ constructor_realloc(PMEMobjpool *pop, void *ptr, size_t usable_size, void *arg)
 		pop->flush(pop, pobj, sizeof (*pobj));
 	}
 
-	if (!carg->zero_init)
-		return 0;
-
-	if (usable_size > carg->old_size) {
+	if ((carg->flags & PMEMOBJ_FLAG_ZERO) && usable_size > carg->old_size) {
 		size_t grow_len = usable_size - carg->old_size;
 		void *new_data_ptr = (void *)((uintptr_t)ptr + carg->old_size);
 
@@ -1268,9 +1237,9 @@ constructor_realloc(PMEMobjpool *pop, void *ptr, size_t usable_size, void *arg)
  */
 static int
 obj_realloc_common(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
-		type_num_t type_num, int zero_init, int flags)
+		type_num_t type_num, int flags)
 {
-	if (flags) {
+	if (flags & ~PMEMOBJ_FLAG_ZERO) {
 		ERR("unsupported flags %x", flags);
 		errno = EINVAL;
 		return -1;
@@ -1283,7 +1252,7 @@ obj_realloc_common(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 			return 0;
 
 		return obj_alloc_construct(pop, oidp, size, type_num,
-				zero_init, NULL, NULL);
+				NULL, NULL, flags);
 	}
 
 	if (size > PMEMOBJ_MAX_ALLOC_SIZE) {
@@ -1308,7 +1277,7 @@ obj_realloc_common(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 	carg.user_type = type_num;
 	carg.constructor = NULL;
 	carg.arg = NULL;
-	carg.zero_init = zero_init;
+	carg.flags = flags;
 
 	int ret;
 	if (type_num == user_type_old) {
@@ -1377,28 +1346,7 @@ pmemobj_realloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 	_POBJ_DEBUG_NOTICE_IN_TX();
 	ASSERT(OBJ_OID_IS_VALID(pop, *oidp));
 
-	return obj_realloc_common(pop, oidp, size, (type_num_t)type_num, 0,
-			flags);
-}
-
-/*
- * pmemobj_zrealloc -- resizes an existing object, any new space is zeroed.
- */
-int
-pmemobj_zrealloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
-		uint64_t type_num, int flags)
-{
-	ASSERTne(oidp, NULL);
-
-	LOG(3, "pop %p oid.off 0x%016jx size %zu type_num %lu",
-		pop, oidp->off, size, type_num);
-
-	/* log notice message if used inside a transaction */
-	_POBJ_DEBUG_NOTICE_IN_TX();
-	ASSERT(OBJ_OID_IS_VALID(pop, *oidp));
-
-	return obj_realloc_common(pop, oidp, size, (type_num_t)type_num, 1,
-			flags);
+	return obj_realloc_common(pop, oidp, size, (type_num_t)type_num, flags);
 }
 
 /* arguments for constructor_strdup */
@@ -1454,7 +1402,7 @@ pmemobj_strdup(PMEMobjpool *pop, PMEMoid *oidp, const char *s,
 	carg.s = s;
 
 	return obj_alloc_construct(pop, oidp, carg.size,
-		(type_num_t)type_num, 0, constructor_strdup, &carg);
+		(type_num_t)type_num, constructor_strdup, &carg, flags);
 }
 
 /*
@@ -1655,7 +1603,7 @@ obj_realloc_root(PMEMobjpool *pop, size_t size,
 	carg.new_size = size;
 	carg.user_type = POBJ_ROOT_TYPE_NUM;
 	carg.constructor = constructor;
-	carg.zero_init = 1;
+	carg.flags = PMEMOBJ_FLAG_ZERO;
 	carg.arg = arg;
 
 	return palloc_operation(pop, pop->root_offset, &pop->root_offset,
@@ -1847,7 +1795,7 @@ pmemobj_list_insert_new(PMEMobjpool *pop, size_t pe_offset, void *head,
 	carg.user_type = (type_num_t)type_num;
 	carg.constructor = constructor;
 	carg.arg = arg;
-	carg.zero_init = 0;
+	carg.flags = 0;
 
 	PMEMoid retoid = OID_NULL;
 	list_insert_new_user(pop, lhead,

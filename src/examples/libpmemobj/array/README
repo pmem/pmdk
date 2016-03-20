@@ -10,10 +10,9 @@ are supported: int, PMEMoid and TOID with structure containing int variable.
 
 Persistent pointer can be treated as a pointer to the first element of array.
 TOID with user's defined structure can be allocated by using POBJ_ALLOC or
-POBJ_ZALLOC macros (similarly when using PMEMoid there are pmemobj_alloc() and
-pmemobj_zalloc() functions) with proper number elements multiplied by
-user-defined structure's size. Access to array's elements can be executed by
-using pmemobj_direct() function or just using proper macro.
+POBJ_ZALLOC macros with proper number elements multiplied by user-defined
+structure's size. Access to array's elements can be executed by using
+pmemobj_direct() function or just using proper macro.
 For example D_RW(test1)[0] points to first element of test1 array.
 
 To allocate new array using application run the following command:

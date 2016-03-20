@@ -185,7 +185,8 @@ test_double_free(const char *path)
 		FATAL("!pmemobj_create: %s", path);
 
 	PMEMoid oid, oid2;
-	int err = pmemobj_zalloc(pop, &oid, 100, 0, 0);
+	int err = pmemobj_alloc(pop, &oid, 100, 0,  NULL, NULL,
+			PMEMOBJ_FLAG_ZERO);
 	ASSERTeq(err, 0);
 	ASSERT(!OID_IS_NULL(oid));
 

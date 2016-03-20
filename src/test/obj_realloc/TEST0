@@ -32,8 +32,7 @@
 #
 
 #
-# src/test/obj_realloc/TEST0 -- unit test for pmemobj_realloc and
-# pmemobj_zrealloc
+# src/test/obj_realloc/TEST0 -- unit test for pmemobj_realloc
 #
 export UNITTEST_NAME=obj_realloc/TEST0
 export UNITTEST_NUM=0

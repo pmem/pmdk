@@ -135,11 +135,7 @@ libpmemobj \- persistent memory transactional object store
 .sp
 .BI "int pmemobj_alloc(PMEMobjpool *" pop ", PMEMoid *" oidp ", size_t " size ,
 .BI "    uint64_t " type_num ", pmemobj_constr " constructor ", void *" arg ", int " flags );
-.BI "int pmemobj_zalloc(PMEMobjpool *" pop ", PMEMoid *" oidp ", size_t " size ,
-.BI "    uint64_t " type_num ", int " flags );
 .BI "int pmemobj_realloc(PMEMobjpool *" pop ", PMEMoid *" oidp ", size_t " size ,
-.BI "    uint64_t " type_num ", int " flags );
-.BI "int pmemobj_zrealloc(PMEMobjpool *" pop ", PMEMoid *" oidp ", size_t " size ,
 .BI "    uint64_t " type_num ", int " flags );
 .BI "int pmemobj_strdup(PMEMobjpool *" pop ", PMEMoid *" oidp ", const char *" s ,
 .BI "    uint64_t " type_num ", int " flags );
@@ -732,7 +728,7 @@ They provide semantics similar to standard
 .B pthread
 locks, except that they are considered initialized by zeroing them.
 So allocating the locks with
-.BR pmemobj_zalloc ()
+.BR pmemobj_alloc ()
 or
 .BR pmemobj_tx_alloc ()
 with
@@ -762,7 +758,7 @@ function explicitly initializes pmem-aware mutex pointed by
 by zeroing it.
 Initialization is not necessary if the object containing the mutex has been
 allocated using
-.BR pmemobj_zalloc ()
+.BR pmemobj_alloc ()
 or
 .BR pmemobj_tx_alloc ()
 with
@@ -827,7 +823,7 @@ by
 by zeroing it.
 Initialization is not necessary if the object containing the lock has been
 allocated using
-.BR pmemobj_zalloc ()
+.BR pmemobj_alloc ()
 or
 .BR pmemobj_tx_alloc ()
 with
@@ -928,7 +924,7 @@ The
 function explicitly initializes pmem-aware condition variable by zeroing it.
 Initialization is not necessary if the object containing the condition
 variable has been allocated using
-.BR pmemobj_zalloc ()
+.BR pmemobj_alloc ()
 or
 .BR pmemobj_tx_alloc ()
 with
@@ -1568,54 +1564,10 @@ returns non-zero value, sets the errno and leaves the
 untouched.
 The allocated object is added to the internal container associated with given
 .IR type_num .
-.I flags
-must be always equal to 0.
-.PP
-.BI "int pmemobj_zalloc(PMEMobjpool *" pop ", PMEMoid *" oidp ", size_t " size ,
-.br
-.BI "    uint64_t " type_num ", int " flags );
-.IP
-The
-.BR pmemobj_zalloc ()
-function allocates a new zeroed object from the the persistent memory heap
-associated with memory pool
-.IR pop .
-The
-.B PMEMoid
-of allocated object is stored in
-.IR oidp .
-If NULL is passed as
-.IR oidp ,
-then the newly allocated object may be accessed only by iterating objects
-in the object container associated with given
-.IR type_num ,
-as described in
-.B OBJECT CONTAINERS
-section.
-If the
-.I oidp
-points to memory location from the
-.B pmemobj
-heap the
-.I oidp
-is modified atomically.
-The
-.I size
-can be any non-zero value, however due to internal padding and object metadata,
-the actual size of the allocation will differ from the requested one by at least
-64 bytes.  For this reason, making the allocations of a size
-less than 64 bytes is extremely inefficient and discouraged.
-If
-.I size
-equals 0, then
-.BR pmemobj_zalloc ()
-returns non-zero value, sets the errno and leaves the
-.I oidp
-untouched.
-The allocated object is added to the internal container associated with given
-.IR type_num .
-.I flags
-must be always equal to 0.
+.IR flags
+is a bitmask of 0 or more modifiers. For now only one modifier is defined:
+.IR PMEMOBJ_FLAG_ZERO ,
+which instructs the library to zero the allocated memory.
 .PP
 .BI "void pmemobj_free(PMEMoid *" oidp );
 .IP
@@ -1628,11 +1580,9 @@ persistent memory heap.
 It frees the memory space represented by
 .IR oidp ,
 which must have been returned by a previous call to
-.BR pmemobj_alloc (),
-.BR pmemobj_zalloc (),
-.BR pmemobj_realloc (),
+.BR pmemobj_alloc ()
 or
-.BR pmemobj_zrealloc ().
+.BR pmemobj_realloc ().
 If
 .I oidp
 is NULL or if it points to the root object's OID,
@@ -1694,11 +1644,9 @@ Unless
 is
 .IR OID_NULL ,
 it must have been returned by an earlier call to
-.BR pmemobj_alloc (),
-.BR pmemobj_zalloc (),
-.BR pmemobj_realloc (),
+.BR pmemobj_alloc ()
 or
-.BR pmemobj_zrealloc ().
+.BR pmemobj_realloc ().
 Note that the object handle value may change in result of reallocation.
 If the object was moved, a memory space represented by
 .I oid
@@ -1713,71 +1661,11 @@ If
 .BR pmemobj_realloc ()
 is unable to satisfy the allocation request, a non-zero value is returned and
 errno is set appropriately.
-.I flags
-must be always equal to 0.
-.PP
-.BI "int pmemobj_zrealloc(PMEMobjpool *" pop ", PMEMoid *" oidp ", size_t " size ,
-.br
-.BI "    uint64_t " type_num ", int " flags );
-.IP
-The
-.BR pmemobj_zrealloc ()
-function provide similar semantics to
-.BR realloc (3),
-but operates on the persistent memory heap associated with memory pool
-.IR pop .
-It changes the size of the object represented by
-.IR oid ,
-to
-.I size
-bytes.  The resized object is also added or moved to the internal
-container associated with given
-.IR type_num .
-The contents will be unchanged in the range from the start of the region
-up to the minimum of the old and new sizes.
-If the new size is larger than the old size, the added memory will be zeroed.
-If
-.I oidp
-is NULL or if it points to the root object's OID,
-behavior of the function is undefined.
-If it points to
-.IR OID_NULL ,
-then the call is equivalent to
-.BI "pmemobj_zalloc(" pop ", " size ", " type_num ")."
-If
-.I size
-is equal to zero, and
-.I oidp
-doesn't point to
-.IR OID_NULL ,
-then the call is equivalent to
-.BI "pmemobj_free(" pop ", " oid ")."
-Unless
-.I oidp
-points to
-.IR OID_NULL ,
-it must have been returned by an earlier call to
-.BR pmemobj_alloc (),
-.BR pmemobj_zalloc (),
-.BR pmemobj_realloc (),
-or
-.BR pmemobj_zrealloc ().
-Note that the object handle value may change in result of reallocation.
-If the object was moved, a memory space represented by
-.I oidp
-is reclaimed. If
-.I oidp
-points to memory location from the
-.B pmemobj
-heap the
-.I oidp
-is changed atomically.
-If
-.BR pmemobj_zrealloc ()
-is unable to satisfy the allocation request, OID_NULL is
-returned and errno is set appropriately.
-.I flags
-must be always equal to 0.
+.IR flags
+is a bitmask of 0 or more modifiers. For now only one modifier is defined:
+.IR PMEMOBJ_FLAG_ZERO ,
+which instructs the library to zero the new space if the new size is larger than
+the old size (otherwise it's left unitialized).
 .PP
 .BI "int pmemobj_strdup(PMEMobjpool *" pop ", PMEMoid *" oidp ", const char *" s ,
 .br
@@ -1885,13 +1773,13 @@ it takes a pointer to typed OID of
 The
 .B POBJ_ZNEW
 macro is a wrapper around the
-.BR pmemobj_zalloc ()
+.BR pmemobj_alloc ()
 function which takes the type name
 .B TYPE
 and passes the size and type number to
 the
-.BR pmemobj_zalloc ()
-function from the typed OID.
+.BR pmemobj_alloc ()
+function from the typed OID and sets flags to PMEMOBJ_FLAG_ZERO.
 Instead of taking a pointer to
 .B PMEMoid
 it takes a pointer to typed OID of
@@ -1902,14 +1790,14 @@ it takes a pointer to typed OID of
 The
 .B POBJ_ZALLOC
 macro is a wrapper around the
-.BR pmemobj_zalloc ()
+.BR pmemobj_alloc ()
 function which takes the type name
 .BR TYPE ,
 the size of allocation
 .I size
 and passes the type number to the
-.BR pmemobj_zalloc ()
-function from the typed OID.
+.BR pmemobj_alloc ()
+function from the typed OID and sets flags to PMEMOBJ_FLAG_ZERO.
 Instead of taking a pointer to
 .B PMEMoid
 it takes a pointer to typed OID of
@@ -1936,12 +1824,12 @@ it takes a pointer to typed OID of
 The
 .B POBJ_ZREALLOC
 macro is a wrapper around the
-.BR pmemobj_zrealloc ()
+.BR pmemobj_realloc ()
 function which takes the type name
 .B TYPE
 and passes the type number to the
-.BR pmemobj_zrealloc ()
-function from the typed OID.
+.BR pmemobj_realloc ()
+function from the typed OID and sets flags to PMEMOBJ_FLAG_ZERO.
 Instead of taking a pointer to
 .B PMEMoid
 it takes a pointer to typed OID of

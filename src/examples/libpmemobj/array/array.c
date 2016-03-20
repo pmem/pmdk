@@ -249,8 +249,8 @@ realloc_pmemoid(PMEMoid *info, size_t prev_size, size_t size)
 {
 	TOID(PMEMoid) array;
 	TOID_ASSIGN(array, *info);
-	pmemobj_zrealloc(pop, &array.oid, sizeof (PMEMoid) * size,
-						TOID_TYPE_NUM(PMEMoid), 0);
+	pmemobj_realloc(pop, &array.oid, sizeof (PMEMoid) * size,
+				TOID_TYPE_NUM(PMEMoid), PMEMOBJ_FLAG_ZERO);
 
 	for (int i = prev_size; i < size; i++) {
 		if (pmemobj_alloc(pop, &D_RW(array)[i],
@@ -271,9 +271,9 @@ realloc_toid(PMEMoid *info, size_t prev_size, size_t size)
 {
 	TOID_ARRAY(TOID(struct array_elm)) array;
 	TOID_ASSIGN(array, *info);
-	pmemobj_zrealloc(pop, &array.oid,
+	pmemobj_realloc(pop, &array.oid,
 			sizeof (TOID(struct array_elm)) * size,
-			TOID_TYPE_NUM_OF(array), 0);
+			TOID_TYPE_NUM_OF(array), PMEMOBJ_FLAG_ZERO);
 	for (int i = prev_size; i < size; i++) {
 		POBJ_NEW(pop, &D_RW(array)[i], struct array_elm,
 						elm_constructor, &i);

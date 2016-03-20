@@ -470,7 +470,8 @@ pocli_pmemobj_zalloc(struct pocli_ctx *ctx, struct pocli_args *args)
 	if (ret)
 		return ret;
 
-	int r = pmemobj_zalloc(ctx->pop, oidp, size, type_num, 0);
+	int r = pmemobj_alloc(ctx->pop, oidp, size, type_num, NULL, NULL,
+			PMEMOBJ_FLAG_ZERO);
 
 	pocli_printf(ctx, "%s(%s, %llu, %u): %d\n",
 		args->argv[0], args->argv[1], size, type_num, r);
@@ -512,7 +513,8 @@ pocli_pmemobj_zrealloc(struct pocli_ctx *ctx, struct pocli_args *args)
 	if (ret)
 		return ret;
 
-	int r = pmemobj_zrealloc(ctx->pop, oidp, size, type_num, 0);
+	int r = pmemobj_realloc(ctx->pop, oidp, size, type_num,
+			PMEMOBJ_FLAG_ZERO);
 
 	pocli_printf(ctx, "%s(%s, %llu, %u): %d\n",
 		args->argv[0], args->argv[1], size, type_num, r);

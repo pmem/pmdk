@@ -159,7 +159,8 @@ test_alloc_api(PMEMobjpool *pop)
 	ASSERTeq(err, -1);
 	ASSERTeq(errno, ENOMEM);
 
-	err = pmemobj_zalloc(pop, NULL, SIZE_MAX, 0, 0);
+	err = pmemobj_alloc(pop, NULL, SIZE_MAX, 0, NULL, NULL,
+			PMEMOBJ_FLAG_ZERO);
 	ASSERTeq(err, -1);
 	ASSERTeq(errno, ENOMEM);
 
@@ -168,7 +169,8 @@ test_alloc_api(PMEMobjpool *pop)
 	ASSERTeq(err, -1);
 	ASSERTeq(errno, ENOMEM);
 
-	err = pmemobj_zalloc(pop, NULL, PMEMOBJ_MAX_ALLOC_SIZE + 1, 0, 0);
+	err = pmemobj_alloc(pop, NULL, PMEMOBJ_MAX_ALLOC_SIZE + 1, 0, NULL,
+			NULL, PMEMOBJ_FLAG_ZERO);
 	ASSERTeq(err, -1);
 	ASSERTeq(errno, ENOMEM);
 }

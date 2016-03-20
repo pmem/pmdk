@@ -63,8 +63,6 @@ pmemobj_tx_realloc
 pmemobj_tx_stage
 pmemobj_tx_strdup
 pmemobj_type_num
-pmemobj_zalloc
-pmemobj_zrealloc
 $(*)nondebug/libpmemobj.so:
 _pobj_cache_invalidate
 _pobj_cached_pool
@@ -129,8 +127,6 @@ pmemobj_tx_realloc
 pmemobj_tx_stage
 pmemobj_tx_strdup
 pmemobj_type_num
-pmemobj_zalloc
-pmemobj_zrealloc
 $(*)debug/libpmemobj.a:
 _pobj_cache_invalidate
 _pobj_cached_pool
@@ -195,8 +191,6 @@ pmemobj_tx_realloc
 pmemobj_tx_stage
 pmemobj_tx_strdup
 pmemobj_type_num
-pmemobj_zalloc
-pmemobj_zrealloc
 $(*)nondebug/libpmemobj.a:
 _pobj_cache_invalidate
 _pobj_cached_pool
@@ -261,5 +255,3 @@ pmemobj_tx_realloc
 pmemobj_tx_stage
 pmemobj_tx_strdup
 pmemobj_type_num
-pmemobj_zalloc
-pmemobj_zrealloc

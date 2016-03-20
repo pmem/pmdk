@@ -31,7 +31,7 @@
  */
 
 /*
- * obj_realloc.c -- unit test for pmemobj_realloc and pmemobj_zrealloc
+ * obj_realloc.c -- unit test for pmemobj_realloc
  */
 #include <sys/param.h>
 #include <string.h>
@@ -129,8 +129,8 @@ test_realloc(PMEMobjpool *pop, size_t size_from, size_t size_to,
 
 	int ret;
 	if (zrealloc)
-		ret = pmemobj_zalloc(pop, &D_RW(root)->obj.oid,
-			size_from, type_from, 0);
+		ret = pmemobj_alloc(pop, &D_RW(root)->obj.oid,
+			size_from, type_from, NULL, NULL, PMEMOBJ_FLAG_ZERO);
 	else
 		ret = pmemobj_alloc(pop, &D_RW(root)->obj.oid,
 			size_from, type_from, NULL, NULL, 0);
@@ -156,8 +156,8 @@ test_realloc(PMEMobjpool *pop, size_t size_from, size_t size_to,
 	}
 
 	if (zrealloc) {
-		ret = pmemobj_zrealloc(pop, &D_RW(root)->obj.oid,
-				size_to, type_to, 0);
+		ret = pmemobj_realloc(pop, &D_RW(root)->obj.oid,
+				size_to, type_to, PMEMOBJ_FLAG_ZERO);
 	} else {
 		ret = pmemobj_realloc(pop, &D_RW(root)->obj.oid,
 				size_to, type_to, 0);

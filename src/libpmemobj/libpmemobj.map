@@ -63,9 +63,7 @@ libpmemobj.so {
 		pmemobj_pool_by_ptr;
 		pmemobj_direct;
 		pmemobj_alloc;
-		pmemobj_zalloc;
 		pmemobj_realloc;
-		pmemobj_zrealloc;
 		pmemobj_strdup;
 		pmemobj_free;
 		pmemobj_alloc_usable_size;
