@@ -284,7 +284,7 @@ map_insert_alloc_op(struct map_bench *map_bench, uint64_t key)
 
 	TX_BEGIN(map_bench->pop) {
 		PMEMoid oid = pmemobj_tx_alloc(map_bench->args->dsize,
-				OBJ_TYPE_NUM);
+				OBJ_TYPE_NUM, 0);
 		ret = map_insert(map_bench->mapc, map_bench->map, key, oid);
 	} TX_ONABORT {
 		ret = -1;
@@ -669,7 +669,7 @@ map_keys_init(struct benchmark *bench, struct benchmark_args *args)
 
 			if (targs->alloc)
 				oid = pmemobj_tx_alloc(args->dsize,
-						OBJ_TYPE_NUM);
+						OBJ_TYPE_NUM, 0);
 			else
 				oid = map_bench->root_oid;
 

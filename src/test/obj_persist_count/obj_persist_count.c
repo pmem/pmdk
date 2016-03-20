@@ -140,7 +140,7 @@ main(int argc, char *argv[])
 	struct foo *f = pmemobj_direct(root);
 
 	TX_BEGIN(pop) {
-		f->bar = pmemobj_tx_alloc(sizeof (struct foo), 0);
+		f->bar = pmemobj_tx_alloc(sizeof (struct foo), 0, 0);
 		ASSERT(!OID_IS_NULL(f->bar));
 	} TX_END
 	print_reset_counters("tx_alloc");

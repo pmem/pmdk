@@ -123,7 +123,7 @@ do_tx_alloc_abort_after_nested(PMEMobjpool *pop)
 
 	TX_BEGIN(pop) {
 		TOID_ASSIGN(obj1, pmemobj_tx_alloc(sizeof (struct object),
-				TYPE_ABORT_AFTER_NESTED1));
+				TYPE_ABORT_AFTER_NESTED1, 0));
 		ASSERT(!TOID_IS_NULL(obj1));
 
 		D_RW(obj1)->value = TEST_VALUE_1;
@@ -131,7 +131,7 @@ do_tx_alloc_abort_after_nested(PMEMobjpool *pop)
 		TX_BEGIN(pop) {
 			TOID_ASSIGN(obj2, pmemobj_tx_zalloc(
 					sizeof (struct object),
-					TYPE_ABORT_AFTER_NESTED2));
+					TYPE_ABORT_AFTER_NESTED2, 0));
 			ASSERT(!TOID_IS_NULL(obj2));
 			ASSERT(util_is_zeroed(D_RO(obj2),
 					sizeof (struct object)));
@@ -179,7 +179,7 @@ do_tx_alloc_abort_nested(PMEMobjpool *pop)
 
 	TX_BEGIN(pop) {
 		TOID_ASSIGN(obj1, pmemobj_tx_alloc(sizeof (struct object),
-				TYPE_ABORT_NESTED1));
+				TYPE_ABORT_NESTED1, 0));
 		ASSERT(!TOID_IS_NULL(obj1));
 
 		D_RW(obj1)->value = TEST_VALUE_1;
@@ -187,7 +187,7 @@ do_tx_alloc_abort_nested(PMEMobjpool *pop)
 		TX_BEGIN(pop) {
 			TOID_ASSIGN(obj2, pmemobj_tx_zalloc(
 					sizeof (struct object),
-					TYPE_ABORT_NESTED2));
+					TYPE_ABORT_NESTED2, 0));
 			ASSERT(!TOID_IS_NULL(obj2));
 			ASSERT(util_is_zeroed(D_RO(obj2),
 					sizeof (struct object)));
@@ -233,7 +233,7 @@ do_tx_alloc_commit_nested(PMEMobjpool *pop)
 
 	TX_BEGIN(pop) {
 		TOID_ASSIGN(obj1, pmemobj_tx_alloc(sizeof (struct object),
-				TYPE_COMMIT_NESTED1));
+				TYPE_COMMIT_NESTED1, 0));
 		ASSERT(!TOID_IS_NULL(obj1));
 
 		D_RW(obj1)->value = TEST_VALUE_1;
@@ -241,7 +241,7 @@ do_tx_alloc_commit_nested(PMEMobjpool *pop)
 		TX_BEGIN(pop) {
 			TOID_ASSIGN(obj2, pmemobj_tx_zalloc(
 					sizeof (struct object),
-					TYPE_COMMIT_NESTED2));
+					TYPE_COMMIT_NESTED2, 0));
 			ASSERT(!TOID_IS_NULL(obj2));
 			ASSERT(util_is_zeroed(D_RO(obj2),
 					sizeof (struct object)));
@@ -290,7 +290,7 @@ do_tx_alloc_abort(PMEMobjpool *pop)
 	TOID(struct object) obj;
 	TX_BEGIN(pop) {
 		TOID_ASSIGN(obj, pmemobj_tx_alloc(sizeof (struct object),
-				TYPE_ABORT));
+				TYPE_ABORT, 0));
 		ASSERT(!TOID_IS_NULL(obj));
 
 		D_RW(obj)->value = TEST_VALUE_1;
@@ -316,7 +316,7 @@ do_tx_alloc_zerolen(PMEMobjpool *pop)
 {
 	TOID(struct object) obj;
 	TX_BEGIN(pop) {
-		TOID_ASSIGN(obj, pmemobj_tx_alloc(0, TYPE_ABORT));
+		TOID_ASSIGN(obj, pmemobj_tx_alloc(0, TYPE_ABORT, 0));
 		ASSERT(0); /* should not get to this point */
 	} TX_ONCOMMIT {
 		ASSERT(0);
@@ -340,7 +340,7 @@ do_tx_alloc_huge(PMEMobjpool *pop)
 	TOID(struct object) obj;
 	TX_BEGIN(pop) {
 		TOID_ASSIGN(obj, pmemobj_tx_alloc(PMEMOBJ_MAX_ALLOC_SIZE + 1,
-				TYPE_ABORT));
+				TYPE_ABORT, 0));
 		ASSERT(0); /* should not get to this point */
 	} TX_ONCOMMIT {
 		ASSERT(0);
@@ -364,7 +364,7 @@ do_tx_alloc_commit(PMEMobjpool *pop)
 	TOID(struct object) obj;
 	TX_BEGIN(pop) {
 		TOID_ASSIGN(obj, pmemobj_tx_alloc(sizeof (struct object),
-				TYPE_COMMIT));
+				TYPE_COMMIT, 0));
 		ASSERT(!TOID_IS_NULL(obj));
 
 		D_RW(obj)->value = TEST_VALUE_1;
@@ -393,7 +393,7 @@ do_tx_zalloc_abort(PMEMobjpool *pop)
 	TOID(struct object) obj;
 	TX_BEGIN(pop) {
 		TOID_ASSIGN(obj, pmemobj_tx_zalloc(sizeof (struct object),
-				TYPE_ZEROED_ABORT));
+				TYPE_ZEROED_ABORT, 0));
 		ASSERT(!TOID_IS_NULL(obj));
 		ASSERT(util_is_zeroed(D_RO(obj), sizeof (struct object)));
 
@@ -420,7 +420,7 @@ do_tx_zalloc_zerolen(PMEMobjpool *pop)
 {
 	TOID(struct object) obj;
 	TX_BEGIN(pop) {
-		TOID_ASSIGN(obj, pmemobj_tx_zalloc(0, TYPE_ZEROED_ABORT));
+		TOID_ASSIGN(obj, pmemobj_tx_zalloc(0, TYPE_ZEROED_ABORT, 0));
 		ASSERT(0); /* should not get to this point */
 	} TX_ONCOMMIT {
 		ASSERT(0);
@@ -444,7 +444,7 @@ do_tx_zalloc_huge(PMEMobjpool *pop)
 	TOID(struct object) obj;
 	TX_BEGIN(pop) {
 		TOID_ASSIGN(obj, pmemobj_tx_zalloc(PMEMOBJ_MAX_ALLOC_SIZE + 1,
-				TYPE_ZEROED_ABORT));
+				TYPE_ZEROED_ABORT, 0));
 		ASSERT(0); /* should not get to this point */
 	} TX_ONCOMMIT {
 		ASSERT(0);
@@ -468,7 +468,7 @@ do_tx_zalloc_commit(PMEMobjpool *pop)
 	TOID(struct object) obj;
 	TX_BEGIN(pop) {
 		TOID_ASSIGN(obj, pmemobj_tx_zalloc(sizeof (struct object),
-				TYPE_ZEROED_COMMIT));
+				TYPE_ZEROED_COMMIT, 0));
 		ASSERT(!TOID_IS_NULL(obj));
 		ASSERT(util_is_zeroed(D_RO(obj), sizeof (struct object)));
 

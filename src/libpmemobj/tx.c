@@ -906,13 +906,19 @@ err_oom:
 static PMEMoid
 tx_realloc_common(PMEMoid oid, size_t size, uint64_t type_num,
 	pmalloc_constr constructor_alloc,
-	pmalloc_constr constructor_realloc)
+	pmalloc_constr constructor_realloc,
+	int flags)
 {
 	LOG(3, NULL);
 
 	if (size > PMEMOBJ_MAX_ALLOC_SIZE) {
 		ERR("requested size too large");
 		return pmemobj_tx_abort_null(ENOMEM);
+	}
+
+	if (flags) {
+		ERR("unsupported flags %x", flags);
+		return pmemobj_tx_abort_null(EINVAL);
 	}
 
 	struct lane_tx_runtime *lane =
@@ -1432,7 +1438,7 @@ pmemobj_tx_add_common(struct tx_add_range_args *args)
  *					transaction
  */
 int
-pmemobj_tx_add_range_direct(const void *ptr, size_t size)
+pmemobj_tx_add_range_direct(const void *ptr, size_t size, int flags)
 {
 	LOG(3, NULL);
 
@@ -1445,6 +1451,11 @@ pmemobj_tx_add_range_direct(const void *ptr, size_t size)
 	if ((char *)ptr < (char *)lane->pop ||
 			(char *)ptr >= (char *)lane->pop + lane->pop->size) {
 		ERR("object outside of pool");
+		return pmemobj_tx_abort_err(EINVAL);
+	}
+
+	if (flags) {
+		ERR("unsupported flags %x", flags);
 		return pmemobj_tx_abort_err(EINVAL);
 	}
 
@@ -1461,7 +1472,7 @@ pmemobj_tx_add_range_direct(const void *ptr, size_t size)
  * pmemobj_tx_add_range -- adds persistent memory range into the transaction
  */
 int
-pmemobj_tx_add_range(PMEMoid oid, uint64_t hoff, size_t size)
+pmemobj_tx_add_range(PMEMoid oid, uint64_t hoff, size_t size, int flags)
 {
 	LOG(3, NULL);
 
@@ -1476,6 +1487,11 @@ pmemobj_tx_add_range(PMEMoid oid, uint64_t hoff, size_t size)
 		return pmemobj_tx_abort_err(EINVAL);
 	}
 	ASSERT(OBJ_OID_IS_VALID(lane->pop, oid));
+
+	if (flags) {
+		ERR("unsupported flags %x", flags);
+		return pmemobj_tx_abort_err(EINVAL);
+	}
 
 	struct tx_add_range_args args = {
 		.pop = lane->pop,
@@ -1498,7 +1514,7 @@ pmemobj_tx_add_range(PMEMoid oid, uint64_t hoff, size_t size)
  * pmemobj_tx_alloc -- allocates a new object
  */
 PMEMoid
-pmemobj_tx_alloc(size_t size, uint64_t type_num)
+pmemobj_tx_alloc(size_t size, uint64_t type_num, int flags)
 {
 	LOG(3, NULL);
 
@@ -1510,6 +1526,10 @@ pmemobj_tx_alloc(size_t size, uint64_t type_num)
 		return pmemobj_tx_abort_null(EINVAL);
 	}
 
+	if (flags) {
+		ERR("unsupported flags %x", flags);
+		return pmemobj_tx_abort_null(EINVAL);
+	}
 
 	return tx_alloc_common(size, (type_num_t)type_num,
 			constructor_tx_alloc);
@@ -1519,7 +1539,7 @@ pmemobj_tx_alloc(size_t size, uint64_t type_num)
  * pmemobj_tx_zalloc -- allocates a new zeroed object
  */
 PMEMoid
-pmemobj_tx_zalloc(size_t size, uint64_t type_num)
+pmemobj_tx_zalloc(size_t size, uint64_t type_num, int flags)
 {
 	LOG(3, NULL);
 
@@ -1528,6 +1548,11 @@ pmemobj_tx_zalloc(size_t size, uint64_t type_num)
 
 	if (size == 0) {
 		ERR("allocation with size 0");
+		return pmemobj_tx_abort_null(EINVAL);
+	}
+
+	if (flags) {
+		ERR("unsupported flags %x", flags);
 		return pmemobj_tx_abort_null(EINVAL);
 	}
 
@@ -1539,7 +1564,7 @@ pmemobj_tx_zalloc(size_t size, uint64_t type_num)
  * pmemobj_tx_realloc -- resizes an existing object
  */
 PMEMoid
-pmemobj_tx_realloc(PMEMoid oid, size_t size, uint64_t type_num)
+pmemobj_tx_realloc(PMEMoid oid, size_t size, uint64_t type_num, int flags)
 {
 	LOG(3, NULL);
 
@@ -1547,7 +1572,7 @@ pmemobj_tx_realloc(PMEMoid oid, size_t size, uint64_t type_num)
 	ASSERT_TX_STAGE_WORK();
 
 	return tx_realloc_common(oid, size, type_num,
-			constructor_tx_alloc, constructor_tx_copy);
+			constructor_tx_alloc, constructor_tx_copy, flags);
 }
 
 
@@ -1555,7 +1580,7 @@ pmemobj_tx_realloc(PMEMoid oid, size_t size, uint64_t type_num)
  * pmemobj_zrealloc -- resizes an existing object, any new space is zeroed.
  */
 PMEMoid
-pmemobj_tx_zrealloc(PMEMoid oid, size_t size, uint64_t type_num)
+pmemobj_tx_zrealloc(PMEMoid oid, size_t size, uint64_t type_num, int flags)
 {
 	LOG(3, NULL);
 
@@ -1563,14 +1588,14 @@ pmemobj_tx_zrealloc(PMEMoid oid, size_t size, uint64_t type_num)
 	ASSERT_TX_STAGE_WORK();
 
 	return tx_realloc_common(oid, size, type_num,
-			constructor_tx_zalloc, constructor_tx_copy_zero);
+			constructor_tx_zalloc, constructor_tx_copy_zero, flags);
 }
 
 /*
  * pmemobj_tx_strdup -- allocates a new object with duplicate of the string s.
  */
 PMEMoid
-pmemobj_tx_strdup(const char *s, uint64_t type_num)
+pmemobj_tx_strdup(const char *s, uint64_t type_num, int flags)
 {
 	LOG(3, NULL);
 
@@ -1579,6 +1604,11 @@ pmemobj_tx_strdup(const char *s, uint64_t type_num)
 
 	if (NULL == s) {
 		ERR("cannot duplicate NULL string");
+		return pmemobj_tx_abort_null(EINVAL);
+	}
+
+	if (flags) {
+		ERR("unsupported flags %x", flags);
 		return pmemobj_tx_abort_null(EINVAL);
 	}
 

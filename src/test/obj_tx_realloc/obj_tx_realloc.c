@@ -86,7 +86,7 @@ do_tx_alloc(PMEMobjpool *pop, int type_num, size_t value)
 
 	TX_BEGIN(pop) {
 		TOID_ASSIGN(obj, pmemobj_tx_alloc(
-				sizeof (struct object), type_num));
+				sizeof (struct object), type_num, 0));
 		if (!TOID_IS_NULL(obj)) {
 			D_RW(obj)->value = value;
 		}
@@ -107,7 +107,7 @@ do_tx_realloc_commit(PMEMobjpool *pop)
 
 	TX_BEGIN(pop) {
 		TOID_ASSIGN(obj, pmemobj_tx_realloc(obj.oid,
-			new_size, TYPE_COMMIT));
+			new_size, TYPE_COMMIT, 0));
 		ASSERT(!TOID_IS_NULL(obj));
 		ASSERT(pmemobj_alloc_usable_size(obj.oid) >= new_size);
 	} TX_ONABORT {
@@ -135,7 +135,7 @@ do_tx_realloc_abort(PMEMobjpool *pop)
 
 	TX_BEGIN(pop) {
 		TOID_ASSIGN(obj, pmemobj_tx_realloc(obj.oid,
-			new_size, TYPE_ABORT));
+			new_size, TYPE_ABORT, 0));
 		ASSERT(!TOID_IS_NULL(obj));
 		ASSERT(pmemobj_alloc_usable_size(obj.oid) >= new_size);
 
@@ -165,7 +165,7 @@ do_tx_realloc_huge(PMEMobjpool *pop)
 
 	TX_BEGIN(pop) {
 		TOID_ASSIGN(obj, pmemobj_tx_realloc(obj.oid,
-			new_size, TYPE_ABORT_HUGE));
+			new_size, TYPE_ABORT_HUGE, 0));
 		ASSERT(0); /* should not get to this point */
 	} TX_ONCOMMIT {
 		ASSERT(0);
@@ -228,7 +228,7 @@ do_tx_zrealloc_commit(PMEMobjpool *pop)
 
 	TX_BEGIN(pop) {
 		TOID_ASSIGN(obj, pmemobj_tx_zrealloc(obj.oid,
-			new_size, TYPE_COMMIT_ZERO));
+			new_size, TYPE_COMMIT_ZERO, 0));
 		ASSERT(!TOID_IS_NULL(obj));
 		ASSERT(pmemobj_alloc_usable_size(obj.oid) >= new_size);
 		void *new_ptr = (void *)((uintptr_t)D_RW(obj) + old_size);
@@ -294,7 +294,7 @@ do_tx_zrealloc_abort(PMEMobjpool *pop)
 
 	TX_BEGIN(pop) {
 		TOID_ASSIGN(obj, pmemobj_tx_zrealloc(obj.oid,
-			new_size, TYPE_ABORT_ZERO));
+			new_size, TYPE_ABORT_ZERO, 0));
 		ASSERT(!TOID_IS_NULL(obj));
 		ASSERT(pmemobj_alloc_usable_size(obj.oid) >= new_size);
 		void *new_ptr = (void *)((uintptr_t)D_RW(obj) + old_size);
@@ -355,7 +355,7 @@ do_tx_zrealloc_huge(PMEMobjpool *pop)
 
 	TX_BEGIN(pop) {
 		TOID_ASSIGN(obj, pmemobj_tx_zrealloc(obj.oid,
-			PMEMOBJ_MAX_ALLOC_SIZE + 1, TYPE_ABORT_ZERO_HUGE));
+			PMEMOBJ_MAX_ALLOC_SIZE + 1, TYPE_ABORT_ZERO_HUGE, 0));
 		ASSERT(0); /* should not get to this point */
 	} TX_ONCOMMIT {
 		ASSERT(0);
@@ -386,7 +386,7 @@ do_tx_realloc_alloc_commit(PMEMobjpool *pop)
 		ASSERT(!TOID_IS_NULL(obj));
 		new_size = 2 * pmemobj_alloc_usable_size(obj.oid);
 		TOID_ASSIGN(obj, pmemobj_tx_realloc(obj.oid,
-			new_size, TYPE_COMMIT_ALLOC));
+			new_size, TYPE_COMMIT_ALLOC, 0));
 		ASSERT(!TOID_IS_NULL(obj));
 		ASSERT(pmemobj_alloc_usable_size(obj.oid) >= new_size);
 	} TX_ONABORT {
@@ -418,7 +418,7 @@ do_tx_realloc_alloc_abort(PMEMobjpool *pop)
 		ASSERT(!TOID_IS_NULL(obj));
 		new_size = 2 * pmemobj_alloc_usable_size(obj.oid);
 		TOID_ASSIGN(obj, pmemobj_tx_realloc(obj.oid,
-			new_size, TYPE_ABORT_ALLOC));
+			new_size, TYPE_ABORT_ALLOC, 0));
 		ASSERT(!TOID_IS_NULL(obj));
 		ASSERT(pmemobj_alloc_usable_size(obj.oid) >= new_size);
 

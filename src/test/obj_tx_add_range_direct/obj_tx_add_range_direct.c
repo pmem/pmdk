@@ -73,7 +73,7 @@ do_tx_zalloc(PMEMobjpool *pop, int type_num)
 	PMEMoid ret = OID_NULL;
 
 	TX_BEGIN(pop) {
-		ret = pmemobj_tx_zalloc(sizeof (struct object), type_num);
+		ret = pmemobj_tx_zalloc(sizeof (struct object), type_num, 0);
 	} TX_END
 
 	return ret;
@@ -94,13 +94,12 @@ do_tx_add_range_alloc_commit(PMEMobjpool *pop)
 
 		char *ptr = pmemobj_direct(obj.oid);
 		ret = pmemobj_tx_add_range_direct(ptr + VALUE_OFF,
-				VALUE_SIZE);
+				VALUE_SIZE, 0);
 		ASSERTeq(ret, 0);
 
 		D_RW(obj)->value = TEST_VALUE_1;
 
-		ret = pmemobj_tx_add_range_direct(ptr + DATA_OFF,
-				DATA_SIZE);
+		ret = pmemobj_tx_add_range_direct(ptr + DATA_OFF, DATA_SIZE, 0);
 		ASSERTeq(ret, 0);
 
 		pmemobj_memset_persist(pop, D_RW(obj)->data, TEST_VALUE_2,
@@ -131,13 +130,12 @@ do_tx_add_range_alloc_abort(PMEMobjpool *pop)
 
 		char *ptr = pmemobj_direct(obj.oid);
 		ret = pmemobj_tx_add_range_direct(ptr + VALUE_OFF,
-				VALUE_SIZE);
+				VALUE_SIZE, 0);
 		ASSERTeq(ret, 0);
 
 		D_RW(obj)->value = TEST_VALUE_1;
 
-		ret = pmemobj_tx_add_range_direct(ptr + DATA_OFF,
-				DATA_SIZE);
+		ret = pmemobj_tx_add_range_direct(ptr + DATA_OFF, DATA_SIZE, 0);
 		ASSERTeq(ret, 0);
 
 		pmemobj_memset_persist(pop, D_RW(obj)->data, TEST_VALUE_2,
@@ -168,13 +166,13 @@ do_tx_add_range_twice_commit(PMEMobjpool *pop)
 	TX_BEGIN(pop) {
 		char *ptr = pmemobj_direct(obj.oid);
 		ret = pmemobj_tx_add_range_direct(ptr + VALUE_OFF,
-				VALUE_SIZE);
+				VALUE_SIZE, 0);
 		ASSERTeq(ret, 0);
 
 		D_RW(obj)->value = TEST_VALUE_1;
 
 		ret = pmemobj_tx_add_range_direct(ptr + VALUE_OFF,
-				VALUE_SIZE);
+				VALUE_SIZE, 0);
 		ASSERTeq(ret, 0);
 
 		D_RW(obj)->value = TEST_VALUE_2;
@@ -201,13 +199,13 @@ do_tx_add_range_twice_abort(PMEMobjpool *pop)
 	TX_BEGIN(pop) {
 		char *ptr = pmemobj_direct(obj.oid);
 		ret = pmemobj_tx_add_range_direct(ptr + VALUE_OFF,
-				VALUE_SIZE);
+				VALUE_SIZE, 0);
 		ASSERTeq(ret, 0);
 
 		D_RW(obj)->value = TEST_VALUE_1;
 
 		ret = pmemobj_tx_add_range_direct(ptr + VALUE_OFF,
-				VALUE_SIZE);
+				VALUE_SIZE, 0);
 		ASSERTeq(ret, 0);
 
 		D_RW(obj)->value = TEST_VALUE_2;
@@ -236,7 +234,7 @@ do_tx_add_range_abort_after_nested(PMEMobjpool *pop)
 	TX_BEGIN(pop) {
 		char *ptr1 = pmemobj_direct(obj1.oid);
 		ret = pmemobj_tx_add_range_direct(ptr1 + VALUE_OFF,
-				VALUE_SIZE);
+				VALUE_SIZE, 0);
 		ASSERTeq(ret, 0);
 
 		D_RW(obj1)->value = TEST_VALUE_1;
@@ -244,7 +242,7 @@ do_tx_add_range_abort_after_nested(PMEMobjpool *pop)
 		TX_BEGIN(pop) {
 			char *ptr2 = pmemobj_direct(obj2.oid);
 			ret = pmemobj_tx_add_range_direct(ptr2 + DATA_OFF,
-					DATA_SIZE);
+					DATA_SIZE, 0);
 			ASSERTeq(ret, 0);
 
 			pmemobj_memset_persist(pop, D_RW(obj2)->data,
@@ -281,7 +279,7 @@ do_tx_add_range_abort_nested(PMEMobjpool *pop)
 	TX_BEGIN(pop) {
 		char *ptr1 = pmemobj_direct(obj1.oid);
 		ret = pmemobj_tx_add_range_direct(ptr1 + VALUE_OFF,
-				VALUE_SIZE);
+				VALUE_SIZE, 0);
 		ASSERTeq(ret, 0);
 
 		D_RW(obj1)->value = TEST_VALUE_1;
@@ -289,7 +287,7 @@ do_tx_add_range_abort_nested(PMEMobjpool *pop)
 		TX_BEGIN(pop) {
 			char *ptr2 = pmemobj_direct(obj2.oid);
 			ret = pmemobj_tx_add_range_direct(ptr2 + DATA_OFF,
-					DATA_SIZE);
+					DATA_SIZE, 0);
 			ASSERTeq(ret, 0);
 
 			pmemobj_memset_persist(pop, D_RW(obj2)->data,
@@ -325,7 +323,7 @@ do_tx_add_range_commit_nested(PMEMobjpool *pop)
 	TX_BEGIN(pop) {
 		char *ptr1 = pmemobj_direct(obj1.oid);
 		ret = pmemobj_tx_add_range_direct(ptr1 + VALUE_OFF,
-				VALUE_SIZE);
+				VALUE_SIZE, 0);
 		ASSERTeq(ret, 0);
 
 		D_RW(obj1)->value = TEST_VALUE_1;
@@ -333,7 +331,7 @@ do_tx_add_range_commit_nested(PMEMobjpool *pop)
 		TX_BEGIN(pop) {
 			char *ptr2 = pmemobj_direct(obj2.oid);
 			ret = pmemobj_tx_add_range_direct(ptr2 + DATA_OFF,
-					DATA_SIZE);
+					DATA_SIZE, 0);
 			ASSERTeq(ret, 0);
 
 			pmemobj_memset_persist(pop, D_RW(obj2)->data,
@@ -365,7 +363,7 @@ do_tx_add_range_abort(PMEMobjpool *pop)
 	TX_BEGIN(pop) {
 		char *ptr = pmemobj_direct(obj.oid);
 		ret = pmemobj_tx_add_range_direct(ptr + VALUE_OFF,
-				VALUE_SIZE);
+				VALUE_SIZE, 0);
 		ASSERTeq(ret, 0);
 
 		D_RW(obj)->value = TEST_VALUE_1;
@@ -391,7 +389,7 @@ do_tx_add_range_commit(PMEMobjpool *pop)
 	TX_BEGIN(pop) {
 		char *ptr = pmemobj_direct(obj.oid);
 		ret = pmemobj_tx_add_range_direct(ptr + VALUE_OFF,
-				VALUE_SIZE);
+				VALUE_SIZE, 0);
 		ASSERTeq(ret, 0);
 
 		D_RW(obj)->value = TEST_VALUE_1;

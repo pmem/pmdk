@@ -132,7 +132,7 @@ tx_worker(void *arg)
 	 */
 	TX_BEGIN(a->pop) {
 		for (;;) /* this is NOT an infinite loop */
-			pmemobj_tx_alloc(ALLOC_SIZE, a->idx);
+			pmemobj_tx_alloc(ALLOC_SIZE, a->idx, 0);
 	} TX_END
 
 	return NULL;

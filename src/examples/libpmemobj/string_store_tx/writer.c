@@ -66,7 +66,7 @@ main(int argc, char *argv[])
 	}
 
 	TX_BEGIN(pop) {
-		pmemobj_tx_add_range(root, 0, sizeof (struct my_root));
+		pmemobj_tx_add_range(root, 0, sizeof (struct my_root), 0);
 		memcpy(rootp->buf, buf, strlen(buf));
 	} TX_END
 

@@ -126,7 +126,7 @@ main(int argc, char *argv[])
 	if (size) {
 		PMEMoid oid;
 		TX_BEGIN(pop) {
-			oid = pmemobj_tx_alloc(size, type_num);
+			oid = pmemobj_tx_alloc(size, type_num, 0);
 			if (exit_at == 'a')
 				exit(1);
 		} TX_END
@@ -138,7 +138,7 @@ main(int argc, char *argv[])
 
 		if (do_set) {
 			TX_BEGIN(pop) {
-				pmemobj_tx_add_range(oid, 0, size);
+				pmemobj_tx_add_range(oid, 0, size, 0);
 				if (exit_at == 's')
 					exit(1);
 			} TX_END

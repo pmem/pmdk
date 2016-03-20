@@ -237,7 +237,7 @@ pmemblk_write(PMEMblkpool *pbp, const void *buf, off_t blockno)
 		size_t block_off = blockno * D_RO(bp)->bsize;
 		uint8_t *dst = D_RW(D_RW(bp)->data) + block_off;
 		/* add the modified block to the undo log */
-		pmemobj_tx_add_range_direct(dst, D_RO(bp)->bsize);
+		pmemobj_tx_add_range_direct(dst, D_RO(bp)->bsize, 0);
 		memcpy(dst, buf, D_RO(bp)->bsize);
 	} TX_ONABORT {
 		retval = 1;
@@ -264,7 +264,7 @@ pmemblk_set_zero(PMEMblkpool *pbp, off_t blockno)
 		&D_RW(bp)->locks[blockno % MAX_THREADS], TX_LOCK_NONE) {
 		size_t block_off = blockno * D_RO(bp)->bsize;
 		uint8_t *dst = D_RW(D_RW(bp)->data) + block_off;
-		pmemobj_tx_add_range_direct(dst, D_RO(bp)->bsize);
+		pmemobj_tx_add_range_direct(dst, D_RO(bp)->bsize, 0);
 		memset(dst, 0, D_RO(bp)->bsize);
 	} TX_ONABORT {
 		retval = -1;

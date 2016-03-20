@@ -143,7 +143,7 @@ hm_tx_rebuild(PMEMobjpool *pop, TOID(struct hashmap_tx) hashmap, size_t new_len)
 		TOID(struct buckets) buckets_new =
 				TX_ZALLOC(struct buckets, sz_new);
 		D_RW(buckets_new)->nbuckets = new_len;
-		pmemobj_tx_add_range(buckets_old.oid, 0, sz_old);
+		pmemobj_tx_add_range(buckets_old.oid, 0, sz_old, 0);
 
 		for (size_t i = 0; i < D_RO(buckets_old)->nbuckets; ++i) {
 			while (!TOID_IS_NULL(D_RO(buckets_old)->bucket[i])) {

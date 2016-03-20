@@ -88,143 +88,143 @@ main(int argc, char *argv[])
 	}
 
 	if (strcmp(argv[2], "alloc") == 0)
-		pmemobj_tx_alloc(10, 1);
+		pmemobj_tx_alloc(10, 1, 0);
 	else if (strcmp(argv[2], "alloc-in-work") == 0) {
 		TX_BEGIN(pop) {
-			pmemobj_tx_alloc(10, 1);
+			pmemobj_tx_alloc(10, 1, 0);
 		} TX_END
 	} else if (strcmp(argv[2], "alloc-in-abort") == 0) {
 		TX_BEGIN(pop) {
 			pmemobj_tx_abort(ENOMEM);
 		} TX_ONABORT {
-			pmemobj_tx_alloc(10, 1);
+			pmemobj_tx_alloc(10, 1, 0);
 		} TX_END
 	} else if (strcmp(argv[2], "alloc-in-commit") == 0) {
 		TX_BEGIN(pop) {
 		} TX_ONCOMMIT {
-			pmemobj_tx_alloc(10, 1);
+			pmemobj_tx_alloc(10, 1, 0);
 		} TX_END
 	} else if (strcmp(argv[2], "alloc-in-finally") == 0) {
 		TX_BEGIN(pop) {
 		} TX_FINALLY {
-			pmemobj_tx_alloc(10, 1);
+			pmemobj_tx_alloc(10, 1, 0);
 		} TX_END
 	} else if (strcmp(argv[2], "alloc-after-tx") == 0) {
 		TX_BEGIN(pop) {
 		} TX_END
-		pmemobj_tx_alloc(10, 1);
+		pmemobj_tx_alloc(10, 1, 0);
 	}
 
 	else if (strcmp(argv[2], "zalloc") == 0)
-		pmemobj_tx_zalloc(10, 1);
+		pmemobj_tx_zalloc(10, 1, 0);
 	else if (strcmp(argv[2], "zalloc-in-work") == 0) {
 		TX_BEGIN(pop) {
-			pmemobj_tx_zalloc(10, 1);
+			pmemobj_tx_zalloc(10, 1, 0);
 		} TX_END
 	} else if (strcmp(argv[2], "zalloc-in-abort") == 0) {
 		TX_BEGIN(pop) {
 			pmemobj_tx_abort(ENOMEM);
 		} TX_ONABORT {
-			pmemobj_tx_zalloc(10, 1);
+			pmemobj_tx_zalloc(10, 1, 0);
 		} TX_END
 	} else if (strcmp(argv[2], "zalloc-in-commit") == 0) {
 		TX_BEGIN(pop) {
 		} TX_ONCOMMIT {
-			pmemobj_tx_zalloc(10, 1);
+			pmemobj_tx_zalloc(10, 1, 0);
 		} TX_END
 	} else if (strcmp(argv[2], "zalloc-in-finally") == 0) {
 		TX_BEGIN(pop) {
 		} TX_FINALLY {
-			pmemobj_tx_zalloc(10, 1);
+			pmemobj_tx_zalloc(10, 1, 0);
 		} TX_END
 	} else if (strcmp(argv[2], "zalloc-after-tx") == 0) {
 		TX_BEGIN(pop) {
 		} TX_END
-		pmemobj_tx_zalloc(10, 1);
+		pmemobj_tx_zalloc(10, 1, 0);
 	}
 
 	else if (strcmp(argv[2], "strdup") == 0)
-		pmemobj_tx_strdup("aaa", 1);
+		pmemobj_tx_strdup("aaa", 1, 0);
 	else if (strcmp(argv[2], "strdup-in-work") == 0) {
 		TX_BEGIN(pop) {
-			pmemobj_tx_strdup("aaa", 1);
+			pmemobj_tx_strdup("aaa", 1, 0);
 		} TX_END
 	} else if (strcmp(argv[2], "strdup-in-abort") == 0) {
 		TX_BEGIN(pop) {
 			pmemobj_tx_abort(ENOMEM);
 		} TX_ONABORT {
-			pmemobj_tx_strdup("aaa", 1);
+			pmemobj_tx_strdup("aaa", 1, 0);
 		} TX_END
 	} else if (strcmp(argv[2], "strdup-in-commit") == 0) {
 		TX_BEGIN(pop) {
 		} TX_ONCOMMIT {
-			pmemobj_tx_strdup("aaa", 1);
+			pmemobj_tx_strdup("aaa", 1, 0);
 		} TX_END
 	} else if (strcmp(argv[2], "strdup-in-finally") == 0) {
 		TX_BEGIN(pop) {
 		} TX_FINALLY {
-			pmemobj_tx_strdup("aaa", 1);
+			pmemobj_tx_strdup("aaa", 1, 0);
 		} TX_END
 	} else if (strcmp(argv[2], "strdup-after-tx") == 0) {
 		TX_BEGIN(pop) {
 		} TX_END
-		pmemobj_tx_strdup("aaa", 1);
+		pmemobj_tx_strdup("aaa", 1, 0);
 	}
 
 	else if (strcmp(argv[2], "realloc") == 0)
-		pmemobj_tx_realloc(oid, 10, 1);
+		pmemobj_tx_realloc(oid, 10, 1, 0);
 	else if (strcmp(argv[2], "realloc-in-work") == 0) {
 		TX_BEGIN(pop) {
-			pmemobj_tx_realloc(oid, 10, 1);
+			pmemobj_tx_realloc(oid, 10, 1, 0);
 		} TX_END
 	} else if (strcmp(argv[2], "realloc-in-abort") == 0) {
 		TX_BEGIN(pop) {
 			pmemobj_tx_abort(ENOMEM);
 		} TX_ONABORT {
-			pmemobj_tx_realloc(oid, 10, 1);
+			pmemobj_tx_realloc(oid, 10, 1, 0);
 		} TX_END
 	} else if (strcmp(argv[2], "realloc-in-commit") == 0) {
 		TX_BEGIN(pop) {
 		} TX_ONCOMMIT {
-			pmemobj_tx_realloc(oid, 10, 1);
+			pmemobj_tx_realloc(oid, 10, 1, 0);
 		} TX_END
 	} else if (strcmp(argv[2], "realloc-in-finally") == 0) {
 		TX_BEGIN(pop) {
 		} TX_FINALLY {
-			pmemobj_tx_realloc(oid, 10, 1);
+			pmemobj_tx_realloc(oid, 10, 1, 0);
 		} TX_END
 	} else if (strcmp(argv[2], "realloc-after-tx") == 0) {
 		TX_BEGIN(pop) {
 		} TX_END
-		pmemobj_tx_realloc(oid, 10, 1);
+		pmemobj_tx_realloc(oid, 10, 1, 0);
 	}
 
 	else if (strcmp(argv[2], "zrealloc") == 0)
-		pmemobj_tx_zrealloc(oid, 10, 1);
+		pmemobj_tx_zrealloc(oid, 10, 1, 0);
 	else if (strcmp(argv[2], "zrealloc-in-work") == 0) {
 		TX_BEGIN(pop) {
-			pmemobj_tx_zrealloc(oid, 10, 1);
+			pmemobj_tx_zrealloc(oid, 10, 1, 0);
 		} TX_END
 	} else if (strcmp(argv[2], "zrealloc-in-abort") == 0) {
 		TX_BEGIN(pop) {
 			pmemobj_tx_abort(ENOMEM);
 		} TX_ONABORT {
-			pmemobj_tx_zrealloc(oid, 10, 1);
+			pmemobj_tx_zrealloc(oid, 10, 1, 0);
 		} TX_END
 	} else if (strcmp(argv[2], "zrealloc-in-commit") == 0) {
 		TX_BEGIN(pop) {
 		} TX_ONCOMMIT {
-			pmemobj_tx_zrealloc(oid, 10, 1);
+			pmemobj_tx_zrealloc(oid, 10, 1, 0);
 		} TX_END
 	} else if (strcmp(argv[2], "zrealloc-in-finally") == 0) {
 		TX_BEGIN(pop) {
 		} TX_FINALLY {
-			pmemobj_tx_zrealloc(oid, 10, 1);
+			pmemobj_tx_zrealloc(oid, 10, 1, 0);
 		} TX_END
 	} else if (strcmp(argv[2], "zrealloc-after-tx") == 0) {
 		TX_BEGIN(pop) {
 		} TX_END
-		pmemobj_tx_zrealloc(oid, 10, 1);
+		pmemobj_tx_zrealloc(oid, 10, 1, 0);
 	}
 
 	else if (strcmp(argv[2], "free") == 0)
@@ -256,59 +256,59 @@ main(int argc, char *argv[])
 	}
 
 	else if (strcmp(argv[2], "add_range") == 0)
-		pmemobj_tx_add_range(oid, 0, 10);
+		pmemobj_tx_add_range(oid, 0, 10, 0);
 	else if (strcmp(argv[2], "add_range-in-work") == 0) {
 		TX_BEGIN(pop) {
-			pmemobj_tx_add_range(oid, 0, 10);
+			pmemobj_tx_add_range(oid, 0, 10, 0);
 		} TX_END
 	} else if (strcmp(argv[2], "add_range-in-abort") == 0) {
 		TX_BEGIN(pop) {
 			pmemobj_tx_abort(ENOMEM);
 		} TX_ONABORT {
-			pmemobj_tx_add_range(oid, 0, 10);
+			pmemobj_tx_add_range(oid, 0, 10, 0);
 		} TX_END
 	} else if (strcmp(argv[2], "add_range-in-commit") == 0) {
 		TX_BEGIN(pop) {
 		} TX_ONCOMMIT {
-			pmemobj_tx_add_range(oid, 0, 10);
+			pmemobj_tx_add_range(oid, 0, 10, 0);
 		} TX_END
 	} else if (strcmp(argv[2], "add_range-in-finally") == 0) {
 		TX_BEGIN(pop) {
 		} TX_FINALLY {
-			pmemobj_tx_add_range(oid, 0, 10);
+			pmemobj_tx_add_range(oid, 0, 10, 0);
 		} TX_END
 	} else if (strcmp(argv[2], "add_range-after-tx") == 0) {
 		TX_BEGIN(pop) {
 		} TX_END
-		pmemobj_tx_add_range(oid, 0, 10);
+		pmemobj_tx_add_range(oid, 0, 10, 0);
 	}
 
 	else if (strcmp(argv[2], "add_range_direct") == 0)
-		pmemobj_tx_add_range_direct(pmemobj_direct(oid), 10);
+		pmemobj_tx_add_range_direct(pmemobj_direct(oid), 10, 0);
 	else if (strcmp(argv[2], "add_range_direct-in-work") == 0) {
 		TX_BEGIN(pop) {
-			pmemobj_tx_add_range_direct(pmemobj_direct(oid), 10);
+			pmemobj_tx_add_range_direct(pmemobj_direct(oid), 10, 0);
 		} TX_END
 	} else if (strcmp(argv[2], "add_range_direct-in-abort") == 0) {
 		TX_BEGIN(pop) {
 			pmemobj_tx_abort(ENOMEM);
 		} TX_ONABORT {
-			pmemobj_tx_add_range_direct(pmemobj_direct(oid), 10);
+			pmemobj_tx_add_range_direct(pmemobj_direct(oid), 10, 0);
 		} TX_END
 	} else if (strcmp(argv[2], "add_range_direct-in-commit") == 0) {
 		TX_BEGIN(pop) {
 		} TX_ONCOMMIT {
-			pmemobj_tx_add_range_direct(pmemobj_direct(oid), 10);
+			pmemobj_tx_add_range_direct(pmemobj_direct(oid), 10, 0);
 		} TX_END
 	} else if (strcmp(argv[2], "add_range_direct-in-finally") == 0) {
 		TX_BEGIN(pop) {
 		} TX_FINALLY {
-			pmemobj_tx_add_range_direct(pmemobj_direct(oid), 10);
+			pmemobj_tx_add_range_direct(pmemobj_direct(oid), 10, 0);
 		} TX_END
 	} else if (strcmp(argv[2], "add_range_direct-after-tx") == 0) {
 		TX_BEGIN(pop) {
 		} TX_END
-		pmemobj_tx_add_range_direct(pmemobj_direct(oid), 10);
+		pmemobj_tx_add_range_direct(pmemobj_direct(oid), 10, 0);
 	}
 
 	else if (strcmp(argv[2], "abort") == 0)

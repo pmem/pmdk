@@ -261,13 +261,13 @@ libpmemobj \- persistent memory transactional object store
 .BI "int pmemobj_tx_errno(void);
 .BI "void pmemobj_tx_process(void);
 .sp
-.BI "int pmemobj_tx_add_range(PMEMoid " oid ", uint64_t " off ", size_t " size );
-.BI "int pmemobj_tx_add_range_direct(const void *" ptr ", size_t " size );
-.BI "PMEMoid pmemobj_tx_alloc(size_t " size ", uint64_t " type_num );
-.BI "PMEMoid pmemobj_tx_zalloc(size_t " size ", uint64_t " type_num );
-.BI "PMEMoid pmemobj_tx_realloc(PMEMoid " oid ", size_t " size ", uint64_t " type_num );
-.BI "PMEMoid pmemobj_tx_zrealloc(PMEMoid " oid ", size_t " size ", uint64_t " type_num );
-.BI "PMEMoid pmemobj_tx_strdup(const char *" s ", uint64_t " type_num );
+.BI "int pmemobj_tx_add_range(PMEMoid " oid ", uint64_t " off ", size_t " size ", int " flags );
+.BI "int pmemobj_tx_add_range_direct(const void *" ptr ", size_t " size ", int " flags );
+.BI "PMEMoid pmemobj_tx_alloc(size_t " size ", uint64_t " type_num ", int " flags );
+.BI "PMEMoid pmemobj_tx_zalloc(size_t " size ", uint64_t " type_num ", int " flags );
+.BI "PMEMoid pmemobj_tx_realloc(PMEMoid " oid ", size_t " size ", uint64_t " type_num ", int " flags );
+.BI "PMEMoid pmemobj_tx_zrealloc(PMEMoid " oid ", size_t " size ", uint64_t " type_num ", int " flags );
+.BI "PMEMoid pmemobj_tx_strdup(const char *" s ", uint64_t " type_num ", int " flags );
 .BI "int pmemobj_tx_free(PMEMoid " oid );
 .sp
 .BI "TX_BEGIN_LOCK(PMEMobjpool *" pop ", " ... )
@@ -2727,7 +2727,7 @@ and makes the transition to the next stage. It must be called in transaction.
 Current stage must always be obtained by a call to
 .BR pmemobj_tx_stage ().
 .PP
-.BI "int pmemobj_tx_add_range(PMEMoid " oid ", uint64_t " off ", size_t " size );
+.BI "int pmemobj_tx_add_range(PMEMoid " oid ", uint64_t " off ", size_t " size ", int " flags );
 .IP
 The
 .BR pmemobj_tx_add_range ()
@@ -2741,13 +2741,15 @@ and saves it to the undo log.  The application is then free to directly modify
 the object in that memory range.  In case of a failure or abort, all the changes
 within this range will be rolled-back.  The supplied block of memory has to be within
 the pool registered in the transaction.
+.I flags
+must be always equal to 0.
 If successful, returns zero.  Otherwise, state changes to
 .I TX_STAGE_ONABORT
 and an error number is returned.
 This function must be called during
 .IR TX_STAGE_WORK .
 .PP
-.BI "int pmemobj_tx_add_range_direct(const void *" ptr ", size_t " size );
+.BI "int pmemobj_tx_add_range_direct(const void *" ptr ", size_t " size ", int " flags );
 .IP
 The
 .BR pmemobj_tx_add_range_direct ()
@@ -2763,13 +2765,15 @@ in the virtual memory space and saves it to the undo log.  The application is th
 free to directly modify the object in that memory range.  In case of a failure
 or abort, all the changes within this range will be rolled-back.  The supplied
 block of memory has to be within the pool registered in the transaction.
+.I flags
+must be always equal to 0.
 If successful, returns zero.  Otherwise, state changes to
 .I TX_STAGE_ONABORT
 and an error number is returned.
 This function must be called during
 .IR TX_STAGE_WORK .
 .PP
-.BI "PMEMoid pmemobj_tx_alloc(size_t " size ", uint64_t " type_num );
+.BI "PMEMoid pmemobj_tx_alloc(size_t " size ", uint64_t " type_num ", int " flags );
 .IP
 The
 .BR pmemobj_tx_alloc ()
@@ -2783,6 +2787,8 @@ added to the internal object containers of given
 only after the transaction is committed, making the objects visible to the
 .B POBJ_FOREACH_*
 macros.
+.I flags
+must be always equal to 0.
 If successful, returns a handle to the newly allocated object.  Otherwise, stage
 changes to
 .IR TX_STAGE_ONABORT ,
@@ -2793,7 +2799,7 @@ equals 0, OID_NULL is returned and errno is set appropriately.
 This function must be called during
 .IR TX_STAGE_WORK .
 .PP
-.BI "PMEMoid pmemobj_tx_zalloc(size_t " size ", uint64_t " type_num );
+.BI "PMEMoid pmemobj_tx_zalloc(size_t " size ", uint64_t " type_num ", int " flags );
 .IP
 The pmemobj_tx_zalloc ()
 .BR
@@ -2801,6 +2807,8 @@ function transactionally allocates new zeroed object of given
 .I size
 and
 .IR type_num .
+.I flags
+must be always equal to 0.
 If successful, returns a handle to the newly allocated object.  Otherwise, stage
 changes to
 .IR TX_STAGE_ONABORT ,
@@ -2811,9 +2819,7 @@ equals 0, OID_NULL is returned and errno is set appropriately.
 This function must be called during
 .IR TX_STAGE_WORK .
 .PP
-.BI "PMEMoid pmemobj_tx_realloc(PMEMoid " oid ", size_t " size ,
-.br
-.BI "    uint64_t " type_num );
+.BI "PMEMoid pmemobj_tx_realloc(PMEMoid " oid ", size_t " size ", uint64_t " type_num ", int " flags );
 .IP
 The
 .BR pmemobj_tx_realloc ()
@@ -2834,6 +2840,8 @@ is not OID_NULL, then the call is equivalent to
 If the new size is larger than the old size, the added memory will
 .I not
 be initialized.
+.I flags
+must be always equal to 0.
 If successful, returns returns a handle to the resized object.  Otherwise, stage
 changes to
 .IR TX_STAGE_ONABORT ,
@@ -2842,9 +2850,7 @@ Note that the object handle value may change in result of reallocation.
 This function must be called during
 .IR TX_STAGE_WORK .
 .PP
-.BI "PMEMoid pmemobj_tx_zrealloc(PMEMoid " oid ", size_t " size ,
-.br
-.BI "    uint64_t " type_num );
+.BI "PMEMoid pmemobj_tx_zrealloc(PMEMoid " oid ", size_t " size ", uint64_t " type_num ", int " flags );
 .IP
 The
 .BR pmemobj_tx_zrealloc ()
@@ -2853,6 +2859,8 @@ function transactionally resizes an existing object to the given
 and changes its type to
 .IR type_num .
 If the new size is larger than the old size, the extended new space is zeroed.
+.I flags
+must be always equal to 0.
 If successful, returns returns a handle to the resized object.  Otherwise, stage
 changes to
 .IR TX_STAGE_ONABORT ,
@@ -2861,7 +2869,7 @@ Note that the object handle value may change in result of reallocation.
 This function must be called during
 .IR TX_STAGE_WORK .
 .PP
-.BI "PMEMoid pmemobj_tx_strdup(const char *" s ", uint64_t " type_num );
+.BI "PMEMoid pmemobj_tx_strdup(const char *" s ", uint64_t " type_num ", int " flags );
 .IP
 The
 .BR pmemobj_tx_strdup ()
@@ -2870,6 +2878,8 @@ string
 .I s
 and assigns it a type
 .IR type_num .
+.I flags
+must be always equal to 0.
 If successful, returns a handle to the newly allocated object.  Otherwise, stage
 changes to
 .IR TX_STAGE_ONABORT ,

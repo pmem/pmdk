@@ -159,7 +159,7 @@ test_ptr_transactional(PMEMobjpool *pop)
 	TX_BEGIN(pop) {
 		ASSERT(r->pfoo == nullptr);
 
-		r->pfoo = pmemobj_tx_alloc(sizeof (foo), 0);
+		r->pfoo = pmemobj_tx_alloc(sizeof (foo), 0, 0);
 
 	} TX_ONABORT {
 		ASSERT(0);
@@ -221,7 +221,7 @@ test_ptr_array(PMEMobjpool *pop)
 	persistent_ptr<root> r = pmemobj_root(pop, sizeof (root));
 
 	TX_BEGIN(pop) {
-		r->parr = pmemobj_tx_zalloc(sizeof (int) * TEST_ARR_SIZE, 0);
+		r->parr = pmemobj_tx_zalloc(sizeof (int) * TEST_ARR_SIZE, 0, 0);
 	} TX_ONABORT {
 		ASSERT(0);
 	} TX_END

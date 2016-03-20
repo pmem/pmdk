@@ -275,7 +275,7 @@ test_internal_object_mask(PMEMobjpool *pop)
 
 	TX_BEGIN(pop) {
 		/* trigger creation of a range cache */
-		pmemobj_tx_add_range(root, 0, 8);
+		pmemobj_tx_add_range(root, 0, 8, 0);
 	} TX_END
 
 	PMEMoid oid;

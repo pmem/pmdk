@@ -72,7 +72,7 @@ static unsigned counter;
 static void
 tx_strdup(TOID(char) *str, const char *s, unsigned type_num)
 {
-	TOID_ASSIGN(*str, pmemobj_tx_strdup(s, type_num));
+	TOID_ASSIGN(*str, pmemobj_tx_strdup(s, type_num, 0));
 }
 
 /*

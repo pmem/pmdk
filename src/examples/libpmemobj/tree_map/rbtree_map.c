@@ -525,7 +525,7 @@ rbtree_map_insert_new(PMEMobjpool *pop, TOID(struct rbtree_map) map,
 	int ret = 0;
 
 	TX_BEGIN(pop) {
-		PMEMoid n = pmemobj_tx_alloc(size, type_num);
+		PMEMoid n = pmemobj_tx_alloc(size, type_num, 0);
 		constructor(pop, pmemobj_direct(n), arg);
 		rbtree_map_insert(pop, map, key, n);
 	} TX_ONABORT {

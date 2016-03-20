@@ -76,8 +76,8 @@ persistent_ptr<root> init_foobar(pmemobjpool *pop)
 			ASSERT(r->bar_ptr == nullptr);
 			ASSERT(r->foo_ptr == nullptr);
 
-			r->bar_ptr = pmemobj_tx_alloc(sizeof (bar), 0);
-			r->foo_ptr = pmemobj_tx_alloc(sizeof (foo), 0);
+			r->bar_ptr = pmemobj_tx_alloc(sizeof (bar), 0, 0);
+			r->foo_ptr = pmemobj_tx_alloc(sizeof (foo), 0, 0);
 
 			r->bar_ptr->pdouble = 1.0;
 			r->bar_ptr->pfloat = 2.0;

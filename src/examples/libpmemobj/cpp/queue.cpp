@@ -106,7 +106,7 @@ public:
 		int error = 0;
 		TX_BEGIN(pop) {
 			persistent_ptr<pmem_entry> n =
-				pmemobj_tx_alloc(sizeof (pmem_entry), 0);
+				pmemobj_tx_alloc(sizeof (pmem_entry), 0, 0);
 			n->value = value;
 			n->next = nullptr;
 
