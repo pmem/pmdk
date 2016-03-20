@@ -62,7 +62,7 @@ namespace detail {
 		if (pmemobj_tx_stage() != TX_STAGE_WORK)
 			return;
 
-		if (pmemobj_tx_add_range_direct(that, sizeof (*that)))
+		if (TX_ADD_DIRECT(that))
 			throw transaction_error("Could not add an object to the"
 					" transaction.");
 	}

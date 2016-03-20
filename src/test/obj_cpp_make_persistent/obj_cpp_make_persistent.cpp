@@ -118,7 +118,7 @@ test_make_args(pool<struct root> &pop)
 	TX_BEGIN(pop.get_handle()) {
 		ASSERT(r->pfoo == nullptr);
 
-		pmemobj_tx_add_range_direct(&r->pfoo, sizeof(r->pfoo));
+		TX_ADD_DIRECT(&r->pfoo);
 		r->pfoo = make_persistent<foo>(2);
 		r->pfoo->check_foo(2, 2);
 

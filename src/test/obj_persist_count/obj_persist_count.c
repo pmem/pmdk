@@ -151,7 +151,7 @@ main(int argc, char *argv[])
 	print_reset_counters("tx_free");
 
 	TX_BEGIN(pop) {
-		pmemobj_tx_add_range_direct(&f->val, sizeof (f->val));
+		TX_ADD_DIRECT(&f->val);
 	} TX_END
 	print_reset_counters("tx_add");
 
