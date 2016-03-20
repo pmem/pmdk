@@ -49,7 +49,7 @@ main(int argc, char *argv[])
 
 	const char *path = argv[1];
 
-	int ret = pmemobj_check(path, NULL);
+	int ret = pmemobj_check(path, NULL, 0);
 
 	switch (ret) {
 	case 1:

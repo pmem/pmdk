@@ -49,7 +49,7 @@ main(int argc, char *argv[])
 	}
 
 	PMEMobjpool *pop = pmemobj_create(argv[1], LAYOUT_NAME,
-				PMEMOBJ_MIN_POOL, 0666);
+				PMEMOBJ_MIN_POOL, 0666, 0);
 
 	if (pop == NULL) {
 		perror("pmemobj_create");

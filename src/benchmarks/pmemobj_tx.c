@@ -1094,7 +1094,7 @@ obj_tx_init(struct benchmark *bench, struct benchmark_args *args)
 		psize = 0;
 	}
 	obj_bench.pop = pmemobj_create(args->fname, LAYOUT_NAME,
-						psize, args->fmode);
+						psize, args->fmode, 0);
 	if (obj_bench.pop == NULL) {
 		perror("pmemobj_create");
 		goto free_all;

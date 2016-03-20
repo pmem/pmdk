@@ -366,7 +366,7 @@ main(int argc, char *argv[])
 	const char *path = argv[1];
 	PMEMobjpool *pop;
 	if ((pop = pmemobj_create(path, LAYOUT_NAME, PMEMOBJ_MIN_POOL,
-						S_IWUSR | S_IRUSR)) == NULL)
+						S_IWUSR | S_IRUSR, 0)) == NULL)
 		FATAL("!pmemobj_create");
 
 	POBJ_ZNEW(pop, &List, struct list);

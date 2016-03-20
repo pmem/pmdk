@@ -49,7 +49,7 @@ static void
 pool_create(const char *path, const char *layout, size_t poolsize,
 	unsigned mode)
 {
-	PMEMobjpool *pop = pmemobj_create(path, layout, poolsize, mode);
+	PMEMobjpool *pop = pmemobj_create(path, layout, poolsize, mode, 0);
 
 	if (pop == NULL)
 		OUT("!%s: pmemobj_create", path);
@@ -63,7 +63,7 @@ pool_create(const char *path, const char *layout, size_t poolsize,
 
 		pmemobj_close(pop);
 
-		int result = pmemobj_check(path, layout);
+		int result = pmemobj_check(path, layout, 0);
 
 		if (result < 0)
 			OUT("!%s: pmemobj_check", path);
@@ -75,7 +75,7 @@ pool_create(const char *path, const char *layout, size_t poolsize,
 static void
 pool_open(const char *path, const char *layout)
 {
-	PMEMobjpool *pop = pmemobj_open(path, layout);
+	PMEMobjpool *pop = pmemobj_open(path, layout, 0);
 	if (pop == NULL)
 		OUT("!%s: pmemobj_open", path);
 	else {

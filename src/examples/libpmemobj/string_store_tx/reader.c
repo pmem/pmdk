@@ -48,7 +48,7 @@ main(int argc, char *argv[])
 		return 1;
 	}
 
-	PMEMobjpool *pop = pmemobj_open(argv[1], LAYOUT_NAME);
+	PMEMobjpool *pop = pmemobj_open(argv[1], LAYOUT_NAME, 0);
 	if (pop == NULL) {
 		perror("pmemobj_open");
 		return 1;

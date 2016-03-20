@@ -521,7 +521,7 @@ main(int argc, char *argv[])
 
 	PMEMobjpool *pop;
 	if ((pop = pmemobj_create(argv[1], LAYOUT_NAME, 0,
-				S_IWUSR | S_IRUSR)) == NULL)
+				S_IWUSR | S_IRUSR, 0)) == NULL)
 		FATAL("!pmemobj_create");
 
 	do_tx_root(pop);

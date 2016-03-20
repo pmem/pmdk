@@ -77,9 +77,9 @@ test_allocs(PMEMobjpool *pop, const char *path)
 
 	pmemobj_close(pop);
 
-	ASSERT(pmemobj_check(path, LAYOUT_NAME) == 1);
+	ASSERT(pmemobj_check(path, LAYOUT_NAME, 0) == 1);
 
-	ASSERT((pop = pmemobj_open(path, LAYOUT_NAME)) != NULL);
+	ASSERT((pop = pmemobj_open(path, LAYOUT_NAME, 0)) != NULL);
 
 	for (int i = 1; i < TEST_ALLOC_SIZE; ++i) {
 		pmemobj_free(&oid[i]);
@@ -102,7 +102,7 @@ test_lazy_load(PMEMobjpool *pop, const char *path)
 	ASSERTeq(ret, 0);
 
 	pmemobj_close(pop);
-	ASSERT((pop = pmemobj_open(path, LAYOUT_NAME)) != NULL);
+	ASSERT((pop = pmemobj_open(path, LAYOUT_NAME, 0)) != NULL);
 
 	pmemobj_free(&oid[1]);
 
@@ -124,7 +124,7 @@ main(int argc, char *argv[])
 	PMEMobjpool *pop = NULL;
 
 	if ((pop = pmemobj_create(path, LAYOUT_NAME,
-			0, S_IWUSR | S_IRUSR)) == NULL)
+			0, S_IWUSR | S_IRUSR, 0)) == NULL)
 		FATAL("!pmemobj_create: %s", path);
 
 	test_lazy_load(pop, path);

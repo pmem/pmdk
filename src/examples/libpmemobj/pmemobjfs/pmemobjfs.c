@@ -2174,7 +2174,7 @@ pmemobjfs_mkfs(const char *fname, size_t size, size_t bsize, mode_t mode)
 	objfs->block_size = bsize;
 
 	objfs->pop = pmemobj_create(fname, POBJ_LAYOUT_NAME(pmemobjfs),
-			size, mode);
+			size, mode, 0);
 	if (!objfs->pop) {
 		fprintf(stderr, "error: %s\n", pmemobj_errormsg());
 		ret = -1;
@@ -2441,7 +2441,7 @@ main(int argc, char *argv[])
 
 	int ret = 0;
 
-	objfs->pop = pmemobj_open(fname, POBJ_LAYOUT_NAME(pmemobjfs));
+	objfs->pop = pmemobj_open(fname, POBJ_LAYOUT_NAME(pmemobjfs), 0);
 	if (objfs->pop == NULL) {
 		perror("pmemobj_open");
 		ret = -1;

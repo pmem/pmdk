@@ -60,7 +60,7 @@ main(int argc, char *argv[])
 	for (int i = 0; i < npools; ++i) {
 		snprintf(path, MAX_PATH_LEN, "%s/testfile%d", dir, i);
 		pops[i] = pmemobj_create(path, LAYOUT_NAME, PMEMOBJ_MIN_POOL,
-				S_IWUSR | S_IRUSR);
+				S_IWUSR | S_IRUSR, 0);
 
 		/*
 		 * Reserve a page after the pool for address checks, if it

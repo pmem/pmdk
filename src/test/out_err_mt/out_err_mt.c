@@ -136,7 +136,7 @@ main(int argc, char *argv[])
 		FATAL("usage: %s filename1 filename2 filename3 dir", argv[0]);
 
 	PMEMobjpool *pop = pmemobj_create(argv[1], "test",
-		PMEMOBJ_MIN_POOL, 0666);
+		PMEMOBJ_MIN_POOL, 0666, 0);
 	PMEMlogpool *plp = pmemlog_create(argv[2],
 		PMEMLOG_MIN_POOL, 0666);
 	PMEMblkpool *pbp = pmemblk_create(argv[3],

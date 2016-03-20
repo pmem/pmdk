@@ -575,7 +575,7 @@ map_common_init(struct benchmark *bench, struct benchmark_args *args)
 	}
 
 	map_bench->pop = pmemobj_create(args->fname, "map_bench",
-			map_bench->pool_size, args->fmode);
+			map_bench->pool_size, args->fmode, 0);
 	if (!map_bench->pop) {
 		fprintf(stderr, "pmemobj_create: %s\n", pmemobj_errormsg());
 		goto err_free_bench;

@@ -262,12 +262,12 @@ art_tree_map_init(struct datastore *ds, struct ds_context *ctx)
 			error_string = "pmemobj_create";
 			ctx->pop = pmemobj_create(ctx->filename,
 				    POBJ_LAYOUT_NAME(arttree_tx),
-				    ctx->psize, ctx->fmode);
+				    ctx->psize, ctx->fmode, 0);
 			ctx->newpool = 1;
 		} else {
 			error_string = "pmemobj_open";
 			ctx->pop = pmemobj_open(ctx->filename,
-				    POBJ_LAYOUT_NAME(arttree_tx));
+				    POBJ_LAYOUT_NAME(arttree_tx), 0);
 		}
 		if (ctx->pop == NULL) {
 			perror(error_string);

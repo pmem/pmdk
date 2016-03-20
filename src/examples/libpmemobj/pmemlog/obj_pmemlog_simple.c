@@ -126,7 +126,7 @@ PMEMlogpool *
 pmemlog_open(const char *path)
 {
 	PMEMobjpool *pop = pmemobj_open(path,
-				POBJ_LAYOUT_NAME(obj_pmemlog_simple));
+				POBJ_LAYOUT_NAME(obj_pmemlog_simple), 0);
 	assert(pop != NULL);
 	struct stat buf;
 	if (stat(path, &buf)) {
@@ -146,7 +146,7 @@ pmemlog_create(const char *path, size_t poolsize, mode_t mode)
 
 	PMEMobjpool *pop = pmemobj_create(path,
 				POBJ_LAYOUT_NAME(obj_pmemlog_simple),
-				poolsize, mode);
+				poolsize, mode, 0);
 	assert(pop != NULL);
 	struct stat buf;
 	if (stat(path, &buf)) {

@@ -437,14 +437,14 @@ main(int argc, char *argv[])
 
 	if (access(path, F_OK) != 0) {
 		pop = pmemobj_create(path, POBJ_LAYOUT_NAME(kv_server),
-				KV_SIZE, 0666);
+				KV_SIZE, 0666, 0);
 		if (pop == NULL) {
 			fprintf(stderr, "failed to create pool: %s\n",
 					pmemobj_errormsg());
 			return 1;
 		}
 	} else {
-		pop = pmemobj_open(path, POBJ_LAYOUT_NAME(kv_server));
+		pop = pmemobj_open(path, POBJ_LAYOUT_NAME(kv_server), 0);
 		if (pop == NULL) {
 			fprintf(stderr, "failed to open pool: %s\n",
 					pmemobj_errormsg());

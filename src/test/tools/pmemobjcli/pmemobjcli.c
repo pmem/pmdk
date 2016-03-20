@@ -793,7 +793,7 @@ pocli_alloc(FILE *input, const char *fname, const struct pocli_cmd *cmds,
 	pcli->ctx.pocli = pcli;
 	pcli->ctx.err = stderr;
 	pcli->ctx.out = stdout;
-	pcli->ctx.pop = pmemobj_open(fname, NULL);
+	pcli->ctx.pop = pmemobj_open(fname, NULL, 0);
 	if (!pcli->ctx.pop) {
 		fprintf(stderr, "%s: %s\n", fname, pmemobj_errormsg());
 		goto err_free_pcli;

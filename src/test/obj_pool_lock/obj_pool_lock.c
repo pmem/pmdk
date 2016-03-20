@@ -43,11 +43,11 @@ static void
 test_reopen(const char *path)
 {
 	PMEMobjpool *pop1 = pmemobj_create(path, LAYOUT, PMEMOBJ_MIN_POOL,
-			S_IWUSR | S_IRUSR);
+			S_IWUSR | S_IRUSR, 0);
 	if (!pop1)
 		FATAL("!create");
 
-	PMEMobjpool *pop2 = pmemobj_open(path, LAYOUT);
+	PMEMobjpool *pop2 = pmemobj_open(path, LAYOUT, 0);
 	if (pop2)
 		FATAL("pmemobj_open should not succeed");
 
@@ -56,7 +56,7 @@ test_reopen(const char *path)
 
 	pmemobj_close(pop1);
 
-	pop2 = pmemobj_open(path, LAYOUT);
+	pop2 = pmemobj_open(path, LAYOUT, 0);
 	if (!pop2)
 		FATAL("pmemobj_open should succeed after close");
 
@@ -81,7 +81,7 @@ test_open_in_different_process(const char *path, int sleep)
 		while (access(path, R_OK))
 			usleep(100 * 1000);
 
-		pop = pmemobj_open(path, LAYOUT);
+		pop = pmemobj_open(path, LAYOUT, 0);
 		if (pop)
 			FATAL("pmemobj_open after fork should not succeed");
 
@@ -92,7 +92,8 @@ test_open_in_different_process(const char *path, int sleep)
 		exit(0);
 	}
 
-	pop = pmemobj_create(path, LAYOUT, PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR);
+	pop = pmemobj_create(path, LAYOUT, PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR,
+			0);
 	if (!pop)
 		FATAL("!create");
 

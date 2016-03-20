@@ -114,7 +114,7 @@ pmemblk_map(PMEMobjpool *pop, size_t bsize, size_t fsize)
 PMEMblkpool *
 pmemblk_open(const char *path, size_t bsize)
 {
-	PMEMobjpool *pop = pmemobj_open(path, POBJ_LAYOUT_NAME(obj_pmemblk));
+	PMEMobjpool *pop = pmemobj_open(path, POBJ_LAYOUT_NAME(obj_pmemblk), 0);
 	if (pop == NULL)
 		return NULL;
 	struct stat buf;
@@ -140,7 +140,7 @@ pmemblk_create(const char *path, size_t bsize, size_t poolsize, mode_t mode)
 	}
 
 	PMEMobjpool *pop = pmemobj_create(path, POBJ_LAYOUT_NAME(obj_pmemblk),
-				poolsize, mode);
+				poolsize, mode, 0);
 	if (pop == NULL)
 		return NULL;
 
@@ -162,7 +162,7 @@ pmemblk_close(PMEMblkpool *pbp)
 int
 pmemblk_check(const char *path, size_t bsize)
 {
-	int ret = pmemobj_check(path, POBJ_LAYOUT_NAME(obj_pmemblk));
+	int ret = pmemobj_check(path, POBJ_LAYOUT_NAME(obj_pmemblk), 0);
 	if (ret)
 		return ret;
 

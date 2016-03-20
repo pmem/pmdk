@@ -187,12 +187,12 @@ main(int argc, char *argv[])
 
 	if (access(path, F_OK) != 0) {
 		if ((pop = pmemobj_create(path, LAYOUT,
-			PMEMOBJ_MIN_POOL, S_IRWXU)) == NULL) {
+			PMEMOBJ_MIN_POOL, S_IRWXU, 0)) == NULL) {
 			std::cerr << "failed to create pool" << std::endl;
 			return 1;
 		}
 	} else {
-		if ((pop = pmemobj_open(path, LAYOUT)) == NULL) {
+		if ((pop = pmemobj_open(path, LAYOUT, 0)) == NULL) {
 			std::cerr << "failed to open pool" << std::endl;
 			return 1;
 		}

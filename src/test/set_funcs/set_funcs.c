@@ -172,7 +172,7 @@ test_obj(const char *path)
 	memset(cnt, 0, sizeof (cnt));
 
 	PMEMobjpool *pop =
-			pmemobj_create(path, NULL, PMEMOBJ_MIN_POOL, 0600);
+			pmemobj_create(path, NULL, PMEMOBJ_MIN_POOL, 0600, 0);
 
 	PMEMoid oid;
 

@@ -93,7 +93,7 @@ pmemlog_open(const char *path)
 {
 
 	return (PMEMlogpool *)pmemobj_open(path,
-				POBJ_LAYOUT_NAME(obj_pmemlog_macros));
+				POBJ_LAYOUT_NAME(obj_pmemlog_macros), 0);
 }
 
 /*
@@ -104,7 +104,7 @@ pmemlog_create(const char *path, size_t poolsize, mode_t mode)
 {
 	return (PMEMlogpool *)pmemobj_create(path,
 				POBJ_LAYOUT_NAME(obj_pmemlog_macros),
-				poolsize, mode);
+				poolsize, mode, 0);
 }
 
 /*

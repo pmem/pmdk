@@ -1028,7 +1028,7 @@ main(int argc, char *argv[])
 	util_init(); /* to initialize On_valgrind flag */
 
 	UT_COMPILE_ERROR_ON(OOB_OFF != 48);
-	PMEMobjpool *pop = pmemobj_open(path, NULL);
+	PMEMobjpool *pop = pmemobj_open(path, NULL, 0);
 	ASSERTne(pop, NULL);
 
 	ASSERT(!TOID_IS_NULL(List));

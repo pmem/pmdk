@@ -385,7 +385,7 @@ main(int argc, char *argv[])
 
 	if (access(path, F_OK) != 0) {
 		if ((pop = pmemobj_create(path, POBJ_LAYOUT_NAME(pminvaders),
-		    PMINVADERS_POOL_SIZE, S_IWUSR | S_IRUSR)) == NULL) {
+		    PMINVADERS_POOL_SIZE, S_IWUSR | S_IRUSR, 0)) == NULL) {
 			printf("failed to create pool\n");
 			return 1;
 		}
@@ -393,7 +393,7 @@ main(int argc, char *argv[])
 		/* create the player and initialize with a constructor */
 		POBJ_NEW(pop, NULL, struct player, create_player, NULL);
 	} else {
-		if ((pop = pmemobj_open(path, LAYOUT_NAME)) == NULL) {
+		if ((pop = pmemobj_open(path, LAYOUT_NAME, 0)) == NULL) {
 			printf("failed to open pool\n");
 			return 1;
 		}

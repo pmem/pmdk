@@ -70,14 +70,14 @@ main(int argc, char *argv[])
 	PMEMobjpool *pop = NULL;
 
 	if ((pop = pmemobj_create(path, LAYOUT_NAME,
-			0, S_IWUSR | S_IRUSR)) == NULL)
+			0, S_IWUSR | S_IRUSR, 0)) == NULL)
 		FATAL("!pmemobj_create: %s", path);
 
 	pmemobj_root(pop, ROOT_SIZE); /* just to trigger allocation */
 
 	pmemobj_close(pop);
 
-	pop = pmemobj_open(path, LAYOUT_NAME);
+	pop = pmemobj_open(path, LAYOUT_NAME, 0);
 	ASSERTne(pop, NULL);
 
 	for (int i = 0; i < ALLOCS; ++i) {

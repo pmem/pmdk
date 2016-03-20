@@ -56,10 +56,10 @@ main(int argc, char *argv[])
 	PMEMobjpool *pop;
 
 	/* create the pmemobj pool or open it if it already exists */
-	pop = pmemobj_create(path, LAYOUT_NAME, POOL_SIZE, 0666);
+	pop = pmemobj_create(path, LAYOUT_NAME, POOL_SIZE, 0666, 0);
 
 	if (pop == NULL)
-	    pop = pmemobj_open(path, LAYOUT_NAME);
+	    pop = pmemobj_open(path, LAYOUT_NAME, 0);
 
 	if (pop == NULL) {
 		perror(path);

@@ -1008,8 +1008,9 @@ obj_init(struct benchmark *bench, struct benchmark_args *args)
 		}
 
 		/* Create pmemobj pool. */
-		if ((obj_bench.pop = pmemobj_create(args->fname, LAYOUT_NAME,
-						psize, args->fmode)) == NULL) {
+		obj_bench.pop = pmemobj_create(args->fname, LAYOUT_NAME, psize,
+				args->fmode, 0);
+		if (obj_bench.pop == NULL) {
 			perror(pmemobj_errormsg());
 			goto free_all;
 		}

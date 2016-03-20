@@ -144,7 +144,7 @@ obj_init(struct benchmark *bench, struct benchmark_args *args)
 	}
 
 	ob->pop = pmemobj_create(args->fname, POBJ_LAYOUT_NAME(pmalloc_layout),
-			poolsize, args->fmode);
+			poolsize, args->fmode, 0);
 	if (ob->pop == NULL) {
 		fprintf(stderr, "%s\n", pmemobj_errormsg());
 		goto free_ob;

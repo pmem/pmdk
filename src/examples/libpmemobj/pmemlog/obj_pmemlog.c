@@ -98,7 +98,7 @@ struct base {
 PMEMlogpool *
 pmemlog_open(const char *path)
 {
-	return (PMEMlogpool *)pmemobj_open(path, LAYOUT_NAME);
+	return (PMEMlogpool *)pmemobj_open(path, LAYOUT_NAME, 0);
 }
 
 /*
@@ -108,7 +108,7 @@ PMEMlogpool *
 pmemlog_create(const char *path, size_t poolsize, mode_t mode)
 {
 	return (PMEMlogpool *)pmemobj_create(path, LAYOUT_NAME,
-				poolsize, mode);
+				poolsize, mode, 0);
 }
 
 /*

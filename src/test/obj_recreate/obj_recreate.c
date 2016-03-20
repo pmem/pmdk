@@ -66,7 +66,7 @@ main(int argc, char *argv[])
 	PMEMobjpool *pop = NULL;
 
 	/* create pool 2*N */
-	pop = pmemobj_create(path, LAYOUT_NAME, 2 * N, S_IWUSR | S_IRUSR);
+	pop = pmemobj_create(path, LAYOUT_NAME, 2 * N, S_IWUSR | S_IRUSR, 0);
 	if (pop == NULL)
 		FATAL("!pmemobj_create: %s", path);
 
@@ -93,7 +93,7 @@ main(int argc, char *argv[])
 	CLOSE(fd);
 
 	/* create pool on existing file */
-	pop = pmemobj_create(path, LAYOUT_NAME, 0, S_IWUSR | S_IRUSR);
+	pop = pmemobj_create(path, LAYOUT_NAME, 0, S_IWUSR | S_IRUSR, 0);
 	if (pop == NULL)
 		FATAL("!pmemobj_create: %s", path);
 

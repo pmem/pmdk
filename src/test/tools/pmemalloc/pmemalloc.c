@@ -109,7 +109,7 @@ main(int argc, char *argv[])
 	char *file = argv[optind];
 
 	PMEMobjpool *pop;
-	if ((pop = pmemobj_open(file, NULL)) == NULL) {
+	if ((pop = pmemobj_open(file, NULL, 0)) == NULL) {
 		fprintf(stderr, "pmemobj_open: %s\n", pmemobj_errormsg());
 		return -1;
 	}

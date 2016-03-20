@@ -669,7 +669,7 @@ pmemobj_runtime_init(PMEMobjpool *pop, int rdonly, int boot)
  */
 PMEMobjpool *
 pmemobj_create(const char *path, const char *layout, size_t poolsize,
-		mode_t mode)
+		mode_t mode, int flags)
 {
 	LOG(3, "path %s layout %s poolsize %zu mode %o",
 			path, layout, poolsize, mode);
@@ -677,6 +677,12 @@ pmemobj_create(const char *path, const char *layout, size_t poolsize,
 	/* check length of layout */
 	if (layout && (strlen(layout) >= PMEMOBJ_MAX_LAYOUT)) {
 		ERR("Layout too long");
+		errno = EINVAL;
+		return NULL;
+	}
+
+	if (flags) {
+		ERR("unsupported flags %x", flags);
 		errno = EINVAL;
 		return NULL;
 	}
@@ -917,9 +923,15 @@ err:
  * pmemobj_open -- open a transactional memory pool
  */
 PMEMobjpool *
-pmemobj_open(const char *path, const char *layout)
+pmemobj_open(const char *path, const char *layout, int flags)
 {
 	LOG(3, "path %s layout %s", path, layout);
+
+	if (flags) {
+		ERR("unsupported flags %x", flags);
+		errno = EINVAL;
+		return NULL;
+	}
 
 	return pmemobj_open_common(path, layout, Open_cow, 1);
 }
@@ -978,9 +990,15 @@ pmemobj_close(PMEMobjpool *pop)
  * pmemobj_check -- transactional memory pool consistency check
  */
 int
-pmemobj_check(const char *path, const char *layout)
+pmemobj_check(const char *path, const char *layout, int flags)
 {
 	LOG(3, "path %s layout %s", path, layout);
+
+	if (flags) {
+		ERR("unsupported flags %x", flags);
+		errno = EINVAL;
+		return -1;
+	}
 
 	PMEMobjpool *pop = pmemobj_open_common(path, layout, 1, 0);
 	if (pop == NULL)

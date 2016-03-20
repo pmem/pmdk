@@ -790,13 +790,13 @@ main(int argc, char *argv[])
 	if (access(argv[1], F_OK)) {
 		if ((pop = pmemobj_create(argv[1],
 				POBJ_LAYOUT_NAME(pminvaders2),
-				POOL_SIZE, S_IRUSR | S_IWUSR)) == NULL) {
+				POOL_SIZE, S_IRUSR | S_IWUSR, 0)) == NULL) {
 			fprintf(stderr, "%s", pmemobj_errormsg());
 			exit(1);
 		}
 	} else {
 		if ((pop = pmemobj_open(argv[1],
-				POBJ_LAYOUT_NAME(pminvaders2))) == NULL) {
+				POBJ_LAYOUT_NAME(pminvaders2), 0)) == NULL) {
 			fprintf(stderr, "%s", pmemobj_errormsg());
 			exit(1);
 		}

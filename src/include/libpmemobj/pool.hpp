@@ -95,16 +95,18 @@ namespace obj
 		 *	pool or a pool set.
 		 * @param layout Unique identifier of the pool as specified at
 		 *	pool creation time.
+		 * @param flags
 		 *
 		 * @return handle to the opened pool.
 		 *
 		 * @throw nvml::pool_error when an error during opening occurs.
 		 */
 		static pool_base open(const std::string &path,
-				const std::string &layout)
+				const std::string &layout,
+				int flags = 0)
 		{
 			pmemobjpool *pop = pmemobj_open(path.c_str(),
-					layout.c_str());
+					layout.c_str(), flags);
 			if (pop == nullptr)
 				throw pool_error("Failed opening pool");
 
@@ -122,6 +124,7 @@ namespace obj
 		 * @param size Size of the pool in bytes. If zero and the file
 		 *	exists the pool is created in-place.
 		 * @param mode File mode for the new file.
+		 * @param flags
 		 *
 		 * @return handle to the created pool.
 		 *
@@ -130,10 +133,11 @@ namespace obj
 		static pool_base create(const std::string &path,
 				const std::string &layout,
 				std::size_t size = PMEMOBJ_MIN_POOL,
-				mode_t mode = S_IWUSR | S_IRUSR)
+				mode_t mode = S_IWUSR | S_IRUSR,
+				int flags = 0)
 		{
 			pmemobjpool *pop = pmemobj_create(path.c_str(),
-					layout.c_str(), size, mode);
+					layout.c_str(), size, mode, flags);
 			if (pop == nullptr)
 				throw pool_error("Failed creating pool");
 
@@ -147,13 +151,16 @@ namespace obj
 		 *	pool or a pool set.
 		 * @param layout Unique identifier of the pool as specified at
 		 *	pool creation time.
+		 * @param flags
 		 *
 		 * @return -1 on error, 1 if file is consistent, 0 otherwise.
 		 */
 		static int check(const std::string &path,
-				const std::string &layout) noexcept
+				const std::string &layout,
+				int flags = 0) noexcept
 		{
-			return pmemobj_check(path.c_str(), layout.c_str());
+			return pmemobj_check(path.c_str(), layout.c_str(),
+					flags);
 		}
 
 		/**

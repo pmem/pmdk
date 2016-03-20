@@ -222,7 +222,7 @@ main(int argc, char *argv[])
 	if (argc < 2)
 		FATAL("usage: %s file [check_integrity]", argv[0]);
 
-	PMEMobjpool *pop = pmemobj_open(argv[1], POBJ_LAYOUT_NAME(realloc));
+	PMEMobjpool *pop = pmemobj_open(argv[1], POBJ_LAYOUT_NAME(realloc), 0);
 	if (!pop)
 		FATAL("!pmemobj_open");
 

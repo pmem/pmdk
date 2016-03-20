@@ -84,7 +84,7 @@ test_FOREACH(const char *path)
 	} while (0)
 
 	if ((pop = pmemobj_create(path, LAYOUT_NAME,
-			PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR)) == NULL)
+			PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR, 0)) == NULL)
 		FATAL("!pmemobj_create: %s", path);
 
 	TOID_ASSIGN(root, pmemobj_root(pop, sizeof (struct root)));
@@ -123,7 +123,7 @@ test_lists(const char *path)
 	} while (0)
 
 	if ((pop = pmemobj_create(path, LAYOUT_NAME,
-			PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR)) == NULL)
+			PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR, 0)) == NULL)
 		FATAL("!pmemobj_create: %s", path);
 
 	TOID_ASSIGN(root, pmemobj_root(pop, sizeof (struct root)));
@@ -160,7 +160,7 @@ test_alloc_construct(const char *path)
 	PMEMobjpool *pop = NULL;
 
 	if ((pop = pmemobj_create(path, LAYOUT_NAME,
-			PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR)) == NULL)
+			PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR, 0)) == NULL)
 		FATAL("!pmemobj_create: %s", path);
 
 	TX_BEGIN(pop) {
@@ -181,7 +181,7 @@ test_double_free(const char *path)
 	PMEMobjpool *pop = NULL;
 
 	if ((pop = pmemobj_create(path, LAYOUT_NAME,
-			PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR)) == NULL)
+			PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR, 0)) == NULL)
 		FATAL("!pmemobj_create: %s", path);
 
 	PMEMoid oid, oid2;

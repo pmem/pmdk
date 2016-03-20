@@ -176,7 +176,7 @@ pmempool_create_obj(struct pmempool_create *pcp)
 	outv(1, "Creating pmem obj pool with layout '%s'\n",
 			pcp->layout ? pcp->layout : "");
 	PMEMobjpool *pop = pmemobj_create(pcp->fname, pcp->layout,
-			pcp->params.size, pcp->params.mode);
+			pcp->params.size, pcp->params.mode, 0);
 	if (!pop) {
 		outv_err("'%s' -- %s\n", pcp->fname, pmemobj_errormsg());
 		return -1;

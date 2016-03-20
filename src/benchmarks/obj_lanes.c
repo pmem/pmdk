@@ -104,7 +104,7 @@ lanes_init(struct benchmark *bench, struct benchmark_args *args)
 
 	/* create pmemobj pool */
 	ob->pop = pmemobj_create(args->fname,
-			"obj_lanes", psize, args->fmode);
+			"obj_lanes", psize, args->fmode, 0);
 	if (ob->pop == NULL) {
 		fprintf(stderr, "%s\n", pmemobj_errormsg());
 		goto err;

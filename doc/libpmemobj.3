@@ -48,9 +48,9 @@ libpmemobj \- persistent memory transactional object store
 .sp
 .B Most commonly used functions:
 .sp
-.BI "PMEMobjpool *pmemobj_open(const char *" path ", const char *" layout );
+.BI "PMEMobjpool *pmemobj_open(const char *" path ", const char *" layout ", int " flags );
 .BI "PMEMobjpool *pmemobj_create(const char *" path ", const char *" layout ,
-.BI "    size_t " poolsize ", mode_t " mode );
+.BI "    size_t " poolsize ", mode_t " mode ", int " flags );
 .BI "void pmemobj_close(PMEMobjpool *" pop );
 .sp
 .B Low-level memory manipulation:
@@ -307,7 +307,7 @@ libpmemobj \- persistent memory transactional object store
 .BI "    void (*" free_func ")(void *" ptr ),
 .BI "    void *(*" realloc_func ")(void *" ptr ", size_t " size ),
 .BI "    char *(*" strdup_func ")(const char *" s ));
-.BI "int pmemobj_check(const char *" path ", const char *" layout );
+.BI "int pmemobj_check(const char *" path ", const char *" layout ", int " flags );
 .sp
 .B Error handling:
 .sp
@@ -402,7 +402,7 @@ There is no need for applications to flush changes directly
 when using the obj memory API provided by
 .BR libpmemobj .
 .PP
-.BI "PMEMobjpool *pmemobj_open(const char *" path ", const char *" layout );
+.BI "PMEMobjpool *pmemobj_open(const char *" path ", const char *" layout ", int " flags );
 .IP
 The
 .BR pmemobj_open ()
@@ -420,6 +420,8 @@ when the pool was first created.  This can be used to verify
 the layout of the pool matches what was expected.
 The application must have permission to open the file and memory map
 it with read/write permissions.
+.I flags
+must be always equal to 0.
 If an error prevents the pool from being opened,
 or if the given
 .I layout
@@ -429,7 +431,7 @@ returns NULL and sets errno appropriately.
 .PP
 .BI "PMEMobjpool *pmemobj_create(const char *" path ", const char *" layout ,
 .br
-.BI "    size_t " poolsize ", mode_t " mode );
+.BI "    size_t " poolsize ", mode_t " mode ", int " flags );
 .IP
 The
 .BR pmemobj_create ()
@@ -474,6 +476,8 @@ file size allowed by the library for a transactional object store is defined in
 .B <libpmemobj.h>
 as
 .BR PMEMOBJ_MIN_POOL .
+.I flags
+must be always equal to 0.
 .PP
 .BI "void pmemobj_close(PMEMobjpool *" pop );
 .IP
@@ -3327,7 +3331,7 @@ default function to be used.
 The library does not make heavy use of the system malloc functions, but
 it does allocate approximately 4-8 kilobytes for each memory pool in use.
 .PP
-.BI "int pmemobj_check(const char *" path ", const char *" layout );
+.BI "int pmemobj_check(const char *" path ", const char *" layout ", int " flags );
 .IP
 The
 .BR pmemobj_check ()
@@ -3347,6 +3351,8 @@ will provide additional details on inconsistencies when
 is at least 1, as described in the
 .B "DEBUGGING AND ERROR HANDLING"
 section below.
+.I flags
+must be always equal to 0.
 .BR pmemobj_check ()
 will return -1 and set errno if it cannot perform the
 consistency check due to other errors.
