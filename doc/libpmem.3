@@ -37,7 +37,7 @@
 .\" or
 .\"	groff -man -Tascii libpmem.3
 .\"
-.TH libpmem 3 "pmem API version 0.8.7" "NVM Library"
+.TH libpmem 3 "pmem API version 0.8.8" "NVM Library"
 .SH NAME
 libpmem \- persistent memory support library
 .SH SYNOPSIS
@@ -295,7 +295,7 @@ The
 argument can be 0 or bitwise OR of one or more of the following
 file creation flags:
 .IP
-.B PMEM_FILE_CREAT
+.B PMEM_FILE_CREATE
 - Create the named file if it does not exist.
 .I len
 must be non-zero and specifies the size of the file to be created.
@@ -304,7 +304,7 @@ has the same meaning as for
 .BR open (2)
 and specifies the mode to use in case a new file is created.
 If neither
-.B PMEM_FILE_CREAT
+.B PMEM_FILE_CREATE
 nor
 .B PMEM_FILE_TMPFILE
 is specified, then
@@ -318,7 +318,7 @@ on
 .BR open (2)
 - Ensure that this call creates the file.  If this flag is
 specified in conjunction with
-.BR PMEM_FILE_CREAT ,
+.BR PMEM_FILE_CREATE ,
 and pathname already exists, then
 .BR pmem_map_file ()
 will fail.
@@ -329,7 +329,7 @@ will fail.
 on
 .BR open (2).
 Create a mapping for an unnamed temporary file.
-.B PMEM_FILE_CREAT
+.B PMEM_FILE_CREATE
 and
 .I len
 must be specified and
@@ -340,7 +340,7 @@ must be an existing directory name.
 - When creating a file, create a sparse (holey) file instead of calling
 .BR posix_fallocate (2).
 Valid only if specified in conjunction with
-.B PMEM_FILE_CREAT
+.B PMEM_FILE_CREATE
 or
 .BR PMEM_FILE_TMPFILE ,
 otherwise ignored.
