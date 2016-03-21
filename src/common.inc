@@ -70,3 +70,22 @@ define create-deps
 	    -e '/^$$/ d' -e 's/$$/ :/' < $(objdir)/$*.d >> $(objdir)/.deps/$*.P; \
 	$(RM) -f $(objdir)/$*.d
 endef
+
+ifneq ($(wildcard $(prefix)/x86_64-linux-gnu),)
+LIB_PREFIX ?= $(prefix)/x86_64-linux-gnu/lib
+endif
+
+ifneq ($(wildcard $(prefix)/lib64),)
+LIB_PREFIX ?= $(prefix)/lib64
+endif
+
+LIB_PREFIX ?= $(prefix)/lib
+
+ifneq ($(wildcard $(prefix)/x86_64-linux-gnu),)
+INC_PREFIX ?= $(prefix)/x86_64-linux-gnu/include
+endif
+
+INC_PREFIX ?= $(prefix)/include/
+
+LIBDIR ?= $(LIB_PREFIX)
+INCDIR ?= $(INC_PREFIX)

@@ -164,6 +164,7 @@ Development files for NVML libpmem library
 %defattr(-,root,root,-)
 %{_libdir}/libpmem.so
 %{_libdir}/libpmem.a
+%{_libdir}/pkgconfig/libpmem.pc
 %{_libdir}/nvml_debug/libpmem.so
 %{_libdir}/nvml_debug/libpmem.so.*
 %{_libdir}/nvml_debug/libpmem.a
@@ -190,6 +191,7 @@ Development files for NVML libpmemblk library
 %defattr(-,root,root,-)
 %{_libdir}/libpmemblk.so
 %{_libdir}/libpmemblk.a
+%{_libdir}/pkgconfig/libpmemblk.pc
 %{_libdir}/nvml_debug/libpmemblk.so
 %{_libdir}/nvml_debug/libpmemblk.so.*
 %{_libdir}/nvml_debug/libpmemblk.a
@@ -216,6 +218,7 @@ Development files for NVML libpmemlog library
 %defattr(-,root,root,-)
 %{_libdir}/libpmemlog.so
 %{_libdir}/libpmemlog.a
+%{_libdir}/pkgconfig/libpmemlog.pc
 %{_libdir}/nvml_debug/libpmemlog.so
 %{_libdir}/nvml_debug/libpmemlog.so.*
 %{_libdir}/nvml_debug/libpmemlog.a
@@ -242,6 +245,7 @@ Development files for NVML libpmemobj library
 %defattr(-,root,root,-)
 %{_libdir}/libpmemobj.so
 %{_libdir}/libpmemobj.a
+%{_libdir}/pkgconfig/libpmemobj.pc
 %{_libdir}/nvml_debug/libpmemobj.so
 %{_libdir}/nvml_debug/libpmemobj.so.*
 %{_libdir}/nvml_debug/libpmemobj.a
@@ -268,6 +272,7 @@ Development files for NVML libvmem library
 %defattr(-,root,root,-)
 %{_libdir}/libvmem.so
 %{_libdir}/libvmem.a
+%{_libdir}/pkgconfig/libvmem.pc
 %{_libdir}/nvml_debug/libvmem.so
 %{_libdir}/nvml_debug/libvmem.so.*
 %{_libdir}/nvml_debug/libvmem.a
@@ -294,6 +299,7 @@ Development files for NVML libvmmalloc library
 %defattr(-,root,root,-)
 %{_libdir}/libvmmalloc.so
 %{_libdir}/libvmmalloc.a
+%{_libdir}/pkgconfig/libvmmalloc.pc
 %{_libdir}/nvml_debug/libvmmalloc.so
 %{_libdir}/nvml_debug/libvmmalloc.so.*
 %{_libdir}/nvml_debug/libvmmalloc.a
