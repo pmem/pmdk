@@ -579,7 +579,7 @@ locks_init(struct benchmark *bench, struct benchmark_args *args)
 
 	mb->pop = pmemobj_create(args->fname,
 			POBJ_LAYOUT_NAME(pmembench_lock_layout),
-			poolsize, args->fmode);
+			poolsize, args->fmode, 0);
 
 	if (mb->pop == NULL) {
 		ret = -1;

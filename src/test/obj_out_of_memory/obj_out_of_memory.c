@@ -60,7 +60,7 @@ test_alloc(PMEMobjpool *pop, size_t size)
 	while (1) {
 		struct cargs args = { size };
 		if (pmemobj_alloc(pop, NULL, size, 0,
-				test_constructor, &args) != 0)
+				test_constructor, &args, 0) != 0)
 			break;
 		cnt++;
 	}
@@ -92,7 +92,7 @@ main(int argc, char *argv[])
 		const char *path = argv[i];
 
 		PMEMobjpool *pop = pmemobj_create(path, LAYOUT_NAME, 0,
-					S_IWUSR | S_IRUSR);
+					S_IWUSR | S_IRUSR, 0);
 		if (pop == NULL)
 			FATAL("!pmemobj_create: %s", path);
 
@@ -100,7 +100,7 @@ main(int argc, char *argv[])
 
 		pmemobj_close(pop);
 
-		ASSERTeq(pmemobj_check(path, LAYOUT_NAME), 1);
+		ASSERTeq(pmemobj_check(path, LAYOUT_NAME, 0), 1);
 
 		/*
 		 * To prevent subsequent opens from receiving exactly the same
@@ -110,7 +110,7 @@ main(int argc, char *argv[])
 		 */
 		void *heap_touch = MALLOC(1);
 
-		ASSERTne(pop = pmemobj_open(path, LAYOUT_NAME), NULL);
+		ASSERTne(pop = pmemobj_open(path, LAYOUT_NAME, 0), NULL);
 
 		test_free(pop);
 

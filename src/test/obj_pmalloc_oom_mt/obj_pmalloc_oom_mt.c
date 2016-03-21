@@ -49,7 +49,7 @@ static void *
 oom_worker(void *arg)
 {
 	allocated = 0;
-	while (pmemobj_alloc(pop, NULL, TEST_ALLOC_SIZE, 0, NULL, NULL) == 0)
+	while (pmemobj_alloc(pop, NULL, TEST_ALLOC_SIZE, 0, NULL, NULL, 0) == 0)
 		allocated++;
 
 	PMEMoid iter, iter2;
@@ -70,7 +70,7 @@ main(int argc, char *argv[])
 	const char *path = argv[1];
 
 	if ((pop = pmemobj_create(path, LAYOUT_NAME,
-			PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR)) == NULL)
+			PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR, 0)) == NULL)
 		FATAL("!pmemobj_create: %s", path);
 
 	pthread_t t;

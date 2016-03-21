@@ -132,7 +132,7 @@ tx_worker(void *arg)
 	 */
 	TX_BEGIN(a->pop) {
 		for (;;) /* this is NOT an infinite loop */
-			pmemobj_tx_alloc(ALLOC_SIZE, a->idx);
+			pmemobj_tx_alloc(ALLOC_SIZE, a->idx, 0);
 	} TX_END
 
 	return NULL;
@@ -146,7 +146,7 @@ alloc_free_worker(void *arg)
 	PMEMoid oid;
 	for (int i = 0; i < OPS_PER_THREAD; ++i) {
 		int err = pmemobj_alloc(a->pop, &oid, ALLOC_SIZE,
-				0, NULL, NULL);
+				0, NULL, NULL, 0);
 		ASSERTeq(err, 0);
 		pmemobj_free(&oid);
 	}
@@ -178,9 +178,9 @@ main(int argc, char *argv[])
 
 	if (access(argv[1], F_OK) != 0) {
 		pop = pmemobj_create(argv[1], "TEST",
-		THREADS * OPS_PER_THREAD * ALLOC_SIZE * FRAGMENTATION, 0666);
+		THREADS * OPS_PER_THREAD * ALLOC_SIZE * FRAGMENTATION, 0666, 0);
 	} else {
-		if ((pop = pmemobj_open(argv[1], "TEST")) == NULL) {
+		if ((pop = pmemobj_open(argv[1], "TEST", 0)) == NULL) {
 			printf("failed to open pool\n");
 			return 1;
 		}
@@ -189,7 +189,7 @@ main(int argc, char *argv[])
 	if (pop == NULL)
 		FATAL("!pmemobj_create");
 
-	PMEMoid oid = pmemobj_root(pop, sizeof (struct root));
+	PMEMoid oid = pmemobj_root(pop, sizeof (struct root), 0);
 	struct root *r = pmemobj_direct(oid);
 	ASSERTne(r, NULL);
 

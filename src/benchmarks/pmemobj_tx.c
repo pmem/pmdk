@@ -392,7 +392,7 @@ alloc_pmem(struct obj_tx_bench *obj_bench, struct worker_info *worker,
 	int type_num = obj_bench->fn_type_num(obj_bench, worker->index, idx);
 	struct obj_tx_worker *obj_worker = worker->priv;
 	if (pmemobj_alloc(obj_bench->pop, &obj_worker->oids[idx].oid,
-			obj_bench->sizes[idx], type_num, NULL, NULL) != 0) {
+			obj_bench->sizes[idx], type_num, NULL, NULL, 0) != 0) {
 		perror("pmemobj_alloc");
 		return -1;
 	}
@@ -410,7 +410,7 @@ alloc_tx(struct obj_tx_bench *obj_bench, struct worker_info *worker,
 	int type_num = obj_bench->fn_type_num(obj_bench, worker->index, idx);
 	struct obj_tx_worker *obj_worker = worker->priv;
 	obj_worker->oids[idx].oid = pmemobj_tx_alloc(obj_bench->sizes[idx],
-								type_num);
+								type_num, 0);
 	if (OID_IS_NULL(obj_worker->oids[idx].oid)) {
 		perror("pmemobj_tx_alloc");
 		return -1;
@@ -485,7 +485,7 @@ realloc_pmem(struct obj_tx_bench *obj_bench, struct worker_info *worker,
 	if (obj_bench->obj_args->change_type)
 		type_num++;
 	if (pmemobj_realloc(obj_bench->pop, &obj_worker->oids[idx].oid,
-			obj_bench->resizes[idx], type_num) != 0) {
+			obj_bench->resizes[idx], type_num, 0) != 0) {
 		perror("pmemobj_realloc");
 		return -1;
 	}
@@ -505,7 +505,7 @@ realloc_tx(struct obj_tx_bench *obj_bench, struct worker_info *worker,
 		type_num++;
 	obj_worker->oids[idx].oid =
 			pmemobj_tx_realloc(obj_worker->oids[idx].oid,
-			obj_bench->sizes[idx], type_num);
+			obj_bench->sizes[idx], type_num, 0);
 	if (OID_IS_NULL(obj_worker->oids[idx].oid)) {
 		perror("pmemobj_tx_realloc");
 		return -1;
@@ -528,7 +528,7 @@ add_range_nested_tx(struct obj_tx_bench *obj_bench, struct worker_info *worker,
 			struct offset offset = obj_bench->fn_off(obj_bench,
 						obj_worker->tx_level);
 			ret = pmemobj_tx_add_range(obj_worker->oids[n_oid].oid,
-					offset.off, offset.size);
+					offset.off, offset.size, 0);
 			obj_worker->tx_level++;
 			ret = add_range_nested_tx(obj_bench, worker, idx);
 		}
@@ -554,7 +554,7 @@ add_range_tx(struct obj_tx_bench *obj_bench, struct worker_info *worker,
 			size_t n_oid = obj_bench->n_oid(i);
 			struct offset offset = obj_bench->fn_off(obj_bench, i);
 			ret = pmemobj_tx_add_range(obj_worker->oids[n_oid].oid,
-						offset.off, offset.size);
+						offset.off, offset.size, 0);
 		}
 	} TX_ONABORT {
 		fprintf(stderr, "transaction failed\n");
@@ -1094,7 +1094,7 @@ obj_tx_init(struct benchmark *bench, struct benchmark_args *args)
 		psize = 0;
 	}
 	obj_bench.pop = pmemobj_create(args->fname, LAYOUT_NAME,
-						psize, args->fmode);
+						psize, args->fmode, 0);
 	if (obj_bench.pop == NULL) {
 		perror("pmemobj_create");
 		goto free_all;

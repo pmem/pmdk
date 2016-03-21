@@ -71,7 +71,7 @@ btree_map_new(PMEMobjpool *pop, TOID(struct btree_map) *map, void *arg)
 	int ret = 0;
 
 	TX_BEGIN(pop) {
-		pmemobj_tx_add_range_direct(map, sizeof (*map));
+		TX_ADD_DIRECT(map);
 		*map = TX_ZNEW(struct btree_map);
 	} TX_ONABORT {
 		ret = 1;
@@ -120,7 +120,7 @@ btree_map_delete(PMEMobjpool *pop, TOID(struct btree_map) *map)
 	int ret = 0;
 	TX_BEGIN(pop) {
 		btree_map_clear(pop, *map);
-		pmemobj_tx_add_range_direct(map, sizeof (*map));
+		TX_ADD_DIRECT(map);
 		TX_FREE(*map);
 		*map = TOID_NULL(struct btree_map);
 	} TX_ONABORT {
@@ -642,7 +642,7 @@ btree_map_insert_new(PMEMobjpool *pop, TOID(struct btree_map) map,
 	int ret = 0;
 
 	TX_BEGIN(pop) {
-		PMEMoid n = pmemobj_tx_alloc(size, type_num);
+		PMEMoid n = pmemobj_tx_alloc(size, type_num, 0);
 		constructor(pop, pmemobj_direct(n), arg);
 		btree_map_insert(pop, map, key, n);
 	} TX_ONABORT {

@@ -114,7 +114,7 @@ main(int argc, char *argv[])
 
 	PMEMobjpool *pop;
 	if ((pop = pmemobj_create(path, "persist_count",
-			PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR)) == NULL)
+			PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR, 0)) == NULL)
 		FATAL("!pmemobj_create: %s", path);
 
 	OUT("persist\t;msync\t;flush\t;drain\t;task");
@@ -122,15 +122,16 @@ main(int argc, char *argv[])
 	print_reset_counters("pool_create");
 
 	/* allocate one structure to create a run */
-	pmemobj_alloc(pop, NULL, sizeof (struct foo), 0, NULL, NULL);
+	pmemobj_alloc(pop, NULL, sizeof (struct foo), 0, NULL, NULL, 0);
 	reset_counters();
 
-	PMEMoid root = pmemobj_root(pop, sizeof (struct foo));
+	PMEMoid root = pmemobj_root(pop, sizeof (struct foo), 0);
 	ASSERT(!OID_IS_NULL(root));
 	print_reset_counters("root_alloc");
 
 	PMEMoid oid;
-	int ret = pmemobj_alloc(pop, &oid, sizeof (struct foo), 0, NULL, NULL);
+	int ret = pmemobj_alloc(pop, &oid, sizeof (struct foo), 0, NULL, NULL,
+			0);
 	ASSERTeq(ret, 0);
 	print_reset_counters("atomic_alloc");
 
@@ -140,7 +141,7 @@ main(int argc, char *argv[])
 	struct foo *f = pmemobj_direct(root);
 
 	TX_BEGIN(pop) {
-		f->bar = pmemobj_tx_alloc(sizeof (struct foo), 0);
+		f->bar = pmemobj_tx_alloc(sizeof (struct foo), 0, 0);
 		ASSERT(!OID_IS_NULL(f->bar));
 	} TX_END
 	print_reset_counters("tx_alloc");
@@ -151,7 +152,7 @@ main(int argc, char *argv[])
 	print_reset_counters("tx_free");
 
 	TX_BEGIN(pop) {
-		pmemobj_tx_add_range_direct(&f->val, sizeof (f->val));
+		TX_ADD_DIRECT(&f->val);
 	} TX_END
 	print_reset_counters("tx_add");
 

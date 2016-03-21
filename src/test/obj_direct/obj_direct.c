@@ -84,7 +84,7 @@ main(int argc, char *argv[])
 	for (int i = 0; i < npools; ++i) {
 		snprintf(path, MAX_PATH_LEN, "%s/testfile%d", dir, i);
 		pops[i] = pmemobj_create(path, LAYOUT_NAME, PMEMOBJ_MIN_POOL,
-				S_IWUSR | S_IRUSR);
+				S_IWUSR | S_IRUSR, 0);
 
 		if (pops[i] == NULL)
 			FATAL("!pmemobj_create");
@@ -105,11 +105,11 @@ main(int argc, char *argv[])
 		ASSERTeq((char *)pmemobj_direct(oids[i]) - off,
 			(char *)pops[i]);
 
-		r = pmemobj_alloc(pops[i], &tmpoids[i], 100, 1, NULL, NULL);
+		r = pmemobj_alloc(pops[i], &tmpoids[i], 100, 1, NULL, NULL, 0);
 		ASSERTeq(r, 0);
 	}
 
-	r = pmemobj_alloc(pops[0], &thread_oid, 100, 2, NULL, NULL);
+	r = pmemobj_alloc(pops[0], &thread_oid, 100, 2, NULL, NULL, 0);
 	ASSERTeq(r, 0);
 	ASSERTne(pmemobj_direct(thread_oid), NULL);
 

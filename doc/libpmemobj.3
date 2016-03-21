@@ -48,9 +48,9 @@ libpmemobj \- persistent memory transactional object store
 .sp
 .B Most commonly used functions:
 .sp
-.BI "PMEMobjpool *pmemobj_open(const char *" path ", const char *" layout );
+.BI "PMEMobjpool *pmemobj_open(const char *" path ", const char *" layout ", int " flags );
 .BI "PMEMobjpool *pmemobj_create(const char *" path ", const char *" layout ,
-.BI "    size_t " poolsize ", mode_t " mode );
+.BI "    size_t " poolsize ", mode_t " mode ", int " flags );
 .BI "void pmemobj_close(PMEMobjpool *" pop );
 .sp
 .B Low-level memory manipulation:
@@ -134,15 +134,11 @@ libpmemobj \- persistent memory transactional object store
 .BI "    void *" ptr ", void *" arg ");
 .sp
 .BI "int pmemobj_alloc(PMEMobjpool *" pop ", PMEMoid *" oidp ", size_t " size ,
-.BI "    uint64_t " type_num ", pmemobj_constr " constructor ", void *" arg );
-.BI "int pmemobj_zalloc(PMEMobjpool *" pop ", PMEMoid *" oidp ", size_t " size ,
-.BI "    uint64_t " type_num );
+.BI "    uint64_t " type_num ", pmemobj_constr " constructor ", void *" arg ", int " flags );
 .BI "int pmemobj_realloc(PMEMobjpool *" pop ", PMEMoid *" oidp ", size_t " size ,
-.BI "    uint64_t " type_num );
-.BI "int pmemobj_zrealloc(PMEMobjpool *" pop ", PMEMoid *" oidp ", size_t " size ,
-.BI "    uint64_t " type_num );
+.BI "    uint64_t " type_num ", int " flags );
 .BI "int pmemobj_strdup(PMEMobjpool *" pop ", PMEMoid *" oidp ", const char *" s ,
-.BI "    uint64_t " type_num );
+.BI "    uint64_t " type_num ", int " flags );
 .BI "void pmemobj_free(PMEMoid *" oidp );
 .BI "size_t pmemobj_alloc_usable_size(PMEMoid " oid );
 .BI "PMEMobjpool *pmemobj_pool_by_oid(PMEMoid " oid );
@@ -162,9 +158,9 @@ libpmemobj \- persistent memory transactional object store
 .sp
 .B Root object management:
 .sp
-.BI "PMEMoid pmemobj_root(PMEMobjpool *" pop ", size_t " size );
+.BI "PMEMoid pmemobj_root(PMEMobjpool *" pop ", size_t " size ", int " flags );
 .BI "PMEMoid pmemobj_root_construct(PMEMobjpool *" pop ", size_t " size ,
-.BI "    pmemobj_constr " constructor ", void *" arg );
+.BI "    pmemobj_constr " constructor ", void *" arg ", int " flags );
 .BI "size_t pmemobj_root_size(PMEMobjpool *" pop );
 .sp
 .BI "POBJ_ROOT(PMEMobjpool *" pop ", " TYPE )
@@ -261,13 +257,11 @@ libpmemobj \- persistent memory transactional object store
 .BI "int pmemobj_tx_errno(void);
 .BI "void pmemobj_tx_process(void);
 .sp
-.BI "int pmemobj_tx_add_range(PMEMoid " oid ", uint64_t " off ", size_t " size );
-.BI "int pmemobj_tx_add_range_direct(const void *" ptr ", size_t " size );
-.BI "PMEMoid pmemobj_tx_alloc(size_t " size ", uint64_t " type_num );
-.BI "PMEMoid pmemobj_tx_zalloc(size_t " size ", uint64_t " type_num );
-.BI "PMEMoid pmemobj_tx_realloc(PMEMoid " oid ", size_t " size ", uint64_t " type_num );
-.BI "PMEMoid pmemobj_tx_zrealloc(PMEMoid " oid ", size_t " size ", uint64_t " type_num );
-.BI "PMEMoid pmemobj_tx_strdup(const char *" s ", uint64_t " type_num );
+.BI "int pmemobj_tx_add_range(PMEMoid " oid ", uint64_t " off ", size_t " size ", int " flags );
+.BI "int pmemobj_tx_add_range_direct(const void *" ptr ", size_t " size ", int " flags );
+.BI "PMEMoid pmemobj_tx_alloc(size_t " size ", uint64_t " type_num ", int " flags );
+.BI "PMEMoid pmemobj_tx_realloc(PMEMoid " oid ", size_t " size ", uint64_t " type_num ", int " flags );
+.BI "PMEMoid pmemobj_tx_strdup(const char *" s ", uint64_t " type_num ", int " flags );
 .BI "int pmemobj_tx_free(PMEMoid " oid );
 .sp
 .BI "TX_BEGIN_LOCK(PMEMobjpool *" pop ", " ... )
@@ -309,7 +303,7 @@ libpmemobj \- persistent memory transactional object store
 .BI "    void (*" free_func ")(void *" ptr ),
 .BI "    void *(*" realloc_func ")(void *" ptr ", size_t " size ),
 .BI "    char *(*" strdup_func ")(const char *" s ));
-.BI "int pmemobj_check(const char *" path ", const char *" layout );
+.BI "int pmemobj_check(const char *" path ", const char *" layout ", int " flags );
 .sp
 .B Error handling:
 .sp
@@ -404,7 +398,7 @@ There is no need for applications to flush changes directly
 when using the obj memory API provided by
 .BR libpmemobj .
 .PP
-.BI "PMEMobjpool *pmemobj_open(const char *" path ", const char *" layout );
+.BI "PMEMobjpool *pmemobj_open(const char *" path ", const char *" layout ", int " flags );
 .IP
 The
 .BR pmemobj_open ()
@@ -422,6 +416,8 @@ when the pool was first created.  This can be used to verify
 the layout of the pool matches what was expected.
 The application must have permission to open the file and memory map
 it with read/write permissions.
+.I flags
+must be always equal to 0.
 If an error prevents the pool from being opened,
 or if the given
 .I layout
@@ -431,7 +427,7 @@ returns NULL and sets errno appropriately.
 .PP
 .BI "PMEMobjpool *pmemobj_create(const char *" path ", const char *" layout ,
 .br
-.BI "    size_t " poolsize ", mode_t " mode );
+.BI "    size_t " poolsize ", mode_t " mode ", int " flags );
 .IP
 The
 .BR pmemobj_create ()
@@ -476,6 +472,8 @@ file size allowed by the library for a transactional object store is defined in
 .B <libpmemobj.h>
 as
 .BR PMEMOBJ_MIN_POOL .
+.I flags
+must be always equal to 0.
 .PP
 .BI "void pmemobj_close(PMEMobjpool *" pop );
 .IP
@@ -730,9 +728,11 @@ They provide semantics similar to standard
 .B pthread
 locks, except that they are considered initialized by zeroing them.
 So allocating the locks with
-.BR pmemobj_zalloc ()
+.BR pmemobj_alloc ()
 or
-.BR pmemobj_tx_zalloc ()
+.BR pmemobj_tx_alloc ()
+with
+.BR PMEMOBJ_FLAG_ZERO
 does not require another initialization step.
 .PP
 The fundamental property of pmem-aware locks is their automatic
@@ -757,11 +757,12 @@ function explicitly initializes pmem-aware mutex pointed by
 .I mutexp
 by zeroing it.
 Initialization is not necessary if the object containing the mutex has been
-allocated using one of
-.BR pmemobj_zalloc ()
+allocated using
+.BR pmemobj_alloc ()
 or
-.BR pmemobj_tx_zalloc ()
-functions.
+.BR pmemobj_tx_alloc ()
+with
+.BR PMEMOBJ_FLAG_ZERO .
 .PP
 .BI "int pmemobj_mutex_lock(PMEMobjpool *" pop ", PMEMmutex *" mutexp );
 .IP
@@ -821,11 +822,12 @@ by
 .I rwlockp
 by zeroing it.
 Initialization is not necessary if the object containing the lock has been
-allocated using one of
-.BR pmemobj_zalloc ()
+allocated using
+.BR pmemobj_alloc ()
 or
-.BR pmemobj_tx_zalloc ()
-functions.
+.BR pmemobj_tx_alloc ()
+with
+.BR PMEMOBJ_FLAG_ZERO .
 .PP
 .BI "int pmemobj_rwlock_rdlock(PMEMobjpool *" pop ", PMEMrwlock *" rwlockp );
 .IP
@@ -921,11 +923,12 @@ The
 .BR pmemobj_cond_zero ()
 function explicitly initializes pmem-aware condition variable by zeroing it.
 Initialization is not necessary if the object containing the condition
-variable has been allocated using one of
-.BR pmemobj_zalloc ()
+variable has been allocated using
+.BR pmemobj_alloc ()
 or
-.BR pmemobj_tx_zalloc ()
-functions.
+.BR pmemobj_tx_alloc ()
+with
+.BR PMEMOBJ_FLAG_ZERO .
 .PP
 .BI "int pmemobj_cond_broadcast(PMEMobjpool *" pop ", PMEMcond *" condp );
 .sp
@@ -1398,7 +1401,7 @@ should have the root object at the end of its reference path.
 It may be assumed that for each persistent memory pool the root object always
 exists, and there is exactly one root object in each pool.
 .PP
-.BI "PMEMoid pmemobj_root(PMEMobjpool *" pop ", size_t " size );
+.BI "PMEMoid pmemobj_root(PMEMobjpool *" pop ", size_t " size ", int " flags );
 .IP
 The
 .BR pmemobj_root ()
@@ -1424,11 +1427,13 @@ function shall not fail, except for the case if the requested object size
 is larger than the maximum allocation size supported for given pool,
 or if there is not enough free space in the pool to satisfy the reallocation
 of the root object.  In such case, OID_NULL is returned.
+.I flags
+must be always equal to 0.
 .PP
 .PP
 .BI "PMEMoid pmemobj_root_construct(PMEMobjpool *" pop ", size_t " size ,
 .br
-.BI "    pmemobj_constr " constructor ", void *" arg )
+.BI "    pmemobj_constr " constructor ", void *" arg ", int " flags )
 .IP
 The
 .BR pmemobj_root_construct ()
@@ -1446,6 +1451,8 @@ The
 .BR pmemobj_root_size ()
 can be used in the constructor to check whether it's the first call to the
 constructor.
+.I flags
+must be always equal to 0.
 .PP
 .BI "POBJ_ROOT(PMEMobjpool *" pop ", " TYPE )
 .IP
@@ -1502,7 +1509,7 @@ is an user-defined argument passed to an appropriate function.
 .PP
 .BI "int pmemobj_alloc(PMEMobjpool *" pop ", PMEMoid *" oidp ", size_t " size ,
 .br
-.BI "    uint64_t " type_num ", pmemobj_constr " constructor " , void *" arg );
+.BI "    uint64_t " type_num ", pmemobj_constr " constructor " , void *" arg ", int " flags );
 .IP
 The
 .B pmemobj_alloc
@@ -1557,50 +1564,10 @@ returns non-zero value, sets the errno and leaves the
 untouched.
 The allocated object is added to the internal container associated with given
 .IR type_num .
-.PP
-.BI "int pmemobj_zalloc(PMEMobjpool *" pop ", PMEMoid *" oidp ", size_t " size ,
-.br
-.BI "    uint64_t " type_num );
-.IP
-The
-.BR pmemobj_zalloc ()
-function allocates a new zeroed object from the the persistent memory heap
-associated with memory pool
-.IR pop .
-The
-.B PMEMoid
-of allocated object is stored in
-.IR oidp .
-If NULL is passed as
-.IR oidp ,
-then the newly allocated object may be accessed only by iterating objects
-in the object container associated with given
-.IR type_num ,
-as described in
-.B OBJECT CONTAINERS
-section.
-If the
-.I oidp
-points to memory location from the
-.B pmemobj
-heap the
-.I oidp
-is modified atomically.
-The
-.I size
-can be any non-zero value, however due to internal padding and object metadata,
-the actual size of the allocation will differ from the requested one by at least
-64 bytes.  For this reason, making the allocations of a size
-less than 64 bytes is extremely inefficient and discouraged.
-If
-.I size
-equals 0, then
-.BR pmemobj_zalloc ()
-returns non-zero value, sets the errno and leaves the
-.I oidp
-untouched.
-The allocated object is added to the internal container associated with given
-.IR type_num .
+.IR flags
+is a bitmask of 0 or more modifiers. For now only one modifier is defined:
+.IR PMEMOBJ_FLAG_ZERO ,
+which instructs the library to zero the allocated memory.
 .PP
 .BI "void pmemobj_free(PMEMoid *" oidp );
 .IP
@@ -1613,11 +1580,9 @@ persistent memory heap.
 It frees the memory space represented by
 .IR oidp ,
 which must have been returned by a previous call to
-.BR pmemobj_alloc (),
-.BR pmemobj_zalloc (),
-.BR pmemobj_realloc (),
+.BR pmemobj_alloc ()
 or
-.BR pmemobj_zrealloc ().
+.BR pmemobj_realloc ().
 If
 .I oidp
 is NULL or if it points to the root object's OID,
@@ -1638,7 +1603,7 @@ is changed atomically.
 .PP
 .BI "int pmemobj_realloc(PMEMobjpool *" pop ", PMEMoid *" oidp ", size_t " size ,
 .br
-.BI "    uint64_t " type_num );
+.BI "    uint64_t " type_num ", int " flags );
 .IP
 The
 .BR pmemobj_realloc ()
@@ -1679,11 +1644,9 @@ Unless
 is
 .IR OID_NULL ,
 it must have been returned by an earlier call to
-.BR pmemobj_alloc (),
-.BR pmemobj_zalloc (),
-.BR pmemobj_realloc (),
+.BR pmemobj_alloc ()
 or
-.BR pmemobj_zrealloc ().
+.BR pmemobj_realloc ().
 Note that the object handle value may change in result of reallocation.
 If the object was moved, a memory space represented by
 .I oid
@@ -1698,71 +1661,15 @@ If
 .BR pmemobj_realloc ()
 is unable to satisfy the allocation request, a non-zero value is returned and
 errno is set appropriately.
-.PP
-.BI "int pmemobj_zrealloc(PMEMobjpool *" pop ", PMEMoid *" oidp ", size_t " size ,
-.br
-.BI "    uint64_t " type_num );
-.IP
-The
-.BR pmemobj_zrealloc ()
-function provide similar semantics to
-.BR realloc (3),
-but operates on the persistent memory heap associated with memory pool
-.IR pop .
-It changes the size of the object represented by
-.IR oid ,
-to
-.I size
-bytes.  The resized object is also added or moved to the internal
-container associated with given
-.IR type_num .
-The contents will be unchanged in the range from the start of the region
-up to the minimum of the old and new sizes.
-If the new size is larger than the old size, the added memory will be zeroed.
-If
-.I oidp
-is NULL or if it points to the root object's OID,
-behavior of the function is undefined.
-If it points to
-.IR OID_NULL ,
-then the call is equivalent to
-.BI "pmemobj_zalloc(" pop ", " size ", " type_num ")."
-If
-.I size
-is equal to zero, and
-.I oidp
-doesn't point to
-.IR OID_NULL ,
-then the call is equivalent to
-.BI "pmemobj_free(" pop ", " oid ")."
-Unless
-.I oidp
-points to
-.IR OID_NULL ,
-it must have been returned by an earlier call to
-.BR pmemobj_alloc (),
-.BR pmemobj_zalloc (),
-.BR pmemobj_realloc (),
-or
-.BR pmemobj_zrealloc ().
-Note that the object handle value may change in result of reallocation.
-If the object was moved, a memory space represented by
-.I oidp
-is reclaimed. If
-.I oidp
-points to memory location from the
-.B pmemobj
-heap the
-.I oidp
-is changed atomically.
-If
-.BR pmemobj_zrealloc ()
-is unable to satisfy the allocation request, OID_NULL is
-returned and errno is set appropriately.
+.IR flags
+is a bitmask of 0 or more modifiers. For now only one modifier is defined:
+.IR PMEMOBJ_FLAG_ZERO ,
+which instructs the library to zero the new space if the new size is larger than
+the old size (otherwise it's left unitialized).
 .PP
 .BI "int pmemobj_strdup(PMEMobjpool *" pop ", PMEMoid *" oidp ", const char *" s ,
 .br
-.BI "    uint64_t " type_num );
+.BI "    uint64_t " type_num ", int " flags );
 .IP
 The
 .BR pmemobj_strdup ()
@@ -1802,6 +1709,8 @@ If
 .BR pmemobj_strdup ()
 is unable to satisfy the allocation request, OID_NULL is
 returned and errno is set appropriately.
+.I flags
+must be always equal to 0.
 .PP
 .BI "size_t pmemobj_alloc_usable_size(PMEMoid " oid );
 .IP
@@ -1864,13 +1773,13 @@ it takes a pointer to typed OID of
 The
 .B POBJ_ZNEW
 macro is a wrapper around the
-.BR pmemobj_zalloc ()
+.BR pmemobj_alloc ()
 function which takes the type name
 .B TYPE
 and passes the size and type number to
 the
-.BR pmemobj_zalloc ()
-function from the typed OID.
+.BR pmemobj_alloc ()
+function from the typed OID and sets flags to PMEMOBJ_FLAG_ZERO.
 Instead of taking a pointer to
 .B PMEMoid
 it takes a pointer to typed OID of
@@ -1881,14 +1790,14 @@ it takes a pointer to typed OID of
 The
 .B POBJ_ZALLOC
 macro is a wrapper around the
-.BR pmemobj_zalloc ()
+.BR pmemobj_alloc ()
 function which takes the type name
 .BR TYPE ,
 the size of allocation
 .I size
 and passes the type number to the
-.BR pmemobj_zalloc ()
-function from the typed OID.
+.BR pmemobj_alloc ()
+function from the typed OID and sets flags to PMEMOBJ_FLAG_ZERO.
 Instead of taking a pointer to
 .B PMEMoid
 it takes a pointer to typed OID of
@@ -1915,12 +1824,12 @@ it takes a pointer to typed OID of
 The
 .B POBJ_ZREALLOC
 macro is a wrapper around the
-.BR pmemobj_zrealloc ()
+.BR pmemobj_realloc ()
 function which takes the type name
 .B TYPE
 and passes the type number to the
-.BR pmemobj_zrealloc ()
-function from the typed OID.
+.BR pmemobj_realloc ()
+function from the typed OID and sets flags to PMEMOBJ_FLAG_ZERO.
 Instead of taking a pointer to
 .B PMEMoid
 it takes a pointer to typed OID of
@@ -2727,7 +2636,7 @@ and makes the transition to the next stage. It must be called in transaction.
 Current stage must always be obtained by a call to
 .BR pmemobj_tx_stage ().
 .PP
-.BI "int pmemobj_tx_add_range(PMEMoid " oid ", uint64_t " off ", size_t " size );
+.BI "int pmemobj_tx_add_range(PMEMoid " oid ", uint64_t " off ", size_t " size ", int " flags );
 .IP
 The
 .BR pmemobj_tx_add_range ()
@@ -2741,13 +2650,15 @@ and saves it to the undo log.  The application is then free to directly modify
 the object in that memory range.  In case of a failure or abort, all the changes
 within this range will be rolled-back.  The supplied block of memory has to be within
 the pool registered in the transaction.
+.I flags
+must be always equal to 0.
 If successful, returns zero.  Otherwise, state changes to
 .I TX_STAGE_ONABORT
 and an error number is returned.
 This function must be called during
 .IR TX_STAGE_WORK .
 .PP
-.BI "int pmemobj_tx_add_range_direct(const void *" ptr ", size_t " size );
+.BI "int pmemobj_tx_add_range_direct(const void *" ptr ", size_t " size ", int " flags );
 .IP
 The
 .BR pmemobj_tx_add_range_direct ()
@@ -2763,13 +2674,15 @@ in the virtual memory space and saves it to the undo log.  The application is th
 free to directly modify the object in that memory range.  In case of a failure
 or abort, all the changes within this range will be rolled-back.  The supplied
 block of memory has to be within the pool registered in the transaction.
+.I flags
+must be always equal to 0.
 If successful, returns zero.  Otherwise, state changes to
 .I TX_STAGE_ONABORT
 and an error number is returned.
 This function must be called during
 .IR TX_STAGE_WORK .
 .PP
-.BI "PMEMoid pmemobj_tx_alloc(size_t " size ", uint64_t " type_num );
+.BI "PMEMoid pmemobj_tx_alloc(size_t " size ", uint64_t " type_num ", int " flags );
 .IP
 The
 .BR pmemobj_tx_alloc ()
@@ -2777,6 +2690,10 @@ transactionally allocates a new object of given
 .I size
 and
 .IR type_num .
+.IR flags
+is a bitmask of 0 or more modifiers. For now only one modifier is defined:
+.IR PMEMOBJ_FLAG_ZERO ,
+which instructs the library to zero the allocated memory.
 In contrast to the non-transactional allocations, the objects are
 added to the internal object containers of given
 .I type_num
@@ -2793,27 +2710,7 @@ equals 0, OID_NULL is returned and errno is set appropriately.
 This function must be called during
 .IR TX_STAGE_WORK .
 .PP
-.BI "PMEMoid pmemobj_tx_zalloc(size_t " size ", uint64_t " type_num );
-.IP
-The pmemobj_tx_zalloc ()
-.BR
-function transactionally allocates new zeroed object of given
-.I size
-and
-.IR type_num .
-If successful, returns a handle to the newly allocated object.  Otherwise, stage
-changes to
-.IR TX_STAGE_ONABORT ,
-OID_NULL is returned, and errno is set appropriately.
-If
-.I size
-equals 0, OID_NULL is returned and errno is set appropriately.
-This function must be called during
-.IR TX_STAGE_WORK .
-.PP
-.BI "PMEMoid pmemobj_tx_realloc(PMEMoid " oid ", size_t " size ,
-.br
-.BI "    uint64_t " type_num );
+.BI "PMEMoid pmemobj_tx_realloc(PMEMoid " oid ", size_t " size ", uint64_t " type_num ", int " flags );
 .IP
 The
 .BR pmemobj_tx_realloc ()
@@ -2831,10 +2728,12 @@ is equal to zero and
 .I oid
 is not OID_NULL, then the call is equivalent to
 .BI "pmemobj_tx_free(" oid ")."
-If the new size is larger than the old size, the added memory will
-.I not
-be initialized.
-If successful, returns returns a handle to the resized object.  Otherwise, stage
+.IR flags
+is a bitmask of 0 or more modifiers. For now only one modifier is defined:
+.IR PMEMOBJ_FLAG_ZERO ,
+which instructs the library to zero the new space if the new size is larger than
+the old size (otherwise it's left unitialized).
+If successful, returns a handle to the resized object.  Otherwise, stage
 changes to
 .IR TX_STAGE_ONABORT ,
 OID_NULL is returned, and errno is set appropriately.
@@ -2842,26 +2741,7 @@ Note that the object handle value may change in result of reallocation.
 This function must be called during
 .IR TX_STAGE_WORK .
 .PP
-.BI "PMEMoid pmemobj_tx_zrealloc(PMEMoid " oid ", size_t " size ,
-.br
-.BI "    uint64_t " type_num );
-.IP
-The
-.BR pmemobj_tx_zrealloc ()
-function transactionally resizes an existing object to the given
-.I size
-and changes its type to
-.IR type_num .
-If the new size is larger than the old size, the extended new space is zeroed.
-If successful, returns returns a handle to the resized object.  Otherwise, stage
-changes to
-.IR TX_STAGE_ONABORT ,
-OID_NULL is returned, and errno is set appropriately.
-Note that the object handle value may change in result of reallocation.
-This function must be called during
-.IR TX_STAGE_WORK .
-.PP
-.BI "PMEMoid pmemobj_tx_strdup(const char *" s ", uint64_t " type_num );
+.BI "PMEMoid pmemobj_tx_strdup(const char *" s ", uint64_t " type_num ", int " flags );
 .IP
 The
 .BR pmemobj_tx_strdup ()
@@ -2870,6 +2750,8 @@ string
 .I s
 and assigns it a type
 .IR type_num .
+.I flags
+must be always equal to 0.
 If successful, returns a handle to the newly allocated object.  Otherwise, stage
 changes to
 .IR TX_STAGE_ONABORT ,
@@ -3351,7 +3233,7 @@ default function to be used.
 The library does not make heavy use of the system malloc functions, but
 it does allocate approximately 4-8 kilobytes for each memory pool in use.
 .PP
-.BI "int pmemobj_check(const char *" path ", const char *" layout );
+.BI "int pmemobj_check(const char *" path ", const char *" layout ", int " flags );
 .IP
 The
 .BR pmemobj_check ()
@@ -3371,6 +3253,8 @@ will provide additional details on inconsistencies when
 is at least 1, as described in the
 .B "DEBUGGING AND ERROR HANDLING"
 section below.
+.I flags
+must be always equal to 0.
 .BR pmemobj_check ()
 will return -1 and set errno if it cannot perform the
 consistency check due to other errors.

@@ -31,7 +31,7 @@
  */
 
 /*
- * obj_tx_alloc.c -- unit test for pmemobj_tx_alloc and pmemobj_tx_zalloc
+ * obj_tx_alloc.c -- unit test for pmemobj_tx_alloc
  */
 #include <assert.h>
 #include <sys/param.h>
@@ -123,15 +123,16 @@ do_tx_alloc_abort_after_nested(PMEMobjpool *pop)
 
 	TX_BEGIN(pop) {
 		TOID_ASSIGN(obj1, pmemobj_tx_alloc(sizeof (struct object),
-				TYPE_ABORT_AFTER_NESTED1));
+				TYPE_ABORT_AFTER_NESTED1, 0));
 		ASSERT(!TOID_IS_NULL(obj1));
 
 		D_RW(obj1)->value = TEST_VALUE_1;
 
 		TX_BEGIN(pop) {
-			TOID_ASSIGN(obj2, pmemobj_tx_zalloc(
+			TOID_ASSIGN(obj2, pmemobj_tx_alloc(
 					sizeof (struct object),
-					TYPE_ABORT_AFTER_NESTED2));
+					TYPE_ABORT_AFTER_NESTED2,
+					PMEMOBJ_FLAG_ZERO));
 			ASSERT(!TOID_IS_NULL(obj2));
 			ASSERT(util_is_zeroed(D_RO(obj2),
 					sizeof (struct object)));
@@ -179,15 +180,15 @@ do_tx_alloc_abort_nested(PMEMobjpool *pop)
 
 	TX_BEGIN(pop) {
 		TOID_ASSIGN(obj1, pmemobj_tx_alloc(sizeof (struct object),
-				TYPE_ABORT_NESTED1));
+				TYPE_ABORT_NESTED1, 0));
 		ASSERT(!TOID_IS_NULL(obj1));
 
 		D_RW(obj1)->value = TEST_VALUE_1;
 
 		TX_BEGIN(pop) {
-			TOID_ASSIGN(obj2, pmemobj_tx_zalloc(
+			TOID_ASSIGN(obj2, pmemobj_tx_alloc(
 					sizeof (struct object),
-					TYPE_ABORT_NESTED2));
+					TYPE_ABORT_NESTED2, PMEMOBJ_FLAG_ZERO));
 			ASSERT(!TOID_IS_NULL(obj2));
 			ASSERT(util_is_zeroed(D_RO(obj2),
 					sizeof (struct object)));
@@ -233,15 +234,16 @@ do_tx_alloc_commit_nested(PMEMobjpool *pop)
 
 	TX_BEGIN(pop) {
 		TOID_ASSIGN(obj1, pmemobj_tx_alloc(sizeof (struct object),
-				TYPE_COMMIT_NESTED1));
+				TYPE_COMMIT_NESTED1, 0));
 		ASSERT(!TOID_IS_NULL(obj1));
 
 		D_RW(obj1)->value = TEST_VALUE_1;
 
 		TX_BEGIN(pop) {
-			TOID_ASSIGN(obj2, pmemobj_tx_zalloc(
+			TOID_ASSIGN(obj2, pmemobj_tx_alloc(
 					sizeof (struct object),
-					TYPE_COMMIT_NESTED2));
+					TYPE_COMMIT_NESTED2,
+					PMEMOBJ_FLAG_ZERO));
 			ASSERT(!TOID_IS_NULL(obj2));
 			ASSERT(util_is_zeroed(D_RO(obj2),
 					sizeof (struct object)));
@@ -290,7 +292,7 @@ do_tx_alloc_abort(PMEMobjpool *pop)
 	TOID(struct object) obj;
 	TX_BEGIN(pop) {
 		TOID_ASSIGN(obj, pmemobj_tx_alloc(sizeof (struct object),
-				TYPE_ABORT));
+				TYPE_ABORT, 0));
 		ASSERT(!TOID_IS_NULL(obj));
 
 		D_RW(obj)->value = TEST_VALUE_1;
@@ -316,7 +318,7 @@ do_tx_alloc_zerolen(PMEMobjpool *pop)
 {
 	TOID(struct object) obj;
 	TX_BEGIN(pop) {
-		TOID_ASSIGN(obj, pmemobj_tx_alloc(0, TYPE_ABORT));
+		TOID_ASSIGN(obj, pmemobj_tx_alloc(0, TYPE_ABORT, 0));
 		ASSERT(0); /* should not get to this point */
 	} TX_ONCOMMIT {
 		ASSERT(0);
@@ -340,7 +342,7 @@ do_tx_alloc_huge(PMEMobjpool *pop)
 	TOID(struct object) obj;
 	TX_BEGIN(pop) {
 		TOID_ASSIGN(obj, pmemobj_tx_alloc(PMEMOBJ_MAX_ALLOC_SIZE + 1,
-				TYPE_ABORT));
+				TYPE_ABORT, 0));
 		ASSERT(0); /* should not get to this point */
 	} TX_ONCOMMIT {
 		ASSERT(0);
@@ -364,7 +366,7 @@ do_tx_alloc_commit(PMEMobjpool *pop)
 	TOID(struct object) obj;
 	TX_BEGIN(pop) {
 		TOID_ASSIGN(obj, pmemobj_tx_alloc(sizeof (struct object),
-				TYPE_COMMIT));
+				TYPE_COMMIT, 0));
 		ASSERT(!TOID_IS_NULL(obj));
 
 		D_RW(obj)->value = TEST_VALUE_1;
@@ -392,8 +394,8 @@ do_tx_zalloc_abort(PMEMobjpool *pop)
 {
 	TOID(struct object) obj;
 	TX_BEGIN(pop) {
-		TOID_ASSIGN(obj, pmemobj_tx_zalloc(sizeof (struct object),
-				TYPE_ZEROED_ABORT));
+		TOID_ASSIGN(obj, pmemobj_tx_alloc(sizeof (struct object),
+				TYPE_ZEROED_ABORT, PMEMOBJ_FLAG_ZERO));
 		ASSERT(!TOID_IS_NULL(obj));
 		ASSERT(util_is_zeroed(D_RO(obj), sizeof (struct object)));
 
@@ -420,7 +422,8 @@ do_tx_zalloc_zerolen(PMEMobjpool *pop)
 {
 	TOID(struct object) obj;
 	TX_BEGIN(pop) {
-		TOID_ASSIGN(obj, pmemobj_tx_zalloc(0, TYPE_ZEROED_ABORT));
+		TOID_ASSIGN(obj, pmemobj_tx_alloc(0, TYPE_ZEROED_ABORT,
+				PMEMOBJ_FLAG_ZERO));
 		ASSERT(0); /* should not get to this point */
 	} TX_ONCOMMIT {
 		ASSERT(0);
@@ -443,8 +446,8 @@ do_tx_zalloc_huge(PMEMobjpool *pop)
 {
 	TOID(struct object) obj;
 	TX_BEGIN(pop) {
-		TOID_ASSIGN(obj, pmemobj_tx_zalloc(PMEMOBJ_MAX_ALLOC_SIZE + 1,
-				TYPE_ZEROED_ABORT));
+		TOID_ASSIGN(obj, pmemobj_tx_alloc(PMEMOBJ_MAX_ALLOC_SIZE + 1,
+				TYPE_ZEROED_ABORT, PMEMOBJ_FLAG_ZERO));
 		ASSERT(0); /* should not get to this point */
 	} TX_ONCOMMIT {
 		ASSERT(0);
@@ -467,8 +470,8 @@ do_tx_zalloc_commit(PMEMobjpool *pop)
 {
 	TOID(struct object) obj;
 	TX_BEGIN(pop) {
-		TOID_ASSIGN(obj, pmemobj_tx_zalloc(sizeof (struct object),
-				TYPE_ZEROED_COMMIT));
+		TOID_ASSIGN(obj, pmemobj_tx_alloc(sizeof (struct object),
+				TYPE_ZEROED_COMMIT, PMEMOBJ_FLAG_ZERO));
 		ASSERT(!TOID_IS_NULL(obj));
 		ASSERT(util_is_zeroed(D_RO(obj), sizeof (struct object)));
 
@@ -497,7 +500,7 @@ do_tx_root(PMEMobjpool *pop)
 {
 	size_t root_size = 24;
 	TX_BEGIN(pop) {
-		PMEMoid root = pmemobj_root(pop, root_size);
+		PMEMoid root = pmemobj_root(pop, root_size, 0);
 		ASSERT(!OID_IS_NULL(root));
 		ASSERT(util_is_zeroed(pmemobj_direct(root),
 				root_size));
@@ -518,7 +521,7 @@ main(int argc, char *argv[])
 
 	PMEMobjpool *pop;
 	if ((pop = pmemobj_create(argv[1], LAYOUT_NAME, 0,
-				S_IWUSR | S_IRUSR)) == NULL)
+				S_IWUSR | S_IRUSR, 0)) == NULL)
 		FATAL("!pmemobj_create");
 
 	do_tx_root(pop);

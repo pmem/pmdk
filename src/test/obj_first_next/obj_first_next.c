@@ -271,15 +271,15 @@ static void
 test_internal_object_mask(PMEMobjpool *pop)
 {
 	/* allocate root object */
-	PMEMoid root = pmemobj_root(pop, sizeof (struct type));
+	PMEMoid root = pmemobj_root(pop, sizeof (struct type), 0);
 
 	TX_BEGIN(pop) {
 		/* trigger creation of a range cache */
-		pmemobj_tx_add_range(root, 0, 8);
+		pmemobj_tx_add_range(root, 0, 8, 0);
 	} TX_END
 
 	PMEMoid oid;
-	pmemobj_alloc(pop, &oid, sizeof (struct type), 0, NULL, NULL);
+	pmemobj_alloc(pop, &oid, sizeof (struct type), 0, NULL, NULL, 0);
 	ASSERT(!OID_IS_NULL(oid));
 
 	/* verify that there's no root object nor range cache anywhere */
@@ -298,7 +298,7 @@ main(int argc, char *argv[])
 
 	const char *path = argv[1];
 	if ((pop = pmemobj_create(path, LAYOUT_NAME, PMEMOBJ_MIN_POOL,
-						S_IWUSR | S_IRUSR)) == NULL)
+						S_IWUSR | S_IRUSR, 0)) == NULL)
 		FATAL("!pmemobj_create");
 
 	for (int i = 2; i < argc; i++) {

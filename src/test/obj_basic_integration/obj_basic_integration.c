@@ -155,20 +155,22 @@ test_alloc_api(PMEMobjpool *pop)
 
 	int err = 0;
 
-	err = pmemobj_alloc(pop, NULL, SIZE_MAX, 0, NULL, NULL);
+	err = pmemobj_alloc(pop, NULL, SIZE_MAX, 0, NULL, NULL, 0);
 	ASSERTeq(err, -1);
 	ASSERTeq(errno, ENOMEM);
 
-	err = pmemobj_zalloc(pop, NULL, SIZE_MAX, 0);
+	err = pmemobj_alloc(pop, NULL, SIZE_MAX, 0, NULL, NULL,
+			PMEMOBJ_FLAG_ZERO);
 	ASSERTeq(err, -1);
 	ASSERTeq(errno, ENOMEM);
 
 	err = pmemobj_alloc(pop, NULL, PMEMOBJ_MAX_ALLOC_SIZE + 1, 0, NULL,
-		NULL);
+		NULL, 0);
 	ASSERTeq(err, -1);
 	ASSERTeq(errno, ENOMEM);
 
-	err = pmemobj_zalloc(pop, NULL, PMEMOBJ_MAX_ALLOC_SIZE + 1, 0);
+	err = pmemobj_alloc(pop, NULL, PMEMOBJ_MAX_ALLOC_SIZE + 1, 0, NULL,
+			NULL, PMEMOBJ_FLAG_ZERO);
 	ASSERTeq(err, -1);
 	ASSERTeq(errno, ENOMEM);
 }
@@ -179,41 +181,41 @@ test_realloc_api(PMEMobjpool *pop)
 	PMEMoid oid = OID_NULL;
 	int ret;
 
-	ret = pmemobj_alloc(pop, &oid, 128, 0, NULL, NULL);
+	ret = pmemobj_alloc(pop, &oid, 128, 0, NULL, NULL, 0);
 	ASSERTeq(ret, 0);
 	ASSERT(!OID_IS_NULL(oid));
 	OUT("alloc: %u, size: %zu", 128,
 			pmemobj_alloc_usable_size(oid));
 
 	/* grow */
-	ret = pmemobj_realloc(pop, &oid, 655360, 0);
+	ret = pmemobj_realloc(pop, &oid, 655360, 0, 0);
 	ASSERTeq(ret, 0);
 	ASSERT(!OID_IS_NULL(oid));
 	OUT("realloc: %u => %u, size: %zu", 128, 655360,
 			pmemobj_alloc_usable_size(oid));
 
 	/* shrink */
-	ret = pmemobj_realloc(pop, &oid, 1, 0);
+	ret = pmemobj_realloc(pop, &oid, 1, 0, 0);
 	ASSERTeq(ret, 0);
 	ASSERT(!OID_IS_NULL(oid));
 	OUT("realloc: %u => %u, size: %zu", 655360, 1,
 			pmemobj_alloc_usable_size(oid));
 
 	/* free */
-	ret = pmemobj_realloc(pop, &oid, 0, 0);
+	ret = pmemobj_realloc(pop, &oid, 0, 0, 0);
 	ASSERTeq(ret, 0);
 	ASSERT(OID_IS_NULL(oid));
 	OUT("free");
 
 	/* alloc */
-	ret = pmemobj_realloc(pop, &oid, 777, 0);
+	ret = pmemobj_realloc(pop, &oid, 777, 0, 0);
 	ASSERTeq(ret, 0);
 	ASSERT(!OID_IS_NULL(oid));
 	OUT("realloc: %u => %u, size: %zu", 0, 777,
 			pmemobj_alloc_usable_size(oid));
 
 	/* shrink */
-	ret = pmemobj_realloc(pop, &oid, 1, 0);
+	ret = pmemobj_realloc(pop, &oid, 1, 0, 0);
 	ASSERTeq(ret, 0);
 	ASSERT(!OID_IS_NULL(oid));
 	OUT("realloc: %u => %u, size: %zu", 777, 1,
@@ -224,14 +226,14 @@ test_realloc_api(PMEMobjpool *pop)
 	OUT("free");
 
 	/* alloc */
-	ret = pmemobj_realloc(pop, &oid, 1, 0);
+	ret = pmemobj_realloc(pop, &oid, 1, 0, 0);
 	ASSERTeq(ret, 0);
 	ASSERT(!OID_IS_NULL(oid));
 	OUT("realloc: %u => %u, size: %zu", 0, 1,
 			pmemobj_alloc_usable_size(oid));
 
 	/* do nothing */
-	ret = pmemobj_realloc(pop, &oid, 1, 0);
+	ret = pmemobj_realloc(pop, &oid, 1, 0, 0);
 	ASSERTeq(ret, 0);
 	ASSERT(!OID_IS_NULL(oid));
 	OUT("realloc: %u => %u, size: %zu", 1, 1,
@@ -242,21 +244,21 @@ test_realloc_api(PMEMobjpool *pop)
 	OUT("free");
 
 	/* do nothing */
-	ret = pmemobj_realloc(pop, &oid, 0, 0);
+	ret = pmemobj_realloc(pop, &oid, 0, 0, 0);
 	ASSERTeq(ret, 0);
 	ASSERT(OID_IS_NULL(oid));
 
 	/* alloc */
-	ret = pmemobj_realloc(pop, &oid, 1, 0);
+	ret = pmemobj_realloc(pop, &oid, 1, 0, 0);
 	ASSERTeq(ret, 0);
 	ASSERT(!OID_IS_NULL(oid));
 
 	/* grow beyond reasonable size */
-	ret = pmemobj_realloc(pop, &oid, SIZE_MAX, 0);
+	ret = pmemobj_realloc(pop, &oid, SIZE_MAX, 0, 0);
 	ASSERTeq(ret, -1);
 	ASSERTeq(errno, ENOMEM);
 
-	ret = pmemobj_realloc(pop, &oid, PMEMOBJ_MAX_ALLOC_SIZE + 1, 0);
+	ret = pmemobj_realloc(pop, &oid, PMEMOBJ_MAX_ALLOC_SIZE + 1, 0, 0);
 	ASSERTeq(ret, -1);
 	ASSERTeq(errno, ENOMEM);
 
@@ -410,7 +412,7 @@ static void
 test_tx_api(PMEMobjpool *pop)
 {
 	TOID(struct dummy_root) root;
-	TOID_ASSIGN(root, pmemobj_root(pop, sizeof (struct dummy_root)));
+	TOID_ASSIGN(root, pmemobj_root(pop, sizeof (struct dummy_root), 0));
 
 	int *vstate = NULL; /* volatile state */
 
@@ -541,7 +543,7 @@ main(int argc, char *argv[])
 	PMEMobjpool *pop = NULL;
 
 	if ((pop = pmemobj_create(path, POBJ_LAYOUT_NAME(basic),
-			0, S_IWUSR | S_IRUSR)) == NULL)
+			0, S_IWUSR | S_IRUSR, 0)) == NULL)
 		FATAL("!pmemobj_create: %s", path);
 
 	test_alloc_api(pop);

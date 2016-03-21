@@ -130,7 +130,7 @@ test_ptr_atomic(PMEMobjpool *pop)
 	persistent_ptr<foo> pfoo;
 
 	ret = pmemobj_alloc(pop, pfoo.raw_ptr(), sizeof (foo),
-		0, NULL, NULL);
+		0, NULL, NULL, 0);
 
 	ASSERTeq(ret, 0);
 	ASSERTne(pfoo.get(), NULL);
@@ -154,12 +154,12 @@ test_ptr_atomic(PMEMobjpool *pop)
 void
 test_ptr_transactional(PMEMobjpool *pop)
 {
-	persistent_ptr<root> r = pmemobj_root(pop, sizeof (root));
+	persistent_ptr<root> r = pmemobj_root(pop, sizeof (root), 0);
 
 	TX_BEGIN(pop) {
 		ASSERT(r->pfoo == nullptr);
 
-		r->pfoo = pmemobj_tx_alloc(sizeof (foo), 0);
+		r->pfoo = pmemobj_tx_alloc(sizeof (foo), 0, 0);
 
 	} TX_ONABORT {
 		ASSERT(0);
@@ -209,7 +209,7 @@ test_ptr_array(PMEMobjpool *pop)
 	persistent_ptr<p<int>[]> parr_vsize;
 	ret = pmemobj_alloc(pop, parr_vsize.raw_ptr(),
 		sizeof (int) * TEST_ARR_SIZE,
-		0, NULL, NULL);
+		0, NULL, NULL, 0);
 	ASSERTeq(ret, 0);
 
 	for (int i = 0; i < TEST_ARR_SIZE; ++i)
@@ -218,10 +218,11 @@ test_ptr_array(PMEMobjpool *pop)
 	for (int i = 0; i < TEST_ARR_SIZE; ++i)
 		ASSERTeq(parr_vsize[i], i);
 
-	persistent_ptr<root> r = pmemobj_root(pop, sizeof (root));
+	persistent_ptr<root> r = pmemobj_root(pop, sizeof (root), 0);
 
 	TX_BEGIN(pop) {
-		r->parr = pmemobj_tx_zalloc(sizeof (int) * TEST_ARR_SIZE, 0);
+		r->parr = pmemobj_tx_alloc(sizeof (int) * TEST_ARR_SIZE, 0,
+				PMEMOBJ_FLAG_ZERO);
 	} TX_ONABORT {
 		ASSERT(0);
 	} TX_END
@@ -255,7 +256,7 @@ main(int argc, char *argv[])
 
 	PMEMobjpool *pop = NULL;
 
-	if ((pop = pmemobj_create(path, LAYOUT, PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR)) == NULL)
+	if ((pop = pmemobj_create(path, LAYOUT, PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR, 0)) == NULL)
 		FATAL("!pmemobj_create: %s", path);
 
 	test_ptr_operators_null();

@@ -72,7 +72,7 @@ static unsigned counter;
 static void
 tx_strdup(TOID(char) *str, const char *s, unsigned type_num)
 {
-	TOID_ASSIGN(*str, pmemobj_tx_strdup(s, type_num));
+	TOID_ASSIGN(*str, pmemobj_tx_strdup(s, type_num, 0));
 }
 
 /*
@@ -294,7 +294,7 @@ main(int argc, char *argv[])
 
 	PMEMobjpool *pop;
 	if ((pop = pmemobj_create(argv[1], LAYOUT_NAME, PMEMOBJ_MIN_POOL,
-	    S_IWUSR | S_IRUSR)) == NULL)
+	    S_IWUSR | S_IRUSR, 0)) == NULL)
 		FATAL("!pmemobj_create");
 
 	for (counter = 0; counter < MAX_FUNC; counter++) {

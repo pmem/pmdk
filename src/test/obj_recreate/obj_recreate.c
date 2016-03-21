@@ -66,12 +66,13 @@ main(int argc, char *argv[])
 	PMEMobjpool *pop = NULL;
 
 	/* create pool 2*N */
-	pop = pmemobj_create(path, LAYOUT_NAME, 2 * N, S_IWUSR | S_IRUSR);
+	pop = pmemobj_create(path, LAYOUT_NAME, 2 * N, S_IWUSR | S_IRUSR, 0);
 	if (pop == NULL)
 		FATAL("!pmemobj_create: %s", path);
 
 	/* allocate 1.5*N */
-	TOID(struct root) root = (TOID(struct root))pmemobj_root(pop, 1.5 * N);
+	TOID(struct root) root = (TOID(struct root))pmemobj_root(pop, 1.5 * N,
+			0);
 
 	/* use root object for something */
 	POBJ_NEW(pop, &D_RW(root)->foo, struct foo, NULL, NULL);
@@ -93,12 +94,12 @@ main(int argc, char *argv[])
 	CLOSE(fd);
 
 	/* create pool on existing file */
-	pop = pmemobj_create(path, LAYOUT_NAME, 0, S_IWUSR | S_IRUSR);
+	pop = pmemobj_create(path, LAYOUT_NAME, 0, S_IWUSR | S_IRUSR, 0);
 	if (pop == NULL)
 		FATAL("!pmemobj_create: %s", path);
 
 	/* try to allocate 0.7*N */
-	root = (TOID(struct root))pmemobj_root(pop, 0.5 * N);
+	root = (TOID(struct root))pmemobj_root(pop, 0.5 * N, 0);
 
 	if (TOID_IS_NULL(root))
 		FATAL("couldn't allocate root object");

@@ -863,7 +863,7 @@ do_insert(PMEMobjpool *pop, const char *arg)
 
 	PMEMoid it;
 	pmemobj_alloc(pop, &it,
-			sizeof (struct oob_item), 0, NULL, NULL);
+			sizeof (struct oob_item), 0, NULL, NULL, 0);
 
 	if (list_insert(pop,
 		offsetof(struct item, next),
@@ -1028,7 +1028,7 @@ main(int argc, char *argv[])
 	util_init(); /* to initialize On_valgrind flag */
 
 	UT_COMPILE_ERROR_ON(OOB_OFF != 48);
-	PMEMobjpool *pop = pmemobj_open(path, NULL);
+	PMEMobjpool *pop = pmemobj_open(path, NULL, 0);
 	ASSERTne(pop, NULL);
 
 	ASSERT(!TOID_IS_NULL(List));

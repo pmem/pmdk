@@ -80,7 +80,8 @@ do_tx_zalloc(PMEMobjpool *pop, int type_num)
 	PMEMoid ret = OID_NULL;
 
 	TX_BEGIN(pop) {
-		ret = pmemobj_tx_zalloc(sizeof (struct object), type_num);
+		ret = pmemobj_tx_alloc(sizeof (struct object), type_num,
+				PMEMOBJ_FLAG_ZERO);
 	} TX_END
 
 	return ret;
@@ -99,12 +100,12 @@ do_tx_add_range_alloc_commit(PMEMobjpool *pop)
 		TOID_ASSIGN(obj, do_tx_zalloc(pop, TYPE_OBJ));
 		ASSERT(!TOID_IS_NULL(obj));
 
-		ret = pmemobj_tx_add_range(obj.oid, VALUE_OFF, VALUE_SIZE);
+		ret = pmemobj_tx_add_range(obj.oid, VALUE_OFF, VALUE_SIZE, 0);
 		ASSERTeq(ret, 0);
 
 		D_RW(obj)->value = TEST_VALUE_1;
 
-		ret = pmemobj_tx_add_range(obj.oid, DATA_OFF, DATA_SIZE);
+		ret = pmemobj_tx_add_range(obj.oid, DATA_OFF, DATA_SIZE, 0);
 		ASSERTeq(ret, 0);
 
 		pmemobj_memset_persist(pop, D_RW(obj)->data, TEST_VALUE_2,
@@ -133,12 +134,12 @@ do_tx_add_range_alloc_abort(PMEMobjpool *pop)
 		TOID_ASSIGN(obj, do_tx_zalloc(pop, TYPE_OBJ_ABORT));
 		ASSERT(!TOID_IS_NULL(obj));
 
-		ret = pmemobj_tx_add_range(obj.oid, VALUE_OFF, VALUE_SIZE);
+		ret = pmemobj_tx_add_range(obj.oid, VALUE_OFF, VALUE_SIZE, 0);
 		ASSERTeq(ret, 0);
 
 		D_RW(obj)->value = TEST_VALUE_1;
 
-		ret = pmemobj_tx_add_range(obj.oid, DATA_OFF, DATA_SIZE);
+		ret = pmemobj_tx_add_range(obj.oid, DATA_OFF, DATA_SIZE, 0);
 		ASSERTeq(ret, 0);
 
 		pmemobj_memset_persist(pop, D_RW(obj)->data, TEST_VALUE_2,
@@ -167,12 +168,12 @@ do_tx_add_range_twice_commit(PMEMobjpool *pop)
 	ASSERT(!TOID_IS_NULL(obj));
 
 	TX_BEGIN(pop) {
-		ret = pmemobj_tx_add_range(obj.oid, VALUE_OFF, VALUE_SIZE);
+		ret = pmemobj_tx_add_range(obj.oid, VALUE_OFF, VALUE_SIZE, 0);
 		ASSERTeq(ret, 0);
 
 		D_RW(obj)->value = TEST_VALUE_1;
 
-		ret = pmemobj_tx_add_range(obj.oid, VALUE_OFF, VALUE_SIZE);
+		ret = pmemobj_tx_add_range(obj.oid, VALUE_OFF, VALUE_SIZE, 0);
 		ASSERTeq(ret, 0);
 
 		D_RW(obj)->value = TEST_VALUE_2;
@@ -197,12 +198,12 @@ do_tx_add_range_twice_abort(PMEMobjpool *pop)
 	ASSERT(!TOID_IS_NULL(obj));
 
 	TX_BEGIN(pop) {
-		ret = pmemobj_tx_add_range(obj.oid, VALUE_OFF, VALUE_SIZE);
+		ret = pmemobj_tx_add_range(obj.oid, VALUE_OFF, VALUE_SIZE, 0);
 		ASSERTeq(ret, 0);
 
 		D_RW(obj)->value = TEST_VALUE_1;
 
-		ret = pmemobj_tx_add_range(obj.oid, VALUE_OFF, VALUE_SIZE);
+		ret = pmemobj_tx_add_range(obj.oid, VALUE_OFF, VALUE_SIZE, 0);
 		ASSERTeq(ret, 0);
 
 		D_RW(obj)->value = TEST_VALUE_2;
@@ -229,14 +230,14 @@ do_tx_add_range_abort_after_nested(PMEMobjpool *pop)
 	TOID_ASSIGN(obj2, do_tx_zalloc(pop, TYPE_OBJ));
 
 	TX_BEGIN(pop) {
-		ret = pmemobj_tx_add_range(obj1.oid, VALUE_OFF, VALUE_SIZE);
+		ret = pmemobj_tx_add_range(obj1.oid, VALUE_OFF, VALUE_SIZE, 0);
 		ASSERTeq(ret, 0);
 
 		D_RW(obj1)->value = TEST_VALUE_1;
 
 		TX_BEGIN(pop) {
 			ret = pmemobj_tx_add_range(obj2.oid,
-					DATA_OFF, DATA_SIZE);
+					DATA_OFF, DATA_SIZE, 0);
 			ASSERTeq(ret, 0);
 
 			pmemobj_memset_persist(pop, D_RW(obj2)->data,
@@ -271,14 +272,14 @@ do_tx_add_range_abort_nested(PMEMobjpool *pop)
 	TOID_ASSIGN(obj2, do_tx_zalloc(pop, TYPE_OBJ));
 
 	TX_BEGIN(pop) {
-		ret = pmemobj_tx_add_range(obj1.oid, VALUE_OFF, VALUE_SIZE);
+		ret = pmemobj_tx_add_range(obj1.oid, VALUE_OFF, VALUE_SIZE, 0);
 		ASSERTeq(ret, 0);
 
 		D_RW(obj1)->value = TEST_VALUE_1;
 
 		TX_BEGIN(pop) {
 			ret = pmemobj_tx_add_range(obj2.oid,
-					DATA_OFF, DATA_SIZE);
+					DATA_OFF, DATA_SIZE, 0);
 			ASSERTeq(ret, 0);
 
 			pmemobj_memset_persist(pop, D_RW(obj2)->data,
@@ -312,14 +313,14 @@ do_tx_add_range_commit_nested(PMEMobjpool *pop)
 	TOID_ASSIGN(obj2, do_tx_zalloc(pop, TYPE_OBJ));
 
 	TX_BEGIN(pop) {
-		ret = pmemobj_tx_add_range(obj1.oid, VALUE_OFF, VALUE_SIZE);
+		ret = pmemobj_tx_add_range(obj1.oid, VALUE_OFF, VALUE_SIZE, 0);
 		ASSERTeq(ret, 0);
 
 		D_RW(obj1)->value = TEST_VALUE_1;
 
 		TX_BEGIN(pop) {
 			ret = pmemobj_tx_add_range(obj2.oid,
-					DATA_OFF, DATA_SIZE);
+					DATA_OFF, DATA_SIZE, 0);
 			ASSERTeq(ret, 0);
 
 			pmemobj_memset_persist(pop, D_RW(obj2)->data,
@@ -349,7 +350,7 @@ do_tx_add_range_abort(PMEMobjpool *pop)
 	TOID_ASSIGN(obj, do_tx_zalloc(pop, TYPE_OBJ));
 
 	TX_BEGIN(pop) {
-		ret = pmemobj_tx_add_range(obj.oid, VALUE_OFF, VALUE_SIZE);
+		ret = pmemobj_tx_add_range(obj.oid, VALUE_OFF, VALUE_SIZE, 0);
 		ASSERTeq(ret, 0);
 
 		D_RW(obj)->value = TEST_VALUE_1;
@@ -373,7 +374,7 @@ do_tx_add_range_commit(PMEMobjpool *pop)
 	TOID_ASSIGN(obj, do_tx_zalloc(pop, TYPE_OBJ));
 
 	TX_BEGIN(pop) {
-		ret = pmemobj_tx_add_range(obj.oid, VALUE_OFF, VALUE_SIZE);
+		ret = pmemobj_tx_add_range(obj.oid, VALUE_OFF, VALUE_SIZE, 0);
 		ASSERTeq(ret, 0);
 
 		D_RW(obj)->value = TEST_VALUE_1;
@@ -424,13 +425,13 @@ do_tx_add_range_overlapping(PMEMobjpool *pop)
 	 * --++++++++--
 	 */
 	TX_BEGIN(pop) {
-		pmemobj_tx_add_range(obj.oid, 0, 4);
+		pmemobj_tx_add_range(obj.oid, 0, 4, 0);
 		memset(D_RW(obj)->data + 0, 1, 4);
 
-		pmemobj_tx_add_range(obj.oid, 8, 4);
+		pmemobj_tx_add_range(obj.oid, 8, 4, 0);
 		memset(D_RW(obj)->data + 8, 2, 4);
 
-		pmemobj_tx_add_range(obj.oid, 2, 8);
+		pmemobj_tx_add_range(obj.oid, 2, 8, 0);
 		memset(D_RW(obj)->data + 2, 3, 8);
 
 		TX_ADD(obj);
@@ -448,13 +449,13 @@ do_tx_add_range_overlapping(PMEMobjpool *pop)
 	 * ----++++----
 	 */
 	TX_BEGIN(pop) {
-		pmemobj_tx_add_range(obj.oid, 0, 4);
+		pmemobj_tx_add_range(obj.oid, 0, 4, 0);
 		memset(D_RW(obj)->data + 0, 1, 4);
 
-		pmemobj_tx_add_range(obj.oid, 8, 4);
+		pmemobj_tx_add_range(obj.oid, 8, 4, 0);
 		memset(D_RW(obj)->data + 8, 2, 4);
 
-		pmemobj_tx_add_range(obj.oid, 4, 4);
+		pmemobj_tx_add_range(obj.oid, 4, 4, 0);
 		memset(D_RW(obj)->data + 4, 3, 4);
 
 		TX_ADD(obj);
@@ -472,16 +473,16 @@ do_tx_add_range_overlapping(PMEMobjpool *pop)
 	 * --++++++++--
 	 */
 	TX_BEGIN(pop) {
-		pmemobj_tx_add_range(obj.oid, 0, 4);
+		pmemobj_tx_add_range(obj.oid, 0, 4, 0);
 		memset(D_RW(obj)->data + 0, 1, 4);
 
-		pmemobj_tx_add_range(obj.oid, 5, 2);
+		pmemobj_tx_add_range(obj.oid, 5, 2, 0);
 		memset(D_RW(obj)->data + 5, 2, 2);
 
-		pmemobj_tx_add_range(obj.oid, 8, 4);
+		pmemobj_tx_add_range(obj.oid, 8, 4, 0);
 		memset(D_RW(obj)->data + 8, 3, 4);
 
-		pmemobj_tx_add_range(obj.oid, 2, 8);
+		pmemobj_tx_add_range(obj.oid, 2, 8, 0);
 		memset(D_RW(obj)->data + 2, 4, 8);
 
 		TX_ADD(obj);
@@ -499,10 +500,10 @@ do_tx_add_range_overlapping(PMEMobjpool *pop)
 	 * ++++
 	 */
 	TX_BEGIN(pop) {
-		pmemobj_tx_add_range(obj.oid, 0, 4);
+		pmemobj_tx_add_range(obj.oid, 0, 4, 0);
 		memset(D_RW(obj)->data, 1, 4);
 
-		pmemobj_tx_add_range(obj.oid, 0, 4);
+		pmemobj_tx_add_range(obj.oid, 0, 4, 0);
 		memset(D_RW(obj)->data, 2, 4);
 
 		pmemobj_tx_abort(-1);
@@ -524,7 +525,7 @@ main(int argc, char *argv[])
 
 	PMEMobjpool *pop;
 	if ((pop = pmemobj_create(argv[1], LAYOUT_NAME, PMEMOBJ_MIN_POOL,
-	    S_IWUSR | S_IRUSR)) == NULL)
+	    S_IWUSR | S_IRUSR, 0)) == NULL)
 		FATAL("!pmemobj_create");
 
 	do_tx_add_range_commit(pop);

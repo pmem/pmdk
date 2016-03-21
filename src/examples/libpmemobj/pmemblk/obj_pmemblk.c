@@ -114,7 +114,7 @@ pmemblk_map(PMEMobjpool *pop, size_t bsize, size_t fsize)
 PMEMblkpool *
 pmemblk_open(const char *path, size_t bsize)
 {
-	PMEMobjpool *pop = pmemobj_open(path, POBJ_LAYOUT_NAME(obj_pmemblk));
+	PMEMobjpool *pop = pmemobj_open(path, POBJ_LAYOUT_NAME(obj_pmemblk), 0);
 	if (pop == NULL)
 		return NULL;
 	struct stat buf;
@@ -140,7 +140,7 @@ pmemblk_create(const char *path, size_t bsize, size_t poolsize, mode_t mode)
 	}
 
 	PMEMobjpool *pop = pmemobj_create(path, POBJ_LAYOUT_NAME(obj_pmemblk),
-				poolsize, mode);
+				poolsize, mode, 0);
 	if (pop == NULL)
 		return NULL;
 
@@ -162,7 +162,7 @@ pmemblk_close(PMEMblkpool *pbp)
 int
 pmemblk_check(const char *path, size_t bsize)
 {
-	int ret = pmemobj_check(path, POBJ_LAYOUT_NAME(obj_pmemblk));
+	int ret = pmemobj_check(path, POBJ_LAYOUT_NAME(obj_pmemblk), 0);
 	if (ret)
 		return ret;
 
@@ -193,7 +193,7 @@ pmemblk_nblock(PMEMblkpool *pbp)
 {
 	PMEMobjpool *pop = (PMEMobjpool *)pbp;
 	return ((struct base *)pmemobj_direct(pmemobj_root(pop,
-					sizeof (struct base))))->nblocks;
+					sizeof (struct base), 0)))->nblocks;
 }
 
 /*
@@ -237,7 +237,7 @@ pmemblk_write(PMEMblkpool *pbp, const void *buf, off_t blockno)
 		size_t block_off = blockno * D_RO(bp)->bsize;
 		uint8_t *dst = D_RW(D_RW(bp)->data) + block_off;
 		/* add the modified block to the undo log */
-		pmemobj_tx_add_range_direct(dst, D_RO(bp)->bsize);
+		pmemobj_tx_add_range_direct(dst, D_RO(bp)->bsize, 0);
 		memcpy(dst, buf, D_RO(bp)->bsize);
 	} TX_ONABORT {
 		retval = 1;
@@ -264,7 +264,7 @@ pmemblk_set_zero(PMEMblkpool *pbp, off_t blockno)
 		&D_RW(bp)->locks[blockno % MAX_THREADS], TX_LOCK_NONE) {
 		size_t block_off = blockno * D_RO(bp)->bsize;
 		uint8_t *dst = D_RW(D_RW(bp)->data) + block_off;
-		pmemobj_tx_add_range_direct(dst, D_RO(bp)->bsize);
+		pmemobj_tx_add_range_direct(dst, D_RO(bp)->bsize, 0);
 		memset(dst, 0, D_RO(bp)->bsize);
 	} TX_ONABORT {
 		retval = -1;

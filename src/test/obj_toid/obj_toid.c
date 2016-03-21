@@ -67,7 +67,7 @@ do_toid_no_valid(PMEMobjpool *pop)
 {
 	TOID(struct obj) obj;
 	int ret = pmemobj_alloc(pop, &obj.oid, sizeof (struct obj), TEST_NUM,
-								NULL, NULL);
+								NULL, NULL, 0);
 	ASSERTeq(ret, 0);
 	ASSERT(!TOID_VALID(obj));
 	POBJ_FREE(&obj);
@@ -97,7 +97,7 @@ main(int argc, char *argv[])
 
 	PMEMobjpool *pop;
 	if ((pop = pmemobj_create(argv[1], LAYOUT_NAME, PMEMOBJ_MIN_POOL,
-	    S_IWUSR | S_IRUSR)) == NULL)
+	    S_IWUSR | S_IRUSR, 0)) == NULL)
 		FATAL("!pmemobj_create");
 
 	do_toid_valid(pop);

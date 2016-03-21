@@ -173,13 +173,13 @@ main(int argc, char *argv[])
 
 	if (access(path, F_OK) != 0) {
 		if ((pop = pmemobj_create(path, POBJ_LAYOUT_NAME(btree),
-			PMEMOBJ_MIN_POOL, 0666)) == NULL) {
+			PMEMOBJ_MIN_POOL, 0666, 0)) == NULL) {
 			perror("failed to create pool\n");
 			return 1;
 		}
 	} else {
 		if ((pop = pmemobj_open(path,
-				POBJ_LAYOUT_NAME(btree))) == NULL) {
+				POBJ_LAYOUT_NAME(btree), 0)) == NULL) {
 			perror("failed to open pool\n");
 			return 1;
 		}

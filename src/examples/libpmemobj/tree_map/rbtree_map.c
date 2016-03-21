@@ -102,7 +102,7 @@ rbtree_map_new(PMEMobjpool *pop, TOID(struct rbtree_map) *map, void *arg)
 {
 	int ret = 0;
 	TX_BEGIN(pop) {
-		pmemobj_tx_add_range_direct(map, sizeof (*map));
+		TX_ADD_DIRECT(map);
 		*map = TX_ZNEW(struct rbtree_map);
 
 		TOID(struct tree_map_node) s = TX_ZNEW(struct tree_map_node);
@@ -174,7 +174,7 @@ rbtree_map_delete(PMEMobjpool *pop, TOID(struct rbtree_map) *map)
 	int ret = 0;
 	TX_BEGIN(pop) {
 		rbtree_map_clear(pop, *map);
-		pmemobj_tx_add_range_direct(map, sizeof (*map));
+		TX_ADD_DIRECT(map);
 		TX_FREE(*map);
 		*map = TOID_NULL(struct rbtree_map);
 	} TX_ONABORT {
@@ -230,7 +230,7 @@ rbtree_map_insert_bst(TOID(struct rbtree_map) map, TOID(struct tree_map_node) n)
 
 	TX_SET(n, parent, parent);
 
-	pmemobj_tx_add_range_direct(dst, sizeof (*dst));
+	TX_ADD_DIRECT(dst);
 	*dst = n;
 }
 
@@ -525,7 +525,7 @@ rbtree_map_insert_new(PMEMobjpool *pop, TOID(struct rbtree_map) map,
 	int ret = 0;
 
 	TX_BEGIN(pop) {
-		PMEMoid n = pmemobj_tx_alloc(size, type_num);
+		PMEMoid n = pmemobj_tx_alloc(size, type_num, 0);
 		constructor(pop, pmemobj_direct(n), arg);
 		rbtree_map_insert(pop, map, key, n);
 	} TX_ONABORT {

@@ -71,13 +71,13 @@ struct root {
  */
 persistent_ptr<root> init_foobar(pmemobjpool *pop)
 {
-	persistent_ptr<root> r = pmemobj_root(pop, sizeof (root));
+	persistent_ptr<root> r = pmemobj_root(pop, sizeof (root), 0);
 		TX_BEGIN(pop) {
 			ASSERT(r->bar_ptr == nullptr);
 			ASSERT(r->foo_ptr == nullptr);
 
-			r->bar_ptr = pmemobj_tx_alloc(sizeof (bar), 0);
-			r->foo_ptr = pmemobj_tx_alloc(sizeof (foo), 0);
+			r->bar_ptr = pmemobj_tx_alloc(sizeof (bar), 0, 0);
+			r->foo_ptr = pmemobj_tx_alloc(sizeof (foo), 0, 0);
 
 			r->bar_ptr->pdouble = 1.0;
 			r->bar_ptr->pfloat = 2.0;
@@ -97,7 +97,7 @@ persistent_ptr<root> init_foobar(pmemobjpool *pop)
  */
 void cleanup_foobar(pmemobjpool *pop)
 {
-	persistent_ptr<root> r = pmemobj_root(pop, sizeof (root));
+	persistent_ptr<root> r = pmemobj_root(pop, sizeof (root), 0);
 
 	TX_BEGIN(pop) {
 		ASSERT(r->bar_ptr != nullptr);
@@ -303,7 +303,7 @@ main(int argc, char *argv[])
 	PMEMobjpool *pop = NULL;
 
 	if ((pop = pmemobj_create(path, LAYOUT, PMEMOBJ_MIN_POOL,
-			S_IWUSR | S_IRUSR)) == NULL)
+			S_IWUSR | S_IRUSR, 0)) == NULL)
 		FATAL("!pmemobj_create: %s", path);
 
 	arithmetic_test(pop);

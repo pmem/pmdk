@@ -77,11 +77,11 @@ main(int argc, char *argv[])
 
 	if (!exists) {
 		if ((pop = pmemobj_create(path, POBJ_LAYOUT_NAME(recovery),
-			0, S_IWUSR | S_IRUSR)) == NULL) {
+			0, S_IWUSR | S_IRUSR, 0)) == NULL) {
 			FATAL("failed to create pool\n");
 		}
 	} else {
-		if ((pop = pmemobj_open(path, POBJ_LAYOUT_NAME(recovery)))
+		if ((pop = pmemobj_open(path, POBJ_LAYOUT_NAME(recovery), 0))
 						== NULL) {
 			FATAL("failed to open pool\n");
 		}
@@ -150,7 +150,7 @@ main(int argc, char *argv[])
 		}
 	}
 
-	ASSERT(pmemobj_check(path, POBJ_LAYOUT_NAME(recovery)));
+	ASSERT(pmemobj_check(path, POBJ_LAYOUT_NAME(recovery), 0));
 
 	pmemobj_close(pop);
 

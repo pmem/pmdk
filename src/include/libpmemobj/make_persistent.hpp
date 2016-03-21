@@ -72,7 +72,7 @@ namespace obj {
 				"memory outside of transaction scope");
 
 		persistent_ptr<T> ptr = pmemobj_tx_alloc(sizeof (T),
-			detail::type_num<T>());
+			detail::type_num<T>(), 0);
 
 		if (ptr == nullptr)
 			throw transaction_alloc_error("failed to allocate "

@@ -192,12 +192,13 @@ main(int argc, char *argv[])
 
 	if (access(path, F_OK) != 0) {
 		if ((pop = pmemobj_create(path, POBJ_LAYOUT_NAME(pi),
-			PMEMOBJ_MIN_POOL, S_IRWXU)) == NULL) {
+			PMEMOBJ_MIN_POOL, S_IRWXU, 0)) == NULL) {
 			printf("failed to create pool\n");
 			return 1;
 		}
 	} else {
-		if ((pop = pmemobj_open(path, POBJ_LAYOUT_NAME(pi))) == NULL) {
+		pop = pmemobj_open(path, POBJ_LAYOUT_NAME(pi), 0);
+		if (pop == NULL) {
 			printf("failed to open pool\n");
 			return 1;
 		}

@@ -49,7 +49,7 @@ main(int argc, char *argv[])
 	}
 
 	PMEMobjpool *pop = pmemobj_open(argv[1],
-					POBJ_LAYOUT_NAME(string_store));
+					POBJ_LAYOUT_NAME(string_store), 0);
 	if (pop == NULL) {
 		perror("pmemobj_open");
 		return 1;

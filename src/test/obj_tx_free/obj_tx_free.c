@@ -77,7 +77,7 @@ do_tx_alloc(PMEMobjpool *pop, int type_num)
 	PMEMoid ret = OID_NULL;
 
 	TX_BEGIN(pop) {
-		ret = pmemobj_tx_alloc(sizeof (struct object), type_num);
+		ret = pmemobj_tx_alloc(sizeof (struct object), type_num, 0);
 	} TX_END
 
 	return ret;
@@ -286,7 +286,7 @@ do_tx_free_alloc_abort(PMEMobjpool *pop)
 
 	TX_BEGIN(pop) {
 		TOID_ASSIGN(obj, pmemobj_tx_alloc(
-				sizeof (struct object), TYPE_FREE_ALLOC));
+				sizeof (struct object), TYPE_FREE_ALLOC, 0));
 		ASSERT(!TOID_IS_NULL(obj));
 		ret = pmemobj_tx_free(obj.oid);
 		ASSERTeq(ret, 0);
@@ -311,7 +311,7 @@ do_tx_free_alloc_commit(PMEMobjpool *pop)
 
 	TX_BEGIN(pop) {
 		TOID_ASSIGN(obj, pmemobj_tx_alloc(
-				sizeof (struct object), TYPE_FREE_ALLOC));
+				sizeof (struct object), TYPE_FREE_ALLOC, 0));
 		ASSERT(!TOID_IS_NULL(obj));
 		ret = pmemobj_tx_free(obj.oid);
 		ASSERTeq(ret, 0);
@@ -359,7 +359,7 @@ main(int argc, char *argv[])
 
 	PMEMobjpool *pop;
 	if ((pop = pmemobj_create(argv[1], LAYOUT_NAME, PMEMOBJ_MIN_POOL,
-	    S_IWUSR | S_IRUSR)) == NULL)
+	    S_IWUSR | S_IRUSR, 0)) == NULL)
 		FATAL("!pmemobj_create");
 
 	do_tx_free_wrong_uuid(pop);

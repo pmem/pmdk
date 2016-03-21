@@ -249,13 +249,13 @@ realloc_pmemoid(PMEMoid *info, size_t prev_size, size_t size)
 {
 	TOID(PMEMoid) array;
 	TOID_ASSIGN(array, *info);
-	pmemobj_zrealloc(pop, &array.oid, sizeof (PMEMoid) * size,
-							TOID_TYPE_NUM(PMEMoid));
+	pmemobj_realloc(pop, &array.oid, sizeof (PMEMoid) * size,
+				TOID_TYPE_NUM(PMEMoid), PMEMOBJ_FLAG_ZERO);
 
 	for (int i = prev_size; i < size; i++) {
 		if (pmemobj_alloc(pop, &D_RW(array)[i],
 			sizeof (struct array_elm), TOID_TYPE_NUM(PMEMoid),
-							elm_constructor, &i)) {
+						elm_constructor, &i, 0)) {
 			fprintf(stderr, "pmemobj_alloc\n");
 			assert(0);
 		}
@@ -271,9 +271,9 @@ realloc_toid(PMEMoid *info, size_t prev_size, size_t size)
 {
 	TOID_ARRAY(TOID(struct array_elm)) array;
 	TOID_ASSIGN(array, *info);
-	pmemobj_zrealloc(pop, &array.oid,
+	pmemobj_realloc(pop, &array.oid,
 			sizeof (TOID(struct array_elm)) * size,
-			TOID_TYPE_NUM_OF(array));
+			TOID_TYPE_NUM_OF(array), PMEMOBJ_FLAG_ZERO);
 	for (int i = prev_size; i < size; i++) {
 		POBJ_NEW(pop, &D_RW(array)[i], struct array_elm,
 						elm_constructor, &i);
@@ -335,7 +335,7 @@ alloc_pmemoid(size_t size)
 	for (int i = 0; i < size; i++) {
 		if (pmemobj_alloc(pop, &D_RW(array)[i],
 			sizeof (struct array_elm),
-			TOID_TYPE_NUM(PMEMoid), elm_constructor, &i)) {
+			TOID_TYPE_NUM(PMEMoid), elm_constructor, &i, 0)) {
 			fprintf(stderr, "pmemobj_alloc\n");
 		}
 	}
@@ -494,12 +494,12 @@ main(int argc, char *argv[])
 
 	if (access(path, F_OK) != 0) {
 		if ((pop = pmemobj_create(path, POBJ_LAYOUT_NAME(array),
-			PMEMOBJ_MIN_POOL, S_IRWXU)) == NULL) {
+			PMEMOBJ_MIN_POOL, S_IRWXU, 0)) == NULL) {
 			printf("failed to create pool\n");
 			return 1;
 		}
 	} else {
-		if ((pop = pmemobj_open(path, POBJ_LAYOUT_NAME(array)))
+		if ((pop = pmemobj_open(path, POBJ_LAYOUT_NAME(array), 0))
 								== NULL) {
 			printf("failed to open pool\n");
 			return 1;

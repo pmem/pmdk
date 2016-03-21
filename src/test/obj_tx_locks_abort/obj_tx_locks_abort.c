@@ -131,7 +131,7 @@ main(int argc, char *argv[])
 		FATAL("usage: %s <file>", argv[0]);
 
 	pop = pmemobj_create(argv[1], LAYOUT_NAME,
-			PMEMOBJ_MIN_POOL * 4, S_IWUSR | S_IRUSR);
+			PMEMOBJ_MIN_POOL * 4, S_IWUSR | S_IRUSR, 0);
 	if (pop == NULL)
 		FATAL("!pmemobj_create");
 

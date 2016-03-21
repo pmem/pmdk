@@ -122,20 +122,19 @@ for (entry = ((head)).first; !TOID_IS_NULL(entry) &&\
 		entry = next)
 
 #define	PDLL_INSERT_HEAD(head, entry, field) do {\
-	pmemobj_tx_add_range_direct(&head.first, sizeof (head.first));\
+	TX_ADD_DIRECT(&head.first);\
 	TX_ADD_FIELD(entry, field);\
 	D_RW(entry)->field.next = head.first;\
 	D_RW(entry)->field.prev =\
 		(typeof (D_RW(entry)->field.prev))OID_NULL;\
 	head.first = entry;\
 	if (TOID_IS_NULL(head.last)) {\
-		pmemobj_tx_add_range_direct(&head.last, sizeof (head.last));\
+		TX_ADD_DIRECT(&head.last);\
 		head.last = entry;\
 	}\
 	typeof (entry) next = D_RO(entry)->field.next;\
 	if (!TOID_IS_NULL(next)) {\
-		pmemobj_tx_add_range_direct(&D_RW(next)->field.prev,\
-				sizeof (D_RW(next)->field.prev));\
+		TX_ADD_DIRECT(&D_RW(next)->field.prev);\
 		D_RW(next)->field.prev = entry;\
 	}\
 } while (0)
@@ -143,31 +142,27 @@ for (entry = ((head)).first; !TOID_IS_NULL(entry) &&\
 #define	PDLL_REMOVE(head, entry, field) do {\
 	if (TOID_EQUALS(head.first, entry) &&\
 		TOID_EQUALS(head.last, entry)) {\
-		pmemobj_tx_add_range_direct(&head.first, sizeof (head.first));\
-		pmemobj_tx_add_range_direct(&head.last, sizeof (head.last));\
+		TX_ADD_DIRECT(&head.first);\
+		TX_ADD_DIRECT(&head.last);\
 		head.first = (typeof (D_RW(entry)->field.prev))OID_NULL;\
 		head.last = (typeof (D_RW(entry)->field.prev))OID_NULL;\
 	} else if (TOID_EQUALS(head.first, entry)) {\
 		typeof (entry) next = D_RW(entry)->field.next;\
-		pmemobj_tx_add_range_direct(&D_RW(next)->field.prev,\
-				sizeof (D_RW(next)->field.prev));\
-		pmemobj_tx_add_range_direct(&head.first, sizeof (head.first));\
+		TX_ADD_DIRECT(&D_RW(next)->field.prev);\
+		TX_ADD_DIRECT(&head.first);\
 		head.first = D_RO(entry)->field.next;\
 		D_RW(next)->field.prev.oid = OID_NULL;\
 	} else if (TOID_EQUALS(head.last, entry)) {\
 		typeof (entry) prev = D_RW(entry)->field.prev;\
-		pmemobj_tx_add_range_direct(&D_RW(prev)->field.next,\
-				sizeof (D_RW(prev)->field.next));\
-		pmemobj_tx_add_range_direct(&head.last, sizeof (head.last));\
+		TX_ADD_DIRECT(&D_RW(prev)->field.next);\
+		TX_ADD_DIRECT(&head.last);\
 		head.last = D_RO(entry)->field.prev;\
 		D_RW(prev)->field.next.oid = OID_NULL;\
 	} else {\
 		typeof (entry) prev = D_RW(entry)->field.prev;\
 		typeof (entry) next = D_RW(entry)->field.next;\
-		pmemobj_tx_add_range_direct(&D_RW(prev)->field.next,\
-				sizeof (D_RW(prev)->field.next));\
-		pmemobj_tx_add_range_direct(&D_RW(next)->field.prev,\
-				sizeof (D_RW(next)->field.prev));\
+		TX_ADD_DIRECT(&D_RW(prev)->field.next);\
+		TX_ADD_DIRECT(&D_RW(next)->field.prev);\
 		D_RW(prev)->field.next = D_RO(entry)->field.next;\
 		D_RW(next)->field.prev = D_RO(entry)->field.prev;\
 	}\
@@ -2179,7 +2174,7 @@ pmemobjfs_mkfs(const char *fname, size_t size, size_t bsize, mode_t mode)
 	objfs->block_size = bsize;
 
 	objfs->pop = pmemobj_create(fname, POBJ_LAYOUT_NAME(pmemobjfs),
-			size, mode);
+			size, mode, 0);
 	if (!objfs->pop) {
 		fprintf(stderr, "error: %s\n", pmemobj_errormsg());
 		ret = -1;
@@ -2446,7 +2441,7 @@ main(int argc, char *argv[])
 
 	int ret = 0;
 
-	objfs->pop = pmemobj_open(fname, POBJ_LAYOUT_NAME(pmemobjfs));
+	objfs->pop = pmemobj_open(fname, POBJ_LAYOUT_NAME(pmemobjfs), 0);
 	if (objfs->pop == NULL) {
 		perror("pmemobj_open");
 		ret = -1;

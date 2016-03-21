@@ -98,7 +98,7 @@ struct base {
 PMEMlogpool *
 pmemlog_open(const char *path)
 {
-	return (PMEMlogpool *)pmemobj_open(path, LAYOUT_NAME);
+	return (PMEMlogpool *)pmemobj_open(path, LAYOUT_NAME, 0);
 }
 
 /*
@@ -108,7 +108,7 @@ PMEMlogpool *
 pmemlog_create(const char *path, size_t poolsize, mode_t mode)
 {
 	return (PMEMlogpool *)pmemobj_create(path, LAYOUT_NAME,
-				poolsize, mode);
+				poolsize, mode, 0);
 }
 
 /*
@@ -137,7 +137,7 @@ int
 pmemlog_append(PMEMlogpool *plp, const void *buf, size_t count)
 {
 	PMEMobjpool *pop = (PMEMobjpool *)plp;
-	PMEMoid baseoid = pmemobj_root(pop, sizeof (struct base));
+	PMEMoid baseoid = pmemobj_root(pop, sizeof (struct base), 0);
 	struct base *bp = pmemobj_direct(baseoid);
 
 	/* set the return point */
@@ -153,7 +153,7 @@ pmemlog_append(PMEMlogpool *plp, const void *buf, size_t count)
 
 	/* allocate the new node to be inserted */
 	PMEMoid log = pmemobj_tx_alloc(count + sizeof (struct log_hdr),
-				LOG_TYPE);
+				LOG_TYPE, 0);
 
 	struct log *logp = pmemobj_direct(log);
 	logp->hdr.size = count;
@@ -161,13 +161,13 @@ pmemlog_append(PMEMlogpool *plp, const void *buf, size_t count)
 	logp->hdr.next = OID_NULL;
 
 	/* add the modified root object to the undo log */
-	pmemobj_tx_add_range(baseoid, 0, sizeof (struct base));
+	pmemobj_tx_add_range(baseoid, 0, sizeof (struct base), 0);
 	if (bp->tail.off == 0) {
 		/* update head */
 		bp->head = log;
 	} else {
 		/* add the modified tail entry to the undo log */
-		pmemobj_tx_add_range(bp->tail, 0, sizeof (struct log));
+		pmemobj_tx_add_range(bp->tail, 0, sizeof (struct log), 0);
 		((struct log *)pmemobj_direct(bp->tail))->hdr.next = log;
 	}
 
@@ -186,7 +186,7 @@ int
 pmemlog_appendv(PMEMlogpool *plp, const struct iovec *iov, int iovcnt)
 {
 	PMEMobjpool *pop = (PMEMobjpool *)plp;
-	PMEMoid baseoid = pmemobj_root(pop, sizeof (struct base));
+	PMEMoid baseoid = pmemobj_root(pop, sizeof (struct base), 0);
 	struct base *bp = pmemobj_direct(baseoid);
 
 	/* set the return point */
@@ -201,10 +201,10 @@ pmemlog_appendv(PMEMlogpool *plp, const struct iovec *iov, int iovcnt)
 	pmemobj_tx_begin(pop, env, TX_LOCK_RWLOCK, &bp->rwlock, TX_LOCK_NONE);
 
 	/* add the base object to the undo log - once for the transaction */
-	pmemobj_tx_add_range(baseoid, 0, sizeof (struct base));
+	pmemobj_tx_add_range(baseoid, 0, sizeof (struct base), 0);
 	/* add the tail entry once to the undo log, if it is set */
 	if (!OID_IS_NULL(bp->tail))
-		pmemobj_tx_add_range(bp->tail, 0, sizeof (struct log));
+		pmemobj_tx_add_range(bp->tail, 0, sizeof (struct log), 0);
 
 	/* append the data */
 	for (int i = 0; i < iovcnt; ++i) {
@@ -213,7 +213,7 @@ pmemlog_appendv(PMEMlogpool *plp, const struct iovec *iov, int iovcnt)
 
 		/* allocate the new node to be inserted */
 		PMEMoid log = pmemobj_tx_alloc(count + sizeof (struct log_hdr),
-				LOG_TYPE);
+				LOG_TYPE, 0);
 
 		struct log *logp = pmemobj_direct(log);
 		logp->hdr.size = count;
@@ -244,7 +244,7 @@ pmemlog_tell(PMEMlogpool *plp)
 {
 	PMEMobjpool *pop = (PMEMobjpool *)plp;
 	struct base *bp = pmemobj_direct(pmemobj_root(pop,
-				sizeof (struct base)));
+				sizeof (struct base), 0));
 
 	if (pmemobj_rwlock_rdlock(pop, &bp->rwlock) != 0)
 		return 0;
@@ -263,7 +263,7 @@ void
 pmemlog_rewind(PMEMlogpool *plp)
 {
 	PMEMobjpool *pop = (PMEMobjpool *)plp;
-	PMEMoid baseoid = pmemobj_root(pop, sizeof (struct base));
+	PMEMoid baseoid = pmemobj_root(pop, sizeof (struct base), 0);
 	struct base *bp = pmemobj_direct(baseoid);
 
 	/* set the return point */
@@ -277,7 +277,7 @@ pmemlog_rewind(PMEMlogpool *plp)
 	/* begin a transaction, also acquiring the write lock for the log */
 	pmemobj_tx_begin(pop, env, TX_LOCK_RWLOCK, &bp->rwlock, TX_LOCK_NONE);
 	/* add the root object to the undo log */
-	pmemobj_tx_add_range(baseoid, 0, sizeof (struct base));
+	pmemobj_tx_add_range(baseoid, 0, sizeof (struct base), 0);
 
 	/* free all log nodes */
 	while (bp->head.off != 0) {
@@ -307,7 +307,7 @@ pmemlog_walk(PMEMlogpool *plp, size_t chunksize,
 {
 	PMEMobjpool *pop = (PMEMobjpool *)plp;
 	struct base *bp = pmemobj_direct(pmemobj_root(pop,
-						sizeof (struct base)));
+						sizeof (struct base), 0));
 
 	if (pmemobj_rwlock_rdlock(pop, &bp->rwlock) != 0)
 		return;

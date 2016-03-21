@@ -189,7 +189,7 @@ main(int argc, char *argv[])
 		FATAL("usage: %s <file> [m]", argv[0]);
 
 	if ((test_obj.pop = pmemobj_create(argv[1], LAYOUT_NAME,
-	    PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR)) == NULL)
+	    PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR, 0)) == NULL)
 		FATAL("!pmemobj_create");
 
 	int multithread = 0;

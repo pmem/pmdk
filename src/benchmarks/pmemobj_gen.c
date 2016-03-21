@@ -469,7 +469,7 @@ pobj_init(struct benchmark *bench, struct benchmark_args *args)
 			snprintf((char *)bench_priv->sets[i], path_len,
 					"%s%s%02x", args->fname, PART_NAME, i);
 			bench_priv->pop[i] = pmemobj_create(bench_priv->sets[i],
-						LAYOUT_NAME, psize, FILE_MODE);
+					LAYOUT_NAME, psize, FILE_MODE, 0);
 			if (bench_priv->pop[i] == NULL) {
 				perror(pmemobj_errormsg());
 				goto free_sets;
@@ -486,7 +486,7 @@ pobj_init(struct benchmark *bench, struct benchmark_args *args)
 		}
 		bench_priv->sets[0] = (const char *)args->fname;
 		bench_priv->pop[0] = pmemobj_create(bench_priv->sets[0],
-				LAYOUT_NAME, psize, FILE_MODE);
+				LAYOUT_NAME, psize, FILE_MODE, 0);
 		if (bench_priv->pop[0] == NULL) {
 			perror(pmemobj_errormsg());
 			goto free_pools;
@@ -578,7 +578,7 @@ pobj_init_worker(struct benchmark *bench, struct benchmark_args
 	for (i = 0; i < bench_priv->args_priv->n_objs; i++) {
 		size_t size = bench_priv->fn_size(bench_priv, i);
 		unsigned int type = bench_priv->fn_type_num(bench_priv, idx, i);
-		if (pmemobj_alloc(pop,	&pw->oids[i], size, type, NULL, NULL)
+		if (pmemobj_alloc(pop,	&pw->oids[i], size, type, NULL, NULL, 0)
 									!= 0) {
 			perror("pmemobj_alloc");
 			goto out;
@@ -616,7 +616,8 @@ pobj_open_op(struct benchmark *bench, struct operation_info *info)
 	struct pobj_bench *bench_priv = pmembench_get_priv(bench);
 	unsigned int idx = bench_priv->pool(info->worker->index);
 	pmemobj_close(bench_priv->pop[idx]);
-	bench_priv->pop[idx] = pmemobj_open(bench_priv->sets[idx], LAYOUT_NAME);
+	bench_priv->pop[idx] = pmemobj_open(bench_priv->sets[idx], LAYOUT_NAME,
+			0);
 	if (bench_priv->pop[idx] == NULL)
 		return -1;
 	return 0;

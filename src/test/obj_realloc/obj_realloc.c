@@ -31,7 +31,7 @@
  */
 
 /*
- * obj_realloc.c -- unit test for pmemobj_realloc and pmemobj_zrealloc
+ * obj_realloc.c -- unit test for pmemobj_realloc
  */
 #include <sys/param.h>
 #include <string.h>
@@ -82,7 +82,7 @@ test_alloc(PMEMobjpool *pop, size_t size)
 	ASSERT(TOID_IS_NULL(D_RO(root)->obj));
 
 	int ret = pmemobj_realloc(pop, &D_RW(root)->obj.oid, size,
-			TOID_TYPE_NUM(struct object));
+			TOID_TYPE_NUM(struct object), 0);
 	ASSERTeq(ret, 0);
 	ASSERT(!TOID_IS_NULL(D_RO(root)->obj));
 	ASSERT(pmemobj_alloc_usable_size(D_RO(root)->obj.oid) >= size);
@@ -98,7 +98,7 @@ test_free(PMEMobjpool *pop)
 	ASSERT(!TOID_IS_NULL(D_RO(root)->obj));
 
 	int ret = pmemobj_realloc(pop, &D_RW(root)->obj.oid, 0,
-			TOID_TYPE_NUM(struct object));
+			TOID_TYPE_NUM(struct object), 0);
 	ASSERTeq(ret, 0);
 	ASSERT(TOID_IS_NULL(D_RO(root)->obj));
 }
@@ -129,11 +129,11 @@ test_realloc(PMEMobjpool *pop, size_t size_from, size_t size_to,
 
 	int ret;
 	if (zrealloc)
-		ret = pmemobj_zalloc(pop, &D_RW(root)->obj.oid,
-			size_from, type_from);
+		ret = pmemobj_alloc(pop, &D_RW(root)->obj.oid,
+			size_from, type_from, NULL, NULL, PMEMOBJ_FLAG_ZERO);
 	else
 		ret = pmemobj_alloc(pop, &D_RW(root)->obj.oid,
-			size_from, type_from, NULL, NULL);
+			size_from, type_from, NULL, NULL, 0);
 
 	ASSERTeq(ret, 0);
 	ASSERT(!TOID_IS_NULL(D_RO(root)->obj));
@@ -156,11 +156,11 @@ test_realloc(PMEMobjpool *pop, size_t size_from, size_t size_to,
 	}
 
 	if (zrealloc) {
-		ret = pmemobj_zrealloc(pop, &D_RW(root)->obj.oid,
-				size_to, type_to);
+		ret = pmemobj_realloc(pop, &D_RW(root)->obj.oid,
+				size_to, type_to, PMEMOBJ_FLAG_ZERO);
 	} else {
 		ret = pmemobj_realloc(pop, &D_RW(root)->obj.oid,
-				size_to, type_to);
+				size_to, type_to, 0);
 	}
 
 	ASSERTeq(ret, 0);
@@ -222,7 +222,7 @@ main(int argc, char *argv[])
 	if (argc < 2)
 		FATAL("usage: %s file [check_integrity]", argv[0]);
 
-	PMEMobjpool *pop = pmemobj_open(argv[1], POBJ_LAYOUT_NAME(realloc));
+	PMEMobjpool *pop = pmemobj_open(argv[1], POBJ_LAYOUT_NAME(realloc), 0);
 	if (!pop)
 		FATAL("!pmemobj_open");
 

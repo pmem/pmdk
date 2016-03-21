@@ -109,13 +109,13 @@ main(int argc, char *argv[])
 	char *file = argv[optind];
 
 	PMEMobjpool *pop;
-	if ((pop = pmemobj_open(file, NULL)) == NULL) {
+	if ((pop = pmemobj_open(file, NULL, 0)) == NULL) {
 		fprintf(stderr, "pmemobj_open: %s\n", pmemobj_errormsg());
 		return -1;
 	}
 
 	if (root_size) {
-		PMEMoid oid = pmemobj_root(pop, root_size);
+		PMEMoid oid = pmemobj_root(pop, root_size, 0);
 		if (OID_IS_NULL(oid)) {
 			fprintf(stderr, "pmemobj_root: %s\n",
 					pmemobj_errormsg());
@@ -126,7 +126,7 @@ main(int argc, char *argv[])
 	if (size) {
 		PMEMoid oid;
 		TX_BEGIN(pop) {
-			oid = pmemobj_tx_alloc(size, type_num);
+			oid = pmemobj_tx_alloc(size, type_num, 0);
 			if (exit_at == 'a')
 				exit(1);
 		} TX_END
@@ -138,7 +138,7 @@ main(int argc, char *argv[])
 
 		if (do_set) {
 			TX_BEGIN(pop) {
-				pmemobj_tx_add_range(oid, 0, size);
+				pmemobj_tx_add_range(oid, 0, size, 0);
 				if (exit_at == 's')
 					exit(1);
 			} TX_END

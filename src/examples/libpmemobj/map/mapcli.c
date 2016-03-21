@@ -225,7 +225,7 @@ main(int argc, char *argv[])
 
 	if (access(path, F_OK) != 0) {
 		pop = pmemobj_create(path, POBJ_LAYOUT_NAME(map),
-				PM_HASHSET_POOL_SIZE, S_IRUSR | S_IWUSR);
+				PM_HASHSET_POOL_SIZE, S_IRUSR | S_IWUSR, 0);
 		if (pop == NULL) {
 			fprintf(stderr, "failed to create pool: %s\n",
 					pmemobj_errormsg());
@@ -255,7 +255,7 @@ main(int argc, char *argv[])
 
 		map = D_RO(root)->map;
 	} else {
-		pop = pmemobj_open(path, POBJ_LAYOUT_NAME(map));
+		pop = pmemobj_open(path, POBJ_LAYOUT_NAME(map), 0);
 		if (pop == NULL) {
 			fprintf(stderr, "failed to open pool: %s\n",
 					pmemobj_errormsg());

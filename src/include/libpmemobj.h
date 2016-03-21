@@ -87,11 +87,11 @@ const char *pmemobj_check_version(
 /*
  * Pool management...
  */
-PMEMobjpool *pmemobj_open(const char *path, const char *layout);
+PMEMobjpool *pmemobj_open(const char *path, const char *layout, int flags);
 PMEMobjpool *pmemobj_create(const char *path, const char *layout,
-	size_t poolsize, mode_t mode);
+	size_t poolsize, mode_t mode, int flags);
 void pmemobj_close(PMEMobjpool *pop);
-int pmemobj_check(const char *path, const char *layout);
+int pmemobj_check(const char *path, const char *layout, int flags);
 
 /*
  * Passing NULL to pmemobj_set_funcs() tells libpmemobj to continue to use the
@@ -354,6 +354,8 @@ pmemobj_direct(PMEMoid oid)
 
 typedef int (*pmemobj_constr)(PMEMobjpool *pop, void *ptr, void *arg);
 
+#define	PMEMOBJ_FLAG_ZERO (1 << 0)
+
 /*
  * Allocates a new object from the pool and calls a constructor function before
  * returning. It is guaranteed that allocated object is either properly
@@ -361,31 +363,19 @@ typedef int (*pmemobj_constr)(PMEMobjpool *pop, void *ptr, void *arg);
  * memory reserved for the object is automatically reclaimed.
  */
 int pmemobj_alloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
-	uint64_t type_num, pmemobj_constr constructor, void *arg);
-
-/*
- * Allocates a new zeroed object from the pool.
- */
-int pmemobj_zalloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
-	uint64_t type_num);
+	uint64_t type_num, pmemobj_constr constructor, void *arg, int flags);
 
 /*
  * Resizes an existing object.
  */
 int pmemobj_realloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
-	uint64_t type_num);
-
-/*
- * Resizes an existing object, if extended new space is zeroed.
- */
-int pmemobj_zrealloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
-	uint64_t type_num);
+	uint64_t type_num, int flags);
 
 /*
  * Allocates a new object with duplicate of the string s.
  */
 int pmemobj_strdup(PMEMobjpool *pop, PMEMoid *oidp, const char *s,
-	uint64_t type_num);
+	uint64_t type_num, int flags);
 
 /*
  * Frees an existing object.
@@ -414,14 +404,14 @@ uint64_t pmemobj_type_num(PMEMoid oid);
  *
  * This function is thread-safe.
  */
-PMEMoid pmemobj_root(PMEMobjpool *pop, size_t size);
+PMEMoid pmemobj_root(PMEMobjpool *pop, size_t size, int flags);
 
 /*
  * Same as above, but calls the constructor function when the object is first
  * created and on all subsequent reallocations.
  */
 PMEMoid pmemobj_root_construct(PMEMobjpool *pop, size_t size,
-	pmemobj_constr constructor, void *arg);
+	pmemobj_constr constructor, void *arg, int flags);
 
 /*
  * Returns the size in bytes of the root object. Always equal to the requested
@@ -507,37 +497,41 @@ _pobj_ret; })
 { TOID(t) *_pobj_tmp = (o);\
 PMEMoid *_pobj_oidp = _pobj_tmp ? &_pobj_tmp->oid : NULL;\
 pmemobj_alloc((pop), _pobj_oidp, sizeof (t), TOID_TYPE_NUM(t), (constr),\
-		(arg)); })
+		(arg), 0); })
 
 #define	POBJ_ALLOC(pop, o, t, size, constr, arg) (\
 { TOID(t) *_pobj_tmp = (o);\
 PMEMoid *_pobj_oidp = _pobj_tmp ? &_pobj_tmp->oid : NULL;\
-pmemobj_alloc((pop), _pobj_oidp, (size), TOID_TYPE_NUM(t), (constr), (arg)); })
+pmemobj_alloc((pop), _pobj_oidp, (size), TOID_TYPE_NUM(t), (constr), (arg), 0);\
+})
 
 #define	POBJ_ZNEW(pop, o, t) (\
 { TOID(t) *_pobj_tmp = (o);\
 PMEMoid *_pobj_oidp = _pobj_tmp ? &_pobj_tmp->oid : NULL;\
-pmemobj_zalloc((pop), _pobj_oidp, sizeof (t), TOID_TYPE_NUM(t)); })
+pmemobj_alloc((pop), _pobj_oidp, sizeof (t), TOID_TYPE_NUM(t), NULL, NULL,\
+PMEMOBJ_FLAG_ZERO); })
 
 #define	POBJ_ZALLOC(pop, o, t, size) (\
 { TOID(t) *_pobj_tmp = (o);\
 PMEMoid *_pobj_oidp = _pobj_tmp ? &_pobj_tmp->oid : NULL;\
-pmemobj_zalloc((pop), _pobj_oidp, (size), TOID_TYPE_NUM(t)); })
+pmemobj_alloc((pop), _pobj_oidp, (size), TOID_TYPE_NUM(t), NULL, NULL,\
+PMEMOBJ_FLAG_ZERO); })
 
 #define	POBJ_REALLOC(pop, o, t, size) (\
 { TOID(t) *_pobj_tmp = (o);\
 PMEMoid *_pobj_oidp = _pobj_tmp ? &_pobj_tmp->oid : NULL;\
-pmemobj_realloc((pop), _pobj_oidp, (size), TOID_TYPE_NUM(t)); })
+pmemobj_realloc((pop), _pobj_oidp, (size), TOID_TYPE_NUM(t), 0); })
 
 #define	POBJ_ZREALLOC(pop, o, t, size) (\
 { TOID(t) *_pobj_tmp = (o);\
 PMEMoid *_pobj_oidp = _pobj_tmp ? &_pobj_tmp->oid : NULL;\
-pmemobj_zrealloc((pop), _pobj_oidp, (size), TOID_TYPE_NUM_OF(*(o))); })
+pmemobj_realloc((pop), _pobj_oidp, (size), TOID_TYPE_NUM_OF(*(o)),\
+PMEMOBJ_FLAG_ZERO); })
 
 #define	POBJ_FREE(o) pmemobj_free((PMEMoid *)(o))
 
 #define	POBJ_ROOT(pop, t) (\
-{ TOID(t) _pobj_ret = (TOID(t))pmemobj_root((pop), sizeof (t));\
+{ TOID(t) _pobj_ret = (TOID(t))pmemobj_root((pop), sizeof (t), 0);\
 _pobj_ret; })
 
 /*
@@ -908,7 +902,7 @@ _POBJ_TX_BEGIN(pop, ##__VA_ARGS__)
  *
  * This function must be called during TX_STAGE_WORK.
  */
-int pmemobj_tx_add_range(PMEMoid oid, uint64_t off, size_t size);
+int pmemobj_tx_add_range(PMEMoid oid, uint64_t off, size_t size, int flags);
 
 /*
  * Takes a "snapshot" of the given memory region and saves it in the undo log.
@@ -922,7 +916,7 @@ int pmemobj_tx_add_range(PMEMoid oid, uint64_t off, size_t size);
  *
  * This function must be called during TX_STAGE_WORK.
  */
-int pmemobj_tx_add_range_direct(const void *ptr, size_t size);
+int pmemobj_tx_add_range_direct(const void *ptr, size_t size, int flags);
 
 /*
  * Transactionally allocates a new object.
@@ -932,17 +926,7 @@ int pmemobj_tx_add_range_direct(const void *ptr, size_t size);
  *
  * This function must be called during TX_STAGE_WORK.
  */
-PMEMoid pmemobj_tx_alloc(size_t size, uint64_t type_num);
-
-/*
- * Transactionally allocates new zeroed object.
- *
- * If successful, returns PMEMoid.
- * Otherwise, state changes to TX_STAGE_ONABORT and an OID_NULL is returned.
- *
- * This function must be called during TX_STAGE_WORK.
- */
-PMEMoid pmemobj_tx_zalloc(size_t size, uint64_t type_num);
+PMEMoid pmemobj_tx_alloc(size_t size, uint64_t type_num, int flags);
 
 /*
  * Transactionally resizes an existing object.
@@ -952,17 +936,8 @@ PMEMoid pmemobj_tx_zalloc(size_t size, uint64_t type_num);
  *
  * This function must be called during TX_STAGE_WORK.
  */
-PMEMoid pmemobj_tx_realloc(PMEMoid oid, size_t size, uint64_t type_num);
-
-/*
- * Transactionally resizes an existing object, if extended new space is zeroed.
- *
- * If successful, returns PMEMoid.
- * Otherwise, state changes to TX_STAGE_ONABORT and an OID_NULL is returned.
- *
- * This function must be called during TX_STAGE_WORK.
- */
-PMEMoid pmemobj_tx_zrealloc(PMEMoid oid, size_t size, uint64_t type_num);
+PMEMoid pmemobj_tx_realloc(PMEMoid oid, size_t size, uint64_t type_num,
+		int flags);
 
 /*
  * Transactionally allocates a new object with duplicate of the string s.
@@ -972,7 +947,7 @@ PMEMoid pmemobj_tx_zrealloc(PMEMoid oid, size_t size, uint64_t type_num);
  *
  * This function must be called during TX_STAGE_WORK.
  */
-PMEMoid pmemobj_tx_strdup(const char *s, uint64_t type_num);
+PMEMoid pmemobj_tx_strdup(const char *s, uint64_t type_num, int flags);
 
 /*
  * Transactionally frees an existing object.
@@ -985,46 +960,46 @@ PMEMoid pmemobj_tx_strdup(const char *s, uint64_t type_num);
 int pmemobj_tx_free(PMEMoid oid);
 
 #define	TX_ADD(o)\
-pmemobj_tx_add_range((o).oid, 0, sizeof (*(o)._type))
+pmemobj_tx_add_range((o).oid, 0, sizeof (*(o)._type), 0)
 
 #define	TX_ADD_FIELD(o, field)\
 pmemobj_tx_add_range((o).oid, offsetof(__typeof__ (*(o)._type), field),\
-		sizeof (D_RO(o)->field))
+		sizeof (D_RO(o)->field), 0)
 
 #define	TX_ADD_DIRECT(p)\
-pmemobj_tx_add_range_direct(p, sizeof (*p))
+pmemobj_tx_add_range_direct(p, sizeof (*p), 0)
 
 #define	TX_ADD_FIELD_DIRECT(p, field)\
-pmemobj_tx_add_range_direct(&(p)->field, sizeof ((p)->field))
+pmemobj_tx_add_range_direct(&(p)->field, sizeof ((p)->field), 0)
 
 #define	TX_NEW(t) (\
 { TOID(t) _pobj_ret = (TOID(t))pmemobj_tx_alloc(sizeof (t),\
-TOID_TYPE_NUM(t)); _pobj_ret; })
+TOID_TYPE_NUM(t), 0); _pobj_ret; })
 
 #define	TX_ALLOC(t, size) (\
 { TOID(t) _pobj_ret = (TOID(t))pmemobj_tx_alloc((size),\
-TOID_TYPE_NUM(t)); _pobj_ret; })
+TOID_TYPE_NUM(t), 0); _pobj_ret; })
 
 #define	TX_ZNEW(t) (\
-{ TOID(t) _pobj_ret = (TOID(t))pmemobj_tx_zalloc(sizeof (t),\
-TOID_TYPE_NUM(t)); _pobj_ret; })
+{ TOID(t) _pobj_ret = (TOID(t))pmemobj_tx_alloc(sizeof (t),\
+TOID_TYPE_NUM(t), PMEMOBJ_FLAG_ZERO); _pobj_ret; })
 
 #define	TX_ZALLOC(t, size) (\
-{ TOID(t) _pobj_ret = (TOID(t))pmemobj_tx_zalloc((size),\
-TOID_TYPE_NUM(t)); _pobj_ret; })
+{ TOID(t) _pobj_ret = (TOID(t))pmemobj_tx_alloc((size),\
+TOID_TYPE_NUM(t), PMEMOBJ_FLAG_ZERO); _pobj_ret; })
 
 #define	TX_REALLOC(o, size) (\
 { __typeof__(o) _pobj_ret =\
 (__typeof__(o))pmemobj_tx_realloc((o).oid, (size),\
-TOID_TYPE_NUM_OF(o)); _pobj_ret; })
+TOID_TYPE_NUM_OF(o), 0); _pobj_ret; })
 
 #define	TX_ZREALLOC(o, size) (\
 { __typeof__(o) _pobj_ret =\
-(__typeof__(o))pmemobj_tx_zrealloc((o).oid, (size),\
-TOID_TYPE_NUM_OF(o)); _pobj_ret; })
+(__typeof__(o))pmemobj_tx_realloc((o).oid, (size),\
+TOID_TYPE_NUM_OF(o), PMEMOBJ_FLAG_ZERO); _pobj_ret; })
 
 #define	TX_STRDUP(s, type_num)\
-pmemobj_tx_strdup(s, type_num)
+pmemobj_tx_strdup(s, type_num, 0)
 
 #define	TX_FREE(o)\
 pmemobj_tx_free((o).oid)
@@ -1042,14 +1017,14 @@ pmemobj_tx_free((o).oid)
 static inline void *
 TX_MEMCPY(void *dest, const void *src, size_t num)
 {
-	pmemobj_tx_add_range_direct(dest, num);
+	pmemobj_tx_add_range_direct(dest, num, 0);
 	return memcpy(dest, src, num);
 }
 
 static inline void *
 TX_MEMSET(void *dest, int c, size_t num)
 {
-	pmemobj_tx_add_range_direct(dest, num);
+	pmemobj_tx_add_range_direct(dest, num, 0);
 	return memset(dest, c, num);
 }
 

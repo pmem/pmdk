@@ -106,7 +106,7 @@ public:
 		int error = 0;
 		TX_BEGIN(pop) {
 			persistent_ptr<pmem_entry> n =
-				pmemobj_tx_alloc(sizeof (pmem_entry), 0);
+				pmemobj_tx_alloc(sizeof (pmem_entry), 0, 0);
 			n->value = value;
 			n->next = nullptr;
 
@@ -187,18 +187,19 @@ main(int argc, char *argv[])
 
 	if (access(path, F_OK) != 0) {
 		if ((pop = pmemobj_create(path, LAYOUT,
-			PMEMOBJ_MIN_POOL, S_IRWXU)) == NULL) {
+			PMEMOBJ_MIN_POOL, S_IRWXU, 0)) == NULL) {
 			std::cerr << "failed to create pool" << std::endl;
 			return 1;
 		}
 	} else {
-		if ((pop = pmemobj_open(path, LAYOUT)) == NULL) {
+		if ((pop = pmemobj_open(path, LAYOUT, 0)) == NULL) {
 			std::cerr << "failed to open pool" << std::endl;
 			return 1;
 		}
 	}
 
-	persistent_ptr<pmem_queue> q = pmemobj_root(pop, sizeof (pmem_queue));
+	persistent_ptr<pmem_queue> q = pmemobj_root(pop, sizeof (pmem_queue),
+			0);
 	switch (op) {
 		case QUEUE_PUSH:
 			q->push(pop, atoll(argv[3]));

@@ -63,7 +63,7 @@ static void
 do_strdup(PMEMobjpool *pop)
 {
 	TOID(char) str = TOID_NULL(char);
-	pmemobj_strdup(pop, &str.oid, TEST_STR_1, TYPE_SIMPLE);
+	pmemobj_strdup(pop, &str.oid, TEST_STR_1, TYPE_SIMPLE, 0);
 	ASSERT(!TOID_IS_NULL(str));
 	ASSERTeq(strcmp(D_RO(str), TEST_STR_1), 0);
 }
@@ -75,7 +75,7 @@ static void
 do_strdup_null(PMEMobjpool *pop)
 {
 	TOID(char) str = TOID_NULL(char);
-	pmemobj_strdup(pop, &str.oid, NULL, TYPE_NULL);
+	pmemobj_strdup(pop, &str.oid, NULL, TYPE_NULL, 0);
 	ASSERT(TOID_IS_NULL(str));
 }
 
@@ -87,7 +87,7 @@ do_alloc(PMEMobjpool *pop, const char *s, unsigned type_num)
 {
 	TOID(char) str;
 	POBJ_ZNEW(pop, &str, char);
-	pmemobj_strdup(pop, &str.oid, s, type_num);
+	pmemobj_strdup(pop, &str.oid, s, type_num, 0);
 	ASSERT(!TOID_IS_NULL(str));
 	ASSERTeq(strcmp(D_RO(str), s), 0);
 	return str;
@@ -101,7 +101,7 @@ do_strdup_alloc(PMEMobjpool *pop)
 {
 	TOID(char) str1 = do_alloc(pop, TEST_STR_1, TYPE_SIMPLE_ALLOC_1);
 	TOID(char) str2 = do_alloc(pop, TEST_STR_2, TYPE_SIMPLE_ALLOC_2);
-	pmemobj_strdup(pop, &str1.oid, D_RO(str2), TYPE_SIMPLE_ALLOC);
+	pmemobj_strdup(pop, &str1.oid, D_RO(str2), TYPE_SIMPLE_ALLOC, 0);
 	ASSERTeq(strcmp(D_RO(str1), D_RO(str2)), 0);
 }
 
@@ -113,7 +113,7 @@ do_strdup_null_alloc(PMEMobjpool *pop)
 {
 	TOID(char) str1 = do_alloc(pop, TEST_STR_1, TYPE_NULL_ALLOC_1);
 	TOID(char) str2 = TOID_NULL(char);
-	pmemobj_strdup(pop, &str1.oid, D_RO(str2), TYPE_NULL_ALLOC);
+	pmemobj_strdup(pop, &str1.oid, D_RO(str2), TYPE_NULL_ALLOC, 0);
 	ASSERT(!TOID_IS_NULL(str1));
 }
 
@@ -127,7 +127,7 @@ main(int argc, char *argv[])
 
 	PMEMobjpool *pop;
 	if ((pop = pmemobj_create(argv[1], LAYOUT_NAME, PMEMOBJ_MIN_POOL,
-	    S_IWUSR | S_IRUSR)) == NULL)
+	    S_IWUSR | S_IRUSR, 0)) == NULL)
 		FATAL("!pmemobj_create");
 
 	do_strdup(pop);
