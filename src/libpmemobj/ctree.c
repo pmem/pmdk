@@ -106,7 +106,7 @@ void
 ctree_delete(struct ctree *t)
 {
 	while (t->root)
-		ctree_remove(t, 0, 0);
+		ctree_remove_unlocked(t, 0, 0);
 
 	util_mutex_destroy(&t->lock);
 
