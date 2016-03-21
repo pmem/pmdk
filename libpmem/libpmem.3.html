@@ -1,5 +1,5 @@
 <!-- Creator     : groff version 1.18.1.4 -->
-<!-- CreationDate: Tue Mar 15 06:42:55 2016 -->
+<!-- CreationDate: Mon Mar 21 14:06:24 2016 -->
 <html>
 <head>
 <meta name="generator" content="groff -Thtml, see www.gnu.org">
@@ -307,30 +307,30 @@ errno is set appropriately, and <i>mapped_lenp</i> and
 <p>The <i>flags</i> argument can be 0 or bitwise OR of one
 or more of the following file creation flags:</p>
 <!-- INDENTATION -->
-<p><b>PMEM_FILE_CREAT</b> - Create the named file if it does
-not exist. <i>len</i> must be non-zero and specifies the
-size of the file to be created. <i>mode</i> has the same
+<p><b>PMEM_FILE_CREATE</b> - Create the named file if it
+does not exist. <i>len</i> must be non-zero and specifies
+the size of the file to be created. <i>mode</i> has the same
 meaning as for <b>open</b>(2) and specifies the mode to use
 in case a new file is created. If neither
-<b>PMEM_FILE_CREAT</b> nor <b>PMEM_FILE_TMPFILE</b> is
+<b>PMEM_FILE_CREATE</b> nor <b>PMEM_FILE_TMPFILE</b> is
 specified, then <i>mode</i> is ignored.</p>
 <!-- INDENTATION -->
 <p><b>PMEM_FILE_EXCL</b> - Same meaning as <b>O_EXCL</b> on
 <b>open</b>(2) - Ensure that this call creates the file. If
 this flag is specified in conjunction with
-<b>PMEM_FILE_CREAT</b>, and pathname already exists, then
+<b>PMEM_FILE_CREATE</b>, and pathname already exists, then
 <b>pmem_map_file</b>() will fail.</p>
 <!-- INDENTATION -->
 <p><b>PMEM_FILE_TMPFILE</b> - Same meaning as
 <b>O_TMPFILE</b> on <b>open</b>(2). Create a mapping for an
-unnamed temporary file. <b>PMEM_FILE_CREAT</b> and
+unnamed temporary file. <b>PMEM_FILE_CREATE</b> and
 <i>len</i> must be specified and <i>path</i> must be an
 existing directory name.</p>
 <!-- INDENTATION -->
 <p><b>PMEM_FILE_SPARSE</b> - When creating a file, create a
 sparse (holey) file instead of calling
 <b>posix_fallocate</b>(2). Valid only if specified in
-conjunction with <b>PMEM_FILE_CREAT</b> or
+conjunction with <b>PMEM_FILE_CREATE</b> or
 <b>PMEM_FILE_TMPFILE</b>, otherwise ignored.</p>
 <!-- INDENTATION -->
 <p>If creation flags are not supplied, then

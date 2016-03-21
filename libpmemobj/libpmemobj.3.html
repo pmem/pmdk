@@ -1,5 +1,5 @@
 <!-- Creator     : groff version 1.18.1.4 -->
-<!-- CreationDate: Fri Feb 12 11:37:30 2016 -->
+<!-- CreationDate: Mon Mar 21 14:06:24 2016 -->
 <html>
 <head>
 <meta name="generator" content="groff -Thtml, see www.gnu.org">
@@ -79,6 +79,9 @@ Locking:
 
 void pmemobj_mutex_zero(PMEMobjpool *</b><i>pop</i><b>, PMEMmutex *</b><i>mutexp</i><b>);
 int pmemobj_mutex_lock(PMEMobjpool *</b><i>pop</i><b>, PMEMmutex *</b><i>mutexp</i><b>);
+int pmemobj_mutex_timedlock(PMEMobjpool *</b><i>pop</i><b>,
+    PMEMmutex *restrict</b> <i>mutexp</i><b>,
+    const struct timespec *restrict</b> <i>abs_timeout</i><b>);
 int pmemobj_mutex_trylock(PMEMobjpool *</b><i>pop</i><b>, PMEMmutex *</b><i>mutexp</i><b>);
 int pmemobj_mutex_unlock(PMEMobjpool *</b><i>pop</i><b>, PMEMmutex *</b><i>mutexp</i><b>);
 
@@ -87,10 +90,10 @@ int pmemobj_rwlock_rdlock(PMEMobjpool *</b><i>pop</i><b>, PMEMrwlock *</b><i>rwl
 int pmemobj_rwlock_wrlock(PMEMobjpool *</b><i>pop</i><b>, PMEMrwlock *</b><i>rwlockp</i><b>);
 int pmemobj_rwlock_timedrdlock(PMEMobjpool *</b><i>pop</i><b>,
     PMEMrwlock *restrict</b> <i>rwlockp</i><b>,
-    const struct timespec *restrict</b> <i>abstime</i><b>);
+    const struct timespec *restrict</b> <i>abs_timeout</i><b>);
 int pmemobj_rwlock_timedwrlock(PMEMobjpool *</b><i>pop</i><b>,
     PMEMrwlock *restrict</b> <i>rwlockp</i><b>,
-    const struct timespec *restrict</b> <i>abstime</i><b>);
+    const struct timespec *restrict</b> <i>abs_timeout</i><b>);
 int pmemobj_rwlock_tryrdlock(PMEMobjpool *</b><i>pop</i><b>, PMEMrwlock *</b><i>rwlockp</i><b>);
 int pmemobj_rwlock_trywrlock(PMEMobjpool *</b><i>pop</i><b>, PMEMrwlock *</b><i>rwlockp</i><b>);
 int pmemobj_rwlock_unlock(PMEMobjpool *</b><i>pop</i><b>, PMEMrwlock *</b><i>rwlockp</i><b>);
@@ -99,7 +102,7 @@ void pmemobj_cond_zero(PMEMobjpool *</b><i>pop</i><b>, PMEMcond *</b><i>condp</i
 int pmemobj_cond_broadcast(PMEMobjpool *</b><i>pop</i><b>, PMEMcond *</b><i>condp</i><b>);
 int pmemobj_cond_signal(PMEMobjpool *</b><i>pop</i><b>, PMEMcond *</b><i>condp</i><b>);
 int pmemobj_cond_timedwait(PMEMobjpool *</b><i>pop</i><b>, PMEMcond *restrict</b> <i>condp</i><b>,
-    PMEMmutex *restrict</b> <i>mutexp</i><b>, const struct timespec *restrict</b> <i>abstime</i><b>);
+    PMEMmutex *restrict</b> <i>mutexp</i><b>, const struct timespec *restrict</b> <i>abs_timeout</i><b>);
 int pmemobj_cond_wait(PMEMobjpool *</b><i>pop</i><b>, PMEMcond *</b><i>condp</i><b>,
     PMEMmutex *restrict</b> <i>mutexp</i><b>);
 
@@ -111,7 +114,7 @@ OID_EQUALS(PMEMoid</b> <i>lhs</i><b>, PMEMoid</b> <i>rhs</i><b>)
 Type-safety:
 
 TOID(</b><i>TYPE</i><b>)
-TOID_DECLARE(</b><i>TYPE</i><b>, unsigned int</b> <i>type_num</i><b>)
+TOID_DECLARE(</b><i>TYPE</i><b>, uint64_t</b> <i>type_num</i><b>)
 TOID_DECLARE_ROOT(</b><i>ROOT_TYPE</i><b>)
 
 TOID_TYPE_NUM(</b><i>TYPE</i><b>)
@@ -139,30 +142,30 @@ POBJ_LAYOUT_TYPES_NUM(</b><i>layout</i><b>)
 
 Non-transactional atomic allocations:
 
+typedef int (*</b><i>pmemobj_constr</i><b>)(PMEMobjpool *</b><i>pop</i><b>,
+    void *</b><i>ptr</i><b>, void *</b><i>arg</i><b>);
+
 int pmemobj_alloc(PMEMobjpool *</b><i>pop</i><b>, PMEMoid *</b><i>oidp</i><b>, size_t</b> <i>size</i><b>,
-    unsigned int</b> <i>type_num</i><b>, void (*</b><i>constructor</i><b>)(PMEMobjpool *</b><i>pop</i><b>,
-    void *</b><i>ptr</i><b>, void *</b><i>arg</i><b>), void *</b><i>arg</i><b>);
+    uint64_t</b> <i>type_num</i><b>, pmemobj_constr</b> <i>constructor</i><b>, void *</b><i>arg</i><b>);
 int pmemobj_zalloc(PMEMobjpool *</b><i>pop</i><b>, PMEMoid *</b><i>oidp</i><b>, size_t</b> <i>size</i><b>,
-    unsigned int</b> <i>type_num</i><b>);
+    uint64_t</b> <i>type_num</i><b>);
 int pmemobj_realloc(PMEMobjpool *</b><i>pop</i><b>, PMEMoid *</b><i>oidp</i><b>, size_t</b> <i>size</i><b>,
-    unsigned int</b> <i>type_num</i><b>);
+    uint64_t</b> <i>type_num</i><b>);
 int pmemobj_zrealloc(PMEMobjpool *</b><i>pop</i><b>, PMEMoid *</b><i>oidp</i><b>, size_t</b> <i>size</i><b>,
-    unsigned int</b> <i>type_num</i><b>);
+    uint64_t</b> <i>type_num</i><b>);
 int pmemobj_strdup(PMEMobjpool *</b><i>pop</i><b>, PMEMoid *</b><i>oidp</i><b>, const char *</b><i>s</i><b>,
-    unsigned int</b> <i>type_num</i><b>);
+    uint64_t</b> <i>type_num</i><b>);
 void pmemobj_free(PMEMoid *</b><i>oidp</i><b>);
 size_t pmemobj_alloc_usable_size(PMEMoid</b> <i>oid</i><b>);
 PMEMobjpool *pmemobj_pool_by_oid(PMEMoid</b> <i>oid</i><b>);
 PMEMobjpool *pmemobj_pool_by_ptr(const void *</b><i>addr</i><b>);
 void *pmemobj_direct(PMEMoid</b> <i>oid</i><b>);
-int pmemobj_type_num(PMEMoid</b> <i>oid</i><b>);
+uint64_t pmemobj_type_num(PMEMoid</b> <i>oid</i><b>);
 
 POBJ_NEW(PMEMobjpool *</b><i>pop</i><b>, TOID *</b><i>oidp</i><b>,</b> <i>TYPE</i><b>,
-    void (*</b><i>constructor</i><b>)(PMEMobjpool *</b><i>pop</i><b>, void *</b><i>ptr</i><b>, void *</b><i>arg</i><b>),
-    void *</b><i>arg</i><b>)
+    pmemobj_constr</b> <i>constructor</i><b>, void *</b><i>arg</i><b>)
 POBJ_ALLOC(PMEMobjpool *</b><i>pop</i><b>, TOID *</b><i>oidp</i><b>,</b> <i>TYPE</i><b>, size_t</b> <i>size</i><b>,
-    void (*</b><i>constructor</i><b>)(PMEMobjpool *</b><i>pop</i><b>, void *</b><i>ptr</i><b>, void *</b><i>arg</i><b>),
-    void *</b><i>arg</i><b>)
+    pmemobj_constr</b> <i>constructor</i><b>, void *</b><i>arg</i><b>)
 POBJ_ZNEW(PMEMobjpool *</b><i>pop</i><b>, TOID *</b><i>oidp</i><b>,</b> <i>TYPE</i><b>)
 POBJ_ZALLOC(PMEMobjpool *</b><i>pop</i><b>, TOID *</b><i>oidp</i><b>,</b> <i>TYPE</i><b>, size_t</b> <i>size</i><b>)
 POBJ_REALLOC(PMEMobjpool *</b><i>pop</i><b>, TOID *</b><i>oidp</i><b>,</b> <i>TYPE</i><b>, size_t</b> <i>size</i><b>)
@@ -173,23 +176,23 @@ Root object management:
 
 PMEMoid pmemobj_root(PMEMobjpool *</b><i>pop</i><b>, size_t</b> <i>size</i><b>);
 PMEMoid pmemobj_root_construct(PMEMobjpool *</b><i>pop</i><b>, size_t</b> <i>size</i><b>,
-    void (*</b><i>constructor</i><b>)(PMEMobjpool *</b><i>pop</i><b>, void *</b><i>ptr</i><b>, void *</b><i>arg</i><b>),
-    void *</b><i>arg</i><b>);
+    pmemobj_constr</b> <i>constructor</i><b>, void *</b><i>arg</i><b>);
 size_t pmemobj_root_size(PMEMobjpool *</b><i>pop</i><b>);
 
 POBJ_ROOT(PMEMobjpool *</b><i>pop</i><b>,</b> <i>TYPE</i><b>)
 
 Object containers:
 
-PMEMoid pmemobj_first(PMEMobjpool *</b><i>pop</i><b>, unsigned int</b> <i>type_num</i><b>);
+PMEMoid pmemobj_first(PMEMobjpool *</b><i>pop</i><b>);
 PMEMoid pmemobj_next(PMEMoid</b> <i>oid</i><b>);
 
+POBJ_FIRST_TYPE_NUM(PMEMobjpool *</b><i>pop</i><b>, uint64_t</b> <i>type_num</i><b>)
 POBJ_FIRST(PMEMobjpool *</b><i>pop</i><b>,</b> <i>TYPE</i><b>)
+POBJ_NEXT_TYPE_NUM(PMEMoid</b> <i>oid</i><b>)
 POBJ_NEXT(TOID</b> <i>oid</i><b>)
 
-POBJ_FOREACH(PMEMobjpool *</b><i>pop</i><b>, PMEMoid</b> <i>varoid</i><b>, unsigned int</b> <i>vartype_num</i><b>)
-POBJ_FOREACH_SAFE(PMEMobjpool *</b><i>pop</i><b>, PMEMoid</b> <i>varoid</i><b>, PMEMoid</b> <i>nvaroid</i><b>,
-    unsigned int</b> <i>vartype_num</i><b>)
+POBJ_FOREACH(PMEMobjpool *</b><i>pop</i><b>, PMEMoid</b> <i>varoid</i><b>)
+POBJ_FOREACH_SAFE(PMEMobjpool *</b><i>pop</i><b>, PMEMoid</b> <i>varoid</i><b>, PMEMoid</b> <i>nvaroid</i><b>)
 POBJ_FOREACH_TYPE(PMEMobjpool *</b><i>pop</i><b>, TOID</b> <i>var</i><b>)
 POBJ_FOREACH_SAFE_TYPE(PMEMobjpool *</b><i>pop</i><b>, TOID</b> <i>var</i><b>, TOID</b> <i>nvar</i><b>)
 
@@ -198,9 +201,8 @@ Non-transactional persistent atomic circular doubly-linked list:
 int pmemobj_list_insert(PMEMobjpool *</b><i>pop</i><b>, size_t</b> <i>pe_offset</i><b>, void *</b><i>head</i><b>,
     PMEMoid</b> <i>dest</i><b>, int</b> <i>before</i><b>, PMEMoid</b> <i>oid</i><b>);
 PMEMoid pmemobj_list_insert_new(PMEMobjpool *</b><i>pop</i><b>, size_t</b> <i>pe_offset</i><b>, void *</b><i>head</i><b>,
-    PMEMoid</b> <i>dest</i><b>, int</b> <i>before</i><b>, size_t</b> <i>size</i><b>, unsigned int</b> <i>type_num</i><b>,
-    void (*</b><i>constructor</i><b>)(PMEMobjpool *</b><i>pop</i><b>, void *</b><i>ptr</i><b>, void *</b><i>arg</i><b>),
-    void *</b><i>arg</i><b>);
+    PMEMoid</b> <i>dest</i><b>, int</b> <i>before</i><b>, size_t</b> <i>size</i><b>, uint64_t</b> <i>type_num</i><b>,
+    pmemobj_constr</b> <i>constructor</i><b>, void *</b><i>arg</i><b>);
 int pmemobj_list_remove(PMEMobjpool *</b><i>pop</i><b>, size_t</b> <i>pe_offset</i><b>, void *</b><i>head</i><b>,
     PMEMoid</b> <i>oid</i><b>, int</b> <i>free</i><b>);
 int pmemobj_list_move(PMEMobjpool *</b><i>pop</i><b>,
@@ -232,20 +234,17 @@ POBJ_LIST_INSERT_BEFORE(PMEMobjpool *</b><i>pop</i><b>, POBJ_LIST_HEAD *</b><i>h
     TOID</b> <i>listelm</i><b>, TOID</b> <i>elm</i><b>, POBJ_LIST_ENTRY</b> <i>FIELD</i><b>)
 POBJ_LIST_INSERT_NEW_HEAD(PMEMobjpool *</b><i>pop</i><b>, POBJ_LIST_HEAD *</b><i>head</i><b>,
     POBJ_LIST_ENTRY</b> <i>FIELD</i><b>, size_t</b> <i>size</i><b>,
-    void (*</b><i>constructor</i><b>)(PMEMobjpool *</b><i>pop</i><b>, void *</b><i>ptr</i><b>, void *</b><i>arg</i><b>),
-    void *</b><i>arg</i><b>)
+    pmemobj_constr</b> <i>constructor</i><b>, void *</b><i>arg</i><b>)
 POBJ_LIST_INSERT_NEW_TAIL(PMEMobjpool *</b><i>pop</i><b>, POBJ_LIST_HEAD *</b><i>head</i><b>,
     POBJ_LIST_ENTRY</b> <i>FIELD</i><b>, size_t</b> <i>size</i><b>,
     void (*</b><i>constructor</i><b>)(PMEMobjpool *</b><i>pop</i><b>, void *</b><i>ptr</i><b>, void *</b><i>arg</i><b>),
     void *</b><i>arg</i><b>)
 POBJ_LIST_INSERT_NEW_AFTER(PMEMobjpool *</b><i>pop</i><b>, POBJ_LIST_HEAD *</b><i>head</i><b>,
     TOID</b> <i>listelm</i><b>, POBJ_LIST_ENTRY</b> <i>FIELD</i><b>, size_t</b> <i>size</i><b>,
-    void (*</b><i>constructor</i><b>)(PMEMobjpool *</b><i>pop</i><b>, void *</b><i>ptr</i><b>, void *</b><i>arg</i><b>),
-    void *</b><i>arg</i><b>)
+    pmemobj_constr</b> <i>constructor</i><b>, void *</b><i>arg</i><b>)
 POBJ_LIST_INSERT_NEW_BEFORE(PMEMobjpool *</b><i>pop</i><b>, POBJ_LIST_HEAD *</b><i>head</i><b>,
     TOID</b> <i>listelm</i><b>, POBJ_LIST_ENTRY</b> <i>FIELD</i><b>, size_t</b> <i>size</i><b>,
-    void (*</b><i>constructor</i><b>)(PMEMobjpool *</b><i>pop</i><b>, void *</b><i>ptr</i><b>, void *</b><i>arg</i><b>),
-    void *</b><i>arg</i><b>)
+    pmemobj_constr</b> <i>constructor</i><b>, void *</b><i>arg</i><b>)
 POBJ_LIST_REMOVE(PMEMobjpool *</b><i>pop</i><b>, POBJ_LIST_HEAD *</b><i>head</i><b>,
     TOID</b> <i>elm</i><b>, POBJ_LIST_ENTRY</b> <i>FIELD</i><b>)
 POBJ_LIST_REMOVE_FREE(PMEMobjpool *</b><i>pop</i><b>, POBJ_LIST_HEAD *</b><i>head</i><b>,
@@ -275,12 +274,12 @@ int pmemobj_tx_errno(void);
 void pmemobj_tx_process(void);
 
 int pmemobj_tx_add_range(PMEMoid</b> <i>oid</i><b>, uint64_t</b> <i>off</i><b>, size_t</b> <i>size</i><b>);
-int pmemobj_tx_add_range_direct(void *</b><i>ptr</i><b>, size_t</b> <i>size</i><b>);
-PMEMoid pmemobj_tx_alloc(size_t</b> <i>size</i><b>, unsigned int</b> <i>type_num</i><b>);
-PMEMoid pmemobj_tx_zalloc(size_t</b> <i>size</i><b>, unsigned int</b> <i>type_num</i><b>);
-PMEMoid pmemobj_tx_realloc(PMEMoid</b> <i>oid</i><b>, size_t</b> <i>size</i><b>, unsigned int</b> <i>type_num</i><b>);
-PMEMoid pmemobj_tx_zrealloc(PMEMoid</b> <i>oid</i><b>, size_t</b> <i>size</i><b>, unsigned int</b> <i>type_num</i><b>);
-PMEMoid pmemobj_tx_strdup(const char *</b><i>s</i><b>, unsigned int</b> <i>type_num</i><b>);
+int pmemobj_tx_add_range_direct(const void *</b><i>ptr</i><b>, size_t</b> <i>size</i><b>);
+PMEMoid pmemobj_tx_alloc(size_t</b> <i>size</i><b>, uint64_t</b> <i>type_num</i><b>);
+PMEMoid pmemobj_tx_zalloc(size_t</b> <i>size</i><b>, uint64_t</b> <i>type_num</i><b>);
+PMEMoid pmemobj_tx_realloc(PMEMoid</b> <i>oid</i><b>, size_t</b> <i>size</i><b>, uint64_t</b> <i>type_num</i><b>);
+PMEMoid pmemobj_tx_zrealloc(PMEMoid</b> <i>oid</i><b>, size_t</b> <i>size</i><b>, uint64_t</b> <i>type_num</i><b>);
+PMEMoid pmemobj_tx_strdup(const char *</b><i>s</i><b>, uint64_t</b> <i>type_num</i><b>);
 int pmemobj_tx_free(PMEMoid</b> <i>oid</i><b>);
 
 TX_BEGIN_LOCK(PMEMobjpool *</b><i>pop</i><b>,</b> <i>...</i><b>)
@@ -292,6 +291,8 @@ TX_END
 
 TX_ADD(TOID</b> <i>o</i><b>)
 TX_ADD_FIELD(TOID</b> <i>o</i><b>,</b> <i>FIELD</i><b>)
+TX_ADD_DIRECT(TYPE *</b><i>p</i><b>)
+TX_ADD_FIELD_DIRECT(TYPE *</b><i>p</i><b>,</b> <i>FIELD</i><b>)
 
 TX_NEW(</b><i>TYPE</i><b>)
 TX_ALLOC(</b><i>TYPE</i><b>, size_t</b> <i>size</i><b>)
@@ -299,10 +300,11 @@ TX_ZNEW(</b><i>TYPE</i><b>)
 TX_ZALLOC(</b><i>TYPE</i><b>, size_t</b> <i>size</i><b>)
 TX_REALLOC(TOID</b> <i>o</i><b>, size_t</b> <i>size</i><b>)
 TX_ZREALLOC(TOID</b> <i>o</i><b>, size_t</b> <i>size</i><b>)
-TX_STRDUP(const char *</b><i>s</i><b>, unsigned int</b> <i>type_num</i><b>)
+TX_STRDUP(const char *</b><i>s</i><b>, uint64_t</b> <i>type_num</i><b>)
 TX_FREE(TOID</b> <i>o</i><b>)
 
 TX_SET(TOID</b> <i>o</i><b>,</b> <i>FIELD</i><b>,</b> <i>VALUE</i><b>)
+TX_SET_DIRECT(TYPE *</b><i>p</i><b>,</b> <i>FIELD</i><b>,</b> <i>VALUE</i><b>)
 TX_MEMCPY(const void *</b><i>dest</i><b>, const void *</b><i>src</i><b>, size_t</b> <i>num</i><b>)
 TX_MEMSET(const void *</b><i>dest</i><b>, int</b> <i>c</i><b>, size_t</b> <i>num</i><b>)
 
@@ -703,9 +705,16 @@ returns NULL and sets errno appropriately.</p>
 the line containing a <i>PMEMPOOLSET</i> string, followed by
 the specification of all the pool parts in the next lines.
 For each part, the file size and the absolute path must be
-provided. The minimum file size of each part of the pool set
-is the same as the minimum size allowed for a transactional
-object store consisting of one file. It is defined in
+provided. The size has to be compliant with the format
+specified in IEC 80000-13, IEEE 1541 or the Metric
+Interchange Format. Standards accept SI units with
+obligatory B - kB, MB, GB ... (multiplier by 1000) and IEC
+units with optional &quot;iB&quot; - KiB, MiB, GiB, ..., K,
+M, G, ... - (multiplier by 1024).</p>
+<!-- INDENTATION -->
+<p>The minimum file size of each part of the pool set is the
+same as the minimum size allowed for a transactional object
+store consisting of one file. It is defined in
 <b>&lt;libpmemobj.h&gt;</b> as <b>PMEMOBJ_MIN_POOL</b>.
 Sections defining the replica sets are optional. There could
 be multiple replica sections and each must start with the
@@ -838,6 +847,31 @@ automatically reinitialized and then locked.</p>
 <tr valign="top" align="left">
 <td width="10%"></td>
 <td width="89%">
+<p><b>int pmemobj_mutex_timedlock(PMEMobjpool
+*</b><i>pop</i><b>,<br>
+PMEMmutex *restrict</b> <i>mutexp</i><b>,<br>
+const struct timespec *restrict</b>
+<i>abs_timeout</i><b>);</b></p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="20%"></td>
+<td width="79%">
+<p>The <b>pmemobj_mutex_timedlock</b>() performs the same
+action as <b>pmemobj_mutex_lock</b>(), but will not wait
+beyond <i>abs_timeout</i> to obtain the lock before
+returning.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
 <p><b>int pmemobj_mutex_trylock(PMEMobjpool
 *</b><i>pop</i><b>, PMEMmutex
 *</b><i>mutexp</i><b>);</b></p>
@@ -945,7 +979,7 @@ reinitialized and then acquired.</p>
 *</b><i>pop</i><b>,<br>
 PMEMrwlock *restrict</b> <i>rwlockp</i><b>,<br>
 const struct timespec *restrict</b>
-<i>abstime</i><b>);</b></p>
+<i>abs_timeout</i><b>);</b></p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -955,8 +989,8 @@ const struct timespec *restrict</b>
 <td width="20%"></td>
 <td width="79%">
 <p>The <b>pmemobj_rwlock_timedrdlock</b>() performs the same
-action, but will not wait beyond <i>abstime</i> to obtain
-the lock before returning.</p>
+action, but will not wait beyond <i>abs_timeout</i> to
+obtain the lock before returning.</p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -1000,7 +1034,7 @@ reinitialized and then acquired.</p>
 *</b><i>pop</i><b>,<br>
 PMEMrwlock *restrict</b> <i>rwlockp</i><b>,<br>
 const struct timespec *restrict</b>
-<i>abstime</i><b>);</b></p>
+<i>abs_timeout</i><b>);</b></p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -1010,8 +1044,8 @@ const struct timespec *restrict</b>
 <td width="20%"></td>
 <td width="79%">
 <p>The <b>pmemobj_rwlock_timedwrlock</b>() performs the same
-action, but will not wait beyond <i>abstime</i> to obtain
-the lock before returning.</p>
+action, but will not wait beyond <i>abs_timeout</i> to
+obtain the lock before returning.</p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -1156,7 +1190,7 @@ follow if the mutex is not held.</p>
 <i>condp</i><b>,<br>
 PMEMmutex *restrict</b> <i>mutexp</i><b>,<br>
 const struct timespec *restrict</b>
-<i>abstime</i><b>);</b></p>
+<i>abs_timeout</i><b>);</b></p>
 <!-- INDENTATION -->
 <p><b>int pmemobj_cond_wait(PMEMobjpool *</b><i>pop</i><b>,
 PMEMcond *</b><i>condp</i><b>,<br>
@@ -1241,7 +1275,7 @@ as an argument, function returns NULL.</p>
 <tr valign="top" align="left">
 <td width="10%"></td>
 <td width="89%">
-<p><b>int pmemobj_type_num(PMEMoid</b>
+<p><b>uint64_t pmemobj_type_num(PMEMoid</b>
 <i>oid</i><b>);</b></p>
 </td>
 </table>
@@ -1252,8 +1286,7 @@ as an argument, function returns NULL.</p>
 <td width="20%"></td>
 <td width="79%">
 <p>The <b>pmemobj_type_num</b>() function returns a type
-number of the object represented by <i>oid</i>. If OID_NULL
-is passed as an argument, function returns -1.</p>
+number of the object represented by <i>oid</i>.</p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -1315,12 +1348,6 @@ safety mechanism. It also allows to iterate through all the
 objects of given type stored in the persistent memory pool.
 See <b>OBJECT CONTAINERS</b> section for more details.</p>
 <!-- INDENTATION -->
-<p>The maximum allowed <i>type number</i> value is limited
-by the <b>PMEMOBJ_NUM_OID_TYPES</b> macro. The only valid
-type numbers are those in the range <b>[0,
-PMEMOBJ_NUM_OID_TYPES-1]</b> and the special value
-<b>POBJ_ROOT_TYPE_NUM</b> reserved for the root object.</p>
-<!-- INDENTATION -->
 <p>The <b>OID_IS_NULL</b> macro checks if given
 <i>PMEMoid</i> represents a NULL object.</p>
 <!-- INDENTATION -->
@@ -1346,7 +1373,7 @@ generated when an attempt is made to assign a handle to an
 object of one type to the object handle variable of another
 type of object.</p>
 <!-- INDENTATION -->
-<p><b>TOID_DECLARE(</b><i>TYPE</i><b>, unsigned int</b>
+<p><b>TOID_DECLARE(</b><i>TYPE</i><b>, uint64_t</b>
 <i>type_num)</i></p>
 </td>
 </table>
@@ -1728,7 +1755,7 @@ layout as a NULL-terminated string.</p>
 <td width="20%"></td>
 <td width="79%">
 <p>The <b>POBJ_LAYOUT_TYPES_NUM</b> macro returns number of
-types declared using the <b>POBH_LAYOUT_TOID</b> macro
+types declared using the <b>POBJ_LAYOUT_TOID</b> macro
 within the layout declaration.</p>
 </td>
 </table>
@@ -1836,22 +1863,17 @@ int num_of_types = POBJ_LAYOUT_TYPES_NUM(mylayout);
 <td width="10%"></td>
 <td width="89%">
 <p>All the objects in the persistent memory pool are
-organized by their <i>type number</i> and stored in the
-internal containers, similar to the lists described in
-<b>NON-TRANSACTIONAL PERSISTENT ATOMIC LISTS</b> section.
-Each persistent object is added to one of those object
-collections at the allocation time. The number of internal
-containers is limited by <b>PMEMOBJ_NUM_OID_TYPES</b>.</p>
+assigned a <i>type number</i> and are accessible by it.</p>
 <!-- INDENTATION -->
 <p>The <i>libpmemobj</i> provides a mechanism allowing to
-iterate through the internal object collections, either
+iterate through the internal object collection, either
 looking for a specific object, or performing a specific
 operation on each object of given type. Software should not
 make any assumptions about the order of the objects in the
 internal object containers.</p>
 <!-- INDENTATION -->
-<p><b>PMEMoid pmemobj_first(PMEMobjpool *</b><i>pop</i><b>,
-unsigned int</b> <i>type_num</i><b>);</b></p>
+<p><b>PMEMoid pmemobj_first(PMEMobjpool
+*</b><i>pop</i><b>);</b></p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -1861,10 +1883,8 @@ unsigned int</b> <i>type_num</i><b>);</b></p>
 <td width="20%"></td>
 <td width="79%">
 <p>The <b>pmemobj_first</b>() function returns the first
-object from the collection specified by <i>type_num</i>. If
-the collection is empty, OID_NULL is returned. If the value
-of <i>type_num</i> argument exceeds the limit, an OID_NULL
-is returned and errno is set appropriately.</p>
+object from the pool. If the pool is empty, OID_NULL is
+returned.</p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -1884,8 +1904,28 @@ is returned and errno is set appropriately.</p>
 <td width="20%"></td>
 <td width="79%">
 <p>The <b>POBJ_FIRST</b> macro returns the first object from
-the collection specified by the name of type
-<i>TYPE</i>.</p>
+the pool of the type specified by <i>TYPE</i>.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>POBJ_FIRST_TYPE_NUM(PMEMobjpool *</b><i>pop</i><b>,
+uint64_t</b> <i>type_num</i><b>)</b></p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="20%"></td>
+<td width="79%">
+<p>The <b>POBJ_FIRST_TYPE_NUM</b> macro returns the first
+object from the pool of the type specified by
+<i>type_num</i>.</p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -1905,10 +1945,9 @@ the collection specified by the name of type
 <td width="20%"></td>
 <td width="79%">
 <p>The <b>pmemobj_next</b>() function returns the next
-object from the same collection as the object referenced by
-<i>oid</i>. If an object referenced by <i>oid</i> is the
-last object in the collection, or if the OID_NULL is passed
-as an argument, function returns OID_NULL.</p>
+object from the pool. If an object referenced by <i>oid</i>
+is the last object in the collection, or if the OID_NULL is
+passed as an argument, function returns OID_NULL.</p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -1926,11 +1965,8 @@ as an argument, function returns OID_NULL.</p>
 <tr valign="top" align="left">
 <td width="20%"></td>
 <td width="79%">
-<p>The <b>POBJ_NEXT</b> macro returns the next object from
-the same collection as the object referenced by <i>oid</i>.
-This macro works the same way as <b>pmemobj_next</b>()
-function with the difference that it takes typed OID instead
-of <b>PMEMoid</b> as an argument.</p>
+<p>The <b>POBJ_NEXT</b> macro returns the next object of the
+same type as the object referenced by <i>oid</i>.</p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -1939,13 +1975,32 @@ of <b>PMEMoid</b> as an argument.</p>
 <tr valign="top" align="left">
 <td width="10%"></td>
 <td width="89%">
-<p>The following two macros provide more convenient way to
+<p><b>POBJ_NEXT_TYPE_NUM(PMEMoid</b> <i>oid</i><b>)</b></p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="20%"></td>
+<td width="79%">
+<p>The <b>POBJ_NEXT_TYPE_NUM</b> macro returns the next
+object of the same type as the object referenced by
+<i>oid</i>.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>The following four macros provide more convenient way to
 iterate through the internal collections, performing a
 specific operation on each object.</p>
 <!-- INDENTATION -->
 <p><b>POBJ_FOREACH(PMEMobjpool *</b><i>pop</i><b>,
-PMEMoid</b> <i>varoid</i><b>,<br>
-unsigned int</b> <i>vartype_num</i><b>)</b></p>
+PMEMoid</b> <i>varoid</i><b>)</b></p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -1958,8 +2013,8 @@ unsigned int</b> <i>vartype_num</i><b>)</b></p>
 specific operation on each allocated object stored in the
 persistent memory pool pointed by <i>pop</i>. It traverses
 the internal collection of all the objects, assigning a
-handle to each element in turn to <i>varoid</i> and its type
-number to <i>vartype_num</i> variable.</p>
+handle to each element in turn to <i>varoid</i>
+variable.</p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -1995,8 +2050,7 @@ type, assigning a handle to each element in turn to
 <td width="89%">
 <p><b>POBJ_FOREACH_SAFE(PMEMobjpool *</b><i>pop</i><b>,
 PMEMoid</b> <i>varoid</i><b>,<br>
-PMEMoid</b> <i>nvaroid</i><b>, unsigned int</b>
-<i>vartype_num</i><b>)</b></p>
+PMEMoid</b> <i>nvaroid</i><b>)</b></p>
 <!-- INDENTATION -->
 <p><b>POBJ_FOREACH_SAFE_TYPE(PMEMobjpool *</b><i>pop</i><b>,
 TOID</b> <i>var</i><b>, TOID</b> <i>nvar</i><b>)</b></p>
@@ -2073,10 +2127,9 @@ returned.</p>
 <td width="10%"></td>
 <td width="89%">
 <p><b>PMEMoid pmemobj_root_construct(PMEMobjpool
-*</b><i>pop</i><b>, size_t</b> <i>size</i><b>, void
-(*</b><i>constructor</i><b>)(PMEMobjpool *</b><i>pop</i><b>,
-void *</b><i>ptr</i><b>, void *</b><i>arg</i><b>), void
-*</b><i>arg</i><b>);</b></p>
+*</b><i>pop</i><b>, size_t</b> <i>size</i><b>,<br>
+pmemobj_constr</b> <i>constructor</i><b>, void
+*</b><i>arg</i><b>)</b></p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -2089,9 +2142,12 @@ void *</b><i>ptr</i><b>, void *</b><i>arg</i><b>), void
 actions as the <b>pmemobj_root</b>() function, but instead
 of zeroing the newly allocated object a <i>constructor</i>
 function is called. The constructor is also called on
-reallocations. The <b>pmemobj_root_size</b>() can be used in
-the constructor to check whether it&rsquo;s the first call
-to the constructor.</p>
+reallocations. If the constructor returns non-zero value the
+allocation is canceled, the <b>OID_NULL</b> value is
+returned from the caller and errno is set to <b>ECANCELED
+.</b> The <b>pmemobj_root_size</b>() can be used in the
+constructor to check whether it&rsquo;s the first call to
+the constructor.</p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -2167,13 +2223,35 @@ interrupted.</p>
 <p>The allocations are always aligned to the cache-line
 boundary.</p>
 <!-- INDENTATION -->
+<p><b>typedef int
+(*</b><i>pmemobj_constr</i><b>)(PMEMobjpool
+*</b><i>pop</i><b>,<br>
+void *</b><i>ptr</i><b>, void *</b><i>arg</i><b>);</b></p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="20%"></td>
+<td width="79%">
+<p>The <b>pmemobj_constr</b> type represents a constructor
+for atomic allocation from persistent memory heap associated
+with memory pool <i>pop</i>. The <i>ptr</i> is a pointer to
+allocating memory area and the <i>arg</i> is an user-defined
+argument passed to an appropriate function.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
 <p><b>int pmemobj_alloc(PMEMobjpool *</b><i>pop</i><b>,
 PMEMoid *</b><i>oidp</i><b>, size_t</b> <i>size</i><b>,<br>
-unsigned int</b> <i>type_num</i><b>, void
-(*</b><i>constructor</i><b>)(PMEMobjpool
-*</b><i>pop</i><b>,<br>
-void *</b><i>ptr</i><b>, void *</b><i>arg</i><b>), void
-*</b><i>arg</i><b>);</b></p>
+uint64_t</b> <i>type_num</i><b>, pmemobj_constr</b>
+<i>constructor</i> <b>, void *</b><i>arg</i><b>);</b></p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -2198,16 +2276,18 @@ atomically. Before returning, it calls the
 guaranteed that allocated object is either properly
 initialized, or if the allocation is interrupted before the
 constructor completes, the memory space reserved for the
-object is reclaimed. The <i>size</i> can be any non-zero
-value, however due to internal padding and object metadata,
-the actual size of the allocation will differ from the
-requested one by at least 64 bytes. For this reason, making
-the allocations of a size less than 64 bytes is extremely
-inefficient and discouraged. If <i>size</i> equals 0, then
-<b>pmemobj_alloc</b>() returns non-zero value, sets the
-errno and leaves the <i>oidp</i> untouched. The allocated
-object is added to the internal container associated with
-given <i>type_num</i>.</p>
+object is reclaimed. If the constructor returns non-zero
+value the allocation is canceled, the -1 value is returned
+from the caller and errno is set to <b>ECANCELED .</b> The
+<i>size</i> can be any non-zero value, however due to
+internal padding and object metadata, the actual size of the
+allocation will differ from the requested one by at least 64
+bytes. For this reason, making the allocations of a size
+less than 64 bytes is extremely inefficient and discouraged.
+If <i>size</i> equals 0, then <b>pmemobj_alloc</b>() returns
+non-zero value, sets the errno and leaves the <i>oidp</i>
+untouched. The allocated object is added to the internal
+container associated with given <i>type_num</i>.</p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -2218,7 +2298,7 @@ given <i>type_num</i>.</p>
 <td width="89%">
 <p><b>int pmemobj_zalloc(PMEMobjpool *</b><i>pop</i><b>,
 PMEMoid *</b><i>oidp</i><b>, size_t</b> <i>size</i><b>,<br>
-unsigned int</b> <i>type_num</i><b>);</b></p>
+uint64_t</b> <i>type_num</i><b>);</b></p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -2288,7 +2368,7 @@ changed atomically.</p>
 <td width="89%">
 <p><b>int pmemobj_realloc(PMEMobjpool *</b><i>pop</i><b>,
 PMEMoid *</b><i>oidp</i><b>, size_t</b> <i>size</i><b>,<br>
-unsigned int</b> <i>type_num</i><b>);</b></p>
+uint64_t</b> <i>type_num</i><b>);</b></p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -2336,7 +2416,7 @@ appropriately.</p>
 <td width="89%">
 <p><b>int pmemobj_zrealloc(PMEMobjpool *</b><i>pop</i><b>,
 PMEMoid *</b><i>oidp</i><b>, size_t</b> <i>size</i><b>,<br>
-unsigned int</b> <i>type_num</i><b>);</b></p>
+uint64_t</b> <i>type_num</i><b>);</b></p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -2385,7 +2465,7 @@ appropriately.</p>
 <p><b>int pmemobj_strdup(PMEMobjpool *</b><i>pop</i><b>,
 PMEMoid *</b><i>oidp</i><b>, const char
 *</b><i>s</i><b>,<br>
-unsigned int</b> <i>type_num</i><b>);</b></p>
+uint64_t</b> <i>type_num</i><b>);</b></p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -2449,9 +2529,8 @@ is OID_NULL, 0 is returned.</p>
 <td width="89%">
 <p><b>POBJ_NEW(PMEMobjpool *</b><i>pop</i><b>, TOID
 *</b><i>oidp</i><b>,</b> <i>TYPE</i><b>,<br>
-void (*</b><i>constructor</i><b>)(PMEMobjpool
-*</b><i>pop</i><b>, void *</b><i>ptr</i><b>,<br>
-void *</b><i>arg</i><b>), void *</b><i>arg</i><b>)</b></p>
+pmemobj_constr</b> <i>constructor</i> <b>, void
+*</b><i>arg</i><b>)</b></p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -2477,9 +2556,8 @@ typed OID of <b>TYPE</b>.</p>
 <p><b>POBJ_ALLOC(PMEMobjpool *</b><i>pop</i><b>, TOID
 *</b><i>oidp</i><b>,</b> <i>TYPE</i><b>, size_t</b>
 <i>size</i><b>,<br>
-void (*</b><i>constructor</i><b>)((PMEMobjpool
-*</b><i>pop</i><b>, void *</b><i>ptr</i><b>,<br>
-void *</b><i>arg</i><b>), void *</b><i>arg</i><b>)</b></p>
+pmemobj_constr</b> <i>constructor</i> <b>, void
+*</b><i>arg</i><b>)</b></p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -2645,11 +2723,11 @@ support the following functionality:</p>
        cols="4" cellspacing="0" cellpadding="0">
 <tr valign="top" align="left">
 <td width="11%"></td>
-<td width="1%">
+<td width="2%">
 
 <p>*</p>
 </td>
-<td width="4%"></td>
+<td width="2%"></td>
 <td width="82%">
 
 <p>Insertion of an object at the head of the list, or at
@@ -2657,11 +2735,11 @@ the end of the list.</p>
 </td>
 <tr valign="top" align="left">
 <td width="11%"></td>
-<td width="1%">
+<td width="2%">
 
 <p>*</p>
 </td>
-<td width="4%"></td>
+<td width="2%"></td>
 <td width="82%">
 
 <p>Insertion of an object before or after any element in
@@ -2669,11 +2747,11 @@ the list.</p>
 </td>
 <tr valign="top" align="left">
 <td width="11%"></td>
-<td width="1%">
+<td width="2%">
 
 <p>*</p>
 </td>
-<td width="4%"></td>
+<td width="2%"></td>
 <td width="82%">
 
 <p>Atomic allocation and insertion of a new object at the
@@ -2681,11 +2759,11 @@ head of the list, or at the end of the list.</p>
 </td>
 <tr valign="top" align="left">
 <td width="11%"></td>
-<td width="1%">
+<td width="2%">
 
 <p>*</p>
 </td>
-<td width="4%"></td>
+<td width="2%"></td>
 <td width="82%">
 
 <p>Atomic allocation and insertion of a new object before
@@ -2693,11 +2771,11 @@ or after any element in the list.</p>
 </td>
 <tr valign="top" align="left">
 <td width="11%"></td>
-<td width="1%">
+<td width="2%">
 
 <p>*</p>
 </td>
-<td width="4%"></td>
+<td width="2%"></td>
 <td width="82%">
 
 <p>Atomic moving of an element from one list to the
@@ -2705,22 +2783,22 @@ specific location on another list.</p>
 </td>
 <tr valign="top" align="left">
 <td width="11%"></td>
-<td width="1%">
+<td width="2%">
 
 <p>*</p>
 </td>
-<td width="4%"></td>
+<td width="2%"></td>
 <td width="82%">
 
 <p>Removal of any object in the list.</p>
 </td>
 <tr valign="top" align="left">
 <td width="11%"></td>
-<td width="1%">
+<td width="2%">
 
 <p>*</p>
 </td>
-<td width="4%"></td>
+<td width="2%"></td>
 <td width="82%">
 
 <p>Atomic removal and freeing of any object in the
@@ -2728,11 +2806,11 @@ list.</p>
 </td>
 <tr valign="top" align="left">
 <td width="11%"></td>
-<td width="1%">
+<td width="2%">
 
 <p>*</p>
 </td>
-<td width="4%"></td>
+<td width="2%"></td>
 <td width="82%">
 
 <p>Forward or backward traversal through the list.</p>
@@ -2812,11 +2890,8 @@ returned and errno is set.</p>
 *</b><i>pop</i><b>, size_t</b> <i>pe_offset</i><b>,<br>
 void *</b><i>head</i><b>, PMEMoid</b> <i>dest</i><b>,
 int</b> <i>before</i><b>, size_t</b> <i>size</i><b>,<br>
-unsigned int</b> <i>type_num</i><b>, void
-(*</b><i>constructor</i><b>)((PMEMobjpool
-*</b><i>pop</i><b>,<br>
-void *</b><i>ptr</i><b>, void *</b><i>arg</i><b>), void
-*</b><i>arg</i><b>);</b></p>
+uint64_t</b> <i>type_num</i><b>, pmemobj_constr</b>
+<i>constructor</i><b>, void *</b><i>arg</i><b>);</b></p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -2847,12 +2922,15 @@ allocated object in <i>ptr</i> along with the <i>arg</i>
 argument. It is guaranteed that allocated object is either
 properly initialized or, if the allocation is interrupted
 before the constructor completes, the memory space reserved
-for the object is reclaimed. The <i>head</i> cannot be
-OID_NULL. The allocated object is also also added to the
-internal container associated with given <i>type_num</i>. as
-described in section <b>OBJECT CONTAINERS</b>. On success,
-it returns a handle to the newly allocated object. On error,
-OID_NULL is returned and errno is set.</p>
+for the object is reclaimed. If the constructor returns
+non-zero value the allocation is canceled, the -1 value is
+returned from the caller and errno is set to <b>ECANCELED
+.</b> The <i>head</i> cannot be OID_NULL. The allocated
+object is also added to the internal container associated
+with given <i>type_num</i>. as described in section
+<b>OBJECT CONTAINERS</b>. On success, it returns a handle to
+the newly allocated object. On error, OID_NULL is returned
+and errno is set.</p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -3228,7 +3306,9 @@ POBJ_LIST_ENTRY</b> <i>FIELD</i><b>)</b></p>
 <td width="79%">
 <p>The macro <b>POBJ_LIST_INSERT_AFTER</b> inserts the
 element <i>elm</i> into the list referenced by <i>head</i>
-after the element <i>listelm</i>.</p>
+after the element <i>listelm</i>. If <i>listelm</i> value is
+TOID_NULL, the object is inserted at the end of the
+list.</p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -3251,7 +3331,9 @@ POBJ_LIST_ENTRY</b> <i>FIELD</i><b>)</b></p>
 <td width="79%">
 <p>The macro <b>POBJ_LIST_INSERT_BEFORE</b> inserts the
 element <i>elm</i> into the list referenced by <i>head</i>
-before the element <i>listelm</i>.</p>
+before the element <i>listelm</i>. If <i>listelm</i> value
+is TOID_NULL, the object is inserted at the head of the
+list.</p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -3264,9 +3346,8 @@ before the element <i>listelm</i>.</p>
 *</b><i>pop</i><b>, POBJ_LIST_HEAD *</b><i>head</i><b>,<br>
 POBJ_LIST_ENTRY</b> <i>FIELD</i><b>, size_t</b>
 <i>size</i><b>,<br>
-void (*</b><i>constructor</i><b>)((PMEMobjpool
-*</b><i>pop</i><b>, void *</b><i>ptr</i><b>,<br>
-void *</b><i>arg</i><b>), void *</b><i>arg</i><b>)</b></p>
+pmemobj_constr</b> <i>constructor</i> <b>, void
+*</b><i>arg</i><b>)</b></p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -3293,9 +3374,8 @@ from the typed OID of the first element on list.</p>
 *</b><i>pop</i><b>, POBJ_LIST_HEAD *</b><i>head</i><b>,<br>
 POBJ_LIST_ENTRY</b> <i>FIELD</i><b>, size_t</b>
 <i>size</i><b>,<br>
-void (*</b><i>constructor</i><b>)((PMEMobjpool
-*</b><i>pop</i><b>, void *</b><i>ptr</i><b>,<br>
-void *</b><i>arg</i><b>), void *</b><i>arg</i><b>)</b></p>
+pmemobj_constr</b> <i>constructor</i> <b>, void
+*</b><i>arg</i><b>)</b></p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -3323,9 +3403,8 @@ list.</p>
 *</b><i>pop</i><b>, POBJ_LIST_HEAD *</b><i>head</i><b>,<br>
 TOID</b> <i>listelm</i><b>, POBJ_LIST_ENTRY</b>
 <i>FIELD</i><b>, size_t</b> <i>size</i><b>,<br>
-void (*</b><i>constructor</i><b>)((PMEMobjpool
-*</b><i>pop</i><b>, void *</b><i>ptr</i><b>,<br>
-void *</b><i>arg</i><b>), void *</b><i>arg</i><b>)</b></p>
+pmemobj_constr</b> <i>constructor</i> <b>, void
+*</b><i>arg</i><b>)</b></p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -3337,10 +3416,12 @@ void *</b><i>arg</i><b>), void *</b><i>arg</i><b>)</b></p>
 <p>The macro <b>POBJ_LIST_INSERT_NEW_AFTER</b> atomically
 allocates a new object of size <i>size</i> and inserts it
 into the list referenced by <i>head</i> after the element
-<i>listelm</i>. The newly allocated object is also added to
-the internal object container associated with with a type
-number which is retrieved from the typed OID of the first
-element on list.</p>
+<i>listelm</i>. If <i>listelm</i> value is TOID_NULL, the
+object is inserted at the end of the list. The newly
+allocated object is also added to the internal object
+container associated with with a type number which is
+retrieved from the typed OID of the first element on
+list.</p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -3353,9 +3434,8 @@ element on list.</p>
 *</b><i>pop</i><b>, POBJ_LIST_HEAD *</b><i>head</i><b>,<br>
 TOID</b> <i>listelm</i><b>, POBJ_LIST_ENTRY</b>
 <i>FIELD</i><b>, size_t</b> <i>size</i><b>,<br>
-void (*</b><i>constructor</i><b>)((PMEMobjpool
-*</b><i>pop</i><b>, void *</b><i>ptr</i><b>,<br>
-void *</b><i>arg</i><b>), void *</b><i>arg</i><b>)</b></p>
+pmemobj_constr</b> <i>constructor</i> <b>, void
+*</b><i>arg</i><b>)</b></p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -3367,10 +3447,12 @@ void *</b><i>arg</i><b>), void *</b><i>arg</i><b>)</b></p>
 <p>The macro <b>POBJ_LIST_INSERT_NEW_BEFORE</b> atomically
 allocates a new object of size <i>size</i> and inserts it
 into the list referenced by <i>head</i> before the element
-<i>listelm</i>. The newly allocated object is also added to
-the internal object container associated with with a type
-number which is retrieved from the typed OID of the first
-element on list.</p>
+<i>listelm</i>. If <i>listelm</i> value is TOID_NULL, the
+object is inserted at the head of the list. The newly
+allocated object is also added to the internal object
+container associated with with a type number which is
+retrieved from the typed OID of the first element on
+list.</p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -3495,11 +3577,12 @@ POBJ_LIST_ENTRY</b> <i>FIELD</i><b>, POBJ_LIST_ENTRY</b>
 <p>The macro <b>POBJ_LIST_MOVE_ELEMENT_AFTER</b> atomically
 removes the element <i>elm</i> from the list referenced by
 <i>head</i> and inserts it into the list referenced by
-<i>head_new</i> after the element <i>listelm</i>. The
-<i>field</i> and <i>field_new</i> arguments are the names of
-the fields of type <i>POBJ_LIST_ENTRY</i> in the element
-structure that are used to connect the elements in both
-lists.</p>
+<i>head_new</i> after the element <i>listelm</i>. If
+<i>listelm</i> value is TOID_NULL, the object is inserted at
+the end of the list. The <i>field</i> and <i>field_new</i>
+arguments are the names of the fields of type
+<i>POBJ_LIST_ENTRY</i> in the element structure that are
+used to connect the elements in both lists.</p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -3525,11 +3608,12 @@ POBJ_LIST_ENTRY</b> <i>FIELD</i><b>, POBJ_LIST_ENTRY</b>
 <p>The macro <b>POBJ_LIST_MOVE_ELEMENT_BEFORE</b> atomically
 removes the element <i>elm</i> from the list referenced by
 <i>head</i> and inserts it into the list referenced by
-<i>head_new</i> before the element <i>listelm</i>. The
-<i>field</i> and <i>field_new</i> arguments are the names of
-the fields of type <i>POBJ_LIST_ENTRY</i> in the element
-structure that are used to connect the elements in both
-lists.</p>
+<i>head_new</i> before the element <i>listelm</i>. If
+<i>listelm</i> value is TOID_NULL, the object is inserted at
+the head of the list. The <i>field</i> and <i>field_new</i>
+arguments are the names of the fields of type
+<i>POBJ_LIST_ENTRY</i> in the element structure that are
+used to connect the elements in both lists.</p>
 </td>
 </table>
 <a name="TRANSACTIONAL OBJECT MANIPULATION"></a>
@@ -3720,11 +3804,10 @@ transactions. Then it causes the transition to
 returns to the context of the outer transaction with
 <i>TX_STAGE_WORK</i> stage without releasing any locks. Must
 always be called for each <b>pmemobj_tx_begin</b>(), even if
-starting the transaction failed. It has no effect if called
-during <i>TX_STAGE_NONE</i> stage and must <i>not</i> be
-called during <i>TX_STAGE_WORK</i>. If transaction was
-successful, returns 0. Otherwise returns error code set by
-<b>pmemobj_tx_abort</b>(). Note that
+starting the transaction failed. This function must
+<i>not</i> be called during <i>TX_STAGE_WORK</i>. If
+transaction was successful, returns 0. Otherwise returns
+error code set by <b>pmemobj_tx_abort</b>(). Note that
 <b>pmemobj_tx_abort</b>() can be called internally by the
 library.</p>
 </td>
@@ -3808,7 +3891,7 @@ returned. This function must be called during
 <tr valign="top" align="left">
 <td width="10%"></td>
 <td width="89%">
-<p><b>int pmemobj_tx_add_range_direct(void
+<p><b>int pmemobj_tx_add_range_direct(const void
 *</b><i>ptr</i><b>, size_t</b> <i>size</i><b>);</b></p>
 </td>
 </table>
@@ -3842,7 +3925,7 @@ This function must be called during
 <td width="10%"></td>
 <td width="89%">
 <p><b>PMEMoid pmemobj_tx_alloc(size_t</b> <i>size</i><b>,
-unsigned int</b> <i>type_num</i><b>);</b></p>
+uint64_t</b> <i>type_num</i><b>);</b></p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -3872,7 +3955,7 @@ be called during <i>TX_STAGE_WORK</i>.</p>
 <td width="10%"></td>
 <td width="89%">
 <p><b>PMEMoid pmemobj_tx_zalloc(size_t</b> <i>size</i><b>,
-unsigned int</b> <i>type_num</i><b>);</b></p>
+uint64_t</b> <i>type_num</i><b>);</b></p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -3899,7 +3982,7 @@ be called during <i>TX_STAGE_WORK</i>.</p>
 <td width="89%">
 <p><b>PMEMoid pmemobj_tx_realloc(PMEMoid</b> <i>oid</i><b>,
 size_t</b> <i>size</i><b>,<br>
-unsigned int</b> <i>type_num</i><b>);</b></p>
+uint64_t</b> <i>type_num</i><b>);</b></p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -3934,7 +4017,7 @@ called during <i>TX_STAGE_WORK</i>.</p>
 <td width="89%">
 <p><b>PMEMoid pmemobj_tx_zrealloc(PMEMoid</b> <i>oid</i><b>,
 size_t</b> <i>size</i><b>,<br>
-unsigned int</b> <i>type_num</i><b>);</b></p>
+uint64_t</b> <i>type_num</i><b>);</b></p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -3962,7 +4045,7 @@ reallocation. This function must be called during
 <td width="10%"></td>
 <td width="89%">
 <p><b>PMEMoid pmemobj_tx_strdup(const char *</b><i>s</i><b>,
-unsigned int</b> <i>type_num</i><b>);</b></p>
+uint64_t</b> <i>type_num</i><b>);</b></p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -4346,6 +4429,54 @@ changes within the object will be rolled-back.</p>
 <tr valign="top" align="left">
 <td width="10%"></td>
 <td width="89%">
+<p><b>TX_ADD_FIELD_DIRECT(TYPE *</b><i>p</i><b>,</b>
+<i>FIELD</i><b>)</b></p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="20%"></td>
+<td width="79%">
+<p>The <b>TX_ADD_FIELD_DIRECT</b>() macro saves in the undo
+log the current value of given <i>FIELD</i> of the object
+referenced by (direct) pointer <i>p</i>. The application is
+then free to directly modify the specified <i>FIELD</i>. In
+case of a failure or abort, the saved value will be
+restored.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>TX_ADD_DIRECT(TYPE *</b><i>p</i><b>)</b></p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="20%"></td>
+<td width="79%">
+<p>The <b>TX_ADD_DIRECT</b>() macro takes a
+&quot;snapshot&quot; of the entire object referenced by
+(direct) pointer <i>p</i> and saves it in the undo log. The
+object size is determined from its <i>TYPE</i>. The
+application is then free to directly modify the object. In
+case of a failure or abort, all the changes within the
+object will be rolled-back.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
 <p><b>TX_SET(TOID</b> <i>o</i><b>,</b> <i>FIELD</i><b>,</b>
 <i>VALUE</i><b>)</b></p>
 </td>
@@ -4360,6 +4491,29 @@ changes within the object will be rolled-back.</p>
 value of given <i>FIELD</i> of the object referenced by a
 handle <i>o</i>, and then set its new <i>VALUE</i>. In case
 of a failure or abort, the saved value will be restored.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>TX_SET_DIRECT(TYPE *</b><i>p</i><b>,</b>
+<i>FIELD</i><b>,</b> <i>VALUE</i><b>)</b></p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="20%"></td>
+<td width="79%">
+<p>The <b>TX_SET_DIRECT</b> macro saves in the undo log the
+current value of given <i>FIELD</i> of the object referenced
+by (direct) pointer <i>p</i>, and then set its new
+<i>VALUE</i>. In case of a failure or abort, the saved value
+will be restored.</p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -4423,8 +4577,8 @@ value will be restored.</p>
 <tr valign="top" align="left">
 <td width="20%"></td>
 <td width="79%">
-<p>The <b>TX_NEW</b>() macro transactionally allocates an
-new object of given <i>TYPE</i> and assigns it a type number
+<p>The <b>TX_NEW</b>() macro transactionally allocates a new
+object of given <i>TYPE</i> and assigns it a type number
 read from the typed OID. The allocation size is determined
 from the size of the user-defined structure <i>TYPE</i>. If
 successful and called during <i>TX_STAGE_WORK</i> it returns
@@ -4449,7 +4603,7 @@ and errno is set appropriately.</p>
 <tr valign="top" align="left">
 <td width="20%"></td>
 <td width="79%">
-<p>The <b>TX_ALLOC</b>() macro transactionally allocates an
+<p>The <b>TX_ALLOC</b>() macro transactionally allocates a
 new object of given <i>TYPE</i> and assigns it a type number
 read from the typed OID. The allocation size is passed by
 <i>size</i> parameter. If successful and called during
@@ -4566,8 +4720,8 @@ set appropriately.</p>
 <tr valign="top" align="left">
 <td width="10%"></td>
 <td width="89%">
-<p><b>TX_STRDUP(const char *</b><i>s</i><b>, unsigned
-int</b> <i>type_num</i><b>)</b></p>
+<p><b>TX_STRDUP(const char *</b><i>s</i><b>, uint64_t</b>
+<i>type_num</i><b>)</b></p>
 </td>
 </table>
 <!-- INDENTATION -->

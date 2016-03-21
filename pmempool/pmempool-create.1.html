@@ -1,5 +1,5 @@
 <!-- Creator     : groff version 1.18.1.4 -->
-<!-- CreationDate: Thu Dec  3 16:49:07 2015 -->
+<!-- CreationDate: Mon Mar 21 14:06:24 2016 -->
 <html>
 <head>
 <meta name="generator" content="groff -Thtml, see www.gnu.org">
@@ -71,10 +71,13 @@ specified pool type. The minimum sizes for <b>blk</b>,
 or use <b>-M</b> option to create a pool of maximum
 available size on underlying file system.</p>
 <!-- INDENTATION -->
-<p>The <i>size</i> argument may be passed with
-multiplicative suffixes K=1024, M=1024*1024 and so on for G,
-T and P or the suffixes KB=1000, MB=1000*1000 and so on for
-GB, TB and PB.</p>
+<p>The <i>size</i> argument may be passed in format that
+permits only the upper-case character for byte - B as
+specified in IEC 80000-13, IEEE 1541 and the Metric
+Interchange Format. Standards accept SI units with
+obligatory B - kB, MB, GB ... which means multiplier by 1000
+and IEC units with optional &quot;iB&quot; - KiB, MiB, GiB,
+..., K, M, G, ... - which means multiplier by 1024.</p>
 </td>
 </table>
 <!-- INDENTATION -->
