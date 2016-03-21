@@ -31,83 +31,65 @@
  */
 
 /*
- * make_persistent_impl.hpp -- implementation details of atomic allocation
- * and construction.
+ * array_traits.hpp -- common array traits
  */
 
-#ifndef LIBPMEMOBJ_MAKE_ATOMIC_IMPL_HPP
-#define LIBPMEMOBJ_MAKE_ATOMIC_IMPL_HPP
-
-#include <new>
-
-#include "libpmemobj/detail/integer_sequence.hpp"
-#include "libpmemobj/detail/destroyer.hpp"
-#include "libpmemobj/detail/array_traits.hpp"
+#ifndef LIBPMEMOBJ_ARRAY_TRAITS_HPP
+#define LIBPMEMOBJ_ARRAY_TRAITS_HPP
 
 namespace nvml {
 
 namespace detail {
 
 	/*
-	 * Calls the objects constructor.
-	 *
-	 * Unpacks the tuple to get constructor's parameters.
-	 */
-	template<typename T, size_t... Indices, typename... Args>
-	void create_object(void *ptr, index_sequence<Indices...>,
-			std::tuple<Args...> &tuple)
-	{
-		new (ptr) T(std::get<Indices>(tuple)...);
-	}
-
-	/*
-	 * C-style function called by the allocator.
-	 *
-	 * The arg is a tuple containing constructor parameters.
-	 */
-	template<typename T, typename... Args>
-	int obj_constructor(PMEMobjpool *pop, void *ptr, void *arg)
-	{
-		auto *arg_pack = static_cast<std::tuple<Args...> *>(arg);
-
-		typedef typename make_index_sequence<Args...>::type index;
-		try {
-			create_object<T>(ptr, index(), *arg_pack);
-		} catch (...) {
-			return -1;
-		}
-
-		pmemobj_persist(pop, ptr, sizeof(T));
-
-		return 0;
-	}
-
-	/*
-	 * Constructor used for atomic array allocations.
-	 *
-	 * Returns -1 if an exception was thrown during T's construction,
-	 * 0 otherwise.
+	 * Returns the number of array elements.
 	 */
 	template<typename T>
-	int array_constructor(PMEMobjpool *pop, void *ptr, void *arg)
+	struct pp_array_elems
 	{
-		std::size_t N = *static_cast<std::size_t*>(arg);
+		enum {
+			elems = 1
+		};
+	};
 
-		T *tptr = static_cast<T*>(ptr);
-		try {
-			for (std::size_t i = 0; i < N; ++i)
-				::new (tptr + i) T();
-		} catch (...) {
-			return -1;
-		}
+	/*
+	 * Returns the number of array elements.
+	 */
+	template<typename T, std::size_t N>
+	struct pp_array_elems<T[N]>
+	{
+		enum {
+			elems = N
+		};
+	};
 
-		pmemobj_persist(pop, ptr, sizeof(T) * N);
+	/*
+	 * Returns the type of elements in an array.
+	 */
+	template<typename T>
+	struct pp_array_type;
 
-		return 0;
-	}
+	/*
+	 * Returns the type of elements in an array.
+	 */
+	template<typename T>
+	struct pp_array_type<T[]>
+	{
+		typedef T type;
+	};
+
+	/*
+	 * Returns the type of elements in an array.
+	 */
+	template<typename T, size_t N>
+	struct pp_array_type<T[N]>
+	{
+		typedef T type;
+	};
 
 }  /* namespace detail */
 
 }  /* namespace nvml */
 
-#endif /* LIBPMEMOBJ_MAKE_ATOMIC_IMPL_HPP */
+
+#endif /* LIBPMEMOBJ_ARRAY_TRAITS_HPP */
