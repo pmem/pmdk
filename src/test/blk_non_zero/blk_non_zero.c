@@ -148,6 +148,10 @@ main(int argc, char *argv[])
 
 	OUT("is zeroed:\t%d", is_zeroed(path));
 
+	unsigned char *buf = MALLOC(Bsize);
+	if (buf == NULL)
+		FATAL("cannot allocate buf");
+
 	/* map each file argument with the given map type */
 	for (; read_arg < argc; read_arg++) {
 		if (strchr("rwze", argv[read_arg][0]) == NULL ||
@@ -155,39 +159,41 @@ main(int argc, char *argv[])
 			FATAL("op must be r: or w: or z: or e:");
 		off_t lba = strtoul(&argv[read_arg][2], NULL, 0);
 
-		unsigned char buf[Bsize];
-
 		switch (argv[read_arg][0]) {
 		case 'r':
 			if (pmemblk_read(handle, buf, lba) < 0)
-				OUT("!read      lba %zu", lba);
+				OUT("!read      lba %zu", (size_t)lba);
 			else
-				OUT("read      lba %zu: %s", lba, ident(buf));
+				OUT("read      lba %zu: %s", (size_t)lba,
+					ident(buf));
 			break;
 
 		case 'w':
 			construct(buf);
 			if (pmemblk_write(handle, buf, lba) < 0)
-				OUT("!write     lba %zu", lba);
+				OUT("!write     lba %zu", (size_t)lba);
 			else
-				OUT("write     lba %zu: %s", lba, ident(buf));
+				OUT("write     lba %zu: %s", (size_t)lba,
+					ident(buf));
 			break;
 
 		case 'z':
 			if (pmemblk_set_zero(handle, lba) < 0)
-				OUT("!set_zero  lba %zu", lba);
+				OUT("!set_zero  lba %zu", (size_t)lba);
 			else
-				OUT("set_zero  lba %zu", lba);
+				OUT("set_zero  lba %zu", (size_t)lba);
 			break;
 
 		case 'e':
 			if (pmemblk_set_error(handle, lba) < 0)
-				OUT("!set_error lba %zu", lba);
+				OUT("!set_error lba %zu", (size_t)lba);
 			else
-				OUT("set_error lba %zu", lba);
+				OUT("set_error lba %zu", (size_t)lba);
 			break;
 		}
 	}
+
+	FREE(buf);
 
 	pmemblk_close(handle);
 

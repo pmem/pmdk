@@ -142,11 +142,30 @@ util_init(void)
 		}
 	}
 
+#ifdef WIN32
+	mmap_init();
+#endif
+
 #if defined(USE_VG_PMEMCHECK) || defined(USE_VG_HELGRIND) ||\
 	defined(USE_VG_MEMCHECK)
 	_On_valgrind = RUNNING_ON_VALGRIND;
 #endif
 }
+
+#ifdef WIN32
+/*
+ * util_fini -- initialize the utils
+ *
+ * This is called from the library destructor code.
+ */
+void
+util_fini(void)
+{
+	LOG(3, NULL);
+
+	mmap_fini();
+}
+#endif
 
 /*
  * util_set_alloc_funcs -- allow one to override malloc, etc.
@@ -187,6 +206,7 @@ util_map_hint_unused(void *minaddr, size_t len, size_t align)
 
 	ASSERT(align > 0);
 
+#ifndef WIN32
 	FILE *fp;
 	if ((fp = fopen("/proc/self/maps", "r")) == NULL) {
 		ERR("!/proc/self/maps");
@@ -241,7 +261,9 @@ util_map_hint_unused(void *minaddr, size_t len, size_t align)
 	}
 
 	fclose(fp);
-
+#else
+	char *raddr = NULL;
+#endif
 	LOG(3, "returning %p", raddr);
 	return raddr;
 }
@@ -268,6 +290,7 @@ util_map_hint(size_t len, size_t req_align)
 {
 	LOG(3, "len %zu req_align %zu", len, req_align);
 
+#ifndef WIN32
 	char *addr;
 
 	/*
@@ -307,6 +330,9 @@ util_map_hint(size_t len, size_t req_align)
 	LOG(4, "hint %p", addr);
 
 	return addr;
+#else
+	return NULL;
+#endif
 }
 
 /*
@@ -323,6 +349,7 @@ util_map(int fd, size_t len, int cow, size_t req_align)
 	LOG(3, "fd %d len %zu cow %d req_align %zu", fd, len, cow, req_align);
 
 	void *base;
+
 	void *addr = util_map_hint(len, req_align);
 
 	if ((base = mmap(addr, len, PROT_READ|PROT_WRITE,
@@ -364,8 +391,12 @@ util_tmpfile(const char *dir, const char *templ)
 	LOG(3, "dir \"%s\" template \"%s\"", dir, templ);
 
 	int oerrno;
+	int fd = -1;
 
 	char *fullname = alloca(strlen(dir) + sizeof (templ));
+
+#if 1
+
 	(void) strcpy(fullname, dir);
 	(void) strcat(fullname, templ);
 
@@ -373,9 +404,16 @@ util_tmpfile(const char *dir, const char *templ)
 	sigfillset(&set);
 	(void) sigprocmask(SIG_BLOCK, &set, &oldset);
 
+#ifndef WIN32
 	mode_t prev_umask = umask(S_IRWXG | S_IRWXO);
-	int fd = mkstemp(fullname);
+#endif
+
+	fd = mkstemp(fullname);
+
+#ifndef WIN32
 	umask(prev_umask);
+#endif
+
 	if (fd < 0) {
 		ERR("!mkstemp");
 		goto err;
@@ -383,14 +421,57 @@ util_tmpfile(const char *dir, const char *templ)
 
 	(void) unlink(fullname);
 	(void) sigprocmask(SIG_SETMASK, &oldset, NULL);
-
 	LOG(3, "unlinked file is \"%s\"", fullname);
+
+#else
+
+	UINT fileNo;
+	FILE_DISPOSITION_INFO fileDisp;
+
+	fileNo = GetTempFileNameA(dir, "umem", 0, (LPSTR)&fullName[0]);
+
+	if (fileNo == 0) {
+		ERR("!mkstemp");
+		goto err;
+	}
+
+	fd = util_file_create((const char *)&fullName, size, size);
+
+	if (fd == INVALID_HANDLE_VALUE) {
+		ERR("!mkstemp");
+		goto err;
+	}
+
+	fileDisp.DeleteFile = TRUE;
+
+	if (!SetFileInformationByHandle((HANDLE) fd,
+				FileDispositionInfo,
+				&fileDisp,
+				sizeof (fileDisp))) {
+
+		/*
+		 * let's preserve the last error across the close and delete
+		 */
+		int oerrno = GetLastError();
+
+		CloseHandle((HANDLE) fd);
+		DeleteFileA((LPCSTR) &fullName);
+		fd = INVALID_HANDLE_VALUE;
+		SetLastError(oerrno);
+
+		ERR("!mkstemp");
+		goto err;
+	}
+
+#endif
 
 	return fd;
 
 err:
 	oerrno = errno;
 	(void) sigprocmask(SIG_SETMASK, &oldset, NULL);
+	if (fd != -1)
+		(void) close(fd);
 	errno = oerrno;
 	return -1;
 }
@@ -528,6 +609,7 @@ util_convert_hdr(struct pool_hdr *hdrp)
 int
 util_get_arch_flags(struct arch_flags *arch_flags)
 {
+#ifndef WIN32
 	char *path = "/proc/self/exe";
 	int fd;
 	ElfW(Ehdr) elf;
@@ -565,6 +647,18 @@ out_close:
 	close(fd);
 out:
 	return ret;
+#else
+
+	SYSTEM_INFO si;
+	GetSystemInfo(&si);
+
+	arch_flags->e_machine = si.wProcessorArchitecture;
+	arch_flags->ei_class = 0; /* si.dwProcessorType; */
+	arch_flags->ei_data = 0;
+	arch_flags->alignment_desc = alignment_desc();
+
+	return 0; /* GetSystemInfo */
+#endif
 }
 
 /*
@@ -627,10 +721,10 @@ util_range_ro(void *addr, size_t len)
 	 */
 
 	/* increase len by the amount we gain when we round addr down */
-	len += (uintptr_t)addr & (Pagesize - 1);
+	len += (uintptr_t)addr & ((uintptr_t)Pagesize - 1);
 
 	/* round addr down to page boundary */
-	uptr = (uintptr_t)addr & ~(Pagesize - 1);
+	uptr = (uintptr_t)addr & ~((uintptr_t)Pagesize - 1);
 
 	if ((retval = mprotect((void *)uptr, len, PROT_READ)) < 0)
 		ERR("!mprotect: PROT_READ");
@@ -656,10 +750,10 @@ util_range_rw(void *addr, size_t len)
 	 */
 
 	/* increase len by the amount we gain when we round addr down */
-	len += (uintptr_t)addr & (Pagesize - 1);
+	len += (uintptr_t)addr & ((uintptr_t)Pagesize - 1);
 
 	/* round addr down to page boundary */
-	uptr = (uintptr_t)addr & ~(Pagesize - 1);
+	uptr = (uintptr_t)addr & ~((uintptr_t)Pagesize - 1);
 
 	if ((retval = mprotect((void *)uptr, len, PROT_READ|PROT_WRITE)) < 0)
 		ERR("!mprotect: PROT_READ|PROT_WRITE");
@@ -685,10 +779,10 @@ util_range_none(void *addr, size_t len)
 	 */
 
 	/* increase len by the amount we gain when we round addr down */
-	len += (uintptr_t)addr & (Pagesize - 1);
+	len += (uintptr_t)addr & ((uintptr_t)Pagesize - 1);
 
 	/* round addr down to page boundary */
-	uptr = (uintptr_t)addr & ~(Pagesize - 1);
+	uptr = (uintptr_t)addr & ~((uintptr_t)Pagesize - 1);
 
 	if ((retval = mprotect((void *)uptr, len, PROT_NONE)) < 0)
 		ERR("!mprotect: PROT_NONE");
@@ -775,14 +869,24 @@ util_file_create(const char *path, size_t size, size_t minsize)
 	}
 
 	int fd;
+
+#ifndef WIN32
 	/*
 	 * Create file without any permission. It will be granted once
 	 * initialization completes.
 	 */
+
 	if ((fd = open(path, O_RDWR|O_CREAT|O_EXCL, 0)) < 0) {
 		ERR("!open %s", path);
 		return -1;
 	}
+#else
+	if ((fd = open(path, O_RDWR | O_CREAT | O_EXCL,
+						S_IWRITE | S_IREAD)) < 0) {
+		ERR("!open %s", path);
+		return -1;
+	}
+#endif
 
 	if (flock(fd, LOCK_EX | LOCK_NB) < 0) {
 		ERR("!flock");
@@ -798,6 +902,7 @@ util_file_create(const char *path, size_t size, size_t minsize)
 
 err:
 	LOG(4, "error clean up");
+
 	int oerrno = errno;
 	if (fd != -1)
 		(void) close(fd);
@@ -812,8 +917,8 @@ err:
 int
 util_file_open(const char *path, size_t *size, size_t minsize, int flags)
 {
-	LOG(3, "path %s size %p minsize %zu flags %d", path, size, minsize,
-			flags);
+	LOG(3, "path %s size %p minsize %zu flags %d",
+			path, size, minsize, flags);
 
 	int oerrno;
 	int fd;

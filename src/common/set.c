@@ -1072,12 +1072,16 @@ util_replica_create(struct pool_set *set, unsigned repidx, int flags,
 
 	struct pool_replica *rep = set->replica[repidx];
 
+#ifndef WIN32
 	/* determine a hint address for mmap() */
 	void *addr = util_map_hint(rep->repsize, 0);
 	if (addr == NULL) {
 		ERR("cannot find a contiguous region of given size");
 		return -1;
 	}
+#else
+	void *addr = NULL;
+#endif
 
 	/* map the first part and reserve space for remaining parts */
 	if (util_map_part(&rep->part[0], addr, rep->repsize, 0, flags) != 0) {
@@ -1242,6 +1246,7 @@ util_uuid_from_string(const char *uuid, struct uuid *ud)
 	return 0;
 }
 
+#ifndef WIN32
 /*
  * util_uuid_generate -- generate a uuid
  *
@@ -1276,6 +1281,16 @@ util_uuid_generate(uuid_t uuid)
 
 	return 0;
 }
+#else
+
+int
+util_uuid_generate(uuid_t uuid)
+{
+	CoCreateGuid((GUID *)(uuid));
+	return 0;
+}
+
+#endif
 
 /*
  * util_pool_create -- create a new memory pool (set or a single file)
@@ -1359,12 +1374,17 @@ util_replica_open(struct pool_set *set, unsigned repidx, int flags)
 
 	struct pool_replica *rep = set->replica[repidx];
 
+
+#ifndef WIN32
 	/* determine a hint address for mmap() */
 	void *addr = util_map_hint(rep->repsize, 0);
 	if (addr == NULL) {
 		ERR("cannot find a contiguous region of given size");
 		return -1;
 	}
+#else
+	void *addr = NULL;
+#endif
 
 	/* map the first part and reserve space for remaining parts */
 	if (util_map_part(&rep->part[0], addr, rep->repsize, 0, flags) != 0) {
@@ -1656,21 +1676,21 @@ util_parse_size(const char *str, size_t *sizep)
 {
 	const struct suff suffixes[] = {
 		{ "B", 1 },
-		{ "K", 1UL << 10 },		/* JEDEC */
-		{ "M", 1UL << 20 },
-		{ "G", 1UL << 30 },
-		{ "T", 1UL << 40 },
-		{ "P", 1UL << 50 },
-		{ "KiB", 1UL << 10 },		/* IEC */
-		{ "MiB", 1UL << 20 },
-		{ "GiB", 1UL << 30 },
-		{ "TiB", 1UL << 40 },
-		{ "PiB", 1UL << 50 },
-		{ "kB", 1000UL },		/* SI */
-		{ "MB", 1000UL * 1000 },
-		{ "GB", 1000UL * 1000 * 1000 },
-		{ "TB", 1000UL * 1000 * 1000 * 1000 },
-		{ "PB", 1000UL * 1000 * 1000 * 1000 * 1000 }
+		{ "K", 1ULL << 10 },		/* JEDEC */
+		{ "M", 1ULL << 20 },
+		{ "G", 1ULL << 30 },
+		{ "T", 1ULL << 40 },
+		{ "P", 1ULL << 50 },
+		{ "KiB", 1ULL << 10 },		/* IEC */
+		{ "MiB", 1ULL << 20 },
+		{ "GiB", 1ULL << 30 },
+		{ "TiB", 1ULL << 40 },
+		{ "PiB", 1ULL << 50 },
+		{ "kB", 1000ULL },		/* SI */
+		{ "MB", 1000ULL * 1000 },
+		{ "GB", 1000ULL * 1000 * 1000 },
+		{ "TB", 1000ULL * 1000 * 1000 * 1000 },
+		{ "PB", 1000ULL * 1000 * 1000 * 1000 * 1000 }
 	};
 
 	int res = -1;
@@ -1678,7 +1698,7 @@ util_parse_size(const char *str, size_t *sizep)
 	size_t size = 0;
 	char unit[4] = {0};
 
-	int ret = sscanf(str, "%lu%4s", &size, unit);
+	int ret = sscanf(str, "%zu%4s", &size, unit);
 	if (ret == 1) {
 		res = 0;
 	} else if (ret == 2) {

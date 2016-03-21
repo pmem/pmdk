@@ -148,7 +148,7 @@ static void
 do_tell(PMEMlogpool *plp)
 {
 	off_t tell = pmemlog_tell(plp);
-	OUT("tell %zu", tell);
+	OUT("tell %lld", (long long)tell);
 }
 
 /*

@@ -48,8 +48,13 @@
  *
  * Called automatically by the run-time loader.
  */
+#ifndef WIN32
 __attribute__((constructor))
 static void
+#else
+static void WINAPI libpmem_fini(void);
+void WINAPI
+#endif
 libpmem_init(void)
 {
 	out_init(PMEM_LOG_PREFIX, PMEM_LOG_LEVEL_VAR, PMEM_LOG_FILE_VAR,
@@ -57,6 +62,10 @@ libpmem_init(void)
 	LOG(3, NULL);
 	util_init();
 	pmem_init();
+
+#ifdef WIN32
+	atexit(libpmem_fini);
+#endif
 }
 
 /*
@@ -64,11 +73,20 @@ libpmem_init(void)
  *
  * Called automatically when the process terminates.
  */
+#ifndef WIN32
 __attribute__((destructor))
 static void
+#else
+static void WINAPI
+#endif
 libpmem_fini(void)
 {
 	LOG(3, NULL);
+
+#ifdef WIN32
+	util_fini();
+#endif
+
 	out_fini();
 }
 

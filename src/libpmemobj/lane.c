@@ -67,6 +67,12 @@ lane_get_layout(PMEMobjpool *pop, uint64_t lane_idx)
 		sizeof (struct lane_layout) * lane_idx);
 }
 
+#ifdef WIN32
+extern struct section_operations allocator_ops;
+extern struct section_operations list_ops;
+extern struct section_operations transaction_ops;
+#endif
+
 /*
  * lane_init -- (internal) initializes a single lane runtime variables
  */
@@ -83,6 +89,12 @@ lane_init(PMEMobjpool *pop, struct lane *lane, struct lane_layout *layout,
 	util_mutex_init(mtx, attr);
 
 	lane->lock = mtx;
+
+#ifdef WIN32
+	Section_ops[LANE_SECTION_ALLOCATOR] = &allocator_ops;
+	Section_ops[LANE_SECTION_LIST] = &list_ops;
+	Section_ops[LANE_SECTION_TRANSACTION] = &transaction_ops;
+#endif
 
 	int i;
 	for (i = 0; i < MAX_LANE_SECTION; ++i) {
@@ -255,6 +267,12 @@ lane_check(PMEMobjpool *pop)
 	int i; /* section index */
 	uint64_t j; /* lane index */
 	struct lane_layout *layout;
+
+#ifdef WIN32
+	Section_ops[LANE_SECTION_ALLOCATOR] = &allocator_ops;
+	Section_ops[LANE_SECTION_LIST] = &list_ops;
+	Section_ops[LANE_SECTION_TRANSACTION] = &transaction_ops;
+#endif
 
 	for (i = 0; i < MAX_LANE_SECTION; ++i) {
 		for (j = 0; j < pop->nlanes; ++j) {

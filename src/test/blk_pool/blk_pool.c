@@ -57,7 +57,7 @@ pool_create(const char *path, size_t bsize, size_t poolsize, unsigned mode)
 		STAT(path, &stbuf);
 
 		OUT("%s: file size %zu usable blocks %zu mode 0%o",
-				path, stbuf.st_size,
+				path, (size_t)stbuf.st_size,
 				pmemblk_nblock(pbp),
 				stbuf.st_mode & 0777);
 
