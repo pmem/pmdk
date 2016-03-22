@@ -847,7 +847,7 @@ tx_alloc_common(size_t size, type_num_t type_num, pmalloc_constr constructor)
 			&args, &retoid);
 
 	if (OBJ_OID_IS_NULL(retoid) ||
-		ctree_insert(lane->ranges, retoid.off, size) != 0)
+		ctree_insert_unlocked(lane->ranges, retoid.off, size) != 0)
 		goto err_oom;
 
 	return retoid;
@@ -890,7 +890,7 @@ tx_alloc_copy_common(size_t size, type_num_t type_num, const void *ptr,
 			size, constructor, &args, &retoid);
 
 	if (ret || OBJ_OID_IS_NULL(retoid) ||
-		ctree_insert(lane->ranges, retoid.off, size) != 0)
+		ctree_insert_unlocked(lane->ranges, retoid.off, size) != 0)
 		goto err_oom;
 
 	return retoid;
@@ -1387,7 +1387,8 @@ pmemobj_tx_add_common(struct tx_add_range_args *args)
 	while (spoint >= args->offset) {
 		apoint = spoint + 1;
 		/* find range less than starting point */
-		uint64_t range = ctree_find_le(runtime->ranges, &spoint);
+		uint64_t range = ctree_find_le_unlocked(runtime->ranges,
+				&spoint);
 		struct tx_add_range_args nargs;
 		nargs.pop = args->pop;
 
@@ -1428,7 +1429,7 @@ pmemobj_tx_add_common(struct tx_add_range_args *args)
 			break;
 
 
-		if (ctree_insert(runtime->ranges,
+		if (ctree_insert_unlocked(runtime->ranges,
 			nargs.offset, nargs.size) != 0)
 			break;
 	}
@@ -1648,7 +1649,7 @@ pmemobj_tx_free(PMEMoid oid)
 		VALGRIND_REMOVE_FROM_TX(oobh, pmalloc_usable_size(lane->pop,
 				oid.off));
 
-		if (ctree_remove(lane->ranges, oid.off, 1) != oid.off)
+		if (ctree_remove_unlocked(lane->ranges, oid.off, 1) != oid.off)
 			FATAL("TX undo state mismatch");
 
 		/*

@@ -106,7 +106,7 @@ void
 ctree_delete(struct ctree *t)
 {
 	while (t->root)
-		ctree_remove(t, 0, 0);
+		ctree_remove_unlocked(t, 0, 0);
 
 	util_mutex_destroy(&t->lock);
 
@@ -114,16 +114,14 @@ ctree_delete(struct ctree *t)
 }
 
 /*
- * ctree_insert -- inserts a new key into the tree
+ * ctree_insert_unlocked -- inserts a new key into the tree
  */
 int
-ctree_insert(struct ctree *t, uint64_t key, uint64_t value)
+ctree_insert_unlocked(struct ctree *t, uint64_t key, uint64_t value)
 {
 	void **dst = &t->root;
 	struct node *a = NULL;
 	int err = 0;
-
-	util_mutex_lock(&t->lock);
 
 	/* descend the path until a best matching key is found */
 	while (NODE_IS_INTERNAL(*dst)) {
@@ -133,10 +131,9 @@ ctree_insert(struct ctree *t, uint64_t key, uint64_t value)
 
 	struct node_leaf *dstleaf = *dst;
 	struct node_leaf *nleaf = Malloc(sizeof (*nleaf));
-	if (nleaf == NULL) {
-		err = ENOMEM;
-		goto error_leaf_malloc;
-	}
+	if (nleaf == NULL)
+		return ENOMEM;
+
 	nleaf->key = key;
 	nleaf->value = value;
 
@@ -178,57 +175,67 @@ ctree_insert(struct ctree *t, uint64_t key, uint64_t value)
 	NODE_INTERNAL_SET(*dst, n);
 
 out:
-	util_mutex_unlock(&t->lock);
-
 	return 0;
 
 error_duplicate:
 	Free(n);
 error_internal_malloc:
 	Free(nleaf);
-error_leaf_malloc:
-	util_mutex_unlock(&t->lock);
-
 	return err;
 }
 
 /*
- * ctree_find-- searches for an equal key in the tree
+ * ctree_insert -- inserts a new key into the tree
+ */
+int
+ctree_insert(struct ctree *t, uint64_t key, uint64_t value)
+{
+	util_mutex_lock(&t->lock);
+	int ret = ctree_insert_unlocked(t, key, value);
+	util_mutex_unlock(&t->lock);
+	return ret;
+}
+
+/*
+ * ctree_find_unlocked -- searches for an equal key in the tree
  */
 uint64_t
-ctree_find(struct ctree *t, uint64_t key)
+ctree_find_unlocked(struct ctree *t, uint64_t key)
 {
 	struct node_leaf *dst = t->root;
 	struct node *a = NULL;
-
-	util_mutex_lock(&t->lock);
 
 	while (NODE_IS_INTERNAL(dst)) {
 		a = NODE_INTERNAL_GET(dst);
 		dst = a->slots[BIT_IS_SET(key, a->diff)];
 	}
 
-	uint64_t ret;
 	if (dst && dst->key == key)
-		ret = key;
+		return key;
 	else
-		ret = 0;
+		return 0;
+}
 
+/*
+ * ctree_find -- searches for an equal key in the tree
+ */
+uint64_t
+ctree_find(struct ctree *t, uint64_t key)
+{
+	util_mutex_lock(&t->lock);
+	uint64_t ret = ctree_find_unlocked(t, key);
 	util_mutex_unlock(&t->lock);
-
 	return ret;
 }
 
 /*
- * ctree_find_le -- searches for a (less or equal) key in the tree
+ * ctree_find_le_unlocked -- searches for a (less or equal) key in the tree
  */
 uint64_t
-ctree_find_le(struct ctree *t, uint64_t *key)
+ctree_find_le_unlocked(struct ctree *t, uint64_t *key)
 {
 	struct node_leaf *dst = t->root;
 	struct node *a = NULL;
-
-	util_mutex_lock(&t->lock);
 
 	while (NODE_IS_INTERNAL(dst)) {
 		a = NODE_INTERNAL_GET(dst);
@@ -269,21 +276,30 @@ ctree_find_le(struct ctree *t, uint64_t *key)
 out:
 	*key = dst ? dst->key : 0;
 	uint64_t ret = dst ? dst->value : 0;
+	return ret;
+}
+
+/*
+ * ctree_find_le -- searches for a (less or equal) key in the tree
+ */
+uint64_t
+ctree_find_le(struct ctree *t, uint64_t *key)
+{
+	util_mutex_lock(&t->lock);
+	uint64_t ret = ctree_find_le_unlocked(t, key);
 	util_mutex_unlock(&t->lock);
 	return ret;
 }
 
 /*
- * ctree_remove -- removes a (greater or equal) key from the tree
+ * ctree_remove_unlocked -- removes a (greater or equal) key from the tree
  */
 uint64_t
-ctree_remove(struct ctree *t, uint64_t key, int eq)
+ctree_remove_unlocked(struct ctree *t, uint64_t key, int eq)
 {
 	void **p = NULL; /* parent ref */
 	void **dst = &t->root; /* node to remove ref */
 	struct node *a = NULL; /* internal node */
-
-	util_mutex_lock(&t->lock);
 
 	struct node_leaf *l = NULL;
 	uint64_t k = 0;
@@ -369,9 +385,28 @@ remove:
 	}
 
 out:
-	util_mutex_unlock(&t->lock);
-
 	return k;
+}
+
+/*
+ * ctree_remove -- removes a (greater or equal) key from the tree
+ */
+uint64_t
+ctree_remove(struct ctree *t, uint64_t key, int eq)
+{
+	util_mutex_lock(&t->lock);
+	uint64_t ret = ctree_remove_unlocked(t, key, eq);
+	util_mutex_unlock(&t->lock);
+	return ret;
+}
+
+/*
+ * ctree_is_empty_unlocked -- checks whether the tree is empty
+ */
+int
+ctree_is_empty_unlocked(struct ctree *t)
+{
+	return t->root == NULL;
 }
 
 /*
@@ -382,7 +417,7 @@ ctree_is_empty(struct ctree *t)
 {
 	util_mutex_lock(&t->lock);
 
-	int ret = t->root == NULL;
+	int ret = ctree_is_empty_unlocked(t);
 
 	util_mutex_unlock(&t->lock);
 
