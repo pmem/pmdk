@@ -56,7 +56,7 @@
 #define	MIN_RUN_SIZE 128
 
 #define	ZID_TO_ZONE(layoutp, zone_id)\
-	((struct zone *)((uintptr_t)(((struct heap_layout *)(layoutp))->zones)\
+	((struct zone *)((uintptr_t)&(((struct heap_layout *)(layoutp))->zone0)\
 					+ ZONE_MAX_SIZE * (zone_id)))
 
 enum chunk_flags {
@@ -116,7 +116,7 @@ struct heap_header {
 
 struct heap_layout {
 	struct heap_header header;
-	struct zone zones[];
+	struct zone zone0;	/* first element of zones array */
 };
 
 struct allocation_header {
