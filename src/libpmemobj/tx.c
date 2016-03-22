@@ -685,14 +685,12 @@ tx_post_commit_set(PMEMobjpool *pop, struct lane_tx_layout *layout)
 #endif
 
 	struct list_head *head = &layout->undo_set_cache;
-	PMEMoid obj = head->pe_first; /* first cache object */
+	PMEMoid obj;
+	PMEMoid last = oob_list_last(pop, head);
 
 	/* clear all the undo log caches except for the last one */
-	while (head->pe_first.off != oob_list_last(pop, head).off) {
-		obj = head->pe_first;
-
+	while ((obj = head->pe_first).off != last.off)
 		list_remove_free_oob(pop, head, &obj);
-	}
 
 	if (!OID_IS_NULL(obj)) {
 		/* zero the cache, will be useful later on */

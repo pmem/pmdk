@@ -467,6 +467,50 @@ test_add_direct_macros(PMEMobjpool *pop)
 	ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
 }
 
+/* value taken from libpmemobj/obj.h */
+#define	MAX_CACHED_RANGES 127
+
+/*
+ * test_tx_corruption_bug -- test whether tx_adds for small objects from one
+ * transaction does NOT leak to the next transaction
+ */
+static void
+test_tx_corruption_bug(PMEMobjpool *pop)
+{
+	TOID(struct object) obj;
+	TOID_ASSIGN(obj, do_tx_zalloc(pop, TYPE_OBJ));
+	struct object *o = D_RW(obj);
+	unsigned char i;
+	UT_COMPILE_ERROR_ON(1.5 * MAX_CACHED_RANGES > 255);
+
+	TX_BEGIN(pop) {
+		for (i = 0; i < 1.5 * MAX_CACHED_RANGES; ++i) {
+			TX_ADD_DIRECT(&o->data[i]);
+			o->data[i] = i;
+		}
+	} TX_ONABORT {
+		ASSERT(0);
+	} TX_END
+
+	for (i = 0; i < 1.5 * MAX_CACHED_RANGES; ++i)
+		ASSERTeq((unsigned char)o->data[i], i);
+
+	TX_BEGIN(pop) {
+		for (i = 0; i < 0.1 * MAX_CACHED_RANGES; ++i) {
+			TX_ADD_DIRECT(&o->data[i]);
+			o->data[i] = i + 10;
+		}
+		pmemobj_tx_abort(EINVAL);
+	} TX_ONCOMMIT {
+		ASSERT(0);
+	} TX_END
+
+	for (i = 0; i < 1.5 * MAX_CACHED_RANGES; ++i)
+		ASSERTeq((unsigned char)o->data[i], i);
+
+	pmemobj_free(&obj.oid);
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -503,6 +547,7 @@ main(int argc, char *argv[])
 	VALGRIND_WRITE_STATS;
 	test_add_direct_macros(pop);
 	VALGRIND_WRITE_STATS;
+	test_tx_corruption_bug(pop);
 
 	pmemobj_close(pop);
 
