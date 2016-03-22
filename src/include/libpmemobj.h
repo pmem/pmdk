@@ -223,7 +223,7 @@ _toid_##t##_toid(PMEMoid _oid) : oid(_oid)\
  * Declaration of typed OID
  */
 #define	_TOID_DECLARE(t, i)\
-typedef uint8_t _toid_##t##_toid_type_num[(i)];\
+typedef uint8_t _toid_##t##_toid_type_num[(i) + 1];\
 TOID(t)\
 {\
 	_TOID_CONSTR(t)\
@@ -245,12 +245,12 @@ TOID(t)\
 /*
  * Type number of specified type
  */
-#define	TOID_TYPE_NUM(t) (sizeof (_toid_##t##_toid_type_num))
+#define	TOID_TYPE_NUM(t) (sizeof (_toid_##t##_toid_type_num) - 1)
 
 /*
  * Type number of object read from typed OID
  */
-#define	TOID_TYPE_NUM_OF(o) (sizeof (*(o)._type_num))
+#define	TOID_TYPE_NUM_OF(o) (sizeof (*(o)._type_num) - 1)
 
 /*
  * NULL check
@@ -272,13 +272,13 @@ TOID(t)\
  * Begin of layout declaration
  */
 #define	POBJ_LAYOUT_BEGIN(name)\
-typedef uint8_t _pobj_layout_##name##_ref[__COUNTER__]
+typedef uint8_t _pobj_layout_##name##_ref[__COUNTER__ + 1]
 
 /*
  * End of layout declaration
  */
 #define	POBJ_LAYOUT_END(name)\
-typedef char _pobj_layout_##name##_cnt[__COUNTER__ -\
+typedef char _pobj_layout_##name##_cnt[__COUNTER__ + 1 -\
 1 - _POBJ_LAYOUT_REF(name)];
 
 /*
@@ -290,7 +290,7 @@ typedef char _pobj_layout_##name##_cnt[__COUNTER__ -\
  * Declaration of typed OID inside layout declaration
  */
 #define	POBJ_LAYOUT_TOID(name, t)\
-TOID_DECLARE(t, (__COUNTER__ - _POBJ_LAYOUT_REF(name)));
+TOID_DECLARE(t, (__COUNTER__ + 1 - _POBJ_LAYOUT_REF(name)));
 
 /*
  * Declaration of typed OID of root inside layout declaration
