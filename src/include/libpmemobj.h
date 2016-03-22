@@ -792,6 +792,11 @@ enum pobj_tx_lock {
 int pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...);
 
 /*
+ * Adds lock of given type to current transaction.
+ */
+int pmemobj_tx_lock(enum pobj_tx_lock type, void *lockp);
+
+/*
  * Aborts current transaction
  *
  * Causes transition to TX_STAGE_ONABORT.
