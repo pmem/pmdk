@@ -47,9 +47,44 @@
 #include <sys/wait.h>
 #include <sys/types.h>
 
-
 #define	APP_NAME "ctrld"
 #define	BUFF_SIZE 4096
+
+/* table of signal names */
+#define	SIGNAL_2_STR(sig) [sig] = #sig
+static const char *signal2str[] = {
+	SIGNAL_2_STR(SIGHUP),
+	SIGNAL_2_STR(SIGINT),
+	SIGNAL_2_STR(SIGQUIT),
+	SIGNAL_2_STR(SIGILL),
+	SIGNAL_2_STR(SIGTRAP),
+	SIGNAL_2_STR(SIGABRT),
+	SIGNAL_2_STR(SIGBUS),
+	SIGNAL_2_STR(SIGFPE),
+	SIGNAL_2_STR(SIGKILL),
+	SIGNAL_2_STR(SIGUSR1),
+	SIGNAL_2_STR(SIGSEGV),
+	SIGNAL_2_STR(SIGUSR2),
+	SIGNAL_2_STR(SIGPIPE),
+	SIGNAL_2_STR(SIGALRM),
+	SIGNAL_2_STR(SIGTERM),
+	SIGNAL_2_STR(SIGSTKFLT),
+	SIGNAL_2_STR(SIGCHLD),
+	SIGNAL_2_STR(SIGCONT),
+	SIGNAL_2_STR(SIGSTOP),
+	SIGNAL_2_STR(SIGTSTP),
+	SIGNAL_2_STR(SIGTTIN),
+	SIGNAL_2_STR(SIGTTOU),
+	SIGNAL_2_STR(SIGURG),
+	SIGNAL_2_STR(SIGXCPU),
+	SIGNAL_2_STR(SIGXFSZ),
+	SIGNAL_2_STR(SIGVTALRM),
+	SIGNAL_2_STR(SIGPROF),
+	SIGNAL_2_STR(SIGWINCH),
+	SIGNAL_2_STR(SIGPOLL),
+	SIGNAL_2_STR(SIGPWR),
+	SIGNAL_2_STR(SIGSYS)
+};
 
 struct inode_item {
 	LIST_ENTRY(inode_item) next;
@@ -492,6 +527,18 @@ err:
 	return -1;
 }
 
+/*
+ * convert_signal_name -- convert a signal name to a signal number
+ */
+static int
+convert_signal_name(const char *signal_name)
+{
+	for (int sig = SIGHUP; sig <= SIGSYS; sig++)
+		if (strcmp(signal_name, signal2str[sig]) == 0)
+			return sig;
+	return -1;
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -529,6 +576,14 @@ main(int argc, char *argv[])
 			usage();
 
 		int signo = atoi(argv[3]);
+		if (signo == 0) {
+			signo = convert_signal_name(argv[3]);
+			if (signo == -1) {
+				fprintf(stderr, "Invalid signal name or number"
+						" (%s)\n", argv[3]);
+				return 1;
+			}
+		}
 
 		ret = do_kill(pid_file, signo);
 	} else if (strcmp(cmd, "wait_port") == 0) {
