@@ -31,7 +31,7 @@
 # Makefile -- top Makefile for tools
 #
 
-TARGETS = pmempool
+TARGETS = pmempool rpmemd
 SCOPEDIRS=$(TARGETS)
 SCOPEFILES=$(foreach dir, $(SCOPEDIRS), $(shell find $(dir) -name *.[ch] ))
 

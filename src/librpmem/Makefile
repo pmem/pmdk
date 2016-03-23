@@ -1,5 +1,4 @@
-#
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -28,58 +27,14 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
 
 #
-# doc/Makefile -- Makefile for NVM library man pages
+# src/librpmem/Makefile -- Makefile for librpmem
 #
-MANPAGES_3 = libpmem.3 libpmemblk.3 libpmemlog.3 libpmemobj.3 libvmem.3 \
-	libvmmalloc.3
-MANPAGES_1 = pmempool.1 pmempool-info.1 pmempool-create.1 \
-	pmempool-check.1 pmempool-dump.1 pmempool-rm.1
-MANPAGES_3_NOINSTALL = librpmem.3
-MANPAGES_1_NOINSTALL = rpmemd.1
-MANPAGES = $(MANPAGES_1) $(MANPAGES_3)\
-	   $(MANPAGES_1_NOINSTALL) $(MANPAGES_3_NOINSTALL)
-TXTFILES = $(MANPAGES:=.txt)
-HTMLFILES = $(MANPAGES:=.html)
-GZFILES_1 = $(MANPAGES_1:=.gz)
-GZFILES_3 = $(MANPAGES_3:=.gz)
-GZFILES_1_NOINSTALL = $(MANPAGES_1_NOINSTALL:=.gz)
-GZFILES_3_NOINSTALL = $(MANPAGES_3_NOINSTALL:=.gz)
-GZFILES = $(GZFILES_1) $(GZFILES_3)\
-	  $(GZFILES_1_NOINSTALL) $(GZFILES_3_NOINSTALL)
 
-MANPAGES_DESTDIR = $(DESTDIR)$(prefix)/share/man/man
+LIBRARY_NAME = rpmem
+LIBRARY_SO_VERSION = 1
+LIBRARY_VERSION = 0.0
+SOURCE = librpmem.c rpmem.c $(COMMON)/util.c $(COMMON)/out.c
 
-all: $(TXTFILES)
-
-%.txt: %
-	man ./$< > $@
-
-html: $(HTMLFILES)
-
-%.html: %
-	groff -mandoc -Thtml ./$< > $@
-
-compress: $(GZFILES)
-
-%.gz: %
-	gzip -c ./$< > $@
-
-clean:
-
-clobber: clean
-	$(RM) -f $(TXTFILES) $(HTMLFILES) $(GZFILES)
-
-install: compress
-	install -d $(MANPAGES_DESTDIR)1
-	install -p -m 0644 $(GZFILES_1) $(MANPAGES_DESTDIR)1
-	install -d $(MANPAGES_DESTDIR)3
-	install -p -m 0644 $(GZFILES_3) $(MANPAGES_DESTDIR)3
-
-uninstall:
-	$(foreach f, $(GZFILES_1), $(RM) $(MANPAGES_DESTDIR)1/$(f))
-	$(foreach f, $(GZFILES_3), $(RM) $(MANPAGES_DESTDIR)3/$(f))
-
-.PHONY: all html clean compress clobber cstyle install uninstall
+include ../Makefile.inc
