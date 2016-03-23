@@ -56,6 +56,10 @@
 #define	NODE_INTERNAL_GET(node) ((void *)((char *)(node) - 1))
 #define	NODE_INTERNAL_SET(d, node) ((d) = (void *)((char *)(node) + 1))
 
+#ifndef	CTREE_FAST_RECURSIVE_DELETE
+#define	CTREE_FAST_RECURSIVE_DELETE 1
+#endif
+
 struct node {
 	void *slots[2]; /* slots for either internal or leaf nodes */
 	unsigned diff;	/* most significant differing bit */
@@ -99,14 +103,34 @@ ctree_new()
 	return t;
 }
 
+#if	CTREE_FAST_RECURSIVE_DELETE
+static void
+ctree_free_internal_recursive(void *dst)
+{
+	if (NODE_IS_INTERNAL(dst)) {
+		struct node *a = NODE_INTERNAL_GET(dst);
+		ctree_free_internal_recursive(a->slots[0]);
+		ctree_free_internal_recursive(a->slots[1]);
+		Free(a);
+	} else {
+		Free(dst);
+	}
+}
+#endif
+
 /*
  * ctree_delete -- cleanups and frees crit-bit tree instance
  */
 void
 ctree_delete(struct ctree *t)
 {
+#if	CTREE_FAST_RECURSIVE_DELETE
+	if (t->root)
+		ctree_free_internal_recursive(t->root);
+#else
 	while (t->root)
 		ctree_remove_unlocked(t, 0, 0);
+#endif
 
 	util_mutex_destroy(&t->lock);
 
