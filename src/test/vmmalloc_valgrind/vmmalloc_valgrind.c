@@ -49,34 +49,34 @@ main(int argc, char *argv[])
 	START(argc, argv, "vmmalloc_valgrind");
 
 	if ((argc != 2) || (test_case = atoi(argv[1])) > 2)
-		FATAL("usage: %s <test-number from 0 to 2>",
+		UT_FATAL("usage: %s <test-number from 0 to 2>",
 			argv[0]);
 
 	switch (test_case) {
 		case 0: {
-			OUT("remove all allocations");
+			UT_OUT("remove all allocations");
 			ptr = malloc(sizeof (int));
 			if (ptr == NULL)
-				FATAL("!malloc");
+				UT_FATAL("!malloc");
 
 			free(ptr);
 			break;
 		}
 		case 1: {
-			OUT("memory leaks");
+			UT_OUT("memory leaks");
 			ptr = malloc(sizeof (int));
 			if (ptr == NULL)
-				FATAL("!malloc");
+				UT_FATAL("!malloc");
 
 			/* prevent reporting leaked memory as still reachable */
 			ptr = NULL;
 			break;
 		}
 		case 2: {
-			OUT("heap block overrun");
+			UT_OUT("heap block overrun");
 			ptr = malloc(12 * sizeof (int));
 			if (ptr == NULL)
-				FATAL("!malloc");
+				UT_FATAL("!malloc");
 
 			/* heap block overrun */
 			ptr[12] = 7;
@@ -85,7 +85,7 @@ main(int argc, char *argv[])
 			break;
 		}
 		default: {
-			FATAL("!unknown test-number");
+			UT_FATAL("!unknown test-number");
 		}
 	}
 

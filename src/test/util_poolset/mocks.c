@@ -47,7 +47,7 @@ extern size_t Is_pmem_len;
 FUNC_MOCK(open, int, const char *path, int flags, int mode)
 FUNC_MOCK_RUN_DEFAULT {
 	if (strcmp(Open_path, path) == 0) {
-		OUT("mocked open: %s", path);
+		UT_OUT("mocked open: %s", path);
 		errno = EACCES;
 		return -1;
 	}
@@ -62,7 +62,7 @@ FUNC_MOCK_END
 FUNC_MOCK(posix_fallocate, int, int fd, off_t offset, off_t len)
 FUNC_MOCK_RUN_DEFAULT {
 	if (Fallocate_len == len) {
-		OUT("mocked fallocate: %ju", len);
+		UT_OUT("mocked fallocate: %ju", len);
 		return ENOSPC;
 	}
 	return _FUNC_REAL(posix_fallocate)(fd, offset, len);
@@ -76,7 +76,7 @@ FUNC_MOCK_END
 FUNC_MOCK(pmem_is_pmem, int, void *addr, size_t len)
 FUNC_MOCK_RUN_DEFAULT {
 	if (Is_pmem_len == len) {
-		OUT("mocked pmem_is_pmem: %zu", len);
+		UT_OUT("mocked pmem_is_pmem: %zu", len);
 		return 1;
 	}
 	return _FUNC_REAL(pmem_is_pmem)(addr, len);

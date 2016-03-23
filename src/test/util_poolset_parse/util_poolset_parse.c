@@ -64,7 +64,7 @@ main(int argc, char *argv[])
 			MAJOR_VERSION, MINOR_VERSION);
 
 	if (argc < 2)
-		FATAL("usage: %s set-file-name ...", argv[0]);
+		UT_FATAL("usage: %s set-file-name ...", argv[0]);
 
 	struct pool_set *set;
 	int fd;

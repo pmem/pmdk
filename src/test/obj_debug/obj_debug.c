@@ -85,7 +85,7 @@ test_FOREACH(const char *path)
 
 	if ((pop = pmemobj_create(path, LAYOUT_NAME,
 			PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR)) == NULL)
-		FATAL("!pmemobj_create: %s", path);
+		UT_FATAL("!pmemobj_create: %s", path);
 
 	TOID_ASSIGN(root, pmemobj_root(pop, sizeof (struct root)));
 	POBJ_LIST_INSERT_NEW_HEAD(pop, &D_RW(root)->lhead, next,
@@ -95,7 +95,7 @@ test_FOREACH(const char *path)
 	TX_BEGIN(pop) {
 		COMMANDS_FOREACH();
 	} TX_ONABORT {
-		ASSERT(0);
+		UT_ASSERT(0);
 	} TX_END
 	COMMANDS_FOREACH();
 
@@ -124,7 +124,7 @@ test_lists(const char *path)
 
 	if ((pop = pmemobj_create(path, LAYOUT_NAME,
 			PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR)) == NULL)
-		FATAL("!pmemobj_create: %s", path);
+		UT_FATAL("!pmemobj_create: %s", path);
 
 	TOID_ASSIGN(root, pmemobj_root(pop, sizeof (struct root)));
 
@@ -132,7 +132,7 @@ test_lists(const char *path)
 	TX_BEGIN(pop) {
 		COMMANDS_LISTS();
 	} TX_ONABORT {
-		ASSERT(0);
+		UT_ASSERT(0);
 	} TX_END
 	COMMANDS_LISTS();
 
@@ -161,7 +161,7 @@ test_alloc_construct(const char *path)
 
 	if ((pop = pmemobj_create(path, LAYOUT_NAME,
 			PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR)) == NULL)
-		FATAL("!pmemobj_create: %s", path);
+		UT_FATAL("!pmemobj_create: %s", path);
 
 	TX_BEGIN(pop) {
 		struct int3_s args = { 1, 2, 3 };
@@ -169,7 +169,7 @@ test_alloc_construct(const char *path)
 		pmemobj_alloc(pop, &allocation, sizeof (allocation), 1,
 				int3_constructor, &args);
 	} TX_ONABORT {
-		ASSERT(0);
+		UT_ASSERT(0);
 	} TX_END
 
 	pmemobj_close(pop);
@@ -182,12 +182,12 @@ test_double_free(const char *path)
 
 	if ((pop = pmemobj_create(path, LAYOUT_NAME,
 			PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR)) == NULL)
-		FATAL("!pmemobj_create: %s", path);
+		UT_FATAL("!pmemobj_create: %s", path);
 
 	PMEMoid oid, oid2;
 	int err = pmemobj_zalloc(pop, &oid, 100, 0);
-	ASSERTeq(err, 0);
-	ASSERT(!OID_IS_NULL(oid));
+	UT_ASSERTeq(err, 0);
+	UT_ASSERT(!OID_IS_NULL(oid));
 
 	oid2 = oid;
 
@@ -201,12 +201,12 @@ main(int argc, char *argv[])
 	START(argc, argv, "obj_debug");
 
 	if (argc != 3)
-		FATAL("usage: %s file-name op:f|l|r|a", argv[0]);
+		UT_FATAL("usage: %s file-name op:f|l|r|a", argv[0]);
 
 	const char *path = argv[1];
 
 	if (strchr("flrap", argv[2][0]) == NULL || argv[2][1] != '\0')
-		FATAL("op must be f or l or r or a or p");
+		UT_FATAL("op must be f or l or r or a or p");
 
 	switch (argv[2][0]) {
 		case 'f':

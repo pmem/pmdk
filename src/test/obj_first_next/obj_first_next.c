@@ -56,7 +56,7 @@ typedef void (*fn_op)(int id);
 typedef void (*fn_void)();
 
 #define	FATAL_USAGE()\
-	FATAL("usage: obj_first_next <file> [Parfn]")
+	UT_FATAL("usage: obj_first_next <file> [Parfn]")
 
 /*
  * get_item_type -- get nth item from list
@@ -95,9 +95,9 @@ static void
 do_print_type()
 {
 	TOID(struct type) item;
-	OUT("type:");
+	UT_OUT("type:");
 	POBJ_FOREACH_TYPE(pop, item) {
-		OUT("id = %d", D_RO(item)->id);
+		UT_OUT("id = %d", D_RO(item)->id);
 	}
 }
 
@@ -108,9 +108,9 @@ static void
 do_print_type_sec()
 {
 	TOID(struct type_sec) item;
-	OUT("type_sec:");
+	UT_OUT("type_sec:");
 	POBJ_FOREACH_TYPE(pop, item) {
-		OUT("id = %d", D_RO(item)->id);
+		UT_OUT("id = %d", D_RO(item)->id);
 	}
 }
 
@@ -126,7 +126,7 @@ type_constructor(PMEMobjpool *pop, void *ptr, void *arg)
 	int id = *(int *)arg;
 	struct type *item = (struct type *)ptr;
 	item->id = id;
-	OUT("constructor(id = %d)", id);
+	UT_OUT("constructor(id = %d)", id);
 
 	return 0;
 }
@@ -141,7 +141,7 @@ type_sec_constructor(PMEMobjpool *pop, void *ptr, void *arg)
 	int id = *(int *)arg;
 	struct type_sec *item = (struct type_sec *)ptr;
 	item->id = id;
-	OUT("constructor(id = %d)", id);
+	UT_OUT("constructor(id = %d)", id);
 
 	return 0;
 }
@@ -155,7 +155,7 @@ do_alloc_type(int id)
 	TOID(struct type) item;
 	POBJ_NEW(pop, &item, struct type, type_constructor, &id);
 	if (TOID_IS_NULL(item))
-		FATAL("POBJ_NEW");
+		UT_FATAL("POBJ_NEW");
 }
 
 /*
@@ -167,7 +167,7 @@ do_alloc_type_sec(int id)
 	TOID(struct type_sec) item;
 	POBJ_NEW(pop, &item, struct type_sec, type_sec_constructor, &id);
 	if (TOID_IS_NULL(item))
-		FATAL("POBJ_NEW");
+		UT_FATAL("POBJ_NEW");
 }
 
 fn_op do_alloc[] = {do_alloc_type, do_alloc_type_sec};
@@ -182,7 +182,7 @@ do_free_type(int n)
 	if (TOID_IS_NULL(POBJ_FIRST(pop, struct type)))
 		return;
 	item = get_item_type(n);
-	ASSERT(!TOID_IS_NULL(item));
+	UT_ASSERT(!TOID_IS_NULL(item));
 	POBJ_FREE(&item);
 }
 
@@ -196,7 +196,7 @@ do_free_type_sec(int n)
 	if (TOID_IS_NULL(POBJ_FIRST(pop, struct type_sec)))
 		return;
 	item = get_item_type_sec(n);
-	ASSERT(!TOID_IS_NULL(item));
+	UT_ASSERT(!TOID_IS_NULL(item));
 	POBJ_FREE(&item);
 }
 
@@ -209,7 +209,7 @@ static void
 do_first_type()
 {
 	TOID(struct type) first = POBJ_FIRST(pop, struct type);
-	OUT("first id = %d", D_RO(first)->id);
+	UT_OUT("first id = %d", D_RO(first)->id);
 }
 
 /*
@@ -219,7 +219,7 @@ static void
 do_first_type_sec()
 {
 	TOID(struct type_sec) first = POBJ_FIRST(pop, struct type_sec);
-	OUT("first id = %d", D_RO(first)->id);
+	UT_OUT("first id = %d", D_RO(first)->id);
 }
 
 fn_void do_first[] = {do_first_type, do_first_type_sec};
@@ -234,9 +234,9 @@ do_next_type(int n)
 	if (TOID_IS_NULL(POBJ_FIRST(pop, struct type)))
 		return;
 	item = get_item_type(n);
-	ASSERT(!TOID_IS_NULL(item));
+	UT_ASSERT(!TOID_IS_NULL(item));
 	item = POBJ_NEXT(item);
-	OUT("next id = %d", D_RO(item)->id);
+	UT_OUT("next id = %d", D_RO(item)->id);
 }
 
 /*
@@ -249,9 +249,9 @@ do_next_type_sec(int n)
 	if (TOID_IS_NULL(POBJ_FIRST(pop, struct type_sec)))
 		return;
 	item = get_item_type_sec(n);
-	ASSERT(!TOID_IS_NULL(item));
+	UT_ASSERT(!TOID_IS_NULL(item));
 	item = POBJ_NEXT(item);
-	OUT("next id = %d", D_RO(item)->id);
+	UT_OUT("next id = %d", D_RO(item)->id);
 }
 
 fn_op do_next[] = {do_next_type, do_next_type_sec};
@@ -280,12 +280,12 @@ test_internal_object_mask(PMEMobjpool *pop)
 
 	PMEMoid oid;
 	pmemobj_alloc(pop, &oid, sizeof (struct type), 0, NULL, NULL);
-	ASSERT(!OID_IS_NULL(oid));
+	UT_ASSERT(!OID_IS_NULL(oid));
 
 	/* verify that there's no root object nor range cache anywhere */
 	for (PMEMoid iter = pmemobj_first(pop); !OID_IS_NULL(iter);
 		iter = pmemobj_next(iter)) {
-		ASSERT(OID_EQUALS(iter, oid));
+		UT_ASSERT(OID_EQUALS(iter, oid));
 	}
 }
 
@@ -299,7 +299,7 @@ main(int argc, char *argv[])
 	const char *path = argv[1];
 	if ((pop = pmemobj_create(path, LAYOUT_NAME, PMEMOBJ_MIN_POOL,
 						S_IWUSR | S_IRUSR)) == NULL)
-		FATAL("!pmemobj_create");
+		UT_FATAL("!pmemobj_create");
 
 	for (int i = 2; i < argc; i++) {
 		int list_num;

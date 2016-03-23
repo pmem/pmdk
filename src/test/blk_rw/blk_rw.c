@@ -86,7 +86,7 @@ main(int argc, char *argv[])
 	START(argc, argv, "blk_rw");
 
 	if (argc < 5)
-		FATAL("usage: %s bsize file func op:lba...", argv[0]);
+		UT_FATAL("usage: %s bsize file func op:lba...", argv[0]);
 
 	Bsize = strtoul(argv[1], NULL, 0);
 
@@ -98,22 +98,22 @@ main(int argc, char *argv[])
 			handle = pmemblk_create(path, Bsize, 0,
 					S_IWUSR | S_IRUSR);
 			if (handle == NULL)
-				FATAL("!%s: pmemblk_create", path);
+				UT_FATAL("!%s: pmemblk_create", path);
 			break;
 		case 'o':
 			handle = pmemblk_open(path, Bsize);
 			if (handle == NULL)
-				FATAL("!%s: pmemblk_open", path);
+				UT_FATAL("!%s: pmemblk_open", path);
 			break;
 	}
 
-	OUT("%s block size %zu usable blocks %zu",
+	UT_OUT("%s block size %zu usable blocks %zu",
 			argv[1], Bsize, pmemblk_nblock(handle));
 
 	/* map each file argument with the given map type */
 	for (int arg = 4; arg < argc; arg++) {
 		if (strchr("rwze", argv[arg][0]) == NULL || argv[arg][1] != ':')
-			FATAL("op must be r: or w: or z: or e:");
+			UT_FATAL("op must be r: or w: or z: or e:");
 		off_t lba = strtol(&argv[arg][2], NULL, 0);
 
 		unsigned char buf[Bsize];
@@ -121,31 +121,33 @@ main(int argc, char *argv[])
 		switch (argv[arg][0]) {
 		case 'r':
 			if (pmemblk_read(handle, buf, lba) < 0)
-				OUT("!read      lba %jd", lba);
+				UT_OUT("!read      lba %jd", lba);
 			else
-				OUT("read      lba %jd: %s", lba, ident(buf));
+				UT_OUT("read      lba %jd: %s", lba,
+						ident(buf));
 			break;
 
 		case 'w':
 			construct(buf);
 			if (pmemblk_write(handle, buf, lba) < 0)
-				OUT("!write     lba %jd", lba);
+				UT_OUT("!write     lba %jd", lba);
 			else
-				OUT("write     lba %jd: %s", lba, ident(buf));
+				UT_OUT("write     lba %jd: %s", lba,
+						ident(buf));
 			break;
 
 		case 'z':
 			if (pmemblk_set_zero(handle, lba) < 0)
-				OUT("!set_zero  lba %jd", lba);
+				UT_OUT("!set_zero  lba %jd", lba);
 			else
-				OUT("set_zero  lba %jd", lba);
+				UT_OUT("set_zero  lba %jd", lba);
 			break;
 
 		case 'e':
 			if (pmemblk_set_error(handle, lba) < 0)
-				OUT("!set_error lba %jd", lba);
+				UT_OUT("!set_error lba %jd", lba);
 			else
-				OUT("set_error lba %jd", lba);
+				UT_OUT("set_error lba %jd", lba);
 			break;
 		}
 	}
@@ -154,9 +156,9 @@ main(int argc, char *argv[])
 
 	int result = pmemblk_check(path, Bsize);
 	if (result < 0)
-		OUT("!%s: pmemblk_check", path);
+		UT_OUT("!%s: pmemblk_check", path);
 	else if (result == 0)
-		OUT("%s: pmemblk_check: not consistent", path);
+		UT_OUT("%s: pmemblk_check: not consistent", path);
 
 	DONE(NULL);
 }

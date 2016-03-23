@@ -62,30 +62,30 @@ pool_create(const char *path, const char *layout, size_t poolsize,
 		pop = pool<root>::create(path, layout, poolsize,
 				mode);
 		persistent_ptr<root> root = pop.get_root();
-		ASSERT(root != nullptr);
+		UT_ASSERT(root != nullptr);
 	} catch (nvml::pool_error &) {
-		OUT("!%s: pool::create", path);
+		UT_OUT("!%s: pool::create", path);
 		return;
 	}
 
 	struct stat stbuf;
 	STAT(path, &stbuf);
 
-	OUT("%s: file size %zu mode 0%o", path, stbuf.st_size,
+	UT_OUT("%s: file size %zu mode 0%o", path, stbuf.st_size,
 			stbuf.st_mode & 0777);
 	try {
 		pop.close();
 	} catch (std::logic_error &lr) {
-		OUT("%s: pool.close: %s", path, lr.what());
+		UT_OUT("%s: pool.close: %s", path, lr.what());
 		return;
 	}
 
 	int result = pool<root>::check(path, layout);
 
 	if (result < 0)
-		OUT("!%s: pool::check", path);
+		UT_OUT("!%s: pool::check", path);
 	else if (result == 0)
-		OUT("%s: pool::check: not consistent", path);
+		UT_OUT("%s: pool::check: not consistent", path);
 }
 
 /*
@@ -98,16 +98,16 @@ pool_open(const char *path, const char *layout)
 	try {
 		pop = pool<root>::open(path, layout);
 	} catch (nvml::pool_error &) {
-		OUT("!%s: pool::open", path);
+		UT_OUT("!%s: pool::open", path);
 		return;
 	}
 
-	OUT("%s: pool::open: Success", path);
+	UT_OUT("%s: pool::open: Success", path);
 
 	try {
 		pop.close();
 	} catch (std::logic_error &lr) {
-		OUT("%s: pool.close: %s", path, lr.what());
+		UT_OUT("%s: pool.close: %s", path, lr.what());
 	}
 
 }
@@ -124,18 +124,18 @@ double_close(const char *path, const char *layout, size_t poolsize,
 		pop = pool<root>::create(path, layout, poolsize,
 				mode);
 	} catch (nvml::pool_error &) {
-		OUT("!%s: pool::create", path);
+		UT_OUT("!%s: pool::create", path);
 		return;
 	}
 
-	OUT("%s: pool::create: Success", path);
+	UT_OUT("%s: pool::create: Success", path);
 
 	try {
 		pop.close();
-		OUT("%s: pool.close: Success", path);
+		UT_OUT("%s: pool.close: Success", path);
 		pop.close();
 	} catch (std::logic_error &lr) {
-		OUT("%s: pool.close: %s", path, lr.what());
+		UT_OUT("%s: pool.close: %s", path, lr.what());
 	}
 
 }
@@ -148,7 +148,7 @@ main(int argc, char *argv[])
 	START(argc, argv, "obj_cpp_pool");
 
 	if (argc < 4)
-		FATAL("usage: %s op path layout [poolsize mode]", argv[0]);
+		UT_FATAL("usage: %s op path layout [poolsize mode]", argv[0]);
 
 	const char * layout = nullptr;
 	size_t poolsize;
@@ -177,7 +177,7 @@ main(int argc, char *argv[])
 		double_close(argv[2], layout, poolsize, mode);
 		break;
 	default:
-		FATAL("unknown operation");
+		UT_FATAL("unknown operation");
 	}
 
 	DONE(NULL);

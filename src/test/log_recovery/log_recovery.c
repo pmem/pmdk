@@ -63,13 +63,13 @@ do_append(PMEMlogpool *plp)
 		int rv = pmemlog_append(plp, str[i], strlen(str[i]));
 		switch (rv) {
 		case 0:
-			OUT("append   str[%i] %s", i, str[i]);
+			UT_OUT("append   str[%i] %s", i, str[i]);
 			break;
 		case -1:
-			OUT("!append   str[%i] %s", i, str[i]);
+			UT_OUT("!append   str[%i] %s", i, str[i]);
 			break;
 		default:
-			OUT("!append: wrong return value");
+			UT_OUT("!append: wrong return value");
 			break;
 		}
 	}
@@ -123,13 +123,13 @@ do_appendv(PMEMlogpool *plp)
 	int rv = pmemlog_appendv(plp, iov, 9);
 	switch (rv) {
 	case 0:
-		OUT("appendv");
+		UT_OUT("appendv");
 		break;
 	case -1:
-		OUT("!appendv");
+		UT_OUT("!appendv");
 		break;
 	default:
-		OUT("!appendv: wrong return value");
+		UT_OUT("!appendv: wrong return value");
 		break;
 	}
 }
@@ -141,7 +141,7 @@ static void
 do_tell(PMEMlogpool *plp)
 {
 	off_t tell = pmemlog_tell(plp);
-	OUT("tell %zu", tell);
+	UT_OUT("tell %zu", tell);
 }
 
 /*
@@ -156,7 +156,7 @@ printit(const void *buf, size_t len, void *arg)
 
 	strncpy(str, buf, len);
 	str[len] = '\0';
-	OUT("%s", str);
+	UT_OUT("%s", str);
 
 	return 0;
 }
@@ -168,7 +168,7 @@ static void
 do_walk(PMEMlogpool *plp)
 {
 	pmemlog_walk(plp, 0, printit, NULL);
-	OUT("walk all at once");
+	UT_OUT("walk all at once");
 }
 
 sigjmp_buf Jmp;
@@ -179,7 +179,7 @@ sigjmp_buf Jmp;
 static void
 signal_handler(int sig)
 {
-	OUT("signal: %s", strsignal(sig));
+	UT_OUT("signal: %s", strsignal(sig));
 
 	siglongjmp(Jmp, 1);
 }
@@ -193,10 +193,10 @@ main(int argc, char *argv[])
 	START(argc, argv, "log_recovery");
 
 	if (argc != 3)
-		FATAL("usage: %s file-name op:a|v", argv[0]);
+		UT_FATAL("usage: %s file-name op:a|v", argv[0]);
 
 	if (strchr("av", argv[2][0]) == NULL || argv[2][1] != '\0')
-		FATAL("op must be a or v");
+		UT_FATAL("op must be a or v");
 
 	const char *path = argv[1];
 
@@ -205,12 +205,12 @@ main(int argc, char *argv[])
 	/* pre-allocate 2MB of persistent memory */
 	errno = posix_fallocate(fd, (off_t)0, (size_t)(2 * 1024 * 1024));
 	if (errno != 0)
-		FATAL("!posix_fallocate");
+		UT_FATAL("!posix_fallocate");
 
 	CLOSE(fd);
 
 	if ((plp = pmemlog_create(path, 0, S_IWUSR | S_IRUSR)) == NULL)
-		FATAL("!pmemlog_create: %s", path);
+		UT_FATAL("!pmemlog_create: %s", path);
 
 	/* append some data */
 	if (argv[2][0] == 'a')
@@ -222,7 +222,7 @@ main(int argc, char *argv[])
 	do_tell(plp);
 
 	size_t len = roundup(sizeof (*plp), LOG_FORMAT_DATA_ALIGN);
-	OUT("write-protecting the metadata, length %zu", len);
+	UT_OUT("write-protecting the metadata, length %zu", len);
 	MPROTECT(plp, len, PROT_READ);
 
 	/* arrange to catch SEGV */
@@ -245,15 +245,15 @@ main(int argc, char *argv[])
 	/* check consistency */
 	result = pmemlog_check(path);
 	if (result < 0)
-		OUT("!%s: pmemlog_check", path);
+		UT_OUT("!%s: pmemlog_check", path);
 	else if (result == 0)
-		OUT("%s: pmemlog_check: not consistent", path);
+		UT_OUT("%s: pmemlog_check: not consistent", path);
 	else
-		OUT("%s: consistent", path);
+		UT_OUT("%s: consistent", path);
 
 	/* map again to print out whole log */
 	if ((plp = pmemlog_open(path)) == NULL)
-		FATAL("!pmemlog_open: %s", path);
+		UT_FATAL("!pmemlog_open: %s", path);
 
 	/* print out current write point */
 	do_tell(plp);

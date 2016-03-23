@@ -48,9 +48,9 @@ main(int argc, char *argv[])
 	for (int arg = 1; arg < argc; ++arg) {
 		ret = util_parse_size(argv[arg], &size);
 		if (ret == 0) {
-			OUT("%s - correct %lu", argv[arg], size);
+			UT_OUT("%s - correct %lu", argv[arg], size);
 		} else {
-			OUT("%s - incorrect", argv[arg]);
+			UT_OUT("%s - incorrect", argv[arg]);
 		}
 	}
 

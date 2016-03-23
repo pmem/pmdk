@@ -71,9 +71,9 @@ public:
 	 */
 	void check_foo(int val, char arr_val)
 	{
-		ASSERTeq(val, this->bar);
+		UT_ASSERTeq(val, this->bar);
 		for (int i = 0; i < TEST_ARR_SIZE; ++i)
-			ASSERTeq(arr_val, this->arr[i]);
+			UT_ASSERTeq(arr_val, this->arr[i]);
 	}
 
 	p<int> bar;
@@ -93,19 +93,19 @@ test_make_no_args(pool<struct root> &pop)
 	persistent_ptr<root> r = pop.get_root();
 
 	TX_BEGIN(pop.get_handle()) {
-		ASSERT(r->pfoo == nullptr);
+		UT_ASSERT(r->pfoo == nullptr);
 
 		r->pfoo = make_persistent<foo>();
 		r->pfoo->check_foo(1, 1);
 
 		delete_persistent<foo>(r->pfoo);
-		ASSERT(r->pfoo == nullptr);
+		UT_ASSERT(r->pfoo == nullptr);
 
 	} TX_ONABORT {
-		ASSERT(0);
+		UT_ASSERT(0);
 	} TX_END
 
-	ASSERT(r->pfoo == nullptr);
+	UT_ASSERT(r->pfoo == nullptr);
 }
 
 /*
@@ -116,26 +116,26 @@ test_make_args(pool<struct root> &pop)
 {
 	persistent_ptr<root> r = pop.get_root();
 	TX_BEGIN(pop.get_handle()) {
-		ASSERT(r->pfoo == nullptr);
+		UT_ASSERT(r->pfoo == nullptr);
 
 		pmemobj_tx_add_range_direct(&r->pfoo, sizeof(r->pfoo));
 		r->pfoo = make_persistent<foo>(2);
 		r->pfoo->check_foo(2, 2);
 
 		delete_persistent<foo>(r->pfoo);
-		ASSERT(r->pfoo == nullptr);
+		UT_ASSERT(r->pfoo == nullptr);
 
 		r->pfoo = make_persistent<foo>(3, 4);
 		r->pfoo->check_foo(3, 4);
 
 		delete_persistent<foo>(r->pfoo);
-		ASSERT(r->pfoo == nullptr);
+		UT_ASSERT(r->pfoo == nullptr);
 
 	} TX_ONABORT {
-		ASSERT(0);
+		UT_ASSERT(0);
 	} TX_END
 
-	ASSERT(r->pfoo == nullptr);
+	UT_ASSERT(r->pfoo == nullptr);
 }
 
 /*
@@ -147,31 +147,31 @@ test_additional_delete(pool<struct root> &pop)
 	persistent_ptr<root> r = pop.get_root();
 
 	TX_BEGIN(pop.get_handle()) {
-		ASSERT(r->pfoo == nullptr);
+		UT_ASSERT(r->pfoo == nullptr);
 
 		r->pfoo = make_persistent<foo>();
 		r->pfoo->check_foo(1, 1);
 	} TX_END
 
 	TX_BEGIN(pop.get_handle()) {
-		ASSERT(r->pfoo != nullptr);
+		UT_ASSERT(r->pfoo != nullptr);
 		delete_persistent<foo>(r->pfoo);
-		ASSERT(r->pfoo == nullptr);
+		UT_ASSERT(r->pfoo == nullptr);
 		delete_persistent<foo>(r->pfoo);
-		ASSERT(r->pfoo == nullptr);
+		UT_ASSERT(r->pfoo == nullptr);
 
 		pmemobj_tx_abort(EINVAL);
 	} TX_END
 
-	ASSERT(r->pfoo != nullptr);
+	UT_ASSERT(r->pfoo != nullptr);
 	r->pfoo->check_foo(1, 1);
 
 	TX_BEGIN(pop.get_handle()) {
-		ASSERT(r->pfoo != nullptr);
+		UT_ASSERT(r->pfoo != nullptr);
 		delete_persistent<foo>(r->pfoo);
 	} TX_END
 
-	ASSERT(r->pfoo == nullptr);
+	UT_ASSERT(r->pfoo == nullptr);
 }
 
 }
@@ -182,7 +182,7 @@ main(int argc, char *argv[])
 	START(argc, argv, "obj_cpp_make_persistent");
 
 	if (argc != 2)
-		FATAL("usage: %s file-name", argv[0]);
+		UT_FATAL("usage: %s file-name", argv[0]);
 
 	const char *path = argv[1];
 
@@ -192,7 +192,7 @@ main(int argc, char *argv[])
 		pop = pool<struct root>::create(path, LAYOUT, PMEMOBJ_MIN_POOL,
 			S_IWUSR | S_IRUSR);
 	} catch (nvml::pool_error &pe) {
-		FATAL("!pool::create: %s %s", pe.what(), path);
+		UT_FATAL("!pool::create: %s %s", pe.what(), path);
 	}
 
 	test_make_no_args(pop);

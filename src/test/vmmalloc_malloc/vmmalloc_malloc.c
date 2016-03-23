@@ -61,17 +61,17 @@ main(int argc, char *argv[])
 			continue;
 
 		*ptr[i] = test_value;
-		ASSERTeq(*ptr[i], test_value);
+		UT_ASSERTeq(*ptr[i], test_value);
 
 		sum_alloc += size;
 		i++;
 	}
 
 	/* at least one allocation for each size must succeed */
-	ASSERTeq(size, MIN_SIZE);
+	UT_ASSERTeq(size, MIN_SIZE);
 
 	/* allocate more than half of pool size */
-	ASSERT(sum_alloc * 2 > VMEM_MIN_POOL);
+	UT_ASSERT(sum_alloc * 2 > VMEM_MIN_POOL);
 
 	while (i > 0)
 		free(ptr[--i]);

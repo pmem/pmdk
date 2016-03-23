@@ -180,7 +180,7 @@ open_file_add(struct fd_lut *root, int fdnum, const char *fdfile)
 		root->fdnum = fdnum;
 		root->fdfile = STRDUP(fdfile);
 	} else if (root->fdnum == fdnum)
-		FATAL("duplicate fdnum: %d", fdnum);
+		UT_FATAL("duplicate fdnum: %d", fdnum);
 	else if (root->fdnum < fdnum)
 		root->left = open_file_add(root->left, fdnum, fdfile);
 	else
@@ -197,18 +197,18 @@ static void
 open_file_remove(struct fd_lut *root, int fdnum, const char *fdfile)
 {
 	if (root == NULL) {
-		ERR("unexpected open file: fd %d => \"%s\"", fdnum, fdfile);
+		UT_ERR("unexpected open file: fd %d => \"%s\"", fdnum, fdfile);
 		Fd_errcount++;
 	} else if (root->fdnum == fdnum) {
 		if (root->fdfile == NULL) {
-			ERR("open file dup: fd %d => \"%s\"", fdnum, fdfile);
+			UT_ERR("open file dup: fd %d => \"%s\"", fdnum, fdfile);
 			Fd_errcount++;
 		} else if (strcmp(root->fdfile, fdfile) == 0) {
 			/* found exact match */
 			FREE(root->fdfile);
 			root->fdfile = NULL;
 		} else {
-			ERR("open file changed: fd %d was \"%s\" now \"%s\"",
+			UT_ERR("open file changed: fd %d was \"%s\" now \"%s\"",
 			    fdnum, root->fdfile, fdfile);
 			Fd_errcount++;
 		}
@@ -229,7 +229,7 @@ open_file_walk(struct fd_lut *root)
 	if (root) {
 		open_file_walk(root->left);
 		if (root->fdfile) {
-			ERR("open file missing: fd %d => \"%s\"",
+			UT_ERR("open file missing: fd %d => \"%s\"",
 			    root->fdnum, root->fdfile);
 			Fd_errcount++;
 		}
@@ -264,7 +264,7 @@ record_open_files()
 
 	if ((dirfd = open("/proc/self/fd", O_RDONLY)) < 0 ||
 	    (dirp = fdopendir(dirfd)) == NULL)
-		FATAL("!/proc/self/fd");
+		UT_FATAL("!/proc/self/fd");
 	while ((dp = readdir(dirp)) != NULL) {
 		int fdnum;
 		char fdfile[PATH_MAX];
@@ -273,7 +273,7 @@ record_open_files()
 		if (*dp->d_name == '.')
 			continue;
 		if ((cc = readlinkat(dirfd, dp->d_name, fdfile, PATH_MAX)) < 0)
-		    FATAL("!readlinkat: /proc/self/fd/%s", dp->d_name);
+		    UT_FATAL("!readlinkat: /proc/self/fd/%s", dp->d_name);
 		fdfile[cc] = '\0';
 		fdnum = atoi(dp->d_name);
 		if (dirfd == fdnum)
@@ -295,7 +295,7 @@ check_open_files()
 
 	if ((dirfd = open("/proc/self/fd", O_RDONLY)) < 0 ||
 	    (dirp = fdopendir(dirfd)) == NULL)
-		FATAL("!/proc/self/fd");
+		UT_FATAL("!/proc/self/fd");
 	while ((dp = readdir(dirp)) != NULL) {
 		int fdnum;
 		char fdfile[PATH_MAX];
@@ -304,7 +304,7 @@ check_open_files()
 		if (*dp->d_name == '.')
 			continue;
 		if ((cc = readlinkat(dirfd, dp->d_name, fdfile, PATH_MAX)) < 0)
-		    FATAL("!readlinkat: /proc/self/fd/%s", dp->d_name);
+		    UT_FATAL("!readlinkat: /proc/self/fd/%s", dp->d_name);
 		fdfile[cc] = '\0';
 		fdnum = atoi(dp->d_name);
 		if (dirfd == fdnum)
@@ -314,7 +314,7 @@ check_open_files()
 	closedir(dirp);
 	open_file_walk(Fd_lut);
 	if (Fd_errcount)
-		FATAL("open file list changed between START() and DONE()");
+		UT_FATAL("open file list changed between START() and DONE()");
 	open_file_free(Fd_lut);
 }
 

@@ -55,7 +55,7 @@ main(int argc, char *argv[])
 	START(argc, argv, "vmmalloc_check_allocations");
 
 	for (size = MAX_SIZE; size >= MIN_SIZE; size /= 2) {
-		OUT("size %zu", size);
+		UT_OUT("size %zu", size);
 
 		memset(allocs, 0, sizeof (allocs));
 
@@ -71,14 +71,14 @@ main(int argc, char *argv[])
 		}
 
 		/* at least one allocation for each size must succeed */
-		ASSERT(i > 0);
+		UT_ASSERT(i > 0);
 
 		/* check for unexpected modifications of the data */
 		for (i = 0; i < MAX_ALLOCS && allocs[i] != NULL; ++i) {
 			char *buffer = allocs[i];
 			for (j = 0; j < size; ++j) {
 				if (buffer[j] != (char)i)
-					FATAL("Content of data object was "
+					UT_FATAL("Content of data object was "
 						"modified unexpectedly for "
 						"object size: %zu, id: %d",
 						size, j);

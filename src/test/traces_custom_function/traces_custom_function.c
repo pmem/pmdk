@@ -47,16 +47,6 @@
 #include <sys/types.h>
 #include <stdarg.h>
 #include "out.h"
-#undef ERR
-#undef FATAL
-#undef ASSERT_rt
-#undef ASSERTinfo_rt
-#undef ASSERTeq_rt
-#undef ASSERTne_rt
-#undef ASSERT
-#undef ASSERTinfo
-#undef ASSERTeq
-#undef ASSERTne
 #include "unittest.h"
 
 /*
@@ -68,9 +58,9 @@ static void
 print_custom_function(const char *s)
 {
 	if (s) {
-		OUT("CUSTOM_PRINT: %s", s);
+		UT_OUT("CUSTOM_PRINT: %s", s);
 	} else {
-		OUT("CUSTOM_PRINT(NULL)");
+		UT_OUT("CUSTOM_PRINT(NULL)");
 	}
 }
 
@@ -104,7 +94,7 @@ main(int argc, char *argv[])
 	START(argc, argv, "traces_custom_function");
 
 	if (argc != 2)
-		FATAL("usage: %s [v|p]", argv[0]);
+		UT_FATAL("usage: %s [v|p]", argv[0]);
 
 	out_set_print_func(print_custom_function);
 
@@ -131,7 +121,7 @@ main(int argc, char *argv[])
 		LOG(0, "!error");
 		break;
 	default:
-		FATAL("usage: %s [v|p]", argv[0]);
+		UT_FATAL("usage: %s [v|p]", argv[0]);
 	}
 
 	/* Cleanup */

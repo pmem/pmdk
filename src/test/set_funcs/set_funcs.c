@@ -177,31 +177,31 @@ test_obj(const char *path)
 	PMEMoid oid;
 
 	if (pmemobj_alloc(pop, &oid, 10, 0, NULL, NULL))
-		FATAL("!alloc");
+		UT_FATAL("!alloc");
 
 	if (pmemobj_realloc(pop, &oid, 100, 0))
-		FATAL("!realloc");
+		UT_FATAL("!realloc");
 
 	pmemobj_free(&oid);
 
 	pmemobj_close(pop);
 
-	OUT("obj_mallocs: %d", cnt[OBJ].mallocs);
-	OUT("obj_frees: %d", cnt[OBJ].frees);
-	OUT("obj_reallocs: %d", cnt[OBJ].reallocs);
-	OUT("obj_strdups: %d", cnt[OBJ].strdups);
+	UT_OUT("obj_mallocs: %d", cnt[OBJ].mallocs);
+	UT_OUT("obj_frees: %d", cnt[OBJ].frees);
+	UT_OUT("obj_reallocs: %d", cnt[OBJ].reallocs);
+	UT_OUT("obj_strdups: %d", cnt[OBJ].strdups);
 
 	if (cnt[OBJ].mallocs == 0 || cnt[OBJ].frees == 0)
-		FATAL("OBJ mallocs: %d, frees: %d", cnt[OBJ].mallocs,
+		UT_FATAL("OBJ mallocs: %d, frees: %d", cnt[OBJ].mallocs,
 				cnt[OBJ].frees);
 	for (int i = 0; i < 4; ++i) {
 		if (i == OBJ)
 			continue;
 		if (cnt[i].mallocs || cnt[i].frees)
-			FATAL("OBJ allocation used %d functions", i);
+			UT_FATAL("OBJ allocation used %d functions", i);
 	}
 	if (cnt[OBJ].mallocs + cnt[OBJ].strdups != cnt[OBJ].frees)
-		FATAL("OBJ memory leak");
+		UT_FATAL("OBJ memory leak");
 
 	unlink(path);
 }
@@ -216,22 +216,22 @@ test_blk(const char *path)
 	pmemblk_close(blk);
 
 
-	OUT("blk_mallocs: %d", cnt[BLK].mallocs);
-	OUT("blk_frees: %d", cnt[BLK].frees);
-	OUT("blk_reallocs: %d", cnt[BLK].reallocs);
-	OUT("blk_strdups: %d", cnt[BLK].strdups);
+	UT_OUT("blk_mallocs: %d", cnt[BLK].mallocs);
+	UT_OUT("blk_frees: %d", cnt[BLK].frees);
+	UT_OUT("blk_reallocs: %d", cnt[BLK].reallocs);
+	UT_OUT("blk_strdups: %d", cnt[BLK].strdups);
 
 	if (cnt[BLK].mallocs == 0 || cnt[BLK].frees == 0)
-		FATAL("BLK mallocs: %d, frees: %d", cnt[BLK].mallocs,
+		UT_FATAL("BLK mallocs: %d, frees: %d", cnt[BLK].mallocs,
 				cnt[BLK].frees);
 	for (int i = 0; i < 4; ++i) {
 		if (i == BLK)
 			continue;
 		if (cnt[i].mallocs || cnt[i].frees)
-			FATAL("BLK allocation used %d functions", i);
+			UT_FATAL("BLK allocation used %d functions", i);
 	}
 	if (cnt[BLK].mallocs + cnt[BLK].strdups != cnt[BLK].frees)
-		FATAL("BLK memory leak");
+		UT_FATAL("BLK memory leak");
 
 	unlink(path);
 }
@@ -246,22 +246,22 @@ test_log(const char *path)
 	pmemlog_close(log);
 
 
-	OUT("log_mallocs: %d", cnt[LOG].mallocs);
-	OUT("log_frees: %d", cnt[LOG].frees);
-	OUT("log_reallocs: %d", cnt[LOG].reallocs);
-	OUT("log_strdups: %d", cnt[LOG].strdups);
+	UT_OUT("log_mallocs: %d", cnt[LOG].mallocs);
+	UT_OUT("log_frees: %d", cnt[LOG].frees);
+	UT_OUT("log_reallocs: %d", cnt[LOG].reallocs);
+	UT_OUT("log_strdups: %d", cnt[LOG].strdups);
 
 	if (cnt[LOG].mallocs == 0 || cnt[LOG].frees == 0)
-		FATAL("LOG mallocs: %d, frees: %d", cnt[LOG].mallocs,
+		UT_FATAL("LOG mallocs: %d, frees: %d", cnt[LOG].mallocs,
 				cnt[LOG].frees);
 	for (int i = 0; i < 4; ++i) {
 		if (i == LOG)
 			continue;
 		if (cnt[i].mallocs || cnt[i].frees)
-			FATAL("LOG allocation used %d functions", i);
+			UT_FATAL("LOG allocation used %d functions", i);
 	}
 	if (cnt[LOG].mallocs + cnt[LOG].strdups != cnt[LOG].frees)
-		FATAL("LOG memory leak");
+		UT_FATAL("LOG memory leak");
 
 	unlink(path);
 }
@@ -283,22 +283,22 @@ test_vmem(const char *dir)
 	for (int i = 0; i < VMEM_POOLS; i++)
 		vmem_delete(v[i]);
 
-	OUT("vmem_mallocs: %d", cnt[VMEM_].mallocs);
-	OUT("vmem_frees: %d", cnt[VMEM_].frees);
-	OUT("vmem_reallocs: %d", cnt[VMEM_].reallocs);
-	OUT("vmem_strdups: %d", cnt[VMEM_].strdups);
+	UT_OUT("vmem_mallocs: %d", cnt[VMEM_].mallocs);
+	UT_OUT("vmem_frees: %d", cnt[VMEM_].frees);
+	UT_OUT("vmem_reallocs: %d", cnt[VMEM_].reallocs);
+	UT_OUT("vmem_strdups: %d", cnt[VMEM_].strdups);
 
 	if (cnt[VMEM_].mallocs == 0 && cnt[VMEM_].frees == 0)
-		FATAL("VMEM mallocs: %d, frees: %d", cnt[VMEM_].mallocs,
+		UT_FATAL("VMEM mallocs: %d, frees: %d", cnt[VMEM_].mallocs,
 				cnt[VMEM_].frees);
 	for (int i = 0; i < 4; ++i) {
 		if (i == VMEM_)
 			continue;
 		if (cnt[i].mallocs || cnt[i].frees)
-			FATAL("VMEM allocation used %d functions", i);
+			UT_FATAL("VMEM allocation used %d functions", i);
 	}
 	if (cnt[VMEM_].mallocs + cnt[VMEM_].strdups > cnt[VMEM_].frees + 4)
-		FATAL("VMEM memory leak");
+		UT_FATAL("VMEM memory leak");
 }
 
 int
@@ -307,7 +307,7 @@ main(int argc, char *argv[])
 	START(argc, argv, "set_funcs");
 
 	if (argc < 3)
-		FATAL("usage: %s file dir", argv[0]);
+		UT_FATAL("usage: %s file dir", argv[0]);
 
 	pmemobj_set_funcs(obj_malloc, obj_free, obj_realloc, obj_strdup);
 	pmemblk_set_funcs(blk_malloc, blk_free, blk_realloc, blk_strdup);

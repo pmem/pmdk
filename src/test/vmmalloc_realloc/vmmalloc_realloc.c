@@ -46,14 +46,14 @@ main(int argc, char *argv[])
 	START(argc, argv, "vmmalloc_realloc");
 
 	int *test = realloc(NULL, sizeof (int));
-	ASSERTne(test, NULL);
+	UT_ASSERTne(test, NULL);
 
 	test[0] = test_value;
-	ASSERTeq(test[0], test_value);
+	UT_ASSERTeq(test[0], test_value);
 
 	test = realloc(test, sizeof (int) * 10);
-	ASSERTne(test, NULL);
-	ASSERTeq(test[0], test_value);
+	UT_ASSERTne(test, NULL);
+	UT_ASSERTeq(test[0], test_value);
 	test[1] = test_value;
 	test[9] = test_value;
 

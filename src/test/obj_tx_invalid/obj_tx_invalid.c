@@ -59,7 +59,7 @@ int
 main(int argc, char *argv[])
 {
 	if (argc != 3)
-		FATAL("usage: %s file-name op", argv[0]);
+		UT_FATAL("usage: %s file-name op", argv[0]);
 
 	START(argc, argv, "obj_tx_invalid %s", argv[2]);
 
@@ -69,12 +69,12 @@ main(int argc, char *argv[])
 	if (access(path, F_OK) != 0) {
 		if ((pop = pmemobj_create(path, POBJ_LAYOUT_NAME(tx_invalid),
 			PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR)) == NULL) {
-			FATAL("!pmemobj_create %s", path);
+			UT_FATAL("!pmemobj_create %s", path);
 		}
 	} else {
 		if ((pop = pmemobj_open(path, POBJ_LAYOUT_NAME(tx_invalid)))
 						== NULL) {
-			FATAL("!pmemobj_open %s", path);
+			UT_FATAL("!pmemobj_open %s", path);
 		}
 	}
 
@@ -82,9 +82,9 @@ main(int argc, char *argv[])
 
 	if (OID_IS_NULL(oid)) {
 		if (pmemobj_alloc(pop, &oid, 10, 1, NULL, NULL))
-			FATAL("!pmemobj_alloc");
+			UT_FATAL("!pmemobj_alloc");
 	} else {
-		ASSERTeq(pmemobj_type_num(oid), 1);
+		UT_ASSERTeq(pmemobj_type_num(oid), 1);
 	}
 
 	if (strcmp(argv[2], "alloc") == 0)

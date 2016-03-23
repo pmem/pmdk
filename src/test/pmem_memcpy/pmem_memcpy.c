@@ -93,27 +93,27 @@ do_memcpy(int fd, char *dest, int dest_off, char *src, int src_off,
 
 	/* dest == src */
 	ret = pmem_memcpy_persist(dest + dest_off, dest + dest_off, bytes / 2);
-	ASSERTeq(ret, dest + dest_off);
-	ASSERTeq(*(char *)(dest + dest_off), 0);
+	UT_ASSERTeq(ret, dest + dest_off);
+	UT_ASSERTeq(*(char *)(dest + dest_off), 0);
 
 	/* len == 0 */
 	ret = pmem_memcpy_persist(dest + dest_off, src, 0);
-	ASSERTeq(ret, dest + dest_off);
-	ASSERTeq(*(char *)(dest + dest_off), 0);
+	UT_ASSERTeq(ret, dest + dest_off);
+	UT_ASSERTeq(*(char *)(dest + dest_off), 0);
 
 	ret = pmem_memcpy_persist(dest + dest_off, src + src_off, bytes / 2);
-	ASSERTeq(ret, dest + dest_off);
+	UT_ASSERTeq(ret, dest + dest_off);
 
 	/* memcmp will validate that what I expect in memory. */
 	if (memcmp(src + src_off, dest + dest_off, bytes / 2))
-		ERR("%s: first %zu bytes do not match",
+		UT_ERR("%s: first %zu bytes do not match",
 			file_name, bytes / 2);
 
 	/* Now validate the contents of the file */
 	LSEEK(fd, (off_t)dest_off, SEEK_SET);
 	if (READ(fd, buf, bytes / 2) == bytes / 2) {
 		if (memcmp(src + src_off, buf, bytes / 2))
-			ERR("%s: first %zu bytes do not match",
+			UT_ERR("%s: first %zu bytes do not match",
 				file_name, bytes / 2);
 	}
 }
@@ -129,7 +129,7 @@ main(int argc, char *argv[])
 	START(argc, argv, "pmem_memcpy");
 
 	if (argc != 5)
-		FATAL("usage: %s file srcoff destoff length", argv[0]);
+		UT_FATAL("usage: %s file srcoff destoff length", argv[0]);
 
 	fd = OPEN(argv[1], O_RDWR);
 	int dest_off = atoi(argv[2]);
@@ -139,7 +139,7 @@ main(int argc, char *argv[])
 	/* src > dst */
 	dest = pmem_map_file(argv[1], 0, 0, 0, &mapped_len, NULL);
 	if (dest == NULL)
-		FATAL("!could not map file: %s", argv[1]);
+		UT_FATAL("!could not map file: %s", argv[1]);
 
 	src = MMAP(dest + mapped_len, mapped_len, PROT_READ|PROT_WRITE,
 		MAP_SHARED|MAP_ANONYMOUS, -1, 0);
@@ -153,7 +153,7 @@ main(int argc, char *argv[])
 	if (src <= dest) {
 		swap_mappings(&dest, &src, mapped_len, fd);
 		if (src <= dest)
-			ERR("cannot map files in memory order");
+			UT_ERR("cannot map files in memory order");
 	}
 
 	memset(dest, 0, (2 * bytes));
@@ -165,7 +165,7 @@ main(int argc, char *argv[])
 	swap_mappings(&dest, &src, mapped_len, fd);
 
 	if (dest <= src) {
-		ERR("cannot map files in memory order");
+		UT_ERR("cannot map files in memory order");
 	}
 
 	do_memcpy(fd, dest, dest_off, src, src_off, bytes, argv[1]);

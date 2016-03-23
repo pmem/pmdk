@@ -63,14 +63,14 @@ ut_dump_backtrace(void)
 	pip.unwind_info = NULL;
 	int ret = unw_getcontext(&context);
 	if (ret) {
-		ERR("unw_getcontext: %s [%d]", unw_strerror(ret), ret);
+		UT_ERR("unw_getcontext: %s [%d]", unw_strerror(ret), ret);
 		return;
 	}
 
 	unw_cursor_t cursor;
 	ret = unw_init_local(&cursor, &context);
 	if (ret) {
-		ERR("unw_init_local: %s [%d]", unw_strerror(ret), ret);
+		UT_ERR("unw_init_local: %s [%d]", unw_strerror(ret), ret);
 		return;
 	}
 
@@ -82,7 +82,7 @@ ut_dump_backtrace(void)
 	while (ret > 0) {
 		ret = unw_get_proc_info(&cursor, &pip);
 		if (ret) {
-			ERR("unw_get_proc_info: %s [%d]", unw_strerror(ret),
+			UT_ERR("unw_get_proc_info: %s [%d]", unw_strerror(ret),
 					ret);
 			break;
 		}
@@ -91,7 +91,7 @@ ut_dump_backtrace(void)
 		ret = unw_get_proc_name(&cursor, procname, PROCNAMELEN, &off);
 		if (ret && ret != -UNW_ENOMEM) {
 			if (ret != -UNW_EUNSPEC) {
-				ERR("unw_get_proc_name: %s [%d]",
+				UT_ERR("unw_get_proc_name: %s [%d]",
 					unw_strerror(ret), ret);
 			}
 
@@ -106,12 +106,12 @@ ut_dump_backtrace(void)
 				*dlinfo.dli_fname)
 			fname = dlinfo.dli_fname;
 
-		ERR("%u: %s (%s%s+0x%lx) [%p]", i++, fname, procname,
+		UT_ERR("%u: %s (%s%s+0x%lx) [%p]", i++, fname, procname,
 				ret == -UNW_ENOMEM ? "..." : "", off, ptr);
 
 		ret = unw_step(&cursor);
 		if (ret < 0)
-			ERR("unw_step: %s [%d]", unw_strerror(ret), ret);
+			UT_ERR("unw_step: %s [%d]", unw_strerror(ret), ret);
 	}
 }
 #else /* USE_LIBUNWIND */
@@ -134,12 +134,12 @@ ut_dump_backtrace(void)
 
 	strings = backtrace_symbols(buffer, nptrs);
 	if (strings == NULL) {
-		ERR("!backtrace_symbols");
+		UT_ERR("!backtrace_symbols");
 		return;
 	}
 
 	for (j = 0; j < nptrs; j++)
-		ERR("%u: %s", j, strings[j]);
+		UT_ERR("%u: %s", j, strings[j]);
 
 	free(strings);
 }
@@ -152,10 +152,10 @@ ut_dump_backtrace(void)
 void
 ut_sighandler(int sig)
 {
-	ERR("\n");
-	ERR("Signal %d, backtrace:", sig);
+	UT_ERR("\n");
+	UT_ERR("Signal %d, backtrace:", sig);
 	ut_dump_backtrace();
-	ERR("\n");
+	UT_ERR("\n");
 	exit(128 + sig);
 }
 

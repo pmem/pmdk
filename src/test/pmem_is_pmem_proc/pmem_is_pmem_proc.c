@@ -55,7 +55,7 @@ fopen(const char *path, const char *mode)
 	static FILE *(*fopen_ptr)(const char *path, const char *mode);
 
 	if (strcmp(path, "/proc/self/smaps") == 0) {
-		OUT("redirecting /proc/self/smaps to %s", Sfile);
+		UT_OUT("redirecting /proc/self/smaps to %s", Sfile);
 		path = Sfile;
 	}
 
@@ -71,7 +71,7 @@ main(int argc, char *argv[])
 	START(argc, argv, "pmem_is_pmem_proc");
 
 	if (argc < 4 || argc % 2)
-		FATAL("usage: %s file addr len [addr len]...", argv[0]);
+		UT_FATAL("usage: %s file addr len [addr len]...", argv[0]);
 
 	Sfile = argv[1];
 
@@ -81,7 +81,8 @@ main(int argc, char *argv[])
 
 		addr = (void *)strtoull(argv[arg], NULL, 16);
 		len = (size_t)strtoull(argv[arg + 1], NULL, 10);
-		OUT("addr %p, len %zu: %d", addr, len, pmem_is_pmem(addr, len));
+		UT_OUT("addr %p, len %zu: %d", addr, len,
+				pmem_is_pmem(addr, len));
 	}
 
 	DONE(NULL);

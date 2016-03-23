@@ -64,7 +64,7 @@ posix_memalign_wrap(size_t alignment, size_t size)
 	if (err) {
 		ptr = NULL;
 		if (err != ENOMEM)
-			OUT("posix_memalign: %s", strerror(err));
+			UT_OUT("posix_memalign: %s", strerror(err));
 	}
 	return ptr;
 }
@@ -79,28 +79,28 @@ main(int argc, char *argv[])
 	START(argc, argv, "vmmalloc_memalign");
 
 	if (argc != 2)
-		FATAL(USAGE, argv[0]);
+		UT_FATAL(USAGE, argv[0]);
 
 	switch (argv[1][0]) {
 	case 'm':
-		OUT("testing memalign");
+		UT_OUT("testing memalign");
 		Aalloc = memalign;
 		break;
 	case 'p':
-		OUT("testing posix_memalign");
+		UT_OUT("testing posix_memalign");
 		Aalloc = posix_memalign_wrap;
 		break;
 	case 'a':
-		OUT("testing aligned_alloc");
+		UT_OUT("testing aligned_alloc");
 		Aalloc = aligned_alloc;
 		break;
 	default:
-		FATAL(USAGE, argv[0]);
+		UT_FATAL(USAGE, argv[0]);
 	}
 
 	/* test with address alignment from 2B to 4MB */
 	for (alignment = MAX_ALIGN; alignment >= MIN_ALIGN; alignment /= 2) {
-		OUT("alignment %zu", alignment);
+		UT_OUT("alignment %zu", alignment);
 
 		memset(allocs, 0, sizeof (allocs));
 
@@ -112,14 +112,15 @@ main(int argc, char *argv[])
 
 			/* ptr should be usable */
 			*allocs[i] = test_value;
-			ASSERTeq(*allocs[i], test_value);
+			UT_ASSERTeq(*allocs[i], test_value);
 
 			/* check for correct address alignment */
-			ASSERTeq((uintptr_t)(allocs[i]) & (alignment - 1), 0);
+			UT_ASSERTeq(
+				(uintptr_t)(allocs[i]) & (alignment - 1), 0);
 		}
 
 		/* at least one allocation must succeed */
-		ASSERT(i > 0);
+		UT_ASSERT(i > 0);
 
 		for (i = 0; i < MAX_ALLOCS && allocs[i] != NULL; ++i)
 			free(allocs[i]);
