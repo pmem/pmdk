@@ -246,6 +246,7 @@ config_reader_get_scenarios(struct config_reader *cr,
 			gchar *group = g_key_file_get_value(cr->key_file,
 					SECTION_GLOBAL, KEY_GROUP, NULL);
 			scenario_set_group(scenario, group);
+			free(group);
 		}
 
 		gsize nkeys;
