@@ -260,7 +260,8 @@ do_kill(char *pid_file, int signo)
 		goto out;
 	}
 
-	if (kill(pid, signo)) {
+	/* do not fail if such process already does not exist */
+	if (kill(pid, signo) && errno != ESRCH) {
 		perror("kill");
 		ret = 1;
 		goto out;
