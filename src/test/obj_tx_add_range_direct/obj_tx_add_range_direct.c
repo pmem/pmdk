@@ -489,11 +489,11 @@ test_tx_corruption_bug(PMEMobjpool *pop)
 			o->data[i] = i;
 		}
 	} TX_ONABORT {
-		ASSERT(0);
+		UT_ASSERT(0);
 	} TX_END
 
 	for (i = 0; i < 1.5 * MAX_CACHED_RANGES; ++i)
-		ASSERTeq((unsigned char)o->data[i], i);
+		UT_ASSERTeq((unsigned char)o->data[i], i);
 
 	TX_BEGIN(pop) {
 		for (i = 0; i < 0.1 * MAX_CACHED_RANGES; ++i) {
@@ -502,11 +502,11 @@ test_tx_corruption_bug(PMEMobjpool *pop)
 		}
 		pmemobj_tx_abort(EINVAL);
 	} TX_ONCOMMIT {
-		ASSERT(0);
+		UT_ASSERT(0);
 	} TX_END
 
 	for (i = 0; i < 1.5 * MAX_CACHED_RANGES; ++i)
-		ASSERTeq((unsigned char)o->data[i], i);
+		UT_ASSERTeq((unsigned char)o->data[i], i);
 
 	pmemobj_free(&obj.oid);
 }
