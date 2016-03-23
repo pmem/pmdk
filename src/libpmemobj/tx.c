@@ -74,7 +74,7 @@ struct tx_lock_data {
 struct lane_tx_runtime {
 	PMEMobjpool *pop;
 	struct ctree *ranges;
-	int cache_slot;
+	unsigned cache_slot;
 	SLIST_HEAD(txd, tx_data) tx_entries;
 	SLIST_HEAD(txl, tx_lock_data) tx_locks;
 };
@@ -676,7 +676,8 @@ tx_post_commit_range_vg_tx_remove(PMEMobjpool *pop, struct tx_range *range)
  * add range
  */
 static void
-tx_post_commit_set(PMEMobjpool *pop, struct lane_tx_layout *layout)
+tx_post_commit_set(PMEMobjpool *pop, struct lane_tx_layout *layout,
+		int recovery)
 {
 	LOG(3, NULL);
 
@@ -696,10 +697,22 @@ tx_post_commit_set(PMEMobjpool *pop, struct lane_tx_layout *layout)
 		/* zero the cache, will be useful later on */
 		struct tx_range_cache *cache = OBJ_OFF_TO_PTR(pop, obj.off);
 
-		VALGRIND_ADD_TO_TX(cache, sizeof (struct tx_range_cache));
-		pop->memset_persist(pop, cache, 0,
-			sizeof (struct tx_range_cache));
-		VALGRIND_REMOVE_FROM_TX(cache, sizeof (struct tx_range_cache));
+		size_t sz;
+		if (recovery) {
+			sz = sizeof (*cache);
+		} else {
+			struct lane_tx_runtime *r = tx.section->runtime;
+			sz = sizeof (cache->range[0]) * r->cache_slot;
+		}
+
+		VALGRIND_ADD_TO_TX(cache, sz);
+		pop->memset_persist(pop, cache, 0, sz);
+		VALGRIND_REMOVE_FROM_TX(cache, sz);
+
+#ifdef	DEBUG
+		if (!recovery) /* for recovery we know we zeroed everything */
+			ASSERTeq(util_is_zeroed(cache, sizeof (*cache)), 1);
+#endif
 	}
 
 	tx_clear_undo_log(pop, &layout->undo_set, 1, 0, 0);
@@ -721,11 +734,11 @@ tx_pre_commit(PMEMobjpool *pop, struct lane_tx_layout *layout)
  * tx_post_commit -- (internal) do post commit operations
  */
 static void
-tx_post_commit(PMEMobjpool *pop, struct lane_tx_layout *layout)
+tx_post_commit(PMEMobjpool *pop, struct lane_tx_layout *layout, int recovery)
 {
 	LOG(3, NULL);
 
-	tx_post_commit_set(pop, layout);
+	tx_post_commit_set(pop, layout, recovery);
 	tx_post_commit_alloc(pop, layout);
 	tx_post_commit_free(pop, layout);
 }
@@ -1142,7 +1155,7 @@ pmemobj_tx_commit()
 		tx_set_state(pop, layout, TX_STATE_COMMITTED);
 
 		/* post commit phase */
-		tx_post_commit(pop, layout);
+		tx_post_commit(pop, layout, 0 /* not recovery */);
 
 		/* clear transaction state */
 		tx_set_state(pop, layout, TX_STATE_NONE);
@@ -1329,7 +1342,7 @@ pmemobj_tx_add_small(struct lane_tx_layout *layout,
 
 	struct lane_tx_runtime *runtime = tx.section->runtime;
 
-	int n = runtime->cache_slot++; /* first free cache slot */
+	unsigned n = runtime->cache_slot++; /* first free cache slot */
 
 	ASSERT(n != MAX_CACHED_RANGES);
 
@@ -1724,7 +1737,7 @@ lane_transaction_recovery(PMEMobjpool *pop,
 		 * process the undo log, do the post commit phase
 		 * and clear the transaction state.
 		 */
-		tx_post_commit(pop, layout);
+		tx_post_commit(pop, layout, 1 /* recovery */);
 		tx_set_state(pop, layout, TX_STATE_NONE);
 	} else {
 #ifdef USE_VG_MEMCHECK
