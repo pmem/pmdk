@@ -265,7 +265,8 @@ timed_check_worker(void *arg)
 		ASSERT(t_diff.tv_sec * NANO_PER_ONE +
 				t_diff.tv_nsec >= TIMEOUT);
 	} else {
-		ERR("pmemobj_mutex_timedlock");
+		errno = ret;
+		ERR("!pmemobj_mutex_timedlock");
 	}
 
 	return NULL;
