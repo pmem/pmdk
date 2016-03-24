@@ -1,5 +1,4 @@
-#
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -29,30 +28,17 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
+# Makefile -- Makefile for bttcreate tool
 #
-# src/test/tools/Makefile -- build unit test helpers
-#
+TOP = ../../../..
+vpath %.c $(TOP)/src/libpmemblk/
+vpath %.c $(TOP)/src/common/
 
-DIRS = \
-       pmemspoil\
-       pmemwrite\
-       pmemalloc\
-       pmemobjcli\
-       pmemdetect\
-       ctrld\
-       bttcreate
+TARGET = bttcreate
+OBJS = bttcreate.o btt.o util.o set.o out.o
 
-all     : TARGET = all
-clean   : TARGET = clean
-clobber : TARGET = clobber
-cstyle  : TARGET = cstyle
+LIBPMEM=y
 
-all cstyle clean clobber: $(DIRS)
-
-$(DIRS):
-	$(MAKE) -C $@ $(TARGET)
-
-test check pcheck:
-
-.PHONY: all clean clobber cstyle check pcheck $(DIRS)
+include $(TOP)/src/tools/Makefile.inc
+INCS += -I$(TOP)/src/libpmemblk
+INCS += -I$(TOP)/src/common
