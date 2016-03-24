@@ -57,7 +57,7 @@
 
 /*
  * To make sure that the range cache does not needlessly waste memory in the
- * allocator, the values set here must very closesly match allocation class
+ * allocator, the values set here must very closely match allocation class
  * sizes. A good value to aim for is multiples of 1024 bytes.
  */
 #define	MAX_CACHED_RANGE_SIZE 32
