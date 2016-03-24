@@ -55,8 +55,13 @@
 #define	OBJ_LANES_OFFSET	8192	/* lanes offset (8kB) */
 #define	OBJ_NLANES		1024	/* number of lanes */
 
+/*
+ * To make sure that the range cache does not needlessly waste memory in the
+ * allocator, the values set here must very closesly match allocation class
+ * sizes. A good value to aim for is multiples of 1024 bytes.
+ */
 #define	MAX_CACHED_RANGE_SIZE 32
-#define	MAX_CACHED_RANGES 127 /* calculated to be exactly 8192 bytes */
+#define	MAX_CACHED_RANGES 169
 
 #define	OBJ_OOB_SIZE		(sizeof (struct oob_header))
 #define	OBJ_OFF_TO_PTR(pop, off) ((void *)((uintptr_t)(pop) + (off)))
