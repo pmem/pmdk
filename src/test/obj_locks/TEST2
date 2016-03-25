@@ -42,11 +42,11 @@ export UNITTEST_NUM=2
 
 require_build_type debug
 require_valgrind_dev_3_10
+configure_valgrind helgrind force-enable
 
 setup
 
-expect_normal_exit valgrind --log-file=valgrind$UNITTEST_NUM.log\
- --tool=helgrind ./obj_locks$EXESUFFIX $DIR/testfile1
+expect_normal_exit ./obj_locks$EXESUFFIX $DIR/testfile1
 
 check
 

@@ -41,13 +41,13 @@ export UNITTEST_NUM=1
 # standard unit test setup
 . ../unittest/unittest.sh
 
-require_valgrind_pmemcheck
 
 # XXX reduce the number of reallocs performed under pmemcheck so that the
 # execution time is reasonable and within the time limit (5 minutes) on both
 # pmem and non-pmem fs types.
 require_fs_type non-pmem
 
+configure_valgrind pmemcheck force-enable
 setup
 
 expect_normal_exit $PMEMPOOL$EXESUFFIX\
@@ -56,9 +56,7 @@ expect_normal_exit $PMEMPOOL$EXESUFFIX\
 # last parameter disables integrity tests, because they are veeeeeery slow
 # under pmemcheck (19 minutes vs 7 seconds)
 # XXX enable after pmemcheck optimization
-expect_normal_exit valgrind --tool=pmemcheck\
-    --log-file=valgrind$UNITTEST_NUM.log\
-    ./obj_realloc$EXESUFFIX $DIR/testfile1 0
+expect_normal_exit ./obj_realloc$EXESUFFIX $DIR/testfile1 0
 
 check
 
