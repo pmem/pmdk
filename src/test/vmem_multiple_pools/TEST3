@@ -42,14 +42,13 @@ export UNITTEST_NUM=3
 
 require_fs_type any
 require_build_type debug nondebug
-require_valgrind
+configure_valgrind drd force-enable
 
 setup
 
 export VMEM_LOG_LEVEL=0
 
-expect_normal_exit valgrind --log-file=valgrind$UNITTEST_NUM.log --tool=drd\
-	./vmem_multiple_pools$EXESUFFIX $DIR 2 4
+expect_normal_exit ./vmem_multiple_pools$EXESUFFIX $DIR 2 4
 
 check
 

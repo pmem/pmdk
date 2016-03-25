@@ -45,7 +45,7 @@ require_fs_type pmem non-pmem
 require_unlimited_vm
 
 # this test creates huge file
-memcheck force-disable
+configure_valgrind memcheck force-disable
 
 setup
 

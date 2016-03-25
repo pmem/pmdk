@@ -38,7 +38,7 @@ export UNITTEST_NUM=0
 . ../unittest/unittest.sh
 
 # covered by TEST5
-memcheck force-disable
+configure_valgrind memcheck force-disable
 
 setup
 

@@ -44,11 +44,11 @@ require_fs_type none
 require_build_type debug nondebug
 require_valgrind_dev_3_10
 require_valgrind_helgrind
+configure_valgrind helgrind force-enable
 
 setup
 
-expect_normal_exit valgrind --log-file=valgrind$UNITTEST_NUM.log\
- --tool=helgrind ./obj_sync$EXESUFFIX m 10 50
+expect_normal_exit ./obj_sync$EXESUFFIX m 10 50
 
 check
 

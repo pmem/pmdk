@@ -41,7 +41,7 @@ export UNITTEST_NUM=5
 . ../unittest/unittest.sh
 
 require_fs_type none
-memcheck force-disable
+configure_valgrind memcheck force-disable
 
 setup
 

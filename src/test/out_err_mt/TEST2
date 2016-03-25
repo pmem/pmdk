@@ -42,7 +42,7 @@ export UNITTEST_NUM=2
 
 require_fs_type any
 require_valgrind_dev_3_7
-
+configure_valgrind helgrind force-enable
 setup
 
 unset PMEM_LOG_LEVEL
@@ -57,8 +57,8 @@ unset PMEMBLK_LOG_FILE
 unset PMEMOBJ_LOG_FILE
 unset VMEM_LOG_FILE
 
-expect_normal_exit valgrind --log-file=valgrind$UNITTEST_NUM.log --tool=helgrind\
-    ./out_err_mt$EXESUFFIX $DIR/testfile1 $DIR/testfile2 $DIR/testfile3 $DIR
+expect_normal_exit ./out_err_mt$EXESUFFIX $DIR/testfile1 $DIR/testfile2\
+			 $DIR/testfile3 $DIR
 
 check
 

@@ -33,21 +33,17 @@
 
 export UNITTEST_NAME=obj_cpp_mutex_posix/TEST0
 export UNITTEST_NUM=0
+export VALGRIND_OPTS="--suppressions=../drd-log.supp"
 
 # standard unit test setup
 . ../unittest/unittest.sh
 
 require_test_type long
 require_cxx11
-require_valgrind
+configure_valgrind drd force-enable
 
 setup
 
-expect_normal_exit\
-    valgrind --tool=drd --suppressions=../drd-log.supp\
-    --log-file=valgrind$UNITTEST_NUM.log\
-    ./obj_cpp_mutex_posix$EXESUFFIX $DIR/testfile1
-
-check
+expect_normal_exit ./obj_cpp_mutex_posix$EXESUFFIX $DIR/testfile1
 
 pass
