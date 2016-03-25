@@ -1,0 +1,4 @@
+obj_cpp_pool/TEST3: START: obj_cpp_pool
+ ./obj_cpp_pool$(nW) i $(nW)/testfile test 20 0640
+pool.get_root: Invalid pool handle
+obj_cpp_pool/TEST3: Done

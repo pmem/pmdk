@@ -361,8 +361,11 @@ namespace obj
 		 *
 		 * @return persistent pointer to the root object.
 		 */
-		persistent_ptr<T> get_root() noexcept
+		persistent_ptr<T> get_root()
 		{
+			if (pop == nullptr)
+				throw pool_error("Invalid pool handle");
+
 			persistent_ptr<T> root = pmemobj_root(this->pop,
 					sizeof (T));
 			return root;
