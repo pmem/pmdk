@@ -49,6 +49,7 @@ GZFILES_1_NOINSTALL = $(MANPAGES_1_NOINSTALL:=.gz)
 GZFILES_3_NOINSTALL = $(MANPAGES_3_NOINSTALL:=.gz)
 GZFILES = $(GZFILES_1) $(GZFILES_3)\
 	  $(GZFILES_1_NOINSTALL) $(GZFILES_3_NOINSTALL)
+DOXYGEN_HTMLDIR=cpp_html
 
 MANPAGES_DESTDIR = $(DESTDIR)$(prefix)/share/man/man
 
@@ -57,7 +58,10 @@ all: $(TXTFILES)
 %.txt: %
 	man ./$< > $@
 
-html: $(HTMLFILES)
+doxygen:
+	doxygen cppobj.Doxyfile
+
+html: $(HTMLFILES) doxygen
 
 %.html: %
 	groff -mandoc -Thtml ./$< > $@
@@ -70,7 +74,7 @@ compress: $(GZFILES)
 clean:
 
 clobber: clean
-	$(RM) -f $(TXTFILES) $(HTMLFILES) $(GZFILES)
+	$(RM) -rf $(TXTFILES) $(HTMLFILES) $(GZFILES) $(DOXYGEN_HTMLDIR)
 
 install: compress
 	install -d $(MANPAGES_DESTDIR)1

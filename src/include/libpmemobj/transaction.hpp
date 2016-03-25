@@ -51,11 +51,12 @@ namespace obj {
 	 * C++ transaction handler class.
 	 *
 	 * This class is the pmemobj transaction handler. Scoped transactions
-	 * are handled through two internal classes: *manual and *automatic.
-	 * *manual transactions need to be committed manually, otherwise they
-	 * will be aborted on object destruction.
-	 * *automatic transactions are only available in C++17. They handle
-	 * transaction commit/abort automatically.
+	 * are handled through two internal classes: @ref manual and
+	 * @ref automatic.
+	 * - @ref manual transactions need to be committed manually, otherwise
+	 *	they will be aborted on object destruction.\n
+	 * - @ref automatic transactions are only available in C++17. They
+	 *	handle transaction commit/abort automatically.
 	 * This class also exposes a closure-like transaction API.
 	 */
 	class transaction
@@ -86,9 +87,9 @@ namespace obj {
 			 * function or locks adding failed.
 			 */
 			template<typename... L>
-			manual(obj::pool_base &p, L &... locks)
+			manual(obj::pool_base &pop, L &... locks)
 			{
-				if (pmemobj_tx_begin(p.get_handle(), NULL,
+				if (pmemobj_tx_begin(pop.get_handle(), NULL,
 							TX_LOCK_NONE) != 0)
 					throw transaction_error(
 						"failed to start transaction");
@@ -171,9 +172,9 @@ namespace obj {
 			 * function or locks adding failed.
 			 */
 			template<typename... L>
-			automatic(obj::pool_base &p, L&... locks)
+			automatic(obj::pool_base &pop, L&... locks)
 			{
-				if (pmemobj_tx_begin(p.get_handle(), NULL,
+				if (pmemobj_tx_begin(pop.get_handle(), NULL,
 							TX_LOCK_NONE) != 0)
 					throw transaction_error(
 						"failed to start transaction");
