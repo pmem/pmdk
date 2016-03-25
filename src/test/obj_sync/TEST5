@@ -43,11 +43,10 @@ export UNITTEST_NUM=5
 require_fs_type none
 require_build_type debug nondebug
 require_valgrind_dev_3_10
-
+configure_valgrind drd force-enable
 setup
 
-expect_normal_exit valgrind --log-file=valgrind$UNITTEST_NUM.log --tool=drd\
- ./obj_sync$EXESUFFIX c 10 50
+expect_normal_exit ./obj_sync$EXESUFFIX c 10 50
 
 check
 

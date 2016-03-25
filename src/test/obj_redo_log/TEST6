@@ -41,8 +41,8 @@ export UNITTEST_NUM=6
 # standard unit test setup
 . ../unittest/unittest.sh
 
-require_valgrind_pmemcheck
-
+configure_valgrind pmemcheck force-enable
+export VALGRIND_OPTS="--mult-stores=yes"
 setup
 
 FILE=${DIR}/pool
@@ -51,10 +51,7 @@ RSIZE=4
 
 truncate -s $FSIZE $FILE
 
-expect_normal_exit valgrind --tool=pmemcheck\
-	--log-file=valgrind$UNITTEST_NUM.log\
-	--mult-stores=yes\
-	./obj_redo_log$EXESUFFIX $FILE $RSIZE\
+expect_normal_exit ./obj_redo_log$EXESUFFIX $FILE $RSIZE\
 	C\
 	s:0:0x00000200:0x11111111\
 	s:1:0x00000208:0x22222222\

@@ -33,22 +33,15 @@
 
 export UNITTEST_NAME=obj_cpp_ptr_arith/TEST2
 export UNITTEST_NUM=2
-
 # standard unit test setup
 . ../unittest/unittest.sh
 
 require_cxx11
-require_valgrind_memcheck
-memcheck force-enable
-
+configure_valgrind memcheck force-enable
 setup
 
-export MEMCHECK_OPTS="--suppressions=../memcheck-stdcpp.supp"
+export VALGRIND_OPTS="--suppressions=../memcheck-stdcpp.supp"
 
 expect_normal_exit ./obj_cpp_ptr_arith$EXESUFFIX $DIR/testfile1
-
-mv ${MEMCHECK_LOG_FILE} memcheck${UNITTEST_NUM}.log
-
-check
 
 pass

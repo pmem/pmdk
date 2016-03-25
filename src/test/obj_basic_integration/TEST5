@@ -37,9 +37,7 @@ export UNITTEST_NUM=5
 # standard unit test setup
 . ../unittest/unittest.sh
 
-require_valgrind_memcheck
-
-memcheck force-enable
+configure_valgrind memcheck force-enable
 export PMEMOBJ_VG_CHECK_UNDEF=1
 
 setup
