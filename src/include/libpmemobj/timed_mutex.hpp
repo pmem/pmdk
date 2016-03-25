@@ -124,7 +124,7 @@ namespace obj {
 		 * Makes the current thread block until the lock is acquired or a
 		 * specific time is reached.
 		 *
-		 * @param[in] timeout a specific point in time, which when
+		 * @param[in] timeout_time a specific point in time, which when
 		 * reached unblocks the thread.
 		 *
 		 * @return `true` on successful lock acquisition, `false`
