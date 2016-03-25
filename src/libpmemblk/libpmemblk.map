@@ -32,7 +32,7 @@
 #
 # src/libpmemblk.map -- linker map file for libpmemblk
 #
-libpmemblk.so {
+LIBPMEMBLK_1.0 {
 	global:
 		pmemblk_check_version;
 		pmemblk_set_funcs;
