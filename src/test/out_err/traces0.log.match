@@ -4,6 +4,7 @@
 $(OPT)<trace>: <1> [out.c:$(N) out_init]$(W)compiled with support for Valgrind pmemcheck
 $(OPT)<trace>: <1> [out.c:$(N) out_init]$(W)compiled with support for Valgrind helgrind
 $(OPT)<trace>: <1> [out.c:$(N) out_init]$(W)compiled with support for Valgrind memcheck
+$(OPT)<trace>: <1> [out.c:$(N) out_init]$(W)compiled with support for Valgrind drd
 <trace>: <1> [out_err.c:$(N) main]$(W)ERR #1
 <trace>: <1> [out_err.c:$(N) main]$(W)ERR #2: Success
 <trace>: <1> [out_err.c:$(N) main]$(W)ERR #3: Invalid argument
