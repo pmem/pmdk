@@ -36,7 +36,8 @@
 #
 export UNITTEST_NAME=vmmalloc_valgrind/TEST2
 export UNITTEST_NUM=2
-
+export VALGRIND_OPTS="--suppressions=excluded-errors.supp --leak-check=full\
+	--show-reachable=yes"
 # standard unit test setup
 . ../unittest/unittest.sh
 
@@ -45,7 +46,7 @@ require_fs_type any
 require_build_type debug nondebug
 require_valgrind_dev_3_8
 set_valgrind_exe_name
-
+configure_valgrind memcheck force-enable
 setup
 
 unset VMMALLOC_LOG_LEVEL
@@ -53,10 +54,7 @@ unset VMMALLOC_LOG_FILE
 
 export TEST_LD_PRELOAD=libvmmalloc.so
 
-expect_normal_exit $VALGRINDEXE\
-	--suppressions=excluded-errors.supp --leak-check=full\
-	--show-reachable=yes --log-file=valgrind$UNITTEST_NUM.log\
-	./vmmalloc_valgrind$EXESUFFIX 2
+expect_normal_exit ./vmmalloc_valgrind$EXESUFFIX 2
 
 check
 

@@ -22,3 +22,4 @@ $(OPT)==$(N)== Overwritten stores before they were made persistent:
 $(OPT)==$(N)== [0]    at 0x$(X): $(nW)memset ($(*))
 $(OPT)==$(N)==    by 0x$(X): main (pmem_valgr_simple.c:$(N))
 $(OPT)==$(N)== 	Address: 0x$(X)	size: 8	state: DIRTY
+==$(N)== ERROR SUMMARY: 3 errors

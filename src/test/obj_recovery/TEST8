@@ -41,9 +41,8 @@ export UNITTEST_NUM=8
 . ../unittest/unittest.sh
 
 require_test_type long
-require_valgrind_memcheck
 
-memcheck force-enable
+configure_valgrind memcheck force-enable
 export PMEMOBJ_VG_CHECK_UNDEF=1
 
 setup
@@ -55,7 +54,5 @@ create_holey_file 16 $DIR/testfile
 
 expect_normal_exit ./obj_recovery$EXESUFFIX $DIR/testfile y c f
 expect_normal_exit ./obj_recovery$EXESUFFIX $DIR/testfile y o f
-
-check
 
 pass

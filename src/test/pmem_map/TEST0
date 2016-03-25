@@ -42,7 +42,7 @@ export UNITTEST_NUM=0
 
 require_fs_type any
 
-memcheck force-disable
+configure_valgrind memcheck force-disable
 
 setup
 

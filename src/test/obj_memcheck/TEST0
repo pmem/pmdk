@@ -40,16 +40,15 @@ export UNITTEST_NUM=0
 # standard unit test setup
 . ../unittest/unittest.sh
 
-require_valgrind_memcheck
 require_fs_type non-pmem
 
-memcheck force-enable
+configure_valgrind memcheck force-enable
 
 setup
 
 export PMEMOBJ_VG_CHECK_UNDEF=1
-export VALIDATE_MEMCHECK_LOG=0
-export MEMCHECK_OPTS="$MEMCHECK_OPTS --show-reachable=yes"
+export VALIDATE_VALGRIND_LOG=0
+export VALGRIND_OPTS="$VALGRIND_OPTS --show-reachable=yes"
 
 if ! eval LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH LD_PRELOAD=$TEST_LD_PRELOAD $TRACE valgrind ./obj_memcheck$EXESUFFIX m 2>/dev/null; then
 	echo "$UNITTEST_NAME: SKIP valgrind with bug"
@@ -57,8 +56,6 @@ if ! eval LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH LD_PRELOAD=$TEST_LD_PRELOAD $TRA
 fi
 
 expect_normal_exit ./obj_memcheck$EXESUFFIX t $DIR/testfile
-
-mv ${MEMCHECK_LOG_FILE} memcheck${UNITTEST_NUM}.log
 
 check
 
