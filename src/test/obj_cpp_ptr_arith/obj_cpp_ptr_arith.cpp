@@ -151,6 +151,7 @@ test_relational(PMEMobjpool *pop)
 {
 
 	persistent_ptr<p<int>> first_elem = prepare_array<p<int>>(pop);
+	persistent_ptr<int[10][12]> parray;
 	persistent_ptr<p<int>> last_elem = first_elem + TEST_ARR_SIZE - 1;
 
 	UT_ASSERT(first_elem != last_elem);
@@ -177,6 +178,22 @@ test_relational(PMEMobjpool *pop)
 	UT_ASSERT(!(nullptr > first_elem));
 	UT_ASSERT(first_elem >= nullptr);
 	UT_ASSERT(!(nullptr >= first_elem));
+
+	/* pointer to array */
+	UT_ASSERT(parray == nullptr);
+	UT_ASSERT(nullptr == parray);
+	UT_ASSERT(!(parray != nullptr));
+	UT_ASSERT(!(nullptr != parray));
+
+	UT_ASSERT(!(nullptr < parray));
+	UT_ASSERT(!(parray < nullptr));
+	UT_ASSERT(nullptr <= parray);
+	UT_ASSERT(parray <= nullptr);
+
+	UT_ASSERT(!(parray > nullptr));
+	UT_ASSERT(!(nullptr > parray));
+	UT_ASSERT(parray >= nullptr);
+	UT_ASSERT(nullptr >= parray);
 
 	persistent_ptr<p<double>> different_array =
 			prepare_array<p<double>>(pop);
