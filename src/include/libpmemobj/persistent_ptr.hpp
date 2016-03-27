@@ -531,7 +531,8 @@ namespace obj
 	template<typename T> inline bool
 	operator<(const persistent_ptr<T> &lhs, std::nullptr_t) noexcept
 	{
-		return std::less<T*>()(lhs.get(), nullptr);
+		return std::less<typename persistent_ptr<T>::element_type*>()
+			(lhs.get(), nullptr);
 	}
 
 	/**
@@ -540,7 +541,8 @@ namespace obj
 	template<typename T> inline bool
 	operator<(std::nullptr_t, const persistent_ptr<T> &rhs) noexcept
 	{
-		return std::less<T*>()(nullptr, rhs.get());
+		return std::less<typename persistent_ptr<T>::element_type*>()
+			(nullptr, rhs.get());
 	}
 
 	/**
