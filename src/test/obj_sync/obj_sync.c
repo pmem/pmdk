@@ -241,20 +241,33 @@ timed_check_worker(void *arg)
 	abs_time = t1;
 	abs_time.tv_nsec += TIMEOUT;
 	if (abs_time.tv_nsec > NANO_PER_ONE) {
-		++abs_time.tv_sec;
-		abs_time.tv_nsec -= NANO_PER_ONE;
+		abs_time.tv_sec += abs_time.tv_nsec / NANO_PER_ONE;
+		abs_time.tv_nsec %= NANO_PER_ONE;
 	}
 
 	int ret = pmemobj_mutex_timedlock(&Mock_pop, mtx, &abs_time);
 
 	clock_gettime(CLOCK_REALTIME, &t2);
 
+	if (mutex_id == LOCKED_MUTEX) {
+		UT_ASSERTeq(ret, ETIMEDOUT);
+		t_diff.tv_sec = t2.tv_sec - t1.tv_sec;
+		t_diff.tv_nsec = t2.tv_nsec - t1.tv_nsec;
+
+		if (t_diff.tv_nsec < 0) {
+			--t_diff.tv_sec;
+			t_diff.tv_nsec += NANO_PER_ONE;
+		}
+		UT_ASSERT(t_diff.tv_sec * NANO_PER_ONE +
+				t_diff.tv_nsec >= TIMEOUT);
+
+		return NULL;
+	}
+
 	if (ret == 0) {
 		UT_ASSERTne(mutex_id, LOCKED_MUTEX);
 		pmemobj_mutex_unlock(&Mock_pop, mtx);
 	} else if (ret == ETIMEDOUT) {
-		UT_ASSERTeq(mutex_id, LOCKED_MUTEX);
-
 		t_diff.tv_sec = t2.tv_sec - t1.tv_sec;
 		t_diff.tv_nsec = t2.tv_nsec - t1.tv_nsec;
 
