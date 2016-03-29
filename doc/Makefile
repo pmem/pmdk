@@ -58,10 +58,10 @@ all: $(TXTFILES)
 %.txt: %
 	man ./$< > $@
 
-doxygen:
+doxygen_docs:
 	doxygen cppobj.Doxyfile
 
-html: $(HTMLFILES) doxygen
+html: $(HTMLFILES) doxygen_docs
 
 %.html: %
 	groff -mandoc -Thtml ./$< > $@
