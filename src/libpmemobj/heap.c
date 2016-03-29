@@ -184,7 +184,7 @@ get_zone_size_idx(uint32_t zone_id, unsigned max_zone, size_t heap_size)
 {
 	ASSERT(max_zone > 0);
 	if (zone_id < max_zone - 1)
-		return MAX_CHUNK - 1;
+		return MAX_CHUNK;
 
 	ASSERT(heap_size >= zone_id * ZONE_MAX_SIZE);
 	size_t zone_raw_size = heap_size - zone_id * ZONE_MAX_SIZE;
