@@ -63,7 +63,7 @@ struct btree_map {
 };
 
 /*
- * btree_map_new -- allocates a new crit-bit tree instance
+ * btree_map_new -- allocates a new btree instance
  */
 int
 btree_map_new(PMEMobjpool *pop, TOID(struct btree_map) *map, void *arg)
@@ -112,7 +112,7 @@ btree_map_clear(PMEMobjpool *pop, TOID(struct btree_map) map)
 
 
 /*
- * btree_map_delete -- cleanups and frees crit-bit tree instance
+ * btree_map_delete -- cleanups and frees btree instance
  */
 int
 btree_map_delete(PMEMobjpool *pop, TOID(struct btree_map) *map)
