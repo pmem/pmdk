@@ -36,6 +36,11 @@
 
 #pragma once
 
+/* use 64-bit off_t */
+typedef long long _off_t;
+typedef _off_t off_t;
+#define	_OFF_T_DEFINED
+
 #include <windows.h>
 #include <stdint.h>
 #include <io.h>

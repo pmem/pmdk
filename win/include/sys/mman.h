@@ -60,7 +60,7 @@
 void mmap_init(void);
 void mmap_fini(void);
 
-void *mmap(void *addr, size_t len, int prot, int flags, int fd, size_t offset);
+void *mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset);
 int munmap(void *addr, size_t len);
 int msync(void *addr, size_t len, int flags);
 

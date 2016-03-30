@@ -53,14 +53,14 @@ posix_fallocate(int fd, off_t offset, off_t size)
 	if (offset > 0)
 		size += offset;
 
-	long len = filelength(fd); /* XXX - 64-bit */
+	off_t len = _filelengthi64(fd);
 	if (len < 0)
 		return -1;
 
 	if (size < len)
 		return 0;
 
-	return chsize(fd, size);
+	return _chsize_s(fd, size);
 }
 
 int
@@ -86,15 +86,17 @@ flock(int fd, int operation)
 			return -1;
 	}
 
-	long len = filelength(fd); /* XXX - 64-bit */
-	if (len < 0)
+	off_t filelen = _filelengthi64(fd);
+	if (filelen < 0)
 		return -1;
 
+	/* for our purpose it's enough to lock the first 4K of the file */
+	long len = (filelen &  4096) ? 4096 : (long)filelen;
 	return _locking(fd, flags, len);
 }
 
 int
 ftruncate(int fd, off_t length)
 {
-	return chsize(fd, length);
+	return _chsize_s(fd, length);
 }

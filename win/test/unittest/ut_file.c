@@ -173,9 +173,9 @@ off_t
 ut_lseek(const char *file, int line, const char *func, int fd,
     off_t offset, int whence)
 {
-	int retval = lseek(fd, offset, whence);
+	off_t retval = _lseeki64(fd, offset, whence);
 
-	if (retval == (off_t)-1)
+	if (retval == -1)
 		ut_fatal(file, line, func, "!lseek: %d", fd);
 
 	return retval;

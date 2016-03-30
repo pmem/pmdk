@@ -106,7 +106,7 @@ mmap_fini(void)
  * mmap -- map file into memory
  */
 void *
-mmap(void *addr, size_t len, int prot, int flags, int fd, size_t offset)
+mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 {
 	//LOG(3, "addr %p len %zu prot %d flags %d fd %d offset %ju",
 	//	addr, len, prot, flags, fd, offset);
