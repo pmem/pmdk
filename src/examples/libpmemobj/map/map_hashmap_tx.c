@@ -135,7 +135,7 @@ map_hm_tx_lookup(PMEMobjpool *pop, TOID(struct map) map, uint64_t key)
 }
 
 /*
- * map_hm_tx_foreach -- wrapper for hm_tx_foreac
+ * map_hm_tx_foreach -- wrapper for hm_tx_foreach
  */
 static int
 map_hm_tx_foreach(PMEMobjpool *pop, TOID(struct map) map,

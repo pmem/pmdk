@@ -166,7 +166,7 @@ rbtree_map_clear(PMEMobjpool *pop, TOID(struct rbtree_map) map)
 
 
 /*
- * rbtree_map_delete -- cleanups and frees crit-bit tree instance
+ * rbtree_map_delete -- cleanups and frees red-black tree instance
  */
 int
 rbtree_map_delete(PMEMobjpool *pop, TOID(struct rbtree_map) *map)

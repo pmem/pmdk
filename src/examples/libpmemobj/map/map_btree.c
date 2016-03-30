@@ -164,7 +164,7 @@ map_btree_lookup(PMEMobjpool *pop, TOID(struct map) map, uint64_t key)
 }
 
 /*
- * map_btree_foreach -- wrapper for btree_map_foreac
+ * map_btree_foreach -- wrapper for btree_map_foreach
  */
 static int
 map_btree_foreach(PMEMobjpool *pop, TOID(struct map) map,
