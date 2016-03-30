@@ -64,8 +64,6 @@ export SRCVERSION = $(shell git describe 2>/dev/null ||\
 			cat .version 2>/dev/null ||\
 			git log -1 --format=%h 2>/dev/null)
 
-export prefix = /usr/local
-
 RPM_BUILDDIR=rpmbuild
 DPKG_BUILDDIR=dpkgbuild
 rpm : override DESTDIR=$(CURDIR)/$(RPM_BUILDDIR)

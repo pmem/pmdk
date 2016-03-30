@@ -146,7 +146,7 @@ NVML libpmem library
 %files -n libpmem
 %defattr(-,root,root,-)
 %{_libdir}/libpmem.so.*
-/usr/share/nvml/nvml.magic
+%{_datadir}/nvml/nvml.magic
 
 %post -n libpmem
 $(cat $MAGIC_INSTALL | sed '/^#/d')
@@ -331,9 +331,15 @@ Usefull applications for administration and diagnostic purposes.
 
 %install
 rm -rf %{buildroot}
-make install DESTDIR=%{buildroot} prefix=%{_prefix}
-mkdir -p %{buildroot}/usr/share/nvml
-cp utils/nvml.magic %{buildroot}/usr/share/nvml/
+make install DESTDIR=%{buildroot}\
+	prefix=%{_prefix}\
+	libdir=%{_libdir}\
+	includedir=%{_includedir}\
+	mandir=%{_mandir}\
+	bindir=%{_bindir}\
+	sysconfdir=%{_sysconfdir}
+mkdir -p %{buildroot}%{_datadir}/nvml
+cp utils/nvml.magic %{buildroot}%{_datadir}/nvml/
 
 %check
 if [ -f $TEST_CONFIG_FILE ]; then

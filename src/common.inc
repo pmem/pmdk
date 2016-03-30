@@ -71,21 +71,32 @@ define create-deps
 	$(RM) -f $(objdir)/$*.d
 endef
 
+export prefix = /usr/local
+export exec_prefix := $(prefix)
+export sysconfdir := $(prefix)/etc
+export datarootdir := $(prefix)/share
+export mandir := $(datarootdir)/man
+export man1dir := $(mandir)/man1
+export man3dir := $(mandir)/man3
+
+ifneq ($(wildcard $(exec_prefix)/x86_64-linux-gnu),)
+LIB_PREFIX ?= x86_64-linux-gnu/lib
+endif
+
+ifneq ($(wildcard $(exec_prefix)/lib64),)
+LIB_PREFIX ?= lib64
+endif
+
+LIB_PREFIX ?= lib
+
 ifneq ($(wildcard $(prefix)/x86_64-linux-gnu),)
-LIB_PREFIX ?= $(prefix)/x86_64-linux-gnu/lib
+INC_PREFIX ?= x86_64-linux-gnu/include
 endif
 
-ifneq ($(wildcard $(prefix)/lib64),)
-LIB_PREFIX ?= $(prefix)/lib64
-endif
+INC_PREFIX ?= include
 
-LIB_PREFIX ?= $(prefix)/lib
-
-ifneq ($(wildcard $(prefix)/x86_64-linux-gnu),)
-INC_PREFIX ?= $(prefix)/x86_64-linux-gnu/include
-endif
-
-INC_PREFIX ?= $(prefix)/include/
-
-LIBDIR ?= $(LIB_PREFIX)
-INCDIR ?= $(INC_PREFIX)
+export libdir := $(exec_prefix)/$(LIB_PREFIX)
+export includedir := $(prefix)/$(INC_PREFIX)
+export pkgconfigdir := $(libdir)/pkgconfig
+export bindir := $(exec_prefix)/bin
+export bashcompdir := $(sysconfdir)/bash_completion.d
