@@ -61,7 +61,41 @@
 typedef const char *(*enum_to_str_fn)(int);
 
 /*
- * pmem_pool_type_parse_hdr -- return pool type based on pool header data
+ * pmem_get_pool_type -- return pool type based on first two pages.
+ * If pool header's content suggests that pool may be BTT device
+ * (no correct checksum and signature for pool header) checksum and
+ * signature from second page is checked to prove that it's BTT device layout.
+ */
+pmem_pool_type_t
+pmem_get_pool_type(void * const base_pool_addr)
+{
+	struct pool_hdr hdr;
+	memcpy(&hdr, base_pool_addr, sizeof (hdr));
+
+	int ret;
+	if (util_is_zeroed(&hdr, DEFAULT_HDR_SIZE)) {
+		return util_get_pool_type_second_page(base_pool_addr);
+	}
+
+	ret  = util_checksum(&hdr, sizeof (hdr), &hdr.checksum, 0);
+	if (ret) {
+		if (memcmp(hdr.signature, LOG_HDR_SIG, POOL_HDR_SIG_LEN) == 0)
+				return PMEM_POOL_TYPE_LOG;
+			else if (memcmp(hdr.signature, BLK_HDR_SIG,
+					POOL_HDR_SIG_LEN) == 0)
+				return PMEM_POOL_TYPE_BLK;
+			else if (memcmp(hdr.signature, OBJ_HDR_SIG,
+					POOL_HDR_SIG_LEN) == 0)
+				return PMEM_POOL_TYPE_OBJ;
+			else
+				return PMEM_POOL_TYPE_UNKNOWN;
+	} else {
+		return util_get_pool_type_second_page(base_pool_addr);
+	}
+}
+
+/*
+ * pmem_pool_type_parse_hdr -- return pool type based only on signature
  */
 pmem_pool_type_t
 pmem_pool_type_parse_hdr(const struct pool_hdr *hdrp)
@@ -76,6 +110,7 @@ pmem_pool_type_parse_hdr(const struct pool_hdr *hdrp)
 		return PMEM_POOL_TYPE_UNKNOWN;
 }
 
+
 /*
  * pmem_pool_type_parse_str -- returns pool type from command line arg
  */
@@ -88,6 +123,8 @@ pmem_pool_type_parse_str(const char *str)
 		return PMEM_POOL_TYPE_LOG;
 	} else if (strcmp(str, "obj") == 0) {
 		return PMEM_POOL_TYPE_OBJ;
+	} else if (strcmp(str, "btt") == 0) {
+		return PMEM_POOL_TYPE_BTT;
 	} else {
 		return PMEM_POOL_TYPE_UNKNOWN;
 	}
@@ -115,6 +152,35 @@ util_pool_hdr_valid(struct pool_hdr *hdrp)
 {
 	return util_check_memory((void *)hdrp, sizeof(*hdrp), 0) &&
 		util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum, 0);
+}
+
+/*
+ * util_get_pool_type_second_page -- return type based on second page content
+ */
+pmem_pool_type_t
+util_get_pool_type_second_page(void * const pool_base_addr)
+{
+	int ret;
+	struct btt_info bttinfo;
+
+	uint64_t sec_page_addr =
+		(uint64_t)pool_base_addr + BTT_DEVICE_OFFSET;
+	memcpy(&bttinfo, (void *)sec_page_addr, sizeof (bttinfo));
+	util_convert2h_btt_info(&bttinfo);
+
+	if (util_is_zeroed(&bttinfo, sizeof (bttinfo))) {
+		return PMEM_POOL_TYPE_UNKNOWN;
+	}
+
+	ret = util_checksum(&bttinfo, sizeof (bttinfo), &bttinfo.checksum, 0);
+	if (!ret) {
+		return PMEM_POOL_TYPE_UNKNOWN;
+	}
+
+	if (memcmp(bttinfo.sig, BTT_INFO_SIG, BTT_INFO_SIG_LEN) == 0) {
+		return PMEM_POOL_TYPE_BTT;
+	}
+	return PMEM_POOL_TYPE_UNKNOWN;
 }
 
 /*
@@ -597,7 +663,12 @@ pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp,
 		(memcmp(hdr.uuid, hdr.next_part_uuid, POOL_HDR_UUID_LEN) ||
 		memcmp(hdr.uuid, hdr.prev_part_uuid, POOL_HDR_UUID_LEN));
 
-	paramsp->type = pmem_pool_type_parse_hdr(&hdr);
+	if (check) {
+		paramsp->type = pmem_get_pool_type(addr);
+
+	} else {
+		paramsp->type = pmem_pool_type_parse_hdr(addr);
+	}
 
 	if (paramsp->type == PMEM_POOL_TYPE_BLK) {
 		struct pmemblk pbp;

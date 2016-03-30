@@ -568,6 +568,8 @@ out_get_pool_type_str(pmem_pool_type_t type)
 		return "blk";
 	case PMEM_POOL_TYPE_OBJ:
 		return "obj";
+	case PMEM_POOL_TYPE_BTT:
+		return "bttdevice";
 	default:
 		return "unknown";
 	}

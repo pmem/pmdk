@@ -182,3 +182,4 @@ int pmempool_info_read(struct pmem_info *pip, void *buff,
 int pmempool_info_blk(struct pmem_info *pip);
 int pmempool_info_log(struct pmem_info *pip);
 int pmempool_info_obj(struct pmem_info *pip);
+int pmempool_info_btt(struct pmem_info *pip);

@@ -127,8 +127,6 @@ struct pmempool_check_step {
 	bool part;		/* check part files */
 };
 
-#define BTT_INFO_SIG	"BTT_ARENA_INFO\0"
-
 /*
  * pmempool_check_write -- read data from file
  */

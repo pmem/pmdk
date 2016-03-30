@@ -30,7 +30,7 @@
 #
 # Makefile -- top Makefile for pmempool
 #
-
+CFLAGS += -g
 TOP = ../../..
 
 TARGET = pmempool

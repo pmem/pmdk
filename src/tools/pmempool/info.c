@@ -125,12 +125,12 @@ static const struct option long_options[] = {
 	{"stats",	no_argument,		0, 's' | OPT_ALL},
 	{"range",	required_argument,	0, 'r' | OPT_ALL},
 	{"walk",	required_argument,	0, 'w' | OPT_LOG},
-	{"skip-zeros",	no_argument,		0, 'z' | OPT_BLK},
-	{"skip-error",	no_argument,		0, 'e' | OPT_BLK},
-	{"skip-no-flag", no_argument,		0, 'u' | OPT_BLK},
-	{"map",		no_argument,		0, 'm' | OPT_BLK},
-	{"flog",	no_argument,		0, 'g' | OPT_BLK},
-	{"backup",	no_argument,		0, 'B' | OPT_BLK},
+	{"skip-zeros",	no_argument,		0, 'z' | OPT_BLK | OPT_BTT},
+	{"skip-error",	no_argument,		0, 'e' | OPT_BLK | OPT_BTT},
+	{"skip-no-flag", no_argument,		0, 'u' | OPT_BLK | OPT_BTT},
+	{"map",		no_argument,		0, 'm' | OPT_BLK | OPT_BTT},
+	{"flog",	no_argument,		0, 'g' | OPT_BLK | OPT_BTT},
+	{"backup",	no_argument,		0, 'B' | OPT_BLK | OPT_BTT},
 	{"lanes",	no_argument,		0, 'l' | OPT_OBJ},
 	{"recovery",	no_argument,		0, 'R' | OPT_OBJ},
 	{"section",	required_argument,	0, 'S' | OPT_OBJ},
@@ -157,22 +157,22 @@ static const struct option_requirement option_requirements[] = {
 	},
 	{
 		.opt	= 'r',
-		.type	= PMEM_POOL_TYPE_BLK,
+		.type	= PMEM_POOL_TYPE_BLK | PMEM_POOL_TYPE_BTT,
 		.req	= OPT_REQ0('d') | OPT_REQ1('m')
 	},
 	{
 		.opt	= 'z',
-		.type	= PMEM_POOL_TYPE_BLK,
+		.type	= PMEM_POOL_TYPE_BLK | PMEM_POOL_TYPE_BTT,
 		.req	= OPT_REQ0('d') | OPT_REQ1('m')
 	},
 	{
 		.opt	= 'e',
-		.type	= PMEM_POOL_TYPE_BLK,
+		.type	= PMEM_POOL_TYPE_BLK | PMEM_POOL_TYPE_BTT,
 		.req	= OPT_REQ0('d') | OPT_REQ1('m')
 	},
 	{
 		.opt	= 'u',
-		.type	= PMEM_POOL_TYPE_BLK,
+		.type	= PMEM_POOL_TYPE_BLK | PMEM_POOL_TYPE_BTT,
 		.req	= OPT_REQ0('d') | OPT_REQ1('m')
 	},
 	{
@@ -254,7 +254,7 @@ static const char *help_str =
 "  -h, --help                      Print this help and exit.\n"
 "  -V, --version                   Print version and exit.\n"
 "  -v, --verbose                   Increase verbisity level.\n"
-"  -f, --force blk|log|obj         Force parsing a pool of specified type.\n"
+"  -f, --force blk|log|obj|btt     Force parsing a pool of specified type.\n"
 "  -n, --human                     Print sizes in human readable format.\n"
 "  -x, --headers-hex               Hexdump all headers.\n"
 "  -d, --data                      Dump log data and blocks.\n"
@@ -692,9 +692,12 @@ pmempool_info_file(struct pmem_info *pip, const char *file_name)
 					pip->args.obj.replica);
 		}
 
-		if (pmempool_info_pool_hdr(pip, VERBOSE_DEFAULT)) {
-			ret = -1;
-			goto out_close;
+		/* do not display hdr info for btt device */
+		if (pip->type != PMEM_POOL_TYPE_BTT) {
+			if (pmempool_info_pool_hdr(pip, VERBOSE_DEFAULT)) {
+				ret = -1;
+				goto out_close;
+			}
 		}
 
 		if (pip->params.is_part) {
@@ -711,6 +714,9 @@ pmempool_info_file(struct pmem_info *pip, const char *file_name)
 			break;
 		case PMEM_POOL_TYPE_OBJ:
 			ret = pmempool_info_obj(pip);
+			break;
+		case PMEM_POOL_TYPE_BTT:
+			ret = pmempool_info_btt(pip);
 			break;
 		case PMEM_POOL_TYPE_UNKNOWN:
 		default:
