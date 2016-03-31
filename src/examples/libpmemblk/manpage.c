@@ -43,7 +43,7 @@
 #include <libpmemblk.h>
 
 /* size of the pmemblk pool -- 1 GB */
-#define	POOL_SIZE ((off_t)(1 << 30))
+#define	POOL_SIZE ((size_t)(1 << 30))
 
 /* size of each element in the pmem pool */
 #define	ELEMENT_SIZE 1024
