@@ -242,9 +242,9 @@ TESTS += $(CHRONO_TESTS)
 endif
 
 TESTS_BUILD = \
-	$(TESTS)\
 	$(TEST_DEPS)\
-	$(OBJ_DEPS)
+	$(OBJ_DEPS)\
+	$(TESTS)
 
 all     : TARGET = all
 clean   : TARGET = clean
@@ -269,11 +269,9 @@ all test cstyle: $(TESTS_BUILD)
 
 clean clobber: $(TESTS_BUILD)
 
-$(OBJ_DEPS) $(OBJ_TESTS) $(OBJ_CPP_TESTS) $(BLK_TESTS) $(LOG_TESTS) $(OTHER_TESTS) $(PMEM_TESTS) $(PMEMPOOL_TESTS) $(VMEM_TESTS) $(VMMALLOC_TESTS): unittest
-
-$(TESTS): tools
-
+$(TESTS): $(TEST_DEPS)
 $(OBJ_TESTS): $(OBJ_DEPS)
+$(OBJ_DEPS): $(TEST_DEPS)
 
 $(TESTS_BUILD):
 	$(MAKE) -C $@ $(TARGET)
@@ -328,4 +326,4 @@ pcheck_vmmalloc: $(VMMALLOC_TESTS)
 
 .PHONY: all check clean clobber cstyle pcheck pcheck_blk pcheck_log pcheck_obj\
         pcheck_other pcheck_pmem pcheck_pmempool pcheck_vmem pcheck_vmmalloc\
-        test unittest $(TESTS_BUILD)
+        test unittest tools $(TESTS_BUILD)
