@@ -810,7 +810,11 @@ function require_no_asan() {
 # In case of conditional compilation, skip this test.
 #
 function require_binary() {
-	if [ ! -x $1 ]; then
+	if [ -z "$1" ]; then
+		echo "require_binary: error: binary not provided" >&2
+		exit 1
+	fi
+	if [ ! -x "$1" ]; then
 		echo "$UNITTEST_NAME: SKIP no binary found"
 		exit 0
 	fi
