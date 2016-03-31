@@ -251,16 +251,16 @@ pmempool_dump_blk(struct pmempool_dump *pdp)
 
 	int ret = 0;
 
-	uint64_t i;
+	size_t i;
 	struct range *curp = NULL;
 	assert((off_t)entire.last >= 0);
 	LIST_FOREACH(curp, &pdp->ranges.head, next) {
 		assert((off_t)curp->last >= 0);
 		for (i = curp->first;
 				i <= curp->last && i <= entire.last; i++) {
-			if (pmemblk_read(pbp, buff, (off_t)i)) {
+			if (pmemblk_read(pbp, buff, i)) {
 				ret = -1;
-				outv_err("reading block number %lu "
+				outv_err("reading block number %zu "
 					"failed\n", i);
 				break;
 			}
