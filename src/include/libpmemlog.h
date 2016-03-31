@@ -80,7 +80,7 @@ int pmemlog_check(const char *path);
 size_t pmemlog_nbyte(PMEMlogpool *plp);
 int pmemlog_append(PMEMlogpool *plp, const void *buf, size_t count);
 int pmemlog_appendv(PMEMlogpool *plp, const struct iovec *iov, int iovcnt);
-off_t pmemlog_tell(PMEMlogpool *plp);
+long long pmemlog_tell(PMEMlogpool *plp);
 void pmemlog_rewind(PMEMlogpool *plp);
 void pmemlog_walk(PMEMlogpool *plp, size_t chunksize,
 	int (*process_chunk)(const void *buf, size_t len, void *arg),
