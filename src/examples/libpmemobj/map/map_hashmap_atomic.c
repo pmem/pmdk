@@ -135,7 +135,7 @@ map_hm_atomic_lookup(PMEMobjpool *pop, TOID(struct map) map, uint64_t key)
 }
 
 /*
- * map_hm_atomic_foreach -- wrapper for hm_atomic_foreac
+ * map_hm_atomic_foreach -- wrapper for hm_atomic_foreach
  */
 static int
 map_hm_atomic_foreach(PMEMobjpool *pop, TOID(struct map) map,
