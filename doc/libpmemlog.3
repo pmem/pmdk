@@ -37,7 +37,7 @@
 .\" or
 .\"	groff -man -Tascii libpmemlog.3
 .\"
-.TH libpmemlog 3 "pmemlog API version 1.0.0" "NVM Library"
+.TH libpmemlog 3 "pmemlog API version 1.0.1" "NVM Library"
 .SH NAME
 libpmemlog \- persistent memory resident log file
 .SH SYNOPSIS
@@ -56,7 +56,7 @@ libpmemlog \- persistent memory resident log file
 .BI "int pmemlog_append(PMEMlogpool *" plp ", const void *" buf ", size_t " count );
 .BI "int pmemlog_appendv(PMEMlogpool *" plp ,
 .BI "    const struct iovec *" iov ", int " iovcnt );
-.BI "off_t pmemlog_tell(PMEMlogpool *" plp );
+.BI "long long pmemlog_tell(PMEMlogpool *" plp );
 .BI "void pmemlog_rewind(PMEMlogpool *" plp );
 .BI "void pmemlog_walk(PMEMlogpool *" plp ", size_t " chunksize ,
 .BI "    int (*" process_chunk ")(const void *" buf ", size_t " len ", void *" arg ),
@@ -380,7 +380,7 @@ are not practical in the library's implementation of
 No attempt is made to detect NULL or incorrect pointers,
 or illegal count values, for example.
 .PP
-.BI "off_t pmemlog_tell(PMEMlogpool *" plp );
+.BI "long long pmemlog_tell(PMEMlogpool *" plp );
 .IP
 The
 .BR pmemlog_tell ()
@@ -633,7 +633,7 @@ API is used.
 #include <libpmemlog.h>
 
 /* size of the pmemlog pool -- 1 GB */
-#define POOL_SIZE ((off_t)(1 << 30))
+#define POOL_SIZE ((size_t)(1 << 30))
 
 /*
  * printit -- log processing callback for use with pmemlog_walk()

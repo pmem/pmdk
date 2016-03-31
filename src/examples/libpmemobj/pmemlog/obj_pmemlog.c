@@ -239,7 +239,7 @@ pmemlog_appendv(PMEMlogpool *plp, const struct iovec *iov, int iovcnt)
 /*
  * pmemlog_tell -- returns the current write point for the log
  */
-off_t
+long long
 pmemlog_tell(PMEMlogpool *plp)
 {
 	PMEMobjpool *pop = (PMEMobjpool *)plp;
@@ -249,7 +249,7 @@ pmemlog_tell(PMEMlogpool *plp)
 	if (pmemobj_rwlock_rdlock(pop, &bp->rwlock) != 0)
 		return 0;
 
-	off_t bytes_written = bp->bytes_written;
+	long long bytes_written = bp->bytes_written;
 
 	pmemobj_rwlock_unlock(pop, &bp->rwlock);
 
@@ -431,7 +431,7 @@ main(int argc, char *argv[])
 				break;
 			}
 			case 't': {
-				printf("offset: %ld\n", pmemlog_tell(plp));
+				printf("offset: %lld\n", pmemlog_tell(plp));
 				break;
 			}
 			default: {

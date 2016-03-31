@@ -179,7 +179,7 @@ pmemblk_check(const char *path, size_t bsize)
  * pmemblk_set_error -- not available in this implementation
  */
 int
-pmemblk_set_error(PMEMblkpool *pbp, off_t blockno)
+pmemblk_set_error(PMEMblkpool *pbp, long long blockno)
 {
 	/* N/A */
 	return 0;
@@ -200,7 +200,7 @@ pmemblk_nblock(PMEMblkpool *pbp)
  * pmemblk_read -- read a block in a block memory pool
  */
 int
-pmemblk_read(PMEMblkpool *pbp, void *buf, off_t blockno)
+pmemblk_read(PMEMblkpool *pbp, void *buf, long long blockno)
 {
 	PMEMobjpool *pop = (PMEMobjpool *)pbp;
 	TOID(struct base) bp;
@@ -222,7 +222,7 @@ pmemblk_read(PMEMblkpool *pbp, void *buf, off_t blockno)
  * pmemblk_write -- write a block (atomically) in a block memory pool
  */
 int
-pmemblk_write(PMEMblkpool *pbp, const void *buf, off_t blockno)
+pmemblk_write(PMEMblkpool *pbp, const void *buf, long long blockno)
 {
 	PMEMobjpool *pop = (PMEMobjpool *)pbp;
 	int retval = 0;
@@ -250,7 +250,7 @@ pmemblk_write(PMEMblkpool *pbp, const void *buf, off_t blockno)
  * pmemblk_set_zero -- zero a block in a block memory pool
  */
 int
-pmemblk_set_zero(PMEMblkpool *pbp, off_t blockno)
+pmemblk_set_zero(PMEMblkpool *pbp, long long blockno)
 {
 	PMEMobjpool *pop = (PMEMobjpool *)pbp;
 	int retval = 0;

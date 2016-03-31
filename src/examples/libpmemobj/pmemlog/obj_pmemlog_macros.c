@@ -219,7 +219,7 @@ pmemlog_appendv(PMEMlogpool *plp, const struct iovec *iov, int iovcnt)
 /*
  * pmemlog_tell -- returns the current write point for the log
  */
-off_t
+long long
 pmemlog_tell(PMEMlogpool *plp)
 {
 	TOID(struct base) bp;
@@ -394,7 +394,7 @@ main(int argc, char *argv[])
 				break;
 			}
 			case 't': {
-				printf("offset: %ld\n", pmemlog_tell(plp));
+				printf("offset: %lld\n", pmemlog_tell(plp));
 				break;
 			}
 			default: {

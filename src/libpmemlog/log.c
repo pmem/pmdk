@@ -534,7 +534,7 @@ pmemlog_appendv(PMEMlogpool *plp, const struct iovec *iov, int iovcnt)
 /*
  * pmemlog_tell -- return current write point in a log memory pool
  */
-off_t
+long long
 pmemlog_tell(PMEMlogpool *plp)
 {
 	LOG(3, "plp %p", plp);
@@ -545,10 +545,10 @@ pmemlog_tell(PMEMlogpool *plp)
 	}
 
 	ASSERT(le64toh(plp->write_offset) >= le64toh(plp->start_offset));
-	off_t wp = (off_t)(le64toh(plp->write_offset) -
+	long long wp = (long long)(le64toh(plp->write_offset) -
 			le64toh(plp->start_offset));
 
-	LOG(4, "write offset %lld", (long long)wp);
+	LOG(4, "write offset %lld", wp);
 
 	util_rwlock_unlock(plp->rwlockp);
 

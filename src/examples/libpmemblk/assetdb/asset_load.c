@@ -103,7 +103,7 @@ main(int argc, char *argv[])
 		strncpy(asset.name, line, ASSET_NAME_MAX - 1);
 		asset.name[ASSET_NAME_MAX - 1] = '\0';
 
-		if (pmemblk_write(pbp, &asset, (off_t)assetid) < 0) {
+		if (pmemblk_write(pbp, &asset, assetid) < 0) {
 			perror("pmemblk_write");
 			exit(1);
 		}

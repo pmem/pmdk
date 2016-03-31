@@ -78,10 +78,10 @@ void pmemblk_close(PMEMblkpool *pbp);
 int pmemblk_check(const char *path, size_t bsize);
 size_t pmemblk_bsize(PMEMblkpool *pbp);
 size_t pmemblk_nblock(PMEMblkpool *pbp);
-int pmemblk_read(PMEMblkpool *pbp, void *buf, off_t blockno);
-int pmemblk_write(PMEMblkpool *pbp, const void *buf, off_t blockno);
-int pmemblk_set_zero(PMEMblkpool *pbp, off_t blockno);
-int pmemblk_set_error(PMEMblkpool *pbp, off_t blockno);
+int pmemblk_read(PMEMblkpool *pbp, void *buf, long long blockno);
+int pmemblk_write(PMEMblkpool *pbp, const void *buf, long long blockno);
+int pmemblk_set_zero(PMEMblkpool *pbp, long long blockno);
+int pmemblk_set_error(PMEMblkpool *pbp, long long blockno);
 
 /*
  * Passing NULL to pmemblk_set_funcs() tells libpmemblk to continue to use the

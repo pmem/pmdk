@@ -71,7 +71,7 @@ main(int argc, char *argv[])
 	}
 
 	/* read a required element in */
-	if (pmemblk_read(pbp, &asset, (off_t)assetid) < 0) {
+	if (pmemblk_read(pbp, &asset, assetid) < 0) {
 		perror("pmemblk_read");
 		exit(1);
 	}
@@ -88,7 +88,7 @@ main(int argc, char *argv[])
 	asset.user[0] = '\0';
 	asset.time = 0;
 
-	if (pmemblk_write(pbp, &asset, (off_t)assetid) < 0) {
+	if (pmemblk_write(pbp, &asset, assetid) < 0) {
 		perror("pmemblk_write");
 		exit(1);
 	}
