@@ -40,11 +40,21 @@
 #include "libpmemobj.h"
 #include "util.h"
 #include "valgrind_internal.h"
+#include "redo.h"
+#include "memops.h"
+#include "pmalloc.h"
+#include "lane.h"
+#include "list.h"
+#include "obj.h"
 
 #define	LAYOUT_NAME "tx_add_range"
 
 #define	OBJ_SIZE	1024
 #define	OVERLAP_SIZE	100
+#define	ROOT_TAB_SIZE\
+	(((MAX_CACHED_RANGE_SIZE + 16) * MAX_CACHED_RANGES) / sizeof (int))
+
+#define	REOPEN_COUNT	(PMEMOBJ_MIN_POOL / ROOT_TAB_SIZE / 2)
 
 enum type_number {
 	TYPE_OBJ,
@@ -53,6 +63,12 @@ enum type_number {
 
 TOID_DECLARE(struct object, 0);
 TOID_DECLARE(struct overlap_object, 1);
+TOID_DECLARE_ROOT(struct root);
+
+struct root {
+	int val;
+	int tab[ROOT_TAB_SIZE];
+};
 
 struct object {
 	size_t value;
@@ -513,6 +529,37 @@ do_tx_add_range_overlapping(PMEMobjpool *pop)
 	UT_ASSERT(util_is_zeroed(D_RO(obj)->data, OVERLAP_SIZE));
 }
 
+/*
+ * do_tx_add_range_reopen -- check for persistent memory leak in undo log set
+ */
+static void
+do_tx_add_range_reopen(char *path)
+{
+	for (int i = 0; i < REOPEN_COUNT; i++) {
+		PMEMobjpool *pop = pmemobj_open(path, LAYOUT_NAME);
+		UT_ASSERTne(pop, NULL);
+		TOID(struct root) root = POBJ_ROOT(pop, struct root);
+		UT_ASSERT(!TOID_IS_NULL(root));
+		UT_ASSERTeq(D_RO(root)->val, i);
+
+		for (int j = 0; j < ROOT_TAB_SIZE; j++)
+			UT_ASSERTeq(D_RO(root)->tab[j], i);
+
+		TX_BEGIN(pop) {
+			TX_SET(root, val, i + 1);
+			TX_ADD_FIELD(root, tab);
+			for (int j = 0; j < ROOT_TAB_SIZE; j++)
+				D_RW(root)->tab[j] = i + 1;
+
+		} TX_ONABORT {
+			UT_ASSERT(0);
+		} TX_END
+
+		pmemobj_close(pop);
+	}
+
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -547,8 +594,11 @@ main(int argc, char *argv[])
 	VALGRIND_WRITE_STATS;
 	do_tx_add_range_overlapping(pop);
 	VALGRIND_WRITE_STATS;
-
 	pmemobj_close(pop);
+
+	/* do not run this on valgrind because it takes too long */
+	if (!On_valgrind)
+		do_tx_add_range_reopen(argv[1]);
 
 	DONE(NULL);
 }
