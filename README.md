@@ -15,7 +15,6 @@ This tree contains a collection of libraries for using Non-Volatile Memory
 
 * **libpmem** -- basic pmem operations like flushing
 * **libpmemblk**, **libpmemlog**, **libpmemobj** -- pmem transactions
-* **libvmem**, **libvmmalloc** -- volatile use of pmem
 
 These libraries are described in more detail on the
 [pmem web site](http://pmem.io).  There you'll find man pages, examples,

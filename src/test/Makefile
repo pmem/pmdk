@@ -174,43 +174,6 @@ PMEMPOOL_TESTS = \
        pmempool_info\
        pmempool_rm
 
-VMEM_TESTS = \
-       vmem_aligned_alloc\
-       vmem_calloc\
-       vmem_check_allocations\
-       vmem_check_version\
-       vmem_check\
-       vmem_create\
-       vmem_create_error\
-       vmem_create_in_region\
-       vmem_custom_alloc\
-       vmem_delete\
-       vmem_malloc\
-       vmem_malloc_usable_size\
-       vmem_mix_allocations\
-       vmem_multiple_pools\
-       vmem_out_of_memory\
-       vmem_pages_purging\
-       vmem_realloc\
-       vmem_realloc_inplace\
-       vmem_stats\
-       vmem_strdup\
-       vmem_valgrind
-
-VMMALLOC_TESTS = \
-       vmmalloc_calloc\
-       vmmalloc_check_allocations\
-       vmmalloc_fork\
-       vmmalloc_init\
-       vmmalloc_malloc\
-       vmmalloc_malloc_hooks\
-       vmmalloc_malloc_usable_size\
-       vmmalloc_memalign\
-       vmmalloc_out_of_memory\
-       vmmalloc_realloc\
-       vmmalloc_valgrind\
-       vmmalloc_valloc
-
 EXAMPLES_TESTS = \
        ex_libpmem\
        ex_libpmemblk\
@@ -227,8 +190,6 @@ TESTS = \
        $(OTHER_TESTS)\
        $(PMEM_TESTS)\
        $(PMEMPOOL_TESTS)\
-       $(VMEM_TESTS)\
-       $(VMMALLOC_TESTS)\
        $(EXAMPLES_TESTS)
 
 ifeq ($(call check_cxx_flags, -std=c++11), y)
@@ -315,14 +276,5 @@ pcheck_pmempool: TARGET = pcheck
 pcheck_pmempool: $(PMEMPOOL_TESTS)
 	@echo "No failures."
 
-pcheck_vmem: TARGET = pcheck
-pcheck_vmem: $(VMEM_TESTS)
-	@echo "No failures."
-
-pcheck_vmmalloc: TARGET = pcheck
-pcheck_vmmalloc: $(VMMALLOC_TESTS)
-	@echo "No failures."
-
 .PHONY: all check clean clobber cstyle pcheck pcheck_blk pcheck_log pcheck_obj\
-        pcheck_other pcheck_pmem pcheck_pmempool pcheck_vmem pcheck_vmmalloc\
-        test unittest tools $(TESTS_BUILD)
+        pcheck_other pcheck_pmem pcheck_pmempool test unittest tools $(TESTS_BUILD)

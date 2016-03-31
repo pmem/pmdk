@@ -54,10 +54,8 @@
  * and the error message includes the calling context information (file:line).
  * in general, using the all-caps version of a call means you're using the
  * unittest.h version which does the most common checking for you.  so
- * calling VMEM_CREATE() instead of vmem_create() returns the same
- * thing, but can never return an error since the unit test library checks for
- * it.  * for routines like vmem_delete() there is no corresponding
- * VMEM_DELETE() because there's no error to check for.
+ * calling READ() instead of read() returns the same thing, but can never
+ * return an error since the unit test library checks for it.
  *
  * all unit tests should use the same initialization:
  *
@@ -113,8 +111,6 @@ extern "C" {
 #include <libpmemblk.h>
 #include <libpmemlog.h>
 #include <libpmemobj.h>
-#include <libvmem.h>
-
 
 /*
  * unit test support...

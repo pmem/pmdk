@@ -88,12 +88,6 @@ STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libpmem.a
 STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/libpmem.a
 endif
 
-ifeq ($(LIBVMEM),y)
-DYNAMIC_LIBS += -lvmem
-STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libvmem.a
-STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/libvmem.a
-endif
-
 TEST_TYPE = check
 TEST_BUILD = all
 TEST_FS = all

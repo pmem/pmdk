@@ -68,7 +68,6 @@ SRC=pmembench.c\
     scenario.c\
     log.c\
     blk.c\
-    vmem.c\
     pmem_memset.c\
     pmem_memcpy.c\
     pmemobj_gen.c\
@@ -82,7 +81,6 @@ SRC=pmembench.c\
 # Configuration file without the .cfg extension
 CONFIGS=pmembench_log\
 	pmembench_blk\
-	pmembench_vmem\
 	pmembench_memset\
 	pmembench_memcpy\
 	pmembench_obj_pmalloc\
@@ -97,7 +95,7 @@ OBJS=$(SRC:.c=.o)
 LDFLAGS = -L$(LIBS_PATH)
 LDFLAGS += -L../examples/libpmemobj/map
 LDFLAGS += $(EXTRA_LDFLAGS)
-LIBS += -lpmemobj -lpmemlog -lpmemblk -lpmem -lvmem -pthread -lm
+LIBS += -lpmemobj -lpmemlog -lpmemblk -lpmem -pthread -lm
 ifeq ($(call check_librt), n)
 LIBS += -lrt
 endif

@@ -164,8 +164,6 @@ fi
 # The default is to turn on library logging to level 3 and save it to local files.
 # Tests that don't want it on, should override these environment variables.
 #
-export VMEM_LOG_LEVEL=3
-export VMEM_LOG_FILE=vmem$UNITTEST_NUM.log
 export PMEM_LOG_LEVEL=3
 export PMEM_LOG_FILE=pmem$UNITTEST_NUM.log
 export PMEMBLK_LOG_LEVEL=3
@@ -174,11 +172,6 @@ export PMEMLOG_LOG_LEVEL=3
 export PMEMLOG_LOG_FILE=pmemlog$UNITTEST_NUM.log
 export PMEMOBJ_LOG_LEVEL=3
 export PMEMOBJ_LOG_FILE=pmemobj$UNITTEST_NUM.log
-
-export VMMALLOC_POOL_DIR="$DIR"
-export VMMALLOC_POOL_SIZE=$((16 * 1024 * 1024))
-export VMMALLOC_LOG_LEVEL=3
-export VMMALLOC_LOG_FILE=vmmalloc$UNITTEST_NUM.log
 
 export MEMCHECK_LOG_FILE=memcheck_${BUILD}_${UNITTEST_NUM}.log
 export VALIDATE_MEMCHECK_LOG=1
@@ -401,8 +394,6 @@ function expect_normal_exit() {
 			dump_last_n_lines $PMEMOBJ_LOG_FILE
 			dump_last_n_lines $PMEMLOG_LOG_FILE
 			dump_last_n_lines $PMEMBLK_LOG_FILE
-			dump_last_n_lines $VMEM_LOG_FILE
-			dump_last_n_lines $VMMALLOC_LOG_FILE
 		fi
 
 		false
