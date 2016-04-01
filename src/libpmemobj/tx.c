@@ -97,6 +97,15 @@ struct tx_add_range_args {
 };
 
 /*
+ * tx_clr_flag -- flags for clearing undo log list
+ */
+enum tx_clr_flag {
+	TX_CLR_FLAG_FREE = 1 << 0, /* remove and free each object */
+	TX_CLR_FLAG_VG_CLEAN = 1 << 1, /* clear valgrind state */
+	TX_CLR_FLAG_VG_TX_REMOVE = 1 << 2, /* remove from valgrind tx */
+};
+
+/*
  * pmemobj_tx_abort_err -- (internal) pmemobj_tx_abort variant that returns
  * error code
  */
@@ -332,8 +341,8 @@ tx_set_state(PMEMobjpool *pop, struct lane_tx_layout *layout, uint64_t state)
  * tx_clear_undo_log -- (internal) clear undo log pointed by head
  */
 static void
-tx_clear_undo_log(PMEMobjpool *pop, struct list_head *head, int free,
-	int vg_clean, int vg_tx_remove)
+tx_clear_undo_log(PMEMobjpool *pop, struct list_head *head,
+	enum tx_clr_flag flags)
 {
 	LOG(3, NULL);
 
@@ -347,13 +356,13 @@ tx_clear_undo_log(PMEMobjpool *pop, struct list_head *head, int free,
 		 * allocated objects in the undo log, so that not-persisted
 		 * modifications after abort are not reported.
 		 */
-		if (vg_clean) {
+		if (flags & TX_CLR_FLAG_VG_CLEAN) {
 			struct oob_header *oobh = OOB_HEADER_FROM_OID(pop, obj);
 			size_t size = pmalloc_usable_size(pop, obj.off);
 
 			VALGRIND_SET_CLEAN(oobh, size);
 		}
-		if (vg_tx_remove) {
+		if (flags & TX_CLR_FLAG_VG_TX_REMOVE) {
 			/*
 			 * This function can be called from transaction
 			 * recovery, so in such case pmemobj_alloc_usable_size
@@ -366,7 +375,7 @@ tx_clear_undo_log(PMEMobjpool *pop, struct list_head *head, int free,
 		}
 #endif
 
-		if (free) {
+		if (flags & TX_CLR_FLAG_FREE) {
 			/* remove and free all elements from undo log */
 			list_remove_free_oob(pop, head, &obj);
 		} else {
@@ -383,7 +392,10 @@ tx_abort_alloc(PMEMobjpool *pop, struct lane_tx_layout *layout)
 {
 	LOG(3, NULL);
 
-	tx_clear_undo_log(pop, &layout->undo_alloc, 1, 1, 1);
+	tx_clear_undo_log(pop, &layout->undo_alloc,
+			TX_CLR_FLAG_FREE |
+			TX_CLR_FLAG_VG_CLEAN |
+			TX_CLR_FLAG_VG_TX_REMOVE);
 }
 
 /*
@@ -394,7 +406,9 @@ tx_abort_free(PMEMobjpool *pop, struct lane_tx_layout *layout)
 {
 	LOG(3, NULL);
 
-	tx_clear_undo_log(pop, &layout->undo_free, 0, 1, 1);
+	tx_clear_undo_log(pop, &layout->undo_free,
+		TX_CLR_FLAG_VG_CLEAN |
+		TX_CLR_FLAG_VG_TX_REMOVE);
 }
 
 struct tx_range_data {
@@ -579,8 +593,12 @@ tx_abort_set(PMEMobjpool *pop, struct lane_tx_layout *layout, int recovery)
 	else
 		tx_foreach_set(pop, layout, tx_abort_restore_range);
 
-	tx_clear_undo_log(pop, &layout->undo_set_cache, 0, 1, 0);
-	tx_clear_undo_log(pop, &layout->undo_set, 0, 1, 0);
+	tx_clear_undo_log(pop, &layout->undo_set_cache,
+			TX_CLR_FLAG_FREE |
+			TX_CLR_FLAG_VG_CLEAN);
+	tx_clear_undo_log(pop, &layout->undo_set,
+			TX_CLR_FLAG_FREE |
+			TX_CLR_FLAG_VG_CLEAN);
 }
 
 /*
@@ -655,7 +673,9 @@ tx_post_commit_free(PMEMobjpool *pop, struct lane_tx_layout *layout)
 {
 	LOG(3, NULL);
 
-	tx_clear_undo_log(pop, &layout->undo_free, 1, 0, 1);
+	tx_clear_undo_log(pop, &layout->undo_free,
+			TX_CLR_FLAG_FREE |
+			TX_CLR_FLAG_VG_TX_REMOVE);
 }
 
 #ifdef	USE_VG_PMEMCHECK
@@ -715,7 +735,7 @@ tx_post_commit_set(PMEMobjpool *pop, struct lane_tx_layout *layout,
 #endif
 	}
 
-	tx_clear_undo_log(pop, &layout->undo_set, 1, 0, 0);
+	tx_clear_undo_log(pop, &layout->undo_set, TX_CLR_FLAG_FREE);
 }
 
 /*
