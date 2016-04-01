@@ -86,17 +86,17 @@ ifneq ($(LP64), 2)
 $(error $(arch32_error_msg))
 endif
 
-LIBS_DESTDIR = $(DESTDIR)$(LIBDIR)/$(LIBS_DIR)
-
 ifeq ($(DEBUG),1)
 CFLAGS += -O0 -ggdb -DDEBUG
-LIBS_DIR = nvml_debug
+LIB_SUBDIR = /nvml_debug
 OBJDIR = debug
 else
 CFLAGS += -O2 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2
-LIBS_DIR =
+LIB_SUBDIR =
 OBJDIR = nondebug
 endif
+
+LIBS_DESTDIR = $(DESTDIR)$(libdir)$(LIB_SUBDIR)
 
 DIRNAME = $(shell basename $(CURDIR))
 
@@ -106,9 +106,9 @@ else
 objdir = ../$(OBJDIR)/$(DIRNAME)
 endif
 
-libdir = $(objdir)/..
+LIB_OUTDIR = $(objdir)/..
 
-LDFLAGS += -L$(libdir)
+LDFLAGS += -L$(LIB_OUTDIR)
 
 ifneq ($(SOURCE),)
 OBJS += $(addprefix $(objdir)/, $(patsubst $(COMMON)/%, %, $(SOURCE:.c=.o)))
@@ -122,8 +122,8 @@ ifneq ($(LIBRARY_SO_VERSION),)
 
 LIB_MAP = $(LIB_NAME).map
 LIB_SONAME = $(LIB_NAME).so.$(LIBRARY_SO_VERSION)
-LIB_SO = $(libdir)/$(LIB_NAME).so
-LIB_AR = $(libdir)/$(LIB_NAME).a
+LIB_SO = $(LIB_OUTDIR)/$(LIB_NAME).so
+LIB_AR = $(LIB_OUTDIR)/$(LIB_NAME).a
 LIB_AR_UNSCOPED = $(objdir)/$(LIB_NAME)_unscoped.o
 LIB_AR_ALL = $(objdir)/$(LIB_NAME)_all.o
 
@@ -144,9 +144,9 @@ EXTRA_TARGETS_CLEAN = $(EXTRA_TARGETS:=-clean)
 EXTRA_TARGETS_CLOBBER = $(EXTRA_TARGETS:=-clobber)
 endif
 
-all: $(objdir) $(libdir) $(EXTRA_TARGETS) $(LIB_AR) $(LIB_SO_SONAME) $(LIB_SO_REAL) $(LIB_SO)
+all: $(objdir) $(LIB_OUTDIR) $(EXTRA_TARGETS) $(LIB_AR) $(LIB_SO_SONAME) $(LIB_SO_REAL) $(LIB_SO)
 
-$(objdir) $(libdir):
+$(objdir) $(LIB_OUTDIR):
 	$(MKDIR) -p $@
 
 $(LIB_SO_REAL): $(OBJS) $(EXTRA_OBJS) $(LIB_MAP)

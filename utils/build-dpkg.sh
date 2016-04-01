@@ -220,7 +220,7 @@ override_dh_strip:
 	dh_strip --dbg-package=$PACKAGE_NAME-dbg
 
 override_dh_auto_install:
-	dh_auto_install -- prefix=/usr
+	dh_auto_install -- prefix=/usr sysconfdir=/etc
 
 override_dh_install:
 	mkdir -p debian/tmp/usr/share/nvml/

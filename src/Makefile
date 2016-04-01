@@ -42,13 +42,13 @@ CLOBBER_TARGETS = $(ALL_TARGETS) test jemalloc
 CSTYLE_TARGETS = $(ALL_TARGETS) common test
 INSTALL_TARGETS = $(TARGETS)
 
-HEADERS_DESTDIR = $(DESTDIR)$(INCDIR)
+HEADERS_DESTDIR = $(DESTDIR)$(includedir)
 HEADERS_INSTALL = include/libpmem.h include/libvmem.h\
 		include/libpmemobj.h include/libpmemblk.h\
 		include/libpmemlog.h include/libvmmalloc.h
 
 MAKE_PKG_CONFIG = $(TOP)/utils/make-pkg-config.sh
-PKG_CONFIG_DESTDIR = $(DESTDIR)$(LIBDIR)/pkgconfig/
+PKG_CONFIG_DESTDIR = $(DESTDIR)$(pkgconfigdir)
 PKG_CONFIG_FILES = libpmem.pc libvmem.pc libvmmalloc.pc\
 		libpmemobj.pc libpmemlog.pc libpmemblk.pc
 

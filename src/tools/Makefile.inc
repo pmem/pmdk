@@ -68,10 +68,9 @@ CFLAGS += -Wmissing-variable-declarations
 endif
 
 LDFLAGS += -Wl,-z,relro -Wl,--warn-common -Wl,--fatal-warnings $(EXTRA_LDFLAGS) -L$(TOP)/src/nondebug
-TOOLSDIR=$(prefix)/bin
-TARGET_DIR=$(DESTDIR)$(TOOLSDIR)
+TARGET_DIR=$(DESTDIR)$(bindir)
 BASH_COMP_FILES ?=
-BASH_COMP_DIR =$(DESTDIR)/etc/bash_completion.d/
+BASH_COMP_DESTDIR = $(DESTDIR)$(bashcompdir)
 CSTYLE=$(TOP)/utils/cstyle
 
 TARGET_STATIC_NONDEBUG=$(TARGET).static-nondebug
@@ -165,8 +164,8 @@ ifneq ($(TARGET),)
 	install -p -m 0755 $(TARGET) $(TARGET_DIR)
 endif
 ifneq ($(BASH_COMP_FILES),)
-	install -d $(BASH_COMP_DIR)
-	install -p -m 0644 $(BASH_COMP_FILES) $(BASH_COMP_DIR)
+	install -d $(BASH_COMP_DESTDIR)
+	install -p -m 0644 $(BASH_COMP_FILES) $(BASH_COMP_DESTDIR)
 endif
 endif
 
@@ -176,7 +175,7 @@ ifneq ($(TARGET),)
 	$(RM) $(TARGET_DIR)/$(TARGET)
 endif
 ifneq ($(BASH_COMP_FILES),)
-	$(RM) $(BASH_COMP_DIR)/$(BASH_COMP_FILES)
+	$(RM) $(BASH_COMP_DESTDIR)/$(BASH_COMP_FILES)
 endif
 endif
 

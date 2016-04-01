@@ -33,6 +33,9 @@
 #
 # doc/Makefile -- Makefile for NVM library man pages
 #
+
+include ../src/common.inc
+
 MANPAGES_3 = libpmem.3 libpmemblk.3 libpmemlog.3 libpmemobj.3 libvmem.3 \
 	libvmmalloc.3
 MANPAGES_1 = pmempool.1 pmempool-info.1 pmempool-create.1 \
@@ -50,7 +53,8 @@ GZFILES_3_NOINSTALL = $(MANPAGES_3_NOINSTALL:=.gz)
 GZFILES = $(GZFILES_1) $(GZFILES_3)\
 	  $(GZFILES_1_NOINSTALL) $(GZFILES_3_NOINSTALL)
 
-MANPAGES_DESTDIR = $(DESTDIR)$(prefix)/share/man/man
+MANPAGES_DESTDIR_1 = $(DESTDIR)$(man1dir)
+MANPAGES_DESTDIR_3 = $(DESTDIR)$(man3dir)
 
 all: $(TXTFILES)
 
@@ -73,13 +77,13 @@ clobber: clean
 	$(RM) -f $(TXTFILES) $(HTMLFILES) $(GZFILES)
 
 install: compress
-	install -d $(MANPAGES_DESTDIR)1
-	install -p -m 0644 $(GZFILES_1) $(MANPAGES_DESTDIR)1
-	install -d $(MANPAGES_DESTDIR)3
-	install -p -m 0644 $(GZFILES_3) $(MANPAGES_DESTDIR)3
+	install -d $(MANPAGES_DESTDIR_1)
+	install -p -m 0644 $(GZFILES_1) $(MANPAGES_DESTDIR_1)
+	install -d $(MANPAGES_DESTDIR_3)
+	install -p -m 0644 $(GZFILES_3) $(MANPAGES_DESTDIR_3)
 
 uninstall:
-	$(foreach f, $(GZFILES_1), $(RM) $(MANPAGES_DESTDIR)1/$(f))
-	$(foreach f, $(GZFILES_3), $(RM) $(MANPAGES_DESTDIR)3/$(f))
+	$(foreach f, $(GZFILES_1), $(RM) $(MANPAGES_DESTDIR_1)/$(f))
+	$(foreach f, $(GZFILES_3), $(RM) $(MANPAGES_DESTDIR_3)/$(f))
 
 .PHONY: all html clean compress clobber cstyle install uninstall
