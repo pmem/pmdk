@@ -1,0 +1,4 @@
+remote_obj_basic/TEST3: START: remote_obj_basic
+ ./remote_obj_basic$(nW) open pool3.set
+The pool set pool3.set has been opened
+remote_obj_basic/TEST3: Done
