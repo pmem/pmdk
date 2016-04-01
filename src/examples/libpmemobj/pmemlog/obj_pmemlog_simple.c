@@ -71,7 +71,7 @@ POBJ_LAYOUT_END(obj_pmemlog_simple);
 
 /* log entry header */
 struct log_hdr {
-	off_t write_offset;	/* data write offset */
+	uint64_t write_offset;	/* data write offset */
 	size_t data_size;	/* size available for data */
 };
 
@@ -264,7 +264,7 @@ pmemlog_appendv(PMEMlogpool *plp, const struct iovec *iov, int iovcnt)
 /*
  * pmemlog_tell -- return current write point in a log memory pool
  */
-off_t
+long long
 pmemlog_tell(PMEMlogpool *plp)
 {
 	PMEMobjpool *pop = (PMEMobjpool *)plp;
@@ -447,7 +447,7 @@ main(int argc, char *argv[])
 				break;
 			}
 			case 't': {
-				printf("offset: %ld\n", pmemlog_tell(plp));
+				printf("offset: %lld\n", pmemlog_tell(plp));
 				break;
 			}
 			default: {

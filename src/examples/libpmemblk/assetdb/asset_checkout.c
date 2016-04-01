@@ -71,7 +71,7 @@ main(int argc, char *argv[])
 	}
 
 	/* read a required element in */
-	if (pmemblk_read(pbp, &asset, (off_t)assetid) < 0) {
+	if (pmemblk_read(pbp, &asset, assetid) < 0) {
 		perror("pmemblk_read");
 		exit(1);
 	}

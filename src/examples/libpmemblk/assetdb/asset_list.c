@@ -73,7 +73,7 @@ main(int argc, char *argv[])
 
 	/* print out all the elements that contain assets data */
 	for (assetid = 0; assetid < nelements; ++assetid) {
-		if (pmemblk_read(pbp, &asset, (off_t)assetid) < 0) {
+		if (pmemblk_read(pbp, &asset, assetid) < 0) {
 			perror("pmemblk_read");
 			exit(1);
 		}
