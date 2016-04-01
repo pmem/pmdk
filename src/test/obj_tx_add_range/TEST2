@@ -32,25 +32,19 @@
 #
 
 #
-# src/test/obj_tx_add_range/TEST1 -- unit test for pmemobj_tx_add_range
-# with valgrind pmemcheck tool
+# src/test/obj_tx_add_range/TEST2 -- unit test for pmemobj_tx_add_range
 #
-export UNITTEST_NAME=obj_tx_add_range/TEST1
-export UNITTEST_NUM=1
+export UNITTEST_NAME=obj_tx_add_range/TEST2
+export UNITTEST_NUM=2
 
 # standard unit test setup
 . ../unittest/unittest.sh
 
-require_fs_type pmem non-pmem
-require_valgrind_pmemcheck
+memcheck force-disable
+require_fs_type pmem
 
 setup
 
-expect_normal_exit valgrind --tool=pmemcheck\
-	--log-file=valgrind$UNITTEST_NUM.log\
-	--mult-stores=no\
-	./obj_tx_add_range$EXESUFFIX $DIR/testfile1 0
-
-check
+expect_normal_exit ./obj_tx_add_range$EXESUFFIX $DIR/testfile1 1
 
 pass
