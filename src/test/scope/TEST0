@@ -32,7 +32,7 @@
 #
 
 #
-# src/test/scope/TEST0 -- scope test to check libvmem symbols
+# src/test/scope/TEST0 -- scope test to check libpmemobj symbols
 #
 export UNITTEST_NAME=scope/TEST0
 export UNITTEST_NUM=0
@@ -49,15 +49,16 @@ parse_lib() {
 	local lib_path=$1
 	echo "$lib_path:" >> out$UNITTEST_NUM.log
 	(nm -g $lib_path |\
-		perl -ne 'print if s/^[0-9a-z]+ T (\w+)/$1/' |\
+		perl -ne 'print if s/^[0-9a-z]+ [TB] (\w+)/$1/' |\
 		sort >> out$UNITTEST_NUM.log) 2>&1
+
 }
 
 echo "$UNITTEST_NAME:" > out$UNITTEST_NUM.log
-parse_lib "../../debug/libvmem.so"
-parse_lib "../../nondebug/libvmem.so"
-parse_lib "../../debug/libvmem.a"
-parse_lib "../../nondebug/libvmem.a"
+parse_lib "../../debug/libpmemobj.so"
+parse_lib "../../nondebug/libpmemobj.so"
+parse_lib "../../debug/libpmemobj.a"
+parse_lib "../../nondebug/libpmemobj.a"
 
 check
 

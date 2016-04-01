@@ -115,12 +115,6 @@ STATIC_DEBUG_LIBS += $(LIBSDIR_DEBUG)/libpmem.a
 STATIC_NONDEBUG_LIBS += $(LIBSDIR_NONDEBUG)/libpmem.a
 endif
 
-ifeq ($(LIBVMEM),y)
-DYNAMIC_LIBS += -lvmem
-STATIC_DEBUG_LIBS += $(LIBSDIR_DEBUG)/libvmem.a
-STATIC_NONDEBUG_LIBS += $(LIBSDIR_NONDEBUG)/libvmem.a
-endif
-
 ifeq ($(TOOLS_COMMON), y)
 vpath %.c $(TOP)/src/common
 vpath %.c $(TOP)/src/tools/pmempool

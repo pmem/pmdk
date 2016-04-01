@@ -35,35 +35,21 @@
 TOP := $(dir $(lastword $(MAKEFILE_LIST)))..
 include $(TOP)/src/common.inc
 
-TARGETS = libpmem libvmem libpmemblk libpmemlog libpmemobj libvmmalloc tools
+TARGETS = libpmem libpmemblk libpmemlog libpmemobj tools
 ALL_TARGETS = $(TARGETS) librpmem examples benchmarks
-CLEAN_TARGETS = $(ALL_TARGETS) test jemalloc
-CLOBBER_TARGETS = $(ALL_TARGETS) test jemalloc
+CLEAN_TARGETS = $(ALL_TARGETS) test
+CLOBBER_TARGETS = $(ALL_TARGETS) test
 CSTYLE_TARGETS = $(ALL_TARGETS) common test
 INSTALL_TARGETS = $(TARGETS)
 
 HEADERS_DESTDIR = $(DESTDIR)$(includedir)
-HEADERS_INSTALL = include/libpmem.h include/libvmem.h\
+HEADERS_INSTALL = include/libpmem.h\
 		include/libpmemobj.h include/libpmemblk.h\
-		include/libpmemlog.h include/libvmmalloc.h
+		include/libpmemlog.h
 
 MAKE_PKG_CONFIG = $(TOP)/utils/make-pkg-config.sh
 PKG_CONFIG_DESTDIR = $(DESTDIR)$(pkgconfigdir)
-PKG_CONFIG_FILES = libpmem.pc libvmem.pc libvmmalloc.pc\
-		libpmemobj.pc libpmemlog.pc libpmemblk.pc
-
-SCOPE_SRC_DIRS = $(TARGETS) include jemalloc/src
-SCOPE_HDR_DIRS = $(TARGETS) include jemalloc/src\
-		jemalloc/include/jemalloc\
-		jemalloc/include/jemalloc/internal\
-		debug/jemalloc/include/jemalloc\
-		debug/jemalloc/include/jemalloc/internal\
-		nondebug/jemalloc/include/jemalloc\
-		nondebug/jemalloc/include/jemalloc/internal
-
-SCOPE_SRC_FILES = $(foreach d, $(SCOPE_SRC_DIRS), $(wildcard $(d)/*.c))
-SCOPE_HDR_FILES = $(foreach d, $(SCOPE_HDR_DIRS), $(wildcard $(D)/*.h))
-SCOPEFILES = $(SCOPE_SRC_FILES) $(SCOPE_HDR_FILES)
+PKG_CONFIG_FILES = libpmem.pc libpmemobj.pc libpmemlog.pc libpmemblk.pc
 
 all: $(ALL_TARGETS) pkg-config
 install: $(INSTALL_TARGETS:=-install)
@@ -76,8 +62,7 @@ benchmarks: examples
 
 custom_build = $(DEBUG)$(OBJDIR)
 
-libvmmalloc libvmem: jemalloc
-tools: libpmem libpmemblk libpmemlog
+tools: libpmem libpmemblk libpmemlog libpmemobj
 libpmemblk libpmemlog libpmemobj: libpmem
 
 pkg-config: $(PKG_CONFIG_FILES)
@@ -118,19 +103,11 @@ ifeq ($(custom_build),)
 	$(MAKE) -C $@ DEBUG=1
 endif
 
-jemalloc-check: jemalloc-test
-
-test: all jemalloc-test
+test: all
 	$(MAKE) -C test all
 
-check pcheck: test jemalloc-check
+check pcheck: test
 	$(MAKE) -C test $@
-
-jemalloc jemalloc-clean jemalloc-clobber jemalloc-test jemalloc-check:
-	$(MAKE) -C jemalloc -f Makefile.nvml $@
-ifeq ($(custom_build),)
-	$(MAKE) -C jemalloc -f Makefile.nvml $@ DEBUG=1
-endif
 
 install: all
 	install -d $(HEADERS_DESTDIR)
@@ -152,7 +129,5 @@ cscope:
 clean:
 	$(RM) tags cscope.in.out cscope.out cscope.po.out
 
-.NOTPARALLEL: libvmem libvmmalloc
-
 .PHONY: all install uninstall clean clobber cstyle test check pcheck\
-	jemalloc jemalloc-clean jemalloc-test jemalloc-check cscope $(ALL_TARGETS)
+	cscope $(ALL_TARGETS)

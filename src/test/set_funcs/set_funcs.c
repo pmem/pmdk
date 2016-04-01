@@ -38,9 +38,6 @@
 #define	OBJ 0
 #define	BLK 1
 #define	LOG 2
-#define	VMEM_ 3
-
-#define	VMEM_POOLS 4
 
 static struct counters {
 	int mallocs;
@@ -134,35 +131,6 @@ static char *
 log_strdup(const char *s)
 {
 	cnt[LOG].strdups++;
-	return strdup(s);
-}
-
-static void *
-_vmem_malloc(size_t size)
-{
-	cnt[VMEM_].mallocs++;
-	return malloc(size);
-}
-
-static void
-_vmem_free(void *ptr)
-{
-	if (ptr)
-		cnt[VMEM_].frees++;
-	free(ptr);
-}
-
-static void *
-_vmem_realloc(void *ptr, size_t size)
-{
-	cnt[VMEM_].reallocs++;
-	return realloc(ptr, size);
-}
-
-static char *
-_vmem_strdup(const char *s)
-{
-	cnt[VMEM_].strdups++;
 	return strdup(s);
 }
 
@@ -266,41 +234,6 @@ test_log(const char *path)
 	unlink(path);
 }
 
-static void
-test_vmem(const char *dir)
-{
-	memset(cnt, 0, sizeof (cnt));
-
-	VMEM *v[VMEM_POOLS];
-	void *ptr[VMEM_POOLS];
-
-	for (int i = 0; i < VMEM_POOLS; i++) {
-		v[i] = vmem_create(dir, VMEM_MIN_POOL);
-		ptr[i] = vmem_malloc(v[i], 64);
-		vmem_free(v[i], ptr[i]);
-	}
-
-	for (int i = 0; i < VMEM_POOLS; i++)
-		vmem_delete(v[i]);
-
-	UT_OUT("vmem_mallocs: %d", cnt[VMEM_].mallocs);
-	UT_OUT("vmem_frees: %d", cnt[VMEM_].frees);
-	UT_OUT("vmem_reallocs: %d", cnt[VMEM_].reallocs);
-	UT_OUT("vmem_strdups: %d", cnt[VMEM_].strdups);
-
-	if (cnt[VMEM_].mallocs == 0 && cnt[VMEM_].frees == 0)
-		UT_FATAL("VMEM mallocs: %d, frees: %d", cnt[VMEM_].mallocs,
-				cnt[VMEM_].frees);
-	for (int i = 0; i < 4; ++i) {
-		if (i == VMEM_)
-			continue;
-		if (cnt[i].mallocs || cnt[i].frees)
-			UT_FATAL("VMEM allocation used %d functions", i);
-	}
-	if (cnt[VMEM_].mallocs + cnt[VMEM_].strdups > cnt[VMEM_].frees + 4)
-		UT_FATAL("VMEM memory leak");
-}
-
 int
 main(int argc, char *argv[])
 {
@@ -312,13 +245,10 @@ main(int argc, char *argv[])
 	pmemobj_set_funcs(obj_malloc, obj_free, obj_realloc, obj_strdup);
 	pmemblk_set_funcs(blk_malloc, blk_free, blk_realloc, blk_strdup);
 	pmemlog_set_funcs(log_malloc, log_free, log_realloc, log_strdup);
-	vmem_set_funcs(_vmem_malloc, _vmem_free, _vmem_realloc, _vmem_strdup,
-			NULL);
 
 	test_obj(argv[1]);
 	test_blk(argv[1]);
 	test_log(argv[1]);
-	test_vmem(argv[2]);
 
 	DONE(NULL);
 }

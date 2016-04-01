@@ -32,7 +32,4 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Everything in this source tree is covered by the previous license
 with the following exceptions:
 
-* src/jemalloc has its own (somewhat similar) license contained in
-  src/jemalloc/COPYING.
-
 * utils/cstyle (used only during development) licensed under CDDL.

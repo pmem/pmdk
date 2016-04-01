@@ -99,8 +99,6 @@ sub check_whitespace_with_exc {
 
 	$_ = $full;
 
-	return 0 if /^[.\/]*src\/jemalloc.*/;
-
 	$_ = basename($full);
 
 	return 0 unless /^(README.*|LICENSE.*|Makefile.*|.gitignore|TEST.*|RUNTESTS|check_whitespace|.*\.([chp13]|sh|map|cpp|hpp|inc))$/;
@@ -168,7 +166,6 @@ foreach my $arg (@ARGV) {
 
 			if (!$force &&
 			   ($full eq './.git' ||
-			    $full eq './src/jemalloc' ||
 			    $full eq './src/debug' ||
 			    $full eq './src/nondebug' ||
 			    $full eq './rpmbuild' ||

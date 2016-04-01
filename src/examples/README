@@ -29,7 +29,3 @@ libpmemlog(3) -- pmem-resident log files
 libpmemobj(3) -- transactional object store
     Example programs are in the libpmemobj directory.
     More documentation: http://pmem.io/nvml/libpmemobj
-
-libvmem(3) -- volatile memory allocation library
-    Example programs are in the libvmem directory.
-    More documentation: http://pmem.io/nvml/libvmem

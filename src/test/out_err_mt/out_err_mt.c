@@ -51,7 +51,6 @@ print_errors(const char *msg)
 	UT_OUT("PMEMOBJ: %s", pmemobj_errormsg());
 	UT_OUT("PMEMLOG: %s", pmemlog_errormsg());
 	UT_OUT("PMEMBLK: %s", pmemblk_errormsg());
-	UT_OUT("VMEM: %s", vmem_errormsg());
 }
 
 static void
@@ -88,13 +87,6 @@ check_errors(int ver)
 	UT_ASSERTeq(ret, 2);
 	UT_ASSERTeq(err_need, ver);
 	UT_ASSERTeq(err_found, PMEMBLK_MAJOR_VERSION);
-
-	ret = sscanf(vmem_errormsg(),
-		"libvmem major version mismatch (need %d, found %d)",
-		&err_need, &err_found);
-	UT_ASSERTeq(ret, 2);
-	UT_ASSERTeq(err_need, ver);
-	UT_ASSERTeq(err_found, VMEM_MAJOR_VERSION);
 }
 
 static void *
@@ -106,7 +98,6 @@ do_test(void *arg)
 	pmemobj_check_version(ver, 0);
 	pmemlog_check_version(ver, 0);
 	pmemblk_check_version(ver, 0);
-	vmem_check_version(ver, 0);
 	check_errors(ver);
 
 	return NULL;
@@ -142,7 +133,6 @@ main(int argc, char *argv[])
 		PMEMLOG_MIN_POOL, 0666);
 	PMEMblkpool *pbp = pmemblk_create(argv[3],
 		128, PMEMBLK_MIN_POOL, 0666);
-	VMEM *vmp = vmem_create(argv[4], VMEM_MIN_POOL);
 
 	util_init();
 
@@ -150,7 +140,6 @@ main(int argc, char *argv[])
 	pmemobj_check_version(10001, 0);
 	pmemlog_check_version(10002, 0);
 	pmemblk_check_version(10003, 0);
-	vmem_check_version(10004, 0);
 	print_errors("version check");
 
 	void *ptr = NULL;
@@ -170,16 +159,11 @@ main(int argc, char *argv[])
 	pmemblk_set_error(pbp, nblock + 1);
 	print_errors("pmemblk_set_error");
 
-	VMEM *vmp2 = vmem_create_in_region(NULL, 1);
-	UT_ASSERTeq(vmp2, NULL);
-	print_errors("vmem_create_in_region");
-
 	run_mt_test(do_test);
 
 	pmemobj_close(pop);
 	pmemlog_close(plp);
 	pmemblk_close(pbp);
-	vmem_delete(vmp);
 
 	DONE(NULL);
 }

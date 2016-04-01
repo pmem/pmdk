@@ -252,60 +252,6 @@ Development files for NVML libpmemobj library
 %{_includedir}/libpmemobj.h
 %{_mandir}/man3/libpmemobj.3.gz
 
-%package -n libvmem
-Summary: libvmem library
-Group: %{package_group}/Libraries
-%description -n libvmem
-NVML libvmem library
-
-%files -n libvmem
-%defattr(-,root,root,-)
-%{_libdir}/libvmem.so.*
-
-%package -n libvmem-devel
-Summary: libvmem development library
-Group: Development/Libraries
-%description -n libvmem-devel
-Development files for NVML libvmem library
-
-%files -n libvmem-devel
-%defattr(-,root,root,-)
-%{_libdir}/libvmem.so
-%{_libdir}/libvmem.a
-%{_libdir}/pkgconfig/libvmem.pc
-%{_libdir}/nvml_debug/libvmem.so
-%{_libdir}/nvml_debug/libvmem.so.*
-%{_libdir}/nvml_debug/libvmem.a
-%{_includedir}/libvmem.h
-%{_mandir}/man3/libvmem.3.gz
-
-%package -n libvmmalloc
-Summary: libvmmalloc library
-Group: %{package_group}/Libraries
-%description -n libvmmalloc
-NVML libvmmalloc library
-
-%files -n libvmmalloc
-%defattr(-,root,root,-)
-%{_libdir}/libvmmalloc.so.*
-
-%package -n libvmmalloc-devel
-Summary: libvmmalloc development library
-Group: Development/Libraries
-%description -n libvmmalloc-devel
-Development files for NVML libvmmalloc library
-
-%files -n libvmmalloc-devel
-%defattr(-,root,root,-)
-%{_libdir}/libvmmalloc.so
-%{_libdir}/libvmmalloc.a
-%{_libdir}/pkgconfig/libvmmalloc.pc
-%{_libdir}/nvml_debug/libvmmalloc.so
-%{_libdir}/nvml_debug/libvmmalloc.so.*
-%{_libdir}/nvml_debug/libvmmalloc.a
-%{_includedir}/libvmmalloc.h
-%{_mandir}/man3/libvmmalloc.3.gz
-
 %package tools
 Group:		%{package_group}
 Summary:	Tools for %{name}

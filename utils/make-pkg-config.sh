@@ -103,33 +103,3 @@ Requires.private: pmem
 Libs: -L\${libdir} -lpmemlog
 Cflags: -I\${includedir}
 EOF
-
-cat << EOF > libvmem.pc
-prefix=${prefix}
-libdir=${libdir}
-version=${version}
-includedir=\${prefix}/include
-
-Name: libvmem
-Description: libvmem library from NVML project
-Version: \${version}
-URL: http://pmem.io/nvml
-Requires.private:
-Libs: -L\${libdir} -lvmem
-Cflags: -I\${includedir}
-EOF
-
-cat << EOF > libvmmalloc.pc
-prefix=${prefix}
-libdir=${libdir}
-version=${version}
-includedir=\${prefix}/include
-
-Name: libvmmalloc
-Description: libvmmalloc library from NVML project
-Version: \${version}
-URL: http://pmem.io/nvml
-Requires.private: vmem
-Libs: -L\${libdir} -lvmem
-Cflags: -I\${includedir}
-EOF
