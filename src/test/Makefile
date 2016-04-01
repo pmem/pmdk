@@ -50,7 +50,6 @@ BLK_TESTS = \
        blk_recovery\
        blk_rw\
        blk_rw_mt
-
 LOG_TESTS = \
        log_basic\
        log_pool\
