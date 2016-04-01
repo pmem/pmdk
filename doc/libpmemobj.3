@@ -294,8 +294,8 @@ libpmemobj \- persistent memory transactional object store
 .sp
 .BI "TX_SET(TOID " o ", " FIELD ", " VALUE )
 .BI "TX_SET_DIRECT(TYPE *" p ", " FIELD ", " VALUE )
-.BI "TX_MEMCPY(const void *" dest ", const void *" src ", size_t " num )
-.BI "TX_MEMSET(const void *" dest ", int " c ", size_t " num )
+.BI "TX_MEMCPY(void *" dest ", const void *" src ", size_t " num )
+.BI "TX_MEMSET(void *" dest ", int " c ", size_t " num )
 .sp
 .B Library API versioning:
 .sp
@@ -3101,7 +3101,7 @@ and then set its new
 .IR VALUE .
 In case of a failure or abort, the saved value will be restored.
 .PP
-.BI "TX_MEMCPY(const void *" dest ", const void *" src ", size_t " num )
+.BI "TX_MEMCPY(void *" dest ", const void *" src ", size_t " num )
 .IP
 The
 .B TX_MEMCPY
@@ -3113,7 +3113,7 @@ bytes of its memory area with the data copied from the buffer pointed by
 .IR src .
 In case of a failure or abort, the saved value will be restored.
 .PP
-.BI "TX_MEMSET(const void *" dest ", int " c ", size_t " num )
+.BI "TX_MEMSET(void *" dest ", int " c ", size_t " num )
 .IP
 The
 .B TX_MEMSET
