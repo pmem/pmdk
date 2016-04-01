@@ -71,7 +71,8 @@ LDFLAGS += -Wl,-z,relro -Wl,--warn-common -Wl,--fatal-warnings $(EXTRA_LDFLAGS) 
 TOOLSDIR=$(prefix)/bin
 TARGET_DIR=$(DESTDIR)$(TOOLSDIR)
 BASH_COMP_FILES ?=
-BASH_COMP_DIR =$(DESTDIR)/etc/bash_completion.d/
+BASH_COMP_ROOT_DIR=$(DESTDIR)$(prefix)
+BASH_COMP_DIR =$(BASH_COMP_ROOT_DIR)/etc/bash_completion.d/
 CSTYLE=$(TOP)/utils/cstyle
 
 TARGET_STATIC_NONDEBUG=$(TARGET).static-nondebug
