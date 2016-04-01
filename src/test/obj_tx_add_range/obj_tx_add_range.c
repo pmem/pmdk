@@ -566,39 +566,43 @@ main(int argc, char *argv[])
 	START(argc, argv, "obj_tx_add_range");
 	util_init();
 
-	if (argc != 2)
-		UT_FATAL("usage: %s [file]", argv[0]);
+	if (argc != 3)
+		UT_FATAL("usage: %s [file] [0|1]", argv[0]);
+
+	int do_reopen = atoi(argv[2]);
 
 	PMEMobjpool *pop;
 	if ((pop = pmemobj_create(argv[1], LAYOUT_NAME, PMEMOBJ_MIN_POOL,
 	    S_IWUSR | S_IRUSR)) == NULL)
 		UT_FATAL("!pmemobj_create");
 
-	do_tx_add_range_commit(pop);
-	VALGRIND_WRITE_STATS;
-	do_tx_add_range_abort(pop);
-	VALGRIND_WRITE_STATS;
-	do_tx_add_range_commit_nested(pop);
-	VALGRIND_WRITE_STATS;
-	do_tx_add_range_abort_nested(pop);
-	VALGRIND_WRITE_STATS;
-	do_tx_add_range_abort_after_nested(pop);
-	VALGRIND_WRITE_STATS;
-	do_tx_add_range_twice_commit(pop);
-	VALGRIND_WRITE_STATS;
-	do_tx_add_range_twice_abort(pop);
-	VALGRIND_WRITE_STATS;
-	do_tx_add_range_alloc_commit(pop);
-	VALGRIND_WRITE_STATS;
-	do_tx_add_range_alloc_abort(pop);
-	VALGRIND_WRITE_STATS;
-	do_tx_add_range_overlapping(pop);
-	VALGRIND_WRITE_STATS;
-	pmemobj_close(pop);
-
-	/* do not run this on valgrind because it takes too long */
-	if (!On_valgrind)
+	if (do_reopen) {
+		pmemobj_close(pop);
 		do_tx_add_range_reopen(argv[1]);
+	} else {
+		do_tx_add_range_commit(pop);
+		VALGRIND_WRITE_STATS;
+		do_tx_add_range_abort(pop);
+		VALGRIND_WRITE_STATS;
+		do_tx_add_range_commit_nested(pop);
+		VALGRIND_WRITE_STATS;
+		do_tx_add_range_abort_nested(pop);
+		VALGRIND_WRITE_STATS;
+		do_tx_add_range_abort_after_nested(pop);
+		VALGRIND_WRITE_STATS;
+		do_tx_add_range_twice_commit(pop);
+		VALGRIND_WRITE_STATS;
+		do_tx_add_range_twice_abort(pop);
+		VALGRIND_WRITE_STATS;
+		do_tx_add_range_alloc_commit(pop);
+		VALGRIND_WRITE_STATS;
+		do_tx_add_range_alloc_abort(pop);
+		VALGRIND_WRITE_STATS;
+		do_tx_add_range_overlapping(pop);
+		VALGRIND_WRITE_STATS;
+		pmemobj_close(pop);
+	}
+
 
 	DONE(NULL);
 }
