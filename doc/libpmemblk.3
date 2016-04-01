@@ -37,7 +37,7 @@
 .\" or
 .\"	groff -man -Tascii libpmemblk.3
 .\"
-.TH libpmemblk 3 "pmemblk API version 1.0.0" "NVM Library"
+.TH libpmemblk 3 "pmemblk API version 1.0.1" "NVM Library"
 .SH NAME
 libpmemblk \- persistent memory resident array of blocks
 .SH SYNOPSIS
@@ -54,10 +54,10 @@ libpmemblk \- persistent memory resident array of blocks
 .BI "void pmemblk_close(PMEMblkpool *" pbp );
 .BI "size_t pmemblk_bsize(PMEMblkpool *" pbp );
 .BI "size_t pmemblk_nblock(PMEMblkpool *" pbp );
-.BI "int pmemblk_read(PMEMblkpool *" pbp ", void *" buf ", off_t " blockno );
-.BI "int pmemblk_write(PMEMblkpool *" pbp ", const void *" buf ", off_t " blockno );
-.BI "int pmemblk_set_zero(PMEMblkpool *" pbp ", off_t " blockno );
-.BI "int pmemblk_set_error(PMEMblkpool *" pbp ", off_t " blockno );
+.BI "int pmemblk_read(PMEMblkpool *" pbp ", void *" buf ", size_t " blockno );
+.BI "int pmemblk_write(PMEMblkpool *" pbp ", const void *" buf ", size_t " blockno );
+.BI "int pmemblk_set_zero(PMEMblkpool *" pbp ", size_t " blockno );
+.BI "int pmemblk_set_error(PMEMblkpool *" pbp ", size_t " blockno );
 .sp
 .B Library API versioning:
 .sp
@@ -377,7 +377,7 @@ must be a block memory pool handle as returned by
 or
 .BR pmemblk_create ().
 .PP
-.BI "int pmemblk_read(PMEMblkpool *" pbp ", void *" buf ", off_t " blockno );
+.BI "int pmemblk_read(PMEMblkpool *" pbp ", void *" buf ", size_t " blockno );
 .IP
 The
 .BR pmemblk_read ()
@@ -392,7 +392,7 @@ Reading a block that has never been written by
 .BR pmemblk_write ()
 will return a block of zeroes.
 .PP
-.BI "int pmemblk_write(PMEMblkpool *" pbp ", const void *" buf ", off_t " blockno );
+.BI "int pmemblk_write(PMEMblkpool *" pbp ", const void *" buf ", size_t " blockno );
 .IP
 The
 .BR pmemblk_write ()
@@ -408,7 +408,7 @@ the block is guaranteed to contain either the old data or the new data,
 never a mixture of both.
 On success, zero is returned.  On error, -1 is returned and errno is set.
 .PP
-.BI "int pmemblk_set_zero(PMEMblkpool *" pbp ", off_t " blockno );
+.BI "int pmemblk_set_zero(PMEMblkpool *" pbp ", size_t " blockno );
 .IP
 The
 .BR pmemblk_set_zero ()
@@ -422,7 +422,7 @@ since
 uses metadata to indicate the block should read back as zero.
 On success, zero is returned.  On error, -1 is returned and errno is set.
 .PP
-.BI "int pmemblk_set_error(PMEMblkpool *" pbp ", off_t " blockno );
+.BI "int pmemblk_set_error(PMEMblkpool *" pbp ", size_t " blockno );
 .IP
 The
 .BR pmemblk_set_error ()
@@ -636,7 +636,7 @@ API is used.
 #include <libpmemblk.h>
 
 /* size of the pmemblk pool -- 1 GB */
-#define POOL_SIZE ((off_t)(1 << 30))
+#define POOL_SIZE ((size_t)(1 << 30))
 
 /* size of each element in the pmem pool */
 #define ELEMENT_SIZE 1024

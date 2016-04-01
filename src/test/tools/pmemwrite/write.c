@@ -127,11 +127,11 @@ pmemwrite_blk(struct pmemwrite *pwp)
 	}
 
 	for (i = 0; i < pwp->nargs; i++) {
-		int64_t blockno;
+		size_t blockno;
 		char *buff = NULL;
 		char flag;
 		/* <blockno>:w:<string> - write string to <blockno> */
-		if (sscanf(pwp->args[i], "%" SCNi64 ":w:%m[^:]",
+		if (sscanf(pwp->args[i], "%zu:w:%m[^:]",
 					&blockno, &buff) == 2) {
 			memset(blk, 0, blksize);
 			size_t bufflen = strlen(buff);

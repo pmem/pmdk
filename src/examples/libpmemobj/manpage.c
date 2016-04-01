@@ -44,7 +44,7 @@
 #include <libpmemobj.h>
 
 /* size of the pmemobj pool -- 1 GB */
-#define	POOL_SIZE ((off_t)(1 << 30))
+#define	POOL_SIZE ((size_t)(1 << 30))
 
 /* name of our layout in the pool */
 #define	LAYOUT_NAME "example_layout"

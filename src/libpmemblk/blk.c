@@ -600,15 +600,9 @@ pmemblk_nblock(PMEMblkpool *pbp)
  * pmemblk_read -- read a block in a block memory pool
  */
 int
-pmemblk_read(PMEMblkpool *pbp, void *buf, off_t blockno)
+pmemblk_read(PMEMblkpool *pbp, void *buf, size_t blockno)
 {
-	LOG(3, "pbp %p buf %p blockno %lld", pbp, buf, (long long)blockno);
-
-	if (blockno < 0) {
-		ERR("negative block number");
-		errno = EINVAL;
-		return -1;
-	}
+	LOG(3, "pbp %p buf %p blockno %zu", pbp, buf, blockno);
 
 	unsigned lane;
 
@@ -625,19 +619,13 @@ pmemblk_read(PMEMblkpool *pbp, void *buf, off_t blockno)
  * pmemblk_write -- write a block (atomically) in a block memory pool
  */
 int
-pmemblk_write(PMEMblkpool *pbp, const void *buf, off_t blockno)
+pmemblk_write(PMEMblkpool *pbp, const void *buf, size_t blockno)
 {
-	LOG(3, "pbp %p buf %p blockno %lld", pbp, buf, (long long)blockno);
+	LOG(3, "pbp %p buf %p blockno %zu", pbp, buf, blockno);
 
 	if (pbp->rdonly) {
 		ERR("EROFS (pool is read-only)");
 		errno = EROFS;
-		return -1;
-	}
-
-	if (blockno < 0) {
-		ERR("negative block number");
-		errno = EINVAL;
 		return -1;
 	}
 
@@ -656,19 +644,13 @@ pmemblk_write(PMEMblkpool *pbp, const void *buf, off_t blockno)
  * pmemblk_set_zero -- zero a block in a block memory pool
  */
 int
-pmemblk_set_zero(PMEMblkpool *pbp, off_t blockno)
+pmemblk_set_zero(PMEMblkpool *pbp, size_t blockno)
 {
-	LOG(3, "pbp %p blockno %lld", pbp, (long long)blockno);
+	LOG(3, "pbp %p blockno %zu", pbp, blockno);
 
 	if (pbp->rdonly) {
 		ERR("EROFS (pool is read-only)");
 		errno = EROFS;
-		return -1;
-	}
-
-	if (blockno < 0) {
-		ERR("negative block number");
-		errno = EINVAL;
 		return -1;
 	}
 
@@ -687,19 +669,13 @@ pmemblk_set_zero(PMEMblkpool *pbp, off_t blockno)
  * pmemblk_set_error -- set the error state on a block in a block memory pool
  */
 int
-pmemblk_set_error(PMEMblkpool *pbp, off_t blockno)
+pmemblk_set_error(PMEMblkpool *pbp, size_t blockno)
 {
-	LOG(3, "pbp %p blockno %lld", pbp, (long long)blockno);
+	LOG(3, "pbp %p blockno %zu", pbp, blockno);
 
 	if (pbp->rdonly) {
 		ERR("EROFS (pool is read-only)");
 		errno = EROFS;
-		return -1;
-	}
-
-	if (blockno < 0) {
-		ERR("negative block number");
-		errno = EINVAL;
 		return -1;
 	}
 
