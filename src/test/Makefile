@@ -181,7 +181,8 @@ PMEMPOOL_TESTS = \
 
 RPMEM_TESTS =\
        rpmemd_log\
-       rpmemd_dbg
+       rpmemd_dbg\
+       rpmem_proto
 
 VMEM_TESTS = \
        vmem_aligned_alloc\
@@ -235,8 +236,8 @@ TESTS = \
        $(LOG_TESTS)\
        $(OTHER_TESTS)\
        $(PMEM_TESTS)\
-       $(PMEMPOOL_TESTS)\
        $(RPMEM_TESTS)\
+       $(PMEMPOOL_TESTS)\
        $(VMEM_TESTS)\
        $(VMMALLOC_TESTS)\
        $(EXAMPLES_TESTS)
@@ -319,6 +320,10 @@ pcheck_other: $(OTHER_TESTS)
 
 pcheck_pmem: TARGET = pcheck
 pcheck_pmem: $(PMEM_TESTS)
+	@echo "No failures."
+
+pcheck_rpmem: TARGET = pcheck
+pcheck_rpmem: $(RPMEM_TESTS)
 	@echo "No failures."
 
 pcheck_pmempool: TARGET = pcheck
