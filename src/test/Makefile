@@ -182,7 +182,8 @@ PMEMPOOL_TESTS = \
 RPMEM_TESTS =\
        rpmemd_log\
        rpmemd_dbg\
-       rpmem_proto
+       rpmem_proto\
+       rpmem_obc
 
 VMEM_TESTS = \
        vmem_aligned_alloc\

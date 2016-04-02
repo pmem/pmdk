@@ -1,0 +1,3 @@
+rpmem_obc/TEST0: START: rpmem_obc
+ ./rpmem_obc$(nW) client_enotconn
+rpmem_obc/TEST0: Done
