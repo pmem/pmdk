@@ -31,11 +31,21 @@
 #
 # src/librpmem/Makefile -- Makefile for librpmem
 #
+vpath %.c ../rpmem_common
 
 LIBRARY_NAME = rpmem
 LIBRARY_SO_VERSION = 1
 LIBRARY_VERSION = 0.0
-SOURCE = librpmem.c rpmem.c $(COMMON)/util.c $(COMMON)/util_platform.c\
-	$(COMMON)/out.c
+SOURCE = $(COMMON)/util.c\
+	$(COMMON)/util_platform.c\
+	$(COMMON)/out.c\
+	librpmem.c\
+	rpmem.c\
+	rpmem_obc.c\
+	rpmem_common.c\
+	rpmem_util.c
 
 include ../Makefile.inc
+
+CFLAGS += -I. -I../rpmem_common
+CFLAGS += -DRPMEMC_LOG_RPMEM
