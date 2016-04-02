@@ -31,18 +31,22 @@
 # Makefile -- top Makefile for rpmemd
 #
 
+vpath %.c ../../rpmem_common/
+
 TOP = ../../..
 
 TARGET = rpmemd
 
 OBJS = rpmemd.o\
-       rpmemd_log.o
+       rpmemd_log.o\
+       rpmem_common.o\
+       rpmemd_obc.o
 
 LIBPMEM=y
 TOOLS_COMMON=y
 
-INCS += -I$(TOP)/src/common
-INCS += -I$(TOP)/src/librpmem
+INCS += -I$(TOP)/src/rpmem_common
+CFLAGS += -DRPMEMC_LOG_RPMEMD
 
 INSTALL_TARGET=n
 
