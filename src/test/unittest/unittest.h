@@ -582,6 +582,53 @@ void ut_register_sighandlers(void);
 
 uint16_t ut_checksum(uint8_t *addr, size_t len);
 
+struct test_case {
+	const char *name;
+	void (*func)(const struct test_case *tc, int argc, char *argv[]);
+};
+
+/*
+ * get_tc -- return test case of specified name
+ */
+static inline const struct test_case *
+get_tc(const char *name, const struct test_case *test_cases, size_t ntests)
+{
+	for (size_t i = 0; i < ntests; i++) {
+		if (strcmp(name, test_cases[i].name) == 0)
+			return &test_cases[i];
+	}
+
+	return NULL;
+}
+
+static inline void
+TEST_CASE_PROCESS(int argc, char *argv[],
+	const struct test_case *test_cases, size_t ntests)
+{
+	if (argc < 2)
+		UT_FATAL("usage: %s <test case> [<args>]", argv[0]);
+
+	char *str_test = argv[1];
+	const int args_off = 2;
+
+	const struct test_case *tc = get_tc(str_test, test_cases, ntests);
+	if (!tc)
+		UT_FATAL("unknown test case -- '%s'", str_test);
+
+	tc->func(tc, argc - args_off, &argv[args_off]);
+}
+
+#define	TEST_CASE_DECLARE(_name)\
+void \
+_name(const struct test_case *tc, int argc, char *argv[])
+
+#define	TEST_CASE(_name)\
+{\
+	.name = #_name,\
+	.func = _name,\
+}
+
+
 #ifdef __cplusplus
 }
 #endif
