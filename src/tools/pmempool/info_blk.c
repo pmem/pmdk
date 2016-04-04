@@ -553,14 +553,14 @@ pmempool_info_blk(struct pmem_info *pip)
 }
 
 /*
- * pmempool_info_bttdevice -- print information about btt devicel
+ * pmempool_info_btt -- print information about btt device
  */
 int
 pmempool_info_btt(struct pmem_info *pip)
 {
 	int ret;
 	outv(1, "\nBTT Device");
-	ret = info_btt_layout(pip, BTT_DEVICE_OFFSET);
+	ret = info_btt_layout(pip, DEFAULT_HDR_SIZE);
 
 	return ret;
 }

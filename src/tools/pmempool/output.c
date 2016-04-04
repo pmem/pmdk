@@ -569,7 +569,7 @@ out_get_pool_type_str(pmem_pool_type_t type)
 	case PMEM_POOL_TYPE_OBJ:
 		return "obj";
 	case PMEM_POOL_TYPE_BTT:
-		return "bttdevice";
+		return "btt";
 	default:
 		return "unknown";
 	}

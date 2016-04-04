@@ -61,37 +61,26 @@
 typedef const char *(*enum_to_str_fn)(int);
 
 /*
- * pmem_get_pool_type -- return pool type based on first two pages.
+ * pmem_pool_type -- return pool type based on first two pages.
  * If pool header's content suggests that pool may be BTT device
  * (no correct checksum and signature for pool header) checksum and
  * signature from second page is checked to prove that it's BTT device layout.
  */
 pmem_pool_type_t
-pmem_get_pool_type(void * const base_pool_addr)
+pmem_pool_type(const void *base_pool_addr)
 {
-	struct pool_hdr hdr;
-	memcpy(&hdr, base_pool_addr, sizeof (hdr));
+	struct pool_hdr *hdrp = (struct pool_hdr *)base_pool_addr;
 
 	int ret;
-	if (util_is_zeroed(&hdr, DEFAULT_HDR_SIZE)) {
+	if (util_is_zeroed(hdrp, DEFAULT_HDR_SIZE)) {
 		return util_get_pool_type_second_page(base_pool_addr);
 	}
 
-	ret  = util_checksum(&hdr, sizeof (hdr), &hdr.checksum, 0);
-	if (ret) {
-		if (memcmp(hdr.signature, LOG_HDR_SIG, POOL_HDR_SIG_LEN) == 0)
-				return PMEM_POOL_TYPE_LOG;
-			else if (memcmp(hdr.signature, BLK_HDR_SIG,
-					POOL_HDR_SIG_LEN) == 0)
-				return PMEM_POOL_TYPE_BLK;
-			else if (memcmp(hdr.signature, OBJ_HDR_SIG,
-					POOL_HDR_SIG_LEN) == 0)
-				return PMEM_POOL_TYPE_OBJ;
-			else
-				return PMEM_POOL_TYPE_UNKNOWN;
-	} else {
+	ret  = util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum, 0);
+	if (ret)
+		return pmem_pool_type_parse_hdr(hdrp);
+	else
 		return util_get_pool_type_second_page(base_pool_addr);
-	}
 }
 
 /*
@@ -109,7 +98,6 @@ pmem_pool_type_parse_hdr(const struct pool_hdr *hdrp)
 	else
 		return PMEM_POOL_TYPE_UNKNOWN;
 }
-
 
 /*
  * pmem_pool_type_parse_str -- returns pool type from command line arg
@@ -158,28 +146,25 @@ util_pool_hdr_valid(struct pool_hdr *hdrp)
  * util_get_pool_type_second_page -- return type based on second page content
  */
 pmem_pool_type_t
-util_get_pool_type_second_page(void * const pool_base_addr)
+util_get_pool_type_second_page(const void *pool_base_addr)
 {
 	int ret;
 	struct btt_info bttinfo;
 
-	uint64_t sec_page_addr =
-		(uint64_t)pool_base_addr + BTT_DEVICE_OFFSET;
-	memcpy(&bttinfo, (void *)sec_page_addr, sizeof (bttinfo));
+	void *sec_page_addr = (char *)pool_base_addr + DEFAULT_HDR_SIZE;
+	memcpy(&bttinfo, sec_page_addr, sizeof(bttinfo));
 	util_convert2h_btt_info(&bttinfo);
 
-	if (util_is_zeroed(&bttinfo, sizeof (bttinfo))) {
+	if (util_is_zeroed(&bttinfo, sizeof(bttinfo)))
 		return PMEM_POOL_TYPE_UNKNOWN;
-	}
 
-	ret = util_checksum(&bttinfo, sizeof (bttinfo), &bttinfo.checksum, 0);
-	if (!ret) {
+	ret = util_checksum(&bttinfo, sizeof(bttinfo), &bttinfo.checksum, 0);
+	if (!ret)
 		return PMEM_POOL_TYPE_UNKNOWN;
-	}
 
-	if (memcmp(bttinfo.sig, BTT_INFO_SIG, BTT_INFO_SIG_LEN) == 0) {
+	if (memcmp(bttinfo.sig, BTTINFO_SIG, BTTINFO_SIG_LEN) == 0)
 		return PMEM_POOL_TYPE_BTT;
-	}
+
 	return PMEM_POOL_TYPE_UNKNOWN;
 }
 
@@ -603,6 +588,7 @@ pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp,
 {
 	util_stat_t stat_buf;
 	paramsp->type = PMEM_POOL_TYPE_UNKNOWN;
+	char pool_str_addr[POOL_HDR_DESC_SIZE];
 
 	paramsp->is_poolset = util_is_poolset(fname) == 1;
 	int fd = util_file_open(fname, NULL, 0, O_RDONLY);
@@ -639,12 +625,13 @@ pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp,
 		paramsp->size = set->poolsize;
 		addr = set->replica[0]->part[0].addr;
 	} else {
-		addr = mmap(NULL, (uint64_t)stat_buf.st_size,
-				PROT_READ, MAP_PRIVATE, fd, 0);
-		if (addr == MAP_FAILED) {
+		/* read first two pages */
+		ssize_t num = read(fd, pool_str_addr, POOL_HDR_DESC_SIZE);
+		if (num < (ssize_t)POOL_HDR_DESC_SIZE) {
 			ret = -1;
 			goto out_close;
 		}
+		addr = pool_str_addr;
 	}
 
 	struct pool_hdr hdr;
@@ -663,12 +650,10 @@ pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp,
 		(memcmp(hdr.uuid, hdr.next_part_uuid, POOL_HDR_UUID_LEN) ||
 		memcmp(hdr.uuid, hdr.prev_part_uuid, POOL_HDR_UUID_LEN));
 
-	if (check) {
-		paramsp->type = pmem_get_pool_type(addr);
-
-	} else {
+	if (check)
+		paramsp->type = pmem_pool_type(addr);
+	else
 		paramsp->type = pmem_pool_type_parse_hdr(addr);
-	}
 
 	if (paramsp->type == PMEM_POOL_TYPE_BLK) {
 		struct pmemblk pbp;
@@ -682,8 +667,7 @@ pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp,
 
 	if (paramsp->is_poolset)
 		util_poolset_close(set, 0);
-	else
-		munmap(addr, (uint64_t)stat_buf.st_size);
+
 out_close:
 	if (fd >= 0)
 		(void) close(fd);
@@ -1425,34 +1409,56 @@ pool_set_file_open(const char *fname,
 		goto err;
 
 	struct stat buf;
-
-	/*
-	 * The check flag indicates whether the headers from each pool
-	 * set file part should be checked for valid values.
-	 */
-	if (check) {
-		if (util_poolset_map(file->fname,
-				&file->poolset, rdonly))
-			goto err_free_fname;
-	} else {
-		if (util_pool_open_nocheck(&file->poolset, file->fname,
-				rdonly))
-			goto err_free_fname;
-	}
-
-	file->size = file->poolset->poolsize;
-
-	/* get modification time from the first part of first replica */
-	const char *path = file->poolset->replica[0]->part[0].path;
-	if (stat(path, &buf)) {
-		warn("%s", path);
+	if (stat(fname, &buf)) {
+		warn("%s", fname);
 		goto err_close_poolset;
 	}
 
 	file->mtime = buf.st_mtime;
 	file->mode = buf.st_mode;
-	file->addr = file->poolset->replica[0]->part[0].addr;
+	if (S_ISBLK(file->mode))
+		file->fileio = true;
 
+	if (file->fileio) {
+		/* Simple file open for BTT device */
+		int fd = util_file_open(fname, NULL, 0, O_RDONLY);
+		if (fd < 0) {
+			outv_err("util_file_open failed\n");
+			return NULL;
+		}
+
+		off_t seek_size = lseek(fd, 0, SEEK_END);
+		if (seek_size == -1) {
+			outv_err("lseek SEEK_END failed\n");
+			return NULL;
+		}
+
+		file->size = (size_t)seek_size;
+		file->fd = fd;
+	} else {
+		/*
+		 * The check flag indicates whether the headers from each pool
+		 * set file part should be checked for valid values.
+		 */
+		if (check) {
+			if (util_poolset_map(file->fname,
+					&file->poolset, rdonly))
+				goto err_free_fname;
+		} else {
+			if (util_pool_open_nocheck(&file->poolset, file->fname,
+					rdonly))
+				goto err_free_fname;
+		}
+
+		/* get modification time from the first part of first replica */
+		const char *path = file->poolset->replica[0]->part[0].path;
+		if (stat(path, &buf)) {
+			warn("%s", path);
+			goto err_close_poolset;
+		}
+		file->size = file->poolset->poolsize;
+		file->addr = file->poolset->replica[0]->part[0].addr;
+	}
 	return file;
 
 err_close_poolset:
@@ -1470,11 +1476,13 @@ err:
 void
 pool_set_file_close(struct pool_set_file *file)
 {
-	if (file->poolset)
-		util_poolset_close(file->poolset, 0);
-	else if (file->addr) {
-		munmap(file->addr, file->size);
-		close(file->fd);
+	if (!file->fileio) {
+		if (file->poolset)
+			util_poolset_close(file->poolset, 0);
+		else if (file->addr) {
+			munmap(file->addr, file->size);
+			close(file->fd);
+		}
 	}
 	free(file->fname);
 	free(file);
@@ -1490,8 +1498,13 @@ pool_set_file_read(struct pool_set_file *file, void *buff,
 	if (off + nbytes > file->size)
 		return -1;
 
-	memcpy(buff, (char *)file->addr + off, nbytes);
-
+	if (file->fileio) {
+		ssize_t num = pread(file->fd, buff, nbytes, (off_t)off);
+		if (num < (ssize_t)nbytes)
+			return -1;
+	} else {
+		memcpy(buff, (char *)file->addr + off, nbytes);
+	}
 	return 0;
 }
 
@@ -1505,8 +1518,13 @@ pool_set_file_write(struct pool_set_file *file, void *buff,
 	if (off + nbytes > file->size)
 		return -1;
 
-	memcpy((char *)file->addr + off, buff, nbytes);
-
+	if (file->fileio) {
+		ssize_t num = pwrite(file->fd, buff, nbytes, (off_t)off);
+		if (num < (ssize_t)nbytes)
+			return -1;
+	} else {
+		memcpy((char *)file->addr + off, buff, nbytes);
+	}
 	return 0;
 }
 
