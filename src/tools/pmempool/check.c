@@ -519,7 +519,7 @@ pmempool_check_get_first_valid_btt(struct pmempool_check *pcp, struct btt_info
 	 * valid BTT Info Header. Check signature and checksum.
 	 */
 	while (!pmempool_check_read(pcp, infop, sizeof(*infop), offset)) {
-		if (memcmp(infop->sig, BTT_INFO_SIG,
+		if (memcmp(infop->sig, BTTINFO_SIG,
 					BTTINFO_SIG_LEN) == 0 &&
 			util_checksum(infop, sizeof(*infop),
 				&infop->checksum, 0)) {
@@ -557,7 +557,7 @@ pmempool_check_get_first_valid_arena(struct pmempool_check *pcp,
 				sizeof(*infop), 0);
 		arenap->zeroed = arenap->zeroed && zeroed;
 
-		if (memcmp(infop->sig, BTT_INFO_SIG,
+		if (memcmp(infop->sig, BTTINFO_SIG,
 					BTTINFO_SIG_LEN) == 0 &&
 			util_checksum(infop, sizeof(*infop),
 				&infop->checksum, 0)) {
@@ -1457,7 +1457,7 @@ pmempool_check_pmemblk(struct pmempool_check *pcp)
 static int
 pmempool_check_check_btt(struct btt_info *infop)
 {
-	if (!memcmp(infop->sig, BTT_INFO_SIG, BTTINFO_SIG_LEN))
+	if (!memcmp(infop->sig, BTTINFO_SIG, BTTINFO_SIG_LEN))
 		return util_checksum(infop, sizeof(*infop),
 				&infop->checksum, 0);
 	else

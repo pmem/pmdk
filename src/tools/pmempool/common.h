@@ -37,6 +37,7 @@
 #include <stdint.h>
 #include <sys/queue.h>
 #include <stdarg.h>
+#include <stdbool.h>
 
 #include "util.h"
 #include "log.h"
@@ -57,7 +58,7 @@
 #define OPT_LOG (1 << (PMEM_POOL_TYPE_LOG + OPT_SHIFT))
 #define OPT_BLK (1 << (PMEM_POOL_TYPE_BLK + OPT_SHIFT))
 #define OPT_OBJ (1 << (PMEM_POOL_TYPE_OBJ + OPT_SHIFT))
-#define	OPT_BTT (1 << (PMEM_POOL_TYPE_BTT + OPT_SHIFT))
+#define OPT_BTT (1 << (PMEM_POOL_TYPE_BTT + OPT_SHIFT))
 #define OPT_ALL (OPT_LOG | OPT_BLK | OPT_OBJ | OPT_BTT)
 
 #define OPT_REQ_SHIFT	8
@@ -111,10 +112,9 @@ for ((entry) = PLIST_OFF_TO_PTR(pop, (head)->pe_first.off);\
 #define OBJH_FROM_PTR(ptr)\
 ((void *)((uintptr_t)ptr - sizeof(struct obj_header)))
 
-#define	DEFAULT_HDR_SIZE	4096
-#define	BTT_DEVICE_OFFSET	4096UL /* 4 KB */
-#define	BTT_INFO_SIG		"BTT_ARENA_INFO\0"
-#define	BTT_INFO_SIG_LEN	15
+#define DEFAULT_HDR_SIZE	4096UL /* 4 KB */
+#define DEFAULT_DESC_SIZE	4096UL /* 4 KB */
+#define POOL_HDR_DESC_SIZE	(DEFAULT_HDR_SIZE + DEFAULT_DESC_SIZE)
 
 struct obj_header {
 	struct allocation_header ahdr;
@@ -172,6 +172,7 @@ struct pool_set_file {
 	size_t replica;
 	time_t mtime;
 	mode_t mode;
+	bool fileio;
 };
 
 struct pool_set_file *pool_set_file_open(const char *fname,
@@ -198,7 +199,7 @@ struct ranges {
 };
 
 pmem_pool_type_t pmem_pool_type_parse_hdr(const struct pool_hdr *hdrp);
-pmem_pool_type_t pmem_get_pool_type(void * const base_pool_addr);
+pmem_pool_type_t pmem_pool_type(const void *base_pool_addr);
 pmem_pool_type_t pmem_pool_type_parse_str(const char *str);
 int pmem_pool_check_pool_set(const char *fname);
 uint64_t pmem_pool_get_min_size(pmem_pool_type_t type);
@@ -216,7 +217,7 @@ int util_options_getopt(int argc, char *argv[], const char *optstr,
 		const struct options *opts);
 int util_validate_checksum(void *addr, size_t len, uint64_t *csum);
 int util_pool_hdr_valid(struct pool_hdr *hdrp);
-pmem_pool_type_t util_get_pool_type_second_page(void * const pool_base_addr);
+pmem_pool_type_t util_get_pool_type_second_page(const void *pool_base_addr);
 int util_parse_size(const char *str, uint64_t *sizep);
 int util_parse_mode(const char *str, mode_t *mode);
 int util_parse_ranges(const char *str, struct ranges *rangesp,

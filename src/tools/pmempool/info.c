@@ -692,7 +692,7 @@ pmempool_info_file(struct pmem_info *pip, const char *file_name)
 					pip->args.obj.replica);
 		}
 
-		/* do not display hdr info for btt device */
+		/* hdr info is not present in btt device */
 		if (pip->type != PMEM_POOL_TYPE_BTT) {
 			if (pmempool_info_pool_hdr(pip, VERBOSE_DEFAULT)) {
 				ret = -1;

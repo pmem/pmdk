@@ -141,6 +141,7 @@ OTHER_TESTS = \
 	out_err\
 	out_err_mt\
 	pmemspoil\
+	bttdevice\
 	remote_basic\
 	remote_obj_basic\
 	scope\
