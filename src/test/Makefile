@@ -184,7 +184,8 @@ RPMEM_TESTS =\
        rpmemd_dbg\
        rpmem_proto\
        rpmem_obc\
-       rpmemd_obc
+       rpmemd_obc\
+       rpmem_obc_int
 
 VMEM_TESTS = \
        vmem_aligned_alloc\
