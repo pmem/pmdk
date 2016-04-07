@@ -989,6 +989,10 @@ PMEMoid pmemobj_tx_strdup(const char *s, uint64_t type_num);
  */
 int pmemobj_tx_free(PMEMoid oid);
 
+
+//Group commit
+void pmemobj_tx_group_commit(PMEMobjpool *pop, jmp_buf env);
+
 #define	TX_ADD(o)\
 pmemobj_tx_add_range((o).oid, 0, sizeof (*(o)._type))
 

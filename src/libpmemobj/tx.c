@@ -62,6 +62,10 @@ static __thread struct {
 	struct lane_section *section;
 } tx;
 
+static __thread struct {
+	uint32_t count;
+} tx_group;
+
 struct tx_lock_data {
 	union {
 		PMEMmutex *mutex;
@@ -990,6 +994,8 @@ tx_realloc_common(PMEMoid oid, size_t size, uint64_t type_num,
 	return new_obj;
 }
 
+
+
 /*
  * pmemobj_tx_begin -- initializes new transaction
  */
@@ -1008,6 +1014,7 @@ pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...)
 
 		VALGRIND_START_TX;
 	} else if (tx.stage == TX_STAGE_NONE) {
+		tx_group.count = 0;
 		VALGRIND_START_TX;
 
 		lane_hold(pop, &tx.section, LANE_SECTION_TRANSACTION);
@@ -1137,6 +1144,8 @@ pmemobj_tx_errno(void)
 	return tx.last_errnum;
 }
 
+
+
 /*
  * pmemobj_tx_commit -- commits current transaction
  */
@@ -1179,6 +1188,9 @@ pmemobj_tx_commit()
 	tx.stage = TX_STAGE_ONCOMMIT;
 }
 
+
+
+
 /*
  * pmemobj_tx_end -- ends current transaction
  */
@@ -1186,6 +1198,10 @@ int
 pmemobj_tx_end()
 {
 	LOG(3, NULL);
+
+	if (tx_group.count > 0) {
+		pmemobj_tx_commit();
+	}
 
 	if (tx.stage == TX_STAGE_WORK)
 		FATAL("pmemobj_tx_end called without pmemobj_tx_commit");
@@ -1233,6 +1249,17 @@ pmemobj_tx_end()
 	}
 
 	return tx.last_errnum;
+}
+
+
+void pmemobj_tx_group_commit(PMEMobjpool *pop, jmp_buf env)
+{
+	tx_group.count++;
+	if (tx_group.count>=100) {
+		pmemobj_tx_commit();
+		pmemobj_tx_end();
+		pmemobj_tx_begin(pop, env);
+	}
 }
 
 /*

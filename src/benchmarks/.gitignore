@@ -1,3 +1,4 @@
 pmembench
 *.csv
 testfile.*
+*.log
