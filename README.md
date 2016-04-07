@@ -58,7 +58,7 @@ on the build system:
 
 Some tests and example applications require additional packages, but they
 do not interrupt building if they are missing. An appropriate message is
-displayed instead. For details please read the ** DEPENDENCIES ** section
+displayed instead. For details please read the **DEPENDENCIES** section
 in appropriate README file.
 
 See the **before_install:** rules in the
@@ -119,13 +119,13 @@ To build rpm packages on rpm-based distributions:
 ```
 	$ make rpm
 ```
-** DEPENDENCIES: ** rpmbuild
+**DEPENDENCIES:** rpmbuild
 
 To build dpkg packages on Debian-based distributions:
 ```
 	$ make dpkg
 ```
-** DEPENDENCIES: ** devscripts
+**DEPENDENCIES:** devscripts
 
 (*) By default all code is built with -Werror flag which fails the whole build
 when compiler emits any warning. It's very useful during development, but can be
