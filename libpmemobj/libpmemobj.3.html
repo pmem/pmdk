@@ -1,5 +1,5 @@
 <!-- Creator     : groff version 1.18.1.4 -->
-<!-- CreationDate: Mon Mar 21 14:06:24 2016 -->
+<!-- CreationDate: Thu Apr  7 16:24:49 2016 -->
 <html>
 <head>
 <meta name="generator" content="groff -Thtml, see www.gnu.org">
@@ -267,6 +267,7 @@ Transactional object manipulation:
 enum tx_stage pmemobj_tx_stage(void);
 
 int pmemobj_tx_begin(PMEMobjpool *</b><i>pop</i><b>, jmp_buf *</b><i>env</i><b>, enum</b> <i>tx_lock</i><b>,</b> <i>...</i><b>);
+int pmemobj_tx_lock(enum tx_lock</b> <i>lock_type</i><b>, void *</b><i>lockp</i><b>);
 void pmemobj_tx_abort(int</b> <i>errnum</i><b>);
 void pmemobj_tx_commit(void);
 int pmemobj_tx_end(void);
@@ -305,8 +306,8 @@ TX_FREE(TOID</b> <i>o</i><b>)
 
 TX_SET(TOID</b> <i>o</i><b>,</b> <i>FIELD</i><b>,</b> <i>VALUE</i><b>)
 TX_SET_DIRECT(TYPE *</b><i>p</i><b>,</b> <i>FIELD</i><b>,</b> <i>VALUE</i><b>)
-TX_MEMCPY(const void *</b><i>dest</i><b>, const void *</b><i>src</i><b>, size_t</b> <i>num</i><b>)
-TX_MEMSET(const void *</b><i>dest</i><b>, int</b> <i>c</i><b>, size_t</b> <i>num</i><b>)
+TX_MEMCPY(void *</b><i>dest</i><b>, const void *</b><i>src</i><b>, size_t</b> <i>num</i><b>)
+TX_MEMSET(void *</b><i>dest</i><b>, int</b> <i>c</i><b>, size_t</b> <i>num</i><b>)
 
 Library API versioning:
 
@@ -3741,6 +3742,35 @@ is returned.</p>
 <tr valign="top" align="left">
 <td width="10%"></td>
 <td width="89%">
+<p><b>int pmemobj_tx_lock(enum tx_lock</b>
+<i>lock_type</i><b>, void *</b><i>lockp</i><b>);</b></p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="20%"></td>
+<td width="79%">
+<p>The <b>pmemobj_tx_lock</b>() function grabs a lock
+pointed by <i>lockp</i> and adds it to the current
+transaction. The lock type is specified by <i>lock_type</i>
+( <i>TX_LOCK_MUTEX</i> or <i>TX_LOCK_RWLOCK</i> ) and the
+pointer to the <i>lockp</i> of <i>PMEMmutex</i> or
+<i>PMEMrwlock</i> type. If successful, <i>lockp</i> is added
+to transaction, locked and function returns zero. Otherwise,
+stage changes to <i>TX_STAGE_ONABORT</i> and an error number
+is returned. In case of <i>PMEMrwlock lock_type</i> function
+acquires a write lock. This function must be called during
+<i>TX_STAGE_WORK</i>.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
 <p><b>void pmemobj_tx_abort(int</b>
 <i>errnum</i><b>);</b></p>
 </td>
@@ -3754,7 +3784,8 @@ is returned.</p>
 <p>The <b>pmemobj_tx_abort</b>() aborts the current
 transaction and causes transition to
 <i>TX_STAGE_ONABORT</i>. This function must be called during
-<i>TX_STAGE_WORK</i>.</p>
+<i>TX_STAGE_WORK</i>. If the passed <i>errnum</i> is equal
+to zero, it shall be set to <i>ECANCELED</i>.</p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -3827,9 +3858,8 @@ library.</p>
 <tr valign="top" align="left">
 <td width="20%"></td>
 <td width="79%">
-<p>The <b>pmemobj_tx_errno</b>() function returns last
-transaction error code. It must be called only during
-<i>TX_STAGE_ONABORT</i>.</p>
+<p>The <b>pmemobj_tx_errno</b>() function returns the error
+code of the last transaction.</p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -4522,7 +4552,7 @@ will be restored.</p>
 <tr valign="top" align="left">
 <td width="10%"></td>
 <td width="89%">
-<p><b>TX_MEMCPY(const void *</b><i>dest</i><b>, const void
+<p><b>TX_MEMCPY(void *</b><i>dest</i><b>, const void
 *</b><i>src</i><b>, size_t</b> <i>num</i><b>)</b></p>
 </td>
 </table>
@@ -4545,7 +4575,7 @@ failure or abort, the saved value will be restored.</p>
 <tr valign="top" align="left">
 <td width="10%"></td>
 <td width="89%">
-<p><b>TX_MEMSET(const void *</b><i>dest</i><b>, int</b>
+<p><b>TX_MEMSET(void *</b><i>dest</i><b>, int</b>
 <i>c</i><b>, size_t</b> <i>num</i><b>)</b></p>
 </td>
 </table>
@@ -4803,7 +4833,7 @@ TX_BEGIN(Pop) {
         bad_example_3 = malloc(...);
         good_example = malloc(...);
         ...
-        pmemobj_tx_abort(); /* manual or library abort called here */
+        pmemobj_tx_abort(EINVAL); /* manual or library abort called here */
 } TX_ONCOMMIT {
         /*
          * This section is longjmp-safe

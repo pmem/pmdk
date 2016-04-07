@@ -1,5 +1,5 @@
 <!-- Creator     : groff version 1.18.1.4 -->
-<!-- CreationDate: Thu Dec  3 16:49:08 2015 -->
+<!-- CreationDate: Thu Apr  7 16:24:49 2016 -->
 <html>
 <head>
 <meta name="generator" content="groff -Thtml, see www.gnu.org">
@@ -56,7 +56,7 @@ size_t pmemlog_nbyte(PMEMlogpool *</b><i>plp</i><b>);
 int pmemlog_append(PMEMlogpool *</b><i>plp</i><b>, const void *</b><i>buf</i><b>, size_t</b> <i>count</i><b>);
 int pmemlog_appendv(PMEMlogpool *</b><i>plp</i><b>,
     const struct iovec *</b><i>iov</i><b>, int</b> <i>iovcnt</i><b>);
-off_t pmemlog_tell(PMEMlogpool *</b><i>plp</i><b>);
+long long pmemlog_tell(PMEMlogpool *</b><i>plp</i><b>);
 void pmemlog_rewind(PMEMlogpool *</b><i>plp</i><b>);
 void pmemlog_walk(PMEMlogpool *</b><i>plp</i><b>, size_t</b> <i>chunksize</i><b>,
     int (*</b><i>process_chunk</i><b>)(const void *</b><i>buf</i><b>, size_t</b> <i>len</i><b>, void *</b><i>arg</i><b>),
@@ -447,7 +447,7 @@ example.</p>
 <tr valign="top" align="left">
 <td width="10%"></td>
 <td width="89%">
-<p><b>off_t pmemlog_tell(PMEMlogpool
+<p><b>long long pmemlog_tell(PMEMlogpool
 *</b><i>plp</i><b>);</b></p>
 </td>
 </table>
@@ -824,7 +824,7 @@ has no effect on the non-debug version of
 #include &lt;libpmemlog.h&gt;
 
 /* size of the pmemlog pool -- 1 GB */
-#define POOL_SIZE ((off_t)(1 &lt;&lt; 30))
+#define POOL_SIZE ((size_t)(1 &lt;&lt; 30))
 
 /*
  * printit -- log processing callback for use with pmemlog_walk()

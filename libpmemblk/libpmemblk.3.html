@@ -1,5 +1,5 @@
 <!-- Creator     : groff version 1.18.1.4 -->
-<!-- CreationDate: Thu Dec  3 16:49:08 2015 -->
+<!-- CreationDate: Thu Apr  7 16:24:49 2016 -->
 <html>
 <head>
 <meta name="generator" content="groff -Thtml, see www.gnu.org">
@@ -54,10 +54,11 @@ PMEMblkpool *pmemblk_create(const char *</b><i>path</i><b>, size_t</b> <i>bsize<
 void pmemblk_close(PMEMblkpool *</b><i>pbp</i><b>);
 size_t pmemblk_bsize(PMEMblkpool *</b><i>pbp</i><b>);
 size_t pmemblk_nblock(PMEMblkpool *</b><i>pbp</i><b>);
-int pmemblk_read(PMEMblkpool *</b><i>pbp</i><b>, void *</b><i>buf</i><b>, off_t</b> <i>blockno</i><b>);
-int pmemblk_write(PMEMblkpool *</b><i>pbp</i><b>, const void *</b><i>buf</i><b>, off_t</b> <i>blockno</i><b>);
-int pmemblk_set_zero(PMEMblkpool *</b><i>pbp</i><b>, off_t</b> <i>blockno</i><b>);
-int pmemblk_set_error(PMEMblkpool *</b><i>pbp</i><b>, off_t</b> <i>blockno</i><b>);
+int pmemblk_read(PMEMblkpool *</b><i>pbp</i><b>, void *</b><i>buf</i><b>, long long</b> <i>blockno</i><b>);
+int pmemblk_write(PMEMblkpool *</b><i>pbp</i><b>, const void *</b><i>buf</i><b>,
+    long long</b> <i>blockno</i><b>);
+int pmemblk_set_zero(PMEMblkpool *</b><i>pbp</i><b>, long long</b> <i>blockno</i><b>);
+int pmemblk_set_error(PMEMblkpool *</b><i>pbp</i><b>, long long</b> <i>blockno</i><b>);
 
 Library API versioning:
 
@@ -418,7 +419,8 @@ handle as returned by <b>pmemblk_open</b>() or
 <td width="10%"></td>
 <td width="89%">
 <p><b>int pmemblk_read(PMEMblkpool *</b><i>pbp</i><b>, void
-*</b><i>buf</i><b>, off_t</b> <i>blockno</i><b>);</b></p>
+*</b><i>buf</i><b>, long long</b>
+<i>blockno</i><b>);</b></p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -442,8 +444,8 @@ a block of zeroes.</p>
 <td width="10%"></td>
 <td width="89%">
 <p><b>int pmemblk_write(PMEMblkpool *</b><i>pbp</i><b>,
-const void *</b><i>buf</i><b>, off_t</b>
-<i>blockno</i><b>);</b></p>
+const void *</b><i>buf</i><b>,<br>
+long long</b> <i>blockno</i><b>);</b></p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -469,7 +471,7 @@ is returned and errno is set.</p>
 <td width="10%"></td>
 <td width="89%">
 <p><b>int pmemblk_set_zero(PMEMblkpool *</b><i>pbp</i><b>,
-off_t</b> <i>blockno</i><b>);</b></p>
+long long</b> <i>blockno</i><b>);</b></p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -493,7 +495,7 @@ returned. On error, -1 is returned and errno is set.</p>
 <td width="10%"></td>
 <td width="89%">
 <p><b>int pmemblk_set_error(PMEMblkpool *</b><i>pbp</i><b>,
-off_t</b> <i>blockno</i><b>);</b></p>
+long long</b> <i>blockno</i><b>);</b></p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -812,7 +814,7 @@ has no effect on the non-debug version of
 #include &lt;libpmemblk.h&gt;
 
 /* size of the pmemblk pool -- 1 GB */
-#define POOL_SIZE ((off_t)(1 &lt;&lt; 30))
+#define POOL_SIZE ((size_t)(1 &lt;&lt; 30))
 
 /* size of each element in the pmem pool */
 #define ELEMENT_SIZE 1024
