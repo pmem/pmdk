@@ -1,4 +1,37 @@
-Wed Dec 04 2015 Krzysztof Czurylo <krzysztof.czurylo@intel.com>
+Thu Apr 07 2016 Krzysztof Czurylo <krzysztof.czurylo@intel.com>
+
+	* Version 1.0
+	The API of six libraries (libpmem, libpmemblk, libpmemlog,
+	libpmemobj, libvmem, libvmmalloc) is complete and stable.
+	The on-media layout of persistent memory pools will be maintained
+	from this point, and if changed it will be backward compatible.
+	Man pages are all complete.
+	This release has been validated to "Production quality".
+
+	For the purpose of new features planned for next releases of NVML
+	there have been some API modifications made:
+		- pmem: pmem_map replaced with pmem_map_file
+		- log/blk: 'off_t' substituted with 'long long'
+		- obj: type numbers extended to 64-bit
+		- obj: new entry points and macros added:
+		  pmemobj_tx_errno, pmemobj_tx_lock, pmemobj_mutex_timedlock,
+		  TX_ADD_DIRECT, TX_ADD_FIELD_DIRECT, TX_SET_DIRECT
+
+	Other key changes since version 0.4 include:
+		- common: updated/fixed installation scripts
+		- common: eliminated dependency on libuuid
+		- pmem: CPU features/ISA detection using CPUID
+		- obj: improved error handling
+		- obj: atomic allocation fails if constructor returns error
+		- obj: multiple performance optimizations
+		- obj: object store refactoring
+		- obj: additional examples and benchmarks
+
+	This release also introduces a prototype implementation
+	of C++ bindings for libpmemobj.  Note that C++ API is still
+	experimental and should not be used in production environments.
+
+Fri Dec 04 2015 Krzysztof Czurylo <krzysztof.czurylo@intel.com>
 
 	* Version 0.4
 	This NVML version primarily focuses on improving code quality
