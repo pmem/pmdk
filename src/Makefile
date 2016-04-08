@@ -77,7 +77,7 @@ benchmarks: examples
 custom_build = $(DEBUG)$(OBJDIR)
 
 libvmmalloc libvmem: jemalloc
-tools: libpmem libpmemblk libpmemlog
+tools: libpmem libpmemblk libpmemlog libpmemobj
 libpmemblk libpmemlog libpmemobj: libpmem
 
 pkg-config: $(PKG_CONFIG_FILES)
