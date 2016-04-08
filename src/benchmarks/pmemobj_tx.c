@@ -139,13 +139,14 @@ struct obj_tx_bench {
 	PMEMobjpool *pop;	/* handle to persistent pool */
 	struct obj_tx_args *obj_args;	/* pointer to benchmark arguments */
 	size_t *random_types;	/* array to store random type numbers */
-	size_t *sizes;	/* array to store size of each allocation */
+	size_t *sizes;		/* array to store size of each allocation */
 	size_t *resizes;	/* array to store size of each reallocation */
 	size_t n_objs;		/* number of objects to allocate */
 	int type_mode;		/* type number mode */
 	int op_mode;		/* type of operation */
 	int lib_mode;		/* type of operation used in initialization */
-	int lib_op;	/* type of main operation */
+	int lib_op;		/* type of main operation */
+	int lib_op_free;	/* type of main operation */
 	int nesting_mode;	/* type of nesting in main operation */
 	fn_num n_oid;		/* returns object's number in array */
 	fn_off fn_off;		/* returns offset for proper operation */
@@ -338,7 +339,7 @@ enum lib_mode {
 	LIB_MODE_DRAM,
 	LIB_MODE_OBJ_TX,
 	LIB_MODE_OBJ_ATOMIC,
-	LIB_MODE_UNKNOWN,
+	LIB_MODE_NONE,
 };
 
 /*
@@ -438,8 +439,7 @@ free_pmem(struct obj_tx_bench *obj_bench, struct worker_info *worker,
 							unsigned int idx)
 {
 	struct obj_tx_worker *obj_worker = worker->priv;
-	if (!TOID_IS_NULL(obj_worker->oids[idx]))
-		POBJ_FREE(&obj_worker->oids[idx]);
+	POBJ_FREE(&obj_worker->oids[idx]);
 	return 0;
 }
 
@@ -452,6 +452,17 @@ free_tx(struct obj_tx_bench *obj_bench, struct worker_info *worker,
 {
 	struct obj_tx_worker *obj_worker = worker->priv;
 	TX_FREE(obj_worker->oids[idx]);
+	return 0;
+}
+
+/*
+ * no_free -- exit operation for benchmarks obj_tx_alloc and obj_tx_free
+ * if there is no need to free memory
+ */
+static int
+no_free(struct obj_tx_bench *obj_bench, struct worker_info *worker,
+							unsigned int idx)
+{
 	return 0;
 }
 
@@ -687,7 +698,7 @@ parse_op_mode(const char *arg)
 
 static fn_op alloc_op[] = {alloc_dram, alloc_tx, alloc_pmem};
 
-static fn_op free_op[] = {free_dram, free_tx, free_pmem};
+static fn_op free_op[] = {free_dram, free_tx, free_pmem, no_free};
 
 static fn_op realloc_op[] = {realloc_dram, realloc_tx, realloc_pmem};
 
@@ -726,7 +737,7 @@ parse_lib_mode(const char *arg)
 	else if (strcmp(arg, "tx") == 0)
 		return LIB_MODE_OBJ_TX;
 	fprintf(stderr, "unknown lib mode\n");
-	return LIB_MODE_UNKNOWN;
+	return LIB_MODE_NONE;
 }
 
 
@@ -895,34 +906,22 @@ out:
 }
 
 /*
- * obj_tx_free_worker -- common part for the worker de-initialization.
+ * obj_tx_exit_worker -- common part for the worker de-initialization.
  */
 static void
-obj_tx_free_worker(struct benchmark *bench, struct benchmark_args *args,
+obj_tx_exit_worker(struct benchmark *bench, struct benchmark_args *args,
 						struct worker_info *worker)
 {
-	struct obj_tx_worker *obj_worker = worker->priv;
 	struct obj_tx_bench *obj_bench = pmembench_get_priv(bench);
+	struct obj_tx_worker *obj_worker = worker->priv;
+	for (unsigned int i = 0; i < obj_bench->n_objs; i++)
+		free_op[obj_bench->lib_op_free](obj_bench, worker, i);
+
 	if (obj_bench->lib_mode == LIB_MODE_DRAM)
 		free(obj_worker->items);
 	else
 		free(obj_worker->oids);
 	free(obj_worker);
-}
-
-/*
- * obj_tx_alloc_free_worker_free_obj -- special part for the worker
- * de-initialization for benchmarks, which requires deallocation of
- * all of objects.
- */
-static void
-obj_tx_free_worker_free_obj(struct benchmark *bench, struct benchmark_args
-					*args, struct worker_info *worker)
-{
-	struct obj_tx_bench *obj_bench = pmembench_get_priv(bench);
-	for (unsigned int i = 0; i < obj_bench->n_objs; i++)
-		free_op[obj_bench->lib_mode](obj_bench, worker, i);
-	obj_tx_free_worker(bench, args, worker);
 }
 
 /*
@@ -973,6 +972,18 @@ obj_tx_free_init(struct benchmark *bench, struct benchmark_args *args)
 
 	struct obj_tx_bench *obj_bench = pmembench_get_priv(bench);
 	obj_bench->fn_op = free_op;
+
+	/*
+	 * Genarally all objects which were allocated during worker
+	 * initialization are released in main operation so there is no need to
+	 * free them in exit operation. Only exception is situation where
+	 * transaction (inside which object is releasing) is aborted.
+	 * Then object is not released so there there is necessary to free it
+	 * in exit operation.
+	 */
+	if (!(obj_bench->lib_op == LIB_MODE_OBJ_TX &&
+					obj_bench->op_mode != OP_MODE_COMMIT))
+		obj_bench->lib_op_free = LIB_MODE_NONE;
 	return 0;
 }
 
@@ -987,6 +998,16 @@ obj_tx_alloc_init(struct benchmark *bench, struct benchmark_args *args)
 
 	struct obj_tx_bench *obj_bench = pmembench_get_priv(bench);
 	obj_bench->fn_op = alloc_op;
+
+	/*
+	 * Genarally all objects which will be allocated during main operation
+	 * need to be released. Only exception is situation where transaction
+	 * (inside which object is allocating) is aborted. Then object is not
+	 * allocated so there is no need to free it in exit operation.
+	 */
+	if (obj_bench->lib_op == LIB_MODE_OBJ_TX &&
+					obj_bench->op_mode != OP_MODE_COMMIT)
+		obj_bench->lib_op_free = LIB_MODE_NONE;
 	return 0;
 }
 
@@ -1034,11 +1055,13 @@ obj_tx_init(struct benchmark *bench, struct benchmark_args *args)
 				parse_lib_mode(obj_bench.obj_args->lib) :
 				LIB_MODE_OBJ_ATOMIC;
 
-	if (obj_bench.lib_op == LIB_MODE_UNKNOWN)
+	if (obj_bench.lib_op == LIB_MODE_NONE)
 			return -1;
 
 	obj_bench.lib_mode = obj_bench.lib_op == LIB_MODE_DRAM ?
 				LIB_MODE_DRAM : LIB_MODE_OBJ_ATOMIC;
+
+	obj_bench.lib_op_free = obj_bench.lib_mode;
 
 	obj_bench.nesting_mode = obj_bench.lib_op == LIB_MODE_OBJ_TX ?
 					NESTING_MODE_TX : NESTING_MODE_SIM;
@@ -1154,7 +1177,7 @@ static struct benchmark_info obj_tx_alloc = {
 	.multithread	= true,
 	.multiops	= true,
 	.init_worker	= obj_tx_init_worker,
-	.free_worker	= obj_tx_free_worker_free_obj,
+	.free_worker	= obj_tx_exit_worker,
 	.operation	= obj_tx_op,
 	.measure_time	= true,
 	.clos		= obj_tx_clo,
@@ -1174,7 +1197,7 @@ static struct benchmark_info obj_tx_free = {
 	.multithread	= true,
 	.multiops	= true,
 	.init_worker	= obj_tx_init_worker_alloc_obj,
-	.free_worker	= obj_tx_free_worker,
+	.free_worker	= obj_tx_exit_worker,
 	.operation	= obj_tx_op,
 	.measure_time	= true,
 	.clos		= obj_tx_clo,
@@ -1194,7 +1217,7 @@ static struct benchmark_info obj_tx_realloc = {
 	.multithread	= true,
 	.multiops	= true,
 	.init_worker	= obj_tx_init_worker_alloc_obj,
-	.free_worker	= obj_tx_free_worker_free_obj,
+	.free_worker	= obj_tx_exit_worker,
 	.operation	= obj_tx_op,
 	.measure_time	= true,
 	.clos		= obj_tx_clo,
@@ -1214,7 +1237,7 @@ static struct benchmark_info obj_tx_add_range = {
 	.multithread	= true,
 	.multiops	= false,
 	.init_worker	= obj_tx_init_worker_alloc_obj,
-	.free_worker	= obj_tx_free_worker_free_obj,
+	.free_worker	= obj_tx_exit_worker,
 	.operation	= obj_tx_add_range_op,
 	.measure_time	= true,
 	.clos		= obj_tx_clo,
