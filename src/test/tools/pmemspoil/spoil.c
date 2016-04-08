@@ -520,13 +520,14 @@ pmemspoil_parse_args(struct pmemspoil *psp, char *appname,
  * pmemspoil_get_arena_offset -- get offset to arena of given id
  */
 static uint64_t
-pmemspoil_get_arena_offset(struct pmemspoil *psp, uint32_t id)
+pmemspoil_get_arena_offset(struct pmemspoil *psp, uint32_t id,
+		uint64_t start_offset)
 {
 	struct btt_info *infop = calloc(sizeof (struct btt_info), 1);
 	if (!infop)
 		err(1, NULL);
 
-	infop->nextoff = 2 * BTT_ALIGNMENT;
+	infop->nextoff = start_offset;
 
 	uint64_t offset = 0;
 	ssize_t ret = 0;
@@ -974,7 +975,8 @@ pmemspoil_process_pmemblk(struct pmemspoil *psp,
 		PROCESS_FIELD_LE(&pmemblk, bsize, uint32_t);
 
 		PROCESS(arena,
-			pmemspoil_get_arena_offset(psp, PROCESS_INDEX),
+			pmemspoil_get_arena_offset(psp, PROCESS_INDEX,
+				2 * BTT_ALIGNMENT),
 			UINT32_MAX);
 	} PROCESS_END
 
@@ -985,6 +987,23 @@ pmemspoil_process_pmemblk(struct pmemspoil *psp,
 
 	return PROCESS_RET;
 }
+
+/*
+ * pmemspoil_process_bttdevice -- process btt device fields
+ */
+static int
+pmemspoil_process_bttdevice(struct pmemspoil *psp,
+		struct pmemspoil_list *pfp, void *arg)
+{
+	PROCESS_BEGIN(psp, pfp) {
+		PROCESS(arena,
+			pmemspoil_get_arena_offset(psp, PROCESS_INDEX,
+					BTT_ALIGNMENT),
+			UINT32_MAX);
+	} PROCESS_END
+	return PROCESS_RET;
+}
+
 
 /*
  * pmemspoil_process_pmemlog -- process pmemlog fields
@@ -1344,6 +1363,7 @@ pmemspoil_process(struct pmemspoil *psp,
 		PROCESS(pmemlog, NULL, 1);
 		PROCESS(pmemblk, NULL, 1);
 		PROCESS(pmemobj, NULL, 1);
+		PROCESS(bttdevice, NULL, 1);
 	} PROCESS_END
 
 	return PROCESS_RET;
