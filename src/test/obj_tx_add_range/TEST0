@@ -42,8 +42,6 @@ export UNITTEST_NUM=0
 
 setup
 
-expect_normal_exit ./obj_tx_add_range$EXESUFFIX $DIR/testfile1
-
-check
+expect_normal_exit ./obj_tx_add_range$EXESUFFIX $DIR/testfile1 0
 
 pass
