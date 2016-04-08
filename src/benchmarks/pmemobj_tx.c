@@ -974,7 +974,7 @@ obj_tx_free_init(struct benchmark *bench, struct benchmark_args *args)
 	obj_bench->fn_op = free_op;
 
 	/*
-	 * Genarally all objects which were allocated during worker
+	 * Generally all objects which were allocated during worker
 	 * initialization are released in main operation so there is no need to
 	 * free them in exit operation. Only exception is situation where
 	 * transaction (inside which object is releasing) is aborted.
@@ -1000,7 +1000,7 @@ obj_tx_alloc_init(struct benchmark *bench, struct benchmark_args *args)
 	obj_bench->fn_op = alloc_op;
 
 	/*
-	 * Genarally all objects which will be allocated during main operation
+	 * Generally all objects which will be allocated during main operation
 	 * need to be released. Only exception is situation where transaction
 	 * (inside which object is allocating) is aborted. Then object is not
 	 * allocated so there is no need to free it in exit operation.
