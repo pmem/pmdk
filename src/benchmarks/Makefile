@@ -108,7 +108,6 @@ CFLAGS += -Wmissing-prototypes
 CFLAGS += -Wpointer-arith
 CFLAGS += -Wunused-macros
 CFLAGS += -pthread
-CFLAGS += $(EXTRA_CFLAGS)
 CFLAGS += -I../include
 CFLAGS += -I../libpmemobj
 CFLAGS += -I../common
@@ -139,6 +138,8 @@ GLIB_SILENCE := $(shell printf $(GLIB_TEST_PROG) |\
 ifeq ($(GLIB_SILENCE), y)
 CFLAGS += -Wno-unknown-attributes
 endif
+
+CFLAGS += $(EXTRA_CFLAGS)
 
 objdir=.
 

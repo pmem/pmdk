@@ -51,13 +51,6 @@ ifeq ($(call check_Wconversion), y)
 CFLAGS += -Wconversion
 endif
 CFLAGS += -fno-common
-CFLAGS += $(EXTRA_CFLAGS)
-
-ifeq ($(DEBUG),)
-CFLAGS += -O2 -D_FORTIFY_SOURCE=2
-else
-CFLAGS += -ggdb
-endif
 
 CFLAGS += -DSRCVERSION='"$(SRCVERSION)"'
 ifeq ($(call check_flag, -Wunreachable-code-return), y)
@@ -66,6 +59,14 @@ endif
 ifeq ($(call check_flag, -Wmissing-variable-declarations), y)
 CFLAGS += -Wmissing-variable-declarations
 endif
+
+ifeq ($(DEBUG),1)
+CFLAGS += -ggdb $(EXTRA_CFLAGS_DEBUG)
+else
+CFLAGS += -O2 -D_FORTIFY_SOURCE=2 $(EXTRA_CFLAGS_RELEASE)
+endif
+
+CFLAGS += $(EXTRA_CFLAGS)
 
 LDFLAGS += -Wl,-z,relro -Wl,--warn-common -Wl,--fatal-warnings $(EXTRA_LDFLAGS) -L$(TOP)/src/nondebug
 TARGET_DIR=$(DESTDIR)$(bindir)
