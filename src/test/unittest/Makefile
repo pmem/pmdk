@@ -55,7 +55,6 @@ CFLAGS += -Wconversion
 endif
 CFLAGS += -pthread
 CFLAGS += -fno-common
-CFLAGS += $(EXTRA_CFLAGS)
 ifeq ($(call check_flag, -Wunreachable-code-return), y)
 CFLAGS += -Wunreachable-code-return
 endif
@@ -71,6 +70,8 @@ endif
 
 CFLAGS += -DUSE_LIBUNWIND
 endif
+
+CFLAGS += $(EXTRA_CFLAGS)
 
 all test: $(TARGET)
 

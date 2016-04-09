@@ -55,7 +55,6 @@ CFLAGS += -Wconversion
 endif
 CFLAGS += -pthread
 CFLAGS += -fno-common
-CFLAGS += $(EXTRA_CFLAGS)
 CFLAGS += -DSRCVERSION=\"$(SRCVERSION)\"
 ifeq ($(call check_flag, -Wunreachable-code-return), y)
 CFLAGS += -Wunreachable-code-return
@@ -63,6 +62,18 @@ endif
 ifeq ($(call check_flag, -Wmissing-variable-declarations), y)
 CFLAGS += -Wmissing-variable-declarations
 endif
+
+ifeq ($(DEBUG),1)
+CFLAGS += -O0 -ggdb -DDEBUG $(EXTRA_CFLAGS_DEBUG)
+LIB_SUBDIR = /nvml_debug
+OBJDIR = debug
+else
+CFLAGS += -O2 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2 $(EXTRA_CFLAGS_RELEASE)
+LIB_SUBDIR =
+OBJDIR = nondebug
+endif
+
+CFLAGS += $(EXTRA_CFLAGS)
 
 LDFLAGS += -Wl,-z,relro -Wl,--fatal-warnings -Wl,--warn-common $(EXTRA_LDFLAGS)
 
@@ -84,16 +95,6 @@ endif
 LP64 := $(shell $(CC) $(CFLAGS) -dM -E -x c /dev/null | grep -Ec "__SIZEOF_LONG__.+8|__SIZEOF_POINTER__.+8" )
 ifneq ($(LP64), 2)
 $(error $(arch32_error_msg))
-endif
-
-ifeq ($(DEBUG),1)
-CFLAGS += -O0 -ggdb -DDEBUG
-LIB_SUBDIR = /nvml_debug
-OBJDIR = debug
-else
-CFLAGS += -O2 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2
-LIB_SUBDIR =
-OBJDIR = nondebug
 endif
 
 LIBS_DESTDIR = $(DESTDIR)$(libdir)$(LIB_SUBDIR)
