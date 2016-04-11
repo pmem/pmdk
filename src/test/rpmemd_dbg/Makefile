@@ -1,3 +1,4 @@
+#
 # Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
@@ -28,24 +29,17 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# Makefile -- top Makefile for rpmemd
+
 #
+# src/test/rpmemd_dbg/Makefile -- build rpmemd_dbg test
+#
+vpath %.c ../../tools/rpmemd
+vpath %.c ../rpmemd_log/
 
-TOP = ../../..
-
-TARGET = rpmemd
-
-OBJS = rpmemd.o\
-       rpmemd_log.o
-
-LIBPMEM=y
-TOOLS_COMMON=y
-
-INCS += -I$(TOP)/src/common
-INCS += -I$(TOP)/src/librpmem
-
-INSTALL_TARGET=n
+TARGET = rpmemd_dbg
+OBJS = rpmemd_log_test.o rpmemd_log.o
 
 include ../Makefile.inc
 
-.PHONY: test check
+CFLAGS += -I../../tools/rpmemd -DDEBUG
+LDFLAGS += $(call extract_funcs, ../rpmemd_log/rpmemd_log_test.c)
