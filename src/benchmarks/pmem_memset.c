@@ -45,6 +45,7 @@
 #include "benchmark.h"
 
 #define	MAX_OFFSET 63
+#define	CONST_B 0xFF
 
 struct memset_bench;
 
@@ -347,6 +348,9 @@ memset_init(struct benchmark *bench, struct benchmark_args *args)
 		ret = -1;
 		goto err_free_mb;
 	}
+
+	/* initialize memset() value */
+	mb->const_b = CONST_B;
 
 	/* create a pmem file and memory map it */
 	if ((mb->pmem_addr = pmem_map_file(args->fname, mb->fsize,
