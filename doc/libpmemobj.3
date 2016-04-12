@@ -37,7 +37,7 @@
 .\" or
 .\"	groff -man -Tascii libpmemobj.3
 .\"
-.TH libpmemobj 3 "pmemobj API version 1.0.0" "NVM Library"
+.TH libpmemobj 3 "pmemobj API version 1.0.1" "NVM Library"
 .SH NAME
 libpmemobj \- persistent memory transactional object store
 .SH SYNOPSIS
@@ -2870,7 +2870,7 @@ is not OID_NULL, then the call is equivalent to
 If the new size is larger than the old size, the added memory will
 .I not
 be initialized.
-If successful, returns returns a handle to the resized object.  Otherwise, stage
+If successful, returns a handle to the resized object.  Otherwise, stage
 changes to
 .IR TX_STAGE_ONABORT ,
 OID_NULL is returned, and errno is set appropriately.
@@ -2889,7 +2889,7 @@ function transactionally resizes an existing object to the given
 and changes its type to
 .IR type_num .
 If the new size is larger than the old size, the extended new space is zeroed.
-If successful, returns returns a handle to the resized object.  Otherwise, stage
+If successful, returns a handle to the resized object.  Otherwise, stage
 changes to
 .IR TX_STAGE_ONABORT ,
 OID_NULL is returned, and errno is set appropriately.
