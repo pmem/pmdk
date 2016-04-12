@@ -159,7 +159,7 @@ namespace obj {
 		typedef typename detail::pp_array_type<T>::type I;
 
 		if (pmemobj_tx_stage() != TX_STAGE_WORK)
-			throw transaction_scope_error("refusing to allocate "
+			throw transaction_scope_error("refusing to free "
 				"memory outside of transaction scope");
 
 		if (ptr == nullptr)
@@ -200,7 +200,7 @@ namespace obj {
 		};
 
 		if (pmemobj_tx_stage() != TX_STAGE_WORK)
-			throw transaction_scope_error("refusing to allocate "
+			throw transaction_scope_error("refusing to free "
 				"memory outside of transaction scope");
 
 		if (ptr == nullptr)
