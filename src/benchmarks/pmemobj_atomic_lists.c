@@ -898,7 +898,7 @@ obj_move_init_worker(struct benchmark *bench, struct benchmark_args *args,
 
 	struct obj_worker *obj_worker = worker->priv;
 	obj_worker->list_move = calloc(1, sizeof (struct obj_worker));
-	if (obj_worker == NULL) {
+	if (obj_worker->list_move == NULL) {
 		perror("calloc");
 		goto free;
 	}
@@ -907,7 +907,7 @@ obj_move_init_worker(struct benchmark *bench, struct benchmark_args *args,
 		obj_bench.increment = true;
 		obj_worker->list_move->positions = random_positions();
 		if (obj_worker->list_move->positions == NULL)
-			goto free_worker;
+			goto free_list_move;
 	}
 	for (i = 0; i < obj_bench.min_len; i++) {
 		size_t size = obj_bench.alloc_sizes[i];
@@ -929,8 +929,8 @@ free_all:
 				field), field);
 	}
 	free(obj_worker->list_move->positions);
-free_worker:
-	free(obj_worker);
+free_list_move:
+	free(obj_worker->list_move);
 free:
 	free_worker_list(bench, args, worker);
 	return -1;
