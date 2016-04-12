@@ -1,8 +1,12 @@
 #
-# src/test/testconfig.sh -- local configuration for unit tests
+# src/test/testconfig.sh -- configuration for local and remote unit tests
 #
-# This file tells the script unittest/unittest.sh which file system
-# locations are to be used for testing.
+
+#
+# 1) *** LOCAL CONFIGURATION ***
+#
+# The first part of the file tells the script unittest/unittest.sh
+# which file system locations are to be used for local testing.
 #
 
 #
@@ -25,3 +29,34 @@ NON_PMEM_FS_DIR=/tmp
 # tests that require pmem.
 #
 #PMEM_FS_DIR_FORCE_PMEM=1
+
+#
+# 2) *** REMOTE CONFIGURATION ***
+#
+# The second part of the file tells the script unittest/unittest.sh
+# which remote nodes and their file system locations are to be used
+# for remote testing.
+#
+
+#
+# Addresses of nodes should be defined as an array:
+#
+#    NODE[index]=[<user>@]<host-name-or-IP>
+#
+#NODE[0]=127.0.0.1
+#NODE[1]=user1@host1
+#NODE[2]=user2@host2
+
+#
+# Working directories on remote nodes (they will be created)
+#
+#NODE_WORKING_DIR[0]=/remote/dir0
+#NODE_WORKING_DIR[1]=/remote/dir1
+#NODE_WORKING_DIR[2]=/remote/dir2
+
+#
+# LD_LIBRARY_PATH variable for each remote node
+#
+#NODE_LD_LIBRARY_PATH[0]=/usr/local/lib
+#NODE_LD_LIBRARY_PATH[1]=/usr/local/lib
+#NODE_LD_LIBRARY_PATH[2]=/usr/local/lib

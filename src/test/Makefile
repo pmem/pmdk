@@ -139,6 +139,8 @@ OTHER_TESTS = \
        out_err\
        out_err_mt\
        pmemspoil\
+       remote_basic\
+       remote_obj_basic\
        scope\
        set_funcs\
        traces\

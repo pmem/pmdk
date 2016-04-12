@@ -1,0 +1,5 @@
+remote_basic/TEST1: START: remote_basic
+ ./remote_basic$(nW) test-file
+File 'test-file' exists
+An example of OUT message
+remote_basic/TEST1: Done

@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,27 +31,9 @@
 #
 
 #
-# src/test/tools/Makefile -- build unit test helpers
+# src/test/remote_basic/Makefile -- build remote_basic unit test
 #
+TARGET = remote_basic
+OBJS = remote_basic.o
 
-DIRS = \
-       pmemspoil\
-       pmemwrite\
-       pmemalloc\
-       pmemobjcli\
-       pmemdetect\
-       ctrld
-
-all     : TARGET = all
-clean   : TARGET = clean
-clobber : TARGET = clobber
-cstyle  : TARGET = cstyle
-
-all cstyle clean clobber: $(DIRS)
-
-$(DIRS):
-	$(MAKE) -C $@ $(TARGET)
-
-test check pcheck:
-
-.PHONY: all clean clobber cstyle check pcheck $(DIRS)
+include ../Makefile.inc

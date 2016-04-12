@@ -1,5 +1,6 @@
+#!/bin/bash -e
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,27 +32,44 @@
 #
 
 #
-# src/test/tools/Makefile -- build unit test helpers
+# src/test/remote_obj_basic/TEST3 -- unit test for remote tests support
 #
+export UNITTEST_NAME=remote_obj_basic/TEST3
+export UNITTEST_NUM=3
 
-DIRS = \
-       pmemspoil\
-       pmemwrite\
-       pmemalloc\
-       pmemobjcli\
-       pmemdetect\
-       ctrld
+# timeout value for this test in seconds
+TIMEOUT=5
 
-all     : TARGET = all
-clean   : TARGET = clean
-clobber : TARGET = clobber
-cstyle  : TARGET = cstyle
+# standard unit test setup
+. ../unittest/unittest.sh
 
-all cstyle clean clobber: $(DIRS)
+setup
 
-$(DIRS):
-	$(MAKE) -C $@ $(TARGET)
+# how much remote nodes are required
+require_nodes 1
 
-test check pcheck:
+# list of required files that should be copied to the remote nodes
+copy_files_to_node 0 ./pool$UNITTEST_NUM.set
 
-.PHONY: all clean clobber cstyle check pcheck $(DIRS)
+# PID file name for remote test run in background
+PID_FILE="./pid-file-$$.txt"
+
+# register the list of PID files to be cleaned in case of an error
+clean_remote_node 0 $PID_FILE
+
+#
+# Run commands on remote nodes
+# (run_on_node or run_on_node_background can be used here).
+#
+# LD_LIBRARY_PATH for the n-th remote node can be provided
+# in the array NODE_LD_LIBRARY_PATH[n].
+#
+expect_normal_exit run_on_node 0 ./pmempool rm -f -s pool$UNITTEST_NUM.set
+expect_normal_exit run_on_node_background 0 $PID_FILE ./remote_obj_basic$EXESUFFIX create pool$UNITTEST_NUM.set
+expect_normal_exit wait_on_node 0 $PID_FILE $TIMEOUT
+expect_normal_exit run_on_node_background 0 $PID_FILE ./remote_obj_basic$EXESUFFIX open pool$UNITTEST_NUM.set
+expect_normal_exit wait_on_node 0 $PID_FILE $TIMEOUT
+
+check
+
+pass
