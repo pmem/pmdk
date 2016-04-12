@@ -142,30 +142,11 @@ util_init(void)
 		}
 	}
 
-#ifdef WIN32
-	mmap_init();
-#endif
-
 #if defined(USE_VG_PMEMCHECK) || defined(USE_VG_HELGRIND) ||\
 	defined(USE_VG_MEMCHECK)
 	_On_valgrind = RUNNING_ON_VALGRIND;
 #endif
 }
-
-#ifdef WIN32
-/*
- * util_fini -- initialize the utils
- *
- * This is called from the library destructor code.
- */
-void
-util_fini(void)
-{
-	LOG(3, NULL);
-
-	mmap_fini();
-}
-#endif
 
 /*
  * util_set_alloc_funcs -- allow one to override malloc, etc.

@@ -55,8 +55,14 @@ typedef struct _FILE_MAPPING_TRACKER {
 
 HANDLE FileMappingListMutex = NULL;
 
+static void mmap_fini(void);
 
-void
+/*
+ * mmap_init -- (internal) load-time initialization of file mapping tracker
+ *
+ * Called automatically by the run-time loader.
+ */
+static void
 mmap_init(void)
 {
 	//LOG(3, NULL);
@@ -64,10 +70,17 @@ mmap_init(void)
 	InitializeListHead(&FileMappingListHead);
 
 	FileMappingListMutex = CreateMutex(NULL, FALSE, NULL);
+
+	atexit(mmap_fini);
 }
 
 
-void
+/*
+ * mmap_fini -- (internal) file mapping tracker cleanup routine
+ *
+ * Called automatically when the process terminates.
+ */
+static void
 mmap_fini(void)
 {
 	//LOG(3, NULL);
@@ -333,3 +346,10 @@ mprotect(void *addr, size_t len, int prot)
 
 	return 0;
 }
+
+/*
+ * library constructor function
+ */
+#pragma section(".CRT$XCU", read)
+__declspec(allocate(".CRT$XCU"))
+const void (WINAPI *_mmap_init)(void) = mmap_init;

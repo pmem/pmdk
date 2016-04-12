@@ -83,10 +83,6 @@ libpmem_fini(void)
 {
 	LOG(3, NULL);
 
-#ifdef WIN32
-	util_fini();
-#endif
-
 	out_fini();
 }
 
