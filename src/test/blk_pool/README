@@ -43,6 +43,10 @@ TEST12 (fail)	non-existing file, poolsize >= min required size, bsize == 0
 TEST13 (pass)	non-existing file, poolsize >= min required size, bsize < min blk size
 TEST14 (fail)	non-existing file, poolsize >= min required size, bsize > min blk size
 		block size is too large
+TEST15 (pass)	non-existing file, poolsize >= min required size, bsize < min blk size
+		pool set
+TEST16 (fail)	non-existing file, poolsize >= min required size, bsize < min blk size
+		pool set with replica section
 
 - pmemblk_open:
 
@@ -61,6 +65,12 @@ TEST26 (fail)	existing file, file length >= min required size, bsize == 0
 TEST27 (pass)	existing file, file length >= min required size, bsize == 0
 TEST28 (pass)	existing file, file length >= min required size, bsize == 300
 		bsize matches the value from pool header
+TEST29 (pass)	existing file, file length >= min required size, bsize == 300
+		bsize matches the value from pool header
+		pool set
+TEST30 (fail)	existing file, file length >= min required size, bsize == 300
+		bsize matches the value from pool header
+		pool set with replica section
 
 - each case outputs:
 	- error, if error happened

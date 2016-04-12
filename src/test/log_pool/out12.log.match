@@ -1,0 +1,4 @@
+log_pool/TEST12: START: log_pool
+ ./log_pool$(nW) c $(nW)/testset 0 0640
+$(nW)/testset: pmemlog_create: Operation not supported
+log_pool/TEST12: Done

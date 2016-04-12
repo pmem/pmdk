@@ -1,0 +1,4 @@
+blk_pool/TEST15: START: blk_pool
+ ./blk_pool$(nW) c $(nW)/testset 100 0 0640
+$(nW)/testset: file size $(N) usable blocks 80949 mode 0666
+blk_pool/TEST15: Done

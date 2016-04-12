@@ -1,0 +1,4 @@
+log_pool/TEST27: START: log_pool
+ ./log_pool$(nW) o $(nW)/testset
+$(nW)/testset: pmemlog_open: Success
+log_pool/TEST27: Done
