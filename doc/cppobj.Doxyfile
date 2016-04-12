@@ -72,6 +72,7 @@ HIDE_UNDOC_CLASSES = YES
 # The QUIET tag can be used to turn on/off the messages that are generated to
 # standard output by doxygen. If QUIET is set to YES this implies that the
 # messages are off.
+
 QUIET = YES
 
 #---------------------------------------------------------------------------
@@ -147,6 +148,16 @@ EXAMPLE_RECURSIVE = NO
 # \image command).
 
 IMAGE_PATH =
+
+# The STRIP_FROM_PATH tag can be used to strip a user-defined part of the path.
+# Stripping is only done if one of the specified strings matches the left-hand
+# part of the path. The tag can be used to show relative paths in the file list.
+# If left blank the directory from which doxygen is run is used as the path to strip.
+# Note that you can specify absolute paths here, but also relative paths, which will
+#  be relative from the directory where doxygen is started.
+# This tag requires that the tag FULL_PATH_NAMES is set to YES.
+
+STRIP_FROM_PATH = ../..
 
 #---------------------------------------------------------------------------
 # Configuration options related to the LATEX output
