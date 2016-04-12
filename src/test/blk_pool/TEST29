@@ -45,7 +45,7 @@ umask 0
 
 #
 # TEST29 existing file, file size >= min required size, bsize == 300
-#        pool set
+#        (pool set)
 #
 create_poolset $DIR/testset 20M:$DIR/testfile1 20M:$DIR/testfile2
 

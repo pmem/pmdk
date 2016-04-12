@@ -45,7 +45,7 @@ umask 0
 
 #
 # TEST30 existing file, file size >= min required size, bsize == 300
-#        pool set wtih replica section
+#        (pool set with replica section)
 #
 expect_normal_exit ./blk_pool$EXESUFFIX c $DIR/testfile1 300 20 0640
 

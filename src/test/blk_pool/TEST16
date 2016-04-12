@@ -45,7 +45,7 @@ umask 0
 
 #
 # TEST16 non-existing file, poolsize >= min required size, bsize > min bsize
-#        pool set with replica section
+#        (pool set with replica section)
 #
 create_poolset $DIR/testset 20M:$DIR/testfile1:x R 20M:$DIR/testfile2:x
 
