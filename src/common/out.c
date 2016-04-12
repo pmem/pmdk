@@ -199,7 +199,7 @@ out_init(const char *log_prefix, const char *log_level_var,
 		size_t cc = strlen(log_file);
 
 		/* reserve more than enough space for a PID + '\0' */
-		char log_file_pid[cc + 30];
+		char *log_file_pid = alloca(cc + 30);
 
 		if (cc > 0 && log_file[cc - 1] == '-') {
 			snprintf(log_file_pid, cc + 30, "%s%d",
@@ -353,7 +353,7 @@ out_common(const char *file, int line, const char *func, int level,
 	const char *errstr = "";
 
 	if (file) {
-		char *f = rindex(file, '/');
+		char *f = strrchr(file, '/');
 		if (f)
 			file = f + 1;
 		ret = out_snprintf(&buf[cc], MAXPRINT - cc,
@@ -429,7 +429,7 @@ out_error(const char *file, int line, const char *func,
 		cc = 0;
 
 		if (file) {
-			char *f = rindex(file, '/');
+			char *f = strrchr(file, '/');
 			if (f)
 				file = f + 1;
 			ret = out_snprintf(&buf[cc], MAXPRINT,
