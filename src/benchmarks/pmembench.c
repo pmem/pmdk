@@ -956,6 +956,12 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 	size_t args_i;
 	for (args_i = 0; args_i < clovec->nargs; args_i++) {
 		args = clo_vec_get_args(clovec, args_i);
+		if (args == NULL) {
+			warn("%s: parsing command line arguments failed",
+				bench->info->name);
+			ret = -1;
+			goto out;
+		}
 		args->opts = (void *)((uintptr_t)args +
 				sizeof (struct benchmark_args));
 		args->is_poolset = util_is_poolset(args->fname) == 1;
