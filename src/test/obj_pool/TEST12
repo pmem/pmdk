@@ -49,10 +49,7 @@ umask 0
 #
 expect_normal_exit ./obj_pool$EXESUFFIX c $DIR/testfile NULL 20 0640
 
-[ -f $DIR/testfile ] || {
-    echo "error: $DIR/testfile doesn't exists"
-    exit 1
-}
+check_files $DIR/testfile
 
 check
 

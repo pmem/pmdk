@@ -43,7 +43,7 @@ export UNITTEST_NUM=3
 setup
 umask 0
 
-truncate -s 2G $DIR/testfile
+create_holey_file 20 $DIR/testfile
 chmod 0640 $DIR/testfile
 
 #
@@ -51,10 +51,7 @@ chmod 0640 $DIR/testfile
 #
 expect_normal_exit ./blk_pool$EXESUFFIX c $DIR/testfile 4096 20 0640
 
-[ -f $DIR/testfile ] || {
-    echo "error: $DIR/testfile deleted"
-    exit 1
-}
+check_files $DIR/testfile
 
 check
 

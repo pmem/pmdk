@@ -48,11 +48,7 @@ umask 0
 #
 expect_normal_exit ./obj_pool$EXESUFFIX c $DIR/testfile "test" 1 0640
 
-[ ! -f $DIR/testfile ] || {
-    echo "error: $DIR/testfile not deleted"
-    rm $DIR/testfile
-    exit 1
-}
+check_no_files $DIR/testfile
 
 check
 
