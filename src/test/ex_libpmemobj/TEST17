@@ -1,5 +1,6 @@
+#!/bin/bash -e
 #
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2015-2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,27 +32,27 @@
 #
 
 #
-# examples/libpmemobj/Makefile -- build the libpmemobj examples
+# src/test/ex_libpmemobj/TEST17 -- unit test for libpmemobj examples
 #
-include ../../common.inc
+export UNITTEST_NAME=ex_libpmemobj/TEST17
+export UNITTEST_NUM=17
 
-PROGS = manpage btree pi lists
-DIRS = pminvaders pmemlog pmemblk string_store string_store_tx\
-	string_store_tx_type hashmap tree_map pmemobjfs map libart array
+# standard unit test setup
+. ../unittest/unittest.sh
 
-ifeq ($(call check_cxx_flags, -std=c++11), y)
-DIRS += cpp pman
-endif
+setup
 
-LIBS = -lpmemobj -lpmem -pthread -lm -pthread
+EX_PATH=../../examples/libpmemobj
 
-include ../Makefile.inc
+expect_normal_exit $EX_PATH/lists $DIR/testfile1 1 foo 100 > out$UNITTEST_NUM.log 2>&1
+expect_normal_exit $EX_PATH/lists $DIR/testfile1 2 bar 200 >> out$UNITTEST_NUM.log 2>&1
+expect_normal_exit $EX_PATH/lists $DIR/testfile1 3 foo 300 >> out$UNITTEST_NUM.log 2>&1
+expect_normal_exit $EX_PATH/lists $DIR/testfile1 1 bar 400 >> out$UNITTEST_NUM.log 2>&1
+expect_normal_exit $EX_PATH/lists $DIR/testfile1 1 foo print >> out$UNITTEST_NUM.log 2>&1
+expect_normal_exit $EX_PATH/lists $DIR/testfile1 2 bar print >> out$UNITTEST_NUM.log 2>&1
+expect_normal_exit $EX_PATH/lists $DIR/testfile1 3 foo print >> out$UNITTEST_NUM.log 2>&1
+expect_normal_exit $EX_PATH/lists $DIR/testfile1 1 bar print >> out$UNITTEST_NUM.log 2>&1
 
-map: hashmap tree_map
-pmemobjfs: map
+check
 
-manpage: manpage.o
-btree: btree.o
-pi: pi.o
-queue: queue.o
-lists: lists.o
+pass
