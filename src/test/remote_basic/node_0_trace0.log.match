@@ -1,0 +1,6 @@
+{remote_basic.c:44 main} remote_basic/TEST0: START: remote_basic
+ ./remote_basic$(nW) test-file
+{remote_basic.c:54 main} File 'test-file' exists
+{remote_basic.c:56 main} An example of OUT message
+{remote_basic.c:58 main} remote_basic/TEST0: An example of ERR message
+{remote_basic.c:60 main} remote_basic/TEST0: Done
