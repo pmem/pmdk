@@ -43,7 +43,7 @@ export UNITTEST_NUM=23
 setup
 umask 0
 
-truncate -s 2G $DIR/testfile
+create_holey_file 20 $DIR/testfile
 
 #
 # TEST23 existing file, file size >= min required size
