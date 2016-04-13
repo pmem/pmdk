@@ -52,6 +52,7 @@ expect_normal_exit\
 	PMEM_IS_PMEM_FORCE=1\
 	valgrind --tool=helgrind\
 	--log-file=valgrind$UNITTEST_NUM.log\
+	--suppressions=../out_fputs.supp \
 	./obj_pmalloc_mt$EXESUFFIX\ $DIR/testfile
 
 rm -f $DIR/testfile

@@ -49,6 +49,7 @@ setup
 export VMEM_LOG_LEVEL=0
 
 expect_normal_exit valgrind --log-file=valgrind$UNITTEST_NUM.log --tool=helgrind\
+	--suppressions=../out_fputs.supp \
 	./vmem_multiple_pools$EXESUFFIX $DIR 2 4
 
 check

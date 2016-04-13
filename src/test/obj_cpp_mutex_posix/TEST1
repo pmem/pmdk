@@ -45,6 +45,7 @@ setup
 
 expect_normal_exit\
     valgrind --tool=helgrind --log-file=valgrind$UNITTEST_NUM.log\
+	--suppressions=../out_fputs.supp \
     ./obj_cpp_mutex_posix$EXESUFFIX $DIR/testfile1
 
 check
