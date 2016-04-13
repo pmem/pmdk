@@ -64,6 +64,8 @@ check_Wconversion = $(shell echo "long int random(void); char test(void); char t
 check_librt = $(shell echo "int main() { struct timespec t; return clock_gettime(CLOCK_MONOTONIC, &t); }" |\
 	$(CC) $(CFLAGS) -x c -include time.h -o /dev/null - 2>/dev/null && echo y || echo n)
 
+install_recursive = $(shell find $(1) -type f -exec install -m $(2) -D {} $(3)/{} \;)
+
 define create-deps
 	@cp $(objdir)/$*.d $(objdir)/.deps/$*.P; \
 	sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
@@ -76,6 +78,7 @@ export exec_prefix := $(prefix)
 export sysconfdir := $(prefix)/etc
 export datarootdir := $(prefix)/share
 export mandir := $(datarootdir)/man
+export docdir := $(datarootdir)/doc
 export man1dir := $(mandir)/man1
 export man3dir := $(mandir)/man3
 

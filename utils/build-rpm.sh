@@ -37,20 +37,25 @@
 SCRIPT_DIR=$(dirname $0)
 source $SCRIPT_DIR/pkg-common.sh
 
-if [ $# -lt 4 -o $# -gt 5 ]
+if [ $# -lt 6 -o $# -gt 7 ]
 then
-	echo "Usage: $(basename $0) VERSION_TAG SOURCE_DIR WORKING_DIR"\
-					"OUT_DIR [TEST_CONFIG_FILE]"
-	exit 1
+        echo "Usage: $(basename $0) VERSION_TAG SOURCE_DIR WORKING_DIR"\
+                                        "OUT_DIR EXPERIMENTAL RUN_CHECK"\
+                                        "[TEST_CONFIG_FILE] "
+        exit 1
 fi
 
 PACKAGE_VERSION_TAG=$1
 SOURCE=$2
 WORKING_DIR=$3
 OUT_DIR=$4
-TEST_CONFIG_FILE=$5
+EXPERIMENTAL=$5
+BUILD_PACKAGE_CHECK=$6
+TEST_CONFIG_FILE=$7
 
-function convert_changelog() {
+function create_changelog() {
+	echo
+	echo "%changelog"
 	while read
 	do
 		if [[ $REPLY =~ $REGEX_DATE_AUTHOR ]]
@@ -66,6 +71,24 @@ function convert_changelog() {
 			echo "  ${BASH_REMATCH[1]}"
 		fi
 	done < $1
+}
+
+function add_experimental_packages() {
+cat << EOF >> $RPM_SPEC_FILE
+
+%package -n ${OBJ_CPP_NAME}
+Summary: C++ bindings for libpmemobj
+Group: Development/Libraries
+Requires: libpmemobj-devel = %{version}
+%description -n ${OBJ_CPP_NAME}
+Development files for NVML C++ libpmemobj bindings - EXPERIMENTAL
+
+%files -n ${OBJ_CPP_NAME}
+%defattr(-,root,root,-)
+%{_libdir}/pkgconfig/libpmemobj++.pc
+%{_includedir}/libpmemobj/*.hpp
+%{_docdir}/${OBJ_CPP_NAME}-%{version}/*
+EOF
 }
 
 check_tool rpmbuild
@@ -86,6 +109,22 @@ then
 	exit 1
 fi
 
+CHECK_CMD="
+%check
+if [ -f $TEST_CONFIG_FILE ]; then
+	cp $TEST_CONFIG_FILE src/test/testconfig.sh
+else
+	cp src/test/testconfig.sh.example src/test/testconfig.sh
+fi
+
+make check
+"
+
+if [ "${BUILD_PACKAGE_CHECK}" != "y" ]
+then
+	CHECK_CMD=""
+fi
+
 PACKAGE_SOURCE=${PACKAGE_NAME}-${PACKAGE_VERSION}
 SOURCE=$PACKAGE_NAME
 PACKAGE_TARBALL=$PACKAGE_SOURCE.tar.gz
@@ -94,6 +133,8 @@ CHANGELOG_FILE=$PACKAGE_SOURCE/ChangeLog
 MAGIC_INSTALL=$PACKAGE_SOURCE/utils/magic-install.sh
 MAGIC_UNINSTALL=$PACKAGE_SOURCE/utils/magic-uninstall.sh
 OLDPWD=$PWD
+OBJ_CPP_NAME=libpmemobj++-devel
+OBJ_CPP_DOC_DIR=${OBJ_CPP_NAME}-${PACKAGE_VERSION}
 
 [ -d $WORKING_DIR ] || mkdir -v $WORKING_DIR
 [ -d $OUT_DIR ] || mkdir $OUT_DIR
@@ -337,18 +378,13 @@ make install DESTDIR=%{buildroot}\
 	includedir=%{_includedir}\
 	mandir=%{_mandir}\
 	bindir=%{_bindir}\
-	sysconfdir=%{_sysconfdir}
+	sysconfdir=%{_sysconfdir}\
+	EXPERIMENTAL=${EXPERIMENTAL}\
+	CPP_DOC_DIR=${OBJ_CPP_DOC_DIR}
 mkdir -p %{buildroot}%{_datadir}/nvml
 cp utils/nvml.magic %{buildroot}%{_datadir}/nvml/
 
-%check
-if [ -f $TEST_CONFIG_FILE ]; then
-	cp $TEST_CONFIG_FILE src/test/testconfig.sh
-else
-	cp src/test/testconfig.sh.example src/test/testconfig.sh
-fi
-
-make check
+${CHECK_CMD}
 
 %clean
 make clobber
@@ -357,10 +393,15 @@ make clobber
 %debug_package
 %endif
 
-%changelog
 EOF
 
-[ -f $CHANGELOG_FILE ] && convert_changelog $CHANGELOG_FILE >> $RPM_SPEC_FILE
+# Experimental features
+if [ "${EXPERIMENTAL}" = "y" ]
+then
+	add_experimental_packages;
+fi
+
+[ -f $CHANGELOG_FILE ] && create_changelog $CHANGELOG_FILE >> $RPM_SPEC_FILE
 
 tar zcf $PACKAGE_TARBALL $PACKAGE_SOURCE
 
