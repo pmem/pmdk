@@ -146,3 +146,17 @@ sigprocmask(int how, const sigset_t *set, sigset_t *oldset)
 
 int mkstemp(char *temp);
 int posix_fallocate(int fd, off_t offset, off_t size);
+
+
+/*
+ * helper macros for library constructor/destructor functions declaration
+ */
+#define MSVC_CONSTR(func) \
+__pragma(comment(linker,"/include:_" #func)) \
+__pragma(section(".CRT$XCU",read)) \
+__declspec(allocate(".CRT$XCU")) \
+const void (WINAPI *_##func)(void) = func;
+
+#define MSVC_DESTR(func) \
+static void _##func##_reg(void) { atexit(func); }; \
+MSVC_CONSTR(_##func##_reg)

@@ -693,15 +693,3 @@ pmemlog_check(const char *path)
 
 	return consistent;
 }
-
-
-#ifdef WIN32
-void WINAPI libpmemlog_init(void);
-
-/*
- * library constructor function
- */
-#pragma section(".CRT$XCU", read)
-__declspec(allocate(".CRT$XCU"))
-const void (WINAPI *_libpmemlog_init)(void) = libpmemlog_init;
-#endif

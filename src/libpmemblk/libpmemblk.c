@@ -48,14 +48,8 @@
  *
  * Called automatically by the run-time loader.
  */
-#ifndef WIN32
 __attribute__((constructor))
 static void
-#else
-static void WINAPI libpmemblk_fini(void);
-
-void WINAPI
-#endif
 libpmemblk_init(void)
 {
 	out_init(PMEMBLK_LOG_PREFIX, PMEMBLK_LOG_LEVEL_VAR,
@@ -63,10 +57,6 @@ libpmemblk_init(void)
 			PMEMBLK_MINOR_VERSION);
 	LOG(3, NULL);
 	util_init();
-
-#ifdef WIN32
-	atexit(libpmemblk_fini);
-#endif
 }
 
 /*
@@ -74,12 +64,8 @@ libpmemblk_init(void)
  *
  * Called automatically when the process terminates.
  */
-#ifndef WIN32
 __attribute__((destructor))
 static void
-#else
-static void WINAPI
-#endif
 libpmemblk_fini(void)
 {
 	LOG(3, NULL);
@@ -133,3 +119,11 @@ pmemblk_errormsg(void)
 {
 	return out_get_errormsg();
 }
+
+#ifdef WIN32
+/*
+ * libpmemblk constructor/destructor functions
+ */
+MSVC_CONSTR(libpmemblk_init)
+MSVC_DESTR(libpmemblk_fini)
+#endif
