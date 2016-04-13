@@ -1,0 +1,7 @@
+{
+   out_print_func_puts
+   Helgrind:Race
+   ...
+   fun:fputs
+   fun:out_print_func
+}

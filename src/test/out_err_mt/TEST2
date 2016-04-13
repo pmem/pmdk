@@ -58,6 +58,7 @@ unset PMEMOBJ_LOG_FILE
 unset VMEM_LOG_FILE
 
 expect_normal_exit valgrind --log-file=valgrind$UNITTEST_NUM.log --tool=helgrind\
+	--suppressions=../out_fputs.supp \
     ./out_err_mt$EXESUFFIX $DIR/testfile1 $DIR/testfile2 $DIR/testfile3 $DIR
 
 check

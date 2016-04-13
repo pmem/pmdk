@@ -48,6 +48,7 @@ require_valgrind_helgrind
 setup
 
 expect_normal_exit valgrind --log-file=valgrind$UNITTEST_NUM.log\
+ --suppressions=../out_fputs.supp \
  --tool=helgrind ./obj_sync$EXESUFFIX r 10 50
 
 check
