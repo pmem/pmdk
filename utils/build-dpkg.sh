@@ -37,10 +37,11 @@
 SCRIPT_DIR=$(dirname $0)
 source $SCRIPT_DIR/pkg-common.sh
 
-if [ $# -lt 4 -o $# -gt 5 ]
+if [ $# -lt 6 -o $# -gt 7 ]
 then
 	echo "Usage: $(basename $0) VERSION_TAG SOURCE_DIR WORKING_DIR"\
-					"OUT_DIR [TEST_CONFIG_FILE]"
+					"OUT_DIR EXPERIMENTAL RUN_CHECK"\
+					"[TEST_CONFIG_FILE] "
 	exit 1
 fi
 
@@ -48,7 +49,10 @@ PACKAGE_VERSION_TAG=$1
 SOURCE=$2
 WORKING_DIR=$3
 OUT_DIR=$4
-TEST_CONFIG_FILE=$5
+EXPERIMENTAL=$5
+BUILD_PACKAGE_CHECK=$6
+TEST_CONFIG_FILE=$7
+CONTROL_FILE=debian/control
 
 function convert_changelog() {
 	while read line
@@ -69,6 +73,66 @@ function convert_changelog() {
 		fi
 	done < $1
 }
+
+function experimental_install_triggers_overrides() {
+cat << EOF > debian/libpmemobj++-dev.install
+usr/include/libpmemobj/*.hpp
+usr/share/doc/libpmemobj++-dev/*
+EOF
+
+cat << EOF > debian/libpmemobj++-dev.triggers
+interest doc-base
+EOF
+
+cat << EOF > debian/libpmemobj++-dev.lintian-overrides
+$ITP_BUG_EXCUSE
+new-package-should-close-itp-bug
+# The following warnings are triggered by a bug in debhelper:
+# http://bugs.debian.org/204975
+postinst-has-useless-call-to-ldconfig
+postrm-has-useless-call-to-ldconfig
+EOF
+
+cat << EOF > debian/libpmemobj++-dev.doc-base
+Document: libpmemobj++-dev
+Title: NVML libpmemobj C++ bindings Manual
+Author: NVML Developers
+Abstract: This is the HTML docs for the C++ bindings for NVML's libpmemobj.
+Section: Programming
+
+Format: HTML
+Index: /usr/share/doc/libpmemobj++-dev/index.html
+Files: /usr/share/doc/libpmemobj++-dev/*
+EOF
+}
+
+function append_experimental_control() {
+cat << EOF >> $CONTROL_FILE
+
+Package: libpmemobj++-dev
+Section: libdevel
+Architecture: any
+Depends: libpmemobj-dev (=\${binary:Version}), \${shlibs:Depends}, \${misc:Depends}
+Description: C++ bindings for libpmemobj (EXPERIMENTAL)
+ Headers-only C++ library for libpmemobj.
+EOF
+}
+
+CHECK_CMD="
+override_dh_auto_test:
+	dh_auto_test
+	if [ -f $TEST_CONFIG_FILE ]; then\
+		cp $TEST_CONFIG_FILE src/test/testconfig.sh;\
+	else\
+	        cp src/test/testconfig.sh.example src/test/testconfig.sh;\
+	fi
+	make check
+"
+
+if [ "${BUILD_PACKAGE_CHECK}" != "y" ]
+then
+	CHECK_CMD=""
+fi
 
 check_tool debuild
 check_tool dch
@@ -105,7 +169,7 @@ cat << EOF > debian/compat
 EOF
 
 # Generate control file
-cat << EOF > debian/control
+cat << EOF > $CONTROL_FILE
 Source: $PACKAGE_NAME
 Maintainer: $PACKAGE_MAINTAINER
 Section: misc
@@ -220,21 +284,14 @@ override_dh_strip:
 	dh_strip --dbg-package=$PACKAGE_NAME-dbg
 
 override_dh_auto_install:
-	dh_auto_install -- prefix=/usr sysconfdir=/etc
+	dh_auto_install -- EXPERIMENTAL=${EXPERIMENTAL} prefix=/usr sysconfdir=/etc
 
 override_dh_install:
 	mkdir -p debian/tmp/usr/share/nvml/
 	cp utils/nvml.magic debian/tmp/usr/share/nvml/
 	dh_install
 
-override_dh_auto_test:
-	dh_auto_test
-	if [ -f $TEST_CONFIG_FILE ]; then\
-		cp $TEST_CONFIG_FILE src/test/testconfig.sh;\
-	else\
-	        cp src/test/testconfig.sh.example src/test/testconfig.sh;\
-	fi
-	make check
+${CHECK_CMD}
 EOF
 
 chmod +x debian/rules
@@ -487,6 +544,13 @@ cat << EOF > debian/$PACKAGE_NAME-tools.lintian-overrides
 $ITP_BUG_EXCUSE
 new-package-should-close-itp-bug
 EOF
+
+# Experimental features
+if [ "${EXPERIMENTAL}" = "y" ]
+then
+	append_experimental_control;
+	experimental_install_triggers_overrides;
+fi
 
 # Convert ChangeLog to debian format
 CHANGELOG_TMP=changelog.tmp
