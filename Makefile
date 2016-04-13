@@ -66,6 +66,8 @@ export SRCVERSION = $(shell git describe 2>/dev/null ||\
 
 RPM_BUILDDIR=rpmbuild
 DPKG_BUILDDIR=dpkgbuild
+EXPERIMENTAL ?= n
+BUILD_PACKAGE_CHECK ?= y
 rpm : override DESTDIR=$(CURDIR)/$(RPM_BUILDDIR)
 dpkg: override DESTDIR=$(CURDIR)/$(DPKG_BUILDDIR)
 rpm dpkg: override prefix=/usr
@@ -114,7 +116,7 @@ pkg-clean:
 
 rpm dpkg: pkg-clean source
 	+utils/build-$@.sh $(SRCVERSION) $(DESTDIR)/nvml $(DESTDIR) $(CURDIR)/$@\
-			$(CURDIR)/src/test/testconfig.sh
+			${EXPERIMENTAL} ${BUILD_PACKAGE_CHECK} $(CURDIR)/src/test/testconfig.sh
 
 install uninstall:
 	$(MAKE) -C src $@
