@@ -83,7 +83,7 @@ libpmemblk libpmemlog libpmemobj: libpmem
 pkg-config: $(PKG_CONFIG_FILES)
 
 $(PKG_CONFIG_FILES): $(MAKE_PKG_CONFIG)
-	@$(MAKE_PKG_CONFIG) "$(prefix)" "$(DESTDIR)$(LIBDIR)" "$(SRCVERSION)"
+	$(MAKE_PKG_CONFIG) "$(prefix)" "$(libdir)" "$(SRCVERSION)"
 
 %-install: %
 	$(MAKE) -C $* install
