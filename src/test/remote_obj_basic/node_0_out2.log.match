@@ -1,0 +1,4 @@
+remote_obj_basic/TEST2: START: remote_obj_basic
+ ./remote_obj_basic$(nW) create pool2.set
+The pool set pool2.set has been created
+remote_obj_basic/TEST2: Done

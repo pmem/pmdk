@@ -49,7 +49,7 @@ setup
 expect_normal_exit valgrind --tool=pmemcheck\
 	--log-file=valgrind$UNITTEST_NUM.log\
 	--mult-stores=no\
-	./obj_tx_add_range$EXESUFFIX $DIR/testfile1 $i
+	./obj_tx_add_range$EXESUFFIX $DIR/testfile1 0
 
 check
 

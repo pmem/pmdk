@@ -105,7 +105,7 @@ namespace obj {
 	void delete_persistent(typename detail::pp_if_not_array<T>::type &ptr)
 	{
 		if (pmemobj_tx_stage() != TX_STAGE_WORK)
-			throw transaction_scope_error("refusing to allocate "
+			throw transaction_scope_error("refusing to free "
 				"memory outside of transaction scope");
 
 		if (ptr == nullptr)

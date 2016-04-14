@@ -39,7 +39,8 @@ DIRS = \
        pmemwrite\
        pmemalloc\
        pmemobjcli\
-       pmemdetect
+       pmemdetect\
+       ctrld
 
 all     : TARGET = all
 clean   : TARGET = clean

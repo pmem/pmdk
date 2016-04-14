@@ -289,7 +289,6 @@ TOID(t)\
  * Begin of layout declaration
  */
 #define	POBJ_LAYOUT_BEGIN(name)\
-const char *_pobj_layout_##name##_name = #name;\
 typedef uint8_t _pobj_layout_##name##_ref[__COUNTER__ + 1]
 
 /*

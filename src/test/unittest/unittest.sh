@@ -42,11 +42,11 @@
 
 TOOLS=../tools
 # Paths to some useful tools
-[ -n "$PMEMPOOL" ] || PMEMPOOL=../../tools/pmempool/pmempool
-[ -n "$PMEMSPOIL" ] || PMEMSPOIL=$TOOLS/pmemspoil/pmemspoil.static-nondebug
-[ -n "$PMEMWRITE" ] || PMEMWRITE=$TOOLS/pmemwrite/pmemwrite
-[ -n "$PMEMALLOC" ] || PMEMALLOC=$TOOLS/pmemalloc/pmemalloc
-[ -n "$PMEMDETECT" ] || PMEMDETECT=$TOOLS/pmemdetect/pmemdetect.static-nondebug
+[ "$PMEMPOOL" ] || PMEMPOOL=../../tools/pmempool/pmempool
+[ "$PMEMSPOIL" ] || PMEMSPOIL=$TOOLS/pmemspoil/pmemspoil.static-nondebug
+[ "$PMEMWRITE" ] || PMEMWRITE=$TOOLS/pmemwrite/pmemwrite
+[ "$PMEMALLOC" ] || PMEMALLOC=$TOOLS/pmemalloc/pmemalloc
+[ "$PMEMDETECT" ] || PMEMDETECT=$TOOLS/pmemdetect/pmemdetect.static-nondebug
 
 # force globs to fail if they don't match
 shopt -s failglob
@@ -95,14 +95,20 @@ esac
 curtestdir=`basename $PWD`
 
 # just in case
-if [ ! -n "$curtestdir" ]; then
+if [ ! "$curtestdir" ]; then
+	echo "curtestdir does not have a value" >&2
 	exit 1
 fi
 
 curtestdir=test_$curtestdir
 
-if [ ! -n "$UNITTEST_NUM" ]; then
+if [ ! "$UNITTEST_NUM" ]; then
 	echo "UNITTEST_NUM does not have a value" >&2
+	exit 1
+fi
+
+if [ ! "$UNITTEST_NAME" ]; then
+	echo "UNITTEST_NAME does not have a value" >&2
 	exit 1
 fi
 
@@ -139,11 +145,11 @@ else
 	none)
 		DIR=/dev/null/not_existing_dir/$curtestdir$UNITTEST_NUM
 		;;
-	esac
-	[ "$DIR" ] || {
+	*)
 		[ "$UNITTEST_QUIET" ] || echo "$UNITTEST_NAME: SKIP fs-type $FS (not configured)"
 		exit 0
-	}
+                ;;
+        esac
 fi
 
 if [ -d "$PMEM_FS_DIR" ]; then
@@ -182,9 +188,8 @@ export VMMALLOC_LOG_FILE=vmmalloc$UNITTEST_NUM.log
 
 export MEMCHECK_LOG_FILE=memcheck_${BUILD}_${UNITTEST_NUM}.log
 export VALIDATE_MEMCHECK_LOG=1
-if [ -z "$UT_DUMP_LINES" ]; then
-	UT_DUMP_LINES=30
-fi
+
+[ "$UT_DUMP_LINES" ] || UT_DUMP_LINES=30
 
 export CHECK_POOL_LOG_FILE=check_pool_${BUILD}_${UNITTEST_NUM}.log
 
@@ -405,6 +410,8 @@ function expect_normal_exit() {
 			dump_last_n_lines $VMMALLOC_LOG_FILE
 		fi
 
+		[ $NODES_MAX -ge 0 ] && clean_all_remote_nodes
+
 		false
 	fi
 
@@ -445,6 +452,8 @@ function expect_abnormal_exit() {
 		[ -t 2 ] && command -v tput >/dev/null && msg="$(tput setaf 1)$msg$(tput sgr0)"
 
 		echo -e "$UNITTEST_NAME command $msg unexpectedly." >&2
+
+		[ $NODES_MAX -ge 0 ] && clean_all_remote_nodes
 
 		false
 	fi
@@ -768,9 +777,7 @@ function require_no_asan_for() {
 #	is installed
 #
 function require_cxx11() {
-	if [ -z "$CXX" ]; then
-		CXX=c++
-	fi
+	[ "$CXX" ] || CXX=c++
 
 	CXX11_AVAILABLE=`echo "int main(){return 0;}" |\
 		$CXX -std=c++11 -x c++ -o /dev/null - 2>/dev/null &&\
@@ -822,6 +829,297 @@ function require_binary() {
 	return
 }
 
+# number of remote nodes required in the current unit test
+NODES_MAX=-1
+
+# SSH and SCP options
+SSH_OPTS="-o BatchMode=yes"
+SCP_OPTS="-o BatchMode=yes -r -p"
+
+# list of common files to be copied to all remote nodes
+DIR_SRC="../.."
+COMMON_FILES_TO_COPY="\
+$DIR_SRC/test/tools/ctrld/ctrld \
+$DIR_SRC/tools/pmempool/pmempool"
+
+# array of lists of PID files to be cleaned in case of an error
+NODE_PID_FILES[0]=""
+
+#
+# run_command -- run a command in a verbose or quiet way
+#
+function run_command()
+{
+	local COMMAND="$*"
+	if [ "$VERBOSE" != "0" ]; then
+		echo "$ $COMMAND"
+		$COMMAND
+	else
+		$COMMAND > /dev/null
+	fi
+}
+
+#
+# validate_node_number -- validate a node number
+#
+function validate_node_number() {
+
+	[ $1 -gt $NODES_MAX ] \
+		&& echo "error: node number ($1) greater than maximum allowed node number ($NODES_MAX)" >&2 \
+		&& exit 1
+	return 0
+}
+
+#
+# clean_remote_node -- usage: clean_remote_node <node> <list-of-pid-files>
+#
+function clean_remote_node() {
+
+	validate_node_number $1
+
+	local N=$1
+	shift
+	local DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
+
+	# register the list of PID files to be cleaned in case of an error
+	NODE_PID_FILES[$N]=$*
+
+	# clean the remote node
+	set +e
+	for pidfile in ${NODE_PID_FILES[$N]}; do
+		run_command ssh $SSH_OPTS ${NODE[$N]} "\
+			cd $DIR && [ -f $pidfile ] && \
+			./ctrld $pidfile kill SIGINT && \
+			./ctrld $pidfile wait 1 ; \
+			rm -f $pidfile"
+	done;
+	set -e
+
+	return 0
+}
+
+#
+# clean_all_remote_nodes -- clean all remote nodes in case of an error
+#
+function clean_all_remote_nodes() {
+
+	echo "$UNITTEST_NAME: CLEAN (cleaning processes on remote nodes)"
+
+	local N=0
+	set +e
+	for (( N=$NODES_MAX ; $(($N + 1)) ; N=$(($N - 1)) )); do
+		local DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
+		for pidfile in ${NODE_PID_FILES[$N]}; do
+			run_command ssh $SSH_OPTS ${NODE[$N]} "\
+				cd $DIR && [ -f $pidfile ] && \
+				./ctrld $pidfile kill SIGINT && \
+				./ctrld $pidfile wait 1 ; \
+				rm -f $pidfile"
+		done
+	done
+	set -e
+
+	return 0
+}
+
+#
+# require_nodes -- only allow script to continue for a certain number
+#                  of defined and reachable nodes
+#
+# Input arguments:
+#   NODE[]               - (required) array of nodes' addresses
+#   NODE_WORKING_DIR[]   - (required) array of nodes' working directories
+#
+function require_nodes() {
+
+	# XXX fix it later
+	memcheck force-disable
+
+	local N_NODES=${#NODE[@]}
+	local N=$1
+
+	[ $N -gt $N_NODES ] \
+		&& echo "$UNITTEST_NAME: SKIP: requires $N node(s), but $N_NODES node(s) provided" \
+		&& exit 0
+
+	NODES_MAX=$(($N - 1))
+
+	# check if all required nodes are reachable
+	for (( N=$NODES_MAX ; $(($N + 1)) ; N=$(($N - 1)) )); do
+		# validate node's address
+		[ "${NODE[$N]}" = "" ] \
+			&& echo "$UNITTEST_NAME: SKIP: address of node #$N is not provided" \
+			&& exit 0
+
+		# validate the working directory
+		[ "${NODE_WORKING_DIR[$N]}" = "" ] \
+			&& echo "error: working directory for node #$N (${NODE[$N]}) is not provided" >&2 \
+			&& exit 1
+
+		# check if the node is reachable
+	        set +e
+		run_command ssh $SSH_OPTS ${NODE[$N]} exit
+		local ret=$?
+		set -e
+		[ $ret -ne 0 ] \
+			&& echo "error: host ${NODE[$N]} is unreachable" >&2 \
+			&& exit 1
+
+		# clear the list of PID files for each node
+		NODE_PID_FILES[$N]=""
+	done
+
+	# files to be copied to all remote nodes
+	local FILES_TO_COPY=$COMMON_FILES_TO_COPY
+
+	# add debug or nondebug libraries to the 'to-copy' list
+	local BUILD_TYPE=$(echo $BUILD | cut -d"-" -f1)
+	[ "$BUILD_TYPE" == "static" ] && BUILD_TYPE=$(echo $BUILD | cut -d"-" -f2)
+	FILES_TO_COPY="$FILES_TO_COPY $DIR_SRC/$BUILD_TYPE/*.so.1"
+
+	# copy a binary if it exists
+	local TEST_NAME=`echo $UNITTEST_NAME | cut -d"/" -f1`
+	local BINARY=$TEST_NAME$EXESUFFIX
+	[ -f $BINARY ] && FILES_TO_COPY="$FILES_TO_COPY $BINARY"
+
+	# copy all required files to all required nodes
+	for (( N=$NODES_MAX ; $(($N + 1)) ; N=$(($N - 1)) )); do
+		# create a new test dir
+		local DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
+		run_command ssh $SSH_OPTS ${NODE[$N]} "rm -rf $DIR && mkdir -p $DIR"
+
+		# copy all required files
+		[ "$FILES_TO_COPY" != "" ] &&\
+			run_command scp $SCP_OPTS $FILES_TO_COPY ${NODE[$N]}:$DIR
+	done
+
+	# register function to clean all remote nodes in case of an error or SIGINT
+	trap clean_all_remote_nodes ERR SIGINT
+
+	return 0
+}
+
+#
+# copy_files_to_node -- copy all required files to the given remote node
+#
+function copy_files_to_node() {
+
+	validate_node_number $1
+
+	local N=$1
+	shift
+	local FILES_TO_COPY=$*
+	[ "$FILES_TO_COPY" == "" ] &&\
+		echo "error: copy_files_to_node(): no files provided" >&2 && exit 1
+
+	# copy all required files
+	local DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
+	run_command scp $SCP_OPTS $FILES_TO_COPY ${NODE[$N]}:$DIR
+
+	return 0
+}
+
+#
+# run_on_node -- usage: run_on_node <node> <command>
+#
+#                Run the <command> in background on the remote <node>.
+#                LD_LIBRARY_PATH for the n-th remote node can be provided
+#                in the array NODE_LD_LIBRARY_PATH[n]
+#
+function run_on_node() {
+
+	validate_node_number $1
+
+	local N=$1
+	shift
+	local DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
+	local COMMAND="UNITTEST_NUM=$UNITTEST_NUM UNITTEST_NAME=$UNITTEST_NAME"
+	COMMAND="$COMMAND UNITTEST_QUIET=1"
+	COMMAND="$COMMAND LD_LIBRARY_PATH=.:${NODE_LD_LIBRARY_PATH[$N]} $*"
+
+	run_command ssh $SSH_OPTS ${NODE[$N]} "cd $DIR && $COMMAND"
+}
+
+#
+# run_on_node_background -- usage:
+#                           run_on_node_background <node> <pid-file> <command>
+#
+#                           Run the <command> in background on the remote <node>
+#                           and create a <pid-file> for this process.
+#                           LD_LIBRARY_PATH for the n-th remote node
+#                           can be provided in the array NODE_LD_LIBRARY_PATH[n]
+#
+function run_on_node_background() {
+
+	validate_node_number $1
+
+	local N=$1
+	local PID_FILE=$2
+	shift
+	shift
+	local DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
+	local COMMAND="UNITTEST_NUM=$UNITTEST_NUM UNITTEST_NAME=$UNITTEST_NAME"
+	COMMAND="$COMMAND UNITTEST_QUIET=1"
+	COMMAND="$COMMAND LD_LIBRARY_PATH=.:${NODE_LD_LIBRARY_PATH[$N]}"
+	COMMAND="$COMMAND ./ctrld $PID_FILE run $*"
+
+	run_command ssh $SSH_OPTS ${NODE[$N]} "cd $DIR && $COMMAND"
+}
+
+#
+# wait_on_node -- usage: wait_on_node <node> <pid-file> [<timeout>]
+#
+#                 Wait until the process with the <pid-file> on the <node>
+#                 exits or <timeout> expires.
+#
+function wait_on_node() {
+
+	validate_node_number $1
+
+	local N=$1
+	local PID_FILE=$2
+	local TIMEOUT=$3
+	local DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
+
+	run_command ssh $SSH_OPTS ${NODE[$N]} "cd $DIR && ./ctrld $PID_FILE wait $TIMEOUT"
+}
+
+#
+# wait_on_node_port -- usage: wait_on_node_port <node> <pid-file> <portno>
+#
+#                      Wait until the process with the <pid-file> on the <node>
+#                      opens the port <portno>.
+#
+function wait_on_node_port() {
+
+	validate_node_number $1
+
+	local N=$1
+	local PID_FILE=$2
+	local PORTNO=$3
+	local DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
+
+	run_command ssh $SSH_OPTS ${NODE[$N]} "cd $DIR && ./ctrld $PID_FILE wait_port $PORTNO"
+}
+
+#
+# kill_on_node -- usage: kill_on_node <node> <pid-file> <signo>
+#
+#                 Send the <signo> signal to the process with the <pid-file>
+#                 on the <node>.
+#
+function kill_on_node() {
+
+	validate_node_number $1
+
+	local N=$1
+	local PID_FILE=$2
+	local SIGNO=$3
+	local DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
+
+	run_command ssh $SSH_OPTS ${NODE[$N]} "cd $DIR && ./ctrld $PID_FILE kill $SIGNO"
+}
+
 #
 # setup -- print message that test setup is commencing
 #
@@ -869,7 +1167,20 @@ function setup() {
 # check -- check test results (using .match files)
 #
 function check() {
-	../match $(find . -regex "[^0-9]*${UNITTEST_NUM}\.log\.match" | xargs)
+	if [ $NODES_MAX -eq -1 ]; then
+		../match $(find . -regex "[^0-9]*${UNITTEST_NUM}\.log\.match" | xargs)
+	else
+		FILES=$(find . -regex "./node_[0-9]+_[^0-9]*${UNITTEST_NUM}\.log\.match" | xargs)
+		for file in $FILES; do
+			local N=`echo $file | cut -d"_" -f2`
+			local FILE=`echo $file | cut -d"_" -f3 | sed "s/\.match$//g"`
+			local DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
+			validate_node_number $N
+			run_command scp $SCP_OPTS ${NODE[$N]}:$DIR/$FILE .
+			run_command mv $FILE ./node\_$N\_$FILE
+		done
+		../match $(find . -regex "./node_[0-9]+_[^0-9]*${UNITTEST_NUM}\.log\.match" | xargs)
+	fi
 }
 
 #

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2015-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -109,7 +109,6 @@ pool_open(const char *path, const char *layout)
 	} catch (std::logic_error &lr) {
 		UT_OUT("%s: pool.close: %s", path, lr.what());
 	}
-
 }
 
 /*
@@ -137,7 +136,21 @@ double_close(const char *path, const char *layout, size_t poolsize,
 	} catch (std::logic_error &lr) {
 		UT_OUT("%s: pool.close: %s", path, lr.what());
 	}
+}
 
+/*
+ * get_root_closed -- (internal) test get_root on a closed pool
+ */
+void
+get_root_closed()
+{
+	pool<root> pop;
+
+	try {
+		pop.get_root();
+	} catch (nvml::pool_error &pe) {
+		UT_OUT("pool.get_root: %s", pe.what());
+	}
 }
 
 } /* namespace */
@@ -166,7 +179,6 @@ main(int argc, char *argv[])
 
 		pool_create(argv[2], layout, poolsize, mode);
 		break;
-
 	case 'o':
 		pool_open(argv[2], layout);
 		break;
@@ -175,6 +187,9 @@ main(int argc, char *argv[])
 		mode = strtoul(argv[5], NULL, 8);
 
 		double_close(argv[2], layout, poolsize, mode);
+		break;
+	case 'i':
+		get_root_closed();
 		break;
 	default:
 		UT_FATAL("unknown operation");

@@ -54,10 +54,7 @@ LAYOUT=`dd if=/dev/urandom bs=1 count=768 2>/dev/null | base64 -w 0`
 
 expect_normal_exit ./obj_pool$EXESUFFIX c $DIR/testfile $LAYOUT 0 0640
 
-[ -f $DIR/testfile ] || {
-    echo "error: $DIR/testfile deleted"
-    exit 1
-}
+check_files $DIR/testfile
 
 check
 

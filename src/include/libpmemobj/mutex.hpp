@@ -147,7 +147,7 @@ namespace obj {
 		/**
 		 * The type of lock needed for the transaction API.
 		 *
-		 * @retun TX_LOCK_MUTEX
+		 * @return TX_LOCK_MUTEX
 		 */
 		enum pobj_tx_lock lock_type() const noexcept
 		{

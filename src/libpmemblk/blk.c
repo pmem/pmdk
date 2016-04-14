@@ -437,7 +437,8 @@ pmemblk_create(const char *path, size_t bsize, size_t poolsize,
 	pbp->size = rep->repsize;
 
 	if (set->nreplicas > 1) {
-		ERR("replicas not supported");
+		errno = ENOTSUP;
+		ERR("!replicas not supported");
 		goto err;
 	}
 
@@ -509,7 +510,8 @@ pmemblk_open_common(const char *path, size_t bsize, int cow)
 	pbp->size = rep->repsize;
 
 	if (set->nreplicas > 1) {
-		ERR("replicas not supported");
+		errno = ENOTSUP;
+		ERR("!replicas not supported");
 		goto err;
 	}
 

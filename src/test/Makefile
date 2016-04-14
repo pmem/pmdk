@@ -84,6 +84,7 @@ OBJ_TESTS = \
        obj_list_remove_free\
        obj_list_valgrind\
        obj_list_macro\
+       obj_locks\
        obj_memcheck\
        obj_out_of_memory\
        obj_persist_count\
@@ -138,6 +139,8 @@ OTHER_TESTS = \
        out_err\
        out_err_mt\
        pmemspoil\
+       remote_basic\
+       remote_obj_basic\
        scope\
        set_funcs\
        traces\
@@ -173,6 +176,10 @@ PMEMPOOL_TESTS = \
        pmempool_help\
        pmempool_info\
        pmempool_rm
+
+RPMEM_TESTS =\
+       rpmemd_log\
+       rpmemd_dbg
 
 VMEM_TESTS = \
        vmem_aligned_alloc\
@@ -227,6 +234,7 @@ TESTS = \
        $(OTHER_TESTS)\
        $(PMEM_TESTS)\
        $(PMEMPOOL_TESTS)\
+       $(RPMEM_TESTS)\
        $(VMEM_TESTS)\
        $(VMMALLOC_TESTS)\
        $(EXAMPLES_TESTS)

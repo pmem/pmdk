@@ -261,13 +261,16 @@ pmemobj_get_uuid_lo(PMEMobjpool *pop)
 	return uuid_lo;
 }
 
+/*
+ * OBJ_OID_IS_VALID -- (internal) checks if 'oid' is valid
+ */
 static inline int
 OBJ_OID_IS_VALID(PMEMobjpool *pop, PMEMoid oid)
 {
 	return OBJ_OID_IS_NULL(oid) ||
-		(oid.pool_uuid_lo == (pop)->uuid_lo &&
-		oid.off >= (pop)->heap_offset &&
-		oid.off < (pop)->heap_offset + (pop)->heap_size);
+		(oid.pool_uuid_lo == pop->uuid_lo &&
+		    oid.off >= pop->heap_offset &&
+		    oid.off < pop->heap_offset + pop->heap_size);
 }
 
 void obj_init(void);

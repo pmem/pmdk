@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2015-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -361,8 +361,11 @@ namespace obj
 		 *
 		 * @return persistent pointer to the root object.
 		 */
-		persistent_ptr<T> get_root() noexcept
+		persistent_ptr<T> get_root()
 		{
+			if (pop == nullptr)
+				throw pool_error("Invalid pool handle");
+
 			persistent_ptr<T> root = pmemobj_root(this->pop,
 					sizeof (T));
 			return root;

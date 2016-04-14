@@ -819,6 +819,10 @@ pmembench_parse_opts(struct pmembench *pb)
 	}
 
 	opts = clo_vec_get_args(clovec, 0);
+	if (opts == NULL) {
+		ret = -1;
+		goto out;
+	}
 
 	if (opts->help)
 		pmembench_print_help();
@@ -870,6 +874,8 @@ pmembench_remove_file(const char *path)
 		if (strcmp(d->d_name, ".") == 0 || strcmp(d->d_name, "..") == 0)
 			continue;
 		tmp = malloc(strlen(path) + strlen(d->d_name) + 2);
+		if (tmp == NULL)
+			return -1;
 		sprintf(tmp, "%s/%s", path, d->d_name);
 		ret = (d->d_type == DT_DIR) ? pmembench_remove_file(tmp)
 								: remove(tmp);
@@ -933,6 +939,13 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 	}
 
 	args = clo_vec_get_args(clovec, 0);
+	if (args == NULL) {
+		warn("%s: parsing command line arguments failed",
+				bench->info->name);
+		ret = -1;
+		goto out_release_args;
+	}
+
 	if (args->help) {
 		pmembench_print_help_single(bench);
 		goto out;
@@ -943,6 +956,12 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 	size_t args_i;
 	for (args_i = 0; args_i < clovec->nargs; args_i++) {
 		args = clo_vec_get_args(clovec, args_i);
+		if (args == NULL) {
+			warn("%s: parsing command line arguments failed",
+				bench->info->name);
+			ret = -1;
+			goto out;
+		}
 		args->opts = (void *)((uintptr_t)args +
 				sizeof (struct benchmark_args));
 		args->is_poolset = util_is_poolset(args->fname) == 1;

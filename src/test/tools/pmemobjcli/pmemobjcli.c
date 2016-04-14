@@ -355,7 +355,7 @@ pocli_pmemobj_type_num(struct pocli_ctx *ctx, struct pocli_args *args)
 	if (ret)
 		return ret;
 
-	if (oidp == NULL)
+	if (oidp == NULL || oidp->off == 0)
 		return pocli_err(ctx, POCLI_ERR_ARGS,
 			"invalid object -- '%s'\n", args->argv[1]);
 

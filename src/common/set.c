@@ -1680,7 +1680,7 @@ int
 util_parse_size(const char *str, size_t *sizep)
 {
 	const struct suff suffixes[] = {
-		{ "B", 1 },
+		{ "B", 1ULL },
 		{ "K", 1ULL << 10 },		/* JEDEC */
 		{ "M", 1ULL << 20 },
 		{ "G", 1ULL << 30 },

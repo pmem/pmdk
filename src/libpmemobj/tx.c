@@ -1453,10 +1453,13 @@ pmemobj_tx_add_common(struct tx_add_range_args *args)
 		if (ret != 0)
 			break;
 
-
-		if (ctree_insert_unlocked(runtime->ranges,
-			nargs.offset, nargs.size) != 0)
+		ret = ctree_insert_unlocked(runtime->ranges, nargs.offset,
+				nargs.size);
+		if (ret != 0) {
+			if (ret == EEXIST)
+				FATAL("invalid state of ranges tree");
 			break;
+		}
 	}
 
 	if (ret != 0) {

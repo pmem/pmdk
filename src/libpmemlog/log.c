@@ -190,7 +190,8 @@ pmemlog_create(const char *path, size_t poolsize, mode_t mode)
 	plp->size = rep->repsize;
 
 	if (set->nreplicas > 1) {
-		ERR("replicas not supported");
+		errno = ENOTSUP;
+		ERR("!replicas not supported");
 		goto err;
 	}
 
@@ -258,7 +259,8 @@ pmemlog_open_common(const char *path, int cow)
 	plp->size = rep->repsize;
 
 	if (set->nreplicas > 1) {
-		ERR("replicas not supported");
+		errno = ENOTSUP;
+		ERR("!replicas not supported");
 		goto err;
 	}
 

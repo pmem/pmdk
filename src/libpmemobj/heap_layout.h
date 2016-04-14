@@ -43,9 +43,8 @@
 #define	HEAP_SIGNATURE_LEN 16
 #define	HEAP_SIGNATURE "MEMORY_HEAP_HDR\0"
 #define	ZONE_HEADER_MAGIC 0xC3F0A2D2
-#define	ZONE_MIN_SIZE (sizeof (struct zone))
-#define	ZONE_MAX_SIZE (sizeof (struct zone)\
-			+ sizeof (struct chunk) * (MAX_CHUNK - 1))
+#define	ZONE_MIN_SIZE (sizeof (struct zone) + sizeof (struct chunk))
+#define	ZONE_MAX_SIZE (sizeof (struct zone) + sizeof (struct chunk) * MAX_CHUNK)
 #define	HEAP_MIN_SIZE (sizeof (struct heap_layout) + ZONE_MIN_SIZE)
 #define	REDO_LOG_SIZE 4
 #define	BITS_PER_VALUE 64U
@@ -57,7 +56,7 @@
 #define	MIN_RUN_SIZE 128
 
 #define	ZID_TO_ZONE(layoutp, zone_id)\
-	((struct zone *)((uintptr_t)(((struct heap_layout *)(layoutp))->zones)\
+	((struct zone *)((uintptr_t)&(((struct heap_layout *)(layoutp))->zone0)\
 					+ ZONE_MAX_SIZE * (zone_id)))
 
 enum chunk_flags {
@@ -101,7 +100,7 @@ struct zone_header {
 struct zone {
 	struct zone_header header;
 	struct chunk_header chunk_headers[MAX_CHUNK];
-	struct chunk chunks[1];
+	struct chunk chunks[];
 };
 
 struct heap_header {
@@ -117,7 +116,7 @@ struct heap_header {
 
 struct heap_layout {
 	struct heap_header header;
-	struct zone zones[];
+	struct zone zone0;	/* first element of zones array */
 };
 
 struct allocation_header {

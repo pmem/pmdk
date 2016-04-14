@@ -40,7 +40,7 @@
 
 #include "ctree_map.h"
 
-#define	BIT_IS_SET(n, i) (!!((n) & (1L << (i))))
+#define	BIT_IS_SET(n, i) (!!((n) & (1ULL << (i))))
 
 TOID_DECLARE(struct tree_map_node, CTREE_MAP_TYPE_OFFSET + 1);
 
@@ -240,7 +240,8 @@ ctree_map_get_leaf(TOID(struct ctree_map) map, uint64_t key,
 	struct tree_map_entry *p = NULL;
 
 	TOID(struct tree_map_node) node;
-	while (OID_INSTANCEOF(n->slot, struct tree_map_node)) {
+	while (!OID_IS_NULL(n->slot) &&
+				OID_INSTANCEOF(n->slot, struct tree_map_node)) {
 		TOID_ASSIGN(node, n->slot);
 
 		p = n;
