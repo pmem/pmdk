@@ -214,9 +214,9 @@ ut_fcntl(const char *file, int line, const char *func, int fd,
  */
 int
 ut_fstat(const char *file, int line, const char *func, int fd,
-    struct stat *st_bufp)
+    struct _stat64 *st_bufp)
 {
-	int retval = fstat(fd, st_bufp);
+	int retval = _fstat64(fd, st_bufp);
 
 	if (retval < 0)
 		ut_fatal(file, line, func, "!fstat: %d", fd);

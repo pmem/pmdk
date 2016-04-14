@@ -535,7 +535,11 @@ int
 pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp,
 		int check)
 {
+#ifndef WIN32
 	struct stat stat_buf;
+#else
+	struct _stat64 stat_buf;
+#endif
 	paramsp->type = PMEM_POOL_TYPE_UNKNOWN;
 
 	paramsp->is_poolset = util_is_poolset(fname) == 1;
@@ -546,7 +550,11 @@ pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp,
 	int ret = 0;
 
 	/* get file size and mode */
-	if (fstat(fd, &stat_buf)) {
+#ifndef WIN32
+	if (fstat(fd, &stat_buf) < 0) {
+#else
+	if (_fstat64(fd, &stat_buf) < 0) {
+#endif
 		ret = -1;
 		goto out_close;
 	}

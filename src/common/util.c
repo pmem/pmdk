@@ -918,8 +918,13 @@ util_file_open(const char *path, size_t *size, size_t minsize, int flags)
 		if (size)
 			ASSERTeq(*size, 0);
 
+#ifndef WIN32
 		struct stat stbuf;
 		if (fstat(fd, &stbuf) < 0) {
+#else
+		struct _stat64 stbuf;
+		if (_fstat64(fd, &stbuf) < 0) {
+#endif
 			ERR("!fstat %s", path);
 			goto err;
 		}

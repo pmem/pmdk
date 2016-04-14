@@ -107,7 +107,11 @@ int
 main(int argc, char *argv[])
 {
 	int srcfd;
+#ifndef WIN32
 	struct stat stbuf;
+#else
+	struct _stat64 stbuf;
+#endif
 	char *pmemaddr;
 	size_t mapped_len;
 	int is_pmem;
@@ -124,7 +128,11 @@ main(int argc, char *argv[])
 	}
 
 	/* find the size of the src-file */
+#ifndef WIN32
 	if (fstat(srcfd, &stbuf) < 0) {
+#else
+	if (_fstat64(srcfd, &stbuf) < 0) {
+#endif
 		perror("fstat");
 		exit(1);
 	}

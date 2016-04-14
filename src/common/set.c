@@ -272,17 +272,22 @@ util_poolset_chmod(struct pool_set *set, mode_t mode)
 			if (!part->created)
 				continue;
 
-			struct stat st;
-			if (fstat(part->fd, &st)) {
+#ifndef WIN32
+			struct stat stbuf;
+			if (fstat(part->fd, &stbuf) != 0) {
+#else
+			struct _stat64 stbuf;
+			if (_fstat64(part->fd, &stbuf) != 0) {
+#endif
 				ERR("!fstat");
 				return -1;
 			}
 
-			if (st.st_mode & ~(unsigned)S_IFMT) {
+			if (stbuf.st_mode & ~(unsigned)S_IFMT) {
 				LOG(1, "file permissions changed during pool "
 					"initialization, file: %s (%o)",
 					part->path,
-					st.st_mode & ~(unsigned)S_IFMT);
+					stbuf.st_mode & ~(unsigned)S_IFMT);
 			}
 
 			if (fchmod(part->fd, mode)) {

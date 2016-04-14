@@ -37,8 +37,8 @@
 #pragma once
 
 /* use 64-bit off_t */
-typedef long long _off_t;
-typedef _off_t off_t;
+typedef long long off_t;
+typedef long _off_t; /* DO NOT override _off_t definition !!! */
 #define	_OFF_T_DEFINED
 
 #include <windows.h>
@@ -51,6 +51,7 @@ typedef _off_t off_t;
 #include <malloc.h>
 
 
+
 #define	PATH_MAX MAX_PATH
 #define	__thread __declspec(thread)
 #define	__attribute__(a)
@@ -58,7 +59,6 @@ typedef _off_t off_t;
 #define	restrict __restrict
 #define	typeof decltype
 #define	__typeof__ decltype
-
 
 typedef int mode_t;
 typedef long long int ssize_t;
@@ -114,8 +114,10 @@ __sync_synchronize()
 }
 
 
+/* sys/stat.h */
 #define	S_IRUSR S_IREAD
 #define	S_IWUSR S_IWRITE
+
 
 #define	fchmod(fd, mode) 0
 #define	setlinebuf(o)

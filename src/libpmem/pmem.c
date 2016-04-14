@@ -722,9 +722,13 @@ pmem_map_file(const char *path, size_t len, int flags, mode_t mode,
 			}
 		}
 	} else {
+#ifndef WIN32
 		struct stat stbuf;
-
 		if (fstat(fd, &stbuf) < 0) {
+#else
+		struct _stat64 stbuf;
+		if (_fstat64(fd, &stbuf) < 0) {
+#endif
 			ERR("!fstat %s", path);
 			goto err;
 		}

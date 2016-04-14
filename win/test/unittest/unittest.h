@@ -291,7 +291,7 @@ int ut_stat(const char *file, int line, const char *func, const char *path,
     struct stat *st_bufp);
 
 int ut_fstat(const char *file, int line, const char *func, int fd,
-    struct stat *st_bufp);
+    struct _stat64 *st_bufp);
 
 int ut_flock(const char *file, int line, const char *func, int fd, int op);
 
