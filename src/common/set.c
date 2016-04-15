@@ -317,18 +317,6 @@ util_poolset_fdclose(struct pool_set *set)
 }
 
 /*
- * parser_get_next_token -- (internal) extract token from string
- */
-static char *
-parser_get_next_token(char **line)
-{
-	while (*line && isblank(**line))
-		(*line)++;
-
-	return strsep(line, " \t");
-}
-
-/*
  * parser_read_line -- (internal) read line and validate size and path
  *                      from a pool set file
  */
@@ -339,8 +327,8 @@ parser_read_line(char *line, size_t *size, char **path)
 	char *size_str;
 	char *path_str;
 
-	size_str = parser_get_next_token(&line);
-	path_str = parser_get_next_token(&line);
+	size_str = strtok(line, " \t");
+	path_str = strtok(NULL, " \t");
 
 	if (!size_str || !path_str)
 		return PARSER_SIZE_PATH_EXPECTED;
