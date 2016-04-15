@@ -1337,3 +1337,12 @@ pmem_init(void)
 			Func_is_pmem = is_pmem_always;
 	}
 }
+
+
+#ifdef WIN32
+/*
+ * libpmem constructor/destructor functions
+ */
+MSVC_CONSTR(libpmem_init)
+MSVC_DESTR(libpmem_fini)
+#endif

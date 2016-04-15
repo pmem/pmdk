@@ -1958,3 +1958,12 @@ _pobj_debug_notice(const char *api_name, const char *file, int line)
 	}
 #endif /* DEBUG */
 }
+
+
+#ifdef WIN32
+/*
+ * libpmemobj constructor/destructor functions
+ */
+MSVC_CONSTR(libpmemobj_init)
+MSVC_DESTR(libpmemobj_fini)
+#endif

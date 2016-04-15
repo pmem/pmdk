@@ -737,3 +737,12 @@ pmemblk_check(const char *path, size_t bsize)
 
 	return retval;
 }
+
+
+#ifdef WIN32
+/*
+ * libpmemblk constructor/destructor functions
+ */
+MSVC_CONSTR(libpmemblk_init)
+MSVC_DESTR(libpmemblk_fini)
+#endif
