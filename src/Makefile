@@ -80,10 +80,8 @@ libvmmalloc libvmem: jemalloc
 tools: libpmem libpmemblk libpmemlog libpmemobj
 libpmemblk libpmemlog libpmemobj: libpmem
 
-pkg-config: $(PKG_CONFIG_FILES)
-
-$(PKG_CONFIG_FILES): $(MAKE_PKG_CONFIG)
-	@$(MAKE_PKG_CONFIG) "$(prefix)" "$(DESTDIR)$(LIBDIR)" "$(SRCVERSION)"
+pkg-config:
+	@$(MAKE_PKG_CONFIG) "$(prefix)" "$(libdir)" "$(SRCVERSION)"
 
 %-install: %
 	$(MAKE) -C $* install
@@ -155,4 +153,5 @@ clean:
 .NOTPARALLEL: libvmem libvmmalloc
 
 .PHONY: all install uninstall clean clobber cstyle test check pcheck\
-	jemalloc jemalloc-clean jemalloc-test jemalloc-check cscope $(ALL_TARGETS)
+	jemalloc jemalloc-clean jemalloc-test jemalloc-check cscope $(ALL_TARGETS)\
+	pkg-config
