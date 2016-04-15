@@ -357,6 +357,7 @@ function expect_normal_exit() {
 			export OLD_VALGRIND_OPTS="$VALGRIND_OPTS"
 			export VALGRIND_OPTS="$VALGRIND_OPTS --leak-check=full"
 		fi
+		export VALGRIND_OPTS="$VALGRIND_OPTS --suppressions=../ld.supp"
 		TRACE="$VALGRINDEXE --tool=$CHECK_TYPE --log-file=$VALGRIND_LOG_FILE $VALGRIND_OPTS $TRACE"
 	fi
 
