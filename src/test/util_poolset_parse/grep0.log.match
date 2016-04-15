@@ -34,3 +34,4 @@ set file format correct (./pool26.set)
 ./pool33.set [size and path expected:2]
 set file format correct (./pool34.set)
 set file format correct (./pool35.set)
+set file format correct (./pool36.set)
