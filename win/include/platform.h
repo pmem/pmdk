@@ -121,9 +121,7 @@ __sync_synchronize()
 
 #define	fchmod(fd, mode) 0
 #define	setlinebuf(o)
-#define	strsep(line, sep) NULL
-
-#define unlink _unlink
+#define strtok_r strtok_s
 
 #define	SIG_BLOCK 0
 #define	SIG_SETMASK 0
