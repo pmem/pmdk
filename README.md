@@ -5,6 +5,8 @@ nvml: NVM Library
 
 This repo contains the jekyll-based web site for http://pmem.io/nvml.
 
-The contents of this site are BSD-licensed open source.
+Please see the file [LICENSE](https://github.com/pmem/nvml/blob/gh-pages/LICENSE)
+for information on how the content of this site is licensed.
 
-Send questions or comments to [andy.rudoff@intel.com](mailto:andy.rudoff@intel.com).
+Send questions or comments to [krzysztof.czurylo@intel.com](mailto:krzysztof.czurylo@intel.com)
+or [andy.rudoff@intel.com](mailto:andy.rudoff@intel.com).
