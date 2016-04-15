@@ -346,6 +346,20 @@ function dump_last_n_lines() {
 	fi
 }
 
+# https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=810295
+# https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=780173
+# https://bugs.kde.org/show_bug.cgi?id=303877
+function ignore_debug_info_errors() {
+	cat $1 | grep -v \
+		-e "WARNING: Serious error when reading debug info" \
+		-e "When reading debug info from " \
+		-e "Ignoring non-Dwarf2/3/4 block in .debug_info" \
+		-e "Last block truncated in .debug_info; ignoring" \
+		-e "parse_CU_Header: is neither DWARF2 nor DWARF3 nor DWARF4" \
+		>  $1.tmp
+	mv $1.tmp $1
+}
+
 #
 # expect_normal_exit -- run a given command, expect it to exit 0
 #
@@ -413,6 +427,7 @@ function expect_normal_exit() {
 	if [ "$CHECK_TYPE" != "none" ]; then
 		TRACE="$OLDTRACE"
 		if [ -f $VALGRIND_LOG_FILE -a "${VALIDATE_VALGRIND_LOG}" = "1" ]; then
+			ignore_debug_info_errors ${VALGRIND_LOG_FILE}
 			if [ ! -e $CHECK_TYPE$UNITTEST_NUM.log.match ] && grep "ERROR SUMMARY: [^0]" $VALGRIND_LOG_FILE >/dev/null; then
 				msg="failed"
 				[ -t 2 ] && command -v tput >/dev/null && msg="$(tput setaf 1)$msg$(tput sgr0)"

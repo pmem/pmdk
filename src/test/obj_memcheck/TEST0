@@ -57,6 +57,8 @@ fi
 
 expect_normal_exit ./obj_memcheck$EXESUFFIX t $DIR/testfile
 
+ignore_debug_info_errors ${VALGRIND_LOG_FILE}
+
 check
 
 pass
