@@ -42,17 +42,12 @@ export UNITTEST_NUM=5
 . ../unittest/unittest.sh
 
 require_fs_type pmem non-pmem
-require_valgrind_pmemcheck
-
+configure_valgrind pmemcheck force-enable
+export VALGRIND_OPTS="--mult-stores=yes"
 setup
 
 export PMEM_LOG_LEVEL=15
 
-expect_normal_exit valgrind --tool=pmemcheck\
-	--log-file=valgrind$UNITTEST_NUM.log\
-	--mult-stores=yes\
-	./pmem_movnt_align$EXESUFFIX F
-
-check
+expect_normal_exit ./pmem_movnt_align$EXESUFFIX F
 
 pass

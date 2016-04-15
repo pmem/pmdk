@@ -256,6 +256,11 @@ out_init(const char *log_prefix, const char *log_level_var,
 			"compiled with support for Valgrind memcheck";
 	LOG(1, "%s", memcheck_msg);
 #endif /* USE_VG_MEMCHECK */
+#ifdef USE_VG_DRD
+	static __attribute__((used)) const char *drd_msg =
+			"compiled with support for Valgrind drd";
+	LOG(1, "%s", drd_msg);
+#endif /* USE_VG_DRD */
 
 	Last_errormsg_key_alloc();
 }

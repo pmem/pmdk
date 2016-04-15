@@ -43,7 +43,7 @@ export UNITTEST_NUM=1
 require_fs_type any
 
 # this test generates sigsegvs on purpose
-memcheck force-disable
+configure_valgrind memcheck force-disable
 
 setup
 

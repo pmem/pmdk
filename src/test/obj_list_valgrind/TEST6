@@ -43,15 +43,13 @@ export UNITTEST_NUM=6
 
 require_fs_type pmem non-pmem
 require_valgrind_pmemcheck ../obj_list/obj_list
-
+configure_valgrind pmemcheck force-enable
+export VALGRIND_OPTS="--mult-stores=yes"
 setup
 
 truncate -s1M $DIR/testfile
 
-expect_normal_exit valgrind --tool=pmemcheck\
-	--log-file=valgrind$UNITTEST_NUM.log\
-	--mult-stores=yes\
-	../obj_list/obj_list$EXESUFFIX $DIR/testfile\
+expect_normal_exit ../obj_list/obj_list$EXESUFFIX $DIR/testfile\
 		n n n n\
 		P:1 R:1 P:3 R:3\
 		o:2\

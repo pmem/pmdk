@@ -44,6 +44,4 @@ setup
 expect_normal_exit\
     ./obj_cpp_ptr_arith$EXESUFFIX $DIR/testfile1
 
-check
-
 pass

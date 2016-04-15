@@ -36,7 +36,7 @@
 [ "$TEST" ] || export TEST=check
 [ "$FS" ] || export FS=any
 [ "$BUILD" ] || export BUILD=debug
-[ "$MEMCHECK" ] || export MEMCHECK=auto
+[ "$CHECK_TYPE" ] || export CHECK_TYPE=auto
 [ "$CHECK_POOL" ] || export CHECK_POOL=0
 [ "$VERBOSE" ] || export VERBOSE=0
 
@@ -186,8 +186,8 @@ export VMMALLOC_POOL_SIZE=$((16 * 1024 * 1024))
 export VMMALLOC_LOG_LEVEL=3
 export VMMALLOC_LOG_FILE=vmmalloc$UNITTEST_NUM.log
 
-export MEMCHECK_LOG_FILE=memcheck_${BUILD}_${UNITTEST_NUM}.log
-export VALIDATE_MEMCHECK_LOG=1
+export VALGRIND_LOG_FILE=${CHECK_TYPE}${UNITTEST_NUM}.log
+export VALIDATE_VALGRIND_LOG=1
 
 [ "$UT_DUMP_LINES" ] || UT_DUMP_LINES=30
 
@@ -350,20 +350,17 @@ function dump_last_n_lines() {
 # expect_normal_exit -- run a given command, expect it to exit 0
 #
 function expect_normal_exit() {
-	if [ "$RUN_MEMCHECK" ]; then
+	if [ "$CHECK_TYPE" != "none" ]; then
 		OLDTRACE="$TRACE"
-		rm -f $MEMCHECK_LOG_FILE
-		if echo "$*" | grep -v valgrind >/dev/null; then
-			if [ "$MEMCHECK_DONT_CHECK_LEAKS" != "1" ]; then
-				export OLD_MEMCHECK_OPTS="$MEMCHECK_OPTS"
-				export MEMCHECK_OPTS="$MEMCHECK_OPTS --leak-check=full"
-			fi
-
-			TRACE="valgrind --log-file=$MEMCHECK_LOG_FILE $MEMCHECK_OPTS $TRACE"
+		rm -f $VALGRIND_LOG_FILE
+		if [ "$CHECK_TYPE" = "memcheck" -a "$MEMCHECK_DONT_CHECK_LEAKS" != "1" ]; then
+			export OLD_VALGRIND_OPTS="$VALGRIND_OPTS"
+			export VALGRIND_OPTS="$VALGRIND_OPTS --leak-check=full"
 		fi
+		TRACE="$VALGRINDEXE --tool=$CHECK_TYPE --log-file=$VALGRIND_LOG_FILE $VALGRIND_OPTS $TRACE"
 	fi
 
-	if [ "$MEMCHECK_DONT_CHECK_LEAKS" = "1" ]; then
+	if [ "$MEMCHECK_DONT_CHECK_LEAKS" = "1" -a "$CHECK_TYPE" = "memcheck" ]; then
 		export OLD_ASAN_OPTIONS="${ASAN_OPTIONS}"
 		export ASAN_OPTIONS="detect_leaks=0 ${ASAN_OPTIONS}"
 	fi
@@ -373,7 +370,6 @@ function expect_normal_exit() {
 	$TRACE $*
 	ret=$?
 	set -e
-
 	if [ "$ret" -ne "0" ]; then
 		if [ "$ret" -gt "128" ]; then
 			msg="crashed (signal $(($ret - 128)))"
@@ -392,11 +388,10 @@ function expect_normal_exit() {
 		else
 			echo -e "$UNITTEST_NAME $msg." >&2
 		fi
-
-		if [ "$RUN_MEMCHECK" ]; then
-			echo "$MEMCHECK_LOG_FILE below." >&2
-			ln=`wc -l < $MEMCHECK_LOG_FILE`
-			paste -d " " <(yes $UNITTEST_NAME $MEMCHECK_LOG_FILE | head -n $ln) <(head -n $ln $MEMCHECK_LOG_FILE) >&2
+		if [ "$CHECK_TYPE" != "none" ]; then
+			echo "$VALGRIND_LOG_FILE below." >&2
+			ln=`wc -l < $VALGRIND_LOG_FILE`
+			paste -d " " <(yes $UNITTEST_NAME $VALGRIND_LOG_FILE | head -n $ln) <(head -n $ln $VALGRIND_LOG_FILE) >&2
 		fi
 
 		# ignore Ctrl-C
@@ -414,25 +409,23 @@ function expect_normal_exit() {
 
 		false
 	fi
-
-	if [ "$RUN_MEMCHECK" ]; then
+	if [ "$CHECK_TYPE" != "none" ]; then
 		TRACE="$OLDTRACE"
-		if [ -f $MEMCHECK_LOG_FILE -a "${VALIDATE_MEMCHECK_LOG}" = "1" ]; then
-			if ! grep "ERROR SUMMARY: 0 errors" $MEMCHECK_LOG_FILE >/dev/null; then
+		if [ -f $VALGRIND_LOG_FILE -a "${VALIDATE_VALGRIND_LOG}" = "1" ]; then
+			if [ ! -e $CHECK_TYPE$UNITTEST_NUM.log.match ] && grep "ERROR SUMMARY: [^0]" $VALGRIND_LOG_FILE >/dev/null; then
 				msg="failed"
 				[ -t 2 ] && command -v tput >/dev/null && msg="$(tput setaf 1)$msg$(tput sgr0)"
-				echo -e "$UNITTEST_NAME $msg with Valgrind. See $MEMCHECK_LOG_FILE. First 20 lines below." >&2
-				paste -d " " <(yes $UNITTEST_NAME $MEMCHECK_LOG_FILE | head -n 20) <(head -n 20 $MEMCHECK_LOG_FILE) >&2
+				echo -e "$UNITTEST_NAME $msg with Valgrind. See $VALGRIND_LOG_FILE. First 20 lines below." >&2
+				paste -d " " <(yes $UNITTEST_NAME $VALGRIND_LOG_FILE | head -n 20) <(head -n 20 $VALGRIND_LOG_FILE) >&2
 				false
 			fi
 		fi
 
-		if [ "$MEMCHECK_DONT_CHECK_LEAKS" != "1" ]; then
-			export MEMCHECK_OPTS="$OLD_MEMCHECK_OPTS"
+		if [ "$CHECK_TYPE" = "memcheck" -a "$MEMCHECK_DONT_CHECK_LEAKS" != "1" ]; then
+			export VALGRIND_OPTS="$OLD_VALGRIND_OPTS"
 		fi
 	fi
-
-	if [ "$MEMCHECK_DONT_CHECK_LEAKS" = "1" ]; then
+	if [ "$CHECK_TYPE" = "memcheck" -a "$MEMCHECK_DONT_CHECK_LEAKS" = "1" ]; then
 		export ASAN_OPTIONS="${OLD_ASAN_OPTIONS}"
 	fi
 }
@@ -596,19 +589,42 @@ function require_pkg() {
 }
 
 #
-# memcheck -- only allow script to continue when memcheck's settings match
+# configure_valgrind -- only allow script to continue when settings match
 #
-function memcheck() {
-	if [ "$1" = "force-enable" ]; then
-		export RUN_MEMCHECK=1
-	elif [ "$1" = "force-disable" ]; then
-		if [ "$MEMCHECK" = "force-enable" ]; then
-			echo "$UNITTEST_NAME: SKIP memcheck $1 vs $MEMCHECK"
-			exit 0
+function configure_valgrind() {
+	case "$1"
+	in
+	memcheck|pmemcheck|helgrind|drd|force-disable)
+		;;
+	*)
+		usage "bad test-type: $1"
+		;;
+	esac
+
+	if [ "$CHECK_TYPE" == "none" ]; then
+		if [ "$1" == "force-disable" ]; then
+			echo "all valgrind tests disabled"
+		elif [ "$2" = "force-enable" ]; then
+			CHECK_TYPE="$1"
+			require_valgrind_$1
+		elif [ "$2" = "force-disable" ]; then
+			CHECK_TYPE=none
+		else
+			echo "invalid parameter" >&2
+			exit 1
 		fi
 	else
-		echo "invalid memcheck parameter" >&2
-		exit 1
+		if [ "$1" == "force-disable" ]; then
+			echo "$UNITTEST_NAME: SKIP RUNTESTS script parameter $CHECK_TYPE tries to enable valgrind test when all valgrind tests are disabled in TEST"
+			exit 0
+		elif [ "$CHECK_TYPE" != "$1" -a "$2" == "force-enable" ]; then
+			echo "$UNITTEST_NAME: SKIP RUNTESTS script parameter $CHECK_TYPE tries to enable different valgrind test than one defined in TEST"
+			exit 0
+		elif [ "$CHECK_TYPE" == "$1" -a "$2" == "force-disable" ]; then
+			echo "$UNITTEST_NAME: SKIP RUNTESTS script parameter $CHECK_TYPE tries to enable test defined in TEST as force-disable"
+			exit 0
+		fi
+		require_valgrind_$CHECK_TYPE
 	fi
 }
 
@@ -688,6 +704,23 @@ function require_valgrind_memcheck() {
 		exit 0
 	fi
 
+	return
+}
+
+#
+# require_valgrind_drd -- continue script execution only if
+#	valgrind with drd is installed
+#
+function require_valgrind_drd() {
+	require_valgrind
+	local binary=$1
+	[ -n "$binary" ] || binary=*
+	strings ${binary} 2>&1 | \
+		grep -q "compiled with support for Valgrind drd" && true
+	if [ $? -ne 0 ]; then
+		echo "$UNITTEST_NAME: SKIP not compiled with support for Valgrind drd"
+		exit 0
+	fi
 	return
 }
 
@@ -933,7 +966,7 @@ function clean_all_remote_nodes() {
 function require_nodes() {
 
 	# XXX fix it later
-	memcheck force-disable
+	configure_valgrind memcheck force-disable
 
 	local N_NODES=${#NODE[@]}
 	local N=$1
@@ -1137,12 +1170,10 @@ function setup() {
 		exit 0
 	fi
 
-	if [ "$MEMCHECK" = "force-enable" ]; then
-		export RUN_MEMCHECK=1
-	fi
-
-	if [ "$RUN_MEMCHECK" ]; then
-		MCSTR="/memcheck"
+	if [ "$CHECK_TYPE" != "none" ]; then
+		require_valgrind
+		export VALGRIND_LOG_FILE=$CHECK_TYPE${UNITTEST_NUM}.log
+		MCSTR="/$CHECK_TYPE"
 	else
 		MCSTR=""
 	fi

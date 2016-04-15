@@ -56,3 +56,10 @@ There are following test set files available:
                     double unit
 	- TEST 29 - incorrect set file with mixed size units
                     'B' followed by unit
+	- TEST 30 - incorrect set file: comment before PMEMPOOLSET signature
+	- TEST 31 - incorrect set file: empty line before PMEMPOOLSET signature
+	- TEST 32 - incorrect set file: non-empty lien with whitespace only
+	- TEST 33 - incorrect set file: whitespace before "#"
+	- TEST 34 - correct set file: blank lines
+	- TEST 35 - correct set file: blank lines
+	- TEST 36 - correct set file: whitespace before size

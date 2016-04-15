@@ -39,15 +39,11 @@ export UNITTEST_NUM=1
 
 require_test_type long
 require_cxx11
-require_valgrind
+configure_valgrind helgrind force-enable
 require_binary obj_cpp_cond_var_posix$EXESUFFIX
 
 setup
 
-expect_normal_exit\
-    valgrind --tool=helgrind --log-file=valgrind$UNITTEST_NUM.log\
-    ./obj_cpp_cond_var_posix$EXESUFFIX $DIR/testfile1
-
-check
+expect_normal_exit ./obj_cpp_cond_var_posix$EXESUFFIX $DIR/testfile1
 
 pass
