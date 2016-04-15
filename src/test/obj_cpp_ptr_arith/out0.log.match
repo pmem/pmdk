@@ -1,4 +1,0 @@
-obj_cpp_ptr_arith/TEST0: START: obj_cpp_ptr_arith
- ./obj_cpp_ptr_arith$(nW) $(nW)/testfile1
-$(XX), $(XX)
-obj_cpp_ptr_arith/TEST0: Done
