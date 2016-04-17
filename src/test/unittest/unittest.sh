@@ -651,7 +651,7 @@ function configure_valgrind() {
 function require_valgrind() {
 	require_no_asan
 	VALGRINDEXE=`which valgrind 2>/dev/null` && return
-	echo "error: $UNITTEST_NAME: SKIP valgrind package required"
+	echo "$UNITTEST_NAME: SKIP valgrind package required"
 	exit 0
 }
 
