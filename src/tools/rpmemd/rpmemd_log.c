@@ -56,7 +56,7 @@ static int rpmemd_use_syslog;
 static FILE *rpmemd_log_file;
 static char rpmemd_prefix_buff[RPMEMD_MAX_PREFIX];
 
-const char *Rpmemd_log_level_str[MAX_RPD_LOG] = {
+static const char *rpmemd_log_level_str[MAX_RPD_LOG] = {
 	[RPD_LOG_ERR]		= "err",
 	[RPD_LOG_WARN]		= "warn",
 	[RPD_LOG_INFO]		= "info",
@@ -71,6 +71,34 @@ static int rpmemd_level2prio[MAX_RPD_LOG] = {
 	[RPD_LOG_INFO]		= LOG_INFO,
 	[_RPD_LOG_DBG]		= LOG_DEBUG,
 };
+
+/*
+ * rpmemd_log_level_from_str -- converts string to log level value
+ */
+enum rpmemd_log_level
+rpmemd_log_level_from_str(const char *str)
+{
+	if (!str)
+		return MAX_RPD_LOG;
+
+	for (enum rpmemd_log_level level = 0; level < MAX_RPD_LOG; level++) {
+		if (strcmp(rpmemd_log_level_str[level], str) == 0)
+			return level;
+	}
+
+	return MAX_RPD_LOG;
+}
+
+/*
+ * rpmemd_log_level_to_str -- converts log level enum to string
+ */
+const char *
+rpmemd_log_level_to_str(enum rpmemd_log_level level)
+{
+	if (level >= MAX_RPD_LOG)
+		return NULL;
+	return rpmemd_log_level_str[level];
+}
 
 /*
  * rpmemd_log_init -- inititalize logging subsystem
