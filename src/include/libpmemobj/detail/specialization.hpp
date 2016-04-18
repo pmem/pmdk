@@ -46,123 +46,105 @@ namespace nvml
 
 namespace detail
 {
-	/* smart pointer specialization */
+/* smart pointer specialization */
 
-	template<typename T>
-	struct sp_element
-	{
-		typedef T type;
-	};
+template <typename T>
+struct sp_element {
+	typedef T type;
+};
 
-	template<typename T>
-	struct sp_element<T[]>
-	{
-		typedef T type;
-	};
+template <typename T>
+struct sp_element<T[]> {
+	typedef T type;
+};
 
-	template<typename T, std::size_t N>
-	struct sp_element<T[N]>
-	{
-		typedef T type;
-	};
+template <typename T, std::size_t N>
+struct sp_element<T[N]> {
+	typedef T type;
+};
 
-	/* sp_dereference is a return type of operator* */
+/* sp_dereference is a return type of operator* */
 
-	template<typename T>
-	struct sp_dereference
-	{
-		typedef T &type;
-	};
+template <typename T>
+struct sp_dereference {
+	typedef T &type;
+};
 
-	template<>
-	struct sp_dereference<void>
-	{
-		typedef void type;
-	};
+template <>
+struct sp_dereference<void> {
+	typedef void type;
+};
 
-	template<>
-	struct sp_dereference<void const>
-	{
-		typedef void type;
-	};
+template <>
+struct sp_dereference<void const> {
+	typedef void type;
+};
 
-	template<>
-	struct sp_dereference<void volatile>
-	{
-		typedef void type;
-	};
+template <>
+struct sp_dereference<void volatile> {
+	typedef void type;
+};
 
-	template<>
-	struct sp_dereference<void const volatile>
-	{
-		typedef void type;
-	};
+template <>
+struct sp_dereference<void const volatile> {
+	typedef void type;
+};
 
-	template<typename T>
-	struct sp_dereference<T[]>
-	{
-		typedef void type;
-	};
+template <typename T>
+struct sp_dereference<T[]> {
+	typedef void type;
+};
 
-	template<typename T, std::size_t N>
-	struct sp_dereference<T[N]>
-	{
-		typedef void type;
-	};
+template <typename T, std::size_t N>
+struct sp_dereference<T[N]> {
+	typedef void type;
+};
 
-	/* sp_member_access is a return type of operator-> */
+/* sp_member_access is a return type of operator-> */
 
-	template<typename T>
-	struct sp_member_access
-	{
-		typedef T *type;
-	};
+template <typename T>
+struct sp_member_access {
+	typedef T *type;
+};
 
-	template<typename T>
-	struct sp_member_access<T[]>
-	{
-		typedef void type;
-	};
+template <typename T>
+struct sp_member_access<T[]> {
+	typedef void type;
+};
 
-	template<typename T, std::size_t N>
-	struct sp_member_access<T[N]>
-	{
-		typedef void type;
-	};
+template <typename T, std::size_t N>
+struct sp_member_access<T[N]> {
+	typedef void type;
+};
 
-	/* sp_array_access is a return type of operator[] */
+/* sp_array_access is a return type of operator[] */
 
-	template<typename T>
-	struct sp_array_access
-	{
-		typedef T &type;
-	};
+template <typename T>
+struct sp_array_access {
+	typedef T &type;
+};
 
-	template<typename T>
-	struct sp_array_access<T[]>
-	{
-		typedef T &type;
-	};
+template <typename T>
+struct sp_array_access<T[]> {
+	typedef T &type;
+};
 
-	template<typename T, std::size_t N>
-	struct sp_array_access<T[N]>
-	{
-		typedef T &type;
-	};
+template <typename T, std::size_t N>
+struct sp_array_access<T[N]> {
+	typedef T &type;
+};
 
-	/* sp_extent is used for operator[] index checking */
+/* sp_extent is used for operator[] index checking */
 
-	template<typename T>
-	struct sp_extent
-	{
-		enum _vt { value = 0 };
-	};
+template <typename T>
+struct sp_extent {
+	enum _vt { value = 0 };
+};
 
-	template<typename T, std::size_t N>
-	struct sp_extent<T[N]>
-	{
-		enum _vt { value = N };
-	};
+template <typename T, std::size_t N>
+struct sp_extent<T[N]> {
+	enum _vt { value = N };
+};
 
 } /* namespace detail */
 

@@ -37,61 +37,61 @@
  * integer_sequence.hpp -- create c++14 style index sequence
  */
 
-namespace nvml {
+namespace nvml
+{
 
-namespace detail {
+namespace detail
+{
 
-	/*
-	 * Base index type template.
-	 */
-	template<typename T, T...>
-	struct integer_sequence{};
+/*
+ * Base index type template.
+ */
+template <typename T, T...>
+struct integer_sequence {
+};
 
-	/*
-	 * Size_t specialization of the integer sequence.
-	 */
-	template<size_t... Indices>
-	using index_sequence = integer_sequence<size_t, Indices...>;
+/*
+ * Size_t specialization of the integer sequence.
+ */
+template <size_t... Indices>
+using index_sequence = integer_sequence<size_t, Indices...>;
 
-	/*
-	 * Empty base class.
-	 *
-	 * Subject of empty base optimization.
-	 */
-	template<typename T, T I, typename... Types>
-	struct make_integer_seq_impl;
+/*
+ * Empty base class.
+ *
+ * Subject of empty base optimization.
+ */
+template <typename T, T I, typename... Types>
+struct make_integer_seq_impl;
 
-	/*
-	 * Class ending recursive variadic template peeling.
-	 */
-	template<typename T, T I, T... Indices>
-	struct make_integer_seq_impl<T, I, integer_sequence<T, Indices...> >
-	{
-		typedef integer_sequence<T, Indices...> type;
-	};
+/*
+ * Class ending recursive variadic template peeling.
+ */
+template <typename T, T I, T... Indices>
+struct make_integer_seq_impl<T, I, integer_sequence<T, Indices...>> {
+	typedef integer_sequence<T, Indices...> type;
+};
 
-	/*
-	 * Recursively create index while peeling off the types.
-	 */
-	template<typename N, N I, N... Indices, typename T, typename... Types>
-	struct make_integer_seq_impl<N, I, integer_sequence<N, Indices...>,
-	T, Types...>
-	{
-		typedef typename make_integer_seq_impl<N, I + 1,
-				integer_sequence<N, Indices..., I>,
-				Types...>::type type;
-	};
+/*
+ * Recursively create index while peeling off the types.
+ */
+template <typename N, N I, N... Indices, typename T, typename... Types>
+struct make_integer_seq_impl<N, I, integer_sequence<N, Indices...>, T,
+			     Types...> {
+	typedef typename make_integer_seq_impl<
+		N, I + 1, integer_sequence<N, Indices..., I>, Types...>::type
+		type;
+};
 
-	/*
-	 * Make index sequence entry point.
-	 */
-	template<typename... Types>
-	using make_index_sequence =
-			make_integer_seq_impl<size_t, 0,
-			integer_sequence<size_t>, Types...>;
+/*
+ * Make index sequence entry point.
+ */
+template <typename... Types>
+using make_index_sequence =
+	make_integer_seq_impl<size_t, 0, integer_sequence<size_t>, Types...>;
 
-}  /* namespace detail */
+} /* namespace detail */
 
-}  /* namespace nvml */
+} /* namespace nvml */
 
 #endif /* LIBPMEMOBJ_INTEGER_SEQUENCE_HPP */

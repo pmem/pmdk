@@ -40,14 +40,15 @@
 #include <libpmemobj/pool.hpp>
 #include <libpmemobj/shared_mutex.hpp>
 
-#include <thread>
 #include <mutex>
+#include <thread>
 
 #define LAYOUT "cpp"
 
 using namespace nvml::obj;
 
-namespace {
+namespace
+{
 
 /* pool root structure */
 struct root {
@@ -64,7 +65,8 @@ const int num_threads = 30;
 /*
  * writer -- (internal) bump up the counter by 2
  */
-void writer(persistent_ptr<struct root> proot)
+void
+writer(persistent_ptr<root> proot)
 {
 	for (int i = 0; i < num_ops; ++i) {
 		std::lock_guard<shared_mutex> lock(proot->pmutex);
@@ -76,7 +78,8 @@ void writer(persistent_ptr<struct root> proot)
 /*
  * reader -- (internal) verify if the counter is even
  */
-void reader(persistent_ptr<struct root> proot)
+void
+reader(persistent_ptr<root> proot)
 {
 	for (int i = 0; i < num_ops; ++i) {
 		proot->pmutex.lock_shared();
@@ -88,7 +91,8 @@ void reader(persistent_ptr<struct root> proot)
 /*
  * writer_trylock -- (internal) trylock bump the counter by 2
  */
-void writer_trylock(persistent_ptr<struct root> proot)
+void
+writer_trylock(persistent_ptr<root> proot)
 {
 	for (;;) {
 		if (proot->pmutex.try_lock()) {
@@ -103,7 +107,8 @@ void writer_trylock(persistent_ptr<struct root> proot)
 /*
  * reader_trylock -- (internal) trylock verify that the counter is even
  */
-void reader_trylock(persistent_ptr<struct root> proot)
+void
+reader_trylock(persistent_ptr<root> proot)
 {
 	for (;;) {
 		if (proot->pmutex.try_lock_shared()) {
@@ -117,16 +122,16 @@ void reader_trylock(persistent_ptr<struct root> proot)
 /*
  * mutex_test -- (internal) launch worker threads to test the pshared_mutex
  */
-template<typename Worker>
-void mutex_test(pool<struct root> &pop, const Worker &writer,
-		const Worker &reader)
+template <typename Worker>
+void
+mutex_test(pool<root> &pop, const Worker &writer, const Worker &reader)
 {
 	const int total_threads = num_threads * 2;
 	std::thread threads[total_threads];
 
-	persistent_ptr<struct root> proot = pop.get_root();
+	persistent_ptr<root> proot = pop.get_root();
 
-	for (int i = 0; i < total_threads; i+=2) {
+	for (int i = 0; i < total_threads; i += 2) {
 		threads[i] = std::thread(writer, proot);
 		threads[i + 1] = std::thread(reader, proot);
 	}
@@ -134,7 +139,6 @@ void mutex_test(pool<struct root> &pop, const Worker &writer,
 	for (int i = 0; i < total_threads; ++i)
 		threads[i].join();
 }
-
 }
 
 int
@@ -147,11 +151,11 @@ main(int argc, char *argv[])
 
 	const char *path = argv[1];
 
-	pool<struct root> pop;
+	pool<root> pop;
 
 	try {
-		pop = pool<struct root>::create(path, LAYOUT, PMEMOBJ_MIN_POOL,
-			S_IWUSR | S_IRUSR);
+		pop = pool<root>::create(path, LAYOUT, PMEMOBJ_MIN_POOL,
+					 S_IWUSR | S_IRUSR);
 	} catch (nvml::pool_error &pe) {
 		UT_FATAL("!pool::create: %s %s", pe.what(), path);
 	}

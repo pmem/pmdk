@@ -37,32 +37,36 @@
 
 #include "unittest.h"
 
-#include <libpmemobj/persistent_ptr.hpp>
-#include <libpmemobj/p.hpp>
-#include <libpmemobj/pool.hpp>
 #include <libpmemobj/make_persistent_atomic.hpp>
+#include <libpmemobj/p.hpp>
+#include <libpmemobj/persistent_ptr.hpp>
+#include <libpmemobj/pool.hpp>
 
 #define LAYOUT "cpp"
 
 using namespace nvml::obj;
 
-namespace {
+namespace
+{
 
 const int TEST_ARR_SIZE = 10;
 
 class foo {
 public:
-	foo() : bar(1) {
+	foo() : bar(1)
+	{
 		for (int i = 0; i < TEST_ARR_SIZE; ++i)
 			this->arr[i] = 1;
 	}
 
-	foo(int val) : bar(val) {
+	foo(int val) : bar(val)
+	{
 		for (int i = 0; i < TEST_ARR_SIZE; ++i)
 			this->arr[i] = val;
 	}
 
-	foo(int val, char arr_val) : bar(val) {
+	foo(int val, char arr_val) : bar(val)
+	{
 		for (int i = 0; i < TEST_ARR_SIZE; ++i)
 			this->arr[i] = arr_val;
 	}
@@ -70,7 +74,8 @@ public:
 	/*
 	 * Assert values of foo.
 	 */
-	void check_foo(int val, char arr_val)
+	void
+	check_foo(int val, char arr_val)
 	{
 		UT_ASSERTeq(val, this->bar);
 		for (int i = 0; i < TEST_ARR_SIZE; ++i)
@@ -123,7 +128,6 @@ test_make_args(pool<struct root> &pop)
 	delete_persistent_atomic<foo>(r->pfoo);
 	UT_ASSERT(r->pfoo == nullptr);
 }
-
 }
 
 int
@@ -140,7 +144,7 @@ main(int argc, char *argv[])
 
 	try {
 		pop = pool<struct root>::create(path, LAYOUT, PMEMOBJ_MIN_POOL,
-			S_IWUSR | S_IRUSR);
+						S_IWUSR | S_IRUSR);
 	} catch (nvml::pool_error &pe) {
 		UT_FATAL("!pool::create: %s %s", pe.what(), path);
 	}

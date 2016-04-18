@@ -39,78 +39,78 @@
 
 #include "libpmemobj/detail/array_traits.hpp"
 
-namespace nvml {
+namespace nvml
+{
 
-namespace detail {
+namespace detail
+{
 
-	/*
-	 * Template for checking if T is not an array.
-	 */
-	template<typename T>
-	struct if_not_array {
-		typedef T type;
-	};
+/*
+ * Template for checking if T is not an array.
+ */
+template <typename T>
+struct if_not_array {
+	typedef T type;
+};
 
-	/*
-	 * Template for checking if T is not an array.
-	 */
-	template<typename T>
-	struct if_not_array<T[]>;
+/*
+ * Template for checking if T is not an array.
+ */
+template <typename T>
+struct if_not_array<T[]>;
 
-	/*
-	 * Template for checking if T is not an array.
-	 */
-	template<typename T, size_t N>
-	struct if_not_array<T[N]>;
+/*
+ * Template for checking if T is not an array.
+ */
+template <typename T, size_t N>
+struct if_not_array<T[N]>;
 
-	/*
-	 * Template for checking if T is an array.
-	 */
-	template<typename T>
-	struct if_size_array ;
+/*
+ * Template for checking if T is an array.
+ */
+template <typename T>
+struct if_size_array;
 
-	/*
-	 * Template for checking if T is an array.
-	 */
-	template<typename T>
-	struct if_size_array<T[]>;
+/*
+ * Template for checking if T is an array.
+ */
+template <typename T>
+struct if_size_array<T[]>;
 
-	/*
-	 * Template for checking if T is an array.
-	 */
-	template<typename T, size_t N>
-	struct if_size_array<T[N]> {
-		typedef T type[N];
-	};
+/*
+ * Template for checking if T is an array.
+ */
+template <typename T, size_t N>
+struct if_size_array<T[N]> {
+	typedef T type[N];
+};
 
-	/*
-	 * Calls object's destructor.
-	 */
-	template<typename T>
-	void destroy(typename if_not_array<T>::type &arg)
-	{
-		arg.~T();
-	}
+/*
+ * Calls object's destructor.
+ */
+template <typename T>
+void
+destroy(typename if_not_array<T>::type &arg)
+{
+	arg.~T();
+}
 
-	/*
-	 * Recursively calls array's elements' destructors.
-	 */
-	template<typename T>
-	void destroy(typename if_size_array<T>::type &arg)
-	{
-		typedef typename detail::pp_array_type<T>::type I;
-		enum {
-			N = pp_array_elems<T>::elems
-		};
+/*
+ * Recursively calls array's elements' destructors.
+ */
+template <typename T>
+void
+destroy(typename if_size_array<T>::type &arg)
+{
+	typedef typename detail::pp_array_type<T>::type I;
+	enum { N = pp_array_elems<T>::elems };
 
-		for (std::size_t i = 0; i < N; ++i)
-			destroy<I>(arg[N - 1 - i]);
-	}
+	for (std::size_t i = 0; i < N; ++i)
+		destroy<I>(arg[N - 1 - i]);
+}
 
-}  /* namespace detail */
+} /* namespace detail */
 
-}  /* namespace nvml */
-
-
+} /* namespace nvml */
 
 #endif /* LIBPMEMOBJ_DESTROYER_HPP */

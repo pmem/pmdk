@@ -1,0 +1,32 @@
+BasedOnStyle: LLVM
+IndentWidth: 8
+UseTab: Always
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterClass:			false
+  AfterControlStatement:	false
+  AfterEnum:			false
+  AfterFunction:		true
+  AfterNamespace:		true
+  AfterObjCDeclaration:		false
+  AfterStruct:			false
+  AfterUnion:			false
+  BeforeCatch:			false
+  BeforeElse:			false
+  IndentBraces:			false
+AllowShortIfStatementsOnASingleLine: false
+IndentCaseLabels: false
+AlwaysBreakAfterDefinitionReturnType: true
+SpaceBeforeParens: ControlStatements
+SpacesBeforeTrailingComments: 1
+SpacesInCStyleCastParentheses: false
+SpacesInContainerLiterals: false
+PointerAlignment: Right
+ContinuationIndentWidth: 8
+AlignOperands: false
+IndentCaseLabels: true
+ConstructorInitializerAllOnOneLineOrOnePerLine: true
+AlwaysBreakTemplateDeclarations: true
+AccessModifierOffset: -8
+AllowShortBlocksOnASingleLine: false
+AllowShortFunctionsOnASingleLine: false

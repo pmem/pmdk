@@ -36,9 +36,9 @@
 
 #include "unittest.h"
 
+#include <libpmemobj/mutex.hpp>
 #include <libpmemobj/persistent_ptr.hpp>
 #include <libpmemobj/pool.hpp>
-#include <libpmemobj/mutex.hpp>
 
 #include <mutex>
 
@@ -46,7 +46,8 @@
 
 using namespace nvml::obj;
 
-namespace {
+namespace
+{
 
 /* pool root structure */
 struct root {
@@ -63,10 +64,11 @@ const int num_threads = 30;
 /*
  * increment_pint -- (internal) test the mutex with an std::lock_guard
  */
-void *increment_pint(void *arg)
+void *
+increment_pint(void *arg)
 {
 	persistent_ptr<struct root> *proot =
-				static_cast<persistent_ptr<struct root>*>(arg);
+		static_cast<persistent_ptr<struct root> *>(arg);
 
 	for (int i = 0; i < num_ops; ++i) {
 		std::lock_guard<mutex> lock((*proot)->pmutex);
@@ -78,10 +80,11 @@ void *increment_pint(void *arg)
 /*
  * decrement_pint -- (internal) test the mutex with an std::unique_lock
  */
-void *decrement_pint(void *arg)
+void *
+decrement_pint(void *arg)
 {
 	persistent_ptr<struct root> *proot =
-				static_cast<persistent_ptr<struct root>*>(arg);
+		static_cast<persistent_ptr<struct root> *>(arg);
 
 	std::unique_lock<mutex> lock((*proot)->pmutex);
 	for (int i = 0; i < num_ops; ++i)
@@ -94,10 +97,11 @@ void *decrement_pint(void *arg)
 /*
  * trylock_test -- (internal) test the trylock implementation
  */
-void *trylock_test(void *arg)
+void *
+trylock_test(void *arg)
 {
 	persistent_ptr<struct root> *proot =
-			static_cast<persistent_ptr<struct root>*>(arg);
+		static_cast<persistent_ptr<struct root> *>(arg);
 	for (;;) {
 		if ((*proot)->pmutex.try_lock()) {
 			((*proot)->counter)++;
@@ -111,8 +115,9 @@ void *trylock_test(void *arg)
 /*
  * mutex_test -- (internal) launch worker threads to test the pmutex
  */
-template<typename Worker>
-void mutex_test(pool<struct root> &pop, Worker function)
+template <typename Worker>
+void
+mutex_test(pool<struct root> &pop, Worker function)
 {
 	pthread_t threads[num_threads];
 
@@ -124,7 +129,6 @@ void mutex_test(pool<struct root> &pop, Worker function)
 	for (int i = 0; i < num_threads; ++i)
 		PTHREAD_JOIN(threads[i], nullptr);
 }
-
 }
 
 int
@@ -141,7 +145,7 @@ main(int argc, char *argv[])
 
 	try {
 		pop = pool<struct root>::create(path, LAYOUT, PMEMOBJ_MIN_POOL,
-			S_IWUSR | S_IRUSR);
+						S_IWUSR | S_IRUSR);
 	} catch (nvml::pool_error &pe) {
 		UT_FATAL("!pool::create: %s %s", pe.what(), path);
 	}
@@ -157,7 +161,7 @@ main(int argc, char *argv[])
 
 	/* pmemcheck related persist */
 	pmemobj_persist(pop.get_handle(), &(pop.get_root()->counter),
-				sizeof(pop.get_root()->counter));
+			sizeof(pop.get_root()->counter));
 
 	pop.close();
 

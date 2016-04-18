@@ -37,8 +37,10 @@ include $(TOP)/src/common.inc
 
 TARGETS = libpmem libvmem libpmemblk libpmemlog libpmemobj libvmmalloc tools
 ALL_TARGETS = $(TARGETS) librpmem examples benchmarks
-CLEAN_TARGETS = $(ALL_TARGETS) test jemalloc
-CLOBBER_TARGETS = $(ALL_TARGETS) test jemalloc
+CLEAN_NO_JE_TARGETS = $(ALL_TARGETS) test
+CLEAN_TARGETS = $(CLEAN_NO_JE_TARGETS) jemalloc
+CLOBBER_NO_JE_TARGETS = $(ALL_TARGETS) test
+CLOBBER_TARGETS = $(CLOBBER_NO_JE_TARGETS) jemalloc
 CSTYLE_TARGETS = $(ALL_TARGETS) common test rpmem_common
 INSTALL_TARGETS = $(TARGETS)
 
@@ -77,6 +79,7 @@ uninstall: $(INSTALL_TARGETS:=-uninstall)
 clean: $(CLEAN_TARGETS:=-clean)
 clobber: $(CLOBBER_TARGETS:=-clobber)
 cstyle: $(CSTYLE_TARGETS:=-cstyle)
+format: $(CSTYLE_TARGETS:=-format)
 examples benchmarks: $(TARGETS)
 benchmarks: examples
 
@@ -89,32 +92,12 @@ libpmemblk libpmemlog libpmemobj: libpmem
 pkg-config:
 	@$(MAKE_PKG_CONFIG) "$(prefix)" "$(libdir)" "$(SRCVERSION)"
 
-%-install: %
-	$(MAKE) -C $* install
-ifeq ($(custom_build),)
-	$(MAKE) -C $* install DEBUG=1
-endif
-
-%-uninstall:
-	$(MAKE) -C $* uninstall
-ifeq ($(custom_build),)
-	$(MAKE) -C $* uninstall DEBUG=1
-endif
-
-%-clean:
-	$(MAKE) -C $* clean
-ifeq ($(custom_build),)
-	$(MAKE) -C $* clean DEBUG=1
-endif
-
-%-clobber:
-	$(MAKE) -C $* clobber
-ifeq ($(custom_build),)
-	$(MAKE) -C $* clobber DEBUG=1
-endif
-
-%-cstyle:
-	$(MAKE) -C $* cstyle
+$(eval $(call sub-target,$(INSTALL_TARGETS),install,y))
+$(eval $(call sub-target,$(INSTALL_TARGETS),uninstall,y))
+$(eval $(call sub-target,$(CLEAN_NO_JE_TARGETS),clean,y))
+$(eval $(call sub-target,$(CLOBBER_NO_JE_TARGETS),clobber,y))
+$(eval $(call sub-target,$(CSTYLE_TARGETS),cstyle,n))
+$(eval $(call sub-target,$(CSTYLE_TARGETS),format,n))
 
 $(ALL_TARGETS):
 	$(MAKE) -C $@
@@ -162,7 +145,13 @@ uninstall:
 	$(foreach f, $(PKG_CONFIG_FILES), $(RM) $(PKG_CONFIG_DESTDIR)/$(notdir $(f)))
 
 cstyle:
-	$(CSTYLE) include/*.h
+	$(STYLE_CHECK) check include/*.h
+	$(STYLE_CHECK) check include/libpmemobj/*.hpp
+	$(STYLE_CHECK) check include/libpmemobj/detail/*.hpp
+
+format:
+	$(STYLE_CHECK) format include/libpmemobj/*.hpp
+	$(STYLE_CHECK) format include/libpmemobj/detail/*.hpp
 
 cscope:
 	cscope -q -b $(SCOPEFILES)
@@ -173,6 +162,6 @@ clean:
 
 .NOTPARALLEL: libvmem libvmmalloc
 
-.PHONY: all install uninstall unistall-cpp install-cpp clean clobber cstyle test check pcheck\
+.PHONY: all install uninstall unistall-cpp install-cpp clean clobber cstyle format test check pcheck\
 	jemalloc jemalloc-clean jemalloc-test jemalloc-check cscope $(ALL_TARGETS)\
 	pkg-config check-remote

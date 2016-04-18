@@ -41,10 +41,11 @@ test   : TARGET = test
 clean  : TARGET = clean
 clobber: TARGET = clobber
 cstyle : TARGET = cstyle
+format : TARGET = format
 install: TARGET = install
 uninstall: TARGET = uninstall
 
-all clean clobber cstyle install uninstall check test: $(TARGETS)
+all clean clobber cstyle install uninstall check format test: $(TARGETS)
 
 $(TARGETS):
 	$(MAKE) -C $@ $(TARGET)
@@ -58,4 +59,4 @@ cscope:
 	cscope -q -b $(SCOPEFILES)
 	ctags -e $(SCOPEFILES)
 
-.PHONY: all clean clobber cstyle install uninstall common cscope $(TARGETS)
+.PHONY: all clean clobber cstyle format install uninstall common cscope $(TARGETS)

@@ -73,7 +73,6 @@ LDFLAGS += -Wl,-z,relro -Wl,--warn-common -Wl,--fatal-warnings $(EXTRA_LDFLAGS) 
 TARGET_DIR=$(DESTDIR)$(bindir)
 BASH_COMP_FILES ?=
 BASH_COMP_DESTDIR = $(DESTDIR)$(bashcompdir)
-CSTYLE=$(TOP)/utils/cstyle
 
 TARGET_STATIC_NONDEBUG=$(TARGET).static-nondebug
 TARGET_STATIC_DEBUG=$(TARGET).static-debug
@@ -156,9 +155,6 @@ clobber: clean
 	$(RM) $(TARGET_STATIC_DEBUG)
 	$(RM) -r .deps
 
-cstyle:
-	$(CSTYLE) *.[ch]
-
 install: all
 ifeq ($(INSTALL_TARGET),y)
 ifneq ($(TARGET),)
@@ -219,6 +215,6 @@ objdir=.
 
 test check pcheck: all
 
-.PHONY: all clean clobber cstyle install uninstall test check pcheck
+.PHONY: all clean clobber install uninstall test check pcheck
 
 -include .deps/*.P

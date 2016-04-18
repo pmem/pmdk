@@ -36,18 +36,19 @@
 
 #include "unittest.h"
 
+#include <libpmemobj/mutex.hpp>
 #include <libpmemobj/persistent_ptr.hpp>
 #include <libpmemobj/pool.hpp>
-#include <libpmemobj/mutex.hpp>
 
-#include <thread>
 #include <mutex>
+#include <thread>
 
 #define LAYOUT "cpp"
 
 using namespace nvml::obj;
 
-namespace {
+namespace
+{
 
 /* pool root structure */
 struct root {
@@ -64,7 +65,8 @@ const int num_threads = 30;
 /*
  * increment_pint -- (internal) test the mutex with an std::lock_guard
  */
-void increment_pint(persistent_ptr<struct root> proot)
+void
+increment_pint(persistent_ptr<struct root> proot)
 {
 	for (int i = 0; i < num_ops; ++i) {
 		std::lock_guard<mutex> lock(proot->pmutex);
@@ -75,7 +77,8 @@ void increment_pint(persistent_ptr<struct root> proot)
 /*
  * decrement_pint -- (internal) test the mutex with an std::unique_lock
  */
-void decrement_pint(persistent_ptr<struct root> proot)
+void
+decrement_pint(persistent_ptr<struct root> proot)
 {
 	std::unique_lock<mutex> lock(proot->pmutex);
 	for (int i = 0; i < num_ops; ++i)
@@ -87,7 +90,8 @@ void decrement_pint(persistent_ptr<struct root> proot)
 /*
  * trylock_test -- (internal) test the trylock implementation
  */
-void trylock_test(persistent_ptr<struct root> proot)
+void
+trylock_test(persistent_ptr<struct root> proot)
 {
 	for (;;) {
 		if (proot->pmutex.try_lock()) {
@@ -101,8 +105,9 @@ void trylock_test(persistent_ptr<struct root> proot)
 /*
  * mutex_test -- (internal) launch worker threads to test the pmutex
  */
-template<typename Worker>
-void mutex_test(pool<struct root> &pop, const Worker &function)
+template <typename Worker>
+void
+mutex_test(pool<struct root> &pop, const Worker &function)
 {
 	std::thread threads[num_threads];
 
@@ -114,7 +119,6 @@ void mutex_test(pool<struct root> &pop, const Worker &function)
 	for (int i = 0; i < num_threads; ++i)
 		threads[i].join();
 }
-
 }
 
 int
@@ -131,7 +135,7 @@ main(int argc, char *argv[])
 
 	try {
 		pop = pool<struct root>::create(path, LAYOUT, PMEMOBJ_MIN_POOL,
-			S_IWUSR | S_IRUSR);
+						S_IWUSR | S_IRUSR);
 	} catch (nvml::pool_error &pe) {
 		UT_FATAL("!pool::create: %s %s", pe.what(), path);
 	}

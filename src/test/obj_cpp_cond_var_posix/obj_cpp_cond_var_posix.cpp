@@ -36,9 +36,9 @@
 
 #include "unittest.h"
 
+#include <libpmemobj/condition_variable.hpp>
 #include <libpmemobj/persistent_ptr.hpp>
 #include <libpmemobj/pool.hpp>
-#include <libpmemobj/condition_variable.hpp>
 
 #include <mutex>
 #include <vector>
@@ -47,10 +47,11 @@
 
 using namespace nvml::obj;
 
-namespace {
+namespace
+{
 
 /* convenience typedef */
-typedef void *(*reader_type)(void*);
+typedef void *(*reader_type)(void *);
 
 /* pool root structure */
 struct root {
@@ -78,9 +79,10 @@ struct writer_args {
 /*
  * write_notify -- (internal) bump up the counter up to a limit and notify
  */
-void *write_notify(void *args)
+void *
+write_notify(void *args)
 {
-	struct writer_args *wargs = static_cast<struct writer_args*>(args);
+	struct writer_args *wargs = static_cast<struct writer_args *>(args);
 
 	std::lock_guard<mutex> lock(wargs->proot->pmutex);
 
@@ -100,10 +102,11 @@ void *write_notify(void *args)
 /*
  * reader_mutex -- (internal) verify the counter value
  */
-void *reader_mutex(void *arg)
+void *
+reader_mutex(void *arg)
 {
 	persistent_ptr<struct root> *proot =
-				static_cast<persistent_ptr<struct root>*>(arg);
+		static_cast<persistent_ptr<struct root> *>(arg);
 	(*proot)->pmutex.lock();
 	while ((*proot)->counter != limit)
 		(*proot)->cond.wait((*proot)->pmutex);
@@ -117,13 +120,14 @@ void *reader_mutex(void *arg)
 /*
  * reader_mutex_pred -- (internal) verify the counter value
  */
-void *reader_mutex_pred(void *arg)
+void *
+reader_mutex_pred(void *arg)
 {
 	persistent_ptr<struct root> *proot =
-				static_cast<persistent_ptr<struct root>*>(arg);
+		static_cast<persistent_ptr<struct root> *>(arg);
 	(*proot)->pmutex.lock();
 	(*proot)->cond.wait((*proot)->pmutex,
-			[&](){ return (*proot)->counter == limit; });
+			    [&]() { return (*proot)->counter == limit; });
 
 	UT_ASSERTeq((*proot)->counter, limit);
 	(*proot)->pmutex.unlock();
@@ -134,10 +138,11 @@ void *reader_mutex_pred(void *arg)
 /*
  * reader_lock -- (internal) verify the counter value
  */
-void *reader_lock(void *arg)
+void *
+reader_lock(void *arg)
 {
 	persistent_ptr<struct root> *proot =
-				static_cast<persistent_ptr<struct root>*>(arg);
+		static_cast<persistent_ptr<struct root> *>(arg);
 	std::unique_lock<mutex> lock((*proot)->pmutex);
 	while ((*proot)->counter != limit)
 		(*proot)->cond.wait((*proot)->pmutex);
@@ -151,12 +156,13 @@ void *reader_lock(void *arg)
 /*
  * reader_lock_pred -- (internal) verify the counter value
  */
-void *reader_lock_pred(void *arg)
+void *
+reader_lock_pred(void *arg)
 {
 	persistent_ptr<struct root> *proot =
-				static_cast<persistent_ptr<struct root>*>(arg);
+		static_cast<persistent_ptr<struct root> *>(arg);
 	std::unique_lock<mutex> lock((*proot)->pmutex);
-	(*proot)->cond.wait(lock, [&](){ return (*proot)->counter == limit; });
+	(*proot)->cond.wait(lock, [&]() { return (*proot)->counter == limit; });
 
 	UT_ASSERTeq((*proot)->counter, limit);
 	lock.unlock();
@@ -167,10 +173,11 @@ void *reader_lock_pred(void *arg)
 /*
  * reader_mutex_until -- (internal) verify the counter value or timeout
  */
-void *reader_mutex_until(void *arg)
+void *
+reader_mutex_until(void *arg)
 {
 	persistent_ptr<struct root> *proot =
-				static_cast<persistent_ptr<struct root>*>(arg);
+		static_cast<persistent_ptr<struct root> *>(arg);
 	(*proot)->pmutex.lock();
 	auto until = std::chrono::system_clock::now();
 	until += wait_time;
@@ -189,15 +196,17 @@ void *reader_mutex_until(void *arg)
 /*
  * reader_mutex_until_pred -- (internal) verify the counter value or timeout
  */
-void *reader_mutex_until_pred(void *arg)
+void *
+reader_mutex_until_pred(void *arg)
 {
 	persistent_ptr<struct root> *proot =
-				static_cast<persistent_ptr<struct root>*>(arg);
+		static_cast<persistent_ptr<struct root> *>(arg);
 	(*proot)->pmutex.lock();
 	auto until = std::chrono::system_clock::now();
 	until += wait_time;
-	auto ret = (*proot)->cond.wait_until((*proot)->pmutex, until,
-			[&](){ return (*proot)->counter == limit; });
+	auto ret = (*proot)->cond.wait_until((*proot)->pmutex, until, [&]() {
+		return (*proot)->counter == limit;
+	});
 
 	auto now = std::chrono::system_clock::now();
 	if (ret == false)
@@ -212,10 +221,11 @@ void *reader_mutex_until_pred(void *arg)
 /*
  * reader_lock_until -- (internal) verify the counter value or timeout
  */
-void *reader_lock_until(void *arg)
+void *
+reader_lock_until(void *arg)
 {
 	persistent_ptr<struct root> *proot =
-				static_cast<persistent_ptr<struct root>*>(arg);
+		static_cast<persistent_ptr<struct root> *>(arg);
 	std::unique_lock<mutex> lock((*proot)->pmutex);
 	auto until = std::chrono::system_clock::now();
 	until += wait_time;
@@ -234,15 +244,17 @@ void *reader_lock_until(void *arg)
 /*
  * reader_lock_until_pred -- (internal) verify the counter value or timeout
  */
-void *reader_lock_until_pred(void *arg)
+void *
+reader_lock_until_pred(void *arg)
 {
 	persistent_ptr<struct root> *proot =
-				static_cast<persistent_ptr<struct root>*>(arg);
+		static_cast<persistent_ptr<struct root> *>(arg);
 	std::unique_lock<mutex> lock((*proot)->pmutex);
 	auto until = std::chrono::system_clock::now();
 	until += wait_time;
-	auto ret = (*proot)->cond.wait_until((*proot)->pmutex, until,
-			[&](){ return (*proot)->counter == limit; });
+	auto ret = (*proot)->cond.wait_until((*proot)->pmutex, until, [&]() {
+		return (*proot)->counter == limit;
+	});
 
 	auto now = std::chrono::system_clock::now();
 	if (ret == false)
@@ -257,10 +269,11 @@ void *reader_lock_until_pred(void *arg)
 /*
  * reader_mutex_for -- (internal) verify the counter value or timeout
  */
-void *reader_mutex_for(void *arg)
+void *
+reader_mutex_for(void *arg)
 {
 	persistent_ptr<struct root> *proot =
-				static_cast<persistent_ptr<struct root>*>(arg);
+		static_cast<persistent_ptr<struct root> *>(arg);
 	(*proot)->pmutex.lock();
 	auto until = std::chrono::system_clock::now();
 	until += wait_time;
@@ -279,15 +292,17 @@ void *reader_mutex_for(void *arg)
 /*
  * reader_mutex_for_pred -- (internal) verify the counter value or timeout
  */
-void *reader_mutex_for_pred(void *arg)
+void *
+reader_mutex_for_pred(void *arg)
 {
 	persistent_ptr<struct root> *proot =
-				static_cast<persistent_ptr<struct root>*>(arg);
+		static_cast<persistent_ptr<struct root> *>(arg);
 	(*proot)->pmutex.lock();
 	auto until = std::chrono::system_clock::now();
 	until += wait_time;
-	auto ret = (*proot)->cond.wait_for((*proot)->pmutex, wait_time,
-			[&](){ return (*proot)->counter == limit; });
+	auto ret = (*proot)->cond.wait_for((*proot)->pmutex, wait_time, [&]() {
+		return (*proot)->counter == limit;
+	});
 
 	auto now = std::chrono::system_clock::now();
 	if (ret == false)
@@ -302,10 +317,11 @@ void *reader_mutex_for_pred(void *arg)
 /*
  * reader_lock_for -- (internal) verify the counter value or timeout
  */
-void *reader_lock_for(void *arg)
+void *
+reader_lock_for(void *arg)
 {
 	persistent_ptr<struct root> *proot =
-				static_cast<persistent_ptr<struct root>*>(arg);
+		static_cast<persistent_ptr<struct root> *>(arg);
 	std::unique_lock<mutex> lock((*proot)->pmutex);
 	auto until = std::chrono::system_clock::now();
 	until += wait_time;
@@ -324,15 +340,17 @@ void *reader_lock_for(void *arg)
 /*
  * reader_lock_for_pred -- (internal) verify the counter value or timeout
  */
-void *reader_lock_for_pred(void *arg)
+void *
+reader_lock_for_pred(void *arg)
 {
 	persistent_ptr<struct root> *proot =
-				static_cast<persistent_ptr<struct root>*>(arg);
+		static_cast<persistent_ptr<struct root> *>(arg);
 	std::unique_lock<mutex> lock((*proot)->pmutex);
 	auto until = std::chrono::system_clock::now();
 	until += wait_time;
-	auto ret = (*proot)->cond.wait_for((*proot)->pmutex, wait_time,
-			[&](){ return (*proot)->counter == limit; });
+	auto ret = (*proot)->cond.wait_for((*proot)->pmutex, wait_time, [&]() {
+		return (*proot)->counter == limit;
+	});
 
 	auto now = std::chrono::system_clock::now();
 	if (ret == false)
@@ -344,21 +362,21 @@ void *reader_lock_for_pred(void *arg)
 	return nullptr;
 }
 
-
 /*
  * mutex_test -- (internal) launch worker threads to test the pshared_mutex
  */
-template<typename Reader, typename Writer>
-void mutex_test(pool<struct root> &pop, bool notify, bool notify_all,
-		Reader writer, Writer reader)
+template <typename Reader, typename Writer>
+void
+mutex_test(pool<struct root> &pop, bool notify, bool notify_all, Reader writer,
+	   Writer reader)
 {
 	const int total_threads = num_threads * 2;
 	pthread_t threads[total_threads];
 
 	persistent_ptr<struct root> proot = pop.get_root();
-	struct writer_args wargs = { proot, notify, notify_all };
+	struct writer_args wargs = {proot, notify, notify_all};
 
-	for (int i = 0; i < total_threads; i+=2) {
+	for (int i = 0; i < total_threads; i += 2) {
 		PTHREAD_CREATE(&threads[i], nullptr, reader, &proot);
 		PTHREAD_CREATE(&threads[i + 1], nullptr, writer, &wargs);
 	}
@@ -366,7 +384,6 @@ void mutex_test(pool<struct root> &pop, bool notify, bool notify_all,
 	for (int i = 0; i < total_threads; ++i)
 		PTHREAD_JOIN(threads[i], nullptr);
 }
-
 }
 
 int
@@ -383,16 +400,16 @@ main(int argc, char *argv[])
 
 	try {
 		pop = pool<struct root>::create(path, LAYOUT, PMEMOBJ_MIN_POOL,
-			S_IWUSR | S_IRUSR);
+						S_IWUSR | S_IRUSR);
 	} catch (nvml::pool_error &pe) {
 		UT_FATAL("!pool::create: %s %s", pe.what(), path);
 	}
 
-	std::vector<reader_type> notify_functions({ reader_mutex,
-		reader_mutex_pred, reader_lock, reader_lock_pred,
-		reader_mutex_until, reader_mutex_until_pred, reader_lock_until,
-		reader_lock_until_pred, reader_mutex_for, reader_mutex_for_pred,
-		reader_lock_for, reader_lock_for_pred });
+	std::vector<reader_type> notify_functions(
+		{reader_mutex, reader_mutex_pred, reader_lock, reader_lock_pred,
+		 reader_mutex_until, reader_mutex_until_pred, reader_lock_until,
+		 reader_lock_until_pred, reader_mutex_for,
+		 reader_mutex_for_pred, reader_lock_for, reader_lock_for_pred});
 
 	for (auto func : notify_functions) {
 		int reset_value = 42;
@@ -404,10 +421,10 @@ main(int argc, char *argv[])
 		pop.get_root()->counter = reset_value;
 	}
 
-	std::vector<reader_type> not_notify_functions({ reader_mutex_until,
-		reader_mutex_until_pred, reader_lock_until,
-		reader_lock_until_pred, reader_mutex_for, reader_mutex_for_pred,
-		reader_lock_for, reader_lock_for_pred });
+	std::vector<reader_type> not_notify_functions(
+		{reader_mutex_until, reader_mutex_until_pred, reader_lock_until,
+		 reader_lock_until_pred, reader_mutex_for,
+		 reader_mutex_for_pred, reader_lock_for, reader_lock_for_pred});
 
 	for (auto func : not_notify_functions) {
 		int reset_value = 42;

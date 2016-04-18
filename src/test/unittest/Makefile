@@ -88,15 +88,12 @@ objdir=.
 clean:
 	$(RM) *.o core a.out
 
-cstyle:
-	$(CSTYLE) *.[ch]
-
 clobber: clean
 	$(RM) $(TARGET)
 	$(RM) -r .deps
 
 test check pcheck: all
 
-.PHONY: all test check clean clobber cstyle pcheck
+.PHONY: all test check clean clobber cstyle format pcheck
 
 -include .deps/*.P

@@ -37,145 +37,152 @@
 #ifndef PMEMOBJ_P_HPP
 #define PMEMOBJ_P_HPP
 
-#include <memory>
 #include "libpmemobj.h"
+#include <memory>
 
-#include "libpmemobj/detail/specialization.hpp"
 #include "libpmemobj/detail/common.hpp"
+#include "libpmemobj/detail/specialization.hpp"
 
 namespace nvml
 {
 
 namespace obj
 {
+/**
+ * Resides on pmem class.
+ *
+ * p class is a property-like template class that has to be used for all
+ * variables (excluding persistent pointers) which are used in a pmemobj
+ * transactions. The only thing it does is creating snapshots of the
+ * object when modified in the transaction scope.
+ */
+template <typename T>
+class p {
+	typedef p<T> this_type;
+
+public:
 	/**
-	 * Resides on pmem class.
+	 * Value constructor.
 	 *
-	 * p class is a property-like template class that has to be used for all
-	 * variables (excluding persistent pointers) which are used in a pmemobj
-	 * transactions. The only thing it does is creating snapshots of the
-	 * object when modified in the transaction scope.
+	 * Directly assigns a value to the underlying storage.
+	 *
+	 * @param _val const reference to the value to be assigned.
 	 */
-	template<typename T>
-	class p
+	p(const T &_val) noexcept : val{_val}
 	{
-		typedef p<T> this_type;
-	public:
-		/**
-		 * Value constructor.
-		 *
-		 * Directly assigns a value to the underlying storage.
-		 *
-		 * @param _val const reference to the value to be assigned.
-		 */
-		p(const T &_val) noexcept : val{_val}
-		{
-		}
+	}
 
-		/**
-		 * Defaulted constructor.
-		 */
-		p() = default;
+	/**
+	 * Defaulted constructor.
+	 */
+	p() = default;
 
-		/**
-		 * Assignment operator.
-		 *
-		 * The p<> class property assignment within a transaction
-		 * automatically registers this operation so that a rollback
-		 * is possible.
-		 *
-		 * @throw nvml::transaction_error when adding the object to the
-		 *	transaction failed.
-		 */
-		p& operator=(const p &rhs)
-		{
-			detail::conditional_add_to_tx(this);
+	/**
+	 * Assignment operator.
+	 *
+	 * The p<> class property assignment within a transaction
+	 * automatically registers this operation so that a rollback
+	 * is possible.
+	 *
+	 * @throw nvml::transaction_error when adding the object to the
+	 *	transaction failed.
+	 */
+	p &
+	operator=(const p &rhs)
+	{
+		detail::conditional_add_to_tx(this);
 
-			this_type(rhs).swap(*this);
+		this_type(rhs).swap(*this);
 
-			return *this;
-		}
+		return *this;
+	}
 
-		/**
-		 * Converting assignment operator from a different p<>.
-		 *
-		 * Available only for convertible types.
-		 * Just like regular assignment, also automatically registers
-		 * itself in a transaction.
-		 *
-		 * @throw nvml::transaction_error when adding the object to the
-		 *	transaction failed.
-		 */
-		template<typename Y, typename = typename
-		std::enable_if<std::is_convertible<Y, T>::value>::type>
-		p &operator=(const p<Y> &rhs)
-		{
-			detail::conditional_add_to_tx(this);
+	/**
+	 * Converting assignment operator from a different p<>.
+	 *
+	 * Available only for convertible types.
+	 * Just like regular assignment, also automatically registers
+	 * itself in a transaction.
+	 *
+	 * @throw nvml::transaction_error when adding the object to the
+	 *	transaction failed.
+	 */
+	template <typename Y, typename = typename std::enable_if<
+				      std::is_convertible<Y, T>::value>::type>
+	p &
+	operator=(const p<Y> &rhs)
+	{
+		detail::conditional_add_to_tx(this);
 
-			this_type(rhs).swap(*this);
+		this_type(rhs).swap(*this);
 
-			return *this;
-		}
+		return *this;
+	}
 
-		/**
-		 * Conversion operator back to the underlying type.
-		 */
-		operator T() const noexcept
-		{
-			return this->val;
-		}
+	/**
+	 * Conversion operator back to the underlying type.
+	 */
+	operator T() const noexcept
+	{
+		return this->val;
+	}
 
-		/**
-		 * Retrieves read-write reference of the object.
-		 *
-		 * The entire object is automatically added to the transaction.
-		 *
-		 * @return a reference to the object.
-		 *
-		 * @throw nvml::transaction_error when adding the object to the
-		 *	transaction failed.
-		 */
-		T &get_rw()
-		{
-			detail::conditional_add_to_tx(this);
+	/**
+	 * Retrieves read-write reference of the object.
+	 *
+	 * The entire object is automatically added to the transaction.
+	 *
+	 * @return a reference to the object.
+	 *
+	 * @throw nvml::transaction_error when adding the object to the
+	 *	transaction failed.
+	 */
+	T &
+	get_rw()
+	{
+		detail::conditional_add_to_tx(this);
 
-			return this->val;
-		}
+		return this->val;
+	}
 
-		/**
-		 * Retrieves read-only const reference of the object.
-		 *
-		 * This method has no transaction side effects.
-		 *
-		 * @return a const reference to the object.
-		 */
-		const T &get_ro() const noexcept
-		{
-			return this->val;
-		}
-
-		/**
-		 * Swaps two p objects of the same type.
-		 */
-		void swap(p &other) noexcept
-		{
-			std::swap(this->val, other.val);
-		}
-	private:
-		T val;
-	};
+	/**
+	 * Retrieves read-only const reference of the object.
+	 *
+	 * This method has no transaction side effects.
+	 *
+	 * @return a const reference to the object.
+	 */
+	const T &
+	get_ro() const noexcept
+	{
+		return this->val;
+	}
 
 	/**
 	 * Swaps two p objects of the same type.
-	 *
-	 * Non-member swap function as required by Swappable concept.
-	 * en.cppreference.com/w/cpp/concept/Swappable
 	 */
-	template<class T> inline void
-	swap(p<T> & a, p<T> & b) noexcept
+	void
+	swap(p &other) noexcept
 	{
-		a.swap(b);
+		std::swap(this->val, other.val);
 	}
+
+private:
+	T val;
+};
+
+/**
+ * Swaps two p objects of the same type.
+ *
+ * Non-member swap function as required by Swappable concept.
+ * en.cppreference.com/w/cpp/concept/Swappable
+ */
+template <class T>
+inline void
+swap(p<T> &a, p<T> &b) noexcept
+{
+	a.swap(b);
+}
 
 } /* namespace obj */
 

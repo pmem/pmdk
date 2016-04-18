@@ -36,19 +36,20 @@
 
 #include "unittest.h"
 
+#include <libpmemobj/condition_variable.hpp>
 #include <libpmemobj/persistent_ptr.hpp>
 #include <libpmemobj/pool.hpp>
-#include <libpmemobj/condition_variable.hpp>
 
-#include <thread>
 #include <mutex>
+#include <thread>
 #include <vector>
 
 #define LAYOUT "cpp"
 
 using namespace nvml::obj;
 
-namespace {
+namespace
+{
 
 /* convenience typedef */
 typedef std::function<void(persistent_ptr<struct root>)> reader_type;
@@ -72,7 +73,8 @@ const std::chrono::milliseconds wait_time(150);
 /*
  * write_notify -- (internal) bump up the counter up to a limit and notify
  */
-void write_notify(persistent_ptr<struct root> proot, bool notify, bool all)
+void
+write_notify(persistent_ptr<struct root> proot, bool notify, bool all)
 {
 	std::lock_guard<mutex> lock(proot->pmutex);
 
@@ -91,7 +93,8 @@ void write_notify(persistent_ptr<struct root> proot, bool notify, bool all)
 /*
  * reader_mutex -- (internal) verify the counter value
  */
-void reader_mutex(persistent_ptr<struct root> proot)
+void
+reader_mutex(persistent_ptr<struct root> proot)
 {
 	proot->pmutex.lock();
 	while (proot->counter != limit)
@@ -104,11 +107,12 @@ void reader_mutex(persistent_ptr<struct root> proot)
 /*
  * reader_mutex_pred -- (internal) verify the counter value
  */
-void reader_mutex_pred(persistent_ptr<struct root> proot)
+void
+reader_mutex_pred(persistent_ptr<struct root> proot)
 {
 	proot->pmutex.lock();
 	proot->cond.wait(proot->pmutex,
-			[&](){ return proot->counter == limit; });
+			 [&]() { return proot->counter == limit; });
 
 	UT_ASSERTeq(proot->counter, limit);
 	proot->pmutex.unlock();
@@ -117,7 +121,8 @@ void reader_mutex_pred(persistent_ptr<struct root> proot)
 /*
  * reader_lock -- (internal) verify the counter value
  */
-void reader_lock(persistent_ptr<struct root> proot)
+void
+reader_lock(persistent_ptr<struct root> proot)
 {
 	std::unique_lock<mutex> lock(proot->pmutex);
 	while (proot->counter != limit)
@@ -130,10 +135,11 @@ void reader_lock(persistent_ptr<struct root> proot)
 /*
  * reader_lock_pred -- (internal) verify the counter value
  */
-void reader_lock_pred(persistent_ptr<struct root> proot)
+void
+reader_lock_pred(persistent_ptr<struct root> proot)
 {
 	std::unique_lock<mutex> lock(proot->pmutex);
-	proot->cond.wait(lock, [&](){ return proot->counter == limit; });
+	proot->cond.wait(lock, [&]() { return proot->counter == limit; });
 
 	UT_ASSERTeq(proot->counter, limit);
 	lock.unlock();
@@ -142,7 +148,8 @@ void reader_lock_pred(persistent_ptr<struct root> proot)
 /*
  * reader_mutex_until -- (internal) verify the counter value or timeout
  */
-void reader_mutex_until(persistent_ptr<struct root> proot)
+void
+reader_mutex_until(persistent_ptr<struct root> proot)
 {
 	proot->pmutex.lock();
 	auto until = std::chrono::steady_clock::now();
@@ -160,13 +167,15 @@ void reader_mutex_until(persistent_ptr<struct root> proot)
 /*
  * reader_mutex_until_pred -- (internal) verify the counter value or timeout
  */
-void reader_mutex_until_pred(persistent_ptr<struct root> proot)
+void
+reader_mutex_until_pred(persistent_ptr<struct root> proot)
 {
 	proot->pmutex.lock();
 	auto until = std::chrono::system_clock::now();
 	until += wait_time;
-	auto ret = proot->cond.wait_until(proot->pmutex, until,
-			[&](){ return proot->counter == limit; });
+	auto ret = proot->cond.wait_until(proot->pmutex, until, [&]() {
+		return proot->counter == limit;
+	});
 
 	auto now = std::chrono::system_clock::now();
 	if (ret == false)
@@ -179,7 +188,8 @@ void reader_mutex_until_pred(persistent_ptr<struct root> proot)
 /*
  * reader_lock_until -- (internal) verify the counter value or timeout
  */
-void reader_lock_until(persistent_ptr<struct root> proot)
+void
+reader_lock_until(persistent_ptr<struct root> proot)
 {
 	std::unique_lock<mutex> lock(proot->pmutex);
 	auto until = std::chrono::system_clock::now();
@@ -197,13 +207,15 @@ void reader_lock_until(persistent_ptr<struct root> proot)
 /*
  * reader_lock_until_pred -- (internal) verify the counter value or timeout
  */
-void reader_lock_until_pred(persistent_ptr<struct root> proot)
+void
+reader_lock_until_pred(persistent_ptr<struct root> proot)
 {
 	std::unique_lock<mutex> lock(proot->pmutex);
 	auto until = std::chrono::system_clock::now();
 	until += wait_time;
-	auto ret = proot->cond.wait_until(proot->pmutex, until,
-			[&](){ return proot->counter == limit; });
+	auto ret = proot->cond.wait_until(proot->pmutex, until, [&]() {
+		return proot->counter == limit;
+	});
 
 	auto now = std::chrono::system_clock::now();
 	if (ret == false)
@@ -216,7 +228,8 @@ void reader_lock_until_pred(persistent_ptr<struct root> proot)
 /*
  * reader_mutex_for -- (internal) verify the counter value or timeout
  */
-void reader_mutex_for(persistent_ptr<struct root> proot)
+void
+reader_mutex_for(persistent_ptr<struct root> proot)
 {
 	proot->pmutex.lock();
 	auto until = std::chrono::system_clock::now();
@@ -234,13 +247,15 @@ void reader_mutex_for(persistent_ptr<struct root> proot)
 /*
  * reader_mutex_for_pred -- (internal) verify the counter value or timeout
  */
-void reader_mutex_for_pred(persistent_ptr<struct root> proot)
+void
+reader_mutex_for_pred(persistent_ptr<struct root> proot)
 {
 	proot->pmutex.lock();
 	auto until = std::chrono::system_clock::now();
 	until += wait_time;
-	auto ret = proot->cond.wait_for(proot->pmutex, wait_time,
-			[&](){ return proot->counter == limit; });
+	auto ret = proot->cond.wait_for(proot->pmutex, wait_time, [&]() {
+		return proot->counter == limit;
+	});
 
 	auto now = std::chrono::system_clock::now();
 	if (ret == false)
@@ -253,7 +268,8 @@ void reader_mutex_for_pred(persistent_ptr<struct root> proot)
 /*
  * reader_lock_for -- (internal) verify the counter value or timeout
  */
-void reader_lock_for(persistent_ptr<struct root> proot)
+void
+reader_lock_for(persistent_ptr<struct root> proot)
 {
 	std::unique_lock<mutex> lock(proot->pmutex);
 	auto until = std::chrono::system_clock::now();
@@ -271,13 +287,15 @@ void reader_lock_for(persistent_ptr<struct root> proot)
 /*
  * reader_lock_for_pred -- (internal) verify the counter value or timeout
  */
-void reader_lock_for_pred(persistent_ptr<struct root> proot)
+void
+reader_lock_for_pred(persistent_ptr<struct root> proot)
 {
 	std::unique_lock<mutex> lock(proot->pmutex);
 	auto until = std::chrono::system_clock::now();
 	until += wait_time;
-	auto ret = proot->cond.wait_for(proot->pmutex, wait_time,
-			[&](){ return proot->counter == limit; });
+	auto ret = proot->cond.wait_for(proot->pmutex, wait_time, [&]() {
+		return proot->counter == limit;
+	});
 
 	auto now = std::chrono::system_clock::now();
 	if (ret == false)
@@ -287,20 +305,20 @@ void reader_lock_for_pred(persistent_ptr<struct root> proot)
 	lock.unlock();
 }
 
-
 /*
  * mutex_test -- (internal) launch worker threads to test the pshared_mutex
  */
-template<typename Reader, typename Writer>
-void mutex_test(pool<struct root> &pop, bool notify, bool notify_all,
-		const Reader &writer, const Writer &reader)
+template <typename Reader, typename Writer>
+void
+mutex_test(pool<struct root> &pop, bool notify, bool notify_all,
+	   const Reader &writer, const Writer &reader)
 {
 	const int total_threads = num_threads * 2;
 	std::thread threads[total_threads];
 
 	persistent_ptr<struct root> proot = pop.get_root();
 
-	for (int i = 0; i < total_threads; i+=2) {
+	for (int i = 0; i < total_threads; i += 2) {
 		threads[i] = std::thread(reader, proot);
 		threads[i + 1] = std::thread(writer, proot, notify, notify_all);
 	}
@@ -308,7 +326,6 @@ void mutex_test(pool<struct root> &pop, bool notify, bool notify_all,
 	for (int i = 0; i < total_threads; ++i)
 		threads[i].join();
 }
-
 }
 
 int
@@ -325,16 +342,16 @@ main(int argc, char *argv[])
 
 	try {
 		pop = pool<struct root>::create(path, LAYOUT, PMEMOBJ_MIN_POOL,
-			S_IWUSR | S_IRUSR);
+						S_IWUSR | S_IRUSR);
 	} catch (nvml::pool_error &pe) {
 		UT_FATAL("!pool::create: %s %s", pe.what(), path);
 	}
 
-	std::vector<reader_type> notify_functions({ reader_mutex,
-		reader_mutex_pred, reader_lock, reader_lock_pred,
-		reader_mutex_until, reader_mutex_until_pred, reader_lock_until,
-		reader_lock_until_pred, reader_mutex_for, reader_mutex_for_pred,
-		reader_lock_for, reader_lock_for_pred });
+	std::vector<reader_type> notify_functions(
+		{reader_mutex, reader_mutex_pred, reader_lock, reader_lock_pred,
+		 reader_mutex_until, reader_mutex_until_pred, reader_lock_until,
+		 reader_lock_until_pred, reader_mutex_for,
+		 reader_mutex_for_pred, reader_lock_for, reader_lock_for_pred});
 
 	for (auto func : notify_functions) {
 		int reset_value = 42;
@@ -346,10 +363,10 @@ main(int argc, char *argv[])
 		pop.get_root()->counter = reset_value;
 	}
 
-	std::vector<reader_type> not_notify_functions({ reader_mutex_until,
-		reader_mutex_until_pred, reader_lock_until,
-		reader_lock_until_pred, reader_mutex_for, reader_mutex_for_pred,
-		reader_lock_for, reader_lock_for_pred });
+	std::vector<reader_type> not_notify_functions(
+		{reader_mutex_until, reader_mutex_until_pred, reader_lock_until,
+		 reader_lock_until_pred, reader_mutex_for,
+		 reader_mutex_for_pred, reader_lock_for, reader_lock_for_pred});
 
 	for (auto func : not_notify_functions) {
 		int reset_value = 42;

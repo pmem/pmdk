@@ -166,15 +166,12 @@ clobber: clean
 	$(RM) *.csv
 	$(RM) -r .deps
 
-cstyle:
-	$(CSTYLE) *.[ch]
-
 $(CONFIGS):
 	LD_LIBRARY_PATH=$(LIBS_PATH) ./$(BENCHMARK) $@.cfg > $@.csv
 
 run: $(BENCHMARK) $(CONFIGS)
 
-.PHONY: all clean clobber run cstyle $(CONFIGS)
+.PHONY: all clean clobber run $(CONFIGS)
 
 PMEMOBJ_SYMBOLS=pmalloc pfree lane_hold lane_release
 

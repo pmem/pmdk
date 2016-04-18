@@ -36,19 +36,19 @@
  * Please see pmem.io blog posts for more details.
  */
 
-#include <libpmemobj/persistent_ptr.hpp>
+#include <iostream>
 #include <libpmemobj/make_persistent.hpp>
 #include <libpmemobj/p.hpp>
-#include <libpmemobj/transaction.hpp>
+#include <libpmemobj/persistent_ptr.hpp>
 #include <libpmemobj/pool.hpp>
-#include <unistd.h>
+#include <libpmemobj/transaction.hpp>
 #include <math.h>
+#include <stdexcept>
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/stat.h>
 #include <string.h>
-#include <stdexcept>
-#include <iostream>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #define LAYOUT "queue"
 
@@ -62,7 +62,7 @@ enum queue_op {
 	QUEUE_POP,
 	QUEUE_SHOW,
 
-	MAX_QUEUE_OP
+	MAX_QUEUE_OP,
 };
 
 /* queue operations strings */
@@ -91,8 +91,7 @@ using namespace nvml::obj;
  * libpmemobj C++ API. It demonstrates the basic features of persistent_ptr<>
  * and p<> classes.
  */
-class pmem_queue
-{
+class pmem_queue {
 
 	/* entry in the list */
 	struct pmem_entry {
@@ -100,7 +99,7 @@ class pmem_queue
 		p<uint64_t> value;
 	};
 
-      public:
+public:
 	/*
 	 * Inserts a new element at the end of the queue.
 	 */
@@ -156,7 +155,7 @@ class pmem_queue
 			std::cout << n->value << std::endl;
 	}
 
-      private:
+private:
 	persistent_ptr<pmem_entry> head;
 	persistent_ptr<pmem_entry> tail;
 };

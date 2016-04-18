@@ -37,47 +37,51 @@
 #ifndef PMEMOBJ_COMMON_HPP
 #define PMEMOBJ_COMMON_HPP
 
-#include "libpmemobj/detail/pexceptions.hpp"
 #include "libpmemobj.h"
+#include "libpmemobj/detail/pexceptions.hpp"
 
-namespace nvml {
+namespace nvml
+{
 
-namespace detail {
+namespace detail
+{
 
-	/*
-	 * Conditionally add an object to a transaction.
-	 *
-	 * Adds `*that` to the transaction if it is within a pmemobj pool and
-	 * there is an active transaction. Does nothing otherwise.
-	 *
-	 * @param[in] that pointer to the object being added to the transaction.
-	 */
-	template<typename T>
-	inline void conditional_add_to_tx(const T *that)
-	{
-		/* 'that' is not in any open pool */
-		if (!pmemobj_pool_by_ptr(that))
-			return;
+/*
+ * Conditionally add an object to a transaction.
+ *
+ * Adds `*that` to the transaction if it is within a pmemobj pool and
+ * there is an active transaction. Does nothing otherwise.
+ *
+ * @param[in] that pointer to the object being added to the transaction.
+ */
+template <typename T>
+inline void
+conditional_add_to_tx(const T *that)
+{
+	/* 'that' is not in any open pool */
+	if (!pmemobj_pool_by_ptr(that))
+		return;
 
-		if (pmemobj_tx_stage() != TX_STAGE_WORK)
-			return;
+	if (pmemobj_tx_stage() != TX_STAGE_WORK)
+		return;
 
-		if (pmemobj_tx_add_range_direct(that, sizeof (*that)))
-			throw transaction_error("Could not add an object to the"
+	if (pmemobj_tx_add_range_direct(that, sizeof(*that)))
+		throw transaction_error("Could not add an object to the"
 					" transaction.");
-	}
+}
 
-	/*
-	 * Return type number for given type.
-	 */
-	template<typename T>
-	constexpr uint64_t type_num()
-	{
-		return typeid(T).hash_code();
-	}
+/*
+ * Return type number for given type.
+ */
+template <typename T>
+constexpr uint64_t
+type_num()
+{
+	return typeid(T).hash_code();
+}
 
-}  /* namespace detail */
+} /* namespace detail */
 
-}  /* namespace nvml */
+} /* namespace nvml */
 
 #endif /* PMEMOBJ_COMMON_HPP */

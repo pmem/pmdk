@@ -41,13 +41,14 @@
 
 #include "unittest.h"
 
-#include <libpmemobj/pool.hpp>
-#include <libpmemobj/persistent_ptr.hpp>
 #include <libpmemobj/p.hpp>
+#include <libpmemobj/persistent_ptr.hpp>
+#include <libpmemobj/pool.hpp>
 
 using namespace nvml::obj;
 
-namespace {
+namespace
+{
 
 int TEST_VAL = 1;
 size_t MB = ((size_t)1 << 20);
@@ -66,12 +67,11 @@ pool_test_memset(pool<root> &pop)
 	persistent_ptr<root> root = pop.get_root();
 	UT_ASSERT(root != nullptr);
 
-	void *ret = pop.memset_persist(&root->val, TEST_VAL,
-			sizeof (root->val));
+	void *ret = pop.memset_persist(&root->val, TEST_VAL, sizeof(root->val));
 	UT_ASSERTeq(ret, &root->val);
 
 	int c;
-	memset(&c, TEST_VAL, sizeof (c));
+	memset(&c, TEST_VAL, sizeof(c));
 	UT_ASSERTeq(root->val, c);
 }
 
@@ -85,8 +85,7 @@ pool_test_memcpy(pool<root> &pop)
 	UT_ASSERT(root != nullptr);
 
 	int v = TEST_VAL;
-	void *ret = pop.memcpy_persist(&root->val, &v,
-			sizeof (root->val));
+	void *ret = pop.memcpy_persist(&root->val, &v, sizeof(root->val));
 	UT_ASSERTeq(ret, &root->val);
 	UT_ASSERTeq(root->val, v);
 }
@@ -111,7 +110,7 @@ pool_test_flush(pool<root> &pop)
 
 	root->val = TEST_VAL;
 
-	pop.flush(&root->val, sizeof (root->val));
+	pop.flush(&root->val, sizeof(root->val));
 }
 
 /*
@@ -185,7 +184,7 @@ pool_test_persist(pool<root> &pop)
 
 	root->val = TEST_VAL;
 
-	pop.persist(&root->val, sizeof (root->val));
+	pop.persist(&root->val, sizeof(root->val));
 }
 
 /*
@@ -253,16 +252,14 @@ pool_test_persist_ptr_obj_no_pop(pool<root> &pop)
  */
 pool<root>
 pool_create(const char *path, const char *layout, size_t poolsize,
-	unsigned mode)
+	    unsigned mode)
 {
-	pool<root> pop = pool<root>::create(path, layout, poolsize,
-			mode);
+	pool<root> pop = pool<root>::create(path, layout, poolsize, mode);
 	persistent_ptr<root> root = pop.get_root();
 	UT_ASSERT(root != nullptr);
 
 	return pop;
 }
-
 
 } /* namespace */
 

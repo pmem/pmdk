@@ -39,211 +39,217 @@
 
 #include "libpmemobj.h"
 
-namespace nvml {
+namespace nvml
+{
 
-namespace obj {
+namespace obj
+{
+
+/**
+ * Persistent memory resident shared_mutex implementation.
+ *
+ * This class is an implementation of a PMEM-resident share_mutex
+ * which mimics in behavior the C++11 std::mutex. This class
+ * satisfies all requirements of the SharedMutex and StandardLayoutType
+ * concepts.
+ */
+class shared_mutex {
+public:
+	/** Implementation defined handle to the native type. */
+	typedef PMEMrwlock *native_handle_type;
 
 	/**
-	 * Persistent memory resident shared_mutex implementation.
-	 *
-	 * This class is an implementation of a PMEM-resident share_mutex
-	 * which mimics in behavior the C++11 std::mutex. This class
-	 * satisfies all requirements of the SharedMutex and StandardLayoutType
-	 * concepts.
+	 * Defaulted constructor.
 	 */
-	class shared_mutex
+	shared_mutex() noexcept = default;
+
+	/**
+	 * Defaulted destructor.
+	 */
+	~shared_mutex() = default;
+
+	/**
+	 * Lock the mutex for exclusive access.
+	 *
+	 * If a different thread already locked this mutex, the calling
+	 * thread will block. If the same thread tries to lock a mutex
+	 * it already owns, either in exclusive or shared mode,
+	 * the behavior is undefined.
+	 *
+	 * @throw lock_error when an error occurs, this includes all
+	 * system related errors with the underlying implementation of
+	 * the mutex.
+	 */
+	void
+	lock()
 	{
-	public:
-		/** Implementation defined handle to the native type. */
-		typedef PMEMrwlock *native_handle_type;
+		PMEMobjpool *pop = pmemobj_pool_by_ptr(this);
+		if (int ret = pmemobj_rwlock_wrlock(pop, &this->plock))
+			throw lock_error(ret, std::system_category(),
+					 "Failed to lock a "
+					 "shared mutex.");
+	}
 
-		/**
-		 * Defaulted constructor.
-		 */
-		shared_mutex() noexcept = default;
+	/**
+	 * Lock the mutex for shared access.
+	 *
+	 * If a different thread already locked this mutex for exclusive
+	 * access, the calling thread will block. If it was locked for
+	 * shared access by a different thread, the lock will succeed.
+	 *
+	 * The mutex can be locked for shared access multiple times
+	 * by the same thread. If so, the same number of unlocks must be
+	 * made to unlock the mutex.
+	 *
+	 * @throw lock_error when an error occurs, this includes all
+	 * system related errors with the underlying implementation of
+	 * the mutex.
+	 */
+	void
+	lock_shared()
+	{
+		PMEMobjpool *pop = pmemobj_pool_by_ptr(this);
+		if (int ret = pmemobj_rwlock_rdlock(pop, &this->plock))
+			throw lock_error(ret, std::system_category(),
+					 "Failed to shared lock a "
+					 "shared mutex.");
+	}
 
-		/**
-		 * Defaulted destructor.
-		 */
-		~shared_mutex() = default;
+	/**
+	 * Try to lock the mutex for exclusive access, returns
+	 * regardless if the lock succeeds.
+	 *
+	 * If a different thread already locked this mutex, the calling
+	 * thread will return `false`. If the same thread tries to lock
+	 * a mutex it already owns, either in exclusive or shared mode,
+	 * the behavior is undefined.
+	 *
+	 * @throw lock_error when an error occurs, this includes all
+	 * system related errors with the underlying implementation of
+	 * the mutex.
+	 */
+	bool
+	try_lock()
+	{
+		PMEMobjpool *pop = pmemobj_pool_by_ptr(this);
+		int ret = pmemobj_rwlock_trywrlock(pop, &this->plock);
 
-		/**
-		 * Lock the mutex for exclusive access.
-		 *
-		 * If a different thread already locked this mutex, the calling
-		 * thread will block. If the same thread tries to lock a mutex
-		 * it already owns, either in exclusive or shared mode,
-		 * the behavior is undefined.
-		 *
-		 * @throw lock_error when an error occurs, this includes all
-		 * system related errors with the underlying implementation of
-		 * the mutex.
-		 */
-		void lock()
-		{
-			PMEMobjpool *pop = pmemobj_pool_by_ptr(this);
-			if (int ret = pmemobj_rwlock_wrlock(pop,
-					&this->plock))
-				throw lock_error(ret, std::system_category(),
-						"Failed to lock a "
-						"shared mutex.");
-		}
+		if (ret == 0)
+			return true;
+		else if (ret == EBUSY)
+			return false;
+		else
+			throw lock_error(ret, std::system_category(),
+					 "Failed to lock a"
+					 " shared mutex.");
+	}
 
-		/**
-		 * Lock the mutex for shared access.
-		 *
-		 * If a different thread already locked this mutex for exclusive
-		 * access, the calling thread will block. If it was locked for
-		 * shared access by a different thread, the lock will succeed.
-		 *
-		 * The mutex can be locked for shared access multiple times
-		 * by the same thread. If so, the same number of unlocks must be
-		 * made to unlock the mutex.
-		 *
-		 * @throw lock_error when an error occurs, this includes all
-		 * system related errors with the underlying implementation of
-		 * the mutex.
-		 */
-		void lock_shared()
-		{
-			PMEMobjpool *pop = pmemobj_pool_by_ptr(this);
-			if (int ret = pmemobj_rwlock_rdlock(pop,
-					&this->plock))
-				throw lock_error(ret, std::system_category(),
-						"Failed to shared lock a "
-						"shared mutex.");
-		}
+	/**
+	 * Try to lock the mutex for shared access, returns
+	 * regardless if the lock succeeds.
+	 *
+	 * The mutex can be locked for shared access multiple times
+	 * by the same thread. If so, the same number of unlocks must be
+	 * made to unlock the mutex.
+	 *
+	 * @return `false` if a different thread already locked the
+	 * mutex for exclusive access, `true` otherwise.
+	 *
+	 * @throw lock_error when an error occurs, this includes all
+	 * system related errors with the underlying implementation of
+	 * the mutex.
+	 */
+	bool
+	try_lock_shared()
+	{
+		PMEMobjpool *pop = pmemobj_pool_by_ptr(this);
+		int ret = pmemobj_rwlock_tryrdlock(pop, &this->plock);
 
-		/**
-		 * Try to lock the mutex for exclusive access, returns
-		 * regardless if the lock succeeds.
-		 *
-		 * If a different thread already locked this mutex, the calling
-		 * thread will return `false`. If the same thread tries to lock
-		 * a mutex it already owns, either in exclusive or shared mode,
-		 * the behavior is undefined.
-		 *
-		 * @throw lock_error when an error occurs, this includes all
-		 * system related errors with the underlying implementation of
-		 * the mutex.
-		 */
-		bool try_lock()
-		{
-			PMEMobjpool *pop = pmemobj_pool_by_ptr(this);
-			int ret = pmemobj_rwlock_trywrlock(pop, &this->plock);
+		if (ret == 0)
+			return true;
+		else if (ret == EBUSY)
+			return false;
+		else
+			throw lock_error(ret, std::system_category(),
+					 "Failed to lock a"
+					 " shared mutex.");
+	}
 
-			if (ret == 0)
-				return true;
-			else if (ret == EBUSY)
-				return false;
-			else
-				throw lock_error(ret, std::system_category(),
-						"Failed to lock a"
-						" shared mutex.");
-		}
+	/**
+	 * Unlocks the mutex.
+	 *
+	 * The mutex must be locked for exclusive access by the calling
+	 * thread, otherwise results in undefined behavior.
+	 *
+	 * @throw lock_error when an error occurs, this includes all
+	 * system related errors with the underlying implementation of
+	 * the mutex.
+	 */
+	void
+	unlock()
+	{
+		PMEMobjpool *pop = pmemobj_pool_by_ptr(this);
+		if (int ret = pmemobj_rwlock_unlock(pop, &this->plock))
+			throw lock_error(ret, std::system_category(),
+					 "Failed to unlock a"
+					 " shared mutex.");
+	}
 
-		/**
-		 * Try to lock the mutex for shared access, returns
-		 * regardless if the lock succeeds.
-		 *
-		 * The mutex can be locked for shared access multiple times
-		 * by the same thread. If so, the same number of unlocks must be
-		 * made to unlock the mutex.
-		 *
-		 * @return `false` if a different thread already locked the
-		 * mutex for exclusive access, `true` otherwise.
-		 *
-		 * @throw lock_error when an error occurs, this includes all
-		 * system related errors with the underlying implementation of
-		 * the mutex.
-		 */
-		bool try_lock_shared()
-		{
-			PMEMobjpool *pop = pmemobj_pool_by_ptr(this);
-			int ret = pmemobj_rwlock_tryrdlock(pop, &this->plock);
+	/**
+	 * Unlocks the mutex.
+	 *
+	 * The mutex must be locked for shared access by the calling
+	 * thread, otherwise results in undefined behavior.
+	 *
+	 * @throw lock_error when an error occurs, this includes all
+	 * system related errors with the underlying implementation of
+	 * the mutex.
+	 */
+	void
+	unlock_shared()
+	{
+		this->unlock();
+	}
 
-			if (ret == 0)
-				return true;
-			else if (ret == EBUSY)
-				return false;
-			else
-				throw lock_error(ret, std::system_category(),
-						"Failed to lock a"
-						" shared mutex.");
-		}
+	/**
+	 * Access a native handle to this shared mutex.
+	 *
+	 * @return a pointer to PMEMmutex.
+	 */
+	native_handle_type
+	native_handle() noexcept
+	{
+		return &this->plock;
+	}
 
-		/**
-		 * Unlocks the mutex.
-		 *
-		 * The mutex must be locked for exclusive access by the calling
-		 * thread, otherwise results in undefined behavior.
-		 *
-		 * @throw lock_error when an error occurs, this includes all
-		 * system related errors with the underlying implementation of
-		 * the mutex.
-		 */
-		void unlock()
-		{
-			PMEMobjpool *pop = pmemobj_pool_by_ptr(this);
-			if (int ret = pmemobj_rwlock_unlock(pop,
-					&this->plock))
-				throw lock_error(ret, std::system_category(),
-						"Failed to unlock a"
-						" shared mutex.");
-		}
+	/**
+	 * The type of lock needed for the transaction API.
+	 *
+	 * @return TX_LOCK_RWLOCK
+	 */
+	enum pobj_tx_lock
+	lock_type() const noexcept
+	{
+		return TX_LOCK_RWLOCK;
+	}
 
-		/**
-		 * Unlocks the mutex.
-		 *
-		 * The mutex must be locked for shared access by the calling
-		 * thread, otherwise results in undefined behavior.
-		 *
-		 * @throw lock_error when an error occurs, this includes all
-		 * system related errors with the underlying implementation of
-		 * the mutex.
-		 */
-		void unlock_shared()
-		{
-			this->unlock();
-		}
+	/**
+	 * Deleted assignment operator.
+	 */
+	shared_mutex &operator=(const shared_mutex &) = delete;
 
-		/**
-		 * Access a native handle to this shared mutex.
-		 *
-		 * @return a pointer to PMEMmutex.
-		 */
-		native_handle_type native_handle() noexcept
-		{
-			return &this->plock;
-		}
+	/**
+	 * Deleted copy constructor.
+	 */
+	shared_mutex(const shared_mutex &) = delete;
 
-		/**
-		 * The type of lock needed for the transaction API.
-		 *
-		 * @return TX_LOCK_RWLOCK
-		 */
-		enum pobj_tx_lock lock_type() const noexcept
-		{
-			return TX_LOCK_RWLOCK;
-		}
+private:
+	/** A POSIX style PMEM-resident shared_mutex.*/
+	PMEMrwlock plock;
+};
 
-		/**
-		 * Deleted assignment operator.
-		 */
-		shared_mutex &operator=(const shared_mutex&) = delete;
+} /* namespace obj */
 
-		/**
-		 * Deleted copy constructor.
-		 */
-		shared_mutex(const shared_mutex&) = delete;
-
-	private:
-		/** A POSIX style PMEM-resident shared_mutex.*/
-		PMEMrwlock plock;
-	};
-
-}  /* namespace obj */
-
-}  /* namespace nvml */
+} /* namespace nvml */
 
 #endif /* PMEMOBJ_SHARED_MUTEX_HPP */

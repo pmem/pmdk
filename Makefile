@@ -100,6 +100,11 @@ cstyle:
 	@utils/check_whitespace -g
 	@echo Done.
 
+format:
+	$(MAKE) -C src $@
+	$(MAKE) -C utils $@
+	@echo Done.
+
 check-license:
 	$(MAKE) -C utils $@
 	@utils/check_license/check-headers.sh
@@ -125,4 +130,4 @@ install uninstall:
 	$(MAKE) -C doc $@
 
 .PHONY: all clean clobber test check cstyle check-license install uninstall\
-	source rpm dpkg pkg-clean pcheck check-remote $(SUBDIRS)
+	source rpm dpkg pkg-clean pcheck check-remote format $(SUBDIRS)

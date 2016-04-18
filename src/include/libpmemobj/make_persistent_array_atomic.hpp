@@ -38,111 +38,115 @@
 #ifndef PMEMOBJ_MAKE_PERSISTENT_ARRAY_ATOMIC_HPP
 #define PMEMOBJ_MAKE_PERSISTENT_ARRAY_ATOMIC_HPP
 
-#include "libpmemobj/detail/common.hpp"
-#include "libpmemobj/detail/check_persistent_ptr_array.hpp"
-#include "libpmemobj/detail/pexceptions.hpp"
-#include "libpmemobj/detail/array_traits.hpp"
-#include "libpmemobj/detail/make_atomic_impl.hpp"
 #include "libpmemobj.h"
+#include "libpmemobj/detail/array_traits.hpp"
+#include "libpmemobj/detail/check_persistent_ptr_array.hpp"
+#include "libpmemobj/detail/common.hpp"
+#include "libpmemobj/detail/make_atomic_impl.hpp"
+#include "libpmemobj/detail/pexceptions.hpp"
 
-namespace nvml {
+namespace nvml
+{
 
-namespace obj {
+namespace obj
+{
 
-	/**
-	 * Atomically allocate an array of objects.
-	 *
-	 * This function can be used to atomically allocate an array of objects.
-	 * Cannot be used for simple objects.
-	 *
-	 * @param[in,out] pool the pool from which the object will be allocated.
-	 * @param[in,out] ptr the persistent pointer to which the allocation
-	 *	will take place.
-	 * @param[in] N the number of array elements.
-	 *
-	 * @throw std::bad_alloc on allocation failure.
-	 */
-	template<typename T>
-	void make_persistent_atomic(pool_base &pool,
-			typename detail::pp_if_array<T>::type &ptr,
-			std::size_t N)
-	{
-		typedef typename detail::pp_array_type<T>::type I;
+/**
+ * Atomically allocate an array of objects.
+ *
+ * This function can be used to atomically allocate an array of objects.
+ * Cannot be used for simple objects.
+ *
+ * @param[in,out] pool the pool from which the object will be allocated.
+ * @param[in,out] ptr the persistent pointer to which the allocation
+ *	will take place.
+ * @param[in] N the number of array elements.
+ *
+ * @throw std::bad_alloc on allocation failure.
+ */
+template <typename T>
+void
+make_persistent_atomic(pool_base &pool,
+		       typename detail::pp_if_array<T>::type &ptr,
+		       std::size_t N)
+{
+	typedef typename detail::pp_array_type<T>::type I;
 
-		auto ret = pmemobj_alloc(pool.get_handle(), ptr.raw_ptr(),
-			sizeof (I) * N, detail::type_num<I>(),
-			&detail::array_constructor<I>,
-			static_cast<void*>(&N));
+	auto ret = pmemobj_alloc(pool.get_handle(), ptr.raw_ptr(),
+				 sizeof(I) * N, detail::type_num<I>(),
+				 &detail::array_constructor<I>,
+				 static_cast<void *>(&N));
 
-		if(ret != 0)
-			throw std::bad_alloc();
-	}
+	if (ret != 0)
+		throw std::bad_alloc();
+}
 
-	/**
-	 * Atomically allocate an array of objects.
-	 *
-	 * This function can be used to atomically allocate an array of objects.
-	 * Cannot be used for simple objects.
-	 *
-	 * @param[in,out] pool the pool from which the object will be allocated.
-	 * @param[in,out] ptr the persistent pointer to which the allocation
-	 *	will take place.
-	 *
-	 * @throw std::bad_alloc on allocation failure.
-	 */
-	template<typename T>
-	void make_persistent_atomic(pool_base &pool,
-			typename detail::pp_if_size_array<T>::type &ptr)
-	{
-		typedef typename detail::pp_array_type<T>::type I;
-		std::size_t N = detail::pp_array_elems<T>::elems;
+/**
+ * Atomically allocate an array of objects.
+ *
+ * This function can be used to atomically allocate an array of objects.
+ * Cannot be used for simple objects.
+ *
+ * @param[in,out] pool the pool from which the object will be allocated.
+ * @param[in,out] ptr the persistent pointer to which the allocation
+ *	will take place.
+ *
+ * @throw std::bad_alloc on allocation failure.
+ */
+template <typename T>
+void
+make_persistent_atomic(pool_base &pool,
+		       typename detail::pp_if_size_array<T>::type &ptr)
+{
+	typedef typename detail::pp_array_type<T>::type I;
+	std::size_t N = detail::pp_array_elems<T>::elems;
 
-		auto ret = pmemobj_alloc(pool.get_handle(), ptr.raw_ptr(),
-			sizeof (I) * N, detail::type_num<I>(),
-			&detail::array_constructor<I>,
-			static_cast<void*>(&N));
+	auto ret = pmemobj_alloc(pool.get_handle(), ptr.raw_ptr(),
+				 sizeof(I) * N, detail::type_num<I>(),
+				 &detail::array_constructor<I>,
+				 static_cast<void *>(&N));
 
-		if(ret != 0)
-			throw std::bad_alloc();
-	}
+	if (ret != 0)
+		throw std::bad_alloc();
+}
 
-	/**
-	 * Atomically deallocate an array of objects.
-	 *
-	 * There is no way to atomically destroy an object. Any object specific
-	 * cleanup must be performed elsewhere.
-	 *
-	 * param[in,out] ptr the persistent_ptr whose pointee is to be
-	 * deallocated.
-	 */
-	template<typename T>
-	void delete_persistent_atomic(
-			typename detail::pp_if_array<T>::type &ptr,
-			std::size_t N)
-	{
-		/* we CAN'T call destructor */
-		pmemobj_free(ptr.raw_ptr());
-	}
+/**
+ * Atomically deallocate an array of objects.
+ *
+ * There is no way to atomically destroy an object. Any object specific
+ * cleanup must be performed elsewhere.
+ *
+ * param[in,out] ptr the persistent_ptr whose pointee is to be
+ * deallocated.
+ */
+template <typename T>
+void
+delete_persistent_atomic(typename detail::pp_if_array<T>::type &ptr,
+			 std::size_t N)
+{
+	/* we CAN'T call destructor */
+	pmemobj_free(ptr.raw_ptr());
+}
 
-	/**
-	 * Atomically deallocate an array of objects.
-	 *
-	 * There is no way to atomically destroy an object. Any object specific
-	 * cleanup must be performed elsewhere.
-	 *
-	 * param[in,out] ptr the persistent_ptr whose pointee is to be
-	 * deallocated.
-	 */
-	template<typename T>
-	void delete_persistent_atomic(
-			typename detail::pp_if_size_array<T>::type &ptr)
-	{
-		/* we CAN'T call destructor */
-		pmemobj_free(ptr.raw_ptr());
-	}
+/**
+ * Atomically deallocate an array of objects.
+ *
+ * There is no way to atomically destroy an object. Any object specific
+ * cleanup must be performed elsewhere.
+ *
+ * param[in,out] ptr the persistent_ptr whose pointee is to be
+ * deallocated.
+ */
+template <typename T>
+void
+delete_persistent_atomic(typename detail::pp_if_size_array<T>::type &ptr)
+{
+	/* we CAN'T call destructor */
+	pmemobj_free(ptr.raw_ptr());
+}
 
-}  /* namespace obj */
+} /* namespace obj */
 
-}  /* namespace nvml */
+} /* namespace nvml */
 
 #endif /* PMEMOBJ_MAKE_PERSISTENT_ARRAY_ATOMIC_HPP */
