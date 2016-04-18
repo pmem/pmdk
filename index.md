@@ -72,3 +72,12 @@ by the NVM libraries. It may be useful for system administrators as well
 as for software developers for troubleshooting and debugging.
 
 See the [pmempool page](pmempool) for available commands and documentation.
+
+#### C++ bindings
+
+The C++ bindings aim at providing an easier to use, less error prone
+implementation of **libpmemobj**. The C++ implementation requires a compiler
+compliant with C++11 and one feature requires C++17. This is still an
+**experimental API** and should not be used in production environments.
+
+See the [C++ bindings page](cpp_obj) for documentation and examples.
