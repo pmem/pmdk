@@ -52,7 +52,7 @@ struct cargs {
 static int
 test_constructor(PMEMobjpool *pop, void *addr, void *args)
 {
-	struct cargs *a = args;
+	struct cargs *a = (struct cargs *)args;
 	/* do not use pmem_memset_persit() here */
 	pmemobj_memset_persist(pop, addr, a->size % 256, a->size);
 
@@ -68,7 +68,7 @@ test_allocs(PMEMobjpool *pop, const char *path)
 		UT_FATAL("pmemobj_alloc(0) succeeded");
 
 	for (int i = 1; i < TEST_ALLOC_SIZE; ++i) {
-		struct cargs args = { i };
+		struct cargs args = { (size_t)i };
 		if (pmemobj_alloc(pop, &oid[i], i, 0,
 				test_constructor, &args) != 0)
 			UT_FATAL("!pmemobj_alloc");

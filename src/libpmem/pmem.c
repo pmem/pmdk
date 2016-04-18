@@ -216,6 +216,7 @@
 #include "out.h"
 #include "valgrind_internal.h"
 
+#ifndef WIN32
 /*
  * The x86 memory instructions are new enough that the compiler
  * intrinsic functions are not always available.  The intrinsic
@@ -227,6 +228,7 @@
 	asm volatile(".byte 0x66; xsaveopt %0" : "+m" (*(volatile char *)addr));
 #define	_mm_pcommit()\
 	asm volatile(".byte 0x66, 0x0f, 0xae, 0xf8");
+#endif
 
 #define	FLUSH_ALIGN ((uintptr_t)64)
 
@@ -457,7 +459,7 @@ pmem_msync(const void *addr, size_t len)
 	len += (uintptr_t)addr & (Pagesize - 1);
 
 	/* round addr down to page boundary */
-	uintptr_t uptr = (uintptr_t)addr & ~(Pagesize - 1);
+	uintptr_t uptr = (uintptr_t)addr & ~((uintptr_t)Pagesize - 1);
 
 	/*
 	 * msync accepts addresses aligned to page boundary, so we may sync
@@ -524,6 +526,7 @@ is_pmem_never(const void *addr, size_t len)
 static int
 is_pmem_proc(const void *addr, size_t len)
 {
+#ifndef WIN32
 	const char *caddr = addr;
 
 	FILE *fp;
@@ -590,7 +593,9 @@ is_pmem_proc(const void *addr, size_t len)
 	}
 
 	fclose(fp);
-
+#else
+	int retval = 0;
+#endif
 	LOG(3, "returning %d", retval);
 	return retval;
 }
@@ -717,9 +722,13 @@ pmem_map_file(const char *path, size_t len, int flags, mode_t mode,
 			}
 		}
 	} else {
+#ifndef WIN32
 		struct stat stbuf;
-
 		if (fstat(fd, &stbuf) < 0) {
+#else
+		struct _stat64 stbuf;
+		if (_fstat64(fd, &stbuf) < 0) {
+#endif
 			ERR("!fstat %s", path);
 			goto err;
 		}
@@ -1328,3 +1337,12 @@ pmem_init(void)
 			Func_is_pmem = is_pmem_always;
 	}
 }
+
+
+#ifdef WIN32
+/*
+ * libpmem constructor/destructor functions
+ */
+MSVC_CONSTR(libpmem_init)
+MSVC_DESTR(libpmem_fini)
+#endif

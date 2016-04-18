@@ -92,7 +92,7 @@ main(int argc, char *argv[])
 
 	const char *path = argv[2];
 
-	PMEMblkpool *handle;
+	PMEMblkpool *handle = NULL;
 	switch (*argv[3]) {
 		case 'c':
 			handle = pmemblk_create(path, Bsize, 0,
@@ -110,47 +110,51 @@ main(int argc, char *argv[])
 	UT_OUT("%s block size %zu usable blocks %zu",
 			argv[1], Bsize, pmemblk_nblock(handle));
 
+	unsigned char *buf = MALLOC(Bsize);
+	if (buf == NULL)
+		UT_FATAL("cannot allocate buf");
+
 	/* map each file argument with the given map type */
 	for (int arg = 4; arg < argc; arg++) {
 		if (strchr("rwze", argv[arg][0]) == NULL || argv[arg][1] != ':')
 			UT_FATAL("op must be r: or w: or z: or e:");
 		off_t lba = strtol(&argv[arg][2], NULL, 0);
 
-		unsigned char buf[Bsize];
-
 		switch (argv[arg][0]) {
 		case 'r':
 			if (pmemblk_read(handle, buf, lba) < 0)
-				UT_OUT("!read      lba %jd", lba);
+				UT_OUT("!read      lba %lld", (long long)lba);
 			else
-				UT_OUT("read      lba %jd: %s", lba,
-						ident(buf));
+				UT_OUT("read      lba %lld: %s", (long long)lba,
+					ident(buf));
 			break;
 
 		case 'w':
 			construct(buf);
 			if (pmemblk_write(handle, buf, lba) < 0)
-				UT_OUT("!write     lba %jd", lba);
+				UT_OUT("!write     lba %lld", (long long)lba);
 			else
-				UT_OUT("write     lba %jd: %s", lba,
-						ident(buf));
+				UT_OUT("write     lba %lld: %s", (long long)lba,
+					ident(buf));
 			break;
 
 		case 'z':
 			if (pmemblk_set_zero(handle, lba) < 0)
-				UT_OUT("!set_zero  lba %jd", lba);
+				UT_OUT("!set_zero  lba %lld", (long long)lba);
 			else
-				UT_OUT("set_zero  lba %jd", lba);
+				UT_OUT("set_zero  lba %lld", (long long)lba);
 			break;
 
 		case 'e':
 			if (pmemblk_set_error(handle, lba) < 0)
-				UT_OUT("!set_error lba %jd", lba);
+				UT_OUT("!set_error lba %lld", (long long)lba);
 			else
-				UT_OUT("set_error lba %jd", lba);
+				UT_OUT("set_error lba %lld", (long long)lba);
 			break;
 		}
 	}
+
+	FREE(buf);
 
 	pmemblk_close(handle);
 

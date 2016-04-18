@@ -62,8 +62,9 @@ static unsigned Log_alignment;
 static pthread_once_t Last_errormsg_key_once = PTHREAD_ONCE_INIT;
 static pthread_key_t Last_errormsg_key;
 
+
 static void
-_Last_errormsg_key_alloc()
+_Last_errormsg_key_alloc(void)
 {
 	int pth_ret = pthread_key_create(&Last_errormsg_key, free);
 	if (pth_ret)
@@ -73,7 +74,7 @@ _Last_errormsg_key_alloc()
 }
 
 static void
-Last_errormsg_key_alloc()
+Last_errormsg_key_alloc(void)
 {
 	pthread_once(&Last_errormsg_key_once, _Last_errormsg_key_alloc);
 	/*
@@ -150,6 +151,7 @@ Last_errormsg_get()
 static const char *
 getexecname(void)
 {
+#ifndef WIN32
 	char procpath[PATH_MAX];
 	static char namepath[PATH_MAX];
 	ssize_t cc;
@@ -162,6 +164,9 @@ getexecname(void)
 		namepath[cc] = '\0';
 
 	return namepath;
+#else
+	return ""; /* GetProcessImageFileName() */
+#endif
 }
 #endif	/* DEBUG */
 

@@ -93,7 +93,11 @@ is_zeroed(const char *path)
 {
 	int fd = OPEN(path, O_RDWR);
 
+#ifndef WIN32
 	struct stat stbuf;
+#else
+	struct _stat64 stbuf;
+#endif
 	FSTAT(fd, &stbuf);
 
 	void *addr = MMAP(0, stbuf.st_size, PROT_READ|PROT_WRITE,
@@ -148,6 +152,10 @@ main(int argc, char *argv[])
 
 	UT_OUT("is zeroed:\t%d", is_zeroed(path));
 
+	unsigned char *buf = MALLOC(Bsize);
+	if (buf == NULL)
+		UT_FATAL("cannot allocate buf");
+
 	/* map each file argument with the given map type */
 	for (; read_arg < argc; read_arg++) {
 		if (strchr("rwze", argv[read_arg][0]) == NULL ||
@@ -155,41 +163,41 @@ main(int argc, char *argv[])
 			UT_FATAL("op must be r: or w: or z: or e:");
 		off_t lba = strtoul(&argv[read_arg][2], NULL, 0);
 
-		unsigned char buf[Bsize];
-
 		switch (argv[read_arg][0]) {
 		case 'r':
 			if (pmemblk_read(handle, buf, lba) < 0)
-				UT_OUT("!read      lba %zu", lba);
+				UT_OUT("!read      lba %zu", (size_t)lba);
 			else
-				UT_OUT("read      lba %zu: %s", lba,
+				UT_OUT("read      lba %zu: %s", (size_t)lba,
 						ident(buf));
 			break;
 
 		case 'w':
 			construct(buf);
 			if (pmemblk_write(handle, buf, lba) < 0)
-				UT_OUT("!write     lba %zu", lba);
+				UT_OUT("!write     lba %zu", (size_t)lba);
 			else
-				UT_OUT("write     lba %zu: %s", lba,
+				UT_OUT("write     lba %zu: %s", (size_t)lba,
 						ident(buf));
 			break;
 
 		case 'z':
 			if (pmemblk_set_zero(handle, lba) < 0)
-				UT_OUT("!set_zero  lba %zu", lba);
+				UT_OUT("!set_zero  lba %zu", (size_t)lba);
 			else
-				UT_OUT("set_zero  lba %zu", lba);
+				UT_OUT("set_zero  lba %zu", (size_t)lba);
 			break;
 
 		case 'e':
 			if (pmemblk_set_error(handle, lba) < 0)
-				UT_OUT("!set_error lba %zu", lba);
+				UT_OUT("!set_error lba %zu", (size_t)lba);
 			else
-				UT_OUT("set_error lba %zu", lba);
+				UT_OUT("set_error lba %zu", (size_t)lba);
 			break;
 		}
 	}
+
+	FREE(buf);
 
 	pmemblk_close(handle);
 

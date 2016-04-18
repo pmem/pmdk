@@ -1,0 +1,5 @@
+blk_nblock\TEST2: START: blk_nblock
+ C:\Users\peluse\source\Repos\nvml\win\x64\debug\blk_nblock.exe 512:\tmp\test_blk_nblock2\testset1 512:\tmp\test_blk_nblock2\testset2
+\tmp\test_blk_nblock2\testset1: pmemblk_create: Invalid argument
+\tmp\test_blk_nblock2\testset2: pmemblk_create: Invalid argument
+blk_nblock\TEST2: Done
