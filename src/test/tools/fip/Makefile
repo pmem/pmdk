@@ -1,5 +1,5 @@
-#
-# Copyright 2015-2016, Intel Corporation
+
+# Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -29,32 +29,30 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
-#
-# src/test/tools/Makefile -- build unit test helpers
+# Makefile -- Makefile for fip tool
 #
 
-DIRS = \
-       pmemspoil\
-       pmemwrite\
-       pmemalloc\
-       pmemobjcli\
-       pmemdetect\
-       ctrld\
-       bttcreate\
-       fip
+TOP = ../../../..
+include $(TOP)/src/common.inc
 
-all     : TARGET = all
-clean   : TARGET = clean
-clobber : TARGET = clobber
-cstyle  : TARGET = cstyle
-format  : TARGET = format
+vpath %.c $(TOP)/src/rpmem_common/
 
-all cstyle clean clobber format: $(DIRS)
+HAS_LIBFABRIC=$(call check_package, libfabric)
+ifeq ($(HAS_LIBFABRIC),y)
+TARGET = fip
 
-$(DIRS):
-	$(MAKE) -C $@ $(TARGET)
+OBJS = fip.o rpmem_fip_common.o rpmem_common.o
 
-test check pcheck:
+else
+$(info NOTE: Skipping fip because libfabric is missing \
+-- see src/test/tools/fip/README for details.)
+endif
 
-.PHONY: all clean clobber cstyle format check pcheck $(DIRS)
+include $(TOP)/src/tools/Makefile.inc
+
+ifeq ($(HAS_LIBFABRIC),y)
+CFLAGS += -I$(TOP)/src/rpmem_common
+CFLAGS += $(shell $(PKG_CONFIG) --cflags libfabric)
+LIBS += $(shell $(PKG_CONFIG) --libs libfabric)
+endif
+
