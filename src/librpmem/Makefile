@@ -31,8 +31,11 @@
 #
 # src/librpmem/Makefile -- Makefile for librpmem
 #
+include ../common.inc
+
 vpath %.c ../rpmem_common
 
+ifeq ($(call check_package, libfabric),y)
 LIBRARY_NAME = rpmem
 LIBRARY_SO_VERSION = 1
 LIBRARY_VERSION = 0.0
@@ -43,7 +46,13 @@ SOURCE = $(COMMON)/util.c\
 	rpmem.c\
 	rpmem_obc.c\
 	rpmem_common.c\
-	rpmem_util.c
+	rpmem_util.c\
+	rpmem_fip_common.c\
+	rpmem_fip.c
+else
+$(info NOTE: Skipping librpmem because libfabric is missing \
+-- see src/librpmem/README for details.)
+endif
 
 include ../Makefile.inc
 
