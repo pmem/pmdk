@@ -2,6 +2,7 @@ nvml: Linux NVM Library
 =======================
 
 [![Build Status](https://travis-ci.org/pmem/nvml.svg)](https://travis-ci.org/pmem/nvml)
+[![NVML release version](https://img.shields.io/github/release/pmem/nvml.svg)](https://github.com/pmem/nvml/releases/latest)
 
 This is the top-level README.md the Linux NVM Library.
 For more information, see http://pmem.io.
