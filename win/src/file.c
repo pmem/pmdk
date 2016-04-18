@@ -67,6 +67,9 @@ int
 flock(int fd, int operation)
 {
 	int flags = 0;
+	SYSTEM_INFO  systemInfo;
+
+	GetSystemInfo(&systemInfo);
 
 	switch (operation & (LOCK_EX | LOCK_SH | LOCK_UN)) {
 		case LOCK_EX:
@@ -90,8 +93,8 @@ flock(int fd, int operation)
 	if (filelen < 0)
 		return -1;
 
-	/* for our purpose it's enough to lock the first 4K of the file */
-	long len = (filelen &  4096) ? 4096 : (long)filelen;
+	/* for our purpose it's enough to lock the first page of the file */
+	long len = (filelen > systemInfo.dwPageSize) ? systemInfo.dwPageSize : (long)filelen;
 	return _locking(fd, flags, len);
 }
 

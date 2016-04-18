@@ -1,0 +1,22 @@
+blk_nblock\TEST1: START: blk_nblock
+ C:\Users\peluse\source\Repos\nvml\win\x64\debug\blk_nblock.exe 2096896:\tmp\test_blk_nblock1\testfile1.2096896 2096897:\tmp\test_blk_nblock1\testfile1.2096897 0:\tmp\test_blk_nblock1\testfile2.0 1:\tmp\test_blk_nblock1\testfile2.1 17:\tmp\test_blk_nblock1\testfile2.17 511:\tmp\test_blk_nblock1\testfile2.511 1048576:\tmp\test_blk_nblock1\testfile2.1048576 2097152:\tmp\test_blk_nblock1\testfile2.2097152 4194304:\tmp\test_blk_nblock1\testfile2.4194304 8388608:\tmp\test_blk_nblock1\testfile2.8388608 16777216:\tmp\test_blk_nblock1\testfile2.16777216 33554432:\tmp\test_blk_nblock1\testfile2.33554432 67108864:\tmp\test_blk_nblock1\testfile2.67108864 134217728:\tmp\test_blk_nblock1\testfile2.134217728 268435456:\tmp\test_blk_nblock1\testfile2.268435456 536870912:\tmp\test_blk_nblock1\testfile2.536870912 1073741824:\tmp\test_blk_nblock1\testfile2.1073741824 2147483648:\tmp\test_blk_nblock1\testfile2.2147483648 -1:\tmp\test_blk_nblock1\testfile2.-1
+\tmp\test_blk_nblock1\testfile1.2096896: block size 2096896 usable blocks: 256
+\tmp\test_blk_nblock1\testfile1.2096897: pmemblk_create: Invalid argument
+\tmp\test_blk_nblock1\testfile2.0: pmemblk_create: Invalid argument
+\tmp\test_blk_nblock1\testfile2.1: block size 1 usable blocks: 4161462
+\tmp\test_blk_nblock1\testfile2.17: block size 17 usable blocks: 4161462
+\tmp\test_blk_nblock1\testfile2.511: block size 511 usable blocks: 4161462
+\tmp\test_blk_nblock1\testfile2.1048576: block size 1048576 usable blocks: 1791
+\tmp\test_blk_nblock1\testfile2.2097152: block size 2097152 usable blocks: 767
+\tmp\test_blk_nblock1\testfile2.4194304: pmemblk_create: Invalid argument
+\tmp\test_blk_nblock1\testfile2.8388608: pmemblk_create: Invalid argument
+\tmp\test_blk_nblock1\testfile2.16777216: pmemblk_create: Invalid argument
+\tmp\test_blk_nblock1\testfile2.33554432: pmemblk_create: Invalid argument
+\tmp\test_blk_nblock1\testfile2.67108864: pmemblk_create: Invalid argument
+\tmp\test_blk_nblock1\testfile2.134217728: pmemblk_create: Invalid argument
+\tmp\test_blk_nblock1\testfile2.268435456: pmemblk_create: Invalid argument
+\tmp\test_blk_nblock1\testfile2.536870912: pmemblk_create: Invalid argument
+\tmp\test_blk_nblock1\testfile2.1073741824: pmemblk_create: Invalid argument
+\tmp\test_blk_nblock1\testfile2.2147483648: pmemblk_create: Invalid argument
+\tmp\test_blk_nblock1\testfile2.-1: pmemblk_create: Invalid argument
+blk_nblock\TEST1: Done
