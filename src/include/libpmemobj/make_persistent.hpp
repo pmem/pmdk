@@ -38,94 +38,99 @@
 #ifndef PMEMOBJ_MAKE_PERSISTENT_HPP
 #define PMEMOBJ_MAKE_PERSISTENT_HPP
 
+#include "libpmemobj.h"
+#include "libpmemobj/detail/check_persistent_ptr_array.hpp"
 #include "libpmemobj/detail/common.hpp"
 #include "libpmemobj/detail/pexceptions.hpp"
-#include "libpmemobj/detail/check_persistent_ptr_array.hpp"
-#include "libpmemobj.h"
 
 #include <new>
 
-namespace nvml {
+namespace nvml
+{
 
-namespace obj {
+namespace obj
+{
 
-	/**
-	 * Transactionally allocate and construct an object of type T.
-	 *
-	 * This function can be used to Transactionally allocate an object.
-	 * Cannot be used for array types.
-	 *
-	 * @param[in,out] args a list of parameters passed to the constructor.
-	 *
-	 * @return persistent_ptr<T> on success
-	 *
-	 * @throw transaction_scope_error if called outside of an active
-	 * transaction
-	 * @throw transaction_alloc_error on transactional allocation failure.
-	 */
-	template<typename T, typename... Args>
-	typename detail::pp_if_not_array<T>::type
-	make_persistent(Args &&... args)
-	{
-		if (pmemobj_tx_stage() != TX_STAGE_WORK)
-			throw transaction_scope_error("refusing to allocate "
-				"memory outside of transaction scope");
+/**
+ * Transactionally allocate and construct an object of type T.
+ *
+ * This function can be used to Transactionally allocate an object.
+ * Cannot be used for array types.
+ *
+ * @param[in,out] args a list of parameters passed to the constructor.
+ *
+ * @return persistent_ptr<T> on success
+ *
+ * @throw transaction_scope_error if called outside of an active
+ * transaction
+ * @throw transaction_alloc_error on transactional allocation failure.
+ */
+template <typename T, typename... Args>
+typename detail::pp_if_not_array<T>::type
+make_persistent(Args &&... args)
+{
+	if (pmemobj_tx_stage() != TX_STAGE_WORK)
+		throw transaction_scope_error(
+			"refusing to allocate "
+			"memory outside of transaction scope");
 
-		persistent_ptr<T> ptr = pmemobj_tx_alloc(sizeof (T),
-			detail::type_num<T>());
+	persistent_ptr<T> ptr =
+		pmemobj_tx_alloc(sizeof(T), detail::type_num<T>());
 
-		if (ptr == nullptr)
-			throw transaction_alloc_error("failed to allocate "
-				"persistent memory object");
-		try {
-			new (ptr.get()) T(args...);
-		} catch (...) {
-			pmemobj_tx_free(*ptr.raw_ptr());
-			throw;
-		}
-
-		return ptr;
+	if (ptr == nullptr)
+		throw transaction_alloc_error("failed to allocate "
+					      "persistent memory object");
+	try {
+		new (ptr.get()) T(args...);
+	} catch (...) {
+		pmemobj_tx_free(*ptr.raw_ptr());
+		throw;
 	}
 
-	/**
-	 * Transactionally free an object of type T held in a persitent_ptr.
-	 *
-	 * This function can be used to Transactionally free an object. Calls the
-	 * object's destructor before freeing memory. Cannot be used for array
-	 * types.
-	 *
-	 * @param[in,out] ptr persistent pointer to an object that is not an
-	 * array.
-	 *
-	 * @throw transaction_scope_error if called outside of an active
-	 * transaction
-	 * @throw transaction_alloc_error on transactional free failure.
+	return ptr;
+}
+
+/**
+ * Transactionally free an object of type T held in a persitent_ptr.
+ *
+ * This function can be used to Transactionally free an object. Calls the
+ * object's destructor before freeing memory. Cannot be used for array
+ * types.
+ *
+ * @param[in,out] ptr persistent pointer to an object that is not an
+ * array.
+ *
+ * @throw transaction_scope_error if called outside of an active
+ * transaction
+ * @throw transaction_alloc_error on transactional free failure.
+ */
+template <typename T>
+void
+delete_persistent(typename detail::pp_if_not_array<T>::type &ptr)
+{
+	if (pmemobj_tx_stage() != TX_STAGE_WORK)
+		throw transaction_scope_error(
+			"refusing to free "
+			"memory outside of transaction scope");
+
+	if (ptr == nullptr)
+		return;
+
+	/*
+	 * At this point, everything in the object should be tracked
+	 * and reverted on transaction abort.
 	 */
-	template<typename T>
-	void delete_persistent(typename detail::pp_if_not_array<T>::type &ptr)
-	{
-		if (pmemobj_tx_stage() != TX_STAGE_WORK)
-			throw transaction_scope_error("refusing to free "
-				"memory outside of transaction scope");
+	ptr->T::~T();
 
-		if (ptr == nullptr)
-			return;
+	if (pmemobj_tx_free(*ptr.raw_ptr()) != 0)
+		throw transaction_alloc_error("failed to delete "
+					      "persistent memory object");
 
-		/*
-		 * At this point, everything in the object should be tracked
-		 * and reverted on transaction abort.
-		 */
-		ptr->T::~T();
+	ptr = OID_NULL;
+}
 
-		if (pmemobj_tx_free(*ptr.raw_ptr()) != 0)
-			throw transaction_alloc_error("failed to delete "
-				"persistent memory object");
+} /* namespace obj */
 
-		ptr = OID_NULL;
-	}
-
-}  /* namespace obj */
-
-}  /* namespace nvml */
+} /* namespace nvml */
 
 #endif /* PMEMOBJ_MAKE_PERSISTENT_HPP */

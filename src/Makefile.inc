@@ -191,8 +191,7 @@ clobber: clean $(EXTRA_TARGETS_CLOBBER)
 	$(RM) $(LIB_AR) $(LIB_SO_SONAME) $(LIB_SO_REAL) $(LIB_SO)
 	$(RM) -r $(objdir)/.deps
 
-cstyle:
-	$(CSTYLE) *.[ch]
+$(eval $(cstyle-rule))
 
 $(objdir)/%.o: %.c
 	@mkdir -p $(objdir)/.deps

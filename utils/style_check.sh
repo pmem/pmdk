@@ -1,4 +1,4 @@
-#
+#!/bin/bash -e
 # Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
@@ -29,23 +29,107 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+# utils/style_check.sh -- common style checking script
+#
+ARGS=("$@")
+CSTYLE_ARGS=()
+CLANG_ARGS=()
+CHECK_TYPE=$1
 
-all:
-	$(MAKE) -C check_license $@
+#
+# print script usage
+#
+function usage() {
+	echo "$0 <check|format> [C/C++ files]"
+}
 
-check-license:
-	$(MAKE) -C check_license $@
+#
+# require clang-format version 3.8+
+#
+function check_clang_version() {
+	set +e
+	which clang-format &> /dev/null && clang-format --version |\
+	grep "version 3.[8-9]\|version [4-9].[0-9]*\|version 3.[1-9][0-9]"i\
+	&> /dev/null
+	if [ $? -ne 0 ]; then
+		echo "SKIP: requires clang-format version 3.8+"
+		exit 0
+	fi
+	set -e
+}
 
-clean:
-	$(MAKE) -C check_license $@
+#
+# run old cstyle check
+#
+function run_cstyle() {
+	if [ $# -eq 0 ]; then
+		return
+	fi
 
-clobber:
-	$(MAKE) -C check_license $@
+	${cstyle_bin} -pP $@
+}
 
-cstyle:
-	$(MAKE) -C check_license $@
+#
+# generate diff with clang-format rules
+#
+function run_clang_check() {
+	check_clang_version
+	if [ $# -eq 0 ]; then
+		return
+	fi
 
-format:
-	$(MAKE) -C check_license $@
+	for file in $@
+	do
+		LINES=$(clang-format -style=file $file |\
+				git diff --no-index $file - | wc -l)
+		if [ $LINES -ne 0 ]; then
+			clang-format -style=file $file | git diff --no-index $file -
+		fi
+	done
+}
 
-.PHONY: all check-license clean clobber cstyle format
+#
+# in-place format according to clang-format rules
+#
+function run_clang_format() {
+	check_clang_version
+	if [ $# -eq 0 ]; then
+		return
+	fi
+
+	clang-format -style=file -i $@
+}
+
+for ((i=1; i<$#; i++)) {
+	case ${ARGS[$i]} in
+		*.[ch]pp)
+			CLANG_ARGS+="${ARGS[$i]} "
+			;;
+
+		*.[ch])
+			CSTYLE_ARGS+="${ARGS[$i]} "
+			;;
+
+		*)
+			echo "Unknown argument"
+			exit 1
+			;;
+	esac
+}
+
+case $CHECK_TYPE in
+	check)
+		run_cstyle ${CSTYLE_ARGS}
+		run_clang_check ${CLANG_ARGS}
+		;;
+
+	format)
+		run_clang_format ${CLANG_ARGS}
+		;;
+
+	*)
+		echo "Invalid parameters"
+		usage
+		exit 1
+		;;
+esac

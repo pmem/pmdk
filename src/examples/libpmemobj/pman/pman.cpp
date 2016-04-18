@@ -34,29 +34,30 @@
  * pman.cpp -- example of usage c++ bindings in nvml
  */
 
-#include <iostream>
+#include "list.hpp"
 #include <fstream>
-#include <ncurses.h>
+#include <iostream>
+#include <libpmemobj/make_persistent_array.hpp>
 #include <libpmemobj/pool.hpp>
 #include <libpmemobj/transaction.hpp>
-#include <libpmemobj/make_persistent_array.hpp>
-#include "list.hpp"
+#include <ncurses.h>
 
-
-#define	LAYOUT_NAME "pman"
-#define	SIZE 40
-#define	MAX_SIZE 38
-#define	MAX_BOMBS 5
-#define	KEY_SPACE 32
-#define	RAND_FIELD() (rand() % (SIZE - 2) + 1)
-#define	EXPLOSION_TIME 20
-#define	EXPLOSION_COUNTER 80
-#define	SLEEP_TIME (2 * CLOCKS_PER_SEC)
-#define	GAME_DELAY 40000
-#define	SLEEP(t)\
-	do { clock_t time = clock() + t;\
-		do {} while (time > clock());\
-	} while(0)
+#define LAYOUT_NAME "pman"
+#define SIZE 40
+#define MAX_SIZE 38
+#define MAX_BOMBS 5
+#define KEY_SPACE 32
+#define RAND_FIELD() (rand() % (SIZE - 2) + 1)
+#define EXPLOSION_TIME 20
+#define EXPLOSION_COUNTER 80
+#define SLEEP_TIME (2 * CLOCKS_PER_SEC)
+#define GAME_DELAY 40000
+#define SLEEP(t)                                                               \
+	do {                                                                   \
+		clock_t time = clock() + t;                                    \
+		do {                                                           \
+		} while (time > clock());                                      \
+	} while (0)
 
 using namespace nvml;
 using namespace nvml::obj;
@@ -70,7 +71,7 @@ enum position {
 	DOWN_LEFT,
 	DOWN_RIGHT,
 	POS_MIDDLE,
-	POS_MAX
+	POS_MAX,
 };
 
 enum direction {
@@ -78,7 +79,7 @@ enum direction {
 	RIGHT,
 	UP,
 	LEFT,
-	STOP
+	STOP,
 };
 
 enum field {
@@ -90,145 +91,154 @@ enum field {
 	EXPLOSION,
 	BONUS,
 	LIFE,
-	BOMB
+	BOMB,
 };
 
 class point {
-	public:
-		point() {};
-		point(int xf, int yf);
-		point(position cor);
-		void move_back();
-		void move_home();
-		/* x component of object's position */
-		p<int> x;
-		/* y component of object's position */
-		p<int> y;
-		/* x component of object's  previous position */
-		p<int> prev_x;
-		/* y component of object's  previous position */
-		p<int> prev_y;
-		/* type of field of object */
-		p<field> cur_field;
-		/* type of field where object stood before */
-		p<field> prev_field;
-	protected:
-		void move();
-		/* direction in which object is moving */
-		p<direction> dir;
-	private:
-		/* starting position of the object */
-		p<position> home;
+public:
+	point(){};
+	point(int xf, int yf);
+	point(position cor);
+	void move_back();
+	void move_home();
+	/* x component of object's position */
+	p<int> x;
+	/* y component of object's position */
+	p<int> y;
+	/* x component of object's  previous position */
+	p<int> prev_x;
+	/* y component of object's  previous position */
+	p<int> prev_y;
+	/* type of field of object */
+	p<field> cur_field;
+	/* type of field where object stood before */
+	p<field> prev_field;
+
+protected:
+	void move();
+	/* direction in which object is moving */
+	p<direction> dir;
+
+private:
+	/* starting position of the object */
+	p<position> home;
 };
 
 class bomb : public point {
-	public:
-		bomb(int xf, int yf);
-		void progress();
-		void explosion();
-		void print_time();
-		/* flag determining is bomb exploded */
-		p<bool> exploded;
-		/* flag determining is bomb used */
-		p<bool> used;
-	private:
-		/* counter determining where change of bomb state is necessary*/
-		p<unsigned> timer;
+public:
+	bomb(int xf, int yf);
+	void progress();
+	void explosion();
+	void print_time();
+	/* flag determining is bomb exploded */
+	p<bool> exploded;
+	/* flag determining is bomb used */
+	p<bool> used;
+
+private:
+	/* counter determining where change of bomb state is necessary*/
+	p<unsigned> timer;
 };
 
 typedef persistent_ptr<list<bomb>> bomb_vec;
 
 class player : public point {
-	public:
-		player(position cor);
-		void progress(int in, bomb_vec *bombs);
+public:
+	player(position cor);
+	void progress(int in, bomb_vec *bombs);
 };
 
 class alien : public point {
-	public:
-		alien(position cor);
-		void progress();
-		void move_back_alien();
-	private:
-		p<bool> rand_pos;
+public:
+	alien(position cor);
+	void progress();
+	void move_back_alien();
+
+private:
+	p<bool> rand_pos;
 };
 
 class intro : public point {
-	public:
-		intro(int x, int y, direction d);
-		void progress();
-	private:
-		/* random color in which object will be displayed*/
-		p<int> color;
-		/* number determining object's path on the board*/
-		p<int> num;
+public:
+	intro(int x, int y, direction d);
+	void progress();
+
+private:
+	/* random color in which object will be displayed*/
+	p<int> color;
+	/* number determining object's path on the board*/
+	p<int> num;
 };
 
 class board_state {
-	public:
-		board_state();
-		~board_state();
-		void print(unsigned hs);
-		void reset();
-		void dead();
-		bool is_free(int x, int y);
-		void set_board_elm(persistent_ptr<point> p);
-		void add_points(int x, int y);
-		bool is_last_alien_killed(int x, int y);
-		void set_explosion(int x, int y, field f);
-		void explosion(int x, int y, field f);
-		inline field get_board_elm(int x, int y) {
-			return board[y * SIZE + x];
-		}
-		inline void set_board_elm(int x, int y, field f) {
-			board[y * SIZE + x] = f;
-		}
-		p<unsigned> level;	/* number of level */
-		p<unsigned> timer;	/* measure time since game start */
-		p<unsigned> n_aliens;	/* number of not killed aliens */
-		p<unsigned> highscore;	/* score of the best game */
-		p<unsigned> score;	/* current score */
-		p<bool> game_over;	/* set true if game is over */
-	private:
-		int shape(field f);
-		void set_bonus(field f);
-		void set_board();
-		int find_wall(int x, int y, direction dir);
-		p<unsigned> life;	/* number of lives left for player */
-		persistent_ptr<field[]> board;		/* current state of board */
-	};
+public:
+	board_state();
+	~board_state();
+	void print(unsigned hs);
+	void reset();
+	void dead();
+	bool is_free(int x, int y);
+	void set_board_elm(persistent_ptr<point> p);
+	void add_points(int x, int y);
+	bool is_last_alien_killed(int x, int y);
+	void set_explosion(int x, int y, field f);
+	void explosion(int x, int y, field f);
+	inline field
+	get_board_elm(int x, int y)
+	{
+		return board[y * SIZE + x];
+	}
+	inline void
+	set_board_elm(int x, int y, field f)
+	{
+		board[y * SIZE + x] = f;
+	}
+	p<unsigned> level;     /* number of level */
+	p<unsigned> timer;     /* measure time since game start */
+	p<unsigned> n_aliens;  /* number of not killed aliens */
+	p<unsigned> highscore; /* score of the best game */
+	p<unsigned> score;     /* current score */
+	p<bool> game_over;     /* set true if game is over */
+private:
+	int shape(field f);
+	void set_bonus(field f);
+	void set_board();
+	int find_wall(int x, int y, direction dir);
+	p<unsigned> life;	      /* number of lives left for player */
+	persistent_ptr<field[]> board; /* current state of board */
+};
 
 class state {
-	public:
-		state();
-		bool init();
-		void game();
-	private:
-		bool intro_loop();
-		void print_start();
-		void print_game_over();
-		void new_game();
-		void resume();
-		void one_move(int in);
-		void collision();
-		void reset();
-		void next_level();
-		void reset_bombs();
-		bool is_collision(persistent_ptr<point> p1,
-						persistent_ptr<point> p2);
-		/* pointer to player type object */
-		persistent_ptr<player> pl;
-		/* pointer to board state */
-		persistent_ptr<board_state> board;
-		/* pointer to vector of alien type objects */
-		persistent_ptr<list<alien>> aliens;
-		/* pointer to vector of intro type objects */
-		persistent_ptr<list<intro>> intro_p;
-		/* pointer to vector of bomb type objects */
-		bomb_vec bombs;
-		/* the best score player has ever achieved */
-		p<unsigned> highscore;
-	};
+public:
+	state();
+	bool init();
+	void game();
+
+private:
+	bool intro_loop();
+	void print_start();
+	void print_game_over();
+	void new_game();
+	void resume();
+	void one_move(int in);
+	void collision();
+	void reset();
+	void next_level();
+	void reset_bombs();
+	bool is_collision(persistent_ptr<point> p1, persistent_ptr<point> p2);
+	/* pointer to player type object */
+	persistent_ptr<player> pl;
+	/* pointer to board state */
+	persistent_ptr<board_state> board;
+	/* pointer to vector of alien type objects */
+	persistent_ptr<list<alien>> aliens;
+	/* pointer to vector of intro type objects */
+	persistent_ptr<list<intro>> intro_p;
+	/* pointer to vector of bomb type objects */
+	bomb_vec bombs;
+	/* the best score player has ever achieved */
+	p<unsigned> highscore;
+};
 
 pool<state> pop;
 
@@ -306,7 +316,7 @@ void
 point::move()
 {
 	int tmp_x = 0, tmp_y = 0;
-	switch(dir) {
+	switch (dir) {
 		case LEFT:
 			tmp_x = -1;
 			break;
@@ -331,7 +341,7 @@ point::move()
 /*
  * intro::intro -- overloaded constructor for intro class
  */
-intro::intro(int x, int y, direction d) : point (x, y)
+intro::intro(int x, int y, direction d) : point(x, y)
 {
 	color = (field)(rand() % BOMB);
 	if (d == DOWN || d == LEFT)
@@ -349,9 +359,9 @@ intro::progress()
 {
 	move();
 	mvaddch(y, x * 2, COLOR_PAIR(color) | ACS_DIAMOND);
-	int max_size =  SIZE - num;
+	int max_size = SIZE - num;
 	if ((x == num && y == num) || (x == num && y == max_size) ||
-		(x == max_size && y == num) || (x == max_size && y == max_size))
+	    (x == max_size && y == num) || (x == max_size && y == max_size))
 		dir = (direction)((dir + 1) % STOP);
 }
 
@@ -404,7 +414,7 @@ bomb::print_time()
  */
 player::player(position cor) : point(cor)
 {
-	 cur_field = PLAYER;
+	cur_field = PLAYER;
 }
 
 /*
@@ -413,24 +423,25 @@ player::player(position cor) : point(cor)
 void
 player::progress(int in, bomb_vec *bombs)
 {
-	switch(in) {
-	case KEY_LEFT:
-		dir = LEFT;
-		break;
-	case KEY_RIGHT:
-		dir = RIGHT;
-		break;
-	case KEY_UP:
-		dir = UP;
-		break;
-	case KEY_DOWN:
-		dir = DOWN;
-		break;
-	case KEY_SPACE:
-		dir = STOP;
-		if ((*bombs)->size() <= MAX_BOMBS)
-			(*bombs)->push_back(make_persistent<bomb>(x, y));
-		break;
+	switch (in) {
+		case KEY_LEFT:
+			dir = LEFT;
+			break;
+		case KEY_RIGHT:
+			dir = RIGHT;
+			break;
+		case KEY_UP:
+			dir = UP;
+			break;
+		case KEY_DOWN:
+			dir = DOWN;
+			break;
+		case KEY_SPACE:
+			dir = STOP;
+			if ((*bombs)->size() <= MAX_BOMBS)
+				(*bombs)->push_back(
+					make_persistent<bomb>(x, y));
+			break;
 	}
 	move();
 	dir = STOP;
@@ -441,8 +452,8 @@ player::progress(int in, bomb_vec *bombs)
  */
 alien::alien(position cor) : point(cor)
 {
-	 cur_field = ALIEN;
-	 prev_field = FOOD;
+	cur_field = ALIEN;
+	prev_field = FOOD;
 }
 
 /*
@@ -468,7 +479,8 @@ alien::move_back_alien()
 }
 
 /*
- * board_state -- constructor for class board_state initializes boards and needed variables
+ * board_state -- constructor for class board_state initializes boards and
+ * needed variables
  */
 board_state::board_state()
 {
@@ -505,7 +517,8 @@ board_state::print(unsigned hs)
 	if (score > hs)
 		highscore = score;
 	mvprintw(SIZE + 1, 0, "Score: %d\t\tHighscore: %u\t\tLevel: %u\t"
-				"   Timer: %u", score, highscore, level, timer);
+			      "   Timer: %u",
+		 score, highscore, level, timer);
 	mvaddch(8, SIZE * 2 + 5, shape(FOOD));
 	mvprintw(8, SIZE * 2 + 10, " +1 point");
 	mvaddch(16, SIZE * 2 + 5, shape(BONUS));
@@ -517,7 +530,6 @@ board_state::print(unsigned hs)
 
 	for (unsigned i = 0; i < life; i++)
 		mvaddch(SIZE + 3, SIZE + life - i * 2, shape(PLAYER));
-
 }
 
 /*
@@ -553,20 +565,21 @@ board_state::is_free(int x, int y)
 }
 
 /*
- * board_state::add_points -- check type of field and give proper number of points
+ * board_state::add_points -- check type of field and give proper number of
+ * points
  */
 void
 board_state::add_points(int x, int y)
 {
-	switch(get_board_elm(x, y)) {
-		case FOOD :
+	switch (get_board_elm(x, y)) {
+		case FOOD:
 			score = score + 1;
 			break;
-		case BONUS :
+		case BONUS:
 			score = score + 50;
 			set_bonus(BONUS);
 			break;
-		case LIFE :
+		case LIFE:
 			if (life < 3)
 				life = life + 1;
 			set_bonus(LIFE);
@@ -577,8 +590,8 @@ board_state::add_points(int x, int y)
 }
 
 /*
- * board_state::is_last_alien_killed -- remove alien from board and check whether
- * any other alien stayed on the board
+ * board_state::is_last_alien_killed -- remove alien from board and check
+ * whether any other alien stayed on the board
  */
 bool
 board_state::is_last_alien_killed(int x, int y)
@@ -622,10 +635,10 @@ board_state::set_explosion(int x, int y, field f)
 void
 board_state::explosion(int x, int y, field f)
 {
-	for(int i = find_wall(x, y, UP); i < find_wall(x, y, DOWN); i++)
+	for (int i = find_wall(x, y, UP); i < find_wall(x, y, DOWN); i++)
 		set_explosion(x, i, f);
 
-	for(int i = find_wall(x, y, LEFT); i < find_wall(x, y, RIGHT); i++)
+	for (int i = find_wall(x, y, LEFT); i < find_wall(x, y, RIGHT); i++)
 		set_explosion(i, y, f);
 }
 
@@ -670,7 +683,7 @@ board_state::set_board()
 	ifstream board_file;
 	board_file.open("map");
 	char num;
-	for (unsigned i = 0; i < SIZE ; i++) {
+	for (unsigned i = 0; i < SIZE; i++) {
 		for (unsigned j = 0; j < SIZE; j++) {
 			board_file.get(num);
 			if (num == '#')
@@ -683,49 +696,49 @@ board_state::set_board()
 		board_file.get(num);
 	}
 
-
 	board_file.close();
 	set_bonus(BONUS);
 	set_bonus(LIFE);
 }
 
 /*
- * board_state::find_wall -- finds first wall from given point in given direction
+ * board_state::find_wall -- finds first wall from given point in given
+ * direction
  */
 int
 board_state::find_wall(int x, int y, direction dir)
 {
-	switch(dir) {
+	switch (dir) {
 		case LEFT: {
-			for(int i = x; i >= 0; i--) {
+			for (int i = x; i >= 0; i--) {
 				if (get_board_elm(i, y) == WALL)
 					return i + 1;
 			}
+			break;
 		}
-		break;
 		case RIGHT: {
-			for(int i = x; i <= SIZE; i++) {
+			for (int i = x; i <= SIZE; i++) {
 				if (get_board_elm(i, y) == WALL)
 					return i;
 			}
+			break;
 		}
-		break;
 		case UP: {
-			for(int i = y; i >= 0; i--) {
+			for (int i = y; i >= 0; i--) {
 				if (get_board_elm(x, i) == WALL)
 					return i + 1;
 			}
+			break;
 		}
-		break;
 		case DOWN: {
-			for(int i = y; i <= SIZE; i++) {
+			for (int i = y; i <= SIZE; i++) {
 				if (get_board_elm(x, i) == WALL)
 					return i;
 			}
+			break;
 		}
-		break;
 		default:
-		break;
+			break;
 	}
 	return 0;
 }
@@ -742,8 +755,8 @@ state::init()
 	else {
 		while ((in = getch()) != 'y') {
 			mvprintw(SIZE / 4, SIZE / 4,
-					"Do you want to continue the game?"
-								" [y/n]");
+				 "Do you want to continue the game?"
+				 " [y/n]");
 			if (in == 'n') {
 				resume();
 				break;
@@ -757,14 +770,14 @@ state::init()
 		transaction::manual tx(pop);
 		if (intro_p->size() == 0) {
 			for (int i = 0; i < SIZE / 4; i++) {
-				intro_p->push_back(make_persistent<intro>
-							(i, i, DOWN));
-				intro_p->push_back(make_persistent<intro>
-						(SIZE - i, i, LEFT));
-				intro_p->push_back(make_persistent<intro>
-						(i, SIZE - i, RIGHT));
-				intro_p->push_back(make_persistent<intro>
-					(SIZE - i, SIZE - i, UP));
+				intro_p->push_back(
+					make_persistent<intro>(i, i, DOWN));
+				intro_p->push_back(make_persistent<intro>(
+					SIZE - i, i, LEFT));
+				intro_p->push_back(make_persistent<intro>(
+					i, SIZE - i, RIGHT));
+				intro_p->push_back(make_persistent<intro>(
+					SIZE - i, SIZE - i, UP));
 			}
 		}
 		transaction::commit();
@@ -875,7 +888,7 @@ state::print_game_over()
 	mvprintw(y + 10, x, "#######      #       #######   #     #");
 
 	mvprintw(y + 13, x, "       Your final score is %u         ",
-								board->score);
+		 board->score);
 	if (board->score == highscore)
 		mvprintw(y + 14, x, "       YOU BET YOUR BEST SCORE!       ");
 	mvprintw(y + 16, x, "          Press 'q' to quit           ");
@@ -922,7 +935,6 @@ state::resume()
 
 		bombs->clear();
 		delete_persistent<list<bomb>>(bombs);
-
 
 		intro_p->clear();
 		delete_persistent<list<intro>>(intro_p);
@@ -992,13 +1004,13 @@ state::collision()
 	i = 0;
 	while ((a = aliens->get(i++)) != nullptr) {
 		if (board->get_board_elm(a->x, a->y) == EXPLOSION) {
-			bool is_over = board->is_last_alien_killed(
-							a->prev_x, a->prev_y);
+			bool is_over = board->is_last_alien_killed(a->prev_x,
+								   a->prev_y);
 			aliens->erase(--i);
 			delete_persistent<alien>(a);
 			if (is_over == true) {
-				if (board->get_board_elm(pl->x, pl->y)
-								== EXPLOSION)
+				if (board->get_board_elm(pl->x, pl->y) ==
+				    EXPLOSION)
 					board->dead();
 				next_level();
 				return;
@@ -1042,7 +1054,6 @@ state::collision()
 	board->add_points(pl->x, pl->y);
 	board->set_board_elm(pl);
 	SLEEP(10000);
-
 }
 
 /*
@@ -1087,7 +1098,7 @@ state::reset_bombs()
 	unsigned i = 0;
 	persistent_ptr<bomb> b;
 	while ((b = bombs->get(i++)) != nullptr) {
-		if(b->exploded)
+		if (b->exploded)
 			board->explosion(b->x, b->y, FREE);
 	}
 	bombs->clear();
@@ -1102,7 +1113,7 @@ state::is_collision(persistent_ptr<point> p1, persistent_ptr<point> p2)
 	if (p1->x == p2->x && p1->y == p2->y)
 		return true;
 	else if (p1->prev_x == p2->x && p1->prev_y == p2->y &&
-			p1->x == p2->prev_x && p1->y == p2->prev_y)
+		 p1->x == p2->prev_x && p1->y == p2->prev_y)
 		return true;
 	return false;
 }

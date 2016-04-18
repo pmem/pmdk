@@ -38,7 +38,8 @@ OBJCOPY = objcopy
 MKDIR = mkdir
 INSTALL = install
 CP = cp
-CSTYLE = $(TOP)/utils/cstyle -pP
+CSTYLE = $(TOP)/utils/cstyle
+STYLE_CHECK = $(TOP)/utils/style_check.sh
 PKG_CONFIG = pkg-config
 
 ifeq ($(shell command -v $(PKG_CONFIG) && echo y || echo n), n)
@@ -83,6 +84,7 @@ export mandir := $(datarootdir)/man
 export docdir := $(datarootdir)/doc
 export man1dir := $(mandir)/man1
 export man3dir := $(mandir)/man3
+export cstyle_bin := $(CSTYLE)
 
 ifneq ($(wildcard $(exec_prefix)/x86_64-linux-gnu),)
 LIB_PREFIX ?= x86_64-linux-gnu/lib
@@ -93,6 +95,29 @@ LIB_PREFIX ?= lib64
 endif
 
 LIB_PREFIX ?= lib
+
+all:
+
+cstyle-%:
+	$(STYLE_CHECK) $* $(wildcard *.[ch]) $(wildcard *.[ch]pp)
+
+cstyle: cstyle-check
+
+format: cstyle-format
+
+define sub-target-foreach
+$(1)-$(2):
+	$$(MAKE) -C $1 $2
+ifeq ($(3),y)
+ifeq ($(custom_build),)
+	$$(MAKE) -C $1 $2 DEBUG=1
+endif
+endif
+endef
+
+define sub-target
+$(foreach f, $(1), $(eval $(call sub-target-foreach, $f,$(2),$(3))))
+endef
 
 ifneq ($(wildcard $(prefix)/x86_64-linux-gnu),)
 INC_PREFIX ?= x86_64-linux-gnu/include

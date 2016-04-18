@@ -37,59 +37,52 @@
 #ifndef LIBPMEMOBJ_ARRAY_TRAITS_HPP
 #define LIBPMEMOBJ_ARRAY_TRAITS_HPP
 
-namespace nvml {
+namespace nvml
+{
 
-namespace detail {
+namespace detail
+{
 
-	/*
-	 * Returns the number of array elements.
-	 */
-	template<typename T>
-	struct pp_array_elems
-	{
-		enum {
-			elems = 1
-		};
-	};
+/*
+ * Returns the number of array elements.
+ */
+template <typename T>
+struct pp_array_elems {
+	enum { elems = 1 };
+};
 
-	/*
-	 * Returns the number of array elements.
-	 */
-	template<typename T, std::size_t N>
-	struct pp_array_elems<T[N]>
-	{
-		enum {
-			elems = N
-		};
-	};
+/*
+ * Returns the number of array elements.
+ */
+template <typename T, size_t N>
+struct pp_array_elems<T[N]> {
+	enum { elems = N };
+};
 
-	/*
-	 * Returns the type of elements in an array.
-	 */
-	template<typename T>
-	struct pp_array_type;
+/*
+ * Returns the type of elements in an array.
+ */
+template <typename T>
+struct pp_array_type;
 
-	/*
-	 * Returns the type of elements in an array.
-	 */
-	template<typename T>
-	struct pp_array_type<T[]>
-	{
-		typedef T type;
-	};
+/*
+ * Returns the type of elements in an array.
+ */
+template <typename T>
+struct pp_array_type<T[]> {
+	typedef T type;
+};
 
-	/*
-	 * Returns the type of elements in an array.
-	 */
-	template<typename T, size_t N>
-	struct pp_array_type<T[N]>
-	{
-		typedef T type;
-	};
+/*
+ * Returns the type of elements in an array.
+ */
+template <typename T, size_t N>
+struct pp_array_type<T[N]> {
+	typedef T type;
+};
 
-}  /* namespace detail */
+} /* namespace detail */
 
-}  /* namespace nvml */
-
+} /* namespace nvml */
 
 #endif /* LIBPMEMOBJ_ARRAY_TRAITS_HPP */

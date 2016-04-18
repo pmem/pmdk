@@ -44,7 +44,4 @@ clean:
 clobber: clean
 	$(RM) -f $(TARGET)
 
-cstyle:
-	$(CSTYLE) *.[ch]
-
-.PHONY: all clean clobber cstyle
+.PHONY: all clean clobber
