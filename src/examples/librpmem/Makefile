@@ -33,10 +33,18 @@
 #
 # examples/librpmem/Makefile -- build the librpmem examples
 #
+HAS_LIBRABRIC=$(call check_package, libfabric)
 
+ifeq ($(HAS_LIBRABRIC), y)
 PROGS = basic
 
-LIBS = -lrpmem -pthread
+LIBS = -lrpmem -pthread $(shell $(PKG_CONFIG) --libs libfabric)
+
+CFLAGS = $(shell $(PKG_CONFIG) --cflags libfabric)
+else
+$(info NOTE: Skipping librpmem because libfabric is missing \
+-- see src/librpmem/README for details.)
+endif
 
 include ../Makefile.inc
 

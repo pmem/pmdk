@@ -39,6 +39,7 @@
 #include <string.h>
 #include <errno.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -201,4 +202,74 @@ rpmem_get_ip_str(const struct sockaddr *addr)
 	}
 
 	return str;
+}
+
+/*
+ * rpmem_target_split -- split target into user, node and service
+ *
+ * The user, node and service must be freed by the caller.
+ */
+int
+rpmem_target_split(const char *target, char **user,
+	char **node, char **service)
+{
+	if (user)
+		*user = NULL;
+	if (node)
+		*node = NULL;
+
+	if (service)
+		*service = NULL;
+
+	char *target_dup = strdup(target);
+	if (!target_dup)
+		goto err_target_dup;
+
+	char *u = NULL;
+	char *n = strchr(target_dup, '@');
+	if (n) {
+		u = target_dup;
+		*n = '\0';
+		n++;
+	} else {
+		n = target_dup;
+	}
+
+	char *s = strchr(n, ':');
+	if (s) {
+		*s = '\0';
+		s++;
+	}
+
+	if (node) {
+		*node = strdup(n);
+		if (!(*node))
+			goto err_dup_node;
+	}
+
+	if (u && user) {
+		*user = strdup(u);
+		if (!(*user))
+			goto err_dup_user;
+	}
+
+	if (s && service) {
+		*service = strdup(s);
+		if (!(*service))
+			goto err_dup_service;
+	}
+
+	free(target_dup);
+
+	return 0;
+err_dup_service:
+	if (user)
+		free(*user);
+err_dup_user:
+	if (node)
+		free(*node);
+err_dup_node:
+	free(target_dup);
+err_target_dup:
+	return -1;
 }
