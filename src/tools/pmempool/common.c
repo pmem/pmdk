@@ -134,16 +134,6 @@ util_validate_checksum(void *addr, size_t len, uint64_t *csum)
 }
 
 /*
- * util_pool_hdr_valid -- return 1 if pool header is valid
- */
-int
-util_pool_hdr_valid(struct pool_hdr *hdrp)
-{
-	return util_check_memory((void *)hdrp, sizeof(*hdrp), 0) &&
-		util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum, 0);
-}
-
-/*
  * util_get_pool_type_second_page -- return type based on second page content
  */
 pmem_pool_type_t
@@ -676,42 +666,6 @@ out_close:
 }
 
 /*
- * pmem_default_pool_hdr -- return default pool header values
- */
-void
-pmem_default_pool_hdr(pmem_pool_type_t type, struct pool_hdr *hdrp)
-{
-	memset(hdrp, 0, sizeof(*hdrp));
-	const char *sig = out_get_pool_signature(type);
-	assert(sig);
-
-	memcpy(hdrp->signature, sig, POOL_HDR_SIG_LEN);
-
-	switch (type) {
-	case PMEM_POOL_TYPE_LOG:
-		hdrp->major = LOG_FORMAT_MAJOR;
-		hdrp->compat_features = LOG_FORMAT_COMPAT;
-		hdrp->incompat_features = LOG_FORMAT_INCOMPAT;
-		hdrp->ro_compat_features = LOG_FORMAT_RO_COMPAT;
-		break;
-	case PMEM_POOL_TYPE_BLK:
-		hdrp->major = BLK_FORMAT_MAJOR;
-		hdrp->compat_features = BLK_FORMAT_COMPAT;
-		hdrp->incompat_features = BLK_FORMAT_INCOMPAT;
-		hdrp->ro_compat_features = BLK_FORMAT_RO_COMPAT;
-		break;
-	case PMEM_POOL_TYPE_OBJ:
-		hdrp->major = OBJ_FORMAT_MAJOR;
-		hdrp->compat_features = OBJ_FORMAT_COMPAT;
-		hdrp->incompat_features = OBJ_FORMAT_INCOMPAT;
-		hdrp->ro_compat_features = OBJ_FORMAT_RO_COMPAT;
-		break;
-	default:
-		break;
-	}
-}
-
-/*
  * util_check_memory -- check if memory contains single value
  */
 int
@@ -724,64 +678,6 @@ util_check_memory(const uint8_t *buff, size_t len, uint8_t val)
 	}
 
 	return 0;
-}
-
-/*
- * util_get_max_bsize -- return maximum size of block for given file size
- */
-uint32_t
-util_get_max_bsize(uint64_t fsize)
-{
-	if (fsize == 0)
-		return 0;
-
-	/* default nfree */
-	uint32_t nfree = BTT_DEFAULT_NFREE;
-
-	/* number of blocks must be at least 2 * nfree */
-	uint32_t internal_nlba = 2 * nfree;
-
-	/* compute flog size */
-	uint32_t flog_size = nfree *
-		(uint32_t)roundup(2 * sizeof(struct btt_flog),
-				BTT_FLOG_PAIR_ALIGN);
-	flog_size = (uint32_t)roundup(flog_size, BTT_ALIGNMENT);
-
-	/* compute arena size from file size */
-	uint64_t arena_size = fsize;
-	/* without pmemblk structure */
-	arena_size -= sizeof(struct pmemblk);
-	if (arena_size > BTT_MAX_ARENA) {
-		arena_size = BTT_MAX_ARENA;
-	}
-	/* without BTT Info header and backup */
-	arena_size -= 2 * sizeof(struct btt_info);
-	/* without BTT FLOG size */
-	arena_size -= flog_size;
-
-	/* compute maximum internal LBA size */
-	uint64_t internal_lbasize = (arena_size - BTT_ALIGNMENT) /
-			internal_nlba - BTT_MAP_ENTRY_SIZE;
-	assert(internal_lbasize <= UINT32_MAX);
-
-	if (internal_lbasize < BTT_MIN_LBA_SIZE)
-		internal_lbasize = BTT_MIN_LBA_SIZE;
-
-	internal_lbasize =
-		roundup(internal_lbasize, BTT_INTERNAL_LBA_ALIGNMENT)
-			- BTT_INTERNAL_LBA_ALIGNMENT;
-
-	return (uint32_t)internal_lbasize;
-}
-
-/*
- * util_check_bsize -- check if block size is valid for given file size
- */
-int
-util_check_bsize(uint32_t bsize, uint64_t fsize)
-{
-	uint32_t max_bsize = util_get_max_bsize(fsize);
-	return !(bsize < max_bsize);
 }
 
 char
@@ -1437,59 +1333,4 @@ pool_set_file_map(struct pool_set_file *file, uint64_t offset)
 	if (file->addr == MAP_FAILED)
 		return NULL;
 	return (char *)file->addr + offset;
-}
-
-/*
- * pool_set_file_map_headers -- map headers of each pool set part file
- */
-int
-pool_set_file_map_headers(struct pool_set_file *file,
-		int rdonly, size_t hdrsize)
-{
-	if (!file->poolset)
-		return -1;
-
-	int flags = rdonly ? MAP_PRIVATE : MAP_SHARED;
-	for (unsigned r = 0; r < file->poolset->nreplicas; r++) {
-		struct pool_replica *rep = file->poolset->replica[r];
-		for (unsigned p = 0; p < rep->nparts; p++) {
-			struct pool_set_part *part = &rep->part[p];
-
-			part->hdr = mmap(NULL, hdrsize, PROT_READ | PROT_WRITE,
-					flags, part->fd, 0);
-			if (part->hdr == MAP_FAILED) {
-				part->hdr = NULL;
-				goto err;
-			}
-
-			part->hdrsize = hdrsize;
-		}
-	}
-
-	return 0;
-err:
-	pool_set_file_unmap_headers(file);
-	return -1;
-}
-
-/*
- * pool_set_file_unmap_headers -- unmap headers of each pool set part file
- */
-void
-pool_set_file_unmap_headers(struct pool_set_file *file)
-{
-	if (!file->poolset)
-		return;
-	for (unsigned r = 0; r < file->poolset->nreplicas; r++) {
-		struct pool_replica *rep = file->poolset->replica[r];
-		for (unsigned p = 0; p < rep->nparts; p++) {
-			struct pool_set_part *part = &rep->part[p];
-			if (part->hdr != NULL) {
-				assert(part->hdrsize > 0);
-				munmap(part->hdr, part->hdrsize);
-				part->hdr = NULL;
-				part->hdrsize = 0;
-			}
-		}
-	}
 }

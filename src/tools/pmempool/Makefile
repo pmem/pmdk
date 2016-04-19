@@ -40,6 +40,7 @@ LIBPMEM=y
 LIBPMEMBLK=y
 LIBPMEMOBJ=y
 LIBPMEMLOG=y
+LIBPMEMPOOL=y
 TOOLS_COMMON=y
 LIBPMEMLOG_PRIV=pmemlog_convert2h pmemlog_convert2le
 LIBPMEMOBJ_PRIV=pvector_init pvector_nvalues pvector_first pvector_next\
