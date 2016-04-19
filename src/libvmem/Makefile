@@ -41,6 +41,10 @@ default: all
 
 include ../jemalloc/jemalloc.mk
 
+ifeq ($(DEBUG),1)
+JEMALLOC_CONFIG += --enable-debug
+endif
+
 INCS += -I$(JEMALLOC_DIR)/include/jemalloc
 INCS += -I$(JEMALLOC_OBJDIR)/include/jemalloc
 EXTRA_OBJS += $(JEMALLOC_LIB)
