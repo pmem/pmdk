@@ -5,11 +5,14 @@ checking pool header
 incorrect pool header checksum
 UUID values don't match
 setting UUIDs to $(*)
+checking pmemblk header
+pmemblk header correct
+checking BTT Info headers
+BTT Layout not written
 $(*)file.pool: repaired
 checking pool header
 pool header checksum correct
 checking pmemblk header
-no BTT layout
 pmemblk header correct
 checking BTT Info headers
 BTT Layout not written
@@ -22,11 +25,14 @@ checking pool header
 incorrect pool header checksum
 UUID values don't match
 setting UUIDs to $(*)
+checking pmemblk header
+pmemblk header correct
+checking BTT Info headers
+BTT Layout not written
 $(*)file.pool: repaired
 checking pool header
 pool header checksum correct
 checking pmemblk header
-no BTT layout
 pmemblk header correct
 checking BTT Info headers
 BTT Layout not written
@@ -40,13 +46,16 @@ $(*)file.pool: not consistent
 checking pool header
 incorrect pool header checksum
 UUID values don't match
-setting UUIDs to: $(*)
-setting pool_hdr.checksum to: $(*)
+setting UUIDs to $(*)
+setting pool_hdr.checksum to $(*)
+checking pmemblk header
+pmemblk header correct
+checking BTT Info headers
+BTT Layout not written
 $(*)file.pool: repaired
 checking pool header
 pool header checksum correct
 checking pmemblk header
-no BTT layout
 pmemblk header correct
 checking BTT Info headers
 BTT Layout not written

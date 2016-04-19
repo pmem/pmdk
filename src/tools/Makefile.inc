@@ -93,6 +93,12 @@ PMEMBLK_PRIV_OBJ=$(LIBSDIR_PRIV)/libpmemblk/libpmemblk_unscoped.o
 
 LIBS += -pthread
 
+ifeq ($(LIBPMEMPOOL), y)
+DYNAMIC_LIBS += -lpmempool
+STATIC_DEBUG_LIBS += $(LIBSDIR_DEBUG)/libpmempool.a
+STATIC_NONDEBUG_LIBS += $(LIBSDIR_NONDEBUG)/libpmempool.a
+endif
+
 ifeq ($(LIBPMEMBLK), y)
 DYNAMIC_LIBS += -lpmemblk
 STATIC_DEBUG_LIBS += $(LIBSDIR_DEBUG)/libpmemblk.a
