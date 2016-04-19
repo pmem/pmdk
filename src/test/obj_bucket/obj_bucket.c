@@ -55,7 +55,7 @@
 
 FUNC_MOCK(malloc, void *, size_t size)
 	FUNC_MOCK_RUN_RET_DEFAULT_REAL(malloc, size)
-	FUNC_MOCK_RUN(2) { /* +2 because of allocs for init, b malloc */
+	FUNC_MOCK_RUN(4) { /* +4 because of allocs for init, b malloc */
 		return NULL;
 	}
 FUNC_MOCK_END

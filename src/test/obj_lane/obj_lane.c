@@ -132,26 +132,29 @@ test_lane_boot_cleanup_ok()
 {
 	struct mock_pop pop = {
 		.p = {
-			.nlanes = MAX_MOCK_LANES,
-			.lanes = NULL
+			.nlanes = MAX_MOCK_LANES
 		}
 	};
 	base_ptr = &pop.p;
 
 	pop.p.lanes_offset = (uint64_t)&pop.l - (uint64_t)&pop.p;
+
+	lane_info_boot();
 	UT_ASSERTeq(lane_boot(&pop.p), 0);
-	UT_ASSERTne(pop.p.lanes, NULL);
+
 	for (int i = 0; i < MAX_MOCK_LANES; ++i) {
 		for (int j = 0; j < MAX_LANE_SECTION; ++j) {
-			UT_ASSERTeq(pop.p.lanes[i].sections[j].layout,
-				&pop.l[i].sections[j]);
-			UT_ASSERTeq(pop.p.lanes[i].sections[j].runtime,
-				MOCK_RUNTIME);
+			struct lane_section *section =
+				&pop.p.lanes_desc.lane[i].sections[j];
+			UT_ASSERTeq(section->layout, &pop.l[i].sections[j]);
+			UT_ASSERTeq(section->runtime, MOCK_RUNTIME);
 		}
 	}
 
 	lane_cleanup(&pop.p);
-	UT_ASSERTeq(pop.p.lanes, NULL);
+
+	UT_ASSERTeq(pop.p.lanes_desc.lane, NULL);
+	UT_ASSERTeq(pop.p.lanes_desc.lane_locks, NULL);
 }
 
 static void
@@ -159,8 +162,7 @@ test_lane_boot_fail()
 {
 	struct mock_pop pop = {
 		.p = {
-			.nlanes = MAX_MOCK_LANES,
-			.lanes = NULL
+			.nlanes = MAX_MOCK_LANES
 		}
 	};
 	base_ptr = &pop.p;
@@ -172,7 +174,8 @@ test_lane_boot_fail()
 
 	construct_fail = 0;
 
-	UT_ASSERTeq(pop.p.lanes, NULL);
+	UT_ASSERTeq(pop.p.lanes_desc.lane, NULL);
+	UT_ASSERTeq(pop.p.lanes_desc.lane_locks, NULL);
 }
 
 static void
@@ -180,8 +183,7 @@ test_lane_recovery_check_ok()
 {
 	struct mock_pop pop = {
 		.p = {
-			.nlanes = MAX_MOCK_LANES,
-			.lanes = NULL
+			.nlanes = MAX_MOCK_LANES
 		}
 	};
 	base_ptr = &pop.p;
@@ -196,8 +198,7 @@ test_lane_recovery_check_fail()
 {
 	struct mock_pop pop = {
 		.p = {
-			.nlanes = MAX_MOCK_LANES,
-			.lanes = NULL
+			.nlanes = MAX_MOCK_LANES
 		}
 	};
 	base_ptr = &pop.p;
@@ -221,10 +222,7 @@ signal_handler(int sig)
 static void
 test_lane_hold_release()
 {
-	pthread_mutex_t lock = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
-
 	struct lane mock_lane = {
-		.lock = &lock,
 		.sections = {
 			[LANE_SECTION_ALLOCATOR] = {
 				.runtime = MOCK_RUNTIME
@@ -238,9 +236,14 @@ test_lane_hold_release()
 	struct mock_pop pop = {
 		.p = {
 			.nlanes = 1,
-			.lanes = &mock_lane
+			.lanes_desc = {
+					.lane = &mock_lane,
+
+					.next_lane_idx = 0
+			}
 		}
 	};
+	pop.p.lanes_desc.lane_locks = CALLOC(OBJ_NLANES, sizeof (uint64_t));
 	pop.p.lanes_offset = (uint64_t)&pop.l - (uint64_t)&pop.p;
 	base_ptr = &pop.p;
 
@@ -261,6 +264,7 @@ test_lane_hold_release()
 	}
 
 	signal(SIGABRT, old);
+	FREE(pop.p.lanes_desc.lane_locks);
 }
 
 static void
