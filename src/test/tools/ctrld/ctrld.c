@@ -46,9 +46,37 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <sys/types.h>
+#include <stdarg.h>
 
 #define	APP_NAME "ctrld"
 #define	BUFF_SIZE 4096
+
+static FILE *log_fh;
+
+static void
+log_err(const char *file, int lineno, const char *fmt, ...)
+{
+	FILE *fh = log_fh ? log_fh : stderr;
+	va_list ap;
+	fprintf(fh, "[%s:%d] ", file, lineno);
+
+	char *prefix = "";
+	char *errstr = "";
+	if (*fmt == '!') {
+		fmt++;
+		prefix = ": ";
+		errstr = strerror(errno);
+	}
+
+	va_start(ap, fmt);
+	vfprintf(fh, fmt, ap);
+	va_end(ap);
+
+	fprintf(fh, "%s%s\n", prefix, errstr);
+	fflush(fh);
+}
+
+#define	CTRLD_LOG(...) log_err(__FILE__, __LINE__, __VA_ARGS__)
 
 /* table of signal names */
 #define	SIGNAL_2_STR(sig) [sig] = #sig
@@ -101,12 +129,13 @@ struct inodes {
 static void
 usage(void)
 {
-	printf("usage: %s <pid file> <cmd> [<arg>]\n", APP_NAME);
-	printf("commands:\n");
-	printf("  run  <command> [<args...>] -- run specified command\n");
-	printf("  wait [<timeout>]           -- wait for command\n");
-	printf("  wait_port <port>           -- wait until a port is opened\n");
-	printf("  kill <signal>              -- send a signal to command\n");
+	CTRLD_LOG("usage: %s <pid file> <cmd> [<arg>]", APP_NAME);
+	CTRLD_LOG("commands:");
+	CTRLD_LOG("  run  <command> [<args...>] -- run specified command");
+	CTRLD_LOG("  wait [<timeout>]           -- wait for command");
+	CTRLD_LOG("  wait_port <port>           -- wait until a port is "
+			"opened");
+	CTRLD_LOG("  kill <signal>              -- send a signal to command");
 	exit(EXIT_FAILURE);
 }
 
@@ -140,54 +169,54 @@ do_run(const char *pid_file, char *cmd, char *argv[])
 {
 	FILE *fh = fopen(pid_file, "w+");
 	if (!fh) {
-		perror(pid_file);
+		CTRLD_LOG("!%s", pid_file);
 		return 1;
 	}
 
 	int fd = fileno(fh);
 	if (fd == -1) {
-		perror("fileno");
+		CTRLD_LOG("!fileno");
 		goto err;
 	}
 
 	if (flock(fd, LOCK_EX | LOCK_NB)) {
-		perror("flock");
+		CTRLD_LOG("!flock");
 		goto err;
 	}
 
 	if (daemon(1, 0)) {
-		perror("daemon");
+		CTRLD_LOG("!daemon");
 		goto err;
 	}
 
 	int child = fork();
 	switch (child) {
 	case -1:
-		perror("fork");
+		CTRLD_LOG("!fork");
 		fprintf(fh, "-1r%d", errno);
 		fclose(fh);
 		goto err;
 	case 0:
 		execvp(cmd, argv);
-		perror("execve");
+		CTRLD_LOG("!execvp(%s)", cmd);
 		goto err;
 	default:
 		break;
 	}
 
 	if (fprintf(fh, "%d", child) < 0) {
-		perror("fprintf");
+		CTRLD_LOG("!fprintf");
 		goto err;
 	}
 
 	if (fflush(fh)) {
-		perror("fflush");
+		CTRLD_LOG("!fflush");
 		goto err;
 	}
 
 	int ret = 0;
 	if (waitpid(child, &ret, 0) == -1) {
-		perror("waitpid");
+		CTRLD_LOG("!waitpid");
 		goto err;
 	}
 
@@ -198,12 +227,12 @@ do_run(const char *pid_file, char *cmd, char *argv[])
 	}
 
 	if (fseek(fh, 0, SEEK_SET)) {
-		perror("fseek");
+		CTRLD_LOG("!fseek");
 		goto err;
 	}
 
 	if (ftruncate(fileno(fh), 0)) {
-		perror("ftruncate");
+		CTRLD_LOG("!ftruncate");
 		goto err;
 	}
 
@@ -212,7 +241,7 @@ do_run(const char *pid_file, char *cmd, char *argv[])
 	return 0;
 err:
 	fclose(fh);
-	return 1;
+	return -1;
 }
 
 /*
@@ -238,7 +267,7 @@ do_wait(char *pid_file, int timeout)
 
 	FILE *fh = fdopen(fd, "r");
 	if (!fh) {
-		perror("fdopen");
+		CTRLD_LOG("!fdopen");
 		ret = 1;
 		goto err;
 	}
@@ -247,13 +276,13 @@ do_wait(char *pid_file, int timeout)
 	char r;
 	int n = fscanf(fh, "%d%c%d", &pid, &r, &ret);
 	if (n < 0) {
-		perror("fscanf");
+		CTRLD_LOG("!fscanf");
 		ret = 1;
 		goto err;
 	}
 
 	if (n == 2 || (n == 3 && r != 'r')) {
-		fprintf(stderr, "invalid format of PID file\n");
+		CTRLD_LOG("invalid format of PID file");
 		ret = 1;
 		goto err;
 	}
@@ -263,7 +292,7 @@ do_wait(char *pid_file, int timeout)
 			ret = -1;
 			goto err;
 		} else {
-			fprintf(stderr, "missing return value\n");
+			CTRLD_LOG("missing return value");
 			ret = 1;
 			goto err;
 		}
@@ -283,7 +312,7 @@ do_kill(char *pid_file, int signo)
 {
 	FILE *fh = fopen(pid_file, "r");
 	if (!fh) {
-		perror(pid_file);
+		CTRLD_LOG("!%s", pid_file);
 		return 1;
 	}
 
@@ -297,7 +326,7 @@ do_kill(char *pid_file, int signo)
 
 	/* do not fail if such process already does not exist */
 	if (kill(pid, signo) && errno != ESRCH) {
-		perror("kill");
+		CTRLD_LOG("!kill");
 		ret = 1;
 		goto out;
 	}
@@ -341,8 +370,10 @@ has_port_inode(unsigned short port, struct inodes *inodes)
 	char buff[BUFF_SIZE];
 
 	FILE *fh = fopen("/proc/net/tcp", "r");
-	if (!fh)
+	if (!fh) {
+		CTRLD_LOG("!%s", "/proc/net/tcp");
 		return -1;
+	}
 
 	int ret;
 	/* read heading */
@@ -392,14 +423,17 @@ get_inodes(pid_t pid, struct inodes *inodes)
 	char link[PATH_MAX];
 
 	/* set a path to opened files of specified process */
-	if (snprintf(path, PATH_MAX, "/proc/%d/fd", pid) < 0)
+	if (snprintf(path, PATH_MAX, "/proc/%d/fd", pid) < 0) {
+		CTRLD_LOG("!snprintf");
 		return -1;
+	}
 
 	int ret;
 
 	/* open dir with all opened files */
 	DIR *d = opendir(path);
 	if (!d) {
+		CTRLD_LOG("!%s", path);
 		ret = -1;
 		goto out_dir;
 	}
@@ -410,6 +444,7 @@ get_inodes(pid_t pid, struct inodes *inodes)
 		/* create a full path to file */
 		if (snprintf(path, PATH_MAX,
 			"/proc/%d/fd/%s", pid, dent->d_name) < 0) {
+			CTRLD_LOG("!snprintf");
 			ret = -1;
 			goto out_dir;
 		}
@@ -428,7 +463,7 @@ get_inodes(pid_t pid, struct inodes *inodes)
 		/* add inode to a list */
 		struct inode_item *inode_item = malloc(sizeof (*inode_item));
 		if (!inode_item) {
-			perror("malloc inode item");
+			CTRLD_LOG("!malloc inode item");
 			exit(1);
 		}
 
@@ -485,7 +520,7 @@ do_wait_port(char *pid_file, unsigned short port)
 {
 	FILE *fh = fopen(pid_file, "r");
 	if (!fh) {
-		perror(pid_file);
+		CTRLD_LOG("!%s", pid_file);
 		return 1;
 	}
 
@@ -495,19 +530,19 @@ do_wait_port(char *pid_file, unsigned short port)
 	char r;
 	int n = fscanf(fh, "%d%c%d", &pid, &r, &ret);
 	if (n < 0) {
-		perror("fscanf");
+		CTRLD_LOG("!fscanf");
 		ret = 1;
 		goto err;
 	}
 
 	if (n == 2 || (n == 3 && r != 'r')) {
-		fprintf(stderr, "invalid format of PID file\n");
+		CTRLD_LOG("invalid format of PID file\n");
 		ret = 1;
 		goto err;
 	}
 
 	if (n == 3) {
-		fprintf(stderr, "process already terminated\n");
+		CTRLD_LOG("process already terminated\n");
 		ret = 1;
 		goto err;
 	}
@@ -539,6 +574,34 @@ convert_signal_name(const char *signal_name)
 	return -1;
 }
 
+/*
+ * log_run -- print run command with arguments
+ */
+static void
+log_run(const char *pid_file, char *cmd, char *argv[])
+{
+	char buff[BUFF_SIZE];
+	buff[0] = '\0';
+	size_t cnt = 0;
+	size_t i = 0;
+	char *arg = argv[0];
+	while (arg) {
+		ssize_t ret = snprintf(&buff[cnt], BUFF_SIZE - cnt,
+				" %s", arg);
+		if (ret < 0) {
+			CTRLD_LOG("!snprintf");
+			exit(EXIT_FAILURE);
+		}
+
+		cnt += (size_t)ret;
+
+		i++;
+		arg = argv[i];
+	}
+
+	CTRLD_LOG("run %s%s", pid_file, buff);
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -548,6 +611,20 @@ main(int argc, char *argv[])
 	int ret = 0;
 	char *pid_file = argv[1];
 	char *cmd = argv[2];
+
+	char buff[BUFF_SIZE];
+	if (snprintf(buff, BUFF_SIZE, "%s.%s.%s.log",
+			pid_file, cmd, APP_NAME) < 0) {
+		perror("snprintf");
+		return -1;
+	}
+
+	log_fh = fopen(buff, "a");
+	if (!log_fh) {
+		perror(buff);
+		return -1;
+	}
+
 	if (strcmp(cmd, "run") == 0) {
 		if (argc < 4)
 			usage();
@@ -555,10 +632,11 @@ main(int argc, char *argv[])
 		char *command = argv[3];
 		char **nargv = alloc_argv((unsigned)argc, argv, 3);
 		if (!nargv) {
-			perror("get_argv");
+			CTRLD_LOG("!get_argv");
 			return 1;
 		}
 
+		log_run(pid_file, command, nargv);
 		ret = do_run(pid_file, command, nargv);
 
 		free(nargv);
@@ -570,6 +648,7 @@ main(int argc, char *argv[])
 		if (argc == 4)
 			timeout = atoi(argv[3]);
 
+		CTRLD_LOG("wait %s %d", pid_file, timeout);
 		ret = do_wait(pid_file, timeout);
 	} else if (strcmp(cmd, "kill") == 0) {
 		if (argc != 4)
@@ -579,12 +658,13 @@ main(int argc, char *argv[])
 		if (signo == 0) {
 			signo = convert_signal_name(argv[3]);
 			if (signo == -1) {
-				fprintf(stderr, "Invalid signal name or number"
+				CTRLD_LOG("Invalid signal name or number"
 						" (%s)\n", argv[3]);
 				return 1;
 			}
 		}
 
+		CTRLD_LOG("kill %s %s", pid_file, argv[3]);
 		ret = do_kill(pid_file, signo);
 	} else if (strcmp(cmd, "wait_port") == 0) {
 		if (argc != 4)
@@ -592,6 +672,7 @@ main(int argc, char *argv[])
 
 		unsigned short port = (unsigned short)atoi(argv[3]);
 
+		CTRLD_LOG("wait_port %s %u", pid_file, port);
 		ret = do_wait_port(pid_file, port);
 	} else {
 		usage();
