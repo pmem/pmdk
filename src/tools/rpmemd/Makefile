@@ -36,7 +36,8 @@ TOP = ../../..
 TARGET = rpmemd
 
 OBJS = rpmemd.o\
-       rpmemd_log.o
+       rpmemd_log.o\
+       rpmemd_db.o
 
 LIBPMEM=y
 TOOLS_COMMON=y
