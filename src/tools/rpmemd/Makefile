@@ -41,7 +41,8 @@ OBJS = rpmemd.o\
        rpmemd_log.o\
        rpmemd_config.o\
        rpmem_common.o\
-       rpmemd_obc.o
+       rpmemd_obc.o\
+       rpmemd_db.o
 
 LIBPMEM=y
 TOOLS_COMMON=y
