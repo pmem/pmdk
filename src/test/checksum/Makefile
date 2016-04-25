@@ -33,14 +33,17 @@
 #
 # src/test/checksum/Makefile -- build checksum unit test
 #
-vpath %.c ../../common
-vpath %.h ../.. ../../include
-vpath %.h ../.. ../../common
+TOP = ../../..
+PLATFORM = $(TOP)/platform/linux
+
+vpath %.c $(TOP)/src/common
+vpath %.c $(PLATFORM)/src/common
+
 TARGET = checksum
-OBJS = checksum.o util.o out.o
+OBJS = checksum.o util.o util_platform.o out.o
 
 out.o: CFLAGS += -DSRCVERSION=\"utversion\"
-util.o: CFLAGS += -DDEBUG
+util.o util_platform.o: CFLAGS += -DDEBUG
 
 include ../Makefile.inc
-INCS += -I../../include -I../../common/
+INCS += -I$(TOP)/src/include -I$(TOP)/src/common/

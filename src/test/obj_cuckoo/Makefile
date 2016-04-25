@@ -33,11 +33,15 @@
 #
 # src/test/obj_cuckoo/Makefile -- build obj_cuckoo unit test
 #
-vpath %.c ../../libpmemobj
-vpath %.c ../../common
+TOP = ../../..
+PLATFORM = $(TOP)/platform/linux
+
+vpath %.c $(TOP)/src/libpmemobj
+vpath %.c $(TOP)/src/common
+vpath %.c $(PLATFORM)/src/common
 
 TARGET = obj_cuckoo
-OBJS = obj_cuckoo.o cuckoo.o util.o out.o
+OBJS = obj_cuckoo.o cuckoo.o util.o util_platform.o out.o
 
 LIBPMEM=y
 
@@ -47,4 +51,4 @@ include ../Makefile.inc
 
 LDFLAGS += $(call extract_funcs, obj_cuckoo.c)
 
-INCS += -I../../libpmemobj/ -I../../common/
+INCS += -I$(TOP)/src/libpmemobj/ -I$(TOP)/src/common/

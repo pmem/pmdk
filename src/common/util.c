@@ -55,32 +55,11 @@
 #include "out.h"
 #include "valgrind_internal.h"
 
-#define	PROCMAXLEN 2048 /* maximum expected line length in /proc files */
-
-#define	MEGABYTE ((uintptr_t)1 << 20)
-#define	GIGABYTE ((uintptr_t)1 << 30)
-
-/*
- * set of macros for determining the alignment descriptor
- */
-#define	DESC_MASK		((1 << ALIGNMENT_DESC_BITS) - 1)
-#define	alignment_of(t)		offsetof(struct { char c; t x; }, x)
-#define	alignment_desc_of(t)	(((uint64_t)alignment_of(t) - 1) & DESC_MASK)
-#define	alignment_desc()\
-(alignment_desc_of(char)	<<  0 * ALIGNMENT_DESC_BITS) |\
-(alignment_desc_of(short)	<<  1 * ALIGNMENT_DESC_BITS) |\
-(alignment_desc_of(int)		<<  2 * ALIGNMENT_DESC_BITS) |\
-(alignment_desc_of(long)	<<  3 * ALIGNMENT_DESC_BITS) |\
-(alignment_desc_of(long long)	<<  4 * ALIGNMENT_DESC_BITS) |\
-(alignment_desc_of(size_t)	<<  5 * ALIGNMENT_DESC_BITS) |\
-(alignment_desc_of(off_t)	<<  6 * ALIGNMENT_DESC_BITS) |\
-(alignment_desc_of(float)	<<  7 * ALIGNMENT_DESC_BITS) |\
-(alignment_desc_of(double)	<<  8 * ALIGNMENT_DESC_BITS) |\
-(alignment_desc_of(long double)	<<  9 * ALIGNMENT_DESC_BITS) |\
-(alignment_desc_of(void *)	<< 10 * ALIGNMENT_DESC_BITS)
-
 /* library-wide page size */
 unsigned long Pagesize;
+
+int Mmap_no_random;
+void *Mmap_hint;
 
 /*
  * our versions of malloc & friends start off pointing to the libc versions
@@ -107,9 +86,6 @@ Zalloc(size_t sz)
 /* initialized to true if the process is running inside Valgrind */
 unsigned _On_valgrind;
 #endif
-
-static int Mmap_no_random;
-static void *Mmap_hint;
 
 /*
  * util_init -- initialize the utils
@@ -167,149 +143,6 @@ util_set_alloc_funcs(void *(*malloc_func)(size_t size),
 }
 
 /*
- * util_map_hint_unused -- use /proc to determine a hint address for mmap()
- *
- * This is a helper function for util_map_hint().
- * It opens up /proc/self/maps and looks for the first unused address
- * in the process address space that is:
- * - greater or equal 'minaddr' argument,
- * - large enough to hold range of given length,
- * - aligned to the specified unit.
- *
- * Asking for aligned address like this will allow the DAX code to use large
- * mappings.  It is not an error if mmap() ignores the hint and chooses
- * different address.
- */
-char *
-util_map_hint_unused(void *minaddr, size_t len, size_t align)
-{
-	LOG(3, "minaddr %p len %zu align %zu", minaddr, len, align);
-
-	ASSERT(align > 0);
-
-	FILE *fp;
-	if ((fp = fopen("/proc/self/maps", "r")) == NULL) {
-		ERR("!/proc/self/maps");
-		return NULL;
-	}
-
-	char line[PROCMAXLEN];	/* for fgets() */
-	char *lo = NULL;	/* beginning of current range in maps file */
-	char *hi = NULL;	/* end of current range in maps file */
-	char *raddr = minaddr;	/* ignore regions below 'minaddr' */
-
-	if (raddr == NULL)
-		raddr += Pagesize;
-
-	raddr = (char *)roundup((uintptr_t)raddr, align);
-
-	while (fgets(line, PROCMAXLEN, fp) != NULL) {
-		/* check for range line */
-		if (sscanf(line, "%p-%p", &lo, &hi) == 2) {
-			LOG(4, "%p-%p", lo, hi);
-			if (lo > raddr) {
-				if ((uintptr_t)(lo - raddr) >= len) {
-					LOG(4, "unused region of size %zu "
-							"found at %p",
-							lo - raddr, raddr);
-					break;
-				} else {
-					LOG(4, "region is too small: %zu < %zu",
-							lo - raddr, len);
-				}
-			}
-
-			if (hi > raddr) {
-				raddr = (char *)roundup((uintptr_t)hi, align);
-				LOG(4, "nearest aligned addr %p", raddr);
-			}
-
-			if (raddr == 0) {
-				LOG(4, "end of address space reached");
-				break;
-			}
-		}
-	}
-
-	/*
-	 * Check for a case when this is the last unused range in the address
-	 * space, but is not large enough. (very unlikely)
-	 */
-	if ((raddr != NULL) && (UINTPTR_MAX - (uintptr_t)raddr < len)) {
-		LOG(4, "end of address space reached");
-		raddr = NULL;
-	}
-
-	fclose(fp);
-
-	LOG(3, "returning %p", raddr);
-	return raddr;
-}
-
-/*
- * util_map_hint -- determine hint address for mmap()
- *
- * If PMEM_MMAP_HINT environment variable is not set, we let the system to pick
- * the randomized mapping address.  Otherwise, a user-defined hint address
- * is used.
- *
- * ALSR in 64-bit Linux kernel uses 28-bit of randomness for mmap
- * (bit positions 12-39), which means the base mapping address is randomized
- * within [0..1024GB] range, with 4KB granularity.  Assuming additional
- * 1GB alignment, it results in 1024 possible locations.
- *
- * Configuring the hint address via PMEM_MMAP_HINT environment variable
- * disables address randomization.  In such case, the function will search for
- * the first unused, properly aligned region of given size, above the specified
- * address.
- */
-char *
-util_map_hint(size_t len, size_t req_align)
-{
-	LOG(3, "len %zu req_align %zu", len, req_align);
-
-	char *addr;
-
-	/*
-	 * Choose the desired alignment based on the requested length.
-	 * Use 2MB/1GB page alignment only if the mapping length is at least
-	 * twice as big as the page size.
-	 */
-	size_t align = Pagesize;
-	if (req_align)
-		align = req_align;
-	else if (len >= 2 * GIGABYTE)
-		align = GIGABYTE;
-	else if (len >= 4 * MEGABYTE)
-		align = 2 * MEGABYTE;
-
-	if (Mmap_no_random) {
-		LOG(4, "user-defined hint %p", (void *)Mmap_hint);
-		addr = util_map_hint_unused((void *)Mmap_hint, len, align);
-	} else {
-		/*
-		 * Create dummy mapping to find an unused region of given size.
-		 * Request for increased size for later address alignment.
-		 * Use MAP_PRIVATE with read-only access to simulate
-		 * zero cost for overcommit accounting.  Note: MAP_NORESERVE
-		 * flag is ignored if overcommit is disabled (mode 2).
-		 */
-		addr = mmap(NULL, len + align, PROT_READ,
-					MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
-		if (addr == MAP_FAILED) {
-			addr = NULL;
-		} else {
-			LOG(4, "system choice %p", addr);
-			munmap(addr, len + align);
-			addr = (char *)roundup((uintptr_t)addr, align);
-		}
-	}
-	LOG(4, "hint %p", addr);
-
-	return addr;
-}
-
-/*
  * util_map -- memory map a file
  *
  * This is just a convenience function that calls mmap() with the
@@ -353,46 +186,6 @@ util_unmap(void *addr, size_t len)
 		ERR("!munmap");
 
 	return retval;
-}
-
-/*
- * util_tmpfile --  (internal) create the temporary file
- */
-int
-util_tmpfile(const char *dir, const char *templ)
-{
-	LOG(3, "dir \"%s\" template \"%s\"", dir, templ);
-
-	int oerrno;
-
-	char *fullname = alloca(strlen(dir) + sizeof (templ));
-	(void) strcpy(fullname, dir);
-	(void) strcat(fullname, templ);
-
-	sigset_t set, oldset;
-	sigfillset(&set);
-	(void) sigprocmask(SIG_BLOCK, &set, &oldset);
-
-	mode_t prev_umask = umask(S_IRWXG | S_IRWXO);
-	int fd = mkstemp(fullname);
-	umask(prev_umask);
-	if (fd < 0) {
-		ERR("!mkstemp");
-		goto err;
-	}
-
-	(void) unlink(fullname);
-	(void) sigprocmask(SIG_SETMASK, &oldset, NULL);
-
-	LOG(3, "unlinked file is \"%s\"", fullname);
-
-	return fd;
-
-err:
-	oerrno = errno;
-	(void) sigprocmask(SIG_SETMASK, &oldset, NULL);
-	errno = oerrno;
-	return -1;
 }
 
 /*
@@ -520,51 +313,6 @@ util_convert_hdr(struct pool_hdr *hdrp)
 
 	LOG(3, "valid header, signature \"%.8s\"", hdrp->signature);
 	return 1;
-}
-
-/*
- * util_get_arch_flags -- get architecture identification flags
- */
-int
-util_get_arch_flags(struct arch_flags *arch_flags)
-{
-	char *path = "/proc/self/exe";
-	int fd;
-	ElfW(Ehdr) elf;
-	int ret = 0;
-
-	memset(arch_flags, 0, sizeof (*arch_flags));
-
-	if ((fd = open(path, O_RDONLY)) < 0) {
-		ERR("!open %s", path);
-		ret = -1;
-		goto out;
-	}
-
-	if (read(fd, &elf, sizeof (elf)) != sizeof (elf)) {
-		ERR("!read %s", path);
-		ret = -1;
-		goto out_close;
-	}
-
-	if (elf.e_ident[EI_MAG0] != ELFMAG0 ||
-	    elf.e_ident[EI_MAG1] != ELFMAG1 ||
-	    elf.e_ident[EI_MAG2] != ELFMAG2 ||
-	    elf.e_ident[EI_MAG3] != ELFMAG3) {
-		ERR("invalid ELF magic");
-		ret = -1;
-		goto out_close;
-	}
-
-	arch_flags->e_machine = elf.e_machine;
-	arch_flags->ei_class = elf.e_ident[EI_CLASS];
-	arch_flags->ei_data = elf.e_ident[EI_DATA];
-	arch_flags->alignment_desc = alignment_desc();
-
-out_close:
-	close(fd);
-out:
-	return ret;
 }
 
 /*

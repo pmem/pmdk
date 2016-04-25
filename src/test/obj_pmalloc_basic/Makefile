@@ -33,12 +33,16 @@
 #
 # src/test/obj_pmalloc_basic/Makefile -- build obj_pmalloc_basic unit test
 #
-vpath %.c ../../libpmemobj
-vpath %.c ../../common
+TOP = ../../..
+PLATFORM = $(TOP)/platform/linux
+
+vpath %.c $(TOP)/src/libpmemobj
+vpath %.c $(TOP)/src/common
+vpath %.c $(PLATFORM)/src/common
 
 TARGET = obj_pmalloc_basic
 OBJS = obj_pmalloc_basic.o pmalloc.o bucket.o redo.o heap.o lane.o ctree.o\
-    util.o set.o out.o obj.o cuckoo.o list.o sync.o memops.o tx.o
+    util.o util_platform.o set.o out.o obj.o cuckoo.o list.o sync.o memops.o tx.o
 
 LIBPMEM=y
 
@@ -46,4 +50,4 @@ out.o: CFLAGS += -DSRCVERSION=\"utversion\"
 
 include ../Makefile.inc
 
-INCS += -I../../libpmemobj/ -I../../common/
+INCS += -I$(TOP)/src/libpmemobj/ -I$(TOP)/src/common/

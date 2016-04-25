@@ -38,12 +38,13 @@
 #
 
 TOP := $(dir $(lastword $(MAKEFILE_LIST)))../..
+PLATFORM = $(TOP)/platform/linux
 
 include $(TOP)/src/common.inc
 
-LIBS_DIR=../..
+LIBS_DIR=$(TOP)/src
 
-EXAMPLES_DIR=../../examples
+EXAMPLES_DIR=$(TOP)/src/examples
 EX_LIBPMEM=$(EXAMPLES_DIR)/libpmem
 EX_LIBPMEMBLK=$(EXAMPLES_DIR)/libpmemblk
 EX_LIBPMEMLOG=$(EXAMPLES_DIR)/libpmemlog
@@ -114,7 +115,7 @@ extract_funcs = $(shell \
     grep -Po '($(WRAPPER_FUNCS))\$(PAREN)\K[^,]*' $(1) | \
     awk '{print "-Wl,--wrap="$$0}')
 
-INCS = -I../unittest -I../../include
+INCS = -I../unittest -I$(TOP)/src/include
 
 COMMON_FLAGS  = -ggdb
 COMMON_FLAGS += -Wall

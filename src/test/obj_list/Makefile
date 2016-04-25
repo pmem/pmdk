@@ -33,17 +33,21 @@
 #
 # src/test/obj_list/Makefile -- build obj_list test
 #
-vpath %.c ../../libpmemobj
-vpath %.c ../../common
+TOP = ../../..
+PLATFORM = $(TOP)/platform/linux
+
+vpath %.c $(TOP)/src/libpmemobj
+vpath %.c $(TOP)/src/common
+vpath %.c $(PLATFORM)/src/common
 
 TARGET = obj_list
-OBJS = obj_list.o list.o redo.o util.o out.o cuckoo.o lane.o sync.o
+OBJS = obj_list.o list.o redo.o util.o util_platform.o out.o cuckoo.o lane.o sync.o
 
 LIBPMEM=y
 
 include ../Makefile.inc
 CFLAGS += -g -DDEBUG
 LDFLAGS += $(call extract_funcs, obj_list.c)
-INCS += -I../../libpmemobj/ -I../../common/
+INCS += -I$(TOP)/src/libpmemobj/ -I$(TOP)/src/common/
 
 out.o: CFLAGS += -DDEBUG -DSRCVERSION=\"utversion\"

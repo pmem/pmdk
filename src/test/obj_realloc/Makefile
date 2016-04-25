@@ -33,10 +33,14 @@
 #
 # src/test/obj_realloc/Makefile -- build obj_realloc unit test
 #
-vpath %.c ../../common
+TOP = ../../..
+PLATFORM = $(TOP)/platform/linux
+
+vpath %.c $(TOP)/src/common
+vpath %.c $(PLATFORM)/src/common
 
 TARGET = obj_realloc
-OBJS = obj_realloc.o util.o out.o
+OBJS = obj_realloc.o util.o util_platform.o out.o
 
 LIBPMEM=y
 LIBPMEMOBJ=y
@@ -45,5 +49,5 @@ out.o: CFLAGS += -DSRCVERSION=\"utversion\"
 
 include ../Makefile.inc
 
-CFLAGS += -I../../libpmemobj
-CFLAGS += -I../../common
+CFLAGS += -I$(TOP)/src/libpmemobj
+CFLAGS += -I$(TOP)/src/common

@@ -33,21 +33,20 @@
 #
 # src/test/util_poolset_parse/Makefile -- build util_poolset_parse unit test
 #
-vpath %.c ../../common
-vpath %.h ../../common
+TOP = ../../..
+PLATFORM = $(TOP)/platform/linux
+
+vpath %.c $(TOP)/src/common
+vpath %.c $(PLATFORM)/src/common
+
 TARGET = util_poolset_parse
-OBJS = util_poolset_parse.o util.o set.o out.o
+OBJS = util_poolset_parse.o util.o util_platform.o set.o out.o
 
 out.o: CFLAGS += -DDEBUG -DSRCVERSION=\"utversion\"
-util.o: CFLAGS += -DDEBUG
+util.o util_platform.o: CFLAGS += -DDEBUG
 set.o: CFLAGS += -DDEBUG
 
 LIBPMEM=y
 
 include ../Makefile.inc
-INCS += -I../../common
-
-util_poolset_parse.o: util_poolset_parse.c util.h
-util.o: util.c util.h
-set.o: set.c util.h
-out.o: out.c out.h
+INCS += -I$(TOP)/src/common
