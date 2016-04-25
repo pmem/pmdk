@@ -34,15 +34,18 @@
 # src/benchmarks/Makefile -- build all benchmarks
 #
 TOP := $(dir $(lastword $(MAKEFILE_LIST)))../..
+PLATFORM = $(TOP)/platform/linux
+
 include $(TOP)/src/common.inc
 
-vpath %.c ../examples/libpmemobj/tree_map
-vpath %.c ../examples/libpmemobj/map
-vpath %.c ../examples/libpmemobj/hashmap
+vpath %.c $(TOP)/src/examples/libpmemobj/tree_map
+vpath %.c $(TOP)/src/examples/libpmemobj/map
+vpath %.c $(TOP)/src/examples/libpmemobj/hashmap
 
+vpath %.c $(TOP)/src/libpmemobj
+vpath %.c $(TOP)/src/common
 
-vpath %.c ../libpmemobj
-vpath %.c ../common
+vpath %.c $(PLATFORM)/src/common
 
 BENCHMARK = pmembench
 
@@ -60,6 +63,7 @@ SRC=pmembench.c\
     benchmark_time.c\
     benchmark_worker.c\
     util.c\
+    util_platform.c\
     out.c\
     set.c\
     clo.c\

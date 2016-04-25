@@ -33,13 +33,18 @@
 #
 # src/test/obj_persist_count/Makefile -- build obj_persist_count unit test
 #
-vpath %.c ../../libpmemobj
-vpath %.c ../../common
+TOP = ../../..
+PLATFORM = $(TOP)/platform/linux
+
+vpath %.c $(TOP)/src/libpmemobj
+vpath %.c $(TOP)/src/common
+vpath %.c $(PLATFORM)/src/common
 
 TARGET = obj_persist_count
 
 OBJS = obj_persist_count.o pmalloc.o bucket.o redo.o heap.o lane.o ctree.o\
-    util.o set.o out.o obj.o cuckoo.o list.o sync.o tx.o memops.o libpmemobj.o
+    util.o util_platform.o set.o out.o obj.o cuckoo.o list.o sync.o tx.o memops.o\
+    libpmemobj.o
 
 LIBPMEM=y
 LIBPMEMOBJ=y
@@ -49,4 +54,4 @@ out.o: CFLAGS += -DSRCVERSION=\"utversion\"
 include ../Makefile.inc
 
 LDFLAGS += $(call extract_funcs, obj_persist_count.c)
-INCS += -I../../libpmemobj/ -I../../common/
+INCS += -I$(TOP)/src/libpmemobj/ -I$(TOP)/src/common/
