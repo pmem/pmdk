@@ -101,14 +101,12 @@ test_make_one_d(pool_base &pop)
 		pfoo[i].check_foo();
 
 	delete_persistent_atomic<foo[]>(pfoo, 5);
-	UT_ASSERT(pfoo == nullptr);
 
 	make_persistent_atomic<foo[]>(pop, pfoo, 6);
 	for (int i = 0; i < 6; ++i)
 		pfoo[i].check_foo();
 
 	delete_persistent_atomic<foo[]>(pfoo, 6);
-	UT_ASSERT(pfoo == nullptr);
 
 	persistent_ptr<foo[5]> pfooN;
 	make_persistent_atomic<foo[5]>(pop, pfooN);
@@ -116,7 +114,6 @@ test_make_one_d(pool_base &pop)
 		pfooN[i].check_foo();
 
 	delete_persistent_atomic<foo[5]>(pfooN);
-	UT_ASSERT(pfooN == nullptr);
 }
 
 /*
@@ -132,7 +129,6 @@ test_make_two_d(pool_base &pop)
 			pfoo[i][j].check_foo();
 
 	delete_persistent_atomic<foo[][2]>(pfoo, 5);
-	UT_ASSERT(pfoo == nullptr);
 
 	persistent_ptr<foo[][3]> pfoo2;
 	make_persistent_atomic<foo[][3]>(pop, pfoo2, 6);
@@ -141,7 +137,6 @@ test_make_two_d(pool_base &pop)
 			pfoo2[i][j].check_foo();
 
 	delete_persistent_atomic<foo[][3]>(pfoo2, 6);
-	UT_ASSERT(pfoo2 == nullptr);
 
 	persistent_ptr<foo[5][2]> pfooN;
 	make_persistent_atomic<foo[5][2]>(pop, pfooN);
@@ -150,7 +145,6 @@ test_make_two_d(pool_base &pop)
 			pfooN[i][j].check_foo();
 
 	delete_persistent_atomic<foo[5][2]>(pfooN);
-	UT_ASSERT(pfooN == nullptr);
 }
 
 /*

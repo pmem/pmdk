@@ -98,21 +98,18 @@ test_make_one_d(pool_base &pop)
 				pfoo[i].check_foo();
 
 			delete_persistent<foo[]>(pfoo, 5);
-			UT_ASSERT(pfoo == nullptr);
 
 			auto pfoo2 = make_persistent<foo[]>(6);
 			for (int i = 0; i < 6; ++i)
 				pfoo2[i].check_foo();
 
 			delete_persistent<foo[]>(pfoo2, 6);
-			UT_ASSERT(pfoo2 == nullptr);
 
 			auto pfooN = make_persistent<foo[5]>();
 			for (int i = 0; i < 5; ++i)
 				pfooN[i].check_foo();
 
 			delete_persistent<foo[5]>(pfooN);
-			UT_ASSERT(pfooN == nullptr);
 		});
 	} catch (...) {
 		UT_ASSERT(0);
@@ -133,7 +130,6 @@ test_make_two_d(pool_base &pop)
 					pfoo[i][j].check_foo();
 
 			delete_persistent<foo[][2]>(pfoo, 5);
-			UT_ASSERT(pfoo == nullptr);
 
 			auto pfoo2 = make_persistent<foo[][3]>(6);
 			for (int i = 0; i < 6; ++i)
@@ -141,7 +137,6 @@ test_make_two_d(pool_base &pop)
 					pfoo2[i][j].check_foo();
 
 			delete_persistent<foo[][3]>(pfoo2, 6);
-			UT_ASSERT(pfoo2 == nullptr);
 
 			auto pfooN = make_persistent<foo[5][2]>();
 			for (int i = 0; i < 5; ++i)
@@ -149,7 +144,6 @@ test_make_two_d(pool_base &pop)
 					pfooN[i][j].check_foo();
 
 			delete_persistent<foo[5][2]>(pfooN);
-			UT_ASSERT(pfooN == nullptr);
 		});
 	} catch (...) {
 		UT_ASSERT(0);
@@ -180,7 +174,7 @@ test_abort_revert(pool_base &pop)
 		transaction::exec_tx(pop, [&] {
 			UT_ASSERT(r->pfoo != nullptr);
 			delete_persistent<foo[]>(r->pfoo, 5);
-			UT_ASSERT(r->pfoo == nullptr);
+			r->pfoo = nullptr;
 
 			transaction::abort(EINVAL);
 		});
@@ -197,7 +191,9 @@ test_abort_revert(pool_base &pop)
 
 	try {
 		transaction::exec_tx(
-			pop, [&] { delete_persistent<foo[]>(r->pfoo, 5); });
+			pop, [&] { delete_persistent<foo[]>(r->pfoo, 5);
+			r->pfoo = nullptr;
+		});
 	} catch (...) {
 		UT_ASSERT(0);
 	}

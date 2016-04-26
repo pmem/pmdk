@@ -150,6 +150,7 @@ test_ptr_atomic(pool<root> &pop)
 
 	try {
 		delete_persistent_atomic<foo>(pfoo);
+		pfoo = nullptr;
 	} catch (...) {
 		UT_ASSERT(0);
 	}
@@ -209,6 +210,7 @@ test_ptr_transactional(pool<root> &pop)
 	try {
 		transaction::exec_tx(pop,
 				     [&] { delete_persistent<foo>(r->pfoo); });
+		r->pfoo = nullptr;
 	} catch (...) {
 		UT_ASSERT(0);
 	}

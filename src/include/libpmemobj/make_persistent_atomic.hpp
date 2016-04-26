@@ -91,8 +91,7 @@ make_persistent_atomic(pool_base &pool,
  */
 template <typename T>
 void
-delete_persistent_atomic(
-	typename detail::pp_if_not_array<T>::type &ptr) noexcept
+delete_persistent_atomic(typename detail::pp_if_not_array<T>::type &ptr) noexcept
 {
 	/* we CAN'T call the destructor */
 	pmemobj_free(ptr.raw_ptr());
