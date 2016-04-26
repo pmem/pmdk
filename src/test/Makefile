@@ -130,7 +130,9 @@ CHRONO_TESTS = \
 	obj_cpp_mutex\
 	obj_cpp_shared_mutex\
 	obj_cpp_cond_var\
-	obj_cpp_cond_var_posix
+	obj_cpp_cond_var_posix\
+	obj_cpp_timed_mtx\
+	obj_cpp_timed_mtx_posix
 
 OTHER_TESTS = \
        arch_flags\
