@@ -279,8 +279,8 @@ main(int argc, char *argv[])
 	}
 
 	/* open file */
-	if ((fd = open(opts.fpath, O_RDWR|O_CREAT|
-			O_EXCL, S_IRUSR|S_IWUSR)) < 0) {
+	if ((fd = open(opts.fpath, O_RDWR|O_CREAT,
+			S_IRUSR|S_IWUSR)) < 0) {
 		perror(opts.fpath);
 		return -1;
 	}
