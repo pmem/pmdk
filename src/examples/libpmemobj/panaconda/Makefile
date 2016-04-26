@@ -31,44 +31,27 @@
 #
 
 #
-# examples/libpmemobj/panaconda/Makefile -- build pman
+# examples/libpmemobj/panaconda/Makefile -- build panaconda
 #
+TOP := $(dir $(lastword $(MAKEFILE_LIST)))../../../../
+include $(TOP)/src/common.inc
+
+NCURSES := $(call check_package, ncurses)
+ifeq ($(NCURSES),y)
 PROGS = panaconda
-INCDIR ?= ../../../include
-LIBDIR ?= ../../../debug
-		
+else
+$(info NOTE: Skipping pman because ncurses is missing \
+-- see src/examples/libpmemobj/panaconda/README for details.)
+endif
 
-CXX = c++
-INCS = -I$(INCDIR)
-LIBS = -Wl,-rpath=$(LIBDIR) -L$(LIBDIR) -lpmemobj -pthread -lstdc++ -lncurses
-CFLAGS = -std=c++11 -ggdb# -Wall -Werror
-CSTYLE = ../../../../utils/cstyle
+LIBS = -lpmemobj -lpmem -pthread
 
-all:     TARGET = all
-clean:   TARGET = clean
-clobber: TARGET = clobber
-cstyle:  TARGET = cstyle
+ifeq ($(NCURSES),y)
+LIBS += $(shell $(PKG_CONFIG) --libs ncurses)
+endif
 
-all: $(PROGS)
-
-clean: $(DIRS)
-	$(RM) *.o core a.out
-
-clobber: clean $(DIRS)
-	$(RM) $(PROGS)
-
-cstyle: $(DIRS)
-	$(CSTYLE) -pP *.[ch]
-
-.cpp.o:
-	$(CXX) -c -o $@ $(CFLAGS) $(INCS) $<
-
-$(PROGS):
-	$(CXX) -o $@ $< $(LIBS)
+COMPILE_LANG = cpp
+include ../../Makefile.inc
+INCS += -I../
 
 panaconda: panaconda.o
-
-$(DIRS):
-	$(MAKE) -C $@ $(TARGET)
-
-.PHONY: all clean clobber cstyle $(DIRS)
