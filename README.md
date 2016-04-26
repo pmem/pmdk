@@ -120,11 +120,21 @@ To build rpm packages on rpm-based distributions:
 ```
 	$ make rpm
 ```
+
+If you want to build packages without running tests, run:
+```
+	$ make BUILD_PACKAGE_CHECK=n rpm
+```
 **DEPENDENCIES:** rpmbuild
 
 To build dpkg packages on Debian-based distributions:
 ```
 	$ make dpkg
+```
+
+If you want to build packages without running tests, run:
+```
+	$ make BUILD_PACKAGE_CHECK=n dpkg
 ```
 **DEPENDENCIES:** devscripts
 
@@ -173,6 +183,13 @@ For Valgrind memcheck support, supply **USE_VG_MEMCHECK** flag.
 To test the libraries with AddressSanitizer and UndefinedBehaviorSanitizer, run:
 ```
 	$ make EXTRA_CFLAGS="-fsanitize=address,undefined" EXTRA_LDFLAGS="-fsanitize=address,undefined" clobber all test check
+```
+
+### Experimental Packages ###
+
+If you want to build/install experimental packages run:
+```
+	$ make EXPERIMENTAL=y [install,rpm,dpkg]
 ```
 
 ### Contacts ###

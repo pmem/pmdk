@@ -133,3 +133,18 @@ Requires:
 Libs: -L\${libdir} -lvmmalloc
 Cflags: -I\${includedir}
 EOF
+
+cat << EOF > libpmemobj++.pc
+prefix=${prefix}
+libdir=${libdir}
+version=${version}
+includedir=\${prefix}/include/libpmemobj
+
+Name: libpmemobj++
+Description: C++ bindings for the libpmemobj library from NVML project
+Version: \${version}
+URL: http://pmem.io/nvml
+Requires.private:
+Libs: -L\${libdir} -lpmemobj
+Cflags: -I\${includedir}
+EOF
