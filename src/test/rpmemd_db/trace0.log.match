@@ -1,0 +1,3 @@
+{rpmemd_db_test.c:$(N) main} rpmemd_db/TEST0: START: rpmemd_db
+ ./rpmemd_db$(nW) $(nW) test0-pool0.set rpmemd0.log
+{rpmemd_db_test.c:$(N) main} rpmemd_db/TEST0: Done
