@@ -33,16 +33,20 @@
 #
 # src/test/util_uuid_generate/Makefile -- create a uuid and verify it
 #
-vpath %.c ../../common
-vpath %.h ../../common
+TOP = ../../..
+PLATFORM = $(TOP)/platform/linux
+
+vpath %.c $(TOP)/src/common
+vpath %.c $(PLATFORM)/src/common
+
 TARGET = util_uuid_generate
-OBJS = util_uuid_generate.o util.o set.o out.o
+OBJS = util_uuid_generate.o util.o util_platform.o set.o out.o
 
 out.o: CFLAGS += -DDEBUG -DSRCVERSION=\"utversion\"
-util.o: CFLAGS += -DDEBUG
+util.o util_platform.o: CFLAGS += -DDEBUG
 set.o: CFLAGS += -DDEBUG
 
 LIBPMEM=y
 include ../Makefile.inc
 
-INCS += -I../../common
+INCS += -I$(TOP)/src/common

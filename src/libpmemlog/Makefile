@@ -35,7 +35,8 @@
 LIBRARY_NAME = pmemlog
 LIBRARY_SO_VERSION = 1
 LIBRARY_VERSION = 0.0
-SOURCE = libpmemlog.c log.c $(COMMON)/util.c $(COMMON)/set.c $(COMMON)/out.c
+SOURCE = libpmemlog.c log.c $(COMMON)/util.c $(COMMON)/util_platform.c\
+	$(COMMON)/set.c $(COMMON)/out.c
 
 include ../Makefile.inc
 

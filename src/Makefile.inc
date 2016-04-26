@@ -32,12 +32,15 @@
 #
 
 TOP := $(dir $(lastword $(MAKEFILE_LIST)))..
+PLATFORM = ../../platform/linux
+
 include $(TOP)/src/common.inc
 
-INCLUDE = ../include
+INCLUDE = $(TOP)/src/include
 
-COMMON = ../common
+COMMON = $(TOP)/src/common
 vpath %.c $(COMMON)
+vpath %.c $(PLATFORM)/src/common
 
 INCS += -I../include -I../common/
 

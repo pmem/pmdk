@@ -36,6 +36,8 @@
 
 extern unsigned long Pagesize;
 
+extern int Mmap_no_random;
+extern void *Mmap_hint;
 
 /*
  * overridable names for malloc & friends used by this library
@@ -281,3 +283,23 @@ static inline void util_setbit(uint8_t *b, uint32_t i)
 #define	unlikely(x) (!!(x))
 #endif
 #endif
+
+
+/*
+ * set of macros for determining the alignment descriptor
+ */
+#define	DESC_MASK		((1 << ALIGNMENT_DESC_BITS) - 1)
+#define	alignment_of(t)		offsetof(struct { char c; t x; }, x)
+#define	alignment_desc_of(t)	(((uint64_t)alignment_of(t) - 1) & DESC_MASK)
+#define	alignment_desc()\
+(alignment_desc_of(char)	<<  0 * ALIGNMENT_DESC_BITS) |\
+(alignment_desc_of(short)	<<  1 * ALIGNMENT_DESC_BITS) |\
+(alignment_desc_of(int)		<<  2 * ALIGNMENT_DESC_BITS) |\
+(alignment_desc_of(long)	<<  3 * ALIGNMENT_DESC_BITS) |\
+(alignment_desc_of(long long)	<<  4 * ALIGNMENT_DESC_BITS) |\
+(alignment_desc_of(size_t)	<<  5 * ALIGNMENT_DESC_BITS) |\
+(alignment_desc_of(off_t)	<<  6 * ALIGNMENT_DESC_BITS) |\
+(alignment_desc_of(float)	<<  7 * ALIGNMENT_DESC_BITS) |\
+(alignment_desc_of(double)	<<  8 * ALIGNMENT_DESC_BITS) |\
+(alignment_desc_of(long double)	<<  9 * ALIGNMENT_DESC_BITS) |\
+(alignment_desc_of(void *)	<< 10 * ALIGNMENT_DESC_BITS)

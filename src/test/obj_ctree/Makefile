@@ -33,11 +33,15 @@
 #
 # src/test/obj_ctree/Makefile -- build crit-bit tree unit test
 #
-vpath %.c ../../libpmemobj
-vpath %.c ../../common
+TOP = ../../..
+PLATFORM = $(TOP)/platform/linux
+
+vpath %.c $(TOP)/src/libpmemobj
+vpath %.c $(TOP)/src/common
+vpath %.c $(PLATFORM)/src/common
 
 TARGET = obj_ctree
-OBJS = obj_ctree.o ctree.o util.o out.o
+OBJS = obj_ctree.o ctree.o util.o util_platform.o out.o
 
 LIBPMEM=y
 
@@ -46,4 +50,4 @@ out.o: CFLAGS += -DSRCVERSION=\"utversion\"
 include ../Makefile.inc
 
 LDFLAGS += $(call extract_funcs, obj_ctree.c)
-INCS += -I../../libpmemobj/ -I../../common/
+INCS += -I$(TOP)/src/libpmemobj/ -I$(TOP)/src/common/

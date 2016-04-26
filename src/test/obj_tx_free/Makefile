@@ -33,11 +33,15 @@
 #
 # src/test/obj_tx_free/Makefile -- build obj_tx_free unit test
 #
-vpath %.c ../../libpmemobj
-vpath %.c ../../common
+TOP = ../../..
+PLATFORM = $(TOP)/platform/linux
+
+vpath %.c $(TOP)/src/libpmemobj
+vpath %.c $(TOP)/src/common
+vpath %.c $(PLATFORM)/src/common
 
 TARGET = obj_tx_free
-OBJS = obj_tx_free.o util.o out.o
+OBJS = obj_tx_free.o util.o util_platform.o out.o
 
 LIBPMEM=y
 LIBPMEMOBJ=y
@@ -46,4 +50,4 @@ out.o: CFLAGS += -DSRCVERSION=\"utversion\"
 
 include ../Makefile.inc
 
-INCS += -I../../libpmemobj/ -I../../common/
+INCS += -I$(TOP)/src/libpmemobj/ -I$(TOP)/src/common/

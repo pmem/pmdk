@@ -34,17 +34,20 @@
 # src/test/util_poolset_foreach/Makefile -- build util_poolset_foreach test
 #
 #
-vpath %.c ../../common
-vpath %.h ../../common
+TOP = ../../..
+PLATFORM = $(TOP)/platform/linux
+
+vpath %.c $(TOP)/src/common
+vpath %.c $(PLATFORM)/src/common
 
 TARGET = util_poolset_foreach
-OBJS = util_poolset_foreach.o util.o set.o out.o
+OBJS = util_poolset_foreach.o util.o util_platform.o set.o out.o
 
 out.o: CFLAGS += -DDEBUG -DSRCVERSION=\"utversion\"
-util.o: CFLAGS += -DDEBUG
+util.o util_platform.o: CFLAGS += -DDEBUG
 set.o: CFLAGS += -DDEBUG
 
 LIBPMEM=y
 
 include ../Makefile.inc
-INCS += -I../../common
+INCS += -I$(TOP)/src/common
