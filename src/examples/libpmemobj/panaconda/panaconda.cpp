@@ -35,36 +35,40 @@
  */
 #include <cstdlib>
 #include <ctime>
+#include <getopt.h>
 #include <iostream>
-#include <fstream>
-#include <sstream>
 #include <ncurses.h>
+#include <stdio.h>
+#include <stdlib.h>
+
 #include "panaconda.hpp"
 
-#define	LAYOUT_NAME		"pAnaconda"
-#define	DEFAULT_DELAY	120000
+#define LAYOUT_NAME "pAnaconda"
+#define DEFAULT_DELAY 120000
 
-#define	SNAKE_START_POS_X	5
-#define	SNAKE_START_POS_Y	5
-#define	SNAKE_START_DIR		(Direction::RIGHT)
-#define	SNAKE_STAR_SEG_NO	5
+#define SNAKE_START_POS_X 5
+#define SNAKE_START_POS_Y 5
+#define SNAKE_START_DIR (Direction::RIGHT)
+#define SNAKE_STAR_SEG_NO 5
 
-#define	BOARD_STATIC_SIZE_ROW	40
-#define	BOARD_STATIC_SIZE_COL	30
+#define BOARD_STATIC_SIZE_ROW 40
+#define BOARD_STATIC_SIZE_COL 30
 
-#define	PLAYER_POINTS_PER_HIT	10
+#define PLAYER_POINTS_PER_HIT 10
 
+using namespace nvml;
 using namespace nvml::obj;
+using namespace examples;
 using namespace std;
-
 
 //###################################################################//
 //				Helper
 //###################################################################//
-struct ColorPair Helper::getColor(const int aShape)
+struct ColorPair
+Helper::getColor(const int aShape)
 {
 	struct ColorPair res;
-	switch(aShape) {
+	switch (aShape) {
 		case SNAKE_SEGMENT:
 			res = ColorPair(COLOR_WHITE, COLOR_BLACK);
 			break;
@@ -81,6 +85,32 @@ struct ColorPair Helper::getColor(const int aShape)
 	return res;
 }
 
+int
+Helper::parseParams(int argc, char *argv[], struct Params *params)
+{
+	int opt;
+	string app = argv[0];
+	while ((opt = getopt(argc, argv, "m:")) != -1) {
+		switch (opt) {
+			case 'm':
+				params->use_maze = true;
+				params->maze_path = optarg;
+				break;
+			default:
+				Helper::print_usage(app);
+				return -1;
+		}
+	}
+
+	if (optind < argc) {
+		params->name = argv[optind];
+	} else {
+		Helper::print_usage(app);
+		return -1;
+	}
+	return 0;
+}
+
 //###################################################################//
 //				Shape
 //###################################################################//
@@ -90,10 +120,11 @@ Shape::Shape(int aShape)
 	mVal = COLOR_PAIR(aShape) | nCurvesSymbol;
 }
 
-int Shape::getSymbol(int aShape)
+int
+Shape::getSymbol(int aShape)
 {
 	int symbol = 0;
-	switch(aShape) {
+	switch (aShape) {
 		case SNAKE_SEGMENT:
 			symbol = ACS_DIAMOND;
 			break;
@@ -111,16 +142,16 @@ int Shape::getSymbol(int aShape)
 	return symbol;
 }
 
-
 //###################################################################//
 //				Element
 //###################################################################//
-persistent_ptr<Point> Element::calcNewPosition(const Direction aDir)
+persistent_ptr<Point>
+Element::calcNewPosition(const Direction aDir)
 {
-	persistent_ptr<Point> point = make_persistent<Point>
-		(mPoint->mX, mPoint->mY);
+	persistent_ptr<Point> point =
+		make_persistent<Point>(mPoint->mX, mPoint->mY);
 
-	switch(aDir) {
+	switch (aDir) {
 		case Direction::DOWN:
 			point->mY = point->mY + 1;
 			break;
@@ -140,31 +171,34 @@ persistent_ptr<Point> Element::calcNewPosition(const Direction aDir)
 	return point;
 }
 
-void Element::setPosition(const persistent_ptr<Point> aNewPoint)
+void
+Element::setPosition(const persistent_ptr<Point> aNewPoint)
 {
 	persistent_ptr<Point> tempPoint = mPoint;
 	mPoint = aNewPoint;
 	delete_persistent<Point>(tempPoint);
 }
 
-persistent_ptr<Point> Element::getPosition(void)
+persistent_ptr<Point>
+Element::getPosition(void)
 {
 	return mPoint;
 }
 
-
-
-void Element::print(void)
+void
+Element::print(void)
 {
 	mvaddch(mPoint->mY, mPoint->mX, mShape->getVal());
 }
 
-void Element::printDoubleCol(void)
+void
+Element::printDoubleCol(void)
 {
 	mvaddch(mPoint->mY, (2 * mPoint->mX), mShape->getVal());
 }
 
-void Element::printSingleDoubleCol(void)
+void
+Element::printSingleDoubleCol(void)
 {
 	mvaddch(mPoint->mY, (2 * mPoint->mX), mShape->getVal());
 	mvaddch(mPoint->mY, (2 * mPoint->mX - 1), mShape->getVal());
@@ -175,12 +209,13 @@ void Element::printSingleDoubleCol(void)
 //###################################################################//
 Snake::Snake()
 {
-	persistent_ptr<Shape> shape = make_persistent<Shape>(SNAKE_SEGMENT);
-	persistent_ptr<Element> element;
-
-	for (unsigned i = 0; i <SNAKE_STAR_SEG_NO; ++i) {
-		element = make_persistent<Element>(SNAKE_START_POS_X-i,
-				SNAKE_START_POS_Y, shape , SNAKE_START_DIR);
+	mSnakeSegments = make_persistent<list<Element>>();
+	for (unsigned i = 0; i < SNAKE_STAR_SEG_NO; ++i) {
+		persistent_ptr<Shape> shape =
+			make_persistent<Shape>(SNAKE_SEGMENT);
+		persistent_ptr<Element> element = make_persistent<Element>(
+			SNAKE_START_POS_X - i, SNAKE_START_POS_Y, shape,
+			SNAKE_START_DIR);
 		mSnakeSegments->push_back(element);
 	}
 
@@ -188,38 +223,41 @@ Snake::Snake()
 	mLastSegDir = Direction::RIGHT;
 }
 
-
 Snake::~Snake()
 {
 	mSnakeSegments->clear();
+	delete_persistent<list<Element>>(mSnakeSegments);
 }
 
-
-void Snake::move(const Direction aDir)
+void
+Snake::move(const Direction aDir)
 {
 	int snakeSize = mSnakeSegments->size();
 	persistent_ptr<Point> newPositionPoint;
 
-	mLastSegPosition = *(mSnakeSegments->get(snakeSize - 1)
-			->getPosition().get());
+	mLastSegPosition =
+		*(mSnakeSegments->get(snakeSize - 1)->getPosition().get());
 	mLastSegDir = mSnakeSegments->get(snakeSize - 1)->getDirection();
 
 	for (int i = (snakeSize - 1); i >= 0; --i) {
 		if (i == 0) {
-			newPositionPoint = mSnakeSegments->get(i)->calcNewPosition(aDir);
+			newPositionPoint =
+				mSnakeSegments->get(i)->calcNewPosition(aDir);
 			mSnakeSegments->get(i)->setDirection(aDir);
 		} else {
-			newPositionPoint = mSnakeSegments->get(i)->calcNewPosition
-				(mSnakeSegments->get(i-1)->getDirection());
-			mSnakeSegments->get(i)->setDirection(mSnakeSegments
-				->get(i - 1)->getDirection());
+			newPositionPoint =
+				mSnakeSegments->get(i)->calcNewPosition(
+					mSnakeSegments->get(i - 1)
+						->getDirection());
+			mSnakeSegments->get(i)->setDirection(
+				mSnakeSegments->get(i - 1)->getDirection());
 		}
 		mSnakeSegments->get(i)->setPosition(newPositionPoint);
 	}
 }
 
-
-void Snake::print(void)
+void
+Snake::print(void)
 {
 	int i = 0;
 	persistent_ptr<Element> segp;
@@ -228,16 +266,17 @@ void Snake::print(void)
 		segp->printDoubleCol();
 }
 
-
-void Snake::addSegment(void)
+void
+Snake::addSegment(void)
 {
 	persistent_ptr<Shape> shape = make_persistent<Shape>(SNAKE_SEGMENT);
-	persistent_ptr<Element> segp
-		= make_persistent<Element>(mLastSegPosition, shape , mLastSegDir);
+	persistent_ptr<Element> segp =
+		make_persistent<Element>(mLastSegPosition, shape, mLastSegDir);
 	mSnakeSegments->push_back(segp);
 }
 
-bool Snake::checkPointAgainstSegments(Point aPoint)
+bool
+Snake::checkPointAgainstSegments(Point aPoint)
 {
 	int i = 0;
 	bool result = false;
@@ -252,18 +291,20 @@ bool Snake::checkPointAgainstSegments(Point aPoint)
 	return result;
 }
 
-Point Snake::getHeadPoint(void)
+Point
+Snake::getHeadPoint(void)
 {
 	return *(mSnakeSegments->get(0)->getPosition().get());
 }
 
-
-Direction Snake::getDirection(void)
+Direction
+Snake::getDirection(void)
 {
 	return mSnakeSegments->get(0)->getDirection();
 }
 
-Point Snake::getNextPoint(const Direction aDir)
+Point
+Snake::getNextPoint(const Direction aDir)
 {
 	return *(mSnakeSegments->get(0)->calcNewPosition(aDir).get());
 }
@@ -275,8 +316,8 @@ Point Snake::getNextPoint(const Direction aDir)
 Board::Board()
 {
 	persistent_ptr<Shape> shape = make_persistent<Shape>(FOOD);
-	persistent_ptr<Element> mFood
-			= make_persistent<Element>(0, 0, shape , Direction::UNDEFINED);
+	mFood = make_persistent<Element>(0, 0, shape, Direction::UNDEFINED);
+	mLayout = make_persistent<list<Element>>();
 	mSnake = make_persistent<Snake>();
 	mSizeRow = 20;
 	mSizeCol = 20;
@@ -285,9 +326,13 @@ Board::Board()
 Board::~Board()
 {
 	mLayout->clear();
+	delete_persistent<list<Element>>(mLayout);
+	delete_persistent<Snake>(mSnake);
+	delete_persistent<Element>(mFood);
 }
 
-void Board::print(const int aScore)
+void
+Board::print(const int aScore)
 {
 	const int offsetY = 2 * mSizeCol + 5;
 	const int offsetX = 2;
@@ -296,7 +341,7 @@ void Board::print(const int aScore)
 	persistent_ptr<Element> elmp;
 
 	while ((elmp = mLayout->get(i++)) != nullptr)
-		elmp->printDoubleCol();
+		elmp->printSingleDoubleCol();
 
 	mSnake->print();
 	mFood->printDoubleCol();
@@ -311,7 +356,8 @@ void Board::print(const int aScore)
 	mvprintw((offsetX + 7), offsetY, " Score: %d ", aScore);
 }
 
-void Board::printGameOver(const int aScore)
+void
+Board::printGameOver(const int aScore)
 {
 	int x = mSizeCol / 3;
 	int y = mSizeRow / 6;
@@ -330,60 +376,68 @@ void Board::printGameOver(const int aScore)
 	mvprintw(y + 12, x, " Last score: %d ", aScore);
 	mvprintw(y + 14, x, " q - quit");
 	mvprintw(y + 15, x, " n - new game");
-
 }
 
-void Board::creatDynamicLayout(const unsigned aRowNo, char * const aBuffer)
+int
+Board::creatDynamicLayout(const unsigned aRowNo, char *const aBuffer)
 {
 	persistent_ptr<Element> element;
-	persistent_ptr<Shape> shape
-			= make_persistent<Shape>(WALL);
+	persistent_ptr<Shape> shape;
 
-	for (int i = 0; i <mSizeCol; ++i) {
+	for (unsigned i = 0; i < mSizeCol; ++i) {
 		if (aBuffer[i] == ConfigFileSymbol::SYM_WALL) {
-			element = element = make_persistent<Element>(aRowNo, i,
-					shape, Direction::UNDEFINED);
+			shape = make_persistent<Shape>(WALL);
+			element = element = make_persistent<Element>(
+				i, aRowNo, shape, Direction::UNDEFINED);
 			mLayout->push_back(element);
 		}
 	}
+	return 0;
 }
 
-void Board::creatStaticLayout(void)
+int
+Board::creatStaticLayout(void)
 {
 	persistent_ptr<Element> element;
-	persistent_ptr<Shape> shape = make_persistent<Shape>(WALL);
+	persistent_ptr<Shape> shape;
 
 	mSizeRow = BOARD_STATIC_SIZE_ROW;
 	mSizeCol = BOARD_STATIC_SIZE_COL;
 
 	// first and last row
-	for (int i = 0; i <mSizeCol; ++i) {
-		element = element = make_persistent<Element>(i, 0, shape,
-				Direction::UNDEFINED);
+	for (unsigned i = 0; i < mSizeCol; ++i) {
+		shape = make_persistent<Shape>(WALL);
+		element = make_persistent<Element>(i, 0, shape,
+						   Direction::UNDEFINED);
 		mLayout->push_back(element);
-		element = element = make_persistent<Element>(i, (mSizeRow - 1),
-				shape, Direction::UNDEFINED);
+		shape = make_persistent<Shape>(WALL);
+		element = make_persistent<Element>(i, (mSizeRow - 1), shape,
+						   Direction::UNDEFINED);
 		mLayout->push_back(element);
 	}
 
 	// middle rows
-	for (int i = 1; i <mSizeRow; ++i) {
-		element = element = make_persistent<Element>(0, i, shape,
-				Direction::UNDEFINED);
+	for (unsigned i = 1; i < mSizeRow; ++i) {
+		shape = make_persistent<Shape>(WALL);
+		element = make_persistent<Element>(0, i, shape,
+						   Direction::UNDEFINED);
 		mLayout->push_back(element);
-		element = element = make_persistent<Element>((mSizeCol - 1), i,
-				shape, Direction::UNDEFINED);
+		shape = make_persistent<Shape>(WALL);
+		element = make_persistent<Element>((mSizeCol - 1), i, shape,
+						   Direction::UNDEFINED);
 		mLayout->push_back(element);
 	}
+	return 0;
 }
 
-bool Board::isSnakeCollision(Point aPoint)
+bool
+Board::isSnakeCollision(Point aPoint)
 {
 	return mSnake->checkPointAgainstSegments(aPoint);
 }
 
-
-bool Board::isWallCollision(Point aPoint)
+bool
+Board::isWallCollision(Point aPoint)
 {
 	int i = 0;
 	bool result = false;
@@ -398,12 +452,14 @@ bool Board::isWallCollision(Point aPoint)
 	return result;
 }
 
-bool Board::isCollision(Point aPoint)
+bool
+Board::isCollision(Point aPoint)
 {
 	return isSnakeCollision(aPoint) || isWallCollision(aPoint);
 }
 
-bool Board::isSnakeHeadFoodHit(void)
+bool
+Board::isSnakeHeadFoodHit(void)
 {
 	bool result = false;
 	Point headPoint = mSnake->getHeadPoint();
@@ -414,26 +470,28 @@ bool Board::isSnakeHeadFoodHit(void)
 	return result;
 }
 
-void Board::setNewFood(const Point aPoint)
+void
+Board::setNewFood(const Point aPoint)
 {
 	persistent_ptr<Shape> shape = make_persistent<Shape>(FOOD);
 	delete_persistent<Element>(mFood);
-	mFood = make_persistent<Element>(aPoint, shape , Direction::UNDEFINED);
+	mFood = make_persistent<Element>(aPoint, shape, Direction::UNDEFINED);
 }
 
-void Board::createNewFood(void)
+void
+Board::createNewFood(void)
 {
 	const int maxRepeat = 50;
 	int count = 0;
 	int randRow = 0;
 	int randCol = 0;
 
-	while (count <maxRepeat) {
-		randRow = 1 + rand() % ((getSizeRow() / 2) - 1);
-		randCol = 1 + rand() % (getSizeCol() - 1);
+	while (count < maxRepeat) {
+		randRow = 1 + rand() % (getSizeRow() - 2);
+		randCol = 1 + rand() % (getSizeCol() - 2);
 
-		Point foodPoint(randRow, randCol);
-		if (!isSnakeCollision(foodPoint)) {
+		Point foodPoint(randCol, randRow);
+		if (!isCollision(foodPoint)) {
 			setNewFood(foodPoint);
 			break;
 		}
@@ -441,7 +499,8 @@ void Board::createNewFood(void)
 	}
 }
 
-SnakeEvent Board::moveSnake(const Direction aDir)
+SnakeEvent
+Board::moveSnake(const Direction aDir)
 {
 	SnakeEvent event = SnakeEvent::EV_OK;
 	Point nextPt = mSnake->getNextPoint(aDir);
@@ -455,21 +514,21 @@ SnakeEvent Board::moveSnake(const Direction aDir)
 	return event;
 }
 
-
 //###################################################################//
 //				GameState
 //###################################################################//
-void GameState::init(void)
+void
+GameState::init(void)
 {
 	mBoard = make_persistent<Board>();
 	mPlayer = make_persistent<Player>();
 }
 
-
-void GameState::cleanPool(void)
+void
+GameState::cleanPool(void)
 {
 	delete_persistent<Board>(mBoard);
-	mBoard= nullptr;
+	mBoard = nullptr;
 
 	delete_persistent<Player>(mPlayer);
 	mPlayer = nullptr;
@@ -478,7 +537,8 @@ void GameState::cleanPool(void)
 //###################################################################//
 //				Player
 //###################################################################//
-void Player::updateScore(void)
+void
+Player::updateScore(void)
 {
 	mScore = mScore + PLAYER_POINTS_PER_HIT;
 }
@@ -486,7 +546,7 @@ void Player::updateScore(void)
 //###################################################################//
 //				Game
 //###################################################################//
-Game::Game(const string aName)
+Game::Game(struct Params *params)
 {
 	pool<GameState> pop;
 
@@ -496,11 +556,13 @@ Game::Game(const string aName)
 	curs_set(0);
 	keypad(stdscr, true);
 
-	if (pop.exists(aName, LAYOUT_NAME)) {
-		pop.open(aName, LAYOUT_NAME);
-	} else {
-		pop.create(aName, LAYOUT_NAME, PMEMOBJ_MIN_POOL*10, 0666);
-	}
+	mParams = params;
+	if (pool<GameState>::check(mParams->name, LAYOUT_NAME) == 1)
+		pop = pool<GameState>::open(mParams->name, LAYOUT_NAME);
+	else
+		pop = pool<GameState>::create(mParams->name, LAYOUT_NAME,
+					      PMEMOBJ_MIN_POOL * 10, 0666);
+
 	mGameState = pop;
 	mDirectionKey = Direction::UNDEFINED;
 	mLastKey = KEY_CLEAR;
@@ -511,8 +573,8 @@ Game::Game(const string aName)
 	srand(time(0));
 }
 
-
-void Game::initColors(void)
+void
+Game::initColors(void)
 {
 	struct ColorPair colorPair = Helper::getColor(SNAKE_SEGMENT);
 	init_pair(SNAKE_SEGMENT, colorPair.colorFg, colorPair.colorBg);
@@ -524,33 +586,44 @@ void Game::initColors(void)
 	init_pair(FOOD, colorPair.colorFg, colorPair.colorBg);
 }
 
-
-void Game::init(void)
+int
+Game::init(void)
 {
-	auto r = mGameState.get_root();
+	int ret = 0;
+	persistent_ptr<GameState> r = mGameState.get_root();
 
 	if (r->getBoard() == nullptr) {
 		try {
-			transaction::exec_tx([&]() {
-				r->init();
-				r->getBoard()->creatStaticLayout();
-				r->getBoard()->createNewFood();
-			});
+			transaction::manual tx(mGameState);
+			r->init();
+			if (mParams->use_maze)
+				ret = parseConfCreateDynamicLayout();
+			else
+				ret = r->getBoard()->creatStaticLayout();
+
+			r->getBoard()->createNewFood();
+			transaction::commit();
+		} catch (transaction_error &err) {
+			cout << err.what() << endl;
 		}
-		catch (transaction_error &err) {
-			cout <<err.what() <<endl;
+		if (ret) {
+			cleanPool();
+			clearProg();
+			cout << "Error: Config file error!" << endl;
+			return ret;
 		}
 	}
 	mDirectionKey = r->getBoard()->getSnakeDir();
+	return ret;
 }
 
-
-void Game::processStep(void)
+void
+Game::processStep(void)
 {
 	SnakeEvent retEvent = EV_OK;
-	auto r = mGameState.get_root();
+	persistent_ptr<GameState> r = mGameState.get_root();
 	try {
-		mGameState.exec_tx([&]() {
+		transaction::exec_tx(mGameState, [&]() {
 			retEvent = r->getBoard()->moveSnake(mDirectionKey);
 			if (EV_COLLISION == retEvent) {
 				r->getPlayer()->setState(State::STATE_GAMEOVER);
@@ -563,15 +636,15 @@ void Game::processStep(void)
 				}
 			}
 		});
-	}
-	catch (transaction_error &err) {
-		cout <<err.what() <<endl;
+	} catch (transaction_error &err) {
+		cout << err.what() << endl;
 	}
 
 	r->getBoard()->print(r->getPlayer()->getScore());
 }
 
-inline bool Game::isStopped(void)
+inline bool
+Game::isStopped(void)
 {
 	if (Action::ACTION_QUIT == mLastKey)
 		return true;
@@ -579,7 +652,8 @@ inline bool Game::isStopped(void)
 		return false;
 }
 
-void Game::setDirectionKey(void)
+void
+Game::setDirectionKey(void)
 {
 	switch (mLastKey) {
 		case KEY_LEFT:
@@ -603,132 +677,130 @@ void Game::setDirectionKey(void)
 	}
 }
 
-void Game::processKey(const int aLastKey)
+int
+Game::processKey(const int aLastKey)
 {
+	int ret = 0;
 	mLastKey = aLastKey;
 	setDirectionKey();
 
 	if (Action::ACTION_NEW_GAME == aLastKey) {
 		cleanPool();
-		init();
+		ret = init();
 	}
-
+	return ret;
 }
 
-void Game::cleanPool(void)
+void
+Game::cleanPool(void)
 {
-	auto r = mGameState.get_root();
+	persistent_ptr<GameState> r = mGameState.get_root();
 
 	try {
-		mGameState.exec_tx([&]() {
-			r->cleanPool();
-		});
+		transaction::exec_tx(mGameState, [&]() { r->cleanPool(); });
 	} catch (transaction_error &err) {
-		cout <<err.what() <<endl;
+		cout << err.what() << endl;
 	}
 }
 
-void Game::delay(void)
+void
+Game::delay(void)
 {
 	Helper::sleep(mDelay);
 }
 
-void Game::clear(void)
+void
+Game::clearScreen(void)
 {
 	erase();
 }
 
-void Game::gameOver(void)
+void
+Game::gameOver(void)
 {
-	auto r = mGameState.get_root();
+	persistent_ptr<GameState> r = mGameState.get_root();
 	r->getBoard()->printGameOver(r->getPlayer()->getScore());
 }
 
-
-bool Game::isGameOver(void)
+bool
+Game::isGameOver(void)
 {
-	auto r = mGameState.get_root();
+	persistent_ptr<GameState> r = mGameState.get_root();
 	return (r->getPlayer()->getState() == State::STATE_GAMEOVER);
 }
 
-void Game::parseConfCreatDynamicLayout(void)
+void
+Game::clearProg(void)
 {
-	unsigned buffSize = 8;
-	char buffer[buffSize];
-	int dimension[2];
-	unsigned rowNo = 0;
-	unsigned colNo = 0;
-	ifstream cfgFile;
+	mGameState.close();
+	endwin();
+}
 
-	cfgFile.open("conf.cfg");
-	cfgFile.getline(buffer, buffSize);
-	auto r = mGameState.get_root();
+int
+Game::parseConfCreateDynamicLayout(void)
+{
+	FILE *cfgFile;
+	char *line = NULL;
+	size_t len = 0;
+	unsigned i = 0;
+	ssize_t colNo = 0;
 
-	// read x and y
-	string  str(buffer);
-	stringstream stringBuff(str);
+	cfgFile = fopen(mParams->maze_path.c_str(), "r");
+	if (cfgFile == NULL)
+		return -1;
 
-	if (!stringBuff) {
-		cout <<"Config file error" <<endl;
-	} else {
-		for (int i = 0; i <2; ++i)
-			stringBuff>> dimension[i];
-		rowNo = dimension[0];
-		colNo = dimension[1];
+	persistent_ptr<GameState> r = mGameState.get_root();
+	while ((colNo = getline(&line, &len, cfgFile)) != -1) {
+		if (i == 0)
+			r->getBoard()->setSizeCol(colNo - 1);
 
 		try {
-			mGameState.exec_tx([&]() {
-				r->getBoard()->setSizeRow(rowNo);
-				r->getBoard()->setSizeCol(colNo);
+			transaction::exec_tx(mGameState, [&]() {
+				r->getBoard()->creatDynamicLayout(i, line);
 			});
 		} catch (transaction_error &err) {
-			cout <<err.what() <<endl;
+			cout << err.what() << endl;
 		}
-
-		// read whole board map
-		char* rowBuffer = new char[colNo];
-		cfgFile.getline(rowBuffer, colNo);
-		for (unsigned i = 0; i <rowNo; ++i) {
-			cfgFile.getline(rowBuffer, colNo);
-			try {
-				mGameState.exec_tx([&]() {
-					r->getBoard()->creatDynamicLayout(i, rowBuffer);
-				});
-			} catch (transaction_error &err) {
-				cout <<err.what() <<endl;
-			}
-		}
+		i++;
 	}
-	cfgFile.close();
+	r->getBoard()->setSizeRow(i);
+
+	free(line);
+	fclose(cfgFile);
+	return 0;
 }
 
 //###################################################################//
 //				main
 //###################################################################//
-int main(int argc, char *argv[])
+int
+main(int argc, char *argv[])
 {
 	int input;
-	Game* game;
-	if (argc != 2)
-		return 0;
+	Game *game;
+	struct Params params;
+	params.use_maze = false;
 
-	string name = argv[1];
-	game = new Game(name);
-	game->init();
+	if (Helper::parseParams(argc, argv, &params))
+		return -1;
+
+	game = new Game(&params);
+	if (game->init())
+		return -1;
 
 	while (!game->isStopped()) {
 		input = getch();
-		game->processKey(input);
+		if (game->processKey(input))
+			return -1;
 		if (game->isGameOver()) {
 			game->gameOver();
 		} else {
 			game->delay();
-			game->clear();
+			game->clearScreen();
 			game->processStep();
 		}
 	}
 
-	game->closePool();
-	endwin();
+	game->clearProg();
 	return 0;
 }
