@@ -106,7 +106,7 @@ make_persistent(Args &&... args)
  */
 template <typename T>
 void
-delete_persistent(typename detail::pp_if_not_array<T>::type &ptr)
+delete_persistent(typename detail::pp_if_not_array<T>::type ptr)
 {
 	if (pmemobj_tx_stage() != TX_STAGE_WORK)
 		throw transaction_scope_error(
@@ -125,8 +125,6 @@ delete_persistent(typename detail::pp_if_not_array<T>::type &ptr)
 	if (pmemobj_tx_free(*ptr.raw_ptr()) != 0)
 		throw transaction_alloc_error("failed to delete "
 					      "persistent memory object");
-
-	ptr = OID_NULL;
 }
 
 } /* namespace obj */

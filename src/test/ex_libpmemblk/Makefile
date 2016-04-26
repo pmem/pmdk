@@ -34,6 +34,9 @@
 # src/test/ex_libpmemblk/Makefile -- build ex_libpmemblk unittest
 #
 
+all: $(EXAMPLES)
+	$(MAKE) -C $(EX_LIBPMEMBLK)
+
 include ../Makefile.inc
 
 EXAMPLES=$(EX_LIBPMEMBLK)/assetdb/asset_load \
@@ -41,5 +44,3 @@ EXAMPLES=$(EX_LIBPMEMBLK)/assetdb/asset_load \
 	$(EX_LIBPMEMBLK)/assetdb/asset_checkout \
 	$(EX_LIBPMEMBLK)/assetdb/asset_list
 
-all: $(EXAMPLES)
-	$(MAKE) -C $(EX_LIBPMEMBLK)

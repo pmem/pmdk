@@ -30,59 +30,38 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * common.hpp -- commonly used functionality
- */
-
-#ifndef PMEMOBJ_COMMON_HPP
-#define PMEMOBJ_COMMON_HPP
+#ifndef LIBPMEMOBJ_UTILS_HPP
+#define LIBPMEMOBJ_UTILS_HPP
 
 #include "libpmemobj.h"
 #include "libpmemobj/detail/pexceptions.hpp"
-#include <typeinfo>
+#include "libpmemobj/persistent_ptr.hpp"
 
 namespace nvml
 {
 
-namespace detail
-{
-
-/*
- * Conditionally add an object to a transaction.
- *
- * Adds `*that` to the transaction if it is within a pmemobj pool and
- * there is an active transaction. Does nothing otherwise.
- *
- * @param[in] that pointer to the object being added to the transaction.
- */
 template <typename T>
-inline void
-conditional_add_to_tx(const T *that)
+inline obj::pool_base
+pool_by_vptr(const T *that)
 {
-	/* 'that' is not in any open pool */
-	if (!pmemobj_pool_by_ptr(that))
-		return;
+	auto pop = pmemobj_pool_by_ptr(that);
+	if (!pop)
+		throw pool_error("Object not in an open pool.");
 
-	if (pmemobj_tx_stage() != TX_STAGE_WORK)
-		return;
-
-	if (pmemobj_tx_add_range_direct(that, sizeof(*that)))
-		throw transaction_error("Could not add an object to the"
-					" transaction.");
+	return obj::pool_base(pop);
 }
 
-/*
- * Return type number for given type.
- */
 template <typename T>
-constexpr uint64_t
-type_num()
+inline obj::pool_base
+pool_by_pptr(const obj::persistent_ptr<T> ptr)
 {
-	return typeid(T).hash_code();
-}
+	auto pop = pmemobj_pool_by_oid(ptr.raw());
+	if (!pop)
+		throw pool_error("Object not in an open pool.");
 
-} /* namespace detail */
+	return obj::pool_base(pop);
+}
 
 } /* namespace nvml */
 
-#endif /* PMEMOBJ_COMMON_HPP */
+#endif /* LIBPMEMOBJ_UTILS_HPP */

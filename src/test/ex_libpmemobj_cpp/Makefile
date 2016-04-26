@@ -34,6 +34,9 @@
 # src/test/ex_libpmemobj_cpp/Makefile -- build ex_libpmemobj_cpp unittest
 #
 
+all: $(EXAMPLES)
+	$(MAKE) -C $(EX_LIBPMEMOBJ)
+
 include ../Makefile.inc
 
 EXAMPLES=$(EX_LIBPMEMOBJ)/cpp/queue
@@ -44,6 +47,3 @@ else
 $(info NOTE: Skipping pman test because ncurses is missing \
 -- see src/examples/libpmemobj/pman/README for details.)
 endif
-
-all: $(EXAMPLES)
-	$(MAKE) -C $(EX_LIBPMEMOBJ)

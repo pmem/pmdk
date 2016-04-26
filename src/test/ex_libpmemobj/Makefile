@@ -34,6 +34,11 @@
 # src/test/ex_libpmemobj/Makefile -- build ex_libpmemobj unittest
 #
 
+all: $(EXAMPLES)
+	$(MAKE) -C $(EX_LIBPMEMOBJ)
+
+pcheck: export NOTTY=1
+
 include ../Makefile.inc
 
 NCURSES := $(call check_package, ncurses)
@@ -61,7 +66,4 @@ $(info NOTE: Skipping pminvaders test because ncurses is missing \
 -- see src/examples/libpmemobj/pminvaders/README for details.)
 endif
 
-all: $(EXAMPLES)
-	$(MAKE) -C $(EX_LIBPMEMOBJ)
 
-pcheck: export NOTTY=1

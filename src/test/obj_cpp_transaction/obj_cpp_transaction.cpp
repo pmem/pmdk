@@ -189,6 +189,8 @@ test_tx_no_throw_no_abort(pool<root> &pop)
 		transaction::exec_tx(pop, [&]() {
 			delete_persistent<foo>(rootp->pfoo);
 			delete_persistent<p<int>>(rootp->parr);
+			rootp->pfoo = nullptr;
+			rootp->parr = nullptr;
 		});
 	} catch (...) {
 		UT_ASSERT(0);
@@ -399,6 +401,8 @@ test_tx_no_throw_no_abort_scope(pool<root> &pop, std::function<void()> commit)
 		T to(pop);
 		delete_persistent<foo>(rootp->pfoo);
 		delete_persistent<p<int>>(rootp->parr);
+		rootp->pfoo = nullptr;
+		rootp->parr = nullptr;
 		commit();
 	} catch (...) {
 		UT_ASSERT(0);

@@ -257,13 +257,16 @@ TESTS = \
 	$(VMMALLOC_TESTS)\
 	$(EXAMPLES_TESTS)
 
-ifeq ($(call check_cxx_flags, -std=c++11), y)
+ifeq ($(filter n,$(call check_cxx_flags, -std=c++11) $(call check_clang_template_bug)),)
 TESTS += $(OBJ_CPP_TESTS)
+
+ifeq ($(call cxx_ok), y)
 TESTS += $(CPP_EXAMPLE_TESTS)
 endif
 
 ifeq ($(call check_cxx_chrono), y)
 TESTS += $(CHRONO_TESTS)
+endif
 endif
 
 TESTS_BUILD = \

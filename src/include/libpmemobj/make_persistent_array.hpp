@@ -158,7 +158,7 @@ make_persistent()
  */
 template <typename T>
 void
-delete_persistent(typename detail::pp_if_array<T>::type &ptr, std::size_t N)
+delete_persistent(typename detail::pp_if_array<T>::type ptr, std::size_t N)
 {
 	typedef typename detail::pp_array_type<T>::type I;
 
@@ -176,10 +176,6 @@ delete_persistent(typename detail::pp_if_array<T>::type &ptr, std::size_t N)
 	if (pmemobj_tx_free(*ptr.raw_ptr()) != 0)
 		throw transaction_alloc_error("failed to delete "
 					      "persistent memory object");
-
-	/* to be able to revert the state of the persistent_ptr */
-	detail::conditional_add_to_tx(&ptr);
-	ptr = OID_NULL;
 }
 
 /**
@@ -198,7 +194,7 @@ delete_persistent(typename detail::pp_if_array<T>::type &ptr, std::size_t N)
  */
 template <typename T>
 void
-delete_persistent(typename detail::pp_if_size_array<T>::type &ptr)
+delete_persistent(typename detail::pp_if_size_array<T>::type ptr)
 {
 	typedef typename detail::pp_array_type<T>::type I;
 	enum { N = detail::pp_array_elems<T>::elems };
@@ -217,10 +213,6 @@ delete_persistent(typename detail::pp_if_size_array<T>::type &ptr)
 	if (pmemobj_tx_free(*ptr.raw_ptr()) != 0)
 		throw transaction_alloc_error("failed to delete "
 					      "persistent memory object");
-
-	/* to be able to revert the state of the persistent_ptr */
-	detail::conditional_add_to_tx(&ptr);
-	ptr = OID_NULL;
 }
 
 } /* namespace obj */

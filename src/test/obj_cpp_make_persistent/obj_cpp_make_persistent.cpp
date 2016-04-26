@@ -106,7 +106,7 @@ test_make_no_args(pool<struct root> &pop)
 			r->pfoo->check_foo(1, 1);
 
 			delete_persistent<foo>(r->pfoo);
-			UT_ASSERT(r->pfoo == nullptr);
+			r->pfoo = nullptr;
 		});
 	} catch (...) {
 		UT_ASSERT(0);
@@ -131,13 +131,12 @@ test_make_args(pool<struct root> &pop)
 			r->pfoo->check_foo(2, 2);
 
 			delete_persistent<foo>(r->pfoo);
-			UT_ASSERT(r->pfoo == nullptr);
 
 			r->pfoo = make_persistent<foo>(3, 4);
 			r->pfoo->check_foo(3, 4);
 
 			delete_persistent<foo>(r->pfoo);
-			UT_ASSERT(r->pfoo == nullptr);
+			r->pfoo = nullptr;
 		});
 	} catch (...) {
 		UT_ASSERT(0);
@@ -171,9 +170,8 @@ test_additional_delete(pool<struct root> &pop)
 		transaction::exec_tx(pop, [&] {
 			UT_ASSERT(r->pfoo != nullptr);
 			delete_persistent<foo>(r->pfoo);
-			UT_ASSERT(r->pfoo == nullptr);
+			r->pfoo = nullptr;
 			delete_persistent<foo>(r->pfoo);
-			UT_ASSERT(r->pfoo == nullptr);
 
 			transaction::abort(EINVAL);
 		});
@@ -191,6 +189,7 @@ test_additional_delete(pool<struct root> &pop)
 		transaction::exec_tx(pop, [&] {
 			UT_ASSERT(r->pfoo != nullptr);
 			delete_persistent<foo>(r->pfoo);
+			r->pfoo = nullptr;
 		});
 	} catch (...) {
 		UT_ASSERT(0);
