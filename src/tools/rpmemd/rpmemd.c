@@ -94,17 +94,6 @@ Options:\n\
 For complete documentation see %s(1) manual page.\n\
 ";
 
-static enum rpmemd_log_level
-str_to_log_level(const char *str)
-{
-	for (enum rpmemd_log_level i = 0; i < MAX_RPD_LOG; i++) {
-		if (strcmp(Rpmemd_log_level_str[i], str) == 0)
-			return i;
-	}
-
-	return MAX_RPD_LOG;
-}
-
 /*
  * print_help -- prints help message
  */
@@ -141,7 +130,7 @@ main(int argc, char *argv[])
 			opts.log_file = optarg;
 			break;
 		case 'l':
-			rpmemd_log_level = str_to_log_level(optarg);
+			rpmemd_log_level = rpmemd_log_level_from_str(optarg);
 			if (rpmemd_log_level == MAX_RPD_LOG) {
 				fprintf(stderr, "invalid log level "
 					"specified -- '%s'\n", optarg);

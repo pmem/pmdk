@@ -103,8 +103,7 @@ FUNC_MOCK_END
 static const char *
 l2s(enum rpmemd_log_level level)
 {
-	UT_ASSERT(level < MAX_RPD_LOG);
-	return Rpmemd_log_level_str[level];
+	return rpmemd_log_level_to_str(level);
 }
 
 /*

@@ -189,6 +189,17 @@ export VMMALLOC_LOG_FILE=vmmalloc$UNITTEST_NUM.log
 export VALGRIND_LOG_FILE=${CHECK_TYPE}${UNITTEST_NUM}.log
 export VALIDATE_VALGRIND_LOG=1
 
+export RPMEM_LOG_LEVEL=3
+export RPMEM_LOG_FILE=rpmem$UNITTEST_NUM.log
+export RPMEMD_LOG_LEVEL=err
+export RPMEMD_LOG_FILE=rpmemd$UNITTEST_NUM.log
+
+export REMOTE_VARS="
+RPMEMD_LOG_FILE
+RPMEMD_LOG_LEVEL
+RPMEM_LOG_FILE
+RPMEM_LOG_LEVEL"
+
 [ "$UT_DUMP_LINES" ] || UT_DUMP_LINES=30
 
 export CHECK_POOL_LOG_FILE=check_pool_${BUILD}_${UNITTEST_NUM}.log
@@ -411,6 +422,9 @@ function expect_normal_exit() {
 
 		# ignore Ctrl-C
 		if [ $ret != 130 ]; then
+			for f in $(find . -name "node_*.log"); do
+				dump_last_n_lines $f
+			done
 			dump_last_n_lines out$UNITTEST_NUM.log
 			dump_last_n_lines $PMEM_LOG_FILE
 			dump_last_n_lines $PMEMOBJ_LOG_FILE
@@ -418,6 +432,8 @@ function expect_normal_exit() {
 			dump_last_n_lines $PMEMBLK_LOG_FILE
 			dump_last_n_lines $VMEM_LOG_FILE
 			dump_last_n_lines $VMMALLOC_LOG_FILE
+			dump_last_n_lines $RPMEM_LOG_FILE
+			dump_last_n_lines $RPMEMD_LOG_FILE
 		fi
 
 		[ $NODES_MAX -ge 0 ] && clean_all_remote_nodes
@@ -891,6 +907,10 @@ COMMON_FILES_TO_COPY="\
 $DIR_SRC/test/tools/ctrld/ctrld \
 $DIR_SRC/tools/pmempool/pmempool"
 
+RPMEM_PORT=$(cat $DIR_SRC/rpmem_common/rpmem_proto.h |\
+	grep '#define\sRPMEM_PORT' | grep -o '[0-9]\+')
+
+
 # array of lists of PID files to be cleaned in case of an error
 NODE_PID_FILES[0]=""
 
@@ -936,6 +956,7 @@ function clean_remote_node() {
 	# clean the remote node
 	set +e
 	for pidfile in ${NODE_PID_FILES[$N]}; do
+		require_ctrld_err $N $pidfile
 		run_command ssh $SSH_OPTS ${NODE[$N]} "\
 			cd $DIR && [ -f $pidfile ] && \
 			./ctrld $pidfile kill SIGINT && \
@@ -969,6 +990,18 @@ function clean_all_remote_nodes() {
 	set -e
 
 	return 0
+}
+
+#
+# export_vars_node -- export specified variables on specified node
+#
+function export_vars_node() {
+	local N=$1
+	shift
+	validate_node_number $N
+	for var in "$@"; do
+		NODE_ENV[$N]="${NODE_ENV[$N]} $var=${!var}"
+	done
 }
 
 #
@@ -1016,6 +1049,7 @@ function require_nodes() {
 
 		# clear the list of PID files for each node
 		NODE_PID_FILES[$N]=""
+		require_node_log_files $N err$UNITTEST_NUM.log out$UNITTEST_NUM.log trace$UNITTEST_NUM.log
 	done
 
 	# files to be copied to all remote nodes
@@ -1040,6 +1074,15 @@ function require_nodes() {
 		# copy all required files
 		[ "$FILES_TO_COPY" != "" ] &&\
 			run_command scp $SCP_OPTS $FILES_TO_COPY ${NODE[$N]}:$DIR
+
+		export_vars_node $N $REMOTE_VARS
+	done
+
+	# remove all log files from required nodes
+	for (( N=$NODES_MAX ; $(($N + 1)) ; N=$(($N - 1)) )); do
+		for f in $(find . -name "node_${N}*.log"); do
+			rm -f $f
+		done
 	done
 
 	# register function to clean all remote nodes in case of an error or SIGINT
@@ -1069,6 +1112,44 @@ function copy_files_to_node() {
 }
 
 #
+# copy_log_files -- copy log files from remote node
+#
+function copy_log_files() {
+	for (( N=$NODES_MAX ; $(($N + 1)) ; N=$(($N - 1)) )); do
+		local DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
+		for f in ${NODE_LOG_FILES[$N]}; do
+			run_command scp $SCP_OPTS ${NODE[$N]}:$DIR/${f} node_${N}_$f 2>/dev/null
+		done
+	done
+}
+
+#
+# require_node_log_files -- store log files which must be copied from
+#                           specified node on failure
+#
+function require_node_log_files() {
+	validate_node_number $1
+
+	local N=$1
+	shift
+
+	NODE_LOG_FILES[$N]="${NODE_LOG_FILES[$N]} $*"
+}
+
+#
+# require_ctrld_err -- store ctrld's log files to copy from specified
+#                      node on failure
+#
+function require_ctrld_err() {
+	local N=$1
+	local PID_FILE=$2
+	local DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
+	for cmd in run wait kill wait_port; do
+		NODE_LOG_FILES[$N]="${NODE_LOG_FILES[$N]} $PID_FILE.$cmd.ctrld.log"
+	done
+}
+
+#
 # run_on_node -- usage: run_on_node <node> <command>
 #
 #                Run the <command> in background on the remote <node>.
@@ -1084,9 +1165,16 @@ function run_on_node() {
 	local DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
 	local COMMAND="UNITTEST_NUM=$UNITTEST_NUM UNITTEST_NAME=$UNITTEST_NAME"
 	COMMAND="$COMMAND UNITTEST_QUIET=1"
+	COMMAND="$COMMAND ${NODE_ENV[$N]}"
 	COMMAND="$COMMAND LD_LIBRARY_PATH=.:${NODE_LD_LIBRARY_PATH[$N]} $*"
 
 	run_command ssh $SSH_OPTS ${NODE[$N]} "cd $DIR && $COMMAND"
+	ret=$?
+	if [ "$ret" -ne "0" ]; then
+		copy_log_files
+	fi
+
+	return $ret
 }
 
 #
@@ -1109,10 +1197,17 @@ function run_on_node_background() {
 	local DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
 	local COMMAND="UNITTEST_NUM=$UNITTEST_NUM UNITTEST_NAME=$UNITTEST_NAME"
 	COMMAND="$COMMAND UNITTEST_QUIET=1"
+	COMMAND="$COMMAND ${NODE_ENV[$N]}"
 	COMMAND="$COMMAND LD_LIBRARY_PATH=.:${NODE_LD_LIBRARY_PATH[$N]}"
 	COMMAND="$COMMAND ./ctrld $PID_FILE run $*"
 
 	run_command ssh $SSH_OPTS ${NODE[$N]} "cd $DIR && $COMMAND"
+	ret=$?
+	if [ "$ret" -ne "0" ]; then
+		copy_log_files
+	fi
+
+	return $ret
 }
 
 #
@@ -1131,6 +1226,12 @@ function wait_on_node() {
 	local DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
 
 	run_command ssh $SSH_OPTS ${NODE[$N]} "cd $DIR && ./ctrld $PID_FILE wait $TIMEOUT"
+	ret=$?
+	if [ "$ret" -ne "0" ]; then
+		copy_log_files
+	fi
+
+	return $ret
 }
 
 #
@@ -1149,6 +1250,12 @@ function wait_on_node_port() {
 	local DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
 
 	run_command ssh $SSH_OPTS ${NODE[$N]} "cd $DIR && ./ctrld $PID_FILE wait_port $PORTNO"
+	ret=$?
+	if [ "$ret" -ne "0" ]; then
+		copy_log_files
+	fi
+
+	return $ret
 }
 
 #
@@ -1167,6 +1274,12 @@ function kill_on_node() {
 	local DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
 
 	run_command ssh $SSH_OPTS ${NODE[$N]} "cd $DIR && ./ctrld $PID_FILE kill $SIGNO"
+	ret=$?
+	if [ "$ret" -ne "0" ]; then
+		copy_log_files
+	fi
+
+	return $ret
 }
 
 #

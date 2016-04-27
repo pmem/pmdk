@@ -1,3 +1,4 @@
+#
 # Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
@@ -27,25 +28,28 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
 
 #
-# src/librpmem/Makefile -- Makefile for librpmem
+# src/test/rpmem_obc_int/Makefile -- build rpmem_obc_int test
 #
-vpath %.c ../rpmem_common
+vpath %.c ../../librpmem/
+vpath %.c ../../rpmem_common/
+vpath %.c ../../tools/rpmemd
+vpath %.c ../../common/
+vpath %.c ../../../platform/linux/src/common
 
-LIBRARY_NAME = rpmem
-LIBRARY_SO_VERSION = 1
-LIBRARY_VERSION = 0.0
-SOURCE = $(COMMON)/util.c\
-	$(COMMON)/util_platform.c\
-	$(COMMON)/out.c\
-	librpmem.c\
-	rpmem.c\
-	rpmem_obc.c\
-	rpmem_common.c\
-	rpmem_util.c
+TARGET = rpmem_obc_int
+OBJS = rpmem_obc_int.o\
+       rpmem_obc.o rpmem_util.o rpmem_common.o\
+       rpmemd_obc.o rpmemd_log.o\
+       out.o util.o util_platform.o
+
+out.o: CFLAGS += -DDEBUG -DSRCVERSION=\"utversion\"
 
 include ../Makefile.inc
 
-CFLAGS += -I. -I../rpmem_common
-CFLAGS += -DRPMEMC_LOG_RPMEM
+INCS += -I../../librpmem/
+INCS += -I../../rpmem_common/
+INCS += -I../../tools/rpmemd
+INCS += -I../../common

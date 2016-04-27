@@ -31,54 +31,21 @@
  */
 
 /*
- * rpmemd_log.h -- rpmemd logging functions declarations
+ * rpmem_util.h -- util functions for librpmem header file
  */
 
-#define	FORMAT_PRINTF(a, b) __attribute__((__format__(__printf__, (a), (b))))
-
-#ifdef DEBUG
-#define	RPMEMD_LOG(level, fmt, arg...)\
-	rpmemd_log(RPD_LOG_##level, __FILE__, __LINE__, fmt, ## arg)
-#else
-#define	RPMEMD_LOG(level, fmt, arg...)\
-	rpmemd_log(RPD_LOG_##level, NULL, 0, fmt, ## arg)
-#endif
-
-#ifdef DEBUG
-#define	RPMEMD_DBG(fmt, arg...)\
-	rpmemd_log(_RPD_LOG_DBG, __FILE__, __LINE__, fmt, ## arg)
-#else
-#define	RPMEMD_DBG(fmt, arg...) do {} while (0)
-#endif
-
-#define	RPMEMD_FATAL(fmt, arg...) do {\
-	RPMEMD_LOG(ERR, fmt, ## arg);\
-	abort();\
-} while (0)
-
-#define	RPMEMD_ASSERT(cond) do {\
-	if (!(cond)) {\
-		rpmemd_log(RPD_LOG_ERR, __FILE__, __LINE__,\
-			"assertion fault: %s", #cond);\
-		abort();\
-	}\
-} while (0)
-
-enum rpmemd_log_level {
-	RPD_LOG_ERR,
-	RPD_LOG_WARN,
-	RPD_LOG_NOTICE,
-	RPD_LOG_INFO,
-	_RPD_LOG_DBG,	/* disallow to use this with LOG macro */
-	MAX_RPD_LOG,
+enum {
+	LERR = 1,
+	LWARN = 2,
+	LNOTICE = 3,
+	LINFO = 4,
+	_LDBG = 10,
 };
 
-enum rpmemd_log_level rpmemd_log_level_from_str(const char *str);
-const char *rpmemd_log_level_to_str(enum rpmemd_log_level level);
+#define	RPMEM_LOG(level, fmt, args...) LOG(L##level, fmt, ## args)
+#define	RPMEM_DBG(fmt, args...) LOG(_LDBG, fmt, ## args)
+#define	RPMEM_FATAL(fmt, args...) FATAL(fmt, ## args)
+#define	RPMEM_ASSERT(cond)	ASSERT(cond)
 
-extern enum rpmemd_log_level rpmemd_log_level;
-int rpmemd_log_init(const char *ident, const char *fname, int use_syslog);
-void rpmemd_log_close(void);
-int rpmemd_prefix(const char *fmt, ...) FORMAT_PRINTF(1, 2);
-void rpmemd_log(enum rpmemd_log_level level, const char *fname,
-		int lineno, const char *fmt, ...) FORMAT_PRINTF(4, 5);
+const char *rpmem_util_proto_errstr(enum rpmem_err err);
+int rpmem_util_proto_errno(enum rpmem_err err);

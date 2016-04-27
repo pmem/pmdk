@@ -3,19 +3,20 @@ compiler:
   - clang
   - gcc
 before_install:
+  - export NOTTY=1
   - if [ "$CC" = "clang" ]; then export CXX="clang++"; else export CXX="g++"; fi
   - if [ "$EXTRA_CFLAGS" = "-DUSE_VALGRIND" ]; then sudo add-apt-repository -y ppa:tmsz-kapela/valgrind-pmem; fi
   - sudo apt-get update -qq
-  - sudo apt-get install -y libunwind7-dev autoconf devscripts pkg-config
+  - sudo apt-get install -y libunwind7-dev autoconf devscripts pkg-config ssh
   - if [ "$EXTRA_CFLAGS" = "-DUSE_VALGRIND" ]; then sudo apt-get install -y valgrind; fi
-  - echo "NON_PMEM_FS_DIR=/tmp" > src/test/testconfig.sh
-  - echo "PMEM_FS_DIR=/tmp" >> src/test/testconfig.sh
-  - echo "PMEM_FS_DIR_FORCE_PMEM=1" >> src/test/testconfig.sh
+  - if [ $REMOTE_TESTS -eq 1 ]; then export TRAVIS_CONFIG="$TRAVIS_CONFIG --remote"; fi
+  - if [ $BUILD_LIBFABRIC -eq 1 ]; then export TRAVIS_CONFIG="$TRAVIS_CONFIG --libfabric"; fi
+  - ./.travis_config.sh $TRAVIS_CONFIG
   - sudo mount -t tmpfs none /tmp -osize=4G
 script:
   - if [ $MAKE_DPKG -eq 0 ]; then make check-license && make cstyle && make -j2 USE_LIBUNWIND=1 && make -j2 test USE_LIBUNWIND=1 && make check && make DESTDIR=/tmp source; fi
   - if [ $MAKE_DPKG -eq 1 ]; then make -j2 dpkg; fi
 env:
-  - NOTTY=1 MAKE_DPKG=0 EXTRA_CFLAGS=-DUSE_VALGRIND
-  - NOTTY=1 MAKE_DPKG=0 EXTRA_CFLAGS=
-  - NOTTY=1 MAKE_DPKG=1
+  - MAKE_DPKG=0 EXTRA_CFLAGS=-DUSE_VALGRIND
+  - MAKE_DPKG=1
+  - MAKE_DPKG=0 EXTRA_CFLAGS=-DUSE_VALGRIND BUILD_LIBFABRIC=1 REMOTE_TESTS=1

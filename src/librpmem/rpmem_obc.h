@@ -31,54 +31,33 @@
  */
 
 /*
- * rpmemd_log.h -- rpmemd logging functions declarations
+ * rpmem_obc.h -- rpmem out-of-band connection client header file
  */
 
-#define	FORMAT_PRINTF(a, b) __attribute__((__format__(__printf__, (a), (b))))
+#include <sys/types.h>
+#include <sys/socket.h>
 
-#ifdef DEBUG
-#define	RPMEMD_LOG(level, fmt, arg...)\
-	rpmemd_log(RPD_LOG_##level, __FILE__, __LINE__, fmt, ## arg)
-#else
-#define	RPMEMD_LOG(level, fmt, arg...)\
-	rpmemd_log(RPD_LOG_##level, NULL, 0, fmt, ## arg)
-#endif
+#include "librpmem.h"
 
-#ifdef DEBUG
-#define	RPMEMD_DBG(fmt, arg...)\
-	rpmemd_log(_RPD_LOG_DBG, __FILE__, __LINE__, fmt, ## arg)
-#else
-#define	RPMEMD_DBG(fmt, arg...) do {} while (0)
-#endif
+struct rpmem_obc;
 
-#define	RPMEMD_FATAL(fmt, arg...) do {\
-	RPMEMD_LOG(ERR, fmt, ## arg);\
-	abort();\
-} while (0)
+struct rpmem_obc *rpmem_obc_init(void);
+void rpmem_obc_fini(struct rpmem_obc *rpc);
 
-#define	RPMEMD_ASSERT(cond) do {\
-	if (!(cond)) {\
-		rpmemd_log(RPD_LOG_ERR, __FILE__, __LINE__,\
-			"assertion fault: %s", #cond);\
-		abort();\
-	}\
-} while (0)
+int rpmem_obc_connect(struct rpmem_obc *rpc, const char *target);
+int rpmem_obc_disconnect(struct rpmem_obc *rpc);
+int rpmem_obc_get_addr(struct rpmem_obc *rpc,
+		struct sockaddr *addr, socklen_t *addrlen);
 
-enum rpmemd_log_level {
-	RPD_LOG_ERR,
-	RPD_LOG_WARN,
-	RPD_LOG_NOTICE,
-	RPD_LOG_INFO,
-	_RPD_LOG_DBG,	/* disallow to use this with LOG macro */
-	MAX_RPD_LOG,
-};
+int rpmem_obc_monitor(struct rpmem_obc *rpc, int nonblock);
 
-enum rpmemd_log_level rpmemd_log_level_from_str(const char *str);
-const char *rpmemd_log_level_to_str(enum rpmemd_log_level level);
-
-extern enum rpmemd_log_level rpmemd_log_level;
-int rpmemd_log_init(const char *ident, const char *fname, int use_syslog);
-void rpmemd_log_close(void);
-int rpmemd_prefix(const char *fmt, ...) FORMAT_PRINTF(1, 2);
-void rpmemd_log(enum rpmemd_log_level level, const char *fname,
-		int lineno, const char *fmt, ...) FORMAT_PRINTF(4, 5);
+int rpmem_obc_create(struct rpmem_obc *rpc,
+		const struct rpmem_req_attr *req,
+		struct rpmem_resp_attr *res,
+		const struct rpmem_pool_attr *pool_attr);
+int rpmem_obc_open(struct rpmem_obc *rpc,
+		const struct rpmem_req_attr *req,
+		struct rpmem_resp_attr *res,
+		struct rpmem_pool_attr *pool_attr);
+int rpmem_obc_remove(struct rpmem_obc *rpc, const char *pool_desc);
+int rpmem_obc_close(struct rpmem_obc *rpc);

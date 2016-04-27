@@ -31,54 +31,56 @@
  */
 
 /*
- * rpmemd_log.h -- rpmemd logging functions declarations
+ * rpmemd_obc_test.c -- unit test for rpmemd_obc module
  */
 
-#define	FORMAT_PRINTF(a, b) __attribute__((__format__(__printf__, (a), (b))))
+#include "rpmemd_obc_test_common.h"
 
-#ifdef DEBUG
-#define	RPMEMD_LOG(level, fmt, arg...)\
-	rpmemd_log(RPD_LOG_##level, __FILE__, __LINE__, fmt, ## arg)
-#else
-#define	RPMEMD_LOG(level, fmt, arg...)\
-	rpmemd_log(RPD_LOG_##level, NULL, 0, fmt, ## arg)
-#endif
+/*
+ * test_cases -- available test cases
+ */
+static struct test_case test_cases[] = {
+	TEST_CASE(server_accept_seq),
+	TEST_CASE(server_accept_seq_fork),
+	TEST_CASE(client_accept_seq),
 
-#ifdef DEBUG
-#define	RPMEMD_DBG(fmt, arg...)\
-	rpmemd_log(_RPD_LOG_DBG, __FILE__, __LINE__, fmt, ## arg)
-#else
-#define	RPMEMD_DBG(fmt, arg...) do {} while (0)
-#endif
+	TEST_CASE(server_accept_sim),
+	TEST_CASE(server_accept_sim_fork),
+	TEST_CASE(client_accept_sim),
 
-#define	RPMEMD_FATAL(fmt, arg...) do {\
-	RPMEMD_LOG(ERR, fmt, ## arg);\
-	abort();\
-} while (0)
+	TEST_CASE(server_econnreset),
+	TEST_CASE(client_econnreset),
 
-#define	RPMEMD_ASSERT(cond) do {\
-	if (!(cond)) {\
-		rpmemd_log(RPD_LOG_ERR, __FILE__, __LINE__,\
-			"assertion fault: %s", #cond);\
-		abort();\
-	}\
-} while (0)
+	TEST_CASE(server_bad_msg_hdr),
+	TEST_CASE(client_bad_msg_hdr),
 
-enum rpmemd_log_level {
-	RPD_LOG_ERR,
-	RPD_LOG_WARN,
-	RPD_LOG_NOTICE,
-	RPD_LOG_INFO,
-	_RPD_LOG_DBG,	/* disallow to use this with LOG macro */
-	MAX_RPD_LOG,
+	TEST_CASE(server_create),
+	TEST_CASE(client_create),
+
+	TEST_CASE(server_open),
+	TEST_CASE(client_open),
+
+	TEST_CASE(server_close),
+	TEST_CASE(client_close),
+
+	TEST_CASE(server_remove),
+	TEST_CASE(client_remove),
 };
 
-enum rpmemd_log_level rpmemd_log_level_from_str(const char *str);
-const char *rpmemd_log_level_to_str(enum rpmemd_log_level level);
+#define	NTESTS	(sizeof (test_cases) / sizeof (test_cases[0]))
 
-extern enum rpmemd_log_level rpmemd_log_level;
-int rpmemd_log_init(const char *ident, const char *fname, int use_syslog);
-void rpmemd_log_close(void);
-int rpmemd_prefix(const char *fmt, ...) FORMAT_PRINTF(1, 2);
-void rpmemd_log(enum rpmemd_log_level level, const char *fname,
-		int lineno, const char *fmt, ...) FORMAT_PRINTF(4, 5);
+int
+main(int argc, char *argv[])
+{
+	START(argc, argv, "rpmemd_obc");
+
+	rpmemd_log_init("rpmemd", getenv("RPMEMD_LOG_FILE"), 0);
+	rpmemd_log_level = rpmemd_log_level_from_str(
+			getenv("RPMEMD_LOG_LEVEL"));
+
+	TEST_CASE_PROCESS(argc, argv, test_cases, NTESTS);
+
+	rpmemd_log_close();
+
+	DONE(NULL);
+}

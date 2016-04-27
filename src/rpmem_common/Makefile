@@ -1,4 +1,5 @@
-# Copyright 2016, Intel Corporation
+#
+# Copyright 2014-2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -29,23 +30,11 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #
-# src/librpmem/Makefile -- Makefile for librpmem
+# src/rpmem_common/Makefile -- Makefile for rpmem_common
 #
-vpath %.c ../rpmem_common
 
-LIBRARY_NAME = rpmem
-LIBRARY_SO_VERSION = 1
-LIBRARY_VERSION = 0.0
-SOURCE = $(COMMON)/util.c\
-	$(COMMON)/util_platform.c\
-	$(COMMON)/out.c\
-	librpmem.c\
-	rpmem.c\
-	rpmem_obc.c\
-	rpmem_common.c\
-	rpmem_util.c
+TOP := $(dir $(lastword $(MAKEFILE_LIST)))../..
+include $(TOP)/src/common.inc
 
-include ../Makefile.inc
-
-CFLAGS += -I. -I../rpmem_common
-CFLAGS += -DRPMEMC_LOG_RPMEM
+cstyle:
+	$(CSTYLE) *.[ch]

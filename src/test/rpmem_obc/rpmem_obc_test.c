@@ -31,54 +31,47 @@
  */
 
 /*
- * rpmemd_log.h -- rpmemd logging functions declarations
+ * rpmem_obc_test.c -- unit test for rpmem_obc module
  */
 
-#define	FORMAT_PRINTF(a, b) __attribute__((__format__(__printf__, (a), (b))))
+#include "rpmem_obc_test_common.h"
 
-#ifdef DEBUG
-#define	RPMEMD_LOG(level, fmt, arg...)\
-	rpmemd_log(RPD_LOG_##level, __FILE__, __LINE__, fmt, ## arg)
-#else
-#define	RPMEMD_LOG(level, fmt, arg...)\
-	rpmemd_log(RPD_LOG_##level, NULL, 0, fmt, ## arg)
-#endif
+/*
+ * test_cases -- available test cases
+ */
+static struct test_case test_cases[] = {
+	TEST_CASE(client_enotconn),
+	TEST_CASE(client_connect),
+	TEST_CASE(server_wait),
 
-#ifdef DEBUG
-#define	RPMEMD_DBG(fmt, arg...)\
-	rpmemd_log(_RPD_LOG_DBG, __FILE__, __LINE__, fmt, ## arg)
-#else
-#define	RPMEMD_DBG(fmt, arg...) do {} while (0)
-#endif
+	TEST_CASE(client_create),
+	TEST_CASE(server_create),
 
-#define	RPMEMD_FATAL(fmt, arg...) do {\
-	RPMEMD_LOG(ERR, fmt, ## arg);\
-	abort();\
-} while (0)
+	TEST_CASE(client_open),
+	TEST_CASE(server_open),
 
-#define	RPMEMD_ASSERT(cond) do {\
-	if (!(cond)) {\
-		rpmemd_log(RPD_LOG_ERR, __FILE__, __LINE__,\
-			"assertion fault: %s", #cond);\
-		abort();\
-	}\
-} while (0)
+	TEST_CASE(client_close),
+	TEST_CASE(server_close),
 
-enum rpmemd_log_level {
-	RPD_LOG_ERR,
-	RPD_LOG_WARN,
-	RPD_LOG_NOTICE,
-	RPD_LOG_INFO,
-	_RPD_LOG_DBG,	/* disallow to use this with LOG macro */
-	MAX_RPD_LOG,
+	TEST_CASE(client_remove),
+	TEST_CASE(server_remove),
+
+	TEST_CASE(client_monitor),
+	TEST_CASE(server_monitor),
 };
 
-enum rpmemd_log_level rpmemd_log_level_from_str(const char *str);
-const char *rpmemd_log_level_to_str(enum rpmemd_log_level level);
+#define	NTESTS	(sizeof (test_cases) / sizeof (test_cases[0]))
 
-extern enum rpmemd_log_level rpmemd_log_level;
-int rpmemd_log_init(const char *ident, const char *fname, int use_syslog);
-void rpmemd_log_close(void);
-int rpmemd_prefix(const char *fmt, ...) FORMAT_PRINTF(1, 2);
-void rpmemd_log(enum rpmemd_log_level level, const char *fname,
-		int lineno, const char *fmt, ...) FORMAT_PRINTF(4, 5);
+int
+main(int argc, char *argv[])
+{
+	START(argc, argv, "rpmem_obc");
+	out_init("rpmem_fip",
+		"RPMEM_LOG_LEVEL",
+		"RPMEM_LOG_FILE", 0, 0);
+
+	TEST_CASE_PROCESS(argc, argv, test_cases, NTESTS);
+
+	out_fini();
+	DONE(NULL);
+}
