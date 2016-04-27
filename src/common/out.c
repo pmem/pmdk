@@ -55,6 +55,12 @@ static int Log_level;
 static FILE *Out_fp;
 static unsigned Log_alignment;
 
+#ifndef _WIN32
+#define	DIR_SEPARATOR '/'
+#else
+#define	DIR_SEPARATOR '\\'
+#endif
+
 #ifndef NO_LIBPTHREAD
 
 #define MAXPRINT 8192	/* maximum expected log line */
@@ -151,22 +157,23 @@ Last_errormsg_get()
 static const char *
 getexecname(void)
 {
-#ifndef _WIN32
-	char procpath[PATH_MAX];
 	static char namepath[PATH_MAX];
 	ssize_t cc;
+
+#ifndef _WIN32
+	char procpath[PATH_MAX];
 
 	snprintf(procpath, PATH_MAX, "/proc/%d/exe", getpid());
 
 	if ((cc = readlink(procpath, namepath, PATH_MAX)) < 0)
+#else
+	if ((cc = GetModuleFileName(NULL, namepath, PATH_MAX)) == 0)
+#endif
 		strcpy(namepath, "unknown");
 	else
 		namepath[cc] = '\0';
 
 	return namepath;
-#else
-	return ""; /* GetProcessImageFileName() */
-#endif
 }
 #endif	/* DEBUG */
 
@@ -363,7 +370,7 @@ out_common(const char *file, int line, const char *func, int level,
 	const char *errstr = "";
 
 	if (file) {
-		char *f = strrchr(file, '/');
+		char *f = strrchr(file, DIR_SEPARATOR);
 		if (f)
 			file = f + 1;
 		ret = out_snprintf(&buf[cc], MAXPRINT - cc,
@@ -439,7 +446,7 @@ out_error(const char *file, int line, const char *func,
 		cc = 0;
 
 		if (file) {
-			char *f = strrchr(file, '/');
+			char *f = strrchr(file, DIR_SEPARATOR);
 			if (f)
 				file = f + 1;
 			ret = out_snprintf(&buf[cc], MAXPRINT,
