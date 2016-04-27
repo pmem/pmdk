@@ -151,6 +151,8 @@ struct pool_hdr {
 int util_checksum(void *addr, size_t len, uint64_t *csump, int insert);
 int util_convert_hdr(struct pool_hdr *hdrp);
 int util_get_arch_flags(struct arch_flags *arch_flags);
+int util_compare_arch_flags(const struct arch_flags *arch_flags,
+				const struct arch_flags *comp_flags);
 int util_check_arch_flags(const struct arch_flags *arch_flags);
 
 /*
@@ -238,6 +240,7 @@ char *util_map_hint_unused(void *addr, size_t len, size_t align);
 char *util_map_hint(size_t len, size_t req_align);
 
 int util_poolset_parse(const char *path, int fd, struct pool_set **setp);
+int util_poolset_read(struct pool_set **setp, const char *path);
 void util_poolset_close(struct pool_set *set, int del);
 void util_poolset_free(struct pool_set *set);
 int util_poolset_chmod(struct pool_set *set, mode_t mode);
@@ -256,11 +259,23 @@ int util_uuid_generate(uuid_t uuid);
 int util_pool_create(struct pool_set **setp, const char *path, size_t poolsize,
 	size_t minsize, const char *sig,
 	uint32_t major, uint32_t compat, uint32_t incompat, uint32_t ro_compat);
+int util_pool_create_uuids(struct pool_set **setp, const char *path,
+	size_t poolsize, size_t minsize, const char *sig,
+	uint32_t major, uint32_t compat, uint32_t incompat, uint32_t ro_compat,
+	unsigned char *poolset_uuid, unsigned char *first_part_uuid,
+	unsigned char *prev_repl_uuid, unsigned char *next_repl_uuid);
+
 int util_pool_open_nocheck(struct pool_set **setp, const char *path,
 		int rdonly);
 int util_pool_open(struct pool_set **setp, const char *path, int rdonly,
 	size_t minsize, const char *sig,
 	uint32_t major, uint32_t compat, uint32_t incompat, uint32_t ro_compat);
+int util_pool_open_remote(struct pool_set **setp, const char *path, int rdonly,
+	size_t minsize, char *sig, uint32_t *major,
+	uint32_t *compat, uint32_t *incompat, uint32_t *ro_compat,
+	unsigned char *poolset_uuid, unsigned char *first_part_uuid,
+	unsigned char *prev_repl_uuid, unsigned char *next_repl_uuid);
+
 int util_parse_size(const char *str, size_t *sizep);
 
 
