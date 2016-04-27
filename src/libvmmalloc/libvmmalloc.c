@@ -214,7 +214,7 @@ aligned_alloc(size_t alignment, size_t size)
 
 	if (Vmp == NULL) {
 		ASSERT(size <= HUGE);
-		return je_vmem_memalign(alignment, size);
+		return je_vmem_aligned_alloc(alignment, size);
 	}
 	LOG(4, "alignment %zu  size %zu", alignment, size);
 	return je_vmem_pool_aligned_alloc(
@@ -235,11 +235,7 @@ posix_memalign(void **memptr, size_t alignment, size_t size)
 	int oerrno = errno;
 	if (Vmp == NULL) {
 		ASSERT(size <= HUGE);
-		*memptr = je_vmem_memalign(alignment, size);
-		if (*memptr == NULL)
-			ret = errno;
-		errno = oerrno;
-		return ret;
+		return je_vmem_posix_memalign(memptr, alignment, size);
 	}
 	LOG(4, "alignment %zu  size %zu", alignment, size);
 	*memptr = je_vmem_pool_aligned_alloc(
