@@ -17,6 +17,13 @@ $(OPT)==$(N)==    $(S) 0x$(X): obj_free $(*)
 $(OPT)==$(N)==    $(S) 0x$(X): pmemobj_free $(*)
 ==$(N)==    by 0x$(X): test_everything (obj_memcheck.c:$(N))
 ==$(N)==    by 0x$(X): main (obj_memcheck.c:$(N))
+$(OPT)==$(N)==  Block was alloc'd at
+$(OPT)==$(N)==    $(S) 0x$(X): alloc_prep_block $(*)
+$(OPT)==$(N)==    $(S) 0x$(X): palloc_operation $(*)
+$(OPT)==$(N)==    $(S) 0x$(X): obj_alloc_construct $(*)
+$(OPT)==$(N)==    $(S) 0x$(X): pmemobj_alloc $(*)
+$(OPT)==$(N)==    $(S) 0x$(X): test_everything $(*)
+$(OPT)==$(N)==    $(S) 0x$(X): main $(*)
 ==$(N)== 
 ==$(N)== Unaddressable byte(s) found during client check request
 ==$(N)==    at 0x$(X): pmem_msync $(*)
@@ -30,16 +37,25 @@ $(OPT)==$(N)==    $(S) 0x$(X): obj_free $(*)
 $(OPT)==$(N)==    $(S) 0x$(X): pmemobj_free $(*)
 ==$(N)==    by 0x$(X): test_everything (obj_memcheck.c:$(N))
 ==$(N)==    by 0x$(X): main (obj_memcheck.c:$(N))
+$(OPT)==$(N)==  Block was alloc'd at
+$(OPT)==$(N)==    $(S) 0x$(X): alloc_prep_block $(*)
+$(OPT)==$(N)==    $(S) 0x$(X): palloc_operation $(*)
+$(OPT)==$(N)==    $(S) 0x$(X): obj_alloc_construct $(*)
+$(OPT)==$(N)==    $(S) 0x$(X): pmemobj_alloc $(*)
+$(OPT)==$(N)==    $(S) 0x$(X): test_everything $(*)
+$(OPT)==$(N)==    $(S) 0x$(X): main $(*)
 ==$(N)== 
 ==$(N)== Invalid write of size 4
 ==$(N)==    at 0x$(X): test_everything (obj_memcheck.c:$(N))
 ==$(N)==    by 0x$(X): main (obj_memcheck.c:$(N))
-==$(N)==  Address 0x$(X) is not stack'd, malloc'd or (recently) free'd
+$(OPT)==$(N)==  Address 0x$(X) is not stack'd, malloc'd or (recently) free'd
+$(OPT)==$(N)==  Address 0x$(X) is in a rw- mapped file $(nW) segment
 ==$(N)== 
 ==$(N)== Invalid write of size 4
 ==$(N)==    at 0x$(X): test_everything (obj_memcheck.c:$(N))
 ==$(N)==    by 0x$(X): main (obj_memcheck.c:$(N))
-==$(N)==  Address 0x$(X) is not stack'd, malloc'd or (recently) free'd
+$(OPT)==$(N)==  Address 0x$(X) is not stack'd, malloc'd or (recently) free'd
+$(OPT)==$(N)==  Address 0x$(X) is in a rw- mapped file $(nW) segment
 ==$(N)== 
 ==$(N)== Invalid write of size 4
 ==$(N)==    at 0x$(X): test_everything (obj_memcheck.c:$(N))
@@ -50,6 +66,13 @@ $(OPT)==$(N)==    $(S) 0x$(X): obj_free $(*)
 $(OPT)==$(N)==    $(S) 0x$(X): pmemobj_free $(*)
 ==$(N)==    by 0x$(X): test_everything (obj_memcheck.c:$(N))
 ==$(N)==    by 0x$(X): main (obj_memcheck.c:$(N))
+$(OPT)==$(N)==  Block was alloc'd at
+$(OPT)==$(N)==    $(S) 0x$(X): alloc_prep_block $(*)
+$(OPT)==$(N)==    $(S) 0x$(X): palloc_operation $(*)
+$(OPT)==$(N)==    $(S) 0x$(X): obj_realloc_common $(*)
+$(OPT)==$(N)==    $(S) 0x$(X): pmemobj_realloc $(*)
+$(OPT)==$(N)==    $(S) 0x$(X): test_everything $(*)
+$(OPT)==$(N)==    $(S) 0x$(X): main $(*)
 ==$(N)== 
 ==$(N)== Unaddressable byte(s) found during client check request
 ==$(N)==    at 0x$(X): pmem_msync $(*)
@@ -63,6 +86,13 @@ $(OPT)==$(N)==    $(S) 0x$(X): obj_free $(*)
 $(OPT)==$(N)==    $(S) 0x$(X): pmemobj_free $(*)
 ==$(N)==    by 0x$(X): test_everything (obj_memcheck.c:$(N))
 ==$(N)==    by 0x$(X): main (obj_memcheck.c:$(N))
+$(OPT)==$(N)==  Block was alloc'd at
+$(OPT)==$(N)==    $(S) 0x$(X): alloc_prep_block $(*)
+$(OPT)==$(N)==    $(S) 0x$(X): palloc_operation $(*)
+$(OPT)==$(N)==    $(S) 0x$(X): obj_realloc_common $(*)
+$(OPT)==$(N)==    $(S) 0x$(X): pmemobj_realloc $(*)
+$(OPT)==$(N)==    $(S) 0x$(X): test_everything $(*)
+$(OPT)==$(N)==    $(S) 0x$(X): main $(*)
 ==$(N)== 
 ==$(N)== Invalid write of size 4
 ==$(N)==    at 0x$(X): test_everything (obj_memcheck.c:$(N))
@@ -73,6 +103,13 @@ $(OPT)==$(N)==    $(S) 0x$(X): obj_free $(*)
 $(OPT)==$(N)==    $(S) 0x$(X): pmemobj_free $(*)
 ==$(N)==    by 0x$(X): test_everything (obj_memcheck.c:$(N))
 ==$(N)==    by 0x$(X): main (obj_memcheck.c:$(N))
+$(OPT)==$(N)==  Block was alloc'd at
+$(OPT)==$(N)==    $(S) 0x$(X): alloc_prep_block $(*)
+$(OPT)==$(N)==    $(S) 0x$(X): palloc_operation $(*)
+$(OPT)==$(N)==    $(S) 0x$(X): obj_realloc_common $(*)
+$(OPT)==$(N)==    $(S) 0x$(X): pmemobj_realloc $(*)
+$(OPT)==$(N)==    $(S) 0x$(X): test_everything $(*)
+$(OPT)==$(N)==    $(S) 0x$(X): main $(*)
 ==$(N)== 
 ==$(N)== Unaddressable byte(s) found during client check request
 ==$(N)==    at 0x$(X): pmem_msync $(*)
@@ -86,6 +123,13 @@ $(OPT)==$(N)==    $(S) 0x$(X): obj_free $(*)
 $(OPT)==$(N)==    $(S) 0x$(X): pmemobj_free $(*)
 ==$(N)==    by 0x$(X): test_everything (obj_memcheck.c:$(N))
 ==$(N)==    by 0x$(X): main (obj_memcheck.c:$(N))
+$(OPT)==$(N)==  Block was alloc'd at
+$(OPT)==$(N)==    $(S) 0x$(X): alloc_prep_block $(*)
+$(OPT)==$(N)==    $(S) 0x$(X): palloc_operation $(*)
+$(OPT)==$(N)==    $(S) 0x$(X): obj_realloc_common $(*)
+$(OPT)==$(N)==    $(S) 0x$(X): pmemobj_realloc $(*)
+$(OPT)==$(N)==    $(S) 0x$(X): test_everything $(*)
+$(OPT)==$(N)==    $(S) 0x$(X): main $(*)
 ==$(N)== 
 ==$(N)== 
 ==$(N)== HEAP SUMMARY:
