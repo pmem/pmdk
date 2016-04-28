@@ -34,14 +34,12 @@
 # src/test/obj_lane/Makefile -- build obj_lane unit test
 #
 TOP = ../../..
-PLATFORM = $(TOP)/platform/linux
 
 vpath %.c $(TOP)/src/libpmemobj
 vpath %.c $(TOP)/src/common
-vpath %.c $(PLATFORM)/src/common
 
 TARGET = obj_lane
-OBJS = obj_lane.o cuckoo.o lane.o util.o util_platform.o out.o
+OBJS = obj_lane.o cuckoo.o lane.o util.o util_linux.o out.o
 
 LIBPMEM=y
 

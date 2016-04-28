@@ -34,13 +34,11 @@
 # src/test/obj_realloc/Makefile -- build obj_realloc unit test
 #
 TOP = ../../..
-PLATFORM = $(TOP)/platform/linux
 
 vpath %.c $(TOP)/src/common
-vpath %.c $(PLATFORM)/src/common
 
 TARGET = obj_realloc
-OBJS = obj_realloc.o util.o util_platform.o out.o
+OBJS = obj_realloc.o util.o util_linux.o out.o
 
 LIBPMEM=y
 LIBPMEMOBJ=y

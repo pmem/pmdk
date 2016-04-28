@@ -43,7 +43,7 @@ TARGET = rpmem_obc_int
 OBJS = rpmem_obc_int.o\
        rpmem_obc.o rpmem_util.o rpmem_common.o\
        rpmemd_obc.o rpmemd_log.o\
-       out.o util.o util_platform.o
+       out.o util.o util_linux.o
 
 out.o: CFLAGS += -DDEBUG -DSRCVERSION=\"utversion\"
 

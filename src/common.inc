@@ -32,7 +32,6 @@
 #
 
 TOP := $(dir $(lastword $(MAKEFILE_LIST)))..
-PLATFORM = $(TOP)/platform/linux
 
 LN = ln
 OBJCOPY = objcopy

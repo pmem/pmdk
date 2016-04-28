@@ -34,16 +34,14 @@
 # src/test/util_parse_size/Makefile -- check parsing results
 #
 TOP = ../../..
-PLATFORM = $(TOP)/platform/linux
 
 vpath %.c $(TOP)/src/common
-vpath %.c $(PLATFORM)/src/common
 
 TARGET = util_parse_size
-OBJS = util_parse_size.o util.o util_platform.o set.o out.o
+OBJS = util_parse_size.o util.o util_linux.o set.o out.o
 
 out.o: CFLAGS += -DDEBUG -DSRCVERSION=\"utversion\"
-util.o util_platform.o: CFLAGS += -DDEBUG
+util.o util_linux.o: CFLAGS += -DDEBUG
 set.o: CFLAGS += -DDEBUG
 
 LIBPMEM=y

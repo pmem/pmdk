@@ -34,14 +34,12 @@
 # src/test/obj_cuckoo/Makefile -- build obj_cuckoo unit test
 #
 TOP = ../../..
-PLATFORM = $(TOP)/platform/linux
 
 vpath %.c $(TOP)/src/libpmemobj
 vpath %.c $(TOP)/src/common
-vpath %.c $(PLATFORM)/src/common
 
 TARGET = obj_cuckoo
-OBJS = obj_cuckoo.o cuckoo.o util.o util_platform.o out.o
+OBJS = obj_cuckoo.o cuckoo.o util.o util_linux.o out.o
 
 LIBPMEM=y
 

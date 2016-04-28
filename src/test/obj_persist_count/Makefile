@@ -34,16 +34,14 @@
 # src/test/obj_persist_count/Makefile -- build obj_persist_count unit test
 #
 TOP = ../../..
-PLATFORM = $(TOP)/platform/linux
 
 vpath %.c $(TOP)/src/libpmemobj
 vpath %.c $(TOP)/src/common
-vpath %.c $(PLATFORM)/src/common
 
 TARGET = obj_persist_count
 
 OBJS = obj_persist_count.o pmalloc.o bucket.o redo.o heap.o lane.o ctree.o\
-    util.o util_platform.o set.o out.o obj.o cuckoo.o list.o sync.o tx.o memops.o\
+    util.o util_linux.o set.o out.o obj.o cuckoo.o list.o sync.o tx.o memops.o\
     libpmemobj.o
 
 LIBPMEM=y
