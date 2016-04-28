@@ -48,7 +48,6 @@ HEADERS_INSTALL = include/libpmem.h include/libvmem.h\
 		include/libpmemlog.h include/libvmmalloc.h
 
 CPP_HEADERS_DESTDIR = $(DESTDIR)$(includedir)/libpmemobj
-CPP_HEADERS_INSTALL = $(foreach d, include/libpmemobj, $(wildcard $(d)/*.hpp))
 
 MAKE_PKG_CONFIG = $(TOP)/utils/make-pkg-config.sh
 PKG_CONFIG_DESTDIR = $(DESTDIR)$(pkgconfigdir)
@@ -139,8 +138,7 @@ endif
 
 ifeq ($(EXPERIMENTAL),y)
 install-cpp:
-	install -d $(CPP_HEADERS_DESTDIR)
-	install -p -m 0644 $(CPP_HEADERS_INSTALL) $(CPP_HEADERS_DESTDIR)
+	$(call install_recursive_filter,include/libpmemobj,*.hpp,0644,$(CPP_HEADERS_DESTDIR))
 
 install: install-cpp
 

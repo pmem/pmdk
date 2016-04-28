@@ -67,6 +67,8 @@ check_librt = $(shell echo "int main() { struct timespec t; return clock_gettime
 
 install_recursive = $(shell find $(1) -type f -exec install -m $(2) -D {} $(3)/{} \;)
 
+install_recursive_filter = $(shell cd $(1) && find . -type f -name "$(2)" -exec install -m $(3) -D {} $(4)/{} \;)
+
 define create-deps
 	@cp $(objdir)/$*.d $(objdir)/.deps/$*.P; \
 	sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
