@@ -272,17 +272,22 @@ util_poolset_chmod(struct pool_set *set, mode_t mode)
 			if (!part->created)
 				continue;
 
-			struct stat st;
-			if (fstat(part->fd, &st)) {
+#ifndef WIN32
+			struct stat stbuf;
+			if (fstat(part->fd, &stbuf) != 0) {
+#else
+			struct _stat64 stbuf;
+			if (_fstat64(part->fd, &stbuf) != 0) {
+#endif
 				ERR("!fstat");
 				return -1;
 			}
 
-			if (st.st_mode & ~(unsigned)S_IFMT) {
+			if (stbuf.st_mode & ~(unsigned)S_IFMT) {
 				LOG(1, "file permissions changed during pool "
 					"initialization, file: %s (%o)",
 					part->path,
-					st.st_mode & ~(unsigned)S_IFMT);
+					stbuf.st_mode & ~(unsigned)S_IFMT);
 			}
 
 			if (fchmod(part->fd, mode)) {
@@ -1061,12 +1066,16 @@ util_replica_create(struct pool_set *set, unsigned repidx, int flags,
 
 	struct pool_replica *rep = set->replica[repidx];
 
+#ifndef WIN32
 	/* determine a hint address for mmap() */
 	void *addr = util_map_hint(rep->repsize, 0);
 	if (addr == NULL) {
 		ERR("cannot find a contiguous region of given size");
 		return -1;
 	}
+#else
+	void *addr = NULL;
+#endif
 
 	/* map the first part and reserve space for remaining parts */
 	if (util_map_part(&rep->part[0], addr, rep->repsize, 0, flags) != 0) {
@@ -1232,41 +1241,6 @@ util_uuid_from_string(const char *uuid, struct uuid *ud)
 }
 
 /*
- * util_uuid_generate -- generate a uuid
- *
- * This function reads the uuid string from  /proc/sys/kernel/random/uuid
- * It converts this string into the binary uuid format as specified in
- * https://www.ietf.org/rfc/rfc4122.txt
- */
-int
-util_uuid_generate(uuid_t uuid)
-{
-	char uu[POOL_HDR_UUID_STR_LEN];
-
-	int fd = open(POOL_HDR_UUID_GEN_FILE, O_RDONLY);
-	if (fd < 0) {
-		/* Fatal error */
-		LOG(2, "!open(uuid)");
-		return -1;
-	}
-	ssize_t num = read(fd, uu, POOL_HDR_UUID_STR_LEN);
-	if (num < POOL_HDR_UUID_STR_LEN) {
-		/* Fatal error */
-		LOG(2, "!read(uuid)");
-		close(fd);
-		return -1;
-	}
-	close(fd);
-
-	uu[POOL_HDR_UUID_STR_LEN - 1] = '\0';
-	int ret = util_uuid_from_string(uu, (struct uuid *)uuid);
-	if (ret < 0)
-		return ret;
-
-	return 0;
-}
-
-/*
  * util_pool_create -- create a new memory pool (set or a single file)
  *
  * On success returns 0 and a pointer to a newly allocated structure
@@ -1348,12 +1322,17 @@ util_replica_open(struct pool_set *set, unsigned repidx, int flags)
 
 	struct pool_replica *rep = set->replica[repidx];
 
+
+#ifndef WIN32
 	/* determine a hint address for mmap() */
 	void *addr = util_map_hint(rep->repsize, 0);
 	if (addr == NULL) {
 		ERR("cannot find a contiguous region of given size");
 		return -1;
 	}
+#else
+	void *addr = NULL;
+#endif
 
 	/* map the first part and reserve space for remaining parts */
 	if (util_map_part(&rep->part[0], addr, rep->repsize, 0, flags) != 0) {

@@ -106,7 +106,7 @@ lane_info_create()
 /*
  * lane_info_boot -- initialize lane info hash table and lane info key
  */
-inline void
+void
 lane_info_boot()
 {
 	lane_info_create();

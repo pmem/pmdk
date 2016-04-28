@@ -42,11 +42,8 @@
 #include <fcntl.h>
 #include <signal.h>
 #include <unistd.h>
-#include <stdint.h>
-#include <endian.h>
 #include <errno.h>
 #include <stddef.h>
-#include <elf.h>
 #include <link.h>
 
 #include "util.h"

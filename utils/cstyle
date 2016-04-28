@@ -598,7 +598,7 @@ line: while (<$filehandle>) {
 		my $s = $_;
 		# strip off all keywords on the line
 		s/\b(for|if|while|switch|return|case)\s\(/XXX(/g;
-		s/\b(sizeof|typeof)\s*\(/XXX(/g;
+		s/\b(sizeof|typeof|__typeof__)\s*\(/XXX(/g;
 		s/#elif\s\(/XXX(/g;
 		s/^#define\s+\w+\s+\(/XXX(/;
 		# do not match things like "void (*f)();"
