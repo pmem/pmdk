@@ -31,7 +31,7 @@
  */
 
 /*
- * util_linux.c -- general utilities with platform-specific implementation
+ * util_linux.c -- general utilities with OS-specific implementation
  */
 
 #include <stdio.h>
@@ -42,11 +42,8 @@
 #include <fcntl.h>
 #include <signal.h>
 #include <unistd.h>
-#include <stdint.h>
-#include <endian.h>
 #include <errno.h>
 #include <stddef.h>
-#include <elf.h>
 #include <link.h>
 
 #include "util.h"
@@ -84,7 +81,7 @@ util_map_hint_unused(void *minaddr, size_t len, size_t align)
 	FILE *fp;
 	if ((fp = fopen("/proc/self/maps", "r")) == NULL) {
 		ERR("!/proc/self/maps");
-		return NULL;
+		return MAP_FAILED;
 	}
 
 	char line[PROCMAXLEN];	/* for fgets() */
@@ -131,7 +128,7 @@ util_map_hint_unused(void *minaddr, size_t len, size_t align)
 	 */
 	if ((raddr != NULL) && (UINTPTR_MAX - (uintptr_t)raddr < len)) {
 		LOG(4, "end of address space reached");
-		raddr = NULL;
+		raddr = MAP_FAILED;
 	}
 
 	fclose(fp);
@@ -190,9 +187,7 @@ util_map_hint(size_t len, size_t req_align)
 		 */
 		addr = mmap(NULL, len + align, PROT_READ,
 					MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
-		if (addr == MAP_FAILED) {
-			addr = NULL;
-		} else {
+		if (addr != MAP_FAILED) {
 			LOG(4, "system choice %p", addr);
 			munmap(addr, len + align);
 			addr = (char *)roundup((uintptr_t)addr, align);

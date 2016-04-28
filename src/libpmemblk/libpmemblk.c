@@ -48,8 +48,8 @@
  *
  * Called automatically by the run-time loader.
  */
-__attribute__((constructor))
-static void
+ATTR_CONSTRUCTOR
+void
 libpmemblk_init(void)
 {
 	out_init(PMEMBLK_LOG_PREFIX, PMEMBLK_LOG_LEVEL_VAR,
@@ -64,8 +64,8 @@ libpmemblk_init(void)
  *
  * Called automatically when the process terminates.
  */
-__attribute__((destructor))
-static void
+ATTR_DESTRUCTOR
+void
 libpmemblk_fini(void)
 {
 	LOG(3, NULL);

@@ -925,6 +925,7 @@ pocli_pmemobj_list_insert(struct pocli_ctx *ctx, struct pocli_args *args)
 	if (args->argc != 5)
 		return POCLI_ERR_ARGS;
 
+	PMEMoid nulloid = OID_NULL;
 	PMEMoid *dest;
 	PMEMoid *oid;
 	PMEMoid *head_oid;
@@ -942,7 +943,7 @@ pocli_pmemobj_list_insert(struct pocli_ctx *ctx, struct pocli_args *args)
 	if ((ret = pocli_args_list_elm(ctx, args, 3, &dest, head)))
 		return ret;
 	if (dest == NULL)
-		dest = &OID_NULL;
+		dest = &nulloid;
 
 	if ((ret = pocli_args_number(args, 4, &before)))
 		return ret;
@@ -971,6 +972,7 @@ pocli_pmemobj_list_insert_new(struct pocli_ctx *ctx, struct pocli_args *args)
 	if (args->argc != 7)
 		return POCLI_ERR_ARGS;
 
+	PMEMoid nulloid = OID_NULL;
 	PMEMoid *dest;
 	PMEMoid *oid;
 	PMEMoid *head_oid;
@@ -993,7 +995,7 @@ pocli_pmemobj_list_insert_new(struct pocli_ctx *ctx, struct pocli_args *args)
 	if ((ret = pocli_args_list_elm(ctx, args, 3, &dest, head)))
 		return ret;
 	if (dest == NULL)
-		dest = &OID_NULL;
+		dest = &nulloid;
 
 	if ((ret = pocli_args_number(args, 4, &before)))
 		return ret;
@@ -1071,6 +1073,7 @@ pocli_pmemobj_list_move(struct pocli_ctx *ctx, struct pocli_args *args)
 	if (args->argc != 6)
 		return POCLI_ERR_ARGS;
 
+	PMEMoid nulloid = OID_NULL;
 	PMEMoid *dest;
 	PMEMoid *oid;
 	PMEMoid *head_oid;
@@ -1094,7 +1097,7 @@ pocli_pmemobj_list_move(struct pocli_ctx *ctx, struct pocli_args *args)
 	if ((ret = pocli_args_list_elm(ctx, args, 4, &dest, head_dest)))
 		return ret;
 	if (dest == NULL)
-		dest = &OID_NULL;
+		dest = &nulloid;
 
 	if ((ret = pocli_args_number(args, 5, &before)))
 		return ret;

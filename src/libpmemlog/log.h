@@ -34,6 +34,8 @@
  * log.h -- internal definitions for libpmem log module
  */
 
+#include <pthread.h>
+
 #define PMEMLOG_LOG_PREFIX "libpmemlog"
 #define PMEMLOG_LOG_LEVEL_VAR "PMEMLOG_LOG_LEVEL"
 #define PMEMLOG_LOG_FILE_VAR "PMEMLOG_LOG_FILE"

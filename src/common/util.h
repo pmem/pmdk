@@ -303,3 +303,20 @@ static inline void util_setbit(uint8_t *b, uint32_t i)
 (alignment_desc_of(double)	<<  8 * ALIGNMENT_DESC_BITS) |\
 (alignment_desc_of(long double)	<<  9 * ALIGNMENT_DESC_BITS) |\
 (alignment_desc_of(void *)	<< 10 * ALIGNMENT_DESC_BITS)
+
+
+#ifndef _WIN32
+typedef struct stat util_stat_t;
+#define	util_fstat	fstat
+#else
+typedef struct _stat64 util_stat_t;
+#define	util_fstat	_fstat64
+#endif
+
+#ifndef _MSC_VER
+#define	ATTR_CONSTRUCTOR __attribute__((constructor)) static
+#define	ATTR_DESTRUCTOR __attribute__((destructor)) static
+#else
+#define	ATTR_CONSTRUCTOR
+#define	ATTR_DESTRUCTOR
+#endif

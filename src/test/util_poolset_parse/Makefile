@@ -38,11 +38,11 @@ TOP = ../../..
 vpath %.c $(TOP)/src/common
 
 TARGET = util_poolset_parse
-OBJS = util_poolset_parse.o util.o util_linux.o set.o out.o
+OBJS = util_poolset_parse.o util.o util_linux.o set.o set_linux.o out.o
 
 out.o: CFLAGS += -DDEBUG -DSRCVERSION=\"utversion\"
 util.o util_linux.o: CFLAGS += -DDEBUG
-set.o: CFLAGS += -DDEBUG
+set.o set_linux.o: CFLAGS += -DDEBUG
 
 LIBPMEM=y
 
