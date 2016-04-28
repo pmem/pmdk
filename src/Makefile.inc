@@ -67,7 +67,12 @@ CFLAGS += -Wmissing-variable-declarations
 endif
 
 ifeq ($(DEBUG),1)
-CFLAGS += -O0 -ggdb -DDEBUG $(EXTRA_CFLAGS_DEBUG)
+ifeq ($(call check_flag, -Og), y)
+CFLAGS += -Og -fno-omit-frame-pointer
+else
+CFLAGS += -O0
+endif
+CFLAGS += -ggdb -DDEBUG $(EXTRA_CFLAGS_DEBUG)
 LIB_SUBDIR = /nvml_debug
 OBJDIR = debug
 else
