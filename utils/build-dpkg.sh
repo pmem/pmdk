@@ -76,6 +76,7 @@ function convert_changelog() {
 function experimental_install_triggers_overrides() {
 cat << EOF > debian/${OBJ_CPP_NAME}.install
 usr/include/libpmemobj/*.hpp
+usr/include/libpmemobj/detail/*.hpp
 usr/share/doc/${OBJ_CPP_DOC_DIR}/*
 EOF
 

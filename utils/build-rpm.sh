@@ -87,6 +87,7 @@ Development files for NVML C++ libpmemobj bindings - EXPERIMENTAL
 %defattr(-,root,root,-)
 %{_libdir}/pkgconfig/libpmemobj++.pc
 %{_includedir}/libpmemobj/*.hpp
+%{_includedir}/libpmemobj/detail/*.hpp
 %{_docdir}/${OBJ_CPP_NAME}-%{version}/*
 EOF
 }
