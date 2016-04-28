@@ -34,13 +34,11 @@
 # src/test/traces/Makefile -- build traces unit test
 #
 TOP = ../../..
-PLATFORM = $(TOP)/platform/linux
 
 vpath %.c $(TOP)/src/common
-vpath %.c $(PLATFORM)/src/common
 
 TARGET = traces
-OBJS = traces.o out.o util.o util_platform.o
+OBJS = traces.o out.o util.o util_linux.o
 
 out.o: CFLAGS += -DSRCVERSION=\"utversion\"
 

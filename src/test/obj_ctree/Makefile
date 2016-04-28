@@ -34,14 +34,12 @@
 # src/test/obj_ctree/Makefile -- build crit-bit tree unit test
 #
 TOP = ../../..
-PLATFORM = $(TOP)/platform/linux
 
 vpath %.c $(TOP)/src/libpmemobj
 vpath %.c $(TOP)/src/common
-vpath %.c $(PLATFORM)/src/common
 
 TARGET = obj_ctree
-OBJS = obj_ctree.o ctree.o util.o util_platform.o out.o
+OBJS = obj_ctree.o ctree.o util.o util_linux.o out.o
 
 LIBPMEM=y
 

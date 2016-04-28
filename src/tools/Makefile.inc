@@ -32,7 +32,6 @@
 #
 
 TOP := $(dir $(lastword $(MAKEFILE_LIST)))../..
-PLATFORM = $(TOP)/platform/linux
 
 include $(TOP)/src/common.inc
 
@@ -127,9 +126,8 @@ endif
 ifeq ($(TOOLS_COMMON), y)
 vpath %.c $(TOP)/src/common
 vpath %.c $(TOP)/src/tools/pmempool
-vpath %.c $(PLATFORM)/src/common
 
-OBJS += common.o output.o util.o util_platform.o set.o
+OBJS += common.o output.o util.o util_linux.o set.o
 CFLAGS += -I$(TOP)/src/common
 CFLAGS += -I$(TOP)/src/libpmemlog
 CFLAGS += -I$(TOP)/src/libpmemblk

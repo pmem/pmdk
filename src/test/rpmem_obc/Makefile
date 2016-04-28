@@ -47,7 +47,7 @@ OBJS = rpmem_obc_test.o\
        rpmem_obc_test_close.o\
        rpmem_obc_test_remove.o\
        rpmem_obc.o rpmem_util.o rpmem_common.o\
-       out.o util.o util_platform.o
+       out.o util.o util_linux.o
 
 out.o: CFLAGS += -DDEBUG -DSRCVERSION=\"utversion\"
 

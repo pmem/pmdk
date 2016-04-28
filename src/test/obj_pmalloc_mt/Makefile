@@ -34,15 +34,13 @@
 # src/test/obj_pmalloc_mt/Makefile -- build obj_pmalloc_mt unit test
 #
 TOP = ../../..
-PLATFORM = $(TOP)/platform/linux
 
 vpath %.c $(TOP)/src/libpmemobj
 vpath %.c $(TOP)/src/common
-vpath %.c $(PLATFORM)/src/common
 
 TARGET = obj_pmalloc_mt
 OBJS = obj_pmalloc_mt.o pmalloc.o bucket.o redo.o heap.o lane.o ctree.o\
-    util.o util_platform.o set.o out.o obj.o cuckoo.o list.o sync.o tx.o  memops.o\
+    util.o util_linux.o set.o out.o obj.o cuckoo.o list.o sync.o tx.o  memops.o\
     libpmemobj.o
 
 LIBPMEM=y

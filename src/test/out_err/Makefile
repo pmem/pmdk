@@ -34,13 +34,11 @@
 # src/test/out_err/Makefile -- build unit test for out_err()
 #
 TOP = ../../..
-PLATFORM = $(TOP)/platform/linux
 
 vpath %.c $(TOP)/src/common
-vpath %.c $(PLATFORM)/src/common
 
 TARGET = out_err
-OBJS = out_err.o out.o util.o util_platform.o
+OBJS = out_err.o out.o util.o util_linux.o
 
 out.o: CFLAGS += -DSRCVERSION=\"utversion\"
 

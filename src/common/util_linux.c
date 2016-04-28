@@ -31,7 +31,7 @@
  */
 
 /*
- * util_platform.c -- general utilities with platform-specific implementation
+ * util_linux.c -- general utilities with platform-specific implementation
  */
 
 #include <stdio.h>
