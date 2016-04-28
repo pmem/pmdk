@@ -41,3 +41,5 @@
 extern unsigned long Pagesize;
 
 void pmem_init(void);
+
+int is_pmem_proc(const void *addr, size_t len);

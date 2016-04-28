@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016, Intel Corporation
+ * Copyright 2015-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,49 +31,47 @@
  */
 
 /*
- * blk.h -- internal definitions for libpmem blk module
+ * set_linux.c -- pool set utilities with platform-specific implementation
  */
 
-#include <pthread.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <stdint.h>
 
-#define	PMEMBLK_LOG_PREFIX "libpmemblk"
-#define	PMEMBLK_LOG_LEVEL_VAR "PMEMBLK_LOG_LEVEL"
-#define	PMEMBLK_LOG_FILE_VAR "PMEMBLK_LOG_FILE"
+#include "util.h"
+#include "out.h"
 
-/* attributes of the blk memory pool format for the pool header */
-#define	BLK_HDR_SIG "PMEMBLK"	/* must be 8 bytes including '\0' */
-#define	BLK_FORMAT_MAJOR 1
-#define	BLK_FORMAT_COMPAT 0x0000
-#define	BLK_FORMAT_INCOMPAT 0x0000
-#define	BLK_FORMAT_RO_COMPAT 0x0000
+/*
+ * util_uuid_generate -- generate a uuid
+ *
+ * This function reads the uuid string from  /proc/sys/kernel/random/uuid
+ * It converts this string into the binary uuid format as specified in
+ * https://www.ietf.org/rfc/rfc4122.txt
+ */
+int
+util_uuid_generate(uuid_t uuid)
+{
+	char uu[POOL_HDR_UUID_STR_LEN];
 
-struct pmemblk {
-	struct pool_hdr hdr;	/* memory pool header */
+	int fd = open(POOL_HDR_UUID_GEN_FILE, O_RDONLY);
+	if (fd < 0) {
+		/* Fatal error */
+		LOG(2, "!open(uuid)");
+		return -1;
+	}
+	ssize_t num = read(fd, uu, POOL_HDR_UUID_STR_LEN);
+	if (num < POOL_HDR_UUID_STR_LEN) {
+		/* Fatal error */
+		LOG(2, "!read(uuid)");
+		close(fd);
+		return -1;
+	}
+	close(fd);
 
-	/* root info for on-media format... */
-	uint32_t bsize;			/* block size */
+	uu[POOL_HDR_UUID_STR_LEN - 1] = '\0';
+	int ret = util_uuid_from_string(uu, (struct uuid *)uuid);
+	if (ret < 0)
+		return ret;
 
-	/* flag indicating if the pool was zero-initialized */
-	int is_zeroed;
-
-	/* some run-time state, allocated out of memory pool... */
-	void *addr;			/* mapped region */
-	size_t size;			/* size of mapped region */
-	int is_pmem;			/* true if pool is PMEM */
-	int rdonly;			/* true if pool is opened read-only */
-	void *data;			/* post-header data area */
-	size_t datasize;		/* size of data area */
-	size_t nlba;			/* number of LBAs in pool */
-	struct btt *bttp;		/* btt handle */
-	unsigned nlane;			/* number of lanes */
-	unsigned next_lane;		/* used to rotate through lanes */
-	pthread_mutex_t *locks;		/* one per lane */
-
-#ifdef DEBUG
-	/* held during read/write mprotected sections */
-	pthread_mutex_t write_lock;
-#endif
-};
-
-/* data area starts at this alignment after the struct pmemblk above */
-#define	BLK_FORMAT_DATA_ALIGN ((uintptr_t)4096)
+	return 0;
+}

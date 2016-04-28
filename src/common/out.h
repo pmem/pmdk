@@ -127,6 +127,7 @@ out_fatal_abort(const char *file, int line, const char *func,
 	"assertion failure: %s (0x%llx) != %s (0x%llx)", #lhs,\
 	(unsigned long long)(lhs), #rhs, (unsigned long long)(rhs)), 0)))
 
+
 /* assert a condition is true */
 #define	ASSERT(cnd)\
 	do {\
@@ -165,6 +166,7 @@ out_fatal_abort(const char *file, int line, const char *func,
 			COMPILE_ERROR_ON((lhs) != (rhs));\
 		ASSERTne_rt(lhs, rhs);\
 	} while (0)
+
 
 #define	ERR(...)\
 	out_err(__FILE__, __LINE__, __func__, __VA_ARGS__)

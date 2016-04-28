@@ -695,3 +695,12 @@ pmemlog_check(const char *path)
 
 	return consistent;
 }
+
+
+#ifdef WIN32
+/*
+ * libpmemlog constructor/destructor functions
+ */
+MSVC_CONSTR(libpmemlog_init)
+MSVC_DESTR(libpmemlog_fini)
+#endif
