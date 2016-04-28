@@ -107,6 +107,20 @@ cpuid(unsigned func, unsigned subfunc, unsigned cpuinfo[4])
 #endif
 
 /*
+ * cpu_max_input_value -- (internal) read CPUID highest input value
+ */
+static unsigned
+cpu_max_input_value(void)
+{
+	unsigned cpuinfo[4] = { 0 };
+
+	cpuid(0x0, 0x0, cpuinfo);
+
+	LOG(4, "CPUID highest input value: %d", cpuinfo[EAX_IDX]);
+	return cpuinfo[EAX_IDX];
+}
+
+/*
  * is_cpu_genuine_intel -- checks for genuine Intel CPU
  */
 int
@@ -140,6 +154,9 @@ is_cpu_sse2_present(void)
 {
 	unsigned cpuinfo[4] = { 0 };
 
+	if (cpu_max_input_value() < 1)
+		return 0;
+
 	cpuid(0x1, 0x0, cpuinfo);
 
 	int ret = (cpuinfo[EDX_IDX] & bit_SSE2) != 0;
@@ -155,6 +172,9 @@ int
 is_cpu_clflush_present(void)
 {
 	unsigned cpuinfo[4] = { 0 };
+
+	if (cpu_max_input_value() < 1)
+		return 0;
 
 	cpuid(0x1, 0x0, cpuinfo);
 
@@ -173,6 +193,9 @@ is_cpu_clflushopt_present(void)
 	unsigned cpuinfo[4] = { 0 };
 
 	if (!is_cpu_genuine_intel())
+		return 0;
+
+	if (cpu_max_input_value() < 7)
 		return 0;
 
 	cpuid(0x7, 0x0, cpuinfo);
@@ -194,6 +217,9 @@ is_cpu_clwb_present(void)
 	if (!is_cpu_genuine_intel())
 		return 0;
 
+	if (cpu_max_input_value() < 7)
+		return 0;
+
 	cpuid(0x7, 0x0, cpuinfo);
 
 	int ret = (cpuinfo[EBX_IDX] & bit_CLWB) != 0;
@@ -211,6 +237,9 @@ is_cpu_pcommit_present(void)
 	unsigned cpuinfo[4] = { 0 };
 
 	if (!is_cpu_genuine_intel())
+		return 0;
+
+	if (cpu_max_input_value() < 7)
 		return 0;
 
 	cpuid(0x7, 0x0, cpuinfo);
