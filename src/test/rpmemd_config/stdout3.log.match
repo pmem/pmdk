@@ -1,0 +1,32 @@
+rpmemd_config/TEST3: START: rpmemd_config
+pid_file:		/nondefault/pid/file/path
+log_file		/nondefault/log/file/path
+poolset_dir:		/nondefault/dir/path
+enable_remove:		no
+enable_create:		no
+foreground:		no
+persist_apm:		no
+persist_general:	no
+provider_sockets:	no
+provider_verbs:		no
+use_syslog:		no
+verify_pool_sets:	no
+port:			67
+max_lanes:		67
+log_level:		warn
+rpmemd_config/TEST3: START: rpmemd_config
+pid_file:		/cl/pid/file/path
+log_file		/cl/log/file/path
+poolset_dir:		/cl/dir/path
+enable_remove:		yes
+enable_create:		yes
+foreground:		yes
+persist_apm:		yes
+persist_general:	yes
+provider_sockets:	yes
+provider_verbs:		yes
+use_syslog:		yes
+verify_pool_sets:	yes
+port:			76
+max_lanes:		76
+log_level:		notice

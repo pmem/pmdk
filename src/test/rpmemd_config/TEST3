@@ -1,3 +1,5 @@
+#!/bin/bash -e
+#
 # Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
@@ -28,29 +30,47 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# Makefile -- top Makefile for rpmemd
 #
+# rpmemd_config/TEST3 -- test for rpmemd config overwrite
+#
+export UNITTEST_NAME=rpmemd_config/TEST3
+export UNITTEST_NUM=3
 
-vpath %.c ../../rpmem_common/
+. ../unittest/unittest.sh
 
-TOP = ../../..
+require_fs_type any
 
-TARGET = rpmemd
+setup
 
-OBJS = rpmemd.o\
-       rpmemd_log.o\
-       rpmemd_config.o\
-       rpmem_common.o\
-       rpmemd_obc.o
+RPMEMD=./rpmemd_config$EXESUFFIX
 
-LIBPMEM=y
-TOOLS_COMMON=y
+OUT=stdout${UNITTEST_NUM}.log
+rm -rf $OUT
 
-INCS += -I$(TOP)/src/rpmem_common
-CFLAGS += -DRPMEMC_LOG_RPMEMD
+CONFIG=in${UNITTEST_NUM}.conf
 
-INSTALL_TARGET=n
+CL_MAGIC=76
+CL_LOG_LEVEL=notice
 
-include ../Makefile.inc
+expect_normal_exit $RPMEMD -c $CONFIG 1>> $OUT
+expect_normal_exit $RPMEMD -c $CONFIG\
+	--pid-file=/cl/pid/file/path\
+	--log-file=/cl/log/file/path\
+	--poolset-dir=/cl/dir/path\
+	--enable-create\
+	--enable-remove\
+	--foreground\
+	--persist-apm\
+	--persist-general\
+	--provider-sockets\
+	--provider-verbs\
+	--use-syslog\
+	--verify-pool-sets\
+	--port=$CL_MAGIC\
+	--max-lanes=$CL_MAGIC\
+	--log-level=$CL_LOG_LEVEL\
+	1>> $OUT
 
-.PHONY: test check
+check
+
+pass

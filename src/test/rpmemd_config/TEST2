@@ -1,0 +1,93 @@
+#!/bin/bash -e
+#
+# Copyright 2016, Intel Corporation
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#
+#     * Redistributions of source code must retain the above copyright
+#       notice, this list of conditions and the following disclaimer.
+#
+#     * Redistributions in binary form must reproduce the above copyright
+#       notice, this list of conditions and the following disclaimer in
+#       the documentation and/or other materials provided with the
+#       distribution.
+#
+#     * Neither the name of the copyright holder nor the names of its
+#       contributors may be used to endorse or promote products derived
+#       from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+# OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+#
+# rpmemd_config/TEST2 -- test for rpmemd invalid config file
+#
+export UNITTEST_NAME=rpmemd_config/TEST2
+export UNITTEST_NUM=2
+
+. ../unittest/unittest.sh
+
+require_fs_type any
+
+setup
+
+RPMEMD=./rpmemd_config$EXESUFFIX
+
+OUT=stdout${UNITTEST_NUM}.log
+rm -rf $OUT
+
+CONFIG=$DIR/in${UNITTEST_NUM}.conf
+
+GOUT=grep_stdout${UNITTEST_NUM}.log
+
+TOO_SMALL=-1
+TOO_BIG_UINT32=4294967296
+TOO_BIG_UINT16=65536
+INVALID_PATH="  \t\t  \t\t"
+INVALID_FLAG=invalid
+INVALID_ENUM=Invalid
+
+function check_config {
+	echo -e $1 > $CONFIG
+	expect_abnormal_exit $RPMEMD -c $CONFIG 1>> $OUT
+	expect_abnormal_exit $RPMEMD --config $CONFIG 1>> $OUT
+}
+
+check_config "; invalid comment format"
+check_config "conn-wait-time=$TOO_SMALL # conn-wait-time value smaller than min"
+check_config "conn-wait-time=$TOO_BIG_UINT32 # conn-wait-time value greater than max"
+check_config "dir=$INVALID_PATH# invalid dir path"
+check_config "enable-create=$INVALID_FLAG # invalid enable-create value"
+check_config "enable-remove=$INVALID_FLAG # invalid enable-remove value"
+check_config "log-file=$INVALID_PATH # invalid log-file path"
+check_config "log-level=$INVALID_ENUM # invalid log-level"
+check_config "max-lanes=$TOO_SMALL # invalid max-lanes"
+check_config "max-lanes=$TOO_BIG_UINT32 # invalid max-lanes"
+check_config "persist-apm=$INVALID_FLAG # invalid persist-apm value"
+check_config "persist-general=$INVALID_FLAG # invalid persist-general value"
+check_config "persist-write-commit=$INVALID_FLAG # invalid persist-write-commit value"
+check_config "pid-file= $INVALID_PATH# invalid pid-file path"
+check_config "port=$TOO_SMALL # port value smaller than min"
+check_config "port=$TOO_BIG_UINT16 # port value greater than max"
+check_config "provider-psm=$INVALID_FLAG # invalid provider-psm value"
+check_config "provider-sockets=$INVALID_FLAG # invalid provider-sockets value"
+check_config "provider-verbs=$INVALID_FLAG # invalid provider-verbs value"
+check_config "use-syslog=$INVALID_FLAG # invalid use-syslog value"
+check_config "verify-pool-sets=$INVALID_FLAG # invalid verify-pool-sets value"
+
+grep -v START $OUT > $GOUT
+
+check
+
+pass

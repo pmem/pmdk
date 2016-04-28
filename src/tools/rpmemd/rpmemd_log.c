@@ -59,8 +59,8 @@ static char rpmemd_prefix_buff[RPMEMD_MAX_PREFIX];
 static const char *rpmemd_log_level_str[MAX_RPD_LOG] = {
 	[RPD_LOG_ERR]		= "err",
 	[RPD_LOG_WARN]		= "warn",
-	[RPD_LOG_INFO]		= "info",
 	[RPD_LOG_NOTICE]	= "notice",
+	[RPD_LOG_INFO]		= "info",
 	[_RPD_LOG_DBG]		= "debug",
 };
 
