@@ -127,7 +127,7 @@ main(int argc, char *argv[])
 
 	/* reach into the layout and write-protect the map */
 	struct btt_info *infop = (void *)((char *)handle +
-		roundup(sizeof (struct pmemblk), BLK_FORMAT_DATA_ALIGN));
+		roundup(sizeof(struct pmemblk), BLK_FORMAT_DATA_ALIGN));
 
 	char *mapaddr = (char *)infop + le32toh(infop->mapoff);
 	char *flogaddr = (char *)infop + le32toh(infop->flogoff);

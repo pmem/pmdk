@@ -270,10 +270,10 @@ pmemblk_descr_create(PMEMblkpool *pbp, uint32_t bsize, int zeroed)
 
 	/* create the required metadata */
 	pbp->bsize = htole32(bsize);
-	pmem_msync(&pbp->bsize, sizeof (bsize));
+	pmem_msync(&pbp->bsize, sizeof(bsize));
 
 	pbp->is_zeroed = zeroed;
-	pmem_msync(&pbp->is_zeroed, sizeof (pbp->is_zeroed));
+	pmem_msync(&pbp->is_zeroed, sizeof(pbp->is_zeroed));
 
 	return 0;
 }
@@ -310,10 +310,10 @@ pmemblk_runtime_init(PMEMblkpool *pbp, size_t bsize, int rdonly, int is_pmem)
 
 	/* remove volatile part of header */
 	VALGRIND_REMOVE_PMEM_MAPPING(&pbp->addr,
-			sizeof (struct pmemblk) -
-			sizeof (struct pool_hdr) -
-			sizeof (pbp->bsize) -
-			sizeof (pbp->is_zeroed));
+			sizeof(struct pmemblk) -
+			sizeof(struct pool_hdr) -
+			sizeof(pbp->bsize) -
+			sizeof(pbp->is_zeroed));
 
 	/*
 	 * Use some of the memory pool area for run-time info.  This
@@ -323,7 +323,7 @@ pmemblk_runtime_init(PMEMblkpool *pbp, size_t bsize, int rdonly, int is_pmem)
 	pbp->rdonly = rdonly;
 	pbp->is_pmem = is_pmem;
 	pbp->data = (char *)pbp->addr +
-			roundup(sizeof (*pbp), BLK_FORMAT_DATA_ALIGN);
+			roundup(sizeof(*pbp), BLK_FORMAT_DATA_ALIGN);
 	ASSERT(((char *)pbp->addr + pbp->size) >= (char *)pbp->data);
 	pbp->datasize = (size_t)
 			(((char *)pbp->addr + pbp->size) - (char *)pbp->data);
@@ -351,7 +351,7 @@ pmemblk_runtime_init(PMEMblkpool *pbp, size_t bsize, int rdonly, int is_pmem)
 
 	pbp->nlane = btt_nlane(pbp->bttp);
 	pbp->next_lane = 0;
-	if ((locks = Malloc(pbp->nlane * sizeof (*locks))) == NULL) {
+	if ((locks = Malloc(pbp->nlane * sizeof(*locks))) == NULL) {
 		ERR("!Malloc for lane locks");
 		goto err;
 	}
@@ -372,7 +372,7 @@ pmemblk_runtime_init(PMEMblkpool *pbp, size_t bsize, int rdonly, int is_pmem)
 	 * The prototype PMFS doesn't allow this when large pages are in
 	 * use. It is not considered an error if this fails.
 	 */
-	util_range_none(pbp->addr, sizeof (struct pool_hdr));
+	util_range_none(pbp->addr, sizeof(struct pool_hdr));
 
 	/* the data area should be kept read-only for debug version */
 	RANGE_RO(pbp->data, pbp->datasize);
@@ -429,7 +429,7 @@ pmemblk_create(const char *path, size_t bsize, size_t poolsize,
 	PMEMblkpool *pbp = rep->part[0].addr;
 
 	VALGRIND_REMOVE_PMEM_MAPPING(&pbp->addr,
-			sizeof (struct pmemblk) -
+			sizeof(struct pmemblk) -
 			((uintptr_t)&pbp->addr - (uintptr_t)&pbp->hdr));
 
 	pbp->addr = pbp;
@@ -502,7 +502,7 @@ pmemblk_open_common(const char *path, size_t bsize, int cow)
 	PMEMblkpool *pbp = rep->part[0].addr;
 
 	VALGRIND_REMOVE_PMEM_MAPPING(&pbp->addr,
-			sizeof (struct pmemblk) -
+			sizeof(struct pmemblk) -
 			((uintptr_t)&pbp->addr - (uintptr_t)&pbp->hdr));
 
 	pbp->addr = pbp;

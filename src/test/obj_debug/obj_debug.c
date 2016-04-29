@@ -44,7 +44,7 @@
 #include "unittest.h"
 #include "libpmemobj.h"
 
-#define	LAYOUT_NAME "layout_obj_debug"
+#define LAYOUT_NAME "layout_obj_debug"
 
 TOID_DECLARE_ROOT(struct root);
 TOID_DECLARE(struct tobj, 0);
@@ -73,7 +73,7 @@ test_FOREACH(const char *path)
 	TOID(struct root) root;
 	TOID(struct tobj) var, nvar;
 
-#define	COMMANDS_FOREACH()\
+#define COMMANDS_FOREACH()\
 	do {\
 	POBJ_FOREACH(pop, varoid) {}\
 	POBJ_FOREACH_SAFE(pop, varoid, nvaroid) {}\
@@ -87,9 +87,9 @@ test_FOREACH(const char *path)
 			PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR)) == NULL)
 		UT_FATAL("!pmemobj_create: %s", path);
 
-	TOID_ASSIGN(root, pmemobj_root(pop, sizeof (struct root)));
+	TOID_ASSIGN(root, pmemobj_root(pop, sizeof(struct root)));
 	POBJ_LIST_INSERT_NEW_HEAD(pop, &D_RW(root)->lhead, next,
-			sizeof (struct tobj), NULL, NULL);
+			sizeof(struct tobj), NULL, NULL);
 
 	COMMANDS_FOREACH();
 	TX_BEGIN(pop) {
@@ -109,10 +109,10 @@ test_lists(const char *path)
 	TOID(struct root) root;
 	TOID(struct tobj) elm;
 
-#define	COMMANDS_LISTS()\
+#define COMMANDS_LISTS()\
 	do {\
 	POBJ_LIST_INSERT_NEW_HEAD(pop, &D_RW(root)->lhead, next,\
-			sizeof (struct tobj), NULL, NULL);\
+			sizeof(struct tobj), NULL, NULL);\
 	POBJ_NEW(pop, &elm, struct tobj, NULL, NULL);\
 	POBJ_LIST_INSERT_AFTER(pop, &D_RW(root)->lhead,\
 			POBJ_LIST_FIRST(&D_RW(root)->lhead), elm, next);\
@@ -126,7 +126,7 @@ test_lists(const char *path)
 			PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR)) == NULL)
 		UT_FATAL("!pmemobj_create: %s", path);
 
-	TOID_ASSIGN(root, pmemobj_root(pop, sizeof (struct root)));
+	TOID_ASSIGN(root, pmemobj_root(pop, sizeof(struct root)));
 
 	COMMANDS_LISTS();
 	TX_BEGIN(pop) {
@@ -149,7 +149,7 @@ int3_constructor(PMEMobjpool *pop, void *ptr, void *arg)
 	val->i2 = args->i2;
 	val->i3 = args->i3;
 
-	pmemobj_persist(pop, val, sizeof (*val));
+	pmemobj_persist(pop, val, sizeof(*val));
 
 	return 0;
 }
@@ -166,7 +166,7 @@ test_alloc_construct(const char *path)
 	TX_BEGIN(pop) {
 		struct int3_s args = { 1, 2, 3 };
 		PMEMoid allocation;
-		pmemobj_alloc(pop, &allocation, sizeof (allocation), 1,
+		pmemobj_alloc(pop, &allocation, sizeof(allocation), 1,
 				int3_constructor, &args);
 	} TX_ONABORT {
 		UT_ASSERT(0);

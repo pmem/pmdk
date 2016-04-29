@@ -39,9 +39,9 @@
 
 #include "unittest.h"
 
-#define	TEST_STR "abcdefgh"
-#define	TEST_STR_LEN 8
-#define	TEST_VALUE 5
+#define TEST_STR "abcdefgh"
+#define TEST_STR_LEN 8
+#define TEST_VALUE 5
 
 /*
  * Layout definition
@@ -80,7 +80,7 @@ dummy_node_constructor(PMEMobjpool *pop, void *ptr, void *arg)
 	struct dummy_node *n = ptr;
 	int *test_val = arg;
 	n->value = *test_val;
-	pmemobj_persist(pop, &n->value, sizeof (n->value));
+	pmemobj_persist(pop, &n->value, sizeof(n->value));
 
 	return 0;
 }
@@ -95,7 +95,7 @@ test_alloc_api(PMEMobjpool *pop)
 
 	UT_ASSERT(OID_INSTANCEOF(node_zeroed.oid, struct dummy_node));
 
-	int *test_val = MALLOC(sizeof (*test_val));
+	int *test_val = MALLOC(sizeof(*test_val));
 	*test_val = TEST_VALUE;
 	POBJ_NEW(pop, &node_constructed, struct dummy_node_c,
 			dummy_node_constructor, test_val);
@@ -131,17 +131,17 @@ test_alloc_api(PMEMobjpool *pop)
 
 	int val = 10;
 	POBJ_ALLOC(pop, &node_constructed, struct dummy_node_c,
-			sizeof (struct dummy_node_c),
+			sizeof(struct dummy_node_c),
 			dummy_node_constructor, &val);
 
 	POBJ_REALLOC(pop, &node_constructed, struct dummy_node_c,
-			sizeof (struct dummy_node_c) + 1000);
+			sizeof(struct dummy_node_c) + 1000);
 
 	UT_ASSERTeq(pmemobj_type_num(node_constructed.oid),
 			TOID_TYPE_NUM(struct dummy_node_c));
 
 	POBJ_ZREALLOC(pop, &node_constructed, struct dummy_node_c,
-			sizeof (struct dummy_node_c) + 2000);
+			sizeof(struct dummy_node_c) + 2000);
 
 	UT_ASSERTeq(pmemobj_type_num(node_constructed.oid),
 			TOID_TYPE_NUM(struct dummy_node_c));
@@ -149,7 +149,7 @@ test_alloc_api(PMEMobjpool *pop)
 	POBJ_FREE(&node_constructed);
 
 	POBJ_ZALLOC(pop, &node_zeroed, struct dummy_node,
-			sizeof (struct dummy_node));
+			sizeof(struct dummy_node));
 
 	POBJ_FREE(&node_zeroed);
 
@@ -303,11 +303,11 @@ test_list_api(PMEMobjpool *pop)
 	UT_ASSERT(OID_IS_NULL(ret));
 
 	POBJ_LIST_INSERT_NEW_HEAD(pop, &D_RW(root)->dummies, plist,
-			sizeof (struct dummy_node), dummy_node_constructor,
+			sizeof(struct dummy_node), dummy_node_constructor,
 			&test_val);
 	test_val++;
 	POBJ_LIST_INSERT_NEW_TAIL(pop, &D_RW(root)->dummies, plist,
-			sizeof (struct dummy_node), dummy_node_constructor,
+			sizeof(struct dummy_node), dummy_node_constructor,
 			&test_val);
 
 	TOID(struct dummy_node) node;
@@ -377,13 +377,13 @@ test_list_api(PMEMobjpool *pop)
 	test_val++;
 	POBJ_LIST_INSERT_NEW_AFTER(pop, &D_RW(root)->dummies,
 		POBJ_LIST_FIRST(&D_RO(root)->dummies), plist,
-		sizeof (struct dummy_node), dummy_node_constructor,
+		sizeof(struct dummy_node), dummy_node_constructor,
 		&test_val);
 
 	test_val++;
 	POBJ_LIST_INSERT_NEW_BEFORE(pop, &D_RW(root)->dummies,
 		POBJ_LIST_LAST(&D_RO(root)->dummies, plist), plist,
-		sizeof (struct dummy_node), dummy_node_constructor,
+		sizeof(struct dummy_node), dummy_node_constructor,
 		&test_val);
 
 	nodes_count = 0;
@@ -410,12 +410,12 @@ static void
 test_tx_api(PMEMobjpool *pop)
 {
 	TOID(struct dummy_root) root;
-	TOID_ASSIGN(root, pmemobj_root(pop, sizeof (struct dummy_root)));
+	TOID_ASSIGN(root, pmemobj_root(pop, sizeof(struct dummy_root)));
 
 	int *vstate = NULL; /* volatile state */
 
 	TX_BEGIN_LOCK(pop, TX_LOCK_MUTEX, &D_RW(root)->lock) {
-		vstate = MALLOC(sizeof (*vstate));
+		vstate = MALLOC(sizeof(*vstate));
 		*vstate = TEST_VALUE;
 		TX_ADD(root);
 		D_RW(root)->value = *vstate;

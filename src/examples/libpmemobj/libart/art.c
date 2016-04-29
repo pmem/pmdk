@@ -651,7 +651,7 @@ add_child48(PMEMobjpool *pop, TOID(art_node48) n, TOID(art_node_u) *ref,
 		TOID(art_node_u)  newnode_u = alloc_node(pop, NODE256);
 		TOID(art_node256) newnode = D_RO(newnode_u)->u.an256;
 
-		pmemobj_tx_add_range_direct(ref, sizeof (TOID(art_node_u)));
+		pmemobj_tx_add_range_direct(ref, sizeof(TOID(art_node_u)));
 
 		for (int i = 0; i < 256; i++) {
 			if (D_RO(n)->keys[i]) {
@@ -753,7 +753,7 @@ add_child4(PMEMobjpool *pop, TOID(art_node4) n, TOID(art_node_u) *ref,
 		TOID(art_node_u) newnode_u = alloc_node(pop, NODE16);
 		TOID(art_node16) newnode = D_RO(newnode_u)->u.an16;
 
-		pmemobj_tx_add_range_direct(ref, sizeof (TOID(art_node_u)));
+		pmemobj_tx_add_range_direct(ref, sizeof(TOID(art_node_u)));
 
 		// Copy the child pointers and the key map
 		PMEMOIDcopy(&(D_RW(newnode)->children[0].oid),
@@ -854,7 +854,7 @@ recursive_insert(PMEMobjpool *pop, TOID(art_node_u) n, TOID(art_node_u) *ref,
 
 		// New value, we must split the leaf into a node4
 		pmemobj_tx_add_range_direct(ref,
-		    sizeof (TOID(art_node_u)));
+		    sizeof(TOID(art_node_u)));
 		TOID(art_node_u) newnode_u = alloc_node(pop, NODE4);
 		TOID(art_node4)  newnode = D_RO(newnode_u)->u.an4;
 		art_node *newnode_n = &(D_RW(newnode)->n);
@@ -901,8 +901,8 @@ recursive_insert(PMEMobjpool *pop, TOID(art_node_u) n, TOID(art_node_u) *ref,
 
 		// Create a new node
 		pmemobj_tx_add_range_direct(ref,
-		    sizeof (TOID(art_node_u)));
-		pmemobj_tx_add_range_direct(n_an, sizeof (art_node));
+		    sizeof(TOID(art_node_u)));
+		pmemobj_tx_add_range_direct(n_an, sizeof(art_node));
 		TOID(art_node_u) newnode_u = alloc_node(pop, NODE4);
 		TOID(art_node4)  newnode = D_RO(newnode_u)->u.an4;
 		art_node *newnode_n = &(D_RW(newnode)->n);
@@ -1027,7 +1027,7 @@ remove_child256(PMEMobjpool *pop,
 		TOID(art_node_u) newnode_u = alloc_node(pop, NODE48);
 		TOID(art_node48) newnode_an48 = D_RO(newnode_u)->u.an48;
 
-		pmemobj_tx_add_range_direct(ref, sizeof (TOID(art_node_u)));
+		pmemobj_tx_add_range_direct(ref, sizeof(TOID(art_node_u)));
 
 		*ref = newnode_u;
 		copy_header(&(D_RW(newnode_an48)->n), n_an);
@@ -1063,7 +1063,7 @@ remove_child48(PMEMobjpool *pop,
 		TOID(art_node_u) newnode_u = alloc_node(pop, NODE16);
 		TOID(art_node16) newnode_an16 = D_RO(newnode_u)->u.an16;
 
-		pmemobj_tx_add_range_direct(ref, sizeof (TOID(art_node_u)));
+		pmemobj_tx_add_range_direct(ref, sizeof(TOID(art_node_u)));
 
 		*ref = newnode_u;
 		copy_header(&(D_RW(newnode_an16)->n), n_an);
@@ -1088,7 +1088,7 @@ remove_child16(PMEMobjpool *pop,
 	TOID(art_node16) n, TOID(art_node_u) *ref, TOID(art_node_u) *l)
 {
 	/* XXX: check distance calculation */
-	int pos = (l - &(D_RO(n)->children[0])) / sizeof (TOID(art_node_u));
+	int pos = (l - &(D_RO(n)->children[0])) / sizeof(TOID(art_node_u));
 	uint8_t num_children = ((D_RW(n)->n).num_children);
 
 	TX_ADD(n);
@@ -1097,20 +1097,20 @@ remove_child16(PMEMobjpool *pop,
 	    num_children - 1 - pos);
 	memmove(D_RW(n)->children + pos,
 	    D_RO(n)->children + pos + 1,
-	    (num_children - 1 - pos) * sizeof (void *));
+	    (num_children - 1 - pos) * sizeof(void *));
 	((D_RW(n)->n).num_children)--;
 
 	if (--num_children == 3) {
 		TOID(art_node_u) newnode_u	 = alloc_node(pop, NODE4);
 		TOID(art_node4)  newnode_an4 = D_RO(newnode_u)->u.an4;
 
-		pmemobj_tx_add_range_direct(ref, sizeof (TOID(art_node_u)));
+		pmemobj_tx_add_range_direct(ref, sizeof(TOID(art_node_u)));
 
 		*ref = newnode_u;
 		copy_header(&(D_RW(newnode_an4)->n), &(D_RW(n)->n));
 		memcpy(D_RW(newnode_an4)->keys, D_RO(n)->keys, 4);
 		memcpy(D_RW(newnode_an4)->children,
-		    D_RO(n)->children, 4 * sizeof (TOID(art_node_u)));
+		    D_RO(n)->children, 4 * sizeof(TOID(art_node_u)));
 		TX_FREE(n);
 	}
 }
@@ -1120,7 +1120,7 @@ remove_child4(PMEMobjpool *pop,
 	TOID(art_node4) n, TOID(art_node_u) *ref, TOID(art_node_u) *l)
 {
 	/* XXX: check distance calculation */
-	int pos = (l - &(D_RO(n)->children[0])) / sizeof (TOID(art_node_u));
+	int pos = (l - &(D_RO(n)->children[0])) / sizeof(TOID(art_node_u));
 	uint8_t *num_children = &((D_RW(n)->n).num_children);
 
 	TX_ADD(n);
@@ -1128,7 +1128,7 @@ remove_child4(PMEMobjpool *pop,
 	memmove(D_RW(n)->keys + pos, D_RO(n)->keys + pos + 1,
 	    *num_children - 1 - pos);
 	memmove(D_RW(n)->children + pos, D_RO(n)->children + pos + 1,
-	    (*num_children - 1 - pos) * sizeof (void *));
+	    (*num_children - 1 - pos) * sizeof(void *));
 	(*num_children)--;
 
 	// Remove nodes with only a single child
@@ -1136,7 +1136,7 @@ remove_child4(PMEMobjpool *pop,
 		TOID(art_node_u) child_u = D_RO(n)->children[0];
 		art_node *child = &(D_RW(D_RW(child_u)->u.an4)->n);
 
-		pmemobj_tx_add_range_direct(ref, sizeof (TOID(art_node_u)));
+		pmemobj_tx_add_range_direct(ref, sizeof(TOID(art_node_u)));
 
 		if (!IS_LEAF(D_RO(child_u))) {
 			// Concatenate the prefixes
@@ -1481,8 +1481,8 @@ fill_leaf(PMEMobjpool *pop, TOID(art_leaf) al,
 	TOID(var_string) Tkey;
 	TOID(var_string) Tval;
 
-	l_key = (sizeof (var_string) + key_len);
-	l_val = (sizeof (var_string) + val_len);
+	l_key = (sizeof(var_string) + key_len);
+	l_val = (sizeof(var_string) + val_len);
 	Tkey = TX_ALLOC(var_string, l_key);
 	Tval = TX_ALLOC(var_string, l_val);
 

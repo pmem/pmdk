@@ -44,8 +44,8 @@
 
 #include "benchmark.h"
 
-#define	MAX_OFFSET 63
-#define	CONST_B 0xFF
+#define MAX_OFFSET 63
+#define CONST_B 0xFF
 
 struct memset_bench;
 
@@ -181,7 +181,7 @@ init_offsets(struct benchmark_args *args, struct memset_bench *mb,
 	uint64_t n_ops = args->n_ops_per_thread;
 
 	mb->n_offsets = n_ops * n_threads;
-	mb->offsets = malloc(mb->n_offsets * sizeof (*mb->offsets));
+	mb->offsets = malloc(mb->n_offsets * sizeof(*mb->offsets));
 	if (!mb->offsets) {
 		perror("malloc");
 		return -1;
@@ -320,7 +320,7 @@ memset_init(struct benchmark *bench, struct benchmark_args *args)
 
 	int ret = 0;
 
-	struct memset_bench *mb = malloc(sizeof (struct memset_bench));
+	struct memset_bench *mb = malloc(sizeof(struct memset_bench));
 	if (!mb) {
 		perror("malloc");
 		return -1;
@@ -418,7 +418,7 @@ static struct benchmark_info memset_info = {
 	.measure_time	= true,
 	.clos		= memset_clo,
 	.nclos		= ARRAY_SIZE(memset_clo),
-	.opts_size	= sizeof (struct memset_args),
+	.opts_size	= sizeof(struct memset_args),
 	.rm_file	= true,
 	.allow_poolset	= false,
 };

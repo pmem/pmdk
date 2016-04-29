@@ -181,7 +181,7 @@ rpmem_obc_alloc_create_msg(const struct rpmem_req_attr *req,
 	const struct rpmem_pool_attr *pool_attr, size_t *msg_sizep)
 {
 	size_t pool_desc_size = strlen(req->pool_desc) + 1;
-	size_t msg_size = sizeof (struct rpmem_msg_create) + pool_desc_size;
+	size_t msg_size = sizeof(struct rpmem_msg_create) + pool_desc_size;
 	struct rpmem_msg_create *msg = malloc(msg_size);
 	if (!msg) {
 		RPMEM_LOG(ERR, "!cannot allocate create request message");
@@ -199,7 +199,7 @@ rpmem_obc_alloc_create_msg(const struct rpmem_req_attr *req,
 	rpmem_obc_set_pool_desc(&msg->pool_desc,
 			req->pool_desc, pool_desc_size);
 
-	memcpy(&msg->pool_attr, pool_attr, sizeof (msg->pool_attr));
+	memcpy(&msg->pool_attr, pool_attr, sizeof(msg->pool_attr));
 
 	*msg_sizep = msg_size;
 	return msg;
@@ -263,7 +263,7 @@ static int
 rpmem_obc_check_create_resp(struct rpmem_msg_create_resp *resp)
 {
 	if (rpmem_obc_check_hdr_resp(&resp->hdr, RPMEM_MSG_TYPE_CREATE_RESP,
-			sizeof (struct rpmem_msg_create_resp)))
+			sizeof(struct rpmem_msg_create_resp)))
 		return -1;
 
 	if (rpmem_obc_check_ibc_attr(&resp->ibc))
@@ -295,7 +295,7 @@ rpmem_obc_alloc_open_msg(const struct rpmem_req_attr *req,
 	const struct rpmem_pool_attr *pool_attr, size_t *msg_sizep)
 {
 	size_t pool_desc_size = strlen(req->pool_desc) + 1;
-	size_t msg_size = sizeof (struct rpmem_msg_open) + pool_desc_size;
+	size_t msg_size = sizeof(struct rpmem_msg_open) + pool_desc_size;
 	struct rpmem_msg_open *msg = malloc(msg_size);
 	if (!msg) {
 		RPMEM_LOG(ERR, "!cannot allocate open request message");
@@ -324,7 +324,7 @@ static int
 rpmem_obc_check_open_resp(struct rpmem_msg_open_resp *resp)
 {
 	if (rpmem_obc_check_hdr_resp(&resp->hdr, RPMEM_MSG_TYPE_OPEN_RESP,
-			sizeof (struct rpmem_msg_open_resp)))
+			sizeof(struct rpmem_msg_open_resp)))
 		return -1;
 
 	if (rpmem_obc_check_ibc_attr(&resp->ibc))
@@ -341,7 +341,7 @@ static struct rpmem_msg_remove *
 rpmem_obc_alloc_remove_msg(const char *pool_desc, size_t *msg_sizep)
 {
 	size_t pool_desc_size = strlen(pool_desc) + 1;
-	size_t msg_size = sizeof (struct rpmem_msg_remove) + pool_desc_size;
+	size_t msg_size = sizeof(struct rpmem_msg_remove) + pool_desc_size;
 	struct rpmem_msg_remove *msg = malloc(msg_size);
 	if (!msg) {
 		RPMEM_LOG(ERR, "!cannot allocate remove request message");
@@ -367,7 +367,7 @@ static int
 rpmem_obc_check_close_resp(struct rpmem_msg_close_resp *resp)
 {
 	if (rpmem_obc_check_hdr_resp(&resp->hdr, RPMEM_MSG_TYPE_CLOSE_RESP,
-			sizeof (struct rpmem_msg_close_resp)))
+			sizeof(struct rpmem_msg_close_resp)))
 		return -1;
 
 	return 0;
@@ -379,7 +379,7 @@ rpmem_obc_check_close_resp(struct rpmem_msg_close_resp *resp)
 struct rpmem_obc *
 rpmem_obc_init(void)
 {
-	struct rpmem_obc *rpc = calloc(1, sizeof (*rpc));
+	struct rpmem_obc *rpc = calloc(1, sizeof(*rpc));
 	if (!rpc) {
 		RPMEM_LOG(ERR, "!allocation of rpmem obc failed");
 		return NULL;
@@ -440,7 +440,7 @@ rpmem_obc_connect(struct rpmem_obc *rpc, const char *target)
 
 	struct addrinfo *addrinfo;
 	struct addrinfo hints;
-	memset(&hints, 0, sizeof (hints));
+	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_protocol = 0;
@@ -564,7 +564,7 @@ rpmem_obc_monitor(struct rpmem_obc *rpc, int nonblock)
 	if (nonblock)
 		flags |= MSG_DONTWAIT;
 
-	ssize_t sret = recv(rpc->sockfd, &buff, sizeof (buff), flags);
+	ssize_t sret = recv(rpc->sockfd, &buff, sizeof(buff), flags);
 	if (sret > 0) {
 		RPMEM_LOG(ERR, "unexpected data received");
 		errno = EPROTO;
@@ -622,7 +622,7 @@ rpmem_obc_create(struct rpmem_obc *rpc,
 
 	struct rpmem_msg_create_resp resp;
 	if (rpmem_obc_recv(rpc->sockfd, &resp,
-			sizeof (resp))) {
+			sizeof(resp))) {
 		RPMEM_LOG(ERR, "!receiving create request response failed");
 		goto err_msg_recv;
 	}
@@ -679,7 +679,7 @@ rpmem_obc_open(struct rpmem_obc *rpc,
 	}
 
 	struct rpmem_msg_open_resp resp;
-	if (rpmem_obc_recv(rpc->sockfd, &resp, sizeof (resp))) {
+	if (rpmem_obc_recv(rpc->sockfd, &resp, sizeof(resp))) {
 		RPMEM_LOG(ERR, "!receiving open request response failed");
 		goto err_msg_recv;
 	}
@@ -690,7 +690,7 @@ rpmem_obc_open(struct rpmem_obc *rpc,
 		goto err_msg_resp;
 
 	rpmem_obc_get_res(res, &resp.ibc);
-	memcpy(pool_attr, &resp.pool_attr, sizeof (*pool_attr));
+	memcpy(pool_attr, &resp.pool_attr, sizeof(*pool_attr));
 
 	free(msg);
 	return 0;
@@ -731,7 +731,7 @@ rpmem_obc_remove(struct rpmem_obc *rpc, const char *pool_desc)
 	}
 
 	struct rpmem_msg_remove_resp resp;
-	if (rpmem_obc_recv(rpc->sockfd, &resp, sizeof (resp))) {
+	if (rpmem_obc_recv(rpc->sockfd, &resp, sizeof(resp))) {
 		RPMEM_LOG(ERR, "!receiving remove request response failed");
 		goto err_msg_recv;
 	}
@@ -739,7 +739,7 @@ rpmem_obc_remove(struct rpmem_obc *rpc, const char *pool_desc)
 	rpmem_ntoh_msg_remove_resp(&resp);
 
 	if (rpmem_obc_check_hdr_resp(&resp.hdr, RPMEM_MSG_TYPE_REMOVE_RESP,
-			sizeof (struct rpmem_msg_remove_resp)))
+			sizeof(struct rpmem_msg_remove_resp)))
 		goto err_msg_resp;
 
 	free(msg);
@@ -771,18 +771,18 @@ rpmem_obc_close(struct rpmem_obc *rpc)
 	}
 
 	struct rpmem_msg_close msg;
-	rpmem_obc_set_msg_hdr(&msg.hdr, RPMEM_MSG_TYPE_CLOSE, sizeof (msg));
+	rpmem_obc_set_msg_hdr(&msg.hdr, RPMEM_MSG_TYPE_CLOSE, sizeof(msg));
 
 	rpmem_hton_msg_close(&msg);
 
-	if (rpmem_obc_send(rpc->sockfd, &msg, sizeof (msg))) {
+	if (rpmem_obc_send(rpc->sockfd, &msg, sizeof(msg))) {
 		RPMEM_LOG(ERR, "!sending create request failed");
 		return -1;
 	}
 
 	struct rpmem_msg_close_resp resp;
 	if (rpmem_obc_recv(rpc->sockfd, &resp,
-			sizeof (resp))) {
+			sizeof(resp))) {
 		RPMEM_LOG(ERR, "!receiving create request response failed");
 		return -1;
 	}

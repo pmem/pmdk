@@ -36,10 +36,10 @@
 #include "unittest.h"
 #include "util.h"
 
-#define	MAX_PATH_LEN 255
-#define	LAYOUT_NAME "pool_lookup"
+#define MAX_PATH_LEN 255
+#define LAYOUT_NAME "pool_lookup"
 
-#define	ALLOC_SIZE 100
+#define ALLOC_SIZE 100
 
 int
 main(int argc, char *argv[])

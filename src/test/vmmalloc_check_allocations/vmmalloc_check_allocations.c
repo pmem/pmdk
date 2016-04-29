@@ -39,9 +39,9 @@
 
 #include "unittest.h"
 
-#define	MIN_SIZE (sizeof (int))
-#define	MAX_SIZE (4L * 1024L * 1024L)
-#define	MAX_ALLOCS (VMEM_MIN_POOL / MIN_SIZE)
+#define MIN_SIZE (sizeof(int))
+#define MAX_SIZE (4L * 1024L * 1024L)
+#define MAX_ALLOCS (VMEM_MIN_POOL / MIN_SIZE)
 
 /* buffer for all allocations */
 static void *allocs[MAX_ALLOCS];
@@ -57,7 +57,7 @@ main(int argc, char *argv[])
 	for (size = MAX_SIZE; size >= MIN_SIZE; size /= 2) {
 		UT_OUT("size %zu", size);
 
-		memset(allocs, 0, sizeof (allocs));
+		memset(allocs, 0, sizeof(allocs));
 
 		for (i = 0; i < MAX_ALLOCS; ++i) {
 			allocs[i] =  malloc(size);

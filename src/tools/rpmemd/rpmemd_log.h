@@ -34,29 +34,29 @@
  * rpmemd_log.h -- rpmemd logging functions declarations
  */
 
-#define	FORMAT_PRINTF(a, b) __attribute__((__format__(__printf__, (a), (b))))
+#define FORMAT_PRINTF(a, b) __attribute__((__format__(__printf__, (a), (b))))
 
 #ifdef DEBUG
-#define	RPMEMD_LOG(level, fmt, arg...)\
+#define RPMEMD_LOG(level, fmt, arg...)\
 	rpmemd_log(RPD_LOG_##level, __FILE__, __LINE__, fmt, ## arg)
 #else
-#define	RPMEMD_LOG(level, fmt, arg...)\
+#define RPMEMD_LOG(level, fmt, arg...)\
 	rpmemd_log(RPD_LOG_##level, NULL, 0, fmt, ## arg)
 #endif
 
 #ifdef DEBUG
-#define	RPMEMD_DBG(fmt, arg...)\
+#define RPMEMD_DBG(fmt, arg...)\
 	rpmemd_log(_RPD_LOG_DBG, __FILE__, __LINE__, fmt, ## arg)
 #else
-#define	RPMEMD_DBG(fmt, arg...) do {} while (0)
+#define RPMEMD_DBG(fmt, arg...) do {} while (0)
 #endif
 
-#define	RPMEMD_FATAL(fmt, arg...) do {\
+#define RPMEMD_FATAL(fmt, arg...) do {\
 	RPMEMD_LOG(ERR, fmt, ## arg);\
 	abort();\
 } while (0)
 
-#define	RPMEMD_ASSERT(cond) do {\
+#define RPMEMD_ASSERT(cond) do {\
 	if (!(cond)) {\
 		rpmemd_log(RPD_LOG_ERR, __FILE__, __LINE__,\
 			"assertion fault: %s", #cond);\

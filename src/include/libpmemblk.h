@@ -40,8 +40,8 @@
  * See libpmemblk(3) for details.
  */
 
-#ifndef	LIBPMEMBLK_H
-#define	LIBPMEMBLK_H 1
+#ifndef LIBPMEMBLK_H
+#define LIBPMEMBLK_H 1
 
 #ifdef __cplusplus
 extern "C" {
@@ -60,16 +60,16 @@ typedef struct pmemblk PMEMblkpool;
  * verify that the version available at run-time is compatible with the version
  * used at compile-time by passing these defines to pmemblk_check_version().
  */
-#define	PMEMBLK_MAJOR_VERSION 1
-#define	PMEMBLK_MINOR_VERSION 0
+#define PMEMBLK_MAJOR_VERSION 1
+#define PMEMBLK_MINOR_VERSION 0
 const char *pmemblk_check_version(
 		unsigned major_required,
 		unsigned minor_required);
 
 /* minimum pool size: 16MB + 8KB (minimum BTT size + header size) */
-#define	PMEMBLK_MIN_POOL ((size_t)((1u << 20) * 16 + (1u << 10) * 8))
+#define PMEMBLK_MIN_POOL ((size_t)((1u << 20) * 16 + (1u << 10) * 8))
 
-#define	PMEMBLK_MIN_BLK ((size_t)512)
+#define PMEMBLK_MIN_BLK ((size_t)512)
 
 PMEMblkpool *pmemblk_open(const char *path, size_t bsize);
 PMEMblkpool *pmemblk_create(const char *path, size_t bsize,

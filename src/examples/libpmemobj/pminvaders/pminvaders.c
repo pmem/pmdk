@@ -44,25 +44,25 @@
 #include <libpmem.h>
 #include <libpmemobj.h>
 
-#define	LAYOUT_NAME "pminvaders"
+#define LAYOUT_NAME "pminvaders"
 
-#define	PMINVADERS_POOL_SIZE	(100 * 1024 * 1024) /* 100 megabytes */
+#define PMINVADERS_POOL_SIZE	(100 * 1024 * 1024) /* 100 megabytes */
 
-#define	GAME_WIDTH	30
-#define	GAME_HEIGHT	30
+#define GAME_WIDTH	30
+#define GAME_HEIGHT	30
 
-#define	RRAND(min, max)	(rand() % ((max) - (min) + 1) + (min))
+#define RRAND(min, max)	(rand() % ((max) - (min) + 1) + (min))
 
-#define	STEP	50
+#define STEP	50
 
-#define	PLAYER_Y (GAME_HEIGHT - 1)
-#define	MAX_GSTATE_TIMER 10000
-#define	MIN_GSTATE_TIMER 5000
+#define PLAYER_Y (GAME_HEIGHT - 1)
+#define MAX_GSTATE_TIMER 10000
+#define MIN_GSTATE_TIMER 5000
 
-#define	MAX_ALIEN_TIMER	1000
+#define MAX_ALIEN_TIMER	1000
 
-#define	MAX_PLAYER_TIMER 1000
-#define	MAX_BULLET_TIMER 500
+#define MAX_PLAYER_TIMER 1000
+#define MAX_BULLET_TIMER 500
 
 enum colors {
 	C_UNKNOWN,
@@ -122,7 +122,7 @@ create_alien(PMEMobjpool *pop, void *ptr, void *arg)
 	a->x = RRAND(2, GAME_WIDTH - 2);
 	a->timer = 1;
 
-	pmemobj_persist(pop, a, sizeof (*a));
+	pmemobj_persist(pop, a, sizeof(*a));
 
 	return 0;
 }
@@ -137,7 +137,7 @@ create_player(PMEMobjpool *pop, void *ptr, void *arg)
 	p->x = GAME_WIDTH / 2;
 	p->timer = 1;
 
-	pmemobj_persist(pop, p, sizeof (*p));
+	pmemobj_persist(pop, p, sizeof(*p));
 
 	return 0;
 }
@@ -155,7 +155,7 @@ create_bullet(PMEMobjpool *pop, void *ptr, void *arg)
 	b->y = PLAYER_Y - 1;
 	b->timer = 1;
 
-	pmemobj_persist(pop, b, sizeof (*b));
+	pmemobj_persist(pop, b, sizeof(*b));
 
 	return 0;
 }
@@ -208,7 +208,7 @@ int
 timer_tick(uint32_t *timer)
 {
 	int ret = *timer == 0 || ((*timer)--) == 0;
-	pmemobj_persist(pop, timer, sizeof (*timer));
+	pmemobj_persist(pop, timer, sizeof(*timer));
 	return ret;
 }
 
@@ -231,7 +231,7 @@ update_score(int m)
 	};
 
 	*gstate = s;
-	pmemobj_persist(pop, gstate, sizeof (*gstate));
+	pmemobj_persist(pop, gstate, sizeof(*gstate));
 }
 
 /*
@@ -243,7 +243,7 @@ process_aliens()
 	/* alien spawn timer */
 	if (timer_tick(&gstate->timer)) {
 		gstate->timer = RRAND(MIN_GSTATE_TIMER, MAX_GSTATE_TIMER);
-		pmemobj_persist(pop, gstate, sizeof (*gstate));
+		pmemobj_persist(pop, gstate, sizeof(*gstate));
 		POBJ_NEW(pop, NULL, struct alien, create_alien, NULL);
 	}
 
@@ -253,14 +253,14 @@ process_aliens()
 			D_RW(iter)->timer = MAX_ALIEN_TIMER;
 			D_RW(iter)->y++;
 		}
-		pmemobj_persist(pop, D_RW(iter), sizeof (struct alien));
+		pmemobj_persist(pop, D_RW(iter), sizeof(struct alien));
 		draw_alien(iter);
 
 		/* decrease the score if the ship wasn't intercepted */
 		if (D_RO(iter)->y > GAME_HEIGHT - 1) {
 			POBJ_FREE(&iter);
 			update_score(-1);
-			pmemobj_persist(pop, gstate, sizeof (*gstate));
+			pmemobj_persist(pop, gstate, sizeof(*gstate));
 		}
 	}
 }
@@ -298,7 +298,7 @@ process_bullets()
 			D_RW(iter)->timer = MAX_BULLET_TIMER;
 			D_RW(iter)->y--;
 		}
-		pmemobj_persist(pop, D_RW(iter), sizeof (struct bullet));
+		pmemobj_persist(pop, D_RW(iter), sizeof(struct bullet));
 
 		draw_bullet(iter);
 		if (D_RO(iter)->y == 0 || process_collision(iter))
@@ -348,7 +348,7 @@ process_player(int input)
 		break;
 	}
 
-	pmemobj_persist(pop, D_RW(plr), sizeof (struct player));
+	pmemobj_persist(pop, D_RW(plr), sizeof(struct player));
 
 	draw_player(plr);
 }

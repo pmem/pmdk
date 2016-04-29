@@ -35,8 +35,8 @@
  */
 
 
-#define	LAYOUT_NAME "intro_2"
-#define	MAX_BUF_LEN 10
+#define LAYOUT_NAME "intro_2"
+#define MAX_BUF_LEN 10
 
 struct my_root {
 	char buf[MAX_BUF_LEN];

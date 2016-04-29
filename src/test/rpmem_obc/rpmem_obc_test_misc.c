@@ -58,7 +58,7 @@ client_enotconn(const struct test_case *tc, int argc, char *argv[])
 	};
 
 	struct rpmem_pool_attr pool_attr;
-	memset(&pool_attr, 0, sizeof (pool_attr));
+	memset(&pool_attr, 0, sizeof(pool_attr));
 	struct rpmem_resp_attr res;
 
 	int ret;
@@ -148,7 +148,7 @@ client_ctrl_connect(char *target)
 	int sockfd = -1;
 	struct addrinfo *addrinfo;
 	struct addrinfo hints;
-	memset(&hints, 0, sizeof (hints));
+	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_protocol = 0;
@@ -226,8 +226,8 @@ client_monitor(const struct test_case *tc, int argc, char *argv[])
 		ret = rpmem_obc_monitor(rpc, 1);
 		UT_ASSERTeq(ret, 1);
 
-		ssize_t wr = write(ctrl, &buff, sizeof (buff));
-		UT_ASSERTeq(wr, sizeof (buff));
+		ssize_t wr = write(ctrl, &buff, sizeof(buff));
+		UT_ASSERTeq(wr, sizeof(buff));
 
 		ret = rpmem_obc_monitor(rpc, 0);
 		UT_ASSERTne(ret, 1);
@@ -249,8 +249,8 @@ client_monitor(const struct test_case *tc, int argc, char *argv[])
 		ret = rpmem_obc_monitor(rpc, 1);
 		UT_ASSERTeq(ret, 1);
 
-		ssize_t wr = write(ctrl, &buff, sizeof (buff));
-		UT_ASSERTeq(wr, sizeof (buff));
+		ssize_t wr = write(ctrl, &buff, sizeof(buff));
+		UT_ASSERTeq(wr, sizeof(buff));
 
 		ret = rpmem_obc_monitor(rpc, 0);
 		UT_ASSERTne(ret, 1);
@@ -296,8 +296,8 @@ server_monitor(const struct test_case *tc, int argc, char *argv[])
 		 */
 		srv_accept(s);
 
-		ssize_t rd = read(ctrl, &buff, sizeof (buff));
-		UT_ASSERTeq(rd, sizeof (buff));
+		ssize_t rd = read(ctrl, &buff, sizeof(buff));
+		UT_ASSERTeq(rd, sizeof(buff));
 
 		srv_disconnect(s);
 
@@ -311,10 +311,10 @@ server_monitor(const struct test_case *tc, int argc, char *argv[])
 		 */
 		srv_accept(s);
 
-		ssize_t rd = read(ctrl, &buff, sizeof (buff));
-		UT_ASSERTeq(rd, sizeof (buff));
+		ssize_t rd = read(ctrl, &buff, sizeof(buff));
+		UT_ASSERTeq(rd, sizeof(buff));
 
-		srv_send(s, &buff, sizeof (buff));
+		srv_send(s, &buff, sizeof(buff));
 		srv_disconnect(s);
 
 	}

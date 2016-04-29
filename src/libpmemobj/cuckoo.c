@@ -42,11 +42,11 @@
 #include "out.h"
 #include "util.h"
 
-#define	MAX_HASH_FUNCS 2
+#define MAX_HASH_FUNCS 2
 
-#define	INITIAL_SIZE 8
-#define	MAX_INSERTS 8
-#define	MAX_GROWS 32
+#define INITIAL_SIZE 8
+#define MAX_INSERTS 8
+#define MAX_GROWS 32
 
 struct cuckoo_slot {
 	uint64_t key;
@@ -97,14 +97,14 @@ static unsigned
 struct cuckoo *
 cuckoo_new()
 {
-	struct cuckoo *c = Malloc(sizeof (struct cuckoo));
+	struct cuckoo *c = Malloc(sizeof(struct cuckoo));
 	if (c == NULL) {
 		ERR("!Malloc");
 		goto error_cuckoo_malloc;
 	}
 
 	c->size = INITIAL_SIZE;
-	size_t tab_rawsize = c->size * sizeof (struct cuckoo_slot);
+	size_t tab_rawsize = c->size * sizeof(struct cuckoo_slot);
 	c->tab = Zalloc(tab_rawsize);
 	if (c->tab == NULL)
 		goto error_tab_malloc;
@@ -166,7 +166,7 @@ cuckoo_grow(struct cuckoo *c)
 
 	int n;
 	for (n = 0; n < MAX_GROWS; ++n) {
-		size_t tab_rawsize = c->size * 2 * sizeof (struct cuckoo_slot);
+		size_t tab_rawsize = c->size * 2 * sizeof(struct cuckoo_slot);
 		c->tab = Zalloc(tab_rawsize);
 		if (c->tab == NULL) {
 			c->tab = oldtab;

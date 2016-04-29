@@ -101,7 +101,7 @@ vmem_init(void)
 		out_set_vsnprintf_func(je_vmem_navsnprintf);
 		LOG(3, NULL);
 		util_init();
-		Header_size = roundup(sizeof (VMEM), Pagesize);
+		Header_size = roundup(sizeof(VMEM), Pagesize);
 
 		/* Set up jemalloc messages to a custom print function */
 		je_vmem_malloc_message = print_jemalloc_messages;
@@ -161,7 +161,7 @@ vmem_create(const char *dir, size_t size)
 
 	/* store opaque info at beginning of mapped area */
 	struct vmem *vmp = addr;
-	memset(&vmp->hdr, '\0', sizeof (vmp->hdr));
+	memset(&vmp->hdr, '\0', sizeof(vmp->hdr));
 	memcpy(vmp->hdr.signature, VMEM_HDR_SIG, POOL_HDR_SIG_LEN);
 	vmp->addr = addr;
 	vmp->size = size;
@@ -181,7 +181,7 @@ vmem_create(const char *dir, size_t size)
 	 * The prototype PMFS doesn't allow this when large pages are in
 	 * use. It is not considered an error if this fails.
 	 */
-	util_range_none(addr, sizeof (struct pool_hdr));
+	util_range_none(addr, sizeof(struct pool_hdr));
 
 	LOG(3, "vmp %p", vmp);
 	return vmp;
@@ -210,7 +210,7 @@ vmem_create_in_region(void *addr, size_t size)
 
 	/* store opaque info at beginning of mapped area */
 	struct vmem *vmp = addr;
-	memset(&vmp->hdr, '\0', sizeof (vmp->hdr));
+	memset(&vmp->hdr, '\0', sizeof(vmp->hdr));
 	memcpy(vmp->hdr.signature, VMEM_HDR_SIG, POOL_HDR_SIG_LEN);
 	vmp->addr = addr;
 	vmp->size = size;
@@ -229,7 +229,7 @@ vmem_create_in_region(void *addr, size_t size)
 	 * The prototype PMFS doesn't allow this when large pages are in
 	 * use. It is not considered an error if this fails.
 	 */
-	util_range_none(addr, sizeof (struct pool_hdr));
+	util_range_none(addr, sizeof(struct pool_hdr));
 
 	LOG(3, "vmp %p", vmp);
 	return vmp;
@@ -250,7 +250,7 @@ vmem_delete(VMEM *vmp)
 		return;
 	}
 
-	util_range_rw(vmp->addr, sizeof (struct pool_hdr));
+	util_range_rw(vmp->addr, sizeof(struct pool_hdr));
 
 	if (vmp->caller_mapped == 0)
 		util_unmap(vmp->addr, vmp->size);

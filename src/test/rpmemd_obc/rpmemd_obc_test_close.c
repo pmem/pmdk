@@ -49,7 +49,7 @@ client_msg_close_noresp(const char *ctarget)
 
 	int fd = clnt_connect_wait(target);
 
-	clnt_send(fd, &msg, sizeof (msg));
+	clnt_send(fd, &msg, sizeof(msg));
 	clnt_wait_disconnect(fd);
 	clnt_close(fd);
 
@@ -71,8 +71,8 @@ client_msg_close_resp(const char *ctarget, int status)
 
 	int fd = clnt_connect_wait(target);
 
-	clnt_send(fd, &msg, sizeof (msg));
-	clnt_recv(fd, &resp, sizeof (resp));
+	clnt_send(fd, &msg, sizeof(msg));
+	clnt_recv(fd, &resp, sizeof(resp));
 	rpmem_ntoh_msg_close_resp(&resp);
 
 	if (status)

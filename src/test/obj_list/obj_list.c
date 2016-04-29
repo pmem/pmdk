@@ -47,9 +47,9 @@
 #include "obj.h"
 
 /* offset to "in band" item */
-#define	OOB_OFF	 (sizeof (struct oob_header))
+#define OOB_OFF	 (sizeof(struct oob_header))
 /* pmemobj initial heap offset */
-#define	HEAP_OFFSET	8192
+#define HEAP_OFFSET	8192
 
 TOID_DECLARE(struct item, 0);
 TOID_DECLARE(struct list, 1);
@@ -109,23 +109,23 @@ TOID(struct oob_list) List_oob_sec;
 TOID(struct oob_item) *Item;
 
 /* usage macros */
-#define	FATAL_USAGE()\
+#define FATAL_USAGE()\
 	UT_FATAL("usage: obj_list <file> [PRnifr]")
-#define	FATAL_USAGE_PRINT()\
+#define FATAL_USAGE_PRINT()\
 	UT_FATAL("usage: obj_list <file> P:<list>")
-#define	FATAL_USAGE_PRINT_REVERSE()\
+#define FATAL_USAGE_PRINT_REVERSE()\
 	UT_FATAL("usage: obj_list <file> R:<list>")
-#define	FATAL_USAGE_INSERT()\
+#define FATAL_USAGE_INSERT()\
 	UT_FATAL("usage: obj_list <file> i:<where>:<num>")
-#define	FATAL_USAGE_REMOVE_FREE()\
+#define FATAL_USAGE_REMOVE_FREE()\
 	UT_FATAL("usage: obj_list <file> f:<list>:<num>:<from>")
-#define	FATAL_USAGE_REMOVE()\
+#define FATAL_USAGE_REMOVE()\
 	UT_FATAL("usage: obj_list <file> r:<num>")
-#define	FATAL_USAGE_MOVE()\
+#define FATAL_USAGE_MOVE()\
 	UT_FATAL("usage: obj_list <file> m:<num>:<where>:<num>")
-#define	FATAL_USAGE_MOVE_OOB()\
+#define FATAL_USAGE_MOVE_OOB()\
 	UT_FATAL("usage: obj_list <file> o:<num>")
-#define	FATAL_USAGE_FAIL()\
+#define FATAL_USAGE_FAIL()\
 	UT_FATAL("usage: obj_list <file> "\
 	"F:<after_finish|before_finish|after_process>")
 
@@ -173,7 +173,7 @@ static uint64_t
 linear_alloc(uint64_t *cur_offset, size_t size)
 {
 	uint64_t ret = *cur_offset;
-	*cur_offset += roundup(size, sizeof (uint64_t));
+	*cur_offset += roundup(size, sizeof(uint64_t));
 	return ret;
 }
 /*
@@ -219,9 +219,9 @@ FUNC_MOCK_RUN_DEFAULT {
 	uint64_t heap_offset = HEAP_OFFSET;
 
 	Heap_offset = (uint64_t *)((uintptr_t)Pop +
-			linear_alloc(&heap_offset, sizeof (*Heap_offset)));
+			linear_alloc(&heap_offset, sizeof(*Heap_offset)));
 
-	Id = (int *)((uintptr_t)Pop + linear_alloc(&heap_offset, sizeof (*Id)));
+	Id = (int *)((uintptr_t)Pop + linear_alloc(&heap_offset, sizeof(*Id)));
 
 	/* Alloc lane layout */
 	Lane_section.layout = (void *)((uintptr_t)Pop +
@@ -229,34 +229,34 @@ FUNC_MOCK_RUN_DEFAULT {
 
 	/* Alloc in band lists */
 	List.oid.pool_uuid_lo = Pop->uuid_lo;
-	List.oid.off = linear_alloc(&heap_offset, sizeof (struct list));
+	List.oid.off = linear_alloc(&heap_offset, sizeof(struct list));
 
 	List_sec.oid.pool_uuid_lo = Pop->uuid_lo;
-	List_sec.oid.off = linear_alloc(&heap_offset, sizeof (struct list));
+	List_sec.oid.off = linear_alloc(&heap_offset, sizeof(struct list));
 
 	/* Alloc out of band lists */
 	List_oob.oid.pool_uuid_lo = Pop->uuid_lo;
-	List_oob.oid.off = linear_alloc(&heap_offset, sizeof (struct oob_list));
+	List_oob.oid.off = linear_alloc(&heap_offset, sizeof(struct oob_list));
 
 	List_oob_sec.oid.pool_uuid_lo = Pop->uuid_lo;
 	List_oob_sec.oid.off =
-			linear_alloc(&heap_offset, sizeof (struct oob_list));
+			linear_alloc(&heap_offset, sizeof(struct oob_list));
 
 	Item = (void *)((uintptr_t)Pop +
-			linear_alloc(&heap_offset, sizeof (*Item)));
+			linear_alloc(&heap_offset, sizeof(*Item)));
 	Item->oid.pool_uuid_lo = Pop->uuid_lo;
-	Item->oid.off = linear_alloc(&heap_offset, sizeof (struct oob_item));
-	Pop->persist(Pop, Item, sizeof (*Item));
+	Item->oid.off = linear_alloc(&heap_offset, sizeof(struct oob_item));
+	Pop->persist(Pop, Item, sizeof(*Item));
 
 	if (*Heap_offset == 0) {
 		*Heap_offset = heap_offset;
-		Pop->persist(Pop, Heap_offset, sizeof (*Heap_offset));
+		Pop->persist(Pop, Heap_offset, sizeof(*Heap_offset));
 	}
 
 	Pop->persist(Pop, Pop, HEAP_OFFSET);
 
 	Pop->run_id += 2;
-	Pop->persist(Pop, &Pop->run_id, sizeof (Pop->run_id));
+	Pop->persist(Pop, &Pop->run_id, sizeof(Pop->run_id));
 
 	return Pop;
 }
@@ -328,7 +328,7 @@ FUNC_MOCK(pmemobj_alloc, PMEMoid, PMEMobjpool *pop, PMEMoid *oidp,
 		pmalloc(NULL, &oid.off, size);
 		if (oidp) {
 			*oidp = oid;
-			Pop->persist(Pop, oidp, sizeof (*oidp));
+			Pop->persist(Pop, oidp, sizeof(*oidp));
 		}
 	return oid; }
 FUNC_MOCK_END
@@ -345,24 +345,24 @@ FUNC_MOCK(pmalloc, int, PMEMobjpool *pop, uint64_t *ptr, size_t size)
 		uint64_t *alloc_size = (uint64_t *)((uintptr_t)Pop
 				+ *Heap_offset);
 		*alloc_size = size;
-		Pop->persist(Pop, alloc_size, sizeof (*alloc_size));
+		Pop->persist(Pop, alloc_size, sizeof(*alloc_size));
 
-		*ptr = *Heap_offset + sizeof (uint64_t);
-		Pop->persist(Pop, ptr, sizeof (*ptr));
+		*ptr = *Heap_offset + sizeof(uint64_t);
+		Pop->persist(Pop, ptr, sizeof(*ptr));
 
 		struct oob_item *item =
 			(struct oob_item *)((uintptr_t)Pop + *ptr);
 
 		*ptr += OOB_OFF;
 		item->item.id = *Id;
-		Pop->persist(Pop, &item->item.id, sizeof (item->item.id));
+		Pop->persist(Pop, &item->item.id, sizeof(item->item.id));
 
 		(*Id)++;
-		Pop->persist(Pop, Id, sizeof (*Id));
+		Pop->persist(Pop, Id, sizeof(*Id));
 
-		*Heap_offset = *Heap_offset + sizeof (uint64_t) +
+		*Heap_offset = *Heap_offset + sizeof(uint64_t) +
 			size + OOB_OFF;
-		Pop->persist(Pop, Heap_offset, sizeof (*Heap_offset));
+		Pop->persist(Pop, Heap_offset, sizeof(*Heap_offset));
 
 		UT_OUT("pmalloc(id = %d)", item->item.id);
 		return 0;
@@ -380,7 +380,7 @@ FUNC_MOCK(pfree, int, PMEMobjpool *pop, uint64_t *ptr)
 			(struct oob_item *)((uintptr_t)Pop + *ptr - OOB_OFF);
 		UT_OUT("pfree(id = %d)", item->item.id);
 		*ptr = 0;
-		Pop->persist(Pop, ptr, sizeof (*ptr));
+		Pop->persist(Pop, ptr, sizeof(*ptr));
 
 		return 0;
 	}
@@ -400,13 +400,13 @@ FUNC_MOCK(pmalloc_construct, int, PMEMobjpool *pop, uint64_t *off,
 		uint64_t *alloc_size = (uint64_t *)((uintptr_t)Pop +
 				*Heap_offset);
 		*alloc_size = size;
-		Pop->persist(Pop, alloc_size, sizeof (*alloc_size));
+		Pop->persist(Pop, alloc_size, sizeof(*alloc_size));
 
-		*off = *Heap_offset + sizeof (uint64_t) + OOB_OFF;
-		Pop->persist(Pop, off, sizeof (*off));
+		*off = *Heap_offset + sizeof(uint64_t) + OOB_OFF;
+		Pop->persist(Pop, off, sizeof(*off));
 
-		*Heap_offset = *Heap_offset + sizeof (uint64_t) + size;
-		Pop->persist(Pop, Heap_offset, sizeof (*Heap_offset));
+		*Heap_offset = *Heap_offset + sizeof(uint64_t) + size;
+		Pop->persist(Pop, Heap_offset, sizeof(*Heap_offset));
 
 		void *ptr = (void *)((uintptr_t)Pop + *off);
 		constructor(pop, ptr, size, arg);
@@ -421,21 +421,21 @@ FUNC_MOCK_END
 FUNC_MOCK(prealloc, int, PMEMobjpool *pop, uint64_t *off, size_t size)
 	FUNC_MOCK_RUN_DEFAULT {
 		uint64_t *alloc_size = (uint64_t *)((uintptr_t)Pop +
-				*off - sizeof (uint64_t));
+				*off - sizeof(uint64_t));
 		struct item *item = (struct item *)((uintptr_t)Pop +
 				*off + OOB_OFF);
 		if (*alloc_size >= size) {
 			*alloc_size = size;
-			Pop->persist(Pop, alloc_size, sizeof (*alloc_size));
+			Pop->persist(Pop, alloc_size, sizeof(*alloc_size));
 
 			UT_OUT("prealloc(id = %d, size = %zu) = true",
 				item->id,
-				(size - OOB_OFF) / sizeof (struct item));
+				(size - OOB_OFF) / sizeof(struct item));
 			return 0;
 		} else {
 			UT_OUT("prealloc(id = %d, size = %zu) = false",
 				item->id,
-				(size - OOB_OFF) / sizeof (struct item));
+				(size - OOB_OFF) / sizeof(struct item));
 			return -1;
 		}
 	}
@@ -463,7 +463,7 @@ FUNC_MOCK_END
 FUNC_MOCK(pmalloc_usable_size, size_t, PMEMobjpool *pop, uint64_t off)
 	FUNC_MOCK_RUN_DEFAULT {
 		uint64_t *alloc_size = (uint64_t *)((uintptr_t)Pop +
-				off - sizeof (uint64_t));
+				off - sizeof(uint64_t));
 		return (size_t)*alloc_size;
 	}
 FUNC_MOCK_END
@@ -596,7 +596,7 @@ oob_get_next(PMEMoid oid)
 /*
  * for each element on list in normal order
  */
-#define	LIST_FOREACH(item, list, head, field)\
+#define LIST_FOREACH(item, list, head, field)\
 for ((item) = \
 	D_RW((list))->head.pe_first;\
 	!TOID_IS_NULL((item));\
@@ -609,7 +609,7 @@ for ((item) = \
 /*
  * for each element on list in reverse order
  */
-#define	LIST_FOREACH_REVERSE(item, list, head, field)\
+#define LIST_FOREACH_REVERSE(item, list, head, field)\
 for ((item) = \
 	TOID_IS_NULL(D_RW((list))->head.pe_first) ? D_RW(list)->head.pe_first :\
 	D_RW(D_RW(list)->head.pe_first)->field.pe_prev;\
@@ -623,7 +623,7 @@ for ((item) = \
 /*
  * for each element on oob list in normal order
  */
-#define	LIST_FOREACH_OOB(item, list, head)\
+#define LIST_FOREACH_OOB(item, list, head)\
 for (TOID_ASSIGN((item), oob_get_first((list).oid));\
 	!TOID_IS_NULL((item));\
 	TOID_ASSIGN((item),\
@@ -635,7 +635,7 @@ for (TOID_ASSIGN((item), oob_get_first((list).oid));\
 /*
  * for each element on oob list in reverse order
  */
-#define	LIST_FOREACH_REVERSE_OOB(item, list, head)\
+#define LIST_FOREACH_REVERSE_OOB(item, list, head)\
 for (TOID_ASSIGN((item),\
 	(oob_get_first((list).oid).off ?\
 	oob_get_prev(oob_get_first((list).oid)):\
@@ -790,7 +790,7 @@ item_constructor(PMEMobjpool *pop, void *ptr, size_t usable_size, void *arg)
 	int id = *(int *)arg;
 	struct item *item = (struct item *)ptr;
 	item->id = id;
-	pop->persist(Pop, &item->id, sizeof (item->id));
+	pop->persist(Pop, &item->id, sizeof(item->id));
 	UT_OUT("constructor(id = %d)", id);
 
 	return 0;
@@ -819,7 +819,7 @@ do_insert_new(PMEMobjpool *pop, const char *arg)
 			(struct list_head *)&D_RW(List)->head,
 			get_item_list(List.oid, n),
 			before,
-			sizeof (struct item),
+			sizeof(struct item),
 			item_constructor,
 			&id, (PMEMoid *)Item);
 
@@ -832,7 +832,7 @@ do_insert_new(PMEMobjpool *pop, const char *arg)
 			(struct list_head *)&D_RW(List)->head,
 			get_item_list(List.oid, n),
 			before,
-			sizeof (struct item),
+			sizeof(struct item),
 			NULL, NULL, (PMEMoid *)Item);
 
 		if (ret)
@@ -841,7 +841,7 @@ do_insert_new(PMEMobjpool *pop, const char *arg)
 		ret = list_insert_new_user(pop,
 			(struct list_head *)&D_RW(List_oob)->head,
 			0, NULL, OID_NULL, 0,
-			sizeof (struct item),
+			sizeof(struct item),
 			NULL, NULL, (PMEMoid *)Item);
 
 		if (ret)
@@ -863,7 +863,7 @@ do_insert(PMEMobjpool *pop, const char *arg)
 
 	PMEMoid it;
 	pmemobj_alloc(pop, &it,
-			sizeof (struct oob_item), 0, NULL, NULL);
+			sizeof(struct oob_item), 0, NULL, NULL);
 
 	if (list_insert(pop,
 		offsetof(struct item, next),

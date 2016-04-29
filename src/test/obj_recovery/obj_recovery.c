@@ -49,7 +49,7 @@ struct root {
 	TOID(struct foo) foo;
 };
 
-#define	BAR_VALUE 5
+#define BAR_VALUE 5
 
 int
 main(int argc, char *argv[])

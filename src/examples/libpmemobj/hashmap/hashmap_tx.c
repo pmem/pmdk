@@ -83,8 +83,8 @@ static void
 create_hashmap(PMEMobjpool *pop, TOID(struct hashmap_tx) hashmap, uint32_t seed)
 {
 	size_t len = INIT_BUCKETS_NUM;
-	size_t sz = sizeof (struct buckets) +
-			len * sizeof (TOID(struct entry));
+	size_t sz = sizeof(struct buckets) +
+			len * sizeof(TOID(struct entry));
 
 	TX_BEGIN(pop) {
 		TX_ADD(hashmap);
@@ -132,11 +132,11 @@ hm_tx_rebuild(PMEMobjpool *pop, TOID(struct hashmap_tx) hashmap, size_t new_len)
 	if (new_len == 0)
 		new_len = D_RO(buckets_old)->nbuckets;
 
-	size_t sz_old = sizeof (struct buckets) +
+	size_t sz_old = sizeof(struct buckets) +
 			D_RO(buckets_old)->nbuckets *
-			sizeof (TOID(struct entry));
-	size_t sz_new = sizeof (struct buckets) +
-			new_len * sizeof (TOID(struct entry));
+			sizeof(TOID(struct entry));
+	size_t sz_new = sizeof(struct buckets) +
+			new_len * sizeof(TOID(struct entry));
 
 	TX_BEGIN(pop) {
 		TX_ADD_FIELD(hashmap, buckets);

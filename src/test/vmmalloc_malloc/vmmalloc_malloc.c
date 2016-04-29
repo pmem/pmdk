@@ -38,9 +38,9 @@
 
 #include "unittest.h"
 
-#define	MIN_SIZE (sizeof (int))
-#define	SIZE 20
-#define	MAX_SIZE (MIN_SIZE << SIZE)
+#define MIN_SIZE (sizeof(int))
+#define SIZE 20
+#define MAX_SIZE (MIN_SIZE << SIZE)
 
 int
 main(int argc, char *argv[])
@@ -53,7 +53,7 @@ main(int argc, char *argv[])
 
 	START(argc, argv, "vmmalloc_malloc");
 
-	/* test with multiple size of allocations from 4MB to sizeof (int) */
+	/* test with multiple size of allocations from 4MB to sizeof(int) */
 	for (size = MAX_SIZE; size > MIN_SIZE; size /= 2) {
 		ptr[i] = malloc(size);
 

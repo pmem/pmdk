@@ -37,12 +37,12 @@
 #include "libpmemobj.h"
 #include "util.h"
 
-#define	LAYOUT_NAME "direct"
+#define LAYOUT_NAME "direct"
 
-#define	TEST_VALUE_A 5
-#define	TEST_VALUE_B 10
-#define	TEST_VALUE_C 15
-#define	OPS_NUM 8
+#define TEST_VALUE_A 5
+#define TEST_VALUE_B 10
+#define TEST_VALUE_C 15
+#define OPS_NUM 8
 TOID_DECLARE(struct test_obj, 1);
 
 struct test_obj {

@@ -51,14 +51,14 @@
  * based on https://github.com/armon/libart/src/art.h
  */
 
-#ifndef	_ART_H
-#define	_ART_H
+#ifndef _ART_H
+#define _ART_H
 
-#ifdef	__cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
-#define	MAX_PREFIX_LEN 10
+#define MAX_PREFIX_LEN 10
 
 typedef enum {
 	NODE4		= 0,
@@ -183,10 +183,10 @@ typedef struct _cb_data {
 /*
  * Macros to manipulate art_node tags
  */
-#define	IS_LEAF(x) ((x->art_node_type == art_leaf_t))
-#define	SET_LEAF(x) ((x->art_node_tag = art_leaf_t))
+#define IS_LEAF(x) ((x->art_node_type == art_leaf_t))
+#define SET_LEAF(x) ((x->art_node_tag = art_leaf_t))
 
-#define	COPY_BLOB(_obj, _blob, _len) \
+#define COPY_BLOB(_obj, _blob, _len) \
     D_RW(_obj)->len = _len; \
     TX_MEMCPY(D_RW(_obj)->s, _blob, _len); \
     D_RW(_obj)->s[_len - 1] = '\0';

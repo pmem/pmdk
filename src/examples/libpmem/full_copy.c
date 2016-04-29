@@ -49,7 +49,7 @@
 #include <libpmem.h>
 
 /* copying 4k at a time to pmem for this example */
-#define	BUF_LEN 4096
+#define BUF_LEN 4096
 
 /*
  * do_copy_to_pmem -- copy to pmem, postponing drain step until the end

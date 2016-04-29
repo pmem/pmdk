@@ -95,7 +95,7 @@ rpmemd_obc_check_msg_hdr(struct rpmem_msg_hdr *hdrp)
 		return -1;
 	}
 
-	if (hdrp->size < sizeof (struct rpmem_msg_hdr)) {
+	if (hdrp->size < sizeof(struct rpmem_msg_hdr)) {
 		RPMEMD_LOG(ERR, "invalid message size -- %lu", hdrp->size);
 		return -1;
 	}
@@ -169,7 +169,7 @@ rpmemd_obc_ntoh_check_msg_create(struct rpmem_msg_hdr *hdrp)
 	if (ret)
 		return ret;
 
-	ret = rpmemd_obc_check_pool_desc(hdrp, sizeof (*msg), &msg->pool_desc);
+	ret = rpmemd_obc_check_pool_desc(hdrp, sizeof(*msg), &msg->pool_desc);
 	if (ret)
 		return ret;
 
@@ -195,7 +195,7 @@ rpmemd_obc_ntoh_check_msg_open(struct rpmem_msg_hdr *hdrp)
 	if (ret)
 		return ret;
 
-	ret = rpmemd_obc_check_pool_desc(hdrp, sizeof (*msg), &msg->pool_desc);
+	ret = rpmemd_obc_check_pool_desc(hdrp, sizeof(*msg), &msg->pool_desc);
 	if (ret)
 		return ret;
 
@@ -221,7 +221,7 @@ rpmemd_obc_ntoh_check_msg_remove(struct rpmem_msg_hdr *hdrp)
 	if (ret)
 		return ret;
 
-	ret = rpmemd_obc_check_pool_desc(hdrp, sizeof (*msg), &msg->pool_desc);
+	ret = rpmemd_obc_check_pool_desc(hdrp, sizeof(*msg), &msg->pool_desc);
 	if (ret)
 		return ret;
 
@@ -341,7 +341,7 @@ rpmemd_obc_msg_recv(struct rpmemd_obc_client *client,
 	struct rpmem_msg_hdr *hdrp;
 	int ret;
 
-	ret = rpmem_obc_recv(client->sockfd, &nhdr, sizeof (nhdr));
+	ret = rpmem_obc_recv(client->sockfd, &nhdr, sizeof(nhdr));
 	if (ret == 1) {
 		RPMEMD_LOG(NOTICE, "client disconnected");
 		return 1;
@@ -352,7 +352,7 @@ rpmemd_obc_msg_recv(struct rpmemd_obc_client *client,
 		return ret;
 	}
 
-	memcpy(&hdr, &nhdr, sizeof (hdr));
+	memcpy(&hdr, &nhdr, sizeof(hdr));
 	rpmem_ntoh_msg_hdr(&hdr);
 
 	ret = rpmemd_obc_check_msg_hdr(&hdr);
@@ -367,9 +367,9 @@ rpmemd_obc_msg_recv(struct rpmemd_obc_client *client,
 		return -1;
 	}
 
-	memcpy(hdrp, &nhdr, sizeof (*hdrp));
+	memcpy(hdrp, &nhdr, sizeof(*hdrp));
 
-	size_t body_size = hdr.size - sizeof (hdr);
+	size_t body_size = hdr.size - sizeof(hdr);
 	ret = rpmem_obc_recv(client->sockfd, hdrp->body, body_size);
 	if (ret) {
 		RPMEMD_LOG(ERR, "!receiving message body failed");
@@ -403,7 +403,7 @@ rpmemd_obc_setsockopt(struct rpmemd_obc *rpdc)
 
 	optval = 1;
 	ret = setsockopt(rpdc->sockfd, SOL_SOCKET, SO_REUSEADDR,
-			&optval, sizeof (optval));
+			&optval, sizeof(optval));
 	if (ret) {
 		RPMEMD_LOG(ERR, "!setsockopt(SO_REUSEADDR)");
 		return -1;
@@ -420,7 +420,7 @@ rpmemd_obc_init(void)
 {
 	RPMEMD_DBG("allocating connection server");
 
-	struct rpmemd_obc *rpdc = calloc(1, sizeof (*rpdc));
+	struct rpmemd_obc *rpdc = calloc(1, sizeof(*rpdc));
 	if (!rpdc) {
 		RPMEMD_LOG(ERR, "!allocating connection server");
 		return NULL;
@@ -461,7 +461,7 @@ rpmemd_obc_listen(struct rpmemd_obc *rpdc, int backlog,
 
 	struct addrinfo *ai;
 	struct addrinfo hints;
-	memset(&hints, 0, sizeof (hints));
+	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_protocol = 0;
@@ -542,13 +542,13 @@ rpmemd_obc_accept(struct rpmemd_obc *rpdc)
 	if (rpdc->sockfd == -1)
 		RPMEMD_FATAL("server not listening");
 
-	struct rpmemd_obc_client *client = calloc(1, sizeof (*client));
+	struct rpmemd_obc_client *client = calloc(1, sizeof(*client));
 	if (!client) {
 		RPMEMD_LOG(ERR, "!allocating client failed");
 		goto err_calloc;
 	}
 
-	socklen_t addrlen = sizeof (client->peer);
+	socklen_t addrlen = sizeof(client->peer);
 	client->sockfd = accept(rpdc->sockfd,
 			&client->peer, &addrlen);
 	if (client->sockfd < 0) {
@@ -711,7 +711,7 @@ rpmemd_obc_client_create_resp(struct rpmemd_obc_client *client,
 	struct rpmem_msg_create_resp resp = {
 		.hdr = {
 			.type	= RPMEM_MSG_TYPE_CREATE_RESP,
-			.size	= sizeof (struct rpmem_msg_create_resp),
+			.size	= sizeof(struct rpmem_msg_create_resp),
 			.status	= (uint32_t)status,
 		},
 		.ibc = {
@@ -725,7 +725,7 @@ rpmemd_obc_client_create_resp(struct rpmemd_obc_client *client,
 
 	rpmem_hton_msg_create_resp(&resp);
 
-	return rpmem_obc_send(client->sockfd, &resp, sizeof (resp));
+	return rpmem_obc_send(client->sockfd, &resp, sizeof(resp));
 }
 
 /*
@@ -739,7 +739,7 @@ rpmemd_obc_client_open_resp(struct rpmemd_obc_client *client,
 	struct rpmem_msg_open_resp resp = {
 		.hdr = {
 			.type	= RPMEM_MSG_TYPE_OPEN_RESP,
-			.size	= sizeof (struct rpmem_msg_open_resp),
+			.size	= sizeof(struct rpmem_msg_open_resp),
 			.status	= (uint32_t)status,
 		},
 		.ibc = {
@@ -754,7 +754,7 @@ rpmemd_obc_client_open_resp(struct rpmemd_obc_client *client,
 
 	rpmem_hton_msg_open_resp(&resp);
 
-	return rpmem_obc_send(client->sockfd, &resp, sizeof (resp));
+	return rpmem_obc_send(client->sockfd, &resp, sizeof(resp));
 }
 
 /*
@@ -767,14 +767,14 @@ rpmemd_obc_client_close_resp(struct rpmemd_obc_client *client,
 	struct rpmem_msg_close_resp resp = {
 		.hdr = {
 			.type	= RPMEM_MSG_TYPE_CLOSE_RESP,
-			.size	= sizeof (struct rpmem_msg_close_resp),
+			.size	= sizeof(struct rpmem_msg_close_resp),
 			.status	= (uint32_t)status,
 		},
 	};
 
 	rpmem_hton_msg_close_resp(&resp);
 
-	return rpmem_obc_send(client->sockfd, &resp, sizeof (resp));
+	return rpmem_obc_send(client->sockfd, &resp, sizeof(resp));
 }
 
 /*
@@ -787,12 +787,12 @@ rpmemd_obc_client_remove_resp(struct rpmemd_obc_client *client,
 	struct rpmem_msg_remove_resp resp = {
 		.hdr = {
 			.type	= RPMEM_MSG_TYPE_REMOVE_RESP,
-			.size	= sizeof (struct rpmem_msg_remove_resp),
+			.size	= sizeof(struct rpmem_msg_remove_resp),
 			.status	= (uint32_t)status,
 		},
 	};
 
 	rpmem_hton_msg_remove_resp(&resp);
 
-	return rpmem_obc_send(client->sockfd, &resp, sizeof (resp));
+	return rpmem_obc_send(client->sockfd, &resp, sizeof(resp));
 }

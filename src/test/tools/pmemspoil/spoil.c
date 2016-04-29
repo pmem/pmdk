@@ -34,7 +34,7 @@
  * spoil.c -- pmempool spoil command source file
  */
 #include <features.h>
-#define	__USE_UNIX98
+#define __USE_UNIX98
 #include <unistd.h>
 #include <stdio.h>
 #include <getopt.h>
@@ -53,7 +53,7 @@
 #include "common.h"
 #include "output.h"
 
-#define	STR(x)	#x
+#define STR(x)	#x
 
 /*
  * Set of macros for parsing structures and fields.
@@ -83,18 +83,18 @@ enum process_state {
 	PROCESS_STATE_ERROR,
 };
 
-#define	PROCESS_BEGIN(psp, pfp) \
+#define PROCESS_BEGIN(psp, pfp) \
 enum process_state PROCESS_STATE = PROCESS_STATE_NOT_FOUND;\
 struct pmemspoil *_psp = (psp);\
 struct pmemspoil_list *_pfp = (pfp);\
 
-#define	PROCESS_RET ((PROCESS_STATE == PROCESS_STATE_FOUND ||\
+#define PROCESS_RET ((PROCESS_STATE == PROCESS_STATE_FOUND ||\
 			PROCESS_STATE == PROCESS_STATE_FIELD ||\
 			PROCESS_STATE == PROCESS_STATE_FUNC) ? 0 : -1)
 
-#define	PROCESS_INDEX	(_pfp->cur->index)
+#define PROCESS_INDEX	(_pfp->cur->index)
 
-#define	PROCESS_END \
+#define PROCESS_END \
 _process_end:\
 switch (PROCESS_STATE) {\
 case PROCESS_STATE_NOT_FOUND:\
@@ -114,13 +114,13 @@ default:\
 	break;\
 }
 
-#define	PROCESS(_name, _arg, _max) do {\
+#define PROCESS(_name, _arg, _max) do {\
 if (pmemspoil_check_field(_pfp, STR(_name))) {\
 	PROCESS_STATE = PROCESS_STATE_FOUND;\
 	if (_pfp->cur->index >= (_max)) {\
 		PROCESS_STATE = PROCESS_STATE_ERROR_MSG;\
 	} else {\
-		typeof (_arg) a = _arg;\
+		typeof(_arg) a = _arg;\
 		pmemspoil_next_field(_pfp);\
 		if (pmemspoil_process_##_name(_psp, _pfp, a))\
 			PROCESS_STATE = PROCESS_STATE_ERROR;\
@@ -129,13 +129,13 @@ if (pmemspoil_check_field(_pfp, STR(_name))) {\
 }\
 } while (0)
 
-#define	PROCESS_NAME(_name, _func, _arg, _max) do {\
+#define PROCESS_NAME(_name, _func, _arg, _max) do {\
 if (pmemspoil_check_field(_pfp, (_name))) {\
 	PROCESS_STATE = PROCESS_STATE_FOUND;\
 	if (_pfp->cur->index >= (_max)) {\
 		PROCESS_STATE = PROCESS_STATE_ERROR_MSG;\
 	} else {\
-		typeof (_arg) a = _arg;\
+		typeof(_arg) a = _arg;\
 		pmemspoil_next_field(_pfp);\
 		if (pmemspoil_process_##_func(_psp, _pfp, a))\
 			PROCESS_STATE = PROCESS_STATE_ERROR;\
@@ -144,12 +144,12 @@ if (pmemspoil_check_field(_pfp, (_name))) {\
 }\
 } while (0)
 
-#define	PROCESS_FIELD(_ptr, _name, _type) do {\
+#define PROCESS_FIELD(_ptr, _name, _type) do {\
 	if (pmemspoil_check_field(_pfp, STR(_name))) {\
 		pmemspoil_next_field(_pfp);\
 		if (pmemspoil_process_##_type(_psp, _pfp,\
 				(_type *)&((_ptr)->_name),\
-				sizeof ((_ptr)->_name), 0))\
+				sizeof((_ptr)->_name), 0))\
 			PROCESS_STATE = PROCESS_STATE_ERROR_MSG;\
 		else\
 			PROCESS_STATE = PROCESS_STATE_FIELD;\
@@ -157,12 +157,12 @@ if (pmemspoil_check_field(_pfp, (_name))) {\
 	}\
 } while (0)
 
-#define	PROCESS_FIELD_LE(_ptr, _name, _type) do {\
+#define PROCESS_FIELD_LE(_ptr, _name, _type) do {\
 	if (pmemspoil_check_field(_pfp, STR(_name))) {\
 		pmemspoil_next_field(_pfp);\
 		if (pmemspoil_process_##_type(_psp, _pfp,\
 				(_type *)&((_ptr)->_name),\
-				sizeof ((_ptr)->_name), 1))\
+				sizeof((_ptr)->_name), 1))\
 			PROCESS_STATE = PROCESS_STATE_ERROR_MSG;\
 		else\
 			PROCESS_STATE = PROCESS_STATE_FIELD;\
@@ -170,7 +170,7 @@ if (pmemspoil_check_field(_pfp, (_name))) {\
 	}\
 } while (0)
 
-#define	PROCESS_FUNC(_name, _func, _arg) do {\
+#define PROCESS_FUNC(_name, _func, _arg) do {\
 	if (pmemspoil_check_field(_pfp, (_name))) {\
 		PROCESS_STATE = PROCESS_STATE_FOUND;\
 		if (!_pfp->str) {\
@@ -185,7 +185,7 @@ if (pmemspoil_check_field(_pfp, (_name))) {\
 	}\
 } while (0)
 
-#define	PROCESS_FIELD_ARRAY(_ptr, _name, _type, _max) do {\
+#define PROCESS_FIELD_ARRAY(_ptr, _name, _type, _max) do {\
 if (pmemspoil_check_field(_pfp, STR(_name))) {\
 	if (_pfp->cur->index >= (_max)) {\
 		PROCESS_STATE = PROCESS_STATE_ERROR_MSG;\
@@ -194,7 +194,7 @@ if (pmemspoil_check_field(_pfp, STR(_name))) {\
 		pmemspoil_next_field(_pfp);\
 		if (pmemspoil_process_##_type(_psp, _pfp,\
 				(_type *)&((_ptr)->_name[ind]),\
-				sizeof ((_ptr)->_name), 0))\
+				sizeof((_ptr)->_name), 0))\
 			PROCESS_STATE = PROCESS_STATE_ERROR_MSG;\
 		else\
 			PROCESS_STATE = PROCESS_STATE_FIELD;\
@@ -439,12 +439,12 @@ pmemspoil_parse_fields(char *str, struct pmemspoil_list *listp)
 	if (!listp->str)
 		return -1;
 	while ((nstr = pmemspoil_parse_field(str, &f)) != NULL) {
-		struct field *fp = malloc(sizeof (struct field));
+		struct field *fp = malloc(sizeof(struct field));
 		if (!fp) {
 			pmemspoil_free_fields(listp);
 			err(1, NULL);
 		}
-		memcpy(fp, &f, sizeof (*fp));
+		memcpy(fp, &f, sizeof(*fp));
 		pmemspoil_insert_field(listp, fp);
 		str = nstr;
 	}
@@ -494,7 +494,7 @@ pmemspoil_parse_args(struct pmemspoil *psp, char *appname,
 
 		assert(argc >= ind);
 		psp->argc = (unsigned)(argc - ind);
-		psp->args = calloc(psp->argc, sizeof (struct pmemspoil_list));
+		psp->args = calloc(psp->argc, sizeof(struct pmemspoil_list));
 		if (!psp->args)
 			err(1, NULL);
 		unsigned i;
@@ -523,7 +523,7 @@ static uint64_t
 pmemspoil_get_arena_offset(struct pmemspoil *psp, uint32_t id,
 		uint64_t start_offset)
 {
-	struct btt_info *infop = calloc(sizeof (struct btt_info), 1);
+	struct btt_info *infop = calloc(sizeof(struct btt_info), 1);
 	if (!infop)
 		err(1, NULL);
 
@@ -539,7 +539,7 @@ pmemspoil_get_arena_offset(struct pmemspoil *psp, uint32_t id,
 		}
 		offset = offset + infop->nextoff;
 		if ((ret = pmemspoil_read(psp, infop,
-				sizeof (*infop), offset))) {
+				sizeof(*infop), offset))) {
 			free(infop);
 			return 0;
 		}
@@ -705,13 +705,13 @@ pmemspoil_process_pool_hdr(struct pmemspoil *psp,
 		struct pmemspoil_list *pfp, void *arg)
 {
 	struct pool_hdr pool_hdr;
-	if (pmemspoil_read(psp, &pool_hdr, sizeof (pool_hdr), 0))
+	if (pmemspoil_read(psp, &pool_hdr, sizeof(pool_hdr), 0))
 		return -1;
 
 	PROCESS_BEGIN(psp, pfp) {
 		struct checksum_args checksum_args = {
 			.ptr = &pool_hdr,
-			.len = sizeof (pool_hdr),
+			.len = sizeof(pool_hdr),
 			.checksum = &pool_hdr.checksum,
 		};
 
@@ -736,7 +736,7 @@ pmemspoil_process_pool_hdr(struct pmemspoil *psp,
 
 	if (PROCESS_STATE == PROCESS_STATE_FIELD ||
 	    PROCESS_STATE == PROCESS_STATE_FUNC) {
-		if (pmemspoil_write(psp, &pool_hdr, sizeof (pool_hdr), 0))
+		if (pmemspoil_write(psp, &pool_hdr, sizeof(pool_hdr), 0))
 			return -1;
 	}
 
@@ -752,7 +752,7 @@ pmemspoil_process_btt_info_struct(struct pmemspoil *psp,
 {
 	struct btt_info btt_info;
 
-	if (pmemspoil_read(psp, &btt_info, sizeof (btt_info), offset))
+	if (pmemspoil_read(psp, &btt_info, sizeof(btt_info), offset))
 		return -1;
 
 	PROCESS_BEGIN(psp, pfp) {
@@ -777,7 +777,7 @@ pmemspoil_process_btt_info_struct(struct pmemspoil *psp,
 	} PROCESS_END
 
 	if (PROCESS_STATE == PROCESS_STATE_FIELD) {
-		if (pmemspoil_write(psp, &btt_info, sizeof (btt_info), offset))
+		if (pmemspoil_write(psp, &btt_info, sizeof(btt_info), offset))
 			return -1;
 	}
 
@@ -793,7 +793,7 @@ pmemspoil_process_btt_info_backup(struct pmemspoil *psp,
 {
 	struct btt_info btt_info_backup;
 
-	if (pmemspoil_read(psp, &btt_info_backup, sizeof (btt_info_backup),
+	if (pmemspoil_read(psp, &btt_info_backup, sizeof(btt_info_backup),
 				psp->arena_offset))
 		return -1;
 
@@ -822,7 +822,7 @@ pmemspoil_process_btt_map(struct pmemspoil *psp,
 {
 	struct btt_info btt_info;
 
-	if (pmemspoil_read(psp, &btt_info, sizeof (btt_info),
+	if (pmemspoil_read(psp, &btt_info, sizeof(btt_info),
 			psp->arena_offset))
 		return -1;
 
@@ -864,14 +864,14 @@ pmemspoil_process_btt_nflog(struct pmemspoil *psp,
 	uint32_t index)
 {
 	struct btt_info btt_info;
-	if (pmemspoil_read(psp, &btt_info, sizeof (btt_info), arena_offset))
+	if (pmemspoil_read(psp, &btt_info, sizeof(btt_info), arena_offset))
 		return -1;
 
 	util_convert2h_btt_info(&btt_info);
 
 	uint64_t flogoff = arena_offset + btt_info.flogoff;
 	uint64_t flogsize = btt_info.nfree *
-		roundup(2 * sizeof (struct btt_flog), BTT_FLOG_PAIR_ALIGN);
+		roundup(2 * sizeof(struct btt_flog), BTT_FLOG_PAIR_ALIGN);
 	flogsize = roundup(flogsize, BTT_ALIGNMENT);
 
 	uint8_t *flogp = malloc(flogsize);
@@ -943,7 +943,7 @@ pmemspoil_process_arena(struct pmemspoil *psp,
 		return -1;
 
 	struct btt_info btt_info;
-	if (pmemspoil_read(psp, &btt_info, sizeof (btt_info), arena_offset))
+	if (pmemspoil_read(psp, &btt_info, sizeof(btt_info), arena_offset))
 		return -1;
 
 	util_convert2h_btt_info(&btt_info);
@@ -968,7 +968,7 @@ pmemspoil_process_pmemblk(struct pmemspoil *psp,
 		struct pmemspoil_list *pfp, void *arg)
 {
 	struct pmemblk pmemblk;
-	if (pmemspoil_read(psp, &pmemblk, sizeof (pmemblk), 0))
+	if (pmemspoil_read(psp, &pmemblk, sizeof(pmemblk), 0))
 		return -1;
 
 	PROCESS_BEGIN(psp, pfp) {
@@ -981,7 +981,7 @@ pmemspoil_process_pmemblk(struct pmemspoil *psp,
 	} PROCESS_END
 
 	if (PROCESS_STATE == PROCESS_STATE_FIELD) {
-		if (pmemspoil_write(psp, &pmemblk, sizeof (pmemblk), 0))
+		if (pmemspoil_write(psp, &pmemblk, sizeof(pmemblk), 0))
 			return -1;
 	}
 
@@ -1013,7 +1013,7 @@ pmemspoil_process_pmemlog(struct pmemspoil *psp,
 		struct pmemspoil_list *pfp, void *arg)
 {
 	struct pmemlog pmemlog;
-	if (pmemspoil_read(psp, &pmemlog, sizeof (pmemlog), 0))
+	if (pmemspoil_read(psp, &pmemlog, sizeof(pmemlog), 0))
 		return -1;
 
 	PROCESS_BEGIN(psp, pfp) {
@@ -1023,7 +1023,7 @@ pmemspoil_process_pmemlog(struct pmemspoil *psp,
 	} PROCESS_END
 
 	if (PROCESS_STATE == PROCESS_STATE_FIELD) {
-		if (pmemspoil_write(psp, &pmemlog, sizeof (pmemlog), 0))
+		if (pmemspoil_write(psp, &pmemlog, sizeof(pmemlog), 0))
 			return -1;
 	}
 
@@ -1378,12 +1378,12 @@ main(int argc, char *argv[])
 	char *appname = basename(argv[0]);
 	util_init();
 	int ret = 0;
-	struct pmemspoil *psp = malloc(sizeof (struct pmemspoil));
+	struct pmemspoil *psp = malloc(sizeof(struct pmemspoil));
 	if (!psp)
 		err(1, NULL);
 
 	/* initialize command line arguments and context to default values */
-	memcpy(psp, &pmemspoil_default, sizeof (*psp));
+	memcpy(psp, &pmemspoil_default, sizeof(*psp));
 
 	/* parse command line arguments */
 	ret = pmemspoil_parse_args(psp, appname, argc, argv);

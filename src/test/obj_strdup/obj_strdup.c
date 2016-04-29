@@ -39,7 +39,7 @@
 #include "unittest.h"
 #include "libpmemobj.h"
 
-#define	LAYOUT_NAME "strdup"
+#define LAYOUT_NAME "strdup"
 
 TOID_DECLARE(char, 0);
 
@@ -53,8 +53,8 @@ enum type_number {
 	TYPE_NULL_ALLOC_1,
 };
 
-#define	TEST_STR_1	"Test string 1"
-#define	TEST_STR_2	"Test string 2"
+#define TEST_STR_1	"Test string 1"
+#define TEST_STR_2	"Test string 2"
 
 /*
  * do_strdup -- duplicate a string to not allocated toid using pmemobj_strdup

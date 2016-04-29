@@ -45,24 +45,24 @@
 #include <inttypes.h>
 #include <assert.h>
 #include <sys/param.h>
-#define	__USE_UNIX98
+#define __USE_UNIX98
 #include <unistd.h>
 
 #include "common.h"
 #include "output.h"
 #include "info.h"
 
-#define	DEFAULT_CHUNK_TYPES\
+#define DEFAULT_CHUNK_TYPES\
 	((1<<CHUNK_TYPE_FREE)|\
 	(1<<CHUNK_TYPE_USED)|\
 	(1<<CHUNK_TYPE_RUN))
 
-#define	DEFAULT_LANE_SECTIONS\
+#define DEFAULT_LANE_SECTIONS\
 	((1<<LANE_SECTION_ALLOCATOR)|\
 	(1<<LANE_SECTION_TRANSACTION)|\
 	(1<<LANE_SECTION_LIST))
 
-#define	GET_ALIGNMENT(ad, x)\
+#define GET_ALIGNMENT(ad, x)\
 (1 + (((ad) >> (ALIGNMENT_DESC_BITS * (x))) & ((1 << ALIGNMENT_DESC_BITS) - 1)))
 
 /*
@@ -556,14 +556,14 @@ pmempool_info_pool_hdr(struct pmem_info *pip, int v)
 		"  void *",
 	};
 	static const size_t alignment_desc_n =
-		sizeof (alignment_desc_str) / sizeof (alignment_desc_str[0]);
+		sizeof(alignment_desc_str) / sizeof(alignment_desc_str[0]);
 
 	int ret = 0;
-	struct pool_hdr *hdr = malloc(sizeof (struct pool_hdr));
+	struct pool_hdr *hdr = malloc(sizeof(struct pool_hdr));
 	if (!hdr)
 		err(1, "Cannot allocate memory for pool_hdr");
 
-	if (pmempool_info_read(pip, hdr, sizeof (*hdr), 0)) {
+	if (pmempool_info_read(pip, hdr, sizeof(*hdr), 0)) {
 		outv_err("cannot read pool header\n");
 		free(hdr);
 		return -1;
@@ -577,7 +577,7 @@ pmempool_info_pool_hdr(struct pmem_info *pip, int v)
 	}
 
 	outv(v, "POOL Header:\n");
-	outv_hexdump(pip->args.vhdrdump, hdr, sizeof (*hdr), 0, 1);
+	outv_hexdump(pip->args.vhdrdump, hdr, sizeof(*hdr), 0, 1);
 
 	util_convert2h_pool_hdr(hdr);
 
@@ -633,7 +633,7 @@ pmempool_info_pool_hdr(struct pmem_info *pip, int v)
 	outv_field(v, "Machine", "%s",
 			out_get_e_machine_str(hdr->arch_flags.e_machine));
 
-	outv_field(v, "Checksum", "%s", out_get_checksum(hdr, sizeof (*hdr),
+	outv_field(v, "Checksum", "%s", out_get_checksum(hdr, sizeof(*hdr),
 				&hdr->checksum));
 
 	free(hdr);
@@ -730,19 +730,19 @@ out_close:
 static struct pmem_info *
 pmempool_info_alloc(void)
 {
-	struct pmem_info *pip = malloc(sizeof (struct pmem_info));
+	struct pmem_info *pip = malloc(sizeof(struct pmem_info));
 	if (!pip)
 		err(1, "Cannot allocate memory for pmempool info context");
 
 	if (pip) {
-		memset(pip, 0, sizeof (*pip));
+		memset(pip, 0, sizeof(*pip));
 
 		/* set default command line parameters */
 		memcpy(&pip->args, &pmempool_info_args_default,
-				sizeof (pip->args));
+				sizeof(pip->args));
 		pip->opts = util_options_alloc(long_options,
-				sizeof (long_options) /
-				sizeof (long_options[0]),
+				sizeof(long_options) /
+				sizeof(long_options[0]),
 				option_requirements);
 
 		LIST_INIT(&pip->args.ranges.head);

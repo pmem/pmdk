@@ -41,12 +41,12 @@
  * The time (in seconds) the connection needs to remain idle
  * before starting keepalive.
  */
-#define	RPMEM_TCP_KEEPIDLE	1
+#define RPMEM_TCP_KEEPIDLE	1
 
 /*
  * The time (in seconds) between keepalive probes.
  */
-#define	RPMEM_TCP_KEEPINTVL	1
+#define RPMEM_TCP_KEEPINTVL	1
 
 #include <sys/socket.h>
 

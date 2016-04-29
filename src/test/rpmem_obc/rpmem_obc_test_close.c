@@ -39,7 +39,7 @@
 static const struct rpmem_msg_close_resp CLOSE_RESP = {
 	.hdr = {
 		.type = RPMEM_MSG_TYPE_CLOSE_RESP,
-		.size = sizeof (struct rpmem_msg_close_resp),
+		.size = sizeof(struct rpmem_msg_close_resp),
 		.status = 0,
 	},
 };
@@ -50,7 +50,7 @@ static const struct rpmem_msg_close_resp CLOSE_RESP = {
 static void
 check_close_msg(struct rpmem_msg_close *msg)
 {
-	size_t msg_size = sizeof (struct rpmem_msg_close);
+	size_t msg_size = sizeof(struct rpmem_msg_close);
 
 	UT_ASSERTeq(msg->hdr.type, RPMEM_MSG_TYPE_CLOSE);
 	UT_ASSERTeq(msg->hdr.size, msg_size);
@@ -64,10 +64,10 @@ server_close_handle(struct server *s, const struct rpmem_msg_close_resp *resp)
 {
 	struct rpmem_msg_close msg;
 	srv_accept(s);
-	srv_recv(s, &msg, sizeof (msg));
+	srv_recv(s, &msg, sizeof(msg));
 	rpmem_ntoh_msg_close(&msg);
 	check_close_msg(&msg);
-	srv_send(s, resp, sizeof (*resp));
+	srv_send(s, resp, sizeof(*resp));
 	srv_disconnect(s);
 }
 
@@ -104,7 +104,7 @@ client_close_errno(char *target, int ex_errno, int count)
  * Number of cases for EPROTO test. Must be kept in sync with the
  * server_close_eproto function.
  */
-#define	CLOSE_EPROTO_COUNT 5
+#define CLOSE_EPROTO_COUNT 5
 
 /*
  * server_close_eproto -- send invalid create request responses to a client
@@ -217,7 +217,7 @@ server_close(const struct test_case *tc, int argc, char *argv[])
 	struct rpmem_msg_close_resp resp = CLOSE_RESP;
 	rpmem_hton_msg_close_resp(&resp);
 
-	server_econnreset(s, &resp, sizeof (resp) / 2);
+	server_econnreset(s, &resp, sizeof(resp) / 2);
 
 	server_close_eproto(s);
 

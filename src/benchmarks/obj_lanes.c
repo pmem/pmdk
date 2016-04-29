@@ -47,7 +47,7 @@
  * results, because the operation time was minimal compared to the framework
  * overhead.
  */
-#define	OPERATION_REPEAT_COUNT 10000
+#define OPERATION_REPEAT_COUNT 10000
 
 /*
  * prog_args - command line parsed arguments
@@ -92,7 +92,7 @@ lanes_init(struct benchmark *bench, struct benchmark_args *args)
 	assert(args != NULL);
 	assert(args->opts != NULL);
 
-	struct obj_bench *ob = malloc(sizeof (struct obj_bench));
+	struct obj_bench *ob = malloc(sizeof(struct obj_bench));
 	if (ob == NULL) {
 		perror("malloc");
 		return -1;
@@ -183,7 +183,7 @@ static struct benchmark_info lanes_info = {
 	.measure_time	= true,
 	.clos		= lanes_clo,
 	.nclos		= ARRAY_SIZE(lanes_clo),
-	.opts_size	= sizeof (struct prog_args),
+	.opts_size	= sizeof(struct prog_args),
 	.rm_file	= true,
 	.allow_poolset	= true,
 };

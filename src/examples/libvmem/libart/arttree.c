@@ -65,21 +65,21 @@
 #include "libvmem.h"
 #include "arttree.h"
 
-#define	APPNAME "arttree"
-#define	SRCVERSION "0.1"
+#define APPNAME "arttree"
+#define SRCVERSION "0.1"
 
 struct str2int_map {
 	char *name;
 	int value;
 };
 
-#define	ART_NODE	0
-#define	ART_NODE4	1
-#define	ART_NODE16	2
-#define	ART_NODE48	3
-#define	ART_NODE256	4
-#define	ART_TREE_ROOT	5
-#define	ART_LEAF	6
+#define ART_NODE	0
+#define ART_NODE4	1
+#define ART_NODE16	2
+#define ART_NODE48	3
+#define ART_NODE256	4
+#define ART_TREE_ROOT	5
+#define ART_LEAF	6
 
 struct str2int_map art_node_types[] = {
 	{"art_node", ART_NODE},
@@ -119,13 +119,13 @@ struct ds_context
 	int fd;			/* file descriptor for file io mode */
 };
 
-#define	FILL (1 << 1)
-#define	INTERACTIVE (1 << 3)
+#define FILL (1 << 1)
+#define INTERACTIVE (1 << 3)
 
 struct ds_context my_context;
 
-#define	read_key(c, p) read_line(c, p)
-#define	read_value(c, p) read_line(c, p)
+#define read_key(c, p) read_line(c, p)
+#define read_value(c, p) read_line(c, p)
 
 static void usage(char *progname);
 int initialize_context(struct ds_context *ctx, int ac, char *av[]);
@@ -255,7 +255,7 @@ struct command commands[] = {
 /*
  * number of arttree_structures commands
  */
-#define	COMMANDS_NUMBER (sizeof (commands) / sizeof (commands[0]))
+#define COMMANDS_NUMBER (sizeof(commands) / sizeof(commands[0]))
 
 int
 initialize_context(struct ds_context *ctx, int ac, char *av[])
@@ -996,7 +996,7 @@ main(int argc, char *argv[])
 	}
 
 	my_context.art_tree = (art_tree *)vmem_malloc(my_context.vmp,
-						sizeof (art_tree));
+						sizeof(art_tree));
 	assert(my_context.art_tree != NULL);
 	if (art_tree_init(my_context.art_tree)) {
 		perror("art tree setup");
@@ -1115,9 +1115,9 @@ dump_art_leaf_callback(void *data,
 /*
  * Macros to manipulate pointer tags
  */
-#define	IS_LEAF(x) (((uintptr_t)x & 1))
-#define	SET_LEAF(x) ((void *)((uintptr_t)x | 1))
-#define	LEAF_RAW(x) ((void *)((uintptr_t)x & ~1))
+#define IS_LEAF(x) (((uintptr_t)x & 1))
+#define SET_LEAF(x) ((void *)((uintptr_t)x | 1))
+#define LEAF_RAW(x) ((void *)((uintptr_t)x & ~1))
 
 unsigned char hexvals[] = {
 	0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,

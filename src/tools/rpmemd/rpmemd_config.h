@@ -37,25 +37,25 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#ifndef	RPMEMD_DEFAULT_CONFIG_FILE
-#define	RPMEMD_DEFAULT_CONFIG_FILE ("/etc/" DAEMON_NAME "/" DAEMON_NAME\
+#ifndef RPMEMD_DEFAULT_CONFIG_FILE
+#define RPMEMD_DEFAULT_CONFIG_FILE ("/etc/" DAEMON_NAME "/" DAEMON_NAME\
 	".conf")
 #endif
 
-#ifndef	RPMEMD_DEFAULT_PID_FILE
-#define	RPMEMD_DEFAULT_PID_FILE ("/var/run/" DAEMON_NAME ".pid")
+#ifndef RPMEMD_DEFAULT_PID_FILE
+#define RPMEMD_DEFAULT_PID_FILE ("/var/run/" DAEMON_NAME ".pid")
 #endif
 
-#ifndef	RPMEMD_DEFAULT_LOG_FILE
-#define	RPMEMD_DEFAULT_LOG_FILE ("/var/log/" DAEMON_NAME ".log")
+#ifndef RPMEMD_DEFAULT_LOG_FILE
+#define RPMEMD_DEFAULT_LOG_FILE ("/var/log/" DAEMON_NAME ".log")
 #endif
 
-#ifndef	RPMEMD_DEFAULT_POOLSET_DIR
-#define	RPMEMD_DEFAULT_POOLSET_DIR ("/etc/" DAEMON_NAME)
+#ifndef RPMEMD_DEFAULT_POOLSET_DIR
+#define RPMEMD_DEFAULT_POOLSET_DIR ("/etc/" DAEMON_NAME)
 #endif
 
-#define	RPMEM_DEFAULT_PORT		7636
-#define	RPMEM_DEFAULT_MAX_LANES	1024
+#define RPMEM_DEFAULT_PORT		7636
+#define RPMEM_DEFAULT_MAX_LANES	1024
 
 struct rpmemd_config {
 	char *pid_file;

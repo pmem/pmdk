@@ -40,10 +40,10 @@
 
 #elif !defined(RPMEMC_LOG_RPMEM) && !defined(RPMEMC_LOG_RPMEMD)
 
-#define	RPMEMC_LOG(level, fmt, args...) do {} while (0)
-#define	RPMEMC_DBG(level, fmt, args...) do {} while (0)
-#define	RPMEMC_FATAL(fmt, args...)	do {} while (0)
-#define	RPMEMC_ASSERT(cond)		do {} while (0)
+#define RPMEMC_LOG(level, fmt, args...) do {} while (0)
+#define RPMEMC_DBG(level, fmt, args...) do {} while (0)
+#define RPMEMC_FATAL(fmt, args...)	do {} while (0)
+#define RPMEMC_ASSERT(cond)		do {} while (0)
 
 #elif defined(RPMEMC_LOG_RPMEM)
 
@@ -51,18 +51,18 @@
 #include "util.h"
 #include "rpmem_util.h"
 
-#define	RPMEMC_LOG(level, fmt, args...) RPMEM_LOG(level, fmt, ## args)
-#define	RPMEMC_DBG(level, fmt, args...) RPMEM_DBG(fmt, ## args)
-#define	RPMEMC_FATAL(fmt, args...)	RPMEM_FATAL(fmt, ## args)
-#define	RPMEMC_ASSERT(cond)		RPMEM_ASSERT(cond)
+#define RPMEMC_LOG(level, fmt, args...) RPMEM_LOG(level, fmt, ## args)
+#define RPMEMC_DBG(level, fmt, args...) RPMEM_DBG(fmt, ## args)
+#define RPMEMC_FATAL(fmt, args...)	RPMEM_FATAL(fmt, ## args)
+#define RPMEMC_ASSERT(cond)		RPMEM_ASSERT(cond)
 
 #else
 
 #include "rpmemd_log.h"
 
-#define	RPMEMC_LOG(level, fmt, args...) RPMEMD_LOG(level, fmt, ## args)
-#define	RPMEMC_DBG(level, fmt, args...) RPMEMD_DBG(fmt, ## args)
-#define	RPMEMC_FATAL(fmt, args...)	RPMEMD_FATAL(fmt, ## args)
-#define	RPMEMC_ASSERT(cond)		RPMEMD_ASSERT(cond)
+#define RPMEMC_LOG(level, fmt, args...) RPMEMD_LOG(level, fmt, ## args)
+#define RPMEMC_DBG(level, fmt, args...) RPMEMD_DBG(fmt, ## args)
+#define RPMEMC_FATAL(fmt, args...)	RPMEMD_FATAL(fmt, ## args)
+#define RPMEMC_ASSERT(cond)		RPMEMD_ASSERT(cond)
 
 #endif

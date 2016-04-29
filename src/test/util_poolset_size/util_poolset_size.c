@@ -40,11 +40,11 @@
 #include "util.h"
 #include <errno.h>
 
-#define	LOG_PREFIX "ut"
-#define	LOG_LEVEL_VAR "TEST_LOG_LEVEL"
-#define	LOG_FILE_VAR "TEST_LOG_FILE"
-#define	MAJOR_VERSION 1
-#define	MINOR_VERSION 0
+#define LOG_PREFIX "ut"
+#define LOG_LEVEL_VAR "TEST_LOG_LEVEL"
+#define LOG_FILE_VAR "TEST_LOG_FILE"
+#define MAJOR_VERSION 1
+#define MINOR_VERSION 0
 
 /*
  * Declaration of out_init and out_fini functions because it is not

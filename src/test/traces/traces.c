@@ -34,11 +34,11 @@
  * traces.c -- unit test for traces
  */
 
-#define	LOG_PREFIX "trace"
-#define	LOG_LEVEL_VAR "TRACE_LOG_LEVEL"
-#define	LOG_FILE_VAR "TRACE_LOG_FILE"
-#define	MAJOR_VERSION 1
-#define	MINOR_VERSION 0
+#define LOG_PREFIX "trace"
+#define LOG_LEVEL_VAR "TRACE_LOG_LEVEL"
+#define LOG_FILE_VAR "TRACE_LOG_FILE"
+#define MAJOR_VERSION 1
+#define MINOR_VERSION 0
 
 #include <sys/types.h>
 #include <stdarg.h>

@@ -38,10 +38,10 @@
 
 #include "unittest.h"
 
-#define	LAYOUT_NAME "heap_state"
-#define	ROOT_SIZE 256
-#define	ALLOCS 100
-#define	ALLOC_SIZE 50
+#define LAYOUT_NAME "heap_state"
+#define ROOT_SIZE 256
+#define ALLOCS 100
+#define ALLOC_SIZE 50
 
 char buf[ALLOC_SIZE];
 

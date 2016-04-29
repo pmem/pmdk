@@ -40,8 +40,8 @@
 #include "jemalloc/internal/jemalloc_internal.h"
 #include "jemalloc/internal/size_classes.h"
 
-#define	DEFAULT_COUNT	(SMALL_MAXCLASS / 4)
-#define	DEFAULT_N	100
+#define DEFAULT_COUNT	(SMALL_MAXCLASS / 4)
+#define DEFAULT_N	100
 
 int
 main(int argc, char *argv[])
@@ -55,7 +55,7 @@ main(int argc, char *argv[])
 	START(argc, argv, "vmmalloc_calloc");
 
 	for (i = 0; i < n; i++) {
-		ptr = calloc(1, count * sizeof (int));
+		ptr = calloc(1, count * sizeof(int));
 		UT_ASSERTne(ptr, NULL);
 
 		/* calloc should return zeroed memory */

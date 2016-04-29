@@ -189,7 +189,7 @@ struct examine ex_funcs[] = {
 /*
  * number of arttree examine commands
  */
-#define	COMMANDS_NUMBER (sizeof (ex_funcs) / sizeof (ex_funcs[0]))
+#define COMMANDS_NUMBER (sizeof(ex_funcs) / sizeof(ex_funcs[0]))
 
 void
 arttree_examine_help(char *appname)
@@ -211,7 +211,7 @@ arttree_examine_func(char *appname, struct pmem_context *ctx,
 
 	if (ex_ctx == NULL) {
 		ex_ctx = (struct examine_ctx *)
-		    calloc(1, sizeof (struct examine_ctx));
+		    calloc(1, sizeof(struct examine_ctx));
 		if (ex_ctx == NULL) {
 			return -1;
 		}
@@ -302,7 +302,7 @@ examine_PMEMoid(char *appname, struct examine_ctx *ctx, off_t off)
 	size_t obj_len;
 
 	fd = ctx->pmem_ctx->fd;
-	obj_len = sizeof (PMEMoid);
+	obj_len = sizeof(PMEMoid);
 	p = mmap(NULL, off + obj_len, PROT_READ, MAP_SHARED, fd, 0);
 	if (p != MAP_FAILED) {
 		dump_PMEMoid("PMEMoid", p);
@@ -324,7 +324,7 @@ examine_art_tree_root(char *appname, struct examine_ctx *ctx, off_t off)
 	art_tree_root *tree_root;
 
 	fd = ctx->pmem_ctx->fd;
-	obj_len = sizeof (art_tree_root);
+	obj_len = sizeof(art_tree_root);
 	p = mmap(NULL, off + obj_len, PROT_READ, MAP_SHARED, fd, 0);
 	if (p != MAP_FAILED) {
 		tree_root = (art_tree_root *)(((unsigned char *)p) + off);
@@ -350,7 +350,7 @@ examine_art_node_u(char *appname, struct examine_ctx *ctx, off_t off)
 	art_node_u *node_u;
 
 	fd = ctx->pmem_ctx->fd;
-	obj_len = sizeof (art_node_u);
+	obj_len = sizeof(art_node_u);
 	p = mmap(NULL, off + obj_len, PROT_READ, MAP_SHARED, fd, 0);
 	if (p != MAP_FAILED) {
 		node_u = (art_node_u *)(((unsigned char *)p) + off);
@@ -402,7 +402,7 @@ examine_art_node4(char *appname, struct examine_ctx *ctx, off_t off)
 	art_node4 *an4;
 
 	fd = ctx->pmem_ctx->fd;
-	obj_len = sizeof (art_node4);
+	obj_len = sizeof(art_node4);
 	p = mmap(NULL, off + obj_len, PROT_READ, MAP_SHARED, fd, 0);
 	if (p != MAP_FAILED) {
 		an4 = (art_node4 *)(((unsigned char *)p) + off);
@@ -438,7 +438,7 @@ examine_art_node16(char *appname, struct examine_ctx *ctx, off_t off)
 	art_node16 *an16;
 
 	fd = ctx->pmem_ctx->fd;
-	obj_len = sizeof (art_node16);
+	obj_len = sizeof(art_node16);
 	p = mmap(NULL, off + obj_len, PROT_READ, MAP_SHARED, fd, 0);
 	if (p != MAP_FAILED) {
 		an16 = (art_node16 *)(((unsigned char *)p) + off);
@@ -474,7 +474,7 @@ examine_art_node48(char *appname, struct examine_ctx *ctx, off_t off)
 	art_node48 *an48;
 
 	fd = ctx->pmem_ctx->fd;
-	obj_len = sizeof (art_node48);
+	obj_len = sizeof(art_node48);
 	p = mmap(NULL, off + obj_len, PROT_READ, MAP_SHARED, fd, 0);
 	if (p != MAP_FAILED) {
 		an48 = (art_node48 *)(((unsigned char *)p) + off);
@@ -510,7 +510,7 @@ examine_art_node256(char *appname, struct examine_ctx *ctx, off_t off)
 	art_node256 *an256;
 
 	fd = ctx->pmem_ctx->fd;
-	obj_len = sizeof (art_node256);
+	obj_len = sizeof(art_node256);
 	p = mmap(NULL, off + obj_len, PROT_READ, MAP_SHARED, fd, 0);
 	if (p != MAP_FAILED) {
 		an256 = (art_node256 *)(((unsigned char *)p) + off);
@@ -543,7 +543,7 @@ examine_art_node(char *appname, struct examine_ctx *ctx, off_t off)
 	art_node *an;
 
 	fd = ctx->pmem_ctx->fd;
-	obj_len = sizeof (art_node);
+	obj_len = sizeof(art_node);
 	p = mmap(NULL, off + obj_len, PROT_READ, MAP_SHARED, fd, 0);
 	if (p != MAP_FAILED) {
 		an = (art_node *)(((unsigned char *)p) + off);
@@ -593,7 +593,7 @@ examine_art_leaf(char *appname, struct examine_ctx *ctx, off_t off)
 	art_leaf *al;
 
 	fd = ctx->pmem_ctx->fd;
-	obj_len = sizeof (art_leaf);
+	obj_len = sizeof(art_leaf);
 	p = mmap(NULL, off + obj_len, PROT_READ, MAP_SHARED, fd, 0);
 	if (p != MAP_FAILED) {
 		al = (art_leaf *)(((unsigned char *)p) + off);
@@ -619,7 +619,7 @@ examine_var_string(char *appname, struct examine_ctx *ctx, off_t off)
 	var_string *vs;
 
 	fd = ctx->pmem_ctx->fd;
-	obj_len = sizeof (var_string);
+	obj_len = sizeof(var_string);
 	p = mmap(NULL, off + obj_len, PROT_READ, MAP_SHARED, fd, 0);
 	if (p != MAP_FAILED) {
 		vs = (var_string *)(((unsigned char *)p) + off);

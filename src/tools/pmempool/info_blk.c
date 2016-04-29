@@ -291,7 +291,7 @@ info_btt_flog(struct pmem_info *pip, int v,
 	struct btt_flog *flogp = NULL;
 	struct btt_flog *flogpp = NULL;
 	uint64_t flog_size = infop->nfree *
-		roundup(2 * sizeof (struct btt_flog), BTT_FLOG_PAIR_ALIGN);
+		roundup(2 * sizeof(struct btt_flog), BTT_FLOG_PAIR_ALIGN);
 	flog_size = roundup(flog_size, BTT_ALIGNMENT);
 	uint8_t *buff = malloc(flog_size);
 	if (!buff)
@@ -394,7 +394,7 @@ info_btt_info(struct pmem_info *pip, int v, struct btt_info *infop)
 	outv_field(v, "Area flog offset", "0x%lx", infop->flogoff);
 	outv_field(v, "Info block backup offset", "0x%lx", infop->infooff);
 	outv_field(v, "Checksum", "%s", out_get_checksum(infop,
-				sizeof (*infop), &infop->checksum));
+				sizeof(*infop), &infop->checksum));
 
 	return 0;
 }
@@ -414,7 +414,7 @@ info_btt_layout(struct pmem_info *pip, off_t btt_off)
 
 	struct btt_info *infop = NULL;
 
-	infop = malloc(sizeof (struct btt_info));
+	infop = malloc(sizeof(struct btt_info));
 	if (!infop)
 		err(1, "Cannot allocate memory for BTT Info structure");
 
@@ -427,14 +427,14 @@ info_btt_layout(struct pmem_info *pip, off_t btt_off)
 
 	do {
 		/* read btt info area */
-		if (pmempool_info_read(pip, infop, sizeof (*infop), offset)) {
+		if (pmempool_info_read(pip, infop, sizeof(*infop), offset)) {
 			ret = -1;
 			outv_err("cannot read BTT Info header\n");
 			goto err;
 		}
 
 		if (util_check_memory((uint8_t *)infop,
-					sizeof (*infop), 0) == 0) {
+					sizeof(*infop), 0) == 0) {
 			outv(1, "\n<No BTT layout>\n");
 			break;
 		}
@@ -442,7 +442,7 @@ info_btt_layout(struct pmem_info *pip, off_t btt_off)
 		outv(1, "\n[ARENA %d]", narena);
 		outv_title(1, "PMEM BLK BTT Info Header");
 		outv_hexdump(pip->args.vhdrdump, infop,
-				sizeof (*infop), offset, 1);
+				sizeof(*infop), offset, 1);
 
 		util_convert2h_btt_info(infop);
 
@@ -479,7 +479,7 @@ info_btt_layout(struct pmem_info *pip, off_t btt_off)
 		cur_lba += infop->external_nlba;
 
 		/* read btt info backup area */
-		if (pmempool_info_read(pip, infop, sizeof (*infop),
+		if (pmempool_info_read(pip, infop, sizeof(*infop),
 			offset + infop->infooff)) {
 			outv_err("wrong BTT Info Backup size or offset\n");
 			ret = -1;
@@ -490,7 +490,7 @@ info_btt_layout(struct pmem_info *pip, off_t btt_off)
 				"PMEM BLK BTT Info Header Backup");
 		if (outv_check(pip->args.blk.vbackup))
 			outv_hexdump(pip->args.vhdrdump, infop,
-				sizeof (*infop),
+				sizeof(*infop),
 				offset + infop->infooff, 1);
 
 		util_convert2h_btt_info(infop);
@@ -518,8 +518,8 @@ info_blk_descriptor(struct pmem_info *pip, int v, struct pmemblk *pbp)
 {
 	outv_title(v, "PMEM BLK Header");
 	/* dump pmemblk header without pool_hdr */
-	outv_hexdump(pip->args.vhdrdump, (uint8_t *)pbp + sizeof (pbp->hdr),
-		sizeof (*pbp) - sizeof (pbp->hdr), sizeof (pbp->hdr), 1);
+	outv_hexdump(pip->args.vhdrdump, (uint8_t *)pbp + sizeof(pbp->hdr),
+		sizeof(*pbp) - sizeof(pbp->hdr), sizeof(pbp->hdr), 1);
 	outv_field(v, "Block size", "%s",
 			out_get_size_str(pbp->bsize, pip->args.human));
 	outv_field(v, "Is zeroed", pbp->is_zeroed ? "true" : "false");
@@ -532,11 +532,11 @@ int
 pmempool_info_blk(struct pmem_info *pip)
 {
 	int ret;
-	struct pmemblk *pbp = malloc(sizeof (struct pmemblk));
+	struct pmemblk *pbp = malloc(sizeof(struct pmemblk));
 	if (!pbp)
 		err(1, "Cannot allocate memory for pmemblk structure");
 
-	if (pmempool_info_read(pip, pbp, sizeof (struct pmemblk), 0)) {
+	if (pmempool_info_read(pip, pbp, sizeof(struct pmemblk), 0)) {
 		outv_err("cannot read pmemblk header\n");
 		free(pbp);
 		return -1;

@@ -52,13 +52,13 @@
  * The factor used for PMEM pool size calculation, accounts for metadata,
  * fragmentation and etc.
  */
-#define	FACTOR 8
+#define FACTOR 8
 
 /* The minimum allocation size that pmalloc can perform */
-#define	ALLOC_MIN_SIZE 64
+#define ALLOC_MIN_SIZE 64
 
 /* OOB and allocation header size */
-#define	OOB_HEADER_SIZE 64
+#define OOB_HEADER_SIZE 64
 
 /*
  * prog_args - command line parsed arguments
@@ -108,7 +108,7 @@ obj_init(struct benchmark *bench, struct benchmark_args *args)
 		return -1;
 	}
 
-	struct obj_bench *ob = malloc(sizeof (struct obj_bench));
+	struct obj_bench *ob = malloc(sizeof(struct obj_bench));
 	if (ob == NULL) {
 		perror("malloc");
 		return -1;
@@ -127,7 +127,7 @@ obj_init(struct benchmark *bench, struct benchmark_args *args)
 	/* For data objects */
 	size_t poolsize = n_ops_total * (alloc_size + OOB_HEADER_SIZE)
 		/* for offsets */
-		+ n_ops_total * sizeof (uint64_t);
+		+ n_ops_total * sizeof(uint64_t);
 
 	/* multiply by FACTOR for metadata, fragmentation, etc. */
 	poolsize = poolsize * FACTOR;
@@ -157,7 +157,7 @@ obj_init(struct benchmark *bench, struct benchmark_args *args)
 	}
 
 	POBJ_ZALLOC(ob->pop, &D_RW(ob->root)->offs, uint64_t,
-			n_ops_total * sizeof (PMEMoid));
+			n_ops_total * sizeof(PMEMoid));
 	if (TOID_IS_NULL(D_RW(ob->root)->offs)) {
 		fprintf(stderr, "POBJ_ZALLOC off_vect: %s\n",
 			pmemobj_errormsg());
@@ -166,7 +166,7 @@ obj_init(struct benchmark *bench, struct benchmark_args *args)
 
 	ob->offs = D_RW(D_RW(ob->root)->offs);
 
-	ob->sizes = malloc(n_ops_total * sizeof (size_t));
+	ob->sizes = malloc(n_ops_total * sizeof(size_t));
 	if (ob->sizes == NULL) {
 		fprintf(stderr, "malloc rand size vect err\n");
 		goto free_pop;
@@ -361,7 +361,7 @@ static struct benchmark_info pmalloc_info = {
 	.measure_time	= true,
 	.clos		= pmalloc_clo,
 	.nclos		= ARRAY_SIZE(pmalloc_clo),
-	.opts_size	= sizeof (struct prog_args),
+	.opts_size	= sizeof(struct prog_args),
 	.rm_file	= true,
 	.allow_poolset	= true,
 };
@@ -380,7 +380,7 @@ static struct benchmark_info pfree_info = {
 	.measure_time	= true,
 	.clos		= pmalloc_clo,
 	.nclos		= ARRAY_SIZE(pmalloc_clo),
-	.opts_size	= sizeof (struct prog_args),
+	.opts_size	= sizeof(struct prog_args),
 	.rm_file	= true,
 	.allow_poolset	= true,
 };

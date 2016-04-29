@@ -91,12 +91,12 @@ struct ds_context
 	uint32_t val_len;
 };
 
-#define	FILL (1 << 1)
-#define	DUMP (1 << 2)
-#define	GRAPH (1 << 3)
-#define	INSERT (1 << 4)
-#define	SEARCH (1 << 5)
-#define	REMOVE (1 << 6)
+#define FILL (1 << 1)
+#define DUMP (1 << 2)
+#define GRAPH (1 << 3)
+#define INSERT (1 << 4)
+#define SEARCH (1 << 5)
+#define REMOVE (1 << 6)
 
 struct ds_context my_context;
 
@@ -104,8 +104,8 @@ extern TOID(var_string) null_var_string;
 extern TOID(art_leaf)   null_art_leaf;
 extern TOID(art_node_u) null_art_node_u;
 
-#define	read_key(p) read_line(p)
-#define	read_value(p) read_line(p)
+#define read_key(p) read_line(p)
+#define read_value(p) read_line(p)
 
 int initialize_context(struct ds_context *ctx, int ac, char *av[]);
 int initialize_pool(struct ds_context *ctx);

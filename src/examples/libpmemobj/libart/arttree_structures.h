@@ -46,9 +46,9 @@
  * ===========================================================================
  */
 #ifndef _ARTTREE_STRUCTURES_H
-#define	_ARTTREE_STRUCTURES_H
+#define _ARTTREE_STRUCTURES_H
 
-#define	MAX_PREFIX_LEN 10
+#define MAX_PREFIX_LEN 10
 
 /*
  * pmem_context -- structure for pmempool file
@@ -208,7 +208,7 @@ typedef enum {
 	art_node_types	= 9   /* number of different art_nodes */
 } art_node_type;
 
-#define	VALID_NODE_TYPE(n) (((n) >= 0) && ((n) < art_node_types))
+#define VALID_NODE_TYPE(n) (((n) >= 0) && ((n) < art_node_types))
 
 extern size_t art_node_sizes[];
 extern char *art_node_names[];

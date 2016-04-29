@@ -44,10 +44,10 @@
  * Organization:  FUJITSU TECHNOLOGY SOLUTIONS GMBH
  * ==========================================================================
  */
-#ifndef	_ARTTREE_H
-#define	_ARTTREE_H
+#ifndef _ARTTREE_H
+#define _ARTTREE_H
 
-#ifdef	__cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 

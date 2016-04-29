@@ -45,9 +45,9 @@ enum {
 	TEST_REMOVE	=	200,
 };
 
-#define	TEST_VAL_A 1
-#define	TEST_VAL_B 2
-#define	TEST_VAL_C 3
+#define TEST_VAL_A 1
+#define TEST_VAL_B 2
+#define TEST_VAL_C 3
 
 FUNC_MOCK(malloc, void *, size_t size)
 	FUNC_MOCK_RUN_RET_DEFAULT_REAL(malloc, size)

@@ -42,24 +42,24 @@
 #include <unistd.h>
 #include <ctype.h>
 
-#define	LICENSE_MAX_LEN		2048
-#define	COPYRIGHT		"Copyright "
-#define	COPYRIGHT_LEN		10
-#define	YEAR_MIN		1900
-#define	YEAR_MAX		9999
-#define	YEAR_INIT_MIN		9999
-#define	YEAR_INIT_MAX		0
-#define	YEAR_LEN		4
-#define	LICENSE_BEG		"Redistribution and use"
-#define	LICENSE_END		"THE POSSIBILITY OF SUCH DAMAGE."
-#define	DIFF_LEN		50
-#define	COMMENT_STR_LEN		5
+#define LICENSE_MAX_LEN		2048
+#define COPYRIGHT		"Copyright "
+#define COPYRIGHT_LEN		10
+#define YEAR_MIN		1900
+#define YEAR_MAX		9999
+#define YEAR_INIT_MIN		9999
+#define YEAR_INIT_MAX		0
+#define YEAR_LEN		4
+#define LICENSE_BEG		"Redistribution and use"
+#define LICENSE_END		"THE POSSIBILITY OF SUCH DAMAGE."
+#define DIFF_LEN		50
+#define COMMENT_STR_LEN		5
 
-#define	STR_MODE_CREATE		"create"
-#define	STR_MODE_PATTERN	"check-pattern"
-#define	STR_MODE_LICENSE	"check-license"
+#define STR_MODE_CREATE		"create"
+#define STR_MODE_PATTERN	"check-pattern"
+#define STR_MODE_LICENSE	"check-license"
 
-#define	ERROR(fmt, args...)	fprintf(stderr, "error: " fmt "\n", ## args)
+#define ERROR(fmt, args...)	fprintf(stderr, "error: " fmt "\n", ## args)
 
 /*
  * help_str -- string for the help message
@@ -266,7 +266,7 @@ create_pattern(const char *path_license, char *pattern)
 		return -1;
 	}
 
-	memset(buffer, 0, sizeof (buffer));
+	memset(buffer, 0, sizeof(buffer));
 	ret = read(file_license, buffer, LICENSE_MAX_LEN);
 	close(file_license);
 
@@ -326,7 +326,7 @@ verify_license(const char *path_to_check, char *pattern)
 		return -1;
 	}
 
-	memset(buffer, 0, sizeof (buffer));
+	memset(buffer, 0, sizeof(buffer));
 	ret = read(file_to_check, buffer, LICENSE_MAX_LEN);
 	close(file_to_check);
 

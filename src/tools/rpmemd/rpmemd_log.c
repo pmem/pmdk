@@ -34,7 +34,7 @@
  * rpmemd_log.c -- rpmemd logging functions definitions
  */
 /* for GNU version of basename */
-#define	_GNU_SOURCE
+#define _GNU_SOURCE
 #include <errno.h>
 #include <stdio.h>
 #include <syslog.h>
@@ -44,11 +44,11 @@
 
 #include "rpmemd_log.h"
 
-#define	RPMEMD_SYSLOG_OPTS	(LOG_NDELAY | LOG_PID)
-#define	RPMEMD_SYSLOG_FACILITY	(LOG_USER)
-#define	RPMEMD_DEFAULT_FH	stdout
-#define	RPMEMD_MAX_MSG		((size_t)8192)
-#define	RPMEMD_MAX_PREFIX	((size_t)256)
+#define RPMEMD_SYSLOG_OPTS	(LOG_NDELAY | LOG_PID)
+#define RPMEMD_SYSLOG_FACILITY	(LOG_USER)
+#define RPMEMD_DEFAULT_FH	stdout
+#define RPMEMD_MAX_MSG		((size_t)8192)
+#define RPMEMD_MAX_PREFIX	((size_t)256)
 
 enum rpmemd_log_level rpmemd_log_level;
 static char *rpmemd_ident;

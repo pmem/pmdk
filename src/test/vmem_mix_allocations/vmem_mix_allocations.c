@@ -38,9 +38,9 @@
 
 #include "unittest.h"
 
-#define	COUNT 21
-#define	POOL_SIZE VMEM_MIN_POOL
-#define	MAX_SIZE (4 << COUNT)
+#define COUNT 21
+#define POOL_SIZE VMEM_MIN_POOL
+#define MAX_SIZE (4 << COUNT)
 
 int
 main(int argc, char *argv[])

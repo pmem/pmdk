@@ -81,8 +81,8 @@
  *		UT_FATAL("!my message");
  */
 
-#ifndef	_UNITTEST_H
-#define	_UNITTEST_H 1
+#ifndef _UNITTEST_H
+#define _UNITTEST_H 1
 
 #ifdef __cplusplus
 extern "C" {
@@ -138,56 +138,56 @@ void ut_err(const char *file, int line, const char *func,
 	__attribute__((format(printf, 4, 5)));
 
 /* indicate the start of the test */
-#define	START(argc, argv, ...)\
+#define START(argc, argv, ...)\
     ut_start(__FILE__, __LINE__, __func__, argc, argv, __VA_ARGS__)
 
 /* normal exit from test */
-#define	DONE(...)\
+#define DONE(...)\
     ut_done(__FILE__, __LINE__, __func__, __VA_ARGS__)
 
 /* fatal error detected */
-#define	UT_FATAL(...)\
+#define UT_FATAL(...)\
     ut_fatal(__FILE__, __LINE__, __func__, __VA_ARGS__)
 
 /* normal output */
-#define	UT_OUT(...)\
+#define UT_OUT(...)\
     ut_out(__FILE__, __LINE__, __func__, __VA_ARGS__)
 
 /* error output */
-#define	UT_ERR(...)\
+#define UT_ERR(...)\
     ut_err(__FILE__, __LINE__, __func__, __VA_ARGS__)
 
 
-#define	UT_COMPILE_ERROR_ON(cond) ((void)sizeof (char[(cond) ? -1 : 1]))
+#define UT_COMPILE_ERROR_ON(cond) ((void)sizeof(char[(cond) ? -1 : 1]))
 
 /*
  * assertions...
  */
 
 /* assert a condition is true at runtime */
-#define	UT_ASSERT_rt(cnd)\
+#define UT_ASSERT_rt(cnd)\
 	((void)((cnd) || (ut_fatal(__FILE__, __LINE__, __func__,\
 	"assertion failure: %s", #cnd), 0)))
 
 /* assertion with extra info printed if assertion fails at runtime */
-#define	UT_ASSERTinfo_rt(cnd, info) \
+#define UT_ASSERTinfo_rt(cnd, info) \
 	((void)((cnd) || (ut_fatal(__FILE__, __LINE__, __func__,\
 	"assertion failure: %s (%s = %s)", #cnd, #info, info), 0)))
 
 /* assert two integer values are equal at runtime */
-#define	UT_ASSERTeq_rt(lhs, rhs)\
+#define UT_ASSERTeq_rt(lhs, rhs)\
 	((void)(((lhs) == (rhs)) || (ut_fatal(__FILE__, __LINE__, __func__,\
 	"assertion failure: %s (0x%llx) == %s (0x%llx)", #lhs,\
 	(unsigned long long)(lhs), #rhs, (unsigned long long)(rhs)), 0)))
 
 /* assert two integer values are not equal at runtime */
-#define	UT_ASSERTne_rt(lhs, rhs)\
+#define UT_ASSERTne_rt(lhs, rhs)\
 	((void)(((lhs) != (rhs)) || (ut_fatal(__FILE__, __LINE__, __func__,\
 	"assertion failure: %s (0x%llx) != %s (0x%llx)", #lhs,\
 	(unsigned long long)(lhs), #rhs, (unsigned long long)(rhs)), 0)))
 
 /* assert a condition is true */
-#define	UT_ASSERT(cnd)\
+#define UT_ASSERT(cnd)\
 	do {\
 		/*\
 		 * Detect useless asserts on always true expression. Please use\
@@ -200,7 +200,7 @@ void ut_err(const char *file, int line, const char *func,
 	} while (0)
 
 /* assertion with extra info printed if assertion fails */
-#define	UT_ASSERTinfo(cnd, info) \
+#define UT_ASSERTinfo(cnd, info) \
 	do {\
 		/* See comment in UT_ASSERT. */\
 		if (__builtin_constant_p(cnd))\
@@ -209,7 +209,7 @@ void ut_err(const char *file, int line, const char *func,
 	} while (0)
 
 /* assert two integer values are equal */
-#define	UT_ASSERTeq(lhs, rhs)\
+#define UT_ASSERTeq(lhs, rhs)\
 	do {\
 		/* See comment in UT_ASSERT. */\
 		if (__builtin_constant_p(lhs) && __builtin_constant_p(rhs))\
@@ -218,7 +218,7 @@ void ut_err(const char *file, int line, const char *func,
 	} while (0)
 
 /* assert two integer values are not equal */
-#define	UT_ASSERTne(lhs, rhs)\
+#define UT_ASSERTne(lhs, rhs)\
 	do {\
 		/* See comment in UT_ASSERT. */\
 		if (__builtin_constant_p(lhs) && __builtin_constant_p(rhs))\
@@ -227,7 +227,7 @@ void ut_err(const char *file, int line, const char *func,
 	} while (0)
 
 /* assert pointer is fits range of [start, start + size) */
-#define	UT_ASSERTrange(ptr, start, size)\
+#define UT_ASSERTrange(ptr, start, size)\
 	((void)(((uintptr_t)(ptr) >= (uintptr_t)(start) &&\
 	(uintptr_t)(ptr) < (uintptr_t)(start) + (uintptr_t)(size)) ||\
 	(ut_fatal(__FILE__, __LINE__, __func__,\
@@ -256,44 +256,44 @@ int ut_munmap_anon_aligned(const char *file, int line, const char *func,
     void *start, size_t size);
 
 /* a malloc() that can't return NULL */
-#define	MALLOC(size)\
+#define MALLOC(size)\
     ut_malloc(__FILE__, __LINE__, __func__, size)
 
 /* a calloc() that can't return NULL */
-#define	CALLOC(nmemb, size)\
+#define CALLOC(nmemb, size)\
     ut_calloc(__FILE__, __LINE__, __func__, nmemb, size)
 
 /* a malloc() of zeroed memory */
-#define	ZALLOC(size)\
+#define ZALLOC(size)\
     ut_calloc(__FILE__, __LINE__, __func__, 1, size)
 
-#define	FREE(ptr)\
+#define FREE(ptr)\
     ut_free(__FILE__, __LINE__, __func__, ptr)
 
 /* a realloc() that can't return NULL */
-#define	REALLOC(ptr, size)\
+#define REALLOC(ptr, size)\
     ut_realloc(__FILE__, __LINE__, __func__, ptr, size)
 
 /* a strdup() that can't return NULL */
-#define	STRDUP(str)\
+#define STRDUP(str)\
     ut_strdup(__FILE__, __LINE__, __func__, str)
 
 /* a malloc() that only returns page aligned memory */
-#define	PAGEALIGNMALLOC(size)\
+#define PAGEALIGNMALLOC(size)\
     ut_pagealignmalloc(__FILE__, __LINE__, __func__, size)
 
 /* a malloc() that returns memory with given alignment */
-#define	MEMALIGN(alignment, size)\
+#define MEMALIGN(alignment, size)\
     ut_memalign(__FILE__, __LINE__, __func__, alignment, size)
 
 /*
  * A mmap() that returns anonymous memory with given alignment and guard
  * pages.
  */
-#define	MMAP_ANON_ALIGNED(size, alignment)\
+#define MMAP_ANON_ALIGNED(size, alignment)\
     ut_mmap_anon_aligned(__FILE__, __LINE__, __func__, alignment, size)
 
-#define	MUNMAP_ANON_ALIGNED(start, size)\
+#define MUNMAP_ANON_ALIGNED(start, size)\
     ut_munmap_anon_aligned(__FILE__, __LINE__, __func__, start, size)
 
 /*
@@ -391,35 +391,35 @@ int ut_dirfd(const char *file, int line, const char *func, DIR *dirp);
 int ut_closedir(const char *file, int line, const char *func, DIR *dirp);
 
 /* an open() that can't return < 0 */
-#define	OPEN(path, ...)\
+#define OPEN(path, ...)\
     ut_open(__FILE__, __LINE__, __func__, path, __VA_ARGS__)
 
 /* a close() that can't return -1 */
-#define	CLOSE(fd)\
+#define CLOSE(fd)\
     ut_close(__FILE__, __LINE__, __func__, fd)
 
 /* an unlink() that can't return -1 */
-#define	UNLINK(path)\
+#define UNLINK(path)\
     ut_unlink(__FILE__, __LINE__, __func__, path)
 
 /* an access() that can't return -1 */
-#define	ACCESS(path, mode)\
+#define ACCESS(path, mode)\
     ut_access(__FILE__, __LINE__, __func__, path, mode)
 
 /* a write() that can't return -1 */
-#define	WRITE(fd, buf, len)\
+#define WRITE(fd, buf, len)\
     ut_write(__FILE__, __LINE__, __func__, fd, buf, len)
 
 /* a read() that can't return -1 */
-#define	READ(fd, buf, len)\
+#define READ(fd, buf, len)\
     ut_read(__FILE__, __LINE__, __func__, fd, buf, len)
 
 /* a readlink() that can't return -1 */
-#define	READLINK(path, buf, len)\
+#define READLINK(path, buf, len)\
     ut_readlink(__FILE__, __LINE__, __func__, path, buf, len)
 
 /* a lseek() that can't return -1 */
-#define	LSEEK(fd, offset, whence)\
+#define LSEEK(fd, offset, whence)\
     ut_lseek(__FILE__, __LINE__, __func__, fd, offset, whence)
 /*
  * The C Standard specifies that at least one argument must be passed to
@@ -427,77 +427,77 @@ int ut_closedir(const char *file, int line, const char *func, DIR *dirp);
  * with a trailing comma. So, when calling this macro if num = 0
  * pass in a 0 for the argument.
  */
-#define	FCNTL(fd, cmd, num, ...)\
+#define FCNTL(fd, cmd, num, ...)\
 	ut_fcntl(__FILE__, __LINE__, __func__, fd, cmd, num, __VA_ARGS__)
 
-#define	POSIX_FALLOCATE(fd, off, len)\
+#define POSIX_FALLOCATE(fd, off, len)\
     ut_posix_fallocate(__FILE__, __LINE__, __func__, fd, off, len)
 
-#define	FSTAT(fd, st_bufp)\
+#define FSTAT(fd, st_bufp)\
     ut_fstat(__FILE__, __LINE__, __func__, fd, st_bufp)
 
-#define	FLOCK(fd, op)\
+#define FLOCK(fd, op)\
     ut_flock(__FILE__, __LINE__, __func__, fd, op)
 
 /* a mmap() that can't return MAP_FAILED */
-#define	MMAP(addr, len, prot, flags, fd, offset)\
+#define MMAP(addr, len, prot, flags, fd, offset)\
     ut_mmap(__FILE__, __LINE__, __func__, addr, len, prot, flags, fd, offset);
 
 /* a munmap() that can't return -1 */
-#define	MUNMAP(addr, length)\
+#define MUNMAP(addr, length)\
     ut_munmap(__FILE__, __LINE__, __func__, addr, length);
 
 /* a mprotect() that can't return -1 */
-#define	MPROTECT(addr, len, prot)\
+#define MPROTECT(addr, len, prot)\
     ut_mprotect(__FILE__, __LINE__, __func__, addr, len, prot);
 
-#define	STAT(path, st_bufp)\
+#define STAT(path, st_bufp)\
     ut_stat(__FILE__, __LINE__, __func__, path, st_bufp)
 
-#define	SYMLINK(oldpath, newpath)\
+#define SYMLINK(oldpath, newpath)\
     ut_symlink(__FILE__, __LINE__, __func__, oldpath, newpath)
 
-#define	LINK(oldpath, newpath)\
+#define LINK(oldpath, newpath)\
     ut_link(__FILE__, __LINE__, __func__, oldpath, newpath)
 
-#define	MKDIR(pathname, mode)\
+#define MKDIR(pathname, mode)\
     ut_mkdir(__FILE__, __LINE__, __func__, pathname, mode)
 
-#define	RMDIR(pathname)\
+#define RMDIR(pathname)\
     ut_rmdir(__FILE__, __LINE__, __func__, pathname)
 
-#define	RENAME(oldpath, newpath)\
+#define RENAME(oldpath, newpath)\
     ut_rename(__FILE__, __LINE__, __func__, oldpath, newpath)
 
-#define	MOUNT(src, tar, fstype, flags, data)\
+#define MOUNT(src, tar, fstype, flags, data)\
     ut_mount(__FILE__, __LINE__, __func__, src, tar, fstype, flags, data)
 
-#define	UMOUNT(tar)\
+#define UMOUNT(tar)\
     ut_umount(__FILE__, __LINE__, __func__, tar)
 
-#define	PSELECT(nfds, rfds, wfds, efds, tv, sigmask)\
+#define PSELECT(nfds, rfds, wfds, efds, tv, sigmask)\
     ut_pselect(__FILE__, __LINE__, __func__, nfds, rfds, wfds, efds,\
 	tv, sigmask)
 
-#define	MKNOD(pathname, mode, dev)\
+#define MKNOD(pathname, mode, dev)\
     ut_mknod(__FILE__, __LINE__, __func__, pathname, mode, dev)
 
-#define	TRUNCATE(path, length)\
+#define TRUNCATE(path, length)\
     ut_truncate(__FILE__, __LINE__, __func__, path, length)
 
-#define	FTRUNCATE(fd, length)\
+#define FTRUNCATE(fd, length)\
     ut_ftruncate(__FILE__, __LINE__, __func__, fd, length)
 
-#define	CHMOD(path, mode)\
+#define CHMOD(path, mode)\
     ut_chmod(__FILE__, __LINE__, __func__, path, mode)
 
-#define	OPENDIR(name)\
+#define OPENDIR(name)\
     ut_opendir(__FILE__, __LINE__, __func__, name)
 
-#define	DIRFD(dirp)\
+#define DIRFD(dirp)\
     ut_dirfd(__FILE__, __LINE__, __func__, dirp)
 
-#define	CLOSEDIR(dirp)\
+#define CLOSEDIR(dirp)\
     ut_closedir(__FILE__, __LINE__, __func__, dirp)
 
 /*
@@ -507,7 +507,7 @@ int ut_sigaction(const char *file, int line, const char *func,
 		int signum, struct sigaction *act, struct sigaction *oldact);
 
 /* a sigaction() that can't return an error */
-#define	SIGACTION(signum, act, oldact)\
+#define SIGACTION(signum, act, oldact)\
     ut_sigaction(__FILE__, __LINE__, __func__, signum, act, oldact)
 
 /*
@@ -521,55 +521,55 @@ int ut_pthread_join(const char *file, int line, const char *func,
     pthread_t thread, void **value_ptr);
 
 /* a pthread_create() that can't return an error */
-#define	PTHREAD_CREATE(thread, attr, start_routine, arg)\
+#define PTHREAD_CREATE(thread, attr, start_routine, arg)\
     ut_pthread_create(__FILE__, __LINE__, __func__,\
     thread, attr, start_routine, arg)
 
 /* a pthread_join() that can't return an error */
-#define	PTHREAD_JOIN(thread, value_ptr)\
+#define PTHREAD_JOIN(thread, value_ptr)\
     ut_pthread_join(__FILE__, __LINE__, __func__, thread, value_ptr)
 
 /*
  * mocks...
  */
-#define	_FUNC_REAL_DECL(name, ret_type, ...)\
+#define _FUNC_REAL_DECL(name, ret_type, ...)\
 	ret_type __real_##name(__VA_ARGS__) __attribute__((unused));
 
-#define	_FUNC_REAL(name)\
+#define _FUNC_REAL(name)\
 	__real_##name
 
-#define	RCOUNTER(name)\
+#define RCOUNTER(name)\
 	_rcounter##name
 
-#define	FUNC_MOCK_RCOUNTER_SET(name, val)\
+#define FUNC_MOCK_RCOUNTER_SET(name, val)\
     RCOUNTER(name) = val;
 
-#define	FUNC_MOCK(name, ret_type, ...)\
+#define FUNC_MOCK(name, ret_type, ...)\
 	_FUNC_REAL_DECL(name, ret_type, ##__VA_ARGS__)\
 	static int RCOUNTER(name);\
 	ret_type __wrap_##name(__VA_ARGS__);\
 	ret_type __wrap_##name(__VA_ARGS__) {\
 		switch (__sync_fetch_and_add(&RCOUNTER(name), 1)) {
 
-#define	FUNC_MOCK_END\
+#define FUNC_MOCK_END\
 	}}
 
-#define	FUNC_MOCK_RUN(run)\
+#define FUNC_MOCK_RUN(run)\
 	case run:
 
-#define	FUNC_MOCK_RUN_DEFAULT\
+#define FUNC_MOCK_RUN_DEFAULT\
 	default:
 
-#define	FUNC_MOCK_RUN_RET(run, ret)\
+#define FUNC_MOCK_RUN_RET(run, ret)\
 	case run: return (ret);
 
-#define	FUNC_MOCK_RUN_RET_DEFAULT_REAL(name, ...)\
+#define FUNC_MOCK_RUN_RET_DEFAULT_REAL(name, ...)\
 	default: return _FUNC_REAL(name)(__VA_ARGS__);
 
-#define	FUNC_MOCK_RUN_RET_DEFAULT(ret)\
+#define FUNC_MOCK_RUN_RET_DEFAULT(ret)\
 	default: return (ret);
 
-#define	FUNC_MOCK_RET_ALWAYS(name, ret_type, ret, ...)\
+#define FUNC_MOCK_RET_ALWAYS(name, ret_type, ret, ...)\
 	FUNC_MOCK(name, ret_type, __VA_ARGS__)\
 		FUNC_MOCK_RUN_RET_DEFAULT(ret);\
 	FUNC_MOCK_END
@@ -618,11 +618,11 @@ TEST_CASE_PROCESS(int argc, char *argv[],
 	tc->func(tc, argc - args_off, &argv[args_off]);
 }
 
-#define	TEST_CASE_DECLARE(_name)\
+#define TEST_CASE_DECLARE(_name)\
 void \
 _name(const struct test_case *tc, int argc, char *argv[])
 
-#define	TEST_CASE(_name)\
+#define TEST_CASE(_name)\
 {\
 	.name = #_name,\
 	.func = _name,\

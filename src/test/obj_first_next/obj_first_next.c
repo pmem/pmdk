@@ -38,7 +38,7 @@
 #include "libpmemobj.h"
 #include "unittest.h"
 
-#define	LAYOUT_NAME "obj_first_next"
+#define LAYOUT_NAME "obj_first_next"
 
 TOID_DECLARE(struct type, 0);
 TOID_DECLARE(struct type_sec, 1);
@@ -55,7 +55,7 @@ PMEMobjpool *pop;
 typedef void (*fn_op)(int id);
 typedef void (*fn_void)();
 
-#define	FATAL_USAGE()\
+#define FATAL_USAGE()\
 	UT_FATAL("usage: obj_first_next <file> [Parfn]")
 
 /*
@@ -271,7 +271,7 @@ static void
 test_internal_object_mask(PMEMobjpool *pop)
 {
 	/* allocate root object */
-	PMEMoid root = pmemobj_root(pop, sizeof (struct type));
+	PMEMoid root = pmemobj_root(pop, sizeof(struct type));
 
 	TX_BEGIN(pop) {
 		/* trigger creation of a range cache */
@@ -279,7 +279,7 @@ test_internal_object_mask(PMEMobjpool *pop)
 	} TX_END
 
 	PMEMoid oid;
-	pmemobj_alloc(pop, &oid, sizeof (struct type), 0, NULL, NULL);
+	pmemobj_alloc(pop, &oid, sizeof(struct type), 0, NULL, NULL);
 	UT_ASSERT(!OID_IS_NULL(oid));
 
 	/* verify that there's no root object nor range cache anywhere */

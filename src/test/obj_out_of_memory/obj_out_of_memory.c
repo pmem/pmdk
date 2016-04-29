@@ -37,7 +37,7 @@
 #include <stdlib.h>
 #include "unittest.h"
 
-#define	LAYOUT_NAME "out_of_memory"
+#define LAYOUT_NAME "out_of_memory"
 
 struct cargs {
 	size_t size;

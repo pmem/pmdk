@@ -34,8 +34,8 @@
  * list.h -- internal definitions for persistent atomic lists module
  */
 
-#define	REDO_NUM_ENTRIES \
-((LANE_SECTION_LEN - 2 * sizeof (uint64_t)) / sizeof (struct redo_log))
+#define REDO_NUM_ENTRIES \
+((LANE_SECTION_LEN - 2 * sizeof(uint64_t)) / sizeof(struct redo_log))
 
 /*
  * lane_list_section -- structure of list section in lane

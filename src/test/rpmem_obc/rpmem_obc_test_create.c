@@ -39,7 +39,7 @@
 static const struct rpmem_msg_create_resp CREATE_RESP = {
 	.hdr = {
 		.type = RPMEM_MSG_TYPE_CREATE_RESP,
-		.size = sizeof (struct rpmem_msg_create_resp),
+		.size = sizeof(struct rpmem_msg_create_resp),
 		.status = 0,
 	},
 	.ibc	= {
@@ -58,7 +58,7 @@ static void
 check_create_msg(struct rpmem_msg_create *msg)
 {
 	size_t pool_desc_size = strlen(POOL_DESC) + 1;
-	size_t msg_size = sizeof (struct rpmem_msg_create) + pool_desc_size;
+	size_t msg_size = sizeof(struct rpmem_msg_create) + pool_desc_size;
 	struct rpmem_pool_attr pool_attr = POOL_ATTR_INIT;
 
 	UT_ASSERTeq(msg->hdr.type, RPMEM_MSG_TYPE_CREATE);
@@ -70,7 +70,7 @@ check_create_msg(struct rpmem_msg_create *msg)
 	UT_ASSERTeq(msg->nlanes, NLANES);
 	UT_ASSERTeq(msg->pool_desc.size, pool_desc_size);
 	UT_ASSERTeq(strcmp((char *)msg->pool_desc.desc, POOL_DESC), 0);
-	UT_ASSERTeq(memcmp(&msg->pool_attr, &pool_attr, sizeof (pool_attr)), 0);
+	UT_ASSERTeq(memcmp(&msg->pool_attr, &pool_attr, sizeof(pool_attr)), 0);
 }
 
 /*
@@ -79,7 +79,7 @@ check_create_msg(struct rpmem_msg_create *msg)
 static void
 server_create_handle(struct server *s, const struct rpmem_msg_create_resp *resp)
 {
-	size_t msg_size = sizeof (struct rpmem_msg_create) +
+	size_t msg_size = sizeof(struct rpmem_msg_create) +
 			strlen(POOL_DESC) + 1;
 	struct rpmem_msg_create *msg = MALLOC(msg_size);
 
@@ -87,7 +87,7 @@ server_create_handle(struct server *s, const struct rpmem_msg_create_resp *resp)
 	srv_recv(s, msg, msg_size);
 	rpmem_ntoh_msg_create(msg);
 	check_create_msg(msg);
-	srv_send(s, resp, sizeof (*resp));
+	srv_send(s, resp, sizeof(*resp));
 	srv_disconnect(s);
 
 	FREE(msg);
@@ -97,7 +97,7 @@ server_create_handle(struct server *s, const struct rpmem_msg_create_resp *resp)
  * Number of cases for EPROTO test. Must be kept in sync with the
  * server_create_eproto function.
  */
-#define	CREATE_EPROTO_COUNT 8
+#define CREATE_EPROTO_COUNT 8
 
 /*
  * server_create_eproto -- send invalid create request responses to a client
@@ -174,7 +174,7 @@ server_create(const struct test_case *tc, int argc, char *argv[])
 	struct rpmem_msg_create_resp resp = CREATE_RESP;
 	rpmem_hton_msg_create_resp(&resp);
 
-	server_econnreset(s, &resp, sizeof (resp) / 2);
+	server_econnreset(s, &resp, sizeof(resp) / 2);
 
 	server_create_eproto(s);
 

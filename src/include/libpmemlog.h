@@ -40,8 +40,8 @@
  * See libpmemlog(3) for details.
  */
 
-#ifndef	LIBPMEMLOG_H
-#define	LIBPMEMLOG_H 1
+#ifndef LIBPMEMLOG_H
+#define LIBPMEMLOG_H 1
 
 #ifdef __cplusplus
 extern "C" {
@@ -62,8 +62,8 @@ typedef struct pmemlog PMEMlogpool;
  * is compatible with the version used at compile-time by passing
  * these defines to pmemlog_check_version().
  */
-#define	PMEMLOG_MAJOR_VERSION 1
-#define	PMEMLOG_MINOR_VERSION 0
+#define PMEMLOG_MAJOR_VERSION 1
+#define PMEMLOG_MINOR_VERSION 0
 const char *pmemlog_check_version(
 		unsigned major_required,
 		unsigned minor_required);
@@ -71,7 +71,7 @@ const char *pmemlog_check_version(
 /*
  * support for PMEM-resident log files...
  */
-#define	PMEMLOG_MIN_POOL ((size_t)(1024 * 1024 * 2)) /* min pool size: 2MB */
+#define PMEMLOG_MIN_POOL ((size_t)(1024 * 1024 * 2)) /* min pool size: 2MB */
 
 PMEMlogpool *pmemlog_open(const char *path);
 PMEMlogpool *pmemlog_create(const char *path, size_t poolsize, mode_t mode);

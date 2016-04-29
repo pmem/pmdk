@@ -48,7 +48,7 @@
 #include "libpmemblk.h"
 #include "libpmemlog.h"
 
-#define	VERBOSE_DEFAULT	1
+#define VERBOSE_DEFAULT	1
 
 /*
  * pmempool_dump -- context and arguments for dump command

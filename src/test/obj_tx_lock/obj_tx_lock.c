@@ -36,9 +36,9 @@
 #include "unittest.h"
 #include "libpmemobj.h"
 
-#define	LAYOUT_NAME "obj_tx_lock"
+#define LAYOUT_NAME "obj_tx_lock"
 
-#define	NUM_LOCKS 2
+#define NUM_LOCKS 2
 
 static struct transaction_data {
 	PMEMobjpool *pop;
@@ -46,13 +46,13 @@ static struct transaction_data {
 	PMEMrwlock *rwlocks;
 } test_obj;
 
-#define	DO_LOCK(mtx, rwlock)\
+#define DO_LOCK(mtx, rwlock)\
 	pmemobj_tx_lock(TX_LOCK_MUTEX, &(mtx)[0]);\
 	pmemobj_tx_lock(TX_LOCK_MUTEX, &(mtx)[1]);\
 	pmemobj_tx_lock(TX_LOCK_RWLOCK, &(rwlock)[0]);\
 	pmemobj_tx_lock(TX_LOCK_RWLOCK, &(rwlock)[1])
 
-#define	IS_UNLOCKED(pop, mtx, rwlock)\
+#define IS_UNLOCKED(pop, mtx, rwlock)\
 	ret = 0;\
 	ret += pmemobj_mutex_trylock((pop), &(mtx)[0]);\
 	ret += pmemobj_mutex_trylock((pop), &(mtx)[1]);\
@@ -64,7 +64,7 @@ static struct transaction_data {
 	pmemobj_rwlock_unlock((pop), &(rwlock)[0]);\
 	pmemobj_rwlock_unlock((pop), &(rwlock)[1])
 
-#define	IS_LOCKED(pop, mtx, rwlock)\
+#define IS_LOCKED(pop, mtx, rwlock)\
 	ret = pmemobj_mutex_trylock((pop), &(mtx)[0]);\
 	UT_ASSERT(ret != 0);\
 	ret = pmemobj_mutex_trylock((pop), &(mtx)[1]);\
@@ -153,8 +153,8 @@ main(int argc, char *argv[])
 	    PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR)) == NULL)
 		UT_FATAL("!pmemobj_create");
 
-	test_obj.mutexes = CALLOC(NUM_LOCKS, sizeof (PMEMmutex));
-	test_obj.rwlocks = CALLOC(NUM_LOCKS, sizeof (PMEMrwlock));
+	test_obj.mutexes = CALLOC(NUM_LOCKS, sizeof(PMEMmutex));
+	test_obj.rwlocks = CALLOC(NUM_LOCKS, sizeof(PMEMrwlock));
 
 	do_tx_add_locks(&test_obj);
 	do_tx_add_locks_nested(&test_obj);

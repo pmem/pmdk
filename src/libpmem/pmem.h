@@ -34,9 +34,9 @@
  * pmem.h -- internal definitions for libpmem
  */
 
-#define	PMEM_LOG_PREFIX "libpmem"
-#define	PMEM_LOG_LEVEL_VAR "PMEM_LOG_LEVEL"
-#define	PMEM_LOG_FILE_VAR "PMEM_LOG_FILE"
+#define PMEM_LOG_PREFIX "libpmem"
+#define PMEM_LOG_LEVEL_VAR "PMEM_LOG_LEVEL"
+#define PMEM_LOG_FILE_VAR "PMEM_LOG_FILE"
 
 extern unsigned long Pagesize;
 

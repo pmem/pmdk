@@ -39,7 +39,7 @@
 #include <stdio.h>
 #include "benchmark_time.h"
 
-#define	NSECPSEC	1000000000
+#define NSECPSEC	1000000000
 
 /*
  * benchmark_time_get -- get timestamp from clock source
@@ -62,7 +62,7 @@ benchmark_time_diff_dummy(benchmark_time_t *d, benchmark_time_t *t1,
 	if (nsecs >= 0)
 		benchmark_time_diff(d, t1, t2);
 	else
-		memset(d, 0, sizeof (*d));
+		memset(d, 0, sizeof(*d));
 }
 
 /*
