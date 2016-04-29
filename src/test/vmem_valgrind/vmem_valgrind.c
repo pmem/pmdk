@@ -149,7 +149,7 @@ main(int argc, char *argv[])
 	switch (test_case) {
 		case 0: {
 			UT_OUT("remove all allocations and delete pool");
-			ptr = vmem_malloc(vmp, sizeof (int));
+			ptr = vmem_malloc(vmp, sizeof(int));
 			if (ptr == NULL)
 				UT_FATAL("!vmem_malloc");
 
@@ -159,7 +159,7 @@ main(int argc, char *argv[])
 		}
 		case 1: {
 			UT_OUT("only remove allocations");
-			ptr = vmem_malloc(vmp, sizeof (int));
+			ptr = vmem_malloc(vmp, sizeof(int));
 			if (ptr == NULL)
 				UT_FATAL("!vmem_malloc");
 
@@ -168,7 +168,7 @@ main(int argc, char *argv[])
 		}
 		case 2: {
 			UT_OUT("only delete pool");
-			ptr = vmem_malloc(vmp, sizeof (int));
+			ptr = vmem_malloc(vmp, sizeof(int));
 			if (ptr == NULL)
 				UT_FATAL("!vmem_malloc");
 
@@ -180,7 +180,7 @@ main(int argc, char *argv[])
 		}
 		case 3: {
 			UT_OUT("memory leaks");
-			ptr = vmem_malloc(vmp, sizeof (int));
+			ptr = vmem_malloc(vmp, sizeof(int));
 			if (ptr == NULL)
 				UT_FATAL("!vmem_malloc");
 
@@ -190,7 +190,7 @@ main(int argc, char *argv[])
 		}
 		case 4: {
 			UT_OUT("heap block overrun");
-			ptr = vmem_malloc(vmp, 12 * sizeof (int));
+			ptr = vmem_malloc(vmp, 12 * sizeof(int));
 			if (ptr == NULL)
 				UT_FATAL("!vmem_malloc");
 

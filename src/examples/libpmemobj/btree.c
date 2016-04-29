@@ -94,7 +94,7 @@ btree_insert(PMEMobjpool *pop, int64_t key, const char *value)
 	}
 
 	struct btree_node_arg args = {
-		.size = sizeof (struct btree_node) + strlen(value) + 1,
+		.size = sizeof(struct btree_node) + strlen(value) + 1,
 		.key = key,
 		.value = value
 	};

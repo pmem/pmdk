@@ -34,7 +34,7 @@
  * layout.h -- example from introduction part 3
  */
 
-#define	MAX_BUF_LEN 10
+#define MAX_BUF_LEN 10
 
 POBJ_LAYOUT_BEGIN(string_store);
 POBJ_LAYOUT_ROOT(string_store, struct my_root);

@@ -56,7 +56,7 @@
 #include "libpmemlog.h"
 #include "libpmemobj.h"
 
-#define	REQ_BUFF_SIZE	2048U
+#define REQ_BUFF_SIZE	2048U
 
 typedef const char *(*enum_to_str_fn)(int);
 
@@ -113,8 +113,8 @@ util_validate_checksum(void *addr, size_t len, uint64_t *csum)
 int
 util_pool_hdr_valid(struct pool_hdr *hdrp)
 {
-	return util_check_memory((void *)hdrp, sizeof (*hdrp), 0) &&
-		util_checksum(hdrp, sizeof (*hdrp), &hdrp->checksum, 0);
+	return util_check_memory((void *)hdrp, sizeof(*hdrp), 0) &&
+		util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum, 0);
 }
 
 /*
@@ -306,10 +306,10 @@ util_ranges_overlap(struct range *rangep1, struct range *rangep2)
 int
 util_ranges_add(struct ranges *rangesp, struct range range)
 {
-	struct range *rangep = malloc(sizeof (struct range));
+	struct range *rangep = malloc(sizeof(struct range));
 	if (!rangep)
 		err(1, "Cannot allocate memory for range\n");
-	memcpy(rangep, &range, sizeof (*rangep));
+	memcpy(rangep, &range, sizeof(*rangep));
 
 	struct range *curp, *next;
 	uint64_t first = rangep->first;
@@ -480,8 +480,8 @@ util_poolset_map(const char *fname, struct pool_set **poolset, int rdonly)
 
 	struct pool_hdr hdr;
 	/* read the pool header from first pool set file */
-	if (pread(fdp, &hdr, sizeof (hdr), 0)
-			!= sizeof (hdr)) {
+	if (pread(fdp, &hdr, sizeof(hdr), 0)
+			!= sizeof(hdr)) {
 		outv_err("cannot read pool header from poolset\n");
 		ret = -1;
 		goto err_close_part;
@@ -582,11 +582,11 @@ pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp,
 	}
 
 	struct pool_hdr hdr;
-	memcpy(&hdr, addr, sizeof (hdr));
+	memcpy(&hdr, addr, sizeof(hdr));
 
 	util_convert2h_pool_hdr(&hdr);
 
-	memcpy(paramsp->signature, hdr.signature, sizeof (paramsp->signature));
+	memcpy(paramsp->signature, hdr.signature, sizeof(paramsp->signature));
 
 	/*
 	 * Check if file is a part of pool set by comparing
@@ -601,11 +601,11 @@ pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp,
 
 	if (paramsp->type == PMEM_POOL_TYPE_BLK) {
 		struct pmemblk pbp;
-		memcpy(&pbp, addr, sizeof (pbp));
+		memcpy(&pbp, addr, sizeof(pbp));
 		paramsp->blk.bsize = le32toh(pbp.bsize);
 	} else if (paramsp->type == PMEM_POOL_TYPE_OBJ) {
 		struct pmemobjpool pop;
-		memcpy(&pop, addr, sizeof (pop));
+		memcpy(&pop, addr, sizeof(pop));
 		memcpy(paramsp->obj.layout, pop.layout, PMEMOBJ_MAX_LAYOUT);
 	}
 
@@ -625,7 +625,7 @@ out_close:
 void
 pmem_default_pool_hdr(pmem_pool_type_t type, struct pool_hdr *hdrp)
 {
-	memset(hdrp, 0, sizeof (*hdrp));
+	memset(hdrp, 0, sizeof(*hdrp));
 	const char *sig = out_get_pool_signature(type);
 	assert(sig);
 
@@ -809,19 +809,19 @@ util_get_max_bsize(uint64_t fsize)
 
 	/* compute flog size */
 	uint32_t flog_size = nfree *
-		(uint32_t)roundup(2 * sizeof (struct btt_flog),
+		(uint32_t)roundup(2 * sizeof(struct btt_flog),
 				BTT_FLOG_PAIR_ALIGN);
 	flog_size = (uint32_t)roundup(flog_size, BTT_ALIGNMENT);
 
 	/* compute arena size from file size */
 	uint64_t arena_size = fsize;
 	/* without pmemblk structure */
-	arena_size -= sizeof (struct pmemblk);
+	arena_size -= sizeof(struct pmemblk);
 	if (arena_size > BTT_MAX_ARENA) {
 		arena_size = BTT_MAX_ARENA;
 	}
 	/* without BTT Info header and backup */
-	arena_size -= 2 * sizeof (struct btt_info);
+	arena_size -= 2 * sizeof(struct btt_info);
 	/* without BTT FLOG size */
 	arena_size -= flog_size;
 
@@ -969,7 +969,7 @@ out:
 int
 util_parse_chunk_types(const char *str, uint64_t *types)
 {
-	assert(MAX_CHUNK_TYPE < 8 * sizeof (*types));
+	assert(MAX_CHUNK_TYPE < 8 * sizeof(*types));
 	return util_parse_enums(str, 0, MAX_CHUNK_TYPE, types,
 			(enum_to_str_fn)out_get_chunk_type_str);
 }
@@ -980,7 +980,7 @@ util_parse_chunk_types(const char *str, uint64_t *types)
 int
 util_parse_lane_sections(const char *str, uint64_t *types)
 {
-	assert(MAX_LANE_SECTION < 8 * sizeof (*types));
+	assert(MAX_LANE_SECTION < 8 * sizeof(*types));
 	return util_parse_enums(str, 0, MAX_LANE_SECTION, types,
 			(enum_to_str_fn)out_get_lane_section_str);
 }
@@ -992,7 +992,7 @@ struct options *
 util_options_alloc(const struct option *options,
 		size_t nopts, const struct option_requirement *req)
 {
-	struct options *opts = calloc(1, sizeof (*opts));
+	struct options *opts = calloc(1, sizeof(*opts));
 	if (!opts)
 		err(1, "Cannot allocate memory for options structure");
 
@@ -1047,7 +1047,7 @@ util_opt_get_req(const struct options *opts, int opt, pmem_pool_type_t type)
 	while (req->opt) {
 		if (req->opt == opt && (req->type & type)) {
 			n++;
-			ret = realloc(ret, n * sizeof (*ret));
+			ret = realloc(ret, n * sizeof(*ret));
 			if (!ret)
 				err(1, "Cannot allocate memory for"
 					" option requirements");
@@ -1057,11 +1057,11 @@ util_opt_get_req(const struct options *opts, int opt, pmem_pool_type_t type)
 	}
 
 	if (ret) {
-		ret = realloc(ret, (n + 1) * sizeof (*ret));
+		ret = realloc(ret, (n + 1) * sizeof(*ret));
 		if (!ret)
 			err(1, "Cannot allocate memory for"
 				" option requirements");
-		memset(&ret[n], 0, sizeof (*ret));
+		memset(&ret[n], 0, sizeof(*ret));
 	}
 
 	return ret;
@@ -1255,7 +1255,7 @@ unsigned
 util_heap_max_zone(size_t size)
 {
 	unsigned max_zone = 0;
-	size -= sizeof (struct heap_header);
+	size -= sizeof(struct heap_header);
 
 	while (size >= ZONE_MIN_SIZE) {
 		max_zone++;
@@ -1344,7 +1344,7 @@ struct pool_set_file *
 pool_set_file_open(const char *fname,
 		int rdonly, int check)
 {
-	struct pool_set_file *file = calloc(1, sizeof (*file));
+	struct pool_set_file *file = calloc(1, sizeof(*file));
 	if (!file)
 		return NULL;
 

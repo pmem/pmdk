@@ -67,13 +67,13 @@ void *util_map_tmpfile(const char *dir, size_t size, size_t req_align);
 /*
  * Number of bits per type in alignment descriptor
  */
-#define	ALIGNMENT_DESC_BITS		4
+#define ALIGNMENT_DESC_BITS		4
 
 /*
  * Macro calculates number of elements in given table
  */
-#ifndef	ARRAY_SIZE
-#define	ARRAY_SIZE(x)	(sizeof (x) / sizeof ((x)[0]))
+#ifndef ARRAY_SIZE
+#define ARRAY_SIZE(x)	(sizeof(x) / sizeof((x)[0]))
 #endif
 
 /*
@@ -121,10 +121,10 @@ struct arch_flags {
  * for pools build on persistent memory, the integer types
  * below are stored in little-endian byte order.
  */
-#define	POOL_HDR_SIG_LEN 8
-#define	POOL_HDR_UUID_LEN	16 /* uuid byte length */
-#define	POOL_HDR_UUID_STR_LEN	37 /* uuid string length */
-#define	POOL_HDR_UUID_GEN_FILE	"/proc/sys/kernel/random/uuid"
+#define POOL_HDR_SIG_LEN 8
+#define POOL_HDR_UUID_LEN	16 /* uuid byte length */
+#define POOL_HDR_UUID_STR_LEN	37 /* uuid string length */
+#define POOL_HDR_UUID_GEN_FILE	"/proc/sys/kernel/random/uuid"
 
 typedef unsigned char uuid_t[POOL_HDR_UUID_LEN]; /* 16 byte binary uuid value */
 
@@ -146,7 +146,7 @@ struct pool_hdr {
 	uint64_t checksum;		/* checksum of above fields */
 };
 
-#define	POOL_HDR_SIZE	(sizeof (struct pool_hdr))
+#define POOL_HDR_SIZE	(sizeof(struct pool_hdr))
 
 int util_checksum(void *addr, size_t len, uint64_t *csump, int insert);
 int util_convert_hdr(struct pool_hdr *hdrp);
@@ -156,27 +156,27 @@ int util_check_arch_flags(const struct arch_flags *arch_flags);
 /*
  * macros for micromanaging range protections for the debug version
  */
-#ifdef	DEBUG
+#ifdef DEBUG
 
-#define	RANGE_RO(addr, len) ASSERT(util_range_ro(addr, len) >= 0)
-#define	RANGE_RW(addr, len) ASSERT(util_range_rw(addr, len) >= 0)
+#define RANGE_RO(addr, len) ASSERT(util_range_ro(addr, len) >= 0)
+#define RANGE_RW(addr, len) ASSERT(util_range_rw(addr, len) >= 0)
 
 #else
 
 /* nondebug version */
-#define	RANGE_RO(addr, len)
-#define	RANGE_RW(addr, len)
+#define RANGE_RO(addr, len)
+#define RANGE_RW(addr, len)
 
 #endif	/* DEBUG */
 
 /*
  * pool sets & replicas
  */
-#define	POOLSET_HDR_SIG "PMEMPOOLSET"
-#define	POOLSET_HDR_SIG_LEN 11	/* does NOT include '\0' */
+#define POOLSET_HDR_SIG "PMEMPOOLSET"
+#define POOLSET_HDR_SIG_LEN 11	/* does NOT include '\0' */
 
-#define	POOLSET_REPLICA_SIG "REPLICA"
-#define	POOLSET_REPLICA_SIG_LEN 7	/* does NOT include '\0' */
+#define POOLSET_REPLICA_SIG "REPLICA"
+#define POOLSET_REPLICA_SIG_LEN 7	/* does NOT include '\0' */
 
 struct pool_set_part {
 	/* populated by a pool set file parser */
@@ -264,23 +264,23 @@ int util_pool_open(struct pool_set **setp, const char *path, int rdonly,
 int util_parse_size(const char *str, size_t *sizep);
 
 
-#define	COMPILE_ERROR_ON(cond) ((void)sizeof (char[(cond) ? -1 : 1]))
+#define COMPILE_ERROR_ON(cond) ((void)sizeof(char[(cond) ? -1 : 1]))
 
 /* setbit macro substitution which properly deals with types */
 static inline void util_setbit(uint8_t *b, uint32_t i)
 {
 	b[i / 8] = (uint8_t)(b[i / 8] | (uint8_t)(1 << (i % 8)));
 }
-#define	util_isset(a, i) isset(a, i)
-#define	util_isclr(a, i) isclr(a, i)
+#define util_isset(a, i) isset(a, i)
+#define util_isclr(a, i) isclr(a, i)
 
 #if !defined(likely)
 #if defined(__GNUC__)
-#define	likely(x) __builtin_expect(!!(x), 1)
-#define	unlikely(x) __builtin_expect(!!(x), 0)
+#define likely(x) __builtin_expect(!!(x), 1)
+#define unlikely(x) __builtin_expect(!!(x), 0)
 #else
-#define	likely(x) (!!(x))
-#define	unlikely(x) (!!(x))
+#define likely(x) (!!(x))
+#define unlikely(x) (!!(x))
 #endif
 #endif
 
@@ -288,10 +288,10 @@ static inline void util_setbit(uint8_t *b, uint32_t i)
 /*
  * set of macros for determining the alignment descriptor
  */
-#define	DESC_MASK		((1 << ALIGNMENT_DESC_BITS) - 1)
-#define	alignment_of(t)		offsetof(struct { char c; t x; }, x)
-#define	alignment_desc_of(t)	(((uint64_t)alignment_of(t) - 1) & DESC_MASK)
-#define	alignment_desc()\
+#define DESC_MASK		((1 << ALIGNMENT_DESC_BITS) - 1)
+#define alignment_of(t)		offsetof(struct { char c; t x; }, x)
+#define alignment_desc_of(t)	(((uint64_t)alignment_of(t) - 1) & DESC_MASK)
+#define alignment_desc()\
 (alignment_desc_of(char)	<<  0 * ALIGNMENT_DESC_BITS) |\
 (alignment_desc_of(short)	<<  1 * ALIGNMENT_DESC_BITS) |\
 (alignment_desc_of(int)		<<  2 * ALIGNMENT_DESC_BITS) |\

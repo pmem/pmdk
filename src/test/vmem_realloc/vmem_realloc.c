@@ -67,7 +67,7 @@ main(int argc, char *argv[])
 			UT_FATAL("!vmem_create");
 	}
 
-	int *test = vmem_realloc(vmp, NULL, sizeof (int));
+	int *test = vmem_realloc(vmp, NULL, sizeof(int));
 	UT_ASSERTne(test, NULL);
 
 	test[0] = test_value;
@@ -78,7 +78,7 @@ main(int argc, char *argv[])
 		UT_ASSERTrange(test, mem_pool, VMEM_MIN_POOL);
 	}
 
-	test = vmem_realloc(vmp, test, sizeof (int) * 10);
+	test = vmem_realloc(vmp, test, sizeof(int) * 10);
 	UT_ASSERTne(test, NULL);
 	UT_ASSERTeq(test[0], test_value);
 	test[1] = test_value;

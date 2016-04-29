@@ -38,8 +38,8 @@
  * See librpmem(3) for details.
  */
 
-#ifndef	LIBRPMEM_H
-#define	LIBRPMEM_H 1
+#ifndef LIBRPMEM_H
+#define LIBRPMEM_H 1
 
 #ifdef __cplusplus
 extern "C" {
@@ -50,9 +50,9 @@ extern "C" {
 
 typedef struct rpmem_pool RPMEMpool;
 
-#define	RPMEM_POOL_HDR_SIG_LEN	8
-#define	RPMEM_POOL_HDR_UUID_LEN	16 /* uuid byte length */
-#define	RPMEM_POOL_USER_FLAGS_LEN 16
+#define RPMEM_POOL_HDR_SIG_LEN	8
+#define RPMEM_POOL_HDR_UUID_LEN	16 /* uuid byte length */
+#define RPMEM_POOL_USER_FLAGS_LEN 16
 
 struct rpmem_pool_attr {
 	char signature[RPMEM_POOL_HDR_SIG_LEN]; /* pool signature */
@@ -88,8 +88,8 @@ int rpmem_read(RPMEMpool *rpp, void *buff, size_t length, size_t offset);
  * that the version available at run-time is compatible with the version used
  * at compile-time by passing these defines to rpmem_check_version().
  */
-#define	RPMEM_MAJOR_VERSION 1
-#define	RPMEM_MINOR_VERSION 0
+#define RPMEM_MAJOR_VERSION 1
+#define RPMEM_MINOR_VERSION 0
 const char *rpmem_check_version(unsigned major_required,
 		unsigned minor_required);
 

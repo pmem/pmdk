@@ -92,7 +92,7 @@ main(int argc, char *argv[])
 	 * cancellation didn't damage the heap in any way.
 	 */
 	int allocs = 0;
-	while (pmemobj_alloc(pop, NULL, sizeof (struct node), 1,
+	while (pmemobj_alloc(pop, NULL, sizeof(struct node), 1,
 			NULL, NULL) == 0)
 		allocs++;
 
@@ -104,32 +104,32 @@ main(int argc, char *argv[])
 		pmemobj_free(&oid);
 
 	errno = 0;
-	root.oid = pmemobj_root_construct(pop, sizeof (struct root),
+	root.oid = pmemobj_root_construct(pop, sizeof(struct root),
 			root_constr_cancel, NULL);
 	UT_ASSERT(TOID_IS_NULL(root));
 	UT_ASSERTeq(errno, ECANCELED);
 
 	errno = 0;
-	ret = pmemobj_alloc(pop, NULL, sizeof (struct node), 1,
+	ret = pmemobj_alloc(pop, NULL, sizeof(struct node), 1,
 			node_constr_cancel, NULL);
 	UT_ASSERTeq(ret, -1);
 	UT_ASSERTeq(errno, ECANCELED);
 
 	/* the same number of allocations should be possible. */
-	while (pmemobj_alloc(pop, NULL, sizeof (struct node), 1,
+	while (pmemobj_alloc(pop, NULL, sizeof(struct node), 1,
 			NULL, NULL) == 0)
 		allocs--;
 	UT_ASSERTeq(allocs, 0);
 	POBJ_FOREACH_SAFE(pop, oid, next)
 		pmemobj_free(&oid);
 
-	root.oid = pmemobj_root_construct(pop, sizeof (struct root),
+	root.oid = pmemobj_root_construct(pop, sizeof(struct root),
 			NULL, NULL);
 	UT_ASSERT(!TOID_IS_NULL(root));
 
 	errno = 0;
 	node.oid = pmemobj_list_insert_new(pop, offsetof(struct node, next),
-			&D_RW(root)->list, OID_NULL, 0, sizeof (struct node),
+			&D_RW(root)->list, OID_NULL, 0, sizeof(struct node),
 			1, node_constr_cancel, NULL);
 	UT_ASSERT(TOID_IS_NULL(node));
 	UT_ASSERTeq(errno, ECANCELED);

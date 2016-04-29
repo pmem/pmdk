@@ -45,8 +45,8 @@
 extern DIR *fdopendir(int fd);
 extern ssize_t readlinkat(int, const char *restrict, char *restrict, size_t);
 
-#define	MAXLOGNAME 100		/* maximum expected .log file name length */
-#define	MAXPRINT 8192		/* maximum expected single print length */
+#define MAXLOGNAME 100		/* maximum expected .log file name length */
+#define MAXPRINT 8192		/* maximum expected single print length */
 
 /*
  * output gets replicated to these files
@@ -62,11 +62,11 @@ unsigned long Ut_pagesize;
 /*
  * flags that control output
  */
-#define	OF_NONL		1	/* do not append newline */
-#define	OF_ERR		2	/* output is error output */
-#define	OF_TRACE	4	/* output to trace file only */
-#define	OF_LOUD		8	/* output even in Quiet mode */
-#define	OF_NAME		16	/* include Testname in the output */
+#define OF_NONL		1	/* do not append newline */
+#define OF_ERR		2	/* output is error output */
+#define OF_TRACE	4	/* output to trace file only */
+#define OF_LOUD		8	/* output even in Quiet mode */
+#define OF_NAME		16	/* include Testname in the output */
 
 /*
  * vout -- common output code, all output happens here
@@ -176,7 +176,7 @@ static struct fd_lut *
 open_file_add(struct fd_lut *root, int fdnum, const char *fdfile)
 {
 	if (root == NULL) {
-		root = ZALLOC(sizeof (*root));
+		root = ZALLOC(sizeof(*root));
 		root->fdnum = fdnum;
 		root->fdfile = STRDUP(fdfile);
 	} else if (root->fdnum == fdnum)

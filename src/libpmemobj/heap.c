@@ -54,33 +54,33 @@
 #include "sys_util.h"
 #include "valgrind_internal.h"
 
-#define	MAX_RUN_LOCKS 1024
+#define MAX_RUN_LOCKS 1024
 
-#define	USE_PER_THREAD_BUCKETS
+#define USE_PER_THREAD_BUCKETS
 
-#define	EMPTY_MEMORY_BLOCK (struct memory_block)\
+#define EMPTY_MEMORY_BLOCK (struct memory_block)\
 {0, 0, 0, 0}
 
-#define	NCACHES_PER_CPU	2
+#define NCACHES_PER_CPU	2
 
 /*
  * Percentage of memory block units from a single run that can be migrated
  * from a cache bucket to auxiliary bucket in a single drain call.
  */
-#define	MAX_UNITS_PCT_DRAINED_CACHE 0.2 /* 20% */
+#define MAX_UNITS_PCT_DRAINED_CACHE 0.2 /* 20% */
 
 /*
  * Same as MAX_UNITS_PCT_DRAINED_CACHE, but for all of the cache buckets
  * combined.
  */
-#define	MAX_UNITS_PCT_DRAINED_TOTAL 2 /* 200% */
+#define MAX_UNITS_PCT_DRAINED_TOTAL 2 /* 200% */
 
-#define	BIT_IS_CLR(a, i)	(!((a) & (1ULL << (i))))
+#define BIT_IS_CLR(a, i)	(!((a) & (1ULL << (i))))
 
 /*
  * The last size that is handled by runs.
  */
-#define	MAX_RUN_SIZE (CHUNKSIZE / 2)
+#define MAX_RUN_SIZE (CHUNKSIZE / 2)
 
 /*
  * Allocation categories are used for allocation classes generation. Each one
@@ -89,7 +89,7 @@
  * fragmentation. For each category the internal fragmentation can be calculated
  * as: step/size. So for step == 1 the acceptable fragmentation is 0% and so on.
  */
-#define	MAX_ALLOC_CATEGORIES 5
+#define MAX_ALLOC_CATEGORIES 5
 static struct {
 	size_t size;
 	size_t step;
@@ -169,7 +169,7 @@ static unsigned
 heap_max_zone(size_t size)
 {
 	unsigned max_zone = 0;
-	size -= sizeof (struct heap_header);
+	size -= sizeof(struct heap_header);
 
 	while (size >= ZONE_MIN_SIZE) {
 		max_zone++;
@@ -192,10 +192,10 @@ get_zone_size_idx(uint32_t zone_id, unsigned max_zone, size_t heap_size)
 	ASSERT(heap_size >= zone_id * ZONE_MAX_SIZE);
 	size_t zone_raw_size = heap_size - zone_id * ZONE_MAX_SIZE;
 
-	ASSERT(zone_raw_size >= (sizeof (struct zone_header) +
-			sizeof (struct chunk_header) * MAX_CHUNK));
-	zone_raw_size -= sizeof (struct zone_header) +
-		sizeof (struct chunk_header) * MAX_CHUNK;
+	ASSERT(zone_raw_size >= (sizeof(struct zone_header) +
+			sizeof(struct chunk_header) * MAX_CHUNK));
+	zone_raw_size -= sizeof(struct zone_header) +
+		sizeof(struct chunk_header) * MAX_CHUNK;
 
 	size_t zone_size_idx = zone_raw_size / CHUNKSIZE;
 	ASSERT(zone_size_idx <= UINT32_MAX);
@@ -213,14 +213,14 @@ heap_chunk_write_footer(PMEMobjpool *pop, struct chunk_header *hdr,
 	if (size_idx == 1) /* that would overwrite the header */
 		return;
 
-	VALGRIND_DO_MAKE_MEM_UNDEFINED(pop, hdr + size_idx - 1, sizeof (*hdr));
+	VALGRIND_DO_MAKE_MEM_UNDEFINED(pop, hdr + size_idx - 1, sizeof(*hdr));
 
 	struct chunk_header f = *hdr;
 	f.type = CHUNK_TYPE_FOOTER;
 	f.size_idx = size_idx;
 	*(hdr + size_idx - 1) = f;
 	/* no need to persist, footers are recreated in heap_populate_buckets */
-	VALGRIND_SET_CLEAN(hdr + size_idx - 1, sizeof (f));
+	VALGRIND_SET_CLEAN(hdr + size_idx - 1, sizeof(f));
 }
 
 /*
@@ -235,10 +235,10 @@ heap_chunk_init(PMEMobjpool *pop, struct chunk_header *hdr,
 		.flags = 0,
 		.size_idx = size_idx
 	};
-	VALGRIND_DO_MAKE_MEM_UNDEFINED(pop, hdr, sizeof (*hdr));
+	VALGRIND_DO_MAKE_MEM_UNDEFINED(pop, hdr, sizeof(*hdr));
 
 	*hdr = nhdr; /* write the entire header (8 bytes) at once */
-	pop->persist(pop, hdr, sizeof (*hdr));
+	pop->persist(pop, hdr, sizeof(*hdr));
 
 	heap_chunk_write_footer(pop, hdr, size_idx);
 }
@@ -260,7 +260,7 @@ heap_zone_init(PMEMobjpool *pop, uint32_t zone_id)
 		.magic = ZONE_HEADER_MAGIC,
 	};
 	z->header = nhdr;  /* write the entire header (8 bytes) at once */
-	pop->persist(pop, &z->header, sizeof (z->header));
+	pop->persist(pop, &z->header, sizeof(z->header));
 }
 
 /*
@@ -274,29 +274,29 @@ heap_init_run(PMEMobjpool *pop, struct bucket *b, struct chunk_header *hdr,
 	struct bucket_run *r = (struct bucket_run *)b;
 
 	/* add/remove chunk_run and chunk_header to valgrind transaction */
-	VALGRIND_ADD_TO_TX(run, sizeof (*run));
+	VALGRIND_ADD_TO_TX(run, sizeof(*run));
 	run->block_size = b->unit_size;
-	pop->persist(pop, &run->block_size, sizeof (run->block_size));
+	pop->persist(pop, &run->block_size, sizeof(run->block_size));
 
 	ASSERT(hdr->type == CHUNK_TYPE_FREE);
 
 	/* set all the bits */
-	memset(run->bitmap, 0xFF, sizeof (run->bitmap));
+	memset(run->bitmap, 0xFF, sizeof(run->bitmap));
 
 	unsigned nval = r->bitmap_nval;
 	ASSERT(nval > 0);
 	/* clear only the bits available for allocations from this bucket */
-	memset(run->bitmap, 0, sizeof (uint64_t) * (nval - 1));
+	memset(run->bitmap, 0, sizeof(uint64_t) * (nval - 1));
 	run->bitmap[nval - 1] = r->bitmap_lastval;
-	VALGRIND_REMOVE_FROM_TX(run, sizeof (*run));
+	VALGRIND_REMOVE_FROM_TX(run, sizeof(*run));
 
-	pop->persist(pop, run->bitmap, sizeof (run->bitmap));
+	pop->persist(pop, run->bitmap, sizeof(run->bitmap));
 
-	VALGRIND_ADD_TO_TX(hdr, sizeof (*hdr));
+	VALGRIND_ADD_TO_TX(hdr, sizeof(*hdr));
 	hdr->type = CHUNK_TYPE_RUN;
-	VALGRIND_REMOVE_FROM_TX(hdr, sizeof (*hdr));
+	VALGRIND_REMOVE_FROM_TX(hdr, sizeof(*hdr));
 
-	pop->persist(pop, hdr, sizeof (*hdr));
+	pop->persist(pop, hdr, sizeof(*hdr));
 }
 
 /*
@@ -403,11 +403,11 @@ heap_process_run_metadata(PMEMobjpool *pop, struct bucket *b,
 static void
 heap_set_run_bucket(struct chunk_run *run, struct bucket *b)
 {
-	VALGRIND_ADD_TO_TX(&run->bucket_vptr, sizeof (run->bucket_vptr));
+	VALGRIND_ADD_TO_TX(&run->bucket_vptr, sizeof(run->bucket_vptr));
 	/* mark the bucket associated with this run */
 	run->bucket_vptr = (uint64_t)b;
-	VALGRIND_SET_CLEAN(&run->bucket_vptr, sizeof (run->bucket_vptr));
-	VALGRIND_REMOVE_FROM_TX(&run->bucket_vptr, sizeof (run->bucket_vptr));
+	VALGRIND_SET_CLEAN(&run->bucket_vptr, sizeof(run->bucket_vptr));
+	VALGRIND_REMOVE_FROM_TX(&run->bucket_vptr, sizeof(run->bucket_vptr));
 }
 
 /*
@@ -425,7 +425,7 @@ heap_create_run(PMEMobjpool *pop, struct bucket *b,
 	ASSERT(hdr->size_idx == 1);
 	ASSERT(hdr->type == CHUNK_TYPE_FREE);
 
-	VALGRIND_DO_MAKE_MEM_UNDEFINED(pop, run, sizeof (*run));
+	VALGRIND_DO_MAKE_MEM_UNDEFINED(pop, run, sizeof(*run));
 	heap_set_run_bucket(run, b);
 	heap_init_run(pop, b, hdr, run);
 	heap_process_run_metadata(pop, b, run, chunk_id, zone_id);
@@ -488,12 +488,12 @@ heap_register_active_run(struct pmalloc_heap *h, struct chunk_run *run,
 {
 	/* reset the volatile state of the run */
 	run->bucket_vptr = 0;
-	VALGRIND_SET_CLEAN(&run->bucket_vptr, sizeof (run->bucket_vptr));
+	VALGRIND_SET_CLEAN(&run->bucket_vptr, sizeof(run->bucket_vptr));
 
 	if (heap_run_is_empty(run))
 		return;
 
-	struct active_run *arun = Malloc(sizeof (*arun));
+	struct active_run *arun = Malloc(sizeof(*arun));
 	if (arun == NULL) {
 		ERR("Failed to register active run");
 		ASSERT(0);
@@ -521,8 +521,8 @@ heap_populate_buckets(PMEMobjpool *pop)
 	struct zone *z = ZID_TO_ZONE(h->layout, zone_id);
 
 	/* ignore zone and chunk headers */
-	VALGRIND_ADD_TO_GLOBAL_TX_IGNORE(z, sizeof (z->header) +
-		sizeof (z->chunk_headers));
+	VALGRIND_ADD_TO_GLOBAL_TX_IGNORE(z, sizeof(z->header) +
+		sizeof(z->chunk_headers));
 
 	if (z->header.magic != ZONE_HEADER_MAGIC)
 		heap_zone_init(pop, zone_id);
@@ -1080,11 +1080,11 @@ chunk_get_chunk_hdr_value(struct chunk_header hdr, uint16_t type,
 	uint32_t size_idx)
 {
 	uint64_t val;
-	COMPILE_ERROR_ON(sizeof (struct chunk_header) != sizeof (uint64_t));
+	COMPILE_ERROR_ON(sizeof(struct chunk_header) != sizeof(uint64_t));
 
 	hdr.type = type;
 	hdr.size_idx = size_idx;
-	memcpy(&val, &hdr, sizeof (val));
+	memcpy(&val, &hdr, sizeof(val));
 
 	return val;
 }
@@ -1108,7 +1108,7 @@ heap_prep_block_header_operation(PMEMobjpool *pop, struct memory_block m,
 
 		VALGRIND_DO_MAKE_MEM_NOACCESS(pop, hdr + 1,
 				(hdr->size_idx - 1) *
-				sizeof (struct chunk_header));
+				sizeof(struct chunk_header));
 
 		heap_chunk_write_footer(pop, hdr, m.size_idx);
 
@@ -1542,7 +1542,7 @@ heap_get_ncaches(void)
 int
 heap_boot(PMEMobjpool *pop)
 {
-	struct pmalloc_heap *h = Malloc(sizeof (*h));
+	struct pmalloc_heap *h = Malloc(sizeof(*h));
 	int err;
 	if (h == NULL) {
 		err = ENOMEM;
@@ -1550,7 +1550,7 @@ heap_boot(PMEMobjpool *pop)
 	}
 
 	h->ncaches = heap_get_ncaches();
-	h->caches = Malloc(sizeof (struct bucket_cache) * h->ncaches);
+	h->caches = Malloc(sizeof(struct bucket_cache) * h->ncaches);
 	if (h->caches == NULL) {
 		err = ENOMEM;
 		goto error_heap_cache_malloc;
@@ -1573,7 +1573,7 @@ heap_boot(PMEMobjpool *pop)
 	for (int i = 0; i < MAX_RUN_LOCKS; ++i)
 		util_mutex_init(&h->run_locks[i], &lock_attr);
 
-	memset(h->last_drained, 0, sizeof (h->last_drained));
+	memset(h->last_drained, 0, sizeof(h->last_drained));
 
 	pop->heap = h;
 
@@ -1618,7 +1618,7 @@ heap_write_header(struct heap_header *hdr, size_t size)
 		.checksum = 0
 	};
 
-	util_checksum(&newhdr, sizeof (newhdr), &newhdr.checksum, 1);
+	util_checksum(&newhdr, sizeof(newhdr), &newhdr.checksum, 1);
 	*hdr = newhdr;
 }
 
@@ -1635,7 +1635,7 @@ heap_vg_open(PMEMobjpool *pop)
 	struct heap_layout *layout = heap_get_layout(pop);
 
 	VALGRIND_DO_MAKE_MEM_DEFINED(pop, &layout->header,
-			sizeof (layout->header));
+			sizeof(layout->header));
 
 	unsigned zones = heap_max_zone(pop->heap_size);
 
@@ -1644,7 +1644,7 @@ heap_vg_open(PMEMobjpool *pop)
 		uint32_t chunks;
 
 		VALGRIND_DO_MAKE_MEM_DEFINED(pop, &z->header,
-				sizeof (z->header));
+				sizeof(z->header));
 
 		if (z->header.magic != ZONE_HEADER_MAGIC)
 			continue;
@@ -1654,14 +1654,14 @@ heap_vg_open(PMEMobjpool *pop)
 		for (uint32_t c = 0; c < chunks; ) {
 			struct chunk_header *hdr = &z->chunk_headers[c];
 
-			VALGRIND_DO_MAKE_MEM_DEFINED(pop, hdr, sizeof (*hdr));
+			VALGRIND_DO_MAKE_MEM_DEFINED(pop, hdr, sizeof(*hdr));
 
 			if (hdr->type == CHUNK_TYPE_RUN) {
 				struct chunk_run *run =
 					(struct chunk_run *)&z->chunks[c];
 
 				VALGRIND_DO_MAKE_MEM_DEFINED(pop, run,
-					sizeof (*run));
+					sizeof(*run));
 			}
 
 			ASSERT(hdr->size_idx > 0);
@@ -1670,14 +1670,14 @@ heap_vg_open(PMEMobjpool *pop)
 			VALGRIND_DO_MAKE_MEM_NOACCESS(pop,
 					&z->chunk_headers[c + 1],
 					(hdr->size_idx - 1) *
-					sizeof (struct chunk_header));
+					sizeof(struct chunk_header));
 
 			c += hdr->size_idx;
 		}
 
 		/* mark all unused chunk headers after last as not accessible */
 		VALGRIND_DO_MAKE_MEM_NOACCESS(pop, &z->chunk_headers[chunks],
-			(MAX_CHUNK - chunks) * sizeof (struct chunk_header));
+			(MAX_CHUNK - chunks) * sizeof(struct chunk_header));
 	}
 }
 #endif
@@ -1698,24 +1698,24 @@ heap_init(PMEMobjpool *pop)
 
 	struct heap_layout *layout = heap_get_layout(pop);
 	heap_write_header(&layout->header, pop->heap_size);
-	pmem_msync(&layout->header, sizeof (struct heap_header));
+	pmem_msync(&layout->header, sizeof(struct heap_header));
 
 	unsigned zones = heap_max_zone(pop->heap_size);
 	for (unsigned i = 0; i < zones; ++i) {
 		memset(&ZID_TO_ZONE(layout, i)->header, 0,
-				sizeof (struct zone_header));
+				sizeof(struct zone_header));
 		memset(&ZID_TO_ZONE(layout, i)->chunk_headers, 0,
-				sizeof (struct chunk_header));
+				sizeof(struct chunk_header));
 
 		pmem_msync(&ZID_TO_ZONE(layout, i)->header,
-				sizeof (struct zone_header));
+				sizeof(struct zone_header));
 		pmem_msync(&ZID_TO_ZONE(layout, i)->chunk_headers,
-				sizeof (struct zone_header));
+				sizeof(struct zone_header));
 
 		/* only explicitly allocated chunks should be accessible */
 		VALGRIND_DO_MAKE_MEM_NOACCESS(pop,
 			&ZID_TO_ZONE(layout, i)->chunk_headers,
-			sizeof (struct chunk_header));
+			sizeof(struct chunk_header));
 	}
 
 	return 0;
@@ -1764,7 +1764,7 @@ heap_cleanup(PMEMobjpool *pop)
 static int
 heap_verify_header(struct heap_header *hdr)
 {
-	if (util_checksum(hdr, sizeof (*hdr), &hdr->checksum, 0) != 1) {
+	if (util_checksum(hdr, sizeof(*hdr), &hdr->checksum, 0) != 1) {
 		ERR("heap: invalid header's checksum");
 		return -1;
 	}

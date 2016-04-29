@@ -306,7 +306,7 @@ util_convert_hdr(struct pool_hdr *hdrp)
 	hdrp->checksum = le64toh(hdrp->checksum);
 
 	/* and to be valid, the fields must checksum correctly */
-	if (!util_checksum(hdrp, sizeof (*hdrp), &hdrp->checksum, 0)) {
+	if (!util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum, 0)) {
 		ERR("invalid checksum of pool header");
 		return 0;
 	}
@@ -329,7 +329,7 @@ util_check_arch_flags(const struct arch_flags *arch_flags)
 	int ret = 0;
 
 	if (!util_is_zeroed(&arch_flags->reserved,
-				sizeof (arch_flags->reserved))) {
+				sizeof(arch_flags->reserved))) {
 		ERR("invalid reserved values");
 		ret = -1;
 	}
@@ -468,7 +468,7 @@ util_feature_check(struct pool_hdr *hdrp, uint32_t incompat,
 	LOG(3, "hdrp %p incompat %#x ro_compat %#x compat %#x",
 			hdrp, incompat, ro_compat, compat);
 
-#define	GET_NOT_MASKED_BITS(x, mask) ((x) & ~(mask))
+#define GET_NOT_MASKED_BITS(x, mask) ((x) & ~(mask))
 
 	uint32_t ubits;	/* unsupported bits */
 

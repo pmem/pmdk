@@ -108,11 +108,11 @@ redo_log_store_last(PMEMobjpool *pop, struct redo_log *redo, size_t index,
 	redo[index].value = value;
 
 	/* persist all redo log entries */
-	pop->persist(pop, redo, (index + 1) * sizeof (struct redo_log));
+	pop->persist(pop, redo, (index + 1) * sizeof(struct redo_log));
 
 	/* store and persist offset of last entry */
 	redo[index].offset = offset | REDO_FINISH_FLAG;
-	pop->persist(pop, &redo[index].offset, sizeof (redo[index].offset));
+	pop->persist(pop, &redo[index].offset, sizeof(redo[index].offset));
 }
 
 /*
@@ -126,11 +126,11 @@ redo_log_set_last(PMEMobjpool *pop, struct redo_log *redo, size_t index)
 	ASSERT(index < REDO_NUM_ENTRIES);
 
 	/* persist all redo log entries */
-	pop->persist(pop, redo, (index + 1) * sizeof (struct redo_log));
+	pop->persist(pop, redo, (index + 1) * sizeof(struct redo_log));
 
 	/* set finish flag of last entry and persist */
 	redo[index].offset |= REDO_FINISH_FLAG;
-	pop->persist(pop, &redo[index].offset, sizeof (redo[index].offset));
+	pop->persist(pop, &redo[index].offset, sizeof(redo[index].offset));
 }
 
 /*
@@ -142,33 +142,33 @@ redo_log_process(PMEMobjpool *pop, struct redo_log *redo,
 {
 	LOG(15, "redo %p nentries %zu", redo, nentries);
 
-#ifdef	DEBUG
+#ifdef DEBUG
 	ASSERTeq(redo_log_check(pop, redo, nentries), 0);
 #endif
 
 	uint64_t *val;
 	while ((redo->offset & REDO_FINISH_FLAG) == 0) {
 		val = (uint64_t *)((uintptr_t)pop->addr + redo->offset);
-		VALGRIND_ADD_TO_TX(val, sizeof (*val));
+		VALGRIND_ADD_TO_TX(val, sizeof(*val));
 		*val = redo->value;
-		VALGRIND_REMOVE_FROM_TX(val, sizeof (*val));
+		VALGRIND_REMOVE_FROM_TX(val, sizeof(*val));
 
-		pop->flush(pop, val, sizeof (uint64_t));
+		pop->flush(pop, val, sizeof(uint64_t));
 
 		redo++;
 	}
 
 	uint64_t offset = redo->offset & REDO_FLAG_MASK;
 	val = (uint64_t *)((uintptr_t)pop->addr + offset);
-	VALGRIND_ADD_TO_TX(val, sizeof (*val));
+	VALGRIND_ADD_TO_TX(val, sizeof(*val));
 	*val = redo->value;
-	VALGRIND_REMOVE_FROM_TX(val, sizeof (*val));
+	VALGRIND_REMOVE_FROM_TX(val, sizeof(*val));
 
-	pop->persist(pop, val, sizeof (uint64_t));
+	pop->persist(pop, val, sizeof(uint64_t));
 
 	redo->offset = 0;
 
-	pop->persist(pop, &redo->offset, sizeof (redo->offset));
+	pop->persist(pop, &redo->offset, sizeof(redo->offset));
 }
 
 /*

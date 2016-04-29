@@ -67,7 +67,7 @@ main(int argc, char *argv[])
 			UT_FATAL("!vmem_create");
 	}
 
-	int *test = vmem_calloc(vmp, 1, sizeof (int));
+	int *test = vmem_calloc(vmp, 1, sizeof(int));
 	UT_ASSERTne(test, NULL);
 
 	/* pool_calloc should return zeroed memory */

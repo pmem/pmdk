@@ -49,7 +49,7 @@
 #include "check.h"
 #include "rm.h"
 
-#define	APPNAME	"pmempool"
+#define APPNAME	"pmempool"
 
 /*
  * command -- struct for pmempool commands definition
@@ -150,7 +150,7 @@ static struct command commands[] = {
 /*
  * number of pmempool commands
  */
-#define	COMMANDS_NUMBER	(sizeof (commands) / sizeof (commands[0]))
+#define COMMANDS_NUMBER	(sizeof(commands) / sizeof(commands[0]))
 
 /*
  * print_version -- prints pmempool version message

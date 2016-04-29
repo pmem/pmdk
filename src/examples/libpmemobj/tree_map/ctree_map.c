@@ -40,7 +40,7 @@
 
 #include "ctree_map.h"
 
-#define	BIT_IS_SET(n, i) (!!((n) & (1ULL << (i))))
+#define BIT_IS_SET(n, i) (!!((n) & (1ULL << (i))))
 
 TOID_DECLARE(struct tree_map_node, CTREE_MAP_TYPE_OFFSET + 1);
 
@@ -76,7 +76,7 @@ ctree_map_new(PMEMobjpool *pop, TOID(struct ctree_map) *map, void *arg)
 	int ret = 0;
 
 	TX_BEGIN(pop) {
-		pmemobj_tx_add_range_direct(map, sizeof (*map));
+		pmemobj_tx_add_range_direct(map, sizeof(*map));
 		*map = TX_ZNEW(struct ctree_map);
 	} TX_ONABORT {
 		ret = 1;
@@ -127,7 +127,7 @@ ctree_map_delete(PMEMobjpool *pop, TOID(struct ctree_map) *map)
 	int ret = 0;
 	TX_BEGIN(pop) {
 		ctree_map_clear(pop, *map);
-		pmemobj_tx_add_range_direct(map, sizeof (*map));
+		pmemobj_tx_add_range_direct(map, sizeof(*map));
 		TX_FREE(*map);
 		*map = TOID_NULL(struct ctree_map);
 	} TX_ONABORT {
@@ -167,7 +167,7 @@ ctree_map_insert_leaf(struct tree_map_entry *p,
 	/* insert the found destination in the other slot */
 	D_RW(new_node)->entries[!d] = *p;
 
-	pmemobj_tx_add_range_direct(p, sizeof (*p));
+	pmemobj_tx_add_range_direct(p, sizeof(*p));
 	p->key = 0;
 	p->slot = new_node.oid;
 }
@@ -216,7 +216,7 @@ ctree_map_insert(PMEMobjpool *pop, TOID(struct ctree_map) map,
 	struct tree_map_entry e = {key, value};
 	TX_BEGIN(pop) {
 		if (p->key == 0 || p->key == key) {
-			pmemobj_tx_add_range_direct(p, sizeof (*p));
+			pmemobj_tx_add_range_direct(p, sizeof(*p));
 			*p = e;
 		} else {
 			ctree_map_insert_leaf(&D_RW(map)->root, e,
@@ -292,7 +292,7 @@ ctree_map_remove(PMEMobjpool *pop, TOID(struct ctree_map) map, uint64_t key)
 
 	if (parent == NULL) { /* root */
 		TX_BEGIN(pop) {
-			pmemobj_tx_add_range_direct(leaf, sizeof (*leaf));
+			pmemobj_tx_add_range_direct(leaf, sizeof(*leaf));
 			leaf->key = 0;
 			leaf->slot = OID_NULL;
 		} TX_END
@@ -309,7 +309,7 @@ ctree_map_remove(PMEMobjpool *pop, TOID(struct ctree_map) map, uint64_t key)
 			struct tree_map_entry *dest = parent;
 			TOID(struct tree_map_node) node;
 			TOID_ASSIGN(node, parent->slot);
-			pmemobj_tx_add_range_direct(dest, sizeof (*dest));
+			pmemobj_tx_add_range_direct(dest, sizeof(*dest));
 			*dest = D_RW(node)->entries[
 				D_RO(node)->entries[0].key == leaf->key];
 

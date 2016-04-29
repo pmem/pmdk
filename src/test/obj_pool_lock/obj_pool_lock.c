@@ -37,7 +37,7 @@
 
 #include "unittest.h"
 
-#define	LAYOUT "layout"
+#define LAYOUT "layout"
 
 static void
 test_reopen(const char *path)

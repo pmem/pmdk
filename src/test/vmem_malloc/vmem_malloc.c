@@ -67,7 +67,7 @@ main(int argc, char *argv[])
 			UT_FATAL("!vmem_create");
 	}
 
-	int *test = vmem_malloc(vmp, sizeof (int));
+	int *test = vmem_malloc(vmp, sizeof(int));
 	UT_ASSERTne(test, NULL);
 	*test = test_value;
 	UT_ASSERTeq(*test, test_value);

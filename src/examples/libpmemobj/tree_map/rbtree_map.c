@@ -40,31 +40,31 @@
 
 TOID_DECLARE(struct tree_map_node, RBTREE_MAP_TYPE_OFFSET + 1);
 
-#define	NODE_P(_n)\
+#define NODE_P(_n)\
 D_RW(_n)->parent
 
-#define	NODE_GRANDP(_n)\
+#define NODE_GRANDP(_n)\
 NODE_P(NODE_P(_n))
 
-#define	NODE_PARENT_AT(_n, _rbc)\
+#define NODE_PARENT_AT(_n, _rbc)\
 D_RW(NODE_P(_n))->slots[_rbc]
 
-#define	NODE_PARENT_RIGHT(_n)\
+#define NODE_PARENT_RIGHT(_n)\
 NODE_PARENT_AT(_n, RB_RIGHT)
 
-#define	NODE_IS(_n, _rbc)\
+#define NODE_IS(_n, _rbc)\
 TOID_EQUALS(_n, NODE_PARENT_AT(_n, _rbc))
 
-#define	NODE_IS_RIGHT(_n)\
+#define NODE_IS_RIGHT(_n)\
 TOID_EQUALS(_n, NODE_PARENT_RIGHT(_n))
 
-#define	NODE_LOCATION(_n)\
+#define NODE_LOCATION(_n)\
 NODE_IS_RIGHT(_n)
 
-#define	RB_FIRST(_m)\
+#define RB_FIRST(_m)\
 D_RW(D_RW(_m)->root)->slots[RB_LEFT]
 
-#define	NODE_IS_NULL(_n)\
+#define NODE_IS_NULL(_n)\
 TOID_EQUALS(_n, s)
 
 enum rb_color {
@@ -102,7 +102,7 @@ rbtree_map_new(PMEMobjpool *pop, TOID(struct rbtree_map) *map, void *arg)
 {
 	int ret = 0;
 	TX_BEGIN(pop) {
-		pmemobj_tx_add_range_direct(map, sizeof (*map));
+		pmemobj_tx_add_range_direct(map, sizeof(*map));
 		*map = TX_ZNEW(struct rbtree_map);
 
 		TOID(struct tree_map_node) s = TX_ZNEW(struct tree_map_node);
@@ -174,7 +174,7 @@ rbtree_map_delete(PMEMobjpool *pop, TOID(struct rbtree_map) *map)
 	int ret = 0;
 	TX_BEGIN(pop) {
 		rbtree_map_clear(pop, *map);
-		pmemobj_tx_add_range_direct(map, sizeof (*map));
+		pmemobj_tx_add_range_direct(map, sizeof(*map));
 		TX_FREE(*map);
 		*map = TOID_NULL(struct rbtree_map);
 	} TX_ONABORT {
@@ -230,7 +230,7 @@ rbtree_map_insert_bst(TOID(struct rbtree_map) map, TOID(struct tree_map_node) n)
 
 	TX_SET(n, parent, parent);
 
-	pmemobj_tx_add_range_direct(dst, sizeof (*dst));
+	pmemobj_tx_add_range_direct(dst, sizeof(*dst));
 	*dst = n;
 }
 

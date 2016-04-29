@@ -40,10 +40,10 @@
 #include "libpmemobj.h"
 #include "util.h"
 
-#define	LAYOUT_NAME "tx_realloc"
+#define LAYOUT_NAME "tx_realloc"
 
-#define	TEST_VALUE_1	1
-#define	OBJ_SIZE	1024
+#define TEST_VALUE_1	1
+#define OBJ_SIZE	1024
 
 enum type_number {
 	TYPE_NO_TX,
@@ -63,14 +63,14 @@ enum type_number {
 
 struct object {
 	size_t value;
-	char data[OBJ_SIZE - sizeof (size_t)];
+	char data[OBJ_SIZE - sizeof(size_t)];
 };
 
 TOID_DECLARE(struct object, 0);
 
 struct object_macro {
 	size_t value;
-	char data[OBJ_SIZE - sizeof (size_t)];
+	char data[OBJ_SIZE - sizeof(size_t)];
 };
 
 TOID_DECLARE(struct object_macro, TYPE_COMMIT_ZERO_MACRO);
@@ -86,7 +86,7 @@ do_tx_alloc(PMEMobjpool *pop, int type_num, size_t value)
 
 	TX_BEGIN(pop) {
 		TOID_ASSIGN(obj, pmemobj_tx_alloc(
-				sizeof (struct object), type_num));
+				sizeof(struct object), type_num));
 		if (!TOID_IS_NULL(obj)) {
 			D_RW(obj)->value = value;
 		}
@@ -439,17 +439,17 @@ static void
 do_tx_root_realloc(PMEMobjpool *pop)
 {
 	TX_BEGIN(pop) {
-		PMEMoid root = pmemobj_root(pop, sizeof (struct object));
+		PMEMoid root = pmemobj_root(pop, sizeof(struct object));
 		UT_ASSERT(!OID_IS_NULL(root));
 		UT_ASSERT(util_is_zeroed(pmemobj_direct(root),
-				sizeof (struct object)));
-		UT_ASSERTeq(sizeof (struct object), pmemobj_root_size(pop));
+				sizeof(struct object)));
+		UT_ASSERTeq(sizeof(struct object), pmemobj_root_size(pop));
 
-		root = pmemobj_root(pop, 2 * sizeof (struct object));
+		root = pmemobj_root(pop, 2 * sizeof(struct object));
 		UT_ASSERT(!OID_IS_NULL(root));
 		UT_ASSERT(util_is_zeroed(pmemobj_direct(root),
-				2 * sizeof (struct object)));
-		UT_ASSERTeq(2 * sizeof (struct object), pmemobj_root_size(pop));
+				2 * sizeof(struct object)));
+		UT_ASSERTeq(2 * sizeof(struct object), pmemobj_root_size(pop));
 	} TX_ONABORT {
 		UT_ASSERT(0);
 	} TX_END

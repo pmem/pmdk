@@ -221,7 +221,7 @@ main(int argc, char *argv[])
 	/* print out current write point */
 	do_tell(plp);
 
-	size_t len = roundup(sizeof (*plp), LOG_FORMAT_DATA_ALIGN);
+	size_t len = roundup(sizeof(*plp), LOG_FORMAT_DATA_ALIGN);
 	UT_OUT("write-protecting the metadata, length %zu", len);
 	MPROTECT(plp, len, PROT_READ);
 

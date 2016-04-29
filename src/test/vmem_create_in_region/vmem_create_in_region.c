@@ -38,7 +38,7 @@
 
 #include "unittest.h"
 
-#define	TEST_ALLOCATIONS (300)
+#define TEST_ALLOCATIONS (300)
 
 static void *allocs[TEST_ALLOCATIONS];
 
@@ -62,7 +62,7 @@ main(int argc, char *argv[])
 		UT_FATAL("!vmem_create_in_region");
 
 	for (i = 0; i < TEST_ALLOCATIONS; ++i) {
-		allocs[i] = vmem_malloc(vmp, sizeof (int));
+		allocs[i] = vmem_malloc(vmp, sizeof(int));
 
 		UT_ASSERTne(allocs[i], NULL);
 

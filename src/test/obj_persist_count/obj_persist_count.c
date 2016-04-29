@@ -79,7 +79,7 @@ FUNC_MOCK_END
 static void
 reset_counters(void)
 {
-	memset(&ops_counter, 0, sizeof (ops_counter));
+	memset(&ops_counter, 0, sizeof(ops_counter));
 }
 
 /*
@@ -122,15 +122,15 @@ main(int argc, char *argv[])
 	print_reset_counters("pool_create");
 
 	/* allocate one structure to create a run */
-	pmemobj_alloc(pop, NULL, sizeof (struct foo), 0, NULL, NULL);
+	pmemobj_alloc(pop, NULL, sizeof(struct foo), 0, NULL, NULL);
 	reset_counters();
 
-	PMEMoid root = pmemobj_root(pop, sizeof (struct foo));
+	PMEMoid root = pmemobj_root(pop, sizeof(struct foo));
 	UT_ASSERT(!OID_IS_NULL(root));
 	print_reset_counters("root_alloc");
 
 	PMEMoid oid;
-	int ret = pmemobj_alloc(pop, &oid, sizeof (struct foo), 0, NULL, NULL);
+	int ret = pmemobj_alloc(pop, &oid, sizeof(struct foo), 0, NULL, NULL);
 	UT_ASSERTeq(ret, 0);
 	print_reset_counters("atomic_alloc");
 
@@ -140,7 +140,7 @@ main(int argc, char *argv[])
 	struct foo *f = pmemobj_direct(root);
 
 	TX_BEGIN(pop) {
-		f->bar = pmemobj_tx_alloc(sizeof (struct foo), 0);
+		f->bar = pmemobj_tx_alloc(sizeof(struct foo), 0);
 		UT_ASSERT(!OID_IS_NULL(f->bar));
 	} TX_END
 	print_reset_counters("tx_alloc");
@@ -151,18 +151,18 @@ main(int argc, char *argv[])
 	print_reset_counters("tx_free");
 
 	TX_BEGIN(pop) {
-		pmemobj_tx_add_range_direct(&f->val, sizeof (f->val));
+		pmemobj_tx_add_range_direct(&f->val, sizeof(f->val));
 	} TX_END
 	print_reset_counters("tx_add");
 
-	pmalloc(pop, &f->dest, sizeof (f->val));
+	pmalloc(pop, &f->dest, sizeof(f->val));
 	print_reset_counters("pmalloc");
 
 	pfree(pop, &f->dest);
 	print_reset_counters("pfree");
 
 	uint64_t stack_var;
-	pmalloc(pop, &stack_var, sizeof (f->val));
+	pmalloc(pop, &stack_var, sizeof(f->val));
 	print_reset_counters("pmalloc_stack");
 
 	pfree(pop, &stack_var);

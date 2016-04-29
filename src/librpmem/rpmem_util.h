@@ -42,10 +42,10 @@ enum {
 	_LDBG = 10,
 };
 
-#define	RPMEM_LOG(level, fmt, args...) LOG(L##level, fmt, ## args)
-#define	RPMEM_DBG(fmt, args...) LOG(_LDBG, fmt, ## args)
-#define	RPMEM_FATAL(fmt, args...) FATAL(fmt, ## args)
-#define	RPMEM_ASSERT(cond)	ASSERT(cond)
+#define RPMEM_LOG(level, fmt, args...) LOG(L##level, fmt, ## args)
+#define RPMEM_DBG(fmt, args...) LOG(_LDBG, fmt, ## args)
+#define RPMEM_FATAL(fmt, args...) FATAL(fmt, ## args)
+#define RPMEM_ASSERT(cond)	ASSERT(cond)
 
 const char *rpmem_util_proto_errstr(enum rpmem_err err);
 int rpmem_util_proto_errno(enum rpmem_err err);

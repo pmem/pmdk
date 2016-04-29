@@ -45,13 +45,13 @@
 #include "output.h"
 #include "info.h"
 
-#define	BITMAP_BUFF_SIZE 1024
+#define BITMAP_BUFF_SIZE 1024
 
-#define	OFF_TO_PTR(pop, off) ((void *)((uintptr_t)(pop) + (off)));
+#define OFF_TO_PTR(pop, off) ((void *)((uintptr_t)(pop) + (off)));
 
-#define	PTR_TO_OFF(pop, ptr) ((uintptr_t)ptr - (uintptr_t)pop)
+#define PTR_TO_OFF(pop, ptr) ((uintptr_t)ptr - (uintptr_t)pop)
 
-#define	DEFAULT_BUCKET MAX_BUCKETS
+#define DEFAULT_BUCKET MAX_BUCKETS
 
 typedef void (*list_callback_fn)(struct pmem_info *pip, int v, int vnum,
 		struct list_entry *entry, size_t i);
@@ -246,7 +246,7 @@ pmem_obj_stats_get_type(struct pmem_obj_stats *stats, uint64_t type_num)
 			type_dest = type;
 	}
 
-	type = calloc(1, sizeof (*type));
+	type = calloc(1, sizeof(*type));
 	if (!type) {
 		outv_err("cannot allocate memory for type stats\n");
 		exit(EXIT_FAILURE);
@@ -339,7 +339,7 @@ static void
 info_obj_oob_hdr(struct pmem_info *pip, int v, struct oob_header *oob)
 {
 	outv_title(v, "OOB Header");
-	outv_hexdump(v && pip->args.vhdrdump, oob, sizeof (*oob),
+	outv_hexdump(v && pip->args.vhdrdump, oob, sizeof(*oob),
 		PTR_TO_OFF(pip->obj.pop, oob), 1);
 	outv_field(v, "Next", out_get_pmemoid_str(oob->oob.pe_next,
 				pip->obj.uuid_lo));
@@ -357,7 +357,7 @@ info_obj_alloc_hdr(struct pmem_info *pip, int v,
 {
 	outv_title(v, "Allocation Header");
 	outv_hexdump(v && pip->args.vhdrdump, alloc,
-			sizeof (*alloc), PTR_TO_OFF(pip->obj.pop, alloc), 1);
+			sizeof(*alloc), PTR_TO_OFF(pip->obj.pop, alloc), 1);
 	outv_field(v, "Zone id", "%u", alloc->zone_id);
 	outv_field(v, "Chunk id", "%u", alloc->chunk_id);
 	outv_field(v, "Size", "%s", out_get_size_str(alloc->size,
@@ -553,7 +553,7 @@ info_obj_heap(struct pmem_info *pip)
 	struct heap_header *heap = &layout->header;
 
 	outv(v, "\nPMEMOBJ Heap Header:\n");
-	outv_hexdump(v && pip->args.vhdrdump, heap, sizeof (*heap),
+	outv_hexdump(v && pip->args.vhdrdump, heap, sizeof(*heap),
 			pop->heap_offset, 1);
 
 	outv_field(v, "Signature", "%s", heap->signature);
@@ -564,7 +564,7 @@ info_obj_heap(struct pmem_info *pip)
 	outv_field(v, "Chunk size", "%s",
 			out_get_size_str(heap->chunksize, pip->args.human));
 	outv_field(v, "Chunks per zone", "%ld", heap->chunks_per_zone);
-	outv_field(v, "Checksum", "%s", out_get_checksum(heap, sizeof (*heap),
+	outv_field(v, "Checksum", "%s", out_get_checksum(heap, sizeof(*heap),
 				&heap->checksum));
 }
 
@@ -574,7 +574,7 @@ info_obj_heap(struct pmem_info *pip)
 static void
 info_obj_zone_hdr(struct pmem_info *pip, int v, struct zone_header *zone)
 {
-	outv_hexdump(v && pip->args.vhdrdump, zone, sizeof (*zone),
+	outv_hexdump(v && pip->args.vhdrdump, zone, sizeof(*zone),
 			PTR_TO_OFF(pip->obj.pop, zone), 1);
 	outv_field(v, "Magic", "%s", out_get_zone_magic_str(zone->magic));
 	outv_field(v, "Size idx", "%u", zone->size_idx);
@@ -587,7 +587,7 @@ static void
 info_obj_object(struct pmem_info *pip, struct obj_header *objh,
 	uint64_t objid)
 {
-	uint64_t real_size = objh->ahdr.size - sizeof (struct obj_header);
+	uint64_t real_size = objh->ahdr.size - sizeof(struct obj_header);
 
 	if (!util_ranges_contain(&pip->args.ranges, objid))
 		return;
@@ -694,7 +694,7 @@ info_obj_chunk(struct pmem_info *pip, uint64_t c,
 
 	struct pmemobjpool *pop = pip->obj.pop;
 
-	outv_hexdump(v && pip->args.vhdrdump, chunk_hdr, sizeof (*chunk_hdr),
+	outv_hexdump(v && pip->args.vhdrdump, chunk_hdr, sizeof(*chunk_hdr),
 			PTR_TO_OFF(pop, chunk_hdr), 1);
 
 	outv_field(v, "Type", "%s", out_get_chunk_type_str(chunk_hdr->type));
@@ -725,7 +725,7 @@ info_obj_chunk(struct pmem_info *pip, uint64_t c,
 		struct chunk_run *run = (struct chunk_run *)chunk;
 
 		outv_hexdump(v && pip->args.vhdrdump, run,
-				sizeof (run->block_size) + sizeof (run->bitmap),
+				sizeof(run->block_size) + sizeof(run->bitmap),
 				PTR_TO_OFF(pop, run), 1);
 
 		int class = heap_size_to_class(run->block_size);
@@ -836,7 +836,7 @@ info_obj_zones_chunks(struct pmem_info *pip)
 	size_t maxzone = util_heap_max_zone(pop->heap_size);
 	pip->obj.stats.n_zones = maxzone;
 	pip->obj.stats.zone_stats = calloc(maxzone,
-			sizeof (struct pmem_obj_zone_stats));
+			sizeof(struct pmem_obj_zone_stats));
 	if (!pip->obj.stats.zone_stats)
 		err(1, "Cannot allocate memory for zone stats");
 
@@ -879,19 +879,19 @@ info_obj_descriptor(struct pmem_info *pip)
 	outv(v, "\nPMEM OBJ Header:\n");
 	struct pmemobjpool *pop = pip->obj.pop;
 
-	uint8_t *hdrptr = (uint8_t *)pop + sizeof (pop->hdr);
-	size_t hdrsize = sizeof (*pop) - sizeof (pop->hdr);
-	size_t hdroff = sizeof (pop->hdr);
+	uint8_t *hdrptr = (uint8_t *)pop + sizeof(pop->hdr);
+	size_t hdrsize = sizeof(*pop) - sizeof(pop->hdr);
+	size_t hdroff = sizeof(pop->hdr);
 	outv_hexdump(pip->args.vhdrdump, hdrptr, hdrsize, hdroff, 1);
 
 	/* check if layout is zeroed */
 	char *layout = util_check_memory((uint8_t *)pop->layout,
-			sizeof (pop->layout), 0) ?
+			sizeof(pop->layout), 0) ?
 			pop->layout : "(null)";
 
 	/* address for checksum */
 	void *dscp = (void *)((uintptr_t)(&pop->hdr) +
-			sizeof (struct pool_hdr));
+			sizeof(struct pool_hdr));
 
 	outv_field(v, "Layout", layout);
 	outv_field(v, "Lanes offset", "0x%lx", pop->lanes_offset);
@@ -1115,7 +1115,7 @@ info_obj_stats(struct pmem_info *pip)
 
 	struct pmem_obj_stats *stats = &pip->obj.stats;
 	struct pmem_obj_zone_stats total;
-	memset(&total, 0, sizeof (total));
+	memset(&total, 0, sizeof(total));
 
 	outv_title(v, "Statistics");
 

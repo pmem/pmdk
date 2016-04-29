@@ -35,12 +35,12 @@
  */
 
 #ifndef MAP_BTREE_H
-#define	MAP_BTREE_H
+#define MAP_BTREE_H
 
 #include <libpmemobj.h>
 
 extern struct map_ops btree_map_ops;
 
-#define	MAP_BTREE (&btree_map_ops)
+#define MAP_BTREE (&btree_map_ops)
 
 #endif /* MAP_BTREE_H */

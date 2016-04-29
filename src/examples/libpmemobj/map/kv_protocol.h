@@ -34,12 +34,12 @@
  * kv_protocol.h -- kv store text protocol
  */
 
-#ifndef	KV_PROTOCOL_H
-#define	KV_PROTOCOL_H
+#ifndef KV_PROTOCOL_H
+#define KV_PROTOCOL_H
 
 #include <stdint.h>
 
-#define	MAX_KEY_LEN 255
+#define MAX_KEY_LEN 255
 
 /*
  * All client messages must start with a valid message token and be terminated

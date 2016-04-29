@@ -34,16 +34,16 @@
  * blk.h -- internal definitions for libpmem blk module
  */
 
-#define	PMEMBLK_LOG_PREFIX "libpmemblk"
-#define	PMEMBLK_LOG_LEVEL_VAR "PMEMBLK_LOG_LEVEL"
-#define	PMEMBLK_LOG_FILE_VAR "PMEMBLK_LOG_FILE"
+#define PMEMBLK_LOG_PREFIX "libpmemblk"
+#define PMEMBLK_LOG_LEVEL_VAR "PMEMBLK_LOG_LEVEL"
+#define PMEMBLK_LOG_FILE_VAR "PMEMBLK_LOG_FILE"
 
 /* attributes of the blk memory pool format for the pool header */
-#define	BLK_HDR_SIG "PMEMBLK"	/* must be 8 bytes including '\0' */
-#define	BLK_FORMAT_MAJOR 1
-#define	BLK_FORMAT_COMPAT 0x0000
-#define	BLK_FORMAT_INCOMPAT 0x0000
-#define	BLK_FORMAT_RO_COMPAT 0x0000
+#define BLK_HDR_SIG "PMEMBLK"	/* must be 8 bytes including '\0' */
+#define BLK_FORMAT_MAJOR 1
+#define BLK_FORMAT_COMPAT 0x0000
+#define BLK_FORMAT_INCOMPAT 0x0000
+#define BLK_FORMAT_RO_COMPAT 0x0000
 
 struct pmemblk {
 	struct pool_hdr hdr;	/* memory pool header */
@@ -74,4 +74,4 @@ struct pmemblk {
 };
 
 /* data area starts at this alignment after the struct pmemblk above */
-#define	BLK_FORMAT_DATA_ALIGN ((uintptr_t)4096)
+#define BLK_FORMAT_DATA_ALIGN ((uintptr_t)4096)

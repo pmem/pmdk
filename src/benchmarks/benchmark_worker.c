@@ -112,7 +112,7 @@ thread_func(void *arg)
 struct benchmark_worker *
 benchmark_worker_alloc(void)
 {
-	struct benchmark_worker *w = calloc(1, sizeof (*w));
+	struct benchmark_worker *w = calloc(1, sizeof(*w));
 	if (!w)
 		return NULL;
 

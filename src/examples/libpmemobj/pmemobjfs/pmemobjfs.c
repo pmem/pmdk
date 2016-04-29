@@ -49,14 +49,14 @@
 #include <map.h>
 #include <map_ctree.h>
 
-#ifndef	PMEMOBJFS_TRACK_BLOCKS
-#define	PMEMOBJFS_TRACK_BLOCKS	1
+#ifndef PMEMOBJFS_TRACK_BLOCKS
+#define PMEMOBJFS_TRACK_BLOCKS	1
 #endif
 
 #if DEBUG
 static FILE *log_fh;
 static uint64_t log_cnt;
-#define	log(fmt, args...) do {\
+#define log(fmt, args...) do {\
 if (log_fh) {\
 	fprintf(log_fh, "[%016lx] %s: " fmt "\n", log_cnt, __func__, ## args);\
 	log_cnt++;\
@@ -64,21 +64,21 @@ if (log_fh) {\
 }\
 } while (0)
 #else
-#define	log(fmt, args...) do {} while (0)
+#define log(fmt, args...) do {} while (0)
 #endif
 
-#define	PMEMOBJFS_MOUNT "pmemobjfs"
-#define	PMEMOBJFS_MKFS	"mkfs.pmemobjfs"
-#define	PMEMOBJFS_TX_BEGIN "pmemobjfs.tx_begin"
-#define	PMEMOBJFS_TX_COMMIT "pmemobjfs.tx_commit"
-#define	PMEMOBJFS_TX_ABORT  "pmemobjfs.tx_abort"
+#define PMEMOBJFS_MOUNT "pmemobjfs"
+#define PMEMOBJFS_MKFS	"mkfs.pmemobjfs"
+#define PMEMOBJFS_TX_BEGIN "pmemobjfs.tx_begin"
+#define PMEMOBJFS_TX_COMMIT "pmemobjfs.tx_commit"
+#define PMEMOBJFS_TX_ABORT  "pmemobjfs.tx_abort"
 
-#define	PMEMOBJFS_TMP_TEMPLATE	"/.tx_XXXXXX"
+#define PMEMOBJFS_TMP_TEMPLATE	"/.tx_XXXXXX"
 
-#define	PMEMOBJFS_CTL		'I'
-#define	PMEMOBJFS_CTL_TX_BEGIN	_IO(PMEMOBJFS_CTL, 1)
-#define	PMEMOBJFS_CTL_TX_COMMIT	_IO(PMEMOBJFS_CTL, 2)
-#define	PMEMOBJFS_CTL_TX_ABORT	_IO(PMEMOBJFS_CTL, 3)
+#define PMEMOBJFS_CTL		'I'
+#define PMEMOBJFS_CTL_TX_BEGIN	_IO(PMEMOBJFS_CTL, 1)
+#define PMEMOBJFS_CTL_TX_COMMIT	_IO(PMEMOBJFS_CTL, 2)
+#define PMEMOBJFS_CTL_TX_ABORT	_IO(PMEMOBJFS_CTL, 3)
 
 /*
  * struct pmemobjfs -- volatile state of pmemobjfs
@@ -93,81 +93,81 @@ struct pmemobjfs {
 	uint64_t max_name;
 };
 
-#define	PMEMOBJFS (struct pmemobjfs *)fuse_get_context()->private_data
+#define PMEMOBJFS (struct pmemobjfs *)fuse_get_context()->private_data
 
-#define	PDLL_ENTRY(type)\
+#define PDLL_ENTRY(type)\
 struct {\
 	TOID(type) next;\
 	TOID(type) prev;\
 }
 
-#define	PDLL_HEAD(type)\
+#define PDLL_HEAD(type)\
 struct {\
 	TOID(type) first;\
 	TOID(type) last;\
 }
 
-#define	PDLL_HEAD_INIT(head) do {\
-	((head)).first = ((typeof ((head).first))OID_NULL);\
-	((head)).last = ((typeof ((head).first))OID_NULL);\
+#define PDLL_HEAD_INIT(head) do {\
+	((head)).first = ((typeof((head).first))OID_NULL);\
+	((head)).last = ((typeof((head).first))OID_NULL);\
 } while (0)
 
-#define	PDLL_FOREACH(entry, head, field)\
+#define PDLL_FOREACH(entry, head, field)\
 for (entry = ((head)).first; !TOID_IS_NULL(entry);\
 		entry = D_RO(entry)->field.next)
 
-#define	PDLL_FOREACH_SAFE(entry, next, head, field)\
+#define PDLL_FOREACH_SAFE(entry, next, head, field)\
 for (entry = ((head)).first; !TOID_IS_NULL(entry) &&\
 		(next = D_RO(entry)->field.next, 1);\
 		entry = next)
 
-#define	PDLL_INSERT_HEAD(head, entry, field) do {\
-	pmemobj_tx_add_range_direct(&head.first, sizeof (head.first));\
+#define PDLL_INSERT_HEAD(head, entry, field) do {\
+	pmemobj_tx_add_range_direct(&head.first, sizeof(head.first));\
 	TX_ADD_FIELD(entry, field);\
 	D_RW(entry)->field.next = head.first;\
 	D_RW(entry)->field.prev =\
-		(typeof (D_RW(entry)->field.prev))OID_NULL;\
+		(typeof(D_RW(entry)->field.prev))OID_NULL;\
 	head.first = entry;\
 	if (TOID_IS_NULL(head.last)) {\
-		pmemobj_tx_add_range_direct(&head.last, sizeof (head.last));\
+		pmemobj_tx_add_range_direct(&head.last, sizeof(head.last));\
 		head.last = entry;\
 	}\
-	typeof (entry) next = D_RO(entry)->field.next;\
+	typeof(entry) next = D_RO(entry)->field.next;\
 	if (!TOID_IS_NULL(next)) {\
 		pmemobj_tx_add_range_direct(&D_RW(next)->field.prev,\
-				sizeof (D_RW(next)->field.prev));\
+				sizeof(D_RW(next)->field.prev));\
 		D_RW(next)->field.prev = entry;\
 	}\
 } while (0)
 
-#define	PDLL_REMOVE(head, entry, field) do {\
+#define PDLL_REMOVE(head, entry, field) do {\
 	if (TOID_EQUALS(head.first, entry) &&\
 		TOID_EQUALS(head.last, entry)) {\
-		pmemobj_tx_add_range_direct(&head.first, sizeof (head.first));\
-		pmemobj_tx_add_range_direct(&head.last, sizeof (head.last));\
-		head.first = (typeof (D_RW(entry)->field.prev))OID_NULL;\
-		head.last = (typeof (D_RW(entry)->field.prev))OID_NULL;\
+		pmemobj_tx_add_range_direct(&head.first, sizeof(head.first));\
+		pmemobj_tx_add_range_direct(&head.last, sizeof(head.last));\
+		head.first = (typeof(D_RW(entry)->field.prev))OID_NULL;\
+		head.last = (typeof(D_RW(entry)->field.prev))OID_NULL;\
 	} else if (TOID_EQUALS(head.first, entry)) {\
-		typeof (entry) next = D_RW(entry)->field.next;\
+		typeof(entry) next = D_RW(entry)->field.next;\
 		pmemobj_tx_add_range_direct(&D_RW(next)->field.prev,\
-				sizeof (D_RW(next)->field.prev));\
-		pmemobj_tx_add_range_direct(&head.first, sizeof (head.first));\
+				sizeof(D_RW(next)->field.prev));\
+		pmemobj_tx_add_range_direct(&head.first, sizeof(head.first));\
 		head.first = D_RO(entry)->field.next;\
 		D_RW(next)->field.prev.oid = OID_NULL;\
 	} else if (TOID_EQUALS(head.last, entry)) {\
-		typeof (entry) prev = D_RW(entry)->field.prev;\
+		typeof(entry) prev = D_RW(entry)->field.prev;\
 		pmemobj_tx_add_range_direct(&D_RW(prev)->field.next,\
-				sizeof (D_RW(prev)->field.next));\
-		pmemobj_tx_add_range_direct(&head.last, sizeof (head.last));\
+				sizeof(D_RW(prev)->field.next));\
+		pmemobj_tx_add_range_direct(&head.last, sizeof(head.last));\
 		head.last = D_RO(entry)->field.prev;\
 		D_RW(prev)->field.next.oid = OID_NULL;\
 	} else {\
-		typeof (entry) prev = D_RW(entry)->field.prev;\
-		typeof (entry) next = D_RW(entry)->field.next;\
+		typeof(entry) prev = D_RW(entry)->field.prev;\
+		typeof(entry) next = D_RW(entry)->field.next;\
 		pmemobj_tx_add_range_direct(&D_RW(prev)->field.next,\
-				sizeof (D_RW(prev)->field.next));\
+				sizeof(D_RW(prev)->field.next));\
 		pmemobj_tx_add_range_direct(&D_RW(next)->field.prev,\
-				sizeof (D_RW(next)->field.prev));\
+				sizeof(D_RW(next)->field.prev));\
 		D_RW(prev)->field.next = D_RO(entry)->field.next;\
 		D_RW(next)->field.prev = D_RO(entry)->field.prev;\
 	}\
@@ -186,7 +186,7 @@ POBJ_LAYOUT_TOID(pmemobjfs, objfs_block_t);
 POBJ_LAYOUT_TOID(pmemobjfs, char);
 POBJ_LAYOUT_END(pmemobjfs);
 
-#define	PMEMOBJFS_MIN_BLOCK_SIZE ((size_t)(512 - 64))
+#define PMEMOBJFS_MIN_BLOCK_SIZE ((size_t)(512 - 64))
 
 /*
  * struct objfs_super -- pmemobjfs super (root) object
@@ -216,7 +216,7 @@ struct objfs_dir {
 /*
  * key == 0 for ctree_map is not allowed
  */
-#define	GET_KEY(off) ((off) + 1)
+#define GET_KEY(off) ((off) + 1)
 
 /*
  * struct objfs_file -- pmemobjfs file structure
@@ -1377,7 +1377,7 @@ pmemobjfs_chown(struct pmemobjfs *objfs, TOID(struct objfs_inode) inode,
 static int
 pmemobjfs_getattr(TOID(struct objfs_inode) inode, struct stat *statbuf)
 {
-	memset(statbuf, 0, sizeof (*statbuf));
+	memset(statbuf, 0, sizeof(*statbuf));
 
 	statbuf->st_size = D_RO(inode)->size;
 	statbuf->st_ctime = D_RO(inode)->ctime;
@@ -2072,7 +2072,7 @@ pmemobjfs_fuse_statvfs(const char *path, struct statvfs *buff)
 	log("%s", path);
 	struct pmemobjfs *objfs = PMEMOBJFS;
 
-	memset(buff, 0, sizeof (*buff));
+	memset(buff, 0, sizeof(*buff));
 
 	/*
 	 * Some fields are ignored by FUSE.
@@ -2107,7 +2107,7 @@ pmemobjfs_fuse_init(struct fuse_conn_info *conn)
 
 	/* fill some runtime information */
 	objfs->block_size = D_RO(super)->block_size;
-	objfs->max_name = objfs->block_size - sizeof (struct objfs_dir_entry);
+	objfs->max_name = objfs->block_size - sizeof(struct objfs_dir_entry);
 	objfs->pool_uuid_lo = super.oid.pool_uuid_lo;
 
 	TX_BEGIN(objfs->pop) {
@@ -2170,7 +2170,7 @@ static struct fuse_operations pmemobjfs_ops = {
 static int
 pmemobjfs_mkfs(const char *fname, size_t size, size_t bsize, mode_t mode)
 {
-	struct pmemobjfs *objfs = calloc(1, sizeof (*objfs));
+	struct pmemobjfs *objfs = calloc(1, sizeof(*objfs));
 	if (!objfs)
 		return -1;
 
@@ -2438,7 +2438,7 @@ main(int argc, char *argv[])
 
 
 	const char *fname = argv[argc - 2];
-	struct pmemobjfs *objfs = calloc(1, sizeof (*objfs));
+	struct pmemobjfs *objfs = calloc(1, sizeof(*objfs));
 	if (!objfs) {
 		perror("malloc");
 		return -1;

@@ -47,10 +47,10 @@
 #include "sync.h"
 #include "valgrind_internal.h"
 
-#define	PREV_OFF (offsetof(struct list_entry, pe_prev) + offsetof(PMEMoid, off))
-#define	NEXT_OFF (offsetof(struct list_entry, pe_next) + offsetof(PMEMoid, off))
-#define	OOB_ENTRY_OFF (offsetof(struct oob_header, oob))
-#define	OOB_ENTRY_OFF_REV \
+#define PREV_OFF (offsetof(struct list_entry, pe_prev) + offsetof(PMEMoid, off))
+#define NEXT_OFF (offsetof(struct list_entry, pe_next) + offsetof(PMEMoid, off))
+#define OOB_ENTRY_OFF (offsetof(struct oob_header, oob))
+#define OOB_ENTRY_OFF_REV \
 ((ssize_t)offsetof(struct oob_header, oob) - (ssize_t)OBJ_OOB_SIZE)
 
 /*
@@ -300,15 +300,15 @@ list_fill_entry_persist(PMEMobjpool *pop, struct list_entry *entry_ptr,
 {
 	LOG(15, NULL);
 
-	VALGRIND_ADD_TO_TX(entry_ptr, sizeof (*entry_ptr));
+	VALGRIND_ADD_TO_TX(entry_ptr, sizeof(*entry_ptr));
 	entry_ptr->pe_next.pool_uuid_lo = pop->uuid_lo;
 	entry_ptr->pe_next.off = next_offset;
 
 	entry_ptr->pe_prev.pool_uuid_lo = pop->uuid_lo;
 	entry_ptr->pe_prev.off = prev_offset;
-	VALGRIND_REMOVE_FROM_TX(entry_ptr, sizeof (*entry_ptr));
+	VALGRIND_REMOVE_FROM_TX(entry_ptr, sizeof(*entry_ptr));
 
-	pop->persist(pop, entry_ptr, sizeof (*entry_ptr));
+	pop->persist(pop, entry_ptr, sizeof(*entry_ptr));
 }
 
 /*
@@ -329,19 +329,19 @@ list_fill_entry_redo_log(PMEMobjpool *pop,
 
 	if (set_uuid) {
 		VALGRIND_ADD_TO_TX(&(args->entry_ptr->pe_next.pool_uuid_lo),
-				sizeof (args->entry_ptr->pe_next.pool_uuid_lo));
+				sizeof(args->entry_ptr->pe_next.pool_uuid_lo));
 		VALGRIND_ADD_TO_TX(&(args->entry_ptr->pe_prev.pool_uuid_lo),
-				sizeof (args->entry_ptr->pe_prev.pool_uuid_lo));
+				sizeof(args->entry_ptr->pe_prev.pool_uuid_lo));
 		/* don't need to fill pool uuid using redo log */
 		args->entry_ptr->pe_next.pool_uuid_lo = pop->uuid_lo;
 		args->entry_ptr->pe_prev.pool_uuid_lo = pop->uuid_lo;
 		VALGRIND_REMOVE_FROM_TX(
 				&(args->entry_ptr->pe_next.pool_uuid_lo),
-				sizeof (args->entry_ptr->pe_next.pool_uuid_lo));
+				sizeof(args->entry_ptr->pe_next.pool_uuid_lo));
 		VALGRIND_REMOVE_FROM_TX(
 				&(args->entry_ptr->pe_prev.pool_uuid_lo),
-				sizeof (args->entry_ptr->pe_prev.pool_uuid_lo));
-		pop->persist(pop, args->entry_ptr, sizeof (*args->entry_ptr));
+				sizeof(args->entry_ptr->pe_prev.pool_uuid_lo));
+		pop->persist(pop, args->entry_ptr, sizeof(*args->entry_ptr));
 	} else {
 		ASSERTeq(args->entry_ptr->pe_next.pool_uuid_lo, pop->uuid_lo);
 		ASSERTeq(args->entry_ptr->pe_prev.pool_uuid_lo, pop->uuid_lo);

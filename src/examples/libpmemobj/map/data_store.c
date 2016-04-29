@@ -53,7 +53,7 @@ POBJ_LAYOUT_ROOT(data_store, struct store_root);
 POBJ_LAYOUT_TOID(data_store, struct store_item);
 POBJ_LAYOUT_END(data_store);
 
-#define	MAX_INSERTS 500
+#define MAX_INSERTS 500
 
 static uint64_t nkeys;
 static uint64_t keys[MAX_INSERTS];

@@ -43,21 +43,21 @@
 #include "rpmemd_log.h"
 #include "rpmemd_obc.h"
 
-#define	PORT		1234
-#define	RKEY		0x0123456789abcdef
-#define	RADDR		0xfedcba9876543210
-#define	PERSIST_METHOD	RPMEM_PM_APM
-#define	SIGNATURE	"<RPMEM>"
-#define	MAJOR		1
-#define	COMPAT_F	2
-#define	INCOMPAT_F	3
-#define	ROCOMPAT_F	4
-#define	POOLSET_UUID	"POOLSET_UUID0123"
-#define	UUID		"UUID0123456789AB"
-#define	NEXT_UUID	"NEXT_UUID0123456"
-#define	PREV_UUID	"PREV_UUID0123456"
-#define	USER_FLAGS	"USER_FLAGS012345"
-#define	POOL_ATTR_INIT {\
+#define PORT		1234
+#define RKEY		0x0123456789abcdef
+#define RADDR		0xfedcba9876543210
+#define PERSIST_METHOD	RPMEM_PM_APM
+#define SIGNATURE	"<RPMEM>"
+#define MAJOR		1
+#define COMPAT_F	2
+#define INCOMPAT_F	3
+#define ROCOMPAT_F	4
+#define POOLSET_UUID	"POOLSET_UUID0123"
+#define UUID		"UUID0123456789AB"
+#define NEXT_UUID	"NEXT_UUID0123456"
+#define PREV_UUID	"PREV_UUID0123456"
+#define USER_FLAGS	"USER_FLAGS012345"
+#define POOL_ATTR_INIT {\
 	.signature = SIGNATURE,\
 	.major = MAJOR,\
 	.compat_features = COMPAT_F,\
@@ -69,14 +69,14 @@
 	.prev_uuid = PREV_UUID,\
 	.user_flags = USER_FLAGS,\
 }
-#define	POOL_SIZE	0x0001234567abcdef
-#define	NLANES		0x123
-#define	NLANES_RESP	16
-#define	PROVIDER	RPMEM_PROV_LIBFABRIC_SOCKETS
-#define	POOL_DESC	"pool.set"
+#define POOL_SIZE	0x0001234567abcdef
+#define NLANES		0x123
+#define NLANES_RESP	16
+#define PROVIDER	RPMEM_PROV_LIBFABRIC_SOCKETS
+#define POOL_DESC	"pool.set"
 
 static const char pool_desc[] = POOL_DESC;
-#define	POOL_DESC_SIZE	(sizeof (pool_desc) / sizeof (pool_desc[0]))
+#define POOL_DESC_SIZE	(sizeof(pool_desc) / sizeof(pool_desc[0]))
 
 int clnt_connect(char *target);
 int clnt_connect_wait(char *target);
@@ -112,13 +112,13 @@ struct req_cb_arg {
 
 static const struct rpmem_msg_hdr MSG_HDR = {
 	.type = RPMEM_MSG_TYPE_CLOSE,
-	.size = sizeof (struct rpmem_msg_hdr),
+	.size = sizeof(struct rpmem_msg_hdr),
 };
 
 static const struct rpmem_msg_create CREATE_MSG = {
 	.hdr = {
 		.type = RPMEM_MSG_TYPE_CREATE,
-		.size = sizeof (struct rpmem_msg_create),
+		.size = sizeof(struct rpmem_msg_create),
 	},
 	.major = RPMEM_PROTO_MAJOR,
 	.minor = RPMEM_PROTO_MINOR,
@@ -134,7 +134,7 @@ static const struct rpmem_msg_create CREATE_MSG = {
 static const struct rpmem_msg_open OPEN_MSG = {
 	.hdr = {
 		.type = RPMEM_MSG_TYPE_OPEN,
-		.size = sizeof (struct rpmem_msg_open),
+		.size = sizeof(struct rpmem_msg_open),
 	},
 	.major = RPMEM_PROTO_MAJOR,
 	.minor = RPMEM_PROTO_MINOR,
@@ -149,14 +149,14 @@ static const struct rpmem_msg_open OPEN_MSG = {
 static const struct rpmem_msg_close CLOSE_MSG = {
 	.hdr = {
 		.type = RPMEM_MSG_TYPE_CLOSE,
-		.size = sizeof (struct rpmem_msg_close),
+		.size = sizeof(struct rpmem_msg_close),
 	},
 };
 
 static const struct rpmem_msg_remove REMOVE_MSG = {
 	.hdr = {
 		.type = RPMEM_MSG_TYPE_REMOVE,
-		.size = sizeof (struct rpmem_msg_remove),
+		.size = sizeof(struct rpmem_msg_remove),
 	},
 	.major = RPMEM_PROTO_MAJOR,
 	.minor = RPMEM_PROTO_MINOR,

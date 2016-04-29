@@ -40,9 +40,9 @@
 #include "unittest.h"
 
 #ifdef __MALLOC_HOOK_VOLATILE
-#define	MALLOC_HOOK_VOLATILE __MALLOC_HOOK_VOLATILE
+#define MALLOC_HOOK_VOLATILE __MALLOC_HOOK_VOLATILE
 #else
-#define	MALLOC_HOOK_VOLATILE /* */
+#define MALLOC_HOOK_VOLATILE /* */
 #endif
 
 void *(*old_malloc_hook) (size_t, const void *);

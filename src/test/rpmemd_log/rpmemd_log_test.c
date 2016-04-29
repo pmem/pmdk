@@ -41,7 +41,7 @@
 #include "unittest.h"
 #include "rpmemd_log.h"
 
-#define	PREFIX	"prefix"
+#define PREFIX	"prefix"
 
 FILE *syslog_fh;
 
@@ -143,7 +143,7 @@ test_all_log_messages(void)
 	test_log_messages(_RPD_LOG_DBG);
 }
 
-#define	USAGE() do {\
+#define USAGE() do {\
 	UT_ERR("usage: %s fatal|log|assert "\
 		"stdout|file|syslog <file>", argv[0]);\
 } while (0)

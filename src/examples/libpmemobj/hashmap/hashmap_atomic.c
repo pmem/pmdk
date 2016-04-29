@@ -97,9 +97,9 @@ create_entry(PMEMobjpool *pop, void *ptr, void *arg)
 	e->key = args->key;
 	e->value = args->value;
 
-	memset(&e->list, 0, sizeof (e->list));
+	memset(&e->list, 0, sizeof(e->list));
 
-	pmemobj_persist(pop, e, sizeof (*e));
+	pmemobj_persist(pop, e, sizeof(*e));
 
 	return 0;
 }
@@ -114,8 +114,8 @@ create_buckets(PMEMobjpool *pop, void *ptr, void *arg)
 
 	b->nbuckets = *((size_t *)arg);
 	pmemobj_memset_persist(pop, &b->bucket, 0,
-			b->nbuckets * sizeof (b->bucket[0]));
-	pmemobj_persist(pop, &b->nbuckets, sizeof (b->nbuckets));
+			b->nbuckets * sizeof(b->bucket[0]));
+	pmemobj_persist(pop, &b->nbuckets, sizeof(b->nbuckets));
 
 	return 0;
 }
@@ -133,8 +133,8 @@ create_hashmap(PMEMobjpool *pop, TOID(struct hashmap_atomic) hashmap,
 	D_RW(hashmap)->hash_fun_p = HASH_FUNC_COEFF_P;
 
 	size_t len = INIT_BUCKETS_NUM;
-	size_t sz = sizeof (struct buckets) +
-			len * sizeof (struct entries_head);
+	size_t sz = sizeof(struct buckets) +
+			len * sizeof(struct entries_head);
 
 	if (POBJ_ALLOC(pop, &D_RW(hashmap)->buckets, struct buckets, sz,
 			create_buckets, &len)) {
@@ -142,7 +142,7 @@ create_hashmap(PMEMobjpool *pop, TOID(struct hashmap_atomic) hashmap,
 		abort();
 	}
 
-	pmemobj_persist(pop, D_RW(hashmap), sizeof (*D_RW(hashmap)));
+	pmemobj_persist(pop, D_RW(hashmap), sizeof(*D_RW(hashmap)));
 }
 
 /*
@@ -192,7 +192,7 @@ hm_atomic_rebuild_finish(PMEMobjpool *pop, TOID(struct hashmap_atomic) hashmap)
 
 	D_RW(hashmap)->buckets = D_RO(hashmap)->buckets_tmp;
 	pmemobj_persist(pop, &D_RW(hashmap)->buckets,
-			sizeof (D_RW(hashmap)->buckets));
+			sizeof(D_RW(hashmap)->buckets));
 
 	/*
 	 * We have to set offset manually instead of substituting OID_NULL,
@@ -203,7 +203,7 @@ hm_atomic_rebuild_finish(PMEMobjpool *pop, TOID(struct hashmap_atomic) hashmap)
 	 */
 	D_RW(hashmap)->buckets_tmp.oid.off = 0;
 	pmemobj_persist(pop, &D_RW(hashmap)->buckets_tmp,
-			sizeof (D_RW(hashmap)->buckets_tmp));
+			sizeof(D_RW(hashmap)->buckets_tmp));
 }
 
 /*
@@ -216,8 +216,8 @@ hm_atomic_rebuild(PMEMobjpool *pop, TOID(struct hashmap_atomic) hashmap,
 	if (new_len == 0)
 		new_len = D_RO(D_RO(hashmap)->buckets)->nbuckets;
 
-	size_t sz = sizeof (struct buckets) +
-			new_len * sizeof (struct entries_head);
+	size_t sz = sizeof(struct buckets) +
+			new_len * sizeof(struct entries_head);
 
 	POBJ_ALLOC(pop, &D_RW(hashmap)->buckets_tmp, struct buckets, sz,
 			create_buckets, &new_len);
@@ -256,7 +256,7 @@ hm_atomic_insert(PMEMobjpool *pop, TOID(struct hashmap_atomic) hashmap,
 
 	D_RW(hashmap)->count_dirty = 1;
 	pmemobj_persist(pop, &D_RW(hashmap)->count_dirty,
-			sizeof (D_RW(hashmap)->count_dirty));
+			sizeof(D_RW(hashmap)->count_dirty));
 
 	struct entry_args args = {
 		.key = key,
@@ -264,7 +264,7 @@ hm_atomic_insert(PMEMobjpool *pop, TOID(struct hashmap_atomic) hashmap,
 	};
 	PMEMoid oid = POBJ_LIST_INSERT_NEW_HEAD(pop,
 			&D_RW(buckets)->bucket[h],
-			list, sizeof (struct entry), create_entry, &args);
+			list, sizeof(struct entry), create_entry, &args);
 	if (OID_IS_NULL(oid)) {
 		fprintf(stderr, "failed to allocate entry: %s\n",
 			pmemobj_errormsg());
@@ -273,11 +273,11 @@ hm_atomic_insert(PMEMobjpool *pop, TOID(struct hashmap_atomic) hashmap,
 
 	D_RW(hashmap)->count++;
 	pmemobj_persist(pop, &D_RW(hashmap)->count,
-			sizeof (D_RW(hashmap)->count));
+			sizeof(D_RW(hashmap)->count));
 
 	D_RW(hashmap)->count_dirty = 0;
 	pmemobj_persist(pop, &D_RW(hashmap)->count_dirty,
-			sizeof (D_RW(hashmap)->count_dirty));
+			sizeof(D_RW(hashmap)->count_dirty));
 
 	num++;
 	if (num > MAX_HASHSET_THRESHOLD ||
@@ -313,7 +313,7 @@ hm_atomic_remove(PMEMobjpool *pop, TOID(struct hashmap_atomic) hashmap,
 
 	D_RW(hashmap)->count_dirty = 1;
 	pmemobj_persist(pop, &D_RW(hashmap)->count_dirty,
-			sizeof (D_RW(hashmap)->count_dirty));
+			sizeof(D_RW(hashmap)->count_dirty));
 
 	if (POBJ_LIST_REMOVE_FREE(pop, &D_RW(buckets)->bucket[h],
 			var, list)) {
@@ -324,11 +324,11 @@ hm_atomic_remove(PMEMobjpool *pop, TOID(struct hashmap_atomic) hashmap,
 
 	D_RW(hashmap)->count--;
 	pmemobj_persist(pop, &D_RW(hashmap)->count,
-			sizeof (D_RW(hashmap)->count));
+			sizeof(D_RW(hashmap)->count));
 
 	D_RW(hashmap)->count_dirty = 0;
 	pmemobj_persist(pop, &D_RW(hashmap)->count_dirty,
-			sizeof (D_RW(hashmap)->count_dirty));
+			sizeof(D_RW(hashmap)->count_dirty));
 
 	if (D_RO(hashmap)->count < D_RO(buckets)->nbuckets)
 		hm_atomic_rebuild(pop, hashmap, D_RO(buckets)->nbuckets / 2);
@@ -456,15 +456,15 @@ hm_atomic_init(PMEMobjpool *pop, TOID(struct hashmap_atomic) hashmap)
 			/* see comment in hm_rebuild_finish */
 			D_RW(hashmap)->buckets_tmp.oid.off = 0;
 			pmemobj_persist(pop, &D_RW(hashmap)->buckets_tmp,
-					sizeof (D_RW(hashmap)->buckets_tmp));
+					sizeof(D_RW(hashmap)->buckets_tmp));
 		} else if (TOID_IS_NULL(D_RW(hashmap)->buckets)) {
 			D_RW(hashmap)->buckets = D_RW(hashmap)->buckets_tmp;
 			pmemobj_persist(pop, &D_RW(hashmap)->buckets,
-					sizeof (D_RW(hashmap)->buckets));
+					sizeof(D_RW(hashmap)->buckets));
 			/* see comment in hm_rebuild_finish */
 			D_RW(hashmap)->buckets_tmp.oid.off = 0;
 			pmemobj_persist(pop, &D_RW(hashmap)->buckets_tmp,
-					sizeof (D_RW(hashmap)->buckets_tmp));
+					sizeof(D_RW(hashmap)->buckets_tmp));
 		} else {
 			hm_atomic_rebuild_finish(pop, hashmap);
 		}
@@ -485,11 +485,11 @@ hm_atomic_init(PMEMobjpool *pop, TOID(struct hashmap_atomic) hashmap)
 			D_RO(hashmap)->count, cnt);
 		D_RW(hashmap)->count = cnt;
 		pmemobj_persist(pop, &D_RW(hashmap)->count,
-				sizeof (D_RW(hashmap)->count));
+				sizeof(D_RW(hashmap)->count));
 
 		D_RW(hashmap)->count_dirty = 0;
 		pmemobj_persist(pop, &D_RW(hashmap)->count_dirty,
-				sizeof (D_RW(hashmap)->count_dirty));
+				sizeof(D_RW(hashmap)->count_dirty));
 	}
 
 	return 0;

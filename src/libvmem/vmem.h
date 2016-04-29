@@ -34,16 +34,16 @@
  * vmem.h -- internal definitions for libvmem
  */
 
-#define	VMEM_LOG_PREFIX "libvmem"
-#define	VMEM_LOG_LEVEL_VAR "VMEM_LOG_LEVEL"
-#define	VMEM_LOG_FILE_VAR "VMEM_LOG_FILE"
+#define VMEM_LOG_PREFIX "libvmem"
+#define VMEM_LOG_LEVEL_VAR "VMEM_LOG_LEVEL"
+#define VMEM_LOG_FILE_VAR "VMEM_LOG_FILE"
 
 /* attributes of the vmem memory pool format for the pool header */
-#define	VMEM_HDR_SIG "VMEM   "	/* must be 8 bytes including '\0' */
-#define	VMEM_FORMAT_MAJOR 1
-#define	VMEM_FORMAT_COMPAT 0x0000
-#define	VMEM_FORMAT_INCOMPAT 0x0000
-#define	VMEM_FORMAT_RO_COMPAT 0x0000
+#define VMEM_HDR_SIG "VMEM   "	/* must be 8 bytes including '\0' */
+#define VMEM_FORMAT_MAJOR 1
+#define VMEM_FORMAT_COMPAT 0x0000
+#define VMEM_FORMAT_INCOMPAT 0x0000
+#define VMEM_FORMAT_RO_COMPAT 0x0000
 
 struct vmem {
 	struct pool_hdr hdr;	/* memory pool header */

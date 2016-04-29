@@ -47,8 +47,8 @@
 #include "libpmem.h"
 #include "unittest.h"
 
-#define	CACHELINE 64
-#define	N_BYTES 8192
+#define CACHELINE 64
+#define N_BYTES 8192
 
 typedef void *(*mem_fn)(void *, const void *, size_t);
 

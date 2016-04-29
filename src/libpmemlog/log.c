@@ -65,13 +65,13 @@ pmemlog_descr_create(PMEMlogpool *plp, size_t poolsize)
 	ASSERTeq(poolsize % Pagesize, 0);
 
 	/* create required metadata */
-	plp->start_offset = htole64(roundup(sizeof (*plp),
+	plp->start_offset = htole64(roundup(sizeof(*plp),
 					LOG_FORMAT_DATA_ALIGN));
 	plp->end_offset = htole64(poolsize);
 	plp->write_offset = plp->start_offset;
 
 	/* store non-volatile part of pool's descriptor */
-	pmem_msync(&plp->start_offset, 3 * sizeof (uint64_t));
+	pmem_msync(&plp->start_offset, 3 * sizeof(uint64_t));
 
 	return 0;
 }
@@ -88,7 +88,7 @@ pmemlog_descr_check(PMEMlogpool *plp, size_t poolsize)
 	uint64_t hdr_end = le64toh(plp->end_offset);
 	uint64_t hdr_write = le64toh(plp->write_offset);
 
-	if ((hdr_start != roundup(sizeof (*plp), LOG_FORMAT_DATA_ALIGN)) ||
+	if ((hdr_start != roundup(sizeof(*plp), LOG_FORMAT_DATA_ALIGN)) ||
 			(hdr_end != poolsize) || (hdr_start > hdr_end)) {
 		ERR("wrong start/end offsets (start: %ju end: %ju), "
 			"pool size %zu",
@@ -121,9 +121,9 @@ pmemlog_runtime_init(PMEMlogpool *plp, int rdonly, int is_pmem)
 
 	/* remove volatile part of header */
 	VALGRIND_REMOVE_PMEM_MAPPING(&plp->addr,
-		sizeof (struct pmemlog) -
-		sizeof (struct pool_hdr) -
-		3 * sizeof (uint64_t));
+		sizeof(struct pmemlog) -
+		sizeof(struct pool_hdr) -
+		3 * sizeof(uint64_t));
 
 	/*
 	 * Use some of the memory pool area for run-time info.  This
@@ -133,7 +133,7 @@ pmemlog_runtime_init(PMEMlogpool *plp, int rdonly, int is_pmem)
 	plp->rdonly = rdonly;
 	plp->is_pmem = is_pmem;
 
-	if ((plp->rwlockp = Malloc(sizeof (*plp->rwlockp))) == NULL) {
+	if ((plp->rwlockp = Malloc(sizeof(*plp->rwlockp))) == NULL) {
 		ERR("!Malloc for a RW lock");
 		return -1;
 	}
@@ -150,11 +150,11 @@ pmemlog_runtime_init(PMEMlogpool *plp, int rdonly, int is_pmem)
 	 * The prototype PMFS doesn't allow this when large pages are in
 	 * use. It is not considered an error if this fails.
 	 */
-	util_range_none(plp->addr, sizeof (struct pool_hdr));
+	util_range_none(plp->addr, sizeof(struct pool_hdr));
 
 	/* the rest should be kept read-only (debug version only) */
-	RANGE_RO((char *)plp->addr + sizeof (struct pool_hdr),
-			plp->size - sizeof (struct pool_hdr));
+	RANGE_RO((char *)plp->addr + sizeof(struct pool_hdr),
+			plp->size - sizeof(struct pool_hdr));
 
 	return 0;
 }
@@ -183,7 +183,7 @@ pmemlog_create(const char *path, size_t poolsize, mode_t mode)
 	PMEMlogpool *plp = rep->part[0].addr;
 
 	VALGRIND_REMOVE_PMEM_MAPPING(&plp->addr,
-			sizeof (struct pmemlog) -
+			sizeof(struct pmemlog) -
 			((uintptr_t)&plp->addr - (uintptr_t)&plp->hdr));
 
 	plp->addr = plp;
@@ -252,7 +252,7 @@ pmemlog_open_common(const char *path, int cow)
 	PMEMlogpool *plp = rep->part[0].addr;
 
 	VALGRIND_REMOVE_PMEM_MAPPING(&plp->addr,
-			sizeof (struct pmemlog) -
+			sizeof(struct pmemlog) -
 			((uintptr_t)&plp->addr - (uintptr_t)&plp->hdr));
 
 	plp->addr = plp;
@@ -363,7 +363,7 @@ pmemlog_persist(PMEMlogpool *plp, uint64_t new_write_offset)
 	RANGE_RO((char *)plp->addr + old_write_offset, length);
 
 	/* unprotect the pool descriptor (debug version only) */
-	RANGE_RW((char *)plp->addr + sizeof (struct pool_hdr),
+	RANGE_RW((char *)plp->addr + sizeof(struct pool_hdr),
 			LOG_FORMAT_DATA_ALIGN);
 
 	/* write the metadata */
@@ -371,12 +371,12 @@ pmemlog_persist(PMEMlogpool *plp, uint64_t new_write_offset)
 
 	/* persist the metadata */
 	if (plp->is_pmem)
-		pmem_persist(&plp->write_offset, sizeof (plp->write_offset));
+		pmem_persist(&plp->write_offset, sizeof(plp->write_offset));
 	else
-		pmem_msync(&plp->write_offset, sizeof (plp->write_offset));
+		pmem_msync(&plp->write_offset, sizeof(plp->write_offset));
 
 	/* set the write-protection again (debug version only) */
-	RANGE_RO((char *)plp->addr + sizeof (struct pool_hdr),
+	RANGE_RO((char *)plp->addr + sizeof(struct pool_hdr),
 			LOG_FORMAT_DATA_ALIGN);
 }
 
@@ -577,17 +577,17 @@ pmemlog_rewind(PMEMlogpool *plp)
 	}
 
 	/* unprotect the pool descriptor (debug version only) */
-	RANGE_RW((char *)plp->addr + sizeof (struct pool_hdr),
+	RANGE_RW((char *)plp->addr + sizeof(struct pool_hdr),
 			LOG_FORMAT_DATA_ALIGN);
 
 	plp->write_offset = plp->start_offset;
 	if (plp->is_pmem)
-		pmem_persist(&plp->write_offset, sizeof (uint64_t));
+		pmem_persist(&plp->write_offset, sizeof(uint64_t));
 	else
-		pmem_msync(&plp->write_offset, sizeof (uint64_t));
+		pmem_msync(&plp->write_offset, sizeof(uint64_t));
 
 	/* set the write-protection again (debug version only) */
-	RANGE_RO((char *)plp->addr + sizeof (struct pool_hdr),
+	RANGE_RO((char *)plp->addr + sizeof(struct pool_hdr),
 			LOG_FORMAT_DATA_ALIGN);
 
 	util_rwlock_unlock(plp->rwlockp);
@@ -663,7 +663,7 @@ pmemlog_check(const char *path)
 	uint64_t hdr_end = le64toh(plp->end_offset);
 	uint64_t hdr_write = le64toh(plp->write_offset);
 
-	if (hdr_start != roundup(sizeof (*plp), LOG_FORMAT_DATA_ALIGN)) {
+	if (hdr_start != roundup(sizeof(*plp), LOG_FORMAT_DATA_ALIGN)) {
 		ERR("wrong value of start_offset");
 		consistent = 0;
 	}

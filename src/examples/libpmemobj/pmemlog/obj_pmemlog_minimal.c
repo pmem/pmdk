@@ -60,7 +60,7 @@
 #include "libpmem.h"
 #include "libpmemlog.h"
 
-#define	POOL_SIZE ((size_t)(1024 * 1024 * 100))
+#define POOL_SIZE ((size_t)(1024 * 1024 * 100))
 
 POBJ_LAYOUT_BEGIN(obj_pmemlog_minimal);
 POBJ_LAYOUT_TOID(obj_pmemlog_minimal, struct log);
@@ -87,7 +87,7 @@ create_log_entry(PMEMobjpool *pop, void *ptr, void *arg)
 	struct log *logptr = ptr;
 	struct create_args *carg = arg;
 	logptr->size = carg->size;
-	pmemobj_persist(pop, &logptr->size, sizeof (logptr->size));
+	pmemobj_persist(pop, &logptr->size, sizeof(logptr->size));
 	pmemobj_memcpy_persist(pop, logptr->data, carg->src, carg->size);
 
 	return 0;
@@ -142,7 +142,7 @@ pmemlog_append(PMEMlogpool *plp, const void *buf, size_t count)
 	PMEMobjpool *pop = (PMEMobjpool *)plp;
 
 	struct create_args args = { count, buf };
-	size_t obj_size = sizeof (size_t) + count;
+	size_t obj_size = sizeof(size_t) + count;
 	/* alloc-construct to an internal list */
 	PMEMoid obj;
 	pmemobj_alloc(pop, &obj, obj_size,
@@ -164,7 +164,7 @@ pmemlog_appendv(PMEMlogpool *plp, const struct iovec *iov, int iovcnt)
 	for (int i = 0; i < iovcnt; ++i) {
 
 		struct create_args args = { iov[i].iov_len, iov[i].iov_base };
-		size_t obj_size = sizeof (size_t) + args.size;
+		size_t obj_size = sizeof(size_t) + args.size;
 		/* alloc-construct to an internal list */
 		pmemobj_alloc(pop, NULL, obj_size,
 				0, create_log_entry, &args);
@@ -304,7 +304,7 @@ main(int argc, char *argv[])
 				printf("appendv: %s\n", argv[i] + 2);
 				int count = count_iovec(argv[i] + 2);
 				struct iovec *iov = malloc(count
-						* sizeof (struct iovec));
+						* sizeof(struct iovec));
 				if (iov == NULL) {
 					fprintf(stderr, "malloc error\n");
 					return 1;

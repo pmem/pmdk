@@ -67,7 +67,7 @@ static struct test_case test_cases[] = {
 	TEST_CASE(client_remove),
 };
 
-#define	NTESTS	(sizeof (test_cases) / sizeof (test_cases[0]))
+#define NTESTS	(sizeof(test_cases) / sizeof(test_cases[0]))
 
 int
 main(int argc, char *argv[])

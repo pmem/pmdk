@@ -43,8 +43,8 @@
 #include "map_hashmap_atomic.h"
 #include "map_hashmap_tx.h"
 
-#define	FACTOR	2
-#define	ALLOC_OVERHEAD	64
+#define FACTOR	2
+#define ALLOC_OVERHEAD	64
 
 TOID_DECLARE_ROOT(struct root);
 
@@ -52,15 +52,15 @@ struct root {
 	TOID(struct map) map;
 };
 
-#define	OBJ_TYPE_NUM	1
+#define OBJ_TYPE_NUM	1
 
-#define	swap(a, b) do {\
-	typeof ((a)) _tmp = (a);\
+#define swap(a, b) do {\
+	typeof((a)) _tmp = (a);\
 	(a) = (b);\
 	(b) = _tmp;\
 } while (0)
 
-#define	SIZE_PER_KEY	1024
+#define SIZE_PER_KEY	1024
 
 static const struct {
 	const char *str;
@@ -73,7 +73,7 @@ static const struct {
 	{"hashmap_atomic",	MAP_HASHMAP_ATOMIC},
 };
 
-#define	MAP_TYPES_NUM	(sizeof (map_types) / sizeof (map_types[0]))
+#define MAP_TYPES_NUM	(sizeof(map_types) / sizeof(map_types[0]))
 
 struct map_bench_args {
 	unsigned int seed;
@@ -370,14 +370,14 @@ static int
 map_common_init_worker(struct benchmark *bench, struct benchmark_args *args,
 		struct worker_info *worker)
 {
-	struct map_bench_worker *tworker = calloc(1, sizeof (*tworker));
+	struct map_bench_worker *tworker = calloc(1, sizeof(*tworker));
 	if (!tworker) {
 		perror("calloc");
 		return -1;
 	}
 
 	tworker->nkeys = args->n_ops_per_thread;
-	tworker->keys = malloc(tworker->nkeys * sizeof (*tworker->keys));
+	tworker->keys = malloc(tworker->nkeys * sizeof(*tworker->keys));
 	if (!tworker->keys) {
 		perror("malloc");
 		goto err_free_worker;
@@ -522,7 +522,7 @@ map_common_init(struct benchmark *bench, struct benchmark_args *args)
 	assert(args);
 	assert(args->opts);
 
-	struct map_bench *map_bench = calloc(1, sizeof (*map_bench));
+	struct map_bench *map_bench = calloc(1, sizeof(*map_bench));
 	if (!map_bench) {
 		perror("calloc");
 		return -1;
@@ -647,7 +647,7 @@ map_keys_init(struct benchmark *bench, struct benchmark_args *args)
 	struct map_bench_args *targs = args->opts;
 	assert(targs);
 
-	map_bench->keys = malloc(map_bench->nkeys * sizeof (*map_bench->keys));
+	map_bench->keys = malloc(map_bench->nkeys * sizeof(*map_bench->keys));
 	if (!map_bench->keys) {
 		perror("malloc");
 		return -1;
@@ -775,7 +775,7 @@ static struct benchmark_info map_insert_info = {
 	.measure_time	= true,
 	.clos		= map_bench_clos,
 	.nclos		= ARRAY_SIZE(map_bench_clos),
-	.opts_size	= sizeof (struct map_bench_args),
+	.opts_size	= sizeof(struct map_bench_args),
 	.rm_file	= true,
 	.allow_poolset	= true,
 };
@@ -794,7 +794,7 @@ static struct benchmark_info map_remove_info = {
 	.measure_time	= true,
 	.clos		= map_bench_clos,
 	.nclos		= ARRAY_SIZE(map_bench_clos),
-	.opts_size	= sizeof (struct map_bench_args),
+	.opts_size	= sizeof(struct map_bench_args),
 	.rm_file	= true,
 	.allow_poolset	= true,
 };
@@ -813,7 +813,7 @@ static struct benchmark_info map_get_info = {
 	.measure_time	= true,
 	.clos		= map_bench_clos,
 	.nclos		= ARRAY_SIZE(map_bench_clos),
-	.opts_size	= sizeof (struct map_bench_args),
+	.opts_size	= sizeof(struct map_bench_args),
 	.rm_file	= true,
 	.allow_poolset	= true,
 };

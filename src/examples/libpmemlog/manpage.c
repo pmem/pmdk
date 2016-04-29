@@ -43,7 +43,7 @@
 #include <libpmemlog.h>
 
 /* size of the pmemlog pool -- 1 GB */
-#define	POOL_SIZE ((size_t)(1 << 30))
+#define POOL_SIZE ((size_t)(1 << 30))
 
 /*
  * printit -- log processing callback for use with pmemlog_walk()

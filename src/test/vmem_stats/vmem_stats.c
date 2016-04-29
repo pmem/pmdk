@@ -131,7 +131,7 @@ main(int argc, char *argv[])
 	if (vmp_used == NULL)
 		UT_FATAL("!vmem_create_in_region");
 
-	int *test = vmem_malloc(vmp_used, sizeof (int)*100);
+	int *test = vmem_malloc(vmp_used, sizeof(int)*100);
 	UT_ASSERTne(test, NULL);
 
 	vmem_stats_print(vmp_unused, opts);

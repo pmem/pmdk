@@ -60,7 +60,7 @@ static void
 req_cb_check_pool_attr(const struct rpmem_pool_attr *pool_attr)
 {
 	struct rpmem_pool_attr attr = POOL_ATTR_INIT;
-	UT_ASSERTeq(memcmp(&attr, pool_attr, sizeof (attr)), 0);
+	UT_ASSERTeq(memcmp(&attr, pool_attr, sizeof(attr)), 0);
 }
 
 /*
@@ -234,7 +234,7 @@ void
 clnt_wait_disconnect(int fd)
 {
 	int buff;
-	ssize_t rret = read(fd, &buff, sizeof (buff));
+	ssize_t rret = read(fd, &buff, sizeof(buff));
 	UT_ASSERT(rret <= 0);
 }
 
@@ -255,7 +255,7 @@ clnt_connect(char *target)
 
 	struct addrinfo *addrinfo;
 	struct addrinfo hints;
-	memset(&hints, 0, sizeof (hints));
+	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_protocol = 0;

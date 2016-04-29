@@ -49,19 +49,19 @@
  * based on https://github.com/armon/libart/src/art.h
  */
 #include <stdint.h>
-#ifndef	ART_H
-#define	ART_H
+#ifndef ART_H
+#define ART_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define	NODE4   1
-#define	NODE16  2
-#define	NODE48  3
-#define	NODE256 4
+#define NODE4   1
+#define NODE16  2
+#define NODE48  3
+#define NODE256 4
 
-#define	MAX_PREFIX_LEN 10
+#define MAX_PREFIX_LEN 10
 
 #if defined(__GNUC__) && !defined(__clang__)
 #if __STDC_VERSION__ >= 199901L && 402 == (__GNUC__ * 100 + __GNUC_MINOR__)
@@ -70,7 +70,7 @@ extern "C" {
  * GCC 4.2.something, fixed in 4.3.0. So checking for specific major.minor of
  * 4.2 is fine.
  */
-#define	BROKEN_GCC_C99_INLINE
+#define BROKEN_GCC_C99_INLINE
 #endif
 #endif
 
@@ -156,7 +156,7 @@ int art_tree_init(art_tree *t);
  * Initializes an ART tree
  * @return 0 on success.
  */
-#define	init_art_tree(...) art_tree_init(__VA_ARGS__)
+#define init_art_tree(...) art_tree_init(__VA_ARGS__)
 
 /*
  * Destroys an ART tree
@@ -168,7 +168,7 @@ int art_tree_destroy(VMEM *vmp, art_tree *t);
  * Returns the size of the ART tree.
  */
 #ifdef BROKEN_GCC_C99_INLINE
-#define	art_size(t) ((t)->size)
+#define art_size(t) ((t)->size)
 #else
 inline uint64_t art_size(art_tree *t) {
 	return t->size;

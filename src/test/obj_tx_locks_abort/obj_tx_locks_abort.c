@@ -37,7 +37,7 @@
 #include "libpmemobj.h"
 #include "util.h"
 
-#define	LAYOUT_NAME "locks"
+#define LAYOUT_NAME "locks"
 
 TOID_DECLARE_ROOT(struct root_obj);
 TOID_DECLARE(struct obj, 1);

@@ -47,8 +47,8 @@
 #include "rpmemd_log.h"
 #include "rpmemd_config.h"
 
-#define	CONFIG_LINE_SIZE_INIT	50
-#define	INVALID_CHAR_POS	UINT64_MAX
+#define CONFIG_LINE_SIZE_INIT	50
+#define INVALID_CHAR_POS	UINT64_MAX
 
 struct rpmemd_special_chars_pos {
 	uint64_t equal_char;
@@ -103,7 +103,7 @@ static const struct option options[] = {
 {0,			0,			0, 0},
 };
 
-#define	VALUE_INDENT	"                                        "
+#define VALUE_INDENT	"                                        "
 
 static const char *help_str =
 "\n"
@@ -319,7 +319,7 @@ get_config_line(FILE *file, char **line, uint64_t *line_max,
 				pos->equal_char = line_length + i;
 		}
 		if (line_complete == 0) {
-			*line = realloc(*line, sizeof (char) * (*line_max) * 2);
+			*line = realloc(*line, sizeof(char) * (*line_max) * 2);
 			if (*line == NULL) {
 				RPMEMD_FATAL("!realloc");
 			}
@@ -430,13 +430,13 @@ parse_config_file(const char *filename, struct rpmemd_config *config,
 	uint8_t line_max_increased = 0;
 	uint64_t line_max = CONFIG_LINE_SIZE_INIT;
 	uint64_t line_num = 1;
-	char *line = (char *)malloc(sizeof (char) * line_max);
+	char *line = (char *)malloc(sizeof(char) * line_max);
 	if (line == NULL) {
 		RPMEMD_LOG(ERR, "!malloc");
 		goto error_malloc_line;
 	}
 
-	char *line_copy = (char *)malloc(sizeof (char) * line_max);
+	char *line_copy = (char *)malloc(sizeof(char) * line_max);
 	if (line_copy == NULL) {
 		RPMEMD_LOG(ERR, "!malloc");
 		goto error_malloc_line_copy;
@@ -445,14 +445,14 @@ parse_config_file(const char *filename, struct rpmemd_config *config,
 	struct rpmemd_special_chars_pos pos;
 
 	do {
-		memset(&pos, INT32_MAX, sizeof (pos));
+		memset(&pos, INT32_MAX, sizeof(pos));
 		if (get_config_line(file, &line, &line_max,
 			&line_max_increased, &pos) != 0)
 			goto error;
 
 		if (line_max_increased) {
 			line_copy = (char *)realloc(line_copy,
-				sizeof (char) * line_max);
+				sizeof(char) * line_max);
 			if (line_copy == NULL) {
 				RPMEMD_LOG(ERR, "!malloc");
 				goto error_malloc_line_copy;

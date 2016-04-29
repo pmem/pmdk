@@ -38,7 +38,7 @@
 
 #include "unittest.h"
 
-#define	LAYOUT_NAME "remote_obj_basic"
+#define LAYOUT_NAME "remote_obj_basic"
 
 int
 main(int argc, char *argv[])

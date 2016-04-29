@@ -34,8 +34,8 @@
  * set.c -- pool set utilities
  */
 
-#ifndef	_GNU_SOURCE
-#define	_GNU_SOURCE
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
 #endif
 
 #include <stdio.h>
@@ -61,7 +61,7 @@
 extern unsigned long Pagesize;
 
 /* reserve space for size, path and some whitespace and/or comment */
-#define	PARSER_MAX_LINE (PATH_MAX + 1024)
+#define PARSER_MAX_LINE (PATH_MAX + 1024)
 
 enum parser_codes {
 	PARSER_CONTINUE = 0,
@@ -369,8 +369,8 @@ util_parse_add_part(struct pool_set *set, const char *path, size_t filesize)
 	ASSERTne(rep, NULL);
 
 	/* XXX - pre-allocate space for X parts, and reallocate every X parts */
-	rep = Realloc(rep, sizeof (struct pool_replica) +
-			(rep->nparts + 1) * sizeof (struct pool_set_part));
+	rep = Realloc(rep, sizeof(struct pool_replica) +
+			(rep->nparts + 1) * sizeof(struct pool_set_part));
 	if (rep == NULL) {
 		ERR("!Realloc");
 		return -1;
@@ -402,8 +402,8 @@ util_parse_add_replica(struct pool_set **setp)
 	struct pool_set *set = *setp;
 	ASSERTne(set, NULL);
 
-	set = Realloc(set, sizeof (struct pool_set) +
-			(set->nreplicas + 1) * sizeof (struct pool_replica *));
+	set = Realloc(set, sizeof(struct pool_set) +
+			(set->nreplicas + 1) * sizeof(struct pool_replica *));
 	if (set == NULL) {
 		ERR("!Realloc");
 		return -1;
@@ -411,7 +411,7 @@ util_parse_add_replica(struct pool_set **setp)
 	*setp = set;
 
 	struct pool_replica *rep;
-	rep = Zalloc(sizeof (struct pool_replica));
+	rep = Zalloc(sizeof(struct pool_replica));
 	if (rep == NULL) {
 		ERR("!Malloc");
 		return -1;
@@ -433,11 +433,11 @@ util_poolset_set_size(struct pool_set *set)
 	set->poolsize = SIZE_MAX;
 	for (unsigned r = 0; r < set->nreplicas; r++) {
 		struct pool_replica *rep = set->replica[r];
-		rep->repsize = sizeof (struct pool_hdr);
+		rep->repsize = sizeof(struct pool_hdr);
 		for (unsigned p = 0; p < rep->nparts; p++) {
 			rep->repsize +=
 				(rep->part[p].filesize & ~(Pagesize - 1)) -
-				sizeof (struct pool_hdr);
+				sizeof(struct pool_hdr);
 		}
 
 		/* calculate pool size - choose the smallest replica size */
@@ -493,7 +493,7 @@ util_poolset_parse(const char *path, int fd, struct pool_set **setp)
 	s = fgets(line, PARSER_MAX_LINE, fs);
 	nlines++;
 
-	set = Zalloc(sizeof (struct pool_set));
+	set = Zalloc(sizeof(struct pool_set));
 	if (set == NULL) {
 		ERR("!Malloc for pool set");
 		goto err;
@@ -607,16 +607,16 @@ util_poolset_single(const char *path, size_t filesize, int fd, int create)
 			path, filesize, fd, create);
 
 	struct pool_set *set;
-	set = Zalloc(sizeof (struct pool_set) +
-			sizeof (struct pool_replica *));
+	set = Zalloc(sizeof(struct pool_set) +
+			sizeof(struct pool_replica *));
 	if (set == NULL) {
 		ERR("!Malloc for pool set");
 		return NULL;
 	}
 
 	struct pool_replica *rep;
-	rep = Malloc(sizeof (struct pool_replica) +
-			sizeof (struct pool_set_part));
+	rep = Malloc(sizeof(struct pool_replica) +
+			sizeof(struct pool_set_part));
 	if (rep == NULL) {
 		ERR("!Malloc for pool set replica");
 		Free(set);
@@ -870,13 +870,13 @@ err:
 	return ret;
 }
 
-#define	REP(set, r)\
+#define REP(set, r)\
 	((set)->replica[((set)->nreplicas + (r)) % (set)->nreplicas])
 
-#define	PART(rep, p)\
+#define PART(rep, p)\
 	((rep)->part[((rep)->nparts + (p)) % (rep)->nparts])
 
-#define	HDR(rep, p)\
+#define HDR(rep, p)\
 	((struct pool_hdr *)(PART(rep, p).hdr))
 
 /*
@@ -898,7 +898,7 @@ util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 	struct pool_hdr *hdrp = rep->part[partidx].hdr;
 
 	/* check if the pool header is all zeros */
-	if (!util_is_zeroed(hdrp, sizeof (*hdrp))) {
+	if (!util_is_zeroed(hdrp, sizeof(*hdrp))) {
 		ERR("Non-empty file detected");
 		errno = EINVAL;
 		return -1;
@@ -908,9 +908,9 @@ util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 	 * Zero out the pool descriptor - just in case we fail right after
 	 * header checksum is stored.
 	 */
-	void *descp = (void *)((uintptr_t)hdrp + sizeof (*hdrp));
-	memset(descp, 0, POOL_HDR_SIZE - sizeof (*hdrp));
-	pmem_msync(descp, POOL_HDR_SIZE - sizeof (*hdrp));
+	void *descp = (void *)((uintptr_t)hdrp + sizeof(*hdrp));
+	memset(descp, 0, POOL_HDR_SIZE - sizeof(*hdrp));
+	pmem_msync(descp, POOL_HDR_SIZE - sizeof(*hdrp));
 
 	/* create pool's header */
 	memcpy(hdrp->signature, sig, POOL_HDR_SIG_LEN);
@@ -948,10 +948,10 @@ util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 	hdrp->arch_flags.e_machine =
 		htole16(hdrp->arch_flags.e_machine);
 
-	util_checksum(hdrp, sizeof (*hdrp), &hdrp->checksum, 1);
+	util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum, 1);
 
 	/* store pool's header */
-	pmem_msync(hdrp, sizeof (*hdrp));
+	pmem_msync(hdrp, sizeof(*hdrp));
 
 	return 0;
 }
@@ -974,7 +974,7 @@ util_header_check(struct pool_set *set, unsigned repidx, unsigned partidx,
 	struct pool_hdr *hdrp = rep->part[partidx].hdr;
 	struct pool_hdr hdr;
 
-	memcpy(&hdr, hdrp, sizeof (hdr));
+	memcpy(&hdr, hdrp, sizeof(hdr));
 
 	if (!util_convert_hdr(&hdr)) {
 		errno = EINVAL;
@@ -1564,7 +1564,7 @@ util_is_poolset(const char *path)
 
 	int ret = 0;
 	char poolset[POOLSET_HDR_SIG_LEN];
-	if (read(fd, poolset, sizeof (poolset)) != sizeof (poolset)) {
+	if (read(fd, poolset, sizeof(poolset)) != sizeof(poolset)) {
 		ret = -1;
 		goto out;
 	}

@@ -39,10 +39,10 @@
 #include "unittest.h"
 #include "libpmemobj.h"
 
-#define	LAYOUT_NAME "obj_locks"
-#define	NUM_LOCKS 5
-#define	NUM_THREADS 15
-#define	MAX_FUNC 8
+#define LAYOUT_NAME "obj_locks"
+#define NUM_LOCKS 5
+#define NUM_THREADS 15
+#define MAX_FUNC 8
 
 TOID_DECLARE(struct locks, 0);
 
@@ -269,7 +269,7 @@ do_lock_init(struct locks *lock)
 static void
 do_lock_mt(TOID(struct locks) lock, unsigned f_num)
 {
-	memset(D_RW(lock)->data, 0, sizeof (int) * NUM_LOCKS);
+	memset(D_RW(lock)->data, 0, sizeof(int) * NUM_LOCKS);
 	for (int i = 0; i < NUM_THREADS; ++i) {
 		threads[i].lock = lock;
 		threads[i].t_id = i;
@@ -302,7 +302,7 @@ main(int argc, char *argv[])
 	    S_IWUSR | S_IRUSR)) == NULL)
 		UT_FATAL("!pmemobj_create");
 	TOID(struct locks) lock;
-	POBJ_ALLOC(pop, &lock, struct locks, sizeof (struct locks), NULL, NULL);
+	POBJ_ALLOC(pop, &lock, struct locks, sizeof(struct locks), NULL, NULL);
 	D_RW(lock)->pop = pop;
 
 	do_lock_init(D_RW(lock));

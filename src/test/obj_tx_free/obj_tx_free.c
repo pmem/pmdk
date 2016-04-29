@@ -41,9 +41,9 @@
 #include "util.h"
 #include "valgrind_internal.h"
 
-#define	LAYOUT_NAME "tx_free"
+#define LAYOUT_NAME "tx_free"
 
-#define	OBJ_SIZE	(200 * 1024)
+#define OBJ_SIZE	(200 * 1024)
 
 enum type_number {
 	TYPE_FREE_NO_TX,
@@ -65,7 +65,7 @@ TOID_DECLARE(struct object, 0);
 
 struct object {
 	size_t value;
-	char data[OBJ_SIZE - sizeof (size_t)];
+	char data[OBJ_SIZE - sizeof(size_t)];
 };
 
 /*
@@ -77,7 +77,7 @@ do_tx_alloc(PMEMobjpool *pop, int type_num)
 	PMEMoid ret = OID_NULL;
 
 	TX_BEGIN(pop) {
-		ret = pmemobj_tx_alloc(sizeof (struct object), type_num);
+		ret = pmemobj_tx_alloc(sizeof(struct object), type_num);
 	} TX_END
 
 	return ret;
@@ -286,7 +286,7 @@ do_tx_free_alloc_abort(PMEMobjpool *pop)
 
 	TX_BEGIN(pop) {
 		TOID_ASSIGN(obj, pmemobj_tx_alloc(
-				sizeof (struct object), TYPE_FREE_ALLOC));
+				sizeof(struct object), TYPE_FREE_ALLOC));
 		UT_ASSERT(!TOID_IS_NULL(obj));
 		ret = pmemobj_tx_free(obj.oid);
 		UT_ASSERTeq(ret, 0);
@@ -311,7 +311,7 @@ do_tx_free_alloc_commit(PMEMobjpool *pop)
 
 	TX_BEGIN(pop) {
 		TOID_ASSIGN(obj, pmemobj_tx_alloc(
-				sizeof (struct object), TYPE_FREE_ALLOC));
+				sizeof(struct object), TYPE_FREE_ALLOC));
 		UT_ASSERT(!TOID_IS_NULL(obj));
 		ret = pmemobj_tx_free(obj.oid);
 		UT_ASSERTeq(ret, 0);

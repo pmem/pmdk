@@ -144,9 +144,9 @@ info_log_descriptor(struct pmem_info *pip, int v, struct pmemlog *plp)
 	outv_title(v, "PMEM LOG header");
 
 	/* dump pmemlog header without pool_hdr */
-	outv_hexdump(pip->args.vhdrdump, (uint8_t *)plp + sizeof (plp->hdr),
-			sizeof (*plp) - sizeof (plp->hdr),
-			sizeof (plp->hdr), 1);
+	outv_hexdump(pip->args.vhdrdump, (uint8_t *)plp + sizeof(plp->hdr),
+			sizeof(*plp) - sizeof(plp->hdr),
+			sizeof(plp->hdr), 1);
 
 	util_convert2h_pmemlog(plp);
 
@@ -168,11 +168,11 @@ pmempool_info_log(struct pmem_info *pip)
 {
 	int ret = 0;
 
-	struct pmemlog *plp = malloc(sizeof (struct pmemlog));
+	struct pmemlog *plp = malloc(sizeof(struct pmemlog));
 	if (!plp)
 		err(1, "Cannot allocate memory for pmemlog structure");
 
-	if (pmempool_info_read(pip, plp, sizeof (struct pmemlog), 0)) {
+	if (pmempool_info_read(pip, plp, sizeof(struct pmemlog), 0)) {
 		outv_err("cannot read pmemlog header\n");
 		free(plp);
 		return -1;

@@ -50,27 +50,27 @@
 #include "sys_util.h"
 #include "valgrind_internal.h"
 
-#define	GET_MUTEX(pop, mutexp)\
+#define GET_MUTEX(pop, mutexp)\
 get_lock((pop)->run_id,\
 	&(mutexp)->pmemmutex.runid,\
 	&(mutexp)->pmemmutex.mutex,\
 	(void *)pthread_mutex_init,\
-	sizeof ((mutexp)->pmemmutex.mutex))
+	sizeof((mutexp)->pmemmutex.mutex))
 
-#define	GET_RWLOCK(pop, rwlockp)\
+#define GET_RWLOCK(pop, rwlockp)\
 get_lock((pop)->run_id,\
 	&(rwlockp)->pmemrwlock.runid,\
 	&(rwlockp)->pmemrwlock.rwlock,\
 	(void *)pthread_rwlock_init,\
-	sizeof ((rwlockp)->pmemrwlock.rwlock))
+	sizeof((rwlockp)->pmemrwlock.rwlock))
 
 
-#define	GET_COND(pop, condp)\
+#define GET_COND(pop, condp)\
 get_lock((pop)->run_id,\
 	&(condp)->pmemcond.runid,\
 	&(condp)->pmemcond.cond,\
 	(void *)pthread_cond_init,\
-	sizeof ((condp)->pmemcond.cond))
+	sizeof((condp)->pmemcond.cond))
 
 /*
  * _get_lock -- (internal) atomically initialize and return a lock
@@ -84,7 +84,7 @@ _get_lock(uint64_t pop_runid, volatile uint64_t *runid, void *lock,
 
 	uint64_t tmp_runid;
 
-	VALGRIND_REMOVE_PMEM_MAPPING(runid, sizeof (*runid));
+	VALGRIND_REMOVE_PMEM_MAPPING(runid, sizeof(*runid));
 	VALGRIND_REMOVE_PMEM_MAPPING(lock, size);
 
 	while ((tmp_runid = *runid) != pop_runid) {
@@ -136,7 +136,7 @@ pmemobj_mutex_zero(PMEMobjpool *pop, PMEMmutex *mutexp)
 
 	mutexp->pmemmutex.runid = 0;
 	pop->persist(pop, &mutexp->pmemmutex.runid,
-				sizeof (mutexp->pmemmutex.runid));
+				sizeof(mutexp->pmemmutex.runid));
 }
 
 /*
@@ -250,7 +250,7 @@ pmemobj_rwlock_zero(PMEMobjpool *pop, PMEMrwlock *rwlockp)
 
 	rwlockp->pmemrwlock.runid = 0;
 	pop->persist(pop, &rwlockp->pmemrwlock.runid,
-				sizeof (rwlockp->pmemrwlock.runid));
+				sizeof(rwlockp->pmemrwlock.runid));
 }
 
 /*
@@ -393,7 +393,7 @@ pmemobj_cond_zero(PMEMobjpool *pop, PMEMcond *condp)
 
 	condp->pmemcond.runid = 0;
 	pop->persist(pop, &condp->pmemcond.runid,
-			sizeof (condp->pmemcond.runid));
+			sizeof(condp->pmemcond.runid));
 }
 
 /*

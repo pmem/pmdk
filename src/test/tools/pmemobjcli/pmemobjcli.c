@@ -44,15 +44,15 @@
 #include <libpmemobj.h>
 #include "common.h"
 
-#define	POCLI_ENV_EXIT_ON_ERROR	"PMEMOBJCLI_EXIT_ON_ERROR"
-#define	POCLI_ENV_ECHO_MODE	"PMEMOBJCLI_ECHO_MODE"
-#define	POCLI_ENV_COMMENTS	"PMEMOBJCLI_COMMENTS"
-#define	POCLI_ENV_EMPTY_CMDS	"PMEMOBJCLI_EMPTY_CMDS"
-#define	POCLI_ENV_LONG_NAMES	"PMEMOBJCLI_LONG_NAMES"
-#define	POCLI_ENV_HELP		"PMEMOBJCLI_HELP"
-#define	POCLI_CMD_DELIM	" "
-#define	POCLI_CMD_PROMPT "pmemobjcli $ "
-#define	POCLI_INBUF_LEN	4096
+#define POCLI_ENV_EXIT_ON_ERROR	"PMEMOBJCLI_EXIT_ON_ERROR"
+#define POCLI_ENV_ECHO_MODE	"PMEMOBJCLI_ECHO_MODE"
+#define POCLI_ENV_COMMENTS	"PMEMOBJCLI_COMMENTS"
+#define POCLI_ENV_EMPTY_CMDS	"PMEMOBJCLI_EMPTY_CMDS"
+#define POCLI_ENV_LONG_NAMES	"PMEMOBJCLI_LONG_NAMES"
+#define POCLI_ENV_HELP		"PMEMOBJCLI_HELP"
+#define POCLI_CMD_DELIM	" "
+#define POCLI_CMD_PROMPT "pmemobjcli $ "
+#define POCLI_INBUF_LEN	4096
 struct pocli;
 
 TOID_DECLARE(struct item, 1);
@@ -212,10 +212,10 @@ pocli_args_size(struct pocli_args *args, int arg, size_t *sizep)
 static struct pocli_args *
 pocli_args_alloc(char *cmdstr, char *argstr, char *delim)
 {
-	size_t size = sizeof (struct pocli_args);
+	size_t size = sizeof(struct pocli_args);
 	struct pocli_args *args = NULL;
 	if (cmdstr) {
-		size += sizeof (char *);
+		size += sizeof(char *);
 		args = malloc(size);
 		if (!args)
 			return NULL;
@@ -226,7 +226,7 @@ pocli_args_alloc(char *cmdstr, char *argstr, char *delim)
 	char *n = strtok(argstr, delim);
 	while (n) {
 		int cur = args ? args->argc++ : 0;
-		size += sizeof (char *);
+		size += sizeof(char *);
 		struct pocli_args *nargs = realloc(args, size);
 		if (!nargs) {
 			free(args);
@@ -277,7 +277,7 @@ pocli_args_obj_root(struct pocli_ctx *ctx, char *in, PMEMoid **oidp)
 			goto out;
 		}
 
-		size_t max_ind = size / sizeof (PMEMoid);
+		size_t max_ind = size / sizeof(PMEMoid);
 		if (!max_ind || ind >= max_ind) {
 			ret = POCLI_ERR_PARS;
 			goto out;
@@ -1360,7 +1360,7 @@ static struct pocli_cmd pocli_commands[] = {
 	}
 };
 
-#define	POCLI_NCOMMANDS	(sizeof (pocli_commands) / sizeof (pocli_commands[0]))
+#define POCLI_NCOMMANDS	(sizeof(pocli_commands) / sizeof(pocli_commands[0]))
 
 /*
  * pocli_evn_parse_bool -- parse environment variable as boolean (1/0)
@@ -1443,11 +1443,11 @@ pocli_alloc(FILE *input, const char *fname, const struct pocli_cmd *cmds,
 	if (pocli_read_opts(&opts))
 		return NULL;
 
-	struct pocli *pcli = calloc(1, sizeof (*pcli));
+	struct pocli *pcli = calloc(1, sizeof(*pcli));
 	if (!pcli)
 		return NULL;
 
-	memcpy(&pcli->opts, &opts, sizeof (pcli->opts));
+	memcpy(&pcli->opts, &opts, sizeof(pcli->opts));
 	pcli->in = input;
 	pcli->istty = isatty(fileno(pcli->in));
 	pcli->cmds = cmds;

@@ -41,9 +41,9 @@
 #include "util.h"
 #include "valgrind_internal.h"
 
-#define	LAYOUT_NAME "tx_add_range_direct"
+#define LAYOUT_NAME "tx_add_range_direct"
 
-#define	OBJ_SIZE	1024
+#define OBJ_SIZE	1024
 
 enum type_number {
 	TYPE_OBJ,
@@ -54,15 +54,15 @@ TOID_DECLARE(struct object, 0);
 
 struct object {
 	size_t value;
-	char data[OBJ_SIZE - sizeof (size_t)];
+	char data[OBJ_SIZE - sizeof(size_t)];
 };
 
-#define	VALUE_OFF	(offsetof(struct object, value))
-#define	VALUE_SIZE	(sizeof (size_t))
-#define	DATA_OFF	(offsetof(struct object, data))
-#define	DATA_SIZE	(OBJ_SIZE - sizeof (size_t))
-#define	TEST_VALUE_1	1
-#define	TEST_VALUE_2	2
+#define VALUE_OFF	(offsetof(struct object, value))
+#define VALUE_SIZE	(sizeof(size_t))
+#define DATA_OFF	(offsetof(struct object, data))
+#define DATA_SIZE	(OBJ_SIZE - sizeof(size_t))
+#define TEST_VALUE_1	1
+#define TEST_VALUE_2	2
 
 /*
  * do_tx_alloc -- do tx allocation with specified type number
@@ -73,7 +73,7 @@ do_tx_zalloc(PMEMobjpool *pop, int type_num)
 	PMEMoid ret = OID_NULL;
 
 	TX_BEGIN(pop) {
-		ret = pmemobj_tx_zalloc(sizeof (struct object), type_num);
+		ret = pmemobj_tx_zalloc(sizeof(struct object), type_num);
 	} TX_END
 
 	return ret;
@@ -468,7 +468,7 @@ test_add_direct_macros(PMEMobjpool *pop)
 }
 
 /* value taken from libpmemobj/obj.h */
-#define	MAX_CACHED_RANGES 127
+#define MAX_CACHED_RANGES 127
 
 /*
  * test_tx_corruption_bug -- test whether tx_adds for small objects from one

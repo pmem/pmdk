@@ -41,7 +41,7 @@
 
 #include "map.h"
 
-#define	ABORT_NOT_IMPLEMENTED(mapc, func)\
+#define ABORT_NOT_IMPLEMENTED(mapc, func)\
 	if ((mapc)->ops->func == NULL) {\
 		fprintf(stderr, "error: '%s'"\
 			" function not implemented\n", #func);\
@@ -57,7 +57,7 @@ map_ctx_init(const struct map_ops *ops, PMEMobjpool *pop)
 	if (!ops)
 		return NULL;
 
-	struct map_ctx *mapc = calloc(1, sizeof (*mapc));
+	struct map_ctx *mapc = calloc(1, sizeof(*mapc));
 	if (!mapc)
 		return NULL;
 

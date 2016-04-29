@@ -38,7 +38,7 @@
 
 #include "unittest.h"
 
-#define	POOL_SIZE (VMEM_MIN_POOL * 2)
+#define POOL_SIZE (VMEM_MIN_POOL * 2)
 
 static const struct {
 	size_t size;
@@ -96,7 +96,7 @@ main(int argc, char *argv[])
 
 	UT_ASSERTeq(vmem_malloc_usable_size(vmp, NULL), 0);
 
-	for (i = 0; i < (sizeof (Check_sizes) / sizeof (Check_sizes[0])); ++i) {
+	for (i = 0; i < (sizeof(Check_sizes) / sizeof(Check_sizes[0])); ++i) {
 		size = Check_sizes[i].size;
 		alloc = vmem_malloc(vmp, size);
 		UT_ASSERTne(alloc, NULL);

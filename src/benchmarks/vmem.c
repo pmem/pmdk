@@ -42,10 +42,10 @@
 #include <assert.h>
 #include <sys/stat.h>
 
-#define	DIR_MODE 0700
-#define	MAX_POOLS 8
-#define	FACTOR 2
-#define	RRAND(max, min) (rand() % ((max) - (min)) + (min))
+#define DIR_MODE 0700
+#define MAX_POOLS 8
+#define FACTOR 2
+#define RRAND(max, min) (rand() % ((max) - (min)) + (min))
 
 struct vmem_bench;
 typedef int (*operation) (struct vmem_bench *vb, unsigned int worker_idx,
@@ -310,7 +310,7 @@ vmem_create_pools(struct vmem_bench *vb, struct benchmark_args *args)
 	size_t dsize = args->dsize + va->rsize;
 	vb->pool_size = dsize * args->n_ops_per_thread
 			* args->n_threads / vb->npools;
-	vb->pools = calloc(vb->npools, sizeof (VMEM *));
+	vb->pools = calloc(vb->npools, sizeof(VMEM *));
 	if (vb->pools == NULL) {
 		perror("calloc");
 		return -1;
@@ -552,7 +552,7 @@ vmem_init(struct benchmark *bench, struct benchmark_args *args)
 	assert(bench != NULL);
 	assert(args != NULL);
 
-	struct vmem_bench *vb = calloc(1, sizeof (struct vmem_bench));
+	struct vmem_bench *vb = calloc(1, sizeof(struct vmem_bench));
 	if (vb == NULL) {
 		perror("malloc");
 		return -1;
@@ -582,7 +582,7 @@ vmem_init(struct benchmark *bench, struct benchmark_args *args)
 	}
 
 	/* initializes buffers for operations for every thread */
-	vb->workers = calloc(args->n_threads, sizeof (struct vmem_worker));
+	vb->workers = calloc(args->n_threads, sizeof(struct vmem_worker));
 	if (vb->workers == NULL) {
 		perror("calloc");
 		goto err;
@@ -590,7 +590,7 @@ vmem_init(struct benchmark *bench, struct benchmark_args *args)
 	for (i = 0; i < args->n_threads; i++) {
 		vw = &vb->workers[i];
 		vw->objs = calloc(args->n_ops_per_thread,
-						sizeof (struct item));
+						sizeof(struct item));
 		if (vw->objs == NULL) {
 			perror("calloc");
 			goto err_free_workers;
@@ -601,7 +601,7 @@ vmem_init(struct benchmark *bench, struct benchmark_args *args)
 			vw->objs[j].pool_num = vw->pool_number;
 	}
 
-	if ((vb->alloc_sizes = malloc(sizeof (unsigned int)
+	if ((vb->alloc_sizes = malloc(sizeof(unsigned int)
 			* args->n_ops_per_thread)) == NULL) {
 		perror("malloc");
 		goto err_free_buf;
@@ -656,7 +656,7 @@ vmem_realloc_init(struct benchmark *bench, struct benchmark_args *args)
 		goto err;
 	}
 	if ((vb->realloc_sizes = calloc(args->n_ops_per_thread,
-				sizeof (unsigned int))) == NULL) {
+				sizeof(unsigned int))) == NULL) {
 		perror("calloc");
 		goto err;
 	}
@@ -684,7 +684,7 @@ vmem_mix_init(struct benchmark *bench, struct benchmark_args *args)
 	unsigned int i, idx, tmp;
 	struct vmem_bench *vb = pmembench_get_priv(bench);
 	if ((vb->mix_ops = calloc(args->n_ops_per_thread,
-				sizeof (unsigned int))) == NULL) {
+				sizeof(unsigned int))) == NULL) {
 		perror("calloc");
 		goto err;
 	}
@@ -718,7 +718,7 @@ static struct benchmark_info vmem_malloc_bench = {
 	.operation	= malloc_main_op,
 	.clos		= vmem_clo,
 	.nclos		= ARRAY_SIZE(vmem_clo) - 3,
-	.opts_size	= sizeof (struct vmem_args),
+	.opts_size	= sizeof(struct vmem_args),
 	.rm_file	= true,
 	.allow_poolset	= false,
 };
@@ -736,7 +736,7 @@ static struct benchmark_info vmem_mix_bench = {
 	.operation	= vmem_mix_op,
 	.clos		= vmem_clo,
 	.nclos		= ARRAY_SIZE(vmem_clo) - 3,
-	.opts_size	= sizeof (struct vmem_args),
+	.opts_size	= sizeof(struct vmem_args),
 	.rm_file	= true,
 	.allow_poolset	= false,
 };
@@ -754,7 +754,7 @@ static struct benchmark_info vmem_free_bench = {
 	.operation	= free_main_op,
 	.clos		= vmem_clo,
 	.nclos		= ARRAY_SIZE(vmem_clo) - 2,
-	.opts_size	= sizeof (struct vmem_args),
+	.opts_size	= sizeof(struct vmem_args),
 	.rm_file	= true,
 	.allow_poolset	= false,
 };
@@ -772,7 +772,7 @@ static struct benchmark_info vmem_realloc_bench = {
 	.operation	= realloc_main_op,
 	.clos		= vmem_clo,
 	.nclos		= ARRAY_SIZE(vmem_clo),
-	.opts_size	= sizeof (struct vmem_args),
+	.opts_size	= sizeof(struct vmem_args),
 	.rm_file	= true,
 	.allow_poolset	= false,
 };

@@ -82,7 +82,7 @@ main(int argc, char *argv[])
 		 * Generate uuid from util_uuid_generate and translate to
 		 * string then back to uuid to verify they match.
 		 */
-		memset(uuid, 0, sizeof (uuid_t));
+		memset(uuid, 0, sizeof(uuid_t));
 		memset(uu, 0, POOL_HDR_UUID_STR_LEN);
 		memset(conv_uu, 0, POOL_HDR_UUID_STR_LEN);
 
@@ -94,7 +94,7 @@ main(int argc, char *argv[])
 
 		ret  = util_uuid_from_string(uu, (struct uuid *)&uuid1);
 		UT_ASSERTeq(ret, 0);
-		UT_ASSERT(memcmp(&uuid, &uuid1, sizeof (uuid_t)) == 0);
+		UT_ASSERT(memcmp(&uuid, &uuid1, sizeof(uuid_t)) == 0);
 		CLOSE(fd);
 	} else {
 		/*

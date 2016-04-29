@@ -38,9 +38,9 @@
  * Layout of BTT info block.  All integers are stored little-endian.
  */
 
-#define	BTT_ALIGNMENT ((uintptr_t)4096)	/* alignment of all BTT structures */
-#define	BTTINFO_SIG_LEN 16
-#define	BTTINFO_UUID_LEN 16
+#define BTT_ALIGNMENT ((uintptr_t)4096)	/* alignment of all BTT structures */
+#define BTTINFO_SIG_LEN 16
+#define BTTINFO_UUID_LEN 16
 
 struct btt_info {
 	char sig[BTTINFO_SIG_LEN];	/* must be "BTT_ARENA_INFO\0\0" */
@@ -74,14 +74,14 @@ struct btt_info {
 /*
  * Definitions for flags mask for btt_info structure above.
  */
-#define	BTTINFO_FLAG_ERROR	0x00000001 /* error state (read-only) */
-#define	BTTINFO_FLAG_ERROR_MASK	0x00000001 /* all error bits */
+#define BTTINFO_FLAG_ERROR	0x00000001 /* error state (read-only) */
+#define BTTINFO_FLAG_ERROR_MASK	0x00000001 /* all error bits */
 
 /*
  * Current on-media format versions.
  */
-#define	BTTINFO_MAJOR_VERSION 1
-#define	BTTINFO_MINOR_VERSION 1
+#define BTTINFO_MAJOR_VERSION 1
+#define BTTINFO_MINOR_VERSION 1
 
 /*
  * Layout of a BTT "flog" entry.  All integers are stored little-endian.
@@ -92,7 +92,7 @@ struct btt_info {
  * to a cache line boundary to isolate adjacent updates.
  */
 
-#define	BTT_FLOG_PAIR_ALIGN ((uintptr_t)64)
+#define BTT_FLOG_PAIR_ALIGN ((uintptr_t)64)
 
 struct btt_flog {
 	uint32_t lba;		/* last pre-map LBA using this entry */
@@ -104,18 +104,18 @@ struct btt_flog {
 /*
  * Layout of a BTT "map" entry.  4-byte internal LBA offset, little-endian.
  */
-#define	BTT_MAP_ENTRY_SIZE 4
-#define	BTT_MAP_ENTRY_ERROR 0x40000000U
-#define	BTT_MAP_ENTRY_ZERO 0x80000000U
-#define	BTT_MAP_ENTRY_NORMAL 0xC0000000U
-#define	BTT_MAP_ENTRY_LBA_MASK 0x3fffffffU
-#define	BTT_MAP_LOCK_ALIGN ((uintptr_t)64)
+#define BTT_MAP_ENTRY_SIZE 4
+#define BTT_MAP_ENTRY_ERROR 0x40000000U
+#define BTT_MAP_ENTRY_ZERO 0x80000000U
+#define BTT_MAP_ENTRY_NORMAL 0xC0000000U
+#define BTT_MAP_ENTRY_LBA_MASK 0x3fffffffU
+#define BTT_MAP_LOCK_ALIGN ((uintptr_t)64)
 
 /*
  * BTT layout properties...
  */
-#define	BTT_MIN_SIZE ((1u << 20) * 16)
-#define	BTT_MAX_ARENA (1ull << 39) /* 512GB per arena */
-#define	BTT_MIN_LBA_SIZE (size_t)512
-#define	BTT_INTERNAL_LBA_ALIGNMENT 256U
-#define	BTT_DEFAULT_NFREE 256
+#define BTT_MIN_SIZE ((1u << 20) * 16)
+#define BTT_MAX_ARENA (1ull << 39) /* 512GB per arena */
+#define BTT_MIN_LBA_SIZE (size_t)512
+#define BTT_INTERNAL_LBA_ALIGNMENT 256U
+#define BTT_DEFAULT_NFREE 256
