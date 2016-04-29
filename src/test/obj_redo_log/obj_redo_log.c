@@ -67,10 +67,10 @@
 
 #include "unittest.h"
 
-#define	FATAL_USAGE()	UT_FATAL("usage: obj_redo_log <fname> <redo_log_size> "\
+#define FATAL_USAGE()	UT_FATAL("usage: obj_redo_log <fname> <redo_log_size> "\
 		"[sfFrePRC][<index>:<offset>:<value>]\n")
 
-#define	PMEMOBJ_POOL_HDR_SIZE	8192
+#define PMEMOBJ_POOL_HDR_SIZE	8192
 
 static void
 pmem_drain_nop(void)
@@ -120,7 +120,7 @@ pmemobj_open_mock(const char *fname)
 	UT_ASSERT(size > PMEMOBJ_POOL_HDR_SIZE);
 
 	PMEMobjpool *pop = (PMEMobjpool *)addr;
-	VALGRIND_REMOVE_PMEM_MAPPING((char *)addr + sizeof (pop->hdr), 4096);
+	VALGRIND_REMOVE_PMEM_MAPPING((char *)addr + sizeof(pop->hdr), 4096);
 	pop->addr = addr;
 	pop->size = size;
 	pop->is_pmem = is_pmem;
@@ -170,7 +170,7 @@ main(int argc, char *argv[])
 	if (errno || !end || *end != '\0')
 		FATAL_USAGE();
 
-	UT_ASSERT(pop->size >= redo_size * sizeof (struct redo_log));
+	UT_ASSERT(pop->size >= redo_size * sizeof(struct redo_log));
 
 	struct redo_log *redo = (struct redo_log *)pop->addr;
 

@@ -56,7 +56,7 @@ main(int argc, char *argv[])
 		return 1;
 	}
 
-	PMEMoid root = pmemobj_root(pop, sizeof (struct my_root));
+	PMEMoid root = pmemobj_root(pop, sizeof(struct my_root));
 	struct my_root *rootp = pmemobj_direct(root);
 
 	char buf[MAX_BUF_LEN];
@@ -66,7 +66,7 @@ main(int argc, char *argv[])
 	}
 
 	TX_BEGIN(pop) {
-		pmemobj_tx_add_range(root, 0, sizeof (struct my_root));
+		pmemobj_tx_add_range(root, 0, sizeof(struct my_root));
 		memcpy(rootp->buf, buf, strlen(buf));
 	} TX_END
 

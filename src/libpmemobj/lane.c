@@ -34,8 +34,8 @@
  * lane.c -- lane implementation
  */
 
-#ifndef	_GNU_SOURCE
-#define	_GNU_SOURCE
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
 #endif
 
 #include <errno.h>
@@ -166,7 +166,7 @@ static struct lane_layout *
 lane_get_layout(PMEMobjpool *pop, uint64_t lane_idx)
 {
 	return (void *)((char *)pop + pop->lanes_offset +
-		sizeof (struct lane_layout) * lane_idx);
+		sizeof(struct lane_layout) * lane_idx);
 }
 
 /*
@@ -217,7 +217,7 @@ lane_boot(PMEMobjpool *pop)
 {
 	int err = 0;
 
-	pop->lanes_desc.lane = Malloc(sizeof (struct lane) * pop->nlanes);
+	pop->lanes_desc.lane = Malloc(sizeof(struct lane) * pop->nlanes);
 	if (pop->lanes_desc.lane == NULL) {
 		err = ENOMEM;
 		ERR("!Malloc of volatile lanes");
@@ -227,7 +227,7 @@ lane_boot(PMEMobjpool *pop)
 	pop->lanes_desc.next_lane_idx = 0;
 
 	pop->lanes_desc.lane_locks =
-		Zalloc(sizeof (*pop->lanes_desc.lane_locks) * pop->nlanes);
+		Zalloc(sizeof(*pop->lanes_desc.lane_locks) * pop->nlanes);
 	if (pop->lanes_desc.lane_locks == NULL) {
 		ERR("!Malloc for lane locks");
 		goto error_locks_malloc;
@@ -235,7 +235,7 @@ lane_boot(PMEMobjpool *pop)
 
 	/* add lanes to pmemcheck ignored list */
 	VALGRIND_ADD_TO_GLOBAL_TX_IGNORE((char *)pop + pop->lanes_offset,
-		(sizeof (struct lane_layout) * pop->nlanes));
+		(sizeof(struct lane_layout) * pop->nlanes));
 
 	uint64_t i;
 	for (i = 0; i < pop->nlanes; ++i) {
@@ -380,7 +380,7 @@ get_lane_info_record(PMEMobjpool *pop)
 	struct lane_info *info = cuckoo_get(Lane_info_ht, pop->uuid_lo);
 
 	if (unlikely(info == NULL)) {
-		info = Malloc(sizeof (struct lane_info));
+		info = Malloc(sizeof(struct lane_info));
 		if (unlikely(info == NULL)) {
 			FATAL("Malloc");
 		}

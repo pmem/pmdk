@@ -297,7 +297,7 @@ pmembench_set_priv(struct benchmark *bench, void *priv)
 int
 pmembench_register(struct benchmark_info *bench_info)
 {
-	struct benchmark *bench = calloc(1, sizeof (*bench));
+	struct benchmark *bench = calloc(1, sizeof(*bench));
 	assert(bench != NULL);
 
 	bench->info = bench_info;
@@ -336,7 +336,7 @@ pmembench_release_clos(struct benchmark *bench)
 static void
 pmembench_merge_clos(struct benchmark *bench)
 {
-	size_t size = sizeof (struct benchmark_args);
+	size_t size = sizeof(struct benchmark_args);
 	size_t pb_nclos = ARRAY_SIZE(pmembench_clos);
 	size_t nclos = pb_nclos;
 	size_t i;
@@ -347,18 +347,18 @@ pmembench_merge_clos(struct benchmark *bench)
 	}
 
 	struct benchmark_clo *clos = calloc(nclos,
-			sizeof (struct benchmark_clo));
+			sizeof(struct benchmark_clo));
 	assert(clos != NULL);
 
-	memcpy(clos, pmembench_clos, pb_nclos * sizeof (struct benchmark_clo));
+	memcpy(clos, pmembench_clos, pb_nclos * sizeof(struct benchmark_clo));
 
 	if (bench->info->clos) {
 		memcpy(&clos[pb_nclos], bench->info->clos, bench->info->nclos *
-				sizeof (struct benchmark_clo));
+				sizeof(struct benchmark_clo));
 
 		for (i = 0; i < bench->info->nclos; i++) {
 			clos[pb_nclos + i].off +=
-				sizeof (struct benchmark_args);
+				sizeof(struct benchmark_args);
 		}
 	}
 
@@ -509,7 +509,7 @@ pmembench_init_workers(struct benchmark_worker **workers, size_t nworkers,
 		workers[i]->info.index = i;
 		workers[i]->info.nops = n_ops;
 		workers[i]->info.opinfo = calloc(n_ops,
-				sizeof (struct operation_info));
+				sizeof(struct operation_info));
 		size_t j;
 		for (j = 0; j < n_ops; j++) {
 			workers[i]->info.opinfo[j].worker = &workers[i]->info;
@@ -553,7 +553,7 @@ static void
 pmembench_get_results(struct benchmark_worker **workers, size_t nworkers,
 		struct latency *stats, double *workers_times)
 {
-	memset(stats, 0, sizeof (*stats));
+	memset(stats, 0, sizeof(*stats));
 	stats->min = ~0;
 	uint64_t i;
 	uint64_t j;
@@ -614,8 +614,8 @@ pmembench_get_total_results(struct latency *stats, double *workers_times,
 				struct results *total, struct latency *latency,
 				size_t repeats, size_t nworkers)
 {
-	memset(total, 0, sizeof (*total));
-	memset(latency, 0, sizeof (*latency));
+	memset(total, 0, sizeof(*total));
+	memset(latency, 0, sizeof(*latency));
 	total->min = DBL_MAX;
 	latency->min = ~0;
 	size_t nresults = repeats * nworkers;
@@ -639,7 +639,7 @@ pmembench_get_total_results(struct latency *stats, double *workers_times,
 	}
 	latency->avg /= repeats;
 	total->avg /= nresults;
-	qsort(workers_times, nresults, sizeof (double), compare_doubles);
+	qsort(workers_times, nresults, sizeof(double), compare_doubles);
 	total->min = workers_times[0];
 	total->max = workers_times[nresults - 1];
 	total->med = nresults % 2 ? (workers_times[nresults / 2] +
@@ -705,7 +705,7 @@ pmembench_print_help_single(struct benchmark *bench)
 	struct benchmark_info *info = bench->info;
 	printf("%s\n%s\n", info->name, info->brief);
 	printf("\nArguments:\n");
-	size_t nclos = sizeof (pmembench_clos) / sizeof (struct benchmark_clo);
+	size_t nclos = sizeof(pmembench_clos) / sizeof(struct benchmark_clo);
 	pmembench_print_args(pmembench_clos, nclos);
 	if (info->clos == NULL)
 		return;
@@ -767,7 +767,7 @@ pmembench_print_help()
 	pmembench_print_version();
 	pmembench_print_usage();
 	printf("\nCommon arguments:\n");
-	size_t nclos = sizeof (pmembench_opts) / sizeof (struct benchmark_clo);
+	size_t nclos = sizeof(pmembench_opts) / sizeof(struct benchmark_clo);
 	pmembench_print_args(pmembench_opts, nclos);
 
 	printf("\nAvaliable benchmarks:\n");
@@ -807,7 +807,7 @@ pmembench_parse_opts(struct pmembench *pb)
 	struct benchmark_opts *opts = NULL;
 	struct clo_vec *clovec;
 	size_t size, n_clos;
-	size = sizeof (struct benchmark_opts);
+	size = sizeof(struct benchmark_opts);
 	n_clos = ARRAY_SIZE(pmembench_opts);
 	clovec = clo_vec_alloc(size);
 	assert(clovec != NULL);
@@ -963,7 +963,7 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 			goto out;
 		}
 		args->opts = (void *)((uintptr_t)args +
-				sizeof (struct benchmark_args));
+				sizeof(struct benchmark_args));
 		args->is_poolset = util_is_poolset(args->fname) == 1;
 		if (args->is_poolset) {
 			if (!bench->info->allow_poolset) {
@@ -984,10 +984,10 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 						args->n_ops_per_thread;
 
 		struct latency *stats = calloc(args->repeats,
-						sizeof (struct latency));
+						sizeof(struct latency));
 		assert(stats != NULL);
 		double *workers_times = calloc(n_threads * args->repeats,
-							sizeof (double));
+							sizeof(double));
 		assert(workers_times != NULL);
 
 		for (unsigned int i = 0; i < args->repeats; i++) {
@@ -1012,7 +1012,7 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 
 			struct benchmark_worker **workers;
 			workers = malloc(args->n_threads *
-					sizeof (struct benchmark_worker *));
+					sizeof(struct benchmark_worker *));
 			assert(workers != NULL);
 
 			if ((ret = pmembench_init_workers(workers, n_threads,
@@ -1199,7 +1199,7 @@ main(int argc, char *argv[])
 {
 	util_init();
 	int ret = 0;
-	struct pmembench *pb = calloc(1, sizeof (*pb));
+	struct pmembench *pb = calloc(1, sizeof(*pb));
 	assert(pb != NULL);
 
 	/*

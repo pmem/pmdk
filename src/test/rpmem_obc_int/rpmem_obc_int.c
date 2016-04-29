@@ -46,39 +46,39 @@
 #include "rpmemd_obc.h"
 #include "rpmemd_log.h"
 
-#define	POOL_SIZE	1024
-#define	NLANES		32
-#define	NLANES_RESP	16
-#define	PROVIDER	RPMEM_PROV_LIBFABRIC_SOCKETS
-#define	POOL_DESC	"pool_desc"
-#define	RKEY		0xabababababababab
-#define	RADDR		0x0101010101010101
-#define	PORT		1234
-#define	PERSIST_METHOD	RPMEM_PM_GPSPM
-#define	RESP_ATTR_INIT {\
+#define POOL_SIZE	1024
+#define NLANES		32
+#define NLANES_RESP	16
+#define PROVIDER	RPMEM_PROV_LIBFABRIC_SOCKETS
+#define POOL_DESC	"pool_desc"
+#define RKEY		0xabababababababab
+#define RADDR		0x0101010101010101
+#define PORT		1234
+#define PERSIST_METHOD	RPMEM_PM_GPSPM
+#define RESP_ATTR_INIT {\
 	.port = PORT,\
 	.rkey = RKEY,\
 	.raddr = RADDR,\
 	.persist_method = PERSIST_METHOD,\
 	.nlanes = NLANES_RESP,\
 }
-#define	REQ_ATTR_INIT {\
+#define REQ_ATTR_INIT {\
 	.pool_size = POOL_SIZE,\
 	.nlanes = NLANES,\
 	.provider = PROVIDER,\
 	.pool_desc = POOL_DESC,\
 }
-#define	SIGNATURE	"<RPMEM>"
-#define	MAJOR		1
-#define	COMPAT_F	2
-#define	INCOMPAT_F	3
-#define	ROCOMPAT_F	4
-#define	POOLSET_UUID	"POOLSET_UUID0123"
-#define	UUID		"UUID0123456789AB"
-#define	NEXT_UUID	"NEXT_UUID0123456"
-#define	PREV_UUID	"PREV_UUID0123456"
-#define	USER_FLAGS	"USER_FLAGS012345"
-#define	POOL_ATTR_INIT {\
+#define SIGNATURE	"<RPMEM>"
+#define MAJOR		1
+#define COMPAT_F	2
+#define INCOMPAT_F	3
+#define ROCOMPAT_F	4
+#define POOLSET_UUID	"POOLSET_UUID0123"
+#define UUID		"UUID0123456789AB"
+#define NEXT_UUID	"NEXT_UUID0123456"
+#define PREV_UUID	"PREV_UUID0123456"
+#define USER_FLAGS	"USER_FLAGS012345"
+#define POOL_ATTR_INIT {\
 	.signature = SIGNATURE,\
 	.major = MAJOR,\
 	.compat_features = COMPAT_F,\
@@ -97,7 +97,7 @@ TEST_CASE_DECLARE(client_remove);
 TEST_CASE_DECLARE(server_sim);
 TEST_CASE_DECLARE(server_seq);
 
-#define	NCLIENTS 3
+#define NCLIENTS 3
 
 /*
  * client_create -- perform create request
@@ -182,7 +182,7 @@ client_open(const struct test_case *tc, int argc, char *argv[])
 	UT_ASSERTeq(ex_res.persist_method, res.persist_method);
 	UT_ASSERTeq(ex_res.nlanes, res.nlanes);
 	UT_ASSERTeq(memcmp(&ex_pool_attr, &pool_attr,
-			sizeof (ex_pool_attr)), 0);
+			sizeof(ex_pool_attr)), 0);
 
 	ret = rpmem_obc_monitor(rpc, 1);
 	UT_ASSERTeq(ret, 1);
@@ -252,7 +252,7 @@ req_create(struct rpmemd_obc_client *client, void *arg,
 	UT_ASSERTeq(ex_req.pool_size, req->pool_size);
 	UT_ASSERTeq(ex_req.nlanes, req->nlanes);
 	UT_ASSERTeq(strcmp(ex_req.pool_desc, req->pool_desc), 0);
-	UT_ASSERTeq(memcmp(&ex_pool_attr, pool_attr, sizeof (ex_pool_attr)), 0);
+	UT_ASSERTeq(memcmp(&ex_pool_attr, pool_attr, sizeof(ex_pool_attr)), 0);
 
 	struct req_arg *args = arg;
 
@@ -467,7 +467,7 @@ static struct test_case test_cases[] = {
 	TEST_CASE(client_remove),
 };
 
-#define	NTESTS	(sizeof (test_cases) / sizeof (test_cases[0]))
+#define NTESTS	(sizeof(test_cases) / sizeof(test_cases[0]))
 
 int
 main(int argc, char *argv[])

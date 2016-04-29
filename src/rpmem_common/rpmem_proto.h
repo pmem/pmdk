@@ -39,20 +39,20 @@
 
 #include "librpmem.h"
 
-#define	__STR(s)	#s
-#define	_STR(s)		__STR(s)
+#define __STR(s)	#s
+#define _STR(s)		__STR(s)
 
-#define	PACKED	__attribute__((packed))
+#define PACKED	__attribute__((packed))
 
-#define	RPMEM_PORT		7636
-#define	RPMEM_SERVICE		_STR(RPMEM_PORT)
-#define	RPMEM_PROTO		"tcp"
-#define	RPMEM_PROTO_MAJOR	0
-#define	RPMEM_PROTO_MINOR	1
-#define	RPMEM_SIG_SIZE		8
-#define	RPMEM_UUID_SIZE		16
-#define	RPMEM_PROV_SIZE		32
-#define	RPMEM_USER_SIZE		16
+#define RPMEM_PORT		7636
+#define RPMEM_SERVICE		_STR(RPMEM_PORT)
+#define RPMEM_PROTO		"tcp"
+#define RPMEM_PROTO_MAJOR	0
+#define RPMEM_PROTO_MINOR	1
+#define RPMEM_SIG_SIZE		8
+#define RPMEM_UUID_SIZE		16
+#define RPMEM_PROV_SIZE		32
+#define RPMEM_USER_SIZE		16
 
 /*
  * rpmem_msg_type -- type of messages
@@ -121,7 +121,7 @@ struct rpmem_msg_hdr_resp {
  *
  * The type of message must be set to RPMEM_MSG_TYPE_CREATE.
  * The size of message must be set to
- *     sizeof (struct rpmem_msg_create) + pool_desc_size
+ *     sizeof(struct rpmem_msg_create) + pool_desc_size
  */
 struct rpmem_msg_create {
 	struct rpmem_msg_hdr hdr;	/* message header */
@@ -138,7 +138,7 @@ struct rpmem_msg_create {
  * rpmem_msg_create_resp -- create request response message
  *
  * The type of message must be set to RPMEM_MSG_TYPE_CREATE_RESP.
- * The size of message must be set to sizeof (struct rpmem_msg_create_resp).
+ * The size of message must be set to sizeof(struct rpmem_msg_create_resp).
  */
 struct rpmem_msg_create_resp {
 	struct rpmem_msg_hdr_resp hdr;	/* message header */
@@ -150,7 +150,7 @@ struct rpmem_msg_create_resp {
  *
  * The type of message must be set to RPMEM_MSG_TYPE_OPEN.
  * The size of message must be set to
- *     sizeof (struct rpmem_msg_open) + pool_desc_size
+ *     sizeof(struct rpmem_msg_open) + pool_desc_size
  */
 struct rpmem_msg_open {
 	struct rpmem_msg_hdr hdr;	/* message header */
@@ -166,7 +166,7 @@ struct rpmem_msg_open {
  * rpmem_msg_open_resp -- open request response message
  *
  * The type of message must be set to RPMEM_MSG_TYPE_OPEN_RESP.
- * The size of message must be set to sizeof (struct rpmem_msg_open_resp)
+ * The size of message must be set to sizeof(struct rpmem_msg_open_resp)
  */
 struct rpmem_msg_open_resp {
 	struct rpmem_msg_hdr_resp hdr;	/* message header */
@@ -178,7 +178,7 @@ struct rpmem_msg_open_resp {
  * rpmem_msg_close -- close request message
  *
  * The type of message must be set to RPMEM_MSG_TYPE_CLOSE
- * The size of message must be set to sizeof (struct rpmem_msg_close)
+ * The size of message must be set to sizeof(struct rpmem_msg_close)
  */
 struct rpmem_msg_close {
 	struct rpmem_msg_hdr hdr;	/* message header */
@@ -189,7 +189,7 @@ struct rpmem_msg_close {
  * rpmem_msg_close_resp -- close request response message
  *
  * The type of message must be set to RPMEM_MSG_TYPE_CLOSE_RESP
- * The size of message must be set to sizeof (struct rpmem_msg_close_resp)
+ * The size of message must be set to sizeof(struct rpmem_msg_close_resp)
  */
 struct rpmem_msg_close_resp {
 	struct rpmem_msg_hdr_resp hdr;	/* message header */
@@ -201,7 +201,7 @@ struct rpmem_msg_close_resp {
  *
  * The type of message must be set to RPMEM_MSG_TYPE_REMOVE.
  * The size of message must be set to
- *     sizeof (struct rpmem_msg_remove) + pool_desc_size
+ *     sizeof(struct rpmem_msg_remove) + pool_desc_size
  */
 struct rpmem_msg_remove {
 	struct rpmem_msg_hdr hdr;	/* message header */
@@ -214,7 +214,7 @@ struct rpmem_msg_remove {
  * rpmem_msg_remove_resp -- remove request response message
  *
  * The type of message must be set to RPMEM_MSG_TYPE_REMOVE_RESP
- * The size of message must be set to sizeof (struct rpmem_msg_remove_resp)
+ * The size of message must be set to sizeof(struct rpmem_msg_remove_resp)
  */
 struct rpmem_msg_remove_resp {
 	struct rpmem_msg_hdr_resp hdr;	/* message header */

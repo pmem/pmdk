@@ -37,12 +37,12 @@
 #include <stdarg.h>
 #include <stdlib.h>
 
-#ifdef	DEBUG
+#ifdef DEBUG
 
-#define	OUT_LOG out_log
-#define	OUT_NONL out_nonl
-#define	OUT_FATAL out_fatal
-#define	OUT_FATAL_ABORT out_fatal
+#define OUT_LOG out_log
+#define OUT_NONL out_nonl
+#define OUT_FATAL out_fatal
+#define OUT_FATAL_ABORT out_fatal
 
 #else
 
@@ -86,49 +86,49 @@ out_fatal_abort(const char *file, int line, const char *func,
 	abort();
 }
 
-#define	OUT_LOG out_log_discard
-#define	OUT_NONL out_nonl_discard
-#define	OUT_FATAL out_fatal_discard
-#define	OUT_FATAL_ABORT out_fatal_abort
+#define OUT_LOG out_log_discard
+#define OUT_NONL out_nonl_discard
+#define OUT_FATAL out_fatal_discard
+#define OUT_FATAL_ABORT out_fatal_abort
 
 #endif
 
 /* produce debug/trace output */
-#define	LOG(level, ...)\
+#define LOG(level, ...)\
 	OUT_LOG(__FILE__, __LINE__, __func__, level, __VA_ARGS__)
 
 /* produce debug/trace output without prefix and new line */
-#define	LOG_NONL(level, ...)\
+#define LOG_NONL(level, ...)\
 	OUT_NONL(level, __VA_ARGS__)
 
 /* produce output and exit */
-#define	FATAL(...)\
+#define FATAL(...)\
 	OUT_FATAL_ABORT(__FILE__, __LINE__, __func__, __VA_ARGS__)
 
 /* assert a condition is true at runtime */
-#define	ASSERT_rt(cnd)\
+#define ASSERT_rt(cnd)\
 	((void)((cnd) || (OUT_FATAL(__FILE__, __LINE__, __func__,\
 	"assertion failure: %s", #cnd), 0)))
 
 /* assertion with extra info printed if assertion fails at runtime */
-#define	ASSERTinfo_rt(cnd, info)\
+#define ASSERTinfo_rt(cnd, info)\
 	((void)((cnd) || (OUT_FATAL(__FILE__, __LINE__, __func__,\
 	"assertion failure: %s (%s = %s)", #cnd, #info, info), 0)))
 
 /* assert two integer values are equal at runtime */
-#define	ASSERTeq_rt(lhs, rhs)\
+#define ASSERTeq_rt(lhs, rhs)\
 	((void)(((lhs) == (rhs)) || (OUT_FATAL(__FILE__, __LINE__, __func__,\
 	"assertion failure: %s (0x%llx) == %s (0x%llx)", #lhs,\
 	(unsigned long long)(lhs), #rhs, (unsigned long long)(rhs)), 0)))
 
 /* assert two integer values are not equal at runtime */
-#define	ASSERTne_rt(lhs, rhs)\
+#define ASSERTne_rt(lhs, rhs)\
 	((void)(((lhs) != (rhs)) || (OUT_FATAL(__FILE__, __LINE__, __func__,\
 	"assertion failure: %s (0x%llx) != %s (0x%llx)", #lhs,\
 	(unsigned long long)(lhs), #rhs, (unsigned long long)(rhs)), 0)))
 
 /* assert a condition is true */
-#define	ASSERT(cnd)\
+#define ASSERT(cnd)\
 	do {\
 		/*\
 		 * Detect useless asserts on always true expression. Please use\
@@ -140,7 +140,7 @@ out_fatal_abort(const char *file, int line, const char *func,
 	} while (0)
 
 /* assertion with extra info printed if assertion fails */
-#define	ASSERTinfo(cnd, info)\
+#define ASSERTinfo(cnd, info)\
 	do {\
 		/* See comment in ASSERT. */\
 		if (__builtin_constant_p(cnd))\
@@ -149,7 +149,7 @@ out_fatal_abort(const char *file, int line, const char *func,
 	} while (0)
 
 /* assert two integer values are equal */
-#define	ASSERTeq(lhs, rhs)\
+#define ASSERTeq(lhs, rhs)\
 	do {\
 		/* See comment in ASSERT. */\
 		if (__builtin_constant_p(lhs) && __builtin_constant_p(rhs))\
@@ -158,7 +158,7 @@ out_fatal_abort(const char *file, int line, const char *func,
 	} while (0)
 
 /* assert two integer values are not equal */
-#define	ASSERTne(lhs, rhs)\
+#define ASSERTne(lhs, rhs)\
 	do {\
 		/* See comment in ASSERT. */\
 		if (__builtin_constant_p(lhs) && __builtin_constant_p(rhs))\
@@ -166,7 +166,7 @@ out_fatal_abort(const char *file, int line, const char *func,
 		ASSERTne_rt(lhs, rhs);\
 	} while (0)
 
-#define	ERR(...)\
+#define ERR(...)\
 	out_err(__FILE__, __LINE__, __func__, __VA_ARGS__)
 
 void out_init(const char *log_prefix, const char *log_level_var,

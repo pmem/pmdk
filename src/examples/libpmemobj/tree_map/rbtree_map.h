@@ -34,13 +34,13 @@
  * rbtree_map.h -- TreeMap sorted collection implementation
  */
 
-#ifndef	RBTREE_MAP_H
-#define	RBTREE_MAP_H
+#ifndef RBTREE_MAP_H
+#define RBTREE_MAP_H
 
 #include <libpmemobj.h>
 
-#ifndef	RBTREE_MAP_TYPE_OFFSET
-#define	RBTREE_MAP_TYPE_OFFSET 1016
+#ifndef RBTREE_MAP_TYPE_OFFSET
+#define RBTREE_MAP_TYPE_OFFSET 1016
 #endif
 
 struct rbtree_map;

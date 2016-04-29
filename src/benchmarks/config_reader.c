@@ -42,9 +42,9 @@
 #include "scenario.h"
 #include "config_reader.h"
 
-#define	SECTION_GLOBAL	"global"
-#define	KEY_BENCHMARK	"bench"
-#define	KEY_GROUP	"group"
+#define SECTION_GLOBAL	"global"
+#define KEY_BENCHMARK	"bench"
+#define KEY_GROUP	"group"
 
 /*
  * config_reader -- handle structure
@@ -60,7 +60,7 @@ struct config_reader
 struct config_reader *
 config_reader_alloc(void)
 {
-	struct config_reader *cr = malloc(sizeof (*cr));
+	struct config_reader *cr = malloc(sizeof(*cr));
 	assert(cr != NULL);
 
 	cr->key_file = g_key_file_new();

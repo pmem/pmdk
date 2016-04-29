@@ -40,7 +40,7 @@
  * Number of cases for checking remove request message. Must be kept in sync
  * with client_bad_msg_remove function.
  */
-#define	BAD_MSG_REMOVE_COUNT	9
+#define BAD_MSG_REMOVE_COUNT	9
 
 /*
  * client_bad_msg_remove -- check if server detects invalid remove request
@@ -50,7 +50,7 @@ static void
 client_bad_msg_remove(const char *ctarget)
 {
 	char *target = STRDUP(ctarget);
-	size_t msg_size = sizeof (REMOVE_MSG) + POOL_DESC_SIZE;
+	size_t msg_size = sizeof(REMOVE_MSG) + POOL_DESC_SIZE;
 	struct rpmem_msg_remove *msg = MALLOC(msg_size);
 
 	for (int i = 0; i < BAD_MSG_REMOVE_COUNT; i++) {
@@ -68,12 +68,12 @@ client_bad_msg_remove(const char *ctarget)
 			break;
 		case 2:
 			msg->pool_desc.size = 0;
-			msg->hdr.size = sizeof (REMOVE_MSG) +
+			msg->hdr.size = sizeof(REMOVE_MSG) +
 				msg->pool_desc.size;
 			break;
 		case 3:
 			msg->pool_desc.size = 1;
-			msg->hdr.size = sizeof (REMOVE_MSG) +
+			msg->hdr.size = sizeof(REMOVE_MSG) +
 				msg->pool_desc.size;
 			break;
 		case 4:
@@ -114,7 +114,7 @@ static void
 client_msg_remove_noresp(const char *ctarget)
 {
 	char *target = STRDUP(ctarget);
-	size_t msg_size = sizeof (REMOVE_MSG) + POOL_DESC_SIZE;
+	size_t msg_size = sizeof(REMOVE_MSG) + POOL_DESC_SIZE;
 	struct rpmem_msg_remove *msg = MALLOC(msg_size);
 
 	int fd = clnt_connect_wait(target);
@@ -142,7 +142,7 @@ static void
 client_msg_remove_resp(const char *ctarget, int status)
 {
 	char *target = STRDUP(ctarget);
-	size_t msg_size = sizeof (REMOVE_MSG) + POOL_DESC_SIZE;
+	size_t msg_size = sizeof(REMOVE_MSG) + POOL_DESC_SIZE;
 	struct rpmem_msg_remove *msg = MALLOC(msg_size);
 	struct rpmem_msg_remove_resp resp;
 
@@ -155,7 +155,7 @@ client_msg_remove_resp(const char *ctarget, int status)
 	rpmem_hton_msg_remove(msg);
 
 	clnt_send(fd, msg, msg_size);
-	clnt_recv(fd, &resp, sizeof (resp));
+	clnt_recv(fd, &resp, sizeof(resp));
 	rpmem_ntoh_msg_remove_resp(&resp);
 
 	if (status) {
@@ -163,7 +163,7 @@ client_msg_remove_resp(const char *ctarget, int status)
 	} else {
 		UT_ASSERTeq(resp.hdr.type, RPMEM_MSG_TYPE_REMOVE_RESP);
 		UT_ASSERTeq(resp.hdr.size,
-				sizeof (struct rpmem_msg_remove_resp));
+				sizeof(struct rpmem_msg_remove_resp));
 		UT_ASSERTeq(resp.hdr.status, (uint32_t)status);
 	}
 

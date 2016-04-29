@@ -148,7 +148,7 @@ do_memmove(int fd, char *dest, char *src, char *file_name, off_t dest_off,
 	FREE(buf);
 }
 
-#define	USAGE() do { UT_FATAL("usage: %s file  b:length [d:{offset}] "\
+#define USAGE() do { UT_FATAL("usage: %s file  b:length [d:{offset}] "\
 	"[s:{offset}] [o:{1|2} S:{overlap}]", argv[0]); } while (0)
 
 int

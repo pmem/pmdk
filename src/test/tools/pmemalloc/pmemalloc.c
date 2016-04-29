@@ -42,7 +42,7 @@
 #include <getopt.h>
 #include <libpmemobj.h>
 
-#define	USAGE()\
+#define USAGE()\
 printf("usage: pmemalloc"\
 	" [-r <size>] [-o <size>] [-t <type_num>]"\
 	" [-s] [-f] [-e a|f|s] <file>\n")

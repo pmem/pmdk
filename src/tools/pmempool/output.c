@@ -47,21 +47,21 @@
 #include "common.h"
 #include "output.h"
 
-#define	_STR(s)	#s
-#define	STR(s) _STR(s)
-#define	TIME_STR_FMT "%a %b %d %Y %H:%M:%S"
-#define	UUID_STR_MAX 37
-#define	HEXDUMP_ROW_WIDTH 16
+#define _STR(s)	#s
+#define STR(s) _STR(s)
+#define TIME_STR_FMT "%a %b %d %Y %H:%M:%S"
+#define UUID_STR_MAX 37
+#define HEXDUMP_ROW_WIDTH 16
 /*
  * 2 chars + space per byte +
  * space after 8 bytes and terminating NULL
  */
-#define	HEXDUMP_ROW_HEX_LEN (HEXDUMP_ROW_WIDTH * 3 + 1 + 1)
+#define HEXDUMP_ROW_HEX_LEN (HEXDUMP_ROW_WIDTH * 3 + 1 + 1)
 /* 1 printable char per byte + terminating NULL */
-#define	HEXDUMP_ROW_ASCII_LEN (HEXDUMP_ROW_WIDTH + 1)
-#define	SEPARATOR_CHAR '-'
-#define	MAX_INDENT 32
-#define	INDENT_CHAR ' '
+#define HEXDUMP_ROW_ASCII_LEN (HEXDUMP_ROW_WIDTH + 1)
+#define SEPARATOR_CHAR '-'
+#define MAX_INDENT 32
+#define INDENT_CHAR ' '
 
 static char out_indent_str[MAX_INDENT + 1];
 static int out_indent_level;
@@ -70,7 +70,7 @@ static unsigned int out_column_width = 20;
 static FILE *out_fh;
 static const char *out_prefix;
 
-#define	STR_MAX 256
+#define STR_MAX 256
 
 /*
  * outv_check -- verify verbosity level
@@ -306,7 +306,7 @@ out_get_size_str(uint64_t size, int human)
 	char units[] = {
 		'K', 'M', 'G', 'T', '\0'
 	};
-	const int nunits = sizeof (units) / sizeof (units[0]);
+	const int nunits = sizeof(units) / sizeof(units[0]);
 
 	if (!human) {
 		snprintf(str_buff, STR_MAX, "%ld", size);

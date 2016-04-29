@@ -52,7 +52,7 @@
 #include "libpmemlog.h"
 
 
-#define	DEFAULT_MODE	0664
+#define DEFAULT_MODE	0664
 /*
  * pmempool_create -- context and args for create command
  */
@@ -344,8 +344,8 @@ pmempool_create_func(char *appname, int argc, char *argv[])
 {
 	int ret = 0;
 	struct pmempool_create pc = pmempool_create_default;
-	pc.opts = util_options_alloc(long_options, sizeof (long_options) /
-			sizeof (long_options[0]), NULL);
+	pc.opts = util_options_alloc(long_options, sizeof(long_options) /
+			sizeof(long_options[0]), NULL);
 
 	/* parse command line arguments */
 	ret = pmempool_create_parse_args(&pc, appname, argc, argv, pc.opts);

@@ -39,8 +39,8 @@
 
 #include "unittest.h"
 
-#define	TEST_ALLOC_SIZE (131072 - 64) /* last unit size */
-#define	LAYOUT_NAME "oom_mt"
+#define TEST_ALLOC_SIZE (131072 - 64) /* last unit size */
+#define LAYOUT_NAME "oom_mt"
 
 int allocated;
 PMEMobjpool *pop;

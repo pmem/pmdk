@@ -40,14 +40,14 @@
 #include "unittest.h"
 #include "util.h"
 
-#define	ELF_FILE_NAME "/proc/self/exe"
-#define	FATAL_USAGE()\
+#define ELF_FILE_NAME "/proc/self/exe"
+#define FATAL_USAGE()\
 UT_FATAL("usage: arch_flags <file>:<err>:<alignemnt_desc>:<reserved> <file>")
-#define	ARCH_FLAGS_LOG_PREFIX "arch_flags"
-#define	ARCH_FLAGS_LOG_LEVEL_VAR "ARCH_FLAGS_LOG_LEVEL"
-#define	ARCH_FLAGS_LOG_FILE_VAR "ARCH_FLAGS_LOG_FILE"
-#define	ARCH_FLAGS_LOG_MAJOR 0
-#define	ARCH_FLAGS_LOG_MINOR 0
+#define ARCH_FLAGS_LOG_PREFIX "arch_flags"
+#define ARCH_FLAGS_LOG_LEVEL_VAR "ARCH_FLAGS_LOG_LEVEL"
+#define ARCH_FLAGS_LOG_FILE_VAR "ARCH_FLAGS_LOG_FILE"
+#define ARCH_FLAGS_LOG_MAJOR 0
+#define ARCH_FLAGS_LOG_MINOR 0
 
 /*
  * Open_ret -- fake return value in open syscall
@@ -151,7 +151,7 @@ read_arch_flags(char *arg, struct arch_flags *arch_flags)
 
 	if (reserved)
 		memcpy(arch_flags->reserved,
-				&reserved, sizeof (arch_flags->reserved));
+				&reserved, sizeof(arch_flags->reserved));
 
 	return 0;
 }

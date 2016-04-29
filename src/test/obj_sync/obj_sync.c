@@ -45,15 +45,15 @@
 #include "list.h"
 #include "obj.h"
 
-#define	MAX_THREAD_NUM 200
+#define MAX_THREAD_NUM 200
 
-#define	DATA_SIZE 128
+#define DATA_SIZE 128
 
-#define	LOCKED_MUTEX 1
-#define	NANO_PER_ONE 1000000000LL
-#define	TIMEOUT (NANO_PER_ONE / 1000LL)
+#define LOCKED_MUTEX 1
+#define NANO_PER_ONE 1000000000LL
+#define TIMEOUT (NANO_PER_ONE / 1000LL)
 
-#define	FATAL_USAGE() UT_FATAL("usage: obj_sync [mrc] <num_threads> <runs>\n")
+#define FATAL_USAGE() UT_FATAL("usage: obj_sync [mrc] <num_threads> <runs>\n")
 
 /* posix thread worker typedef */
 typedef void *(*worker)(void *);
@@ -361,13 +361,13 @@ main(int argc, char *argv[])
 
 	unsigned long runs = strtoul(argv[3], NULL, 10);
 
-	pthread_t *write_threads = MALLOC(num_threads * sizeof (pthread_t));
-	pthread_t *check_threads = MALLOC(num_threads * sizeof (pthread_t));
+	pthread_t *write_threads = MALLOC(num_threads * sizeof(pthread_t));
+	pthread_t *check_threads = MALLOC(num_threads * sizeof(pthread_t));
 
 	/* first pool open */
 	mock_open_pool(&Mock_pop);
 	Mock_pop.persist = obj_sync_persist;
-	Test_obj = MALLOC(sizeof (struct mock_obj));
+	Test_obj = MALLOC(sizeof(struct mock_obj));
 	/* zero-initialize the test object */
 	pmemobj_mutex_zero(&Mock_pop, &Test_obj->mutex);
 	pmemobj_mutex_zero(&Mock_pop, &Test_obj->mutex_locked);

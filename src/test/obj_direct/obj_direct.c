@@ -42,8 +42,8 @@
 #include "list.h"
 #include "obj.h"
 
-#define	MAX_PATH_LEN 255
-#define	LAYOUT_NAME "direct"
+#define MAX_PATH_LEN 255
+#define LAYOUT_NAME "direct"
 
 pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 int flag = 1;

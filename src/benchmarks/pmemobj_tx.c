@@ -45,14 +45,14 @@
 #include "libpmemobj.h"
 #include "benchmark.h"
 
-#define	LAYOUT_NAME "benchmark"
-#define	FACTOR 4
-#define	ALLOC_OVERHEAD 64
+#define LAYOUT_NAME "benchmark"
+#define FACTOR 4
+#define ALLOC_OVERHEAD 64
 /*
  * operations number is limited to prevent stack overflow during
  * performing recursive functions.
  */
-#define	MAX_OPS 10000
+#define MAX_OPS 10000
 
 TOID_DECLARE(struct item, 0);
 
@@ -795,7 +795,7 @@ static size_t *
 rand_values(unsigned int min, unsigned int max, unsigned int n_ops)
 {
 	size_t size = max - min;
-	size_t *sizes = calloc(n_ops, sizeof (size_t));
+	size_t *sizes = calloc(n_ops, sizeof(size_t));
 	if (sizes == NULL) {
 		perror("calloc");
 		return NULL;
@@ -854,7 +854,7 @@ obj_tx_init_worker(struct benchmark *bench, struct benchmark_args *args,
 {
 	struct obj_tx_bench *obj_bench = pmembench_get_priv(bench);
 	struct obj_tx_worker *obj_worker = calloc(1,
-					sizeof (struct obj_tx_worker));
+					sizeof(struct obj_tx_worker));
 	if (obj_worker == NULL) {
 		perror("calloc");
 		return -1;
@@ -863,9 +863,9 @@ obj_tx_init_worker(struct benchmark *bench, struct benchmark_args *args,
 	obj_worker->tx_level = 0;
 	obj_worker->max_level = obj_bench->obj_args->nested;
 	if (obj_bench->lib_mode != LIB_MODE_DRAM)
-		obj_worker->oids = calloc(obj_bench->n_objs, sizeof (PMEMoid));
+		obj_worker->oids = calloc(obj_bench->n_objs, sizeof(PMEMoid));
 	else
-		obj_worker->items = calloc(obj_bench->n_objs, sizeof (char *));
+		obj_worker->items = calloc(obj_bench->n_objs, sizeof(char *));
 	if (obj_worker->oids == NULL && obj_worker->items == NULL) {
 		free(obj_worker);
 		perror("calloc");
@@ -1182,7 +1182,7 @@ static struct benchmark_info obj_tx_alloc = {
 	.measure_time	= true,
 	.clos		= obj_tx_clo,
 	.nclos		= ARRAY_SIZE(obj_tx_clo) - 3,
-	.opts_size	= sizeof (struct obj_tx_args),
+	.opts_size	= sizeof(struct obj_tx_args),
 	.rm_file	= true,
 	.allow_poolset	= true,
 };
@@ -1202,7 +1202,7 @@ static struct benchmark_info obj_tx_free = {
 	.measure_time	= true,
 	.clos		= obj_tx_clo,
 	.nclos		= ARRAY_SIZE(obj_tx_clo) - 3,
-	.opts_size	= sizeof (struct obj_tx_args),
+	.opts_size	= sizeof(struct obj_tx_args),
 	.rm_file	= true,
 	.allow_poolset	= true,
 };
@@ -1222,7 +1222,7 @@ static struct benchmark_info obj_tx_realloc = {
 	.measure_time	= true,
 	.clos		= obj_tx_clo,
 	.nclos		= ARRAY_SIZE(obj_tx_clo),
-	.opts_size	= sizeof (struct obj_tx_args),
+	.opts_size	= sizeof(struct obj_tx_args),
 	.rm_file	= true,
 	.allow_poolset	= true,
 };
@@ -1242,7 +1242,7 @@ static struct benchmark_info obj_tx_add_range = {
 	.measure_time	= true,
 	.clos		= obj_tx_clo,
 	.nclos		= ARRAY_SIZE(obj_tx_clo) - 5,
-	.opts_size	= sizeof (struct obj_tx_args),
+	.opts_size	= sizeof(struct obj_tx_args),
 	.rm_file	= true,
 	.allow_poolset	= true,
 };

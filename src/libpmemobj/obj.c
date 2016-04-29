@@ -77,7 +77,7 @@ obj_init(void)
 {
 	LOG(3, NULL);
 
-	COMPILE_ERROR_ON(sizeof (struct pmemobjpool) != 8192);
+	COMPILE_ERROR_ON(sizeof(struct pmemobjpool) != 8192);
 
 #ifdef USE_COW_ENV
 	char *env = getenv("PMEMOBJ_COW");
@@ -310,7 +310,7 @@ pmemobj_vg_register_object(struct pmemobjpool *pop, PMEMoid oid, int is_root)
 	else
 		sz = pmemobj_alloc_usable_size(oid);
 
-	size_t headers = sizeof (struct allocation_header) + OBJ_OOB_SIZE;
+	size_t headers = sizeof(struct allocation_header) + OBJ_OOB_SIZE;
 
 	VALGRIND_DO_MEMPOOL_ALLOC(pop, addr, sz);
 	VALGRIND_DO_MAKE_MEM_DEFINED(pop, addr - headers, sz + headers);
@@ -320,7 +320,7 @@ pmemobj_vg_register_object(struct pmemobjpool *pop, PMEMoid oid, int is_root)
  * Arbitrary value. When there's more undefined regions than MAX_UNDEFS, it's
  * not worth reporting everything - developer should fix the code.
  */
-#define	MAX_UNDEFS 1000
+#define MAX_UNDEFS 1000
 
 /*
  * pmemobj_vg_check_no_undef -- (internal) check whether there are any undefined
@@ -474,7 +474,7 @@ pmemobj_descr_create(PMEMobjpool *pop, const char *layout, size_t poolsize)
 
 	/* opaque info lives at the beginning of mapped memory pool */
 	void *dscp = (void *)((uintptr_t)(&pop->hdr) +
-				sizeof (struct pool_hdr));
+				sizeof(struct pool_hdr));
 
 	/* create the persistent part of pool's descriptor */
 	memset(dscp, 0, OBJ_DSC_P_SIZE);
@@ -483,7 +483,7 @@ pmemobj_descr_create(PMEMobjpool *pop, const char *layout, size_t poolsize)
 
 	/* initialize run_id, it will be incremented later */
 	pop->run_id = 0;
-	pmem_msync(&pop->run_id, sizeof (pop->run_id));
+	pmem_msync(&pop->run_id, sizeof(pop->run_id));
 
 	pop->lanes_offset = OBJ_LANES_OFFSET;
 	pop->nlanes = OBJ_NLANES;
@@ -494,12 +494,12 @@ pmemobj_descr_create(PMEMobjpool *pop, const char *layout, size_t poolsize)
 						pop->lanes_offset);
 
 	memset(lanes_layout, 0,
-		pop->nlanes * sizeof (struct lane_layout));
+		pop->nlanes * sizeof(struct lane_layout));
 	pmem_msync(lanes_layout, pop->nlanes *
-		sizeof (struct lane_layout));
+		sizeof(struct lane_layout));
 
 	pop->heap_offset = pop->lanes_offset +
-		pop->nlanes * sizeof (struct lane_layout);
+		pop->nlanes * sizeof(struct lane_layout);
 	pop->heap_offset = (pop->heap_offset + Pagesize - 1) & ~(Pagesize - 1);
 	pop->heap_size = poolsize - pop->heap_offset;
 
@@ -526,7 +526,7 @@ pmemobj_descr_check(PMEMobjpool *pop, const char *layout, size_t poolsize)
 	LOG(3, "pop %p layout %s poolsize %zu", pop, layout, poolsize);
 
 	void *dscp = (void *)((uintptr_t)(&pop->hdr) +
-				sizeof (struct pool_hdr));
+				sizeof(struct pool_hdr));
 
 	if (!util_checksum(dscp, OBJ_DSC_P_SIZE, &pop->checksum, 0)) {
 		ERR("invalid checksum of pool descriptor");
@@ -629,7 +629,7 @@ pmemobj_runtime_init(PMEMobjpool *pop, int rdonly, int boot)
 	pop->run_id += 2;
 	if (pop->run_id == 0)
 		pop->run_id += 2;
-	pop->persist(pop, &pop->run_id, sizeof (pop->run_id));
+	pop->persist(pop, &pop->run_id, sizeof(pop->run_id));
 
 	/*
 	 * Use some of the memory pool area for run-time info.  This
@@ -662,7 +662,7 @@ pmemobj_runtime_init(PMEMobjpool *pop, int rdonly, int boot)
 	 * The prototype PMFS doesn't allow this when large pages are in
 	 * use. It is not considered an error if this fails.
 	 */
-	util_range_none(pop->addr, sizeof (struct pool_hdr));
+	util_range_none(pop->addr, sizeof(struct pool_hdr));
 
 	return 0;
 }
@@ -702,7 +702,7 @@ pmemobj_create(const char *path, const char *layout, size_t poolsize,
 		pop = rep->part[0].addr;
 
 		VALGRIND_REMOVE_PMEM_MAPPING(&pop->addr,
-			sizeof (struct pmemobjpool) -
+			sizeof(struct pmemobjpool) -
 			((uintptr_t)&pop->addr - (uintptr_t)&pop->hdr));
 
 		pop->addr = pop;
@@ -826,7 +826,7 @@ pmemobj_open_common(const char *path, const char *layout, int cow, int boot)
 		pop = rep->part[0].addr;
 
 		VALGRIND_REMOVE_PMEM_MAPPING(&pop->addr,
-			sizeof (struct pmemobjpool) -
+			sizeof(struct pmemobjpool) -
 			((uintptr_t)&pop->addr - (uintptr_t)&pop->hdr));
 
 		pop->addr = pop;
@@ -866,7 +866,7 @@ pmemobj_open_common(const char *path, const char *layout, int cow, int boot)
 		/* copy lanes */
 		pop = set->replica[0]->part[0].addr;
 		void *src = (void *)((uintptr_t)pop + pop->lanes_offset);
-		size_t len = pop->nlanes * sizeof (struct lane_layout);
+		size_t len = pop->nlanes * sizeof(struct lane_layout);
 
 		for (unsigned r = 1; r < set->nreplicas; r++) {
 			pop = set->replica[r]->part[0].addr;
@@ -1080,12 +1080,12 @@ constructor_alloc_bytype(PMEMobjpool *pop, void *ptr,
 	struct carg_bytype *carg = arg;
 
 	/* zero-initialize OOB list, could be replaced with nodrain variant */
-	pop->memset_persist(pop, &pobj->oob, 0, sizeof (pobj->oob));
+	pop->memset_persist(pop, &pobj->oob, 0, sizeof(pobj->oob));
 
 	pobj->type_num = carg->user_type;
 	pobj->size = 0;
 
-	pop->flush(pop, pobj, sizeof (*pobj));
+	pop->flush(pop, pobj, sizeof(*pobj));
 
 	if (carg->zero_init)
 		pop->memset_persist(pop, ptr, 0, usable_size);
@@ -1214,12 +1214,12 @@ constructor_realloc(PMEMobjpool *pop, void *ptr, size_t usable_size, void *arg)
 	struct oob_header *pobj = OOB_HEADER_FROM_PTR(ptr);
 
 	/* zero-initialize OOB list, could be replaced with nodrain variant */
-	pop->memset_persist(pop, &pobj->oob, 0, sizeof (pobj->oob));
+	pop->memset_persist(pop, &pobj->oob, 0, sizeof(pobj->oob));
 
 	if (ptr != carg->ptr) {
 		pobj->type_num = carg->user_type;
 		pobj->size = 0;
-		pop->flush(pop, pobj, sizeof (*pobj));
+		pop->flush(pop, pobj, sizeof(*pobj));
 	}
 
 	if (!carg->zero_init)
@@ -1315,7 +1315,7 @@ constructor_zrealloc_root(PMEMobjpool *pop, void *ptr,
 	constructor_realloc(pop, ptr, usable_size, arg);
 	if (ptr != carg->ptr) {
 		pobj->size = carg->new_size | OBJ_INTERNAL_OBJECT_MASK;
-		pop->flush(pop, &pobj->size, sizeof (pobj->size));
+		pop->flush(pop, &pobj->size, sizeof(pobj->size));
 	}
 
 	int ret = 0;
@@ -1409,7 +1409,7 @@ pmemobj_strdup(PMEMobjpool *pop, PMEMoid *oidp, const char *s,
 	}
 
 	struct carg_strdup carg;
-	carg.size = (strlen(s) + 1) * sizeof (char);
+	carg.size = (strlen(s) + 1) * sizeof(char);
 	carg.s = s;
 
 	return obj_alloc_construct(pop, oidp, carg.size,
@@ -1559,7 +1559,7 @@ constructor_alloc_root(PMEMobjpool *pop, void *ptr,
 	VALGRIND_ADD_TO_TX(ro, OBJ_OOB_SIZE + usable_size);
 
 	/* zero-initialize OOB list */
-	pop->memset_persist(pop, &ro->oob, 0, sizeof (ro->oob));
+	pop->memset_persist(pop, &ro->oob, 0, sizeof(ro->oob));
 
 	if (carg->constructor)
 		ret = carg->constructor(pop, ptr, carg->arg);
@@ -1573,7 +1573,7 @@ constructor_alloc_root(PMEMobjpool *pop, void *ptr,
 
 	pop->persist(pop, &ro->size,
 		/* there's no padding between these, so we can add sizes */
-		sizeof (ro->size) + sizeof (ro->type_num));
+		sizeof(ro->size) + sizeof(ro->type_num));
 
 	return ret;
 }
@@ -1876,7 +1876,7 @@ pmemobj_list_move(PMEMobjpool *pop, size_t pe_old_offset, void *head_old,
 void
 _pobj_debug_notice(const char *api_name, const char *file, int line)
 {
-#ifdef	DEBUG
+#ifdef DEBUG
 	if (pmemobj_tx_stage() != TX_STAGE_NONE) {
 		if (file)
 			LOG(4, "Notice: non-transactional API"

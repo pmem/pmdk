@@ -58,9 +58,9 @@
 #include "libpmem.h"
 #include "libpmemlog.h"
 
-#define	LAYOUT_NAME "obj_pmemlog"
+#define LAYOUT_NAME "obj_pmemlog"
 
-#define	POOL_SIZE ((size_t)(1024 * 1024 * 100))
+#define POOL_SIZE ((size_t)(1024 * 1024 * 100))
 
 /* types of allocations */
 enum types {
@@ -137,7 +137,7 @@ int
 pmemlog_append(PMEMlogpool *plp, const void *buf, size_t count)
 {
 	PMEMobjpool *pop = (PMEMobjpool *)plp;
-	PMEMoid baseoid = pmemobj_root(pop, sizeof (struct base));
+	PMEMoid baseoid = pmemobj_root(pop, sizeof(struct base));
 	struct base *bp = pmemobj_direct(baseoid);
 
 	/* set the return point */
@@ -152,7 +152,7 @@ pmemlog_append(PMEMlogpool *plp, const void *buf, size_t count)
 	pmemobj_tx_begin(pop, env, TX_LOCK_RWLOCK, &bp->rwlock, TX_LOCK_NONE);
 
 	/* allocate the new node to be inserted */
-	PMEMoid log = pmemobj_tx_alloc(count + sizeof (struct log_hdr),
+	PMEMoid log = pmemobj_tx_alloc(count + sizeof(struct log_hdr),
 				LOG_TYPE);
 
 	struct log *logp = pmemobj_direct(log);
@@ -161,13 +161,13 @@ pmemlog_append(PMEMlogpool *plp, const void *buf, size_t count)
 	logp->hdr.next = OID_NULL;
 
 	/* add the modified root object to the undo log */
-	pmemobj_tx_add_range(baseoid, 0, sizeof (struct base));
+	pmemobj_tx_add_range(baseoid, 0, sizeof(struct base));
 	if (bp->tail.off == 0) {
 		/* update head */
 		bp->head = log;
 	} else {
 		/* add the modified tail entry to the undo log */
-		pmemobj_tx_add_range(bp->tail, 0, sizeof (struct log));
+		pmemobj_tx_add_range(bp->tail, 0, sizeof(struct log));
 		((struct log *)pmemobj_direct(bp->tail))->hdr.next = log;
 	}
 
@@ -186,7 +186,7 @@ int
 pmemlog_appendv(PMEMlogpool *plp, const struct iovec *iov, int iovcnt)
 {
 	PMEMobjpool *pop = (PMEMobjpool *)plp;
-	PMEMoid baseoid = pmemobj_root(pop, sizeof (struct base));
+	PMEMoid baseoid = pmemobj_root(pop, sizeof(struct base));
 	struct base *bp = pmemobj_direct(baseoid);
 
 	/* set the return point */
@@ -201,10 +201,10 @@ pmemlog_appendv(PMEMlogpool *plp, const struct iovec *iov, int iovcnt)
 	pmemobj_tx_begin(pop, env, TX_LOCK_RWLOCK, &bp->rwlock, TX_LOCK_NONE);
 
 	/* add the base object to the undo log - once for the transaction */
-	pmemobj_tx_add_range(baseoid, 0, sizeof (struct base));
+	pmemobj_tx_add_range(baseoid, 0, sizeof(struct base));
 	/* add the tail entry once to the undo log, if it is set */
 	if (!OID_IS_NULL(bp->tail))
-		pmemobj_tx_add_range(bp->tail, 0, sizeof (struct log));
+		pmemobj_tx_add_range(bp->tail, 0, sizeof(struct log));
 
 	/* append the data */
 	for (int i = 0; i < iovcnt; ++i) {
@@ -212,7 +212,7 @@ pmemlog_appendv(PMEMlogpool *plp, const struct iovec *iov, int iovcnt)
 		size_t count = iov[i].iov_len;
 
 		/* allocate the new node to be inserted */
-		PMEMoid log = pmemobj_tx_alloc(count + sizeof (struct log_hdr),
+		PMEMoid log = pmemobj_tx_alloc(count + sizeof(struct log_hdr),
 				LOG_TYPE);
 
 		struct log *logp = pmemobj_direct(log);
@@ -244,7 +244,7 @@ pmemlog_tell(PMEMlogpool *plp)
 {
 	PMEMobjpool *pop = (PMEMobjpool *)plp;
 	struct base *bp = pmemobj_direct(pmemobj_root(pop,
-				sizeof (struct base)));
+				sizeof(struct base)));
 
 	if (pmemobj_rwlock_rdlock(pop, &bp->rwlock) != 0)
 		return 0;
@@ -263,7 +263,7 @@ void
 pmemlog_rewind(PMEMlogpool *plp)
 {
 	PMEMobjpool *pop = (PMEMobjpool *)plp;
-	PMEMoid baseoid = pmemobj_root(pop, sizeof (struct base));
+	PMEMoid baseoid = pmemobj_root(pop, sizeof(struct base));
 	struct base *bp = pmemobj_direct(baseoid);
 
 	/* set the return point */
@@ -277,7 +277,7 @@ pmemlog_rewind(PMEMlogpool *plp)
 	/* begin a transaction, also acquiring the write lock for the log */
 	pmemobj_tx_begin(pop, env, TX_LOCK_RWLOCK, &bp->rwlock, TX_LOCK_NONE);
 	/* add the root object to the undo log */
-	pmemobj_tx_add_range(baseoid, 0, sizeof (struct base));
+	pmemobj_tx_add_range(baseoid, 0, sizeof(struct base));
 
 	/* free all log nodes */
 	while (bp->head.off != 0) {
@@ -307,7 +307,7 @@ pmemlog_walk(PMEMlogpool *plp, size_t chunksize,
 {
 	PMEMobjpool *pop = (PMEMobjpool *)plp;
 	struct base *bp = pmemobj_direct(pmemobj_root(pop,
-						sizeof (struct base)));
+						sizeof(struct base)));
 
 	if (pmemobj_rwlock_rdlock(pop, &bp->rwlock) != 0)
 		return;
@@ -408,7 +408,7 @@ main(int argc, char *argv[])
 				printf("appendv: %s\n", argv[i] + 2);
 				int count = count_iovec(argv[i] + 2);
 				struct iovec *iov = malloc(count
-						* sizeof (struct iovec));
+						* sizeof(struct iovec));
 				fill_iovec(iov, argv[i] + 2);
 				if (pmemlog_appendv(plp, iov, count))
 					fprintf(stderr, "pmemlog_appendv"

@@ -62,9 +62,9 @@
 /*
  * Macros to manipulate pointer tags
  */
-#define	IS_LEAF(x) (((uintptr_t)x & 1))
-#define	SET_LEAF(x) ((void *)((uintptr_t)x | 1))
-#define	LEAF_RAW(x) ((void *)((uintptr_t)x & ~1))
+#define IS_LEAF(x) (((uintptr_t)x & 1))
+#define SET_LEAF(x) ((void *)((uintptr_t)x | 1))
+#define LEAF_RAW(x) ((void *)((uintptr_t)x & ~1))
 
 /*
  * Allocates a node of the given type,
@@ -76,16 +76,16 @@ alloc_node(VMEM *vmp, uint8_t type)
 	art_node *n;
 	switch (type) {
 	case NODE4:
-		n = vmem_calloc(vmp, 1, sizeof (art_node4));
+		n = vmem_calloc(vmp, 1, sizeof(art_node4));
 		break;
 	case NODE16:
-		n = vmem_calloc(vmp, 1, sizeof (art_node16));
+		n = vmem_calloc(vmp, 1, sizeof(art_node16));
 		break;
 	case NODE48:
-		n = vmem_calloc(vmp, 1, sizeof (art_node48));
+		n = vmem_calloc(vmp, 1, sizeof(art_node48));
 		break;
 	case NODE256:
-		n = vmem_calloc(vmp, 1, sizeof (art_node256));
+		n = vmem_calloc(vmp, 1, sizeof(art_node256));
 		break;
 	default:
 		abort();
@@ -424,7 +424,7 @@ static art_leaf *
 make_leaf(VMEM *vmp, const unsigned char *key, int key_len, void *value,
 	    int val_len)
 {
-	art_leaf *l = vmem_malloc(vmp, sizeof (art_leaf) + key_len + val_len);
+	art_leaf *l = vmem_malloc(vmp, sizeof(art_leaf) + key_len + val_len);
 	assert(l != NULL);
 	l->key_len = key_len;
 	l->val_len = val_len;
@@ -512,7 +512,7 @@ add_child16(VMEM *vmp, art_node16 *n, art_node **ref, unsigned char c,
 			memmove(n->keys + idx + 1, n->keys + idx,
 			    n->n.num_children - idx);
 			memmove(n->children + idx + 1, n->children + idx,
-			    (n->n.num_children - idx) * sizeof (void *));
+			    (n->n.num_children - idx) * sizeof(void *));
 		} else
 			idx = n->n.num_children;
 
@@ -525,7 +525,7 @@ add_child16(VMEM *vmp, art_node16 *n, art_node **ref, unsigned char c,
 
 		// Copy the child pointers and populate the key map
 		memcpy(new->children, n->children,
-		    sizeof (void *) * n->n.num_children);
+		    sizeof(void *) * n->n.num_children);
 		for (int i = 0; i < n->n.num_children; i++) {
 			new->keys[n->keys[i]] = i + 1;
 		}
@@ -551,7 +551,7 @@ add_child4(VMEM *vmp, art_node4 *n, art_node **ref, unsigned char c,
 		memmove(n->keys + idx + 1, n->keys + idx,
 		    n->n.num_children - idx);
 		memmove(n->children + idx + 1, n->children + idx,
-		    (n->n.num_children - idx) * sizeof (void *));
+		    (n->n.num_children - idx) * sizeof(void *));
 
 		// Insert element
 		n->keys[idx] = c;
@@ -562,9 +562,9 @@ add_child4(VMEM *vmp, art_node4 *n, art_node **ref, unsigned char c,
 
 		// Copy the child pointers and the key map
 		memcpy(new->children, n->children,
-		    sizeof (void *) * n->n.num_children);
+		    sizeof(void *) * n->n.num_children);
 		memcpy(new->keys, n->keys,
-		    sizeof (unsigned char) * n->n.num_children);
+		    sizeof(unsigned char) * n->n.num_children);
 		copy_header((art_node *)new, (art_node *)n);
 		*ref = (art_node *)new;
 		vmem_free(vmp, n);
@@ -798,7 +798,7 @@ remove_child16(VMEM *vmp, art_node16 *n, art_node **ref, art_node **l)
 	int pos = l - n->children;
 	memmove(n->keys + pos, n->keys + pos + 1, n->n.num_children - 1 - pos);
 	memmove(n->children + pos, n->children + pos + 1,
-	    (n->n.num_children - 1 - pos) * sizeof (void *));
+	    (n->n.num_children - 1 - pos) * sizeof(void *));
 	n->n.num_children--;
 
 	if (n->n.num_children == 3) {
@@ -806,7 +806,7 @@ remove_child16(VMEM *vmp, art_node16 *n, art_node **ref, art_node **l)
 		*ref = (art_node *) new;
 		copy_header((art_node *)new, (art_node *)n);
 		memcpy(new->keys, n->keys, 4);
-		memcpy(new->children, n->children, 4 * sizeof (void *));
+		memcpy(new->children, n->children, 4 * sizeof(void *));
 		vmem_free(vmp, n);
 	}
 }
@@ -817,7 +817,7 @@ remove_child4(VMEM *vmp, art_node4 *n, art_node **ref, art_node **l)
 	int pos = l - n->children;
 	memmove(n->keys + pos, n->keys + pos + 1, n->n.num_children - 1 - pos);
 	memmove(n->children + pos, n->children + pos + 1,
-	    (n->n.num_children - 1 - pos) * sizeof (void *));
+	    (n->n.num_children - 1 - pos) * sizeof(void *));
 	n->n.num_children--;
 
 	// Remove nodes with only a single child

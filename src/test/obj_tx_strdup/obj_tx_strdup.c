@@ -40,7 +40,7 @@
 #include "libpmemobj.h"
 #include "util.h"
 
-#define	LAYOUT_NAME "tx_strdup"
+#define LAYOUT_NAME "tx_strdup"
 
 TOID_DECLARE(char, 0);
 
@@ -58,9 +58,9 @@ enum type_number {
 	TYPE_ABORT_AFTER_NESTED2,
 };
 
-#define	TEST_STR_1	"Test string 1"
-#define	TEST_STR_2	"Test string 2"
-#define	MAX_FUNC	2
+#define TEST_STR_1	"Test string 1"
+#define TEST_STR_2	"Test string 2"
+#define MAX_FUNC	2
 
 typedef void (*fn_tx_strdup)(TOID(char) *str, const char *s,
 						unsigned type_num);

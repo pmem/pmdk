@@ -55,24 +55,24 @@ struct list {
 /* global lists */
 TOID(struct list) List;
 TOID(struct list) List_sec;
-#define	LAYOUT_NAME "list_macros"
+#define LAYOUT_NAME "list_macros"
 
 /* usage macros */
-#define	FATAL_USAGE()\
+#define FATAL_USAGE()\
 	UT_FATAL("usage: obj_list_macro <file> [PRnifr]")
-#define	FATAL_USAGE_PRINT()\
+#define FATAL_USAGE_PRINT()\
 	UT_FATAL("usage: obj_list_macro <file> P:<list>")
-#define	FATAL_USAGE_PRINT_REVERSE()\
+#define FATAL_USAGE_PRINT_REVERSE()\
 	UT_FATAL("usage: obj_list_macro <file> R:<list>")
-#define	FATAL_USAGE_INSERT()\
+#define FATAL_USAGE_INSERT()\
 	UT_FATAL("usage: obj_list_macro <file> i:<where>:<num>[:<id>]")
-#define	FATAL_USAGE_INSERT_NEW()\
+#define FATAL_USAGE_INSERT_NEW()\
 	UT_FATAL("usage: obj_list_macro <file> n:<where>:<num>[:<id>]")
-#define	FATAL_USAGE_REMOVE_FREE()\
+#define FATAL_USAGE_REMOVE_FREE()\
 	UT_FATAL("usage: obj_list_macro <file> f:<list>:<num>")
-#define	FATAL_USAGE_REMOVE()\
+#define FATAL_USAGE_REMOVE()\
 	UT_FATAL("usage: obj_list_macro <file> r:<list>:<num>")
-#define	FATAL_USAGE_MOVE()\
+#define FATAL_USAGE_MOVE()\
 	UT_FATAL("usage: obj_list_macro <file> m:<num>:<where>:<num>")
 
 /*
@@ -181,7 +181,7 @@ do_insert_new(PMEMobjpool *pop, const char *arg)
 	TOID(struct item) item;
 	if (POBJ_LIST_EMPTY(&D_RW(List)->head)) {
 		POBJ_LIST_INSERT_NEW_HEAD(pop, &D_RW(List)->head, next,
-				sizeof (struct item), item_constructor, &ptr);
+				sizeof(struct item), item_constructor, &ptr);
 		if (POBJ_LIST_EMPTY(&D_RW(List)->head))
 			UT_FATAL("POBJ_LIST_INSERT_NEW_HEAD");
 	} else {
@@ -189,13 +189,13 @@ do_insert_new(PMEMobjpool *pop, const char *arg)
 		UT_ASSERT(!TOID_IS_NULL(item));
 		if (!before) {
 			POBJ_LIST_INSERT_NEW_AFTER(pop, &D_RW(List)->head,
-					item, next, sizeof (struct item),
+					item, next, sizeof(struct item),
 					item_constructor, &ptr);
 			if (TOID_IS_NULL(POBJ_LIST_NEXT(item, next)))
 				UT_FATAL("POBJ_LIST_INSERT_NEW_AFTER");
 		} else {
 			POBJ_LIST_INSERT_NEW_BEFORE(pop, &D_RW(List)->head,
-					item, next, sizeof (struct item),
+					item, next, sizeof(struct item),
 					item_constructor, &ptr);
 			if (TOID_IS_NULL(POBJ_LIST_PREV(item, next)))
 				UT_FATAL("POBJ_LIST_INSERT_NEW_BEFORE");

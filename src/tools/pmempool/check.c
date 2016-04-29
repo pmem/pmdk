@@ -47,7 +47,7 @@
 #include <sys/stat.h>
 #include <errno.h>
 #include <err.h>
-#define	__USE_UNIX98
+#define __USE_UNIX98
 #include <unistd.h>
 #include <assert.h>
 
@@ -58,11 +58,11 @@
 #include "libpmemlog.h"
 #include "btt.h"
 
-#define	PREFIX_BUFF_SIZE	1024
+#define PREFIX_BUFF_SIZE	1024
 static char prefix_buff[PREFIX_BUFF_SIZE];
 
 static const unsigned Nseq[] = { 0, 2, 3, 1 };
-#define	NSEQ(seq) (Nseq[(seq) & 3])
+#define NSEQ(seq) (Nseq[(seq) & 3])
 
 /*
  * arena -- internal structure for holding BTT Info and offset
@@ -127,7 +127,7 @@ struct pmempool_check_step {
 	bool part;		/* check part files */
 };
 
-#define	BTT_INFO_SIG	"BTT_ARENA_INFO\0"
+#define BTT_INFO_SIG	"BTT_ARENA_INFO\0"
 
 /*
  * pmempool_check_write -- read data from file
@@ -269,7 +269,7 @@ struct list {
 static struct list *
 list_alloc(void)
 {
-	struct list *list = malloc(sizeof (struct list));
+	struct list *list = malloc(sizeof(struct list));
 	if (!list)
 		err(1, "Cannot allocate memory for list");
 	LIST_INIT(&list->head);
@@ -283,7 +283,7 @@ list_alloc(void)
 static void
 list_push(struct list *list, uint32_t val)
 {
-	struct list_item *item = malloc(sizeof (*item));
+	struct list_item *item = malloc(sizeof(*item));
 	if (!item)
 		err(1, "Cannot allocate memory for list item");
 	item->val = val;
@@ -520,10 +520,10 @@ pmempool_check_get_first_valid_btt(struct pmempool_check *pcp, struct btt_info
 	 * Starting at offset, read every page and check for
 	 * valid BTT Info Header. Check signature and checksum.
 	 */
-	while (!pmempool_check_read(pcp, infop, sizeof (*infop), offset)) {
+	while (!pmempool_check_read(pcp, infop, sizeof(*infop), offset)) {
 		if (memcmp(infop->sig, BTT_INFO_SIG,
 					BTTINFO_SIG_LEN) == 0 &&
-			util_checksum(infop, sizeof (*infop),
+			util_checksum(infop, sizeof(*infop),
 				&infop->checksum, 0)) {
 
 			util_convert2h_btt_info(infop);
@@ -554,14 +554,14 @@ pmempool_check_get_first_valid_arena(struct pmempool_check *pcp,
 	 * Starting at offset, read every page and check for
 	 * valid BTT Info Header. Check signature and checksum.
 	 */
-	while (!pmempool_check_read(pcp, infop, sizeof (*infop), offset)) {
+	while (!pmempool_check_read(pcp, infop, sizeof(*infop), offset)) {
 		bool zeroed = !util_check_memory((const uint8_t *)infop,
-				sizeof (*infop), 0);
+				sizeof(*infop), 0);
 		arenap->zeroed = arenap->zeroed && zeroed;
 
 		if (memcmp(infop->sig, BTT_INFO_SIG,
 					BTTINFO_SIG_LEN) == 0 &&
-			util_checksum(infop, sizeof (*infop),
+			util_checksum(infop, sizeof(*infop),
 				&infop->checksum, 0)) {
 
 			util_convert2h_btt_info(infop);
@@ -734,7 +734,7 @@ pmempool_check_pool_hdr_gen(struct pmempool_check *pcp, struct pool_hdr *hdrp)
 			== 'n')
 		return CHECK_RESULT_CANNOT_REPAIR;
 
-	util_checksum(hdrp, sizeof (*hdrp),
+	util_checksum(hdrp, sizeof(*hdrp),
 				&hdrp->checksum, 1);
 	outv(1, "setting pool_hdr.checksum to: 0x%x\n",
 			le32toh(hdrp->checksum));
@@ -1053,12 +1053,12 @@ pmempool_check_pool_hdr_default(struct pmempool_check *pcp,
 	}
 
 	if (util_check_memory(hdrp->unused,
-				sizeof (hdrp->unused), 0)) {
+				sizeof(hdrp->unused), 0)) {
 		outv(1, "unused area is not filled by zeros\n");
 		if (ask_Yn(pcp->ans, "Do you want to fill it up?") == 'y') {
 			outv(1, "setting pool_hdr.unused to zeros\n");
 			memset(hdrp->unused, 0,
-					sizeof (hdrp->unused));
+					sizeof(hdrp->unused));
 			repaired = 1;
 		} else {
 			cannot_repair = 1;
@@ -1085,11 +1085,11 @@ pmempool_check_pool_hdr_single(struct pmempool_check *pcp,
 	struct pool_hdr hdr;
 	struct pool_replica *rep = pcp->pfile->poolset->replica[rid];
 	struct pool_hdr *hdrp = rep->part[pid].hdr;
-	memcpy(&hdr, hdrp, sizeof (hdr));
+	memcpy(&hdr, hdrp, sizeof(hdr));
 
 	int cs_valid = util_pool_hdr_valid(&hdr);
 
-	if (util_check_memory((void *)&hdr, sizeof (hdr), 0) == 0) {
+	if (util_check_memory((void *)&hdr, sizeof(hdr), 0) == 0) {
 		if (!pcp->repair)
 			return CHECK_RESULT_NOT_CONSISTENT;
 	} else {
@@ -1173,8 +1173,8 @@ pmempool_check_pool_hdr_single(struct pmempool_check *pcp,
 	return ret_gen;
 
 out_repaired:
-	memcpy(hdrp, &hdr, sizeof (*hdrp));
-	msync(hdrp, sizeof (*hdrp), MS_SYNC);
+	memcpy(hdrp, &hdr, sizeof(*hdrp));
+	msync(hdrp, sizeof(*hdrp), MS_SYNC);
 	return CHECK_RESULT_REPAIRED;
 }
 
@@ -1202,7 +1202,7 @@ pmempool_check_pool_hdr(struct pmempool_check *pcp)
 {
 	int rdonly = !pcp->repair || !pcp->exec;
 	if (pool_set_file_map_headers(pcp->pfile, rdonly,
-			sizeof (struct pool_hdr))) {
+			sizeof(struct pool_hdr))) {
 		outv_err("cannot map pool headers\n");
 		return CHECK_RESULT_ERROR;
 	}
@@ -1234,7 +1234,7 @@ pmempool_check_pool_hdr(struct pmempool_check *pcp)
 	}
 
 	memcpy(&pcp->hdr.pool, pcp->pfile->poolset->replica[0]->part[0].hdr,
-			sizeof (struct pool_hdr));
+			sizeof(struct pool_hdr));
 
 	out_set_prefix(NULL);
 	pool_set_file_unmap_headers(pcp->pfile);
@@ -1264,10 +1264,10 @@ pmempool_check_read_pmemlog(struct pmempool_check *pcp)
 	 * compute the size and offset of remaining fields.
 	 */
 	uint8_t *ptr = (uint8_t *)&pcp->hdr.log;
-	ptr += sizeof (pcp->hdr.log.hdr);
+	ptr += sizeof(pcp->hdr.log.hdr);
 
-	size_t size = sizeof (pcp->hdr.log) - sizeof (pcp->hdr.log.hdr);
-	uint64_t offset = sizeof (pcp->hdr.log.hdr);
+	size_t size = sizeof(pcp->hdr.log) - sizeof(pcp->hdr.log.hdr);
+	uint64_t offset = sizeof(pcp->hdr.log.hdr);
 
 	if (pmempool_check_read(pcp, ptr, size, offset)) {
 		if (errno)
@@ -1297,10 +1297,10 @@ pmempool_check_read_pmemblk(struct pmempool_check *pcp)
 	 * compute the size and offset of remaining fields.
 	 */
 	uint8_t *ptr = (uint8_t *)&pcp->hdr.blk;
-	ptr += sizeof (pcp->hdr.blk.hdr);
+	ptr += sizeof(pcp->hdr.blk.hdr);
 
-	size_t size = sizeof (pcp->hdr.blk) - sizeof (pcp->hdr.blk.hdr);
-	uint64_t offset = sizeof (pcp->hdr.blk.hdr);
+	size_t size = sizeof(pcp->hdr.blk) - sizeof(pcp->hdr.blk.hdr);
+	uint64_t offset = sizeof(pcp->hdr.blk.hdr);
 
 	if (pmempool_check_read(pcp, ptr, size, offset)) {
 		if (errno)
@@ -1328,7 +1328,7 @@ pmempool_check_pmemlog(struct pmempool_check *pcp)
 
 	/* determine constant values for pmemlog */
 	const uint64_t d_start_offset =
-		roundup(sizeof (pcp->hdr.log),
+		roundup(sizeof(pcp->hdr.log),
 				LOG_FORMAT_DATA_ALIGN);
 
 	check_result_t ret = CHECK_RESULT_CONSISTENT;
@@ -1460,7 +1460,7 @@ static int
 pmempool_check_check_btt(struct btt_info *infop)
 {
 	if (!memcmp(infop->sig, BTT_INFO_SIG, BTTINFO_SIG_LEN))
-		return util_checksum(infop, sizeof (*infop),
+		return util_checksum(infop, sizeof(*infop),
 				&infop->checksum, 0);
 	else
 		return -1;
@@ -1537,14 +1537,14 @@ pmempool_check_btt_info_advanced_repair(struct pmempool_check *pcp,
 			ret = -1;
 			goto error_btt;
 		}
-		arenap = malloc(sizeof (struct arena));
+		arenap = malloc(sizeof(struct arena));
 		if (!arenap)
 			err(1, "Cannot allocate memory for arena");
-		memset(arenap, 0, sizeof (*arenap));
+		memset(arenap, 0, sizeof(*arenap));
 		arenap->offset = offset + startoff;
 		arenap->valid = true;
 		arenap->id = pcp->narenas;
-		memcpy(&arenap->btt_info, infop, sizeof (arenap->btt_info));
+		memcpy(&arenap->btt_info, infop, sizeof(arenap->btt_info));
 
 		pmempool_check_insert_arena(pcp, arenap);
 
@@ -1558,13 +1558,13 @@ pmempool_check_btt_info_advanced_repair(struct pmempool_check *pcp,
 		 */
 		nextoff = endoff - (startoff + offset);
 		if (nextoff != le64toh(arenap->btt_info.infooff) +
-				sizeof (arenap->btt_info)) {
+				sizeof(arenap->btt_info)) {
 			ret = -1;
 			goto error_btt;
 		} else {
 			arenap->btt_info.nextoff = htole64(nextoff);
 			util_checksum(&arenap->btt_info,
-					sizeof (arenap->btt_info),
+					sizeof(arenap->btt_info),
 					&arenap->btt_info.checksum, 1);
 		}
 
@@ -1592,7 +1592,7 @@ pmempool_check_btt_info(struct pmempool_check *pcp)
 	uint64_t nextoff = 0;
 	check_result_t result = CHECK_RESULT_CONSISTENT;
 	do {
-		struct arena *arenap = calloc(1, sizeof (struct arena));
+		struct arena *arenap = calloc(1, sizeof(struct arena));
 		if (!arenap)
 			err(1, "Cannot allocate memory for arena");
 
@@ -1600,7 +1600,7 @@ pmempool_check_btt_info(struct pmempool_check *pcp)
 
 		/* read the BTT Info header at well known offset */
 		if (pmempool_check_read(pcp, &arenap->btt_info,
-			sizeof (arenap->btt_info), offset) != 0) {
+			sizeof(arenap->btt_info), offset) != 0) {
 			if (errno)
 				warn("%s", pcp->fname);
 			outv_err("arena %u: cannot read BTT Info header\n",
@@ -1615,7 +1615,7 @@ pmempool_check_btt_info(struct pmempool_check *pcp)
 		bool advanced_repair = false;
 
 		if (util_check_memory((const uint8_t *)&arenap->btt_info,
-				sizeof (arenap->btt_info), 0) == 0) {
+				sizeof(arenap->btt_info), 0) == 0) {
 			outv(2, "BTT Layout not written\n");
 			free(arenap);
 			pcp->blk_no_layout = 1;
@@ -1646,7 +1646,7 @@ pmempool_check_btt_info(struct pmempool_check *pcp)
 			 * we can start searching at some higher offset.
 			 */
 			uint64_t search_off = offset + BTT_MIN_SIZE -
-				sizeof (struct btt_info);
+				sizeof(struct btt_info);
 
 			uint64_t b_off = 0;
 			/*
@@ -1671,7 +1671,7 @@ pmempool_check_btt_info(struct pmempool_check *pcp)
 
 				memcpy(&arenap->btt_info,
 					&pcp->bttc.btt_info,
-					sizeof (arenap->btt_info));
+					sizeof(arenap->btt_info));
 				advanced_repair = false;
 
 				result = CHECK_RESULT_REPAIRED;
@@ -1775,7 +1775,7 @@ pmempool_check_write_flog(struct pmempool_check *pcp, struct arena *arenap)
 	for (i = 0; i < arenap->btt_info.nfree; i++) {
 		struct btt_flog *flog_alpha = (struct btt_flog *)ptr;
 		struct btt_flog *flog_beta = (struct btt_flog *)(ptr +
-				sizeof (struct btt_flog));
+				sizeof(struct btt_flog));
 
 		util_convert2le_btt_flog(flog_alpha);
 		util_convert2le_btt_flog(flog_beta);
@@ -1806,7 +1806,7 @@ pmempool_check_read_flog(struct pmempool_check *pcp, struct arena *arenap)
 	uint64_t flogoff = arenap->offset + arenap->btt_info.flogoff;
 
 	uint64_t flogsize = arenap->btt_info.nfree *
-		roundup(2 * sizeof (struct btt_flog),
+		roundup(2 * sizeof(struct btt_flog),
 				BTT_FLOG_PAIR_ALIGN);
 	arenap->flogsize = roundup(flogsize, BTT_ALIGNMENT);
 
@@ -1826,7 +1826,7 @@ pmempool_check_read_flog(struct pmempool_check *pcp, struct arena *arenap)
 	for (i = 0; i < arenap->btt_info.nfree; i++) {
 		struct btt_flog *flog_alpha = (struct btt_flog *)ptr;
 		struct btt_flog *flog_beta = (struct btt_flog *)(ptr +
-				sizeof (struct btt_flog));
+				sizeof(struct btt_flog));
 
 		util_convert2h_btt_flog(flog_alpha);
 		util_convert2h_btt_flog(flog_beta);
@@ -1961,7 +1961,7 @@ pmempool_check_arena_map_flog(struct pmempool_check *pcp,
 		/* first and second copy of flog entry */
 		struct btt_flog *flog_alpha = (struct btt_flog *)ptr;
 		struct btt_flog *flog_beta = (struct btt_flog *)(ptr +
-				sizeof (struct btt_flog));
+				sizeof(struct btt_flog));
 
 		/*
 		 * Check flog entry and return current one
@@ -2108,8 +2108,8 @@ pmempool_check_arena_map_flog(struct pmempool_check *pcp,
 				inval * BTT_FLOG_PAIR_ALIGN);
 		struct btt_flog *flog_beta = (struct btt_flog *)(arenap->flog +
 				inval * BTT_FLOG_PAIR_ALIGN +
-				sizeof (struct btt_flog));
-		memset(flog_beta, 0, sizeof (*flog_beta));
+				sizeof(struct btt_flog));
+		memset(flog_beta, 0, sizeof(*flog_beta));
 		uint32_t entry = unmap | BTT_MAP_ENTRY_ERROR;
 		flog_alpha->lba = 0;
 		flog_alpha->new_map = entry;
@@ -2171,7 +2171,7 @@ pmempool_check_write_log(struct pmempool_check *pcp)
 
 
 	if (pmempool_check_write(pcp, &pcp->hdr.log,
-				sizeof (pcp->hdr.log), 0)) {
+				sizeof(pcp->hdr.log), 0)) {
 		if (errno)
 			warn("%s", pcp->fname);
 		outv_err("writing pmemlog structure failed\n");
@@ -2194,7 +2194,7 @@ pmempool_check_write_blk(struct pmempool_check *pcp)
 	pcp->hdr.blk.bsize = htole32(pcp->hdr.blk.bsize);
 
 	if (pmempool_check_write(pcp, &pcp->hdr.blk,
-		sizeof (pcp->hdr.blk), 0)) {
+		sizeof(pcp->hdr.blk), 0)) {
 		if (errno)
 			warn("%s", pcp->fname);
 		outv_err("writing pmemblk structure failed\n");
@@ -2209,15 +2209,15 @@ pmempool_check_write_blk(struct pmempool_check *pcp)
 		if (pcp->uuid_op == UUID_REGENERATED) {
 			memcpy(arenap->btt_info.parent_uuid,
 				pcp->hdr.pool.poolset_uuid,
-					sizeof (arenap->btt_info.parent_uuid));
+					sizeof(arenap->btt_info.parent_uuid));
 
 			util_checksum(&arenap->btt_info,
-					sizeof (arenap->btt_info),
+					sizeof(arenap->btt_info),
 					&arenap->btt_info.checksum, 1);
 		}
 
 		if (pmempool_check_write(pcp, &arenap->btt_info,
-			sizeof (arenap->btt_info), arenap->offset)) {
+			sizeof(arenap->btt_info), arenap->offset)) {
 			if (errno)
 				warn("%s", pcp->fname);
 			outv_err("arena %u: writing BTT Info failed\n",
@@ -2226,7 +2226,7 @@ pmempool_check_write_blk(struct pmempool_check *pcp)
 		}
 
 		if (pmempool_check_write(pcp, &arenap->btt_info,
-			sizeof (arenap->btt_info), arenap->offset +
+			sizeof(arenap->btt_info), arenap->offset +
 				le64toh(arenap->btt_info.infooff))) {
 			if (errno)
 				warn("%s", pcp->fname);

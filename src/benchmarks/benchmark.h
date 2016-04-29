@@ -53,8 +53,8 @@
  *
  * However using the REGISTER_BENCHMARK() macro is recommended.
  */
-#ifndef	_BENCHMARK_H
-#define	_BENCHMARK_H
+#ifndef _BENCHMARK_H
+#define _BENCHMARK_H
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -64,10 +64,10 @@
 
 #include "benchmark_time.h"
 
-#ifndef	ARRAY_SIZE
-#define	ARRAY_SIZE(x)	(sizeof (x) / sizeof (x[0]))
+#ifndef ARRAY_SIZE
+#define ARRAY_SIZE(x)	(sizeof(x) / sizeof(x[0]))
 #endif
-#define	RRAND(max, min) (rand() % ((max) - (min)) + (min))
+#define RRAND(max, min) (rand() % ((max) - (min)) + (min))
 
 struct benchmark;
 
@@ -189,8 +189,8 @@ struct benchmark_clo
 	int used;
 };
 
-#define	clo_field_offset(s, f)	((size_t)&((s *)0)->f)
-#define	clo_field_size(s, f)	(sizeof (((s *)0)->f))
+#define clo_field_offset(s, f)	((size_t)&((s *)0)->f)
+#define clo_field_size(s, f)	(sizeof(((s *)0)->f))
 
 /*
  * worker_info - Worker thread's information structure.
@@ -290,7 +290,7 @@ void pmembench_set_priv(struct benchmark *bench, void *priv);
 struct benchmark_info *pmembench_get_info(struct benchmark *bench);
 int pmembench_register(struct benchmark_info *bench_info);
 
-#define	REGISTER_BENCHMARK(bench)					\
+#define REGISTER_BENCHMARK(bench)					\
 __attribute__((constructor))						\
 static void								\
 __register_benchmark_##bench(void)					\

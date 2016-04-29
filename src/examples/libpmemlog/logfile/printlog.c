@@ -60,7 +60,7 @@ printlog(const void *buf, size_t len, void *arg)
 	/* for each entry in the log... */
 	while (buf < endp) {
 		struct logentry *headerp = (struct logentry *)buf;
-		buf += sizeof (struct logentry);
+		buf += sizeof(struct logentry);
 
 		/* print the header */
 		printf("Entry from pid: %ld\n", (long)headerp->pid);

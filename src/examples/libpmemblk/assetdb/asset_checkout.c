@@ -65,7 +65,7 @@ main(int argc, char *argv[])
 	assert(assetid > 0);
 
 	/* open an array of atomically writable elements */
-	if ((pbp = pmemblk_open(path, sizeof (struct asset))) == NULL) {
+	if ((pbp = pmemblk_open(path, sizeof(struct asset))) == NULL) {
 		perror("pmemblk_open");
 		exit(1);
 	}

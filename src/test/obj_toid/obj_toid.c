@@ -36,8 +36,8 @@
 #include <sys/param.h>
 #include "unittest.h"
 
-#define	LAYOUT_NAME "toid"
-#define	TEST_NUM 5
+#define LAYOUT_NAME "toid"
+#define TEST_NUM 5
 TOID_DECLARE(struct obj, 0);
 
 struct obj {
@@ -66,7 +66,7 @@ static void
 do_toid_no_valid(PMEMobjpool *pop)
 {
 	TOID(struct obj) obj;
-	int ret = pmemobj_alloc(pop, &obj.oid, sizeof (struct obj), TEST_NUM,
+	int ret = pmemobj_alloc(pop, &obj.oid, sizeof(struct obj), TEST_NUM,
 								NULL, NULL);
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERT(!TOID_VALID(obj));

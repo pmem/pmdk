@@ -45,7 +45,7 @@
 struct kv *
 kv_alloc(const char *key, const char *value)
 {
-	struct kv *kv = malloc(sizeof (*kv));
+	struct kv *kv = malloc(sizeof(*kv));
 	assert(kv != NULL);
 
 	kv->key = strdup(key);
@@ -75,7 +75,7 @@ kv_free(struct kv *kv)
 struct scenario *
 scenario_alloc(const char *name, const char *bench)
 {
-	struct scenario *s = malloc(sizeof (*s));
+	struct scenario *s = malloc(sizeof(*s));
 	assert(s != NULL);
 
 	TAILQ_INIT(&s->head);
@@ -126,7 +126,7 @@ scenario_set_group(struct scenario *s, const char *group)
 struct scenarios *
 scenarios_alloc(void)
 {
-	struct scenarios *scenarios = malloc(sizeof (*scenarios));
+	struct scenarios *scenarios = malloc(sizeof(*scenarios));
 	assert(NULL != scenarios);
 
 	TAILQ_INIT(&scenarios->head);

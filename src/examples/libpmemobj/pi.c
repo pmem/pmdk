@@ -82,7 +82,7 @@ pi_task_construct(PMEMobjpool *pop, void *ptr, void *arg)
 	struct pi_task *t = ptr;
 	struct pi_task_proto *p = arg;
 	t->proto = *p;
-	pmemobj_persist(pop, t, sizeof (*t));
+	pmemobj_persist(pop, t, sizeof(*t));
 
 	return 0;
 }
@@ -101,7 +101,7 @@ calc_pi(void *arg)
 		result += (pow(-1, i) / (2 * i + 1));
 	}
 	D_RW(task)->proto.result = result;
-	pmemobj_persist(pop, &D_RW(task)->proto.result, sizeof (double));
+	pmemobj_persist(pop, &D_RW(task)->proto.result, sizeof(double));
 
 	POBJ_LIST_MOVE_ELEMENT_HEAD(pop, &D_RW(pi)->todo, &D_RW(pi)->done,
 					task, todo, done);
@@ -170,7 +170,7 @@ prep_todo_list(int threads, int ops)
 		};
 
 		POBJ_LIST_INSERT_NEW_HEAD(pop, &D_RW(pi)->todo, todo,
-			sizeof (struct pi_task), pi_task_construct, &proto);
+			sizeof(struct pi_task), pi_task_construct, &proto);
 	}
 
 	return 0;

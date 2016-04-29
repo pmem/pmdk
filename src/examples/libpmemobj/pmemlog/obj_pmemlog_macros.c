@@ -58,7 +58,7 @@
 #include "libpmem.h"
 #include "libpmemlog.h"
 
-#define	POOL_SIZE ((size_t)(1024 * 1024 * 100))
+#define POOL_SIZE ((size_t)(1024 * 1024 * 100))
 
 POBJ_LAYOUT_BEGIN(obj_pmemlog_macros);
 POBJ_LAYOUT_ROOT(obj_pmemlog_macros, struct base);
@@ -142,7 +142,7 @@ pmemlog_append(PMEMlogpool *plp, const void *buf, size_t count)
 
 		/* allocate the new node to be inserted */
 		TOID(struct log) logp;
-		logp = TX_ALLOC(struct log, count + sizeof (struct log_hdr));
+		logp = TX_ALLOC(struct log, count + sizeof(struct log_hdr));
 
 		D_RW(logp)->hdr.size = count;
 		memcpy(D_RW(logp)->data, buf, count);
@@ -193,7 +193,7 @@ pmemlog_appendv(PMEMlogpool *plp, const struct iovec *iov, int iovcnt)
 			/* allocate the new node to be inserted */
 			TOID(struct log) logp;
 			logp = TX_ALLOC(struct log,
-				count + sizeof (struct log_hdr));
+				count + sizeof(struct log_hdr));
 
 			D_RW(logp)->hdr.size = count;
 			memcpy(D_RW(logp)->data, buf, count);
@@ -371,7 +371,7 @@ main(int argc, char *argv[])
 				printf("appendv: %s\n", argv[i] + 2);
 				int count = count_iovec(argv[i] + 2);
 				struct iovec *iov = malloc(count
-						* sizeof (struct iovec));
+						* sizeof(struct iovec));
 				fill_iovec(iov, argv[i] + 2);
 				if (pmemlog_appendv(plp, iov, count))
 					fprintf(stderr, "pmemlog_appendv"

@@ -44,7 +44,7 @@
 struct clo_vec *
 clo_vec_alloc(size_t size)
 {
-	struct clo_vec *clovec = malloc(sizeof (*clovec));
+	struct clo_vec *clovec = malloc(sizeof(*clovec));
 	assert(clovec != NULL);
 
 	/* init list of arguments and allocations */
@@ -57,7 +57,7 @@ clo_vec_alloc(size_t size)
 	clovec->size = size;
 
 	/* add first struct to list */
-	struct clo_vec_args *args = malloc(sizeof (*args));
+	struct clo_vec_args *args = malloc(sizeof(*args));
 	assert(args != NULL);
 
 	args->args = calloc(1, size);
@@ -122,7 +122,7 @@ clo_vec_get_args(struct clo_vec *clovec, size_t i)
 int
 clo_vec_add_alloc(struct clo_vec *clovec, void *ptr)
 {
-	struct clo_vec_alloc *alloc = malloc(sizeof (*alloc));
+	struct clo_vec_alloc *alloc = malloc(sizeof(*alloc));
 	assert(alloc != NULL);
 
 	alloc->ptr = ptr;
@@ -141,7 +141,7 @@ clo_vec_grow(struct clo_vec *clovec, size_t new_len)
 	size_t i;
 
 	for (i = 0; i < nargs; i++) {
-		struct clo_vec_args *args = calloc(1, sizeof (*args));
+		struct clo_vec_args *args = calloc(1, sizeof(*args));
 		assert(args != NULL);
 
 		TAILQ_INSERT_TAIL(&clovec->args, args, next);
@@ -164,7 +164,7 @@ clo_vec_grow(struct clo_vec *clovec, size_t new_len)
 struct clo_vec_vlist *
 clo_vec_vlist_alloc(void)
 {
-	struct clo_vec_vlist *list = malloc(sizeof (*list));
+	struct clo_vec_vlist *list = malloc(sizeof(*list));
 	assert(list != NULL);
 
 	list->nvalues = 0;
@@ -197,7 +197,7 @@ clo_vec_vlist_free(struct clo_vec_vlist *list)
 void
 clo_vec_vlist_add(struct clo_vec_vlist *list, void *ptr, size_t size)
 {
-	struct clo_vec_value *val = malloc(sizeof (*val));
+	struct clo_vec_value *val = malloc(sizeof(*val));
 	assert(val != NULL);
 
 	val->ptr = malloc(size);

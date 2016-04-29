@@ -57,11 +57,11 @@
 #include "libpmem.h"
 #include "libpmemblk.h"
 
-#define	USABLE_SIZE (9.0 / 10)
-#define	POOL_SIZE ((size_t)(1024 * 1024 * 50))
-#define	MAX_POOL_SIZE ((size_t)(1024L * 1024 * 1024 * 16))
-#define	MAX_THREADS 256
-#define	BSIZE_MAX ((size_t)(1024 * 1024 * 10))
+#define USABLE_SIZE (9.0 / 10)
+#define POOL_SIZE ((size_t)(1024 * 1024 * 50))
+#define MAX_POOL_SIZE ((size_t)(1024L * 1024 * 1024 * 16))
+#define MAX_THREADS 256
+#define BSIZE_MAX ((size_t)(1024 * 1024 * 10))
 
 POBJ_LAYOUT_BEGIN(obj_pmemblk);
 POBJ_LAYOUT_ROOT(obj_pmemblk, struct base);
@@ -193,7 +193,7 @@ pmemblk_nblock(PMEMblkpool *pbp)
 {
 	PMEMobjpool *pop = (PMEMobjpool *)pbp;
 	return ((struct base *)pmemobj_direct(pmemobj_root(pop,
-					sizeof (struct base))))->nblocks;
+					sizeof(struct base))))->nblocks;
 }
 
 /*

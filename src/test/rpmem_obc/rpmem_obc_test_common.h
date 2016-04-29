@@ -44,25 +44,25 @@
 #include "rpmem_util.h"
 #include "rpmem_obc.h"
 
-#define	POOL_SIZE	1024
-#define	NLANES		32
-#define	NLANES_RESP	16
-#define	PROVIDER	RPMEM_PROV_LIBFABRIC_SOCKETS
-#define	POOL_DESC	"pool_desc"
-#define	RKEY		0xabababababababab
-#define	RADDR		0x0101010101010101
-#define	PORT		1234
-#define	SIGNATURE	"<RPMEM>"
-#define	MAJOR		1
-#define	COMPAT_F	2
-#define	INCOMPAT_F	3
-#define	ROCOMPAT_F	4
-#define	POOLSET_UUID	"POOLSET_UUID0123"
-#define	UUID		"UUID0123456789AB"
-#define	NEXT_UUID	"NEXT_UUID0123456"
-#define	PREV_UUID	"PREV_UUID0123456"
-#define	USER_FLAGS	"USER_FLAGS012345"
-#define	POOL_ATTR_INIT {\
+#define POOL_SIZE	1024
+#define NLANES		32
+#define NLANES_RESP	16
+#define PROVIDER	RPMEM_PROV_LIBFABRIC_SOCKETS
+#define POOL_DESC	"pool_desc"
+#define RKEY		0xabababababababab
+#define RADDR		0x0101010101010101
+#define PORT		1234
+#define SIGNATURE	"<RPMEM>"
+#define MAJOR		1
+#define COMPAT_F	2
+#define INCOMPAT_F	3
+#define ROCOMPAT_F	4
+#define POOLSET_UUID	"POOLSET_UUID0123"
+#define UUID		"UUID0123456789AB"
+#define NEXT_UUID	"NEXT_UUID0123456"
+#define PREV_UUID	"PREV_UUID0123456"
+#define USER_FLAGS	"USER_FLAGS012345"
+#define POOL_ATTR_INIT {\
 	.signature = SIGNATURE,\
 	.major = MAJOR,\
 	.compat_features = COMPAT_F,\
@@ -98,13 +98,13 @@ void client_connect_wait(struct rpmem_obc *rpc, char *target);
  * from the client's perspective, execute the test in a loop so
  * the moment when the connection is closed will be possibly different.
  */
-#define	ECONNRESET_LOOP 1
+#define ECONNRESET_LOOP 1
 
 /*
  * Number of cases for ECONNRESET. Must be kept in sync with the
  * server_create_econnreset function.
  */
-#define	ECONNRESET_COUNT 2
+#define ECONNRESET_COUNT 2
 
 void server_econnreset(struct server *s, const void *msg, size_t len);
 

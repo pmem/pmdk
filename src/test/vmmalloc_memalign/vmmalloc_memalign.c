@@ -42,11 +42,11 @@
 #include <errno.h>
 #include "unittest.h"
 
-#define	USAGE "usage: %s [m|p|a]"
+#define USAGE "usage: %s [m|p|a]"
 
-#define	MIN_ALIGN (2)
-#define	MAX_ALIGN (4L * 1024L * 1024L)
-#define	MAX_ALLOCS (100)
+#define MIN_ALIGN (2)
+#define MAX_ALIGN (4L * 1024L * 1024L)
+#define MAX_ALLOCS (100)
 
 extern void *aligned_alloc(size_t alignment, size_t size);
 
@@ -102,10 +102,10 @@ main(int argc, char *argv[])
 	for (alignment = MAX_ALIGN; alignment >= MIN_ALIGN; alignment /= 2) {
 		UT_OUT("alignment %zu", alignment);
 
-		memset(allocs, 0, sizeof (allocs));
+		memset(allocs, 0, sizeof(allocs));
 
 		for (i = 0; i < MAX_ALLOCS; ++i) {
-			allocs[i] = Aalloc(alignment, sizeof (int));
+			allocs[i] = Aalloc(alignment, sizeof(int));
 
 			if (allocs[i] == NULL)
 				break;

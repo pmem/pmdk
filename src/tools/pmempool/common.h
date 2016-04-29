@@ -52,65 +52,65 @@
 #include "btt_layout.h"
 #include "heap_layout.h"
 
-#define	OPT_SHIFT 12
-#define	OPT_MASK (~((1 << OPT_SHIFT) - 1))
-#define	OPT_LOG (1 << (PMEM_POOL_TYPE_LOG + OPT_SHIFT))
-#define	OPT_BLK (1 << (PMEM_POOL_TYPE_BLK + OPT_SHIFT))
-#define	OPT_OBJ (1 << (PMEM_POOL_TYPE_OBJ + OPT_SHIFT))
-#define	OPT_ALL (OPT_LOG | OPT_BLK | OPT_OBJ)
+#define OPT_SHIFT 12
+#define OPT_MASK (~((1 << OPT_SHIFT) - 1))
+#define OPT_LOG (1 << (PMEM_POOL_TYPE_LOG + OPT_SHIFT))
+#define OPT_BLK (1 << (PMEM_POOL_TYPE_BLK + OPT_SHIFT))
+#define OPT_OBJ (1 << (PMEM_POOL_TYPE_OBJ + OPT_SHIFT))
+#define OPT_ALL (OPT_LOG | OPT_BLK | OPT_OBJ)
 
-#define	OPT_REQ_SHIFT	8
-#define	OPT_REQ_MASK	((1 << OPT_REQ_SHIFT) - 1)
-#define	_OPT_REQ(c, n) ((c) << (OPT_REQ_SHIFT * (n)))
-#define	OPT_REQ0(c) _OPT_REQ(c, 0)
-#define	OPT_REQ1(c) _OPT_REQ(c, 1)
-#define	OPT_REQ2(c) _OPT_REQ(c, 2)
-#define	OPT_REQ3(c) _OPT_REQ(c, 3)
-#define	OPT_REQ4(c) _OPT_REQ(c, 4)
-#define	OPT_REQ5(c) _OPT_REQ(c, 5)
-#define	OPT_REQ6(c) _OPT_REQ(c, 6)
-#define	OPT_REQ7(c) _OPT_REQ(c, 7)
+#define OPT_REQ_SHIFT	8
+#define OPT_REQ_MASK	((1 << OPT_REQ_SHIFT) - 1)
+#define _OPT_REQ(c, n) ((c) << (OPT_REQ_SHIFT * (n)))
+#define OPT_REQ0(c) _OPT_REQ(c, 0)
+#define OPT_REQ1(c) _OPT_REQ(c, 1)
+#define OPT_REQ2(c) _OPT_REQ(c, 2)
+#define OPT_REQ3(c) _OPT_REQ(c, 3)
+#define OPT_REQ4(c) _OPT_REQ(c, 4)
+#define OPT_REQ5(c) _OPT_REQ(c, 5)
+#define OPT_REQ6(c) _OPT_REQ(c, 6)
+#define OPT_REQ7(c) _OPT_REQ(c, 7)
 
-#define	min(a, b) ((a) < (b) ? (a) : (b))
-#define	ENTIRE_UINT64 (\
+#define min(a, b) ((a) < (b) ? (a) : (b))
+#define ENTIRE_UINT64 (\
 {\
 struct range _entire_uint64 = {\
 	.first = 0,\
 	.last = UINT64_MAX\
 }; _entire_uint64; })
 
-#define	FOREACH_RANGE(range, ranges)\
+#define FOREACH_RANGE(range, ranges)\
 	LIST_FOREACH(range, &(ranges)->head, next)
 
-#define	PLIST_OFF_TO_PTR(pop, off)\
+#define PLIST_OFF_TO_PTR(pop, off)\
 ((off) == 0 ? NULL : (void *)((uintptr_t)(pop) + (off) - OBJ_OOB_SIZE))
 
-#define	PLIST_FOREACH(entry, pop, head)\
+#define PLIST_FOREACH(entry, pop, head)\
 for ((entry) = PLIST_OFF_TO_PTR(pop, (head)->pe_first.off);\
 	(entry) != NULL;\
 	(entry) = ((entry)->pe_next.off == (head)->pe_first.off ?\
 	NULL : PLIST_OFF_TO_PTR(pop, (entry)->pe_next.off)))
 
-#define	PLIST_FIRST(pop, head)\
+#define PLIST_FIRST(pop, head)\
 ((struct list_entry *)PLIST_OFF_TO_PTR(pop, (head)->pe_first.off))
 
-#define	PLIST_EMPTY(head) ((head)->pe_first.off == 0)
+#define PLIST_EMPTY(head) ((head)->pe_first.off == 0)
 
-#define	ENTRY_TO_OOB_HDR(entry) ((struct oob_header *)(entry))
+#define ENTRY_TO_OOB_HDR(entry) ((struct oob_header *)(entry))
 
-#define	ENTRY_TO_TX_RANGE(entry)\
-((void *)((uintptr_t)(entry) + sizeof (struct oob_header)))
+#define ENTRY_TO_TX_RANGE(entry)\
+((void *)((uintptr_t)(entry) + sizeof(struct oob_header)))
 
-#define	ENTRY_TO_ALLOC_HDR(entry)\
-((void *)((uintptr_t)(entry) - sizeof (struct allocation_header)))
+#define ENTRY_TO_ALLOC_HDR(entry)\
+((void *)((uintptr_t)(entry) - sizeof(struct allocation_header)))
 
-#define	ENTRY_TO_DATA(entry)\
-((void *)((uintptr_t)(entry) + sizeof (struct oob_header)))
+#define ENTRY_TO_DATA(entry)\
+((void *)((uintptr_t)(entry) + sizeof(struct oob_header)))
 
-#define	OBJH_FROM_PTR(ptr)\
-((void *)((uintptr_t)ptr - sizeof (struct obj_header)))
+#define OBJH_FROM_PTR(ptr)\
+((void *)((uintptr_t)ptr - sizeof(struct obj_header)))
 
-#define	DEFAULT_HDR_SIZE 4096
+#define DEFAULT_HDR_SIZE 4096
 
 struct obj_header {
 	struct allocation_header ahdr;

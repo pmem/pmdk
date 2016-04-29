@@ -38,8 +38,8 @@
 
 #include "unittest.h"
 
-#define	TEST_MAX_ALLOCATION_SIZE (4L * 1024L * 1024L)
-#define	TEST_ALLOCS_SIZE (VMEM_MIN_POOL / 8)
+#define TEST_MAX_ALLOCATION_SIZE (4L * 1024L * 1024L)
+#define TEST_ALLOCS_SIZE (VMEM_MIN_POOL / 8)
 
 /* buffer for all allocations */
 static void *allocs[TEST_ALLOCS_SIZE];
@@ -81,7 +81,7 @@ main(int argc, char *argv[])
 			UT_ASSERTeq(((uintptr_t)vmp) & ((4 << 20) - 1), 0);
 		}
 
-		memset(allocs, 0, sizeof (allocs));
+		memset(allocs, 0, sizeof(allocs));
 
 		for (i = 0; i < TEST_ALLOCS_SIZE; ++i) {
 			allocs[i] =  vmem_malloc(vmp, object_size);

@@ -39,7 +39,7 @@
  * operations are 'r' or 'w' or 'z' or 'e'
  *
  */
-#define	_GNU_SOURCE
+#define _GNU_SOURCE
 
 #include <sys/param.h>
 #include "unittest.h"

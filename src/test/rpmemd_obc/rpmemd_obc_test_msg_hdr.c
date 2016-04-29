@@ -40,7 +40,7 @@
  * Number of cases for checking message header. Must be kept in sync with
  * client_bad_msg_hdr function.
  */
-#define	BAD_MSG_HDR_COUNT	7
+#define BAD_MSG_HDR_COUNT	7
 
 /*
  * client_bad_msg_hdr -- test case for checking message header
@@ -86,7 +86,7 @@ client_bad_msg_hdr(const struct test_case *tc, int argc, char *argv[])
 
 		rpmem_hton_msg_hdr(&msg);
 
-		clnt_send(fd, &msg, sizeof (msg));
+		clnt_send(fd, &msg, sizeof(msg));
 		clnt_wait_disconnect(fd);
 		clnt_close(fd);
 	}

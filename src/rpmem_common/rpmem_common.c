@@ -117,7 +117,7 @@ rpmem_obc_keepalive(int fd)
 {
 	int ret;
 	int optval = 1;
-	socklen_t optlen = sizeof (optval);
+	socklen_t optlen = sizeof(optval);
 
 	ret = setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &optval, optlen);
 	if (ret) {
@@ -188,9 +188,9 @@ rpmem_get_ip_str(const struct sockaddr *addr)
 	switch (addr->sa_family) {
 	case AF_INET:
 		in4 = (struct sockaddr_in *)addr;
-		if (!inet_ntop(AF_INET, &in4->sin_addr, ip, sizeof (ip)))
+		if (!inet_ntop(AF_INET, &in4->sin_addr, ip, sizeof(ip)))
 			return NULL;
-		if (snprintf(str, sizeof (str), "%s:%u",
+		if (snprintf(str, sizeof(str), "%s:%u",
 				ip, ntohs(in4->sin_port)) < 0)
 			return NULL;
 		break;

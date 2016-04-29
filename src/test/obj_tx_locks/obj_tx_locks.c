@@ -37,15 +37,15 @@
 #include "libpmemobj.h"
 #include "util.h"
 
-#define	LAYOUT_NAME "direct"
+#define LAYOUT_NAME "direct"
 
-#define	NUM_LOCKS 2
-#define	NUM_THREADS 10
-#define	TEST_VALUE_A 5
-#define	TEST_VALUE_B 10
-#define	TEST_VALUE_C 15
+#define NUM_LOCKS 2
+#define NUM_THREADS 10
+#define TEST_VALUE_A 5
+#define TEST_VALUE_B 10
+#define TEST_VALUE_C 15
 
-#define	BEGIN_TX(pop, mutexes, rwlocks)	TX_BEGIN_LOCK((pop), TX_LOCK_MUTEX,\
+#define BEGIN_TX(pop, mutexes, rwlocks)	TX_BEGIN_LOCK((pop), TX_LOCK_MUTEX,\
 		&(mutexes)[0], TX_LOCK_MUTEX, &(mutexes)[1], TX_LOCK_RWLOCK,\
 		&(rwlocks)[0], TX_LOCK_RWLOCK, &(rwlocks)[1], TX_LOCK_NONE)
 
@@ -199,8 +199,8 @@ main(int argc, char *argv[])
 			UT_FATAL("wrong test type supplied %c", argv[1][0]);
 	}
 
-	test_obj.mutexes = CALLOC(NUM_LOCKS, sizeof (PMEMmutex));
-	test_obj.rwlocks = CALLOC(NUM_LOCKS, sizeof (PMEMrwlock));
+	test_obj.mutexes = CALLOC(NUM_LOCKS, sizeof(PMEMmutex));
+	test_obj.rwlocks = CALLOC(NUM_LOCKS, sizeof(PMEMrwlock));
 
 	if (multithread) {
 		run_mt_test(do_tx, &test_obj);

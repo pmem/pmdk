@@ -62,28 +62,28 @@ POBJ_LAYOUT_TOID(pminvaders2, struct star);
 POBJ_LAYOUT_END(pminvaders2);
 
 
-#define	POOL_SIZE	(100 * 1024 * 1024) /* 100 megabytes */
+#define POOL_SIZE	(100 * 1024 * 1024) /* 100 megabytes */
 
-#define	GAME_WIDTH	50
-#define	GAME_HEIGHT	25
+#define GAME_WIDTH	50
+#define GAME_HEIGHT	25
 
-#define	ALIENS_ROW	4
-#define	ALIENS_COL	18
+#define ALIENS_ROW	4
+#define ALIENS_COL	18
 
-#define	RRAND(min, max)	(rand() % ((max) - (min) + 1) + (min))
+#define RRAND(min, max)	(rand() % ((max) - (min) + 1) + (min))
 
-#define	STEP 50
+#define STEP 50
 
-#define	PLAYER_Y (GAME_HEIGHT - 1)
+#define PLAYER_Y (GAME_HEIGHT - 1)
 
-#define	MAX_GSTATE_TIMER 10000
-#define	MIN_GSTATE_TIMER 5000
+#define MAX_GSTATE_TIMER 10000
+#define MIN_GSTATE_TIMER 5000
 
-#define	MAX_ALIEN_TIMER	1000
-#define	MAX_PLAYER_TIMER 1000
-#define	MAX_BULLET_TIMER 500
-#define	MAX_STAR1_TIMER 200
-#define	MAX_STAR2_TIMER 100
+#define MAX_ALIEN_TIMER	1000
+#define MAX_PLAYER_TIMER 1000
+#define MAX_BULLET_TIMER 500
+#define MAX_STAR1_TIMER 200
+#define MAX_STAR2_TIMER 100
 
 
 enum game_event {

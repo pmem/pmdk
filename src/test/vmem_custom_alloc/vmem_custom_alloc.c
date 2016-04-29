@@ -38,8 +38,8 @@
 
 #include "unittest.h"
 
-#define	TEST_STRING_VALUE "Some test text, to check memory"
-#define	TEST_REPEAT_CREATE_POOLS (20)
+#define TEST_STRING_VALUE "Some test text, to check memory"
+#define TEST_REPEAT_CREATE_POOLS (20)
 
 static int custom_allocs;
 static int custom_alloc_calls;

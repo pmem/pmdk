@@ -41,7 +41,7 @@
  * is in progress. This value must be kept in sync with client_econnreset
  * function.
  */
-#define	ECONNRESET_COUNT 4
+#define ECONNRESET_COUNT 4
 
 /*
  * client_send_disconnect -- connect, send specified number of bytes and
@@ -70,7 +70,7 @@ client_econnreset(const struct test_case *tc, int argc, char *argv[])
 
 	char *target = argv[0];
 
-	size_t msg_size = sizeof (CREATE_MSG) + POOL_DESC_SIZE;
+	size_t msg_size = sizeof(CREATE_MSG) + POOL_DESC_SIZE;
 	struct rpmem_msg_create *msg = MALLOC(msg_size);
 
 	*msg = CREATE_MSG;
@@ -91,7 +91,7 @@ client_econnreset(const struct test_case *tc, int argc, char *argv[])
 		 * connection.
 		 */
 		client_send_disconnect(target, msg,
-				sizeof (struct rpmem_msg_hdr) / 2);
+				sizeof(struct rpmem_msg_hdr) / 2);
 	}
 
 	{
@@ -100,7 +100,7 @@ client_econnreset(const struct test_case *tc, int argc, char *argv[])
 		 * connection.
 		 */
 		client_send_disconnect(target, msg,
-				sizeof (struct rpmem_msg_hdr));
+				sizeof(struct rpmem_msg_hdr));
 	}
 
 	{

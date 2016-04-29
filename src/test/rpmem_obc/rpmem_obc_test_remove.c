@@ -39,7 +39,7 @@
 static const struct rpmem_msg_remove_resp REMOVE_RESP = {
 	.hdr = {
 		.type = RPMEM_MSG_TYPE_REMOVE_RESP,
-		.size = sizeof (struct rpmem_msg_remove_resp),
+		.size = sizeof(struct rpmem_msg_remove_resp),
 		.status = 0,
 	},
 };
@@ -51,7 +51,7 @@ static void
 check_remove_msg(struct rpmem_msg_remove *msg)
 {
 	size_t pool_desc_size = strlen(POOL_DESC) + 1;
-	size_t msg_size = sizeof (struct rpmem_msg_remove) + pool_desc_size;
+	size_t msg_size = sizeof(struct rpmem_msg_remove) + pool_desc_size;
 
 	UT_ASSERTeq(msg->hdr.type, RPMEM_MSG_TYPE_REMOVE);
 	UT_ASSERTeq(msg->hdr.size, msg_size);
@@ -68,13 +68,13 @@ static void
 server_remove_handle(struct server *s, const struct rpmem_msg_remove_resp *resp)
 {
 	size_t pool_desc_size = strlen(POOL_DESC) + 1;
-	size_t msg_size = sizeof (struct rpmem_msg_remove) + pool_desc_size;
+	size_t msg_size = sizeof(struct rpmem_msg_remove) + pool_desc_size;
 	struct rpmem_msg_remove *msg = MALLOC(msg_size);
 	srv_accept(s);
 	srv_recv(s, msg, msg_size);
 	rpmem_ntoh_msg_remove(msg);
 	check_remove_msg(msg);
-	srv_send(s, resp, sizeof (*resp));
+	srv_send(s, resp, sizeof(*resp));
 	srv_disconnect(s);
 
 	FREE(msg);
@@ -84,7 +84,7 @@ server_remove_handle(struct server *s, const struct rpmem_msg_remove_resp *resp)
  * Number of cases for EPROTO test. Must be kept in sync with the
  * server_remove_eproto function.
  */
-#define	REMOVE_EPROTO_COUNT 5
+#define REMOVE_EPROTO_COUNT 5
 
 /*
  * server_remove_eproto -- send invalid remove request responses to a client
@@ -151,7 +151,7 @@ server_remove(const struct test_case *tc, int argc, char *argv[])
 	struct rpmem_msg_remove_resp resp = REMOVE_RESP;
 	rpmem_hton_msg_remove_resp(&resp);
 
-	server_econnreset(s, &resp, sizeof (resp) / 2);
+	server_econnreset(s, &resp, sizeof(resp) / 2);
 
 	server_remove_eproto(s);
 

@@ -42,11 +42,11 @@
 #include "util.h"
 #include "valgrind_internal.h"
 
-#define	LAYOUT_NAME "tx_alloc"
+#define LAYOUT_NAME "tx_alloc"
 
-#define	TEST_VALUE_1	1
-#define	TEST_VALUE_2	2
-#define	OBJ_SIZE	(200 * 1024)
+#define TEST_VALUE_1	1
+#define TEST_VALUE_2	2
+#define OBJ_SIZE	(200 * 1024)
 
 enum type_number {
 	TYPE_NO_TX,
@@ -67,7 +67,7 @@ TOID_DECLARE(struct object, TYPE_OOM);
 
 struct object {
 	size_t value;
-	char data[OBJ_SIZE - sizeof (size_t)];
+	char data[OBJ_SIZE - sizeof(size_t)];
 };
 
 /*
@@ -122,7 +122,7 @@ do_tx_alloc_abort_after_nested(PMEMobjpool *pop)
 	TOID(struct object) obj2;
 
 	TX_BEGIN(pop) {
-		TOID_ASSIGN(obj1, pmemobj_tx_alloc(sizeof (struct object),
+		TOID_ASSIGN(obj1, pmemobj_tx_alloc(sizeof(struct object),
 				TYPE_ABORT_AFTER_NESTED1));
 		UT_ASSERT(!TOID_IS_NULL(obj1));
 
@@ -130,11 +130,11 @@ do_tx_alloc_abort_after_nested(PMEMobjpool *pop)
 
 		TX_BEGIN(pop) {
 			TOID_ASSIGN(obj2, pmemobj_tx_zalloc(
-					sizeof (struct object),
+					sizeof(struct object),
 					TYPE_ABORT_AFTER_NESTED2));
 			UT_ASSERT(!TOID_IS_NULL(obj2));
 			UT_ASSERT(util_is_zeroed(D_RO(obj2),
-					sizeof (struct object)));
+					sizeof(struct object)));
 
 			D_RW(obj2)->value = TEST_VALUE_2;
 
@@ -178,7 +178,7 @@ do_tx_alloc_abort_nested(PMEMobjpool *pop)
 	TOID(struct object) obj2;
 
 	TX_BEGIN(pop) {
-		TOID_ASSIGN(obj1, pmemobj_tx_alloc(sizeof (struct object),
+		TOID_ASSIGN(obj1, pmemobj_tx_alloc(sizeof(struct object),
 				TYPE_ABORT_NESTED1));
 		UT_ASSERT(!TOID_IS_NULL(obj1));
 
@@ -186,11 +186,11 @@ do_tx_alloc_abort_nested(PMEMobjpool *pop)
 
 		TX_BEGIN(pop) {
 			TOID_ASSIGN(obj2, pmemobj_tx_zalloc(
-					sizeof (struct object),
+					sizeof(struct object),
 					TYPE_ABORT_NESTED2));
 			UT_ASSERT(!TOID_IS_NULL(obj2));
 			UT_ASSERT(util_is_zeroed(D_RO(obj2),
-					sizeof (struct object)));
+					sizeof(struct object)));
 
 			D_RW(obj2)->value = TEST_VALUE_2;
 
@@ -232,7 +232,7 @@ do_tx_alloc_commit_nested(PMEMobjpool *pop)
 	TOID(struct object) obj2;
 
 	TX_BEGIN(pop) {
-		TOID_ASSIGN(obj1, pmemobj_tx_alloc(sizeof (struct object),
+		TOID_ASSIGN(obj1, pmemobj_tx_alloc(sizeof(struct object),
 				TYPE_COMMIT_NESTED1));
 		UT_ASSERT(!TOID_IS_NULL(obj1));
 
@@ -240,11 +240,11 @@ do_tx_alloc_commit_nested(PMEMobjpool *pop)
 
 		TX_BEGIN(pop) {
 			TOID_ASSIGN(obj2, pmemobj_tx_zalloc(
-					sizeof (struct object),
+					sizeof(struct object),
 					TYPE_COMMIT_NESTED2));
 			UT_ASSERT(!TOID_IS_NULL(obj2));
 			UT_ASSERT(util_is_zeroed(D_RO(obj2),
-					sizeof (struct object)));
+					sizeof(struct object)));
 
 			D_RW(obj2)->value = TEST_VALUE_2;
 		} TX_ONCOMMIT {
@@ -289,7 +289,7 @@ do_tx_alloc_abort(PMEMobjpool *pop)
 {
 	TOID(struct object) obj;
 	TX_BEGIN(pop) {
-		TOID_ASSIGN(obj, pmemobj_tx_alloc(sizeof (struct object),
+		TOID_ASSIGN(obj, pmemobj_tx_alloc(sizeof(struct object),
 				TYPE_ABORT));
 		UT_ASSERT(!TOID_IS_NULL(obj));
 
@@ -363,7 +363,7 @@ do_tx_alloc_commit(PMEMobjpool *pop)
 {
 	TOID(struct object) obj;
 	TX_BEGIN(pop) {
-		TOID_ASSIGN(obj, pmemobj_tx_alloc(sizeof (struct object),
+		TOID_ASSIGN(obj, pmemobj_tx_alloc(sizeof(struct object),
 				TYPE_COMMIT));
 		UT_ASSERT(!TOID_IS_NULL(obj));
 
@@ -392,10 +392,10 @@ do_tx_zalloc_abort(PMEMobjpool *pop)
 {
 	TOID(struct object) obj;
 	TX_BEGIN(pop) {
-		TOID_ASSIGN(obj, pmemobj_tx_zalloc(sizeof (struct object),
+		TOID_ASSIGN(obj, pmemobj_tx_zalloc(sizeof(struct object),
 				TYPE_ZEROED_ABORT));
 		UT_ASSERT(!TOID_IS_NULL(obj));
-		UT_ASSERT(util_is_zeroed(D_RO(obj), sizeof (struct object)));
+		UT_ASSERT(util_is_zeroed(D_RO(obj), sizeof(struct object)));
 
 		D_RW(obj)->value = TEST_VALUE_1;
 		pmemobj_tx_abort(-1);
@@ -467,10 +467,10 @@ do_tx_zalloc_commit(PMEMobjpool *pop)
 {
 	TOID(struct object) obj;
 	TX_BEGIN(pop) {
-		TOID_ASSIGN(obj, pmemobj_tx_zalloc(sizeof (struct object),
+		TOID_ASSIGN(obj, pmemobj_tx_zalloc(sizeof(struct object),
 				TYPE_ZEROED_COMMIT));
 		UT_ASSERT(!TOID_IS_NULL(obj));
-		UT_ASSERT(util_is_zeroed(D_RO(obj), sizeof (struct object)));
+		UT_ASSERT(util_is_zeroed(D_RO(obj), sizeof(struct object)));
 
 		D_RW(obj)->value = TEST_VALUE_1;
 	} TX_ONCOMMIT {

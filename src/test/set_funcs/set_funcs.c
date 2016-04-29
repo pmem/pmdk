@@ -35,12 +35,12 @@
  */
 #include "unittest.h"
 
-#define	OBJ 0
-#define	BLK 1
-#define	LOG 2
-#define	VMEM_ 3
+#define OBJ 0
+#define BLK 1
+#define LOG 2
+#define VMEM_ 3
 
-#define	VMEM_POOLS 4
+#define VMEM_POOLS 4
 
 static struct counters {
 	int mallocs;
@@ -169,7 +169,7 @@ _vmem_strdup(const char *s)
 static void
 test_obj(const char *path)
 {
-	memset(cnt, 0, sizeof (cnt));
+	memset(cnt, 0, sizeof(cnt));
 
 	PMEMobjpool *pop =
 			pmemobj_create(path, NULL, PMEMOBJ_MIN_POOL, 0600);
@@ -209,7 +209,7 @@ test_obj(const char *path)
 static void
 test_blk(const char *path)
 {
-	memset(cnt, 0, sizeof (cnt));
+	memset(cnt, 0, sizeof(cnt));
 
 	PMEMblkpool *blk = pmemblk_create(path, 512, PMEMBLK_MIN_POOL, 0600);
 
@@ -239,7 +239,7 @@ test_blk(const char *path)
 static void
 test_log(const char *path)
 {
-	memset(cnt, 0, sizeof (cnt));
+	memset(cnt, 0, sizeof(cnt));
 
 	PMEMlogpool *log = pmemlog_create(path, PMEMLOG_MIN_POOL, 0600);
 
@@ -269,7 +269,7 @@ test_log(const char *path)
 static void
 test_vmem(const char *dir)
 {
-	memset(cnt, 0, sizeof (cnt));
+	memset(cnt, 0, sizeof(cnt));
 
 	VMEM *v[VMEM_POOLS];
 	void *ptr[VMEM_POOLS];

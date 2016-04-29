@@ -63,7 +63,7 @@ main(int argc, char *argv[])
 	const char *path = argv[1];
 
 	/* open an array of atomically writable elements */
-	if ((pbp = pmemblk_open(path, sizeof (struct asset))) == NULL) {
+	if ((pbp = pmemblk_open(path, sizeof(struct asset))) == NULL) {
 		perror(path);
 		exit(1);
 	}

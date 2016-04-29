@@ -47,8 +47,8 @@
  * Size of pool header, pool descriptor
  * and additional page alignment overhead
  */
-#define	POOL_HDR_SIZE (3 * 4096)
-#define	MIN_VEC_SIZE 1
+#define POOL_HDR_SIZE (3 * 4096)
+#define MIN_VEC_SIZE 1
 
 /*
  * prog_args - benchmark's specific command line arguments
@@ -392,7 +392,7 @@ log_init_worker(struct benchmark *bench, struct benchmark_args *args,
 	assert(lb);
 
 	struct log_worker_info *worker_info =
-		malloc(sizeof (struct log_worker_info));
+		malloc(sizeof(struct log_worker_info));
 	if (!worker_info) {
 		perror("malloc");
 		return -1;
@@ -414,7 +414,7 @@ log_init_worker(struct benchmark *bench, struct benchmark_args *args,
 	 */
 	size_t n_vectors = args->n_ops_per_thread;
 	worker_info->iov = malloc(n_vectors * lb->args->vec_size *
-			sizeof (struct iovec));
+			sizeof(struct iovec));
 	if (!worker_info->iov) {
 		perror("malloc");
 		ret = -1;
@@ -428,7 +428,7 @@ log_init_worker(struct benchmark *bench, struct benchmark_args *args,
 		/* each vector element has its own random size */
 		uint64_t n_sizes = args->n_ops_per_thread * lb->args->vec_size;
 		worker_info->rand_sizes = malloc(n_sizes *
-				sizeof (*worker_info->rand_sizes));
+				sizeof(*worker_info->rand_sizes));
 		if (!worker_info->rand_sizes) {
 			perror("malloc");
 			ret = -1;
@@ -449,7 +449,7 @@ log_init_worker(struct benchmark *bench, struct benchmark_args *args,
 	}
 
 	worker_info->vec_sizes = calloc(args->n_ops_per_thread,
-			sizeof (*worker_info->vec_sizes));
+			sizeof(*worker_info->vec_sizes));
 	if (!worker_info->vec_sizes) {
 		perror("malloc\n");
 		ret = -1;
@@ -521,7 +521,7 @@ log_init(struct benchmark *bench, struct benchmark_args *args)
 	assert(args != NULL);
 	assert(args->opts != NULL);
 
-	struct log_bench *lb = malloc(sizeof (struct log_bench));
+	struct log_bench *lb = malloc(sizeof(struct log_bench));
 	if (!lb) {
 		perror("malloc");
 		return -1;
@@ -648,7 +648,7 @@ static struct benchmark_info log_append_info = {
 	.measure_time	= true,
 	.clos		= log_clo,
 	.nclos		= ARRAY_SIZE(log_clo),
-	.opts_size	= sizeof (struct prog_args),
+	.opts_size	= sizeof(struct prog_args),
 	.rm_file	= true,
 	.allow_poolset	= true,
 };
@@ -667,7 +667,7 @@ static struct benchmark_info log_read_info = {
 	.measure_time	= true,
 	.clos		= log_clo,
 	.nclos		= ARRAY_SIZE(log_clo) - 1, /* without vector */
-	.opts_size	= sizeof (struct prog_args),
+	.opts_size	= sizeof(struct prog_args),
 	.rm_file	= true,
 	.allow_poolset	= true,
 };

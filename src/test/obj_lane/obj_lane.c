@@ -33,8 +33,8 @@
 /*
  * obj_lane.c -- unit test for lanes
  */
-#ifndef	_GNU_SOURCE
-#define	_GNU_SOURCE
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
 #endif
 
 #include <pthread.h>
@@ -51,12 +51,12 @@
 #include "list.h"
 #include "obj.h"
 
-#define	MAX_MOCK_LANES 5
-#define	MOCK_RUNTIME (void *)(0xABC)
-#define	MOCK_RUNTIME_2 (void *)(0xBCD)
+#define MAX_MOCK_LANES 5
+#define MOCK_RUNTIME (void *)(0xABC)
+#define MOCK_RUNTIME_2 (void *)(0xBCD)
 
 static void *base_ptr;
-#define	RPTR(p) (void *)((char *)p - (char *)base_ptr)
+#define RPTR(p) (void *)((char *)p - (char *)base_ptr)
 
 struct mock_pop {
 	PMEMobjpool p;
@@ -243,7 +243,7 @@ test_lane_hold_release()
 			}
 		}
 	};
-	pop.p.lanes_desc.lane_locks = CALLOC(OBJ_NLANES, sizeof (uint64_t));
+	pop.p.lanes_desc.lane_locks = CALLOC(OBJ_NLANES, sizeof(uint64_t));
 	pop.p.lanes_offset = (uint64_t)&pop.l - (uint64_t)&pop.p;
 	base_ptr = &pop.p;
 
@@ -270,10 +270,10 @@ test_lane_hold_release()
 static void
 test_lane_sizes(void)
 {
-	UT_COMPILE_ERROR_ON(sizeof (struct lane_tx_layout) > LANE_SECTION_LEN);
-	UT_COMPILE_ERROR_ON(sizeof (struct allocator_lane_section) >
+	UT_COMPILE_ERROR_ON(sizeof(struct lane_tx_layout) > LANE_SECTION_LEN);
+	UT_COMPILE_ERROR_ON(sizeof(struct allocator_lane_section) >
 				LANE_SECTION_LEN);
-	UT_COMPILE_ERROR_ON(sizeof (struct lane_list_section) >
+	UT_COMPILE_ERROR_ON(sizeof(struct lane_list_section) >
 				LANE_SECTION_LEN);
 }
 

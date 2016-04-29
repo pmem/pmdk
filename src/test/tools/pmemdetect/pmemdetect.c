@@ -40,7 +40,7 @@
 #include "util.h"
 #include "libpmem.h"
 
-#define	SIZE 4096
+#define SIZE 4096
 
 int
 main(int argc, char *argv[])

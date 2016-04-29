@@ -33,14 +33,14 @@
 /*
  * lane.h -- internal definitions for lanes
  */
-#define	LANE_SECTION_LEN 1024
+#define LANE_SECTION_LEN 1024
 
 /*
  * Distance between lanes used by threads required to prevent threads from
  * false sharing part of lanes array. Used if properly spread lanes are
  * available. Otherwise less spread out lanes would be used.
  */
-#define	LANE_JUMP (64 / sizeof (uint64_t))
+#define LANE_JUMP (64 / sizeof(uint64_t))
 
 enum lane_section_type {
 	LANE_SECTION_ALLOCATOR,
@@ -111,6 +111,6 @@ void lane_hold(PMEMobjpool *pop, struct lane_section **section,
 	enum lane_section_type type);
 void lane_release(PMEMobjpool *pop);
 
-#define	SECTION_PARM(n, ops)\
+#define SECTION_PARM(n, ops)\
 __attribute__((constructor)) static void _section_parm_##n(void)\
 { Section_ops[n] = ops; }

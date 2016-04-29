@@ -47,7 +47,7 @@ main(int argc, char *argv[])
 {
 	const int test_value = 123456;
 	size_t pagesize = sysconf(_SC_PAGESIZE);
-	size_t min_size = sizeof (int);
+	size_t min_size = sizeof(int);
 	size_t max_size = 4 * pagesize;
 	size_t size;
 	int *ptr;

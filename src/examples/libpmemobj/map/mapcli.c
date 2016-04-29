@@ -47,7 +47,7 @@
 #include "map_hashmap_tx.h"
 #include "hashmap/hashmap.h"
 
-#define	PM_HASHSET_POOL_SIZE	(160 * 1024 * 1024)
+#define PM_HASHSET_POOL_SIZE	(160 * 1024 * 1024)
 
 POBJ_LAYOUT_BEGIN(map);
 POBJ_LAYOUT_ROOT(map, struct root);
@@ -195,7 +195,7 @@ print_all(void)
 	printf("\n");
 }
 
-#define	INPUT_BUF_LEN 1000
+#define INPUT_BUF_LEN 1000
 int
 main(int argc, char *argv[])
 {
@@ -277,7 +277,7 @@ main(int argc, char *argv[])
 	if (isatty(fileno(stdout)))
 		printf("Type 'h' for help\n$ ");
 
-	while (fgets(buf, sizeof (buf), stdin)) {
+	while (fgets(buf, sizeof(buf), stdin)) {
 		if (buf[0] == 0 || buf[0] == '\n')
 			continue;
 

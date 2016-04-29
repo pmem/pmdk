@@ -132,7 +132,7 @@ min(int a, int b)
 /*
  * number of arttree examine commands
  */
-#define	COMMANDS_NUMBER (sizeof (s_funcs) / sizeof (s_funcs[0]))
+#define COMMANDS_NUMBER (sizeof(s_funcs) / sizeof(s_funcs[0]))
 
 void
 arttree_search_help(char *appname)
@@ -153,11 +153,11 @@ arttree_search_func(char *appname, struct pmem_context *ctx, int ac, char *av[])
 	}
 
 	if (s_ctx == NULL) {
-		s_ctx = (struct search_ctx *)malloc(sizeof (struct search_ctx));
+		s_ctx = (struct search_ctx *)malloc(sizeof(struct search_ctx));
 		if (s_ctx == NULL) {
 		    return -1;
 		}
-		memset(s_ctx, 0, sizeof (struct search_ctx));
+		memset(s_ctx, 0, sizeof(struct search_ctx));
 	}
 
 	if (ctx->art_tree_root_offset == 0) {
@@ -392,7 +392,7 @@ get_node(struct search_ctx *ctx, int node_type, uint64_t off)
 		var_string *vp;
 		size_t new_len;
 		vp = (var_string *)p;
-		new_len = vp->len + sizeof (size_t);
+		new_len = vp->len + sizeof(size_t);
 		munmap(p, obj_len);
 		p = mmap(NULL, off_in_page + new_len,
 		    PROT_READ, MAP_SHARED, fd, off_pages);

@@ -71,7 +71,7 @@ main(int argc, char *argv[])
 
 	/* create pmemblk pool in existing (but as yet unmodified) file */
 	if ((pbp = pmemblk_create(path_pool,
-			sizeof (struct asset), 0, S_IWUSR | S_IRUSR)) == NULL) {
+			sizeof(struct asset), 0, S_IWUSR | S_IRUSR)) == NULL) {
 		perror(path_pool);
 		exit(1);
 	}
@@ -98,7 +98,7 @@ main(int argc, char *argv[])
 			exit(1);
 		}
 
-		memset(&asset, '\0', sizeof (asset));
+		memset(&asset, '\0', sizeof(asset));
 		asset.state = ASSET_FREE;
 		strncpy(asset.name, line, ASSET_NAME_MAX - 1);
 		asset.name[ASSET_NAME_MAX - 1] = '\0';

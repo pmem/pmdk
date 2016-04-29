@@ -43,10 +43,10 @@
 #include <sys/stat.h>
 #include <libpmemobj.h>
 
-#define	TOID_ARRAY(x) TOID(x)
-#define	COUNT_OF(x) (sizeof (x) / sizeof (x[0]))
-#define	MAX_BUFFLEN 30
-#define	MAX_TYPE_NUM 8
+#define TOID_ARRAY(x) TOID(x)
+#define COUNT_OF(x) (sizeof(x) / sizeof(x[0]))
+#define MAX_BUFFLEN 30
+#define MAX_TYPE_NUM 8
 
 POBJ_LAYOUT_BEGIN(array);
 POBJ_LAYOUT_TOID(array, struct array_elm);
@@ -126,7 +126,7 @@ elm_constructor(PMEMobjpool *pop, void *ptr, void *arg)
 	struct array_elm *obj = ptr;
 	int *id = arg;
 	obj->id = *id;
-	pmemobj_persist(pop, obj, sizeof (*obj));
+	pmemobj_persist(pop, obj, sizeof(*obj));
 
 	return 0;
 }
@@ -249,12 +249,12 @@ realloc_pmemoid(PMEMoid *info, size_t prev_size, size_t size)
 {
 	TOID(PMEMoid) array;
 	TOID_ASSIGN(array, *info);
-	pmemobj_zrealloc(pop, &array.oid, sizeof (PMEMoid) * size,
+	pmemobj_zrealloc(pop, &array.oid, sizeof(PMEMoid) * size,
 							TOID_TYPE_NUM(PMEMoid));
 
 	for (int i = prev_size; i < size; i++) {
 		if (pmemobj_alloc(pop, &D_RW(array)[i],
-			sizeof (struct array_elm), TOID_TYPE_NUM(PMEMoid),
+			sizeof(struct array_elm), TOID_TYPE_NUM(PMEMoid),
 							elm_constructor, &i)) {
 			fprintf(stderr, "pmemobj_alloc\n");
 			assert(0);
@@ -272,7 +272,7 @@ realloc_toid(PMEMoid *info, size_t prev_size, size_t size)
 	TOID_ARRAY(TOID(struct array_elm)) array;
 	TOID_ASSIGN(array, *info);
 	pmemobj_zrealloc(pop, &array.oid,
-			sizeof (TOID(struct array_elm)) * size,
+			sizeof(TOID(struct array_elm)) * size,
 			TOID_TYPE_NUM_OF(array));
 	for (int i = prev_size; i < size; i++) {
 		POBJ_NEW(pop, &D_RW(array)[i], struct array_elm,
@@ -300,7 +300,7 @@ alloc_int(size_t size)
 	 * pointer with size equal to number of elements multiplied by size of
 	 * user-defined structure.
 	 */
-	POBJ_ALLOC(pop, &array, int, sizeof (int) * size,
+	POBJ_ALLOC(pop, &array, int, sizeof(int) * size,
 						NULL, NULL);
 	if (TOID_IS_NULL(array)) {
 		fprintf(stderr, "POBJ_ALLOC\n");
@@ -309,7 +309,7 @@ alloc_int(size_t size)
 
 	for (int i = 0; i < size; i++)
 		D_RW(array)[i] = i;
-	pmemobj_persist(pop, D_RW(array), sizeof (*D_RW(array)));
+	pmemobj_persist(pop, D_RW(array), sizeof(*D_RW(array)));
 	return array.oid;
 }
 
@@ -325,7 +325,7 @@ alloc_pmemoid(size_t size)
 	 * pointer with size equal to number of elements multiplied by size of
 	 * PMEMoid and to allocate each of elements separately.
 	 */
-	POBJ_ALLOC(pop, &array, PMEMoid, sizeof (PMEMoid) * size,
+	POBJ_ALLOC(pop, &array, PMEMoid, sizeof(PMEMoid) * size,
 					NULL, NULL);
 	if (TOID_IS_NULL(array)) {
 		fprintf(stderr, "POBJ_ALLOC\n");
@@ -334,12 +334,12 @@ alloc_pmemoid(size_t size)
 
 	for (int i = 0; i < size; i++) {
 		if (pmemobj_alloc(pop, &D_RW(array)[i],
-			sizeof (struct array_elm),
+			sizeof(struct array_elm),
 			TOID_TYPE_NUM(PMEMoid), elm_constructor, &i)) {
 			fprintf(stderr, "pmemobj_alloc\n");
 		}
 	}
-	pmemobj_persist(pop, D_RW(array), sizeof (*D_RW(array)));
+	pmemobj_persist(pop, D_RW(array), sizeof(*D_RW(array)));
 	return array.oid;
 }
 
@@ -357,7 +357,7 @@ alloc_toid(size_t size)
 	 * each of elements separately.
 	 */
 	POBJ_ALLOC(pop, &array, TOID(struct array_elm),
-			sizeof (TOID(struct array_elm)) * size, NULL, NULL);
+			sizeof(TOID(struct array_elm)) * size, NULL, NULL);
 
 	if (TOID_IS_NULL(array)) {
 		fprintf(stderr, "POBJ_ALLOC\n");
@@ -372,7 +372,7 @@ alloc_toid(size_t size)
 			assert(0);
 		}
 	}
-	pmemobj_persist(pop, D_RW(array), sizeof (*D_RW(array)));
+	pmemobj_persist(pop, D_RW(array), sizeof(*D_RW(array)));
 	return array.oid;
 }
 
@@ -444,7 +444,7 @@ do_realloc(int argc, char *argv[])
 			printf("POBJ_REALLOC\n");
 	}
 	info->size = size;
-	pmemobj_persist(pop, info, sizeof (*info));
+	pmemobj_persist(pop, info, sizeof(*info));
 }
 
 /*
@@ -474,7 +474,7 @@ do_alloc(int argc, char *argv[])
 	info->array = alloc_array[type](size);
 	if (OID_IS_NULL(info->array))
 		assert(0);
-	pmemobj_persist(pop, info, sizeof (*info));
+	pmemobj_persist(pop, info, sizeof(*info));
 }
 
 typedef void (*fn_op)(int argc, char *argv[]);

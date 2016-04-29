@@ -36,7 +36,7 @@
 
 #include "rpmemd_obc_test_common.h"
 
-#define	ACCEPT_COUNT	10
+#define ACCEPT_COUNT	10
 
 /*
  * client_accept_seq -- establish multiple connections with server sequentially

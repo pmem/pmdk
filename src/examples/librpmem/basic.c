@@ -38,12 +38,12 @@
 
 #include <librpmem.h>
 
-#define	POOL_SIZE	(32 * 1024 * 1024)
-#define	NLANES		4
-#define	SET_POOLSET_UUID 1
-#define	SET_UUID 2
-#define	SET_NEXT 3
-#define	SET_PREV 4
+#define POOL_SIZE	(32 * 1024 * 1024)
+#define NLANES		4
+#define SET_POOLSET_UUID 1
+#define SET_UUID 2
+#define SET_NEXT 3
+#define SET_PREV 4
 
 unsigned char pool[POOL_SIZE];
 
@@ -53,7 +53,7 @@ unsigned char pool[POOL_SIZE];
 static void
 default_attr(struct rpmem_pool_attr *attr)
 {
-	memset(attr, 0, sizeof (*attr));
+	memset(attr, 0, sizeof(*attr));
 	attr->major = 1;
 	strncpy(attr->signature, "EXAMPLE", RPMEM_POOL_HDR_SIG_LEN);
 	memset(attr->poolset_uuid, SET_POOLSET_UUID, RPMEM_POOL_HDR_UUID_LEN);
@@ -106,7 +106,7 @@ main(int argc, char *argv[])
 			return 1;
 		}
 
-		if (memcmp(&def_attr, &pool_attr, sizeof (def_attr))) {
+		if (memcmp(&def_attr, &pool_attr, sizeof(def_attr))) {
 			fprintf(stderr, "remote pool not consistent\n");
 		}
 

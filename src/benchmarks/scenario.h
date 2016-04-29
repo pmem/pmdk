@@ -56,8 +56,8 @@ struct scenarios
 	TAILQ_HEAD(scenarioshead, scenario) head;
 };
 
-#define	FOREACH_SCENARIO(s, ss)	TAILQ_FOREACH((s), &(ss)->head, next)
-#define	FOREACH_KV(kv, s) TAILQ_FOREACH((kv), &(s)->head, next)
+#define FOREACH_SCENARIO(s, ss)	TAILQ_FOREACH((s), &(ss)->head, next)
+#define FOREACH_KV(kv, s) TAILQ_FOREACH((kv), &(s)->head, next)
 
 struct kv *kv_alloc(const char *key, const char *value);
 void kv_free(struct kv *kv);

@@ -44,8 +44,8 @@
 #include "clo_vec.h"
 #include "clo.h"
 
-#define	min(a, b)	((a) < (b) ? (a) : (b))
-#define	max(a, b)	((a) > (b) ? (a) : (b))
+#define min(a, b)	((a) < (b) ? (a) : (b))
+#define max(a, b)	((a) > (b) ? (a) : (b))
 
 typedef int (*clo_parse_fn)(struct benchmark_clo *clo, const char *arg,
 		struct clo_vec *clovec);
@@ -59,7 +59,7 @@ typedef int (*clo_eval_range_fn)(struct benchmark_clo *clo, void *first,
 typedef const char *(*clo_str_fn)(struct benchmark_clo *clo,
 		void *addr, size_t size);
 
-#define	STR_BUFF_SIZE	1024
+#define STR_BUFF_SIZE	1024
 static char str_buff[STR_BUFF_SIZE];
 
 /*
@@ -79,7 +79,7 @@ clo_parse_flag(struct benchmark_clo *clo, const char *arg,
 			return -1;
 	}
 
-	return clo_vec_memcpy(clovec, clo->off, sizeof (flag), &flag);
+	return clo_vec_memcpy(clovec, clo->off, sizeof(flag), &flag);
 }
 
 /*
@@ -98,11 +98,11 @@ clo_parse_str(struct benchmark_clo *clo, const char *arg,
 
 	char *next = strtok(str, ",");
 	while (next) {
-		clo_vec_vlist_add(vlist, &next, sizeof (next));
+		clo_vec_vlist_add(vlist, &next, sizeof(next));
 		next = strtok(NULL, ",");
 	}
 
-	int ret = clo_vec_memcpy_list(clovec, clo->off, sizeof (str), vlist);
+	int ret = clo_vec_memcpy_list(clovec, clo->off, sizeof(str), vlist);
 
 	clo_vec_vlist_free(vlist);
 
@@ -510,7 +510,7 @@ clo_parse_uint(struct benchmark_clo *clo, const char *arg,
 static const char *
 clo_str_flag(struct benchmark_clo *clo, void *addr, size_t size)
 {
-	if (clo->off + sizeof (bool) > size)
+	if (clo->off + sizeof(bool) > size)
 		return NULL;
 
 	bool flag = *(bool *)((char *)addr + clo->off);
@@ -524,7 +524,7 @@ clo_str_flag(struct benchmark_clo *clo, void *addr, size_t size)
 static const char *
 clo_str_str(struct benchmark_clo *clo, void *addr, size_t size)
 {
-	if (clo->off + sizeof (char *) > size)
+	if (clo->off + sizeof(char *) > size)
 		return NULL;
 
 	return *(char **)((char *)addr + clo->off);
@@ -701,7 +701,7 @@ clo_get_long_options(struct benchmark_clo *clos, size_t nclo)
 	size_t i;
 	struct option *options;
 
-	options = calloc(nclo + 1, sizeof (struct option));
+	options = calloc(nclo + 1, sizeof(struct option));
 	assert(options != NULL);
 
 	for (i = 0; i < nclo; i++) {

@@ -40,19 +40,19 @@
 #include <sys/wait.h>
 #include "unittest.h"
 
-#define	NBUFS 16
+#define NBUFS 16
 
 static void *
 do_test(void *arg)
 {
-	int **bufs = malloc(NBUFS * sizeof (void *));
+	int **bufs = malloc(NBUFS * sizeof(void *));
 	UT_ASSERTne(bufs, NULL);
 
-	size_t *sizes = malloc(NBUFS * sizeof (size_t));
+	size_t *sizes = malloc(NBUFS * sizeof(size_t));
 	UT_ASSERTne(sizes, NULL);
 
 	for (int j = 0; j < NBUFS; j++) {
-		sizes[j] = sizeof (int) + 64 * (rand() % 100);
+		sizes[j] = sizeof(int) + 64 * (rand() % 100);
 		bufs[j] = malloc(sizes[j]);
 		UT_ASSERTne(bufs[j], NULL);
 	}
@@ -88,23 +88,23 @@ main(int argc, char *argv[])
 	pthread_t thread[nthread];
 	int first_child = 0;
 
-	int **bufs = malloc(nfork * NBUFS * sizeof (void *));
+	int **bufs = malloc(nfork * NBUFS * sizeof(void *));
 	UT_ASSERTne(bufs, NULL);
 
-	size_t *sizes = malloc(nfork * NBUFS * sizeof (size_t));
+	size_t *sizes = malloc(nfork * NBUFS * sizeof(size_t));
 	UT_ASSERTne(sizes, NULL);
 
-	int *pids1 = malloc(nfork * sizeof (pid_t));
+	int *pids1 = malloc(nfork * sizeof(pid_t));
 	UT_ASSERTne(pids1, NULL);
 
-	int *pids2 = malloc(nfork * sizeof (pid_t));
+	int *pids2 = malloc(nfork * sizeof(pid_t));
 	UT_ASSERTne(pids2, NULL);
 
 	for (int i = 0; i < nfork; i++) {
 		for (int j = 0; j < NBUFS; j++) {
 			int idx = i * NBUFS + j;
 
-			sizes[idx] = sizeof (int) + 64 * (rand() % 100);
+			sizes[idx] = sizeof(int) + 64 * (rand() % 100);
 			bufs[idx] = malloc(sizes[idx]);
 			UT_ASSERTne(bufs[idx], NULL);
 			UT_ASSERT(malloc_usable_size(bufs[idx]) >= sizes[idx]);

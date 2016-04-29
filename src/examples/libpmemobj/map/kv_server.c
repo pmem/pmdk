@@ -52,7 +52,7 @@
 
 #include "kv_protocol.h"
 
-#define	COUNT_OF(x) (sizeof (x) / sizeof (0[x]))
+#define COUNT_OF(x) (sizeof(x) / sizeof(0[x]))
 
 POBJ_LAYOUT_BEGIN(kv_server);
 POBJ_LAYOUT_ROOT(kv_server, struct root);
@@ -85,7 +85,7 @@ struct write_req {
 
 struct client_data {
 	char *buf; /* current message, always NULL terminated */
-	size_t buf_len; /* sizeof (buf) */
+	size_t buf_len; /* sizeof(buf) */
 	size_t len; /* actual length of the message (while parsing) */
 };
 
@@ -136,7 +136,7 @@ client_close_cb(uv_handle_t *handle)
 static void
 response_write(uv_stream_t *client, char *resp, size_t len)
 {
-	struct write_req *wr = malloc(sizeof (struct write_req));
+	struct write_req *wr = malloc(sizeof(struct write_req));
 	assert(wr != NULL);
 
 	wr->buf = uv_buf_init(resp, len);
@@ -165,7 +165,7 @@ cmsg_insert_handler(uv_stream_t *client, const char *msg, size_t len)
 		 * a length of the message.
 		 */
 		TOID(struct map_value) val = TX_ZALLOC(struct map_value,
-			sizeof (struct map_value) + len);
+			sizeof(struct map_value) + len);
 
 		char key[MAX_KEY_LEN];
 		int ret = sscanf(msg, "INSERT %254s %s\n", key, D_RW(val)->buf);
@@ -374,9 +374,9 @@ connection_cb(uv_stream_t *server, int status)
 	}
 	printf("new client\n");
 
-	uv_tcp_t *client = malloc(sizeof (uv_tcp_t));
+	uv_tcp_t *client = malloc(sizeof(uv_tcp_t));
 	assert(client != NULL);
-	client->data = calloc(1, sizeof (struct client_data));
+	client->data = calloc(1, sizeof(struct client_data));
 	assert(client->data != NULL);
 
 	uv_tcp_init(loop, client);
@@ -412,9 +412,9 @@ get_map_ops_by_string(const char *type)
 	return NULL;
 }
 
-#define	KV_SIZE	(PMEMOBJ_MIN_POOL)
+#define KV_SIZE	(PMEMOBJ_MIN_POOL)
 
-#define	MAX_READ_LEN (64 * 1024) /* 64 kilobytes */
+#define MAX_READ_LEN (64 * 1024) /* 64 kilobytes */
 
 int
 main(int argc, char *argv[])

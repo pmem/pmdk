@@ -41,12 +41,12 @@
 #include "pmalloc.h"
 #include "unittest.h"
 
-#define	THREADS 32
-#define	OPS_PER_THREAD 1000
-#define	ALLOC_SIZE 100
-#define	REALLOC_SIZE (ALLOC_SIZE * 3)
-#define	FRAGMENTATION 3
-#define	MIX_RERUNS 2
+#define THREADS 32
+#define OPS_PER_THREAD 1000
+#define ALLOC_SIZE 100
+#define REALLOC_SIZE (ALLOC_SIZE * 3)
+#define FRAGMENTATION 3
+#define MIX_RERUNS 2
 
 struct root {
 	uint64_t offs[THREADS][OPS_PER_THREAD];
@@ -189,7 +189,7 @@ main(int argc, char *argv[])
 	if (pop == NULL)
 		UT_FATAL("!pmemobj_create");
 
-	PMEMoid oid = pmemobj_root(pop, sizeof (struct root));
+	PMEMoid oid = pmemobj_root(pop, sizeof(struct root));
 	struct root *r = pmemobj_direct(oid);
 	UT_ASSERTne(r, NULL);
 

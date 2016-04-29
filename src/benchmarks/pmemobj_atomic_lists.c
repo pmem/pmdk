@@ -46,8 +46,8 @@
 #include "libpmemobj.h"
 #include "benchmark.h"
 
-#define	FACTOR 8
-#define	LAYOUT_NAME "benchmark"
+#define FACTOR 8
+#define LAYOUT_NAME "benchmark"
 
 struct obj_bench;
 struct obj_worker;
@@ -439,7 +439,7 @@ obj_init_list(struct worker_info *worker, size_t n_oids, size_t list_len)
 {
 	size_t i;
 	struct obj_worker *obj_worker = worker->priv;
-	obj_worker->oids = calloc(n_oids, sizeof (TOID(struct item)));
+	obj_worker->oids = calloc(n_oids, sizeof(TOID(struct item)));
 	if (obj_worker->oids == NULL) {
 		perror("calloc");
 		return -1;
@@ -474,7 +474,7 @@ queue_init_list(struct worker_info *worker, size_t n_items, size_t list_len)
 	size_t i;
 	struct obj_worker *obj_worker = worker->priv;
 	CIRCLEQ_INIT(&obj_worker->headq);
-	obj_worker->items = malloc(n_items * sizeof (struct item *));
+	obj_worker->items = malloc(n_items * sizeof(struct item *));
 	if (obj_worker->items == NULL) {
 		perror("malloc");
 		return -1;
@@ -563,7 +563,7 @@ queue_free_worker_items(struct obj_worker *obj_worker)
 static size_t *
 random_positions()
 {
-	size_t *positions  = calloc(obj_bench.max_len, sizeof (size_t));
+	size_t *positions  = calloc(obj_bench.max_len, sizeof(size_t));
 	if (positions == NULL) {
 		perror("calloc");
 		return NULL;
@@ -588,7 +588,7 @@ random_positions()
 static size_t *
 random_values(size_t min, size_t max, unsigned n_ops, size_t min_range)
 {
-	size_t *randoms = calloc(n_ops, sizeof (size_t));
+	size_t *randoms = calloc(n_ops, sizeof(size_t));
 	if (randoms == NULL) {
 		perror("calloc");
 		return NULL;
@@ -821,7 +821,7 @@ obj_move_free_worker(struct benchmark *bench, struct benchmark_args *args,
 static int
 obj_init_worker(struct worker_info *worker, size_t n_elm, size_t list_len)
 {
-	struct obj_worker *obj_worker = calloc(1, sizeof (struct obj_worker));
+	struct obj_worker *obj_worker = calloc(1, sizeof(struct obj_worker));
 	if (obj_worker == NULL) {
 		perror("calloc");
 		return -1;
@@ -897,7 +897,7 @@ obj_move_init_worker(struct benchmark *bench, struct benchmark_args *args,
 		return -1;
 
 	struct obj_worker *obj_worker = worker->priv;
-	obj_worker->list_move = calloc(1, sizeof (struct obj_worker));
+	obj_worker->list_move = calloc(1, sizeof(struct obj_worker));
 	if (obj_worker->list_move == NULL) {
 		perror("calloc");
 		goto free;
@@ -956,12 +956,12 @@ obj_init(struct benchmark *bench, struct benchmark_args *args)
 	obj_bench.fn_init = obj_bench.args->queue ? queue_init_list :
 								obj_init_list;
 	/* Decide if use random or state allocation sizes */
-	size_t obj_size = args->dsize < sizeof (struct item) ?
-				sizeof (struct item) : args->dsize;
-	size_t min_size = obj_bench.args->min_size < sizeof (struct item) ?
-				sizeof (struct item) : obj_bench.args->min_size;
+	size_t obj_size = args->dsize < sizeof(struct item) ?
+				sizeof(struct item) : args->dsize;
+	size_t min_size = obj_bench.args->min_size < sizeof(struct item) ?
+				sizeof(struct item) : obj_bench.args->min_size;
 	obj_bench.alloc_sizes = random_values(min_size, obj_size,
-				obj_bench.max_len, sizeof (struct item));
+				obj_bench.max_len, sizeof(struct item));
 	if (obj_bench.alloc_sizes == NULL)
 		goto free_random_types;
 
@@ -1054,7 +1054,7 @@ static struct benchmark_info obj_insert = {
 	.measure_time	= true,
 	.clos		= obj_list_clo,
 	.nclos		= ARRAY_SIZE(obj_list_clo),
-	.opts_size	= sizeof (struct obj_list_args),
+	.opts_size	= sizeof(struct obj_list_args),
 	.rm_file	= true,
 	.allow_poolset	= true,
 };
@@ -1075,7 +1075,7 @@ static struct benchmark_info obj_remove = {
 	.measure_time	= true,
 	.clos		= obj_list_clo,
 	.nclos		= ARRAY_SIZE(obj_list_clo),
-	.opts_size	= sizeof (struct obj_list_args),
+	.opts_size	= sizeof(struct obj_list_args),
 	.rm_file	= true,
 	.allow_poolset	= true,
 };
@@ -1095,7 +1095,7 @@ static struct benchmark_info obj_insert_new = {
 	.measure_time	= true,
 	.clos		= obj_list_clo,
 	.nclos		= ARRAY_SIZE(obj_list_clo) - 1,
-	.opts_size	= sizeof (struct obj_list_args),
+	.opts_size	= sizeof(struct obj_list_args),
 	.rm_file	= true,
 	.allow_poolset	= true,
 };
@@ -1116,7 +1116,7 @@ static struct benchmark_info obj_remove_free = {
 	.measure_time	= true,
 	.clos		= obj_list_clo,
 	.nclos		= ARRAY_SIZE(obj_list_clo) - 1,
-	.opts_size	= sizeof (struct obj_list_args),
+	.opts_size	= sizeof(struct obj_list_args),
 	.rm_file	= true,
 	.allow_poolset	= true,
 };
@@ -1136,7 +1136,7 @@ static struct benchmark_info obj_move = {
 	.measure_time	= true,
 	.clos		= obj_list_clo,
 	.nclos		= ARRAY_SIZE(obj_list_clo) - 1,
-	.opts_size	= sizeof (struct obj_list_args),
+	.opts_size	= sizeof(struct obj_list_args),
 	.rm_file	= true,
 	.allow_poolset	= true,
 };

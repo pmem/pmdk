@@ -247,7 +247,7 @@ static int
 blk_init_worker(struct benchmark *bench, struct benchmark_args *args,
 		struct worker_info *worker)
 {
-	struct blk_worker *bworker = malloc(sizeof (*bworker));
+	struct blk_worker *bworker = malloc(sizeof(*bworker));
 	if (!bworker) {
 		perror("malloc");
 		return -1;
@@ -267,7 +267,7 @@ blk_init_worker(struct benchmark *bench, struct benchmark_args *args,
 	/* fill buffer with some random data */
 	memset(bworker->buff, bworker->seed, args->dsize);
 
-	bworker->blocks = malloc(sizeof (bworker->blocks) *
+	bworker->blocks = malloc(sizeof(bworker->blocks) *
 			args->n_ops_per_thread);
 	if (!bworker->blocks) {
 		perror("malloc");
@@ -397,7 +397,7 @@ blk_read_init(struct benchmark *bench, struct benchmark_args *args)
 
 	int ret;
 	struct blk_args *ba = args->opts;
-	struct blk_bench *bb = malloc(sizeof (struct blk_bench));
+	struct blk_bench *bb = malloc(sizeof(struct blk_bench));
 	if (bb == NULL) {
 		perror("malloc");
 		return -1;
@@ -428,7 +428,7 @@ blk_write_init(struct benchmark *bench, struct benchmark_args *args)
 
 	int ret;
 	struct blk_args *ba = args->opts;
-	struct blk_bench *bb = malloc(sizeof (struct blk_bench));
+	struct blk_bench *bb = malloc(sizeof(struct blk_bench));
 	if (bb == NULL) {
 		perror("malloc");
 		return -1;
@@ -488,7 +488,7 @@ static struct benchmark_info blk_read_info = {
 	.operation	= blk_operation,
 	.clos		= blk_clo,
 	.nclos		= ARRAY_SIZE(blk_clo),
-	.opts_size	= sizeof (struct blk_args),
+	.opts_size	= sizeof(struct blk_args),
 	.rm_file	= true,
 	.allow_poolset	= true,
 };
@@ -507,7 +507,7 @@ static struct benchmark_info blk_write_info = {
 	.operation	= blk_operation,
 	.clos		= blk_clo,
 	.nclos		= ARRAY_SIZE(blk_clo),
-	.opts_size	= sizeof (struct blk_args),
+	.opts_size	= sizeof(struct blk_args),
 	.rm_file	= true,
 	.allow_poolset	= true,
 };

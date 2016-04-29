@@ -40,8 +40,8 @@
 #include "jemalloc/internal/jemalloc_internal.h"
 #include "jemalloc/internal/size_classes.h"
 
-#define	DEFAULT_COUNT	(SMALL_MAXCLASS / 4)
-#define	DEFAULT_N	100
+#define DEFAULT_COUNT	(SMALL_MAXCLASS / 4)
+#define DEFAULT_N	100
 
 static void
 usage(char *appname)
@@ -86,9 +86,9 @@ main(int argc, char *argv[])
 	for (i = 0; i < n; i++) {
 		int *test = NULL;
 		if (use_calloc)
-			test = vmem_calloc(vmp, 1, count * sizeof (int));
+			test = vmem_calloc(vmp, 1, count * sizeof(int));
 		else
-			test = vmem_malloc(vmp, count * sizeof (int));
+			test = vmem_malloc(vmp, count * sizeof(int));
 		UT_ASSERTne(test, NULL);
 
 		if (use_calloc) {

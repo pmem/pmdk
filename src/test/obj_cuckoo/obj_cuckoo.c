@@ -41,8 +41,8 @@
 #include "libpmemobj.h"
 #include "util.h"
 
-#define	TEST_INSERTS 100
-#define	TEST_VAL(x) ((void *)((uintptr_t)(x)))
+#define TEST_INSERTS 100
+#define TEST_VAL(x) ((void *)((uintptr_t)(x)))
 
 FUNC_MOCK(malloc, void *, size_t size)
 	FUNC_MOCK_RUN(1) /* internal out_err malloc */

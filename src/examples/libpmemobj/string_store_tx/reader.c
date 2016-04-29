@@ -54,7 +54,7 @@ main(int argc, char *argv[])
 		return 1;
 	}
 
-	PMEMoid root = pmemobj_root(pop, sizeof (struct my_root));
+	PMEMoid root = pmemobj_root(pop, sizeof(struct my_root));
 	struct my_root *rootp = pmemobj_direct(root);
 
 	printf("%s\n", rootp->buf);

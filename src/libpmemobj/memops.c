@@ -53,8 +53,8 @@ enum operation_entry_type {
 	MAX_OPERATION_ENTRY_TYPE
 };
 
-#define	MAX_TRANSIENT_ENTRIES 10
-#define	MAX_PERSITENT_ENTRIES 10
+#define MAX_TRANSIENT_ENTRIES 10
+#define MAX_PERSITENT_ENTRIES 10
 
 /*
  * operation_context -- context of an ongoing palloc operation
@@ -74,7 +74,7 @@ struct operation_context {
 struct operation_context *
 operation_init(PMEMobjpool *pop, struct redo_log *redo)
 {
-	struct operation_context *ctx = Malloc(sizeof (*ctx));
+	struct operation_context *ctx = Malloc(sizeof(*ctx));
 
 	if (ctx == NULL)
 		goto out;
@@ -201,12 +201,12 @@ operation_process(struct operation_context *ctx)
 	if (ctx->nentries[ENTRY_PERSISTENT] == 1) {
 		e = &ctx->entries[ENTRY_PERSISTENT][0];
 
-		VALGRIND_ADD_TO_TX(e->ptr, sizeof (uint64_t));
+		VALGRIND_ADD_TO_TX(e->ptr, sizeof(uint64_t));
 
 		*e->ptr = e->value;
-		pmemobj_persist(ctx->pop, e->ptr, sizeof (uint64_t));
+		pmemobj_persist(ctx->pop, e->ptr, sizeof(uint64_t));
 
-		VALGRIND_REMOVE_FROM_TX(e->ptr, sizeof (uint64_t));
+		VALGRIND_REMOVE_FROM_TX(e->ptr, sizeof(uint64_t));
 	} else if (ctx->nentries[ENTRY_PERSISTENT] != 0) {
 		operation_process_persistent_redo(ctx);
 	}

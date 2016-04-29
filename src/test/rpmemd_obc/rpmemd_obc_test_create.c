@@ -40,7 +40,7 @@
  * Number of cases for checking create request message. Must be kept in sync
  * with client_bad_msg_create function.
  */
-#define	BAD_MSG_CREATE_COUNT	11
+#define BAD_MSG_CREATE_COUNT	11
 
 /*
  * client_bad_msg_create -- check if server detects invalid create request
@@ -50,7 +50,7 @@ static void
 client_bad_msg_create(const char *ctarget)
 {
 	char *target = STRDUP(ctarget);
-	size_t msg_size = sizeof (CREATE_MSG) + POOL_DESC_SIZE;
+	size_t msg_size = sizeof(CREATE_MSG) + POOL_DESC_SIZE;
 	struct rpmem_msg_create *msg = MALLOC(msg_size);
 
 	for (int i = 0; i < BAD_MSG_CREATE_COUNT; i++) {
@@ -74,12 +74,12 @@ client_bad_msg_create(const char *ctarget)
 			break;
 		case 4:
 			msg->pool_desc.size = 0;
-			msg->hdr.size = sizeof (CREATE_MSG) +
+			msg->hdr.size = sizeof(CREATE_MSG) +
 				msg->pool_desc.size;
 			break;
 		case 5:
 			msg->pool_desc.size = 1;
-			msg->hdr.size = sizeof (CREATE_MSG) +
+			msg->hdr.size = sizeof(CREATE_MSG) +
 				msg->pool_desc.size;
 			break;
 		case 6:
@@ -120,7 +120,7 @@ static void
 client_msg_create_noresp(const char *ctarget)
 {
 	char *target = STRDUP(ctarget);
-	size_t msg_size = sizeof (CREATE_MSG) + POOL_DESC_SIZE;
+	size_t msg_size = sizeof(CREATE_MSG) + POOL_DESC_SIZE;
 	struct rpmem_msg_create *msg = MALLOC(msg_size);
 
 	int fd = clnt_connect_wait(target);
@@ -147,7 +147,7 @@ static void
 client_msg_create_resp(const char *ctarget, int status)
 {
 	char *target = STRDUP(ctarget);
-	size_t msg_size = sizeof (CREATE_MSG) + POOL_DESC_SIZE;
+	size_t msg_size = sizeof(CREATE_MSG) + POOL_DESC_SIZE;
 	struct rpmem_msg_create *msg = MALLOC(msg_size);
 	struct rpmem_msg_create_resp resp;
 
@@ -160,7 +160,7 @@ client_msg_create_resp(const char *ctarget, int status)
 	rpmem_hton_msg_create(msg);
 
 	clnt_send(fd, msg, msg_size);
-	clnt_recv(fd, &resp, sizeof (resp));
+	clnt_recv(fd, &resp, sizeof(resp));
 	rpmem_ntoh_msg_create_resp(&resp);
 
 	if (status) {
@@ -168,7 +168,7 @@ client_msg_create_resp(const char *ctarget, int status)
 	} else {
 		UT_ASSERTeq(resp.hdr.type, RPMEM_MSG_TYPE_CREATE_RESP);
 		UT_ASSERTeq(resp.hdr.size,
-				sizeof (struct rpmem_msg_create_resp));
+				sizeof(struct rpmem_msg_create_resp));
 		UT_ASSERTeq(resp.hdr.status, (uint32_t)status);
 		UT_ASSERTeq(resp.ibc.port, PORT);
 		UT_ASSERTeq(resp.ibc.rkey, RKEY);

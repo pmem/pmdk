@@ -47,9 +47,9 @@
 #include "obj.h"
 #include "unittest.h"
 
-#define	MOCK_POOL_SIZE PMEMOBJ_MIN_POOL
+#define MOCK_POOL_SIZE PMEMOBJ_MIN_POOL
 
-#define	MAX_BLOCKS 3
+#define MAX_BLOCKS 3
 
 struct mock_pop {
 	PMEMobjpool p;
@@ -69,7 +69,7 @@ test_heap()
 	PMEMobjpool *pop = &mpop->p;
 	memset(pop, 0, MOCK_POOL_SIZE);
 	pop->size = MOCK_POOL_SIZE;
-	pop->heap_size = MOCK_POOL_SIZE - sizeof (PMEMobjpool);
+	pop->heap_size = MOCK_POOL_SIZE - sizeof(PMEMobjpool);
 	pop->heap_offset = (uint64_t)((uint64_t)&mpop->heap - (uint64_t)mpop);
 	pop->persist = obj_heap_persist;
 

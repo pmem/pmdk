@@ -46,7 +46,7 @@ main(int argc, char *argv[])
 	/* allocate all memory */
 	void *prev = NULL;
 	for (;;) {
-		void **next = malloc(sizeof (void *));
+		void **next = malloc(sizeof(void *));
 		if (next == NULL) {
 			/* out of memory */
 			break;

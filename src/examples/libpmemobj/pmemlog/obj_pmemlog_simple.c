@@ -60,9 +60,9 @@
 #include "libpmem.h"
 #include "libpmemlog.h"
 
-#define	USABLE_SIZE (9.0 / 10)
-#define	MAX_POOL_SIZE ((size_t)(1024L * 1024 * 1024 * 16))
-#define	POOL_SIZE ((size_t)(1024 * 1024 * 100))
+#define USABLE_SIZE (9.0 / 10)
+#define MAX_POOL_SIZE ((size_t)(1024L * 1024 * 1024 * 16))
+#define POOL_SIZE ((size_t)(1024 * 1024 * 100))
 
 POBJ_LAYOUT_BEGIN(obj_pmemlog_simple);
 POBJ_LAYOUT_ROOT(obj_pmemlog_simple, struct base);
@@ -111,7 +111,7 @@ pmemlog_map(PMEMobjpool *pop, size_t fsize)
 		TX_ADD(bp);
 		D_RW(bp)->log = TX_ZALLOC(struct log, pool_size);
 		D_RW(D_RW(bp)->log)->hdr.data_size =
-				pool_size - sizeof (struct log_hdr);
+				pool_size - sizeof(struct log_hdr);
 	} TX_ONABORT {
 		retval = -1;
 	} TX_END
@@ -417,7 +417,7 @@ main(int argc, char *argv[])
 				printf("appendv: %s\n", argv[i] + 2);
 				int count = count_iovec(argv[i] + 2);
 				struct iovec *iov = malloc(count
-						* sizeof (struct iovec));
+						* sizeof(struct iovec));
 				if (iov == NULL) {
 					fprintf(stderr, "malloc error\n");
 					return 1;

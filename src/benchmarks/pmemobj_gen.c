@@ -46,12 +46,12 @@
 #include "libpmemobj.h"
 #include "benchmark.h"
 
-#define	LAYOUT_NAME "benchmark"
-#define	FACTOR 4
-#define	DIR_MODE 0700
-#define	FILE_MODE 0666
-#define	PART_NAME "/part"
-#define	MAX_DIGITS 2
+#define LAYOUT_NAME "benchmark"
+#define FACTOR 4
+#define DIR_MODE 0700
+#define FILE_MODE 0666
+#define PART_NAME "/part"
+#define MAX_DIGITS 2
 
 struct pobj_bench;
 struct pobj_worker;
@@ -334,7 +334,7 @@ parse_type_mode(const char *arg)
 static size_t *
 rand_sizes(unsigned int min, unsigned int max, unsigned int n_ops)
 {
-	size_t *rand_sizes = malloc(n_ops * sizeof (size_t));
+	size_t *rand_sizes = malloc(n_ops * sizeof(size_t));
 	if (rand_sizes == NULL) {
 		perror("malloc");
 		return NULL;
@@ -353,7 +353,7 @@ static int
 random_types(struct pobj_bench *bench_priv, struct benchmark_args *args)
 {
 	bench_priv->random_types = malloc(bench_priv->args_priv->n_objs *
-							sizeof (size_t));
+							sizeof(size_t));
 	if (bench_priv->random_types == NULL) {
 		perror("malloc");
 		return -1;
@@ -374,7 +374,7 @@ pobj_init(struct benchmark *bench, struct benchmark_args *args)
 	assert(bench != NULL);
 	assert(args != NULL);
 
-	struct pobj_bench *bench_priv = malloc(sizeof (struct pobj_bench));
+	struct pobj_bench *bench_priv = malloc(sizeof(struct pobj_bench));
 	if (bench_priv == NULL) {
 		perror("malloc");
 		return -1;
@@ -440,13 +440,13 @@ pobj_init(struct benchmark *bench, struct benchmark_args *args)
 			goto free_random_types;
 	}
 
-	bench_priv->pop = calloc(bench_priv->n_pools, sizeof (PMEMobjpool *));
+	bench_priv->pop = calloc(bench_priv->n_pools, sizeof(PMEMobjpool *));
 	if (bench_priv->pop == NULL) {
 		perror("calloc");
 		goto free_random_sizes;
 	}
 
-	bench_priv->sets = calloc(bench_priv->n_pools, sizeof (const char *));
+	bench_priv->sets = calloc(bench_priv->n_pools, sizeof(const char *));
 	if (bench_priv->sets == NULL) {
 		perror("calloc");
 		goto free_pop;
@@ -461,7 +461,7 @@ pobj_init(struct benchmark *bench, struct benchmark_args *args)
 		size_t path_len = (strlen(PART_NAME) + strlen(args->fname))
 							+ MAX_DIGITS + 1;
 		for (i = 0; i < bench_priv->n_pools; i++) {
-			bench_priv->sets[i] = malloc(path_len * sizeof (char));
+			bench_priv->sets[i] = malloc(path_len * sizeof(char));
 			if (bench_priv->sets[i] == NULL) {
 				perror("malloc");
 				goto free_sets;
@@ -560,14 +560,14 @@ pobj_init_worker(struct benchmark *bench, struct benchmark_args
 {
 	int i, idx = worker->index;
 	struct pobj_bench *bench_priv = pmembench_get_priv(bench);
-	struct pobj_worker *pw = calloc(1, sizeof (struct pobj_worker));
+	struct pobj_worker *pw = calloc(1, sizeof(struct pobj_worker));
 	if (pw == NULL) {
 		perror("calloc");
 		return -1;
 	}
 
 	worker->priv = pw;
-	pw->oids = calloc(bench_priv->args_priv->n_objs, sizeof (PMEMoid));
+	pw->oids = calloc(bench_priv->args_priv->n_objs, sizeof(PMEMoid));
 	if (pw->oids == NULL) {
 		free(pw);
 		perror("calloc");
@@ -650,7 +650,7 @@ static struct benchmark_info obj_open = {
 	.measure_time	= true,
 	.clos		= pobj_open_clo,
 	.nclos		= ARRAY_SIZE(pobj_open_clo),
-	.opts_size	= sizeof (struct pobj_args),
+	.opts_size	= sizeof(struct pobj_args),
 	.rm_file	= true,
 	.allow_poolset	= true,
 };
@@ -670,7 +670,7 @@ static struct benchmark_info obj_direct = {
 	.measure_time	= true,
 	.clos		= pobj_direct_clo,
 	.nclos		= ARRAY_SIZE(pobj_direct_clo),
-	.opts_size	= sizeof (struct pobj_args),
+	.opts_size	= sizeof(struct pobj_args),
 	.rm_file	= true,
 	.allow_poolset	= true,
 };

@@ -36,15 +36,15 @@
  * usage: util_map_proc maps_file len [len]...
  */
 
-#define	_GNU_SOURCE
+#define _GNU_SOURCE
 
 #include <dlfcn.h>
 #include "unittest.h"
 #include "util.h"
 
-#define	MEGABYTE ((uintptr_t)1 << 20)
-#define	GIGABYTE ((uintptr_t)1 << 30)
-#define	TERABYTE ((uintptr_t)1 << 40)
+#define MEGABYTE ((uintptr_t)1 << 20)
+#define GIGABYTE ((uintptr_t)1 << 30)
+#define TERABYTE ((uintptr_t)1 << 40)
 
 char *Sfile;
 

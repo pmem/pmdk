@@ -34,13 +34,13 @@
  * ctree_map.h -- TreeMap sorted collection implementation
  */
 
-#ifndef	CTREE_MAP_H
-#define	CTREE_MAP_H
+#ifndef CTREE_MAP_H
+#define CTREE_MAP_H
 
 #include <libpmemobj.h>
 
-#ifndef	CTREE_MAP_TYPE_OFFSET
-#define	CTREE_MAP_TYPE_OFFSET 1008
+#ifndef CTREE_MAP_TYPE_OFFSET
+#define CTREE_MAP_TYPE_OFFSET 1008
 #endif
 
 struct ctree_map;

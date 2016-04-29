@@ -68,7 +68,7 @@ main(int argc, char *argv[])
 	/* allocate all memory */
 	void *prev = NULL;
 	for (;;) {
-		void **next = vmem_malloc(vmp, sizeof (void *));
+		void **next = vmem_malloc(vmp, sizeof(void *));
 		if (next == NULL) {
 			/* out of memory */
 			break;

@@ -53,10 +53,10 @@
 #include "out.h"
 #include "cpu.h"
 
-#define	EAX_IDX 0
-#define	EBX_IDX 1
-#define	ECX_IDX 2
-#define	EDX_IDX 3
+#define EAX_IDX 0
+#define EBX_IDX 1
+#define ECX_IDX 2
+#define EDX_IDX 3
 
 #if defined(__x86_64__) || defined(__amd64__)
 
@@ -81,29 +81,29 @@ cpuid(unsigned func, unsigned subfunc, unsigned cpuinfo[4])
 
 #else /* not x86_64 */
 
-#define	cpuid(func, subfunc, cpuinfo)\
+#define cpuid(func, subfunc, cpuinfo)\
 	do { (void)(func); (void)(subfunc); (void)(cpuinfo); } while (0)
 
 #endif
 
 #ifndef bit_SSE2
-#define	bit_SSE2	(1 << 26)
+#define bit_SSE2	(1 << 26)
 #endif
 
 #ifndef bit_CLFLUSH
-#define	bit_CLFLUSH	(1 << 23)
+#define bit_CLFLUSH	(1 << 23)
 #endif
 
 #ifndef bit_PCOMMIT
-#define	bit_PCOMMIT	(1 << 22)
+#define bit_PCOMMIT	(1 << 22)
 #endif
 
 #ifndef bit_CLFLUSHOPT
-#define	bit_CLFLUSHOPT	(1 << 23)
+#define bit_CLFLUSHOPT	(1 << 23)
 #endif
 
 #ifndef bit_CLWB
-#define	bit_CLWB	(1 << 24)
+#define bit_CLWB	(1 << 24)
 #endif
 
 /*
@@ -119,7 +119,7 @@ is_cpu_genuine_intel(void)
 		unsigned cpuinfo[3];
 	} vendor;
 
-	memset(&vendor, 0, sizeof (vendor));
+	memset(&vendor, 0, sizeof(vendor));
 
 	cpuid(0x0, 0x0, cpuinfo);
 
@@ -129,7 +129,7 @@ is_cpu_genuine_intel(void)
 
 	LOG(4, "CPU vendor: %s", vendor.name);
 	return (strncmp(vendor.name, "GenuineIntel",
-				sizeof (vendor.name))) == 0;
+				sizeof(vendor.name))) == 0;
 }
 
 /*

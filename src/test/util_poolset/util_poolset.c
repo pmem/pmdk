@@ -40,12 +40,12 @@
 #include "util.h"
 #include <errno.h>
 
-#define	LOG_PREFIX "ut"
-#define	LOG_LEVEL_VAR "TEST_LOG_LEVEL"
-#define	LOG_FILE_VAR "TEST_LOG_FILE"
-#define	MAJOR_VERSION 1
-#define	MINOR_VERSION 0
-#define	SIG "PMEMXXX"
+#define LOG_PREFIX "ut"
+#define LOG_LEVEL_VAR "TEST_LOG_LEVEL"
+#define LOG_FILE_VAR "TEST_LOG_FILE"
+#define MAJOR_VERSION 1
+#define MINOR_VERSION 0
+#define SIG "PMEMXXX"
 
 const char *Open_path = "";
 off_t Fallocate_len = -1;

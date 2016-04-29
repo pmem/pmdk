@@ -38,8 +38,8 @@
  * See libvmem(3) for details.
  */
 
-#ifndef	LIBVMEM_H
-#define	LIBVMEM_H 1
+#ifndef LIBVMEM_H
+#define LIBVMEM_H 1
 
 #ifdef __cplusplus
 extern "C" {
@@ -53,7 +53,7 @@ typedef struct vmem VMEM;	/* opaque type internal to libvmem */
  * managing volatile memory pools...
  */
 
-#define	VMEM_MIN_POOL ((size_t)(1024 * 1024 * 14)) /* min pool size: 14MB */
+#define VMEM_MIN_POOL ((size_t)(1024 * 1024 * 14)) /* min pool size: 14MB */
 
 VMEM *vmem_create(const char *dir, size_t size);
 VMEM *vmem_create_in_region(void *addr, size_t size);
@@ -83,8 +83,8 @@ size_t vmem_malloc_usable_size(VMEM *vmp, void *ptr);
  * is compatible with the version used at compile-time by passing
  * these defines to vmem_check_version().
  */
-#define	VMEM_MAJOR_VERSION 1
-#define	VMEM_MINOR_VERSION 0
+#define VMEM_MAJOR_VERSION 1
+#define VMEM_MINOR_VERSION 0
 const char *vmem_check_version(
 		unsigned major_required,
 		unsigned minor_required);

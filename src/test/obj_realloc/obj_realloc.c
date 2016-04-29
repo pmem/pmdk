@@ -48,12 +48,12 @@
 #include "obj.h"
 #include "heap_layout.h"
 
-#define	MIN_ALLOC_SIZE	MIN_RUN_SIZE
-#define	MAX_ALLOC_SIZE	CHUNKSIZE
-#define	ALLOC_CLASS_MUL	RUN_UNIT_MAX
-#define	MAX_ALLOC_MUL	RUN_UNIT_MAX
-#define	MAX_ALLOC_CLASS	5
-#define	ALLOC_HDR	(OBJ_OOB_SIZE + sizeof (struct allocation_header))
+#define MIN_ALLOC_SIZE	MIN_RUN_SIZE
+#define MAX_ALLOC_SIZE	CHUNKSIZE
+#define ALLOC_CLASS_MUL	RUN_UNIT_MAX
+#define MAX_ALLOC_MUL	RUN_UNIT_MAX
+#define MAX_ALLOC_CLASS	5
+#define ALLOC_HDR	(OBJ_OOB_SIZE + sizeof(struct allocation_header))
 
 POBJ_LAYOUT_BEGIN(realloc);
 POBJ_LAYOUT_ROOT(realloc, struct root);
@@ -67,7 +67,7 @@ struct object {
 
 struct root {
 	TOID(struct object) obj;
-	char data[CHUNKSIZE - sizeof (TOID(struct object))];
+	char data[CHUNKSIZE - sizeof(TOID(struct object))];
 };
 
 static size_t sizes[MAX_ALLOC_CLASS];

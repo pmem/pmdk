@@ -34,10 +34,10 @@
  * bucket.h -- internal definitions for bucket
  */
 
-#define	RUN_NALLOCS(_bs)\
+#define RUN_NALLOCS(_bs)\
 ((RUNSIZE / ((_bs))))
 
-#define	CALC_SIZE_IDX(_unit_size, _size)\
+#define CALC_SIZE_IDX(_unit_size, _size)\
 ((uint32_t)(((_size - 1) / _unit_size) + 1))
 
 enum block_container_type {
@@ -62,7 +62,7 @@ struct block_container_ops {
 	int (*is_empty)(struct block_container *c);
 };
 
-#define	CNT_OP(_b, _op, ...)\
+#define CNT_OP(_b, _op, ...)\
 (_b)->c_ops->_op((_b)->container, ##__VA_ARGS__)
 
 enum bucket_type {

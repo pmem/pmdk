@@ -40,15 +40,15 @@
  * See libpmemobj(3) for details.
  */
 
-#ifndef	LIBPMEMOBJ_H
-#define	LIBPMEMOBJ_H 1
+#ifndef LIBPMEMOBJ_H
+#define LIBPMEMOBJ_H 1
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#ifndef	__STDC_LIMIT_MACROS
-#define	__STDC_LIMIT_MACROS
+#ifndef __STDC_LIMIT_MACROS
+#define __STDC_LIMIT_MACROS
 #endif
 
 #include <errno.h>
@@ -74,15 +74,15 @@ typedef struct pmemobjpool PMEMobjpool;
  * verify that the version available at run-time is compatible with the version
  * used at compile-time by passing these defines to pmemobj_check_version().
  */
-#define	PMEMOBJ_MAJOR_VERSION 1
-#define	PMEMOBJ_MINOR_VERSION 0
+#define PMEMOBJ_MAJOR_VERSION 1
+#define PMEMOBJ_MINOR_VERSION 0
 const char *pmemobj_check_version(
 		unsigned major_required,
 		unsigned minor_required);
 
-#define	PMEMOBJ_MIN_POOL ((size_t)(1024 * 1024 * 8)) /* 8 MB */
-#define	PMEMOBJ_MAX_ALLOC_SIZE ((size_t)0x3FFDFFFC0)
-#define	PMEMOBJ_MAX_LAYOUT ((size_t)1024)
+#define PMEMOBJ_MIN_POOL ((size_t)(1024 * 1024 * 8)) /* 8 MB */
+#define PMEMOBJ_MAX_ALLOC_SIZE ((size_t)0x3FFDFFFC0)
+#define PMEMOBJ_MAX_LAYOUT ((size_t)1024)
 
 /*
  * Pool management...
@@ -109,7 +109,7 @@ const char *pmemobj_errormsg(void);
 /*
  * Locking...
  */
-#define	_POBJ_CL_ALIGNMENT 64 /* cache line alignment for performance */
+#define _POBJ_CL_ALIGNMENT 64 /* cache line alignment for performance */
 
 typedef union padded_pmemmutex {
 	char padding[_POBJ_CL_ALIGNMENT];
@@ -176,10 +176,10 @@ typedef struct pmemoid {
 	uint64_t off;
 } PMEMoid;
 
-#define	OID_NULL	((PMEMoid) {0, 0})
-#define	TOID_NULL(t)	((TOID(t))OID_NULL)
-#define	OID_IS_NULL(o)	((o).off == 0)
-#define	OID_EQUALS(lhs, rhs)\
+#define OID_NULL	((PMEMoid) {0, 0})
+#define TOID_NULL(t)	((TOID(t))OID_NULL)
+#define OID_IS_NULL(o)	((o).off == 0)
+#define OID_EQUALS(lhs, rhs)\
 ((lhs).off == (rhs).off &&\
 	(lhs).pool_uuid_lo == (rhs).pool_uuid_lo)
 
@@ -187,42 +187,42 @@ typedef struct pmemoid {
  * Type safety macros
  */
 
-#define	TOID_ASSIGN(o, value) (\
+#define TOID_ASSIGN(o, value) (\
 {\
 	(o).oid = value;\
 	(o);\
 })
-#define	TOID_EQUALS(lhs, rhs)\
+#define TOID_EQUALS(lhs, rhs)\
 ((lhs).oid.off == (rhs).oid.off &&\
 	(lhs).oid.pool_uuid_lo == (rhs).oid.pool_uuid_lo)
 
 /* type number of root object */
-#define	POBJ_ROOT_TYPE_NUM 0
-#define	_toid_struct
-#define	_toid_union
-#define	_toid_enum
-#define	_POBJ_LAYOUT_REF(name) (sizeof (_pobj_layout_##name##_ref))
+#define POBJ_ROOT_TYPE_NUM 0
+#define _toid_struct
+#define _toid_union
+#define _toid_enum
+#define _POBJ_LAYOUT_REF(name) (sizeof(_pobj_layout_##name##_ref))
 
 /*
  * Typed OID
  */
-#define	TOID(t)\
+#define TOID(t)\
 union _toid_##t##_toid
 
-#ifdef	__cplusplus
-#define	_TOID_CONSTR(t)\
+#ifdef __cplusplus
+#define _TOID_CONSTR(t)\
 _toid_##t##_toid()\
 { }\
 _toid_##t##_toid(PMEMoid _oid) : oid(_oid)\
 { }
 #else
-#define	_TOID_CONSTR(t)
+#define _TOID_CONSTR(t)
 #endif
 
 /*
  * Declaration of typed OID
  */
-#define	_TOID_DECLARE(t, i)\
+#define _TOID_DECLARE(t, i)\
 typedef uint8_t _toid_##t##_toid_type_num[(i) + 1];\
 TOID(t)\
 {\
@@ -235,73 +235,73 @@ TOID(t)\
 /*
  * Declaration of typed OID of an object
  */
-#define	TOID_DECLARE(t, i) _TOID_DECLARE(t, i)
+#define TOID_DECLARE(t, i) _TOID_DECLARE(t, i)
 
 /*
  * Declaration of typed OID of a root object
  */
-#define	TOID_DECLARE_ROOT(t) _TOID_DECLARE(t, POBJ_ROOT_TYPE_NUM)
+#define TOID_DECLARE_ROOT(t) _TOID_DECLARE(t, POBJ_ROOT_TYPE_NUM)
 
 /*
  * Type number of specified type
  */
-#define	TOID_TYPE_NUM(t) (sizeof (_toid_##t##_toid_type_num) - 1)
+#define TOID_TYPE_NUM(t) (sizeof(_toid_##t##_toid_type_num) - 1)
 
 /*
  * Type number of object read from typed OID
  */
-#define	TOID_TYPE_NUM_OF(o) (sizeof (*(o)._type_num) - 1)
+#define TOID_TYPE_NUM_OF(o) (sizeof(*(o)._type_num) - 1)
 
 /*
  * NULL check
  */
-#define	TOID_IS_NULL(o)	((o).oid.off == 0)
+#define TOID_IS_NULL(o)	((o).oid.off == 0)
 
 /*
  * Validates whether type number stored in typed OID is the same
  * as type number stored in object's metadata
  */
-#define	TOID_VALID(o) (TOID_TYPE_NUM_OF(o) == pmemobj_type_num((o).oid))
+#define TOID_VALID(o) (TOID_TYPE_NUM_OF(o) == pmemobj_type_num((o).oid))
 
 /*
  * Checks whether the object is of a given type
  */
-#define	OID_INSTANCEOF(o, t) (TOID_TYPE_NUM(t) == pmemobj_type_num(o))
+#define OID_INSTANCEOF(o, t) (TOID_TYPE_NUM(t) == pmemobj_type_num(o))
 
 /*
  * Begin of layout declaration
  */
-#define	POBJ_LAYOUT_BEGIN(name)\
+#define POBJ_LAYOUT_BEGIN(name)\
 typedef uint8_t _pobj_layout_##name##_ref[__COUNTER__ + 1]
 
 /*
  * End of layout declaration
  */
-#define	POBJ_LAYOUT_END(name)\
+#define POBJ_LAYOUT_END(name)\
 typedef char _pobj_layout_##name##_cnt[__COUNTER__ + 1 -\
 1 - _POBJ_LAYOUT_REF(name)];
 
 /*
  * Number of types declared inside layout without the root object
  */
-#define	POBJ_LAYOUT_TYPES_NUM(name) (sizeof (_pobj_layout_##name##_cnt))
+#define POBJ_LAYOUT_TYPES_NUM(name) (sizeof(_pobj_layout_##name##_cnt))
 
 /*
  * Declaration of typed OID inside layout declaration
  */
-#define	POBJ_LAYOUT_TOID(name, t)\
+#define POBJ_LAYOUT_TOID(name, t)\
 TOID_DECLARE(t, (__COUNTER__ + 1 - _POBJ_LAYOUT_REF(name)));
 
 /*
  * Declaration of typed OID of root inside layout declaration
  */
-#define	POBJ_LAYOUT_ROOT(name, t)\
+#define POBJ_LAYOUT_ROOT(name, t)\
 TOID_DECLARE_ROOT(t);
 
 /*
  * Name of declared layout
  */
-#define	POBJ_LAYOUT_NAME(name) #name
+#define POBJ_LAYOUT_NAME(name) #name
 
 PMEMobjpool *pmemobj_pool_by_ptr(const void *addr);
 PMEMobjpool *pmemobj_pool_by_oid(PMEMoid oid);
@@ -337,13 +337,13 @@ pmemobj_direct(PMEMoid oid)
 	return (void *)((uintptr_t)_pobj_cached_pool.pop + oid.off);
 }
 
-#define	DIRECT_RW(o) (\
+#define DIRECT_RW(o) (\
 {__typeof__(o) _o; _o._type = NULL; (void)_o;\
 (__typeof__(*(o)._type) *)pmemobj_direct((o).oid); })
-#define	DIRECT_RO(o) ((const __typeof__(*(o)._type) *)pmemobj_direct((o).oid))
+#define DIRECT_RO(o) ((const __typeof__(*(o)._type) *)pmemobj_direct((o).oid))
 
-#define	D_RW	DIRECT_RW
-#define	D_RO	DIRECT_RO
+#define D_RW	DIRECT_RW
+#define D_RO	DIRECT_RO
 
 /*
  * Non-transactional atomic allocations
@@ -483,7 +483,7 @@ PMEMoid pmemobj_first(PMEMobjpool *pop);
  */
 PMEMoid pmemobj_next(PMEMoid oid);
 
-#define	POBJ_FIRST_TYPE_NUM(pop, type_num) (\
+#define POBJ_FIRST_TYPE_NUM(pop, type_num) (\
 { PMEMoid _pobj_ret = pmemobj_first(pop);\
 while (!OID_IS_NULL(_pobj_ret) &&\
 	pmemobj_type_num(_pobj_ret) != type_num) {\
@@ -491,9 +491,9 @@ while (!OID_IS_NULL(_pobj_ret) &&\
 };\
 _pobj_ret; })
 
-#define	POBJ_FIRST(pop, t) ((TOID(t))POBJ_FIRST_TYPE_NUM(pop, TOID_TYPE_NUM(t)))
+#define POBJ_FIRST(pop, t) ((TOID(t))POBJ_FIRST_TYPE_NUM(pop, TOID_TYPE_NUM(t)))
 
-#define	POBJ_NEXT_TYPE_NUM(o) (\
+#define POBJ_NEXT_TYPE_NUM(o) (\
 { PMEMoid _pobj_ret = o;\
 do {\
 	_pobj_ret = pmemobj_next(_pobj_ret);\
@@ -501,43 +501,43 @@ do {\
 	pmemobj_type_num(_pobj_ret) != pmemobj_type_num(o));\
 _pobj_ret; })
 
-#define	POBJ_NEXT(o) ((__typeof__(o))POBJ_NEXT_TYPE_NUM(o.oid))
+#define POBJ_NEXT(o) ((__typeof__(o))POBJ_NEXT_TYPE_NUM(o.oid))
 
-#define	POBJ_NEW(pop, o, t, constr, arg) (\
+#define POBJ_NEW(pop, o, t, constr, arg) (\
 { TOID(t) *_pobj_tmp = (o);\
 PMEMoid *_pobj_oidp = _pobj_tmp ? &_pobj_tmp->oid : NULL;\
-pmemobj_alloc((pop), _pobj_oidp, sizeof (t), TOID_TYPE_NUM(t), (constr),\
+pmemobj_alloc((pop), _pobj_oidp, sizeof(t), TOID_TYPE_NUM(t), (constr),\
 		(arg)); })
 
-#define	POBJ_ALLOC(pop, o, t, size, constr, arg) (\
+#define POBJ_ALLOC(pop, o, t, size, constr, arg) (\
 { TOID(t) *_pobj_tmp = (o);\
 PMEMoid *_pobj_oidp = _pobj_tmp ? &_pobj_tmp->oid : NULL;\
 pmemobj_alloc((pop), _pobj_oidp, (size), TOID_TYPE_NUM(t), (constr), (arg)); })
 
-#define	POBJ_ZNEW(pop, o, t) (\
+#define POBJ_ZNEW(pop, o, t) (\
 { TOID(t) *_pobj_tmp = (o);\
 PMEMoid *_pobj_oidp = _pobj_tmp ? &_pobj_tmp->oid : NULL;\
-pmemobj_zalloc((pop), _pobj_oidp, sizeof (t), TOID_TYPE_NUM(t)); })
+pmemobj_zalloc((pop), _pobj_oidp, sizeof(t), TOID_TYPE_NUM(t)); })
 
-#define	POBJ_ZALLOC(pop, o, t, size) (\
+#define POBJ_ZALLOC(pop, o, t, size) (\
 { TOID(t) *_pobj_tmp = (o);\
 PMEMoid *_pobj_oidp = _pobj_tmp ? &_pobj_tmp->oid : NULL;\
 pmemobj_zalloc((pop), _pobj_oidp, (size), TOID_TYPE_NUM(t)); })
 
-#define	POBJ_REALLOC(pop, o, t, size) (\
+#define POBJ_REALLOC(pop, o, t, size) (\
 { TOID(t) *_pobj_tmp = (o);\
 PMEMoid *_pobj_oidp = _pobj_tmp ? &_pobj_tmp->oid : NULL;\
 pmemobj_realloc((pop), _pobj_oidp, (size), TOID_TYPE_NUM(t)); })
 
-#define	POBJ_ZREALLOC(pop, o, t, size) (\
+#define POBJ_ZREALLOC(pop, o, t, size) (\
 { TOID(t) *_pobj_tmp = (o);\
 PMEMoid *_pobj_oidp = _pobj_tmp ? &_pobj_tmp->oid : NULL;\
 pmemobj_zrealloc((pop), _pobj_oidp, (size), TOID_TYPE_NUM_OF(*(o))); })
 
-#define	POBJ_FREE(o) pmemobj_free((PMEMoid *)(o))
+#define POBJ_FREE(o) pmemobj_free((PMEMoid *)(o))
 
-#define	POBJ_ROOT(pop, t) (\
-{ TOID(t) _pobj_ret = (TOID(t))pmemobj_root((pop), sizeof (t));\
+#define POBJ_ROOT(pop, t) (\
+{ TOID(t) _pobj_ret = (TOID(t))pmemobj_root((pop), sizeof(t));\
 _pobj_ret; })
 
 /*
@@ -548,30 +548,30 @@ void _pobj_debug_notice(const char *func_name, const char *file, int line);
 /*
  * Debug helper function and macros
  */
-#ifdef	DEBUG
+#ifdef DEBUG
 
 /*
  * (debug helper macro) logs notice message if used inside a transaction
  */
-#define	_POBJ_DEBUG_NOTICE_IN_TX()\
+#define _POBJ_DEBUG_NOTICE_IN_TX()\
 	_pobj_debug_notice(__func__, NULL, 0)
 
 /*
  * (debug helper macro) logs notice message if used inside a transaction
  *                      - to be used only in FOREACH macros
  */
-#define	_POBJ_DEBUG_NOTICE_IN_TX_FOR(macro_name)\
+#define _POBJ_DEBUG_NOTICE_IN_TX_FOR(macro_name)\
 	_pobj_debug_notice(macro_name, __FILE__, __LINE__),
 
 #else
-#define	_POBJ_DEBUG_NOTICE_IN_TX() do {} while (0)
-#define	_POBJ_DEBUG_NOTICE_IN_TX_FOR(macro_name)
+#define _POBJ_DEBUG_NOTICE_IN_TX() do {} while (0)
+#define _POBJ_DEBUG_NOTICE_IN_TX_FOR(macro_name)
 #endif /* DEBUG */
 
 /*
  * Iterates through every existing allocated object.
  */
-#define	POBJ_FOREACH(pop, varoid)\
+#define POBJ_FOREACH(pop, varoid)\
 for (_POBJ_DEBUG_NOTICE_IN_TX_FOR("POBJ_FOREACH")\
 	varoid = pmemobj_first(pop);\
 		(varoid).off != 0; varoid = pmemobj_next(varoid))
@@ -579,7 +579,7 @@ for (_POBJ_DEBUG_NOTICE_IN_TX_FOR("POBJ_FOREACH")\
 /*
  * Safe variant of POBJ_FOREACH in which pmemobj_free on varoid is allowed
  */
-#define	POBJ_FOREACH_SAFE(pop, varoid, nvaroid)\
+#define POBJ_FOREACH_SAFE(pop, varoid, nvaroid)\
 for (_POBJ_DEBUG_NOTICE_IN_TX_FOR("POBJ_FOREACH_SAFE")\
 	varoid = pmemobj_first(pop);\
 		(varoid).off != 0 && (nvaroid = pmemobj_next(varoid), 1);\
@@ -588,7 +588,7 @@ for (_POBJ_DEBUG_NOTICE_IN_TX_FOR("POBJ_FOREACH_SAFE")\
 /*
  * Iterates through every object of the specified type.
  */
-#define	POBJ_FOREACH_TYPE(pop, var)\
+#define POBJ_FOREACH_TYPE(pop, var)\
 POBJ_FOREACH(pop, var.oid)\
 if (pmemobj_type_num(var.oid) == TOID_TYPE_NUM_OF(var))
 
@@ -596,20 +596,20 @@ if (pmemobj_type_num(var.oid) == TOID_TYPE_NUM_OF(var))
  * Safe variant of POBJ_FOREACH_TYPE in which pmemobj_free on var
  * is allowed.
  */
-#define	POBJ_FOREACH_SAFE_TYPE(pop, var, nvar)\
+#define POBJ_FOREACH_SAFE_TYPE(pop, var, nvar)\
 POBJ_FOREACH_SAFE(pop, var.oid, nvar.oid)\
 if (pmemobj_type_num(var.oid) == TOID_TYPE_NUM_OF(var))
 
 /*
  * Non-transactional persistent atomic circular doubly-linked list
  */
-#define	POBJ_LIST_ENTRY(type)\
+#define POBJ_LIST_ENTRY(type)\
 struct {\
 	TOID(type) pe_next;\
 	TOID(type) pe_prev;\
 }
 
-#define	POBJ_LIST_HEAD(name, type)\
+#define POBJ_LIST_HEAD(name, type)\
 struct name {\
 	TOID(type) pe_first;\
 	PMEMmutex lock;\
@@ -629,19 +629,19 @@ int pmemobj_list_move(PMEMobjpool *pop, size_t pe_old_offset,
 	void *head_old, size_t pe_new_offset, void *head_new,
 	PMEMoid dest, int before, PMEMoid oid);
 
-#define	POBJ_LIST_FIRST(head)	((head)->pe_first)
-#define	POBJ_LIST_LAST(head, field) (\
+#define POBJ_LIST_FIRST(head)	((head)->pe_first)
+#define POBJ_LIST_LAST(head, field) (\
 TOID_IS_NULL((head)->pe_first) ?\
 (head)->pe_first :\
 D_RO((head)->pe_first)->field.pe_prev)
 
-#define	POBJ_LIST_EMPTY(head)	(TOID_IS_NULL((head)->pe_first))
-#define	POBJ_LIST_NEXT(elm, field)	(D_RO(elm)->field.pe_next)
-#define	POBJ_LIST_PREV(elm, field)	(D_RO(elm)->field.pe_prev)
-#define	POBJ_LIST_DEST_HEAD	1
-#define	POBJ_LIST_DEST_TAIL	0
+#define POBJ_LIST_EMPTY(head)	(TOID_IS_NULL((head)->pe_first))
+#define POBJ_LIST_NEXT(elm, field)	(D_RO(elm)->field.pe_next)
+#define POBJ_LIST_PREV(elm, field)	(D_RO(elm)->field.pe_prev)
+#define POBJ_LIST_DEST_HEAD	1
+#define POBJ_LIST_DEST_TAIL	0
 
-#define	POBJ_LIST_FOREACH(var, head, field)\
+#define POBJ_LIST_FOREACH(var, head, field)\
 for (_POBJ_DEBUG_NOTICE_IN_TX_FOR("POBJ_LIST_FOREACH")\
 	(var) =  POBJ_LIST_FIRST((head));\
 	TOID_IS_NULL((var)) == 0;\
@@ -650,7 +650,7 @@ for (_POBJ_DEBUG_NOTICE_IN_TX_FOR("POBJ_LIST_FOREACH")\
 	TOID_ASSIGN((var), OID_NULL) :\
 	((var) = POBJ_LIST_NEXT((var), field)))
 
-#define	POBJ_LIST_FOREACH_REVERSE(var, head, field)\
+#define POBJ_LIST_FOREACH_REVERSE(var, head, field)\
 for (_POBJ_DEBUG_NOTICE_IN_TX_FOR("POBJ_LIST_FOREACH_REVERSE")\
 	(var) = POBJ_LIST_LAST((head), field);\
 	TOID_IS_NULL((var)) == 0;\
@@ -659,81 +659,81 @@ for (_POBJ_DEBUG_NOTICE_IN_TX_FOR("POBJ_LIST_FOREACH_REVERSE")\
 	TOID_ASSIGN((var), OID_NULL) :\
 	((var) = POBJ_LIST_PREV((var), field)))
 
-#define	POBJ_LIST_INSERT_HEAD(pop, head, elm, field)\
+#define POBJ_LIST_INSERT_HEAD(pop, head, elm, field)\
 pmemobj_list_insert((pop),\
 	offsetof(__typeof__ (*(POBJ_LIST_FIRST(head)._type)), field),\
 	(head), OID_NULL,\
 	POBJ_LIST_DEST_HEAD, (elm).oid)
 
-#define	POBJ_LIST_INSERT_TAIL(pop, head, elm, field)\
+#define POBJ_LIST_INSERT_TAIL(pop, head, elm, field)\
 pmemobj_list_insert((pop),\
 	offsetof(__typeof__ (*(POBJ_LIST_FIRST(head)._type)), field),\
 	(head), OID_NULL,\
 	POBJ_LIST_DEST_TAIL, (elm).oid)
 
-#define	POBJ_LIST_INSERT_AFTER(pop, head, listelm, elm, field)\
+#define POBJ_LIST_INSERT_AFTER(pop, head, listelm, elm, field)\
 pmemobj_list_insert((pop),\
 	offsetof(__typeof__ (*(POBJ_LIST_FIRST(head)._type)), field),\
 	(head), (listelm).oid,\
 	0 /* after */, (elm).oid)
 
-#define	POBJ_LIST_INSERT_BEFORE(pop, head, listelm, elm, field)\
+#define POBJ_LIST_INSERT_BEFORE(pop, head, listelm, elm, field)\
 pmemobj_list_insert((pop), \
 	offsetof(__typeof__ (*(POBJ_LIST_FIRST(head)._type)), field),\
 	(head), (listelm).oid,\
 	1 /* before */, (elm).oid)
 
-#define	POBJ_LIST_INSERT_NEW_HEAD(pop, head, field, size, constr, arg)\
+#define POBJ_LIST_INSERT_NEW_HEAD(pop, head, field, size, constr, arg)\
 pmemobj_list_insert_new((pop),\
 	offsetof(__typeof__ (*((head)->pe_first._type)), field),\
 	(head), OID_NULL, POBJ_LIST_DEST_HEAD, (size),\
 	TOID_TYPE_NUM_OF((head)->pe_first), (constr), (arg))
 
-#define	POBJ_LIST_INSERT_NEW_TAIL(pop, head, field, size, constr, arg)\
+#define POBJ_LIST_INSERT_NEW_TAIL(pop, head, field, size, constr, arg)\
 pmemobj_list_insert_new((pop),\
 	offsetof(__typeof__ (*((head)->pe_first._type)), field),\
 	(head), OID_NULL, POBJ_LIST_DEST_TAIL, (size),\
 	TOID_TYPE_NUM_OF((head)->pe_first), (constr), (arg))
 
-#define	POBJ_LIST_INSERT_NEW_AFTER(pop, head, listelm, field, size,\
+#define POBJ_LIST_INSERT_NEW_AFTER(pop, head, listelm, field, size,\
 	constr, arg)\
 pmemobj_list_insert_new((pop),\
 	offsetof(__typeof__ (*((head)->pe_first._type)), field),\
 	(head), (listelm).oid, 0 /* after */, (size),\
 	TOID_TYPE_NUM_OF((head)->pe_first), (constr), (arg))
 
-#define	POBJ_LIST_INSERT_NEW_BEFORE(pop, head, listelm, field, size,\
+#define POBJ_LIST_INSERT_NEW_BEFORE(pop, head, listelm, field, size,\
 		constr, arg)\
 pmemobj_list_insert_new((pop),\
 	offsetof(__typeof__ (*(POBJ_LIST_FIRST(head)._type)), field),\
 	(head), (listelm).oid, 1 /* before */, (size),\
 	TOID_TYPE_NUM_OF((head)->pe_first), (constr), (arg))
 
-#define	POBJ_LIST_REMOVE(pop, head, elm, field)\
+#define POBJ_LIST_REMOVE(pop, head, elm, field)\
 pmemobj_list_remove((pop),\
 	offsetof(__typeof__ (*(POBJ_LIST_FIRST(head)._type)), field),\
 	(head), (elm).oid, 0 /* no free */)
 
-#define	POBJ_LIST_REMOVE_FREE(pop, head, elm, field)\
+#define POBJ_LIST_REMOVE_FREE(pop, head, elm, field)\
 pmemobj_list_remove((pop),\
 	offsetof(__typeof__ (*(POBJ_LIST_FIRST(head)._type)), field),\
 	(head), (elm).oid, 1 /* free */)
 
-#define	POBJ_LIST_MOVE_ELEMENT_HEAD(pop, head, head_new, elm, field, field_new)\
+#define POBJ_LIST_MOVE_ELEMENT_HEAD(pop, head, head_new, elm, field, field_new)\
 pmemobj_list_move((pop),\
 	offsetof(__typeof__ (*(POBJ_LIST_FIRST(head)._type)), field),\
 	(head),\
 	offsetof(__typeof__ (*(POBJ_LIST_FIRST(head_new)._type)), field_new),\
 	(head_new), OID_NULL, POBJ_LIST_DEST_HEAD, (elm).oid)
 
-#define	POBJ_LIST_MOVE_ELEMENT_TAIL(pop, head, head_new, elm, field, field_new)\
+#define POBJ_LIST_MOVE_ELEMENT_TAIL(pop, head, head_new, elm, field, field_new)\
 pmemobj_list_move((pop),\
 	offsetof(__typeof__ (*(POBJ_LIST_FIRST(head)._type)), field),\
 	(head),\
 	offsetof(__typeof__ (*(POBJ_LIST_FIRST(head_new)._type)), field_new),\
 	(head_new), OID_NULL, POBJ_LIST_DEST_TAIL, (elm).oid)
 
-#define	POBJ_LIST_MOVE_ELEMENT_AFTER(pop,\
+#define POBJ_LIST_MOVE_ELEMENT_AFTER(pop,\
 	head, head_new, listelm, elm, field, field_new)\
 pmemobj_list_move((pop),\
 	offsetof(__typeof__ (*(POBJ_LIST_FIRST(head)._type)), field),\
@@ -743,7 +743,7 @@ pmemobj_list_move((pop),\
 	(listelm).oid,\
 	0 /* after */, (elm).oid)
 
-#define	POBJ_LIST_MOVE_ELEMENT_BEFORE(pop,\
+#define POBJ_LIST_MOVE_ELEMENT_BEFORE(pop,\
 	head, head_new, listelm, elm, field, field_new)\
 pmemobj_list_move((pop),\
 	offsetof(__typeof__ (*(POBJ_LIST_FIRST(head)._type)), field),\
@@ -842,15 +842,15 @@ void pmemobj_tx_process(void);
 int pmemobj_tx_errno(void);
 
 #ifdef POBJ_TX_CRASH_ON_NO_ONABORT
-#define	TX_ONABORT_CHECK do {\
+#define TX_ONABORT_CHECK do {\
 		if (_stage == TX_STAGE_ONABORT)\
 			abort();\
 	} while (0)
 #else
-#define	TX_ONABORT_CHECK do {} while (0)
+#define TX_ONABORT_CHECK do {} while (0)
 #endif
 
-#define	_POBJ_TX_BEGIN(pop, ...)\
+#define _POBJ_TX_BEGIN(pop, ...)\
 {\
 	jmp_buf _tx_env;\
 	int _stage;\
@@ -867,27 +867,27 @@ int pmemobj_tx_errno(void);
 		switch (_stage) {\
 			case TX_STAGE_WORK:
 
-#define	TX_BEGIN_LOCK(pop, ...)\
+#define TX_BEGIN_LOCK(pop, ...)\
 _POBJ_TX_BEGIN(pop, ##__VA_ARGS__)
 
-#define	TX_BEGIN(pop) _POBJ_TX_BEGIN(pop, TX_LOCK_NONE)
+#define TX_BEGIN(pop) _POBJ_TX_BEGIN(pop, TX_LOCK_NONE)
 
-#define	TX_ONABORT\
+#define TX_ONABORT\
 				pmemobj_tx_process();\
 				break;\
 			case TX_STAGE_ONABORT:
 
-#define	TX_ONCOMMIT\
+#define TX_ONCOMMIT\
 				pmemobj_tx_process();\
 				break;\
 			case TX_STAGE_ONCOMMIT:
 
-#define	TX_FINALLY\
+#define TX_FINALLY\
 				pmemobj_tx_process();\
 				break;\
 			case TX_STAGE_FINALLY:
 
-#define	TX_END\
+#define TX_END\
 				pmemobj_tx_process();\
 				break;\
 			default:\
@@ -989,57 +989,57 @@ PMEMoid pmemobj_tx_strdup(const char *s, uint64_t type_num);
  */
 int pmemobj_tx_free(PMEMoid oid);
 
-#define	TX_ADD(o)\
-pmemobj_tx_add_range((o).oid, 0, sizeof (*(o)._type))
+#define TX_ADD(o)\
+pmemobj_tx_add_range((o).oid, 0, sizeof(*(o)._type))
 
-#define	TX_ADD_FIELD(o, field)\
+#define TX_ADD_FIELD(o, field)\
 pmemobj_tx_add_range((o).oid, offsetof(__typeof__ (*(o)._type), field),\
-		sizeof (D_RO(o)->field))
+		sizeof(D_RO(o)->field))
 
-#define	TX_ADD_DIRECT(p)\
-pmemobj_tx_add_range_direct(p, sizeof (*p))
+#define TX_ADD_DIRECT(p)\
+pmemobj_tx_add_range_direct(p, sizeof(*p))
 
-#define	TX_ADD_FIELD_DIRECT(p, field)\
-pmemobj_tx_add_range_direct(&(p)->field, sizeof ((p)->field))
+#define TX_ADD_FIELD_DIRECT(p, field)\
+pmemobj_tx_add_range_direct(&(p)->field, sizeof((p)->field))
 
-#define	TX_NEW(t) (\
-{ TOID(t) _pobj_ret = (TOID(t))pmemobj_tx_alloc(sizeof (t),\
+#define TX_NEW(t) (\
+{ TOID(t) _pobj_ret = (TOID(t))pmemobj_tx_alloc(sizeof(t),\
 TOID_TYPE_NUM(t)); _pobj_ret; })
 
-#define	TX_ALLOC(t, size) (\
+#define TX_ALLOC(t, size) (\
 { TOID(t) _pobj_ret = (TOID(t))pmemobj_tx_alloc((size),\
 TOID_TYPE_NUM(t)); _pobj_ret; })
 
-#define	TX_ZNEW(t) (\
-{ TOID(t) _pobj_ret = (TOID(t))pmemobj_tx_zalloc(sizeof (t),\
+#define TX_ZNEW(t) (\
+{ TOID(t) _pobj_ret = (TOID(t))pmemobj_tx_zalloc(sizeof(t),\
 TOID_TYPE_NUM(t)); _pobj_ret; })
 
-#define	TX_ZALLOC(t, size) (\
+#define TX_ZALLOC(t, size) (\
 { TOID(t) _pobj_ret = (TOID(t))pmemobj_tx_zalloc((size),\
 TOID_TYPE_NUM(t)); _pobj_ret; })
 
-#define	TX_REALLOC(o, size) (\
+#define TX_REALLOC(o, size) (\
 { __typeof__(o) _pobj_ret =\
 (__typeof__(o))pmemobj_tx_realloc((o).oid, (size),\
 TOID_TYPE_NUM_OF(o)); _pobj_ret; })
 
-#define	TX_ZREALLOC(o, size) (\
+#define TX_ZREALLOC(o, size) (\
 { __typeof__(o) _pobj_ret =\
 (__typeof__(o))pmemobj_tx_zrealloc((o).oid, (size),\
 TOID_TYPE_NUM_OF(o)); _pobj_ret; })
 
-#define	TX_STRDUP(s, type_num)\
+#define TX_STRDUP(s, type_num)\
 pmemobj_tx_strdup(s, type_num)
 
-#define	TX_FREE(o)\
+#define TX_FREE(o)\
 pmemobj_tx_free((o).oid)
 
-#define	TX_SET(o, field, value) (\
+#define TX_SET(o, field, value) (\
 {\
 	TX_ADD_FIELD(o, field);\
 	D_RW(o)->field = value; })
 
-#define	TX_SET_DIRECT(p, field, value) (\
+#define TX_SET_DIRECT(p, field, value) (\
 {\
 	TX_ADD_FIELD_DIRECT(p, field);\
 	p->field = value; })

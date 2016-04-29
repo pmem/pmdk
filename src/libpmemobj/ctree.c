@@ -49,15 +49,15 @@
 #include "sys_util.h"
 #include "ctree.h"
 
-#define	BIT_IS_SET(n, i) (!!((n) & (1ULL << (i))))
+#define BIT_IS_SET(n, i) (!!((n) & (1ULL << (i))))
 
 /* internal nodes have LSB of the pointer set, leafs do not */
-#define	NODE_IS_INTERNAL(node) (BIT_IS_SET((uintptr_t)(node), 0))
-#define	NODE_INTERNAL_GET(node) ((void *)((char *)(node) - 1))
-#define	NODE_INTERNAL_SET(d, node) ((d) = (void *)((char *)(node) + 1))
+#define NODE_IS_INTERNAL(node) (BIT_IS_SET((uintptr_t)(node), 0))
+#define NODE_INTERNAL_GET(node) ((void *)((char *)(node) - 1))
+#define NODE_INTERNAL_SET(d, node) ((d) = (void *)((char *)(node) + 1))
 
-#ifndef	CTREE_FAST_RECURSIVE_DELETE
-#define	CTREE_FAST_RECURSIVE_DELETE 1
+#ifndef CTREE_FAST_RECURSIVE_DELETE
+#define CTREE_FAST_RECURSIVE_DELETE 1
 #endif
 
 struct node {
@@ -93,7 +93,7 @@ find_crit_bit(uint64_t lhs, uint64_t rhs)
 struct ctree *
 ctree_new()
 {
-	struct ctree *t = Malloc(sizeof (*t));
+	struct ctree *t = Malloc(sizeof(*t));
 	if (t == NULL)
 		return NULL;
 
@@ -155,7 +155,7 @@ ctree_insert_unlocked(struct ctree *t, uint64_t key, uint64_t value)
 	}
 
 	struct node_leaf *dstleaf = *dst;
-	struct node_leaf *nleaf = Malloc(sizeof (*nleaf));
+	struct node_leaf *nleaf = Malloc(sizeof(*nleaf));
 	if (nleaf == NULL)
 		return ENOMEM;
 
@@ -167,7 +167,7 @@ ctree_insert_unlocked(struct ctree *t, uint64_t key, uint64_t value)
 		goto out;
 	}
 
-	struct node *n = Malloc(sizeof (*n)); /* internal node */
+	struct node *n = Malloc(sizeof(*n)); /* internal node */
 	if (n == NULL) {
 		err = ENOMEM;
 		goto error_internal_malloc;

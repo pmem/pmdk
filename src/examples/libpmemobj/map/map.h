@@ -35,12 +35,12 @@
  */
 
 #ifndef MAP_H
-#define	MAP_H
+#define MAP_H
 
 #include <libpmemobj.h>
 
-#ifndef	MAP_TYPE_OFFSET
-#define	MAP_TYPE_OFFSET 1000
+#ifndef MAP_TYPE_OFFSET
+#define MAP_TYPE_OFFSET 1000
 #endif
 
 TOID_DECLARE(struct map, MAP_TYPE_OFFSET + 0);

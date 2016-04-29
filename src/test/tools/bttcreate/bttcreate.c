@@ -48,9 +48,9 @@
 #include "out.h"
 #include "util.h"
 
-#define	BTT_CREATE_DEF_SIZE	(20 * 1UL << 20) /* 20 MB */
-#define	BTT_CREATE_DEF_BLK_SIZE	512UL
-#define	BTT_CREATE_DEF_OFFSET_SIZE	(4 * 1UL << 10) /* 4 KB */
+#define BTT_CREATE_DEF_SIZE	(20 * 1UL << 20) /* 20 MB */
+#define BTT_CREATE_DEF_BLK_SIZE	512UL
+#define BTT_CREATE_DEF_OFFSET_SIZE	(4 * 1UL << 10) /* 4 KB */
 
 struct btt_context {
 	void *addr;

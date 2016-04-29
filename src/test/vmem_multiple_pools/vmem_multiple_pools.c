@@ -38,7 +38,7 @@
 
 #include "unittest.h"
 
-#define	TEST_REPEAT_CREATE_POOLS (10)
+#define TEST_REPEAT_CREATE_POOLS (10)
 
 static char **mem_pools;
 static VMEM **pools;
@@ -75,7 +75,7 @@ thread_func(void *arg)
 			}
 
 			void *test = vmem_malloc(pools[pool_id],
-				sizeof (void *));
+				sizeof(void *));
 
 			UT_ASSERTne(test, NULL);
 			vmem_free(pools[pool_id], test);
@@ -100,8 +100,8 @@ main(int argc, char *argv[])
 	UT_OUT("create %d pools in %d thread(s)", npools, nthreads);
 
 	const unsigned mem_pools_size = (npools / 2 + npools % 2) * nthreads;
-	mem_pools = MALLOC(mem_pools_size * sizeof (char *));
-	pools = CALLOC(npools * nthreads, sizeof (VMEM *));
+	mem_pools = MALLOC(mem_pools_size * sizeof(char *));
+	pools = CALLOC(npools * nthreads, sizeof(VMEM *));
 	pthread_t threads[nthreads];
 	int pool_idx[nthreads];
 

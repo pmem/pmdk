@@ -36,7 +36,7 @@
  * usage: pmem_is_pmem_proc file addr len [addr len]...
  */
 
-#define	_GNU_SOURCE
+#define _GNU_SOURCE
 #include "unittest.h"
 
 #include <dlfcn.h>

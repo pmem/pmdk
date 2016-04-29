@@ -39,7 +39,7 @@
 static const struct rpmem_msg_open_resp OPEN_RESP = {
 	.hdr = {
 		.type = RPMEM_MSG_TYPE_OPEN_RESP,
-		.size = sizeof (struct rpmem_msg_open_resp),
+		.size = sizeof(struct rpmem_msg_open_resp),
 		.status = 0,
 	},
 	.ibc	= {
@@ -59,7 +59,7 @@ static void
 check_open_msg(struct rpmem_msg_open *msg)
 {
 	size_t pool_desc_size = strlen(POOL_DESC) + 1;
-	size_t msg_size = sizeof (struct rpmem_msg_open) + pool_desc_size;
+	size_t msg_size = sizeof(struct rpmem_msg_open) + pool_desc_size;
 
 	UT_ASSERTeq(msg->hdr.type, RPMEM_MSG_TYPE_OPEN);
 	UT_ASSERTeq(msg->hdr.size, msg_size);
@@ -78,7 +78,7 @@ check_open_msg(struct rpmem_msg_open *msg)
 static void
 server_open_handle(struct server *s, const struct rpmem_msg_open_resp *resp)
 {
-	size_t msg_size = sizeof (struct rpmem_msg_open) +
+	size_t msg_size = sizeof(struct rpmem_msg_open) +
 			strlen(POOL_DESC) + 1;
 	struct rpmem_msg_open *msg = MALLOC(msg_size);
 
@@ -86,7 +86,7 @@ server_open_handle(struct server *s, const struct rpmem_msg_open_resp *resp)
 	srv_recv(s, msg, msg_size);
 	rpmem_ntoh_msg_open(msg);
 	check_open_msg(msg);
-	srv_send(s, resp, sizeof (*resp));
+	srv_send(s, resp, sizeof(*resp));
 	srv_disconnect(s);
 
 	FREE(msg);
@@ -96,7 +96,7 @@ server_open_handle(struct server *s, const struct rpmem_msg_open_resp *resp)
  * Number of cases for EPROTO test. Must be kept in sync with the
  * server_open_eproto function.
  */
-#define	OPEN_EPROTO_COUNT 8
+#define OPEN_EPROTO_COUNT 8
 
 /*
  * server_open_eproto -- send invalid open request responses to a client
@@ -173,7 +173,7 @@ server_open(const struct test_case *tc, int argc, char *argv[])
 	struct rpmem_msg_open_resp resp = OPEN_RESP;
 	rpmem_hton_msg_open_resp(&resp);
 
-	server_econnreset(s, &resp, sizeof (resp) / 2);
+	server_econnreset(s, &resp, sizeof(resp) / 2);
 
 	server_open_eproto(s);
 
@@ -200,7 +200,7 @@ client_open_errno(char *target, int ex_errno, int count)
 	};
 
 	struct rpmem_pool_attr pool_attr;
-	memset(&pool_attr, 0, sizeof (pool_attr));
+	memset(&pool_attr, 0, sizeof(pool_attr));
 
 	struct rpmem_resp_attr res;
 	int ret;
@@ -273,7 +273,7 @@ client_open_error(char *target)
 	};
 
 	struct rpmem_pool_attr pool_attr;
-	memset(&pool_attr, 0, sizeof (pool_attr));
+	memset(&pool_attr, 0, sizeof(pool_attr));
 
 	struct rpmem_resp_attr res;
 	int ret;

@@ -41,7 +41,7 @@
 #include "valgrind_internal.h"
 #include "util.h"
 
-#define	NUM_THREADS 16
+#define NUM_THREADS 16
 
 static void
 print_errors(const char *msg)

@@ -36,12 +36,12 @@
  * usage: pmem_map file
  */
 
-#define	_GNU_SOURCE
+#define _GNU_SOURCE
 #include "unittest.h"
 #include <stdlib.h>
 #include <dlfcn.h>
 
-#define	CHECK_BYTES 4096	/* bytes to compare before/after map call */
+#define CHECK_BYTES 4096	/* bytes to compare before/after map call */
 
 sigjmp_buf Jmp;
 
@@ -86,7 +86,7 @@ signal_handler(int sig)
 	siglongjmp(Jmp, 1);
 }
 
-#define	PMEM_FILE_ALL_FLAGS\
+#define PMEM_FILE_ALL_FLAGS\
 	(PMEM_FILE_CREATE|PMEM_FILE_EXCL|PMEM_FILE_SPARSE|PMEM_FILE_TMPFILE)
 
 /*

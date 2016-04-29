@@ -40,8 +40,8 @@
  * See libpmem(3) for details.
  */
 
-#ifndef	LIBPMEM_H
-#define	LIBPMEM_H 1
+#ifndef LIBPMEM_H
+#define LIBPMEM_H 1
 
 #ifdef __cplusplus
 extern "C" {
@@ -52,10 +52,10 @@ extern "C" {
 /*
  * flags supported by pmem_map_file()
  */
-#define	PMEM_FILE_CREATE	(1 << 0)
-#define	PMEM_FILE_EXCL		(1 << 1)
-#define	PMEM_FILE_SPARSE	(1 << 2)
-#define	PMEM_FILE_TMPFILE	(1 << 3)
+#define PMEM_FILE_CREATE	(1 << 0)
+#define PMEM_FILE_EXCL		(1 << 1)
+#define PMEM_FILE_SPARSE	(1 << 2)
+#define PMEM_FILE_TMPFILE	(1 << 3)
 
 void *pmem_map_file(const char *path, size_t len, int flags, mode_t mode,
 	size_t *mapped_lenp, int *is_pmemp);
@@ -79,8 +79,8 @@ void *pmem_memset_nodrain(void *pmemdest, int c, size_t len);
  * the version available at run-time is compatible with the version used at
  * compile-time by passing these defines to pmem_check_version().
  */
-#define	PMEM_MAJOR_VERSION 1
-#define	PMEM_MINOR_VERSION 0
+#define PMEM_MAJOR_VERSION 1
+#define PMEM_MINOR_VERSION 0
 const char *pmem_check_version(
 		unsigned major_required,
 		unsigned minor_required);

@@ -45,9 +45,9 @@
 #include <libpmem.h>
 
 /* using 4k of pmem for this example */
-#define	PMEM_LEN 4096
+#define PMEM_LEN 4096
 
-#define	PATH "/pmem-fs/myfile"
+#define PATH "/pmem-fs/myfile"
 
 int
 main(int argc, char *argv[])

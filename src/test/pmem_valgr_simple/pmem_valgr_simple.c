@@ -65,15 +65,15 @@ main(int argc, char *argv[])
 	*tmp64dst = 50;
 
 	if (is_pmem) {
-		pmem_persist(tmp64dst, sizeof (*tmp64dst));
+		pmem_persist(tmp64dst, sizeof(*tmp64dst));
 	} else {
-		pmem_msync(tmp64dst, sizeof (*tmp64dst));
+		pmem_msync(tmp64dst, sizeof(*tmp64dst));
 	}
 
 	uint16_t *tmp16dst = (void *)((uintptr_t)dest + 1024);
 	*tmp16dst = 21;
 	/* will appear as flushed/fenced in valgrind log */
-	pmem_flush(tmp16dst, sizeof (*tmp16dst));
+	pmem_flush(tmp16dst, sizeof(*tmp16dst));
 
 	/* shows strange behavior of memset in some cases */
 	memset(dest + dest_off, 0, bytes);

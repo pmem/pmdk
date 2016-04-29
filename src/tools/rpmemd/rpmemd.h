@@ -34,4 +34,4 @@
  * rpmemd.h -- rpmemd main header file
  */
 
-#define	DAEMON_NAME	"rpmemd"
+#define DAEMON_NAME	"rpmemd"

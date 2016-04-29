@@ -39,11 +39,11 @@
 #include "unittest.h"
 #include "util.h"
 
-#define	LOG_PREFIX "parser"
-#define	LOG_LEVEL_VAR "PARSER_LOG_LEVEL"
-#define	LOG_FILE_VAR "PARSER_LOG_FILE"
-#define	MAJOR_VERSION 1
-#define	MINOR_VERSION 0
+#define LOG_PREFIX "parser"
+#define LOG_LEVEL_VAR "PARSER_LOG_LEVEL"
+#define LOG_FILE_VAR "PARSER_LOG_FILE"
+#define MAJOR_VERSION 1
+#define MINOR_VERSION 0
 
 /*
  * Declaration of out_init and out_fini functions because it is not

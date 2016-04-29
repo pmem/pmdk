@@ -81,12 +81,12 @@ test_everything(const char *path)
 
 	struct root *rt = D_RW(POBJ_ROOT(pop, struct root));
 
-	POBJ_ALLOC(pop, &rt->s1, struct struct1, sizeof (struct struct1),
+	POBJ_ALLOC(pop, &rt->s1, struct struct1, sizeof(struct struct1),
 			NULL, NULL);
 	struct struct1 *s1 = D_RW(rt->s1);
 	struct struct1 *s2;
 
-	POBJ_ALLOC(pop, &rt->s2, struct struct1, sizeof (struct struct1),
+	POBJ_ALLOC(pop, &rt->s2, struct struct1, sizeof(struct struct1),
 			NULL, NULL);
 	s2 = D_RW(rt->s2);
 	POBJ_FREE(&rt->s2);
@@ -98,9 +98,9 @@ test_everything(const char *path)
 	/* write to freed object */
 	s2->fld = 7;
 
-	pmemobj_persist(pop, s2, sizeof (*s2));
+	pmemobj_persist(pop, s2, sizeof(*s2));
 
-	POBJ_ALLOC(pop, &rt->s2, struct struct1, sizeof (struct struct1),
+	POBJ_ALLOC(pop, &rt->s2, struct struct1, sizeof(struct struct1),
 			NULL, NULL);
 	s2 = D_RW(rt->s2);
 	memset(s2, 0, pmemobj_alloc_usable_size(rt->s2.oid));
@@ -112,33 +112,33 @@ test_everything(const char *path)
 	/* invalid write */
 	s2->dyn[1000] = 9;
 
-	pmemobj_persist(pop, s2, sizeof (struct struct1));
+	pmemobj_persist(pop, s2, sizeof(struct struct1));
 
 	POBJ_REALLOC(pop, &rt->s2, struct struct1,
-			sizeof (struct struct1) + 100 * sizeof (int));
+			sizeof(struct struct1) + 100 * sizeof(int));
 	s2 = D_RW(rt->s2);
 	s2->dyn[0] = 9; /* ok */
-	pmemobj_persist(pop, s2, sizeof (struct struct1) + 100 * sizeof (int));
+	pmemobj_persist(pop, s2, sizeof(struct struct1) + 100 * sizeof(int));
 
 	POBJ_FREE(&rt->s2);
 	/* invalid write to REALLOCated and FREEd object */
 	s2->dyn[0] = 9;
-	pmemobj_persist(pop, s2, sizeof (struct struct1) + 100 * sizeof (int));
+	pmemobj_persist(pop, s2, sizeof(struct struct1) + 100 * sizeof(int));
 
 
 
-	POBJ_ALLOC(pop, &rt->s2, struct struct1, sizeof (struct struct1),
+	POBJ_ALLOC(pop, &rt->s2, struct struct1, sizeof(struct struct1),
 			NULL, NULL);
 	POBJ_REALLOC(pop, &rt->s2, struct struct1,
-			sizeof (struct struct1) + 30 * sizeof (int));
+			sizeof(struct struct1) + 30 * sizeof(int));
 	s2 = D_RW(rt->s2);
 	s2->dyn[0] = 0;
 	s2->dyn[29] = 29;
-	pmemobj_persist(pop, s2, sizeof (struct struct1) + 30 * sizeof (int));
+	pmemobj_persist(pop, s2, sizeof(struct struct1) + 30 * sizeof(int));
 	POBJ_FREE(&rt->s2);
 
 	s2->dyn[0] = 9;
-	pmemobj_persist(pop, s2, sizeof (struct struct1) + 30 * sizeof (int));
+	pmemobj_persist(pop, s2, sizeof(struct struct1) + 30 * sizeof(int));
 
 	pmemobj_close(pop);
 }

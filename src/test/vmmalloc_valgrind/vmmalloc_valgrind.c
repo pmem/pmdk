@@ -55,7 +55,7 @@ main(int argc, char *argv[])
 	switch (test_case) {
 		case 0: {
 			UT_OUT("remove all allocations");
-			ptr = malloc(sizeof (int));
+			ptr = malloc(sizeof(int));
 			if (ptr == NULL)
 				UT_FATAL("!malloc");
 
@@ -64,7 +64,7 @@ main(int argc, char *argv[])
 		}
 		case 1: {
 			UT_OUT("memory leaks");
-			ptr = malloc(sizeof (int));
+			ptr = malloc(sizeof(int));
 			if (ptr == NULL)
 				UT_FATAL("!malloc");
 
@@ -74,7 +74,7 @@ main(int argc, char *argv[])
 		}
 		case 2: {
 			UT_OUT("heap block overrun");
-			ptr = malloc(12 * sizeof (int));
+			ptr = malloc(12 * sizeof(int));
 			if (ptr == NULL)
 				UT_FATAL("!malloc");
 

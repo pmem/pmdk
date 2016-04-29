@@ -34,11 +34,11 @@
  * util_cpuid.c -- unit test for CPU features detection
  */
 
-#define	_GNU_SOURCE
+#define _GNU_SOURCE
 #include "unittest.h"
 #include "cpu.h"
 
-#define	PROCMAXLEN 2048 /* maximum expected line length in /proc files */
+#define PROCMAXLEN 2048 /* maximum expected line length in /proc files */
 
 /*
  * parse_cpuinfo -- parses one line from /proc/cpuinfo
@@ -55,11 +55,11 @@ parse_cpuinfo(char *line)
 	static const char pcommit[] = " pcommit ";
 	static const char sse2[] = " sse2 ";
 
-	if (strncmp(flagspfx, line, sizeof (flagspfx) - 1) != 0)
+	if (strncmp(flagspfx, line, sizeof(flagspfx) - 1) != 0)
 		return 0;
 
 	/* start of list of flags */
-	char *flags = &line[sizeof (flagspfx) - 2];
+	char *flags = &line[sizeof(flagspfx) - 2];
 
 	/* change ending newline to space delimiter */
 	char *nl = strrchr(line, '\n');

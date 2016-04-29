@@ -45,7 +45,7 @@
 struct server *
 srv_listen(unsigned short port)
 {
-	struct server *s = CALLOC(1, sizeof (*s));
+	struct server *s = CALLOC(1, sizeof(*s));
 	s->fd = socket(AF_INET, SOCK_STREAM, 0);
 	if (s->fd == -1)
 		UT_FATAL("!socket");
@@ -53,16 +53,16 @@ srv_listen(unsigned short port)
 	int ret;
 
 	int x = 1;
-	ret = setsockopt(s->fd, SOL_SOCKET, SO_REUSEADDR, &x, sizeof (x));
+	ret = setsockopt(s->fd, SOL_SOCKET, SO_REUSEADDR, &x, sizeof(x));
 	if (ret)
 		UT_FATAL("!setsockopt");
 
 	struct sockaddr_in addr;
-	memset(&addr, 0, sizeof (addr));
+	memset(&addr, 0, sizeof(addr));
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons(port);
 
-	ret = bind(s->fd, (struct sockaddr *)&addr, sizeof (addr));
+	ret = bind(s->fd, (struct sockaddr *)&addr, sizeof(addr));
 	if (ret)
 		UT_FATAL("!bind %u", port);
 
@@ -99,7 +99,7 @@ void
 srv_accept(struct server *s)
 {
 	struct sockaddr_in client_addr;
-	socklen_t client_len = sizeof (client_addr);
+	socklen_t client_len = sizeof(client_addr);
 	s->cfd = accept(s->fd, (struct sockaddr *)&client_addr,
 			&client_len);
 	UT_ASSERTne(s->cfd, -1);
@@ -156,7 +156,7 @@ void
 srv_wait_disconnect(struct server *s)
 {
 	int buff;
-	ssize_t rret = read(s->cfd, &buff, sizeof (buff));
+	ssize_t rret = read(s->cfd, &buff, sizeof(buff));
 	UT_ASSERT(rret <= 0);
 
 	srv_disconnect(s);

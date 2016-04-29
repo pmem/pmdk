@@ -39,11 +39,11 @@
 
 #include "unittest.h"
 
-#define	LAYOUT_NAME "many_size_allocs"
-#define	TEST_ALLOC_SIZE 2048
+#define LAYOUT_NAME "many_size_allocs"
+#define TEST_ALLOC_SIZE 2048
 
-#define	LAZY_LOAD_SIZE 10
-#define	LAZY_LOAD_BIG_SIZE 150
+#define LAZY_LOAD_SIZE 10
+#define LAZY_LOAD_BIG_SIZE 150
 
 struct cargs {
 	size_t size;

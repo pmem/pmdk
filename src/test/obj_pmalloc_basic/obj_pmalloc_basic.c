@@ -47,16 +47,16 @@
 #include "unittest.h"
 #include "valgrind_internal.h"
 
-#define	MOCK_POOL_SIZE PMEMOBJ_MIN_POOL
-#define	TEST_MEGA_ALLOC_SIZE (1024 * 1024)
-#define	TEST_HUGE_ALLOC_SIZE (255 * 1024)
-#define	TEST_SMALL_ALLOC_SIZE (200)
-#define	TEST_MEDIUM_ALLOC_SIZE (300)
-#define	TEST_TINY_ALLOC_SIZE (64)
-#define	TEST_RUNS 2
+#define MOCK_POOL_SIZE PMEMOBJ_MIN_POOL
+#define TEST_MEGA_ALLOC_SIZE (1024 * 1024)
+#define TEST_HUGE_ALLOC_SIZE (255 * 1024)
+#define TEST_SMALL_ALLOC_SIZE (200)
+#define TEST_MEDIUM_ALLOC_SIZE (300)
+#define TEST_TINY_ALLOC_SIZE (64)
+#define TEST_RUNS 2
 
-#define	MAX_MALLOC_FREE_LOOP 1000
-#define	MALLOC_FREE_SIZE 8000
+#define MAX_MALLOC_FREE_LOOP 1000
+#define MALLOC_FREE_SIZE 8000
 
 struct mock_pop {
 	PMEMobjpool p;
@@ -117,7 +117,7 @@ static void
 test_oom_allocs(size_t size)
 {
 	uint64_t max_allocs = MOCK_POOL_SIZE / size;
-	uint64_t *allocs = CALLOC(max_allocs, sizeof (*allocs));
+	uint64_t *allocs = CALLOC(max_allocs, sizeof(*allocs));
 
 	size_t count = 0;
 	for (;;) {
@@ -170,10 +170,10 @@ test_mock_pool_allocs()
 	mock_pop->size = MOCK_POOL_SIZE;
 	mock_pop->rdonly = 0;
 	mock_pop->is_pmem = 0;
-	mock_pop->heap_offset = sizeof (struct mock_pop);
+	mock_pop->heap_offset = sizeof(struct mock_pop);
 	mock_pop->heap_size = MOCK_POOL_SIZE - mock_pop->heap_offset;
 	mock_pop->nlanes = 1;
-	mock_pop->lanes_offset = sizeof (PMEMobjpool);
+	mock_pop->lanes_offset = sizeof(PMEMobjpool);
 	mock_pop->is_master_replica = 1;
 	VALGRIND_DO_CREATE_MEMPOOL(mock_pop, 0, 0);
 
@@ -218,8 +218,8 @@ static void
 test_spec_compliance()
 {
 	uint64_t max_alloc = MAX_MEMORY_BLOCK_SIZE -
-		sizeof (struct allocation_header) -
-		sizeof (struct oob_header);
+		sizeof(struct allocation_header) -
+		sizeof(struct oob_header);
 
 	UT_ASSERTeq(max_alloc, PMEMOBJ_MAX_ALLOC_SIZE);
 }

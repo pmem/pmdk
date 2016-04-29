@@ -221,32 +221,32 @@
  * intrinsic functions are not always available.  The intrinsic
  * functions are defined here in terms of asm statements for now.
  */
-#define	_mm_clflushopt(addr)\
+#define _mm_clflushopt(addr)\
 	asm volatile(".byte 0x66; clflush %0" : "+m" (*(volatile char *)addr));
-#define	_mm_clwb(addr)\
+#define _mm_clwb(addr)\
 	asm volatile(".byte 0x66; xsaveopt %0" : "+m" (*(volatile char *)addr));
-#define	_mm_pcommit()\
+#define _mm_pcommit()\
 	asm volatile(".byte 0x66, 0x0f, 0xae, 0xf8");
 
-#define	FLUSH_ALIGN ((uintptr_t)64)
+#define FLUSH_ALIGN ((uintptr_t)64)
 
-#define	ALIGN_MASK	(FLUSH_ALIGN - 1)
+#define ALIGN_MASK	(FLUSH_ALIGN - 1)
 
-#define	CHUNK_SIZE	128 /* 16*8 */
-#define	CHUNK_SHIFT	7
-#define	CHUNK_MASK	(CHUNK_SIZE - 1)
+#define CHUNK_SIZE	128 /* 16*8 */
+#define CHUNK_SHIFT	7
+#define CHUNK_MASK	(CHUNK_SIZE - 1)
 
-#define	DWORD_SIZE	4
-#define	DWORD_SHIFT	2
-#define	DWORD_MASK	(DWORD_SIZE - 1)
+#define DWORD_SIZE	4
+#define DWORD_SHIFT	2
+#define DWORD_MASK	(DWORD_SIZE - 1)
 
-#define	MOVNT_SIZE	16
-#define	MOVNT_MASK	(MOVNT_SIZE - 1)
-#define	MOVNT_SHIFT	4
+#define MOVNT_SIZE	16
+#define MOVNT_MASK	(MOVNT_SIZE - 1)
+#define MOVNT_SHIFT	4
 
-#define	MOVNT_THRESHOLD	256
+#define MOVNT_THRESHOLD	256
 
-#define	PROCMAXLEN 2048 /* maximum expected line length in /proc files */
+#define PROCMAXLEN 2048 /* maximum expected line length in /proc files */
 
 static size_t Movnt_threshold = MOVNT_THRESHOLD;
 static int Has_hw_drain;
@@ -572,8 +572,8 @@ is_pmem_proc(const void *addr, size_t len)
 				}
 			}
 		} else if (needmm && strncmp(line, vmflags,
-					sizeof (vmflags) - 1) == 0) {
-			if (strstr(&line[sizeof (vmflags) - 1], mm) != NULL) {
+					sizeof(vmflags) - 1) == 0) {
+			if (strstr(&line[sizeof(vmflags) - 1], mm) != NULL) {
 				LOG(4, "mm flag found");
 				if (len == 0) {
 					/* entire range matched */
@@ -615,14 +615,14 @@ pmem_is_pmem(const void *addr, size_t len)
 	return Func_is_pmem(addr, len);
 }
 
-#define	PMEM_FILE_ALL_FLAGS\
+#define PMEM_FILE_ALL_FLAGS\
 	(PMEM_FILE_CREATE|PMEM_FILE_EXCL|PMEM_FILE_SPARSE|PMEM_FILE_TMPFILE)
 
 #ifndef USE_O_TMPFILE
 #ifdef O_TMPFILE
-#define	USE_O_TMPFILE 1
+#define USE_O_TMPFILE 1
 #else
-#define	USE_O_TMPFILE 0
+#define USE_O_TMPFILE 0
 #endif
 #endif
 
@@ -864,7 +864,7 @@ memmove_nodrain_movnt(void *pmemdest, const void *src, size_t len)
 			_mm_stream_si128(d + 5, xmm5);
 			_mm_stream_si128(d + 6,	xmm6);
 			_mm_stream_si128(d + 7,	xmm7);
-			VALGRIND_DO_FLUSH(d, 8 * sizeof (*d));
+			VALGRIND_DO_FLUSH(d, 8 * sizeof(*d));
 			d += 8;
 		}
 
@@ -875,7 +875,7 @@ memmove_nodrain_movnt(void *pmemdest, const void *src, size_t len)
 			for (i = 0; i < cnt; i++) {
 				xmm0 = _mm_loadu_si128(s);
 				_mm_stream_si128(d, xmm0);
-				VALGRIND_DO_FLUSH(d, sizeof (*d));
+				VALGRIND_DO_FLUSH(d, sizeof(*d));
 				s++;
 				d++;
 			}
@@ -889,7 +889,7 @@ memmove_nodrain_movnt(void *pmemdest, const void *src, size_t len)
 			int32_t *s32 = (int32_t *)s;
 			for (i = 0; i < cnt; i++) {
 				_mm_stream_si32(d32, *s32);
-				VALGRIND_DO_FLUSH(d32, sizeof (*d32));
+				VALGRIND_DO_FLUSH(d32, sizeof(*d32));
 				d32++;
 				s32++;
 			}
@@ -957,7 +957,7 @@ memmove_nodrain_movnt(void *pmemdest, const void *src, size_t len)
 			_mm_stream_si128(d - 7, xmm6);
 			_mm_stream_si128(d - 8, xmm7);
 			d -= 8;
-			VALGRIND_DO_FLUSH(d, 8 * sizeof (*d));
+			VALGRIND_DO_FLUSH(d, 8 * sizeof(*d));
 		}
 
 		/* copy the tail (<128 bytes) in 16 bytes chunks */
@@ -969,7 +969,7 @@ memmove_nodrain_movnt(void *pmemdest, const void *src, size_t len)
 				s--;
 				xmm0 = _mm_loadu_si128(s);
 				_mm_stream_si128(d, xmm0);
-				VALGRIND_DO_FLUSH(d, sizeof (*d));
+				VALGRIND_DO_FLUSH(d, sizeof(*d));
 			}
 		}
 
@@ -983,7 +983,7 @@ memmove_nodrain_movnt(void *pmemdest, const void *src, size_t len)
 				d32--;
 				s32--;
 				_mm_stream_si32(d32, *s32);
-				VALGRIND_DO_FLUSH(d32, sizeof (*d32));
+				VALGRIND_DO_FLUSH(d32, sizeof(*d32));
 			}
 
 			cnt = len & DWORD_MASK;
@@ -1122,7 +1122,7 @@ memset_nodrain_movnt(void *pmemdest, int c, size_t len)
 			_mm_stream_si128(d + 5, xmm0);
 			_mm_stream_si128(d + 6, xmm0);
 			_mm_stream_si128(d + 7, xmm0);
-			VALGRIND_DO_FLUSH(d, 8 * sizeof (*d));
+			VALGRIND_DO_FLUSH(d, 8 * sizeof(*d));
 			d += 8;
 		}
 	}
@@ -1132,7 +1132,7 @@ memset_nodrain_movnt(void *pmemdest, int c, size_t len)
 		cnt = len >> MOVNT_SHIFT;
 		for (i = 0; i < cnt; i++) {
 			_mm_stream_si128(d, xmm0);
-			VALGRIND_DO_FLUSH(d, sizeof (*d));
+			VALGRIND_DO_FLUSH(d, sizeof(*d));
 			d++;
 		}
 	}
@@ -1146,7 +1146,7 @@ memset_nodrain_movnt(void *pmemdest, int c, size_t len)
 			for (i = 0; i < cnt; i++) {
 				_mm_stream_si32(d32,
 					_mm_cvtsi128_si32(xmm0));
-				VALGRIND_DO_FLUSH(d32, sizeof (*d32));
+				VALGRIND_DO_FLUSH(d32, sizeof(*d32));
 				d32++;
 			}
 		}

@@ -49,9 +49,9 @@ struct root {
 	TOID(struct foo) foo;
 };
 
-#define	LAYOUT_NAME "obj_recreate"
-#define	ZEROLEN 4096
-#define	N PMEMOBJ_MIN_POOL
+#define LAYOUT_NAME "obj_recreate"
+#define ZEROLEN 4096
+#define N PMEMOBJ_MIN_POOL
 
 int
 main(int argc, char *argv[])

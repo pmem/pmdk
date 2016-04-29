@@ -41,15 +41,15 @@
 
 TOID_DECLARE(struct tree_map_node, BTREE_MAP_TYPE_OFFSET + 1);
 
-#define	BTREE_ORDER 8 /* can't be odd */
-#define	BTREE_MIN ((BTREE_ORDER / 2) - 1) /* min number of keys per node */
+#define BTREE_ORDER 8 /* can't be odd */
+#define BTREE_MIN ((BTREE_ORDER / 2) - 1) /* min number of keys per node */
 
 struct tree_map_node_item {
 	uint64_t key;
 	PMEMoid value;
 };
 
-#define	EMPTY_ITEM ((struct tree_map_node_item)\
+#define EMPTY_ITEM ((struct tree_map_node_item)\
 		{0, OID_NULL})
 
 struct tree_map_node {
@@ -71,7 +71,7 @@ btree_map_new(PMEMobjpool *pop, TOID(struct btree_map) *map, void *arg)
 	int ret = 0;
 
 	TX_BEGIN(pop) {
-		pmemobj_tx_add_range_direct(map, sizeof (*map));
+		pmemobj_tx_add_range_direct(map, sizeof(*map));
 		*map = TX_ZNEW(struct btree_map);
 	} TX_ONABORT {
 		ret = 1;
@@ -120,7 +120,7 @@ btree_map_delete(PMEMobjpool *pop, TOID(struct btree_map) *map)
 	int ret = 0;
 	TX_BEGIN(pop) {
 		btree_map_clear(pop, *map);
-		pmemobj_tx_add_range_direct(map, sizeof (*map));
+		pmemobj_tx_add_range_direct(map, sizeof(*map));
 		TX_FREE(*map);
 		*map = TOID_NULL(struct btree_map);
 	} TX_ONABORT {
@@ -165,10 +165,10 @@ btree_map_insert_node(TOID(struct tree_map_node) node, int p,
 	TX_ADD(node);
 	if (D_RO(node)->items[p].key != 0) { /* move all existing data */
 		memmove(&D_RW(node)->items[p + 1], &D_RW(node)->items[p],
-		sizeof (struct tree_map_node_item) * ((BTREE_ORDER - 2 - p)));
+		sizeof(struct tree_map_node_item) * ((BTREE_ORDER - 2 - p)));
 
 		memmove(&D_RW(node)->slots[p + 1], &D_RW(node)->slots[p],
-		sizeof (TOID(struct tree_map_node)) * ((BTREE_ORDER - 1 - p)));
+		sizeof(TOID(struct tree_map_node)) * ((BTREE_ORDER - 1 - p)));
 	}
 	D_RW(node)->slots[p] = left;
 	D_RW(node)->slots[p + 1] = right;
@@ -267,7 +267,7 @@ btree_map_insert_item(TOID(struct tree_map_node) node, int p,
 	TX_ADD(node);
 	if (D_RO(node)->items[p].key != 0) {
 		memmove(&D_RW(node)->items[p + 1], &D_RW(node)->items[p],
-		sizeof (struct tree_map_node_item) * ((BTREE_ORDER - 2 - p)));
+		sizeof(struct tree_map_node_item) * ((BTREE_ORDER - 2 - p)));
 	}
 	btree_map_insert_item_at(node, p, item);
 }
@@ -332,9 +332,9 @@ btree_map_rotate_right(TOID(struct tree_map_node) rsb,
 
 	/* move all existing elements back by one array slot */
 	memmove(D_RW(rsb)->items, D_RO(rsb)->items + 1,
-		sizeof (struct tree_map_node_item) * (D_RO(rsb)->n));
+		sizeof(struct tree_map_node_item) * (D_RO(rsb)->n));
 	memmove(D_RW(rsb)->slots, D_RO(rsb)->slots + 1,
-		sizeof (TOID(struct tree_map_node)) * (D_RO(rsb)->n + 1));
+		sizeof(TOID(struct tree_map_node)) * (D_RO(rsb)->n + 1));
 }
 
 /*
@@ -356,7 +356,7 @@ btree_map_rotate_left(TOID(struct tree_map_node) lsb,
 	TX_ADD(node);
 	/* rotate the node children */
 	memmove(D_RW(node)->slots + 1, D_RO(node)->slots,
-		sizeof (TOID(struct tree_map_node)) * (D_RO(node)->n));
+		sizeof(TOID(struct tree_map_node)) * (D_RO(node)->n));
 
 	/* the nodes are not necessarily leafs, so copy also the slot */
 	D_RW(node)->slots[0] = D_RO(lsb)->slots[D_RO(lsb)->n];
@@ -381,9 +381,9 @@ btree_map_merge(TOID(struct btree_map) map, TOID(struct tree_map_node) rn,
 
 	/* copy right sibling data to node */
 	memcpy(&D_RW(node)->items[D_RO(node)->n], D_RO(rn)->items,
-	sizeof (struct tree_map_node_item) * D_RO(rn)->n);
+	sizeof(struct tree_map_node_item) * D_RO(rn)->n);
 	memcpy(&D_RW(node)->slots[D_RO(node)->n], D_RO(rn)->slots,
-	sizeof (TOID(struct tree_map_node)) * (D_RO(rn)->n + 1));
+	sizeof(TOID(struct tree_map_node)) * (D_RO(rn)->n + 1));
 
 	D_RW(node)->n += D_RO(rn)->n;
 
@@ -394,10 +394,10 @@ btree_map_merge(TOID(struct btree_map) map, TOID(struct tree_map_node) rn,
 
 	/* move everything to the right of the separator by one array slot */
 	memmove(D_RW(parent)->items + p, D_RW(parent)->items + p + 1,
-	sizeof (struct tree_map_node_item) * (D_RO(parent)->n - p));
+	sizeof(struct tree_map_node_item) * (D_RO(parent)->n - p));
 
 	memmove(D_RW(parent)->slots + p + 1, D_RW(parent)->slots + p + 2,
-	sizeof (TOID(struct tree_map_node)) * (D_RO(parent)->n - p + 1));
+	sizeof(TOID(struct tree_map_node)) * (D_RO(parent)->n - p + 1));
 
 	/* if the parent is empty then the tree shrinks in height */
 	if (D_RO(parent)->n == 0 && TOID_EQUALS(parent, D_RO(map)->root)) {
@@ -459,7 +459,7 @@ btree_map_remove_from_node(TOID(struct btree_map) map,
 		else if (D_RO(node)->n != 1) {
 			memmove(&D_RW(node)->items[p],
 				&D_RW(node)->items[p + 1],
-				sizeof (struct tree_map_node_item) *
+				sizeof(struct tree_map_node_item) *
 				(D_RO(node)->n - p));
 		}
 
@@ -483,10 +483,10 @@ btree_map_remove_from_node(TOID(struct btree_map) map,
 			TOID_EQUALS(lp, node) ? p + 1 : 0);
 }
 
-#define	NODE_CONTAINS_ITEM(_n, _i, _k)\
+#define NODE_CONTAINS_ITEM(_n, _i, _k)\
 (_i != D_RO(_n)->n && D_RO(_n)->items[_i].key == _k)
 
-#define	NODE_CHILD_CAN_CONTAIN_ITEM(_n, _i, _k)\
+#define NODE_CHILD_CAN_CONTAIN_ITEM(_n, _i, _k)\
 (_i == D_RO(_n)->n || D_RO(_n)->items[_i].key > _k) &&\
 !TOID_IS_NULL(D_RO(_n)->slots[_i])
 

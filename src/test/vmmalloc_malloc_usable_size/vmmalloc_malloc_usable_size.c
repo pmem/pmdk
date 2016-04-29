@@ -74,7 +74,7 @@ main(int argc, char *argv[])
 
 	UT_ASSERTeq(malloc_usable_size(NULL), 0);
 
-	for (i = 0; i < (sizeof (Check_sizes) / sizeof (Check_sizes[0])); ++i) {
+	for (i = 0; i < (sizeof(Check_sizes) / sizeof(Check_sizes[0])); ++i) {
 		size = Check_sizes[i].size;
 		UT_OUT("size %zu", size);
 

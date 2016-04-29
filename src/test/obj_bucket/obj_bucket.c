@@ -40,18 +40,18 @@
 #include "bucket.h"
 #include "heap_layout.h"
 
-#define	TEST_UNIT_SIZE 128
-#define	TEST_MAX_UNIT 1
+#define TEST_UNIT_SIZE 128
+#define TEST_MAX_UNIT 1
 
-#define	TEST_SIZE 5
-#define	TEST_SIZE_UNITS 1
+#define TEST_SIZE 5
+#define TEST_SIZE_UNITS 1
 
-#define	MOCK_CRIT	((void *)0xABC)
+#define MOCK_CRIT	((void *)0xABC)
 
-#define	TEST_CHUNK_ID	10
-#define	TEST_ZONE_ID	20
-#define	TEST_SIZE_IDX	30
-#define	TEST_BLOCK_OFF	40
+#define TEST_CHUNK_ID	10
+#define TEST_ZONE_ID	20
+#define TEST_SIZE_IDX	30
+#define TEST_BLOCK_OFF	40
 
 FUNC_MOCK(malloc, void *, size_t size)
 	FUNC_MOCK_RUN_RET_DEFAULT_REAL(malloc, size)

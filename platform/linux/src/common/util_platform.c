@@ -52,10 +52,10 @@
 #include "util.h"
 #include "out.h"
 
-#define	PROCMAXLEN 2048 /* maximum expected line length in /proc files */
+#define PROCMAXLEN 2048 /* maximum expected line length in /proc files */
 
-#define	MEGABYTE ((uintptr_t)1 << 20)
-#define	GIGABYTE ((uintptr_t)1 << 30)
+#define MEGABYTE ((uintptr_t)1 << 20)
+#define GIGABYTE ((uintptr_t)1 << 30)
 
 extern int Mmap_no_random;
 extern void *Mmap_hint;
@@ -214,7 +214,7 @@ util_tmpfile(const char *dir, const char *templ)
 	int oerrno;
 	int fd = -1;
 
-	char *fullname = alloca(strlen(dir) + sizeof (templ));
+	char *fullname = alloca(strlen(dir) + sizeof(templ));
 
 	(void) strcpy(fullname, dir);
 	(void) strcat(fullname, templ);
@@ -260,7 +260,7 @@ util_get_arch_flags(struct arch_flags *arch_flags)
 	ElfW(Ehdr) elf;
 	int ret = 0;
 
-	memset(arch_flags, 0, sizeof (*arch_flags));
+	memset(arch_flags, 0, sizeof(*arch_flags));
 
 	if ((fd = open(path, O_RDONLY)) < 0) {
 		ERR("!open %s", path);
@@ -268,7 +268,7 @@ util_get_arch_flags(struct arch_flags *arch_flags)
 		goto out;
 	}
 
-	if (read(fd, &elf, sizeof (elf)) != sizeof (elf)) {
+	if (read(fd, &elf, sizeof(elf)) != sizeof(elf)) {
 		ERR("!read %s", path);
 		ret = -1;
 		goto out_close;

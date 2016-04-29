@@ -83,7 +83,7 @@ main(int argc, char *argv[])
 	 * header that gets prepended to the entry.
 	 */
 	iovcnt = (argc - 2) * 2 + 1;
-	if ((iovp = malloc(sizeof (*iovp) * iovcnt)) == NULL) {
+	if ((iovp = malloc(sizeof(*iovp) * iovcnt)) == NULL) {
 		perror("malloc");
 		exit(1);
 	}
@@ -91,7 +91,7 @@ main(int argc, char *argv[])
 
 	/* put the header into iov first */
 	next_iovp->iov_base = &header;
-	next_iovp->iov_len = sizeof (header);
+	next_iovp->iov_len = sizeof(header);
 	next_iovp++;
 
 	/*

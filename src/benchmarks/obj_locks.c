@@ -49,7 +49,7 @@
 #include "obj.h"
 
 
-#define	_BENCH_OPERATION_1BY1(flock, funlock, mb, type, ...) (\
+#define _BENCH_OPERATION_1BY1(flock, funlock, mb, type, ...) (\
 {\
 	for (unsigned _i = 0; _i < (mb)->pa->n_locks; (_i)++) {\
 		type *_o = (type *)(&(mb)->locks[_i]);\
@@ -58,7 +58,7 @@
 	}\
 })
 
-#define	_BENCH_OPERATION_ALL_LOCK(flock, funlock, mb, type, ...) (\
+#define _BENCH_OPERATION_ALL_LOCK(flock, funlock, mb, type, ...) (\
 {\
 	for (unsigned _i = 0; _i < (mb)->pa->n_locks; (_i)++) {\
 		type *_o = (type *)(&(mb)->locks[_i]);\
@@ -70,11 +70,11 @@
 	}\
 })
 
-#define	BENCH_OPERATION_1BY1(flock, funlock, mb, type, ...)\
+#define BENCH_OPERATION_1BY1(flock, funlock, mb, type, ...)\
 	_BENCH_OPERATION_1BY1(flock, funlock, mb, type, ##__VA_ARGS__,\
 )
 
-#define	BENCH_OPERATION_ALL_LOCK(flock, funlock, mb, type, ...)\
+#define BENCH_OPERATION_ALL_LOCK(flock, funlock, mb, type, ...)\
 	_BENCH_OPERATION_ALL_LOCK(flock, funlock, mb, type, ##__VA_ARGS__,\
 )
 
@@ -160,12 +160,12 @@ struct mutex_bench {
 	struct bench_ops *ops;
 };
 
-#define	GET_VOLATILE_MUTEX(pop, mutexp)\
+#define GET_VOLATILE_MUTEX(pop, mutexp)\
 get_lock((pop)->run_id,\
 	&(mutexp)->volatile_pmemmutex.runid,\
 	(mutexp)->volatile_pmemmutex.mutexp,\
 	(void *)volatile_mutex_init,\
-	sizeof ((mutexp)->volatile_pmemmutex.mutexp))
+	sizeof((mutexp)->volatile_pmemmutex.mutexp))
 
 /*
  * get_lock -- atomically initialize and return a lock
@@ -205,7 +205,7 @@ static int
 volatile_mutex_init(pthread_mutex_t **mutexp, void *attr)
 {
 	if (*mutexp == NULL) {
-		*mutexp = malloc(sizeof (pthread_mutex_t));
+		*mutexp = malloc(sizeof(pthread_mutex_t));
 		if (*mutexp == NULL) {
 			perror("volatile_mutex_init alloc");
 			return ENOMEM;
@@ -267,7 +267,7 @@ static int
 init_bench_mutex(struct mutex_bench *mb)
 {
 	POBJ_ZALLOC(mb->pop, &D_RW(mb->root)->locks, lock_t,
-			mb->pa->n_locks * sizeof (lock_t));
+			mb->pa->n_locks * sizeof(lock_t));
 	if (TOID_IS_NULL(D_RO(mb->root)->locks)) {
 		perror("POBJ_ZALLOC");
 		return -1;
@@ -350,7 +350,7 @@ static int
 init_bench_rwlock(struct mutex_bench *mb)
 {
 	POBJ_ZALLOC(mb->pop, &D_RW(mb->root)->locks, lock_t,
-			mb->pa->n_locks * sizeof (lock_t));
+			mb->pa->n_locks * sizeof(lock_t));
 	if (TOID_IS_NULL(D_RO(mb->root)->locks)) {
 		perror("POBJ_ZALLOC");
 		return -1;
@@ -436,7 +436,7 @@ static int
 init_bench_vmutex(struct mutex_bench *mb)
 {
 	POBJ_ZALLOC(mb->pop, &D_RW(mb->root)->locks, lock_t,
-			mb->pa->n_locks * sizeof (lock_t));
+			mb->pa->n_locks * sizeof(lock_t));
 	if (TOID_IS_NULL(D_RO(mb->root)->locks)) {
 		perror("POBJ_ZALLOC");
 		return -1;
@@ -542,7 +542,7 @@ locks_init(struct benchmark *bench, struct benchmark_args *args)
 
 	int ret = 0;
 
-	struct mutex_bench *mb = malloc(sizeof (*mb));
+	struct mutex_bench *mb = malloc(sizeof(*mb));
 	if (mb == NULL) {
 		perror("malloc");
 		return -1;
@@ -566,7 +566,7 @@ locks_init(struct benchmark *bench, struct benchmark_args *args)
 	}
 
 	/* reserve some space for metadata */
-	size_t poolsize = mb->pa->n_locks * sizeof (lock_t) + PMEMOBJ_MIN_POOL;
+	size_t poolsize = mb->pa->n_locks * sizeof(lock_t) + PMEMOBJ_MIN_POOL;
 
 	if (args->is_poolset) {
 		if (args->fsize < poolsize) {
@@ -740,7 +740,7 @@ static struct benchmark_info locks_info = {
 	.measure_time	= true,
 	.clos		= locks_clo,
 	.nclos		= ARRAY_SIZE(locks_clo),
-	.opts_size	= sizeof (struct prog_args),
+	.opts_size	= sizeof(struct prog_args),
 	.rm_file	= true,
 	.allow_poolset	= true,
 };

@@ -43,7 +43,7 @@
  */
 #include "unittest.h"
 
-#define	MB ((size_t)1 << 20)
+#define MB ((size_t)1 << 20)
 
 static void
 pool_create(const char *path, size_t bsize, size_t poolsize, unsigned mode)

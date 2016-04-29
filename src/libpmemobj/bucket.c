@@ -60,19 +60,19 @@
  * The elements in the tree are sorted by the key and it's vital that the
  * order is by size, hence the order of the pack arguments.
  */
-#define	CHUNK_KEY_PACK(z, c, b, s)\
+#define CHUNK_KEY_PACK(z, c, b, s)\
 ((uint64_t)(s) << 48 | (uint64_t)(b) << 32 | (uint64_t)(c) << 16 | (z))
 
-#define	CHUNK_KEY_GET_ZONE_ID(k)\
+#define CHUNK_KEY_GET_ZONE_ID(k)\
 ((uint16_t)((k & 0xFFFF)))
 
-#define	CHUNK_KEY_GET_CHUNK_ID(k)\
+#define CHUNK_KEY_GET_CHUNK_ID(k)\
 ((uint16_t)((k & 0xFFFF0000) >> 16))
 
-#define	CHUNK_KEY_GET_BLOCK_OFF(k)\
+#define CHUNK_KEY_GET_BLOCK_OFF(k)\
 ((uint16_t)((k & 0xFFFF00000000) >> 32))
 
-#define	CHUNK_KEY_GET_SIZE_IDX(k)\
+#define CHUNK_KEY_GET_SIZE_IDX(k)\
 ((uint16_t)((k & 0xFFFF000000000000) >> 48))
 
 struct block_container_ctree {
@@ -200,7 +200,7 @@ static struct block_container_ops container_ctree_ops = {
 static struct block_container *
 bucket_tree_create(size_t unit_size)
 {
-	struct block_container_ctree *bc = Malloc(sizeof (*bc));
+	struct block_container_ctree *bc = Malloc(sizeof(*bc));
 	if (bc == NULL)
 		goto error_container_malloc;
 
@@ -246,7 +246,7 @@ static struct {
 static struct bucket *
 bucket_run_create(size_t unit_size, unsigned unit_max)
 {
-	struct bucket_run *b = Malloc(sizeof (*b));
+	struct bucket_run *b = Malloc(sizeof(*b));
 	if (b == NULL)
 		return NULL;
 
@@ -280,7 +280,7 @@ bucket_run_create(size_t unit_size, unsigned unit_max)
 static struct bucket *
 bucket_huge_create(size_t unit_size, unsigned unit_max)
 {
-	struct bucket_huge *b = Malloc(sizeof (*b));
+	struct bucket_huge *b = Malloc(sizeof(*b));
 	if (b == NULL)
 		return NULL;
 

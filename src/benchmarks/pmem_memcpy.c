@@ -45,9 +45,9 @@
 
 #include "benchmark.h"
 
-#define	FLUSH_ALIGN 64
+#define FLUSH_ALIGN 64
 
-#define	MAX_OFFSET (FLUSH_ALIGN - 1)
+#define MAX_OFFSET (FLUSH_ALIGN - 1)
 
 struct pmem_bench;
 
@@ -459,7 +459,7 @@ pmem_memcpy_init(struct benchmark *bench, struct benchmark_args *args)
 	assert(args != NULL);
 	int ret = 0;
 
-	struct pmem_bench *pmb = malloc(sizeof (struct pmem_bench));
+	struct pmem_bench *pmb = malloc(sizeof(struct pmem_bench));
 	assert(pmb != NULL);
 
 	pmb->pargs = args->opts;
@@ -486,7 +486,7 @@ pmem_memcpy_init(struct benchmark *bench, struct benchmark_args *args)
 
 	pmb->n_rand_offsets = args->n_ops_per_thread * args->n_threads;
 	pmb->rand_offsets = malloc(pmb->n_rand_offsets *
-			sizeof (*pmb->rand_offsets));
+			sizeof(*pmb->rand_offsets));
 
 	if (pmb->rand_offsets == NULL) {
 		perror("malloc");
@@ -610,7 +610,7 @@ static struct benchmark_info pmem_memcpy = {
 	.measure_time	= true,
 	.clos		= pmem_memcpy_clo,
 	.nclos		= ARRAY_SIZE(pmem_memcpy_clo),
-	.opts_size	= sizeof (struct pmem_args),
+	.opts_size	= sizeof(struct pmem_args),
 	.rm_file	= true,
 	.allow_poolset	= false,
 };

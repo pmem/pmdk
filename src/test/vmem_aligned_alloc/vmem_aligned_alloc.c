@@ -38,7 +38,7 @@
 
 #include "unittest.h"
 
-#define	MAX_ALLOCS (100)
+#define MAX_ALLOCS (100)
 
 static int custom_allocs;
 static int custom_alloc_calls;
@@ -138,10 +138,10 @@ main(int argc, char *argv[])
 				UT_FATAL("!vmem_create");
 		}
 
-		memset(ptrs, 0, MAX_ALLOCS * sizeof (ptrs[0]));
+		memset(ptrs, 0, MAX_ALLOCS * sizeof(ptrs[0]));
 
 		for (i = 0; i < MAX_ALLOCS; ++i) {
-			ptr = vmem_aligned_alloc(vmp, alignment, sizeof (int));
+			ptr = vmem_aligned_alloc(vmp, alignment, sizeof(int));
 			ptrs[i] = ptr;
 
 			/* at least one allocation must succeed */

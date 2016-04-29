@@ -56,7 +56,7 @@ main(int argc, char *argv[])
 		return 1;
 	}
 
-	PMEMoid root = pmemobj_root(pop, sizeof (struct my_root));
+	PMEMoid root = pmemobj_root(pop, sizeof(struct my_root));
 	struct my_root *rootp = pmemobj_direct(root);
 
 	char buf[MAX_BUF_LEN];
@@ -66,7 +66,7 @@ main(int argc, char *argv[])
 	}
 
 	rootp->len = strlen(buf);
-	pmemobj_persist(pop, &rootp->len, sizeof (rootp->len));
+	pmemobj_persist(pop, &rootp->len, sizeof(rootp->len));
 
 	pmemobj_memcpy_persist(pop, rootp->buf, buf, rootp->len);
 

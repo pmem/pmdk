@@ -49,7 +49,7 @@
 #include <libpmem.h>
 
 /* just copying 4k to pmem for this example */
-#define	BUF_LEN 4096
+#define BUF_LEN 4096
 
 int
 main(int argc, char *argv[])

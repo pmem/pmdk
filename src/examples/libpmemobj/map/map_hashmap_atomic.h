@@ -35,12 +35,12 @@
  */
 
 #ifndef MAP_HASHMAP_ATOMIC_H
-#define	MAP_HASHMAP_ATOMIC_H
+#define MAP_HASHMAP_ATOMIC_H
 
 #include <libpmemobj.h>
 
 extern struct map_ops hashmap_atomic_ops;
 
-#define	MAP_HASHMAP_ATOMIC (&hashmap_atomic_ops)
+#define MAP_HASHMAP_ATOMIC (&hashmap_atomic_ops)
 
 #endif /* MAP_HASHMAP_ATOMIC_H */

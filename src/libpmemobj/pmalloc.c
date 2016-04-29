@@ -60,20 +60,20 @@ enum alloc_op_redo {
 /*
  * Number of bytes between end of allocation header and beginning of user data.
  */
-#define	DATA_OFF OBJ_OOB_SIZE
+#define DATA_OFF OBJ_OOB_SIZE
 
 /*
  * Number of bytes between beginning of memory block and beginning of user data.
  */
-#define	ALLOC_OFF (DATA_OFF + sizeof (struct allocation_header))
+#define ALLOC_OFF (DATA_OFF + sizeof(struct allocation_header))
 
-#define	USABLE_SIZE(_a)\
-((_a)->size - sizeof (struct allocation_header))
+#define USABLE_SIZE(_a)\
+((_a)->size - sizeof(struct allocation_header))
 
-#define	MEMORY_BLOCK_IS_EMPTY(_m)\
+#define MEMORY_BLOCK_IS_EMPTY(_m)\
 ((_m).size_idx == 0)
 
-#define	ALLOC_GET_HEADER(_pop, _off) (struct allocation_header *)\
+#define ALLOC_GET_HEADER(_pop, _off) (struct allocation_header *)\
 ((char *)OBJ_OFF_TO_PTR((_pop), (_off)) - ALLOC_OFF)
 
 /*
@@ -83,12 +83,12 @@ static void
 alloc_write_header(PMEMobjpool *pop, struct allocation_header *alloc,
 	struct memory_block m, uint64_t size)
 {
-	VALGRIND_ADD_TO_TX(alloc, sizeof (*alloc));
+	VALGRIND_ADD_TO_TX(alloc, sizeof(*alloc));
 	alloc->chunk_id = m.chunk_id;
 	alloc->size = size;
 	alloc->zone_id = m.zone_id;
-	VALGRIND_REMOVE_FROM_TX(alloc, sizeof (*alloc));
-	pop->persist(pop, alloc, sizeof (*alloc));
+	VALGRIND_REMOVE_FROM_TX(alloc, sizeof(*alloc));
+	pop->persist(pop, alloc, sizeof(*alloc));
 }
 
 /*
@@ -182,7 +182,7 @@ alloc_prep_block(PMEMobjpool *pop, struct memory_block m,
 {
 	void *block_data = heap_get_block_data(pop, m);
 	void *datap = (char *)block_data +
-		sizeof (struct allocation_header);
+		sizeof(struct allocation_header);
 	void *userdatap = (char *)datap + DATA_OFF;
 	uint64_t unit_size = heap_get_chunk_block_size(pop, m);
 	uint64_t real_size = unit_size * m.size_idx;
@@ -223,7 +223,7 @@ palloc_operation(PMEMobjpool *pop,
 	struct memory_block nb = {0, 0, 0, 0}; /* new memory block */
 	struct memory_block rb = {0, 0, 0, 0}; /* reclaimed memory block */
 
-	size_t sizeh = size + sizeof (struct allocation_header);
+	size_t sizeh = size + sizeof(struct allocation_header);
 
 	int ret = 0;
 
@@ -473,7 +473,7 @@ pmalloc_first(PMEMobjpool *pop)
 	if (off_search == UINT64_MAX)
 		return 0;
 
-	return off_search + sizeof (struct allocation_header);
+	return off_search + sizeof(struct allocation_header);
 }
 
 /*
@@ -494,7 +494,7 @@ pmalloc_next(PMEMobjpool *pop, uint64_t off)
 		off_search == UINT64_MAX)
 		return 0;
 
-	return off_search + sizeof (struct allocation_header);
+	return off_search + sizeof(struct allocation_header);
 }
 
 /*
