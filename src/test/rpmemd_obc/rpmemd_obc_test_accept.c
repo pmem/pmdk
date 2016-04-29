@@ -59,7 +59,7 @@ client_accept_seq(const struct test_case *tc, int argc, char *argv[])
 }
 
 /*
- * server_accept_seq -- accept multiple connections seeuantially and wait for
+ * server_accept_seq -- accept multiple connections sequentially and wait for
  * disconnect
  */
 void
