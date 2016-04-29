@@ -151,7 +151,7 @@ Last_errormsg_get()
 static const char *
 getexecname(void)
 {
-#ifndef WIN32
+#ifndef _WIN32
 	char procpath[PATH_MAX];
 	static char namepath[PATH_MAX];
 	ssize_t cc;

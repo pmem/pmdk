@@ -111,7 +111,7 @@ void lane_hold(PMEMobjpool *pop, struct lane_section **section,
 	enum lane_section_type type);
 void lane_release(PMEMobjpool *pop);
 
-#ifndef WIN32
+#ifndef _WIN32
 
 #define SECTION_PARM(n, ops)\
 __attribute__((constructor)) static void _section_parm_##n(void)\

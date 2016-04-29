@@ -697,7 +697,7 @@ pmemlog_check(const char *path)
 }
 
 
-#ifdef WIN32
+#ifdef _WIN32
 /*
  * libpmemlog constructor/destructor functions
  */

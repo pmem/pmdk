@@ -60,11 +60,11 @@ static struct ctree *pools_tree; /* tree used for searching by address */
 
 int _pobj_cache_invalidate;
 
-#ifndef WIN32
+#ifndef _WIN32
 
 __thread struct _pobj_pcache _pobj_cached_pool;
 
-#else /* WIN32 */
+#else /* _WIN32 */
 
 struct _pobj_pcache {
 	PMEMobjpool *pop;
@@ -112,7 +112,7 @@ pmemobj_direct(PMEMoid oid)
 	return (void *)((uintptr_t)pcache->pop + oid.off);
 }
 
-#endif /* WIN32 */
+#endif /* _WIN32 */
 
 /*
  * User may decide to map all pools with MAP_PRIVATE flag using
@@ -138,7 +138,7 @@ obj_init(void)
 		Open_cow = atoi(env);
 #endif
 
-#ifdef WIN32
+#ifdef _WIN32
 
 	pthread_once(&Cached_pool_key_once, _Cached_pool_key_alloc);
 
@@ -1028,14 +1028,14 @@ pmemobj_close(PMEMobjpool *pop)
 		ERR("ctree_remove");
 	}
 
-#ifndef WIN32
+#ifndef _WIN32
 
 	if (_pobj_cached_pool.pop == pop) {
 		_pobj_cached_pool.pop = NULL;
 		_pobj_cached_pool.uuid_lo = 0;
 	}
 
-#else /* WIN32 */
+#else /* _WIN32 */
 
 	struct _pobj_pcache *pcache = pthread_getspecific(Cached_pool_key);
 	if (pcache != NULL) {
@@ -1045,7 +1045,7 @@ pmemobj_close(PMEMobjpool *pop)
 		}
 	}
 
-#endif /* WIN32 */
+#endif /* _WIN32 */
 
 	pmemobj_cleanup(pop);
 }
@@ -1963,7 +1963,7 @@ _pobj_debug_notice(const char *api_name, const char *file, int line)
 }
 
 
-#ifdef WIN32
+#ifdef _WIN32
 /*
  * libpmemobj constructor/destructor functions
  */

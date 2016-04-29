@@ -216,7 +216,7 @@
 #include "out.h"
 #include "valgrind_internal.h"
 
-#ifndef WIN32
+#ifndef _WIN32
 /*
  * The x86 memory instructions are new enough that the compiler
  * intrinsic functions are not always available.  The intrinsic
@@ -623,7 +623,7 @@ pmem_map_file(const char *path, size_t len, int flags, mode_t mode,
 			}
 		}
 	} else {
-#ifndef WIN32
+#ifndef _WIN32
 		struct stat stbuf;
 		if (fstat(fd, &stbuf) < 0) {
 #else
@@ -1240,7 +1240,7 @@ pmem_init(void)
 }
 
 
-#ifdef WIN32
+#ifdef _WIN32
 /*
  * libpmem constructor/destructor functions
  */

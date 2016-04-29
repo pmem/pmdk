@@ -272,7 +272,7 @@ util_poolset_chmod(struct pool_set *set, mode_t mode)
 			if (!part->created)
 				continue;
 
-#ifndef WIN32
+#ifndef _WIN32
 			struct stat stbuf;
 			if (fstat(part->fd, &stbuf) != 0) {
 #else
@@ -1066,7 +1066,7 @@ util_replica_create(struct pool_set *set, unsigned repidx, int flags,
 
 	struct pool_replica *rep = set->replica[repidx];
 
-#ifndef WIN32
+#ifndef _WIN32
 	/* determine a hint address for mmap() */
 	void *addr = util_map_hint(rep->repsize, 0);
 	if (addr == NULL) {
@@ -1323,7 +1323,7 @@ util_replica_open(struct pool_set *set, unsigned repidx, int flags)
 	struct pool_replica *rep = set->replica[repidx];
 
 
-#ifndef WIN32
+#ifndef _WIN32
 	/* determine a hint address for mmap() */
 	void *addr = util_map_hint(rep->repsize, 0);
 	if (addr == NULL) {

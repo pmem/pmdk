@@ -54,7 +54,7 @@
  *
  * Called automatically by the run-time loader.
  */
-#ifndef WIN32
+#ifndef _WIN32
 __attribute__((constructor))
 static void
 #else
@@ -75,7 +75,7 @@ libpmemobj_init(void)
  *
  * Called automatically when the process terminates.
  */
-#ifndef WIN32
+#ifndef _WIN32
 __attribute__((destructor))
 static void
 #else

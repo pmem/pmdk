@@ -739,7 +739,7 @@ pmemblk_check(const char *path, size_t bsize)
 }
 
 
-#ifdef WIN32
+#ifdef _WIN32
 /*
  * libpmemblk constructor/destructor functions
  */

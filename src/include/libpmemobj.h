@@ -176,15 +176,15 @@ typedef struct pmemoid {
 	uint64_t off;
 } PMEMoid;
 
-#ifdef WIN32
+#ifdef _WIN32
 
 static const PMEMoid OID_NULL = { 0, 0 };
 
-#else /* WIN32 */
+#else /* _WIN32 */
 
 #define OID_NULL	((PMEMoid) {0, 0})
 
-#endif /* WIN32 */
+#endif /* _WIN32 */
 
 #define TOID_NULL(t)	((TOID(t))OID_NULL)
 #define OID_IS_NULL(o)	((o).off == 0)
@@ -195,7 +195,7 @@ static const PMEMoid OID_NULL = { 0, 0 };
 /*
  * Type safety macros
  */
-#ifndef WIN32
+#ifndef _WIN32
 
 #define TOID_ASSIGN(o, value) (\
 {\
@@ -203,11 +203,11 @@ static const PMEMoid OID_NULL = { 0, 0 };
 	(o);\
 })
 
-#else /* WIN32 */
+#else /* _WIN32 */
 
 #define TOID_ASSIGN(o, value) ((o).oid = value, (o))
 
-#endif /* WIN32 */
+#endif /* _WIN32 */
 
 #define TOID_EQUALS(lhs, rhs)\
 ((lhs).oid.off == (rhs).oid.off &&\
@@ -323,7 +323,7 @@ TOID_DECLARE_ROOT(t);
 PMEMobjpool *pmemobj_pool_by_ptr(const void *addr);
 PMEMobjpool *pmemobj_pool_by_oid(PMEMoid oid);
 
-#ifndef WIN32
+#ifndef _WIN32
 
 extern int _pobj_cache_invalidate;
 extern __thread struct _pobj_pcache {
@@ -356,24 +356,24 @@ pmemobj_direct(PMEMoid oid)
 	return (void *)((uintptr_t)_pobj_cached_pool.pop + oid.off);
 }
 
-#else /* WIN32 */
+#else /* _WIN32 */
 
 /*
  * Returns the direct pointer of an object.
  */
 void *pmemobj_direct(PMEMoid oid);
 
-#endif /* WIN32 */
+#endif /* _WIN32 */
 
 
-#ifndef WIN32
+#ifndef _WIN32
 
 #define DIRECT_RW(o) (\
 {__typeof__(o) _o; _o._type = NULL; (void)_o;\
 (__typeof__(*(o)._type) *)pmemobj_direct((o).oid); })
 #define DIRECT_RO(o) ((const __typeof__(*(o)._type) *)pmemobj_direct((o).oid))
 
-#else /* WIN32 */
+#else /* _WIN32 */
 
 #ifndef __cplusplus
 #define DIRECT_RW(o) (pmemobj_direct((o).oid))
@@ -383,7 +383,7 @@ void *pmemobj_direct(PMEMoid oid);
 #define DIRECT_RO(o) ((const __typeof__((o)._type))pmemobj_direct((o).oid))
 #endif
 
-#endif /* WIN32 */
+#endif /* _WIN32 */
 
 #define D_RW	DIRECT_RW
 #define D_RO	DIRECT_RO
@@ -526,7 +526,7 @@ PMEMoid pmemobj_first(PMEMobjpool *pop);
  */
 PMEMoid pmemobj_next(PMEMoid oid);
 
-#ifndef WIN32
+#ifndef _WIN32
 
 #define POBJ_FIRST_TYPE_NUM(pop, type_num) (\
 { PMEMoid _pobj_ret = pmemobj_first(pop);\
@@ -576,19 +576,19 @@ POBJ_NEXT_TYPE_NUM(PMEMoid o)
 
 #define POBJ_NEXT(o) ((__typeof__(o))POBJ_NEXT_TYPE_NUM(o.oid))
 
-#ifndef WIN32
+#ifndef _WIN32
 
 #define _POBJ_ALLOC(func, pop, o, t, ...) (\
 { TOID(t) *_pobj_tmp = (o);\
 PMEMoid *_pobj_oidp = _pobj_tmp ? &_pobj_tmp->oid : NULL;\
 func((pop), _pobj_oidp, __VA_ARGS__); })
 
-#else /* WIN32 */
+#else /* _WIN32 */
 
 #define _POBJ_ALLOC(func, pop, o, t, ...)\
 func(pop, (PMEMoid *)(o), __VA_ARGS__)
 
-#endif /* WIN32 */
+#endif /* _WIN32 */
 
 
 #define POBJ_NEW(pop, o, t, constr, arg)\
@@ -613,17 +613,17 @@ _POBJ_ALLOC(pmemobj_zrealloc, (pop), (o), t, (size), TOID_TYPE_NUM(t))
 
 #define POBJ_FREE(o) pmemobj_free((PMEMoid *)(o))
 
-#ifndef WIN32
+#ifndef _WIN32
 
 #define POBJ_ROOT(pop, t) (\
 {TOID(t) _pobj_ret = (TOID(t))pmemobj_root((pop), sizeof(t)); _pobj_ret; })
 
-#else /* WIN32 */
+#else /* _WIN32 */
 
 #define POBJ_ROOT(pop, t) (\
 (TOID(t))pmemobj_root((pop), sizeof(t)))
 
-#endif /* WIN32 */
+#endif /* _WIN32 */
 
 /*
  * (debug helper function) logs notice message if used inside a transaction
@@ -1094,7 +1094,7 @@ pmemobj_tx_add_range_direct(p, sizeof(*p))
 pmemobj_tx_add_range_direct(&(p)->field, sizeof((p)->field))
 
 
-#ifndef WIN32
+#ifndef _WIN32
 
 #define _TX_ALLOC(func, t, ...) (\
 {TOID(t) _pobj_ret = (TOID(t))func(__VA_ARGS__); _pobj_ret; })
@@ -1102,7 +1102,7 @@ pmemobj_tx_add_range_direct(&(p)->field, sizeof((p)->field))
 { __typeof__(o) _pobj_ret = (__typeof__(o))func((o).oid, __VA_ARGS__);\
 _pobj_ret; })
 
-#else /* WIN32 */
+#else /* _WIN32 */
 
 #ifndef __cplusplus
 #define _TX_ALLOC(func, t, ...)\
@@ -1116,7 +1116,7 @@ _pobj_ret; })
 ((__typeof__(o))(func((o).oid, __VA_ARGS__)))
 #endif
 
-#endif /* WIN32 */
+#endif /* _WIN32 */
 
 #define TX_NEW(t)\
 (_TX_ALLOC(pmemobj_tx_alloc, t, sizeof(t), TOID_TYPE_NUM(t)))
@@ -1142,7 +1142,7 @@ pmemobj_tx_strdup(s, type_num)
 #define TX_FREE(o)\
 pmemobj_tx_free((o).oid)
 
-#ifndef WIN32
+#ifndef _WIN32
 
 #define TX_SET(o, field, value) (\
 {\
@@ -1154,7 +1154,7 @@ pmemobj_tx_free((o).oid)
 	TX_ADD_FIELD_DIRECT(p, field);\
 	p->field = value; })
 
-#else /* WIN32 */
+#else /* _WIN32 */
 
 #define TX_SET(o, field, value) (\
 	TX_ADD_FIELD(o, field),\
@@ -1164,7 +1164,7 @@ pmemobj_tx_free((o).oid)
 	TX_ADD_FIELD_DIRECT(p, field),\
 	p->field = value}
 
-#endif /* WIN32 */
+#endif /* _WIN32 */
 
 
 static inline void *
