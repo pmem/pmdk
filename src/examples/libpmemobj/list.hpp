@@ -67,6 +67,7 @@ class List {
 			len = 0;
 		}
 
+		/* push_back - push back the new element */
 		void push_back(nvml::obj::persistent_ptr<T> val)
 		{
 			auto tmp = nvml::obj::make_persistent<List_entry>(tail, val);
@@ -77,6 +78,9 @@ class List {
 			tail = tmp;
 			len = len + 1;
 		}
+
+		/* pop_back - pop the last element out from the list */
+		/* and return the pointer to it */
 		nvml::obj::persistent_ptr<T> pop_back()
 		{
 			assert(head != nullptr);
@@ -89,22 +93,22 @@ class List {
 			return tmp->val;
 		}
 
-		void erase(unsigned id)
+		/* erase - return the pointer to next element */
+		nvml::obj::persistent_ptr<List_entry> erase(unsigned id)
 		{
-			remove_elm(get_elm(id));
-
+			return remove_elm(get_elm(id));
 		}
 
+		/* clear - clear the whole list */
 		void clear()
 		{
-			while (tail != nullptr) {
-				auto e = tail;
-				nvml::obj::delete_persistent<T>(tail->val);
-				tail = e->prev;
-				remove_elm(e);
+			while (head != nullptr) {
+				auto e = head;
+				head = remove_elm(e);
 			}
 		}
 
+		/* get - get element with given id in list */
 		nvml::obj::persistent_ptr<T> get(unsigned id)
 		{
 			auto elm = get_elm(id);
@@ -113,13 +117,13 @@ class List {
 			return elm->val;
 		}
 
+		/* size - return number of elements in list */
 		unsigned size()
 		{
 			return len;
 		}
 
 	private:
-
 		nvml::obj::persistent_ptr<List_entry> get_elm(unsigned id)
 		{
 			if (id >= len)
@@ -130,25 +134,28 @@ class List {
 			return tmp;
 		}
 
-		int remove_elm(nvml::obj::persistent_ptr<List_entry> elm)
+		nvml::obj::persistent_ptr<List_entry>
+			remove_elm(nvml::obj::persistent_ptr<List_entry> elm)
 		{
 			assert(elm != nullptr);
+			auto tmp = elm->next;
+			nvml::obj::delete_persistent<T>(elm->val);
 
 			/* removing item is head */
-			if (elm->prev != nullptr)
-				elm->prev->next = elm->next;
-			else
+			if (elm == head)
 				head = elm->next;
+			else
+				elm->prev->next = elm->next;
 
 			/* removing item is tail */
-			if (elm->next != nullptr)
-				elm->next->prev = elm->prev;
-			else
+			if (elm == tail)
 				tail = elm->prev;
+			else
+				elm->next->prev = elm->prev;
 
 			len = len - 1;
 			nvml::obj::delete_persistent<List_entry>(elm);
-			return 0;
+			return tmp;
 		}
 
 		nvml::obj::p<unsigned> len;
