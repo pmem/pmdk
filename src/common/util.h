@@ -263,6 +263,7 @@ int util_pool_open(struct pool_set **setp, const char *path, int rdonly,
 	uint32_t major, uint32_t compat, uint32_t incompat, uint32_t ro_compat);
 int util_parse_size(const char *str, size_t *sizep);
 
+off_t util_get_file_size(int fd);
 
 #define COMPILE_ERROR_ON(cond) ((void)sizeof(char[(cond) ? -1 : 1]))
 

@@ -290,3 +290,19 @@ out_close:
 out:
 	return ret;
 }
+
+/*
+ * util_get_file_size -- get size of the file in bytes
+ */
+off_t
+util_get_file_size(int fd)
+{
+	struct stat stbuf;
+
+	if (fstat(fd, &stbuf) != 0) {
+		ERR("!fstat");
+		return -1;
+	}
+
+	return stbuf.st_size;
+}

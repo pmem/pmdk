@@ -623,23 +623,13 @@ pmem_map_file(const char *path, size_t len, int flags, mode_t mode,
 			}
 		}
 	} else {
-#ifndef _WIN32
-		struct stat stbuf;
-		if (fstat(fd, &stbuf) < 0) {
-#else
-		struct _stat64 stbuf;
-		if (_fstat64(fd, &stbuf) < 0) {
-#endif
-			ERR("!fstat %s", path);
-			goto err;
-		}
-		if (stbuf.st_size < 0) {
-			ERR("stat %s: negative size", path);
+		off_t size = util_get_file_size(fd);
+		if (size < 0) {
 			errno = EINVAL;
 			goto err;
 		}
 
-		len = (size_t)stbuf.st_size;
+		len = (size_t)size;
 	}
 
 	void *addr;
