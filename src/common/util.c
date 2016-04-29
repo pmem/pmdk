@@ -157,6 +157,10 @@ util_map(int fd, size_t len, int cow, size_t req_align)
 
 	void *base;
 	void *addr = util_map_hint(len, req_align);
+	if (addr == MAP_FAILED) {
+		ERR("cannot find a contiguous region of given size");
+		return NULL;
+	}
 
 	if ((base = mmap(addr, len, PROT_READ|PROT_WRITE,
 			(cow) ? MAP_PRIVATE|MAP_NORESERVE : MAP_SHARED,
@@ -580,21 +584,21 @@ util_file_open(const char *path, size_t *size, size_t minsize, int flags)
 		if (size)
 			ASSERTeq(*size, 0);
 
-		off_t fsize = util_get_file_size(fd);
-		if (fsize < 0) {
-			errno = EINVAL;
+		util_stat_t stbuf;
+		if (util_fstat(fd, &stbuf) < 0) {
+			ERR("!fstat %s", path);
 			goto err;
 		}
 
-		if ((size_t)fsize < minsize) {
+		if ((size_t)stbuf.st_size < minsize) {
 			ERR("size %zu smaller than %zu",
-					(size_t)fsize, minsize);
+					(size_t)stbuf.st_size, minsize);
 			errno = EINVAL;
 			goto err;
 		}
 
 		if (size)
-			*size = (size_t)fsize;
+			*size = (size_t)stbuf.st_size;
 	}
 
 	return fd;

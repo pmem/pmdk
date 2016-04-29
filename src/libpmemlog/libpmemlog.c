@@ -48,12 +48,8 @@
  *
  * Called automatically by the run-time loader.
  */
-#ifndef _WIN32
-__attribute__((constructor))
-static void
-#else
+ATTR_CONSTRUCTOR
 void
-#endif
 libpmemlog_init(void)
 {
 	out_init(PMEMLOG_LOG_PREFIX, PMEMLOG_LOG_LEVEL_VAR,
@@ -68,12 +64,8 @@ libpmemlog_init(void)
  *
  * Called automatically when the process terminates.
  */
-#ifndef _WIN32
-__attribute__((destructor))
-static void
-#else
+ATTR_DESTRUCTOR
 void
-#endif
 libpmemlog_fini(void)
 {
 	LOG(3, NULL);

@@ -263,7 +263,6 @@ int util_pool_open(struct pool_set **setp, const char *path, int rdonly,
 	uint32_t major, uint32_t compat, uint32_t incompat, uint32_t ro_compat);
 int util_parse_size(const char *str, size_t *sizep);
 
-off_t util_get_file_size(int fd);
 
 #define COMPILE_ERROR_ON(cond) ((void)sizeof(char[(cond) ? -1 : 1]))
 
@@ -304,3 +303,20 @@ static inline void util_setbit(uint8_t *b, uint32_t i)
 (alignment_desc_of(double)	<<  8 * ALIGNMENT_DESC_BITS) |\
 (alignment_desc_of(long double)	<<  9 * ALIGNMENT_DESC_BITS) |\
 (alignment_desc_of(void *)	<< 10 * ALIGNMENT_DESC_BITS)
+
+
+#ifndef _WIN32
+typedef struct stat util_stat_t;
+#define	util_fstat	fstat
+#else
+typedef struct _stat64 util_stat_t;
+#define	util_fstat	_fstat64
+#endif
+
+#ifndef _WIN32
+#define	ATTR_CONSTRUCTOR __attribute__((constructor)) static
+#define	ATTR_DESTRUCTOR __attribute__((destructor)) static
+#else
+#define	ATTR_CONSTRUCTOR
+#define	ATTR_DESTRUCTOR
+#endif

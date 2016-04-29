@@ -623,13 +623,20 @@ pmem_map_file(const char *path, size_t len, int flags, mode_t mode,
 			}
 		}
 	} else {
-		off_t size = util_get_file_size(fd);
-		if (size < 0) {
+		util_stat_t stbuf;
+
+		if (util_fstat(fd, &stbuf) < 0) {
+			ERR("!fstat %s", path);
+			goto err;
+		}
+
+		if ((size_t)stbuf.st_size < 0) {
+			ERR("negative size %zu", stbuf.st_size);
 			errno = EINVAL;
 			goto err;
 		}
 
-		len = (size_t)size;
+		len = (size_t)stbuf.st_size;
 	}
 
 	void *addr;

@@ -66,6 +66,15 @@ __thread struct _pobj_pcache _pobj_cached_pool;
 
 #else /* _WIN32 */
 
+/*
+ * XXX - this is a temporary implementation
+ *
+ * Seems like we could still use TLS and simply substitute "__thread" with
+ * "__declspec(thread)", however it's not clear if it would work correctly
+ * with Windows DLL's.
+ * Need to verify that once we have the multi-threaded tests ported.
+ */
+
 struct _pobj_pcache {
 	PMEMobjpool *pop;
 	uint64_t uuid_lo;
@@ -139,9 +148,8 @@ obj_init(void)
 #endif
 
 #ifdef _WIN32
-
+	/* XXX - temporary implementation (see above) */
 	pthread_once(&Cached_pool_key_once, _Cached_pool_key_alloc);
-
 #endif
 
 	pools_ht = cuckoo_new();

@@ -48,12 +48,8 @@
  *
  * Called automatically by the run-time loader.
  */
-#ifndef _WIN32
-__attribute__((constructor))
-static void
-#else
+ATTR_CONSTRUCTOR
 void
-#endif
 libpmemblk_init(void)
 {
 	out_init(PMEMBLK_LOG_PREFIX, PMEMBLK_LOG_LEVEL_VAR,
@@ -68,12 +64,8 @@ libpmemblk_init(void)
  *
  * Called automatically when the process terminates.
  */
-#ifndef _WIN32
-__attribute__((destructor))
-static void
-#else
+ATTR_DESTRUCTOR
 void
-#endif
 libpmemblk_fini(void)
 {
 	LOG(3, NULL);

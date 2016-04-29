@@ -117,8 +117,8 @@ vmem_init(void)
  *
  * Called automatically by the run-time loader.
  */
-__attribute__((constructor))
-static void
+ATTR_CONSTRUCTOR
+void
 vmem_construct(void)
 {
 	vmem_init();
@@ -129,8 +129,8 @@ vmem_construct(void)
  *
  * Called automatically when the process terminates.
  */
-__attribute__((destructor))
-static void
+ATTR_DESTRUCTOR
+void
 vmem_fini(void)
 {
 	LOG(3, NULL);

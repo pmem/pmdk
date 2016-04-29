@@ -54,12 +54,8 @@
  *
  * Called automatically by the run-time loader.
  */
-#ifndef _WIN32
-__attribute__((constructor))
-static void
-#else
+ATTR_CONSTRUCTOR
 void
-#endif
 libpmemobj_init(void)
 {
 	out_init(PMEMOBJ_LOG_PREFIX, PMEMOBJ_LOG_LEVEL_VAR,
@@ -75,12 +71,8 @@ libpmemobj_init(void)
  *
  * Called automatically when the process terminates.
  */
-#ifndef _WIN32
-__attribute__((destructor))
-static void
-#else
+ATTR_DESTRUCTOR
 void
-#endif
 libpmemobj_fini(void)
 {
 	LOG(3, NULL);

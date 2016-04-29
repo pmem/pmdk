@@ -535,7 +535,7 @@ int
 pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp,
 		int check)
 {
-	struct stat stat_buf;
+	util_stat_t stat_buf;
 	paramsp->type = PMEM_POOL_TYPE_UNKNOWN;
 
 	paramsp->is_poolset = util_is_poolset(fname) == 1;
@@ -546,7 +546,7 @@ pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp,
 	int ret = 0;
 
 	/* get file size and mode */
-	if (fstat(fd, &stat_buf)) {
+	if (util_fstat(fd, &stat_buf)) {
 		ret = -1;
 		goto out_close;
 	}

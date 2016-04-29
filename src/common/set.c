@@ -272,13 +272,8 @@ util_poolset_chmod(struct pool_set *set, mode_t mode)
 			if (!part->created)
 				continue;
 
-#ifndef _WIN32
-			struct stat stbuf;
-			if (fstat(part->fd, &stbuf) != 0) {
-#else
-			struct _stat64 stbuf;
-			if (_fstat64(part->fd, &stbuf) != 0) {
-#endif
+			util_stat_t stbuf;
+			if (util_fstat(part->fd, &stbuf) != 0) {
 				ERR("!fstat");
 				return -1;
 			}
@@ -1066,16 +1061,12 @@ util_replica_create(struct pool_set *set, unsigned repidx, int flags,
 
 	struct pool_replica *rep = set->replica[repidx];
 
-#ifndef _WIN32
 	/* determine a hint address for mmap() */
 	void *addr = util_map_hint(rep->repsize, 0);
-	if (addr == NULL) {
+	if (addr == MAP_FAILED) {
 		ERR("cannot find a contiguous region of given size");
 		return -1;
 	}
-#else
-	void *addr = NULL;
-#endif
 
 	/* map the first part and reserve space for remaining parts */
 	if (util_map_part(&rep->part[0], addr, rep->repsize, 0, flags) != 0) {
@@ -1322,17 +1313,12 @@ util_replica_open(struct pool_set *set, unsigned repidx, int flags)
 
 	struct pool_replica *rep = set->replica[repidx];
 
-
-#ifndef _WIN32
 	/* determine a hint address for mmap() */
 	void *addr = util_map_hint(rep->repsize, 0);
-	if (addr == NULL) {
+	if (addr == MAP_FAILED) {
 		ERR("cannot find a contiguous region of given size");
 		return -1;
 	}
-#else
-	void *addr = NULL;
-#endif
 
 	/* map the first part and reserve space for remaining parts */
 	if (util_map_part(&rep->part[0], addr, rep->repsize, 0, flags) != 0) {

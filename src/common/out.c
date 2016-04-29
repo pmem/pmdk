@@ -68,7 +68,6 @@ static unsigned Log_alignment;
 static pthread_once_t Last_errormsg_key_once = PTHREAD_ONCE_INIT;
 static pthread_key_t Last_errormsg_key;
 
-
 static void
 _Last_errormsg_key_alloc(void)
 {
