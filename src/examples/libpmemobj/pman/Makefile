@@ -48,5 +48,6 @@ endif
 
 COMPILE_LANG = cpp
 include ../../Makefile.inc
+INCS += -I../
 
 pman: pman.o
