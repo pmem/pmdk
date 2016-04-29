@@ -1463,7 +1463,10 @@ function setup() {
 		MCSTR=""
 	fi
 
-	echo "$UNITTEST_NAME: SETUP ($TEST/$REAL_FS/$BUILD$MCSTR)"
+	[ -n "$RPMEM_PROVIDER" ] && PROV="/$RPMEM_PROVIDER"
+	[ -n "$RPMEM_PM" ] && PM="/$RPMEM_PM"
+
+	echo "$UNITTEST_NAME: SETUP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM)"
 
 	rm -f check_pool_${BUILD}_${UNITTEST_NUM}.log
 
@@ -1705,4 +1708,36 @@ function compare_replicas() {
 	set +e
 	diff <(dump_pool_info $1 $2) <(dump_pool_info $1 $3)
 	set -e
+}
+
+#
+# rpmem_foreach_provider -- runs the script for each provider
+#
+function rpmem_foreach_provider() {
+	local script=${BASH_SOURCE[1]}
+	local providers="verbs sockets"
+	[ -n "$RPMEM_PROVIDERS" ] && providers=$RPMEM_PROVIDERS
+	if [ -z "$RPMEM_PROVIDER" ]; then
+		for prov in $providers; do
+			eval RPMEM_PROVIDER=$prov $script
+		done
+		exit 0
+	else
+		return 0
+	fi
+}
+
+#
+# rpmem_foreach_persist -- runs the script for each persistency method
+#
+function rpmem_foreach_persist() {
+	local script=${BASH_SOURCE[1]}
+	if [ -z "$RPMEM_PM" ]; then
+		for pm in GPSPM APM; do
+			eval RPMEM_PM=$pm $script
+		done
+		exit 0
+	else
+		return 0
+	fi
 }
