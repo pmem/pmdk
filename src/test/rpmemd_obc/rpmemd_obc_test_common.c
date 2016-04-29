@@ -244,8 +244,8 @@ clnt_wait_disconnect(int fd)
 int
 clnt_connect(char *target)
 {
-	char *node = target;
-	char *service = strrchr(target, ':');
+	char *node = STRDUP(target);
+	char *service = strrchr(node, ':');
 	if (service) {
 		*service = '\0';
 		service++;
@@ -277,6 +277,7 @@ clnt_connect(char *target)
 		sockfd = -1;
 	}
 
+	FREE(node);
 	freeaddrinfo(addrinfo);
 
 	return sockfd;

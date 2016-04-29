@@ -133,11 +133,15 @@ client_connect(const struct test_case *tc, int argc, char *argv[])
 	}
 }
 
+/*
+ * client_ctrl_connect -- establish auxiliary socket connection
+ */
 static int
 client_ctrl_connect(char *target)
 {
+	char *node = STRDUP(target);
 	char *service;
-	char *colon = strrchr(target, ':');
+	char *colon = strrchr(node, ':');
 	if (colon) {
 		service = colon + 1;
 		*colon = '\0';
@@ -152,7 +156,7 @@ client_ctrl_connect(char *target)
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_protocol = 0;
-	int ret = getaddrinfo(target, service, &hints, &addrinfo);
+	int ret = getaddrinfo(node, service, &hints, &addrinfo);
 	UT_ASSERTeq(ret, 0);
 
 	for (struct addrinfo *ai = addrinfo; ai; ai = ai->ai_next) {
@@ -170,6 +174,8 @@ client_ctrl_connect(char *target)
 	}
 
 	freeaddrinfo(addrinfo);
+
+	FREE(node);
 
 	return sockfd;
 }
