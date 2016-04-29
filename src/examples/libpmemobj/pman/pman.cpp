@@ -40,7 +40,7 @@
 #include <libpmemobj/pool.hpp>
 #include <libpmemobj/transaction.hpp>
 #include <libpmemobj/make_persistent_array.hpp>
-#include "pman_list.hpp"
+#include "list.hpp"
 
 
 #define	LAYOUT_NAME "pman"
@@ -59,6 +59,9 @@
 	} while(0)
 
 using namespace nvml;
+using namespace nvml::obj;
+using namespace examples;
+
 using namespace std;
 
 enum position {
@@ -133,7 +136,7 @@ class bomb : public point {
 		p<unsigned> timer;
 };
 
-typedef persistent_ptr<pman_list<bomb>> bomb_vec;
+typedef persistent_ptr<list<bomb>> bomb_vec;
 
 class player : public point {
 	public:
@@ -218,9 +221,9 @@ class state {
 		/* pointer to board state */
 		persistent_ptr<board_state> board;
 		/* pointer to vector of alien type objects */
-		persistent_ptr<pman_list<alien>> aliens;
+		persistent_ptr<list<alien>> aliens;
 		/* pointer to vector of intro type objects */
-		persistent_ptr<pman_list<intro>> intro_p;
+		persistent_ptr<list<intro>> intro_p;
 		/* pointer to vector of bomb type objects */
 		bomb_vec bombs;
 		/* the best score player has ever achieved */
@@ -889,9 +892,9 @@ state::new_game()
 
 		board = make_persistent<board_state>();
 		pl = make_persistent<player>(POS_MIDDLE);
-		intro_p = make_persistent<pman_list<intro>>();
-		bombs = make_persistent<pman_list<bomb>>();
-		aliens = make_persistent<pman_list<alien>>();
+		intro_p = make_persistent<list<intro>>();
+		bombs = make_persistent<list<bomb>>();
+		aliens = make_persistent<list<alien>>();
 		aliens->push_back(make_persistent<alien>(UP_LEFT));
 
 		transaction::commit();
@@ -915,14 +918,14 @@ state::resume()
 		pl = nullptr;
 
 		aliens->clear();
-		delete_persistent<pman_list<alien>>(aliens);
+		delete_persistent<list<alien>>(aliens);
 
 		bombs->clear();
-		delete_persistent<pman_list<bomb>>(bombs);
+		delete_persistent<list<bomb>>(bombs);
 
 
 		intro_p->clear();
-		delete_persistent<pman_list<intro>>(intro_p);
+		delete_persistent<list<intro>>(intro_p);
 		transaction::commit();
 	} catch (transaction_error err) {
 		cout << err.what() << endl;
