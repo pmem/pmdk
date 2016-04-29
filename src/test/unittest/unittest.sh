@@ -51,6 +51,26 @@ TOOLS=../tools
 # force globs to fail if they don't match
 shopt -s failglob
 
+# number of remote nodes required in the current unit test
+NODES_MAX=-1
+
+# SSH and SCP options
+SSH_OPTS="-o BatchMode=yes"
+SCP_OPTS="-o BatchMode=yes -r -p"
+
+# list of common files to be copied to all remote nodes
+DIR_SRC="../.."
+FILES_COMMON_DIR="$DIR_SRC/test/*.supp"
+FILES_CURRTEST_DIR="\
+$DIR_SRC/test/tools/ctrld/ctrld \
+$DIR_SRC/tools/pmempool/pmempool"
+
+RPMEM_PORT=$(cat $DIR_SRC/rpmem_common/rpmem_proto.h |\
+	grep '#define\sRPMEM_PORT' | grep -o '[0-9]\+')
+
+# array of lists of PID files to be cleaned in case of an error
+NODE_PID_FILES[0]=""
+
 #
 # For non-static build testing, the variable TEST_LD_LIBRARY_PATH is
 # constructed so the test pulls in the appropriate library from this
@@ -377,13 +397,19 @@ function ignore_debug_info_errors() {
 function expect_normal_exit() {
 	if [ "$CHECK_TYPE" != "none" ]; then
 		OLDTRACE="$TRACE"
+		VALGRIND_LOG_FILE=${CHECK_TYPE}${UNITTEST_NUM}.log
 		rm -f $VALGRIND_LOG_FILE
 		if [ "$CHECK_TYPE" = "memcheck" -a "$MEMCHECK_DONT_CHECK_LEAKS" != "1" ]; then
 			export OLD_VALGRIND_OPTS="$VALGRIND_OPTS"
 			export VALGRIND_OPTS="$VALGRIND_OPTS --leak-check=full"
 		fi
 		export VALGRIND_OPTS="$VALGRIND_OPTS --suppressions=../ld.supp"
-		TRACE="$VALGRINDEXE --tool=$CHECK_TYPE --log-file=$VALGRIND_LOG_FILE $VALGRIND_OPTS $TRACE"
+		if [ "$1" == "run_on_node" -o "$1" == "run_on_node_background" ]; then
+			local _VALGRINDEXE=${NODE_VALGRINDEXE[$2]}
+		else
+			local _VALGRINDEXE=$VALGRINDEXE
+		fi
+		TRACE="$_VALGRINDEXE --tool=$CHECK_TYPE --log-file=$VALGRIND_LOG_FILE $VALGRIND_OPTS $TRACE"
 	fi
 
 	if [ "$MEMCHECK_DONT_CHECK_LEAKS" = "1" -a "$CHECK_TYPE" = "memcheck" ]; then
@@ -391,11 +417,44 @@ function expect_normal_exit() {
 		export ASAN_OPTIONS="detect_leaks=0 ${ASAN_OPTIONS}"
 	fi
 
+	local REMOTE_VALGRIND_LOG=0
+	if [ "$CHECK_TYPE" != "none" ]; then
+	        case "$1"
+	        in
+	        run_on_node)
+			REMOTE_VALGRIND_LOG=1
+			TRACE="$1 $2 $TRACE"
+			local N=$2
+			[ $# -ge 2  ] && shift 2 || shift $#
+	                ;;
+	        run_on_node_background)
+			REMOTE_VALGRIND_LOG=1
+			TRACE="$1 $2 $3 $TRACE"
+			local N=$2
+			[ $# -ge 3  ] && shift 3 || shift $#
+	                ;;
+	        wait_on_node|wait_on_node_port|kill_on_node)
+			TRACE="$1 $2 $3 $4"
+			[ $# -ge 4  ] && shift 4 || shift $#
+	                ;;
+	        esac
+	fi
+
 	set +e
 	eval $ECHO LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH LD_PRELOAD=$TEST_LD_PRELOAD \
 	$TRACE $*
 	ret=$?
+	if [ $REMOTE_VALGRIND_LOG -eq 1 ]; then
+		validate_node_number $N
+		local REMOTE_DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
+		local NEW_VALGRIND_LOG_FILE=node\_$N\_$VALGRIND_LOG_FILE
+		run_command scp $SCP_OPTS \
+			${NODE[$N]}:$REMOTE_DIR/$VALGRIND_LOG_FILE \
+			$NEW_VALGRIND_LOG_FILE 2>/dev/null
+		VALGRIND_LOG_FILE=$NEW_VALGRIND_LOG_FILE
+	fi
 	set -e
+
 	if [ "$ret" -ne "0" ]; then
 		if [ "$ret" -gt "128" ]; then
 			msg="crashed (signal $(($ret - 128)))"
@@ -414,7 +473,7 @@ function expect_normal_exit() {
 		else
 			echo -e "$UNITTEST_NAME $msg." >&2
 		fi
-		if [ "$CHECK_TYPE" != "none" ]; then
+		if [ "$CHECK_TYPE" != "none" -a -f $VALGRIND_LOG_FILE ]; then
 			echo "$VALGRIND_LOG_FILE below." >&2
 			ln=`wc -l < $VALGRIND_LOG_FILE`
 			paste -d " " <(yes $UNITTEST_NAME $VALGRIND_LOG_FILE | head -n $ln) <(head -n $ln $VALGRIND_LOG_FILE) >&2
@@ -666,9 +725,27 @@ function configure_valgrind() {
 #
 function require_valgrind() {
 	require_no_asan
-	VALGRINDEXE=`which valgrind 2>/dev/null` && return
-	echo "$UNITTEST_NAME: SKIP valgrind package required"
-	exit 0
+	set +e
+	VALGRINDEXE=`which valgrind 2>/dev/null`
+	local ret=$?
+	set -e
+	if [ $ret -ne 0 ]; then
+		echo "$UNITTEST_NAME: SKIP valgrind package required"
+		exit 0
+	fi
+	[ $NODES_MAX -lt 0 ] && return;
+	for (( N=$NODES_MAX ; $(($N + 1)) ; N=$(($N - 1)) )); do
+		if [ "${NODE_VALGRINDEXE[$N]}" = "" ]; then
+			set +e
+			NODE_VALGRINDEXE[$N]=$(ssh $SSH_OPTS ${NODE[$N]} "which valgrind 2>/dev/null")
+			ret=$?
+			set -e
+			if [ $ret -ne 0 ]; then
+				echo "$UNITTEST_NAME: SKIP valgrind package required on remote node #$N"
+				exit 0
+			fi
+		fi
+	done
 }
 
 #
@@ -765,10 +842,28 @@ function require_valgrind_drd() {
 # to call Valgrind directly.
 #
 function set_valgrind_exe_name() {
-	VALGRINDDIR=`dirname $VALGRINDEXE`
+	if [ "$VALGRINDEXE" = "" ]; then
+		echo "set_valgrind_exe_name: error: valgrind is not set up" >&2
+		exit 1
+	fi
+
+	local VALGRINDDIR=`dirname $VALGRINDEXE`
 	if [ -x $VALGRINDDIR/valgrind.bin ]; then
 		VALGRINDEXE=$VALGRINDDIR/valgrind.bin
 	fi
+
+	[ $NODES_MAX -lt 0 ] && return;
+	for (( N=$NODES_MAX ; $(($N + 1)) ; N=$(($N - 1)) )); do
+		local COMMAND="\
+			[ -x $(dirname ${NODE_VALGRINDEXE[$N]})/valgrind.bin ] && \
+			echo $(dirname ${NODE_VALGRINDEXE[$N]})/valgrind.bin || \
+			echo ${NODE_VALGRINDEXE[$N]}"
+		NODE_VALGRINDEXE[$N]=$(ssh $SSH_OPTS ${NODE[$N]} $COMMAND)
+		if [ $? -ne 0 ]; then
+			echo ${NODE_VALGRINDEXE[$N]}
+			exit 1
+		fi
+	done
 }
 
 #
@@ -894,26 +989,6 @@ function require_binary() {
 	return
 }
 
-# number of remote nodes required in the current unit test
-NODES_MAX=-1
-
-# SSH and SCP options
-SSH_OPTS="-o BatchMode=yes"
-SCP_OPTS="-o BatchMode=yes -r -p"
-
-# list of common files to be copied to all remote nodes
-DIR_SRC="../.."
-COMMON_FILES_TO_COPY="\
-$DIR_SRC/test/tools/ctrld/ctrld \
-$DIR_SRC/tools/pmempool/pmempool"
-
-RPMEM_PORT=$(cat $DIR_SRC/rpmem_common/rpmem_proto.h |\
-	grep '#define\sRPMEM_PORT' | grep -o '[0-9]\+')
-
-
-# array of lists of PID files to be cleaned in case of an error
-NODE_PID_FILES[0]=""
-
 #
 # run_command -- run a command in a verbose or quiet way
 #
@@ -1014,9 +1089,6 @@ function export_vars_node() {
 #
 function require_nodes() {
 
-	# XXX fix it later
-	configure_valgrind memcheck force-disable
-
 	local N_NODES=${#NODE[@]}
 	local N=$1
 
@@ -1049,11 +1121,23 @@ function require_nodes() {
 
 		# clear the list of PID files for each node
 		NODE_PID_FILES[$N]=""
+
 		require_node_log_files $N err$UNITTEST_NUM.log out$UNITTEST_NUM.log trace$UNITTEST_NUM.log
+
+		if [ "$CHECK_TYPE" != "none" -a "${NODE_VALGRINDEXE[$N]}" = "" ]; then
+			set +e
+			NODE_VALGRINDEXE[$N]=$(ssh $SSH_OPTS ${NODE[$N]} "which valgrind 2>/dev/null")
+			local ret=$?
+			set -e
+			if [ $ret -ne 0 ]; then
+				echo "$UNITTEST_NAME: SKIP valgrind package required on remote node #$N"
+				exit 0
+			fi
+		fi
 	done
 
 	# files to be copied to all remote nodes
-	local FILES_TO_COPY=$COMMON_FILES_TO_COPY
+	local FILES_TO_COPY=$FILES_CURRTEST_DIR
 
 	# add debug or nondebug libraries to the 'to-copy' list
 	local BUILD_TYPE=$(echo $BUILD | cut -d"-" -f1)
@@ -1070,6 +1154,7 @@ function require_nodes() {
 		# create a new test dir
 		local DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
 		run_command ssh $SSH_OPTS ${NODE[$N]} "rm -rf $DIR && mkdir -p $DIR"
+		run_command scp $SCP_OPTS $FILES_COMMON_DIR ${NODE[$N]}:${NODE_WORKING_DIR[$N]}
 
 		# copy all required files
 		[ "$FILES_TO_COPY" != "" ] &&\
@@ -1327,17 +1412,17 @@ function setup() {
 # check -- check test results (using .match files)
 #
 function check() {
-	if [ $NODES_MAX -eq -1 ]; then
+	if [ $NODES_MAX -lt 0 ]; then
 		../match $(find . -regex "[^0-9]*${UNITTEST_NUM}\.log\.match" | xargs)
 	else
 		FILES=$(find . -regex "./node_[0-9]+_[^0-9]*${UNITTEST_NUM}\.log\.match" | xargs)
 		for file in $FILES; do
 			local N=`echo $file | cut -d"_" -f2`
-			local FILE=`echo $file | cut -d"_" -f3 | sed "s/\.match$//g"`
 			local DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
+			local FILE=`echo $file | cut -d"_" -f3 | sed "s/\.match$//g"`
+			local NEW_FILE=node\_$N\_$FILE
 			validate_node_number $N
-			run_command scp $SCP_OPTS ${NODE[$N]}:$DIR/$FILE .
-			run_command mv $FILE ./node\_$N\_$FILE
+			run_command scp $SCP_OPTS ${NODE[$N]}:$DIR/$FILE $NEW_FILE
 		done
 		../match $(find . -regex "./node_[0-9]+_[^0-9]*${UNITTEST_NUM}\.log\.match" | xargs)
 	fi
