@@ -130,6 +130,9 @@ test: all jemalloc-test
 check pcheck: test jemalloc-check
 	$(MAKE) -C test $@
 
+check-remote: test
+	$(MAKE) -C test $@
+
 jemalloc jemalloc-clean jemalloc-clobber jemalloc-test jemalloc-check:
 	$(MAKE) -C jemalloc -f Makefile.nvml $@
 ifeq ($(custom_build),)
@@ -172,4 +175,4 @@ clean:
 
 .PHONY: all install uninstall unistall-cpp install-cpp clean clobber cstyle test check pcheck\
 	jemalloc jemalloc-clean jemalloc-test jemalloc-check cscope $(ALL_TARGETS)\
-	pkg-config
+	pkg-config check-remote
