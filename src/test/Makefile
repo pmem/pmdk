@@ -232,7 +232,12 @@ EXAMPLES_TESTS = \
        ex_libpmemobj
 
 CPP_EXAMPLE_TESTS = \
-	ex_libpmemobj_cpp
+       ex_libpmemobj_cpp
+
+REMOTE_TESTS = \
+       remote_basic\
+       remote_obj_basic\
+       $(RPMEM_TESTS)
 
 TESTS = \
        $(OBJ_TESTS)\
@@ -303,6 +308,10 @@ check: test
 	@./RUNTESTS -b $(TEST_BUILD) -t $(TEST_TYPE) -f $(TEST_FS) -o $(TEST_TIME) -m $(MEMCHECK) $(CHECK_POOL_OPT) $(TESTS)
 	@echo "No failures."
 
+check-remote: test
+	@./RUNTESTS -b $(TEST_BUILD) -t $(TEST_TYPE) -f $(TEST_FS) -o $(TEST_TIME) -m $(MEMCHECK) $(CHECK_POOL_OPT) $(REMOTE_TESTS)
+	@echo "No failures."
+
 pcheck: $(TESTS_BUILD)
 	@echo "No failures."
 
@@ -344,4 +353,4 @@ pcheck_vmmalloc: $(VMMALLOC_TESTS)
 
 .PHONY: all check clean clobber cstyle pcheck pcheck_blk pcheck_log pcheck_obj\
         pcheck_other pcheck_pmem pcheck_pmempool pcheck_vmem pcheck_vmmalloc\
-        test unittest tools $(TESTS_BUILD)
+        test unittest tools check-remote $(TESTS_BUILD)
