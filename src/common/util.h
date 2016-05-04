@@ -278,9 +278,6 @@ int util_pool_open_remote(struct pool_set **setp, const char *path, int rdonly,
 
 int util_parse_size(const char *str, size_t *sizep);
 
-
-#define COMPILE_ERROR_ON(cond) ((void)sizeof(char[(cond) ? -1 : 1]))
-
 /* setbit macro substitution which properly deals with types */
 static inline void util_setbit(uint8_t *b, uint32_t i)
 {
@@ -298,7 +295,6 @@ static inline void util_setbit(uint8_t *b, uint32_t i)
 #define unlikely(x) (!!(x))
 #endif
 #endif
-
 
 /*
  * set of macros for determining the alignment descriptor
@@ -319,13 +315,21 @@ static inline void util_setbit(uint8_t *b, uint32_t i)
 (alignment_desc_of(long double)	<<  9 * ALIGNMENT_DESC_BITS) |\
 (alignment_desc_of(void *)	<< 10 * ALIGNMENT_DESC_BITS)
 
-
 #ifndef _WIN32
 typedef struct stat util_stat_t;
 #define	util_fstat	fstat
 #else
 typedef struct _stat64 util_stat_t;
 #define	util_fstat	_fstat64
+#endif
+
+#ifndef _MSC_VER
+#define COMPILE_ERROR_ON(cond) ((void)sizeof(char[(cond) ? -1 : 1]))
+#define ASSERT_COMPILE_ERROR_ON(cond) COMPILE_ERROR_ON(cond)
+#else
+#define COMPILE_ERROR_ON(cond) C_ASSERT(!(cond))
+/* XXX - can't be done with C_ASSERT() unless we have __builtin_constant_p() */
+#define ASSERT_COMPILE_ERROR_ON(cond)
 #endif
 
 #ifndef _MSC_VER

@@ -135,7 +135,7 @@ out_fatal_abort(const char *file, int line, const char *func,
 		 * COMPILE_ERROR_ON(!cnd) or ASSERT_rt(cnd) in such cases.\
 		 */\
 		if (__builtin_constant_p(cnd))\
-			COMPILE_ERROR_ON(cnd);\
+			ASSERT_COMPILE_ERROR_ON(cnd);\
 		ASSERT_rt(cnd);\
 	} while (0)
 
@@ -144,7 +144,7 @@ out_fatal_abort(const char *file, int line, const char *func,
 	do {\
 		/* See comment in ASSERT. */\
 		if (__builtin_constant_p(cnd))\
-			COMPILE_ERROR_ON(cnd);\
+			ASSERT_COMPILE_ERROR_ON(cnd);\
 		ASSERTinfo_rt(cnd);\
 	} while (0)
 
@@ -153,7 +153,7 @@ out_fatal_abort(const char *file, int line, const char *func,
 	do {\
 		/* See comment in ASSERT. */\
 		if (__builtin_constant_p(lhs) && __builtin_constant_p(rhs))\
-			COMPILE_ERROR_ON((lhs) == (rhs));\
+			ASSERT_COMPILE_ERROR_ON((lhs) == (rhs));\
 		ASSERTeq_rt(lhs, rhs);\
 	} while (0)
 
@@ -162,7 +162,7 @@ out_fatal_abort(const char *file, int line, const char *func,
 	do {\
 		/* See comment in ASSERT. */\
 		if (__builtin_constant_p(lhs) && __builtin_constant_p(rhs))\
-			COMPILE_ERROR_ON((lhs) != (rhs));\
+			ASSERT_COMPILE_ERROR_ON((lhs) != (rhs));\
 		ASSERTne_rt(lhs, rhs);\
 	} while (0)
 
