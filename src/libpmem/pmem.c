@@ -216,6 +216,7 @@
 #include "out.h"
 #include "valgrind_internal.h"
 
+#ifndef _MSC_VER
 /*
  * The x86 memory instructions are new enough that the compiler
  * intrinsic functions are not always available.  The intrinsic
@@ -227,6 +228,8 @@
 	asm volatile(".byte 0x66; xsaveopt %0" : "+m" (*(volatile char *)addr));
 #define _mm_pcommit()\
 	asm volatile(".byte 0x66, 0x0f, 0xae, 0xf8");
+
+#endif /* _MSC_VER */
 
 #define FLUSH_ALIGN ((uintptr_t)64)
 
@@ -245,8 +248,6 @@
 #define MOVNT_SHIFT	4
 
 #define MOVNT_THRESHOLD	256
-
-#define PROCMAXLEN 2048 /* maximum expected line length in /proc files */
 
 static size_t Movnt_threshold = MOVNT_THRESHOLD;
 static int Has_hw_drain;
@@ -457,7 +458,7 @@ pmem_msync(const void *addr, size_t len)
 	len += (uintptr_t)addr & (Pagesize - 1);
 
 	/* round addr down to page boundary */
-	uintptr_t uptr = (uintptr_t)addr & ~(Pagesize - 1);
+	uintptr_t uptr = (uintptr_t)addr & ~((uintptr_t)Pagesize - 1);
 
 	/*
 	 * msync accepts addresses aligned to page boundary, so we may sync
@@ -499,100 +500,6 @@ is_pmem_never(const void *addr, size_t len)
 	LOG(3, NULL);
 
 	return 0;
-}
-
-/*
- * is_pmem_proc -- (internal) use /proc to implement pmem_is_pmem()
- *
- * This function returns true only if the entire range can be confirmed
- * as being direct access persistent memory.  Finding any part of the
- * range is not direct access, or failing to look up the information
- * because it is unmapped or because any sort of error happens, just
- * results in returning false.
- *
- * This function works by lookup up the range in /proc/self/smaps and
- * verifying the "mixed map" vmflag is set for that range.  While this
- * isn't exactly the same as direct access, there is no DAX flag in
- * the vmflags and the mixed map flag is only true on regular files when
- * DAX is in-use, so it serves the purpose.
- *
- * The range passed in may overlap with multiple entries in the smaps list
- * so this function loops through the smaps entries until the entire range
- * is verified as direct access, or until it is clear the answer is false
- * in which case it stops the loop and returns immediately.
- */
-static int
-is_pmem_proc(const void *addr, size_t len)
-{
-	const char *caddr = addr;
-
-	FILE *fp;
-	if ((fp = fopen("/proc/self/smaps", "r")) == NULL) {
-		ERR("!/proc/self/smaps");
-		return 0;
-	}
-
-	int retval = 0;		/* assume false until proven otherwise */
-	char line[PROCMAXLEN];	/* for fgets() */
-	char *lo = NULL;	/* beginning of current range in smaps file */
-	char *hi = NULL;	/* end of current range in smaps file */
-	int needmm = 0;		/* looking for mm flag for current range */
-	while (fgets(line, PROCMAXLEN, fp) != NULL) {
-		static const char vmflags[] = "VmFlags:";
-		static const char mm[] = " mm";
-
-		/* check for range line */
-		if (sscanf(line, "%p-%p", &lo, &hi) == 2) {
-			if (needmm) {
-				/* last range matched, but no mm flag found */
-				LOG(4, "never found mm flag");
-				break;
-			} else if (caddr < lo) {
-				/* never found the range for caddr */
-				LOG(4, "no match for addr %p", caddr);
-				break;
-			} else if (caddr < hi) {
-				/* start address is in this range */
-				size_t rangelen = (size_t)(hi - caddr);
-
-				/* remember that matching has started */
-				needmm = 1;
-
-				/* calculate remaining range to search for */
-				if (len > rangelen) {
-					len -= rangelen;
-					caddr += rangelen;
-					LOG(4, "matched %zu bytes in range "
-							"%p-%p, %zu left over",
-							rangelen, lo, hi, len);
-				} else {
-					len = 0;
-					LOG(4, "matched all bytes in range "
-							"%p-%p", lo, hi);
-				}
-			}
-		} else if (needmm && strncmp(line, vmflags,
-					sizeof(vmflags) - 1) == 0) {
-			if (strstr(&line[sizeof(vmflags) - 1], mm) != NULL) {
-				LOG(4, "mm flag found");
-				if (len == 0) {
-					/* entire range matched */
-					retval = 1;
-					break;
-				}
-				needmm = 0;	/* saw what was needed */
-			} else {
-				/* mm flag not set for some or all of range */
-				LOG(4, "range has no mm flag");
-				break;
-			}
-		}
-	}
-
-	fclose(fp);
-
-	LOG(3, "returning %d", retval);
-	return retval;
 }
 
 /*
@@ -717,12 +624,13 @@ pmem_map_file(const char *path, size_t len, int flags, mode_t mode,
 			}
 		}
 	} else {
-		struct stat stbuf;
+		util_stat_t stbuf;
 
-		if (fstat(fd, &stbuf) < 0) {
+		if (util_fstat(fd, &stbuf) < 0) {
 			ERR("!fstat %s", path);
 			goto err;
 		}
+
 		if (stbuf.st_size < 0) {
 			ERR("stat %s: negative size", path);
 			errno = EINVAL;
@@ -1328,3 +1236,12 @@ pmem_init(void)
 			Func_is_pmem = is_pmem_always;
 	}
 }
+
+
+#ifdef _MSC_VER
+/*
+ * libpmem constructor/destructor functions
+ */
+MSVC_CONSTR(libpmem_init)
+MSVC_DESTR(libpmem_fini)
+#endif

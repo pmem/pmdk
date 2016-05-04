@@ -59,7 +59,69 @@ static struct cuckoo *pools_ht; /* hash table used for searching by UUID */
 static struct ctree *pools_tree; /* tree used for searching by address */
 
 int _pobj_cache_invalidate;
+
+#ifndef _WIN32
+
 __thread struct _pobj_pcache _pobj_cached_pool;
+
+#else /* _WIN32 */
+
+/*
+ * XXX - this is a temporary implementation
+ *
+ * Seems like we could still use TLS and simply substitute "__thread" with
+ * "__declspec(thread)", however it's not clear if it would work correctly
+ * with Windows DLL's.
+ * Need to verify that once we have the multi-threaded tests ported.
+ */
+
+struct _pobj_pcache {
+	PMEMobjpool *pop;
+	uint64_t uuid_lo;
+	int invalidate;
+};
+
+static pthread_once_t Cached_pool_key_once = PTHREAD_ONCE_INIT;
+static pthread_key_t Cached_pool_key;
+
+static void
+_Cached_pool_key_alloc(void)
+{
+	int pth_ret = pthread_key_create(&Cached_pool_key, free);
+	if (pth_ret)
+		FATAL("!pthread_key_create");
+}
+
+void *
+pmemobj_direct(PMEMoid oid)
+{
+	if (oid.off == 0 || oid.pool_uuid_lo == 0)
+		return NULL;
+
+	struct _pobj_pcache *pcache = pthread_getspecific(Cached_pool_key);
+	if (pcache == NULL) {
+		pcache = malloc(sizeof(struct _pobj_pcache));
+		int ret = pthread_setspecific(Cached_pool_key, pcache);
+		if (ret)
+			FATAL("!pthread_setspecific");
+	}
+
+	if (_pobj_cache_invalidate != pcache->invalidate ||
+	    pcache->uuid_lo != oid.pool_uuid_lo) {
+		pcache->invalidate = _pobj_cache_invalidate;
+
+		if ((pcache->pop = pmemobj_pool_by_oid(oid)) == NULL) {
+			pcache->uuid_lo = 0;
+			return NULL;
+		}
+
+		pcache->uuid_lo = oid.pool_uuid_lo;
+	}
+
+	return (void *)((uintptr_t)pcache->pop + oid.off);
+}
+
+#endif /* _WIN32 */
 
 /*
  * User may decide to map all pools with MAP_PRIVATE flag using
@@ -83,6 +145,11 @@ obj_init(void)
 	char *env = getenv("PMEMOBJ_COW");
 	if (env)
 		Open_cow = atoi(env);
+#endif
+
+#ifdef _WIN32
+	/* XXX - temporary implementation (see above) */
+	pthread_once(&Cached_pool_key_once, _Cached_pool_key_alloc);
 #endif
 
 	pools_ht = cuckoo_new();
@@ -969,10 +1036,24 @@ pmemobj_close(PMEMobjpool *pop)
 		ERR("ctree_remove");
 	}
 
+#ifndef _WIN32
+
 	if (_pobj_cached_pool.pop == pop) {
 		_pobj_cached_pool.pop = NULL;
 		_pobj_cached_pool.uuid_lo = 0;
 	}
+
+#else /* _WIN32 */
+
+	struct _pobj_pcache *pcache = pthread_getspecific(Cached_pool_key);
+	if (pcache != NULL) {
+		if (pcache->pop == pop) {
+			pcache->pop = NULL;
+			pcache->uuid_lo = 0;
+		}
+	}
+
+#endif /* _WIN32 */
 
 	pmemobj_cleanup(pop);
 }
@@ -1888,3 +1969,12 @@ _pobj_debug_notice(const char *api_name, const char *file, int line)
 	}
 #endif /* DEBUG */
 }
+
+
+#ifdef _MSC_VER
+/*
+ * libpmemobj constructor/destructor functions
+ */
+MSVC_CONSTR(libpmemobj_init)
+MSVC_DESTR(libpmemobj_fini)
+#endif

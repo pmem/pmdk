@@ -38,7 +38,6 @@
 #
 
 TOP := $(dir $(lastword $(MAKEFILE_LIST)))../..
-PLATFORM = $(TOP)/platform/linux
 
 include $(TOP)/src/common.inc
 

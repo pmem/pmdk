@@ -34,16 +34,14 @@
 # src/test/obj_heap/Makefile -- build heap unit test
 #
 TOP = ../../..
-PLATFORM = $(TOP)/platform/linux
 
 vpath %.c $(TOP)/src/libpmemobj
 vpath %.c $(TOP)/src/common
-vpath %.c $(PLATFORM)/src/common
 
 TARGET = obj_heap
 OBJS = obj_heap.o pmalloc.o bucket.o redo.o heap.o lane.o ctree.o\
-    util.o util_platform.o set.o out.o obj.o cuckoo.o list.o sync.o tx.o memops.o\
-    libpmemobj.o
+    util.o util_linux.o set.o set_linux.o out.o obj.o cuckoo.o\
+    list.o sync.o tx.o memops.o libpmemobj.o
 
 LIBPMEM=y
 

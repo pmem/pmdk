@@ -34,14 +34,12 @@
 # src/test/obj_tx_alloc/Makefile -- build obj_tx_alloc unit test
 #
 TOP = ../../..
-PLATFORM = $(TOP)/platform/linux
 
 vpath %.c $(TOP)/src/libpmemobj
 vpath %.c $(TOP)/src/common
-vpath %.c $(PLATFORM)/src/common
 
 TARGET = obj_tx_alloc
-OBJS = obj_tx_alloc.o util.o util_platform.o out.o
+OBJS = obj_tx_alloc.o util.o util_linux.o out.o
 
 LIBPMEM=y
 LIBPMEMOBJ=y

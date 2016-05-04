@@ -48,8 +48,8 @@
  *
  * Called automatically by the run-time loader.
  */
-__attribute__((constructor))
-static void
+ATTR_CONSTRUCTOR
+void
 libpmem_init(void)
 {
 	out_init(PMEM_LOG_PREFIX, PMEM_LOG_LEVEL_VAR, PMEM_LOG_FILE_VAR,
@@ -64,11 +64,12 @@ libpmem_init(void)
  *
  * Called automatically when the process terminates.
  */
-__attribute__((destructor))
-static void
+ATTR_DESTRUCTOR
+void
 libpmem_fini(void)
 {
 	LOG(3, NULL);
+
 	out_fini();
 }
 

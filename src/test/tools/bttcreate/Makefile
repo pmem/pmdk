@@ -31,14 +31,12 @@
 # Makefile -- Makefile for bttcreate tool
 #
 TOP = ../../../..
-PLATFORM = $(TOP)/platform/linux
 
 vpath %.c $(TOP)/src/libpmemblk/
 vpath %.c $(TOP)/src/common/
-vpath %.c $(PLATFORM)/src/common/
 
 TARGET = bttcreate
-OBJS = bttcreate.o btt.o util.o util_platform.o set.o out.o
+OBJS = bttcreate.o btt.o util.o util_linux.o set.o set_linux.o out.o
 
 LIBPMEM=y
 

@@ -34,7 +34,6 @@
 # src/benchmarks/Makefile -- build all benchmarks
 #
 TOP := $(dir $(lastword $(MAKEFILE_LIST)))../..
-PLATFORM = $(TOP)/platform/linux
 
 include $(TOP)/src/common.inc
 
@@ -45,7 +44,6 @@ vpath %.c $(TOP)/src/examples/libpmemobj/hashmap
 vpath %.c $(TOP)/src/libpmemobj
 vpath %.c $(TOP)/src/common
 
-vpath %.c $(PLATFORM)/src/common
 
 BENCHMARK = pmembench
 
@@ -63,9 +61,10 @@ SRC=pmembench.c\
     benchmark_time.c\
     benchmark_worker.c\
     util.c\
-    util_platform.c\
+    util_linux.c\
     out.c\
     set.c\
+    set_linux.c\
     clo.c\
     clo_vec.c\
     config_reader.c\

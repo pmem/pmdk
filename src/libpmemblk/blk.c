@@ -43,6 +43,7 @@
 #include <time.h>
 #include <stdint.h>
 #include <pthread.h>
+#include <endian.h>
 
 #include "libpmem.h"
 #include "libpmemblk.h"
@@ -736,3 +737,12 @@ pmemblk_check(const char *path, size_t bsize)
 
 	return retval;
 }
+
+
+#ifdef _MSC_VER
+/*
+ * libpmemblk constructor/destructor functions
+ */
+MSVC_CONSTR(libpmemblk_init)
+MSVC_DESTR(libpmemblk_fini)
+#endif

@@ -34,14 +34,12 @@
 # src/test/obj_redo_log/Makefile -- build obj_redo_log unit test
 #
 TOP = ../../..
-PLATFORM = $(TOP)/platform/linux
 
 vpath %.c $(TOP)/src/libpmemobj
 vpath %.c $(TOP)/src/common
-vpath %.c $(PLATFORM)/src/common
 
 TARGET = obj_redo_log
-OBJS = obj_redo_log.o redo.o util.o util_platform.o out.o
+OBJS = obj_redo_log.o redo.o util.o util_linux.o out.o
 
 out.o: CFLAGS += -DSRCVERSION=\"utversion\"
 

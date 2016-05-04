@@ -34,14 +34,12 @@
 # src/test/obj_sync/Makefile -- build obj_sync unit test
 #
 TOP = ../../..
-PLATFORM = $(TOP)/platform/linux
 
 vpath %.c $(TOP)/src/libpmemobj
 vpath %.c $(TOP)/src/common
-vpath %.c $(PLATFORM)/src/common
 
 TARGET = obj_sync
-OBJS = obj_sync.o sync.o util.o util_platform.o out.o
+OBJS = obj_sync.o sync.o util.o util_linux.o out.o
 LIBS = -lrt
 
 out.o: CFLAGS += -DSRCVERSION=\"utversion\"

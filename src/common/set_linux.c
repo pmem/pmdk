@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016, Intel Corporation
+ * Copyright 2015-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,75 +31,47 @@
  */
 
 /*
- * util_map_proc.c -- unit test for util_map() /proc parsing
- *
- * usage: util_map_proc maps_file len [len]...
+ * set_linux.c -- pool set utilities with OS-specific implementation
  */
 
-#define _GNU_SOURCE
+#include <fcntl.h>
+#include <unistd.h>
+#include <stdint.h>
 
-#include <dlfcn.h>
-#include "unittest.h"
 #include "util.h"
-
-#define MEGABYTE ((uintptr_t)1 << 20)
-#define GIGABYTE ((uintptr_t)1 << 30)
-#define TERABYTE ((uintptr_t)1 << 40)
-
-char *Sfile;
+#include "out.h"
 
 /*
- * fopen -- interpose on libc fopen()
+ * util_uuid_generate -- generate a uuid
  *
- * This catches opens to /proc/self/maps and sends them to the fake maps
- * file being tested.
+ * This function reads the uuid string from  /proc/sys/kernel/random/uuid
+ * It converts this string into the binary uuid format as specified in
+ * https://www.ietf.org/rfc/rfc4122.txt
  */
-FILE *
-fopen(const char *path, const char *mode)
-{
-	static FILE *(*fopen_ptr)(const char *path, const char *mode);
-
-	if (strcmp(path, "/proc/self/maps") == 0) {
-		UT_OUT("redirecting /proc/self/maps to %s", Sfile);
-		path = Sfile;
-	}
-
-	if (fopen_ptr == NULL)
-		fopen_ptr = dlsym(RTLD_NEXT, "fopen");
-
-	return (*fopen_ptr)(path, mode);
-}
-
 int
-main(int argc, char *argv[])
+util_uuid_generate(uuid_t uuid)
 {
-	START(argc, argv, "util_map_proc");
+	char uu[POOL_HDR_UUID_STR_LEN];
 
-	util_init();
-
-	if (argc < 3)
-		UT_FATAL("usage: %s maps_file len [len]...", argv[0]);
-
-	Sfile = argv[1];
-
-	for (int arg = 2; arg < argc; arg++) {
-		size_t len = (size_t)strtoull(argv[arg], NULL, 0);
-
-		size_t align = Ut_pagesize;
-		if (len >= 2 * GIGABYTE)
-			align = GIGABYTE;
-		else if (len >= 4 * MEGABYTE)
-			align = 2 * MEGABYTE;
-
-		void *h1 =
-			util_map_hint_unused((void *)TERABYTE, len, GIGABYTE);
-		void *h2 = util_map_hint(len, 0);
-		if (h1 != MAP_FAILED && h1 != NULL)
-			UT_ASSERTeq((uintptr_t)h1 & (GIGABYTE - 1), 0);
-		if (h2 != MAP_FAILED && h2 != NULL)
-			UT_ASSERTeq((uintptr_t)h2 & (align - 1), 0);
-		UT_OUT("len %zu: %p %p", len, h1, h2);
+	int fd = open(POOL_HDR_UUID_GEN_FILE, O_RDONLY);
+	if (fd < 0) {
+		/* Fatal error */
+		LOG(2, "!open(uuid)");
+		return -1;
 	}
+	ssize_t num = read(fd, uu, POOL_HDR_UUID_STR_LEN);
+	if (num < POOL_HDR_UUID_STR_LEN) {
+		/* Fatal error */
+		LOG(2, "!read(uuid)");
+		close(fd);
+		return -1;
+	}
+	close(fd);
 
-	DONE(NULL);
+	uu[POOL_HDR_UUID_STR_LEN - 1] = '\0';
+	int ret = util_uuid_from_string(uu, (struct uuid *)uuid);
+	if (ret < 0)
+		return ret;
+
+	return 0;
 }

@@ -111,6 +111,17 @@ void lane_hold(PMEMobjpool *pop, struct lane_section **section,
 	enum lane_section_type type);
 void lane_release(PMEMobjpool *pop);
 
+#ifndef _MSC_VER
+
 #define SECTION_PARM(n, ops)\
 __attribute__((constructor)) static void _section_parm_##n(void)\
 { Section_ops[n] = ops; }
+
+#else
+
+#define SECTION_PARM(n, ops)\
+static void _section_parm_##n(void)\
+{ Section_ops[n] = ops; }\
+MSVC_CONSTR(_section_parm_##n)
+
+#endif

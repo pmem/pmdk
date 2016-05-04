@@ -48,8 +48,8 @@
  *
  * Called automatically by the run-time loader.
  */
-__attribute__((constructor))
-static void
+ATTR_CONSTRUCTOR
+void
 libpmemlog_init(void)
 {
 	out_init(PMEMLOG_LOG_PREFIX, PMEMLOG_LOG_LEVEL_VAR,
@@ -64,8 +64,8 @@ libpmemlog_init(void)
  *
  * Called automatically when the process terminates.
  */
-__attribute__((destructor))
-static void
+ATTR_DESTRUCTOR
+void
 libpmemlog_fini(void)
 {
 	LOG(3, NULL);

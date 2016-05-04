@@ -34,13 +34,11 @@
 # src/test/util_file_create/Makefile -- build util_file_create unit test
 #
 TOP = ../../..
-PLATFORM = $(TOP)/platform/linux
 
 vpath %.c $(TOP)/src/common
-vpath %.c $(PLATFORM)/src/common
 
 TARGET = util_file_create
-OBJS = util_file_create.o util.o util_platform.o out.o
+OBJS = util_file_create.o util.o util_linux.o out.o
 
 out.o: CFLAGS += -DSRCVERSION=\"utversion\"
 

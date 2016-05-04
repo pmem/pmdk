@@ -48,8 +48,8 @@
  *
  * Called automatically by the run-time loader.
  */
-__attribute__((constructor))
-static void
+ATTR_CONSTRUCTOR
+void
 librpmem_init(void)
 {
 	out_init(RPMEM_LOG_PREFIX, RPMEM_LOG_LEVEL_VAR, RPMEM_LOG_FILE_VAR,
@@ -63,8 +63,8 @@ librpmem_init(void)
  *
  * Called automatically when the process terminates.
  */
-__attribute__((destructor))
-static void
+ATTR_DESTRUCTOR
+void
 librpmem_fini(void)
 {
 	LOG(3, NULL);
