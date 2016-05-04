@@ -38,6 +38,8 @@
 #
 # Use "make check" to run unit tests.
 #
+# Use "make check-remote" to run only remote unit tests.
+#
 # Use "make clean" to delete all intermediate files (*.o, etc).
 #
 # Use "make clobber" to delete everything re-buildable (binaries, etc.).
@@ -88,7 +90,7 @@ clobber:
 	$(MAKE) -C utils $@
 	$(RM) -r $(RPM_BUILDDIR) $(DPKG_BUILDDIR) rpm dpkg
 
-test check pcheck: all
+test check pcheck check-remote: all
 	$(MAKE) -C src $@
 
 cstyle:
@@ -123,4 +125,4 @@ install uninstall:
 	$(MAKE) -C doc $@
 
 .PHONY: all clean clobber test check cstyle check-license install uninstall\
-	source rpm dpkg pkg-clean pcheck $(SUBDIRS)
+	source rpm dpkg pkg-clean pcheck check-remote $(SUBDIRS)
