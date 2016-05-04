@@ -419,21 +419,20 @@ function expect_normal_exit() {
 
 	local REMOTE_VALGRIND_LOG=0
 	if [ "$CHECK_TYPE" != "none" ]; then
+		local N=$2
 	        case "$1"
 	        in
 	        run_on_node)
 			REMOTE_VALGRIND_LOG=1
 			TRACE="$1 $2 $TRACE"
-			local N=$2
 			[ $# -ge 2  ] && shift 2 || shift $#
 	                ;;
 	        run_on_node_background)
-			REMOTE_VALGRIND_LOG=1
 			TRACE="$1 $2 $3 $TRACE"
-			local N=$2
 			[ $# -ge 3  ] && shift 3 || shift $#
 	                ;;
 	        wait_on_node|wait_on_node_port|kill_on_node)
+			[ "$1" = "wait_on_node" ] && REMOTE_VALGRIND_LOG=1
 			TRACE="$1 $2 $3 $4"
 			[ $# -ge 4  ] && shift 4 || shift $#
 	                ;;
