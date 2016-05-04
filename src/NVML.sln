@@ -1,0 +1,73 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.24720.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{853D45D8-980C-4991-B62A-DAC6FD245402}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libpmem", "libpmem\libpmem.vcxproj", "{9E9E3D25-2139-4A5D-9200-18148DDEAD45}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libpmemobj", "libpmemobj\libpmemobj.vcxproj", "{1BAA1617-93AE-4196-8A1A-BD492FB18AEF}"
+	ProjectSection(ProjectDependencies) = postProject
+		{9E9E3D25-2139-4A5D-9200-18148DDEAD45} = {9E9E3D25-2139-4A5D-9200-18148DDEAD45}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libpmemblk", "libpmemblk\libpmemblk.vcxproj", "{F7C6C6B6-4142-4C82-8699-4A9D8183181B}"
+	ProjectSection(ProjectDependencies) = postProject
+		{9E9E3D25-2139-4A5D-9200-18148DDEAD45} = {9E9E3D25-2139-4A5D-9200-18148DDEAD45}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libpmemlog", "libpmemlog\libpmemlog.vcxproj", "{0B1818EB-BDC8-4865-964F-DB8BF05CFD86}"
+	ProjectSection(ProjectDependencies) = postProject
+		{9E9E3D25-2139-4A5D-9200-18148DDEAD45} = {9E9E3D25-2139-4A5D-9200-18148DDEAD45}
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "utils", "utils", "{F8CCA5AE-2D75-4C79-BEAB-2588CD5956C8}"
+	ProjectSection(SolutionItems) = preProject
+		..\utils\cstyle = ..\utils\cstyle
+		..\utils\CSTYLE.ps1 = ..\utils\CSTYLE.ps1
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+		Static-Debug|x64 = Static-Debug|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9E9E3D25-2139-4A5D-9200-18148DDEAD45}.Debug|x64.ActiveCfg = Debug|x64
+		{9E9E3D25-2139-4A5D-9200-18148DDEAD45}.Debug|x64.Build.0 = Debug|x64
+		{9E9E3D25-2139-4A5D-9200-18148DDEAD45}.Release|x64.ActiveCfg = Release|x64
+		{9E9E3D25-2139-4A5D-9200-18148DDEAD45}.Release|x64.Build.0 = Release|x64
+		{9E9E3D25-2139-4A5D-9200-18148DDEAD45}.Static-Debug|x64.ActiveCfg = Static-Debug|x64
+		{9E9E3D25-2139-4A5D-9200-18148DDEAD45}.Static-Debug|x64.Build.0 = Static-Debug|x64
+		{1BAA1617-93AE-4196-8A1A-BD492FB18AEF}.Debug|x64.ActiveCfg = Debug|x64
+		{1BAA1617-93AE-4196-8A1A-BD492FB18AEF}.Debug|x64.Build.0 = Debug|x64
+		{1BAA1617-93AE-4196-8A1A-BD492FB18AEF}.Release|x64.ActiveCfg = Release|x64
+		{1BAA1617-93AE-4196-8A1A-BD492FB18AEF}.Release|x64.Build.0 = Release|x64
+		{1BAA1617-93AE-4196-8A1A-BD492FB18AEF}.Static-Debug|x64.ActiveCfg = Static-Debug|x64
+		{1BAA1617-93AE-4196-8A1A-BD492FB18AEF}.Static-Debug|x64.Build.0 = Static-Debug|x64
+		{F7C6C6B6-4142-4C82-8699-4A9D8183181B}.Debug|x64.ActiveCfg = Debug|x64
+		{F7C6C6B6-4142-4C82-8699-4A9D8183181B}.Debug|x64.Build.0 = Debug|x64
+		{F7C6C6B6-4142-4C82-8699-4A9D8183181B}.Release|x64.ActiveCfg = Release|x64
+		{F7C6C6B6-4142-4C82-8699-4A9D8183181B}.Release|x64.Build.0 = Release|x64
+		{F7C6C6B6-4142-4C82-8699-4A9D8183181B}.Static-Debug|x64.ActiveCfg = Static-Debug|x64
+		{F7C6C6B6-4142-4C82-8699-4A9D8183181B}.Static-Debug|x64.Build.0 = Static-Debug|x64
+		{0B1818EB-BDC8-4865-964F-DB8BF05CFD86}.Debug|x64.ActiveCfg = Debug|x64
+		{0B1818EB-BDC8-4865-964F-DB8BF05CFD86}.Debug|x64.Build.0 = Debug|x64
+		{0B1818EB-BDC8-4865-964F-DB8BF05CFD86}.Release|x64.ActiveCfg = Release|x64
+		{0B1818EB-BDC8-4865-964F-DB8BF05CFD86}.Release|x64.Build.0 = Release|x64
+		{0B1818EB-BDC8-4865-964F-DB8BF05CFD86}.Static-Debug|x64.ActiveCfg = Static-Debug|x64
+		{0B1818EB-BDC8-4865-964F-DB8BF05CFD86}.Static-Debug|x64.Build.0 = Static-Debug|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{9E9E3D25-2139-4A5D-9200-18148DDEAD45} = {853D45D8-980C-4991-B62A-DAC6FD245402}
+		{1BAA1617-93AE-4196-8A1A-BD492FB18AEF} = {853D45D8-980C-4991-B62A-DAC6FD245402}
+		{F7C6C6B6-4142-4C82-8699-4A9D8183181B} = {853D45D8-980C-4991-B62A-DAC6FD245402}
+		{0B1818EB-BDC8-4865-964F-DB8BF05CFD86} = {853D45D8-980C-4991-B62A-DAC6FD245402}
+		{F8CCA5AE-2D75-4C79-BEAB-2588CD5956C8} = {853D45D8-980C-4991-B62A-DAC6FD245402}
+	EndGlobalSection
+EndGlobal
