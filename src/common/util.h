@@ -264,7 +264,12 @@ int util_pool_open(struct pool_set **setp, const char *path, int rdonly,
 int util_parse_size(const char *str, size_t *sizep);
 
 
+#ifndef _WIN32
 #define COMPILE_ERROR_ON(cond) ((void)sizeof(char[(cond) ? -1 : 1]))
+#else
+/* XXX - can't be done with C_ASSERT() */
+#define COMPILE_ERROR_ON(cond)
+#endif
 
 /* setbit macro substitution which properly deals with types */
 static inline void util_setbit(uint8_t *b, uint32_t i)

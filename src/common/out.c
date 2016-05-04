@@ -40,7 +40,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <dirent.h>
+#include <limits.h>
 #include <string.h>
 #include <errno.h>
 #include <pthread.h>
