@@ -380,6 +380,7 @@ make install DESTDIR=%{buildroot}\
 	mandir=%{_mandir}\
 	bindir=%{_bindir}\
 	sysconfdir=%{_sysconfdir}\
+	docdir=%{_docdir}\
 	EXPERIMENTAL=${EXPERIMENTAL}\
 	CPP_DOC_DIR=${OBJ_CPP_DOC_DIR}
 mkdir -p %{buildroot}%{_datadir}/nvml
