@@ -1,0 +1,246 @@
+<!-- Creator     : groff version 1.18.1.4 -->
+<!-- CreationDate: Mon Jul 25 10:56:18 2016 -->
+<html>
+<head>
+<meta name="generator" content="groff -Thtml, see www.gnu.org">
+<meta name="Content-Style" content="text/css">
+<title>librpmem</title>
+</head>
+<body>
+
+<h1 align=center>librpmem</h1>
+<a href="#NAME">NAME</a><br>
+<a href="#SYNOPSIS">SYNOPSIS</a><br>
+<a href="#DESCRIPTION">DESCRIPTION</a><br>
+<a href="#MOST COMMONLY USED FUNCTIONS">MOST COMMONLY USED FUNCTIONS</a><br>
+<a href="#LIBRARY API VERSIONING">LIBRARY API VERSIONING</a><br>
+<a href="#DEBUGGING AND ERROR HANDLING">DEBUGGING AND ERROR HANDLING</a><br>
+<a href="#ENVIRONMENT VARIABLES">ENVIRONMENT VARIABLES</a><br>
+<a href="#EXAMPLES">EXAMPLES</a><br>
+<a href="#ACKNOWLEDGEMENTS">ACKNOWLEDGEMENTS</a><br>
+<a href="#SEE ALSO">SEE ALSO</a><br>
+
+<hr>
+<a name="NAME"></a>
+<h2>NAME</h2>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>librpmem &minus; remote persistent memory library</p>
+</td>
+</table>
+<a name="SYNOPSIS"></a>
+<h2>SYNOPSIS</h2>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<pre><b>#include &lt;librpmem.h&gt;
+
+cc ... -lrpmem
+
+Most commonly used functions:
+
+RPMEMpool *rpmem_create(const char *</b><i>target</i><b>, const char *</b><i>pool_set_name</i><b>,
+</b></pre>
+</td>
+</table>
+<!-- TABS -->
+
+<table width="100%" border=0 rules="none" frame="void"
+       cols="4" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="7%"></td>
+<td width="7%">
+</td>
+<td width="7%">
+</td>
+<td width="77%">
+
+<p><b>void *</b><i>pool_addr</i><b>, size_t</b>
+<i>pool_size</i><b>, unsigned *</b><i>nlanes</i><b>,</b></p>
+</td>
+<tr valign="top" align="left">
+<td width="7%"></td>
+<td width="7%">
+</td>
+<td width="7%">
+</td>
+<td width="77%">
+
+<p><b>const struct rpmem_pool_attr
+*</b><i>create_attr</i><b>);</b></p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>RPMEMpool *rpmem_open(const char
+*</b><i>target</i><b>, const char
+*</b><i>pool_set_name</i><b>,</b></p></td>
+</table>
+<!-- TABS -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="4" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="7%"></td>
+<td width="7%">
+</td>
+<td width="7%">
+</td>
+<td width="77%">
+
+<p><b>void *</b><i>pool_addr</i><b>, size_t</b>
+<i>pool_size</i><b>, unsigned *</b><i>nlanes</i><b>,</b></p>
+</td>
+<tr valign="top" align="left">
+<td width="7%"></td>
+<td width="7%">
+</td>
+<td width="7%">
+</td>
+<td width="77%">
+
+<p><b>struct rpmem_pool_attr
+*</b><i>create_attr</i><b>);</b></p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>int rpmem_remove(const char *</b><i>target</i><b>,
+const char *</b><i>pool_set_name</i><b>);<br>
+int rpmem_close(RPMEMpool *</b><i>rpp</i><b>);<br>
+int rpmem_persist(RPMEMpool *</b><i>rpp</i><b>, size_t</b>
+<i>offset</i><b>, size_t</b> <i>length</i><b>, unsigned</b>
+<i>lane</i><b>);<br>
+int rpmem_read(RPMEMpool *</b><i>rpp</i><b>, void
+*</b><i>buff</i><b>, size_t</b> <i>offset</i><b>, size_t</b>
+<i>length</i><b>);</b></p>
+<!-- INDENTATION -->
+<p><b>Library API versioning:</b></p>
+<!-- INDENTATION -->
+<p><b>const char *rpmem_check_version(<br>
+unsigned</b> <i>major_required</i><b>,<br>
+unsigned</b> <i>minor_required</i><b>);</b></p>
+<!-- INDENTATION -->
+<p><b>Error handling:</b></p>
+<!-- INDENTATION -->
+<p><b>const char *rpmem_errormsg(void);</b></p>
+</td>
+</table>
+<a name="DESCRIPTION"></a>
+<h2>DESCRIPTION</h2>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>XXX</p>
+</td>
+</table>
+<a name="MOST COMMONLY USED FUNCTIONS"></a>
+<h2>MOST COMMONLY USED FUNCTIONS</h2>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>XXX</p>
+</td>
+</table>
+<a name="LIBRARY API VERSIONING"></a>
+<h2>LIBRARY API VERSIONING</h2>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>XXX</p>
+</td>
+</table>
+<a name="DEBUGGING AND ERROR HANDLING"></a>
+<h2>DEBUGGING AND ERROR HANDLING</h2>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>XXX</p>
+</td>
+</table>
+<a name="ENVIRONMENT VARIABLES"></a>
+<h2>ENVIRONMENT VARIABLES</h2>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>XXX</p>
+</td>
+</table>
+<a name="EXAMPLES"></a>
+<h2>EXAMPLES</h2>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>XXX</p>
+</td>
+</table>
+<a name="ACKNOWLEDGEMENTS"></a>
+<h2>ACKNOWLEDGEMENTS</h2>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>librpmem</b> builds on the persistent memory
+programming model recommended by the SNIA NVM Programming
+Technical Work Group:</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="20%"></td>
+<td width="79%">
+<p>http://snia.org/nvmp</p>
+</td>
+</table>
+<a name="SEE ALSO"></a>
+<h2>SEE ALSO</h2>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>libpmem</b>(3), <b>libpmemobj</b>(3),
+<b>libpmemblk</b>(3), <b>libpmemlog</b>(3), and
+<b>http://pmem.io</b>.</p>
+</td>
+</table>
+<hr>
+</body>
+</html>

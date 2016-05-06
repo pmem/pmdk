@@ -1,0 +1,631 @@
+<!-- Creator     : groff version 1.18.1.4 -->
+<!-- CreationDate: Mon Jul 25 10:56:18 2016 -->
+<html>
+<head>
+<meta name="generator" content="groff -Thtml, see www.gnu.org">
+<meta name="Content-Style" content="text/css">
+<title>libpmempool</title>
+</head>
+<body>
+
+<h1 align=center>libpmempool</h1>
+<a href="#NAME">NAME</a><br>
+<a href="#SYNOPSIS">SYNOPSIS</a><br>
+<a href="#DESCRIPTION">DESCRIPTION</a><br>
+<a href="#POOL CHECKING FUNCTIONS">POOL CHECKING FUNCTIONS</a><br>
+<a href="#LIBRARY API VERSIONING">LIBRARY API VERSIONING</a><br>
+<a href="#DEBUGGING AND ERROR HANDLING">DEBUGGING AND ERROR HANDLING</a><br>
+<a href="#EXAMPLES">EXAMPLES</a><br>
+<a href="#ACKNOWLEDGEMENTS">ACKNOWLEDGEMENTS</a><br>
+<a href="#SEE ALSO">SEE ALSO</a><br>
+
+<hr>
+<a name="NAME"></a>
+<h2>NAME</h2>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>libpmempool &minus; pool management library</p>
+</td>
+</table>
+<a name="SYNOPSIS"></a>
+<h2>SYNOPSIS</h2>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<pre><b>#include &lt;libpmempool.h&gt;
+
+cc -std=gnu99 ... -lpmempool -lpmem
+
+Health check functions:
+
+PMEMpoolcheck *pmempool_check_init(struct pmempool_check_args *</b><i>args</i><b>,
+    size_t</b> <i>args_size</i><b>);
+struct pmempool_check_status *pmempool_check(PMEMpoolcheck *</b><i>ppc</i><b>);
+enum pmempool_check_result pmempool_check_end(PMEMpoolcheck *</b><i>ppc</i><b>);
+
+Library API versioning:
+
+const char *pmempool_check_version(
+    unsigned</b> <i>major_required</i><b>,
+    unsigned</b> <i>minor_required</i><b>);
+
+Error handling:
+
+const char *pmempool_errormsg(void);
+</b></pre>
+</td>
+</table>
+<a name="DESCRIPTION"></a>
+<h2>DESCRIPTION</h2>
+<!-- INDENTATION -->
+
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>libpmempool</b> provides a set of utilities for
+off-line analysis and manipulation of a <i>pool</i>. By
+<i>pool</i> in this manpage we mean pmemobj pool, pmemblk
+pool, pmemlog pool or BTT layout, independent of the
+underlying storage. Some of <b>libpmempool</b> functions are
+required to work without any impact on processed <i>pool</i>
+but some of them may create a new or modify an existing
+one.</p>
+<!-- INDENTATION -->
+<p><b>libpmempool</b> is for applications that need high
+reliability or built-in troubleshooting. It may be useful
+for testing and debugging purposes also.</p>
+<!-- INDENTATION -->
+<p>Currently <b>libpmempool</b> implements only consistency
+check and repair functions.</p>
+</td>
+</table>
+<a name="POOL CHECKING FUNCTIONS"></a>
+<h2>POOL CHECKING FUNCTIONS</h2>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>To perform check provided by <b>libpmempool</b>, a
+<i>check context</i> must be first initialized using
+<b>pmempool_check_init</b>() function described in this
+section. Once initialized <i>check context</i> is
+represented by an opaque handle, of type <i>PMEMpoolcheck
+*</i>, which is passed to all of the other functions
+described in this section.</p>
+<!-- INDENTATION -->
+<p>To execute check <b>pmempool_check</b>() must be called
+iteratively. Each call resumes check till new status will be
+generated. Each status is represented by <b>struct
+pmempool_check_status *</b> structure. It may carry various
+types of messages described in this section.</p>
+<!-- INDENTATION -->
+<p>When check is completed <b>pmempool_check</b>() returns
+NULL pointer. Check must be finalized using
+<b>pmempool_check_end</b>(). It returns <b>enum
+pmempool_check_result</b> describing result of the whole
+check.</p>
+<!-- INDENTATION -->
+<pre><b>PMEMpoolcheck *pmempool_check_init(struct pmempool_check_args *</b><i>args</i><b>,
+    size_t</b> <i>args_size</i><b>);
+</b></pre>
+</td>
+</table>
+<!-- INDENTATION -->
+
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="20%"></td>
+<td width="79%">
+<p>The <b>pmempool_check_init</b>() initializes <i>check
+context</i>. <i>args</i> describes parameters of the
+<i>check context</i>. <i>args_size</i> should be equal to
+the size of the <b>struct pmempool_check_args</b>. <b>struct
+pmempool_check_args</b> is defined as follows:</p>
+<!-- INDENTATION -->
+<pre>struct pmempool_check_args {
+    const char *path;                   /* path to the pool to check */
+    const char *backup_path;            /* optional backup path */
+    enum pmempool_pool_type pool_type;  /* type of the pool */
+    int flags;                          /* parameters */
+};
+</pre>
+<!-- INDENTATION -->
+<p><i>flags</i> accepts any combination of the following
+values (ORed):</p>
+<!-- INDENTATION -->
+<p>* <b>PMEMPOOL_CHECK_REPAIR</b> - perform repairs</p>
+<!-- INDENTATION -->
+<p>* <b>PMEMPOOL_CHECK_DRY_RUN</b> - emulate repairs</p>
+<!-- INDENTATION -->
+<p>* <b>PMEMPOOL_CHECK_ADVANCED</b> - perform hazardous
+repairs</p>
+<!-- INDENTATION -->
+<p>* <b>PMEMPOOL_CHECK_ALWAYS_YES</b> - do not ask before
+repairs</p>
+<!-- INDENTATION -->
+<p>* <b>PMEMPOOL_CHECK_VERBOSE</b> - generate info
+statuses</p>
+<!-- INDENTATION -->
+<p>* <b>PMEMPOOL_CHECK_FORMAT_STR</b> - generate string
+format statuses</p>
+<!-- INDENTATION -->
+<p>If provided parameters are invalid or initialization
+process fails <b>pmempool_check_init</b>() returns NULL and
+sets errno appropriately. <i>pool_type</i> has to match type
+of the <i>pool</i> being processed. You can turn on pool
+type detection by setting <i>pool_type</i> to
+<b>PMEMPOOL_POOL_TYPE_DETECT.</b> Pool type detection fail
+ends check.</p>
+<!-- INDENTATION -->
+<p>This is an example of a <i>check context</i>
+initialization:</p>
+<!-- INDENTATION -->
+<pre>struct pmempool_check_args args = {
+    .path           = &quot;/path/to/blk.pool&quot;,
+    .backup_path    = NULL,
+    .pool_type      = PMEMPOOL_POOL_TYPE_BLK,
+    .flags          = PMEMPOOL_CHECK_REPAIR | PMEMPOOL_CHECK_DRY_RUN |
+        PMEMPOOL_CHECK_VERBOSE | PMEMPOOL_CHECK_FORMAT_STR
+};
+
+PMEMpoolcheck *ppc = pmempool_check_init(&amp;args, sizeof(args));
+</pre>
+<!-- INDENTATION -->
+<p>The check will process a <i>pool</i> of type
+<b>PMEMPOOL_POOL_TYPE_BLK</b> located in the path
+/path/to/blk.pool. Before check it will not create a backup
+of the <i>pool</i> (<i>backup_path</i> == NULL). If the
+check will find any issues it will try to perform repair
+steps (<b>PMEMPOOL_CHECK_REPAIR</b>), but it will not make
+any changes to the <i>pool</i>
+(<b>PMEMPOOL_CHECK_DRY_RUN</b>) and it will not perform any
+dangerous repair steps (no <b>PMEMPOOL_CHECK_ADVANCED</b>).
+The check will ask before performing any repair steps (no
+<b>PMEMPOOL_CHECK_ALWAYS_YES</b>). It will also generate
+detailed information about the check
+(<b>PMEMPOOL_CHECK_VERBOSE</b>).
+<b>PMEMPOOL_CHECK_FORMAT_STR</b> flag indicates string
+format statuses (<b>struct pmempool_check_status</b>).
+Currently it is the only supported status format so this
+flag is required.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>struct pmempool_check_status
+*pmempool_check(PMEMpoolcheck *</b><i>ppc</i><b>);</b></p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="20%"></td>
+<td width="79%">
+<p>The <b>pmempool_check</b>() function starts or resumes
+the check indicated by <i>ppc</i>. When next status will be
+generated it pauses the check and returns a pointer to the
+<b>struct pmempool_check_status</b> structure:</p>
+<!-- INDENTATION -->
+<pre>struct pmempool_check_status {
+    enum pmempool_check_msg_type type;  /* type of the status */
+    struct {
+        const char *msg;                /* status message string */
+        const char *answer;             /* answer to message if applicable */
+    } str;
+};
+</pre>
+<!-- INDENTATION -->
+<p>This structure can describe three types of statuses:</p>
+<!-- INDENTATION -->
+<p>* <b>PMEMPOOL_CHECK_MSG_TYPE_INFO</b> - detailed
+information about the check. Generated only if a
+<b>PMEMPOOL_CHECK_VERBOSE</b> flag was set.</p>
+<!-- INDENTATION -->
+<p>* <b>PMEMPOOL_CHECK_MSG_TYPE_ERROR</b> - encountered
+error</p>
+<!-- INDENTATION -->
+<p>* <b>PMEMPOOL_CHECK_MSG_TYPE_QUESTION</b> - question.
+Generated only if an <b>PMEMPOOL_CHECK_ALWAYS_YES</b> flag
+was not set. It requires <i>answer</i> to be set to
+&quot;yes&quot; or &quot;no&quot; before continuing.</p>
+<!-- INDENTATION -->
+<p>After calling <b>pmempool_check</b>() again the
+previously provided <b>struct pmempool_check_status *</b>
+pointer must be considered invalid. When the check completes
+<b>pmempool_check</b>() returns NULL pointer.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>enum pmempool_check_result
+pmempool_check_end(PMEMpoolcheck
+*</b><i>ppc</i><b>);</b></p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="20%"></td>
+<td width="79%">
+<p>The <b>pmempool_check_end</b>() function finalizes the
+check and releases all related resources. <i>ppc</i> is not
+a valid pointer after calling <b>pmempool_check_end</b>().
+It returns <b>enum pmempool_check_result</b> summarizing
+result of the finalized check. <b>pmempool_check_end</b>()
+can return one of the following values:</p>
+<!-- INDENTATION -->
+<p>* <b>PMEMPOOL_CHECK_RESULT_CONSISTENT</b> - the
+<i>pool</i> is consistent</p>
+<!-- INDENTATION -->
+<p>* <b>PMEMPOOL_CHECK_RESULT_NOT_CONSISTENT</b> - the
+<i>pool</i> is not consistent</p>
+<!-- INDENTATION -->
+<p>* <b>PMEMPOOL_CHECK_RESULT_REPAIRED</b> - the <i>pool</i>
+has issues but all repair steps completed succesfully</p>
+<!-- INDENTATION -->
+<p>* <b>PMEMPOOL_CHECK_RESULT_CANNOT_REPAIR</b> - the
+<i>pool</i> has issues which can not be repaired</p>
+<!-- INDENTATION -->
+<p>* <b>PMEMPOOL_CHECK_RESULT_ERROR</b> - the <i>pool</i>
+has errors or the check encountered issue</p>
+</td>
+</table>
+<a name="LIBRARY API VERSIONING"></a>
+<h2>LIBRARY API VERSIONING</h2>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>This section describes how the library API is versioned,
+allowing applications to work with an evolving API.</p>
+<!-- INDENTATION -->
+<p><b>const char *pmempool_check_version(<br>
+unsigned</b> <i>major_required</i><b>,<br>
+unsigned</b> <i>minor_required</i><b>);</b></p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="20%"></td>
+<td width="79%">
+<p>The <b>pmempool_check_version</b>() function is used to
+see if the installed <b>libpmempool</b> supports the version
+of the library API required by an application. The easiest
+way to do this for the application is to supply the
+compile-time version information, supplied by defines in
+<b>&lt;libpmempool.h&gt;</b>, like this:</p>
+<!-- INDENTATION -->
+<pre>reason = pmempool_check_version(PMEMPOOL_MAJOR_VERSION, PMEMPOOL_MINOR_VERSION);
+if (reason != NULL) {
+    /* version check failed, reason string tells you why */
+}
+</pre>
+<!-- INDENTATION -->
+<p>Any mismatch in the major version number is considered a
+failure, but a library with a newer minor version number
+will pass this check since increasing minor versions imply
+backwards compatibility.</p>
+<!-- INDENTATION -->
+<p>An application can also check specifically for the
+existence of an interface by checking for the version where
+that interface was introduced. These versions are documented
+in this man page as follows: unless otherwise specified, all
+interfaces described here are available in version 1.0 of
+the library. Interfaces added after version 1.0 will contain
+the text introduced in version x.y in the section of this
+manual describing the feature.</p>
+<!-- INDENTATION -->
+<p>When the version check performed by
+<b>pmempool_check_version</b>() is successful, the return
+value is NULL. Otherwise the return value is a static string
+describing the reason for failing the version check. The
+string returned by <b>pmempool_check_version</b>() must not
+be modified or freed.</p>
+</td>
+</table>
+<a name="DEBUGGING AND ERROR HANDLING"></a>
+<h2>DEBUGGING AND ERROR HANDLING</h2>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>Two versions of <b>libpmempool</b> are typically
+available on a development system. The normal version,
+accessed when a program is linked using the
+<b>-lpmempool</b> option, is optimized for performance. That
+version skips checks that impact performance and
+exceptionally logs any trace information or performs any
+run-time assertions. If an error is detected during the call
+to <b>libpmempool</b> function, an application may retrieve
+an error message describing the reason of failure using the
+following function:</p>
+<!-- INDENTATION -->
+<p><b>const char *pmempool_errormsg(void);</b></p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="20%"></td>
+<td width="79%">
+<p>The <b>pmempool_errormsg</b>() function returns a pointer
+to a static buffer containing the last error message logged
+for current thread. The error message may include
+description of the corresponding error code (if errno was
+set), as returned by <b>strerror</b>(3). The error message
+buffer is thread-local; errors encountered in one thread do
+not affect its value in other threads. The buffer is never
+cleared by any library function; its content is significant
+only when the return value of the immediately preceding call
+to <b>libpmempool</b> function indicated an error, or if
+errno was set. The application must not modify or free the
+error message string, but it may be modified by subsequent
+calls to other library functions.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>A second version of <b>libpmempool</b>, accessed when a
+program uses the libraries under <b>/usr/lib/nvml_debug</b>,
+contains run-time assertions and trace points. The typical
+way to access the debug version is to set the environment
+variable <b>LD_LIBRARY_PATH</b> to
+<b>/usr/lib/nvml_debug</b> or <b>/usr/lib64/nvml_debug</b>
+depending on where the debug libraries are installed on the
+system. The trace points in the debug version of the library
+are enabled using the environment variable
+<b>PMEMPOOL_LOG_LEVEL</b>, which can be set to the following
+values:</p>
+</td>
+</table>
+<!-- TABS -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="4" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="2%">
+
+<p>0</p>
+</td>
+<td width="7%"></td>
+<td width="77%">
+
+<p>This is the default level when <b>PMEMPOOL_LOG_LEVEL</b>
+is not set. No log messages are emitted at this level.</p>
+</td>
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="2%">
+
+<p>1</p>
+</td>
+<td width="7%"></td>
+<td width="77%">
+
+<p>Additional details on any errors detected are logged (in
+addition to returning the errno-based errors as usual). The
+same information may be retrieved using
+<b>pmempool_errormsg</b>().</p>
+</td>
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="2%">
+
+<p>2</p>
+</td>
+<td width="7%"></td>
+<td width="77%">
+
+<p>A trace of basic operations is logged.</p>
+</td>
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="2%">
+
+<p>3</p>
+</td>
+<td width="7%"></td>
+<td width="77%">
+
+<p>This level enables a very verbose amount of function
+call tracing in the library.</p>
+</td>
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="2%">
+
+<p>4</p>
+</td>
+<td width="7%"></td>
+<td width="77%">
+
+<p>This level enables voluminous and fairly obscure tracing
+information that is likely only useful to the libpmempool
+developers.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>The environment variable <b>PMEMPOOL_LOG_FILE</b>
+specifies a file name where all logging information should
+be written. If the last character in the name is
+&quot;-&quot;, the PID of the current process will be
+appended to the file name when the log file is created. If
+<b>PMEMPOOL_LOG_FILE</b> is not set, the logging output goes
+to stderr.</p>
+<!-- INDENTATION -->
+<p>Setting the environment variable <b>PMEMPOOL_LOG_FILE</b>
+has no effect on the non-debug version of
+<b>libpmempool</b>.</p>
+</td>
+</table>
+<a name="EXAMPLES"></a>
+<h2>EXAMPLES</h2>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>The following example illustrates how the
+<b>libpmempool</b> API is used. The program detects the type
+and checks consistency of given pool. If there are any
+issues detected, the pool is automatically repaired.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="20%"></td>
+<td width="79%">
+<pre>#include &lt;stddef.h&gt;
+#include &lt;unistd.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;libpmempool.h&gt;
+
+#define PATH &quot;./pmem-fs/myfile&quot;
+#define CHECK_FLAGS (PMEMPOOL_CHECK_FORMAT_STR|PMEMPOOL_CHECK_REPAIR|\
+        PMEMPOOL_CHECK_VERBOSE)
+
+int
+main(int argc, char *argv[])
+{
+    PMEMpoolcheck *ppc;
+    struct pmempool_check_status *status;
+    enum pmempool_check_result ret;
+
+   /* arguments for check */
+    struct pmempool_check_args args = {
+        .path       = PATH,
+        .backup_path    = NULL,
+        .pool_type  = PMEMPOOL_POOL_TYPE_DETECT,
+        .flags      = CHECK_FLAGS
+    };
+
+   /* initialize check context */
+    if ((ppc = pmempool_check_init(&amp;args, sizeof(args))) == NULL) {
+        perror(&quot;pmempool_check_init&quot;);
+        exit(EXIT_FAILURE);
+    }
+
+   /* perform check and repair, answer &rsquo;yes&rsquo; for each question */
+    while ((status = pmempool_check(ppc)) != NULL) {
+        switch (status-&gt;type) {
+        case PMEMPOOL_CHECK_MSG_TYPE_ERROR:
+            printf(&quot;%s0, status-&gt;str.msg);
+            break;
+        case PMEMPOOL_CHECK_MSG_TYPE_INFO:
+            printf(&quot;%s0, status-&gt;str.msg);
+            break;
+        case PMEMPOOL_CHECK_MSG_TYPE_QUESTION:
+            printf(&quot;%s0, status-&gt;str.msg);
+            status-&gt;str.answer = &quot;yes&quot;;
+            break;
+        default:
+            pmempool_check_end(ppc);
+            exit(EXIT_FAILURE);
+        }
+    }
+
+   /* finalize the check and get the result */
+    ret = pmempool_check_end(ppc);
+    switch (ret) {
+        case PMEMPOOL_CHECK_RESULT_CONSISTENT:
+        case PMEMPOOL_CHECK_RESULT_REPAIRED:
+            return 0;
+        default:
+            return 1;
+    }
+}
+</pre>
+</td>
+</table>
+<!-- INDENTATION -->
+
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>See http://pmem.io/nvml/libpmempool for more examples
+using the <b>libpmempool</b> API.</p>
+</td>
+</table>
+<a name="ACKNOWLEDGEMENTS"></a>
+<h2>ACKNOWLEDGEMENTS</h2>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>libpmempool</b> builds on the persistent memory
+programming model recommended by the SNIA NVM Programming
+Technical Work Group:</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="20%"></td>
+<td width="79%">
+<p>http://snia.org/nvmp</p>
+</td>
+</table>
+<a name="SEE ALSO"></a>
+<h2>SEE ALSO</h2>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>mmap</b>(2), <b>munmap</b>(2), <b>msync</b>(2),
+<b>strerror</b>(3), <b>libpmemobj</b>(3),
+<b>libpmemblk</b>(3), <b>libpmemlog</b>(3),
+<b>libpmem</b>(3) and <b>http://pmem.io</b>.</p>
+</td>
+</table>
+<hr>
+</body>
+</html>

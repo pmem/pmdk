@@ -1,0 +1,108 @@
+<!-- Creator     : groff version 1.18.1.4 -->
+<!-- CreationDate: Mon Jul 25 10:56:18 2016 -->
+<html>
+<head>
+<meta name="generator" content="groff -Thtml, see www.gnu.org">
+<meta name="Content-Style" content="text/css">
+<title>pmempool-convert</title>
+</head>
+<body>
+
+<h1 align=center>pmempool-convert</h1>
+<a href="#NAME">NAME</a><br>
+<a href="#SYNOPSIS">SYNOPSIS</a><br>
+<a href="#DESCRIPTION">DESCRIPTION</a><br>
+<a href="#EXAMPLES">EXAMPLES</a><br>
+<a href="#SEE ALSO">SEE ALSO</a><br>
+<a href="#PMEMPOOL">PMEMPOOL</a><br>
+
+<hr>
+<a name="NAME"></a>
+<h2>NAME</h2>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>pmempool-convert &minus; Convert pool files from old
+layout versions to the newest one.</p>
+</td>
+</table>
+<a name="SYNOPSIS"></a>
+<h2>SYNOPSIS</h2>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>pmempool convert</b> &lt;file&gt;</p>
+</td>
+</table>
+<a name="DESCRIPTION"></a>
+<h2>DESCRIPTION</h2>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>The <b>pmempool</b> invoked with the <b>convert</b>
+command performs a conversion of the specified pool to the
+newest layout supported by this tool. Currently only
+<b>libpmemobj(3)</b> pools are supported. It is advised to
+have a backup of the pool before conversion. The conversion
+process is not fail-safe - power interruption may damage the
+pool.</p></td>
+</table>
+<a name="EXAMPLES"></a>
+<h2>EXAMPLES</h2>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>pmempool convert pool.obj</p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p># Updates pool.obj to the latest layout version.</p>
+</td>
+</table>
+<!-- TABS -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="3" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="44%"></td>
+<td width="11%">
+<a name="SEE ALSO"></a>
+<h2>SEE ALSO</h2>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>pmempool(1) pmempool-info(1) libpmemobj(3)</b></p>
+</td>
+</table>
+<a name="PMEMPOOL"></a>
+<h2>PMEMPOOL</h2>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>Part of the <b>pmempool(1)</b> suite.</p>
+</td>
+</table>
+<hr>
+</body>
+</html>
