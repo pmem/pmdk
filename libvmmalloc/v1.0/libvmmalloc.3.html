@@ -1,0 +1,440 @@
+<!-- Creator     : groff version 1.22.3 -->
+<!-- CreationDate: Mon May  9 10:52:58 2016 -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="groff -Thtml, see www.gnu.org">
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta name="Content-Style" content="text/css">
+<style type="text/css">
+       p       { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       pre     { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       table   { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       h1      { text-align: center }
+</style>
+<title>libvmmalloc</title>
+
+</head>
+<body>
+
+<h1 align="center">libvmmalloc</h1>
+
+<a href="#NAME">NAME</a><br>
+<a href="#SYNOPSIS">SYNOPSIS</a><br>
+<a href="#DESCRIPTION">DESCRIPTION</a><br>
+<a href="#ENVIRONMENT">ENVIRONMENT</a><br>
+<a href="#DEBUGGING">DEBUGGING</a><br>
+<a href="#NOTES">NOTES</a><br>
+<a href="#BUGS">BUGS</a><br>
+<a href="#ACKNOWLEDGEMENTS">ACKNOWLEDGEMENTS</a><br>
+<a href="#SEE ALSO">SEE ALSO</a><br>
+
+<hr>
+
+
+<h2>NAME
+<a name="NAME"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">libvmmalloc
+&minus; general purpose volatile memory allocation
+library</p>
+
+<h2>SYNOPSIS
+<a name="SYNOPSIS"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>$
+LD_PRELOAD=</b><i>libvmmalloc.so</i> <b>command [ args...
+]</b></p>
+
+<p style="margin-left:11%; margin-top: 1em">or</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>#include
+&lt;stdlib.h&gt; <br>
+#include &lt;malloc.h&gt; <br>
+#include &lt;libvmmalloc.h&gt;</b></p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>$ cc [
+flag... ] file...</b> <i>-lvmmalloc</i> <b>[ library...
+]</b></p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>void
+*malloc(size_t</b> <i>size</i><b>); <br>
+void free(void *</b><i>ptr</i><b>); <br>
+void *calloc(size_t</b> <i>number</i><b>, size_t</b>
+<i>size</i><b>); <br>
+void *realloc(void *</b><i>ptr</i><b>, size_t</b>
+<i>size</i><b>);</b></p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>int
+posix_memalign(void **</b><i>memptr</i><b>, size_t</b>
+<i>alignment</i><b>, size_t</b> <i>size</i><b>); <br>
+void *aligned_alloc(size_t</b> <i>alignment</i><b>,
+size_t</b> <i>size</i><b>); <br>
+void *memalign(size_t</b> <i>alignment</i><b>, size_t</b>
+<i>size</i><b>); <br>
+void *valloc(size_t</b> <i>size</i><b>); <br>
+void *pvalloc(size_t</b> <i>size</i><b>);</b></p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>size_t
+malloc_usable_size(const void *</b><i>ptr</i><b>); <br>
+void cfree(void *</b><i>ptr</i><b>);</b></p>
+
+<h2>DESCRIPTION
+<a name="DESCRIPTION"></a>
+</h2>
+
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>libvmmalloc</b>
+transparently converts all the dynamic memory allocations
+into Persistent Memory allocations.</p>
+
+<p style="margin-left:11%; margin-top: 1em">The typical
+usage of <b>libvmmalloc</b> does not require any
+modification of the target program. It is enough to load
+<b>libvmmalloc</b> before all other libraries by setting the
+environment variable <b>LD_PRELOAD</b>. When used in that
+way, <b>libvmmalloc</b> interposes the standard system
+memory allocation routines, as defined in <b>malloc</b>(3),
+<b>posix_memalign</b>(3) and <b>malloc_usable_size</b>(3),
+and provides that all dynamic memory allocations are made
+from a <i>memory pool</i> built on memory-mapped file,
+instead of a system heap. The memory managed by
+<b>libvmmalloc</b> may have different attributes, depending
+on the file system containing the memory-mapped file. In
+particular, <b>libvmmalloc</b> is part of the
+<i>Non-Volatile Memory Library</i> because it is sometimes
+useful to use non-volatile memory as a volatile memory pool,
+leveraging its capacity, cost, or performance
+characteristics.</p>
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>libvmmalloc</b>
+may be also linked to the program, by providing the
+<b>-lvmmalloc</b> argument to the linker. Then it becomes
+the default memory allocator for given program.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>NOTE: Due to
+the fact the library operates on a memory-mapped file, it
+may not work properly with the programs that perform
+fork</b>(3) <b>not followed by exec</b>(3).</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>There are
+two variants of experimental fork</b>() <b>support available
+in libvmmalloc. The desired library behavior may be selected
+by setting VMMALLOC_FORK environment variable. By default
+variant #1 is enabled. See ENVIRONMENT section for more
+details.</b></p>
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>libvmmalloc</b>
+uses the <b>mmap</b>(2) system call to create a pool of
+volatile memory. The library is most useful when used with
+<i>Direct Access</i> storage (DAX), which is
+memory-addressable persistent storage that supports
+load/store access without being paged via the system page
+cache. A Persistent Memory-aware file system is typically
+used to provide this type of access. Memory-mapping a file
+from a Persistent Memory-aware file system provides the raw
+memory pools, and this library supplies the traditional
+<i>malloc</i> interfaces on top of those pools.</p>
+
+<p style="margin-left:11%; margin-top: 1em">The memory pool
+acting as a system heap replacement is created automatically
+at the library initialization time. User may control its
+location and size by setting the environment variables
+described in <b>ENVIRONMENT</b> section. The allocated file
+space is reclaimed when process terminates or in case of
+system crash.</p>
+
+<p style="margin-left:11%; margin-top: 1em">Under normal
+usage, <b>libvmmalloc</b> will never print messages or
+intentionally cause the process to exit. The library uses
+<b>pthreads</b>(7) to be fully MT-safe, but never creates or
+destroys threads itself. The library does not make use of
+any signals, networking, and never calls <b>select</b>() or
+<b>poll</b>().</p>
+
+<h2>ENVIRONMENT
+<a name="ENVIRONMENT"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">There are two
+configuration variables that <b>must</b> be set to make
+<b>libvmmalloc</b> work properly. If any of them is not
+specified, or if their values are not valid, the library
+prints the appropriate error message and terminates the
+process. <b><br>
+VMMALLOC_POOL_DIR</b></p>
+
+<p style="margin-left:22%;">Specifies a path to directory
+where the memory pool file should be created. The directory
+must exist and be writable.</p>
+
+<p style="margin-left:11%;"><b>VMMALLOC_POOL_SIZE</b></p>
+
+<p style="margin-left:22%;">Defines the desired size (in
+bytes) of the memory pool file. It must be not less than the
+minimum allowed size <b>VMMALLOC_MIN_POOL</b> as defined in
+<b>&lt;libvmmalloc.h&gt;.</b> Note that due to the fact the
+library adds some metadata to the memory pool, the amount of
+actual usable space is typically less than the size of the
+memory pool file.</p>
+
+<p style="margin-left:11%; margin-top: 1em">Setting the
+<b>VMMALLOC_FORK</b> configuration variable is optional. It
+controls the behavior of <b>libvmmalloc</b> in case of
+<b>fork</b>(3), and can be set to the following values:</p>
+
+<table width="100%" border="0" rules="none" frame="void"
+       cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="1%">
+
+
+<p>0</p></td>
+<td width="10%"></td>
+<td width="78%">
+
+
+<p>Fork support is disabled. The behavior is undefined in
+such case, but most likely results in the memory pool
+corruption and the program crash due to segmentation
+fault.</p> </td></tr>
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="1%">
+
+
+<p>1</p></td>
+<td width="10%"></td>
+<td width="78%">
+
+
+<p>The memory pool file is remapped with MAP_PRIVATE flag
+before the fork completes. From this moment, any access to
+memory that modifies the heap pages, both in the parent and
+in the child process, will trigger creation of a copy of
+those pages in RAM (copy-on-write). The benefit of such
+approach is that it does not significantly increase the time
+of fork operation, and does not require additional space on
+the file system. However, all the subsequent memory
+allocations and modifications of the memory allocated before
+fork, will consume system memory resources instead of the
+memory pool.</p></td></tr>
+</table>
+
+<p style="margin-left:22%;">This is the default
+setting.</p>
+
+<table width="100%" border="0" rules="none" frame="void"
+       cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="1%">
+
+
+<p style="margin-top: 1em">2</p></td>
+<td width="10%"></td>
+<td width="78%">
+
+
+<p style="margin-top: 1em">A copy of the entire memory pool
+file is created for the use of the child process. This
+requires additional space on the file system, but both the
+parent and the child process may still operate on their
+memory pools, not consuming the system memory resources.
+NOTE: In case of large memory pools, creating a copy of the
+pool file may stall the fork operation for a quite long
+time.</p> </td></tr>
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="1%">
+
+
+<p>3</p></td>
+<td width="10%"></td>
+<td width="78%">
+
+
+<p>The library first attempts to create a copy of the
+memory pool (as for option #2), but if it fails (i.e.
+because of insufficient amount of free space on the file
+system), it will fall back to option #1.</p></td></tr>
+</table>
+
+<h2>DEBUGGING
+<a name="DEBUGGING"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">Two versions of
+<b>libvmmalloc</b> are typically available on a development
+system. The normal version is optimized for performance.
+That version skips checks that impact performance and never
+logs any trace information or performs any run-time
+assertions. A second version, accessed when using the
+libraries under <b>/usr/lib/nvml_debug</b>, contains
+run-time assertions and trace points. The typical way to
+access the debug version is to set the environment variable
+<b>LD_LIBRARY_PATH</b> to <b>/usr/lib/nvml_debug</b> or
+<b>/usr/lib64/nvml_debug</b> depending on where the debug
+libraries are installed on the system. The trace points in
+the debug version of the library are enabled using the
+environment variable <b>VMMALLOC_LOG_LEVEL</b>, which can be
+set to the following values:</p>
+
+<table width="100%" border="0" rules="none" frame="void"
+       cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="1%">
+
+
+<p style="margin-top: 1em">0</p></td>
+<td width="10%"></td>
+<td width="78%">
+
+
+<p style="margin-top: 1em">Tracing is disabled. This is the
+default level when <b>VMMALLOC_LOG_LEVEL</b> is not set.</p></td></tr>
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="1%">
+
+
+<p>1</p></td>
+<td width="10%"></td>
+<td width="78%">
+
+
+<p>Additional details on any errors detected are logged (in
+addition to returning the errno-based errors as usual).</p></td></tr>
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="1%">
+
+
+<p>2</p></td>
+<td width="10%"></td>
+<td width="78%">
+
+
+<p>A trace of basic operations is logged.</p></td></tr>
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="1%">
+
+
+<p>3</p></td>
+<td width="10%"></td>
+<td width="78%">
+
+
+<p>This level enables a very verbose amount of function
+call tracing in the library.</p></td></tr>
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="1%">
+
+
+<p>4</p></td>
+<td width="10%"></td>
+<td width="78%">
+
+
+<p>This level enables voluminous tracing information about
+all the memory allocations and deallocations.</p></td></tr>
+</table>
+
+<p style="margin-left:11%; margin-top: 1em">The environment
+variable <b>VMMALLOC_LOG_FILE</b> specifies a file name
+where all logging information should be written. If the last
+character in the name is &quot;-&quot;, the PID of the
+current process will be appended to the file name when the
+log file is created. If <b>VMMALLOC_LOG_FILE</b> is not set,
+output goes to stderr.</p>
+
+<p style="margin-left:11%; margin-top: 1em">Setting the
+environment variable <b>VMMALLOC_LOG_LEVEL</b> has no effect
+on the non-debug version of <b>libvmmalloc</b>.</p>
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>VMMALLOC_LOG_STATS=1</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">Setting this
+environment variable to 1 enables logging the human-readable
+summary statistics at the program termination. Statistics
+are written only for the debug version of
+<b>libvmmalloc</b>.</p>
+
+<h2>NOTES
+<a name="NOTES"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">Unlike the
+normal <b>malloc</b>(), which asks the system for additional
+memory when it runs out, <b>libvmmalloc</b> allocates the
+size it is told to and never attempts to grow or shrink that
+memory pool.</p>
+
+<h2>BUGS
+<a name="BUGS"></a>
+</h2>
+
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>libvmmalloc</b>
+may not work properly with the programs that perform
+<b>fork</b>(3) and do not call <b>exec</b>(3) immediately
+afterwards. See <b>ENVIRONMENT</b> section for more details
+about the experimental <b>fork</b>() support.</p>
+
+<p style="margin-left:11%; margin-top: 1em">If the trace
+points in the debug version of the library are enabled and
+the process performs fork, there is no new log file created
+for the child process, even if the configured log file name
+is terminated with &quot;-&quot; character. All the logging
+information from the child process will be written to the
+log file owned by the parent process, which may lead to
+corruption or partial loss of the log data.</p>
+
+<p style="margin-left:11%; margin-top: 1em">Malloc hooks
+(see <b>malloc_hook</b>(3)), are not supported when using
+<b>libvmmalloc</b>.</p>
+
+<h2>ACKNOWLEDGEMENTS
+<a name="ACKNOWLEDGEMENTS"></a>
+</h2>
+
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>libvmmalloc</b>
+depends on jemalloc, written by Jason Evans, to do the heavy
+lifting of managing dynamic memory allocation. See:</p>
+
+
+<p style="margin-left:22%; margin-top: 1em">http://www.canonware.com/jemalloc/</p>
+
+<h2>SEE ALSO
+<a name="SEE ALSO"></a>
+</h2>
+
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>ld.so</b>(8),
+<b>malloc</b>(3), <b>posix_memalign</b>(3),
+<b>malloc_usable_size</b>(3), <b>malloc_hook</b>(3),
+<b>jemalloc</b>(3), <b>libvmem</b>(3),
+<b>libpmem</b>(3).</p>
+<hr>
+</body>
+</html>
