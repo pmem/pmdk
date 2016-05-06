@@ -410,39 +410,39 @@ pmemlog_append(PMEMlogpool *plp, const void *buf, size_t count)
 		errno = ENOSPC;
 		ERR("!pmemlog_append");
 		ret = -1;
-	} else {
-		/* make sure we don't write past the available space */
-		if (count > (end_offset - write_offset)) {
-			errno = ENOSPC;
-			ERR("!pmemlog_append");
-			ret = -1;
-		} else {
-			char *data = plp->addr;
-
-			/*
-			 * unprotect the log space range,
-			 * where the new data will be stored
-			 * (debug version only)
-			 */
-			RANGE_RW(&data[write_offset], count);
-
-			if (plp->is_pmem)
-				pmem_memcpy_nodrain(&data[write_offset],
-					buf, count);
-			else
-				memcpy(&data[write_offset], buf, count);
-
-			/* protect the log space range (debug version only) */
-			RANGE_RO(&data[write_offset], count);
-
-			write_offset += count;
-		}
+		goto end;
 	}
 
-	/* persist the data and the metadata only if there was no error */
-	if (ret == 0)
-		pmemlog_persist(plp, write_offset);
+	/* make sure we don't write past the available space */
+	if (count > (end_offset - write_offset)) {
+		errno = ENOSPC;
+		ERR("!pmemlog_append");
+		ret = -1;
+		goto end;
+	}
 
+	char *data = plp->addr;
+
+	/*
+	 * unprotect the log space range, where the new data will be stored
+	 * (debug version only)
+	 */
+	RANGE_RW(&data[write_offset], count);
+
+	if (plp->is_pmem)
+		pmem_memcpy_nodrain(&data[write_offset], buf, count);
+	else
+		memcpy(&data[write_offset], buf, count);
+
+	/* protect the log space range (debug version only) */
+	RANGE_RO(&data[write_offset], count);
+
+	write_offset += count;
+
+	/* persist the data and the metadata */
+	pmemlog_persist(plp, write_offset);
+
+end:
 	util_rwlock_unlock(plp->rwlockp);
 
 	return ret;
@@ -481,53 +481,52 @@ pmemlog_appendv(PMEMlogpool *plp, const struct iovec *iov, int iovcnt)
 		errno = ENOSPC;
 		ERR("!pmemlog_appendv");
 		ret = -1;
-	} else {
-		char *data = plp->addr;
-		uint64_t count = 0;
-		char *buf;
-
-		/* calculate required space */
-		for (i = 0; i < iovcnt; ++i)
-			count += iov[i].iov_len;
-
-		/* check if there is enough free space */
-		if (count > (end_offset - write_offset)) {
-			errno = ENOSPC;
-			ret = -1;
-		} else {
-			/* append the data */
-			for (i = 0; i < iovcnt; ++i) {
-				buf = iov[i].iov_base;
-				count = iov[i].iov_len;
-
-				/*
-				 * unprotect the log space range,
-				 * where the new data will be stored
-				 * (debug version only)
-				 */
-				RANGE_RW(&data[write_offset], count);
-
-				if (plp->is_pmem)
-					pmem_memcpy_nodrain(&data[write_offset],
-						buf, count);
-				else
-					memcpy(&data[write_offset], buf, count);
-
-				/*
-				 * protect the log space range
-				 * (debug version only)
-				 */
-				RANGE_RO(&data[write_offset], count);
-
-				write_offset += count;
-			}
-		}
+		goto end;
 	}
 
-	/* persist the data and the metadata only if there was no error */
-	if (ret == 0)
-		pmemlog_persist(plp, write_offset);
+	char *data = plp->addr;
+	uint64_t count = 0;
+	char *buf;
 
+	/* calculate required space */
+	for (i = 0; i < iovcnt; ++i)
+		count += iov[i].iov_len;
+
+	/* check if there is enough free space */
+	if (count > (end_offset - write_offset)) {
+		errno = ENOSPC;
+		ret = -1;
+		goto end;
+	}
+
+	/* append the data */
+	for (i = 0; i < iovcnt; ++i) {
+		buf = iov[i].iov_base;
+		count = iov[i].iov_len;
+
+		/*
+		 * unprotect the log space range, where the new data will be
+		 * stored (debug version only)
+		 */
+		RANGE_RW(&data[write_offset], count);
+
+		if (plp->is_pmem)
+			pmem_memcpy_nodrain(&data[write_offset], buf, count);
+		else
+			memcpy(&data[write_offset], buf, count);
+
+		/*
+		 * protect the log space range (debug version only)
+		 */
+		RANGE_RO(&data[write_offset], count);
+
+		write_offset += count;
+	}
+
+	/* persist the data and the metadata */
+	pmemlog_persist(plp, write_offset);
+
+end:
 	util_rwlock_unlock(plp->rwlockp);
 
 	return ret;
