@@ -15,8 +15,11 @@ that uses **libvmmalloc**.
 The typical usage of **libvmmalloc** is to load it before all other libraries
 by setting the environment variable **LD_PRELOAD**.
 
-The [libvmmalloc man page](libvmmalloc.3.html) contains a list of the
-interfaces provided.
+Man pages that contains a list of the interfaces provided:
+
+* Man page for [libvmmalloc HEAD](master/libvmmalloc.3.html)
+* Latest releases:
+   * [libvmmalloc version 1.0](v1.0/libvmmalloc.3.html)
 
 #### libvmmalloc Examples
 

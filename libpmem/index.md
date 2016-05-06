@@ -14,8 +14,11 @@ to pmem and needs to flush those changes to durability.  Most
 developers will find higher level libraries like
 [libpmemobj](../libpmemobj) to be much more convenient.
 
-The [libpmem man page](libpmem.3.html) contains a list of the
-interfaces provided.
+Man pages that contains a list of the interfaces provided:
+
+* Man page for [libpmem HEAD](master/libpmem.3.html)
+* Latest releases:
+   * [libpmem version 1.0](v1.0/libpmem.3.html)
 
 #### libpmem Examples
 

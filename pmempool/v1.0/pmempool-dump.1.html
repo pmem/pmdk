@@ -1,0 +1,185 @@
+<!-- Creator     : groff version 1.22.3 -->
+<!-- CreationDate: Mon May  9 10:52:59 2016 -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="groff -Thtml, see www.gnu.org">
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta name="Content-Style" content="text/css">
+<style type="text/css">
+       p       { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       pre     { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       table   { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       h1      { text-align: center }
+</style>
+<title>pmempool-dump</title>
+
+</head>
+<body>
+
+<h1 align="center">pmempool-dump</h1>
+
+<a href="#NAME">NAME</a><br>
+<a href="#SYNOPSIS">SYNOPSIS</a><br>
+<a href="#DESCRIPTION">DESCRIPTION</a><br>
+<a href="#RANGE">RANGE</a><br>
+<a href="#EXAMPLES">EXAMPLES</a><br>
+<a href="#SEE ALSO">SEE ALSO</a><br>
+<a href="#PMEMPOOL">PMEMPOOL</a><br>
+
+<hr>
+
+
+<h2>NAME
+<a name="NAME"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">pmempool-dump
+&minus; Dump user data from specified pool</p>
+
+<h2>SYNOPSIS
+<a name="SYNOPSIS"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>pmempool
+dump</b> [&lt;options&gt;] &lt;file&gt;</p>
+
+<h2>DESCRIPTION
+<a name="DESCRIPTION"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">The
+<b>pmempool</b> invoked with <b>dump</b> command dumps user
+data from specified pool file. The output format may be
+either binary or hexadecimal.</p>
+
+<p style="margin-left:11%; margin-top: 1em">By default the
+output format is hexadecimal.</p>
+
+<p style="margin-left:11%; margin-top: 1em">By default data
+is dumped to standard output. It is possible to dump data to
+other file by specifying <b>-o</b> option. In this case data
+will be appended to this file.</p>
+
+<p style="margin-left:11%; margin-top: 1em">Using <b>-r</b>
+option you can specify number of blocks/bytes/data chunks
+using special text format. See <b>RANGE</b> section for
+details.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>Available
+options: <br>
+-b, --binary</b></p>
+
+<p style="margin-left:23%;">Dump data in binary format.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>-r,
+--range</b> &lt;range&gt;</p>
+
+<p style="margin-left:23%;">Range of pool file to dump.
+This may be number of blocks for <b>blk</b> pool type or
+either number of bytes or number of data chunks for
+<b>log</b> pool type.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>-c,
+--chunk</b> &lt;size&gt;</p>
+
+<p style="margin-left:23%;">Size of chunk for <b>log</b>
+pool type. See <b>pmemlog_walk</b>() in <b>libpmemlog(3)</b>
+for details.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>-o,
+--output</b> &lt;file&gt;</p>
+
+<p style="margin-left:23%;">Name of output file.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>-h,
+--help</b></p>
+
+<p style="margin-left:23%;">Display help message and
+exit.</p>
+
+<h2>RANGE
+<a name="RANGE"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">Using <b>-r,
+--range</b> option it is possible to dump only a range of
+user data. This section describes valid format of
+<i>&lt;range&gt;</i> string.</p>
+
+<p style="margin-left:11%; margin-top: 1em">You can specify
+multiple ranges separated by commas.</p>
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>&lt;first&gt;-&lt;last&gt;</b></p>
+
+<p style="margin-left:23%;">All blocks/bytes/data chunks
+from <b>&lt;first&gt;</b> to <b>&lt;last&gt;</b> will be
+dumped.</p>
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>-&lt;last&gt;</b></p>
+
+<p style="margin-left:23%;">All blocks/bytes/data chunks up
+to <b>&lt;last&gt;</b> will be dumped.</p>
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>&lt;first&gt;-</b></p>
+
+<p style="margin-left:23%;">All blocks/bytes/data chunks
+starting from <b>&lt;first&gt;</b> will be dumped.</p>
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>&lt;number&gt;</b></p>
+
+<p style="margin-left:23%;">Only <b>&lt;number&gt;</b>
+block/byte/data chunk will be dumped.</p>
+
+<h2>EXAMPLES
+<a name="EXAMPLES"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">pmempool dump
+pool.bin</p>
+
+<p style="margin-left:22%;"># Dump user data from pool.bin
+file to standard output</p>
+
+<p style="margin-left:11%;">pmempool dump -o output.bin
+-r1,10-100 pool_blk.bin</p>
+
+<p style="margin-left:22%;"># Dump block number 1 and
+blocks from 10 to 100 from pool_blk.bin containing pmem blk
+pool to output.bin file</p>
+
+<p style="margin-left:11%;">pmempool dump -r 1K-2K
+pool.bin</p>
+
+<p style="margin-left:22%;"># Dump data form 1K to 2K from
+pool.bin file.</p>
+
+<h2>SEE ALSO
+<a name="SEE ALSO"></a>
+</h2>
+
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>libpmemblk(3)
+libpmemlog(3) pmempool(1)</b></p>
+
+<h2>PMEMPOOL
+<a name="PMEMPOOL"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">Part of the
+<b>pmempool(1)</b> suite.</p>
+<hr>
+</body>
+</html>

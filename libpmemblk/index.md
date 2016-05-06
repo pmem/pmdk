@@ -15,8 +15,11 @@ of objects at least 512 bytes each.  Most
 developers will find higher level libraries like
 [libpmemobj](../libpmemobj) to be more generally useful.
 
-The [libpmemblk man page](libpmemblk.3.html) contains a list of the
-interfaces provided.
+Man pages that contains a list of the interfaces provided:
+
+* Man page for [libpmemblk HEAD](master/libpmemblk.3.html)
+* Latest releases:
+   * [libpmemblk version 1.0](v1.0/libpmemblk.3.html)
 
 #### libpmemblk Examples
 

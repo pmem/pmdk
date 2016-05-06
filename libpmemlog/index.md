@@ -12,8 +12,11 @@ file to record variable length entries.  Most
 developers will find higher level libraries like
 [libpmemobj](../libpmemobj) to be more generally useful.
 
-The [libpmemlog man page](libpmemlog.3.html) contains a list of the
-interfaces provided.
+Man pages that contains a list of the interfaces provided:
+
+* Man page for [libpmemlog HEAD](master/libpmemlog.3.html)
+* Latest releases:
+   * [libpmemlog version 1.0](v1.0/libpmemlog.3.html)
 
 #### libpmemlog Examples
 

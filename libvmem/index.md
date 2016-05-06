@@ -12,8 +12,11 @@ where the pool of persistent memory is useful to an
 application, but when the application doesn't need
 it to be persistent.
 
-The [libvmem man page](libvmem.3.html) contains a list of the
-interfaces provided.
+Man pages that contains a list of the interfaces provided:
+
+* Man page for [libvmem HEAD](master/libvmem.3.html)
+* Latest releases:
+   * [libvmem version 1.0](v1.0/libvmem.3.html)
 
 #### libvmem Examples
 
