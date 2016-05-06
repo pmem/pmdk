@@ -49,6 +49,7 @@
 #include "pmalloc.h"
 #include "list.h"
 #include "obj.h"
+#include "memblock.h"
 #include "heap.h"
 #include "btt_layout.h"
 #include "heap_layout.h"

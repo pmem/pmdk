@@ -60,13 +60,6 @@ enum heap_op {
 	MAX_HEAP_OP
 };
 
-struct memory_block {
-	uint32_t chunk_id;
-	uint32_t zone_id;
-	uint32_t size_idx;
-	uint16_t block_off;
-};
-
 struct bucket_cache;
 
 struct bucket *heap_get_best_bucket(PMEMobjpool *pop, size_t size);
@@ -103,8 +96,6 @@ typedef int (*object_callback)(uint64_t off, void *arg);
 
 void heap_foreach_object(PMEMobjpool *pop, object_callback cb,
 	void *arg, struct memory_block start);
-
-size_t heap_get_chunk_block_size(PMEMobjpool *pop, struct memory_block m);
 
 #ifdef DEBUG
 int heap_block_is_allocated(PMEMobjpool *pop, struct memory_block m);
