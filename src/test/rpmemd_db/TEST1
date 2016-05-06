@@ -1,3 +1,5 @@
+#!/bin/bash -e
+#
 # Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
@@ -28,30 +30,28 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# Makefile -- top Makefile for rpmemd
+
 #
+# src/test/rpmemd_db/TEST1 -- unit test for remote tests support
+#
+export UNITTEST_NAME=rpmemd_db/TEST1
+export UNITTEST_NUM=1
 
-vpath %.c ../../rpmem_common/
+SRC_DIR=../..
+ROOT_DIR=./test$UNITTEST_NUM-root/
+POOL_DESC_0=test$UNITTEST_NUM-pool0.set
+LOG_FILE=rpmemd$UNITTEST_NUM.log
+rm -f $LOG_FILE
 
-TOP = ../../..
+# standard unit test setup
+. ../unittest/unittest.sh
 
-TARGET = rpmemd
+require_fs_type any
 
-OBJS = rpmemd.o\
-       rpmemd_log.o\
-       rpmemd_config.o\
-       rpmem_common.o\
-       rpmemd_obc.o\
-       rpmemd_db.o
+setup
 
-LIBPMEM=y
-TOOLS_COMMON=y
+expect_normal_exit ./rpmemd_db$EXESUFFIX $ROOT_DIR $POOL_DESC_0 $LOG_FILE
 
-INCS += -I$(TOP)/src/rpmem_common
-CFLAGS += -DRPMEMC_LOG_RPMEMD
+check
 
-INSTALL_TARGET=n
-
-include ../Makefile.inc
-
-.PHONY: test check
+pass

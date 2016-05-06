@@ -1,3 +1,4 @@
+#
 # Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
@@ -28,30 +29,27 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# Makefile -- top Makefile for rpmemd
-#
 
-vpath %.c ../../rpmem_common/
+#
+# src/test/rpmemd_db_test/Makefile -- build rpmemd_db_test unit test
+#
 
 TOP = ../../..
 
-TARGET = rpmemd
+vpath %.c $(TOP)/src/common
+vpath %.c $(TOP)/src/librpmem
+vpath %.c $(TOP)/src/tools/rpmemd
 
-OBJS = rpmemd.o\
-       rpmemd_log.o\
-       rpmemd_config.o\
-       rpmem_common.o\
-       rpmemd_obc.o\
-       rpmemd_db.o
+TARGET = rpmemd_db
+OBJS = rpmemd_db_test.o rpmemd_log.o rpmemd_db.o librpmem.o \
+	util.o util_linux.o out.o set.o set_linux.o
 
 LIBPMEM=y
-TOOLS_COMMON=y
-
-INCS += -I$(TOP)/src/rpmem_common
-CFLAGS += -DRPMEMC_LOG_RPMEMD
-
-INSTALL_TARGET=n
 
 include ../Makefile.inc
 
-.PHONY: test check
+INCS += -I$(TOP)/src/common
+INCS += -I$(TOP)/src/librpmem
+INCS += -I$(TOP)/src/tools/rpmemd
+
+out.o: CFLAGS += -DDEBUG -DSRCVERSION=\"utversion\"
