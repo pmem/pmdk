@@ -1,0 +1,130 @@
+<!-- Creator     : groff version 1.22.3 -->
+<!-- CreationDate: Mon May  9 10:52:59 2016 -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="groff -Thtml, see www.gnu.org">
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta name="Content-Style" content="text/css">
+<style type="text/css">
+       p       { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       pre     { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       table   { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       h1      { text-align: center }
+</style>
+<title>pmempool-rm</title>
+
+</head>
+<body>
+
+<h1 align="center">pmempool-rm</h1>
+
+<a href="#NAME">NAME</a><br>
+<a href="#SYNOPSIS">SYNOPSIS</a><br>
+<a href="#DESCRIPTION">DESCRIPTION</a><br>
+<a href="#EXAMPLES">EXAMPLES</a><br>
+<a href="#SEE ALSO">SEE ALSO</a><br>
+<a href="#PMEMPOOL">PMEMPOOL</a><br>
+
+<hr>
+
+
+<h2>NAME
+<a name="NAME"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">pmempool-rm
+&minus; Remove (unlink) poolset files</p>
+
+<h2>SYNOPSIS
+<a name="SYNOPSIS"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>pmempool
+rm</b> [&lt;options&gt;] &lt;file&gt;..</p>
+
+<h2>DESCRIPTION
+<a name="DESCRIPTION"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">The
+<b>pmempool</b> invoked with <b>rm</b> command removes
+(unlinks) all files specified in command line arguments. If
+the specified file is a poolset file all parts will be
+removed. All files are removed using the <b>unlink (3)</b>
+call. Without specifying the <b>-i|--interactive</b> option,
+the <b>rm</b> command prompts only before removing
+<i>write-protected</i> files. If specified file does not
+exist the <b>rm</b> command terminates with error code. The
+<b>-f|--force</b> command ignores non-existing files and
+never prompts before removing a file. See <b>EXAMPLES</b>
+section for example usage of the <b>rm</b> command.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>Available
+options: <br>
+-h, --help</b></p>
+
+<p style="margin-left:23%;">Print help message.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>-v,
+--verbose</b></p>
+
+<p style="margin-left:23%;">Be verbose and print all
+removing files.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>-s,
+--only-pools</b></p>
+
+<p style="margin-left:23%;">Remove only pool files and do
+not remove poolset files.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>-f,
+--force</b></p>
+
+<p style="margin-left:23%;">Remove all specified files,
+ignore not existing files, never prompt.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>-i,
+--interactive</b></p>
+
+<p style="margin-left:23%;">Prompt before removing every
+single file.</p>
+
+<h2>EXAMPLES
+<a name="EXAMPLES"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">pmempool rm
+pool.obj pool.blk</p>
+
+<p style="margin-left:22%;"># Remove specified pool
+files</p>
+
+<p style="margin-left:11%;">pmempool rm -s pool.set</p>
+
+<p style="margin-left:22%;"># Remove all pool files from
+the pool.set, do not remove pool.set itself.</p>
+
+<h2>SEE ALSO
+<a name="SEE ALSO"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>pmempool(1)
+pmempool-create(1)</b></p>
+
+<h2>PMEMPOOL
+<a name="PMEMPOOL"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">Part of the
+<b>pmempool(1)</b> suite.</p>
+<hr>
+</body>
+</html>

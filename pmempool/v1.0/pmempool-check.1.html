@@ -1,0 +1,158 @@
+<!-- Creator     : groff version 1.22.3 -->
+<!-- CreationDate: Mon May  9 10:52:59 2016 -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="groff -Thtml, see www.gnu.org">
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta name="Content-Style" content="text/css">
+<style type="text/css">
+       p       { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       pre     { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       table   { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       h1      { text-align: center }
+</style>
+<title>pmempool-check</title>
+
+</head>
+<body>
+
+<h1 align="center">pmempool-check</h1>
+
+<a href="#NAME">NAME</a><br>
+<a href="#SYNOPSIS">SYNOPSIS</a><br>
+<a href="#DESCRIPTION">DESCRIPTION</a><br>
+<a href="#EXAMPLES">EXAMPLES</a><br>
+<a href="#SEE ALSO">SEE ALSO</a><br>
+<a href="#PMEMPOOL">PMEMPOOL</a><br>
+
+<hr>
+
+
+<h2>NAME
+<a name="NAME"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">pmempool-check
+&minus; Check and repair Persistent Memory Pool</p>
+
+<h2>SYNOPSIS
+<a name="SYNOPSIS"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>pmempool
+check</b> [&lt;options&gt;] &lt;file&gt;</p>
+
+<h2>DESCRIPTION
+<a name="DESCRIPTION"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">The
+<b>pmempool</b> invoked with <b>check</b> command checks
+consistency of a given pool file. If the pool file is
+consistent <b>pmempool</b> exits with 0 value. If the pool
+file is not consistent non-zero error code is returned.</p>
+
+<p style="margin-left:11%; margin-top: 1em">In case of any
+errors, the proper message is printed. The verbosity level
+may be increased using <b>-v</b> option. The output messages
+may be also suppressed using <b>-q</b> option.</p>
+
+<p style="margin-left:11%; margin-top: 1em">It is possible
+to try to fix encountered problems using <b>-r</b> option.
+In order to be sure this will not corrupt your data you can
+either create backup of the pool file using <b>-b</b> option
+or just print what would be fixed without modifying original
+pool using <b>-N</b> option.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>Available
+options: <br>
+-r, --repair</b></p>
+
+<p style="margin-left:23%;">Try to repair a pool file if
+possible.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>-y,
+--yes</b></p>
+
+<p style="margin-left:23%;">Answer yes on all
+questions.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>-N,
+--no-exec</b></p>
+
+<p style="margin-left:23%;">Don&rsquo;t execute, just show
+what would be done.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>-b, --backup
+&lt;file&gt;</b></p>
+
+<p style="margin-left:23%;">Create backup of a pool file
+before executing. Terminate if it is <i>not</i> possible to
+create a backup file. This option requires <b>-r</b>
+option.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>-q,
+--quiet</b></p>
+
+<p style="margin-left:23%;">Be quiet and don&rsquo;t print
+any messages.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>-v,
+--verbose</b></p>
+
+<p style="margin-left:23%;">Be more verbose.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>-h,
+--help</b></p>
+
+<p style="margin-left:23%;">Display help message and
+exit.</p>
+
+<h2>EXAMPLES
+<a name="EXAMPLES"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">pmempool check
+pool.bin</p>
+
+<p style="margin-left:22%;"># Check consistency of pool.bin
+pool file</p>
+
+<p style="margin-left:11%;">pmempool check --repair
+--backup pool.bin.backup pool.bin</p>
+
+<p style="margin-left:22%;"># Check consistency of pool.bin
+pool file, create backup and repair if necessary.</p>
+
+<p style="margin-left:11%;">pmempool check -rvN
+pool.bin</p>
+
+<p style="margin-left:22%;"># Check consistency of pool.bin
+pool file, print what would be repaired with increased
+verbosity level.</p>
+
+<h2>SEE ALSO
+<a name="SEE ALSO"></a>
+</h2>
+
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>libpmemblk(3)
+libpmemlog(3) pmempool(1)</b></p>
+
+<h2>PMEMPOOL
+<a name="PMEMPOOL"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">Part of the
+<b>pmempool(1)</b> suite.</p>
+<hr>
+</body>
+</html>
