@@ -1,0 +1,2 @@
+part file '$(nW)/pool0-part3.dat' from pool set 'test1-pool$(N).set' duplicated in pool set 'test1-pool$(N).set'
+duplicate found in pool set file -- $(nW)/test1-pool$(N).set: File exists
