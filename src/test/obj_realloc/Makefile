@@ -35,10 +35,11 @@
 #
 TOP = ../../..
 
+vpath %.c $(TOP)/src/libpmemobj
 vpath %.c $(TOP)/src/common
 
 TARGET = obj_realloc
-OBJS = obj_realloc.o util.o util_linux.o out.o
+OBJS = obj_realloc.o util.o util_linux.o out.o memblock.o
 
 LIBPMEM=y
 LIBPMEMOBJ=y

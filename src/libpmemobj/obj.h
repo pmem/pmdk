@@ -142,6 +142,7 @@ struct pmemobjpool {
 	size_t size;		/* size of mapped region */
 	int is_pmem;		/* true if pool is PMEM */
 	int rdonly;		/* true if pool is opened read-only */
+	struct heap_layout *hlayout;
 	struct pmalloc_heap *heap; /* allocator heap */
 	struct lane_descriptor lanes_desc;
 	struct object_store *store; /* object store */
@@ -165,7 +166,7 @@ struct pmemobjpool {
 
 	PMEMmutex rootlock;	/* root object lock */
 	int is_master_replica;
-	char unused2[1804];
+	char unused2[1796];
 };
 
 /*

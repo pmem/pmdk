@@ -43,8 +43,9 @@
 #include "util.h"
 #include "redo.h"
 #include "memops.h"
-#include "heap.h"
 #include "heap_layout.h"
+#include "memblock.h"
+#include "heap.h"
 #include "bucket.h"
 #include "lane.h"
 #include "out.h"
@@ -112,7 +113,6 @@ struct bucket_cache {
 };
 
 struct pmalloc_heap {
-	struct heap_layout *layout;
 	struct bucket *default_bucket;
 	struct bucket *buckets[MAX_BUCKETS];
 	/* runs are lazy-loaded, removed from this list on-demand */
@@ -249,7 +249,7 @@ heap_chunk_init(PMEMobjpool *pop, struct chunk_header *hdr,
 static void
 heap_zone_init(PMEMobjpool *pop, uint32_t zone_id)
 {
-	struct zone *z = ZID_TO_ZONE(pop->heap->layout, zone_id);
+	struct zone *z = ZID_TO_ZONE(pop->hlayout, zone_id);
 	uint32_t size_idx = get_zone_size_idx(zone_id, pop->heap->max_zone,
 			pop->heap_size);
 
@@ -417,8 +417,7 @@ static void
 heap_create_run(PMEMobjpool *pop, struct bucket *b,
 	uint32_t chunk_id, uint32_t zone_id)
 {
-	struct pmalloc_heap *h = pop->heap;
-	struct zone *z = ZID_TO_ZONE(h->layout, zone_id);
+	struct zone *z = ZID_TO_ZONE(pop->hlayout, zone_id);
 	struct chunk_header *hdr = &z->chunk_headers[chunk_id];
 	struct chunk_run *run = (struct chunk_run *)&z->chunks[chunk_id];
 
@@ -440,8 +439,7 @@ heap_reuse_run(PMEMobjpool *pop, struct bucket *b,
 {
 	util_mutex_lock(heap_get_run_lock(pop, chunk_id));
 
-	struct pmalloc_heap *h = pop->heap;
-	struct zone *z = ZID_TO_ZONE(h->layout, zone_id);
+	struct zone *z = ZID_TO_ZONE(pop->hlayout, zone_id);
 	struct chunk_header *hdr = &z->chunk_headers[chunk_id];
 	struct chunk_run *run = (struct chunk_run *)&z->chunks[chunk_id];
 
@@ -518,7 +516,7 @@ heap_populate_buckets(PMEMobjpool *pop)
 		return ENOMEM;
 
 	uint32_t zone_id = h->zones_exhausted++;
-	struct zone *z = ZID_TO_ZONE(h->layout, zone_id);
+	struct zone *z = ZID_TO_ZONE(pop->hlayout, zone_id);
 
 	/* ignore zone and chunk headers */
 	VALGRIND_ADD_TO_GLOBAL_TX_IGNORE(z, sizeof(z->header) +
@@ -707,7 +705,7 @@ heap_get_chunk_bucket(PMEMobjpool *pop, uint32_t chunk_id, uint32_t zone_id)
 	if (zone_id >= pop->heap->zones_exhausted)
 		return NULL;
 
-	struct zone *z = ZID_TO_ZONE(pop->heap->layout, zone_id);
+	struct zone *z = ZID_TO_ZONE(pop->hlayout, zone_id);
 
 	ASSERT(chunk_id < z->header.size_idx);
 	struct chunk_header *hdr = &z->chunk_headers[chunk_id];
@@ -985,7 +983,7 @@ heap_resize_chunk(PMEMobjpool *pop,
 {
 	uint32_t new_chunk_id = chunk_id + new_size_idx;
 
-	struct zone *z = ZID_TO_ZONE(pop->heap->layout, zone_id);
+	struct zone *z = ZID_TO_ZONE(pop->hlayout, zone_id);
 	struct chunk_header *old_hdr = &z->chunk_headers[chunk_id];
 	struct chunk_header *new_hdr = &z->chunk_headers[new_chunk_id];
 
@@ -1096,7 +1094,7 @@ void
 heap_prep_block_header_operation(PMEMobjpool *pop, struct memory_block m,
 	enum heap_op op, struct operation_context *ctx)
 {
-	struct zone *z = ZID_TO_ZONE(pop->heap->layout, m.zone_id);
+	struct zone *z = ZID_TO_ZONE(pop->hlayout, m.zone_id);
 	struct chunk_header *hdr = &z->chunk_headers[m.chunk_id];
 
 	if (hdr->type != CHUNK_TYPE_RUN) {
@@ -1134,7 +1132,7 @@ heap_prep_block_header_operation(PMEMobjpool *pop, struct memory_block m,
 void *
 heap_get_block_data(PMEMobjpool *pop, struct memory_block m)
 {
-	struct zone *z = ZID_TO_ZONE(pop->heap->layout, m.zone_id);
+	struct zone *z = ZID_TO_ZONE(pop->hlayout, m.zone_id);
 	struct chunk_header *hdr = &z->chunk_headers[m.chunk_id];
 
 	void *data = &z->chunks[m.chunk_id].data;
@@ -1154,7 +1152,7 @@ heap_get_block_data(PMEMobjpool *pop, struct memory_block m)
 int
 heap_block_is_allocated(PMEMobjpool *pop, struct memory_block m)
 {
-	struct zone *z = ZID_TO_ZONE(pop->heap->layout, m.zone_id);
+	struct zone *z = ZID_TO_ZONE(pop->hlayout, m.zone_id);
 	struct chunk_header *hdr = &z->chunk_headers[m.chunk_id];
 
 	if (hdr->type == CHUNK_TYPE_USED)
@@ -1266,7 +1264,7 @@ int heap_get_adjacent_free_block(PMEMobjpool *pop, struct bucket *b,
 	if (b == NULL)
 		return EINVAL;
 
-	struct zone *z = ZID_TO_ZONE(pop->heap->layout, cnt.zone_id);
+	struct zone *z = ZID_TO_ZONE(pop->hlayout, cnt.zone_id);
 	struct chunk_header *hdr = &z->chunk_headers[cnt.chunk_id];
 	m->zone_id = cnt.zone_id;
 
@@ -1287,7 +1285,7 @@ int heap_get_adjacent_free_block(PMEMobjpool *pop, struct bucket *b,
 void
 heap_lock_if_run(PMEMobjpool *pop, struct memory_block m)
 {
-	struct zone *z = ZID_TO_ZONE(pop->heap->layout, m.zone_id);
+	struct zone *z = ZID_TO_ZONE(pop->hlayout, m.zone_id);
 	struct chunk_header *hdr = &z->chunk_headers[m.chunk_id];
 
 	if (hdr->type == CHUNK_TYPE_RUN)
@@ -1300,7 +1298,7 @@ heap_lock_if_run(PMEMobjpool *pop, struct memory_block m)
 void
 heap_unlock_if_run(PMEMobjpool *pop, struct memory_block m)
 {
-	struct zone *z = ZID_TO_ZONE(pop->heap->layout, m.zone_id);
+	struct zone *z = ZID_TO_ZONE(pop->hlayout, m.zone_id);
 	struct chunk_header *hdr = &z->chunk_headers[m.chunk_id];
 
 	if (hdr->type == CHUNK_TYPE_RUN) {
@@ -1408,7 +1406,7 @@ void
 heap_degrade_run_if_empty(PMEMobjpool *pop, struct bucket *b,
 	struct memory_block m)
 {
-	struct zone *z = ZID_TO_ZONE(pop->heap->layout, m.zone_id);
+	struct zone *z = ZID_TO_ZONE(pop->hlayout, m.zone_id);
 	struct chunk_header *hdr = &z->chunk_headers[m.chunk_id];
 	ASSERT(hdr->type == CHUNK_TYPE_RUN);
 
@@ -1472,25 +1470,6 @@ out:
 	util_mutex_unlock(&b->lock);
 }
 
-size_t
-heap_get_chunk_block_size(PMEMobjpool *pop, struct memory_block m)
-{
-	struct zone *z = ZID_TO_ZONE(pop->heap->layout, m.zone_id);
-	struct chunk_header *hdr = &z->chunk_headers[m.chunk_id];
-
-	if (hdr->type == CHUNK_TYPE_USED || hdr->type == CHUNK_TYPE_FREE) {
-		return CHUNKSIZE;
-	} else if (hdr->type == CHUNK_TYPE_RUN) {
-		struct chunk_run *run =
-			(struct chunk_run *)&z->chunks[m.chunk_id];
-
-		return run->block_size;
-	}
-
-	/* unreachable */
-	FATAL("possible zone chunks metadata corruption");
-}
-
 #ifdef USE_VG_MEMCHECK
 /*
  * heap_vg_boot -- performs Valgrind-related heap initialization
@@ -1505,7 +1484,7 @@ heap_vg_boot(PMEMobjpool *pop)
 	/* mark unused part of the last zone as not accessible */
 	struct pmalloc_heap *h = pop->heap;
 	ASSERT(h->max_zone > 0);
-	struct zone *last_zone = ZID_TO_ZONE(h->layout, h->max_zone - 1);
+	struct zone *last_zone = ZID_TO_ZONE(pop->hlayout, h->max_zone - 1);
 	void *unused = &last_zone->chunks[last_zone->header.size_idx];
 	VALGRIND_DO_MAKE_MEM_NOACCESS(pop, unused,
 			(void *)pop + pop->size - unused);
@@ -1558,7 +1537,6 @@ heap_boot(PMEMobjpool *pop)
 
 	h->max_zone = heap_max_zone(pop->heap_size);
 	h->zones_exhausted = 0;
-	h->layout = heap_get_layout(pop);
 
 	util_mutex_init(&h->active_run_lock, NULL);
 
@@ -1576,6 +1554,7 @@ heap_boot(PMEMobjpool *pop)
 	memset(h->last_drained, 0, sizeof(h->last_drained));
 
 	pop->heap = h;
+	pop->hlayout = heap_get_layout(pop);
 
 	bucket_group_init(pop, h->buckets);
 
@@ -1886,7 +1865,7 @@ heap_check(PMEMobjpool *pop)
  */
 static int
 heap_run_foreach_object(PMEMobjpool *pop, object_callback cb, void *arg,
-	struct chunk_run *run, struct memory_block start)
+	struct chunk_run *run)
 {
 	uint64_t bs = run->block_size;
 	uint64_t block_off;
@@ -1932,8 +1911,7 @@ heap_run_foreach_object(PMEMobjpool *pop, object_callback cb, void *arg,
  */
 static int
 heap_chunk_foreach_object(PMEMobjpool *pop, object_callback cb, void *arg,
-	struct chunk_header *hdr, struct chunk *chunk,
-	struct memory_block start)
+	struct chunk_header *hdr, struct chunk *chunk)
 {
 	switch (hdr->type) {
 		case CHUNK_TYPE_FREE:
@@ -1942,7 +1920,7 @@ heap_chunk_foreach_object(PMEMobjpool *pop, object_callback cb, void *arg,
 			return cb(OBJ_PTR_TO_OFF(pop, chunk), arg);
 		case CHUNK_TYPE_RUN:
 			return heap_run_foreach_object(pop, cb, arg,
-				(struct chunk_run *)chunk, start);
+				(struct chunk_run *)chunk);
 		default:
 			ASSERT(0);
 	}
@@ -1963,7 +1941,7 @@ heap_zone_foreach_object(PMEMobjpool *pop, object_callback cb, void *arg,
 	uint32_t i;
 	for (i = start.chunk_id; i < zone->header.size_idx; ) {
 		if (heap_chunk_foreach_object(pop, cb, arg,
-			&zone->chunk_headers[i], &zone->chunks[i], start) != 0)
+			&zone->chunk_headers[i], &zone->chunks[i]) != 0)
 			return 1;
 
 		i += zone->chunk_headers[i].size_idx;

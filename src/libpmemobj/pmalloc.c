@@ -45,9 +45,10 @@
 #include "list.h"
 #include "obj.h"
 #include "out.h"
+#include "heap_layout.h"
+#include "memblock.h"
 #include "heap.h"
 #include "bucket.h"
-#include "heap_layout.h"
 #include "valgrind_internal.h"
 
 enum alloc_op_redo {
@@ -118,18 +119,19 @@ calc_block_offset(PMEMobjpool *pop, struct allocation_header *alloc,
 static struct memory_block
 get_mblock_from_alloc(PMEMobjpool *pop, struct allocation_header *alloc)
 {
-	struct memory_block mblock = {
+	struct memory_block m = {
 		alloc->chunk_id,
 		alloc->zone_id,
 		0,
 		0
 	};
 
-	uint64_t unit_size = heap_get_chunk_block_size(pop, mblock);
-	mblock.block_off = calc_block_offset(pop, alloc, unit_size);
-	mblock.size_idx = CALC_SIZE_IDX(unit_size, alloc->size);
+	uint64_t unit_size = MEMBLOCK_OPS(AUTO, &m)->block_size(&m,
+		pop->hlayout);
+	m.block_off = calc_block_offset(pop, alloc, unit_size);
+	m.size_idx = CALC_SIZE_IDX(unit_size, alloc->size);
 
-	return mblock;
+	return m;
 }
 
 /*
@@ -184,7 +186,8 @@ alloc_prep_block(PMEMobjpool *pop, struct memory_block m,
 	void *datap = (char *)block_data +
 		sizeof(struct allocation_header);
 	void *userdatap = (char *)datap + DATA_OFF;
-	uint64_t unit_size = heap_get_chunk_block_size(pop, m);
+	uint64_t unit_size = MEMBLOCK_OPS(AUTO, &m)->block_size(&m,
+		pop->hlayout);
 	uint64_t real_size = unit_size * m.size_idx;
 
 	ASSERT((uint64_t)block_data % _POBJ_CL_ALIGNMENT == 0);
