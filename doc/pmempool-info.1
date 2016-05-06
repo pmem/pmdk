@@ -115,15 +115,16 @@ To force processing specified file(s) as desired pool type use
 .B -f
 option with appropriate name of pool type. The valid names off pool types are
 .I blk ,
-.I log
+.I log ,
+.I obj
 or
-.I obj.
+.I btt.
 This option may be useful when the pool header is corrupted and automatic
 recognition of pool type fails.
 
 .PP
 .B -f, --force
-blk|log|obj
+blk|log|obj|btt
 .RS 8
 Force parsing pool as specified pool type.
 .RE

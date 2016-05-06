@@ -41,6 +41,7 @@
 #define BTT_ALIGNMENT ((uintptr_t)4096)	/* alignment of all BTT structures */
 #define BTTINFO_SIG_LEN 16
 #define BTTINFO_UUID_LEN 16
+#define BTTINFO_SIG		"BTT_ARENA_INFO\0"
 
 struct btt_info {
 	char sig[BTTINFO_SIG_LEN];	/* must be "BTT_ARENA_INFO\0\0" */

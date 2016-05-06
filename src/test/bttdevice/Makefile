@@ -1,4 +1,5 @@
-# Copyright 2014-2016, Intel Corporation
+#
+# Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -28,35 +29,12 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# Makefile -- top Makefile for pmempool
+
 #
-TARGET = pmempool
-
-OBJS = pmempool.o\
-       info.o info_blk.o info_log.o info_obj.o\
-       create.o dump.o check.o rm.o
-
-LIBPMEM=y
-LIBPMEMBLK=y
-LIBPMEMOBJ=y
-LIBPMEMLOG=y
-TOOLS_COMMON=y
-
-LIBPMEMBLK_PRIV=btt_init btt_write btt_fini
-
-INCS += -I$(TOP)/src/common
-INCS += -I$(TOP)/src/libpmemlog
-INCS += -I$(TOP)/src/libpmemblk
-INCS += -I$(TOP)/src/libpmemobj
-
-MANPAGES = $(TOP)/doc/pmempool.1\
-           $(TOP)/doc/pmempool-info.1\
-	   $(TOP)/doc/pmempool-create.1\
-	   $(TOP)/doc/pmempool-check.1\
-	   $(TOP)/doc/pmempool-dump.1
-
-BASH_COMP_FILES = pmempool.sh
+# src/test/bttdevice/Makefile -- build unittest for testing tools operating
+# on btt device
+#
+USE_PMEMSPOIL=y
+USE_BTTCREATE=y
 
 include ../Makefile.inc
-
-.PHONY: test check

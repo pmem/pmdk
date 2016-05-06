@@ -251,7 +251,7 @@ struct btt {
  * the '\0' added to the string by the declaration (the last two bytes
  * of the string are '\0').
  */
-static const char Sig[] = "BTT_ARENA_INFO\0";
+static const char Sig[] = BTTINFO_SIG;
 
 /*
  * Zeroed out flog entry, used when initializing the flog.
