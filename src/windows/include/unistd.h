@@ -34,7 +34,8 @@
  * unistd.h -- compatibility layer for POSIX operating system API
  */
 
-#pragma once
+#ifndef UNISTD_H
+#define UNISTD_H 1
 
 #define F_OK 0
 
@@ -62,3 +63,5 @@ sysconf(int p)
 }
 
 #define getpid _getpid
+
+#endif /* UNISTD_H */

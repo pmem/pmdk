@@ -34,7 +34,9 @@
  * sys/param.h -- a few useful macros
  */
 
-#pragma once
+#ifndef SYS_PARAM_H
+#define SYS_PARAM_H 1
+
 
 #define roundup(x, y)	((((x) + ((y) - 1)) / (y)) * (y))
 #define howmany(x, y)	(((x) + ((y) - 1)) / (y))
@@ -47,3 +49,5 @@
 
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
+
+#endif /* SYS_PARAM_H */

@@ -58,7 +58,6 @@
 #include <sys/types.h>
 #include <sys/timeb.h>
 
-
 int
 pthread_mutexattr_init(pthread_mutexattr_t *attr)
 {
@@ -267,7 +266,6 @@ pthread_rwlock_unlock(pthread_rwlock_t *restrict rwlock)
 
 #endif
 
-
 int
 pthread_cond_init(pthread_cond_t *restrict cond,
 	const pthread_condattr_t *restrict attr)
@@ -324,7 +322,6 @@ pthread_cond_wait(pthread_cond_t *restrict cond,
 	ret = SleepConditionVariableCS(&cond->cond, &mutex->lock, INFINITE);
 	return (ret == FALSE) ? EINVAL : 0;
 }
-
 
 int
 pthread_once(pthread_once_t *once, void (*func)(void))

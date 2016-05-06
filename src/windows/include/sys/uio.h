@@ -34,9 +34,12 @@
  * sys/uio.h -- definition of iovec structure
  */
 
-#pragma once
+#ifndef SYS_UIO_H
+#define SYS_UIO_H 1
 
 struct iovec {
 	void  *iov_base;
 	size_t iov_len;
 };
+
+#endif /* SYS_UIO_H */

@@ -38,14 +38,15 @@
  * XXX - it is a subject for refactoring
  */
 
-#pragma once
+#ifndef PLATFORM_H
+#define PLATFORM_H 1
 
 /*
- * Define off_t before windows.h is included!!!
+ * Define off_t before windows.h is included!
  * XXX - make sure it has no side-effects
  */
 typedef long long off_t;	/* use 64-bit off_t */
-typedef long _off_t;		/* DO NOT override _off_t definition !!! */
+typedef long _off_t;		/* NOTE: _off_t must be defined as 'long'! */
 #define _OFF_T_DEFINED
 
 #include <windows.h>
@@ -129,7 +130,6 @@ __sync_synchronize()
 	MemoryBarrier();
 }
 
-
 /* sys/stat.h */
 #define S_IRUSR S_IREAD
 #define S_IWUSR S_IWRITE
@@ -141,7 +141,6 @@ __sync_synchronize()
 
 #define SIG_BLOCK 0
 #define SIG_SETMASK 0
-
 
 __inline int
 sigfillset(sigset_t *set)
@@ -159,10 +158,8 @@ sigprocmask(int how, const sigset_t *set, sigset_t *oldset)
 	return 0;
 }
 
-
 int mkstemp(char *temp);
 int posix_fallocate(int fd, off_t offset, off_t size);
-
 
 /*
  * helper macros for library cotor/dtor function declarations
@@ -178,3 +175,5 @@ const void (WINAPI *_##func)(void) = func;
 void func(void); \
 static void _##func##_reg(void) { atexit(func); }; \
 MSVC_CONSTR(_##func##_reg)
+
+#endif /* PLATFORM_H */

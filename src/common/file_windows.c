@@ -54,7 +54,6 @@
 #include <sys/stat.h>
 #include <sys/file.h>
 
-
 /*
  * mkstemp -- generate a unique temporary filename from template
  */

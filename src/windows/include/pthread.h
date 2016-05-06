@@ -53,7 +53,8 @@
  * for Linux and Windows.
  */
 
-#pragma once
+#ifndef PTHREAD_H
+#define PTHREAD_H 1
 
 #include <stdint.h>
 
@@ -175,3 +176,5 @@ int pthread_cond_timedwait(pthread_cond_t *restrict cond,
 	pthread_mutex_t *restrict mutex, const struct timespec *abstime);
 int pthread_cond_wait(pthread_cond_t *restrict cond,
 	pthread_mutex_t *restrict mutex);
+
+#endif /* PTHREAD_H */

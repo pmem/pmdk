@@ -34,6 +34,9 @@
  * endian.h -- convert values between host and big-/little-endian byte order
  */
 
+#ifndef ENDIAN_H
+#define ENDIAN_H 1
+
 /*
  * XXX - dummy implementation for little-endian platforms
  */
@@ -44,3 +47,5 @@
 #define le16toh(a) (a)
 #define le32toh(a) (a)
 #define le64toh(a) (a)
+
+#endif /* ENDIAN_H */

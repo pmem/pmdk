@@ -38,7 +38,8 @@
  * XXX - see mmap_windows.c for details
  */
 
-#pragma once
+#ifndef SYS_MMAN_H
+#define SYS_MMAN_H 1
 
 #define PROT_NONE	0x0
 #define PROT_READ	0x1
@@ -66,3 +67,5 @@ int munmap(void *addr, size_t len);
 int msync(void *addr, size_t len, int flags);
 
 int mprotect(void *addr, size_t len, int prot);
+
+#endif /* SYS_MMAN_H */

@@ -56,21 +56,17 @@
 /*
  * this structure tracks the file mappings outstanding per file handle
  */
-
 LIST_ENTRY FileMappingListHead;
 
 typedef struct _FILE_MAPPING_TRACKER {
-
 	LIST_ENTRY ListEntry;
 	HANDLE FileHandle;
 	HANDLE FileMappingHandle;
 	PVOID *BaseAddress;
 	PVOID *EndAddress;
-
 } FILE_MAPPING_TRACKER, *PFILE_MAPPING_TRACKER;
 
 HANDLE FileMappingListMutex = NULL;
-
 
 /*
  * mmap_init -- (internal) load-time initialization of file mapping tracker
@@ -223,7 +219,6 @@ munmap(void *addr, size_t len)
 	listEntry = FileMappingListHead.Flink;
 
 	while (listEntry != &FileMappingListHead) {
-
 		PFILE_MAPPING_TRACKER mappingTracker =
 			CONTAINING_RECORD(listEntry, FILE_MAPPING_TRACKER,
 						ListEntry);
@@ -260,7 +255,7 @@ munmap(void *addr, size_t len)
 }
 
 /*
- * munmap -- synchronize a file with a memory map
+ * msync -- synchronize a file with a memory map
  */
 int
 msync(void *addr, size_t len, int flags)
@@ -276,7 +271,6 @@ msync(void *addr, size_t len, int flags)
 	listEntry = FileMappingListHead.Flink;
 
 	while (listEntry != &FileMappingListHead) {
-
 		PFILE_MAPPING_TRACKER mappingTracker =
 			CONTAINING_RECORD(listEntry, FILE_MAPPING_TRACKER,
 				ListEntry);
@@ -306,6 +300,7 @@ int
 mprotect(void *addr, size_t len, int prot)
 {
 	DWORD protect = 0;
+
 	if ((prot & PROT_READ) && (prot & PROT_WRITE)) {
 		protect |= PAGE_READWRITE;
 		if (prot & PROT_EXEC)

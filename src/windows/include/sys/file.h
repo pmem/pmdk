@@ -38,7 +38,8 @@
  * XXX - see mmap_file.c for details
  */
 
-#pragma once
+#ifndef SYS_FILE_H
+#define SYS_FILE_H 1
 
 #include <io.h>
 #include <sys/locking.h>
@@ -49,3 +50,5 @@
 #define LOCK_UN 8
 
 int flock(int fd, int operation);
+
+#endif /* SYS_FILE_H */

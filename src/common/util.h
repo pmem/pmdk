@@ -264,7 +264,7 @@ int util_pool_open(struct pool_set **setp, const char *path, int rdonly,
 int util_parse_size(const char *str, size_t *sizep);
 
 
-#ifndef _WIN32
+#ifndef _MSC_VER
 #define COMPILE_ERROR_ON(cond) ((void)sizeof(char[(cond) ? -1 : 1]))
 #else
 /* XXX - can't be done with C_ASSERT() */
