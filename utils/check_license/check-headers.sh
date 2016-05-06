@@ -37,7 +37,7 @@ SH_FILE="utils\/check_license\/check-headers\.sh"
 BIN_FILE="utils\/check_license\/check-license"
 LIC_FILE="LICENSE"
 
-PWD=`pwd`
+PWD=`pwd -P`
 SELF_FULL=`echo "$PWD/$0" | sed "s/\/\.\//\//g" `
 NVML=`echo $SELF_FULL | sed "s/$SH_FILE//g" `
 LICENSE=`echo $SELF_FULL | sed "s/$SH_FILE/$LIC_FILE/g" `
