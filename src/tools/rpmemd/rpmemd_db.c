@@ -89,14 +89,12 @@ struct rpmemd_db_entry {
 struct rpmemd_db *
 rpmemd_db_init(const char *root_dir, mode_t mode)
 {
-	static struct rpmemd_db *db;
-
 	if (root_dir[0] != '/') {
 		RPMEMD_LOG(ERR, "root directory is not an absolute path ");
 		errno = EINVAL;
 		return NULL;
 	}
-	db = calloc(1, sizeof(*db));
+	struct rpmemd_db *db = calloc(1, sizeof(*db));
 	if (!db) {
 		RPMEMD_LOG(ERR, "!allocating the rpmem database structure");
 		return NULL;
@@ -498,12 +496,6 @@ rpmemd_db_check_dir_r(struct list_head *head, struct rpmemd_db *db,
 			continue;
 
 		}
-
-		if (dentry.d_type != DT_REG) {
-			continue;
-		}
-
-		/* regular file */
 
 		if (new_paths(dir, dentry.d_name, pool_desc,
 				&full_path, &new_desc)) {
