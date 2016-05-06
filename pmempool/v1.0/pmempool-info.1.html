@@ -1,0 +1,674 @@
+<!-- Creator     : groff version 1.22.3 -->
+<!-- CreationDate: Mon May  9 10:52:59 2016 -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="groff -Thtml, see www.gnu.org">
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta name="Content-Style" content="text/css">
+<style type="text/css">
+       p       { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       pre     { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       table   { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       h1      { text-align: center }
+</style>
+<title>pmempool-info</title>
+
+</head>
+<body>
+
+<h1 align="center">pmempool-info</h1>
+
+<a href="#NAME">NAME</a><br>
+<a href="#SYNOPSIS">SYNOPSIS</a><br>
+<a href="#DESCRIPTION">DESCRIPTION</a><br>
+<a href="#RANGE">RANGE</a><br>
+<a href="#STATISTICS">STATISTICS</a><br>
+<a href="#EXAMPLES">EXAMPLES</a><br>
+<a href="#SEE ALSO">SEE ALSO</a><br>
+<a href="#PMEMPOOL">PMEMPOOL</a><br>
+
+<hr>
+
+
+<h2>NAME
+<a name="NAME"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">pmempool-info
+&minus; Print basic information about Persistent Memory Pool
+file</p>
+
+<h2>SYNOPSIS
+<a name="SYNOPSIS"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>pmempool
+info</b> [&lt;options&gt;] &lt;file&gt;</p>
+
+<h2>DESCRIPTION
+<a name="DESCRIPTION"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">The
+<b>pmempool</b> invoked with <b>info</b> command analyzes an
+existing pool created by <b>NVML</b> libraries. The main
+task of this command is to print all usable information from
+pool headers and user data in human readable format. It
+automatically recognizes pool type by parsing and analyzing
+pool header. The recognition is done by checking the
+signature in pool header. The main job of <b>info</b>
+command is to present internal data structures as they are
+stored in file but <i>not</i> for checking consistency. For
+this purpose there is the <b>pmempool-check(1)</b> command
+available.</p>
+
+<p style="margin-left:11%; margin-top: 1em">The
+<b>pmempool</b> with <b>info</b> command analyzes pool file
+as long as it is possible regarding <i>correctness</i> of
+internal meta-data (correct offsets, sizes etc.). If it is
+<i>not</i> possible to analyze the rest of the file,
+<b>pmempool</b> exits with error code and prints appropriate
+error message.</p>
+
+<p style="margin-left:11%; margin-top: 1em">Currently there
+is lack of interprocess synchronization for pool files, so
+the <b>info</b> command should be invoked off-line. Using
+<b>pmempool</b> on pool file which may be modified by
+another process may lead to unexpected errors in pool
+file.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>pmempool
+info</b> opens pool file in <i>read-only</i> mode so the
+file will remain untouched after processing.</p>
+
+<p style="margin-left:11%; margin-top: 1em">The <b>info</b>
+command may collect and print basic statistics about data
+usage. The statistics are specific to the type of pool. See
+<b>STATISTICS</b> section for details.</p>
+
+<p style="margin-left:11%; margin-top: 1em">Although the
+pool consistency is <i>not</i> checked by the <b>info</b>
+command, it prints information about checksum errors and/or
+offsets errors.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>Common
+options:</b> <br>
+By default the <b>info</b> command of <b>pmempool</b> prints
+information about the most important internal data
+structures from pool. The particular set of headers and
+meta-data depend on pool type. The pool type is recognized
+automatically and appropriate information is displayed in
+human-readable format.</p>
+
+<p style="margin-left:11%; margin-top: 1em">To force
+processing specified file(s) as desired pool type use
+<b>-f</b> option with appropriate name of pool type. The
+valid names off pool types are <i>blk , log</i> or
+<i>obj.</i> This option may be useful when the pool header
+is corrupted and automatic recognition of pool type
+fails.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>-f,
+--force</b> blk|log|obj</p>
+
+<p style="margin-left:23%;">Force parsing pool as specified
+pool type.</p>
+
+<p style="margin-left:11%; margin-top: 1em">By default only
+pool headers and internal meta-data are displayed. To
+display user data use <b>-d</b> option. Using <b>-r</b>
+option you can specify number of blocks/bytes/data chunks or
+objects using special text format. See <b>RANGE</b> section
+for details. The range refers to <i>block numbers</i> in
+case of pmem blk pool type, to <i>chunk numbers</i> in case
+of pmem log pool type and to <i>object numbers</i> in case
+of pmem obj pool type. See <b>EXAMPLES</b> section for an
+example of usage of these options.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>-d,
+--data</b></p>
+
+<p style="margin-left:23%;">Dump user data in hexadecimal
+format. In case of pmem <i>blk</i> pool type data is dumped
+in <i>blocks.</i> In case of pmem <i>log</i> pool type data
+is dumped as a whole or in <i>chunks</i> if <b>-w</b> option
+is used (See <b>Options for PMEMLOG</b> section for
+details).</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>-r,
+--range</b> &lt;range&gt;</p>
+
+<p style="margin-left:23%;">Range of blocks/data
+chunks/objects/zone headers/chunk headers/lanes. See
+<b>RANGE</b> section for details about range format.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>-n,
+--human</b></p>
+
+<p style="margin-left:23%;">Print sizes in human-readable
+format with appropriate units (e.g. 4k, 8M, 16G).</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>-x,
+--headers-hex</b></p>
+
+<p style="margin-left:23%;">Print pool&rsquo;s internal
+data in mixed format which consists of hexadecimal dump of
+header&rsquo;s data and parsed format displayed in
+human-readable format. This allows to see how data is stored
+in file.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>-s,
+--stats</b></p>
+
+<p style="margin-left:23%;">Print pool&rsquo;s statistics.
+See <b>STATISTICS</b> section for details.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>-h,
+--help</b></p>
+
+<p style="margin-left:23%;">Display help message and
+exit.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>Options for
+PMEMLOG: <br>
+-w, --walk</b> &lt;size&gt;</p>
+
+<p style="margin-left:23%;">Use this option to walk through
+used data with fixed data chunk size. See
+<b>pmemlog_walk</b>() in <b>libpmemlog(3)</b> for
+details.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>Options for
+PMEMBLK:</b> <br>
+By default the <b>info</b> command displays the pmem blk
+header and BTT (Block Translation Table) Info header in case
+of pmem blk pool type.</p>
+
+<p style="margin-left:11%; margin-top: 1em">To display BTT
+Map and/or BTT FLOG (Free List and Log) use <b>-m</b> and
+<b>-g</b> options respectively or increase verbosity
+level.</p>
+
+<p style="margin-left:11%; margin-top: 1em">In order to
+display BTT Info header backup use <b>-B</b> option.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>-m,
+--map</b></p>
+
+<p style="margin-left:23%;">Print BTT Map entries.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>-g,
+--flog</b></p>
+
+<p style="margin-left:23%;">Print BTT FLOG entries.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>-B,
+--backup</b></p>
+
+<p style="margin-left:23%;">Print BTT Info header
+backup.</p>
+
+<p style="margin-left:11%; margin-top: 1em">By default the
+<b>info</b> command displays all data blocks when <b>-d</b>
+options is used. However it is possible to skip blocks
+marked with <i>zero</i> and/or <i>error</i> flags. It is
+also possible to skip blocks which are <i>not</i> marked
+with any flag. Skipping blocks has impact on blocks ranges
+(e.g. display 10 blocks marked with error flag in the range
+from 0 to 10000) and statistics.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>-z,
+--skip-zeros</b></p>
+
+<p style="margin-left:23%;">Skip blocks marked with
+<i>zero</i> flag.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>-e,
+--skip-error</b></p>
+
+<p style="margin-left:23%;">Skip blocks marked with
+<i>error</i> flag.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>-u,
+--skip-no-flag</b></p>
+
+<p style="margin-left:23%;">Skip blocks <i>not</i> marked
+with any flag.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>Options for
+PMEMOBJ:</b> <br>
+By default the <b>info</b> command displays pool header and
+<b>pmem obj</b> pool descriptor. In order to print
+information about other data structures one of the following
+options may be used.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>-l, --lanes
+[&lt;range&gt;]</b></p>
+
+<p style="margin-left:23%;">Print information about lanes.
+If range is not specified all lanes are displayed. The range
+can be specified using <b>-r</b> option right after the
+<b>-l</b> option. See <b>RANGE</b> section for details about
+range format.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>-R,
+--recovery</b></p>
+
+<p style="margin-left:23%;">Print information about only
+those lanes which require recovery process. This option
+requires <b>-l, --lanes</b> option.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>-S,
+--section tx,allocator,list</b></p>
+
+<p style="margin-left:23%;">Print information only about
+specified sections from lane. The section types may be
+separated by comma. This option requires <b>-l, --lanes</b>
+option.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>-O,
+--object-store</b></p>
+
+<p style="margin-left:23%;">Print information about all
+allocated objects.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>-t, --types
+&lt;range&gt;</b></p>
+
+<p style="margin-left:23%;">Print information about
+allocated objects only from specified range of type numbers.
+If <b>-s, --stats</b> option is specified the objects
+statistics refer to objects from specified range of type
+numbers. This option requires <b>-O, --object-store</b> or
+<b>-s, --stats</b> options. See <b>RANGE</b> section for
+details about range format.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>-E,
+--no-empty</b></p>
+
+<p style="margin-left:23%;">Ignore empty lists of objects.
+This option requires <b>-O, --object-store</b> option.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>-o,
+--root</b></p>
+
+<p style="margin-left:23%;">Print information about a root
+object.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>-A,
+--alloc-header</b></p>
+
+<p style="margin-left:23%;">Print object&rsquo;s allocation
+header. This option requires <b>-O, --object-store</b> or
+<b>-l, --lanes</b> or <b>-o, --root</b> options.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>-a,
+--oob-header</b></p>
+
+<p style="margin-left:23%;">Print object&rsquo;s out of
+band header. This option requires <b>-O, --object-store</b>
+or <b>-l, --lanes</b> or <b>-o, --root</b> options.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>-H,
+--heap</b></p>
+
+<p style="margin-left:23%;">Print information about
+<b>pmemobj</b> heap. By default only a heap header is
+displayed.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>-Z,
+--zones</b></p>
+
+<p style="margin-left:23%;">If the <b>-H, --heap</b> option
+is used, print information about zones from specified range.
+If the <b>-O, --object-store</b> option is used, print
+information about objects only from specified range of
+zones. This option requires <b>-O, --object-store</b> ,
+<b>-H, --heap</b> or <b>-s, --stats</b> options. The range
+can be specified using <b>-r</b> option right after the
+<b>-Z</b> option. See <b>RANGE</b> section for details about
+range format.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>-C, --chunks
+[&lt;range&gt;]</b></p>
+
+<p style="margin-left:23%;">If the <b>-H, --heap</b> option
+is used, print information about chunks from specified
+range. By default information about chunks of types <b>used
+, free</b> and <b>run</b> are displayed. If the <b>-O,
+--object-store</b> option is used, print information about
+objects from specified range of chunks within a zone. This
+option requires <b>-O, --object-store</b> , <b>-H,
+--heap</b> or <b>-s, --stats</b> options. The range can be
+specified using <b>-r</b> option right after the <b>-C</b>
+option. See <b>RANGE</b> section for details about range
+format.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>-T,
+--chunk-type used,free,run,footer</b></p>
+
+<p style="margin-left:23%;">Print only specified type(s) of
+chunks. The multiple types may be specified separated by
+comma. This option requires <b>-H, --heap</b> and <b>-C,
+--chunks</b> options.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>-b,
+--bitmap</b></p>
+
+<p style="margin-left:23%;">Print bitmap of used blocks in
+chunks of type run. This option requires <b>-H, --heap</b>
+and <b>-C, --chunks</b> options.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>-p,
+--replica &lt;num&gt;</b></p>
+
+<p style="margin-left:23%;">Print information from
+<b>&lt;num&gt;</b> replica. The 0 value means the master
+pool file.</p>
+
+<h2>RANGE
+<a name="RANGE"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">Using <b>-r,
+--range</b> option it is possible to dump only a range of
+user data. This section describes valid format of
+<i>&lt;range&gt;</i> string.</p>
+
+<p style="margin-left:11%; margin-top: 1em">You can specify
+multiple ranges separated by commas.</p>
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>&lt;first&gt;-&lt;last&gt;</b></p>
+
+<p style="margin-left:23%;">All blocks/bytes/data chunks
+from <b>&lt;first&gt;</b> to <b>&lt;last&gt;</b> will be
+dumped.</p>
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>-&lt;last&gt;</b></p>
+
+<p style="margin-left:23%;">All blocks/bytes/data chunks up
+to <b>&lt;last&gt;</b> will be dumped.</p>
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>&lt;first&gt;-</b></p>
+
+<p style="margin-left:23%;">All blocks/bytes/data chunks
+starting from <b>&lt;first&gt;</b> will be dumped.</p>
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>&lt;number&gt;</b></p>
+
+<p style="margin-left:23%;">Only <b>&lt;number&gt;</b>
+block/byte/data chunk will be dumped.</p>
+
+<h2>STATISTICS
+<a name="STATISTICS"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">Below is the
+description of statistical measures for specific pool
+types.</p>
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>PMEMLOG</b></p>
+
+<table width="100%" border="0" rules="none" frame="void"
+       cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="7%">
+
+
+<p><b>Total</b></p></td>
+<td width="4%"></td>
+<td width="30%">
+
+
+<p>Total space in pool.</p></td>
+<td width="48%">
+</td></tr>
+</table>
+
+<p style="margin-left:11%;"><b>Available</b></p>
+
+<p style="margin-left:22%;">Size and percentage of
+available space.</p>
+
+<table width="100%" border="0" rules="none" frame="void"
+       cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="6%">
+
+
+<p><b>Used</b></p></td>
+<td width="5%"></td>
+<td width="52%">
+
+
+<p>Size and percentage of used space.</p></td>
+<td width="26%">
+</td></tr>
+</table>
+
+<p style="margin-left:11%; margin-top: 1em"><b>PMEMBLK <br>
+Total blocks</b></p>
+
+<p style="margin-left:22%;">Total number of blocks in
+pool.</p>
+
+<p style="margin-left:11%;"><b>Zeroed blocks</b></p>
+
+<p style="margin-left:22%;">Number and percentage of blocks
+marked with <i>zero</i> flag.</p>
+
+<p style="margin-left:11%;"><b>Error blocks</b></p>
+
+<p style="margin-left:22%;">Number and percentage of blocks
+marked with <i>error</i> flag.</p>
+
+<p style="margin-left:11%;"><b>Blocks without any
+flag</b></p>
+
+<p style="margin-left:22%;">Number and percentage of blocks
+<i>not</i> marked with any flag.</p>
+
+<table width="100%" border="0" rules="none" frame="void"
+       cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="7%">
+
+
+<p><b>NOTE:</b></p></td>
+<td width="4%"></td>
+<td width="78%">
+
+
+<p>In case of pmemblk, statistics are evaluated for blocks
+which meet requirements regarding:</p></td></tr>
+</table>
+
+<p style="margin-left:11%; margin-top: 1em"><i>range</i> of
+blocks ( <b>-r</b> option),</p>
+
+<p style="margin-left:11%; margin-top: 1em"><i>skipped</i>
+types of blocks ( <b>-z, -e, -u</b> options).</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>PMEMOBJ <br>
+Object store</b></p>
+
+<p style="margin-left:22%;"><b>Number of objects</b></p>
+
+<p style="margin-left:32%;">Total number of objects and
+number of objects per type number.</p>
+
+<p style="margin-left:22%;"><b>Number of bytes</b></p>
+
+<p style="margin-left:32%;">Total number of bytes and
+number of bytes per type number.</p>
+
+<table width="100%" border="0" rules="none" frame="void"
+       cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="6%">
+
+
+<p><b>Heap</b></p></td>
+<td width="5%"></td>
+<td width="23%">
+
+
+<p><b>Number of zones</b></p></td>
+<td width="55%">
+</td></tr>
+</table>
+
+<p style="margin-left:32%;">Total number of zones in the
+pool.</p>
+
+<p style="margin-left:22%;"><b>Number of used zones</b></p>
+
+<p style="margin-left:32%;">Number of used zones in the
+pool.</p>
+
+<table width="100%" border="0" rules="none" frame="void"
+       cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="6%">
+
+
+<p><b>Zone</b></p></td>
+<td width="5%"></td>
+<td width="78%">
+
+
+<p>The zone&rsquo;s statistics are presented for each zone
+separately and the aggregated results from all zones.</p></td></tr>
+</table>
+
+<p style="margin-left:22%;"><b>Number of chunks</b></p>
+
+<p style="margin-left:32%;">Total number of chunks in the
+zone and number of chunks of specified type.</p>
+
+<p style="margin-left:22%;"><b>Chunks size</b></p>
+
+<p style="margin-left:32%;">Total size of all chunks in the
+zone and sum of sizes of chunks of specified type.</p>
+
+<p style="margin-left:11%;"><b>Allocation classes</b></p>
+
+<table width="100%" border="0" rules="none" frame="void"
+       cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="22%"></td>
+<td width="7%">
+
+
+<p><b>Units</b></p></td>
+<td width="3%"></td>
+<td width="63%">
+
+
+<p>Total number of units of specified class.</p></td>
+<td width="5%">
+</td></tr>
+</table>
+
+<p style="margin-left:22%;"><b>Used units</b></p>
+
+<p style="margin-left:32%;">Number of used units of
+specified class.</p>
+
+<table width="100%" border="0" rules="none" frame="void"
+       cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="22%"></td>
+<td width="7%">
+
+
+<p><b>Bytes</b></p></td>
+<td width="3%"></td>
+<td width="63%">
+
+
+<p>Total number of bytes of specified class.</p></td>
+<td width="5%">
+</td></tr>
+</table>
+
+<p style="margin-left:22%;"><b>Used bytes</b></p>
+
+<p style="margin-left:32%;">Number of used bytes of
+specified class.</p>
+
+<p style="margin-left:22%;"><b>Total bytes</b></p>
+
+<p style="margin-left:32%;">Total number of bytes of all
+classes.</p>
+
+<p style="margin-left:22%;"><b>Total used bytes</b></p>
+
+<p style="margin-left:32%;">Total number of used bytes of
+all classes.</p>
+
+<h2>EXAMPLES
+<a name="EXAMPLES"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">pmempool info
+./pmemblk</p>
+
+<p style="margin-left:22%;"># Parse and print information
+about pmem blk file.</p>
+
+<p style="margin-left:11%;">pmempool info -f blk
+./pmemblk</p>
+
+<p style="margin-left:22%;"># Force parsing pmemblk file as
+PMEM BLK pool type.</p>
+
+<p style="margin-left:11%;">pmempool info -d ./pmemlog</p>
+
+<p style="margin-left:22%;"># Print information and data in
+hexadecimal dump format for file pmem log.</p>
+
+<p style="margin-left:11%;">pmempool info -d -r10-100 -eu
+./pmemblk</p>
+
+<p style="margin-left:22%;"># Print information from
+pmemblk file. Dump data blocks from 10 to 100, skip blocks
+marked with error flag and not marked with any flag.</p>
+
+<h2>SEE ALSO
+<a name="SEE ALSO"></a>
+</h2>
+
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>libpmemblk(3)
+libpmemlog(3) pmempool(1)</b></p>
+
+<h2>PMEMPOOL
+<a name="PMEMPOOL"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">Part of the
+<b>pmempool(1)</b> suite.</p>
+<hr>
+</body>
+</html>

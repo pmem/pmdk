@@ -1,0 +1,728 @@
+<!-- Creator     : groff version 1.22.3 -->
+<!-- CreationDate: Mon May  9 10:52:58 2016 -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="groff -Thtml, see www.gnu.org">
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta name="Content-Style" content="text/css">
+<style type="text/css">
+       p       { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       pre     { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       table   { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       h1      { text-align: center }
+</style>
+<title>libvmem</title>
+
+</head>
+<body>
+
+<h1 align="center">libvmem</h1>
+
+<a href="#NAME">NAME</a><br>
+<a href="#SYNOPSIS">SYNOPSIS</a><br>
+<a href="#DESCRIPTION">DESCRIPTION</a><br>
+<a href="#MANAGING MEMORY POOLS">MANAGING MEMORY POOLS</a><br>
+<a href="#MEMORY ALLOCATION">MEMORY ALLOCATION</a><br>
+<a href="#MANAGING LIBRARY BEHAVIOR">MANAGING LIBRARY BEHAVIOR</a><br>
+<a href="#DEBUGGING AND ERROR HANDLING">DEBUGGING AND ERROR HANDLING</a><br>
+<a href="#EXAMPLE">EXAMPLE</a><br>
+<a href="#BUGS">BUGS</a><br>
+<a href="#ACKNOWLEDGEMENTS">ACKNOWLEDGEMENTS</a><br>
+<a href="#SEE ALSO">SEE ALSO</a><br>
+
+<hr>
+
+
+<h2>NAME
+<a name="NAME"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">libvmem &minus;
+volatile memory allocation library</p>
+
+<h2>SYNOPSIS
+<a name="SYNOPSIS"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>#include
+&lt;libvmem.h&gt;</b></p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>cc ...
+-lvmem</b></p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>Memory pool
+management:</b></p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>VMEM
+*vmem_create(const char *</b><i>dir</i><b>, size_t</b>
+<i>size</i><b>); <br>
+VMEM *vmem_create_in_region(void *</b><i>addr</i><b>,
+size_t</b> <i>size</i><b>); <br>
+void vmem_delete(VMEM *</b><i>vmp</i><b>); <br>
+int vmem_check(VMEM *</b><i>vmp</i><b>); <br>
+void vmem_stats_print(VMEM *</b><i>vmp</i><b>, const char
+*</b><i>opts</i><b>);</b></p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>Memory
+allocation related functions:</b></p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>void
+*vmem_malloc(VMEM *</b><i>vmp</i><b>, size_t</b>
+<i>size</i><b>); <br>
+void vmem_free(VMEM *</b><i>vmp</i><b>, void
+*</b><i>ptr</i><b>); <br>
+void *vmem_calloc(VMEM *</b><i>vmp</i><b>, size_t</b>
+<i>nmemb</i><b>, size_t</b> <i>size</i><b>); <br>
+void *vmem_realloc(VMEM *</b><i>vmp</i><b>, void
+*</b><i>ptr</i><b>, size_t</b> <i>size</i><b>); <br>
+void *vmem_aligned_alloc(VMEM *</b><i>vmp</i><b>, size_t</b>
+<i>alignment</i><b>, size_t</b> <i>size</i><b>); <br>
+char *vmem_strdup(VMEM *</b><i>vmp</i><b>, const char
+*</b><i>s</i><b>); <br>
+size_t vmem_malloc_usable_size(VMEM *</b><i>vmp</i><b>, void
+*</b><i>ptr</i><b>);</b></p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>Managing
+overall library behavior:</b></p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>const char
+*vmem_check_version( <br>
+unsigned</b> <i>major_required</i><b>, <br>
+unsigned</b> <i>minor_required</i><b>); <br>
+void vmem_set_funcs( <br>
+void *(*</b><i>malloc_func</i><b>)(size_t</b>
+<i>size</i><b>), <br>
+void (*</b><i>free_func</i><b>)(void *</b><i>ptr</i><b>),
+<br>
+void *(*</b><i>realloc_func</i><b>)(void *</b><i>ptr</i><b>,
+size_t</b> <i>size</i><b>), <br>
+char *(*</b><i>strdup_func</i><b>)(const char
+*</b><i>s</i><b>), <br>
+void (*</b><i>print_func</i><b>)(const char
+*</b><i>s</i><b>));</b></p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>Error
+handling:</b></p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>const char
+*vmem_errormsg(void);</b></p>
+
+<h2>DESCRIPTION
+<a name="DESCRIPTION"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>libvmem</b>
+provides common <i>malloc-like</i> interfaces to memory
+pools built on memory-mapped files. These interfaces are for
+traditional <b>volatile</b> memory allocation but, unlike
+the functions described in <b>malloc</b>(3), the memory
+managed by <b>libvmem</b> may have different attributes,
+depending on the file system containing the memory-mapped
+files. In particular, <b>libvmem</b> is part of the
+<i>Non-Volatile Memory Library</i> because it is sometimes
+useful to use non-volatile memory as a volatile memory pool,
+leveraging its capacity, cost, or performance
+characteristics.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>libvmem</b>
+uses the <b>mmap</b>(2) system call to create a pool of
+volatile memory. The library is most useful when used with
+<i>Direct Access</i> storage (DAX), which is
+memory-addressable persistent storage that supports
+load/store access without being paged via the system page
+cache. A Persistent Memory-aware file system is typically
+used to provide this type of access. Memory-mapping a file
+from a Persistent Memory-aware file system provides the raw
+memory pools, and this library supplies the more familiar
+<i>malloc-like</i> interfaces on top of those pools.</p>
+
+<p style="margin-left:11%; margin-top: 1em">Under normal
+usage, <b>libvmem</b> will never print messages or
+intentionally cause the process to exit. Exceptions to this
+are prints caused by calls to <b>vmem_stats_print</b>(), or
+by enabling debugging as described under <b>DEBUGGING AND
+ERROR HANDLING</b> below. The library uses
+<b>pthreads</b>(7) to be fully MT-safe, but never creates or
+destroys threads itself. The library does not make use of
+any signals, networking, and never calls <b>select</b>() or
+<b>poll</b>(). The system memory allocation routines like
+<b>malloc</b>() and <b>free</b>() are used by <b>libvmem</b>
+for managing a small amount of run-time state, but
+applications are allowed to override these calls if
+necessary (see the description of <b>vmem_set_funcs</b>()
+below).</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>libvmem</b>
+interfaces are grouped into three categories: those that
+manage memory pools, those providing the basic memory
+allocation functions, and those interfaces less commonly
+used for managing the overall library behavior. These groups
+of interfaces are described in the following three
+sections.</p>
+
+<h2>MANAGING MEMORY POOLS
+<a name="MANAGING MEMORY POOLS"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">To use
+<b>libvmem</b>, a <i>memory pool</i> is first created. This
+is most commonly done with the <b>vmem_create</b>() function
+described in this section. The other functions described in
+this section are for less common cases, where applications
+have special needs for creating pools or examining library
+state.</p>
+
+<p style="margin-left:11%; margin-top: 1em">Once created, a
+memory pool is represented by an opaque pool handle, of type
+<i>VMEM *</i>, which is passed to the functions for memory
+allocation described in the next section.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>VMEM
+*vmem_create(const char *</b><i>dir</i><b>, size_t</b>
+<i>size</i><b>);</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">The
+<b>vmem_create</b>() function creates a memory pool. The
+resulting pool is then used with functions like
+<b>vmem_malloc</b>() and <b>vmem_free</b>() to provide the
+familiar <i>malloc-like</i> programming model for the memory
+pool. <b>vmem_create</b>() creates the pool by allocating a
+temporary file in the given directory <i>dir</i>. The file
+is created in a fashion similar to <b>tmpfile</b>(3), so
+that the file name does not appear when the directory is
+listed and the space is automatically freed when the program
+terminates. <i>size</i> bytes are allocated and the
+resulting space is memory-mapped. The minimum <i>size</i>
+value allowed by the library is defined in
+<b>&lt;libvmem.h&gt;</b> as <b>VMEM_MIN_POOL</b>. Calling
+<b>vmem_create</b>() with a size smaller than that will
+return an error. The maximum allowed size is not limited by
+<b>libvmem</b>, but by the file system specified by the
+<i>dir</i> argument. The <i>size</i> passed in is the raw
+size of the memory pool and <b>libvmem</b> will use some of
+that space for its own metadata. <b>vmem_create</b>()
+returns an opaque memory pool handle or NULL if an error
+occurred (in which case <i>errno</i> is set appropriately).
+The opaque memory pool handle is then used with the other
+functions described in this man page that operate on a
+specific memory pool.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>VMEM
+*vmem_create_in_region(void *</b><i>addr</i><b>, size_t</b>
+<i>size</i><b>);</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">The
+<b>vmem_create_in_region</b>() is an alternate
+<b>libvmem</b> entry point for creating a memory pool. It is
+for the rare case where an application needs to create a
+memory pool from an already memory-mapped region. Instead of
+allocating space from a given file system,
+<b>vmem_create_in_region</b>() is given the memory region
+explicitly via the <i>addr</i> and <i>size</i> arguments.
+Any data in the region is lost by calling
+<b>vmem_create_in_region</b>(), which will immediately store
+its own data structures for managing the pool there. Like
+<b>vmem_create</b>() above, the minimum <i>size</i> allowed
+is defined as <b>VMEM_MIN_POOL</b>. The <i>addr</i> argument
+must be page aligned. <b>vmem_create_in_region</b>() returns
+an opaque memory pool handle or NULL if an error occurred
+(in which case <i>errno</i> is set appropriately). Undefined
+behavior occurs if <i>addr</i> does not point to the
+contiguous memory region in the virtual address space of the
+calling process, or if the <i>size</i> is larger than the
+actual size of the memory region pointed by <i>addr</i>.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>void
+vmem_delete(VMEM *</b><i>vmp</i><b>);</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">The
+<b>vmem_delete</b>() function releases the memory pool
+<i>vmp</i>. If the memory pool was created using
+<b>vmem_create_pool</b>(), deleting it allows the space to
+be reclaimed.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>int
+vmem_check(VMEM *</b><i>vmp</i><b>);</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">The
+<b>vmem_check</b>() function performs an extensive
+consistency check of all <b>libvmem</b> internal data
+structures in memory pool <i>vmp</i>. It returns 1 if the
+memory pool during the check is found to be consistent and 0
+otherwise. Cases where the check couldn&rsquo;t be
+performed, are indicated by a return value of -1. Since an
+error return indicates memory pool corruption, applications
+should not continue to use a pool in this state. Additional
+details about errors found are logged when the log level is
+at least 1 (see <b>DEBUGGING AND ERROR HANDLING</b> below).
+During the consistency check performed by
+<b>vmem_check</b>(), other operations on the same memory
+pool are locked out. The checks are all read-only;
+<b>vmem_check</b>() never modifies the memory pool. This
+function is mostly useful for <b>libvmem</b> developers
+during testing/debugging.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>void
+vmem_stats_print(VMEM *</b><i>vmp</i><b>, const char
+*</b><i>opts</i><b>);</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">The
+<b>vmem_stats_print</b>() function produces messages
+containing statistics about the given memory pool. The
+output is printed using <b>libvmem</b>&rsquo;s internal
+<i>print_func</i> function (see <b>vmem_set_funcs</b>()
+below). That means the output typically appears on
+<b>stderr</b> unless the caller supplies a replacement
+<i>print_func</i> or sets the environment variable
+<b>VMEM_LOG_FILE</b> to direct output elsewhere. The
+<i>opts</i> string can either be NULL or it can contain a
+list of options that change the stats printed. General
+information that never changes during execution can be
+omitted by specifying &quot;g&quot; as a character within
+the opts string. The characters &quot;m&quot; and
+&quot;a&quot; can be specified to omit merged arena and per
+arena statistics, respectively; &quot;b&quot; and
+&quot;l&quot; can be specified to omit per size class
+statistics for bins and large objects, respectively.
+Unrecognized characters are silently ignored. Note that
+thread caching may prevent some statistics from being
+completely up to date. See <b>jemalloc</b>(3) for more
+detail (the description of the available <i>opts</i> above
+was taken from that man page).</p>
+
+<h2>MEMORY ALLOCATION
+<a name="MEMORY ALLOCATION"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">This section
+describes the <i>malloc-like</i> API provided by
+<b>libvmem</b>. These functions provide the same semantics
+as their libc namesakes, but operate on the memory pools
+specified by their first arguments.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>void
+*vmem_malloc(VMEM *</b><i>vmp</i><b>, size_t</b>
+<i>size</i><b>);</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">The
+<b>vmem_malloc</b>() function provides the same semantics as
+<b>malloc</b>(3), but operates on the memory pool <i>vmp</i>
+instead of the process heap supplied by the system. It
+allocates <i>size</i> bytes and returns a pointer to the
+allocated memory. <i>The memory is not initialized</i>. If
+<i>size</i> is 0, then <b>vmem_malloc</b>() returns either
+NULL, or a unique pointer value that can later be
+successfully passed to <b>vmem_free</b>(). If
+<b>vmem_malloc</b>() is unable to satisfy the allocation
+request, a NULL pointer is returned and errno is set
+appropriately.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>void
+vmem_free(VMEM *</b><i>vmp</i><b>, void
+*</b><i>ptr</i><b>);</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">The
+<b>vmem_free</b>() function provides the same semantics as
+<b>free</b>(3), but operates on the memory pool <i>vmp</i>
+instead of the process heap supplied by the system. It frees
+the memory space pointed to by <i>ptr</i>, which must have
+been returned by a previous call to <b>vmem_malloc</b>(),
+<b>vmem_calloc</b>() or <b>vmem_realloc</b>() for <i>the
+same pool of memory</i>. Undefined behavior occurs if frees
+do not correspond to allocated memory from the same memory
+pool. If <i>ptr</i> is NULL, no operation is performed.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>void
+*vmem_calloc(VMEM *</b><i>vmp</i><b>, size_t</b>
+<i>nmemb</i><b>, size_t</b> <i>size</i><b>);</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">The
+<b>vmem_calloc</b>() function provides the same semantics as
+<b>calloc</b>(3), but operates on the memory pool <i>vmp</i>
+instead of the process heap supplied by the system. It
+allocates memory for an array of <i>nmemb</i> elements of
+<i>size</i> bytes each and returns a pointer to the
+allocated memory. The memory is set to zero. If <i>nmemb</i>
+or <i>size</i> is 0, then <b>vmem_calloc</b>() returns
+either NULL, or a unique pointer value that can later be
+successfully passed to <b>vmem_free</b>(). If
+<b>vmem_calloc</b>() is unable to satisfy the allocation
+request, a NULL pointer is returned and errno is set
+appropriately.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>void
+*vmem_realloc(VMEM *</b><i>vmp</i><b>, void
+*</b><i>ptr</i><b>, size_t</b> <i>size</i><b>);</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">The
+<b>vmem_realloc</b>() function provides the same semantics
+as <b>realloc</b>(3), but operates on the memory pool
+<i>vmp</i> instead of the process heap supplied by the
+system. It changes the size of the memory block pointed to
+by <i>ptr</i> to <i>size</i> bytes. The contents will be
+unchanged in the range from the start of the region up to
+the minimum of the old and new sizes. If the new size is
+larger than the old size, the added memory will <i>not</i>
+be initialized. If <i>ptr</i> is NULL, then the call is
+equivalent to <i>vmem_malloc(vmp, size)</i>, for all values
+of <i>size</i>; if <i>size</i> is equal to zero, and
+<i>ptr</i> is not NULL, then the call is equivalent to
+<i>vmem_free(vmp, ptr)</i>. Unless <i>ptr</i> is NULL, it
+must have been returned by an earlier call to
+<b>vmem_malloc</b>(), <b>vmem_calloc</b>() or
+<b>vmem_realloc</b>(). If the area pointed to was moved, a
+<i>vmem_free(vmp, ptr)</i> is done. If <b>vmem_realloc</b>()
+is unable to satisfy the allocation request, a NULL pointer
+is returned and errno is set appropriately.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>void
+*vmem_aligned_alloc(VMEM *</b><i>vmp</i><b>, size_t</b>
+<i>alignment</i><b>, size_t</b> <i>size</i><b>);</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">The
+<b>vmem_aligned_alloc</b>() function provides the same
+semantics as <b>aligned_alloc</b>(3), but operates on the
+memory pool <i>vmp</i> instead of the process heap supplied
+by the system. It allocates <i>size</i> bytes from the
+memory pool and returns a pointer to the allocated memory.
+The memory address will be a multiple of <i>alignment</i>,
+which must be a power of two. If <b>vmem_aligned_alloc</b>()
+is unable to satisfy the allocation request, a NULL pointer
+is returned and errno is set appropriately.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>char
+*vmem_strdup(VMEM *</b><i>vmp</i><b>, const char
+*</b><i>s</i><b>);</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">The
+<b>vmem_strdup</b>() function provides the same semantics as
+<b>strdup</b>(3), but operates on the memory pool <i>vmp</i>
+instead of the process heap supplied by the system. It
+returns a pointer to a new string which is a duplicate of
+the string <i>s</i>. Memory for the new string is obtained
+with <b>vmem_malloc</b>(), on the given memory pool, and can
+be freed with <b>vmem_free</b>() on the same memory pool. If
+<b>vmem_strdup</b>() is unable to satisfy the allocation
+request, a NULL pointer is returned and errno is set
+appropriately.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>size_t
+vmem_malloc_usable_size(VMEM *</b><i>vmp</i><b>, void
+*</b><i>ptr</i><b>);</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">The
+<b>vmem_malloc_usable_size</b>() function provides the same
+semantics as <b>malloc_usable_size</b>(3), but operates on
+the memory pool <i>vmp</i> instead of the process heap
+supplied by the system. It returns the number of usable
+bytes in the block of allocated memory pointed to by
+<i>ptr</i>, a pointer to a block of memory allocated by
+<b>vmem_malloc</b>() or a related function. If <i>ptr</i> is
+NULL, 0 is returned.</p>
+
+<h2>MANAGING LIBRARY BEHAVIOR
+<a name="MANAGING LIBRARY BEHAVIOR"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">The library
+entry points described in this section are less commonly
+used than the previous section. These entry points expose
+library information or alter the default library
+behavior.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>const char
+*vmem_check_version( <br>
+unsigned</b> <i>major_required</i><b>, <br>
+unsigned</b> <i>minor_required</i><b>);</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">The
+<b>vmem_check_version</b>() function is used to see if the
+installed <b>libvmem</b> supports the version of the library
+API required by an application. The easiest way to do this
+is for the application to supply the compile-time version
+information, supplied by defines in
+<b>&lt;libvmem.h&gt;</b>, like this:</p>
+
+<p style="margin-left:22%; margin-top: 1em">reason =
+vmem_check_version(VMEM_MAJOR_VERSION, <br>
+VMEM_MINOR_VERSION); <br>
+if (reason != NULL) { <br>
+/* version check failed, reason string tells you why */ <br>
+}</p>
+
+<p style="margin-left:22%; margin-top: 1em">Any mismatch in
+the major version number is considered a failure, but a
+library with a newer minor version number will pass this
+check since increasing minor versions imply backwards
+compatibility.</p>
+
+<p style="margin-left:22%; margin-top: 1em">An application
+can also check specifically for the existence of an
+interface by checking for the version where that interface
+was introduced. These versions are documented in this man
+page as follows: unless otherwise specified, all interfaces
+described here are available in version 1.0 of the library.
+Interfaces added after version 1.0 will contain the text
+<i>introduced in version x.y</i> in the section of this
+manual describing the feature.</p>
+
+<p style="margin-left:22%; margin-top: 1em">When the
+version check performed by <b>vmem_check_version</b>() is
+successful, the return value is NULL. Otherwise the return
+value is a static string describing the reason for failing
+the version check. The string returned by
+<b>vmem_check_version</b>() must not be modified or
+freed.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>void
+vmem_set_funcs( <br>
+void *(*</b><i>malloc_func</i><b>)(size_t</b>
+<i>size</i><b>), <br>
+void (*</b><i>free_func</i><b>)(void *</b><i>ptr</i><b>),
+<br>
+void *(*</b><i>realloc_func</i><b>)(void *</b><i>ptr</i><b>,
+size_t</b> <i>size</i><b>), <br>
+char *(*</b><i>strdup_func</i><b>)(const char
+*</b><i>s</i><b>), <br>
+void (*</b><i>print_func</i><b>)(const char
+*</b><i>s</i><b>));</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">The
+<b>vmem_set_funcs</b>() function allows an application to
+override some interfaces used internally by <b>libvmem</b>.
+Passing in NULL for any of the handlers will cause the
+<b>libvmem</b> default function to be used. The library does
+not make heavy use of the system malloc functions, but it
+does allocate approximately 4-8 kilobytes for each memory
+pool in use. The only functions in the malloc family used by
+the library are represented by the first four arguments to
+<b>vmem_set_funcs</b>(). The <i>print_func</i> function is
+called by <b>libvmem</b> when the <b>vmem_stats_print</b>()
+entry point is used, or when additional tracing is enabled
+in the debug version of the library as described in the
+<b>DEBUGGING AND ERROR HANDLING</b> section below. The
+default <i>print_func</i> used by the library prints to the
+file specified by the <b>VMEM_LOG_FILE</b> environment
+variable, or to <b>stderr</b> if that variable is not
+set.</p>
+
+<h2>DEBUGGING AND ERROR HANDLING
+<a name="DEBUGGING AND ERROR HANDLING"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">Two versions of
+<b>libvmem</b> are typically available on a development
+system. The normal version, accessed when a program is
+linked using the <b>-lvmem</b> option, is optimized for
+performance. That version skips checks that impact
+performance and never logs any trace information or performs
+any run-time assertions. If an error is detected during the
+call to <b>libvmem</b> function, an application may retrieve
+an error message describing the reason of failure using the
+following function:</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>const char
+*vmem_errormsg(void);</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">The
+<b>vmem_errormsg</b>() function returns a pointer to a
+static buffer containing the last error message logged for
+current thread. The error message may include description of
+the corresponding error code (if errno was set), as returned
+by <b>strerror</b>(3). The error message buffer is
+thread-local; errors encountered in one thread do not affect
+its value in other threads. The buffer is never cleared by
+any library function; its content is significant only when
+the return value of the immediately preceding call to
+<b>libvmem</b> function indicated an error, or if errno was
+set. The application must not modify or free the error
+message string, but it may be modified by subsequent calls
+to other library functions.</p>
+
+<p style="margin-left:11%; margin-top: 1em">A second
+version of <b>libvmem</b>, accessed when a program uses the
+libraries under <b>/usr/lib/nvml_debug</b>, contains
+run-time assertions and trace points. The typical way to
+access the debug version is to set the environment variable
+<b>LD_LIBRARY_PATH</b> to <b>/usr/lib/nvml_debug</b> or
+<b>/usr/lib64/nvml_debug</b> depending on where the debug
+libraries are installed on the system. The trace points in
+the debug version of the library are enabled using the
+environment variable <b>VMEM_LOG_LEVEL</b>, which can be set
+to the following values:</p>
+
+<table width="100%" border="0" rules="none" frame="void"
+       cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="1%">
+
+
+<p>0</p></td>
+<td width="10%"></td>
+<td width="78%">
+
+
+<p>This is the default level when <b>VMEM_LOG_LEVEL</b> is
+not set. Only statistics are logged, and then only in
+response to a call to <b>vmem_stats_print</b>().</p></td></tr>
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="1%">
+
+
+<p>1</p></td>
+<td width="10%"></td>
+<td width="78%">
+
+
+<p>Additional details on any errors detected are logged (in
+addition to returning the errno-based errors as usual). The
+same information may be retrieved using
+<b>vmem_errormsg</b>().</p> </td></tr>
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="1%">
+
+
+<p>2</p></td>
+<td width="10%"></td>
+<td width="78%">
+
+
+<p>A trace of basic operations including allocations and
+deallocations is logged.</p></td></tr>
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="1%">
+
+
+<p>3</p></td>
+<td width="10%"></td>
+<td width="78%">
+
+
+<p>This level enables a very verbose amount of function
+call tracing in the library.</p></td></tr>
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="1%">
+
+
+<p>4</p></td>
+<td width="10%"></td>
+<td width="78%">
+
+
+<p>This level enables voluminous and fairly obscure tracing
+information that is likely only useful to the <b>libvmem</b>
+developers.</p> </td></tr>
+</table>
+
+<p style="margin-left:11%; margin-top: 1em">The environment
+variable <b>VMEM_LOG_FILE</b> specifies a file name where
+all logging information should be written. If the last
+character in the name is &quot;-&quot;, the PID of the
+current process will be appended to the file name when the
+log file is created. If <b>VMEM_LOG_FILE</b> is not set,
+output goes to stderr. All prints are done using the
+<i>print_func</i> function in <b>libvmem</b> (see
+<b>vmem_set_funcs</b>() above for details on how to override
+that function).</p>
+
+<p style="margin-left:11%; margin-top: 1em">Setting the
+environment variable <b>VMEM_LOG_LEVEL</b> has no effect on
+the non-debug version of <b>libvmem</b>.</p>
+
+<h2>EXAMPLE
+<a name="EXAMPLE"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">The following
+example creates a memory pool, allocates some memory to
+contain the string &quot;hello, world&quot;, and then frees
+that memory.</p>
+
+<p style="margin-left:22%; margin-top: 1em">#include
+&lt;stdio.h&gt; <br>
+#include &lt;stdlib.h&gt; <br>
+#include &lt;string.h&gt; <br>
+#include &lt;libvmem.h&gt; <br>
+main() <br>
+{ <br>
+VMEM *vmp; <br>
+char *ptr; <br>
+/* create minimum size pool of memory */ <br>
+if ((vmp = vmem_create(&quot;/pmem-fs&quot;, <br>
+VMEM_MIN_POOL)) == NULL) { <br>
+perror(&quot;vmem_create&quot;); <br>
+exit(1); <br>
+} <br>
+if ((ptr = vmem_malloc(vmp, 100)) == NULL) { <br>
+perror(&quot;vmem_malloc&quot;); <br>
+exit(1); <br>
+} <br>
+strcpy(ptr, &quot;hello, world&quot;); <br>
+/* give the memory back */ <br>
+vmem_free(vmp, ptr); <br>
+/* ... */ <br>
+}</p>
+
+<p style="margin-left:11%; margin-top: 1em">See
+http://pmem.io/nvml/libvmem for more examples using the
+<b>libvmem</b> API.</p>
+
+<h2>BUGS
+<a name="BUGS"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">Unlike the
+normal <b>malloc</b>(), which asks the system for additional
+memory when it runs out, <b>libvmem</b> allocates the size
+it is told to and never attempts to grow or shrink that
+memory pool.</p>
+
+<h2>ACKNOWLEDGEMENTS
+<a name="ACKNOWLEDGEMENTS"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>libvmem</b>
+depends on jemalloc, written by Jason Evans, to do the heavy
+lifting of managing dynamic memory allocation. See:</p>
+
+
+<p style="margin-left:22%; margin-top: 1em">http://www.canonware.com/jemalloc/</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>libvmem</b>
+builds on the persistent memory programming model
+recommended by the SNIA NVM Programming Technical Work
+Group:</p>
+
+
+<p style="margin-left:22%; margin-top: 1em">http://snia.org/nvmp</p>
+
+<h2>SEE ALSO
+<a name="SEE ALSO"></a>
+</h2>
+
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>malloc</b>(3),
+<b>posix_memalign</b>(3), <b>strdup</b>(3), <b>mmap</b>(2),
+<b>strerror</b>(3), <b>jemalloc</b>(3),
+<b>libpmem</b>(3).</p>
+<hr>
+</body>
+</html>
