@@ -34,6 +34,3 @@
 
 TOP := $(dir $(lastword $(MAKEFILE_LIST)))../..
 include $(TOP)/src/common.inc
-
-cstyle:
-	$(CSTYLE) *.[ch]

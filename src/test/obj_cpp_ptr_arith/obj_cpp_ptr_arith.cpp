@@ -37,8 +37,10 @@
 
 #include "unittest.h"
 
-#include <libpmemobj/persistent_ptr.hpp>
+#include <libpmemobj/make_persistent_atomic.hpp>
 #include <libpmemobj/p.hpp>
+#include <libpmemobj/persistent_ptr.hpp>
+#include <libpmemobj/transaction.hpp>
 
 #include <sstream>
 
@@ -46,34 +48,37 @@
 
 using namespace nvml::obj;
 
-namespace {
+namespace
+{
 
 const int TEST_ARR_SIZE = 10;
 
 /*
  * prepare_array -- preallocate and fill a persistent array
  */
-template<typename T>
+template <typename T>
 persistent_ptr<T>
-prepare_array(PMEMobjpool *pop)
+prepare_array(pool_base &pop)
 {
 	int ret;
 
 	persistent_ptr<T> parr_vsize;
-	ret = pmemobj_alloc(pop, parr_vsize.raw_ptr(),
-		sizeof (T) * TEST_ARR_SIZE,
-		0, NULL, NULL);
+	ret = pmemobj_alloc(pop.get_handle(), parr_vsize.raw_ptr(),
+			    sizeof(T) * TEST_ARR_SIZE, 0, NULL, NULL);
+
 	UT_ASSERTeq(ret, 0);
 
 	T *parray = parr_vsize.get();
 
-	TX_BEGIN(pop) {
-		for (int i = 0; i < TEST_ARR_SIZE; ++i) {
-			parray[i] = i;
-		}
-	} TX_ONABORT {
+	try {
+		transaction::exec_tx(pop, [&] {
+			for (int i = 0; i < TEST_ARR_SIZE; ++i) {
+				parray[i] = i;
+			}
+		});
+	} catch (...) {
 		UT_FATAL("Transactional prepare_array aborted");
-	} TX_END;
+	}
 
 	for (int i = 0; i < TEST_ARR_SIZE; ++i) {
 		UT_ASSERTeq(parray[i], i);
@@ -86,7 +91,7 @@ prepare_array(PMEMobjpool *pop)
  * test_arith -- test arithmetic operations on persistent pointers
  */
 void
-test_arith(PMEMobjpool *pop)
+test_arith(pool_base &pop)
 {
 	persistent_ptr<p<int>> parr_vsize = prepare_array<p<int>>(pop);
 
@@ -147,7 +152,7 @@ test_arith(PMEMobjpool *pop)
  * test_relational -- test relational operators on persistent pointers
  */
 void
-test_relational(PMEMobjpool *pop)
+test_relational(pool_base &pop)
 {
 
 	persistent_ptr<p<int>> first_elem = prepare_array<p<int>>(pop);
@@ -157,8 +162,8 @@ test_relational(PMEMobjpool *pop)
 	UT_ASSERT(first_elem != last_elem);
 	UT_ASSERT(first_elem <= last_elem);
 	UT_ASSERT(first_elem < last_elem);
-	UT_ASSERT(last_elem > first_elem );
-	UT_ASSERT(last_elem >= first_elem );
+	UT_ASSERT(last_elem > first_elem);
+	UT_ASSERT(last_elem >= first_elem);
 	UT_ASSERT(first_elem == first_elem);
 	UT_ASSERT(first_elem >= first_elem);
 	UT_ASSERT(first_elem <= first_elem);
@@ -196,12 +201,11 @@ test_relational(PMEMobjpool *pop)
 	UT_ASSERT(nullptr >= parray);
 
 	persistent_ptr<p<double>> different_array =
-			prepare_array<p<double>>(pop);
+		prepare_array<p<double>>(pop);
 
 	/* only verify if this compiles */
 	UT_ASSERT((first_elem < different_array) || true);
 }
-
 }
 
 int
@@ -214,16 +218,19 @@ main(int argc, char *argv[])
 
 	const char *path = argv[1];
 
-	PMEMobjpool *pop = NULL;
+	pool_base pop;
 
-	if ((pop = pmemobj_create(path, LAYOUT, PMEMOBJ_MIN_POOL,
-			S_IWUSR | S_IRUSR)) == NULL)
-		UT_FATAL("!pmemobj_create: %s", path);
+	try {
+		pop = pool_base::create(path, LAYOUT, PMEMOBJ_MIN_POOL,
+					S_IWUSR | S_IRUSR);
+	} catch (nvml::pool_error &pe) {
+		UT_FATAL("!pool::create: %s %s", pe.what(), path);
+	}
 
 	test_arith(pop);
 	test_relational(pop);
 
-	pmemobj_close(pop);
+	pop.close();
 
 	DONE(NULL);
 }

@@ -36,22 +36,25 @@
 
 #include "unittest.h"
 
-#include <libpmemobj/persistent_ptr.hpp>
-#include <libpmemobj/p.hpp>
-#include <libpmemobj/pool.hpp>
 #include <libpmemobj/make_persistent_array.hpp>
+#include <libpmemobj/p.hpp>
+#include <libpmemobj/persistent_ptr.hpp>
+#include <libpmemobj/pool.hpp>
+#include <libpmemobj/transaction.hpp>
 
 #define LAYOUT "cpp"
 
 using namespace nvml::obj;
 
-namespace {
+namespace
+{
 
 const int TEST_ARR_SIZE = 10;
 
 class foo {
 public:
-	foo() : bar(1) {
+	foo() : bar(1)
+	{
 		for (int i = 0; i < TEST_ARR_SIZE; ++i)
 			this->arr[i] = 1;
 	}
@@ -59,7 +62,8 @@ public:
 	/*
 	 * Assert values of foo.
 	 */
-	void check_foo()
+	void
+	check_foo()
 	{
 		UT_ASSERTeq(1, this->bar);
 		for (int i = 0; i < TEST_ARR_SIZE; ++i)
@@ -87,32 +91,32 @@ struct root {
 void
 test_make_one_d(pool_base &pop)
 {
-	TX_BEGIN(pop.get_handle()) {
+	try {
+		transaction::exec_tx(pop, [&] {
+			auto pfoo = make_persistent<foo[]>(5);
+			for (int i = 0; i < 5; ++i)
+				pfoo[i].check_foo();
 
-		auto pfoo = make_persistent<foo[]>(5);
-		for (int i = 0; i < 5; ++i)
-			pfoo[i].check_foo();
+			delete_persistent<foo[]>(pfoo, 5);
+			UT_ASSERT(pfoo == nullptr);
 
-		delete_persistent<foo[]>(pfoo, 5);
-		UT_ASSERT(pfoo == nullptr);
+			auto pfoo2 = make_persistent<foo[]>(6);
+			for (int i = 0; i < 6; ++i)
+				pfoo2[i].check_foo();
 
-		auto pfoo2 = make_persistent<foo[]>(6);
-		for (int i = 0; i < 6; ++i)
-			pfoo2[i].check_foo();
+			delete_persistent<foo[]>(pfoo2, 6);
+			UT_ASSERT(pfoo2 == nullptr);
 
-		delete_persistent<foo[]>(pfoo2, 6);
-		UT_ASSERT(pfoo2 == nullptr);
+			auto pfooN = make_persistent<foo[5]>();
+			for (int i = 0; i < 5; ++i)
+				pfooN[i].check_foo();
 
-		auto pfooN = make_persistent<foo[5]>();
-		for (int i = 0; i < 5; ++i)
-			pfooN[i].check_foo();
-
-		delete_persistent<foo[5]>(pfooN);
-		UT_ASSERT(pfooN == nullptr);
-
-	} TX_ONABORT {
+			delete_persistent<foo[5]>(pfooN);
+			UT_ASSERT(pfooN == nullptr);
+		});
+	} catch (...) {
 		UT_ASSERT(0);
-	} TX_END
+	}
 }
 
 /*
@@ -121,35 +125,35 @@ test_make_one_d(pool_base &pop)
 void
 test_make_two_d(pool_base &pop)
 {
-	TX_BEGIN(pop.get_handle()) {
+	try {
+		transaction::exec_tx(pop, [&] {
+			auto pfoo = make_persistent<foo[][2]>(5);
+			for (int i = 0; i < 5; ++i)
+				for (int j = 0; j < 2; j++)
+					pfoo[i][j].check_foo();
 
-		auto pfoo = make_persistent<foo[][2]>(5);
-		for (int i = 0; i < 5; ++i)
-			for (int j = 0; j < 2; j++)
-				pfoo[i][j].check_foo();
+			delete_persistent<foo[][2]>(pfoo, 5);
+			UT_ASSERT(pfoo == nullptr);
 
-		delete_persistent<foo[][2]>(pfoo, 5);
-		UT_ASSERT(pfoo == nullptr);
+			auto pfoo2 = make_persistent<foo[][3]>(6);
+			for (int i = 0; i < 6; ++i)
+				for (int j = 0; j < 3; j++)
+					pfoo2[i][j].check_foo();
 
-		auto pfoo2 = make_persistent<foo[][3]>(6);
-		for (int i = 0; i < 6; ++i)
-			for (int j = 0; j < 3; j++)
-				pfoo2[i][j].check_foo();
+			delete_persistent<foo[][3]>(pfoo2, 6);
+			UT_ASSERT(pfoo2 == nullptr);
 
-		delete_persistent<foo[][3]>(pfoo2, 6);
-		UT_ASSERT(pfoo2 == nullptr);
+			auto pfooN = make_persistent<foo[5][2]>();
+			for (int i = 0; i < 5; ++i)
+				for (int j = 0; j < 2; j++)
+					pfooN[i][j].check_foo();
 
-		auto pfooN = make_persistent<foo[5][2]>();
-		for (int i = 0; i < 5; ++i)
-			for (int j = 0; j < 2; j++)
-				pfooN[i][j].check_foo();
-
-		delete_persistent<foo[5][2]>(pfooN);
-		UT_ASSERT(pfooN == nullptr);
-
-	} TX_ONABORT {
+			delete_persistent<foo[5][2]>(pfooN);
+			UT_ASSERT(pfooN == nullptr);
+		});
+	} catch (...) {
 		UT_ASSERT(0);
-	} TX_END
+	}
 }
 
 /*
@@ -158,33 +162,48 @@ test_make_two_d(pool_base &pop)
 void
 test_abort_revert(pool_base &pop)
 {
-	pool<struct root> &root_pop = dynamic_cast<pool<struct root>&>(pop);
+	pool<struct root> &root_pop = dynamic_cast<pool<struct root> &>(pop);
 	persistent_ptr<root> r = root_pop.get_root();
 
-	TX_BEGIN(pop.get_handle()) {
-		r->pfoo = make_persistent<foo[]>(5);
-		for (int i = 0; i < 5; ++i)
-			r->pfoo[i].check_foo();
-	} TX_END
+	try {
+		transaction::exec_tx(pop, [&] {
+			r->pfoo = make_persistent<foo[]>(5);
+			for (int i = 0; i < 5; ++i)
+				r->pfoo[i].check_foo();
+		});
+	} catch (...) {
+		UT_ASSERT(0);
+	}
 
-	TX_BEGIN(pop.get_handle()) {
-		UT_ASSERT(r->pfoo != nullptr);
-		delete_persistent<foo[]>(r->pfoo, 5);
-		UT_ASSERT(r->pfoo == nullptr);
+	bool exception_thrown = false;
+	try {
+		transaction::exec_tx(pop, [&] {
+			UT_ASSERT(r->pfoo != nullptr);
+			delete_persistent<foo[]>(r->pfoo, 5);
+			UT_ASSERT(r->pfoo == nullptr);
 
-		pmemobj_tx_abort(EINVAL);
-	} TX_END
+			transaction::abort(EINVAL);
+		});
+	} catch (nvml::manual_tx_abort &ma) {
+		exception_thrown = true;
+	} catch (...) {
+		UT_ASSERT(0);
+	}
 
+	UT_ASSERT(exception_thrown);
 	UT_ASSERT(r->pfoo != nullptr);
 	for (int i = 0; i < 5; ++i)
 		r->pfoo[i].check_foo();
 
-	TX_BEGIN(pop.get_handle()) {
-		delete_persistent<foo[]>(r->pfoo, 5);
-	} TX_END
+	try {
+		transaction::exec_tx(
+			pop, [&] { delete_persistent<foo[]>(r->pfoo, 5); });
+	} catch (...) {
+		UT_ASSERT(0);
+	}
+
 	UT_ASSERT(r->pfoo == nullptr);
 }
-
 }
 
 int
@@ -201,7 +220,7 @@ main(int argc, char *argv[])
 
 	try {
 		pop = pool<struct root>::create(path, LAYOUT, PMEMOBJ_MIN_POOL,
-			S_IWUSR | S_IRUSR);
+						S_IWUSR | S_IRUSR);
 	} catch (nvml::pool_error &pe) {
 		UT_FATAL("!pool::create: %s %s", pe.what(), path);
 	}

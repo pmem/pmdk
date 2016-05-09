@@ -40,38 +40,38 @@
 #include <chrono>
 #include <time.h>
 
-namespace nvml {
+namespace nvml
+{
 
-namespace detail {
+namespace detail
+{
 
-	/**
-	 * Convert std::chrono::time_point to posix timespec.
-	 *
-	 * @param[in] timepoint point in time to be converted.
-	 *
-	 * @return converted timespec structure.
-	 */
-	template<typename Clock, typename Duration = typename Clock::duration>
-	struct timespec timepoint_to_timespec(
-			const std::chrono::time_point<Clock,
-			Duration> &timepoint)
-	{
-		struct timespec ts;
-		auto rel_duration = timepoint.time_since_epoch();
-		const auto sec =
-			std::chrono::duration_cast
-			<std::chrono::seconds>(rel_duration);
+/**
+ * Convert std::chrono::time_point to posix timespec.
+ *
+ * @param[in] timepoint point in time to be converted.
+ *
+ * @return converted timespec structure.
+ */
+template <typename Clock, typename Duration = typename Clock::duration>
+struct timespec
+timepoint_to_timespec(const std::chrono::time_point<Clock, Duration> &timepoint)
+{
+	struct timespec ts;
+	auto rel_duration = timepoint.time_since_epoch();
+	const auto sec =
+		std::chrono::duration_cast<std::chrono::seconds>(rel_duration);
 
-		ts.tv_sec = sec.count();
-		ts.tv_nsec = std::chrono::duration_cast
-				<std::chrono::nanoseconds>
-				(rel_duration - sec).count();
+	ts.tv_sec = sec.count();
+	ts.tv_nsec = std::chrono::duration_cast<std::chrono::nanoseconds>(
+			     rel_duration - sec)
+			     .count();
 
-		return ts;
-	}
+	return ts;
+}
 
-}  /* namespace detail */
+} /* namespace detail */
 
-}  /* namespace nvml */
+} /* namespace nvml */
 
 #endif /* PMEMOBJ_CONVERSIONS_HPP */

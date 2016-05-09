@@ -46,7 +46,8 @@
 
 using namespace nvml::obj;
 
-namespace {
+namespace
+{
 
 /* pool root structure */
 struct root {
@@ -66,11 +67,11 @@ const auto timeout = std::chrono::milliseconds(100);
 /*
  * increment_pint -- (internal) test the mutex with an std::lock_guard
  */
-static void*
+static void *
 increment_pint(void *arg)
 {
 	persistent_ptr<struct root> *proot =
-				static_cast<persistent_ptr<struct root>*>(arg);
+		static_cast<persistent_ptr<struct root> *>(arg);
 
 	for (int i = 0; i < num_ops; ++i) {
 		std::lock_guard<timed_mutex> lock((*proot)->pmutex);
@@ -82,11 +83,11 @@ increment_pint(void *arg)
 /*
  * decrement_pint -- (internal) test the mutex with an std::unique_lock
  */
-static void*
+static void *
 decrement_pint(void *arg)
 {
 	persistent_ptr<struct root> *proot =
-				static_cast<persistent_ptr<struct root>*>(arg);
+		static_cast<persistent_ptr<struct root> *>(arg);
 
 	std::unique_lock<timed_mutex> lock((*proot)->pmutex);
 	for (int i = 0; i < num_ops; ++i)
@@ -99,11 +100,11 @@ decrement_pint(void *arg)
 /*
  * trylock_test -- (internal) test the trylock implementation
  */
-static void*
+static void *
 trylock_test(void *arg)
 {
 	persistent_ptr<struct root> *proot =
-			static_cast<persistent_ptr<struct root>*>(arg);
+		static_cast<persistent_ptr<struct root> *>(arg);
 	for (;;) {
 		if ((*proot)->pmutex.try_lock()) {
 			((*proot)->counter)++;
@@ -117,12 +118,12 @@ trylock_test(void *arg)
 /*
  * trylock_for_test -- (internal) test the try_lock_for implementation
  */
-static void*
+static void *
 trylock_for_test(void *arg)
 {
 	using clk = std::chrono::steady_clock;
 	persistent_ptr<struct root> *proot =
-			static_cast<persistent_ptr<struct root>*>(arg);
+		static_cast<persistent_ptr<struct root> *>(arg);
 
 	auto t1 = clk::now();
 	if ((*proot)->pmutex.try_lock_for(timeout)) {
@@ -140,12 +141,12 @@ trylock_for_test(void *arg)
 /*
  * trylock_until_test -- (internal) test the try_lock_until implementation
  */
-static void*
+static void *
 trylock_until_test(void *arg)
 {
 	using clk = std::chrono::steady_clock;
 	persistent_ptr<struct root> *proot =
-			static_cast<persistent_ptr<struct root>*>(arg);
+		static_cast<persistent_ptr<struct root> *>(arg);
 
 	auto t1 = clk::now();
 	if ((*proot)->pmutex.try_lock_until(t1 + timeout)) {
@@ -163,8 +164,9 @@ trylock_until_test(void *arg)
 /*
  * mutex_test -- (internal) launch worker threads to test the pmutex
  */
-template<typename Worker>
-void timed_mtx_test(pool<struct root> &pop, Worker function)
+template <typename Worker>
+void
+timed_mtx_test(pool<struct root> &pop, Worker function)
 {
 	pthread_t threads[num_threads];
 
@@ -176,7 +178,6 @@ void timed_mtx_test(pool<struct root> &pop, Worker function)
 	for (int i = 0; i < num_threads; ++i)
 		PTHREAD_JOIN(threads[i], nullptr);
 }
-
 }
 
 int
@@ -193,7 +194,7 @@ main(int argc, char *argv[])
 
 	try {
 		pop = pool<struct root>::create(path, LAYOUT, PMEMOBJ_MIN_POOL,
-			S_IWUSR | S_IRUSR);
+						S_IWUSR | S_IRUSR);
 	} catch (nvml::pool_error &pe) {
 		UT_FATAL("!pool::create: %s %s", pe.what(), path);
 	}
@@ -225,7 +226,7 @@ main(int argc, char *argv[])
 
 	/* pmemcheck related persist */
 	pmemobj_persist(pop.get_handle(), &(pop.get_root()->counter),
-				sizeof(pop.get_root()->counter));
+			sizeof(pop.get_root()->counter));
 
 	pop.close();
 

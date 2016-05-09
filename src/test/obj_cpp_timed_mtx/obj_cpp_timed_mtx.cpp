@@ -40,14 +40,15 @@
 #include <libpmemobj/pool.hpp>
 #include <libpmemobj/timed_mutex.hpp>
 
-#include <thread>
 #include <mutex>
+#include <thread>
 
 #define LAYOUT "cpp"
 
 using namespace nvml::obj;
 
-namespace {
+namespace
+{
 
 /* pool root structure */
 struct root {
@@ -68,7 +69,7 @@ const auto timeout = std::chrono::milliseconds(100);
  * increment_pint -- (internal) test the mutex with an std::lock_guard
  */
 static void
-increment_pint(persistent_ptr<struct root> proot)
+increment_pint(persistent_ptr<root> proot)
 {
 	for (int i = 0; i < num_ops; ++i) {
 		std::lock_guard<timed_mutex> lock(proot->pmutex);
@@ -80,7 +81,7 @@ increment_pint(persistent_ptr<struct root> proot)
  * decrement_pint -- (internal) test the mutex with an std::unique_lock
  */
 static void
-decrement_pint(persistent_ptr<struct root> proot)
+decrement_pint(persistent_ptr<root> proot)
 {
 	std::unique_lock<timed_mutex> lock(proot->pmutex);
 	for (int i = 0; i < num_ops; ++i)
@@ -93,7 +94,7 @@ decrement_pint(persistent_ptr<struct root> proot)
  * trylock_test -- (internal) test the trylock implementation
  */
 static void
-trylock_test(persistent_ptr<struct root> proot)
+trylock_test(persistent_ptr<root> proot)
 {
 	for (;;) {
 		if (proot->pmutex.try_lock()) {
@@ -108,7 +109,7 @@ trylock_test(persistent_ptr<struct root> proot)
  * trylock_for_test -- (internal) test the try_lock_for implementation
  */
 static void
-trylock_for_test(persistent_ptr<struct root> proot)
+trylock_for_test(persistent_ptr<root> proot)
 {
 	using clk = std::chrono::steady_clock;
 
@@ -129,7 +130,7 @@ trylock_for_test(persistent_ptr<struct root> proot)
  * trylock_until_test -- (internal) test the try_lock_until implementation
  */
 static void
-trylock_until_test(persistent_ptr<struct root> proot)
+trylock_until_test(persistent_ptr<root> proot)
 {
 	using clk = std::chrono::steady_clock;
 
@@ -149,12 +150,13 @@ trylock_until_test(persistent_ptr<struct root> proot)
 /*
  * mutex_test -- (internal) launch worker threads to test the pmutex
  */
-template<typename Worker>
-void timed_mtx_test(pool<struct root> &pop, const Worker &function)
+template <typename Worker>
+void
+timed_mtx_test(pool<root> &pop, const Worker &function)
 {
 	std::thread threads[num_threads];
 
-	persistent_ptr<struct root> proot = pop.get_root();
+	persistent_ptr<root> proot = pop.get_root();
 
 	for (int i = 0; i < num_threads; ++i)
 		threads[i] = std::thread(function, proot);
@@ -162,7 +164,6 @@ void timed_mtx_test(pool<struct root> &pop, const Worker &function)
 	for (int i = 0; i < num_threads; ++i)
 		threads[i].join();
 }
-
 }
 
 int
@@ -175,11 +176,11 @@ main(int argc, char *argv[])
 
 	const char *path = argv[1];
 
-	pool<struct root> pop;
+	pool<root> pop;
 
 	try {
-		pop = pool<struct root>::create(path, LAYOUT, PMEMOBJ_MIN_POOL,
-			S_IWUSR | S_IRUSR);
+		pop = pool<root>::create(path, LAYOUT, PMEMOBJ_MIN_POOL,
+					 S_IWUSR | S_IRUSR);
 	} catch (nvml::pool_error &pe) {
 		UT_FATAL("!pool::create: %s %s", pe.what(), path);
 	}

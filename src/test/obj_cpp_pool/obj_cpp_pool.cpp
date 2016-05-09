@@ -36,13 +36,14 @@
 
 #include "unittest.h"
 
-#include <libpmemobj/pool.hpp>
-#include <libpmemobj/persistent_ptr.hpp>
 #include <libpmemobj/p.hpp>
+#include <libpmemobj/persistent_ptr.hpp>
+#include <libpmemobj/pool.hpp>
 
 using namespace nvml::obj;
 
-namespace {
+namespace
+{
 
 size_t MB = ((size_t)1 << 20);
 
@@ -55,12 +56,11 @@ struct root {
  */
 void
 pool_create(const char *path, const char *layout, size_t poolsize,
-	unsigned mode)
+	    unsigned mode)
 {
 	pool<root> pop;
 	try {
-		pop = pool<root>::create(path, layout, poolsize,
-				mode);
+		pop = pool<root>::create(path, layout, poolsize, mode);
 		persistent_ptr<root> root = pop.get_root();
 		UT_ASSERT(root != nullptr);
 	} catch (nvml::pool_error &) {
@@ -72,7 +72,7 @@ pool_create(const char *path, const char *layout, size_t poolsize,
 	STAT(path, &stbuf);
 
 	UT_OUT("%s: file size %zu mode 0%o", path, stbuf.st_size,
-			stbuf.st_mode & 0777);
+	       stbuf.st_mode & 0777);
 	try {
 		pop.close();
 	} catch (std::logic_error &lr) {
@@ -116,12 +116,11 @@ pool_open(const char *path, const char *layout)
  */
 void
 double_close(const char *path, const char *layout, size_t poolsize,
-		unsigned mode)
+	     unsigned mode)
 {
 	pool<root> pop;
 	try {
-		pop = pool<root>::create(path, layout, poolsize,
-				mode);
+		pop = pool<root>::create(path, layout, poolsize, mode);
 	} catch (nvml::pool_error &) {
 		UT_OUT("!%s: pool::create", path);
 		return;
@@ -163,7 +162,7 @@ main(int argc, char *argv[])
 	if (argc < 4)
 		UT_FATAL("usage: %s op path layout [poolsize mode]", argv[0]);
 
-	const char * layout = nullptr;
+	const char *layout = nullptr;
 	size_t poolsize;
 	unsigned mode;
 
@@ -173,26 +172,28 @@ main(int argc, char *argv[])
 		layout = argv[3];
 
 	switch (argv[1][0]) {
-	case 'c':
-		poolsize = strtoul(argv[4], NULL, 0) * MB; /* in megabytes */
-		mode = strtoul(argv[5], NULL, 8);
+		case 'c':
+			poolsize = strtoul(argv[4], NULL, 0) *
+				MB; /* in megabytes */
+			mode = strtoul(argv[5], NULL, 8);
 
-		pool_create(argv[2], layout, poolsize, mode);
-		break;
-	case 'o':
-		pool_open(argv[2], layout);
-		break;
-	case 'd':
-		poolsize = strtoul(argv[4], NULL, 0) * MB; /* in megabytes */
-		mode = strtoul(argv[5], NULL, 8);
+			pool_create(argv[2], layout, poolsize, mode);
+			break;
+		case 'o':
+			pool_open(argv[2], layout);
+			break;
+		case 'd':
+			poolsize = strtoul(argv[4], NULL, 0) *
+				MB; /* in megabytes */
+			mode = strtoul(argv[5], NULL, 8);
 
-		double_close(argv[2], layout, poolsize, mode);
-		break;
-	case 'i':
-		get_root_closed();
-		break;
-	default:
-		UT_FATAL("unknown operation");
+			double_close(argv[2], layout, poolsize, mode);
+			break;
+		case 'i':
+			get_root_closed();
+			break;
+		default:
+			UT_FATAL("unknown operation");
 	}
 
 	DONE(NULL);

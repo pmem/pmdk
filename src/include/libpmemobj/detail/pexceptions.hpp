@@ -40,76 +40,71 @@
 #include <stdexcept>
 #include <system_error>
 
-namespace nvml {
+namespace nvml
+{
 
-	/**
-	 * Custom pool error class.
-	 *
-	 * Thrown when there is a runtime problem with some action on the
-	 * pool.
-	 */
-	class pool_error : public std::runtime_error
-	{
-	public:
-		using std::runtime_error::runtime_error;
-	};
+/**
+ * Custom pool error class.
+ *
+ * Thrown when there is a runtime problem with some action on the
+ * pool.
+ */
+class pool_error : public std::runtime_error {
+public:
+	using std::runtime_error::runtime_error;
+};
 
-	/**
-	 * Custom transaction error class.
-	 *
-	 * Thrown when there is a runtime problem with a transaction.
-	 */
-	class transaction_error : public std::runtime_error
-	{
-	public:
-		using std::runtime_error::runtime_error;
-	};
+/**
+ * Custom transaction error class.
+ *
+ * Thrown when there is a runtime problem with a transaction.
+ */
+class transaction_error : public std::runtime_error {
+public:
+	using std::runtime_error::runtime_error;
+};
 
-	/**
-	 * Custom lock error class.
-	 *
-	 * Thrown when there is a runtime system error with an operation
-	 * on a lock.
-	 */
-	class lock_error : public std::system_error
-	{
-	public:
-		using std::system_error::system_error;
-	};
+/**
+ * Custom lock error class.
+ *
+ * Thrown when there is a runtime system error with an operation
+ * on a lock.
+ */
+class lock_error : public std::system_error {
+public:
+	using std::system_error::system_error;
+};
 
-	/**
-	 * Custom transaction error class.
-	 *
-	 * Thrown when there is a transactional allocation error.
-	 */
-	class transaction_alloc_error : public transaction_error
-	{
-	public:
-		using transaction_error::transaction_error;
-	};
+/**
+ * Custom transaction error class.
+ *
+ * Thrown when there is a transactional allocation error.
+ */
+class transaction_alloc_error : public transaction_error {
+public:
+	using transaction_error::transaction_error;
+};
 
-	/**
-	 * Custom transaction error class.
-	 *
-	 * Thrown when there is an error with the scope of the transaction.
-	 */
-	class transaction_scope_error : public std::logic_error
-	{
-	public:
-		using std::logic_error::logic_error;
-	};
+/**
+ * Custom transaction error class.
+ *
+ * Thrown when there is an error with the scope of the transaction.
+ */
+class transaction_scope_error : public std::logic_error {
+public:
+	using std::logic_error::logic_error;
+};
 
-	/**
-	 * Custom transaction error class.
-	 *
-	 * Thrown on manual transaction abort.
-	 */
-	class manual_tx_abort : public std::runtime_error
-	{
-	public:
-		using std::runtime_error::runtime_error;
-	};
+/**
+ * Custom transaction error class.
+ *
+ * Thrown on manual transaction abort.
+ */
+class manual_tx_abort : public std::runtime_error {
+public:
+	using std::runtime_error::runtime_error;
+};
 
-}  /* namespace nvml */
+} /* namespace nvml */
 
 #endif /* PMEMOBJ_PEXCEPTIONS_HPP */

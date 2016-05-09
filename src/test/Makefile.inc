@@ -187,11 +187,6 @@ clobber: clean
 	$(RM) $(TARGET) $(TARGET_STATIC_DEBUG) $(TARGET_STATIC_NONDEBUG)
 	$(RM) -r .deps
 
-cstyle:
-ifneq ($(TARGET),)
-	$(CSTYLE) *.[ch]
-endif
-
 TST=$(shell basename `pwd`)
 TSTCHECKS=$(shell ls -1 TEST* | sort -V)
 
@@ -237,6 +232,6 @@ $(TOOLS)/pmemdetect/pmemdetect.static-nondebug:
 
 all: $(TOOLS)/pmemdetect/pmemdetect.static-nondebug
 
-.PHONY: all check clean clobber cstyle pcheck test $(TSTCHECKS)
+.PHONY: all check clean clobber pcheck test $(TSTCHECKS)
 
 -include .deps/*.P

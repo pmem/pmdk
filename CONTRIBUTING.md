@@ -65,6 +65,19 @@ a pull request.  The NVM Library project uses the common
 The [Git Workflow blog article](http://pmem.io/2014/09/09/git-workflow.html)
 describes our workflow in more detail.
 
+Before contributing please remember to run:
+```
+	$ make cstyle
+```
+
+This will check all C/C++ files in the tree for style issues. To check C++ 
+files you have to have clang-format version 3.8+, otherwise they will be
+skipped. There is also a target for automatic C++ code formatting, to do this
+run:
+```
+	$ make format
+```
+
 If you are actively working on an NVM Library feature, please let other
 developers know by [creating an issue](https://github.com/pmem/issues/issues).
 Use the label `Type: Feature` and assign it to yourself (due to the way

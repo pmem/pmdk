@@ -47,12 +47,13 @@ all     : TARGET = all
 clean   : TARGET = clean
 clobber : TARGET = clobber
 cstyle  : TARGET = cstyle
+format  : TARGET = format
 
-all cstyle clean clobber: $(DIRS)
+all cstyle clean clobber format: $(DIRS)
 
 $(DIRS):
 	$(MAKE) -C $@ $(TARGET)
 
 test check pcheck:
 
-.PHONY: all clean clobber cstyle check pcheck $(DIRS)
+.PHONY: all clean clobber cstyle format check pcheck $(DIRS)
