@@ -53,13 +53,6 @@
  */
 #define SIZE_TO_BID(_h, _s) ((_h)->bucket_map[SIZE_TO_ALLOC_BLOCKS(_s)])
 
-enum heap_op {
-	HEAP_OP_ALLOC,
-	HEAP_OP_FREE,
-
-	MAX_HEAP_OP
-};
-
 struct bucket_cache;
 
 struct bucket *heap_get_best_bucket(PMEMobjpool *pop, size_t size);
@@ -69,17 +62,14 @@ struct bucket *heap_get_auxiliary_bucket(PMEMobjpool *pop, size_t size);
 void heap_drain_to_auxiliary(PMEMobjpool *pop, struct bucket *auxb,
 	uint32_t size_idx);
 void *heap_get_block_data(PMEMobjpool *pop, struct memory_block m);
-void heap_prep_block_header_operation(PMEMobjpool *pop, struct memory_block m,
-	enum heap_op op, struct operation_context *ctx);
 struct memory_block heap_coalesce(PMEMobjpool *pop,
-	struct memory_block *blocks[], int n, enum heap_op op,
+	struct memory_block *blocks[], int n, enum memblock_hdr_op op,
 	struct operation_context *ctx);
 
 int heap_get_adjacent_free_block(PMEMobjpool *pop, struct bucket *b,
 	struct memory_block *m, struct memory_block cnt, int prev);
-
-void heap_lock_if_run(PMEMobjpool *pop, struct memory_block m);
-void heap_unlock_if_run(PMEMobjpool *pop, struct memory_block m);
+void heap_chunk_write_footer(PMEMobjpool *pop, struct chunk_header *hdr,
+		uint32_t size_idx);
 
 int heap_get_bestfit_block(PMEMobjpool *pop, struct bucket *b,
 	struct memory_block *m);
@@ -87,6 +77,8 @@ int heap_get_exact_block(PMEMobjpool *pop, struct bucket *b,
 	struct memory_block *m, uint32_t new_size_idx);
 void heap_degrade_run_if_empty(PMEMobjpool *pop, struct bucket *b,
 	struct memory_block m);
+
+pthread_mutex_t *heap_get_run_lock(PMEMobjpool *pop, uint32_t chunk_id);
 
 struct memory_block heap_free_block(PMEMobjpool *pop, struct bucket *b,
 	struct memory_block m, struct operation_context *ctx);

@@ -48,13 +48,32 @@ struct operation_entry {
 	enum operation_type type;
 };
 
-struct operation_context;
+#define MAX_TRANSIENT_ENTRIES 10
+#define MAX_PERSITENT_ENTRIES 10
 
-struct operation_context *operation_init(PMEMobjpool *pop,
+enum operation_entry_type {
+	ENTRY_PERSISTENT,
+	ENTRY_TRANSIENT,
+
+	MAX_OPERATION_ENTRY_TYPE
+};
+
+/*
+ * operation_context -- context of an ongoing palloc operation
+ */
+struct operation_context {
+	PMEMobjpool *pop;
+	struct redo_log *redo;
+
+	size_t nentries[MAX_OPERATION_ENTRY_TYPE];
+	struct operation_entry
+		entries[MAX_OPERATION_ENTRY_TYPE][MAX_PERSITENT_ENTRIES];
+};
+
+void operation_init(PMEMobjpool *pop, struct operation_context *ctx,
 	struct redo_log *redo);
 void operation_add_entry(struct operation_context *ctx,
 	void *ptr, uint64_t value, enum operation_type type);
 void operation_add_entries(struct operation_context *ctx,
 	struct operation_entry *entries, size_t nentries);
 void operation_process(struct operation_context *ctx);
-void operation_delete(struct operation_context *ctx);

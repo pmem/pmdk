@@ -46,46 +46,17 @@
 #include "valgrind_internal.h"
 #include "heap_layout.h"
 
-enum operation_entry_type {
-	ENTRY_PERSISTENT,
-	ENTRY_TRANSIENT,
-
-	MAX_OPERATION_ENTRY_TYPE
-};
-
-#define MAX_TRANSIENT_ENTRIES 10
-#define MAX_PERSITENT_ENTRIES 10
-
-/*
- * operation_context -- context of an ongoing palloc operation
- */
-struct operation_context {
-	PMEMobjpool *pop;
-	struct redo_log *redo;
-
-	size_t nentries[MAX_OPERATION_ENTRY_TYPE];
-	struct operation_entry
-		entries[MAX_OPERATION_ENTRY_TYPE][MAX_PERSITENT_ENTRIES];
-};
-
 /*
  * operation_init -- initializes a new palloc operation
  */
-struct operation_context *
-operation_init(PMEMobjpool *pop, struct redo_log *redo)
+void
+operation_init(PMEMobjpool *pop, struct operation_context *ctx,
+	struct redo_log *redo)
 {
-	struct operation_context *ctx = Malloc(sizeof(*ctx));
-
-	if (ctx == NULL)
-		goto out;
-
 	ctx->pop = pop;
 	ctx->redo = redo;
 	ctx->nentries[ENTRY_PERSISTENT] = 0;
 	ctx->nentries[ENTRY_TRANSIENT] = 0;
-
-out:
-	return ctx;
 }
 
 /*
@@ -210,13 +181,4 @@ operation_process(struct operation_context *ctx)
 	} else if (ctx->nentries[ENTRY_PERSISTENT] != 0) {
 		operation_process_persistent_redo(ctx);
 	}
-}
-
-/*
- * operation_delete -- deletes current operation context
- */
-void
-operation_delete(struct operation_context *ctx)
-{
-	Free(ctx);
 }

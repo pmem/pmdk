@@ -39,7 +39,9 @@ vpath %.c $(TOP)/src/libpmemobj
 vpath %.c $(TOP)/src/common
 
 TARGET = obj_realloc
-OBJS = obj_realloc.o util.o util_linux.o out.o memblock.o
+OBJS = obj_realloc.o pmalloc.o bucket.o redo.o heap.o lane.o ctree.o\
+    util.o util_linux.o set.o set_linux.o out.o obj.o cuckoo.o\
+    list.o sync.o tx.o memops.o libpmemobj.o memblock.o
 
 LIBPMEM=y
 LIBPMEMOBJ=y

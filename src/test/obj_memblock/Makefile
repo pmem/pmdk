@@ -50,4 +50,5 @@ out.o: CFLAGS += -DSRCVERSION=\"utversion\"
 
 include ../Makefile.inc
 
+LDFLAGS += $(call extract_funcs, obj_memblock.c)
 INCS += -I$(TOP)/src/libpmemobj/ -I$(TOP)/src/common/
