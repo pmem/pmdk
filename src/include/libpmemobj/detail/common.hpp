@@ -37,6 +37,8 @@
 #ifndef PMEMOBJ_COMMON_HPP
 #define PMEMOBJ_COMMON_HPP
 
+#include <typeinfo>
+
 #include "libpmemobj/detail/pexceptions.hpp"
 #include "libpmemobj.h"
 
