@@ -321,8 +321,6 @@ main(int argc, char *argv[])
 			printf("%d,%f\n", i*elements,sum);
 		}
 		pmemobj_tx_end_group();
-		uint32_t count = count_adds();
-		printf("adds=%d\n", count);
 		if (argc >= 7) {
 
 			int fail = atoi(argv[6]);

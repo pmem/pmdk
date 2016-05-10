@@ -50,11 +50,6 @@
 #include "ctree.h"
 #include "valgrind_internal.h"
 
-static uint32_t addNumber = 0;
-
-uint32_t count_adds() {
-	return addNumber;
-}
 const static uint32_t groupSize = 100;
 struct tx_data {
 	SLIST_ENTRY(tx_data) tx_entry;
