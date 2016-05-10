@@ -229,8 +229,6 @@ print_all(void)
 	printf("\n");
 }
 
-
-
 #define	INPUT_BUF_LEN 1000
 int
 main(int argc, char *argv[])
@@ -265,6 +263,7 @@ main(int argc, char *argv[])
 		args.seed = atoi(argv[3]);
 	else
 		args.seed = time(NULL);
+
 	srand(args.seed);
 
 	if (access(path, F_OK) != 0) {
@@ -288,7 +287,6 @@ main(int argc, char *argv[])
 
 		root = POBJ_ROOT(pop, struct root);
 
-		//printf("seed: %u\n", args.seed);
 		map_new(mapc, &D_RW(root)->map, &args);
 
 		map = D_RO(root)->map;
@@ -328,8 +326,6 @@ main(int argc, char *argv[])
 			double abortTime = testFail(fail, &initialTime);
 			printf("\n%d\ninitial,%f\nRecover, %f\n", fail, initialTime, abortTime);
 		}
-		//pmemobj_close(pop);
-		//map_delete(mapc, map);
 		return 0;
 	}
 

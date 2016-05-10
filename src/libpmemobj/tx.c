@@ -1036,7 +1036,6 @@ pmemobj_tx_begin_group(PMEMobjpool *pop, jmp_buf env) {
 	}
 }
 
-
 /*
  * pmemobj_tx_begin -- initializes new transaction
  */
