@@ -37,10 +37,8 @@
 #include <assert.h>
 #include <errno.h>
 #include <stdlib.h>
-#include <stdio.h>
 
 #include "ctree_map.h"
-#include "hashset.h"
 
 #define	BIT_IS_SET(n, i) (!!((n) & (1L << (i))))
 
@@ -58,8 +56,6 @@ struct tree_map_node {
 
 struct ctree_map {
 	struct tree_map_entry root;
-	//int numTransactions;
-	//hashset_t set;
 };
 
 /*
@@ -82,7 +78,6 @@ ctree_map_new(PMEMobjpool *pop, TOID(struct ctree_map) *map, void *arg)
 	TX_BEGIN(pop) {
 		pmemobj_tx_add_range_direct(map, sizeof (*map));
 		*map = TX_ZNEW(struct ctree_map);
-		//D_RW(*map)->set = hashset_create();
 	} TX_ONABORT {
 		ret = 1;
 	} TX_END
@@ -207,8 +202,6 @@ int
 ctree_map_insert(PMEMobjpool *pop, TOID(struct ctree_map) map,
 	uint64_t key, PMEMoid value)
 {
-	//printf("insert");
-	//fflush(stdout);
 	struct tree_map_entry *p = &D_RW(map)->root;
 	int ret = 0;
 
@@ -226,44 +219,16 @@ ctree_map_insert(PMEMobjpool *pop, TOID(struct ctree_map) map,
 		ret=1;
 		pmemobj_tx_end();
 	} else {
-		//if (D_RO(map)->numTransactions == 0) {
-		//pmemobj_tx_commit_group();
-			//pmemobj_tx_begin(pop, NULL, TX_LOCK_NONE);
-			pmemobj_tx_begin_group(pop, NULL);
-			//int *ptr = &D_RW(map)->numTransactions;
-			//pmemobj_tx_add_range_direct(ptr, sizeof(int));
-		//}
-
-
-		//D_RW(map)->numTransactions++;
-		//hashset_t set = D_RO(map)->set;
-
+		pmemobj_tx_begin_group(pop, NULL);
 		if (p->key == 0 || p->key == key) {
-			//if (!hashset_is_member(set, p)) {
-				pmemobj_tx_add_range_direct(p, sizeof (*p));
-				//hashset_add(set, p);
-			//}
+			pmemobj_tx_add_range_direct(p, sizeof (*p));
 			*p = e;
 		} else {
 			ctree_map_insert_leaf(&D_RW(map)->root, e,
 					find_crit_bit(p->key, key));
 		}
-
-		//if (D_RO(map)->numTransactions>=10) {
-			//if (set) {
-			//	hashset_destroy(set);
-			//}
-			//D_RW(map)->set = hashset_create();
-			//printf("insert");
-			//fflush(stdout);
-			//D_RW(map)->numTransactions = 0;
-			pmemobj_tx_commit_group(pop, NULL);
-			//pmemobj_tx_commit();
-			//pmemobj_tx_end();
-			//pmemobj_tx_begin(pop, NULL, TX_LOCK_NONE);
-		//}
+		pmemobj_tx_commit_group(pop, NULL);
 	} 
-
 	return ret;
 }
 
