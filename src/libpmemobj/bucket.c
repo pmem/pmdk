@@ -38,6 +38,7 @@
  */
 
 #include <errno.h>
+#include <pthread.h>
 
 #include "libpmem.h"
 #include "libpmemobj.h"

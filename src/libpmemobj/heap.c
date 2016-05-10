@@ -37,6 +37,7 @@
 #include <errno.h>
 #include <sys/queue.h>
 #include <unistd.h>
+#include <pthread.h>
 
 #include "libpmem.h"
 #include "libpmemobj.h"
