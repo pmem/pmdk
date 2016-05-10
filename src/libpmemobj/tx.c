@@ -1176,8 +1176,6 @@ pmemobj_tx_errno(void)
 	return txd->errnum;
 }
 
-
-
 /*
  * pmemobj_tx_commit -- commits current transaction
  */
@@ -1216,9 +1214,6 @@ pmemobj_tx_commit()
 
 	tx.stage = TX_STAGE_ONCOMMIT;
 }
-
-
-
 
 /*
  * pmemobj_tx_end -- ends current transaction
@@ -1276,7 +1271,6 @@ pmemobj_tx_end()
 
 	return errnum;
 }
-
 
 void pmemobj_tx_commit_group(PMEMobjpool *pop, jmp_buf env)
 {
@@ -1498,7 +1492,6 @@ pmemobj_tx_add_common(struct tx_add_range_args *args)
 			nargs.size = apoint - nargs.offset;
 		}
 
-		addNumber++;
 		/*
 		 * Depending on the size of the block, either allocate an
 		 * entire new object or use cache.
