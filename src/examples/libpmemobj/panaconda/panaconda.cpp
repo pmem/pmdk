@@ -646,10 +646,7 @@ Game::processStep(void)
 inline bool
 Game::isStopped(void)
 {
-	if (Action::ACTION_QUIT == mLastKey)
-		return true;
-	else
-		return false;
+	return Action::ACTION_QUIT == mLastKey;
 }
 
 void

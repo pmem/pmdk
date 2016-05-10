@@ -61,7 +61,6 @@ enum ConfigFileSymbol { SYM_NOTHING = '0', SYM_WALL = '1' };
 enum SnakeEvent {
 	EV_OK,
 	EV_COLLISION
-
 };
 
 enum State { STATE_NEW, STATE_PLAY, STATE_GAMEOVER };
@@ -69,7 +68,6 @@ enum State { STATE_NEW, STATE_PLAY, STATE_GAMEOVER };
 enum Action {
 	ACTION_NEW_GAME = 'n',
 	ACTION_QUIT = 'q'
-
 };
 
 typedef nvml::obj::persistent_ptr<examples::list<Element>> ElementList;
