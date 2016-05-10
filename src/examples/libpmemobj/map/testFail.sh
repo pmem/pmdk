@@ -1,7 +1,6 @@
 #!/bin/bash
 
 PMEMBENCH_DIR=/media/ramdisk
-#PMEMBENCH_DIR=.
 GROUPSIZE=100
 NAME=Fail${GROUPSIZE}group
 for i in `seq 1 10`;
