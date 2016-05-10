@@ -755,7 +755,7 @@ function require_valgrind() {
 function require_valgrind_pmemcheck() {
 	require_valgrind
 	local binary=$1
-	[ -n "$binary" ] || binary=*
+	[ -n "$binary" ] || binary=`find . -maxdepth 1 -executable -type f`
         strings ${binary} 2>&1 | \
             grep -q "compiled with support for Valgrind pmemcheck" && true
         if [ $? -ne 0 ]; then
@@ -780,7 +780,7 @@ function require_valgrind_pmemcheck() {
 function require_valgrind_helgrind() {
 	require_valgrind
 	local binary=$1
-	[ -n "$binary" ] || binary=*
+	[ -n "$binary" ] || binary=`find . -maxdepth 1 -executable -type f`
         strings ${binary}.static-debug 2>&1 | \
             grep -q "compiled with support for Valgrind helgrind" && true
         if [ $? -ne 0 ]; then
@@ -805,7 +805,7 @@ function require_valgrind_helgrind() {
 function require_valgrind_memcheck() {
 	require_valgrind
 	local binary=$1
-	[ -n "$binary" ] || binary=*
+	[ -n "$binary" ] || binary=`find . -maxdepth 1 -executable -type f`
 	strings ${binary} 2>&1 | \
 		grep -q "compiled with support for Valgrind memcheck" && true
 	if [ $? -ne 0 ]; then
@@ -823,7 +823,7 @@ function require_valgrind_memcheck() {
 function require_valgrind_drd() {
 	require_valgrind
 	local binary=$1
-	[ -n "$binary" ] || binary=*
+	[ -n "$binary" ] || binary=`find . -maxdepth 1 -executable -type f`
 	strings ${binary} 2>&1 | \
 		grep -q "compiled with support for Valgrind drd" && true
 	if [ $? -ne 0 ]; then
