@@ -38,12 +38,14 @@
 #include "unittest.h"
 #include "libpmemobj.h"
 #include "util.h"
+#include "out.h"
 #include "lane.h"
 #include "redo.h"
 #include "memops.h"
 #include "pmalloc.h"
 #include "list.h"
 #include "obj.h"
+#include "sync.h"
 
 #define MAX_THREAD_NUM 200
 
@@ -89,7 +91,7 @@ FUNC_MOCK(pthread_rwlock_init, int,
 FUNC_MOCK_END
 
 FUNC_MOCK(pthread_cond_init, int,
-		pthread_cond_t *cond, const pthread_condattr_t  *attr)
+		pthread_cond_t *cond, const pthread_condattr_t *attr)
 	FUNC_MOCK_RUN_RET_DEFAULT_REAL(pthread_cond_init, cond, attr)
 	FUNC_MOCK_RUN(1) {
 		return -1;
@@ -293,20 +295,24 @@ cleanup(char test_type)
 {
 	switch (test_type) {
 		case 'm':
-			pthread_mutex_destroy(&Test_obj->mutex.pmemmutex.mutex);
+			pthread_mutex_destroy(&((PMEMmutex_internal *)
+				&(Test_obj->mutex))->pmemmutex.mutex);
 			break;
 		case 'r':
-			pthread_rwlock_destroy(&Test_obj->rwlock.pmemrwlock
-					.rwlock);
+			pthread_rwlock_destroy(&((PMEMrwlock_internal *)
+				&(Test_obj->rwlock))->pmemrwlock.rwlock);
 			break;
 		case 'c':
-			pthread_mutex_destroy(&Test_obj->mutex.pmemmutex.mutex);
-			pthread_cond_destroy(&Test_obj->cond.pmemcond.cond);
+			pthread_mutex_destroy(&((PMEMmutex_internal *)
+				&(Test_obj->mutex))->pmemmutex.mutex);
+			pthread_cond_destroy(&((PMEMcond_internal *)
+				&(Test_obj->cond))->pmemcond.cond);
 			break;
 		case 't':
-			pthread_mutex_destroy(&Test_obj->mutex.pmemmutex.mutex);
-			pthread_mutex_destroy(&Test_obj->
-					mutex_locked.pmemmutex.mutex);
+			pthread_mutex_destroy(&((PMEMmutex_internal *)
+				&(Test_obj->mutex))->pmemmutex.mutex);
+			pthread_mutex_destroy(&((PMEMmutex_internal *)
+				&(Test_obj->mutex))->pmemmutex.mutex);
 			break;
 		default:
 			FATAL_USAGE();

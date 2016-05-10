@@ -31,10 +31,38 @@
  */
 
 #include <errno.h>
+#include <pthread.h>
 
 /*
  * sync.h -- internal to obj synchronization API
  */
+
+/*
+ * internal definitions of PMEM-locks
+ */
+typedef union padded_pmemmutex {
+	char padding[_POBJ_CL_ALIGNMENT];
+	struct {
+		uint64_t runid;
+		pthread_mutex_t mutex;
+	} pmemmutex;
+} PMEMmutex_internal;
+
+typedef union padded_pmemrwlock {
+	char padding[_POBJ_CL_ALIGNMENT];
+	struct {
+		uint64_t runid;
+		pthread_rwlock_t rwlock;
+	} pmemrwlock;
+} PMEMrwlock_internal;
+
+typedef union padded_pmemcond {
+	char padding[_POBJ_CL_ALIGNMENT];
+	struct {
+		uint64_t runid;
+		pthread_cond_t cond;
+	} pmemcond;
+} PMEMcond_internal;
 
 /*
  * pmemobj_mutex_lock_nofail -- pmemobj_mutex_lock variant that never

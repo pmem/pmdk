@@ -57,7 +57,6 @@ extern "C" {
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
-#include <pthread.h>
 
 /*
  * opaque type internal to libpmemobj
@@ -111,28 +110,16 @@ const char *pmemobj_errormsg(void);
  */
 #define _POBJ_CL_ALIGNMENT 64 /* cache line alignment for performance */
 
-typedef union padded_pmemmutex {
+typedef struct {
 	char padding[_POBJ_CL_ALIGNMENT];
-	struct {
-		uint64_t runid;
-		pthread_mutex_t mutex;
-	} pmemmutex;
 } PMEMmutex;
 
-typedef union padded_pmemrwlock {
+typedef struct {
 	char padding[_POBJ_CL_ALIGNMENT];
-	struct {
-		uint64_t runid;
-		pthread_rwlock_t rwlock;
-	} pmemrwlock;
 } PMEMrwlock;
 
-typedef union padded_pmemcond {
+typedef struct {
 	char padding[_POBJ_CL_ALIGNMENT];
-	struct {
-		uint64_t runid;
-		pthread_cond_t cond;
-	} pmemcond;
 } PMEMcond;
 
 void pmemobj_mutex_zero(PMEMobjpool *pop, PMEMmutex *mutexp);
