@@ -320,7 +320,7 @@ main(int argc, char *argv[])
 
 			printf("%d,%f\n", i*elements,sum);
 		}
-		pmemobj_tx_end_group();
+		pmemobj_tx_end();
 		if (argc >= 7) {
 
 			int fail = atoi(argv[6]);

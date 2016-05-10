@@ -63,9 +63,7 @@ static __thread struct {
 } tx;
 
 static __thread struct {
-	uint32_t count;
-	PMEMobjpool *pop;
-	jmp_buf env;
+	uint32_t commit_count;
 } tx_group;
 
 struct tx_lock_data {
@@ -1030,12 +1028,11 @@ tx_realloc_common(PMEMoid oid, size_t size, unsigned int type_num,
 
 int
 pmemobj_tx_begin_group(PMEMobjpool *pop, jmp_buf env) {
-	if (tx_group.count == 0) {
-		//Skip
+	if (tx_group.commit_count == 0) {
 		return pmemobj_tx_begin(pop, env, TX_LOCK_NONE);
 	} else {
+		//Skip
 		return 0;
-		
 	}
 }
 
@@ -1058,8 +1055,7 @@ pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...)
 
 		VALGRIND_START_TX;
 	} else if (tx.stage == TX_STAGE_NONE) {
-		tx_group.count = 0;
-		tx_group.pop = pop;
+		tx_group.commit_count = 0;
 		VALGRIND_START_TX;
 
 		lane_hold(pop, &tx.section, LANE_SECTION_TRANSACTION);
@@ -1232,10 +1228,6 @@ pmemobj_tx_end()
 {
 	LOG(3, NULL);
 
-	//if (tx_group.count > 0) {
-	//	pmemobj_tx_commit();
-	//}
-
 	if (tx.stage == TX_STAGE_WORK)
 		FATAL("pmemobj_tx_end called without pmemobj_tx_commit");
 
@@ -1288,9 +1280,9 @@ pmemobj_tx_end()
 
 void pmemobj_tx_commit_group(PMEMobjpool *pop, jmp_buf env)
 {
-	tx_group.count++;
+	tx_group.commit_count++;
 
-	if (tx_group.count>=groupSize) {
+	if (tx_group.commit_count>=groupSize) {
 		/*
 		struct lane_tx_runtime *lane = tx.section->runtime;
 		struct tx_data *txd = SLIST_FIRST(&lane->tx_entries);
@@ -1302,16 +1294,7 @@ void pmemobj_tx_commit_group(PMEMobjpool *pop, jmp_buf env)
 		else
 			memset(env, 0, sizeof (jmp_buf));
 		*/
-		tx_group.count = 0;
-		pmemobj_tx_commit();
-		pmemobj_tx_end();
-	}
-}
-
-void pmemobj_tx_end_group()
-{
-	if (tx_group.count>0) {
-		tx_group.count = 0;
+		tx_group.commit_count = 0;
 		pmemobj_tx_commit();
 		pmemobj_tx_end();
 	}

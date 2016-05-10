@@ -84,7 +84,6 @@ libpmemobj.so {
 		pmemobj_tx_abort;
 		pmemobj_tx_commit;
 		pmemobj_tx_commit_group;
-		pmemobj_tx_end_group;
 		pmemobj_tx_end;
 		pmemobj_tx_errno;
 		pmemobj_tx_process;
