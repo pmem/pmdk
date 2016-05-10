@@ -34,8 +34,8 @@
  * panaconda.hpp -- example of usage c++ bindings in nvml
  */
 
-#ifndef PANACONDA_HPP_
-#define PANACONDA_HPP_
+#ifndef PANACONDA_HPP
+#define PANACONDA_HPP
 
 #include <libpmemobj/make_persistent_array.hpp>
 #include <libpmemobj/p.hpp>
@@ -44,48 +44,28 @@
 
 #include "list.hpp"
 
-//###################################################################//
-//				Forward decl
-//###################################################################//
 class Element;
 
-//###################################################################//
-//				Types
-//###################################################################//
 enum Direction { UNDEFINED, DOWN, RIGHT, UP, LEFT };
-
-enum ObjectType { SNAKE_SEGMENT, WALL, FOOD } ObjectType_t;
-
+enum ObjectType { SNAKE_SEGMENT, WALL, FOOD };
 enum ConfigFileSymbol { SYM_NOTHING = '0', SYM_WALL = '1' };
+enum State { STATE_NEW, STATE_PLAY, STATE_GAMEOVER };
 
 enum SnakeEvent {
 	EV_OK,
 	EV_COLLISION
-
 };
-
-enum State { STATE_NEW, STATE_PLAY, STATE_GAMEOVER };
 
 enum Action {
 	ACTION_NEW_GAME = 'n',
 	ACTION_QUIT = 'q'
-
 };
 
 typedef nvml::obj::persistent_ptr<examples::list<Element>> ElementList;
 
-//###################################################################//
-//				Classes
-//###################################################################//
-
 struct ColorPair {
-	ColorPair() : colorBg(COLOR_BLACK), colorFg(COLOR_BLACK)
-	{
-	}
-	ColorPair(const int aColFg, const int aColBg)
-	    : colorBg(aColBg), colorFg(aColFg)
-	{
-	}
+	ColorPair();
+	ColorPair(const int aColFg, const int aColBg);
 	int colorBg;
 	int colorFg;
 };
@@ -98,23 +78,10 @@ struct Params {
 
 class Helper {
 public:
-	static ColorPair getColor(const int aShape);
+	static ColorPair getColor(const ObjectType aShape);
 	static int parseParams(int argc, char *argv[], struct Params *params);
-
-	static inline void
-	sleep(int aTime)
-	{
-		clock_t currTime = clock();
-		while (clock() < (currTime + aTime)) {
-		}
-	}
-
-	static inline void
-	print_usage(std::string &name)
-	{
-		std::cout << "Usage: " << name
-			  << " [-m <maze_path>] <pool_name>\n";
-	}
+	static inline void sleep(int aTime);
+	static inline void print_usage(std::string &name);
 };
 
 class Point {
@@ -122,30 +89,18 @@ public:
 	nvml::obj::p<int> mX;
 	nvml::obj::p<int> mY;
 
-	Point() : mX(0), mY(0)
-	{
-	}
-	Point(int aX, int aY) : mX(aX), mY(aY)
-	{
-	}
+	Point();
+	Point(int aX, int aY);
 	friend bool operator==(Point &aPoint1, Point &aPoint2);
 };
 
-bool
-operator==(Point &aPoint1, Point &aPoint2)
-{
-	return aPoint1.mX == aPoint2.mX && aPoint1.mY == aPoint2.mY;
-}
+bool operator==(Point &aPoint1, Point &aPoint2);
 
 class Shape {
 public:
 	Shape() = default;
 	Shape(int aShape);
-	int
-	getVal()
-	{
-		return mVal;
-	}
+	int getVal();
 
 private:
 	nvml::obj::p<int> mVal;
@@ -154,41 +109,13 @@ private:
 
 class Element {
 public:
-	Element()
-	    : mPoint(nvml::obj::make_persistent<Point>(0, 0)),
-	      mShape(nvml::obj::make_persistent<Shape>(SNAKE_SEGMENT)),
-	      mDirection(Direction::LEFT)
-	{
-	}
+	Element();
 	Element(int aX, int aY, nvml::obj::persistent_ptr<Shape> aShape,
-		Direction aDir)
-	    : mPoint(nvml::obj::make_persistent<Point>(aX, aY)),
-	      mShape(aShape),
-	      mDirection(aDir)
-	{
-	}
+		Direction aDir);
 	Element(Point aPoint, nvml::obj::persistent_ptr<Shape> aShape,
-		Direction aDir)
-	    : mPoint(nvml::obj::make_persistent<Point>(aPoint.mX, aPoint.mY)),
-	      mShape(aShape),
-	      mDirection(aDir)
-	{
-	}
-	Element(const Element &aElement)
-	{
-		mPoint = nvml::obj::make_persistent<Point>(aElement.mPoint->mX,
-							   aElement.mPoint->mY);
-		mShape = nvml::obj::make_persistent<Shape>(
-			aElement.mShape->getVal());
-	}
-
-	~Element()
-	{
-		nvml::obj::delete_persistent<Point>(mPoint);
-		mPoint = nullptr;
-		nvml::obj::delete_persistent<Shape>(mShape);
-		mShape = nullptr;
-	}
+		Direction aDir);
+	Element(const Element &aElement);
+	~Element();
 
 	nvml::obj::persistent_ptr<Point> calcNewPosition(const Direction aDir);
 	void print(void);
@@ -196,16 +123,8 @@ public:
 	void printSingleDoubleCol(void);
 	nvml::obj::persistent_ptr<Point> getPosition(void);
 	void setPosition(const nvml::obj::persistent_ptr<Point> aNewPoint);
-	Direction
-	getDirection(void)
-	{
-		return mDirection;
-	}
-	void
-	setDirection(const Direction aDir)
-	{
-		mDirection = aDir;
-	}
+	Direction getDirection(void);
+	void setDirection(const Direction aDir);
 
 private:
 	nvml::obj::persistent_ptr<Point> mPoint;
@@ -238,42 +157,18 @@ public:
 	~Board();
 	void print(const int aScore);
 	void printGameOver(const int aScore);
-	unsigned
-	getSizeRow(void)
-	{
-		return mSizeRow;
-	}
-	void
-	setSizeRow(const unsigned aSizeRow)
-	{
-		mSizeRow = aSizeRow;
-	}
-	unsigned
-	getSizeCol(void)
-	{
-		return mSizeCol;
-	}
-	void
-	setSizeCol(const unsigned aSizeCol)
-	{
-		mSizeCol = aSizeCol;
-	}
+	unsigned getSizeRow(void);
+	void setSizeRow(const unsigned aSizeRow);
+	unsigned getSizeCol(void);
+	void setSizeCol(const unsigned aSizeCol);
 	int creatDynamicLayout(const unsigned aRowNo, char *const aBuffer);
 	int creatStaticLayout(void);
 	bool isSnakeHeadFoodHit(void);
 	void createNewFood(void);
 	bool isCollision(Point aPoint);
 	SnakeEvent moveSnake(const Direction aDir);
-	Direction
-	getSnakeDir(void)
-	{
-		return mSnake->getDirection();
-	}
-	void
-	addSnakeSegment(void)
-	{
-		mSnake->addSegment();
-	}
+	Direction getSnakeDir(void);
+	void addSnakeSegment(void);
 
 private:
 	nvml::obj::persistent_ptr<Snake> mSnake;
@@ -290,28 +185,13 @@ private:
 
 class Player {
 public:
-	Player() : mScore(0), mState(STATE_PLAY)
-	{
-	}
-	~Player()
-	{
-	}
+	Player();
+	~Player();
 	int
-	getScore(void)
-	{
-		return mScore;
-	}
+	getScore(void);
 	void updateScore(void);
-	State
-	getState(void)
-	{
-		return mState;
-	}
-	void
-	setState(const State aState)
-	{
-		mState = aState;
-	}
+	State getState(void);
+	void setState(const State aState);
 
 private:
 	nvml::obj::p<int> mScore;
@@ -320,22 +200,10 @@ private:
 
 class GameState {
 public:
-	GameState()
-	{
-	}
-	~GameState()
-	{
-	}
-	nvml::obj::persistent_ptr<Board>
-	getBoard()
-	{
-		return mBoard;
-	}
-	nvml::obj::persistent_ptr<Player>
-	getPlayer()
-	{
-		return mPlayer;
-	}
+	GameState();
+	~GameState();
+	nvml::obj::persistent_ptr<Board> getBoard();
+	nvml::obj::persistent_ptr<Player> getPlayer();
 	void init(void);
 	void cleanPool(void);
 
@@ -347,9 +215,7 @@ private:
 class Game {
 public:
 	Game(struct Params *params);
-	~Game()
-	{
-	}
+	~Game();
 	int init(void);
 	void initColors(void);
 	void processStep(void);
@@ -373,4 +239,4 @@ private:
 	int parseConfCreateDynamicLayout(void);
 };
 
-#endif /* PANACONDA_HPP_ */
+#endif /* PANACONDA_HPP */

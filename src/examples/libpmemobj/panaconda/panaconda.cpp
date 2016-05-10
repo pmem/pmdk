@@ -56,16 +56,33 @@
 
 #define PLAYER_POINTS_PER_HIT 10
 
-using namespace nvml;
-using namespace nvml::obj;
-using namespace examples;
-using namespace std;
+using nvml::transaction_error;
+using nvml::obj::transaction;
+using nvml::obj::persistent_ptr;
+using nvml::obj::pool;
+using nvml::obj::make_persistent;
+using nvml::obj::delete_persistent;
+using examples::list;
 
-//###################################################################//
-//				Helper
-//###################################################################//
+
+/*
+ * ColorPair
+ * ###################################################################
+ */
+ColorPair::ColorPair() : colorBg(COLOR_BLACK), colorFg(COLOR_BLACK)
+{
+}
+ColorPair::ColorPair(const int aColFg, const int aColBg)
+	: colorBg(aColBg), colorFg(aColFg)
+{
+}
+
+/*
+ * Helper
+ * ###################################################################
+ */
 struct ColorPair
-Helper::getColor(const int aShape)
+Helper::getColor(const ObjectType aShape)
 {
 	struct ColorPair res;
 	switch (aShape) {
@@ -79,8 +96,9 @@ Helper::getColor(const int aShape)
 			res = ColorPair(COLOR_RED, COLOR_BLACK);
 			break;
 		default:
-			res = ColorPair(COLOR_BLACK, COLOR_BLACK);
-			break;
+			std::cout << "Error: getColor - wrong value passed!"
+				<< std::endl;
+			assert(0);
 	}
 	return res;
 }
@@ -89,7 +107,7 @@ int
 Helper::parseParams(int argc, char *argv[], struct Params *params)
 {
 	int opt;
-	string app = argv[0];
+	std::string app = argv[0];
 	while ((opt = getopt(argc, argv, "m:")) != -1) {
 		switch (opt) {
 			case 'm':
@@ -111,13 +129,52 @@ Helper::parseParams(int argc, char *argv[], struct Params *params)
 	return 0;
 }
 
-//###################################################################//
-//				Shape
-//###################################################################//
+inline void
+Helper::sleep(int aTime)
+{
+	clock_t currTime = clock();
+	while (clock() < (currTime + aTime)) {
+	}
+}
+
+inline void
+Helper::print_usage(std::string &name)
+{
+	std::cout << "Usage: " << name
+		  << " [-m <maze_path>] <pool_name>\n";
+}
+
+/*
+ * Point
+ * ###################################################################
+ */
+Point::Point() : mX(0), mY(0)
+{
+}
+
+Point::Point(int aX, int aY) : mX(aX), mY(aY)
+{
+}
+
+bool
+operator==(Point &aPoint1, Point &aPoint2)
+{
+	return aPoint1.mX == aPoint2.mX && aPoint1.mY == aPoint2.mY;
+}
+/*
+ * Shape
+ * ###################################################################
+ */
 Shape::Shape(int aShape)
 {
 	int nCurvesSymbol = getSymbol(aShape);
 	mVal = COLOR_PAIR(aShape) | nCurvesSymbol;
+}
+
+int
+Shape::getVal()
+{
+	return mVal;
 }
 
 int
@@ -142,9 +199,49 @@ Shape::getSymbol(int aShape)
 	return symbol;
 }
 
-//###################################################################//
-//				Element
-//###################################################################//
+/*
+ * Element
+ * ###################################################################
+ */
+Element::Element()
+	: mPoint(nvml::obj::make_persistent<Point>(0, 0)),
+	  mShape(nvml::obj::make_persistent<Shape>(SNAKE_SEGMENT)),
+	  mDirection(Direction::LEFT)
+{
+}
+
+Element::Element(int aX, int aY, nvml::obj::persistent_ptr<Shape> aShape,
+	Direction aDir)
+	: mPoint(nvml::obj::make_persistent<Point>(aX, aY)),
+	  mShape(aShape),
+	  mDirection(aDir)
+{
+}
+
+Element::Element(Point aPoint, nvml::obj::persistent_ptr<Shape> aShape,
+	Direction aDir)
+	: mPoint(nvml::obj::make_persistent<Point>(aPoint.mX, aPoint.mY)),
+	  mShape(aShape),
+	  mDirection(aDir)
+{
+}
+
+Element::Element(const Element &aElement)
+{
+	mPoint = nvml::obj::make_persistent<Point>(aElement.mPoint->mX,
+						   aElement.mPoint->mY);
+	mShape = nvml::obj::make_persistent<Shape>(
+		aElement.mShape->getVal());
+}
+
+Element::~Element()
+{
+	nvml::obj::delete_persistent<Point>(mPoint);
+	mPoint = nullptr;
+	nvml::obj::delete_persistent<Shape>(mShape);
+	mShape = nullptr;
+}
+
 persistent_ptr<Point>
 Element::calcNewPosition(const Direction aDir)
 {
@@ -174,9 +271,7 @@ Element::calcNewPosition(const Direction aDir)
 void
 Element::setPosition(const persistent_ptr<Point> aNewPoint)
 {
-	persistent_ptr<Point> tempPoint = mPoint;
 	mPoint = aNewPoint;
-	delete_persistent<Point>(tempPoint);
 }
 
 persistent_ptr<Point>
@@ -204,9 +299,21 @@ Element::printSingleDoubleCol(void)
 	mvaddch(mPoint->mY, (2 * mPoint->mX - 1), mShape->getVal());
 }
 
-//###################################################################//
-//				Snake
-//###################################################################//
+Direction
+Element::getDirection(void)
+{
+	return mDirection;
+}
+void
+Element::setDirection(const Direction aDir)
+{
+	mDirection = aDir;
+}
+
+/*
+ * Snake
+ * ###################################################################
+ */
 Snake::Snake()
 {
 	mSnakeSegments = make_persistent<list<Element>>();
@@ -309,9 +416,10 @@ Snake::getNextPoint(const Direction aDir)
 	return *(mSnakeSegments->get(0)->calcNewPosition(aDir).get());
 }
 
-//###################################################################//
-//				Board
-//###################################################################//
+/*
+ * Board
+ * ###################################################################
+ */
 
 Board::Board()
 {
@@ -514,9 +622,63 @@ Board::moveSnake(const Direction aDir)
 	return event;
 }
 
-//###################################################################//
-//				GameState
-//###################################################################//
+void
+Board::addSnakeSegment(void)
+{
+	mSnake->addSegment();
+}
+
+unsigned
+Board::getSizeRow(void)
+{
+	return mSizeRow;
+}
+void
+Board::setSizeRow(const unsigned aSizeRow)
+{
+	mSizeRow = aSizeRow;
+}
+unsigned
+Board::getSizeCol(void)
+{
+	return mSizeCol;
+}
+void
+Board::setSizeCol(const unsigned aSizeCol)
+{
+	mSizeCol = aSizeCol;
+}
+
+Direction
+Board::getSnakeDir(void)
+{
+	return mSnake->getDirection();
+}
+
+/*
+ * GameState
+ * ###################################################################
+ */
+GameState::GameState()
+{
+}
+
+GameState::~GameState()
+{
+}
+
+nvml::obj::persistent_ptr<Board>
+GameState::getBoard()
+{
+	return mBoard;
+}
+
+nvml::obj::persistent_ptr<Player>
+GameState::getPlayer()
+{
+	return mPlayer;
+}
+
 void
 GameState::init(void)
 {
@@ -534,18 +696,44 @@ GameState::cleanPool(void)
 	mPlayer = nullptr;
 }
 
-//###################################################################//
-//				Player
-//###################################################################//
+/*
+ * Player
+ * ###################################################################
+ */
+Player::Player() : mScore(0), mState(STATE_PLAY)
+{
+}
+
+Player::~Player()
+{
+}
+
+int
+Player::getScore(void)
+{
+	return mScore;
+}
+
+State
+Player::getState(void)
+{
+	return mState;
+}
+void
+Player::setState(const State aState)
+{
+	mState = aState;
+}
+
 void
 Player::updateScore(void)
 {
 	mScore = mScore + PLAYER_POINTS_PER_HIT;
 }
-
-//###################################################################//
-//				Game
-//###################################################################//
+/*
+ * Game
+ * ###################################################################
+ */
 Game::Game(struct Params *params)
 {
 	pool<GameState> pop;
@@ -571,6 +759,10 @@ Game::Game(struct Params *params)
 	initColors();
 
 	srand(time(0));
+}
+
+Game::~Game()
+{
 }
 
 void
@@ -604,12 +796,12 @@ Game::init(void)
 			r->getBoard()->createNewFood();
 			transaction::commit();
 		} catch (transaction_error &err) {
-			cout << err.what() << endl;
+			std::cout << err.what() << std::endl;
 		}
 		if (ret) {
 			cleanPool();
 			clearProg();
-			cout << "Error: Config file error!" << endl;
+			std::cout << "Error: Config file error!" << std::endl;
 			return ret;
 		}
 	}
@@ -637,7 +829,7 @@ Game::processStep(void)
 			}
 		});
 	} catch (transaction_error &err) {
-		cout << err.what() << endl;
+		std::cout << err.what() << std::endl;
 	}
 
 	r->getBoard()->print(r->getPlayer()->getScore());
@@ -646,10 +838,7 @@ Game::processStep(void)
 inline bool
 Game::isStopped(void)
 {
-	if (Action::ACTION_QUIT == mLastKey)
-		return true;
-	else
-		return false;
+	return Action::ACTION_QUIT == mLastKey;
 }
 
 void
@@ -699,7 +888,7 @@ Game::cleanPool(void)
 	try {
 		transaction::exec_tx(mGameState, [&]() { r->cleanPool(); });
 	} catch (transaction_error &err) {
-		cout << err.what() << endl;
+		std::cout << err.what() << std::endl;
 	}
 }
 
@@ -759,7 +948,7 @@ Game::parseConfCreateDynamicLayout(void)
 				r->getBoard()->creatDynamicLayout(i, line);
 			});
 		} catch (transaction_error &err) {
-			cout << err.what() << endl;
+			std::cout << err.what() << std::endl;
 		}
 		i++;
 	}
@@ -770,9 +959,10 @@ Game::parseConfCreateDynamicLayout(void)
 	return 0;
 }
 
-//###################################################################//
-//				main
-//###################################################################//
+/*
+ * main
+ * ###################################################################
+ */
 int
 main(int argc, char *argv[])
 {
