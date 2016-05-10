@@ -792,6 +792,8 @@ enum pobj_tx_lock {
  */
 int pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...);
 
+int pmemobj_tx_begin_group(PMEMobjpool *pop, jmp_buf env);
+
 /*
  * Aborts current transaction
  *
@@ -807,6 +809,10 @@ void pmemobj_tx_abort(int errnum);
  * This function must be called during TX_STAGE_WORK.
  */
 void pmemobj_tx_commit(void);
+void pmemobj_tx_commit_group(PMEMobjpool *pop, jmp_buf env);
+void pmemobj_tx_end_group(void);
+
+uint32_t count_adds(void);
 
 /*
  * Cleanups current transaction. Must always be called after pmemobj_tx_begin,
