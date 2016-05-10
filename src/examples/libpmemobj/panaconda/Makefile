@@ -40,7 +40,7 @@ NCURSES := $(call check_package, ncurses)
 ifeq ($(NCURSES),y)
 PROGS = panaconda
 else
-$(info NOTE: Skipping pman because ncurses is missing \
+$(info NOTE: Skipping panaconda because ncurses is missing \
 -- see src/examples/libpmemobj/panaconda/README for details.)
 endif
 

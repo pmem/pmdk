@@ -11,7 +11,7 @@ To launch the game:
 	or
 	./panaconda /path/game/session/file -m /path/config/file/conf/cfg
 
-The second options allow you to define your own maze.
+The second option allow you to define your own maze.
 Meaning of symbols in config file is given below:
 	'1' - wall
 	'0' - space

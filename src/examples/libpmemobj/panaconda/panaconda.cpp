@@ -48,7 +48,7 @@
 
 #define SNAKE_START_POS_X 5
 #define SNAKE_START_POS_Y 5
-#define SNAKE_START_DIR (Direction::RIGHT)
+#define SNAKE_START_DIR (direction::RIGHT)
 #define SNAKE_STAR_SEG_NO 5
 
 #define BOARD_STATIC_SIZE_ROW 40
@@ -56,16 +56,31 @@
 
 #define PLAYER_POINTS_PER_HIT 10
 
-using namespace nvml;
-using namespace nvml::obj;
-using namespace examples;
-using namespace std;
+using nvml::transaction_error;
+using nvml::obj::transaction;
+using nvml::obj::persistent_ptr;
+using nvml::obj::pool;
+using nvml::obj::make_persistent;
+using nvml::obj::delete_persistent;
+using examples::list;
 
-//###################################################################//
-//				Helper
-//###################################################################//
+
+/*
+ * ColorPair
+ */
+ColorPair::ColorPair() : colorBg(COLOR_BLACK), colorFg(COLOR_BLACK)
+{
+}
+ColorPair::ColorPair(const int aColFg, const int aColBg)
+	: colorBg(aColBg), colorFg(aColFg)
+{
+}
+
+/*
+ * Helper
+ */
 struct ColorPair
-Helper::getColor(const int aShape)
+Helper::getColor(const object_type aShape)
 {
 	struct ColorPair res;
 	switch (aShape) {
@@ -79,8 +94,9 @@ Helper::getColor(const int aShape)
 			res = ColorPair(COLOR_RED, COLOR_BLACK);
 			break;
 		default:
-			res = ColorPair(COLOR_BLACK, COLOR_BLACK);
-			break;
+			std::cout << "Error: getColor - wrong value passed!"
+				<< std::endl;
+			assert(0);
 	}
 	return res;
 }
@@ -89,7 +105,7 @@ int
 Helper::parseParams(int argc, char *argv[], struct Params *params)
 {
 	int opt;
-	string app = argv[0];
+	std::string app = argv[0];
 	while ((opt = getopt(argc, argv, "m:")) != -1) {
 		switch (opt) {
 			case 'm':
@@ -111,13 +127,50 @@ Helper::parseParams(int argc, char *argv[], struct Params *params)
 	return 0;
 }
 
-//###################################################################//
-//				Shape
-//###################################################################//
+inline void
+Helper::sleep(int aTime)
+{
+	clock_t currTime = clock();
+	while (clock() < (currTime + aTime)) {
+	}
+}
+
+inline void
+Helper::print_usage(std::string &name)
+{
+	std::cout << "Usage: " << name
+		  << " [-m <maze_path>] <pool_name>\n";
+}
+
+/*
+ * Point
+ */
+Point::Point() : mX(0), mY(0)
+{
+}
+
+Point::Point(int aX, int aY) : mX(aX), mY(aY)
+{
+}
+
+bool
+operator==(Point &aPoint1, Point &aPoint2)
+{
+	return aPoint1.mX == aPoint2.mX && aPoint1.mY == aPoint2.mY;
+}
+/*
+ * Shape
+ */
 Shape::Shape(int aShape)
 {
 	int nCurvesSymbol = getSymbol(aShape);
 	mVal = COLOR_PAIR(aShape) | nCurvesSymbol;
+}
+
+int
+Shape::getVal()
+{
+	return mVal;
 }
 
 int
@@ -142,26 +195,65 @@ Shape::getSymbol(int aShape)
 	return symbol;
 }
 
-//###################################################################//
-//				Element
-//###################################################################//
+/*
+ * Element
+ */
+Element::Element()
+	: mPoint(make_persistent<Point>(0, 0)),
+	  mShape(make_persistent<Shape>(SNAKE_SEGMENT)),
+	  mDirection(direction::LEFT)
+{
+}
+
+Element::Element(int aX, int aY, nvml::obj::persistent_ptr<Shape> aShape,
+	direction aDir)
+	: mPoint(make_persistent<Point>(aX, aY)),
+	  mShape(aShape),
+	  mDirection(aDir)
+{
+}
+
+Element::Element(Point aPoint, nvml::obj::persistent_ptr<Shape> aShape,
+	direction aDir)
+	: mPoint(make_persistent<Point>(aPoint.mX, aPoint.mY)),
+	  mShape(aShape),
+	  mDirection(aDir)
+{
+}
+
+Element::Element(const Element &aElement)
+{
+	mPoint = make_persistent<Point>(aElement.mPoint->mX,
+						   aElement.mPoint->mY);
+	mShape = make_persistent<Shape>(
+		aElement.mShape->getVal());
+}
+
+Element::~Element()
+{
+	nvml::obj::delete_persistent<Point>(mPoint);
+	mPoint = nullptr;
+	nvml::obj::delete_persistent<Shape>(mShape);
+	mShape = nullptr;
+}
+
 persistent_ptr<Point>
-Element::calcNewPosition(const Direction aDir)
+Element::calcNewPosition(const direction aDir)
 {
 	persistent_ptr<Point> point =
 		make_persistent<Point>(mPoint->mX, mPoint->mY);
 
 	switch (aDir) {
-		case Direction::DOWN:
+		case direction::DOWN:
 			point->mY = point->mY + 1;
 			break;
-		case Direction::LEFT:
+		case direction::LEFT:
 			point->mX = point->mX - 1;
 			break;
-		case Direction::RIGHT:
+		case direction::RIGHT:
 			point->mX = point->mX + 1;
 			break;
-		case Direction::UP:
+		case direction::UP:
 			point->mY = point->mY - 1;
 			break;
 		default:
@@ -174,9 +266,7 @@ Element::calcNewPosition(const Direction aDir)
 void
 Element::setPosition(const persistent_ptr<Point> aNewPoint)
 {
-	persistent_ptr<Point> tempPoint = mPoint;
 	mPoint = aNewPoint;
-	delete_persistent<Point>(tempPoint);
 }
 
 persistent_ptr<Point>
@@ -204,9 +294,20 @@ Element::printSingleDoubleCol(void)
 	mvaddch(mPoint->mY, (2 * mPoint->mX - 1), mShape->getVal());
 }
 
-//###################################################################//
-//				Snake
-//###################################################################//
+direction
+Element::getDirection(void)
+{
+	return mDirection;
+}
+void
+Element::setDirection(const direction aDir)
+{
+	mDirection = aDir;
+}
+
+/*
+ * Snake
+ */
 Snake::Snake()
 {
 	mSnakeSegments = make_persistent<list<Element>>();
@@ -220,7 +321,7 @@ Snake::Snake()
 	}
 
 	mLastSegPosition = Point();
-	mLastSegDir = Direction::RIGHT;
+	mLastSegDir = direction::RIGHT;
 }
 
 Snake::~Snake()
@@ -230,7 +331,7 @@ Snake::~Snake()
 }
 
 void
-Snake::move(const Direction aDir)
+Snake::move(const direction aDir)
 {
 	int snakeSize = mSnakeSegments->size();
 	persistent_ptr<Point> newPositionPoint;
@@ -297,26 +398,26 @@ Snake::getHeadPoint(void)
 	return *(mSnakeSegments->get(0)->getPosition().get());
 }
 
-Direction
+direction
 Snake::getDirection(void)
 {
 	return mSnakeSegments->get(0)->getDirection();
 }
 
 Point
-Snake::getNextPoint(const Direction aDir)
+Snake::getNextPoint(const direction aDir)
 {
 	return *(mSnakeSegments->get(0)->calcNewPosition(aDir).get());
 }
 
-//###################################################################//
-//				Board
-//###################################################################//
+/*
+ * Board
+ */
 
 Board::Board()
 {
 	persistent_ptr<Shape> shape = make_persistent<Shape>(FOOD);
-	mFood = make_persistent<Element>(0, 0, shape, Direction::UNDEFINED);
+	mFood = make_persistent<Element>(0, 0, shape, direction::UNDEFINED);
 	mLayout = make_persistent<list<Element>>();
 	mSnake = make_persistent<Snake>();
 	mSizeRow = 20;
@@ -385,10 +486,10 @@ Board::creatDynamicLayout(const unsigned aRowNo, char *const aBuffer)
 	persistent_ptr<Shape> shape;
 
 	for (unsigned i = 0; i < mSizeCol; ++i) {
-		if (aBuffer[i] == ConfigFileSymbol::SYM_WALL) {
+		if (aBuffer[i] == config_file_symbol::SYM_WALL) {
 			shape = make_persistent<Shape>(WALL);
 			element = element = make_persistent<Element>(
-				i, aRowNo, shape, Direction::UNDEFINED);
+				i, aRowNo, shape, direction::UNDEFINED);
 			mLayout->push_back(element);
 		}
 	}
@@ -408,11 +509,11 @@ Board::creatStaticLayout(void)
 	for (unsigned i = 0; i < mSizeCol; ++i) {
 		shape = make_persistent<Shape>(WALL);
 		element = make_persistent<Element>(i, 0, shape,
-						   Direction::UNDEFINED);
+						   direction::UNDEFINED);
 		mLayout->push_back(element);
 		shape = make_persistent<Shape>(WALL);
 		element = make_persistent<Element>(i, (mSizeRow - 1), shape,
-						   Direction::UNDEFINED);
+						   direction::UNDEFINED);
 		mLayout->push_back(element);
 	}
 
@@ -420,11 +521,11 @@ Board::creatStaticLayout(void)
 	for (unsigned i = 1; i < mSizeRow; ++i) {
 		shape = make_persistent<Shape>(WALL);
 		element = make_persistent<Element>(0, i, shape,
-						   Direction::UNDEFINED);
+						   direction::UNDEFINED);
 		mLayout->push_back(element);
 		shape = make_persistent<Shape>(WALL);
 		element = make_persistent<Element>((mSizeCol - 1), i, shape,
-						   Direction::UNDEFINED);
+						   direction::UNDEFINED);
 		mLayout->push_back(element);
 	}
 	return 0;
@@ -475,7 +576,7 @@ Board::setNewFood(const Point aPoint)
 {
 	persistent_ptr<Shape> shape = make_persistent<Shape>(FOOD);
 	delete_persistent<Element>(mFood);
-	mFood = make_persistent<Element>(aPoint, shape, Direction::UNDEFINED);
+	mFood = make_persistent<Element>(aPoint, shape, direction::UNDEFINED);
 }
 
 void
@@ -499,14 +600,14 @@ Board::createNewFood(void)
 	}
 }
 
-SnakeEvent
-Board::moveSnake(const Direction aDir)
+snake_event
+Board::moveSnake(const direction aDir)
 {
-	SnakeEvent event = SnakeEvent::EV_OK;
+	snake_event event = snake_event::EV_OK;
 	Point nextPt = mSnake->getNextPoint(aDir);
 
 	if (isCollision(nextPt)) {
-		event = SnakeEvent::EV_COLLISION;
+		event = snake_event::EV_COLLISION;
 	} else {
 		mSnake->move(aDir);
 	}
@@ -514,9 +615,62 @@ Board::moveSnake(const Direction aDir)
 	return event;
 }
 
-//###################################################################//
-//				GameState
-//###################################################################//
+void
+Board::addSnakeSegment(void)
+{
+	mSnake->addSegment();
+}
+
+unsigned
+Board::getSizeRow(void)
+{
+	return mSizeRow;
+}
+void
+Board::setSizeRow(const unsigned aSizeRow)
+{
+	mSizeRow = aSizeRow;
+}
+unsigned
+Board::getSizeCol(void)
+{
+	return mSizeCol;
+}
+void
+Board::setSizeCol(const unsigned aSizeCol)
+{
+	mSizeCol = aSizeCol;
+}
+
+direction
+Board::getSnakeDir(void)
+{
+	return mSnake->getDirection();
+}
+
+/*
+ * GameState
+ */
+GameState::GameState()
+{
+}
+
+GameState::~GameState()
+{
+}
+
+nvml::obj::persistent_ptr<Board>
+GameState::getBoard()
+{
+	return mBoard;
+}
+
+nvml::obj::persistent_ptr<Player>
+GameState::getPlayer()
+{
+	return mPlayer;
+}
+
 void
 GameState::init(void)
 {
@@ -534,18 +688,42 @@ GameState::cleanPool(void)
 	mPlayer = nullptr;
 }
 
-//###################################################################//
-//				Player
-//###################################################################//
+/*
+ * Player
+ */
+Player::Player() : mScore(0), mState(STATE_PLAY)
+{
+}
+
+Player::~Player()
+{
+}
+
+int
+Player::getScore(void)
+{
+	return mScore;
+}
+
+state
+Player::getState(void)
+{
+	return mState;
+}
+void
+Player::setState(const state aState)
+{
+	mState = aState;
+}
+
 void
 Player::updateScore(void)
 {
 	mScore = mScore + PLAYER_POINTS_PER_HIT;
 }
-
-//###################################################################//
-//				Game
-//###################################################################//
+/*
+ * Game
+ */
 Game::Game(struct Params *params)
 {
 	pool<GameState> pop;
@@ -564,13 +742,17 @@ Game::Game(struct Params *params)
 					      PMEMOBJ_MIN_POOL * 10, 0666);
 
 	mGameState = pop;
-	mDirectionKey = Direction::UNDEFINED;
+	mDirectionKey = direction::UNDEFINED;
 	mLastKey = KEY_CLEAR;
 	mDelay = DEFAULT_DELAY;
 
 	initColors();
 
 	srand(time(0));
+}
+
+Game::~Game()
+{
 }
 
 void
@@ -604,12 +786,12 @@ Game::init(void)
 			r->getBoard()->createNewFood();
 			transaction::commit();
 		} catch (transaction_error &err) {
-			cout << err.what() << endl;
+			std::cout << err.what() << std::endl;
 		}
 		if (ret) {
 			cleanPool();
 			clearProg();
-			cout << "Error: Config file error!" << endl;
+			std::cout << "Error: Config file error!" << std::endl;
 			return ret;
 		}
 	}
@@ -620,13 +802,13 @@ Game::init(void)
 void
 Game::processStep(void)
 {
-	SnakeEvent retEvent = EV_OK;
+	snake_event retEvent = EV_OK;
 	persistent_ptr<GameState> r = mGameState.get_root();
 	try {
 		transaction::exec_tx(mGameState, [&]() {
 			retEvent = r->getBoard()->moveSnake(mDirectionKey);
 			if (EV_COLLISION == retEvent) {
-				r->getPlayer()->setState(State::STATE_GAMEOVER);
+				r->getPlayer()->setState(state::STATE_GAMEOVER);
 				return;
 			} else {
 				if (r->getBoard()->isSnakeHeadFoodHit()) {
@@ -637,7 +819,7 @@ Game::processStep(void)
 			}
 		});
 	} catch (transaction_error &err) {
-		cout << err.what() << endl;
+		std::cout << err.what() << std::endl;
 	}
 
 	r->getBoard()->print(r->getPlayer()->getScore());
@@ -646,10 +828,7 @@ Game::processStep(void)
 inline bool
 Game::isStopped(void)
 {
-	if (Action::ACTION_QUIT == mLastKey)
-		return true;
-	else
-		return false;
+	return action::ACTION_QUIT == mLastKey;
 }
 
 void
@@ -657,20 +836,20 @@ Game::setDirectionKey(void)
 {
 	switch (mLastKey) {
 		case KEY_LEFT:
-			if (Direction::RIGHT != mDirectionKey)
-				mDirectionKey = Direction::LEFT;
+			if (direction::RIGHT != mDirectionKey)
+				mDirectionKey = direction::LEFT;
 			break;
 		case KEY_RIGHT:
-			if (Direction::LEFT != mDirectionKey)
-				mDirectionKey = Direction::RIGHT;
+			if (direction::LEFT != mDirectionKey)
+				mDirectionKey = direction::RIGHT;
 			break;
 		case KEY_UP:
-			if (Direction::DOWN != mDirectionKey)
-				mDirectionKey = Direction::UP;
+			if (direction::DOWN != mDirectionKey)
+				mDirectionKey = direction::UP;
 			break;
 		case KEY_DOWN:
-			if (Direction::UP != mDirectionKey)
-				mDirectionKey = Direction::DOWN;
+			if (direction::UP != mDirectionKey)
+				mDirectionKey = direction::DOWN;
 			break;
 		default:
 			break;
@@ -684,7 +863,7 @@ Game::processKey(const int aLastKey)
 	mLastKey = aLastKey;
 	setDirectionKey();
 
-	if (Action::ACTION_NEW_GAME == aLastKey) {
+	if (action::ACTION_NEW_GAME == aLastKey) {
 		cleanPool();
 		ret = init();
 	}
@@ -699,7 +878,7 @@ Game::cleanPool(void)
 	try {
 		transaction::exec_tx(mGameState, [&]() { r->cleanPool(); });
 	} catch (transaction_error &err) {
-		cout << err.what() << endl;
+		std::cout << err.what() << std::endl;
 	}
 }
 
@@ -726,7 +905,7 @@ bool
 Game::isGameOver(void)
 {
 	persistent_ptr<GameState> r = mGameState.get_root();
-	return (r->getPlayer()->getState() == State::STATE_GAMEOVER);
+	return (r->getPlayer()->getState() == state::STATE_GAMEOVER);
 }
 
 void
@@ -759,7 +938,7 @@ Game::parseConfCreateDynamicLayout(void)
 				r->getBoard()->creatDynamicLayout(i, line);
 			});
 		} catch (transaction_error &err) {
-			cout << err.what() << endl;
+			std::cout << err.what() << std::endl;
 		}
 		i++;
 	}
@@ -770,9 +949,9 @@ Game::parseConfCreateDynamicLayout(void)
 	return 0;
 }
 
-//###################################################################//
-//				main
-//###################################################################//
+/*
+ * main
+ */
 int
 main(int argc, char *argv[])
 {
