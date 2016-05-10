@@ -1026,7 +1026,7 @@ function clean_remote_node() {
 	local DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
 
 	# register the list of PID files to be cleaned in case of an error
-	NODE_PID_FILES[$N]=$*
+	NODE_PID_FILES[$N]="${NODE_PID_FILES[$N]} $*"
 
 	# clean the remote node
 	set +e
@@ -1285,6 +1285,9 @@ function run_on_node_background() {
 	COMMAND="$COMMAND ${NODE_ENV[$N]}"
 	COMMAND="$COMMAND LD_LIBRARY_PATH=.:${NODE_LD_LIBRARY_PATH[$N]}"
 	COMMAND="$COMMAND ./ctrld $PID_FILE run $*"
+
+	# register the PID file to be cleaned in case of an error
+	NODE_PID_FILES[$N]="${NODE_PID_FILES[$N]} $PID_FILE"
 
 	run_command ssh $SSH_OPTS ${NODE[$N]} "cd $DIR && $COMMAND"
 	ret=$?
