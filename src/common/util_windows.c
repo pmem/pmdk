@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2014-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -30,68 +30,87 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/*
+ * util_windows.c -- general utilities with OS-specific implementation
+ */
+
+#include <stdio.h>
+#include <string.h>
+#include <sys/mman.h>
 #include <errno.h>
-#include <pthread.h>
+
+#include "util.h"
+#include "out.h"
 
 /*
- * sync.h -- internal to obj synchronization API
+ * util_map_hint -- determine hint address for mmap()
+ *
+ * XXX - no Windows implementation yet
  */
-
-/*
- * internal definitions of PMEM-locks
- */
-typedef union padded_pmemmutex {
-	char padding[_POBJ_CL_ALIGNMENT];
-	struct {
-		uint64_t runid;
-		pthread_mutex_t mutex;
-	} pmemmutex;
-} PMEMmutex_internal;
-
-typedef union padded_pmemrwlock {
-	char padding[_POBJ_CL_ALIGNMENT];
-	struct {
-		uint64_t runid;
-		pthread_rwlock_t rwlock;
-	} pmemrwlock;
-} PMEMrwlock_internal;
-
-typedef union padded_pmemcond {
-	char padding[_POBJ_CL_ALIGNMENT];
-	struct {
-		uint64_t runid;
-		pthread_cond_t cond;
-	} pmemcond;
-} PMEMcond_internal;
-
-/*
- * pmemobj_mutex_lock_nofail -- pmemobj_mutex_lock variant that never
- * fails from caller perspective. If pmemobj_mutex_lock failed, this function
- * aborts the program.
- */
-static inline void
-pmemobj_mutex_lock_nofail(PMEMobjpool *pop, PMEMmutex *mutexp)
+char *
+util_map_hint(size_t len, size_t req_align)
 {
-	int ret = pmemobj_mutex_lock(pop, mutexp);
-	if (ret) {
-		errno = ret;
-		FATAL("!pmemobj_mutex_lock");
-	}
+	LOG(3, "len %zu req_align %zu", len, req_align);
+
+	LOG(4, "hint %p", MAP_FAILED);
+	return MAP_FAILED;
 }
 
 /*
- * pmemobj_mutex_unlock_nofail -- pmemobj_mutex_unlock variant that never
- * fails from caller perspective. If pmemobj_mutex_unlock failed, this function
- * aborts the program.
+ * util_tmpfile --  (internal) create the temporary file
  */
-static inline void
-pmemobj_mutex_unlock_nofail(PMEMobjpool *pop, PMEMmutex *mutexp)
+int
+util_tmpfile(const char *dir, const char *templ)
 {
-	int ret = pmemobj_mutex_unlock(pop, mutexp);
-	if (ret) {
-		errno = ret;
-		FATAL("!pmemobj_mutex_unlock");
+	LOG(3, "dir \"%s\" template \"%s\"", dir, templ);
+
+	int oerrno;
+	int fd = -1;
+
+	char *fullname = alloca(strlen(dir) + sizeof(templ));
+
+	(void) strcpy(fullname, dir);
+	(void) strcat(fullname, templ);
+
+	/*
+	 * XXX - block signals and modify file creation mask for the time
+	 * of mkstmep() execution.  Restore previous settings once the file
+	 * is created.
+	 */
+
+	fd = mkstemp(fullname);
+
+	if (fd < 0) {
+		ERR("!mkstemp");
+		goto err;
 	}
+
+	(void) unlink(fullname);
+	LOG(3, "unlinked file is \"%s\"", fullname);
+
+	return fd;
+
+err:
+	oerrno = errno;
+	if (fd != -1)
+		(void) close(fd);
+	errno = oerrno;
+	return -1;
 }
 
-int pmemobj_mutex_assert_locked(PMEMobjpool *pop, PMEMmutex *mutexp);
+/*
+ * util_get_arch_flags -- get architecture identification flags
+ */
+int
+util_get_arch_flags(struct arch_flags *arch_flags)
+{
+	SYSTEM_INFO si;
+	GetSystemInfo(&si);
+
+	arch_flags->e_machine = si.wProcessorArchitecture;
+	arch_flags->ei_class = 0; /* XXX - si.dwProcessorType */
+	arch_flags->ei_data = 0;
+	arch_flags->alignment_desc = alignment_desc();
+
+	return 0;
+}

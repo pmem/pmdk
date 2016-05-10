@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2015-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -30,68 +30,15 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <errno.h>
-#include <pthread.h>
-
 /*
- * sync.h -- internal to obj synchronization API
+ * linux/limits.h -- fake header file
  */
 
 /*
- * internal definitions of PMEM-locks
+ * XXX - The only purpose of this empty file is to avoid preprocessor
+ * errors when including a Linux-specific header file that has no equivalent
+ * on Windows.  With this cheap trick, we don't need a lot of preprocessor
+ * conditionals in all the source code files.
+ *
+ * In the future, this will be addressed in some other way.
  */
-typedef union padded_pmemmutex {
-	char padding[_POBJ_CL_ALIGNMENT];
-	struct {
-		uint64_t runid;
-		pthread_mutex_t mutex;
-	} pmemmutex;
-} PMEMmutex_internal;
-
-typedef union padded_pmemrwlock {
-	char padding[_POBJ_CL_ALIGNMENT];
-	struct {
-		uint64_t runid;
-		pthread_rwlock_t rwlock;
-	} pmemrwlock;
-} PMEMrwlock_internal;
-
-typedef union padded_pmemcond {
-	char padding[_POBJ_CL_ALIGNMENT];
-	struct {
-		uint64_t runid;
-		pthread_cond_t cond;
-	} pmemcond;
-} PMEMcond_internal;
-
-/*
- * pmemobj_mutex_lock_nofail -- pmemobj_mutex_lock variant that never
- * fails from caller perspective. If pmemobj_mutex_lock failed, this function
- * aborts the program.
- */
-static inline void
-pmemobj_mutex_lock_nofail(PMEMobjpool *pop, PMEMmutex *mutexp)
-{
-	int ret = pmemobj_mutex_lock(pop, mutexp);
-	if (ret) {
-		errno = ret;
-		FATAL("!pmemobj_mutex_lock");
-	}
-}
-
-/*
- * pmemobj_mutex_unlock_nofail -- pmemobj_mutex_unlock variant that never
- * fails from caller perspective. If pmemobj_mutex_unlock failed, this function
- * aborts the program.
- */
-static inline void
-pmemobj_mutex_unlock_nofail(PMEMobjpool *pop, PMEMmutex *mutexp)
-{
-	int ret = pmemobj_mutex_unlock(pop, mutexp);
-	if (ret) {
-		errno = ret;
-		FATAL("!pmemobj_mutex_unlock");
-	}
-}
-
-int pmemobj_mutex_assert_locked(PMEMobjpool *pop, PMEMmutex *mutexp);

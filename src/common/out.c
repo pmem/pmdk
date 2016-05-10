@@ -40,7 +40,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <dirent.h>
+#include <limits.h>
 #include <string.h>
 #include <errno.h>
 #include <pthread.h>
@@ -236,7 +236,8 @@ out_init(const char *log_prefix, const char *log_level_var,
 	if (Out_fp == NULL)
 		Out_fp = stderr;
 	else
-		setlinebuf(Out_fp);
+		/* setlinebuf() is not available on Widows */
+		setvbuf(Out_fp, NULL, _IOLBF, 0);
 
 #ifdef DEBUG
 	LOG(1, "pid %d: program: %s", getpid(), getexecname());

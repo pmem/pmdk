@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2015-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -30,68 +30,22 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <errno.h>
-#include <pthread.h>
-
 /*
- * sync.h -- internal to obj synchronization API
+ * endian.h -- convert values between host and big-/little-endian byte order
  */
 
-/*
- * internal definitions of PMEM-locks
- */
-typedef union padded_pmemmutex {
-	char padding[_POBJ_CL_ALIGNMENT];
-	struct {
-		uint64_t runid;
-		pthread_mutex_t mutex;
-	} pmemmutex;
-} PMEMmutex_internal;
-
-typedef union padded_pmemrwlock {
-	char padding[_POBJ_CL_ALIGNMENT];
-	struct {
-		uint64_t runid;
-		pthread_rwlock_t rwlock;
-	} pmemrwlock;
-} PMEMrwlock_internal;
-
-typedef union padded_pmemcond {
-	char padding[_POBJ_CL_ALIGNMENT];
-	struct {
-		uint64_t runid;
-		pthread_cond_t cond;
-	} pmemcond;
-} PMEMcond_internal;
+#ifndef ENDIAN_H
+#define ENDIAN_H 1
 
 /*
- * pmemobj_mutex_lock_nofail -- pmemobj_mutex_lock variant that never
- * fails from caller perspective. If pmemobj_mutex_lock failed, this function
- * aborts the program.
+ * XXX - dummy implementation for little-endian platforms
  */
-static inline void
-pmemobj_mutex_lock_nofail(PMEMobjpool *pop, PMEMmutex *mutexp)
-{
-	int ret = pmemobj_mutex_lock(pop, mutexp);
-	if (ret) {
-		errno = ret;
-		FATAL("!pmemobj_mutex_lock");
-	}
-}
+#define htole16(a) (a)
+#define htole32(a) (a)
+#define htole64(a) (a)
 
-/*
- * pmemobj_mutex_unlock_nofail -- pmemobj_mutex_unlock variant that never
- * fails from caller perspective. If pmemobj_mutex_unlock failed, this function
- * aborts the program.
- */
-static inline void
-pmemobj_mutex_unlock_nofail(PMEMobjpool *pop, PMEMmutex *mutexp)
-{
-	int ret = pmemobj_mutex_unlock(pop, mutexp);
-	if (ret) {
-		errno = ret;
-		FATAL("!pmemobj_mutex_unlock");
-	}
-}
+#define le16toh(a) (a)
+#define le32toh(a) (a)
+#define le64toh(a) (a)
 
-int pmemobj_mutex_assert_locked(PMEMobjpool *pop, PMEMmutex *mutexp);
+#endif /* ENDIAN_H */

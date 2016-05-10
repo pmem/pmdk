@@ -9,3 +9,11 @@ cscope.out
 cscope.po.out
 debug/
 nondebug/
+*.sdf
+*.opensdf
+*.opendb
+*.log
+*.suo
+.vs/
+x64/
+Generated files/
