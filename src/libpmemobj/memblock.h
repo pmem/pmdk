@@ -47,7 +47,7 @@ struct memory_block {
 
 	/*
 	 * Used only for run chunks, must be zeroed for huge.
-	 * Number of preceeding blocks in the chunk. In other words, the
+	 * Number of preceding blocks in the chunk. In other words, the
 	 * position of this memory block in run bitmap.
 	 */
 	uint16_t block_off;
