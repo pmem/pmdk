@@ -108,6 +108,21 @@ str_check(const char *str)
 	}
 }
 
+
+static void
+str_insert_random_int(uint64_t num)
+{
+
+	for (uint64_t i = 0; i < num; i++) {
+		uint64_t r = ((uint64_t)rand()) << 32 | rand();
+		int ret = map_insert(mapc, map, r, OID_NULL);
+		if (ret < 0) {
+			fprintf(stderr, "Something went wrong\n");
+			break;
+		}
+	}
+}
+
 /*
  * str_insert_random -- inserts specified (as string) number of random numbers
  */
@@ -116,14 +131,7 @@ str_insert_random(const char *str)
 {
 	uint64_t val;
 	if (sscanf(str, "%lu", &val) > 0)
-		for (uint64_t i = 0; i < val; ) {
-			uint64_t r = ((uint64_t)rand()) << 32 | rand();
-			int ret = map_insert(mapc, map, r, OID_NULL);
-			if (ret < 0)
-				break;
-			if (ret == 0)
-				i += 1;
-		}
+		str_insert_random_int(val);
 	else
 		fprintf(stderr, "random insert: invalid syntax\n");
 }
@@ -159,6 +167,32 @@ str_rebuild(const char *str)
 	} else {
 		rebuild();
 	}
+}
+
+static double testFail(uint64_t num, double *initialTime) {
+	struct timespec t2, t3, t4;
+	clock_gettime(CLOCK_MONOTONIC,  &t2);
+	str_insert_random_int(num);
+	//for (volatile long long i=0; i<1e9; i++) {};
+	clock_gettime(CLOCK_MONOTONIC,  &t3);
+	//time in seconds
+	*initialTime = (t3.tv_sec - t2.tv_sec) + (double) (t3.tv_nsec - t2.tv_nsec) * 1e-9;
+
+	pmemobj_tx_abort(0);
+	clock_gettime(CLOCK_MONOTONIC,  &t4);
+
+	return (t4.tv_sec - t3.tv_sec) + (double) (t4.tv_nsec - t3.tv_nsec) * 1e-9;
+}
+
+static double test(uint64_t num) {
+	struct timespec t2, t3;
+	clock_gettime(CLOCK_MONOTONIC,  &t2);
+	str_insert_random_int(num);
+	//for (volatile long long i=0; i<1e9; i++) {};
+	clock_gettime(CLOCK_MONOTONIC,  &t3);
+	//time in seconds
+	double dt1 = (t3.tv_sec - t2.tv_sec) + (double) (t3.tv_nsec - t2.tv_nsec) * 1e-9;
+	return dt1;
 }
 
 static void
@@ -200,7 +234,7 @@ print_all(void)
 int
 main(int argc, char *argv[])
 {
-	if (argc < 3 || argc > 4) {
+	if (argc < 3) {
 		printf("usage: %s hashmap_tx|hashmap_atomic|ctree|btree|rbtree"
 				" file-name [<seed>]\n", argv[0]);
 		return 1;
@@ -224,6 +258,15 @@ main(int argc, char *argv[])
 		return 1;
 	}
 
+	struct hashmap_args args;
+
+	if (argc > 3)
+		args.seed = atoi(argv[3]);
+	else
+		args.seed = time(NULL);
+
+	srand(args.seed);
+
 	if (access(path, F_OK) != 0) {
 		pop = pmemobj_create(path, POBJ_LAYOUT_NAME(map),
 				PM_HASHSET_POOL_SIZE, S_IRUSR | S_IWUSR);
@@ -233,13 +276,7 @@ main(int argc, char *argv[])
 			return 1;
 		}
 
-		struct hashmap_args args;
 
-		if (argc > 3)
-			args.seed = atoi(argv[3]);
-		else
-			args.seed = time(NULL);
-		srand(args.seed);
 
 
 		mapc = map_ctx_init(ops, pop);
@@ -251,7 +288,6 @@ main(int argc, char *argv[])
 
 		root = POBJ_ROOT(pop, struct root);
 
-		printf("seed: %u\n", args.seed);
 		map_new(mapc, &D_RW(root)->map, &args);
 
 		map = D_RO(root)->map;
@@ -271,6 +307,27 @@ main(int argc, char *argv[])
 		}
 		root = POBJ_ROOT(pop, struct root);
 		map = D_RO(root)->map;
+	}
+
+	if (argc > 5) {
+		int num = atoi(argv[4]);
+		int elements = atoi(argv[5]);
+
+		double sum = 0;
+		for (int i=1; i<=num; i++) {
+			sum += test(elements);
+
+			printf("%d,%f\n", i*elements,sum);
+		}
+		pmemobj_tx_end();
+		if (argc >= 7) {
+
+			int fail = atoi(argv[6]);
+			double initialTime;
+			double abortTime = testFail(fail, &initialTime);
+			printf("\n%d\ninitial,%f\nRecover, %f\n", fail, initialTime, abortTime);
+		}
+		return 0;
 	}
 
 	char buf[INPUT_BUF_LEN];
@@ -310,6 +367,9 @@ main(int argc, char *argv[])
 				break;
 			case 'h':
 				help();
+				break;
+			case 't':
+				test(1000);
 				break;
 			default:
 				unknown_command(buf);

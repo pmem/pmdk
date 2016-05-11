@@ -214,7 +214,13 @@ ctree_map_insert(PMEMobjpool *pop, TOID(struct ctree_map) map,
 	}
 
 	struct tree_map_entry e = {key, value};
-	TX_BEGIN(pop) {
+
+	jmp_buf env;
+	if (setjmp(env)) {
+		ret=1;
+		pmemobj_tx_end();
+	} else {
+		pmemobj_tx_begin_group(pop, NULL);
 		if (p->key == 0 || p->key == key) {
 			pmemobj_tx_add_range_direct(p, sizeof(*p));
 			*p = e;
@@ -222,10 +228,8 @@ ctree_map_insert(PMEMobjpool *pop, TOID(struct ctree_map) map,
 			ctree_map_insert_leaf(&D_RW(map)->root, e,
 					find_crit_bit(p->key, key));
 		}
-	} TX_ONABORT {
-		ret = 1;
-	} TX_END
-
+		pmemobj_tx_commit_group(pop, NULL);
+	} 
 	return ret;
 }
 

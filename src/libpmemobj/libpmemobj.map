@@ -80,9 +80,11 @@ LIBPMEMOBJ_1.0 {
 		pmemobj_list_remove;
 		pmemobj_list_move;
 		pmemobj_tx_begin;
+		pmemobj_tx_begin_group;
 		pmemobj_tx_stage;
 		pmemobj_tx_abort;
 		pmemobj_tx_commit;
+		pmemobj_tx_commit_group;
 		pmemobj_tx_end;
 		pmemobj_tx_errno;
 		pmemobj_tx_process;

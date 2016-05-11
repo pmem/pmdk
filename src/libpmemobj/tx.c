@@ -51,6 +51,7 @@
 #include "ctree.h"
 #include "valgrind_internal.h"
 
+const static uint32_t groupSize = 100;
 struct tx_data {
 	SLIST_ENTRY(tx_data) tx_entry;
 	jmp_buf env;
@@ -61,6 +62,10 @@ static __thread struct {
 	int last_errnum;
 	struct lane_section *section;
 } tx;
+
+static __thread struct {
+	uint32_t commit_count;
+} tx_group;
 
 struct tx_lock_data {
 	union {
@@ -990,6 +995,16 @@ tx_realloc_common(PMEMoid oid, size_t size, uint64_t type_num,
 	return new_obj;
 }
 
+int
+pmemobj_tx_begin_group(PMEMobjpool *pop, jmp_buf env) {
+	if (tx_group.commit_count == 0) {
+		return pmemobj_tx_begin(pop, env, TX_LOCK_NONE);
+	} else {
+		//Skip
+		return 0;
+	}
+}
+
 /*
  * pmemobj_tx_begin -- initializes new transaction
  */
@@ -1008,6 +1023,7 @@ pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...)
 
 		VALGRIND_START_TX;
 	} else if (tx.stage == TX_STAGE_NONE) {
+		tx_group.commit_count = 0;
 		VALGRIND_START_TX;
 
 		lane_hold(pop, &tx.section, LANE_SECTION_TRANSACTION);
@@ -1233,6 +1249,28 @@ pmemobj_tx_end()
 	}
 
 	return tx.last_errnum;
+}
+
+void pmemobj_tx_commit_group(PMEMobjpool *pop, jmp_buf env)
+{
+	tx_group.commit_count++;
+
+	if (tx_group.commit_count>=groupSize) {
+		/*
+		struct lane_tx_runtime *lane = tx.section->runtime;
+		struct tx_data *txd = SLIST_FIRST(&lane->tx_entries);
+		PMEMobjpool *pop = lane->pop;
+
+		jmp_buf *env = Malloc(sizeof (jmp_buf));
+		if (txd->env != NULL)
+			memcpy(env, txd->env, sizeof (jmp_buf));
+		else
+			memset(env, 0, sizeof (jmp_buf));
+		*/
+		tx_group.commit_count = 0;
+		pmemobj_tx_commit();
+		pmemobj_tx_end();
+	}
 }
 
 /*

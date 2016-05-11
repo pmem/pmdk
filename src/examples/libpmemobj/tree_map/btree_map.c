@@ -289,7 +289,12 @@ btree_map_insert(PMEMobjpool *pop, TOID(struct btree_map) map,
 	uint64_t key, PMEMoid value)
 {
 	struct tree_map_node_item item = {key, value};
-	TX_BEGIN(pop) {
+
+	jmp_buf env;
+	if (setjmp(env)) {
+		pmemobj_tx_end();
+	} else {
+		pmemobj_tx_begin_group(pop, NULL);
 		if (btree_map_is_empty(pop, map)) {
 			btree_map_insert_empty(map, item);
 		} else {
@@ -302,7 +307,9 @@ btree_map_insert(PMEMobjpool *pop, TOID(struct btree_map) map,
 
 			btree_map_insert_item(dest, p, item);
 		}
-	} TX_END
+
+		pmemobj_tx_commit_group(pop, NULL);
+	} 
 
 	return 0;
 }

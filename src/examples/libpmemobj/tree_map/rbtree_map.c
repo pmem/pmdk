@@ -271,7 +271,11 @@ rbtree_map_insert(PMEMobjpool *pop, TOID(struct rbtree_map) map,
 {
 	int ret = 0;
 
-	TX_BEGIN(pop) {
+	jmp_buf env;
+	if (setjmp(env)) {
+		pmemobj_tx_end();
+	} else {
+		pmemobj_tx_begin_group(pop, NULL);
 		TOID(struct tree_map_node) n = TX_ZNEW(struct tree_map_node);
 		D_RW(n)->key = key;
 		D_RW(n)->value = value;
@@ -284,7 +288,8 @@ rbtree_map_insert(PMEMobjpool *pop, TOID(struct rbtree_map) map,
 					NODE_LOCATION(NODE_P(n)));
 
 		TX_SET(RB_FIRST(map), color, COLOR_BLACK);
-	} TX_END
+		pmemobj_tx_commit_group(pop, NULL);
+	} 
 
 	return ret;
 }
