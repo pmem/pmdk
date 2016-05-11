@@ -41,6 +41,7 @@ CP = cp
 CSTYLE = $(TOP)/utils/cstyle
 STYLE_CHECK = $(TOP)/utils/style_check.sh
 PKG_CONFIG = pkg-config
+CLANG_FORMAT ?= clang-format
 
 ifeq ($(shell command -v $(PKG_CONFIG) && echo y || echo n), n)
 $(error $(PKG_CONFIG) not found)
@@ -85,6 +86,7 @@ export docdir := $(datarootdir)/doc
 export man1dir := $(mandir)/man1
 export man3dir := $(mandir)/man3
 export cstyle_bin := $(CSTYLE)
+export clang_format_bin := $(CLANG_FORMAT)
 
 ifneq ($(wildcard $(exec_prefix)/x86_64-linux-gnu),)
 LIB_PREFIX ?= x86_64-linux-gnu/lib

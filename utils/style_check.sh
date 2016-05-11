@@ -48,7 +48,7 @@ function usage() {
 #
 function check_clang_version() {
 	set +e
-	which clang-format &> /dev/null && clang-format --version |\
+	which ${clang_format_bin} &> /dev/null && ${clang_format_bin} --version |\
 	grep "version 3.[8-9]\|version [4-9].[0-9]*\|version 3.[1-9][0-9]"i\
 	&> /dev/null
 	if [ $? -ne 0 ]; then
@@ -80,10 +80,10 @@ function run_clang_check() {
 
 	for file in $@
 	do
-		LINES=$(clang-format -style=file $file |\
+		LINES=$(${clang_format_bin} -style=file $file |\
 				git diff --no-index $file - | wc -l)
 		if [ $LINES -ne 0 ]; then
-			clang-format -style=file $file | git diff --no-index $file -
+			${clang_format_bin} -style=file $file | git diff --no-index $file -
 		fi
 	done
 }
