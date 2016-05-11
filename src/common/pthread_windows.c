@@ -255,7 +255,7 @@ pthread_rwlock_timedwrlock(pthread_rwlock_t *__restrict rwlock,
 int
 pthread_rwlock_unlock(pthread_rwlock_t *__restrict rwlock)
 {
-	/* XXX - distinquish between shared/exclusive lock */
+	/* XXX - distinguish between shared/exclusive lock */
 	/* XXX - ReleaseSRWLockShared(rwlock); */
 	ReleaseSRWLockExclusive(&rwlock->lock);
 	return 0;
