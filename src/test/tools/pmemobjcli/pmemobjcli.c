@@ -40,6 +40,7 @@
 #include <unistd.h>
 #include <stdbool.h>
 #include <limits.h>
+#include <setjmp.h>
 
 #include <libpmemobj.h>
 #include "common.h"
@@ -78,6 +79,7 @@ struct pocli_ctx {
 	FILE *err;
 	FILE *out;
 	struct pocli *pocli;
+	bool tx_aborted;
 };
 
 /*
@@ -143,6 +145,8 @@ struct pocli {
 	struct pocli_opts opts;		/* configuration options */
 };
 
+int pocli_process(struct pocli *pcli);
+
 /*
  * pocli_err -- print error message
  */
@@ -173,15 +177,15 @@ pocli_printf(struct pocli_ctx *ctx, const char *fmt, ...)
  * pocli_args_number -- parse type number
  */
 static enum pocli_ret
-pocli_args_number(struct pocli_args *args, int arg, unsigned *type_num)
+pocli_args_number(struct pocli_args *args, int arg, uint64_t *type_num)
 {
 	assert(args != NULL);
 	assert(arg >= 0 && arg < args->argc);
 	assert(type_num != NULL);
 
-	unsigned tn;
+	uint64_t tn;
 	char c;
-	int ret = sscanf(args->argv[arg], "%u%c", &tn, &c);
+	int ret = sscanf(args->argv[arg], "%lu%c", &tn, &c);
 	if (ret != 1)
 		return POCLI_ERR_PARS;
 
@@ -350,6 +354,34 @@ pocli_args_list_elm(struct pocli_ctx *ctx, struct pocli_args *args,
 }
 
 /*
+ * parse_stage -- return proper string variable referring to transaction state
+ */
+static const char *
+parse_stage()
+{
+	int st = pmemobj_tx_stage();
+	const char *stage = "";
+	switch (st) {
+		case TX_STAGE_NONE:
+			stage = "TX_STAGE_NONE";
+		break;
+		case TX_STAGE_WORK:
+			stage = "TX_STAGE_WORK";
+		break;
+		case TX_STAGE_ONCOMMIT:
+			stage = "TX_STAGE_ONCOMMIT";
+		break;
+		case TX_STAGE_ONABORT:
+			stage = "TX_STAGE_ONABORT";
+		break;
+		case TX_STAGE_FINALLY:
+			stage = "TX_STAGE_FINALLY";
+		break;
+	}
+	return stage;
+}
+
+/*
  * pocli_pmemobj_direct -- pmemobj_direct() command
  */
 static enum pocli_ret
@@ -392,7 +424,7 @@ pocli_pmemobj_type_num(struct pocli_ctx *ctx, struct pocli_args *args)
 	if (ret)
 		return ret;
 
-	if (oidp == NULL || oidp->off == 0)
+	if (oidp == NULL)
 		return pocli_err(ctx, POCLI_ERR_ARGS,
 			"invalid object -- '%s'\n", args->argv[1]);
 
@@ -489,7 +521,7 @@ pocli_pmemobj_do_alloc(struct pocli_ctx *ctx, struct pocli_args *args,
 		return POCLI_ERR_ARGS;
 
 	PMEMoid *oidp = NULL;
-	unsigned type_num = 0;
+	uint64_t type_num = 0;
 	size_t size = 0;
 	enum pocli_ret ret;
 
@@ -557,7 +589,7 @@ pocli_pmemobj_do_realloc(struct pocli_ctx *ctx, struct pocli_args *args,
 		return POCLI_ERR_ARGS;
 
 	PMEMoid *oidp = NULL;
-	unsigned type_num = 0;
+	uint64_t type_num = 0;
 	size_t size = 0;
 	enum pocli_ret ret;
 
@@ -586,7 +618,6 @@ pocli_pmemobj_do_realloc(struct pocli_ctx *ctx, struct pocli_args *args,
 	pocli_printf(ctx, "%s(%s, %zu, %llu): %d off = 0x%llx uuid = 0x%llx\n",
 				args->argv[0], args->argv[1], size, type_num,
 				r, oidp->off, oidp->pool_uuid_lo);
-
 
 	return ret;
 }
@@ -651,7 +682,7 @@ pocli_pmemobj_strdup(struct pocli_ctx *ctx, struct pocli_args *args)
 		return POCLI_ERR_ARGS;
 
 	PMEMoid *oidp = NULL;
-	unsigned type_num;
+	uint64_t type_num;
 	enum pocli_ret ret;
 	ret = pocli_args_obj(ctx, args, 1, &oidp);
 	if (ret)
@@ -732,8 +763,8 @@ pocli_pmemobj_memcpy_persist(struct pocli_ctx *ctx, struct pocli_args *args)
 	PMEMoid *dest;
 	PMEMoid *src;
 	enum pocli_ret ret;
-	unsigned offset;
-	unsigned len;
+	uint64_t offset;
+	uint64_t len;
 
 	if ((ret = pocli_args_obj(ctx, args, 1, &dest)))
 		return ret;
@@ -773,9 +804,9 @@ pocli_pmemobj_memset_persist(struct pocli_ctx *ctx, struct pocli_args *args)
 
 	PMEMoid *oid;
 	enum pocli_ret ret;
-	unsigned offset;
-	unsigned len;
-	unsigned c;
+	uint64_t offset;
+	uint64_t len;
+	uint64_t c;
 
 	if ((ret = pocli_args_obj(ctx, args, 1, &oid)))
 		return ret;
@@ -811,8 +842,8 @@ pocli_pmemobj_do_persist(struct pocli_ctx *ctx, struct pocli_args *args,
 
 	PMEMoid *oid;
 	enum pocli_ret ret;
-	unsigned offset;
-	unsigned len;
+	uint64_t offset;
+	uint64_t len;
 
 	if ((ret = pocli_args_obj(ctx, args, 1, &oid)))
 		return ret;
@@ -877,7 +908,7 @@ pocli_pmemobj_pool_by_ptr(struct pocli_ctx *ctx, struct pocli_args *args)
 
 	PMEMoid *oid;
 	enum pocli_ret ret;
-	unsigned offset;
+	uint64_t offset;
 
 
 	if ((ret = pocli_args_obj(ctx, args, 1, &oid)))
@@ -930,7 +961,7 @@ pocli_pmemobj_list_insert(struct pocli_ctx *ctx, struct pocli_args *args)
 	PMEMoid *oid;
 	PMEMoid *head_oid;
 	enum pocli_ret ret;
-	unsigned before;
+	uint64_t before;
 
 	if ((ret = pocli_args_obj(ctx, args, 1, &oid)))
 		return ret;
@@ -977,9 +1008,9 @@ pocli_pmemobj_list_insert_new(struct pocli_ctx *ctx, struct pocli_args *args)
 	PMEMoid *oid;
 	PMEMoid *head_oid;
 	enum pocli_ret ret;
-	unsigned before;
-	unsigned type_num;
-	unsigned size;
+	uint64_t before;
+	uint64_t type_num;
+	uint64_t size;
 
 	if ((ret = pocli_args_obj(ctx, args, 1, &oid)))
 		return ret;
@@ -1034,7 +1065,7 @@ pocli_pmemobj_list_remove(struct pocli_ctx *ctx, struct pocli_args *args)
 	PMEMoid *oid;
 	PMEMoid *head_oid;
 	enum pocli_ret ret;
-	unsigned if_free;
+	uint64_t if_free;
 
 	if ((ret = pocli_args_obj(ctx, args, 2, &head_oid)))
 		return ret;
@@ -1078,7 +1109,7 @@ pocli_pmemobj_list_move(struct pocli_ctx *ctx, struct pocli_args *args)
 	PMEMoid *oid;
 	PMEMoid *head_oid;
 	enum pocli_ret ret;
-	unsigned before;
+	uint64_t before;
 	size_t offset = offsetof(struct item, field);
 
 	if ((ret = pocli_args_obj(ctx, args, 2, &head_oid)))
@@ -1116,6 +1147,422 @@ pocli_pmemobj_list_move(struct pocli_ctx *ctx, struct pocli_args *args)
 			pmemobj_direct(*dest), before, r);
 
 	return ret;
+}
+
+/*
+ * pocli_pmemobj_tx_begin -- pmemobj_tx_begin() command
+ */
+static enum pocli_ret
+pocli_pmemobj_tx_begin(struct pocli_ctx *ctx, struct pocli_args *args)
+{
+	enum pocli_ret ret = POCLI_RET_OK;
+	int r;
+	switch (args->argc) {
+		case 1: {
+			r = pmemobj_tx_begin(ctx->pop, NULL, TX_LOCK_NONE);
+			if (r != POCLI_RET_OK)
+				return pocli_err(ctx, POCLI_ERR_ARGS,
+					"pmemobj_tx_begin() failed");
+			pocli_printf(ctx, "%s: %d\n", args->argv[0], r);
+		}
+		break;
+		case 2: {
+			if (strcmp(args->argv[1], "jmp") != 0)
+				return POCLI_ERR_ARGS;
+			jmp_buf jmp;
+			if (setjmp(jmp)) {
+				const char *command = ctx->tx_aborted ?
+					"pmemobj_tx_abort" : "pmemobj_tx_end";
+				pocli_printf(ctx, "%s: %d\n",
+					command, pmemobj_tx_errno());
+				return POCLI_RET_OK;
+			} else {
+				r = pmemobj_tx_begin(ctx->pop, jmp,
+								TX_LOCK_NONE);
+				if (r != POCLI_RET_OK)
+					return pocli_err(ctx, POCLI_ERR_ARGS,
+						"pmemobj_tx_begin() failed");
+			}
+			pocli_printf(ctx, "%s(jmp): %d\n", args->argv[0], r);
+			ret = (enum pocli_ret)pocli_process(ctx->pocli);
+			if (ret)
+				return ret;
+
+		}
+		break;
+		default:
+			return POCLI_ERR_ARGS;
+	}
+	return ret;
+}
+
+/*
+ * pocli_pmemobj_tx_end -- pmemobj_tx_end() command
+ */
+static enum pocli_ret
+pocli_pmemobj_tx_end(struct pocli_ctx *ctx, struct pocli_args *args)
+{
+	if (args->argc != 1)
+		return POCLI_ERR_ARGS;
+
+	if (pmemobj_tx_stage() == TX_STAGE_NONE ||
+					pmemobj_tx_stage() == TX_STAGE_WORK)
+		return pocli_err(ctx, POCLI_ERR_ARGS,
+					"transaction in improper stage\n");
+	ctx->tx_aborted = false;
+	int ret = pmemobj_tx_end();
+	pocli_printf(ctx, "%s: %d\n", args->argv[0], ret);
+
+	return POCLI_RET_OK;
+}
+
+/*
+ * pocli_pmemobj_tx_commit -- pmemobj_tx_commit() command
+ */
+static enum pocli_ret
+pocli_pmemobj_tx_commit(struct pocli_ctx *ctx, struct pocli_args *args)
+{
+	if (args->argc != 1)
+		return POCLI_ERR_ARGS;
+
+	if (pmemobj_tx_stage() != TX_STAGE_WORK)
+		return pocli_err(ctx, POCLI_ERR_ARGS,
+			"cannot use in stage different than TX_STAGE_WORK\n");
+
+	pmemobj_tx_commit();
+	pocli_printf(ctx, "%s\n", args->argv[0]);
+
+	return POCLI_RET_OK;
+}
+
+/*
+ * pocli_pmemobj_tx_abort -- pmemobj_tx_abort() command
+ */
+static enum pocli_ret
+pocli_pmemobj_tx_abort(struct pocli_ctx *ctx, struct pocli_args *args)
+{
+	if (args->argc != 2)
+		return POCLI_ERR_ARGS;
+
+	if (pmemobj_tx_stage() != TX_STAGE_WORK)
+		return pocli_err(ctx, POCLI_ERR_ARGS,
+			"cannot use in stage different than TX_STAGE_WORK\n");
+	int err;
+	int count = sscanf(args->argv[1], "%d", &err);
+	if (count != 1)
+		return POCLI_ERR_PARS;
+
+	ctx->tx_aborted = true;
+	free(args);
+	pmemobj_tx_abort(err);
+	pocli_printf(ctx, "pmemobj_tx_abort: %d", err);
+
+	return POCLI_RET_OK;
+}
+
+/*
+ * pocli_pmemobj_tx_stage -- pmemobj_tx_stage() command
+ */
+static enum pocli_ret
+pocli_pmemobj_tx_stage(struct pocli_ctx *ctx, struct pocli_args *args)
+{
+	if (args->argc != 1)
+		return POCLI_ERR_ARGS;
+
+	pocli_printf(ctx, "%s: %s\n", args->argv[0], parse_stage());
+
+	return POCLI_RET_OK;
+}
+
+/*
+ * pocli_pmemobj_tx_add_range -- pmemobj_tx_add_range() command
+ */
+static enum pocli_ret
+pocli_pmemobj_tx_add_range(struct pocli_ctx *ctx, struct pocli_args *args)
+{
+	if (args->argc != 4)
+		return POCLI_ERR_ARGS;
+
+	PMEMoid *oidp;
+	size_t offset = 0;
+	size_t size = 0;
+	enum pocli_ret ret;
+	ret = pocli_args_obj(ctx, args, 1, &oidp);
+	if (ret)
+		return ret;
+	if (oidp == NULL)
+		return pocli_err(ctx, POCLI_ERR_ARGS,
+						"cannot add NULL pointer\n");
+
+	ret = pocli_args_size(args, 2, &offset);
+	if (ret)
+		return ret;
+	ret = pocli_args_size(args, 3, &size);
+	if (ret)
+		return ret;
+	int r = pmemobj_tx_add_range(*oidp, offset, size);
+
+	if (r != POCLI_RET_OK)
+		return pocli_err(ctx, POCLI_ERR_ARGS,
+					"pmemobj_tx_add_range() failed");
+
+	pocli_printf(ctx, "%s(%s, %zu, %zu): %d\n", args->argv[0],
+					args->argv[1], offset, size, ret, r);
+
+	return ret;
+}
+
+/*
+ * pocli_pmemobj_tx_add_range_direct -- pmemobj_tx_add_range_direct() command
+ */
+static enum pocli_ret
+pocli_pmemobj_tx_add_range_direct(struct pocli_ctx *ctx,
+						struct pocli_args *args)
+{
+	if (args->argc != 4)
+		return POCLI_ERR_ARGS;
+
+	PMEMoid *oidp;
+	size_t off = 0;
+	size_t size = 0;
+	enum pocli_ret ret;
+	ret = pocli_args_obj(ctx, args, 1, &oidp);
+	if (ret)
+		return ret;
+	if (oidp == NULL)
+		return pocli_err(ctx, POCLI_ERR_ARGS,
+						"cannot add NULL pointer\n");
+	char *ptr = (char *)pmemobj_direct(*oidp);
+
+	ret = pocli_args_size(args, 2, &off);
+	if (ret)
+		return ret;
+
+	ret = pocli_args_size(args, 3, &size);
+	if (ret)
+		return ret;
+
+	int r = pmemobj_tx_add_range_direct((void *)(ptr + off), size);
+
+	if (r != POCLI_RET_OK)
+		return pocli_err(ctx, POCLI_ERR_ARGS,
+					"pmemobj_tx_add_range_direct() failed");
+
+	pocli_printf(ctx, "%s(%p, %zu, %zu): %d\n", args->argv[0], ptr,
+								off, size, r);
+
+	return ret;
+}
+
+/*
+ * pocli_pmemobj_do_tx_alloc -- pmemobj_tx_zalloc() and pmemobj_tx_zalloc()
+ * commands common part
+ */
+static enum pocli_ret
+pocli_pmemobj_do_tx_alloc(struct pocli_ctx *ctx, struct pocli_args *args,
+			PMEMoid (*fn_alloc)(size_t size, uint64_t type_num))
+{
+	if (args->argc != 4)
+		return POCLI_ERR_ARGS;
+	if (pmemobj_tx_stage() != TX_STAGE_WORK)
+		return pocli_err(ctx, POCLI_ERR_ARGS,
+			"cannot use in stage different than TX_STAGE_WORK\n");
+	PMEMoid *oidp = NULL;
+	uint64_t type_num = 0;
+	size_t size = 0;
+	enum pocli_ret ret;
+
+	ret = pocli_args_obj(ctx, args, 1, &oidp);
+	if (ret)
+		return ret;
+
+	if (oidp == &ctx->root)
+		return pocli_err(ctx, POCLI_ERR_ARGS,
+					"cannot allocate to root object\n");
+
+	ret = pocli_args_size(args, 2, &size);
+	if (ret)
+		return ret;
+
+	ret = pocli_args_number(args, 3, &type_num);
+	if (ret)
+		return ret;
+	*oidp = fn_alloc(size, type_num);
+
+	pocli_printf(ctx, "%s(%zu, %llu): off = 0x%llx uuid = 0x%llx\n",
+		args->argv[0], size, type_num, oidp->off, oidp->pool_uuid_lo);
+	return ret;
+}
+
+/*
+ * pocli_pmemobj_tx_alloc -- pmemobj_tx_alloc() command
+ */
+static enum pocli_ret
+pocli_pmemobj_tx_alloc(struct pocli_ctx *ctx, struct pocli_args *args)
+{
+	return pocli_pmemobj_do_tx_alloc(ctx, args, pmemobj_tx_alloc);
+}
+/*
+ * pocli_pmemobj_tx_zalloc -- pmemobj_tx_zalloc() command
+ */
+static enum pocli_ret
+pocli_pmemobj_tx_zalloc(struct pocli_ctx *ctx, struct pocli_args *args)
+{
+	return pocli_pmemobj_do_tx_alloc(ctx, args, pmemobj_tx_zalloc);
+}
+
+/*
+ * pocli_pmemobj_do_tx_realloc -- pmemobj_tx_zrealloc() and
+ * pmemobj_tx_zrealloc() commands common part
+ */
+static enum pocli_ret
+pocli_pmemobj_do_tx_realloc(struct pocli_ctx *ctx, struct pocli_args *args,
+	PMEMoid (*fn_realloc)(PMEMoid oid, size_t size, uint64_t type_num))
+{
+	if (args->argc != 4)
+		return POCLI_ERR_ARGS;
+	if (pmemobj_tx_stage() != TX_STAGE_WORK)
+		return pocli_err(ctx, POCLI_ERR_ARGS,
+			"cannot use in stage different than TX_STAGE_WORK\n");
+	PMEMoid *oidp = NULL;
+	uint64_t type_num = 0;
+	size_t size = 0;
+	enum pocli_ret ret;
+
+	ret = pocli_args_obj(ctx, args, 1, &oidp);
+	if (ret)
+		return ret;
+
+	if (oidp == &ctx->root)
+		return pocli_err(ctx, POCLI_ERR_ARGS,
+					"cannot reallocate root object\n");
+
+	ret = pocli_args_size(args, 2, &size);
+	if (ret)
+		return ret;
+
+	ret = pocli_args_number(args, 3, &type_num);
+	if (ret)
+		return ret;
+	*oidp = fn_realloc(*oidp, size, type_num);
+
+	pocli_printf(ctx, "%s(%p, %zu, %llu): off = 0x%llx uuid = 0x%llx\n",
+				args->argv[0], oidp, size, type_num,
+				oidp->off, oidp->pool_uuid_lo);
+	return ret;
+}
+
+/*
+ * pocli_pmemobj_tx_realloc -- pmemobj_tx_realloc() command
+ */
+static enum pocli_ret
+pocli_pmemobj_tx_realloc(struct pocli_ctx *ctx, struct pocli_args *args)
+{
+	return pocli_pmemobj_do_tx_realloc(ctx, args, pmemobj_tx_realloc);
+}
+
+/*
+ * pocli_pmemobj_tx_zrealloc -- pmemobj_tx_zrealloc() command
+ */
+static enum pocli_ret
+pocli_pmemobj_tx_zrealloc(struct pocli_ctx *ctx, struct pocli_args *args)
+{
+	return pocli_pmemobj_do_tx_realloc(ctx, args, pmemobj_tx_zrealloc);
+}
+
+/*
+ * pocli_pmemobj_tx_free -- pmemobj_tx_free() command
+ */
+static enum pocli_ret
+pocli_pmemobj_tx_free(struct pocli_ctx *ctx, struct pocli_args *args)
+{
+	if (args->argc != 2)
+		return POCLI_ERR_ARGS;
+	if (pmemobj_tx_stage() != TX_STAGE_WORK)
+		return pocli_err(ctx, POCLI_ERR_ARGS,
+			"cannot use in stage different than TX_STAGE_WORK\n");
+
+	PMEMoid *oidp = NULL;
+	enum pocli_ret ret;
+
+	ret = pocli_args_obj(ctx, args, 1, &oidp);
+	if (ret)
+		return ret;
+
+	if (oidp == &ctx->root)
+		return pocli_err(ctx, POCLI_ERR_ARGS,
+					"cannot free root object\n");
+
+	int r = pmemobj_tx_free(*oidp);
+	if (r != POCLI_RET_OK)
+		return pocli_err(ctx, POCLI_ERR_ARGS,
+					"pmemobj_tx_free() failed\n");
+
+	pocli_printf(ctx, "%s(%p): off = 0x%llx uuid = 0x%llx\n",
+				args->argv[0], oidp,
+				oidp->off, oidp->pool_uuid_lo);
+	return ret;
+}
+
+/*
+ * pocli_pmemobj_tx_strdup -- pmemobj_tx_strdup() command
+ */
+static enum pocli_ret
+pocli_pmemobj_tx_strdup(struct pocli_ctx *ctx, struct pocli_args *args)
+{
+	if (args->argc != 4)
+		return POCLI_ERR_ARGS;
+	if (pmemobj_tx_stage() != TX_STAGE_WORK)
+		return pocli_err(ctx, POCLI_ERR_ARGS,
+			"cannot use in stage different than TX_STAGE_WORK\n");
+
+	PMEMoid *oidp = NULL;
+	uint64_t type_num;
+	enum pocli_ret ret;
+	ret = pocli_args_obj(ctx, args, 1, &oidp);
+	if (ret)
+		return ret;
+	if (oidp == &ctx->root)
+		return pocli_err(ctx, POCLI_ERR_ARGS,
+					"cannot use root object\n");
+
+	ret = pocli_args_number(args, 3, &type_num);
+	if (ret)
+		return ret;
+
+	*oidp = pmemobj_tx_strdup(args->argv[2], type_num);
+
+	pocli_printf(ctx, "%s(%s, %llu): off = 0x%llx uuid = 0x%llx\n",
+				args->argv[0], args->argv[2], type_num,
+				oidp->off, oidp->pool_uuid_lo);
+	return ret;
+}
+
+/*
+ * pocli_pmemobj_tx_process -- pmemobj_tx_process() command
+ */
+static enum pocli_ret
+pocli_pmemobj_tx_process(struct pocli_ctx *ctx, struct pocli_args *args)
+{
+	if (args->argc != 1)
+		return POCLI_ERR_ARGS;
+
+	pmemobj_tx_process();
+	pocli_printf(ctx, "%s\n", args->argv[0]);
+	return POCLI_RET_OK;
+}
+
+/*
+ * pocli_pmemobj_tx_errno -- pmemobj_tx_errno() command
+ */
+static enum pocli_ret
+pocli_pmemobj_tx_errno(struct pocli_ctx *ctx, struct pocli_args *args)
+{
+	if (args->argc != 1)
+		return POCLI_ERR_ARGS;
+
+	pocli_printf(ctx, "%s: %d\n", args->argv[0], pmemobj_tx_errno());
+	return POCLI_RET_OK;
 }
 
 /*
@@ -1360,6 +1807,96 @@ static struct pocli_cmd pocli_commands[] = {
 		.func		= pocli_pmemobj_list_move,
 		.usage		= "<obj> <head_src> <head_dest> "
 							"<dest> <before>",
+	},
+	{
+		.name		= "pmemobj_tx_begin",
+		.name_short	= "ptb",
+		.func		= pocli_pmemobj_tx_begin,
+		.usage		= "[<jmp>]",
+	},
+	{
+		.name		= "pmemobj_tx_end",
+		.name_short	= "pte",
+		.func		= pocli_pmemobj_tx_end,
+		.usage		= "",
+	},
+	{
+		.name		= "pmemobj_tx_abort",
+		.name_short	= "ptab",
+		.func		= pocli_pmemobj_tx_abort,
+		.usage		= "<errnum>",
+	},
+	{
+		.name		= "pmemobj_tx_commit",
+		.name_short	= "ptc",
+		.func		= pocli_pmemobj_tx_commit,
+		.usage		= "",
+	},
+	{
+		.name		= "pmemobj_tx_stage",
+		.name_short	= "pts",
+		.func		= pocli_pmemobj_tx_stage,
+		.usage		= "",
+	},
+	{
+		.name		= "pmemobj_tx_add_range",
+		.name_short	= "ptar",
+		.func		= pocli_pmemobj_tx_add_range,
+		.usage		= "<obj> <offset> <size>",
+	},
+	{
+		.name		= "pmemobj_tx_add_range_direct",
+		.name_short	= "ptard",
+		.func		= pocli_pmemobj_tx_add_range_direct,
+		.usage		= "<obj> <offset> <size>",
+	},
+	{
+		.name		= "pmemobj_tx_process",
+		.name_short	= "ptp",
+		.func		= pocli_pmemobj_tx_process,
+		.usage		= "",
+	},
+	{
+		.name		= "pmemobj_tx_alloc",
+		.name_short	= "ptal",
+		.func		= pocli_pmemobj_tx_alloc,
+		.usage		= "<obj> <size> <type_num>",
+	},
+	{
+		.name		= "pmemobj_tx_zalloc",
+		.name_short	= "ptzal",
+		.func		= pocli_pmemobj_tx_zalloc,
+		.usage		= "<obj> <size> <type_num>",
+	},
+	{
+		.name		= "pmemobj_tx_realloc",
+		.name_short	= "ptre",
+		.func		= pocli_pmemobj_tx_realloc,
+		.usage		= "<obj> <size> <type_num>",
+	},
+	{
+		.name		= "pmemobj_tx_zrealloc",
+		.name_short	= "ptzre",
+		.func		= pocli_pmemobj_tx_zrealloc,
+		.usage		= "<obj> <size> <type_num>",
+	},
+	{
+		.name		= "pmemobj_tx_strdup",
+		.name_short	= "ptsd",
+		.func		= pocli_pmemobj_tx_strdup,
+		.usage		= "<obj> <string> <type_num>",
+	},
+	{
+		.name		= "pmemobj_tx_free",
+		.name_short	= "ptf",
+		.func		= pocli_pmemobj_tx_free,
+		.usage		= "<obj>",
+	},
+	{
+		.name		= "pmemobj_tx_errno",
+		.name_short	= "pter",
+		.func		= pocli_pmemobj_tx_errno,
+		.usage		= "",
 	}
 };
 
@@ -1487,7 +2024,13 @@ err_free_pcli:
 static void
 pocli_free(struct pocli *pcli)
 {
+	while (pmemobj_tx_stage() != TX_STAGE_NONE) {
+		while (pmemobj_tx_stage() != TX_STAGE_NONE)
+			pmemobj_tx_process();
+		pmemobj_tx_end();
+	}
 	pmemobj_close(pcli->ctx.pop);
+
 	free(pcli->inbuf);
 	free(pcli);
 }
@@ -1505,7 +2048,7 @@ pocli_prompt(struct pocli *pcli)
 /*
  * pocli_process -- process input commands
  */
-static int
+int
 pocli_process(struct pocli *pcli)
 {
 	while (1) {
@@ -1553,20 +2096,31 @@ pocli_process(struct pocli *pcli)
 		}
 		if (!argstr)
 			argstr = cmds + strlen(pcli->inbuf) + 1;
+
 		struct pocli_args *args = pocli_args_alloc(pcli->inbuf,
 				argstr, POCLI_CMD_DELIM);
 		if (!args)
 			return 1;
-
 		enum pocli_ret ret = cmd->func(&pcli->ctx, args);
-
 		free(args);
-
-		if (ret == POCLI_RET_QUIT)
-			return 0;
 		if (ret != POCLI_RET_OK)
-			return 1;
+			return ret;
+
 	}
+}
+
+/*
+ * pocli_do_process -- process input commands and return value
+ */
+static int
+pocli_do_process(struct pocli *pcli)
+{
+	enum pocli_ret ret = (enum pocli_ret)pocli_process(pcli);
+
+	if (ret == POCLI_RET_QUIT || ret == POCLI_RET_OK)
+		return 0;
+	else
+		return 1;
 }
 
 int
@@ -1613,11 +2167,10 @@ main(int argc, char *argv[])
 		perror("pocli_alloc");
 		return 1;
 	}
-
-	int ret = pocli_process(pcli);
+	int ret = pocli_do_process(pcli);
 
 	pocli_free(pcli);
-
 	fclose(input);
+
 	return ret;
 }
