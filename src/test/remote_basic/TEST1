@@ -32,7 +32,7 @@
 #
 
 #
-# src/test/remote_basic/TEST0 -- unit test for remote tests support
+# src/test/remote_basic/TEST1 -- unit test for remote tests support
 #
 export UNITTEST_NAME=remote_basic/TEST1
 export UNITTEST_NUM=1

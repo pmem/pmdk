@@ -139,7 +139,7 @@ runtest() {
 				then
 					[ "$verbose" ] && echo "RUNTESTS: Running: (in ./$1) TEST=$testtype FS=$fs BUILD=$build ./$runscript"
 					CHECK_TYPE=$checktype CHECK_POOL=$check_pool VERBOSE=$verbose\
-						TEST=$testtype FS=$fs BUILD=$build timeout --foreground $killopt $time ./$runscript
+						TEST=$testtype FS=$fs BUILD=$build timeout --foreground $killopt $RUNTEST_TIMEOUT ./$runscript
 				else
 					[ "$verbose" ] && echo "RUNTESTS: Running: (in ./$1) TEST=$testtype FS=$fs BUILD=$build ./$runscript"
 					CHECK_TYPE=$checktype CHECK_POOL=$check_pool VERBOSE=$verbose\
@@ -182,7 +182,7 @@ testtype=check
 fstype=all
 testconfig="./testconfig.sh"
 killopt="-k 10s"
-time='3m'
+export RUNTEST_TIMEOUT='3m'
 use_timeout="ok"
 testfile=all
 check_pool=0
@@ -324,7 +324,7 @@ do
 		esac
 		;;
 	-o)
-		time="$2"
+		export RUNTEST_TIMEOUT="$2"
 		shift 2
 		;;
 	-s)
