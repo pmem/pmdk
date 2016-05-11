@@ -1284,7 +1284,7 @@ function run_on_node_background() {
 	COMMAND="$COMMAND UNITTEST_QUIET=1"
 	COMMAND="$COMMAND ${NODE_ENV[$N]}"
 	COMMAND="$COMMAND LD_LIBRARY_PATH=.:${NODE_LD_LIBRARY_PATH[$N]}"
-	COMMAND="$COMMAND ./ctrld $PID_FILE run $*"
+	COMMAND="$COMMAND ./ctrld $PID_FILE run $RUNTEST_TIMEOUT $*"
 
 	# register the PID file to be cleaned in case of an error
 	NODE_PID_FILES[$N]="${NODE_PID_FILES[$N]} $PID_FILE"
