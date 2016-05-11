@@ -79,26 +79,22 @@ operation_perform(uint64_t *field, uint64_t value,
 }
 
 /*
- * operation_add_entry -- adds new entry to the current operation
+ * operation_add_typed_entry -- adds new entry to the current operation
  */
-void
-operation_add_entry(struct operation_context *ctx, void *ptr, uint64_t value,
-	enum operation_type type)
+void operation_add_typed_entry(struct operation_context *ctx,
+	void *ptr, uint64_t value,
+	enum operation_type type, enum operation_entry_type en_type)
 {
 	ASSERT(ctx->nentries[ENTRY_PERSISTENT] <= MAX_PERSITENT_ENTRIES);
 	ASSERT(ctx->nentries[ENTRY_TRANSIENT] <= MAX_TRANSIENT_ENTRIES);
-
-	enum operation_entry_type entry_type =
-		OBJ_PTR_IS_VALID(ctx->pop, ptr) ?
-		ENTRY_PERSISTENT : ENTRY_TRANSIENT;
 
 	/* new entry to be added to the operations */
 	struct operation_entry en = {ptr, value, OPERATION_SET};
 
 	if (type == OPERATION_AND || type == OPERATION_OR) {
 		struct operation_entry *e; /* existing entry */
-		for (size_t i = 0; i < ctx->nentries[entry_type]; ++i) {
-			e = &ctx->entries[entry_type][i];
+		for (size_t i = 0; i < ctx->nentries[en_type]; ++i) {
+			e = &ctx->entries[en_type][i];
 			/* update existing and exit, no reason to add new op */
 			if (e->ptr == ptr) {
 				operation_perform(&e->value, value, type);
@@ -113,9 +109,22 @@ operation_add_entry(struct operation_context *ctx, void *ptr, uint64_t value,
 
 	}
 
-	ctx->entries[entry_type][ctx->nentries[entry_type]] = en;
+	ctx->entries[en_type][ctx->nentries[en_type]] = en;
 
-	ctx->nentries[entry_type]++;
+	ctx->nentries[en_type]++;
+}
+
+/*
+ * operation_add_entry -- adds new entry to the current operation with
+ *	entry type autodetected based on the memory location
+ */
+void
+operation_add_entry(struct operation_context *ctx, void *ptr, uint64_t value,
+	enum operation_type type)
+{
+	operation_add_typed_entry(ctx, ptr, value, type,
+		OBJ_PTR_IS_VALID(ctx->pop, ptr) ?
+		ENTRY_PERSISTENT : ENTRY_TRANSIENT);
 }
 
 /*
@@ -153,16 +162,16 @@ operation_process_persistent_redo(struct operation_context *ctx)
 
 /*
  * operation_process -- processes registered operations
+ *
+ * The order of processing is important: persistent, transient.
+ * This is because the transient entries that reside on persistent memory might
+ * require write to a location that is currently occupied by a valid persistent
+ * state but becomes a transient state after operation is processed.
  */
 void
 operation_process(struct operation_context *ctx)
 {
 	struct operation_entry *e;
-
-	for (size_t i = 0; i < ctx->nentries[ENTRY_TRANSIENT]; ++i) {
-		e = &ctx->entries[ENTRY_TRANSIENT][i];
-		*e->ptr = e->value;
-	}
 
 	/*
 	 * If there's exactly one persistent entry there's no need to involve
@@ -180,5 +189,16 @@ operation_process(struct operation_context *ctx)
 		VALGRIND_REMOVE_FROM_TX(e->ptr, sizeof(uint64_t));
 	} else if (ctx->nentries[ENTRY_PERSISTENT] != 0) {
 		operation_process_persistent_redo(ctx);
+	}
+
+	for (size_t i = 0; i < ctx->nentries[ENTRY_TRANSIENT]; ++i) {
+		e = &ctx->entries[ENTRY_TRANSIENT][i];
+		*e->ptr = e->value;
+		/*
+		 * Just in case that the entry was transient but in reality
+		 * the variable is on persistent memory. This is true for
+		 * chunk footers.
+		 */
+		VALGRIND_SET_CLEAN(e->ptr, sizeof(e->value));
 	}
 }

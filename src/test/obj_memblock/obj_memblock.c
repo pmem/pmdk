@@ -49,8 +49,9 @@
 
 static PMEMobjpool *pop;
 
-FUNC_MOCK(operation_add_entry, void, struct operation_context *ctx, void *ptr,
-	uint64_t value, enum operation_type type)
+FUNC_MOCK(operation_add_typed_entry, void, struct operation_context *ctx,
+	void *ptr, uint64_t value,
+	enum operation_type type, enum operation_entry_type en_type)
 	FUNC_MOCK_RUN_DEFAULT {
 		uint64_t *pval = ptr;
 		switch (type) {
@@ -66,6 +67,15 @@ FUNC_MOCK(operation_add_entry, void, struct operation_context *ctx, void *ptr,
 			default:
 				UT_ASSERT(0);
 		}
+	}
+FUNC_MOCK_END
+
+FUNC_MOCK(operation_add_entry, void, struct operation_context *ctx, void *ptr,
+	uint64_t value, enum operation_type type)
+	FUNC_MOCK_RUN_DEFAULT {
+		/* just call the mock above - the entry type doesn't matter */
+		operation_add_typed_entry(ctx, ptr, value, type,
+			ENTRY_TRANSIENT);
 	}
 FUNC_MOCK_END
 

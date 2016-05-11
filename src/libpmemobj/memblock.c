@@ -143,14 +143,15 @@ run_block_offset(struct memory_block *m, PMEMobjpool *pop, void *ptr)
  * chunk_get_chunk_hdr_value -- (internal) get value of a header for redo log
  */
 static uint64_t
-chunk_get_chunk_hdr_value(struct chunk_header hdr, uint16_t type,
-	uint32_t size_idx)
+chunk_get_chunk_hdr_value(uint16_t type, uint32_t size_idx)
 {
 	uint64_t val;
 	COMPILE_ERROR_ON(sizeof(struct chunk_header) != sizeof(uint64_t));
 
+	struct chunk_header hdr;
 	hdr.type = type;
 	hdr.size_idx = size_idx;
+	hdr.flags = 0;
 	memcpy(&val, &hdr, sizeof(val));
 
 	return val;
@@ -171,7 +172,7 @@ huge_prep_operation_hdr(struct memory_block *m, PMEMobjpool *pop,
 	 * Depending on the operation that needs to be performed a new chunk
 	 * header needs to be prepared with the new chunk state.
 	 */
-	uint64_t val = chunk_get_chunk_hdr_value(*hdr,
+	uint64_t val = chunk_get_chunk_hdr_value(
 		op == HDR_OP_ALLOC ? CHUNK_TYPE_USED : CHUNK_TYPE_FREE,
 		m->size_idx);
 
@@ -182,11 +183,28 @@ huge_prep_operation_hdr(struct memory_block *m, PMEMobjpool *pop,
 			sizeof(struct chunk_header));
 
 	/*
-	 * It's safe to write the footer in not failsafe manner because the
-	 * footers are recreated at boot time and the position to which
-	 * the footer will be written is currently unused.
+	 * In the case of chunks larger than one unit the footer must be
+	 * created immediately AFTER the persistent state is safely updated.
 	 */
-	heap_chunk_write_footer(pop, hdr, m->size_idx);
+	if (m->size_idx == 1)
+		return;
+
+	struct chunk_header *footer = hdr + m->size_idx - 1;
+	VALGRIND_DO_MAKE_MEM_UNDEFINED(pop, footer, sizeof(*footer));
+
+	val = chunk_get_chunk_hdr_value(CHUNK_TYPE_FOOTER, m->size_idx);
+
+	/*
+	 * It's only safe to write the footer AFTER the persistent part of
+	 * the operation have been successfully processed because the footer
+	 * pointer might point to a currently valid persistent state
+	 * of a different chunk.
+	 * The footer entry change is updated as transient because it will
+	 * be recreated at heap boot regardless - it's just needed for runtime
+	 * operations.
+	 */
+	operation_add_typed_entry(ctx,
+		footer, val, OPERATION_SET, ENTRY_TRANSIENT);
 }
 
 /*
