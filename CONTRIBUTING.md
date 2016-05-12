@@ -78,6 +78,12 @@ run:
 	$ make format
 ```
 
+There are cases, when you might have several clang-format-X.Y binaries and either
+no clang-format or it pointing to an older version. In such case run:
+```
+	$ make CLANG_FORMAT=/path/to/clang-format cstyle|format
+```
+
 If you are actively working on an NVM Library feature, please let other
 developers know by [creating an issue](https://github.com/pmem/issues/issues).
 Use the label `Type: Feature` and assign it to yourself (due to the way
