@@ -45,6 +45,8 @@ export UNITTEST_NUM=1
 require_fs_type none
 require_build_type nondebug debug
 
+export RPMEM_CMD="echo -n ERROR!=="
+
 setup
 
 expect_normal_exit ./rpmem_obc$EXESUFFIX\

@@ -31,31 +31,17 @@
  */
 
 /*
- * rpmem_obc.h -- rpmem out-of-band connection client header file
+ * rpmem_ssh.h -- rpmem ssh transport layer header file
  */
+#include <stddef.h>
 
-#include <sys/types.h>
-#include <sys/socket.h>
+struct rpmem_ssh;
 
-#include "librpmem.h"
+struct rpmem_ssh *rpmem_ssh_open(const char *node, const char *service);
+int rpmem_ssh_close(struct rpmem_ssh *rps);
 
-struct rpmem_obc;
+int rpmem_ssh_send(struct rpmem_ssh *rps, const void *buff, size_t len);
+int rpmem_ssh_recv(struct rpmem_ssh *rps, void *buff, size_t len);
+int rpmem_ssh_monitor(struct rpmem_ssh *rps, int nonblock);
 
-struct rpmem_obc *rpmem_obc_init(void);
-void rpmem_obc_fini(struct rpmem_obc *rpc);
-
-int rpmem_obc_connect(struct rpmem_obc *rpc, const char *target);
-int rpmem_obc_disconnect(struct rpmem_obc *rpc);
-
-int rpmem_obc_monitor(struct rpmem_obc *rpc, int nonblock);
-
-int rpmem_obc_create(struct rpmem_obc *rpc,
-		const struct rpmem_req_attr *req,
-		struct rpmem_resp_attr *res,
-		const struct rpmem_pool_attr *pool_attr);
-int rpmem_obc_open(struct rpmem_obc *rpc,
-		const struct rpmem_req_attr *req,
-		struct rpmem_resp_attr *res,
-		struct rpmem_pool_attr *pool_attr);
-int rpmem_obc_remove(struct rpmem_obc *rpc, const char *pool_desc);
-int rpmem_obc_close(struct rpmem_obc *rpc);
+const char *rpmem_ssh_strerror(struct rpmem_ssh *rps);

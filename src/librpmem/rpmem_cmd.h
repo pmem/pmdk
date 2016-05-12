@@ -31,31 +31,25 @@
  */
 
 /*
- * rpmem_obc.h -- rpmem out-of-band connection client header file
+ * rpmem_cmd.h -- helper module for invoking separate process
  */
 
 #include <sys/types.h>
-#include <sys/socket.h>
 
-#include "librpmem.h"
+struct rpmem_cmd {
+	int fd_in;	/* stdin */
+	int fd_out;	/* stdout */
+	int fd_err;	/* stderr */
+	struct {
+		char **argv;
+		int argc;
+	} args;		/* command arguments */
+	pid_t pid;	/* pid of process */
+};
 
-struct rpmem_obc;
-
-struct rpmem_obc *rpmem_obc_init(void);
-void rpmem_obc_fini(struct rpmem_obc *rpc);
-
-int rpmem_obc_connect(struct rpmem_obc *rpc, const char *target);
-int rpmem_obc_disconnect(struct rpmem_obc *rpc);
-
-int rpmem_obc_monitor(struct rpmem_obc *rpc, int nonblock);
-
-int rpmem_obc_create(struct rpmem_obc *rpc,
-		const struct rpmem_req_attr *req,
-		struct rpmem_resp_attr *res,
-		const struct rpmem_pool_attr *pool_attr);
-int rpmem_obc_open(struct rpmem_obc *rpc,
-		const struct rpmem_req_attr *req,
-		struct rpmem_resp_attr *res,
-		struct rpmem_pool_attr *pool_attr);
-int rpmem_obc_remove(struct rpmem_obc *rpc, const char *pool_desc);
-int rpmem_obc_close(struct rpmem_obc *rpc);
+struct rpmem_cmd *rpmem_cmd_init(void);
+int rpmem_cmd_push(struct rpmem_cmd *cmd, const char *arg);
+int rpmem_cmd_run(struct rpmem_cmd *cmd);
+int rpmem_cmd_term(struct rpmem_cmd *cmd);
+int rpmem_cmd_wait(struct rpmem_cmd *cmd, int *status);
+void rpmem_cmd_fini(struct rpmem_cmd *cmd);
