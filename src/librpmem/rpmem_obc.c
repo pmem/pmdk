@@ -49,6 +49,7 @@
 #include "rpmem_obc.h"
 #include "rpmem_proto.h"
 #include "rpmem_util.h"
+#include "rpmem_ssh.h"
 #include "out.h"
 #include "util.h"
 #include "sys_util.h"
@@ -59,10 +60,8 @@
 struct rpmem_obc {
 	char *node;		/* target node */
 	char *service;		/* target node service */
-	struct sockaddr_in addr;
-	socklen_t addr_len;
 
-	int sockfd;		/* socket connection */
+	struct rpmem_ssh *ssh;
 };
 
 /*
@@ -72,7 +71,7 @@ struct rpmem_obc {
 static inline int
 rpmem_obc_is_connected(struct rpmem_obc *rpc)
 {
-	return rpc->sockfd != -1;
+	return rpc->ssh != NULL;
 }
 
 /*
@@ -105,6 +104,9 @@ rpmem_obc_check_ibc_attr(struct rpmem_msg_ibc_attr *ibc)
 static int
 rpmem_obc_check_port(struct rpmem_obc *rpc)
 {
+	if (!rpc->service)
+		return 0;
+
 	if (*rpc->service == '\0') {
 		ERR("invalid port number -- '%s'", rpc->service);
 		goto err;
@@ -140,8 +142,9 @@ err:
 static void
 rpmem_obc_close_conn(struct rpmem_obc *rpc)
 {
-	close(rpc->sockfd);
-	rpc->sockfd = -1;
+	rpmem_ssh_close(rpc->ssh);
+
+	rpc->ssh = NULL;
 	free(rpc->node);
 	rpc->node = NULL;
 }
@@ -385,8 +388,6 @@ rpmem_obc_init(void)
 		return NULL;
 	}
 
-	rpc->sockfd = -1;
-
 	return rpc;
 }
 
@@ -432,87 +433,24 @@ rpmem_obc_connect(struct rpmem_obc *rpc, const char *target)
 		rpc->service = colon + 1;
 		*colon = '\0';
 	} else {
-		rpc->service = RPMEM_SERVICE;
+		rpc->service = NULL;
 	}
 
 	if (rpmem_obc_check_port(rpc))
 		goto err_port;
 
-	struct addrinfo *addrinfo;
-	struct addrinfo hints;
-	memset(&hints, 0, sizeof(hints));
-	hints.ai_family = AF_INET;
-	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_protocol = 0;
-	int ret = getaddrinfo(rpc->node, rpc->service, &hints, &addrinfo);
-	if (ret) {
-		if (ret == EAI_SYSTEM) {
-			ERR("!%s:%s", rpc->node, rpc->service);
-		} else {
-			ERR("%s:%s: %s", rpc->node, rpc->service,
-					gai_strerror(ret));
-		}
-
-		goto err_getaddrinfo;
-	}
-
-	for (struct addrinfo *ai = addrinfo; ai; ai = ai->ai_next) {
-		rpc->sockfd = socket(ai->ai_family, ai->ai_socktype,
-				ai->ai_protocol);
-
-		if (rpc->sockfd == -1)
-			continue;
-
-		if (connect(rpc->sockfd, ai->ai_addr, ai->ai_addrlen) != -1) {
-			/* connection succeeded */
-			memcpy(&rpc->addr, ai->ai_addr, ai->ai_addrlen);
-			break;
-		}
-
-		close(rpc->sockfd);
-		rpc->sockfd = -1;
-	}
-
-	freeaddrinfo(addrinfo);
-
-	if (rpc->sockfd == -1) {
-		ERR("!%s:%s", rpc->node, rpc->service);
-		goto err_connect;
-	}
-
-	if (rpmem_obc_keepalive(rpc->sockfd)) {
-		ERR("!enabling TCP keepalive failed");
-		goto err_keepalive;
-	}
+	rpc->ssh = rpmem_ssh_open(rpc->node, rpc->service);
+	if (!rpc->ssh)
+		goto err_ssh_open;
 
 	return 0;
-err_keepalive:
-	close(rpc->sockfd);
-	rpc->sockfd = -1;
-err_connect:
-err_getaddrinfo:
+err_ssh_open:
 err_port:
 	free(rpc->node);
 	rpc->node = NULL;
 err_strdup:
 err_notconnected:
 	return -1;
-}
-
-/*
- * rpmem_obc_get_addr -- get target address
- */
-int
-rpmem_obc_get_addr(struct rpmem_obc *rpc,
-	struct sockaddr *addr, socklen_t *addrlen)
-{
-	if (rpmem_obc_is_connected(rpc))
-		return -1;
-
-	*addrlen = rpc->addr_len;
-	memcpy(addr, &rpc->addr, rpc->addr_len);
-
-	return 0;
 }
 
 /*
@@ -558,31 +496,9 @@ rpmem_obc_monitor(struct rpmem_obc *rpc, int nonblock)
 	if (!rpmem_obc_is_connected(rpc))
 		return 0;
 
-	int ret;
-	uint32_t buff;
-	int flags = MSG_PEEK;
-	if (nonblock)
-		flags |= MSG_DONTWAIT;
-
-	ssize_t sret = recv(rpc->sockfd, &buff, sizeof(buff), flags);
-	if (sret > 0) {
-		RPMEM_LOG(ERR, "unexpected data received");
-		errno = EPROTO;
+	int ret = rpmem_ssh_monitor(rpc->ssh, nonblock);
+	if (ret != 1)
 		rpmem_obc_close_conn(rpc);
-		ret = -1;
-	} else if (sret < 0) {
-		if (errno == EAGAIN || errno == EWOULDBLOCK) {
-			ret = 1;
-		} else {
-			RPMEM_LOG(ERR, "!recv");
-			rpmem_obc_close_conn(rpc);
-			ret = -1;
-		}
-	} else {
-		RPMEM_LOG(INFO, "connection closed");
-		rpmem_obc_close_conn(rpc);
-		ret = 0;
-	}
 
 	return ret;
 }
@@ -614,14 +530,14 @@ rpmem_obc_create(struct rpmem_obc *rpc,
 		goto err_alloc_msg;
 
 	rpmem_hton_msg_create(msg);
-
-	if (rpmem_obc_send(rpc->sockfd, msg, msg_size)) {
+	if (rpmem_ssh_send(rpc->ssh, msg, msg_size)) {
 		RPMEM_LOG(ERR, "!sending create request message failed");
 		goto err_msg_send;
 	}
 
 	struct rpmem_msg_create_resp resp;
-	if (rpmem_obc_recv(rpc->sockfd, &resp,
+
+	if (rpmem_ssh_recv(rpc->ssh, &resp,
 			sizeof(resp))) {
 		RPMEM_LOG(ERR, "!receiving create request response failed");
 		goto err_msg_recv;
@@ -673,13 +589,13 @@ rpmem_obc_open(struct rpmem_obc *rpc,
 
 	rpmem_hton_msg_open(msg);
 
-	if (rpmem_obc_send(rpc->sockfd, msg, msg_size)) {
+	if (rpmem_ssh_send(rpc->ssh, msg, msg_size)) {
 		RPMEM_LOG(ERR, "!sending open request message failed");
 		goto err_msg_send;
 	}
 
 	struct rpmem_msg_open_resp resp;
-	if (rpmem_obc_recv(rpc->sockfd, &resp, sizeof(resp))) {
+	if (rpmem_ssh_recv(rpc->ssh, &resp, sizeof(resp))) {
 		RPMEM_LOG(ERR, "!receiving open request response failed");
 		goto err_msg_recv;
 	}
@@ -725,13 +641,13 @@ rpmem_obc_remove(struct rpmem_obc *rpc, const char *pool_desc)
 
 	rpmem_hton_msg_remove(msg);
 
-	if (rpmem_obc_send(rpc->sockfd, msg, msg_size)) {
+	if (rpmem_ssh_send(rpc->ssh, msg, msg_size)) {
 		RPMEM_LOG(ERR, "!sending remove request message failed");
 		goto err_msg_send;
 	}
 
 	struct rpmem_msg_remove_resp resp;
-	if (rpmem_obc_recv(rpc->sockfd, &resp, sizeof(resp))) {
+	if (rpmem_ssh_recv(rpc->ssh, &resp, sizeof(resp))) {
 		RPMEM_LOG(ERR, "!receiving remove request response failed");
 		goto err_msg_recv;
 	}
@@ -775,13 +691,13 @@ rpmem_obc_close(struct rpmem_obc *rpc)
 
 	rpmem_hton_msg_close(&msg);
 
-	if (rpmem_obc_send(rpc->sockfd, &msg, sizeof(msg))) {
+	if (rpmem_ssh_send(rpc->ssh, &msg, sizeof(msg))) {
 		RPMEM_LOG(ERR, "!sending create request failed");
 		return -1;
 	}
 
 	struct rpmem_msg_close_resp resp;
-	if (rpmem_obc_recv(rpc->sockfd, &resp,
+	if (rpmem_ssh_recv(rpc->ssh, &resp,
 			sizeof(resp))) {
 		RPMEM_LOG(ERR, "!receiving create request response failed");
 		return -1;

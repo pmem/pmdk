@@ -45,6 +45,7 @@
 #include "rpmem_obc.h"
 #include "rpmemd_obc.h"
 #include "rpmemd_log.h"
+#include "base64.h"
 
 #define POOL_SIZE	1024
 #define NLANES		32
@@ -94,10 +95,7 @@
 TEST_CASE_DECLARE(client_create);
 TEST_CASE_DECLARE(client_open);
 TEST_CASE_DECLARE(client_remove);
-TEST_CASE_DECLARE(server_sim);
-TEST_CASE_DECLARE(server_seq);
-
-#define NCLIENTS 3
+TEST_CASE_DECLARE(server);
 
 /*
  * client_create -- perform create request
@@ -241,7 +239,7 @@ struct req_arg {
  * req_create -- process create request
  */
 static int
-req_create(struct rpmemd_obc_client *client, void *arg,
+req_create(struct rpmemd_obc *obc, void *arg,
 	const struct rpmem_req_attr *req,
 	const struct rpmem_pool_attr *pool_attr)
 {
@@ -256,14 +254,14 @@ req_create(struct rpmemd_obc_client *client, void *arg,
 
 	struct req_arg *args = arg;
 
-	return rpmemd_obc_client_create_resp(client, 0, &args->resp);
+	return rpmemd_obc_create_resp(obc, 0, &args->resp);
 }
 
 /*
  * req_open -- process open request
  */
 static int
-req_open(struct rpmemd_obc_client *client, void *arg,
+req_open(struct rpmemd_obc *obc, void *arg,
 	const struct rpmem_req_attr *req)
 {
 	struct rpmem_req_attr ex_req = REQ_ATTR_INIT;
@@ -275,7 +273,7 @@ req_open(struct rpmemd_obc_client *client, void *arg,
 
 	struct req_arg *args = arg;
 
-	return rpmemd_obc_client_open_resp(client, 0,
+	return rpmemd_obc_open_resp(obc, 0,
 			&args->resp, &args->pool_attr);
 }
 
@@ -283,21 +281,21 @@ req_open(struct rpmemd_obc_client *client, void *arg,
  * req_close -- process close request
  */
 static int
-req_close(struct rpmemd_obc_client *client, void *arg)
+req_close(struct rpmemd_obc *obc, void *arg)
 {
 	UT_ASSERTne(arg, NULL);
 
 	struct req_arg *args = arg;
 	args->closing = 1;
 
-	return rpmemd_obc_client_close_resp(client, 0);
+	return rpmemd_obc_close_resp(obc, 0);
 }
 
 /*
  * req_remove -- process remove request
  */
 static int
-req_remove(struct rpmemd_obc_client *client, void *arg,
+req_remove(struct rpmemd_obc *obc, void *arg,
 	const char *pool_desc)
 {
 	UT_ASSERTne(arg, NULL);
@@ -306,13 +304,13 @@ req_remove(struct rpmemd_obc_client *client, void *arg,
 	struct req_arg *args = arg;
 	args->closing = 1;
 
-	return rpmemd_obc_client_remove_resp(client, 0);
+	return rpmemd_obc_remove_resp(obc, 0);
 }
 
 /*
  * REQ -- server request callbacks
  */
-struct rpmemd_obc_client_requests REQ = {
+struct rpmemd_obc_requests REQ = {
 	.create = req_create,
 	.open = req_open,
 	.close = req_close,
@@ -320,17 +318,12 @@ struct rpmemd_obc_client_requests REQ = {
 };
 
 /*
- * server_seq -- run server and process clients requests sequentially,
- * each client in separate process
+ * server -- run server and process clients requests
  */
 void
-server_seq(const struct test_case *tc, int argc, char *argv[])
+server(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc != 2)
-		UT_FATAL("usage: %s <addr> <port>", tc->name);
-
-	char *node = argv[0];
-	char *service = argv[1];
+	int ret;
 
 	struct req_arg arg = {
 		.resp = RESP_ATTR_INIT,
@@ -338,130 +331,35 @@ server_seq(const struct test_case *tc, int argc, char *argv[])
 		.closing = 0,
 	};
 
-	int ret;
-	struct rpmemd_obc *rpdc;
-	struct rpmemd_obc_client *client;
+	struct rpmemd_obc *obc;
 
-	rpdc = rpmemd_obc_init();
-	UT_ASSERTne(rpdc, NULL);
+	obc = rpmemd_obc_init(0, 1);
+	UT_ASSERTne(obc, NULL);
 
-	ret = rpmemd_obc_listen(rpdc, NCLIENTS, node, service);
+	ret = rpmemd_obc_status(obc, 0);
 	UT_ASSERTeq(ret, 0);
 
-	for (int i = 0; i < NCLIENTS; i++) {
-		arg.closing = 0;
 
-		client = rpmemd_obc_accept(rpdc);
-		UT_ASSERTne(client, NULL);
-
-		while (rpmemd_obc_client_is_connected(client)) {
-			ret = rpmemd_obc_client_process(client, &REQ, &arg);
-			if (arg.closing) {
-				break;
-			} else {
-				UT_ASSERTeq(ret, 0);
-			}
-		}
-
-		ret = rpmemd_obc_client_process(client, &REQ, &arg);
-		UT_ASSERTeq(ret, 1);
-		rpmemd_obc_client_close(client);
-
-		rpmemd_obc_client_fini(client);
-	}
-
-	ret = rpmemd_obc_close(rpdc);
-	UT_ASSERTeq(ret, 0);
-
-	rpmemd_obc_fini(rpdc);
-}
-
-/*
- * server_sim -- run server and process clients requests simultaneously,
- * each client in separate process
- */
-void
-server_sim(const struct test_case *tc, int argc, char *argv[])
-{
-	if (argc != 2)
-		UT_FATAL("usage: %s <addr> <port>", tc->name);
-
-	char *node = argv[0];
-	char *service = argv[1];
-
-	struct req_arg arg = {
-		.resp = RESP_ATTR_INIT,
-		.pool_attr = POOL_ATTR_INIT,
-		.closing = 0,
-	};
-
-	pid_t child[NCLIENTS];
-	int ret;
-	struct rpmemd_obc *rpdc;
-	struct rpmemd_obc_client *client;
-
-	rpdc = rpmemd_obc_init();
-	UT_ASSERTne(rpdc, NULL);
-
-	ret = rpmemd_obc_listen(rpdc, NCLIENTS, node, service);
-	UT_ASSERTeq(ret, 0);
-
-	for (int i = 0; i < NCLIENTS; i++) {
-		client = rpmemd_obc_accept(rpdc);
-		UT_ASSERTne(client, NULL);
-
-		pid_t pid = fork();
-		UT_ASSERTne(pid, -1);
-
-		if (!pid) {
-			ret = rpmemd_obc_close(rpdc);
+	while (1) {
+		ret = rpmemd_obc_process(obc, &REQ, &arg);
+		if (arg.closing) {
+			break;
+		} else {
 			UT_ASSERTeq(ret, 0);
-			rpmemd_obc_fini(rpdc);
-
-			while (rpmemd_obc_client_is_connected(client)) {
-				ret = rpmemd_obc_client_process(client,
-						&REQ, &arg);
-				if (arg.closing) {
-					break;
-				} else {
-					UT_ASSERTeq(ret, 0);
-				}
-			}
-
-			ret = rpmemd_obc_client_process(client, &REQ, &arg);
-			UT_ASSERTeq(ret, 1);
-			rpmemd_obc_client_close(client);
-
-			exit(0);
 		}
-
-		ret = rpmemd_obc_client_close(client);
-		UT_ASSERTeq(ret, 0);
-
-		rpmemd_obc_client_fini(client);
-
-		child[i] = pid;
 	}
 
-	ret = rpmemd_obc_close(rpdc);
-	UT_ASSERTeq(ret, 0);
+	ret = rpmemd_obc_process(obc, &REQ, &arg);
+	UT_ASSERTeq(ret, 1);
 
-	rpmemd_obc_fini(rpdc);
-
-	for (int i = 0; i < NCLIENTS; i++) {
-		int ret;
-		pid_t pid = waitpid(child[i], &ret, 0);
-		UT_ASSERTeq(pid, child[i]);
-		UT_ASSERTeq(ret, 0);
-	}
+	rpmemd_obc_fini(obc);
 }
 
 /*
  * test_cases -- available test cases
  */
 static struct test_case test_cases[] = {
-	TEST_CASE(server_sim),
-	TEST_CASE(server_seq),
+	TEST_CASE(server),
 	TEST_CASE(client_create),
 	TEST_CASE(client_open),
 	TEST_CASE(client_remove),
@@ -472,6 +370,7 @@ static struct test_case test_cases[] = {
 int
 main(int argc, char *argv[])
 {
+	base64_init();
 	START(argc, argv, "rpmem_obc");
 	out_init("rpmem_fip",
 		"RPMEM_LOG_LEVEL",

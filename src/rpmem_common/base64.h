@@ -31,31 +31,16 @@
  */
 
 /*
- * rpmem_obc.h -- rpmem out-of-band connection client header file
+ * base64.h -- base64 header file
  */
 
-#include <sys/types.h>
-#include <sys/socket.h>
+#include <stddef.h>
+#include <stdint.h>
 
-#include "librpmem.h"
+void base64_init(void);
+uint8_t *base64_buff(size_t len, size_t *out_len);
 
-struct rpmem_obc;
-
-struct rpmem_obc *rpmem_obc_init(void);
-void rpmem_obc_fini(struct rpmem_obc *rpc);
-
-int rpmem_obc_connect(struct rpmem_obc *rpc, const char *target);
-int rpmem_obc_disconnect(struct rpmem_obc *rpc);
-
-int rpmem_obc_monitor(struct rpmem_obc *rpc, int nonblock);
-
-int rpmem_obc_create(struct rpmem_obc *rpc,
-		const struct rpmem_req_attr *req,
-		struct rpmem_resp_attr *res,
-		const struct rpmem_pool_attr *pool_attr);
-int rpmem_obc_open(struct rpmem_obc *rpc,
-		const struct rpmem_req_attr *req,
-		struct rpmem_resp_attr *res,
-		struct rpmem_pool_attr *pool_attr);
-int rpmem_obc_remove(struct rpmem_obc *rpc, const char *pool_desc);
-int rpmem_obc_close(struct rpmem_obc *rpc);
+int base64_encode(const uint8_t *in, size_t in_len, uint8_t *out,
+		size_t out_len);
+int base64_decode(const uint8_t *in, size_t in_len, uint8_t *out,
+		size_t out_len);

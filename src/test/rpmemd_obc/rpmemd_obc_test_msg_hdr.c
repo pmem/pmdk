@@ -53,8 +53,10 @@ client_bad_msg_hdr(const struct test_case *tc, int argc, char *argv[])
 
 	char *target = argv[0];
 
+	set_rpmem_cmd("server_bad_msg");
+
 	for (int i = 0; i < BAD_MSG_HDR_COUNT; i++) {
-		int fd = clnt_connect_wait(target);
+		struct rpmem_ssh *ssh = clnt_connect(target);
 
 		struct rpmem_msg_hdr msg = MSG_HDR;
 
@@ -86,37 +88,8 @@ client_bad_msg_hdr(const struct test_case *tc, int argc, char *argv[])
 
 		rpmem_hton_msg_hdr(&msg);
 
-		clnt_send(fd, &msg, sizeof(msg));
-		clnt_wait_disconnect(fd);
-		clnt_close(fd);
+		clnt_send(ssh, &msg, sizeof(msg));
+		clnt_wait_disconnect(ssh);
+		clnt_close(ssh);
 	}
-}
-
-/*
- * server_bad_msg_hdr -- test case for checking message header
- */
-void
-server_bad_msg_hdr(const struct test_case *tc, int argc, char *argv[])
-{
-	if (argc != 2)
-		UT_FATAL("usage: %s <addr> <port>", tc->name);
-
-	char *node = argv[0];
-	char *service = argv[1];
-
-	struct rpmemd_obc *rpdc;
-	int ret;
-
-	rpdc = rpmemd_obc_init();
-	UT_ASSERTne(rpdc, NULL);
-
-	ret = rpmemd_obc_listen(rpdc, 1, node, service);
-	UT_ASSERTeq(ret, 0);
-
-	server_bad_msg(rpdc, BAD_MSG_HDR_COUNT);
-
-	ret = rpmemd_obc_close(rpdc);
-	UT_ASSERTeq(ret, 0);
-
-	rpmemd_obc_fini(rpdc);
 }
