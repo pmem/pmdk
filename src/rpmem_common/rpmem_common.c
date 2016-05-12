@@ -49,99 +49,112 @@
 #include "rpmem_common.h"
 #include "rpmem_proto.h"
 #include "rpmem_common_log.h"
+#include "base64.h"
 
 /*
- * rpmem_obc_send -- (internal) send a message
+ * rpmem_xwrite -- send entire buffer or fail
  *
- * Return values:
- * 0   - successfully written all bytes
- * < 0 - error or connection closed
+ * Returns 1 if send returned 0.
  */
 int
-rpmem_obc_send(int sockfd, const void *buf, size_t len)
+rpmem_xwrite(int fd, const void *buf, size_t len, int flags)
 {
 	size_t wr = 0;
 	const uint8_t *cbuf = buf;
 	while (wr < len) {
-		ssize_t ret = write(sockfd, &cbuf[wr], len - wr);
-		if (ret == 0) {
-			RPMEMC_LOG(ERR, "!write");
-			errno = ECONNRESET;
-			return -1;
-		}
+		ssize_t sret;
+		if (!flags)
+			sret = write(fd, &cbuf[wr], len - wr);
+		else
+			sret = send(fd, &cbuf[wr], len - wr, flags);
 
-		if (ret < 0)
-			return (int)ret;
+		if (sret == 0)
+			return 1;
 
-		wr += (size_t)ret;
+		if (sret < 0)
+			return (int)sret;
+
+		wr += (size_t)sret;
 	}
 
 	return 0;
 }
 
 /*
- * rpmem_obc_recv -- (internal) receive a message
+ * rpmem_xread -- read entire buffer or fail
  *
- * Return values:
- * 0   - successfully read all data
- * < 0 - error
- * 1   - connection closed
+ * Returns 1 if recv returned 0.
  */
 int
-rpmem_obc_recv(int sockfd, void *buf, size_t len)
+rpmem_xread(int fd, void *buf, size_t len, int flags)
 {
 	size_t rd = 0;
 	uint8_t *cbuf = buf;
 	while (rd < len) {
-		ssize_t ret = read(sockfd, &cbuf[rd], len - rd);
-		if (ret == 0) {
-			errno = ECONNRESET;
+		ssize_t sret;
+
+		if (!flags)
+			sret = read(fd, &cbuf[rd], len - rd);
+		else
+			sret = recv(fd, &cbuf[rd], len - rd, flags);
+
+		if (sret == 0)
 			return 1;
-		}
 
-		if (ret < 0) {
-			RPMEMC_LOG(ERR, "!read");
-			return (int)ret;
-		}
+		if (sret < 0)
+			return (int)sret;
 
-		rd += (size_t)ret;
+		rd += (size_t)sret;
 	}
 
 	return 0;
 }
 
 /*
- * rpmem_obc_keepalive -- activate TCP keepalive
+ * rpmemd_b64_read -- read entire buffer or fail, decode using base64
  */
 int
-rpmem_obc_keepalive(int fd)
+rpmem_b64_read(int fd, void *buff, size_t len, int flags)
 {
 	int ret;
-	int optval = 1;
-	socklen_t optlen = sizeof(optval);
 
-	ret = setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &optval, optlen);
-	if (ret) {
-		RPMEMC_LOG(ERR, "!setsockopt(SO_KEEPALIVE)");
-		return ret;
-	}
+	size_t b64_len;
+	void *b64_buff = base64_buff(len, &b64_len);
+	if (!b64_buff)
+		return -1;
 
-	optval = RPMEM_TCP_KEEPIDLE;
-	ret = setsockopt(fd, SOL_TCP, TCP_KEEPIDLE, &optval, optlen);
-	if (ret) {
-		RPMEMC_LOG(ERR, "!setsockopt(TC_KEEPIDLE)");
-		return ret;
-	}
+	ret = rpmem_xread(fd, b64_buff, b64_len, flags);
+	if (!ret)
+		ret = base64_decode(b64_buff, b64_len, buff, len);
 
-	optval = RPMEM_TCP_KEEPINTVL;
-	ret = setsockopt(fd, SOL_TCP, TCP_KEEPINTVL, &optval, optlen);
-	if (ret) {
-		RPMEMC_LOG(ERR, "!setsockopt(TC_KEEPINTVL)");
-		return ret;
-	}
+	free(b64_buff);
 
-	return 0;
+	return ret;
 }
+
+/*
+ * rpmemd_b64_write -- write entire buffer or fail, encode using base64
+ */
+int
+rpmem_b64_write(int fd, const void *buff, size_t len, int flags)
+{
+	int ret;
+
+	size_t b64_len;
+	void *b64_buff = base64_buff(len, &b64_len);
+	if (!b64_buff)
+		return -1;
+	ret = base64_encode(buff, len, b64_buff, b64_len);
+	if (ret)
+		return ret;
+
+	ret = rpmem_xwrite(fd, b64_buff, b64_len, flags);
+
+	free(b64_buff);
+
+	return ret;
+}
+
 
 static const char *provider2str[MAX_RPMEM_PROV] = {
 	[RPMEM_PROV_LIBFABRIC_VERBS] = "verbs",
