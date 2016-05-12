@@ -43,12 +43,12 @@ export UNITTEST_NUM=2
 
 setup
 
-rm -f	stdout$UNITTEST_NUM.log\
+rm -f	stderr$UNITTEST_NUM.log\
 	logfile$UNITTEST_NUM.log\
 	syslog$UNITTEST_NUM.log
 
 expect_abnormal_exit ./rpmemd_dbg\
-	assert stdout stdout$UNITTEST_NUM.log
+	assert stderr stderr$UNITTEST_NUM.log
 
 expect_abnormal_exit ./rpmemd_dbg\
 	assert file logfile$UNITTEST_NUM.log
