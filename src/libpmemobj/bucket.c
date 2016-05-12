@@ -35,6 +35,11 @@
  *
  * Buckets manage volatile state of the heap. They are the abstraction layer
  * between the heap-managed chunks/runs and memory allocations.
+ *
+ * Each bucket instance can have a different underlying container that is
+ * responsible for selecting blocks - which means that whether the allocator
+ * serves memory blocks in best/first/next -fit manner is decided during bucket
+ * creation.
  */
 
 #include <errno.h>
@@ -106,6 +111,18 @@ static int
 bucket_tree_insert_block(struct block_container *bc, PMEMobjpool *pop,
 	struct memory_block m)
 {
+	/*
+	 * Even though the memory block representation of an object uses
+	 * relatively large types in practise the entire memory block structure
+	 * needs to fit in a single 64 bit value - the type of the key in the
+	 * container tree.
+	 * Given those limitations a reasonable idea might be to make the
+	 * memory_block structure be the size of single uint64_t, which would
+	 * work for now, but if someday someone decides there's a need for
+	 * larger objects the current implementation would allow them to simply
+	 * replace this container instead of making little changes all over
+	 * the heap code.
+	 */
 	ASSERT(m.chunk_id < MAX_CHUNK);
 	ASSERT(m.zone_id < UINT16_MAX);
 	ASSERTne(m.size_idx, 0);
@@ -188,6 +205,14 @@ bucket_tree_is_empty(struct block_container *bc)
 	return ctree_is_empty(c->tree);
 }
 
+/*
+ * Tree-based block container used to provide best-fit functionality to the
+ * bucket. The time complexity for this particular container is O(k) where k is
+ * the length of the key.
+ *
+ * The get methods also guarantee that the block with lowest possible address
+ * that best matches the requirements is provided.
+ */
 static struct block_container_ops container_ctree_ops = {
 	.insert = bucket_tree_insert_block,
 	.get_rm_exact = bucket_tree_get_rm_block_exact,
@@ -244,6 +269,15 @@ static struct {
 
 /*
  * bucket_run_create -- (internal) creates a run bucket
+ *
+ * This type of bucket is responsible for holding memory blocks from runs, which
+ * means that each object it contains has a representation in a bitmap.
+ *
+ * The run buckets also contain the detailed information about the bitmap
+ * all of the memory blocks contained within this container must be
+ * represented by. This is not to say that a single bucket contains objects
+ * only from a single chunk/bitmap - a bucket contains objects from a single
+ * TYPE of bitmap run.
  */
 static struct bucket *
 bucket_run_create(size_t unit_size, unsigned unit_max)
@@ -255,9 +289,20 @@ bucket_run_create(size_t unit_size, unsigned unit_max)
 	b->super.type = BUCKET_RUN;
 	b->unit_max = unit_max;
 
+	/*
+	 * Here the bitmap definition is calculated based on the size of the
+	 * available memory and the size of a memory block - the result of
+	 * divding those two numbers is the number of possible allocations from
+	 * that block, and in other words, the amount of bits in the bitmap.
+	 */
 	ASSERT(RUN_NALLOCS(unit_size) <= UINT32_MAX);
 	b->bitmap_nallocs = (unsigned)(RUN_NALLOCS(unit_size));
 
+	/*
+	 * The two other numbers that define our bitmap is the size of the
+	 * array that represents the bitmap and the last value of that array
+	 * with the bits that exceed number of blocks marked as set (1).
+	 */
 	ASSERT(b->bitmap_nallocs <= RUN_BITMAP_SIZE);
 	unsigned unused_bits = RUN_BITMAP_SIZE - b->bitmap_nallocs;
 
@@ -278,6 +323,10 @@ bucket_run_create(size_t unit_size, unsigned unit_max)
 
 /*
  * bucket_huge_create -- (internal) creates a huge bucket
+ *
+ * Huge bucket contains chunks with either free or used types. The only reason
+ * there's a separate huge data structure is the bitmap information that is
+ * required for runs and is not relevant for huge chunks.
  */
 static struct bucket *
 bucket_huge_create(size_t unit_size, unsigned unit_max)
@@ -310,8 +359,9 @@ static struct {
 };
 
 /*
- * bucket_calc_units -- (internal) calculates the number of units requested
- *	size requires
+ * bucket_calc_units -- (internal) calculates the size index of a memory block
+ *	whose size in bytes is equal or exceeds the value 'size' provided
+ *	by the caller.
  */
 static uint32_t
 bucket_calc_units(struct bucket *b, size_t size)
