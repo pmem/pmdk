@@ -44,12 +44,12 @@
 
 #include "list.hpp"
 
-class Element;
+class board_element;
 
 enum direction { UNDEFINED, DOWN, RIGHT, UP, LEFT };
 enum object_type { SNAKE_SEGMENT, WALL, FOOD };
 enum config_file_symbol { SYM_NOTHING = '0', SYM_WALL = '1' };
-enum state { STATE_NEW, STATE_PLAY, STATE_GAMEOVER };
+enum play_state { STATE_NEW, STATE_PLAY, STATE_GAMEOVER };
 
 enum snake_event {
 	EV_OK,
@@ -61,182 +61,182 @@ enum action {
 	ACTION_QUIT = 'q'
 };
 
-typedef nvml::obj::persistent_ptr<examples::list<Element>> element_list;
+typedef nvml::obj::persistent_ptr<examples::list<board_element>> element_list;
 
-struct ColorPair {
-	ColorPair();
-	ColorPair(const int aColFg, const int aColBg);
-	int colorBg;
-	int colorFg;
+struct color_pair {
+	color_pair();
+	color_pair(const int col_fg, const int col_bg);
+	int color_bg;
+	int color_fg;
 };
 
-struct Params {
+struct parameters {
 	bool use_maze;
 	std::string name;
 	std::string maze_path;
 };
 
-class Helper {
+class helper {
 public:
-	static ColorPair getColor(const object_type aShape);
-	static int parseParams(int argc, char *argv[], struct Params *params);
-	static inline void sleep(int aTime);
+	static color_pair get_color(const object_type obj_type);
+	static int parse_params(int argc, char *argv[], struct parameters *params);
+	static inline void sleep(int time);
 	static inline void print_usage(std::string &name);
 };
 
-class Point {
+class point {
 public:
-	nvml::obj::p<int> mX;
-	nvml::obj::p<int> mY;
+	nvml::obj::p<int> x;
+	nvml::obj::p<int> y;
 
-	Point();
-	Point(int aX, int aY);
-	friend bool operator==(Point &aPoint1, Point &aPoint2);
+	point();
+	point(int x, int y);
+	friend bool operator==(point &point1, point &point2);
 };
 
-bool operator==(Point &aPoint1, Point &aPoint2);
+bool operator==(point &point1, point &point2);
 
-class Shape {
+class element_shape {
 public:
-	Shape() = default;
-	Shape(int aShape);
-	int getVal();
+	element_shape() = default;
+	element_shape(int shape);
+	int get_val();
 
 private:
-	nvml::obj::p<int> mVal;
-	int getSymbol(int aShape);
+	nvml::obj::p<int> val;
+	int get_symbol(int shape);
 };
 
-class Element {
+class board_element {
 public:
-	Element();
-	Element(int aX, int aY, nvml::obj::persistent_ptr<Shape> aShape,
-		direction aDir);
-	Element(Point aPoint, nvml::obj::persistent_ptr<Shape> aShape,
-		direction aDir);
-	Element(const Element &aElement);
-	~Element();
+	board_element();
+	board_element(int px, int py, nvml::obj::persistent_ptr<element_shape> shape,
+		direction dir);
+	board_element(point p, nvml::obj::persistent_ptr<element_shape> shape,
+		direction dir);
+	board_element(const board_element &element);
+	~board_element();
 
-	nvml::obj::persistent_ptr<Point> calcNewPosition(const direction aDir);
+	nvml::obj::persistent_ptr<point> calc_new_position(const direction dir);
 	void print(void);
-	void printDoubleCol(void);
-	void printSingleDoubleCol(void);
-	nvml::obj::persistent_ptr<Point> getPosition(void);
-	void setPosition(const nvml::obj::persistent_ptr<Point> aNewPoint);
-	direction getDirection(void);
-	void setDirection(const direction aDir);
+	void print_double_col(void);
+	void print_single_double_col(void);
+	nvml::obj::persistent_ptr<point> get_position(void);
+	void set_position(const nvml::obj::persistent_ptr<point> new_point);
+	direction get_direction(void);
+	void set_direction(const direction dir);
 
 private:
-	nvml::obj::persistent_ptr<Point> mPoint;
-	nvml::obj::persistent_ptr<Shape> mShape;
-	nvml::obj::p<direction> mDirection;
+	nvml::obj::persistent_ptr<point> position;
+	nvml::obj::persistent_ptr<element_shape> shape;
+	nvml::obj::p<direction> element_dir;
 };
 
-class Snake {
+class snake {
 public:
-	Snake();
-	~Snake();
+	snake();
+	~snake();
 
-	void move(const direction aDir);
+	void move(const direction dir);
 	void print(void);
-	void addSegment(void);
-	bool checkPointAgainstSegments(Point aPoint);
-	Point getHeadPoint(void);
-	direction getDirection(void);
-	Point getNextPoint(const direction aDir);
+	void add_segment(void);
+	bool check_point_against_segments(point point);
+	point get_head_point(void);
+	direction get_direction(void);
+	point get_next_point(const direction dir);
 
 private:
-	element_list mSnakeSegments;
-	nvml::obj::p<Point> mLastSegPosition;
-	nvml::obj::p<direction> mLastSegDir;
+	element_list snake_segments;
+	nvml::obj::p<point> last_seg_position;
+	nvml::obj::p<direction> last_seg_dir;
 };
 
-class Board {
+class game_board {
 public:
-	Board();
-	~Board();
-	void print(const int aScore);
-	void printGameOver(const int aScore);
-	unsigned getSizeRow(void);
-	void setSizeRow(const unsigned aSizeRow);
-	unsigned getSizeCol(void);
-	void setSizeCol(const unsigned aSizeCol);
-	int creatDynamicLayout(const unsigned aRowNo, char *const aBuffer);
-	int creatStaticLayout(void);
-	bool isSnakeHeadFoodHit(void);
-	void createNewFood(void);
-	bool isCollision(Point aPoint);
-	snake_event moveSnake(const direction aDir);
-	direction getSnakeDir(void);
-	void addSnakeSegment(void);
+	game_board();
+	~game_board();
+	void print(const int score);
+	void print_game_over(const int score);
+	unsigned get_size_row(void);
+	void set_size_row(const unsigned size_r);
+	unsigned get_size_col(void);
+	void set_size_col(const unsigned size_c);
+	int creat_dynamic_layout(const unsigned row_no, char *const buffer);
+	int creat_static_layout(void);
+	bool is_snake_head_food_hit(void);
+	void create_new_food(void);
+	bool is_collision(point point);
+	snake_event move_snake(const direction dir);
+	direction get_snake_dir(void);
+	void add_snake_segment(void);
 
 private:
-	nvml::obj::persistent_ptr<Snake> mSnake;
-	nvml::obj::persistent_ptr<Element> mFood;
-	element_list mLayout;
+	nvml::obj::persistent_ptr<snake> anaconda;
+	nvml::obj::persistent_ptr<board_element> food;
+	element_list layout;
 
-	nvml::obj::p<unsigned> mSizeRow;
-	nvml::obj::p<unsigned> mSizeCol;
+	nvml::obj::p<unsigned> size_row;
+	nvml::obj::p<unsigned> size_col;
 
-	void setNewFood(const Point aPoint);
-	bool isSnakeCollision(Point aPoint);
-	bool isWallCollision(Point aPoint);
+	void set_new_food(const point point);
+	bool is_snake_collision(point point);
+	bool is_wall_collision(point point);
 };
 
-class Player {
+class game_player {
 public:
-	Player();
-	~Player();
+	game_player();
+	~game_player();
 	int
-	getScore(void);
-	void updateScore(void);
-	state getState(void);
-	void setState(const state aState);
+	get_score(void);
+	void update_score(void);
+	play_state get_state(void);
+	void set_state(const play_state st);
 
 private:
-	nvml::obj::p<int> mScore;
-	nvml::obj::p<state> mState;
+	nvml::obj::p<int> score;
+	nvml::obj::p<play_state> state;
 };
 
-class GameState {
+class game_state {
 public:
-	GameState();
-	~GameState();
-	nvml::obj::persistent_ptr<Board> getBoard();
-	nvml::obj::persistent_ptr<Player> getPlayer();
+	game_state();
+	~game_state();
+	nvml::obj::persistent_ptr<game_board> get_board();
+	nvml::obj::persistent_ptr<game_player> get_player();
 	void init(void);
-	void cleanPool(void);
+	void clean_pool(void);
 
 private:
-	nvml::obj::persistent_ptr<Board> mBoard;
-	nvml::obj::persistent_ptr<Player> mPlayer;
+	nvml::obj::persistent_ptr<game_board> board;
+	nvml::obj::persistent_ptr<game_player> player;
 };
 
-class Game {
+class game {
 public:
-	Game(struct Params *params);
-	~Game();
+	game(struct parameters *par);
+	~game();
 	int init(void);
-	void initColors(void);
-	void processStep(void);
-	int processKey(const int aLastKey);
-	inline bool isStopped(void);
-	void delay(void);
-	void clearScreen(void);
-	bool isGameOver(void);
-	void gameOver(void);
-	void clearProg(void);
+	void init_colors(void);
+	void process_step(void);
+	int process_key(const int lastkey);
+	inline bool is_stopped(void);
+	void process_delay(void);
+	void clear_screen(void);
+	bool is_game_over(void);
+	void game_over(void);
+	void clear_prog(void);
 
 private:
-	nvml::obj::pool<GameState> mGameState;
-	int mLastKey;
-	int mDelay;
-	struct Params *mParams;
-	direction mDirectionKey;
+	nvml::obj::pool<game_state> state;
+	int last_key;
+	int delay;
+	struct parameters *params;
+	direction direction_key;
 
-	void cleanPool(void);
-	void setDirectionKey(void);
-	int parseConfCreateDynamicLayout(void);
+	void clean_pool(void);
+	void set_direction_key(void);
+	int parse_conf_create_dynamic_layout(void);
 };
 
 #endif /* PANACONDA_HPP */
