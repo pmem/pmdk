@@ -39,13 +39,8 @@
 
 #include "librpmem.h"
 
-#define __STR(s)	#s
-#define _STR(s)		__STR(s)
-
 #define PACKED	__attribute__((packed))
 
-#define RPMEM_PORT		7636
-#define RPMEM_SERVICE		_STR(RPMEM_PORT)
 #define RPMEM_PROTO		"tcp"
 #define RPMEM_PROTO_MAJOR	0
 #define RPMEM_PROTO_MINOR	1

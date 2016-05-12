@@ -1,4 +1,3 @@
-#!/bin/bash -e
 #
 # Copyright 2016, Intel Corporation
 #
@@ -32,36 +31,14 @@
 #
 
 #
-# src/test/rpmemd_obc/TEST7 -- unit test for rpmemd_obc_process
+# src/test/base64/Makefile -- build test for base64 module
 #
+TOP = ../../..
 
-export UNITTEST_NAME=rpmemd_obc/TEST7
-export UNITTEST_NUM=7
+vpath %.c $(TOP)/src/rpmem_common
 
-# standard unit test setup
-. ../unittest/unittest.sh
+TARGET = base64_test
+OBJS = base64_test.o base64.o
 
-require_fs_type none
-require_build_type nondebug debug
-
-setup
-
-require_nodes 2
-require_node_log_files 0 $RPMEMD_LOG_FILE
-require_node_log_files 1 $RPMEMD_LOG_FILE
-
-SRV=srv${UNITTEST_NUM}.pid
-clean_remote_node 0 $SRV
-
-expect_normal_exit run_on_node_background 0 $SRV\
-	./rpmemd_obc$EXESUFFIX server_open\
-	${NODE_ADDR[0]} $RPMEM_PORT
-
-expect_normal_exit wait_on_node_port 0 $SRV $RPMEM_PORT
-
-expect_normal_exit run_on_node 1 ./rpmemd_obc$EXESUFFIX\
-	client_open ${NODE_ADDR[0]}:${RPMEM_PORT}
-
-expect_normal_exit wait_on_node 0 $SRV
-
-pass
+include ../Makefile.inc
+INCS += -I$(TOP)/src/rpmem_common

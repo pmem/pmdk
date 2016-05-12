@@ -54,7 +54,7 @@ OBJS = rpmem_fip_test.o\
        rpmemd_fip_worker.o\
        rpmemd_obc.o\
        rpmemd_log.o\
-       out.o util.o util_linux.o
+       out.o util.o util_linux.o base64.o
 
 out.o: CFLAGS += -DDEBUG -DSRCVERSION=\"utversion\"
 endif

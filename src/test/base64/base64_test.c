@@ -31,31 +31,67 @@
  */
 
 /*
- * rpmem_obc.h -- rpmem out-of-band connection client header file
+ * base64_test.c -- unit test for base64 encoder/decoder
  */
+#include <string.h>
 
-#include <sys/types.h>
-#include <sys/socket.h>
+#include "base64.h"
+#include "unittest.h"
 
-#include "librpmem.h"
+static void
+check_pair(char *data, char *b64)
+{
+	int ret;
 
-struct rpmem_obc;
+	uint8_t *buff_in = (uint8_t *)data;
+	uint8_t *buff_out = (uint8_t *)b64;
+	size_t d_len = strlen(data);
+	size_t b_len = strlen(b64);
 
-struct rpmem_obc *rpmem_obc_init(void);
-void rpmem_obc_fini(struct rpmem_obc *rpc);
+	size_t len_dec;
+	uint8_t *buff_enc = base64_buff(d_len, &len_dec);
+	UT_ASSERTne(buff_enc, NULL);
+	UT_ASSERTeq(len_dec, b_len);
 
-int rpmem_obc_connect(struct rpmem_obc *rpc, const char *target);
-int rpmem_obc_disconnect(struct rpmem_obc *rpc);
+	uint8_t *buff_dec = MALLOC(d_len);
+	UT_ASSERTne(buff_dec, NULL);
 
-int rpmem_obc_monitor(struct rpmem_obc *rpc, int nonblock);
+	ret = base64_encode(buff_in, d_len, buff_enc, len_dec);
+	UT_ASSERTeq(ret, 0);
 
-int rpmem_obc_create(struct rpmem_obc *rpc,
-		const struct rpmem_req_attr *req,
-		struct rpmem_resp_attr *res,
-		const struct rpmem_pool_attr *pool_attr);
-int rpmem_obc_open(struct rpmem_obc *rpc,
-		const struct rpmem_req_attr *req,
-		struct rpmem_resp_attr *res,
-		struct rpmem_pool_attr *pool_attr);
-int rpmem_obc_remove(struct rpmem_obc *rpc, const char *pool_desc);
-int rpmem_obc_close(struct rpmem_obc *rpc);
+	ret = memcmp(buff_enc, b64, len_dec);
+	UT_ASSERTeq(ret, 0);
+
+	ret = base64_decode(buff_out, b_len, buff_dec, d_len);
+	UT_ASSERTeq(ret, 0);
+
+	ret = memcmp(buff_dec, data, d_len);
+	UT_ASSERTeq(ret, 0);
+
+	FREE(buff_enc);
+	FREE(buff_dec);
+}
+
+int
+main(int argc, char *argv[])
+{
+	START(argc, argv, "base64");
+
+	base64_init();
+
+	if (argc < 2)
+		UT_FATAL("usage: %s <data>:<base64>...", argv[0]);
+
+	for (int i = 1; i < argc; i++) {
+		char *pair = argv[i];
+		char *colon = strchr(pair, ':');
+		UT_ASSERTne(colon, NULL);
+
+		*colon = '\0';
+		colon++;
+
+		check_pair(pair, colon);
+	}
+
+	DONE(NULL);
+}
