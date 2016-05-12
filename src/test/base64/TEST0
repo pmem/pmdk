@@ -32,36 +32,29 @@
 #
 
 #
-# src/test/rpmemd_obc/TEST8 -- unit test for rpmemd_obc_process
+# src/test/base64/TEST0 -- unit test for base64
 #
-
-export UNITTEST_NAME=rpmemd_obc/TEST8
-export UNITTEST_NUM=8
+export UNITTEST_NAME=base64/TEST0
+export UNITTEST_NUM=0
 
 # standard unit test setup
 . ../unittest/unittest.sh
 
 require_fs_type none
-require_build_type nondebug debug
 
 setup
 
-require_nodes 2
-require_node_log_files 0 $RPMEMD_LOG_FILE
-require_node_log_files 1 $RPMEMD_LOG_FILE
+function get_pair() {
+	echo -n "$(echo -n $1):$(echo -n $1 | base64)"
+}
 
-SRV=srv${UNITTEST_NUM}.pid
-clean_remote_node 0 $SRV
-
-expect_normal_exit run_on_node_background 0 $SRV\
-	./rpmemd_obc$EXESUFFIX server_remove\
-	${NODE_ADDR[0]} $RPMEM_PORT
-
-expect_normal_exit wait_on_node_port 0 $SRV $RPMEM_PORT
-
-expect_normal_exit run_on_node 1 ./rpmemd_obc$EXESUFFIX\
-	client_remove ${NODE_ADDR[0]}:${RPMEM_PORT}
-
-expect_normal_exit wait_on_node 0 $SRV
+expect_normal_exit ./base64_test\
+	$(get_pair 1)\
+	$(get_pair AB)\
+	$(get_pair 321)\
+	$(get_pair abcd)\
+	$(get_pair 54321)\
+	$(get_pair 123456)\
+	$(get_pair ABCDEFG)
 
 pass
