@@ -58,6 +58,7 @@ static FILE *Errfp;
 static FILE *Tracefp;
 
 static int Quiet;		/* set by UNITTEST_QUIET env variable */
+static int Force_quiet;		/* set by UNITTEST_FORCE_QUIET env variable */
 static char *Testname;		/* set by UNITTEST_NAME env variable */
 unsigned long Ut_pagesize;
 
@@ -83,6 +84,9 @@ vout(int flags, const char *prepend, const char *fmt, va_list ap)
 	const char *sep = "";
 	const char *errstr = "";
 	const char *nl = "\n";
+
+	if (Force_quiet)
+		return;
 
 	if (flags & OF_LOUD)
 		quiet = 0;
@@ -353,6 +357,9 @@ ut_start(const char *file, int line, const char *func,
 
 	if (getenv("UNITTEST_QUIET") != NULL)
 		Quiet++;
+
+	if (getenv("UNITTEST_FORCE_QUIET") != NULL)
+		Force_quiet++;
 
 	Testname = getenv("UNITTEST_NAME");
 
