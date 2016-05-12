@@ -50,17 +50,17 @@ rm -rf $OUT
 CONFIG=in${UNITTEST_NUM}.conf
 INVALID_CONFIG=$DIR/invalid.conf
 
-expect_normal_exit $RPMEMD 1>> $OUT
-expect_normal_exit $RPMEMD -V 1>> $OUT
-expect_normal_exit $RPMEMD --version 1>> $OUT
-expect_normal_exit $RPMEMD -h 1>> $OUT
-expect_normal_exit $RPMEMD --help 1>> $OUT
-expect_normal_exit $RPMEMD -f 1>> $OUT
-expect_normal_exit $RPMEMD --foreground 1>> $OUT
-expect_normal_exit $RPMEMD -c $CONFIG 1>> $OUT
-expect_normal_exit $RPMEMD --config $CONFIG 1>> $OUT
-expect_abnormal_exit $RPMEMD -c $INVALID_CONFIG 1>> $OUT
-expect_abnormal_exit $RPMEMD --config $INVALID_CONFIG 1>> $OUT
+expect_normal_exit $RPMEMD 1>> $OUT 2>&1
+expect_normal_exit $RPMEMD -V 1>> $OUT 2>&1
+expect_normal_exit $RPMEMD --version 1>> $OUT 2>&1
+expect_normal_exit $RPMEMD -h 1>> $OUT 2>&1
+expect_normal_exit $RPMEMD --help 1>> $OUT 2>&1
+expect_normal_exit $RPMEMD -f 1>> $OUT 2>&1
+expect_normal_exit $RPMEMD --foreground 1>> $OUT 2>&1
+expect_normal_exit $RPMEMD -c $CONFIG 1>> $OUT 2>&1
+expect_normal_exit $RPMEMD --config $CONFIG 1>> $OUT 2>&1
+expect_abnormal_exit $RPMEMD -c $INVALID_CONFIG 1>> $OUT 2>&1
+expect_abnormal_exit $RPMEMD --config $INVALID_CONFIG 1>> $OUT 2>&1
 
 check
 

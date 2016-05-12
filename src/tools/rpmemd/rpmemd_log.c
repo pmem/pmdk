@@ -46,7 +46,7 @@
 
 #define RPMEMD_SYSLOG_OPTS	(LOG_NDELAY | LOG_PID)
 #define RPMEMD_SYSLOG_FACILITY	(LOG_USER)
-#define RPMEMD_DEFAULT_FH	stdout
+#define RPMEMD_DEFAULT_FH	stderr
 #define RPMEMD_MAX_MSG		((size_t)8192)
 #define RPMEMD_MAX_PREFIX	((size_t)256)
 
