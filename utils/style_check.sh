@@ -97,7 +97,7 @@ function run_clang_format() {
 		return
 	fi
 
-	clang-format -style=file -i $@
+	${clang_format_bin} -style=file -i $@
 }
 
 for ((i=1; i<$#; i++)) {

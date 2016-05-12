@@ -7,14 +7,14 @@ it's a game in which all the objects are stored on persistent memory.
 This means that the game process can be safely killed and then resumed.
 
 To launch the game:
-	./pman [game session file]
+	./pman <game session file> [map file]
 
 The file with the game session will either be created if it doesn't exist
 or opened if it contains a valid pool.
 
 Controls:
-	move - arrow keys
-	place bomb - spacebar
+	move - arrow keys, jkli
+	place bomb - spacebar, b
 	quit - 'q'
 	resume - 'r'
 

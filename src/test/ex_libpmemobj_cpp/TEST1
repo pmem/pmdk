@@ -1,5 +1,6 @@
+#!/bin/bash -e
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2015-2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,19 +32,35 @@
 #
 
 #
-# src/test/ex_libpmemobj_cpp/Makefile -- build ex_libpmemobj_cpp unittest
+# src/test/ex_libpmemobj_cpp/TEST1 -- unit test for libpmemobj cpp examples
 #
+export UNITTEST_NAME=ex_libpmemobj_cpp/TEST1
+export UNITTEST_NUM=1
 
-include ../Makefile.inc
+# standard unit test setup
+. ../unittest/unittest.sh
 
-EXAMPLES=$(EX_LIBPMEMOBJ)/cpp/queue
+require_build_type debug nondebug
+require_fs_type pmem
+require_pkg ncurses
 
-ifeq ($(NCURSES),y)
-EXAMPLES += $(EX_LIBPMEMOBJ)/pman/pman
+require_cxx11
+
+setup
+
+EX_PATH=../../examples/libpmemobj/pman
+INPUT=$DIR/input.txt
+
+dd if=/dev/zero bs=64 count=1 2>>prep$UNITTEST_NUM.log >> $INPUT
+echo -n slkiiijjbjjii >> $INPUT
+dd if=/dev/zero bs=128 count=1 2>>prep$UNITTEST_NUM.log >> $INPUT
+echo -n q >> $INPUT
+
+if [ -t 1 -a -z "$NOTTY" ]
+then
+	expect_normal_exit $EX_PATH/pman $DIR/testfile1 $EX_PATH/map < $INPUT
 else
-$(info NOTE: Skipping pman test because ncurses is missing \
--- see src/examples/libpmemobj/pman/README for details.)
-endif
+	expect_normal_exit $EX_PATH/pman $DIR/testfile1 $EX_PATH/map >/dev/null 2>/dev/null < $INPUT
+fi
 
-all: $(EXAMPLES)
-	$(MAKE) -C $(EX_LIBPMEMOBJ)
+pass

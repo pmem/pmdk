@@ -172,8 +172,10 @@ private:
 
 class board_state {
 public:
-	board_state();
+	board_state(const std::string &map_file);
 	~board_state();
+	void reset_params();
+	void reset_board();
 	void print(unsigned hs);
 	void reset();
 	void dead();
@@ -202,23 +204,25 @@ public:
 private:
 	int shape(field f);
 	void set_bonus(field f);
-	void set_board();
+	void set_board(const std::string &map_file);
 	int find_wall(int x, int y, direction dir);
 	p<unsigned> life;	      /* number of lives left for player */
 	persistent_ptr<field[]> board; /* current state of board */
+	persistent_ptr<field[]> board_tmpl; /* board template loaded from file*/
 };
 
 class state {
 public:
 	state();
-	bool init();
+	bool init(const std::string &map_file);
 	void game();
 
 private:
 	bool intro_loop();
 	void print_start();
 	void print_game_over();
-	void new_game();
+	void new_game(const std::string &map_file);
+	void reset_game();
 	void resume();
 	void one_move(int in);
 	void collision();
@@ -425,18 +429,23 @@ player::progress(int in, bomb_vec *bombs)
 {
 	switch (in) {
 		case KEY_LEFT:
+		case 'j':
 			dir = LEFT;
 			break;
 		case KEY_RIGHT:
+		case 'l':
 			dir = RIGHT;
 			break;
 		case KEY_UP:
+		case 'i':
 			dir = UP;
 			break;
 		case KEY_DOWN:
+		case 'k':
 			dir = DOWN;
 			break;
 		case KEY_SPACE:
+		case 'b':
 			dir = STOP;
 			if ((*bombs)->size() <= MAX_BOMBS)
 				(*bombs)->push_back(
@@ -482,24 +491,43 @@ alien::move_back_alien()
  * board_state -- constructor for class board_state initializes boards and
  * needed variables
  */
-board_state::board_state()
+board_state::board_state(const std::string &map_file)
 {
+	reset_params();
+	board = make_persistent<field[]>(SIZE * SIZE);
+	board_tmpl = make_persistent<field[]>(SIZE * SIZE);
+	for (int i = 0; i < SIZE * SIZE; ++i)
+		set_board_elm(i, 0, FREE);
+	set_board(map_file);
+}
 
+board_state::~board_state()
+{
+	delete_persistent<field[]>(board, SIZE * SIZE);
+	delete_persistent<field[]>(board_tmpl, SIZE * SIZE);
+}
+
+/* board_state::reset_params -- reset game parameters */
+void
+board_state::reset_params()
+{
 	life = 3;
 	level = 1;
 	n_aliens = 1;
 	score = 0;
 	timer = 0;
 	game_over = false;
-	board = make_persistent<field[]>(SIZE * SIZE);
-	for (int i = 0; i < SIZE * SIZE; ++i)
-		set_board_elm(i, 0, FREE);
-	set_board();
 }
 
-board_state::~board_state()
+/* board_state::reset_board -- reset board state from template */
+void
+board_state::reset_board()
 {
-	delete_persistent<field[]>(board, SIZE * SIZE);
+	for (auto i = 0; i < SIZE * SIZE; i++)
+		board[i] = board_tmpl[i];
+
+	set_bonus(BONUS);
+	set_bonus(LIFE);
 }
 
 /*
@@ -550,7 +578,7 @@ board_state::dead()
 void
 board_state::reset()
 {
-	set_board();
+	reset_board();
 	n_aliens = level;
 	timer = 0;
 }
@@ -678,10 +706,12 @@ board_state::set_bonus(field f)
  * board_state::set_board -- set board with initial values from file
  */
 void
-board_state::set_board()
+board_state::set_board(const std::string &map_file)
 {
 	ifstream board_file;
-	board_file.open("map");
+	board_file.open(map_file.c_str());
+	if (!board_file)
+		assert(0);
 	char num;
 	for (unsigned i = 0; i < SIZE; i++) {
 		for (unsigned j = 0; j < SIZE; j++) {
@@ -695,6 +725,8 @@ board_state::set_board()
 		}
 		board_file.get(num);
 	}
+	for (auto i = 0; i < SIZE * SIZE; i++)
+		board_tmpl[i] = board[i];
 
 	board_file.close();
 	set_bonus(BONUS);
@@ -747,11 +779,11 @@ board_state::find_wall(int x, int y, direction dir)
  * state::init -- initialize game
  */
 bool
-state::init()
+state::init(const std::string &map_file)
 {
 	int in;
 	if (board == nullptr || pl == nullptr)
-		new_game();
+		new_game(map_file);
 	else {
 		while ((in = getch()) != 'y') {
 			mvprintw(SIZE / 4, SIZE / 4,
@@ -781,7 +813,7 @@ state::init()
 			}
 		}
 		transaction::commit();
-	} catch (transaction_error err) {
+	} catch (transaction_error &err) {
 		cout << err.what() << endl;
 		assert(0);
 	}
@@ -793,7 +825,7 @@ state::init()
 		transaction::manual tx(pop);
 		intro_p->clear();
 		transaction::commit();
-	} catch (transaction_error err) {
+	} catch (transaction_error &err) {
 		cout << err.what() << endl;
 		assert(0);
 	}
@@ -808,7 +840,6 @@ state::game()
 {
 	int in;
 	while ((in = getch()) != 'q') {
-
 		SLEEP(GAME_DELAY);
 		erase();
 		if (in == 'r')
@@ -837,7 +868,7 @@ state::intro_loop()
 			while ((p = intro_p->get(i++)) != nullptr)
 				p->progress();
 			transaction::commit();
-		} catch (transaction_error err) {
+		} catch (transaction_error &err) {
 			cout << err.what() << endl;
 			assert(0);
 		}
@@ -898,12 +929,12 @@ state::print_game_over()
  * state::new_game -- allocate board_state, player and aliens if root is empty
  */
 void
-state::new_game()
+state::new_game(const std::string &map_file)
 {
 	try {
 		transaction::manual tx(pop);
 
-		board = make_persistent<board_state>();
+		board = make_persistent<board_state>(map_file);
 		pl = make_persistent<player>(POS_MIDDLE);
 		intro_p = make_persistent<list<intro>>();
 		bombs = make_persistent<list<bomb>>();
@@ -911,7 +942,31 @@ state::new_game()
 		aliens->push_back(make_persistent<alien>(UP_LEFT));
 
 		transaction::commit();
-	} catch (transaction_error err) {
+	} catch (transaction_error &err) {
+		cout << err.what() << endl;
+		assert(0);
+	}
+}
+
+/*
+ * state::reset_game -- reset the game from the board template
+ */
+void
+state::reset_game()
+{
+	try {
+		transaction::manual tx(pop);
+
+		board->reset_params();
+		board->reset_board();
+		pl = make_persistent<player>(POS_MIDDLE);
+		intro_p = make_persistent<list<intro>>();
+		bombs = make_persistent<list<bomb>>();
+		aliens = make_persistent<list<alien>>();
+		aliens->push_back(make_persistent<alien>(UP_LEFT));
+
+		transaction::commit();
+	} catch (transaction_error &err) {
 		cout << err.what() << endl;
 		assert(0);
 	}
@@ -925,8 +980,6 @@ state::resume()
 {
 	try {
 		transaction::manual tx(pop);
-		delete_persistent<board_state>(board);
-		board = nullptr;
 		delete_persistent<player>(pl);
 		pl = nullptr;
 
@@ -939,11 +992,11 @@ state::resume()
 		intro_p->clear();
 		delete_persistent<list<intro>>(intro_p);
 		transaction::commit();
-	} catch (transaction_error err) {
+	} catch (transaction_error &err) {
 		cout << err.what() << endl;
 		assert(0);
 	}
-	new_game();
+	reset_game();
 }
 
 /*
@@ -969,7 +1022,6 @@ state::one_move(int in)
 			if (b->used) {
 				board->explosion(b->x, b->y, FREE);
 				bombs->erase(--i);
-				delete_persistent<bomb>(b);
 			}
 		}
 		collision();
@@ -979,7 +1031,7 @@ state::one_move(int in)
 		while ((b = bombs->get(i++)) != nullptr)
 			b->print_time();
 		transaction::commit();
-	} catch (transaction_error err) {
+	} catch (transaction_error &err) {
 		cout << err.what() << endl;
 		assert(0);
 	}
@@ -1007,7 +1059,6 @@ state::collision()
 			bool is_over = board->is_last_alien_killed(a->prev_x,
 								   a->prev_y);
 			aliens->erase(--i);
-			delete_persistent<alien>(a);
 			if (is_over == true) {
 				if (board->get_board_elm(pl->x, pl->y) ==
 				    EXPLOSION)
@@ -1118,13 +1169,25 @@ state::is_collision(persistent_ptr<point> p1, persistent_ptr<point> p2)
 	return false;
 }
 
+void
+print_usage(const std::string &binary)
+{
+	std::cout << "Usage:\n" << binary << " <game_file> [map_file]\n";
+}
+
 int
 main(int argc, char *argv[])
 {
-	if (argc != 2)
-		return 0;
+	if (argc < 2 || argc > 3) {
+		print_usage(argv[0]);
+		return 1;
+	}
 
 	string name = argv[1];
+	string map_path = "map";
+
+	if (argc == 3)
+		map_path = argv[2];
 
 	if (pool<state>::check(name, LAYOUT_NAME) == 1)
 		pop = pool<state>::open(name, LAYOUT_NAME);
@@ -1147,7 +1210,7 @@ main(int argc, char *argv[])
 	if (r == nullptr)
 		goto out;
 
-	if (r->init())
+	if (r->init(map_path))
 		goto out;
 	r->game();
 out:
