@@ -33,12 +33,13 @@
 /*
  * ctree.c -- crit-bit tree implementation
  *
- * Crit-bit trees can efficiently store sparse key-value sets in a sorted
- * manner. They usually perform better for relatively small collections
- * than the popular AVL or RB trees because they are more cache-friendly.
+ * Crit-bit tree, or as otherwise known, a bitwise trie as implemented here
+ * provides good performance for the allocator purpose as well as being
+ * fairly simple. Contrary to popular balanced binary trees (rb/avl) it mostly
+ * performs reads on nodes during insert.
  *
- * This structure is used to store and retrieve best-fit memory blocks for
- * allocations of certain sizes.
+ * This structure is used throughout the libpmemobj for various tasks, the
+ * primary one being to store and retrieve best-fit memory blocks.
  */
 #include <stdint.h>
 #include <stdlib.h>
