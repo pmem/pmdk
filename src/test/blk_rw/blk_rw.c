@@ -110,13 +110,15 @@ main(int argc, char *argv[])
 	UT_OUT("%s block size %zu usable blocks %zu",
 			argv[1], Bsize, pmemblk_nblock(handle));
 
+	unsigned char *buf = MALLOC(Bsize);
+	if (buf == NULL)
+		UT_FATAL("cannot allocate buf");
+
 	/* map each file argument with the given map type */
 	for (int arg = 4; arg < argc; arg++) {
 		if (strchr("rwze", argv[arg][0]) == NULL || argv[arg][1] != ':')
 			UT_FATAL("op must be r: or w: or z: or e:");
 		off_t lba = strtol(&argv[arg][2], NULL, 0);
-
-		unsigned char buf[Bsize];
 
 		switch (argv[arg][0]) {
 		case 'r':
@@ -152,6 +154,7 @@ main(int argc, char *argv[])
 		}
 	}
 
+	FREE(buf);
 	pmemblk_close(handle);
 
 	int result = pmemblk_check(path, Bsize);
