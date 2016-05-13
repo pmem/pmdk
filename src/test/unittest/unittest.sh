@@ -67,7 +67,7 @@ FILES_CURRTEST_DIR="\
 $DIR_SRC/test/tools/ctrld/ctrld \
 $DIR_SRC/tools/pmempool/pmempool"
 
-RPMEM_PORT=$(cat $DIR_SRC/rpmem_common/rpmem_proto.h |\
+[ -z "$RPMEM_PORT" ] && RPMEM_PORT=$(cat $DIR_SRC/rpmem_common/rpmem_proto.h |\
 	grep '#define\sRPMEM_PORT' | grep -o '[0-9]\+')
 
 # array of lists of PID files to be cleaned in case of an error

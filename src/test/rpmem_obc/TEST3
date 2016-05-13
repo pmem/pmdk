@@ -46,19 +46,20 @@ require_build_type nondebug debug
 
 setup
 
-SRV=srv${UNITTEST_NUM}.pid
 require_nodes 2
 require_node_log_files 0 $RPMEM_LOG_FILE
 require_node_log_files 1 $RPMEM_LOG_FILE
+
+SRV=srv${UNITTEST_NUM}.pid
 clean_remote_node 0 $SRV
 
 expect_normal_exit run_on_node_background 0 $SRV\
-	./rpmem_obc$EXESUFFIX server_create 0
+	./rpmem_obc$EXESUFFIX server_create $RPMEM_PORT
 
 expect_normal_exit wait_on_node_port 0 $SRV $RPMEM_PORT
 
 expect_normal_exit run_on_node 1 ./rpmem_obc$EXESUFFIX\
-	client_create ${NODE_ADDR[0]}
+	client_create ${NODE_ADDR[0]}:${RPMEM_PORT}
 
 expect_normal_exit wait_on_node 0 $SRV
 

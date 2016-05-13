@@ -47,30 +47,34 @@ require_build_type nondebug debug
 
 setup
 
+require_nodes 2
+require_node_log_files 0 $RPMEM_LOG_FILE $RPMEMD_LOG_FILE
+require_node_log_files 1 $RPMEM_LOG_FILE $RPMEMD_LOG_FILE
+
 SRV=srv${UNITTEST_NUM}.pid
 CNT_CREATE=cnt_create${UNITTEST_NUM}.pid
 CNT_OPEN=cnt_open${UNITTEST_NUM}.pid
 CNT_REMOVE=cnt_remove${UNITTEST_NUM}.pid
 
-require_nodes 2
-require_node_log_files 0 $RPMEM_LOG_FILE $RPMEMD_LOG_FILE
-require_node_log_files 1 $RPMEM_LOG_FILE $RPMEMD_LOG_FILE
-
 clean_remote_node 0 $SRV $CNT_OPEN $CNT_CREATE $CNT_REMOVE
 
 expect_normal_exit run_on_node_background 0 $SRV\
-	./rpmem_obc_int$EXESUFFIX server_sim "0.0.0.0" 0
+	./rpmem_obc_int$EXESUFFIX server_sim\
+	${NODE_ADDR[0]} $RPMEM_PORT
 
 expect_normal_exit wait_on_node_port 0 $SRV $RPMEM_PORT
 
 expect_normal_exit run_on_node_background 1 $CNT_CREATE\
-	./rpmem_obc_int$EXESUFFIX client_create ${NODE_ADDR[0]}
+	./rpmem_obc_int$EXESUFFIX client_create\
+	${NODE_ADDR[0]}:${RPMEM_PORT}
 
 expect_normal_exit run_on_node_background 1 $CNT_OPEN\
-	./rpmem_obc_int$EXESUFFIX client_open ${NODE_ADDR[0]}
+	./rpmem_obc_int$EXESUFFIX client_open\
+	${NODE_ADDR[0]}:${RPMEM_PORT}
 
 expect_normal_exit run_on_node_background 1 $CNT_REMOVE\
-	./rpmem_obc_int$EXESUFFIX client_remove ${NODE_ADDR[0]}
+	./rpmem_obc_int$EXESUFFIX client_remove\
+	${NODE_ADDR[0]}:${RPMEM_PORT}
 
 
 expect_normal_exit wait_on_node 1 $CNT_OPEN
