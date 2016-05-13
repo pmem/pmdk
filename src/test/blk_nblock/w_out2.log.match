@@ -1,0 +1,5 @@
+blk_nblock\TEST2: START: blk_nblock
+ $(nW)\blk_nblock$(nW) 512:$(nW)\testset1 512:$(nW)\testset2
+$(nW)\testset1: pmemblk_create: Invalid argument
+$(nW)\testset2: pmemblk_create: Invalid argument
+blk_nblock\TEST2: Done

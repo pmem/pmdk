@@ -54,7 +54,7 @@
 #include "valgrind_internal.h"
 
 /* library-wide page size */
-unsigned long Pagesize;
+unsigned long long Pagesize;
 
 int Mmap_no_random;
 void *Mmap_hint;
@@ -535,14 +535,23 @@ util_file_create(const char *path, size_t size, size_t minsize)
 	}
 
 	int fd;
+#ifndef WIN32
 	/*
-	 * Create file without any permission. It will be granted once
-	 * initialization completes.
-	 */
-	if ((fd = open(path, O_RDWR|O_CREAT|O_EXCL, 0)) < 0) {
+	* Create file without any permission. It will be granted once
+	* initialization completes.
+	*/
+
+	if ((fd = open(path, O_RDWR | O_CREAT | O_EXCL, 0)) < 0) {
 		ERR("!open %s", path);
 		return -1;
 	}
+#else
+	if ((fd = open(path, O_RDWR | O_CREAT | O_EXCL,
+		S_IWRITE | S_IREAD)) < 0) {
+		ERR("!open %s", path);
+		return -1;
+	}
+#endif
 
 	if (flock(fd, LOCK_EX | LOCK_NB) < 0) {
 		ERR("!flock");

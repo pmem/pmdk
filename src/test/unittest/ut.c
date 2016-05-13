@@ -45,9 +45,17 @@
 extern DIR *fdopendir(int fd);
 extern ssize_t readlinkat(int, const char *restrict, char *restrict, size_t);
 
-#define MAXLOGNAME 100		/* maximum expected .log file name length */
-#define MAXPRINT 8192		/* maximum expected single print length */
-
+#define MAXLOGNAME 100      /* maximum expected .log file name length */
+#define MAXPRINT 8192       /* maximum expected single print length */
+#ifndef WIN32
+#define OUTLOGNAME "out%s.log"
+#define ERRLOGNAME "err%s.log"
+#define TRACELOGNAME "trace%s.log"
+#else
+#define OUTLOGNAME "w_out%s.log"
+#define ERRLOGNAME "w_err%s.log"
+#define TRACELOGNAME "w_trace%s.log"
+#endif
 /*
  * output gets replicated to these files
  */
@@ -55,18 +63,18 @@ static FILE *Outfp;
 static FILE *Errfp;
 static FILE *Tracefp;
 
-static int Quiet;		/* set by UNITTEST_QUIET env variable */
-static char *Testname;		/* set by UNITTEST_NAME env variable */
+static int Quiet;       /* set by UNITTEST_QUIET env variable */
+static char *Testname;      /* set by UNITTEST_NAME env variable */
 unsigned long Ut_pagesize;
 
 /*
  * flags that control output
  */
-#define OF_NONL		1	/* do not append newline */
-#define OF_ERR		2	/* output is error output */
-#define OF_TRACE	4	/* output to trace file only */
-#define OF_LOUD		8	/* output even in Quiet mode */
-#define OF_NAME		16	/* include Testname in the output */
+#define OF_NONL     1   /* do not append newline */
+#define OF_ERR      2   /* output is error output */
+#define OF_TRACE    4   /* output to trace file only */
+#define OF_LOUD     8   /* output even in Quiet mode */
+#define OF_NAME     16  /* include Testname in the output */
 
 /*
  * vout -- common output code, all output happens here
@@ -74,64 +82,64 @@ unsigned long Ut_pagesize;
 static void
 vout(int flags, const char *prepend, const char *fmt, va_list ap)
 {
-	char buf[MAXPRINT];
-	unsigned cc = 0;
-	int sn;
-	int quiet = Quiet;
-	const char *sep = "";
-	const char *errstr = "";
-	const char *nl = "\n";
+    char buf[MAXPRINT];
+    unsigned cc = 0;
+    int sn;
+    int quiet = Quiet;
+    const char *sep = "";
+    const char *errstr = "";
+    const char *nl = "\n";
 
-	if (flags & OF_LOUD)
-		quiet = 0;
+    if (flags & OF_LOUD)
+        quiet = 0;
 
-	if (flags & OF_NONL)
-		nl = "";
+    if (flags & OF_NONL)
+        nl = "";
 
-	if (flags & OF_NAME && Testname) {
-		sn = snprintf(&buf[cc], MAXPRINT - cc, "%s: ", Testname);
-		if (sn < 0)
-			abort();
-		cc += (unsigned)sn;
-	}
+    if (flags & OF_NAME && Testname) {
+        sn = snprintf(&buf[cc], MAXPRINT - cc, "%s: ", Testname);
+        if (sn < 0)
+            abort();
+        cc += (unsigned)sn;
+    }
 
-	if (prepend) {
-		const char *colon = "";
+    if (prepend) {
+        const char *colon = "";
 
-		if (fmt)
-			colon = ": ";
+        if (fmt)
+            colon = ": ";
 
-		sn = snprintf(&buf[cc], MAXPRINT - cc, "%s%s", prepend, colon);
-		if (sn < 0)
-			abort();
-		cc += (unsigned)sn;
-	}
+        sn = snprintf(&buf[cc], MAXPRINT - cc, "%s%s", prepend, colon);
+        if (sn < 0)
+            abort();
+        cc += (unsigned)sn;
+    }
 
-	if (fmt) {
-		if (*fmt == '!') {
-			fmt++;
-			sep = ": ";
-			errstr = strerror(errno);
-		}
-		sn = vsnprintf(&buf[cc], MAXPRINT - cc, fmt, ap);
-		if (sn < 0)
-			abort();
-		cc += (unsigned)sn;
-	}
+    if (fmt) {
+        if (*fmt == '!') {
+            fmt++;
+            sep = ": ";
+            errstr = strerror(errno);
+        }
+        sn = vsnprintf(&buf[cc], MAXPRINT - cc, fmt, ap);
+        if (sn < 0)
+            abort();
+        cc += (unsigned)sn;
+    }
 
-	snprintf(&buf[cc], MAXPRINT - cc, "%s%s%s", sep, errstr, nl);
+    snprintf(&buf[cc], MAXPRINT - cc, "%s%s%s", sep, errstr, nl);
 
-	/* buf has the fully-baked output, send it everywhere it goes... */
-	fputs(buf, Tracefp);
-	if (flags & OF_ERR) {
-		fputs(buf, Errfp);
-		if (!quiet)
-			fputs(buf, stderr);
-	} else if ((flags & OF_TRACE) == 0) {
-		fputs(buf, Outfp);
-		if (!quiet)
-			fputs(buf, stdout);
-	}
+    /* buf has the fully-baked output, send it everywhere it goes... */
+    fputs(buf, Tracefp);
+    if (flags & OF_ERR) {
+        fputs(buf, Errfp);
+        if (!quiet)
+            fputs(buf, stderr);
+    } else if ((flags & OF_TRACE) == 0) {
+        fputs(buf, Outfp);
+        if (!quiet)
+            fputs(buf, stdout);
+    }
 }
 
 /*
@@ -140,12 +148,12 @@ vout(int flags, const char *prepend, const char *fmt, va_list ap)
 static void
 out(int flags, const char *fmt, ...)
 {
-	va_list ap;
-	va_start(ap, fmt);
+    va_list ap;
+    va_start(ap, fmt);
 
-	vout(flags, NULL, fmt, ap);
+    vout(flags, NULL, fmt, ap);
 
-	va_end(ap);
+    va_end(ap);
 }
 
 /*
@@ -154,17 +162,17 @@ out(int flags, const char *fmt, ...)
 static void
 prefix(const char *file, int line, const char *func, int flags)
 {
-	out(OF_NONL|OF_TRACE|flags, "{%s:%d %s} ", file, line, func);
+    out(OF_NONL|OF_TRACE|flags, "{%s:%d %s} ", file, line, func);
 }
 
 /*
  * lookup table for open files
  */
 static struct fd_lut {
-	struct fd_lut *left;
-	struct fd_lut *right;
-	int fdnum;
-	char *fdfile;
+    struct fd_lut *left;
+    struct fd_lut *right;
+    int fdnum;
+    char *fdfile;
 } *Fd_lut;
 
 static int Fd_errcount;
@@ -175,17 +183,17 @@ static int Fd_errcount;
 static struct fd_lut *
 open_file_add(struct fd_lut *root, int fdnum, const char *fdfile)
 {
-	if (root == NULL) {
-		root = ZALLOC(sizeof(*root));
-		root->fdnum = fdnum;
-		root->fdfile = STRDUP(fdfile);
-	} else if (root->fdnum == fdnum)
-		UT_FATAL("duplicate fdnum: %d", fdnum);
-	else if (root->fdnum < fdnum)
-		root->left = open_file_add(root->left, fdnum, fdfile);
-	else
-		root->right = open_file_add(root->right, fdnum, fdfile);
-	return root;
+    if (root == NULL) {
+        root = ZALLOC(sizeof(*root));
+        root->fdnum = fdnum;
+        root->fdfile = STRDUP(fdfile);
+    } else if (root->fdnum == fdnum)
+        UT_FATAL("duplicate fdnum: %d", fdnum);
+    else if (root->fdnum < fdnum)
+        root->left = open_file_add(root->left, fdnum, fdfile);
+    else
+        root->right = open_file_add(root->right, fdnum, fdfile);
+    return root;
 }
 
 /*
@@ -196,26 +204,26 @@ open_file_add(struct fd_lut *root, int fdnum, const char *fdfile)
 static void
 open_file_remove(struct fd_lut *root, int fdnum, const char *fdfile)
 {
-	if (root == NULL) {
-		UT_ERR("unexpected open file: fd %d => \"%s\"", fdnum, fdfile);
-		Fd_errcount++;
-	} else if (root->fdnum == fdnum) {
-		if (root->fdfile == NULL) {
-			UT_ERR("open file dup: fd %d => \"%s\"", fdnum, fdfile);
-			Fd_errcount++;
-		} else if (strcmp(root->fdfile, fdfile) == 0) {
-			/* found exact match */
-			FREE(root->fdfile);
-			root->fdfile = NULL;
-		} else {
-			UT_ERR("open file changed: fd %d was \"%s\" now \"%s\"",
-			    fdnum, root->fdfile, fdfile);
-			Fd_errcount++;
-		}
-	} else if (root->fdnum < fdnum)
-		open_file_remove(root->left, fdnum, fdfile);
-	else
-		open_file_remove(root->right, fdnum, fdfile);
+    if (root == NULL) {
+        UT_ERR("unexpected open file: fd %d => \"%s\"", fdnum, fdfile);
+        Fd_errcount++;
+    } else if (root->fdnum == fdnum) {
+        if (root->fdfile == NULL) {
+            UT_ERR("open file dup: fd %d => \"%s\"", fdnum, fdfile);
+            Fd_errcount++;
+        } else if (strcmp(root->fdfile, fdfile) == 0) {
+            /* found exact match */
+            FREE(root->fdfile);
+            root->fdfile = NULL;
+        } else {
+            UT_ERR("open file changed: fd %d was \"%s\" now \"%s\"",
+                fdnum, root->fdfile, fdfile);
+            Fd_errcount++;
+        }
+    } else if (root->fdnum < fdnum)
+        open_file_remove(root->left, fdnum, fdfile);
+    else
+        open_file_remove(root->right, fdnum, fdfile);
 }
 
 /*
@@ -226,15 +234,15 @@ open_file_remove(struct fd_lut *root, int fdnum, const char *fdfile)
 static void
 open_file_walk(struct fd_lut *root)
 {
-	if (root) {
-		open_file_walk(root->left);
-		if (root->fdfile) {
-			UT_ERR("open file missing: fd %d => \"%s\"",
-			    root->fdnum, root->fdfile);
-			Fd_errcount++;
-		}
-		open_file_walk(root->right);
-	}
+    if (root) {
+        open_file_walk(root->left);
+        if (root->fdfile) {
+            UT_ERR("open file missing: fd %d => \"%s\"",
+                root->fdnum, root->fdfile);
+            Fd_errcount++;
+        }
+        open_file_walk(root->right);
+    }
 }
 
 /*
@@ -243,14 +251,16 @@ open_file_walk(struct fd_lut *root)
 static void
 open_file_free(struct fd_lut *root)
 {
-	if (root) {
-		open_file_free(root->left);
-		open_file_free(root->right);
-		if (root->fdfile)
-			FREE(root->fdfile);
-		FREE(root);
-	}
+    if (root) {
+        open_file_free(root->left);
+        open_file_free(root->right);
+        if (root->fdfile)
+            FREE(root->fdfile);
+        FREE(root);
+    }
 }
+
+#ifndef WIN32
 
 /*
  * record_open_files -- make a list of open files (used at START() time)
@@ -258,29 +268,29 @@ open_file_free(struct fd_lut *root)
 static void
 record_open_files()
 {
-	int dirfd;
-	DIR *dirp = NULL;
-	struct dirent *dp;
+    int dirfd;
+    DIR *dirp = NULL;
+    struct dirent *dp;
 
-	if ((dirfd = open("/proc/self/fd", O_RDONLY)) < 0 ||
-	    (dirp = fdopendir(dirfd)) == NULL)
-		UT_FATAL("!/proc/self/fd");
-	while ((dp = readdir(dirp)) != NULL) {
-		int fdnum;
-		char fdfile[PATH_MAX];
-		ssize_t cc;
+    if ((dirfd = open("/proc/self/fd", O_RDONLY)) < 0 ||
+        (dirp = fdopendir(dirfd)) == NULL)
+        UT_FATAL("!/proc/self/fd");
+    while ((dp = readdir(dirp)) != NULL) {
+        int fdnum;
+        char fdfile[PATH_MAX];
+        ssize_t cc;
 
-		if (*dp->d_name == '.')
-			continue;
-		if ((cc = readlinkat(dirfd, dp->d_name, fdfile, PATH_MAX)) < 0)
-		    UT_FATAL("!readlinkat: /proc/self/fd/%s", dp->d_name);
-		fdfile[cc] = '\0';
-		fdnum = atoi(dp->d_name);
-		if (dirfd == fdnum)
-			continue;
-		Fd_lut = open_file_add(Fd_lut, fdnum, fdfile);
-	}
-	closedir(dirp);
+        if (*dp->d_name == '.')
+            continue;
+        if ((cc = readlinkat(dirfd, dp->d_name, fdfile, PATH_MAX)) < 0)
+            UT_FATAL("!readlinkat: /proc/self/fd/%s", dp->d_name);
+        fdfile[cc] = '\0';
+        fdnum = atoi(dp->d_name);
+        if (dirfd == fdnum)
+            continue;
+        Fd_lut = open_file_add(Fd_lut, fdnum, fdfile);
+    }
+    closedir(dirp);
 }
 
 /*
@@ -289,34 +299,46 @@ record_open_files()
 static void
 check_open_files()
 {
-	int dirfd;
-	DIR *dirp = NULL;
-	struct dirent *dp;
+    int dirfd;
+    DIR *dirp = NULL;
+    struct dirent *dp;
 
-	if ((dirfd = open("/proc/self/fd", O_RDONLY)) < 0 ||
-	    (dirp = fdopendir(dirfd)) == NULL)
-		UT_FATAL("!/proc/self/fd");
-	while ((dp = readdir(dirp)) != NULL) {
-		int fdnum;
-		char fdfile[PATH_MAX];
-		ssize_t cc;
+    if ((dirfd = open("/proc/self/fd", O_RDONLY)) < 0 ||
+        (dirp = fdopendir(dirfd)) == NULL)
+        UT_FATAL("!/proc/self/fd");
+    while ((dp = readdir(dirp)) != NULL) {
+        int fdnum;
+        char fdfile[PATH_MAX];
+        ssize_t cc;
 
-		if (*dp->d_name == '.')
-			continue;
-		if ((cc = readlinkat(dirfd, dp->d_name, fdfile, PATH_MAX)) < 0)
-		    UT_FATAL("!readlinkat: /proc/self/fd/%s", dp->d_name);
-		fdfile[cc] = '\0';
-		fdnum = atoi(dp->d_name);
-		if (dirfd == fdnum)
-			continue;
-		open_file_remove(Fd_lut, fdnum, fdfile);
-	}
-	closedir(dirp);
-	open_file_walk(Fd_lut);
-	if (Fd_errcount)
-		UT_FATAL("open file list changed between START() and DONE()");
-	open_file_free(Fd_lut);
+        if (*dp->d_name == '.')
+            continue;
+        if ((cc = readlinkat(dirfd, dp->d_name, fdfile, PATH_MAX)) < 0)
+            UT_FATAL("!readlinkat: /proc/self/fd/%s", dp->d_name);
+        fdfile[cc] = '\0';
+        fdnum = atoi(dp->d_name);
+        if (dirfd == fdnum)
+            continue;
+        open_file_remove(Fd_lut, fdnum, fdfile);
+    }
+    closedir(dirp);
+    open_file_walk(Fd_lut);
+    if (Fd_errcount)
+        UT_FATAL("open file list changed between START() and DONE()");
+    open_file_free(Fd_lut);
 }
+
+#else
+
+static void
+record_open_files()
+{}
+
+static void
+check_open_files()
+{}
+
+#endif
 
 /*
  * ut_start -- initialize unit test framework, indicate test started
@@ -325,65 +347,65 @@ void
 ut_start(const char *file, int line, const char *func,
     int argc, char * const argv[], const char *fmt, ...)
 {
-	va_list ap;
-	int saveerrno = errno;
-	char logname[MAXLOGNAME];
-	char *logsuffix;
+    va_list ap;
+    int saveerrno = errno;
+    char logname[MAXLOGNAME];
+    char *logsuffix;
 
-	va_start(ap, fmt);
+    va_start(ap, fmt);
 
-	if (getenv("UNITTEST_NO_SIGHANDLERS") == NULL)
-		ut_register_sighandlers();
+    if (getenv("UNITTEST_NO_SIGHANDLERS") == NULL)
+        ut_register_sighandlers();
 
-	if (getenv("UNITTEST_QUIET") != NULL)
-		Quiet++;
+    if (getenv("UNITTEST_QUIET") != NULL)
+        Quiet++;
 
-	Testname = getenv("UNITTEST_NAME");
+    Testname = getenv("UNITTEST_NAME");
 
-	if ((logsuffix = getenv("UNITTEST_NUM")) == NULL)
-		logsuffix = "";
+    if ((logsuffix = getenv("UNITTEST_NUM")) == NULL)
+        logsuffix = "";
 
-	snprintf(logname, MAXLOGNAME, "out%s.log", logsuffix);
-	if ((Outfp = fopen(logname, "w")) == NULL) {
-		perror(logname);
-		exit(1);
-	}
+    snprintf(logname, MAXLOGNAME, OUTLOGNAME, logsuffix);
+    if ((Outfp = fopen(logname, "w")) == NULL) {
+        perror(logname);
+        exit(1);
+    }
 
-	snprintf(logname, MAXLOGNAME, "err%s.log", logsuffix);
-	if ((Errfp = fopen(logname, "w")) == NULL) {
-		perror(logname);
-		exit(1);
-	}
+    snprintf(logname, MAXLOGNAME, ERRLOGNAME, logsuffix);
+    if ((Errfp = fopen(logname, "w")) == NULL) {
+        perror(logname);
+        exit(1);
+    }
 
-	snprintf(logname, MAXLOGNAME, "trace%s.log", logsuffix);
-	if ((Tracefp = fopen(logname, "w")) == NULL) {
-		perror(logname);
-		exit(1);
-	}
+    snprintf(logname, MAXLOGNAME, TRACELOGNAME, logsuffix);
+    if ((Tracefp = fopen(logname, "w")) == NULL) {
+        perror(logname);
+        exit(1);
+    }
 
-	setlinebuf(Outfp);
-	setlinebuf(Errfp);
-	setlinebuf(Tracefp);
-	setlinebuf(stdout);
+    setlinebuf(Outfp);
+    setlinebuf(Errfp);
+    setlinebuf(Tracefp);
+    setlinebuf(stdout);
 
-	prefix(file, line, func, 0);
-	vout(OF_LOUD|OF_NAME, "START", fmt, ap);
+    prefix(file, line, func, 0);
+    vout(OF_LOUD|OF_NAME, "START", fmt, ap);
 
-	out(OF_NONL, 0, "     args:");
-	for (int i = 0; i < argc; i++)
-		out(OF_NONL, " %s", argv[i]);
-	out(0, NULL);
+    out(OF_NONL, 0, "     args:");
+    for (int i = 0; i < argc; i++)
+        out(OF_NONL, " %s", argv[i]);
+    out(0, NULL);
 
-	va_end(ap);
+    va_end(ap);
 
-	record_open_files();
+    record_open_files();
 
-	long long sc = sysconf(_SC_PAGESIZE);
-	if (sc < 0)
-		abort();
-	Ut_pagesize = (unsigned long)sc;
+    long long sc = sysconf(_SC_PAGESIZE);
+    if (sc < 0)
+        abort();
+    Ut_pagesize = (unsigned long)sc;
 
-	errno = saveerrno;
+    errno = saveerrno;
 }
 
 /*
@@ -393,27 +415,27 @@ void
 ut_done(const char *file, int line, const char *func,
     const char *fmt, ...)
 {
-	va_list ap;
+    va_list ap;
 
-	va_start(ap, fmt);
+    va_start(ap, fmt);
 
-	check_open_files();
+    check_open_files();
 
-	prefix(file, line, func, 0);
-	vout(OF_NAME, "Done", fmt, ap);
+    prefix(file, line, func, 0);
+    vout(OF_NAME, "Done", fmt, ap);
 
-	va_end(ap);
+    va_end(ap);
 
-	if (Outfp != NULL)
-		fclose(Outfp);
+    if (Outfp != NULL)
+        fclose(Outfp);
 
-	if (Errfp != NULL)
-		fclose(Errfp);
+    if (Errfp != NULL)
+        fclose(Errfp);
 
-	if (Tracefp != NULL)
-		fclose(Tracefp);
+    if (Tracefp != NULL)
+        fclose(Tracefp);
 
-	exit(0);
+    exit(0);
 }
 
 /*
@@ -423,16 +445,16 @@ void
 ut_fatal(const char *file, int line, const char *func,
     const char *fmt, ...)
 {
-	va_list ap;
+    va_list ap;
 
-	va_start(ap, fmt);
+    va_start(ap, fmt);
 
-	prefix(file, line, func, OF_ERR);
-	vout(OF_ERR|OF_NAME, "Error", fmt, ap);
+    prefix(file, line, func, OF_ERR);
+    vout(OF_ERR|OF_NAME, "Error", fmt, ap);
 
-	va_end(ap);
+    va_end(ap);
 
-	abort();
+    abort();
 }
 
 /*
@@ -442,17 +464,17 @@ void
 ut_out(const char *file, int line, const char *func,
     const char *fmt, ...)
 {
-	va_list ap;
-	int saveerrno = errno;
+    va_list ap;
+    int saveerrno = errno;
 
-	va_start(ap, fmt);
+    va_start(ap, fmt);
 
-	prefix(file, line, func, 0);
-	vout(0, NULL, fmt, ap);
+    prefix(file, line, func, 0);
+    vout(0, NULL, fmt, ap);
 
-	va_end(ap);
+    va_end(ap);
 
-	errno = saveerrno;
+    errno = saveerrno;
 }
 
 /*
@@ -462,17 +484,17 @@ void
 ut_err(const char *file, int line, const char *func,
     const char *fmt, ...)
 {
-	va_list ap;
-	int saveerrno = errno;
+    va_list ap;
+    int saveerrno = errno;
 
-	va_start(ap, fmt);
+    va_start(ap, fmt);
 
-	prefix(file, line, func, OF_ERR);
-	vout(OF_ERR|OF_NAME, NULL, fmt, ap);
+    prefix(file, line, func, OF_ERR);
+    vout(OF_ERR|OF_NAME, NULL, fmt, ap);
 
-	va_end(ap);
+    va_end(ap);
 
-	errno = saveerrno;
+    errno = saveerrno;
 }
 
 /*
@@ -481,13 +503,13 @@ ut_err(const char *file, int line, const char *func,
 uint16_t
 ut_checksum(uint8_t *addr, size_t len)
 {
-	uint16_t sum1 = 0;
-	uint16_t sum2 = 0;
+    uint16_t sum1 = 0;
+    uint16_t sum2 = 0;
 
-	for (size_t i = 0; i < len; ++i) {
-		sum1 = (uint16_t)(sum1 + addr[i]) % 255;
-		sum2 = (uint16_t)(sum2 + sum1) % 255;
-	}
+    for (size_t i = 0; i < len; ++i) {
+        sum1 = (uint16_t)(sum1 + addr[i]) % 255;
+        sum2 = (uint16_t)(sum2 + sum1) % 255;
+    }
 
-	return (uint16_t)(sum2 << 8) | sum1;
+    return (uint16_t)(sum2 << 8) | sum1;
 }

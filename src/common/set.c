@@ -58,7 +58,7 @@
 #include "out.h"
 #include "valgrind_internal.h"
 
-extern unsigned long Pagesize;
+extern unsigned long long Pagesize;
 
 /* reserve space for size, path and some whitespace and/or comment */
 #define PARSER_MAX_LINE (PATH_MAX + 1024)

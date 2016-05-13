@@ -47,7 +47,7 @@
 #define LOG_FORMAT_INCOMPAT 0x0000
 #define LOG_FORMAT_RO_COMPAT 0x0000
 
-extern unsigned long Pagesize;
+extern unsigned long long Pagesize;
 
 struct pmemlog {
 	struct pool_hdr hdr;	/* memory pool header */
