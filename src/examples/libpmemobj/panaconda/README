@@ -1,0 +1,35 @@
+Linux NVM Library
+
+This is examples/libpmemobj/panconda/README.
+
+This directory contains an example application implemented using libpmemobj,
+it's a game in which all the objects are stored on persistent memory.
+This means that the game process can be safely killed and then resumed.
+
+To launch the game:
+	./panaconda /path/game/session/file
+	or
+	./panaconda /path/game/session/file -m /path/config/file/conf/cfg
+
+The second option allow you to define your own maze.
+Meaning of symbols in config file is given below:
+	'1' - wall
+	'0' - space
+conf.cfg contains example of predefined maze.
+
+The file with the game session will either be created if it doesn't exist
+or opened if it contains a valid pool.
+
+Controls:
+	move - arrow keys
+	quit - 'q'
+	new game - 'n'
+
+This game demonstrates the usage of the very basics of the libpmemobj C++
+bindings. It demonstrates pool management, persistent pointers and transactions.
+
+** DEPENDENCIES: **
+In order to build the game you need to install ncurses development package.
+
+rpm-based systems : ncurses-devel
+dpkg-based systems: libncursesX-dev (where X is the API/ABI version)
