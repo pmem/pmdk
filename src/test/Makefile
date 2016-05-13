@@ -234,7 +234,8 @@ EXAMPLES_TESTS = \
 	ex_libpmem\
 	ex_libpmemblk\
 	ex_libpmemlog\
-	ex_libpmemobj
+	ex_libpmemobj\
+	ex_linkedlist
 
 CPP_EXAMPLE_TESTS = \
 	ex_libpmemobj_cpp
