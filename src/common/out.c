@@ -56,9 +56,9 @@ static FILE *Out_fp;
 static unsigned Log_alignment;
 
 #ifndef _WIN32
-#define	DIR_SEPARATOR '/'
+#define DIR_SEPARATOR '/'
 #else
-#define	DIR_SEPARATOR '\\'
+#define DIR_SEPARATOR '\\'
 #endif
 
 #ifndef NO_LIBPTHREAD

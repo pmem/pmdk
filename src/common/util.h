@@ -317,10 +317,10 @@ static inline void util_setbit(uint8_t *b, uint32_t i)
 
 #ifndef _WIN32
 typedef struct stat util_stat_t;
-#define	util_fstat	fstat
+#define util_fstat	fstat
 #else
 typedef struct _stat64 util_stat_t;
-#define	util_fstat	_fstat64
+#define util_fstat	_fstat64
 #endif
 
 #ifndef _MSC_VER
@@ -333,9 +333,9 @@ typedef struct _stat64 util_stat_t;
 #endif
 
 #ifndef _MSC_VER
-#define	ATTR_CONSTRUCTOR __attribute__((constructor)) static
-#define	ATTR_DESTRUCTOR __attribute__((destructor)) static
+#define ATTR_CONSTRUCTOR __attribute__((constructor)) static
+#define ATTR_DESTRUCTOR __attribute__((destructor)) static
 #else
-#define	ATTR_CONSTRUCTOR
-#define	ATTR_DESTRUCTOR
+#define ATTR_CONSTRUCTOR
+#define ATTR_DESTRUCTOR
 #endif

@@ -108,7 +108,7 @@ pthread_mutexattr_settype(pthread_mutexattr_t *attr, int type)
 	}
 }
 
-#define	TIMED_LOCK(action, ts) {\
+#define TIMED_LOCK(action, ts) {\
 	if ((action) == TRUE)\
 		return 0;\
 	long long et = (ts)->tv_sec * 1000 + (ts)->tv_nsec / 1000000;\

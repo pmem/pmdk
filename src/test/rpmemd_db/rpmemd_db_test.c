@@ -41,9 +41,9 @@
 #include "rpmemd_db.h"
 #include "rpmemd_log.h"
 
-#define	POOL_MODE 0644
+#define POOL_MODE 0644
 
-#define	FAILED_FUNC(func_name)\
+#define FAILED_FUNC(func_name)\
 	do {\
 		UT_ERR("!%s(): %s() failed", __func__, func_name);\
 		exit(0);\
