@@ -74,6 +74,9 @@ void operation_init(PMEMobjpool *pop, struct operation_context *ctx,
 	struct redo_log *redo);
 void operation_add_entry(struct operation_context *ctx,
 	void *ptr, uint64_t value, enum operation_type type);
+void operation_add_typed_entry(struct operation_context *ctx,
+	void *ptr, uint64_t value,
+	enum operation_type type, enum operation_entry_type en_type);
 void operation_add_entries(struct operation_context *ctx,
 	struct operation_entry *entries, size_t nentries);
 void operation_process(struct operation_context *ctx);
