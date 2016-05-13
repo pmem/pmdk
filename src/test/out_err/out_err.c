@@ -48,36 +48,36 @@
 int
 main(int argc, char *argv[])
 {
-    START(argc, argv, "out_err");
+	START(argc, argv, "out_err");
 
-    /* Execute test */
-    out_init(LOG_PREFIX, LOG_LEVEL_VAR, LOG_FILE_VAR,
-            MAJOR_VERSION, MINOR_VERSION);
+	/* Execute test */
+	out_init(LOG_PREFIX, LOG_LEVEL_VAR, LOG_FILE_VAR,
+			MAJOR_VERSION, MINOR_VERSION);
 
-    errno = 0;
-    ERR("ERR #%d", 1);
-    UT_OUT("%s", out_get_errormsg());
+	errno = 0;
+	ERR("ERR #%d", 1);
+	UT_OUT("%s", out_get_errormsg());
 
-    errno = 0;
-    ERR("!ERR #%d", 2);
-    UT_OUT("%s", out_get_errormsg());
+	errno = 0;
+	ERR("!ERR #%d", 2);
+	UT_OUT("%s", out_get_errormsg());
 
-    errno = EINVAL;
-    ERR("!ERR #%d", 3);
-    UT_OUT("%s", out_get_errormsg());
+	errno = EINVAL;
+	ERR("!ERR #%d", 3);
+	UT_OUT("%s", out_get_errormsg());
 
-    errno = EBADF;
-    out_err(__FILE__, 100, __func__,
-        "ERR1: %s:%d", strerror(errno), 1234);
-    UT_OUT("%s", out_get_errormsg());
+	errno = EBADF;
+	out_err(__FILE__, 100, __func__,
+		"ERR1: %s:%d", strerror(errno), 1234);
+	UT_OUT("%s", out_get_errormsg());
 
-    errno = EBADF;
-    out_err(NULL, 0, NULL,
-        "ERR2: %s:%d", strerror(errno), 1234);
-    UT_OUT("%s", out_get_errormsg());
+	errno = EBADF;
+	out_err(NULL, 0, NULL,
+		"ERR2: %s:%d", strerror(errno), 1234);
+	UT_OUT("%s", out_get_errormsg());
 
-    /* Cleanup */
-    out_fini();
+	/* Cleanup */
+	out_fini();
 
-    DONE(NULL);
+	DONE(NULL);
 }
