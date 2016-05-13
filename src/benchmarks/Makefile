@@ -74,6 +74,7 @@ SRC=pmembench.c\
     vmem.c\
     pmem_memset.c\
     pmem_memcpy.c\
+    pmem_flush.c\
     pmemobj_gen.c\
     obj_pmalloc.c\
     obj_locks.c\
@@ -88,6 +89,7 @@ CONFIGS=pmembench_log\
 	pmembench_vmem\
 	pmembench_memset\
 	pmembench_memcpy\
+	pmembench_flush\
 	pmembench_obj_pmalloc\
 	pmembench_obj_gen\
 	pmembench_obj_locks\
