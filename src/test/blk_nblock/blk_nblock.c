@@ -62,7 +62,7 @@ main(int argc, char *argv[])
 		} else {
 			UT_OUT("%s: block size %zu usable blocks: %zu",
 					fname, bsize, pmemblk_nblock(handle));
-			UT_ASSERTeq(pmemblk_bsize(handle), bsize);
+			UT_ASSERTeq_rt(pmemblk_bsize(handle), bsize);
 			pmemblk_close(handle);
 			int result = pmemblk_check(fname, bsize);
 			if (result < 0)
@@ -71,12 +71,12 @@ main(int argc, char *argv[])
 				UT_OUT("%s: pmemblk_check: not consistent",
 						fname);
 			else {
-				UT_ASSERTeq(pmemblk_check(fname, bsize + 1),
+				UT_ASSERTeq_rt(pmemblk_check(fname, bsize + 1),
 						-1);
-				UT_ASSERTeq(pmemblk_check(fname, 0), 1);
+				UT_ASSERTeq_rt(pmemblk_check(fname, 0), 1);
 
 				handle = pmemblk_open(fname, 0);
-				UT_ASSERTeq(pmemblk_bsize(handle), bsize);
+				UT_ASSERTeq_rt(pmemblk_bsize(handle), bsize);
 				pmemblk_close(handle);
 			}
 		}

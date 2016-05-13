@@ -119,6 +119,7 @@ ut_access(const char *file, int line, const char *func, const char *path,
 	return retval;
 }
 
+#ifndef _WIN32
 /*
  * ut_write -- a write that can't return -1
  */
@@ -204,6 +205,7 @@ ut_fcntl(const char *file, int line, const char *func, int fd,
 
 	return retval;
 }
+#endif
 
 /*
  * ut_fstat -- a fstat that cannot return -1
@@ -283,6 +285,8 @@ ut_munmap(const char *file, int line, const char *func, void *addr,
 	return retval;
 }
 
+#ifndef _WIN32
+
 /*
  * ut_mprotect -- a mprotect call that cannot return -1
  */
@@ -360,6 +364,7 @@ ut_rmdir(const char *file, int line, const char *func,
 
 	return retval;
 }
+#endif
 
 /*
  * ut_rename -- a rename that cannot return -1
@@ -375,6 +380,8 @@ ut_rename(const char *file, int line, const char *func,
 
 	return retval;
 }
+
+#ifndef _WIN32
 
 /*
  * ut_mount -- a mount that cannot return -1
@@ -440,6 +447,8 @@ ut_ftruncate(const char *file, int line, const char *func, int fd,
 	return retval;
 }
 
+#endif
+
 /*
  * ut_chmod -- a chmod that cannot return -1
  */
@@ -454,6 +463,8 @@ ut_chmod(const char *file, int line, const char *func, const char *path,
 
 	return retval;
 }
+
+#ifndef _WIN32
 
 /*
  * ut_mknod -- a mknod that cannot return -1
@@ -529,3 +540,4 @@ ut_closedir(const char *file, int line, const char *func, DIR *dirp)
 
 	return retval;
 }
+#endif

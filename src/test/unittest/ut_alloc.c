@@ -108,6 +108,7 @@ ut_strdup(const char *file, int line, const char *func,
 	return retval;
 }
 
+#ifndef _WIN32
 /*
  * ut_pagealignmalloc -- like malloc but page-aligned memory
  */
@@ -196,3 +197,5 @@ ut_munmap_anon_aligned(const char *file, int line, const char *func,
 	return ut_munmap(file, line, func, (char *)start - Ut_pagesize,
 			size + 2 * Ut_pagesize);
 }
+
+#endif

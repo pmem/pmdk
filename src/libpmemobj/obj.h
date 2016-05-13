@@ -116,7 +116,7 @@ typedef void *(*memcpy_fn)(PMEMobjpool *pop, void *dest, const void *src,
 					size_t len);
 typedef void *(*memset_fn)(PMEMobjpool *pop, void *dest, int c, size_t len);
 
-extern unsigned long Pagesize;
+extern unsigned long long Pagesize;
 
 typedef uint64_t type_num_t;
 

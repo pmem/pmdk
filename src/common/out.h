@@ -37,6 +37,12 @@
 #include <stdarg.h>
 #include <stdlib.h>
 
+#ifndef _WIN32
+#define DIR_SEPARATOR '/'
+#else
+#define DIR_SEPARATOR '\\'
+#endif
+
 #ifdef DEBUG
 
 #define OUT_LOG out_log

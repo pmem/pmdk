@@ -34,7 +34,7 @@
  * util.h -- internal definitions for util module
  */
 
-extern unsigned long Pagesize;
+extern unsigned long long Pagesize;
 
 extern int Mmap_no_random;
 extern void *Mmap_hint;

@@ -58,7 +58,7 @@
 #include "out.h"
 #include "valgrind_internal.h"
 
-extern unsigned long Pagesize;
+extern unsigned long long Pagesize;
 
 /* reserve space for size, path and some whitespace and/or comment */
 #define PARSER_MAX_LINE (PATH_MAX + 1024)
@@ -343,7 +343,7 @@ parser_read_line(char *line, size_t *size, char **path)
 	 */
 
 	/* check if the read path is an absolute path */
-	if (path_str[0] != '/')
+	if (path_str[0] != DIR_SEPARATOR)
 		return PARSER_WRONG_PATH; /* must be an absolute path */
 
 	ret = util_parse_size(size_str, size);
@@ -1208,6 +1208,7 @@ util_replica_create(struct pool_set *set, unsigned repidx, int flags,
 	}
 
 	/* map the first part and reserve space for remaining parts */
+	/* XXX investigate this idea of reserving space on Windows */
 	if (util_map_part(&rep->part[0], addr, rep->repsize, 0, flags) != 0) {
 		LOG(2, "pool mapping failed - part #0");
 		return -1;

@@ -73,6 +73,11 @@ typedef long _off_t;		/* NOTE: _off_t must be defined as 'long'! */
 #define __attribute__(a)
 #define __builtin_constant_p(cnd) 0
 
+/* XXX - dummy */
+typedef int sigset_t;
+typedef int DIR;
+__inline void ut_register_sighandlers(o) {};
+
 /*
  * atomics
  */
@@ -138,6 +143,7 @@ __sync_synchronize()
 typedef int mode_t;
 
 #define fchmod(fd, mode) 0	/* XXX - dummy */
+#define setlinebuf(fp) setvbuf(fp, NULL, _IOLBF, BUFSIZ);
 
 /* unistd.h */
 typedef long long int ssize_t;

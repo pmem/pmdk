@@ -50,10 +50,8 @@
 char *
 util_map_hint(size_t len, size_t req_align)
 {
-	LOG(3, "len %zu req_align %zu", len, req_align);
-
-	LOG(4, "hint %p", MAP_FAILED);
-	return MAP_FAILED;
+	LOG(4, "hint not supported on windows");
+	return NULL;
 }
 
 /*

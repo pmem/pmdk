@@ -78,7 +78,7 @@ main(int argc, char *argv[])
 	pmemobj_close(pop);
 
 	pop = pmemobj_open(path, LAYOUT_NAME);
-	UT_ASSERTne(pop, NULL);
+	UT_ASSERTne_rt(pop, NULL);
 
 	for (int i = 0; i < ALLOCS; ++i) {
 		PMEMoid oid;

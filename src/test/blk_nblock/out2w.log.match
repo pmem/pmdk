@@ -1,0 +1,4 @@
+blk_nblock$(nW)TEST2w: START: blk_nblock
+ $(nW)blk_nblock$(nW) 512:$(nW)testset1
+$(nW)testset1: block size 512 usable blocks: 2080567
+blk_nblock$(nW)TEST2w: Done

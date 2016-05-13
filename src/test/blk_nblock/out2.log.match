@@ -1,5 +1,5 @@
-blk_nblock/TEST2: START: blk_nblock
- ./blk_nblock$(nW) 512:$(nW)/testset1 512:$(nW)/testset2
-$(nW)/testset1: block size 512 usable blocks: 2080567
-$(nW)/testset2: block size 512 usable blocks: 4161454
-blk_nblock/TEST2: Done
+blk_nblock$(nW)TEST2: START: blk_nblock
+ $(nW)blk_nblock$(nW) 512:$(nW)testset1 512:$(nW)testset2
+$(nW)testset1: block size 512 usable blocks: 2080567
+$(nW)testset2: block size 512 usable blocks: 4161454
+blk_nblock$(nW)TEST2: Done

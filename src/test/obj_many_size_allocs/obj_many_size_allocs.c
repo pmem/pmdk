@@ -72,18 +72,18 @@ test_allocs(PMEMobjpool *pop, const char *path)
 		if (pmemobj_alloc(pop, &oid[i], i, 0,
 				test_constructor, &args) != 0)
 			UT_FATAL("!pmemobj_alloc");
-		UT_ASSERT(!OID_IS_NULL(oid[i]));
+		UT_ASSERT_rt(!OID_IS_NULL(oid[i]));
 	}
 
 	pmemobj_close(pop);
 
-	UT_ASSERT(pmemobj_check(path, LAYOUT_NAME) == 1);
+	UT_ASSERT_rt(pmemobj_check(path, LAYOUT_NAME) == 1);
 
-	UT_ASSERT((pop = pmemobj_open(path, LAYOUT_NAME)) != NULL);
+	UT_ASSERT_rt((pop = pmemobj_open(path, LAYOUT_NAME)) != NULL);
 
 	for (int i = 1; i < TEST_ALLOC_SIZE; ++i) {
 		pmemobj_free(&oid[i]);
-		UT_ASSERT(OID_IS_NULL(oid[i]));
+		UT_ASSERT_rt(OID_IS_NULL(oid[i]));
 	}
 
 	pmemobj_close(pop);
@@ -95,19 +95,19 @@ test_lazy_load(PMEMobjpool *pop, const char *path)
 	PMEMoid oid[3];
 
 	int ret = pmemobj_alloc(pop, &oid[0], LAZY_LOAD_SIZE, 0, NULL, NULL);
-	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq_rt(ret, 0);
 	ret = pmemobj_alloc(pop, &oid[1], LAZY_LOAD_SIZE, 0, NULL, NULL);
-	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq_rt(ret, 0);
 	ret = pmemobj_alloc(pop, &oid[2], LAZY_LOAD_SIZE, 0, NULL, NULL);
-	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq_rt(ret, 0);
 
 	pmemobj_close(pop);
-	UT_ASSERT((pop = pmemobj_open(path, LAYOUT_NAME)) != NULL);
+	UT_ASSERT_rt((pop = pmemobj_open(path, LAYOUT_NAME)) != NULL);
 
 	pmemobj_free(&oid[1]);
 
 	ret = pmemobj_alloc(pop, &oid[1], LAZY_LOAD_BIG_SIZE, 0, NULL, NULL);
-	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq_rt(ret, 0);
 }
 
 

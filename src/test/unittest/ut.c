@@ -43,7 +43,7 @@
 
 /* RHEL5 seems to be missing decls, even though libc supports them */
 extern DIR *fdopendir(int fd);
-extern ssize_t readlinkat(int, const char *restrict, char *restrict, size_t);
+extern ssize_t readlinkat(int, const char *restrict, char *__restrict, size_t);
 
 #define MAXLOGNAME 100		/* maximum expected .log file name length */
 #define MAXPRINT 8192		/* maximum expected single print length */
@@ -252,6 +252,8 @@ open_file_free(struct fd_lut *root)
 	}
 }
 
+#ifndef _WIN32
+
 /*
  * record_open_files -- make a list of open files (used at START() time)
  */
@@ -317,6 +319,18 @@ check_open_files()
 		UT_FATAL("open file list changed between START() and DONE()");
 	open_file_free(Fd_lut);
 }
+
+#else
+
+static void
+record_open_files()
+{}
+
+static void
+check_open_files()
+{}
+
+#endif
 
 /*
  * ut_start -- initialize unit test framework, indicate test started
