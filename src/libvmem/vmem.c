@@ -197,7 +197,7 @@ vmem_create_in_region(void *addr, size_t size)
 	LOG(3, "addr %p size %zu", addr, size);
 
 	if (((uintptr_t)addr & (Pagesize - 1)) != 0) {
-		ERR("addr %p not aligned to pagesize %lu", addr, Pagesize);
+		ERR("addr %p not aligned to pagesize %llu", addr, Pagesize);
 		errno = EINVAL;
 		return NULL;
 	}
