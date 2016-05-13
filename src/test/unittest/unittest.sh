@@ -1417,9 +1417,9 @@ function setup() {
 #
 function check() {
 	if [ $NODES_MAX -lt 0 ]; then
-		../match $(find . -regex "[^0-9]*${UNITTEST_NUM}\.log\.match" | xargs)
+		../match $(find . -regex "[^0-9w]*${UNITTEST_NUM}\.log\.match" | xargs)
 	else
-		FILES=$(find . -regex "./node_[0-9]+_[^0-9]*${UNITTEST_NUM}\.log\.match" | xargs)
+		FILES=$(find . -regex "./node_[0-9]+_[^0-9w]*${UNITTEST_NUM}\.log\.match" | xargs)
 		for file in $FILES; do
 			local N=`echo $file | cut -d"_" -f2`
 			local DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
