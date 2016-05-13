@@ -38,4 +38,4 @@
 #define RPMEM_LOG_LEVEL_VAR "RPMEM_LOG_LEVEL"
 #define RPMEM_LOG_FILE_VAR "RPMEM_LOG_FILE"
 
-extern unsigned long Pagesize;
+extern unsigned long long Pagesize;
