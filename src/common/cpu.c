@@ -107,6 +107,23 @@ cpuid(unsigned func, unsigned subfunc, unsigned cpuinfo[4])
 #endif
 
 /*
+ * is_cpu_feature_present -- (internal) checks if CPU feature is supported
+ */
+static int
+is_cpu_feature_present(unsigned func, unsigned reg, unsigned bit)
+{
+	unsigned cpuinfo[4] = { 0 };
+
+	/* check CPUID level first */
+	cpuid(0x0, 0x0, cpuinfo);
+	if (cpuinfo[EAX_IDX] < func)
+		return 0;
+
+	cpuid(func, 0x0, cpuinfo);
+	return (cpuinfo[reg] & bit) != 0;
+}
+
+/*
  * is_cpu_genuine_intel -- checks for genuine Intel CPU
  */
 int
@@ -138,11 +155,7 @@ is_cpu_genuine_intel(void)
 int
 is_cpu_sse2_present(void)
 {
-	unsigned cpuinfo[4] = { 0 };
-
-	cpuid(0x1, 0x0, cpuinfo);
-
-	int ret = (cpuinfo[EDX_IDX] & bit_SSE2) != 0;
+	int ret = is_cpu_feature_present(0x1, EDX_IDX, bit_SSE2);
 	LOG(4, "SSE2 %ssupported", ret == 0 ? "not " : "");
 
 	return ret;
@@ -154,11 +167,7 @@ is_cpu_sse2_present(void)
 int
 is_cpu_clflush_present(void)
 {
-	unsigned cpuinfo[4] = { 0 };
-
-	cpuid(0x1, 0x0, cpuinfo);
-
-	int ret = (cpuinfo[EDX_IDX] & bit_CLFLUSH) != 0;
+	int ret = is_cpu_feature_present(0x1, EDX_IDX, bit_CLFLUSH);
 	LOG(4, "CLFLUSH %ssupported", ret == 0 ? "not " : "");
 
 	return ret;
@@ -170,14 +179,10 @@ is_cpu_clflush_present(void)
 int
 is_cpu_clflushopt_present(void)
 {
-	unsigned cpuinfo[4] = { 0 };
-
 	if (!is_cpu_genuine_intel())
 		return 0;
 
-	cpuid(0x7, 0x0, cpuinfo);
-
-	int ret = (cpuinfo[EBX_IDX] & bit_CLFLUSHOPT) != 0;
+	int ret = is_cpu_feature_present(0x7, EBX_IDX, bit_CLFLUSHOPT);
 	LOG(4, "CLFLUSHOPT %ssupported", ret == 0 ? "not " : "");
 
 	return ret;
@@ -189,14 +194,10 @@ is_cpu_clflushopt_present(void)
 int
 is_cpu_clwb_present(void)
 {
-	unsigned cpuinfo[4] = { 0 };
-
 	if (!is_cpu_genuine_intel())
 		return 0;
 
-	cpuid(0x7, 0x0, cpuinfo);
-
-	int ret = (cpuinfo[EBX_IDX] & bit_CLWB) != 0;
+	int ret = is_cpu_feature_present(0x7, EBX_IDX, bit_CLWB);
 	LOG(4, "CLWB %ssupported", ret == 0 ? "not " : "");
 
 	return ret;
@@ -208,14 +209,10 @@ is_cpu_clwb_present(void)
 int
 is_cpu_pcommit_present(void)
 {
-	unsigned cpuinfo[4] = { 0 };
-
 	if (!is_cpu_genuine_intel())
 		return 0;
 
-	cpuid(0x7, 0x0, cpuinfo);
-
-	int ret = (cpuinfo[EBX_IDX] & bit_PCOMMIT) != 0;
+	int ret = is_cpu_feature_present(0x7, EBX_IDX, bit_PCOMMIT);
 	LOG(4, "PCOMMIT %ssupported", ret == 0 ? "not " : "");
 
 	return ret;
