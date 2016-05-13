@@ -622,10 +622,10 @@ line: while (<$filehandle>) {
 	    !/^(extern|static)\b/) {
 		err("return type of function not on separate line");
 	}
-	if (/^#define\t/ && /^#ifdef\t/ && /^#ifndef\t/) {
+	if (/^#define\t/ || /^#ifdef\t/ || /^#ifndef\t/) {
 		err("#define/ifdef/ifndef followed by tab instead of space");
 	}
-	if (/^#define\s\s+/ && /^#ifdef\s\s+/ && /^#ifndef\s\s+/) {
+	if (/^#define\s\s+/ || /^#ifdef\s\s+/ || /^#ifndef\s\s+/) {
 		err("#define/ifdef/ifndef followed by more than one space");
 	}
 	# AON C-style doesn't require this.

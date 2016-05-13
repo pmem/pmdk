@@ -48,7 +48,7 @@ POBJ_LAYOUT_TOID(two_lists, struct foo_el);
 POBJ_LAYOUT_TOID(two_lists, struct bar_el);
 POBJ_LAYOUT_END(two_lists);
 
-#define	MAX_LISTS 10
+#define MAX_LISTS 10
 
 struct foo_el {
 	POBJ_LIST_ENTRY(struct foo_el) entries;

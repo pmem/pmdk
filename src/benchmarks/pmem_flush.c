@@ -46,8 +46,8 @@
 
 #include "benchmark.h"
 
-#define	PAGE_4K ((uintptr_t)1 << 12)
-#define	PAGE_2M ((uintptr_t)1 << 21)
+#define PAGE_4K ((uintptr_t)1 << 12)
+#define PAGE_2M ((uintptr_t)1 << 21)
 
 /*
  * align_addr -- round addr down to given boundary
