@@ -63,7 +63,7 @@ static unsigned Log_alignment;
 
 #ifndef NO_LIBPTHREAD
 
-#define MAXPRINT 8192   /* maximum expected log line */
+#define MAXPRINT 8192	/* maximum expected log line */
 
 static pthread_once_t Last_errormsg_key_once = PTHREAD_ONCE_INIT;
 static pthread_key_t Last_errormsg_key;
@@ -71,47 +71,47 @@ static pthread_key_t Last_errormsg_key;
 static void
 _Last_errormsg_key_alloc(void)
 {
-    int pth_ret = pthread_key_create(&Last_errormsg_key, free);
-    if (pth_ret)
-        FATAL("!pthread_key_create");
+	int pth_ret = pthread_key_create(&Last_errormsg_key, free);
+	if (pth_ret)
+		FATAL("!pthread_key_create");
 
-    VALGRIND_ANNOTATE_HAPPENS_BEFORE(&Last_errormsg_key_once);
+	VALGRIND_ANNOTATE_HAPPENS_BEFORE(&Last_errormsg_key_once);
 }
 
 static void
 Last_errormsg_key_alloc(void)
 {
-    pthread_once(&Last_errormsg_key_once, _Last_errormsg_key_alloc);
-    /*
-     * Workaround Helgrind's bug:
-     * https://bugs.kde.org/show_bug.cgi?id=337735
-     */
-    VALGRIND_ANNOTATE_HAPPENS_AFTER(&Last_errormsg_key_once);
+	pthread_once(&Last_errormsg_key_once, _Last_errormsg_key_alloc);
+	/*
+	 * Workaround Helgrind's bug:
+	 * https://bugs.kde.org/show_bug.cgi?id=337735
+	 */
+	VALGRIND_ANNOTATE_HAPPENS_AFTER(&Last_errormsg_key_once);
 }
 
 static inline void
 Last_errormsg_fini()
 {
-    void *p = pthread_getspecific(Last_errormsg_key);
-    if (p) {
-        free(p);
-        (void) pthread_setspecific(Last_errormsg_key, NULL);
-    }
+	void *p = pthread_getspecific(Last_errormsg_key);
+	if (p) {
+		free(p);
+		(void) pthread_setspecific(Last_errormsg_key, NULL);
+	}
 }
 
 static inline const char *
 Last_errormsg_get()
 {
-    Last_errormsg_key_alloc();
+	Last_errormsg_key_alloc();
 
-    char *errormsg = pthread_getspecific(Last_errormsg_key);
-    if (errormsg == NULL) {
-        errormsg = malloc(MAXPRINT);
-        int ret = pthread_setspecific(Last_errormsg_key, errormsg);
-        if (ret)
-            FATAL("!pthread_setspecific");
-    }
-    return errormsg;
+	char *errormsg = pthread_getspecific(Last_errormsg_key);
+	if (errormsg == NULL) {
+		errormsg = malloc(MAXPRINT);
+		int ret = pthread_setspecific(Last_errormsg_key, errormsg);
+		if (ret)
+			FATAL("!pthread_setspecific");
+	}
+	return errormsg;
 }
 #else
 
@@ -124,7 +124,7 @@ Last_errormsg_get()
  * not be longer than about 90 chars (in case of pmem_check_version()).
  */
 
-#define MAXPRINT 256    /* maximum expected log line for libpmem */
+#define MAXPRINT 256	/* maximum expected log line for libpmem */
 
 static __thread char Last_errormsg[MAXPRINT];
 
@@ -141,7 +141,7 @@ Last_errormsg_fini()
 static inline const char *
 Last_errormsg_get()
 {
-    return Last_errormsg;
+	return Last_errormsg;
 }
 
 #endif /* NO_LIBPTHREAD */
@@ -156,25 +156,25 @@ Last_errormsg_get()
 static const char *
 getexecname(void)
 {
-    static char namepath[PATH_MAX];
-    ssize_t cc;
+	static char namepath[PATH_MAX];
+	ssize_t cc;
 
 #ifndef _WIN32
-    char procpath[PATH_MAX];
+	char procpath[PATH_MAX];
 
-    snprintf(procpath, PATH_MAX, "/proc/%d/exe", getpid());
+	snprintf(procpath, PATH_MAX, "/proc/%d/exe", getpid());
 
-    if ((cc = readlink(procpath, namepath, PATH_MAX)) < 0)
+	if ((cc = readlink(procpath, namepath, PATH_MAX)) < 0)
 #else
-    if ((cc = GetModuleFileName(NULL, namepath, PATH_MAX)) == 0)
+	if ((cc = GetModuleFileName(NULL, namepath, PATH_MAX)) == 0)
 #endif
-        strcpy(namepath, "unknown");
-    else
-        namepath[cc] = '\0';
+		strcpy(namepath, "unknown");
+	else
+		namepath[cc] = '\0';
 
-    return namepath;
+	return namepath;
 }
-#endif  /* DEBUG */
+#endif	/* DEBUG */
 
 /*
  * out_init -- initialize the log
@@ -183,97 +183,97 @@ getexecname(void)
  */
 void
 out_init(const char *log_prefix, const char *log_level_var,
-        const char *log_file_var, int major_version,
-        int minor_version)
+		const char *log_file_var, int major_version,
+		int minor_version)
 {
-    static int once;
+	static int once;
 
-    /* only need to initialize the out module once */
-    if (once)
-        return;
-    once++;
+	/* only need to initialize the out module once */
+	if (once)
+		return;
+	once++;
 
-    Log_prefix = log_prefix;
+	Log_prefix = log_prefix;
 
 #ifdef DEBUG
-    char *log_level;
-    char *log_file;
+	char *log_level;
+	char *log_file;
 
-    if ((log_level = getenv(log_level_var)) != NULL) {
-        Log_level = atoi(log_level);
-        if (Log_level < 0) {
-            Log_level = 0;
-        }
-    }
+	if ((log_level = getenv(log_level_var)) != NULL) {
+		Log_level = atoi(log_level);
+		if (Log_level < 0) {
+			Log_level = 0;
+		}
+	}
 
-    if ((log_file = getenv(log_file_var)) != NULL) {
-        size_t cc = strlen(log_file);
+	if ((log_file = getenv(log_file_var)) != NULL) {
+		size_t cc = strlen(log_file);
 
-        /* reserve more than enough space for a PID + '\0' */
-        char *log_file_pid = alloca(cc + 30);
+		/* reserve more than enough space for a PID + '\0' */
+		char *log_file_pid = alloca(cc + 30);
 
-        if (cc > 0 && log_file[cc - 1] == '-') {
-            snprintf(log_file_pid, cc + 30, "%s%d",
-                log_file, getpid());
-            log_file = log_file_pid;
-        }
-        if ((Out_fp = fopen(log_file, "w")) == NULL) {
-            fprintf(stderr, "Error (%s): %s=%s: %s\n",
-                    log_prefix, log_file_var,
-                    log_file, strerror(errno));
-            abort();
-        }
-    }
-#endif  /* DEBUG */
+		if (cc > 0 && log_file[cc - 1] == '-') {
+			snprintf(log_file_pid, cc + 30, "%s%d",
+				log_file, getpid());
+			log_file = log_file_pid;
+		}
+		if ((Out_fp = fopen(log_file, "w")) == NULL) {
+			fprintf(stderr, "Error (%s): %s=%s: %s\n",
+					log_prefix, log_file_var,
+					log_file, strerror(errno));
+			abort();
+		}
+	}
+#endif	/* DEBUG */
 
-    char *log_alignment = getenv("NVML_LOG_ALIGN");
-    if (log_alignment) {
-        int align = atoi(log_alignment);
-        if (align > 0)
-            Log_alignment = (unsigned)align;
-    }
+	char *log_alignment = getenv("NVML_LOG_ALIGN");
+	if (log_alignment) {
+		int align = atoi(log_alignment);
+		if (align > 0)
+			Log_alignment = (unsigned)align;
+	}
 
-    if (Out_fp == NULL)
-        Out_fp = stderr;
-    else
-#ifndef WIN32
+	if (Out_fp == NULL)
+		Out_fp = stderr;
+	else
+#ifndef _WIN32
 		setlinebuf(Out_fp);
 #else
 		/* setlinebuf() is not available on Windows, use no buffering */
 		setvbuf(Out_fp, NULL, _IONBF, 0);
 #endif
-    
+
 #ifdef DEBUG
-    LOG(1, "pid %d: program: %s", getpid(), getexecname());
+	LOG(1, "pid %d: program: %s", getpid(), getexecname());
 #endif
-    LOG(1, "%s version %d.%d", log_prefix, major_version, minor_version);
-    LOG(1, "src version %s", nvml_src_version);
+	LOG(1, "%s version %d.%d", log_prefix, major_version, minor_version);
+	LOG(1, "src version %s", nvml_src_version);
 #ifdef USE_VG_PMEMCHECK
-    /*
-     * Attribute "used" to prevent compiler from optimizing out the variable
-     * when LOG expands to no code (!DEBUG)
-     */
-    static __attribute__((used)) const char *pmemcheck_msg =
-            "compiled with support for Valgrind pmemcheck";
-    LOG(1, "%s", pmemcheck_msg);
+	/*
+	 * Attribute "used" to prevent compiler from optimizing out the variable
+	 * when LOG expands to no code (!DEBUG)
+	 */
+	static __attribute__((used)) const char *pmemcheck_msg =
+			"compiled with support for Valgrind pmemcheck";
+	LOG(1, "%s", pmemcheck_msg);
 #endif /* USE_VG_PMEMCHECK */
 #ifdef USE_VG_HELGRIND
-    static __attribute__((used)) const char *helgrind_msg =
-            "compiled with support for Valgrind helgrind";
-    LOG(1, "%s", helgrind_msg);
+	static __attribute__((used)) const char *helgrind_msg =
+			"compiled with support for Valgrind helgrind";
+	LOG(1, "%s", helgrind_msg);
 #endif /* USE_VG_HELGRIND */
 #ifdef USE_VG_MEMCHECK
-    static __attribute__((used)) const char *memcheck_msg =
-            "compiled with support for Valgrind memcheck";
-    LOG(1, "%s", memcheck_msg);
+	static __attribute__((used)) const char *memcheck_msg =
+			"compiled with support for Valgrind memcheck";
+	LOG(1, "%s", memcheck_msg);
 #endif /* USE_VG_MEMCHECK */
 #ifdef USE_VG_DRD
-    static __attribute__((used)) const char *drd_msg =
-            "compiled with support for Valgrind drd";
-    LOG(1, "%s", drd_msg);
+	static __attribute__((used)) const char *drd_msg =
+			"compiled with support for Valgrind drd";
+	LOG(1, "%s", drd_msg);
 #endif /* USE_VG_DRD */
 
-    Last_errormsg_key_alloc();
+	Last_errormsg_key_alloc();
 }
 
 /*
@@ -284,12 +284,12 @@ out_init(const char *log_prefix, const char *log_level_var,
 void
 out_fini()
 {
-    if (Out_fp != NULL && Out_fp != stderr) {
-        fclose(Out_fp);
-        Out_fp = stderr;
-    }
+	if (Out_fp != NULL && Out_fp != stderr) {
+		fclose(Out_fp);
+		Out_fp = stderr;
+	}
 
-    Last_errormsg_fini();
+	Last_errormsg_fini();
 }
 
 /*
@@ -298,15 +298,15 @@ out_fini()
 static void
 out_print_func(const char *s)
 {
-    /* to suppress drd false-positive */
+	/* to suppress drd false-positive */
 #ifdef SUPPRESS_FPUTS_DRD_ERROR
-    VALGRIND_ANNOTATE_IGNORE_READS_BEGIN();
-    VALGRIND_ANNOTATE_IGNORE_WRITES_BEGIN();
+	VALGRIND_ANNOTATE_IGNORE_READS_BEGIN();
+	VALGRIND_ANNOTATE_IGNORE_WRITES_BEGIN();
 #endif
-    fputs(s, Out_fp);
+	fputs(s, Out_fp);
 #ifdef SUPPRESS_FPUTS_DRD_ERROR
-    VALGRIND_ANNOTATE_IGNORE_READS_END();
-    VALGRIND_ANNOTATE_IGNORE_WRITES_END();
+	VALGRIND_ANNOTATE_IGNORE_READS_END();
+	VALGRIND_ANNOTATE_IGNORE_WRITES_END();
 #endif
 }
 
@@ -315,7 +315,7 @@ out_print_func(const char *s)
  */
 typedef void (*Print_func)(const char *s);
 typedef int (*Vsnprintf_func)(char *str, size_t size, const char *format,
-        va_list ap);
+		va_list ap);
 static Print_func Print = out_print_func;
 static Vsnprintf_func Vsnprintf = vsnprintf;
 
@@ -325,9 +325,9 @@ static Vsnprintf_func Vsnprintf = vsnprintf;
 void
 out_set_print_func(void (*print_func)(const char *s))
 {
-    LOG(3, "print %p", print_func);
+	LOG(3, "print %p", print_func);
 
-    Print = (print_func == NULL) ? out_print_func : print_func;
+	Print = (print_func == NULL) ? out_print_func : print_func;
 }
 
 /*
@@ -335,11 +335,11 @@ out_set_print_func(void (*print_func)(const char *s))
  */
 void
 out_set_vsnprintf_func(int (*vsnprintf_func)(char *str, size_t size,
-                const char *format, va_list ap))
+				const char *format, va_list ap))
 {
-    LOG(3, "vsnprintf %p", vsnprintf_func);
+	LOG(3, "vsnprintf %p", vsnprintf_func);
 
-    Vsnprintf = (vsnprintf_func == NULL) ? vsnprintf : vsnprintf_func;
+	Vsnprintf = (vsnprintf_func == NULL) ? vsnprintf : vsnprintf_func;
 }
 
 /*
@@ -349,14 +349,14 @@ __attribute__((format(printf, 3, 4)))
 static int
 out_snprintf(char *str, size_t size, const char *format, ...)
 {
-    int ret;
-    va_list ap;
+	int ret;
+	va_list ap;
 
-    va_start(ap, format);
-    ret = Vsnprintf(str, size, format, ap);
-    va_end(ap);
+	va_start(ap, format);
+	ret = Vsnprintf(str, size, format, ap);
+	va_end(ap);
 
-    return (ret);
+	return (ret);
 }
 
 /*
@@ -364,53 +364,53 @@ out_snprintf(char *str, size_t size, const char *format, ...)
  */
 static void
 out_common(const char *file, int line, const char *func, int level,
-        const char *suffix, const char *fmt, va_list ap)
+		const char *suffix, const char *fmt, va_list ap)
 {
-    int oerrno = errno;
-    char buf[MAXPRINT];
-    unsigned cc = 0;
-    int ret;
-    const char *sep = "";
-    const char *errstr = "";
+	int oerrno = errno;
+	char buf[MAXPRINT];
+	unsigned cc = 0;
+	int ret;
+	const char *sep = "";
+	const char *errstr = "";
 
-    if (file) {
-        char *f = strrchr(file, DIR_SEPARATOR);
-        if (f)
-            file = f + 1;
-        ret = out_snprintf(&buf[cc], MAXPRINT - cc,
-                "<%s>: <%d> [%s:%d %s] ",
-                Log_prefix, level, file, line, func);
-        if (ret < 0) {
-            Print("out_snprintf failed");
-            goto end;
-        }
-        cc += (unsigned)ret;
-        if (cc < Log_alignment) {
-            memset(buf + cc, ' ', Log_alignment - cc);
-            cc = Log_alignment;
-        }
-    }
+	if (file) {
+		char *f = strrchr(file, DIR_SEPARATOR);
+		if (f)
+			file = f + 1;
+		ret = out_snprintf(&buf[cc], MAXPRINT - cc,
+				"<%s>: <%d> [%s:%d %s] ",
+				Log_prefix, level, file, line, func);
+		if (ret < 0) {
+			Print("out_snprintf failed");
+			goto end;
+		}
+		cc += (unsigned)ret;
+		if (cc < Log_alignment) {
+			memset(buf + cc, ' ', Log_alignment - cc);
+			cc = Log_alignment;
+		}
+	}
 
-    if (fmt) {
-        if (*fmt == '!') {
-            fmt++;
-            sep = ": ";
-            errstr = strerror(errno);
-        }
-        ret = Vsnprintf(&buf[cc], MAXPRINT - cc, fmt, ap);
-        if (ret < 0) {
-            Print("Vsnprintf failed");
-            goto end;
-        }
-        cc += (unsigned)ret;
-    }
+	if (fmt) {
+		if (*fmt == '!') {
+			fmt++;
+			sep = ": ";
+			errstr = strerror(errno);
+		}
+		ret = Vsnprintf(&buf[cc], MAXPRINT - cc, fmt, ap);
+		if (ret < 0) {
+			Print("Vsnprintf failed");
+			goto end;
+		}
+		cc += (unsigned)ret;
+	}
 
-    out_snprintf(&buf[cc], MAXPRINT - cc, "%s%s%s", sep, errstr, suffix);
+	out_snprintf(&buf[cc], MAXPRINT - cc, "%s%s%s", sep, errstr, suffix);
 
-    Print(buf);
+	Print(buf);
 
 end:
-    errno = oerrno;
+	errno = oerrno;
 }
 
 /*
@@ -418,64 +418,64 @@ end:
  */
 static void
 out_error(const char *file, int line, const char *func,
-        const char *suffix, const char *fmt, va_list ap)
+		const char *suffix, const char *fmt, va_list ap)
 {
-    int oerrno = errno;
-    unsigned cc = 0;
-    int ret;
-    const char *sep = "";
-    const char *errstr = "";
+	int oerrno = errno;
+	unsigned cc = 0;
+	int ret;
+	const char *sep = "";
+	const char *errstr = "";
 
-    char *errormsg = (char *)out_get_errormsg();
+	char *errormsg = (char *)out_get_errormsg();
 
-    if (fmt) {
-        if (*fmt == '!') {
-            fmt++;
-            sep = ": ";
-            errstr = strerror(errno);
-        }
-        ret = Vsnprintf(&errormsg[cc], MAXPRINT, fmt, ap);
-        if (ret < 0) {
-            strcpy(errormsg, "Vsnprintf failed");
-            goto end;
-        }
-        cc += (unsigned)ret;
-        out_snprintf(&errormsg[cc], MAXPRINT - cc, "%s%s",
-                sep, errstr);
-    }
+	if (fmt) {
+		if (*fmt == '!') {
+			fmt++;
+			sep = ": ";
+			errstr = strerror(errno);
+		}
+		ret = Vsnprintf(&errormsg[cc], MAXPRINT, fmt, ap);
+		if (ret < 0) {
+			strcpy(errormsg, "Vsnprintf failed");
+			goto end;
+		}
+		cc += (unsigned)ret;
+		out_snprintf(&errormsg[cc], MAXPRINT - cc, "%s%s",
+				sep, errstr);
+	}
 
 #ifdef DEBUG
-    if (Log_level >= 1) {
-        char buf[MAXPRINT];
-        cc = 0;
+	if (Log_level >= 1) {
+		char buf[MAXPRINT];
+		cc = 0;
 
-        if (file) {
-            char *f = strrchr(file, DIR_SEPARATOR);
-            if (f)
-                file = f + 1;
-            ret = out_snprintf(&buf[cc], MAXPRINT,
-                    "<%s>: <1> [%s:%d %s] ",
-                    Log_prefix, file, line, func);
-            if (ret < 0) {
-                Print("out_snprintf failed");
-                goto end;
-            }
-            cc += (unsigned)ret;
-            if (cc < Log_alignment) {
-                memset(buf + cc, ' ', Log_alignment - cc);
-                cc = Log_alignment;
-            }
-        }
+		if (file) {
+			char *f = strrchr(file, DIR_SEPARATOR);
+			if (f)
+				file = f + 1;
+			ret = out_snprintf(&buf[cc], MAXPRINT,
+					"<%s>: <1> [%s:%d %s] ",
+					Log_prefix, file, line, func);
+			if (ret < 0) {
+				Print("out_snprintf failed");
+				goto end;
+			}
+			cc += (unsigned)ret;
+			if (cc < Log_alignment) {
+				memset(buf + cc, ' ', Log_alignment - cc);
+				cc = Log_alignment;
+			}
+		}
 
-        out_snprintf(&buf[cc], MAXPRINT - cc, "%s%s", errormsg,
-                suffix);
+		out_snprintf(&buf[cc], MAXPRINT - cc, "%s%s", errormsg,
+				suffix);
 
-        Print(buf);
-    }
+		Print(buf);
+	}
 #endif
 
 end:
-    errno = oerrno;
+	errno = oerrno;
 }
 
 /*
@@ -484,12 +484,12 @@ end:
 void
 out(const char *fmt, ...)
 {
-    va_list ap;
-    va_start(ap, fmt);
+	va_list ap;
+	va_start(ap, fmt);
 
-    out_common(NULL, 0, NULL, 0, "\n", fmt, ap);
+	out_common(NULL, 0, NULL, 0, "\n", fmt, ap);
 
-    va_end(ap);
+	va_end(ap);
 }
 
 /*
@@ -498,15 +498,15 @@ out(const char *fmt, ...)
 void
 out_nonl(int level, const char *fmt, ...)
 {
-    va_list ap;
+	va_list ap;
 
-    if (Log_level < level)
-            return;
+	if (Log_level < level)
+			return;
 
-    va_start(ap, fmt);
-    out_common(NULL, 0, NULL, level, "", fmt, ap);
+	va_start(ap, fmt);
+	out_common(NULL, 0, NULL, level, "", fmt, ap);
 
-    va_end(ap);
+	va_end(ap);
 }
 
 /*
@@ -514,17 +514,17 @@ out_nonl(int level, const char *fmt, ...)
  */
 void
 out_log(const char *file, int line, const char *func, int level,
-        const char *fmt, ...)
+		const char *fmt, ...)
 {
-    va_list ap;
+	va_list ap;
 
-    if (Log_level < level)
-            return;
+	if (Log_level < level)
+			return;
 
-    va_start(ap, fmt);
-    out_common(file, line, func, level, "\n", fmt, ap);
+	va_start(ap, fmt);
+	out_common(file, line, func, level, "\n", fmt, ap);
 
-    va_end(ap);
+	va_end(ap);
 }
 
 /*
@@ -532,16 +532,16 @@ out_log(const char *file, int line, const char *func, int level,
  */
 void
 out_fatal(const char *file, int line, const char *func,
-        const char *fmt, ...)
+		const char *fmt, ...)
 {
-    va_list ap;
-    va_start(ap, fmt);
+	va_list ap;
+	va_start(ap, fmt);
 
-    out_common(file, line, func, 1, "\n", fmt, ap);
+	out_common(file, line, func, 1, "\n", fmt, ap);
 
-    va_end(ap);
+	va_end(ap);
 
-    abort();
+	abort();
 }
 
 /*
@@ -549,14 +549,14 @@ out_fatal(const char *file, int line, const char *func,
  */
 void
 out_err(const char *file, int line, const char *func,
-        const char *fmt, ...)
+		const char *fmt, ...)
 {
-    va_list ap;
-    va_start(ap, fmt);
+	va_list ap;
+	va_start(ap, fmt);
 
-    out_error(file, line, func, "\n", fmt, ap);
+	out_error(file, line, func, "\n", fmt, ap);
 
-    va_end(ap);
+	va_end(ap);
 }
 
 /*
@@ -565,5 +565,5 @@ out_err(const char *file, int line, const char *func,
 const char *
 out_get_errormsg(void)
 {
-    return Last_errormsg_get();
+	return Last_errormsg_get();
 }
