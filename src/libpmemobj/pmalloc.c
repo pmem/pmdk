@@ -31,7 +31,11 @@
  */
 
 /*
- * pmalloc.c -- persistent malloc implementation
+ * pmalloc.c -- implementation of pmalloc POSIX-like API
+ *
+ * This is the frontend part of the persistent memory allocator. It uses both
+ * transient and persistent representation of the heap to provide memory blocks
+ * in a reasonable time and with an acceptable common-case fragmentation.
  */
 
 #include <errno.h>
@@ -52,12 +56,12 @@
 #include "bucket.h"
 #include "valgrind_internal.h"
 
-enum alloc_op_redo {
-	ALLOC_OP_REDO_PTR_OFFSET,
-	ALLOC_OP_REDO_HEADER,
-
-	MAX_ALLOC_OP_REDO
-};
+/*
+ * The maximum number of entries in redo log used by the allocator. The common
+ * case is to use two, one for modification of the object destination memory
+ * location and the second for applying the chunk metadata modifications.
+ */
+#define MAX_ALLOC_OP_REDO 10
 
 /*
  * Number of bytes between end of allocation header and beginning of user data.
@@ -94,27 +98,6 @@ alloc_write_header(PMEMobjpool *pop, struct allocation_header *alloc,
 }
 
 /*
- * calc_block_offset -- (internal) calculates the block offset of allocation
- */
-static uint16_t
-calc_block_offset(PMEMobjpool *pop, struct allocation_header *alloc,
-	size_t unit_size)
-{
-	uint16_t block_off = 0;
-	if (unit_size != CHUNKSIZE) {
-		struct memory_block m = {alloc->chunk_id, alloc->zone_id, 0, 0};
-		void *data = heap_get_block_data(pop, m);
-		uintptr_t diff = (uintptr_t)alloc - (uintptr_t)data;
-		ASSERT(diff <= RUNSIZE);
-		ASSERT((size_t)diff / unit_size <= UINT16_MAX);
-		ASSERT(diff % unit_size == 0);
-		block_off = (uint16_t)((size_t)diff / unit_size);
-	}
-
-	return block_off;
-}
-
-/*
  * get_mblock_from_alloc -- (internal) returns allocation memory block
  */
 static struct memory_block
@@ -129,7 +112,7 @@ get_mblock_from_alloc(PMEMobjpool *pop, struct allocation_header *alloc)
 
 	uint64_t unit_size = MEMBLOCK_OPS(AUTO, &m)->block_size(&m,
 		pop->hlayout);
-	m.block_off = calc_block_offset(pop, alloc, unit_size);
+	m.block_off = MEMBLOCK_OPS(AUTO, &m)->block_offset(&m, pop, alloc);
 	m.size_idx = CALC_SIZE_IDX(unit_size, alloc->size);
 
 	return m;
@@ -137,12 +120,40 @@ get_mblock_from_alloc(PMEMobjpool *pop, struct allocation_header *alloc)
 
 /*
  * alloc_reserve_block -- (internal) reserves a memory block in volatile state
+ *
+ * The first step in the allocation of a new block is reserving it in the
+ * transient heap - which is represented by the bucket abstraction.
+ *
+ * To provide optimal scaling for multi-threaded applications and reduce
+ * fragmentation the appropriate bucket is chosen depending on the current
+ * thread context and to which allocation class the requested size falls into.
+ *
+ * Once the bucket is selected, just enough memory is reserved for the requested
+ * size. The underlying block allocation algorithm (best-fit, next-fit, ...)
+ * varies depending on the bucket container.
+ *
+ * Because the heap in general tries to avoid lock-contention on buckets,
+ * the threads might, in near OOM cases, be unable to allocate requested memory
+ * from their assigned buckets. To combat this there's one common collection
+ * of buckets that threads can fallback to. The auxiliary bucket will 'steal'
+ * memory from other caches if that's required to satisfy the current caller
+ * needs.
+ *
+ * Once this method completes no further locking is required on the transient
+ * part of the heap during the allocation process.
  */
 static int
 alloc_reserve_block(PMEMobjpool *pop, struct memory_block *m, size_t sizeh)
 {
 	struct bucket *b = heap_get_best_bucket(pop, sizeh);
 
+	/*
+	 * The caller provided size in bytes, but buckets operate in
+	 * 'size indexes' which are multiples of the block size in the bucket.
+	 *
+	 * For example, to allocate 500 bytes from a bucket that provides 256
+	 * byte blocks two memory 'units' are required.
+	 */
 	m->size_idx = b->calc_units(b, sizeh);
 
 	int err = heap_get_bestfit_block(pop, b, m);
@@ -178,17 +189,26 @@ alloc_reserve_block(PMEMobjpool *pop, struct memory_block *m, size_t sizeh)
 
 /*
  * alloc_prep_block -- (internal) prepares a memory block for allocation
+ *
+ * Once the block is fully reserved and it's guaranteed that no one else will
+ * be able to write to this memory region it is safe to write the allocation
+ * header and call the object construction function.
+ *
+ * Because the memory block at this stage is only reserved in transient state
+ * there's no need to worry about fail-safety of this method because in case
+ * of a crash the memory will be back in the free blocks collection.
  */
 static int
 alloc_prep_block(PMEMobjpool *pop, struct memory_block m,
 	pmalloc_constr constructor, void *arg, uint64_t *offset_value)
 {
 	void *block_data = heap_get_block_data(pop, m);
-	void *datap = (char *)block_data +
-		sizeof(struct allocation_header);
+	void *datap = (char *)block_data + sizeof(struct allocation_header);
 	void *userdatap = (char *)datap + DATA_OFF;
+
 	uint64_t unit_size = MEMBLOCK_OPS(AUTO, &m)->block_size(&m,
 		pop->hlayout);
+
 	uint64_t real_size = unit_size * m.size_idx;
 
 	ASSERT((uint64_t)block_data % _POBJ_CL_ALIGNMENT == 0);
@@ -204,6 +224,12 @@ alloc_prep_block(PMEMobjpool *pop, struct memory_block m,
 	if (constructor != NULL)
 		ret = constructor(pop, userdatap, real_size - ALLOC_OFF, arg);
 
+	/*
+	 * To avoid determining the user data pointer twice this method is also
+	 * responsible for calculating the offset of the object in the pool that
+	 * will be used to set the offset destination pointer provided by the
+	 * caller.
+	 */
 	if (!ret)
 		*offset_value = OBJ_PTR_TO_OFF(pop, userdatap);
 
@@ -214,6 +240,33 @@ alloc_prep_block(PMEMobjpool *pop, struct memory_block m,
  * palloc_operation -- persistent memory operation. Takes a NULL pointer
  *	or an existing memory block and modifies it to occupy, at least, 'size'
  *	number of bytes.
+ *
+ * The malloc, free and realloc routines are implemented in the context of this
+ * common operation which encompases all of the functionality usually done
+ * separately in those methods.
+ *
+ * The first thing that needs to be done is determining which memory blocks
+ * will be affected by the operation - this varies depending on the whether the
+ * operation will need to modify or free an existing block and/or allocate
+ * a new one.
+ *
+ * Simplified allocation process flow is as follows:
+ *	- reserve a new block in the transient heap
+ *	- prepare the new block
+ *	- create redo log of required modifications
+ *		- chunk metadata
+ *		- offset of the new object
+ *	- commit and process the redo log
+ *
+ * And similarly, the deallocation process:
+ *	- create redo log of required modifications
+ *		- reverse the chunk metadata back to the 'free' state
+ *		- set the destination of the object offset to zero
+ *	- commit and process the redo log
+ *	- return the memory block back to the free blocks transient heap
+ *
+ * Reallocation is a combination of the above, which one additional step
+ * of copying the old content in the meantime.
  */
 int
 palloc_operation(PMEMobjpool *pop,
@@ -223,29 +276,58 @@ palloc_operation(PMEMobjpool *pop,
 {
 	struct bucket *b = NULL;
 	struct allocation_header *alloc = NULL;
-	struct memory_block m = {0, 0, 0, 0}; /* existing memory block */
-	struct memory_block nb = {0, 0, 0, 0}; /* new memory block */
-	struct memory_block rb = {0, 0, 0, 0}; /* reclaimed memory block */
+	struct memory_block existing_block = {0, 0, 0, 0};
+	struct memory_block new_block = {0, 0, 0, 0};
+	struct memory_block reclaimed_block = {0, 0, 0, 0};
 
 	size_t sizeh = size + sizeof(struct allocation_header);
 
 	int ret = 0;
 
+	/*
+	 * The lane is always held for the entire duration of the process.
+	 * This might seem a bit excessive at first glance, because the actual
+	 * lane usage is limitied to the scope in which operation_context
+	 * exists, and in fact could be entirely ommited in some cases.
+	 *
+	 * The reason here is the potential ordering problem between lane locks
+	 * and run locks, which in some fringe cases could result in a deadlock.
+	 */
 	struct lane_section *lane;
 	lane_hold(pop, &lane, LANE_SECTION_ALLOCATOR);
 
+	/*
+	 * The offset of an existing block can be nonzero which means this
+	 * operation is either free or a realloc - either way the offset of the
+	 * object needs to be translated into structure that all of the heap
+	 * methods operate in.
+	 */
 	if (off != 0) {
 		alloc = ALLOC_GET_HEADER(pop, off);
+		/*
+		 * The memory block must return back to the originating bucket,
+		 * otherwise coalescing of neighbouring blocks will be rendered
+		 * impossible.
+		 *
+		 * If the block was allocated in a different incarnation of the
+		 * heap (i.e. the application was restarted) and the chunk from
+		 * which the allocation comes from was not yet processed, the
+		 * originating bucket does not exists and all of the otherwise
+		 * neccessery volatile heap modifications won't be performed for
+		 * this memory block.
+		 */
 		b = heap_get_chunk_bucket(pop, alloc->chunk_id, alloc->zone_id);
-		m = get_mblock_from_alloc(pop, alloc);
+		existing_block = get_mblock_from_alloc(pop, alloc);
 	}
 
 	/* if allocation or reallocation, reserve new memory */
 	if (size != 0) {
-		if (alloc != NULL && alloc->size == sizeh) /* no-op */
+		/* reallocation to exactly the same size, which is a no-op */
+		if (alloc != NULL && alloc->size == sizeh)
 			goto out;
 
-		if ((errno = alloc_reserve_block(pop, &nb, sizeh)) != 0) {
+		if ((errno = alloc_reserve_block(pop,
+			&new_block, sizeh)) != 0) {
 			ret = -1;
 			goto out;
 		}
@@ -254,68 +336,122 @@ palloc_operation(PMEMobjpool *pop,
 	struct allocator_lane_section *sec =
 		(struct allocator_lane_section *)lane->layout;
 
-	struct operation_context *ctx = operation_init(pop, sec->redo);
-	if (ctx == NULL) {
-		ERR("Failed to initialize memory operation context");
-		errno = ENOMEM;
-		ret = -1;
-		goto out;
-	}
+	/*
+	 * The operation collects all of the required memory modifications that
+	 * need to happen in an atomic way (all of them or none), and abstracts
+	 * away the storage type (transient/persistent) and the underlying
+	 * implementation of how it's actually performed - in some cases using
+	 * the redo log is unnecessery and the allocation process can be sped up
+	 * a bit by completely ommiting that whole machinery.
+	 *
+	 * The modifications are not visible until the context is processed.
+	 */
+	struct operation_context ctx;
+	operation_init(pop, &ctx, sec->redo);
 
-	operation_add_entries(ctx, entries, nentries);
+	operation_add_entries(&ctx, entries, nentries);
 
-	uint64_t offset_value = 0; /* the resulting offset */
+	/*
+	 * The offset value which is to be written to the destination pointer
+	 * provided by the caller.
+	 */
+	uint64_t offset_value = 0;
 
 	/* lock and persistently free the existing memory block */
-	if (!MEMORY_BLOCK_IS_EMPTY(m)) {
+	if (!MEMORY_BLOCK_IS_EMPTY(existing_block)) {
 #ifdef DEBUG
-		if (!heap_block_is_allocated(pop, m)) {
+		if (!heap_block_is_allocated(pop, existing_block)) {
 			ERR("Double free or heap corruption");
 			ASSERT(0);
 		}
 #endif /* DEBUG */
 
-		heap_lock_if_run(pop, m);
-		rb = heap_free_block(pop, b, m, ctx);
+		/*
+		 * This lock must be held until the operation is processed
+		 * successfully, because other threads might operate on the
+		 * same bitmap value.
+		 */
+		MEMBLOCK_OPS(AUTO, &existing_block)->lock(&existing_block, pop);
+
+		/*
+		 * This method will insert new entries into the operation
+		 * context which will, after processing, update the chunk
+		 * metadata to 'free' - it also takes care of all the necessery
+		 * coalescing of blocks.
+		 * Even though the transient state of the heap is used during
+		 * this method to locate neighbouring blocks, it isn't modified.
+		 *
+		 * The rb block is the coalescted memory block that the free
+		 * resulted in, to prevent volatile memory leak it needs to be
+		 * inserted into the corresponding bucket.
+		 */
+		reclaimed_block = heap_free_block(pop, b, existing_block, &ctx);
 		offset_value = 0;
 	}
 
-	if (!MEMORY_BLOCK_IS_EMPTY(nb)) {
+	/*
+	 * The memory block was reserved, now the operation context needs to be
+	 * updated to contain the necessery modifications that will reflect that
+	 * will make that reservation permament.
+	 */
+	if (!MEMORY_BLOCK_IS_EMPTY(new_block)) {
 #ifdef DEBUG
-		if (heap_block_is_allocated(pop, nb)) {
+		if (heap_block_is_allocated(pop, new_block)) {
 			ERR("heap corruption");
 			ASSERT(0);
 		}
 #endif /* DEBUG */
 
-		if (alloc_prep_block(pop, nb, constructor,
+		if (alloc_prep_block(pop, new_block, constructor,
 				arg, &offset_value) != 0) {
 			/*
 			 * Constructor returned non-zero value which means
 			 * the memory block reservation has to be rolled back.
 			 */
-			struct bucket *newb = heap_get_chunk_bucket(pop,
-				nb.chunk_id, nb.zone_id);
-			ASSERTne(newb, NULL);
-			nb = heap_free_block(pop, newb, nb, NULL);
-			CNT_OP(newb, insert, pop, nb);
+			struct bucket *new_bucket = heap_get_chunk_bucket(pop,
+				new_block.chunk_id, new_block.zone_id);
+			ASSERTne(new_bucket, NULL);
 
-			operation_delete(ctx);
-			if (newb->type == BUCKET_RUN)
-				heap_degrade_run_if_empty(pop, newb, nb);
+			/*
+			 * Ommiting the context in this method results in
+			 * coalescing of blocks without affecting the persistent
+			 * heap state.
+			 */
+			new_block = heap_free_block(pop, new_bucket,
+					new_block, NULL);
+			CNT_OP(new_bucket, insert, pop, new_block);
+
+			if (new_bucket->type == BUCKET_RUN)
+				heap_degrade_run_if_empty(pop,
+					new_bucket, new_block);
 
 			ret = -1;
 			errno = ECANCELED;
 			goto out;
 		}
 
-		heap_lock_if_run(pop, nb);
+		/*
+		 * This lock must be held for the duration between the creation
+		 * of the allocation metadata updates in the operation context
+		 * and the operation processing. This is because a different
+		 * thread might operate on the same 8-byte value of the run
+		 * bitmap and override allocation performed by this thread.
+		 */
+		MEMBLOCK_OPS(AUTO, &new_block)->lock(&new_block, pop);
 
-		heap_prep_block_header_operation(pop, nb, HEAP_OP_ALLOC, ctx);
+		/*
+		 * The actual required metadata modifications are chunk-type
+		 * dependent, but it always is a modification of a single 8 byte
+		 * set - either modification of few bits in a bitmap or changing
+		 * a chunk type from free to used.
+		 */
+		MEMBLOCK_OPS(AUTO, &new_block)->prep_hdr(&new_block,
+				pop, HDR_OP_ALLOC, &ctx);
 	}
 
 	/* not in-place realloc */
-	if (!MEMORY_BLOCK_IS_EMPTY(m) && !MEMORY_BLOCK_IS_EMPTY(nb)) {
+	if (!MEMORY_BLOCK_IS_EMPTY(existing_block) &&
+		!MEMORY_BLOCK_IS_EMPTY(new_block)) {
 		size_t old_size = alloc->size;
 		size_t to_cpy = old_size > sizeh ? sizeh : old_size;
 		pop->memcpy_persist(pop,
@@ -324,35 +460,68 @@ palloc_operation(PMEMobjpool *pop,
 			to_cpy - ALLOC_OFF);
 	}
 
+	/*
+	 * If the caller provided a destination value to update, it needs to be
+	 * modified atomically alongside the heap metadata, and so the operation
+	 * context must be used.
+	 * The actual offset value depends on whether the operation type.
+	 */
 	if (dest_off != NULL)
-		operation_add_entry(ctx, dest_off, offset_value, OPERATION_SET);
+		operation_add_entry(&ctx, dest_off,
+			offset_value, OPERATION_SET);
 
-	operation_process(ctx);
+	operation_process(&ctx);
+	/*
+	 * After the operation succeded, the persistent state is all in order
+	 * but in some cases it might not be in-sync with the its transient
+	 * representation.
+	 */
 
-	if (!MEMORY_BLOCK_IS_EMPTY(nb)) {
-		heap_unlock_if_run(pop, nb);
+	if (!MEMORY_BLOCK_IS_EMPTY(new_block)) {
+		/* new block run lock */
+		MEMBLOCK_OPS(AUTO, &new_block)->unlock(&new_block, pop);
 	}
 
-	if (!MEMORY_BLOCK_IS_EMPTY(m)) {
-		heap_unlock_if_run(pop, m);
+	if (!MEMORY_BLOCK_IS_EMPTY(existing_block)) {
+		/* existing (free'd) run lock */
+		MEMBLOCK_OPS(AUTO, &existing_block)->unlock(
+			&existing_block, pop);
 
 		VALGRIND_DO_MEMPOOL_FREE(pop,
-			(char *)heap_get_block_data(pop, m) + ALLOC_OFF);
+			(char *)heap_get_block_data(pop, existing_block)
+			+ ALLOC_OFF);
 
 		/* we might have been operating on inactive run */
 		if (b != NULL) {
-			CNT_OP(b, insert, pop, rb);
+			/*
+			 * Even though the initial condition is to check
+			 * whether the existing block exists it's important to
+			 * use the 'reclaimed block' - it is the coalescted one
+			 * and reflects the current persistent heap state,
+			 * whereas the existing block reflects the state from
+			 * before this operation started.
+			 */
+			CNT_OP(b, insert, pop, reclaimed_block);
 #ifdef DEBUG
-			if (heap_block_is_allocated(pop, rb)) {
+			if (heap_block_is_allocated(pop, reclaimed_block)) {
 				ERR("heap corruption");
 				ASSERT(0);
 			}
 #endif /* DEBUG */
+			/*
+			 * Degrading of a run means turning it back into a chunk
+			 * in case it's no longer needed.
+			 * It might be tempting to defer this operation until
+			 * such time that the chunk is actually needed, but
+			 * right now the decision is to keep the persistent heap
+			 * state as clean as possible - and that means not
+			 * leaving unused data around.
+			 */
 			if (b->type == BUCKET_RUN)
-				heap_degrade_run_if_empty(pop, b, rb);
+				heap_degrade_run_if_empty(pop, b,
+					reclaimed_block);
 		}
 	}
-	operation_delete(ctx);
 
 out:
 	lane_release(pop);

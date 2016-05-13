@@ -60,22 +60,57 @@ enum memory_block_type {
 	MAX_MEMORY_BLOCK
 };
 
+enum memblock_hdr_op {
+	HDR_OP_ALLOC,
+	HDR_OP_FREE,
+
+	MAX_MEMBLOCK_HDR_OP
+};
+
 size_t huge_block_size(struct memory_block *m, struct heap_layout *h);
 size_t run_block_size(struct memory_block *m, struct heap_layout *h);
+
+uint16_t huge_block_offset(struct memory_block *m, PMEMobjpool *pop, void *ptr);
+uint16_t run_block_offset(struct memory_block *m, PMEMobjpool *pop, void *ptr);
+
+void huge_prep_operation_hdr(struct memory_block *m, PMEMobjpool *pop,
+	enum memblock_hdr_op op, struct operation_context *ctx);
+void run_prep_operation_hdr(struct memory_block *m, PMEMobjpool *pop,
+	enum memblock_hdr_op op, struct operation_context *ctx);
+
+void huge_lock(struct memory_block *m, PMEMobjpool *pop);
+void run_lock(struct memory_block *m, PMEMobjpool *pop);
+
+void huge_unlock(struct memory_block *m, PMEMobjpool *pop);
+void run_unlock(struct memory_block *m, PMEMobjpool *pop);
 
 enum memory_block_type memblock_autodetect_type(struct memory_block *m,
 	struct heap_layout *h);
 
 struct memory_block_ops {
 	size_t (*block_size)(struct memory_block *m, struct heap_layout *h);
+	uint16_t (*block_offset)(struct memory_block *m, PMEMobjpool *pop,
+		void *ptr);
+	void (*prep_hdr)(struct memory_block *m, PMEMobjpool *pop,
+		enum memblock_hdr_op, struct operation_context *ctx);
+	void (*lock)(struct memory_block *m, PMEMobjpool *pop);
+	void (*unlock)(struct memory_block *m, PMEMobjpool *pop);
 };
 
 static const struct memory_block_ops mb_ops[MAX_MEMORY_BLOCK] = {
 	[MEMORY_BLOCK_HUGE] = {
 		.block_size = huge_block_size,
+		.block_offset = huge_block_offset,
+		.prep_hdr = huge_prep_operation_hdr,
+		.lock = huge_lock,
+		.unlock = huge_unlock,
 	},
 	[MEMORY_BLOCK_RUN] = {
-		.block_size = run_block_size
+		.block_size = run_block_size,
+		.block_offset = run_block_offset,
+		.prep_hdr = run_prep_operation_hdr,
+		.lock = run_lock,
+		.unlock = run_unlock,
 	}
 };
 

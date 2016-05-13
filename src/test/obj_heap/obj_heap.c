@@ -119,11 +119,11 @@ test_heap()
 	UT_ASSERT(next.chunk_id == blocks[2].chunk_id);
 	blocksp[2] = &next;
 
-	struct operation_context *ctx = operation_init(pop, NULL);
+	struct operation_context ctx;
+	operation_init(pop, &ctx, NULL);
 	struct memory_block result =
-		heap_coalesce(pop, blocksp, MAX_BLOCKS, HEAP_OP_FREE, ctx);
-	operation_process(ctx);
-	operation_delete(ctx);
+		heap_coalesce(pop, blocksp, MAX_BLOCKS, HDR_OP_FREE, &ctx);
+	operation_process(&ctx);
 
 	UT_ASSERT(result.size_idx == 3);
 	UT_ASSERT(result.chunk_id == prev.chunk_id);

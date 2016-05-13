@@ -205,9 +205,9 @@ get_zone_size_idx(uint32_t zone_id, unsigned max_zone, size_t heap_size)
 }
 
 /*
- * heap_chunk_write_footer -- (internal) writes a chunk footer
+ * heap_chunk_write_footer -- writes a chunk footer
  */
-static void
+void
 heap_chunk_write_footer(PMEMobjpool *pop, struct chunk_header *hdr,
 		uint32_t size_idx)
 {
@@ -331,9 +331,9 @@ heap_run_insert(PMEMobjpool *pop, struct bucket *b, uint32_t chunk_id,
 }
 
 /*
- * heap_get_run_lock -- (internal) returns the lock associated with memory block
+ * heap_get_run_lock -- returns the lock associated with memory block
  */
-static pthread_mutex_t *
+pthread_mutex_t *
 heap_get_run_lock(PMEMobjpool *pop, uint32_t chunk_id)
 {
 	return &pop->heap->run_locks[chunk_id % MAX_RUN_LOCKS];
@@ -1072,62 +1072,6 @@ out:
 }
 
 /*
- * chunk_get_chunk_hdr_value -- (internal) get value of a header for redo log
- */
-static uint64_t
-chunk_get_chunk_hdr_value(struct chunk_header hdr, uint16_t type,
-	uint32_t size_idx)
-{
-	uint64_t val;
-	COMPILE_ERROR_ON(sizeof(struct chunk_header) != sizeof(uint64_t));
-
-	hdr.type = type;
-	hdr.size_idx = size_idx;
-	memcpy(&val, &hdr, sizeof(val));
-
-	return val;
-}
-
-/*
- * heap_prep_block_header_operation -- returns the header of the memory block
- */
-void
-heap_prep_block_header_operation(PMEMobjpool *pop, struct memory_block m,
-	enum heap_op op, struct operation_context *ctx)
-{
-	struct zone *z = ZID_TO_ZONE(pop->hlayout, m.zone_id);
-	struct chunk_header *hdr = &z->chunk_headers[m.chunk_id];
-
-	if (hdr->type != CHUNK_TYPE_RUN) {
-		uint64_t val = chunk_get_chunk_hdr_value(*hdr,
-			op == HEAP_OP_ALLOC ? CHUNK_TYPE_USED : CHUNK_TYPE_FREE,
-			m.size_idx);
-
-		operation_add_entry(ctx, hdr, val, OPERATION_SET);
-
-		VALGRIND_DO_MAKE_MEM_NOACCESS(pop, hdr + 1,
-				(hdr->size_idx - 1) *
-				sizeof(struct chunk_header));
-
-		heap_chunk_write_footer(pop, hdr, m.size_idx);
-
-		return;
-	}
-
-	struct chunk_run *r = (struct chunk_run *)&z->chunks[m.chunk_id];
-	uint64_t bmask = ((1ULL << m.size_idx) - 1ULL) <<
-			(m.block_off % BITS_PER_VALUE);
-
-	int bpos = m.block_off / BITS_PER_VALUE;
-	if (op == HEAP_OP_ALLOC)
-		operation_add_entry(ctx, &r->bitmap[bpos],
-			bmask, OPERATION_OR);
-	else
-		operation_add_entry(ctx, &r->bitmap[bpos],
-			~bmask, OPERATION_AND);
-}
-
-/*
  * heap_get_block_data -- returns pointer to the data of a block
  */
 void *
@@ -1281,39 +1225,11 @@ int heap_get_adjacent_free_block(PMEMobjpool *pop, struct bucket *b,
 }
 
 /*
- * heap_lock_if_run -- acquire a run lock
- */
-void
-heap_lock_if_run(PMEMobjpool *pop, struct memory_block m)
-{
-	struct zone *z = ZID_TO_ZONE(pop->hlayout, m.zone_id);
-	struct chunk_header *hdr = &z->chunk_headers[m.chunk_id];
-
-	if (hdr->type == CHUNK_TYPE_RUN)
-		util_mutex_lock(heap_get_run_lock(pop, m.chunk_id));
-}
-
-/*
- * heap_unlock_if_run -- release a run lock
- */
-void
-heap_unlock_if_run(PMEMobjpool *pop, struct memory_block m)
-{
-	struct zone *z = ZID_TO_ZONE(pop->hlayout, m.zone_id);
-	struct chunk_header *hdr = &z->chunk_headers[m.chunk_id];
-
-	if (hdr->type == CHUNK_TYPE_RUN) {
-		pthread_mutex_t *mutex = heap_get_run_lock(pop, m.chunk_id);
-		util_mutex_unlock(mutex);
-	}
-}
-
-/*
  * heap_coalesce -- merges adjacent memory blocks
  */
 struct memory_block
 heap_coalesce(PMEMobjpool *pop,
-	struct memory_block *blocks[], int n, enum heap_op op,
+	struct memory_block *blocks[], int n, enum memblock_hdr_op op,
 	struct operation_context *ctx)
 {
 	struct memory_block ret;
@@ -1337,7 +1253,7 @@ heap_coalesce(PMEMobjpool *pop,
 	 * have to worry about difference of persistent/volatile states.
 	 */
 	if (ctx != NULL)
-		heap_prep_block_header_operation(pop, ret, op, ctx);
+		MEMBLOCK_OPS(AUTO, &ret)->prep_hdr(&ret, pop, op, ctx);
 
 	return ret;
 }
@@ -1363,7 +1279,7 @@ heap_free_block(PMEMobjpool *pop, struct bucket *b,
 		blocks[2] = &next;
 	}
 
-	struct memory_block res = heap_coalesce(pop, blocks, 3, HEAP_OP_FREE,
+	struct memory_block res = heap_coalesce(pop, blocks, 3, HDR_OP_FREE,
 		ctx);
 
 	return res;
@@ -1420,14 +1336,11 @@ heap_degrade_run_if_empty(PMEMobjpool *pop, struct bucket *b,
 	 * The redo log ptr can be NULL if we are sure that there's only one
 	 * persistent value modification in the entire operation context.
 	 */
-	struct operation_context *ctx = operation_init(pop, NULL);
-	if (ctx == NULL) {
-		ERR("Failed to initialize memory operation context");
-		return;
-	}
+	struct operation_context ctx;
+	operation_init(pop, &ctx, NULL);
 
 	util_mutex_lock(&b->lock);
-	util_mutex_lock(heap_get_run_lock(pop, m.chunk_id));
+	MEMBLOCK_OPS(RUN, &m)->lock(&m, pop);
 
 	unsigned i;
 	unsigned nval = r->bitmap_nval;
@@ -1458,16 +1371,15 @@ heap_degrade_run_if_empty(PMEMobjpool *pop, struct bucket *b,
 	m.size_idx = 1;
 	heap_chunk_init(pop, hdr, CHUNK_TYPE_FREE, m.size_idx);
 
-	struct memory_block fm = heap_free_block(pop, defb, m, ctx);
-	operation_process(ctx);
+	struct memory_block fm = heap_free_block(pop, defb, m, &ctx);
+	operation_process(&ctx);
 
 	CNT_OP(defb, insert, pop, fm);
 
 	util_mutex_unlock(&defb->lock);
 
 out:
-	operation_delete(ctx);
-	util_mutex_unlock(heap_get_run_lock(pop, m.chunk_id));
+	MEMBLOCK_OPS(RUN, &m)->unlock(&m, pop);
 	util_mutex_unlock(&b->lock);
 }
 

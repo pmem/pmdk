@@ -50,9 +50,9 @@
 #include "list.h"
 #include "obj.h"
 #include "memblock.h"
+#include "heap_layout.h"
 #include "heap.h"
 #include "btt_layout.h"
-#include "heap_layout.h"
 
 #define OPT_SHIFT 12
 #define OPT_MASK (~((1 << OPT_SHIFT) - 1))
