@@ -125,32 +125,70 @@ void *
 mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 {
 	DWORD protect = 0;
+	DWORD access = 0;
 
-	if ((prot & PROT_READ) && (prot & PROT_WRITE)) {
+	if (len == 0) {
+		errno = EINVAL;
+		return MAP_FAILED;
+	}
+
+	if ((prot & ~(PROT_READ|PROT_WRITE|PROT_EXEC)) != 0) {
+		/* invalid protection flags */
+		errno = EINVAL;
+		return MAP_FAILED;
+	}
+
+	if (((flags & MAP_PRIVATE) && (flags & MAP_SHARED)) ||
+	    ((flags & (MAP_PRIVATE | MAP_SHARED)) == 0)) {
+		/* neither MAP_PRIVATE or MAP_SHARED is set, or both are set */
+		errno = EINVAL;
+		return MAP_FAILED;
+	}
+
+	/* on x86, PROT_WRITE implies PROT_READ */
+	if (prot & PROT_WRITE) {
 		if (flags & MAP_PRIVATE) {
+			access = FILE_MAP_COPY;
 			if (prot & PROT_EXEC)
 				protect = PAGE_EXECUTE_WRITECOPY;
 			else
 				protect = PAGE_WRITECOPY;
 		} else {
+			/* FILE_MAP_ALL_ACCESS == FILE_MAP_WRITE */
+			access = FILE_MAP_ALL_ACCESS;
 			if (prot & PROT_EXEC)
 				protect = PAGE_EXECUTE_READWRITE;
 			else
 				protect = PAGE_READWRITE;
 		}
 	} else if (prot & PROT_READ) {
+		access = FILE_MAP_READ;
 		if (prot & PROT_EXEC)
 			protect = PAGE_EXECUTE_READ;
 		else
 			protect = PAGE_READONLY;
 	} else {
-		/* XXX - PAGE_NOACCESS  */
+		/* XXX - PAGE_NOACCESS */
+		errno = ENOTSUP;
 		return MAP_FAILED;
 	}
 
 	/* XXX - MAP_NORESERVE */
 
-	HANDLE fh = (HANDLE)_get_osfhandle(fd);
+	HANDLE fh;
+	if (flags & MAP_ANON) {
+		/* require 'fd' to be '-1' */
+		if (fd != -1) {
+			errno = EINVAL;
+			return MAP_FAILED;
+		}
+		fh = INVALID_HANDLE_VALUE;
+
+		/* ignore/override offset */
+		offset = 0;
+	} else {
+		fh = (HANDLE)_get_osfhandle(fd);
+	}
 
 	HANDLE fileMapping = CreateFileMapping(fh,
 					NULL, /* security attributes */
@@ -161,12 +199,6 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 
 	if (fileMapping == NULL)
 		return MAP_FAILED;
-
-	DWORD access;
-	if (flags & MAP_PRIVATE)
-		access = FILE_MAP_COPY;
-	else
-		access = FILE_MAP_ALL_ACCESS;
 
 	void *base = MapViewOfFile(fileMapping,
 				access,
