@@ -1,6 +1,5 @@
-#!/bin/bash -e
 #
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,36 +29,12 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
+# examples/libpmemobj/linkedlist/Makefile -- build the tail queue examples
 #
-# src/test/traces_pmem/TEST0 -- unit test traces for libraries pmem
-#
-export UNITTEST_NAME=traces_pmem/TEST0
-export UNITTEST_NUM=0
+PROGS = fifo
 
-# standard unit test setup
-. ../unittest/unittest.sh
+LIBS = -lpmemobj -lpmem -pthread
 
-require_fs_type none
-require_build_type debug static-debug
+include ../../Makefile.inc
 
-setup
-
-export PMEM_LOG_LEVEL=4
-export PMEM_LOG_FILE=./trace_pmem$UNITTEST_NUM.log
-export PMEMBLK_LOG_LEVEL=4
-export PMEMBLK_LOG_FILE=./trace_pmemblk$UNITTEST_NUM.log
-export PMEMLOG_LOG_LEVEL=4
-export PMEMLOG_LOG_FILE=./trace_pmemlog$UNITTEST_NUM.log
-export PMEMOBJ_LOG_LEVEL=4
-export PMEMOBJ_LOG_FILE=./trace_pmemobj$UNITTEST_NUM.log
-
-expect_normal_exit ./traces_pmem$EXESUFFIX
-
-# check results
-../match trace_pmem$UNITTEST_NUM.log.match
-../match trace_pmemblk$UNITTEST_NUM.log.match
-../match trace_pmemlog$UNITTEST_NUM.log.match
-../match trace_pmemobj$UNITTEST_NUM.log.match
-
-pass
+fifo: fifo.o

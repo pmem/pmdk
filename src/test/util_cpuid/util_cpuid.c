@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2015-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -35,74 +35,70 @@
  */
 
 #define _GNU_SOURCE
+#include <emmintrin.h>
+
 #include "unittest.h"
 #include "cpu.h"
 
-#define PROCMAXLEN 2048 /* maximum expected line length in /proc files */
-
 /*
- * parse_cpuinfo -- parses one line from /proc/cpuinfo
- *
- * Returns 1 when line contains flags, 0 otherwise.
+ * The x86 memory instructions are new enough that the compiler
+ * intrinsic functions are not always available.  The intrinsic
+ * functions are defined here in terms of asm statements for now.
  */
-static int
-parse_cpuinfo(char *line)
-{
-	static const char flagspfx[] = "flags\t\t: ";
-	static const char clflush[] = " clflush ";
-	static const char clwb[] = " clwb ";
-	static const char clflushopt[] = " clflushopt ";
-	static const char pcommit[] = " pcommit ";
-	static const char sse2[] = " sse2 ";
+#define _mm_clflushopt(addr)\
+	asm volatile(".byte 0x66; clflush %0" : "+m" (*(volatile char *)addr));
+#define _mm_clwb(addr)\
+	asm volatile(".byte 0x66; xsaveopt %0" : "+m" (*(volatile char *)addr));
+#define _mm_pcommit()\
+	asm volatile(".byte 0x66, 0x0f, 0xae, 0xf8");
 
-	if (strncmp(flagspfx, line, sizeof(flagspfx) - 1) != 0)
-		return 0;
-
-	/* start of list of flags */
-	char *flags = &line[sizeof(flagspfx) - 2];
-
-	/* change ending newline to space delimiter */
-	char *nl = strrchr(line, '\n');
-	if (nl)
-		*nl = ' ';
-
-	int clflush_present = strstr(flags, clflush) != NULL;
-	UT_ASSERTeq(is_cpu_clflush_present(), clflush_present);
-
-	int clflushopt_present = strstr(flags, clflushopt) != NULL;
-	UT_ASSERTeq(is_cpu_clflushopt_present(), clflushopt_present);
-
-	int clwb_present = strstr(flags, clwb) != NULL;
-	UT_ASSERTeq(is_cpu_clwb_present(), clwb_present);
-
-	int pcommit_present = strstr(flags, pcommit) != NULL;
-	UT_ASSERTeq(is_cpu_pcommit_present(), pcommit_present);
-
-	int sse2_present = strstr(flags, sse2) != NULL;
-	UT_ASSERTeq(is_cpu_sse2_present(), sse2_present);
-
-	return 1;
-}
+static char Buf[32];
 
 /*
- * check_cpuinfo -- validates CPU features detection
+ * check_cpu_features -- validates CPU features detection
  */
 static void
-check_cpuinfo(void)
+check_cpu_features(void)
 {
-	/* detect supported CPU features */
-	FILE *fp;
-	if ((fp = fopen("/proc/cpuinfo", "r")) == NULL) {
-		UT_ERR("!/proc/cpuinfo");
+	if (is_cpu_sse2_present()) {
+		UT_OUT("SSE2 supported");
+		char Buf[32];
+		__m128i xmm0 = _mm_set1_epi8(0x55);
+		/* align to 16B boundary */
+		void *dest = (void *)(((uintptr_t)Buf + 16 - 1)
+						& ~((uintptr_t)16 - 1));
+		UT_OUT("%p %p", Buf, dest);
+		_mm_stream_si128(dest, xmm0);
 	} else {
-		char line[PROCMAXLEN];	/* for fgets() */
+		UT_OUT("SSE2 not supported");
+	}
 
-		while (fgets(line, PROCMAXLEN, fp) != NULL) {
-			if (parse_cpuinfo(line))
-				break;
-		}
+	if (is_cpu_clflush_present()) {
+		UT_OUT("CLFLUSH supported");
+		_mm_clflush(Buf);
+	} else {
+		UT_OUT("CLFLUSH not supported");
+	}
 
-		fclose(fp);
+	if (is_cpu_clflushopt_present()) {
+		UT_OUT("CLFLUSHOPT supported");
+		_mm_clflushopt(Buf);
+	} else {
+		UT_OUT("CLFLUSHOPT not supported");
+	}
+
+	if (is_cpu_clwb_present()) {
+		UT_OUT("CLWB supported");
+		_mm_clwb(Buf);
+	} else {
+		UT_OUT("CLWB not supported");
+	}
+
+	if (is_cpu_pcommit_present()) {
+		UT_OUT("PCOMMIT supported");
+		_mm_pcommit();
+	} else {
+		UT_OUT("PCOMMIT not supported");
 	}
 }
 
@@ -111,7 +107,7 @@ main(int argc, char *argv[])
 {
 	START(argc, argv, "util_cpuid");
 
-	check_cpuinfo();
+	check_cpu_features();
 
 	DONE(NULL);
 }

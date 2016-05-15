@@ -1,6 +1,5 @@
-#!/bin/bash -e
 #
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,34 +31,14 @@
 #
 
 #
-# src/test/traces_pmem/TEST0 -- unit test traces for libraries pmem
+# src/test/ex_linkedlist/Makefile -- build ex_linkedlist unittest
 #
-export UNITTEST_NAME=traces_pmem/TEST0
-export UNITTEST_NUM=0
+TARGET = ex_linkedlist
+OBJS = ex_linkedlist.o
 
-# standard unit test setup
-. ../unittest/unittest.sh
+LIBPMEM=y
+LIBPMEMOBJ=y
 
-require_fs_type none
-require_build_type debug static-debug
+include ../Makefile.inc
+INCS += -I../../examples/libpmemobj/linkedlist
 
-setup
-
-export PMEM_LOG_LEVEL=4
-export PMEM_LOG_FILE=./trace_pmem$UNITTEST_NUM.log
-export PMEMBLK_LOG_LEVEL=4
-export PMEMBLK_LOG_FILE=./trace_pmemblk$UNITTEST_NUM.log
-export PMEMLOG_LOG_LEVEL=4
-export PMEMLOG_LOG_FILE=./trace_pmemlog$UNITTEST_NUM.log
-export PMEMOBJ_LOG_LEVEL=4
-export PMEMOBJ_LOG_FILE=./trace_pmemobj$UNITTEST_NUM.log
-
-expect_normal_exit ./traces_pmem$EXESUFFIX
-
-# check results
-../match trace_pmem$UNITTEST_NUM.log.match
-../match trace_pmemblk$UNITTEST_NUM.log.match
-../match trace_pmemlog$UNITTEST_NUM.log.match
-../match trace_pmemobj$UNITTEST_NUM.log.match
-
-pass

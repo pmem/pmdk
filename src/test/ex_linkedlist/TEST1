@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,34 +32,26 @@
 #
 
 #
-# src/test/traces_pmem/TEST0 -- unit test traces for libraries pmem
+# src/test/ex_linkedlist/TEST1 -- unit test for linkedlist example
 #
-export UNITTEST_NAME=traces_pmem/TEST0
-export UNITTEST_NUM=0
+# Do not enable mult-stores flag.
+# When this flag is on test reports overwritten store errors
+# due to loop which repeatedly add an element to the list which results
+# in multiply stores to the same field. This is not en error considering
+# the transactional nature of the test.
+
+export UNITTEST_NAME=ex_linkedlist/TEST1
+export UNITTEST_NUM=1
 
 # standard unit test setup
 . ../unittest/unittest.sh
 
-require_fs_type none
-require_build_type debug static-debug
-
+require_build_type debug nondebug
+configure_valgrind pmemcheck force-enable
 setup
 
-export PMEM_LOG_LEVEL=4
-export PMEM_LOG_FILE=./trace_pmem$UNITTEST_NUM.log
-export PMEMBLK_LOG_LEVEL=4
-export PMEMBLK_LOG_FILE=./trace_pmemblk$UNITTEST_NUM.log
-export PMEMLOG_LOG_LEVEL=4
-export PMEMLOG_LOG_FILE=./trace_pmemlog$UNITTEST_NUM.log
-export PMEMOBJ_LOG_LEVEL=4
-export PMEMOBJ_LOG_FILE=./trace_pmemobj$UNITTEST_NUM.log
+expect_normal_exit ./ex_linkedlist$EXESUFFIX $DIR/testfile
 
-expect_normal_exit ./traces_pmem$EXESUFFIX
-
-# check results
-../match trace_pmem$UNITTEST_NUM.log.match
-../match trace_pmemblk$UNITTEST_NUM.log.match
-../match trace_pmemlog$UNITTEST_NUM.log.match
-../match trace_pmemobj$UNITTEST_NUM.log.match
+check
 
 pass
