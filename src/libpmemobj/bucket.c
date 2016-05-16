@@ -292,7 +292,7 @@ bucket_run_create(size_t unit_size, unsigned unit_max)
 	/*
 	 * Here the bitmap definition is calculated based on the size of the
 	 * available memory and the size of a memory block - the result of
-	 * divding those two numbers is the number of possible allocations from
+	 * dividing those two numbers is the number of possible allocations from
 	 * that block, and in other words, the amount of bits in the bitmap.
 	 */
 	ASSERT(RUN_NALLOCS(unit_size) <= UINT32_MAX);

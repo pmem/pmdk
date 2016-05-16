@@ -34,7 +34,7 @@
 #
 # src/test/ex_linkedlist/TEST1 -- unit test for linkedlist example
 #
-# Do not enable mult-stores flag.
+# Do not enable "--mult-stores" flag.
 # When this flag is on test reports overwritten store errors
 # due to loop which repeatedly add an element to the list which results
 # in multiply stores to the same field. This is not en error considering

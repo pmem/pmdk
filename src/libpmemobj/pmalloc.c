@@ -33,7 +33,7 @@
 /*
  * pmalloc.c -- implementation of pmalloc POSIX-like API
  *
- * This is the frontend part of the persistent memory allocator. It uses both
+ * This is the front-end part of the persistent memory allocator. It uses both
  * transient and persistent representation of the heap to provide memory blocks
  * in a reasonable time and with an acceptable common-case fragmentation.
  */
@@ -242,7 +242,7 @@ alloc_prep_block(PMEMobjpool *pop, struct memory_block m,
  *	number of bytes.
  *
  * The malloc, free and realloc routines are implemented in the context of this
- * common operation which encompases all of the functionality usually done
+ * common operation which encompasses all of the functionality usually done
  * separately in those methods.
  *
  * The first thing that needs to be done is determining which memory blocks
@@ -287,8 +287,8 @@ palloc_operation(PMEMobjpool *pop,
 	/*
 	 * The lane is always held for the entire duration of the process.
 	 * This might seem a bit excessive at first glance, because the actual
-	 * lane usage is limitied to the scope in which operation_context
-	 * exists, and in fact could be entirely ommited in some cases.
+	 * lane usage is limited to the scope in which operation_context
+	 * exists, and in fact could be entirely omitted in some cases.
 	 *
 	 * The reason here is the potential ordering problem between lane locks
 	 * and run locks, which in some fringe cases could result in a deadlock.
@@ -313,7 +313,7 @@ palloc_operation(PMEMobjpool *pop,
 		 * heap (i.e. the application was restarted) and the chunk from
 		 * which the allocation comes from was not yet processed, the
 		 * originating bucket does not exists and all of the otherwise
-		 * neccessery volatile heap modifications won't be performed for
+		 * necessary volatile heap modifications won't be performed for
 		 * this memory block.
 		 */
 		b = heap_get_chunk_bucket(pop, alloc->chunk_id, alloc->zone_id);
@@ -341,8 +341,8 @@ palloc_operation(PMEMobjpool *pop,
 	 * need to happen in an atomic way (all of them or none), and abstracts
 	 * away the storage type (transient/persistent) and the underlying
 	 * implementation of how it's actually performed - in some cases using
-	 * the redo log is unnecessery and the allocation process can be sped up
-	 * a bit by completely ommiting that whole machinery.
+	 * the redo log is unnecessary and the allocation process can be sped up
+	 * a bit by completely omitting that whole machinery.
 	 *
 	 * The modifications are not visible until the context is processed.
 	 */
@@ -376,12 +376,12 @@ palloc_operation(PMEMobjpool *pop,
 		/*
 		 * This method will insert new entries into the operation
 		 * context which will, after processing, update the chunk
-		 * metadata to 'free' - it also takes care of all the necessery
+		 * metadata to 'free' - it also takes care of all the necessary
 		 * coalescing of blocks.
 		 * Even though the transient state of the heap is used during
 		 * this method to locate neighbouring blocks, it isn't modified.
 		 *
-		 * The rb block is the coalescted memory block that the free
+		 * The rb block is the coalesced memory block that the free
 		 * resulted in, to prevent volatile memory leak it needs to be
 		 * inserted into the corresponding bucket.
 		 */
@@ -391,8 +391,8 @@ palloc_operation(PMEMobjpool *pop,
 
 	/*
 	 * The memory block was reserved, now the operation context needs to be
-	 * updated to contain the necessery modifications that will reflect that
-	 * will make that reservation permament.
+	 * updated to contain the necessary modifications that will reflect that
+	 * will make that reservation permanent.
 	 */
 	if (!MEMORY_BLOCK_IS_EMPTY(new_block)) {
 #ifdef DEBUG
@@ -413,7 +413,7 @@ palloc_operation(PMEMobjpool *pop,
 			ASSERTne(new_bucket, NULL);
 
 			/*
-			 * Ommiting the context in this method results in
+			 * Omitting the context in this method results in
 			 * coalescing of blocks without affecting the persistent
 			 * heap state.
 			 */
@@ -472,7 +472,7 @@ palloc_operation(PMEMobjpool *pop,
 
 	operation_process(&ctx);
 	/*
-	 * After the operation succeded, the persistent state is all in order
+	 * After the operation succeeded, the persistent state is all in order
 	 * but in some cases it might not be in-sync with the its transient
 	 * representation.
 	 */
@@ -483,7 +483,7 @@ palloc_operation(PMEMobjpool *pop,
 	}
 
 	if (!MEMORY_BLOCK_IS_EMPTY(existing_block)) {
-		/* existing (free'd) run lock */
+		/* existing (freed) run lock */
 		MEMBLOCK_OPS(AUTO, &existing_block)->unlock(
 			&existing_block, pop);
 
@@ -496,7 +496,7 @@ palloc_operation(PMEMobjpool *pop,
 			/*
 			 * Even though the initial condition is to check
 			 * whether the existing block exists it's important to
-			 * use the 'reclaimed block' - it is the coalescted one
+			 * use the 'reclaimed block' - it is the coalesced one
 			 * and reflects the current persistent heap state,
 			 * whereas the existing block reflects the state from
 			 * before this operation started.
