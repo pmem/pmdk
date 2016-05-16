@@ -99,7 +99,7 @@ lane_need_recovery_alloc(struct pmem_info *pip,
 		(struct allocator_lane_section *)layout;
 
 	/* there is just a redo log */
-	return lane_need_recovery_redo(&section->redo[0], REDO_LOG_SIZE);
+	return lane_need_recovery_redo(&section->redo[0], ALLOC_REDO_LOG_SIZE);
 }
 
 /*
@@ -288,7 +288,7 @@ info_obj_lane_alloc(int v, struct lane_section_layout *layout)
 {
 	struct allocator_lane_section *section =
 		(struct allocator_lane_section *)layout;
-	info_obj_redo(v, &section->redo[0], REDO_LOG_SIZE);
+	info_obj_redo(v, &section->redo[0], ALLOC_REDO_LOG_SIZE);
 }
 
 /*
