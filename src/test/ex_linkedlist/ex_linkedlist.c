@@ -158,7 +158,7 @@ init_tqueue(PMEMobjpool *pop, TOID(struct tqueuehead) head)
 }
 
 /*
- * init_slist -- initialize slist
+ * init_slist -- initialize SLIST
  */
 static void
 init_slist(PMEMobjpool *pop, TOID(struct slisthead) head)

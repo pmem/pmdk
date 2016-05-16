@@ -119,8 +119,8 @@ huge_block_offset(struct memory_block *m, PMEMobjpool *pop, void *ptr)
  * run_block_offset -- calculates the block offset based on the number of bytes
  *	between the beginning of the chunk and the allocation data.
  *
- * Because the block offset is not represtented in bytes but in 'unit size',
- * the number of bytes must also be divded by the chunks block size.
+ * Because the block offset is not represented in bytes but in 'unit size',
+ * the number of bytes must also be divided by the chunks block size.
  * A non-zero remainder would mean that either the caller provided incorrect
  * pointer or the allocation algorithm created an invalid allocation block.
  */
@@ -212,7 +212,7 @@ huge_prep_operation_hdr(struct memory_block *m, PMEMobjpool *pop,
  *	a run bitmap that will be set after the operation concludes.
  *
  * It's VERY important to keep in mind that the particular value of the
- * bitmap this method is modyfing must not be changed after this function
+ * bitmap this method is modifying must not be changed after this function
  * is called and before the operation is processed.
  */
 void
@@ -226,7 +226,7 @@ run_prep_operation_hdr(struct memory_block *m, PMEMobjpool *pop,
 	 * Free blocks are represented by clear bits and used blocks by set
 	 * bits - which is the reverse of the commonly used scheme.
 	 *
-	 * Here a bitmask is prepared that flips the bits that represent the
+	 * Here a bit mask is prepared that flips the bits that represent the
 	 * memory block provided by the caller - because both the size index and
 	 * the block offset are tied 1:1 to the bitmap this operation is
 	 * relatively simple.
@@ -240,7 +240,7 @@ run_prep_operation_hdr(struct memory_block *m, PMEMobjpool *pop,
 	 */
 	int bpos = m->block_off / BITS_PER_VALUE;
 
-	/* the bitmask is applied immediately by the add entry operations */
+	/* the bit mask is applied immediately by the add entry operations */
 	if (op == HDR_OP_ALLOC)
 		operation_add_entry(ctx, &r->bitmap[bpos],
 			bmask, OPERATION_OR);
