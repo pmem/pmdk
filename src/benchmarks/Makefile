@@ -55,7 +55,7 @@ $(info NOTE: Skipping pmembench because glib-2.0 is missing \
 -- see src/benchmarks/README for details.)
 endif
 
-default: $(TARGET)
+all: $(TARGET)
 
 SRC=pmembench.c\
     benchmark_time.c\

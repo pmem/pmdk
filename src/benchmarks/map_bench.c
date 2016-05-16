@@ -34,6 +34,7 @@
  * and hashmap_tx from examples.
  */
 #include <assert.h>
+#include <pthread.h>
 
 #include "benchmark.h"
 #include "map.h"

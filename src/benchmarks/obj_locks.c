@@ -36,17 +36,20 @@
 
 #include <assert.h>
 #include <errno.h>
+#include <pthread.h>
 
 #include "libpmemobj.h"
 #include "benchmark.h"
 
 #include "util.h"
+#include "out.h"
 #include "lane.h"
 #include "redo.h"
 #include "memops.h"
 #include "pmalloc.h"
 #include "list.h"
 #include "obj.h"
+#include "sync.h"
 
 
 #define _BENCH_OPERATION_1BY1(flock, funlock, mb, type, ...) (\
@@ -278,7 +281,8 @@ init_bench_mutex(struct mutex_bench *mb)
 	if (!mb->pa->use_pthread) {
 		/* initialize PMEM mutexes */
 		for (unsigned i = 0; i < mb->pa->n_locks; i++) {
-			PMEMmutex *p = (PMEMmutex *)&mb->locks[i];
+			PMEMmutex_internal *p =
+					(PMEMmutex_internal *)&mb->locks[i];
 			p->pmemmutex.runid = mb->pa->runid_initial_value;
 			pthread_mutex_init(&p->pmemmutex.mutex, NULL);
 		}
@@ -361,7 +365,8 @@ init_bench_rwlock(struct mutex_bench *mb)
 	if (!mb->pa->use_pthread) {
 		/* initialize PMEM rwlocks */
 		for (unsigned i = 0; i < mb->pa->n_locks; i++) {
-			PMEMrwlock *p = (PMEMrwlock *)&mb->locks[i];
+			PMEMrwlock_internal *p =
+					(PMEMrwlock_internal *)&mb->locks[i];
 			p->pmemrwlock.runid = mb->pa->runid_initial_value;
 			pthread_rwlock_init(&p->pmemrwlock.rwlock, NULL);
 		}
