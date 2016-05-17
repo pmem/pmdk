@@ -30,8 +30,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * condition_variable.hpp -- pmem-resident condition variable
+/**
+ * @file
+ * Pmem-resident condition variable.
  */
 
 #ifndef PMEMOBJ_CONDVARIABLE_HPP

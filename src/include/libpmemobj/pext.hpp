@@ -30,8 +30,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * pext.hpp -- convenience extensions for the resides on pmem property template
+/**
+ * @file
+ * Convenience extensions for the resides on pmem property template.
  */
 
 #ifndef PMEMOBJ_PEXT_HPP

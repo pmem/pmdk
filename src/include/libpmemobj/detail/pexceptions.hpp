@@ -30,8 +30,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * pexceptions.hpp -- custom exceptions
+/**
+ * @file
+ * Custom exceptions.
  */
 
 #ifndef PMEMOBJ_PEXCEPTIONS_HPP

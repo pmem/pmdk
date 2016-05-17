@@ -30,8 +30,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * transaction.hpp -- cpp pmemobj transactions implementation
+/**
+ * @file
+ * C++ pmemobj transactions.
  */
 
 #ifndef LIBPMEMOBJ_TRANSACTION_HPP

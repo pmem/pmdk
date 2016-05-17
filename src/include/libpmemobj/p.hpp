@@ -30,8 +30,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * p.hpp -- resides on pmem property template
+/**
+ * @file
+ * Resides on pmem property template.
  */
 
 #ifndef PMEMOBJ_P_HPP
