@@ -206,6 +206,7 @@ main(int argc, char *argv[])
 	int opt;
 	size_t size;
 	int fd;
+	int res = 0;
 	struct bbtcreate_options opts = {
 		.poolsize = BTT_CREATE_DEF_SIZE,
 		.blocksize = BTT_CREATE_DEF_BLK_SIZE,
@@ -290,12 +291,14 @@ main(int argc, char *argv[])
 		if (posix_fallocate(fd, 0,
 				(off_t)opts.poolsize) != 0) {
 			perror("posix_fallocate");
-			return file_error(fd, opts.fpath);
+			res = file_error(fd, opts.fpath);
+			goto error;
 		}
 	} else {
 		if (ftruncate(fd, (off_t)opts.poolsize) != 0) {
 			perror("ftruncate");
-			return file_error(fd, opts.fpath);
+			res = file_error(fd, opts.fpath);
+			goto error;
 		}
 	}
 
@@ -303,7 +306,8 @@ main(int argc, char *argv[])
 	void *base = util_map(fd, opts.poolsize, 0, 0);
 	if (!base) {
 		perror("util_map");
-		return file_error(fd, opts.fpath);
+		res = file_error(fd, opts.fpath);
+		goto error_map;
 	}
 
 	/* setup btt context */
@@ -316,7 +320,8 @@ main(int argc, char *argv[])
 	if (!opts.user_uuid) {
 		if (util_uuid_generate(opts.uuid) < 0) {
 			perror("util_uuid_generate");
-			return -1;
+			res = -1;
+			goto error_map;
 		}
 	}
 
@@ -336,21 +341,32 @@ main(int argc, char *argv[])
 		&btt_ns_callback);
 	if (!bttp) {
 		printf("Error: Cannot initialize BTT layer\n");
-		return -1;
+		res = -1;
+		goto error_map;
 	}
 
 	/* initialize metadata */
 	if (btt_set_error(bttp, 0, 0)) {
 		perror("btt_set_error");
-		return -1;
+		res = -1;
+		goto error_btt;
 	}
 	if (btt_set_zero(bttp, 0, 0)) {
 		perror("btt_set_zero");
-		return -1;
+		res = -1;
+		goto error_btt;
 	}
-	close(fd);
 
 	/* print results */
 	print_result(&opts);
-	return 0;
+
+
+error_btt:
+	btt_fini(bttp);
+error_map:
+	out_fini();
+error:
+	close(fd);
+
+	return res;
 }
