@@ -93,7 +93,7 @@ is_zeroed(const char *path)
 {
 	int fd = OPEN(path, O_RDWR);
 	struct stat stbuf;
-	
+
 	FSTAT(fd, &stbuf);
 
 	void *addr = MMAP(0, stbuf.st_size, PROT_READ|PROT_WRITE,

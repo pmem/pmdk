@@ -127,7 +127,7 @@ size_t
 ut_write(const char *file, int line, const char *func, int fd,
     const void *buf, size_t count)
 {
-	size_t retval = write(fd, buf, count);
+	ssize_t retval = write(fd, buf, count);
 
 	if (retval < 0)
 		ut_fatal(file, line, func, "!write: %d", fd);
