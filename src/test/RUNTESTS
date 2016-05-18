@@ -110,10 +110,10 @@ runtest() {
 	for fs in $fss
 	do
 		# don't bother trying when fs-type isn't available...
- 		[ "$fs" = pmem -a -z "$PMEM_FS_DIR" ] && {
- 			pmem_skip=1
- 			continue
- 		}
+		[ "$fs" = pmem -a -z "$PMEM_FS_DIR" ] && {
+			pmem_skip=1
+			continue
+		}
 
 		[ "$fs" = non-pmem -a -z "$NON_PMEM_FS_DIR" ] && {
 			non_pmem_skip=1
