@@ -68,11 +68,14 @@ enum parser_codes {
 	PARSER_PMEMPOOLSET,
 	PARSER_REPLICA,
 	PARSER_SIZE_PATH_EXPECTED,
+	PARSER_REMOTE_REPLICA_EXPECTED,
 	PARSER_WRONG_SIZE,
-	PARSER_WRONG_PATH,
+	PARSER_ABSOLUTE_PATH_EXPECTED,
+	PARSER_RELATIVE_PATH_EXPECTED,
 	PARSER_SET_NO_PARTS,
 	PARSER_REP_NO_PARTS,
 	PARSER_SIZE_MISMATCH,
+	PARSER_OUT_OF_MEMORY,
 	PARSER_FORMAT_OK,
 	PARSER_MAX_CODE
 };
@@ -82,11 +85,14 @@ static const char *parser_errstr[PARSER_MAX_CODE] = {
 	"the first line must be exactly 'PMEMPOOLSET'",
 	"exactly 'REPLICA' expected",
 	"size and path expected",
+	"address of remote node and descriptor of remote pool set expected",
 	"incorrect format of size",
-	"incorrect path (must be an absolute path)",
+	"incorrect path (must be an absolute one)",
+	"incorrect descriptor (must be a relative path)",
 	"no pool set parts",
 	"no replica parts",
 	"sizes of pool set and replica mismatch",
+	"allocating memory failed",
 	"" /* format correct */
 };
 
@@ -216,12 +222,20 @@ util_poolset_free(struct pool_set *set)
 
 	for (unsigned r = 0; r < set->nreplicas; r++) {
 		struct pool_replica *rep = set->replica[r];
-		for (unsigned p = 0; p < rep->nparts; p++) {
-			Free((void *)(rep->part[p].path));
+		if (rep->remote == NULL) {
+			/* only local replicas have paths */
+			for (unsigned p = 0; p < rep->nparts; p++) {
+				Free((void *)(rep->part[p].path));
+			}
+		} else {
+			/* remote replica */
+			ASSERTeq(rep->nparts, 1);
+			Free(rep->remote->node_addr);
+			Free(rep->remote->pool_desc);
+			Free(rep->remote);
 		}
 		Free(set->replica[r]);
 	}
-
 	Free(set);
 }
 
@@ -344,7 +358,7 @@ parser_read_line(char *line, size_t *size, char **path)
 
 	/* check if the read path is an absolute path */
 	if (path_str[0] != DIR_SEPARATOR)
-		return PARSER_WRONG_PATH; /* must be an absolute path */
+		return PARSER_ABSOLUTE_PATH_EXPECTED;
 
 	ret = util_parse_size(size_str, size);
 	if (ret != 0 || *size == 0) {
@@ -352,6 +366,50 @@ parser_read_line(char *line, size_t *size, char **path)
 	}
 
 	*path = Strdup(path_str);
+	if (!(*path)) {
+		ERR("!Strdup");
+		return PARSER_OUT_OF_MEMORY;
+	}
+
+	return PARSER_CONTINUE;
+}
+
+/*
+ * parser_read_replica -- (internal) read line and validate remote replica
+ *                        from a pool set file
+ */
+static enum parser_codes
+parser_read_replica(char *line, char **node_addr, char **pool_desc)
+{
+	char *addr_str;
+	char *desc_str;
+	char *saveptr;
+
+	addr_str = strtok_r(line, " \t", &saveptr);
+	desc_str = strtok_r(NULL, " \t", &saveptr);
+
+	if (!addr_str || !desc_str)
+		return PARSER_REMOTE_REPLICA_EXPECTED;
+
+	LOG(10, "node address '%s' pool set descriptor '%s'",
+		addr_str, desc_str);
+
+	/* check if the descriptor is a relative path */
+	if (desc_str[0] == DIR_SEPARATOR)
+		return PARSER_RELATIVE_PATH_EXPECTED;
+
+	*node_addr = Strdup(addr_str);
+	*pool_desc = Strdup(desc_str);
+
+	if (!(*node_addr) || !(*pool_desc)) {
+		ERR("!Strdup");
+		if (*node_addr)
+			Free(*node_addr);
+		if (*pool_desc)
+			Free(*pool_desc);
+		return PARSER_OUT_OF_MEMORY;
+	}
+
 	return PARSER_CONTINUE;
 }
 
@@ -440,10 +498,53 @@ util_poolset_set_size(struct pool_set *set)
 				sizeof(struct pool_hdr);
 		}
 
-		/* calculate pool size - choose the smallest replica size */
-		if (rep->repsize < set->poolsize)
+		/*
+		 * Calculate pool size - choose the smallest replica size.
+		 * Ignore remote replicas.
+		 */
+		if (rep->remote == NULL && rep->repsize < set->poolsize)
 			set->poolsize = rep->repsize;
 	}
+	LOG(3, "pool size set to %zu", set->poolsize);
+}
+
+/*
+ * util_parse_add_remote_replica -- (internal) add a new remote replica
+ *                                  to the pool set info
+ */
+static int
+util_parse_add_remote_replica(struct pool_set **setp, char *node_addr,
+				char *pool_desc)
+{
+	LOG(3, "setp %p node_addr %s pool_desc %s", setp, node_addr, pool_desc);
+
+	ASSERTne(setp, NULL);
+	ASSERTne(node_addr, NULL);
+	ASSERTne(pool_desc, NULL);
+
+	int ret = util_parse_add_replica(setp);
+	if (ret != 0)
+		return ret;
+
+	/* a remote replica has one 'fake' part */
+	ret = util_parse_add_part(*setp, NULL, 0);
+	if (ret != 0)
+		return ret;
+
+	struct pool_set *set = *setp;
+	struct pool_replica *rep = set->replica[set->nreplicas - 1];
+	ASSERTne(rep, NULL);
+
+	rep->remote = Zalloc(sizeof(struct remote_replica));
+	if (rep->remote == NULL) {
+		ERR("!Malloc");
+		return -1;
+	}
+	rep->remote->node_addr = node_addr;
+	rep->remote->pool_desc = pool_desc;
+	set->remote = 1;
+
+	return 0;
 }
 
 /*
@@ -464,6 +565,8 @@ util_poolset_parse(const char *path, int fd, struct pool_set **setp)
 	char line[PARSER_MAX_LINE];
 	char *s;
 	char *ppath;
+	char *pool_desc;
+	char *node_addr;
 	char *cp;
 	size_t psize;
 	FILE *fs;
@@ -545,7 +648,24 @@ util_poolset_parse(const char *path, int fd, struct pool_set **setp)
 					POOLSET_REPLICA_SIG_LEN) == 0) {
 			if (line[POOLSET_REPLICA_SIG_LEN] != '\0') {
 				/* something more than 'REPLICA' */
-				result = PARSER_REPLICA;
+				if (!isblank(line[POOLSET_REPLICA_SIG_LEN])) {
+					result = PARSER_REPLICA;
+					continue;
+				}
+				/* check if it is a remote replica */
+				result = parser_read_replica(
+						line + POOLSET_REPLICA_SIG_LEN,
+						&node_addr, &pool_desc);
+				if (result == PARSER_CONTINUE) {
+					/* remote REPLICA */
+					LOG(10, "REMOTE REPLICA "
+						"node address '%s' "
+						"pool set descriptor '%s'",
+						node_addr, pool_desc);
+					if (util_parse_add_remote_replica(&set,
+							node_addr, pool_desc))
+						goto err;
+				}
 			} else if (nparts >= 1) {
 				/* 'REPLICA' signature detected */
 				LOG(10, "REPLICA");
@@ -615,7 +735,7 @@ util_poolset_single(const char *path, size_t filesize, int fd, int create)
 	}
 
 	struct pool_replica *rep;
-	rep = Malloc(sizeof(struct pool_replica) +
+	rep = Zalloc(sizeof(struct pool_replica) +
 			sizeof(struct pool_set_part));
 	if (rep == NULL) {
 		ERR("!Malloc for pool set replica");
@@ -633,6 +753,11 @@ util_poolset_single(const char *path, size_t filesize, int fd, int create)
 	rep->part[0].addr = NULL;
 
 	rep->nparts = 1;
+
+	/* it does not have a remote replica */
+	rep->remote = NULL;
+	set->remote = 0;
+
 	/* round down to the nearest page boundary */
 	rep->repsize = rep->part[0].filesize & ~(Pagesize - 1);
 
@@ -697,6 +822,14 @@ util_poolset_files(struct pool_set *set, size_t minsize, int create)
 
 	for (unsigned r = 0; r < set->nreplicas; r++) {
 		struct pool_replica *rep = set->replica[r];
+		/*
+		 * Skip remote replicas - they should be created
+		 * by the upper layer.
+		 */
+		if (rep->remote) {
+			LOG(3, "replica %d is a remote one - skipping...", r);
+			continue;
+		}
 		for (unsigned p = 0; p < rep->nparts; p++) {
 			if (util_poolset_file(&rep->part[p], minsize, create))
 				return -1;
@@ -915,7 +1048,7 @@ util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 	const unsigned char *next_repl_uuid)
 {
 	LOG(3, "set %p repidx %u partidx %u sig %.8s major %u "
-		"compat %#x incompat %#x ro_comapt %#x"
+		"compat %#x incompat %#x ro_comapt %#x "
 		"prev_repl_uuid %p next_repl_uuid %p",
 		set, repidx, partidx, sig, major, compat, incompat,
 		ro_compat, prev_repl_uuid, next_repl_uuid);
@@ -1192,7 +1325,7 @@ util_replica_create(struct pool_set *set, unsigned repidx, int flags,
 	const unsigned char *next_repl_uuid)
 {
 	LOG(3, "set %p repidx %u flags %d sig %.8s major %u "
-		"compat %#x incompat %#x ro_comapt %#x"
+		"compat %#x incompat %#x ro_comapt %#x "
 		"prev_repl_uuid %p next_repl_uuid %p",
 		set, repidx, flags, sig, major,
 		compat, incompat, ro_compat,
@@ -1389,7 +1522,7 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 {
 	LOG(3, "setp %p path %s poolsize %zu minsize %zu "
 		"sig %.8s major %u compat %#x incompat %#x ro_comapt %#x "
-		"poolset_uuid %p first_part_uuid %p"
+		"poolset_uuid %p first_part_uuid %p "
 		"prev_repl_uuid %p next_repl_uuid %p",
 		setp, path, poolsize, minsize,
 		sig, major, compat, incompat, ro_compat,
@@ -1717,7 +1850,7 @@ util_pool_open_remote(struct pool_set **setp, const char *path, int rdonly,
 {
 	LOG(3, "setp %p path %s rdonly %d minsize %zu "
 		"sig %p major %p compat %p incompat %p ro_comapt %p"
-		"poolset_uuid %p first_part_uuid %p"
+		"poolset_uuid %p first_part_uuid %p "
 		"prev_repl_uuid %p next_repl_uuid %p",
 		setp, path, rdonly, minsize,
 		sig, major, compat, incompat, ro_compat,
