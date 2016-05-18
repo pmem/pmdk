@@ -132,7 +132,7 @@ ut_write(const char *file, int line, const char *func, int fd,
 	if (retval < 0)
 		ut_fatal(file, line, func, "!write: %d", fd);
 
-	return retval;
+	return (size_t)retval;
 }
 
 /*
