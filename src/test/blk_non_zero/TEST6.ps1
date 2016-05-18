@@ -1,4 +1,4 @@
-﻿#
+#
 # Copyright 2015-2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
@@ -34,9 +34,9 @@
 #
 $Env:UNITTEST_NAME = "blk_non_zero\TEST6"
 $Env:UNITTEST_NUM = "6"
-# Pl TODO:  bash has a few calls to tools that we don't have on
+# XXX:  bash has a few calls to tools that we don't have on
 # windows (yet) that set PMEM_IS_PMEM and NON_PMEM_IS_PMEM based
-# on their outpute
+# on their output
 $Env:PMEM_IS_PMEM = $true
 $Env:NON_PMEM_IS_PMEM = $true
 $DIR = ""

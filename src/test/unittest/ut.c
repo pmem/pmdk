@@ -43,19 +43,11 @@
 
 /* RHEL5 seems to be missing decls, even though libc supports them */
 extern DIR *fdopendir(int fd);
-extern ssize_t readlinkat(int, const char *restrict, char *restrict, size_t);
+extern ssize_t readlinkat(int, const char *restrict, char *__restrict, size_t);
 
 #define MAXLOGNAME 100		/* maximum expected .log file name length */
 #define MAXPRINT 8192		/* maximum expected single print length */
-#ifndef WIN32
-#define OUTLOGNAME "out%s.log"
-#define ERRLOGNAME "err%s.log"
-#define TRACELOGNAME "trace%s.log"
-#else
-#define OUTLOGNAME "w_out%s.log"
-#define ERRLOGNAME "w_err%s.log"
-#define TRACELOGNAME "w_trace%s.log"
-#endif
+
 /*
  * output gets replicated to these files
  */
@@ -260,7 +252,7 @@ open_file_free(struct fd_lut *root)
 	}
 }
 
-#ifndef WIN32
+#ifndef _WIN32
 
 /*
  * record_open_files -- make a list of open files (used at START() time)
@@ -365,19 +357,19 @@ ut_start(const char *file, int line, const char *func,
 	if ((logsuffix = getenv("UNITTEST_NUM")) == NULL)
 		logsuffix = "";
 
-	snprintf(logname, MAXLOGNAME, OUTLOGNAME, logsuffix);
+	snprintf(logname, MAXLOGNAME, "out%s.log", logsuffix);
 	if ((Outfp = fopen(logname, "w")) == NULL) {
 		perror(logname);
 		exit(1);
 	}
 
-	snprintf(logname, MAXLOGNAME, ERRLOGNAME, logsuffix);
+	snprintf(logname, MAXLOGNAME, "err%s.log", logsuffix);
 	if ((Errfp = fopen(logname, "w")) == NULL) {
 		perror(logname);
 		exit(1);
 	}
 
-	snprintf(logname, MAXLOGNAME, TRACELOGNAME, logsuffix);
+	snprintf(logname, MAXLOGNAME, "trace%s.log", logsuffix);
 	if ((Tracefp = fopen(logname, "w")) == NULL) {
 		perror(logname);
 		exit(1);

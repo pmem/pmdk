@@ -31,11 +31,11 @@
 #
 # src/test/blk_nblock/TEST0 -- unit test for pmemblk_nblock
 #
-$Env:UNITTEST_NAME = "blk_nblock\TEST0"
-$Env:UNITTEST_NUM = "0"
+$Env:UNITTEST_NAME = "blk_nblock\TEST0w"
+$Env:UNITTEST_NUM = "0w"
 # XXX:  bash has a few calls to tools that we don't have on
 # windows (yet) that set PMEM_IS_PMEM and NON_PMEM_IS_PMEM based
-# on their outpute
+# on their output
 $Env:PMEM_IS_PMEM = $true
 $Env:NON_PMEM_IS_PMEM = $true
 $DIR = ""
@@ -67,36 +67,13 @@ create_holey_file 2048 $DIR\testfile2.528
 create_holey_file 2048 $DIR\testfile2.4096
 create_holey_file 2048 $DIR\testfile2.4160
 create_holey_file 2048 $DIR\testfile2.4224
+
 #
-# all of the commented tests are likely
-# going to eat up more disk space than the
-# test env being used. This larger coverage is
-# provided on the linux side
+# Larger file coverage is provided on the linux side
+# we don't have the ability to test really large files
+# with Windows
 #
-#create_holey_file 536576 $DIR\testfile3.512
-#create_holey_file 536576 $DIR\testfile3.520
-#create_holey_file 536576 $DIR\testfile3.528
-#create_holey_file 536576 $DIR\testfile3.4096
-#create_holey_file 536576 $DIR\testfile3.4160
-#create_holey_file 536576 $DIR\testfile3.4224
-#create_holey_file 549755822080 $DIR\testfile4.512
-#create_holey_file 549755822080 $DIR\testfile4.520
-#create_holey_file 549755822080 $DIR\testfile4.528
-#create_holey_file 549755822080 $DIR\testfile4.4096
-#create_holey_file 549755822080 $DIR\testfile4.4160
-#create_holey_file 549755822080 $DIR\testfile4.4224
-#create_holey_file 513G $DIR\testfile5.512
-#create_holey_file 513G $DIR\testfile5.520
-#create_holey_file 513G $DIR\testfile5.528
-#create_holey_file 513G $DIR\testfile5.4096
-#create_holey_file 513G $DIR\testfile5.4160
-#create_holey_file 513G $DIR\testfile5.4224
-#create_holey_file 514G $DIR\testfile6.512
-#create_holey_file 514G $DIR\testfile6.520
-#create_holey_file 514G $DIR\testfile6.528
-#create_holey_file 514G $DIR\testfile6.4096
-#create_holey_file 514G $DIR\testfile6.4160
-#create_holey_file 514G $DIR\testfile6.4224
+
 # MINIMUM POOL SIZE = 16MB + 8KB
 $MIN_POOL_SIZE = "16+8"
 create_holey_file $MIN_POOL_SIZE $DIR\testfile7.512
@@ -117,37 +94,6 @@ expect_normal_exit ..\..\x64\debug\blk_nblock$Env:EXESUFFIX `
     528:$DIR\testfile2.528 `
     4096:$DIR\testfile2.4096 `
     4160:$DIR\testfile2.4160 `
-    #4224:$DIR\testfile2.4224 `
-    #512:$DIR\testfile3.512 `
-    #520:$DIR\testfile3.520 `
-    #528:$DIR\testfile3.528 `
-    #4096:$DIR\testfile3.4096 `
-    #4160:$DIR\testfile3.4160 `
-    #4224:$DIR\testfile3.4224 `
-    #512:$DIR\testfile4.512 `
-    #520:$DIR\testfile4.520 `
-    #528:$DIR\testfile4.528 `
-    #4096:$DIR\testfile4.4096 `
-    #4160:$DIR\testfile4.4160 `
-    #4224:$DIR\testfile4.4224 `
-    #512:$DIR\testfile5.512
-    #520:$DIR\testfile5.520 `
-    #528:$DIR\testfile5.528 `
-    #4096:$DIR\testfile5.4096 `
-    #4160:$DIR\testfile5.4160 `
-    #4224:$DIR\testfile5.4224 `
-    #512:$DIR\testfile6.512 `
-    #520:$DIR\testfile6.520 `
-    #528:$DIR\testfile6.528 `
-    #4096:$DIR\testfile6.4096 `
-    #4160:$DIR\testfile6.4160 `
-    #4224:$DIR\testfile6.4224 `
-    #512:$DIR\testfile7.512 `
-    #520:$DIR\testfile7.520 `
-    #528:$DIR\testfile7.528 `
-    #4096:$DIR\testfile7.4096 `
-    #4160:$DIR\testfile7.4160
-    #4224:$DIR\testfile7.4224 `
 
 # check will print the appropriate pass/fail message
 check

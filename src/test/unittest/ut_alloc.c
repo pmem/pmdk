@@ -108,7 +108,7 @@ ut_strdup(const char *file, int line, const char *func,
 	return retval;
 }
 
-#ifndef WIN32
+#ifndef _WIN32
 /*
  * ut_pagealignmalloc -- like malloc but page-aligned memory
  */

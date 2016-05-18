@@ -68,7 +68,6 @@ typedef long _off_t;		/* NOTE: _off_t must be defined as 'long'! */
 #define __thread __declspec(thread)
 #define __func__ __FUNCTION__
 #define __typeof__ decltype
-#define restrict __restrict
 
 /* XXX - no equivalents in VC++ */
 #define __attribute__(a)
@@ -77,8 +76,7 @@ typedef long _off_t;		/* NOTE: _off_t must be defined as 'long'! */
 /* XXX - dummy */
 typedef int sigset_t;
 typedef int DIR;
-#define setlinebuf(o)
-#define ut_register_sighandlers(o)
+__inline void ut_register_sighandlers(o) {};
 
 /*
  * atomics
@@ -145,6 +143,7 @@ __sync_synchronize()
 typedef int mode_t;
 
 #define fchmod(fd, mode) 0	/* XXX - dummy */
+#define setlinebuf(fp) setvbuf(fp, NULL, _IOLBF, BUFSIZ);
 
 /* unistd.h */
 typedef long long int ssize_t;

@@ -55,12 +55,6 @@ static int Log_level;
 static FILE *Out_fp;
 static unsigned Log_alignment;
 
-#ifndef _WIN32
-#define DIR_SEPARATOR '/'
-#else
-#define DIR_SEPARATOR '\\'
-#endif
-
 #ifndef NO_LIBPTHREAD
 
 #define MAXPRINT 8192	/* maximum expected log line */
@@ -236,12 +230,7 @@ out_init(const char *log_prefix, const char *log_level_var,
 	if (Out_fp == NULL)
 		Out_fp = stderr;
 	else
-#ifndef _WIN32
 		setlinebuf(Out_fp);
-#else
-		/* setlinebuf() is not available on Windows, use no buffering */
-		setvbuf(Out_fp, NULL, _IONBF, 0);
-#endif
 
 #ifdef DEBUG
 	LOG(1, "pid %d: program: %s", getpid(), getexecname());

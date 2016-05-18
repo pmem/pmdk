@@ -1,4 +1,4 @@
-ï»¿#
+#
 # Copyright 2015-2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,7 @@ function epoch {
 
 function isDir {
     if ((Get-Item $args[0] -ErrorAction SilentlyContinue) -is [System.IO.DirectoryInfo]) {
-        return $true			
+        return $true
 	} Else {
         return $false
     }
@@ -45,8 +45,8 @@ function isDir {
 
 # force dir w/wildcard to fail if no match
 function dirFailOnEmpty {
-    if (0 -eq (Get-ChildItem $args[0]).Count) { 
-        Write-Error -Message 'No match: $args[0]' 
+    if (0 -eq (Get-ChildItem $args[0]).Count) {
+        Write-Error -Message 'No match: $args[0]'
         exit 1
     }
 }
@@ -76,9 +76,9 @@ function create_file {
         $stream = new-object system.IO.StreamWriter($args[$i], "False", [System.Text.Encoding]::Ascii)
         1..$size | %{ $stream.Write("0") }
         $stream.close()
-        Get-ChildItem $args[$i]* >> ("w_prep" + $Env:UNITTEST_NUM + ".log")
+        Get-ChildItem $args[$i]* >> ("prep" + $Env:UNITTEST_NUM + ".log")
 	}
-    
+
 }
 #
 # create_holey_file -- create holey files of a given length in megs
@@ -90,7 +90,7 @@ function create_file {
 #
 function create_holey_file {
 	sv -Name size $args[0]
-    if ($size -is "String" -And $size.contains(â€œ+â€)) {
+    if ($size -is "String" -And $size.contains(“+”)) {
         # for tests that want to pass in a combo of MB+KB
         [int64]$MB = $size.split("+")[0]
         [int64]$KB = $size.split("+")[1]
@@ -118,7 +118,7 @@ function create_holey_file {
             Write-Error "Error $LASTEXITCODE with FSUTIL setRange"
             exit $LASTEXITCODE
         }
-        Get-ChildItem $fname >> ("w_prep" + $Env:UNITTEST_NUM + ".log")
+        Get-ChildItem $fname >> ("prep" + $Env:UNITTEST_NUM + ".log")
 	}
 }
 
@@ -139,17 +139,17 @@ function create_nonzeroed_file {
     sv -Name size $args[0]
 	[int64]$size = $(([int64]$size * 1024 * 1024  - $offset))
     [int64]$numz =  $size / 1024
-    [string] $z = "Z" * 1024 # using a 1K string to speed up writting 
+    [string] $z = "Z" * 1024 # using a 1K string to speed up writting
 	for ($i=2;$i -lt $args.count;$i++) {
         # create sparse file of offset length
         $file = new-object System.IO.FileStream $args[$i], Create, ReadWrite
-        $file.SetLength($offset)       
+        $file.SetLength($offset)
         $file.Close()
-        Get-ChildItem $args[$i] >> ("w_prep" + $Env:UNITTEST_NUM + ".log")
+        Get-ChildItem $args[$i] >> ("prep" + $Env:UNITTEST_NUM + ".log")
         $stream = new-object system.IO.StreamWriter($args[$i], "True", [System.Text.Encoding]::Ascii)
         1..$numz | %{ $stream.Write($Z) }
         $stream.close()
-        Get-ChildItem $args[$i] >> ("w_prep" + $Env:UNITTEST_NUM + ".log")
+        Get-ChildItem $args[$i] >> ("prep" + $Env:UNITTEST_NUM + ".log")
 	}
 }
 
@@ -157,8 +157,8 @@ function create_nonzeroed_file {
 # require_pmem -- only allow script to continue for a real PMEM device
 #
 function require_pmem {
-	if ($Env:PMEM_IS_PMEM) { 
-        return $true 
+	if ($Env:PMEM_IS_PMEM) {
+        return $true
     } Else {
 	    Write-Error "error: PMEM_FS_DIR=$PMEM_FS_DIR does not point to a PMEM device"
 	    exit 1
@@ -203,7 +203,6 @@ function create_poolset {
 
     sv -Name psfile $args[0]
     echo "PMEMPOOLSET" | out-file -encoding ASCII $psfile
-     
     for ($i=1;$i -lt $args.count;$i++) {
         if ($args[$i] -eq "R" -Or $args[$i] -eq 'r') {
             echo "REPLICA" | out-file -Append -encoding ASCII $psfile
@@ -211,28 +210,27 @@ function create_poolset {
         }
         sv -Name cmd $args[$i]
         sv -Name fparms ($cmd.Split("{:}"))
-        sv -Name fsize $fparms[0]       
+        sv -Name fsize $fparms[0]
 
         # XXX: unclear how to follow a symlink
         # like linux "fpath=`readlink -mn ${fparms[1]}`" but I've not tested
         # that it works with a symlink or shortcut
         sv -Name fpath $fparms[1]
-          
-        sv -Name cmd $fparms[2]    
-        sv -Name asize $fparms[3]   
-        sv -Name mode $fparms[4]   
+        sv -Name cmd $fparms[2]
+        sv -Name asize $fparms[3]
+        sv -Name mode $fparms[4]
 
         if ($asize) {
             $asize = $asize -replace ".{1}$"
         } else {
             sv -Name asize $fsize
-        } 
-        
+        }
+
         [int64] $asize *= 1024 * 1024
         [int64] $fsize *= 1024 * 1024
 
-        switch -regex ($cmd) { 
-            # do nothing 
+        switch -regex ($cmd) {
+            # do nothing
             'x' { }
             # zeroed (holey) file
             'z' { create_holey_file $asize $fpath }
@@ -241,14 +239,14 @@ function create_poolset {
             # non-zeroed file, except 4K header
             'h' { create_nonzeroed_file $asize 4 $fpath }
         }
+        # XXX: didn't convert chmod
+        #	if [ $mode ]; then
+        #	    chmod $mode $fpath
+	    #	fi
+
+        echo "$fsize $fpath" | out-file -Append -encoding ASCII $psfile
     } # for args
 
-    # XXX: didn't convert chmod
-    #	if [ $mode ]; then
-    #	    chmod $mode $fpath
-	#	fi
-
-    echo "$fsize $fpath" | out-file -Append -encoding ASCII $psfile
 
 }
 
@@ -265,16 +263,16 @@ function expect_normal_exit {
     [string]$expression =  @($Args)
     #$expression = $expression -replace " ", " ; "
     Invoke-Expression $expression
-    sv -Name ret $? 
+    sv -Name ret $?
 
     if (-Not $ret) {
         sv -Name msg "failed with exit code FALSE"
 
-        if (Test-Path ("w_err" + $Env:UNITTEST_NUM + ".log")) { 
+        if (Test-Path ("err" + $Env:UNITTEST_NUM + ".log")) {
             if (Test-Path Env:UNITTEST_QUIET) {
-                echo "$Env:UNITTEST_NAME $msg. w_err$Env:UNITTEST_NUM.log" >> ("w_err" + $Env:UNITTEST_NUM + ".log")
+                echo "$Env:UNITTEST_NAME $msg. err$Env:UNITTEST_NUM.log" >> ("err" + $Env:UNITTEST_NUM + ".log")
             } else {
-                Write-Error "$Env:UNITTEST_NAME $msg. w_err$UNITTEST_NUM.log"
+                Write-Error "$Env:UNITTEST_NAME $msg. err$UNITTEST_NUM.log"
             }
         } else {
             Write-Error "$Env:UNITTEST_NAME $msg"
@@ -283,7 +281,7 @@ function expect_normal_exit {
         # XXX: if we impement a memcheck thing...
         # if [ "$RUN_MEMCHECK" ]; then
 
-        dump_last_n_lines w_out$Env:UNITTEST_NUM.log
+        dump_last_n_lines out$Env:UNITTEST_NUM.log
 		dump_last_n_lines $Env:PMEM_LOG_FILE
 		dump_last_n_lines $Env:PMEMOBJ_LOG_FILE
 		dump_last_n_lines $Env:PMEMLOG_LOG_FILE
@@ -296,7 +294,7 @@ function expect_normal_exit {
     }
 
     # XXX: if we impement a memcheck thing... set some env vars here
-    
+
 }
 
 #
@@ -309,7 +307,7 @@ function expect_abnormal_exit {
     [string]$expression =  @($Args)
     $expression = $expression -replace " ", " ; "
     Invoke-Expression $expression
-    sv -Name ret $? 
+    sv -Name ret $?
 
     if ($ret) {
         sv -Name msg "succeeded"
@@ -324,7 +322,7 @@ function expect_abnormal_exit {
 #
 function check_pool {
     # XXX - - tool not available on windows yet
-    Write-Error "function check_pool() Not yet implemented"
+    Write-Host "function check_pool() Not yet implemented"
 }
 
 #
@@ -332,7 +330,7 @@ function check_pool {
 #
 function check_pools {
     # XXX - tool not available on windows yet
-    Write-Error "function check_pools() Not yet implemented"
+    Write-Host "function check_pools() Not yet implemented"
 }
 
 #
@@ -367,7 +365,7 @@ function require_test_type() {
         #XXX look at the bash code w/someone and confirm the logic here
         if (-Not (Test-Path Env:UNITTEST_QUIET)) {
             echo "$Env:UNITTEST_NAME: SKIP test-type $TEST ($* required)"
-        } 
+        }
         exit 0
     }
 }
@@ -383,7 +381,7 @@ function require_build_type {
         #XXX look at the bash code w/someone and confirm the logic here
         if (-Not (Test-Path Env:UNITTEST_QUIET)) {
             echo "$Env:UNITTEST_NAME: SKIP build-type $Env:BUILD ($* required)"
-        } 
+        }
         exit 0
     }
 }
@@ -411,7 +409,7 @@ function require_binary() {
     if (-Not (Test-Path $Args[0])) {
        if (-Not (Test-Path Env:UNITTEST_QUIET)) {
             Write-Host "$Env:UNITTEST_NAME: SKIP no binary found"
-       } 
+       }
        exit 0
     }
 }
@@ -424,10 +422,9 @@ function require_binary() {
 #
 function check {
     #	../match $(find . -regex "[^0-9]*${UNITTEST_NUM}\.log\.match" | xargs)
-    $filter = "w_*" + $env:UNITTEST_NUM + ".log.match"
-    [string]$listing = Get-ChildItem -Name -File $filter 
+    [string]$listing = Get-ChildItem -File | Where-Object  {$_.Name -match "[^0-9]\w${env:UNITTEST_NUM}.log.match"}
     if ($listing) {
-        $p = start-process -PassThru -Wait -NoNewWindow -FilePath perl -ArgumentList '..\..\..\src\test\match', $listing   
+        $p = start-process -PassThru -Wait -NoNewWindow -FilePath perl -ArgumentList '..\..\..\src\test\match', $listing
         if ($p.ExitCode -eq 0) {
             pass
         } else {
@@ -453,7 +450,7 @@ function pass {
 
     sv -Name msg "PASS"
     Write-Host -NoNewline ($Env:UNITTEST_NAME + ": ")
-    Write-Host -NoNewline -foregroundcolor green $msg  
+    Write-Host -NoNewline -foregroundcolor green $msg
     if ($tm) {
         Write-Host -NoNewline (":" + $tm)
     }
@@ -471,7 +468,7 @@ function pass {
 function fail {
     sv -Name msg "FAILED"
     Write-Host -NoNewline ($Env:UNITTEST_NAME + ": ")
-    Write-Host -NoNewLine -foregroundcolor red $msg  
+    Write-Host -NoNewLine -foregroundcolor red $msg
     Write-Host -NoNewline (" with errorcode " + $args[0])
     Write-Host -NoNewline (":" + $tm)
     Write-Host ""
@@ -485,7 +482,7 @@ function check_file {
     if (-Not (Test-Path $Args[0])) {
         Write-Error "Missing File: " $Args[0]
         return $false
-    } 
+    }
     return $true
 }
 
@@ -509,7 +506,7 @@ function check_no_file {
     if (Test-Path $fname) {
         Write-Error "Not deleted file: $fname"
         return $false
-    } 
+    }
     return $true
 }
 
@@ -529,32 +526,32 @@ function check_no_files {
 # get_size -- return size of file
 #
 function get_size {
-    if (Test-Path $args[0]) {       
+    if (Test-Path $args[0]) {
         return (Get-Item $args[0]).length
-    } 
+    }
 }
 
 #
 # get_mode -- return mode of file
 #
 function get_mode {
-    if (Test-Path $args[0]) {       
+    if (Test-Path $args[0]) {
         return (Get-Item $args[0]).mode
-    } 
+    }
 }
 
 #
 # check_size -- validate file size
 #
 function check_size {
-	sv -Name size -Scope "Local" $args[0] 
-	sv -Name file -Scope "Local" $args[1] 
-	sv -Name file_size -Scope "Local" (get_size $file) 
+	sv -Name size -Scope "Local" $args[0]
+	sv -Name file -Scope "Local" $args[1]
+	sv -Name file_size -Scope "Local" (get_size $file)
 
     if ($file_size -ne $size) {
         Write-Error "error: wrong size $file_size != $size"
         return $false
-    } 
+    }
     return $true
 }
 
@@ -562,14 +559,14 @@ function check_size {
 # check_mode -- validate file mode
 #
 function check_mode {
-	sv -Name mode -Scope "Local" $args[0] 
-	sv -Name file -Scope "Local" $args[1] 
-	sv -Name file_mode -Scope "Local" (get_mode $file) 
+	sv -Name mode -Scope "Local" $args[0]
+	sv -Name file -Scope "Local" $args[1]
+	sv -Name file_mode -Scope "Local" (get_mode $file)
 
     if ($file_mode -ne $mode) {
         Write-Error "error: wrong mode $file_mode != $mode"
         return $false
-    } 
+    }
     return $true
 }
 
@@ -577,8 +574,8 @@ function check_mode {
 # check_signature -- check if file contains specified signature
 #
 function check_signature {
-	sv -Name sig -Scope "Local" $args[0] 
-	sv -Name file -Scope "Local" ((Get-Location).path + "\" + $Args[1]) 
+	sv -Name sig -Scope "Local" $args[0]
+	sv -Name file -Scope "Local" ((Get-Location).path + "\" + $Args[1])
 	sv -Name file_sig -Scope "Local" ""
     $stream = [System.IO.File]::OpenRead($file)
     $buff = New-Object Byte[] $SIG_LEN
@@ -587,7 +584,7 @@ function check_signature {
     if ($file_sig -ne $sig) {
         Write-Error "error: $file signature doesn't match $file_sig != $sig"
         return $false
-    } 
+    }
     return $true
 }
 
@@ -607,8 +604,8 @@ function check_signatures {
 # check_layout -- check if pmemobj pool contains specified layout
 #
 function check_layout {
-	sv -Name layout -Scope "Local" $args[0] 
-	sv -Name file -Scope "Local" ((Get-Location).path + "\" + $Args[1]) 
+	sv -Name layout -Scope "Local" $args[0]
+	sv -Name file -Scope "Local" ((Get-Location).path + "\" + $Args[1])
 
     # XXX: not fully tested
     $stream = [System.IO.File]::OpenRead($file)
@@ -619,7 +616,7 @@ function check_layout {
     if ($buff -ne $layout) {
         Write-Error "error: layout doesn't match $buff != $layout"
         return $false
-    } 
+    }
     return $true
 }
 
@@ -627,7 +624,7 @@ function check_layout {
 # check_arena -- check if file contains specified arena signature
 #
 function check_arena {
-	sv -Name file -Scope "Local" ((Get-Location).path + "\" + $Args[0]) 
+	sv -Name file -Scope "Local" ((Get-Location).path + "\" + $Args[0])
 
     # XXX: not fully tested
     $stream = [System.IO.File]::OpenRead($file)
@@ -638,7 +635,7 @@ function check_arena {
     if ($buff -ne $ARENA_SIG) {
         Write-Error "error: can't find arena signature"
         return $false
-    } 
+    }
     return $true
 }
 
@@ -664,8 +661,8 @@ function compare_replicas {
 # require_non_pmem -- only allow script to continue for a non-PMEM device
 #
 function require_non_pmem {
-	if ($Env:NON_PMEM_IS_PMEM) { 
-        return $true 
+	if ($Env:NON_PMEM_IS_PMEM) {
+        return $true
     } Else {
 	    Write-Error "error: NON_PMEM_FS_DIR=$NON_PMEM_FS_DIR does not point to a non-PMEM device"
 	    exit 1
@@ -679,14 +676,14 @@ function require_fs_type {
     sv -Name req_fs_type 1 -Scope Global
 	for ($i=0;$i -lt $args.count;$i++) {
         if ($args[$i] -eq $Env:FS) {
-            switch ($REAL_FS) { 
+            switch ($REAL_FS) {
                 'pmem' { if (require_pmem) { return } }
                 'non-pmem' { if (require_non_pmem) { return } }
                 'none' { return }
-            }            
+            }
         }
     }
-    if (-Not (Test-Path Env:UNITTEST_QUIET)) { 
+    if (-Not (Test-Path Env:UNITTEST_QUIET)) {
         Write-Host "$UNITTEST_NAME SKIP fs-type $Env:FS (not configured)"
 		#exit 0
     }
@@ -703,12 +700,12 @@ function setup {
 
 	# fs type "any" must be explicitly enabled
 	if ($Env:FS -eq "any" -and $req_fs_type -ne "1") { exit 0 }
-   
+
     # XXX: don't think we have a memcheck eq for windows yet but
     # will leave the logic in here in case we find something to use
     # that we can flip on/off with a flag
 	if ($MEMCHECK -eq "force-enable") { $Env:RUN_MEMCHECK = 1 }
-	
+
     if ($RUN_MEMCHECK) {
 		sv -Name MCSTR "/memcheck"
 	} else {
@@ -728,7 +725,7 @@ function setup {
 	}
 
 	if ($TM -eq "1" ) { sv -Name start_time (epoch) }
-   
+
 }
 
 function dump_last_n_lines {
@@ -768,7 +765,7 @@ $Env:EXESUFFIX = ".exe"
 # For example, in a test directory, run:
 #	TEST_LD_LIBRARY_PATH=\usr\lib .\TEST0
 #
-if (-Not ($TEST_LD_LIBRARY_PATH)) { 
+if (-Not ($TEST_LD_LIBRARY_PATH)) {
     switch -regex ($Env:BUILD) {
         'debug' {$Env:TEST_LD_LIBRARY_PATH = '..\..\debug'}
         'nondebug' {$Env:TEST_LD_LIBRARY_PATH = '..\..\nondebug'}
@@ -797,28 +794,28 @@ sv -Name curtestdir (Get-Item -Path ".\").BaseName
 # just in case
 if (-Not ($curtestdir)) {
         Write-Error -Message "$curtestdir does not exist"
-} 
+}
 
 sv -Name curtestdir ("test_" + $curtestdir)
 
-if (-Not (Test-Path Env:UNITTEST_NUM)) { 
-	Write-Error "UNITTEST_NUM does not have a value" 
+if (-Not (Test-Path Env:UNITTEST_NUM)) {
+	Write-Error "UNITTEST_NUM does not have a value"
 	exit 1
 }
 
-if (-Not (Test-Path Env:UNITTEST_NAME)) { 
-	Write-Error "UNITTEST_NAME does not have a value" 
+if (-Not (Test-Path Env:UNITTEST_NAME)) {
+	Write-Error "UNITTEST_NAME does not have a value"
 	exit 1
 }
 
 sv -Name REAL_FS $Env:FS
-if ($DIR) { 
+if ($DIR) {
     # if user passed it in...
     sv -Name "DIR" ($DIR + "\" + $curtestdir + $Env:UNITTEST_NUM)
 } else {
     $tail = "\" + $curtestdir + $Env:UNITTEST_NUM
     # choose based on FS env variable
-    switch -regex ($Env:FS) { 
+    switch -regex ($Env:FS) {
         'local' { sv -Name DIR ($LOCAL_FS_DIR + $tail) }
         'pmem' { sv -Name DIR ($PMEM_FS_DIR + $tail) }
         'non-pmem' { sv -Name DIR ($NON_PMEM_FS_DIR + $tail) }
@@ -827,7 +824,7 @@ if ($DIR) {
                 } ElseIf ($NON_PMEM_FS_DIR) {
                     sv -Name DIR ($NON_PMEM_FS_DIR + $tail)
                 } Else {
-                	Write-Error "$UNITTEST_NAME :  fs-type=any and both env vars are empty" 
+                	Write-Error "$UNITTEST_NAME :  fs-type=any and both env vars are empty"
 	                exit 1
                 }
               }
@@ -835,7 +832,7 @@ if ($DIR) {
             # hmmm, bash is: DIR=/dev/null/not_existing_dir/$curtestdir$UNITTEST_NUM
             sv -Name DIR ($null + "\not_existing_dir" + $tail) }
         default {
-            if (-Not (Test-Path Env:UNITTEST_QUIET)) { 
+            if (-Not (Test-Path Env:UNITTEST_QUIET)) {
                 Write-Host "$UNITTEST_NAME SKIP fs-type $Env:FS (not configured)"
 		        exit 0
             }
@@ -845,9 +842,9 @@ if ($DIR) {
 
 # XXX REMOVE THIS WHEN ITS ALL WORKING
 if (-Not ($DIR)) {
-        Write-Error -Message 'DIR does not exist' 
-        exit 1 
-} 
+        Write-Error -Message 'DIR does not exist'
+        exit 1
+}
 
 # Length of pool file's signature
 sv -Name SIG_LEN 8
@@ -870,22 +867,22 @@ sv -Name ARENA_OFF 8192
 # Tests that don't want it on, should override these environment variables.
 #
 $Env:VMEM_LOG_LEVEL = 3
-$Env:VMEM_LOG_FILE = "w_vmem" + $Env:UNITTEST_NUM + ".log"
+$Env:VMEM_LOG_FILE = "vmem" + $Env:UNITTEST_NUM + ".log"
 $Env:PMEM_LOG_LEVEL = 3
-$Env:PMEM_LOG_FILE = "w_pmem" + $Env:UNITTEST_NUM + ".log"
+$Env:PMEM_LOG_FILE = "pmem" + $Env:UNITTEST_NUM + ".log"
 $Env:PMEMBLK_LOG_LEVEL=3
-$Env:PMEMBLK_LOG_FILE = "w_pmemblk" + $Env:UNITTEST_NUM + ".log"
+$Env:PMEMBLK_LOG_FILE = "pmemblk" + $Env:UNITTEST_NUM + ".log"
 $Env:PMEMLOG_LOG_LEVE = 3
-$Env:PMEMLOG_LOG_FILE = "w_pmemlog" + $Env:UNITTEST_NUM + ".log"
+$Env:PMEMLOG_LOG_FILE = "pmemlog" + $Env:UNITTEST_NUM + ".log"
 $Env:PMEMOBJ_LOG_LEVEL = 3
-$Env:PMEMOBJ_LOG_FILE= "w_pmemobj" + $Env:UNITTEST_NUM + ".log"
+$Env:PMEMOBJ_LOG_FILE= "pmemobj" + $Env:UNITTEST_NUM + ".log"
 
 $Env:VMMALLOC_POOL_DIR = $DIR
 $Env:VMMALLOC_POOL_SIZE = $((16 * 1024 * 1024))
 $Env:VMMALLOC_LOG_LEVEL = 3
 $Env:VMMALLOC_LOG_FILE = "vmmalloc" + $Env:UNITTEST_NUM + ".log"
 
-$Env:MEMCHECK_LOG_FILE = "memcheck_" + $Env:BUILD + "_" + 
+$Env:MEMCHECK_LOG_FILE = "memcheck_" + $Env:BUILD + "_" +
     $UNITTEST_NUM + ".log"
 $Env:VALIDATE_MEMCHECK_LOG = 1
 
@@ -893,5 +890,5 @@ if (-Not ($UT_DUMP_LINES)) {
     sv -Name "UT_DUMP_LINES" 30
 }
 
-$Env:CHECK_POOL_LOG_FILE = "check_pool_" + $Env:BUILD + "_" + 
+$Env:CHECK_POOL_LOG_FILE = "check_pool_" + $Env:BUILD + "_" +
     $UNITTEST_NUM + ".log"

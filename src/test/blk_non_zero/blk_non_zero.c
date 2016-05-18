@@ -92,12 +92,8 @@ static int
 is_zeroed(const char *path)
 {
 	int fd = OPEN(path, O_RDWR);
-
-#ifndef WIN32
 	struct stat stbuf;
-#else
-	struct _stat64 stbuf;
-#endif
+	
 	FSTAT(fd, &stbuf);
 
 	void *addr = MMAP(0, stbuf.st_size, PROT_READ|PROT_WRITE,

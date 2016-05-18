@@ -119,6 +119,7 @@ ut_access(const char *file, int line, const char *func, const char *path,
 	return retval;
 }
 
+#ifndef _WIN32
 /*
  * ut_write -- a write that can't return -1
  */
@@ -126,12 +127,12 @@ size_t
 ut_write(const char *file, int line, const char *func, int fd,
     const void *buf, size_t count)
 {
-	ssize_t retval = write(fd, buf, count);
+	size_t retval = write(fd, buf, count);
 
 	if (retval < 0)
 		ut_fatal(file, line, func, "!write: %d", fd);
 
-	return (size_t)retval;
+	return retval;
 }
 
 /*
@@ -149,7 +150,6 @@ ut_read(const char *file, int line, const char *func, int fd,
 	return (size_t)retval;
 }
 
-#ifndef WIN32
 /*
  * ut_readlink -- a readlink that can't return -1
  */
@@ -164,7 +164,6 @@ ut_readlink(const char *file, int line, const char *func, const char *path,
 
 	return (size_t)retval;
 }
-#endif
 
 /*
  * ut_lseek -- an lseek that can't return -1
@@ -181,7 +180,6 @@ ut_lseek(const char *file, int line, const char *func, int fd,
 	return retval;
 }
 
-#ifndef WIN32
 int
 ut_fcntl(const char *file, int line, const char *func, int fd,
 	int cmd, int num, ...)
@@ -287,7 +285,7 @@ ut_munmap(const char *file, int line, const char *func, void *addr,
 	return retval;
 }
 
-#ifndef WIN32
+#ifndef _WIN32
 
 /*
  * ut_mprotect -- a mprotect call that cannot return -1
@@ -383,7 +381,7 @@ ut_rename(const char *file, int line, const char *func,
 	return retval;
 }
 
-#ifndef WIN32
+#ifndef _WIN32
 
 /*
  * ut_mount -- a mount that cannot return -1
@@ -466,7 +464,7 @@ ut_chmod(const char *file, int line, const char *func, const char *path,
 	return retval;
 }
 
-#ifndef WIN32
+#ifndef _WIN32
 
 /*
  * ut_mknod -- a mknod that cannot return -1

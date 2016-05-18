@@ -11,9 +11,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\include\sys\file.h" />
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="file_windows.c" />
     <ClCompile Include="mmap_windows.c" />
   </ItemGroup>

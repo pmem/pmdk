@@ -104,16 +104,11 @@ runtest() {
 	builds=$buildtype
 	[ "$builds" = all ] && builds="debug nondebug static-debug static-nondebug"
 	runscripts=$testfile
-	[ "$runscripts" = all ] && runscripts=`ls -1 TEST* | sort -V`
+	[ "$runscripts" = all ] && runscripts=`ls -1 TEST* | grep -v ".ps1" | sort -V`
 
 	# for each fs-type being tested...
 	for fs in $fss
 	do
-		# don't bother trying when fs-type isn't available...
-		[ "$fs" = pmem -a -z "$PMEM_FS_DIR" ] && {
-			pmem_skip=1
-			continue
-		}
 		[ "$fs" = non-pmem -a -z "$NON_PMEM_FS_DIR" ] && {
 			non_pmem_skip=1
 			continue

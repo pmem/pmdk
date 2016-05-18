@@ -69,17 +69,20 @@
 enum memory_block_type
 memblock_autodetect_type(struct memory_block *m, struct heap_layout *h)
 {
+	enum memory_block_type retValue;
+
 	switch (ZID_TO_ZONE(h, m->zone_id)->chunk_headers[m->chunk_id].type) {
 		case CHUNK_TYPE_RUN:
-			return MEMORY_BLOCK_RUN;
+			retValue = MEMORY_BLOCK_RUN;
 		case CHUNK_TYPE_FREE:
 		case CHUNK_TYPE_USED:
 		case CHUNK_TYPE_FOOTER:
-			return MEMORY_BLOCK_HUGE;
+			retValue = MEMORY_BLOCK_HUGE;
 		default:
 			/* unreachable */
 			FATAL("possible zone chunks metadata corruption");
 	}
+	return retValue;
 }
 
 /*

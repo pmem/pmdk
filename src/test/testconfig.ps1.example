@@ -25,5 +25,5 @@ sv -name LOCAL_FS_DIR '.'
 # to verify something works on traditional page-cache based memory-mapped
 # files) set the path to a directory on a normal file system here.
 #
-sv -name NON_PMEM_FS_DIR '\tmp'
+sv -name NON_PMEM_FS_DIR '\temp'
 

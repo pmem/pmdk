@@ -535,7 +535,7 @@ util_file_create(const char *path, size_t size, size_t minsize)
 	}
 
 	int fd;
-#ifndef WIN32
+#ifndef _WIN32
 	/*
 	 * Create file without any permission. It will be granted once
 	 * initialization completes.
