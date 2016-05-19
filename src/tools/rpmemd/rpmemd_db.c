@@ -168,11 +168,11 @@ rpmemd_db_get_path(struct rpmemd_db *db, const char *pool_desc)
 }
 
 /*
- * rpmemd_db_pool_create_open -- create or open a new pool set file
+ * rpmemd_db_pool_create -- create a new pool set
  */
-static struct rpmemd_db_pool *
-rpmemd_db_pool_create_open(struct rpmemd_db *db, const char *pool_desc,
-		size_t pool_size, struct rpmem_pool_attr *attr, int create)
+struct rpmemd_db_pool *
+rpmemd_db_pool_create(struct rpmemd_db *db, const char *pool_desc,
+			size_t pool_size, const struct rpmem_pool_attr *attr)
 {
 	RPMEMD_ASSERT(db != NULL);
 	RPMEMD_ASSERT(attr != NULL);
@@ -195,8 +195,7 @@ rpmemd_db_pool_create_open(struct rpmemd_db *db, const char *pool_desc,
 		goto err_free_prp;
 	}
 
-	if (create) { /* create */
-		ret = util_pool_create_uuids(&set, path,
+	ret = util_pool_create_uuids(&set, path,
 					pool_size, RPMEM_MIN_POOL,
 					attr->signature,
 					attr->major,
@@ -207,33 +206,15 @@ rpmemd_db_pool_create_open(struct rpmemd_db *db, const char *pool_desc,
 					attr->uuid,
 					attr->prev_uuid,
 					attr->next_uuid);
-		if (ret) {
-			RPMEMD_LOG(ERR, "!cannot create pool set -- '%s'",
-					path);
-			goto err_free_path;
-		}
+	if (ret) {
+		RPMEMD_LOG(ERR, "!cannot create pool set -- '%s'", path);
+		goto err_free_path;
+	}
 
-		ret = util_poolset_chmod(set, db->mode);
-		if (ret) {
-			RPMEMD_LOG(ERR, "!cannot change pool set mode bits"
-					" to 0%o", db->mode);
-		}
-
-	} else { /* open */
-		ret = util_pool_open_remote(&set, path, 0, RPMEM_MIN_POOL,
-					attr->signature,
-					&attr->major,
-					&attr->compat_features,
-					&attr->incompat_features,
-					&attr->ro_compat_features,
-					attr->poolset_uuid,
-					attr->uuid,
-					attr->prev_uuid,
-					attr->next_uuid);
-		if (ret) {
-			RPMEMD_LOG(ERR, "!cannot open pool set -- '%s'", path);
-			goto err_free_path;
-		}
+	ret = util_poolset_chmod(set, db->mode);
+	if (ret) {
+		RPMEMD_LOG(ERR, "!cannot change pool set mode bits to 0%o",
+				db->mode);
 	}
 
 	/* mark as opened */
@@ -256,23 +237,65 @@ err_unlock:
 }
 
 /*
- * rpmemd_db_pool_create -- create a new pool set
- */
-struct rpmemd_db_pool *
-rpmemd_db_pool_create(struct rpmemd_db *db, const char *pool_desc,
-			size_t pool_size, struct rpmem_pool_attr *attr)
-{
-	return rpmemd_db_pool_create_open(db, pool_desc, pool_size, attr, 1);
-}
-
-/*
  * rpmemd_db_pool_open -- open a pool set
  */
 struct rpmemd_db_pool *
 rpmemd_db_pool_open(struct rpmemd_db *db, const char *pool_desc,
 			size_t pool_size, struct rpmem_pool_attr *attr)
 {
-	return rpmemd_db_pool_create_open(db, pool_desc, pool_size, attr, 0);
+	RPMEMD_ASSERT(db != NULL);
+	RPMEMD_ASSERT(attr != NULL);
+
+	util_mutex_lock(&db->lock);
+
+	struct rpmemd_db_pool *prp = NULL;
+	struct pool_set *set;
+	char *path;
+	int ret;
+
+	prp = malloc(sizeof(struct rpmemd_db_pool));
+	if (!prp) {
+		RPMEMD_LOG(ERR, "!allocating pool set db entry");
+		goto err_unlock;
+	}
+
+	path = rpmemd_db_get_path(db, pool_desc);
+	if (!path) {
+		goto err_free_prp;
+	}
+
+	ret = util_pool_open_remote(&set, path, 0, RPMEM_MIN_POOL,
+					attr->signature,
+					&attr->major,
+					&attr->compat_features,
+					&attr->incompat_features,
+					&attr->ro_compat_features,
+					attr->poolset_uuid,
+					attr->uuid,
+					attr->prev_uuid,
+					attr->next_uuid);
+	if (ret) {
+		RPMEMD_LOG(ERR, "!cannot open pool set -- '%s'", path);
+		goto err_free_path;
+	}
+
+	/* mark as opened */
+	prp->pool_addr = set->replica[0]->part[0].addr;
+	prp->pool_size = set->poolsize;
+	prp->set = set;
+
+	free(path);
+	util_mutex_unlock(&db->lock);
+
+	return prp;
+
+err_free_path:
+	free(path);
+err_free_prp:
+	free(prp);
+err_unlock:
+	util_mutex_unlock(&db->lock);
+	return NULL;
 }
 
 /*
