@@ -37,7 +37,7 @@
 .\" or
 .\"	groff -man -Tascii libpmemobj.3
 .\"
-.TH libpmemobj 3 "pmemobj API version 1.0.1" "NVM Library"
+.TH libpmemobj 3 "pmemobj API version 1.0.2" "NVM Library"
 .SH NAME
 libpmemobj \- persistent memory transactional object store
 .SH SYNOPSIS
@@ -3524,6 +3524,12 @@ Setting the environment variable
 .B PMEMOBJ_LOG_LEVEL
 has no effect on the non-debug version of
 .BR libpmemobj .
+.PP
+See also
+.BR libpmem (3)
+to get information about other environment variables affecting
+.B libpmemobj
+behavior.
 .SH EXAMPLES
 .PP
 See http://pmem.io/nvml/libpmemobj for examples
