@@ -911,8 +911,8 @@ err:
 static int
 util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 	const char *sig, uint32_t major, uint32_t compat, uint32_t incompat,
-	uint32_t ro_compat, unsigned char *prev_repl_uuid,
-	unsigned char *next_repl_uuid)
+	uint32_t ro_compat, const unsigned char *prev_repl_uuid,
+	const unsigned char *next_repl_uuid)
 {
 	LOG(3, "set %p repidx %u partidx %u sig %.8s major %u "
 		"compat %#x incompat %#x ro_comapt %#x"
@@ -1188,8 +1188,8 @@ util_header_check_remote(struct pool_replica *rep, unsigned partidx)
 static int
 util_replica_create(struct pool_set *set, unsigned repidx, int flags,
 	const char *sig, uint32_t major, uint32_t compat, uint32_t incompat,
-	uint32_t ro_compat, unsigned char *prev_repl_uuid,
-	unsigned char *next_repl_uuid)
+	uint32_t ro_compat, const unsigned char *prev_repl_uuid,
+	const unsigned char *next_repl_uuid)
 {
 	LOG(3, "set %p repidx %u flags %d sig %.8s major %u "
 		"compat %#x incompat %#x ro_comapt %#x"
@@ -1383,8 +1383,9 @@ int
 util_pool_create_uuids(struct pool_set **setp, const char *path,
 	size_t poolsize, size_t minsize, const char *sig,
 	uint32_t major, uint32_t compat, uint32_t incompat, uint32_t ro_compat,
-	unsigned char *poolset_uuid, unsigned char *first_part_uuid,
-	unsigned char *prev_repl_uuid, unsigned char *next_repl_uuid)
+	const unsigned char *poolset_uuid, const unsigned char *first_part_uuid,
+	const unsigned char *prev_repl_uuid,
+	const unsigned char *next_repl_uuid)
 {
 	LOG(3, "setp %p path %s poolsize %zu minsize %zu "
 		"sig %.8s major %u compat %#x incompat %#x ro_comapt %#x "
