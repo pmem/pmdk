@@ -44,7 +44,7 @@ require_fs_type pmem
 
 setup
 
-truncate -s 2G $DIR/testfile1
+create_holey_file 2 $DIR/testfile1
 export PMEM_IS_PMEM_FORCE=0
 expect_normal_exit ./pmem_is_pmem$EXESUFFIX $DIR/testfile1
 
