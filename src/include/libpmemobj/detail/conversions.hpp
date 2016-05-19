@@ -30,8 +30,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * conversions.hpp -- commonly used conversions
+/**
+ * @file
+ * Commonly used conversions.
  */
 
 #ifndef PMEMOBJ_CONVERSIONS_HPP

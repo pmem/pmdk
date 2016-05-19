@@ -30,8 +30,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * shared_mutex.hpp -- pmem-resident shared mutex
+/**
+ * @file
+ * Pmem-resident shared mutex.
  */
 
 #ifndef PMEMOBJ_SHARED_MUTEX_HPP

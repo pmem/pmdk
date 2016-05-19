@@ -30,8 +30,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * timed_mutex.hpp -- pmem-resident timed_mutex
+/**
+ * @file
+ * Pmem-resident timed_mutex.
  */
 
 #ifndef PMEMOBJ_TIMED_MUTEX_HPP

@@ -30,8 +30,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * specialization.hpp -- helper template for persistent ptr specialization
+/**
+ * @file
+ * Helper template for persistent ptr specialization.
  *
  * Based on Boost library smart_ptr implementation.
  */

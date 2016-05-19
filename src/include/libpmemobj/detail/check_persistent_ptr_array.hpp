@@ -30,8 +30,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * check_persistent_ptr_array.hpp -- compile time type check for make_persistent
+/**
+ * @file
+ * Compile time type check for make_persistent.
  */
 
 #ifndef LIBPMEMOBJ_CHECK_PERSISTENT_PTR_ARRAY_HPP

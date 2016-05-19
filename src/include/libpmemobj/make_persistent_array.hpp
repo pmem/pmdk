@@ -30,8 +30,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * make_persistent_array.hpp -- persistent_ptr allocation functions for arrays
+/**
+ * @file
+ * Persistent_ptr allocation functions for arrays.
  */
 
 #ifndef PMEMOBJ_MAKE_PERSISTENT_ARRAY_HPP

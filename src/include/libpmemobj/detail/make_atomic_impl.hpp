@@ -30,9 +30,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * make_persistent_impl.hpp -- implementation details of atomic allocation
- * and construction.
+/**
+ * @file
+ * Implementation details of atomic allocation and construction.
  */
 
 #ifndef LIBPMEMOBJ_MAKE_ATOMIC_IMPL_HPP

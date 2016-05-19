@@ -30,9 +30,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * make_persistent_atomic.hpp -- persistent_ptr atomic allocation functions
- * for objects
+/**
+ * @file
+ * Persistent_ptr atomic allocation functions for objects.
  */
 
 #ifndef PMEMOBJ_MAKE_PERSISTENT_ATOMIC_HPP

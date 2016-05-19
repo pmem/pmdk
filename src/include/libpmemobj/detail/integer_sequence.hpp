@@ -33,8 +33,9 @@
 #ifndef LIBPMEMOBJ_INTEGER_SEQUENCE_HPP
 #define LIBPMEMOBJ_INTEGER_SEQUENCE_HPP
 
-/*
- * integer_sequence.hpp -- create c++14 style index sequence
+/**
+ * @file
+ * Create c++14 style index sequence.
  */
 
 namespace nvml

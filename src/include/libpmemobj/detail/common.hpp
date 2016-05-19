@@ -30,8 +30,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * common.hpp -- commonly used functionality
+/**
+ * @file
+ * Commonly used functionality.
  */
 
 #ifndef PMEMOBJ_COMMON_HPP

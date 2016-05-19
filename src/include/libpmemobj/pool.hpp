@@ -30,8 +30,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * pool.hpp -- cpp pmemobj pool implementation
+/**
+ * @file
+ * C++ pmemobj pool.
  */
 
 #ifndef PMEMOBJ_POOL_HPP

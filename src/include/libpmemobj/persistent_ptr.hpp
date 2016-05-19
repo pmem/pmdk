@@ -30,8 +30,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * persistent_ptr.hpp -- persistent smart pointer
+/**
+ * @file
+ * Persistent smart pointer.
  */
 
 #ifndef PMEMOBJ_PERSISTENT_PTR_HPP

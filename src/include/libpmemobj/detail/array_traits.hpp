@@ -30,8 +30,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * array_traits.hpp -- common array traits
+/**
+ * @file
+ * Common array traits.
  */
 
 #ifndef LIBPMEMOBJ_ARRAY_TRAITS_HPP

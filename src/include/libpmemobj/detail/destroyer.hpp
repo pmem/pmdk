@@ -30,8 +30,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * destroyer.hpp -- functions for destroying arrays
+/**
+ * @file
+ * Functions for destroying arrays.
  */
 
 #ifndef LIBPMEMOBJ_DESTROYER_HPP

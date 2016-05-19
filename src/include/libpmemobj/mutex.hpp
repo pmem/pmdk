@@ -30,8 +30,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * mutex.hpp -- pmem-resident mutex
+/**
+ * @file
+ * Pmem-resident mutex.
  */
 
 #ifndef PMEMOBJ_MUTEX_HPP
