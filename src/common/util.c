@@ -535,23 +535,21 @@ util_file_create(const char *path, size_t size, size_t minsize)
 	}
 
 	int fd;
+	int flags;
 #ifndef _WIN32
+	flags = 0;
+#else
+	flags = S_IWRITE | S_IREAD;
+#endif
+
 	/*
 	 * Create file without any permission. It will be granted once
 	 * initialization completes.
 	 */
-
-	if ((fd = open(path, O_RDWR | O_CREAT | O_EXCL, 0)) < 0) {
+	if ((fd = open(path, O_RDWR | O_CREAT | O_EXCL, flags)) < 0) {
 		ERR("!open %s", path);
 		return -1;
 	}
-#else
-	if ((fd = open(path, O_RDWR | O_CREAT | O_EXCL,
-		S_IWRITE | S_IREAD)) < 0) {
-		ERR("!open %s", path);
-		return -1;
-	}
-#endif
 
 	if (flock(fd, LOCK_EX | LOCK_NB) < 0) {
 		ERR("!flock");
