@@ -145,7 +145,6 @@ struct pmemobjpool {
 	struct heap_layout *hlayout;
 	struct pmalloc_heap *heap; /* allocator heap */
 	struct lane_descriptor lanes_desc;
-	struct object_store *store; /* object store */
 	uint64_t uuid_lo;
 
 	struct pmemobjpool *replica;	/* next replica */
@@ -166,7 +165,7 @@ struct pmemobjpool {
 
 	PMEMmutex rootlock;	/* root object lock */
 	int is_master_replica;
-	char unused2[1796];
+	char unused2[1804];
 };
 
 /*
