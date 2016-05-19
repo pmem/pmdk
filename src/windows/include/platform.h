@@ -72,11 +72,6 @@ typedef long _off_t;		/* NOTE: _off_t must be defined as 'long'! */
 #define __attribute__(a)
 #define __builtin_constant_p(cnd) 0
 
-/* XXX - dummy */
-typedef int sigset_t;
-typedef int DIR;
-__inline void ut_register_sighandlers(o) {};
-
 /*
  * atomics
  */
