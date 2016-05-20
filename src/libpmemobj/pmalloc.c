@@ -382,11 +382,6 @@ palloc_operation(PMEMobjpool *pop,
 		offset_value = 0;
 	}
 
-	/*
-	 * The memory block was reserved, now the operation context needs to be
-	 * updated to contain the necessary modifications that will reflect that
-	 * will make that reservation permanent.
-	 */
 	if (!MEMORY_BLOCK_IS_EMPTY(new_block)) {
 #ifdef DEBUG
 		if (heap_block_is_allocated(pop, new_block)) {
@@ -435,8 +430,8 @@ palloc_operation(PMEMobjpool *pop,
 		/*
 		 * The actual required metadata modifications are chunk-type
 		 * dependent, but it always is a modification of a single 8 byte
-		 * set - either modification of few bits in a bitmap or changing
-		 * a chunk type from free to used.
+		 * value - either modification of few bits in a bitmap or
+		 * changing a chunk type from free to used.
 		 */
 		MEMBLOCK_OPS(AUTO, &new_block)->prep_hdr(&new_block,
 				pop, HDR_OP_ALLOC, &ctx);
@@ -464,6 +459,7 @@ palloc_operation(PMEMobjpool *pop,
 			offset_value, OPERATION_SET);
 
 	operation_process(&ctx);
+
 	/*
 	 * After the operation succeeded, the persistent state is all in order
 	 * but in some cases it might not be in-sync with the its transient
