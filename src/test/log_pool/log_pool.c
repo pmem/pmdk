@@ -53,7 +53,7 @@ pool_create(const char *path, size_t poolsize, unsigned mode)
 	if (plp == NULL)
 		UT_OUT("!%s: pmemlog_create", path);
 	else {
-		struct stat stbuf;
+		ut_util_stat_t stbuf;
 		STAT(path, &stbuf);
 
 		UT_OUT("%s: file size %zu usable space %zu mode 0%o",

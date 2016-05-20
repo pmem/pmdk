@@ -115,6 +115,18 @@ extern "C" {
 #include <libpmemobj.h>
 #include <libvmem.h>
 
+/* XXX - eliminate duplicated definitions in unittest.h and util.h */
+#ifndef _WIN32
+typedef struct stat ut_util_stat_t;
+#define ut_util_fstat	fstat
+#define ut_util_stat	stat
+#define ut_util_lseek	lseek
+#else
+typedef struct _stat64 ut_util_stat_t;
+#define ut_util_fstat	_fstat64
+#define ut_util_stat	_stat64
+#define ut_util_lseek	_lseeki64
+#endif
 
 /*
  * unit test support...
@@ -160,7 +172,7 @@ void ut_err(const char *file, int line, const char *func,
 
 #ifndef _MSC_VER
 #define UT_COMPILE_ERROR_ON(cond) ((void)sizeof(char[(cond) ? -1 : 1]))
-#define UT_ASSERT_COMPILE_ERROR_ON(cond) COMPILE_ERROR_ON(cond)
+#define UT_ASSERT_COMPILE_ERROR_ON(cond) UT_COMPILE_ERROR_ON(cond)
 #else
 #define UT_COMPILE_ERROR_ON(cond) C_ASSERT(!(cond))
 /* XXX - can't be done with C_ASSERT() unless we have __builtin_constant_p() */
@@ -322,11 +334,13 @@ size_t ut_write(const char *file, int line, const char *func, int fd,
 size_t ut_read(const char *file, int line, const char *func, int fd,
     void *buf, size_t len);
 
+#ifndef _WIN32
 size_t ut_readlink(const char *file, int line, const char *func,
     const char *path, void *buf, size_t len);
 
 int ut_fcntl(const char *file, int line, const char *func, int fd,
     int cmd, int num, ...);
+#endif
 
 off_t ut_lseek(const char *file, int line, const char *func, int fd,
     off_t offset, int whence);
@@ -335,10 +349,10 @@ int ut_posix_fallocate(const char *file, int line, const char *func, int fd,
     off_t offset, off_t len);
 
 int ut_stat(const char *file, int line, const char *func, const char *path,
-    struct stat *st_bufp);
+    ut_util_stat_t *st_bufp);
 
 int ut_fstat(const char *file, int line, const char *func, int fd,
-    struct stat *st_bufp);
+    ut_util_stat_t *st_bufp);
 
 int ut_flock(const char *file, int line, const char *func, int fd, int op);
 
@@ -348,6 +362,7 @@ void *ut_mmap(const char *file, int line, const char *func, void *addr,
 int ut_munmap(const char *file, int line, const char *func, void *addr,
     size_t length);
 
+#ifndef _WIN32
 int ut_mprotect(const char *file, int line, const char *func, void *addr,
     size_t len, int prot);
 
@@ -362,10 +377,12 @@ int ut_mkdir(const char *file, int line, const char *func,
 
 int ut_rmdir(const char *file, int line, const char *func,
     const char *pathname);
+#endif
 
 int ut_rename(const char *file, int line, const char *func,
     const char *oldpath, const char *newpath);
 
+#ifndef _WIN32
 int ut_mount(const char *file, int line, const char *func, const char *src,
     const char *tar, const char *fstype, unsigned long flags,
     const void *data);
@@ -379,11 +396,9 @@ int ut_pselect(const char *file, int line, const char *func, int nfds,
 int ut_mknod(const char *file, int line, const char *func,
     const char *pathname, mode_t mode, dev_t dev);
 
-int utstat(const char *file, int line, const char *func, const char *path,
-    struct stat *st_bufp);
-
 int ut_truncate(const char *file, int line, const char *func,
     const char *path, off_t length);
+#endif
 
 int ut_ftruncate(const char *file, int line, const char *func,
     int fd, off_t length);
@@ -391,11 +406,13 @@ int ut_ftruncate(const char *file, int line, const char *func,
 int ut_chmod(const char *file, int line, const char *func,
     const char *path, mode_t mode);
 
+#ifndef _WIN32
 DIR *ut_opendir(const char *file, int line, const char *func, const char *name);
 
 int ut_dirfd(const char *file, int line, const char *func, DIR *dirp);
 
 int ut_closedir(const char *file, int line, const char *func, DIR *dirp);
+#endif
 
 /* an open() that can't return < 0 */
 #define OPEN(path, ...)\
@@ -421,13 +438,17 @@ int ut_closedir(const char *file, int line, const char *func, DIR *dirp);
 #define READ(fd, buf, len)\
     ut_read(__FILE__, __LINE__, __func__, fd, buf, len)
 
+#ifndef _WIN32
 /* a readlink() that can't return -1 */
 #define READLINK(path, buf, len)\
     ut_readlink(__FILE__, __LINE__, __func__, path, buf, len)
+#endif
 
 /* a lseek() that can't return -1 */
 #define LSEEK(fd, offset, whence)\
     ut_lseek(__FILE__, __LINE__, __func__, fd, offset, whence)
+
+#ifndef _WIN32
 /*
  * The C Standard specifies that at least one argument must be passed to
  * the ellipsis, to ensure that the macro does not resolve to an expression
@@ -436,6 +457,7 @@ int ut_closedir(const char *file, int line, const char *func, DIR *dirp);
  */
 #define FCNTL(fd, cmd, num, ...)\
 	ut_fcntl(__FILE__, __LINE__, __func__, fd, cmd, num, __VA_ARGS__)
+#endif
 
 #define POSIX_FALLOCATE(fd, off, len)\
     ut_posix_fallocate(__FILE__, __LINE__, __func__, fd, off, len)
@@ -454,13 +476,16 @@ int ut_closedir(const char *file, int line, const char *func, DIR *dirp);
 #define MUNMAP(addr, length)\
     ut_munmap(__FILE__, __LINE__, __func__, addr, length);
 
+#ifndef _WIN32
 /* a mprotect() that can't return -1 */
 #define MPROTECT(addr, len, prot)\
     ut_mprotect(__FILE__, __LINE__, __func__, addr, len, prot);
+#endif
 
 #define STAT(path, st_bufp)\
     ut_stat(__FILE__, __LINE__, __func__, path, st_bufp)
 
+#ifndef _WIN32
 #define SYMLINK(oldpath, newpath)\
     ut_symlink(__FILE__, __LINE__, __func__, oldpath, newpath)
 
@@ -472,10 +497,12 @@ int ut_closedir(const char *file, int line, const char *func, DIR *dirp);
 
 #define RMDIR(pathname)\
     ut_rmdir(__FILE__, __LINE__, __func__, pathname)
+#endif
 
 #define RENAME(oldpath, newpath)\
     ut_rename(__FILE__, __LINE__, __func__, oldpath, newpath)
 
+#ifndef _WIN32
 #define MOUNT(src, tar, fstype, flags, data)\
     ut_mount(__FILE__, __LINE__, __func__, src, tar, fstype, flags, data)
 
@@ -491,6 +518,7 @@ int ut_closedir(const char *file, int line, const char *func, DIR *dirp);
 
 #define TRUNCATE(path, length)\
     ut_truncate(__FILE__, __LINE__, __func__, path, length)
+#endif
 
 #define FTRUNCATE(fd, length)\
     ut_ftruncate(__FILE__, __LINE__, __func__, fd, length)
@@ -498,6 +526,7 @@ int ut_closedir(const char *file, int line, const char *func, DIR *dirp);
 #define CHMOD(path, mode)\
     ut_chmod(__FILE__, __LINE__, __func__, path, mode)
 
+#ifndef _WIN32
 #define OPENDIR(name)\
     ut_opendir(__FILE__, __LINE__, __func__, name)
 
@@ -506,6 +535,7 @@ int ut_closedir(const char *file, int line, const char *func, DIR *dirp);
 
 #define CLOSEDIR(dirp)\
     ut_closedir(__FILE__, __LINE__, __func__, dirp)
+#endif
 
 /*
  * signals...

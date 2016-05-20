@@ -1408,8 +1408,8 @@ pool_set_file_open(const char *fname,
 	if (!file->fname)
 		goto err;
 
-	struct stat buf;
-	if (stat(fname, &buf)) {
+	util_stat_t buf;
+	if (util_stat(fname, &buf)) {
 		warn("%s", fname);
 		goto err_close_poolset;
 	}
@@ -1427,7 +1427,7 @@ pool_set_file_open(const char *fname,
 			return NULL;
 		}
 
-		off_t seek_size = lseek(fd, 0, SEEK_END);
+		off_t seek_size = util_lseek(fd, 0, SEEK_END);
 		if (seek_size == -1) {
 			outv_err("lseek SEEK_END failed\n");
 			return NULL;

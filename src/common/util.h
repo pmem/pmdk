@@ -318,9 +318,13 @@ static inline void util_setbit(uint8_t *b, uint32_t i)
 #ifndef _WIN32
 typedef struct stat util_stat_t;
 #define util_fstat	fstat
+#define util_stat	stat
+#define util_lseek	lseek
 #else
 typedef struct _stat64 util_stat_t;
 #define util_fstat	_fstat64
+#define util_stat	_stat64
+#define util_lseek	_lseeki64
 #endif
 
 #ifndef _MSC_VER
