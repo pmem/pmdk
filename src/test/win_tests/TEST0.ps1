@@ -47,7 +47,7 @@ require_fs_type any
 
 setup
 
-expect_normal_exit ..\..\x64\debug\win_lists$EXESUFFIX 
+expect_normal_exit ..\..\x64\debug\win_lists$EXESUFFIX
 
 # check will print the appropriate pass/fail message
 check
