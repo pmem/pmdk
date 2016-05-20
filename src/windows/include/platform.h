@@ -53,7 +53,6 @@ typedef long _off_t;		/* NOTE: _off_t must be defined as 'long'! */
 #include <stdint.h>
 #include <io.h>
 #include <process.h>
-#include <listentry.h>
 #include <fcntl.h>
 #include <sys/types.h>
 #include <malloc.h>
@@ -68,6 +67,28 @@ typedef long _off_t;		/* NOTE: _off_t must be defined as 'long'! */
 #define __thread __declspec(thread)
 #define __func__ __FUNCTION__
 #define __typeof__ decltype
+
+/*
+ * a few windows specific macros to compliment sys/queue.h where
+ * the VS compiler isn't so happy
+ */
+#define WIN_LIST_INSERT_HEAD(type, head, elm, field) do { \
+	QUEUEDEBUG_LIST_INSERT_HEAD((head), (elm), field) \
+	type h_lh_first = (type)(head)->lh_first; \
+	if (((elm)->field.le_next = (head)->lh_first) != NULL) \
+		h_lh_first->field.le_prev = &(elm)->field.le_next; \
+	(type)(head)->lh_first = (type)(elm); \
+	(elm)->field.le_prev = &(head)->lh_first; \
+} while (/*CONSTCOND*/0)
+
+#define WIN_LIST_REMOVE(type, elm, field) do { \
+	QUEUEDEBUG_LIST_OP((elm), field) \
+	type e_f = (type)(elm)->field.le_next; \
+	if (e_f != NULL) \
+		e_f->field.le_prev = (elm)->field.le_prev; \
+	*(elm)->field.le_prev = (elm)->field.le_next; \
+	QUEUEDEBUG_LIST_POSTREMOVE((elm), field) \
+} while (/*CONSTCOND*/0)
 
 /* XXX - no equivalents in VC++ */
 #define __attribute__(a)
