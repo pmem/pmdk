@@ -468,7 +468,7 @@ util_poolset_parse(const char *path, int fd, struct pool_set **setp)
 	size_t psize;
 	FILE *fs;
 
-	if (lseek(fd, 0, SEEK_SET) != 0) {
+	if (util_lseek(fd, 0, SEEK_SET) != 0) {
 		ERR("!lseek %d", fd);
 		return -1;
 	}

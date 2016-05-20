@@ -41,9 +41,11 @@
 
 #include "unittest.h"
 
+#ifndef _WIN32
 /* RHEL5 seems to be missing decls, even though libc supports them */
 extern DIR *fdopendir(int fd);
 extern ssize_t readlinkat(int, const char *restrict, char *__restrict, size_t);
+#endif
 
 #define MAXLOGNAME 100		/* maximum expected .log file name length */
 #define MAXPRINT 8192		/* maximum expected single print length */

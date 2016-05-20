@@ -53,7 +53,7 @@ pool_create(const char *path, size_t bsize, size_t poolsize, unsigned mode)
 	if (pbp == NULL)
 		UT_OUT("!%s: pmemblk_create", path);
 	else {
-		struct stat stbuf;
+		ut_util_stat_t stbuf;
 		STAT(path, &stbuf);
 
 		UT_OUT("%s: file size %zu usable blocks %zu mode 0%o",
@@ -70,7 +70,7 @@ pool_create(const char *path, size_t bsize, size_t poolsize, unsigned mode)
 		else if (result == 0)
 			UT_OUT("%s: pmemblk_check: not consistent", path);
 		else
-			UT_ASSERTeq_rt(pmemblk_check(path, bsize * 2), -1);
+			UT_ASSERTeq(pmemblk_check(path, bsize * 2), -1);
 	}
 }
 

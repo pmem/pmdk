@@ -119,7 +119,6 @@ ut_access(const char *file, int line, const char *func, const char *path,
 	return retval;
 }
 
-#ifndef _WIN32
 /*
  * ut_write -- a write that can't return -1
  */
@@ -127,8 +126,18 @@ size_t
 ut_write(const char *file, int line, const char *func, int fd,
     const void *buf, size_t count)
 {
+#ifndef _WIN32
 	ssize_t retval = write(fd, buf, count);
-
+#else
+	/*
+	 * XXX - do multiple write() calls in a loop?
+	 * Or just use native Windows API?
+	 */
+	if (count > UINT_MAX)
+		ut_fatal(file, line, func, "read: count > UINT_MAX (%zu > %u)",
+			count, UINT_MAX);
+	ssize_t retval = _write(fd, buf, (unsigned)count);
+#endif
 	if (retval < 0)
 		ut_fatal(file, line, func, "!write: %d", fd);
 
@@ -142,14 +151,25 @@ size_t
 ut_read(const char *file, int line, const char *func, int fd,
     void *buf, size_t count)
 {
+#ifndef _WIN32
 	ssize_t retval = read(fd, buf, count);
-
+#else
+	/*
+	 * XXX - do multiple read() calls in a loop?
+	 * Or just use native Windows API?
+	 */
+	if (count > UINT_MAX)
+		ut_fatal(file, line, func, "read: count > UINT_MAX (%zu > %u)",
+			count, UINT_MAX);
+	ssize_t retval = read(fd, buf, (unsigned)count);
+#endif
 	if (retval < 0)
 		ut_fatal(file, line, func, "!read: %d", fd);
 
 	return (size_t)retval;
 }
 
+#ifndef _WIN32
 /*
  * ut_readlink -- a readlink that can't return -1
  */
@@ -164,6 +184,7 @@ ut_readlink(const char *file, int line, const char *func, const char *path,
 
 	return (size_t)retval;
 }
+#endif
 
 /*
  * ut_lseek -- an lseek that can't return -1
@@ -172,7 +193,7 @@ off_t
 ut_lseek(const char *file, int line, const char *func, int fd,
     off_t offset, int whence)
 {
-	off_t retval = lseek(fd, offset, whence);
+	off_t retval = ut_util_lseek(fd, offset, whence);
 
 	if (retval == -1)
 		ut_fatal(file, line, func, "!lseek: %d", fd);
@@ -180,6 +201,7 @@ ut_lseek(const char *file, int line, const char *func, int fd,
 	return retval;
 }
 
+#ifndef _WIN32
 int
 ut_fcntl(const char *file, int line, const char *func, int fd,
 	int cmd, int num, ...)
@@ -212,9 +234,9 @@ ut_fcntl(const char *file, int line, const char *func, int fd,
  */
 int
 ut_fstat(const char *file, int line, const char *func, int fd,
-    struct stat *st_bufp)
+    ut_util_stat_t *st_bufp)
 {
-	int retval = fstat(fd, st_bufp);
+	int retval = ut_util_fstat(fd, st_bufp);
 
 	if (retval < 0)
 		ut_fatal(file, line, func, "!fstat: %d", fd);
@@ -241,9 +263,9 @@ ut_flock(const char *file, int line, const char *func, int fd, int op)
  */
 int
 ut_stat(const char *file, int line, const char *func, const char *path,
-    struct stat *st_bufp)
+    ut_util_stat_t *st_bufp)
 {
-	int retval = stat(path, st_bufp);
+	int retval = ut_util_stat(path, st_bufp);
 
 	if (retval < 0)
 		ut_fatal(file, line, func, "!stat: %s", path);
@@ -286,7 +308,6 @@ ut_munmap(const char *file, int line, const char *func, void *addr,
 }
 
 #ifndef _WIN32
-
 /*
  * ut_mprotect -- a mprotect call that cannot return -1
  */
@@ -382,7 +403,6 @@ ut_rename(const char *file, int line, const char *func,
 }
 
 #ifndef _WIN32
-
 /*
  * ut_mount -- a mount that cannot return -1
  */
@@ -414,7 +434,6 @@ ut_umount(const char *file, int line, const char *func, const char *tar)
 	return retval;
 }
 
-
 /*
  * ut_truncate -- a truncate that cannot return -1
  */
@@ -430,6 +449,7 @@ ut_truncate(const char *file, int line, const char *func, const char *path,
 
 	return retval;
 }
+#endif
 
 /*
  * ut_ftruncate -- a ftruncate that cannot return -1
@@ -447,8 +467,6 @@ ut_ftruncate(const char *file, int line, const char *func, int fd,
 	return retval;
 }
 
-#endif
-
 /*
  * ut_chmod -- a chmod that cannot return -1
  */
@@ -465,7 +483,6 @@ ut_chmod(const char *file, int line, const char *func, const char *path,
 }
 
 #ifndef _WIN32
-
 /*
  * ut_mknod -- a mknod that cannot return -1
  */
