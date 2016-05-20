@@ -158,7 +158,14 @@ void ut_err(const char *file, int line, const char *func,
     ut_err(__FILE__, __LINE__, __func__, __VA_ARGS__)
 
 
+#ifndef _MSC_VER
 #define UT_COMPILE_ERROR_ON(cond) ((void)sizeof(char[(cond) ? -1 : 1]))
+#define UT_ASSERT_COMPILE_ERROR_ON(cond) COMPILE_ERROR_ON(cond)
+#else
+#define UT_COMPILE_ERROR_ON(cond) C_ASSERT(!(cond))
+/* XXX - can't be done with C_ASSERT() unless we have __builtin_constant_p() */
+#define UT_ASSERT_COMPILE_ERROR_ON(cond)
+#endif
 
 /*
  * assertions...
@@ -195,7 +202,7 @@ void ut_err(const char *file, int line, const char *func,
 		 * cases.\
 		 */\
 		if (__builtin_constant_p(cnd))\
-			UT_COMPILE_ERROR_ON(cnd);\
+			UT_ASSERT_COMPILE_ERROR_ON(cnd);\
 		UT_ASSERT_rt(cnd);\
 	} while (0)
 
@@ -204,7 +211,7 @@ void ut_err(const char *file, int line, const char *func,
 	do {\
 		/* See comment in UT_ASSERT. */\
 		if (__builtin_constant_p(cnd))\
-			UT_COMPILE_ERROR_ON(cnd);\
+			UT_ASSERT_COMPILE_ERROR_ON(cnd);\
 		UT_ASSERTinfo_rt(cnd, info);\
 	} while (0)
 
@@ -213,7 +220,7 @@ void ut_err(const char *file, int line, const char *func,
 	do {\
 		/* See comment in UT_ASSERT. */\
 		if (__builtin_constant_p(lhs) && __builtin_constant_p(rhs))\
-			UT_COMPILE_ERROR_ON((lhs) == (rhs));\
+			UT_ASSERT_COMPILE_ERROR_ON((lhs) == (rhs));\
 		UT_ASSERTeq_rt(lhs, rhs);\
 	} while (0)
 
@@ -222,7 +229,7 @@ void ut_err(const char *file, int line, const char *func,
 	do {\
 		/* See comment in UT_ASSERT. */\
 		if (__builtin_constant_p(lhs) && __builtin_constant_p(rhs))\
-			UT_COMPILE_ERROR_ON((lhs) != (rhs));\
+			UT_ASSERT_COMPILE_ERROR_ON((lhs) != (rhs));\
 		UT_ASSERTne_rt(lhs, rhs);\
 	} while (0)
 

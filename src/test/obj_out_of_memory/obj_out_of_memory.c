@@ -100,7 +100,7 @@ main(int argc, char *argv[])
 
 		pmemobj_close(pop);
 
-		UT_ASSERTeq_rt(pmemobj_check(path, LAYOUT_NAME), 1);
+		UT_ASSERTeq(pmemobj_check(path, LAYOUT_NAME), 1);
 
 		/*
 		 * To prevent subsequent opens from receiving exactly the same
@@ -110,7 +110,7 @@ main(int argc, char *argv[])
 		 */
 		void *heap_touch = MALLOC(1);
 
-		UT_ASSERTne_rt(pop = pmemobj_open(path, LAYOUT_NAME), NULL);
+		UT_ASSERTne(pop = pmemobj_open(path, LAYOUT_NAME), NULL);
 
 		test_free(pop);
 
