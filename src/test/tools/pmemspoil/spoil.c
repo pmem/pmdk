@@ -1148,7 +1148,8 @@ pmemspoil_process_sec_allocator(struct pmemspoil *psp,
 	struct pmemspoil_list *pfp, struct allocator_lane_section *sec)
 {
 	PROCESS_BEGIN(psp, pfp) {
-		PROCESS(redo_log, &sec->redo[PROCESS_INDEX], REDO_LOG_SIZE);
+		PROCESS(redo_log, &sec->redo[PROCESS_INDEX],
+			ALLOC_REDO_LOG_SIZE);
 	} PROCESS_END
 
 	return PROCESS_RET;

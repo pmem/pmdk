@@ -46,7 +46,14 @@
 #define ZONE_MIN_SIZE (sizeof(struct zone) + sizeof(struct chunk))
 #define ZONE_MAX_SIZE (sizeof(struct zone) + sizeof(struct chunk) * MAX_CHUNK)
 #define HEAP_MIN_SIZE (sizeof(struct heap_layout) + ZONE_MIN_SIZE)
-#define REDO_LOG_SIZE 4
+
+/*
+ * The maximum number of entries in redo log used by the allocator. The common
+ * case is to use two, one for modification of the object destination memory
+ * location and the second for applying the chunk metadata modifications.
+ */
+#define ALLOC_REDO_LOG_SIZE 10
+
 #define BITS_PER_VALUE 64U
 #define MAX_CACHELINE_ALIGNMENT 40 /* run alignment, 5 cachelines */
 #define RUN_METASIZE (MAX_CACHELINE_ALIGNMENT * 8)
@@ -126,5 +133,5 @@ struct allocation_header {
 };
 
 struct allocator_lane_section {
-	struct redo_log redo[REDO_LOG_SIZE];
+	struct redo_log redo[ALLOC_REDO_LOG_SIZE];
 };

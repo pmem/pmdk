@@ -29,11 +29,17 @@ Root offset              : $(*)
 Lane:
 
  Lane section             : allocator
-  Redo log entries         : 4
+  Redo log entries         : 10
   0000000000: Offset: $(*) Value: $(*) Finish flag: 0
   0000000001: Offset: $(*) Value: $(*) Finish flag: 0
   0000000002: Offset: $(*) Value: $(*) Finish flag: 0
   0000000003: Offset: $(*) Value: $(*) Finish flag: 0
+  0000000004: Offset: $(*) Value: $(*) Finish flag: 0
+  0000000005: Offset: $(*) Value: $(*) Finish flag: 0
+  0000000006: Offset: $(*) Value: $(*) Finish flag: 0
+  0000000007: Offset: $(*) Value: $(*) Finish flag: 0
+  0000000008: Offset: $(*) Value: $(*) Finish flag: 0
+  0000000009: Offset: $(*) Value: $(*) Finish flag: 0
 
  Lane section             : list
   Object offset            : $(*)

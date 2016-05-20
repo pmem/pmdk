@@ -57,13 +57,6 @@
 #include "valgrind_internal.h"
 
 /*
- * The maximum number of entries in redo log used by the allocator. The common
- * case is to use two, one for modification of the object destination memory
- * location and the second for applying the chunk metadata modifications.
- */
-#define MAX_ALLOC_OP_REDO 10
-
-/*
  * Number of bytes between end of allocation header and beginning of user data.
  */
 #define DATA_OFF OBJ_OOB_SIZE
@@ -697,7 +690,7 @@ lane_allocator_recovery(PMEMobjpool *pop, struct lane_section_layout *section)
 	struct allocator_lane_section *sec =
 		(struct allocator_lane_section *)section;
 
-	redo_log_recover(pop, sec->redo, MAX_ALLOC_OP_REDO);
+	redo_log_recover(pop, sec->redo, ALLOC_REDO_LOG_SIZE);
 
 	return 0;
 }
@@ -714,7 +707,7 @@ lane_allocator_check(PMEMobjpool *pop, struct lane_section_layout *section)
 		(struct allocator_lane_section *)section;
 
 	int ret;
-	if ((ret = redo_log_check(pop, sec->redo, MAX_ALLOC_OP_REDO)) != 0)
+	if ((ret = redo_log_check(pop, sec->redo, ALLOC_REDO_LOG_SIZE)) != 0)
 		ERR("allocator lane: redo log check failed");
 
 	return ret;
