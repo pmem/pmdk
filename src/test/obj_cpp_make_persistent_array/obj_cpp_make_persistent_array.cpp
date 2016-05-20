@@ -190,8 +190,8 @@ test_abort_revert(pool_base &pop)
 		r->pfoo[i].check_foo();
 
 	try {
-		transaction::exec_tx(
-			pop, [&] { delete_persistent<foo[]>(r->pfoo, 5);
+		transaction::exec_tx(pop, [&] {
+			delete_persistent<foo[]>(r->pfoo, 5);
 			r->pfoo = nullptr;
 		});
 	} catch (...) {

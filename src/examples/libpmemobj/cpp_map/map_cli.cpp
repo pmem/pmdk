@@ -30,12 +30,12 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "ctree_map_transient.hpp"
 #include <ctree_map_persistent.hpp>
 #include <iostream>
 #include <libpmemobj/pool.hpp>
 #include <memory>
 #include <unistd.h>
-#include "ctree_map_transient.hpp"
 
 namespace
 {
@@ -140,10 +140,8 @@ remove<persistent_ptr<pmap>>(pool_base pop, persistent_ptr<pmap> &map,
 	auto val = map->remove(atoll(argv[argn++]));
 	if (val) {
 		std::cout << *val << std::endl;
-		transaction::exec_tx(
-			pop, [&] {
-			delete_persistent<value_t>(val);
-		});
+		transaction::exec_tx(pop,
+				     [&] { delete_persistent<value_t>(val); });
 	} else {
 		std::cout << "Entry not found\n";
 	}

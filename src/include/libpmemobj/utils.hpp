@@ -30,6 +30,10 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/**
+ * @file
+ * Libpmemobj C++ utils.
+ */
 #ifndef LIBPMEMOBJ_UTILS_HPP
 #define LIBPMEMOBJ_UTILS_HPP
 
@@ -40,27 +44,50 @@
 namespace nvml
 {
 
+namespace obj
+{
+
+/**
+ * Retrieve pool handle for the given pointer.
+ *
+ * @param[in] that pointer to an object from a persistent memory pool.
+ *
+ * @return handle to the pool containing the object.
+ *
+ * @throw `pool_error` if the given pointer does not belong to an open pool.
+ */
 template <typename T>
-inline obj::pool_base
+inline pool_base
 pool_by_vptr(const T *that)
 {
 	auto pop = pmemobj_pool_by_ptr(that);
 	if (!pop)
 		throw pool_error("Object not in an open pool.");
 
-	return obj::pool_base(pop);
+	return pool_base(pop);
 }
 
+/**
+ * Retrieve pool handle for the given persistent_ptr.
+ *
+ * @param[in] ptr pointer to an object from a persistent memory pool.
+ *
+ * @return handle to the pool containing the object.
+ *
+ * @throw `pool_error` if the given pointer does not belong to an open pool.
+ */
 template <typename T>
-inline obj::pool_base
-pool_by_pptr(const obj::persistent_ptr<T> ptr)
+inline pool_base
+pool_by_pptr(const persistent_ptr<T> ptr)
 {
 	auto pop = pmemobj_pool_by_oid(ptr.raw());
 	if (!pop)
 		throw pool_error("Object not in an open pool.");
 
-	return obj::pool_base(pop);
+	return pool_base(pop);
 }
+
+} /* namespace obj */
 
 } /* namespace nvml */
 
