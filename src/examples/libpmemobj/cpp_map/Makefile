@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2015-2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -29,30 +29,11 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+PROGS = map_cli
 
-#
-# examples/libpmemobj/Makefile -- build the libpmemobj examples
-#
-include ../../common.inc
+LIBS = -lpmemobj -lpmem -pthread
 
-PROGS = manpage btree pi lists
-DIRS = pminvaders pmemlog pmemblk string_store string_store_tx\
-	string_store_tx_type hashmap tree_map pmemobjfs map libart array\
-	linkedlist
+COMPILE_LANG = cpp
+include ../../Makefile.inc
 
-ifeq ($(call cxx_ok), y)
-DIRS += cpp pman cpp_map
-endif
-
-LIBS = -lpmemobj -lpmem -pthread -lm -pthread
-
-include ../Makefile.inc
-
-map: hashmap tree_map
-pmemobjfs: map
-
-manpage: manpage.o
-btree: btree.o
-pi: pi.o
-queue: queue.o
-lists: lists.o
+map_cli: map_cli.o

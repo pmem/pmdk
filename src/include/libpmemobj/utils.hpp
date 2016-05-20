@@ -30,75 +30,38 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * @file
- * Persistent_ptr atomic allocation functions for objects.
- */
-
-#ifndef PMEMOBJ_MAKE_PERSISTENT_ATOMIC_HPP
-#define PMEMOBJ_MAKE_PERSISTENT_ATOMIC_HPP
+#ifndef LIBPMEMOBJ_UTILS_HPP
+#define LIBPMEMOBJ_UTILS_HPP
 
 #include "libpmemobj.h"
-#include "libpmemobj/detail/check_persistent_ptr_array.hpp"
-#include "libpmemobj/detail/common.hpp"
-#include "libpmemobj/detail/make_atomic_impl.hpp"
 #include "libpmemobj/detail/pexceptions.hpp"
-#include "libpmemobj/pool.hpp"
+#include "libpmemobj/persistent_ptr.hpp"
 
 namespace nvml
 {
 
-namespace obj
-{
-
-/**
- * Atomically allocate and construct an object.
- *
- * Constructor parameters are passed through variadic parameters.
- *
- * @param[in,out] pool the pool from which the object will be allocated.
- * @param[in,out] ptr the persistent pointer to which the allocation
- * will take place.
- * @param[in] args variadic function parameter containing all parameters
- * passed to the objects constructor.
- *
- * @throw std::bad_alloc on allocation failure.
- */
-template <typename T, typename... Args>
-void
-make_persistent_atomic(pool_base &pool,
-		       typename detail::pp_if_not_array<T>::type &ptr,
-		       Args &&... args)
-{
-	auto arg_pack = std::make_tuple(args...);
-	auto ret = pmemobj_alloc(pool.get_handle(), ptr.raw_ptr(), sizeof(T),
-				 detail::type_num<T>(),
-				 &detail::obj_constructor<T, Args...>,
-				 static_cast<void *>(&arg_pack));
-
-	if (ret != 0)
-		throw std::bad_alloc();
-}
-
-/**
- * Atomically deallocate an object.
- *
- * There is no way to atomically destroy an object. Any object specific
- * cleanup must be performed elsewhere.
- *
- * param[in,out] ptr the persistent_ptr whose pointee is to be
- * deallocated.
- */
 template <typename T>
-void
-delete_persistent_atomic(typename detail::pp_if_not_array<T>::type &ptr) noexcept
+inline obj::pool_base
+pool_by_vptr(const T *that)
 {
-	/* we CAN'T call the destructor */
-	pmemobj_free(ptr.raw_ptr());
+	auto pop = pmemobj_pool_by_ptr(that);
+	if (!pop)
+		throw pool_error("Object not in an open pool.");
+
+	return obj::pool_base(pop);
 }
 
-} /* namespace obj */
+template <typename T>
+inline obj::pool_base
+pool_by_pptr(const obj::persistent_ptr<T> ptr)
+{
+	auto pop = pmemobj_pool_by_oid(ptr.raw());
+	if (!pop)
+		throw pool_error("Object not in an open pool.");
+
+	return obj::pool_base(pop);
+}
 
 } /* namespace nvml */
 
-#endif /* PMEMOBJ_MAKE_PERSISTENT_ATOMIC_HPP */
+#endif /* LIBPMEMOBJ_UTILS_HPP */

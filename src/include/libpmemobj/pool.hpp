@@ -68,6 +68,17 @@ public:
 	}
 
 	/**
+	 * Explicit constructor.
+	 *
+	 * Create pool_base object based on C-style pool handle.
+	 *
+	 * @param cpop C-style pool handle.
+	 */
+	explicit pool_base(pmemobjpool *cpop) noexcept : pop(cpop)
+	{
+	}
+
+	/**
 	 * Defaulted copy constructor.
 	 */
 	pool_base(const pool_base &) noexcept = default;
@@ -303,16 +314,6 @@ public:
 protected:
 	/* The pool opaque handle */
 	PMEMobjpool *pop;
-
-private:
-	/*
-	 * Private constructor.
-	 *
-	 * Enforce using factory methods for object creation.
-	 */
-	pool_base(pmemobjpool *_pop) noexcept : pop(_pop)
-	{
-	}
 };
 
 /**

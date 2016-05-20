@@ -104,7 +104,6 @@ test_make_no_args(pool<struct root> &pop)
 	r->pfoo->check_foo(1, 1);
 
 	delete_persistent_atomic<foo>(r->pfoo);
-	UT_ASSERT(r->pfoo == nullptr);
 }
 
 /*
@@ -120,13 +119,11 @@ test_make_args(pool<struct root> &pop)
 	r->pfoo->check_foo(2, 2);
 
 	delete_persistent_atomic<foo>(r->pfoo);
-	UT_ASSERT(r->pfoo == nullptr);
 
 	make_persistent_atomic<foo>(pop, r->pfoo, 3, 4);
 	r->pfoo->check_foo(3, 4);
 
 	delete_persistent_atomic<foo>(r->pfoo);
-	UT_ASSERT(r->pfoo == nullptr);
 }
 }
 
