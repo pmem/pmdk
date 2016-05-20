@@ -928,7 +928,7 @@ util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 	/* check if the pool header is all zeros */
 	if (!util_is_zeroed(hdrp, sizeof(*hdrp))) {
 		ERR("Non-empty file detected");
-		errno = EINVAL;
+		errno = EEXIST;
 		return -1;
 	}
 
