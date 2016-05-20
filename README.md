@@ -65,7 +65,10 @@ in appropriate README file.
 See the **before_install:** rules in the
 [.travis.yml](https://github.com/pmem/nvml/blob/master/.travis.yml)
 file at the top level of the repository to get an idea what packages
-were required to build on the _travis-ci_ (Ubuntu-based) systems.
+were required to build on the _travis-ci_ systems. Currently our travis
+systems are running Ubuntu 12.04 so there may be some differences
+between what is specified in travis.yml and what is needed for your
+OS distribution and version.
 
 To build the latest development version, just clone this tree and build the master branch:
 ```
