@@ -52,14 +52,14 @@
  */
 
 #include <sys/mman.h>
+#include <sys/queue.h>
+
 
 /*
  * this structure tracks the file mappings outstanding per file handle
  */
-LIST_ENTRY FileMappingListHead;
-
 typedef struct _FILE_MAPPING_TRACKER {
-	LIST_ENTRY ListEntry;
+	LIST_ENTRY(FILE_MAPPING_TRACKER) ListEntry;
 	HANDLE FileHandle;
 	HANDLE FileMappingHandle;
 	PVOID *BaseAddress;
@@ -67,6 +67,8 @@ typedef struct _FILE_MAPPING_TRACKER {
 } FILE_MAPPING_TRACKER, *PFILE_MAPPING_TRACKER;
 
 HANDLE FileMappingListMutex = NULL;
+LIST_HEAD(FMLHead, FILE_MAPPING_TRACKER) FileMappingListHead =
+	LIST_HEAD_INITIALIZER(FileMappingListHead);
 
 /*
  * mmap_init -- (internal) load-time initialization of file mapping tracker
@@ -76,7 +78,8 @@ HANDLE FileMappingListMutex = NULL;
 static void
 mmap_init(void)
 {
-	InitializeListHead(&FileMappingListHead);
+	LIST_INIT(&FileMappingListHead);
+
 	FileMappingListMutex = CreateMutex(NULL, FALSE, NULL);
 }
 
@@ -100,21 +103,21 @@ mmap_fini(void)
 	ReleaseMutex(FileMappingListMutex);
 	CloseHandle(FileMappingListMutex);
 
-	while (!IsListEmpty(&FileMappingListHead)) {
-		PLIST_ENTRY listEntry =
-			RemoveTailList(&FileMappingListHead);
+	while (!LIST_EMPTY(&FileMappingListHead)) {
 
-		PFILE_MAPPING_TRACKER mappingTracker =
-			CONTAINING_RECORD(listEntry,
-				FILE_MAPPING_TRACKER, ListEntry);
+		PFILE_MAPPING_TRACKER pMappingTracker =
+			(PFILE_MAPPING_TRACKER)LIST_FIRST(&FileMappingListHead);
+		WIN_LIST_REMOVE(PFILE_MAPPING_TRACKER, pMappingTracker,
+						ListEntry);
 
-		if (mappingTracker->BaseAddress != NULL)
-			UnmapViewOfFile(mappingTracker->BaseAddress);
+		if (pMappingTracker->BaseAddress != NULL)
+			UnmapViewOfFile(pMappingTracker->BaseAddress);
 
-		if (mappingTracker->FileMappingHandle != NULL)
-			CloseHandle(mappingTracker->FileMappingHandle);
+		if (pMappingTracker->FileMappingHandle != NULL)
+			CloseHandle(pMappingTracker->FileMappingHandle);
 
-		free(mappingTracker);
+		free(pMappingTracker);
+
 	}
 }
 
@@ -185,21 +188,22 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 	 * address rather than a more elaborate structure.
 	 */
 
-	PFILE_MAPPING_TRACKER mappingTracker =
-			malloc(sizeof(FILE_MAPPING_TRACKER));
+	PFILE_MAPPING_TRACKER pMappingTracker =
+		malloc(sizeof(FILE_MAPPING_TRACKER));
 
-	if (mappingTracker == NULL) {
+	if (pMappingTracker == NULL) {
 		CloseHandle(fileMapping);
 		return MAP_FAILED;
 	}
 
-	mappingTracker->FileHandle = fh;
-	mappingTracker->FileMappingHandle = fileMapping;
-	mappingTracker->BaseAddress = base;
-	mappingTracker->EndAddress = (PVOID *)base + len;
+	pMappingTracker->FileHandle = fh;
+	pMappingTracker->FileMappingHandle = fileMapping;
+	pMappingTracker->BaseAddress = base;
+	pMappingTracker->EndAddress = (PVOID *)base + len;
 
 	WaitForSingleObject(FileMappingListMutex, INFINITE);
-	InsertHeadList(&FileMappingListHead, &mappingTracker->ListEntry);
+	WIN_LIST_INSERT_HEAD(PFILE_MAPPING_TRACKER, &FileMappingListHead,
+		pMappingTracker, ListEntry);
 	ReleaseMutex(FileMappingListMutex);
 
 	return base;
@@ -211,38 +215,39 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 int
 munmap(void *addr, size_t len)
 {
-	PLIST_ENTRY listEntry;
+	PFILE_MAPPING_TRACKER pMappingTracker = NULL;
 	int retval = -1;
 	BOOLEAN haveMutex = TRUE;
 
 	WaitForSingleObject(FileMappingListMutex, INFINITE);
-	listEntry = FileMappingListHead.Flink;
 
-	while (listEntry != &FileMappingListHead) {
-		PFILE_MAPPING_TRACKER mappingTracker =
-			CONTAINING_RECORD(listEntry, FILE_MAPPING_TRACKER,
-						ListEntry);
+	pMappingTracker =
+		(PFILE_MAPPING_TRACKER)LIST_FIRST(&FileMappingListHead);
+	while (pMappingTracker != NULL) {
 
-		if (mappingTracker->BaseAddress == addr) {
+		if (pMappingTracker->BaseAddress == addr) {
 			/*
 			 * Let's release the list mutex before we do the work
 			 * of unmapping and closing may take some time.
 			 */
 
-			RemoveEntryList(listEntry);
+			WIN_LIST_REMOVE(PFILE_MAPPING_TRACKER, pMappingTracker,
+							ListEntry);
 			ReleaseMutex(FileMappingListMutex);
 			haveMutex = FALSE;
 
-			if (UnmapViewOfFile(mappingTracker->BaseAddress) != 0)
+			if (UnmapViewOfFile(pMappingTracker->BaseAddress) != 0)
 				retval = 0;
 
-			CloseHandle(mappingTracker->FileMappingHandle);
-			free(mappingTracker);
+			CloseHandle(pMappingTracker->FileMappingHandle);
+			free(pMappingTracker);
 
 			break;
 		}
 
-		listEntry = listEntry->Flink;
+		pMappingTracker =
+			(PFILE_MAPPING_TRACKER)LIST_NEXT(pMappingTracker,
+				ListEntry);
 	}
 
 	if (haveMutex)
@@ -263,28 +268,28 @@ msync(void *addr, size_t len, int flags)
 	if (FlushViewOfFile(addr, len) == 0)
 		return -1;
 
-	PLIST_ENTRY listEntry;
+	PFILE_MAPPING_TRACKER pMappingTracker = NULL;
 	int retval = -1;
 	BOOLEAN haveMutex = TRUE;
 
 	WaitForSingleObject(FileMappingListMutex, INFINITE);
-	listEntry = FileMappingListHead.Flink;
 
-	while (listEntry != &FileMappingListHead) {
-		PFILE_MAPPING_TRACKER mappingTracker =
-			CONTAINING_RECORD(listEntry, FILE_MAPPING_TRACKER,
-				ListEntry);
+	pMappingTracker =
+		(PFILE_MAPPING_TRACKER)LIST_FIRST(&FileMappingListHead);
+	while (pMappingTracker != NULL) {
 
-		if (mappingTracker->BaseAddress <= (PVOID *)addr &&
-		    mappingTracker->EndAddress >= (PVOID *)addr + len) {
+		if (pMappingTracker->BaseAddress <= (PVOID *)addr &&
+		    pMappingTracker->EndAddress >= (PVOID *)addr + len) {
 
-			if (FlushFileBuffers(mappingTracker->FileHandle) != 0)
+			if (FlushFileBuffers(pMappingTracker->FileHandle) == 0)
 				retval = 0;
 
 			break;
 		}
 
-		listEntry = listEntry->Flink;
+		pMappingTracker =
+			(PFILE_MAPPING_TRACKER)LIST_NEXT(pMappingTracker,
+				ListEntry);
 	}
 
 	if (haveMutex)
