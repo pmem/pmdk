@@ -50,6 +50,7 @@ require_fs_type any
 
 setup
 
+expect_normal_exit $PMEMPOOL.static-nondebug rm -f -s $ROOT_DIR/$POOL_DESC_0
 expect_normal_exit ./rpmemd_db$EXESUFFIX $ROOT_DIR $POOL_DESC_0 $LOG_FILE
 
 check
