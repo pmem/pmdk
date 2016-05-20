@@ -39,7 +39,8 @@ struct rpmem_pool_attr;
 
 struct rpmemd_db *rpmemd_db_init(const char *root_dir, mode_t mode);
 struct rpmemd_db_pool *rpmemd_db_pool_create(struct rpmemd_db *db,
-	const char *pool_desc, size_t pool_size, struct rpmem_pool_attr *attr);
+	const char *pool_desc, size_t pool_size,
+	const struct rpmem_pool_attr *attr);
 struct rpmemd_db_pool *rpmemd_db_pool_open(struct rpmemd_db *db,
 	const char *pool_desc, size_t pool_size, struct rpmem_pool_attr *attr);
 int rpmemd_db_pool_remove(struct rpmemd_db *db, const char *pool_desc);
