@@ -1,4 +1,4 @@
-﻿#
+#
 # Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
@@ -43,7 +43,7 @@ $checkdir = $rootdir
 $include = @( "*.c", "*.h" )
 
 # exclude external files not following NVML coding style
-$exclude = @( "queue.h", "ListEntry.h" )
+$exclude = @( "queue.h" )
 
 If ( Get-Command -Name perl -ErrorAction SilentlyContinue ) {
 	Get-ChildItem -Path $checkdir -Recurse -Include $include -Exclude $exclude | `
