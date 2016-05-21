@@ -42,6 +42,7 @@
 #include "rpmem.h"
 #include "util.h"
 #include "out.h"
+#include "base64.h"
 
 /*
  * librpmem_init -- load-time initialization for librpmem
@@ -55,6 +56,7 @@ librpmem_init(void)
 	out_init(RPMEM_LOG_PREFIX, RPMEM_LOG_LEVEL_VAR, RPMEM_LOG_FILE_VAR,
 			RPMEM_MAJOR_VERSION, RPMEM_MINOR_VERSION);
 	LOG(3, NULL);
+	base64_init();
 	util_init();
 }
 

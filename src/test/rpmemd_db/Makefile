@@ -37,18 +37,20 @@
 TOP = ../../..
 
 vpath %.c $(TOP)/src/common
+vpath %.c $(TOP)/src/rpmem_common
 vpath %.c $(TOP)/src/librpmem
 vpath %.c $(TOP)/src/tools/rpmemd
 
 TARGET = rpmemd_db
 OBJS = rpmemd_db_test.o rpmemd_log.o rpmemd_db.o librpmem.o \
-	util.o util_linux.o out.o set.o set_linux.o
+	util.o util_linux.o out.o set.o set_linux.o base64.o
 
 LIBPMEM=y
 
 include ../Makefile.inc
 
 INCS += -I$(TOP)/src/common
+INCS += -I$(TOP)/src/rpmem_common
 INCS += -I$(TOP)/src/librpmem
 INCS += -I$(TOP)/src/tools/rpmemd
 
