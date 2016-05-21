@@ -67,6 +67,7 @@ DIR_SRC="../.."
 FILES_COMMON_DIR="$DIR_SRC/test/*.supp"
 FILES_CURRTEST_DIR="\
 $DIR_SRC/test/tools/ctrld/ctrld \
+$DIR_SRC/tools/rpmemd/rpmemd \
 $DIR_SRC/tools/pmempool/pmempool"
 OPT_FILES_CURRTEST_DIR="
 $DIR_SRC/test/tools/fip/fip"
@@ -1276,6 +1277,23 @@ function require_nodes() {
 
 	# register function to clean all remote nodes in case of an error or SIGINT
 	trap clean_all_remote_nodes ERR SIGINT
+
+	return 0
+}
+
+#
+# copy_file_to_node -- copy file to the given remote node
+#
+function copy_file_to_node() {
+
+	validate_node_number $1
+
+	local N=$1
+	shift
+
+	# copy all required files
+	local DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
+	run_command scp $SCP_OPTS $1 ${NODE[$N]}:$DIR/$2
 
 	return 0
 }
