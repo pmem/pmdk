@@ -96,6 +96,12 @@ STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libpmem.a
 STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/libpmem.a
 endif
 
+ifeq ($(LIBRPMEM),y)
+DYNAMIC_LIBS += -lrpmem
+STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/librpmem.a
+STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/librpmem.a
+endif
+
 ifeq ($(LIBVMEM),y)
 DYNAMIC_LIBS += -lvmem
 STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libvmem.a
