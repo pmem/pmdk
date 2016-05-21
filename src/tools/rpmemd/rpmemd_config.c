@@ -221,6 +221,8 @@ parse_config_bool(bool *config_value, const char *value)
 static int
 set_option(uint64_t key, const char *value, struct rpmemd_config *config)
 {
+	errno = 0;
+
 	switch (key) {
 	case RPD_OPT_PID_FILE:
 		free(config->pid_file);
@@ -229,6 +231,7 @@ set_option(uint64_t key, const char *value, struct rpmemd_config *config)
 	case RPD_OPT_LOG_FILE:
 		free(config->log_file);
 		config->log_file = parse_config_string(value);
+		config->use_syslog = false;
 		break;
 	case RPD_OPT_POOLSET_DIR:
 		free(config->poolset_dir);
