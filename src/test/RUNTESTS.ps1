@@ -225,12 +225,16 @@ function runtest {
                     Write-Host "(in ./$testName) TEST=$testtype FS=$fs BUILD=$build .\$runscript"
                 } ElseIf ($use_timeout -And $testtype -eq "check") {
                     # execute with timeout
-                    $p = Start-Process -NoNewWindow -Wait -PassThru -FilePath powershell.exe -ArgumentList ".\$runscript"
+                    $p = Start-Process -NoNewWindow -PassThru -FilePath powershell.exe -ArgumentList ".\$runscript"
+                    sv -Name msg "FAILED"
                     try {
                         $p | Wait-Process -Timeout $time -ErrorAction Stop
                     } catch {
-                        Write-Error -Message "RUNTESTS: stopping: testName/$runscript TIMED OUT, will now be killed"
                         $p | Stop-Process -Force
+                        sv -Name msg "TIMED OUT"
+                    }
+                    if ($p.ExitCode -ne 0) {
+                        Write-Error "RUNTESTS: stopping: testName/$runscript $msg, TEST=$testtype FS=$fs BUILD=$build"
                         cd ..
                         exit $p.ExitCode
                     }
