@@ -31,6 +31,14 @@
 #
 # src/test/blk_nblock/TEST2 -- unit test for pmemblk_nblock
 #
+#
+# parameter handling
+#
+[CmdletBinding(PositionalBinding=$false)]
+Param(
+    [alias("d")]
+    $DIR = ""
+    )
 $Env:UNITTEST_NAME = "blk_nblock\TEST2w"
 $Env:UNITTEST_NUM = "2w"
 # XXX:  bash has a few calls to tools that we don't have on
@@ -38,7 +46,6 @@ $Env:UNITTEST_NUM = "2w"
 # on their output
 $Env:PMEM_IS_PMEM = $true
 $Env:NON_PMEM_IS_PMEM = $true
-$DIR = ""
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

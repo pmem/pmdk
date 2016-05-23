@@ -32,6 +32,11 @@
 # src/test/blk_non_zero/TEST8 -- unit test for
 # pmemblk_read/write/set_zero/set_error
 #
+[CmdletBinding(PositionalBinding=$false)]
+Param(
+    [alias("d")]
+    $DIR = ""
+    )
 $Env:UNITTEST_NAME = "blk_non_zero\TEST8"
 $Env:UNITTEST_NUM = "8"
 # XXX:  bash has a few calls to tools that we don't have on
@@ -39,7 +44,6 @@ $Env:UNITTEST_NUM = "8"
 # on their output
 $Env:PMEM_IS_PMEM = $true
 $Env:NON_PMEM_IS_PMEM = $true
-$DIR = ""
 
 # standard unit test setup
 . ..\unittest\unittest.ps1
