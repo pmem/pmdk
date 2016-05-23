@@ -43,11 +43,8 @@
 
 #define POOL_MODE 0644
 
-#define FAILED_FUNC(func_name)\
-	do {\
-		UT_ERR("!%s(): %s() failed", __func__, func_name);\
-		exit(0);\
-	} while (0)
+#define FAILED_FUNC(func_name) \
+		UT_ERR("!%s(): %s() failed", __func__, func_name);
 
 /*
  * test_init -- test rpmemd_db_init() and rpmemd_db_fini()
@@ -60,6 +57,7 @@ test_init(const char *root_dir)
 	db = rpmemd_db_init(root_dir, POOL_MODE);
 	if (db == NULL) {
 		FAILED_FUNC("rpmemd_db_init");
+		return -1;
 	}
 	rpmemd_db_fini(db);
 	return 0;
@@ -77,13 +75,14 @@ test_check_dir(const char *root_dir)
 	db = rpmemd_db_init(root_dir, POOL_MODE);
 	if (db == NULL) {
 		FAILED_FUNC("rpmemd_db_init");
+		return -1;
 	}
 	ret = rpmemd_db_check_dir(db);
 	if (ret) {
 		FAILED_FUNC("rpmemd_db_check_dir");
 	}
 	rpmemd_db_fini(db);
-	return 0;
+	return ret;
 }
 
 /*
@@ -95,23 +94,26 @@ test_create(const char *root_dir, const char *pool_desc)
 	struct rpmem_pool_attr attr;
 	struct rpmemd_db_pool *prp;
 	struct rpmemd_db *db;
-	int ret;
+	int ret = -1;
 
 	db = rpmemd_db_init(root_dir, POOL_MODE);
 	if (db == NULL) {
 		FAILED_FUNC("rpmemd_db_init");
+		return -1;
 	}
 	prp = rpmemd_db_pool_create(db, pool_desc, 0, &attr);
 	if (prp == NULL) {
 		FAILED_FUNC("rpmemd_db_pool_create");
+		goto fini;
 	}
 	rpmemd_db_pool_close(db, prp);
 	ret = rpmemd_db_pool_remove(db, pool_desc);
 	if (ret) {
 		FAILED_FUNC("rpmemd_db_pool_remove");
 	}
+fini:
 	rpmemd_db_fini(db);
-	return 0;
+	return ret;
 }
 
 /*
@@ -175,7 +177,7 @@ test_open(const char *root_dir, const char *pool_desc)
 	struct rpmem_pool_attr attr1, attr2;
 	struct rpmemd_db_pool *prp;
 	struct rpmemd_db *db;
-	int ret;
+	int ret = -1;
 
 	memset(&attr1, 0, sizeof(attr1));
 	attr1.major = 1;
@@ -183,26 +185,28 @@ test_open(const char *root_dir, const char *pool_desc)
 	db = rpmemd_db_init(root_dir, POOL_MODE);
 	if (db == NULL) {
 		FAILED_FUNC("rpmemd_db_init");
+		return -1;
 	}
 	prp = rpmemd_db_pool_create(db, pool_desc, 0, &attr1);
 	if (prp == NULL) {
 		FAILED_FUNC("rpmemd_db_pool_create");
+		goto fini;
 	}
 	rpmemd_db_pool_close(db, prp);
 	prp = rpmemd_db_pool_open(db, pool_desc, 0, &attr2);
 	if (prp == NULL) {
 		FAILED_FUNC("rpmemd_db_pool_open");
+		goto fini;
 	}
+	compare_attr(&attr1, &attr2);
 	rpmemd_db_pool_close(db, prp);
 	ret = rpmemd_db_pool_remove(db, pool_desc);
 	if (ret) {
 		FAILED_FUNC("rpmemd_db_pool_remove");
 	}
+fini:
 	rpmemd_db_fini(db);
-
-	compare_attr(&attr1, &attr2);
-
-	return 0;
+	return ret;
 }
 
 int
