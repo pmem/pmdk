@@ -99,27 +99,17 @@ function create_holey_file {
     } else {
         [int64]$size *= 1024 * 1024
     }
-	for ($i=1;$i -lt $args.count;$i++) {
-        # need to call out to fsutil to create a sparse file, note
+    for ($i=1;$i -lt $args.count;$i++) {
+        # need to call out to sparsefile.exe to create a sparse file, note
         # that initial version of DAX doesn't support sparse
         $fname = $args[$i]
-        & "FSUtil" File CreateNew $fname $size
+        & '..\..\x64\debug\sparsefile.exe' $fname $size
         if ($LASTEXITCODE -ne 0) {
-            Write-Error "Error $LASTEXITCODE with FSUTIL create"
-            exit $LASTEXITCODE
-        }
-        & "FSUtil" Sparse SetFlag $fname
-        if ($LASTEXITCODE -ne 0) {
-            Write-Error "Error $LASTEXITCODE with FSUTIL setFlag"
-            exit $LASTEXITCODE
-        }
-        & "FSUtil" Sparse SetRange $fname 0 $size
-        if ($LASTEXITCODE -ne 0) {
-            Write-Error "Error $LASTEXITCODE with FSUTIL setRange"
+            Write-Error "Error $LASTEXITCODE with sparsefile create"
             exit $LASTEXITCODE
         }
         Get-ChildItem $fname >> ("prep" + $Env:UNITTEST_NUM + ".log")
-	}
+    }
 }
 
 #
