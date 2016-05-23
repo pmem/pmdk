@@ -49,9 +49,6 @@
 
 #define PREV_OFF (offsetof(struct list_entry, pe_prev) + offsetof(PMEMoid, off))
 #define NEXT_OFF (offsetof(struct list_entry, pe_next) + offsetof(PMEMoid, off))
-#define OOB_ENTRY_OFF (offsetof(struct oob_header, oob))
-#define OOB_ENTRY_OFF_REV \
-((ssize_t)offsetof(struct oob_header, oob) - (ssize_t)OBJ_OOB_SIZE)
 
 /*
  * list_args_common -- common arguments for operations on list
@@ -143,35 +140,6 @@ err_unlock:
 	pmemobj_mutex_unlock(pop, lock1);
 err:
 	return ret;
-}
-
-/*
- * list_mutexes_lock_nofail -- (internal) grab one or two locks in ascending
- * address order
- */
-static inline void
-list_mutexes_lock_nofail(PMEMobjpool *pop,
-	struct list_head *head1, struct list_head *head2)
-{
-	ASSERTne(head1, NULL);
-
-	if (!head2 || head1 == head2) {
-		pmemobj_mutex_lock_nofail(pop, &head1->lock);
-		return;
-	}
-
-	PMEMmutex *lock1;
-	PMEMmutex *lock2;
-	if ((uintptr_t)&head1->lock < (uintptr_t)&head2->lock) {
-		lock1 = &head1->lock;
-		lock2 = &head2->lock;
-	} else {
-		lock1 = &head2->lock;
-		lock2 = &head1->lock;
-	}
-
-	pmemobj_mutex_lock_nofail(pop, lock1);
-	pmemobj_mutex_lock_nofail(pop, lock2);
 }
 
 /*
@@ -507,57 +475,9 @@ list_insert_user(PMEMobjpool *pop,
 }
 
 /*
- * list_insert_oob -- (internal) inserting element to oob list
- *
- * This function inserts the element at the last position always.
- */
-static size_t
-list_insert_oob(PMEMobjpool *pop, struct redo_log *redo, size_t redo_index,
-	struct list_head *oob_head, uint64_t obj_offset,
-	uint64_t *next_offset, uint64_t *prev_offset)
-{
-	if (oob_head->pe_first.off == 0) {
-		/* inserting the first element */
-
-		/* set loop on current element */
-		*next_offset = obj_offset;
-		*prev_offset = obj_offset;
-
-		/* update head */
-		redo_index = list_update_head(pop, redo, redo_index,
-				oob_head, obj_offset);
-
-		return redo_index;
-	} else {
-		/* inserting at the last position */
-		struct list_entry *first_ptr =
-			(struct list_entry *)OBJ_OFF_TO_PTR(pop,
-					oob_head->pe_first.off -
-					OBJ_OOB_SIZE + OOB_ENTRY_OFF);
-
-		/* current->next = first and current->prev = first->prev */
-		*next_offset = oob_head->pe_first.off;
-		*prev_offset = first_ptr->pe_prev.off;
-
-		uint64_t first_prev_off = oob_head->pe_first.off -
-				OBJ_OOB_SIZE + OOB_ENTRY_OFF + PREV_OFF;
-		uint64_t first_prev_next_off = first_ptr->pe_prev.off -
-				OBJ_OOB_SIZE + OOB_ENTRY_OFF + NEXT_OFF;
-
-		redo_log_store(pop, redo, redo_index + 0,
-				first_prev_off, obj_offset);
-		redo_log_store(pop, redo, redo_index + 1,
-				first_prev_next_off, obj_offset);
-
-		return redo_index + 2;
-	}
-}
-
-/*
  * list_insert_new -- allocate and insert element to oob and user lists
  *
  * pop         - pmemobj pool handle
- * oob_head    - oob list head
  * pe_offset   - offset to list entry on user list relative to user data
  * user_head   - user list head, must be locked if not NULL
  * dest        - destination on user list
@@ -568,23 +488,21 @@ list_insert_oob(PMEMobjpool *pop, struct redo_log *redo, size_t redo_index,
  * oidp        - pointer to target object ID
  */
 static int
-list_insert_new(PMEMobjpool *pop, struct list_head *oob_head,
+list_insert_new(PMEMobjpool *pop,
 	size_t pe_offset, struct list_head *user_head, PMEMoid dest, int before,
 	size_t size, int (*constructor)(PMEMobjpool *pop, void *ptr,
 	size_t usable_size, void *arg), void *arg, PMEMoid *oidp)
 {
 	LOG(3, NULL);
-	ASSERT(oob_head != NULL || user_head != NULL);
+	ASSERT(user_head != NULL);
 
 	int ret;
 
 	struct lane_section *lane_section;
 
 #ifdef DEBUG
-	if (user_head) {
-		int r = pmemobj_mutex_assert_locked(pop, &user_head->lock);
-		ASSERTeq(r, 0);
-	}
+	int r = pmemobj_mutex_assert_locked(pop, &user_head->lock);
+	ASSERTeq(r, 0);
 #endif
 
 	lane_hold(pop, &lane_section, LANE_SECTION_LIST);
@@ -616,66 +534,44 @@ list_insert_new(PMEMobjpool *pop, struct list_head *oob_head,
 	}
 
 	uint64_t obj_doffset = section->obj_offset;
-	if (oob_head) {
-		pmemobj_mutex_lock_nofail(pop, &oob_head->lock);
 
-		uint64_t obj_offset = obj_doffset - OBJ_OOB_SIZE;
+	ASSERT((ssize_t)pe_offset >= 0);
 
-		struct list_entry *oob_entry_ptr =
-			(struct list_entry *)OBJ_OFF_TO_PTR(pop,
-				obj_offset + OOB_ENTRY_OFF);
+	dest = list_get_dest(pop, user_head, dest,
+		(ssize_t)pe_offset, before);
 
-		uint64_t oob_next_off;
-		uint64_t oob_prev_off;
+	struct list_entry *entry_ptr =
+		(struct list_entry *)OBJ_OFF_TO_PTR(pop,
+				obj_doffset + pe_offset);
 
-		/* insert element to oob list */
-		redo_index = list_insert_oob(pop, redo, redo_index, oob_head,
-			obj_doffset, &oob_next_off, &oob_prev_off);
+	struct list_entry *dest_entry_ptr =
+		(struct list_entry *)OBJ_OFF_TO_PTR(pop,
+				dest.off + pe_offset);
 
-		/* don't need to use redo log for filling new element */
-		list_fill_entry_persist(pop,
-			oob_entry_ptr, oob_next_off, oob_prev_off);
-	}
+	struct list_args_insert args = {
+		.dest = dest,
+		.dest_entry_ptr = dest_entry_ptr,
+		.head = user_head,
+		.before = before,
+	};
 
-	if (user_head) {
-		ASSERT((ssize_t)pe_offset >= 0);
+	struct list_args_common args_common = {
+		.obj_doffset = obj_doffset,
+		.entry_ptr = entry_ptr,
+		.pe_offset = (ssize_t)pe_offset,
+	};
 
-		dest = list_get_dest(pop, user_head, dest,
-			(ssize_t)pe_offset, before);
+	uint64_t next_offset;
+	uint64_t prev_offset;
 
-		struct list_entry *entry_ptr =
-			(struct list_entry *)OBJ_OFF_TO_PTR(pop,
-					obj_doffset + pe_offset);
+	/* insert element to user list */
+	redo_index = list_insert_user(pop,
+		redo, redo_index, &args, &args_common,
+		&next_offset, &prev_offset);
 
-		struct list_entry *dest_entry_ptr =
-			(struct list_entry *)OBJ_OFF_TO_PTR(pop,
-					dest.off + pe_offset);
-
-		struct list_args_insert args = {
-			.dest = dest,
-			.dest_entry_ptr = dest_entry_ptr,
-			.head = user_head,
-			.before = before,
-		};
-
-		struct list_args_common args_common = {
-			.obj_doffset = obj_doffset,
-			.entry_ptr = entry_ptr,
-			.pe_offset = (ssize_t)pe_offset,
-		};
-
-		uint64_t next_offset;
-		uint64_t prev_offset;
-
-		/* insert element to user list */
-		redo_index = list_insert_user(pop,
-			redo, redo_index, &args, &args_common,
-			&next_offset, &prev_offset);
-
-		/* don't need to use redo log for filling new element */
-		list_fill_entry_persist(pop, entry_ptr,
-				next_offset, prev_offset);
-	}
+	/* don't need to use redo log for filling new element */
+	list_fill_entry_persist(pop, entry_ptr,
+			next_offset, prev_offset);
 
 	if (oidp != NULL) {
 		if (OBJ_PTR_IS_VALID(pop, oidp))
@@ -694,32 +590,10 @@ list_insert_new(PMEMobjpool *pop, struct list_head *oob_head,
 
 	ret = 0;
 
-	if (oob_head)
-		pmemobj_mutex_unlock_nofail(pop, &oob_head->lock);
-
 err_pmalloc:
 	lane_release(pop);
 
 	return ret;
-}
-
-/*
- * list_insert_new_oob -- allocate and insert element to oob list
- *
- * pop         - pmemobj pool handle
- * oob_head    - oob list head
- * size        - size of allocation, will be increased by OBJ_OOB_SIZE
- * constructor - object's constructor
- * arg         - argument for object's constructor
- * oidp        - pointer to target object ID
- */
-int
-list_insert_new_oob(PMEMobjpool *pop, struct list_head *oob_head,
-	size_t size, int (*constructor)(PMEMobjpool *pop, void *ptr,
-	size_t usable_size, void *arg), void *arg, PMEMoid *oidp)
-{
-	return list_insert_new(pop, oob_head, 0, NULL, OID_NULL,
-			0, size, constructor, arg, oidp);
 }
 
 /*
@@ -737,24 +611,21 @@ list_insert_new_oob(PMEMobjpool *pop, struct list_head *oob_head,
  * oidp        - pointer to target object ID
  */
 int
-list_insert_new_user(PMEMobjpool *pop, struct list_head *oob_head,
+list_insert_new_user(PMEMobjpool *pop,
 	size_t pe_offset, struct list_head *user_head, PMEMoid dest, int before,
 	size_t size, int (*constructor)(PMEMobjpool *pop, void *ptr,
 	size_t usable_size, void *arg), void *arg, PMEMoid *oidp)
 {
 	int ret;
-	if (user_head) {
-		if ((ret = pmemobj_mutex_lock(pop, &user_head->lock))) {
-			LOG(2, "pmemobj_mutex_lock failed");
-			return ret;
-		}
+	if ((ret = pmemobj_mutex_lock(pop, &user_head->lock))) {
+		LOG(2, "pmemobj_mutex_lock failed");
+		return ret;
 	}
 
-	ret = list_insert_new(pop, oob_head, pe_offset, user_head,
+	ret = list_insert_new(pop, pe_offset, user_head,
 			dest, before, size, constructor, arg, oidp);
 
-	if (user_head)
-		pmemobj_mutex_unlock_nofail(pop, &user_head->lock);
+	pmemobj_mutex_unlock_nofail(pop, &user_head->lock);
 
 	return ret;
 }
@@ -852,18 +723,15 @@ err:
  * oidp        - pointer to target object ID
  */
 static void
-list_remove_free(PMEMobjpool *pop, struct list_head *oob_head,
-	size_t pe_offset, struct list_head *user_head,
-	PMEMoid *oidp)
+list_remove_free(PMEMobjpool *pop, size_t pe_offset,
+	struct list_head *user_head, PMEMoid *oidp)
 {
 	LOG(3, NULL);
-	ASSERT(oob_head != NULL || user_head != NULL);
+	ASSERT(user_head != NULL);
 
 #ifdef DEBUG
-	if (user_head) {
-		int r = pmemobj_mutex_assert_locked(pop, &user_head->lock);
-		ASSERTeq(r, 0);
-	}
+	int r = pmemobj_mutex_assert_locked(pop, &user_head->lock);
+	ASSERTeq(r, 0);
 #endif
 
 	struct lane_section *lane_section;
@@ -880,44 +748,22 @@ list_remove_free(PMEMobjpool *pop, struct list_head *oob_head,
 	size_t redo_index = 0;
 
 	uint64_t obj_doffset = oidp->off;
-	uint64_t obj_offset = obj_doffset - OBJ_OOB_SIZE;
 
-	if (oob_head) {
-		pmemobj_mutex_lock_nofail(pop, &oob_head->lock);
+	ASSERT((ssize_t)pe_offset >= 0);
 
-		struct list_entry *oob_entry_ptr =
-			(struct list_entry *)OBJ_OFF_TO_PTR(pop,
-					obj_offset + OOB_ENTRY_OFF);
+	struct list_entry *entry_ptr =
+		(struct list_entry *)OBJ_OFF_TO_PTR(pop,
+				obj_doffset + pe_offset);
 
-		struct list_args_remove oob_args = {
-			.pe_offset = OOB_ENTRY_OFF_REV,
-			.head = oob_head,
-			.entry_ptr = oob_entry_ptr,
-			.obj_doffset = obj_doffset
-		};
+	struct list_args_remove args = {
+		.pe_offset = (ssize_t)pe_offset,
+		.head = user_head,
+		.entry_ptr = entry_ptr,
+		.obj_doffset = obj_doffset
+	};
 
-		/* remove from oob list */
-		redo_index = list_remove_single(pop, redo,
-			redo_index, &oob_args);
-	}
-
-	if (user_head) {
-		ASSERT((ssize_t)pe_offset >= 0);
-
-		struct list_entry *entry_ptr =
-			(struct list_entry *)OBJ_OFF_TO_PTR(pop,
-					obj_doffset + pe_offset);
-
-		struct list_args_remove args = {
-			.pe_offset = (ssize_t)pe_offset,
-			.head = user_head,
-			.entry_ptr = entry_ptr,
-			.obj_doffset = obj_doffset
-		};
-
-		/* remove from user list */
-		redo_index = list_remove_single(pop, redo, redo_index, &args);
-	}
+	/* remove from user list */
+	redo_index = list_remove_single(pop, redo, redo_index, &args);
 
 	/* clear the oid */
 	if (OBJ_PTR_IS_VALID(pop, oidp))
@@ -935,24 +781,8 @@ list_remove_free(PMEMobjpool *pop, struct list_head *oob_head,
 	 * because the element is freed.
 	 */
 	pfree(pop, &section->obj_offset);
-	if (oob_head)
-		pmemobj_mutex_unlock_nofail(pop, &oob_head->lock);
 
 	lane_release(pop);
-}
-
-/*
- * list_remove_free_oob -- remove from two lists and free an object
- *
- * pop         - pmemobj pool handle
- * oob_head    - oob list head
- * oidp        - pointer to target object ID
- */
-void
-list_remove_free_oob(PMEMobjpool *pop, struct list_head *oob_head,
-		PMEMoid *oidp)
-{
-	list_remove_free(pop, oob_head, 0, NULL, oidp);
 }
 
 /*
@@ -965,24 +795,20 @@ list_remove_free_oob(PMEMobjpool *pop, struct list_head *oob_head,
  * oidp        - pointer to target object ID
  */
 int
-list_remove_free_user(PMEMobjpool *pop, struct list_head *oob_head,
-	size_t pe_offset, struct list_head *user_head,
-	PMEMoid *oidp)
+list_remove_free_user(PMEMobjpool *pop, size_t pe_offset,
+	struct list_head *user_head, PMEMoid *oidp)
 {
 	LOG(3, NULL);
 
-	if (user_head) {
-		int ret;
-		if ((ret = pmemobj_mutex_lock(pop, &user_head->lock))) {
-			LOG(2, "pmemobj_mutex_lock failed");
-			return ret;
-		}
+	int ret;
+	if ((ret = pmemobj_mutex_lock(pop, &user_head->lock))) {
+		LOG(2, "pmemobj_mutex_lock failed");
+		return ret;
 	}
 
-	list_remove_free(pop, oob_head, pe_offset, user_head, oidp);
+	list_remove_free(pop, pe_offset, user_head, oidp);
 
-	if (user_head)
-		pmemobj_mutex_unlock_nofail(pop, &user_head->lock);
+	pmemobj_mutex_unlock_nofail(pop, &user_head->lock);
 
 	return 0;
 }
@@ -1055,86 +881,6 @@ err:
 	lane_release(pop);
 
 	return ret;
-}
-
-/*
- * list_move_oob -- move element between two oob lists
- *
- * pop      - pmemobj pool handle
- * head_old - old list head
- * head_old - new list head
- * oid      - target object ID
- */
-void
-list_move_oob(PMEMobjpool *pop,
-	struct list_head *head_old, struct list_head *head_new,
-	PMEMoid oid)
-{
-	LOG(3, NULL);
-	ASSERTne(head_old, NULL);
-	ASSERTne(head_new, NULL);
-	ASSERTne(head_old, head_new);
-
-	struct lane_section *lane_section;
-
-	lane_hold(pop, &lane_section, LANE_SECTION_LIST);
-
-	ASSERTne(lane_section, NULL);
-	ASSERTne(lane_section->layout, NULL);
-
-	/*
-	 * Grab locks in specified order to avoid dead-locks.
-	 *
-	 * XXX performance improvement: initialize oob locks at pool opening
-	 */
-	list_mutexes_lock_nofail(pop, head_new, head_old);
-
-	struct lane_list_section *section =
-		(struct lane_list_section *)lane_section->layout;
-	struct redo_log *redo = section->redo;
-	size_t redo_index = 0;
-
-	uint64_t obj_doffset = oid.off;
-	uint64_t obj_offset = obj_doffset - OBJ_OOB_SIZE;
-
-	struct list_entry *entry_ptr =
-		(struct list_entry *)OBJ_OFF_TO_PTR(pop, obj_offset
-				+ OOB_ENTRY_OFF);
-
-	struct list_args_remove args_remove = {
-		.pe_offset = OOB_ENTRY_OFF_REV,
-		.head = head_old,
-		.entry_ptr = entry_ptr,
-		.obj_doffset = obj_doffset,
-	};
-
-	struct list_args_common args_common = {
-		.obj_doffset = obj_doffset,
-		.entry_ptr = entry_ptr,
-		.pe_offset = OOB_ENTRY_OFF_REV,
-	};
-
-	uint64_t next_offset;
-	uint64_t prev_offset;
-
-	/* remove element from oob list */
-	redo_index = list_remove_single(pop, redo, redo_index, &args_remove);
-
-	/* insert element to new oob list */
-	redo_index = list_insert_oob(pop, redo, redo_index,
-			head_new, obj_doffset, &next_offset, &prev_offset);
-
-	/* change next and prev offsets of moving element using redo log */
-	redo_index = list_fill_entry_redo_log(pop, redo, redo_index,
-			&args_common, next_offset, prev_offset, 0);
-
-	redo_log_set_last(pop, redo, redo_index - 1);
-
-	redo_log_process(pop, redo, REDO_NUM_ENTRIES);
-
-	list_mutexes_unlock(pop, head_new, head_old);
-
-	lane_release(pop);
 }
 
 /*

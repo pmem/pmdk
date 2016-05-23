@@ -44,6 +44,7 @@
 #include "memops.h"
 #include "pmalloc.h"
 #include "list.h"
+#include "pvector.h"
 #include "obj.h"
 
 /* offset to "in band" item */
@@ -123,8 +124,6 @@ TOID(struct oob_item) *Item;
 	UT_FATAL("usage: obj_list <file> r:<num>")
 #define FATAL_USAGE_MOVE()\
 	UT_FATAL("usage: obj_list <file> m:<num>:<where>:<num>")
-#define FATAL_USAGE_MOVE_OOB()\
-	UT_FATAL("usage: obj_list <file> o:<num>")
 #define FATAL_USAGE_FAIL()\
 	UT_FATAL("usage: obj_list <file> "\
 	"F:<after_finish|before_finish|after_process>")
@@ -543,57 +542,6 @@ FUNC_MOCK(redo_log_process, void, PMEMobjpool *pop,
 FUNC_MOCK_END
 
 /*
- * oob_get_first -- get first element from oob list
- */
-static PMEMoid
-oob_get_first(PMEMoid head)
-{
-	struct list_head *lhead = (struct list_head *)pmemobj_direct(head);
-
-	if (lhead->pe_first.off) {
-		PMEMoid ret = lhead->pe_first;
-		ret.off -= OOB_OFF;
-		return ret;
-	}
-
-	return OID_NULL;
-}
-
-/*
- * oob_get_prev -- get previous of element from oob list
- */
-static PMEMoid
-oob_get_prev(PMEMoid oid)
-{
-	struct oob_header *oobh = (struct oob_header *)pmemobj_direct(oid);
-
-	if (oobh->oob.pe_prev.off) {
-		PMEMoid ret = oobh->oob.pe_prev;
-		ret.off -= OOB_OFF;
-		return ret;
-	}
-
-	return OID_NULL;
-}
-
-/*
- * oob_get_next -- get next of element from oob list
- */
-static PMEMoid
-oob_get_next(PMEMoid oid)
-{
-	struct oob_header *oobh = (struct oob_header *)pmemobj_direct(oid);
-
-	if (oobh->oob.pe_next.off) {
-		PMEMoid ret = oobh->oob.pe_next;
-		ret.off -= OOB_OFF;
-		return ret;
-	}
-
-	return OID_NULL;
-}
-
-/*
  * for each element on list in normal order
  */
 #define LIST_FOREACH(item, list, head, field)\
@@ -621,32 +569,6 @@ for ((item) = \
 	D_RW(item)->field.pe_prev.oid))
 
 /*
- * for each element on oob list in normal order
- */
-#define LIST_FOREACH_OOB(item, list, head)\
-for (TOID_ASSIGN((item), oob_get_first((list).oid));\
-	!TOID_IS_NULL((item));\
-	TOID_ASSIGN((item),\
-	((item).oid.off ==\
-	oob_get_prev(oob_get_first((list).oid)).off)\
-	? OID_NULL :\
-	oob_get_next((item).oid)))
-
-/*
- * for each element on oob list in reverse order
- */
-#define LIST_FOREACH_REVERSE_OOB(item, list, head)\
-for (TOID_ASSIGN((item),\
-	(oob_get_first((list).oid).off ?\
-	oob_get_prev(oob_get_first((list).oid)):\
-	OID_NULL));\
-	!TOID_IS_NULL((item));\
-	TOID_ASSIGN((item),\
-	((item).oid.off ==\
-	oob_get_first((list).oid).off) ? OID_NULL :\
-	oob_get_prev((item).oid)))
-
-/*
  * get_item_list -- get nth item from list
  */
 static PMEMoid
@@ -671,35 +593,6 @@ get_item_list(PMEMoid head, int n)
 
 	return OID_NULL;
 }
-/*
- * get_item_oob_list -- get nth item from oob list
- */
-static PMEMoid
-get_item_oob_list(PMEMoid head, int n)
-{
-	TOID(struct oob_list) list;
-	TOID_ASSIGN(list, head);
-	TOID(struct oob_item) item;
-	if (n >= 0) {
-		LIST_FOREACH_OOB(item, list, head) {
-			if (n == 0) {
-				item.oid.off += OOB_OFF;
-				return item.oid;
-			}
-			n--;
-		}
-	} else {
-		LIST_FOREACH_REVERSE_OOB(item, list, head) {
-			n++;
-			if (n == 0) {
-				item.oid.off += OOB_OFF;
-				return item.oid;
-			}
-		}
-	}
-
-	return OID_NULL;
-}
 
 /*
  * do_print -- print list elements in normal order
@@ -711,23 +604,11 @@ do_print(PMEMobjpool *pop, const char *arg)
 	if (sscanf(arg, "P:%d", &L) != 1)
 		FATAL_USAGE_PRINT();
 
-	if (L == 1) {
-		TOID(struct oob_item) oob_item;
-		UT_OUT("oob list:");
-		LIST_FOREACH_OOB(oob_item, List_oob, head) {
-			UT_OUT("id = %d", D_RO(oob_item)->item.id);
-		}
-	} else if (L == 2) {
+	if (L == 2) {
 		TOID(struct item) item;
 		UT_OUT("list:");
 		LIST_FOREACH(item, List, head, next) {
 			UT_OUT("id = %d", D_RO(item)->id);
-		}
-	} else if (L == 3) {
-		TOID(struct oob_item) oob_item;
-		UT_OUT("oob list sec:");
-		LIST_FOREACH_OOB(oob_item, List_oob_sec, head) {
-			UT_OUT("id = %d", D_RO(oob_item)->item.id);
 		}
 	} else if (L == 4) {
 		TOID(struct item) item;
@@ -749,25 +630,12 @@ do_print_reverse(PMEMobjpool *pop, const char *arg)
 	int L;	/* which list */
 	if (sscanf(arg, "R:%d", &L) != 1)
 		FATAL_USAGE_PRINT_REVERSE();
-	if (L == 1) {
-		TOID(struct oob_item) oob_item;
-		UT_OUT("oob list reverse:");
-		LIST_FOREACH_REVERSE_OOB(oob_item,
-			List_oob, head) {
-			UT_OUT("id = %d", D_RO(oob_item)->item.id);
-		}
-	} else if (L == 2) {
+
+	if (L == 2) {
 		TOID(struct item) item;
 		UT_OUT("list reverse:");
 		LIST_FOREACH_REVERSE(item, List, head, next) {
 			UT_OUT("id = %d", D_RO(item)->id);
-		}
-	} else if (L == 3) {
-		TOID(struct oob_item) oob_item;
-		UT_OUT("oob list sec reverse:");
-		LIST_FOREACH_REVERSE_OOB(oob_item,
-			List_oob_sec, head) {
-			UT_OUT("id = %d", D_RO(oob_item)->item.id);
 		}
 	} else if (L == 4) {
 		TOID(struct item) item;
@@ -814,7 +682,6 @@ do_insert_new(PMEMobjpool *pop, const char *arg)
 	int ret = sscanf(arg, "n:%d:%d:%d", &before, &n, &id);
 	if (ret == 3) {
 		ret = list_insert_new_user(pop,
-			(struct list_head *)&D_RW(List_oob)->head,
 			offsetof(struct item, next),
 			(struct list_head *)&D_RW(List)->head,
 			get_item_list(List.oid, n),
@@ -827,7 +694,6 @@ do_insert_new(PMEMobjpool *pop, const char *arg)
 			UT_FATAL("list_insert_new(List, List_oob) failed");
 	} else if (ret == 2) {
 		ret = list_insert_new_user(pop,
-			(struct list_head *)&D_RW(List_oob)->head,
 			offsetof(struct item, next),
 			(struct list_head *)&D_RW(List)->head,
 			get_item_list(List.oid, n),
@@ -839,7 +705,6 @@ do_insert_new(PMEMobjpool *pop, const char *arg)
 			UT_FATAL("list_insert_new(List, List_oob) failed");
 	} else {
 		ret = list_insert_new_user(pop,
-			(struct list_head *)&D_RW(List_oob)->head,
 			0, NULL, OID_NULL, 0,
 			sizeof(struct item),
 			NULL, NULL, (PMEMoid *)Item);
@@ -888,9 +753,7 @@ do_remove_free(PMEMobjpool *pop, const char *arg)
 		FATAL_USAGE_REMOVE_FREE();
 
 	PMEMoid oid;
-	if (L == 1) {
-		oid = get_item_oob_list(List_oob.oid, n);
-	} else if (L == 2) {
+	if (L == 2) {
 		oid = get_item_list(List.oid, n);
 	} else {
 		FATAL_USAGE_REMOVE_FREE();
@@ -898,7 +761,6 @@ do_remove_free(PMEMobjpool *pop, const char *arg)
 
 	if (N == 1) {
 		if (list_remove_free_user(pop,
-			(struct list_head *)&D_RW(List_oob)->head,
 			0,
 			NULL,
 			&oid)) {
@@ -906,7 +768,6 @@ do_remove_free(PMEMobjpool *pop, const char *arg)
 		}
 	} else if (N == 2) {
 		if (list_remove_free_user(pop,
-			(struct list_head *)&D_RW(List_oob)->head,
 			offsetof(struct item, next),
 			(struct list_head *)&D_RW(List)->head,
 			&oid)) {
@@ -933,22 +794,6 @@ do_remove(PMEMobjpool *pop, const char *arg)
 		get_item_list(List.oid, n))) {
 		UT_FATAL("list_remove(List) failed");
 	}
-}
-
-/*
- * do_move_oob -- move element from one list to another
- */
-static void
-do_move_oob(PMEMobjpool *pop, const char *arg)
-{
-	int n;
-	if (sscanf(arg, "o:%d", &n) != 1)
-		FATAL_USAGE_MOVE_OOB();
-
-	list_move_oob(pop,
-		(struct list_head *)&D_RW(List_oob)->head,
-		(struct list_head *)&D_RW(List_oob_sec)->head,
-		get_item_oob_list(List_oob.oid, n));
 }
 
 /*
@@ -1054,9 +899,6 @@ main(int argc, char *argv[])
 			break;
 		case 'r':
 			do_remove(pop, argv[i]);
-			break;
-		case 'o':
-			do_move_oob(pop, argv[i]);
 			break;
 		case 'm':
 			do_move(pop, argv[i]);

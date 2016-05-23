@@ -40,6 +40,9 @@
 #define REDO_FINISH_FLAG	((uint64_t)1<<0)
 #define REDO_FLAG_MASK		(~REDO_FINISH_FLAG)
 
+#define REDO_NUM_ENTRIES \
+((LANE_SECTION_LEN - 2 * sizeof(uint64_t)) / sizeof(struct redo_log))
+
 /*
  * redo_log -- redo log entry
  */

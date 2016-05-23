@@ -56,8 +56,9 @@ function concat_log()
 expect_normal_exit\
 	../obj_list/obj_list$EXESUFFIX $DIR/testfile\
 		i:1:0 i:1:0\
+		P:2 R:2\
 		F:after_finish\
-		i:1:0
+		r:0
 
 concat_log
 
@@ -74,7 +75,7 @@ concat_log
 expect_normal_exit\
 	../obj_list/obj_list$EXESUFFIX $DIR/testfile\
 		F:before_finish\
-		i:1:0
+		r:0
 
 concat_log
 

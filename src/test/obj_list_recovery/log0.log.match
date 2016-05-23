@@ -1,43 +1,46 @@
 obj_list_recovery/TEST0: START: obj_list
- ../obj_list/obj_list$(nW) $(nW)testfile F:after_finish n:1:0
+ ../obj_list/obj_list$(nW) $(nW)testfile i:1:0 i:1:0 F:after_finish i:1:0
 pmalloc(id = 0)
-obj_list_recovery/TEST0: Done
-obj_list_recovery/TEST0: START: obj_list
- ../obj_list/obj_list$(nW) $(nW)testfile P:1 R:1 P:2 R:2 V P:1 R:1 P:2 R:2
-oob list:
-oob list reverse:
-list:
-list reverse:
-oob list:
-id = 0
-oob list reverse:
-id = 0
-list:
-id = 0
-list reverse:
-id = 0
-obj_list_recovery/TEST0: Done
-obj_list_recovery/TEST0: START: obj_list
- ../obj_list/obj_list$(nW) $(nW)testfile F:before_finish n:1:0
 pmalloc(id = 1)
+pmalloc(id = 2)
 obj_list_recovery/TEST0: Done
 obj_list_recovery/TEST0: START: obj_list
- ../obj_list/obj_list$(nW) $(nW)testfile P:1 R:1 P:2 R:2 V P:1 R:1 P:2 R:2
-oob list:
-id = 0
-oob list reverse:
-id = 0
+ ../obj_list/obj_list$(nW) $(nW)testfile P:2 R:2 V P:2 R:2
 list:
+id = 1
 id = 0
 list reverse:
 id = 0
-pfree(id = 1)
-oob list:
-id = 0
-oob list reverse:
-id = 0
+id = 1
 list:
+id = 2
+id = 1
 id = 0
 list reverse:
 id = 0
+id = 1
+id = 2
+obj_list_recovery/TEST0: Done
+obj_list_recovery/TEST0: START: obj_list
+ ../obj_list/obj_list$(nW) $(nW)testfile F:before_finish i:1:0
+pmalloc(id = 3)
+obj_list_recovery/TEST0: Done
+obj_list_recovery/TEST0: START: obj_list
+ ../obj_list/obj_list$(nW) $(nW)testfile P:2 R:2 V P:2 R:2
+list:
+id = 2
+id = 1
+id = 0
+list reverse:
+id = 0
+id = 1
+id = 2
+list:
+id = 2
+id = 1
+id = 0
+list reverse:
+id = 0
+id = 1
+id = 2
 obj_list_recovery/TEST0: Done

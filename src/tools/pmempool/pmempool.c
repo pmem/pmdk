@@ -48,6 +48,7 @@
 #include "dump.h"
 #include "check.h"
 #include "rm.h"
+#include "convert.h"
 
 #define APPNAME	"pmempool"
 
@@ -138,6 +139,12 @@ static struct command commands[] = {
 		.brief = "remove pool or poolset",
 		.func = pmempool_rm_func,
 		.help = pmempool_rm_help,
+	},
+	{
+		.name = "convert",
+		.brief = "perform pool layout conversion",
+		.func = pmempool_convert_func,
+		.help = pmempool_convert_help,
 	},
 	{
 		.name = "help",

@@ -116,8 +116,7 @@ Lane:
    Offset                   : $(*)
 
     OOB Header:
-    Next                     : off: $(*) pool_uuid_lo: $(*) [OK]
-    Prev                     : off: $(*) pool_uuid_lo: $(*) [OK]
+    Undo offset              : $(*)
     Type Number              : $(*)
   Undo Log - free          : 0 elements
   Undo Log - set           : 0 elements
@@ -250,8 +249,7 @@ Lane:
    Offset                   : $(*)
 
     OOB Header:
-    Next                     : off: $(*) pool_uuid_lo: $(*) [OK]
-    Prev                     : off: $(*) pool_uuid_lo: $(*) [OK]
+    Undo offset              : $(*)
     Type Number              : 0x0000000000000001
   Undo Log - set           : 0 elements
   Undo Log - set cache     : 1 element
@@ -260,6 +258,5 @@ Lane:
    Offset                   : $(*)
 
     OOB Header:
-    Next                     : off: $(*) pool_uuid_lo: $(*) [OK]
-    Prev                     : off: $(*) pool_uuid_lo: $(*) [OK]
+    Undo offset              : $(*)
     Type Number              : 0x0000000000000000

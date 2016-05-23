@@ -42,7 +42,7 @@
 
 /* attributes of the obj memory pool format for the pool header */
 #define OBJ_HDR_SIG "PMEMOBJ"	/* must be 8 bytes including '\0' */
-#define OBJ_FORMAT_MAJOR 1
+#define OBJ_FORMAT_MAJOR 2
 #define OBJ_FORMAT_COMPAT 0x0000
 #define OBJ_FORMAT_INCOMPAT 0x0000
 #define OBJ_FORMAT_RO_COMPAT 0x0000
@@ -91,8 +91,7 @@
 	((struct oob_header *)((uintptr_t)(pop) + (oid).off - OBJ_OOB_SIZE))
 
 #define OBJ_OID_IS_IN_UNDO_LOG(pop, oid)\
-	(OOB_HEADER_FROM_OID(pop, oid)->oob.pe_next.off != 0 &&\
-	OOB_HEADER_FROM_OID(pop, oid)->oob.pe_prev.off != 0)
+	(OOB_HEADER_FROM_OID(pop, oid)->undo_entry_offset != 0)
 
 #define OOB_HEADER_FROM_PTR(ptr)\
 	((struct oob_header *)((uintptr_t)(ptr) - OBJ_OOB_SIZE))
@@ -180,10 +179,12 @@ struct pmemobjpool {
  * together with allocator's header (of size 16B) located just before it.
  */
 struct oob_header {
-	struct list_entry oob;
+	uint8_t unused[24];
+
+	uint64_t undo_entry_offset;
 
 	/* used only in root object, last bit used as a mask */
-	size_t size;
+	uint64_t size;
 
 	uint64_t type_num;
 };
@@ -195,52 +196,6 @@ enum internal_type {
 	MAX_INTERNAL_TYPE
 };
 
-enum tx_state {
-	TX_STATE_NONE = 0,
-	TX_STATE_COMMITTED = 1,
-};
-
-struct tx_range {
-	uint64_t offset;
-	uint64_t size;
-	uint8_t data[];
-};
-
-struct tx_range_cache {
-	struct { /* compatible with struct tx_range */
-		uint64_t offset;
-		uint64_t size;
-		uint8_t data[MAX_CACHED_RANGE_SIZE];
-	} range[MAX_CACHED_RANGES];
-};
-
-struct lane_tx_layout {
-	uint64_t state;
-	struct list_head undo_alloc;
-	struct list_head undo_free;
-	struct list_head undo_set;
-	struct list_head undo_set_cache;
-};
-
-static inline PMEMoid
-oob_list_next(PMEMobjpool *pop, struct list_head *head, PMEMoid oid)
-{
-	struct oob_header *oobh = OOB_HEADER_FROM_OID(pop, oid);
-	if (head->pe_first.off == oobh->oob.pe_next.off)
-		return OID_NULL;
-
-	return oobh->oob.pe_next;
-}
-
-static inline PMEMoid
-oob_list_last(PMEMobjpool *pop, struct list_head *head)
-{
-	if (OBJ_OID_IS_NULL(head->pe_first))
-		return OID_NULL;
-
-	struct oob_header *oobh = OOB_HEADER_FROM_OID(pop, head->pe_first);
-	return oobh->oob.pe_prev;
-}
 
 /*
  * pmemobj_get_uuid_lo -- (internal) evaluates XOR sum of least significant

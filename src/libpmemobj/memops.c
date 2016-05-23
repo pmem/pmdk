@@ -40,11 +40,8 @@
 #include "redo.h"
 #include "memops.h"
 #include "lane.h"
-#include "pmalloc.h"
-#include "list.h"
 #include "obj.h"
 #include "valgrind_internal.h"
-#include "heap_layout.h"
 
 /*
  * operation_init -- initializes a new palloc operation
@@ -60,7 +57,7 @@ operation_init(PMEMobjpool *pop, struct operation_context *ctx,
 }
 
 /*
- * operation_perform -- (internal) performs a logic operation on the field
+ * operation_perform -- (internal) performs a operation on the field
  */
 static inline void
 operation_perform(uint64_t *field, uint64_t value,
@@ -73,13 +70,17 @@ operation_perform(uint64_t *field, uint64_t value,
 		case OPERATION_OR:
 			*field |= value;
 		break;
+		case OPERATION_SET: /* do nothing, duplicate entry */
+		break;
 		default:
 			ASSERT(0); /* unreachable */
 	}
 }
 
 /*
- * operation_add_typed_entry -- adds new entry to the current operation
+ * operation_add_typed_entry -- adds new entry to the current operation, if the
+ *	same ptr address already exists and the operation type is set,
+ *	the new value is not added and the function has no effect.
  */
 void operation_add_typed_entry(struct operation_context *ctx,
 	void *ptr, uint64_t value,
@@ -88,25 +89,27 @@ void operation_add_typed_entry(struct operation_context *ctx,
 	ASSERT(ctx->nentries[ENTRY_PERSISTENT] <= MAX_PERSITENT_ENTRIES);
 	ASSERT(ctx->nentries[ENTRY_TRANSIENT] <= MAX_TRANSIENT_ENTRIES);
 
-	/* new entry to be added to the operations */
+	/*
+	 * New entry to be added to the operations, all operations eventually
+	 * come down to a set operation regardless.
+	 */
 	struct operation_entry en = {ptr, value, OPERATION_SET};
 
-	if (type == OPERATION_AND || type == OPERATION_OR) {
-		struct operation_entry *e; /* existing entry */
-		for (size_t i = 0; i < ctx->nentries[en_type]; ++i) {
-			e = &ctx->entries[en_type][i];
-			/* update existing and exit, no reason to add new op */
-			if (e->ptr == ptr) {
-				operation_perform(&e->value, value, type);
+	struct operation_entry *e; /* existing entry */
+	for (size_t i = 0; i < ctx->nentries[en_type]; ++i) {
+		e = &ctx->entries[en_type][i];
+		/* update existing and exit, no reason to add new op */
+		if (e->ptr == ptr) {
+			operation_perform(&e->value, value, type);
 
-				return;
-			}
+			return;
 		}
+	}
 
+	if (type == OPERATION_AND || type == OPERATION_OR) {
 		/* change the new entry to current value and apply logic op */
 		en.value = *(uint64_t *)ptr;
 		operation_perform(&en.value, value, type);
-
 	}
 
 	ctx->entries[en_type][ctx->nentries[en_type]] = en;

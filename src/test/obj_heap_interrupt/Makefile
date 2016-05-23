@@ -39,7 +39,7 @@ vpath %.c ../../common
 TARGET = obj_heap_interrupt
 OBJS = obj_heap_interrupt.o pmalloc.o bucket.o redo.o heap.o lane.o ctree.o\
     util.o util_linux.o set.o set_linux.o out.o obj.o cuckoo.o\
-    list.o sync.o tx.o memops.o memblock.o libpmemobj.o
+    list.o sync.o tx.o memops.o memblock.o libpmemobj.o pvector.o
 
 LIBPMEM=y
 LIBPMEMOBJ=y

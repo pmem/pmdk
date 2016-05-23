@@ -1160,6 +1160,10 @@ util_header_check(struct pool_set *set, unsigned repidx, unsigned partidx,
 	if (hdr.major != major) {
 		ERR("pool version %d (library expects %d)",
 			hdr.major, major);
+		if (hdr.major < major) {
+			ERR("Please run the pmempool convert utility to "
+			"upgrade the pool.");
+		}
 		errno = EINVAL;
 		return -1;
 	}

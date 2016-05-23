@@ -47,8 +47,6 @@
 #include "out.h"
 #include "redo.h"
 #include "memops.h"
-#include "pmalloc.h"
-#include "list.h"
 #include "sys_util.h"
 #include "obj.h"
 #include "valgrind_internal.h"

@@ -47,14 +47,14 @@
 
 #define BITMAP_BUFF_SIZE 1024
 
-#define OFF_TO_PTR(pop, off) ((void *)((uintptr_t)(pop) + (off)));
+#define OFF_TO_PTR(pop, off) ((void *)((uintptr_t)(pop) + (off)))
 
 #define PTR_TO_OFF(pop, ptr) ((uintptr_t)ptr - (uintptr_t)pop)
 
 #define DEFAULT_BUCKET MAX_BUCKETS
 
-typedef void (*list_callback_fn)(struct pmem_info *pip, int v, int vnum,
-		struct list_entry *entry, size_t i);
+typedef void (*pvector_callback_fn)(struct pmem_info *pip, int v, int vnum,
+		void *ptr, size_t i);
 
 /*
  * lane_need_recovery_redo -- return 1 if redo log needs recovery
@@ -102,6 +102,8 @@ lane_need_recovery_alloc(struct pmem_info *pip,
 	return lane_need_recovery_redo(&section->redo[0], ALLOC_REDO_LOG_SIZE);
 }
 
+#define PVECTOR_EMPTY(_pvec) ((_pvec).embedded[0] == 0)
+
 /*
  * lane_need_recovery_tx -- return 1 if transaction's section needs recovery
  */
@@ -113,10 +115,10 @@ lane_need_recovery_tx(struct pmem_info *pip,
 
 	int set_cache = 0;
 
-	struct list_entry *entryp = PLIST_FIRST(pip->obj.pop,
-			&section->undo_set_cache);
-	if (entryp) {
-		struct tx_range_cache *cache = ENTRY_TO_DATA(entryp);
+	uint64_t off = section->undo_log[UNDO_SET_CACHE].embedded[0];
+
+	if (off != 0) {
+		struct tx_range_cache *cache = OFF_TO_PTR(pip->obj.pop, off);
 		struct tx_range *range = (struct tx_range *)&cache->range[0];
 
 		set_cache = (range->offset && range->size);
@@ -128,9 +130,9 @@ lane_need_recovery_tx(struct pmem_info *pip,
 	 * any undo log not empty
 	 */
 	return section->state == TX_STATE_NONE &&
-		(!PLIST_EMPTY(&section->undo_alloc) ||
-		!PLIST_EMPTY(&section->undo_free) ||
-		!PLIST_EMPTY(&section->undo_set) ||
+		(!PVECTOR_EMPTY(section->undo_log[UNDO_ALLOC]) ||
+		!PVECTOR_EMPTY(section->undo_log[UNDO_FREE]) ||
+		!PVECTOR_EMPTY(section->undo_log[UNDO_SET]) ||
 		set_cache);
 }
 
@@ -304,31 +306,30 @@ info_obj_lane_list(struct pmem_info *pip, int v,
 	info_obj_redo(v, &section->redo[0], REDO_NUM_ENTRIES);
 }
 
-/*
- * info_obj_list -- iterate through all elements on list and invoke
- * callback function for each element
- */
 static void
-info_obj_list(struct pmem_info *pip, int vnum, int vobj,
-	struct list_head *headp, const char *name, list_callback_fn cb)
+info_obj_pvector(struct pmem_info *pip, int vnum, int vobj,
+	struct pvector *vec, const char *name, pvector_callback_fn cb)
 {
-	size_t nelements = util_plist_nelements(pip->obj.pop, headp);
+	struct pvector_context *ctx = pvector_init(pip->obj.pop, vec);
+	if (ctx == NULL) {
+		outv_err("Cannot initialize pvector context\n");
+		exit(EXIT_FAILURE);
+	}
 
-	if (pip->args.obj.ignore_empty_obj && nelements == 0)
-		return;
-
-	outv_field(vnum, name, "%lu element%s", nelements,
-			nelements != 1 ? "s" : "");
+	size_t nvalues = pvector_nvalues(ctx);
+	outv_field(vnum, name, "%lu element%s", nvalues,
+			nvalues != 1 ? "s" : "");
 
 	outv_indent(vobj, 1);
 
 	size_t i = 0;
-	struct list_entry *entryp;
-	PLIST_FOREACH(entryp, pip->obj.pop, headp) {
-		cb(pip, vobj, vobj, entryp, i);
+	uint64_t off;
+	for (off = pvector_first(ctx); off != 0; off = pvector_next(ctx)) {
+		cb(pip, vobj, vobj, OFF_TO_PTR(pip->obj.pop, off), i);
 		i++;
 	}
 
+	pvector_delete(ctx);
 	outv_indent(vobj, -1);
 }
 
@@ -338,14 +339,13 @@ info_obj_list(struct pmem_info *pip, int vnum, int vobj,
 static void
 info_obj_oob_hdr(struct pmem_info *pip, int v, struct oob_header *oob)
 {
+
 	outv_title(v, "OOB Header");
 	outv_hexdump(v && pip->args.vhdrdump, oob, sizeof(*oob),
 		PTR_TO_OFF(pip->obj.pop, oob), 1);
-	outv_field(v, "Next", out_get_pmemoid_str(oob->oob.pe_next,
-				pip->obj.uuid_lo));
-	outv_field(v, "Prev", out_get_pmemoid_str(oob->oob.pe_prev,
-				pip->obj.uuid_lo));
+	outv_field(v, "Undo offset", "%llx", oob->undo_entry_offset);
 	outv_field(v, "Type Number", "0x%016lx", oob->type_num);
+
 }
 
 /*
@@ -369,12 +369,12 @@ info_obj_alloc_hdr(struct pmem_info *pip, int v,
  */
 static void
 info_obj_object_hdr(struct pmem_info *pip, int v, int vid,
-	struct list_entry *entryp, uint64_t id)
+	void *ptr, uint64_t id)
 {
 	struct pmemobjpool *pop = pip->obj.pop;
-	struct oob_header *oob = ENTRY_TO_OOB_HDR(entryp);
-	struct allocation_header *alloc = ENTRY_TO_ALLOC_HDR(entryp);
-	void *data = ENTRY_TO_DATA(entryp);
+	struct oob_header *oob = OOB_HEADER_FROM_PTR(ptr);
+	struct allocation_header *alloc = PTR_TO_ALLOC_HDR(ptr);
+	void *data = ptr;
 
 	outv_nl(vid);
 	outv_field(vid, "Object", "%lu", id);
@@ -398,11 +398,11 @@ info_obj_object_hdr(struct pmem_info *pip, int v, int vid,
  * set_entry_cb -- callback for set objects from undo log
  */
 static void
-set_entry_cb(struct pmem_info *pip, int v, int vid, struct list_entry *entryp,
+set_entry_cb(struct pmem_info *pip, int v, int vid, void *ptr,
 	size_t i)
 {
-	struct tx_range *range = ENTRY_TO_TX_RANGE(entryp);
-	info_obj_object_hdr(pip, v, vid, entryp, i);
+	struct tx_range *range = ptr;
+	info_obj_object_hdr(pip, v, vid, ptr, i);
 
 	outv_title(v, "Tx range");
 	outv_indent(v, 1);
@@ -418,10 +418,10 @@ set_entry_cb(struct pmem_info *pip, int v, int vid, struct list_entry *entryp,
  */
 static void
 set_entry_cache_cb(struct pmem_info *pip, int v, int vid,
-	struct list_entry *entryp, size_t i)
+	void *ptr, size_t i)
 {
-	struct tx_range_cache *cache = ENTRY_TO_TX_RANGE(entryp);
-	info_obj_object_hdr(pip, v, vid, entryp, i);
+	struct tx_range_cache *cache = ptr;
+	info_obj_object_hdr(pip, v, vid, ptr, i);
 
 	int title = 0;
 	for (int i = 0; i < MAX_CACHED_RANGES; ++i) {
@@ -453,14 +453,15 @@ info_obj_lane_tx(struct pmem_info *pip, int v,
 	outv_field(v, "State", "%s", out_get_tx_state_str(section->state));
 
 	int vobj = v && (pip->args.obj.valloc || pip->args.obj.voobhdr);
-	info_obj_list(pip, v, vobj, &section->undo_alloc,
+	info_obj_pvector(pip, v, vobj, &section->undo_log[UNDO_ALLOC],
 			"Undo Log - alloc", info_obj_object_hdr);
-	info_obj_list(pip, v, vobj, &section->undo_free,
+	info_obj_pvector(pip, v, vobj, &section->undo_log[UNDO_FREE],
 			"Undo Log - free", info_obj_object_hdr);
-	info_obj_list(pip, v, v, &section->undo_set,
+	info_obj_pvector(pip, v, v, &section->undo_log[UNDO_SET],
 			"Undo Log - set", set_entry_cb);
-	info_obj_list(pip, v, v, &section->undo_set_cache,
+	info_obj_pvector(pip, v, v, &section->undo_log[UNDO_SET_CACHE],
 			"Undo Log - set cache", set_entry_cache_cb);
+
 }
 
 /*
@@ -613,10 +614,12 @@ info_obj_object(struct pmem_info *pip, struct obj_header *objh,
 	type_stats->n_objects++;
 	type_stats->n_bytes += real_size;
 
+
 	int vid = pip->args.obj.vobjects;
 	int v = pip->args.obj.vobjects;
+
 	outv_indent(v, 1);
-	info_obj_object_hdr(pip, v, vid, &objh->oobh.oob, objid);
+	info_obj_object_hdr(pip, v, vid, OBJH_TO_PTR(objh), objid);
 	outv_indent(v, -1);
 }
 
@@ -817,7 +820,7 @@ info_obj_root_obj(struct pmem_info *pip)
 			out_get_size_str(root_size, pip->args.human));
 
 	/* do not print object id and offset for root object */
-	info_obj_object_hdr(pip, v, VERBOSE_SILENT, &objh->oobh.oob, 0);
+	info_obj_object_hdr(pip, v, VERBOSE_SILENT, OBJH_TO_PTR(objh), 0);
 }
 
 /*

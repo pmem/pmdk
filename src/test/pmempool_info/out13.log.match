@@ -53,8 +53,7 @@ Size idx                 : $(*)
    Size                     : $(*)
 
    OOB Header:
-   Next                     : off: $(*) pool_uuid_lo: $(*) [OK]
-   Prev                     : off: $(*) pool_uuid_lo: $(*) [OK]
+   Undo offset              : $(*)
    Type Number              : $(*)
 
 Statistics:

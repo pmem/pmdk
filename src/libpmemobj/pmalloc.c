@@ -47,7 +47,6 @@
 #include "memops.h"
 #include "pmalloc.h"
 #include "lane.h"
-#include "list.h"
 #include "obj.h"
 #include "out.h"
 #include "heap_layout.h"
