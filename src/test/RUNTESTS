@@ -132,11 +132,6 @@ runtest() {
 			# for each TEST script found...
 			for runscript in $runscripts
 			do
-				# powershell files are for windows
-				if [[ "$runscript" =~ "ps1" ]]; then
-						echo SKIP $runscript
-						continue
-				fi
 				if [ "$dryrun" ]
 				then
 					echo "(in ./$1) TEST=$testtype FS=$fs BUILD=$build ./$runscript"
