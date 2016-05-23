@@ -30,6 +30,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libpmemlog", "libpmemlog\li
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "utils", "utils", "{F8CCA5AE-2D75-4C79-BEAB-2588CD5956C8}"
 	ProjectSection(SolutionItems) = preProject
+		..\appveyor.yml = ..\appveyor.yml
 		..\utils\cstyle = ..\utils\cstyle
 		..\utils\CSTYLE.ps1 = ..\utils\CSTYLE.ps1
 	EndProjectSection
@@ -115,6 +116,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_out_of_memory", "test\o
 		{0B1818EB-BDC8-4865-964F-DB8BF05CFD86} = {0B1818EB-BDC8-4865-964F-DB8BF05CFD86}
 		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681} = {CE3F2DFB-8470-4802-AD37-21CAF6CB2681}
 	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sparsefile", "test\tools\sparsefile\sparsefile.vcxproj", "{3EC30D6A-BDA4-4971-879A-8814204EAE31}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -251,6 +254,14 @@ Global
 		{70EE1D40-0C65-4985-8EFC-BD40EE3A89B2}.Static-Debug|x64.Build.0 = Static-Debug|x64
 		{70EE1D40-0C65-4985-8EFC-BD40EE3A89B2}.Static-Release|x64.ActiveCfg = Release|x64
 		{70EE1D40-0C65-4985-8EFC-BD40EE3A89B2}.Static-Release|x64.Build.0 = Release|x64
+		{3EC30D6A-BDA4-4971-879A-8814204EAE31}.Debug|x64.ActiveCfg = Debug|x64
+		{3EC30D6A-BDA4-4971-879A-8814204EAE31}.Debug|x64.Build.0 = Debug|x64
+		{3EC30D6A-BDA4-4971-879A-8814204EAE31}.Release|x64.ActiveCfg = Release|x64
+		{3EC30D6A-BDA4-4971-879A-8814204EAE31}.Release|x64.Build.0 = Release|x64
+		{3EC30D6A-BDA4-4971-879A-8814204EAE31}.Static-Debug|x64.ActiveCfg = Debug|x64
+		{3EC30D6A-BDA4-4971-879A-8814204EAE31}.Static-Debug|x64.Build.0 = Debug|x64
+		{3EC30D6A-BDA4-4971-879A-8814204EAE31}.Static-Release|x64.ActiveCfg = Release|x64
+		{3EC30D6A-BDA4-4971-879A-8814204EAE31}.Static-Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -274,5 +285,6 @@ Global
 		{86EE22CC-6D3C-4F81-ADC8-394946F0DA81} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 		{5D362DB7-D2BD-4907-AAD8-4B8627E72282} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 		{70EE1D40-0C65-4985-8EFC-BD40EE3A89B2} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
+		{3EC30D6A-BDA4-4971-879A-8814204EAE31} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 	EndGlobalSection
 EndGlobal
