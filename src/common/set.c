@@ -657,18 +657,18 @@ util_poolset_file(struct pool_set_part *part, size_t minsize, int create)
 
 	size_t size;
 
+	part->created = 0;
 	if (create) {
 		size = part->filesize;
 		part->fd = util_file_create(part->path, size, minsize);
-		part->created = 1;
 		if (part->fd == -1) {
 			LOG(2, "failed to create file: %s", part->path);
 			return -1;
 		}
+		part->created = 1;
 	} else {
 		size = 0;
 		part->fd = util_file_open(part->path, &size, minsize, O_RDWR);
-		part->created = 0;
 		if (part->fd == -1) {
 			LOG(2, "failed to open file: %s", part->path);
 			return -1;
