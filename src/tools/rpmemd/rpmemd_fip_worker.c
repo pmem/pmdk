@@ -158,6 +158,9 @@ int
 rpmemd_fip_worker_fini(struct rpmemd_fip_worker *worker)
 {
 	int ret = 0;
+
+	util_mutex_lock(&worker->lock);
+
 	*worker->stop = 1;
 
 	errno = pthread_cond_signal(&worker->cond);
@@ -165,6 +168,8 @@ rpmemd_fip_worker_fini(struct rpmemd_fip_worker *worker)
 		RPMEMD_LOG(ERR, "!sending signal to worker");
 		ret = -1;
 	}
+
+	util_mutex_unlock(&worker->lock);
 
 	void *tret;
 	errno = pthread_join(worker->thread, &tret);
