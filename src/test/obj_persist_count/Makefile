@@ -42,7 +42,7 @@ TARGET = obj_persist_count
 
 OBJS = obj_persist_count.o pmalloc.o bucket.o redo.o heap.o lane.o ctree.o\
     util.o util_linux.o set.o set_linux.o out.o obj.o cuckoo.o list.o\
-    sync.o tx.o memops.o libpmemobj.o memblock.o
+    sync.o tx.o memops.o libpmemobj.o memblock.o pvector.o
 
 LIBPMEM=y
 LIBPMEMOBJ=y

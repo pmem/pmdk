@@ -48,12 +48,12 @@
 #include "redo.h"
 #include "memops.h"
 #include "pmalloc.h"
+#include "heap_layout.h"
 #include "list.h"
 #include "cuckoo.h"
 #include "ctree.h"
 #include "obj.h"
 #include "sync.h"
-#include "heap_layout.h"
 #include "valgrind_internal.h"
 
 static struct cuckoo *pools_ht; /* hash table used for searching by UUID */
@@ -1175,13 +1175,13 @@ constructor_alloc_bytype(PMEMobjpool *pop, void *ptr,
 	struct oob_header *pobj = OOB_HEADER_FROM_PTR(ptr);
 	struct carg_bytype *carg = arg;
 
-	/* zero-initialize OOB list, could be replaced with nodrain variant */
-	pop->memset_persist(pop, &pobj->oob, 0, sizeof(pobj->oob));
-
+	pobj->undo_entry_offset = 0;
 	pobj->type_num = carg->user_type;
 	pobj->size = 0;
-
+	memset(pobj->unused, 0, sizeof(pobj->unused));
 	pop->flush(pop, pobj, sizeof(*pobj));
+
+	VALGRIND_DO_MAKE_MEM_NOACCESS(pop, pobj->unused, sizeof(pobj->unused));
 
 	if (carg->zero_init)
 		pop->memset_persist(pop, ptr, 0, usable_size);
@@ -1309,13 +1309,17 @@ constructor_realloc(PMEMobjpool *pop, void *ptr, size_t usable_size, void *arg)
 	struct carg_realloc *carg = arg;
 	struct oob_header *pobj = OOB_HEADER_FROM_PTR(ptr);
 
-	/* zero-initialize OOB list, could be replaced with nodrain variant */
-	pop->memset_persist(pop, &pobj->oob, 0, sizeof(pobj->oob));
-
 	if (ptr != carg->ptr) {
+		pobj->undo_entry_offset = 0;
 		pobj->type_num = carg->user_type;
 		pobj->size = 0;
-		pop->flush(pop, pobj, sizeof(*pobj));
+		VALGRIND_DO_MAKE_MEM_NOACCESS(pop, pobj->unused,
+			sizeof(pobj->unused));
+
+		pop->flush(pop, &pobj->undo_entry_offset,
+			sizeof(pobj->undo_entry_offset) +
+			sizeof(pobj->type_num) +
+			sizeof(pobj->size));
 	}
 
 	if (!carg->zero_init)
@@ -1654,14 +1658,12 @@ constructor_alloc_root(PMEMobjpool *pop, void *ptr,
 	/* temporarily add atomic root allocation to pmemcheck transaction */
 	VALGRIND_ADD_TO_TX(ro, OBJ_OOB_SIZE + usable_size);
 
-	/* zero-initialize OOB list */
-	pop->memset_persist(pop, &ro->oob, 0, sizeof(ro->oob));
-
 	if (carg->constructor)
 		ret = carg->constructor(pop, ptr, carg->arg);
 	else
 		pop->memset_persist(pop, ptr, 0, usable_size);
 
+	ro->undo_entry_offset = 0;
 	ro->type_num = POBJ_ROOT_TYPE_NUM;
 	ro->size = carg->size | OBJ_INTERNAL_OBJECT_MASK;
 
@@ -1890,7 +1892,6 @@ pmemobj_list_insert_new(PMEMobjpool *pop, size_t pe_offset, void *head,
 		return OID_NULL;
 	}
 
-	struct list_head *lhead = NULL;
 	struct carg_bytype carg;
 
 	carg.user_type = (type_num_t)type_num;
@@ -1899,7 +1900,7 @@ pmemobj_list_insert_new(PMEMobjpool *pop, size_t pe_offset, void *head,
 	carg.zero_init = 0;
 
 	PMEMoid retoid = OID_NULL;
-	list_insert_new_user(pop, lhead,
+	list_insert_new_user(pop,
 			pe_offset, head, dest, before,
 			size, constructor_alloc_bytype, &carg, &retoid);
 	return retoid;
@@ -1925,7 +1926,7 @@ pmemobj_list_remove(PMEMobjpool *pop, size_t pe_offset, void *head,
 	}
 
 	if (free) {
-		return list_remove_free_user(pop, NULL, pe_offset, head, &oid);
+		return list_remove_free_user(pop, pe_offset, head, &oid);
 	} else {
 		return list_remove(pop, (ssize_t)pe_offset, head, oid);
 	}

@@ -35,6 +35,7 @@
  */
 
 #include <stdint.h>
+#include <stddef.h>
 #include <sys/queue.h>
 #include <stdarg.h>
 #include <stdbool.h>
@@ -48,11 +49,15 @@
 #include "memops.h"
 #include "pmalloc.h"
 #include "list.h"
+#include "pvector.h"
 #include "obj.h"
 #include "memblock.h"
 #include "heap_layout.h"
+#include "tx.h"
 #include "heap.h"
 #include "btt_layout.h"
+
+#define COUNT_OF(x) (sizeof(x) / sizeof(0[x]))
 
 #define OPT_SHIFT 12
 #define OPT_MASK (~((1 << OPT_SHIFT) - 1))
@@ -116,6 +121,14 @@ for ((entry) = PLIST_OFF_TO_PTR(pop, (head)->pe_first.off);\
 #define DEFAULT_HDR_SIZE	4096UL /* 4 KB */
 #define DEFAULT_DESC_SIZE	4096UL /* 4 KB */
 #define POOL_HDR_DESC_SIZE	(DEFAULT_HDR_SIZE + DEFAULT_DESC_SIZE)
+
+#define PTR_TO_ALLOC_HDR(ptr)\
+((void *)((uintptr_t)(ptr) -\
+	sizeof(struct oob_header) -\
+	sizeof(struct allocation_header)))
+
+#define OBJH_TO_PTR(objh)\
+((void *)((uintptr_t)objh + sizeof(struct obj_header)))
 
 struct obj_header {
 	struct allocation_header ahdr;

@@ -668,25 +668,6 @@ pmemspoil_process_chunk_type_t(struct pmemspoil *psp,
 }
 
 /*
- * pmemspoil_process_PMEMoid -- process PMEMoid value
- */
-static int
-pmemspoil_process_PMEMoid(struct pmemspoil *psp,
-		struct pmemspoil_list *pfp,
-		PMEMoid *valp, size_t size, int le)
-{
-	PMEMoid v;
-	if (sscanf(pfp->value, "0x%" SCNx64 ",0x%" SCNx64,
-		&v.pool_uuid_lo, &v.off) != 2)
-		return -1;
-
-	/* ignore 'le' */
-	*valp = v;
-
-	return 0;
-}
-
-/*
  * pmemspoil_process_checksum_gen -- generate checksum
  */
 static int
@@ -1156,104 +1137,15 @@ pmemspoil_process_sec_allocator(struct pmemspoil *psp,
 }
 
 /*
- * pmemspoil_process_entry_remove -- remove list entry
+ * pmemspoil_process_vector -- process vector
  */
 static int
-pmemspoil_process_entry_remove(struct pmemspoil *psp,
-	struct pmemspoil_list *pfp, struct list_pair lpair)
+pmemspoil_process_vector(struct pmemspoil *psp,
+	struct pmemspoil_list *pfp, struct pvector *vec)
 {
-	struct list_head *head = lpair.head;
-	struct list_entry *entry = lpair.entry;
-	struct pmemobjpool *pop = psp->addr;
-	struct list_entry *first = PLIST_OFF_TO_PTR(pop, head->pe_first.off);
-	struct list_entry *prev = PLIST_OFF_TO_PTR(pop, entry->pe_prev.off);
-	struct list_entry *next = PLIST_OFF_TO_PTR(pop, entry->pe_next.off);
-
-	if (prev == next) {
-		head->pe_first.off = 0;
-	} else {
-		prev->pe_next.off = entry->pe_next.off;
-		next->pe_prev.off = entry->pe_prev.off;
-		if (first == entry)
-			head->pe_first.off = entry->pe_next.off;
-	}
-
-	return 0;
-}
-
-/*
- * pmemspoil_process_oob -- process oob header fields
- */
-static int
-pmemspoil_process_oob(struct pmemspoil *psp,
-	struct pmemspoil_list *pfp, struct list_entry *entry)
-{
-	struct oob_header *oob = ENTRY_TO_OOB_HDR(entry);
-
 	PROCESS_BEGIN(psp, pfp) {
-		PROCESS_FIELD(oob, type_num, uint64_t);
-		PROCESS_FIELD(oob, size, uint64_t);
-	} PROCESS_END
-
-	return PROCESS_RET;
-}
-
-/*
- * pmemspoil_process_tx_range -- process tx range fields
- */
-static int
-pmemspoil_process_tx_range(struct pmemspoil *psp,
-	struct pmemspoil_list *pfp, struct list_entry *entry)
-{
-	struct tx_range *range = ENTRY_TO_TX_RANGE(entry);
-
-	PROCESS_BEGIN(psp, pfp) {
-		PROCESS_FIELD(range, offset, uint64_t);
-		PROCESS_FIELD(range, size, uint64_t);
-	} PROCESS_END
-
-	return PROCESS_RET;
-}
-
-/*
- * pmemspoil_process_entry -- process list entry
- */
-static int
-pmemspoil_process_entry(struct pmemspoil *psp,
-	struct pmemspoil_list *pfp, struct list_pair lpair)
-{
-	struct list_entry *entry = lpair.entry;
-	PROCESS_BEGIN(psp, pfp) {
-		PROCESS_FIELD(entry, pe_next, PMEMoid);
-		PROCESS_FIELD(entry, pe_prev, PMEMoid);
-		PROCESS(oob, entry, 1);
-		PROCESS(tx_range, entry, 1);
-
-		PROCESS_FUNC("remove", entry_remove, lpair);
-	} PROCESS_END
-
-	return PROCESS_RET;
-}
-
-/*
- * pmemspoil_process_list -- process list head
- */
-static int
-pmemspoil_process_list(struct pmemspoil *psp,
-	struct pmemspoil_list *pfp, struct list_head *head)
-{
-	size_t nelements = util_plist_nelements(psp->addr, head);
-
-	PROCESS_BEGIN(psp, pfp) {
-		struct list_pair lpair = {
-			.head = head,
-			.entry = util_plist_get_entry(psp->addr,
-					head, PROCESS_INDEX),
-		};
-
-		PROCESS_FIELD(head, pe_first, PMEMoid);
-
-		PROCESS(entry, lpair, nelements);
+		PROCESS_FIELD_ARRAY(vec, embedded, uint64_t, PVECTOR_INIT_SIZE);
+		PROCESS_FIELD_ARRAY(vec, arrays, uint64_t, PVECTOR_MAX_ARRAYS);
 	} PROCESS_END
 
 	return PROCESS_RET;
@@ -1268,9 +1160,13 @@ pmemspoil_process_sec_tx(struct pmemspoil *psp,
 {
 	PROCESS_BEGIN(psp, pfp) {
 		PROCESS_FIELD(sec, state, uint64_t);
-		PROCESS_NAME("undo_alloc", list, &sec->undo_alloc, 1);
-		PROCESS_NAME("undo_set", list, &sec->undo_set, 1);
-		PROCESS_NAME("undo_free", list, &sec->undo_free, 1);
+
+		PROCESS_NAME("undo_alloc", vector,
+			&sec->undo_log[UNDO_ALLOC], 1);
+		PROCESS_NAME("undo_set", vector,
+			&sec->undo_log[UNDO_SET], 1);
+		PROCESS_NAME("undo_free", vector,
+			&sec->undo_log[UNDO_FREE], 1);
 	} PROCESS_END
 
 	return PROCESS_RET;

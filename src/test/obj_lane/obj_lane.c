@@ -50,6 +50,8 @@
 #include "pmalloc.h"
 #include "list.h"
 #include "obj.h"
+#include "pvector.h"
+#include "tx.h"
 
 #define MAX_MOCK_LANES 5
 #define MOCK_RUNTIME (void *)(0xABC)

@@ -67,6 +67,7 @@ OBJ_TESTS = \
 	\
 	obj_bucket\
 	obj_check\
+	obj_convert\
 	obj_ctree\
 	obj_cuckoo\
 	obj_debug\
@@ -77,12 +78,9 @@ OBJ_TESTS = \
 	obj_heap_state\
 	obj_lane\
 	obj_list_insert\
-	obj_list_insert_new\
 	obj_list_move\
-	obj_list_move_oob\
 	obj_list_recovery\
 	obj_list_remove\
-	obj_list_remove_free\
 	obj_list_valgrind\
 	obj_list_macro\
 	obj_locks\
@@ -96,6 +94,7 @@ OBJ_TESTS = \
 	obj_pool\
 	obj_pool_lock\
 	obj_pool_lookup\
+	obj_pvector\
 	obj_recovery\
 	obj_recreate\
 	obj_redo_log\

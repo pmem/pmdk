@@ -54,9 +54,17 @@ expect_normal_exit ../obj_list/obj_list$EXESUFFIX $DIR/testfile\
 		i:0:0\
 		i:1:-1\
 		i:0:-1\
-		i:0:2\
 		i:1:2\
+		P:2 R:2\
+		r:3\
+		r:2\
+		r:1\
+		r:-1\
+		r:0\
 		P:2 R:2
+
+
+truncate -s1M $DIR/testfile
 
 check
 

@@ -146,14 +146,30 @@ main(int argc, char *argv[])
 	print_reset_counters("tx_alloc");
 
 	TX_BEGIN(pop) {
+		f->bar = pmemobj_tx_alloc(sizeof(struct foo), 0);
+		UT_ASSERT(!OID_IS_NULL(f->bar));
+	} TX_END
+	print_reset_counters("tx_alloc_next");
+
+	TX_BEGIN(pop) {
 		pmemobj_tx_free(f->bar);
 	} TX_END
 	print_reset_counters("tx_free");
 
 	TX_BEGIN(pop) {
+		pmemobj_tx_free(f->bar);
+	} TX_END
+	print_reset_counters("tx_free_next");
+
+	TX_BEGIN(pop) {
 		pmemobj_tx_add_range_direct(&f->val, sizeof(f->val));
 	} TX_END
 	print_reset_counters("tx_add");
+
+	TX_BEGIN(pop) {
+		pmemobj_tx_add_range_direct(&f->val, sizeof(f->val));
+	} TX_END
+	print_reset_counters("tx_add_next");
 
 	pmalloc(pop, &f->dest, sizeof(f->val));
 	print_reset_counters("pmalloc");

@@ -34,9 +34,6 @@
  * list.h -- internal definitions for persistent atomic lists module
  */
 
-#define REDO_NUM_ENTRIES \
-((LANE_SECTION_LEN - 2 * sizeof(uint64_t)) / sizeof(struct redo_log))
-
 /*
  * lane_list_section -- structure of list section in lane
  *
@@ -58,10 +55,7 @@ struct list_head {
 	PMEMmutex lock;
 };
 
-int list_insert_new_oob(PMEMobjpool *pop, struct list_head *oob_head,
-	size_t size, pmalloc_constr constructor, void *arg, PMEMoid *oidp);
-
-int list_insert_new_user(PMEMobjpool *pop, struct list_head *oob_head,
+int list_insert_new_user(PMEMobjpool *pop,
 	size_t pe_offset, struct list_head *user_head, PMEMoid dest, int before,
 	size_t size, pmalloc_constr constructor, void *arg, PMEMoid *oidp);
 
@@ -69,10 +63,7 @@ int list_insert(PMEMobjpool *pop,
 	ssize_t pe_offset, struct list_head *head, PMEMoid dest, int before,
 	PMEMoid oid);
 
-void list_remove_free_oob(PMEMobjpool *pop, struct list_head *oob_head,
-	PMEMoid *oidp);
-
-int list_remove_free_user(PMEMobjpool *pop, struct list_head *oob_head,
+int list_remove_free_user(PMEMobjpool *pop,
 	size_t pe_offset, struct list_head *user_head,
 	PMEMoid *oidp);
 

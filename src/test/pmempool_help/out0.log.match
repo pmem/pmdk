@@ -13,6 +13,7 @@ create	- $(*)
 dump	- $(*)
 check	- $(*)
 rm	- remove pool or poolset
+convert	- $(*)
 help	- $(*)
 
 $(*) pmempool(1) $(*)

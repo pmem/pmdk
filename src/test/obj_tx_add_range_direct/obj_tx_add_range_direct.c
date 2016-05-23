@@ -39,6 +39,8 @@
 #include "unittest.h"
 #include "libpmemobj.h"
 #include "util.h"
+#include "lane.h"
+#include "obj.h"
 #include "valgrind_internal.h"
 
 #define LAYOUT_NAME "tx_add_range_direct"
@@ -466,9 +468,6 @@ test_add_direct_macros(PMEMobjpool *pop)
 
 	UT_ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
 }
-
-/* value taken from libpmemobj/obj.h */
-#define MAX_CACHED_RANGES 127
 
 /*
  * test_tx_corruption_bug -- test whether tx_adds for small objects from one

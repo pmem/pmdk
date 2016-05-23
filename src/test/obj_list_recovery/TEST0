@@ -55,17 +55,18 @@ function concat_log()
 # fail after finish flag is set in redo log
 expect_normal_exit\
 	../obj_list/obj_list$EXESUFFIX $DIR/testfile\
+		i:1:0 i:1:0\
 		F:after_finish\
-		n:1:0
+		i:1:0
 
 concat_log
 
 # check
 expect_normal_exit\
 	../obj_list/obj_list$EXESUFFIX $DIR/testfile\
-		P:1 R:1 P:2 R:2\
+		P:2 R:2\
 		V\
-		P:1 R:1 P:2 R:2
+		P:2 R:2
 
 concat_log
 
@@ -73,16 +74,16 @@ concat_log
 expect_normal_exit\
 	../obj_list/obj_list$EXESUFFIX $DIR/testfile\
 		F:before_finish\
-		n:1:0
+		i:1:0
 
 concat_log
 
 # check
 expect_normal_exit\
 	../obj_list/obj_list$EXESUFFIX $DIR/testfile\
-		P:1 R:1 P:2 R:2\
+		P:2 R:2\
 		V\
-		P:1 R:1 P:2 R:2
+		P:2 R:2
 
 concat_log
 
