@@ -3312,6 +3312,28 @@ should not be used after a transaction abort or should be used with utmost care.
 This also includes code after the
 .B TX_END
 macro.
+.PP
+.B Libpmemobj
+is not cancellation-safe. The pool will never be corrupted because
+of canceled thread, but other threads may stall waiting on locks taken by that
+thread. If application wants to use
+.BR pthread_cancel (3),
+it must disable cancellation before calling
+.B libpmemobj
+APIs (see
+.BR pthread_setcancelstate (3)
+with
+.BR PTHREAD_CANCEL_DISABLE )
+and re-enable it after.
+Deferring cancellation (
+.BR pthread_setcanceltype (3)
+with
+.BR PTHREAD_CANCEL_DEFERRED )
+is not safe enough, because
+.B libpmemobj
+internally may call functions that are specified as cancellation points in POSIX
+API.
+
 .SH LIBRARY API VERSIONING
 .PP
 This section describes how the library API is versioned,
