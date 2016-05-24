@@ -1,0 +1,2 @@
+<librpmem>: <1> [util.c:$(N) util_file_open] flock: Resource temporarily unavailable
+<librpmem>: <1> [set.c:$(N) util_header_create] Non-empty file detected
