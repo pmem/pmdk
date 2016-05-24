@@ -71,7 +71,7 @@ public:
 	typedef std::function<int(key_type, value_type, void *)> callback;
 
 	/**
-	 * Detault constructor.
+	 * Default constructor.
 	 */
 	ctree_map_p()
 	{
