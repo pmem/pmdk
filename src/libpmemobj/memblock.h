@@ -91,7 +91,7 @@ enum memory_block_type {
 	 *
 	 * 2) The size index of the first header is changed from previous value
 	 *	of 7 to 5: |F...R||F.R|
-	 *	This is a single failsafe atomic operation and this is the
+	 *	This is a single fail-safe atomic operation and this is the
 	 *	first change that is noticeable by the heap operations.
 	 *	A single linked list element is split into two new ones.
 	 *
