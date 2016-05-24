@@ -394,8 +394,8 @@ get_lane_info_record(PMEMobjpool *pop)
 		}
 		Lane_info_records = info;
 
-		if (unlikely(!cuckoo_insert(
-				Lane_info_ht, pop->uuid_lo, info) == 0)) {
+		if (unlikely(cuckoo_insert(
+				Lane_info_ht, pop->uuid_lo, info) != 0)) {
 			FATAL("cuckoo_insert");
 		}
 	}
