@@ -40,6 +40,7 @@ export UNITTEST_NUM=0
 SRC_DIR=../..
 ROOT_DIR=./test$UNITTEST_NUM-root/
 POOL_DESC_0=test$UNITTEST_NUM-pool0.set
+POOL_DESC_1=test$UNITTEST_NUM-pool1.set
 LOG_FILE=rpmemd$UNITTEST_NUM.log
 rm -f $LOG_FILE
 
@@ -51,7 +52,12 @@ require_fs_type any
 setup
 
 expect_normal_exit $PMEMPOOL.static-nondebug rm -f -s $ROOT_DIR/$POOL_DESC_0
-expect_normal_exit ./rpmemd_db$EXESUFFIX $ROOT_DIR $POOL_DESC_0 $LOG_FILE
+expect_normal_exit $PMEMPOOL.static-nondebug rm -f -s $ROOT_DIR/$POOL_DESC_1
+expect_normal_exit ./rpmemd_db$EXESUFFIX $LOG_FILE $ROOT_DIR \
+				$POOL_DESC_0 $POOL_DESC_1
+
+# remove all lines containing 'out_init' from the files *0.log
+sed -i '/out_init/d' ./*$UNITTEST_NUM.log
 
 check
 
