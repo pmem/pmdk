@@ -37,10 +37,10 @@
 #include "unittest.h"
 #include <sys/queue.h>
 
-typedef struct _TEST_NODE {
+typedef struct TEST_NODE {
 	LIST_ENTRY(TEST_NODE) ListEntry;
 	int dummy;
-} TEST_NODE, *PTEST_NODE;
+} *PTEST_NODE;
 
 LIST_HEAD(TestList, TEST_NODE) TestListHead =
 	LIST_HEAD_INITIALIZER(TestListHead);
@@ -75,7 +75,7 @@ PTEST_NODE
 allocNode()
 {
 	PTEST_NODE pNode = NULL;
-	pNode = malloc(sizeof(TEST_NODE));
+	pNode = malloc(sizeof(struct TEST_NODE));
 	if (pNode == NULL)
 		UT_FATAL("Unabe to allocate memory for test node");
 	return pNode;
@@ -98,12 +98,12 @@ main(int argc, char *argv[])
 
 	pNode = allocNode();
 	pNode->dummy = 0;
-	WIN_LIST_INSERT_HEAD(PTEST_NODE, &TestListHead, pNode, ListEntry);
+	LIST_INSERT_HEAD(&TestListHead, pNode, ListEntry);
 	UT_ASSERTeq_rt(1, getListCount());
 	dump_list();
 
 	/* Remove one node */
-	WIN_LIST_REMOVE(PTEST_NODE, pNode, ListEntry);
+	LIST_REMOVE(pNode, ListEntry);
 	UT_ASSERTeq_rt(0, getListCount());
 	dump_list();
 	free(pNode);
@@ -112,8 +112,7 @@ main(int argc, char *argv[])
 	for (int i = 1; i < 10; i++) {
 		pNode = allocNode();
 		pNode->dummy = i;
-		WIN_LIST_INSERT_HEAD(PTEST_NODE, &TestListHead, pNode,
-			ListEntry);
+		LIST_INSERT_HEAD(&TestListHead, pNode, ListEntry);
 	}
 	UT_ASSERTeq_rt(9, getListCount());
 	dump_list();
@@ -121,7 +120,7 @@ main(int argc, char *argv[])
 	/* Remove all of them */
 	while (!LIST_EMPTY(&TestListHead)) {
 		PTEST_NODE pNode = (PTEST_NODE)LIST_FIRST(&TestListHead);
-		WIN_LIST_REMOVE(PTEST_NODE, pNode, ListEntry);
+		LIST_REMOVE(pNode, ListEntry);
 		free(pNode);
 	}
 	UT_ASSERTeq_rt(0, getListCount());

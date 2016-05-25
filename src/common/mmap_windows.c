@@ -58,13 +58,13 @@
 /*
  * this structure tracks the file mappings outstanding per file handle
  */
-typedef struct _FILE_MAPPING_TRACKER {
+typedef struct FILE_MAPPING_TRACKER {
 	LIST_ENTRY(FILE_MAPPING_TRACKER) ListEntry;
 	HANDLE FileHandle;
 	HANDLE FileMappingHandle;
 	PVOID *BaseAddress;
 	PVOID *EndAddress;
-} FILE_MAPPING_TRACKER, *PFILE_MAPPING_TRACKER;
+} *PFILE_MAPPING_TRACKER;
 
 HANDLE FileMappingListMutex = NULL;
 LIST_HEAD(FMLHead, FILE_MAPPING_TRACKER) FileMappingListHead =
@@ -107,8 +107,7 @@ mmap_fini(void)
 
 		PFILE_MAPPING_TRACKER pMappingTracker =
 			(PFILE_MAPPING_TRACKER)LIST_FIRST(&FileMappingListHead);
-		WIN_LIST_REMOVE(PFILE_MAPPING_TRACKER, pMappingTracker,
-						ListEntry);
+		LIST_REMOVE(pMappingTracker, ListEntry);
 
 		if (pMappingTracker->BaseAddress != NULL)
 			UnmapViewOfFile(pMappingTracker->BaseAddress);
@@ -189,7 +188,7 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 	 */
 
 	PFILE_MAPPING_TRACKER pMappingTracker =
-		malloc(sizeof(FILE_MAPPING_TRACKER));
+		malloc(sizeof(struct FILE_MAPPING_TRACKER));
 
 	if (pMappingTracker == NULL) {
 		CloseHandle(fileMapping);
@@ -202,8 +201,8 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 	pMappingTracker->EndAddress = (PVOID *)base + len;
 
 	WaitForSingleObject(FileMappingListMutex, INFINITE);
-	WIN_LIST_INSERT_HEAD(PFILE_MAPPING_TRACKER, &FileMappingListHead,
-		pMappingTracker, ListEntry);
+	LIST_INSERT_HEAD(&FileMappingListHead, pMappingTracker,
+		ListEntry);
 	ReleaseMutex(FileMappingListMutex);
 
 	return base;
@@ -231,8 +230,7 @@ munmap(void *addr, size_t len)
 			 * of unmapping and closing may take some time.
 			 */
 
-			WIN_LIST_REMOVE(PFILE_MAPPING_TRACKER, pMappingTracker,
-							ListEntry);
+			LIST_REMOVE(pMappingTracker, ListEntry);
 			ReleaseMutex(FileMappingListMutex);
 			haveMutex = FALSE;
 
