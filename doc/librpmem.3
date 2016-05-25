@@ -49,11 +49,11 @@ librpmem \- remote persistent memory library
 .B Most commonly used functions:
 .sp
 .BI "RPMEMpool *rpmem_create(const char *" target ", const char *" pool_set_name ,
-.BI "		void *" pool_addr ", size_t " pool_size ", unsigned " nlanes ",
+.BI "		void *" pool_addr ", size_t " pool_size ", unsigned *" nlanes ",
 .BI "		const struct rpmem_pool_attr *" create_attr ");
 .BI
 .BI "RPMEMpool *rpmem_open(const char *" target ", const char *" pool_set_name ,
-.BI "		void *" pool_addr ", size_t " pool_size ", unsigned " nlanes ",
+.BI "		void *" pool_addr ", size_t " pool_size ", unsigned *" nlanes ",
 .BI "		struct rpmem_pool_attr *" create_attr ");
 .BI
 .BI "int rpmem_remove(const char *" target ", const char *" pool_set_name );

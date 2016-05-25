@@ -73,13 +73,14 @@ main(int argc, char *argv[])
 	char *op = argv[1];
 	char *target = argv[2];
 	char *pool_set = argv[3];
+	unsigned nlanes = NLANES;
 
 	if (strcmp(op, "create") == 0) {
 		struct rpmem_pool_attr pool_attr;
 		default_attr(&pool_attr);
 
 		RPMEMpool *rpp = rpmem_create(target, pool_set,
-			pool, POOL_SIZE, NLANES, &pool_attr);
+			pool, POOL_SIZE, &nlanes, &pool_attr);
 
 		if (!rpp) {
 			fprintf(stderr, "rpmem_create: %s\n",
@@ -99,7 +100,7 @@ main(int argc, char *argv[])
 
 		struct rpmem_pool_attr pool_attr;
 		RPMEMpool *rpp = rpmem_open(target, pool_set,
-			pool, POOL_SIZE, NLANES, &pool_attr);
+			pool, POOL_SIZE, &nlanes, &pool_attr);
 		if (!rpp) {
 			fprintf(stderr, "rpmem_open: %s\n",
 					rpmem_errormsg());
