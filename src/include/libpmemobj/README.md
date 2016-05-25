@@ -34,7 +34,19 @@ Please keep in mind that these C++ bindings are still in the experimental stage
 and *SHOULD NOT* be used in production quality code. If you find any issues or
 have suggestion about these bindings please file an issue in
 https://github.com/pmem/issues. There are also blog articles in
-http://pmem.io/blog/ which you mind find helpful.
+http://pmem.io/blog/ which you might find helpful.
 
 Have fun!
 The NVML team
+
+### Important classes/functions ###
+
+ * Transactional allocations - make_persistent.hpp
+ * Transactional array allocations - make_persistent_array.hpp
+ * Atomic allocations - make_persistent_atomic.hpp
+ * Atomic array allocations - make_persistent_array_atomic.hpp
+ * Resides on persistent memory property - [p](@ref nvml::obj::p)
+ * Persistent smart pointer - [persistent_ptr](@ref nvml::obj::persistent_ptr)
+ * Persistent memory transactions - [transaction](@ref nvml::obj::transaction)
+ * Persistent memory resident mutex - [mutex](@ref nvml::obj::mutex)
+ * Persistent memory pool - [pool](@ref nvml::obj::pool)

@@ -65,7 +65,9 @@ class pool;
  * specific and thus not consistently rebuildable. Such constructs as
  * polymorphic members or members of a union defined within a class held in
  * a persistent_ptr will also yield undefined behavior.
- * This type does NOT manage the life-cycle of the object.
+ * This type does NOT manage the life-cycle of the object. The typical usage
+ * example would be:
+ * @snippet doc_snippets/persistent.cpp persistent_ptr_example
  */
 template <typename T>
 class persistent_ptr {

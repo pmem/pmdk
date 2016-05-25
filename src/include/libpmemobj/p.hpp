@@ -53,9 +53,13 @@ namespace obj
  * Resides on pmem class.
  *
  * p class is a property-like template class that has to be used for all
- * variables (excluding persistent pointers) which are used in a pmemobj
- * transactions. The only thing it does is creating snapshots of the
- * object when modified in the transaction scope.
+ * variables (excluding persistent pointers), which are used in a pmemobj
+ * transactions. The p property makes sure that changes to a variable within
+ * a transaction is made atomically with respect to persistence. It does it by
+ * creating a snapshot of the variable when modified in the transaction scope.
+ * The p class is not designed to be used with compound types. For that see the
+ * persistent_ptr.
+ * @snippet doc_snippets/persistent.cpp p_property_example
  */
 template <typename T>
 class p {

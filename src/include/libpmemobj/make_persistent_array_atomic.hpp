@@ -32,7 +32,9 @@
 
 /**
  * @file
- * Atomic persistent_ptr allocation functions for arrays.
+ * Atomic persistent_ptr allocation functions for arrays. The typical usage
+ * examples would be:
+ * @snippet doc_snippets/make_persistent.cpp make_array_atomic_example
  */
 
 #ifndef PMEMOBJ_MAKE_PERSISTENT_ARRAY_ATOMIC_HPP
@@ -55,8 +57,8 @@ namespace obj
  * Atomically allocate an array of objects.
  *
  * This function can be used to atomically allocate an array of objects.
- * Cannot be used for simple objects. Do NOT use this inside transactions, as it
- * might lead to undefined behavior in the presence of transaction aborts.
+ * Cannot be used for simple objects. Do *NOT* use this inside transactions, as
+ * it might lead to undefined behavior in the presence of transaction aborts.
  *
  * @param[in,out] pool the pool from which the object will be allocated.
  * @param[in,out] ptr the persistent pointer to which the allocation
@@ -86,7 +88,7 @@ make_persistent_atomic(pool_base &pool,
  * Atomically allocate an array of objects.
  *
  * This function can be used to atomically allocate an array of objects.
- * Cannot be used for simple objects.  Do NOT use this inside transactions, as
+ * Cannot be used for simple objects. Do *NOT* use this inside transactions, as
  * it might lead to undefined behavior in the presence of transaction aborts.
  *
  * @param[in,out] pool the pool from which the object will be allocated.
@@ -116,8 +118,8 @@ make_persistent_atomic(pool_base &pool,
  * Atomically deallocate an array of objects.
  *
  * There is no way to atomically destroy an object. Any object specific
- * cleanup must be performed elsewhere. Do NOT use this inside transactions, as
- * it might lead to undefined behavior in the presence of transaction aborts.
+ * cleanup must be performed elsewhere. Do *NOT* use this inside transactions,
+ * as it might lead to undefined behavior in the presence of transaction aborts.
  *
  * param[in,out] ptr the persistent_ptr whose pointee is to be
  * deallocated.
@@ -135,11 +137,10 @@ delete_persistent_atomic(typename detail::pp_if_array<T>::type &ptr,
  * Atomically deallocate an array of objects.
  *
  * There is no way to atomically destroy an object. Any object specific
- * cleanup must be performed elsewhere. Do NOT use this inside transactions, as
- * it might lead to undefined behavior in the presence of transaction aborts.
+ * cleanup must be performed elsewhere. Do *NOT* use this inside transactions,
+ * as it might lead to undefined behavior in the presence of transaction aborts.
  *
- * param[in,out] ptr the persistent_ptr whose pointee is to be
- * deallocated.
+ * param[in,out] ptr the persistent_ptr whose pointee is to be deallocated.
  */
 template <typename T>
 void

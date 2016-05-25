@@ -59,8 +59,13 @@ namespace obj
  * - @ref manual transactions need to be committed manually, otherwise
  *	they will be aborted on object destruction.\n
  * - @ref automatic transactions are only available in C++17. They
- *	handle transaction commit/abort automatically.\n
- * This class also exposes a closure-like transaction API.
+ *	handle transaction commit/abort automatically.
+ *
+ * This class also exposes a closure-like transaction API, which is the
+ * preferred way of handling transactions.
+ *
+ * The typical usage example would be:
+ * @snippet doc_snippets/transaction.cpp general_tx_example
  */
 class transaction {
 public:
@@ -72,6 +77,15 @@ public:
 	 * object are treated as performed in a transaction block and
 	 * can be rolled back. The manual transaction has to be
 	 * committed explicitly otherwise it will abort.
+	 *
+	 * The locks are held for the entire duration of the transaction. They
+	 * are released at the end of the scope, so within the `catch` block,
+	 * they are already unlocked. If the cleanup action requires access to
+	 * data within a critical section, the locks have to be manually
+	 * acquired once again.
+	 *
+	 *The typical usage example would be:
+	 * @snippet doc_snippets/transaction.cpp manual_tx_example
 	 */
 	class manual {
 	public:
@@ -152,6 +166,15 @@ public:
 	 * can be rolled back. If you have a C++17 compliant compiler,
 	 * the automatic transaction will commit and abort
 	 * automatically depending on the context of object destruction.
+	 *
+	 * The locks are held for the entire duration of the transaction. They
+	 * are released at the end of the scope, so within the `catch` block,
+	 * they are already unlocked. If the cleanup action requires access to
+	 * data within a critical section, the locks have to be manually
+	 * acquired once again.
+	 *
+	 * The typical usage example would be:
+	 * @snippet doc_snippets/transaction.cpp automatic_tx_example
 	 */
 	class automatic {
 	public:
@@ -345,7 +368,17 @@ public:
 	 * specified locks is already locked, the method will block.
 	 * The locks are held until the end of the transaction. The
 	 * transaction does not have to be committed manually. Manual
-	 * aborts will not end the transaction with an active exception.
+	 * aborts will end the transaction with an active exception.
+	 *
+	 * If an exception is thrown within the transaction, it gets aborted
+	 * and the exception is rethrown. Therefore extra care has to be taken
+	 * with proper error handling.
+	 *
+	 * The locks are held for the entire duration of the transaction. They
+	 * are released at the end of the scope, so within the `catch` block,
+	 * they are already unlocked. If the cleanup action requires access to
+	 * data within a critical section, the locks have to be manually
+	 * acquired once again.
 	 *
 	 * @param[in,out] pool the pool in which the transaction will take
 	 *	place.

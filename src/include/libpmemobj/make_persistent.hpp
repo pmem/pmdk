@@ -32,7 +32,9 @@
 
 /**
  * @file
- * Persistent_ptr transactional allocation functions for objects.
+ * Persistent_ptr transactional allocation functions for objects. The typical
+ * usage examples would be:
+ * @snippet doc_snippets/make_persistent.cpp make_example
  */
 
 #ifndef PMEMOBJ_MAKE_PERSISTENT_HPP
@@ -54,7 +56,7 @@ namespace obj
 /**
  * Transactionally allocate and construct an object of type T.
  *
- * This function can be used to Transactionally allocate an object.
+ * This function can be used to *transactionally* allocate an object.
  * Cannot be used for array types.
  *
  * @param[in,out] args a list of parameters passed to the constructor.
@@ -93,7 +95,7 @@ make_persistent(Args &&... args)
 /**
  * Transactionally free an object of type T held in a persitent_ptr.
  *
- * This function can be used to Transactionally free an object. Calls the
+ * This function can be used to *transactionally* free an object. Calls the
  * object's destructor before freeing memory. Cannot be used for array
  * types.
  *

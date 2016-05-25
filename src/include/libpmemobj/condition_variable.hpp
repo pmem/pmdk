@@ -55,7 +55,9 @@ namespace obj
  * Persistent memory resident condition variable.
  *
  * This class is an implementation of a PMEM-resident condition
- * variable which mimics in behavior the C++11 std::condition_variable.
+ * variable which mimics in behavior the C++11 std::condition_variable. The
+ * typical usage example would be:
+ * @snippet doc_snippets/mutex.cpp cond_var_example
  */
 class condition_variable {
 	typedef std::chrono::system_clock clock_type;

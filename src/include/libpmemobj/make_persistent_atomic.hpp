@@ -32,7 +32,9 @@
 
 /**
  * @file
- * Persistent_ptr atomic allocation functions for objects.
+ * Persistent_ptr atomic allocation functions for objects. The typical usage
+ * examples would be:
+ * @snippet doc_snippets/make_persistent.cpp make_atomic_example
  */
 
 #ifndef PMEMOBJ_MAKE_PERSISTENT_ATOMIC_HPP
@@ -54,7 +56,7 @@ namespace obj
 /**
  * Atomically allocate and construct an object.
  *
- * Constructor parameters are passed through variadic parameters. Do NOT use
+ * Constructor parameters are passed through variadic parameters. Do *NOT* use
  * this inside transactions, as it might lead to undefined behavior in the
  * presence of transaction aborts.
  *
@@ -86,8 +88,8 @@ make_persistent_atomic(pool_base &pool,
  * Atomically deallocate an object.
  *
  * There is no way to atomically destroy an object. Any object specific
- * cleanup must be performed elsewhere.  Do NOT use this inside transactions, as
- * it might lead to undefined behavior in the presence of transaction aborts.
+ * cleanup must be performed elsewhere.  Do *NOT* use this inside transactions,
+ * as it might lead to undefined behavior in the presence of transaction aborts.
  *
  * param[in,out] ptr the persistent_ptr whose pointee is to be
  * deallocated.

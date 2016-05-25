@@ -53,7 +53,8 @@ namespace obj
  * This class is an implementation of a PMEM-resident mutex
  * which mimics in behavior the C++11 std::mutex. This class
  * satisfies all requirements of the Mutex and StandardLayoutType
- * concepts.
+ * concepts. The typical usage example would be:
+ * @snippet doc_snippets/mutex.cpp unique_guard_example
  */
 class mutex {
 public:

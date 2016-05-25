@@ -73,6 +73,7 @@ all-libraries: $(DYNAMIC_LIBRARIES) $(STATIC_LIBRARIES)
 $(foreach l, $(LIBRARIES), $(eval lib$(l).so: lib$(l).o))
 $(foreach l, $(LIBRARIES), $(eval lib$(l).a: lib$(l).o))
 $(foreach l, $(LIBRARIES), $(eval lib$(l).o: CFLAGS+=-fPIC))
+$(foreach l, $(LIBRARIES), $(eval lib$(l).o: CXXFLAGS+=-fPIC))
 $(foreach l, $(LIBRARIES), $(eval $(l): lib$(l).so lib$(l).a))
 $(foreach l, $(LIBRARIES), $(eval .PHONY: $(l)))
 
