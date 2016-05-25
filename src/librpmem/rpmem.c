@@ -57,7 +57,7 @@ struct rpmem_pool {
  */
 RPMEMpool *
 rpmem_create(const char *target, const char *pool_set_name,
-	void *pool_addr, size_t pool_size, unsigned nlanes,
+	void *pool_addr, size_t pool_size, unsigned *nlanes,
 	const struct rpmem_pool_attr *create_attr)
 {
 	/* XXX */
@@ -76,7 +76,7 @@ rpmem_create(const char *target, const char *pool_set_name,
  */
 RPMEMpool *
 rpmem_open(const char *target, const char *pool_set_name,
-	void *pool_addr, size_t pool_size, unsigned nlanes,
+	void *pool_addr, size_t pool_size, unsigned *nlanes,
 	struct rpmem_pool_attr *open_attr)
 {
 	/* XXX */

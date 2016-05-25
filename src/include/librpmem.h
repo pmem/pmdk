@@ -68,11 +68,11 @@ struct rpmem_pool_attr {
 };
 
 RPMEMpool *rpmem_create(const char *target, const char *pool_set_name,
-		void *pool_addr, size_t pool_size, unsigned nlanes,
+		void *pool_addr, size_t pool_size, unsigned *nlanes,
 		const struct rpmem_pool_attr *create_attr);
 
 RPMEMpool *rpmem_open(const char *target, const char *pool_set_name,
-		void *pool_addr, size_t pool_size, unsigned nlanes,
+		void *pool_addr, size_t pool_size, unsigned *nlanes,
 		struct rpmem_pool_attr *open_attr);
 
 int rpmem_remove(const char *target, const char *pool_set_name);
