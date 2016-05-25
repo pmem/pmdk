@@ -357,7 +357,7 @@ parser_read_line(char *line, size_t *size, char **path)
 	 */
 
 	/* check if the read path is an absolute path */
-	if (path_str[0] != DIR_SEPARATOR)
+	if (!util_is_absolute_path(path_str))
 		return PARSER_ABSOLUTE_PATH_EXPECTED;
 
 	ret = util_parse_size(size_str, size);
@@ -395,7 +395,7 @@ parser_read_replica(char *line, char **node_addr, char **pool_desc)
 		addr_str, desc_str);
 
 	/* check if the descriptor is a relative path */
-	if (desc_str[0] == DIR_SEPARATOR)
+	if (util_is_absolute_path(desc_str))
 		return PARSER_RELATIVE_PATH_EXPECTED;
 
 	*node_addr = Strdup(addr_str);

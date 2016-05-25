@@ -154,6 +154,7 @@ int util_get_arch_flags(struct arch_flags *arch_flags);
 int util_compare_arch_flags(const struct arch_flags *arch_flags,
 				const struct arch_flags *comp_flags);
 int util_check_arch_flags(const struct arch_flags *arch_flags);
+int util_is_absolute_path(const char *path);
 
 /*
  * macros for micromanaging range protections for the debug version

@@ -112,3 +112,15 @@ util_get_arch_flags(struct arch_flags *arch_flags)
 
 	return 0;
 }
+
+/*
+ * util_is_absolute_path -- check if the path is an absolute one
+ */
+int
+util_is_absolute_path(const char *path)
+{
+	if (1 /* XXX: PathIsRelative(path) can be used here */)
+		return 0;
+	else
+		return 1;
+}
