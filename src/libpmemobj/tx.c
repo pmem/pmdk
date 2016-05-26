@@ -417,6 +417,58 @@ struct tx_range_data {
 	SLIST_ENTRY(tx_range_data) tx_range;
 };
 
+SLIST_HEAD(txr, tx_range_data);
+
+/*
+ * tx_remove_range -- (internal) removes specified range from ranges list
+ */
+static void
+tx_remove_range(struct txr *tx_ranges, void *begin, void *end)
+{
+	struct tx_range_data *txr = SLIST_FIRST(tx_ranges);
+
+	while (txr) {
+		if (begin >= txr->end || end < txr->begin) {
+			txr = SLIST_NEXT(txr, tx_range);
+			continue;
+		}
+
+		LOG(4, "detected PMEM lock in undo log; "
+			"range %p-%p, lock %p-%p",
+			txr->begin, txr->end, begin, end);
+
+		/* split the range into new ones */
+		if (begin > txr->begin) {
+			struct tx_range_data *txrn = Malloc(sizeof(*txrn));
+			if (txrn == NULL)
+				FATAL("!Malloc");
+
+			txrn->begin = txr->begin;
+			txrn->end = begin;
+			LOG(4, "range split; %p-%p", txrn->begin, txrn->end);
+			SLIST_INSERT_HEAD(tx_ranges, txrn, tx_range);
+		}
+
+		if (end < txr->end) {
+			struct tx_range_data *txrn = Malloc(sizeof(*txrn));
+			if (txrn == NULL)
+				FATAL("!Malloc");
+
+			txrn->begin = end;
+			txrn->end = txr->end;
+			LOG(4, "range split; %p-%p", txrn->begin, txrn->end);
+			SLIST_INSERT_HEAD(tx_ranges, txrn, tx_range);
+		}
+
+		struct tx_range_data *next = SLIST_NEXT(txr, tx_range);
+		/* remove the original range from the list */
+		SLIST_REMOVE(tx_ranges, txr, tx_range_data, tx_range);
+		Free(txr);
+
+		txr = next;
+	}
+}
+
 /*
  * tx_restore_range -- (internal) restore a single range from undo log
  *
@@ -435,7 +487,7 @@ tx_restore_range(PMEMobjpool *pop, struct tx_range *range)
 			(struct lane_tx_runtime *)tx.section->runtime;
 	ASSERTne(runtime, NULL);
 
-	SLIST_HEAD(txr, tx_range_data) tx_ranges;
+	struct txr tx_ranges;
 	SLIST_INIT(&tx_ranges);
 
 	struct tx_range_data *txr;
@@ -449,7 +501,6 @@ tx_restore_range(PMEMobjpool *pop, struct tx_range *range)
 	SLIST_INSERT_HEAD(&tx_ranges, txr, tx_range);
 
 	struct tx_lock_data *txl;
-	struct tx_range_data *txrn;
 
 	/* check if there are any locks within given memory range */
 	SLIST_FOREACH(txl, &(runtime->tx_locks), tx_lock) {
@@ -457,54 +508,7 @@ tx_restore_range(PMEMobjpool *pop, struct tx_range *range)
 		/* all PMEM locks have the same size */
 		void *lock_end = (char *)lock_begin + _POBJ_CL_ALIGNMENT;
 
-		SLIST_FOREACH(txr, &tx_ranges, tx_range) {
-			if ((lock_begin >= txr->begin &&
-				lock_begin < txr->end) ||
-				(lock_end >= txr->begin &&
-				lock_end < txr->end)) {
-				LOG(4, "detected PMEM lock"
-					"in undo log; "
-					"range %p-%p, lock %p-%p",
-					txr->begin, txr->end,
-					lock_begin, lock_end);
-
-				/* split the range into new ones */
-				if (lock_begin > txr->begin) {
-					txrn = Malloc(sizeof(*txrn));
-					if (txrn == NULL) {
-						FATAL("!Malloc");
-					}
-					txrn->begin = txr->begin;
-					txrn->end = lock_begin;
-					LOG(4, "range split; %p-%p",
-						txrn->begin, txrn->end);
-					SLIST_INSERT_HEAD(&tx_ranges,
-							txrn, tx_range);
-				}
-
-				if (lock_end < txr->end) {
-					txrn = Malloc(sizeof(*txrn));
-					if (txrn == NULL) {
-						FATAL("!Malloc");
-					}
-					txrn->begin = lock_end;
-					txrn->end = txr->end;
-					LOG(4, "range split; %p-%p",
-						txrn->begin, txrn->end);
-					SLIST_INSERT_HEAD(&tx_ranges,
-							txrn, tx_range);
-				}
-
-				/*
-				 * remove the original range
-				 * from the list
-				 */
-				SLIST_REMOVE(&tx_ranges, txr,
-						tx_range_data, tx_range);
-				Free(txr);
-				break;
-			}
-		}
+		tx_remove_range(&tx_ranges, lock_begin, lock_end);
 	}
 
 	ASSERT(!SLIST_EMPTY(&tx_ranges));
