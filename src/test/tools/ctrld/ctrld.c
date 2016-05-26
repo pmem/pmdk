@@ -570,13 +570,13 @@ do_wait_port(char *pid_file, unsigned short port)
 	}
 
 	if (n == 2 || (n == 3 && r != 'r')) {
-		CTRLD_LOG("invalid format of PID file\n");
+		CTRLD_LOG("invalid format of PID file");
 		ret = 1;
 		goto err;
 	}
 
 	if (n == 3) {
-		CTRLD_LOG("process already terminated\n");
+		CTRLD_LOG("process already terminated");
 		ret = 1;
 		goto err;
 	}
@@ -718,7 +718,7 @@ main(int argc, char *argv[])
 			signo = convert_signal_name(argv[3]);
 			if (signo == -1) {
 				CTRLD_LOG("Invalid signal name or number"
-						" (%s)\n", argv[3]);
+						" (%s)", argv[3]);
 				return 1;
 			}
 		}
