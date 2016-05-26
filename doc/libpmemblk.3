@@ -37,7 +37,7 @@
 .\" or
 .\"	groff -man -Tascii libpmemblk.3
 .\"
-.TH libpmemblk 3 "pmemblk API version 1.0.1" "NVM Library"
+.TH libpmemblk 3 "pmemblk API version 1.0.2" "NVM Library"
 .SH NAME
 libpmemblk \- persistent memory resident array of blocks
 .SH SYNOPSIS
@@ -336,7 +336,7 @@ PMEMPOOLSET
 The files in the set may be created by running the following command:
 .IP
 .nf
-pmempool create blk <bsize> --from-set=myblkpool.set
+pmempool create blk <bsize> myblkpool.set
 .fi
 .PP
 .BI "void pmemblk_close(PMEMblkpool *" pbp );

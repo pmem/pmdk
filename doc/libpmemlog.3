@@ -37,7 +37,7 @@
 .\" or
 .\"	groff -man -Tascii libpmemlog.3
 .\"
-.TH libpmemlog 3 "pmemlog API version 1.0.1" "NVM Library"
+.TH libpmemlog 3 "pmemlog API version 1.0.2" "NVM Library"
 .SH NAME
 libpmemlog \- persistent memory resident log file
 .SH SYNOPSIS
@@ -309,7 +309,7 @@ PMEMPOOLSET
 The files in the set may be created by running the following command:
 .IP
 .nf
-pmempool create log --from-set=mylogpool.set
+pmempool create log mylogpool.set
 .fi
 .PP
 .BI "void pmemlog_close(PMEMlogpool *" plp );
