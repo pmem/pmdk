@@ -974,7 +974,7 @@ util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 	hdrp->crtime = htole64((uint64_t)time(NULL));
 
 	if (util_get_arch_flags(&hdrp->arch_flags)) {
-		ERR("Reading architecture flags failed\n");
+		ERR("Reading architecture flags failed");
 		errno = EINVAL;
 		return -1;
 	}
@@ -1290,7 +1290,7 @@ err:
 static int
 util_replica_close(struct pool_set *set, unsigned repidx)
 {
-	LOG(3, "set %p repidx %u\n", set, repidx);
+	LOG(3, "set %p repidx %u", set, repidx);
 	struct pool_replica *rep = set->replica[repidx];
 
 	for (unsigned p = 0; p < rep->nparts; p++)
@@ -1499,7 +1499,7 @@ util_pool_create(struct pool_set **setp, const char *path, size_t poolsize,
 static int
 util_replica_open(struct pool_set *set, unsigned repidx, int flags)
 {
-	LOG(3, "set %p repidx %u flags %d\n", set, repidx, flags);
+	LOG(3, "set %p repidx %u flags %d", set, repidx, flags);
 
 	struct pool_replica *rep = set->replica[repidx];
 
