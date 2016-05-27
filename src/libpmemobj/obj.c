@@ -916,6 +916,14 @@ pmemobj_open_common(const char *path, const char *layout, int cow, int boot)
 			pop->replica = set->replica[r + 1]->part[0].addr;
 	}
 
+	if (boot) {
+		/* check consistency of 'master' replica */
+		pop = set->replica[0]->part[0].addr;
+		if (pmemobj_check_basic(pop) == 0) {
+			goto err;
+		}
+	}
+
 	/*
 	 * If there is more than one replica, check if all of them are
 	 * consistent (recoverable).
