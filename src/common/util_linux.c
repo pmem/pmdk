@@ -288,3 +288,15 @@ out_close:
 out:
 	return ret;
 }
+
+/*
+ * util_is_absolute_path -- check if the path is an absolute one
+ */
+int
+util_is_absolute_path(const char *path)
+{
+	if (path[0] == DIR_SEPARATOR)
+		return 1;
+	else
+		return 0;
+}

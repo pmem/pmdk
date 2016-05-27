@@ -154,6 +154,7 @@ int util_get_arch_flags(struct arch_flags *arch_flags);
 int util_compare_arch_flags(const struct arch_flags *arch_flags,
 				const struct arch_flags *comp_flags);
 int util_check_arch_flags(const struct arch_flags *arch_flags);
+int util_is_absolute_path(const char *path);
 
 /*
  * macros for micromanaging range protections for the debug version
@@ -196,10 +197,17 @@ struct pool_set_part {
 	uuid_t uuid;
 };
 
+struct remote_replica {
+	char *node_addr;	/* address of a remote node */
+	char *pool_desc;	/* descriptor of a poolset */
+};
+
 struct pool_replica {
 	unsigned nparts;
 	size_t repsize;		/* total size of all the parts (mappings) */
 	int is_pmem;		/* true if all the parts are in PMEM */
+	struct remote_replica *remote;	/* not NULL if the replica */
+					/* is a remote one */
 	struct pool_set_part part[];
 };
 
@@ -209,6 +217,7 @@ struct pool_set {
 	int rdonly;
 	int zeroed;		/* true if all the parts are new files */
 	size_t poolsize;	/* the smallest replica size */
+	int remote;		/* true if contains a remote replica */
 	struct pool_replica *replica[];
 };
 

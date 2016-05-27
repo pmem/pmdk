@@ -762,6 +762,13 @@ pmemobj_create(const char *path, const char *layout, size_t poolsize,
 		return NULL;
 	}
 
+	/* XXX remove it when remote replicas are supported */
+	if (set->remote) {
+		ERR("Remote replication not supported");
+		errno = ENOTSUP;
+		goto err;
+	}
+
 	ASSERT(set->nreplicas > 0);
 
 	PMEMobjpool *pop;
@@ -877,6 +884,13 @@ pmemobj_open_common(const char *path, const char *layout, int cow, int boot)
 			OBJ_FORMAT_RO_COMPAT) != 0) {
 		LOG(2, "cannot open pool or pool set");
 		return NULL;
+	}
+
+	/* XXX remove it when remote replicas are supported */
+	if (set->remote) {
+		ERR("Remote replication not supported");
+		errno = ENOTSUP;
+		goto err;
 	}
 
 	ASSERT(set->nreplicas > 0);
