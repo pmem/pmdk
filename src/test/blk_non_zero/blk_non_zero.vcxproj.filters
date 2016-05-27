@@ -5,13 +5,8 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
-    </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    <Filter Include="Match Files">
+      <UniqueIdentifier>{4d39e0e5-0c47-48a1-8ceb-6c174a170013}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -23,16 +18,73 @@
     <None Include="TEST0.ps1" />
     <None Include="TEST1.ps1" />
     <None Include="TEST2.ps1" />
-    <None Include="err0.log.match" />
-    <None Include="err1.log.match" />
-    <None Include="err2.log.match" />
-    <None Include="out0.log.match" />
-    <None Include="out1.log.match" />
-    <None Include="out2.log.match" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\windows\include\platform.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
+    <None Include="TEST3.ps1" />
+    <None Include="TEST4.ps1" />
+    <None Include="TEST5.ps1" />
+    <None Include="TEST6.ps1" />
+    <None Include="TEST7.ps1" />
+    <None Include="TEST8.ps1" />
+    <None Include="TEST9.ps1" />
+    <None Include="err0.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="err1.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="err2.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="err3.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="err4.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="err5.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="err6.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="err7.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="err8.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="err9.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="out0.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="out1.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="out2.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="out3.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="out4.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="out5.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="out6.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="out7.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="out8.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="out9.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="README" />
   </ItemGroup>
 </Project>

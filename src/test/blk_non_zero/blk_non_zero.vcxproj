@@ -21,15 +21,34 @@
     <None Include="err0.log.match" />
     <None Include="err1.log.match" />
     <None Include="err2.log.match" />
+    <None Include="err3.log.match" />
+    <None Include="err4.log.match" />
+    <None Include="err5.log.match" />
+    <None Include="err6.log.match" />
+    <None Include="err7.log.match" />
+    <None Include="err8.log.match" />
+    <None Include="err9.log.match" />
     <None Include="out0.log.match" />
     <None Include="out1.log.match" />
     <None Include="out2.log.match" />
+    <None Include="out3.log.match" />
+    <None Include="out4.log.match" />
+    <None Include="out5.log.match" />
+    <None Include="out6.log.match" />
+    <None Include="out7.log.match" />
+    <None Include="out8.log.match" />
+    <None Include="out9.log.match" />
+    <None Include="README" />
     <None Include="TEST0.ps1" />
     <None Include="TEST1.ps1" />
     <None Include="TEST2.ps1" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\windows\include\platform.h" />
+    <None Include="TEST3.ps1" />
+    <None Include="TEST4.ps1" />
+    <None Include="TEST5.ps1" />
+    <None Include="TEST6.ps1" />
+    <None Include="TEST7.ps1" />
+    <None Include="TEST8.ps1" />
+    <None Include="TEST9.ps1" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{18E90E1A-F2E0-40DF-9900-A14E560C9EB4}</ProjectGuid>

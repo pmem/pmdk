@@ -59,6 +59,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{746BA101-5C93-42A5-AC7A-64DCEB186572}"
 	ProjectSection(SolutionItems) = preProject
 		test\RUNTESTS.ps1 = test\RUNTESTS.ps1
+		test\testconfig.ps1 = test\testconfig.ps1
+		test\testconfig.ps1.example = test\testconfig.ps1.example
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "blk_pool", "test\blk_pool\blk_pool.vcxproj", "{95B683BD-B9DC-400F-9BC0-8F1505F08BF5}"
