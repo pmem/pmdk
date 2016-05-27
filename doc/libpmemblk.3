@@ -199,6 +199,17 @@ If an error prevents the pool from being opened,
 returns NULL and sets errno appropriately.  A block size mismatch with the
 .I bsize
 argument passed in results in errno being set to EINVAL.
+.IP
+Note that
+.BR pmemblk_open ()
+performs only some basic consistency checks on the memory pool being opened.
+It may happen that it succeeds even if the pool is partially damaged, which
+may lead to undefined behavior, including program crash or further data
+corruption.  For that reason, it is recommended to always perform full
+consistency check of the memory pool using
+.BR pmemblk_check ()
+before opening it with
+.BR pmemblk_open ().
 .PP
 .BI "PMEMblkpool *pmemblk_create(const char *" path ", size_t " bsize ,
 .br
