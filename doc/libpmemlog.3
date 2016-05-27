@@ -185,6 +185,17 @@ it with read/write permissions.
 If an error prevents the pool from being opened,
 .BR pmemlog_open ()
 returns NULL and sets errno appropriately.
+.IP
+Note that
+.BR pmemlog_open ()
+performs only some basic consistency checks on the memory pool being opened.
+It may happen that it succeeds even if the pool is partially damaged, which
+may lead to undefined behavior, including program crash or further data
+corruption.  For that reason, it is recommended to always perform full
+consistency check of the memory pool using
+.BR pmemlog_check ()
+before opening it with
+.BR pmemlog_open ().
 .PP
 .BI "PMEMlogpool *pmemlog_create(const char *" path ,
 .br

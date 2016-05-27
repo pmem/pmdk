@@ -37,7 +37,7 @@
 .\" or
 .\"	groff -man -Tascii libpmemobj.3
 .\"
-.TH libpmemobj 3 "pmemobj API version 1.0.1" "NVM Library"
+.TH libpmemobj 3 "pmemobj API version 1.0.2" "NVM Library"
 .SH NAME
 libpmemobj \- persistent memory transactional object store
 .SH SYNOPSIS
@@ -429,6 +429,17 @@ or if the given
 does not match the pool's layout,
 .BR pmemobj_open ()
 returns NULL and sets errno appropriately.
+.IP
+Note that
+.BR pmemobj_open ()
+performs only some basic consistency checks on the memory pool being opened.
+It may happen that it succeeds even if the pool is partially damaged, which
+may lead to undefined behavior, including program crash or further data
+corruption.  For that reason, it is recommended to always perform full
+consistency check of the memory pool using
+.BR pmemobj_check ()
+before opening it with
+.BR pmemobj_open ().
 .PP
 .BI "PMEMobjpool *pmemobj_create(const char *" path ", const char *" layout ,
 .br
