@@ -53,7 +53,6 @@ typedef long _off_t;		/* NOTE: _off_t must be defined as 'long'! */
 #include <stdint.h>
 #include <io.h>
 #include <process.h>
-#include <listentry.h>
 #include <fcntl.h>
 #include <sys/types.h>
 #include <malloc.h>
