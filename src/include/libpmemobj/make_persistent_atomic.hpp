@@ -54,7 +54,9 @@ namespace obj
 /**
  * Atomically allocate and construct an object.
  *
- * Constructor parameters are passed through variadic parameters.
+ * Constructor parameters are passed through variadic parameters. Do NOT use
+ * this inside transactions, as it might lead to undefined behavior in the
+ * presence of transaction aborts.
  *
  * @param[in,out] pool the pool from which the object will be allocated.
  * @param[in,out] ptr the persistent pointer to which the allocation
@@ -84,7 +86,8 @@ make_persistent_atomic(pool_base &pool,
  * Atomically deallocate an object.
  *
  * There is no way to atomically destroy an object. Any object specific
- * cleanup must be performed elsewhere.
+ * cleanup must be performed elsewhere.  Do NOT use this inside transactions, as
+ * it might lead to undefined behavior in the presence of transaction aborts.
  *
  * param[in,out] ptr the persistent_ptr whose pointee is to be
  * deallocated.
