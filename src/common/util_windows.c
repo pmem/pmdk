@@ -39,6 +39,8 @@
 #include <sys/mman.h>
 #include <errno.h>
 
+#include <Shlwapi.h>
+
 #include "util.h"
 #include "out.h"
 
@@ -119,7 +121,9 @@ util_get_arch_flags(struct arch_flags *arch_flags)
 int
 util_is_absolute_path(const char *path)
 {
-	if (1 /* XXX: PathIsRelative(path) can be used here */)
+	LOG(3, "path: %s", path);
+
+	if (PathIsRelativeA(path))
 		return 0;
 	else
 		return 1;
