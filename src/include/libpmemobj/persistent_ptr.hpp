@@ -60,7 +60,11 @@ class pool;
  *
  * persistent_ptr implements a smart ptr. It encapsulates the PMEMoid
  * fat pointer and provides member access, dereference and array
- * access operators.
+ * access operators. The persistent_ptr is not designed to work with polymorphic
+ * types, as they have runtime RTTI info embedded, which is implementation
+ * specific and thus not consistently rebuildable. Such constructs as
+ * polymorphic members or members of a union defined within a class held in
+ * a persistent_ptr will also yield undefined behavior.
  * This type does NOT manage the life-cycle of the object.
  */
 template <typename T>
