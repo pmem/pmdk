@@ -148,7 +148,7 @@ create_sparse_file(const char *filename, size_t len)
 	}
 	SetLastError(0);
 
-	/* check if sparse files are suported */
+	/* check if sparse files are supported */
 	DWORD flags = 0;
 	BOOL ret = GetVolumeInformationByHandleW(fh, NULL, 0, NULL, NULL,
 			&flags, NULL, 0);
