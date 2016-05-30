@@ -423,7 +423,7 @@ function require_binary() {
 #
 function check {
     #	../match $(find . -regex "[^0-9]*${UNITTEST_NUM}\.log\.match" | xargs)
-    [string]$listing = Get-ChildItem -File | Where-Object  {$_.Name -match "[^0-9]\w${env:UNITTEST_NUM}.log.match"}
+    [string]$listing = Get-ChildItem -File | Where-Object  {$_.Name -match "[^0-9]${env:UNITTEST_NUM}.log.match"}
     if ($listing) {
         $p = start-process -PassThru -Wait -NoNewWindow -FilePath perl -ArgumentList '..\..\..\src\test\match', $listing
         if ($p.ExitCode -eq 0) {
@@ -493,10 +493,9 @@ function check_file {
 function check_files {
 	for ($i=0;$i -lt $args.count;$i++) {
         if (-Not (check_file $args[$i])) {
-            return $false
+            Write-Error "File $args[$i] does not exist"
         }
     }
-    return $true
 }
 
 #
