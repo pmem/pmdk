@@ -999,7 +999,7 @@ write_layout(struct btt *bttp, unsigned lane, int write)
 		uint32_t next_free_lba = external_nlba;
 		for (uint32_t i = 0; i < bttp->nfree; i++) {
 			struct btt_flog flog;
-			flog.lba = 0;
+			flog.lba = htole32(i);
 			flog.old_map = flog.new_map =
 				htole32(next_free_lba | BTT_MAP_ENTRY_ZERO);
 			flog.seq = htole32(1);
