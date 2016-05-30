@@ -37,9 +37,10 @@
 do_remote=0
 do_libfabric=0
 do_force=0
-libfabric_ver="1.2.0"
-libfabric_url="https://github.com/ofiwg/libfabric/releases/download"
-libfabric_tar="tar.bz2"
+libfabric_ver="8e21233251fad4868b2209de473fe1ed585ec564"
+libfabric_url="https://github.com/ofiwg/libfabric/archive/"
+
+
 
 for arg in "$@"; do
 	shift
@@ -101,10 +102,11 @@ if [ "$do_libfabric" == "1" ]; then
 	echo "Configuring libfabric"
 	pushd ~
 	libfabric_dir="libfabric-${libfabric_ver}"
-	libfabric_tarball="${libfabric_dir}.tar.bz2"
-	wget "${libfabric_url}/v${libfabric_ver}/${libfabric_tarball}"
-	tar -xf $libfabric_tarball
+	libfabric_tarball="${libfabric_ver}.zip"
+	wget "${libfabric_url}/${libfabric_tarball}"
+	unzip $libfabric_tarball
 	pushd $libfabric_dir
+	./autogen.sh
 	./configure --prefix=/usr --enable-sockets
 	make -j2
 	sudo make install

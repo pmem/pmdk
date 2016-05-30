@@ -41,7 +41,8 @@ DIRS = \
        pmemobjcli\
        pmemdetect\
        ctrld\
-       bttcreate
+       bttcreate\
+       fip
 
 all     : TARGET = all
 clean   : TARGET = clean

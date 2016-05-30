@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -29,41 +29,21 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# src/test/blk_nblock/TEST2 -- unit test for pmemblk_nblock
+
 #
+# src/test/util_is_absolute/Makefile -- check if path is absolute
 #
-# parameter handling
-#
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-$Env:UNITTEST_NAME = "blk_nblock\TEST2w"
-$Env:UNITTEST_NUM = "2w"
-# XXX:  bash has a few calls to tools that we don't have on
-# windows (yet) that set PMEM_IS_PMEM and NON_PMEM_IS_PMEM based
-# on their output
-$Env:PMEM_IS_PMEM = $true
-$Env:NON_PMEM_IS_PMEM = $true
+TOP = ../../..
 
-# standard unit test setup
-. ..\unittest\unittest.ps1
+vpath %.c $(TOP)/src/common
 
-require_fs_type any
+TARGET = util_is_absolute
+OBJS = util_is_absolute.o util.o util_linux.o out.o
 
-setup
+out.o: CFLAGS += -DDEBUG -DSRCVERSION=\"utversion\"
+util.o util_linux.o: CFLAGS += -DDEBUG
 
-create_poolset $DIR\testset1 1024:$DIR\testfile11:x
-# XXX need to figure out issues with mapping poolsets with windows
-#create_poolset $DIR\testset2 1024:$DIR\testfile21:x 1024:$DIR\testfile22:x
+LIBPMEM=y
+include ../Makefile.inc
 
-expect_normal_exit ..\..\x64\debug\blk_nblock$Env:EXESUFFIX `
-    512:$DIR\testset1 `
-#    512:$DIR\testset2
-
-#check_pools $DIR\testset1 `
-#	$DIR\testset2
-
-# check will print the appropriate pass/fail message
-check
+INCS += -I$(TOP)/src/common

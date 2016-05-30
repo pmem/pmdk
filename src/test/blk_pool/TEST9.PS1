@@ -1,4 +1,4 @@
-﻿#
+#
 # Copyright 2015-2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
@@ -29,25 +29,37 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# src/test/win_lists/TEST0 -- unit test for windows list macros
+# src/test/blk_pool/TEST9 -- unit test for pmemblk_create
 #
-$Env:UNITTEST_NAME = "win_lists\TEST0"
-$Env:UNITTEST_NUM = "0"
+#
+# parameter handling
+#
+[CmdletBinding(PositionalBinding=$false)]
+Param(
+    [alias("d")]
+    $DIR = ""
+    )
+
+$Env:UNITTEST_NAME = "blk_pool\TEST9"
+$Env:UNITTEST_NUM = "9"
 # XXX:  bash has a few calls to tools that we don't have on
 # windows (yet) that set PMEM_IS_PMEM and NON_PMEM_IS_PMEM based
 # on their output
 $Env:PMEM_IS_PMEM = $true
 $Env:NON_PMEM_IS_PMEM = $true
-$DIR = ""
 
 # standard unit test setup
 . ..\unittest\unittest.ps1
 
-require_fs_type any
-
 setup
 
-expect_normal_exit ..\..\x64\debug\win_lists$EXESUFFIX
+#
+# TEST9 non-existing file, poolsize < min required size
+#
+expect_normal_exit ..\..\x64\debug\blk_pool$Env:EXESUFFIX `
+    c $DIR\testfile 4096 1 0640
+
+check_no_files $DIR\testfile
 
 # check will print the appropriate pass/fail message
 check

@@ -44,7 +44,7 @@ Param(
     [alias("t")]
     $testtype = "check",
     [alias("f")]
-    $fstype = "any",
+    $fstype = "all",
     [alias("m")]
     $mreceivetype = "auto",
     [alias("p")]
@@ -76,6 +76,11 @@ if (-Not ("check short long" -match $testtype)) {
 }
 if (-Not ("none pmem non-pmem any all" -match $fstype)) {
     usage "bad fs-type: $fstype"
+}
+if ($fstype -eq "none") {
+    # there's no good /dev/nul on windows so we'll just
+    # override and us non-pmem
+    $fstype="non-pmem"
 }
 # XXX :missing some logic here that's in the bash script
 # having to do with force-enable and memcheck, pmemcheck.
@@ -163,11 +168,13 @@ function runtest {
     #
     sv -Name fss $fstype
     if ($fss -eq "all") {
-        $fss = "none pmem non-pmem any"
+        $fss = "pmem non-pmem any"
+        # don't include none for Windows because we have no
+        # good match for /dev/nul
     }
     sv -Name builds $buildtype
     if ($builds -eq "all") {
-        $builds = "debug nondebug static-debug static-nondebug"
+        $builds = "debug nondebug"
     }
 
     cd $testName

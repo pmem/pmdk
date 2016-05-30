@@ -196,6 +196,8 @@ $(TSTCHECKS): all
 check: all
 	@cd .. && ./RUNTESTS ${TST} -b $(TEST_BUILD) -t $(TEST_TYPE) -f $(TEST_FS) -o $(TEST_TIME) -m $(MEMCHECK) -p $(PMEMCHECK) -e $(HELGRIND) -d $(DRD)
 
+pcheck: export NOTTY=1
+
 pcheck: $(TSTCHECKS)
 
 test: all

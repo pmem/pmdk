@@ -144,16 +144,22 @@ ifneq ($(LIBPMEMBLK_PRIV),)
 OBJS += pmemblk_priv.o
 endif
 
+ifneq ($(TARGET),)
 all: $(TARGET) $(TARGET_STATIC_NONDEBUG) $(TARGET_STATIC_DEBUG)
+else
+all:
+endif
 
 clean:
 	$(RM) $(OBJS) $(CLEAN_FILES)
 
 clobber: clean
+ifneq ($(TARGET),)
 	$(RM) $(TARGET)
 	$(RM) $(TARGET_STATIC_NONDEBUG)
 	$(RM) $(TARGET_STATIC_DEBUG)
 	$(RM) -r .deps
+endif
 
 install: all
 ifeq ($(INSTALL_TARGET),y)
