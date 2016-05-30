@@ -50,7 +50,7 @@ $Env:NON_PMEM_IS_PMEM = $true
 
 # doesn't make sense to run in local directory
 require_fs_type pmem non-pmem
-#require_test_type long
+require_test_type long
 
 setup
 

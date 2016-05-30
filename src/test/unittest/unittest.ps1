@@ -818,10 +818,17 @@ if ($DIR) {
     # choose based on FS env variable
     switch -regex ($Env:FS) {
         'local' { sv -Name DIR ($LOCAL_FS_DIR + $tail) }
-        'pmem' { sv -Name DIR ($PMEM_FS_DIR + $tail) }
+        'pmem' { sv -Name DIR ($PMEM_FS_DIR + $tail)
+                 if ($PMEM_FS_DIR_FORCE_PMEM) {
+                     $Env:PMEM_IS_PMEM_FORCE = 1
+                 }
+               }
         'non-pmem' { sv -Name DIR ($NON_PMEM_FS_DIR + $tail) }
         'any' { if ($PMEM_FS_DIR) {
                     sv -Name DIR ($PMEM_FS_DIR + $tail)
+                    if ($PMEM_FS_DIR_FORCE_PMEM) {
+                        $Env:PMEM_IS_PMEM_FORCE = 1
+                    }
                 } ElseIf ($NON_PMEM_FS_DIR) {
                     sv -Name DIR ($NON_PMEM_FS_DIR + $tail)
                 } Else {

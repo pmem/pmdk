@@ -19,6 +19,8 @@ test_script:
 - ps: >-
     if ($env:CONFIGURATION -eq "Debug") {
         cd src/test
-        cp testconfig.ps1.example testconfig.ps1
-        ./RUNTESTS.ps1 -o 60s
+        echo "`$NON_PMEM_FS_DIR = '\temp'" > testconfig.ps1
+        echo "`$PMEM_FS_DIR = '\temp'" >> testconfig.ps1
+        echo "`$PMEM_FS_DIR_FORCE_PMEM = 1" >> testconfig.ps1
+        ./RUNTESTS.ps1 -b debug -o 60s
     }
