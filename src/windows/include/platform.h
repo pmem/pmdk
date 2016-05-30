@@ -140,8 +140,6 @@ __sync_synchronize()
 #define S_IWUSR S_IWRITE
 
 typedef int mode_t;
-
-#define fchmod(fd, mode) 0	/* XXX - dummy */
 #define setlinebuf(fp) setvbuf(fp, NULL, _IOLBF, BUFSIZ);
 
 /* unistd.h */

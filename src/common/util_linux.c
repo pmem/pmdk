@@ -295,6 +295,8 @@ out:
 int
 util_is_absolute_path(const char *path)
 {
+	LOG(3, "path: %s", path);
+
 	if (path[0] == DIR_SEPARATOR)
 		return 1;
 	else

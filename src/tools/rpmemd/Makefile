@@ -34,23 +34,34 @@
 vpath %.c ../../rpmem_common/
 
 TOP = ../../..
+include $(TOP)/src/common.inc
 
+ifeq ($(call check_package, libfabric),y)
 TARGET = rpmemd
-
 OBJS = rpmemd.o\
        rpmemd_log.o\
        rpmemd_config.o\
        rpmem_common.o\
        rpmemd_obc.o\
-       rpmemd_db.o
+       rpmemd_db.o\
+       rpmemd_fip.o\
+       rpmemd_fip_worker.o\
+       rpmem_fip_common.o
 
 LIBPMEM=y
 TOOLS_COMMON=y
 
 INCS += -I$(TOP)/src/rpmem_common
 CFLAGS += -DRPMEMC_LOG_RPMEMD
+CFLAGS += $(shell $(PKG_CONFIG) --cflags libfabric)
+LIBS += $(shell $(PKG_CONFIG) --libs libfabric)
 
 INSTALL_TARGET=n
+
+else
+$(info NOTE: Skipping rpmemd because libfabric is missing \
+-- see src/tools/rpmemd/README for details.)
+endif
 
 include ../Makefile.inc
 

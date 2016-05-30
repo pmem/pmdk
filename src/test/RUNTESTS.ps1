@@ -167,7 +167,7 @@ function runtest {
     }
     sv -Name builds $buildtype
     if ($builds -eq "all") {
-        $builds = "debug nondebug static-debug static-nondebug"
+        $builds = "debug nondebug"
     }
 
     cd $testName
