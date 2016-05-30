@@ -44,7 +44,7 @@
 
 #define LAYOUT "cpp"
 
-using namespace nvml::obj;
+namespace nvobj = nvml::obj;
 
 namespace
 {
@@ -72,12 +72,12 @@ public:
 
 	~foo() = default;
 
-	p<int> bar;
-	p<char> arr[TEST_ARR_SIZE];
+	nvobj::p<int> bar;
+	nvobj::p<char> arr[TEST_ARR_SIZE];
 };
 
 struct root {
-	persistent_ptr<foo[]> pfoo;
+	nvobj::persistent_ptr<foo[]> pfoo;
 };
 
 class bar {
@@ -93,58 +93,58 @@ public:
  * test_make_one_d -- (internal) test make_persitent of a 1d array
  */
 void
-test_make_one_d(pool_base &pop)
+test_make_one_d(nvobj::pool_base &pop)
 {
-	persistent_ptr<foo[]> pfoo;
-	make_persistent_atomic<foo[]>(pop, pfoo, 5);
+	nvobj::persistent_ptr<foo[]> pfoo;
+	nvobj::make_persistent_atomic<foo[]>(pop, pfoo, 5);
 	for (int i = 0; i < 5; ++i)
 		pfoo[i].check_foo();
 
-	delete_persistent_atomic<foo[]>(pfoo, 5);
+	nvobj::delete_persistent_atomic<foo[]>(pfoo, 5);
 
-	make_persistent_atomic<foo[]>(pop, pfoo, 6);
+	nvobj::make_persistent_atomic<foo[]>(pop, pfoo, 6);
 	for (int i = 0; i < 6; ++i)
 		pfoo[i].check_foo();
 
-	delete_persistent_atomic<foo[]>(pfoo, 6);
+	nvobj::delete_persistent_atomic<foo[]>(pfoo, 6);
 
-	persistent_ptr<foo[5]> pfooN;
-	make_persistent_atomic<foo[5]>(pop, pfooN);
+	nvobj::persistent_ptr<foo[5]> pfooN;
+	nvobj::make_persistent_atomic<foo[5]>(pop, pfooN);
 	for (int i = 0; i < 5; ++i)
 		pfooN[i].check_foo();
 
-	delete_persistent_atomic<foo[5]>(pfooN);
+	nvobj::delete_persistent_atomic<foo[5]>(pfooN);
 }
 
 /*
  * test_make_two_d -- (internal) test make_persitent of a 2d array
  */
 void
-test_make_two_d(pool_base &pop)
+test_make_two_d(nvobj::pool_base &pop)
 {
-	persistent_ptr<foo[][2]> pfoo;
-	make_persistent_atomic<foo[][2]>(pop, pfoo, 5);
+	nvobj::persistent_ptr<foo[][2]> pfoo;
+	nvobj::make_persistent_atomic<foo[][2]>(pop, pfoo, 5);
 	for (int i = 0; i < 5; ++i)
 		for (int j = 0; j < 2; j++)
 			pfoo[i][j].check_foo();
 
-	delete_persistent_atomic<foo[][2]>(pfoo, 5);
+	nvobj::delete_persistent_atomic<foo[][2]>(pfoo, 5);
 
-	persistent_ptr<foo[][3]> pfoo2;
-	make_persistent_atomic<foo[][3]>(pop, pfoo2, 6);
+	nvobj::persistent_ptr<foo[][3]> pfoo2;
+	nvobj::make_persistent_atomic<foo[][3]>(pop, pfoo2, 6);
 	for (int i = 0; i < 6; ++i)
 		for (int j = 0; j < 3; j++)
 			pfoo2[i][j].check_foo();
 
-	delete_persistent_atomic<foo[][3]>(pfoo2, 6);
+	nvobj::delete_persistent_atomic<foo[][3]>(pfoo2, 6);
 
-	persistent_ptr<foo[5][2]> pfooN;
-	make_persistent_atomic<foo[5][2]>(pop, pfooN);
+	nvobj::persistent_ptr<foo[5][2]> pfooN;
+	nvobj::make_persistent_atomic<foo[5][2]>(pop, pfooN);
 	for (int i = 0; i < 5; ++i)
 		for (int j = 0; j < 2; j++)
 			pfooN[i][j].check_foo();
 
-	delete_persistent_atomic<foo[5][2]>(pfooN);
+	nvobj::delete_persistent_atomic<foo[5][2]>(pfooN);
 }
 
 /*
@@ -152,12 +152,12 @@ test_make_two_d(pool_base &pop)
  * constructors
  */
 void
-test_constructor_exception(pool_base &pop)
+test_constructor_exception(nvobj::pool_base &pop)
 {
-	persistent_ptr<bar[]> pfoo;
+	nvobj::persistent_ptr<bar[]> pfoo;
 	bool except = false;
 	try {
-		make_persistent_atomic<bar[]>(pop, pfoo, 5);
+		nvobj::make_persistent_atomic<bar[]>(pop, pfoo, 5);
 	} catch (std::bad_alloc &ba) {
 		except = true;
 	}
@@ -176,11 +176,11 @@ main(int argc, char *argv[])
 
 	const char *path = argv[1];
 
-	pool<struct root> pop;
+	nvobj::pool<struct root> pop;
 
 	try {
-		pop = pool<struct root>::create(path, LAYOUT, PMEMOBJ_MIN_POOL,
-						S_IWUSR | S_IRUSR);
+		pop = nvobj::pool<struct root>::create(
+			path, LAYOUT, PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR);
 	} catch (nvml::pool_error &pe) {
 		UT_FATAL("!pool::create: %s %s", pe.what(), path);
 	}

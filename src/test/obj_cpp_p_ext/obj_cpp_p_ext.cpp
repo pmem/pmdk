@@ -48,38 +48,39 @@
 
 #define LAYOUT "cpp"
 
-using namespace nvml::obj;
+namespace nvobj = nvml::obj;
 
 namespace
 {
 
 struct foo {
-	p<int> pint;
-	p<long long> pllong;
-	p<unsigned char> puchar;
+	nvobj::p<int> pint;
+	nvobj::p<long long> pllong;
+	nvobj::p<unsigned char> puchar;
 };
 
 struct bar {
-	p<double> pdouble;
-	p<float> pfloat;
+	nvobj::p<double> pdouble;
+	nvobj::p<float> pfloat;
 };
 
 struct root {
-	persistent_ptr<bar> bar_ptr;
-	persistent_ptr<foo> foo_ptr;
+	nvobj::persistent_ptr<bar> bar_ptr;
+	nvobj::persistent_ptr<foo> foo_ptr;
 };
 
 /*
  * init_foobar -- (internal) initialize the root object with specific values
  */
-persistent_ptr<root>
-init_foobar(pool_base &pop)
+nvobj::persistent_ptr<root>
+init_foobar(nvobj::pool_base &pop)
 {
-	pool<struct root> &root_pop = dynamic_cast<pool<struct root> &>(pop);
-	persistent_ptr<root> r = root_pop.get_root();
+	nvobj::pool<struct root> &root_pop =
+		dynamic_cast<nvobj::pool<struct root> &>(pop);
+	nvobj::persistent_ptr<root> r = root_pop.get_root();
 
 	try {
-		transaction::exec_tx(pop, [&] {
+		nvobj::transaction::exec_tx(pop, [&] {
 			UT_ASSERT(r->bar_ptr == nullptr);
 			UT_ASSERT(r->foo_ptr == nullptr);
 
@@ -104,13 +105,14 @@ init_foobar(pool_base &pop)
  * cleanup_foobar -- (internal) deallocate and zero out root fields
  */
 void
-cleanup_foobar(pool_base &pop)
+cleanup_foobar(nvobj::pool_base &pop)
 {
-	pool<struct root> &root_pop = dynamic_cast<pool<struct root> &>(pop);
-	persistent_ptr<root> r = root_pop.get_root();
+	nvobj::pool<struct root> &root_pop =
+		dynamic_cast<nvobj::pool<struct root> &>(pop);
+	nvobj::persistent_ptr<root> r = root_pop.get_root();
 
 	try {
-		transaction::exec_tx(pop, [&] {
+		nvobj::transaction::exec_tx(pop, [&] {
 			UT_ASSERT(r->bar_ptr != nullptr);
 			UT_ASSERT(r->foo_ptr != nullptr);
 
@@ -131,13 +133,13 @@ cleanup_foobar(pool_base &pop)
  * arithmetic_test -- (internal) perform basic arithmetic tests on p<>
  */
 void
-arithmetic_test(pool_base &pop)
+arithmetic_test(nvobj::pool_base &pop)
 {
-	persistent_ptr<root> r = init_foobar(pop);
+	nvobj::persistent_ptr<root> r = init_foobar(pop);
 
 	/* operations test */
 	try {
-		transaction::exec_tx(pop, [&] {
+		nvobj::transaction::exec_tx(pop, [&] {
 			/* addition */
 			r->foo_ptr->puchar += r->foo_ptr->puchar;
 			r->foo_ptr->puchar += r->foo_ptr->pint;
@@ -221,12 +223,12 @@ arithmetic_test(pool_base &pop)
  * bitwise_test -- (internal) perform basic bitwise operator tests on p<>
  */
 void
-bitwise_test(pool_base &pop)
+bitwise_test(nvobj::pool_base &pop)
 {
-	persistent_ptr<root> r = init_foobar(pop);
+	nvobj::persistent_ptr<root> r = init_foobar(pop);
 
 	try {
-		transaction::exec_tx(pop, [&] {
+		nvobj::transaction::exec_tx(pop, [&] {
 			/* OR */
 			r->foo_ptr->puchar |= r->foo_ptr->pllong;
 			r->foo_ptr->puchar |= r->foo_ptr->pint;
@@ -296,12 +298,12 @@ bitwise_test(pool_base &pop)
  * stream_test -- (internal) perform basic istream/ostream operator tests on p<>
  */
 void
-stream_test(pool_base &pop)
+stream_test(nvobj::pool_base &pop)
 {
-	persistent_ptr<root> r = init_foobar(pop);
+	nvobj::persistent_ptr<root> r = init_foobar(pop);
 
 	try {
-		transaction::exec_tx(pop, [&] {
+		nvobj::transaction::exec_tx(pop, [&] {
 			std::stringstream stream("12.4");
 			stream >> r->bar_ptr->pdouble;
 			/*
@@ -333,11 +335,11 @@ main(int argc, char *argv[])
 
 	const char *path = argv[1];
 
-	pool<struct root> pop;
+	nvobj::pool<struct root> pop;
 
 	try {
-		pop = pool<struct root>::create(path, LAYOUT, PMEMOBJ_MIN_POOL,
-						S_IWUSR | S_IRUSR);
+		pop = nvobj::pool<struct root>::create(
+			path, LAYOUT, PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR);
 	} catch (nvml::pool_error &pe) {
 		UT_FATAL("!pool::create: %s %s", pe.what(), path);
 	}

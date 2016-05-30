@@ -44,7 +44,7 @@
 
 #define LAYOUT "cpp"
 
-using namespace nvml::obj;
+namespace nvobj = nvml::obj;
 
 namespace
 {
@@ -77,39 +77,39 @@ public:
 			this->arr[i] = 0;
 	}
 
-	p<int> bar;
-	p<char> arr[TEST_ARR_SIZE];
+	nvobj::p<int> bar;
+	nvobj::p<char> arr[TEST_ARR_SIZE];
 };
 
 struct root {
-	persistent_ptr<foo[]> pfoo;
+	nvobj::persistent_ptr<foo[]> pfoo;
 };
 
 /*
  * test_make_one_d -- (internal) test make_persitent of a 1d array
  */
 void
-test_make_one_d(pool_base &pop)
+test_make_one_d(nvobj::pool_base &pop)
 {
 	try {
-		transaction::exec_tx(pop, [&] {
-			auto pfoo = make_persistent<foo[]>(5);
+		nvobj::transaction::exec_tx(pop, [&] {
+			auto pfoo = nvobj::make_persistent<foo[]>(5);
 			for (int i = 0; i < 5; ++i)
 				pfoo[i].check_foo();
 
-			delete_persistent<foo[]>(pfoo, 5);
+			nvobj::delete_persistent<foo[]>(pfoo, 5);
 
-			auto pfoo2 = make_persistent<foo[]>(6);
+			auto pfoo2 = nvobj::make_persistent<foo[]>(6);
 			for (int i = 0; i < 6; ++i)
 				pfoo2[i].check_foo();
 
-			delete_persistent<foo[]>(pfoo2, 6);
+			nvobj::delete_persistent<foo[]>(pfoo2, 6);
 
-			auto pfooN = make_persistent<foo[5]>();
+			auto pfooN = nvobj::make_persistent<foo[5]>();
 			for (int i = 0; i < 5; ++i)
 				pfooN[i].check_foo();
 
-			delete_persistent<foo[5]>(pfooN);
+			nvobj::delete_persistent<foo[5]>(pfooN);
 		});
 	} catch (...) {
 		UT_ASSERT(0);
@@ -120,30 +120,30 @@ test_make_one_d(pool_base &pop)
  * test_make_two_d -- (internal) test make_persitent of a 2d array
  */
 void
-test_make_two_d(pool_base &pop)
+test_make_two_d(nvobj::pool_base &pop)
 {
 	try {
-		transaction::exec_tx(pop, [&] {
-			auto pfoo = make_persistent<foo[][2]>(5);
+		nvobj::transaction::exec_tx(pop, [&] {
+			auto pfoo = nvobj::make_persistent<foo[][2]>(5);
 			for (int i = 0; i < 5; ++i)
 				for (int j = 0; j < 2; j++)
 					pfoo[i][j].check_foo();
 
-			delete_persistent<foo[][2]>(pfoo, 5);
+			nvobj::delete_persistent<foo[][2]>(pfoo, 5);
 
-			auto pfoo2 = make_persistent<foo[][3]>(6);
+			auto pfoo2 = nvobj::make_persistent<foo[][3]>(6);
 			for (int i = 0; i < 6; ++i)
 				for (int j = 0; j < 3; j++)
 					pfoo2[i][j].check_foo();
 
-			delete_persistent<foo[][3]>(pfoo2, 6);
+			nvobj::delete_persistent<foo[][3]>(pfoo2, 6);
 
-			auto pfooN = make_persistent<foo[5][2]>();
+			auto pfooN = nvobj::make_persistent<foo[5][2]>();
 			for (int i = 0; i < 5; ++i)
 				for (int j = 0; j < 2; j++)
 					pfooN[i][j].check_foo();
 
-			delete_persistent<foo[5][2]>(pfooN);
+			nvobj::delete_persistent<foo[5][2]>(pfooN);
 		});
 	} catch (...) {
 		UT_ASSERT(0);
@@ -154,14 +154,15 @@ test_make_two_d(pool_base &pop)
  * test_abort_revert -- (internal) test destruction behavior and revert
  */
 void
-test_abort_revert(pool_base &pop)
+test_abort_revert(nvobj::pool_base &pop)
 {
-	pool<struct root> &root_pop = dynamic_cast<pool<struct root> &>(pop);
-	persistent_ptr<root> r = root_pop.get_root();
+	nvobj::pool<struct root> &root_pop =
+		dynamic_cast<nvobj::pool<struct root> &>(pop);
+	nvobj::persistent_ptr<root> r = root_pop.get_root();
 
 	try {
-		transaction::exec_tx(pop, [&] {
-			r->pfoo = make_persistent<foo[]>(5);
+		nvobj::transaction::exec_tx(pop, [&] {
+			r->pfoo = nvobj::make_persistent<foo[]>(5);
 			for (int i = 0; i < 5; ++i)
 				r->pfoo[i].check_foo();
 		});
@@ -171,12 +172,12 @@ test_abort_revert(pool_base &pop)
 
 	bool exception_thrown = false;
 	try {
-		transaction::exec_tx(pop, [&] {
+		nvobj::transaction::exec_tx(pop, [&] {
 			UT_ASSERT(r->pfoo != nullptr);
-			delete_persistent<foo[]>(r->pfoo, 5);
+			nvobj::delete_persistent<foo[]>(r->pfoo, 5);
 			r->pfoo = nullptr;
 
-			transaction::abort(EINVAL);
+			nvobj::transaction::abort(EINVAL);
 		});
 	} catch (nvml::manual_tx_abort &ma) {
 		exception_thrown = true;
@@ -190,8 +191,8 @@ test_abort_revert(pool_base &pop)
 		r->pfoo[i].check_foo();
 
 	try {
-		transaction::exec_tx(pop, [&] {
-			delete_persistent<foo[]>(r->pfoo, 5);
+		nvobj::transaction::exec_tx(pop, [&] {
+			nvobj::delete_persistent<foo[]>(r->pfoo, 5);
 			r->pfoo = nullptr;
 		});
 	} catch (...) {
@@ -212,11 +213,11 @@ main(int argc, char *argv[])
 
 	const char *path = argv[1];
 
-	pool<struct root> pop;
+	nvobj::pool<struct root> pop;
 
 	try {
-		pop = pool<struct root>::create(path, LAYOUT, PMEMOBJ_MIN_POOL,
-						S_IWUSR | S_IRUSR);
+		pop = nvobj::pool<struct root>::create(
+			path, LAYOUT, PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR);
 	} catch (nvml::pool_error &pe) {
 		UT_FATAL("!pool::create: %s %s", pe.what(), path);
 	}

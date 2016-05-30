@@ -45,7 +45,7 @@
 
 #define LAYOUT "cpp"
 
-using namespace nvml::obj;
+namespace nvobj = nvml::obj;
 
 namespace
 {
@@ -55,8 +55,8 @@ typedef void *(*reader_type)(void *);
 
 /* pool root structure */
 struct root {
-	mutex pmutex;
-	condition_variable cond;
+	nvobj::mutex pmutex;
+	nvobj::condition_variable cond;
 	int counter;
 };
 
@@ -71,7 +71,7 @@ const std::chrono::milliseconds wait_time(150);
 
 /* arguments for write worker */
 struct writer_args {
-	persistent_ptr<struct root> proot;
+	nvobj::persistent_ptr<struct root> proot;
 	bool notify;
 	bool all;
 };
@@ -84,7 +84,7 @@ write_notify(void *args)
 {
 	struct writer_args *wargs = static_cast<struct writer_args *>(args);
 
-	std::lock_guard<mutex> lock(wargs->proot->pmutex);
+	std::lock_guard<nvobj::mutex> lock(wargs->proot->pmutex);
 
 	while (wargs->proot->counter < limit)
 		wargs->proot->counter++;
@@ -105,8 +105,8 @@ write_notify(void *args)
 void *
 reader_mutex(void *arg)
 {
-	persistent_ptr<struct root> *proot =
-		static_cast<persistent_ptr<struct root> *>(arg);
+	nvobj::persistent_ptr<struct root> *proot =
+		static_cast<nvobj::persistent_ptr<struct root> *>(arg);
 	(*proot)->pmutex.lock();
 	while ((*proot)->counter != limit)
 		(*proot)->cond.wait((*proot)->pmutex);
@@ -123,8 +123,8 @@ reader_mutex(void *arg)
 void *
 reader_mutex_pred(void *arg)
 {
-	persistent_ptr<struct root> *proot =
-		static_cast<persistent_ptr<struct root> *>(arg);
+	nvobj::persistent_ptr<struct root> *proot =
+		static_cast<nvobj::persistent_ptr<struct root> *>(arg);
 	(*proot)->pmutex.lock();
 	(*proot)->cond.wait((*proot)->pmutex,
 			    [&]() { return (*proot)->counter == limit; });
@@ -141,9 +141,9 @@ reader_mutex_pred(void *arg)
 void *
 reader_lock(void *arg)
 {
-	persistent_ptr<struct root> *proot =
-		static_cast<persistent_ptr<struct root> *>(arg);
-	std::unique_lock<mutex> lock((*proot)->pmutex);
+	nvobj::persistent_ptr<struct root> *proot =
+		static_cast<nvobj::persistent_ptr<struct root> *>(arg);
+	std::unique_lock<nvobj::mutex> lock((*proot)->pmutex);
 	while ((*proot)->counter != limit)
 		(*proot)->cond.wait((*proot)->pmutex);
 
@@ -159,9 +159,9 @@ reader_lock(void *arg)
 void *
 reader_lock_pred(void *arg)
 {
-	persistent_ptr<struct root> *proot =
-		static_cast<persistent_ptr<struct root> *>(arg);
-	std::unique_lock<mutex> lock((*proot)->pmutex);
+	nvobj::persistent_ptr<struct root> *proot =
+		static_cast<nvobj::persistent_ptr<struct root> *>(arg);
+	std::unique_lock<nvobj::mutex> lock((*proot)->pmutex);
 	(*proot)->cond.wait(lock, [&]() { return (*proot)->counter == limit; });
 
 	UT_ASSERTeq((*proot)->counter, limit);
@@ -176,8 +176,8 @@ reader_lock_pred(void *arg)
 void *
 reader_mutex_until(void *arg)
 {
-	persistent_ptr<struct root> *proot =
-		static_cast<persistent_ptr<struct root> *>(arg);
+	nvobj::persistent_ptr<struct root> *proot =
+		static_cast<nvobj::persistent_ptr<struct root> *>(arg);
 	(*proot)->pmutex.lock();
 	auto until = std::chrono::system_clock::now();
 	until += wait_time;
@@ -199,8 +199,8 @@ reader_mutex_until(void *arg)
 void *
 reader_mutex_until_pred(void *arg)
 {
-	persistent_ptr<struct root> *proot =
-		static_cast<persistent_ptr<struct root> *>(arg);
+	nvobj::persistent_ptr<struct root> *proot =
+		static_cast<nvobj::persistent_ptr<struct root> *>(arg);
 	(*proot)->pmutex.lock();
 	auto until = std::chrono::system_clock::now();
 	until += wait_time;
@@ -224,9 +224,9 @@ reader_mutex_until_pred(void *arg)
 void *
 reader_lock_until(void *arg)
 {
-	persistent_ptr<struct root> *proot =
-		static_cast<persistent_ptr<struct root> *>(arg);
-	std::unique_lock<mutex> lock((*proot)->pmutex);
+	nvobj::persistent_ptr<struct root> *proot =
+		static_cast<nvobj::persistent_ptr<struct root> *>(arg);
+	std::unique_lock<nvobj::mutex> lock((*proot)->pmutex);
 	auto until = std::chrono::system_clock::now();
 	until += wait_time;
 	auto ret = (*proot)->cond.wait_until((*proot)->pmutex, until);
@@ -247,9 +247,9 @@ reader_lock_until(void *arg)
 void *
 reader_lock_until_pred(void *arg)
 {
-	persistent_ptr<struct root> *proot =
-		static_cast<persistent_ptr<struct root> *>(arg);
-	std::unique_lock<mutex> lock((*proot)->pmutex);
+	nvobj::persistent_ptr<struct root> *proot =
+		static_cast<nvobj::persistent_ptr<struct root> *>(arg);
+	std::unique_lock<nvobj::mutex> lock((*proot)->pmutex);
 	auto until = std::chrono::system_clock::now();
 	until += wait_time;
 	auto ret = (*proot)->cond.wait_until((*proot)->pmutex, until, [&]() {
@@ -272,8 +272,8 @@ reader_lock_until_pred(void *arg)
 void *
 reader_mutex_for(void *arg)
 {
-	persistent_ptr<struct root> *proot =
-		static_cast<persistent_ptr<struct root> *>(arg);
+	nvobj::persistent_ptr<struct root> *proot =
+		static_cast<nvobj::persistent_ptr<struct root> *>(arg);
 	(*proot)->pmutex.lock();
 	auto until = std::chrono::system_clock::now();
 	until += wait_time;
@@ -295,8 +295,8 @@ reader_mutex_for(void *arg)
 void *
 reader_mutex_for_pred(void *arg)
 {
-	persistent_ptr<struct root> *proot =
-		static_cast<persistent_ptr<struct root> *>(arg);
+	nvobj::persistent_ptr<struct root> *proot =
+		static_cast<nvobj::persistent_ptr<struct root> *>(arg);
 	(*proot)->pmutex.lock();
 	auto until = std::chrono::system_clock::now();
 	until += wait_time;
@@ -320,9 +320,9 @@ reader_mutex_for_pred(void *arg)
 void *
 reader_lock_for(void *arg)
 {
-	persistent_ptr<struct root> *proot =
-		static_cast<persistent_ptr<struct root> *>(arg);
-	std::unique_lock<mutex> lock((*proot)->pmutex);
+	nvobj::persistent_ptr<struct root> *proot =
+		static_cast<nvobj::persistent_ptr<struct root> *>(arg);
+	std::unique_lock<nvobj::mutex> lock((*proot)->pmutex);
 	auto until = std::chrono::system_clock::now();
 	until += wait_time;
 	auto ret = (*proot)->cond.wait_for((*proot)->pmutex, wait_time);
@@ -343,9 +343,9 @@ reader_lock_for(void *arg)
 void *
 reader_lock_for_pred(void *arg)
 {
-	persistent_ptr<struct root> *proot =
-		static_cast<persistent_ptr<struct root> *>(arg);
-	std::unique_lock<mutex> lock((*proot)->pmutex);
+	nvobj::persistent_ptr<struct root> *proot =
+		static_cast<nvobj::persistent_ptr<struct root> *>(arg);
+	std::unique_lock<nvobj::mutex> lock((*proot)->pmutex);
 	auto until = std::chrono::system_clock::now();
 	until += wait_time;
 	auto ret = (*proot)->cond.wait_for((*proot)->pmutex, wait_time, [&]() {
@@ -367,13 +367,13 @@ reader_lock_for_pred(void *arg)
  */
 template <typename Reader, typename Writer>
 void
-mutex_test(pool<struct root> &pop, bool notify, bool notify_all, Reader writer,
-	   Writer reader)
+mutex_test(nvobj::pool<struct root> &pop, bool notify, bool notify_all,
+	   Reader writer, Writer reader)
 {
 	const int total_threads = num_threads * 2;
 	pthread_t threads[total_threads];
 
-	persistent_ptr<struct root> proot = pop.get_root();
+	nvobj::persistent_ptr<struct root> proot = pop.get_root();
 	struct writer_args wargs = {proot, notify, notify_all};
 
 	for (int i = 0; i < total_threads; i += 2) {
@@ -396,11 +396,11 @@ main(int argc, char *argv[])
 
 	const char *path = argv[1];
 
-	pool<struct root> pop;
+	nvobj::pool<struct root> pop;
 
 	try {
-		pop = pool<struct root>::create(path, LAYOUT, PMEMOBJ_MIN_POOL,
-						S_IWUSR | S_IRUSR);
+		pop = nvobj::pool<struct root>::create(
+			path, LAYOUT, PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR);
 	} catch (nvml::pool_error &pe) {
 		UT_FATAL("!pool::create: %s %s", pe.what(), path);
 	}

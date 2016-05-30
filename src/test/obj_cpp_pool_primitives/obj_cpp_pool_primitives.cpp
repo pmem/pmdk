@@ -45,7 +45,7 @@
 #include <libpmemobj/persistent_ptr.hpp>
 #include <libpmemobj/pool.hpp>
 
-using namespace nvml::obj;
+namespace nvobj = nvml::obj;
 
 namespace
 {
@@ -54,17 +54,17 @@ int TEST_VAL = 1;
 size_t MB = ((size_t)1 << 20);
 
 struct root {
-	p<int> val;
-	persistent_ptr<root> me;
+	nvobj::p<int> val;
+	nvobj::persistent_ptr<root> me;
 };
 
 /*
  * pool_test_memset -- (internal) test memset_persist primitive
  */
 void
-pool_test_memset(pool<root> &pop)
+pool_test_memset(nvobj::pool<root> &pop)
 {
-	persistent_ptr<root> root = pop.get_root();
+	nvobj::persistent_ptr<root> root = pop.get_root();
 	UT_ASSERT(root != nullptr);
 
 	void *ret = pop.memset_persist(&root->val, TEST_VAL, sizeof(root->val));
@@ -79,9 +79,9 @@ pool_test_memset(pool<root> &pop)
  * pool_test_memcpy -- (internal) test memcpy_persist primitive
  */
 void
-pool_test_memcpy(pool<root> &pop)
+pool_test_memcpy(nvobj::pool<root> &pop)
 {
-	persistent_ptr<root> root = pop.get_root();
+	nvobj::persistent_ptr<root> root = pop.get_root();
 	UT_ASSERT(root != nullptr);
 
 	int v = TEST_VAL;
@@ -94,7 +94,7 @@ pool_test_memcpy(pool<root> &pop)
  * pool_test_drain -- (internal) test drain primitive
  */
 void
-pool_test_drain(pool<root> &pop)
+pool_test_drain(nvobj::pool<root> &pop)
 {
 	pop.drain();
 }
@@ -103,9 +103,9 @@ pool_test_drain(pool<root> &pop)
  * pool_test_flush -- (internal) test flush primitive
  */
 void
-pool_test_flush(pool<root> &pop)
+pool_test_flush(nvobj::pool<root> &pop)
 {
-	persistent_ptr<root> root = pop.get_root();
+	nvobj::persistent_ptr<root> root = pop.get_root();
 	UT_ASSERT(root != nullptr);
 
 	root->val = TEST_VAL;
@@ -117,9 +117,9 @@ pool_test_flush(pool<root> &pop)
  * pool_test_flush_p -- (internal) test flush primitive on pmem property
  */
 void
-pool_test_flush_p(pool<root> &pop)
+pool_test_flush_p(nvobj::pool<root> &pop)
 {
-	persistent_ptr<root> root = pop.get_root();
+	nvobj::persistent_ptr<root> root = pop.get_root();
 	UT_ASSERT(root != nullptr);
 
 	root->val = TEST_VAL;
@@ -131,9 +131,9 @@ pool_test_flush_p(pool<root> &pop)
  * pool_test_flush_ptr -- (internal) test flush primitive on pmem pointer
  */
 void
-pool_test_flush_ptr(pool<root> &pop)
+pool_test_flush_ptr(nvobj::pool<root> &pop)
 {
-	persistent_ptr<root> root = pop.get_root();
+	nvobj::persistent_ptr<root> root = pop.get_root();
 	UT_ASSERT(root != nullptr);
 
 	root->me = root;
@@ -146,9 +146,9 @@ pool_test_flush_ptr(pool<root> &pop)
  * object
  */
 void
-pool_test_flush_ptr_obj(pool<root> &pop)
+pool_test_flush_ptr_obj(nvobj::pool<root> &pop)
 {
-	persistent_ptr<root> root = pop.get_root();
+	nvobj::persistent_ptr<root> root = pop.get_root();
 	UT_ASSERT(root != nullptr);
 
 	root->me = root;
@@ -162,9 +162,9 @@ pool_test_flush_ptr_obj(pool<root> &pop)
  * pmem pointer object, without using pop
  */
 void
-pool_test_flush_ptr_obj_no_pop(pool<root> &pop)
+pool_test_flush_ptr_obj_no_pop(nvobj::pool<root> &pop)
 {
-	persistent_ptr<root> root = pop.get_root();
+	nvobj::persistent_ptr<root> root = pop.get_root();
 	UT_ASSERT(root != nullptr);
 
 	root->me = root;
@@ -177,9 +177,9 @@ pool_test_flush_ptr_obj_no_pop(pool<root> &pop)
  * pool_test_persist -- (internal) test persist primitive
  */
 void
-pool_test_persist(pool<root> &pop)
+pool_test_persist(nvobj::pool<root> &pop)
 {
-	persistent_ptr<root> root = pop.get_root();
+	nvobj::persistent_ptr<root> root = pop.get_root();
 	UT_ASSERT(root != nullptr);
 
 	root->val = TEST_VAL;
@@ -191,9 +191,9 @@ pool_test_persist(pool<root> &pop)
  * pool_test_persist_p -- (internal) test persist primitive on pmem property
  */
 void
-pool_test_persist_p(pool<root> &pop)
+pool_test_persist_p(nvobj::pool<root> &pop)
 {
-	persistent_ptr<root> root = pop.get_root();
+	nvobj::persistent_ptr<root> root = pop.get_root();
 	UT_ASSERT(root != nullptr);
 
 	root->val = TEST_VAL;
@@ -205,9 +205,9 @@ pool_test_persist_p(pool<root> &pop)
  * pool_test_persist_ptr -- (internal) test persist primitive on pmem pointer
  */
 void
-pool_test_persist_ptr(pool<root> &pop)
+pool_test_persist_ptr(nvobj::pool<root> &pop)
 {
-	persistent_ptr<root> root = pop.get_root();
+	nvobj::persistent_ptr<root> root = pop.get_root();
 	UT_ASSERT(root != nullptr);
 
 	root->me = root;
@@ -220,9 +220,9 @@ pool_test_persist_ptr(pool<root> &pop)
  * pointer object
  */
 void
-pool_test_persist_ptr_obj(pool<root> &pop)
+pool_test_persist_ptr_obj(nvobj::pool<root> &pop)
 {
-	persistent_ptr<root> root = pop.get_root();
+	nvobj::persistent_ptr<root> root = pop.get_root();
 	UT_ASSERT(root != nullptr);
 
 	root->me = root;
@@ -236,9 +236,9 @@ pool_test_persist_ptr_obj(pool<root> &pop)
  * pmem pointer object, without using pop
  */
 void
-pool_test_persist_ptr_obj_no_pop(pool<root> &pop)
+pool_test_persist_ptr_obj_no_pop(nvobj::pool<root> &pop)
 {
-	persistent_ptr<root> root = pop.get_root();
+	nvobj::persistent_ptr<root> root = pop.get_root();
 	UT_ASSERT(root != nullptr);
 
 	root->me = root;
@@ -250,12 +250,13 @@ pool_test_persist_ptr_obj_no_pop(pool<root> &pop)
 /*
  * pool_create -- (internal) test pool create
  */
-pool<root>
+nvobj::pool<root>
 pool_create(const char *path, const char *layout, size_t poolsize,
 	    unsigned mode)
 {
-	pool<root> pop = pool<root>::create(path, layout, poolsize, mode);
-	persistent_ptr<root> root = pop.get_root();
+	nvobj::pool<root> pop =
+		nvobj::pool<root>::create(path, layout, poolsize, mode);
+	nvobj::persistent_ptr<root> root = pop.get_root();
 	UT_ASSERT(root != nullptr);
 
 	return pop;
@@ -271,7 +272,7 @@ main(int argc, char *argv[])
 	if (argc != 2)
 		UT_FATAL("usage: %s path", argv[0]);
 
-	pool<root> pop = pool_create(argv[1], "layout", 32 * MB, 0666);
+	nvobj::pool<root> pop = pool_create(argv[1], "layout", 32 * MB, 0666);
 
 	pool_test_persist(pop);
 	pool_test_persist_p(pop);

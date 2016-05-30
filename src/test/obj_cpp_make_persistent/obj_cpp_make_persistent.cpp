@@ -44,7 +44,7 @@
 
 #define LAYOUT "cpp"
 
-using namespace nvml::obj;
+namespace nvobj = nvml::obj;
 
 namespace
 {
@@ -82,30 +82,30 @@ public:
 			UT_ASSERTeq(arr_val, this->arr[i]);
 	}
 
-	p<int> bar;
-	p<char> arr[TEST_ARR_SIZE];
+	nvobj::p<int> bar;
+	nvobj::p<char> arr[TEST_ARR_SIZE];
 };
 
 struct root {
-	persistent_ptr<foo> pfoo;
+	nvobj::persistent_ptr<foo> pfoo;
 };
 
 /*
  * test_make_no_args -- (internal) test make_persitent without arguments
  */
 void
-test_make_no_args(pool<struct root> &pop)
+test_make_no_args(nvobj::pool<struct root> &pop)
 {
-	persistent_ptr<root> r = pop.get_root();
+	nvobj::persistent_ptr<root> r = pop.get_root();
 
 	try {
-		transaction::exec_tx(pop, [&] {
+		nvobj::transaction::exec_tx(pop, [&] {
 			UT_ASSERT(r->pfoo == nullptr);
 
-			r->pfoo = make_persistent<foo>();
+			r->pfoo = nvobj::make_persistent<foo>();
 			r->pfoo->check_foo(1, 1);
 
-			delete_persistent<foo>(r->pfoo);
+			nvobj::delete_persistent<foo>(r->pfoo);
 			r->pfoo = nullptr;
 		});
 	} catch (...) {
@@ -119,23 +119,23 @@ test_make_no_args(pool<struct root> &pop)
  * test_make_args -- (internal) test make_persitent with arguments
  */
 void
-test_make_args(pool<struct root> &pop)
+test_make_args(nvobj::pool<struct root> &pop)
 {
-	persistent_ptr<root> r = pop.get_root();
+	nvobj::persistent_ptr<root> r = pop.get_root();
 
 	try {
-		transaction::exec_tx(pop, [&] {
+		nvobj::transaction::exec_tx(pop, [&] {
 			UT_ASSERT(r->pfoo == nullptr);
 
-			r->pfoo = make_persistent<foo>(2);
+			r->pfoo = nvobj::make_persistent<foo>(2);
 			r->pfoo->check_foo(2, 2);
 
-			delete_persistent<foo>(r->pfoo);
+			nvobj::delete_persistent<foo>(r->pfoo);
 
-			r->pfoo = make_persistent<foo>(3, 4);
+			r->pfoo = nvobj::make_persistent<foo>(3, 4);
 			r->pfoo->check_foo(3, 4);
 
-			delete_persistent<foo>(r->pfoo);
+			nvobj::delete_persistent<foo>(r->pfoo);
 			r->pfoo = nullptr;
 		});
 	} catch (...) {
@@ -149,16 +149,16 @@ test_make_args(pool<struct root> &pop)
  * test_additional_delete -- (internal) test double delete and delete rollback
  */
 void
-test_additional_delete(pool<struct root> &pop)
+test_additional_delete(nvobj::pool<struct root> &pop)
 {
-	persistent_ptr<root> r = pop.get_root();
+	nvobj::persistent_ptr<root> r = pop.get_root();
 
 	try {
-		transaction::exec_tx(pop, [&] {
+		nvobj::transaction::exec_tx(pop, [&] {
 
 			UT_ASSERT(r->pfoo == nullptr);
 
-			r->pfoo = make_persistent<foo>();
+			r->pfoo = nvobj::make_persistent<foo>();
 			r->pfoo->check_foo(1, 1);
 		});
 	} catch (...) {
@@ -167,13 +167,13 @@ test_additional_delete(pool<struct root> &pop)
 
 	bool exception_thrown = false;
 	try {
-		transaction::exec_tx(pop, [&] {
+		nvobj::transaction::exec_tx(pop, [&] {
 			UT_ASSERT(r->pfoo != nullptr);
-			delete_persistent<foo>(r->pfoo);
+			nvobj::delete_persistent<foo>(r->pfoo);
 			r->pfoo = nullptr;
-			delete_persistent<foo>(r->pfoo);
+			nvobj::delete_persistent<foo>(r->pfoo);
 
-			transaction::abort(EINVAL);
+			nvobj::transaction::abort(EINVAL);
 		});
 	} catch (nvml::manual_tx_abort &ma) {
 		exception_thrown = true;
@@ -186,9 +186,9 @@ test_additional_delete(pool<struct root> &pop)
 	r->pfoo->check_foo(1, 1);
 
 	try {
-		transaction::exec_tx(pop, [&] {
+		nvobj::transaction::exec_tx(pop, [&] {
 			UT_ASSERT(r->pfoo != nullptr);
-			delete_persistent<foo>(r->pfoo);
+			nvobj::delete_persistent<foo>(r->pfoo);
 			r->pfoo = nullptr;
 		});
 	} catch (...) {
@@ -209,10 +209,10 @@ main(int argc, char *argv[])
 
 	const char *path = argv[1];
 
-	pool<struct root> pop;
+	nvobj::pool<struct root> pop;
 
 	try {
-		pop = pool<struct root>::create(path, LAYOUT, PMEMOBJ_MIN_POOL,
+		pop = nvobj::pool<root>::create(path, LAYOUT, PMEMOBJ_MIN_POOL,
 						S_IWUSR | S_IRUSR);
 	} catch (nvml::pool_error &pe) {
 		UT_FATAL("!pool::create: %s %s", pe.what(), path);
