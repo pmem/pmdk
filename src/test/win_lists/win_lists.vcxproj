@@ -17,6 +17,11 @@
   <ItemGroup>
     <ClCompile Include="win_lists.c" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="err0.log.match" />
+    <None Include="out0.log.match" />
+    <None Include="TEST0.ps1" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{1F2E1C51-2B14-4047-BE6D-52E00FC3C780}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
@@ -96,7 +101,7 @@
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <AdditionalDependencies>libut.lib;libpmem.lib;libpmemblk.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libut.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -114,7 +119,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <AdditionalLibraryDirectories>$(OutDir);$(OutDir)/../Static-Release</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libut.lib;libpmem.lib;libpmemblk.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libut.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
