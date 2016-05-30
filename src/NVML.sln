@@ -1,4 +1,3 @@
-
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.24720.0
@@ -114,15 +113,20 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_many_size_allocs", "tes
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_out_of_memory", "test\obj_out_of_memory\obj_out_of_memory.vcxproj", "{70EE1D40-0C65-4985-8EFC-BD40EE3A89B2}"
 	ProjectSection(ProjectDependencies) = postProject
+		{1BAA1617-93AE-4196-8A1A-BD492FB18AEF} = {1BAA1617-93AE-4196-8A1A-BD492FB18AEF}
 		{9E9E3D25-2139-4A5D-9200-18148DDEAD45} = {9E9E3D25-2139-4A5D-9200-18148DDEAD45}
-		{0B1818EB-BDC8-4865-964F-DB8BF05CFD86} = {0B1818EB-BDC8-4865-964F-DB8BF05CFD86}
 		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681} = {CE3F2DFB-8470-4802-AD37-21CAF6CB2681}
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sparsefile", "test\tools\sparsefile\sparsefile.vcxproj", "{3EC30D6A-BDA4-4971-879A-8814204EAE31}"
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "win_lists", "test\win_tests\win_tests.vcxproj", "{1F2E1C51-2B14-4047-BE6D-52E00FC3C780}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "win_lists", "test\win_lists\win_lists.vcxproj", "{1F2E1C51-2B14-4047-BE6D-52E00FC3C780}"
 	ProjectSection(ProjectDependencies) = postProject
-		{B3FF772D-F2FF-4E6E-ABD8-763407BB6A5C} = {B3FF772D-F2FF-4E6E-ABD8-763407BB6A5C}
+		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681} = {CE3F2DFB-8470-4802-AD37-21CAF6CB2681}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "util_is_absolute", "test\util_is_absolute\util_is_absolute.vcxproj", "{C973CD39-D63B-4F5C-BE1D-DED17388B5A4}"
+	ProjectSection(ProjectDependencies) = postProject
 		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681} = {CE3F2DFB-8470-4802-AD37-21CAF6CB2681}
 	EndProjectSection
 EndProject
@@ -277,6 +281,14 @@ Global
 		{1F2E1C51-2B14-4047-BE6D-52E00FC3C780}.Static-Debug|x64.Build.0 = Static-Debug|x64
 		{1F2E1C51-2B14-4047-BE6D-52E00FC3C780}.Static-Release|x64.ActiveCfg = Release|x64
 		{1F2E1C51-2B14-4047-BE6D-52E00FC3C780}.Static-Release|x64.Build.0 = Release|x64
+		{C973CD39-D63B-4F5C-BE1D-DED17388B5A4}.Debug|x64.ActiveCfg = Debug|x64
+		{C973CD39-D63B-4F5C-BE1D-DED17388B5A4}.Debug|x64.Build.0 = Debug|x64
+		{C973CD39-D63B-4F5C-BE1D-DED17388B5A4}.Release|x64.ActiveCfg = Release|x64
+		{C973CD39-D63B-4F5C-BE1D-DED17388B5A4}.Release|x64.Build.0 = Release|x64
+		{C973CD39-D63B-4F5C-BE1D-DED17388B5A4}.Static-Debug|x64.ActiveCfg = Static-Debug|x64
+		{C973CD39-D63B-4F5C-BE1D-DED17388B5A4}.Static-Debug|x64.Build.0 = Static-Debug|x64
+		{C973CD39-D63B-4F5C-BE1D-DED17388B5A4}.Static-Release|x64.ActiveCfg = Release|x64
+		{C973CD39-D63B-4F5C-BE1D-DED17388B5A4}.Static-Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -302,5 +314,6 @@ Global
 		{70EE1D40-0C65-4985-8EFC-BD40EE3A89B2} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 		{3EC30D6A-BDA4-4971-879A-8814204EAE31} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 		{1F2E1C51-2B14-4047-BE6D-52E00FC3C780} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
+		{C973CD39-D63B-4F5C-BE1D-DED17388B5A4} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 	EndGlobalSection
 EndGlobal
