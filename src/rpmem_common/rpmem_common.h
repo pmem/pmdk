@@ -120,3 +120,9 @@ int rpmem_obc_send(int sockfd, const void *buf, size_t len);
 int rpmem_obc_recv(int sockfd, void *buf, size_t len);
 int rpmem_obc_keepalive(int fd);
 const char *rpmem_get_ip_str(const struct sockaddr *addr);
+int rpmem_target_split(const char *target, char **user,
+		char **node, char **service);
+int rpmem_xread(int fd, void *buf, size_t len);
+int rpmem_xwrite(int fd, const void *buf, size_t len);
+int rpmem_xsend(int fd, const void *buf, size_t len, int flags);
+int rpmem_xrecv(int fd, void *buf, size_t len, int flags);

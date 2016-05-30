@@ -1,3 +1,4 @@
+#!/bin/bash -e
 #
 # Copyright 2016, Intel Corporation
 #
@@ -31,21 +32,42 @@
 #
 
 #
-# examples/librpmem/Makefile -- build the librpmem examples
+# src/test/rpmem_fip/TEST4 -- tests for rpmem_fip and rpmemd_fip modules
 #
-HAS_LIBRABRIC=$(call check_package, libfabric)
 
-ifeq ($(HAS_LIBRABRIC), y)
-PROGS = basic
+export UNITTEST_NAME=rpmem_fip/TEST4
+export UNITTEST_NUM=4
 
-LIBS = -lrpmem -pthread $(shell $(PKG_CONFIG) --libs libfabric)
+# standard unit test setup
+. ../unittest/unittest.sh
 
-CFLAGS = $(shell $(PKG_CONFIG) --cflags libfabric)
-else
-$(info NOTE: Skipping librpmem because libfabric is missing \
--- see src/librpmem/README for details.)
-endif
+require_fs_type none
+require_build_type nondebug debug
 
-include ../Makefile.inc
+rpmem_foreach_provider
+rpmem_foreach_persist
 
-basic: basic.o
+setup
+
+require_nodes 2
+require_node_libfabric 0 $RPMEM_PROVIDER
+require_node_libfabric 1 $RPMEM_PROVIDER
+require_node_log_files 0 $RPMEM_LOG_FILE $RPMEMD_LOG_FILE
+require_node_log_files 1 $RPMEM_LOG_FILE $RPMEMD_LOG_FILE
+
+SRV=srv${UNITTEST_NUM}.pid
+clean_remote_node 0 $SRV
+
+expect_normal_exit run_on_node_background 0 $SRV\
+	./rpmem_fip$EXESUFFIX server_process ${NODE_ADDR[0]}\
+	$RPMEM_PORT $RPMEM_PM
+
+expect_normal_exit wait_on_node_port 0 $SRV $RPMEM_PORT
+
+expect_normal_exit run_on_node 1 ./rpmem_fip$EXESUFFIX\
+	client_persist_mt ${NODE_ADDR[0]}:${RPMEM_PORT} $RPMEM_PROVIDER
+
+expect_normal_exit wait_on_node 0 $SRV
+
+pass
+

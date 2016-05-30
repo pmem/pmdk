@@ -31,21 +31,44 @@
 #
 
 #
-# examples/librpmem/Makefile -- build the librpmem examples
+# src/test/rpmem_fip/Makefile -- build rpmem_fip test
 #
-HAS_LIBRABRIC=$(call check_package, libfabric)
+include ../../common.inc
 
-ifeq ($(HAS_LIBRABRIC), y)
-PROGS = basic
+vpath %.c ../../librpmem/
+vpath %.c ../../rpmem_common/
+vpath %.c ../../tools/rpmemd
+vpath %.c ../../common/
 
-LIBS = -lrpmem -pthread $(shell $(PKG_CONFIG) --libs libfabric)
+HAS_LIBFABRIC=$(call check_package, libfabric)
 
-CFLAGS = $(shell $(PKG_CONFIG) --cflags libfabric)
-else
-$(info NOTE: Skipping librpmem because libfabric is missing \
--- see src/librpmem/README for details.)
+ifeq ($(HAS_LIBFABRIC), y)
+TARGET = rpmem_fip
+OBJS = rpmem_fip_test.o\
+       rpmem_fip_sock.o\
+       rpmem_fip.o\
+       rpmemd_fip.o\
+       rpmem_util.o\
+       rpmem_common.o\
+       rpmem_fip_common.o\
+       rpmemd_fip_worker.o\
+       rpmemd_obc.o\
+       rpmemd_log.o\
+       out.o util.o util_linux.o
+
+out.o: CFLAGS += -DDEBUG -DSRCVERSION=\"utversion\"
 endif
+
+LIBPMEM=y
 
 include ../Makefile.inc
 
-basic: basic.o
+ifeq ($(HAS_LIBFABRIC), y)
+LIBS += $(shell $(PKG_CONFIG) --libs libfabric)
+CFLAGS += $(shell $(PKG_CONFIG) --cflags libfabric)
+CFLAGS += -DDEBUG
+INCS += -I../../librpmem/
+INCS += -I../../rpmem_common/
+INCS += -I../../tools/rpmemd
+INCS += -I../../common
+endif

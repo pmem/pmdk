@@ -1,4 +1,4 @@
-#
+
 # Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
@@ -29,23 +29,30 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
+# Makefile -- Makefile for fip tool
 #
-# examples/librpmem/Makefile -- build the librpmem examples
-#
-HAS_LIBRABRIC=$(call check_package, libfabric)
 
-ifeq ($(HAS_LIBRABRIC), y)
-PROGS = basic
+TOP = ../../../..
+include $(TOP)/src/common.inc
 
-LIBS = -lrpmem -pthread $(shell $(PKG_CONFIG) --libs libfabric)
+vpath %.c $(TOP)/src/rpmem_common/
 
-CFLAGS = $(shell $(PKG_CONFIG) --cflags libfabric)
+HAS_LIBFABRIC=$(call check_package, libfabric)
+ifeq ($(HAS_LIBFABRIC),y)
+TARGET = fip
+
+OBJS = fip.o rpmem_fip_common.o rpmem_common.o
+
 else
-$(info NOTE: Skipping librpmem because libfabric is missing \
--- see src/librpmem/README for details.)
+$(info NOTE: Skipping fip because libfabric is missing \
+-- see src/test/tools/fip/README for details.)
 endif
 
-include ../Makefile.inc
+include $(TOP)/src/tools/Makefile.inc
 
-basic: basic.o
+ifeq ($(HAS_LIBFABRIC),y)
+CFLAGS += -I$(TOP)/src/rpmem_common
+CFLAGS += $(shell $(PKG_CONFIG) --cflags libfabric)
+LIBS += $(shell $(PKG_CONFIG) --libs libfabric)
+endif
+
