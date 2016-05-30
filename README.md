@@ -29,12 +29,13 @@ and tutorials.
 
 >**NOTE: Porting NVML to Windows is in progress.**
 >
->The source tree contains MS Visual Studio solution and project files,
-allowing to compile _libpmem_, _libpmemlog_, _libpmemblk_ and _libpmemobj_
-on Windows, **but the libraries are not fully functional yet, and most
-of the test are not enabled.** We expect to complete porting NVML 1.0
-to Windows and to provide an "early access" version by the end
-of September, 2016. Current progress of this work is tracked on
+>The source tree contains MS Visual Studio solution and project files
+_(to be replaced with CMake-based solution)_, allowing to compile _libpmem_,
+_libpmemlog_, _libpmemblk_ and _libpmemobj_ on Windows, **but the libraries
+are not fully functional yet, and most of the test are not enabled.**
+We expect to complete porting all the basic features to Windows and provide
+an "early access" version as a part of NVML 1.3 release.
+Current progress of this work is tracked on
 [NVML for Windows Trello Board](https://trello.com/b/IMPSJ4Iu/nvml-for-windows).
 
 ### Pre-Built Packages ###

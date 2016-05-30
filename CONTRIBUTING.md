@@ -116,7 +116,7 @@ second (version) string.
 
 #### Milestone field
 
-Optionally, assign the milestone the issue need to be fixed before.
+Optionally, assign the milestone the issue needs to be fixed before.
 
 #### Type: Bug label
 
