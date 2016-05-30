@@ -124,6 +124,11 @@ pre, code {
 	-webkit-border-radius: 2px;
 }
 
+/* overwrite .highlight style for inline code elements */
+code.highlight {
+        background-color: #f8f8c0;
+}
+
 code[data-gist-id] {
 	box-shadow: none;
 	padding: 0;
