@@ -59,7 +59,7 @@ namespace obj
  * - @ref manual transactions need to be committed manually, otherwise
  *	they will be aborted on object destruction.\n
  * - @ref automatic transactions are only available in C++17. They
- *	handle transaction commit/abort automatically.
+ *	handle transaction commit/abort automatically.\n
  * This class also exposes a closure-like transaction API.
  */
 class transaction {
@@ -96,7 +96,7 @@ public:
 				throw transaction_error(
 					"failed to start transaction");
 
-			int err = add_lock(locks...);
+			auto err = add_lock(locks...);
 
 			if (err) {
 				pmemobj_tx_abort(EINVAL);
@@ -180,7 +180,7 @@ public:
 				throw transaction_error(
 					"failed to start transaction");
 
-			int err = add_lock(locks...);
+			auto err = add_lock(locks...);
 
 			if (err) {
 				pmemobj_tx_abort(EINVAL);
@@ -289,14 +289,14 @@ public:
 	/**
 	 * Manually abort the current transaction.
 	 *
-	 * If called within an inner transaction. the outer transactions
+	 * If called within an inner transaction, the outer transactions
 	 * will also be aborted.
 	 *
 	 * @param[in] err the error to be reported as the reason of the
 	 *	abort.
 	 *
 	 * @throw transaction_error if the transaction is in an invalid
-	 *	state
+	 *	state.
 	 * @throw manual_tx_abort this exception is thrown to
 	 *	signify a transaction abort.
 	 */
@@ -349,10 +349,10 @@ public:
 	 *
 	 * @param[in,out] pool the pool in which the transaction will take
 	 *	place.
-	 * @param[in,out] locks locks to be taken for the duration of
-	 *	the transaction.
 	 * @param[in] tx an std::function<void ()> which will perform
 	 *	operations within this transaction.
+	 * @param[in,out] locks locks to be taken for the duration of
+	 *	the transaction.
 	 *
 	 * @throw transaction_error on any error pertaining the execution
 	 *	of the transaction.
@@ -366,9 +366,10 @@ public:
 		    0)
 			throw transaction_error("failed to start transaction");
 
-		auto ret = add_lock(locks...);
-		if (ret) {
-			pmemobj_tx_abort(ret);
+		auto err = add_lock(locks...);
+
+		if (err) {
+			pmemobj_tx_abort(err);
 			pmemobj_tx_end();
 			throw transaction_error("failed to add a lock to the"
 						" transaction");
@@ -381,23 +382,25 @@ public:
 			throw;
 		} catch (...) {
 			/* first exception caught */
-			if (pmemobj_tx_stage() == TX_STAGE_WORK) {
+			if (pmemobj_tx_stage() == TX_STAGE_WORK)
 				pmemobj_tx_abort(ECANCELED);
-			}
+
 			/* waterfall tx_end for outer tx */
 			pmemobj_tx_end();
 			throw;
 		}
 
 		auto stage = pmemobj_tx_stage();
+
 		if (stage == TX_STAGE_WORK) {
 			pmemobj_tx_commit();
 		} else if (stage == TX_STAGE_ONABORT) {
 			pmemobj_tx_end();
 			throw transaction_error("transaction aborted");
-		} else if (stage == TX_STAGE_NONE)
+		} else if (stage == TX_STAGE_NONE) {
 			throw transaction_error("transaction ended"
 						"prematurely");
+		}
 
 		pmemobj_tx_end();
 	}
@@ -413,17 +416,17 @@ private:
 	 *	active transaction.
 	 *
 	 * @return error number if adding any of the locks failed,
-	 *	0 otherwise
+	 *	0 otherwise.
 	 */
 	template <typename L, typename... Locks>
 	static int
 	add_lock(L &lock, Locks &... locks) noexcept
 	{
-		auto ret =
+		auto err =
 			pmemobj_tx_lock(lock.lock_type(), lock.native_handle());
 
-		if (ret)
-			return ret;
+		if (err)
+			return err;
 
 		return add_lock(locks...);
 	}
