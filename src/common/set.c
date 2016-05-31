@@ -300,8 +300,7 @@ util_poolset_chmod(struct pool_set *set, mode_t mode)
 			}
 
 			if (chmod(part->path, mode)) {
-				ERR("!fchmod %u/%u/%s", r, p,
-						rep->part[p].path);
+				ERR("!chmod %s/%s", r, p, part->path);
 				return -1;
 			}
 		}
