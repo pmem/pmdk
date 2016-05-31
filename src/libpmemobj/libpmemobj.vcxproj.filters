@@ -70,6 +70,9 @@
     <ClCompile Include="memblock.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="pvector.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\libpmemobj\heap_layout.h">
@@ -118,6 +121,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="memblock.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="pvector.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

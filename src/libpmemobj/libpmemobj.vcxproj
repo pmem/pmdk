@@ -40,6 +40,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Static-Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="memblock.c" />
+    <ClCompile Include="pvector.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\common\out.h" />
@@ -58,6 +59,7 @@
     <ClInclude Include="..\..\src\libpmemobj\pmalloc.h" />
     <ClInclude Include="..\..\src\libpmemobj\redo.h" />
     <ClInclude Include="memblock.h" />
+    <ClInclude Include="pvector.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="libpmemobj.def" />
