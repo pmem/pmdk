@@ -73,7 +73,7 @@ struct snode {
 };
 
 struct base {
-	TOID(struct tqueuehead) tqueue;
+	struct tqueuehead tqueue;
 	TOID(struct slisthead) slist;
 };
 
@@ -85,7 +85,7 @@ const int expectedResSL[] = { 111, 8, 222, 6, 5, 4, 3, 2, 1, 0, 333 };
  * init_tqueue -- initialize tail queue
  */
 static void
-init_tqueue(PMEMobjpool *pop, TOID(struct tqueuehead) head)
+init_tqueue(PMEMobjpool *pop, struct tqueuehead *head)
 {
 	if (!POBJ_TAILQ_EMPTY(head))
 		return;
@@ -252,10 +252,9 @@ main(int argc, char *argv[])
 	}
 
 	TOID(struct base) base = POBJ_ROOT(pop, struct base);
-	TOID(struct tqueuehead) tqhead = D_RO(base)->tqueue;
+	struct tqueuehead *tqhead = &D_RW(base)->tqueue;
 	TOID(struct slisthead) slhead = D_RO(base)->slist;
 	TX_BEGIN(pop) {
-		tqhead = TX_NEW(struct tqueuehead);
 		slhead = TX_NEW(struct slisthead);
 	} TX_ONABORT {
 		abort();

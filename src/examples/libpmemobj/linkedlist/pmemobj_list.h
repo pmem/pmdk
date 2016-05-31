@@ -161,10 +161,10 @@ struct name {\
 /*
  * Tail-queue access methods.
  */
-#define POBJ_TAILQ_FIRST(head)	(D_RW(head)->pe_first)
-#define POBJ_TAILQ_LAST(head)	(D_RW(head)->pe_last)
+#define POBJ_TAILQ_FIRST(head)	((head)->pe_first)
+#define POBJ_TAILQ_LAST(head)	((head)->pe_last)
 
-#define POBJ_TAILQ_EMPTY(head)	(TOID_IS_NULL(D_RO(head)->pe_first))
+#define POBJ_TAILQ_EMPTY(head)	(TOID_IS_NULL((head)->pe_first))
 #define POBJ_TAILQ_NEXT(elm, field)	(D_RO(elm)->field.pe_next)
 #define POBJ_TAILQ_PREV(elm, field)	(D_RO(elm)->field.pe_prev)
 
@@ -182,9 +182,9 @@ struct name {\
  * Tail-queue functions.
  */
 #define POBJ_TAILQ_SWAP_HEAD_TAIL(head, field) do {\
-	typeof(D_RO(head)->pe_first) temp = D_RO(head)->pe_first;\
-	TX_SET(head, pe_first, D_RO(head)->pe_last);\
-	TX_SET(head, pe_last, temp);\
+	typeof((head)->pe_first) temp = (head)->pe_first;\
+	TX_SET_DIRECT(head, pe_first, (head)->pe_last);\
+	TX_SET_DIRECT(head, pe_last, temp);\
 } while (0)
 
 #define POBJ_TAILQ_FOREACH(var, head, field)\
@@ -198,41 +198,41 @@ struct name {\
 		var = POBJ_TAILQ_PREV(var, field))
 
 #define POBJ_TAILQ_INIT(head) do {\
-	TX_ADD_FIELD(head, pe_first);\
-	TOID_ASSIGN(D_RW(head)->pe_first, OID_NULL);\
-	TX_ADD_FIELD(head, pe_last);\
-	TOID_ASSIGN(D_RW(head)->pe_last, OID_NULL);\
+	TX_ADD_FIELD_DIRECT(head, pe_first);\
+	TOID_ASSIGN((head)->pe_first, OID_NULL);\
+	TX_ADD_FIELD_DIRECT(head, pe_last);\
+	TOID_ASSIGN((head)->pe_last, OID_NULL);\
 } while (0)
 
 #define POBJ_TAILQ_INSERT_HEAD(head, elm, field) do {\
-	if (TOID_IS_NULL(D_RO(head)->pe_first)) {\
-		D_RW(elm)->field.pe_prev = D_RO(head)->pe_first;\
-		D_RW(elm)->field.pe_next = D_RO(head)->pe_first;\
-		TX_SET(head, pe_first, elm);\
-		TX_SET(head, pe_last, elm);\
+	if (TOID_IS_NULL((head)->pe_first)) {\
+		D_RW(elm)->field.pe_prev = (head)->pe_first;\
+		D_RW(elm)->field.pe_next = (head)->pe_first;\
+		TX_SET_DIRECT(head, pe_first, elm);\
+		TX_SET_DIRECT(head, pe_last, elm);\
 	} else {\
-		D_RW(elm)->field.pe_next = D_RO(head)->pe_first;\
+		D_RW(elm)->field.pe_next = (head)->pe_first;\
 		D_RW(elm)->field.pe_prev =\
-			D_RO(D_RO(head)->pe_first)->field.pe_prev;\
-		TX_ADD(D_RO(head)->pe_first);\
-		D_RW(D_RW(head)->pe_first)->field.pe_prev = elm;\
-		TX_SET(head, pe_first, elm);\
+			D_RO((head)->pe_first)->field.pe_prev;\
+		TX_ADD((head)->pe_first);\
+		D_RW((head)->pe_first)->field.pe_prev = elm;\
+		TX_SET_DIRECT(head, pe_first, elm);\
 	}\
 } while (0)
 
 #define POBJ_TAILQ_INSERT_TAIL(head, elm, field) do {\
-	if (TOID_IS_NULL(D_RO(head)->pe_last)) {\
-		D_RW(elm)->field.pe_prev = D_RO(head)->pe_last;\
-		D_RW(elm)->field.pe_next = D_RO(head)->pe_last;\
-		TX_SET(head, pe_first, elm);\
-		TX_SET(head, pe_last, elm);\
+	if (TOID_IS_NULL((head)->pe_last)) {\
+		D_RW(elm)->field.pe_prev = (head)->pe_last;\
+		D_RW(elm)->field.pe_next = (head)->pe_last;\
+		TX_SET_DIRECT(head, pe_first, elm);\
+		TX_SET_DIRECT(head, pe_last, elm);\
 	} else {\
-		D_RW(elm)->field.pe_prev = D_RO(head)->pe_last;\
+		D_RW(elm)->field.pe_prev = (head)->pe_last;\
 		D_RW(elm)->field.pe_next =\
-			D_RO(D_RO(head)->pe_last)->field.pe_next;\
-		TX_ADD(D_RO(head)->pe_last);\
-		D_RW(D_RW(head)->pe_last)->field.pe_next = elm;\
-		TX_SET(head, pe_last, elm);\
+			D_RO((head)->pe_last)->field.pe_next;\
+		TX_ADD((head)->pe_last);\
+		D_RW((head)->pe_last)->field.pe_next = elm;\
+		TX_SET_DIRECT(head, pe_last, elm);\
 	}\
 } while (0)
 
@@ -241,7 +241,7 @@ struct name {\
 	D_RW(elm)->field.pe_next = D_RO(listelm)->field.pe_next;\
 	TX_ADD(listelm);\
 	if (TOID_IS_NULL(D_RO(listelm)->field.pe_next)) {\
-		TX_SET(head, pe_last, elm);\
+		TX_SET_DIRECT(head, pe_last, elm);\
 	} else {\
 		TX_ADD(D_RO(listelm)->field.pe_next);\
 		D_RW(D_RW(listelm)->field.pe_next)->field.pe_prev = elm;\
@@ -254,7 +254,7 @@ struct name {\
 	D_RW(elm)->field.pe_prev = D_RO(listelm)->field.pe_prev;\
 	TX_ADD(listelm);\
 	if (TOID_IS_NULL(D_RO(listelm)->field.pe_prev)) {\
-		TX_SET(head, pe_first, elm);\
+		TX_SET_DIRECT(head, pe_first, elm);\
 	} else {\
 		TX_ADD(D_RO(listelm)->field.pe_prev);\
 		D_RW(D_RW(listelm)->field.pe_prev)->field.pe_next = elm; \
@@ -265,11 +265,11 @@ struct name {\
 #define POBJ_TAILQ_REMOVE(head, elm, field) do {\
 	if (TOID_IS_NULL(D_RO(elm)->field.pe_prev) &&\
 		TOID_IS_NULL(D_RO(elm)->field.pe_next)) {\
-		TX_SET(head, pe_first, D_RO(elm)->field.pe_prev);\
-		TX_SET(head, pe_last, D_RO(elm)->field.pe_next);\
+		TX_SET_DIRECT(head, pe_first, D_RO(elm)->field.pe_prev);\
+		TX_SET_DIRECT(head, pe_last, D_RO(elm)->field.pe_next);\
 	} else {\
 		if (TOID_IS_NULL(D_RO(elm)->field.pe_prev)) {\
-			TX_SET(head, pe_first, D_RO(elm)->field.pe_next);\
+			TX_SET_DIRECT(head, pe_first, D_RO(elm)->field.pe_next);\
 			TX_ADD(D_RO(elm)->field.pe_next);\
 			D_RW(D_RW(elm)->field.pe_next)->field.pe_prev =\
 				D_RO(elm)->field.pe_prev;\
@@ -279,7 +279,7 @@ struct name {\
 				D_RO(elm)->field.pe_next;\
 		}\
 		if (TOID_IS_NULL(D_RO(elm)->field.pe_next)) {\
-			TX_SET(head, pe_last, D_RO(elm)->field.pe_prev);\
+			TX_SET_DIRECT(head, pe_last, D_RO(elm)->field.pe_prev);\
 			TX_ADD(D_RO(elm)->field.pe_prev);\
 			D_RW(D_RW(elm)->field.pe_prev)->field.pe_next = \
 				D_RO(elm)->field.pe_next;\
@@ -301,56 +301,56 @@ struct name {\
  * including that elm is the last one
  */
 #define POBJ_TAILQ_MOVE_ELEMENT_HEAD(head, elm, field) do {\
-	if (TOID_EQUALS(D_RO(head)->pe_last, elm) &&\
-		TOID_EQUALS(D_RO(D_RO(head)->pe_first)->field.pe_next, elm)) {\
+	if (TOID_EQUALS((head)->pe_last, elm) &&\
+		TOID_EQUALS(D_RO((head)->pe_first)->field.pe_next, elm)) {\
 		_POBJ_SWAP_PTR(elm, field);\
-		_POBJ_SWAP_PTR(D_RW(head)->pe_first, field);\
+		_POBJ_SWAP_PTR((head)->pe_first, field);\
 		POBJ_TAILQ_SWAP_HEAD_TAIL(head, field);\
 	} else {\
 		TX_ADD(elm);\
 		TX_ADD(D_RO(elm)->field.pe_prev);\
-		TX_ADD(D_RO(head)->pe_first);\
+		TX_ADD((head)->pe_first);\
 		D_RW(D_RW(elm)->field.pe_prev)->field.pe_next =\
 			D_RO(elm)->field.pe_next;\
-		if (TOID_EQUALS(D_RO(head)->pe_last, elm)) {\
-			TX_SET(head, pe_last, D_RO(elm)->field.pe_prev);\
+		if (TOID_EQUALS((head)->pe_last, elm)) {\
+			TX_SET_DIRECT(head, pe_last, D_RO(elm)->field.pe_prev);\
 		} else {\
 			TX_ADD(D_RO(elm)->field.pe_next);\
 			D_RW(D_RW(elm)->field.pe_next)->field.pe_prev = \
 				D_RO(elm)->field.pe_prev;\
 		}\
 		D_RW(elm)->field.pe_prev =\
-			D_RO(D_RO(head)->pe_first)->field.pe_prev;\
-		D_RW(elm)->field.pe_next = D_RO(head)->pe_first;\
-		D_RW(D_RW(head)->pe_first)->field.pe_prev = elm;\
-		TX_SET(head, pe_first, elm);\
+			D_RO((head)->pe_first)->field.pe_prev;\
+		D_RW(elm)->field.pe_next = (head)->pe_first;\
+		D_RW((head)->pe_first)->field.pe_prev = elm;\
+		TX_SET_DIRECT(head, pe_first, elm);\
 	}\
 } while (0)
 
 #define POBJ_TAILQ_MOVE_ELEMENT_TAIL(head, elm, field) do {\
-	if (TOID_EQUALS(D_RO(head)->pe_first, elm) &&\
-		TOID_EQUALS(D_RO(D_RO(head)->pe_last)->field.pe_prev, elm)) {\
+	if (TOID_EQUALS((head)->pe_first, elm) &&\
+		TOID_EQUALS(D_RO((head)->pe_last)->field.pe_prev, elm)) {\
 		_POBJ_SWAP_PTR(elm, field);\
-		_POBJ_SWAP_PTR(D_RW(head)->pe_last, field);\
+		_POBJ_SWAP_PTR((head)->pe_last, field);\
 		POBJ_TAILQ_SWAP_HEAD_TAIL(head, field);\
 	} else {\
 		TX_ADD(elm);	\
 		TX_ADD(D_RO(elm)->field.pe_next);\
-		TX_ADD(D_RO(head)->pe_last);\
+		TX_ADD((head)->pe_last);\
 		D_RW(D_RW(elm)->field.pe_next)->field.pe_prev =\
 			D_RO(elm)->field.pe_prev;\
-		if (TOID_EQUALS(D_RO(head)->pe_first, elm)) {\
-			TX_SET(head, pe_first, D_RO(elm)->field.pe_next);\
+		if (TOID_EQUALS((head)->pe_first, elm)) {\
+			TX_SET_DIRECT(head, pe_first, D_RO(elm)->field.pe_next);\
 		} else {	\
 			TX_ADD(D_RO(elm)->field.pe_prev);\
 			D_RW(D_RW(elm)->field.pe_prev)->field.pe_next =\
 				D_RO(elm)->field.pe_next;\
 		}\
-		D_RW(elm)->field.pe_prev = D_RO(head)->pe_last;\
+		D_RW(elm)->field.pe_prev = (head)->pe_last;\
 		D_RW(elm)->field.pe_next = \
-			D_RO(D_RO(head)->pe_last)->field.pe_next;\
-		D_RW(D_RW(head)->pe_last)->field.pe_next = elm;\
-		TX_SET(head, pe_last, elm);\
+			D_RO((head)->pe_last)->field.pe_next;\
+		D_RW((head)->pe_last)->field.pe_next = elm;\
+		TX_SET_DIRECT(head, pe_last, elm);\
 	}	\
 } while (0)
 
