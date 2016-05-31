@@ -49,6 +49,7 @@ TOOLS=../tools
 [ "$PMEMALLOC" ] || PMEMALLOC=$TOOLS/pmemalloc/pmemalloc
 [ "$PMEMOBJCLI" ] || PMEMOBJCLI=$TOOLS/pmemobjcli/pmemobjcli
 [ "$PMEMDETECT" ] || PMEMDETECT=$TOOLS/pmemdetect/pmemdetect.static-nondebug
+[ "$FIP" ] || FIP=$TOOLS/fip/fip
 
 # force globs to fail if they don't match
 shopt -s failglob
@@ -66,6 +67,8 @@ FILES_COMMON_DIR="$DIR_SRC/test/*.supp"
 FILES_CURRTEST_DIR="\
 $DIR_SRC/test/tools/ctrld/ctrld \
 $DIR_SRC/tools/pmempool/pmempool"
+OPT_FILES_CURRTEST_DIR="
+$DIR_SRC/test/tools/fip/fip"
 
 [ -z "$RPMEM_PORT" ] && RPMEM_PORT=$(cat $DIR_SRC/rpmem_common/rpmem_proto.h |\
 	grep '#define\sRPMEM_PORT' | grep -o '[0-9]\+')
@@ -681,6 +684,31 @@ function require_pkg() {
 }
 
 #
+# require_node_pkg -- only allow script to continue if specified package exists
+# on specified node
+#
+function require_node_pkg() {
+	validate_node_number $1
+
+	local N=$1
+	shift
+
+	local DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
+	local COMMAND="$COMMAND PKG_CONFIG_PATH+=:${NODE_LD_LIBRARY_PATH[$N]}/pkgconfig"
+	COMMAND="$COMMAND pkg-config $1"
+
+	set +e
+	run_command ssh $SSH_OPTS ${NODE[$N]} "cd $DIR && $COMMAND" 2>&1
+	ret=$?
+	set -e
+
+	if [ "$ret" == 1 ]; then
+		echo "$UNITTEST_NAME: SKIP NODE $N: '$1' package required"
+		exit 0
+	fi
+}
+
+#
 # configure_valgrind -- only allow script to continue when settings match
 #
 function configure_valgrind() {
@@ -1081,6 +1109,39 @@ function export_vars_node() {
 }
 
 #
+# require_nodes_libfabric -- only allow script to continue if libfabric with
+#                            optionally specified provider is available on
+#                            specified node
+#
+function require_node_libfabric() {
+	validate_node_number $1
+
+	local N=$1
+	shift
+
+	require_node_pkg $N libfabric
+
+	local DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
+	local COMMAND="$COMMAND LD_LIBRARY_PATH=.:${NODE_LD_LIBRARY_PATH[$N]} ./fip $*"
+
+	set +e
+	fip_out=$(ssh $SSH_OPTS ${NODE[$N]} "cd $DIR && $COMMAND" 2>&1)
+	ret=$?
+	set -e
+
+	if [ "$ret" == "0" ]; then
+		return
+	elif [ "$ret" == "1" ]; then
+		echo "$UNITTEST_NAME: SKIP NODE $N: $fip_out"
+		exit 0
+	else
+		echo "NODE $N: require_libfabric $*: $fip_out"
+		exit 1
+	fi
+
+}
+
+#
 # require_nodes -- only allow script to continue for a certain number
 #                  of defined and reachable nodes
 #
@@ -1144,6 +1205,12 @@ function require_nodes() {
 	local BUILD_TYPE=$(echo $BUILD | cut -d"-" -f1)
 	[ "$BUILD_TYPE" == "static" ] && BUILD_TYPE=$(echo $BUILD | cut -d"-" -f2)
 	FILES_TO_COPY="$FILES_TO_COPY $DIR_SRC/$BUILD_TYPE/*.so.1"
+
+	for f in $OPT_FILES_CURRTEST_DIR; do
+		if [ -f $f ]; then
+			FILES_TO_COPY="$FILES_TO_COPY $f"
+		fi
+	done
 
 	# copy a binary if it exists
 	local TEST_NAME=`echo $UNITTEST_NAME | cut -d"/" -f1`
@@ -1396,7 +1463,10 @@ function setup() {
 		MCSTR=""
 	fi
 
-	echo "$UNITTEST_NAME: SETUP ($TEST/$REAL_FS/$BUILD$MCSTR)"
+	[ -n "$RPMEM_PROVIDER" ] && PROV="/$RPMEM_PROVIDER"
+	[ -n "$RPMEM_PM" ] && PM="/$RPMEM_PM"
+
+	echo "$UNITTEST_NAME: SETUP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM)"
 
 	rm -f check_pool_${BUILD}_${UNITTEST_NUM}.log
 
@@ -1638,4 +1708,36 @@ function compare_replicas() {
 	set +e
 	diff <(dump_pool_info $1 $2) <(dump_pool_info $1 $3)
 	set -e
+}
+
+#
+# rpmem_foreach_provider -- runs the script for each provider
+#
+function rpmem_foreach_provider() {
+	local script=${BASH_SOURCE[1]}
+	local providers="verbs sockets"
+	[ -n "$RPMEM_PROVIDERS" ] && providers=$RPMEM_PROVIDERS
+	if [ -z "$RPMEM_PROVIDER" ]; then
+		for prov in $providers; do
+			eval RPMEM_PROVIDER=$prov $script
+		done
+		exit 0
+	else
+		return 0
+	fi
+}
+
+#
+# rpmem_foreach_persist -- runs the script for each persistency method
+#
+function rpmem_foreach_persist() {
+	local script=${BASH_SOURCE[1]}
+	if [ -z "$RPMEM_PM" ]; then
+		for pm in GPSPM APM; do
+			eval RPMEM_PM=$pm $script
+		done
+		exit 0
+	else
+		return 0
+	fi
 }

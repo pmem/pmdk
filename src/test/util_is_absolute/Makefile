@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,37 +31,19 @@
 #
 
 #
-# src/test/ex_libpmemobj/Makefile -- build ex_libpmemobj unittest
+# src/test/util_is_absolute/Makefile -- check if path is absolute
 #
+TOP = ../../..
 
-all: $(EXAMPLES)
-	$(MAKE) -C $(EX_LIBPMEMOBJ)
+vpath %.c $(TOP)/src/common
 
+TARGET = util_is_absolute
+OBJS = util_is_absolute.o util.o util_linux.o out.o
+
+out.o: CFLAGS += -DDEBUG -DSRCVERSION=\"utversion\"
+util.o util_linux.o: CFLAGS += -DDEBUG
+
+LIBPMEM=y
 include ../Makefile.inc
 
-NCURSES := $(call check_package, ncurses)
-
-EXAMPLES=$(EX_LIBPMEMOBJ)/pi \
-	$(EX_LIBPMEMOBJ)/btree \
-	$(EX_LIBPMEMOBJ)/map/mapcli \
-	$(EX_LIBPMEMOBJ)/map/data_store \
-	$(EX_LIBPMEMOBJ)/string_store/writer \
-	$(EX_LIBPMEMOBJ)/string_store/reader \
-	$(EX_LIBPMEMOBJ)/string_store_tx/writer \
-	$(EX_LIBPMEMOBJ)/string_store_tx/reader \
-	$(EX_LIBPMEMOBJ)/string_store_tx_type/writer \
-	$(EX_LIBPMEMOBJ)/string_store_tx_type/reader \
-	$(EX_LIBPMEMOBJ)/pmemblk/obj_pmemblk \
-	$(EX_LIBPMEMOBJ)/pmemlog/obj_pmemlog \
-	$(EX_LIBPMEMOBJ)/pmemlog/obj_pmemlog_minimal \
-	$(EX_LIBPMEMOBJ)/pmemlog/obj_pmemlog_simple \
-	$(EX_LIBPMEMOBJ)/pmemlog/obj_pmemlog_macros
-
-ifeq ($(NCURSES),y)
-EXAMPLES += $(EX_LIBPMEMOBJ)/pminvaders/pminvaders
-else
-$(info NOTE: Skipping pminvaders test because ncurses is missing \
--- see src/examples/libpmemobj/pminvaders/README for details.)
-endif
-
-
+INCS += -I$(TOP)/src/common

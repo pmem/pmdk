@@ -160,6 +160,7 @@ OTHER_TESTS = \
 	util_parse_size\
 	util_poolset\
 	util_poolset_parse\
+	util_is_absolute \
 	util_is_poolset\
 	util_poolset_size\
 	util_poolset_foreach
@@ -191,7 +192,8 @@ RPMEM_TESTS =\
 	rpmem_obc\
 	rpmemd_obc\
 	rpmem_obc_int\
-	rpmemd_db
+	rpmemd_db\
+	rpmem_fip
 
 VMEM_TESTS = \
 	vmem_aligned_alloc\

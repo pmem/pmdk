@@ -14,21 +14,21 @@
 # on a PMEM-aware file system here.  Comment this line out if there's no
 # actual persistent memory available on this system.
 #
-#sv -Name PMEM_FS_DIR '\mnt\pmem'
+#$PMEM_FS_DIR = '\mnt\pmem'
 
 #
 # For tests that require true a non-persitent memory aware file system (i.e.
 # to verify something works on traditional page-cache based memory-mapped
 # files) set the path to a directory on a normal file system here.
 #
-sv -Name NON_PMEM_FS_DIR '\temp'
+$NON_PMEM_FS_DIR = '\temp'
 
 #
 # If you don't have real PMEM or PMEM emulation set up, but still want to test
 # PMEM codepaths uncomment this line. It will set PMEM_IS_PMEM_FORCE to 1 for
 # tests that require pmem.
 #
-#sv -Name PMEM_FS_DIR_FORCE_PMEM '1'
+#$PMEM_FS_DIR_FORCE_PMEM = 1
 
 #
 # 2) *** REMOTE CONFIGURATION ***

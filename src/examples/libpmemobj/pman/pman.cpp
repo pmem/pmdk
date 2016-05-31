@@ -54,9 +54,9 @@
 #define GAME_DELAY 40000
 #define SLEEP(t)                                                               \
 	do {                                                                   \
-		clock_t time = clock() + t;                                    \
-		do {                                                           \
-		} while (time > clock());                                      \
+		struct timespec req = {0, t * 1000};                           \
+		while (nanosleep(&req, &req) == -1 && errno == EINTR)          \
+			;                                                      \
 	} while (0)
 
 using namespace nvml;

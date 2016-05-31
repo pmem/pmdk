@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -29,39 +29,40 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
+# src/test/util_is_absolute/TEST1 -- unit test for util_is_absolute_path
 #
-# src/test/ex_libpmemobj/Makefile -- build ex_libpmemobj unittest
+# NOTE: This is for Windows only!
 #
+# parameter handling
+#
+[CmdletBinding(PositionalBinding=$false)]
+Param(
+    [alias("d")]
+    $DIR = ""
+    )
+$Env:UNITTEST_NAME = "util_is_absolute\TEST1"
+$Env:UNITTEST_NUM = "1"
+# XXX:  bash has a few calls to tools that we don't have on
+# windows (yet) that set PMEM_IS_PMEM and NON_PMEM_IS_PMEM based
+# on their output
+$Env:PMEM_IS_PMEM = $true
+$Env:NON_PMEM_IS_PMEM = $true
 
-all: $(EXAMPLES)
-	$(MAKE) -C $(EX_LIBPMEMOBJ)
+# standard unit test setup
+. ..\unittest\unittest.ps1
 
-include ../Makefile.inc
+require_fs_type none
 
-NCURSES := $(call check_package, ncurses)
+setup
 
-EXAMPLES=$(EX_LIBPMEMOBJ)/pi \
-	$(EX_LIBPMEMOBJ)/btree \
-	$(EX_LIBPMEMOBJ)/map/mapcli \
-	$(EX_LIBPMEMOBJ)/map/data_store \
-	$(EX_LIBPMEMOBJ)/string_store/writer \
-	$(EX_LIBPMEMOBJ)/string_store/reader \
-	$(EX_LIBPMEMOBJ)/string_store_tx/writer \
-	$(EX_LIBPMEMOBJ)/string_store_tx/reader \
-	$(EX_LIBPMEMOBJ)/string_store_tx_type/writer \
-	$(EX_LIBPMEMOBJ)/string_store_tx_type/reader \
-	$(EX_LIBPMEMOBJ)/pmemblk/obj_pmemblk \
-	$(EX_LIBPMEMOBJ)/pmemlog/obj_pmemlog \
-	$(EX_LIBPMEMOBJ)/pmemlog/obj_pmemlog_minimal \
-	$(EX_LIBPMEMOBJ)/pmemlog/obj_pmemlog_simple \
-	$(EX_LIBPMEMOBJ)/pmemlog/obj_pmemlog_macros
+expect_normal_exit ..\..\x64\debug\util_is_absolute$Env:EXESUFFIX `
+    C:\foo\bar `
+    \foo\bar `
+    foo\bar `
+    D:/foo/bar `
+    /foo/bar `
+    e: `
+    E:\
 
-ifeq ($(NCURSES),y)
-EXAMPLES += $(EX_LIBPMEMOBJ)/pminvaders/pminvaders
-else
-$(info NOTE: Skipping pminvaders test because ncurses is missing \
--- see src/examples/libpmemobj/pminvaders/README for details.)
-endif
-
-
+# check will print the appropriate pass/fail message
+check
