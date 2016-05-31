@@ -47,7 +47,7 @@
 
 #define LAYOUT "cpp"
 
-using namespace nvml::obj;
+namespace nvobj = nvml::obj;
 
 namespace
 {
@@ -56,7 +56,7 @@ namespace
  * test_null_ptr -- verifies if the pointer correctly behaves like a NULL-value
  */
 void
-test_null_ptr(persistent_ptr<int> &f)
+test_null_ptr(nvobj::persistent_ptr<int> &f)
 {
 	UT_ASSERT(OID_IS_NULL(f.raw()));
 	UT_ASSERT((bool)f == false);
@@ -68,10 +68,10 @@ test_null_ptr(persistent_ptr<int> &f)
 /*
  * get_temp -- returns a temporary persistent_ptr
  */
-persistent_ptr<int>
+nvobj::persistent_ptr<int>
 get_temp()
 {
-	persistent_ptr<int> int_null = nullptr;
+	nvobj::persistent_ptr<int> int_null = nullptr;
 
 	return int_null;
 }
@@ -82,17 +82,17 @@ get_temp()
 void
 test_ptr_operators_null()
 {
-	persistent_ptr<int> int_default_null;
+	nvobj::persistent_ptr<int> int_default_null;
 	test_null_ptr(int_default_null);
 
-	persistent_ptr<int> int_explicit_ptr_null = nullptr;
+	nvobj::persistent_ptr<int> int_explicit_ptr_null = nullptr;
 	test_null_ptr(int_explicit_ptr_null);
 
-	persistent_ptr<int> int_explicit_oid_null = OID_NULL;
+	nvobj::persistent_ptr<int> int_explicit_oid_null = OID_NULL;
 	test_null_ptr(int_explicit_oid_null);
 
-	persistent_ptr<int> int_base = nullptr;
-	persistent_ptr<int> int_same = int_base;
+	nvobj::persistent_ptr<int> int_base = nullptr;
+	nvobj::persistent_ptr<int> int_same = int_base;
 	int_same = int_base;
 	test_null_ptr(int_same);
 
@@ -107,34 +107,34 @@ const int TEST_ARR_SIZE = 10;
 const char TEST_CHAR = 'a';
 
 struct foo {
-	p<int> bar;
-	p<char> arr[TEST_ARR_SIZE];
+	nvobj::p<int> bar;
+	nvobj::p<char> arr[TEST_ARR_SIZE];
 };
 
 struct nested {
-	persistent_ptr<foo> inner;
+	nvobj::persistent_ptr<foo> inner;
 };
 
 struct root {
-	persistent_ptr<foo> pfoo;
-	persistent_ptr<p<int>[TEST_ARR_SIZE]> parr;
+	nvobj::persistent_ptr<foo> pfoo;
+	nvobj::persistent_ptr<nvobj::p<int>[TEST_ARR_SIZE]> parr;
 
 	/* This variable is unused, but it's here to check if the persistent_ptr
 	 * does not violate it's own restrictions.
 	 */
-	persistent_ptr<nested> outer;
+	nvobj::persistent_ptr<nested> outer;
 };
 
 /*
  * test_ptr_atomic -- verifies the persistent ptr with the atomic C API
  */
 void
-test_ptr_atomic(pool<root> &pop)
+test_ptr_atomic(nvobj::pool<root> &pop)
 {
-	persistent_ptr<foo> pfoo;
+	nvobj::persistent_ptr<foo> pfoo;
 
 	try {
-		make_persistent_atomic<foo>(pop, pfoo);
+		nvobj::make_persistent_atomic<foo>(pop, pfoo);
 	} catch (...) {
 		UT_ASSERT(0);
 	}
@@ -149,7 +149,7 @@ test_ptr_atomic(pool<root> &pop)
 	}
 
 	try {
-		delete_persistent_atomic<foo>(pfoo);
+		nvobj::delete_persistent_atomic<foo>(pfoo);
 		pfoo = nullptr;
 	} catch (...) {
 		UT_ASSERT(0);
@@ -162,15 +162,15 @@ test_ptr_atomic(pool<root> &pop)
  * test_ptr_transactional -- verifies the persistent ptr with the tx C API
  */
 void
-test_ptr_transactional(pool<root> &pop)
+test_ptr_transactional(nvobj::pool<root> &pop)
 {
 	auto r = pop.get_root();
 
 	try {
-		transaction::exec_tx(pop, [&] {
+		nvobj::transaction::exec_tx(pop, [&] {
 			UT_ASSERT(r->pfoo == nullptr);
 
-			r->pfoo = make_persistent<foo>();
+			r->pfoo = nvobj::make_persistent<foo>();
 		});
 	} catch (...) {
 		UT_ASSERT(0);
@@ -179,7 +179,7 @@ test_ptr_transactional(pool<root> &pop)
 	auto pfoo = r->pfoo;
 
 	try {
-		transaction::exec_tx(pop, [&] {
+		nvobj::transaction::exec_tx(pop, [&] {
 			pfoo->bar = TEST_INT;
 			memset(&pfoo->arr, TEST_CHAR, sizeof(pfoo->arr));
 		});
@@ -194,9 +194,9 @@ test_ptr_transactional(pool<root> &pop)
 
 	bool exception_thrown = false;
 	try {
-		transaction::exec_tx(pop, [&] {
+		nvobj::transaction::exec_tx(pop, [&] {
 			pfoo->bar = 0;
-			transaction::abort(-1);
+			nvobj::transaction::abort(-1);
 		});
 	} catch (nvml::manual_tx_abort &ma) {
 		exception_thrown = true;
@@ -208,8 +208,8 @@ test_ptr_transactional(pool<root> &pop)
 	UT_ASSERTeq(pfoo->bar, TEST_INT);
 
 	try {
-		transaction::exec_tx(pop,
-				     [&] { delete_persistent<foo>(r->pfoo); });
+		nvobj::transaction::exec_tx(
+			pop, [&] { nvobj::delete_persistent<foo>(r->pfoo); });
 		r->pfoo = nullptr;
 	} catch (...) {
 		UT_ASSERT(0);
@@ -223,13 +223,13 @@ test_ptr_transactional(pool<root> &pop)
  * test_ptr_array -- verifies the array specialization behavior
  */
 void
-test_ptr_array(pool<root> &pop)
+test_ptr_array(nvobj::pool<root> &pop)
 {
-	persistent_ptr<p<int>[]> parr_vsize;
+	nvobj::persistent_ptr<nvobj::p<int>[]> parr_vsize;
 
 	try {
-		make_persistent_atomic<p<int>[]>(pop, parr_vsize,
-						 TEST_ARR_SIZE);
+		nvobj::make_persistent_atomic<nvobj::p<int>[]>(pop, parr_vsize,
+							       TEST_ARR_SIZE);
 	} catch (...) {
 		UT_ASSERT(0);
 	}
@@ -243,7 +243,7 @@ test_ptr_array(pool<root> &pop)
 	auto r = pop.get_root();
 
 	try {
-		transaction::exec_tx(pop, [&] {
+		nvobj::transaction::exec_tx(pop, [&] {
 			r->parr = pmemobj_tx_zalloc(sizeof(int) * TEST_ARR_SIZE,
 						    0);
 		});
@@ -255,11 +255,11 @@ test_ptr_array(pool<root> &pop)
 
 	bool exception_thrown = false;
 	try {
-		transaction::exec_tx(pop, [&] {
+		nvobj::transaction::exec_tx(pop, [&] {
 			for (int i = 0; i < TEST_ARR_SIZE; ++i)
 				r->parr[i] = TEST_INT;
 
-			transaction::abort(-1);
+			nvobj::transaction::abort(-1);
 		});
 	} catch (nvml::manual_tx_abort &ma) {
 		exception_thrown = true;
@@ -271,11 +271,11 @@ test_ptr_array(pool<root> &pop)
 
 	exception_thrown = false;
 	try {
-		transaction::exec_tx(pop, [&] {
+		nvobj::transaction::exec_tx(pop, [&] {
 			for (int i = 0; i < TEST_ARR_SIZE; ++i)
 				r->parr[i] = TEST_INT;
 
-			transaction::abort(-1);
+			nvobj::transaction::abort(-1);
 		});
 	} catch (nvml::manual_tx_abort &ma) {
 		exception_thrown = true;
@@ -300,11 +300,11 @@ main(int argc, char *argv[])
 
 	const char *path = argv[1];
 
-	pool<root> pop;
+	nvobj::pool<root> pop;
 
 	try {
-		pop = pool<struct root>::create(path, LAYOUT, PMEMOBJ_MIN_POOL,
-						S_IWUSR | S_IRUSR);
+		pop = nvobj::pool<struct root>::create(
+			path, LAYOUT, PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR);
 	} catch (nvml::pool_error &pe) {
 		UT_FATAL("!pool::create: %s %s", pe.what(), path);
 	}

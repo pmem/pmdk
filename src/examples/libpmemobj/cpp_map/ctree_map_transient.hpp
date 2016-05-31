@@ -219,8 +219,7 @@ public:
 	 *
 	 * @return 0 if tree empty, clb return value otherwise.
 	 */
-	int
-	foreach (callback clb, void *args)
+	int foreach (callback clb, void *args)
 	{
 		if (is_empty())
 			return 0;

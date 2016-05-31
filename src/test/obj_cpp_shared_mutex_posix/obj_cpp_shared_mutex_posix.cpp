@@ -45,14 +45,14 @@
 
 #define LAYOUT "cpp"
 
-using namespace nvml::obj;
+namespace nvobj = nvml::obj;
 
 namespace
 {
 
 /* pool root structure */
 struct root {
-	shared_mutex pmutex;
+	nvobj::shared_mutex pmutex;
 	int counter;
 };
 
@@ -68,10 +68,10 @@ const int num_threads = 30;
 void *
 writer(void *arg)
 {
-	persistent_ptr<root> *proot = static_cast<persistent_ptr<root> *>(arg);
+	auto proot = static_cast<nvobj::persistent_ptr<root> *>(arg);
 
 	for (int i = 0; i < num_ops; ++i) {
-		std::lock_guard<shared_mutex> lock((*proot)->pmutex);
+		std::lock_guard<nvobj::shared_mutex> lock((*proot)->pmutex);
 		++((*proot)->counter);
 		++((*proot)->counter);
 	}
@@ -84,7 +84,7 @@ writer(void *arg)
 void *
 reader(void *arg)
 {
-	persistent_ptr<root> *proot = static_cast<persistent_ptr<root> *>(arg);
+	auto proot = static_cast<nvobj::persistent_ptr<root> *>(arg);
 	for (int i = 0; i < num_ops; ++i) {
 		(*proot)->pmutex.lock_shared();
 		UT_ASSERTeq((*proot)->counter % 2, 0);
@@ -99,7 +99,7 @@ reader(void *arg)
 void *
 writer_trylock(void *arg)
 {
-	persistent_ptr<root> *proot = static_cast<persistent_ptr<root> *>(arg);
+	auto proot = static_cast<nvobj::persistent_ptr<root> *>(arg);
 	for (;;) {
 		if ((*proot)->pmutex.try_lock()) {
 			--((*proot)->counter);
@@ -117,7 +117,7 @@ writer_trylock(void *arg)
 void *
 reader_trylock(void *arg)
 {
-	persistent_ptr<root> *proot = static_cast<persistent_ptr<root> *>(arg);
+	auto proot = static_cast<nvobj::persistent_ptr<root> *>(arg);
 	for (;;) {
 		if ((*proot)->pmutex.try_lock_shared()) {
 			UT_ASSERTeq((*proot)->counter % 2, 0);
@@ -133,12 +133,12 @@ reader_trylock(void *arg)
  */
 template <typename Worker>
 void
-mutex_test(pool<root> &pop, Worker writer, Worker reader)
+mutex_test(nvobj::pool<root> &pop, Worker writer, Worker reader)
 {
 	const int total_threads = num_threads * 2;
 	pthread_t threads[total_threads];
 
-	persistent_ptr<root> proot = pop.get_root();
+	auto proot = pop.get_root();
 
 	for (int i = 0; i < total_threads; i += 2) {
 		PTHREAD_CREATE(&threads[i], nullptr, writer, &proot);
@@ -160,11 +160,11 @@ main(int argc, char *argv[])
 
 	const char *path = argv[1];
 
-	pool<root> pop;
+	nvobj::pool<root> pop;
 
 	try {
-		pop = pool<root>::create(path, LAYOUT, PMEMOBJ_MIN_POOL,
-					 S_IWUSR | S_IRUSR);
+		pop = nvobj::pool<root>::create(path, LAYOUT, PMEMOBJ_MIN_POOL,
+						S_IWUSR | S_IRUSR);
 	} catch (nvml::pool_error &pe) {
 		UT_FATAL("!pool::create: %s %s", pe.what(), path);
 	}

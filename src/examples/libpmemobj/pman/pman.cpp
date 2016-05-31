@@ -59,11 +59,30 @@
 			;                                                      \
 	} while (0)
 
-using namespace nvml;
-using namespace nvml::obj;
-using namespace examples;
+using nvml::obj::p;
+using nvml::obj::persistent_ptr;
+using nvml::obj::pool;
+using nvml::obj::pool_base;
+using nvml::obj::make_persistent;
+using nvml::obj::delete_persistent;
+using nvml::obj::transaction;
+using nvml::transaction_error;
 
-using namespace std;
+namespace examples
+{
+
+class state;
+
+} /* namespace examples */
+
+namespace
+{
+
+pool<examples::state> pop;
+}
+
+namespace examples
+{
 
 enum position {
 	UP_LEFT,
@@ -243,8 +262,6 @@ private:
 	/* the best score player has ever achieved */
 	p<unsigned> highscore;
 };
-
-pool<state> pop;
 
 /*
  * point::point -- overloaded constructor for point class
@@ -708,7 +725,7 @@ board_state::set_bonus(field f)
 void
 board_state::set_board(const std::string &map_file)
 {
-	ifstream board_file;
+	std::ifstream board_file;
 	board_file.open(map_file.c_str());
 	if (!board_file)
 		assert(0);
@@ -814,7 +831,7 @@ state::init(const std::string &map_file)
 		}
 		transaction::commit();
 	} catch (transaction_error &err) {
-		cout << err.what() << endl;
+		std::cout << err.what() << std::endl;
 		assert(0);
 	}
 
@@ -826,7 +843,7 @@ state::init(const std::string &map_file)
 		intro_p->clear();
 		transaction::commit();
 	} catch (transaction_error &err) {
-		cout << err.what() << endl;
+		std::cout << err.what() << std::endl;
 		assert(0);
 	}
 	return false;
@@ -869,7 +886,7 @@ state::intro_loop()
 				p->progress();
 			transaction::commit();
 		} catch (transaction_error &err) {
-			cout << err.what() << endl;
+			std::cout << err.what() << std::endl;
 			assert(0);
 		}
 		SLEEP(GAME_DELAY);
@@ -943,7 +960,7 @@ state::new_game(const std::string &map_file)
 
 		transaction::commit();
 	} catch (transaction_error &err) {
-		cout << err.what() << endl;
+		std::cout << err.what() << std::endl;
 		assert(0);
 	}
 }
@@ -967,7 +984,7 @@ state::reset_game()
 
 		transaction::commit();
 	} catch (transaction_error &err) {
-		cout << err.what() << endl;
+		std::cout << err.what() << std::endl;
 		assert(0);
 	}
 }
@@ -993,7 +1010,7 @@ state::resume()
 		delete_persistent<list<intro>>(intro_p);
 		transaction::commit();
 	} catch (transaction_error &err) {
-		cout << err.what() << endl;
+		std::cout << err.what() << std::endl;
 		assert(0);
 	}
 	reset_game();
@@ -1032,7 +1049,7 @@ state::one_move(int in)
 			b->print_time();
 		transaction::commit();
 	} catch (transaction_error &err) {
-		cout << err.what() << endl;
+		std::cout << err.what() << std::endl;
 		assert(0);
 	}
 }
@@ -1169,10 +1186,16 @@ state::is_collision(persistent_ptr<point> p1, persistent_ptr<point> p2)
 	return false;
 }
 
+} /* namespace examples */
+
+namespace
+{
+
 void
 print_usage(const std::string &binary)
 {
 	std::cout << "Usage:\n" << binary << " <game_file> [map_file]\n";
+}
 }
 
 int
@@ -1183,30 +1206,30 @@ main(int argc, char *argv[])
 		return 1;
 	}
 
-	string name = argv[1];
-	string map_path = "map";
+	std::string name = argv[1];
+	std::string map_path = "map";
 
 	if (argc == 3)
 		map_path = argv[2];
 
-	if (pool<state>::check(name, LAYOUT_NAME) == 1)
-		pop = pool<state>::open(name, LAYOUT_NAME);
+	if (pool<examples::state>::check(name, LAYOUT_NAME) == 1)
+		pop = pool<examples::state>::open(name, LAYOUT_NAME);
 	else
-		pop = pool<state>::create(name, LAYOUT_NAME);
+		pop = pool<examples::state>::create(name, LAYOUT_NAME);
 
 	initscr();
 	start_color();
-	init_pair(FOOD, COLOR_YELLOW, COLOR_BLACK);
-	init_pair(WALL, COLOR_WHITE, COLOR_BLACK);
-	init_pair(PLAYER, COLOR_CYAN, COLOR_BLACK);
-	init_pair(ALIEN, COLOR_RED, COLOR_BLACK);
-	init_pair(EXPLOSION, COLOR_CYAN, COLOR_BLACK);
-	init_pair(BONUS, COLOR_YELLOW, COLOR_BLACK);
-	init_pair(LIFE, COLOR_MAGENTA, COLOR_BLACK);
+	init_pair(examples::FOOD, COLOR_YELLOW, COLOR_BLACK);
+	init_pair(examples::WALL, COLOR_WHITE, COLOR_BLACK);
+	init_pair(examples::PLAYER, COLOR_CYAN, COLOR_BLACK);
+	init_pair(examples::ALIEN, COLOR_RED, COLOR_BLACK);
+	init_pair(examples::EXPLOSION, COLOR_CYAN, COLOR_BLACK);
+	init_pair(examples::BONUS, COLOR_YELLOW, COLOR_BLACK);
+	init_pair(examples::LIFE, COLOR_MAGENTA, COLOR_BLACK);
 	nodelay(stdscr, true);
 	curs_set(0);
 	keypad(stdscr, true);
-	persistent_ptr<state> r = pop.get_root();
+	persistent_ptr<examples::state> r = pop.get_root();
 	if (r == nullptr)
 		goto out;
 

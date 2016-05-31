@@ -75,11 +75,10 @@ public:
 	 */
 	ctree_map_p()
 	{
-		auto pop = nvml::pool_by_vptr(this);
+		auto pop = nvobj::pool_by_vptr(this);
 
-		nvobj::transaction::exec_tx(pop, [&] {
-			root = nvobj::make_persistent<entry>();
-		});
+		nvobj::transaction::exec_tx(
+			pop, [&] { root = nvobj::make_persistent<entry>(); });
 	}
 
 	/**
@@ -102,7 +101,7 @@ public:
 		}
 
 		entry e(key, value);
-		auto pop = nvml::pool_by_vptr(this);
+		auto pop = nvobj::pool_by_vptr(this);
 		nvobj::transaction::exec_tx(pop, [&] {
 			if (dest_entry->key == 0 || dest_entry->key == key) {
 				nvobj::delete_persistent<T>(dest_entry->value);
@@ -131,7 +130,7 @@ public:
 	int
 	insert_new(key_type key, const Args &... args)
 	{
-		auto pop = nvml::pool_by_vptr(this);
+		auto pop = nvobj::pool_by_vptr(this);
 		nvobj::transaction::exec_tx(pop, [&] {
 			return insert(key, nvobj::make_persistent<T>(args...));
 		});
@@ -159,7 +158,7 @@ public:
 
 		auto ret = leaf->value;
 
-		auto pop = nvml::pool_by_vptr(this);
+		auto pop = nvobj::pool_by_vptr(this);
 		nvobj::transaction::exec_tx(pop, [&] {
 			if (parent == nullptr) {
 				leaf->key = 0;
@@ -190,7 +189,7 @@ public:
 	int
 	remove_free(key_type key)
 	{
-		auto pop = nvml::pool_by_vptr(this);
+		auto pop = nvobj::pool_by_vptr(this);
 		nvobj::transaction::exec_tx(
 			pop, [&] { nvobj::delete_persistent<T>(remove(key)); });
 		return 0;
@@ -202,7 +201,7 @@ public:
 	int
 	clear()
 	{
-		auto pop = nvml::pool_by_vptr(this);
+		auto pop = nvobj::pool_by_vptr(this);
 		nvobj::transaction::exec_tx(pop, [&] {
 			if (root->inode) {
 				root->inode->clear();
@@ -253,8 +252,7 @@ public:
 	 *
 	 * @return 0 if tree empty, clb return value otherwise.
 	 */
-	int
-	foreach (callback clb, void *args)
+	int foreach (callback clb, void *args)
 	{
 		if (is_empty())
 			return 0;
@@ -287,7 +285,8 @@ public:
 	/**
 	 * Destructor.
 	 */
-	~ctree_map_p() {
+	~ctree_map_p()
+	{
 		clear();
 	}
 

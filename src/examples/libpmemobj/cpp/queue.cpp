@@ -82,7 +82,16 @@ parse_queue_op(const char *str)
 }
 }
 
-using namespace nvml::obj;
+using nvml::obj::p;
+using nvml::obj::persistent_ptr;
+using nvml::obj::pool;
+using nvml::obj::pool_base;
+using nvml::obj::make_persistent;
+using nvml::obj::delete_persistent;
+using nvml::obj::transaction;
+
+namespace examples
+{
 
 /*
  * Persistent memory list-based queue
@@ -160,6 +169,8 @@ private:
 	persistent_ptr<pmem_entry> tail;
 };
 
+} /* namespace examples */
+
 int
 main(int argc, char *argv[])
 {
@@ -173,13 +184,13 @@ main(int argc, char *argv[])
 
 	queue_op op = parse_queue_op(argv[2]);
 
-	pool<pmem_queue> pop;
+	pool<examples::pmem_queue> pop;
 
 	if (access(path, F_OK) != 0) {
-		pop = pool<pmem_queue>::create(path, LAYOUT, PMEMOBJ_MIN_POOL,
-					       S_IRWXU);
+		pop = pool<examples::pmem_queue>::create(
+			path, LAYOUT, PMEMOBJ_MIN_POOL, S_IRWXU);
 	} else {
-		pop = pool<pmem_queue>::open(path, LAYOUT);
+		pop = pool<examples::pmem_queue>::open(path, LAYOUT);
 	}
 
 	auto q = pop.get_root();

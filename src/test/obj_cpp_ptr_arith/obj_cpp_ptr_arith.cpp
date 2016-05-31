@@ -46,7 +46,7 @@
 
 #define LAYOUT "cpp"
 
-using namespace nvml::obj;
+namespace nvobj = nvml::obj;
 
 namespace
 {
@@ -57,12 +57,12 @@ const int TEST_ARR_SIZE = 10;
  * prepare_array -- preallocate and fill a persistent array
  */
 template <typename T>
-persistent_ptr<T>
-prepare_array(pool_base &pop)
+nvobj::persistent_ptr<T>
+prepare_array(nvobj::pool_base &pop)
 {
 	int ret;
 
-	persistent_ptr<T> parr_vsize;
+	nvobj::persistent_ptr<T> parr_vsize;
 	ret = pmemobj_alloc(pop.get_handle(), parr_vsize.raw_ptr(),
 			    sizeof(T) * TEST_ARR_SIZE, 0, NULL, NULL);
 
@@ -71,7 +71,7 @@ prepare_array(pool_base &pop)
 	T *parray = parr_vsize.get();
 
 	try {
-		transaction::exec_tx(pop, [&] {
+		nvobj::transaction::exec_tx(pop, [&] {
 			for (int i = 0; i < TEST_ARR_SIZE; ++i) {
 				parray[i] = i;
 			}
@@ -91,9 +91,9 @@ prepare_array(pool_base &pop)
  * test_arith -- test arithmetic operations on persistent pointers
  */
 void
-test_arith(pool_base &pop)
+test_arith(nvobj::pool_base &pop)
 {
-	persistent_ptr<p<int>> parr_vsize = prepare_array<p<int>>(pop);
+	auto parr_vsize = prepare_array<nvobj::p<int>>(pop);
 
 	/* test prefix postfix operators */
 	for (int i = 0; i < TEST_ARR_SIZE; ++i) {
@@ -135,7 +135,7 @@ test_arith(pool_base &pop)
 		UT_ASSERTeq(*(parr_vsize + i), i);
 
 	/* using STL one-pas-end style */
-	persistent_ptr<p<int>> parr_end = parr_vsize + TEST_ARR_SIZE;
+	auto parr_end = parr_vsize + TEST_ARR_SIZE;
 
 	for (int i = TEST_ARR_SIZE; i > 0; --i)
 		UT_ASSERTeq(*(parr_end - i), TEST_ARR_SIZE - i);
@@ -152,12 +152,12 @@ test_arith(pool_base &pop)
  * test_relational -- test relational operators on persistent pointers
  */
 void
-test_relational(pool_base &pop)
+test_relational(nvobj::pool_base &pop)
 {
 
-	persistent_ptr<p<int>> first_elem = prepare_array<p<int>>(pop);
-	persistent_ptr<int[10][12]> parray;
-	persistent_ptr<p<int>> last_elem = first_elem + TEST_ARR_SIZE - 1;
+	auto first_elem = prepare_array<nvobj::p<int>>(pop);
+	nvobj::persistent_ptr<int[10][12]> parray;
+	auto last_elem = first_elem + TEST_ARR_SIZE - 1;
 
 	UT_ASSERT(first_elem != last_elem);
 	UT_ASSERT(first_elem <= last_elem);
@@ -200,8 +200,7 @@ test_relational(pool_base &pop)
 	UT_ASSERT(parray >= nullptr);
 	UT_ASSERT(nullptr >= parray);
 
-	persistent_ptr<p<double>> different_array =
-		prepare_array<p<double>>(pop);
+	auto different_array = prepare_array<nvobj::p<double>>(pop);
 
 	/* only verify if this compiles */
 	UT_ASSERT((first_elem < different_array) || true);
@@ -218,11 +217,11 @@ main(int argc, char *argv[])
 
 	const char *path = argv[1];
 
-	pool_base pop;
+	nvobj::pool_base pop;
 
 	try {
-		pop = pool_base::create(path, LAYOUT, PMEMOBJ_MIN_POOL,
-					S_IWUSR | S_IRUSR);
+		pop = nvobj::pool_base::create(path, LAYOUT, PMEMOBJ_MIN_POOL,
+					       S_IWUSR | S_IRUSR);
 	} catch (nvml::pool_error &pe) {
 		UT_FATAL("!pool::create: %s %s", pe.what(), path);
 	}

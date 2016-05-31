@@ -40,7 +40,7 @@
 #include <libpmemobj/persistent_ptr.hpp>
 #include <libpmemobj/pool.hpp>
 
-using namespace nvml::obj;
+namespace nvobj = nvml::obj;
 
 namespace
 {
@@ -48,7 +48,7 @@ namespace
 size_t MB = ((size_t)1 << 20);
 
 struct root {
-	p<int> val;
+	nvobj::p<int> val;
 };
 
 /*
@@ -58,10 +58,10 @@ void
 pool_create(const char *path, const char *layout, size_t poolsize,
 	    unsigned mode)
 {
-	pool<root> pop;
+	nvobj::pool<root> pop;
 	try {
-		pop = pool<root>::create(path, layout, poolsize, mode);
-		persistent_ptr<root> root = pop.get_root();
+		pop = nvobj::pool<root>::create(path, layout, poolsize, mode);
+		nvobj::persistent_ptr<root> root = pop.get_root();
 		UT_ASSERT(root != nullptr);
 	} catch (nvml::pool_error &) {
 		UT_OUT("!%s: pool::create", path);
@@ -80,7 +80,7 @@ pool_create(const char *path, const char *layout, size_t poolsize,
 		return;
 	}
 
-	int result = pool<root>::check(path, layout);
+	int result = nvobj::pool<root>::check(path, layout);
 
 	if (result < 0)
 		UT_OUT("!%s: pool::check", path);
@@ -94,9 +94,9 @@ pool_create(const char *path, const char *layout, size_t poolsize,
 void
 pool_open(const char *path, const char *layout)
 {
-	pool<root> pop;
+	nvobj::pool<root> pop;
 	try {
-		pop = pool<root>::open(path, layout);
+		pop = nvobj::pool<root>::open(path, layout);
 	} catch (nvml::pool_error &) {
 		UT_OUT("!%s: pool::open", path);
 		return;
@@ -118,9 +118,9 @@ void
 double_close(const char *path, const char *layout, size_t poolsize,
 	     unsigned mode)
 {
-	pool<root> pop;
+	nvobj::pool<root> pop;
 	try {
-		pop = pool<root>::create(path, layout, poolsize, mode);
+		pop = nvobj::pool<root>::create(path, layout, poolsize, mode);
 	} catch (nvml::pool_error &) {
 		UT_OUT("!%s: pool::create", path);
 		return;
@@ -143,7 +143,7 @@ double_close(const char *path, const char *layout, size_t poolsize,
 void
 get_root_closed()
 {
-	pool<root> pop;
+	nvobj::pool<root> pop;
 
 	try {
 		pop.get_root();

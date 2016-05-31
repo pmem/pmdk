@@ -66,20 +66,20 @@ uncaught_exceptions() noexcept
 
 #define LAYOUT "cpp"
 
-using namespace nvml::obj;
+namespace nvobj = nvml::obj;
 
 namespace
 {
 
 struct foo {
-	p<int> bar;
-	shared_mutex smtx;
+	nvobj::p<int> bar;
+	nvobj::shared_mutex smtx;
 };
 
 struct root {
-	persistent_ptr<foo> pfoo;
-	persistent_ptr<p<int>> parr;
-	mutex mtx;
+	nvobj::persistent_ptr<foo> pfoo;
+	nvobj::persistent_ptr<nvobj::p<int>> parr;
+	nvobj::mutex mtx;
 };
 
 void
@@ -90,7 +90,7 @@ fake_commit()
 void
 real_commit()
 {
-	transaction::commit();
+	nvobj::transaction::commit();
 }
 
 /*
@@ -101,7 +101,7 @@ public:
 	/*
 	 * Constructor.
 	 */
-	transaction_test(pool<root> &pop_) : pop(pop_)
+	transaction_test(nvobj::pool<root> &pop_) : pop(pop_)
 	{
 	}
 
@@ -114,24 +114,24 @@ public:
 		auto rootp = this->pop.get_root();
 
 		if (rootp->pfoo == nullptr)
-			rootp->pfoo = make_persistent<foo>();
+			rootp->pfoo = nvobj::make_persistent<foo>();
 
 		rootp->pfoo->bar = 42;
 	}
 
 private:
-	pool<root> &pop;
+	nvobj::pool<root> &pop;
 };
 
 /*
  * do_transaction -- internal C-style function transaction.
  */
 void
-do_transaction(pool<root> &pop)
+do_transaction(nvobj::pool<root> &pop)
 {
 	auto rootp = pop.get_root();
 
-	rootp->parr = make_persistent<p<int>>();
+	rootp->parr = nvobj::make_persistent<nvobj::p<int>>();
 
 	*rootp->parr.get() = 5;
 }
@@ -144,7 +144,7 @@ do_transaction(pool<root> &pop)
  * test_tx_no_throw_no_abort -- test transaction without exceptions and aborts
  */
 void
-test_tx_no_throw_no_abort(pool<root> &pop)
+test_tx_no_throw_no_abort(nvobj::pool<root> &pop)
 {
 	auto rootp = pop.get_root();
 
@@ -152,8 +152,9 @@ test_tx_no_throw_no_abort(pool<root> &pop)
 	UT_ASSERT(rootp->parr == nullptr);
 
 	try {
-		transaction::exec_tx(
-			pop, [&]() { rootp->pfoo = make_persistent<foo>(); });
+		nvobj::transaction::exec_tx(pop, [&]() {
+			rootp->pfoo = nvobj::make_persistent<foo>();
+		});
 	} catch (...) {
 		UT_ASSERT(0);
 	}
@@ -162,9 +163,9 @@ test_tx_no_throw_no_abort(pool<root> &pop)
 	UT_ASSERT(rootp->parr == nullptr);
 
 	try {
-		transaction::exec_tx(pop,
-				     std::bind(do_transaction, std::ref(pop)),
-				     rootp->mtx);
+		nvobj::transaction::exec_tx(
+			pop, std::bind(do_transaction, std::ref(pop)),
+			rootp->mtx);
 	} catch (...) {
 		UT_ASSERT(0);
 	}
@@ -174,8 +175,8 @@ test_tx_no_throw_no_abort(pool<root> &pop)
 	UT_ASSERTeq(*rootp->parr.get(), 5);
 
 	try {
-		transaction::exec_tx(pop, transaction_test(pop), rootp->mtx,
-				     rootp->pfoo->smtx);
+		nvobj::transaction::exec_tx(pop, transaction_test(pop),
+					    rootp->mtx, rootp->pfoo->smtx);
 	} catch (...) {
 		UT_ASSERT(0);
 	}
@@ -186,9 +187,9 @@ test_tx_no_throw_no_abort(pool<root> &pop)
 	UT_ASSERTeq(rootp->pfoo->bar, 42);
 
 	try {
-		transaction::exec_tx(pop, [&]() {
-			delete_persistent<foo>(rootp->pfoo);
-			delete_persistent<p<int>>(rootp->parr);
+		nvobj::transaction::exec_tx(pop, [&]() {
+			nvobj::delete_persistent<foo>(rootp->pfoo);
+			nvobj::delete_persistent<nvobj::p<int>>(rootp->parr);
 			rootp->pfoo = nullptr;
 			rootp->parr = nullptr;
 		});
@@ -204,7 +205,7 @@ test_tx_no_throw_no_abort(pool<root> &pop)
  * test_tx_throw_no_abort -- test transaction with exceptions and no aborts
  */
 void
-test_tx_throw_no_abort(pool<root> &pop)
+test_tx_throw_no_abort(nvobj::pool<root> &pop)
 {
 	auto rootp = pop.get_root();
 
@@ -213,8 +214,8 @@ test_tx_throw_no_abort(pool<root> &pop)
 
 	bool exception_thrown = false;
 	try {
-		transaction::exec_tx(pop, [&]() {
-			rootp->pfoo = make_persistent<foo>();
+		nvobj::transaction::exec_tx(pop, [&]() {
+			rootp->pfoo = nvobj::make_persistent<foo>();
 			throw std::runtime_error("error");
 		});
 	} catch (std::runtime_error &re) {
@@ -229,9 +230,9 @@ test_tx_throw_no_abort(pool<root> &pop)
 	UT_ASSERT(rootp->parr == nullptr);
 
 	try {
-		transaction::exec_tx(pop, [&]() {
-			rootp->pfoo = make_persistent<foo>();
-			transaction::exec_tx(pop, [&]() {
+		nvobj::transaction::exec_tx(pop, [&]() {
+			rootp->pfoo = nvobj::make_persistent<foo>();
+			nvobj::transaction::exec_tx(pop, [&]() {
 				throw std::runtime_error("error");
 			});
 		});
@@ -247,10 +248,10 @@ test_tx_throw_no_abort(pool<root> &pop)
 	UT_ASSERT(rootp->parr == nullptr);
 
 	try {
-		transaction::exec_tx(pop, [&]() {
-			rootp->pfoo = make_persistent<foo>();
+		nvobj::transaction::exec_tx(pop, [&]() {
+			rootp->pfoo = nvobj::make_persistent<foo>();
 			try {
-				transaction::exec_tx(pop, [&]() {
+				nvobj::transaction::exec_tx(pop, [&]() {
 					throw std::runtime_error("error");
 				});
 			} catch (std::runtime_error &) {
@@ -276,7 +277,7 @@ test_tx_throw_no_abort(pool<root> &pop)
  * test_tx_no_throw_abort -- test transaction with an abort and no exceptions
  */
 void
-test_tx_no_throw_abort(pool<root> &pop)
+test_tx_no_throw_abort(nvobj::pool<root> &pop)
 {
 	auto rootp = pop.get_root();
 
@@ -285,9 +286,9 @@ test_tx_no_throw_abort(pool<root> &pop)
 
 	bool exception_thrown = false;
 	try {
-		transaction::exec_tx(pop, [&]() {
-			rootp->pfoo = make_persistent<foo>();
-			transaction::abort(-1);
+		nvobj::transaction::exec_tx(pop, [&]() {
+			rootp->pfoo = nvobj::make_persistent<foo>();
+			nvobj::transaction::abort(-1);
 		});
 	} catch (nvml::manual_tx_abort &ta) {
 		exception_thrown = true;
@@ -301,10 +302,10 @@ test_tx_no_throw_abort(pool<root> &pop)
 	UT_ASSERT(rootp->parr == nullptr);
 
 	try {
-		transaction::exec_tx(pop, [&]() {
-			rootp->pfoo = make_persistent<foo>();
-			transaction::exec_tx(pop,
-					     [&]() { transaction::abort(-1); });
+		nvobj::transaction::exec_tx(pop, [&]() {
+			rootp->pfoo = nvobj::make_persistent<foo>();
+			nvobj::transaction::exec_tx(
+				pop, [&]() { nvobj::transaction::abort(-1); });
 		});
 	} catch (nvml::manual_tx_abort &ta) {
 		exception_thrown = true;
@@ -318,11 +319,12 @@ test_tx_no_throw_abort(pool<root> &pop)
 	UT_ASSERT(rootp->parr == nullptr);
 
 	try {
-		transaction::exec_tx(pop, [&]() {
-			rootp->pfoo = make_persistent<foo>();
+		nvobj::transaction::exec_tx(pop, [&]() {
+			rootp->pfoo = nvobj::make_persistent<foo>();
 			try {
-				transaction::exec_tx(
-					pop, [&]() { transaction::abort(-1); });
+				nvobj::transaction::exec_tx(pop, [&]() {
+					nvobj::transaction::abort(-1);
+				});
 			} catch (nvml::manual_tx_abort &) {
 				exception_thrown = true;
 			} catch (...) {
@@ -350,7 +352,8 @@ test_tx_no_throw_abort(pool<root> &pop)
  */
 template <typename T>
 void
-test_tx_no_throw_no_abort_scope(pool<root> &pop, std::function<void()> commit)
+test_tx_no_throw_no_abort_scope(nvobj::pool<root> &pop,
+				std::function<void()> commit)
 {
 	auto rootp = pop.get_root();
 
@@ -359,13 +362,13 @@ test_tx_no_throw_no_abort_scope(pool<root> &pop, std::function<void()> commit)
 
 	try {
 		T to(pop);
-		rootp->pfoo = make_persistent<foo>();
+		rootp->pfoo = nvobj::make_persistent<foo>();
 		commit();
 	} catch (...) {
 		UT_ASSERT(0);
 	}
 
-	UT_ASSERTeq(transaction::get_last_tx_error(), 0);
+	UT_ASSERTeq(nvobj::transaction::get_last_tx_error(), 0);
 	UT_ASSERT(rootp->pfoo != nullptr);
 	UT_ASSERT(rootp->parr == nullptr);
 
@@ -377,7 +380,7 @@ test_tx_no_throw_no_abort_scope(pool<root> &pop, std::function<void()> commit)
 		UT_ASSERT(0);
 	}
 
-	UT_ASSERTeq(transaction::get_last_tx_error(), 0);
+	UT_ASSERTeq(nvobj::transaction::get_last_tx_error(), 0);
 	UT_ASSERT(rootp->pfoo != nullptr);
 	UT_ASSERT(rootp->parr != nullptr);
 	UT_ASSERTeq(*rootp->parr.get(), 5);
@@ -391,7 +394,7 @@ test_tx_no_throw_no_abort_scope(pool<root> &pop, std::function<void()> commit)
 		UT_ASSERT(0);
 	}
 
-	UT_ASSERTeq(transaction::get_last_tx_error(), 0);
+	UT_ASSERTeq(nvobj::transaction::get_last_tx_error(), 0);
 	UT_ASSERT(rootp->pfoo != nullptr);
 	UT_ASSERT(rootp->parr != nullptr);
 	UT_ASSERTeq(*rootp->parr.get(), 5);
@@ -399,8 +402,8 @@ test_tx_no_throw_no_abort_scope(pool<root> &pop, std::function<void()> commit)
 
 	try {
 		T to(pop);
-		delete_persistent<foo>(rootp->pfoo);
-		delete_persistent<p<int>>(rootp->parr);
+		nvobj::delete_persistent<foo>(rootp->pfoo);
+		nvobj::delete_persistent<nvobj::p<int>>(rootp->parr);
 		rootp->pfoo = nullptr;
 		rootp->parr = nullptr;
 		commit();
@@ -408,7 +411,7 @@ test_tx_no_throw_no_abort_scope(pool<root> &pop, std::function<void()> commit)
 		UT_ASSERT(0);
 	}
 
-	UT_ASSERTeq(transaction::get_last_tx_error(), 0);
+	UT_ASSERTeq(nvobj::transaction::get_last_tx_error(), 0);
 	UT_ASSERT(rootp->pfoo == nullptr);
 	UT_ASSERT(rootp->parr == nullptr);
 }
@@ -419,7 +422,7 @@ test_tx_no_throw_no_abort_scope(pool<root> &pop, std::function<void()> commit)
  */
 template <typename T>
 void
-test_tx_throw_no_abort_scope(pool<root> &pop)
+test_tx_throw_no_abort_scope(nvobj::pool<root> &pop)
 {
 	auto rootp = pop.get_root();
 
@@ -430,7 +433,7 @@ test_tx_throw_no_abort_scope(pool<root> &pop)
 	try {
 		counter = 0;
 		T to(pop);
-		rootp->pfoo = make_persistent<foo>();
+		rootp->pfoo = nvobj::make_persistent<foo>();
 		counter = 1;
 		throw std::runtime_error("error");
 	} catch (std::runtime_error &re) {
@@ -439,7 +442,7 @@ test_tx_throw_no_abort_scope(pool<root> &pop)
 		UT_ASSERT(0);
 	}
 
-	UT_ASSERTeq(transaction::get_last_tx_error(), ECANCELED);
+	UT_ASSERTeq(nvobj::transaction::get_last_tx_error(), ECANCELED);
 	UT_ASSERT(exception_thrown);
 	exception_thrown = false;
 	UT_ASSERT(rootp->pfoo == nullptr);
@@ -448,7 +451,7 @@ test_tx_throw_no_abort_scope(pool<root> &pop)
 	try {
 		counter = 0;
 		T to(pop);
-		rootp->pfoo = make_persistent<foo>();
+		rootp->pfoo = nvobj::make_persistent<foo>();
 		{
 			T to_nested(pop);
 			counter = 1;
@@ -460,7 +463,7 @@ test_tx_throw_no_abort_scope(pool<root> &pop)
 		UT_ASSERT(0);
 	}
 
-	UT_ASSERTeq(transaction::get_last_tx_error(), ECANCELED);
+	UT_ASSERTeq(nvobj::transaction::get_last_tx_error(), ECANCELED);
 	UT_ASSERT(exception_thrown);
 	exception_thrown = false;
 	UT_ASSERT(rootp->pfoo == nullptr);
@@ -469,7 +472,7 @@ test_tx_throw_no_abort_scope(pool<root> &pop)
 	try {
 		counter = 0;
 		T to(pop);
-		rootp->pfoo = make_persistent<foo>();
+		rootp->pfoo = nvobj::make_persistent<foo>();
 		try {
 			T to_nested(pop);
 			counter = 1;
@@ -486,7 +489,7 @@ test_tx_throw_no_abort_scope(pool<root> &pop)
 	}
 
 	/* the transaction will be aborted silently */
-	UT_ASSERTeq(transaction::get_last_tx_error(), ECANCELED);
+	UT_ASSERTeq(nvobj::transaction::get_last_tx_error(), ECANCELED);
 	UT_ASSERT(!exception_thrown);
 	UT_ASSERT(rootp->pfoo == nullptr);
 	UT_ASSERT(rootp->parr == nullptr);
@@ -498,7 +501,7 @@ test_tx_throw_no_abort_scope(pool<root> &pop)
  */
 template <typename T>
 void
-test_tx_no_throw_abort_scope(pool<root> &pop)
+test_tx_no_throw_abort_scope(nvobj::pool<root> &pop)
 {
 	auto rootp = pop.get_root();
 
@@ -509,16 +512,16 @@ test_tx_no_throw_abort_scope(pool<root> &pop)
 	try {
 		counter = 0;
 		T to(pop);
-		rootp->pfoo = make_persistent<foo>();
+		rootp->pfoo = nvobj::make_persistent<foo>();
 		counter = 1;
-		transaction::abort(ECANCELED);
+		nvobj::transaction::abort(ECANCELED);
 	} catch (nvml::manual_tx_abort &ta) {
 		exception_thrown = true;
 	} catch (...) {
 		UT_ASSERT(0);
 	}
 
-	UT_ASSERTeq(transaction::get_last_tx_error(), ECANCELED);
+	UT_ASSERTeq(nvobj::transaction::get_last_tx_error(), ECANCELED);
 	UT_ASSERT(exception_thrown);
 	exception_thrown = false;
 	UT_ASSERT(rootp->pfoo == nullptr);
@@ -527,11 +530,11 @@ test_tx_no_throw_abort_scope(pool<root> &pop)
 	try {
 		counter = 0;
 		T to(pop);
-		rootp->pfoo = make_persistent<foo>();
+		rootp->pfoo = nvobj::make_persistent<foo>();
 		{
 			T to_nested(pop);
 			counter = 1;
-			transaction::abort(EINVAL);
+			nvobj::transaction::abort(EINVAL);
 		}
 	} catch (nvml::manual_tx_abort &ta) {
 		exception_thrown = true;
@@ -539,7 +542,7 @@ test_tx_no_throw_abort_scope(pool<root> &pop)
 		UT_ASSERT(0);
 	}
 
-	UT_ASSERTeq(transaction::get_last_tx_error(), EINVAL);
+	UT_ASSERTeq(nvobj::transaction::get_last_tx_error(), EINVAL);
 	UT_ASSERT(exception_thrown);
 	exception_thrown = false;
 	UT_ASSERT(rootp->pfoo == nullptr);
@@ -548,11 +551,11 @@ test_tx_no_throw_abort_scope(pool<root> &pop)
 	try {
 		counter = 0;
 		T to(pop);
-		rootp->pfoo = make_persistent<foo>();
+		rootp->pfoo = nvobj::make_persistent<foo>();
 		try {
 			T to_nested(pop);
 			counter = 1;
-			transaction::abort(-1);
+			nvobj::transaction::abort(-1);
 		} catch (nvml::manual_tx_abort &) {
 			exception_thrown = true;
 		} catch (...) {
@@ -564,7 +567,7 @@ test_tx_no_throw_abort_scope(pool<root> &pop)
 		UT_ASSERT(0);
 	}
 
-	UT_ASSERTeq(transaction::get_last_tx_error(), -1);
+	UT_ASSERTeq(nvobj::transaction::get_last_tx_error(), -1);
 	UT_ASSERT(exception_thrown);
 	UT_ASSERT(rootp->pfoo == nullptr);
 	UT_ASSERT(rootp->parr == nullptr);
@@ -581,10 +584,10 @@ main(int argc, char *argv[])
 
 	const char *path = argv[1];
 
-	pool<root> pop;
+	nvobj::pool<root> pop;
 	try {
-		pop = pool<root>::create(path, LAYOUT, PMEMOBJ_MIN_POOL,
-					 S_IWUSR | S_IRUSR);
+		pop = nvobj::pool<root>::create(path, LAYOUT, PMEMOBJ_MIN_POOL,
+						S_IWUSR | S_IRUSR);
 	} catch (...) {
 		UT_FATAL("!pmemobj_create: %s", path);
 	}
@@ -593,14 +596,15 @@ main(int argc, char *argv[])
 	test_tx_throw_no_abort(pop);
 	test_tx_no_throw_abort(pop);
 
-	test_tx_no_throw_no_abort_scope<transaction::manual>(pop, real_commit);
-	test_tx_throw_no_abort_scope<transaction::manual>(pop);
-	test_tx_no_throw_abort_scope<transaction::manual>(pop);
+	test_tx_no_throw_no_abort_scope<nvobj::transaction::manual>(
+		pop, real_commit);
+	test_tx_throw_no_abort_scope<nvobj::transaction::manual>(pop);
+	test_tx_no_throw_abort_scope<nvobj::transaction::manual>(pop);
 
-	test_tx_no_throw_no_abort_scope<transaction::automatic>(pop,
-								fake_commit);
-	test_tx_throw_no_abort_scope<transaction::automatic>(pop);
-	test_tx_no_throw_abort_scope<transaction::automatic>(pop);
+	test_tx_no_throw_no_abort_scope<nvobj::transaction::automatic>(
+		pop, fake_commit);
+	test_tx_throw_no_abort_scope<nvobj::transaction::automatic>(pop);
+	test_tx_no_throw_abort_scope<nvobj::transaction::automatic>(pop);
 
 	pop.close();
 

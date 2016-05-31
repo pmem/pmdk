@@ -45,14 +45,14 @@
 
 #define LAYOUT "cpp"
 
-using namespace nvml::obj;
+namespace nvobj = nvml::obj;
 
 namespace
 {
 
 /* pool root structure */
 struct root {
-	mutex pmutex;
+	nvobj::mutex pmutex;
 	int counter;
 };
 
@@ -66,10 +66,10 @@ const int num_threads = 30;
  * increment_pint -- (internal) test the mutex with an std::lock_guard
  */
 void
-increment_pint(persistent_ptr<struct root> proot)
+increment_pint(nvobj::persistent_ptr<struct root> proot)
 {
 	for (int i = 0; i < num_ops; ++i) {
-		std::lock_guard<mutex> lock(proot->pmutex);
+		std::lock_guard<nvobj::mutex> lock(proot->pmutex);
 		(proot->counter)++;
 	}
 }
@@ -78,9 +78,9 @@ increment_pint(persistent_ptr<struct root> proot)
  * decrement_pint -- (internal) test the mutex with an std::unique_lock
  */
 void
-decrement_pint(persistent_ptr<struct root> proot)
+decrement_pint(nvobj::persistent_ptr<struct root> proot)
 {
-	std::unique_lock<mutex> lock(proot->pmutex);
+	std::unique_lock<nvobj::mutex> lock(proot->pmutex);
 	for (int i = 0; i < num_ops; ++i)
 		--(proot->counter);
 
@@ -91,7 +91,7 @@ decrement_pint(persistent_ptr<struct root> proot)
  * trylock_test -- (internal) test the trylock implementation
  */
 void
-trylock_test(persistent_ptr<struct root> proot)
+trylock_test(nvobj::persistent_ptr<struct root> proot)
 {
 	for (;;) {
 		if (proot->pmutex.try_lock()) {
@@ -107,11 +107,11 @@ trylock_test(persistent_ptr<struct root> proot)
  */
 template <typename Worker>
 void
-mutex_test(pool<struct root> &pop, const Worker &function)
+mutex_test(nvobj::pool<struct root> &pop, const Worker &function)
 {
 	std::thread threads[num_threads];
 
-	persistent_ptr<struct root> proot = pop.get_root();
+	nvobj::persistent_ptr<struct root> proot = pop.get_root();
 
 	for (int i = 0; i < num_threads; ++i)
 		threads[i] = std::thread(function, proot);
@@ -131,11 +131,11 @@ main(int argc, char *argv[])
 
 	const char *path = argv[1];
 
-	pool<struct root> pop;
+	nvobj::pool<struct root> pop;
 
 	try {
-		pop = pool<struct root>::create(path, LAYOUT, PMEMOBJ_MIN_POOL,
-						S_IWUSR | S_IRUSR);
+		pop = nvobj::pool<struct root>::create(
+			path, LAYOUT, PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR);
 	} catch (nvml::pool_error &pe) {
 		UT_FATAL("!pool::create: %s %s", pe.what(), path);
 	}

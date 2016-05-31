@@ -44,7 +44,7 @@
 
 #define LAYOUT "cpp"
 
-using namespace nvml::obj;
+namespace nvobj = nvml::obj;
 
 namespace
 {
@@ -82,48 +82,48 @@ public:
 			UT_ASSERTeq(arr_val, this->arr[i]);
 	}
 
-	p<int> bar;
-	p<char> arr[TEST_ARR_SIZE];
+	nvobj::p<int> bar;
+	nvobj::p<char> arr[TEST_ARR_SIZE];
 };
 
 struct root {
-	persistent_ptr<foo> pfoo;
+	nvobj::persistent_ptr<foo> pfoo;
 };
 
 /*
  * test_make_no_args -- (internal) test make_persitent without arguments
  */
 void
-test_make_no_args(pool<struct root> &pop)
+test_make_no_args(nvobj::pool<struct root> &pop)
 {
-	persistent_ptr<root> r = pop.get_root();
+	nvobj::persistent_ptr<root> r = pop.get_root();
 
 	UT_ASSERT(r->pfoo == nullptr);
 
-	make_persistent_atomic<foo>(pop, r->pfoo);
+	nvobj::make_persistent_atomic<foo>(pop, r->pfoo);
 	r->pfoo->check_foo(1, 1);
 
-	delete_persistent_atomic<foo>(r->pfoo);
+	nvobj::delete_persistent_atomic<foo>(r->pfoo);
 }
 
 /*
  * test_make_args -- (internal) test make_persitent with arguments
  */
 void
-test_make_args(pool<struct root> &pop)
+test_make_args(nvobj::pool<struct root> &pop)
 {
-	persistent_ptr<root> r = pop.get_root();
+	nvobj::persistent_ptr<root> r = pop.get_root();
 	UT_ASSERT(r->pfoo == nullptr);
 
-	make_persistent_atomic<foo>(pop, r->pfoo, 2);
+	nvobj::make_persistent_atomic<foo>(pop, r->pfoo, 2);
 	r->pfoo->check_foo(2, 2);
 
-	delete_persistent_atomic<foo>(r->pfoo);
+	nvobj::delete_persistent_atomic<foo>(r->pfoo);
 
-	make_persistent_atomic<foo>(pop, r->pfoo, 3, 4);
+	nvobj::make_persistent_atomic<foo>(pop, r->pfoo, 3, 4);
 	r->pfoo->check_foo(3, 4);
 
-	delete_persistent_atomic<foo>(r->pfoo);
+	nvobj::delete_persistent_atomic<foo>(r->pfoo);
 }
 }
 
@@ -137,11 +137,11 @@ main(int argc, char *argv[])
 
 	const char *path = argv[1];
 
-	pool<struct root> pop;
+	nvobj::pool<struct root> pop;
 
 	try {
-		pop = pool<struct root>::create(path, LAYOUT, PMEMOBJ_MIN_POOL,
-						S_IWUSR | S_IRUSR);
+		pop = nvobj::pool<struct root>::create(
+			path, LAYOUT, PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR);
 	} catch (nvml::pool_error &pe) {
 		UT_FATAL("!pool::create: %s %s", pe.what(), path);
 	}

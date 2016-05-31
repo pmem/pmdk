@@ -44,14 +44,14 @@
 
 #define LAYOUT "cpp"
 
-using namespace nvml::obj;
+namespace nvobj = nvml::obj;
 
 namespace
 {
 
 /* pool root structure */
 struct root {
-	timed_mutex pmutex;
+	nvobj::timed_mutex pmutex;
 	int counter;
 };
 
@@ -70,11 +70,10 @@ const auto timeout = std::chrono::milliseconds(100);
 static void *
 increment_pint(void *arg)
 {
-	persistent_ptr<struct root> *proot =
-		static_cast<persistent_ptr<struct root> *>(arg);
+	auto proot = static_cast<nvobj::persistent_ptr<struct root> *>(arg);
 
 	for (int i = 0; i < num_ops; ++i) {
-		std::lock_guard<timed_mutex> lock((*proot)->pmutex);
+		std::lock_guard<nvobj::timed_mutex> lock((*proot)->pmutex);
 		((*proot)->counter)++;
 	}
 	return nullptr;
@@ -86,10 +85,9 @@ increment_pint(void *arg)
 static void *
 decrement_pint(void *arg)
 {
-	persistent_ptr<struct root> *proot =
-		static_cast<persistent_ptr<struct root> *>(arg);
+	auto proot = static_cast<nvobj::persistent_ptr<struct root> *>(arg);
 
-	std::unique_lock<timed_mutex> lock((*proot)->pmutex);
+	std::unique_lock<nvobj::timed_mutex> lock((*proot)->pmutex);
 	for (int i = 0; i < num_ops; ++i)
 		--((*proot)->counter);
 
@@ -103,8 +101,7 @@ decrement_pint(void *arg)
 static void *
 trylock_test(void *arg)
 {
-	persistent_ptr<struct root> *proot =
-		static_cast<persistent_ptr<struct root> *>(arg);
+	auto proot = static_cast<nvobj::persistent_ptr<struct root> *>(arg);
 	for (;;) {
 		if ((*proot)->pmutex.try_lock()) {
 			((*proot)->counter)++;
@@ -122,8 +119,7 @@ static void *
 trylock_for_test(void *arg)
 {
 	using clk = std::chrono::steady_clock;
-	persistent_ptr<struct root> *proot =
-		static_cast<persistent_ptr<struct root> *>(arg);
+	auto proot = static_cast<nvobj::persistent_ptr<struct root> *>(arg);
 
 	auto t1 = clk::now();
 	if ((*proot)->pmutex.try_lock_for(timeout)) {
@@ -145,8 +141,7 @@ static void *
 trylock_until_test(void *arg)
 {
 	using clk = std::chrono::steady_clock;
-	persistent_ptr<struct root> *proot =
-		static_cast<persistent_ptr<struct root> *>(arg);
+	auto proot = static_cast<nvobj::persistent_ptr<struct root> *>(arg);
 
 	auto t1 = clk::now();
 	if ((*proot)->pmutex.try_lock_until(t1 + timeout)) {
@@ -166,11 +161,11 @@ trylock_until_test(void *arg)
  */
 template <typename Worker>
 void
-timed_mtx_test(pool<struct root> &pop, Worker function)
+timed_mtx_test(nvobj::pool<struct root> &pop, Worker function)
 {
 	pthread_t threads[num_threads];
 
-	persistent_ptr<struct root> proot = pop.get_root();
+	auto proot = pop.get_root();
 
 	for (int i = 0; i < num_threads; ++i)
 		PTHREAD_CREATE(&threads[i], nullptr, function, &proot);
@@ -190,11 +185,11 @@ main(int argc, char *argv[])
 
 	const char *path = argv[1];
 
-	pool<struct root> pop;
+	nvobj::pool<struct root> pop;
 
 	try {
-		pop = pool<struct root>::create(path, LAYOUT, PMEMOBJ_MIN_POOL,
-						S_IWUSR | S_IRUSR);
+		pop = nvobj::pool<struct root>::create(
+			path, LAYOUT, PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR);
 	} catch (nvml::pool_error &pe) {
 		UT_FATAL("!pool::create: %s %s", pe.what(), path);
 	}
