@@ -80,7 +80,7 @@ int rpmem_close(RPMEMpool *rpp);
 
 int rpmem_persist(RPMEMpool *rpp, size_t offset, size_t length,
 		unsigned lane);
-int rpmem_read(RPMEMpool *rpp, void *buff, size_t length, size_t offset);
+int rpmem_read(RPMEMpool *rpp, void *buff, size_t offset, size_t length);
 
 /*
  * RPMEM_MAJOR_VERSION and RPMEM_MINOR_VERSION provide the current version of
