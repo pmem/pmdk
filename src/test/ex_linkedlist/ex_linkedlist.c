@@ -74,7 +74,7 @@ struct snode {
 
 struct base {
 	struct tqueuehead tqueue;
-	TOID(struct slisthead) slist;
+	struct slisthead slist;
 };
 
 const int expectedResTQ[] = { 111, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0,
@@ -161,7 +161,7 @@ init_tqueue(PMEMobjpool *pop, struct tqueuehead *head)
  * init_slist -- initialize SLIST
  */
 static void
-init_slist(PMEMobjpool *pop, TOID(struct slisthead) head)
+init_slist(PMEMobjpool *pop, struct slisthead *head)
 {
 	if (!POBJ_SLIST_EMPTY(head))
 		return;
@@ -253,12 +253,7 @@ main(int argc, char *argv[])
 
 	TOID(struct base) base = POBJ_ROOT(pop, struct base);
 	struct tqueuehead *tqhead = &D_RW(base)->tqueue;
-	TOID(struct slisthead) slhead = D_RO(base)->slist;
-	TX_BEGIN(pop) {
-		slhead = TX_NEW(struct slisthead);
-	} TX_ONABORT {
-		abort();
-	} TX_END
+	struct slisthead *slhead = &D_RW(base)->slist;
 
 	init_tqueue(pop, tqhead);
 	init_slist(pop, slhead);

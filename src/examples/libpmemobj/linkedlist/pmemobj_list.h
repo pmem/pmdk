@@ -91,21 +91,21 @@ struct {\
 /*
  * Singly-linked List access methods.
  */
-#define POBJ_SLIST_EMPTY(head)	(TOID_IS_NULL(D_RO(head)->pe_first))
-#define POBJ_SLIST_FIRST(head)	(D_RO(head)->pe_first)
+#define POBJ_SLIST_EMPTY(head)	(TOID_IS_NULL((head)->pe_first))
+#define POBJ_SLIST_FIRST(head)	((head)->pe_first)
 #define POBJ_SLIST_NEXT(elm, field)	(D_RO(elm)->field.pe_next)
 
 /*
  * Singly-linked List functions.
  */
 #define POBJ_SLIST_INIT(head) do {\
-	TX_ADD_FIELD(head, pe_first);\
-	TOID_ASSIGN(D_RW(head)->pe_first, OID_NULL);\
+	TX_ADD_DIRECT(&(head)->pe_first);\
+	TOID_ASSIGN((head)->pe_first, OID_NULL);\
 } while (0)
 
 #define POBJ_SLIST_INSERT_HEAD(head, elm, field) do {\
-	D_RW(elm)->field.pe_next = D_RO(head)->pe_first;\
-	TX_SET(head, pe_first, elm);\
+	D_RW(elm)->field.pe_next = (head)->pe_first;\
+	TX_SET_DIRECT(head, pe_first, elm);\
 } while (0)
 
 #define POBJ_SLIST_INSERT_AFTER(slistelm, elm, field) do {\
@@ -115,16 +115,15 @@ struct {\
 } while (0)
 
 #define POBJ_SLIST_REMOVE_HEAD(head, field) do {\
-		TX_ADD(head);\
-		D_RW(head)->pe_first =\
-			D_RO(D_RO(head)->pe_first)->field.pe_next;\
+	TX_ADD_DIRECT(&(head)->pe_first);\
+	(head)->pe_first = D_RO((head)->pe_first)->field.pe_next;\
 } while (0)
 
 #define POBJ_SLIST_REMOVE(head, elm, field) do {\
-	if (TOID_EQUALS(D_RO(head)->pe_first, elm)) {\
+	if (TOID_EQUALS((head)->pe_first, elm)) {\
 		POBJ_SLIST_REMOVE_HEAD(head, field);\
 	} else {\
-		typeof(elm) curelm = D_RO(head)->pe_first;\
+		typeof(elm) curelm = (head)->pe_first;\
 		while (!TOID_EQUALS(D_RO(curelm)->field.pe_next, elm))\
 			curelm = D_RO(curelm)->field.pe_next;\
 		TX_ADD(curelm);\
