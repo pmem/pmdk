@@ -196,7 +196,7 @@ rpmemd_db_pool_create(struct rpmemd_db *db, const char *pool_desc,
 	}
 
 	ret = util_pool_create_uuids(&set, path,
-					pool_size, RPMEM_MIN_POOL,
+					0, pool_size,
 					attr->signature,
 					attr->major,
 					attr->compat_features,
@@ -264,7 +264,7 @@ rpmemd_db_pool_open(struct rpmemd_db *db, const char *pool_desc,
 		goto err_free_prp;
 	}
 
-	ret = util_pool_open_remote(&set, path, 0, RPMEM_MIN_POOL,
+	ret = util_pool_open_remote(&set, path, 0, pool_size,
 					attr->signature,
 					&attr->major,
 					&attr->compat_features,
