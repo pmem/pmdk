@@ -46,4 +46,6 @@ setup
 
 expect_normal_exit ./ex_linkedlist$EXESUFFIX $DIR/testfile
 
+check
+
 pass
