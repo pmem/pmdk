@@ -204,6 +204,11 @@ pmempool_rm_func(char *appname, int argc, char *argv[])
 
 	out_set_vlevel(vlevel);
 
+	if (optind == argc) {
+		print_usage(appname);
+		return -1;
+	}
+
 	for (int i = optind; i < argc; i++) {
 		char *file = argv[i];
 		/* check if file exists and we can read it */
