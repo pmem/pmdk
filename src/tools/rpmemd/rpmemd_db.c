@@ -205,7 +205,8 @@ rpmemd_db_pool_create(struct rpmemd_db *db, const char *pool_desc,
 					attr->poolset_uuid,
 					attr->uuid,
 					attr->prev_uuid,
-					attr->next_uuid);
+					attr->next_uuid,
+					attr->user_flags);
 	if (ret) {
 		RPMEMD_LOG(ERR, "!cannot create pool set -- '%s'", path);
 		goto err_free_path;
@@ -273,7 +274,8 @@ rpmemd_db_pool_open(struct rpmemd_db *db, const char *pool_desc,
 					attr->poolset_uuid,
 					attr->uuid,
 					attr->prev_uuid,
-					attr->next_uuid);
+					attr->next_uuid,
+					attr->user_flags);
 	if (ret) {
 		RPMEMD_LOG(ERR, "!cannot open pool set -- '%s'", path);
 		goto err_free_path;
