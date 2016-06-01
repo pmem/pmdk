@@ -498,6 +498,13 @@ list_insert_new(PMEMobjpool *pop,
 
 	int ret;
 
+	if (before != POBJ_LIST_DEST_HEAD &&
+		before != POBJ_LIST_DEST_TAIL) {
+		ERR("invalid value of before flag");
+		errno = EINVAL;
+		return -1;
+	}
+
 	struct lane_section *lane_section;
 
 #ifdef DEBUG
@@ -650,6 +657,13 @@ list_insert(PMEMobjpool *pop,
 	ASSERTne(head, NULL);
 
 	int ret;
+
+	if (before != POBJ_LIST_DEST_HEAD &&
+		before != POBJ_LIST_DEST_TAIL) {
+		ERR("invalid value of before flag");
+		errno = EINVAL;
+		return -1;
+	}
 
 	struct lane_section *lane_section;
 
@@ -906,6 +920,13 @@ list_move(PMEMobjpool *pop,
 	ASSERTne(head_new, NULL);
 
 	int ret;
+
+	if (before != POBJ_LIST_DEST_HEAD &&
+		before != POBJ_LIST_DEST_TAIL) {
+		ERR("invalid value of before flag");
+		errno = EINVAL;
+		return -1;
+	}
 
 	struct lane_section *lane_section;
 
