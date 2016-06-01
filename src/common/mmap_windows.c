@@ -279,7 +279,7 @@ msync(void *addr, size_t len, int flags)
 		if (pMappingTracker->BaseAddress <= (PVOID *)addr &&
 		    pMappingTracker->EndAddress >= (PVOID *)addr + len) {
 
-			if (FlushFileBuffers(pMappingTracker->FileHandle) == 0)
+			if (FlushFileBuffers(pMappingTracker->FileHandle) != 0)
 				retval = 0;
 
 			break;
