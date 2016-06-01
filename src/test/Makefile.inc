@@ -52,12 +52,14 @@ EX_LIBPMEMOBJ=$(EXAMPLES_DIR)/libpmemobj
 UT = ../unittest/libut.a
 LIBS += $(UT)
 
-ifneq ($(USE_LIBUNWIND),)
-LIBS += -ldl
-ifeq ($(call check_package, libunwind), y)
-LIBS += $(shell $(PKG_CONFIG) --libs libunwind)
+ifeq ($(USE_LIBUNWIND),1)
+LIBS += -ldl -lunwind
 else
-LIBS += -lunwind
+ifneq ($(USE_LIBUNWIND),0)
+UNWIND := $(call check_package, libunwind)
+ifeq ($(UNWIND),y)
+LIBS += -ldl $(shell $(PKG_CONFIG) --libs libunwind)
+endif
 endif
 endif
 

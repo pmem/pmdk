@@ -62,13 +62,15 @@ ifeq ($(call check_flag, -Wmissing-variable-declarations), y)
 CFLAGS += -Wmissing-variable-declarations
 endif
 
-ifneq ($(USE_LIBUNWIND),)
-
-ifeq ($(call check_package, libunwind), y)
-CFLAGS += $(shell $(PKG_CONFIG) --cflags libunwind)
-endif
-
+ifeq ($(USE_LIBUNWIND),1)
 CFLAGS += -DUSE_LIBUNWIND
+else
+ifneq ($(USE_LIBUNWIND),0)
+UNWIND := $(call check_package, libunwind)
+ifeq ($(UNWIND),y)
+CFLAGS += $(shell $(PKG_CONFIG) --cflags libunwind) -DUSE_LIBUNWIND
+endif
+endif
 endif
 
 CFLAGS += $(EXTRA_CFLAGS)
