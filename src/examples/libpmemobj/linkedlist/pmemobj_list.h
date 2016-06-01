@@ -104,15 +104,15 @@ struct {\
 } while (0)
 
 #define POBJ_SLIST_INSERT_HEAD(head, elm, field) do {\
-	__typeof__(D_RW(elm)) elm_ptr = D_RW(elm);\
+	TOID_TYPEOF(elm) *elm_ptr = D_RW(elm);\
 	TX_ADD_DIRECT(&elm_ptr->field.pe_next);\
 	elm_ptr->field.pe_next = (head)->pe_first;\
 	TX_SET_DIRECT(head, pe_first, elm);\
 } while (0)
 
 #define POBJ_SLIST_INSERT_AFTER(slistelm, elm, field) do {\
-	__typeof__(D_RW(slistelm)) slistelm_ptr = D_RW(slistelm);\
-	__typeof__(D_RW(elm)) elm_ptr = D_RW(elm);\
+	TOID_TYPEOF(slistelm) *slistelm_ptr = D_RW(slistelm);\
+	TOID_TYPEOF(elm) *elm_ptr = D_RW(elm);\
 	TX_ADD_DIRECT(&elm_ptr->field.pe_next);\
 	elm_ptr->field.pe_next = slistelm_ptr->field.pe_next;\
 	TX_ADD_DIRECT(&slistelm_ptr->field.pe_next);\
@@ -128,8 +128,7 @@ struct {\
 	if (TOID_EQUALS((head)->pe_first, elm)) {\
 		POBJ_SLIST_REMOVE_HEAD(head, field);\
 	} else {\
-		__typeof__(D_RW((head)->pe_first)) curelm_ptr = \
-				D_RW((head)->pe_first);\
+		TOID_TYPEOF(elm) *curelm_ptr = D_RW((head)->pe_first);\
 		while (!TOID_EQUALS(curelm_ptr->field.pe_next, elm))\
 			curelm_ptr = D_RW(curelm_ptr->field.pe_next);\
 		TX_ADD_DIRECT(&curelm_ptr->field.pe_next);\
@@ -176,7 +175,7 @@ struct name {\
  * Tail-queue List internal methods.
  */
 #define _POBJ_SWAP_PTR(elm, field) do {\
-	__typeof__(D_RW(elm)) elm_ptr = D_RW(elm);\
+	TOID_TYPEOF(elm) *elm_ptr = D_RW(elm);\
 	TX_ADD_DIRECT(&elm_ptr->field);\
 	__typeof__(elm) temp = elm_ptr->field.pe_prev;\
 	elm_ptr->field.pe_prev = elm_ptr->field.pe_next;\
@@ -211,7 +210,7 @@ struct name {\
 } while (0)
 
 #define POBJ_TAILQ_INSERT_HEAD(head, elm, field) do {\
-	__typeof__(D_RW(elm)) elm_ptr = D_RW(elm);\
+	TOID_TYPEOF(elm) *elm_ptr = D_RW(elm);\
 	if (TOID_IS_NULL((head)->pe_first)) {\
 		TX_ADD_DIRECT(&elm_ptr->field);\
 		elm_ptr->field.pe_prev = (head)->pe_first;\
@@ -220,7 +219,7 @@ struct name {\
 		(head)->pe_first = elm;\
 		(head)->pe_last = elm;\
 	} else {\
-		__typeof__(elm_ptr) first = D_RW((head)->pe_first);\
+		TOID_TYPEOF(elm) *first = D_RW((head)->pe_first);\
 		TX_ADD_DIRECT(&elm_ptr->field);\
 		elm_ptr->field.pe_next = (head)->pe_first;\
 		elm_ptr->field.pe_prev = first->field.pe_prev;\
@@ -231,7 +230,7 @@ struct name {\
 } while (0)
 
 #define POBJ_TAILQ_INSERT_TAIL(head, elm, field) do {\
-	__typeof__(D_RW(elm)) elm_ptr = D_RW(elm);\
+	TOID_TYPEOF(elm) *elm_ptr = D_RW(elm);\
 	if (TOID_IS_NULL((head)->pe_last)) {\
 		TX_ADD_DIRECT(&elm_ptr->field);\
 		elm_ptr->field.pe_prev = (head)->pe_last;\
@@ -240,7 +239,7 @@ struct name {\
 		(head)->pe_first = elm;\
 		(head)->pe_last = elm;\
 	} else {\
-		__typeof__(elm_ptr) last = D_RW((head)->pe_last);\
+		TOID_TYPEOF(elm) *last = D_RW((head)->pe_last);\
 		TX_ADD_DIRECT(&elm_ptr->field);\
 		elm_ptr->field.pe_prev = (head)->pe_last;\
 		elm_ptr->field.pe_next = last->field.pe_next;\
@@ -251,15 +250,15 @@ struct name {\
 } while (0)
 
 #define POBJ_TAILQ_INSERT_AFTER(listelm, elm, field) do {\
-	__typeof__(D_RW(elm)) elm_ptr = D_RW(elm);\
-	__typeof__(D_RW(listelm)) listelm_ptr = D_RW(listelm);\
+	TOID_TYPEOF(elm) *elm_ptr = D_RW(elm);\
+	TOID_TYPEOF(listelm) *listelm_ptr = D_RW(listelm);\
 	TX_ADD_DIRECT(&elm_ptr->field);\
 	elm_ptr->field.pe_prev = listelm;\
 	elm_ptr->field.pe_next = listelm_ptr->field.pe_next;\
 	if (TOID_IS_NULL(listelm_ptr->field.pe_next)) {\
 		TX_SET_DIRECT(head, pe_last, elm);\
 	} else {\
-		__typeof__(elm_ptr) next = D_RW(listelm_ptr->field.pe_next);\
+		TOID_TYPEOF(elm) *next = D_RW(listelm_ptr->field.pe_next);\
 		TX_ADD_DIRECT(&next->field.pe_prev);\
 		next->field.pe_prev = elm;\
 	}\
@@ -268,15 +267,15 @@ struct name {\
 } while (0)
 
 #define POBJ_TAILQ_INSERT_BEFORE(listelm, elm, field) do {\
-	__typeof__(D_RW(elm)) elm_ptr = D_RW(elm);\
-	__typeof__(D_RW(listelm)) listelm_ptr = D_RW(listelm);\
+	TOID_TYPEOF(elm) *elm_ptr = D_RW(elm);\
+	TOID_TYPEOF(listelm) *listelm_ptr = D_RW(listelm);\
 	TX_ADD_DIRECT(&elm_ptr->field);\
 	elm_ptr->field.pe_next = listelm;\
 	elm_ptr->field.pe_prev = listelm_ptr->field.pe_prev;\
 	if (TOID_IS_NULL(listelm_ptr->field.pe_prev)) {\
 		TX_SET_DIRECT(head, pe_first, elm);\
 	} else {\
-		__typeof__(elm_ptr) prev = D_RW(listelm_ptr->field.pe_prev);\
+		TOID_TYPEOF(elm) *prev = D_RW(listelm_ptr->field.pe_prev);\
 		TX_ADD_DIRECT(&prev->field.pe_next);\
 		prev->field.pe_next = elm; \
 	}\
@@ -285,7 +284,7 @@ struct name {\
 } while (0)
 
 #define POBJ_TAILQ_REMOVE(head, elm, field) do {\
-	__typeof__(D_RW(elm)) elm_ptr = D_RW(elm);\
+	TOID_TYPEOF(elm) *elm_ptr = D_RW(elm);\
 	if (TOID_IS_NULL(elm_ptr->field.pe_prev) &&\
 		TOID_IS_NULL(elm_ptr->field.pe_next)) {\
 		TX_ADD_DIRECT(head);\
@@ -294,25 +293,21 @@ struct name {\
 	} else {\
 		if (TOID_IS_NULL(elm_ptr->field.pe_prev)) {\
 			TX_SET_DIRECT(head, pe_first, elm_ptr->field.pe_next);\
-			__typeof__(elm_ptr) next = \
-				D_RW(elm_ptr->field.pe_next);\
+			TOID_TYPEOF(elm) *next = D_RW(elm_ptr->field.pe_next);\
 			TX_ADD_DIRECT(&next->field.pe_prev);\
 			next->field.pe_prev = elm_ptr->field.pe_prev;\
 		} else {\
-			__typeof__(elm_ptr) prev = \
-				D_RW(elm_ptr->field.pe_prev);\
+			TOID_TYPEOF(elm) *prev = D_RW(elm_ptr->field.pe_prev);\
 			TX_ADD_DIRECT(&prev->field.pe_next);\
 			prev->field.pe_next = elm_ptr->field.pe_next;\
 		}\
 		if (TOID_IS_NULL(elm_ptr->field.pe_next)) {\
 			TX_SET_DIRECT(head, pe_last, elm_ptr->field.pe_prev);\
-			__typeof__(elm_ptr) prev = \
-				D_RW(elm_ptr->field.pe_prev);\
+			TOID_TYPEOF(elm) *prev = D_RW(elm_ptr->field.pe_prev);\
 			TX_ADD_DIRECT(&prev->field.pe_next);\
 			prev->field.pe_next = elm_ptr->field.pe_next;\
 		} else {\
-			__typeof__(elm_ptr) next = \
-				D_RW(elm_ptr->field.pe_next);\
+			TOID_TYPEOF(elm) *next = D_RW(elm_ptr->field.pe_next);\
 			TX_ADD_DIRECT(&next->field.pe_prev);\
 			next->field.pe_prev = elm_ptr->field.pe_prev;\
 		}\
@@ -329,28 +324,27 @@ struct name {\
  * including that elm is the last one
  */
 #define POBJ_TAILQ_MOVE_ELEMENT_HEAD(head, elm, field) do {\
-	__typeof__(D_RW(elm)) elm_ptr = D_RW(elm);\
+	TOID_TYPEOF(elm) *elm_ptr = D_RW(elm);\
 	if (TOID_EQUALS((head)->pe_last, elm) &&\
 		TOID_EQUALS(D_RO((head)->pe_first)->field.pe_next, elm)) {\
 		_POBJ_SWAP_PTR(elm, field);\
 		_POBJ_SWAP_PTR((head)->pe_first, field);\
 		POBJ_TAILQ_SWAP_HEAD_TAIL(head, field);\
 	} else {\
-		__typeof__(elm_ptr) prev = D_RW(elm_ptr->field.pe_prev);\
+		TOID_TYPEOF(elm) *prev = D_RW(elm_ptr->field.pe_prev);\
 		TX_ADD_DIRECT(&prev->field.pe_next);\
 		prev->field.pe_next = elm_ptr->field.pe_next;\
 		if (TOID_EQUALS((head)->pe_last, elm)) {\
 			TX_SET_DIRECT(head, pe_last, elm_ptr->field.pe_prev);\
 		} else {\
-			__typeof__(elm_ptr) next = \
-				D_RW(elm_ptr->field.pe_next);\
+			TOID_TYPEOF(elm) *next = D_RW(elm_ptr->field.pe_next);\
 			TX_ADD_DIRECT(&next->field.pe_prev);\
 			next->field.pe_prev = elm_ptr->field.pe_prev;\
 		}\
 		TX_ADD_DIRECT(&elm_ptr->field);\
 		elm_ptr->field.pe_prev = D_RO((head)->pe_first)->field.pe_prev;\
 		elm_ptr->field.pe_next = (head)->pe_first;\
-		__typeof__(elm_ptr) first = D_RW((head)->pe_first);\
+		TOID_TYPEOF(elm) *first = D_RW((head)->pe_first);\
 		TX_ADD_DIRECT(&first->field.pe_prev);\
 		first->field.pe_prev = elm;\
 		TX_SET_DIRECT(head, pe_first, elm);\
@@ -358,21 +352,20 @@ struct name {\
 } while (0)
 
 #define POBJ_TAILQ_MOVE_ELEMENT_TAIL(head, elm, field) do {\
-	__typeof__(D_RW(elm)) elm_ptr = D_RW(elm);\
+	TOID_TYPEOF(elm) *elm_ptr = D_RW(elm);\
 	if (TOID_EQUALS((head)->pe_first, elm) &&\
 		TOID_EQUALS(D_RO((head)->pe_last)->field.pe_prev, elm)) {\
 		_POBJ_SWAP_PTR(elm, field);\
 		_POBJ_SWAP_PTR((head)->pe_last, field);\
 		POBJ_TAILQ_SWAP_HEAD_TAIL(head, field);\
 	} else {\
-		__typeof__(elm_ptr) next = D_RW(elm_ptr->field.pe_next);\
+		TOID_TYPEOF(elm) *next = D_RW(elm_ptr->field.pe_next);\
 		TX_ADD_DIRECT(&next->field.pe_prev);\
 		next->field.pe_prev = elm_ptr->field.pe_prev;\
 		if (TOID_EQUALS((head)->pe_first, elm)) {\
 			TX_SET_DIRECT(head, pe_first, elm_ptr->field.pe_next);\
 		} else {	\
-			__typeof__(elm_ptr) prev = \
-				D_RW(elm_ptr->field.pe_prev);\
+			TOID_TYPEOF(elm) *prev = D_RW(elm_ptr->field.pe_prev);\
 			TX_ADD_DIRECT(&prev->field.pe_next);\
 			prev->field.pe_next = elm_ptr->field.pe_next;\
 		}\
