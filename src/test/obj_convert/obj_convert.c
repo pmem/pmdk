@@ -262,6 +262,9 @@ main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_convert");
 
+	/* root doesn't count */
+	UT_COMPILE_ERROR_ON(POBJ_LAYOUT_TYPES_NUM(convert) != 2);
+
 	if (argc != 4)
 		UT_FATAL("usage: %s file [c|va|vc] scenario", argv[0]);
 

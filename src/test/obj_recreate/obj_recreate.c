@@ -58,6 +58,9 @@ main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_recreate");
 
+	/* root doesn't count */
+	UT_COMPILE_ERROR_ON(POBJ_LAYOUT_TYPES_NUM(recreate) != 1);
+
 	if (argc < 2)
 		UT_FATAL("usage: %s file-name [trunc]", argv[0]);
 

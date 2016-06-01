@@ -220,6 +220,9 @@ main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_realloc");
 
+	/* root doesn't count */
+	UT_COMPILE_ERROR_ON(POBJ_LAYOUT_TYPES_NUM(realloc) != 1);
+
 	if (argc < 2)
 		UT_FATAL("usage: %s file [check_integrity]", argv[0]);
 

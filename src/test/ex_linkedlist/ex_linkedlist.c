@@ -231,6 +231,9 @@ main(int argc, char *argv[])
 
 	START(argc, argv, "ex_linkedlist");
 
+	/* root doesn't count */
+	UT_COMPILE_ERROR_ON(POBJ_LAYOUT_TYPES_NUM(list) != 4);
+
 	if (argc != 2) {
 		UT_FATAL("usage: %s file-name", argv[0]);
 	}
