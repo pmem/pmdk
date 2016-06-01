@@ -82,6 +82,20 @@ const int expectedResTQ[] = { 111, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0,
 const int expectedResSL[] = { 111, 8, 222, 6, 5, 4, 3, 2, 1, 0, 333 };
 
 /*
+ * dump_tq -- dumps list on standard output
+ */
+static void
+dump_tq(struct tqueuehead *head, const char *str)
+{
+	TOID(struct tqnode) var;
+
+	UT_OUT("%s start", str);
+	POBJ_TAILQ_FOREACH(var, head, tnd)
+		UT_OUT("%d", D_RW(var)->data);
+	UT_OUT("%s end", str);
+}
+
+/*
  * init_tqueue -- initialize tail queue
  */
 static void
@@ -97,6 +111,7 @@ init_tqueue(PMEMobjpool *pop, struct tqueuehead *head)
 	int i = 0;
 	TX_BEGIN(pop) {
 		POBJ_TAILQ_INIT(head);
+		dump_tq(head, "after init");
 		for (i = 0; i < ELEMENT_NO; ++i) {
 			node = TX_NEW(struct tqnode);
 			D_RW(node)->data = i;
@@ -109,12 +124,12 @@ init_tqueue(PMEMobjpool *pop, struct tqueuehead *head)
 			D_RW(node)->data = i;
 			POBJ_TAILQ_INSERT_TAIL(head, node, tnd);
 		}
-		UT_OUT("POBJ_TAILQ_INSERT_HEAD, "
-				"POBJ_TAILQ_INSERT_TAIL");
+		dump_tq(head, "after insert[head|tail]");
 
 		node = TX_NEW(struct tqnode);
 		D_RW(node)->data = 666;
 		POBJ_TAILQ_INSERT_AFTER(middleNode, node, tnd);
+		dump_tq(head, "after insert_after1");
 
 		middleNode = POBJ_TAILQ_NEXT(middleNode, tnd);
 
@@ -122,39 +137,55 @@ init_tqueue(PMEMobjpool *pop, struct tqueuehead *head)
 		D_RW(node)->data = 888;
 		node888 = node;
 		POBJ_TAILQ_INSERT_BEFORE(middleNode, node, tnd);
+		dump_tq(head, "after insert_before1");
 		node = TX_NEW(struct tqnode);
 		D_RW(node)->data = 555;
 		POBJ_TAILQ_INSERT_BEFORE(middleNode, node, tnd);
+		dump_tq(head, "after insert_before2");
 
 		node = TX_NEW(struct tqnode);
 		D_RW(node)->data = 111;
 		tempNode = POBJ_TAILQ_FIRST(head);
 		POBJ_TAILQ_INSERT_BEFORE(tempNode, node, tnd);
+		dump_tq(head, "after insert_before3");
 		node = TX_NEW(struct tqnode);
 		D_RW(node)->data = 222;
 		tempNode = POBJ_TAILQ_LAST(head);
 		POBJ_TAILQ_INSERT_AFTER(tempNode, node, tnd);
-
-		UT_OUT("POBJ_TAILQ_INSERT_BEFORE, "
-				"POBJ_TAILQ_INSERT_AFTER");
+		dump_tq(head, "after insert_after2");
 
 		tempNode = middleNode;
 		middleNode = POBJ_TAILQ_PREV(tempNode, tnd);
 		POBJ_TAILQ_MOVE_ELEMENT_TAIL(head, middleNode, tnd);
+		dump_tq(head, "after move_element_tail");
 		POBJ_TAILQ_MOVE_ELEMENT_HEAD(head, tempNode, tnd);
-
-		UT_OUT("POBJ_TAILQ_MOVE_ELEMENT_HEAD, "
-				"POBJ_TAILQ_MOVE_ELEMENT_TAIL");
+		dump_tq(head, "after move_element_head");
 
 		tempNode = POBJ_TAILQ_FIRST(head);
 		POBJ_TAILQ_REMOVE(head, tempNode, tnd);
+		dump_tq(head, "after remove1");
 		tempNode = POBJ_TAILQ_LAST(head);
 		POBJ_TAILQ_REMOVE(head, tempNode, tnd);
+		dump_tq(head, "after remove2");
 		POBJ_TAILQ_REMOVE(head, node888, tnd);
-		UT_OUT("POBJ_TAILQ_REMOVE");
+		dump_tq(head, "after remove3");
 	} TX_ONABORT {
 		abort();
 	} TX_END
+}
+
+/*
+ * dump_sl -- dumps list on standard output
+ */
+static void
+dump_sl(struct slisthead *head, const char *str)
+{
+	TOID(struct snode) var;
+
+	UT_OUT("%s start", str);
+	POBJ_SLIST_FOREACH(var, head, snd)
+		UT_OUT("%d", D_RW(var)->data);
+	UT_OUT("%s end", str);
 }
 
 /*
@@ -171,32 +202,33 @@ init_slist(PMEMobjpool *pop, struct slisthead *head)
 	int i = 0;
 	TX_BEGIN(pop) {
 		POBJ_SLIST_INIT(head);
+		dump_sl(head, "after init");
+
 		for (i = 0; i < ELEMENT_NO; ++i) {
 			node = TX_NEW(struct snode);
 			D_RW(node)->data = i;
 			POBJ_SLIST_INSERT_HEAD(head, node, snd);
 		}
-		UT_OUT("POBJ_SLIST_INSERT_HEAD");
+		dump_sl(head, "after insert_head");
 
 		tempNode = POBJ_SLIST_FIRST(head);
 		node = TX_NEW(struct snode);
 		D_RW(node)->data = 111;
 		POBJ_SLIST_INSERT_AFTER(tempNode, node, snd);
+		dump_sl(head, "after insert_after1");
 
 		tempNode = POBJ_SLIST_NEXT(node, snd);
 		node = TX_NEW(struct snode);
 		D_RW(node)->data = 222;
 		POBJ_SLIST_INSERT_AFTER(tempNode, node, snd);
-
-		UT_OUT("POBJ_SLIST_INSERT_AFTER");
+		dump_sl(head, "after insert_after2");
 
 		tempNode = POBJ_SLIST_NEXT(node, snd);
 		POBJ_SLIST_REMOVE_FREE(head, tempNode, snd);
-		UT_OUT("POBJ_SLIST_REMOVE_FREE "
-				"Remove intermediate element");
+		dump_sl(head, "after remove_free1");
 
 		POBJ_SLIST_REMOVE_HEAD(head, snd);
-		UT_OUT("POBJ_SLIST_REMOVE_HEAD");
+		dump_sl(head, "after remove_head");
 
 		TOID(struct snode) element = POBJ_SLIST_FIRST(head);
 		while (!TOID_IS_NULL(D_RO(element)->snd.pe_next)) {
@@ -205,17 +237,17 @@ init_slist(PMEMobjpool *pop, struct slisthead *head)
 		node = TX_NEW(struct snode);
 		D_RW(node)->data = 333;
 		POBJ_SLIST_INSERT_AFTER(element, node, snd);
+		dump_sl(head, "after insert_after3");
 
 		element = node;
 		node = TX_NEW(struct snode);
 		D_RW(node)->data = 123;
 		POBJ_SLIST_INSERT_AFTER(element, node, snd);
+		dump_sl(head, "after insert_after4");
 
 		tempNode = POBJ_SLIST_NEXT(node, snd);
 		POBJ_SLIST_REMOVE_FREE(head, node, snd);
-		UT_OUT("POBJ_SLIST_INSERT_AFTER, "
-			"POBJ_SLIST_REMOVE_FREE "
-			"Insert to tail and remove from tail");
+		dump_sl(head, "after remove_free2");
 
 	} TX_ONABORT {
 		abort();
