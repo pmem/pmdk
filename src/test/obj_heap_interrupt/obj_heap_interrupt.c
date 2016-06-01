@@ -96,6 +96,8 @@ main(int argc, char *argv[])
 {
 	START(argc, argv, "heap_interrupt");
 
+	UT_COMPILE_ERROR_ON(POBJ_LAYOUT_TYPES_NUM(heap_interrupt) != 0);
+
 	if (argc != 4)
 		UT_FATAL("usage: %s file [cmd: c/o] [scenario]", argv[0]);
 

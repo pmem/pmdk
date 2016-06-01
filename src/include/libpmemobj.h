@@ -275,12 +275,12 @@ typedef uint8_t _pobj_layout_##name##_ref[__COUNTER__ + 1]
  */
 #define POBJ_LAYOUT_END(name)\
 typedef char _pobj_layout_##name##_cnt[__COUNTER__ + 1 -\
-1 - _POBJ_LAYOUT_REF(name)];
+_POBJ_LAYOUT_REF(name)];
 
 /*
  * Number of types declared inside layout without the root object
  */
-#define POBJ_LAYOUT_TYPES_NUM(name) (sizeof(_pobj_layout_##name##_cnt))
+#define POBJ_LAYOUT_TYPES_NUM(name) (sizeof(_pobj_layout_##name##_cnt) - 1)
 
 /*
  * Declaration of typed OID inside layout declaration

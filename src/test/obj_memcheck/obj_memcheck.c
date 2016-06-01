@@ -153,6 +153,9 @@ main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_memcheck");
 
+	/* root doesn't count */
+	UT_COMPILE_ERROR_ON(POBJ_LAYOUT_TYPES_NUM(mc) != 1);
+
 	if (argc < 2)
 		usage(argv[0]);
 

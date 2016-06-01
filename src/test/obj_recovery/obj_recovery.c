@@ -56,6 +56,9 @@ main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_recovery");
 
+	/* root doesn't count */
+	UT_COMPILE_ERROR_ON(POBJ_LAYOUT_TYPES_NUM(recovery) != 1);
+
 	if (argc != 5)
 		UT_FATAL("usage: %s [file] [lock: y/n] "
 			"[cmd: c/o] [type: n/f/s]",

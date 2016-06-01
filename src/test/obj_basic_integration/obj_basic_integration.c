@@ -533,6 +533,9 @@ main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_basic_integration");
 
+	/* root doesn't count */
+	UT_COMPILE_ERROR_ON(POBJ_LAYOUT_TYPES_NUM(basic) != 2);
+
 	if (argc != 2)
 		UT_FATAL("usage: %s file-name", argv[0]);
 

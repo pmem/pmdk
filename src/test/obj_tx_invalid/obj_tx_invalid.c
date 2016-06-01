@@ -63,6 +63,9 @@ main(int argc, char *argv[])
 
 	START(argc, argv, "obj_tx_invalid %s", argv[2]);
 
+	/* root doesn't count */
+	UT_COMPILE_ERROR_ON(POBJ_LAYOUT_TYPES_NUM(tx_invalid) != 1);
+
 	PMEMobjpool *pop;
 	const char *path = argv[1];
 
