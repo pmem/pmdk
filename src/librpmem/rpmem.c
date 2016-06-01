@@ -126,11 +126,11 @@ rpmem_persist(RPMEMpool *rpp, size_t offset, size_t length, unsigned lane)
  *
  * rpp           -- remote pool handle
  * buff          -- output buffer
- * length        -- length of read operation
  * offset        -- offset in pool
+ * length        -- length of read operation
  */
 int
-rpmem_read(RPMEMpool *rpp, void *buff, size_t length, size_t offset)
+rpmem_read(RPMEMpool *rpp, void *buff, size_t offset, size_t length)
 {
 	/* XXX */
 	return -1;
