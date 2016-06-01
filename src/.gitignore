@@ -14,6 +14,7 @@ nondebug/
 *.opendb
 *.log
 *.suo
+*.vcxproj.user
 .vs/
 x64/
 Generated files/
