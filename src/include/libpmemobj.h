@@ -536,7 +536,7 @@ POBJ_NEXT_TYPE_NUM(PMEMoid o)
 
 #define POBJ_FIRST(pop, t) ((TOID(t))POBJ_FIRST_TYPE_NUM(pop, TOID_TYPE_NUM(t)))
 
-#define POBJ_NEXT(o) ((__typeof__(o))POBJ_NEXT_TYPE_NUM(o.oid))
+#define POBJ_NEXT(o) ((__typeof__(o))POBJ_NEXT_TYPE_NUM((o).oid))
 
 
 #define POBJ_NEW(pop, o, t, constr, arg)\
@@ -616,16 +616,16 @@ for (_POBJ_DEBUG_NOTICE_IN_TX_FOR("POBJ_FOREACH_SAFE")\
  * Iterates through every object of the specified type.
  */
 #define POBJ_FOREACH_TYPE(pop, var)\
-POBJ_FOREACH(pop, var.oid)\
-if (pmemobj_type_num(var.oid) == TOID_TYPE_NUM_OF(var))
+POBJ_FOREACH(pop, (var).oid)\
+if (pmemobj_type_num((var).oid) == TOID_TYPE_NUM_OF(var))
 
 /*
  * Safe variant of POBJ_FOREACH_TYPE in which pmemobj_free on var
  * is allowed.
  */
 #define POBJ_FOREACH_SAFE_TYPE(pop, var, nvar)\
-POBJ_FOREACH_SAFE(pop, var.oid, nvar.oid)\
-if (pmemobj_type_num(var.oid) == TOID_TYPE_NUM_OF(var))
+POBJ_FOREACH_SAFE(pop, (var).oid, (nvar).oid)\
+if (pmemobj_type_num((var).oid) == TOID_TYPE_NUM_OF(var))
 
 /*
  * Non-transactional persistent atomic circular doubly-linked list
@@ -1084,7 +1084,7 @@ pmemobj_tx_free((o).oid)
 
 #define TX_SET_DIRECT(p, field, value) (\
 	TX_ADD_FIELD_DIRECT(p, field),\
-	p->field = value)
+	(p)->field = value)
 
 static inline void *
 TX_MEMCPY(void *dest, const void *src, size_t num)
