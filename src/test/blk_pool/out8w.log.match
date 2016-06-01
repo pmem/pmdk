@@ -1,4 +1,4 @@
-blk_pool\TEST8w: START: blk_pool
- C:\nvml\src\x64\debug\blk_pool.exe c \temp\test_blk_pool8w\testfile 4096 0 0640
-\temp\test_blk_pool8w\testfile: file size 17825792 usable blocks 4082 mode 0600
-blk_pool\TEST8w: Done
+blk_pool$(nW)TEST8w: START: blk_pool
+ $(nW)blk_pool$(nW) c $(nW)testfile 4096 0 0640
+$(nW)testfile: file size 17825792 usable blocks 4082 mode 0600
+blk_pool$(nW)TEST8w: Done
