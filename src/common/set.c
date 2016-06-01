@@ -1045,13 +1045,13 @@ static int
 util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 	const char *sig, uint32_t major, uint32_t compat, uint32_t incompat,
 	uint32_t ro_compat, const unsigned char *prev_repl_uuid,
-	const unsigned char *next_repl_uuid)
+	const unsigned char *next_repl_uuid, const unsigned char *arch_flags)
 {
 	LOG(3, "set %p repidx %u partidx %u sig %.8s major %u "
-		"compat %#x incompat %#x ro_comapt %#x "
-		"prev_repl_uuid %p next_repl_uuid %p",
+		"compat %#x incompat %#x ro_comapt %#x"
+		"prev_repl_uuid %p next_repl_uuid %p arch_flags %p",
 		set, repidx, partidx, sig, major, compat, incompat,
-		ro_compat, prev_repl_uuid, next_repl_uuid);
+		ro_compat, prev_repl_uuid, next_repl_uuid, arch_flags);
 
 	struct pool_replica *rep = set->replica[repidx];
 
@@ -1106,16 +1106,20 @@ util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 
 	hdrp->crtime = htole64((uint64_t)time(NULL));
 
-	if (util_get_arch_flags(&hdrp->arch_flags)) {
-		ERR("Reading architecture flags failed");
-		errno = EINVAL;
-		return -1;
+	if (arch_flags) {
+		memcpy(&hdrp->arch_flags, arch_flags,
+				sizeof(struct arch_flags));
+	} else {
+		if (util_get_arch_flags(&hdrp->arch_flags)) {
+			ERR("Reading architecture flags failed");
+			errno = EINVAL;
+			return -1;
+		}
+		hdrp->arch_flags.alignment_desc =
+			htole64(hdrp->arch_flags.alignment_desc);
+		hdrp->arch_flags.e_machine =
+			htole16(hdrp->arch_flags.e_machine);
 	}
-
-	hdrp->arch_flags.alignment_desc =
-		htole64(hdrp->arch_flags.alignment_desc);
-	hdrp->arch_flags.e_machine =
-		htole16(hdrp->arch_flags.e_machine);
 
 	util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum, 1);
 
@@ -1322,14 +1326,14 @@ static int
 util_replica_create(struct pool_set *set, unsigned repidx, int flags,
 	const char *sig, uint32_t major, uint32_t compat, uint32_t incompat,
 	uint32_t ro_compat, const unsigned char *prev_repl_uuid,
-	const unsigned char *next_repl_uuid)
+	const unsigned char *next_repl_uuid, const unsigned char *arch_flags)
 {
 	LOG(3, "set %p repidx %u flags %d sig %.8s major %u "
-		"compat %#x incompat %#x ro_comapt %#x "
-		"prev_repl_uuid %p next_repl_uuid %p",
+		"compat %#x incompat %#x ro_comapt %#x"
+		"prev_repl_uuid %p next_repl_uuid %p arch_flags %p",
 		set, repidx, flags, sig, major,
 		compat, incompat, ro_compat,
-		prev_repl_uuid, next_repl_uuid);
+		prev_repl_uuid, next_repl_uuid, arch_flags);
 
 	struct pool_replica *rep = set->replica[repidx];
 
@@ -1363,7 +1367,8 @@ util_replica_create(struct pool_set *set, unsigned repidx, int flags,
 	for (unsigned p = 0; p < rep->nparts; p++) {
 		if (util_header_create(set, repidx, p, sig, major,
 				compat, incompat, ro_compat,
-				prev_repl_uuid, next_repl_uuid) != 0) {
+				prev_repl_uuid, next_repl_uuid,
+				arch_flags) != 0) {
 			LOG(2, "header creation failed - part #%d", p);
 			goto err;
 		}
@@ -1518,15 +1523,17 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 	uint32_t major, uint32_t compat, uint32_t incompat, uint32_t ro_compat,
 	const unsigned char *poolset_uuid, const unsigned char *first_part_uuid,
 	const unsigned char *prev_repl_uuid,
-	const unsigned char *next_repl_uuid)
+	const unsigned char *next_repl_uuid,
+	const unsigned char *arch_flags)
 {
 	LOG(3, "setp %p path %s poolsize %zu minsize %zu "
 		"sig %.8s major %u compat %#x incompat %#x ro_comapt %#x "
-		"poolset_uuid %p first_part_uuid %p "
-		"prev_repl_uuid %p next_repl_uuid %p",
+		"poolset_uuid %p first_part_uuid %p"
+		"prev_repl_uuid %p next_repl_uuid %p arch_flags %p",
 		setp, path, poolsize, minsize,
 		sig, major, compat, incompat, ro_compat,
-		poolset_uuid, first_part_uuid, prev_repl_uuid, next_repl_uuid);
+		poolset_uuid, first_part_uuid, prev_repl_uuid, next_repl_uuid,
+		arch_flags);
 
 	int flags = MAP_SHARED;
 
@@ -1576,7 +1583,8 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 	if (set->nreplicas == 1 && prev_repl_uuid && next_repl_uuid) {
 		if (util_replica_create(set, 0, flags, sig,
 					major, compat, incompat, ro_compat,
-					prev_repl_uuid, next_repl_uuid) != 0) {
+					prev_repl_uuid, next_repl_uuid,
+					arch_flags) != 0) {
 			LOG(2, "replica creation failed");
 			goto err;
 		}
@@ -1585,7 +1593,7 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 			if (util_replica_create(set, r, flags, sig,
 						major, compat,
 						incompat, ro_compat,
-						NULL, NULL) != 0) {
+						NULL, NULL, NULL) != 0) {
 				LOG(2, "replica creation failed");
 				goto err;
 			}
@@ -1623,7 +1631,7 @@ util_pool_create(struct pool_set **setp, const char *path, size_t poolsize,
 
 	return util_pool_create_uuids(setp, path, poolsize, minsize, sig,
 					major, compat, incompat, ro_compat,
-					NULL, NULL, NULL, NULL);
+					NULL, NULL, NULL, NULL, NULL);
 }
 
 /*
@@ -1846,15 +1854,17 @@ util_pool_open_remote(struct pool_set **setp, const char *path, int rdonly,
 	size_t minsize, char *sig, uint32_t *major,
 	uint32_t *compat, uint32_t *incompat, uint32_t *ro_compat,
 	unsigned char *poolset_uuid, unsigned char *first_part_uuid,
-	unsigned char *prev_repl_uuid, unsigned char *next_repl_uuid)
+	unsigned char *prev_repl_uuid, unsigned char *next_repl_uuid,
+	unsigned char *arch_flags)
 {
 	LOG(3, "setp %p path %s rdonly %d minsize %zu "
 		"sig %p major %p compat %p incompat %p ro_comapt %p"
-		"poolset_uuid %p first_part_uuid %p "
-		"prev_repl_uuid %p next_repl_uuid %p",
+		"poolset_uuid %p first_part_uuid %p"
+		"prev_repl_uuid %p next_repl_uuid %p arch_flags %p",
 		setp, path, rdonly, minsize,
 		sig, major, compat, incompat, ro_compat,
-		poolset_uuid, first_part_uuid, prev_repl_uuid, next_repl_uuid);
+		poolset_uuid, first_part_uuid, prev_repl_uuid, next_repl_uuid,
+		arch_flags);
 
 	int flags = rdonly ? MAP_PRIVATE|MAP_NORESERVE : MAP_SHARED;
 
@@ -1899,6 +1909,7 @@ util_pool_open_remote(struct pool_set **setp, const char *path, int rdonly,
 	memcpy(first_part_uuid, hdr->uuid, POOL_HDR_UUID_LEN);
 	memcpy(prev_repl_uuid, hdr->prev_repl_uuid, POOL_HDR_UUID_LEN);
 	memcpy(next_repl_uuid, hdr->next_repl_uuid, POOL_HDR_UUID_LEN);
+	memcpy(arch_flags, &hdr->arch_flags, sizeof(struct arch_flags));
 
 	/* unmap all headers */
 	for (unsigned p = 0; p < rep->nparts; p++)
