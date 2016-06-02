@@ -41,7 +41,7 @@ DIRS = pminvaders pmemlog pmemblk string_store string_store_tx\
 	linkedlist
 
 ifeq ($(call cxx_ok), y)
-DIRS += cpp pman cpp_map
+DIRS += cpp pman cpp_map panaconda
 endif
 
 LIBS = -lpmemobj -lpmem -pthread -lm -pthread
