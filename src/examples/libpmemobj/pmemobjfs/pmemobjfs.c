@@ -36,7 +36,8 @@
 #include <stdio.h>
 #include <fuse.h>
 #include <stdlib.h>
-#include <libpmemobj.h>
+#include <libpmemobj/pool.h>
+#include <libpmemobj/tx.h>
 #include <libpmem.h>
 #include <string.h>
 #include <errno.h>

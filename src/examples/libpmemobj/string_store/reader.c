@@ -36,7 +36,7 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <libpmemobj.h>
+#include <libpmemobj/pool.h>
 
 #include "layout.h"
 

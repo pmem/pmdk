@@ -37,8 +37,6 @@
 #ifndef MAP_HASHMAP_TX_H
 #define MAP_HASHMAP_TX_H
 
-#include <libpmemobj.h>
-
 extern struct map_ops hashmap_tx_ops;
 
 #define MAP_HASHMAP_TX (&hashmap_tx_ops)

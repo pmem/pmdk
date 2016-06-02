@@ -36,7 +36,7 @@
 #include <stdio.h>
 #include <errno.h>
 
-#include <libpmemobj.h>
+#include <libpmemobj/tx.h>
 #include "hashmap_tx.h"
 #include "hashmap_internal.h"
 

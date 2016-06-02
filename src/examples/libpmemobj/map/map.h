@@ -37,7 +37,7 @@
 #ifndef MAP_H
 #define MAP_H
 
-#include <libpmemobj.h>
+#include <libpmemobj/types.h>
 
 #ifndef MAP_TYPE_OFFSET
 #define MAP_TYPE_OFFSET 1000

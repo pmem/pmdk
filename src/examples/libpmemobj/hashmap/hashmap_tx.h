@@ -35,7 +35,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <hashmap.h>
-#include <libpmemobj.h>
+#include <libpmemobj/types.h>
 
 #ifndef HASHMAP_TX_TYPE_OFFSET
 #define HASHMAP_TX_TYPE_OFFSET 1004

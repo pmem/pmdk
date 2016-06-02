@@ -35,6 +35,8 @@
  */
 #include <assert.h>
 #include <pthread.h>
+#include <libpmemobj/pool.h>
+#include <libpmemobj/tx.h>
 
 #include "benchmark.h"
 #include "map.h"

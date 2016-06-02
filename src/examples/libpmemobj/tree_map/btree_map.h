@@ -37,7 +37,7 @@
 #ifndef BTREE_MAP_H
 #define BTREE_MAP_H
 
-#include <libpmemobj.h>
+#include <libpmemobj/types.h>
 
 #ifndef BTREE_MAP_TYPE_OFFSET
 #define BTREE_MAP_TYPE_OFFSET 1012

@@ -36,9 +36,12 @@
 
 #include <assert.h>
 #include <errno.h>
+#include <string.h>
 #include <pthread.h>
+#include <libpmemobj/atomic.h>
+#include <libpmemobj/pool.h>
+#include <libpmemobj/thread.h>
 
-#include "libpmemobj.h"
 #include "benchmark.h"
 
 #include "util.h"

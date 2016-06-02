@@ -38,6 +38,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <libpmemobj/pool.h>
+
 #include "pmemobj_list.h"
 
 POBJ_LAYOUT_BEGIN(list);

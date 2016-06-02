@@ -62,7 +62,8 @@
 #include <fcntl.h>
 #include <emmintrin.h>
 #include <sys/types.h>
-#include "libpmemobj.h"
+#include <libpmemobj/pool.h>
+#include <libpmemobj/tx.h>
 #include "art.h"
 
 TOID(var_string) null_var_string;

@@ -42,7 +42,10 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#include "libpmemobj.h"
+#include <libpmemobj/atomic.h>
+#include <libpmemobj/pool.h>
+#include <libpmemobj/tx.h>
+
 #include "benchmark.h"
 
 #define LAYOUT_NAME "benchmark"

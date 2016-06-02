@@ -37,6 +37,7 @@
 #include <assert.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <libpmemobj/tx.h>
 
 #include "ctree_map.h"
 

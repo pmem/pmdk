@@ -37,7 +37,6 @@
 #include <err.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <libpmemobj.h>
 
 #include "map.h"
 

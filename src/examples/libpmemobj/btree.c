@@ -38,7 +38,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <libpmemobj.h>
+#include <libpmemobj/atomic.h>
+#include <libpmemobj/pool.h>
+#include <libpmemobj/types.h>
 
 POBJ_LAYOUT_BEGIN(btree);
 POBJ_LAYOUT_ROOT(btree, struct btree);

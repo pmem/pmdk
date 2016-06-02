@@ -56,7 +56,10 @@
 #include <errno.h>
 #include <sys/param.h>
 
-#include "libpmemobj.h"
+#include <libpmemobj/pool.h>
+#include <libpmemobj/thread.h>
+#include <libpmemobj/tx.h>
+
 #include "libpmem.h"
 #include "libpmemlog.h"
 

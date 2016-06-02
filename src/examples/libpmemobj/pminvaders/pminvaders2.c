@@ -45,9 +45,9 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 
-#include <libpmem.h>
-#include <libpmemobj.h>
-
+#include <libpmemobj/pool.h>
+#include <libpmemobj/tx.h>
+#include <libpmemobj/types.h>
 
 /*
  * Layout definition

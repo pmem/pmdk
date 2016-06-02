@@ -37,8 +37,6 @@
 #ifndef MAP_CTREE_H
 #define MAP_CTREE_H
 
-#include <libpmemobj.h>
-
 extern struct map_ops ctree_map_ops;
 
 #define MAP_CTREE (&ctree_map_ops)

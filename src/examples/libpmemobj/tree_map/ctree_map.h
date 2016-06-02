@@ -37,7 +37,7 @@
 #ifndef CTREE_MAP_H
 #define CTREE_MAP_H
 
-#include <libpmemobj.h>
+#include <libpmemobj/types.h>
 
 #ifndef CTREE_MAP_TYPE_OFFSET
 #define CTREE_MAP_TYPE_OFFSET 1008

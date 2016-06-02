@@ -37,6 +37,7 @@
 #include <assert.h>
 #include <errno.h>
 #include <stdio.h>
+#include <libpmemobj/tx.h>
 #include "btree_map.h"
 
 TOID_DECLARE(struct tree_map_node, BTREE_MAP_TYPE_OFFSET + 1);

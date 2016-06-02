@@ -54,6 +54,8 @@
 #ifndef _ART_H
 #define _ART_H
 
+#include <libpmemobj/types.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif

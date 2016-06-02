@@ -41,7 +41,8 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "libpmemobj.h"
+#include <libpmemobj/pool.h>
+#include <libpmemobj/tx.h>
 
 #include "map.h"
 #include "map_ctree.h"

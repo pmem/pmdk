@@ -43,7 +43,8 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <assert.h>
-#include <libpmemobj.h>
+#include <libpmemobj/lists_atomic.h>
+#include <libpmemobj/pool.h>
 
 /*
  * Layout definition

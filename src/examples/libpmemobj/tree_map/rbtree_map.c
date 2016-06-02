@@ -36,6 +36,7 @@
 
 #include <assert.h>
 #include <errno.h>
+#include <libpmemobj/tx.h>
 #include "rbtree_map.h"
 
 TOID_DECLARE(struct tree_map_node, RBTREE_MAP_TYPE_OFFSET + 1);

@@ -37,7 +37,7 @@
 #ifndef RBTREE_MAP_H
 #define RBTREE_MAP_H
 
-#include <libpmemobj.h>
+#include <libpmemobj/types.h>
 
 #ifndef RBTREE_MAP_TYPE_OFFSET
 #define RBTREE_MAP_TYPE_OFFSET 1016

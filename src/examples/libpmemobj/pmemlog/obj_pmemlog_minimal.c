@@ -56,7 +56,10 @@
 #include <stdlib.h>
 #include <pthread.h>
 
-#include "libpmemobj.h"
+#include <libpmemobj/atomic.h>
+#include <libpmemobj/iterator.h>
+#include <libpmemobj/pool.h>
+
 #include "libpmem.h"
 #include "libpmemlog.h"
 

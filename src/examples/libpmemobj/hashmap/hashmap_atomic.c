@@ -37,8 +37,11 @@
 #include <string.h>
 #include <errno.h>
 
-#include <libpmemobj.h>
+#include <libpmemobj/atomic.h>
+#include <libpmemobj/lists_atomic.h>
+#include <libpmemobj/types.h>
 #include "hashmap_atomic.h"
+
 #include "hashmap_internal.h"
 
 /* layout definition */

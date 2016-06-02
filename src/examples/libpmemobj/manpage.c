@@ -41,7 +41,7 @@
 #include <unistd.h>
 #include <stdint.h>
 #include <string.h>
-#include <libpmemobj.h>
+#include <libpmemobj/pool.h>
 
 /* size of the pmemobj pool -- 1 GB */
 #define POOL_SIZE ((size_t)(1 << 30))

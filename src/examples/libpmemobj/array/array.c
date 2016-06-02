@@ -38,10 +38,15 @@
 #include <unistd.h>
 #include <math.h>
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <sys/stat.h>
-#include <libpmemobj.h>
+
+#include <libpmemobj/atomic.h>
+#include <libpmemobj/iterator.h>
+#include <libpmemobj/pool.h>
+#include <libpmemobj/types.h>
 
 #define TOID_ARRAY(x) TOID(x)
 #define COUNT_OF(x) (sizeof(x) / sizeof(x[0]))

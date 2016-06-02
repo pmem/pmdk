@@ -40,7 +40,8 @@
 #include <string.h>
 #include <unistd.h>
 #include <assert.h>
-#include <libpmemobj.h>
+#include <libpmemobj/lists_atomic.h>
+#include <libpmemobj/pool.h>
 
 POBJ_LAYOUT_BEGIN(two_lists);
 POBJ_LAYOUT_ROOT(two_lists, struct my_root);

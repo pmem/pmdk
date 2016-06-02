@@ -41,6 +41,8 @@
 #include <unistd.h>
 #include <time.h>
 #include <assert.h>
+#include <libpmemobj/pool.h>
+#include <libpmemobj/tx.h>
 #include "map.h"
 #include "map_ctree.h"
 #include "map_btree.h"

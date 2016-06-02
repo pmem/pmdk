@@ -33,12 +33,13 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <time.h>
 
-#include <libpmemobj.h>
+#include <libpmemobj/pool.h>
 
 #include "map.h"
 #include "map_ctree.h"

@@ -37,7 +37,7 @@
 #ifndef PMEMOBJ_LISTS_H
 #define PMEMOBJ_LISTS_H
 
-#include <libpmemobj.h>
+#include <libpmemobj/tx.h>
 
 /*
  * This file defines two types of persistent data structures:

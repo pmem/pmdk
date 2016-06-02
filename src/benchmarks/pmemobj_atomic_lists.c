@@ -43,7 +43,10 @@
 #include <unistd.h>
 #include <sys/queue.h>
 
-#include "libpmemobj.h"
+#include <libpmemobj/atomic.h>
+#include <libpmemobj/lists_atomic.h>
+#include <libpmemobj/pool.h>
+
 #include "benchmark.h"
 
 #define FACTOR 8

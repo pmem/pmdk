@@ -43,7 +43,9 @@
 #include <unistd.h>
 #include <sys/stat.h>
 
-#include "libpmemobj.h"
+#include <libpmemobj/atomic.h>
+#include <libpmemobj/pool.h>
+
 #include "benchmark.h"
 
 #define LAYOUT_NAME "benchmark"
