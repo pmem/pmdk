@@ -269,7 +269,7 @@ ctree_map_remove_free(PMEMobjpool *pop, TOID(struct ctree_map) map,
 
 	TX_BEGIN(pop) {
 		PMEMoid val = ctree_map_remove(pop, map, key);
-		pmemobj_free(&val);
+		pmemobj_tx_free(val);
 	} TX_ONABORT {
 		ret = 1;
 	} TX_END
