@@ -122,7 +122,7 @@ rpmemd_db_concat(const char *path1, const char *path2)
 {
 	size_t len1 = strlen(path1);
 	size_t len2 = strlen(path2);
-	size_t new_len = len1 + len2 + 2;
+	size_t new_len = len1 + len2 + 1;
 	char *s;
 
 	if (path1[0] != '/') {
@@ -139,6 +139,7 @@ rpmemd_db_concat(const char *path1, const char *path2)
 		s = "";
 	} else {
 		s = "/";
+		new_len++;
 	}
 
 	char *new_str = malloc(new_len);
