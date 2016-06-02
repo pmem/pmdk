@@ -546,7 +546,7 @@ rbtree_map_remove_free(PMEMobjpool *pop, TOID(struct rbtree_map) map,
 
 	TX_BEGIN(pop) {
 		PMEMoid val = rbtree_map_remove(pop, map, key);
-		pmemobj_free(&val);
+		pmemobj_tx_free(val);
 	} TX_ONABORT {
 		ret = 1;
 	} TX_END

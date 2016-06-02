@@ -663,7 +663,7 @@ btree_map_remove_free(PMEMobjpool *pop, TOID(struct btree_map) map,
 
 	TX_BEGIN(pop) {
 		PMEMoid val = btree_map_remove(pop, map, key);
-		pmemobj_free(&val);
+		pmemobj_tx_free(val);
 	} TX_ONABORT {
 		ret = 1;
 	} TX_END
