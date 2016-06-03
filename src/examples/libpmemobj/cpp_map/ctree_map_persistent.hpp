@@ -333,7 +333,7 @@ private:
 			entries[1] = nullptr;
 		}
 
-		int diff; /* most significant differing bit */
+		nvobj::p<int> diff; /* most significant differing bit */
 		nvobj::persistent_ptr<entry> entries[2];
 
 		void
