@@ -107,7 +107,7 @@ static const char *help_str =
 "  -h, --help           display this help and exit\n"
 "\n"
 "Options for PMEMBLK:\n"
-"  -w, --write-layout [<num>] force writing BTT layout using <num> block\n"
+"  -w, --write-layout force writing the BTT layout\n"
 "\n"
 "Options for PMEMOBJ:\n"
 "  -l, --layout <name>  layout name stored in pool's header\n"

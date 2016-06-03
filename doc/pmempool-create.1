@@ -148,23 +148,18 @@ written until the first
 .I write operation
 of block entry is performed. Using
 .B -w
-option you can force writing
+option you can force writing the
 .B BTT
-layout by writing zero data to specified block number. By default the
-.I write operation
-is performed to block number
-.BR 0 .
+layout.
 Please refer to
 .BR libpmemblk (3)
 for details.
 .PP
 .B -w, --write-layout
 .RS 8
-Force writing
+Force writing the
 .B BTT
-layout by performing
-.I write operation
-to block number zero.
+layout.
 .RE
 .SS "Options for PMEMOBJ:"
 .LP
@@ -192,8 +187,7 @@ pmempool create log -M pool.log
 # Create a log pool file of maximum allowed size
 .TP
 pmempool create blk --size=4G --write-layout 1K pool.blk
-# Create a blk pool file of size 4G, block size 1K and write BTT layout using
-write operation to the block number 1
+# Create a blk pool file of size 4G, block size 1K and write the BTT layout
 .TP
 pmempool create --layout my_layout obj pool.obj
 # Create an obj pool file of minimum allowed size and layout 'my_layout'
