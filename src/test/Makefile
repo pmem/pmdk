@@ -263,11 +263,17 @@ TESTS += $(OBJ_CPP_TESTS)
 
 ifeq ($(call cxx_ok), y)
 TESTS += $(CPP_EXAMPLE_TESTS)
+else
+$(info NOTE: Skipping C++ tests because of compiler issues)
 endif
 
 ifeq ($(call check_cxx_chrono), y)
 TESTS += $(CHRONO_TESTS)
+else
+$(info NOTE: Skipping C++ chrono tests because of compiler/stdc++ issues)
 endif
+else
+$(info NOTE: Skipping C++ tests because the compiler does not support C++11)
 endif
 
 TESTS_BUILD = \

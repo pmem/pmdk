@@ -42,6 +42,8 @@ DIRS = pminvaders pmemlog pmemblk string_store string_store_tx\
 
 ifeq ($(call cxx_ok), y)
 DIRS += cpp pman cpp_map panaconda
+else
+$(info NOTE: Skipping C++ examples because of compiler issues)
 endif
 
 LIBS = -lpmemobj -lpmem -pthread -lm -pthread
