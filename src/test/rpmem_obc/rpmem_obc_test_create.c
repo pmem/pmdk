@@ -100,10 +100,10 @@ server_create_handle(struct server *s, const struct rpmem_msg_create_resp *resp)
 /*
  * server_create_eproto -- send invalid create request responses to a client
  */
-void
+int
 server_create_eproto(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc != 1)
+	if (argc < 1)
 		UT_FATAL("usage: %s 0-%d", tc->name, CREATE_EPROTO_COUNT);
 
 	int i = atoi(argv[0]);
@@ -147,15 +147,17 @@ server_create_eproto(const struct test_case *tc, int argc, char *argv[])
 	server_create_handle(s, &resp);
 
 	srv_fini(s);
+
+	return 1;
 }
 
 /*
  * server_create_error -- return an error status in create response message
  */
-void
+int
 server_create_error(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc != 1)
+	if (argc < 1)
 		UT_FATAL("usage: %s 0-%d", tc->name, MAX_RPMEM_ERR);
 
 	enum rpmem_err e = (enum rpmem_err)atoi(argv[0]);
@@ -168,15 +170,17 @@ server_create_error(const struct test_case *tc, int argc, char *argv[])
 	server_create_handle(s, &resp);
 
 	srv_fini(s);
+
+	return 1;
 }
 
 /*
  * server_create_econnreset -- test case for closing connection - server side
  */
-void
+int
 server_create_econnreset(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc != 1)
+	if (argc < 1)
 		UT_FATAL("usage: %s 0|1", tc->name);
 
 	int do_send = atoi(argv[0]);
@@ -190,15 +194,17 @@ server_create_econnreset(const struct test_case *tc, int argc, char *argv[])
 		srv_send(s, &resp, sizeof(resp) / 2);
 
 	srv_fini(s);
+
+	return 1;
 }
 
 /*
  * server_create -- test case for rpmem_obc_create function - server side
  */
-void
+int
 server_create(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc != 0)
+	if (argc < 0)
 		UT_FATAL("usage: %s", tc->name);
 
 	struct server *s = srv_init();
@@ -209,6 +215,8 @@ server_create(const struct test_case *tc, int argc, char *argv[])
 	server_create_handle(s, &resp);
 
 	srv_fini(s);
+
+	return 0;
 }
 
 /*
@@ -296,7 +304,7 @@ client_create_error(char *target)
 /*
  * client_create -- test case for create request operation - client side
  */
-void
+int
 client_create(const struct test_case *tc, int argc, char *argv[])
 {
 	if (argc < 1)
@@ -321,4 +329,6 @@ client_create(const struct test_case *tc, int argc, char *argv[])
 	set_rpmem_cmd("server_create");
 
 	client_create_errno(target, 0);
+
+	return 1;
 }

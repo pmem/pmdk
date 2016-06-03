@@ -181,10 +181,10 @@ client_persist_thread(void *arg)
 /*
  * client_init -- test case for client initialization
  */
-void
+int
 client_init(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc != 2)
+	if (argc < 2)
 		UT_FATAL("usage: %s <addr>[:<port>] <provider>", tc->name);
 
 	char *target = argv[0];
@@ -234,15 +234,17 @@ client_init(const struct test_case *tc, int argc, char *argv[])
 
 	FREE(node);
 	FREE(service);
+
+	return 2;
 }
 
 /*
  * server_init -- test case for server initialization
  */
-void
+int
 server_init(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc != 3)
+	if (argc < 3)
 		UT_FATAL("usage: %s <addr> <port> <persist method>", tc->name);
 
 	char *node = argv[0];
@@ -280,15 +282,17 @@ server_init(const struct test_case *tc, int argc, char *argv[])
 	server_close_end(fd);
 
 	rpmemd_fip_fini(fip);
+
+	return 3;
 }
 
 /*
  * client_connect -- test case for establishing connection - client side
  */
-void
+int
 client_connect(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc != 2)
+	if (argc < 2)
 		UT_FATAL("usage: %s <addr>[:<port>] <provider>", tc->name);
 
 	char *target = argv[0];
@@ -344,15 +348,17 @@ client_connect(const struct test_case *tc, int argc, char *argv[])
 
 	FREE(node);
 	FREE(service);
+
+	return 2;
 }
 
 /*
  * server_connect -- test case for establishing connection - server side
  */
-void
+int
 server_connect(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc != 3)
+	if (argc < 3)
 		UT_FATAL("usage: %s <addr> <port> <persist method>", tc->name);
 
 	char *node = argv[0];
@@ -400,15 +406,17 @@ server_connect(const struct test_case *tc, int argc, char *argv[])
 	UT_ASSERTeq(ret, 0);
 
 	rpmemd_fip_fini(fip);
+
+	return 3;
 }
 
 /*
  * server_process -- test case for processing data on server side
  */
-void
+int
 server_process(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc != 3)
+	if (argc < 3)
 		UT_FATAL("usage: %s <addr> <port> <persist method>", tc->name);
 
 	char *node = argv[0];
@@ -464,15 +472,17 @@ server_process(const struct test_case *tc, int argc, char *argv[])
 	UT_ASSERTeq(ret, 0);
 
 	rpmemd_fip_fini(fip);
+
+	return 3;
 }
 
 /*
  * client_persist -- test case for single-threaded persist operation
  */
-void
+int
 client_persist(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc != 2)
+	if (argc < 2)
 		UT_FATAL("usage: %s <addr>[:<port>] <provider>", tc->name);
 
 	char *target = argv[0];
@@ -549,15 +559,17 @@ client_persist(const struct test_case *tc, int argc, char *argv[])
 
 	FREE(node);
 	FREE(service);
+
+	return 2;
 }
 
 /*
  * client_persist_mt -- test case for multi-threaded persist operation
  */
-void
+int
 client_persist_mt(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc != 2)
+	if (argc < 2)
 		UT_FATAL("usage: %s <addr>[:<port>] <provider>", tc->name);
 
 	char *target = argv[0];
@@ -645,15 +657,17 @@ client_persist_mt(const struct test_case *tc, int argc, char *argv[])
 
 	FREE(node);
 	FREE(service);
+
+	return 2;
 }
 
 /*
  * client_read -- test case for read operation
  */
-void
+int
 client_read(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc != 2)
+	if (argc < 2)
 		UT_FATAL("usage: %s <addr>[:<port>] <provider>", tc->name);
 
 	char *target = argv[0];
@@ -724,6 +738,8 @@ client_read(const struct test_case *tc, int argc, char *argv[])
 
 	FREE(node);
 	FREE(service);
+
+	return 2;
 }
 
 /*

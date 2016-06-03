@@ -86,10 +86,10 @@ client_msg_close_resp(const char *ctarget, int status)
 /*
  * client_close -- test case for close request message - client side
  */
-void
+int
 client_close(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc != 1)
+	if (argc < 1)
 		UT_FATAL("usage: %s <addr>[:<port>]", tc->name);
 
 	char *target = argv[0];
@@ -102,4 +102,6 @@ client_close(const struct test_case *tc, int argc, char *argv[])
 
 	set_rpmem_cmd("server_msg_resp %d %d", RPMEM_MSG_TYPE_CLOSE, 1);
 	client_msg_close_resp(target, 1);
+
+	return 1;
 }

@@ -100,7 +100,7 @@ TEST_CASE_DECLARE(server);
 /*
  * client_create -- perform create request
  */
-void
+int
 client_create(const struct test_case *tc, int argc, char *argv[])
 {
 	if (argc < 1)
@@ -142,12 +142,14 @@ client_create(const struct test_case *tc, int argc, char *argv[])
 	UT_ASSERTeq(ret, 0);
 
 	rpmem_obc_fini(rpc);
+
+	return 1;
 }
 
 /*
  * client_open -- perform open request
  */
-void
+int
 client_open(const struct test_case *tc, int argc, char *argv[])
 {
 	if (argc < 1)
@@ -192,12 +194,14 @@ client_open(const struct test_case *tc, int argc, char *argv[])
 	UT_ASSERTeq(ret, 0);
 
 	rpmem_obc_fini(rpc);
+
+	return 1;
 }
 
 /*
  * client_remove -- perform remove request
  */
-void
+int
 client_remove(const struct test_case *tc, int argc, char *argv[])
 {
 	if (argc < 1)
@@ -224,6 +228,8 @@ client_remove(const struct test_case *tc, int argc, char *argv[])
 	UT_ASSERTeq(ret, 0);
 
 	rpmem_obc_fini(rpc);
+
+	return 1;
 }
 
 /*
@@ -320,7 +326,7 @@ struct rpmemd_obc_requests REQ = {
 /*
  * server -- run server and process clients requests
  */
-void
+int
 server(const struct test_case *tc, int argc, char *argv[])
 {
 	int ret;
@@ -353,6 +359,8 @@ server(const struct test_case *tc, int argc, char *argv[])
 	UT_ASSERTeq(ret, 1);
 
 	rpmemd_obc_fini(obc);
+
+	return 0;
 }
 
 /*

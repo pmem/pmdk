@@ -55,10 +55,10 @@ client_send_disconnect(char *target, void *msg, size_t size)
  * client_econnreset -- test case for closing connection when operation on
  * server is in progress - client side
  */
-void
+int
 client_econnreset(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc != 1)
+	if (argc < 1)
 		UT_FATAL("usage: %s <addr>[:<port>]", tc->name);
 
 	char *target = argv[0];
@@ -106,18 +106,17 @@ client_econnreset(const struct test_case *tc, int argc, char *argv[])
 	}
 
 	FREE(msg);
+
+	return 1;
 }
 
 /*
  * server_econnreset -- test case for closing connection when operation on
  * server is in progress - server side
  */
-void
+int
 server_econnreset(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc != 0)
-		UT_FATAL("usage: %s", tc->name);
-
 	struct rpmemd_obc *rpdc;
 	int ret;
 
@@ -131,4 +130,6 @@ server_econnreset(const struct test_case *tc, int argc, char *argv[])
 	UT_ASSERTne(ret, 0);
 
 	rpmemd_obc_fini(rpdc);
+
+	return 0;
 }

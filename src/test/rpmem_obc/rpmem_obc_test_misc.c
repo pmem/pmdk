@@ -49,12 +49,9 @@ static const struct rpmem_msg_close_resp CLOSE_RESP = {
  * client_enotconn -- check if ENOTCONN error is returned after
  * calling rpmem_obc API without connecting to the server.
  */
-void
+int
 client_enotconn(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc != 0)
-		UT_FATAL("usage: %s", tc->name);
-
 	struct rpmem_obc *rpc = rpmem_obc_init();
 	UT_ASSERTne(rpc, NULL);
 
@@ -95,12 +92,14 @@ client_enotconn(const struct test_case *tc, int argc, char *argv[])
 	UT_ASSERTeq(errno, ENOTCONN);
 
 	rpmem_obc_fini(rpc);
+
+	return 0;
 }
 
 /*
  * client_connect -- try to connect to the server at specified address and port
  */
-void
+int
 client_connect(const struct test_case *tc, int argc, char *argv[])
 {
 	if (argc < 1)
@@ -121,17 +120,16 @@ client_connect(const struct test_case *tc, int argc, char *argv[])
 
 		rpmem_obc_fini(rpc);
 	}
+
+	return argc;
 }
 
 /*
  * server_monitor -- test case for rpmem_obc_create function - server side
  */
-void
+int
 server_monitor(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc != 0)
-		UT_FATAL("usage: %s", tc->name);
-
 	struct server *s = srv_init();
 	struct rpmem_msg_close close;
 	struct rpmem_msg_close_resp resp = CLOSE_RESP;
@@ -141,16 +139,18 @@ server_monitor(const struct test_case *tc, int argc, char *argv[])
 	srv_send(s, &resp, sizeof(resp));
 
 	srv_fini(s);
+
+	return 0;
 }
 
 /*
  * server_monitor -- test case for rpmem_obc_monitor function - server side
  */
-void
+int
 client_monitor(const struct test_case *tc, int argc, char *argv[])
 {
 	if (argc < 1)
-		UT_FATAL("usage: %s <addr>[:<port>]...", tc->name);
+		UT_FATAL("usage: %s <addr>[:<port>]", tc->name);
 
 	char *target = argv[0];
 
@@ -200,6 +200,10 @@ client_monitor(const struct test_case *tc, int argc, char *argv[])
 		ret = rpmem_obc_monitor(rpc, 0);
 		UT_ASSERTne(ret, 1);
 
+		rpmem_obc_disconnect(rpc);
+
 		rpmem_obc_fini(rpc);
 	}
+
+	return 1;
 }

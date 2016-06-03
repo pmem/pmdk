@@ -176,10 +176,10 @@ client_msg_remove_resp(const char *ctarget, int status)
 /*
  * client_remove -- test case for remove request message - client side
  */
-void
+int
 client_remove(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc != 1)
+	if (argc < 1)
 		UT_FATAL("usage: %s <addr>[:<port>]", tc->name);
 
 	char *target = argv[0];
@@ -195,4 +195,6 @@ client_remove(const struct test_case *tc, int argc, char *argv[])
 
 	set_rpmem_cmd("server_msg_resp %d %d", RPMEM_MSG_TYPE_REMOVE, 1);
 	client_msg_remove_resp(target, 1);
+
+	return 1;
 }
