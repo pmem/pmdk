@@ -45,10 +45,10 @@
 /*
  * client_bad_msg_hdr -- test case for checking message header
  */
-void
+int
 client_bad_msg_hdr(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc != 1)
+	if (argc < 1)
 		UT_FATAL("usage: %s <addr>[:<port>]", tc->name);
 
 	char *target = argv[0];
@@ -92,4 +92,6 @@ client_bad_msg_hdr(const struct test_case *tc, int argc, char *argv[])
 		clnt_wait_disconnect(ssh);
 		clnt_close(ssh);
 	}
+
+	return 1;
 }
