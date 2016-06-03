@@ -99,10 +99,10 @@ server_open_handle(struct server *s, const struct rpmem_msg_open_resp *resp)
 /*
  * server_open_eproto -- send invalid open request responses to a client
  */
-void
+int
 server_open_eproto(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc != 1)
+	if (argc < 1)
 		UT_FATAL("usage: %s 0-%d", tc->name, OPEN_EPROTO_COUNT);
 
 	int i = atoi(argv[0]);
@@ -145,15 +145,17 @@ server_open_eproto(const struct test_case *tc, int argc, char *argv[])
 	server_open_handle(s, &resp);
 
 	srv_fini(s);
+
+	return 1;
 }
 
 /*
  * server_open_error -- return error status in open response message
  */
-void
+int
 server_open_error(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc != 1)
+	if (argc < 1)
 		UT_FATAL("usage: %s 0-%d", tc->name, MAX_RPMEM_ERR);
 
 	enum rpmem_err e = (enum rpmem_err)atoi(argv[0]);
@@ -166,15 +168,17 @@ server_open_error(const struct test_case *tc, int argc, char *argv[])
 	server_open_handle(s, &resp);
 
 	srv_fini(s);
+
+	return 1;
 }
 
 /*
  * server_open -- test case for rpmem_obc_create function - server side
  */
-void
+int
 server_open_econnreset(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc != 1)
+	if (argc < 1)
 		UT_FATAL("usage: %s 0|1", tc->name);
 
 	int do_send = atoi(argv[0]);
@@ -188,17 +192,16 @@ server_open_econnreset(const struct test_case *tc, int argc, char *argv[])
 		srv_send(s, &resp, sizeof(resp) / 2);
 
 	srv_fini(s);
+
+	return 1;
 }
 
 /*
  * server_open -- test case for open request message - server side
  */
-void
+int
 server_open(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc != 0)
-		UT_FATAL("usage: %s", tc->name);
-
 	struct server *s = srv_init();
 
 	struct rpmem_msg_open_resp resp = OPEN_RESP;
@@ -207,6 +210,8 @@ server_open(const struct test_case *tc, int argc, char *argv[])
 	server_open_handle(s, &resp);
 
 	srv_fini(s);
+
+	return 0;
 }
 
 /*
@@ -323,7 +328,7 @@ client_open_error(char *target)
 /*
  * client_open -- test case for open request message - client side
  */
-void
+int
 client_open(const struct test_case *tc, int argc, char *argv[])
 {
 	if (argc < 1)
@@ -348,4 +353,6 @@ client_open(const struct test_case *tc, int argc, char *argv[])
 	set_rpmem_cmd("server_open");
 
 	client_open_errno(target, 0);
+
+	return 1;
 }
