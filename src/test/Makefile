@@ -192,7 +192,8 @@ RPMEM_TESTS =\
 	rpmemd_obc\
 	rpmem_obc_int\
 	rpmemd_db\
-	rpmem_fip
+	rpmem_fip\
+	rpmem_basic
 
 VMEM_TESTS = \
 	vmem_aligned_alloc\

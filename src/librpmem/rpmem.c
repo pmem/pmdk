@@ -34,16 +34,242 @@
  * rpmem.c -- main source file for librpmem
  */
 #include <stdlib.h>
+#include <netdb.h>
+#include <stdio.h>
+#include <pthread.h>
+#include <errno.h>
 
 #include "librpmem.h"
+#include "out.h"
+#include "util.h"
+#include "rpmem_common.h"
+#include "rpmem_util.h"
+#include "rpmem_obc.h"
+#include "rpmem_fip.h"
+#include "rpmem_fip_common.h"
 
 /*
- * struct rpmem_pool -- remote pool context
+ * rpmem_pool -- remote pool context
  */
 struct rpmem_pool {
-	void *pool_addr;
-	size_t pool_size;
+	void *pool_addr;		/* local pool address */
+	size_t pool_size;		/* pool size */
+	struct rpmem_obc *obc;		/* out-of-band connection handle */
+	struct rpmem_fip *fip;		/* fabric provider handle */
+	char *user;
+	char *node;
+	char *service;
+	char fip_service[NI_MAXSERV];
+	enum rpmem_provider provider;
+	pthread_t monitor;
+	volatile int error;
 };
+
+/*
+ * rpmem_get_provider -- returns provider based on node address and environment
+ */
+static enum rpmem_provider
+rpmem_get_provider(const char *node)
+{
+	struct rpmem_fip_probe probe;
+
+	int ret;
+
+	enum rpmem_provider prov = RPMEM_PROV_UNKNOWN;
+
+	ret = rpmem_fip_probe_get(node, &probe);
+	if (ret)
+		return prov;
+
+	/*
+	 * The sockets provider can be used only if specified environment
+	 * variable is set to 1.
+	 */
+	if (rpmem_fip_probe(probe, RPMEM_PROV_LIBFABRIC_SOCKETS)) {
+		char *enable_sock_env = getenv(RPMEM_PROV_SOCKET_ENV);
+		if (enable_sock_env) {
+			int enable_sock = atoi(enable_sock_env);
+			if (enable_sock == 1)
+				prov = RPMEM_PROV_LIBFABRIC_SOCKETS;
+		}
+	}
+
+	/* the verbs provider has higher priority */
+	if (rpmem_fip_probe(probe, RPMEM_PROV_LIBFABRIC_VERBS)) {
+		char *enable_verbs_env = getenv(RPMEM_PROV_VERBS_ENV);
+		if (enable_verbs_env) {
+			int enable_verbs = atoi(enable_verbs_env);
+			if (enable_verbs == 1)
+				prov = RPMEM_PROV_LIBFABRIC_VERBS;
+		} else {
+			prov = RPMEM_PROV_LIBFABRIC_VERBS;
+		}
+	}
+
+	return prov;
+
+}
+
+/*
+ * rpmem_monitor_thread -- connection monitor background thread
+ */
+static void *
+rpmem_monitor_thread(void *arg)
+{
+	RPMEMpool *rpp = arg;
+
+	int ret;
+
+	ret = rpmem_obc_monitor(rpp->obc, 0);
+	if (ret) {
+		rpp->error = errno;
+	}
+
+	return NULL;
+}
+
+/*
+ * rpmem_common_init -- common routing for initialization
+ */
+static RPMEMpool *
+rpmem_common_init(const char *target)
+{
+	RPMEMpool *rpp = Zalloc(sizeof(*rpp));
+	if (!rpp) {
+		ERR("!malloc");
+		goto err_malloc_rpmem;
+	}
+
+	int ret;
+
+	ret = rpmem_target_split(target, &rpp->user,
+			&rpp->node, &rpp->service);
+	if (ret) {
+		ERR("!splitting target node address failed");
+		goto err_target_split;
+	}
+
+	rpp->provider = rpmem_get_provider(rpp->node);
+	if (rpp->provider == RPMEM_PROV_UNKNOWN) {
+		ERR("!cannot find provider");
+		goto err_provider;
+	}
+
+	rpp->obc = rpmem_obc_init();
+	if (!rpp->obc) {
+		ERR("!out-of-band connection initialization failed");
+		goto err_obc_init;
+	}
+
+	ret = rpmem_obc_connect(rpp->obc, target);
+	if (ret) {
+		ERR("!out-of-band connection failed");
+		goto err_obc_connect;
+	}
+
+	return rpp;
+err_obc_connect:
+	rpmem_obc_fini(rpp->obc);
+err_obc_init:
+err_provider:
+	free(rpp->user);
+	free(rpp->node);
+	free(rpp->service);
+err_target_split:
+	free(rpp);
+err_malloc_rpmem:
+	return NULL;
+}
+
+/*
+ * rpmem_common_fini -- common routing for deinitialization
+ */
+static void
+rpmem_common_fini(RPMEMpool *rpp, int join)
+{
+	int ret;
+
+	rpmem_obc_disconnect(rpp->obc);
+
+	if (join) {
+		ret = pthread_join(rpp->monitor, NULL);
+		if (ret)
+			ERR("joining monitor thread failed");
+	}
+
+	rpmem_obc_fini(rpp->obc);
+	free(rpp->user);
+	free(rpp->node);
+	free(rpp->service);
+	free(rpp);
+}
+
+/*
+ * rpmem_common_fip_init -- common routine for initializing fabric provider
+ */
+static int
+rpmem_common_fip_init(RPMEMpool *rpp, struct rpmem_req_attr *req,
+	struct rpmem_resp_attr *resp, void *pool_addr, size_t pool_size,
+	unsigned *nlanes)
+{
+	struct rpmem_fip_attr fip_attr = {
+		.provider	= req->provider,
+		.persist_method	= resp->persist_method,
+		.laddr		= pool_addr,
+		.size		= pool_size,
+		.nlanes		= min(*nlanes, resp->nlanes),
+		.raddr		= (void *)resp->raddr,
+		.rkey		= resp->rkey,
+	};
+
+	ssize_t sret = snprintf(rpp->fip_service, sizeof(rpp->fip_service),
+			"%u", resp->port);
+	if (sret <= 0) {
+		ERR("!snprintf");
+		goto err_port;
+	}
+
+	rpp->fip = rpmem_fip_init(rpp->node, rpp->fip_service,
+			&fip_attr, nlanes);
+	if (!rpp->fip) {
+		ERR("!in-band connection initialization failed");
+		goto err_fip_init;
+	}
+
+	int ret;
+
+	ret = rpmem_fip_connect(rpp->fip);
+	if (ret) {
+		ERR("!in-band connection failed");
+		goto err_fip_connect;
+	}
+
+	ret = rpmem_fip_process_start(rpp->fip);
+	if (ret) {
+		ERR("!starting in-band connection thread");
+		goto err_fip_process;
+	}
+
+	return 0;
+err_fip_process:
+	rpmem_fip_close(rpp->fip);
+err_fip_connect:
+	rpmem_fip_fini(rpp->fip);
+err_fip_init:
+err_port:
+	return -1;
+}
+
+/*
+ * rpmem_common_fip_fini -- common routine for deinitializing fabric provider
+ */
+static void
+rpmem_common_fip_fini(RPMEMpool *rpp)
+{
+	rpmem_fip_process_stop(rpp->fip);
+	rpmem_fip_close(rpp->fip);
+	rpmem_fip_fini(rpp->fip);
+}
 
 /*
  * rpmem_create -- create remote pool on target node
@@ -60,7 +286,47 @@ rpmem_create(const char *target, const char *pool_set_name,
 	void *pool_addr, size_t pool_size, unsigned *nlanes,
 	const struct rpmem_pool_attr *create_attr)
 {
-	/* XXX */
+	RPMEMpool *rpp;
+	int ret;
+
+	rpp = rpmem_common_init(target);
+	if (!rpp)
+		goto err_common_init;
+
+	struct rpmem_req_attr req = {
+		.pool_size	= pool_size,
+		.nlanes		= *nlanes,
+		.provider	= rpp->provider,
+		.pool_desc	= pool_set_name,
+	};
+
+	struct rpmem_resp_attr resp;
+
+	ret = rpmem_obc_create(rpp->obc, &req, &resp, create_attr);
+	if (ret) {
+		ERR("!create request failed");
+		goto err_obc_create;
+	}
+
+	ret = rpmem_common_fip_init(rpp, &req, &resp,
+			pool_addr, pool_size, nlanes);
+	if (ret)
+		goto err_fip_init;
+
+	ret = pthread_create(&rpp->monitor, NULL, rpmem_monitor_thread, rpp);
+	if (ret) {
+		errno = ret;
+		ERR("!starting monitor thread");
+		goto err_monitor;
+	}
+
+	return rpp;
+err_monitor:
+	rpmem_common_fip_fini(rpp);
+err_fip_init:
+err_obc_create:
+	rpmem_common_fini(rpp, 0);
+err_common_init:
 	return NULL;
 }
 
@@ -79,7 +345,47 @@ rpmem_open(const char *target, const char *pool_set_name,
 	void *pool_addr, size_t pool_size, unsigned *nlanes,
 	struct rpmem_pool_attr *open_attr)
 {
-	/* XXX */
+	RPMEMpool *rpp;
+	int ret;
+
+	rpp = rpmem_common_init(target);
+	if (!rpp)
+		goto err_common_init;
+
+	struct rpmem_req_attr req = {
+		.pool_size	= pool_size,
+		.nlanes		= *nlanes,
+		.provider	= rpp->provider,
+		.pool_desc	= pool_set_name,
+	};
+
+	struct rpmem_resp_attr resp;
+
+	ret = rpmem_obc_open(rpp->obc, &req, &resp, open_attr);
+	if (ret) {
+		ERR("!open request failed");
+		goto err_obc_create;
+	}
+
+	ret = rpmem_common_fip_init(rpp, &req, &resp,
+			pool_addr, pool_size, nlanes);
+	if (ret)
+		goto err_fip_init;
+
+	ret = pthread_create(&rpp->monitor, NULL, rpmem_monitor_thread, rpp);
+	if (ret) {
+		errno = ret;
+		ERR("!starting monitor thread");
+		goto err_monitor;
+	}
+
+	return rpp;
+err_monitor:
+	rpmem_common_fip_fini(rpp);
+err_fip_init:
+err_obc_create:
+	rpmem_common_fini(rpp, 0);
+err_common_init:
 	return NULL;
 }
 
@@ -92,8 +398,24 @@ rpmem_open(const char *target, const char *pool_set_name,
 int
 rpmem_remove(const char *target, const char *pool_set_name)
 {
-	/* XXX */
-	return -1;
+	RPMEMpool *rpp;
+	int ret = 0;
+
+	rpp = rpmem_common_init(target);
+	if (!rpp) {
+		ret = -1;
+		goto err_common_init;
+	}
+
+	ret = rpmem_obc_remove(rpp->obc, pool_set_name);
+	if (ret) {
+		ERR("!remove request failed");
+		goto err_obc_remove;
+	}
+err_obc_remove:
+	rpmem_common_fini(rpp, 0);
+err_common_init:
+	return ret;
 }
 
 /*
@@ -102,8 +424,16 @@ rpmem_remove(const char *target, const char *pool_set_name)
 int
 rpmem_close(RPMEMpool *rpp)
 {
-	/* XXX */
-	return -1;
+	int ret;
+
+	ret = rpmem_obc_close(rpp->obc);
+	if (ret)
+		ERR("!close request failed");
+
+	rpmem_common_fip_fini(rpp);
+	rpmem_common_fini(rpp, 1);
+
+	return ret;
 }
 
 /*
@@ -117,8 +447,18 @@ rpmem_close(RPMEMpool *rpp)
 int
 rpmem_persist(RPMEMpool *rpp, size_t offset, size_t length, unsigned lane)
 {
-	/* XXX */
-	return -1;
+	if (unlikely(rpp->error)) {
+		errno = rpp->error;
+		return -1;
+	}
+
+	int ret = rpmem_fip_persist(rpp->fip, offset, length, lane);
+	if (unlikely(ret)) {
+		rpp->error = ret;
+		return -1;
+	}
+
+	return 0;
 }
 
 /*
@@ -132,6 +472,16 @@ rpmem_persist(RPMEMpool *rpp, size_t offset, size_t length, unsigned lane)
 int
 rpmem_read(RPMEMpool *rpp, void *buff, size_t offset, size_t length)
 {
-	/* XXX */
-	return -1;
+	if (unlikely(rpp->error)) {
+		errno = rpp->error;
+		return -1;
+	}
+
+	int ret = rpmem_fip_read(rpp->fip, buff, length, offset);
+	if (unlikely(ret)) {
+		rpp->error = ret;
+		return -1;
+	}
+
+	return 0;
 }

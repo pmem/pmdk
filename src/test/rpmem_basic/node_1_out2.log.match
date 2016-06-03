@@ -1,0 +1,9 @@
+rpmem_basic/TEST2: START: rpmem_basic
+ ./rpmem_basic$(nW) $(*)
+poolX.set: No such file or directory
+pool0r.set: Permission denied
+pool0.set: removed
+subdir/pool1.set: removed
+pool2.set: opened
+pool2.set: Device or resource busy
+rpmem_basic/TEST2: Done
