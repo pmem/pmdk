@@ -20,6 +20,9 @@
     <ClCompile Include="..\unittest\ut_alloc.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ut_backtrace.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\unittest\unittest.h">
