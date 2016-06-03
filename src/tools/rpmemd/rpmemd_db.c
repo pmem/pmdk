@@ -90,7 +90,8 @@ struct rpmemd_db *
 rpmemd_db_init(const char *root_dir, mode_t mode)
 {
 	if (root_dir[0] != '/') {
-		RPMEMD_LOG(ERR, "root directory is not an absolute path ");
+		RPMEMD_LOG(ERR, "root directory is not an absolute path"
+				" -- '%s'", root_dir);
 		errno = EINVAL;
 		return NULL;
 	}
@@ -122,23 +123,19 @@ rpmemd_db_concat(const char *path1, const char *path2)
 {
 	size_t len1 = strlen(path1);
 	size_t len2 = strlen(path2);
-	size_t new_len = len1 + len2 + 2;
-	char *s;
+	size_t new_len = len1 + len2 + 2; /* +1 for '/' in snprintf() */
 
 	if (path1[0] != '/') {
-		RPMEMD_LOG(ERR, "the first path is not an absolute path ");
+		RPMEMD_LOG(ERR, "the first path is not an absolute one -- '%s'",
+				path1);
 		errno = EINVAL;
 		return NULL;
 	}
 	if (path2[0] == '/') {
-		RPMEMD_LOG(ERR, "the second path is not a relative one");
+		RPMEMD_LOG(ERR, "the second path is not a relative one -- '%s'",
+				path2);
 		errno = EINVAL;
 		return NULL;
-	}
-	if (path1[len1 - 1] == '/') {
-		s = "";
-	} else {
-		s = "/";
 	}
 
 	char *new_str = malloc(new_len);
@@ -147,7 +144,7 @@ rpmemd_db_concat(const char *path1, const char *path2)
 		return NULL;
 	}
 
-	int ret = snprintf(new_str, new_len, "%s%s%s", path1, s, path2);
+	int ret = snprintf(new_str, new_len, "%s/%s", path1, path2);
 	if (ret < 0 || (size_t)ret != new_len - 1) {
 		RPMEMD_LOG(ERR, "snprintf error");
 		free(new_str);
