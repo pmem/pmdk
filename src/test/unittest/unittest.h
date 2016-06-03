@@ -644,7 +644,7 @@ uint16_t ut_checksum(uint8_t *addr, size_t len);
 
 struct test_case {
 	const char *name;
-	void (*func)(const struct test_case *tc, int argc, char *argv[]);
+	int (*func)(const struct test_case *tc, int argc, char *argv[]);
 };
 
 /*
@@ -668,18 +668,21 @@ TEST_CASE_PROCESS(int argc, char *argv[],
 	if (argc < 2)
 		UT_FATAL("usage: %s <test case> [<args>]", argv[0]);
 
-	char *str_test = argv[1];
-	const int args_off = 2;
+	for (int i = 1; i < argc; i++) {
+		char *str_test = argv[i];
+		const int args_off = i + 1;
 
-	const struct test_case *tc = get_tc(str_test, test_cases, ntests);
-	if (!tc)
-		UT_FATAL("unknown test case -- '%s'", str_test);
+		const struct test_case *tc = get_tc(str_test,
+				test_cases, ntests);
+		if (!tc)
+			UT_FATAL("unknown test case -- '%s'", str_test);
 
-	tc->func(tc, argc - args_off, &argv[args_off]);
+		i += tc->func(tc, argc - args_off, &argv[args_off]);
+	}
 }
 
 #define TEST_CASE_DECLARE(_name)\
-void \
+int \
 _name(const struct test_case *tc, int argc, char *argv[])
 
 #define TEST_CASE(_name)\

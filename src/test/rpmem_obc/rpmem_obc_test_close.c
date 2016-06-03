@@ -106,10 +106,10 @@ client_close_errno(char *target, int ex_errno)
 /*
  * server_close_eproto -- send invalid create request responses to a client
  */
-void
+int
 server_close_eproto(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc != 1)
+	if (argc < 1)
 		UT_FATAL("usage: %s 0-%d", tc->name, CLOSE_EPROTO_COUNT);
 
 	int i = atoi(argv[0]);
@@ -144,6 +144,8 @@ server_close_eproto(const struct test_case *tc, int argc, char *argv[])
 	server_close_handle(s, &resp);
 
 	srv_fini(s);
+
+	return 1;
 }
 
 /*
@@ -176,7 +178,7 @@ client_close_error(char *target)
 /*
  * client_close -- test case for close request operation - client side
  */
-void
+int
 client_close(const struct test_case *tc, int argc, char *argv[])
 {
 	if (argc < 1)
@@ -201,15 +203,17 @@ client_close(const struct test_case *tc, int argc, char *argv[])
 	set_rpmem_cmd("server_close");
 
 	client_close_errno(target, 0);
+
+	return 1;
 }
 
 /*
  * server_close_error -- return error status in close response message
  */
-void
+int
 server_close_error(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc != 1)
+	if (argc < 1)
 		UT_FATAL("usage: %s 0-%d", tc->name, MAX_RPMEM_ERR);
 
 	enum rpmem_err e = (enum rpmem_err)atoi(argv[0]);
@@ -222,15 +226,17 @@ server_close_error(const struct test_case *tc, int argc, char *argv[])
 	server_close_handle(s, &resp);
 
 	srv_fini(s);
+
+	return 1;
 }
 
 /*
  * server_close_econnreset -- test case for closing connection - server size
  */
-void
+int
 server_close_econnreset(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc != 1)
+	if (argc < 1)
 		UT_FATAL("usage: %s 0|1", tc->name);
 
 	int do_send = atoi(argv[0]);
@@ -244,17 +250,16 @@ server_close_econnreset(const struct test_case *tc, int argc, char *argv[])
 		srv_send(s, &resp, sizeof(resp) / 2);
 
 	srv_fini(s);
+
+	return 1;
 }
 
 /*
  * server_close -- test case for close request operation - server side
  */
-void
+int
 server_close(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc != 0)
-		UT_FATAL("usage: %s", tc->name);
-
 	struct server *s = srv_init();
 
 	struct rpmem_msg_close_resp resp = CLOSE_RESP;
@@ -263,4 +268,6 @@ server_close(const struct test_case *tc, int argc, char *argv[])
 	server_close_handle(s, &resp);
 
 	srv_fini(s);
+
+	return 0;
 }
