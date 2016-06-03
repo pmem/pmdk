@@ -496,11 +496,7 @@ rpmem_obc_monitor(struct rpmem_obc *rpc, int nonblock)
 	if (!rpmem_obc_is_connected(rpc))
 		return 0;
 
-	int ret = rpmem_ssh_monitor(rpc->ssh, nonblock);
-	if (ret != 1)
-		rpmem_obc_close_conn(rpc);
-
-	return ret;
+	return rpmem_ssh_monitor(rpc->ssh, nonblock);
 }
 
 /*
