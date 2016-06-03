@@ -344,10 +344,10 @@ server_msg_args(struct rpmemd_obc *rpdc, enum conn_wait_close conn,
  * server_msg_resp -- process a message of specified type, response to client
  * with specific status value and return status of sending response function
  */
-void
+int
 server_msg_resp(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc != 2)
+	if (argc < 2)
 		UT_FATAL("usage: %s msg_type status", tc->name);
 
 	int type = atoi(argv[0]);
@@ -371,16 +371,18 @@ server_msg_resp(const struct test_case *tc, int argc, char *argv[])
 	};
 
 	server_msg_args(rpdc, CONN_WAIT_CLOSE, &args);
+
+	return 2;
 }
 
 /*
  * server_msg_noresp -- process a message of specified type, do not response to
  * client and return specific value from process callback
  */
-void
+int
 server_msg_noresp(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc != 1)
+	if (argc < 1)
 		UT_FATAL("usage: %s msg_type", tc->name);
 
 	int type = atoi(argv[0]);
@@ -402,18 +404,17 @@ server_msg_noresp(const struct test_case *tc, int argc, char *argv[])
 	};
 
 	server_msg_args(rpdc, CONN_CLOSE, &args);
+
+	return 1;
 }
 
 /*
  * server_bad_msg -- process a message and expect
  * error returned from rpmemd_obc_process function
  */
-void
+int
 server_bad_msg(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc != 0)
-		UT_FATAL("usage: %s", tc->name);
-
 	int ret;
 	struct rpmemd_obc *rpdc;
 
@@ -427,4 +428,6 @@ server_bad_msg(const struct test_case *tc, int argc, char *argv[])
 	UT_ASSERTne(ret, 0);
 
 	rpmemd_obc_fini(rpdc);
+
+	return 0;
 }
