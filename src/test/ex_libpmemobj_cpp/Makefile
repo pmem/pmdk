@@ -41,6 +41,8 @@ include ../Makefile.inc
 
 EXAMPLES=$(EX_LIBPMEMOBJ)/cpp/queue
 
+NCURSES := $(call check_package, ncurses)
+
 ifeq ($(NCURSES),y)
 EXAMPLES += $(EX_LIBPMEMOBJ)/pman/pman
 else
