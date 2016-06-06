@@ -301,9 +301,10 @@ pvector_get(PMEMobjpool *pop, struct pvector *vec, uint64_t idx)
 uint64_t
 pvector_first(struct pvector_context *ctx)
 {
-	ctx->iter = 0;
 	if (ctx->nvalues == 0)
 		return 0;
+
+	ctx->iter = 0;
 
 	return pvector_get(ctx->pop, ctx->vec, ctx->iter);
 }
