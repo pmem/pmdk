@@ -51,15 +51,9 @@ enum object_type { SNAKE_SEGMENT, WALL, FOOD };
 enum config_file_symbol { SYM_NOTHING = '0', SYM_WALL = '1' };
 enum play_state { STATE_NEW, STATE_PLAY, STATE_GAMEOVER };
 
-enum snake_event {
-	EV_OK,
-	EV_COLLISION
-};
+enum snake_event { EV_OK, EV_COLLISION };
 
-enum action {
-	ACTION_NEW_GAME = 'n',
-	ACTION_QUIT = 'q'
-};
+enum action { ACTION_NEW_GAME = 'n', ACTION_QUIT = 'q' };
 
 typedef nvml::obj::persistent_ptr<examples::list<board_element>> element_list;
 
@@ -79,7 +73,8 @@ struct parameters {
 class helper {
 public:
 	static color_pair get_color(const object_type obj_type);
-	static int parse_params(int argc, char *argv[], struct parameters *params);
+	static int parse_params(int argc, char *argv[],
+				struct parameters *params);
 	static inline void sleep(int time);
 	static inline void print_usage(std::string &name);
 };
@@ -110,10 +105,11 @@ private:
 class board_element {
 public:
 	board_element();
-	board_element(int px, int py, nvml::obj::persistent_ptr<element_shape> shape,
-		direction dir);
+	board_element(int px, int py,
+		      nvml::obj::persistent_ptr<element_shape> shape,
+		      direction dir);
 	board_element(point p, nvml::obj::persistent_ptr<element_shape> shape,
-		direction dir);
+		      direction dir);
 	board_element(const board_element &element);
 	~board_element();
 
@@ -187,8 +183,7 @@ class game_player {
 public:
 	game_player();
 	~game_player();
-	int
-	get_score(void);
+	int get_score(void);
 	void update_score(void);
 	play_state get_state(void);
 	void set_state(const play_state st);

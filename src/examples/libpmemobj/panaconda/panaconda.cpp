@@ -64,7 +64,6 @@ using nvml::obj::make_persistent;
 using nvml::obj::delete_persistent;
 using examples::list;
 
-
 /*
  * Color_pair
  */
@@ -72,7 +71,7 @@ color_pair::color_pair() : color_bg(COLOR_BLACK), color_fg(COLOR_BLACK)
 {
 }
 color_pair::color_pair(const int col_fg, const int col_bg)
-	: color_bg(col_bg), color_fg(col_fg)
+    : color_bg(col_bg), color_fg(col_fg)
 {
 }
 
@@ -95,7 +94,7 @@ helper::get_color(const object_type obj_type)
 			break;
 		default:
 			std::cout << "Error: get_color - wrong value passed!"
-				<< std::endl;
+				  << std::endl;
 			assert(0);
 	}
 	return res;
@@ -138,8 +137,7 @@ helper::sleep(int time)
 inline void
 helper::print_usage(std::string &name)
 {
-	std::cout << "Usage: " << name
-		  << " [-m <maze_path>] <pool_name>\n";
+	std::cout << "Usage: " << name << " [-m <maze_path>] <pool_name>\n";
 }
 
 /*
@@ -199,34 +197,31 @@ element_shape::get_symbol(int shape)
  * Element
  */
 board_element::board_element()
-	: position(make_persistent<point>(0, 0)),
-	  shape(make_persistent<element_shape>(SNAKE_SEGMENT)),
-	  element_dir(direction::LEFT)
+    : position(make_persistent<point>(0, 0)),
+      shape(make_persistent<element_shape>(SNAKE_SEGMENT)),
+      element_dir(direction::LEFT)
 {
 }
 
-board_element::board_element(int px, int py, nvml::obj::persistent_ptr<element_shape> shape,
-	direction dir)
-	: position(make_persistent<point>(px, py)),
-	  shape(shape),
-	  element_dir(dir)
+board_element::board_element(int px, int py,
+			     nvml::obj::persistent_ptr<element_shape> shape,
+			     direction dir)
+    : position(make_persistent<point>(px, py)), shape(shape), element_dir(dir)
 {
 }
 
-board_element::board_element(point p, nvml::obj::persistent_ptr<element_shape> shape,
-	direction dir)
-	: position(make_persistent<point>(p.x, p.y)),
-	  shape(shape),
-	  element_dir(dir)
+board_element::board_element(point p,
+			     nvml::obj::persistent_ptr<element_shape> shape,
+			     direction dir)
+    : position(make_persistent<point>(p.x, p.y)), shape(shape), element_dir(dir)
 {
 }
 
 board_element::board_element(const board_element &element)
 {
 	position = make_persistent<point>(element.position->x,
-						   element.position->y);
-	shape = make_persistent<element_shape>(
-		element.shape->get_val());
+					  element.position->y);
+	shape = make_persistent<element_shape>(element.shape->get_val());
 }
 
 board_element::~board_element()
@@ -314,9 +309,10 @@ snake::snake()
 	for (unsigned i = 0; i < SNAKE_STAR_SEG_NO; ++i) {
 		persistent_ptr<element_shape> shape =
 			make_persistent<element_shape>(SNAKE_SEGMENT);
-		persistent_ptr<board_element> element = make_persistent<board_element>(
-			SNAKE_START_POS_X - i, SNAKE_START_POS_Y, shape,
-			SNAKE_START_DIR);
+		persistent_ptr<board_element> element =
+			make_persistent<board_element>(SNAKE_START_POS_X - i,
+						       SNAKE_START_POS_Y, shape,
+						       SNAKE_START_DIR);
 		snake_segments->push_back(element);
 	}
 
@@ -370,9 +366,10 @@ snake::print(void)
 void
 snake::add_segment(void)
 {
-	persistent_ptr<element_shape> shape = make_persistent<element_shape>(SNAKE_SEGMENT);
-	persistent_ptr<board_element> segp =
-		make_persistent<board_element>(last_seg_position, shape, last_seg_dir);
+	persistent_ptr<element_shape> shape =
+		make_persistent<element_shape>(SNAKE_SEGMENT);
+	persistent_ptr<board_element> segp = make_persistent<board_element>(
+		last_seg_position, shape, last_seg_dir);
 	snake_segments->push_back(segp);
 }
 
@@ -416,8 +413,10 @@ snake::get_next_point(const direction dir)
 
 game_board::game_board()
 {
-	persistent_ptr<element_shape> shape = make_persistent<element_shape>(FOOD);
-	food = make_persistent<board_element>(0, 0, shape, direction::UNDEFINED);
+	persistent_ptr<element_shape> shape =
+		make_persistent<element_shape>(FOOD);
+	food = make_persistent<board_element>(0, 0, shape,
+					      direction::UNDEFINED);
 	layout = make_persistent<list<board_element>>();
 	anaconda = make_persistent<snake>();
 	size_row = 20;
@@ -509,11 +508,11 @@ game_board::creat_static_layout(void)
 	for (unsigned i = 0; i < size_col; ++i) {
 		shape = make_persistent<element_shape>(WALL);
 		element = make_persistent<board_element>(i, 0, shape,
-						   direction::UNDEFINED);
+							 direction::UNDEFINED);
 		layout->push_back(element);
 		shape = make_persistent<element_shape>(WALL);
-		element = make_persistent<board_element>(i, (size_row - 1), shape,
-						   direction::UNDEFINED);
+		element = make_persistent<board_element>(
+			i, (size_row - 1), shape, direction::UNDEFINED);
 		layout->push_back(element);
 	}
 
@@ -521,11 +520,11 @@ game_board::creat_static_layout(void)
 	for (unsigned i = 1; i < size_row; ++i) {
 		shape = make_persistent<element_shape>(WALL);
 		element = make_persistent<board_element>(0, i, shape,
-						   direction::UNDEFINED);
+							 direction::UNDEFINED);
 		layout->push_back(element);
 		shape = make_persistent<element_shape>(WALL);
-		element = make_persistent<board_element>((size_col - 1), i, shape,
-						   direction::UNDEFINED);
+		element = make_persistent<board_element>(
+			(size_col - 1), i, shape, direction::UNDEFINED);
 		layout->push_back(element);
 	}
 	return 0;
@@ -574,9 +573,11 @@ game_board::is_snake_head_food_hit(void)
 void
 game_board::set_new_food(const point point)
 {
-	persistent_ptr<element_shape> shape = make_persistent<element_shape>(FOOD);
+	persistent_ptr<element_shape> shape =
+		make_persistent<element_shape>(FOOD);
 	delete_persistent<board_element>(food);
-	food = make_persistent<board_element>(point, shape, direction::UNDEFINED);
+	food = make_persistent<board_element>(point, shape,
+					      direction::UNDEFINED);
 }
 
 void
@@ -742,7 +743,7 @@ game::game(struct parameters *par)
 		pop = pool<game_state>::open(params->name, LAYOUT_NAME);
 	else
 		pop = pool<game_state>::create(params->name, LAYOUT_NAME,
-					      PMEMOBJ_MIN_POOL * 10, 0666);
+					       PMEMOBJ_MIN_POOL * 10, 0666);
 
 	state = pop;
 	direction_key = direction::UNDEFINED;
@@ -811,7 +812,8 @@ game::process_step(void)
 		transaction::exec_tx(state, [&]() {
 			ret_event = r->get_board()->move_snake(direction_key);
 			if (EV_COLLISION == ret_event) {
-				r->get_player()->set_state(play_state::STATE_GAMEOVER);
+				r->get_player()->set_state(
+					play_state::STATE_GAMEOVER);
 				return;
 			} else {
 				if (r->get_board()->is_snake_head_food_hit()) {
