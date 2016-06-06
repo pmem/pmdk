@@ -47,10 +47,6 @@
  *
  *	SFENCE to ensure the CLWBs above have completed.
  *
- *	PCOMMIT to mark pmem stores in the memory subsystem.
- *
- *	SFENCE to ensure the stores marked by PCOMMIT above have completed.
- *
  * To flush a range to pmem when CLFLUSHOPT is available and CLWB is not
  * (same as above but issue CLFLUSHOPT instead of CLWB):
  *
@@ -58,38 +54,23 @@
  *
  *	SFENCE to ensure the CLWBs above have completed.
  *
- *	PCOMMIT to mark pmem stores in the memory subsystem.
- *
- *	SFENCE to ensure the stores marked by PCOMMIT above have completed.
- *
  * To flush a range to pmem when neither CLFLUSHOPT or CLWB are available
  * (same as above but fences surrounding CLFLUSH are not required):
  *
  *	CLFLUSH for each cache line in the given range.
  *
- *	PCOMMIT to mark pmem stores in the memory subsystem.
- *
- *	SFENCE to ensure the stores marked by PCOMMIT above have completed.
- *
- * To flush a range to pmem when the caller has explicitly assumed
- * responsibility for draining HW stores in the memory subsystem
- * (by choosing to depend on ADR, or by assuming responsibility to issue
- * PCOMMIT/SFENCE at some point):
- *
- *	Same as above flows but omit the final PCOMMIT and SFENCE.
- *
  * To memcpy a range of memory to pmem when MOVNT is available:
  *
  *	Copy any non-64-byte portion of the destination using MOV.
  *
- *	Use the non-PCOMMIT flush flow above for the copied portion.
+ *	Use the flush flow above without the fence for the copied portion.
  *
  *	Copy using MOVNTDQ, up to any non-64-byte aligned end portion.
  *	(The MOVNT instructions bypass the cache, so no flush is required.)
  *
  *	Copy any unaligned end portion using MOV.
  *
- *	Use the flush flow above for the copied portion (including PCOMMIT).
+ *	Use the flush flow above for the copied portion (including fence).
  *
  * To memcpy a range of memory to pmem when MOVNT is not available:
  *
@@ -117,18 +98,6 @@
  * pmem_flush(addr, len)
  *
  *	CLWB or CLFLUSHOPT or CLFLUSH for each cache line
- *
- * pmem_drain()
- *
- *	SFENCE unless using CLFLUSH
- *
- *	PCOMMIT
- *
- *	SFENCE
- *
- * When PCOMMIT is unavailable, either because the platform doesn't support it
- * or because it has been inhibited by the caller by setting PMEM_NO_PCOMMIT=1,
- * the pmem_drain() function degenerates into this:
  *
  * pmem_drain()
  *
@@ -172,10 +141,6 @@
  *	Func_predrain_fence is used by pmem_drain() to call one of:
  *		predrain_fence_empty()
  *		predrain_fence_sfence()
- *
- *	Func_drain is used by pmem_drain() to call one of:
- *		drain_no_pcommit()
- *		drain_pcommit()
  *
  *	Func_flush is used by pmem_flush() to call one of:
  *		flush_clwb()
@@ -226,8 +191,6 @@
 	asm volatile(".byte 0x66; clflush %0" : "+m" (*(volatile char *)addr));
 #define _mm_clwb(addr)\
 	asm volatile(".byte 0x66; xsaveopt %0" : "+m" (*(volatile char *)addr));
-#define _mm_pcommit()\
-	asm volatile(".byte 0x66, 0x0f, 0xae, 0xf8");
 
 #endif /* _MSC_VER */
 
@@ -250,15 +213,16 @@
 #define MOVNT_THRESHOLD	256
 
 static size_t Movnt_threshold = MOVNT_THRESHOLD;
-static int Has_hw_drain;
 
 /*
- * pmem_has_hw_drain -- return whether or not HW drain (PCOMMIT) was found
+ * pmem_has_hw_drain -- return whether or not HW drain was found
+ *
+ * Always false for x86: HW drain is done by HW with no SW involvement.
  */
 int
 pmem_has_hw_drain(void)
 {
-	return Has_hw_drain;
+	return 0;
 }
 
 /*
@@ -281,7 +245,7 @@ predrain_fence_sfence(void)
 {
 	LOG(15, NULL);
 
-	_mm_sfence();	/* ensure CLWB or CLFLUSHOPT completes before PCOMMIT */
+	_mm_sfence();	/* ensure CLWB or CLFLUSHOPT completes */
 }
 
 /*
@@ -294,43 +258,6 @@ predrain_fence_sfence(void)
 static void (*Func_predrain_fence)(void) = predrain_fence_empty;
 
 /*
- * drain_no_pcommit -- (internal) wait for PM stores to drain, empty version
- */
-static void
-drain_no_pcommit(void)
-{
-	LOG(15, NULL);
-
-	Func_predrain_fence();
-
-	VALGRIND_DO_COMMIT;
-	VALGRIND_DO_FENCE;
-	/* caller assumed responsibility for the rest */
-}
-
-/*
- * drain_pcommit -- (internal) wait for PM stores to drain, pcommit version
- */
-static void
-drain_pcommit(void)
-{
-	LOG(15, NULL);
-
-	Func_predrain_fence();
-	_mm_pcommit();
-	_mm_sfence();
-}
-
-/*
- * pmem_drain() calls through Func_drain to do the work.  Although
- * initialized to drain_no_pcommit(), once the existence of the pcommit
- * feature is confirmed by pmem_init() at library initialization time,
- * Func_drain is set to drain_pcommit().  That's the most common case
- * on modern hardware that supports persistent memory.
- */
-static void (*Func_drain)(void) = drain_no_pcommit;
-
-/*
  * pmem_drain -- wait for any PM stores to drain from HW buffers
  */
 void
@@ -338,7 +265,10 @@ pmem_drain(void)
 {
 	LOG(10, NULL);
 
-	Func_drain();
+	Func_predrain_fence();
+
+	VALGRIND_DO_COMMIT;
+	VALGRIND_DO_FENCE;
 }
 
 /*
@@ -474,7 +404,7 @@ pmem_msync(const void *addr, size_t len)
 
 	VALGRIND_DO_ENABLE_ERROR_REPORTING;
 
-	/* full flush, commit */
+	/* full flush */
 	VALGRIND_DO_PERSIST(uptr, len);
 
 	return ret;
@@ -1146,25 +1076,6 @@ pmem_get_cpuinfo(void)
 		LOG(3, "using clflushopt");
 	else if (Func_flush == flush_clflush)
 		LOG(3, "using clflush");
-	else
-		ASSERT(0);
-
-	if (is_cpu_pcommit_present()) {
-		LOG(3, "pcommit supported");
-
-		char *e = getenv("PMEM_NO_PCOMMIT");
-		if (e && strcmp(e, "1") == 0)
-			LOG(3, "PMEM_NO_PCOMMIT forced no pcommit");
-		else {
-			Func_drain = drain_pcommit;
-			Has_hw_drain = 1;
-		}
-	}
-
-	if (Func_drain == drain_pcommit)
-		LOG(3, "using pcommit");
-	else if (Func_drain == drain_no_pcommit)
-		LOG(3, "not using pcommit");
 	else
 		ASSERT(0);
 

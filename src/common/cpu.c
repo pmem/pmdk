@@ -94,10 +94,6 @@ cpuid(unsigned func, unsigned subfunc, unsigned cpuinfo[4])
 #define bit_CLFLUSH	(1 << 23)
 #endif
 
-#ifndef bit_PCOMMIT
-#define bit_PCOMMIT	(1 << 22)
-#endif
-
 #ifndef bit_CLFLUSHOPT
 #define bit_CLFLUSHOPT	(1 << 23)
 #endif
@@ -189,7 +185,7 @@ is_cpu_clflushopt_present(void)
 }
 
 /*
- * is_cpu_pcommit_present -- checks if CLWB instruction is supported
+ * is_cpu_clwb_present -- checks if CLWB instruction is supported
  */
 int
 is_cpu_clwb_present(void)
@@ -199,21 +195,6 @@ is_cpu_clwb_present(void)
 
 	int ret = is_cpu_feature_present(0x7, EBX_IDX, bit_CLWB);
 	LOG(4, "CLWB %ssupported", ret == 0 ? "not " : "");
-
-	return ret;
-}
-
-/*
- * is_cpu_pcommit_present -- checks if PCOMMIT instruction is supported
- */
-int
-is_cpu_pcommit_present(void)
-{
-	if (!is_cpu_genuine_intel())
-		return 0;
-
-	int ret = is_cpu_feature_present(0x7, EBX_IDX, bit_PCOMMIT);
-	LOG(4, "PCOMMIT %ssupported", ret == 0 ? "not " : "");
 
 	return ret;
 }
