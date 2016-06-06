@@ -767,7 +767,8 @@ tx_rebuild_undo_runtime(PMEMobjpool *pop, struct lane_tx_layout *layout,
 
 	int i;
 	for (i = UNDO_ALLOC; i < MAX_UNDO_TYPES; ++i) {
-		tx_rt->ctx[i] = pvector_init(pop, &layout->undo_log[i]);
+		if (tx_rt->ctx[i] == NULL)
+			tx_rt->ctx[i] = pvector_init(pop, &layout->undo_log[i]);
 
 		if (tx_rt->ctx[i] == NULL)
 			goto error_init;
@@ -803,8 +804,8 @@ tx_post_commit(PMEMobjpool *pop, struct lane_tx_layout *layout, int recovery)
 	LOG(3, NULL);
 
 	struct tx_undo_runtime *tx_rt;
+	struct tx_undo_runtime new_rt = { .ctx = {NULL, } };
 	if (recovery) {
-		struct tx_undo_runtime new_rt;
 		if (tx_rebuild_undo_runtime(pop, layout, &new_rt) != 0)
 			FATAL("!Cannot rebuild runtime undo log state");
 
@@ -857,8 +858,8 @@ tx_abort(PMEMobjpool *pop, struct lane_tx_layout *layout, int recovery)
 	LOG(3, NULL);
 
 	struct tx_undo_runtime *tx_rt;
+	struct tx_undo_runtime new_rt = { .ctx = {NULL, } };
 	if (recovery) {
-		struct tx_undo_runtime new_rt;
 		if (tx_rebuild_undo_runtime(pop, layout, &new_rt) != 0)
 			FATAL("!Cannot rebuild runtime undo log state");
 
@@ -1357,7 +1358,6 @@ pmemobj_tx_end()
 		ASSERT(pvector_nvalues(lane->undo.ctx[UNDO_FREE]) == 0 ||
 			pvector_nvalues(lane->undo.ctx[UNDO_FREE]) == 1);
 
-		tx_destroy_undo_runtime(&lane->undo);
 		tx.stage = TX_STAGE_NONE;
 		release_and_free_tx_locks(lane);
 		lane_release(lane->pop);
@@ -1862,6 +1862,12 @@ lane_transaction_construct(PMEMobjpool *pop, struct lane_section *section)
 	if (section->runtime == NULL)
 		return ENOMEM;
 
+	/*
+	 * Lane construction is executed before recovery so it's important
+	 * to keep in mind that any volatile state that could have been
+	 * initialized here might be invalid once the recovery finishes.
+	 */
+
 	return 0;
 }
 
@@ -1871,6 +1877,9 @@ lane_transaction_construct(PMEMobjpool *pop, struct lane_section *section)
 static void
 lane_transaction_destruct(PMEMobjpool *pop, struct lane_section *section)
 {
+	struct lane_tx_runtime *lane =
+		(struct lane_tx_runtime *)section->runtime;
+	tx_destroy_undo_runtime(&lane->undo);
 	Free(section->runtime);
 }
 
