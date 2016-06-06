@@ -50,8 +50,6 @@ $Env:NON_PMEM_IS_PMEM = $true
 # standard unit test setup
 . ..\unittest\unittest.ps1
 
-require_fs_type any
-
 setup
 
 #
@@ -67,6 +65,7 @@ setup
 # out some of these temp files.  Even though they are
 # sparse Windows still won't let you overcommit
 #
+
 create_holey_file 2 $DIR\testfile1
 create_holey_file 2048 $DIR\testfile2.512
 create_holey_file 2048 $DIR\testfile2.520

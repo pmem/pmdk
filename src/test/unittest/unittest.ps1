@@ -423,7 +423,7 @@ function require_binary() {
 #
 function check {
     #	../match $(find . -regex "[^0-9]*${UNITTEST_NUM}\.log\.match" | xargs)
-    [string]$listing = Get-ChildItem -File | Where-Object  {$_.Name -match "[^0-9]\w${env:UNITTEST_NUM}.log.match"}
+    [string]$listing = Get-ChildItem -File | Where-Object  {$_.Name -match "[^0-9]${env:UNITTEST_NUM}.log.match"}
     if ($listing) {
         $p = start-process -PassThru -Wait -NoNewWindow -FilePath perl -ArgumentList '..\..\..\src\test\match', $listing
         if ($p.ExitCode -eq 0) {
@@ -493,10 +493,9 @@ function check_file {
 function check_files {
 	for ($i=0;$i -lt $args.count;$i++) {
         if (-Not (check_file $args[$i])) {
-            return $false
+            Write-Error "File $args[$i] does not exist"
         }
     }
-    return $true
 }
 
 #
@@ -697,10 +696,16 @@ function setup {
     $Env:LC_ALL = "C"
 
     # fs type "none" must be explicitly enabled
-	if ($Env:FS -eq "none" -and $req_fs_type -ne "1") { exit 0 }
+	if ($Env:FS -eq "none" -and $req_fs_type -ne "1") {
+        Write-Host "SKIP: FS type 'none' (not explicitly enabled)"
+        exit 0
+    }
 
 	# fs type "any" must be explicitly enabled
-	if ($Env:FS -eq "any" -and $req_fs_type -ne "1") { exit 0 }
+	if ($Env:FS -eq "any" -and $req_fs_type -ne "1") {
+        Write-Host "SKIP: FS type 'any' (not explicitly enabled)"
+        exit 0
+    }
 
     # XXX: don't think we have a memcheck eq for windows yet but
     # will leave the logic in here in case we find something to use
@@ -816,7 +821,7 @@ if ($DIR) {
 } else {
     $tail = "\" + $curtestdir + $Env:UNITTEST_NUM
     # choose based on FS env variable
-    switch -regex ($Env:FS) {
+    switch ($Env:FS) {
         'local' { sv -Name DIR ($LOCAL_FS_DIR + $tail) }
         'pmem' { sv -Name DIR ($PMEM_FS_DIR + $tail)
                  if ($PMEM_FS_DIR_FORCE_PMEM) {
@@ -826,11 +831,13 @@ if ($DIR) {
         'non-pmem' { sv -Name DIR ($NON_PMEM_FS_DIR + $tail) }
         'any' { if ($PMEM_FS_DIR) {
                     sv -Name DIR ($PMEM_FS_DIR + $tail)
+                    $REAL_FS='pmem'
                     if ($PMEM_FS_DIR_FORCE_PMEM) {
                         $Env:PMEM_IS_PMEM_FORCE = 1
                     }
                 } ElseIf ($NON_PMEM_FS_DIR) {
                     sv -Name DIR ($NON_PMEM_FS_DIR + $tail)
+                    $REAL_FS='non-pmem'
                 } Else {
                 	Write-Error "$UNITTEST_NAME :  fs-type=any and both env vars are empty"
 	                exit 1
@@ -838,7 +845,7 @@ if ($DIR) {
               }
         'none' {
             # hmmm, bash is: DIR=/dev/null/not_existing_dir/$curtestdir$UNITTEST_NUM
-            sv -Name DIR ($null + "\not_existing_dir" + $tail) }
+            sv -Name DIR "c:\temp" }
         default {
             if (-Not (Test-Path Env:UNITTEST_QUIET)) {
                 Write-Host "$UNITTEST_NAME SKIP fs-type $Env:FS (not configured)"
