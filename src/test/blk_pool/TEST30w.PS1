@@ -29,7 +29,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# src/test/blk_nblock/TEST0 -- unit test for pmemblk_nblock
+# src/test/blk_pool/TEST30 -- unit test for pmemblk_create
 #
 #
 # parameter handling
@@ -39,8 +39,9 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "blk_nblock\TEST0w"
-$Env:UNITTEST_NUM = "0w"
+
+$Env:UNITTEST_NAME = "blk_pool\TEST30w"
+$Env:UNITTEST_NUM = "30w"
 # XXX:  bash has a few calls to tools that we don't have on
 # windows (yet) that set PMEM_IS_PMEM and NON_PMEM_IS_PMEM based
 # on their output
@@ -50,57 +51,38 @@ $Env:NON_PMEM_IS_PMEM = $true
 # standard unit test setup
 . ..\unittest\unittest.ps1
 
-require_fs_type any
-
 setup
 
 #
-# Create a gajillion files, each file size created
-# has six versions for the six block sizes being tested.
-# Except for testfile1, since that should fail because
-# it is too small.
+# TEST30 existing file, file size >= min required size, bsize == 300
+#        (pool set with replica section)
 #
-# These are holey files, so they actually don't take up
-# any significant space.
-#
-# If you run out of disk space you may have to comment
-# out some of these temp files.  Even though they are
-# sparse Windows still won't let you overcommit
-#
-create_holey_file 2 $DIR\testfile1
-create_holey_file 2048 $DIR\testfile2.512
-create_holey_file 2048 $DIR\testfile2.520
-create_holey_file 2048 $DIR\testfile2.528
-create_holey_file 2048 $DIR\testfile2.4096
-create_holey_file 2048 $DIR\testfile2.4160
-create_holey_file 2048 $DIR\testfile2.4224
+# XXX fix one we figure out windows poolsets and $PMEMSPOL tool(?)
+echo "XXX" > out30w.log
 
-#
-# Larger file coverage is provided on the linux side
-# we don't have the ability to test really large files
-# with Windows
-#
+#expect_normal_exit ..\..\x64\debug\blk_pool$Env:EXESUFFIX `
+#    c $DIR\testfile1 300 20 0640
 
-# MINIMUM POOL SIZE = 16MB + 8KB
-$MIN_POOL_SIZE = "16+8"
-create_holey_file $MIN_POOL_SIZE $DIR\testfile7.512
-create_holey_file $MIN_POOL_SIZE $DIR\testfile7.520
-create_holey_file $MIN_POOL_SIZE $DIR\testfile7.528
-create_holey_file $MIN_POOL_SIZE $DIR\testfile7.4096
-create_holey_file $MIN_POOL_SIZE $DIR\testfile7.4160
-create_holey_file $MIN_POOL_SIZE $DIR\testfile7.4224
+#cp $DIR\testfile1 $DIR\testfile2
 
-# should fail:
-#   512:$DIR\testfile1 (file is too small)
-#   4096:$DIR\testfile2.512 (bsize doesn't match pool)
-expect_normal_exit ..\..\x64\debug\blk_nblock$Env:EXESUFFIX `
-    512:$DIR\testfile1 `
-    512:$DIR\testfile2.512 `
-    4096:$DIR\testfile2.512 `
-    520:$DIR\testfile2.520 `
-    528:$DIR\testfile2.528 `
-    4096:$DIR\testfile2.4096 `
-    4160:$DIR\testfile2.4160 `
+#$PMEMSPOIL $DIR/testfile1 pool_hdr.uuid=1111111111111111 \
+#	pool_hdr.next_part_uuid=1111111111111111 \
+#	pool_hdr.prev_part_uuid=1111111111111111 \
+#	pool_hdr.next_repl_uuid=2222222222222222 \
+#	pool_hdr.prev_repl_uuid=2222222222222222 \
+#	"pool_hdr.checksum_gen()"
+
+#$PMEMSPOIL $DIR\testfile2 pool_hdr.uuid=2222222222222222 \
+#	pool_hdr.next_part_uuid=2222222222222222 \
+#	pool_hdr.prev_part_uuid=2222222222222222 \
+#	pool_hdr.next_repl_uuid=1111111111111111 \
+#	pool_hdr.prev_repl_uuid=1111111111111111 \
+#	"pool_hdr.checksum_gen()"
+
+#create_poolset $DIR\testset 20M:$DIR\testfile1 R 20M:$DIR\testfile2
+
+#expect_normal_exit ..\..\x64\debug\blk_pool$Env:EXESUFFIX `
+#    c $DIR\testset 300
 
 # check will print the appropriate pass/fail message
 check
