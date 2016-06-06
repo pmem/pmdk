@@ -3479,14 +3479,14 @@ but it may be modified by subsequent calls to other library functions.
 A second version of
 .BR libpmemobj ,
 accessed when a program uses the libraries under
-.BR /usr/lib/nvml_debug ,
+.BR /usr/local/lib/nvml_debug ,
 contains run-time assertions and trace points.
 The typical way to access the debug version is to set the environment variable
 .B LD_LIBRARY_PATH
 to
-.B /usr/lib/nvml_debug
+.B /usr/local/lib/nvml_debug
 or
-.B /usr/lib64/nvml_debug
+.B /usr/local/lib64/nvml_debug
 depending on where the debug libraries are installed on the system.
 The trace points in the debug version of the library
 are enabled using the environment variable
