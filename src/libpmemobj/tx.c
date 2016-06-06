@@ -549,18 +549,17 @@ tx_foreach_set(PMEMobjpool *pop, struct tx_undo_runtime *tx_rt,
 
 	struct tx_range *range = NULL;
 	uint64_t off;
-	for (off = pvector_first(tx_rt->ctx[UNDO_SET]); off != 0;
-		off = pvector_next(tx_rt->ctx[UNDO_SET])) {
-
+	struct pvector_context *ctx = tx_rt->ctx[UNDO_SET];
+	for (off = pvector_first(ctx); off != 0; off = pvector_next(ctx)) {
 		range = OBJ_OFF_TO_PTR(pop, off);
 		cb(pop, range);
 	}
 
 	struct tx_range_cache *cache;
-	for (off = pvector_first(tx_rt->ctx[UNDO_SET_CACHE]); off != 0;
-		off = pvector_next(tx_rt->ctx[UNDO_SET_CACHE])) {
-
+	ctx = tx_rt->ctx[UNDO_SET_CACHE];
+	for (off = pvector_first(ctx); off != 0; off = pvector_next(ctx)) {
 		cache = OBJ_OFF_TO_PTR(pop, off);
+
 		for (int i = 0; i < MAX_CACHED_RANGES; ++i) {
 			range = (struct tx_range *)&cache->range[i];
 			if (range->offset == 0 || range->size == 0)
