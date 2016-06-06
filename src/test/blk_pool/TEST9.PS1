@@ -29,7 +29,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# src/test/blk_nblock/TEST2 -- unit test for pmemblk_nblock
+# src/test/blk_pool/TEST9 -- unit test for pmemblk_create
 #
 #
 # parameter handling
@@ -39,8 +39,9 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "blk_nblock\TEST2w"
-$Env:UNITTEST_NUM = "2w"
+
+$Env:UNITTEST_NAME = "blk_pool\TEST9"
+$Env:UNITTEST_NUM = "9"
 # XXX:  bash has a few calls to tools that we don't have on
 # windows (yet) that set PMEM_IS_PMEM and NON_PMEM_IS_PMEM based
 # on their output
@@ -50,22 +51,15 @@ $Env:NON_PMEM_IS_PMEM = $true
 # standard unit test setup
 . ..\unittest\unittest.ps1
 
-require_fs_type any
-
 setup
 
-create_poolset $DIR\testset1 1024:$DIR\testfile11:x
-# XXX need to figure out issues with mapping poolsets with windows
-echo "XXX" > out2w.log
+#
+# TEST9 non-existing file, poolsize < min required size
+#
+expect_normal_exit ..\..\x64\debug\blk_pool$Env:EXESUFFIX `
+    c $DIR\testfile 4096 1 0640
 
-#create_poolset $DIR\testset2 1024:$DIR\testfile21:x 1024:$DIR\testfile22:x
-
-#expect_normal_exit ..\..\x64\debug\blk_nblock$Env:EXESUFFIX `
-#    512:$DIR\testset1 `
-#    512:$DIR\testset2
-
-#check_pools $DIR\testset1 `
-#	$DIR\testset2
+check_no_files $DIR\testfile
 
 # check will print the appropriate pass/fail message
 check

@@ -124,7 +124,13 @@ typedef struct stat ut_util_stat_t;
 #else
 typedef struct _stat64 ut_util_stat_t;
 #define ut_util_fstat	_fstat64
-#define ut_util_stat	_stat64
+static inline int ut_util_stat(const char *path,
+	ut_util_stat_t *st_bufp) {
+	int retVal = _stat64(path, st_bufp);
+	/* clear unused bits to avoid confusion */
+	st_bufp->st_mode &= 0600;
+	return retVal;
+}
 #define ut_util_lseek	_lseeki64
 #endif
 
