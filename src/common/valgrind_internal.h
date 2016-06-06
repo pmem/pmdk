@@ -147,16 +147,9 @@ extern unsigned _On_valgrind;
 		VALGRIND_PMC_DO_FENCE;\
 } while (0)
 
-#define VALGRIND_DO_COMMIT do {\
-	if (On_valgrind)\
-		VALGRIND_PMC_DO_COMMIT;\
-} while (0)
-
 #define VALGRIND_DO_PERSIST(addr, len) do {\
 	if (On_valgrind) {\
 		VALGRIND_PMC_DO_FLUSH((addr), (len));\
-		VALGRIND_PMC_DO_FENCE;\
-		VALGRIND_PMC_DO_COMMIT;\
 		VALGRIND_PMC_DO_FENCE;\
 	}\
 } while (0)

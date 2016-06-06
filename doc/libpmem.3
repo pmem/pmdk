@@ -37,7 +37,7 @@
 .\" or
 .\"	groff -man -Tascii libpmem.3
 .\"
-.TH libpmem 3 "pmem API version 1.0.0" "NVM Library"
+.TH libpmem 3 "pmem API version 1.0.1" "NVM Library"
 .SH NAME
 libpmem \- persistent memory support library
 .SH SYNOPSIS
@@ -418,42 +418,26 @@ for each range and then follow up by
 calling
 .BR pmem_drain ()
 once.
-.IP
-NOTE: Some software is designed for custom platforms that obviate the
-need for using PCOMMIT (perhaps the platform issues PCOMMIT on shutdown
-or something similar).  Even in such cases, it is recommended that
-applications using
-.B libpmem
-do not skip the step of calling
-.BR pmem_drain (),
-either directly or by using
-.BR pmem_persist ().
-The recommended way to inhibit use of the PCOMMIT instruction is
-by setting the
-.B PMEM_NO_PCOMMIT
-environment variable as described in the
-.B ENVIRONMENT VARIABLES
-section.
 .PP
 .BI "int pmem_has_hw_drain(void);"
 .IP
 The
 .BR pmem_has_hw_drain ()
-function returns true if the machine supports the
+function returns true if the machine supports an explicit
 .I hardware drain
-function for persistent memory, such as that provided by the
-.B PCOMMIT
-instruction on Intel processors.  If support for hardware drain
-is not found, or cannot be detected by the library,
-.BR pmem_has_hw_drain ()
-will return false.  Although it is typically an administrative task
-to provide the correct platform configuration for persistent memory,
-this function is provided for the less common cases where an application
-needs to ensure this feature is available.  Note that the lack of this
-feature means that calling
+instruction for persistent memory.  On Intel processors with
+persistent memory, stores to persistent memory are considered
+persistent once they are flushed from the CPU caches, so this
+function always returns false.  Despite that, programs using
+.BR pmem_flush ()
+to flush ranges of memory should still follow up by calling
+.BR pmem_drain ()
+once to ensure the flushes are complete.  As mentioned above,
 .BR pmem_persist ()
-may not fully ensure stores are durable, without additional platform
-features such as Asynchronous DRAM Refresh (ADR) or something similar.
+handles calling both
+.BR pmem_flush ()
+and
+.BR pmem_drain ().
 .SH COPYING TO PERSISTENT MEMORY
 .PP
 The functions in this section provide optimized copying to
@@ -704,17 +688,6 @@ to 1 causes
 to always return true.  This variable is mostly used for testing
 but can be used to force pmem behavior on a system where a range
 of pmem is not detectable as pmem for some reason.
-.PP
-.B PMEM_NO_PCOMMIT=1
-.IP
-Setting this environment variable to 1 forces
-.B libpmem
-to never issue the Intel PCOMMIT instruction.  This can be used on
-platforms where the hardware drain function
-is performed some other way, like automatic flushing during a power failure.
-.IP
-WARNING: Using this environment variable incorrectly
-may impact program correctness.
 .PP
 .B PMEM_NO_CLWB=1
 .IP

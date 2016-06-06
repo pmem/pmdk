@@ -49,8 +49,6 @@
 	asm volatile(".byte 0x66; clflush %0" : "+m" (*(volatile char *)addr));
 #define _mm_clwb(addr)\
 	asm volatile(".byte 0x66; xsaveopt %0" : "+m" (*(volatile char *)addr));
-#define _mm_pcommit()\
-	asm volatile(".byte 0x66, 0x0f, 0xae, 0xf8");
 
 static char Buf[32];
 
@@ -92,13 +90,6 @@ check_cpu_features(void)
 		_mm_clwb(Buf);
 	} else {
 		UT_OUT("CLWB not supported");
-	}
-
-	if (is_cpu_pcommit_present()) {
-		UT_OUT("PCOMMIT supported");
-		_mm_pcommit();
-	} else {
-		UT_OUT("PCOMMIT not supported");
 	}
 }
 
