@@ -333,6 +333,40 @@ tx_free_vec_entry(PMEMobjpool *pop, uint64_t *entry)
 }
 
 /*
+ * tx_clear_undo_log_vg -- (internal) tell Valgrind about removal from undo log
+ */
+static void
+tx_clear_undo_log_vg(PMEMobjpool *pop, uint64_t off, enum tx_clr_flag flags)
+{
+#ifdef USE_VG_PMEMCHECK
+	if (!On_valgrind)
+		return;
+
+	/*
+	 * Clean the valgrind state of the underlying memory for
+	 * allocated objects in the undo log, so that not-persisted
+	 * modifications after abort are not reported.
+	 */
+	if (flags & TX_CLR_FLAG_VG_CLEAN) {
+		struct oob_header *oobh = OOB_HEADER_FROM_OFF(pop, off);
+		size_t size = pmalloc_usable_size(pop, off);
+
+		VALGRIND_SET_CLEAN(oobh, size);
+	}
+
+	if (flags & TX_CLR_FLAG_VG_TX_REMOVE) {
+		/*
+		 * This function can be called from transaction
+		 * recovery, so in such case pmemobj_alloc_usable_size
+		 * is not yet available. Use pmalloc version.
+		 */
+		size_t size = pmalloc_usable_size(pop, off) - OBJ_OOB_SIZE;
+		VALGRIND_REMOVE_FROM_TX(OBJ_OFF_TO_PTR(pop, off), size);
+	}
+#endif
+}
+
+/*
  * tx_clear_undo_log -- (internal) clear undo log pointed by head
  */
 static void
@@ -349,30 +383,8 @@ tx_clear_undo_log(PMEMobjpool *pop, struct pvector_context *undo,
 			continue;
 		}
 
-#ifdef USE_VG_PMEMCHECK
-		/*
-		 * Clean the valgrind state of the underlying memory for
-		 * allocated objects in the undo log, so that not-persisted
-		 * modifications after abort are not reported.
-		 */
-		if (flags & TX_CLR_FLAG_VG_CLEAN) {
-			struct oob_header *oobh = OOB_HEADER_FROM_OFF(pop, val);
-			size_t size = pmalloc_usable_size(pop, val);
+		tx_clear_undo_log_vg(pop, val, flags);
 
-			VALGRIND_SET_CLEAN(oobh, size);
-		}
-		if (flags & TX_CLR_FLAG_VG_TX_REMOVE) {
-			/*
-			 * This function can be called from transaction
-			 * recovery, so in such case pmemobj_alloc_usable_size
-			 * is not yet available. Use pmalloc version.
-			 */
-			size_t size = pmalloc_usable_size(pop,
-					val) - OBJ_OOB_SIZE;
-			VALGRIND_REMOVE_FROM_TX(OBJ_OFF_TO_PTR(pop, val),
-					size);
-		}
-#endif
 		if (flags & TX_CLR_FLAG_FREE) {
 			pvector_pop_back(undo, tx_free_vec_entry);
 		} else {
@@ -537,18 +549,17 @@ tx_foreach_set(PMEMobjpool *pop, struct tx_undo_runtime *tx_rt,
 
 	struct tx_range *range = NULL;
 	uint64_t off;
-	for (off = pvector_first(tx_rt->ctx[UNDO_SET]); off != 0;
-		off = pvector_next(tx_rt->ctx[UNDO_SET])) {
-
+	struct pvector_context *ctx = tx_rt->ctx[UNDO_SET];
+	for (off = pvector_first(ctx); off != 0; off = pvector_next(ctx)) {
 		range = OBJ_OFF_TO_PTR(pop, off);
 		cb(pop, range);
 	}
 
 	struct tx_range_cache *cache;
-	for (off = pvector_first(tx_rt->ctx[UNDO_SET_CACHE]); off != 0;
-		off = pvector_next(tx_rt->ctx[UNDO_SET_CACHE])) {
-
+	ctx = tx_rt->ctx[UNDO_SET_CACHE];
+	for (off = pvector_first(ctx); off != 0; off = pvector_next(ctx)) {
 		cache = OBJ_OFF_TO_PTR(pop, off);
+
 		for (int i = 0; i < MAX_CACHED_RANGES; ++i) {
 			range = (struct tx_range *)&cache->range[i];
 			if (range->offset == 0 || range->size == 0)
@@ -704,7 +715,8 @@ tx_post_commit_set(PMEMobjpool *pop, struct tx_undo_runtime *tx_rt,
 	LOG(3, NULL);
 
 #ifdef USE_VG_PMEMCHECK
-	tx_foreach_set(pop, tx_rt, tx_post_commit_range_vg_tx_remove);
+	if (On_valgrind)
+		tx_foreach_set(pop, tx_rt, tx_post_commit_range_vg_tx_remove);
 #endif
 
 	struct pvector_context *cache_undo = tx_rt->ctx[UNDO_SET_CACHE];
@@ -1826,12 +1838,12 @@ pmemobj_tx_free(PMEMoid oid)
 	} else {
 		struct oob_header *oobh = OOB_HEADER_FROM_OID(lane->pop, oid);
 #ifdef USE_VG_PMEMCHECK
-		size_t size = pmalloc_usable_size(lane->pop, oid.off);
-
-		VALGRIND_SET_CLEAN(oobh, size);
+		if (On_valgrind) {
+			size_t size = pmalloc_usable_size(lane->pop, oid.off);
+			VALGRIND_SET_CLEAN(oobh, size);
+			VALGRIND_REMOVE_FROM_TX(oobh, size);
+		}
 #endif
-		VALGRIND_REMOVE_FROM_TX(oobh, pmalloc_usable_size(lane->pop,
-				oid.off));
 
 		if (ctree_remove_unlocked(lane->ranges, oid.off, 1) != oid.off)
 			FATAL("TX undo state mismatch");
