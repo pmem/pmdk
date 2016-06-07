@@ -677,6 +677,16 @@ pmemobj_replica_init(PMEMobjpool *pop, int is_pmem)
 }
 
 /*
+ * redo_log_check_offset -- (internal) check if offset is valid
+ */
+static int
+redo_log_check_offset(void *ctx, uint64_t offset)
+{
+	PMEMobjpool *pop = ctx;
+	return OBJ_OFF_IS_VALID(pop, offset);
+}
+
+/*
  * pmemobj_runtime_init -- (internal) initialize runtime part of the pool header
  */
 static int
@@ -707,6 +717,16 @@ pmemobj_runtime_init(PMEMobjpool *pop, int rdonly, int boot)
 	pop->rdonly = rdonly;
 
 	pop->uuid_lo = pmemobj_get_uuid_lo(pop);
+
+	pop->redo = redo_log_config_new(pop->addr,
+			(redo_persist_fn)pop->persist,
+			(redo_flush_fn)pop->flush,
+			redo_log_check_offset,
+			pop,
+			pop,
+			REDO_NUM_ENTRIES);
+	if (!pop->redo)
+		return -1;
 
 	if (boot) {
 		if ((errno = pmemobj_boot(pop)) != 0)
@@ -1028,6 +1048,9 @@ pmemobj_cleanup(PMEMobjpool *pop)
 	heap_cleanup(pop);
 
 	lane_cleanup(pop);
+
+	redo_log_config_delete(pop->redo);
+	pop->redo = NULL;
 
 	VALGRIND_DO_DESTROY_MEMPOOL(pop);
 

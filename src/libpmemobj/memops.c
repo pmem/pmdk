@@ -150,17 +150,18 @@ static void
 operation_process_persistent_redo(struct operation_context *ctx)
 {
 	struct operation_entry *e;
+	struct redo_ctx *redo = ctx->pop->redo;
 
 	size_t i;
 	for (i = 0; i < ctx->nentries[ENTRY_PERSISTENT]; ++i) {
 		e = &ctx->entries[ENTRY_PERSISTENT][i];
 
-		redo_log_store(ctx->pop, ctx->redo, i,
+		redo_log_store(redo, ctx->redo, i,
 			OBJ_PTR_TO_OFF(ctx->pop, e->ptr), e->value);
 	}
 
-	redo_log_set_last(ctx->pop, ctx->redo, i - 1);
-	redo_log_process(ctx->pop, ctx->redo, i);
+	redo_log_set_last(redo, ctx->redo, i - 1);
+	redo_log_process(redo, ctx->redo, i);
 }
 
 /*

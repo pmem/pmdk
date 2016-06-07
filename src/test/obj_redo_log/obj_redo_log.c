@@ -104,6 +104,12 @@ obj_drain(PMEMobjpool *pop)
 	pop->drain_local();
 }
 
+static int
+redo_log_check_offset(void *ctx, uint64_t offset)
+{
+	PMEMobjpool *pop = ctx;
+	return OBJ_OFF_IS_VALID(pop, offset);
+}
 
 static PMEMobjpool *
 pmemobj_open_mock(const char *fname)
@@ -140,12 +146,22 @@ pmemobj_open_mock(const char *fname)
 	pop->flush = obj_flush;
 	pop->drain = obj_drain;
 
+	pop->redo = redo_log_config_new(pop->addr,
+			(redo_persist_fn)pop->persist,
+			(redo_flush_fn)pop->flush,
+			redo_log_check_offset,
+			pop,
+			pop,
+			REDO_NUM_ENTRIES);
+
 	return pop;
 }
 
 static void
 pmemobj_close_mock(PMEMobjpool *pop)
 {
+	redo_log_config_delete(pop->redo);
+
 	munmap(pop, pop->size);
 }
 
@@ -189,21 +205,22 @@ main(int argc, char *argv[])
 					&index, &offset, &value) != 3)
 				FATAL_USAGE();
 			UT_OUT("s:%ld:0x%08lx:0x%08lx", index, offset, value);
-			redo_log_store(pop, redo, index, offset, value);
+			redo_log_store(pop->redo, redo, index, offset,
+					value);
 			break;
 		case 'f':
 			if (sscanf(arg, "f:%ld:0x%lx:0x%lx",
 					&index, &offset, &value) != 3)
 				FATAL_USAGE();
 			UT_OUT("f:%ld:0x%08lx:0x%08lx", index, offset, value);
-			redo_log_store_last(pop, redo, index, offset,
+			redo_log_store_last(pop->redo, redo, index, offset,
 					value);
 			break;
 		case 'F':
 			if (sscanf(arg, "F:%ld", &index) != 1)
 				FATAL_USAGE();
 			UT_OUT("F:%ld", index);
-			redo_log_set_last(pop, redo, index);
+			redo_log_set_last(pop->redo, redo, index);
 			break;
 		case 'r':
 			if (sscanf(arg, "r:0x%lx", &offset) != 1)
@@ -219,24 +236,27 @@ main(int argc, char *argv[])
 
 			struct redo_log *entry = redo + index;
 
-			int flag = (entry->offset & REDO_FINISH_FLAG) ? 1 : 0;
-			offset = entry->offset & REDO_FLAG_MASK;
+			int flag = redo_log_is_last(entry);
+			offset = redo_log_offset(entry);
 			value = entry->value;
 
 			UT_OUT("e:%ld:0x%08lx:%d:0x%08lx", index, offset,
 					flag, value);
 			break;
 		case 'P':
-			redo_log_process(pop, redo, redo_size);
+			redo_log_process(pop->redo, redo, redo_size);
 			UT_OUT("P");
 			break;
 		case 'R':
-			redo_log_recover(pop, redo, redo_size);
+			redo_log_recover(pop->redo, redo, redo_size);
 			UT_OUT("R");
 			break;
 		case 'C':
-			ret = redo_log_check(pop, redo, redo_size);
+			ret = redo_log_check(pop->redo, redo, redo_size);
 			UT_OUT("C:%d", ret);
+			break;
+		case 'n':
+			UT_OUT("n:%ld", redo_log_nflags(redo, redo_size));
 			break;
 		default:
 			FATAL_USAGE();

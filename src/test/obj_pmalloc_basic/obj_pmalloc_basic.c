@@ -161,6 +161,13 @@ test_realloc(size_t org, size_t dest)
 	pfree(mock_pop, &addr->ptr);
 }
 
+static int
+redo_log_check_offset(void *ctx, uint64_t offset)
+{
+	PMEMobjpool *pop = ctx;
+	return OBJ_OFF_IS_VALID(pop, offset);
+}
+
 static void
 test_mock_pool_allocs()
 {
@@ -185,6 +192,13 @@ test_mock_pool_allocs()
 	mock_pop->flush = obj_flush;
 	mock_pop->drain = obj_drain;
 	mock_pop->memcpy_persist = obj_memcpy;
+	mock_pop->redo = redo_log_config_new(addr,
+			(redo_persist_fn)mock_pop->persist,
+			(redo_flush_fn)mock_pop->flush,
+			redo_log_check_offset,
+			mock_pop,
+			mock_pop,
+			REDO_NUM_ENTRIES);
 
 	heap_init(mock_pop);
 	heap_boot(mock_pop);

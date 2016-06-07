@@ -35,6 +35,9 @@
  */
 #define LANE_SECTION_LEN 1024
 
+#define REDO_NUM_ENTRIES \
+	((LANE_SECTION_LEN - 2 * sizeof(uint64_t)) / sizeof(struct redo_log))
+
 /*
  * Distance between lanes used by threads required to prevent threads from
  * false sharing part of lanes array. Used if properly spread lanes are

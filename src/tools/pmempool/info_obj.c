@@ -63,12 +63,7 @@ static int
 lane_need_recovery_redo(struct redo_log *redo, size_t nentries)
 {
 	/* Needs recovery if any of redo log entries has finish flag set */
-	for (size_t i = 0; i < nentries; i++) {
-		if (redo[i].offset & REDO_FINISH_FLAG)
-			return 1;
-	}
-
-	return 0;
+	return redo_log_nflags(redo, nentries) > 0;
 }
 
 /*
@@ -276,9 +271,9 @@ info_obj_redo(int v, struct redo_log *redo, size_t nentries)
 			"Value: 0x%016jx "
 			"Finish flag: %d\n",
 			i,
-			redo[i].offset & REDO_FLAG_MASK,
+			redo_log_offset(&redo[i]),
 			redo[i].value,
-			redo[i].offset & REDO_FINISH_FLAG);
+			redo_log_is_last(&redo[i]));
 	}
 }
 

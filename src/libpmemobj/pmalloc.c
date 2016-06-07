@@ -685,7 +685,7 @@ lane_allocator_recovery(PMEMobjpool *pop, struct lane_section_layout *section)
 	struct lane_alloc_layout *sec =
 		(struct lane_alloc_layout *)section;
 
-	redo_log_recover(pop, sec->redo, ALLOC_REDO_LOG_SIZE);
+	redo_log_recover(pop->redo, sec->redo, ALLOC_REDO_LOG_SIZE);
 
 	return 0;
 }
@@ -701,8 +701,8 @@ lane_allocator_check(PMEMobjpool *pop, struct lane_section_layout *section)
 	struct lane_alloc_layout *sec =
 		(struct lane_alloc_layout *)section;
 
-	int ret;
-	if ((ret = redo_log_check(pop, sec->redo, ALLOC_REDO_LOG_SIZE)) != 0)
+	int ret = redo_log_check(pop->redo, sec->redo, ALLOC_REDO_LOG_SIZE);
+	if (ret != 0)
 		ERR("allocator lane: redo log check failed");
 
 	return ret;
