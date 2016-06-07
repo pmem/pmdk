@@ -1126,7 +1126,7 @@ pmemspoil_process_redo_log(struct pmemspoil *psp,
  */
 static int
 pmemspoil_process_sec_allocator(struct pmemspoil *psp,
-	struct pmemspoil_list *pfp, struct allocator_lane_section *sec)
+	struct pmemspoil_list *pfp, struct lane_alloc_layout *sec)
 {
 	PROCESS_BEGIN(psp, pfp) {
 		PROCESS(redo_log, &sec->redo[PROCESS_INDEX],
@@ -1177,7 +1177,7 @@ pmemspoil_process_sec_tx(struct pmemspoil *psp,
  */
 static int
 pmemspoil_process_sec_list(struct pmemspoil *psp,
-	struct pmemspoil_list *pfp, struct lane_list_section *sec)
+	struct pmemspoil_list *pfp, struct lane_list_layout *sec)
 {
 	size_t redo_size = REDO_NUM_ENTRIES;
 	PROCESS_BEGIN(psp, pfp) {
@@ -1197,10 +1197,10 @@ pmemspoil_process_lane(struct pmemspoil *psp, struct pmemspoil_list *pfp,
 {
 	struct lane_tx_layout *sec_tx = (struct lane_tx_layout *)
 		&lane->sections[LANE_SECTION_TRANSACTION];
-	struct lane_list_section *sec_list = (struct lane_list_section *)
+	struct lane_list_layout *sec_list = (struct lane_list_layout *)
 		&lane->sections[LANE_SECTION_LIST];
-	struct allocator_lane_section *sec_alloc =
-		(struct allocator_lane_section *)
+	struct lane_alloc_layout *sec_alloc =
+		(struct lane_alloc_layout *)
 		&lane->sections[LANE_SECTION_ALLOCATOR];
 
 	PROCESS_BEGIN(psp, pfp) {
