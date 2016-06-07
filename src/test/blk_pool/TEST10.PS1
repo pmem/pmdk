@@ -56,7 +56,7 @@ setup
 create_holey_file 20 $DIR\testfile
 # XXX Doesn't change outcome whether we make it WO or not,
 # same goes for linux test
-& icacls $DIR\testfile /grant ${Env:USERNAME}:W
+& icacls $DIR\testfile /grant ${Env:USERNAME}:W >$null
 
 #
 # TEST10 existing file, file length >= min required size, poolsize > 0

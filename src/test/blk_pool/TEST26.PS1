@@ -61,12 +61,13 @@ expect_normal_exit ..\..\x64\debug\blk_pool$Env:EXESUFFIX `
     c $DIR\testfile 512 20 0640
 
 # remove write permissions
-& icacls $DIR\testfile /deny ${Env:USERNAME}:W
+& icacls $DIR\testfile /deny ${Env:USERNAME}:W >$null
 
 expect_normal_exit ..\..\x64\debug\blk_pool$Env:EXESUFFIX `
     o $DIR\testfile 0
 
 # grant full permissions so test code can cleanup
-& icacls $DIR\testfile /grant ${Env:USERNAME}:F
+& icacls $DIR\testfile /grant ${Env:USERNAME}:F >$null
+
 # check will print the appropriate pass/fail message
 check
