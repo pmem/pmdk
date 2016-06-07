@@ -178,7 +178,7 @@ function runtest {
         sv -Name dirCheck "..\$testName\TEST*.ps1"
     }
     sv -Name runscripts ""
-    Get-ChildItem $dirCheck | % {
+    Get-ChildItem $dirCheck | Sort-Object { $_.BaseName -replace "\D+" -as [Int] } | % {
         $runscripts += $_.Name + " "
     }
 
