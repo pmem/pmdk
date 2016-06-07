@@ -78,7 +78,7 @@ static int
 lane_need_recovery_list(struct pmem_info *pip,
 	struct lane_section_layout *layout)
 {
-	struct lane_list_section *section = (struct lane_list_section *)layout;
+	struct lane_list_layout *section = (struct lane_list_layout *)layout;
 
 	/*
 	 * The list section needs recovery if redo log needs recovery or
@@ -95,8 +95,8 @@ static int
 lane_need_recovery_alloc(struct pmem_info *pip,
 	struct lane_section_layout *layout)
 {
-	struct allocator_lane_section *section =
-		(struct allocator_lane_section *)layout;
+	struct lane_alloc_layout *section =
+		(struct lane_alloc_layout *)layout;
 
 	/* there is just a redo log */
 	return lane_need_recovery_redo(&section->redo[0], ALLOC_REDO_LOG_SIZE);
@@ -288,8 +288,8 @@ info_obj_redo(int v, struct redo_log *redo, size_t nentries)
 static void
 info_obj_lane_alloc(int v, struct lane_section_layout *layout)
 {
-	struct allocator_lane_section *section =
-		(struct allocator_lane_section *)layout;
+	struct lane_alloc_layout *section =
+		(struct lane_alloc_layout *)layout;
 	info_obj_redo(v, &section->redo[0], ALLOC_REDO_LOG_SIZE);
 }
 
@@ -300,7 +300,7 @@ static void
 info_obj_lane_list(struct pmem_info *pip, int v,
 	struct lane_section_layout *layout)
 {
-	struct lane_list_section *section = (struct lane_list_section *)layout;
+	struct lane_list_layout *section = (struct lane_list_layout *)layout;
 
 	outv_field(v, "Object offset", "0x%016lx", section->obj_offset);
 	info_obj_redo(v, &section->redo[0], REDO_NUM_ENTRIES);

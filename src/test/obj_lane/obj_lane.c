@@ -273,9 +273,9 @@ static void
 test_lane_sizes(void)
 {
 	UT_COMPILE_ERROR_ON(sizeof(struct lane_tx_layout) > LANE_SECTION_LEN);
-	UT_COMPILE_ERROR_ON(sizeof(struct allocator_lane_section) >
+	UT_COMPILE_ERROR_ON(sizeof(struct lane_alloc_layout) >
 				LANE_SECTION_LEN);
-	UT_COMPILE_ERROR_ON(sizeof(struct lane_list_section) >
+	UT_COMPILE_ERROR_ON(sizeof(struct lane_list_layout) >
 				LANE_SECTION_LEN);
 }
 

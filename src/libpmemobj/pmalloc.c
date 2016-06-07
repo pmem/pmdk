@@ -325,8 +325,8 @@ palloc_operation(PMEMobjpool *pop,
 		}
 	}
 
-	struct allocator_lane_section *sec =
-		(struct allocator_lane_section *)lane->layout;
+	struct lane_alloc_layout *sec =
+		(struct lane_alloc_layout *)lane->layout;
 
 	/*
 	 * The operation collects all of the required memory modifications that
@@ -682,8 +682,8 @@ lane_allocator_destruct(PMEMobjpool *pop, struct lane_section *section)
 static int
 lane_allocator_recovery(PMEMobjpool *pop, struct lane_section_layout *section)
 {
-	struct allocator_lane_section *sec =
-		(struct allocator_lane_section *)section;
+	struct lane_alloc_layout *sec =
+		(struct lane_alloc_layout *)section;
 
 	redo_log_recover(pop, sec->redo, ALLOC_REDO_LOG_SIZE);
 
@@ -698,8 +698,8 @@ lane_allocator_check(PMEMobjpool *pop, struct lane_section_layout *section)
 {
 	LOG(3, "allocator lane %p", section);
 
-	struct allocator_lane_section *sec =
-		(struct allocator_lane_section *)section;
+	struct lane_alloc_layout *sec =
+		(struct lane_alloc_layout *)section;
 
 	int ret;
 	if ((ret = redo_log_check(pop, sec->redo, ALLOC_REDO_LOG_SIZE)) != 0)

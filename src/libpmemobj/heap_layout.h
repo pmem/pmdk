@@ -132,6 +132,6 @@ struct allocation_header {
 	uint64_t size;
 };
 
-struct allocator_lane_section {
+struct lane_alloc_layout {
 	struct redo_log redo[ALLOC_REDO_LOG_SIZE];
 };
