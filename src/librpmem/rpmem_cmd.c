@@ -78,6 +78,8 @@ err_alloc_cmd:
 void
 rpmem_cmd_fini(struct rpmem_cmd *cmd)
 {
+	for (int i = 0; i < cmd->args.argc; i++)
+		free(cmd->args.argv[i]);
 	free(cmd->args.argv);
 	free(cmd);
 }
