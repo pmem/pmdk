@@ -8,6 +8,9 @@
     <Filter Include="Match Files">
       <UniqueIdentifier>{aa2a2c2a-cd47-4f1a-841b-e3d019df7f13}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Test scripts">
+      <UniqueIdentifier>{5c4a9c4d-89c3-4de4-9f98-2a940a42e2d4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="util_is_absolute.c">
@@ -24,9 +27,11 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="TEST1.ps1" />
     <None Include="out1.log.match">
       <Filter>Match Files</Filter>
+    </None>
+    <None Include="TEST1.ps1">
+      <Filter>Test scripts</Filter>
     </None>
   </ItemGroup>
 </Project>
