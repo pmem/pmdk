@@ -299,9 +299,8 @@ util_poolset_chmod(struct pool_set *set, mode_t mode)
 					stbuf.st_mode & ~(unsigned)S_IFMT);
 			}
 
-			if (fchmod(part->fd, mode)) {
-				ERR("!fchmod %u/%u/%s", r, p,
-						rep->part[p].path);
+			if (chmod(part->path, mode)) {
+				ERR("!chmod %u/%u/%s", r, p, part->path);
 				return -1;
 			}
 		}

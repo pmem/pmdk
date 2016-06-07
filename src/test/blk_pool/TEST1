@@ -44,12 +44,12 @@ setup
 umask 0
 
 create_holey_file 40 $DIR/testfile
-chmod 0640 $DIR/testfile
+chmod 0600 $DIR/testfile
 
 #
 # TEST1 existing file, file length >= min required size, poolsize == 0
 #
-expect_normal_exit ./blk_pool$EXESUFFIX c $DIR/testfile 4096 0 0640
+expect_normal_exit ./blk_pool$EXESUFFIX c $DIR/testfile 4096 0 0600
 
 check_files $DIR/testfile
 
