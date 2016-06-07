@@ -270,10 +270,10 @@ function expect_normal_exit {
         sv -Name msg "failed with exit code FALSE"
 
         if (Test-Path ("err" + $Env:UNITTEST_NUM + ".log")) {
-            if (Test-Path Env:UNITTEST_QUIET) {
+            if ($Env:UNITTEST_QUIET) {
                 echo "$Env:UNITTEST_NAME $msg. err$Env:UNITTEST_NUM.log" >> ("err" + $Env:UNITTEST_NUM + ".log")
             } else {
-                Write-Error "$Env:UNITTEST_NAME $msg. err$UNITTEST_NUM.log"
+                Write-Error "$Env:UNITTEST_NAME $msg. err$Env:UNITTEST_NUM.log"
             }
         } else {
             Write-Error "$Env:UNITTEST_NAME $msg"
@@ -364,8 +364,8 @@ function require_test_type() {
             return
         }
         #XXX look at the bash code w/someone and confirm the logic here
-        if (-Not (Test-Path Env:UNITTEST_QUIET)) {
-            echo "$Env:UNITTEST_NAME: SKIP test-type $TEST ($* required)"
+        if (! $Env:UNITTEST_QUIET) {
+            echo "$Env:UNITTEST_NAME: SKIP test-type $Env:TEST ($* required)"
         }
         exit 0
     }
@@ -380,7 +380,7 @@ function require_build_type {
             return
         }
         #XXX look at the bash code w/someone and confirm the logic here
-        if (-Not (Test-Path Env:UNITTEST_QUIET)) {
+        if (! $Env:UNITTEST_QUIET) {
             echo "$Env:UNITTEST_NAME: SKIP build-type $Env:BUILD ($* required)"
         }
         exit 0
@@ -408,7 +408,7 @@ function memcheck {
 #
 function require_binary() {
     if (-Not (Test-Path $Args[0])) {
-       if (-Not (Test-Path Env:UNITTEST_QUIET)) {
+       if (! $Env:UNITTEST_QUIET) {
             Write-Host "$Env:UNITTEST_NAME: SKIP no binary found"
        }
        exit 0
@@ -423,7 +423,7 @@ function require_binary() {
 #
 function check {
     #	../match $(find . -regex "[^0-9]*${UNITTEST_NUM}\.log\.match" | xargs)
-    [string]$listing = Get-ChildItem -File | Where-Object  {$_.Name -match "[^0-9]${env:UNITTEST_NUM}.log.match"}
+    [string]$listing = Get-ChildItem -File | Where-Object  {$_.Name -match "[^0-9]${Env:UNITTEST_NUM}.log.match"}
     if ($listing) {
         $p = start-process -PassThru -Wait -NoNewWindow -FilePath perl -ArgumentList '..\..\..\src\test\match', $listing
         if ($p.ExitCode -eq 0) {
@@ -683,8 +683,8 @@ function require_fs_type {
             }
         }
     }
-    if (-Not (Test-Path Env:UNITTEST_QUIET)) {
-        Write-Host "$UNITTEST_NAME SKIP fs-type $Env:FS (not configured)"
+    if (-Not (Test-Path $Env:UNITTEST_QUIET)) {
+        Write-Host "$Env:UNITTEST_NAME SKIP fs-type $Env:FS (not configured)"
     }
     exit 0
 }
@@ -716,9 +716,9 @@ function setup {
 		sv -Name MCSTR ""
 	}
 
-	Write-Host "$UNITTEST_NAME : SETUP ($Env:TEST\$REAL_FS\$Env:BUILD$MCSTR)"
+	Write-Host "$Env:UNITTEST_NAME : SETUP ($Env:TEST\$REAL_FS\$Env:BUILD$MCSTR)"
 
-	rm -Force check_pool_${BUILD}_${UNITTEST_NUM}.log -ErrorAction SilentlyContinue
+	rm -Force check_pool_${Env:BUILD}_${Env:UNITTEST_NUM}.log -ErrorAction SilentlyContinue
 
     if ( $Env:FS -ne "none") {
 
@@ -751,12 +751,12 @@ function dump_last_n_lines {
 #######################################################
 
 # defaults
-if (-Not (Test-Path Env:TEST)) { $Env:TEST = 'check'}
-if (-Not (Test-Path Env:FS)) { $Env:FS = 'any'}
-if (-Not (Test-Path Env:BUILD)) { $Env:BUILD = 'debug'}
-if (-Not (Test-Path Env:MEMCHECK)) { $Env:MEMCHECK = 'auto'}
-if (-Not (Test-Path Env:CHECK_POOL)) { $Env:CHECK_POOL = '0'}
-if (-Not (Test-Path Env:VERBOSE)) { $Env:VERBOSE = '0'}
+if (! $Env:TEST) { $Env:TEST = 'check'}
+if (! $Env:FS) { $Env:FS = 'any'}
+if (! $Env:BUILD) { $Env:BUILD = 'debug'}
+if (! $Env:MEMCHECK) { $Env:MEMCHECK = 'auto'}
+if (! $Env:CHECK_POOL) { $Env:CHECK_POOL = '0'}
+if (! $Env:VERBOSE) { $Env:VERBOSE = '0'}
 $Env:EXESUFFIX = ".exe"
 
 #
@@ -769,7 +769,7 @@ $Env:EXESUFFIX = ".exe"
 # For example, in a test directory, run:
 #	TEST_LD_LIBRARY_PATH=\usr\lib .\TEST0
 #
-if (-Not ($TEST_LD_LIBRARY_PATH)) {
+if (! $Env:TEST_LD_LIBRARY_PATH) {
     switch -regex ($Env:BUILD) {
         'debug' {$Env:TEST_LD_LIBRARY_PATH = '..\..\debug'}
         'nondebug' {$Env:TEST_LD_LIBRARY_PATH = '..\..\nondebug'}
@@ -796,18 +796,18 @@ if (-Not ($TEST_LD_LIBRARY_PATH)) {
 sv -Name curtestdir (Get-Item -Path ".\").BaseName
 
 # just in case
-if (-Not ($curtestdir)) {
+if (! $curtestdir) {
         Write-Error -Message "$curtestdir does not exist"
 }
 
 sv -Name curtestdir ("test_" + $curtestdir)
 
-if (-Not (Test-Path Env:UNITTEST_NUM)) {
+if (! $Env:UNITTEST_NUM) {
 	Write-Error "UNITTEST_NUM does not have a value"
 	exit 1
 }
 
-if (-Not (Test-Path Env:UNITTEST_NAME)) {
+if (! $Env:UNITTEST_NAME) {
 	Write-Error "UNITTEST_NAME does not have a value"
 	exit 1
 }
@@ -820,7 +820,6 @@ if ($DIR) {
     $tail = "\" + $curtestdir + $Env:UNITTEST_NUM
     # choose based on FS env variable
     switch ($Env:FS) {
-        'local' { sv -Name DIR ($LOCAL_FS_DIR + $tail) }
         'pmem' { sv -Name DIR ($PMEM_FS_DIR + $tail)
                  if ($PMEM_FS_DIR_FORCE_PMEM) {
                      $Env:PMEM_IS_PMEM_FORCE = 1
@@ -837,15 +836,15 @@ if ($DIR) {
                     sv -Name DIR ($NON_PMEM_FS_DIR + $tail)
                     $REAL_FS='non-pmem'
                 } Else {
-                	Write-Error "$UNITTEST_NAME :  fs-type=any and both env vars are empty"
+			Write-Error "$Env:UNITTEST_NAME :  fs-type=any and both env vars are empty"
 	                exit 1
                 }
               }
         'none' {
             sv -Name DIR "/nul/not_existing_dir/${curtestdir}${Env:UNITTEST_NUM}" }
         default {
-            if (-Not (Test-Path Env:UNITTEST_QUIET)) {
-                Write-Host "$UNITTEST_NAME SKIP fs-type $Env:FS (not configured)"
+            if (! $Env:UNITTEST_QUIET) {
+                Write-Host "$Env:UNITTEST_NAME SKIP fs-type $Env:FS (not configured)"
 		        exit 0
             }
         }
@@ -853,7 +852,7 @@ if ($DIR) {
 }
 
 # XXX REMOVE THIS WHEN ITS ALL WORKING
-if (-Not ($DIR)) {
+if (! $DIR) {
         Write-Error -Message 'DIR does not exist'
         exit 1
 }
@@ -895,12 +894,12 @@ $Env:VMMALLOC_LOG_LEVEL = 3
 $Env:VMMALLOC_LOG_FILE = "vmmalloc" + $Env:UNITTEST_NUM + ".log"
 
 $Env:MEMCHECK_LOG_FILE = "memcheck_" + $Env:BUILD + "_" +
-    $UNITTEST_NUM + ".log"
+    $Env:UNITTEST_NUM + ".log"
 $Env:VALIDATE_MEMCHECK_LOG = 1
 
-if (-Not ($UT_DUMP_LINES)) {
+if (! $UT_DUMP_LINES) {
     sv -Name "UT_DUMP_LINES" 30
 }
 
 $Env:CHECK_POOL_LOG_FILE = "check_pool_" + $Env:BUILD + "_" +
-    $UNITTEST_NUM + ".log"
+    $Env:UNITTEST_NUM + ".log"
