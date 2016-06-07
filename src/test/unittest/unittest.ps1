@@ -479,9 +479,8 @@ function fail {
 function check_file {
     if (-Not (Test-Path $Args[0])) {
         Write-Error "Missing File: " $Args[0]
-        return $false
+        exit 1
     }
-    return $true
 }
 
 #
@@ -489,9 +488,7 @@ function check_file {
 #
 function check_files {
     for ($i=0;$i -lt $args.count;$i++) {
-        if (-Not (check_file $args[$i])) {
-            Write-Error "File $args[$i] does not exist"
-        }
+        check_file $args[$i]
     }
 }
 
@@ -502,9 +499,8 @@ function check_no_file {
     sv -Name fname $Args[0]
     if (Test-Path $fname) {
         Write-Error "Not deleted file: $fname"
-        return $false
+        exit 1
     }
-    return $true
 }
 
 #
@@ -512,11 +508,8 @@ function check_no_file {
 #
 function check_no_files {
     for ($i=0;$i -lt $args.count;$i++) {
-        if (-Not (check_no_file $args[$i])) {
-            return $false
-        }
+        check_no_file $args[$i]
     }
-    return $true
 }
 
 #
