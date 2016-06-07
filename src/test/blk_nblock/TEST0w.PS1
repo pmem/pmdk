@@ -48,7 +48,10 @@ $Env:PMEM_IS_PMEM = $true
 $Env:NON_PMEM_IS_PMEM = $true
 
 # standard unit test setup
+
 . ..\unittest\unittest.ps1
+
+require_fs_type any
 
 setup
 
