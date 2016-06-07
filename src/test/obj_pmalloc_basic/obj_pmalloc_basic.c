@@ -60,7 +60,7 @@
 
 struct mock_pop {
 	PMEMobjpool p;
-	char lanes[LANE_SECTION_LEN];
+	char lanes[LANE_SECTION_LEN * MAX_LANE_SECTION];
 	uint64_t ptr;
 };
 
