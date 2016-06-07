@@ -34,7 +34,6 @@
     <ClCompile Include="..\..\src\libpmemobj\sync.c" />
     <ClCompile Include="..\..\src\libpmemobj\tx.c" />
     <ClCompile Include="..\common\file_windows.c" />
-    <ClCompile Include="..\common\mmap_windows.c" />
     <ClCompile Include="..\common\pthread_windows.c" />
     <ClCompile Include="libpmemobj_main.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Static-Debug|x64'">true</ExcludedFromBuild>

@@ -32,6 +32,17 @@
 ;
 ;;;;  End Copyright Notice
 
+/*
+ * XXX - libpmem exports mmap/munmap/msync/mprotect functions
+ *
+ * This is a temporary solution to make those function available for all
+ * the other NVM libraries, and to have only one instance of file mapping list,
+ * that will be owned by libpmem.  Otherwise, each library would have its own
+ * instance of file maping list, and libpmem would not be able to find a file
+ * handle associated with the mapping represented by the address passed to
+ * pmem_msync(), pmem_memcpy(), etc. causing those functions to fail.
+ */
+
 LIBRARY libpmem
 
 VERSION 1.0
@@ -53,4 +64,10 @@ EXPORTS
 	pmem_memset_nodrain
 	pmem_check_version
 	pmem_errormsg
+
+	mmap
+	munmap
+	msync
+	mprotect
+
 	DllMain
