@@ -77,11 +77,7 @@ if (-Not ("check short long" -match $testtype)) {
 if (-Not ("none pmem non-pmem any all" -match $fstype)) {
     usage "bad fs-type: $fstype"
 }
-if ($fstype -eq "none") {
-    # there's no good /dev/nul on windows so we'll just
-    # override and us non-pmem
-    $fstype="non-pmem"
-}
+
 # XXX :missing some logic here that's in the bash script
 # having to do with force-enable and memcheck, pmemcheck.
 # don't really get whats going on there but we don't support
@@ -168,9 +164,7 @@ function runtest {
     #
     sv -Name fss $fstype
     if ($fss -eq "all") {
-        $fss = "pmem non-pmem any"
-        # don't include none for Windows because we have no
-        # good match for /dev/nul
+        $fss = "none pmem non-pmem any"
     }
     sv -Name builds $buildtype
     if ($builds -eq "all") {
@@ -204,7 +198,7 @@ function runtest {
             $non_pmem_skip = 1
             continue
         }
-        if ($fs -match "and" -And $NON_PMEM_FS_DIR -eq "" -And $PMEM_FS_DIR -eq "") {
+        if ($fs -match "any" -And $NON_PMEM_FS_DIR -eq "" -And $PMEM_FS_DIR -eq "") {
             continue
         }
 

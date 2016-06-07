@@ -685,8 +685,8 @@ function require_fs_type {
     }
     if (-Not (Test-Path Env:UNITTEST_QUIET)) {
         Write-Host "$UNITTEST_NAME SKIP fs-type $Env:FS (not configured)"
-		#exit 0
     }
+    exit 0
 }
 
 #
@@ -697,13 +697,13 @@ function setup {
 
     # fs type "none" must be explicitly enabled
 	if ($Env:FS -eq "none" -and $req_fs_type -ne "1") {
-        Write-Host "SKIP: FS type 'none' (not explicitly enabled)"
+        #Write-Host "SKIP: FS type 'none' (not explicitly enabled)"
         exit 0
     }
 
 	# fs type "any" must be explicitly enabled
 	if ($Env:FS -eq "any" -and $req_fs_type -ne "1") {
-        Write-Host "SKIP: FS type 'any' (not explicitly enabled)"
+        #Write-Host "SKIP: FS type 'any' (not explicitly enabled)"
         exit 0
     }
 
@@ -844,8 +844,7 @@ if ($DIR) {
                 }
               }
         'none' {
-            # hmmm, bash is: DIR=/dev/null/not_existing_dir/$curtestdir$UNITTEST_NUM
-            sv -Name DIR "c:\temp" }
+            sv -Name DIR "/nul/not_existing_dir/${curtestdir}${Env:UNITTEST_NUM}" }
         default {
             if (-Not (Test-Path Env:UNITTEST_QUIET)) {
                 Write-Host "$UNITTEST_NAME SKIP fs-type $Env:FS (not configured)"
