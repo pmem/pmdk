@@ -14,8 +14,5 @@
     <ClCompile Include="file_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mmap_windows.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
 </Project>
