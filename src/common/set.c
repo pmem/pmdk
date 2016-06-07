@@ -1290,7 +1290,7 @@ util_header_check_remote(struct pool_replica *rep, unsigned partidx)
 	}
 
 	/* check next replica UUID */
-	if (memcmp(HDR(rep, 0)->prev_repl_uuid, hdrp->prev_repl_uuid,
+	if (memcmp(HDR(rep, 0)->next_repl_uuid, hdrp->next_repl_uuid,
 			POOL_HDR_UUID_LEN)) {
 		ERR("wrong next replica UUID in part %d", partidx);
 		errno = EINVAL;
