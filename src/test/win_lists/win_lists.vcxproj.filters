@@ -7,6 +7,9 @@
     <Filter Include="Match Files">
       <UniqueIdentifier>{d018cf38-4041-4e05-9eb1-7a0a79a00b5a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Test scripts">
+      <UniqueIdentifier>{2f7a5125-095e-40ce-bcfa-e396fb8d62db}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="win_lists.c">
@@ -14,12 +17,14 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="TEST0.ps1" />
     <None Include="err0.log.match">
       <Filter>Match Files</Filter>
     </None>
     <None Include="out0.log.match">
       <Filter>Match Files</Filter>
+    </None>
+    <None Include="TEST0.ps1">
+      <Filter>Test scripts</Filter>
     </None>
   </ItemGroup>
 </Project>

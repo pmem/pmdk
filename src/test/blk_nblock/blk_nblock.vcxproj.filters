@@ -8,6 +8,10 @@
     <Filter Include="Match Files">
       <UniqueIdentifier>{267238ec-89c1-4648-87e6-d4851168c180}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Test scripts">
+      <UniqueIdentifier>{dcf743e1-ccb0-457f-bce2-8ac4de1acbda}</UniqueIdentifier>
+      <Extensions>ps1</Extensions>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\test\blk_nblock\blk_nblock.c">
@@ -15,9 +19,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="TEST1.ps1" />
-    <None Include="TEST2w.ps1" />
-    <None Include="TEST0w.ps1" />
     <None Include="err0.log.match">
       <Filter>Match Files</Filter>
     </None>
@@ -43,5 +44,14 @@
       <Filter>Match Files</Filter>
     </None>
     <None Include="README" />
+    <None Include="TEST0w.ps1">
+      <Filter>Test scripts</Filter>
+    </None>
+    <None Include="TEST1.ps1">
+      <Filter>Test scripts</Filter>
+    </None>
+    <None Include="TEST2w.ps1">
+      <Filter>Test scripts</Filter>
+    </None>
   </ItemGroup>
 </Project>
