@@ -512,8 +512,8 @@ list_insert_new(PMEMobjpool *pop,
 
 	/* increase allocation size by oob header size */
 	size += OBJ_OOB_SIZE;
-	struct lane_list_section *section =
-		(struct lane_list_section *)lane_section->layout;
+	struct lane_list_layout *section =
+		(struct lane_list_layout *)lane_section->layout;
 	struct redo_log *redo = section->redo;
 	size_t redo_index = 0;
 	uint64_t sec_off_off = OBJ_PTR_TO_OFF(pop, &section->obj_offset);
@@ -663,8 +663,8 @@ list_insert(PMEMobjpool *pop,
 	ASSERTne(lane_section, NULL);
 	ASSERTne(lane_section->layout, NULL);
 
-	struct lane_list_section *section =
-		(struct lane_list_section *)lane_section->layout;
+	struct lane_list_layout *section =
+		(struct lane_list_layout *)lane_section->layout;
 	struct redo_log *redo = section->redo;
 	size_t redo_index = 0;
 
@@ -741,8 +741,8 @@ list_remove_free(PMEMobjpool *pop, size_t pe_offset,
 	ASSERTne(lane_section, NULL);
 	ASSERTne(lane_section->layout, NULL);
 
-	struct lane_list_section *section =
-		(struct lane_list_section *)lane_section->layout;
+	struct lane_list_layout *section =
+		(struct lane_list_layout *)lane_section->layout;
 	uint64_t sec_off_off = OBJ_PTR_TO_OFF(pop, &section->obj_offset);
 	struct redo_log *redo = section->redo;
 	size_t redo_index = 0;
@@ -843,8 +843,8 @@ list_remove(PMEMobjpool *pop,
 		goto err;
 	}
 
-	struct lane_list_section *section =
-		(struct lane_list_section *)lane_section->layout;
+	struct lane_list_layout *section =
+		(struct lane_list_layout *)lane_section->layout;
 	struct redo_log *redo = section->redo;
 	size_t redo_index = 0;
 
@@ -924,8 +924,8 @@ list_move(PMEMobjpool *pop,
 		goto err;
 	}
 
-	struct lane_list_section *section =
-		(struct lane_list_section *)lane_section->layout;
+	struct lane_list_layout *section =
+		(struct lane_list_layout *)lane_section->layout;
 	struct redo_log *redo = section->redo;
 	size_t redo_index = 0;
 
@@ -1031,8 +1031,8 @@ lane_list_recovery(PMEMobjpool *pop, struct lane_section_layout *section_layout)
 {
 	LOG(3, "list lane %p", section_layout);
 
-	struct lane_list_section *section =
-		(struct lane_list_section *)section_layout;
+	struct lane_list_layout *section =
+		(struct lane_list_layout *)section_layout;
 
 	redo_log_recover(pop, section->redo, REDO_NUM_ENTRIES);
 
@@ -1052,8 +1052,8 @@ lane_list_check(PMEMobjpool *pop, struct lane_section_layout *section_layout)
 {
 	LOG(3, "list lane %p", section_layout);
 
-	struct lane_list_section *section =
-		(struct lane_list_section *)section_layout;
+	struct lane_list_layout *section =
+		(struct lane_list_layout *)section_layout;
 
 	int ret = 0;
 	if ((ret = redo_log_check(pop,

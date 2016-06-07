@@ -35,12 +35,12 @@
  */
 
 /*
- * lane_list_section -- structure of list section in lane
+ * lane_list_layout -- structure of list section in lane
  *
  * obj_offset - offset to object which should be freed
  * redo       - redo log
  */
-struct lane_list_section {
+struct lane_list_layout {
 	uint64_t obj_offset;
 	struct redo_log redo[REDO_NUM_ENTRIES];
 };
