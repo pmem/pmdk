@@ -58,7 +58,7 @@ setup
 #       path is invalid (directory not exist)
 #
 expect_normal_exit ..\..\x64\debug\blk_pool$Env:EXESUFFIX `
-    c \xNULLx\testfile 4096 20 0640
+    c \nul\testfile 4096 20 0640
 
 check_no_files $DIR\testfile
 
