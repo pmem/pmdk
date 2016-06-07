@@ -63,9 +63,9 @@ Param(
 
 # -v is a built in PS thing
 if ($VerbosePreference -ne 'SilentlyContinue') {
-    $verbose = "1"
+    $verbose = 1
 } else {
-    $verbose = "0"
+    $verbose = 0
 }
 
 if (-Not ("debug nondebug static-debug static-nondebug all" -match $buildtype)) {
