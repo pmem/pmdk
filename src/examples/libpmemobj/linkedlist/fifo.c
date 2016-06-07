@@ -41,11 +41,14 @@
 #include "pmemobj_list.h"
 
 POBJ_LAYOUT_BEGIN(list);
-POBJ_LAYOUT_ROOT(list, struct tqueuehead);
+POBJ_LAYOUT_ROOT(list, struct fifo_root);
 POBJ_LAYOUT_TOID(list, struct tqnode);
 POBJ_LAYOUT_END(list);
 
-POBJ_TAILQ_HEAD(tqueuehead, struct tqnode);
+struct fifo_root {
+	POBJ_TAILQ_HEAD(tqueuehead, struct tqnode) head;
+};
+
 struct tqnode {
 	char data;
 	POBJ_TAILQ_ENTRY(struct tqnode) tnd;
@@ -87,7 +90,8 @@ main(int argc, const char *argv[])
 		}
 	}
 
-	TOID(struct tqueuehead) tqhead = POBJ_ROOT(pop, struct tqueuehead);
+	TOID(struct fifo_root) root = POBJ_ROOT(pop, struct fifo_root);
+	struct tqueuehead *tqhead = &D_RW(root)->head;
 	TOID(struct tqnode) node;
 
 	if (strcmp(argv[2], "insert") == 0) {

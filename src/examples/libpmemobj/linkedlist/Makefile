@@ -38,3 +38,5 @@ LIBS = -lpmemobj -lpmem -pthread
 include ../../Makefile.inc
 
 fifo: fifo.o
+
+fifo.o: pmemobj_list.h
