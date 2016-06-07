@@ -220,7 +220,7 @@ function runtest {
             # for each TEST script found...
             Foreach ($runscript in $runscripts.split(" ")) {
                 if ($verbose) {
-                    Write-Host -NoNewline "RUNTESTS: Test: $testName\$runscript "
+                    Write-Host -NoNewline "RUNTESTS: Test: $testName/$runscript "
                 }
                 if ($dryrun -eq "1") {
                     Write-Host "(in ./$testName) TEST=$testtype FS=$fs BUILD=$build .\$runscript"
@@ -235,14 +235,14 @@ function runtest {
                         sv -Name msg "TIMED OUT"
                     }
                     if ($p.ExitCode -ne 0) {
-                        Write-Error "RUNTESTS: stopping: testName/$runscript $msg, TEST=$testtype FS=$fs BUILD=$build"
+                        Write-Error "RUNTESTS: stopping: $testName/$runscript $msg, TEST=$testtype FS=$fs BUILD=$build"
                         cd ..
                         exit $p.ExitCode
                     }
                 } Else {
                     $p = Start-Process -Wait -NoNewWindow -PassThru -FilePath powershell.exe -ArgumentList ".\$runscript"
                     if ($p.ExitCode -ne 0) {
-                        Write-Error "RUNTESTS: stopping: testName/$runscript FAILED, TEST=$testtype FS=$fs BUILD=$build"
+                        Write-Error "RUNTESTS: stopping: $testName/$runscript FAILED, TEST=$testtype FS=$fs BUILD=$build"
                         cd ..
                         exit $p.ExitCode
                     }
