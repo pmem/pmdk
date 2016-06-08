@@ -190,7 +190,7 @@ clobber: clean
 	$(RM) -r .deps
 
 TST=$(shell basename `pwd`)
-TSTCHECKS=$(shell ls -1 TEST* | grep -v "\.ps1" | sort -V)
+TSTCHECKS=$(shell ls -1 TEST* | grep -v -i -e "\.ps1" | sort -V)
 
 $(TSTCHECKS): all
 	@cd .. && ./RUNTESTS ${TST} -b $(TEST_BUILD) -t $(TEST_TYPE) -f $(TEST_FS) -o $(TEST_TIME) -m $(MEMCHECK) -p $(PMEMCHECK) -e $(HELGRIND) -d $(DRD) -s $@
