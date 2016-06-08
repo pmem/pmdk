@@ -286,7 +286,9 @@ function create_holey_file() {
 # or non-zeroed) with requested size and mode.  The actual file size may be
 # different than the part size in the pool set file.
 # 'r' or 'R' on the list of arguments indicate the beginning of the next
-# replica set.
+# replica set and 'm' or 'M' the beginning of the next remote replica set.
+# A remote replica requires two parameters: a target node and a pool set
+# descriptor.
 #
 # Each part argument has the following format:
 #   psize:ppath[:cmd[:fsize[:mode]]]
@@ -302,15 +304,23 @@ function create_holey_file() {
 #   fsize - (optional) the actual size of the part file (if 'cmd' is not 'x')
 #   mode  - (optional) same format as for 'chmod' command
 #
+# Each remote replica argument has the following format:
+#   node:desc
+#
+# where:
+#   node - target node
+#   desc - pool set descriptor
+#
 # example:
 #   The following command define a pool set consisting of two parts: 16MB
 #   and 32MB, and the replica with only one part of 48MB.  The first part file
 #   is not created, the second is zeroed.  The only replica part is non-zeroed.
 #   Also, the last file is read-only and its size does not match the information
-#   from pool set file.
+#   from pool set file. The last line describes a remote replica.
 #
 #	create_poolset ./pool.set 16M:testfile1 32M:testfile2:z \
-#				R 48M:testfile3:n:11M:0400
+#				R 48M:testfile3:n:11M:0400 \
+#				M remote_node:remote_pool.set
 #
 function create_poolset() {
 	psfile=$1
@@ -318,6 +328,21 @@ function create_poolset() {
 	echo "PMEMPOOLSET" > $psfile
 	while [ "$1" ]
 	do
+		if [ "$1" = "M" ] || [ "$1" = "m" ] # remote replica
+		then
+			shift 1
+
+			cmd=$1
+			fparms=(${cmd//:/ })
+			shift 1
+
+			node=${fparms[0]}
+			desc=${fparms[1]}
+
+			echo "REPLICA $node $desc" >> $psfile
+			continue
+		fi
+
 		if [ "$1" = "R" ] || [ "$1" = "r" ]
 		then
 			echo "REPLICA" >> $psfile
