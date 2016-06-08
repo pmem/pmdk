@@ -81,11 +81,11 @@ html: $(HTMLFILES) doxygen_docs
 
 %.3: %.3.md
 	cat ./$< | sed "s/(\#[a-z|-]*)<br[' ']*\/>/\n/g" | pandoc -s -t man -o $@
-	sed -i "s/(\#[a-z|-]*[0-9]*)//g" $@
+	sed -i "s/ (\#[a-z|-]*[0-9]*)//g" $@
 
 %.1: %.1.md
 	cat ./$< | sed "s/(\#[a-z|-]*)<br[' ']*\/>/\n/g" | pandoc -s -t man -o $@
-	sed -i "s/(\#[a-z|-]*[0-9]*)//g" $@
+	sed -i "s/ (\#[a-z|-]*[0-9]*)//g" $@
 
 compress: $(GZFILES)
 
