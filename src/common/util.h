@@ -273,7 +273,8 @@ int util_pool_create_uuids(struct pool_set **setp, const char *path,
 	uint32_t major, uint32_t compat, uint32_t incompat, uint32_t ro_compat,
 	const unsigned char *poolset_uuid, const unsigned char *first_part_uuid,
 	const unsigned char *prev_repl_uuid,
-	const unsigned char *next_repl_uuid);
+	const unsigned char *next_repl_uuid,
+	const unsigned char *arch_flags);
 
 int util_pool_open_nocheck(struct pool_set **setp, const char *path,
 		int rdonly);
@@ -284,7 +285,8 @@ int util_pool_open_remote(struct pool_set **setp, const char *path, int rdonly,
 	size_t minsize, char *sig, uint32_t *major,
 	uint32_t *compat, uint32_t *incompat, uint32_t *ro_compat,
 	unsigned char *poolset_uuid, unsigned char *first_part_uuid,
-	unsigned char *prev_repl_uuid, unsigned char *next_repl_uuid);
+	unsigned char *prev_repl_uuid, unsigned char *next_repl_uuid,
+	unsigned char *arch_flags);
 
 int util_parse_size(const char *str, size_t *sizep);
 
