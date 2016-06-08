@@ -491,7 +491,7 @@ heap_run_is_empty(struct chunk_run *run)
  * heap_find_first_free_bucket_slot -- (internal) searches for the first
  *	available bucket slot
  *
- * This function must be threadsafe because buckets can be created at runtime.
+ * This function must be thread-safe because buckets can be created at runtime.
  */
 static uint8_t
 heap_find_first_free_bucket_slot(struct pmalloc_heap *h)
@@ -574,7 +574,7 @@ heap_get_create_bucket_idx_by_unit_size(struct pmalloc_heap *h,
 		/*
 		 * This code path is taken only if the allocation class
 		 * generation algorithm have changed or the user created a
-		 * custom allocation class in the previous incaration of
+		 * custom allocation class in the previous incarnation of
 		 * the pool. Normally all the buckets are created at
 		 * initialization time.
 		 */

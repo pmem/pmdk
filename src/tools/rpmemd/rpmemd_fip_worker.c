@@ -152,7 +152,7 @@ err_alloc:
 }
 
 /*
- * rpmemd_fip_fini -- detinitialize worker thread
+ * rpmemd_fip_fini -- deinitialize worker thread
  */
 int
 rpmemd_fip_worker_fini(struct rpmemd_fip_worker *worker)

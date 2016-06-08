@@ -85,7 +85,7 @@ rpmem_fip_get_hints(enum rpmem_provider provider)
 	/* must register locally accessed buffers */
 	hints->mode = FI_CONTEXT | FI_LOCAL_MR | FI_RX_CQ_DATA;
 
-	/* READ-after-WRITE and SEND-afte-WRITE message ordering required */
+	/* READ-after-WRITE and SEND-after-WRITE message ordering required */
 	hints->tx_attr->msg_order = FI_ORDER_RAW | FI_ORDER_SAW;
 
 	/* IPv4 address format */
@@ -204,7 +204,7 @@ err_read_event:
 /*
  * rpmem_fip_lane_attr -- lane attributes
  *
- * This structure describes how many SQ, RQ and CQ entires are
+ * This structure describes how many SQ, RQ and CQ entries are
  * required for a single lane.
  *
  * NOTE:
@@ -213,7 +213,7 @@ err_read_event:
  */
 struct rpmem_fip_lane_attr {
 	size_t n_per_sq; /* number of entries per lane in send queue  */
-	size_t n_per_rq; /* number of entries per lane in recv queue */
+	size_t n_per_rq; /* number of entries per lane in receive queue */
 	size_t n_per_cq; /* number of entries per lane in completion queue */
 };
 
