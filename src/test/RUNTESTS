@@ -104,7 +104,7 @@ runtest() {
 	builds=$buildtype
 	[ "$builds" = all ] && builds="debug nondebug static-debug static-nondebug"
 	runscripts=$testfile
-	[ "$runscripts" = all ] && runscripts=`ls -1 TEST* | grep -v "\.PS1" | sort -V`
+	[ "$runscripts" = all ] && runscripts=`ls -1 TEST* | grep -v -i -e "\.ps1" | sort -V`
 
 	# for each fs-type being tested...
 	for fs in $fss
