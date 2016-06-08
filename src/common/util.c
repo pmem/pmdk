@@ -326,7 +326,7 @@ util_compare_arch_flags(const struct arch_flags *arch_flags,
 {
 	int ret = 0;
 
-	if (!util_is_zeroed(&arch_flags->reserved,
+	if (memcmp(&arch_flags->reserved, &comp_flags->reserved,
 				sizeof(arch_flags->reserved))) {
 		ERR("invalid reserved values");
 		ret = -1;
