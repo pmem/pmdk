@@ -57,7 +57,7 @@ setup
 # TEST30 existing file, file size >= min required size, bsize == 300
 #        (pool set with replica section)
 #
-# XXX fix one we figure out windows poolsets and $PMEMSPOL tool(?)
+# XXX fix one we figure out windows poolsets and $PMEMSPOIL tool(?)
 echo "XXX" > out30w.log
 
 #expect_normal_exit ..\..\x64\debug\blk_pool$Env:EXESUFFIX `

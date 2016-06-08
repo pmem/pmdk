@@ -34,7 +34,7 @@
  * obj_convert.c -- unit test for pool conversion
  *
  * This test has dual purpose - to create an old-format pool with the _create
- * functions and to verify if the conversion happend correctly.
+ * functions and to verify if the conversion happened correctly.
  *
  * The creation should happen while linked with the old library version and
  * the verify step should be run with the new one.
@@ -233,7 +233,7 @@ sc3_verify_commit(PMEMobjpool *pop)
 		/*
 		 * Due to a bug in clang-3.4 a pmemobj_tx_alloc call with its
 		 * result being casted to union immediately is optimized out and
-		 * the verify fails even though it should work. Assinging the
+		 * the verify fails even though it should work. Assigning the
 		 * TX_NEW result to a variable is a hacky workaround for this
 		 * problem.
 		 */

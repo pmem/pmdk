@@ -161,7 +161,7 @@ pvector_get_array_spec(uint64_t idx)
 	 * represents its capacity and position in the array of arrays.
 	 *
 	 * Because the vector has large initial embedded array the position bit
-	 * that was calculated must take that into consideration and substract
+	 * that was calculated must take that into consideration and subtract
 	 * the bit position from which the algorithm starts.
 	 */
 	uint64_t pos = idx + PVECTOR_INIT_SIZE;

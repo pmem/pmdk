@@ -55,7 +55,7 @@ setup
 
 # Note: linux test reset default permissions and assures the library
 # creates a file using the permissions given. The Windows test just
-# checks that the permissions match. Note that the libraryy's use
+# checks that the permissions match. Note that the library's use
 # of the Windows CRT file functions (_chmod, _stat, etc) limit
 # permissions to R/W or RO
 

@@ -31,7 +31,7 @@
  */
 
 /*
- * rpmem_fip_lane.h -- rpmem fabric provider lane definiton
+ * rpmem_fip_lane.h -- rpmem fabric provider lane definition
  */
 
 #include <sched.h>

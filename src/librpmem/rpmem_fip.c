@@ -997,7 +997,7 @@ rpmem_fip_process(struct rpmem_fip *fip)
 
 			/*
 			 * If the context is NULL it probably means that
-			 * we get an unexpected cq entry. The cq is configured
+			 * we get an unexpected CQ entry. The CQ is configured
 			 * with FI_SELECTIVE_COMPLETION so every inbound or
 			 * outbound operation must be issued with FI_COMPLETION
 			 * flag and non-NULL context.
