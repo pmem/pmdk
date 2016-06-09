@@ -34,19 +34,12 @@
 # src/test/obj_tx_add_range_direct/Makefile -- build obj_tx_add_range_direct
 # unit test
 #
-TOP = ../../..
-
-vpath %.c $(TOP)/src/libpmemobj
-vpath %.c $(TOP)/src/common
-
 TARGET = obj_tx_add_range_direct
-OBJS = obj_tx_add_range_direct.o util.o util_linux.o out.o
+OBJS = obj_tx_add_range_direct.o
 
+LIBPMEMCOMMON=y
 LIBPMEM=y
 LIBPMEMOBJ=y
 
-out.o: CFLAGS += -DSRCVERSION=\"utversion\"
-
 include ../Makefile.inc
-
-INCS += -I$(TOP)/src/libpmemobj/ -I$(TOP)/src/common/
+INCS += -I$(TOP)/src/libpmemobj/

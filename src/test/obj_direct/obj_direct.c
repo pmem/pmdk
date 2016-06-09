@@ -34,12 +34,7 @@
  * obj_direct.c -- unit test for direct
  */
 #include "unittest.h"
-#include "util.h"
 #include "lane.h"
-#include "redo.h"
-#include "memops.h"
-#include "pmalloc.h"
-#include "list.h"
 #include "obj.h"
 
 #define MAX_PATH_LEN 255

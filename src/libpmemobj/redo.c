@@ -36,7 +36,6 @@
 
 #include "libpmem.h"
 #include "libpmemobj.h"
-#include "util.h"
 #include "lane.h"
 #include "redo.h"
 #include "obj.h"

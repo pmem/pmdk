@@ -42,7 +42,8 @@
 #include "libpmem.h"
 #include "libpmemobj.h"
 
-#include "util.h"
+#include "set.h"
+#include "mmap.h"
 #include "out.h"
 #include "lane.h"
 #include "redo.h"

@@ -60,11 +60,6 @@ all: $(TARGET)
 SRC=pmembench.c\
     benchmark_time.c\
     benchmark_worker.c\
-    util.c\
-    util_linux.c\
-    out.c\
-    set.c\
-    set_linux.c\
     clo.c\
     clo_vec.c\
     config_reader.c\
@@ -102,7 +97,7 @@ OBJS=$(SRC:.c=.o)
 LDFLAGS = -L$(LIBS_PATH)
 LDFLAGS += -L../examples/libpmemobj/map
 LDFLAGS += $(EXTRA_LDFLAGS)
-LIBS += -lpmemobj -lpmemlog -lpmemblk -lpmem -lvmem -pthread -lm
+LIBS += ../nondebug/libpmemcommon.a -lpmemobj -lpmemlog -lpmemblk -lpmem -lvmem -pthread -lm
 ifeq ($(call check_librt), n)
 LIBS += -lrt
 endif

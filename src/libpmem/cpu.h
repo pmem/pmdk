@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016, Intel Corporation
+ * Copyright 2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -30,48 +30,17 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * set_linux.c -- pool set utilities with OS-specific implementation
- */
-
-#include <fcntl.h>
-#include <unistd.h>
-#include <stdint.h>
-
-#include "util.h"
-#include "out.h"
+#ifndef NVML_CPU_H
+#define NVML_CPU_H 1
 
 /*
- * util_uuid_generate -- generate a uuid
- *
- * This function reads the uuid string from  /proc/sys/kernel/random/uuid
- * It converts this string into the binary uuid format as specified in
- * https://www.ietf.org/rfc/rfc4122.txt
+ * cpu.h -- definitions for "cpu" module
  */
-int
-util_uuid_generate(uuid_t uuid)
-{
-	char uu[POOL_HDR_UUID_STR_LEN];
 
-	int fd = open(POOL_HDR_UUID_GEN_FILE, O_RDONLY);
-	if (fd < 0) {
-		/* Fatal error */
-		LOG(2, "!open(uuid)");
-		return -1;
-	}
-	ssize_t num = read(fd, uu, POOL_HDR_UUID_STR_LEN);
-	if (num < POOL_HDR_UUID_STR_LEN) {
-		/* Fatal error */
-		LOG(2, "!read(uuid)");
-		close(fd);
-		return -1;
-	}
-	close(fd);
+int is_cpu_genuine_intel(void);
+int is_cpu_sse2_present(void);
+int is_cpu_clflush_present(void);
+int is_cpu_clflushopt_present(void);
+int is_cpu_clwb_present(void);
 
-	uu[POOL_HDR_UUID_STR_LEN - 1] = '\0';
-	int ret = util_uuid_from_string(uu, (struct uuid *)uuid);
-	if (ret < 0)
-		return ret;
-
-	return 0;
-}
+#endif

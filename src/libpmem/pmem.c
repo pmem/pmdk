@@ -176,9 +176,10 @@
 #include "libpmem.h"
 
 #include "pmem.h"
-#include "util.h"
 #include "cpu.h"
 #include "out.h"
+#include "mmap.h"
+#include "file.h"
 #include "valgrind_internal.h"
 
 #ifndef _MSC_VER

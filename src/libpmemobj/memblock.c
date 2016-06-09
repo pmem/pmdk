@@ -49,7 +49,6 @@
 #include <inttypes.h>
 #include "libpmemobj.h"
 #include "out.h"
-#include "util.h"
 #include "sys_util.h"
 #include "lane.h"
 #include "redo.h"

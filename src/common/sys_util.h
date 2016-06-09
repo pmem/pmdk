@@ -30,6 +30,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifndef NVML_SYS_UTIL_H
+#define NVML_SYS_UTIL_H 1
+
 /*
  * sys_util.h -- internal utility wrappers around system functions
  */
@@ -111,3 +114,5 @@ util_rwlock_unlock(pthread_rwlock_t *m)
 		FATAL("!pthread_rwlock_unlock");
 	}
 }
+
+#endif

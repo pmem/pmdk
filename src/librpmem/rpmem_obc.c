@@ -50,7 +50,6 @@
 #include "rpmem_proto.h"
 #include "rpmem_util.h"
 #include "out.h"
-#include "util.h"
 #include "sys_util.h"
 
 /*

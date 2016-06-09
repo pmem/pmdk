@@ -33,16 +33,9 @@
 #
 # src/test/arch_flags/Makefile -- build arch_flags unit test
 #
-TOP = ../../..
-
-vpath %.c $(TOP)/src/common
-
 TARGET = arch_flags
-OBJS = arch_flags.o util.o util_linux.o out.o
+OBJS = arch_flags.o
 
+LIBPMEMCOMMON=y
 include ../Makefile.inc
-INCS += -I$(TOP)/src/common
 LDFLAGS += -Wl,--wrap=open
-
-out.o: CFLAGS += -DDEBUG -DSRCVERSION=\"utversion\"
-util.o util_linux.o: CFLAGS += -DDEBUG

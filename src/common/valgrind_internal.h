@@ -30,6 +30,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifndef NVML_VALGRIND_H
+#define NVML_VALGRIND_H 1
+
 /*
  * valgrind_internal.h -- internal definitions for valgrind macros
  */
@@ -457,5 +460,7 @@ extern unsigned _On_valgrind;
 
 #define VALGRIND_DO_CHECK_MEM_IS_ADDRESSABLE(addr, len)\
 	do { (void) (addr); (void) (len); } while (0)
+
+#endif
 
 #endif

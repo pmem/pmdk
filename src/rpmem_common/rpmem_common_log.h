@@ -48,7 +48,6 @@
 #elif defined(RPMEMC_LOG_RPMEM)
 
 #include "out.h"
-#include "util.h"
 #include "rpmem_util.h"
 
 #define RPMEMC_LOG(level, fmt, args...) RPMEM_LOG(level, fmt, ## args)

@@ -34,7 +34,6 @@
  * obj_pool_lookup.c -- unit test for pmemobj_pool and pmemobj_pool_of
  */
 #include "unittest.h"
-#include "util.h"
 
 #define MAX_PATH_LEN 255
 #define LAYOUT_NAME "pool_lookup"

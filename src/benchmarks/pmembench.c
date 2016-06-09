@@ -47,6 +47,8 @@
 #include <dirent.h>
 #include <errno.h>
 
+#include "mmap.h"
+#include "set.h"
 #include "benchmark.h"
 #include "benchmark_worker.h"
 #include "scenario.h"
@@ -1198,6 +1200,7 @@ int
 main(int argc, char *argv[])
 {
 	util_init();
+	mmap_init();
 	int ret = 0;
 	struct pmembench *pb = calloc(1, sizeof(*pb));
 	assert(pb != NULL);

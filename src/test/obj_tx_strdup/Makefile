@@ -33,9 +33,6 @@
 #
 # src/test/obj_tx_strdup/Makefile -- build obj_tx_strdup unit test
 #
-vpath %.c ../../libpmemobj
-vpath %.c ../../common
-
 TARGET = obj_tx_strdup
 OBJS = obj_tx_strdup.o
 
@@ -43,5 +40,3 @@ LIBPMEM=y
 LIBPMEMOBJ=y
 
 include ../Makefile.inc
-
-INCS += -I../../libpmemobj/ -I../../common/

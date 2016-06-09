@@ -34,7 +34,6 @@
 # src/test/rpmemd_obc/Makefile -- build rpmemd_obc test
 #
 vpath %.c ../../tools/rpmemd
-vpath %.c ../../common
 vpath %.c ../../rpmem_common
 
 TARGET = rpmemd_obc
@@ -51,11 +50,8 @@ OBJS = rpmemd_obc_test.o\
        rpmem_common.o\
        rpmemd_obc.o
 
-out.o: CFLAGS += -DDEBUG -DSRCVERSION=\"utversion\"
-
 include ../Makefile.inc
 
 CFLAGS += -DRPMEMC_LOG_RPMEMD
 INCS += -I../../tools/rpmemd
-INCS += -I../../common
 INCS += -I../../rpmem_common

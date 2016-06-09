@@ -134,3 +134,59 @@ ftruncate(int fd, off_t length)
 {
 	return _chsize_s(fd, length);
 }
+
+/*
+ * util_tmpfile --  (internal) create the temporary file
+ */
+int
+util_tmpfile(const char *dir, const char *templ)
+{
+	LOG(3, "dir \"%s\" template \"%s\"", dir, templ);
+
+	int oerrno;
+	int fd = -1;
+
+	char *fullname = alloca(strlen(dir) + sizeof(templ));
+
+	(void) strcpy(fullname, dir);
+	(void) strcat(fullname, templ);
+
+	/*
+	 * XXX - block signals and modify file creation mask for the time
+	 * of mkstmep() execution.  Restore previous settings once the file
+	 * is created.
+	 */
+
+	fd = mkstemp(fullname);
+
+	if (fd < 0) {
+		ERR("!mkstemp");
+		goto err;
+	}
+
+	(void) unlink(fullname);
+	LOG(3, "unlinked file is \"%s\"", fullname);
+
+	return fd;
+
+err:
+	oerrno = errno;
+	if (fd != -1)
+		(void) close(fd);
+	errno = oerrno;
+	return -1;
+}
+
+/*
+ * util_is_absolute_path -- check if the path is an absolute one
+ */
+int
+util_is_absolute_path(const char *path)
+{
+	LOG(3, "path: %s", path);
+
+	if (PathIsRelativeA(path))
+		return 0;
+	else
+		return 1;
+}

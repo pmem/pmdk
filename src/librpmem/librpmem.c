@@ -40,6 +40,7 @@
 #include "librpmem.h"
 
 #include "rpmem.h"
+#include "mmap.h"
 #include "util.h"
 #include "out.h"
 
@@ -52,10 +53,11 @@ ATTR_CONSTRUCTOR
 void
 librpmem_init(void)
 {
+	util_init();
 	out_init(RPMEM_LOG_PREFIX, RPMEM_LOG_LEVEL_VAR, RPMEM_LOG_FILE_VAR,
 			RPMEM_MAJOR_VERSION, RPMEM_MINOR_VERSION);
 	LOG(3, NULL);
-	util_init();
+	mmap_init();
 }
 
 /*

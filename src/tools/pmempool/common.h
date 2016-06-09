@@ -40,7 +40,6 @@
 #include <stdarg.h>
 #include <stdbool.h>
 
-#include "util.h"
 #include "log.h"
 #include "blk.h"
 #include "libpmemobj.h"

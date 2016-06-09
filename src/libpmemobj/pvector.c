@@ -35,7 +35,6 @@
  */
 
 #include "libpmemobj.h"
-#include "util.h"
 #include "out.h"
 #include "redo.h"
 #include "pvector.h"

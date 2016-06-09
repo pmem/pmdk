@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016, Intel Corporation
+ * Copyright 2014-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -30,23 +30,33 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * set_windows.c -- pool set utilities with OS-specific implementation
- */
-
-#include "util.h"
-#include "out.h"
+#ifndef NVML_FILE_H
+#define NVML_FILE_H 1
 
 /*
- * util_uuid_generate -- generate a uuid
+ * file.h -- internal definitions for file module
  */
-int
-util_uuid_generate(uuid_t uuid)
-{
-	HRESULT res = CoCreateGuid((GUID *)(uuid));
-	if (res != S_OK) {
-		ERR("CoCreateGuid");
-		return -1;
-	}
-	return 0;
-}
+
+#include <stddef.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+
+int util_tmpfile(const char *dir, const char *templ);
+int util_is_absolute_path(const char *path);
+
+int util_file_create(const char *path, size_t size, size_t minsize);
+int util_file_open(const char *path, size_t *size, size_t minsize, int flags);
+
+#ifndef _WIN32
+typedef struct stat util_stat_t;
+#define util_fstat	fstat
+#define util_stat	stat
+#define util_lseek	lseek
+#else
+typedef struct _stat64 util_stat_t;
+#define util_fstat	_fstat64
+#define util_stat	_stat64
+#define util_lseek	_lseeki64
+#endif
+
+#endif

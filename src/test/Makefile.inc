@@ -66,6 +66,12 @@ endif
 LIBS += -L$(LIBS_DIR)/debug
 LIBS += -pthread
 
+ifeq ($(LIBPMEMCOMMON), y)
+OBJS += $(LIBS_DIR)/debug/libpmemcommon.a
+INCS += -I$(TOP)/src/common
+LIBPMEM=y
+endif
+
 ifeq ($(LIBPMEMPOOL), y)
 DYNAMIC_LIBS += -lpmempool
 STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libpmempool.a
@@ -122,7 +128,7 @@ extract_funcs = $(shell \
     grep -Po '($(WRAPPER_FUNCS))\$(PAREN)\K[^,]*' $(1) | \
     awk '{print "-Wl,--wrap="$$0}')
 
-INCS = -I../unittest -I$(TOP)/src/include
+INCS += -I../unittest -I$(TOP)/src/include
 
 COMMON_FLAGS  = -ggdb
 COMMON_FLAGS += -Wall

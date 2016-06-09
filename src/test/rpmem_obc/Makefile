@@ -35,8 +35,6 @@
 #
 vpath %.c ../../librpmem/
 vpath %.c ../../rpmem_common/
-vpath %.c ../../common/
-vpath %.c ../../../platform/linux/src/common
 
 TARGET = rpmem_obc
 OBJS = rpmem_obc_test.o\
@@ -46,14 +44,11 @@ OBJS = rpmem_obc_test.o\
        rpmem_obc_test_open.o\
        rpmem_obc_test_close.o\
        rpmem_obc_test_remove.o\
-       rpmem_obc.o rpmem_util.o rpmem_common.o\
-       out.o util.o util_linux.o
+       rpmem_obc.o rpmem_util.o rpmem_common.o
 
-out.o: CFLAGS += -DDEBUG -DSRCVERSION=\"utversion\"
-
+LIBPMEMCOMMON=y
 include ../Makefile.inc
 
 CFLAGS += -DRPMEMC_LOG_RPMEM
 INCS += -I../../librpmem/
 INCS += -I../../rpmem_common/
-INCS += -I../../common

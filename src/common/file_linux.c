@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2014-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -30,12 +30,70 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * cpu.h -- definitions for "cpu" module
- */
+#include <errno.h>
+#include <signal.h>
+#include <string.h>
+#include <unistd.h>
 
-int is_cpu_genuine_intel(void);
-int is_cpu_sse2_present(void);
-int is_cpu_clflush_present(void);
-int is_cpu_clflushopt_present(void);
-int is_cpu_clwb_present(void);
+#include "file.h"
+#include "out.h"
+
+/*
+ * util_tmpfile --  (internal) create the temporary file
+ */
+int
+util_tmpfile(const char *dir, const char *templ)
+{
+	LOG(3, "dir \"%s\" template \"%s\"", dir, templ);
+
+	int oerrno;
+	int fd = -1;
+
+	char *fullname = alloca(strlen(dir) + sizeof(templ));
+
+	(void) strcpy(fullname, dir);
+	(void) strcat(fullname, templ);
+
+	sigset_t set, oldset;
+	sigfillset(&set);
+	(void) sigprocmask(SIG_BLOCK, &set, &oldset);
+
+	mode_t prev_umask = umask(S_IRWXG | S_IRWXO);
+
+	fd = mkstemp(fullname);
+
+	umask(prev_umask);
+
+	if (fd < 0) {
+		ERR("!mkstemp");
+		goto err;
+	}
+
+	(void) unlink(fullname);
+	(void) sigprocmask(SIG_SETMASK, &oldset, NULL);
+	LOG(3, "unlinked file is \"%s\"", fullname);
+
+	return fd;
+
+err:
+	oerrno = errno;
+	(void) sigprocmask(SIG_SETMASK, &oldset, NULL);
+	if (fd != -1)
+		(void) close(fd);
+	errno = oerrno;
+	return -1;
+}
+
+/*
+ * util_is_absolute_path -- check if the path is an absolute one
+ */
+int
+util_is_absolute_path(const char *path)
+{
+	LOG(3, "path: %s", path);
+
+	if (path[0] == DIR_SEPARATOR)
+		return 1;
+	else
+		return 0;
+}
