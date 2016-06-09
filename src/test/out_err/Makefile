@@ -33,16 +33,10 @@
 #
 # src/test/out_err/Makefile -- build unit test for out_err()
 #
-TOP = ../../..
-
-vpath %.c $(TOP)/src/common
-
 TARGET = out_err
-OBJS = out_err.o out.o util.o util_linux.o
+OBJS = out_err.o
 
-out.o: CFLAGS += -DSRCVERSION=\"utversion\"
-
+LIBPMEMCOMMON=y
 include ../Makefile.inc
 
-#Test debug output
-CFLAGS += -DDEBUG -I$(TOP)/src/common
+CFLAGS += -DDEBUG

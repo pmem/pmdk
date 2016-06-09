@@ -41,7 +41,6 @@
 
 #include <sys/param.h>
 #include "unittest.h"
-#include "util.h"
 #include "log.h"
 
 /*

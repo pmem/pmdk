@@ -36,24 +36,15 @@
  * usage: obj_pool_sets_parser set-file ...
  */
 
+#include "set.h"
 #include "unittest.h"
-#include "util.h"
+#include "out.h"
 
 #define LOG_PREFIX "parser"
 #define LOG_LEVEL_VAR "PARSER_LOG_LEVEL"
 #define LOG_FILE_VAR "PARSER_LOG_FILE"
 #define MAJOR_VERSION 1
 #define MINOR_VERSION 0
-
-/*
- * Declaration of out_init and out_fini functions because it is not
- * possible to include both unittest.h and out.h headers due to
- * redeclaration of some macros.
- */
-void out_init(const char *log_prefix, const char *log_level_var,
-		const char *log_file_var, int major_version,
-		int minor_version);
-void out_fini(void);
 
 int
 main(int argc, char *argv[])

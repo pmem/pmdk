@@ -33,16 +33,9 @@
 #
 # src/test/traces/Makefile -- build traces unit test
 #
-TOP = ../../..
-
-vpath %.c $(TOP)/src/common
-
 TARGET = traces
-OBJS = traces.o out.o util.o util_linux.o
+OBJS = traces.o
 
-out.o: CFLAGS += -DSRCVERSION=\"utversion\"
-
+LIBPMEMCOMMON=y
 include ../Makefile.inc
-
-#Test debug output
-CFLAGS += -DDEBUG -I$(TOP)/src/common
+CFLAGS += -DDEBUG

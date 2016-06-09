@@ -47,7 +47,7 @@ setup
 export PARSER_LOG_LEVEL=4
 export PARSER_LOG_FILE=./parser$UNITTEST_NUM.log
 
-POOLSETS=`ls -1 ./pool* | sort -V`
+POOLSETS=`ls -1 ./pool[0-9]*.set | sort -V`
 
 expect_normal_exit ./util_poolset_parse$EXESUFFIX $POOLSETS
 

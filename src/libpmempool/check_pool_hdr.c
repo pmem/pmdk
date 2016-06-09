@@ -42,6 +42,7 @@
 #include "libpmempool.h"
 #include "pmempool.h"
 #include "pool.h"
+#include "set.h"
 #include "check_util.h"
 
 #define PREFIX_MAX_SIZE 30

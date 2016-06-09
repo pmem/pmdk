@@ -44,7 +44,6 @@
 #include <sys/param.h>
 #include "unittest.h"
 
-#include "util.h"
 #include "blk.h"
 
 size_t Bsize;

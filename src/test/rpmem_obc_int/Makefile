@@ -36,21 +36,16 @@
 vpath %.c ../../librpmem/
 vpath %.c ../../rpmem_common/
 vpath %.c ../../tools/rpmemd
-vpath %.c ../../common/
-vpath %.c ../../../platform/linux/src/common
 
 TARGET = rpmem_obc_int
 OBJS = rpmem_obc_int.o\
        rpmem_cmd.o rpmem_ssh.o base64.o\
        rpmem_obc.o rpmem_util.o rpmem_common.o\
-       rpmemd_obc.o rpmemd_log.o\
-       out.o util.o util_linux.o
+       rpmemd_obc.o rpmemd_log.o
 
-out.o: CFLAGS += -DDEBUG -DSRCVERSION=\"utversion\"
-
+LIBPMEMCOMMON=y
 include ../Makefile.inc
 
 INCS += -I../../librpmem/
 INCS += -I../../rpmem_common/
 INCS += -I../../tools/rpmemd
-INCS += -I../../common

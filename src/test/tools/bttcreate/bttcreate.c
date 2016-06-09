@@ -43,10 +43,12 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+#include "set.h"
+#include "pool_hdr.h"
 #include "btt.h"
 #include "btt_layout.h"
 #include "out.h"
-#include "util.h"
+#include "mmap.h"
 
 #define BTT_CREATE_DEF_SIZE	(20 * 1UL << 20) /* 20 MB */
 #define BTT_CREATE_DEF_BLK_SIZE	512UL

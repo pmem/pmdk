@@ -41,7 +41,6 @@
 #include "libpmemobj.h"
 #include "benchmark.h"
 
-#include "util.h"
 #include "out.h"
 #include "lane.h"
 #include "redo.h"

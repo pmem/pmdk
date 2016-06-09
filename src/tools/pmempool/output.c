@@ -136,17 +136,6 @@ outv_err(const char *fmt, ...)
 }
 
 /*
- * out_err -- for src/common
- */
-void
-out_err(const char *file, int line, const char *func,
-	const char *fmt, ...)
-{
-	/* stub */
-}
-
-
-/*
  * outv_err_vargs -- print error message
  */
 void

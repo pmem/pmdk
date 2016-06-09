@@ -37,9 +37,9 @@ include $(TOP)/src/common.inc
 
 TARGETS = libpmem libvmem libpmemblk libpmemlog libpmemobj libpmempool\
 	libvmmalloc tools
-ALL_TARGETS = $(TARGETS) librpmem examples benchmarks
+ALL_TARGETS = $(TARGETS) common librpmem examples benchmarks
 
-DEBUG_RELEASE_TARGETS = libpmem libvmem libpmemblk libpmemlog libpmemobj\
+DEBUG_RELEASE_TARGETS = common libpmem libvmem libpmemblk libpmemlog libpmemobj\
 	libpmempool libvmmalloc librpmem
 RELEASE_TARGETS = tools examples benchmarks
 
@@ -47,7 +47,7 @@ CLEAN_NO_JE_TARGETS = $(ALL_TARGETS) test
 CLEAN_TARGETS = $(CLEAN_NO_JE_TARGETS) jemalloc
 CLOBBER_NO_JE_TARGETS = $(ALL_TARGETS) test
 CLOBBER_TARGETS = $(CLOBBER_NO_JE_TARGETS) jemalloc
-CSTYLE_TARGETS = $(ALL_TARGETS) common test rpmem_common
+CSTYLE_TARGETS = $(ALL_TARGETS) test rpmem_common
 INSTALL_TARGETS = $(TARGETS)
 
 HEADERS_DESTDIR = $(DESTDIR)$(includedir)
@@ -100,6 +100,7 @@ custom_build = $(DEBUG)$(OBJDIR)
 libvmmalloc libvmem: jemalloc
 tools: libpmem libpmemblk libpmemlog libpmemobj
 libpmemblk libpmemlog libpmemobj: libpmem
+benchmarks test tools: common
 
 pkg-config:
 	@$(MAKE_PKG_CONFIG) "$(prefix)" "$(libdir)" "$(SRCVERSION)"

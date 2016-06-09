@@ -34,7 +34,12 @@
  * log.h -- internal definitions for libpmem log module
  */
 
+#include <stdint.h>
+#include <stddef.h>
 #include <pthread.h>
+
+#include "util.h"
+#include "pool_hdr.h"
 
 #define PMEMLOG_LOG_PREFIX "libpmemlog"
 #define PMEMLOG_LOG_LEVEL_VAR "PMEMLOG_LOG_LEVEL"
@@ -46,8 +51,6 @@
 #define LOG_FORMAT_COMPAT 0x0000
 #define LOG_FORMAT_INCOMPAT 0x0000
 #define LOG_FORMAT_RO_COMPAT 0x0000
-
-extern unsigned long long Pagesize;
 
 struct pmemlog {
 	struct pool_hdr hdr;	/* memory pool header */

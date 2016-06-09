@@ -37,17 +37,15 @@
 #include <string.h>
 
 #include "unittest.h"
-#include "libpmemobj.h"
-#include "redo.h"
+
 #include "memops.h"
-#include "pmalloc.h"
+#include "redo.h"
 #include "heap_layout.h"
 #include "memblock.h"
 #include "heap.h"
-#include "util.h"
 #include "lane.h"
-#include "list.h"
 #include "obj.h"
+#include "util.h"
 
 #define MIN_ALLOC_SIZE	MIN_RUN_SIZE
 #define MAX_ALLOC_SIZE	CHUNKSIZE

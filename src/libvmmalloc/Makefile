@@ -35,8 +35,12 @@
 LIBRARY_NAME = vmmalloc
 LIBRARY_SO_VERSION = 1
 LIBRARY_VERSION = 0.0
-SOURCE = libvmmalloc.c $(COMMON)/util.c $(COMMON)/util_linux.c\
-	$(COMMON)/out.c
+SOURCE = libvmmalloc.c\
+	$(COMMON)/file_linux.c\
+	$(COMMON)/mmap.c\
+	$(COMMON)/mmap_linux.c\
+	$(COMMON)/out.c\
+	$(COMMON)/util.c
 
 default: all
 

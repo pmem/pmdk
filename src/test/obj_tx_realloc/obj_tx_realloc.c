@@ -37,7 +37,6 @@
 #include <string.h>
 
 #include "unittest.h"
-#include "libpmemobj.h"
 #include "util.h"
 
 #define LAYOUT_NAME "tx_realloc"

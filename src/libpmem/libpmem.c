@@ -40,7 +40,7 @@
 #include "libpmem.h"
 
 #include "pmem.h"
-#include "util.h"
+#include "mmap.h"
 #include "out.h"
 
 /*
@@ -52,10 +52,11 @@ ATTR_CONSTRUCTOR
 void
 libpmem_init(void)
 {
+	util_init();
 	out_init(PMEM_LOG_PREFIX, PMEM_LOG_LEVEL_VAR, PMEM_LOG_FILE_VAR,
 			PMEM_MAJOR_VERSION, PMEM_MINOR_VERSION);
 	LOG(3, NULL);
-	util_init();
+	util_mmap_init();
 	pmem_init();
 }
 

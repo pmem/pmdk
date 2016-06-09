@@ -51,6 +51,7 @@
 #include "rpmemd_obc.h"
 #include "rpmemd_db.h"
 #include "base64.h"
+#include "pool_hdr.h"
 #include "util.h"
 
 /*

@@ -55,14 +55,14 @@
 
 #include "libpmem.h"
 #include "librpmem.h"
+#include "set.h"
+#include "file.h"
+#include "mmap.h"
 #include "util.h"
-#include "util_remote.h"
 #include "out.h"
+#include "dlsym.h"
 #include "valgrind_internal.h"
 #include "sys_util.h"
-#include "util_dl.h"
-
-extern unsigned long long Pagesize;
 
 #define LIBRARY_REMOTE "librpmem.so.1"
 
@@ -277,11 +277,6 @@ static const char *parser_errstr[PARSER_MAX_CODE] = {
 	"sizes of pool set and replica mismatch",
 	"allocating memory failed",
 	"" /* format correct */
-};
-
-struct suff {
-	const char *suff;
-	uint64_t mag;
 };
 
 /*
@@ -1795,77 +1790,6 @@ util_replica_close(struct pool_set *set, unsigned repidx)
 }
 
 /*
- * util_uuid_to_string -- generate a string form of the uuid
- */
-int
-util_uuid_to_string(uuid_t u, char *buf)
-{
-	int len; /* size that is returned from sprintf call */
-
-	if (buf == NULL) {
-		LOG(2, "invalid buffer for uuid string");
-		return -1;
-	}
-
-	if (u == NULL) {
-		LOG(2, "invalid uuid structure");
-		return -1;
-	}
-
-	struct uuid *uuid = (struct uuid *)u;
-	len = snprintf(buf, POOL_HDR_UUID_STR_LEN,
-		"%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x",
-		uuid->time_low, uuid->time_mid, uuid->time_hi_and_ver,
-		uuid->clock_seq_hi, uuid->clock_seq_low, uuid->node[0],
-		uuid->node[1], uuid->node[2], uuid->node[3], uuid->node[4],
-		uuid->node[5]);
-
-	if (len != POOL_HDR_UUID_STR_LEN - 1) {
-		LOG(2, "snprintf(uuid)");
-		return -1;
-	}
-
-	return 0;
-}
-
-/*
- * util_uuid_from_string -- generate a binary form of the uuid
- *
- * uuid string read from /proc/sys/kernel/random/uuid. UUID string
- * format example:
- * f81d4fae-7dec-11d0-a765-00a0c91e6bf6
- */
-int
-util_uuid_from_string(const char *uuid, struct uuid *ud)
-{
-	if (strlen(uuid) != 36) {
-		LOG(2, "invalid uuid string");
-		return -1;
-	}
-
-	if (uuid[8] != '-' || uuid[13] != '-' || uuid[18] != '-' ||
-			uuid[23] != '-') {
-		LOG(2, "invalid uuid string");
-		return -1;
-	}
-
-	int n = sscanf(uuid,
-		"%08x-%04hx-%04hx-%02hhx%02hhx-"
-		"%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx",
-		&ud->time_low, &ud->time_mid, &ud->time_hi_and_ver,
-		&ud->clock_seq_hi, &ud->clock_seq_low, &ud->node[0],
-		&ud->node[1], &ud->node[2], &ud->node[3], &ud->node[4],
-		&ud->node[5]);
-
-	if (n != 11) {
-		LOG(2, "sscanf(uuid)");
-		return -1;
-	}
-
-	return 0;
-}
-
-/*
  * util_pool_create_uuids -- create a new memory pool (set or a single file)
  *                           with given uuids
  *
@@ -2534,54 +2458,4 @@ util_poolset_size(const char *path)
 err_close:
 	close(fd);
 	return size;
-}
-
-/*
- * util_parse_size -- parse size from string
- */
-int
-util_parse_size(const char *str, size_t *sizep)
-{
-	const struct suff suffixes[] = {
-		{ "B", 1ULL },
-		{ "K", 1ULL << 10 },		/* JEDEC */
-		{ "M", 1ULL << 20 },
-		{ "G", 1ULL << 30 },
-		{ "T", 1ULL << 40 },
-		{ "P", 1ULL << 50 },
-		{ "KiB", 1ULL << 10 },		/* IEC */
-		{ "MiB", 1ULL << 20 },
-		{ "GiB", 1ULL << 30 },
-		{ "TiB", 1ULL << 40 },
-		{ "PiB", 1ULL << 50 },
-		{ "kB", 1000ULL },		/* SI */
-		{ "MB", 1000ULL * 1000 },
-		{ "GB", 1000ULL * 1000 * 1000 },
-		{ "TB", 1000ULL * 1000 * 1000 * 1000 },
-		{ "PB", 1000ULL * 1000 * 1000 * 1000 * 1000 }
-	};
-
-	int res = -1;
-	unsigned i;
-	size_t size = 0;
-	char unit[4] = {0};
-
-	int ret = sscanf(str, "%zu%4s", &size, unit);
-	if (ret == 1) {
-		res = 0;
-	} else if (ret == 2) {
-		for (i = 0; i < ARRAY_SIZE(suffixes); ++i) {
-			if (strcmp(suffixes[i].suff, unit) == 0) {
-				size = size * suffixes[i].mag;
-				res = 0;
-				break;
-			}
-		}
-	} else {
-		return -1;
-	}
-
-	if (sizep && res == 0)
-		*sizep = size;
-	return res;
 }

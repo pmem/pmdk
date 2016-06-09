@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016, Intel Corporation
+ * Copyright 2014-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,22 +31,36 @@
  */
 
 /*
- * set_windows.c -- pool set utilities with OS-specific implementation
+ * uuid.h -- internal definitions for uuid module
  */
 
-#include "util.h"
-#include "out.h"
+#ifndef NVML_UUID_H
+#define NVML_UUID_H 1
+
+#include <stdint.h>
 
 /*
- * util_uuid_generate -- generate a uuid
+ * Structure for binary version of uuid. From RFC4122,
+ * https://tools.ietf.org/html/rfc4122
  */
-int
-util_uuid_generate(uuid_t uuid)
-{
-	HRESULT res = CoCreateGuid((GUID *)(uuid));
-	if (res != S_OK) {
-		ERR("CoCreateGuid");
-		return -1;
-	}
-	return 0;
-}
+struct uuid {
+	uint32_t time_low;
+	uint16_t time_mid;
+	uint16_t time_hi_and_ver;
+	uint8_t clock_seq_hi;
+	uint8_t	clock_seq_low;
+	uint8_t node[6];
+};
+
+#define POOL_HDR_UUID_LEN	16 /* uuid byte length */
+#define POOL_HDR_UUID_STR_LEN	37 /* uuid string length */
+#define POOL_HDR_UUID_GEN_FILE	"/proc/sys/kernel/random/uuid"
+
+typedef unsigned char uuid_t[POOL_HDR_UUID_LEN]; /* 16 byte binary uuid value */
+
+int util_uuid_generate(uuid_t uuid);
+int util_uuid_to_string(uuid_t u, char *buf);
+int util_uuid_from_string(const char uuid[POOL_HDR_UUID_STR_LEN],
+	struct uuid *ud);
+
+#endif
