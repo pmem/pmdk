@@ -33,19 +33,11 @@
 #
 # src/test/obj_tx_free/Makefile -- build obj_tx_free unit test
 #
-TOP = ../../..
-
-vpath %.c $(TOP)/src/libpmemobj
-vpath %.c $(TOP)/src/common
-
 TARGET = obj_tx_free
-OBJS = obj_tx_free.o util.o util_linux.o out.o
+OBJS = obj_tx_free.o
 
+LIBPMEMCOMMON=y
 LIBPMEM=y
 LIBPMEMOBJ=y
 
-out.o: CFLAGS += -DSRCVERSION=\"utversion\"
-
 include ../Makefile.inc
-
-INCS += -I$(TOP)/src/libpmemobj/ -I$(TOP)/src/common/

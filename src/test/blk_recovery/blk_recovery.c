@@ -41,7 +41,6 @@
 
 #include <sys/param.h>
 
-#include "util.h"
 #include "blk.h"
 #include "btt_layout.h"
 

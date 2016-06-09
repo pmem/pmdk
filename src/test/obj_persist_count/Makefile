@@ -36,20 +36,30 @@
 TOP = ../../..
 
 vpath %.c $(TOP)/src/libpmemobj
-vpath %.c $(TOP)/src/common
 
 TARGET = obj_persist_count
 
-OBJS = obj_persist_count.o pmalloc.o bucket.o redo.o heap.o lane.o ctree.o\
-    util.o util_linux.o set.o set_linux.o out.o obj.o cuckoo.o list.o\
-    sync.o tx.o memops.o libpmemobj.o memblock.o pvector.o
+OBJS = obj_persist_count.o\
+	bucket.o\
+	ctree.o\
+	cuckoo.o\
+	heap.o\
+	lane.o\
+	libpmemobj.o\
+	list.o\
+	memblock.o\
+	memops.o\
+	obj.o\
+	pmalloc.o\
+	pvector.o\
+	redo.o\
+	sync.o\
+	tx.o
 
 LIBPMEM=y
-LIBPMEMOBJ=y
-
-out.o: CFLAGS += -DSRCVERSION=\"utversion\"
+LIBPMEMCOMMON=y
 
 include ../Makefile.inc
 
 LDFLAGS += $(call extract_funcs, obj_persist_count.c)
-INCS += -I$(TOP)/src/libpmemobj/ -I$(TOP)/src/common/
+INCS += -I$(TOP)/src/libpmemobj/

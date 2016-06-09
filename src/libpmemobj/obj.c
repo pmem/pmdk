@@ -44,7 +44,8 @@
 #include "librpmem.h"
 
 #include "util.h"
-#include "util_remote.h"
+#include "set.h"
+#include "mmap.h"
 #include "out.h"
 #include "lane.h"
 #include "redo.h"

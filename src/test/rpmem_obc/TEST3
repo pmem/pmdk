@@ -49,7 +49,7 @@ setup
 require_nodes 2
 require_node_log_files 1 $RPMEM_LOG_FILE
 
-RPMEM_CMD="\"cd ${NODE_TEST_DIR[0]} && UNITTEST_FORCE_QUIET=1 ./rpmem_obc$EXESUFFIX\""
+RPMEM_CMD="\"cd ${NODE_TEST_DIR[0]} && UNITTEST_FORCE_QUIET=1 LD_LIBRARY_PATH=.:${NODE_LD_LIBRARY_PATH[0]} ./rpmem_obc$EXESUFFIX\""
 
 export_vars_node 1 RPMEM_CMD
 

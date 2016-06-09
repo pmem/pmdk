@@ -56,8 +56,8 @@ expect_normal_exit $PMEMPOOL.static-nondebug rm -f -s $ROOT_DIR/$POOL_DESC_1
 expect_normal_exit ./rpmemd_db$EXESUFFIX $LOG_FILE $ROOT_DIR \
                                 $POOL_DESC_0 $POOL_DESC_1
 
-# remove all lines containing 'out_init' from the files *1.log
-sed -i '/out_init/d' ./*$UNITTEST_NUM.log
+mv rpmem1.log rpmem1_tmp.log
+grep -e flock -e Non-empty rpmem1_tmp.log > rpmem1.log || true
 
 check
 

@@ -34,7 +34,6 @@
  * obj_memblock.c -- unit test for memblock interface
  */
 #include "unittest.h"
-#include "util.h"
 #include "lane.h"
 #include "redo.h"
 #include "memops.h"

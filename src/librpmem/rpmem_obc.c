@@ -51,7 +51,6 @@
 #include "rpmem_util.h"
 #include "rpmem_ssh.h"
 #include "out.h"
-#include "util.h"
 #include "sys_util.h"
 
 /*

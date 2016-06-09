@@ -53,11 +53,11 @@ ATTR_CONSTRUCTOR
 void
 librpmem_init(void)
 {
+	util_init();
 	out_init(RPMEM_LOG_PREFIX, RPMEM_LOG_LEVEL_VAR, RPMEM_LOG_FILE_VAR,
 			RPMEM_MAJOR_VERSION, RPMEM_MINOR_VERSION);
 	LOG(3, NULL);
 	base64_init();
-	util_init();
 }
 
 /*

@@ -37,7 +37,6 @@
 #include <stddef.h>
 
 #include "unittest.h"
-#include "libpmemobj.h"
 #include "util.h"
 #include "lane.h"
 #include "obj.h"

@@ -39,7 +39,7 @@
 
 #include "libpmemblk.h"
 
-#include "util.h"
+#include "mmap.h"
 #include "out.h"
 #include "blk.h"
 
@@ -52,11 +52,12 @@ ATTR_CONSTRUCTOR
 void
 libpmemblk_init(void)
 {
+	util_init();
 	out_init(PMEMBLK_LOG_PREFIX, PMEMBLK_LOG_LEVEL_VAR,
 			PMEMBLK_LOG_FILE_VAR, PMEMBLK_MAJOR_VERSION,
 			PMEMBLK_MINOR_VERSION);
 	LOG(3, NULL);
-	util_init();
+	util_mmap_init();
 }
 
 /*

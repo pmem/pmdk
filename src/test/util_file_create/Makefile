@@ -33,14 +33,8 @@
 #
 # src/test/util_file_create/Makefile -- build util_file_create unit test
 #
-TOP = ../../..
-
-vpath %.c $(TOP)/src/common
-
 TARGET = util_file_create
-OBJS = util_file_create.o util.o util_linux.o out.o
+OBJS = util_file_create.o
 
-out.o: CFLAGS += -DSRCVERSION=\"utversion\"
-
+LIBPMEMCOMMON=y
 include ../Makefile.inc
-INCS += -I$(TOP)/src/common

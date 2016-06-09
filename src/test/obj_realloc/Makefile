@@ -33,22 +33,13 @@
 #
 # src/test/obj_realloc/Makefile -- build obj_realloc unit test
 #
-TOP = ../../..
-
-vpath %.c $(TOP)/src/libpmemobj
-vpath %.c $(TOP)/src/common
-
 TARGET = obj_realloc
-OBJS = obj_realloc.o pmalloc.o bucket.o redo.o heap.o lane.o ctree.o\
-    util.o util_linux.o set.o set_linux.o out.o obj.o cuckoo.o\
-    list.o sync.o tx.o memops.o libpmemobj.o memblock.o pvector.o
+OBJS = obj_realloc.o
 
+LIBPMEMCOMMON=y
 LIBPMEM=y
 LIBPMEMOBJ=y
-
-out.o: CFLAGS += -DSRCVERSION=\"utversion\"
 
 include ../Makefile.inc
 
 CFLAGS += -I$(TOP)/src/libpmemobj
-CFLAGS += -I$(TOP)/src/common

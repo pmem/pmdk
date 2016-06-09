@@ -51,6 +51,8 @@
 #include "lane.h"
 #include "obj.h"
 #include "btt.h"
+#include "file.h"
+#include "set.h"
 #include "check_util.h"
 
 /*

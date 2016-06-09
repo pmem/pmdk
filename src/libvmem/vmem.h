@@ -34,6 +34,10 @@
  * vmem.h -- internal definitions for libvmem
  */
 
+#include <stddef.h>
+
+#include "pool_hdr.h"
+
 #define VMEM_LOG_PREFIX "libvmem"
 #define VMEM_LOG_LEVEL_VAR "VMEM_LOG_LEVEL"
 #define VMEM_LOG_FILE_VAR "VMEM_LOG_FILE"

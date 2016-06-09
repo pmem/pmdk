@@ -34,7 +34,6 @@
 # src/test/rpmemd_obc/Makefile -- build rpmemd_obc test
 #
 vpath %.c ../../tools/rpmemd
-vpath %.c ../../common
 vpath %.c ../../rpmem_common
 vpath %.c ../../librpmem
 
@@ -48,7 +47,6 @@ OBJS = rpmemd_obc_test.o\
        rpmem_ssh.o\
        rpmem_cmd.o\
        base64.o\
-       out.o util.o set.o util_linux.o set_linux.o\
        rpmemd_obc.o\
        rpmemd_obc_test_msg_hdr.o\
        rpmemd_obc_test_misc.o\
@@ -56,12 +54,10 @@ OBJS = rpmemd_obc_test.o\
        rpmemd_obc_test_open.o\
        rpmemd_obc_test_close.o
 
-out.o: CFLAGS += -DDEBUG -DSRCVERSION=\"utversion\"
-
+LIBPMEMCOMMON=y
 include ../Makefile.inc
 
 CFLAGS += -DRPMEMC_LOG_RPMEMD
 INCS += -I../../tools/rpmemd
-INCS += -I../../common
 INCS += -I../../rpmem_common
 INCS += -I../../librpmem

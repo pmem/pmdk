@@ -34,14 +34,14 @@
  * out.h -- definitions for "out" module
  */
 
+#ifndef NVML_OUT_H
+#define NVML_OUT_H 1
+
 #include <stdarg.h>
+#include <stddef.h>
 #include <stdlib.h>
 
-#ifndef _WIN32
-#define DIR_SEPARATOR '/'
-#else
-#define DIR_SEPARATOR '\\'
-#endif
+#include "util.h"
 
 #ifdef DEBUG
 
@@ -196,3 +196,5 @@ void out_set_print_func(void (*print_func)(const char *s));
 void out_set_vsnprintf_func(int (*vsnprintf_func)(char *str, size_t size,
 	const char *format, va_list ap));
 const char *out_get_errormsg(void);
+
+#endif

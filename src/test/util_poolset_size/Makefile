@@ -34,18 +34,10 @@
 # src/test/util_poolset_size/Makefile -- build util_poolset_size
 #
 #
-TOP = ../../..
-
-vpath %.c $(TOP)/src/common
-
 TARGET = util_poolset_size
-OBJS = util_poolset_size.o util.o util_linux.o set.o set_linux.o out.o
-
-out.o: CFLAGS += -DDEBUG -DSRCVERSION=\"utversion\"
-util.o util_linux.o: CFLAGS += -DDEBUG
-set.o set_linux.o: CFLAGS += -DDEBUG
+OBJS = util_poolset_size.o
 
 LIBPMEM=y
+LIBPMEMCOMMON=y
 
 include ../Makefile.inc
-INCS += -I$(TOP)/src/common

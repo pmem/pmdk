@@ -33,17 +33,9 @@
 #
 # src/test/util_is_absolute/Makefile -- check if path is absolute
 #
-TOP = ../../..
-
-vpath %.c $(TOP)/src/common
-
 TARGET = util_is_absolute
-OBJS = util_is_absolute.o util.o util_linux.o out.o
+OBJS = util_is_absolute.o
 
-out.o: CFLAGS += -DDEBUG -DSRCVERSION=\"utversion\"
-util.o util_linux.o: CFLAGS += -DDEBUG
-
+LIBPMEMCOMMON=y
 LIBPMEM=y
 include ../Makefile.inc
-
-INCS += -I$(TOP)/src/common

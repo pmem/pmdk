@@ -46,12 +46,7 @@ require_test_type long
 configure_valgrind helgrind force-enable
 setup
 
-rm -f $DIR/testfile
-
-expect_normal_exit\
-	PMEM_IS_PMEM_FORCE=1\
+PMEM_IS_PMEM_FORCE=1 expect_normal_exit\
 	./obj_pmalloc_mt$EXESUFFIX\ $DIR/testfile
-
-rm -f $DIR/testfile
 
 pass

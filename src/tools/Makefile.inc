@@ -93,6 +93,17 @@ PMEMBLK_PRIV_OBJ=$(LIBSDIR_PRIV)/libpmemblk/libpmemblk_unscoped.o
 
 LIBS += -pthread
 
+ifeq ($(TOOLS_COMMON), y)
+LIBPMEMCOMMON=y
+endif
+
+ifeq ($(LIBPMEMCOMMON), y)
+DYNAMIC_LIBS += $(LIBSDIR_DEBUG)/libpmemcommon.a
+STATIC_DEBUG_LIBS += $(LIBSDIR_DEBUG)/libpmemcommon.a
+STATIC_NONDEBUG_LIBS += $(LIBSDIR_NONDEBUG)/libpmemcommon.a
+CFLAGS += -I$(TOP)/src/common
+endif
+
 ifeq ($(LIBPMEMPOOL), y)
 DYNAMIC_LIBS += -lpmempool
 STATIC_DEBUG_LIBS += $(LIBSDIR_DEBUG)/libpmempool.a
@@ -131,10 +142,10 @@ STATIC_NONDEBUG_LIBS += $(LIBSDIR_NONDEBUG)/libvmem.a
 endif
 
 ifeq ($(TOOLS_COMMON), y)
-vpath %.c $(TOP)/src/common
 vpath %.c $(TOP)/src/tools/pmempool
 
-OBJS += common.o output.o util.o util_linux.o set.o set_linux.o
+OBJS += common.o output.o
+
 CFLAGS += -I$(TOP)/src/common
 CFLAGS += -I$(TOP)/src/libpmemlog
 CFLAGS += -I$(TOP)/src/libpmemblk

@@ -44,7 +44,6 @@
 #include "libpmemobj.h"
 #include "cuckoo.h"
 #include "lane.h"
-#include "util.h"
 #include "out.h"
 #include "redo.h"
 #include "memops.h"
