@@ -442,12 +442,65 @@ is_pmem_never(const void *addr, size_t len)
 static int (*Func_is_pmem)(const void *addr, size_t len) = is_pmem_never;
 
 /*
- * pmem_is_pmem -- return true if entire range is persistent Memory
+ * pmem_is_pmem_init -- (internal) initialize Func_is_pmem pointer
+ *
+ * This should be done only once - on the first call to pmem_is_pmem().
+ * If PMEM_IS_PMEM_FORCE is set, it would override the default behavior
+ * of pmem_is_pmem().
+ */
+static void
+pmem_is_pmem_init(void)
+{
+	LOG(3, NULL);
+
+	static volatile unsigned init;
+
+	while (init != 2) {
+		if (!__sync_bool_compare_and_swap(&init, 0, 1))
+			continue;
+
+		/*
+		 * For debugging/testing, allow pmem_is_pmem() to be forced
+		 * to always true or never true using environment variable
+		 * PMEM_IS_PMEM_FORCE values of zero or one.
+		 *
+		 * This isn't #ifdef DEBUG because it has a trivial performance
+		 * impact and it may turn out to be useful as a "chicken bit"
+		 * for systems where pmem_is_pmem() isn't correctly detecting
+		 * true persistent memory.
+		 */
+		char *ptr = getenv("PMEM_IS_PMEM_FORCE");
+		if (ptr) {
+			int val = atoi(ptr);
+
+			if (val == 0)
+				Func_is_pmem = is_pmem_never;
+			else if (val == 1)
+				Func_is_pmem = is_pmem_always;
+
+			LOG(4, "PMEM_IS_PMEM_FORCE=%d", val);
+		}
+
+		if (!__sync_bool_compare_and_swap(&init, 1, 2))
+			FATAL("__sync_bool_compare_and_swap");
+	}
+}
+
+/*
+ * pmem_is_pmem -- return true if entire range is persistent memory
  */
 int
 pmem_is_pmem(const void *addr, size_t len)
 {
 	LOG(10, "addr %p len %zu", addr, len);
+
+	static int once;
+
+	/* This is not thread-safe, but pmem_is_pmem_init() is. */
+	if (once == 0) {
+		pmem_is_pmem_init();
+		once++;
+	}
 
 	return Func_is_pmem(addr, len);
 }
@@ -1125,26 +1178,6 @@ pmem_init(void)
 			LOG(3, "PMEM_MOVNT_THRESHOLD set to %zu", (size_t)val);
 			Movnt_threshold = (size_t)val;
 		}
-	}
-
-	/*
-	 * For debugging/testing, allow pmem_is_pmem() to be forced
-	 * to always true or never true using environment variable
-	 * PMEM_IS_PMEM_FORCE values of zero or one.
-	 *
-	 * This isn't #ifdef DEBUG because it has a trivial performance
-	 * impact and it may turn out to be useful as a "chicken bit" for
-	 * systems where pmem_is_pmem() isn't correctly detecting true
-	 * persistent memory.
-	 */
-	ptr = getenv("PMEM_IS_PMEM_FORCE");
-	if (ptr) {
-		int val = atoi(ptr);
-
-		if (val == 0)
-			Func_is_pmem = is_pmem_never;
-		else if (val == 1)
-			Func_is_pmem = is_pmem_always;
 	}
 }
 

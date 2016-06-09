@@ -32,20 +32,22 @@
 #
 
 #
-# src/test/pmem_is_pmem/TEST0 -- unit test for pmem_is_pmem
+# src/test/pmem_is_pmem/TEST5 -- unit test for pmem_is_pmem
 #
-export UNITTEST_NAME=pmem_is_pmem/TEST0
-export UNITTEST_NUM=0
+export UNITTEST_NAME=pmem_is_pmem/TEST5
+export UNITTEST_NUM=5
 
 # standard unit test setup
 . ../unittest/unittest.sh
 
-require_fs_type non-pmem
+require_fs_type pmem
 
 setup
 
 create_holey_file 2 $DIR/testfile1
-expect_normal_exit ./pmem_is_pmem$EXESUFFIX $DIR/testfile1
+export PMEM_IS_PMEM_FORCE=1
+# program would overwrite PMEM_IS_PMEM_FORCE
+expect_normal_exit ./pmem_is_pmem$EXESUFFIX $DIR/testfile1 0
 
 check
 

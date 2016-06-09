@@ -688,6 +688,20 @@ to 1 causes
 to always return true.  This variable is mostly used for testing
 but can be used to force pmem behavior on a system where a range
 of pmem is not detectable as pmem for some reason.
+.IP
+.B NOTE:
+Unlike the other variables, the value of
+.B PMEM_IS_PMEM_FORCE
+is not queried (and cached) at the library initialization time,
+but on the first call to
+.BR pmem_is_pmem ()
+function.  It means that in case of
+.BR libpmemlog ,
+.BR libpmemblk ,
+and
+.B libpmemobj
+libraries, it may still be set or modified by the program until
+the first attempt to create or open the persistent memory pool.
 .PP
 .B PMEM_NO_CLWB=1
 .IP
@@ -771,6 +785,7 @@ variable is set to 1.
 This variable is intended for use during library testing.
 .PP
 .BI PMEM_MMAP_HINT= val
+.IP
 This environment variable allows overriding the hint address used by
 .BR pmem_map_file ().
 If set, it also disables mapping address randomization.
@@ -783,6 +798,7 @@ of the persistent memory block, based on its offset in the file.  In case of
 .B libpmemobj
 it simplifies conversion of a persistent object identifier (OID) into a direct
 pointer to the object.
+.IP
 .B NOTE: Setting this environment variable affects all the NVM libraries,
 disabling mapping address randomization and causing the specified address
 to be used as a hint about where to place the mapping.

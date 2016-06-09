@@ -33,30 +33,68 @@
 /*
  * pmem_is_pmem.c -- unit test for pmem_is_pmem()
  *
- * usage: pmem_is_pmem file
+ * usage: pmem_is_pmem file [env]
  */
 
 #include "unittest.h"
+
+#define NTHREAD 16
+
+void *Addr;
+size_t Size;
+
+/*
+ * worker -- the work each thread performs
+ */
+static void *
+worker(void *arg)
+{
+	int *ret = (int *)arg;
+	*ret =  pmem_is_pmem(Addr, Size);
+	return NULL;
+}
 
 int
 main(int argc, char *argv[])
 {
 	START(argc, argv, "pmem_is_pmem");
 
-	if (argc !=  2)
-		UT_FATAL("usage: %s file", argv[0]);
+	if (argc <  2 || argc > 3)
+		UT_FATAL("usage: %s file [env]", argv[0]);
+
+	if (argc == 3)
+		UT_ASSERTeq(setenv("PMEM_IS_PMEM_FORCE", argv[2], 1), 0);
 
 	int fd = OPEN(argv[1], O_RDWR);
 
 	struct stat stbuf;
 	FSTAT(fd, &stbuf);
 
-	void *addr =
-		MMAP(0, stbuf.st_size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
+	Size = stbuf.st_size;
+	Addr = MMAP(0, stbuf.st_size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
 
 	CLOSE(fd);
 
-	UT_OUT("%d", pmem_is_pmem(addr, stbuf.st_size));
+	pthread_t threads[NTHREAD];
+	int ret[NTHREAD];
+
+	/* kick off NTHREAD threads */
+	for (int i = 0; i < NTHREAD; i++)
+		PTHREAD_CREATE(&threads[i], NULL, worker, &ret[i]);
+
+	/* wait for all the threads to complete */
+	for (int i = 0; i < NTHREAD; i++)
+		PTHREAD_JOIN(threads[i], NULL);
+
+	/* verify that all the threads return the same value */
+	for (int i = 1; i < NTHREAD; i++)
+		UT_ASSERTeq(ret[0], ret[i]);
+
+	UT_OUT("%d", ret[0]);
+
+	UT_ASSERTeq(unsetenv("PMEM_IS_PMEM_FORCE"), 0);
+
+	UT_OUT("%d", pmem_is_pmem(Addr, Size));
 
 	DONE(NULL);
 }
