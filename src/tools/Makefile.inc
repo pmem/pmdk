@@ -155,6 +155,8 @@ ifneq ($(LIBPMEMBLK_PRIV),)
 OBJS += pmemblk_priv.o
 endif
 
+MAKEFILE_DEPS=$(TOP)/src/tools/Makefile.inc $(TOP)/src/common.inc
+
 ifneq ($(TARGET),)
 all: $(TARGET) $(TARGET_STATIC_NONDEBUG) $(TARGET_STATIC_DEBUG)
 else
@@ -200,16 +202,16 @@ endif
 %.txt: %
 	man ./$< > $@
 
-$(TARGET) $(TARGET_STATIC_DEBUG) $(TARGET_STATIC_NONDEBUG): $(OBJS)
+$(TARGET) $(TARGET_STATIC_DEBUG) $(TARGET_STATIC_NONDEBUG): $(OBJS) $(MAKEFILE_DEPS)
 
 $(TARGET_STATIC_DEBUG): $(STATIC_DEBUG_LIBS)
-	$(CC) $(LDFLAGS) -o $@ $^ $(STATIC_DEBUG_LIBS) $(LIBS)
+	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(STATIC_DEBUG_LIBS) $(LIBS)
 
 $(TARGET_STATIC_NONDEBUG): $(STATIC_NONDEBUG_LIBS)
-	$(CC) $(LDFLAGS) -o $@ $^ $(STATIC_NONDEBUG_LIBS) $(LIBS)
+	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(STATIC_NONDEBUG_LIBS) $(LIBS)
 
 $(TARGET):
-	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS) $(DYNAMIC_LIBS)
+	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LIBS) $(DYNAMIC_LIBS)
 
 $(PMEMLOG_PRIV_OBJ):
 	$(MAKE) -C $(LIBSDIR) libpmemlog
@@ -231,7 +233,7 @@ pmemblk_priv.o: $(PMEMBLK_PRIV_OBJ)
 
 objdir=.
 
-%.o: %.c
+%.o: %.c $(MAKEFILE_DEPS)
 	@mkdir -p .deps
 	$(CC) -MD $(CFLAGS) $(INCS) -c -o $@ $<
 	$(create-deps)

@@ -162,28 +162,30 @@ TARGET_STATIC_NONDEBUG=$(TARGET).static-nondebug
 endif
 endif
 
+MAKEFILE_DEPS=Makefile ../Makefile.inc $(TOP)/src/common.inc
+
 all: $(TARGET) $(TARGET_STATIC_DEBUG) $(TARGET_STATIC_NONDEBUG)
 
 $(UT):
 	$(MAKE) -C ../unittest
 
-$(TARGET_STATIC_DEBUG): $(OBJS) $(UT) $(STATIC_DEBUG_LIBS) $(EXTRA_DEPS)
+$(TARGET_STATIC_DEBUG): $(OBJS) $(UT) $(STATIC_DEBUG_LIBS) $(EXTRA_DEPS) $(MAKEFILE_DEPS)
 	$(LINKER) -o $@ $(LDFLAGS) $(OBJS) $(STATIC_DEBUG_LIBS) $(LIBS)
 
-$(TARGET_STATIC_NONDEBUG): $(OBJS) $(UT) $(STATIC_NONDEBUG_LIBS) $(EXTRA_DEPS)
+$(TARGET_STATIC_NONDEBUG): $(OBJS) $(UT) $(STATIC_NONDEBUG_LIBS) $(EXTRA_DEPS) $(MAKEFILE_DEPS)
 	$(LINKER) -o $@ $(LDFLAGS) $(OBJS) $(STATIC_NONDEBUG_LIBS) $(LIBS)
 
-$(TARGET): $(OBJS) $(UT) $(EXTRA_DEPS)
+$(TARGET): $(OBJS) $(UT) $(EXTRA_DEPS) $(MAKEFILE_DEPS)
 	$(LINKER) -o $@ $(LDFLAGS) $(OBJS) $(DYNAMIC_LIBS) $(LIBS)
 
 objdir=.
 
-%.o: %.c
+%.o: %.c $(MAKEFILE_DEPS)
 	@mkdir -p .deps
 	$(CC) -MD -c $(CFLAGS) $(INCS) $< -o $@
 	$(create-deps)
 
-%.o: %.cpp
+%.o: %.cpp $(MAKEFILE_DEPS)
 	@mkdir -p .deps
 	$(CXX) -MD -c $(CXXFLAGS) $(INCS) $< -o $@
 	$(create-deps)
