@@ -47,6 +47,8 @@
 #include <err.h>
 #include "common.h"
 #include "create.h"
+
+#include "set.h"
 #include "output.h"
 #include "libpmemblk.h"
 #include "libpmemlog.h"

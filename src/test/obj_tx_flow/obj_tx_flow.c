@@ -34,8 +34,6 @@
  * obj_tx_flow.c -- unit test for transaction flow
  */
 #include "unittest.h"
-#include "libpmemobj.h"
-#include "util.h"
 
 #define LAYOUT_NAME "direct"
 

@@ -40,7 +40,6 @@
 
 #include "jemalloc.h"
 #include "out.h"
-#include "util.h"
 #include "vmem.h"
 
 

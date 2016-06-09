@@ -39,7 +39,7 @@
 
 #include "libpmemlog.h"
 
-#include "util.h"
+#include "mmap.h"
 #include "out.h"
 #include "log.h"
 
@@ -52,11 +52,12 @@ ATTR_CONSTRUCTOR
 void
 libpmemlog_init(void)
 {
+	util_init();
 	out_init(PMEMLOG_LOG_PREFIX, PMEMLOG_LOG_LEVEL_VAR,
 			PMEMLOG_LOG_FILE_VAR, PMEMLOG_MAJOR_VERSION,
 			PMEMLOG_MINOR_VERSION);
 	LOG(3, NULL);
-	util_init();
+	util_mmap_init();
 }
 
 /*

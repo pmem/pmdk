@@ -53,6 +53,7 @@
 #include "common.h"
 #include "output.h"
 #include "btt.h"
+#include "set.h"
 
 #define STR(x)	#x
 

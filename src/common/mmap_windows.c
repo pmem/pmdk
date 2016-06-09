@@ -638,6 +638,18 @@ err:
 }
 
 /*
+ * util_map_hint -- determine hint address for mmap()
+ *
+ * XXX - no Windows implementation yet
+ */
+char *
+util_map_hint(size_t len, size_t req_align)
+{
+	LOG(4, "hint not supported on windows");
+	return NULL;
+}
+
+/*
  * library constructor/destructor functions
  */
 MSVC_CONSTR(mmap_init)

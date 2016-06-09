@@ -30,17 +30,17 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifndef NVML_CPU_H
+#define NVML_CPU_H 1
+
 /*
- * util_remote.h -- remote replicas support definitions for util module
+ * cpu.h -- definitions for "cpu" module
  */
 
-extern void util_remote_unload(void);
+int is_cpu_genuine_intel(void);
+int is_cpu_sse2_present(void);
+int is_cpu_clflush_present(void);
+int is_cpu_clflushopt_present(void);
+int is_cpu_clwb_present(void);
 
-extern void util_remote_init(void);
-extern void util_remote_fini(void);
-
-extern int (*Rpmem_persist)(RPMEMpool *rpp, size_t offset, size_t length,
-								unsigned lane);
-extern int (*Rpmem_read)(RPMEMpool *rpp, void *buff, size_t offset,
-								size_t length);
-extern int util_pool_close_remote(RPMEMpool *rpp);
+#endif

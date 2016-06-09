@@ -41,7 +41,6 @@
 
 #include "libpmem.h"
 #include "libpmemobj.h"
-#include "util.h"
 #include "redo.h"
 #include "memops.h"
 #include "heap_layout.h"

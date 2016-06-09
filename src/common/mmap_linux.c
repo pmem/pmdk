@@ -31,31 +31,19 @@
  */
 
 /*
- * util_linux.c -- general utilities with OS-specific implementation
+ * mmap_linux.c -- memory-mapped files for Linux
  */
 
 #include <stdio.h>
-#include <string.h>
 #include <sys/mman.h>
 #include <sys/param.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <signal.h>
-#include <unistd.h>
-#include <errno.h>
-#include <stddef.h>
-#include <link.h>
-
-#include "util.h"
+#include "mmap.h"
 #include "out.h"
 
 #define PROCMAXLEN 2048 /* maximum expected line length in /proc files */
 
 #define MEGABYTE ((uintptr_t)1 << 20)
 #define GIGABYTE ((uintptr_t)1 << 30)
-
-extern int Mmap_no_random;
-extern void *Mmap_hint;
 
 /*
  * util_map_hint_unused -- use /proc to determine a hint address for mmap()
@@ -196,109 +184,4 @@ util_map_hint(size_t len, size_t req_align)
 	LOG(4, "hint %p", addr);
 
 	return addr;
-}
-
-/*
- * util_tmpfile --  (internal) create the temporary file
- */
-int
-util_tmpfile(const char *dir, const char *templ)
-{
-	LOG(3, "dir \"%s\" template \"%s\"", dir, templ);
-
-	int oerrno;
-	int fd = -1;
-
-	char *fullname = alloca(strlen(dir) + sizeof(templ));
-
-	(void) strcpy(fullname, dir);
-	(void) strcat(fullname, templ);
-
-	sigset_t set, oldset;
-	sigfillset(&set);
-	(void) sigprocmask(SIG_BLOCK, &set, &oldset);
-
-	mode_t prev_umask = umask(S_IRWXG | S_IRWXO);
-
-	fd = mkstemp(fullname);
-
-	umask(prev_umask);
-
-	if (fd < 0) {
-		ERR("!mkstemp");
-		goto err;
-	}
-
-	(void) unlink(fullname);
-	(void) sigprocmask(SIG_SETMASK, &oldset, NULL);
-	LOG(3, "unlinked file is \"%s\"", fullname);
-
-	return fd;
-
-err:
-	oerrno = errno;
-	(void) sigprocmask(SIG_SETMASK, &oldset, NULL);
-	if (fd != -1)
-		(void) close(fd);
-	errno = oerrno;
-	return -1;
-}
-
-/*
- * util_get_arch_flags -- get architecture identification flags
- */
-int
-util_get_arch_flags(struct arch_flags *arch_flags)
-{
-	char *path = "/proc/self/exe";
-	int fd;
-	ElfW(Ehdr) elf;
-	int ret = 0;
-
-	memset(arch_flags, 0, sizeof(*arch_flags));
-
-	if ((fd = open(path, O_RDONLY)) < 0) {
-		ERR("!open %s", path);
-		ret = -1;
-		goto out;
-	}
-
-	if (read(fd, &elf, sizeof(elf)) != sizeof(elf)) {
-		ERR("!read %s", path);
-		ret = -1;
-		goto out_close;
-	}
-
-	if (elf.e_ident[EI_MAG0] != ELFMAG0 ||
-	    elf.e_ident[EI_MAG1] != ELFMAG1 ||
-	    elf.e_ident[EI_MAG2] != ELFMAG2 ||
-	    elf.e_ident[EI_MAG3] != ELFMAG3) {
-		ERR("invalid ELF magic");
-		ret = -1;
-		goto out_close;
-	}
-
-	arch_flags->e_machine = elf.e_machine;
-	arch_flags->ei_class = elf.e_ident[EI_CLASS];
-	arch_flags->ei_data = elf.e_ident[EI_DATA];
-	arch_flags->alignment_desc = alignment_desc();
-
-out_close:
-	close(fd);
-out:
-	return ret;
-}
-
-/*
- * util_is_absolute_path -- check if the path is an absolute one
- */
-int
-util_is_absolute_path(const char *path)
-{
-	LOG(3, "path: %s", path);
-
-	if (path[0] == DIR_SEPARATOR)
-		return 1;
-	else
-		return 0;
 }

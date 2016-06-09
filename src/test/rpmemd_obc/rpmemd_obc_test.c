@@ -35,6 +35,7 @@
  */
 
 #include "rpmemd_obc_test_common.h"
+#include "out.h"
 
 /*
  * test_cases -- available test cases

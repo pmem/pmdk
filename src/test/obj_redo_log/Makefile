@@ -36,15 +36,13 @@
 TOP = ../../..
 
 vpath %.c $(TOP)/src/libpmemobj
-vpath %.c $(TOP)/src/common
 
 TARGET = obj_redo_log
-OBJS = obj_redo_log.o redo.o util.o util_linux.o out.o
-
-out.o: CFLAGS += -DSRCVERSION=\"utversion\"
+OBJS = obj_redo_log.o redo.o
 
 LIBPMEM=y
+LIBPMEMCOMMON=y
 
 include ../Makefile.inc
 
-INCS += -I$(TOP)/src/libpmemobj/ -I$(TOP)/src/common/
+INCS += -I$(TOP)/src/libpmemobj/

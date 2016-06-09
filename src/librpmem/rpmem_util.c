@@ -40,7 +40,6 @@
 #include <stdint.h>
 
 #include "out.h"
-#include "util.h"
 #include "librpmem.h"
 #include "rpmem_proto.h"
 #include "rpmem_common.h"

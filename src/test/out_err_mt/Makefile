@@ -33,15 +33,10 @@
 #
 # src/test/out_err_mt/Makefile -- build unit test for error messages
 #
-TOP = ../../..
-
-vpath %.c $(TOP)/src/common
-
 TARGET = out_err_mt
-OBJS = out_err_mt.o util.o util_linux.o out.o
+OBJS = out_err_mt.o
 
-out.o: CFLAGS += -DSRCVERSION=\"utversion\"
-
+LIBPMEMCOMMON=y
 LIBPMEM=y
 LIBPMEMLOG=y
 LIBPMEMBLK=y
@@ -49,5 +44,3 @@ LIBPMEMOBJ=y
 LIBVMEM=y
 
 include ../Makefile.inc
-
-INCS += -I$(TOP)/src/common/

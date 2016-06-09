@@ -41,7 +41,6 @@
 #include "memops.h"
 #include "pmalloc.h"
 #include "list.h"
-#include "util.h"
 #include "obj.h"
 #include "out.h"
 #include "sync.h"

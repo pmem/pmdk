@@ -56,6 +56,8 @@
 #include "libpmemlog.h"
 #include "libpmemobj.h"
 #include "btt.h"
+#include "file.h"
+#include "set.h"
 
 #define REQ_BUFF_SIZE	2048U
 

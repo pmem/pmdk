@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016, Intel Corporation
+ * Copyright 2014-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,47 +31,58 @@
  */
 
 /*
- * set_linux.c -- pool set utilities with OS-specific implementation
+ * pool_hdr_linux.c -- pool header utilities, Linux-specific
  */
 
 #include <fcntl.h>
+#include <link.h>
+#include <string.h>
 #include <unistd.h>
-#include <stdint.h>
 
-#include "util.h"
 #include "out.h"
+#include "pool_hdr.h"
 
 /*
- * util_uuid_generate -- generate a uuid
- *
- * This function reads the uuid string from  /proc/sys/kernel/random/uuid
- * It converts this string into the binary uuid format as specified in
- * https://www.ietf.org/rfc/rfc4122.txt
+ * util_get_arch_flags -- get architecture identification flags
  */
 int
-util_uuid_generate(uuid_t uuid)
+util_get_arch_flags(struct arch_flags *arch_flags)
 {
-	char uu[POOL_HDR_UUID_STR_LEN];
+	char *path = "/proc/self/exe";
+	int fd;
+	ElfW(Ehdr) elf;
+	int ret = 0;
 
-	int fd = open(POOL_HDR_UUID_GEN_FILE, O_RDONLY);
-	if (fd < 0) {
-		/* Fatal error */
-		LOG(2, "!open(uuid)");
-		return -1;
+	memset(arch_flags, 0, sizeof(*arch_flags));
+
+	if ((fd = open(path, O_RDONLY)) < 0) {
+		ERR("!open %s", path);
+		ret = -1;
+		goto out;
 	}
-	ssize_t num = read(fd, uu, POOL_HDR_UUID_STR_LEN);
-	if (num < POOL_HDR_UUID_STR_LEN) {
-		/* Fatal error */
-		LOG(2, "!read(uuid)");
-		close(fd);
-		return -1;
+
+	if (read(fd, &elf, sizeof(elf)) != sizeof(elf)) {
+		ERR("!read %s", path);
+		ret = -1;
+		goto out_close;
 	}
+
+	if (elf.e_ident[EI_MAG0] != ELFMAG0 ||
+	    elf.e_ident[EI_MAG1] != ELFMAG1 ||
+	    elf.e_ident[EI_MAG2] != ELFMAG2 ||
+	    elf.e_ident[EI_MAG3] != ELFMAG3) {
+		ERR("invalid ELF magic");
+		ret = -1;
+		goto out_close;
+	}
+
+	arch_flags->e_machine = elf.e_machine;
+	arch_flags->ei_class = elf.e_ident[EI_CLASS];
+	arch_flags->ei_data = elf.e_ident[EI_DATA];
+	arch_flags->alignment_desc = alignment_desc();
+
+out_close:
 	close(fd);
-
-	uu[POOL_HDR_UUID_STR_LEN - 1] = '\0';
-	int ret = util_uuid_from_string(uu, (struct uuid *)uuid);
-	if (ret < 0)
-		return ret;
-
-	return 0;
+out:
+	return ret;
 }

@@ -35,7 +35,6 @@
  */
 
 #include "unittest.h"
-#include "out.h"
 
 #include "librpmem.h"
 #include "rpmem_proto.h"

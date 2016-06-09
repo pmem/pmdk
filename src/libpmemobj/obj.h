@@ -35,6 +35,9 @@
  */
 
 #include <stddef.h>
+#include <stdint.h>
+
+#include "pool_hdr.h"
 #include "redo.h"
 
 #define PMEMOBJ_LOG_PREFIX "libpmemobj"
