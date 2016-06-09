@@ -221,6 +221,9 @@ ifeq ($(USE_PMEMSPOIL), y)
 all: $(TOOLS)/pmemspoil/pmemspoil
 endif
 
+$(TOOLS)/bttcreate/bttcreate:
+	$(MAKE) -C $(TOOLS)/bttcreate all
+
 ifeq ($(USE_BTTCREATE), y)
 all: $(TOOLS)/bttcreate/bttcreate
 endif
