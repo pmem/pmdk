@@ -37,6 +37,8 @@
 #include "unittest.h"
 
 #include "librpmem.h"
+#include "pool_hdr.h"
+#include "set.h"
 #include "util.h"
 
 #include "rpmem_common.h"

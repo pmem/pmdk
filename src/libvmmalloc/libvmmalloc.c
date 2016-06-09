@@ -75,7 +75,8 @@
 #include "libvmmalloc.h"
 
 #include "jemalloc.h"
-#include "util.h"
+#include "mmap.h"
+#include "file.h"
 #include "vmem.h"
 #include "vmmalloc.h"
 #include "out.h"
@@ -611,12 +612,13 @@ libvmmalloc_init(void)
 		abort();
 	}
 
+	util_init();
 	out_init(VMMALLOC_LOG_PREFIX, VMMALLOC_LOG_LEVEL_VAR,
 			VMMALLOC_LOG_FILE_VAR, VMMALLOC_MAJOR_VERSION,
 			VMMALLOC_MINOR_VERSION);
 	out_set_vsnprintf_func(je_vmem_navsnprintf);
 	LOG(3, NULL);
-	util_init();
+	util_mmap_init();
 
 	/* set up jemalloc messages to a custom print function */
 	je_vmem_malloc_message = print_jemalloc_messages;

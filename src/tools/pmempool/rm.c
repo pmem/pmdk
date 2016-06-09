@@ -45,6 +45,8 @@
 #include "output.h"
 #include "rm.h"
 
+#include "set.h"
+
 enum ask_type {
 	ASK_SOMETIMES,	/* ask before removing write-protected files */
 	ASK_ALWAYS,	/* always ask */

@@ -33,18 +33,8 @@
 #
 # src/test/util_parse_size/Makefile -- check parsing results
 #
-TOP = ../../..
-
-vpath %.c $(TOP)/src/common
-
 TARGET = util_parse_size
-OBJS = util_parse_size.o util.o util_linux.o set.o set_linux.o out.o
+OBJS = util_parse_size.o
 
-out.o: CFLAGS += -DDEBUG -DSRCVERSION=\"utversion\"
-util.o util_linux.o: CFLAGS += -DDEBUG
-set.o set_linux.o: CFLAGS += -DDEBUG
-
-LIBPMEM=y
+LIBPMEMCOMMON=y
 include ../Makefile.inc
-
-INCS += -I$(TOP)/src/common

@@ -35,9 +35,21 @@
 LIBRARY_NAME = pmemlog
 LIBRARY_SO_VERSION = 1
 LIBRARY_VERSION = 0.0
-SOURCE = libpmemlog.c log.c $(COMMON)/util.c $(COMMON)/util_linux.c\
-	$(COMMON)/set.c $(COMMON)/set_linux.c $(COMMON)/out.c
+SOURCE =\
+	$(COMMON)/file.c\
+	$(COMMON)/file_linux.c\
+	$(COMMON)/mmap.c\
+	$(COMMON)/mmap_linux.c\
+	$(COMMON)/out.c\
+	$(COMMON)/pool_hdr.c\
+	$(COMMON)/pool_hdr_linux.c\
+	$(COMMON)/set.c\
+	$(COMMON)/util.c\
+	$(COMMON)/uuid.c\
+	$(COMMON)/uuid_linux.c\
+	libpmemlog.c\
+	log.c
 
 include ../Makefile.inc
 
-LIBS +=  -pthread -lpmem
+LIBS += -pthread -lpmem

@@ -48,7 +48,8 @@
 #include "libpmem.h"
 #include "libpmemblk.h"
 
-#include "util.h"
+#include "mmap.h"
+#include "set.h"
 #include "out.h"
 #include "btt.h"
 #include "blk.h"

@@ -34,21 +34,29 @@
 # src/test/obj_heap_interrupt/Makefile -- build obj_heap_interrupt unit test
 #
 vpath %.c ../../libpmemobj
-vpath %.c ../../common
 
 TARGET = obj_heap_interrupt
-OBJS = obj_heap_interrupt.o pmalloc.o bucket.o redo.o heap.o lane.o ctree.o\
-    util.o util_linux.o set.o set_linux.o out.o obj.o cuckoo.o\
-    list.o sync.o tx.o memops.o memblock.o libpmemobj.o pvector.o
+OBJS = obj_heap_interrupt.o\
+	bucket.o\
+	ctree.o\
+	cuckoo.o\
+	heap.o\
+	lane.o\
+	libpmemobj.o\
+	list.o\
+	memblock.o\
+	memops.o\
+	obj.o\
+	pmalloc.o\
+	pvector.o\
+	redo.o\
+	sync.o\
+	tx.o
 
 LIBPMEM=y
-LIBPMEMOBJ=y
-
-out.o: CFLAGS += -DSRCVERSION=\"utversion\"
-
-EXTRA_CFLAGS += -DDEBUG
+LIBPMEMCOMMON=y
 
 include ../Makefile.inc
 
 LDFLAGS += $(call extract_funcs, obj_heap_interrupt.c)
-INCS += -I../../libpmemobj/ -I../../common/
+INCS += -I../../libpmemobj/

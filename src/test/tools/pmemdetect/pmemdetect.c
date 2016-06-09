@@ -37,7 +37,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include "util.h"
+#include "mmap.h"
 #include "libpmem.h"
 
 #define SIZE 4096
@@ -55,6 +55,7 @@ main(int argc, char *argv[])
 	const char *path = argv[1];
 
 	util_init();
+	util_mmap_init();
 	void *addr = util_map_tmpfile(path, SIZE, 0);
 	if (addr == NULL) {
 		fprintf(stderr, "file creation failed\n");

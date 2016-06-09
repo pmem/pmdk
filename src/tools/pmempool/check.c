@@ -39,6 +39,8 @@
 #include "common.h"
 #include "check.h"
 #include "output.h"
+#include "set.h"
+#include "file.h"
 
 #include "libpmempool.h"
 

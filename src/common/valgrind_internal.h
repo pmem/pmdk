@@ -34,6 +34,9 @@
  * valgrind_internal.h -- internal definitions for valgrind macros
  */
 
+#ifndef NVML_VALGRIND_INTERNAL_H
+#define NVML_VALGRIND_INTERNAL_H 1
+
 #ifdef USE_VALGRIND
 #define USE_VG_PMEMCHECK
 #define USE_VG_HELGRIND
@@ -457,5 +460,7 @@ extern unsigned _On_valgrind;
 
 #define VALGRIND_DO_CHECK_MEM_IS_ADDRESSABLE(addr, len)\
 	do { (void) (addr); (void) (len); } while (0)
+
+#endif
 
 #endif

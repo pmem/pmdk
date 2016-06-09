@@ -48,7 +48,8 @@
 #include "libpmem.h"
 #include "libpmemlog.h"
 
-#include "util.h"
+#include "mmap.h"
+#include "set.h"
 #include "out.h"
 #include "log.h"
 #include "sys_util.h"

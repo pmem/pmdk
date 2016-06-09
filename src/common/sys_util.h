@@ -34,6 +34,9 @@
  * sys_util.h -- internal utility wrappers around system functions
  */
 
+#ifndef NVML_SYS_UTIL_H
+#define NVML_SYS_UTIL_H 1
+
 #include <errno.h>
 #include <pthread.h>
 
@@ -111,3 +114,5 @@ util_rwlock_unlock(pthread_rwlock_t *m)
 		FATAL("!pthread_rwlock_unlock");
 	}
 }
+
+#endif

@@ -38,7 +38,7 @@
 #include <link.h>
 
 #include "unittest.h"
-#include "util.h"
+#include "pool_hdr.h"
 
 #define ELF_FILE_NAME "/proc/self/exe"
 #define FATAL_USAGE()\

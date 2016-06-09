@@ -37,6 +37,7 @@
 #include "redo.h"
 #include "memops.h"
 #include "pmalloc.h"
+#include "util.h"
 
 static struct {
 	int n_persist;

@@ -35,7 +35,6 @@
  */
 
 #include "unittest.h"
-#include "util.h"
 
 extern const char *Open_path;
 extern off_t Fallocate_len;

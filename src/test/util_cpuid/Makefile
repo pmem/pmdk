@@ -33,11 +33,12 @@
 #
 # src/test/util_cpuid/Makefile -- build util_cpu unit test
 #
-vpath %.c ../../common
+vpath %.c ../../libpmem/
 
 TARGET = util_cpuid
 OBJS = util_cpuid.o cpu.o
 
+LIBPMEMCOMMON=y
 include ../Makefile.inc
 
-INCS += -I../../common/
+INCS += -I../../libpmem/

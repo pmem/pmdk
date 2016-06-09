@@ -36,15 +36,13 @@
 TOP = ../../..
 
 vpath %.c $(TOP)/src/libpmemobj
-vpath %.c $(TOP)/src/common
 
 TARGET = obj_lane
-OBJS = obj_lane.o cuckoo.o lane.o util.o util_linux.o out.o
+OBJS = obj_lane.o cuckoo.o lane.o
 
+LIBPMEMCOMMON=y
 LIBPMEM=y
-
-out.o: CFLAGS += -DSRCVERSION=\"utversion\"
 
 include ../Makefile.inc
 
-INCS += -I$(TOP)/src/libpmemobj/ -I$(TOP)/src/common/
+INCS += -I$(TOP)/src/libpmemobj/

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2014-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,95 +31,32 @@
  */
 
 /*
- * util_dl.h -- dynamic linking utilities with library-specific implementation
+ * file.h -- internal definitions for file module
  */
 
-#if defined(USE_LIBDL) && !defined(_WIN32)
+#ifndef NVML_FILE_H
+#define NVML_FILE_H 1
 
-#include <dlfcn.h>
+#include <stddef.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
-/*
- * util_dlopen -- calls real dlopen()
- */
-static inline void *
-util_dlopen(const char *filename)
-{
-	LOG(3, "filename %s", filename);
+int util_tmpfile(const char *dir, const char *templ);
+int util_is_absolute_path(const char *path);
 
-	return dlopen(filename, RTLD_NOW);
-}
+int util_file_create(const char *path, size_t size, size_t minsize);
+int util_file_open(const char *path, size_t *size, size_t minsize, int flags);
 
-/*
- * util_dlerror -- calls real dlerror()
- */
-static inline char *
-util_dlerror(void)
-{
-	return dlerror();
-}
-
-/*
- * util_dlsym -- calls real dlsym()
- */
-static inline void *
-util_dlsym(void *handle, const char *symbol)
-{
-	LOG(3, "handle %p symbol %s", handle, symbol);
-
-	return dlsym(handle, symbol);
-}
-
-/*
- * util_dlclose -- calls real dlclose()
- */
-static inline int
-util_dlclose(void *handle)
-{
-	LOG(3, "handle %p", handle);
-
-	return dlclose(handle);
-}
-
-#else /* empty functions */
-
-/*
- * util_dlopen -- empty function
- */
-static inline void *
-util_dlopen(const char *filename)
-{
-	errno = ENOSYS;
-	return NULL;
-}
-
-/*
- * util_dlerror -- empty function
- */
-static inline char *
-util_dlerror(void)
-{
-	errno = ENOSYS;
-	return NULL;
-}
-
-/*
- * util_dlsym -- empty function
- */
-static inline void *
-util_dlsym(void *handle, const char *symbol)
-{
-	errno = ENOSYS;
-	return NULL;
-}
-
-/*
- * util_dlclose -- empty function
- */
-static inline int
-util_dlclose(void *handle)
-{
-	errno = ENOSYS;
-	return 0;
-}
+#ifndef _WIN32
+typedef struct stat util_stat_t;
+#define util_fstat	fstat
+#define util_stat	stat
+#define util_lseek	lseek
+#else
+typedef struct _stat64 util_stat_t;
+#define util_fstat	_fstat64
+#define util_stat	_stat64
+#define util_lseek	_lseeki64
+#endif
 
 #endif

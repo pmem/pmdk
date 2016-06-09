@@ -42,7 +42,6 @@
 #include <pthread.h>
 
 #include "libpmemobj.h"
-#include "util.h"
 #include "redo.h"
 #include "memops.h"
 #include "pmalloc.h"

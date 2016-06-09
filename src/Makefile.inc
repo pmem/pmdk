@@ -121,13 +121,9 @@ LIB_NAME = lib$(LIBRARY_NAME)
 endif
 
 ifneq ($(LIBRARY_SO_VERSION),)
-
 LIB_MAP = $(LIB_NAME).map
 LIB_SONAME = $(LIB_NAME).so.$(LIBRARY_SO_VERSION)
 LIB_SO = $(LIB_OUTDIR)/$(LIB_NAME).so
-LIB_AR = $(LIB_OUTDIR)/$(LIB_NAME).a
-LIB_AR_UNSCOPED = $(objdir)/$(LIB_NAME)_unscoped.o
-LIB_AR_ALL = $(objdir)/$(LIB_NAME)_all.o
 
 LIB_SO_SONAME = $(LIB_SO).$(LIBRARY_SO_VERSION)
 
@@ -137,8 +133,15 @@ else
 $(error LIBRARY_VERSION not set)
 endif
 
-TARGET_LIBS = $(LIB_SO_REAL) $(LIB_AR)
+TARGET_LIBS = $(LIB_SO_REAL)
 TARGET_LINKS = $(LIB_SO_SONAME) $(LIB_SO)
+endif
+
+ifneq ($(LIB_NAME),)
+LIB_AR = $(LIB_OUTDIR)/$(LIB_NAME).a
+LIB_AR_UNSCOPED = $(objdir)/$(LIB_NAME)_unscoped.o
+LIB_AR_ALL = $(objdir)/$(LIB_NAME)_all.o
+TARGET_LIBS += $(LIB_AR)
 endif
 
 ifneq ($(EXTRA_TARGETS),)
@@ -173,14 +176,19 @@ $(LIB_SO_SONAME): $(LIB_SO_REAL) $(MAKEFILE_DEPS)
 $(LIB_SO): $(LIB_SO_SONAME) $(MAKEFILE_DEPS)
 	$(LN) -sf $(shell basename $<) $@
 
-$(LIB_AR): $(LIB_AR_ALL) $(MAKEFILE_DEPS)
-	$(AR) rv $@ $(LIB_AR_ALL)
-
-$(LIB_AR_ALL): $(LIB_AR_UNSCOPED) $(LIB_MAP) $(MAKEFILE_DEPS)
-	$(OBJCOPY) --localize-hidden `sed -n 's/^	*\([a-zA-Z0-9_]*\);$$/-G \1/p' $(LIB_MAP)` $< $@
-
 $(LIB_AR_UNSCOPED): $(OBJS) $(EXTRA_OBJS) $(MAKEFILE_DEPS)
 	$(LD) -o $@ -r $(OBJS) $(EXTRA_OBJS)
+
+ifeq ($(LIB_MAP),)
+$(LIB_AR_ALL): $(LIB_AR_UNSCOPED) $(MAKEFILE_DEPS)
+	$(OBJCOPY) $< $@
+else
+$(LIB_AR_ALL): $(LIB_AR_UNSCOPED) $(LIB_MAP) $(MAKEFILE_DEPS)
+	$(OBJCOPY) --localize-hidden `sed -n 's/^	*\([a-zA-Z0-9_]*\);$$/-G \1/p' $(LIB_MAP)` $< $@
+endif
+
+$(LIB_AR): $(LIB_AR_ALL) $(MAKEFILE_DEPS)
+	$(AR) rv $@ $(LIB_AR_ALL)
 
 $(PMEMBLK_PRIV_OBJ):
 	$(MAKE) -C $(LIBSDIR) libpmemblk

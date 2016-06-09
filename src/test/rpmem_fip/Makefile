@@ -38,7 +38,6 @@ include ../../common.inc
 vpath %.c ../../librpmem/
 vpath %.c ../../rpmem_common/
 vpath %.c ../../tools/rpmemd
-vpath %.c ../../common/
 
 ifeq ($(BUILD_RPMEM), y)
 TARGET = rpmem_fip
@@ -52,11 +51,11 @@ OBJS = rpmem_fip_test.o\
        rpmemd_fip_worker.o\
        rpmemd_obc.o\
        rpmemd_log.o\
-       out.o util.o util_linux.o base64.o
+       base64.o
 
-out.o: CFLAGS += -DDEBUG -DSRCVERSION=\"utversion\"
 endif
 
+LIBPMEMCOMMON=y
 LIBPMEM=y
 
 include ../Makefile.inc
@@ -68,5 +67,4 @@ CFLAGS += -DDEBUG
 INCS += -I../../librpmem/
 INCS += -I../../rpmem_common/
 INCS += -I../../tools/rpmemd
-INCS += -I../../common
 endif
