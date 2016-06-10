@@ -87,10 +87,17 @@ else
 LIBSDIR_PRIV=$(LIBSDIR_NONDEBUG)
 endif
 
+PMEMLOG_PRIV_OBJ=$(LIBSDIR_PRIV)/libpmemlog/libpmemlog_unscoped.o
 PMEMOBJ_PRIV_OBJ=$(LIBSDIR_PRIV)/libpmemobj/libpmemobj_unscoped.o
 PMEMBLK_PRIV_OBJ=$(LIBSDIR_PRIV)/libpmemblk/libpmemblk_unscoped.o
 
 LIBS += -pthread
+
+ifeq ($(LIBPMEMPOOL), y)
+DYNAMIC_LIBS += -lpmempool
+STATIC_DEBUG_LIBS += $(LIBSDIR_DEBUG)/libpmempool.a
+STATIC_NONDEBUG_LIBS += $(LIBSDIR_NONDEBUG)/libpmempool.a
+endif
 
 ifeq ($(LIBPMEMBLK), y)
 DYNAMIC_LIBS += -lpmemblk
@@ -134,6 +141,10 @@ CFLAGS += -I$(TOP)/src/libpmemobj
 CFLAGS += -I$(TOP)/src/tools/pmempool
 common.o: CFLAGS += -D__USE_UNIX98
 
+endif
+
+ifneq ($(LIBPMEMLOG_PRIV),)
+OBJS += pmemlog_priv.o
 endif
 
 ifneq ($(LIBPMEMOBJ_PRIV),)
@@ -199,6 +210,12 @@ $(TARGET_STATIC_NONDEBUG): $(STATIC_NONDEBUG_LIBS)
 
 $(TARGET):
 	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS) $(DYNAMIC_LIBS)
+
+$(PMEMLOG_PRIV_OBJ):
+	$(MAKE) -C $(LIBSDIR) libpmemlog
+
+pmemlog_priv.o: $(PMEMLOG_PRIV_OBJ)
+	$(OBJCOPY) --localize-hidden $(addprefix -G, $(LIBPMEMLOG_PRIV)) $< $@
 
 $(PMEMOBJ_PRIV_OBJ):
 	$(MAKE) -C $(LIBSDIR) libpmemobj

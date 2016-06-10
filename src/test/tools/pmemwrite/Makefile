@@ -41,5 +41,6 @@ LIBPMEM=y
 LIBPMEMBLK=y
 LIBPMEMLOG=y
 TOOLS_COMMON=y
+LIBPMEMBLK_PRIV=btt_info_convert2h
 
 include $(TOP)/src/tools/Makefile.inc

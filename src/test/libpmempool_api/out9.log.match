@@ -1,0 +1,24 @@
+Pool type: log Params: log
+libpmempool_api/TEST9: START: libpmempool_test
+ ./libpmempool_test$(nW) $(nW) -d 1 -r 1 -y 1 -t log
+checking pool header
+incorrect pool header checksum
+pool_hdr.major is not valid
+setting pool_hdr.major to 0x1
+checking pmemlog header
+pmemlog header correct
+status = repaired
+libpmempool_api/TEST9: Done
+Pool type: blk Params: blk 512
+libpmempool_api/TEST9: START: libpmempool_test
+ ./libpmempool_test$(nW) $(nW) -d 1 -r 1 -y 1 -t blk
+checking pool header
+incorrect pool header checksum
+pool_hdr.major is not valid
+setting pool_hdr.major to 0x1
+checking pmemblk header
+pmemblk header correct
+checking BTT Info headers
+BTT Layout not written
+status = repaired
+libpmempool_api/TEST9: Done

@@ -55,6 +55,7 @@
 #include "libpmemblk.h"
 #include "libpmemlog.h"
 #include "libpmemobj.h"
+#include "btt.h"
 
 #define REQ_BUFF_SIZE	2048U
 
@@ -133,16 +134,6 @@ util_validate_checksum(void *addr, size_t len, uint64_t *csum)
 }
 
 /*
- * util_pool_hdr_valid -- return 1 if pool header is valid
- */
-int
-util_pool_hdr_valid(struct pool_hdr *hdrp)
-{
-	return util_check_memory((void *)hdrp, sizeof(*hdrp), 0) &&
-		util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum, 0);
-}
-
-/*
  * util_get_pool_type_second_page -- return type based on second page content
  */
 pmem_pool_type_t
@@ -153,7 +144,7 @@ util_get_pool_type_second_page(const void *pool_base_addr)
 
 	void *sec_page_addr = (char *)pool_base_addr + DEFAULT_HDR_SIZE;
 	memcpy(&bttinfo, sec_page_addr, sizeof(bttinfo));
-	util_convert2h_btt_info(&bttinfo);
+	btt_info_convert2h(&bttinfo);
 
 	if (util_is_zeroed(&bttinfo, sizeof(bttinfo)))
 		return PMEM_POOL_TYPE_UNKNOWN;
@@ -542,7 +533,7 @@ util_poolset_map(const char *fname, struct pool_set **poolset, int rdonly)
 	util_poolset_free(set);
 	close(fd);
 
-	util_convert2h_pool_hdr(&hdr);
+	util_convert2h_hdr_nocheck(&hdr);
 
 	/* parse pool type from first pool set file */
 	pmem_pool_type_t type = pmem_pool_type_parse_hdr(&hdr);
@@ -637,7 +628,7 @@ pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp,
 	struct pool_hdr hdr;
 	memcpy(&hdr, addr, sizeof(hdr));
 
-	util_convert2h_pool_hdr(&hdr);
+	util_convert2h_hdr_nocheck(&hdr);
 
 	memcpy(paramsp->signature, hdr.signature, sizeof(paramsp->signature));
 
@@ -675,164 +666,6 @@ out_close:
 }
 
 /*
- * pmem_default_pool_hdr -- return default pool header values
- */
-void
-pmem_default_pool_hdr(pmem_pool_type_t type, struct pool_hdr *hdrp)
-{
-	memset(hdrp, 0, sizeof(*hdrp));
-	const char *sig = out_get_pool_signature(type);
-	assert(sig);
-
-	memcpy(hdrp->signature, sig, POOL_HDR_SIG_LEN);
-
-	switch (type) {
-	case PMEM_POOL_TYPE_LOG:
-		hdrp->major = LOG_FORMAT_MAJOR;
-		hdrp->compat_features = LOG_FORMAT_COMPAT;
-		hdrp->incompat_features = LOG_FORMAT_INCOMPAT;
-		hdrp->ro_compat_features = LOG_FORMAT_RO_COMPAT;
-		break;
-	case PMEM_POOL_TYPE_BLK:
-		hdrp->major = BLK_FORMAT_MAJOR;
-		hdrp->compat_features = BLK_FORMAT_COMPAT;
-		hdrp->incompat_features = BLK_FORMAT_INCOMPAT;
-		hdrp->ro_compat_features = BLK_FORMAT_RO_COMPAT;
-		break;
-	case PMEM_POOL_TYPE_OBJ:
-		hdrp->major = OBJ_FORMAT_MAJOR;
-		hdrp->compat_features = OBJ_FORMAT_COMPAT;
-		hdrp->incompat_features = OBJ_FORMAT_INCOMPAT;
-		hdrp->ro_compat_features = OBJ_FORMAT_RO_COMPAT;
-		break;
-	default:
-		break;
-	}
-}
-
-/*
- * util_pool_hdr_convert -- convert pool header to host byte order
- */
-void
-util_convert2h_pool_hdr(struct pool_hdr *hdrp)
-{
-	hdrp->compat_features = le32toh(hdrp->compat_features);
-	hdrp->incompat_features = le32toh(hdrp->incompat_features);
-	hdrp->ro_compat_features = le32toh(hdrp->ro_compat_features);
-	hdrp->arch_flags.alignment_desc =
-		le64toh(hdrp->arch_flags.alignment_desc);
-	hdrp->arch_flags.e_machine = le16toh(hdrp->arch_flags.e_machine);
-	hdrp->crtime = le64toh(hdrp->crtime);
-	hdrp->checksum = le64toh(hdrp->checksum);
-}
-
-/*
- * util_pool_hdr_convert -- convert pool header to LE byte order
- */
-void
-util_convert2le_pool_hdr(struct pool_hdr *hdrp)
-{
-	hdrp->compat_features = htole32(hdrp->compat_features);
-	hdrp->incompat_features = htole32(hdrp->incompat_features);
-	hdrp->ro_compat_features = htole32(hdrp->ro_compat_features);
-	hdrp->arch_flags.alignment_desc =
-		htole64(hdrp->arch_flags.alignment_desc);
-	hdrp->arch_flags.e_machine = htole16(hdrp->arch_flags.e_machine);
-	hdrp->crtime = htole64(hdrp->crtime);
-	hdrp->checksum = htole64(hdrp->checksum);
-}
-
-/*
- * util_convert_btt_info -- convert btt_info header to host byte order
- */
-void
-util_convert2h_btt_info(struct btt_info *infop)
-{
-	infop->flags = le32toh(infop->flags);
-	infop->minor = le16toh(infop->minor);
-	infop->external_lbasize = le32toh(infop->external_lbasize);
-	infop->external_nlba = le32toh(infop->external_nlba);
-	infop->internal_lbasize = le32toh(infop->internal_lbasize);
-	infop->internal_nlba = le32toh(infop->internal_nlba);
-	infop->nfree = le32toh(infop->nfree);
-	infop->infosize = le32toh(infop->infosize);
-	infop->nextoff = le64toh(infop->nextoff);
-	infop->dataoff = le64toh(infop->dataoff);
-	infop->mapoff = le64toh(infop->mapoff);
-	infop->flogoff = le64toh(infop->flogoff);
-	infop->infooff = le64toh(infop->infooff);
-	infop->checksum = le64toh(infop->checksum);
-}
-
-/*
- * util_convert_btt_info -- convert btt_info header to LE byte order
- */
-void
-util_convert2le_btt_info(struct btt_info *infop)
-{
-	infop->flags = htole64(infop->flags);
-	infop->minor = htole16(infop->minor);
-	infop->external_lbasize = htole32(infop->external_lbasize);
-	infop->external_nlba = htole32(infop->external_nlba);
-	infop->internal_lbasize = htole32(infop->internal_lbasize);
-	infop->internal_nlba = htole32(infop->internal_nlba);
-	infop->nfree = htole32(infop->nfree);
-	infop->infosize = htole32(infop->infosize);
-	infop->nextoff = htole64(infop->nextoff);
-	infop->dataoff = htole64(infop->dataoff);
-	infop->mapoff = htole64(infop->mapoff);
-	infop->flogoff = htole64(infop->flogoff);
-	infop->infooff = htole64(infop->infooff);
-	infop->checksum = htole64(infop->checksum);
-}
-
-/*
- * util_convert2h_btt_flog -- convert btt_flog to host byte order
- */
-void
-util_convert2h_btt_flog(struct btt_flog *flogp)
-{
-	flogp->lba = le32toh(flogp->lba);
-	flogp->old_map = le32toh(flogp->old_map);
-	flogp->new_map = le32toh(flogp->new_map);
-	flogp->seq = le32toh(flogp->seq);
-}
-
-/*
- * util_convert2le_btt_flog -- convert btt_flog to LE byte order
- */
-void
-util_convert2le_btt_flog(struct btt_flog *flogp)
-{
-	flogp->lba = htole32(flogp->lba);
-	flogp->old_map = htole32(flogp->old_map);
-	flogp->new_map = htole32(flogp->new_map);
-	flogp->seq = htole32(flogp->seq);
-}
-
-/*
- * util_convert2h_pmemlog -- convert pmemlog structure to host byte order
- */
-void
-util_convert2h_pmemlog(struct pmemlog *plp)
-{
-	plp->start_offset = le64toh(plp->start_offset);
-	plp->end_offset = le64toh(plp->end_offset);
-	plp->write_offset = le64toh(plp->write_offset);
-}
-
-/*
- * util_convert2le_pmemlog -- convert pmemlog structure to LE byte order
- */
-void
-util_convert2le_pmemlog(struct pmemlog *plp)
-{
-	plp->start_offset = htole64(plp->start_offset);
-	plp->end_offset = htole64(plp->end_offset);
-	plp->write_offset = htole64(plp->write_offset);
-}
-
-/*
  * util_check_memory -- check if memory contains single value
  */
 int
@@ -845,64 +678,6 @@ util_check_memory(const uint8_t *buff, size_t len, uint8_t val)
 	}
 
 	return 0;
-}
-
-/*
- * util_get_max_bsize -- return maximum size of block for given file size
- */
-uint32_t
-util_get_max_bsize(uint64_t fsize)
-{
-	if (fsize == 0)
-		return 0;
-
-	/* default nfree */
-	uint32_t nfree = BTT_DEFAULT_NFREE;
-
-	/* number of blocks must be at least 2 * nfree */
-	uint32_t internal_nlba = 2 * nfree;
-
-	/* compute flog size */
-	uint32_t flog_size = nfree *
-		(uint32_t)roundup(2 * sizeof(struct btt_flog),
-				BTT_FLOG_PAIR_ALIGN);
-	flog_size = (uint32_t)roundup(flog_size, BTT_ALIGNMENT);
-
-	/* compute arena size from file size */
-	uint64_t arena_size = fsize;
-	/* without pmemblk structure */
-	arena_size -= sizeof(struct pmemblk);
-	if (arena_size > BTT_MAX_ARENA) {
-		arena_size = BTT_MAX_ARENA;
-	}
-	/* without BTT Info header and backup */
-	arena_size -= 2 * sizeof(struct btt_info);
-	/* without BTT FLOG size */
-	arena_size -= flog_size;
-
-	/* compute maximum internal LBA size */
-	uint64_t internal_lbasize = (arena_size - BTT_ALIGNMENT) /
-			internal_nlba - BTT_MAP_ENTRY_SIZE;
-	assert(internal_lbasize <= UINT32_MAX);
-
-	if (internal_lbasize < BTT_MIN_LBA_SIZE)
-		internal_lbasize = BTT_MIN_LBA_SIZE;
-
-	internal_lbasize =
-		roundup(internal_lbasize, BTT_INTERNAL_LBA_ALIGNMENT)
-			- BTT_INTERNAL_LBA_ALIGNMENT;
-
-	return (uint32_t)internal_lbasize;
-}
-
-/*
- * util_check_bsize -- check if block size is valid for given file size
- */
-int
-util_check_bsize(uint32_t bsize, uint64_t fsize)
-{
-	uint32_t max_bsize = util_get_max_bsize(fsize);
-	return !(bsize < max_bsize);
 }
 
 char
@@ -1558,59 +1333,4 @@ pool_set_file_map(struct pool_set_file *file, uint64_t offset)
 	if (file->addr == MAP_FAILED)
 		return NULL;
 	return (char *)file->addr + offset;
-}
-
-/*
- * pool_set_file_map_headers -- map headers of each pool set part file
- */
-int
-pool_set_file_map_headers(struct pool_set_file *file,
-		int rdonly, size_t hdrsize)
-{
-	if (!file->poolset)
-		return -1;
-
-	int flags = rdonly ? MAP_PRIVATE : MAP_SHARED;
-	for (unsigned r = 0; r < file->poolset->nreplicas; r++) {
-		struct pool_replica *rep = file->poolset->replica[r];
-		for (unsigned p = 0; p < rep->nparts; p++) {
-			struct pool_set_part *part = &rep->part[p];
-
-			part->hdr = mmap(NULL, hdrsize, PROT_READ | PROT_WRITE,
-					flags, part->fd, 0);
-			if (part->hdr == MAP_FAILED) {
-				part->hdr = NULL;
-				goto err;
-			}
-
-			part->hdrsize = hdrsize;
-		}
-	}
-
-	return 0;
-err:
-	pool_set_file_unmap_headers(file);
-	return -1;
-}
-
-/*
- * pool_set_file_unmap_headers -- unmap headers of each pool set part file
- */
-void
-pool_set_file_unmap_headers(struct pool_set_file *file)
-{
-	if (!file->poolset)
-		return;
-	for (unsigned r = 0; r < file->poolset->nreplicas; r++) {
-		struct pool_replica *rep = file->poolset->replica[r];
-		for (unsigned p = 0; p < rep->nparts; p++) {
-			struct pool_set_part *part = &rep->part[p];
-			if (part->hdr != NULL) {
-				assert(part->hdrsize > 0);
-				munmap(part->hdr, part->hdrsize);
-				part->hdr = NULL;
-				part->hdrsize = 0;
-			}
-		}
-	}
 }

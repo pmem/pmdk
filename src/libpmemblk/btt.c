@@ -362,9 +362,9 @@ map_entry_is_error(uint32_t map_entry)
 }
 
 /*
- * map_entry_is_initial -- (internal) checks if map_entry is in initial state
+ * map_entry_is_initial -- checks if map_entry is in initial state
  */
-static inline int
+inline int
 map_entry_is_initial(uint32_t map_entry)
 {
 	return (map_entry & ~BTT_MAP_ENTRY_LBA_MASK) == 0;
@@ -379,6 +379,40 @@ map_entry_is_zero_or_initial(uint32_t map_entry)
 {
 	uint32_t entry_flags = map_entry & ~BTT_MAP_ENTRY_LBA_MASK;
 	return entry_flags == 0 || entry_flags == BTT_MAP_ENTRY_ZERO;
+}
+
+/*
+ * btt_flog_get_valid -- return valid and current flog entry
+ */
+struct btt_flog *
+btt_flog_get_valid(struct btt_flog *flog_pair, int *next)
+{
+	/*
+	 * Interesting cases:
+	 *	- no valid seq numbers:  layout consistency error
+	 *	- one valid seq number:  that's the current entry
+	 *	- two valid seq numbers: higher number is current entry
+	 *	- identical seq numbers: layout consistency error
+	 */
+	if (flog_pair[0].seq == flog_pair[1].seq) {
+		return NULL;
+	} else if (flog_pair[0].seq == 0) {
+		/* singleton valid flog at flog_pair[1] */
+		*next = 0;
+		return &flog_pair[1];
+	} else if (flog_pair[1].seq == 0) {
+		/* singleton valid flog at flog_pair[0] */
+		*next = 1;
+		return &flog_pair[0];
+	} else if (NSEQ(flog_pair[0].seq) == flog_pair[1].seq) {
+		/* flog_pair[1] has the later sequence number */
+		*next = 0;
+		return &flog_pair[1];
+	} else {
+		/* flog_pair[0] has the later sequence number */
+		*next = 1;
+		return &flog_pair[0];
+	}
 }
 
 /*
@@ -414,19 +448,11 @@ read_flog_pair(struct btt *bttp, unsigned lane, struct arena *arenap,
 				sizeof(flog_pair), flog_off) < 0)
 		return -1;
 
-	flog_pair[0].lba = le32toh(flog_pair[0].lba);
-	flog_pair[0].old_map = le32toh(flog_pair[0].old_map);
-	flog_pair[0].new_map = le32toh(flog_pair[0].new_map);
-	flog_pair[0].seq = le32toh(flog_pair[0].seq);
-
+	btt_flog_convert2h(&flog_pair[0]);
 	if (invalid_lba(bttp, flog_pair[0].lba))
 		return -1;
 
-	flog_pair[1].lba = le32toh(flog_pair[1].lba);
-	flog_pair[1].old_map = le32toh(flog_pair[1].old_map);
-	flog_pair[1].new_map = le32toh(flog_pair[1].new_map);
-	flog_pair[1].seq = le32toh(flog_pair[1].seq);
-
+	btt_flog_convert2h(&flog_pair[1]);
 	if (invalid_lba(bttp, flog_pair[1].lba))
 		return -1;
 
@@ -437,35 +463,14 @@ read_flog_pair(struct btt *bttp, unsigned lane, struct arena *arenap,
 			flog_pair[1].old_map, flog_pair[1].new_map,
 			flog_pair[1].seq);
 
-	/*
-	 * Interesting cases:
-	 *	- no valid seq numbers:  layout consistency error
-	 *	- one valid seq number:  that's the current entry
-	 *	- two valid seq numbers: higher number is current entry
-	 *	- identical seq numbers: layout consistency error
-	 */
-	struct btt_flog *currentp;
-	if (flog_pair[0].seq == flog_pair[1].seq) {
+	struct btt_flog *currentp = btt_flog_get_valid(flog_pair,
+		&flog_runtimep->next);
+
+	if (currentp == NULL) {
 		ERR("flog layout error: bad seq numbers %d %d",
-				flog_pair[0].seq, flog_pair[1].seq);
+			flog_pair[0].seq, flog_pair[1].seq);
 		arenap->flags |= BTTINFO_FLAG_ERROR;
 		return 0;
-	} else if (flog_pair[0].seq == 0) {
-		/* singleton valid flog at flog_pair[1] */
-		currentp = &flog_pair[1];
-		flog_runtimep->next = 0;
-	} else if (flog_pair[1].seq == 0) {
-		/* singleton valid flog at flog_pair[0] */
-		currentp = &flog_pair[0];
-		flog_runtimep->next = 1;
-	} else if (NSEQ(flog_pair[0].seq) == flog_pair[1].seq) {
-		/* flog_pair[1] has the later sequence number */
-		currentp = &flog_pair[1];
-		flog_runtimep->next = 0;
-	} else {
-		/* flog_pair[0] has the later sequence number */
-		currentp = &flog_pair[0];
-		flog_runtimep->next = 1;
 	}
 
 	LOG(6, "run-time flog next is %d", flog_runtimep->next);
@@ -559,10 +564,11 @@ flog_update(struct btt *bttp, unsigned lane, struct arena *arenap,
 
 	/* construct new flog entry in little-endian byte order */
 	struct btt_flog new_flog;
-	new_flog.lba = htole32(lba);
-	new_flog.old_map = htole32(old_map);
-	new_flog.new_map = htole32(new_map);
-	new_flog.seq = htole32(NSEQ(arenap->flogs[lane].flog.seq));
+	new_flog.lba = lba;
+	new_flog.old_map = old_map;
+	new_flog.new_map = new_map;
+	new_flog.seq = NSEQ(arenap->flogs[lane].flog.seq);
+	btt_flog_convert2le(&new_flog);
 
 	uint64_t new_flog_off =
 		arenap->flogs[lane].entries[arenap->flogs[lane].next];
@@ -793,6 +799,74 @@ read_arena(struct btt *bttp, unsigned lane, uint64_t arena_off,
 }
 
 /*
+ * util_convert2h_btt_info -- convert btt_info to host byte order
+ */
+void
+btt_info_convert2h(struct btt_info *infop)
+{
+	infop->flags = le32toh(infop->flags);
+	infop->major = le16toh(infop->major);
+	infop->minor = le16toh(infop->minor);
+	infop->external_lbasize = le32toh(infop->external_lbasize);
+	infop->external_nlba = le32toh(infop->external_nlba);
+	infop->internal_lbasize = le32toh(infop->internal_lbasize);
+	infop->internal_nlba = le32toh(infop->internal_nlba);
+	infop->nfree = le32toh(infop->nfree);
+	infop->infosize = le32toh(infop->infosize);
+	infop->nextoff = le64toh(infop->nextoff);
+	infop->dataoff = le64toh(infop->dataoff);
+	infop->mapoff = le64toh(infop->mapoff);
+	infop->flogoff = le64toh(infop->flogoff);
+	infop->infooff = le64toh(infop->infooff);
+}
+
+/*
+ * btt_info_convert2le -- convert btt_info to little-endian byte order
+ */
+void
+btt_info_convert2le(struct btt_info *infop)
+{
+	infop->flags = le32toh(infop->flags);
+	infop->major = le16toh(infop->major);
+	infop->minor = le16toh(infop->minor);
+	infop->external_lbasize = le32toh(infop->external_lbasize);
+	infop->external_nlba = le32toh(infop->external_nlba);
+	infop->internal_lbasize = le32toh(infop->internal_lbasize);
+	infop->internal_nlba = le32toh(infop->internal_nlba);
+	infop->nfree = le32toh(infop->nfree);
+	infop->infosize = le32toh(infop->infosize);
+	infop->nextoff = le64toh(infop->nextoff);
+	infop->dataoff = le64toh(infop->dataoff);
+	infop->mapoff = le64toh(infop->mapoff);
+	infop->flogoff = le64toh(infop->flogoff);
+	infop->infooff = le64toh(infop->infooff);
+}
+
+/*
+ * btt_flog_convert2h -- convert btt_flog to host byte order
+ */
+void
+btt_flog_convert2h(struct btt_flog *flogp)
+{
+	flogp->lba = le32toh(flogp->lba);
+	flogp->old_map = le32toh(flogp->old_map);
+	flogp->new_map = le32toh(flogp->new_map);
+	flogp->seq = le32toh(flogp->seq);
+}
+
+/*
+ * btt_flog_convert2le -- convert btt_flog to LE byte order
+ */
+void
+btt_flog_convert2le(struct btt_flog *flogp)
+{
+	flogp->lba = htole32(flogp->lba);
+	flogp->old_map = htole32(flogp->old_map);
+	flogp->new_map = htole32(flogp->new_map);
+	flogp->seq = htole32(flogp->seq);
+}
+
+/*
  * read_arenas -- (internal) load up all arenas and build run-time state
  *
  * On entry, layout must be known to be valid, and the number of arenas
@@ -844,6 +918,146 @@ err:
 }
 
 /*
+ * internal_lbasize -- (internal) calculate internal LBA size
+ */
+static inline uint32_t
+internal_lbasize(uint32_t external_lbasize)
+{
+	uint32_t internal_lbasize = external_lbasize;
+	if (internal_lbasize < BTT_MIN_LBA_SIZE)
+		internal_lbasize = BTT_MIN_LBA_SIZE;
+	internal_lbasize =
+		roundup(internal_lbasize, BTT_INTERNAL_LBA_ALIGNMENT);
+	/* check for overflow */
+	if (internal_lbasize < BTT_INTERNAL_LBA_ALIGNMENT) {
+		errno = EINVAL;
+		ERR("!Invalid lba size after alignment: %u ", internal_lbasize);
+		return 0;
+	}
+
+	return internal_lbasize;
+}
+
+/*
+ * btt_flog_size -- calculate flog data size
+ */
+uint64_t
+btt_flog_size(uint32_t nfree)
+{
+	uint64_t flog_size = nfree * roundup(2 * sizeof(struct btt_flog),
+		BTT_FLOG_PAIR_ALIGN);
+	return roundup(flog_size, BTT_ALIGNMENT);
+}
+
+/*
+ * btt_map_size -- calculate map data size
+ */
+uint64_t
+btt_map_size(uint32_t external_nlba)
+{
+	return roundup(external_nlba * BTT_MAP_ENTRY_SIZE, BTT_ALIGNMENT);
+}
+
+/*
+ * btt_arena_datasize -- whole arena size without BTT Info header, backup and
+ *	flog means size of blocks and map
+ */
+uint64_t
+btt_arena_datasize(uint64_t arena_size, uint32_t nfree)
+{
+	return arena_size - 2 * sizeof(struct btt_info) - btt_flog_size(nfree);
+}
+
+/*
+ * btt_info_set_params -- (internal) calculate and set BTT Info
+ *	external_lbasize, internal_lbasize, nfree, infosize, external_nlba and
+ *	internal_nlba
+ */
+static int
+btt_info_set_params(struct btt_info *info, uint32_t external_lbasize,
+	uint32_t internal_lbasize, uint32_t nfree, uint64_t arena_size)
+{
+	info->external_lbasize = external_lbasize;
+	info->internal_lbasize = internal_lbasize;
+	info->nfree = nfree;
+	info->infosize = sizeof(*info);
+
+	uint64_t arena_data_size = btt_arena_datasize(arena_size, nfree);
+
+	/* allow for map alignment padding */
+	uint64_t internal_nlba = (arena_data_size - BTT_ALIGNMENT) /
+		(info->internal_lbasize + BTT_MAP_ENTRY_SIZE);
+
+	/* ensure the number of blocks is at least 2*nfree */
+	if (internal_nlba < 2 * nfree) {
+		errno = EINVAL;
+		ERR("!number of internal blocks: %ju expected at least %u",
+			internal_nlba, 2 * nfree);
+		return -1;
+	}
+
+	ASSERT(internal_nlba <= UINT32_MAX);
+	uint32_t internal_nlba_u32 = (uint32_t)internal_nlba;
+
+	info->internal_nlba = internal_nlba_u32;
+	/* external LBA does not include free blocks */
+	info->external_nlba = internal_nlba_u32 - info->nfree;
+
+	ASSERT((arena_data_size - btt_map_size(info->external_nlba)) /
+		internal_lbasize >= internal_nlba);
+
+	return 0;
+}
+
+/*
+ * btt_info_set_offs -- (internal) calculate and set the BTT Info dataoff,
+ *	nextoff, infooff, flogoff and mapoff. These are all relative to the
+ *	beginning of the arena.
+ */
+static void
+btt_info_set_offs(struct btt_info *info, uint64_t arena_size,
+	uint64_t space_left)
+{
+	info->dataoff = info->infosize;
+
+	/* set offset to next valid arena */
+	if (space_left >= BTT_MIN_SIZE)
+		info->nextoff = arena_size;
+	else
+		info->nextoff = 0;
+
+	info->infooff = arena_size - sizeof(struct btt_info);
+	info->flogoff = info->infooff - btt_flog_size(info->nfree);
+	info->mapoff = info->flogoff - btt_map_size(info->external_nlba);
+
+	ASSERTeq(btt_arena_datasize(arena_size, info->nfree) -
+		btt_map_size(info->external_nlba), info->mapoff -
+		info->dataoff);
+}
+
+/*
+ * btt_info_set -- set BTT Info params and offsets
+ */
+int
+btt_info_set(struct btt_info *info, uint32_t external_lbasize,
+	uint32_t nfree, uint64_t arena_size, uint64_t space_left)
+{
+	/* calculate internal LBA size */
+	uint32_t internal_lba_size = internal_lbasize(external_lbasize);
+	if (internal_lba_size == 0)
+		return -1;
+
+	/* set params and offsets */
+	if (btt_info_set_params(info, external_lbasize,
+			internal_lba_size, nfree, arena_size))
+		return -1;
+
+	btt_info_set_offs(info, arena_size, space_left);
+
+	return 0;
+}
+
+/*
  * write_layout -- (internal) write out the initial btt metadata layout
  *
  * Called with write == 1 only once in the life time of a btt namespace, when
@@ -889,23 +1103,10 @@ write_layout(struct btt *bttp, unsigned lane, int write)
 		bttp->narena++;
 	LOG(4, "narena %u", bttp->narena);
 
-	uint64_t flog_size = bttp->nfree *
-		roundup(2 * sizeof(struct btt_flog), BTT_FLOG_PAIR_ALIGN);
-	flog_size = roundup(flog_size, BTT_ALIGNMENT);
-
-	uint32_t internal_lbasize = bttp->lbasize;
-	if (internal_lbasize < BTT_MIN_LBA_SIZE)
-		internal_lbasize = BTT_MIN_LBA_SIZE;
-	internal_lbasize =
-		roundup(internal_lbasize, BTT_INTERNAL_LBA_ALIGNMENT);
-	/* check for overflow */
-	if (internal_lbasize < BTT_INTERNAL_LBA_ALIGNMENT) {
-		errno = EINVAL;
-		ERR("!Invalid lba size after alignment: %u ",
-				internal_lbasize);
+	uint32_t internal_lba_size = internal_lbasize(bttp->lbasize);
+	if (internal_lba_size == 0)
 		return -1;
-	}
-	LOG(4, "adjusted internal_lbasize %u", internal_lbasize);
+	LOG(4, "adjusted internal_lbasize %u", internal_lba_size);
 
 	uint64_t total_nlba = 0;
 	uint64_t rawsize = bttp->rawsize;
@@ -925,31 +1126,16 @@ write_layout(struct btt *bttp, unsigned lane, int write)
 		rawsize -= arena_rawsize;
 		arena_num++;
 
-		uint64_t arena_datasize = arena_rawsize;
-		arena_datasize -= 2 * sizeof(struct btt_info);
-		arena_datasize -= flog_size;
-
-		/* allow for map alignment padding */
-		uint64_t internal_nlba = (arena_datasize - BTT_ALIGNMENT) /
-			(internal_lbasize + BTT_MAP_ENTRY_SIZE);
-
-		/* ensure the number of blocks is at least 2*nfree */
-		if (internal_nlba < 2 * bttp->nfree) {
-			errno = EINVAL;
-			ERR("!number of internal blocks: %ju "
-				"expected at least %u",
-				internal_nlba, 2 * bttp->nfree);
+		struct btt_info info;
+		memset(&info, '\0', sizeof(info));
+		if (btt_info_set_params(&info, bttp->lbasize,
+				internal_lba_size, bttp->nfree, arena_rawsize))
 			return -1;
-		}
-		ASSERT(internal_nlba <= UINT32_MAX);
-		uint32_t internal_nlba_u32 = (uint32_t)internal_nlba;
 
-		uint32_t external_nlba = internal_nlba_u32 - bttp->nfree;
+		LOG(4, "internal_nlba %u external_nlba %u",
+			info.internal_nlba, info.external_nlba);
 
-		LOG(4, "internal_nlba %ju external_nlba %u",
-				internal_nlba, external_nlba);
-
-		total_nlba += external_nlba;
+		total_nlba += info.external_nlba;
 
 		/*
 		 * The rest of the loop body calculates metadata structures
@@ -959,44 +1145,25 @@ write_layout(struct btt *bttp, unsigned lane, int write)
 		if (!write)
 			continue;
 
-		uint64_t mapsize = roundup(external_nlba * BTT_MAP_ENTRY_SIZE,
-							BTT_ALIGNMENT);
-		arena_datasize -= mapsize;
+		btt_info_set_offs(&info, arena_rawsize, rawsize);
 
-		ASSERT(arena_datasize / internal_lbasize >= internal_nlba);
-
-		/*
-		 * Calculate offsets for the BTT info block.  These are
-		 * all relative to the beginning of the arena.
-		 */
-		uint64_t nextoff;
-		if (rawsize >= BTT_MIN_SIZE)
-			nextoff = arena_rawsize;
-		else
-			nextoff = 0;
-		uint64_t infooff = arena_rawsize - sizeof(struct btt_info);
-		uint64_t flogoff = infooff - flog_size;
-		uint64_t mapoff = flogoff - mapsize;
-		uint64_t dataoff = sizeof(struct btt_info);
-
-		LOG(4, "nextoff 0x%016jx", nextoff);
-		LOG(4, "dataoff 0x%016jx", dataoff);
-		LOG(4, "mapoff  0x%016jx", mapoff);
-		LOG(4, "flogoff 0x%016jx", flogoff);
-		LOG(4, "infooff 0x%016jx", infooff);
-
-		ASSERTeq(arena_datasize, mapoff - dataoff);
+		LOG(4, "nextoff 0x%016jx", info.nextoff);
+		LOG(4, "dataoff 0x%016jx", info.dataoff);
+		LOG(4, "mapoff  0x%016jx", info.mapoff);
+		LOG(4, "flogoff 0x%016jx", info.flogoff);
+		LOG(4, "infooff 0x%016jx", info.infooff);
 
 		/* zero map if ns is not zero-initialized */
 		if (!bttp->ns_cbp->ns_is_zeroed) {
+			uint64_t mapsize = btt_map_size(info.external_nlba);
 			if ((*bttp->ns_cbp->nszero)(bttp->ns, lane, mapsize,
-					mapoff) < 0)
+					info.mapoff) < 0)
 				return -1;
 		}
 
 		/* write out the initial flog */
-		uint64_t flog_entry_off = arena_off + flogoff;
-		uint32_t next_free_lba = external_nlba;
+		uint64_t flog_entry_off = arena_off + info.flogoff;
+		uint32_t next_free_lba = info.external_nlba;
 		for (uint32_t i = 0; i < bttp->nfree; i++) {
 			struct btt_flog flog;
 			flog.lba = htole32(i);
@@ -1033,35 +1200,23 @@ write_layout(struct btt *bttp, unsigned lane, int write)
 		 * Construct the BTT info block and write it out
 		 * at both the beginning and end of the arena.
 		 */
-		struct btt_info info;
-		memset(&info, '\0', sizeof(info));
 		memcpy(info.sig, Sig, BTTINFO_SIG_LEN);
 		memcpy(info.uuid, bttp->uuid, BTTINFO_UUID_LEN);
 		memcpy(info.parent_uuid, bttp->parent_uuid, BTTINFO_UUID_LEN);
-		info.major = htole16(BTTINFO_MAJOR_VERSION);
-		info.minor = htole16(BTTINFO_MINOR_VERSION);
-		info.external_lbasize = htole32(bttp->lbasize);
-		info.external_nlba = htole32(external_nlba);
-		info.internal_lbasize = htole32(internal_lbasize);
-		info.internal_nlba = htole32(internal_nlba_u32);
-		info.nfree = htole32(bttp->nfree);
-		info.infosize = htole32(sizeof(info));
-		info.nextoff = htole64(nextoff);
-		info.dataoff = htole64(dataoff);
-		info.mapoff = htole64(mapoff);
-		info.flogoff = htole64(flogoff);
-		info.infooff = htole64(infooff);
+		info.major = BTTINFO_MAJOR_VERSION;
+		info.minor = BTTINFO_MINOR_VERSION;
+		btt_info_convert2le(&info);
 
 		util_checksum(&info, sizeof(info), &info.checksum, 1);
 
 		if ((*bttp->ns_cbp->nswrite)(bttp->ns, lane, &info,
-					sizeof(info), arena_off) < 0)
+				sizeof(info), arena_off) < 0)
 			return -1;
 		if ((*bttp->ns_cbp->nswrite)(bttp->ns, lane, &info,
-					sizeof(info), arena_off + infooff) < 0)
+				sizeof(info), arena_off + info.infooff) < 0)
 			return -1;
 
-		arena_off += nextoff;
+		arena_off += info.nextoff;
 	}
 
 	ASSERTeq(bttp->narena, arena_num);

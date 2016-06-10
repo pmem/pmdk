@@ -42,6 +42,7 @@
 #include "common.h"
 #include "output.h"
 #include "info.h"
+#include "btt.h"
 
 /*
  * pmempool_info_get_range -- get blocks/data chunk range
@@ -266,18 +267,6 @@ error:
 }
 
 /*
- * info_btt_flog_convert -- convert flog entry
- */
-static void
-info_btt_flog_convert(struct btt_flog *flogp)
-{
-	flogp->lba = le32toh(flogp->lba);
-	flogp->old_map = le32toh(flogp->old_map);
-	flogp->new_map = le32toh(flogp->new_map);
-	flogp->seq = le32toh(flogp->seq);
-}
-
-/*
  * info_btt_flog -- print all flog entries
  */
 static int
@@ -312,8 +301,8 @@ info_btt_flog(struct pmem_info *pip, int v,
 		flogp = (struct btt_flog *)ptr;
 		flogpp = flogp + 1;
 
-		info_btt_flog_convert(flogp);
-		info_btt_flog_convert(flogpp);
+		btt_flog_convert2h(flogp);
+		btt_flog_convert2h(flogpp);
 
 		outv(v, "%010d:\n", i);
 		outv_field(v, "LBA", "0x%08x", flogp->lba);
@@ -444,7 +433,7 @@ info_btt_layout(struct pmem_info *pip, off_t btt_off)
 		outv_hexdump(pip->args.vhdrdump, infop,
 				sizeof(*infop), offset, 1);
 
-		util_convert2h_btt_info(infop);
+		btt_info_convert2h(infop);
 
 		nextoff = infop->nextoff;
 
@@ -493,7 +482,7 @@ info_btt_layout(struct pmem_info *pip, off_t btt_off)
 				sizeof(*infop),
 				offset + infop->infooff, 1);
 
-		util_convert2h_btt_info(infop);
+		btt_info_convert2h(infop);
 		info_btt_info(pip, pip->args.blk.vbackup, infop);
 
 		offset += nextoff;

@@ -291,3 +291,20 @@ run_unlock(struct memory_block *m, PMEMobjpool *pop)
 {
 	util_mutex_unlock(heap_get_run_lock(pop, m->chunk_id));
 }
+
+const struct memory_block_ops mb_ops[MAX_MEMORY_BLOCK] = {
+	[MEMORY_BLOCK_HUGE] = {
+		.block_size = huge_block_size,
+		.block_offset = huge_block_offset,
+		.prep_hdr = huge_prep_operation_hdr,
+		.lock = huge_lock,
+		.unlock = huge_unlock,
+	},
+	[MEMORY_BLOCK_RUN] = {
+		.block_size = run_block_size,
+		.block_offset = run_block_offset,
+		.prep_hdr = run_prep_operation_hdr,
+		.lock = run_lock,
+		.unlock = run_unlock,
+	}
+};

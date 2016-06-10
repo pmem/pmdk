@@ -1,20 +1,22 @@
 Creating pmem blk pool with block size 512.0M
-Writing BTT layout using block 0.
+Writing BTT layout using block $(*).
 checking pool header
 incorrect pool header checksum
-setting pool_hdr.uuid to: $(*)
-setting pool_hdr.checksum to: $(*)
+setting pool_hdr.checksum to $(*)
 checking pmemblk header
 pmemblk header correct
 checking BTT Info headers
 arena 0: BTT Info header checksum correct
 arena 1: BTT Info header checksum incorrect
-generating BTT Info headers at $(*)
+arena 1: regenerating BTT Info header
+arena 1: BTT Info header checksum correct
+arena 1: BTT Info backup checksum incorrect
+arena 1: restoring BTT Info backup from header
 arena 2: BTT Info header checksum correct
 arena 3: BTT Info header checksum correct
-checking BTT map and flog
-arena 0: checking map and flog
-arena 1: checking map and flog
-arena 2: checking map and flog
-arena 3: checking map and flog
+checking BTT Map and Flog
+arena 0: checking BTT Map and Flog
+arena 1: checking BTT Map and Flog
+arena 2: checking BTT Map and Flog
+arena 3: checking BTT Map and Flog
 $(*): repaired

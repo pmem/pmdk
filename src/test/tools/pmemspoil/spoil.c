@@ -52,6 +52,7 @@
 #include <assert.h>
 #include "common.h"
 #include "output.h"
+#include "btt.h"
 
 #define STR(x)	#x
 
@@ -544,7 +545,7 @@ pmemspoil_get_arena_offset(struct pmemspoil *psp, uint32_t id,
 			return 0;
 		}
 
-		util_convert2h_btt_info(infop);
+		btt_info_convert2h(infop);
 
 		id--;
 	}
@@ -808,7 +809,7 @@ pmemspoil_process_btt_map(struct pmemspoil *psp,
 			psp->arena_offset))
 		return -1;
 
-	util_convert2h_btt_info(&btt_info);
+	btt_info_convert2h(&btt_info);
 
 	uint64_t mapoff = psp->arena_offset + btt_info.mapoff;
 	uint64_t mapsize = roundup(btt_info.external_nlba * BTT_MAP_ENTRY_SIZE,
@@ -849,7 +850,7 @@ pmemspoil_process_btt_nflog(struct pmemspoil *psp,
 	if (pmemspoil_read(psp, &btt_info, sizeof(btt_info), arena_offset))
 		return -1;
 
-	util_convert2h_btt_info(&btt_info);
+	btt_info_convert2h(&btt_info);
 
 	uint64_t flogoff = arena_offset + btt_info.flogoff;
 	uint64_t flogsize = btt_info.nfree *
@@ -928,7 +929,7 @@ pmemspoil_process_arena(struct pmemspoil *psp,
 	if (pmemspoil_read(psp, &btt_info, sizeof(btt_info), arena_offset))
 		return -1;
 
-	util_convert2h_btt_info(&btt_info);
+	btt_info_convert2h(&btt_info);
 	psp->arena_offset = arena_offset;
 
 	PROCESS_BEGIN(psp, pfp) {
