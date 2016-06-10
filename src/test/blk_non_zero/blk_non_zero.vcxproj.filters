@@ -8,6 +8,9 @@
     <Filter Include="Match Files">
       <UniqueIdentifier>{4d39e0e5-0c47-48a1-8ceb-6c174a170013}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Test scripts">
+      <UniqueIdentifier>{bdfb5bc0-aa19-4831-b79b-359182bd4c74}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\test\blk_non_zero\blk_non_zero.c">
@@ -15,16 +18,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="TEST0.ps1" />
-    <None Include="TEST1.ps1" />
-    <None Include="TEST2.ps1" />
-    <None Include="TEST3.ps1" />
-    <None Include="TEST4.ps1" />
-    <None Include="TEST5.ps1" />
-    <None Include="TEST6.ps1" />
-    <None Include="TEST7.ps1" />
-    <None Include="TEST8.ps1" />
-    <None Include="TEST9.ps1" />
     <None Include="err0.log.match">
       <Filter>Match Files</Filter>
     </None>
@@ -86,5 +79,35 @@
       <Filter>Match Files</Filter>
     </None>
     <None Include="README" />
+    <None Include="TEST0.ps1">
+      <Filter>Test scripts</Filter>
+    </None>
+    <None Include="TEST1.ps1">
+      <Filter>Test scripts</Filter>
+    </None>
+    <None Include="TEST2.ps1">
+      <Filter>Test scripts</Filter>
+    </None>
+    <None Include="TEST3.ps1">
+      <Filter>Test scripts</Filter>
+    </None>
+    <None Include="TEST4.ps1">
+      <Filter>Test scripts</Filter>
+    </None>
+    <None Include="TEST5.ps1">
+      <Filter>Test scripts</Filter>
+    </None>
+    <None Include="TEST6.ps1">
+      <Filter>Test scripts</Filter>
+    </None>
+    <None Include="TEST7.ps1">
+      <Filter>Test scripts</Filter>
+    </None>
+    <None Include="TEST8.ps1">
+      <Filter>Test scripts</Filter>
+    </None>
+    <None Include="TEST9.ps1">
+      <Filter>Test scripts</Filter>
+    </None>
   </ItemGroup>
 </Project>
