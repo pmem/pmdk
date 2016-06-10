@@ -55,7 +55,8 @@ namespace obj
  * This class is an implementation of a PMEM-resident timed_mutex
  * which mimics in behavior the C++11 std::timed_mutex. This class
  * satisfies all requirements of the TimedMutex and StandardLayoutType
- * concepts.
+ * concepts. The typical usage example would be:
+ * @snippet doc_snippets/mutex.cpp timed_mutex_example
  */
 class timed_mutex {
 	typedef std::chrono::system_clock clock_type;

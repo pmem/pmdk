@@ -52,7 +52,8 @@ namespace obj
  * This class is an implementation of a PMEM-resident share_mutex
  * which mimics in behavior the C++11 std::mutex. This class
  * satisfies all requirements of the SharedMutex and StandardLayoutType
- * concepts.
+ * concepts. The typical usage would be:
+ * @snippet doc_snippets/mutex.cpp shared_mutex_example
  */
 class shared_mutex {
 public:
