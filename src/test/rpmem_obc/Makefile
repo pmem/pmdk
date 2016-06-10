@@ -46,7 +46,6 @@ OBJS = rpmem_obc_test.o\
        rpmem_obc_test_create.o\
        rpmem_obc_test_open.o\
        rpmem_obc_test_close.o\
-       rpmem_obc_test_remove.o\
        rpmem_obc.o rpmem_util.o rpmem_common.o\
        rpmem_ssh.o rpmem_cmd.o base64.o\
        out.o util.o util_linux.o

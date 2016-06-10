@@ -75,7 +75,6 @@ RPMEMpool *rpmem_open(const char *target, const char *pool_set_name,
 		void *pool_addr, size_t pool_size, unsigned *nlanes,
 		struct rpmem_pool_attr *open_attr);
 
-int rpmem_remove(const char *target, const char *pool_set_name);
 int rpmem_close(RPMEMpool *rpp);
 
 int rpmem_persist(RPMEMpool *rpp, size_t offset, size_t length,
