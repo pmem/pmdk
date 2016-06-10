@@ -246,10 +246,11 @@ REMOTE_TESTS = \
 	remote_obj_basic\
 	$(RPMEM_TESTS)
 
+LIBPMEMPOOL_DEPS = libpmempool_api
+
 LIBPMEMPOOL_TESTS = \
-       libpmempool_api\
-       libpmempool_bttdev\
-       libpmempool_map_flog
+	libpmempool_bttdev\
+	libpmempool_map_flog
 
 TESTS = \
 	$(OBJ_TESTS)\
@@ -285,6 +286,7 @@ endif
 TESTS_BUILD = \
 	$(TEST_DEPS)\
 	$(OBJ_DEPS)\
+	$(LIBPMEMPOOL_DEPS)\
 	$(TESTS)
 
 all     : TARGET = all
@@ -313,6 +315,7 @@ clean clobber: $(TESTS_BUILD)
 
 $(TESTS): $(TEST_DEPS)
 $(OBJ_TESTS): $(OBJ_DEPS)
+$(LIBPMEMPOOL_TESTS): $(LIBPMEMPOOL_DEPS)
 $(OBJ_DEPS): $(TEST_DEPS)
 
 $(TESTS_BUILD):
