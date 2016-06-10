@@ -198,7 +198,7 @@ struct offset
 static struct benchmark_clo obj_tx_clo[] = {
 	{
 		.opt_short	= 'T',
-		.opt_long	= "type-num",
+		.opt_long	= "type-number",
 		.descr		= "Type number - one, rand, per-thread",
 		.def		= "one",
 		.type		= CLO_TYPE_STR,
