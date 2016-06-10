@@ -310,7 +310,7 @@ static void
 info_obj_pvector(struct pmem_info *pip, int vnum, int vobj,
 	struct pvector *vec, const char *name, pvector_callback_fn cb)
 {
-	struct pvector_context *ctx = pvector_init(pip->obj.pop, vec);
+	struct pvector_context *ctx = pvector_new(pip->obj.pop, vec);
 	if (ctx == NULL) {
 		outv_err("Cannot initialize pvector context\n");
 		exit(EXIT_FAILURE);

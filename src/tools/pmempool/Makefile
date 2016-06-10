@@ -41,7 +41,7 @@ LIBPMEMBLK=y
 LIBPMEMOBJ=y
 LIBPMEMLOG=y
 TOOLS_COMMON=y
-LIBPMEMOBJ_PRIV=pvector_init pvector_nvalues pvector_first pvector_next pvector_delete
+LIBPMEMOBJ_PRIV=pvector_new pvector_nvalues pvector_first pvector_next pvector_delete
 LIBPMEMBLK_PRIV=btt_init btt_write btt_fini
 
 INCS += -I$(TOP)/src/common

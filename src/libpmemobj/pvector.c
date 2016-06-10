@@ -60,7 +60,7 @@ struct pvector_context {
  * persistent vector is iterated through and appropriate metrics are measured.
  */
 struct pvector_context *
-pvector_init(PMEMobjpool *pop, struct pvector *vec)
+pvector_new(PMEMobjpool *pop, struct pvector *vec)
 {
 	struct pvector_context *ctx = Malloc(sizeof(*ctx));
 	if (ctx == NULL) {
