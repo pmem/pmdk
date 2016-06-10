@@ -162,27 +162,29 @@ ifneq ($(LIBPMEMBLK_PRIV_FUNCS),)
 OBJS += pmemblk_priv_funcs.o
 endif
 
+MAKEFILE_DEPS=../Makefile.inc Makefile $(TOP)/src/common.inc
+
 all: $(objdir) $(LIB_OUTDIR) $(EXTRA_TARGETS) $(LIB_AR) $(LIB_SO_SONAME) $(LIB_SO_REAL) $(LIB_SO)
 
 $(objdir) $(LIB_OUTDIR):
 	$(MKDIR) -p $@
 
-$(LIB_SO_REAL): $(OBJS) $(EXTRA_OBJS) $(LIB_MAP)
+$(LIB_SO_REAL): $(OBJS) $(EXTRA_OBJS) $(LIB_MAP) $(MAKEFILE_DEPS)
 	$(CC) $(LDFLAGS) -shared -Wl,--version-script=$(LIB_MAP),-soname,$(LIB_SONAME) -o $@ $(OBJS) $(EXTRA_OBJS) $(LIBS)
 
-$(LIB_SO_SONAME): $(LIB_SO_REAL)
+$(LIB_SO_SONAME): $(LIB_SO_REAL) $(MAKEFILE_DEPS)
 	$(LN) -sf $(shell basename $<) $@
 
-$(LIB_SO): $(LIB_SO_SONAME)
+$(LIB_SO): $(LIB_SO_SONAME) $(MAKEFILE_DEPS)
 	$(LN) -sf $(shell basename $<) $@
 
-$(LIB_AR): $(LIB_AR_ALL)
+$(LIB_AR): $(LIB_AR_ALL) $(MAKEFILE_DEPS)
 	$(AR) rv $@ $(LIB_AR_ALL)
 
-$(LIB_AR_ALL): $(LIB_AR_UNSCOPED) $(LIB_MAP)
+$(LIB_AR_ALL): $(LIB_AR_UNSCOPED) $(LIB_MAP) $(MAKEFILE_DEPS)
 	$(OBJCOPY) --localize-hidden `sed -n 's/^	*\([a-zA-Z0-9_]*\);$$/-G \1/p' $(LIB_MAP)` $< $@
 
-$(LIB_AR_UNSCOPED): $(OBJS) $(EXTRA_OBJS)
+$(LIB_AR_UNSCOPED): $(OBJS) $(EXTRA_OBJS) $(MAKEFILE_DEPS)
 	$(LD) -o $@ -r $(OBJS) $(EXTRA_OBJS)
 
 $(PMEMBLK_PRIV_OBJ):
@@ -207,7 +209,7 @@ clobber: clean $(EXTRA_TARGETS_CLOBBER)
 
 $(eval $(cstyle-rule))
 
-$(objdir)/%.o: %.c
+$(objdir)/%.o: %.c $(MAKEFILE_DEPS)
 	@mkdir -p $(objdir)/.deps
 	$(CC) -MD -c -o $@ $(CFLAGS) $(INCS) -fPIC $<
 	$(create-deps)
