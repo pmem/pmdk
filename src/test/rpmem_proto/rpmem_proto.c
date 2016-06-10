@@ -141,17 +141,6 @@ main(int argc, char *argv[])
 	ASSERT_ALIGNED_FIELD(struct rpmem_msg_open_resp, pool_attr);
 	ASSERT_ALIGNED_CHECK(struct rpmem_msg_open_resp);
 
-	ASSERT_ALIGNED_BEGIN(struct rpmem_msg_remove);
-	ASSERT_ALIGNED_FIELD(struct rpmem_msg_remove, hdr);
-	ASSERT_ALIGNED_FIELD(struct rpmem_msg_remove, major);
-	ASSERT_ALIGNED_FIELD(struct rpmem_msg_remove, minor);
-	ASSERT_ALIGNED_FIELD(struct rpmem_msg_remove, pool_desc);
-	ASSERT_ALIGNED_CHECK(struct rpmem_msg_remove);
-
-	ASSERT_ALIGNED_BEGIN(struct rpmem_msg_remove_resp);
-	ASSERT_ALIGNED_FIELD(struct rpmem_msg_remove_resp, hdr);
-	ASSERT_ALIGNED_CHECK(struct rpmem_msg_remove_resp);
-
 	ASSERT_ALIGNED_BEGIN(struct rpmem_msg_close);
 	ASSERT_ALIGNED_FIELD(struct rpmem_msg_close, hdr);
 	ASSERT_ALIGNED_CHECK(struct rpmem_msg_close);

@@ -416,35 +416,6 @@ err_common_init:
 }
 
 /*
- * rpmem_remove -- remove remote pool on target node
- *
- * target        -- name of target node in format <target_name>[:<port>]
- * pool_set_name -- remote pool set name
- */
-int
-rpmem_remove(const char *target, const char *pool_set_name)
-{
-	RPMEMpool *rpp;
-	int ret = 0;
-
-	rpp = rpmem_common_init(target);
-	if (!rpp) {
-		ret = -1;
-		goto err_common_init;
-	}
-
-	ret = rpmem_obc_remove(rpp->obc, pool_set_name);
-	if (ret) {
-		ERR("!remove request failed");
-		goto err_obc_remove;
-	}
-err_obc_remove:
-	rpmem_common_fini(rpp, 0);
-err_common_init:
-	return ret;
-}
-
-/*
  * rpmem_close -- close remote pool on target node
  */
 int

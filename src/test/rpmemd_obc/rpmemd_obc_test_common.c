@@ -212,42 +212,12 @@ req_cb_close(struct rpmemd_obc *obc, void *arg)
 }
 
 /*
- * req_cb_remove -- callback for remove request operation
- *
- * This function behaves according to arguments specified via
- * struct req_cb_arg.
- */
-static int
-req_cb_remove(struct rpmemd_obc *obc, void *arg,
-		const char *pool_desc)
-{
-	UT_ASSERTne(arg, NULL);
-	UT_ASSERTne(pool_desc, NULL);
-	UT_ASSERTeq(strcmp(pool_desc, POOL_DESC), 0);
-
-	struct req_cb_arg *args = arg;
-
-	args->types |= (1 << RPMEM_MSG_TYPE_REMOVE);
-
-	int ret = args->ret;
-
-	if (args->resp)
-		ret = rpmemd_obc_remove_resp(obc, args->status);
-
-	if (args->force_ret)
-		ret = args->ret;
-
-	return ret;
-}
-
-/*
  * REQ_CB -- request callbacks
  */
 struct rpmemd_obc_requests REQ_CB = {
 	.create = req_cb_create,
 	.open = req_cb_open,
 	.close = req_cb_close,
-	.remove = req_cb_remove,
 };
 
 /*

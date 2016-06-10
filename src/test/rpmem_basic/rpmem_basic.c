@@ -220,29 +220,6 @@ test_open(const struct test_case *tc, int argc, char *argv[])
 }
 
 /*
- * test_remove -- test case for removing remote pool
- */
-static int
-test_remove(const struct test_case *tc, int argc, char *argv[])
-{
-	if (argc < 2)
-		UT_FATAL("usage: test_remove <pool set> <target>");
-
-	const char *pool_set = argv[0];
-	const char *target = argv[1];
-	int ret;
-
-	ret = rpmem_remove(target, pool_set);
-	if (!ret) {
-		UT_OUT("%s: removed", pool_set);
-	} else {
-		UT_OUT("!%s", pool_set);
-	}
-
-	return 2;
-}
-
-/*
  * test_close -- test case for closing remote pool
  */
 static int
@@ -442,7 +419,6 @@ fill_pool(const struct test_case *tc, int argc, char *argv[])
 static struct test_case test_cases[] = {
 	TEST_CASE(test_create),
 	TEST_CASE(test_open),
-	TEST_CASE(test_remove),
 	TEST_CASE(test_close),
 	TEST_CASE(test_persist),
 	TEST_CASE(test_read),

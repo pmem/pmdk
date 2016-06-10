@@ -82,7 +82,6 @@ rpmemd_obc_check_msg_hdr(struct rpmem_msg_hdr *hdrp)
 	switch (hdrp->type) {
 	case RPMEM_MSG_TYPE_OPEN:
 	case RPMEM_MSG_TYPE_CREATE:
-	case RPMEM_MSG_TYPE_REMOVE:
 	case RPMEM_MSG_TYPE_CLOSE:
 		/* all messages from obc to server are fine */
 		break;
@@ -203,28 +202,6 @@ rpmemd_obc_ntoh_check_msg_open(struct rpmem_msg_hdr *hdrp)
 }
 
 /*
- * rpmemd_obc_ntoh_check_msg_remove -- convert and check remove request message
- */
-static int
-rpmemd_obc_ntoh_check_msg_remove(struct rpmem_msg_hdr *hdrp)
-{
-	int ret;
-	struct rpmem_msg_remove *msg = (struct rpmem_msg_remove *)hdrp;
-
-	rpmem_ntoh_msg_remove(msg);
-
-	ret = rpmemd_obc_check_proto_ver(msg->major, msg->minor);
-	if (ret)
-		return ret;
-
-	ret = rpmemd_obc_check_pool_desc(hdrp, sizeof(*msg), &msg->pool_desc);
-	if (ret)
-		return ret;
-
-	return 0;
-}
-
-/*
  * rpmemd_obc_ntoh_check_msg_close -- convert and check close request message
  */
 static int
@@ -243,7 +220,6 @@ typedef int (*rpmemd_obc_ntoh_check_msg_fn)(struct rpmem_msg_hdr *hdrp);
 static rpmemd_obc_ntoh_check_msg_fn rpmemd_obc_ntoh_check_msg[] = {
 	[RPMEM_MSG_TYPE_CREATE]	= rpmemd_obc_ntoh_check_msg_create,
 	[RPMEM_MSG_TYPE_OPEN]	= rpmemd_obc_ntoh_check_msg_open,
-	[RPMEM_MSG_TYPE_REMOVE]	= rpmemd_obc_ntoh_check_msg_remove,
 	[RPMEM_MSG_TYPE_CLOSE]	= rpmemd_obc_ntoh_check_msg_close,
 };
 
@@ -286,19 +262,6 @@ rpmemd_obc_process_open(struct rpmemd_obc *obc,
 }
 
 /*
- * rpmemd_obc_process_remove -- process remove request
- */
-static int
-rpmemd_obc_process_remove(struct rpmemd_obc *obc,
-	struct rpmemd_obc_requests *req_cb, void *arg,
-	struct rpmem_msg_hdr *hdrp)
-{
-	struct rpmem_msg_remove *msg = (struct rpmem_msg_remove *)hdrp;
-
-	return req_cb->remove(obc, arg, (const char *)msg->pool_desc.desc);
-}
-
-/*
  * rpmemd_obc_process_close -- process close request
  */
 static int
@@ -316,7 +279,6 @@ typedef int (*rpmemd_obc_process_fn)(struct rpmemd_obc *obc,
 static rpmemd_obc_process_fn rpmemd_obc_process_cb[] = {
 	[RPMEM_MSG_TYPE_CREATE]	= rpmemd_obc_process_create,
 	[RPMEM_MSG_TYPE_OPEN]	= rpmemd_obc_process_open,
-	[RPMEM_MSG_TYPE_REMOVE]	= rpmemd_obc_process_remove,
 	[RPMEM_MSG_TYPE_CLOSE]	= rpmemd_obc_process_close,
 };
 
@@ -458,7 +420,6 @@ rpmemd_obc_process(struct rpmemd_obc *obc,
 	RPMEMD_ASSERT(req_cb != NULL);
 	RPMEMD_ASSERT(req_cb->create != NULL);
 	RPMEMD_ASSERT(req_cb->open != NULL);
-	RPMEMD_ASSERT(req_cb->remove != NULL);
 	RPMEMD_ASSERT(req_cb->close != NULL);
 
 	struct rpmem_msg_hdr *hdrp = NULL;
@@ -549,26 +510,6 @@ rpmemd_obc_close_resp(struct rpmemd_obc *obc,
 	};
 
 	rpmem_hton_msg_close_resp(&resp);
-
-	return rpmemd_obc_send(obc, &resp, sizeof(resp));
-}
-
-/*
- * rpmemd_obc_remove_resp -- send remove request response message
- */
-int
-rpmemd_obc_remove_resp(struct rpmemd_obc *obc,
-	int status)
-{
-	struct rpmem_msg_remove_resp resp = {
-		.hdr = {
-			.type	= RPMEM_MSG_TYPE_REMOVE_RESP,
-			.size	= sizeof(struct rpmem_msg_remove_resp),
-			.status	= (uint32_t)status,
-		},
-	};
-
-	rpmem_hton_msg_remove_resp(&resp);
 
 	return rpmemd_obc_send(obc, &resp, sizeof(resp));
 }
