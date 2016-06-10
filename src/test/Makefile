@@ -313,10 +313,10 @@ all test cstyle format: $(TESTS_BUILD)
 
 clean clobber: $(TESTS_BUILD)
 
-$(TESTS): $(TEST_DEPS)
+$(TESTS) $(OBJ_DEPS) $(LIBPMEMPOOL_DEPS): $(TEST_DEPS)
+
 $(OBJ_TESTS): $(OBJ_DEPS)
 $(LIBPMEMPOOL_TESTS): $(LIBPMEMPOOL_DEPS)
-$(OBJ_DEPS): $(TEST_DEPS)
 
 $(TESTS_BUILD):
 	$(MAKE) -C $@ $(TARGET)
