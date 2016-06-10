@@ -164,6 +164,26 @@ test_constructor_exception(nvobj::pool_base &pop)
 
 	UT_ASSERT(except);
 }
+
+/*
+ * test_delete_null -- (internal) test atomic delete nullptr
+ */
+void
+test_delete_null(nvobj::pool<struct root> &pop)
+{
+	nvobj::persistent_ptr<foo[]> pfoo;
+	nvobj::persistent_ptr<bar[3]> pbar;
+
+	UT_ASSERT(pfoo == nullptr);
+	UT_ASSERT(pbar == nullptr);
+
+	try {
+		nvobj::delete_persistent_atomic<foo[]>(pfoo, 2);
+		nvobj::delete_persistent_atomic<bar[3]>(pbar);
+	} catch (...) {
+		UT_ASSERT(0);
+	}
+}
 }
 
 int
@@ -188,6 +208,7 @@ main(int argc, char *argv[])
 	test_make_one_d(pop);
 	test_make_two_d(pop);
 	test_constructor_exception(pop);
+	test_delete_null(pop);
 
 	pop.close();
 
