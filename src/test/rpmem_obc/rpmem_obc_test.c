@@ -42,7 +42,6 @@
 static struct test_case test_cases[] = {
 	TEST_CASE(client_enotconn),
 	TEST_CASE(client_connect),
-//	TEST_CASE(server_wait),
 
 	TEST_CASE(client_create),
 	TEST_CASE(server_create),
@@ -61,12 +60,6 @@ static struct test_case test_cases[] = {
 	TEST_CASE(server_close_econnreset),
 	TEST_CASE(server_close_eproto),
 	TEST_CASE(server_close_error),
-
-	TEST_CASE(client_remove),
-	TEST_CASE(server_remove),
-	TEST_CASE(server_remove_econnreset),
-	TEST_CASE(server_remove_eproto),
-	TEST_CASE(server_remove_error),
 
 	TEST_CASE(client_monitor),
 	TEST_CASE(server_monitor),

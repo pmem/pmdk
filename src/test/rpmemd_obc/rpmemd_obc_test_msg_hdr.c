@@ -40,7 +40,7 @@
  * Number of cases for checking message header. Must be kept in sync with
  * client_bad_msg_hdr function.
  */
-#define BAD_MSG_HDR_COUNT	7
+#define BAD_MSG_HDR_COUNT	6
 
 /*
  * client_bad_msg_hdr -- test case for checking message header
@@ -78,9 +78,6 @@ client_bad_msg_hdr(const struct test_case *tc, int argc, char *argv[])
 			break;
 		case 5:
 			msg.type = RPMEM_MSG_TYPE_CLOSE_RESP;
-			break;
-		case 6:
-			msg.type = RPMEM_MSG_TYPE_REMOVE_RESP;
 			break;
 		default:
 			UT_ASSERT(0);

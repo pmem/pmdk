@@ -52,7 +52,6 @@ static struct test_case test_cases[] = {
 	TEST_CASE(client_create),
 	TEST_CASE(client_open),
 	TEST_CASE(client_close),
-	TEST_CASE(client_remove),
 };
 
 #define NTESTS	(sizeof(test_cases) / sizeof(test_cases[0]))

@@ -79,10 +79,6 @@ client_enotconn(const struct test_case *tc, int argc, char *argv[])
 	UT_ASSERTne(ret, 0);
 	UT_ASSERTeq(errno, ENOTCONN);
 
-	ret = rpmem_obc_remove(rpc, POOL_DESC);
-	UT_ASSERTne(ret, 0);
-	UT_ASSERTeq(errno, ENOTCONN);
-
 	ret = rpmem_obc_close(rpc);
 	UT_ASSERTne(ret, 0);
 	UT_ASSERTeq(errno, ENOTCONN);

@@ -58,6 +58,6 @@ RPMEM_CMD="$RPMEM_CMD ./rpmemd_obc$EXESUFFIX\""
 export_vars_node 1 RPMEM_CMD
 
 expect_normal_exit run_on_node 1 ./rpmemd_obc$EXESUFFIX\
-	client_remove ${NODE_ADDR[0]}
+	client_close ${NODE_ADDR[0]}
 
 pass
