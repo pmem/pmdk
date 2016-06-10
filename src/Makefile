@@ -38,6 +38,11 @@ include $(TOP)/src/common.inc
 TARGETS = libpmem libvmem libpmemblk libpmemlog libpmemobj libpmempool\
 	libvmmalloc tools
 ALL_TARGETS = $(TARGETS) librpmem examples benchmarks
+
+DEBUG_RELEASE_TARGETS = libpmem libvmem libpmemblk libpmemlog libpmemobj\
+	libpmempool libvmmalloc librpmem
+RELEASE_TARGETS = tools examples benchmarks
+
 CLEAN_NO_JE_TARGETS = $(ALL_TARGETS) test
 CLEAN_TARGETS = $(CLEAN_NO_JE_TARGETS) jemalloc
 CLOBBER_NO_JE_TARGETS = $(ALL_TARGETS) test
@@ -101,11 +106,14 @@ $(eval $(call sub-target,$(CLOBBER_NO_JE_TARGETS),clobber,y))
 $(eval $(call sub-target,$(CSTYLE_TARGETS),cstyle,n))
 $(eval $(call sub-target,$(CSTYLE_TARGETS),format,n))
 
-$(ALL_TARGETS):
+$(DEBUG_RELEASE_TARGETS):
 	$(MAKE) -C $@
 ifeq ($(custom_build),)
 	$(MAKE) -C $@ DEBUG=1
 endif
+
+$(RELEASE_TARGETS):
+	$(MAKE) -C $@
 
 jemalloc-check: jemalloc-test
 
