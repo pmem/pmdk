@@ -337,33 +337,6 @@ rpmem_obc_check_open_resp(struct rpmem_msg_open_resp *resp)
 }
 
 /*
- * rpmem_obc_alloc_remove_msg -- (internal) allocate and fill remove request
- * message
- */
-static struct rpmem_msg_remove *
-rpmem_obc_alloc_remove_msg(const char *pool_desc, size_t *msg_sizep)
-{
-	size_t pool_desc_size = strlen(pool_desc) + 1;
-	size_t msg_size = sizeof(struct rpmem_msg_remove) + pool_desc_size;
-	struct rpmem_msg_remove *msg = malloc(msg_size);
-	if (!msg) {
-		RPMEM_LOG(ERR, "!cannot allocate remove request message");
-		return NULL;
-	}
-
-	rpmem_obc_set_msg_hdr(&msg->hdr, RPMEM_MSG_TYPE_REMOVE, msg_size);
-
-	msg->major = RPMEM_PROTO_MAJOR;
-	msg->minor = RPMEM_PROTO_MINOR;
-
-	rpmem_obc_set_pool_desc(&msg->pool_desc,
-			pool_desc, pool_desc_size);
-
-	*msg_sizep = msg_size;
-	return msg;
-}
-
-/*
  * rpmem_obc_check_close_resp -- (internal) check close response message
  */
 static int
@@ -612,55 +585,6 @@ err_msg_send:
 	free(msg);
 err_alloc_msg:
 err_req:
-err_notconnected:
-	return -1;
-}
-
-/*
- * rpmem_obc_remove -- perform remove request operation
- *
- * Returns error if connection is not already established.
- */
-int
-rpmem_obc_remove(struct rpmem_obc *rpc, const char *pool_desc)
-{
-	if (!rpmem_obc_is_connected(rpc)) {
-		errno = ENOTCONN;
-		goto err_notconnected;
-	}
-
-	size_t msg_size;
-	struct rpmem_msg_remove *msg =
-		rpmem_obc_alloc_remove_msg(pool_desc, &msg_size);
-	if (!msg)
-		goto err_alloc_msg;
-
-	rpmem_hton_msg_remove(msg);
-
-	if (rpmem_ssh_send(rpc->ssh, msg, msg_size)) {
-		RPMEM_LOG(ERR, "!sending remove request message failed");
-		goto err_msg_send;
-	}
-
-	struct rpmem_msg_remove_resp resp;
-	if (rpmem_ssh_recv(rpc->ssh, &resp, sizeof(resp))) {
-		RPMEM_LOG(ERR, "!receiving remove request response failed");
-		goto err_msg_recv;
-	}
-
-	rpmem_ntoh_msg_remove_resp(&resp);
-
-	if (rpmem_obc_check_hdr_resp(&resp.hdr, RPMEM_MSG_TYPE_REMOVE_RESP,
-			sizeof(struct rpmem_msg_remove_resp)))
-		goto err_msg_resp;
-
-	free(msg);
-	return 0;
-err_msg_resp:
-err_msg_recv:
-err_msg_send:
-	free(msg);
-err_alloc_msg:
 err_notconnected:
 	return -1;
 }

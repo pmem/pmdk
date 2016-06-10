@@ -125,9 +125,3 @@ TEST_CASE_DECLARE(server_close);
 TEST_CASE_DECLARE(server_close_econnreset);
 TEST_CASE_DECLARE(server_close_eproto);
 TEST_CASE_DECLARE(server_close_error);
-
-TEST_CASE_DECLARE(client_remove);
-TEST_CASE_DECLARE(server_remove);
-TEST_CASE_DECLARE(server_remove_econnreset);
-TEST_CASE_DECLARE(server_remove_eproto);
-TEST_CASE_DECLARE(server_remove_error);
