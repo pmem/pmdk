@@ -125,6 +125,23 @@ test_make_args(nvobj::pool<struct root> &pop)
 
 	nvobj::delete_persistent_atomic<foo>(r->pfoo);
 }
+
+/*
+ * test_delete_null -- (internal) test atomic delete nullptr
+ */
+void
+test_delete_null(nvobj::pool<struct root> &pop)
+{
+	nvobj::persistent_ptr<foo> pfoo;
+
+	UT_ASSERT(pfoo == nullptr);
+
+	try {
+		nvobj::delete_persistent_atomic<foo>(pfoo);
+	} catch (...) {
+		UT_ASSERT(0);
+	}
+}
 }
 
 int
@@ -148,6 +165,7 @@ main(int argc, char *argv[])
 
 	test_make_no_args(pop);
 	test_make_args(pop);
+	test_delete_null(pop);
 
 	pop.close();
 

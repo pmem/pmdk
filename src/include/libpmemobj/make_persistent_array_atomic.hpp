@@ -127,6 +127,9 @@ void
 delete_persistent_atomic(typename detail::pp_if_array<T>::type &ptr,
 			 std::size_t N)
 {
+	if (ptr == nullptr)
+		return;
+
 	/* we CAN'T call destructor */
 	pmemobj_free(ptr.raw_ptr());
 }
@@ -145,6 +148,9 @@ template <typename T>
 void
 delete_persistent_atomic(typename detail::pp_if_size_array<T>::type &ptr)
 {
+	if (ptr == nullptr)
+		return;
+
 	/* we CAN'T call destructor */
 	pmemobj_free(ptr.raw_ptr());
 }
