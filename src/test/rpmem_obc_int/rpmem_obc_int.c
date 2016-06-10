@@ -94,7 +94,6 @@
 
 TEST_CASE_DECLARE(client_create);
 TEST_CASE_DECLARE(client_open);
-TEST_CASE_DECLARE(client_remove);
 TEST_CASE_DECLARE(server);
 
 /*
@@ -199,40 +198,6 @@ client_open(const struct test_case *tc, int argc, char *argv[])
 }
 
 /*
- * client_remove -- perform remove request
- */
-int
-client_remove(const struct test_case *tc, int argc, char *argv[])
-{
-	if (argc < 1)
-		UT_FATAL("usage: %s <addr>[:<port>]", tc->name);
-
-	char *target = argv[0];
-
-	int ret;
-	struct rpmem_obc *rpc;
-
-	rpc = rpmem_obc_init();
-	UT_ASSERTne(rpc, NULL);
-
-	ret = rpmem_obc_connect(rpc, target);
-	UT_ASSERTeq(ret, 0);
-
-	ret = rpmem_obc_monitor(rpc, 1);
-	UT_ASSERTeq(ret, 1);
-
-	ret = rpmem_obc_remove(rpc, POOL_DESC);
-	UT_ASSERTeq(ret, 0);
-
-	ret = rpmem_obc_disconnect(rpc);
-	UT_ASSERTeq(ret, 0);
-
-	rpmem_obc_fini(rpc);
-
-	return 1;
-}
-
-/*
  * req_arg -- request callbacks argument
  */
 struct req_arg {
@@ -298,29 +263,12 @@ req_close(struct rpmemd_obc *obc, void *arg)
 }
 
 /*
- * req_remove -- process remove request
- */
-static int
-req_remove(struct rpmemd_obc *obc, void *arg,
-	const char *pool_desc)
-{
-	UT_ASSERTne(arg, NULL);
-	UT_ASSERTeq(strcmp(pool_desc, POOL_DESC), 0);
-
-	struct req_arg *args = arg;
-	args->closing = 1;
-
-	return rpmemd_obc_remove_resp(obc, 0);
-}
-
-/*
  * REQ -- server request callbacks
  */
 struct rpmemd_obc_requests REQ = {
 	.create = req_create,
 	.open = req_open,
 	.close = req_close,
-	.remove = req_remove,
 };
 
 /*
@@ -370,7 +318,6 @@ static struct test_case test_cases[] = {
 	TEST_CASE(server),
 	TEST_CASE(client_create),
 	TEST_CASE(client_open),
-	TEST_CASE(client_remove),
 };
 
 #define NTESTS	(sizeof(test_cases) / sizeof(test_cases[0]))

@@ -46,8 +46,6 @@ struct rpmemd_obc_requests {
 	int (*open)(struct rpmemd_obc *obc, void *arg,
 			const struct rpmem_req_attr *req);
 	int (*close)(struct rpmemd_obc *obc, void *arg);
-	int (*remove)(struct rpmemd_obc *obc, void *arg,
-			const char *pool_desc);
 };
 
 struct rpmemd_obc *rpmemd_obc_init(int fd_in, int fd_out);
@@ -64,6 +62,4 @@ int rpmemd_obc_open_resp(struct rpmemd_obc *obc,
 		int status, const struct rpmem_resp_attr *res,
 		const struct rpmem_pool_attr *pool_attr);
 int rpmemd_obc_close_resp(struct rpmemd_obc *obc,
-		int status);
-int rpmemd_obc_remove_resp(struct rpmemd_obc *obc,
 		int status);

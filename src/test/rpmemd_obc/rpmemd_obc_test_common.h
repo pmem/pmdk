@@ -146,18 +146,6 @@ static const struct rpmem_msg_close CLOSE_MSG = {
 	},
 };
 
-static const struct rpmem_msg_remove REMOVE_MSG = {
-	.hdr = {
-		.type = RPMEM_MSG_TYPE_REMOVE,
-		.size = sizeof(struct rpmem_msg_remove),
-	},
-	.major = RPMEM_PROTO_MAJOR,
-	.minor = RPMEM_PROTO_MINOR,
-	.pool_desc = {
-		.size = POOL_DESC_SIZE,
-	},
-};
-
 TEST_CASE_DECLARE(server_accept_sim);
 TEST_CASE_DECLARE(server_accept_sim_fork);
 TEST_CASE_DECLARE(client_accept_sim);
@@ -178,5 +166,3 @@ TEST_CASE_DECLARE(server_open);
 TEST_CASE_DECLARE(client_close);
 TEST_CASE_DECLARE(server_close);
 TEST_CASE_DECLARE(client_open);
-TEST_CASE_DECLARE(server_remove);
-TEST_CASE_DECLARE(client_remove);

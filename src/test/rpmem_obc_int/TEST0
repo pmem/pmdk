@@ -61,7 +61,4 @@ expect_normal_exit run_on_node 1 ./rpmem_obc_int$EXESUFFIX\
 expect_normal_exit run_on_node 1 ./rpmem_obc_int$EXESUFFIX\
 	client_open ${NODE_ADDR[0]}
 
-expect_normal_exit run_on_node 1 ./rpmem_obc_int$EXESUFFIX\
-	client_remove ${NODE_ADDR[0]}
-
 pass
