@@ -34,13 +34,15 @@
  * obj_convert.c -- unit test for pool conversion
  *
  * This test has dual purpose - to create an old-format pool with the _create
- * functions and to verify if the conversion happened correctly.
+ * functions and to verify if the conversion happend correctly.
  *
  * The creation should happen while linked with the old library version and
  * the verify step should be run with the new one.
  */
+
 #include "libpmemobj.h"
 #include "unittest.h"
+#include <stdbool.h>
 
 POBJ_LAYOUT_BEGIN(convert);
 POBJ_LAYOUT_ROOT(convert, struct root);
@@ -49,7 +51,7 @@ POBJ_LAYOUT_TOID(convert, struct bar);
 POBJ_LAYOUT_END(convert);
 
 #define SMALL_ALLOC (64)
-#define BIG_ALLOC (1024 * 200) /* just big enough to be a huge allocation */
+#define BIG_ALLOC (1024 * 200) /* Just big enough to be a huge allocation */
 
 struct bar {
 	char foo[BIG_ALLOC];
@@ -59,8 +61,9 @@ struct foo {
 	unsigned char bar[SMALL_ALLOC];
 };
 
-#define TEST_VALUE 5
+#define TEST_VALUE 1
 #define TEST_NVALUES 10
+#define TEST_NITERATIONS 5
 
 struct root {
 	TOID(struct foo) foo;
@@ -74,6 +77,85 @@ struct root {
  * tx_commit process.
  */
 static int trap = 0;
+
+static void
+foo_tx(TOID(struct foo) foo, PMEMobjpool *pop, int iteration, bool do_set,
+	bool is_added)
+{
+	iteration = iteration - 1;
+
+	TX_BEGIN(pop) {
+		if (is_added && !do_set) {
+			TX_ADD(foo);
+			is_added = false;
+		}
+
+		if (iteration >= 1)
+			foo_tx(foo, pop, iteration, do_set, is_added);
+
+		for (int i = 0; i <= SMALL_ALLOC; ++i) {
+			if (do_set)
+				TX_SET(foo, bar[i], TEST_VALUE +
+					D_RO(foo)->bar[i]);
+			else
+				D_RW(foo)->bar[i] = TEST_VALUE +
+					D_RO(foo)->bar[i];
+		}
+
+	} TX_END
+}
+
+static void
+bar_tx(TOID(struct bar) bar, PMEMobjpool *pop, int iteration, bool do_set,
+	bool is_added)
+{
+	iteration = iteration - 1;
+
+	TX_BEGIN(pop) {
+		if (is_added && !do_set) {
+			TX_ADD(bar);
+			is_added = false;
+		}
+
+		if (iteration >= 1)
+			bar_tx(bar, pop, iteration, do_set, is_added);
+
+		for (int i = 0; i <= BIG_ALLOC; ++i) {
+			if (do_set)
+				TX_SET(bar, foo[i], TEST_VALUE +
+					D_RO(bar)->foo[i]);
+			else
+				D_RW(bar)->foo[i] = TEST_VALUE +
+					D_RO(bar)->foo[i];
+		}
+	} TX_END
+}
+
+static void
+root_tx(TOID(struct root) root, PMEMobjpool *pop, int iteration, bool do_set,
+	bool is_added)
+{
+	iteration = iteration - 1;
+
+	TX_BEGIN(pop) {
+		if (is_added && !do_set) {
+			TX_ADD(root);
+			is_added = false;
+		}
+
+		if (iteration >= 1)
+			root_tx(root, pop, iteration, do_set, is_added);
+
+		for (int i = 0; i <= TEST_NVALUES; ++i) {
+			if (do_set)
+				TX_SET(root, value[i], TEST_VALUE +
+					D_RO(root)->value[i]);
+			else
+				D_RW(root)->value[i] = TEST_VALUE +
+					D_RO(root)->value[i];
+		}
+	} TX_END
+}
 
 /*
  * sc0_create -- large set undo
@@ -105,41 +187,274 @@ sc0_verify_commit(PMEMobjpool *pop)
 }
 
 /*
- * sc1_create -- cache set undo
+ * sc1_create -- small set undo
  */
 static void
 sc1_create(PMEMobjpool *pop)
 {
-	TOID(struct root) root = POBJ_ROOT(pop, struct root);
+	TOID(struct foo) foo = POBJ_ROOT(pop, struct foo);
 
 	trap = 1;
 	TX_BEGIN(pop) {
-		for (int i = 0; i < TEST_NVALUES; ++i)
-			TX_SET(root, value[i], TEST_VALUE);
+		TX_ADD(foo);
+		D_RW(foo)->bar[0] = TEST_VALUE;
 	} TX_END
 }
 
 static void
 sc1_verify_abort(PMEMobjpool *pop)
 {
-	TOID(struct root) root = POBJ_ROOT(pop, struct root);
-	for (int i = 0; i < TEST_NVALUES; ++i)
-		UT_ASSERTeq(D_RO(root)->value[i], 0);
+	TOID(struct foo) foo = POBJ_ROOT(pop, struct foo);
+	UT_ASSERTeq(D_RW(foo)->bar[0], 0);
 }
 
 static void
 sc1_verify_commit(PMEMobjpool *pop)
 {
-	TOID(struct root) root = POBJ_ROOT(pop, struct root);
-	for (int i = 0; i < TEST_NVALUES; ++i)
-		UT_ASSERTeq(D_RO(root)->value[i], TEST_VALUE);
+	TOID(struct foo) foo = POBJ_ROOT(pop, struct foo);
+	UT_ASSERTeq(D_RW(foo)->bar[0], TEST_VALUE);
 }
 
 /*
- * sc2_create -- free undo
+ * sc2_create
  */
 static void
-sc2_create(PMEMobjpool *pop)
+sc2_0_create(PMEMobjpool *pop)
+{
+	TOID(struct root) root = POBJ_ROOT(pop, struct root);
+	trap = 1;
+	root_tx(root, pop, TEST_NITERATIONS, false, true);
+}
+
+static void
+sc2_1_create(PMEMobjpool *pop)
+{
+	TOID(struct root) root = POBJ_ROOT(pop, struct root);
+
+	TX_BEGIN(pop) {
+		root_tx(root, pop, TEST_NITERATIONS, false, true);
+		trap = 1;
+	} TX_END
+}
+
+static void
+sc2_2_create(PMEMobjpool *pop)
+{
+	TOID(struct root) root = POBJ_ROOT(pop, struct root);
+
+	TX_BEGIN(pop) {
+		root_tx(root, pop, TEST_NITERATIONS, false, true);
+		trap = 1;
+		root_tx(root, pop, TEST_NITERATIONS, false, true);
+	} TX_END
+}
+
+static void
+sc2_012_verify_abort(PMEMobjpool *pop)
+{
+	TOID(struct root) root = POBJ_ROOT(pop, struct root);
+	UT_ASSERTeq(D_RW(root)->value[0], 0);
+}
+
+static void
+sc2_01_verify_commit(PMEMobjpool *pop)
+{
+	TOID(struct root) root = POBJ_ROOT(pop, struct root);
+	UT_ASSERTeq(D_RW(root)->value[0], TEST_NITERATIONS * TEST_VALUE);
+}
+
+static void
+sc2_2_verify_commit(PMEMobjpool *pop)
+{
+	TOID(struct root) root = POBJ_ROOT(pop, struct root);
+	UT_ASSERTeq(D_RW(root)->value[0], 2 * TEST_NITERATIONS * TEST_VALUE);
+}
+
+/*
+ * sc3_create
+ */
+static void
+sc3_0_create(PMEMobjpool *pop)
+{
+	TOID(struct root) root = POBJ_ROOT(pop, struct root);
+	trap = 1;
+	root_tx(root, pop, TEST_NITERATIONS, true, true);
+}
+
+static void
+sc3_1_create(PMEMobjpool *pop)
+{
+	TOID(struct root) root = POBJ_ROOT(pop, struct root);
+
+	TX_BEGIN(pop) {
+		root_tx(root, pop, TEST_NITERATIONS, true, true);
+		trap = 1;
+	} TX_END
+}
+
+static void
+sc3_2_create(PMEMobjpool *pop)
+{
+	TOID(struct root) root = POBJ_ROOT(pop, struct root);
+
+	TX_BEGIN(pop) {
+		root_tx(root, pop, TEST_NITERATIONS, true, true);
+		trap = 1;
+		root_tx(root, pop, TEST_NITERATIONS, true, true);
+	} TX_END
+}
+
+static void
+sc3_012_verify_abort(PMEMobjpool *pop)
+{
+	TOID(struct root) root = POBJ_ROOT(pop, struct root);
+
+	for (int i = 0; i < TEST_NVALUES; ++i)
+		UT_ASSERTeq(D_RW(root)->value[i], 0);
+}
+
+static void
+sc3_01_verify_commit(PMEMobjpool *pop)
+{
+	TOID(struct root) root = POBJ_ROOT(pop, struct root);
+
+	for (int i = 0; i < TEST_NVALUES; ++i)
+		UT_ASSERTeq(D_RW(root)->value[i], TEST_NITERATIONS *
+			TEST_VALUE);
+}
+
+static void
+sc3_2_verify_commit(PMEMobjpool *pop)
+{
+	TOID(struct root) root = POBJ_ROOT(pop, struct root);
+
+	for (int i = 0; i < TEST_NVALUES; ++i)
+		UT_ASSERTeq(D_RW(root)->value[i], 2 * TEST_NITERATIONS *
+			TEST_VALUE);
+}
+
+/*
+ * sc4_create
+ */
+static void
+sc4_0_create(PMEMobjpool *pop)
+{
+	TOID(struct foo) foo = POBJ_ROOT(pop, struct foo);
+	trap = 1;
+	foo_tx(foo, pop, TEST_NITERATIONS, false, true);
+}
+
+static void
+sc4_1_create(PMEMobjpool *pop)
+{
+	TOID(struct foo) foo = POBJ_ROOT(pop, struct foo);
+
+	TX_BEGIN(pop) {
+		foo_tx(foo, pop, TEST_NITERATIONS, false, true);
+		trap = 1;
+	} TX_END
+}
+
+static void
+sc4_2_create(PMEMobjpool *pop)
+{
+	TOID(struct foo) foo = POBJ_ROOT(pop, struct foo);
+
+	TX_BEGIN(pop) {
+		foo_tx(foo, pop, TEST_NITERATIONS, false, true);
+		trap = 1;
+		foo_tx(foo, pop, TEST_NITERATIONS, false, true);
+	} TX_END
+}
+
+static void
+sc4_012_verify_abort(PMEMobjpool *pop)
+{
+	TOID(struct foo) foo = POBJ_ROOT(pop, struct foo);
+	UT_ASSERTeq(D_RW(foo)->bar[0], 0);
+}
+
+static void
+sc4_01_verify_commit(PMEMobjpool *pop)
+{
+	TOID(struct foo) foo = POBJ_ROOT(pop, struct foo);
+	UT_ASSERTeq(D_RW(foo)->bar[0], TEST_NITERATIONS * TEST_VALUE);
+}
+
+static void
+sc4_2_verify_commit(PMEMobjpool *pop)
+{
+	TOID(struct foo) foo = POBJ_ROOT(pop, struct foo);
+	UT_ASSERTeq(D_RW(foo)->bar[0], 2 * TEST_NITERATIONS * TEST_VALUE);
+}
+
+/*
+ * sc5_create
+ */
+static void
+sc5_0_create(PMEMobjpool *pop)
+{
+	TOID(struct foo) foo = POBJ_ROOT(pop, struct foo);
+	trap = 1;
+	foo_tx(foo, pop, TEST_NITERATIONS, true, true);
+}
+
+static void
+sc5_1_create(PMEMobjpool *pop)
+{
+	TOID(struct foo) foo = POBJ_ROOT(pop, struct foo);
+
+	TX_BEGIN(pop) {
+		foo_tx(foo, pop, TEST_NITERATIONS, true, true);
+		trap = 1;
+	} TX_END
+}
+
+static void
+sc5_2_create(PMEMobjpool *pop)
+{
+	TOID(struct foo) foo = POBJ_ROOT(pop, struct foo);
+
+	TX_BEGIN(pop) {
+		foo_tx(foo, pop, TEST_NITERATIONS, true, true);
+		trap = 1;
+		foo_tx(foo, pop, TEST_NITERATIONS, true, true);
+	} TX_END
+}
+
+static void
+sc5_012_verify_abort(PMEMobjpool *pop)
+{
+	TOID(struct foo) foo = POBJ_ROOT(pop, struct foo);
+
+	for (int i = 0; i < SMALL_ALLOC; ++i)
+		UT_ASSERTeq(D_RW(foo)->bar[i], 0);
+}
+
+static void
+sc5_01_verify_commit(PMEMobjpool *pop)
+{
+	TOID(struct foo) foo = POBJ_ROOT(pop, struct foo);
+
+	for (int i = 0; i < SMALL_ALLOC; ++i)
+		UT_ASSERTeq(D_RW(foo)->bar[i], TEST_NITERATIONS * TEST_VALUE);
+}
+
+static void
+sc5_2_verify_commit(PMEMobjpool *pop)
+{
+	TOID(struct foo) foo = POBJ_ROOT(pop, struct foo);
+
+	for (int i = 0; i < SMALL_ALLOC; ++i)
+		UT_ASSERTeq(D_RW(foo)->bar[i], 2 * TEST_NITERATIONS *
+			TEST_VALUE);
+}
+
+/*
+ * sc6_create -- free undo
+ */
+static void
+sc6_create(PMEMobjpool *pop)
 {
 	TOID(struct root) root = POBJ_ROOT(pop, struct root);
 
@@ -158,15 +473,15 @@ sc2_create(PMEMobjpool *pop)
 }
 
 static void
-sc2_verify_abort(PMEMobjpool *pop)
+sc6_verify_abort(PMEMobjpool *pop)
 {
 	TOID(struct root) root = POBJ_ROOT(pop, struct root);
 
 	TX_BEGIN(pop) {
-		/*
-		 * If the free undo log didn't get unrolled then the next
-		 * free would fail due to the object being already freed.
-		 */
+	/*
+	 * If the free undo log didn't get unrolled then the next
+	 * free would fail due to the object being already freed.
+	 */
 		TX_FREE(D_RO(root)->foo);
 		TX_FREE(D_RO(root)->bar);
 	} TX_ONABORT {
@@ -175,7 +490,7 @@ sc2_verify_abort(PMEMobjpool *pop)
 }
 
 static void
-sc2_verify_commit(PMEMobjpool *pop)
+sc6_verify_commit(PMEMobjpool *pop)
 {
 	TOID(struct root) root = POBJ_ROOT(pop, struct root);
 
@@ -190,13 +505,14 @@ sc2_verify_commit(PMEMobjpool *pop)
 }
 
 /*
- * sc3_create -- alloc undo
+ * sc7_create -- alloc undo
  */
 static void
-sc3_create(PMEMobjpool *pop)
+sc7_create(PMEMobjpool *pop)
 {
 	/* Allocate until OOM and count allocs */
 	int nallocs = 0;
+
 	TX_BEGIN(pop) {
 		for (;;) {
 			(void) TX_NEW(struct foo);
@@ -205,7 +521,7 @@ sc3_create(PMEMobjpool *pop)
 	} TX_END
 
 	trap = 1;
-	/* allocate all possible objects */
+	/* Allocate all possible objects */
 	TX_BEGIN(pop) {
 		for (int i = 0; i < nallocs; ++i) {
 			(void) TX_NEW(struct foo);
@@ -216,7 +532,7 @@ sc3_create(PMEMobjpool *pop)
 }
 
 static void
-sc3_verify_abort(PMEMobjpool *pop)
+sc7_verify_abort(PMEMobjpool *pop)
 {
 	TX_BEGIN(pop) {
 		TOID(struct foo) f = TX_NEW(struct foo);
@@ -227,13 +543,13 @@ sc3_verify_abort(PMEMobjpool *pop)
 }
 
 static void
-sc3_verify_commit(PMEMobjpool *pop)
+sc7_verify_commit(PMEMobjpool *pop)
 {
 	TX_BEGIN(pop) {
 		/*
 		 * Due to a bug in clang-3.4 a pmemobj_tx_alloc call with its
 		 * result being casted to union immediately is optimized out and
-		 * the verify fails even though it should work. Assigning the
+		 * the verify fails even though it should work. Assinging the
 		 * TX_NEW result to a variable is a hacky workaround for this
 		 * problem.
 		 */
@@ -242,6 +558,58 @@ sc3_verify_commit(PMEMobjpool *pop)
 	} TX_ONCOMMIT {
 		UT_ASSERT(0);
 	} TX_END
+}
+
+/*
+ * sc8_create
+ */
+static void
+sc8_create(PMEMobjpool *pop)
+{
+	TOID(struct root) root = POBJ_ROOT(pop, struct root);
+	POBJ_ALLOC(pop, &D_RW(root)->bar, struct bar,
+		sizeof(struct bar), NULL, NULL);
+	POBJ_ALLOC(pop, &D_RW(root)->foo, struct foo,
+		sizeof(struct foo), NULL, NULL);
+
+	TX_BEGIN(pop) {
+		foo_tx(D_RW(root)->foo, pop, TEST_NITERATIONS, true, true);
+		bar_tx(D_RW(root)->bar, pop, TEST_NITERATIONS, true, true);
+		root_tx(root, pop, TEST_NITERATIONS, true, true);
+		trap = 1;
+		foo_tx(D_RW(root)->foo, pop, TEST_NITERATIONS, false, true);
+		bar_tx(D_RW(root)->bar, pop, TEST_NITERATIONS, false, true);
+		root_tx(root, pop, TEST_NITERATIONS, false, true);
+	} TX_END
+}
+
+static void
+sc8_verify_abort(PMEMobjpool *pop)
+{
+	TOID(struct root) root = POBJ_ROOT(pop, struct root);
+
+	for (int i = 0; i < SMALL_ALLOC; ++i)
+		UT_ASSERTeq(D_RW(D_RW(root)->foo)->bar[i], 0);
+	for (int i = 0; i < BIG_ALLOC; ++i)
+		UT_ASSERTeq(D_RW(D_RW(root)->bar)->foo[i], 0);
+	for (int i = 0; i < TEST_NVALUES; ++i)
+		UT_ASSERTeq(D_RW(root)->value[i], 0);
+}
+
+static void
+sc8_verify_commit(PMEMobjpool *pop)
+{
+	TOID(struct root) root = POBJ_ROOT(pop, struct root);
+
+	for (int i = 0; i < SMALL_ALLOC; ++i)
+		UT_ASSERTeq(D_RW(D_RW(root)->foo)->bar[i],
+			2 * TEST_NITERATIONS * TEST_VALUE);
+	for (int i = 0; i < BIG_ALLOC; ++i)
+		UT_ASSERTeq(D_RW(D_RW(root)->bar)->foo[i],
+			2 * TEST_NITERATIONS * TEST_VALUE);
+	for (int i = 0; i < TEST_NVALUES; ++i)
+		UT_ASSERTeq(D_RW(root)->value[i],
+			2 * TEST_NITERATIONS * TEST_VALUE);
 }
 
 typedef void (*scenario_func)(PMEMobjpool *pop);
@@ -253,17 +621,27 @@ struct {
 } scenarios[] = {
 	{sc0_create, sc0_verify_abort, sc0_verify_commit},
 	{sc1_create, sc1_verify_abort, sc1_verify_commit},
-	{sc2_create, sc2_verify_abort, sc2_verify_commit},
-	{sc3_create, sc3_verify_abort, sc3_verify_commit},
+	{sc2_0_create, sc2_012_verify_abort, sc2_01_verify_commit},
+	{sc2_1_create, sc2_012_verify_abort, sc2_01_verify_commit},
+	{sc2_2_create, sc2_012_verify_abort, sc2_2_verify_commit},
+	{sc3_0_create, sc3_012_verify_abort, sc3_01_verify_commit},
+	{sc3_1_create, sc3_012_verify_abort, sc3_01_verify_commit},
+	{sc3_2_create, sc3_012_verify_abort, sc3_2_verify_commit},
+	{sc4_0_create, sc4_012_verify_abort, sc4_01_verify_commit},
+	{sc4_1_create, sc4_012_verify_abort, sc4_01_verify_commit},
+	{sc4_2_create, sc4_012_verify_abort, sc4_2_verify_commit},
+	{sc5_0_create, sc5_012_verify_abort, sc5_01_verify_commit},
+	{sc5_1_create, sc5_012_verify_abort, sc5_01_verify_commit},
+	{sc5_2_create, sc5_012_verify_abort, sc5_2_verify_commit},
+	{sc6_create, sc6_verify_abort, sc6_verify_commit},
+	{sc7_create, sc7_verify_abort, sc7_verify_commit},
+	{sc8_create, sc8_verify_abort, sc8_verify_commit},
 };
 
 int
 main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_convert");
-
-	/* root doesn't count */
-	UT_COMPILE_ERROR_ON(POBJ_LAYOUT_TYPES_NUM(convert) != 2);
 
 	if (argc != 4)
 		UT_FATAL("usage: %s file [c|va|vc] scenario", argv[0]);
@@ -277,8 +655,8 @@ main(int argc, char *argv[])
 
 	if (create_pool) {
 		if ((pop = pmemobj_create(path, POBJ_LAYOUT_NAME(convert),
-			PMEMOBJ_MIN_POOL, 0666)) == NULL) {
-			UT_FATAL("failed to create pool\n");
+			2 * PMEMOBJ_MIN_POOL, 0666)) == NULL) {
+		UT_FATAL("failed to create pool\n");
 		}
 		scenarios[sc].create(pop);
 	} else {
