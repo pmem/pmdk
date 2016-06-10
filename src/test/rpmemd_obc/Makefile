@@ -54,8 +54,7 @@ OBJS = rpmemd_obc_test.o\
        rpmemd_obc_test_misc.o\
        rpmemd_obc_test_create.o\
        rpmemd_obc_test_open.o\
-       rpmemd_obc_test_close.o\
-       rpmemd_obc_test_remove.o
+       rpmemd_obc_test_close.o
 
 out.o: CFLAGS += -DDEBUG -DSRCVERSION=\"utversion\"
 

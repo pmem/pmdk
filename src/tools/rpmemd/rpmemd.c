@@ -401,40 +401,10 @@ rpmemd_req_close(struct rpmemd_obc *obc, void *arg)
 	return ret;
 }
 
-/*
- * rpmemd_req_remove -- handle remove request
- */
-static int
-rpmemd_req_remove(struct rpmemd_obc *obc, void *arg,
-	const char *pool_desc)
-{
-	RPMEMD_ASSERT(arg != NULL);
-
-	struct rpmemd *rpmemd = (struct rpmemd *)arg;
-
-	int status = 0;
-
-	if (rpmemd->pool) {
-		RPMEMD_LOG(ERR, "pool already opened");
-		status = RPMEM_ERR_FATAL;
-		goto err_pool_opened;
-	}
-
-	int ret = rpmemd_db_pool_remove(rpmemd->db, pool_desc);
-	if (ret) {
-		RPMEMD_LOG(ERR, "!removing '%s' failed", pool_desc);
-		status = rpmemd_db_get_status(errno);
-	}
-
-err_pool_opened:
-	return rpmemd_obc_remove_resp(rpmemd->obc, status);
-}
-
 static struct rpmemd_obc_requests rpmemd_req = {
 	.create	= rpmemd_req_create,
 	.open	= rpmemd_req_open,
 	.close	= rpmemd_req_close,
-	.remove	= rpmemd_req_remove,
 };
 
 int
