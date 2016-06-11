@@ -289,9 +289,6 @@ FUNC_MOCK(pmemobj_close, void, PMEMobjpool *pop)
 	munmap(Pop, Pop->size);
 FUNC_MOCK_END
 
-int _pobj_cache_invalidate;
-__thread struct _pobj_pcache _pobj_cached_pool;
-
 FUNC_MOCK_RET_ALWAYS(pmemobj_pool_by_oid, PMEMobjpool *, Pop, PMEMoid oid);
 
 /*

@@ -33,22 +33,12 @@
 #
 # src/test/obj_list/Makefile -- build obj_list test
 #
-TOP = ../../..
-
-vpath %.c $(TOP)/src/libpmemobj
-
 TARGET = obj_list
-OBJS = obj_list.o\
-	cuckoo.o\
-	lane.o\
-	list.o\
-	redo.o\
-	sync.o
+OBJS = obj_list.o
 
-LIBPMEMCOMMON=y
 LIBPMEM=y
+LIBPMEMOBJ=internal-debug
 
 include ../Makefile.inc
 CFLAGS += -g -DDEBUG
 LDFLAGS += $(call extract_funcs, obj_list.c)
-INCS += -I$(TOP)/src/libpmemobj/
