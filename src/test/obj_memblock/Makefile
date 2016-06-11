@@ -33,29 +33,12 @@
 #
 # src/test/obj_memblock/Makefile -- build memblock unit test
 #
-TOP = ../../..
-
-vpath %.c $(TOP)/src/libpmemobj
-
 TARGET = obj_memblock
-OBJS = obj_memblock.o\
-	bucket.o\
-	ctree.o\
-	cuckoo.o\
-	heap.o\
-	lane.o\
-	list.o\
-	memblock.o\
-	memops.o\
-	obj.o\
-	pmalloc.o\
-	redo.o\
-	sync.o
+OBJS = obj_memblock.o
 
 LIBPMEM=y
-LIBPMEMCOMMON=y
+LIBPMEMOBJ=internal-debug
 
 include ../Makefile.inc
 
 LDFLAGS += $(call extract_funcs, obj_memblock.c)
-INCS += -I$(TOP)/src/libpmemobj/
