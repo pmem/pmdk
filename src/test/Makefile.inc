@@ -66,12 +66,6 @@ endif
 LIBS += -L$(LIBS_DIR)/debug
 LIBS += -pthread
 
-ifeq ($(LIBPMEMCOMMON), y)
-OBJS += $(LIBS_DIR)/debug/libpmemcommon.a
-INCS += -I$(TOP)/src/common
-LIBPMEM=y
-endif
-
 ifeq ($(LIBPMEMPOOL), y)
 DYNAMIC_LIBS += -lpmempool
 STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libpmempool.a
@@ -95,6 +89,58 @@ LIBS += -ldl
 DYNAMIC_LIBS += -lpmemobj
 STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libpmemobj.a
 STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/libpmemobj.a
+endif
+
+ifeq ($(LIBPMEMOBJ), internal-debug)
+OBJS += $(TOP)/src/debug/libpmemobj/bucket.o\
+	$(TOP)/src/debug/libpmemobj/ctree.o\
+	$(TOP)/src/debug/libpmemobj/cuckoo.o\
+	$(TOP)/src/debug/libpmemobj/heap.o\
+	$(TOP)/src/debug/libpmemobj/lane.o\
+	$(TOP)/src/debug/libpmemobj/libpmemobj.o\
+	$(TOP)/src/debug/libpmemobj/list.o\
+	$(TOP)/src/debug/libpmemobj/memblock.o\
+	$(TOP)/src/debug/libpmemobj/memops.o\
+	$(TOP)/src/debug/libpmemobj/obj.o\
+	$(TOP)/src/debug/libpmemobj/pmalloc.o\
+	$(TOP)/src/debug/libpmemobj/pvector.o\
+	$(TOP)/src/debug/libpmemobj/redo.o\
+	$(TOP)/src/debug/libpmemobj/sync.o\
+	$(TOP)/src/debug/libpmemobj/tx.o
+
+LIBS += -ldl
+INCS += -I$(TOP)/src/libpmemobj
+LIBPMEM=y
+LIBPMEMCOMMON=y
+endif
+
+ifeq ($(LIBPMEMOBJ), internal-nondebug)
+OBJS += $(TOP)/src/nondebug/libpmemobj/bucket.o\
+	$(TOP)/src/nondebug/libpmemobj/ctree.o\
+	$(TOP)/src/nondebug/libpmemobj/cuckoo.o\
+	$(TOP)/src/nondebug/libpmemobj/heap.o\
+	$(TOP)/src/nondebug/libpmemobj/lane.o\
+	$(TOP)/src/nondebug/libpmemobj/libpmemobj.o\
+	$(TOP)/src/nondebug/libpmemobj/list.o\
+	$(TOP)/src/nondebug/libpmemobj/memblock.o\
+	$(TOP)/src/nondebug/libpmemobj/memops.o\
+	$(TOP)/src/nondebug/libpmemobj/obj.o\
+	$(TOP)/src/nondebug/libpmemobj/pmalloc.o\
+	$(TOP)/src/nondebug/libpmemobj/pvector.o\
+	$(TOP)/src/nondebug/libpmemobj/redo.o\
+	$(TOP)/src/nondebug/libpmemobj/sync.o\
+	$(TOP)/src/nondebug/libpmemobj/tx.o
+
+LIBS += -ldl
+INCS += -I$(TOP)/src/libpmemobj
+LIBPMEM=y
+LIBPMEMCOMMON=y
+endif
+
+ifeq ($(LIBPMEMCOMMON), y)
+OBJS += $(LIBS_DIR)/debug/libpmemcommon.a
+INCS += -I$(TOP)/src/common
+LIBPMEM=y
 endif
 
 ifeq ($(LIBPMEM),y)

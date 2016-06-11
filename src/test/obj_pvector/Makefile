@@ -33,30 +33,10 @@
 #
 # src/test/obj_pvector/Makefile -- build pvector unit test
 #
-vpath %.c ../../libpmemobj
-
 TARGET = obj_pvector
-OBJS = obj_pvector.o\
-	bucket.o\
-	ctree.o\
-	cuckoo.o\
-	heap.o\
-	lane.o\
-	libpmemobj.o\
-	list.o\
-	memblock.o\
-	memops.o\
-	obj.o\
-	pmalloc.o\
-	pvector.o\
-	redo.o\
-	sync.o\
-	tx.o
+OBJS = obj_pvector.o
 
 LIBPMEM=y
-LIBPMEMCOMMON=y
+LIBPMEMOBJ=internal-debug
 
 include ../Makefile.inc
-
-INCS += -I../../libpmemobj/
-LIBS += -ldl

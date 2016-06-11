@@ -33,32 +33,10 @@
 #
 # src/test/obj_pmalloc_mt/Makefile -- build obj_pmalloc_mt unit test
 #
-TOP = ../../..
-
-vpath %.c $(TOP)/src/libpmemobj
-
 TARGET = obj_pmalloc_mt
-OBJS = obj_pmalloc_mt.o\
-	bucket.o\
-	ctree.o\
-	cuckoo.o\
-	heap.o\
-	lane.o\
-	libpmemobj.o\
-	list.o\
-	memblock.o\
-	memops.o\
-	obj.o\
-	pmalloc.o\
-	pvector.o\
-	redo.o\
-	sync.o\
-	tx.o
+OBJS = obj_pmalloc_mt.o
 
 LIBPMEM=y
-LIBPMEMCOMMON=y
+LIBPMEMOBJ=internal-debug
 
 include ../Makefile.inc
-
-INCS += -I$(TOP)/src/libpmemobj/
-LIBS += -ldl

@@ -33,33 +33,13 @@
 #
 # src/test/obj_persist_count/Makefile -- build obj_persist_count unit test
 #
-TOP = ../../..
-
-vpath %.c $(TOP)/src/libpmemobj
-
 TARGET = obj_persist_count
 
-OBJS = obj_persist_count.o\
-	bucket.o\
-	ctree.o\
-	cuckoo.o\
-	heap.o\
-	lane.o\
-	libpmemobj.o\
-	list.o\
-	memblock.o\
-	memops.o\
-	obj.o\
-	pmalloc.o\
-	pvector.o\
-	redo.o\
-	sync.o\
-	tx.o
+OBJS = obj_persist_count.o
 
 LIBPMEM=y
-LIBPMEMCOMMON=y
+LIBPMEMOBJ=internal-debug
 
 include ../Makefile.inc
 
 LDFLAGS += $(call extract_funcs, obj_persist_count.c)
-INCS += -I$(TOP)/src/libpmemobj/
