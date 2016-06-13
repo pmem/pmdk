@@ -39,7 +39,7 @@
 #include <arpa/inet.h>
 
 #include "unittest.h"
-#include "out.h"
+#include "pmemcommon.h"
 
 #include "librpmem.h"
 #include "rpmem.h"
@@ -764,7 +764,7 @@ main(int argc, char *argv[])
 	/* workaround for left-opened files by libfabric */
 	rpmem_fip_probe_get(NULL, NULL);
 	START(argc, argv, "rpmem_obc");
-	out_init("rpmem_fip",
+	common_init("rpmem_fip",
 		"RPMEM_LOG_LEVEL",
 		"RPMEM_LOG_FILE", 0, 0);
 	rpmemd_log_init("rpmemd", getenv("RPMEMD_LOG_FILE"), 0);
@@ -772,7 +772,7 @@ main(int argc, char *argv[])
 			getenv("RPMEMD_LOG_LEVEL"));
 	TEST_CASE_PROCESS(argc, argv, test_cases, NTESTS);
 
-	out_fini();
+	common_fini();
 	rpmemd_log_close();
 	DONE(NULL);
 }
