@@ -37,45 +37,32 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#ifndef RPMEMD_DEFAULT_CONFIG_FILE
-#define RPMEMD_DEFAULT_CONFIG_FILE ("/etc/" DAEMON_NAME "/" DAEMON_NAME\
-	".conf")
-#endif
-
-#ifndef RPMEMD_DEFAULT_PID_FILE
-#define RPMEMD_DEFAULT_PID_FILE ("/var/run/" DAEMON_NAME ".pid")
-#endif
-
 #ifndef RPMEMD_DEFAULT_LOG_FILE
 #define RPMEMD_DEFAULT_LOG_FILE ("/var/log/" DAEMON_NAME ".log")
 #endif
 
-#ifndef RPMEMD_DEFAULT_POOLSET_DIR
-#define RPMEMD_DEFAULT_POOLSET_DIR ("/etc/" DAEMON_NAME)
+#ifndef RPMEMD_GLOBAL_CONFIG_FILE
+#define RPMEMD_GLOBAL_CONFIG_FILE ("/etc/" DAEMON_NAME "/" DAEMON_NAME\
+	".conf")
 #endif
 
-#define RPMEM_DEFAULT_PORT		7636
+#define RPMEMD_USER_CONFIG_FILE ("." DAEMON_NAME ".conf")
+
 #define RPMEM_DEFAULT_MAX_LANES	1024
 
+#define HOME_ENV "HOME"
+
+#define HOME_STR_PLACEHOLDER ("$" HOME_ENV)
+
 struct rpmemd_config {
-	char *pid_file;
 	char *log_file;
 	char *poolset_dir;
-	bool enable_remove;
-	bool enable_create;
-	bool foreground;
 	bool persist_apm;
 	bool persist_general;
-	bool provider_sockets;
-	bool provider_verbs;
 	bool use_syslog;
-	bool verify_pool_sets;
-	bool verify_pool_sets_auto;
-	unsigned short port;
 	uint64_t max_lanes;
 	enum rpmemd_log_level log_level;
 };
 
-void rpmemd_config_set_default(struct rpmemd_config *config);
 int rpmemd_config_read(struct rpmemd_config *config, int argc, char *argv[]);
 void rpmemd_config_free(struct rpmemd_config *config);
