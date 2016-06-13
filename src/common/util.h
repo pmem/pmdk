@@ -153,8 +153,6 @@ void util_convert2h_hdr_nocheck(struct pool_hdr *hdrp);
 int util_checksum(void *addr, size_t len, uint64_t *csump, int insert);
 int util_convert_hdr(struct pool_hdr *hdrp);
 int util_get_arch_flags(struct arch_flags *arch_flags);
-int util_compare_arch_flags(const struct arch_flags *arch_flags,
-				const struct arch_flags *comp_flags);
 int util_check_arch_flags(const struct arch_flags *arch_flags);
 int util_is_absolute_path(const char *path);
 
