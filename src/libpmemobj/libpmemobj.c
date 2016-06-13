@@ -40,8 +40,7 @@
 
 #include "libpmemobj.h"
 
-#include "mmap.h"
-#include "out.h"
+#include "pmemcommon.h"
 #include "lane.h"
 #include "obj.h"
 
@@ -54,12 +53,10 @@ ATTR_CONSTRUCTOR
 void
 libpmemobj_init(void)
 {
-	util_init();
-	out_init(PMEMOBJ_LOG_PREFIX, PMEMOBJ_LOG_LEVEL_VAR,
+	common_init(PMEMOBJ_LOG_PREFIX, PMEMOBJ_LOG_LEVEL_VAR,
 			PMEMOBJ_LOG_FILE_VAR, PMEMOBJ_MAJOR_VERSION,
 			PMEMOBJ_MINOR_VERSION);
 	LOG(3, NULL);
-	util_mmap_init();
 	obj_init();
 }
 
@@ -74,7 +71,7 @@ libpmemobj_fini(void)
 {
 	LOG(3, NULL);
 	obj_fini();
-	out_fini();
+	common_fini();
 }
 
 /*

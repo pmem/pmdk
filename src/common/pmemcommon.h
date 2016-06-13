@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016, Intel Corporation
+ * Copyright 2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -30,76 +30,30 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * libpmem.c -- pmem entry points for libpmem
- */
-
-#include <stdio.h>
-#include <stdint.h>
-
-#include "libpmem.h"
-
-#include "pmem.h"
-#include "pmemcommon.h"
+#ifndef PMEMCOMMON_H
+#define PMEMCOMMON_H 1
 
 /*
- * libpmem_init -- load-time initialization for libpmem
- *
- * Called automatically by the run-time loader.
+ * out.h -- definitions for "out" module
  */
-ATTR_CONSTRUCTOR
-void
-libpmem_init(void)
+#include "util.h"
+#include "out.h"
+#include "mmap.h"
+
+static inline void
+common_init(const char *log_prefix, const char *log_level_var,
+		const char *log_file_var, int major_version,
+		int minor_version)
 {
-	common_init(PMEM_LOG_PREFIX, PMEM_LOG_LEVEL_VAR, PMEM_LOG_FILE_VAR,
-			PMEM_MAJOR_VERSION, PMEM_MINOR_VERSION);
-	LOG(3, NULL);
-	pmem_init();
+	util_init();
+	out_init(log_prefix, log_level_var, log_file_var, major_version,
+		minor_version);
+	util_mmap_init();
 }
 
-/*
- * libpmem_fini -- libpmem cleanup routine
- *
- * Called automatically when the process terminates.
- */
-ATTR_DESTRUCTOR
-void
-libpmem_fini(void)
+static inline void
+common_fini()
 {
-	LOG(3, NULL);
-
-	common_fini();
+	out_fini();
 }
-
-/*
- * pmem_check_version -- see if library meets application version requirements
- */
-const char *
-pmem_check_version(unsigned major_required, unsigned minor_required)
-{
-	LOG(3, "major_required %u minor_required %u",
-			major_required, minor_required);
-
-	if (major_required != PMEM_MAJOR_VERSION) {
-		ERR("libpmem major version mismatch (need %u, found %u)",
-			major_required, PMEM_MAJOR_VERSION);
-		return out_get_errormsg();
-	}
-
-	if (minor_required > PMEM_MINOR_VERSION) {
-		ERR("libpmem minor version mismatch (need %u, found %u)",
-			minor_required, PMEM_MINOR_VERSION);
-		return out_get_errormsg();
-	}
-
-	return NULL;
-}
-
-/*
- * pmem_errormsg -- return last error message
- */
-const char *
-pmem_errormsg(void)
-{
-	return out_get_errormsg();
-}
+#endif

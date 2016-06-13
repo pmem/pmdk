@@ -35,6 +35,7 @@
  */
 
 #include "rpmem_obc_test_common.h"
+#include "pmemcommon.h"
 
 /*
  * test_cases -- available test cases
@@ -73,12 +74,12 @@ main(int argc, char *argv[])
 	base64_init();
 
 	START(argc, argv, "rpmem_obc");
-	out_init("rpmem_obc",
+	common_init("rpmem_obc",
 		"RPMEM_LOG_LEVEL",
 		"RPMEM_LOG_FILE", 0, 0);
 
 	TEST_CASE_PROCESS(argc, argv, test_cases, NTESTS);
 
-	out_fini();
+	common_fini();
 	DONE(NULL);
 }
