@@ -43,7 +43,7 @@
 #include <sys/types.h>
 #include <stdarg.h>
 #include "unittest.h"
-#include "out.h"
+#include "pmemcommon.h"
 
 int
 main(int argc, char *argv[])
@@ -51,7 +51,7 @@ main(int argc, char *argv[])
 	START(argc, argv, "out_err");
 
 	/* Execute test */
-	out_init(LOG_PREFIX, LOG_LEVEL_VAR, LOG_FILE_VAR,
+	common_init(LOG_PREFIX, LOG_LEVEL_VAR, LOG_FILE_VAR,
 			MAJOR_VERSION, MINOR_VERSION);
 
 	errno = 0;
@@ -77,7 +77,7 @@ main(int argc, char *argv[])
 	UT_OUT("%s", out_get_errormsg());
 
 	/* Cleanup */
-	out_fini();
+	common_fini();
 
 	DONE(NULL);
 }

@@ -38,7 +38,7 @@
 
 #include "set.h"
 #include "unittest.h"
-#include "out.h"
+#include "pmemcommon.h"
 
 #define LOG_PREFIX "parser"
 #define LOG_LEVEL_VAR "PARSER_LOG_LEVEL"
@@ -51,7 +51,7 @@ main(int argc, char *argv[])
 {
 	START(argc, argv, "util_poolset_parse");
 
-	out_init(LOG_PREFIX, LOG_LEVEL_VAR, LOG_FILE_VAR,
+	common_init(LOG_PREFIX, LOG_LEVEL_VAR, LOG_FILE_VAR,
 			MAJOR_VERSION, MINOR_VERSION);
 
 	if (argc < 2)
@@ -72,7 +72,7 @@ main(int argc, char *argv[])
 		CLOSE(fd);
 	}
 
-	out_fini();
+	common_fini();
 
 	DONE(NULL);
 }
