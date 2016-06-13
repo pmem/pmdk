@@ -34,7 +34,7 @@
  * obj_convert.c -- unit test for pool conversion
  *
  * This test has dual purpose - to create an old-format pool with the _create
- * functions and to verify if the conversion happend correctly.
+ * functions and to verify if the conversion happened correctly.
  *
  * The creation should happen while linked with the old library version and
  * the verify step should be run with the new one.
@@ -42,7 +42,6 @@
 
 #include "libpmemobj.h"
 #include "unittest.h"
-#include <stdbool.h>
 
 POBJ_LAYOUT_BEGIN(convert);
 POBJ_LAYOUT_ROOT(convert, struct root);
@@ -79,19 +78,19 @@ struct root {
 static int trap = 0;
 
 static void
-foo_tx(TOID(struct foo) foo, PMEMobjpool *pop, int iteration, bool do_set,
-	bool is_added)
+foo_tx(PMEMobjpool *pop, TOID(struct foo) foo, int iteration, int do_set,
+	int do_add)
 {
-	iteration = iteration - 1;
+	--iteration;
 
 	TX_BEGIN(pop) {
-		if (is_added && !do_set) {
+		if (do_add && !do_set) {
 			TX_ADD(foo);
-			is_added = false;
+			do_add = 0;
 		}
 
 		if (iteration >= 1)
-			foo_tx(foo, pop, iteration, do_set, is_added);
+			foo_tx(pop, foo, iteration, do_set, do_add);
 
 		for (int i = 0; i <= SMALL_ALLOC; ++i) {
 			if (do_set)
@@ -101,24 +100,23 @@ foo_tx(TOID(struct foo) foo, PMEMobjpool *pop, int iteration, bool do_set,
 				D_RW(foo)->bar[i] = TEST_VALUE +
 					D_RO(foo)->bar[i];
 		}
-
 	} TX_END
 }
 
 static void
-bar_tx(TOID(struct bar) bar, PMEMobjpool *pop, int iteration, bool do_set,
-	bool is_added)
+bar_tx(PMEMobjpool *pop, TOID(struct bar) bar, int iteration, int do_set,
+	int do_add)
 {
-	iteration = iteration - 1;
+	--iteration;
 
 	TX_BEGIN(pop) {
-		if (is_added && !do_set) {
+		if (do_add && !do_set) {
 			TX_ADD(bar);
-			is_added = false;
+			do_add = 0;
 		}
 
 		if (iteration >= 1)
-			bar_tx(bar, pop, iteration, do_set, is_added);
+			bar_tx(pop, bar, iteration, do_set, do_add);
 
 		for (int i = 0; i <= BIG_ALLOC; ++i) {
 			if (do_set)
@@ -132,19 +130,19 @@ bar_tx(TOID(struct bar) bar, PMEMobjpool *pop, int iteration, bool do_set,
 }
 
 static void
-root_tx(TOID(struct root) root, PMEMobjpool *pop, int iteration, bool do_set,
-	bool is_added)
+root_tx(PMEMobjpool *pop, TOID(struct root) root, int iteration, int do_set,
+	int do_add)
 {
-	iteration = iteration - 1;
+	--iteration;
 
 	TX_BEGIN(pop) {
-		if (is_added && !do_set) {
+		if (do_add && !do_set) {
 			TX_ADD(root);
-			is_added = false;
+			do_add = 0;
 		}
 
 		if (iteration >= 1)
-			root_tx(root, pop, iteration, do_set, is_added);
+			root_tx(pop, root, iteration, do_set, do_add);
 
 		for (int i = 0; i <= TEST_NVALUES; ++i) {
 			if (do_set)
@@ -223,7 +221,7 @@ sc2_0_create(PMEMobjpool *pop)
 {
 	TOID(struct root) root = POBJ_ROOT(pop, struct root);
 	trap = 1;
-	root_tx(root, pop, TEST_NITERATIONS, false, true);
+	root_tx(pop, root, TEST_NITERATIONS, 0, 1);
 }
 
 static void
@@ -232,7 +230,7 @@ sc2_1_create(PMEMobjpool *pop)
 	TOID(struct root) root = POBJ_ROOT(pop, struct root);
 
 	TX_BEGIN(pop) {
-		root_tx(root, pop, TEST_NITERATIONS, false, true);
+		root_tx(pop, root, TEST_NITERATIONS, 0, 1);
 		trap = 1;
 	} TX_END
 }
@@ -243,9 +241,9 @@ sc2_2_create(PMEMobjpool *pop)
 	TOID(struct root) root = POBJ_ROOT(pop, struct root);
 
 	TX_BEGIN(pop) {
-		root_tx(root, pop, TEST_NITERATIONS, false, true);
+		root_tx(pop, root, TEST_NITERATIONS, 0, 1);
 		trap = 1;
-		root_tx(root, pop, TEST_NITERATIONS, false, true);
+		root_tx(pop, root, TEST_NITERATIONS, 0, 1);
 	} TX_END
 }
 
@@ -278,7 +276,7 @@ sc3_0_create(PMEMobjpool *pop)
 {
 	TOID(struct root) root = POBJ_ROOT(pop, struct root);
 	trap = 1;
-	root_tx(root, pop, TEST_NITERATIONS, true, true);
+	root_tx(pop, root, TEST_NITERATIONS, 1, 1);
 }
 
 static void
@@ -287,7 +285,7 @@ sc3_1_create(PMEMobjpool *pop)
 	TOID(struct root) root = POBJ_ROOT(pop, struct root);
 
 	TX_BEGIN(pop) {
-		root_tx(root, pop, TEST_NITERATIONS, true, true);
+		root_tx(pop, root, TEST_NITERATIONS, 1, 1);
 		trap = 1;
 	} TX_END
 }
@@ -298,9 +296,9 @@ sc3_2_create(PMEMobjpool *pop)
 	TOID(struct root) root = POBJ_ROOT(pop, struct root);
 
 	TX_BEGIN(pop) {
-		root_tx(root, pop, TEST_NITERATIONS, true, true);
+		root_tx(pop, root, TEST_NITERATIONS, 1, 1);
 		trap = 1;
-		root_tx(root, pop, TEST_NITERATIONS, true, true);
+		root_tx(pop, root, TEST_NITERATIONS, 1, 1);
 	} TX_END
 }
 
@@ -341,7 +339,7 @@ sc4_0_create(PMEMobjpool *pop)
 {
 	TOID(struct foo) foo = POBJ_ROOT(pop, struct foo);
 	trap = 1;
-	foo_tx(foo, pop, TEST_NITERATIONS, false, true);
+	foo_tx(pop, foo, TEST_NITERATIONS, 0, 1);
 }
 
 static void
@@ -350,7 +348,7 @@ sc4_1_create(PMEMobjpool *pop)
 	TOID(struct foo) foo = POBJ_ROOT(pop, struct foo);
 
 	TX_BEGIN(pop) {
-		foo_tx(foo, pop, TEST_NITERATIONS, false, true);
+		foo_tx(pop, foo, TEST_NITERATIONS, 0, 1);
 		trap = 1;
 	} TX_END
 }
@@ -361,9 +359,9 @@ sc4_2_create(PMEMobjpool *pop)
 	TOID(struct foo) foo = POBJ_ROOT(pop, struct foo);
 
 	TX_BEGIN(pop) {
-		foo_tx(foo, pop, TEST_NITERATIONS, false, true);
+		foo_tx(pop, foo, TEST_NITERATIONS, 0, 1);
 		trap = 1;
-		foo_tx(foo, pop, TEST_NITERATIONS, false, true);
+		foo_tx(pop, foo, TEST_NITERATIONS, 0, 1);
 	} TX_END
 }
 
@@ -396,7 +394,7 @@ sc5_0_create(PMEMobjpool *pop)
 {
 	TOID(struct foo) foo = POBJ_ROOT(pop, struct foo);
 	trap = 1;
-	foo_tx(foo, pop, TEST_NITERATIONS, true, true);
+	foo_tx(pop, foo, TEST_NITERATIONS, 1, 1);
 }
 
 static void
@@ -405,7 +403,7 @@ sc5_1_create(PMEMobjpool *pop)
 	TOID(struct foo) foo = POBJ_ROOT(pop, struct foo);
 
 	TX_BEGIN(pop) {
-		foo_tx(foo, pop, TEST_NITERATIONS, true, true);
+		foo_tx(pop, foo, TEST_NITERATIONS, 1, 1);
 		trap = 1;
 	} TX_END
 }
@@ -416,9 +414,9 @@ sc5_2_create(PMEMobjpool *pop)
 	TOID(struct foo) foo = POBJ_ROOT(pop, struct foo);
 
 	TX_BEGIN(pop) {
-		foo_tx(foo, pop, TEST_NITERATIONS, true, true);
+		foo_tx(pop, foo, TEST_NITERATIONS, 1, 1);
 		trap = 1;
-		foo_tx(foo, pop, TEST_NITERATIONS, true, true);
+		foo_tx(pop, foo, TEST_NITERATIONS, 1, 1);
 	} TX_END
 }
 
@@ -573,13 +571,13 @@ sc8_create(PMEMobjpool *pop)
 		sizeof(struct foo), NULL, NULL);
 
 	TX_BEGIN(pop) {
-		foo_tx(D_RW(root)->foo, pop, TEST_NITERATIONS, true, true);
-		bar_tx(D_RW(root)->bar, pop, TEST_NITERATIONS, true, true);
-		root_tx(root, pop, TEST_NITERATIONS, true, true);
+		foo_tx(pop, D_RW(root)->foo, TEST_NITERATIONS, 1, 1);
+		bar_tx(pop, D_RW(root)->bar, TEST_NITERATIONS, 1, 1);
+		root_tx(pop, root, TEST_NITERATIONS, 1, 1);
 		trap = 1;
-		foo_tx(D_RW(root)->foo, pop, TEST_NITERATIONS, false, true);
-		bar_tx(D_RW(root)->bar, pop, TEST_NITERATIONS, false, true);
-		root_tx(root, pop, TEST_NITERATIONS, false, true);
+		foo_tx(pop, D_RW(root)->foo, TEST_NITERATIONS, 0, 1);
+		bar_tx(pop, D_RW(root)->bar, TEST_NITERATIONS, 0, 1);
+		root_tx(pop, root, TEST_NITERATIONS, 0, 1);
 	} TX_END
 }
 
