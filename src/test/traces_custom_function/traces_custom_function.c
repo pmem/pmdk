@@ -46,7 +46,7 @@
 
 #include <sys/types.h>
 #include <stdarg.h>
-#include "out.h"
+#include "pmemcommon.h"
 #include "unittest.h"
 
 /*
@@ -98,7 +98,7 @@ main(int argc, char *argv[])
 
 	out_set_print_func(print_custom_function);
 
-	out_init(LOG_PREFIX, LOG_LEVEL_VAR, LOG_FILE_VAR,
+	common_init(LOG_PREFIX, LOG_LEVEL_VAR, LOG_FILE_VAR,
 			MAJOR_VERSION, MINOR_VERSION);
 
 	switch (argv[1][0]) {
@@ -125,7 +125,7 @@ main(int argc, char *argv[])
 	}
 
 	/* Cleanup */
-	out_fini();
+	common_fini();
 
 	DONE(NULL);
 }

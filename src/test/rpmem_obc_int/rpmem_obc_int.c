@@ -35,7 +35,7 @@
  */
 
 #include "unittest.h"
-#include "out.h"
+#include "pmemcommon.h"
 
 #include "librpmem.h"
 #include "rpmem.h"
@@ -473,7 +473,7 @@ int
 main(int argc, char *argv[])
 {
 	START(argc, argv, "rpmem_obc");
-	out_init("rpmem_fip",
+	common_init("rpmem_fip",
 		"RPMEM_LOG_LEVEL",
 		"RPMEM_LOG_FILE", 0, 0);
 	rpmemd_log_init("rpmemd", getenv("RPMEMD_LOG_FILE"), 0);
@@ -482,7 +482,7 @@ main(int argc, char *argv[])
 
 	TEST_CASE_PROCESS(argc, argv, test_cases, NTESTS);
 
-	out_fini();
+	common_fini();
 	rpmemd_log_close();
 	DONE(NULL);
 }

@@ -38,8 +38,7 @@
 
 #include "unittest.h"
 #include "set.h"
-#include "out.h"
-#include "util.h"
+#include "pmemcommon.h"
 #include <errno.h>
 
 #define LOG_PREFIX "ut"
@@ -53,8 +52,7 @@ main(int argc, char *argv[])
 {
 	START(argc, argv, "util_poolset_size");
 
-	util_init();
-	out_init(LOG_PREFIX, LOG_LEVEL_VAR, LOG_FILE_VAR,
+	common_init(LOG_PREFIX, LOG_LEVEL_VAR, LOG_FILE_VAR,
 			MAJOR_VERSION, MINOR_VERSION);
 
 	if (argc < 2)
@@ -67,7 +65,7 @@ main(int argc, char *argv[])
 
 		UT_OUT("util_poolset_size(%s): %lu", fname, size);
 	}
-	out_fini();
+	common_fini();
 
 	DONE(NULL);
 }
