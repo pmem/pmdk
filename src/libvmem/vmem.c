@@ -45,8 +45,7 @@
 #include "libvmem.h"
 
 #include "jemalloc.h"
-#include "mmap.h"
-#include "out.h"
+#include "pmemcommon.h"
 #include "sys_util.h"
 #include "vmem.h"
 
@@ -95,13 +94,11 @@ vmem_init(void)
 	util_mutex_lock(&lock);
 
 	if (!initialized) {
-		util_init();
-		out_init(VMEM_LOG_PREFIX, VMEM_LOG_LEVEL_VAR,
+		common_init(VMEM_LOG_PREFIX, VMEM_LOG_LEVEL_VAR,
 				VMEM_LOG_FILE_VAR, VMEM_MAJOR_VERSION,
 				VMEM_MINOR_VERSION);
 		out_set_vsnprintf_func(je_vmem_navsnprintf);
 		LOG(3, NULL);
-		util_mmap_init();
 		Header_size = roundup(sizeof(VMEM), Pagesize);
 
 		/* Set up jemalloc messages to a custom print function */
@@ -135,7 +132,7 @@ void
 vmem_fini(void)
 {
 	LOG(3, NULL);
-	out_fini();
+	common_fini();
 }
 
 /*

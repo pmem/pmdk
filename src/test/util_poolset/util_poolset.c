@@ -37,10 +37,8 @@
  */
 
 #include "unittest.h"
-#include "mmap.h"
-#include "out.h"
+#include "pmemcommon.h"
 #include "set.h"
-#include "util.h"
 #include <errno.h>
 
 #define LOG_PREFIX "ut"
@@ -146,10 +144,8 @@ main(int argc, char *argv[])
 {
 	START(argc, argv, "util_poolset");
 
-	util_init();
-	out_init(LOG_PREFIX, LOG_LEVEL_VAR, LOG_FILE_VAR,
+	common_init(LOG_PREFIX, LOG_LEVEL_VAR, LOG_FILE_VAR,
 			MAJOR_VERSION, MINOR_VERSION);
-	util_mmap_init();
 
 	if (argc < 5)
 		UT_FATAL("usage: %s cmd minlen hdrsize [mockopts] setfile ...",
@@ -190,7 +186,7 @@ main(int argc, char *argv[])
 		}
 	}
 
-	out_fini();
+	common_fini();
 
 	DONE(NULL);
 }
