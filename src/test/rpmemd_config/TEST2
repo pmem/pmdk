@@ -45,48 +45,30 @@ setup
 RPMEMD=./rpmemd_config$EXESUFFIX
 
 OUT=stdout${UNITTEST_NUM}.log
-rm -rf $OUT
+OUT_TEMP=stdout${UNITTEST_NUM}_temp.log
+rm -rf $OUT $OUT_TEMP
 
 CONFIG=$DIR/in${UNITTEST_NUM}.conf
 
-GOUT=grep_stdout${UNITTEST_NUM}.log
-
-TOO_SMALL=-1
-TOO_BIG_UINT32=4294967296
-TOO_BIG_UINT16=65536
 INVALID_PATH="  \t\t  \t\t"
 INVALID_FLAG=invalid
 INVALID_ENUM=Invalid
 
 function check_config {
 	echo -e $1 > $CONFIG
-	expect_abnormal_exit $RPMEMD -c $CONFIG 1>> $OUT 2>&1
-	expect_abnormal_exit $RPMEMD --config $CONFIG 1>> $OUT 2>&1
+	expect_abnormal_exit $RPMEMD -c $CONFIG 1>> $OUT_TEMP 2>&1
+	expect_abnormal_exit $RPMEMD --config $CONFIG 1>> $OUT_TEMP 2>&1
 }
 
 check_config "; invalid comment format"
-check_config "conn-wait-time=$TOO_SMALL # conn-wait-time value smaller than min"
-check_config "conn-wait-time=$TOO_BIG_UINT32 # conn-wait-time value greater than max"
 check_config "dir=$INVALID_PATH# invalid dir path"
-check_config "enable-create=$INVALID_FLAG # invalid enable-create value"
-check_config "enable-remove=$INVALID_FLAG # invalid enable-remove value"
 check_config "log-file=$INVALID_PATH # invalid log-file path"
 check_config "log-level=$INVALID_ENUM # invalid log-level"
-check_config "max-lanes=$TOO_SMALL # invalid max-lanes"
-check_config "max-lanes=$TOO_BIG_UINT32 # invalid max-lanes"
 check_config "persist-apm=$INVALID_FLAG # invalid persist-apm value"
 check_config "persist-general=$INVALID_FLAG # invalid persist-general value"
-check_config "persist-write-commit=$INVALID_FLAG # invalid persist-write-commit value"
-check_config "pid-file= $INVALID_PATH# invalid pid-file path"
-check_config "port=$TOO_SMALL # port value smaller than min"
-check_config "port=$TOO_BIG_UINT16 # port value greater than max"
-check_config "provider-psm=$INVALID_FLAG # invalid provider-psm value"
-check_config "provider-sockets=$INVALID_FLAG # invalid provider-sockets value"
-check_config "provider-verbs=$INVALID_FLAG # invalid provider-verbs value"
 check_config "use-syslog=$INVALID_FLAG # invalid use-syslog value"
-check_config "verify-pool-sets=$INVALID_FLAG # invalid verify-pool-sets value"
 
-grep -v START $OUT > $GOUT
+grep -v START $OUT_TEMP > $OUT
 
 check
 

@@ -34,13 +34,16 @@
  * rpmemd_config.c -- rpmemd config source file
  */
 
+#include <pwd.h>
 #include <stdio.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include <ctype.h>
 #include <errno.h>
 #include <getopt.h>
+#include <limits.h>
 #include <inttypes.h>
 
 #include "rpmemd.h"
@@ -57,48 +60,31 @@ struct rpmemd_special_chars_pos {
 };
 
 enum rpmemd_option {
-	RPD_OPT_PID_FILE,
 	RPD_OPT_LOG_FILE,
 	RPD_OPT_POOLSET_DIR,
-	RPD_OPT_ENABLE_CREATE,
-	RPD_OPT_ENABLE_REMOVE,
 	RPD_OPT_PERSIST_APM,
 	RPD_OPT_PERSIST_GENERAL,
-	RPD_OPT_PROVIDER_SOCKETS,
-	RPD_OPT_PROVIDER_VERBS,
 	RPD_OPT_USE_SYSLOG,
-	RPD_OPT_VERIFY_POOL_SETS,
-	RPD_OPT_PORT,
-	RPD_OPT_MAX_LANES,
 	RPD_OPT_LOG_LEVEL,
 
 	RPD_OPT_MAX_VALUE,
 	RPD_OPT_INVALID			= UINT64_MAX,
 };
 
-static const char *optstr = "c:fhV";
+static const char *optstr = "c:hV";
 
 /*
  * options -- cl and config file options
  */
 static const struct option options[] = {
 {"config",		required_argument,	0, 'c'},
-{"foreground",		no_argument,		0, 'f'},
 {"help",		no_argument,		0, 'h'},
 {"version",		no_argument,		0, 'V'},
-{"pid-file",		required_argument,	0, RPD_OPT_PID_FILE},
 {"log-file",		required_argument,	0, RPD_OPT_LOG_FILE},
 {"poolset-dir",		required_argument,	0, RPD_OPT_POOLSET_DIR},
-{"enable-create",	no_argument,		0, RPD_OPT_ENABLE_CREATE},
-{"enable-remove",	no_argument,		0, RPD_OPT_ENABLE_REMOVE},
 {"persist-apm",		no_argument,		0, RPD_OPT_PERSIST_APM},
 {"persist-general",	no_argument,		0, RPD_OPT_PERSIST_GENERAL},
-{"provider-sockets",	no_argument,		0, RPD_OPT_PROVIDER_SOCKETS},
-{"provider-verbs",	no_argument,		0, RPD_OPT_PROVIDER_VERBS},
 {"use-syslog",		no_argument,		0, RPD_OPT_USE_SYSLOG},
-{"verify-pool-sets",	no_argument,		0, RPD_OPT_VERIFY_POOL_SETS},
-{"port",		required_argument,	0, RPD_OPT_PORT},
-{"max-lanes",		required_argument,	0, RPD_OPT_MAX_LANES},
 {"log-level",		required_argument,	0, RPD_OPT_LOG_LEVEL},
 {0,			0,			0, 0},
 };
@@ -112,19 +98,11 @@ static const char *help_str =
 "  -f, --foreground              run in foreground - do not run as a daemon\n"
 "  -h, --help                    display help message and exit\n"
 "  -V, --version                 display target daemon version and exit\n"
-"      --pid-file <paht>         PID file location\n"
-"      --log-file <paht>         log file location\n"
+"      --log-file <path>         log file location\n"
 "      --poolset-dir <path>      pool set files directory\n"
-"      --enable-create           permit create request\n"
-"      --enable-remove           permit remove request\n"
-"      --persist-apm             enable Appliance Durability Method\n"
-"      --persist-general         enable General Server Durability Mechanism\n"
-"      --provider-sockets        enable libfabric sockets fabric provider\n"
-"      --provider-verbs          enable libfabric verbs fabric provider\n"
+"      --persist-apm             enable Appliance Persistency Method\n"
+"      --persist-general         enable General Server Persistency Mechanism\n"
 "      --use-syslog              use syslog(3) for logging messages\n"
-"      --verify-pool-sets        verify all pool set files\n"
-"      --port <port>             out-of-band connection port number\n"
-"      --max-lanes <lanes>       maximum allowed number of lanes\n"
 "      --log-level <level>       set log level value\n"
 VALUE_INDENT "err     error conditions\n"
 VALUE_INDENT "warn    warning conditions\n"
@@ -181,25 +159,6 @@ parse_config_string(const char *value)
 }
 
 /*
- * parse_config_integer -- (internal) parse integer value
- */
-static inline uintmax_t
-parse_config_integer(const char *value, uintmax_t max_value)
-{
-	char *endptr;
-	uintmax_t v = strtoumax(value, &endptr, 10);
-	if (endptr != value + strlen(value))
-		errno = EINVAL;
-	else if (v > max_value)
-		errno = ERANGE;
-
-	if (errno != 0)
-		return max_value;
-
-	return v;
-}
-
-/*
  * parse_config_bool -- (internal) parse yes / no flag
  */
 static inline void
@@ -216,18 +175,15 @@ parse_config_bool(bool *config_value, const char *value)
 }
 
 /*
- * set_option -- set single config option
+ * set_option -- (internal) set single config option
  */
 static int
-set_option(uint64_t key, const char *value, struct rpmemd_config *config)
+set_option(enum rpmemd_option option, const char *value,
+	struct rpmemd_config *config)
 {
 	errno = 0;
 
-	switch (key) {
-	case RPD_OPT_PID_FILE:
-		free(config->pid_file);
-		config->pid_file = parse_config_string(value);
-		break;
+	switch (option) {
 	case RPD_OPT_LOG_FILE:
 		free(config->log_file);
 		config->log_file = parse_config_string(value);
@@ -237,44 +193,14 @@ set_option(uint64_t key, const char *value, struct rpmemd_config *config)
 		free(config->poolset_dir);
 		config->poolset_dir = parse_config_string(value);
 		break;
-	case RPD_OPT_ENABLE_CREATE:
-		parse_config_bool(&config->enable_create, value);
-		break;
-	case RPD_OPT_ENABLE_REMOVE:
-		parse_config_bool(&config->enable_remove, value);
-		break;
 	case RPD_OPT_PERSIST_APM:
 		parse_config_bool(&config->persist_apm, value);
 		break;
 	case RPD_OPT_PERSIST_GENERAL:
 		parse_config_bool(&config->persist_general, value);
 		break;
-	case RPD_OPT_PROVIDER_SOCKETS:
-		parse_config_bool(&config->provider_sockets, value);
-		break;
-	case RPD_OPT_PROVIDER_VERBS:
-		parse_config_bool(&config->provider_verbs, value);
-		break;
 	case RPD_OPT_USE_SYSLOG:
 		parse_config_bool(&config->use_syslog, value);
-		break;
-	case RPD_OPT_VERIFY_POOL_SETS:
-		parse_config_bool(&config->verify_pool_sets, value);
-
-		if (errno == 0)
-			config->verify_pool_sets_auto = false;
-		else if (strcmp("auto", value) == 0) {
-			config->verify_pool_sets_auto = true;
-			errno = 0;
-		}
-		break;
-	case RPD_OPT_PORT:
-		config->port = (uint16_t)parse_config_integer(value,
-			UINT16_MAX);
-		break;
-	case RPD_OPT_MAX_LANES:
-		config->max_lanes =
-			(uint32_t)parse_config_integer(value, UINT32_MAX);
 		break;
 	case RPD_OPT_LOG_LEVEL:
 		config->log_level = rpmemd_log_level_from_str(value);
@@ -375,8 +301,9 @@ parse_config_key(const char *key)
 }
 
 /*
- * parse_config_line -- (internal) parse single config line. Store possible
- *	errors in errno.
+ * parse_config_line -- (internal) parse single config line
+ *
+ * Return newly written option flag. Store possible errors in errno.
  */
 static void
 parse_config_line(char *line, struct rpmemd_special_chars_pos *pos,
@@ -407,7 +334,7 @@ parse_config_line(char *line, struct rpmemd_special_chars_pos *pos,
 	enum rpmemd_option key = parse_config_key(key_name);
 	if (key != RPD_OPT_INVALID) {
 		if ((disabled & (uint64_t)(1 << key)) == 0)
-			set_option((uint32_t)key, value, config);
+			set_option(key, value, config);
 	} else
 		errno = EINVAL;
 }
@@ -417,17 +344,18 @@ parse_config_line(char *line, struct rpmemd_special_chars_pos *pos,
  */
 static int
 parse_config_file(const char *filename, struct rpmemd_config *config,
-	uint64_t disabled)
+	uint64_t disabled, int required)
 {
 	RPMEMD_ASSERT(filename != NULL);
 
 	FILE *file = fopen(filename, "r");
 	if (file == NULL) {
-		if (filename != RPMEMD_DEFAULT_CONFIG_FILE) {
+		if (required) {
 			RPMEMD_LOG(ERR, "!%s", filename);
 			goto error_fopen;
-		} else
-			goto default_config_missing;
+		} else {
+			goto optional_config_missing;
+		}
 	}
 
 	uint8_t line_max_increased = 0;
@@ -482,7 +410,7 @@ parse_config_file(const char *filename, struct rpmemd_config *config,
 	free(line_copy);
 	free(line);
 	fclose(file);
-default_config_missing:
+optional_config_missing:
 	return 0;
 
 error:
@@ -518,9 +446,6 @@ parse_cl_args(int argc, char *argv[], struct rpmemd_config *config,
 		case 'c':
 			(*config_file) = optarg;
 			break;
-		case 'f':
-			config->foreground = true;
-			break;
 		case 'h':
 			print_help(argv[0]);
 			exit(0);
@@ -529,8 +454,9 @@ parse_cl_args(int argc, char *argv[], struct rpmemd_config *config,
 			exit(0);
 			break;
 		default:
-			if (set_option((uint64_t)opt, optarg, config) == 0) {
-				*cl_options |= (uint64_t)(1 << opt);
+			if (set_option((enum rpmemd_option)opt, optarg, config)
+					== 0) {
+				*cl_options |= (uint32_t)(1 << opt);
 			} else {
 				print_usage(argv[0]);
 				exit(-1);
@@ -540,50 +466,149 @@ parse_cl_args(int argc, char *argv[], struct rpmemd_config *config,
 }
 
 /*
- * rpmemd_config_set_default -- load default config
+ * get_home_dir -- (internal) return user home directory
+ *
+ * Function will lookup user home directory in order:
+ * 1. HOME environment variable
+ * 2. Password file entry using real user ID
  */
-void
-rpmemd_config_set_default(struct rpmemd_config *config)
+static void
+get_home_dir(char *str, size_t size)
 {
-	config->pid_file		= strdup(RPMEMD_DEFAULT_PID_FILE);
-	config->log_file		= strdup(RPMEMD_DEFAULT_LOG_FILE);
-	config->poolset_dir		= strdup(RPMEMD_DEFAULT_POOLSET_DIR);
-	config->enable_remove		= true;
-	config->enable_create		= true;
-	config->foreground		= false;
-	config->persist_apm		= false;
-	config->persist_general		= true;
-	config->provider_sockets	= false;
-	config->provider_verbs		= true;
-	config->use_syslog		= true;
-	config->verify_pool_sets	= false;
-	config->verify_pool_sets_auto	= true;
-	config->port			= RPMEM_DEFAULT_PORT;
-	config->max_lanes		= RPMEM_DEFAULT_MAX_LANES;
-	config->log_level		= RPD_LOG_ERR;
+	char *home = getenv(HOME_ENV);
+	if (home) {
+		int r = snprintf(str, size, "%s", home);
+		if (r < 0)
+			RPMEMD_FATAL("!snprintf");
+	} else {
+		uid_t uid = getuid();
+		struct passwd *pw = getpwuid(uid);
+		if (pw == NULL)
+			RPMEMD_FATAL("!getpwuid");
+
+		int r = snprintf(str, size, "%s", pw->pw_dir);
+		if (r < 0)
+			RPMEMD_FATAL("!snprintf");
+	}
 }
 
 /*
- * rpmemd_config_read -- read and merge cl params and config from file
+ * concat_dir_and_file_name -- (internal) concatenate directory and file name
+ * into single string path
+ */
+static void
+concat_dir_and_file_name(char *path, size_t size, const char *dir,
+	const char *file)
+{
+	int r = snprintf(path, size, "%s/%s", dir, file);
+	if (r < 0)
+		RPMEMD_FATAL("!snprintf");
+}
+
+/*
+ * str_replace_home -- (internal) replace $HOME string with user home directory
+ *
+ * If function does not find $HOME string it will return haystack untouched.
+ * Otherwise it will allocate new string with $HOME replaced with provided
+ * home_dir path. haystack will be released and newly created string returned.
+ */
+static char *
+str_replace_home(char *haystack, const char *home_dir)
+{
+	const size_t placeholder_len = strlen(HOME_STR_PLACEHOLDER);
+	const size_t home_len = strlen(home_dir);
+	size_t haystack_len = strlen(haystack);
+
+	char *pos = strstr(haystack, HOME_STR_PLACEHOLDER);
+	if (!pos)
+		return haystack;
+
+	const char *after = pos + placeholder_len;
+	if (isalnum(*after))
+		return haystack;
+
+	haystack_len += home_len - placeholder_len + 1;
+	char *buf = malloc(sizeof(char) * haystack_len);
+	if (!buf)
+		RPMEMD_FATAL("!snprintf");
+
+	*pos = '\0';
+	int r = snprintf(buf, haystack_len, "%s%s%s", haystack, home_dir,
+		after);
+	if (r < 0)
+		RPMEMD_FATAL("!snprintf");
+
+	free(haystack);
+	return buf;
+}
+
+/*
+ * config_set_default -- (internal) load default config
+ */
+static void
+config_set_default(struct rpmemd_config *config, const char *poolset_dir)
+{
+	config->log_file = strdup(RPMEMD_DEFAULT_LOG_FILE);
+	if (!config->log_file)
+		RPMEMD_FATAL("!strdup");
+
+	config->poolset_dir = strdup(poolset_dir);
+	if (!config->poolset_dir)
+		RPMEMD_FATAL("!strdup");
+
+	config->persist_apm	= false;
+	config->persist_general	= true;
+	config->use_syslog	= true;
+	config->max_lanes	= RPMEM_DEFAULT_MAX_LANES;
+	config->log_level	= RPD_LOG_ERR;
+}
+
+/*
+ * rpmemd_config_read -- read config from cl and config files
+ *
+ * cl param overwrites configuration from any config file. Config file are read
+ * in order:
+ * 1. Global config file
+ * 2. User config file
+ * or
+ * cl provided config file
  */
 int
 rpmemd_config_read(struct rpmemd_config *config, int argc, char *argv[])
 {
-	const char *config_file = RPMEMD_DEFAULT_CONFIG_FILE;
-	rpmemd_config_set_default(config);
+	const char *cl_config_file = NULL;
+	char user_config_file[PATH_MAX];
+	char home_dir[PATH_MAX];
 	uint64_t cl_options = 0;
 
-	parse_cl_args(argc, argv, config, &config_file, &cl_options);
-	return parse_config_file(config_file, config, cl_options);
+	get_home_dir(home_dir, PATH_MAX);
+	config_set_default(config, home_dir);
+	parse_cl_args(argc, argv, config, &cl_config_file, &cl_options);
+
+	if (cl_config_file) {
+		if (parse_config_file(cl_config_file, config, cl_options, 1))
+			return 1;
+	} else {
+		if (parse_config_file(RPMEMD_GLOBAL_CONFIG_FILE, config,
+				cl_options, 0))
+			return 1;
+
+		concat_dir_and_file_name(user_config_file, PATH_MAX, home_dir,
+			RPMEMD_USER_CONFIG_FILE);
+		if (parse_config_file(user_config_file, config, cl_options, 0))
+			return 1;
+	}
+
+	config->poolset_dir = str_replace_home(config->poolset_dir, home_dir);
+	return 0;
 }
 
 /*
- * rpmemd_config_free -- rpmemd config cleanup
+ * rpmemd_config_free -- rpmemd config release
  */
 void
 rpmemd_config_free(struct rpmemd_config *config)
 {
-	free(config->pid_file);
 	free(config->log_file);
 	free(config->poolset_dir);
 }

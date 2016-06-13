@@ -422,10 +422,7 @@ main(int argc, char *argv[])
 	}
 
 	rpmemd_log_level = config.log_level;
-
-	if (!config.foreground)
-		rpmemd_log_init(DAEMON_NAME, config.log_file,
-			config.use_syslog);
+	rpmemd_log_init(DAEMON_NAME, config.log_file, config.use_syslog);
 
 	RPMEMD_LOG(INFO, "%s version %s", DAEMON_NAME, SRCVERSION);
 

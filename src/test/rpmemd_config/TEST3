@@ -44,32 +44,27 @@ setup
 
 RPMEMD=./rpmemd_config$EXESUFFIX
 
-OUT=stdout${UNITTEST_NUM}.log
-rm -rf $OUT
+LOG=out${UNITTEST_NUM}.log
+LOG_TEMP=out${UNITTEST_NUM}_temp.log
+rm -rf $LOG $LOG_TEMP
 
 CONFIG=in${UNITTEST_NUM}.conf
 
-CL_MAGIC=76
 CL_LOG_LEVEL=notice
 
-expect_normal_exit $RPMEMD -c $CONFIG 1>> $OUT
+expect_normal_exit $RPMEMD -c $CONFIG
+cat $LOG >> $LOG_TEMP
+
 expect_normal_exit $RPMEMD -c $CONFIG\
-	--pid-file=/cl/pid/file/path\
 	--log-file=/cl/log/file/path\
 	--poolset-dir=/cl/dir/path\
-	--enable-create\
-	--enable-remove\
-	--foreground\
 	--persist-apm\
 	--persist-general\
-	--provider-sockets\
-	--provider-verbs\
 	--use-syslog\
-	--verify-pool-sets\
-	--port=$CL_MAGIC\
-	--max-lanes=$CL_MAGIC\
-	--log-level=$CL_LOG_LEVEL\
-	1>> $OUT
+	--log-level=$CL_LOG_LEVEL
+cat $LOG >> $LOG_TEMP
+
+grep -v rpmemd_config $LOG_TEMP > $LOG
 
 check
 
