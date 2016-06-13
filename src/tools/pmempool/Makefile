@@ -43,7 +43,7 @@ LIBPMEMLOG=y
 LIBPMEMPOOL=y
 TOOLS_COMMON=y
 LIBPMEMLOG_PRIV=pmemlog_convert2h pmemlog_convert2le
-LIBPMEMOBJ_PRIV=pvector_init pvector_nvalues pvector_first pvector_next\
+LIBPMEMOBJ_PRIV=pvector_new pvector_nvalues pvector_first pvector_next\
 	pvector_delete
 LIBPMEMBLK_PRIV=btt_init btt_write btt_fini btt_info_convert2h\
 	btt_info_convert2le btt_flog_convert2h btt_flog_convert2le

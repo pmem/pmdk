@@ -780,7 +780,7 @@ tx_rebuild_undo_runtime(PMEMobjpool *pop, struct lane_tx_layout *layout,
 	int i;
 	for (i = UNDO_ALLOC; i < MAX_UNDO_TYPES; ++i) {
 		if (tx_rt->ctx[i] == NULL)
-			tx_rt->ctx[i] = pvector_init(pop, &layout->undo_log[i]);
+			tx_rt->ctx[i] = pvector_new(pop, &layout->undo_log[i]);
 
 		if (tx_rt->ctx[i] == NULL)
 			goto error_init;
