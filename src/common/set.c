@@ -1285,14 +1285,14 @@ util_header_check_remote(struct pool_replica *rep, unsigned partidx)
 
 	/* check next replica UUID */
 	if (memcmp(HDR(rep, 0)->next_repl_uuid, hdrp->next_repl_uuid,
-			POOL_HDR_UUID_LEN)) {
+						POOL_HDR_UUID_LEN)) {
 		ERR("wrong next replica UUID in part %d", partidx);
 		errno = EINVAL;
 		return -1;
 	}
 
-	if (util_compare_arch_flags(&HDR(rep, 0)->arch_flags,
-					&hdrp->arch_flags)) {
+	if (memcmp(&HDR(rep, 0)->arch_flags, &hdrp->arch_flags,
+						sizeof(hdrp->arch_flags))) {
 		ERR("wrong architecture flags");
 		errno = EINVAL;
 		return -1;
