@@ -172,7 +172,10 @@ wait for any hardware buffers to drain, to ensure writes have
 reached the media.  These steps are performed together when
 `pmem_persist()` is called, or they can be called individually
 by calling `pmem_flush()` for the first step and `pmem_drain()`
-for the second.
+for the second.  Note that either of these steps may be
+unnecessary on a given platform, and the library knows how
+to check for that and do the right thing.  For example, on
+Intel platforms, `pmem_drain()` is an empty function.
 
 When does it make sense to break flushing into steps?  This example,
 called *full_copy* illustrates one reason you might do this.  Since
