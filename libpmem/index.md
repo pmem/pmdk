@@ -123,7 +123,7 @@ For true pmem, the highlighted line 84 above is the most optimal way
 to flush changes to persistence.  `pmem_persist()` will, if possible,
 perform the flush directly from user space, without calling into the
 OS.  This is made possible on the Intel platform using instructions like
-`CLWB`, `CLFLUSHOPT`,  and `PCOMMIT` which are
+`CLWB` and `CLFLUSHOPT` which are
 [described in Intel's manuals](https://software.intel.com/sites/default/files/managed/0d/53/319433-022.pdf).
 Of course you are free to use these instructions directly in your
 program, but the program will crash with an _undefined opcode_ if
