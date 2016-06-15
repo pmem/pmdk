@@ -23,6 +23,9 @@
     <ClCompile Include="ut_backtrace.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ut_signal.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\unittest\unittest.h">
