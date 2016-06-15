@@ -470,7 +470,7 @@ int ut_closedir(const char *file, int line, const char *func, DIR *dirp);
  * pass in a 0 for the argument.
  */
 #define FCNTL(fd, cmd, num, ...)\
-	ut_fcntl(__FILE__, __LINE__, __func__, fd, cmd, num, __VA_ARGS__)
+    ut_fcntl(__FILE__, __LINE__, __func__, fd, cmd, num, __VA_ARGS__)
 #endif
 
 #define POSIX_FALLOCATE(fd, off, len)\
@@ -525,7 +525,7 @@ int ut_closedir(const char *file, int line, const char *func, DIR *dirp);
 
 #define PSELECT(nfds, rfds, wfds, efds, tv, sigmask)\
     ut_pselect(__FILE__, __LINE__, __func__, nfds, rfds, wfds, efds,\
-	tv, sigmask)
+    tv, sigmask)
 
 #define MKNOD(pathname, mode, dev)\
     ut_mknod(__FILE__, __LINE__, __func__, pathname, mode, dev)
@@ -551,11 +551,21 @@ int ut_closedir(const char *file, int line, const char *func, DIR *dirp);
     ut_closedir(__FILE__, __LINE__, __func__, dirp)
 #endif
 
+#ifndef _WIN32
+#define ut_jmp_buf_t sigjmp_buf
+#define ut_siglongjmp(b) siglongjmp(b, 1)
+#define ut_sigsetjmp(b) sigsetjmp(b, 1)
+#else
+#define ut_jmp_buf_t jmp_buf
+#define ut_siglongjmp(b) longjmp(b, 1)
+#define ut_sigsetjmp(b) setjmp(b)
+#endif
+
 /*
  * signals...
  */
 int ut_sigaction(const char *file, int line, const char *func,
-		int signum, struct sigaction *act, struct sigaction *oldact);
+    int signum, struct sigaction *act, struct sigaction *oldact);
 
 /* a sigaction() that can't return an error */
 #define SIGACTION(signum, act, oldact)\

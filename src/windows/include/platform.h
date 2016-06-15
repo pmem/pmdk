@@ -56,6 +56,7 @@ typedef long _off_t;		/* NOTE: _off_t must be defined as 'long'! */
 #include <fcntl.h>
 #include <sys/types.h>
 #include <malloc.h>
+#include <signal.h>
 
 /* use uuid_t definition from util.h */
 #ifdef uuid_t
@@ -140,7 +141,7 @@ typedef int mode_t;
 #define setlinebuf(fp) setvbuf(fp, NULL, _IOLBF, BUFSIZ);
 
 /* unistd.h */
-typedef long long int ssize_t;
+typedef long long ssize_t;
 
 /* stdlib.h */
 int mkstemp(char *temp);
@@ -150,6 +151,64 @@ int posix_fallocate(int fd, off_t offset, off_t size);
 
 /* string.h */
 #define strtok_r strtok_s
+
+/* signal.h */
+typedef unsigned long long sigset_t; /* one bit for each signal */
+C_ASSERT(NSIG <= sizeof(sigset_t) * 8);
+
+struct sigaction {
+	void (*sa_handler) (int signum);
+	/* void (*sa_sigaction)(int, siginfo_t *, void *); */
+	sigset_t sa_mask;
+	int sa_flags;
+	void (*sa_restorer) (void);
+};
+
+__inline int
+sigemptyset(sigset_t *set)
+{
+	*set = 0;
+	return 0;
+}
+
+__inline int
+sigfillset(sigset_t *set)
+{
+	*set = ~0;
+	return 0;
+}
+
+__inline int
+sigaddset(sigset_t *set, int signum)
+{
+	if (signum <= 0 || signum >= NSIG) {
+		errno = EINVAL;
+		return -1;
+	}
+	*set |= (1ULL << (signum - 1));
+	return 0;
+}
+
+__inline int
+sigdelset(sigset_t *set, int signum)
+{
+	if (signum <= 0 || signum >= NSIG) {
+		errno = EINVAL;
+		return -1;
+	}
+	*set &= ~(1ULL << (signum - 1));
+	return 0;
+}
+
+__inline int
+sigismember(const sigset_t *set, int signum)
+{
+	if (signum <= 0 || signum >= NSIG) {
+		errno = EINVAL;
+		return -1;
+	}
+	return ((*set & (1ULL << (signum - 1))) ? 1 : 0);
+}
 
 /* sched.h */
 

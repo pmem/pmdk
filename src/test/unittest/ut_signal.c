@@ -36,6 +36,30 @@
 
 #include "unittest.h"
 
+#ifdef _WIN32
+/*
+ * On Windows, Access Violation exception does not raise SIGSEGV signal.
+ * The trick is to catch the exception and... call the signal handler.
+ *
+ * XXX - add support for registering more than one signal/exception handler
+ */
+
+static void (*Sa_handler) (int signum);
+static int Signum;
+
+/*
+ * exception_handler -- called for unhandled exceptions
+ */
+static LONG CALLBACK
+exception_handler(_In_ PEXCEPTION_POINTERS ExceptionInfo)
+{
+	DWORD excode = ExceptionInfo->ExceptionRecord->ExceptionCode;
+	if (excode == EXCEPTION_ACCESS_VIOLATION)
+		Sa_handler(Signum);
+	return EXCEPTION_CONTINUE_EXECUTION;
+}
+#endif
+
 /*
  * ut_sigaction -- a sigaction that cannot return < 0
  */
@@ -43,10 +67,21 @@ int
 ut_sigaction(const char *file, int line, const char *func,
 		int signum, struct sigaction *act, struct sigaction *oldact)
 {
+#ifndef _WIN32
 	int retval = sigaction(signum, act, oldact);
-
 	if (retval != 0)
 		ut_fatal(file, line, func, "!sigaction: %s", strsignal(signum));
-
 	return retval;
+#else
+	if (signum == SIGSEGV) {
+		Sa_handler = act->sa_handler;
+		Signum = signum;
+		AddVectoredExceptionHandler(0, exception_handler);
+	}
+
+	_crt_signal_t retval = signal(signum, act->sa_handler);
+	if (retval == SIG_ERR)
+		ut_fatal(file, line, func, "!signal: %d", signum);
+	return 0;
+#endif
 }
