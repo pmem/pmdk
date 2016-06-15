@@ -154,10 +154,14 @@ uninstall:
 	$(foreach f, $(HEADERS_INSTALL), $(RM) $(HEADERS_DESTDIR)/$(notdir $(f)))
 	$(foreach f, $(PKG_CONFIG_FILES), $(RM) $(PKG_CONFIG_DESTDIR)/$(notdir $(f)))
 
+
+# [!q] to skip windows/include/sys/queue.h
 cstyle:
 	$(STYLE_CHECK) check include/*.h
 	$(STYLE_CHECK) check include/libpmemobj/*.hpp
 	$(STYLE_CHECK) check include/libpmemobj/detail/*.hpp
+	$(STYLE_CHECK) check windows/include/*.h
+	$(STYLE_CHECK) check windows/include/*/[!q]*.h
 
 format:
 	$(STYLE_CHECK) format include/libpmemobj/*.hpp
