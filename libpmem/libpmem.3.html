@@ -1,5 +1,5 @@
 <!-- Creator     : groff version 1.18.1.4 -->
-<!-- CreationDate: Mon Mar 21 14:06:24 2016 -->
+<!-- CreationDate: Wed Jun 15 17:06:44 2016 -->
 <html>
 <head>
 <meta name="generator" content="groff -Thtml, see www.gnu.org">
@@ -415,17 +415,6 @@ own variations of <b>pmem_persist</b>(). For example, a
 program that needs to flush several discontiguous ranges can
 call <b>pmem_flush</b>() for each range and then follow up
 by calling <b>pmem_drain</b>() once.</p>
-<!-- INDENTATION -->
-<p>NOTE: Some software is designed for custom platforms that
-obviate the need for using PCOMMIT (perhaps the platform
-issues PCOMMIT on shutdown or something similar). Even in
-such cases, it is recommended that applications using
-<b>libpmem</b> do not skip the step of calling
-<b>pmem_drain</b>(), either directly or by using
-<b>pmem_persist</b>(). The recommended way to inhibit use of
-the PCOMMIT instruction is by setting the
-<b>PMEM_NO_PCOMMIT</b> environment variable as described in
-the <b>ENVIRONMENT VARIABLES</b> section.</p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -444,19 +433,16 @@ the <b>ENVIRONMENT VARIABLES</b> section.</p>
 <td width="20%"></td>
 <td width="79%">
 <p>The <b>pmem_has_hw_drain</b>() function returns true if
-the machine supports the <i>hardware drain</i> function for
-persistent memory, such as that provided by the
-<b>PCOMMIT</b> instruction on Intel processors. If support
-for hardware drain is not found, or cannot be detected by
-the library, <b>pmem_has_hw_drain</b>() will return false.
-Although it is typically an administrative task to provide
-the correct platform configuration for persistent memory,
-this function is provided for the less common cases where an
-application needs to ensure this feature is available. Note
-that the lack of this feature means that calling
-<b>pmem_persist</b>() may not fully ensure stores are
-durable, without additional platform features such as
-Asynchronous DRAM Refresh (ADR) or something similar.</p>
+the machine supports an explicit <i>hardware drain</i>
+instruction for persistent memory. On Intel processors with
+persistent memory, stores to persistent memory are
+considered persistent once they are flushed from the CPU
+caches, so this function always returns false. Despite that,
+programs using <b>pmem_flush</b>() to flush ranges of memory
+should still follow up by calling <b>pmem_drain</b>() once
+to ensure the flushes are complete. As mentioned above,
+<b>pmem_persist</b>() handles calling both
+<b>pmem_flush</b>() and <b>pmem_drain</b>().</p>
 </td>
 </table>
 <a name="COPYING TO PERSISTENT MEMORY"></a>
@@ -799,31 +785,15 @@ will always return false. Setting <i>val</i> to 1 causes
 is mostly used for testing but can be used to force pmem
 behavior on a system where a range of pmem is not detectable
 as pmem for some reason.</p>
-</td>
-</table>
 <!-- INDENTATION -->
-<table width="100%" border=0 rules="none" frame="void"
-       cols="2" cellspacing="0" cellpadding="0">
-<tr valign="top" align="left">
-<td width="10%"></td>
-<td width="89%">
-<p><b>PMEM_NO_PCOMMIT=1</b></p>
-</td>
-</table>
-<!-- INDENTATION -->
-<table width="100%" border=0 rules="none" frame="void"
-       cols="2" cellspacing="0" cellpadding="0">
-<tr valign="top" align="left">
-<td width="20%"></td>
-<td width="79%">
-<p>Setting this environment variable to 1 forces
-<b>libpmem</b> to never issue the Intel PCOMMIT instruction.
-This can be used on platforms where the hardware drain
-function is performed some other way, like automatic
-flushing during a power failure.</p>
-<!-- INDENTATION -->
-<p>WARNING: Using this environment variable incorrectly may
-impact program correctness.</p>
+<p><b>NOTE:</b> Unlike the other variables, the value of
+<b>PMEM_IS_PMEM_FORCE</b> is not queried (and cached) at the
+library initialization time, but on the first call to
+<b>pmem_is_pmem</b>() function. It means that in case of
+<b>libpmemlog</b>, <b>libpmemblk</b>, and <b>libpmemobj</b>
+libraries, it may still be set or modified by the program
+until the first attempt to create or open the persistent
+memory pool.</p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -936,23 +906,33 @@ testing.</p>
 <tr valign="top" align="left">
 <td width="10%"></td>
 <td width="89%">
-<p><b>PMEM_MMAP_HINT=</b><i>val</i> This environment
-variable allows overriding the hint address used by
-<b>pmem_map_file</b>(). If set, it also disables mapping
-address randomization. This variable is intended for use
-during library testing and debugging. Setting it to some
-fairly large value (i.e. 0x10000000000) will very likely
-result in mapping the file at the specified address (if not
-used) or at the first unused region above given address,
-without adding any random offset. When debugging, this makes
-it easier to calculate the actual address of the persistent
-memory block, based on its offset in the file. In case of
-<b>libpmemobj</b> it simplifies conversion of a persistent
-object identifier (OID) into a direct pointer to the object.
-<b>NOTE: Setting this environment variable affects all the
-NVM libraries,</b> disabling mapping address randomization
-and causing the specified address to be used as a hint about
-where to place the mapping.</p>
+<p><b>PMEM_MMAP_HINT=</b><i>val</i></p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="20%"></td>
+<td width="79%">
+<p>This environment variable allows overriding the hint
+address used by <b>pmem_map_file</b>(). If set, it also
+disables mapping address randomization. This variable is
+intended for use during library testing and debugging.
+Setting it to some fairly large value (i.e. 0x10000000000)
+will very likely result in mapping the file at the specified
+address (if not used) or at the first unused region above
+given address, without adding any random offset. When
+debugging, this makes it easier to calculate the actual
+address of the persistent memory block, based on its offset
+in the file. In case of <b>libpmemobj</b> it simplifies
+conversion of a persistent object identifier (OID) into a
+direct pointer to the object.</p>
+<!-- INDENTATION -->
+<p><b>NOTE: Setting this environment variable affects all
+the NVM libraries,</b> disabling mapping address
+randomization and causing the specified address to be used
+as a hint about where to place the mapping.</p>
 </td>
 </table>
 <a name="EXAMPLES"></a>
