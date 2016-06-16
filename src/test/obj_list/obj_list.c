@@ -37,15 +37,10 @@
 #include <stddef.h>
 #include <sys/param.h>
 
+#include "list.h"
+#include "obj.h"
 #include "unittest.h"
 #include "util.h"
-#include "lane.h"
-#include "redo.h"
-#include "memops.h"
-#include "pmalloc.h"
-#include "list.h"
-#include "pvector.h"
-#include "obj.h"
 
 /* offset to "in band" item */
 #define OOB_OFF	 (sizeof(struct oob_header))

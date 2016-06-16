@@ -42,24 +42,12 @@
  * creation.
  */
 
-#include <errno.h>
-#include <pthread.h>
-
-#include "libpmem.h"
-#include "libpmemobj.h"
-#include "out.h"
-#include "sys_util.h"
-#include "redo.h"
-#include "heap_layout.h"
-#include "memops.h"
-#include "memblock.h"
 #include "bucket.h"
 #include "ctree.h"
-#include "lane.h"
-#include "pmalloc.h"
 #include "heap.h"
-#include "list.h"
 #include "obj.h"
+#include "out.h"
+#include "sys_util.h"
 #include "valgrind_internal.h"
 
 /*

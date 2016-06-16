@@ -34,6 +34,14 @@
  * heap_layout.h -- internal definitions for heap layout
  */
 
+#ifndef LIBPMEMOBJ_HEAP_LAYOUT_H
+#define LIBPMEMOBJ_HEAP_LAYOUT_H 1
+
+#include <stddef.h>
+#include <stdint.h>
+
+#include "redo.h"
+
 #define HEAP_MAJOR 1
 #define HEAP_MINOR 0
 
@@ -135,3 +143,5 @@ struct allocation_header {
 struct lane_alloc_layout {
 	struct redo_log redo[ALLOC_REDO_LOG_SIZE];
 };
+
+#endif

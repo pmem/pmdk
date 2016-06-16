@@ -36,16 +36,10 @@
 #include <string.h>
 #include <stddef.h>
 
+#include "tx.h"
 #include "unittest.h"
-#include "libpmemobj.h"
 #include "util.h"
 #include "valgrind_internal.h"
-#include "redo.h"
-#include "memops.h"
-#include "pmalloc.h"
-#include "lane.h"
-#include "list.h"
-#include "obj.h"
 
 #define LAYOUT_NAME "tx_add_range"
 

@@ -55,14 +55,9 @@
 #include <sys/mman.h>
 #include <fcntl.h>
 
-#include "libpmemobj.h"
-#include "util.h"
-#include "lane.h"
-#include "redo.h"
-#include "memops.h"
-#include "pmalloc.h"
-#include "list.h"
 #include "obj.h"
+#include "redo.h"
+#include "util.h"
 #include "valgrind_internal.h"
 
 #include "unittest.h"

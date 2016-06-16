@@ -45,20 +45,11 @@
  * method implementation is chosen at runtime.
  */
 
-#include <stdlib.h>
-#include <inttypes.h>
-#include "libpmemobj.h"
+#include "heap.h"
+#include "memblock.h"
+#include "obj.h"
 #include "out.h"
 #include "sys_util.h"
-#include "lane.h"
-#include "redo.h"
-#include "memops.h"
-#include "pmalloc.h"
-#include "list.h"
-#include "obj.h"
-#include "heap_layout.h"
-#include "memblock.h"
-#include "heap.h"
 #include "valgrind_internal.h"
 
 /*

@@ -30,12 +30,12 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef LIBPMEMOBJ_REDO_H
-#define LIBPMEMOBJ_REDO_H
-
 /*
  * redo.h -- redo log public interface
  */
+
+#ifndef LIBPMEMOBJ_REDO_H
+#define LIBPMEMOBJ_REDO_H 1
 
 #include <stddef.h>
 #include <stdint.h>

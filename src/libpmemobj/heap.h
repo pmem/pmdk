@@ -34,6 +34,19 @@
  * heap.h -- internal definitions for heap
  */
 
+#ifndef LIBPMEMOBJ_HEAP_H
+#define LIBPMEMOBJ_HEAP_H 1
+
+#include <pthread.h>
+#include <stddef.h>
+#include <stdint.h>
+
+#include "libpmemobj.h"
+#include "bucket.h"
+#include "heap_layout.h"
+#include "memblock.h"
+#include "memops.h"
+
 #define MAX_BUCKETS (UINT8_MAX)
 #define RUN_UNIT_MAX 8U
 
@@ -48,12 +61,12 @@
  */
 #define SIZE_TO_ALLOC_BLOCKS(_s) (1 + (((_s) - 1) / ALLOC_BLOCK_SIZE))
 
-/*
- * Converts size (in bytes) to bucket index.
- */
-#define SIZE_TO_BID(_h, _s) ((_h)->bucket_map[SIZE_TO_ALLOC_BLOCKS(_s)])
-
-struct bucket_cache;
+int heap_boot(PMEMobjpool *pop);
+int heap_init(PMEMobjpool *pop);
+void heap_vg_open(PMEMobjpool *pop);
+void heap_cleanup(PMEMobjpool *pop);
+int heap_check(PMEMobjpool *pop);
+int heap_check_remote(PMEMobjpool *pop);
 
 struct bucket *heap_get_best_bucket(PMEMobjpool *pop, size_t size);
 struct bucket *heap_get_chunk_bucket(PMEMobjpool *pop,
@@ -92,3 +105,5 @@ void heap_foreach_object(PMEMobjpool *pop, object_callback cb,
 #ifdef DEBUG
 int heap_block_is_allocated(PMEMobjpool *pop, struct memory_block m);
 #endif /* DEBUG */
+
+#endif

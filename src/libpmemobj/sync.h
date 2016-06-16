@@ -30,12 +30,19 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <errno.h>
-#include <pthread.h>
-
 /*
  * sync.h -- internal to obj synchronization API
  */
+
+#ifndef LIBPMEMOBJ_SYNC_H
+#define LIBPMEMOBJ_SYNC_H 1
+
+#include <errno.h>
+#include <stdint.h>
+#include <pthread.h>
+
+#include "libpmemobj.h"
+#include "out.h"
 
 /*
  * internal definitions of PMEM-locks
@@ -95,3 +102,5 @@ pmemobj_mutex_unlock_nofail(PMEMobjpool *pop, PMEMmutex *mutexp)
 }
 
 int pmemobj_mutex_assert_locked(PMEMobjpool *pop, PMEMmutex *mutexp);
+
+#endif

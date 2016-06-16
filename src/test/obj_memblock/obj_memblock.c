@@ -33,16 +33,10 @@
 /*
  * obj_memblock.c -- unit test for memblock interface
  */
-#include "unittest.h"
-#include "lane.h"
-#include "redo.h"
-#include "memops.h"
-#include "pmalloc.h"
-#include "list.h"
-#include "obj.h"
-#include "heap_layout.h"
 #include "memblock.h"
-#include "heap.h"
+#include "memops.h"
+#include "obj.h"
+#include "unittest.h"
 
 #define NCHUNKS 3
 

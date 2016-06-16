@@ -34,6 +34,15 @@
  * memops.h -- aggregated memory operations helper definitions
  */
 
+#ifndef LIBPMEMOBJ_MEMOPS_H
+#define LIBPMEMOBJ_MEMOPS_H 1
+
+#include <stddef.h>
+#include <stdint.h>
+
+#include "libpmemobj.h"
+#include "redo.h"
+
 enum operation_type {
 	OPERATION_SET,
 	OPERATION_AND,
@@ -80,3 +89,5 @@ void operation_add_typed_entry(struct operation_context *ctx,
 void operation_add_entries(struct operation_context *ctx,
 	struct operation_entry *entries, size_t nentries);
 void operation_process(struct operation_context *ctx);
+
+#endif

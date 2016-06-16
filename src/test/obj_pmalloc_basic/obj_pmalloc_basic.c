@@ -35,15 +35,9 @@
  */
 #include <stdint.h>
 
-#include "libpmemobj.h"
-#include "redo.h"
-#include "memops.h"
-#include "pmalloc.h"
-#include "util.h"
-#include "lane.h"
-#include "list.h"
+#include "heap.h"
 #include "obj.h"
-#include "heap_layout.h"
+#include "pmalloc.h"
 #include "unittest.h"
 #include "valgrind_internal.h"
 

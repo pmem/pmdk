@@ -40,14 +40,12 @@
 
 #include <errno.h>
 #include <limits.h>
+#include <pthread.h>
 
 #include "libpmemobj.h"
 #include "cuckoo.h"
 #include "lane.h"
 #include "out.h"
-#include "redo.h"
-#include "memops.h"
-#include "sys_util.h"
 #include "obj.h"
 #include "valgrind_internal.h"
 

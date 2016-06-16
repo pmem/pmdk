@@ -35,17 +35,10 @@
  */
 #include <pthread.h>
 
-#include "unittest.h"
-#include "libpmemobj.h"
-#include "util.h"
-#include "out.h"
-#include "lane.h"
-#include "redo.h"
-#include "memops.h"
-#include "pmalloc.h"
-#include "list.h"
 #include "obj.h"
 #include "sync.h"
+#include "unittest.h"
+#include "util.h"
 
 #define MAX_THREAD_NUM 200
 

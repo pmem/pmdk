@@ -33,13 +33,8 @@
 /*
  * obj_bucket.c -- unit test for bucket
  */
-#include "unittest.h"
-#include "redo.h"
-#include "memops.h"
-#include "heap_layout.h"
-#include "memblock.h"
-#include "heap.h"
 #include "bucket.h"
+#include "unittest.h"
 
 #define TEST_UNIT_SIZE 128
 #define TEST_MAX_UNIT 1

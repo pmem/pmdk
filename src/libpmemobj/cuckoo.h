@@ -34,6 +34,11 @@
  * cuckoo.h -- internal definitions for cuckoo hash table
  */
 
+#ifndef LIBPMEMOBJ_CUCKOO_H
+#define LIBPMEMOBJ_CUCKOO_H 1
+
+#include <stdint.h>
+
 struct cuckoo;
 
 struct cuckoo *cuckoo_new(void);
@@ -43,3 +48,5 @@ int cuckoo_insert(struct cuckoo *c, uint64_t key, void *value);
 void *cuckoo_remove(struct cuckoo *c, uint64_t key);
 void *cuckoo_get(struct cuckoo *c, uint64_t key);
 size_t cuckoo_get_size(struct cuckoo *c);
+
+#endif

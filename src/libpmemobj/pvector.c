@@ -34,14 +34,10 @@
  * pvector.c -- persistent vector implementation
  */
 
-#include "libpmemobj.h"
-#include "out.h"
-#include "redo.h"
-#include "pvector.h"
-#include "memops.h"
-#include "pmalloc.h"
-#include "lane.h"
 #include "obj.h"
+#include "out.h"
+#include "pmalloc.h"
+#include "pvector.h"
 #include "valgrind_internal.h"
 
 struct pvector_context {

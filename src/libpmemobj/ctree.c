@@ -45,9 +45,10 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <errno.h>
+
+#include "ctree.h"
 #include "out.h"
 #include "sys_util.h"
-#include "ctree.h"
 
 #define BIT_IS_SET(n, i) (!!((n) & (1ULL << (i))))
 

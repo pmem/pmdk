@@ -34,9 +34,13 @@
  * obj.h -- internal definitions for obj module
  */
 
+#ifndef LIBPMEMOBJ_OBJ_H
+#define LIBPMEMOBJ_OBJ_H 1
+
 #include <stddef.h>
 #include <stdint.h>
 
+#include "lane.h"
 #include "pool_hdr.h"
 #include "redo.h"
 
@@ -58,14 +62,6 @@
 
 #define OBJ_LANES_OFFSET	8192	/* lanes offset (8kB) */
 #define OBJ_NLANES		1024	/* number of lanes */
-
-/*
- * To make sure that the range cache does not needlessly waste memory in the
- * allocator, the values set here must very closely match allocation class
- * sizes. A good value to aim for is multiples of 1024 bytes.
- */
-#define MAX_CACHED_RANGE_SIZE 32
-#define MAX_CACHED_RANGES 169
 
 #define OBJ_OOB_SIZE		(sizeof(struct oob_header))
 #define OBJ_OFF_TO_PTR(pop, off) ((void *)((uintptr_t)(pop) + (off)))
@@ -102,9 +98,6 @@
 
 #define OOB_OFFSET_OF(oid, field)\
 	((oid).off - OBJ_OOB_SIZE + offsetof(struct oob_header, field))
-
-#define OBJ_STORE_ITEM_PADDING\
-	(_POBJ_CL_ALIGNMENT - (sizeof(struct list_head) % _POBJ_CL_ALIGNMENT))
 
 typedef void (*persist_local_fn)(const void *, size_t);
 typedef void (*flush_local_fn)(const void *, size_t);
@@ -251,3 +244,5 @@ OBJ_OID_IS_VALID(PMEMobjpool *pop, PMEMoid oid)
 void obj_init(void);
 void obj_fini(void);
 int obj_read_remote(PMEMobjpool *pop, void *dest, void *addr, size_t length);
+
+#endif

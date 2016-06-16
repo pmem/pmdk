@@ -33,18 +33,10 @@
 /*
  * obj_heap.c -- unit test for bucket
  */
+#include "heap.h"
+#include "obj.h"
 #include "unittest.h"
 #include "util.h"
-#include "redo.h"
-#include "memops.h"
-#include "heap_layout.h"
-#include "memblock.h"
-#include "heap.h"
-#include "bucket.h"
-#include "lane.h"
-#include "pmalloc.h"
-#include "list.h"
-#include "obj.h"
 
 #define MOCK_POOL_SIZE PMEMOBJ_MIN_POOL
 

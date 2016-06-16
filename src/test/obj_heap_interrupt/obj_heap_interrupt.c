@@ -33,15 +33,9 @@
 /*
  * obj_heap_interrupt.c -- unit test for pool heap interruption
  */
-#include "unittest.h"
-#include "redo.h"
-#include "memops.h"
-#include "pmalloc.h"
-#include "util.h"
-#include "lane.h"
-#include "list.h"
-#include "obj.h"
 #include "heap_layout.h"
+#include "memops.h"
+#include "unittest.h"
 
 POBJ_LAYOUT_BEGIN(heap_interrupt);
 POBJ_LAYOUT_END(heap_interrupt);

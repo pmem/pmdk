@@ -34,22 +34,13 @@
  * tx.c -- transactions implementation
  */
 
-#include <errno.h>
 #include <sys/queue.h>
-#include <stdlib.h>
-#include <assert.h>
 
-#include "libpmem.h"
-#include "libpmemobj.h"
-#include "lane.h"
-#include "redo.h"
-#include "memops.h"
-#include "pmalloc.h"
-#include "pvector.h"
-#include "obj.h"
-#include "tx.h"
-#include "out.h"
 #include "ctree.h"
+#include "obj.h"
+#include "out.h"
+#include "pmalloc.h"
+#include "tx.h"
 #include "valgrind_internal.h"
 
 /*

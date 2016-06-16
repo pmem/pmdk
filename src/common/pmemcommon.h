@@ -30,12 +30,13 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/*
+ * pmemcommon.h -- definitions for "common" module
+ */
+
 #ifndef PMEMCOMMON_H
 #define PMEMCOMMON_H 1
 
-/*
- * out.h -- definitions for "out" module
- */
 #include "util.h"
 #include "out.h"
 #include "mmap.h"

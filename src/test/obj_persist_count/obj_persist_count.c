@@ -33,11 +33,8 @@
 /*
  * obj_persist_count.c -- counting number of persists
  */
-#include "unittest.h"
-#include "redo.h"
-#include "memops.h"
 #include "pmalloc.h"
-#include "util.h"
+#include "unittest.h"
 
 static struct {
 	int n_persist;

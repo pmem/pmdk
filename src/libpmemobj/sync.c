@@ -34,12 +34,6 @@
  * sync.c -- persistent memory resident synchronization primitives
  */
 
-#include <errno.h>
-#include <time.h>
-
-#include "libpmem.h"
-#include "libpmemobj.h"
-#include "lane.h"
 #include "obj.h"
 #include "out.h"
 #include "sync.h"

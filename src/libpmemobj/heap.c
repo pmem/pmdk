@@ -39,18 +39,10 @@
 #include <unistd.h>
 #include <pthread.h>
 
-#include "libpmem.h"
-#include "libpmemobj.h"
-#include "redo.h"
-#include "memops.h"
-#include "heap_layout.h"
-#include "memblock.h"
 #include "heap.h"
-#include "bucket.h"
-#include "lane.h"
-#include "out.h"
-#include "pmalloc.h"
+#include "libpmem.h"
 #include "obj.h"
+#include "out.h"
 #include "sys_util.h"
 #include "valgrind_internal.h"
 
@@ -92,6 +84,11 @@
  * to waste in a single run chunk.
  */
 #define MAX_RUN_WASTED_BYTES 1024
+
+/*
+ * Converts size (in bytes) to bucket index.
+ */
+#define SIZE_TO_BID(_h, _s) ((_h)->bucket_map[SIZE_TO_ALLOC_BLOCKS(_s)])
 
 /*
  * Allocation categories are used for allocation classes generation. Each one

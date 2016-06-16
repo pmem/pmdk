@@ -38,20 +38,12 @@
  * in a reasonable time and with an acceptable common-case fragmentation.
  */
 
-#include <errno.h>
-#include <pthread.h>
-
-#include "libpmemobj.h"
-#include "redo.h"
-#include "memops.h"
-#include "pmalloc.h"
+#include "heap_layout.h"
+#include "heap.h"
 #include "lane.h"
 #include "obj.h"
 #include "out.h"
-#include "heap_layout.h"
-#include "memblock.h"
-#include "heap.h"
-#include "bucket.h"
+#include "pmalloc.h"
 #include "valgrind_internal.h"
 
 /*

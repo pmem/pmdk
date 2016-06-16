@@ -33,29 +33,16 @@
 /*
  * obj.c -- transactional object store implementation
  */
-
-#include <sys/param.h>
-#include <errno.h>
-#include <stdlib.h>
-#include <pthread.h>
+#include <limits.h>
 
 #include "libpmem.h"
-#include "libpmemobj.h"
-#include "librpmem.h"
-
-#include "util.h"
-#include "set.h"
-#include "mmap.h"
-#include "out.h"
-#include "lane.h"
-#include "redo.h"
-#include "memops.h"
-#include "pmalloc.h"
-#include "heap_layout.h"
-#include "list.h"
-#include "cuckoo.h"
 #include "ctree.h"
+#include "cuckoo.h"
+#include "heap.h"
+#include "list.h"
+#include "mmap.h"
 #include "obj.h"
+#include "set.h"
 #include "sync.h"
 #include "valgrind_internal.h"
 

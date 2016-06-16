@@ -34,14 +34,7 @@
  * libpmemobj.c -- pmem entry points for libpmemobj
  */
 
-#include <stdio.h>
-#include <stdint.h>
-#include <setjmp.h>
-
-#include "libpmemobj.h"
-
 #include "pmemcommon.h"
-#include "lane.h"
 #include "obj.h"
 
 /*

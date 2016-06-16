@@ -34,6 +34,16 @@
  * memblock.h -- internal definitions for memory block
  */
 
+#ifndef LIBPMEMOBJ_MEMBLOCK_H
+#define LIBPMEMOBJ_MEMBLOCK_H 1
+
+#include <stddef.h>
+#include <stdint.h>
+
+#include "libpmemobj.h"
+#include "heap_layout.h"
+#include "memops.h"
+
 struct memory_block {
 	uint32_t chunk_id; /* index of the memory block in its zone */
 	uint32_t zone_id; /* index of this block zone in the heap */
@@ -196,3 +206,5 @@ extern const struct memory_block_ops mb_ops[MAX_MEMORY_BLOCK];
 
 #define MEMBLOCK_OPS(type, memblock)\
 MEMBLOCK_OPS_##type(memblock, pop->hlayout)
+
+#endif

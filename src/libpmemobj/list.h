@@ -34,6 +34,18 @@
  * list.h -- internal definitions for persistent atomic lists module
  */
 
+#ifndef LIBPMEMOBJ_LIST_H
+#define LIBPMEMOBJ_LIST_H 1
+
+#include <stddef.h>
+#include <stdint.h>
+#include <sys/types.h>
+
+#include "libpmemobj.h"
+#include "lane.h"
+#include "pmalloc.h"
+#include "redo.h"
+
 /*
  * lane_list_layout -- structure of list section in lane
  *
@@ -79,3 +91,5 @@ int list_move(PMEMobjpool *pop,
 void list_move_oob(PMEMobjpool *pop,
 	struct list_head *head_old, struct list_head *head_new,
 	PMEMoid oid);
+
+#endif

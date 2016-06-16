@@ -40,17 +40,12 @@
 #include <pthread.h>
 #include <errno.h>
 
-#include "unittest.h"
-#include "libpmemobj.h"
-#include "lane.h"
-#include "redo.h"
 #include "heap_layout.h"
-#include "memops.h"
-#include "pmalloc.h"
+#include "lane.h"
 #include "list.h"
 #include "obj.h"
-#include "pvector.h"
 #include "tx.h"
+#include "unittest.h"
 
 #define MAX_MOCK_LANES 5
 #define MOCK_RUNTIME (void *)(0xABC)

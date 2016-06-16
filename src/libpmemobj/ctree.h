@@ -34,6 +34,11 @@
  * ctree.h -- internal definitions for crit-bit tree
  */
 
+#ifndef LIBPMEMOBJ_CTREE_H
+#define LIBPMEMOBJ_CTREE_H 1
+
+#include <stdint.h>
+
 struct ctree;
 
 struct ctree *ctree_new(void);
@@ -53,3 +58,5 @@ uint64_t ctree_remove_unlocked(struct ctree *t, uint64_t key, int eq);
 
 int ctree_is_empty(struct ctree *t);
 int ctree_is_empty_unlocked(struct ctree *t);
+
+#endif

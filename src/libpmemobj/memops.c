@@ -34,12 +34,9 @@
  * memops.c -- aggregated memory operations helper implementation
  */
 
-#include "libpmemobj.h"
-#include "out.h"
-#include "redo.h"
 #include "memops.h"
-#include "lane.h"
 #include "obj.h"
+#include "out.h"
 #include "valgrind_internal.h"
 
 /*
