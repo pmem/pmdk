@@ -81,7 +81,7 @@ memblock_autodetect_type(struct memory_block *m, struct heap_layout *h)
  * huge_block_size -- returns the compile-time constant which defines the
  *	huge memory block size.
  */
-size_t
+static size_t
 huge_block_size(struct memory_block *m, struct heap_layout *h)
 {
 	return CHUNKSIZE;
@@ -91,7 +91,7 @@ huge_block_size(struct memory_block *m, struct heap_layout *h)
  * run_block_size -- looks for the right chunk and returns the block size
  *	information that is attached to the run block metadata.
  */
-size_t
+static size_t
 run_block_size(struct memory_block *m, struct heap_layout *h)
 {
 	struct zone *z = ZID_TO_ZONE(h, m->zone_id);
@@ -104,7 +104,7 @@ run_block_size(struct memory_block *m, struct heap_layout *h)
  * huge_block_offset -- huge chunks do not use the offset information of the
  *	memory blocks and must always be zeroed.
  */
-uint16_t
+static uint16_t
 huge_block_offset(struct memory_block *m, PMEMobjpool *pop, void *ptr)
 {
 	return 0;
@@ -119,7 +119,7 @@ huge_block_offset(struct memory_block *m, PMEMobjpool *pop, void *ptr)
  * A non-zero remainder would mean that either the caller provided incorrect
  * pointer or the allocation algorithm created an invalid allocation block.
  */
-uint16_t
+static uint16_t
 run_block_offset(struct memory_block *m, PMEMobjpool *pop, void *ptr)
 {
 	size_t block_size = MEMBLOCK_OPS(RUN, &m)->block_size(m, pop->hlayout);
@@ -156,7 +156,7 @@ chunk_get_chunk_hdr_value(uint16_t type, uint32_t size_idx)
  * huge_prep_operation_hdr -- prepares the new value of a chunk header that will
  *	be set after the operation concludes.
  */
-void
+static void
 huge_prep_operation_hdr(struct memory_block *m, PMEMobjpool *pop,
 	enum memblock_hdr_op op, struct operation_context *ctx)
 {
@@ -210,7 +210,7 @@ huge_prep_operation_hdr(struct memory_block *m, PMEMobjpool *pop,
  * bitmap this method is modifying must not be changed after this function
  * is called and before the operation is processed.
  */
-void
+static void
 run_prep_operation_hdr(struct memory_block *m, PMEMobjpool *pop,
 	enum memblock_hdr_op op, struct operation_context *ctx)
 {
@@ -248,7 +248,7 @@ run_prep_operation_hdr(struct memory_block *m, PMEMobjpool *pop,
  * huge_lock -- because huge memory blocks are always allocated from a single
  *	bucket there's no reason to lock them - the bucket itself is protected.
  */
-void
+static void
 huge_lock(struct memory_block *m, PMEMobjpool *pop)
 {
 	/* no-op */
@@ -258,7 +258,7 @@ huge_lock(struct memory_block *m, PMEMobjpool *pop)
  * run_lock -- gets the runtime mutex from the heap and lock it.
  *
  */
-void
+static void
 run_lock(struct memory_block *m, PMEMobjpool *pop)
 {
 	util_mutex_lock(heap_get_run_lock(pop, m->chunk_id));
@@ -267,7 +267,7 @@ run_lock(struct memory_block *m, PMEMobjpool *pop)
 /*
  * huge_unlock -- do nothing, explanation above in huge_lock.
  */
-void
+static void
 huge_unlock(struct memory_block *m, PMEMobjpool *pop)
 {
 	/* no-op */
@@ -276,7 +276,7 @@ huge_unlock(struct memory_block *m, PMEMobjpool *pop)
 /*
  * run_unlock -- gets the runtime mutex from the heap and unlocks it.
  */
-void
+static void
 run_unlock(struct memory_block *m, PMEMobjpool *pop)
 {
 	util_mutex_unlock(heap_get_run_lock(pop, m->chunk_id));

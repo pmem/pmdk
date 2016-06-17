@@ -161,23 +161,6 @@ enum memblock_hdr_op {
 	MAX_MEMBLOCK_HDR_OP
 };
 
-size_t huge_block_size(struct memory_block *m, struct heap_layout *h);
-size_t run_block_size(struct memory_block *m, struct heap_layout *h);
-
-uint16_t huge_block_offset(struct memory_block *m, PMEMobjpool *pop, void *ptr);
-uint16_t run_block_offset(struct memory_block *m, PMEMobjpool *pop, void *ptr);
-
-void huge_prep_operation_hdr(struct memory_block *m, PMEMobjpool *pop,
-	enum memblock_hdr_op op, struct operation_context *ctx);
-void run_prep_operation_hdr(struct memory_block *m, PMEMobjpool *pop,
-	enum memblock_hdr_op op, struct operation_context *ctx);
-
-void huge_lock(struct memory_block *m, PMEMobjpool *pop);
-void run_lock(struct memory_block *m, PMEMobjpool *pop);
-
-void huge_unlock(struct memory_block *m, PMEMobjpool *pop);
-void run_unlock(struct memory_block *m, PMEMobjpool *pop);
-
 enum memory_block_type memblock_autodetect_type(struct memory_block *m,
 	struct heap_layout *h);
 
