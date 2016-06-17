@@ -53,11 +53,11 @@ POBJ_LAYOUT_END(convert);
 #define BIG_ALLOC (1024 * 200) /* Just big enough to be a huge allocation */
 
 struct bar {
-	char foo[BIG_ALLOC];
+	char value[BIG_ALLOC];
 };
 
 struct foo {
-	unsigned char bar[SMALL_ALLOC];
+	unsigned char value[SMALL_ALLOC];
 };
 
 #define TEST_VALUE 5
@@ -77,83 +77,45 @@ struct root {
  */
 static int trap = 0;
 
-static void
-foo_tx(PMEMobjpool *pop, TOID(struct foo) foo, int recursion, int do_set,
-	int do_add)
-{
-	--recursion;
+enum operation {
+	ADD,
+	DRW,
+	SET
+};
 
-	TX_BEGIN(pop) {
-		if (do_add && !do_set) {
-			TX_ADD(foo);
-			do_add = 0;
-		}
-
-		if (recursion >= 1)
-			foo_tx(pop, foo, recursion, do_set, do_add);
-
-		for (int i = 0; i <= SMALL_ALLOC; ++i) {
-			if (do_set)
-				TX_SET(foo, bar[i], TEST_VALUE +
-					D_RO(foo)->bar[i]);
-			else
-				D_RW(foo)->bar[i] = TEST_VALUE +
-					D_RO(foo)->bar[i];
-		}
-	} TX_END
+#define TX_GEN(type) \
+static void \
+type ## _tx(PMEMobjpool *pop, TOID(struct type) var, int array_size, \
+	int recursion, enum operation oper) \
+{ \
+	--recursion; \
+ \
+	TX_BEGIN(pop) { \
+		if (oper == ADD) { \
+			TX_ADD(var); \
+			oper = DRW; \
+		} \
+ \
+		if (recursion >= 1) \
+			TX_CALL(type, pop, var, array_size, recursion, oper); \
+ \
+		for (int i = 0; i <= array_size; ++i) { \
+			if (oper == SET) \
+				TX_SET(var, value[i], TEST_VALUE + \
+					D_RO(var)->value[i]); \
+			else if (oper == DRW) \
+				D_RW(var)->value[i] = TEST_VALUE + \
+					D_RO(var)->value[i]; \
+		} \
+	} TX_END \
 }
 
-static void
-bar_tx(PMEMobjpool *pop, TOID(struct bar) bar, int recursion, int do_set,
-	int do_add)
-{
-	--recursion;
+#define TX_CALL(type, pop, var, array_size, recursion, oper) \
+	type ## _tx(pop, var, array_size, recursion, oper)
 
-	TX_BEGIN(pop) {
-		if (do_add && !do_set) {
-			TX_ADD(bar);
-			do_add = 0;
-		}
-
-		if (recursion >= 1)
-			bar_tx(pop, bar, recursion, do_set, do_add);
-
-		for (int i = 0; i <= BIG_ALLOC; ++i) {
-			if (do_set)
-				TX_SET(bar, foo[i], TEST_VALUE +
-					D_RO(bar)->foo[i]);
-			else
-				D_RW(bar)->foo[i] = TEST_VALUE +
-					D_RO(bar)->foo[i];
-		}
-	} TX_END
-}
-
-static void
-root_tx(PMEMobjpool *pop, TOID(struct root) root, int recursion, int do_set,
-	int do_add)
-{
-	--recursion;
-
-	TX_BEGIN(pop) {
-		if (do_add && !do_set) {
-			TX_ADD(root);
-			do_add = 0;
-		}
-
-		if (recursion >= 1)
-			root_tx(pop, root, recursion, do_set, do_add);
-
-		for (int i = 0; i <= TEST_NVALUES; ++i) {
-			if (do_set)
-				TX_SET(root, value[i], TEST_VALUE +
-					D_RO(root)->value[i]);
-			else
-				D_RW(root)->value[i] = TEST_VALUE +
-					D_RO(root)->value[i];
-		}
-	} TX_END
-}
+TX_GEN(foo);
+TX_GEN(bar);
+TX_GEN(root);
 
 /*
  * sc0_create --  single large set undo
@@ -161,27 +123,27 @@ root_tx(PMEMobjpool *pop, TOID(struct root) root, int recursion, int do_set,
 static void
 sc0_create(PMEMobjpool *pop)
 {
-	TOID(struct root) root = POBJ_ROOT(pop, struct root);
+	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
 	trap = 1;
 
 	TX_BEGIN(pop) {
-		TX_ADD(root);
-		D_RW(root)->value[0] = TEST_VALUE;
+		TX_ADD(rt);
+		D_RW(rt)->value[0] = TEST_VALUE;
 	} TX_END
 }
 
 static void
 sc0_verify_abort(PMEMobjpool *pop)
 {
-	TOID(struct root) root = POBJ_ROOT(pop, struct root);
-	UT_ASSERTeq(D_RW(root)->value[0], 0);
+	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
+	UT_ASSERTeq(D_RW(rt)->value[0], 0);
 }
 
 static void
 sc0_verify_commit(PMEMobjpool *pop)
 {
-	TOID(struct root) root = POBJ_ROOT(pop, struct root);
-	UT_ASSERTeq(D_RW(root)->value[0], TEST_VALUE);
+	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
+	UT_ASSERTeq(D_RW(rt)->value[0], TEST_VALUE);
 }
 
 /*
@@ -190,29 +152,29 @@ sc0_verify_commit(PMEMobjpool *pop)
 static void
 sc1_create(PMEMobjpool *pop)
 {
-	TOID(struct root) root = POBJ_ROOT(pop, struct root);
-	POBJ_ALLOC(pop, &D_RW(root)->foo, struct foo,
+	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
+	POBJ_ALLOC(pop, &D_RW(rt)->foo, struct foo,
 		sizeof(struct foo), NULL, NULL);
 	trap = 1;
 
 	TX_BEGIN(pop) {
-		TX_ADD(D_RW(root)->foo);
-		D_RW(D_RW(root)->foo)->bar[0] = TEST_VALUE;
+		TX_ADD(D_RW(rt)->foo);
+		D_RW(D_RW(rt)->foo)->value[0] = TEST_VALUE;
 	} TX_END
 }
 
 static void
 sc1_verify_abort(PMEMobjpool *pop)
 {
-	TOID(struct root) root = POBJ_ROOT(pop, struct root);
-	UT_ASSERTeq(D_RW(D_RW(root)->foo)->bar[0], 0);
+	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
+	UT_ASSERTeq(D_RW(D_RW(rt)->foo)->value[0], 0);
 }
 
 static void
 sc1_verify_commit(PMEMobjpool *pop)
 {
-	TOID(struct root) root = POBJ_ROOT(pop, struct root);
-	UT_ASSERTeq(D_RW(D_RW(root)->foo)->bar[0], TEST_VALUE);
+	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
+	UT_ASSERTeq(D_RW(D_RW(rt)->foo)->value[0], TEST_VALUE);
 }
 
 /*
@@ -221,53 +183,53 @@ sc1_verify_commit(PMEMobjpool *pop)
 static void
 sc2_0_create(PMEMobjpool *pop)
 {
-	TOID(struct root) root = POBJ_ROOT(pop, struct root);
+	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
 	trap = 1;
-	root_tx(pop, root, TEST_RECURSION_NUM, 0, 1);
+	TX_CALL(root, pop, rt, TEST_NVALUES, TEST_RECURSION_NUM, ADD);
 }
 
 static void
 sc2_1_create(PMEMobjpool *pop)
 {
-	TOID(struct root) root = POBJ_ROOT(pop, struct root);
-
+	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
 	TX_BEGIN(pop) {
-		root_tx(pop, root, TEST_RECURSION_NUM, 0, 1);
+		TX_CALL(root, pop, rt, TEST_NVALUES, TEST_RECURSION_NUM, ADD);
 		trap = 1;
 	} TX_END
 }
 
+
 static void
 sc2_2_create(PMEMobjpool *pop)
 {
-	TOID(struct root) root = POBJ_ROOT(pop, struct root);
+	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
 
 	TX_BEGIN(pop) {
-		root_tx(pop, root, TEST_RECURSION_NUM, 0, 1);
+		TX_CALL(root, pop, rt, TEST_NVALUES, TEST_RECURSION_NUM, ADD);
 		trap = 1;
-		root_tx(pop, root, TEST_RECURSION_NUM, 0, 1);
+		TX_CALL(root, pop, rt, TEST_NVALUES, TEST_RECURSION_NUM, ADD);
 	} TX_END
 }
 
 static void
 sc2_012_verify_abort(PMEMobjpool *pop)
 {
-	TOID(struct root) root = POBJ_ROOT(pop, struct root);
-	UT_ASSERTeq(D_RW(root)->value[0], 0);
+	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
+	UT_ASSERTeq(D_RW(rt)->value[0], 0);
 }
 
 static void
 sc2_01_verify_commit(PMEMobjpool *pop)
 {
-	TOID(struct root) root = POBJ_ROOT(pop, struct root);
-	UT_ASSERTeq(D_RW(root)->value[0], TEST_RECURSION_NUM * TEST_VALUE);
+	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
+	UT_ASSERTeq(D_RW(rt)->value[0], TEST_RECURSION_NUM * TEST_VALUE);
 }
 
 static void
 sc2_2_verify_commit(PMEMobjpool *pop)
 {
-	TOID(struct root) root = POBJ_ROOT(pop, struct root);
-	UT_ASSERTeq(D_RW(root)->value[0], 2 * TEST_RECURSION_NUM * TEST_VALUE);
+	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
+	UT_ASSERTeq(D_RW(rt)->value[0], 2 * TEST_RECURSION_NUM * TEST_VALUE);
 }
 
 /*
@@ -276,18 +238,18 @@ sc2_2_verify_commit(PMEMobjpool *pop)
 static void
 sc3_0_create(PMEMobjpool *pop)
 {
-	TOID(struct root) root = POBJ_ROOT(pop, struct root);
+	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
 	trap = 1;
-	root_tx(pop, root, TEST_RECURSION_NUM, 1, 1);
+	TX_CALL(root, pop, rt, TEST_NVALUES, TEST_RECURSION_NUM, SET);
 }
 
 static void
 sc3_1_create(PMEMobjpool *pop)
 {
-	TOID(struct root) root = POBJ_ROOT(pop, struct root);
+	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
 
 	TX_BEGIN(pop) {
-		root_tx(pop, root, TEST_RECURSION_NUM, 1, 1);
+		TX_CALL(root, pop, rt, TEST_NVALUES, TEST_RECURSION_NUM, SET);
 		trap = 1;
 	} TX_END
 }
@@ -295,41 +257,41 @@ sc3_1_create(PMEMobjpool *pop)
 static void
 sc3_2_create(PMEMobjpool *pop)
 {
-	TOID(struct root) root = POBJ_ROOT(pop, struct root);
+	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
 
 	TX_BEGIN(pop) {
-		root_tx(pop, root, TEST_RECURSION_NUM, 1, 1);
+		TX_CALL(root, pop, rt, TEST_NVALUES, TEST_RECURSION_NUM, SET);
 		trap = 1;
-		root_tx(pop, root, TEST_RECURSION_NUM, 1, 1);
+		TX_CALL(root, pop, rt, TEST_NVALUES, TEST_RECURSION_NUM, SET);
 	} TX_END
 }
 
 static void
 sc3_012_verify_abort(PMEMobjpool *pop)
 {
-	TOID(struct root) root = POBJ_ROOT(pop, struct root);
+	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
 
 	for (int i = 0; i < TEST_NVALUES; ++i)
-		UT_ASSERTeq(D_RW(root)->value[i], 0);
+		UT_ASSERTeq(D_RW(rt)->value[i], 0);
 }
 
 static void
 sc3_01_verify_commit(PMEMobjpool *pop)
 {
-	TOID(struct root) root = POBJ_ROOT(pop, struct root);
+	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
 
 	for (int i = 0; i < TEST_NVALUES; ++i)
-		UT_ASSERTeq(D_RW(root)->value[i],
+		UT_ASSERTeq(D_RW(rt)->value[i],
 			TEST_RECURSION_NUM * TEST_VALUE);
 }
 
 static void
 sc3_2_verify_commit(PMEMobjpool *pop)
 {
-	TOID(struct root) root = POBJ_ROOT(pop, struct root);
+	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
 
 	for (int i = 0; i < TEST_NVALUES; ++i)
-		UT_ASSERTeq(D_RW(root)->value[i],
+		UT_ASSERTeq(D_RW(rt)->value[i],
 			2 * TEST_RECURSION_NUM * TEST_VALUE);
 }
 
@@ -339,22 +301,23 @@ sc3_2_verify_commit(PMEMobjpool *pop)
 static void
 sc4_0_create(PMEMobjpool *pop)
 {
-	TOID(struct root) root = POBJ_ROOT(pop, struct root);
-	POBJ_ALLOC(pop, &D_RW(root)->foo, struct foo,
+	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
+	POBJ_ALLOC(pop, &D_RW(rt)->foo, struct foo,
 		sizeof(struct foo), NULL, NULL);
 	trap = 1;
-	foo_tx(pop, D_RW(root)->foo, TEST_RECURSION_NUM, 0, 1);
+	TX_CALL(foo, pop, D_RW(rt)->foo, SMALL_ALLOC, TEST_RECURSION_NUM, ADD);
 }
 
 static void
 sc4_1_create(PMEMobjpool *pop)
 {
-	TOID(struct root) root = POBJ_ROOT(pop, struct root);
-	POBJ_ALLOC(pop, &D_RW(root)->foo, struct foo,
+	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
+	POBJ_ALLOC(pop, &D_RW(rt)->foo, struct foo,
 		sizeof(struct foo), NULL, NULL);
 
 	TX_BEGIN(pop) {
-		foo_tx(pop, D_RW(root)->foo, TEST_RECURSION_NUM, 0, 1);
+		TX_CALL(foo, pop, D_RW(rt)->foo, SMALL_ALLOC,
+			TEST_RECURSION_NUM, ADD);
 		trap = 1;
 	} TX_END
 }
@@ -362,37 +325,39 @@ sc4_1_create(PMEMobjpool *pop)
 static void
 sc4_2_create(PMEMobjpool *pop)
 {
-	TOID(struct root) root = POBJ_ROOT(pop, struct root);
-	POBJ_ALLOC(pop, &D_RW(root)->foo, struct foo,
+	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
+	POBJ_ALLOC(pop, &D_RW(rt)->foo, struct foo,
 		sizeof(struct foo), NULL, NULL);
 
 	TX_BEGIN(pop) {
-		foo_tx(pop, D_RW(root)->foo, TEST_RECURSION_NUM, 0, 1);
+		TX_CALL(foo, pop, D_RW(rt)->foo, SMALL_ALLOC,
+			TEST_RECURSION_NUM, ADD);
 		trap = 1;
-		foo_tx(pop, D_RW(root)->foo, TEST_RECURSION_NUM, 0, 1);
+		TX_CALL(foo, pop, D_RW(rt)->foo, SMALL_ALLOC,
+			TEST_RECURSION_NUM, ADD);
 	} TX_END
 }
 
 static void
 sc4_012_verify_abort(PMEMobjpool *pop)
 {
-	TOID(struct root) root = POBJ_ROOT(pop, struct root);
-	UT_ASSERTeq(D_RW(D_RW(root)->foo)->bar[0], 0);
+	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
+	UT_ASSERTeq(D_RW(D_RW(rt)->foo)->value[0], 0);
 }
 
 static void
 sc4_01_verify_commit(PMEMobjpool *pop)
 {
-	TOID(struct root) root = POBJ_ROOT(pop, struct root);
-	UT_ASSERTeq(D_RW(D_RW(root)->foo)->bar[0],
+	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
+	UT_ASSERTeq(D_RW(D_RW(rt)->foo)->value[0],
 		TEST_RECURSION_NUM * TEST_VALUE);
 }
 
 static void
 sc4_2_verify_commit(PMEMobjpool *pop)
 {
-	TOID(struct root) root = POBJ_ROOT(pop, struct root);
-	UT_ASSERTeq(D_RW(D_RW(root)->foo)->bar[0],
+	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
+	UT_ASSERTeq(D_RW(D_RW(rt)->foo)->value[0],
 		2 * TEST_RECURSION_NUM * TEST_VALUE);
 }
 
@@ -402,22 +367,23 @@ sc4_2_verify_commit(PMEMobjpool *pop)
 static void
 sc5_0_create(PMEMobjpool *pop)
 {
-	TOID(struct root) root = POBJ_ROOT(pop, struct root);
-	POBJ_ALLOC(pop, &D_RW(root)->foo, struct foo,
+	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
+	POBJ_ALLOC(pop, &D_RW(rt)->foo, struct foo,
 		sizeof(struct foo), NULL, NULL);
 	trap = 1;
-	foo_tx(pop, D_RW(root)->foo, TEST_RECURSION_NUM, 1, 1);
+	TX_CALL(foo, pop, D_RW(rt)->foo, SMALL_ALLOC, TEST_RECURSION_NUM, SET);
 }
 
 static void
 sc5_1_create(PMEMobjpool *pop)
 {
-	TOID(struct root) root = POBJ_ROOT(pop, struct root);
-	POBJ_ALLOC(pop, &D_RW(root)->foo, struct foo,
+	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
+	POBJ_ALLOC(pop, &D_RW(rt)->foo, struct foo,
 		sizeof(struct foo), NULL, NULL);
 
 	TX_BEGIN(pop) {
-		foo_tx(pop, D_RW(root)->foo, TEST_RECURSION_NUM, 1, 1);
+		TX_CALL(foo, pop, D_RW(rt)->foo, SMALL_ALLOC,
+			TEST_RECURSION_NUM, SET);
 		trap = 1;
 	} TX_END
 }
@@ -425,43 +391,45 @@ sc5_1_create(PMEMobjpool *pop)
 static void
 sc5_2_create(PMEMobjpool *pop)
 {
-	TOID(struct root) root = POBJ_ROOT(pop, struct root);
-	POBJ_ALLOC(pop, &D_RW(root)->foo, struct foo,
+	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
+	POBJ_ALLOC(pop, &D_RW(rt)->foo, struct foo,
 		sizeof(struct foo), NULL, NULL);
 
 	TX_BEGIN(pop) {
-		foo_tx(pop, D_RW(root)->foo, TEST_RECURSION_NUM, 1, 1);
+		TX_CALL(foo, pop, D_RW(rt)->foo, SMALL_ALLOC,
+			TEST_RECURSION_NUM, SET);
 		trap = 1;
-		foo_tx(pop, D_RW(root)->foo, TEST_RECURSION_NUM, 1, 1);
+		TX_CALL(foo, pop, D_RW(rt)->foo, SMALL_ALLOC,
+			TEST_RECURSION_NUM, SET);
 	} TX_END
 }
 
 static void
 sc5_012_verify_abort(PMEMobjpool *pop)
 {
-	TOID(struct root) root = POBJ_ROOT(pop, struct root);
+	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
 
 	for (int i = 0; i < SMALL_ALLOC; ++i)
-		UT_ASSERTeq(D_RW(D_RW(root)->foo)->bar[i], 0);
+		UT_ASSERTeq(D_RW(D_RW(rt)->foo)->value[i], 0);
 }
 
 static void
 sc5_01_verify_commit(PMEMobjpool *pop)
 {
-	TOID(struct root) root = POBJ_ROOT(pop, struct root);
+	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
 
 	for (int i = 0; i < SMALL_ALLOC; ++i)
-		UT_ASSERTeq(D_RW(D_RW(root)->foo)->bar[i],
+		UT_ASSERTeq(D_RW(D_RW(rt)->foo)->value[i],
 			TEST_RECURSION_NUM * TEST_VALUE);
 }
 
 static void
 sc5_2_verify_commit(PMEMobjpool *pop)
 {
-	TOID(struct root) root = POBJ_ROOT(pop, struct root);
+	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
 
 	for (int i = 0; i < SMALL_ALLOC; ++i)
-		UT_ASSERTeq(D_RW(D_RW(root)->foo)->bar[i],
+		UT_ASSERTeq(D_RW(D_RW(rt)->foo)->value[i],
 			2 * TEST_RECURSION_NUM * TEST_VALUE);
 }
 
@@ -471,11 +439,11 @@ sc5_2_verify_commit(PMEMobjpool *pop)
 static void
 sc6_create(PMEMobjpool *pop)
 {
-	TOID(struct root) root = POBJ_ROOT(pop, struct root);
+	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
 
 	TX_BEGIN(pop) {
-		TX_SET(root, foo, TX_NEW(struct foo));
-		TX_SET(root, bar, TX_NEW(struct bar));
+		TX_SET(rt, foo, TX_NEW(struct foo));
+		TX_SET(rt, bar, TX_NEW(struct bar));
 	} TX_ONABORT {
 		UT_ASSERT(0);
 	} TX_END
@@ -483,23 +451,23 @@ sc6_create(PMEMobjpool *pop)
 	trap = 1;
 
 	TX_BEGIN(pop) {
-		TX_FREE(D_RO(root)->foo);
-		TX_FREE(D_RO(root)->bar);
+		TX_FREE(D_RO(rt)->foo);
+		TX_FREE(D_RO(rt)->bar);
 	} TX_END
 }
 
 static void
 sc6_verify_abort(PMEMobjpool *pop)
 {
-	TOID(struct root) root = POBJ_ROOT(pop, struct root);
+	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
 
 	TX_BEGIN(pop) {
 	/*
 	 * If the free undo log didn't get unrolled then the next
 	 * free would fail due to the object being already freed.
 	 */
-		TX_FREE(D_RO(root)->foo);
-		TX_FREE(D_RO(root)->bar);
+		TX_FREE(D_RO(rt)->foo);
+		TX_FREE(D_RO(rt)->bar);
 	} TX_ONABORT {
 		UT_ASSERT(0);
 	} TX_END
@@ -508,13 +476,13 @@ sc6_verify_abort(PMEMobjpool *pop)
 static void
 sc6_verify_commit(PMEMobjpool *pop)
 {
-	TOID(struct root) root = POBJ_ROOT(pop, struct root);
+	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
 
 	TX_BEGIN(pop) {
 		TOID(struct foo) f = TX_NEW(struct foo);
-		UT_ASSERT(TOID_EQUALS(f, D_RO(root)->foo));
+		UT_ASSERT(TOID_EQUALS(f, D_RO(rt)->foo));
 		TOID(struct bar) b = TX_NEW(struct bar);
-		UT_ASSERT(TOID_EQUALS(b, D_RO(root)->bar));
+		UT_ASSERT(TOID_EQUALS(b, D_RO(rt)->bar));
 	} TX_ONABORT {
 		UT_ASSERT(0);
 	} TX_END
@@ -631,55 +599,60 @@ sc8_verify_commit(PMEMobjpool *pop)
 		UT_ASSERT(0);
 	} TX_END
 }
+
 /*
  * sc9_create -- multiply small and large set undo
  */
 static void
 sc9_create(PMEMobjpool *pop)
 {
-	TOID(struct root) root = POBJ_ROOT(pop, struct root);
-	POBJ_ALLOC(pop, &D_RW(root)->bar, struct bar,
+	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
+	POBJ_ALLOC(pop, &D_RW(rt)->bar, struct bar,
 		sizeof(struct bar), NULL, NULL);
-	POBJ_ALLOC(pop, &D_RW(root)->foo, struct foo,
+	POBJ_ALLOC(pop, &D_RW(rt)->foo, struct foo,
 		sizeof(struct foo), NULL, NULL);
 
 	TX_BEGIN(pop) {
-		foo_tx(pop, D_RW(root)->foo, TEST_RECURSION_NUM, 1, 1);
-		bar_tx(pop, D_RW(root)->bar, TEST_RECURSION_NUM, 1, 1);
-		root_tx(pop, root, TEST_RECURSION_NUM, 1, 1);
+		TX_CALL(foo, pop, D_RW(rt)->foo, SMALL_ALLOC,
+			TEST_RECURSION_NUM, SET);
+		TX_CALL(bar, pop, D_RW(rt)->bar, BIG_ALLOC, TEST_RECURSION_NUM,
+			SET);
+		TX_CALL(root, pop, rt, TEST_NVALUES, TEST_RECURSION_NUM, SET);
 		trap = 1;
-		foo_tx(pop, D_RW(root)->foo, TEST_RECURSION_NUM, 0, 1);
-		bar_tx(pop, D_RW(root)->bar, TEST_RECURSION_NUM, 0, 1);
-		root_tx(pop, root, TEST_RECURSION_NUM, 0, 1);
+		TX_CALL(foo, pop, D_RW(rt)->foo, SMALL_ALLOC,
+			TEST_RECURSION_NUM, ADD);
+		TX_CALL(bar, pop, D_RW(rt)->bar, BIG_ALLOC, TEST_RECURSION_NUM,
+			ADD);
+		TX_CALL(root, pop, rt, TEST_NVALUES, TEST_RECURSION_NUM, ADD);
 	} TX_END
 }
 
 static void
 sc9_verify_abort(PMEMobjpool *pop)
 {
-	TOID(struct root) root = POBJ_ROOT(pop, struct root);
+	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
 
 	for (int i = 0; i < SMALL_ALLOC; ++i)
-		UT_ASSERTeq(D_RW(D_RW(root)->foo)->bar[i], 0);
+		UT_ASSERTeq(D_RW(D_RW(rt)->foo)->value[i], 0);
 	for (int i = 0; i < BIG_ALLOC; ++i)
-		UT_ASSERTeq(D_RW(D_RW(root)->bar)->foo[i], 0);
+		UT_ASSERTeq(D_RW(D_RW(rt)->bar)->value[i], 0);
 	for (int i = 0; i < TEST_NVALUES; ++i)
-		UT_ASSERTeq(D_RW(root)->value[i], 0);
+		UT_ASSERTeq(D_RW(rt)->value[i], 0);
 }
 
 static void
 sc9_verify_commit(PMEMobjpool *pop)
 {
-	TOID(struct root) root = POBJ_ROOT(pop, struct root);
+	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
 
 	for (int i = 0; i < SMALL_ALLOC; ++i)
-		UT_ASSERTeq(D_RW(D_RW(root)->foo)->bar[i],
+		UT_ASSERTeq(D_RW(D_RW(rt)->foo)->value[i],
 			2 * TEST_RECURSION_NUM * TEST_VALUE);
 	for (int i = 0; i < BIG_ALLOC; ++i)
-		UT_ASSERTeq(D_RW(D_RW(root)->bar)->foo[i],
+		UT_ASSERTeq(D_RW(D_RW(rt)->bar)->value[i],
 			2 * TEST_RECURSION_NUM * TEST_VALUE);
 	for (int i = 0; i < TEST_NVALUES; ++i)
-		UT_ASSERTeq(D_RW(root)->value[i],
+		UT_ASSERTeq(D_RW(rt)->value[i],
 			2 * TEST_RECURSION_NUM * TEST_VALUE);
 }
 
