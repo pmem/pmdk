@@ -40,7 +40,7 @@ MANPAGES_3_MD = libpmem.3.md libpmemblk.3.md libpmemlog.3.md \
 	libpmemobj.3.md libpmempool.3.md libvmem.3.md libvmmalloc.3.md
 MANPAGES_1_MD = pmempool.1.md pmempool-info.1.md pmempool-create.1.md \
 	pmempool-check.1.md pmempool-dump.1.md pmempool-rm.1.md \
-	pmempool-convert.1.md
+	pmempool-convert.1.md pmempool-sync.1.md pmempool-transform.1.md
 
 MANPAGES_3_GROFF = $(MANPAGES_3_MD:.3.md=.3)
 MANPAGES_1_GROFF = $(MANPAGES_1_MD:.1.md=.1)

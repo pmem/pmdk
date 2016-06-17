@@ -29,18 +29,14 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+
 #
-# src/libpmempool.map -- linker map file for libpmempool
+# src/test/libpmempool_sync/Makefile -- build libpmempool sync tests
 #
-LIBPMEMPOOL_1.0 {
-	global:
-		pmempool_errormsg;
-		pmempool_check_version;
-		pmempool_check_init;
-		pmempool_check;
-		pmempool_check_end;
-		pmempool_transform;
-		pmempool_sync;
-	local:
-		*;
-};
+TARGET = libpmempool_sync
+OBJS = libpmempool_sync.o
+
+LIBPMEM=y
+LIBPMEMPOOL=y
+
+include ../Makefile.inc
