@@ -97,7 +97,8 @@ type ## _tx(PMEMobjpool *pop, TOID(struct type) var, int array_size, \
 		} \
  \
 		if (recursion >= 1) \
-			TEST_CALL(type, pop, var, array_size, recursion, oper); \
+			TEST_CALL(type, pop, var, array_size, recursion, \
+				oper); \
  \
 		for (int i = 0; i <= array_size; ++i) { \
 			if (oper == SET) \
@@ -304,7 +305,8 @@ sc4_0_create(PMEMobjpool *pop)
 	POBJ_ALLOC(pop, &D_RW(rt)->foo, struct foo,
 		sizeof(struct foo), NULL, NULL);
 	trap = 1;
-	TEST_CALL(foo, pop, D_RW(rt)->foo, SMALL_ALLOC, TEST_RECURSION_NUM, ADD);
+	TEST_CALL(foo, pop, D_RW(rt)->foo, SMALL_ALLOC, TEST_RECURSION_NUM,
+		ADD);
 }
 
 static void
@@ -370,7 +372,8 @@ sc5_0_create(PMEMobjpool *pop)
 	POBJ_ALLOC(pop, &D_RW(rt)->foo, struct foo,
 		sizeof(struct foo), NULL, NULL);
 	trap = 1;
-	TEST_CALL(foo, pop, D_RW(rt)->foo, SMALL_ALLOC, TEST_RECURSION_NUM, SET);
+	TEST_CALL(foo, pop, D_RW(rt)->foo, SMALL_ALLOC, TEST_RECURSION_NUM,
+		SET);
 }
 
 static void
@@ -614,14 +617,14 @@ sc9_create(PMEMobjpool *pop)
 	TX_BEGIN(pop) {
 		TEST_CALL(foo, pop, D_RW(rt)->foo, SMALL_ALLOC,
 			TEST_RECURSION_NUM, SET);
-		TEST_CALL(bar, pop, D_RW(rt)->bar, BIG_ALLOC, TEST_RECURSION_NUM,
-			SET);
+		TEST_CALL(bar, pop, D_RW(rt)->bar, BIG_ALLOC,
+			TEST_RECURSION_NUM, SET);
 		TEST_CALL(root, pop, rt, TEST_NVALUES, TEST_RECURSION_NUM, SET);
 		trap = 1;
 		TEST_CALL(foo, pop, D_RW(rt)->foo, SMALL_ALLOC,
 			TEST_RECURSION_NUM, ADD);
-		TEST_CALL(bar, pop, D_RW(rt)->bar, BIG_ALLOC, TEST_RECURSION_NUM,
-			ADD);
+		TEST_CALL(bar, pop, D_RW(rt)->bar, BIG_ALLOC,
+			TEST_RECURSION_NUM, ADD);
 		TEST_CALL(root, pop, rt, TEST_NVALUES, TEST_RECURSION_NUM, ADD);
 	} TX_END
 }
