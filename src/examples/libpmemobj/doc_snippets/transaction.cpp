@@ -52,13 +52,13 @@ uncaught_exceptions() noexcept
 #endif /* __cpp_lib_uncaught_exceptions */
 
 //! [general_tx_example]
-#include <libpmemobj/make_persistent.hpp>
-#include <libpmemobj/mutex.hpp>
-#include <libpmemobj/persistent_ptr.hpp>
-#include <libpmemobj/pext.hpp>
-#include <libpmemobj/pool.hpp>
-#include <libpmemobj/shared_mutex.hpp>
-#include <libpmemobj/transaction.hpp>
+#include <libpmemobj++/make_persistent.hpp>
+#include <libpmemobj++/mutex.hpp>
+#include <libpmemobj++/persistent_ptr.hpp>
+#include <libpmemobj++/pext.hpp>
+#include <libpmemobj++/pool.hpp>
+#include <libpmemobj++/shared_mutex.hpp>
+#include <libpmemobj++/transaction.hpp>
 
 using namespace nvml::obj;
 
@@ -103,13 +103,13 @@ general_tx_example()
 //! [general_tx_example]
 
 //! [manual_tx_example]
-#include <libpmemobj/make_persistent.hpp>
-#include <libpmemobj/mutex.hpp>
-#include <libpmemobj/persistent_ptr.hpp>
-#include <libpmemobj/pext.hpp>
-#include <libpmemobj/pool.hpp>
-#include <libpmemobj/shared_mutex.hpp>
-#include <libpmemobj/transaction.hpp>
+#include <libpmemobj++/make_persistent.hpp>
+#include <libpmemobj++/mutex.hpp>
+#include <libpmemobj++/persistent_ptr.hpp>
+#include <libpmemobj++/pext.hpp>
+#include <libpmemobj++/pool.hpp>
+#include <libpmemobj++/shared_mutex.hpp>
+#include <libpmemobj++/transaction.hpp>
 
 using namespace nvml::obj;
 
@@ -157,13 +157,13 @@ manual_tx_example()
 //! [manual_tx_example]
 
 //! [automatic_tx_example]
-#include <libpmemobj/make_persistent.hpp>
-#include <libpmemobj/mutex.hpp>
-#include <libpmemobj/persistent_ptr.hpp>
-#include <libpmemobj/pext.hpp>
-#include <libpmemobj/pool.hpp>
-#include <libpmemobj/shared_mutex.hpp>
-#include <libpmemobj/transaction.hpp>
+#include <libpmemobj++/make_persistent.hpp>
+#include <libpmemobj++/mutex.hpp>
+#include <libpmemobj++/persistent_ptr.hpp>
+#include <libpmemobj++/pext.hpp>
+#include <libpmemobj++/pool.hpp>
+#include <libpmemobj++/shared_mutex.hpp>
+#include <libpmemobj++/transaction.hpp>
 
 using namespace nvml::obj;
 
