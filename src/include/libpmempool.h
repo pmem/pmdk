@@ -159,6 +159,65 @@ const char *pmempool_check_version(unsigned major_required,
  */
 const char *pmempool_errormsg(void);
 
+
+/*
+ * LIBPMEMPOOL REPLICA
+ */
+
+/*
+ * pmempool_replica_opts - flags field
+ */
+/* do not apply changes, only check correctness of conversion */
+#define PMEMPOOL_REPLICA_VERIFY (1 << 0)
+/*
+ * when replica is renamed or localization is changed keep the original
+ * location
+ */
+#define PMEMPOOL_REPLICA_KEEP_ORIG (1 << 1)
+
+/*
+ * Macro which allows to initialize pmempool_replica_opts structure
+ * to copy one given replica into the other
+ */
+#define PMEMPOOL_ALL_PARTS(dst_repl, src_repl, flg) {\
+		.dst_rep = dst_repl,\
+		.src_rep = src_repl,\
+		.dst_part = -1,\
+		.src_part = -1,\
+		.flags = flg\
+	}
+/*
+ * Options for synchronizing replicas
+ */
+struct pmempool_replica_opts {
+	unsigned src_rep;	/* source replica number */
+	int src_part;	/* source part number */
+	unsigned dst_rep;	/* destination replica number */
+	int dst_part;	/* destination part number */
+
+	unsigned flags;	/* operational flags */
+};
+
+/*
+ * Synchronize replicas basing on parameters given by user.
+ * The direction of data transfer is set by 'replfrom' and 'replto' parameters.
+ * Replicas are numbered starting from 0 for primary replica. Part number
+ * may be specified when transfer to/from specific part is required. In this
+ * case part number has to be given either for 'partfrom' or 'partto'
+ * parameter. The other part parameter must be set to -1. When both
+ * 'partfrom' and 'partto' equal to -1 whole replica is copied.
+ */
+int pmempool_sync(const char *poolset,
+		struct pmempool_replica_opts *opts);
+
+/*
+ * Convert structure of pool set. This command allows to change localization
+ * of parts within replicas, rename parts and split or concatenate parts.
+ */
+int pmempool_transform(const char *poolset_in,
+		const char *poolset_out, unsigned flags);
+
+
 #ifdef __cplusplus
 }
 #endif

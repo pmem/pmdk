@@ -61,7 +61,9 @@ SOURCE =\
 	check_pool_hdr.c\
 	check_util.c\
 	check_write.c\
-	pool.c
+	pool.c\
+	replica.c\
+	sync.c
 
 LIBPMEMBLK_PRIV_FUNCS=btt_info_set btt_arena_datasize btt_flog_size\
 	btt_map_size btt_flog_get_valid map_entry_is_initial btt_info_convert2h\

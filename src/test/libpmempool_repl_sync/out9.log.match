@@ -1,0 +1,55 @@
+libpmempool_replica_sync/TEST9: START: libpmempool_repl_sync_mod
+ ./libpmempool_repl_sync_mod -w -s 16 -l OBJ_LAYOUT -d TestInitV_off1 -o 10485760 $(nW)/pool0.set
+libpmempool_replica_sync/TEST9: Done
+libpmempool_replica_sync/TEST9: START: libpmempool_repl_sync_mod
+ ./libpmempool_repl_sync_mod -w -s 16 -l OBJ_LAYOUT -d TestInitV_off2 -o 31457280 $(nW)/pool0.set
+libpmempool_replica_sync/TEST9: Done
+libpmempool_replica_sync/TEST9: START: libpmempool_repl_sync
+ ./libpmempool_repl_sync$(nW) -s -g 2 -w 0 -z 1 $(nW)/pool0.set
+Result: 0
+
+libpmempool_replica_sync/TEST9: Done
+libpmempool_replica_sync/TEST9: START: libpmempool_repl_sync_mod
+ ./libpmempool_repl_sync_mod -l OBJ_LAYOUT -s 16 -o 10485760 $(nW)/pool0.set
+TestInitV_off1
+libpmempool_replica_sync/TEST9: Done
+libpmempool_replica_sync/TEST9: START: libpmempool_repl_sync_mod
+ ./libpmempool_repl_sync_mod -l OBJ_LAYOUT -s 16 -o 31457280 $(nW)/pool0.set
+ModifiedDataCDE
+libpmempool_replica_sync/TEST9: Done
+POOL Header:
+Signature                : PMEMOBJ [part file]
+Major                    : $(N)
+Mandatory features       : 0x0
+Not mandatory features   : 0x0
+Forced RO                : 0x0
+Pool set UUID            : $(nW)
+UUID                     : $(nW)
+Previous part UUID       : $(nW)
+Next part UUID           : $(nW)
+Previous replica UUID    : $(nW)
+Next replica UUID        : $(nW)
+Creation Time            : $(*)
+Alignment Descriptor     : $(XX) [OK]
+Class                    : ELF64
+Data                     : 2's complement, $(S)
+Machine                  : $(*)
+Checksum                 : $(XX) [OK]
+POOL Header:
+Signature                : PMEMOBJ [part file]
+Major                    : $(N)
+Mandatory features       : 0x0
+Not mandatory features   : 0x0
+Forced RO                : 0x0
+Pool set UUID            : $(nW)
+UUID                     : $(nW)
+Previous part UUID       : $(nW)
+Next part UUID           : $(nW)
+Previous replica UUID    : $(nW)
+Next replica UUID        : $(nW)
+Creation Time            : $(*)
+Alignment Descriptor     : $(XX) [OK]
+Class                    : ELF64
+Data                     : 2's complement, $(S)
+Machine                  : $(*)
+Checksum                 : $(XX) [OK]

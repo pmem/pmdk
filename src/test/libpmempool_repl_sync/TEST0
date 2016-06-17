@@ -1,0 +1,153 @@
+#!/bin/bash -e
+#
+# Copyright 2016, Intel Corporation
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#
+#     * Redistributions of source code must retain the above copyright
+#       notice, this list of conditions and the following disclaimer.
+#
+#     * Redistributions in binary form must reproduce the above copyright
+#       notice, this list of conditions and the following disclaimer in
+#       the documentation and/or other materials provided with the
+#       distribution.
+#
+#     * Neither the name of the copyright holder nor the names of its
+#       contributors may be used to endorse or promote products derived
+#       from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+# OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+#
+# libpmempool_replica_sync/TEST0 -- test for checking replica sync
+#
+export UNITTEST_NAME=libpmempool_replica_sync/TEST0
+export UNITTEST_NUM=0
+
+. ../unittest/unittest.sh
+
+require_fs_type pmem any
+
+setup
+
+LOG=out${UNITTEST_NUM}.log
+LOG_TEMP=out${UNITTEST_NUM}_part.log
+rm -rf $LOG && touch $LOG
+rm -rf $LOG_TEMP && touch $LOG_TEMP
+
+LAYOUT=OBJ_LAYOUT
+POOLSET=$DIR/pool0.set
+M=$(( 1024 * 1024 ))
+M20=$(( 20 * $M ))
+M40=$(( 40 * $M ))
+POOL_HEADER_OFFSET=4096
+ADDR_MASK=0xFFFFF000
+FILES=(testfile1 testfile2 testfile3 testfile4 testfile5)
+
+echo $DIR/${FILES[0]}
+# Create poolset
+create_poolset $POOLSET\
+	20M:$DIR/${FILES[0]}:z:20M:0777 20M:$DIR/${FILES[1]}:z:20M:0777\
+		21M:$DIR/${FILES[2]}:z:21M:0777\
+	R 40M:$DIR/${FILES[3]}:z:40M:0777 20M:$DIR/${FILES[4]}:z:20M:0777
+
+expect_normal_exit $PMEMPOOL$EXESUFFIX create --layout=$LAYOUT\
+	obj $POOLSET
+cat $LOG >> $LOG_TEMP
+
+
+# Write some data at 0, 20 and 40 MB
+expect_normal_exit ./libpmempool_repl_sync_mod\
+	-w -s 16 -l $LAYOUT -d "TestOK111" -o 0 $POOLSET
+cat $LOG >> $LOG_TEMP
+expect_normal_exit ./libpmempool_repl_sync_mod\
+	-w -s 16 -l $LAYOUT -d "TestOK222" -o $M20 $POOLSET
+cat $LOG >> $LOG_TEMP
+expect_normal_exit ./libpmempool_repl_sync_mod\
+	-w -s 16 -l $LAYOUT -d "TestOK333" -o $M40 $POOLSET
+cat $LOG >> $LOG_TEMP
+
+
+# Check if correctly written
+expect_normal_exit ./libpmempool_repl_sync_mod\
+	-l $LAYOUT -s 10 -o 0 $POOLSET
+cat $LOG >> $LOG_TEMP
+expect_normal_exit ./libpmempool_repl_sync_mod\
+	-l $LAYOUT -s 10 -o $M20 $POOLSET
+cat $LOG >> $LOG_TEMP
+expect_normal_exit ./libpmempool_repl_sync_mod\
+	-l $LAYOUT -s 10 -o $M40 $POOLSET
+cat $LOG >> $LOG_TEMP
+
+# Find root offset
+ROOT_ADDR=$($PMEMPOOL info -f obj -o $DIR/${FILES[0]} | grep "Root offset" |\
+	sed 's/^Root offset[ \t]*: 0x\([0-9][0-9]*\)/\1/')
+ROOT_ADDR=$((16#$ROOT_ADDR))
+
+# Calculate offsets
+FILE_SIZE_P1=$(stat -c%s "$DIR/${FILES[0]}")
+DATASIZE_FIRST_PART=$(( ($FILE_SIZE_P1 & $ADDR_MASK) - $ROOT_ADDR ))
+OFFSET_P2=$(( $M20 - $DATASIZE_FIRST_PART + $POOL_HEADER_OFFSET ))
+
+FILE_SIZE_P2=$(stat -c%s "$DIR/${FILES[1]}")
+DATASIZE_SECOND_PART=$(( ($FILE_SIZE_P2 & $ADDR_MASK) - $POOL_HEADER_OFFSET ))
+OFFSET_P3=$(( $M40 - ($DATASIZE_FIRST_PART + DATASIZE_SECOND_PART)\
+	+ $POOL_HEADER_OFFSET ))
+
+# Corrupt data in primary replica
+echo "Wrong1234" | dd count=10 bs=1 seek=$ROOT_ADDR\
+	of=$DIR/${FILES[0]} conv=notrunc status=none
+echo "Wrong5678" | dd count=10 bs=1 seek=$OFFSET_P2\
+	of=$DIR/${FILES[1]} conv=notrunc status=none
+echo "Wrong9ABC" | dd count=10 bs=1 seek=$OFFSET_P3\
+	of=$DIR/${FILES[2]} conv=notrunc status=none
+
+# Check if corrupted
+expect_normal_exit ./libpmempool_repl_sync_mod\
+	-l $LAYOUT -s 10 -o 0 $POOLSET
+cat $LOG >> $LOG_TEMP
+expect_normal_exit ./libpmempool_repl_sync_mod\
+	-l $LAYOUT -s 10 -o $M20 $POOLSET
+cat $LOG >> $LOG_TEMP
+expect_normal_exit ./libpmempool_repl_sync_mod\
+	-l $LAYOUT -s 10 -o $M40 $POOLSET
+cat $LOG >> $LOG_TEMP
+
+# Copy relica 1 into primary replica 0
+expect_normal_exit ./libpmempool_repl_sync$EXESUFFIX -s -g 1 -w 0\
+	$POOLSET >> $LOG
+cat $LOG >> $LOG_TEMP
+
+# Check if correctly copied
+expect_normal_exit ./libpmempool_repl_sync_mod\
+	-l $LAYOUT -s 10 -o 0 $POOLSET
+cat $LOG >> $LOG_TEMP
+expect_normal_exit ./libpmempool_repl_sync_mod\
+	-l $LAYOUT -s 10 -o $M20 $POOLSET
+cat $LOG >> $LOG_TEMP
+expect_normal_exit ./libpmempool_repl_sync_mod\
+	-l $LAYOUT -s 10 -o $M40 $POOLSET
+cat $LOG >> $LOG_TEMP
+
+# Check metadata by pmempool info
+for NAME in ${FILES[*]}
+do
+	$PMEMPOOL info $DIR/$NAME >> $LOG_TEMP
+done
+
+mv $LOG_TEMP $LOG
+check
+
+pass

@@ -2464,3 +2464,17 @@ err_close:
 	close(fd);
 	return size;
 }
+
+/*
+ * part_fdclose -- close all parts of given replica
+ */
+void
+util_part_fdclose(struct pool_replica *rep)
+{
+	for (unsigned p = 0; p < rep->nparts; p++) {
+		struct pool_set_part *part = &rep->part[p];
+
+		if (part->fd != -1)
+			close(part->fd);
+	}
+}
