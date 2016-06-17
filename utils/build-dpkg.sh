@@ -539,6 +539,10 @@ usr/share/man/man1/pmempool-rm.1.gz
 etc/bash_completion.d/pmempool.sh
 EOF
 
+cat << EOF > debian/$PACKAGE_NAME-tools.install
+usr/share/man/man1/rpmemd.1.gz
+EOF
+
 cat << EOF > debian/$PACKAGE_NAME-tools.triggers
 interest man-db
 EOF

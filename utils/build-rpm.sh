@@ -365,6 +365,8 @@ Usefull applications for administration and diagnostic purposes.
 %{_mandir}/man1/pmempool-rm.1.gz
 %{_sysconfdir}/bash_completion.d/pmempool.sh
 
+%{_mandir}/man1/rpmemd.1.gz
+
 %prep
 %setup -q -n $PACKAGE_SOURCE
 

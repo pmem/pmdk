@@ -39,15 +39,17 @@ include ../src/common.inc
 MANPAGES_3 = libpmem.3.md libpmemblk.3.md libpmemlog.3.md libpmemobj.3.md libvmem.3.md \
 	libvmmalloc.3.md
 MANPAGES_1 = pmempool.1.md pmempool-info.1.md pmempool-create.1.md \
-	pmempool-check.1.md pmempool-dump.1.md pmempool-rm.1.md
+	pmempool-check.1.md pmempool-dump.1.md pmempool-rm.1.md rpmemd.1.md
 MANPAGES_3_NOINSTALL = librpmem.3
-MANPAGES_1_NOINSTALL = rpmemd.1
+MANPAGES_1_NOINSTALL =
 MANPAGES = $(MANPAGES_1) $(MANPAGES_3)\
 	   $(MANPAGES_1_NOINSTALL) $(MANPAGES_3_NOINSTALL)
 
 MANPAGES_GROFF_3 = $(MANPAGES_3:.3.md=.3)
 MANPAGES_GROFF_1 = $(MANPAGES_1:.1.md=.1)
+MANPAGES_GROFF = $(MANPAGES_GROFF_1) $(MANPAGES_GROFF_3)
 
+TXTFILES = $(MANPAGES_GROFF:=.txt)
 HTMLFILES = $(MANPAGES:=.html)
 GZFILES_1 = $(MANPAGES_GROFF_1:=.gz)
 GZFILES_3 = $(MANPAGES_GROFF_3:=.gz)
@@ -69,7 +71,7 @@ all: $(TXTFILES)
 %.txt: %
 	man ./$< > $@
 
-groff: $(MANPAGES_GROFF_3) $(MANPAGES_GROFF_1)
+groff: $(MANPAGES_GROFF)
 
 doxygen_docs:
 	doxygen cppobj.Doxyfile
