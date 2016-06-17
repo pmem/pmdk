@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,30 +31,12 @@
 #
 
 #
-# examples/libpmemobj/Makefile -- build the libpmemobj examples
+# examples/libpmemobj/list_map/Makefile -- build the list map example
 #
-include ../../common.inc
+LIBRARIES = skiplist_map
 
-PROGS = manpage btree pi lists
-DIRS = pminvaders pmemlog pmemblk string_store string_store_tx\
-	string_store_tx_type hashmap tree_map pmemobjfs map libart array\
-	linkedlist list_map
+LIBS = -lpmemobj -pthread
 
-ifeq ($(call cxx_ok), y)
-DIRS += cpp pman cpp_map panaconda doc_snippets
-else
-$(info NOTE: Skipping C++ examples because of compiler issues)
-endif
+include ../../Makefile.inc
 
-LIBS = -lpmemobj -lpmem -pthread -lm -pthread
-
-include ../Makefile.inc
-
-map: hashmap tree_map
-pmemobjfs: map
-
-manpage: manpage.o
-btree: btree.o
-pi: pi.o
-queue: queue.o
-lists: lists.o
+libskiplist_map.o: skiplist_map.o

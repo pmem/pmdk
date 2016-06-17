@@ -49,6 +49,7 @@
 #include "map_rbtree.h"
 #include "map_hashmap_atomic.h"
 #include "map_hashmap_tx.h"
+#include "map_skiplist.h"
 
 #include "kv_protocol.h"
 
@@ -396,7 +397,8 @@ static const struct {
 	{MAP_HASHMAP_ATOMIC, "hashmap_atomic"},
 	{MAP_CTREE, "ctree"},
 	{MAP_BTREE, "btree"},
-	{MAP_RBTREE, "rbtree"}
+	{MAP_RBTREE, "rbtree"},
+	{MAP_SKIPLIST, "skiplist"}
 };
 
 /*
@@ -420,8 +422,8 @@ int
 main(int argc, char *argv[])
 {
 	if (argc < 4) {
-		printf("usage: %s hashmap_tx|hashmap_atomic|ctree|btree|rbtree"
-				" file-name port\n", argv[0]);
+		printf("usage: %s hashmap_tx|hashmap_atomic|ctree|btree|"
+				"rbtree|skiplist file-name port\n", argv[0]);
 		return 1;
 	}
 

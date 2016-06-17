@@ -46,6 +46,7 @@
 #include "map_rbtree.h"
 #include "map_hashmap_atomic.h"
 #include "map_hashmap_tx.h"
+#include "map_skiplist.h"
 #include "hashmap/hashmap.h"
 
 #define PM_HASHSET_POOL_SIZE	(160 * 1024 * 1024)
@@ -201,7 +202,8 @@ int
 main(int argc, char *argv[])
 {
 	if (argc < 3 || argc > 4) {
-		printf("usage: %s hashmap_tx|hashmap_atomic|ctree|btree|rbtree"
+		printf("usage: %s "
+			"hashmap_tx|hashmap_atomic|ctree|btree|rbtree|skiplist"
 				" file-name [<seed>]\n", argv[0]);
 		return 1;
 	}
@@ -219,6 +221,8 @@ main(int argc, char *argv[])
 		ops = MAP_BTREE;
 	} else if (strcmp(type, "rbtree") == 0) {
 		ops = MAP_RBTREE;
+	} else if (strcmp(type, "skiplist") == 0) {
+		ops = MAP_SKIPLIST;
 	} else {
 		fprintf(stderr, "invalid hasmap type -- '%s'\n", type);
 		return 1;
