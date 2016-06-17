@@ -1,0 +1,51 @@
+libpmempool_sync/TEST0: START: libpmempool_mod_check_test
+ ./libpmempool_mod_check_test -w -s 16 -l OBJ_LAYOUT -d TestOK111 -o 0 -r 57671680 /tmp/test_libpmempool_sync0/pool0.set
+libpmempool_sync/TEST0: Done
+libpmempool_sync/TEST0: START: libpmempool_mod_check_test
+ ./libpmempool_mod_check_test -w -s 16 -l OBJ_LAYOUT -d TestOK222 -o 20971520 -r 57671680 /tmp/test_libpmempool_sync0/pool0.set
+libpmempool_sync/TEST0: Done
+libpmempool_sync/TEST0: START: libpmempool_mod_check_test
+ ./libpmempool_mod_check_test -w -s 16 -l OBJ_LAYOUT -d TestOK333 -o 41943040 -r 57671680 /tmp/test_libpmempool_sync0/pool0.set
+libpmempool_sync/TEST0: Done
+libpmempool_sync/TEST0: START: libpmempool_mod_check_test
+ ./libpmempool_mod_check_test -l OBJ_LAYOUT -s 10 -o 0 -r 57671680 /tmp/test_libpmempool_sync0/pool0.set
+TestOK111
+libpmempool_sync/TEST0: Done
+libpmempool_sync/TEST0: START: libpmempool_mod_check_test
+ ./libpmempool_mod_check_test -l OBJ_LAYOUT -s 10 -o 20971520 -r 57671680 /tmp/test_libpmempool_sync0/pool0.set
+TestOK222
+libpmempool_sync/TEST0: Done
+libpmempool_sync/TEST0: START: libpmempool_mod_check_test
+ ./libpmempool_mod_check_test -l OBJ_LAYOUT -s 10 -o 41943040 -r 57671680 /tmp/test_libpmempool_sync0/pool0.set
+TestOK333
+libpmempool_sync/TEST0: Done
+libpmempool_sync/TEST0: START: libpmempool_mod_check_test
+ ./libpmempool_mod_check_test -l OBJ_LAYOUT -s 10 -o 0 -r 57671680 /tmp/test_libpmempool_sync0/pool0.set
+Wrong1234
+libpmempool_sync/TEST0: Done
+libpmempool_sync/TEST0: START: libpmempool_mod_check_test
+ ./libpmempool_mod_check_test -l OBJ_LAYOUT -s 10 -o 20971520 -r 57671680 /tmp/test_libpmempool_sync0/pool0.set
+Wrong5678
+libpmempool_sync/TEST0: Done
+libpmempool_sync/TEST0: START: libpmempool_mod_check_test
+ ./libpmempool_mod_check_test -l OBJ_LAYOUT -s 10 -o 41943040 -r 57671680 /tmp/test_libpmempool_sync0/pool0.set
+Wrong9ABC
+libpmempool_sync/TEST0: Done
+UUID                     : 30303030-3030-3030-3030-303030303030
+libpmempool_sync/TEST0: START: libpmempool_mod_test
+ ./libpmempool_sync_test$(nW) /tmp/test_libpmempool_sync0/pool0.set
+Result: 0
+
+libpmempool_sync/TEST0: Done
+libpmempool_sync/TEST0: START: libpmempool_mod_check_test
+ ./libpmempool_mod_check_test -l OBJ_LAYOUT -s 10 -o 0 -r 57671680 /tmp/test_libpmempool_sync0/pool0.set
+TestOK111
+libpmempool_sync/TEST0: Done
+libpmempool_sync/TEST0: START: libpmempool_mod_check_test
+ ./libpmempool_mod_check_test -l OBJ_LAYOUT -s 10 -o 20971520 -r 57671680 /tmp/test_libpmempool_sync0/pool0.set
+TestOK222
+libpmempool_sync/TEST0: Done
+libpmempool_sync/TEST0: START: libpmempool_mod_check_test
+ ./libpmempool_mod_check_test -l OBJ_LAYOUT -s 10 -o 41943040 -r 57671680 /tmp/test_libpmempool_sync0/pool0.set
+TestOK333
+libpmempool_sync/TEST0: Done

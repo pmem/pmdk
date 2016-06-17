@@ -1,0 +1,38 @@
+libpmempool_sync/TEST1: START: libpmempool_mod_check_test
+ ./libpmempool_mod_check_test -w -s 16 -l OBJ_LAYOUT -d TestOK111 -o 0 -r 57671680 /tmp/test_libpmempool_sync1/pool0.set
+libpmempool_sync/TEST1: Done
+libpmempool_sync/TEST1: START: libpmempool_mod_check_test
+ ./libpmempool_mod_check_test -w -s 16 -l OBJ_LAYOUT -d TestOK222 -o 20971520 -r 57671680 /tmp/test_libpmempool_sync1/pool0.set
+libpmempool_sync/TEST1: Done
+libpmempool_sync/TEST1: START: libpmempool_mod_check_test
+ ./libpmempool_mod_check_test -w -s 16 -l OBJ_LAYOUT -d TestOK333 -o 41943040 -r 57671680 /tmp/test_libpmempool_sync1/pool0.set
+libpmempool_sync/TEST1: Done
+libpmempool_sync/TEST1: START: libpmempool_mod_check_test
+ ./libpmempool_mod_check_test -l OBJ_LAYOUT -s 10 -o 0 -r 57671680 /tmp/test_libpmempool_sync1/pool0.set
+TestOK111
+libpmempool_sync/TEST1: Done
+libpmempool_sync/TEST1: START: libpmempool_mod_check_test
+ ./libpmempool_mod_check_test -l OBJ_LAYOUT -s 10 -o 20971520 -r 57671680 /tmp/test_libpmempool_sync1/pool0.set
+TestOK222
+libpmempool_sync/TEST1: Done
+libpmempool_sync/TEST1: START: libpmempool_mod_check_test
+ ./libpmempool_mod_check_test -l OBJ_LAYOUT -s 10 -o 41943040 -r 57671680 /tmp/test_libpmempool_sync1/pool0.set
+TestOK333
+libpmempool_sync/TEST1: Done
+libpmempool_sync/TEST1: START: libpmempool_mod_test
+ ./libpmempool_sync_test$(nW) /tmp/test_libpmempool_sync1/pool0.set
+Result: 0
+
+libpmempool_sync/TEST1: Done
+libpmempool_sync/TEST1: START: libpmempool_mod_check_test
+ ./libpmempool_mod_check_test -l OBJ_LAYOUT -s 10 -o 0 -r 57671680 /tmp/test_libpmempool_sync1/pool0.set
+TestOK111
+libpmempool_sync/TEST1: Done
+libpmempool_sync/TEST1: START: libpmempool_mod_check_test
+ ./libpmempool_mod_check_test -l OBJ_LAYOUT -s 10 -o 20971520 -r 57671680 /tmp/test_libpmempool_sync1/pool0.set
+TestOK222
+libpmempool_sync/TEST1: Done
+libpmempool_sync/TEST1: START: libpmempool_mod_check_test
+ ./libpmempool_mod_check_test -l OBJ_LAYOUT -s 10 -o 41943040 -r 57671680 /tmp/test_libpmempool_sync1/pool0.set
+TestOK333
+libpmempool_sync/TEST1: Done

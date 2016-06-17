@@ -1,0 +1,54 @@
+libpmempool_transform/TEST0: START: libpmempool_mod_check_test
+ ../libpmempool_sync/libpmempool_mod_check_test -w -s 16 -l OBJ_LAYOUT -d TestOK111 -o 0 -r 26214400 /tmp/test_libpmempool_transform0/poolset.in
+libpmempool_transform/TEST0: Done
+libpmempool_transform/TEST0: START: libpmempool_mod_check_test
+ ../libpmempool_sync/libpmempool_mod_check_test -w -s 16 -l OBJ_LAYOUT -d TestOK222 -o 20971520 -r 26214400 /tmp/test_libpmempool_transform0/poolset.in
+libpmempool_transform/TEST0: Done
+libpmempool_transform/TEST0: START: libpmempool_mod_test
+ ./libpmempool_transform_test$(nW) /tmp/test_libpmempool_transform0/poolset.in /tmp/test_libpmempool_transform0/poolset.out
+Result: 0
+
+libpmempool_transform/TEST0: Done
+libpmempool_transform/TEST0: START: libpmempool_mod_check_test
+ ../libpmempool_sync/libpmempool_mod_check_test -l OBJ_LAYOUT -s 16 -o 0 -r 26214400 /tmp/test_libpmempool_transform0/poolset.out
+TestOK111
+libpmempool_transform/TEST0: Done
+libpmempool_transform/TEST0: START: libpmempool_mod_check_test
+ ../libpmempool_sync/libpmempool_mod_check_test -l OBJ_LAYOUT -s 16 -o 20971520 -r 26214400 /tmp/test_libpmempool_transform0/poolset.out
+TestOK222
+libpmempool_transform/TEST0: Done
+POOL Header:
+Signature                : PMEMOBJ [part file]
+Major                    : 2
+Mandatory features       : 0x0
+Not mandatory features   : 0x0
+Forced RO                : 0x0
+Pool set UUID            : $(nW)
+POOL Header:
+Signature                : PMEMOBJ [part file]
+Major                    : 2
+Mandatory features       : 0x0
+Not mandatory features   : 0x0
+Forced RO                : 0x0
+Pool set UUID            : $(nW)
+POOL Header:
+Signature                : PMEMOBJ [part file]
+Major                    : 2
+Mandatory features       : 0x0
+Not mandatory features   : 0x0
+Forced RO                : 0x0
+Pool set UUID            : $(nW)
+POOL Header:
+Signature                : PMEMOBJ [part file]
+Major                    : 2
+Mandatory features       : 0x0
+Not mandatory features   : 0x0
+Forced RO                : 0x0
+Pool set UUID            : $(nW)
+POOL Header:
+Signature                : PMEMOBJ [part file]
+Major                    : 2
+Mandatory features       : 0x0
+Not mandatory features   : 0x0
+Forced RO                : 0x0
+Pool set UUID            : $(nW)

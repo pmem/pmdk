@@ -29,18 +29,27 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+
 #
-# src/libpmempool.map -- linker map file for libpmempool
+# src/test/libpmempool_sync/Makefile -- build pmempool_mod_test for libpmempool
+#                                       sync and transform tests
 #
-LIBPMEMPOOL_1.0 {
-	global:
-		pmempool_errormsg;
-		pmempool_check_version;
-		pmempool_check_init;
-		pmempool_check;
-		pmempool_check_end;
-		pmempool_transform;
-		pmempool_sync;
-	local:
-		*;
-};
+TARGET = libpmempool_sync_test
+OBJS = libpmempool_sync_test.o
+
+LIBPMEM=y
+LIBPMEMPOOL=y
+LIBPMEMOBJ=y
+
+include ../Makefile.inc
+
+libpmempool_mod_check_test: libpmempool_mod_check_test.o
+	$(LINKER) -o $@ $(LDFLAGS) libpmempool_mod_check_test.o \
+	$(STATIC_DEBUG_LIBS) $(LIBS)
+
+all: libpmempool_mod_check_test
+
+clobber_local:
+	$(RM) libpmempool_mod_check_test
+
+clobber: clobber_local

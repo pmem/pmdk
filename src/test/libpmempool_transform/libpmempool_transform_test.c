@@ -31,41 +31,62 @@
  */
 
 /*
- * util_is_poolset.c -- unit test for util_is_poolset
+ * libpmempool_repl_sync -- Placeholder for testing libpmempool replica.
  *
- * usage: util_is_poolset file
  */
 
-#include "unittest.h"
-#include "set.h"
-#include "pmemcommon.h"
-#include <errno.h>
+#include <stddef.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <stdio.h>
 
-#define LOG_PREFIX "ut"
-#define LOG_LEVEL_VAR "TEST_LOG_LEVEL"
-#define LOG_FILE_VAR "TEST_LOG_FILE"
-#define MAJOR_VERSION 1
-#define MINOR_VERSION 0
+#include "unittest.h"
+
+/*
+ * print_usage -- print usage of program
+ */
+static void
+print_usage(char *name)
+{
+	UT_OUT("Usage: %s [-f <flags>]"
+			"<poolset_in_path> <poolset_out_path>\n", name);
+}
 
 int
 main(int argc, char *argv[])
 {
-	START(argc, argv, "util_is_poolset");
+	int res;
+	START(argc, argv, "libpmempool_mod_test");
+	int opt;
 
-	common_init(LOG_PREFIX, LOG_LEVEL_VAR, LOG_FILE_VAR,
-			MAJOR_VERSION, MINOR_VERSION);
+	char *poolset_file_src = NULL;
+	char *poolset_file_dst = NULL;
+	unsigned flags = 0;
 
-	if (argc < 2)
-		UT_FATAL("usage: %s file...",
-			argv[0]);
 
-	for (int i = 1; i < argc; i++) {
-		char *fname = argv[i];
-		int is_poolset = util_is_poolset_file(fname);
-
-		UT_OUT("util_is_poolset(%s): %d", fname, is_poolset);
+	while ((opt = getopt(argc, argv, "stw:g:f:i:z:d:")) != -1) {
+		switch (opt) {
+		case 'f':
+			flags = (unsigned)strtoul(optarg, NULL, 0);
+			break;
+		default:
+			print_usage(argv[0]);
+			return -1;
+		}
 	}
-	common_fini();
+
+	if (optind + 1 < argc) {
+		poolset_file_src = argv[optind];
+		poolset_file_dst = argv[optind + 1];
+	} else {
+		print_usage(argv[0]);
+	}
+	res = pmempool_transform(poolset_file_src, poolset_file_dst,
+			flags);
+
+	UT_OUT("Result: %d\n", res);
+	if (res)
+		UT_OUT("%s\n", strerror(errno));
 
 	DONE(NULL);
 }

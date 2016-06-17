@@ -252,3 +252,19 @@ util_init(void)
 	_On_valgrind = RUNNING_ON_VALGRIND;
 #endif
 }
+
+/*
+ * util_concat_str -- concatenate two strings
+ */
+char *
+util_concat_str(const char *s1, const char *s2)
+{
+	char *result = malloc(strlen(s1) + strlen(s2) + 1);
+	if (!result)
+		return NULL;
+
+	strcpy(result, s1);
+	strcat(result, s2);
+
+	return result;
+}

@@ -1,0 +1,125 @@
+#!/bin/bash -e
+#
+# Copyright 2016, Intel Corporation
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#
+#     * Redistributions of source code must retain the above copyright
+#       notice, this list of conditions and the following disclaimer.
+#
+#     * Redistributions in binary form must reproduce the above copyright
+#       notice, this list of conditions and the following disclaimer in
+#       the documentation and/or other materials provided with the
+#       distribution.
+#
+#     * Neither the name of the copyright holder nor the names of its
+#       contributors may be used to endorse or promote products derived
+#       from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+# OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+#
+# libpmempool_repl_transform/TEST0 -- test for checking replica transform
+#
+export UNITTEST_NAME=libpmempool_transform/TEST1
+export UNITTEST_NUM=1
+
+. ../unittest/unittest.sh
+
+require_fs_type pmem any
+
+setup
+
+# 25MB
+DATA_LEN=$((25*1024*1024))
+
+LOG=out${UNITTEST_NUM}.log
+LOG_TEMP=out${UNITTEST_NUM}_part.log
+rm -rf $LOG && touch $LOG
+rm -rf $LOG_TEMP && touch $LOG_TEMP
+
+LAYOUT=OBJ_LAYOUT
+POOLSET_IN=$DIR/poolset.in
+POOLSET_OUT=$DIR/poolset.out
+M=$(( 1024 * 1024 ))
+M10=$(( 10 * $M ))
+M20=$(( 20 * $M ))
+
+declare FILES_IN=( "testfile0" "testfile1" "testfile2" "testfile3" "testfile4" )
+declare FILES_IN_SIZE=( "20M" "10M" "10M" "10M" "10M" )
+
+declare FILES_OUT=( "testfile0" "testfile1" "testfile2" "testfile3" "testfile4"\
+	 "testfile5" "testfile6" )
+declare FILES_OUT_SIZE=( "20M" "10M" "10M" "10M" "10M" "20M" "20M" )
+
+
+# Create poolset
+create_poolset $POOLSET_IN\
+	${FILES_IN_SIZE[0]}:$DIR/${FILES_IN[0]}:z:${FILES_IN_SIZE[0]}:0777\
+	${FILES_IN_SIZE[1]}:$DIR/${FILES_IN[1]}:z:${FILES_IN_SIZE[1]}:0777\
+	R\
+	${FILES_IN_SIZE[2]}:$DIR/${FILES_IN[2]}:z:${FILES_IN_SIZE[2]}:0777\
+	${FILES_IN_SIZE[3]}:$DIR/${FILES_IN[3]}:z:${FILES_IN_SIZE[3]}:0777\
+	${FILES_IN_SIZE[4]}:$DIR/${FILES_IN[4]}:z:${FILES_IN_SIZE[4]}:0777
+
+# Create only poolset file
+echo PMEMPOOLSET >> $POOLSET_OUT
+echo -e	${FILES_OUT_SIZE[0]} $DIR/${FILES_OUT[0]} >> $POOLSET_OUT
+echo -e	${FILES_OUT_SIZE[1]} $DIR/${FILES_OUT[1]} >> $POOLSET_OUT
+echo REPLICA >> $POOLSET_OUT
+echo -e	${FILES_OUT_SIZE[2]} $DIR/${FILES_OUT[2]} >> $POOLSET_OUT
+echo -e	${FILES_OUT_SIZE[3]} $DIR/${FILES_OUT[3]} >> $POOLSET_OUT
+echo -e	${FILES_OUT_SIZE[4]} $DIR/${FILES_OUT[4]} >> $POOLSET_OUT
+echo REPLICA >> $POOLSET_OUT
+echo -e	${FILES_OUT_SIZE[5]} $DIR/${FILES_OUT[5]} >> $POOLSET_OUT
+echo -e	${FILES_OUT_SIZE[6]} $DIR/${FILES_OUT[6]} >> $POOLSET_OUT
+
+# Create a pool
+expect_normal_exit $PMEMPOOL$EXESUFFIX create --layout=$LAYOUT\
+	obj $POOLSET_IN
+cat $LOG >> $LOG_TEMP
+
+off0=$((5 * $M))
+off1=$((25 * $M))
+expect_normal_exit ../libpmempool_sync/libpmempool_mod_check_test\
+	-w -s 16 -l $LAYOUT -d "TestOK111" -o 0 -r $DATA_LEN $POOLSET_IN
+cat $LOG >> $LOG_TEMP
+expect_normal_exit ../libpmempool_sync/libpmempool_mod_check_test\
+	-w -s 16 -l $LAYOUT -d "TestOK222" -o $M20 -r $DATA_LEN $POOLSET_IN
+cat $LOG >> $LOG_TEMP
+
+# Transform poolset
+expect_normal_exit ./libpmempool_transform_test$EXESUFFIX \
+	$POOLSET_IN $POOLSET_OUT >> $LOG
+cat $LOG >> $LOG_TEMP
+
+# Check if correctly copied
+expect_normal_exit ../libpmempool_sync/libpmempool_mod_check_test\
+	-l $LAYOUT -s 16 -o 0 -r $DATA_LEN $POOLSET_OUT
+cat $LOG >> $LOG_TEMP
+expect_normal_exit ../libpmempool_sync/libpmempool_mod_check_test\
+	-l $LAYOUT -s 16 -o $M20 -r $DATA_LEN $POOLSET_OUT
+cat $LOG >> $LOG_TEMP
+
+# Check metadata by pmempool info
+for NAME in ${FILES_OUT[*]}
+do
+	dump_pool_info $DIR/$NAME >> $LOG_TEMP
+done
+
+mv $LOG_TEMP $LOG
+check
+
+pass

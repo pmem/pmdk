@@ -55,6 +55,7 @@ TOOLS=../tools
 [ "$PMEMOBJCLI" ] || PMEMOBJCLI=$TOOLS/pmemobjcli/pmemobjcli
 [ "$PMEMDETECT" ] || PMEMDETECT=$TOOLS/pmemdetect/pmemdetect.static-nondebug
 [ "$FIP" ] || FIP=$TOOLS/fip/fip
+[ "$POOLMOD" ] || POOLMOD=$TOOLS/poolmod/poolmod
 
 # force globs to fail if they don't match
 shopt -s failglob
