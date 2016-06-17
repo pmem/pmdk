@@ -36,11 +36,11 @@
 
 //! [make_example]
 #include <fcntl.h>
-#include <libpmemobj/make_persistent.hpp>
-#include <libpmemobj/p.hpp>
-#include <libpmemobj/persistent_ptr.hpp>
-#include <libpmemobj/pool.hpp>
-#include <libpmemobj/transaction.hpp>
+#include <libpmemobj++/make_persistent.hpp>
+#include <libpmemobj++/p.hpp>
+#include <libpmemobj++/persistent_ptr.hpp>
+#include <libpmemobj++/pool.hpp>
+#include <libpmemobj++/transaction.hpp>
 
 using namespace nvml::obj;
 
@@ -92,11 +92,11 @@ make_persistent_example()
 
 //! [make_array_example]
 #include <fcntl.h>
-#include <libpmemobj/make_persistent_array.hpp>
-#include <libpmemobj/p.hpp>
-#include <libpmemobj/persistent_ptr.hpp>
-#include <libpmemobj/pool.hpp>
-#include <libpmemobj/transaction.hpp>
+#include <libpmemobj++/make_persistent_array.hpp>
+#include <libpmemobj++/p.hpp>
+#include <libpmemobj++/persistent_ptr.hpp>
+#include <libpmemobj++/pool.hpp>
+#include <libpmemobj++/transaction.hpp>
 
 using namespace nvml::obj;
 
@@ -151,11 +151,11 @@ make_persistent_array_example()
 
 //! [make_atomic_example]
 #include <fcntl.h>
-#include <libpmemobj/make_persistent_atomic.hpp>
-#include <libpmemobj/p.hpp>
-#include <libpmemobj/persistent_ptr.hpp>
-#include <libpmemobj/pool.hpp>
-#include <libpmemobj/transaction.hpp>
+#include <libpmemobj++/make_persistent_atomic.hpp>
+#include <libpmemobj++/p.hpp>
+#include <libpmemobj++/persistent_ptr.hpp>
+#include <libpmemobj++/pool.hpp>
+#include <libpmemobj++/transaction.hpp>
 
 using namespace nvml::obj;
 
@@ -209,11 +209,11 @@ make_persistent_atomic_example()
 
 //! [make_array_atomic_example]
 #include <fcntl.h>
-#include <libpmemobj/make_persistent_array_atomic.hpp>
-#include <libpmemobj/p.hpp>
-#include <libpmemobj/persistent_ptr.hpp>
-#include <libpmemobj/pool.hpp>
-#include <libpmemobj/transaction.hpp>
+#include <libpmemobj++/make_persistent_array_atomic.hpp>
+#include <libpmemobj++/p.hpp>
+#include <libpmemobj++/persistent_ptr.hpp>
+#include <libpmemobj++/pool.hpp>
+#include <libpmemobj++/transaction.hpp>
 
 using namespace nvml::obj;
 

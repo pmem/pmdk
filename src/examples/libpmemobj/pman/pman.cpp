@@ -37,9 +37,9 @@
 #include "list.hpp"
 #include <fstream>
 #include <iostream>
-#include <libpmemobj/make_persistent_array.hpp>
-#include <libpmemobj/pool.hpp>
-#include <libpmemobj/transaction.hpp>
+#include <libpmemobj++/make_persistent_array.hpp>
+#include <libpmemobj++/pool.hpp>
+#include <libpmemobj++/transaction.hpp>
 #include <ncurses.h>
 
 #define LAYOUT_NAME "pman"

@@ -36,9 +36,9 @@
 
 //! [pool_example]
 #include <fcntl.h>
-#include <libpmemobj/p.hpp>
-#include <libpmemobj/persistent_ptr.hpp>
-#include <libpmemobj/pool.hpp>
+#include <libpmemobj++/p.hpp>
+#include <libpmemobj++/persistent_ptr.hpp>
+#include <libpmemobj++/pool.hpp>
 
 using namespace nvml::obj;
 
@@ -84,9 +84,9 @@ pool_example()
 
 //! [pool_base_example]
 #include <fcntl.h>
-#include <libpmemobj/make_persistent_atomic.hpp>
-#include <libpmemobj/p.hpp>
-#include <libpmemobj/pool.hpp>
+#include <libpmemobj++/make_persistent_atomic.hpp>
+#include <libpmemobj++/p.hpp>
+#include <libpmemobj++/pool.hpp>
 
 using namespace nvml::obj;
 
