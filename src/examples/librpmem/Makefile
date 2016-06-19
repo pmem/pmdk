@@ -39,7 +39,7 @@ include $(TOP)/src/common.inc
 HAS_LIBRABRIC=$(call check_package, libfabric)
 
 ifeq ($(HAS_LIBRABRIC), y)
-PROGS = basic
+PROGS = basic manpage
 
 LIBS = -lrpmem -pthread $(shell $(PKG_CONFIG) --libs libfabric)
 
@@ -52,3 +52,4 @@ endif
 include ../Makefile.inc
 
 basic: basic.o
+manpage: manpage.o
