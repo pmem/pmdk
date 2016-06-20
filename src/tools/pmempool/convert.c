@@ -101,6 +101,15 @@ pmempool_convert_func(char *appname, int argc, char *argv[])
 
 	int ret = 0;
 	const char *f = argv[1];
+
+	printf("This tool will update the pool to the latest available "
+		"layout version.\nThis process is NOT fail-safe.\n"
+		"Proceed only if the pool has been backed up or\n"
+		"the risks are fully understood and acceptable.\n");
+	if (ask_Yn('?', "convert the pool '%s' ?", f) != 'y') {
+		return 0;
+	}
+
 	struct pool_set_file *psf = pool_set_file_open(f, 0, 0);
 
 	if (psf == NULL) {

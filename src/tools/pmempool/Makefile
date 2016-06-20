@@ -57,7 +57,9 @@ MANPAGES = $(TOP)/doc/pmempool.1\
            $(TOP)/doc/pmempool-info.1\
 	   $(TOP)/doc/pmempool-create.1\
 	   $(TOP)/doc/pmempool-check.1\
-	   $(TOP)/doc/pmempool-dump.1
+	   $(TOP)/doc/pmempool-dump.1\
+	   $(TOP)/doc/pmempool-rm.1\
+	   $(TOP)/doc/pmempool-convert.1
 
 BASH_COMP_FILES = pmempool.sh
 

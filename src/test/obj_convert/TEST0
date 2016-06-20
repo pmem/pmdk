@@ -58,10 +58,13 @@ export MEMCHECK_DONT_CHECK_LEAKS=1
 #PATH_TO_1_0_DBG=~/nvml_1_0/nvml/src/debug
 
 verify_scenario() {
-	expect_normal_exit $PMEMPOOL$EXESUFFIX convert $DIR/scenario$1a
+	# convert tool always ask for confirmation, so say yes ;)
+	echo -e "y\n" | expect_normal_exit\
+		$PMEMPOOL$EXESUFFIX convert $DIR/scenario$1a &> /dev/null
 	expect_normal_exit ./obj_convert$EXESUFFIX $DIR/scenario$1a va $1
 
-	expect_normal_exit $PMEMPOOL$EXESUFFIX convert $DIR/scenario$1c
+	echo -e "y\n" | expect_normal_exit\
+		$PMEMPOOL$EXESUFFIX convert $DIR/scenario$1c &> /dev/null
 	expect_normal_exit ./obj_convert$EXESUFFIX $DIR/scenario$1c vc $1
 }
 
