@@ -57,6 +57,10 @@ pmempool-rm(1) -- Remove pool file or pool files from poolset
     Man page source is in pmempool-rm.1
     HTML formatted version: http://pmem.io/nvml/pmempool/pmempool-rm.1.html
 
+pmempool-convert(1) -- Update the pool to the latest available layout version
+    Man page source is in pmempool-convert.1
+    HTML formatted version: http://pmem.io/nvml/pmempool/pmempool-convert.1.html
+
 These man pages provide the API specification for the corresponding libraries
 in this source tree, so any updates to one should be tested, reviewed, and
 committed with changes to the other.
