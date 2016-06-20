@@ -60,8 +60,8 @@ CPP_HEADERS_DESTDIR = $(DESTDIR)$(includedir)/libpmemobj
 
 MAKE_PKG_CONFIG = $(TOP)/utils/make-pkg-config.sh
 PKG_CONFIG_DESTDIR = $(DESTDIR)$(pkgconfigdir)
-PKG_CONFIG_FILES = libpmem.pc libvmem.pc libvmmalloc.pc\
-		libpmemobj.pc libpmemlog.pc libpmemblk.pc
+PKG_CONFIG_FILES = libpmem.pc libvmem.pc libvmmalloc.pc libpmemobj.pc\
+		libpmemlog.pc libpmemblk.pc libpmempool.pc
 
 ifeq ($(EXPERIMENTAL),y)
 	PKG_CONFIG_FILES += libpmemobj++.pc

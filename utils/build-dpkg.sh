@@ -481,6 +481,7 @@ usr/lib/nvml_debug/libpmempool.a usr/lib/nvml_dbg/
 usr/lib/nvml_debug/libpmempool.so usr/lib/nvml_dbg/
 usr/lib/nvml_debug/libpmempool.so.* usr/lib/nvml_dbg/
 usr/lib/libpmempool.so
+usr/lib/pkgconfig/libpmempool.pc
 usr/include/libpmempool.h
 usr/share/man/man3/libpmempool.3.gz
 EOF
