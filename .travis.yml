@@ -1,22 +1,12 @@
-language: c
-compiler:
-  - clang
-  - gcc
 before_install:
-  - export NOTTY=1
-  - if [ "$CC" = "clang" ]; then export CXX="clang++"; else export CXX="g++"; fi
-  - if [ "$EXTRA_CFLAGS" = "-DUSE_VALGRIND" ]; then sudo add-apt-repository -y ppa:tmsz-kapela/valgrind-pmem; fi
-  - sudo apt-get update -qq
-  - sudo apt-get install -y libunwind7-dev autoconf devscripts pkg-config ssh
-  - if [ "$EXTRA_CFLAGS" = "-DUSE_VALGRIND" ]; then sudo apt-get install -y valgrind; fi
-  - if [ $REMOTE_TESTS -eq 1 ]; then export TRAVIS_CONFIG="$TRAVIS_CONFIG --remote"; fi
-  - if [ $BUILD_LIBFABRIC -eq 1 ]; then export TRAVIS_CONFIG="$TRAVIS_CONFIG --libfabric"; fi
-  - ./.travis_config.sh $TRAVIS_CONFIG
-  - sudo mount -t tmpfs none /tmp -osize=4G
+  - export HOST_WORKDIR=`pwd`
+  - cd utils/docker/$DOCKER_OS && ./prepare-environment.sh
+
 script:
-  - if [ $MAKE_DPKG -eq 0 ]; then make check-license && make cstyle && make -j2 USE_LIBUNWIND=1 && make -j2 test USE_LIBUNWIND=1 && make check && make DESTDIR=/tmp source; fi
-  - if [ $MAKE_DPKG -eq 1 ]; then make -j2 dpkg; fi
+  - ./build.sh
+
 env:
-  - MAKE_DPKG=0 EXTRA_CFLAGS=-DUSE_VALGRIND
-  - MAKE_DPKG=1
-  - MAKE_DPKG=0 EXTRA_CFLAGS=-DUSE_VALGRIND BUILD_LIBFABRIC=1 REMOTE_TESTS=1
+  - MAKE_DPKG=1 CC=gcc DOCKER_OS=ubuntu
+  - MAKE_DPKG=1 CC=clang DOCKER_OS=ubuntu
+  - MAKE_DPKG=0 EXTRA_CFLAGS=-DUSE_VALGRIND REMOTE_TESTS=1 CC=gcc DOCKER_OS=ubuntu
+  - MAKE_DPKG=0 EXTRA_CFLAGS=-DUSE_VALGRIND REMOTE_TESTS=1 CC=clang DOCKER_OS=ubuntu
