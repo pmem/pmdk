@@ -1,0 +1,7 @@
+Linux NVM Library
+
+This is utils/docker/README.
+
+Scripts in this directory let you prepare docker images for building
+NVML project under specified OS (ubuntu, fedora) inside a docker
+container.
