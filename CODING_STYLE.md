@@ -5,8 +5,8 @@ NVM Library code. To ensure readability and consistency within the code,
 the contributed code must adhere to the rules below.
 
 ### Introduction
-The NVM Library coding style is based on and very similar to the style used for
-the SunOS product. A full description of that standard can be found
+The NVM Library coding style is quite similar to the style used for the SunOS product.
+A full description of that standard can be found
 [here.](https://www.cis.upenn.edu/~lee/06cse480/data/cstyle.ms.pdf)
 
 This document does not cover the entire set of recommendations and formatting rules

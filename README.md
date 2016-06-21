@@ -5,25 +5,40 @@ nvml: Non-Volatile Memory Library
 [![Build status](https://ci.appveyor.com/api/projects/status/1f5jwqpqs89itr2k?svg=true)](https://ci.appveyor.com/project/krzycz/nvml-10qrw)
 [![NVML release version](https://img.shields.io/github/release/pmem/nvml.svg)](https://github.com/pmem/nvml/releases/latest)
 
-This is the top-level README.md the NVM Library.
+This is the top-level README.md of the NVM Library.
 For more information, see http://pmem.io.
 
 ### The Libraries ###
 
-Please see the file [LICENSE](https://github.com/pmem/nvml/blob/master/LICENSE) for information on how this library is licensed.
+Please see the file [LICENSE](https://github.com/pmem/nvml/blob/master/LICENSE)
+for information on how this library is licensed.
 
 This tree contains a collection of libraries for using Non-Volatile Memory
-(NVM).  There are currently six libraries:
+(NVM).  There are currently eight libraries:
 
 * **libpmem** -- basic pmem operations like flushing
 * **libpmemblk**, **libpmemlog**, **libpmemobj** -- pmem transactions
 * **libvmem**, **libvmmalloc** -- volatile use of pmem
+* **libpmempool** -- persistent memory pool management
+* **librpmem** -- remote access to persistent memory (EXPERIMENTAL)
 
-These libraries are described in more detail on the
+and one command-line utility:
+
+* **pmempool** -- standalone tool for off-line pool management
+
+These libraries and utilities are described in more detail on the
 [pmem web site](http://pmem.io).  There you'll find man pages, examples,
 and tutorials.
 
 **Currently, these libraries only work on 64-bit Linux.**
+
+>**NOTE: Porting NVML to 64-bit Windows is in progress.**
+>
+>The source tree contains MS Visual Studio solution and project files,
+allowing to compile _libpmem_, _libpmemlog_, _libpmemblk_ and _libpmemobj_,
+and most of the corresponding unit tests for 64-bit Windows.
+Current progress of this work is tracked on
+[NVML for Windows Trello Board](https://trello.com/b/IMPSJ4Iu/nvml-for-windows).
 
 ### Pre-Built Packages ###
 
@@ -45,33 +60,48 @@ The source tree is organized as follows:
 
 * **doc** -- man pages describing each library contained here
 * **src** -- the source for the libraries
+* **src/include** -- public header files for all the libraries
 * **src/benchmarks** -- benchmarks used by development team
 * **src/examples** -- brief example programs using these libraries
 * **src/test** -- unit tests used by development team
 * **src/tools** -- various tools developed for NVML
+* **src/windows** -- Windows-specific source and header files
 * **utils** -- utilities used during build & test
 * **CONTRIBUTING.md** -- instructions for people wishing to contribute
+* **CODING_STYLE.md** -- coding standard and conventions for NVML
 
-To build this library, you may need to install the following required packages
-on the build system:
+To build this library on Linux, you may need to install the following
+required packages on the build system:
 
 * **autoconf**
 * **pkg-config**
+
+
+On Windows, to build NVML and run the tests you need:
+* **MS Visual Studio 2015**
+* [Windows SDK 10.0.14393](https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk) (or later)
+* **perl** (i.e. [ActivePerl](http://www.activestate.com/activeperl/downloads))
+
 
 Some tests and example applications require additional packages, but they
 do not interrupt building if they are missing. An appropriate message is
 displayed instead. For details please read the **DEPENDENCIES** section
 in appropriate README file.
 
+
 See the **before_install:** rules in the
 [.travis.yml](https://github.com/pmem/nvml/blob/master/.travis.yml)
 file at the top level of the repository to get an idea what packages
-were required to build on the _travis-ci_ systems. Currently our travis
-systems are running Ubuntu 12.04 so there may be some differences
-between what is specified in travis.yml and what is needed for your
-OS distribution and version.
+were required to build on the _Travis-CI_ systems.  Currently our Travis
+systems are running Ubuntu 16.04 and Fedora 23 so there may be some
+differences between what is specified in travis.yml and what is needed
+for your OS distribution and version.
 
-To build the latest development version, just clone this tree and build the master branch:
+
+#### Building NVML on Linux ####
+
+To build the latest development version, just clone this tree and build
+the master branch:
 ```
 	$ git clone https://github.com/pmem/nvml
 	$ cd nvml
@@ -161,7 +191,11 @@ or
 	$ make EXTRA_CFLAGS="-Wno-error=$(type-of-warning)"
 ```
 
-### Testing the Libraries ###
+#### Testing the Libraries ####
+
+Before running the tests, you may need to prepare a test configuration file
+(src/test/testconfig.sh).  Please see the available configuration settings
+in the example file (src/test/testconfig.sh.example).
 
 To build and run the unit tests:
 ```
@@ -195,6 +229,57 @@ To test the libraries with AddressSanitizer and UndefinedBehaviorSanitizer, run:
 ```
 	$ make EXTRA_CFLAGS="-fsanitize=address,undefined" EXTRA_LDFLAGS="-fsanitize=address,undefined" clobber all test check
 ```
+
+
+#### Building NVML on Windows ####
+
+Clone the NVML tree and open the solution:
+```
+	> git clone https://github.com/pmem/nvml
+	> cd nvml/src
+	> devenv NVML.sln
+```
+
+Select the desired configuration (Debug or Release) and build the solution
+(i.e. by pressing Ctrl-Shift-B).
+
+
+#### Testing the Libraries ####
+
+Before running the tests, you may need to prepare a test configuration file
+(src/test/testconfig.ps1).  Please see the available configuration settings
+in the example file (src/test/testconfig.ps1.example).
+
+To run the unit tests, open the PowerShell console and type:
+```
+	> cd nvml/src/test
+	> RUNTESTS.ps1
+```
+
+To run a specific subset of tests, run for example:
+```
+	> RUNTESTS.ps1 -b debug -t short
+```
+
+To run just one test, run for example:
+```
+	> RUNTESTS.ps1 -b debug -i pmem_is_pmem
+```
+
+To modify the timeout, run:
+```
+	> RUNTESTS.ps1 -o 3m
+```
+This will set the timeout to 3 minutes.
+
+To display all the possible options, run:
+```
+	> RUNTESTS.ps1 -h
+```
+
+Please refer to the **src/test/README** for more details on how to
+run different types of tests.
+
 
 ### Experimental Packages ###
 

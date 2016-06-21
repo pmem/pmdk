@@ -65,6 +65,8 @@ a pull request.  The NVM Library project uses the common
 The [Git Workflow blog article](http://pmem.io/2014/09/09/git-workflow.html)
 describes our workflow in more detail.
 
+#### Linux
+
 Before contributing please remember to run:
 ```
 	$ make cstyle
@@ -86,6 +88,18 @@ no clang-format or it pointing to an older version. In such case run:
 	$ make CLANG_FORMAT=/path/to/clang-format cstyle|format
 ```
 
+#### Windows
+
+On Windows to check the code for style issues, please run:
+```
+	$ nvml\utils\CSTYLE.ps1
+```
+
+To check or format C++ files, you may use a standalone Visual Studio plugin
+for clang-format.  The plugin installer can be downloaded from
+[LLVM Builds](http://llvm.org/builds) page.
+
+
 If you are actively working on an NVM Library feature, please let other
 developers know by [creating an issue](https://github.com/pmem/issues/issues).
 Use the label `Type: Feature` and assign it to yourself (due to the way
@@ -93,18 +107,21 @@ GitHub permissions work, you may need to ask a team member to assign it to you).
 
 ### Bug Reports
 
-Bugs for the NVM Library project are tracked in our [GitHub Issues Database](https://github.com/pmem/issues/issues).
+Bugs for the NVM Library project are tracked in our
+[GitHub Issues Database](https://github.com/pmem/issues/issues).
 
 When creating a bug report issue, please provide the following information:
 
-#### Milestone field
+#### NVML version
 
 Put the release name of the version of NVML running when the
-bug was discovered in the Milestone field.  If you saw this bug
-in multiple NVML versions, please put the most recent version in
-Milestone and list the others in a bug comment.
-- Stable release names are in the form `#.#` (where `#` represents an integer); for example `0.3`.
-- Release names from working versions look like `#.#+b#` (adding a build #) or `#.#-rc#` (adding a release candidate number)
+bug was discovered in a bug comment.  If you saw this bug in multiple NVML
+versions, please put at least the most recent version and list the others
+if necessary.
+- Stable release names are in the form `#.#` (where `#` represents
+  an integer); for example `0.3`.
+- Release names from working versions look like `#.#+b#` (adding a build #)
+  or `#.#-rc#` (adding a release candidate number)
 If NVML was built from source, the version number can be retrieved
 from git using this command: `git describe`
 
@@ -112,6 +129,10 @@ For binary NVML releases, use the entire package name.
 For RPMs, use `rpm -q nvml` to display the name.
 For Deb packages, run `dpkg-query -W nvml` and use the
 second (version) string.
+
+#### Milestone field
+
+Optionally, assign the milestone the issue needs to be fixed before.
 
 #### Type: Bug label
 
