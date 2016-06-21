@@ -213,8 +213,21 @@ alloc_prep_block(PMEMobjpool *pop, struct memory_block m,
 	alloc_write_header(pop, block_data, m, real_size);
 
 	int ret = 0;
-	if (constructor != NULL)
-		ret = constructor(pop, userdatap, real_size - ALLOC_OFF, arg);
+	if (constructor != NULL &&
+		(ret = constructor(pop, userdatap,
+			real_size - ALLOC_OFF, arg)) != 0) {
+
+		/*
+		 * If canceled, revert the block back to the free state in vg
+		 * machinery. Because the free operation is only performed on
+		 * the user data, the allocation header is made inaccessible
+		 * in a separate call.
+		 */
+		VALGRIND_DO_MEMPOOL_FREE(pop, userdatap);
+		VALGRIND_DO_MAKE_MEM_NOACCESS(pop, block_data, ALLOC_OFF);
+
+		return ret;
+	}
 
 	/*
 	 * To avoid determining the user data pointer twice this method is also
@@ -222,8 +235,8 @@ alloc_prep_block(PMEMobjpool *pop, struct memory_block m,
 	 * will be used to set the offset destination pointer provided by the
 	 * caller.
 	 */
-	if (!ret)
-		*offset_value = OBJ_PTR_TO_OFF(pop, userdatap);
+	*offset_value = OBJ_PTR_TO_OFF(pop, userdatap);
+
 
 	return ret;
 }
