@@ -150,9 +150,9 @@ util_unmap_hdr(struct pool_set_part *part)
 
 
 /*
- * util_map_part -- (internal) map a part of a pool set
+ * util_map_part -- map a part of a pool set
  */
-static int
+int
 util_map_part(struct pool_set_part *part, void *addr, size_t size,
 	size_t offset, int flags)
 {
@@ -191,9 +191,9 @@ util_map_part(struct pool_set_part *part, void *addr, size_t size,
 }
 
 /*
- * util_unmap_part -- (internal) unmap a part of a pool set
+ * util_unmap_part -- unmap a part of a pool set
  */
-static int
+int
 util_unmap_part(struct pool_set_part *part)
 {
 	LOG(3, "part %p", part);
@@ -768,9 +768,9 @@ util_poolset_single(const char *path, size_t filesize, int fd, int create)
 }
 
 /*
- * util_poolset_file -- (internal) open or create a single part file
+ * util_poolset_file -- open or create a single part file
  */
-static int
+int
 util_poolset_file(struct pool_set_part *part, size_t minsize, int create)
 {
 	LOG(3, "part %p minsize %zu create %d", part, minsize, create);
@@ -1029,9 +1029,9 @@ err:
 }
 
 /*
- * util_header_create -- (internal) create header of a single pool set file
+ * util_header_create -- create header of a single pool set file
  */
-static int
+int
 util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 	const char *sig, uint32_t major, uint32_t compat, uint32_t incompat,
 	uint32_t ro_compat, const unsigned char *prev_repl_uuid,
@@ -1415,11 +1415,11 @@ err:
 }
 
 /*
- * util_replica_close -- (internal) close a memory pool replica
+ * util_replica_close -- close a memory pool replica
  *
  * This function unmaps all mapped memory regions.
  */
-static int
+int
 util_replica_close(struct pool_set *set, unsigned repidx)
 {
 	LOG(3, "set %p repidx %u", set, repidx);
@@ -1629,9 +1629,9 @@ util_pool_create(struct pool_set **setp, const char *path, size_t poolsize,
 }
 
 /*
- * util_replica_open -- (internal) open a memory pool replica
+ * util_replica_open -- open a memory pool replica
  */
-static int
+int
 util_replica_open(struct pool_set *set, unsigned repidx, int flags)
 {
 	LOG(3, "set %p repidx %u flags %d", set, repidx, flags);
