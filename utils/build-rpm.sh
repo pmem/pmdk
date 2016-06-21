@@ -314,6 +314,7 @@ Development files for NVML libpmempool library
 %defattr(-,root,root,-)
 %{_libdir}/libpmempool.so
 %{_libdir}/libpmempool.a
+%{_libdir}/pkgconfig/libpmempool.pc
 %{_libdir}/nvml_debug/libpmempool.so
 %{_libdir}/nvml_debug/libpmempool.so.*
 %{_libdir}/nvml_debug/libpmempool.a

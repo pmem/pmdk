@@ -53,6 +53,8 @@ LIBPMEMLOG_PRIV_FUNCS=pmemlog_convert2h pmemlog_convert2le
 
 include ../Makefile.inc
 
+LIBS += -lpmem
+
 pmemblk_priv_funcs.o: $(PMEMBLK_PRIV_OBJ)
 	$(OBJCOPY) --localize-hidden $(addprefix -G, $(LIBPMEMBLK_PRIV_FUNCS)) \
 	$< $@

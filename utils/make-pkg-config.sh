@@ -74,6 +74,21 @@ Libs: -L\${libdir} -lpmemobj
 Cflags: -I\${includedir}
 EOF
 
+cat << EOF > libpmempool.pc
+prefix=${prefix}
+libdir=${libdir}
+version=${version}
+includedir=\${prefix}/include
+
+Name: libpmempool
+Description: libpmempool library from NVML project
+Version: \${version}
+URL: http://pmem.io/nvml
+Requires: libpmem
+Libs: -L\${libdir} -lpmempool
+Cflags: -I\${includedir}
+EOF
+
 cat << EOF > libpmemblk.pc
 prefix=${prefix}
 libdir=${libdir}
