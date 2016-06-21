@@ -70,7 +70,7 @@ Before contributing please remember to run:
 	$ make cstyle
 ```
 
-This will check all C/C++ files in the tree for style issues. To check C++ 
+This will check all C/C++ files in the tree for style issues. To check C++
 files you have to have clang-format version 3.8+, otherwise they will be
 skipped. There is also a target for automatic C++ code formatting, to do this
 run:
@@ -91,18 +91,21 @@ GitHub permissions work, you may need to ask a team member to assign it to you).
 
 ### Bug Reports
 
-Bugs for the NVM Library project are tracked in our [GitHub Issues Database](https://github.com/pmem/issues/issues).
+Bugs for the NVM Library project are tracked in our
+[GitHub Issues Database](https://github.com/pmem/issues/issues).
 
 When creating a bug report issue, please provide the following information:
 
-#### Milestone field
+#### NVML version
 
 Put the release name of the version of NVML running when the
-bug was discovered in the Milestone field.  If you saw this bug
-in multiple NVML versions, please put the most recent version in
-Milestone and list the others in a bug comment.
-- Stable release names are in the form `#.#` (where `#` represents an integer); for example `0.3`.
-- Release names from working versions look like `#.#+b#` (adding a build #) or `#.#-rc#` (adding a release candidate number)
+bug was discovered in a bug comment.  If you saw this bug in multiple NVML
+versions, please put at least the most recent version and list the others
+if necessary.
+- Stable release names are in the form `#.#` (where `#` represents
+  an integer); for example `0.3`.
+- Release names from working versions look like `#.#+b#` (adding a build #)
+  or `#.#-rc#` (adding a release candidate number)
 If NVML was built from source, the version number can be retrieved
 from git using this command: `git describe`
 
@@ -110,6 +113,10 @@ For binary NVML releases, use the entire package name.
 For RPMs, use `rpm -q nvml` to display the name.
 For Deb packages, run `dpkg-query -W nvml` and use the
 second (version) string.
+
+#### Milestone field
+
+Optionally, assign the milestone the issue need to be fixed before.
 
 #### Type: Bug label
 
