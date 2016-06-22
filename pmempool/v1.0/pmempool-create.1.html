@@ -1,0 +1,210 @@
+<!-- Creator     : groff version 1.22.3 -->
+<!-- CreationDate: Mon May  9 10:52:59 2016 -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="groff -Thtml, see www.gnu.org">
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta name="Content-Style" content="text/css">
+<style type="text/css">
+       p       { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       pre     { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       table   { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       h1      { text-align: center }
+</style>
+<title>pmempool-create</title>
+
+</head>
+<body>
+
+<h1 align="center">pmempool-create</h1>
+
+<a href="#NAME">NAME</a><br>
+<a href="#SYNOPSIS">SYNOPSIS</a><br>
+<a href="#DESCRIPTION">DESCRIPTION</a><br>
+<a href="#EXAMPLES">EXAMPLES</a><br>
+<a href="#SEE ALSO">SEE ALSO</a><br>
+<a href="#PMEMPOOL">PMEMPOOL</a><br>
+
+<hr>
+
+
+<h2>NAME
+<a name="NAME"></a>
+</h2>
+
+
+
+<p style="margin-left:11%; margin-top: 1em">pmempool-create
+&minus; Create Persistent Memory Pool of specified type</p>
+
+<h2>SYNOPSIS
+<a name="SYNOPSIS"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>pmempool
+create</b> [&lt;options&gt;] [&lt;type&gt;] [&lt;bsize&gt;]
+&lt;file&gt;</p>
+
+<h2>DESCRIPTION
+<a name="DESCRIPTION"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">The
+<b>pmempool</b> invoked with <b>create</b> command creates a
+pool file of specified type. Depending on a pool type it is
+possible to provide more properties of pool.</p>
+
+<p style="margin-left:11%; margin-top: 1em">Valid pool
+types are: <b>blk</b>, <b>log</b> and <b>obj</b> which
+stands for <i>pmem</i>blk<i>, pmem</i>log and <i>pmem</i>obj
+pools respectively. By default the pool file is created with
+<i>minimum</i> allowed size for specified pool type. The
+minimum sizes for <b>blk</b>, <b>log</b> and <b>obj</b> pool
+types are <b>PMEMBLK_MIN_POOL</b>, <b>PMEMLOG_MIN_POOL</b>
+and <b>PMEMOBJ_MIN_POOL</b> respectively. See
+<b>libpmemblk</b>(3)<b>, libpmemlog</b>(3) and
+<b>libpmemobj</b>(3) for details.</p>
+
+<p style="margin-left:11%; margin-top: 1em">For
+<i>pmem</i>blk pool type block size <b>&lt;bsize&gt;</b> is
+a required argument.</p>
+
+<p style="margin-left:11%; margin-top: 1em">In order to set
+custom size of pool use <b>-s</b> option, or use <b>-M</b>
+option to create a pool of maximum available size on
+underlying file system.</p>
+
+<p style="margin-left:11%; margin-top: 1em">The <i>size</i>
+argument may be passed in format that permits only the
+upper-case character for byte - B as specified in IEC
+80000-13, IEEE 1541 and the Metric Interchange Format.
+Standards accept SI units with obligatory B - kB, MB, GB ...
+which means multiplier by 1000 and IEC units with optional
+&quot;iB&quot; - KiB, MiB, GiB, ..., K, M, G, ... - which
+means multiplier by 1024.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>Available
+options: <br>
+-s, --size</b> &lt;size&gt;</p>
+
+<p style="margin-left:23%;">Size of pool file.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>-M,
+--max-size</b></p>
+
+<p style="margin-left:23%;">Set size of pool to available
+space of underlying file system.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>-m,
+--mode</b> &lt;octal&gt;</p>
+
+<p style="margin-left:23%;">Set permissions to
+&lt;octal&gt; (the default is 0664).</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>-i,
+--inherit</b> &lt;file&gt;</p>
+
+<p style="margin-left:23%;">Create a new pool of the same
+size and other properties as <b>&lt;file&gt;.</b></p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>-v,
+--verbose</b></p>
+
+<p style="margin-left:23%;">Increase verbosity level.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>-h,
+--help</b></p>
+
+<p style="margin-left:23%;">Display help message and
+exit.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>Options for
+PMEMBLK:</b> <br>
+By default when creating a pmem <b>blk</b> pool, the
+<b>BTT</b> layout is <i>not</i> written until the first
+<i>write operation</i> of block entry is performed. Using
+<b>-w</b> option you can force writing <b>BTT</b> layout by
+writing zero data to specified block number. By default the
+<i>write operation</i> is performed to block number
+<b>0</b>. Please refer to <b>libpmemblk</b>(3) for
+details.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>-w,
+--write-layout</b></p>
+
+<p style="margin-left:23%;">Force writing <b>BTT</b> layout
+by performing <i>write operation</i> to block number
+zero.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>Options for
+PMEMOBJ:</b> <br>
+By default when creating a pmem <b>obj</b> pool, the layout
+name provided to the <b>libpmemobj</b> library is an empty
+string. Please refer to <b>libpmemobj</b>(3) for
+details.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>-l, --layout
+&lt;layout&gt;</b></p>
+
+<p style="margin-left:23%;">Layout name of the
+<b>pmemobj</b> pool.</p>
+
+<h2>EXAMPLES
+<a name="EXAMPLES"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">pmempool create
+blk 512 pool.blk</p>
+
+<p style="margin-left:22%;"># Create a blk pool file of
+minimum allowed size and block size 512 bytes</p>
+
+<p style="margin-left:11%;">pmempool create log -M
+pool.log</p>
+
+<p style="margin-left:22%;"># Create a log pool file of
+maximum allowed size</p>
+
+<p style="margin-left:11%;">pmempool create blk --size=4G
+--write-layout 1K pool.blk</p>
+
+<p style="margin-left:22%;"># Create a blk pool file of
+size 4G, block size 1K and write BTT layout using write
+operation to the block number 1</p>
+
+<p style="margin-left:11%;">pmempool create --layout
+my_layout obj pool.obj</p>
+
+<p style="margin-left:22%;"># Create an obj pool file of
+minimum allowed size and layout &rsquo;my_layout&rsquo;</p>
+
+<p style="margin-left:11%;">pmempool create
+--inherit=pool.log new_pool.log</p>
+
+<p style="margin-left:22%;"># Create a pool file based on
+pool.log file</p>
+
+<h2>SEE ALSO
+<a name="SEE ALSO"></a>
+</h2>
+
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>libpmemblk(3)
+libpmemlog(3) pmempool(1)</b></p>
+
+<h2>PMEMPOOL
+<a name="PMEMPOOL"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">Part of the
+<b>pmempool(1)</b> suite.</p>
+<hr>
+</body>
+</html>

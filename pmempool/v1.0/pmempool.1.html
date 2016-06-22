@@ -1,0 +1,145 @@
+<!-- Creator     : groff version 1.22.3 -->
+<!-- CreationDate: Mon May  9 10:52:59 2016 -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="groff -Thtml, see www.gnu.org">
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta name="Content-Style" content="text/css">
+<style type="text/css">
+       p       { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       pre     { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       table   { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       h1      { text-align: center }
+</style>
+<title>pmempool</title>
+
+</head>
+<body>
+
+<h1 align="center">pmempool</h1>
+
+<a href="#NAME">NAME</a><br>
+<a href="#SYNOPSIS">SYNOPSIS</a><br>
+<a href="#DESCRIPTION">DESCRIPTION</a><br>
+<a href="#OPTIONS">OPTIONS</a><br>
+<a href="#COMMANDS">COMMANDS</a><br>
+<a href="#SEE ALSO">SEE ALSO</a><br>
+
+<hr>
+
+
+<h2>NAME
+<a name="NAME"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">pmempool
+&minus; Persistent Memory Pool Management Tool</p>
+
+<h2>SYNOPSIS
+<a name="SYNOPSIS"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>pmempool
+[--help] [--version] &lt;command&gt; [&lt;args&gt;]</b></p>
+
+<h2>DESCRIPTION
+<a name="DESCRIPTION"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">The
+<b>pmempool</b> is a management tool for <i>Persistent
+Memory</i> pool files created by <b>NVML</b> libraries.</p>
+
+<p style="margin-left:11%; margin-top: 1em">The main
+purpose of <b>pmempool</b> is to provide a user with a set
+of utilities for off-line analysis and manipulation of pools
+created by pmem libraries. The pmempool is a generic command
+which consists of subcommands for specific purposes. Some of
+subcommands are required to work <i>without</i> any impact
+on processed pool, but some of them <i>may</i> create a new
+or modify an existing one.</p>
+
+<p style="margin-left:11%; margin-top: 1em">The
+<b>pmempool</b> may be useful for troubleshooting by system
+administrators and for software developers who work on
+applications based on <b>NVML</b> library. The latter may
+find these tools useful for testing and debugging purposes
+also.</p>
+
+<h2>OPTIONS
+<a name="OPTIONS"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>-v,
+--version</b></p>
+
+<p style="margin-left:17%;">Prints the version of
+<b>pmempool.</b></p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>-h,
+--help</b></p>
+
+<p style="margin-left:17%;">Prints synopsis and list of
+commands.</p>
+
+<h2>COMMANDS
+<a name="COMMANDS"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">Currently there
+is a following set of commands available:</p>
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>pmempool-info(1)</b></p>
+
+<p style="margin-left:17%;">Prints information and
+statistics in human-readable format about specified
+pool.</p>
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>pmempool-check(1)</b></p>
+
+<p style="margin-left:17%;">Checks pool&rsquo;s consistency
+and repairs pool if it is not consistent.</p>
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>pmempool-create(1)</b></p>
+
+<p style="margin-left:17%;">Creates a pool of specified
+type with additional properties specific for this type of
+pool.</p>
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>pmempool-dump(1)</b></p>
+
+<p style="margin-left:17%;">Dumps usable data from pool in
+hexadecimal or binary format.</p>
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>pmempool-rm(1)</b></p>
+
+<p style="margin-left:17%;">Removes pool file or all pool
+files listed in poolset configuration file.</p>
+
+<p style="margin-left:11%; margin-top: 1em">In order to get
+more information about specific <i>command</i> you can use
+<b>pmempool help &lt;command&gt;.</b></p>
+
+<h2>SEE ALSO
+<a name="SEE ALSO"></a>
+</h2>
+
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>libpmemlog(3)
+libpmemblk(3) libpmemobj(3)</b></p>
+<hr>
+</body>
+</html>
