@@ -48,6 +48,16 @@ NON_PMEM_FS_DIR=/tmp
 #NODE[2]=user2@host2
 
 #
+# Addresses of interfaces which the remote nodes
+# shall communicate on should be defined as an array:
+#
+#    NODE_ADDR[index]=[<user>@]<host-name-or-IP>
+#
+#NODE_ADDR[0]=192.168.0.1
+#NODE_ADDR[1]=192.168.0.2
+#NODE_ADDR[2]=192.168.0.3
+
+#
 # Working directories on remote nodes (they will be created)
 #
 #NODE_WORKING_DIR[0]=/remote/dir0
