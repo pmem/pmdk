@@ -672,9 +672,12 @@ pmempool_info_file(struct pmem_info *pip, const char *file_name)
 	}
 
 	if (PMEM_POOL_TYPE_UNKNOWN == pip->type) {
-		ret = -1;
 		outv_err("%s: unknown pool type -- '%s'\n", file_name,
 				pip->params.signature);
+		return -1;
+	} else if (!pip->args.force && !pip->params.is_checksum_ok) {
+		outv_err("%s: invalid checksum\n", file_name);
+		return -1;
 	} else {
 		if (util_options_verify(pip->opts, pip->type))
 			return -1;

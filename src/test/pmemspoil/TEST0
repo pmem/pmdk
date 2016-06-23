@@ -64,9 +64,11 @@ check_file $POOLSET
 rm -f $POOLS $REPS
 expect_normal_exit $PMEMPOOL create obj --layout pmempool $POOLSET
 $PMEMSPOIL $POOLSET --replica 0 "pmemobj.layout=replica0"
-expect_normal_exit $PMEMPOOL info --replica 0 $POOLSET | grep '^Layout.*' >> $LOG
+expect_normal_exit $PMEMPOOL info --replica 0 $POOLSET -f obj\
+	| grep '^Layout.*'>> $LOG
 $PMEMSPOIL $POOLSET --replica 1 "pmemobj.layout=replica1"
-expect_normal_exit $PMEMPOOL info --replica 1 $POOLSET | grep '^Layout.*' >> $LOG
+expect_normal_exit $PMEMPOOL info --replica 1 $POOLSET -f obj\
+	| grep '^Layout.*'>> $LOG
 
 
 check

@@ -64,7 +64,7 @@ typedef const char *(*enum_to_str_fn)(int);
 /*
  * pmem_pool_type -- return pool type based on first two pages.
  * If pool header's content suggests that pool may be BTT device
- * (no correct checksum and signature for pool header) checksum and
+ * (first page zeroed and no correct signature for pool header),
  * signature from second page is checked to prove that it's BTT device layout.
  */
 pmem_pool_type_t
@@ -72,16 +72,39 @@ pmem_pool_type(const void *base_pool_addr)
 {
 	struct pool_hdr *hdrp = (struct pool_hdr *)base_pool_addr;
 
-	int ret;
 	if (util_is_zeroed(hdrp, DEFAULT_HDR_SIZE)) {
 		return util_get_pool_type_second_page(base_pool_addr);
 	}
 
-	ret  = util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum, 0);
-	if (ret)
-		return pmem_pool_type_parse_hdr(hdrp);
+	pmem_pool_type_t type = pmem_pool_type_parse_hdr(hdrp);
+	if (type != PMEM_POOL_TYPE_UNKNOWN)
+		return type;
 	else
 		return util_get_pool_type_second_page(base_pool_addr);
+}
+
+/*
+ * pmem_pool_checksum -- return true if checksum is correct
+ * based on first two pages
+ */
+int
+pmem_pool_checksum(const void *base_pool_addr)
+{
+	/* check whether it's btt device -> first page zeroed */
+	if (util_is_zeroed(base_pool_addr, DEFAULT_HDR_SIZE)) {
+		struct btt_info bttinfo;
+		void *sec_page_addr = (char *)base_pool_addr + DEFAULT_HDR_SIZE;
+		memcpy(&bttinfo, sec_page_addr, sizeof(bttinfo));
+		btt_info_convert2h(&bttinfo);
+		return util_checksum(&bttinfo, sizeof(bttinfo),
+				&bttinfo.checksum, 0);
+	} else {
+		/* it's not btt device - first page contains header */
+		struct pool_hdr hdrp;
+		memcpy(&hdrp, base_pool_addr, sizeof(hdrp));
+		return util_checksum(&hdrp, sizeof(hdrp),
+				&hdrp.checksum, 0);
+	}
 }
 
 /*
@@ -139,7 +162,6 @@ util_validate_checksum(void *addr, size_t len, uint64_t *csum)
 pmem_pool_type_t
 util_get_pool_type_second_page(const void *pool_base_addr)
 {
-	int ret;
 	struct btt_info bttinfo;
 
 	void *sec_page_addr = (char *)pool_base_addr + DEFAULT_HDR_SIZE;
@@ -147,10 +169,6 @@ util_get_pool_type_second_page(const void *pool_base_addr)
 	btt_info_convert2h(&bttinfo);
 
 	if (util_is_zeroed(&bttinfo, sizeof(bttinfo)))
-		return PMEM_POOL_TYPE_UNKNOWN;
-
-	ret = util_checksum(&bttinfo, sizeof(bttinfo), &bttinfo.checksum, 0);
-	if (!ret)
 		return PMEM_POOL_TYPE_UNKNOWN;
 
 	if (memcmp(bttinfo.sig, BTTINFO_SIG, BTTINFO_SIG_LEN) == 0)
@@ -645,6 +663,8 @@ pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp,
 		paramsp->type = pmem_pool_type(addr);
 	else
 		paramsp->type = pmem_pool_type_parse_hdr(addr);
+
+	paramsp->is_checksum_ok = pmem_pool_checksum(addr);
 
 	if (paramsp->type == PMEM_POOL_TYPE_BLK) {
 		struct pmemblk pbp;
