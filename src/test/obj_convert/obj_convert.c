@@ -50,7 +50,7 @@ POBJ_LAYOUT_TOID(convert, struct bar);
 POBJ_LAYOUT_END(convert);
 
 #define SMALL_ALLOC (64)
-#define BIG_ALLOC (1024 * 200) /* Just big enough to be a huge allocation */
+#define BIG_ALLOC (1024 * 200) /* just big enough to be a huge allocation */
 
 struct bar {
 	char value[BIG_ALLOC];
@@ -83,6 +83,10 @@ enum operation {
 	SET
 };
 
+/*
+ * A macro that recursively create a nested transactions and save whole object
+ * or specific FIELD in the undolog.
+ */
 #define TEST_GEN(type) \
 static void \
 type ## _tx(PMEMobjpool *pop, TOID(struct type) var, int array_size, \
@@ -182,25 +186,7 @@ sc1_verify_commit(PMEMobjpool *pop)
  * sc2_create -- multiply large set undo (TX_ADD)
  */
 static void
-sc2_0_create(PMEMobjpool *pop)
-{
-	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
-	trap = 1;
-	TEST_CALL(root, pop, rt, TEST_NVALUES, TEST_RECURSION_NUM, ADD);
-}
-
-static void
-sc2_1_create(PMEMobjpool *pop)
-{
-	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
-	TX_BEGIN(pop) {
-		TEST_CALL(root, pop, rt, TEST_NVALUES, TEST_RECURSION_NUM, ADD);
-		trap = 1;
-	} TX_END
-}
-
-static void
-sc2_2_create(PMEMobjpool *pop)
+sc2_create(PMEMobjpool *pop)
 {
 	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
 
@@ -212,62 +198,7 @@ sc2_2_create(PMEMobjpool *pop)
 }
 
 static void
-sc2_012_verify_abort(PMEMobjpool *pop)
-{
-	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
-	UT_ASSERTeq(D_RW(rt)->value[0], 0);
-}
-
-static void
-sc2_01_verify_commit(PMEMobjpool *pop)
-{
-	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
-	UT_ASSERTeq(D_RW(rt)->value[0], TEST_RECURSION_NUM * TEST_VALUE);
-}
-
-static void
-sc2_2_verify_commit(PMEMobjpool *pop)
-{
-	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
-	UT_ASSERTeq(D_RW(rt)->value[0], 2 * TEST_RECURSION_NUM * TEST_VALUE);
-}
-
-/*
- * sc3_create -- multiply large set undo (TX_SET)
- */
-static void
-sc3_0_create(PMEMobjpool *pop)
-{
-	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
-	trap = 1;
-	TEST_CALL(root, pop, rt, TEST_NVALUES, TEST_RECURSION_NUM, SET);
-}
-
-static void
-sc3_1_create(PMEMobjpool *pop)
-{
-	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
-
-	TX_BEGIN(pop) {
-		TEST_CALL(root, pop, rt, TEST_NVALUES, TEST_RECURSION_NUM, SET);
-		trap = 1;
-	} TX_END
-}
-
-static void
-sc3_2_create(PMEMobjpool *pop)
-{
-	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
-
-	TX_BEGIN(pop) {
-		TEST_CALL(root, pop, rt, TEST_NVALUES, TEST_RECURSION_NUM, SET);
-		trap = 1;
-		TEST_CALL(root, pop, rt, TEST_NVALUES, TEST_RECURSION_NUM, SET);
-	} TX_END
-}
-
-static void
-sc3_012_verify_abort(PMEMobjpool *pop)
+sc2_verify_abort(PMEMobjpool *pop)
 {
 	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
 
@@ -276,17 +207,7 @@ sc3_012_verify_abort(PMEMobjpool *pop)
 }
 
 static void
-sc3_01_verify_commit(PMEMobjpool *pop)
-{
-	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
-
-	for (int i = 0; i < TEST_NVALUES; ++i)
-		UT_ASSERTeq(D_RW(rt)->value[i],
-			TEST_RECURSION_NUM * TEST_VALUE);
-}
-
-static void
-sc3_2_verify_commit(PMEMobjpool *pop)
+sc2_verify_commit(PMEMobjpool *pop)
 {
 	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
 
@@ -296,88 +217,48 @@ sc3_2_verify_commit(PMEMobjpool *pop)
 }
 
 /*
- * sc4_create -- multiply small set undo (TX_ADD)
+ * sc3_create -- multiply set undo (TX_SET)
  */
 static void
-sc4_0_create(PMEMobjpool *pop)
+sc3_create(PMEMobjpool *pop)
 {
 	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
-	POBJ_ALLOC(pop, &D_RW(rt)->foo, struct foo,
-		sizeof(struct foo), NULL, NULL);
-	trap = 1;
-	TEST_CALL(foo, pop, D_RW(rt)->foo, SMALL_ALLOC, TEST_RECURSION_NUM,
-		ADD);
-}
-
-static void
-sc4_1_create(PMEMobjpool *pop)
-{
-	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
-	POBJ_ALLOC(pop, &D_RW(rt)->foo, struct foo,
-		sizeof(struct foo), NULL, NULL);
+	POBJ_ALLOC(pop, &D_RW(rt)->bar, struct bar,
+		sizeof(struct bar), NULL, NULL);
 
 	TX_BEGIN(pop) {
-		TEST_CALL(foo, pop, D_RW(rt)->foo, SMALL_ALLOC,
-			TEST_RECURSION_NUM, ADD);
+		TEST_CALL(bar, pop, D_RW(rt)->bar, BIG_ALLOC,
+			TEST_RECURSION_NUM, SET);
 		trap = 1;
+		TEST_CALL(bar, pop, D_RW(rt)->bar, BIG_ALLOC,
+			TEST_RECURSION_NUM, SET);
 	} TX_END
 }
 
 static void
-sc4_2_create(PMEMobjpool *pop)
+sc3_verify_abort(PMEMobjpool *pop)
 {
 	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
-	POBJ_ALLOC(pop, &D_RW(rt)->foo, struct foo,
-		sizeof(struct foo), NULL, NULL);
 
-	TX_BEGIN(pop) {
-		TEST_CALL(foo, pop, D_RW(rt)->foo, SMALL_ALLOC,
-			TEST_RECURSION_NUM, ADD);
-		trap = 1;
-		TEST_CALL(foo, pop, D_RW(rt)->foo, SMALL_ALLOC,
-			TEST_RECURSION_NUM, ADD);
-	} TX_END
+	for (int i = 0; i < TEST_NVALUES; ++i)
+		UT_ASSERTeq(D_RW(D_RW(rt)->bar)->value[i], 0);
 }
 
 static void
-sc4_012_verify_abort(PMEMobjpool *pop)
+sc3_verify_commit(PMEMobjpool *pop)
 {
 	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
-	UT_ASSERTeq(D_RW(D_RW(rt)->foo)->value[0], 0);
-}
 
-static void
-sc4_01_verify_commit(PMEMobjpool *pop)
-{
-	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
-	UT_ASSERTeq(D_RW(D_RW(rt)->foo)->value[0],
-		TEST_RECURSION_NUM * TEST_VALUE);
-}
-
-static void
-sc4_2_verify_commit(PMEMobjpool *pop)
-{
-	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
-	UT_ASSERTeq(D_RW(D_RW(rt)->foo)->value[0],
-		2 * TEST_RECURSION_NUM * TEST_VALUE);
+	for (int i = 0; i < TEST_NVALUES; ++i)
+		UT_ASSERTeq(D_RW(D_RW(rt)->bar)->value[i],
+			2 * TEST_RECURSION_NUM * TEST_VALUE);
 }
 
 /*
- * sc5_create -- multiply small set undo (TX_SET)
+ * sc4_create -- multiply small set undo (TX_ADD)
  */
 static void
-sc5_0_create(PMEMobjpool *pop)
-{
-	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
-	POBJ_ALLOC(pop, &D_RW(rt)->foo, struct foo,
-		sizeof(struct foo), NULL, NULL);
-	trap = 1;
-	TEST_CALL(foo, pop, D_RW(rt)->foo, SMALL_ALLOC, TEST_RECURSION_NUM,
-		SET);
-}
-
-static void
-sc5_1_create(PMEMobjpool *pop)
+sc4_create(PMEMobjpool *pop)
 {
 	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
 	POBJ_ALLOC(pop, &D_RW(rt)->foo, struct foo,
@@ -385,29 +266,15 @@ sc5_1_create(PMEMobjpool *pop)
 
 	TX_BEGIN(pop) {
 		TEST_CALL(foo, pop, D_RW(rt)->foo, SMALL_ALLOC,
-			TEST_RECURSION_NUM, SET);
+			TEST_RECURSION_NUM, ADD);
 		trap = 1;
+		TEST_CALL(foo, pop, D_RW(rt)->foo, SMALL_ALLOC,
+			TEST_RECURSION_NUM, ADD);
 	} TX_END
 }
 
 static void
-sc5_2_create(PMEMobjpool *pop)
-{
-	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
-	POBJ_ALLOC(pop, &D_RW(rt)->foo, struct foo,
-		sizeof(struct foo), NULL, NULL);
-
-	TX_BEGIN(pop) {
-		TEST_CALL(foo, pop, D_RW(rt)->foo, SMALL_ALLOC,
-			TEST_RECURSION_NUM, SET);
-		trap = 1;
-		TEST_CALL(foo, pop, D_RW(rt)->foo, SMALL_ALLOC,
-			TEST_RECURSION_NUM, SET);
-	} TX_END
-}
-
-static void
-sc5_012_verify_abort(PMEMobjpool *pop)
+sc4_verify_abort(PMEMobjpool *pop)
 {
 	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
 
@@ -416,23 +283,44 @@ sc5_012_verify_abort(PMEMobjpool *pop)
 }
 
 static void
-sc5_01_verify_commit(PMEMobjpool *pop)
-{
-	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
-
-	for (int i = 0; i < SMALL_ALLOC; ++i)
-		UT_ASSERTeq(D_RW(D_RW(rt)->foo)->value[i],
-			TEST_RECURSION_NUM * TEST_VALUE);
-}
-
-static void
-sc5_2_verify_commit(PMEMobjpool *pop)
+sc4_verify_commit(PMEMobjpool *pop)
 {
 	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
 
 	for (int i = 0; i < SMALL_ALLOC; ++i)
 		UT_ASSERTeq(D_RW(D_RW(rt)->foo)->value[i],
 			2 * TEST_RECURSION_NUM * TEST_VALUE);
+}
+
+/*
+ * sc5_create -- multiply small set undo (TX_SET)
+ */
+static void
+sc5_create(PMEMobjpool *pop)
+{
+	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
+	POBJ_ALLOC(pop, &D_RW(rt)->foo, struct foo,
+		sizeof(struct foo), NULL, NULL);
+
+	TX_BEGIN(pop) {
+		TEST_CALL(foo, pop, D_RW(rt)->foo, SMALL_ALLOC,
+			TEST_RECURSION_NUM, SET);
+		trap = 1;
+		TEST_CALL(foo, pop, D_RW(rt)->foo, SMALL_ALLOC,
+			TEST_RECURSION_NUM, SET);
+	} TX_END
+}
+
+static void
+sc5_verify_abort(PMEMobjpool *pop)
+{
+	sc4_verify_abort(pop);
+}
+
+static void
+sc5_verify_commit(PMEMobjpool *pop)
+{
+	sc4_verify_commit(pop);
 }
 
 /*
@@ -667,18 +555,10 @@ struct {
 } scenarios[] = {
 	{sc0_create, sc0_verify_abort, sc0_verify_commit},
 	{sc1_create, sc1_verify_abort, sc1_verify_commit},
-	{sc2_0_create, sc2_012_verify_abort, sc2_01_verify_commit},
-	{sc2_1_create, sc2_012_verify_abort, sc2_01_verify_commit},
-	{sc2_2_create, sc2_012_verify_abort, sc2_2_verify_commit},
-	{sc3_0_create, sc3_012_verify_abort, sc3_01_verify_commit},
-	{sc3_1_create, sc3_012_verify_abort, sc3_01_verify_commit},
-	{sc3_2_create, sc3_012_verify_abort, sc3_2_verify_commit},
-	{sc4_0_create, sc4_012_verify_abort, sc4_01_verify_commit},
-	{sc4_1_create, sc4_012_verify_abort, sc4_01_verify_commit},
-	{sc4_2_create, sc4_012_verify_abort, sc4_2_verify_commit},
-	{sc5_0_create, sc5_012_verify_abort, sc5_01_verify_commit},
-	{sc5_1_create, sc5_012_verify_abort, sc5_01_verify_commit},
-	{sc5_2_create, sc5_012_verify_abort, sc5_2_verify_commit},
+	{sc2_create, sc2_verify_abort, sc2_verify_commit},
+	{sc3_create, sc3_verify_abort, sc3_verify_commit},
+	{sc4_create, sc4_verify_abort, sc4_verify_commit},
+	{sc5_create, sc5_verify_abort, sc5_verify_commit},
 	{sc6_create, sc6_verify_abort, sc6_verify_commit},
 	{sc7_create, sc7_verify_abort, sc7_verify_commit},
 	{sc8_create, sc8_verify_abort, sc8_verify_commit},
