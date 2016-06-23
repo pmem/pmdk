@@ -516,11 +516,11 @@ out_get_checksum(void *addr, size_t len, uint64_t *csump)
 	int valid = util_validate_checksum(addr, len, csump);
 
 	if (valid)
-		snprintf(str_buff, STR_MAX, "0x%08x [OK]", (uint32_t)csum);
+		snprintf(str_buff, STR_MAX, "0x%jx [OK]", le64toh(csum));
 	else
 		snprintf(str_buff, STR_MAX,
-			"0x%08x [wrong! should be: 0x%08x]",
-			(uint32_t)csum, (uint32_t)*csump);
+			"0x%jx [wrong! should be: 0x%jx]",
+			le64toh(csum), le64toh(*csump));
 
 	/* restore original checksum */
 	*csump = csum;
