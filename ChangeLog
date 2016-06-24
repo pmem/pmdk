@@ -1,3 +1,47 @@
+
+Thu Jun 23 2016 Krzysztof Czurylo <krzysztof.czurylo@intel.com>
+
+	* Version 1.1
+	This NVML release introduces a new version of libpmemobj pool layout.
+	Internal undo log structure has been modified to improve performance
+	of pmemobj transactions.  Memory pools created with older versions
+	of the libpmemobj library must be converted to the new format using
+	"pmempool convert" command.  See pmempool-convert(1) for details.
+
+	A new "libpmempool" library is available, providing support for
+	off-line pool management and diagnostics.  Initially it provides only
+	"check" and "repair" operations for log and blk memory pools, and for
+	BTT devices.
+
+	Other changes:
+	- pmem: deprecate PCOMMIT
+	- blk: match BTT Flog initialization with Linux NVDIMM BTT
+	- pmem: defer pmem_is_pmem() initialization (#158)
+	- obj: add TOID_TYPEOF macro
+
+	Bug fixes:
+	- doc: update description of valid file size units (#133)
+	- pmempool: fix --version short option in man page (#135)
+	- pmempool: print usage when running rm without arg (#136)
+	- cpp: clarify polymorphism in persistent_ptr (#150)
+	- obj: let the before flag be any non-zero value (#151)
+	- obj: fix compare array pptr to nullptr (#152)
+	- obj: cpp pool.get_root() fix (#156)
+	- log/blk: set errno if replica section is specified (#161)
+	- cpp: change exception message	(#163)
+	- doc: remove duplicated words in man page (#164)
+	- common: always append EXTRA_CFLAGS after our CFLAGS
+
+	Experimental features:
+	- Implementation of C++ bindings for libpmempobj is complete.
+	  Web-based documentation for C++ API is available on http://pmem.io.
+	  Note that C++ API is still considered experimental.  Do not use it
+	  in production environments.
+	- Porting NVML to Windows is in progress.  There are MS Visual Studio
+	  solution/projects available, allowing to compile libpmem, libpmemlog,
+	  libpmemblk and libpmemobj on Windows, but the libraries are not fully
+	  functional and most of the test are not enabled yet.
+
 Thu Apr 07 2016 Krzysztof Czurylo <krzysztof.czurylo@intel.com>
 
 	* Version 1.0
