@@ -33,3 +33,7 @@ libpmemobj(3) -- transactional object store
 libvmem(3) -- volatile memory allocation library
     Example programs are in the libvmem directory.
     More documentation: http://pmem.io/nvml/libvmem
+
+libpmempool(3) -- pool management, diagnostics and repair
+    Example programs are in the libpmempool directory.
+    More documentation: http://pmem.io/nvml/libpmempool
