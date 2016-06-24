@@ -1,0 +1,7 @@
+Linux NVM Library
+
+This is utils/ubuntu/README.
+
+Subdirectories of this directory contain scripts which configure
+and build NVML project inside a docker container with OS defined
+by the subdirectory's name.
