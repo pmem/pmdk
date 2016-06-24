@@ -1,5 +1,5 @@
 <!-- Creator     : groff version 1.18.1.4 -->
-<!-- CreationDate: Mon Mar 21 14:06:24 2016 -->
+<!-- CreationDate: Fri Jun 24 10:38:36 2016 -->
 <html>
 <head>
 <meta name="generator" content="groff -Thtml, see www.gnu.org">
@@ -204,10 +204,8 @@ as <b>&lt;file&gt;.</b></p></td>
 <p>By default when creating a pmem <b>blk</b> pool, the
 <b>BTT</b> layout is <i>not</i> written until the first
 <i>write operation</i> of block entry is performed. Using
-<b>-w</b> option you can force writing <b>BTT</b> layout by
-writing zero data to specified block number. By default the
-<i>write operation</i> is performed to block number
-<b>0</b>. Please refer to <b>libpmemblk</b>(3) for
+<b>-w</b> option you can force writing the <b>BTT</b>
+layout. Please refer to <b>libpmemblk</b>(3) for
 details.</p>
 <!-- INDENTATION -->
 <p><b>-w, --write-layout</b></p></td>
@@ -218,8 +216,7 @@ details.</p>
 <tr valign="top" align="left">
 <td width="21%"></td>
 <td width="77%">
-<p>Force writing <b>BTT</b> layout by performing <i>write
-operation</i> to block number zero.</p></td>
+<p>Force writing the <b>BTT</b> layout.</p></td>
 </table>
 <!-- INDENTATION -->
 <table width="100%" border=0 rules="none" frame="void"
@@ -303,8 +300,7 @@ pool.blk</p></td>
 <td width="21%"></td>
 <td width="77%">
 <p># Create a blk pool file of size 4G, block size 1K and
-write BTT layout using write operation to the block number
-1</p>
+write the BTT layout</p>
 </td>
 </table>
 <!-- INDENTATION -->

@@ -10,7 +10,7 @@ release (source and pre-built packages for some common Linux distros)
 can be found in the
 [releases area on GitHub](https://github.com/pmem/nvml/releases).
 
-The NVM Library is actually six separate libraries:
+The NVM Library is actually seven separate libraries:
 
 #### libpmemobj
 
@@ -64,6 +64,14 @@ of persistent memory as volatile memory without modifying the target
 application.
 
 See the [libvmmalloc page](libvmmalloc) for documentation and examples.
+
+#### libpmempool
+
+The **libpmempool** provides support for off-line pool management and
+diagnostics.  Currently it provides only "check" and "repair" operations
+for **pmemlog** and **pmemblk** memory pools, and for BTT devices.
+
+See the [libpmempool page](libpmempool) for documentation and examples.
 
 #### pmempool
 

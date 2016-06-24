@@ -64,3 +64,12 @@ as the standard system **rm** command.
 
 See the [pmempool rm man page](pmempool-rm.1.html) for documentation
 and examples.
+
+##### convert
+
+The **pmempool convert** command performs conversion of the specified pool
+from the old layout versions to the newest one supported by this tool
+Currently only **pmemobj** pools are supported.
+
+See the [pmempool convert man page](pmempool-convert.1.html) for documentation
+and examples.

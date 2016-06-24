@@ -1,5 +1,5 @@
 <!-- Creator     : groff version 1.18.1.4 -->
-<!-- CreationDate: Thu Apr  7 16:24:49 2016 -->
+<!-- CreationDate: Fri Jun 24 10:38:37 2016 -->
 <html>
 <head>
 <meta name="generator" content="groff -Thtml, see www.gnu.org">
@@ -126,6 +126,7 @@ TOID_ASSIGN(TOID</b> <i>oid</i><b>,</b> <i>VALUE</i><b>)
 
 TOID_IS_NULL(TOID</b> <i>oid</i><b>)
 TOID_EQUALS(TOID</b> <i>lhs</i><b>, TOID</b> <i>rhs</i><b>)
+TOID_TYPEOF(TOID</b> <i>oid</i><b>)
 DIRECT_RW(TOID</b> <i>oid</i><b>)
 DIRECT_RO(TOID</b> <i>oid</i><b>)
 D_RW(TOID</b> <i>oid</i><b>)
@@ -709,7 +710,7 @@ For each part, the file size and the absolute path must be
 provided. The size has to be compliant with the format
 specified in IEC 80000-13, IEEE 1541 or the Metric
 Interchange Format. Standards accept SI units with
-obligatory B - kB, MB, GB ... (multiplier by 1000) and IEC
+obligatory B - kB, MB, GB, ... (multiplier by 1000) and IEC
 units with optional &quot;iB&quot; - KiB, MiB, GiB, ..., K,
 M, G, ... - (multiplier by 1024).</p>
 <!-- INDENTATION -->
@@ -1572,6 +1573,25 @@ value.</p>
 <p>The <b>TOID_EQUALS</b> macro evaluates to true if both
 <i>lhs</i> and <i>rhs</i> object handles are referencing the
 same persistent object.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>TOID_TYPEOF(TOID</b> <i>o</i><b>)</b></p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="20%"></td>
+<td width="79%">
+<p>The <b>TOID_TYPEOF</b> macro returns a type of the object
+handle represented by argument <i>o</i>.</p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -2724,11 +2744,11 @@ support the following functionality:</p>
        cols="4" cellspacing="0" cellpadding="0">
 <tr valign="top" align="left">
 <td width="11%"></td>
-<td width="2%">
+<td width="1%">
 
 <p>*</p>
 </td>
-<td width="2%"></td>
+<td width="4%"></td>
 <td width="82%">
 
 <p>Insertion of an object at the head of the list, or at
@@ -2736,11 +2756,11 @@ the end of the list.</p>
 </td>
 <tr valign="top" align="left">
 <td width="11%"></td>
-<td width="2%">
+<td width="1%">
 
 <p>*</p>
 </td>
-<td width="2%"></td>
+<td width="4%"></td>
 <td width="82%">
 
 <p>Insertion of an object before or after any element in
@@ -2748,11 +2768,11 @@ the list.</p>
 </td>
 <tr valign="top" align="left">
 <td width="11%"></td>
-<td width="2%">
+<td width="1%">
 
 <p>*</p>
 </td>
-<td width="2%"></td>
+<td width="4%"></td>
 <td width="82%">
 
 <p>Atomic allocation and insertion of a new object at the
@@ -2760,11 +2780,11 @@ head of the list, or at the end of the list.</p>
 </td>
 <tr valign="top" align="left">
 <td width="11%"></td>
-<td width="2%">
+<td width="1%">
 
 <p>*</p>
 </td>
-<td width="2%"></td>
+<td width="4%"></td>
 <td width="82%">
 
 <p>Atomic allocation and insertion of a new object before
@@ -2772,11 +2792,11 @@ or after any element in the list.</p>
 </td>
 <tr valign="top" align="left">
 <td width="11%"></td>
-<td width="2%">
+<td width="1%">
 
 <p>*</p>
 </td>
-<td width="2%"></td>
+<td width="4%"></td>
 <td width="82%">
 
 <p>Atomic moving of an element from one list to the
@@ -2784,22 +2804,22 @@ specific location on another list.</p>
 </td>
 <tr valign="top" align="left">
 <td width="11%"></td>
-<td width="2%">
+<td width="1%">
 
 <p>*</p>
 </td>
-<td width="2%"></td>
+<td width="4%"></td>
 <td width="82%">
 
 <p>Removal of any object in the list.</p>
 </td>
 <tr valign="top" align="left">
 <td width="11%"></td>
-<td width="2%">
+<td width="1%">
 
 <p>*</p>
 </td>
-<td width="2%"></td>
+<td width="4%"></td>
 <td width="82%">
 
 <p>Atomic removal and freeing of any object in the
@@ -2807,11 +2827,11 @@ list.</p>
 </td>
 <tr valign="top" align="left">
 <td width="11%"></td>
-<td width="2%">
+<td width="1%">
 
 <p>*</p>
 </td>
-<td width="2%"></td>
+<td width="4%"></td>
 <td width="82%">
 
 <p>Forward or backward traversal through the list.</p>
@@ -2867,18 +2887,18 @@ list referenced by <i>head</i>. Depending on the value of
 flag <i>before</i>, the object is added before or after the
 element <i>dest</i>. If <i>dest</i> value is OID_NULL, the
 object is inserted at the head or at the end of the list,
-depending on the <i>before</i> flag value. If value is 1 the
-object is inserted at the head, if value is 0 the object is
-inserted at the end of the list. The relevant values are
-available through <b>POBJ_LIST_DEST_HEAD</b> and
-<b>POBJ_LIST_DEST_TAIL</b> defines respectively. The
-argument <i>pe_offset</i> declares an offset of the
-structure that connects the elements in the list. All the
-handles <i>head</i>, <i>dest</i> and <i>oid</i> must point
-to the objects allocated from the same memory pool
-<i>pop</i>. The <i>head</i> and <i>oid</i> cannot be
-OID_NULL. On success, zero is returned. On error, -1 is
-returned and errno is set.</p>
+depending on the <i>before</i> flag value. If value is
+non-zero the object is inserted at the head, if value is
+zero the object is inserted at the end of the list. The
+relevant values are available through
+<b>POBJ_LIST_DEST_HEAD</b> and <b>POBJ_LIST_DEST_TAIL</b>
+defines respectively. The argument <i>pe_offset</i> declares
+an offset of the structure that connects the elements in the
+list. All the handles <i>head</i>, <i>dest</i> and
+<i>oid</i> must point to the objects allocated from the same
+memory pool <i>pop</i>. The <i>head</i> and <i>oid</i>
+cannot be OID_NULL. On success, zero is returned. On error,
+-1 is returned and errno is set.</p>
 </td>
 </table>
 <!-- INDENTATION -->
@@ -2908,17 +2928,17 @@ allocates a new object of given <i>size</i> and type
 the newly allocated object is added before or after the
 element <i>dest</i>. If <i>dest</i> value is OID_NULL, the
 object is inserted at the head or at the end of the list,
-depending on the <i>before</i> flag value. If value is 1 the
-object is inserted at the head, if value is 0 the object is
-inserted at the end of the list. The relevant values are
-available through <b>POBJ_LIST_DEST_HEAD</b> and
-<b>POBJ_LIST_DEST_TAIL</b> defines respectively. The
-argument <i>pe_offset</i> declares an offset of the
-structure that connects the elements in the list. All the
-handles <i>head</i>, <i>dest</i> must point to the objects
-allocated from the same memory pool <i>pop</i>. Before
-returning, it calls the <b>constructor</b> function passing
-the pool handle <i>pop</i>, the pointer to the newly
+depending on the <i>before</i> flag value. If value is
+non-zero the object is inserted at the head, if value is
+zero the object is inserted at the end of the list. The
+relevant values are available through
+<b>POBJ_LIST_DEST_HEAD</b> and <b>POBJ_LIST_DEST_TAIL</b>
+defines respectively. The argument <i>pe_offset</i> declares
+an offset of the structure that connects the elements in the
+list. All the handles <i>head</i>, <i>dest</i> must point to
+the objects allocated from the same memory pool <i>pop</i>.
+Before returning, it calls the <b>constructor</b> function
+passing the pool handle <i>pop</i>, the pointer to the newly
 allocated object in <i>ptr</i> along with the <i>arg</i>
 argument. It is guaranteed that allocated object is either
 properly initialized or, if the allocation is interrupted
@@ -2993,19 +3013,20 @@ Depending on the value of flag <i>before</i>, the newly
 allocated object is added before or after the element
 <i>dest</i>. If <i>dest</i> value is OID_NULL, the object is
 inserted at the head or at the end of the second list,
-depending on the <i>before</i> flag value. If value is 1 the
-object is inserted at the head, if value is 0 the object is
-inserted at the end of the list. The relevant values are
-available through <b>POBJ_LIST_DEST_HEAD</b> and
-<b>POBJ_LIST_DEST_TAIL</b> defines respectively. The
-arguments <i>pe_old_offset</i> and <i>pe_new_offset</i>
-declare the offsets of the structures that connects the
-elements in the old and new lists respectively. All the
-handles <i>head_old</i>, <i>head_new</i>, <i>dest</i> and
-<i>oid</i> must point to the objects allocated from the same
-memory pool <i>pop</i>. <i>head_old</i>, <i>head_new</i> and
-<i>oid</i> cannot be OID_NULL. On success, zero is returned.
-On error, -1 is returned and errno is set.</p>
+depending on the <i>before</i> flag value. If value is
+non-zero the object is inserted at the head, if value is
+zero the object is inserted at the end of the list. The
+relevant values are available through
+<b>POBJ_LIST_DEST_HEAD</b> and <b>POBJ_LIST_DEST_TAIL</b>
+defines respectively. The arguments <i>pe_old_offset</i> and
+<i>pe_new_offset</i> declare the offsets of the structures
+that connects the elements in the old and new lists
+respectively. All the handles <i>head_old</i>,
+<i>head_new</i>, <i>dest</i> and <i>oid</i> must point to
+the objects allocated from the same memory pool <i>pop</i>.
+<i>head_old</i>, <i>head_new</i> and <i>oid</i> cannot be
+OID_NULL. On success, zero is returned. On error, -1 is
+returned and errno is set.</p>
 </td>
 </table>
 <a name="TYPE-SAFE NON-TRANSACTIONAL PERSISTENT ATOMIC LISTS"></a>
@@ -4031,8 +4052,8 @@ is equal to zero and <i>oid</i> is not OID_NULL, then the
 call is equivalent to
 <b>pmemobj_tx_free(</b><i>oid</i><b>).</b> If the new size
 is larger than the old size, the added memory will
-<i>not</i> be initialized. If successful, returns returns a
-handle to the resized object. Otherwise, stage changes to
+<i>not</i> be initialized. If successful, returns a handle
+to the resized object. Otherwise, stage changes to
 <i>TX_STAGE_ONABORT</i>, OID_NULL is returned, and errno is
 set appropriately. Note that the object handle value may
 change in result of reallocation. This function must be
@@ -4060,8 +4081,8 @@ uint64_t</b> <i>type_num</i><b>);</b></p>
 resizes an existing object to the given <i>size</i> and
 changes its type to <i>type_num</i>. If the new size is
 larger than the old size, the extended new space is zeroed.
-If successful, returns returns a handle to the resized
-object. Otherwise, stage changes to <i>TX_STAGE_ONABORT</i>,
+If successful, returns a handle to the resized object.
+Otherwise, stage changes to <i>TX_STAGE_ONABORT</i>,
 OID_NULL is returned, and errno is set appropriately. Note
 that the object handle value may change in result of
 reallocation. This function must be called during
@@ -4871,6 +4892,18 @@ also means within the work section of the transaction after
 TX_BEGIN) should not be used after a transaction abort or
 should be used with utmost care. This also includes code
 after the <b>TX_END</b> macro.</p>
+<!-- INDENTATION -->
+<p><b>Libpmemobj</b> is not cancellation-safe. The pool will
+never be corrupted because of canceled thread, but other
+threads may stall waiting on locks taken by that thread. If
+application wants to use <b>pthread_cancel</b>(3), it must
+disable cancellation before calling <b>libpmemobj</b> APIs
+(see <b>pthread_setcancelstate</b>(3) with
+<b>PTHREAD_CANCEL_DISABLE</b>) and re-enable it after.
+Deferring cancellation ( <b>pthread_setcanceltype</b>(3)
+with <b>PTHREAD_CANCEL_DEFERRED</b>) is not safe enough,
+because <b>libpmemobj</b> internally may call functions that
+are specified as cancellation points in POSIX API.</p>
 </td>
 </table>
 <a name="LIBRARY API VERSIONING"></a>
@@ -5144,6 +5177,10 @@ to stderr.</p>
 <p>Setting the environment variable <b>PMEMOBJ_LOG_LEVEL</b>
 has no effect on the non-debug version of
 <b>libpmemobj</b>.</p>
+<!-- INDENTATION -->
+<p>See also <b>libpmem</b>(3) to get information about other
+environment variables affecting <b>libpmemobj</b>
+behavior.</p>
 </td>
 </table>
 <a name="EXAMPLES"></a>
