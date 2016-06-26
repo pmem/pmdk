@@ -70,7 +70,7 @@ main(int argc, char *argv[])
 	struct test_root *r = pmemobj_direct(root);
 	UT_ASSERTne(r, NULL);
 
-	struct pvector_context *ctx = pvector_init(pop, &r->vec);
+	struct pvector_context *ctx = pvector_new(pop, &r->vec);
 
 	uint64_t *val = pvector_push_back(ctx);
 	*val = 5;
@@ -116,7 +116,7 @@ main(int argc, char *argv[])
 
 	pvector_delete(ctx);
 
-	ctx = pvector_init(pop, &r->vec);
+	ctx = pvector_new(pop, &r->vec);
 	for (int i = 0; i < PVECTOR_INSERT_VALUES; ++i) {
 		val = pvector_push_back(ctx);
 		UT_ASSERTne(val, NULL);
