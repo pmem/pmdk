@@ -33,6 +33,9 @@
 #
 # examples/librpmem/Makefile -- build the librpmem examples
 #
+TOP := ../../..
+include $(TOP)/src/common.inc
+
 HAS_LIBRABRIC=$(call check_package, libfabric)
 
 ifeq ($(HAS_LIBRABRIC), y)
