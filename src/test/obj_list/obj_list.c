@@ -175,6 +175,14 @@ linear_alloc(uint64_t *cur_offset, size_t size)
 	*cur_offset += roundup(size, sizeof(uint64_t));
 	return ret;
 }
+
+static int
+redo_log_check_offset(void *ctx, uint64_t offset)
+{
+	PMEMobjpool *pop = ctx;
+	return OBJ_OFF_IS_VALID(pop, offset);
+}
+
 /*
  * pmemobj_open -- pmemobj_open mock
  *
@@ -256,6 +264,14 @@ FUNC_MOCK_RUN_DEFAULT {
 
 	Pop->run_id += 2;
 	Pop->persist(Pop, &Pop->run_id, sizeof(Pop->run_id));
+
+	Pop->redo = redo_log_config_new(Pop->addr,
+			(redo_persist_fn)Pop->persist,
+			(redo_flush_fn)Pop->flush,
+			redo_log_check_offset,
+			Pop,
+			Pop,
+			REDO_NUM_ENTRIES);
 
 	return Pop;
 }

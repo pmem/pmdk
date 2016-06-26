@@ -35,6 +35,7 @@
  */
 
 #include <stddef.h>
+#include "redo.h"
 
 #define PMEMOBJ_LOG_PREFIX "libpmemobj"
 #define PMEMOBJ_LOG_LEVEL_VAR "PMEMOBJ_LOG_LEVEL"
@@ -147,6 +148,7 @@ struct pmemobjpool {
 	uint64_t uuid_lo;
 
 	struct pmemobjpool *replica;	/* next replica */
+	struct redo_ctx *redo;
 
 	/* per-replica functions: pmem or non-pmem */
 	persist_local_fn persist_local;	/* persist function */
@@ -164,7 +166,7 @@ struct pmemobjpool {
 
 	PMEMmutex rootlock;	/* root object lock */
 	int is_master_replica;
-	char unused2[1804];
+	char unused2[1796];
 };
 
 /*

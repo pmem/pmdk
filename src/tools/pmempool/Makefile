@@ -30,10 +30,12 @@
 #
 # Makefile -- top Makefile for pmempool
 #
+vpath %.c ../../libpmemobj/
+
 TARGET = pmempool
 
 OBJS = pmempool.o\
-       info.o info_blk.o info_log.o info_obj.o\
+       info.o info_blk.o info_log.o info_obj.o redo.o\
        create.o dump.o check.o rm.o convert.o convert_obj_v1_v2.o
 
 LIBPMEM=y
