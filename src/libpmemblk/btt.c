@@ -1583,7 +1583,7 @@ btt_read(struct btt *bttp, unsigned lane, uint64_t lba, void *buf)
 	 * block from getting re-allocated to something else by a write.
 	 */
 	uint64_t data_block_off =
-		arenap->dataoff + (entry & BTT_MAP_ENTRY_LBA_MASK) *
+		arenap->dataoff + (uint64_t)(entry & BTT_MAP_ENTRY_LBA_MASK) *
 		arenap->internal_lbasize;
 	int readret = (*bttp->ns_cbp->nsread)(bttp->ns, lane, buf,
 					bttp->lbasize, data_block_off);
@@ -1748,7 +1748,7 @@ btt_write(struct btt *bttp, unsigned lane, uint64_t lba, const void *buf)
 
 	/* it is now safe to perform write to the free block */
 	uint64_t data_block_off = arenap->dataoff +
-		(free_entry & BTT_MAP_ENTRY_LBA_MASK) *
+		(uint64_t)(free_entry & BTT_MAP_ENTRY_LBA_MASK) *
 		arenap->internal_lbasize;
 	if ((*bttp->ns_cbp->nswrite)(bttp->ns, lane, buf,
 				bttp->lbasize, data_block_off) < 0)
