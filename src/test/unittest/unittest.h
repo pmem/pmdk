@@ -179,7 +179,14 @@ void ut_err(const char *file, int line, const char *func,
 
 #ifndef _MSC_VER
 #define UT_COMPILE_ERROR_ON(cond) ((void)sizeof(char[(cond) ? -1 : 1]))
+#ifndef __cplusplus
 #define UT_ASSERT_COMPILE_ERROR_ON(cond) UT_COMPILE_ERROR_ON(cond)
+#else
+/*
+ * XXX - workaround for http://github.com/pmem/issues/issues/189
+ */
+#define UT_ASSERT_COMPILE_ERROR_ON(cond)
+#endif
 #else
 #define UT_COMPILE_ERROR_ON(cond) C_ASSERT(!(cond))
 /* XXX - can't be done with C_ASSERT() unless we have __builtin_constant_p() */
