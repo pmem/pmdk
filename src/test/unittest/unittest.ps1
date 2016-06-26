@@ -162,7 +162,9 @@ function require_pmem {
 # or non-zeroed) with requested size and mode.  The actual file size may be
 # different than the part size in the pool set file.
 # 'r' or 'R' on the list of arguments indicate the beginning of the next
-# replica set.
+# replica set and 'm' or 'M' the beginning of the next remote replica set.
+# A remote replica requires two parameters: a target node and a pool set
+# descriptor.
 #
 # Each part argument has the following format:
 #   psize:ppath[:cmd[:fsize[:mode]]]
@@ -178,20 +180,38 @@ function require_pmem {
 #   fsize - (optional) the actual size of the part file (if 'cmd' is not 'x')
 #   mode  - (optional) same format as for 'chmod' command
 #
+# Each remote replica argument has the following format:
+#   node:desc
+#
+# where:
+#   node - target node
+#   desc - pool set descriptor
+#
 # example:
 #   The following command define a pool set consisting of two parts: 16MB
 #   and 32MB, and the replica with only one part of 48MB.  The first part file
 #   is not created, the second is zeroed.  The only replica part is non-zeroed.
 #   Also, the last file is read-only and its size does not match the information
-#   from pool set file.
+#   from pool set file. The last line describes a remote replica.
 #
 #	create_poolset ./pool.set 16M:testfile1 32M:testfile2:z \
-#				R 48M:testfile3:n:11M:0400
+#				R 48M:testfile3:n:11M:0400 \
+#				M remote_node:remote_pool.set
+#
 #
 function create_poolset {
     sv -Name psfile $args[0]
     echo "PMEMPOOLSET" | out-file -encoding ASCII $psfile
     for ($i=1;$i -lt $args.count;$i++) {
+        if ($args[$i] -eq "M" -Or $args[$i] -eq 'm') { # remote replica
+            $i++
+            sv -Name cmd $args[$i]
+            sv -Name fparms ($cmd.Split("{:}"))
+            sv -Name node $fparms[0]
+            sv -Name desc $fparms[1]
+            echo "REPLICA $node $desc" | out-file -Append -encoding ASCII $psfile
+            continue
+        }
         if ($args[$i] -eq "R" -Or $args[$i] -eq 'r') {
             echo "REPLICA" | out-file -Append -encoding ASCII $psfile
             continue
