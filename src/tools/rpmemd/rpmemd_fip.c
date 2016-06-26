@@ -765,7 +765,7 @@ rpmemd_fip_cq_thread(void *arg)
 	struct fi_cq_err_entry err;
 	const char *str_err;
 	ssize_t sret;
-	int ret;
+	int ret = 0;
 
 	while (!fip->closing) {
 		sret = fi_cq_sread(fip->cq, fip->cq_entries,
