@@ -486,8 +486,7 @@ rpmemd_db_check_dir_r(struct list_head *head, struct rpmemd_db *db,
 			const char *dir, char *pool_desc)
 {
 	char *new_dir, *new_desc, *full_path;
-	struct dirent dentry;
-	struct dirent *result;
+	struct dirent *dentry;
 	struct pool_set *set = NULL;
 	DIR *dirp;
 	int ret = 0;
@@ -498,13 +497,13 @@ rpmemd_db_check_dir_r(struct list_head *head, struct rpmemd_db *db,
 		return -1;
 	}
 
-	while (readdir_r(dirp, &dentry, &result) == 0 && result != NULL) {
-		if (strcmp(dentry.d_name, ".") == 0 ||
-		    strcmp(dentry.d_name, "..") == 0)
+	while ((dentry = readdir(dirp)) != NULL) {
+		if (strcmp(dentry->d_name, ".") == 0 ||
+		    strcmp(dentry->d_name, "..") == 0)
 			continue;
 
-		if (dentry.d_type == DT_DIR) { /* directory */
-			if (new_paths(dir, dentry.d_name, pool_desc,
+		if (dentry->d_type == DT_DIR) { /* directory */
+			if (new_paths(dir, dentry->d_name, pool_desc,
 					&new_dir, &new_desc))
 				goto err_closedir;
 
@@ -519,7 +518,7 @@ rpmemd_db_check_dir_r(struct list_head *head, struct rpmemd_db *db,
 
 		}
 
-		if (new_paths(dir, dentry.d_name, pool_desc,
+		if (new_paths(dir, dentry->d_name, pool_desc,
 				&full_path, &new_desc)) {
 			goto err_closedir;
 		}
