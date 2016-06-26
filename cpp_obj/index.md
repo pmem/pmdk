@@ -23,3 +23,8 @@ to the **C++ bindings**:
 * [Part 1 - Pmem Resident Property](http://pmem.io/2016/01/12/cpp-02.html)
 * [Part 2 - Persistent Smart Pointer](http://pmem.io/2016/01/12/cpp-03.html)
 * [Part 3 - Persistent Queue Example](http://pmem.io/2016/01/12/cpp-04.html)
+* [Part 4 - Pool Handle Wrapper](http://pmem.io/2016/05/10/cpp-05.html)
+* [Part 5 - make_persistent](http://pmem.io/2016/05/19/cpp-06.html)
+* [Part 6 - Transactions](http://pmem.io/2016/05/25/cpp-07.html)
+* [Part 7 - Synchronization Primitives](http://pmem.io/2016/05/31/cpp-08.html)
+* [Part 8 - Converting Existing Applications](http://pmem.io/2016/06/02/cpp-ctree-conversion.html)
