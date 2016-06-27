@@ -32,17 +32,18 @@
 #
 
 #
-# obj_constructor/TEST0 -- test for obj_constructor
+# obj_constructor/TEST1 -- test for obj_constructor
 #
 
-export UNITTEST_NAME=obj_constructor/TEST0
-export UNITTEST_NUM=0
+export UNITTEST_NAME=obj_constructor/TEST1
+export UNITTEST_NUM=1
 
 # standard unit test setup
 . ../unittest/unittest.sh
 
 require_fs_type any
-configure_valgrind memcheck force-disable
+configure_valgrind memcheck force-enable
+require_build_type debug
 
 setup
 
@@ -50,8 +51,11 @@ create_holey_file 8 $DIR/testfile1
 
 # This is a pretty length test on non-pmem devices, so force clflushes.
 export PMEM_IS_PMEM_FORCE=1
+export VALIDATE_VALGRIND_LOG=0
 
 expect_normal_exit\
     ./obj_constructor$EXESUFFIX $DIR/testfile1
+
+check
 
 pass

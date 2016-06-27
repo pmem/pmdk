@@ -67,6 +67,19 @@ node_constr_cancel(PMEMobjpool *pop, void *ptr, void *arg)
 	return 1;
 }
 
+struct foo {
+	int bar;
+};
+
+static struct foo *canceled_ptr;
+
+static int
+vg_test_save_ptr(PMEMobjpool *pop, void *ptr, void *arg)
+{
+	canceled_ptr = ptr;
+	return 1;
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -136,6 +149,13 @@ main(int argc, char *argv[])
 			1, node_constr_cancel, NULL);
 	UT_ASSERT(TOID_IS_NULL(node));
 	UT_ASSERTeq(errno, ECANCELED);
+
+	pmemobj_alloc(pop, &oid, sizeof(struct foo), 1,
+		vg_test_save_ptr, NULL);
+	UT_ASSERTne(canceled_ptr, NULL);
+
+	/* this should generate a valgrind memcheck warning */
+	canceled_ptr->bar = 5;
 
 	pmemobj_close(pop);
 
