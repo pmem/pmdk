@@ -346,13 +346,16 @@ util_convert_hdr(struct pool_hdr *hdrp)
 }
 
 /*
- * util_compare_arch_flags -- compare architecture flags
+ * util_arch_flags_check -- validates arch_flags
  */
 int
-util_compare_arch_flags(const struct arch_flags *arch_flags,
-				const struct arch_flags *comp_flags)
+util_check_arch_flags(const struct arch_flags *arch_flags)
 {
+	struct arch_flags cur_af;
 	int ret = 0;
+
+	if (util_get_arch_flags(&cur_af))
+		return -1;
 
 	if (!util_is_zeroed(&arch_flags->reserved,
 				sizeof(arch_flags->reserved))) {
@@ -360,41 +363,27 @@ util_compare_arch_flags(const struct arch_flags *arch_flags,
 		ret = -1;
 	}
 
-	if (arch_flags->e_machine != comp_flags->e_machine) {
+	if (arch_flags->e_machine != cur_af.e_machine) {
 		ERR("invalid e_machine value");
 		ret = -1;
 	}
 
-	if (arch_flags->ei_data != comp_flags->ei_data) {
+	if (arch_flags->ei_data != cur_af.ei_data) {
 		ERR("invalid ei_data value");
 		ret = -1;
 	}
 
-	if (arch_flags->ei_class != comp_flags->ei_class) {
+	if (arch_flags->ei_class != cur_af.ei_class) {
 		ERR("invalid ei_class value");
 		ret = -1;
 	}
 
-	if (arch_flags->alignment_desc != comp_flags->alignment_desc) {
+	if (arch_flags->alignment_desc != cur_af.alignment_desc) {
 		ERR("invalid alignment_desc value");
 		ret = -1;
 	}
 
 	return ret;
-}
-
-/*
- * util_arch_flags_check -- validates arch_flags
- */
-int
-util_check_arch_flags(const struct arch_flags *arch_flags)
-{
-	struct arch_flags cur_af;
-
-	if (util_get_arch_flags(&cur_af))
-		return -1;
-
-	return util_compare_arch_flags(arch_flags, &cur_af);
 }
 
 /*
