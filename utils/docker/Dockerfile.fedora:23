@@ -45,7 +45,7 @@ RUN dnf install -y git gcc clang openssh-server autoconf automake make \
 	fuse fuse-devel ncurses-devel libuv-devel glib2-devel
 
 # Install valgrind
-RUN git clone https://github.com/wojtuss/valgrind.git \
+RUN git clone https://github.com/pmem/valgrind.git \
 	&& cd valgrind \
 	&& ./autogen.sh \
 	&& ./configure \

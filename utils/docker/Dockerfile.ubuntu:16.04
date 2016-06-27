@@ -45,7 +45,7 @@ RUN apt-get install -y software-properties-common libunwind8-dev autoconf \
 	libc6-dbg libncurses5-dev libuv1-dev libfuse-dev libglib2.0-dev 
 
 # Install valgrind
-RUN git clone https://github.com/wojtuss/valgrind.git \
+RUN git clone https://github.com/pmem/valgrind.git \
 	&& cd valgrind \
 	&& ./autogen.sh \
 	&& ./configure \
