@@ -43,6 +43,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "blk_non_zero", "test\blk_no
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libut", "test\unittest\libut.vcxproj", "{CE3F2DFB-8470-4802-AD37-21CAF6CB2681}"
 	ProjectSection(ProjectDependencies) = postProject
+		{9E9E3D25-2139-4A5D-9200-18148DDEAD45} = {9E9E3D25-2139-4A5D-9200-18148DDEAD45}
 		{B3FF772D-F2FF-4E6E-ABD8-763407BB6A5C} = {B3FF772D-F2FF-4E6E-ABD8-763407BB6A5C}
 	EndProjectSection
 EndProject

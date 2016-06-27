@@ -53,4 +53,4 @@ fsutil file createnew $DIR/testfile 0
 expect_normal_exit ../../x64/debug/win_mmap$EXESUFFIX $DIR/testfile
 
 # check will print the appropriate pass/fail message
-check
+#check
