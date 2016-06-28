@@ -47,6 +47,7 @@
 #include "map_rbtree.h"
 #include "map_hashmap_atomic.h"
 #include "map_hashmap_tx.h"
+#include "map_skiplist.h"
 
 POBJ_LAYOUT_BEGIN(data_store);
 POBJ_LAYOUT_ROOT(data_store, struct store_root);
@@ -115,6 +116,8 @@ parse_map_type(const char *type)
 		return MAP_HASHMAP_ATOMIC;
 	else if (strcmp(type, "hashmap_tx") == 0)
 		return MAP_HASHMAP_TX;
+	else if (strcmp(type, "skiplist") == 0)
+		return MAP_SKIPLIST;
 	return NULL;
 
 }
@@ -122,8 +125,8 @@ parse_map_type(const char *type)
 int main(int argc, const char *argv[]) {
 	if (argc < 3) {
 		printf("usage: %s "
-			"<ctree|btree|rbtree|hashmap_atomic|hashmap_tx>"
-			" file-name [nops]\n", argv[0]);
+			"<ctree|btree|rbtree|hashmap_atomic|"
+			"hashmap_tx|skiplist> file-name [nops]\n", argv[0]);
 		return 1;
 	}
 

@@ -1,5 +1,6 @@
+#!/bin/bash -e
 #
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2015-2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,30 +32,31 @@
 #
 
 #
-# examples/libpmemobj/Makefile -- build the libpmemobj examples
+# src/test/ex_libpmemobj/TEST19 -- unit test for libpmemobj examples
 #
-include ../../common.inc
+export UNITTEST_NAME=ex_libpmemobj/TEST19
+export UNITTEST_NUM=19
 
-PROGS = manpage btree pi lists
-DIRS = pminvaders pmemlog pmemblk string_store string_store_tx\
-	string_store_tx_type hashmap tree_map pmemobjfs map libart array\
-	linkedlist list_map
+# standard unit test setup
+. ../unittest/unittest.sh
 
-ifeq ($(call cxx_ok), y)
-DIRS += cpp pman cpp_map panaconda doc_snippets
-else
-$(info NOTE: Skipping C++ examples because of compiler issues)
-endif
+require_build_type debug nondebug
 
-LIBS = -lpmemobj -lpmem -pthread -lm -pthread
+setup
 
-include ../Makefile.inc
+EX_PATH=../../examples/libpmemobj/map
 
-map: hashmap tree_map
-pmemobjfs: map
+expect_normal_exit $EX_PATH/mapcli skiplist $DIR/testfile1 555 > out$UNITTEST_NUM.log 2>&1 << EOF
+i 1234
+i 4321
+c 1234
+r 1234
+c 4321
+r 4321
+c 4321
+q
+EOF
 
-manpage: manpage.o
-btree: btree.o
-pi: pi.o
-queue: queue.o
-lists: lists.o
+check
+
+pass
