@@ -1017,9 +1017,10 @@ pmemobj_create(const char *path, const char *layout, size_t poolsize,
 		struct pool_replica *repset = set->replica[r];
 		PMEMobjpool *rep = repset->part[0].addr;
 
-		VALGRIND_REMOVE_PMEM_MAPPING(&rep->addr,
-				sizeof(struct pmemobjpool) -
-				((uintptr_t)&rep->addr - (uintptr_t)&rep->hdr));
+		size_t rt_size = (uintptr_t)(rep + 1) - (uintptr_t)&rep->addr;
+		VALGRIND_REMOVE_PMEM_MAPPING(&rep->addr, rt_size);
+
+		memset(&rep->addr, 0, rt_size);
 
 		rep->addr = rep;
 		rep->size = repset->repsize;
@@ -1225,9 +1226,11 @@ pmemobj_open_common(const char *path, const char *layout, int cow, int boot)
 		struct pool_replica *repset = set->replica[r];
 		PMEMobjpool *rep = repset->part[0].addr;
 
-		VALGRIND_REMOVE_PMEM_MAPPING(&rep->addr,
-			sizeof(struct pmemobjpool) -
-			((uintptr_t)&rep->addr - (uintptr_t)&rep->hdr));
+		size_t rt_size = (uintptr_t)(rep + 1) - (uintptr_t)&rep->addr;
+
+		VALGRIND_REMOVE_PMEM_MAPPING(&rep->addr, rt_size);
+
+		memset(&rep->addr, 0, rt_size);
 
 		rep->addr = rep;
 		rep->size = repset->repsize;
