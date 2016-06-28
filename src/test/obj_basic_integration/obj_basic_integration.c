@@ -528,6 +528,33 @@ test_tx_api(PMEMobjpool *pop)
 	} TX_END
 }
 
+static void
+test_offsetof(void)
+{
+	TOID(struct dummy_root) r;
+	TOID(struct dummy_node) n;
+
+	UT_COMPILE_ERROR_ON(TOID_OFFSETOF(r, value) !=
+				offsetof(struct dummy_root, value));
+	UT_COMPILE_ERROR_ON(TOID_OFFSETOF(r, lock) !=
+				offsetof(struct dummy_root, lock));
+	UT_COMPILE_ERROR_ON(TOID_OFFSETOF(r, node) !=
+				offsetof(struct dummy_root, node));
+	UT_COMPILE_ERROR_ON(TOID_OFFSETOF(r, dummies) !=
+				offsetof(struct dummy_root, dummies));
+	UT_COMPILE_ERROR_ON(TOID_OFFSETOF(r, moved) !=
+				offsetof(struct dummy_root, moved));
+
+	UT_COMPILE_ERROR_ON(TOID_OFFSETOF(n, value) !=
+				offsetof(struct dummy_node, value));
+	UT_COMPILE_ERROR_ON(TOID_OFFSETOF(n, teststr) !=
+				offsetof(struct dummy_node, teststr));
+	UT_COMPILE_ERROR_ON(TOID_OFFSETOF(n, plist) !=
+				offsetof(struct dummy_node, plist));
+	UT_COMPILE_ERROR_ON(TOID_OFFSETOF(n, plist_m) !=
+				offsetof(struct dummy_node, plist_m));
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -551,6 +578,7 @@ main(int argc, char *argv[])
 	test_realloc_api(pop);
 	test_list_api(pop);
 	test_tx_api(pop);
+	test_offsetof();
 
 	pmemobj_close(pop);
 
