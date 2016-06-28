@@ -176,23 +176,6 @@ void ut_err(const char *file, int line, const char *func,
 #define UT_ERR(...)\
     ut_err(__FILE__, __LINE__, __func__, __VA_ARGS__)
 
-
-#ifndef _MSC_VER
-#define UT_COMPILE_ERROR_ON(cond) ((void)sizeof(char[(cond) ? -1 : 1]))
-#ifndef __cplusplus
-#define UT_ASSERT_COMPILE_ERROR_ON(cond) UT_COMPILE_ERROR_ON(cond)
-#else
-/*
- * XXX - workaround for http://github.com/pmem/issues/issues/189
- */
-#define UT_ASSERT_COMPILE_ERROR_ON(cond)
-#endif
-#else
-#define UT_COMPILE_ERROR_ON(cond) C_ASSERT(!(cond))
-/* XXX - can't be done with C_ASSERT() unless we have __builtin_constant_p() */
-#define UT_ASSERT_COMPILE_ERROR_ON(cond)
-#endif
-
 /*
  * assertions...
  */
@@ -218,6 +201,22 @@ void ut_err(const char *file, int line, const char *func,
 	((void)(((lhs) != (rhs)) || (ut_fatal(__FILE__, __LINE__, __func__,\
 	"assertion failure: %s (0x%llx) != %s (0x%llx)", #lhs,\
 	(unsigned long long)(lhs), #rhs, (unsigned long long)(rhs)), 0)))
+
+#ifndef _MSC_VER
+#define UT_COMPILE_ERROR_ON(cond) ((void)sizeof(char[(cond) ? -1 : 1]))
+#ifndef __cplusplus
+#define UT_ASSERT_COMPILE_ERROR_ON(cond) UT_COMPILE_ERROR_ON(cond)
+#else /* __cplusplus */
+/*
+ * XXX - workaround for http://github.com/pmem/issues/issues/189
+ */
+#define UT_ASSERT_COMPILE_ERROR_ON(cond) UT_ASSERT_rt(!(cond))
+#endif /* __cplusplus */
+#else /* _MSC_VER */
+#define UT_COMPILE_ERROR_ON(cond) C_ASSERT(!(cond))
+/* XXX - can't be done with C_ASSERT() unless we have __builtin_constant_p() */
+#define UT_ASSERT_COMPILE_ERROR_ON(cond)
+#endif /* _MSC_VER */
 
 /* assert a condition is true */
 #define UT_ASSERT(cnd)\
