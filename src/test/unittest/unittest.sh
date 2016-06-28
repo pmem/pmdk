@@ -530,8 +530,11 @@ function expect_normal_exit() {
 	fi
 	if [ "$CHECK_TYPE" != "none" ]; then
 		TRACE="$OLDTRACE"
-		if [ -f $VALGRIND_LOG_FILE -a "${VALIDATE_VALGRIND_LOG}" = "1" ]; then
+		if [ -f $VALGRIND_LOG_FILE ]; then
 			ignore_debug_info_errors ${VALGRIND_LOG_FILE}
+		fi
+
+		if [ -f $VALGRIND_LOG_FILE -a "${VALIDATE_VALGRIND_LOG}" = "1" ]; then
 			if [ ! -e $CHECK_TYPE$UNITTEST_NUM.log.match ] && grep "ERROR SUMMARY: [^0]" $VALGRIND_LOG_FILE >/dev/null; then
 				msg="failed"
 				[ -t 2 ] && command -v tput >/dev/null && msg="$(tput setaf 1)$msg$(tput sgr0)"
