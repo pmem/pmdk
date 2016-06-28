@@ -82,8 +82,8 @@
       <AdditionalDependencies>$(ProjectDir)\..\..\$(IntermediateOutputPath)libpmem\libpmem.lib;$(ProjectDir)\..\..\$(IntermediateOutputPath)libpmemblk\libpmemblk.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Lib>
-      <AdditionalDependencies>liblinux.lib;DbgHelp.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>liblinux.lib;DbgHelp.lib;libpmem.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(OutDir);$(OutDir)\..\Debug</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Static-Release|x64'">
@@ -106,8 +106,8 @@
       <AdditionalDependencies>$(ProjectDir)\..\..\$(IntermediateOutputPath)libpmem\libpmem.lib;$(ProjectDir)\..\..\$(IntermediateOutputPath)libpmemblk\libpmemblk.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Lib>
-      <AdditionalDependencies>liblinux.lib;DbgHelp.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>liblinux.lib;DbgHelp.lib;libpmem.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(OutDir);$(OutDir)\..\Release</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
