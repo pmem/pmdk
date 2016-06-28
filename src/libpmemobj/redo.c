@@ -72,8 +72,10 @@ redo_log_config_new(void *base,
 		unsigned redo_num_entries)
 {
 	struct redo_ctx *cfg = Malloc(sizeof(*cfg));
-	if (!cfg)
+	if (!cfg) {
+		ERR("!can't create redo log config");
 		return NULL;
+	}
 
 	cfg->base = base;
 	cfg->persist = persist;
@@ -224,6 +226,7 @@ void
 redo_log_recover(struct redo_ctx *ctx, struct redo_log *redo, size_t nentries)
 {
 	LOG(15, "redo %p nentries %zu", redo, nentries);
+	ASSERTne(ctx, NULL);
 
 	size_t nflags = redo_log_nflags(redo, nentries);
 	ASSERT(nflags < 2);
@@ -239,6 +242,7 @@ int
 redo_log_check(struct redo_ctx *ctx, struct redo_log *redo, size_t nentries)
 {
 	LOG(15, "redo %p nentries %zu", redo, nentries);
+	ASSERTne(ctx, NULL);
 
 	size_t nflags = redo_log_nflags(redo, nentries);
 
