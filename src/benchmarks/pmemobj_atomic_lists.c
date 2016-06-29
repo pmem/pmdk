@@ -598,6 +598,7 @@ random_values(size_t min, size_t max, unsigned n_ops, size_t min_range)
 	if (min > min_range) {
 		if (min > max) {
 			fprintf(stderr, "Invalid size\n");
+			free(randoms);
 			return NULL;
 		}
 		for (size_t i = 0; i < n_ops; i++)

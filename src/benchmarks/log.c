@@ -536,7 +536,8 @@ log_init(struct benchmark *bench, struct benchmark_args *args)
 	if (lb->args->rand &&
 		lb->args->min_size > lb->args->el_size) {
 		errno = EINVAL;
-		return -1;
+		ret = -1;
+		goto err_free_lb;
 	}
 
 	if (lb->args->rand &&
@@ -554,7 +555,8 @@ log_init(struct benchmark *bench, struct benchmark_args *args)
 	if (args->is_poolset) {
 		if (lb->psize > args->fsize) {
 			fprintf(stderr, "insufficient size of poolset\n");
-			return -1;
+			ret = -1;
+			goto err_free_lb;
 		}
 
 		lb->psize = 0;

@@ -805,6 +805,7 @@ rand_values(unsigned int min, unsigned int max, unsigned int n_ops)
 	if (min) {
 		if (min > max) {
 			fprintf(stderr, "Invalid size\n");
+			free(sizes);
 			return NULL;
 		}
 		for (size_t i = 0; i < n_ops; i++)

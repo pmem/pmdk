@@ -927,6 +927,8 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 	}
 
 	struct benchmark_args *args = NULL;
+	struct latency *stats = NULL;
+	double *workers_times = NULL;
 
 	struct clo_vec *clovec = clo_vec_alloc(bench->args_size);
 	assert(clovec != NULL);
@@ -983,10 +985,9 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 		size_t n_ops = !bench->info->multiops ? 1 :
 						args->n_ops_per_thread;
 
-		struct latency *stats = calloc(args->repeats,
-						sizeof(struct latency));
+		stats = calloc(args->repeats, sizeof(struct latency));
 		assert(stats != NULL);
-		double *workers_times = calloc(n_threads * args->repeats,
+		workers_times = calloc(n_threads * args->repeats,
 							sizeof(double));
 		assert(workers_times != NULL);
 
@@ -1060,8 +1061,14 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 							&total, &latency);
 		free(stats);
 		free(workers_times);
+		stats = NULL;
+		workers_times = NULL;
 	}
 out:
+	if (stats)
+		free(stats);
+	if (workers_times)
+		free(workers_times);
 out_release_args:
 	clo_vec_free(clovec);
 
