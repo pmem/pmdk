@@ -57,7 +57,8 @@ CFLAGS += -DRPMEMC_LOG_RPMEMD
 CFLAGS += $(shell $(PKG_CONFIG) --cflags libfabric)
 LIBS += $(shell $(PKG_CONFIG) --libs libfabric)
 
-INSTALL_TARGET=n
+
+INSTALL_TARGET=$(EXPERIMENTAL)
 
 else
 $(info NOTE: Skipping rpmemd because libfabric is missing \
