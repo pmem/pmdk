@@ -142,6 +142,7 @@ benchmark_worker_free(struct benchmark_worker *w)
 {
 	pthread_join(w->thread, NULL);
 	pthread_cond_destroy(&w->cond);
+	pthread_mutex_destroy(&w->lock);
 	free(w);
 }
 
