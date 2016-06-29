@@ -1581,9 +1581,11 @@ heap_boot(PMEMobjpool *pop)
 	heap_vg_boot(pop);
 #endif
 
+	pthread_mutexattr_destroy(&lock_attr);
 	return 0;
 
 error_buckets_init:
+	pthread_mutexattr_destroy(&lock_attr);
 	/* there's really no point in destroying the locks */
 	Free(h->caches);
 error_heap_cache_malloc:

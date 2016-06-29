@@ -393,7 +393,7 @@ pobj_init(struct benchmark *bench, struct benchmark_args *args)
 	if (args->is_poolset && bench_priv->n_pools > 1) {
 		fprintf(stderr, "cannot use poolset for multiple pools,"
 				" please use -P|--one-pool option instead");
-		return -1;
+		goto free_bench_priv;
 	}
 	/*
 	 * Multiplication by FACTOR prevents from out of memory error
