@@ -44,6 +44,7 @@
 
 #define MAX_HASH_FUNCS 2
 
+#define GROWTH_FACTOR 1.2f
 #define INITIAL_SIZE 8
 #define MAX_INSERTS 8
 #define MAX_GROWS 32
@@ -54,7 +55,7 @@ struct cuckoo_slot {
 };
 
 struct cuckoo {
-	unsigned size; /* number of hash table slots */
+	size_t size; /* number of hash table slots */
 	struct cuckoo_slot *tab;
 };
 
@@ -63,10 +64,10 @@ static const struct cuckoo_slot null_slot = {0, NULL};
 /*
  * hash_mod -- (internal) first hash function
  */
-static unsigned
+static size_t
 hash_mod(struct cuckoo *c, uint64_t key)
 {
-	return (unsigned)(key % c->size);
+	return key % c->size;
 }
 
 /*
@@ -74,7 +75,7 @@ hash_mod(struct cuckoo *c, uint64_t key)
  *
  * Based on Austin Appleby MurmurHash3 64-bit finalizer.
  */
-static unsigned
+static size_t
 hash_mixer(struct cuckoo *c, uint64_t key)
 {
 	key ^= key >> 33;
@@ -82,10 +83,10 @@ hash_mixer(struct cuckoo *c, uint64_t key)
 	key ^= key >> 33;
 	key *= 0xc4ceb9fe1a85ec53;
 	key ^= key >> 33;
-	return (unsigned)(key % c->size);
+	return key % c->size;
 }
 
-static unsigned
+static size_t
 (*hash_funcs[MAX_HASH_FUNCS])(struct cuckoo *c, uint64_t key) = {
 	hash_mod,
 	hash_mixer
@@ -97,6 +98,9 @@ static unsigned
 struct cuckoo *
 cuckoo_new()
 {
+	COMPILE_ERROR_ON((size_t)(INITIAL_SIZE * GROWTH_FACTOR)
+		== INITIAL_SIZE);
+
 	struct cuckoo *c = Malloc(sizeof(struct cuckoo));
 	if (c == NULL) {
 		ERR("!Malloc");
@@ -134,7 +138,7 @@ static int
 cuckoo_insert_try(struct cuckoo *c, struct cuckoo_slot *src)
 {
 	struct cuckoo_slot srct;
-	unsigned h[MAX_HASH_FUNCS] = {0};
+	size_t h[MAX_HASH_FUNCS] = {0};
 	for (int n = 0; n < MAX_INSERTS; ++n) {
 		for (int i = 0; i < MAX_HASH_FUNCS; ++i) {
 			h[i] = hash_funcs[i](c, src->key);
@@ -161,19 +165,21 @@ cuckoo_insert_try(struct cuckoo *c, struct cuckoo_slot *src)
 static int
 cuckoo_grow(struct cuckoo *c)
 {
-	unsigned oldsize = c->size;
+	size_t oldsize = c->size;
 	struct cuckoo_slot *oldtab = c->tab;
 
 	int n;
 	for (n = 0; n < MAX_GROWS; ++n) {
-		size_t tab_rawsize = c->size * 2 * sizeof(struct cuckoo_slot);
+		size_t nsize = (size_t)((float)c->size * GROWTH_FACTOR);
+
+		size_t tab_rawsize = nsize * sizeof(struct cuckoo_slot);
 		c->tab = Zalloc(tab_rawsize);
 		if (c->tab == NULL) {
 			c->tab = oldtab;
 			return ENOMEM;
 		}
 
-		c->size *= 2;
+		c->size = nsize;
 		unsigned i;
 		for (i = 0; i < oldsize; ++i) {
 			struct cuckoo_slot s = oldtab[i];
@@ -223,7 +229,7 @@ static struct cuckoo_slot *
 cuckoo_find_slot(struct cuckoo *c, uint64_t key)
 {
 	for (int i = 0; i < MAX_HASH_FUNCS; ++i) {
-		unsigned h = hash_funcs[i](c, key);
+		size_t h = hash_funcs[i](c, key);
 		if (c->tab[h].key == key)
 			return &c->tab[h];
 	}
@@ -255,4 +261,14 @@ cuckoo_get(struct cuckoo *c, uint64_t key)
 {
 	struct cuckoo_slot *s = cuckoo_find_slot(c, key);
 	return s ? s->value : NULL;
+}
+
+/*
+ * cuckoo_get_size -- returns the size of the underlying table, useful for
+ *	calculating load factor and predicting possible rehashes
+ */
+size_t
+cuckoo_get_size(struct cuckoo *c)
+{
+	return c->size;
 }

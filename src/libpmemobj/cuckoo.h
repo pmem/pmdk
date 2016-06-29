@@ -42,3 +42,4 @@ void cuckoo_delete(struct cuckoo *c);
 int cuckoo_insert(struct cuckoo *c, uint64_t key, void *value);
 void *cuckoo_remove(struct cuckoo *c, uint64_t key);
 void *cuckoo_get(struct cuckoo *c, uint64_t key);
+size_t cuckoo_get_size(struct cuckoo *c);
