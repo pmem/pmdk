@@ -120,17 +120,19 @@ benchmark_worker_alloc(void)
 		goto err_free_worker;
 
 	if (pthread_cond_init(&w->cond, NULL))
-		goto err_free_worker;
+		goto err_destroy_mutex;
 
 	if (pthread_create(&w->thread, NULL, thread_func, w))
 		goto err_destroy_cond;
 
 	return w;
+
 err_destroy_cond:
 	pthread_cond_destroy(&w->cond);
+err_destroy_mutex:
+	pthread_mutex_destroy(&w->lock);
 err_free_worker:
 	free(w);
-
 	return NULL;
 }
 
