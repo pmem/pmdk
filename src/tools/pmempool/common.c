@@ -1186,7 +1186,7 @@ pool_set_file_open(const char *fname,
 	util_stat_t buf;
 	if (util_stat(fname, &buf)) {
 		warn("%s", fname);
-		goto err_close_poolset;
+		goto err_free_fname;
 	}
 
 	file->mtime = buf.st_mtime;
@@ -1199,13 +1199,14 @@ pool_set_file_open(const char *fname,
 		int fd = util_file_open(fname, NULL, 0, O_RDONLY);
 		if (fd < 0) {
 			outv_err("util_file_open failed\n");
-			return NULL;
+			goto err_free_fname;
 		}
 
 		off_t seek_size = util_lseek(fd, 0, SEEK_END);
 		if (seek_size == -1) {
 			outv_err("lseek SEEK_END failed\n");
-			return NULL;
+			close(fd);
+			goto err_free_fname;
 		}
 
 		file->size = (size_t)seek_size;
