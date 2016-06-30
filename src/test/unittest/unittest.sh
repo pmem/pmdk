@@ -1241,7 +1241,12 @@ function require_nodes() {
 	# add debug or nondebug libraries to the 'to-copy' list
 	local BUILD_TYPE=$(echo $BUILD | cut -d"-" -f1)
 	[ "$BUILD_TYPE" == "static" ] && BUILD_TYPE=$(echo $BUILD | cut -d"-" -f2)
-	FILES_TO_COPY="$FILES_TO_COPY $DIR_SRC/$BUILD_TYPE/*.so.1"
+	local LIBS_TAR=libs.tar
+	local LIBS_TAR_DIR=$(pwd)/$LIBS_TAR
+	cd $DIR_SRC/$BUILD_TYPE
+	tar -cf $LIBS_TAR_DIR *.so*
+	cd - > /dev/null
+	FILES_TO_COPY="$FILES_TO_COPY $LIBS_TAR"
 
 	for f in $OPT_FILES_CURRTEST_DIR; do
 		if [ -f $f ]; then
@@ -1262,11 +1267,15 @@ function require_nodes() {
 		run_command scp $SCP_OPTS $FILES_COMMON_DIR ${NODE[$N]}:${NODE_WORKING_DIR[$N]}
 
 		# copy all required files
-		[ "$FILES_TO_COPY" != "" ] &&\
+		if [ "$FILES_TO_COPY" != "" ]; then
 			run_command scp $SCP_OPTS $FILES_TO_COPY ${NODE[$N]}:$DIR
+			run_command ssh $SSH_OPTS ${NODE[$N]} "cd $DIR && tar -xf $LIBS_TAR && rm -f $LIBS_TAR"
+		fi
 
 		export_vars_node $N $REMOTE_VARS
 	done
+
+	rm -f $LIBS_TAR
 
 	# remove all log files from required nodes
 	for (( N=$NODES_MAX ; $(($N + 1)) ; N=$(($N - 1)) )); do
