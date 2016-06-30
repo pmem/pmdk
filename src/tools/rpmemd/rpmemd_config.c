@@ -526,8 +526,8 @@ parse_cl_args(int argc, char *argv[], struct rpmemd_config *config,
 			exit(0);
 			break;
 		default:
-			if (set_option((uint32_t)opt, optarg, config) == 0) {
-				*cl_options |= (uint32_t)(1 << opt);
+			if (set_option((uint64_t)opt, optarg, config) == 0) {
+				*cl_options |= (uint64_t)(1 << opt);
 			} else {
 				print_usage(argv[0]);
 				exit(-1);
