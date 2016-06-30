@@ -199,7 +199,7 @@ pool_set_map(const char *fname, struct pool_set **poolset, int rdonly)
 	 */
 	if (util_pool_open(poolset, fname, rdonly, minsize, hdr.signature,
 			hdr.major, hdr.compat_features, hdr.incompat_features,
-			hdr.ro_compat_features)) {
+			hdr.ro_compat_features, NULL)) {
 		ERR("openning poolset failed");
 		return -1;
 	}
