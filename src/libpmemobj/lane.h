@@ -74,6 +74,12 @@ struct lane {
 };
 
 struct lane_descriptor {
+	/*
+	 * Number of lanes available at runtime must be <= total number of lanes
+	 * available in the pool. Number of lanes can be limited by shortage of
+	 * other resources e.g. available RNIC's submission queue sizes.
+	 */
+	unsigned runtime_nlanes;
 	unsigned next_lane_idx;
 	uint64_t *lane_locks;
 	struct lane *lane;

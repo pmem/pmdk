@@ -239,8 +239,8 @@ test_lane_hold_release()
 		.p = {
 			.nlanes = 1,
 			.lanes_desc = {
+					.runtime_nlanes = 1,
 					.lane = &mock_lane,
-
 					.next_lane_idx = 0
 			}
 		}
