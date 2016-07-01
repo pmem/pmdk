@@ -301,17 +301,32 @@ pthread_cond_signal(pthread_cond_t *__restrict cond)
 	return 0;
 }
 
+static time_t
+get_rel_wait(const struct timespec *abstime)
+{
+	struct __timeb64 t;
+	_ftime64_s(&t);
+	time_t now_ms = t.time * 1000 + t.millitm;
+	time_t ms = (time_t)(abstime->tv_sec * 1000 +
+		abstime->tv_nsec / 1000000);
+
+	time_t rel_wait = ms - now_ms;
+
+	return rel_wait < 0 ? 0 : rel_wait;
+}
+
 int
 pthread_cond_timedwait(pthread_cond_t *__restrict cond,
 	pthread_mutex_t *__restrict mutex, const struct timespec *abstime)
 {
-	DWORD ms = (DWORD)(abstime->tv_sec * 1000 +
-					abstime->tv_nsec / 1000000);
-
-	/* XXX - return error code based on GetLastError() */
 	BOOL ret;
-	ret = SleepConditionVariableCS(&cond->cond, &mutex->lock, ms);
-	return (ret == FALSE) ? ETIMEDOUT : 0;
+	SetLastError(0);
+	ret = SleepConditionVariableCS(&cond->cond, &mutex->lock,
+			get_rel_wait(abstime));
+	if (ret == FALSE)
+		return (GetLastError() == ERROR_TIMEOUT) ? ETIMEDOUT : EINVAL;
+
+	return 0;
 }
 
 int

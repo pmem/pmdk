@@ -60,7 +60,7 @@
 
 /* XXX - dummy */
 typedef int pthread_t;
-typedef pthread_attr_t;
+typedef int pthread_attr_t;
 typedef long pthread_once_t;
 typedef DWORD pthread_key_t;
 

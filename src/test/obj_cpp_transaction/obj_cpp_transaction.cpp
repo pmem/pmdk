@@ -48,6 +48,11 @@ namespace
 int counter = 0;
 }
 
+/*
+* XXX The Microsoft compiler does not follow the ISO SD-6: SG10 Feature
+* Test Recommendations. "_MSC_VER" is a workaround.
+*/
+#if _MSC_VER < 1900
 #ifndef __cpp_lib_uncaught_exceptions
 #define __cpp_lib_uncaught_exceptions 201411
 namespace std
@@ -61,6 +66,7 @@ uncaught_exceptions() noexcept
 
 } /* namespace std */
 #endif /* __cpp_lib_uncaught_exceptions */
+#endif /* _MSC_VER */
 
 #include "libpmemobj/transaction.hpp"
 
@@ -218,7 +224,7 @@ test_tx_throw_no_abort(nvobj::pool<root> &pop)
 			rootp->pfoo = nvobj::make_persistent<foo>();
 			throw std::runtime_error("error");
 		});
-	} catch (std::runtime_error &re) {
+	} catch (std::runtime_error &) {
 		exception_thrown = true;
 	} catch (...) {
 		UT_ASSERT(0);
@@ -236,7 +242,7 @@ test_tx_throw_no_abort(nvobj::pool<root> &pop)
 				throw std::runtime_error("error");
 			});
 		});
-	} catch (std::runtime_error &re) {
+	} catch (std::runtime_error &) {
 		exception_thrown = true;
 	} catch (...) {
 		UT_ASSERT(0);
@@ -290,7 +296,7 @@ test_tx_no_throw_abort(nvobj::pool<root> &pop)
 			rootp->pfoo = nvobj::make_persistent<foo>();
 			nvobj::transaction::abort(-1);
 		});
-	} catch (nvml::manual_tx_abort &ta) {
+	} catch (nvml::manual_tx_abort &) {
 		exception_thrown = true;
 	} catch (...) {
 		UT_ASSERT(0);
@@ -307,7 +313,7 @@ test_tx_no_throw_abort(nvobj::pool<root> &pop)
 			nvobj::transaction::exec_tx(
 				pop, [&]() { nvobj::transaction::abort(-1); });
 		});
-	} catch (nvml::manual_tx_abort &ta) {
+	} catch (nvml::manual_tx_abort &) {
 		exception_thrown = true;
 	} catch (...) {
 		UT_ASSERT(0);
@@ -331,7 +337,7 @@ test_tx_no_throw_abort(nvobj::pool<root> &pop)
 				UT_ASSERT(0);
 			}
 		});
-	} catch (nvml::transaction_error &ta) {
+	} catch (nvml::transaction_error &) {
 		exception_thrown = true;
 	} catch (...) {
 		UT_ASSERT(0);
@@ -436,7 +442,7 @@ test_tx_throw_no_abort_scope(nvobj::pool<root> &pop)
 		rootp->pfoo = nvobj::make_persistent<foo>();
 		counter = 1;
 		throw std::runtime_error("error");
-	} catch (std::runtime_error &re) {
+	} catch (std::runtime_error &) {
 		exception_thrown = true;
 	} catch (...) {
 		UT_ASSERT(0);
@@ -457,7 +463,7 @@ test_tx_throw_no_abort_scope(nvobj::pool<root> &pop)
 			counter = 1;
 			throw std::runtime_error("error");
 		}
-	} catch (std::runtime_error &re) {
+	} catch (std::runtime_error &) {
 		exception_thrown = true;
 	} catch (...) {
 		UT_ASSERT(0);
@@ -515,7 +521,7 @@ test_tx_no_throw_abort_scope(nvobj::pool<root> &pop)
 		rootp->pfoo = nvobj::make_persistent<foo>();
 		counter = 1;
 		nvobj::transaction::abort(ECANCELED);
-	} catch (nvml::manual_tx_abort &ta) {
+	} catch (nvml::manual_tx_abort &) {
 		exception_thrown = true;
 	} catch (...) {
 		UT_ASSERT(0);
@@ -536,7 +542,7 @@ test_tx_no_throw_abort_scope(nvobj::pool<root> &pop)
 			counter = 1;
 			nvobj::transaction::abort(EINVAL);
 		}
-	} catch (nvml::manual_tx_abort &ta) {
+	} catch (nvml::manual_tx_abort &) {
 		exception_thrown = true;
 	} catch (...) {
 		UT_ASSERT(0);
@@ -561,7 +567,7 @@ test_tx_no_throw_abort_scope(nvobj::pool<root> &pop)
 		} catch (...) {
 			UT_ASSERT(0);
 		}
-	} catch (nvml::transaction_error &ta) {
+	} catch (nvml::transaction_error &) {
 		exception_thrown = true;
 	} catch (...) {
 		UT_ASSERT(0);

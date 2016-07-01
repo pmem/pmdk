@@ -95,6 +95,8 @@ EXPORTS
 	pmemobj_tx_strdup
 	pmemobj_tx_free
 	pmemobj_tx_errno
+	pmemobj_tx_lock
+	pmemobj_mutex_timedlock
 	pmemobj_memcpy_persist
 	pmemobj_memset_persist
 	pmemobj_persist

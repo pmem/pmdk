@@ -258,18 +258,6 @@ public:
 		std::swap(this->oid, other.oid);
 	}
 
-	/* Unspecified bool type. */
-	typedef element_type *(
-		persistent_ptr<T>::*unspecified_bool_type)() const;
-
-	/*
-	 * Unspecified bool type conversion operator.
-	 */
-	operator unspecified_bool_type() const noexcept
-	{
-		return OID_IS_NULL(this->oid) ? 0 : &persistent_ptr<T>::get;
-	}
-
 	/*
 	 * Bool conversion operator.
 	 */
@@ -484,6 +472,46 @@ operator!=(const persistent_ptr<T> &lhs, const persistent_ptr<Y> &rhs) noexcept
 }
 
 /**
+ * Equality operator with nullptr.
+ */
+template <typename T>
+inline bool
+operator==(const persistent_ptr<T> &lhs, std::nullptr_t) noexcept
+{
+	return lhs.get() == nullptr;
+}
+
+/**
+ * Equality operator with nullptr.
+ */
+template <typename T>
+inline bool
+operator==(std::nullptr_t, const persistent_ptr<T> &lhs) noexcept
+{
+	return lhs.get() == nullptr;
+}
+
+/**
+ * Inequality operator with nullptr.
+ */
+template <typename T>
+inline bool
+operator!=(const persistent_ptr<T> &lhs, std::nullptr_t) noexcept
+{
+	return lhs.get() != nullptr;
+}
+
+/**
+ * Inequality operator with nullptr.
+ */
+template <typename T>
+inline bool
+operator!=(std::nullptr_t, const persistent_ptr<T> &lhs) noexcept
+{
+	return lhs.get() != nullptr;
+}
+
+/**
  * Less than operator.
  *
  * @return true if the uuid_lo of lhs is less than the uuid_lo of rhs,
@@ -625,7 +653,7 @@ operator>=(std::nullptr_t, const persistent_ptr<T> &rhs) noexcept
  */
 template <typename T>
 inline persistent_ptr<T>
-operator+(const persistent_ptr<T> &lhs, std::size_t s)
+operator+(const persistent_ptr<T> &lhs, std::ptrdiff_t s)
 {
 	PMEMoid noid;
 	noid.pool_uuid_lo = lhs.raw().pool_uuid_lo;
@@ -638,7 +666,7 @@ operator+(const persistent_ptr<T> &lhs, std::size_t s)
  */
 template <typename T>
 inline persistent_ptr<T>
-operator-(const persistent_ptr<T> &lhs, std::size_t s)
+operator-(const persistent_ptr<T> &lhs, std::ptrdiff_t s)
 {
 	PMEMoid noid;
 	noid.pool_uuid_lo = lhs.raw().pool_uuid_lo;

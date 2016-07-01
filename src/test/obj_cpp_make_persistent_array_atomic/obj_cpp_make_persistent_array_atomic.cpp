@@ -117,10 +117,10 @@ test_make_one_d(nvobj::pool_base &pop)
 }
 
 /*
- * test_make_two_d -- (internal) test make_persitent of a 2d array
+ * test_make_N_d -- (internal) test make_persitent of 2d and 3d arrays
  */
 void
-test_make_two_d(nvobj::pool_base &pop)
+test_make_N_d(nvobj::pool_base &pop)
 {
 	nvobj::persistent_ptr<foo[][2]> pfoo;
 	nvobj::make_persistent_atomic<foo[][2]>(pop, pfoo, 5);
@@ -145,6 +145,24 @@ test_make_two_d(nvobj::pool_base &pop)
 			pfooN[i][j].check_foo();
 
 	nvobj::delete_persistent_atomic<foo[5][2]>(pfooN);
+
+	nvobj::persistent_ptr<foo[][2][3]> pfoo3;
+	nvobj::make_persistent_atomic<foo[][2][3]>(pop, pfoo3, 5);
+	for (int i = 0; i < 5; ++i)
+		for (int j = 0; j < 2; j++)
+			for (int k = 0; k < 3; k++)
+				pfoo3[i][j][k].check_foo();
+
+	nvobj::delete_persistent_atomic<foo[][2][3]>(pfoo3, 5);
+
+	nvobj::persistent_ptr<foo[5][2][3]> pfoo3N;
+	nvobj::make_persistent_atomic<foo[5][2][3]>(pop, pfoo3N);
+	for (int i = 0; i < 5; ++i)
+		for (int j = 0; j < 2; j++)
+			for (int k = 0; k < 3; k++)
+				pfoo3N[i][j][k].check_foo();
+
+	nvobj::delete_persistent_atomic<foo[5][2][3]>(pfoo3N);
 }
 
 /*
@@ -158,7 +176,7 @@ test_constructor_exception(nvobj::pool_base &pop)
 	bool except = false;
 	try {
 		nvobj::make_persistent_atomic<bar[]>(pop, pfoo, 5);
-	} catch (std::bad_alloc &ba) {
+	} catch (std::bad_alloc &) {
 		except = true;
 	}
 
@@ -206,7 +224,7 @@ main(int argc, char *argv[])
 	}
 
 	test_make_one_d(pop);
-	test_make_two_d(pop);
+	test_make_N_d(pop);
 	test_constructor_exception(pop);
 	test_delete_null(pop);
 

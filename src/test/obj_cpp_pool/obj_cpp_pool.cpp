@@ -68,7 +68,7 @@ pool_create(const char *path, const char *layout, size_t poolsize,
 		return;
 	}
 
-	struct stat stbuf;
+	ut_util_stat_t stbuf;
 	STAT(path, &stbuf);
 
 	UT_OUT("%s: file size %zu mode 0%o", path, stbuf.st_size,

@@ -39,6 +39,7 @@
 #define LIBPMEMOBJ_TRANSACTION_HPP
 
 #include <functional>
+#include <string>
 
 #include "libpmemobj.h"
 #include "libpmemobj/detail/pexceptions.hpp"
@@ -156,7 +157,11 @@ public:
 		manual &operator=(manual &&p) = delete;
 	};
 
-#ifdef __cpp_lib_uncaught_exceptions
+/*
+ * XXX The Microsoft compiler does not follow the ISO SD-6: SG10 Feature
+ * Test Recommendations. "|| _MSC_VER >= 1900" is a workaround.
+ */
+#if __cpp_lib_uncaught_exceptions || _MSC_VER >= 1900
 	/**
 	 * C++ automatic scope transaction class.
 	 *

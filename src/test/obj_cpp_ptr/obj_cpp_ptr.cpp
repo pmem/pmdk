@@ -198,7 +198,7 @@ test_ptr_transactional(nvobj::pool<root> &pop)
 			pfoo->bar = 0;
 			nvobj::transaction::abort(-1);
 		});
-	} catch (nvml::manual_tx_abort &ma) {
+	} catch (nvml::manual_tx_abort &) {
 		exception_thrown = true;
 	} catch (...) {
 		UT_ASSERT(0);
@@ -261,7 +261,7 @@ test_ptr_array(nvobj::pool<root> &pop)
 
 			nvobj::transaction::abort(-1);
 		});
-	} catch (nvml::manual_tx_abort &ma) {
+	} catch (nvml::manual_tx_abort &) {
 		exception_thrown = true;
 	} catch (...) {
 		UT_ASSERT(0);
@@ -277,7 +277,7 @@ test_ptr_array(nvobj::pool<root> &pop)
 
 			nvobj::transaction::abort(-1);
 		});
-	} catch (nvml::manual_tx_abort &ma) {
+	} catch (nvml::manual_tx_abort &) {
 		exception_thrown = true;
 	} catch (...) {
 		UT_ASSERT(0);

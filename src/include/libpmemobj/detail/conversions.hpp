@@ -55,18 +55,19 @@ namespace detail
  * @return converted timespec structure.
  */
 template <typename Clock, typename Duration = typename Clock::duration>
-struct timespec
+timespec
 timepoint_to_timespec(const std::chrono::time_point<Clock, Duration> &timepoint)
 {
-	struct timespec ts;
+	timespec ts;
 	auto rel_duration = timepoint.time_since_epoch();
 	const auto sec =
 		std::chrono::duration_cast<std::chrono::seconds>(rel_duration);
 
 	ts.tv_sec = sec.count();
-	ts.tv_nsec = std::chrono::duration_cast<std::chrono::nanoseconds>(
-			     rel_duration - sec)
-			     .count();
+	ts.tv_nsec = static_cast<long int>(
+		std::chrono::duration_cast<std::chrono::nanoseconds>(
+			rel_duration - sec)
+			.count());
 
 	return ts;
 }
