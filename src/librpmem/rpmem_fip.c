@@ -701,7 +701,7 @@ rpmem_fip_init_lanes_gpspm(struct rpmem_fip *fip)
 	/* allocate persist response messages buffer */
 	size_t msg_resp_size = fip->nlanes *
 				sizeof(struct rpmem_msg_persist_resp);
-	fip->pres = Malloc(msg_resp_size);
+	fip->pres = Zalloc(msg_resp_size);
 	if (!fip->pres) {
 		RPMEM_LOG(ERR, "!allocating messages response buffer");
 		ret = -1;
