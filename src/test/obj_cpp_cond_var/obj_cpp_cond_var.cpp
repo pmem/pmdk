@@ -51,6 +51,11 @@ namespace nvobj = nvml::obj;
 namespace
 {
 
+/*
+ * Due to premature wakeups with the TIMEDOUT status on the Windows platform,
+ * an "epsilon" tolerance has been introduced where appropriate.
+ */
+
 /* convenience typedef */
 typedef std::function<void(nvobj::persistent_ptr<struct root>)> reader_type;
 
@@ -152,15 +157,21 @@ void
 reader_mutex_until(nvobj::persistent_ptr<struct root> proot)
 {
 	proot->pmutex.lock();
-	auto until = std::chrono::steady_clock::now();
+	auto until = std::chrono::system_clock::now();
 	until += wait_time;
 	auto ret = proot->cond.wait_until(proot->pmutex, until);
 
-	auto now = std::chrono::steady_clock::now();
-	if (ret == std::cv_status::timeout)
-		UT_ASSERT(now >= until);
-	else
+	auto now = std::chrono::system_clock::now();
+	if (ret == std::cv_status::timeout) {
+		auto epsilon = std::chrono::milliseconds(10);
+		auto diff =
+			std::chrono::duration_cast<std::chrono::milliseconds>(
+				until - now);
+		if (now < until)
+			UT_ASSERT(diff < epsilon);
+	} else {
 		UT_ASSERTeq(proot->counter, limit);
+	}
 	proot->pmutex.unlock();
 }
 
@@ -178,10 +189,16 @@ reader_mutex_until_pred(nvobj::persistent_ptr<struct root> proot)
 	});
 
 	auto now = std::chrono::system_clock::now();
-	if (ret == false)
-		UT_ASSERT(now >= until);
-	else
+	if (ret == false) {
+		auto epsilon = std::chrono::milliseconds(10);
+		auto diff =
+			std::chrono::duration_cast<std::chrono::milliseconds>(
+				until - now);
+		if (now < until)
+			UT_ASSERT(diff < epsilon);
+	} else {
 		UT_ASSERTeq(proot->counter, limit);
+	}
 	proot->pmutex.unlock();
 }
 
@@ -197,10 +214,16 @@ reader_lock_until(nvobj::persistent_ptr<struct root> proot)
 	auto ret = proot->cond.wait_until(proot->pmutex, until);
 
 	auto now = std::chrono::system_clock::now();
-	if (ret == std::cv_status::timeout)
-		UT_ASSERT(now >= until);
-	else
+	if (ret == std::cv_status::timeout) {
+		auto epsilon = std::chrono::milliseconds(10);
+		auto diff =
+			std::chrono::duration_cast<std::chrono::milliseconds>(
+				until - now);
+		if (now < until)
+			UT_ASSERT(diff < epsilon);
+	} else {
 		UT_ASSERTeq(proot->counter, limit);
+	}
 	lock.unlock();
 }
 
@@ -218,10 +241,16 @@ reader_lock_until_pred(nvobj::persistent_ptr<struct root> proot)
 	});
 
 	auto now = std::chrono::system_clock::now();
-	if (ret == false)
-		UT_ASSERT(now >= until);
-	else
+	if (ret == false) {
+		auto epsilon = std::chrono::milliseconds(10);
+		auto diff =
+			std::chrono::duration_cast<std::chrono::milliseconds>(
+				until - now);
+		if (now < until)
+			UT_ASSERT(diff < epsilon);
+	} else {
 		UT_ASSERTeq(proot->counter, limit);
+	}
 	lock.unlock();
 }
 
@@ -237,10 +266,16 @@ reader_mutex_for(nvobj::persistent_ptr<struct root> proot)
 	auto ret = proot->cond.wait_for(proot->pmutex, wait_time);
 
 	auto now = std::chrono::system_clock::now();
-	if (ret == std::cv_status::timeout)
-		UT_ASSERT(now >= until);
-	else
+	if (ret == std::cv_status::timeout) {
+		auto epsilon = std::chrono::milliseconds(10);
+		auto diff =
+			std::chrono::duration_cast<std::chrono::milliseconds>(
+				until - now);
+		if (now < until)
+			UT_ASSERT(diff < epsilon);
+	} else {
 		UT_ASSERTeq(proot->counter, limit);
+	}
 	proot->pmutex.unlock();
 }
 
@@ -258,10 +293,16 @@ reader_mutex_for_pred(nvobj::persistent_ptr<struct root> proot)
 	});
 
 	auto now = std::chrono::system_clock::now();
-	if (ret == false)
-		UT_ASSERT(now >= until);
-	else
+	if (ret == false) {
+		auto epsilon = std::chrono::milliseconds(10);
+		auto diff =
+			std::chrono::duration_cast<std::chrono::milliseconds>(
+				until - now);
+		if (now < until)
+			UT_ASSERT(diff < epsilon);
+	} else {
 		UT_ASSERTeq(proot->counter, limit);
+	}
 	proot->pmutex.unlock();
 }
 
@@ -277,10 +318,16 @@ reader_lock_for(nvobj::persistent_ptr<struct root> proot)
 	auto ret = proot->cond.wait_for(proot->pmutex, wait_time);
 
 	auto now = std::chrono::system_clock::now();
-	if (ret == std::cv_status::timeout)
-		UT_ASSERT(now >= until);
-	else
+	if (ret == std::cv_status::timeout) {
+		auto epsilon = std::chrono::milliseconds(10);
+		auto diff =
+			std::chrono::duration_cast<std::chrono::milliseconds>(
+				until - now);
+		if (now < until)
+			UT_ASSERT(diff < epsilon);
+	} else {
 		UT_ASSERTeq(proot->counter, limit);
+	}
 	lock.unlock();
 }
 
@@ -298,10 +345,16 @@ reader_lock_for_pred(nvobj::persistent_ptr<struct root> proot)
 	});
 
 	auto now = std::chrono::system_clock::now();
-	if (ret == false)
-		UT_ASSERT(now >= until);
-	else
+	if (ret == false) {
+		auto epsilon = std::chrono::milliseconds(10);
+		auto diff =
+			std::chrono::duration_cast<std::chrono::milliseconds>(
+				until - now);
+		if (now < until)
+			UT_ASSERT(diff < epsilon);
+	} else {
 		UT_ASSERTeq(proot->counter, limit);
+	}
 	lock.unlock();
 }
 

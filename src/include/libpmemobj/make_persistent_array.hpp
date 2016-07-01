@@ -44,7 +44,7 @@
 #include "libpmemobj/detail/array_traits.hpp"
 #include "libpmemobj/detail/check_persistent_ptr_array.hpp"
 #include "libpmemobj/detail/common.hpp"
-#include "libpmemobj/detail/destroyer.hpp"
+#include "libpmemobj/detail/life.hpp"
 #include "libpmemobj/detail/pexceptions.hpp"
 
 namespace nvml
@@ -88,7 +88,7 @@ make_persistent(std::size_t N)
 	std::size_t i;
 	try {
 		for (i = 0; i < N; ++i)
-			::new (ptr.get() + i) I();
+			detail::create<I>(ptr.get() + i);
 	} catch (...) {
 		for (std::size_t j = 1; j <= i; ++j)
 			detail::destroy<I>(ptr[i - j]);
@@ -133,7 +133,7 @@ make_persistent()
 	std::size_t i;
 	try {
 		for (i = 0; i < N; ++i)
-			::new (ptr.get() + i) I();
+			detail::create<I>(ptr.get() + i);
 	} catch (...) {
 		for (std::size_t j = 1; j <= i; ++j)
 			detail::destroy<I>(ptr[i - j]);

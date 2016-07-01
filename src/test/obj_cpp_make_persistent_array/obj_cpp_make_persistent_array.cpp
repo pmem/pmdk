@@ -117,10 +117,10 @@ test_make_one_d(nvobj::pool_base &pop)
 }
 
 /*
- * test_make_two_d -- (internal) test make_persitent of a 2d array
+ * test_make_N_d -- (internal) test make_persitent of 2d and 3d arrays
  */
 void
-test_make_two_d(nvobj::pool_base &pop)
+test_make_N_d(nvobj::pool_base &pop)
 {
 	try {
 		nvobj::transaction::exec_tx(pop, [&] {
@@ -144,6 +144,22 @@ test_make_two_d(nvobj::pool_base &pop)
 					pfooN[i][j].check_foo();
 
 			nvobj::delete_persistent<foo[5][2]>(pfooN);
+
+			auto pfoo3 = nvobj::make_persistent<foo[][2][3]>(5);
+			for (int i = 0; i < 5; ++i)
+				for (int j = 0; j < 2; j++)
+					for (int k = 0; k < 3; k++)
+						pfoo3[i][j][k].check_foo();
+
+			nvobj::delete_persistent<foo[][2][3]>(pfoo3, 5);
+
+			auto pfoo3N = nvobj::make_persistent<foo[5][2][3]>();
+			for (int i = 0; i < 5; ++i)
+				for (int j = 0; j < 2; j++)
+					for (int k = 0; k < 3; k++)
+						pfoo3N[i][j][k].check_foo();
+
+			nvobj::delete_persistent<foo[5][2][3]>(pfoo3N);
 		});
 	} catch (...) {
 		UT_ASSERT(0);
@@ -179,7 +195,7 @@ test_abort_revert(nvobj::pool_base &pop)
 
 			nvobj::transaction::abort(EINVAL);
 		});
-	} catch (nvml::manual_tx_abort &ma) {
+	} catch (nvml::manual_tx_abort &) {
 		exception_thrown = true;
 	} catch (...) {
 		UT_ASSERT(0);
@@ -223,7 +239,7 @@ main(int argc, char *argv[])
 	}
 
 	test_make_one_d(pop);
-	test_make_two_d(pop);
+	test_make_N_d(pop);
 	test_abort_revert(pop);
 
 	pop.close();

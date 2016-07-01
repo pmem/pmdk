@@ -149,11 +149,12 @@ arithmetic_test(nvobj::pool_base &pop)
 			r->foo_ptr->pint =
 				r->foo_ptr->pint + r->foo_ptr->puchar;
 			r->foo_ptr->pint = r->foo_ptr->pint + r->foo_ptr->pint;
-			r->foo_ptr->pint = r->foo_ptr->pllong + 8;
+			r->foo_ptr->pint =
+				static_cast<int>(r->foo_ptr->pllong + 8);
 			UT_ASSERTeq(r->foo_ptr->pint, 10);
 
 			/* for float assertions */
-			float epsilon = 0.001;
+			float epsilon = 0.001F;
 
 			/* subtraction */
 			r->bar_ptr->pdouble -= r->foo_ptr->puchar;
@@ -161,8 +162,8 @@ arithmetic_test(nvobj::pool_base &pop)
 			UT_ASSERT(std::fabs(r->bar_ptr->pdouble + 2) < epsilon);
 			UT_ASSERT(std::fabs(r->bar_ptr->pfloat) < epsilon);
 
-			r->bar_ptr->pfloat =
-				r->bar_ptr->pfloat - r->bar_ptr->pdouble;
+			r->bar_ptr->pfloat = static_cast<float>(
+				r->bar_ptr->pfloat - r->bar_ptr->pdouble);
 			r->bar_ptr->pdouble =
 				r->bar_ptr->pdouble - r->bar_ptr->pfloat;
 			UT_ASSERT(std::fabs(r->bar_ptr->pfloat - 2) < epsilon);
@@ -171,14 +172,15 @@ arithmetic_test(nvobj::pool_base &pop)
 			/* multiplication */
 			r->foo_ptr->puchar *= r->foo_ptr->puchar;
 			r->foo_ptr->puchar *= r->foo_ptr->pint;
-			r->foo_ptr->puchar *= r->foo_ptr->pllong;
+			r->foo_ptr->puchar *=
+				static_cast<unsigned char>(r->foo_ptr->pllong);
 			UT_ASSERTeq(r->foo_ptr->puchar, 180);
 
 			r->foo_ptr->pint =
 				r->foo_ptr->pint * r->foo_ptr->puchar;
 			r->foo_ptr->pint = r->foo_ptr->pint * r->foo_ptr->pint;
-			r->foo_ptr->pint =
-				r->foo_ptr->pllong * r->foo_ptr->pint;
+			r->foo_ptr->pint = static_cast<int>(r->foo_ptr->pllong *
+							    r->foo_ptr->pint);
 			/* no assertions needed at this point */
 
 			/* division */
@@ -186,8 +188,8 @@ arithmetic_test(nvobj::pool_base &pop)
 			r->bar_ptr->pfloat /= r->foo_ptr->pllong;
 			/* no assertions needed at this point */
 
-			r->bar_ptr->pfloat =
-				r->bar_ptr->pfloat / r->bar_ptr->pdouble;
+			r->bar_ptr->pfloat = static_cast<float>(
+				r->bar_ptr->pfloat / r->bar_ptr->pdouble);
 			r->bar_ptr->pdouble =
 				r->bar_ptr->pdouble / r->bar_ptr->pfloat;
 			/* no assertions needed at this point */
@@ -238,7 +240,8 @@ bitwise_test(nvobj::pool_base &pop)
 			r->foo_ptr->pint =
 				r->foo_ptr->pint | r->foo_ptr->puchar;
 			r->foo_ptr->pint = r->foo_ptr->pint | r->foo_ptr->pint;
-			r->foo_ptr->pint = r->foo_ptr->pllong | 0xF;
+			r->foo_ptr->pint =
+				static_cast<int>(r->foo_ptr->pllong | 0xF);
 			UT_ASSERTeq(r->foo_ptr->pint, 15);
 
 			/* AND */
@@ -262,25 +265,28 @@ bitwise_test(nvobj::pool_base &pop)
 			r->foo_ptr->pint =
 				r->foo_ptr->pint ^ r->foo_ptr->puchar;
 			r->foo_ptr->pint = r->foo_ptr->pint ^ r->foo_ptr->pint;
-			r->foo_ptr->pint = r->foo_ptr->pllong ^ 8;
+			r->foo_ptr->pint =
+				static_cast<int>(r->foo_ptr->pllong ^ 8);
 			UT_ASSERTeq(r->foo_ptr->pint, 10);
 
 			/* RSHIFT */
 			r->foo_ptr->puchar = 255;
 			r->foo_ptr->puchar >>= 1;
 			r->foo_ptr->puchar >>= r->foo_ptr->pllong;
-			r->foo_ptr->puchar = r->foo_ptr->pllong >> 2;
-			r->foo_ptr->puchar =
-				r->foo_ptr->pllong >> r->foo_ptr->pllong;
+			r->foo_ptr->puchar = static_cast<unsigned char>(
+				r->foo_ptr->pllong >> 2);
+			r->foo_ptr->puchar = static_cast<unsigned char>(
+				r->foo_ptr->pllong >> r->foo_ptr->pllong);
 			UT_ASSERTeq(r->foo_ptr->puchar, 0);
 
 			/* LSHIFT */
 			r->foo_ptr->puchar = 1;
 			r->foo_ptr->puchar <<= 1;
 			r->foo_ptr->puchar <<= r->foo_ptr->pllong;
-			r->foo_ptr->puchar = r->foo_ptr->pllong << 2;
-			r->foo_ptr->puchar = r->foo_ptr->pllong
-				<< r->foo_ptr->pllong;
+			r->foo_ptr->puchar = static_cast<unsigned char>(
+				r->foo_ptr->pllong << 2);
+			r->foo_ptr->puchar = static_cast<unsigned char>(
+				r->foo_ptr->pllong << r->foo_ptr->pllong);
 			UT_ASSERTeq(r->foo_ptr->puchar, 8);
 
 			/* COMPLEMENT */
