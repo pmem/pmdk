@@ -87,35 +87,35 @@ enum operation {
  * A macro that recursively create a nested transactions and save whole object
  * or specific FIELD in the undolog.
  */
-#define TEST_GEN(type) \
+#define TEST_GEN(type)\
 static void \
-type ## _tx(PMEMobjpool *pop, TOID(struct type) var, int array_size, \
-	int recursion, enum operation oper) \
-{ \
-	--recursion; \
- \
-	TX_BEGIN(pop) { \
-		if (oper == ADD) { \
-			TX_ADD(var); \
-			oper = DRW; \
-		} \
- \
-		if (recursion >= 1) \
-			TEST_CALL(type, pop, var, array_size, recursion, \
-				oper); \
- \
-		for (int i = 0; i <= array_size; ++i) { \
-			if (oper == SET) \
-				TX_SET(var, value[i], TEST_VALUE + \
-					D_RO(var)->value[i]); \
-			else if (oper == DRW) \
-				D_RW(var)->value[i] = TEST_VALUE + \
-					D_RO(var)->value[i]; \
-		} \
-	} TX_END \
+type ## _tx(PMEMobjpool *pop, TOID(struct type) var, int array_size,\
+	int recursion, enum operation oper)\
+{\
+	--recursion;\
+\
+	TX_BEGIN(pop) {\
+		if (oper == ADD) {\
+			TX_ADD(var);\
+			oper = DRW;\
+		}\
+\
+		if (recursion >= 1)\
+			TEST_CALL(type, pop, var, array_size, recursion,\
+				oper);\
+\
+		for (int i = 0; i <= array_size; ++i) {\
+			if (oper == SET)\
+				TX_SET(var, value[i], TEST_VALUE +\
+					D_RO(var)->value[i]);\
+			else if (oper == DRW)\
+				D_RW(var)->value[i] = TEST_VALUE +\
+					D_RO(var)->value[i];\
+		}\
+	} TX_END\
 }
 
-#define TEST_CALL(type, pop, var, array_size, recursion, oper) \
+#define TEST_CALL(type, pop, var, array_size, recursion, oper)\
 	type ## _tx(pop, var, array_size, recursion, oper)
 
 TEST_GEN(foo);
@@ -183,7 +183,7 @@ sc1_verify_commit(PMEMobjpool *pop)
 }
 
 /*
- * sc2_create -- multiply large set undo (TX_ADD)
+ * sc2_create -- multiply changes in large set undo (TX_ADD)
  */
 static void
 sc2_create(PMEMobjpool *pop)
@@ -217,7 +217,7 @@ sc2_verify_commit(PMEMobjpool *pop)
 }
 
 /*
- * sc3_create -- multiply set undo (TX_SET)
+ * sc3_create -- multiply changes in small set undo (TX_SET)
  */
 static void
 sc3_create(PMEMobjpool *pop)
@@ -255,7 +255,7 @@ sc3_verify_commit(PMEMobjpool *pop)
 }
 
 /*
- * sc4_create -- multiply small set undo (TX_ADD)
+ * sc4_create -- multiply changes in small set undo (TX_ADD)
  */
 static void
 sc4_create(PMEMobjpool *pop)
@@ -293,7 +293,7 @@ sc4_verify_commit(PMEMobjpool *pop)
 }
 
 /*
- * sc5_create -- multiply small set undo (TX_SET)
+ * sc5_create -- multiply changes in small set undo (TX_SET)
  */
 static void
 sc5_create(PMEMobjpool *pop)
@@ -384,7 +384,7 @@ sc6_verify_commit(PMEMobjpool *pop)
 static void
 sc7_create(PMEMobjpool *pop)
 {
-	/* Allocate until OOM and count allocs */
+	/* allocate until OOM and count allocs */
 	int nallocs = 0;
 
 	TX_BEGIN(pop) {
@@ -395,7 +395,7 @@ sc7_create(PMEMobjpool *pop)
 	} TX_END
 
 	trap = 1;
-	/* Allocate all possible objects */
+	/* allocate all possible objects */
 	TX_BEGIN(pop) {
 		for (int i = 0; i < nallocs; ++i) {
 			(void) TX_NEW(struct foo);
@@ -440,7 +440,7 @@ sc7_verify_commit(PMEMobjpool *pop)
 static void
 sc8_create(PMEMobjpool *pop)
 {
-	/* Allocate until OOM and count allocs */
+	/* allocate until OOM and count allocs */
 	int nallocs = 0;
 
 	TX_BEGIN(pop) {
@@ -451,7 +451,7 @@ sc8_create(PMEMobjpool *pop)
 	} TX_END
 
 	trap = 1;
-	/* Allocate all possible objects */
+	/* allocate all possible objects */
 	TX_BEGIN(pop) {
 		for (int i = 0; i < nallocs; ++i) {
 			(void) TX_NEW(struct bar);
@@ -569,6 +569,9 @@ int
 main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_convert");
+
+	/* root doesn't count */
+	UT_COMPILE_ERROR_ON(POBJ_LAYOUT_TYPES_NUM(convert) != 2);
 
 	if (argc != 4)
 		UT_FATAL("usage: %s file [c|va|vc] scenario", argv[0]);
