@@ -51,3 +51,4 @@ include ../Makefile.inc
 
 LDFLAGS += $(call extract_funcs, obj_heap.c)
 INCS += -I$(TOP)/src/libpmemobj/ -I$(TOP)/src/common/
+LIBS += -ldl

@@ -42,6 +42,7 @@ int heap_init(PMEMobjpool *pop);
 void heap_vg_open(PMEMobjpool *pop);
 void heap_cleanup(PMEMobjpool *pop);
 int heap_check(PMEMobjpool *pop);
+int heap_check_remote(PMEMobjpool *pop);
 
 int pmalloc(PMEMobjpool *pop, uint64_t *off, size_t size);
 int pmalloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,

@@ -48,3 +48,4 @@ out.o: CFLAGS += -DSRCVERSION=\"utversion\"
 include ../Makefile.inc
 
 INCS += -I../../libpmemobj/ -I../../common/
+LIBS += -ldl
