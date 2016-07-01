@@ -104,6 +104,41 @@ Format: HTML
 Index: /usr/share/doc/${OBJ_CPP_DOC_DIR}/index.html
 Files: /usr/share/doc/${OBJ_CPP_DOC_DIR}/*
 EOF
+
+cat << EOF > debian/librpmem.install
+usr/lib/librpmem.so.*
+EOF
+
+cat << EOF > debian/librpmem.lintian-overrides
+$ITP_BUG_EXCUSE
+new-package-should-close-itp-bug
+librpmem: package-name-doesnt-match-sonames
+EOF
+
+cat << EOF > debian/librpmem-dev.install
+usr/lib/nvml_debug/librpmem.a usr/lib/nvml_dbg/
+usr/lib/nvml_debug/librpmem.so	usr/lib/nvml_dbg/
+usr/lib/nvml_debug/librpmem.so.* usr/lib/nvml_dbg/
+usr/lib/librpmem.so
+usr/lib/pkgconfig/librpmem.pc
+usr/include/librpmem.h
+usr/share/man/man3/librpmem.3.gz
+EOF
+
+cat << EOF > debian/librpmem-dev.triggers
+interest man-db
+EOF
+
+cat << EOF > debian/librpmem-dev.lintian-overrides
+$ITP_BUG_EXCUSE
+new-package-should-close-itp-bug
+# The following warnings are triggered by a bug in debhelper:
+# http://bugs.debian.org/204975
+postinst-has-useless-call-to-ldconfig
+postrm-has-useless-call-to-ldconfig
+# We do not want to compile with -O2 for debug version
+hardening-no-fortify-functions usr/lib/nvml_dbg/*
+EOF
 }
 
 function append_experimental_control() {
@@ -115,6 +150,12 @@ Architecture: any
 Depends: libpmemobj-dev (=\${binary:Version}), \${shlibs:Depends}, \${misc:Depends}
 Description: C++ bindings for libpmemobj (EXPERIMENTAL)
  Headers-only C++ library for libpmemobj.
+
+Package: librpmem
+Architecture: any
+Depends: \${shlibs:Depends}, \${misc:Depends}
+Description: NVML librpmem library
+ NVML library for Remote Persistent Memory support
 EOF
 }
 

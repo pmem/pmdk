@@ -89,6 +89,45 @@ Development files for NVML C++ libpmemobj bindings - EXPERIMENTAL
 %{_includedir}/libpmemobj/*.hpp
 %{_includedir}/libpmemobj/detail/*.hpp
 %{_docdir}/${OBJ_CPP_NAME}-%{version}/*
+
+%package -n librpmem
+Summary: librpmem library
+Group: %{package_group}/Libraries
+%description -n librpmem
+NVML librpmem library
+
+%files -n librpmem
+%defattr(-,root,root,-)
+%{_libdir}/librpmem.so.*
+
+%package -n librpmem-devel
+Summary: librpmem development library
+Group: Development/Libraries
+%description -n librpmem-devel
+Development files for NVML librpmem library
+
+%files -n librpmem-devel
+%defattr(-,root,root,-)
+%{_libdir}/librpmem.so
+%{_libdir}/librpmem.a
+%{_libdir}/pkgconfig/librpmem.pc
+%{_libdir}/nvml_debug/librpmem.so
+%{_libdir}/nvml_debug/librpmem.so.*
+%{_libdir}/nvml_debug/librpmem.a
+%{_includedir}/librpmem.h
+%{_mandir}/man3/librpmem.3.gz
+
+%package -n rpmemd
+Group:		%{package_group}
+Summary:	Remote Access to Persistent Memory daemon
+
+%description -n rpmemd
+Remote Access to Persistent Memory daemon
+
+%files -n rpmemd
+%{_bindir}/rpmemd
+%{_mandir}/man1/rpmemd.1.gz
+
 EOF
 }
 
