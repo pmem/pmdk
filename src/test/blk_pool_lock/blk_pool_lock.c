@@ -49,7 +49,12 @@ test_reopen(const char *path)
 	if (blk2)
 		UT_FATAL("pmemblk_open should not succeed");
 
-	if (errno != EWOULDBLOCK)
+#ifndef _WIN32
+	int expected_err = EWOULDBLOCK;
+#else
+	int expected_err = EACCES;
+#endif
+	if (errno != expected_err)
 		UT_FATAL("!pmemblk_open failed but for unexpected reason");
 
 	pmemblk_close(blk1);
@@ -63,6 +68,7 @@ test_reopen(const char *path)
 	UNLINK(path);
 }
 
+#ifndef _WIN32
 static void
 test_open_in_different_process(const char *path, int sleep)
 {
@@ -106,6 +112,27 @@ test_open_in_different_process(const char *path, int sleep)
 
 	UNLINK(path);
 }
+#else
+static void
+test_open_in_different_process(const char *path, int sleep)
+{
+	PMEMblkpool *blk;
+
+	if (sleep > 0)
+		return;
+
+	/* before starting the 2nd process, create a pool */
+	blk = pmemblk_create(path, 4096, PMEMBLK_MIN_POOL, S_IWUSR | S_IRUSR);
+	if (!blk)
+		UT_FATAL("!create");
+
+	if (!TestProcess(path, sleep))
+		UT_FATAL("CreateProcess failed error: %d", GetLastError());
+
+	pmemblk_close(blk);
+
+}
+#endif
 
 int
 main(int argc, char *argv[])
@@ -115,11 +142,23 @@ main(int argc, char *argv[])
 	if (argc < 2)
 		UT_FATAL("usage: %s path", argv[0]);
 
+	if (argc == 2) {
 	test_reopen(argv[1]);
-
 	test_open_in_different_process(argv[1], 0);
 	for (int i = 1; i < 100000; i *= 2)
 		test_open_in_different_process(argv[1], i);
+	} else if (argc == 3) {
+		PMEMblkpool *blk;
+		/* 2nd arg used by windows for 2 process test */
+		blk = pmemblk_open(argv[1], 4096);
+		if (blk)
+			UT_FATAL("pmemblk_open after CreateProcess should "
+				"not succeed");
+
+		if (errno != EACCES)
+			UT_FATAL("!pmemblk_open after CreateProcess failed "
+				"but fo unexpected reason");
+	}
 
 	DONE(NULL);
 }

@@ -47,6 +47,14 @@
  */
 typedef long long off_t;	/* use 64-bit off_t */
 typedef long _off_t;		/* NOTE: _off_t must be defined as 'long'! */
+typedef int pid_t;
+#define R_OK 0
+#define WIFEXITED(a) 1
+#define waitpid(a, b, c) 1
+#define usleep(a) 1
+#define fork() 0
+#define access(p, m) _access(p, m)
+
 #define _OFF_T_DEFINED
 
 #include <windows.h>
@@ -139,6 +147,9 @@ typedef int mode_t;
 
 #define fchmod(fd, mode) 0	/* XXX - dummy */
 #define setlinebuf(fp) setvbuf(fp, NULL, _IOLBF, BUFSIZ);
+
+/* process_windows.h */
+int TestProcess(const char *path, int sleep);
 
 /* unistd.h */
 typedef long long ssize_t;
