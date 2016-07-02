@@ -80,13 +80,14 @@ util_file_create(const char *path, size_t size, size_t minsize)
 		return -1;
 	}
 
-	if (flock(fd, LOCK_EX | LOCK_NB) < 0) {
-		ERR("!flock");
+	if ((errno = posix_fallocate(fd, 0, (off_t)size)) != 0) {
+		ERR("!posix_fallocate");
 		goto err;
 	}
 
-	if ((errno = posix_fallocate(fd, 0, (off_t)size)) != 0) {
-		ERR("!posix_fallocate");
+	/* for windows we can't flock until after we fallocate */
+	if (flock(fd, LOCK_EX | LOCK_NB) < 0) {
+		ERR("!flock");
 		goto err;
 	}
 

@@ -233,20 +233,6 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 			return MAP_FAILED;
 		}
 		fh = (HANDLE)_get_osfhandle(fd);
-#if 0
-		/*
-		 * XXX - We need to keep file handle open for proper
-		 * implementation of msync() and to hold the file lock.
-		 * Need to verify if duplicate handle is enough.
-		 */
-		if (DuplicateHandle(GetCurrentProcess(),
-				(HANDLE)_get_osfhandle(fd),
-				GetCurrentProcess(), &fh,
-				0, FALSE, DUPLICATE_SAME_ACCESS) == FALSE) {
-				errno = EINVAL; /* XXX */
-			return MAP_FAILED;
-		}
-#endif
 	}
 
 	HANDLE fileMapping = CreateFileMapping(fh,

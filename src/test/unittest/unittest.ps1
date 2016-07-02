@@ -283,10 +283,9 @@ function expect_normal_exit {
     [string]$expression =  @($Args)
     #$expression = $expression -replace " ", " ; "
     Invoke-Expression $expression
-    sv -Name ret $?
 
-    if (-Not $ret) {
-        sv -Name msg "failed with exit code FALSE"
+    if ($LASTEXITCODE -ne 0) {
+        sv -Name msg "failed with exit code $LASTEXITCODE"
 
         if (Test-Path ("err" + $Env:UNITTEST_NUM + ".log")) {
             if ($Env:UNITTEST_QUIET) {
