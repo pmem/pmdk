@@ -33,11 +33,6 @@ title: pmempool(1)
 
 [comment]: <> (pmempool.1 -- man page for pmempool)
 
-[comment]: <> (Format this man page with:)
-[comment]: <> (   man -l pmempool.1)
-[comment]: <> (or)
-[comment]: <> (   groff -man -Tascii pmempool.1)
-
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
@@ -48,29 +43,36 @@ title: pmempool(1)
 
 ### NAME ###
 
-**pmempool** − Persistent Memory Pool Management Tool
+**pmempool** -- Persistent Memory Pool Management Tool
 
 ### SYNOPSIS ###
 
 ```
-pmempool [–help] [–version] <command> [<args>]
+pmempool [--help] [--version] <command> [<args>]
 ```
 
 ### DESCRIPTION ###
 
-The **pmempool** is a management tool for *Persistent Memory* pool files created by **NVML** libraries.
+The **pmempool** is a management tool for *Persistent Memory* pool files
+created by **NVML** libraries.
 
-The main purpose of **pmempool** is to provide a user with a set of utilities for off-line analysis and manipulation of pools created by pmem libraries. The pmempool is a generic command which consists of subcommands for specific purposes. Some of subcommands are required to work *without* any impact on processed pool, but some of them *may* create a new or modify an existing one.
+The main purpose of **pmempool** is to provide a user with a set of utilities
+for off-line analysis and manipulation of pools created by pmem libraries.
+The pmempool is a generic command which consists of subcommands for specific
+purposes. Some of subcommands are required to work *without* any impact
+on processed pool, but some of them *may* create a new or modify an existing one.
 
-The **pmempool** may be useful for troubleshooting by system administrators and for software developers who work on applications based on **NVML** library. The latter may find these tools useful for testing and debugging purposes also.
+The **pmempool** may be useful for troubleshooting by system administrators
+and for software developers who work on applications based on **NVML** library.
+The latter may find these tools useful for testing and debugging purposes also.
 
 ### OPTIONS ###
 
-`-V, –version`
+`-V, --version`
 
 : Prints the version of **pmempool.**
 
-`-h, –help`
+`-h, --help`
 
 : Prints synopsis and list of commands.
 
@@ -84,7 +86,7 @@ Currently there is a following set of commands available:
 
 **pmempool-check(1)**
 
-: Checks pool’s consistency and repairs pool if it is not consistent.
+: Checks pool's consistency and repairs pool if it is not consistent.
 
 **pmempool-create(1)**
 

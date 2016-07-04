@@ -33,11 +33,6 @@ title: libpmempool(3)
 
 [comment]: <> (libpmempool.3 -- man page for libpmempool)
 
-[comment]: <> (Format this man page with:)
-[comment]: <> (   man -l libpmempool.3)
-[comment]: <> (or)
-[comment]: <> (   groff -man -Tascii libpmempool.3)
-
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
@@ -50,7 +45,7 @@ title: libpmempool(3)
 
 ### NAME ###
 
-**libpmempool** - pool management library
+**libpmempool** -- pool management library
 
 ### SYNOPSIS ###
 
@@ -372,12 +367,83 @@ Setting the environment variable `PMEMPOOL_LOG_FILE` has no effect
 on the non-debug version of **libpmempool**.
 
 
+### EXAMPLES ###
+
+The following example illustrates how the **libpmempool** API is used.
+The program detects the type and checks consistency of given pool.
+If there are any issues detected, the pool is automatically repaired.
+
+```c
+#include <stddef.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <libpmempool.h>
+
+#define PATH "./pmem-fs/myfile"
+#define CHECK_FLAGS (PMEMPOOL_CHECK_FORMAT_STR|PMEMPOOL_CHECK_REPAIR|\
+        PMEMPOOL_CHECK_VERBOSE)
+
+int
+main(int argc, char *argv[])
+{
+    PMEMpoolcheck *ppc;
+    struct pmempool_check_status *status;
+    enum pmempool_check_result ret;
+
+    /* arguments for check */
+    struct pmempool_check_args args = {
+        .path       = PATH,
+        .backup_path    = NULL,
+        .pool_type  = PMEMPOOL_POOL_TYPE_DETECT,
+        .flags      = CHECK_FLAGS
+    };
+
+    /* initialize check context */
+    if ((ppc = pmempool_check_init(&args, sizeof(args))) == NULL) {
+        perror("pmempool_check_init");
+        exit(EXIT_FAILURE);
+    }
+
+    /* perform check and repair, answer 'yes' for each question */
+    while ((status = pmempool_check(ppc)) != NULL) {
+        switch (status->type) {
+        case PMEMPOOL_CHECK_MSG_TYPE_ERROR:
+            printf("%s\n", status->str.msg);
+            break;
+        case PMEMPOOL_CHECK_MSG_TYPE_INFO:
+            printf("%s\n", status->str.msg);
+            break;
+        case PMEMPOOL_CHECK_MSG_TYPE_QUESTION:
+            printf("%s\n", status->str.msg);
+            status->str.answer = "yes";
+            break;
+        default:
+            pmempool_check_end(ppc);
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    /* finalize the check and get the result */
+    ret = pmempool_check_end(ppc);
+    switch (ret) {
+        case PMEMPOOL_CHECK_RESULT_CONSISTENT:
+        case PMEMPOOL_CHECK_RESULT_REPAIRED:
+            return 0;
+        default:
+            return 1;
+    }
+}
+```
+
+See [http://pmem.io/nvml/libpmempool](http://pmem.io/nvml/libpmempool)
+for more examples using the **libpmempool** API.
+
+
 ### ACKNOWLEDGEMENTS ###
 
 **libpmempool** builds on the persistent memory programming model
-recommended by the SNIA NVM Programming Technical Work
-
-Group:
+recommended by the SNIA NVM Programming Technical Work Group:
 [http://snia.org/nvmp](http://snia.org/nvmp)
 
 

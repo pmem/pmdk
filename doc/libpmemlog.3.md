@@ -33,11 +33,6 @@ title: libpmemlog(3)
 
 [comment]: <> (libpmemlog.3 -- man page for libpmemlog)
 
-[comment]: <> (Format this man page with:)
-[comment]: <> (   man -l libpmemlog.3)
-[comment]: <> (or)
-[comment]: <> (   groff -man -Tascii libpmemlog.3)
-
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
@@ -52,7 +47,7 @@ title: libpmemlog(3)
 
 ### NAME ###
 
-**libpmemlog** − persistent memory resident log file
+**libpmemlog** -- persistent memory resident log file
 
 ### SYNOPSIS ###
 
@@ -159,9 +154,9 @@ The set file is a plain text file, which must start with the line containing a *
 
 The size has to be compliant with the format specified in IEC 80000-13, IEEE 1541 or the Metric Interchange Format.  Standards accept SI units with obligatory B - kB, MB, GB, ... (multiplier by 1000) and IEC units with optional "iB" - KiB, MiB, GiB, ..., K, M, G, ... - (multiplier by 1024).
 
-The minimum file size of each part of the pool set is the same as the minimum size allowed for a log pool consisting of one file. It is defined in `<libpmemlog.h>` as `PMEMLOG_MIN_POOL`. Lines starting with “#” character are ignored.
+The minimum file size of each part of the pool set is the same as the minimum size allowed for a log pool consisting of one file. It is defined in `<libpmemlog.h>` as `PMEMLOG_MIN_POOL`. Lines starting with "#" character are ignored.
 
-Here is the example “mylogpool.set” file:
+Here is the example "mylogpool.set" file:
 
 ```
 PMEMPOOLSET
@@ -198,7 +193,7 @@ int pmemlog_appendv(PMEMlogpool *plp, const struct iovec *iov, int iovcnt);
 
   The `pmemlog_appendv()` function appends to the log `plp` just like `pmemlog_append()` above, but this function takes a scatter/gather list in a manner similar to **writev**(2). In this case, the entire list of buffers is appended atomically, as if the buffers in `iov` were concatenated in order. On success, zero is returned. On error, -1 is returned and `errno` is set.
 
-   >NOTE: Since **libpmemlog** is designed as a low-latency code path, many of the checks routinely done by the operating system for **writev**(2) are not practical in the library’s implementation of `pmemlog_appendv()`. No attempt is made to detect `NULL` or incorrect pointers, or illegal count values, for example.
+   >NOTE: Since **libpmemlog** is designed as a low-latency code path, many of the checks routinely done by the operating system for **writev**(2) are not practical in the library's implementation of `pmemlog_appendv()`. No attempt is made to detect `NULL` or incorrect pointers, or illegal count values, for example.
 
 ```c
 long long pmemlog_tell(PMEMlogpool *plp);
@@ -289,7 +284,7 @@ A second version of **libpmemlog**, accessed when a program uses the libraries u
 
 + **4** - This level enables voluminous and fairly obscure tracing information that is likely only useful to the **libpmemlog** developers.
 
-The environment variable `PMEMLOG_LOG_FILE` specifies a file name where all logging information should be written. If the last character in the name is “-”, the PID of the current process will be appended to the file name when the log file is created. If `PMEMLOG_LOG_FILE` is not set, the logging output goes to stderr.
+The environment variable `PMEMLOG_LOG_FILE` specifies a file name where all logging information should be written. If the last character in the name is "-", the PID of the current process will be appended to the file name when the log file is created. If `PMEMLOG_LOG_FILE` is not set, the logging output goes to stderr.
 
 Setting the environment variable `PMEMLOG_LOG_LEVEL` has no effect on the non-debug version of **libpmemlog**.
 See also **libpmem**(3) to get information about other environment variables affecting **libpmemlog** behavior.
@@ -328,22 +323,22 @@ main(int argc, char *argv[])
     size_t nbyte;
     char *str;
 
-   /* create the pmemlog pool or open it if it already exists */
+    /* create the pmemlog pool or open it if it already exists */
     plp = pmemlog_create(path, POOL_SIZE, 0666);
 
-   if (plp == NULL)
+    if (plp == NULL)
         plp = pmemlog_open(path);
 
-   if (plp == NULL) {
+    if (plp == NULL) {
         perror(path);
         exit(1);
     }
 
-   /* how many bytes does the log hold? */
+    /* how many bytes does the log hold? */
     nbyte = pmemlog_nbyte(plp);
     printf("log holds %zu bytes", nbyte);
 
-   /* append to the log... */
+    /* append to the log... */
     str = "This is the first string appended";
     if (pmemlog_append(plp, str, strlen(str)) < 0) {
         perror("pmemlog_append");
@@ -355,15 +350,16 @@ main(int argc, char *argv[])
         exit(1);
     }
 
-   /* print the log contents */
+    /* print the log contents */
     printf("log contains:");
     pmemlog_walk(plp, 0, printit, NULL);
 
-   pmemlog_close(plp);
+    pmemlog_close(plp);
 }
 ```
 
-See [http://pmem.io/nvml/libpmemlog](http://pmem.io/nvml/libpmemlog) for more examples using the **libpmemlog** API.
+See [http://pmem.io/nvml/libpmemlog](http://pmem.io/nvml/libpmemlog)
+for more examples using the **libpmemlog** API.
 
 ### BUGS ###
 
@@ -372,10 +368,12 @@ Thus, it is not allowed to specify replica sections in pool set files.
 
 ### ACKNOWLEDGEMENTS ###
 
-**libpmemlog** builds on the persistent memory programming model recommended by the SNIA NVM Programming Technical Work Group:
-
+**libpmemlog** builds on the persistent memory programming model recommended
+by the SNIA NVM Programming Technical Work Group:
 [http://snia.org/nvmp](http://snia.org/nvmp)
 
 ### SEE ALSO ###
 
-**mmap**(2), **munmap**(2), **msync**(2), **strerror**(3), **libpmemobj**(3), **libpmemblk**(3), **libpmem**(3), **libvmem**(3) and **[http://pmem.io](http://pmem.io)**
+**mmap**(2), **munmap**(2), **msync**(2), **strerror**(3), **libpmemobj**(3),
+**libpmemblk**(3), **libpmem**(3), **libvmem**(3)
+and **[http://pmem.io](http://pmem.io)**

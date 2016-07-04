@@ -33,11 +33,6 @@ title: libpmemblk(3)
 
 [comment]: <> (libpmemblk.3 -- man page for libpmemblk)
 
-[comment]: <> (Format this man page with:)
-[comment]: <> (   man -l libpmemblk.3)
-[comment]: <> (or)
-[comment]: <> (   groff -man -Tascii libpmemblk.3)
-
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
@@ -53,7 +48,7 @@ title: libpmemblk(3)
 
 ### NAME ###
 
-**libpmemblk** − persistent memory resident array of blocks
+**libpmemblk** -- persistent memory resident array of blocks
 
 ### SYNOPSIS ###
 
@@ -113,26 +108,64 @@ const char *pmemblk_errormsg(void);
 ### DESCRIPTION ###
 
 **libpmemblk**
-provides an array of blocks in *persistent memory* (pmem) such that updates to a single block are atomic. This library is intended for applications using direct access storage (DAX), which is storage that supports load/store access without paging blocks from a block storage device. Some types of *non-volatile memory DIMMs* (NVDIMMs) provide this type of byte addressable access to storage. A *persistent memory aware file system* is typically used to expose the direct access to applications. Memory mapping a file from this type of file system results in the load/store, non-paged access to pmem. **libpmemblk** builds on this type of memory mapped file.
+provides an array of blocks in *persistent memory* (pmem) such that updates
+to a single block are atomic. This library is intended for applications
+using direct access storage (DAX), which is storage that supports load/store
+access without paging blocks from a block storage device. Some types of
+*non-volatile memory DIMMs* (NVDIMMs) provide this type of byte addressable
+access to storage. A *persistent memory aware file system* is typically used
+to expose the direct access to applications. Memory mapping a file from this
+type of file system results in the load/store, non-paged access to pmem.
+**libpmemblk** builds on this type of memory mapped file.
 
-This library is for applications that need a potentially large array of blocks, all the same size, where any given block is updated atomically (the update cannot be *torn* by program interruption such as power failures). This library builds on the low-level pmem support provided by **libpmem(3)**, handling the transactional update of the blocks, flushing to persistence, and recovery for the application.
-**libpmemblk** is one of a collection of persistent memory libraries available, the others are:
+This library is for applications that need a potentially large array of blocks,
+all the same size, where any given block is updated atomically (the update
+cannot be *torn* by program interruption such as power failures). This library
+builds on the low-level pmem support provided by **libpmem(3)**, handling the
+transactional update of the blocks, flushing to persistence, and recovery for
+the application. **libpmemblk** is one of a collection of persistent memory
+libraries available, the others are:
 
-+ **libpmemobj(3)**, a general use persistent memory API, providing memory allocation and transactional operations on variable-sized objects.
++ **libpmemobj(3)**, a general use persistent memory API, providing memory
+allocation and transactional operations on variable-sized objects.
 + **libpmemlog(3)**, providing a pmem-resident log file.
 + **libpmem(3)**, low-level persistent memory support.
 
-Under normal usage, **libpmemblk** will never print messages or intentionally cause the process to exit. The only exception to this is the debugging information, when enabled, as described under **DEBUGGING AND ERROR HANDLING** below.
+Under normal usage, **libpmemblk** will never print messages or intentionally
+cause the process to exit. The only exception to this is the debugging
+information, when enabled, as described under **DEBUGGING AND ERROR HANDLING**
+below.
 
 ### MOST COMMONLY USED FUNCTIONS ###
 
-To use the atomic block arrays supplied by **libpmemblk**, a *memory pool* is first created. This is done with the `pmemblk_create()` function described in this section. The other functions described in this section then operate on the resulting block memory pool. Once created, the memory pool is represented by an opaque handle, of type `PMEMblkpool*`, which is passed to most of the other functions in this section. Internally, **libpmemblk** will use either `pmem_persist()` or **msync**(2) when it needs to flush changes, depending on whether the memory pool appears to be persistent memory or a regular file (see the `pmem_is_pmem()` function in **libpmem**(3) for more information). There is no need for applications to flush changes directly when using the block memory API provided by **libpmemblk**.
+To use the atomic block arrays supplied by **libpmemblk**, a *memory pool*
+is first created. This is done with the `pmemblk_create()` function described
+in this section. The other functions described in this section then operate
+on the resulting block memory pool. Once created, the memory pool is represented
+by an opaque handle, of type `PMEMblkpool*`, which is passed to most of the other
+functions in this section. Internally, **libpmemblk** will use either
+`pmem_persist()` or **msync**(2) when it needs to flush changes, depending
+on whether the memory pool appears to be persistent memory or a regular file
+(see the `pmem_is_pmem()` function in **libpmem**(3) for more information).
+There is no need for applications to flush changes directly when using the
+block memory API provided by **libpmemblk**.
 
 ```c
 PMEMblkpool *pmemblk_open(const char *path, size_t bsize);
 ```
 
-  The `pmemblk_open()` function opens an existing block memory pool, returning a memory pool handle used with most of the functions in this section. `path` must be an existing file containing a block memory pool as created by `pmemblk_create()`. The application must have permission to open the file and memory map it with read/write permissions. If the `bsize` provided is non-zero, `pmemblk_open()` will verify the given block size matches the block size used when the pool was created. Otherwise, `pmemblk_open()` will open the pool without verification of the block size. The `bsize` can be determined using the `pmemblk_bsize()` function. If an error prevents the pool from being opened, `pmemblk_open()` returns `NULL` and sets errno appropriately. A block size mismatch with the`bsize` argument passed in results in errno being set to `EINVAL`.
+  The `pmemblk_open()` function opens an existing block memory pool, returning
+  a memory pool handle used with most of the functions in this section. `path`
+  must be an existing file containing a block memory pool as created by
+  `pmemblk_create()`. The application must have permission to open the file
+  and memory map it with read/write permissions. If the `bsize` provided is
+  non-zero, `pmemblk_open()` will verify the given block size matches the block
+  size used when the pool was created. Otherwise, `pmemblk_open()` will open
+  the pool without verification of the block size. The `bsize` can be determined
+  using the `pmemblk_bsize()` function. If an error prevents the pool from being
+  opened, `pmemblk_open()` returns `NULL` and sets errno appropriately.
+  A block size mismatch with the`bsize` argument passed in results in errno
+  being set to `EINVAL`.
 
 ```c
 PMEMblkpool *pmemblk_create(
@@ -142,23 +175,66 @@ PMEMblkpool *pmemblk_create(
 	mode_t mode);
 ```
 
-  The `pmemblk_create()` function creates a block memory pool with the given total `poolsize` divided up into as many elements of size `bsize` as will fit in the pool. Since the transactional nature of a block memory pool requires some space overhead in the memory pool, the resulting number of available blocks is less than `poolsize` / `bsize`, and is made available to the caller via the `pmemblk_nblock()` function described below. Given the specifics of the implementation, the number of available blocks for the user cannot be less than 256. This translates to at least 512 internal blocks. `path` specifies the name of the memory pool file to be created. `mode` specifies the permissions to use when creating the file as described by **creat**(2). The memory pool file is fully allocated to the size `poolsize` using **posix_fallocate**(3). The caller may choose to take responsibility for creating the memory pool file by creating it before calling `pmemblk_create()` and then specifying `poolsize` as zero. In this case `pmemblk_create()` will take the pool size from the size of the existing file and will verify that the file appears to be empty by searching for any non-zero data in the pool header at the beginning of the file. The minimum file size allowed by the library for a block pool is defined in `<libpmemblk.h>` as `PMEMBLK_MIN_POOL`. `bsize` can be any non-zero value, however **libpmemblk** will silently round up the given size to `PMEMBLK_MIN_BLK`, as defined in `<libpmemblk.h>`.
+  The `pmemblk_create()` function creates a block memory pool with the given total
+  `poolsize` divided up into as many elements of size `bsize` as will fit in the pool.
+  Since the transactional nature of a block memory pool requires some space overhead
+  in the memory pool, the resulting number of available blocks is less than
+  `poolsize` / `bsize`, and is made available to the caller via the `pmemblk_nblock()`
+  function described below. Given the specifics of the implementation, the number
+  of available blocks for the user cannot be less than 256. This translates to
+  at least 512 internal blocks. `path` specifies the name of the memory pool file
+  to be created. `mode` specifies the permissions to use when creating the file
+  as described by **creat**(2). The memory pool file is fully allocated to the size
+  `poolsize` using **posix_fallocate**(3). The caller may choose to take
+  responsibility for creating the memory pool file by creating it before calling
+  `pmemblk_create()` and then specifying `poolsize` as zero. In this case
+  `pmemblk_create()` will take the pool size from the size of the existing file
+  and will verify that the file appears to be empty by searching for any non-zero
+  data in the pool header at the beginning of the file. The minimum file size allowed
+  by the library for a block pool is defined in `<libpmemblk.h>` as `PMEMBLK_MIN_POOL`.
+  `bsize` can be any non-zero value, however **libpmemblk** will silently round up
+  the given size to `PMEMBLK_MIN_BLK`, as defined in `<libpmemblk.h>`.
 
-Depending on the configuration of the system, the available space of non-volatile memory space may be divided into multiple memory devices. In such case, the maximum size of the pmemblk memory pool could be limited by the capacity of a single memory device. The **libpmemblk** allows building persistent memory resident array spanning multiple memory devices by creation of persistent memory pools consisting of multiple files, where each part of such a *pool set* may be stored on different pmem-aware filesystem.
+Depending on the configuration of the system, the available space of non-volatile
+memory space may be divided into multiple memory devices. In such case, the maximum
+size of the pmemblk memory pool could be limited by the capacity of a single memory
+device. The **libpmemblk** allows building persistent memory resident array spanning
+multiple memory devices by creation of persistent memory pools consisting of multiple
+files, where each part of such a *pool set* may be stored on different pmem-aware filesystem.
 
-Creation of all the parts of the pool set can be done with the `pmemblk_create()` function. However, the recommended method for creating pool sets is to do it by using the **pmempool**(1) utility.
+Creation of all the parts of the pool set can be done with the `pmemblk_create()`
+function. However, the recommended method for creating pool sets is to do it by
+using the **pmempool**(1) utility.
 
-When creating the pool set consisting of multiple files, the `path` argument passed to `pmemblk_create()` must point to the special *set* file that defines the pool layout and the location of all the parts of the pool set. The `poolsize` argument must be 0. The meaning of `layout` and `mode` arguments doesn’t change, except that the same `mode` is used for creation of all the parts of the pool set. If the error prevents any of the pool set files from being created, `pmemblk_create()` returns `NULL` and sets `errno` appropriately.
+When creating the pool set consisting of multiple files, the `path` argument passed
+to `pmemblk_create()` must point to the special *set* file that defines the pool
+layout and the location of all the parts of the pool set. The `poolsize` argument
+must be 0. The meaning of `layout` and `mode` arguments doesn't change, except that
+the same `mode` is used for creation of all the parts of the pool set. If the error
+prevents any of the pool set files from being created, `pmemblk_create()` returns
+`NULL` and sets `errno` appropriately.
 
-When opening the pool set consisting of multiple files, the `path` argument passed to `pmemblk_open()` must not point to the pmemblk memory pool file, but to the same *set* file that was used for the pool set creation. If an error prevents any of the pool set files from being opened, or if the actual size of any file does not match the corresponding part size defined in *set* file `pmemblk_open()` returns `NULL` and sets `errno` appropriately.
+When opening the pool set consisting of multiple files, the `path` argument passed
+to `pmemblk_open()` must not point to the pmemblk memory pool file, but to the same
+*set* file that was used for the pool set creation. If an error prevents any of the
+pool set files from being opened, or if the actual size of any file does not match
+the corresponding part size defined in *set* file `pmemblk_open()` returns `NULL`
+and sets `errno` appropriately.
 
-The set file is a plain text file, which must start with the line containing a `PMEMPOOLSET` string, followed by the specification of all the pool parts in the next lines. For each part, the file size and the absolute path must be provided.
+The set file is a plain text file, which must start with the line containing
+a `PMEMPOOLSET` string, followed by the specification of all the pool parts
+in the next lines. For each part, the file size and the absolute path must be provided.
 
-The size has to be compliant with the format specified in IEC 80000-13, IEEE 1541 or the Metric Interchange Format.  Standards accept SI units with obligatory B - kB, MB, GB, ... (multiplier by 1000) and IEC units with optional "iB" - KiB, MiB, GiB, ..., K, M, G, ... - (multiplier by 1024).
+The size has to be compliant with the format specified in IEC 80000-13, IEEE 1541
+or the Metric Interchange Format. Standards accept SI units with obligatory
+B - kB, MB, GB, ... (multiplier by 1000) and IEC units with optional "iB"
+- KiB, MiB, GiB, ..., K, M, G, ... - (multiplier by 1024).
 
-The minimum file size of each part of the pool set is the same as the minimum size allowed for a block pool consisting of one file. It is defined in `<libpmemblk.h>` as `PMEMBLK_MIN_POOL`. Lines starting with “#” character are ignored.
+The minimum file size of each part of the pool set is the same as the minimum size
+allowed for a block pool consisting of one file. It is defined in `<libpmemblk.h>`
+as `PMEMBLK_MIN_POOL`. Lines starting with "#" character are ignored.
 
-Here is the example “myblkpool.set” file:
+Here is the example "myblkpool.set" file:
 
 ```
 PMEMPOOLSET
@@ -182,7 +258,7 @@ void pmemblk_close(PMEMblkpool *pbp);
 size_t pmemblk_bsize(PMEMblkpool *pbp);
 ```
 
-  The `pmemblk_bsize()` function returns the block size of the specified block memory pool. It’s the value which was passed as `bsize` to `pmemblk_create()`.
+  The `pmemblk_bsize()` function returns the block size of the specified block memory pool. It's the value which was passed as `bsize` to `pmemblk_create()`.
   `pbp` must be a block memory pool handle as returned by `pmemblk_open()` or `pmemblk_create()`.
 
 ```c
@@ -234,7 +310,9 @@ This section describes how the library API is versioned, allowing applications t
 const char *pmemblk_check_version(unsigned major_required, unsigned minor_required);
 ```
 
-  The `pmemblk_check_version()` function is used to see if the installed **libpmemblk** supports the version of the library API required by an application. The easiest way to do this is for the application to supply the compile-time version information, supplied by defines in `<ibpmemblk.h>`, like this:
+  The `pmemblk_check_version()` function is used to see if the installed **libpmemblk**
+  supports the version of the library API required by an application. The easiest way
+  to do this is for the application to supply the compile-time version information, supplied by defines in `<ibpmemblk.h>`, like this:
 
 ```c
 reason = pmemblk_check_version(PMEMBLK_MAJOR_VERSION,
@@ -245,11 +323,18 @@ if (reason != NULL)
 }
 ```
 
-  Any mismatch in the major version number is considered a failure, but a library with a newer minor version number will pass this check since increasing minor versions imply backwards compatibility.
+  Any mismatch in the major version number is considered a failure, but a library with
+  a newer minor version number will pass this check since increasing minor versions imply backwards compatibility.
 
-  An application can also check specifically for the existence of an interface by checking for the version where that interface was introduced. These versions are documented in this man page as follows: unless otherwise specified, all interfaces described here are available in version 1.0 of the library. Interfaces added after version 1.0 will contain the text *introduced in version x.y* in the section of this manual describing the feature.
+  An application can also check specifically for the existence of an interface
+  by checking for the version where that interface was introduced. These versions
+  are documented in this man page as follows: unless otherwise specified, all
+  interfaces described here are available in version 1.0 of the library.
+  Interfaces added after version 1.0 will contain the text *introduced in version x.y* in the section of this manual describing the feature.
 
-  When the version check performed by `pmemblk_check_version()` is successful, the return value is `NULL`. Otherwise the return value is a static string describing the reason for failing the version check. The string returned by `pmemblk_check_version()` must not be modified or freed.
+  When the version check performed by `pmemblk_check_version()` is successful,
+  the return value is `NULL`. Otherwise the return value is a static string describing
+  the reason for failing the version check. The string returned by `pmemblk_check_version()` must not be modified or freed.
 
 
 ### MANAGING LIBRARY BEHAVIOR ###
@@ -292,7 +377,10 @@ A second version of **libpmemblk**, accessed when a program uses the libraries u
 + **3** - This level enables a very verbose amount of function call tracing in the library.
 + **4** - This level enables voluminous and fairly obscure tracing information that is likely only useful to the **libpmemblk** developers.
 
-The environment variable `PMEMBLK_LOG_FILE` specifies a file name where all logging information should be written. If the last character in the name is “-”, the PID of the current process will be appended to the file name when the log file is created. If `PMEMBLK_LOG_FILE` is not set, the logging output goes to stderr.
+The environment variable `PMEMBLK_LOG_FILE` specifies a file name where all
+logging information should be written. If the last character in the name is "-",
+the PID of the current process will be appended to the file name when the log
+file is created. If `PMEMBLK_LOG_FILE` is not set, the logging output goes to stderr.
 
 Setting the environment variable `PMEMBLK_LOG_LEVEL` has no effect on the non-debug version of **libpmemblk**.
 See also **libpmem**(3) to get information about other environment variables affecting **libpmemblk** behavior.
@@ -323,57 +411,60 @@ main(int argc, char *argv[])
     size_t nelements;
     char buf[ELEMENT_SIZE];
 
-   /* create the pmemblk pool or open it if it already exists */
+    /* create the pmemblk pool or open it if it already exists */
     pbp = pmemblk_create(path, ELEMENT_SIZE, POOL_SIZE, 0666);
 
-   if (pbp == NULL)
+    if (pbp == NULL)
         pbp = pmemblk_open(path, ELEMENT_SIZE);
 
-   if (pbp == NULL) {
+    if (pbp == NULL) {
         perror(path);
         exit(1);
     }
 
-   /* how many elements fit into the file? */
+    /* how many elements fit into the file? */
     nelements = pmemblk_nblock(pbp);
     printf("file holds %zu elements", nelements);
 
-   /* store a block at index 5 */
+    /* store a block at index 5 */
     strcpy(buf, "hello, world");
     if (pmemblk_write(pbp, buf, 5) < 0) {
         perror("pmemblk_write");
         exit(1);
     }
 
-   /* read the block at index 10 (reads as zeros initially) */
+    /* read the block at index 10 (reads as zeros initially) */
     if (pmemblk_read(pbp, buf, 10) < 0) {
         perror("pmemblk_read");
         exit(1);
     }
 
-   /* zero out the block at index 5 */
+    /* zero out the block at index 5 */
     if (pmemblk_set_zero(pbp, 5) < 0) {
         perror("pmemblk_set_zero");
         exit(1);
     }
 
-   /* ... */
+    /* ... */
 
-   pmemblk_close(pbp);
+    pmemblk_close(pbp);
 }
 ```
 See http://pmem.io/nvml/libpmemblk for more examples using the **libpmemblk** API.
 
 ### BUGS ###
 
-Unlike **libpmemobj**, data replication is not supported in **libpmemblk**. Thus, it is not allowed to specify replica sections in pool set files.
+Unlike **libpmemobj**, data replication is not supported in **libpmemblk**.
+Thus, it is not allowed to specify replica sections in pool set files.
 
 ### ACKNOWLEDGEMENTS ###
 
-**libpmemblk** builds on the persistent memory programming model recommended by the SNIA NVM Programming Technical Work Group:
-
+**libpmemblk** builds on the persistent memory programming model recommended
+by the SNIA NVM Programming Technical Work Group:
 [http://snia.org/nvmp](http://snia.org/nvmp)
 
 ### SEE ALSO ###
 
-**mmap**(2), **munmap**(2), **msync**(2), **strerror**(3), **libpmemobj**(3), **libpmemlog**(3), **libpmem**(3), **libvmem**(3) and **[http://pmem.io](http://pmem.io)**
+**mmap**(2), **munmap**(2), **msync**(2), **strerror**(3), **libpmemobj**(3),
+**libpmemlog**(3), **libpmem**(3), **libvmem**(3)
+and **[http://pmem.io](http://pmem.io)**

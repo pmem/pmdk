@@ -31,12 +31,7 @@ title: pmempool-convert(1)
 [comment]: <> ((INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE)
 [comment]: <> (OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.)
 
-[comment]: <> (pmempool-check.1 -- man page for pmempool-check)
-
-[comment]: <> (Format this man page with:)
-[comment]: <> (   man -l pmempool-check.1)
-[comment]: <> (or)
-[comment]: <> (   groff -man -Tascii pmempool-check.1)
+[comment]: <> (pmempool-convert.1 -- man page for pmempool-convert)
 
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
@@ -48,13 +43,15 @@ title: pmempool-convert(1)
 ### NAME ###
 
 **pmempool-convert** - Convert pool files from old layout versions to the
-newest one.</p>
+newest one.
+
 
 ### SYNOPSIS ###
 
 ```
 pmempool convert <file>
 ```
+
 
 ### DESCRIPTION ###
 

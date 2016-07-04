@@ -33,11 +33,6 @@ title: pmempool-dump(1)
 
 [comment]: <> (pmempool-dump.1 -- man page for pmempool-dump)
 
-[comment]: <> (Format this man page with:)
-[comment]: <> (   man -l pmempool-dump.1)
-[comment]: <> (or)
-[comment]: <> (   groff -man -Tascii pmempool-dump.1)
-
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
@@ -48,7 +43,7 @@ title: pmempool-dump(1)
 
 ### NAME ###
 
-**pmempool-dump** − Dump user data from specified pool
+**pmempool-dump** -- Dump user data from specified pool
 
 ### SYNOPSIS ###
 
@@ -68,29 +63,29 @@ Using `-r` option you can specify number of blocks/bytes/data chunks using speci
 
 ##### Available options: #####
 
-`-b, –binary`
+`-b, --binary`
 
 : Dump data in binary format.
 
-`-r, –range <range>`
+`-r, --range <range>`
 
 : Range of pool file to dump. This may be number of blocks for **blk** pool type or either number of bytes or number of data chunks for **log** pool type.
 
-`-c, –chunk <size>`
+`-c, --chunk <size>`
 
 : Size of chunk for **log** pool type. See `pmemlog_walk()` in **libpmemlog**(3) for details.
 
-`-o, –output <file>`
+`-o, --output <file>`
 
 : Name of output file.
 
-`-h, –help`
+`-h, --help`
 
 : Display help message and exit.
 
 ### RANGE ###
 
-Using `-r`, `–range` option it is possible to dump only a range of user data. This section describes valid format of `<range>` string.
+Using `-r`, `--range` option it is possible to dump only a range of user data. This section describes valid format of `<range>` string.
 
 You can specify multiple ranges separated by commas.
 
