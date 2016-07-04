@@ -33,11 +33,6 @@ title: libpmemobj(3)
 
 [comment]: <> (libpmemobj.3 -- man page for libpmemobj)
 
-[comment]: <> (Format this man page with:)
-[comment]: <> (   man -l libpmemobj.3)
-[comment]: <> (or)
-[comment]: <> (   groff -man -Tascii libpmemobj.3)
-
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
@@ -65,7 +60,7 @@ title: libpmemobj(3)
 
 ### NAME ###
 
-**libpmemobj** − persistent memory transactional object store
+**libpmemobj** -- persistent memory transactional object store
 
 
 ### SYNOPSIS ###
@@ -195,7 +190,9 @@ TOID_IS_NULL(TOID oid)
 
 TOID_EQUALS(TOID lhs, TOID rhs)
 
-TOID_TYPEOF(TOID " oid)
+TOID_TYPEOF(TOID oid)
+
+TOID_OFFSETOF(TOID oid, FIELD)
 
 DIRECT_RW(TOID oid)
 
@@ -568,7 +565,7 @@ PMEMobjpool *pmemobj_create(
 	size_t poolsize, mode_t mode);
 ```
 
-  The `pmemobj_create()` function creates a transactional object store with the given total `poolsize`. `path` specifies the name of the memory pool file to be created. `layout` specifies the application’s layout type in the form of a string. The layout name is not interpreted by **libpmemobj**, but may be used as a check when `pmemobj_open()` is called. The layout name, including the null termination, cannot be longer than `PMEMOBJ_MAX_LAYOUT` as defined in `<libpmemobj.h>`. It is allowed to pass `NULL` as `layout`, which is equivalent for using an empty string as a layout name. `mode` specifies the permissions to use when creating the file as described by **creat**(2). The memory pool file is fully allocated to the size `poolsize` using **posix_fallocate**(3). The caller may choose to take responsibility for creating the memory pool file by creating it before calling `pmemobj_create()` and then specifying *poolsize* as zero. In this case `pmemobj_create()` will take the pool size from the size of the existing file and will verify that the file appears to be empty by searching for any non-zero data in the pool header at the beginning of the file. The minimum file size allowed by the library for a transactional object store is defined in `<libpmemobj.h>` as `PMEMOBJ_MIN_POOL`.
+  The `pmemobj_create()` function creates a transactional object store with the given total `poolsize`. `path` specifies the name of the memory pool file to be created. `layout` specifies the application's layout type in the form of a string. The layout name is not interpreted by **libpmemobj**, but may be used as a check when `pmemobj_open()` is called. The layout name, including the null termination, cannot be longer than `PMEMOBJ_MAX_LAYOUT` as defined in `<libpmemobj.h>`. It is allowed to pass `NULL` as `layout`, which is equivalent for using an empty string as a layout name. `mode` specifies the permissions to use when creating the file as described by **creat**(2). The memory pool file is fully allocated to the size `poolsize` using **posix_fallocate**(3). The caller may choose to take responsibility for creating the memory pool file by creating it before calling `pmemobj_create()` and then specifying *poolsize* as zero. In this case `pmemobj_create()` will take the pool size from the size of the existing file and will verify that the file appears to be empty by searching for any non-zero data in the pool header at the beginning of the file. The minimum file size allowed by the library for a transactional object store is defined in `<libpmemobj.h>` as `PMEMOBJ_MIN_POOL`.
 
 ```c
 void pmemobj_close(PMEMobjpool *pop);
@@ -606,7 +603,7 @@ pmemobj_persist(PMEMobjpool *pop, const void *addr, size_t len)
     /* flush the processor caches */
     pmemobj_flush(pop, addr, len);
 
-   /* wait for any pmem stores to drain from HW buffers */
+    /* wait for any pmem stores to drain from HW buffers */
     pmemobj_drain(pop);
 }
 ```
@@ -632,9 +629,9 @@ pmemobj_memcpy_persist(PMEMobjpool *pop, void *dest,
 {
     void *retval = memcpy(pop, dest, src, len);
 
-   pmemobj_persist(pop, dest, len);
+    pmemobj_persist(pop, dest, len);
 
-   return retval;
+    return retval;
 }
 ```
 
@@ -654,7 +651,7 @@ The set file is a plain text file, which must start with the line containing a *
 
 The minimum file size of each part of the pool set is the same as the minimum size allowed for a transactional object store consisting of one file. It is defined in `<libpmemobj.h>` as `PMEMOBJ_MIN_POOL`. Sections defining the replica sets are optional. There could be multiple replica sections and each must start with the line containing a *REPLICA* string. Lines starting with “#” character are ignored.
 
-Here is the example “myobjpool.set” file:
+Here is the example "myobjpool.set" file:
 
 ```c
 PMEMPOOLSET
@@ -910,10 +907,16 @@ TOID_EQUALS(TOID lhs, TOID rhs)
   The `TOID_EQUALS` macro evaluates to true if both `lhs` and `rhs` object handles are referencing the same persistent object.
 
 ```c
-TOID_TYPEOF(TOID " o)
+TOID_TYPEOF(TOID o)
 ```
 
-`TOID_TYPEOF` macro returns a type of object handle represented by argument `o`.
+  The `TOID_TYPEOF` macro returns a type of the object handle represented by argument `o`.
+
+```c
+TOID_OFFSETOF(TOID o, FILED)
+```
+
+  The `TOID_OFFSETOF` macro returns the offset of the FIELD member from the start of the object represented by argument `o`.
 
 ```c
 DIRECT_RW(TOID oid)
@@ -938,7 +941,7 @@ D_RO(TOID oid)
 
 ### LAYOUT DECLARATION ###
 
-The **libpmemobj** defines a set of macros for convenient declaration of pool’s layout. The declaration of layout consist of declaration of number of used types. The declared types will be assigned consecutive type numbers. Declared types may be used in conjunction with type safety macros. Once created the layout declaration shall not be changed unless the new types are added at the end of the existing layout declaration. Modifying any of existing declaration may lead to changes in type numbers of declared types which in consequence may cause data corruption.
+The **libpmemobj** defines a set of macros for convenient declaration of pool's layout. The declaration of layout consist of declaration of number of used types. The declared types will be assigned consecutive type numbers. Declared types may be used in conjunction with type safety macros. Once created the layout declaration shall not be changed unless the new types are added at the end of the existing layout declaration. Modifying any of existing declaration may lead to changes in type numbers of declared types which in consequence may cause data corruption.
 
 ```c
 POBJ_LAYOUT_BEGIN(LAYOUT)
@@ -1279,7 +1282,6 @@ A list is headed by a structure defined by the `POBJ_LIST_HEAD` macro. This stru
 
 ```c
 #define POBJ_LIST_HEAD(HEADNAME, TYPE)
-
 struct HEADNAME
 {
     TOID(TYPE) pe_first;
@@ -1538,7 +1540,7 @@ void pmemobj_tx_process(void);
 int pmemobj_tx_add_range(PMEMoid oid, uint64_t off, size_t size);
 ```
 
-  The `pmemobj_tx_add_range()` takes a “snapshot” of the memory block of given `size`, located at given offset `off` in the object specified by `oid` and saves it to the undo log. The application is then free to directly modify the object in that memory range. In case of a failure or abort, all the changes within this range will be rolled-back. The supplied block of memory has to be within the pool registered in the transaction. If successful, returns zero. Otherwise, state changes to `TX_STAGE_ONABORT` and an error number is returned. This function must be called during `TX_STAGE_WORK`.
+  The `pmemobj_tx_add_range()` takes a "snapshot" of the memory block of given `size`, located at given offset `off` in the object specified by `oid` and saves it to the undo log. The application is then free to directly modify the object in that memory range. In case of a failure or abort, all the changes within this range will be rolled-back. The supplied block of memory has to be within the pool registered in the transaction. If successful, returns zero. Otherwise, state changes to `TX_STAGE_ONABORT` and an error number is returned. This function must be called during `TX_STAGE_WORK`.
 
 ```c
 int pmemobj_tx_add_range_direct(const void *ptr, size_t size);
@@ -1586,27 +1588,23 @@ In addition to the above API, the **libpmemobj** offers a more intuitive method 
 
 ```c
 TX_BEGIN(Pop) {
-
-/* the actual transaction code goes here… */
-
+    /* the actual transaction code goes here... */
 } TX_ONCOMMIT {
-
-/* optional - executed only if the above block
-* successfully completes */
-
+    /*
+     * optional - executed only if the above block
+     * successfully completes
+     */
 } TX_ONABORT {
-
-/* optional - executed only if starting the transaction fails,
-* or if transaction is aborted by an error or a call to
-* pmemobj_tx_abort()
-*/
-
+    /*
+     * optional - executed only if starting the transaction fails,
+     * or if transaction is aborted by an error or a call to
+     * pmemobj_tx_abort()
+     */
 } TX_FINALLY {
-
-/* optional - if exists, it is executed after
-* TX_ONCOMMIT or TX_ONABORT block
-*/
-
+    /*
+     * optional - if exists, it is executed after
+     * TX_ONCOMMIT or TX_ONABORT block
+     */
 } TX_END /* mandatory */
 ```
 
@@ -1656,7 +1654,7 @@ TX_ADD_FIELD(TOID o, FIELD)
 TX_ADD(TOID o)
 ```
 
-  The `TX_ADD()` macro takes a “snapshot” of the entire object referenced by object handle `o` and saves it in the undo log. The object size is determined from its `TYPE`. The application is then free to directly modify the object. In case of a failure or abort, all the changes within the object will be rolled-back.
+  The `TX_ADD()` macro takes a "snapshot" of the entire object referenced by object handle `o` and saves it in the undo log. The object size is determined from its `TYPE`. The application is then free to directly modify the object. In case of a failure or abort, all the changes within the object will be rolled-back.
 
 ```c
 TX_ADD_FIELD_DIRECT(TYPE *p, FIELD)
@@ -1668,7 +1666,7 @@ TX_ADD_FIELD_DIRECT(TYPE *p, FIELD)
 TX_ADD_DIRECT(TYPE *p)
 ```
 
-  The `TX_ADD_DIRECT()` macro takes a “snapshot” of the entire object referenced by (direct) pointer `p` and saves it in the undo log. The object size is determined from its `TYPE`. The application is then free to directly modify the object. In case of a failure or abort, all the changes within the object will be rolled-back.
+  The `TX_ADD_DIRECT()` macro takes a "snapshot" of the entire object referenced by (direct) pointer `p` and saves it in the undo log. The object size is determined from its `TYPE`. The application is then free to directly modify the object. In case of a failure or abort, all the changes within the object will be rolled-back.
 
 ```c
 TX_SET(TOID o, FIELD, VALUE)
@@ -1756,30 +1754,29 @@ int *bad_example_3 = NULL;
 volatile int *good_example = NULL;
 
 TX_BEGIN(Pop) {
-        bad_example_1 = malloc(...);
-        bad_example_2 = malloc(...);
-        bad_example_3 = malloc(...);
-        good_example = malloc(...);
-        ...
-        pmemobj_tx_abort(EINVAL); /* manual or library abort called here */
-
+    bad_example_1 = malloc(...);
+    bad_example_2 = malloc(...);
+    bad_example_3 = malloc(...);
+    good_example = malloc(...);
+    /* ... */
+    pmemobj_tx_abort(EINVAL); /* manual or library abort called here */
 } TX_ONCOMMIT {
-        /*
-         * This section is longjmp-safe
-         */
+    /*
+     * This section is longjmp-safe
+     */
 } TX_ONABORT {
-        /*
-         * This section is not longjmp-safe
-         */
+    /*
+     * This section is not longjmp-safe
+     */
 
-        free(bad_example_1); /* undefined behavior */
-         free(good_example); /* OK */
+    free(bad_example_1); /* undefined behavior */
+    free(good_example); /* OK */
 } TX_FINALLY {
-        /*
-         * This section is not longjmp-safe on transaction abort only
-         */
+    /*
+     * This section is not longjmp-safe on transaction abort only
+     */
 
-        free(bad_example_2); /* undefined behavior */
+    free(bad_example_2); /* undefined behavior */
 } TX_END
 
 free(bad_example_3); /* undefined behavior */
@@ -1805,7 +1802,7 @@ reason = pmemobj_check_version(PMEMOBJ_MAJOR_VERSION,
                             PMEMOBJ_MINOR_VERSION);
 if (reason != NULL)
 {
-    /*  version check failed, reason string tells you why */
+    /* version check failed, reason string tells you why */
 }
 ```
 
@@ -1860,18 +1857,23 @@ The environment variable `PMEMOBJ_LOG_FILE` specifies a file name where all logg
 Setting the environment variable `PMEMOBJ_LOG_LEVEL` has no effect on the non-debug version of **libpmemobj**.
 See also **libpmem**(3) to get information about other environment variables affecting **libpmemobj** behavior.
 
+
 ### EXAMPLES ###
 
-See [http://pmem.io/nvml/libpmemobj](http://pmem.io/nvml/libpmemobj) for examples using the **libpmemobj** API.
+See [http://pmem.io/nvml/libpmemobj](http://pmem.io/nvml/libpmemobj)
+for examples using the **libpmemobj** API.
 
 
 ### ACKNOWLEDGEMENTS ###
 
-**libpmemobj** builds on the persistent memory programming model recommended by the SNIA NVM Programming Technical Work Group:
-
+**libpmemobj** builds on the persistent memory programming model recommended
+by the SNIA NVM Programming Technical Work Group:
 [http://snia.org/nvmp](http://snia.org/nvmp)
 
 
 ### SEE ALSO ###
 
-**mmap**(2), **munmap**(2), **msync**(2), **pthread_mutex**(3), **pthread_rwlock**(3), **pthread_cond**(3), **strerror**(3), **libpmemblk**(3), **libpmemlog**(3), **libpmem**(3), **libvmem**(3) and [http://pmem.io](http://pmem.io).
+**mmap**(2), **munmap**(2), **msync**(2), **pthread_mutex**(3),
+**pthread_rwlock**(3), **pthread_cond**(3), **strerror**(3), **libpmemblk**(3),
+**libpmemlog**(3), **libpmem**(3), **libvmem**(3)
+and [http://pmem.io](http://pmem.io).

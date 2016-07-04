@@ -33,12 +33,6 @@ title: libvmmalloc(3)
 
 [comment]: <> (libvmmalloc.3 -- man page for libvmmalloc)
 
-[comment]: <> (Format this man page with:)
-[comment]: <> (   man -l libvmmalloc.3)
-[comment]: <> (or)
-[comment]: <> (   groff -man -Tascii libvmmalloc.3)
-
-
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
@@ -51,7 +45,7 @@ title: libvmmalloc(3)
 
 ### NAME ###
 
-**libvmmalloc** − general purpose volatile memory allocation library
+**libvmmalloc** -- general purpose volatile memory allocation library
 
 ### SYNOPSIS ###
 
@@ -154,7 +148,7 @@ Two versions of **libvmmalloc** are typically available on a development system.
 
 + **4** - This level enables voluminous tracing information about all the memory allocations and deallocations.
 
-The environment variable `VMMALLOC_LOG_FILE` specifies a file name where all logging information should be written. If the last character in the name is “-”, the PID of the current process will be appended to the file name when the log file is created. If `VMMALLOC_LOG_FILE` is not set, output goes to stderr.
+The environment variable `VMMALLOC_LOG_FILE` specifies a file name where all logging information should be written. If the last character in the name is "-", the PID of the current process will be appended to the file name when the log file is created. If `VMMALLOC_LOG_FILE` is not set, output goes to stderr.
 
 Setting the environment variable `VMMALLOC_LOG_LEVEL` has no effect on the non-debug version of **libvmmalloc**.
 
@@ -170,7 +164,7 @@ Unlike the normal `malloc()`, which asks the system for additional memory when i
 
 **libvmmalloc** may not work properly with the programs that perform **fork**(3) and do not call **exec**(3) immediately afterwards. See **ENVIRONMENT** section for more details about the experimental `fork()` support.
 
-If the trace points in the debug version of the library are enabled and the process performs fork, there is no new log file created for the child process, even if the configured log file name is terminated with “-” character. All the logging information from the child process will be written to the log file owned by the parent process, which may lead to corruption or partial loss of the log data.
+If the trace points in the debug version of the library are enabled and the process performs fork, there is no new log file created for the child process, even if the configured log file name is terminated with "-" character. All the logging information from the child process will be written to the log file owned by the parent process, which may lead to corruption or partial loss of the log data.
 
 Malloc hooks (see **malloc_hook**(3)), are not supported when using **libvmmalloc**.
 

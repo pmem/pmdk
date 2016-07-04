@@ -33,11 +33,6 @@ title: libvmem(3)
 
 [comment]: <> (libvmem.3 -- man page for libvmem)
 
-[comment]: <> (Format this man page with:)
-[comment]: <> (   man -l libvmem.3)
-[comment]: <> (or)
-[comment]: <> (   groff -man -Tascii libvmem.3)
-
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
@@ -52,7 +47,7 @@ title: libvmem(3)
 
 ### NAME ###
 
-**libvmem** − volatile memory allocation library
+**libvmem** -- volatile memory allocation library
 
 ### SYNOPSIS ###
 
@@ -156,7 +151,7 @@ int vmem_check(VMEM *vmp);
 void vmem_stats_print(VMEM *vmp, const char *opts);
 ```
 
-  The `vmem_stats_print()` function produces messages containing statistics about the given memory pool. The output is printed using **libvmem**’s internal *print_func* function (see `vmem_set_funcs()` below). That means the output typically appears on *stderr* unless the caller supplies a replacement *print_func* or sets the environment variable `VMEM_LOG_FILE` to direct output elsewhere. The `opts` string can either be `NULL` or it can contain a list of options that change the stats printed. General information that never changes during execution can be omitted by specifying “g” as a character within the opts string. The characters “m” and “a” can be specified to omit merged arena and per arena statistics, respectively; “b” and “l” can be specified to omit per size class statistics for bins and large objects, respectively. Unrecognized characters are silently ignored. Note that thread caching may prevent some statistics from being completely up to date. See **jemalloc**(3) for more detail (the description of the available `opts` above was taken from that man page).
+  The `vmem_stats_print()` function produces messages containing statistics about the given memory pool. The output is printed using **libvmem**'s internal *print_func* function (see `vmem_set_funcs()` below). That means the output typically appears on *stderr* unless the caller supplies a replacement *print_func* or sets the environment variable `VMEM_LOG_FILE` to direct output elsewhere. The `opts` string can either be `NULL` or it can contain a list of options that change the stats printed. General information that never changes during execution can be omitted by specifying “g” as a character within the opts string. The characters “m” and “a” can be specified to omit merged arena and per arena statistics, respectively; “b” and “l” can be specified to omit per size class statistics for bins and large objects, respectively. Unrecognized characters are silently ignored. Note that thread caching may prevent some statistics from being completely up to date. See **jemalloc**(3) for more detail (the description of the available `opts` above was taken from that man page).
 
 ### MEMORY ALLOCATION ###
 
@@ -267,14 +262,15 @@ A second version of **libvmem**, accessed when a program uses the libraries unde
 
 + **4** - This level enables voluminous and fairly obscure tracing information that is likely only useful to the **libvmem** developers.
 
-The environment variable `VMEM_LOG_FILE` specifies a file name where all logging information should be written. If the last character in the name is “-”, the PID of the current process will be appended to the file name when the log file is created. If `VMEM_LOG_FILE` is not set, output goes to stderr. All prints are done using the *print_func* function in **libvmem** (see `vmem_set_funcs()` above for details on how to override that function).
+The environment variable `VMEM_LOG_FILE` specifies a file name where all logging information should be written. If the last character in the name is "-", the PID of the current process will be appended to the file name when the log file is created. If `VMEM_LOG_FILE` is not set, output goes to stderr. All prints are done using the *print_func* function in **libvmem** (see `vmem_set_funcs()` above for details on how to override that function).
 
 Setting the environment variable `VMEM_LOG_LEVEL` has no effect on the non-debug version of **libvmem**.
 
 
 ### EXAMPLE ###
 
-The following example creates a memory pool, allocates some memory to contain the string “hello, world”, and then frees that memory.
+The following example creates a memory pool, allocates some memory
+to contain the string "hello, world", and then frees that memory.
 
 ```c
 #include <stdio.h>
@@ -289,7 +285,7 @@ main()
 
     /* create minimum size pool of memory */
     if ((vmp = vmem_create("/pmem-fs",
-                                VMEM_MIN_POOL)) == NULL) {
+                    VMEM_MIN_POOL)) == NULL) {
         perror("vmem_create");
         exit(1);
     }
@@ -308,24 +304,29 @@ main()
 }
 ```
 
-See [http://pmem.io/nvml/libvmem](http://pmem.io/nvml/libvmem) for more examples using the **libvmem** API.
+See [http://pmem.io/nvml/libvmem](http://pmem.io/nvml/libvmem)
+for more examples using the **libvmem** API.
+
 
 ### BUGS ###
 
-Unlike the normal **malloc**(), which asks the system for additional memory when it runs out, **libvmem** allocates the size it is told to and never attempts to grow or shrink that memory pool.
+Unlike the normal **malloc**(), which asks the system for additional
+memory when it runs out, **libvmem** allocates the size it is told
+to and never attempts to grow or shrink that memory pool.
+
 
 ### ACKNOWLEDGEMENTS ###
 
-**libvmem** depends on jemalloc, written by Jason Evans, to do the heavy lifting of managing dynamic memory allocation. See:
-
+**libvmem** depends on jemalloc, written by Jason Evans, to do the heavy
+lifting of managing dynamic memory allocation. See:
 [http://www.canonware.com/jemalloc/](http://www.canonware.com/jemalloc/)
 
-
-**libvmem** builds on the persistent memory programming model recommended by the SNIA NVM Programming Technical Work Group:
-
+**libvmem** builds on the persistent memory programming model recommended
+by the SNIA NVM Programming Technical Work Group:
 [http://snia.org/nvmp](http://snia.org/nvmp)
 
 
 ### SEE ALSO ###
 
-**malloc**(3), **posix_memalign**(3), **strdup**(3), **mmap**(2), **strerror**(3), **jemalloc**(3), **libpmem**(3).
+**malloc**(3), **posix_memalign**(3), **strdup**(3), **mmap**(2),
+**strerror**(3), **jemalloc**(3), **libpmem**(3).

@@ -33,11 +33,6 @@ title: pmempool-check(1)
 
 [comment]: <> (pmempool-check.1 -- man page for pmempool-check)
 
-[comment]: <> (Format this man page with:)
-[comment]: <> (   man -l pmempool-check.1)
-[comment]: <> (or)
-[comment]: <> (   groff -man -Tascii pmempool-check.1)
-
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
@@ -47,7 +42,7 @@ title: pmempool-check(1)
 
 ### NAME ###
 
-**pmempool-check**  − Check and repair Persistent Memory Pool
+**pmempool-check** -- Check and repair Persistent Memory Pool
 
 ### SYNOPSIS ###
 
@@ -65,31 +60,32 @@ It is possible to try to fix encountered problems using `-r` option. In order to
 
 ##### Available options: #####
 
-`-r, –repair`
+`-r, --repair`
 
 : Try to repair a pool file if possible.
 
-`-y, –yes`
+`-y, --yes`
 
 : Answer yes on all questions.
 
-`-N, –no-exec`
+`-N, --no-exec`
 
-: Don’t execute, just show what would be done.
+: Don't execute, just show what would be done.
 
-`-b, –backup <file>`
+`-b, --backup <file>`
 
-: Create backup of a pool file before executing. Terminate if it is *not* possible to create a backup file. This option requires `-r` option.
+: Create backup of a pool file before executing. Terminate if it is *not*
+possible to create a backup file. This option requires `-r` option.
 
-`-q, –quiet`
+`-q, --quiet`
 
-: Be quiet and don’t print any messages.
+: Be quiet and don't print any messages.
 
-`-v, –verbose`
+`-v, --verbose`
 
 : Be more verbose.
 
-`-h, –help`
+`-h, --help`
 
 : Display help message and exit.
 
@@ -99,13 +95,15 @@ It is possible to try to fix encountered problems using `-r` option. In order to
 
 : Check consistency of pool.bin pool file
 
-`pmempool check –repair –backup pool.bin.backup pool.bin`
+`pmempool check --repair --backup pool.bin.backup pool.bin`
 
-: Check consistency of pool.bin pool file, create backup and repair if necessary.
+: Check consistency of pool.bin pool file, create backup and repair
+if necessary.
 
 `pmempool check -rvN pool.bin`
 
-: Check consistency of pool.bin pool file, print what would be repaired with increased verbosity level.
+: Check consistency of pool.bin pool file, print what would be repaired with
+increased verbosity level.
 
 ### SEE ALSO ###
 
