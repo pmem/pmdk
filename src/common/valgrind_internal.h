@@ -408,6 +408,11 @@ extern unsigned _On_valgrind;
 		VALGRIND_MAKE_MEM_DEFINED(addr, len);\
 } while (0)
 
+#define VALGRIND_DO_MAKE_MEM_DEFINED_ANY(addr, len) do {\
+	if (On_valgrind)\
+		VALGRIND_MAKE_MEM_DEFINED(addr, len);\
+} while (0)
+
 #define VALGRIND_DO_MAKE_MEM_UNDEFINED(pool, addr, len) do {\
 	if (On_valgrind && pool->is_master_replica)\
 		VALGRIND_MAKE_MEM_UNDEFINED(addr, len);\
@@ -448,6 +453,9 @@ extern unsigned _On_valgrind;
 
 #define VALGRIND_DO_MAKE_MEM_DEFINED(pool, addr, len)\
 	do { (void) (pool); (void) (addr); (void) (len); } while (0)
+
+#define VALGRIND_DO_MAKE_MEM_DEFINED_ANY(addr, len)\
+	do { (void) (addr); (void) (len); } while (0)
 
 #define VALGRIND_DO_MAKE_MEM_UNDEFINED(pool, addr, len)\
 	do { (void) (pool); (void) (addr); (void) (len); } while (0)
