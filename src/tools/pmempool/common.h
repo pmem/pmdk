@@ -167,6 +167,7 @@ struct pmem_pool_params {
 	mode_t mode;
 	int is_poolset;
 	int is_part;
+	int is_checksum_ok;
 	union {
 		struct {
 			uint64_t bsize;
@@ -211,6 +212,7 @@ struct ranges {
 
 pmem_pool_type_t pmem_pool_type_parse_hdr(const struct pool_hdr *hdrp);
 pmem_pool_type_t pmem_pool_type(const void *base_pool_addr);
+int pmem_pool_checksum(const void *base_pool_addr);
 pmem_pool_type_t pmem_pool_type_parse_str(const char *str);
 uint64_t pmem_pool_get_min_size(pmem_pool_type_t type);
 int pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp,
