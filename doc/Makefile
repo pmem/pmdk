@@ -36,13 +36,13 @@
 
 include ../src/common.inc
 
-MANPAGES_3_MD =
+MANPAGES_3_MD = libpmem.3.md
 MANPAGES_1_MD =
 
 MANPAGES_3_GROFF = $(MANPAGES_3_MD:.3.md=.3)
 MANPAGES_1_GROFF = $(MANPAGES_1_MD:.1.md=.1)
 
-MANPAGES_3 = libpmem.3 libpmemblk.3 libpmemlog.3 libpmemobj.3 libpmempool.3 \
+MANPAGES_3 = libpmemblk.3 libpmemlog.3 libpmemobj.3 libpmempool.3 \
 	libvmem.3 libvmmalloc.3 \
 	$(MANPAGES_3_GROFF)
 MANPAGES_1 = pmempool.1 pmempool-info.1 pmempool-create.1 \

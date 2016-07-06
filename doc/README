@@ -10,7 +10,7 @@ To generate web-based documentation, you need to have groff and doxygen
 installed.
 
 libpmem(3) -- low-level persistent memory support
-    Man page source is in: libpmem.3
+    Man page source is in: libpmem.3.md
     HTML formatted version: http://pmem.io/nvml/libpmem/libpmem.3.html
 
 libpmemblk(3) -- pmem-resident arrays of blocks
