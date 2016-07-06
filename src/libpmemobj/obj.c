@@ -140,7 +140,7 @@ obj_init(void)
 {
 	LOG(3, NULL);
 
-	COMPILE_ERROR_ON(sizeof(struct pmemobjpool) != 8192);
+	COMPILE_ERROR_ON(sizeof(struct pmemobjpool) != POOL_HDR_SIZE + 4096);
 
 #ifdef USE_COW_ENV
 	char *env = getenv("PMEMOBJ_COW");
@@ -822,6 +822,7 @@ pmemobj_create(const char *path, const char *layout, size_t poolsize,
 
 	pop = set->replica[0]->part[0].addr;
 	pop->is_master_replica = 1;
+	pop->set = set;
 
 	for (unsigned r = 1; r < set->nreplicas; r++) {
 		PMEMobjpool *rep = set->replica[r]->part[0].addr;
@@ -840,8 +841,6 @@ pmemobj_create(const char *path, const char *layout, size_t poolsize,
 		goto err;
 
 	util_poolset_fdclose(set);
-
-	util_poolset_free(set);
 
 	LOG(3, "pop %p", pop);
 
@@ -988,6 +987,7 @@ pmemobj_open_common(const char *path, const char *layout, int cow, int boot)
 
 	pop = set->replica[0]->part[0].addr;
 	pop->is_master_replica = 1;
+	pop->set = set;
 
 	for (unsigned r = 1; r < set->nreplicas; r++) {
 		PMEMobjpool *rep = set->replica[r]->part[0].addr;
@@ -1007,7 +1007,6 @@ pmemobj_open_common(const char *path, const char *layout, int cow, int boot)
 	}
 
 	util_poolset_fdclose(set);
-	util_poolset_free(set);
 
 #ifdef USE_VG_MEMCHECK
 	if (boot)
@@ -1055,13 +1054,7 @@ pmemobj_cleanup(PMEMobjpool *pop)
 	VALGRIND_DO_DESTROY_MEMPOOL(pop);
 
 	/* unmap all the replicas */
-	PMEMobjpool *rep;
-	do {
-		rep = pop->replica;
-		VALGRIND_REMOVE_PMEM_MAPPING(pop->addr, pop->size);
-		util_unmap(pop->addr, pop->size);
-		pop = rep;
-	} while (pop);
+	util_poolset_close(pop->set, 0);
 }
 
 /*
@@ -1134,13 +1127,7 @@ pmemobj_check(const char *path, const char *layout)
 		pmemobj_cleanup(pop);
 	} else {
 		/* unmap all the replicas */
-		PMEMobjpool *rep;
-		do {
-			rep = pop->replica;
-			VALGRIND_REMOVE_PMEM_MAPPING(pop->addr, pop->size);
-			util_unmap(pop->addr, pop->size);
-			pop = rep;
-		} while (pop);
+		util_poolset_close(pop->set, 0);
 	}
 
 	if (consistent)

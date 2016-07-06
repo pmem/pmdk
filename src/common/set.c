@@ -59,6 +59,7 @@
 #include "valgrind_internal.h"
 
 extern unsigned long long Pagesize;
+extern unsigned long long Mmap_align;
 
 /* reserve space for size, path and some whitespace and/or comment */
 #define PARSER_MAX_LINE (PATH_MAX + 1024)
@@ -159,13 +160,13 @@ util_map_part(struct pool_set_part *part, void *addr, size_t size,
 	LOG(3, "part %p addr %p size %zu offset %zu flags %d",
 		part, addr, size, offset, flags);
 
-	ASSERTeq((uintptr_t)addr % Pagesize, 0);
-	ASSERTeq(offset % Pagesize, 0);
-	ASSERTeq(size % Pagesize, 0);
+	ASSERTeq((uintptr_t)addr % Mmap_align, 0);
+	ASSERTeq(offset % Mmap_align, 0);
+	ASSERTeq(size % Mmap_align, 0);
 	ASSERT(((off_t)offset) >= 0);
 
 	if (!size)
-		size = (part->filesize & ~(Pagesize - 1)) - offset;
+		size = (part->filesize & ~(Mmap_align - 1)) - offset;
 
 	void *addrp = mmap(addr, size,
 		PROT_READ|PROT_WRITE, flags, part->fd, (off_t)offset);
@@ -323,8 +324,10 @@ util_poolset_fdclose(struct pool_set *set)
 		for (unsigned p = 0; p < rep->nparts; p++) {
 			struct pool_set_part *part = &rep->part[p];
 
-			if (part->fd != -1)
+			if (part->fd != -1) {
 				close(part->fd);
+				part->fd = -1;
+			}
 		}
 	}
 }
@@ -490,11 +493,11 @@ util_poolset_set_size(struct pool_set *set)
 	set->poolsize = SIZE_MAX;
 	for (unsigned r = 0; r < set->nreplicas; r++) {
 		struct pool_replica *rep = set->replica[r];
-		rep->repsize = sizeof(struct pool_hdr);
+		rep->repsize = Mmap_align;
 		for (unsigned p = 0; p < rep->nparts; p++) {
 			rep->repsize +=
-				(rep->part[p].filesize & ~(Pagesize - 1)) -
-				sizeof(struct pool_hdr);
+				(rep->part[p].filesize & ~(Mmap_align - 1)) -
+				Mmap_align;
 		}
 
 		/*
@@ -757,8 +760,8 @@ util_poolset_single(const char *path, size_t filesize, int fd, int create)
 	rep->remote = NULL;
 	set->remote = 0;
 
-	/* round down to the nearest page boundary */
-	rep->repsize = rep->part[0].filesize & ~(Pagesize - 1);
+	/* round down to the nearest mapping alignment boundary */
+	rep->repsize = rep->part[0].filesize & ~(Mmap_align - 1);
 
 	set->poolsize = rep->repsize;
 
@@ -1338,9 +1341,22 @@ util_replica_create(struct pool_set *set, unsigned repidx, int flags,
 		return -1;
 	}
 
+	size_t mapsize = rep->part[0].filesize & ~(Mmap_align - 1);
+
+#ifndef _WIN32
 	/* map the first part and reserve space for remaining parts */
-	/* XXX investigate this idea of reserving space on Windows */
 	if (util_map_part(&rep->part[0], addr, rep->repsize, 0, flags) != 0) {
+#else
+	/*
+	 * XXX - On Windows, we can't do mapping larger than the file size,
+	 * and reserve the space for the entire pool set. We could do
+	 * a large anonymous mapping instead, and override it later with
+	 * the actual file mappings (using MAP_FIXED), but that is also
+	 * problematic due to the lacking support for memory overcommit.
+	 * So, we map the first part with its actual size.
+	 */
+	if (util_map_part(&rep->part[0], addr, mapsize, 0, flags) != 0) {
+#endif
 		LOG(2, "pool mapping failed - part #0");
 		return -1;
 	}
@@ -1374,22 +1390,22 @@ util_replica_create(struct pool_set *set, unsigned repidx, int flags,
 
 	set->zeroed &= rep->part[0].created;
 
-	size_t mapsize = rep->part[0].filesize & ~(Pagesize - 1);
 	addr = (char *)rep->part[0].addr + mapsize;
 
 	/*
-	 * map the remaining parts of the usable pool space (4K-aligned)
+	 * map the remaining parts of the usable pool space
+	 * (aligned to memory mapping granularity)
 	 */
 	for (unsigned p = 1; p < rep->nparts; p++) {
 		/* map data part */
-		if (util_map_part(&rep->part[p], addr, 0, POOL_HDR_SIZE,
+		if (util_map_part(&rep->part[p], addr, 0, Mmap_align,
 				flags | MAP_FIXED) != 0) {
 			LOG(2, "usable space mapping failed - part #%d", p);
 			goto err;
 		}
 
 		VALGRIND_REGISTER_PMEM_FILE(rep->part[p].fd,
-			rep->part[p].addr, rep->part[p].size, POOL_HDR_SIZE);
+			rep->part[p].addr, rep->part[p].size, Mmap_align);
 
 		mapsize += rep->part[p].size;
 		set->zeroed &= rep->part[p].created;
@@ -1645,8 +1661,22 @@ util_replica_open(struct pool_set *set, unsigned repidx, int flags)
 		return -1;
 	}
 
+	size_t mapsize = rep->part[0].filesize & ~(Mmap_align - 1);
+
+#ifndef _WIN32
 	/* map the first part and reserve space for remaining parts */
 	if (util_map_part(&rep->part[0], addr, rep->repsize, 0, flags) != 0) {
+#else
+	/*
+	 * XXX - On Windows, we can't do mapping larger than the file size,
+	 * and reserve the space for the entire pool set. We could do
+	 * a large anonymous mapping instead, and override it later with
+	 * the actual file mappings (using MAP_FIXED), but that is also
+	 * problematic due to the lacking support for memory overcommit.
+	 * So, we map the first part with its actual size.
+	 */
+	if (util_map_part(&rep->part[0], addr, mapsize, 0, flags) != 0) {
+#endif
 		LOG(2, "pool mapping failed - part #0");
 		return -1;
 	}
@@ -1663,23 +1693,22 @@ util_replica_open(struct pool_set *set, unsigned repidx, int flags)
 		}
 	}
 
-	size_t mapsize = rep->part[0].filesize & ~(Pagesize - 1);
 	addr = (char *)rep->part[0].addr + mapsize;
 
 	/*
 	 * map the remaining parts of the usable pool space
-	 * (4K-aligned)
+	 * (aligned to memory mapping granularity)
 	 */
 	for (unsigned p = 1; p < rep->nparts; p++) {
 		/* map data part */
-		if (util_map_part(&rep->part[p], addr, 0, POOL_HDR_SIZE,
+		if (util_map_part(&rep->part[p], addr, 0, Mmap_align,
 				flags | MAP_FIXED) != 0) {
 			LOG(2, "usable space mapping failed - part #%d", p);
 			goto err;
 		}
 
 		VALGRIND_REGISTER_PMEM_FILE(rep->part[p].fd,
-			rep->part[p].addr, rep->part[p].size, POOL_HDR_SIZE);
+			rep->part[p].addr, rep->part[p].size, Mmap_align);
 
 		mapsize += rep->part[p].size;
 		addr = (char *)addr + rep->part[p].size;

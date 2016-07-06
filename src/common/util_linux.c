@@ -51,9 +51,6 @@
 
 #define PROCMAXLEN 2048 /* maximum expected line length in /proc files */
 
-#define MEGABYTE ((uintptr_t)1 << 20)
-#define GIGABYTE ((uintptr_t)1 << 30)
-
 extern int Mmap_no_random;
 extern void *Mmap_hint;
 
@@ -161,18 +158,8 @@ util_map_hint(size_t len, size_t req_align)
 
 	char *addr;
 
-	/*
-	 * Choose the desired alignment based on the requested length.
-	 * Use 2MB/1GB page alignment only if the mapping length is at least
-	 * twice as big as the page size.
-	 */
-	size_t align = Pagesize;
-	if (req_align)
-		align = req_align;
-	else if (len >= 2 * GIGABYTE)
-		align = GIGABYTE;
-	else if (len >= 4 * MEGABYTE)
-		align = 2 * MEGABYTE;
+	/* choose the desired alignment based on the requested length */
+	size_t align = util_map_hint_align(len, req_align);
 
 	if (Mmap_no_random) {
 		LOG(4, "user-defined hint %p", (void *)Mmap_hint);

@@ -37,6 +37,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/mman.h>
+#include <sys/param.h>
 #include <errno.h>
 
 #include <Shlwapi.h>
@@ -46,14 +47,41 @@
 
 /*
  * util_map_hint -- determine hint address for mmap()
- *
- * XXX - no Windows implementation yet
  */
 char *
 util_map_hint(size_t len, size_t req_align)
 {
-	LOG(4, "hint not supported on windows");
+	LOG(3, "len %zu req_align %zu", len, req_align);
+
+#if 0
+	/*
+	 * XXX - for large mappings, we can end up with error
+	 * ERROR_COMMITMENT_LIMIT (0x5AF) - The paging file is too small
+	 * for this operation to complete.
+	 * Need to find an equivalent of Linux memory overcommit feature.
+	 */
+
+	/* choose the desired alignment based on the requested length */
+	size_t align = util_map_hint_align(len, req_align);
+
+	/*
+	 * Create dummy mapping to find an unused region of given size.
+	 * Request for increased size for later address alignment.
+	 */
+	char *addr = mmap(NULL, len + align, PROT_READ|PROT_WRITE,
+			MAP_PRIVATE|MAP_ANONYMOUS|MAP_NORESERVE, -1, 0);
+	if (addr != MAP_FAILED) {
+		LOG(4, "system choice %p", addr);
+		munmap(addr, len + align);
+		addr = (char *)roundup((uintptr_t)addr, align);
+	}
+
+	LOG(4, "hint %p", addr);
+	return addr;
+#else
+	LOG(4, "hint %p", NULL);
 	return NULL;
+#endif
 }
 
 /*
