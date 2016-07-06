@@ -83,8 +83,8 @@ create_holey_file 2048 $DIR\testfile2.4224
 # with Windows
 #
 
-# MINIMUM POOL SIZE = 16MB + 8KB
-$MIN_POOL_SIZE = "16+8"
+# MINIMUM POOL SIZE = 16MB + 64KB
+$MIN_POOL_SIZE = "16+64"
 create_holey_file $MIN_POOL_SIZE $DIR\testfile7.512
 create_holey_file $MIN_POOL_SIZE $DIR\testfile7.520
 create_holey_file $MIN_POOL_SIZE $DIR\testfile7.528

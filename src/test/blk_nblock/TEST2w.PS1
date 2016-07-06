@@ -54,18 +54,17 @@ require_fs_type any
 
 setup
 
-create_poolset $DIR\testset1 1024:$DIR\testfile11:x
-# XXX need to figure out issues with mapping poolsets with windows
-echo "XXX" > out2w.log
+# XXX - implement support for providing size with K/M/G units
 
-#create_poolset $DIR\testset2 1024:$DIR\testfile21:x 1024:$DIR\testfile22:x
+create_poolset $DIR\testset1 67108864:$DIR\testfile11:x
+create_poolset $DIR\testset2 67108864:$DIR\testfile21:x 67108864:$DIR\testfile22:x
 
-#expect_normal_exit ..\..\x64\debug\blk_nblock$Env:EXESUFFIX `
-#    512:$DIR\testset1 `
-#    512:$DIR\testset2
+expect_normal_exit ..\..\x64\debug\blk_nblock$Env:EXESUFFIX `
+    512:$DIR\testset1 `
+    512:$DIR\testset2
 
-#check_pools $DIR\testset1 `
-#	$DIR\testset2
+check_pools $DIR\testset1 `
+	$DIR\testset2
 
 # check will print the appropriate pass/fail message
 check

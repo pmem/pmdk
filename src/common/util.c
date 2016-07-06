@@ -46,6 +46,9 @@
 /* library-wide page size */
 unsigned long long Pagesize;
 
+/* allocation/mmap granularity */
+unsigned long long Mmap_align;
+
 /*
  * our versions of malloc & friends start off pointing to the libc versions
  */
@@ -211,8 +214,19 @@ util_parse_size(const char *str, size_t *sizep)
 void
 util_init(void)
 {
+	/* XXX - replace sysconf() with util_get_sys_xxx() */
 	if (Pagesize == 0)
 		Pagesize = (unsigned long) sysconf(_SC_PAGESIZE);
+
+#ifndef _WIN32
+	Mmap_align = Pagesize;
+#else
+	if (Mmap_align == 0) {
+		SYSTEM_INFO si;
+		GetSystemInfo(&si);
+		Mmap_align = si.dwAllocationGranularity;
+	}
+#endif
 
 #if defined(USE_VG_PMEMCHECK) || defined(USE_VG_HELGRIND) ||\
 	defined(USE_VG_MEMCHECK)

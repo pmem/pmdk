@@ -67,7 +67,7 @@ void *util_map_tmpfile(const char *dir, size_t size, size_t req_align);
 #define RANGE_RO(addr, len)
 #define RANGE_RW(addr, len)
 
-#endif	/* DEBUG */
+#endif /* DEBUG */
 
 void util_mmap_init(void);
 
@@ -77,5 +77,27 @@ int util_range_none(void *addr, size_t len);
 
 char *util_map_hint_unused(void *addr, size_t len, size_t align);
 char *util_map_hint(size_t len, size_t req_align);
+
+#define MEGABYTE ((uintptr_t)1 << 20)
+#define GIGABYTE ((uintptr_t)1 << 30)
+
+/*
+ * util_map_hint_align -- choose the desired mapping alignment
+ *
+ * Use 2MB/1GB page alignment only if the mapping length is at least
+ * twice as big as the page size.
+ */
+static inline size_t
+util_map_hint_align(size_t len, size_t req_align)
+{
+	size_t align = Mmap_align;
+	if (req_align)
+		align = req_align;
+	else if (len >= 2 * GIGABYTE)
+		align = GIGABYTE;
+	else if (len >= 4 * MEGABYTE)
+		align = 2 * MEGABYTE;
+	return align;
+}
 
 #endif

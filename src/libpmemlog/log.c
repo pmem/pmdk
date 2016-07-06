@@ -190,6 +190,7 @@ pmemlog_create(const char *path, size_t poolsize, mode_t mode)
 
 	plp->addr = plp;
 	plp->size = rep->repsize;
+	plp->set = set;
 
 	if (set->nreplicas > 1) {
 		errno = ENOTSUP;
@@ -211,10 +212,6 @@ pmemlog_create(const char *path, size_t poolsize, mode_t mode)
 
 	if (util_poolset_chmod(set, mode))
 		goto err;
-
-	util_poolset_fdclose(set);
-
-	util_poolset_free(set);
 
 	LOG(3, "plp %p", plp);
 	return plp;
@@ -259,6 +256,7 @@ pmemlog_open_common(const char *path, int cow)
 
 	plp->addr = plp;
 	plp->size = rep->repsize;
+	plp->set = set;
 
 	if (set->nreplicas > 1) {
 		errno = ENOTSUP;
@@ -277,10 +275,6 @@ pmemlog_open_common(const char *path, int cow)
 		ERR("pool initialization failed");
 		goto err;
 	}
-
-	util_poolset_fdclose(set);
-
-	util_poolset_free(set);
 
 	LOG(3, "plp %p", plp);
 	return plp;
@@ -316,8 +310,7 @@ pmemlog_close(PMEMlogpool *plp)
 		ERR("!pthread_rwlock_destroy");
 	Free((void *)plp->rwlockp);
 
-	VALGRIND_REMOVE_PMEM_MAPPING(plp->addr, plp->size);
-	util_unmap(plp->addr, plp->size);
+	util_poolset_close(plp->set, 0);
 }
 
 /*

@@ -3,9 +3,9 @@ blk_nblock$(nW)TEST1: START: blk_nblock
 $(nW)testfile1.2096896: block size 2096896 usable blocks: 256
 $(nW)testfile1.2096897: pmemblk_create: Invalid argument
 $(nW)testfile2.0: pmemblk_create: Invalid argument
-$(nW)testfile2.1: block size 1 usable blocks: 4161462
-$(nW)testfile2.17: block size 17 usable blocks: 4161462
-$(nW)testfile2.511: block size 511 usable blocks: 4161462
+$(nW)testfile2.1: block size 1 usable blocks: $(N)
+$(nW)testfile2.17: block size 17 usable blocks: $(N)
+$(nW)testfile2.511: block size 511 usable blocks: $(N)
 $(nW)testfile2.1048576: block size 1048576 usable blocks: 1791
 $(nW)testfile2.2097152: block size 2097152 usable blocks: 767
 $(nW)testfile2.4194304: pmemblk_create: Invalid argument

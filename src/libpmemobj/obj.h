@@ -153,6 +153,7 @@ struct pmemobjpool {
 	struct lane_descriptor lanes_desc;
 	uint64_t uuid_lo;
 
+	struct pool_set *set;		/* pool set info */
 	struct pmemobjpool *replica;	/* next replica */
 	struct redo_ctx *redo;
 
@@ -182,7 +183,9 @@ struct pmemobjpool {
 
 	persist_remote_fn persist_remote; /* remote persist function */
 
-	char unused2[1750];
+	/* padding to align size of this structure to page boundary */
+	/* sizeof(unused2) == 8192 - offsetof(struct pmemobjpool, unused2) */
+	char unused2[1742];
 };
 
 /*

@@ -63,16 +63,7 @@
     <None Include="out14.log.match">
       <Filter>Match Files</Filter>
     </None>
-    <None Include="out15.log.match">
-      <Filter>Match Files</Filter>
-    </None>
-    <None Include="out15w.log.match">
-      <Filter>Match Files</Filter>
-    </None>
     <None Include="out16.log.match">
-      <Filter>Match Files</Filter>
-    </None>
-    <None Include="out16w.log.match">
       <Filter>Match Files</Filter>
     </None>
     <None Include="out20.log.match">
@@ -103,9 +94,6 @@
       <Filter>Match Files</Filter>
     </None>
     <None Include="out29.log.match">
-      <Filter>Match Files</Filter>
-    </None>
-    <None Include="out29w.log.match">
       <Filter>Match Files</Filter>
     </None>
     <None Include="out30.log.match">
@@ -160,12 +148,6 @@
     <None Include="TEST14.PS1">
       <Filter>Test scripts</Filter>
     </None>
-    <None Include="TEST15w.PS1">
-      <Filter>Test scripts</Filter>
-    </None>
-    <None Include="TEST16w.PS1">
-      <Filter>Test scripts</Filter>
-    </None>
     <None Include="TEST20.PS1">
       <Filter>Test scripts</Filter>
     </None>
@@ -193,11 +175,20 @@
     <None Include="TEST28.PS1">
       <Filter>Test scripts</Filter>
     </None>
-    <None Include="TEST29w.PS1">
-      <Filter>Test scripts</Filter>
-    </None>
     <None Include="TEST30w.PS1">
       <Filter>Test scripts</Filter>
+    </None>
+    <None Include="TEST16.PS1">
+      <Filter>Test scripts</Filter>
+    </None>
+    <None Include="TEST29.PS1">
+      <Filter>Test scripts</Filter>
+    </None>
+    <None Include="TEST15w.PS1">
+      <Filter>Test scripts</Filter>
+    </None>
+    <None Include="out15w.log.match">
+      <Filter>Match Files</Filter>
     </None>
   </ItemGroup>
 </Project>

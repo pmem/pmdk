@@ -280,7 +280,7 @@ static const char *parser_errstr[PARSER_MAX_CODE] = {
 };
 
 /*
- * util_map_part -- map a header of a pool set
+ * util_map_hdr -- map a header of a pool set
  */
 int
 util_map_hdr(struct pool_set_part *part, int flags)
@@ -326,7 +326,6 @@ util_unmap_hdr(struct pool_set_part *part)
 	return 0;
 }
 
-
 /*
  * util_map_part -- map a part of a pool set
  */
@@ -337,13 +336,13 @@ util_map_part(struct pool_set_part *part, void *addr, size_t size,
 	LOG(3, "part %p addr %p size %zu offset %zu flags %d",
 		part, addr, size, offset, flags);
 
-	ASSERTeq((uintptr_t)addr % Pagesize, 0);
-	ASSERTeq(offset % Pagesize, 0);
-	ASSERTeq(size % Pagesize, 0);
+	ASSERTeq((uintptr_t)addr % Mmap_align, 0);
+	ASSERTeq(offset % Mmap_align, 0);
+	ASSERTeq(size % Mmap_align, 0);
 	ASSERT(((off_t)offset) >= 0);
 
 	if (!size)
-		size = (part->filesize & ~(Pagesize - 1)) - offset;
+		size = (part->filesize & ~(Mmap_align - 1)) - offset;
 
 	void *addrp = mmap(addr, size,
 		PROT_READ|PROT_WRITE, flags, part->fd, (off_t)offset);
@@ -430,10 +429,10 @@ util_poolset_close(struct pool_set *set, int del)
 	int oerrno = errno;
 
 	for (unsigned r = 0; r < set->nreplicas; r++) {
+		util_replica_close(set, r);
+
 		struct pool_replica *rep = set->replica[r];
 		if (rep->remote == NULL) {
-			/* it's enough to unmap part[0] only */
-			util_unmap_part(&rep->part[0]);
 			for (unsigned p = 0; p < rep->nparts; p++) {
 				if (rep->part[p].fd != -1)
 					(void) close(rep->part[p].fd);
@@ -443,12 +442,6 @@ util_poolset_close(struct pool_set *set, int del)
 				}
 			}
 		} else {
-			LOG(4, "freeing volatile header of remote "
-				"replica #%u", r);
-			Free(rep->part[0].addr);
-			rep->part[0].addr = NULL;
-			rep->part[0].size = 0;
-
 			LOG(4, "closing remote replica #%u", r);
 			Rpmem_close(rep->remote->rpp);
 			rep->remote->rpp = NULL;
@@ -515,8 +508,10 @@ util_poolset_fdclose(struct pool_set *set)
 		for (unsigned p = 0; p < rep->nparts; p++) {
 			struct pool_set_part *part = &rep->part[p];
 
-			if (part->fd != -1)
+			if (part->fd != -1) {
 				close(part->fd);
+				part->fd = -1;
+			}
 		}
 	}
 }
@@ -682,11 +677,11 @@ util_poolset_set_size(struct pool_set *set)
 	set->poolsize = SIZE_MAX;
 	for (unsigned r = 0; r < set->nreplicas; r++) {
 		struct pool_replica *rep = set->replica[r];
-		rep->repsize = sizeof(struct pool_hdr);
+		rep->repsize = Mmap_align;
 		for (unsigned p = 0; p < rep->nparts; p++) {
 			rep->repsize +=
-				(rep->part[p].filesize & ~(Pagesize - 1)) -
-				sizeof(struct pool_hdr);
+				(rep->part[p].filesize & ~(Mmap_align - 1)) -
+				Mmap_align;
 		}
 
 		/*
@@ -952,8 +947,8 @@ util_poolset_single(const char *path, size_t filesize, int create)
 	rep->remote = NULL;
 	set->remote = 0;
 
-	/* round down to the nearest page boundary */
-	rep->repsize = rep->part[0].filesize & ~(Pagesize - 1);
+	/* round down to the nearest mapping alignment boundary */
+	rep->repsize = rep->part[0].filesize & ~(Mmap_align - 1);
 
 	set->poolsize = rep->repsize;
 
@@ -1597,9 +1592,14 @@ util_replica_create_local(struct pool_set *set, unsigned repidx, int flags,
 		return -1;
 	}
 
+	size_t mapsize = rep->part[0].filesize & ~(Mmap_align - 1);
+
 	/* map the first part and reserve space for remaining parts */
-	/* XXX investigate this idea of reserving space on Windows */
+#ifndef _WIN32
 	if (util_map_part(&rep->part[0], addr, rep->repsize, 0, flags) != 0) {
+#else
+	if (util_map_part(&rep->part[0], addr, mapsize, 0, flags) != 0) {
+#endif
 		LOG(2, "pool mapping failed - replica #%u part #0", repidx);
 		return -1;
 	}
@@ -1633,22 +1633,22 @@ util_replica_create_local(struct pool_set *set, unsigned repidx, int flags,
 
 	set->zeroed &= rep->part[0].created;
 
-	size_t mapsize = rep->part[0].filesize & ~(Pagesize - 1);
 	addr = (char *)rep->part[0].addr + mapsize;
 
 	/*
-	 * map the remaining parts of the usable pool space (4K-aligned)
+	 * map the remaining parts of the usable pool space
+	 * (aligned to memory mapping granularity)
 	 */
 	for (unsigned p = 1; p < rep->nparts; p++) {
 		/* map data part */
-		if (util_map_part(&rep->part[p], addr, 0, POOL_HDR_SIZE,
+		if (util_map_part(&rep->part[p], addr, 0, Mmap_align,
 				flags | MAP_FIXED) != 0) {
 			LOG(2, "usable space mapping failed - part #%d", p);
 			goto err;
 		}
 
 		VALGRIND_REGISTER_PMEM_FILE(rep->part[p].fd,
-			rep->part[p].addr, rep->part[p].size, POOL_HDR_SIZE);
+			rep->part[p].addr, rep->part[p].size, Mmap_align);
 
 		mapsize += rep->part[p].size;
 		set->zeroed &= rep->part[p].created;
@@ -1971,8 +1971,14 @@ util_replica_open_local(struct pool_set *set, unsigned repidx, int flags)
 		return -1;
 	}
 
+	size_t mapsize = rep->part[0].filesize & ~(Mmap_align - 1);
+
 	/* map the first part and reserve space for remaining parts */
+#ifndef _WIN32
 	if (util_map_part(&rep->part[0], addr, rep->repsize, 0, flags) != 0) {
+#else
+	if (util_map_part(&rep->part[0], addr, mapsize, 0, flags) != 0) {
+#endif
 		LOG(2, "pool mapping failed - part #0");
 		return -1;
 	}
@@ -1989,23 +1995,22 @@ util_replica_open_local(struct pool_set *set, unsigned repidx, int flags)
 		}
 	}
 
-	size_t mapsize = rep->part[0].filesize & ~(Pagesize - 1);
 	addr = (char *)rep->part[0].addr + mapsize;
 
 	/*
 	 * map the remaining parts of the usable pool space
-	 * (4K-aligned)
+	 * (aligned to memory mapping granularity)
 	 */
 	for (unsigned p = 1; p < rep->nparts; p++) {
 		/* map data part */
-		if (util_map_part(&rep->part[p], addr, 0, POOL_HDR_SIZE,
+		if (util_map_part(&rep->part[p], addr, 0, Mmap_align,
 				flags | MAP_FIXED) != 0) {
 			LOG(2, "usable space mapping failed - part #%d", p);
 			goto err;
 		}
 
 		VALGRIND_REGISTER_PMEM_FILE(rep->part[p].fd,
-			rep->part[p].addr, rep->part[p].size, POOL_HDR_SIZE);
+			rep->part[p].addr, rep->part[p].size, Mmap_align);
 
 		mapsize += rep->part[p].size;
 		addr = (char *)addr + rep->part[p].size;
