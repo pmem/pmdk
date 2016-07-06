@@ -434,7 +434,7 @@ munmap(void *addr, size_t len)
 	PFILE_MAPPING_TRACKER mt;
 	mt = (PFILE_MAPPING_TRACKER)LIST_FIRST(&FileMappingListHead);
 	while (len > 0 && mt != NULL) {
-		if (begin >= mt->EndAddress || end < mt->BaseAddress) {
+		if (begin >= mt->EndAddress || end <= mt->BaseAddress) {
 			/* range not in the mapping */
 			mt = (PFILE_MAPPING_TRACKER)LIST_NEXT(mt, ListEntry);
 			continue;
@@ -511,7 +511,7 @@ msync(void *addr, size_t len, int flags)
 	PFILE_MAPPING_TRACKER mt;
 	mt = (PFILE_MAPPING_TRACKER)LIST_FIRST(&FileMappingListHead);
 	while (len > 0 && mt != NULL) {
-		if (begin >= mt->EndAddress || end < mt->BaseAddress) {
+		if (begin >= mt->EndAddress || end <= mt->BaseAddress) {
 			/* range not in the mapping */
 			mt = (PFILE_MAPPING_TRACKER)LIST_NEXT(mt, ListEntry);
 			continue;
@@ -593,7 +593,7 @@ mprotect(void *addr, size_t len, int prot)
 	PFILE_MAPPING_TRACKER mt;
 	mt = (PFILE_MAPPING_TRACKER)LIST_FIRST(&FileMappingListHead);
 	while (len > 0 && mt != NULL) {
-		if (begin >= mt->EndAddress || end < mt->BaseAddress) {
+		if (begin >= mt->EndAddress || end <= mt->BaseAddress) {
 			/* range not in the mapping */
 			mt = (PFILE_MAPPING_TRACKER)LIST_NEXT(mt, ListEntry);
 			continue;
