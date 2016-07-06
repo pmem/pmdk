@@ -107,15 +107,20 @@ pthread_mutexattr_settype(pthread_mutexattr_t *attr, int type)
 			return EINVAL;
 	}
 }
-
+/* number of seconds between 1970-01-01T00:00:00Z and 1601-01-01T00:00:00Z */
+#define DELTA_WIN2UNIX (11644473600000000ull)
 #define TIMED_LOCK(action, ts) {\
 	if ((action) == TRUE)\
 		return 0;\
-	long long et = (ts)->tv_sec * 1000 + (ts)->tv_nsec / 1000000;\
+	unsigned long long et = (ts)->tv_sec * 1000000 + (ts)->tv_nsec / 1000;\
 	while (1) {\
-		struct __timeb64 t;\
-		_ftime64(&t);\
-		if (t.time * 1000 + t.millitm >= et)\
+		FILETIME _t;\
+		GetSystemTimeAsFileTime(&_t);\
+		ULARGE_INTEGER _UI = {\
+			.HighPart = _t.dwHighDateTime,\
+			.LowPart = _t.dwLowDateTime,\
+		};\
+		if (_UI.QuadPart / 10 - DELTA_WIN2UNIX >= et)\
 			return ETIMEDOUT;\
 		if ((action) == TRUE)\
 			return 0;\
