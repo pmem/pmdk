@@ -28,19 +28,10 @@
     <None Include="err2.log.match">
       <Filter>Match Files</Filter>
     </None>
-    <None Include="out0.log.match">
-      <Filter>Match Files</Filter>
-    </None>
     <None Include="out0w.log.match">
       <Filter>Match Files</Filter>
     </None>
     <None Include="out1.log.match">
-      <Filter>Match Files</Filter>
-    </None>
-    <None Include="out2.log.match">
-      <Filter>Match Files</Filter>
-    </None>
-    <None Include="out2w.log.match">
       <Filter>Match Files</Filter>
     </None>
     <None Include="README" />
@@ -50,7 +41,10 @@
     <None Include="TEST1.ps1">
       <Filter>Test scripts</Filter>
     </None>
-    <None Include="TEST2w.ps1">
+    <None Include="out2w.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="TEST2w.PS1">
       <Filter>Test scripts</Filter>
     </None>
   </ItemGroup>

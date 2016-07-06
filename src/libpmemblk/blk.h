@@ -69,6 +69,8 @@ struct pmemblk {
 	unsigned next_lane;		/* used to rotate through lanes */
 	pthread_mutex_t *locks;		/* one per lane */
 
+	struct pool_set *set;		/* pool set info */
+
 #ifdef DEBUG
 	/* held during read/write mprotected sections */
 	pthread_mutex_t write_lock;

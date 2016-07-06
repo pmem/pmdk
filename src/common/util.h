@@ -35,6 +35,7 @@
  */
 
 extern unsigned long long Pagesize;
+extern unsigned long long Mmap_align;
 
 extern int Mmap_no_random;
 extern void *Mmap_hint;
