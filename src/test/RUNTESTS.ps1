@@ -54,7 +54,7 @@ Param(
     [alias("d")]
     $dreceivetype = "auto",
     [alias("o")]
-    $time = "10s",
+    $time = "60s",
     [alias("s")]
     $testfile = "all",
     [alias("c")]
@@ -117,7 +117,7 @@ function usage {
         -o timeout  set timeout for test execution
                 timeout: floating point number with an optional suffix: 's' for seconds
                 (the default), 'm' for minutes, 'h' for hours or 'd' for days.
-                Default value is 3 minutes.
+                Default value is 60 seconds.
         -s test-file    run only specified test file
                 test-file: all (default), TEST0, TEST1, ...
         -m memcheck run tests with memcheck
