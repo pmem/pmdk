@@ -203,6 +203,8 @@ test_mock_pool_allocs()
 	heap_init(mock_pop);
 	heap_boot(mock_pop);
 
+	/* initialize runtime lanes structure */
+	mock_pop->lanes_desc.runtime_nlanes = mock_pop->nlanes;
 	lane_boot(mock_pop);
 
 	UT_ASSERTne(mock_pop->heap, NULL);

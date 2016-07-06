@@ -690,7 +690,7 @@ redo_log_check_offset(void *ctx, uint64_t offset)
  * pmemobj_runtime_init -- (internal) initialize runtime part of the pool header
  */
 static int
-pmemobj_runtime_init(PMEMobjpool *pop, int rdonly, int boot)
+pmemobj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 {
 	LOG(3, "pop %p rdonly %d boot %d", pop, rdonly, boot);
 
@@ -727,6 +727,8 @@ pmemobj_runtime_init(PMEMobjpool *pop, int rdonly, int boot)
 			REDO_NUM_ENTRIES);
 	if (!pop->redo)
 		return -1;
+
+	pop->lanes_desc.runtime_nlanes = nlanes;
 
 	if (boot) {
 		if ((errno = pmemobj_boot(pop)) != 0)
@@ -830,8 +832,16 @@ pmemobj_create(const char *path, const char *layout, size_t poolsize,
 
 	VALGRIND_DO_CREATE_MEMPOOL(pop, 0, 0);
 
+	/*
+	 * At this point number of lanes available at runtime must be calculated
+	 * e.g. lowest value from all reported by remote replicas hosts. In
+	 * single host mode runtime number of lanes is equal to total number of
+	 * lanes available in the pool.
+	 */
+	unsigned runtime_nlanes = (unsigned)pop->nlanes;
+
 	/* initialize runtime parts - lanes, obj stores, ... */
-	if (pmemobj_runtime_init(pop, 0, 1 /* boot*/) != 0) {
+	if (pmemobj_runtime_init(pop, 0, 1 /* boot */, runtime_nlanes) != 0) {
 		ERR("pool initialization failed");
 		goto err;
 	}
@@ -1000,8 +1010,14 @@ pmemobj_open_common(const char *path, const char *layout, int cow, int boot)
 
 	VALGRIND_DO_CREATE_MEMPOOL(pop, 0, 0);
 
+	/*
+	 * At this point number of lanes available at runtime must be calculated
+	 * e.g. ask remote replicas hosts about theirs capabilities.
+	 */
+	unsigned runtime_nlanes = (unsigned)pop->nlanes;
+
 	/* initialize runtime parts - lanes, obj stores, ... */
-	if (pmemobj_runtime_init(pop, 0, boot) != 0) {
+	if (pmemobj_runtime_init(pop, 0, boot, runtime_nlanes) != 0) {
 		ERR("pool initialization failed");
 		goto err;
 	}

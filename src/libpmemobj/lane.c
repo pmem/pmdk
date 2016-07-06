@@ -419,9 +419,10 @@ lane_hold(PMEMobjpool *pop, struct lane_section **section,
 	} /* handles wraparound */
 
 	uint64_t *llocks = pop->lanes_desc.lane_locks;
-	/* grab next free lane */
+	/* grab next free lane from lanes available at runtime */
 	if (!lane->nest_count++)
-		get_lane(llocks, &lane->lane_idx, pop->nlanes);
+		get_lane(llocks, &lane->lane_idx,
+			pop->lanes_desc.runtime_nlanes);
 
 	*section = &pop->lanes_desc.lane[lane->lane_idx].sections[type];
 }
