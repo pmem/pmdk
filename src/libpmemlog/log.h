@@ -63,6 +63,8 @@ struct pmemlog {
 	int is_pmem;			/* true if pool is PMEM */
 	int rdonly;			/* true if pool is opened read-only */
 	pthread_rwlock_t *rwlockp;	/* pointer to RW lock */
+
+	struct pool_set *set;		/* pool set info */
 };
 
 /* data area starts at this alignment after the struct pmemlog above */

@@ -35,6 +35,7 @@
  */
 
 extern unsigned long long Pagesize;
+extern unsigned long long Mmap_align;
 
 extern int Mmap_no_random;
 extern void *Mmap_hint;
@@ -170,7 +171,7 @@ int util_is_absolute_path(const char *path);
 #define RANGE_RO(addr, len)
 #define RANGE_RW(addr, len)
 
-#endif	/* DEBUG */
+#endif /* DEBUG */
 
 /*
  * pool sets & replicas
@@ -346,6 +347,28 @@ util_clrbit(uint8_t *b, uint32_t i)
 #define unlikely(x) (!!(x))
 #endif
 #endif
+
+#define MEGABYTE ((uintptr_t)1 << 20)
+#define GIGABYTE ((uintptr_t)1 << 30)
+
+/*
+ * util_map_hint_align -- choose the desired mapping alignment
+ *
+ * Use 2MB/1GB page alignment only if the mapping length is at least
+ * twice as big as the page size.
+ */
+static inline size_t
+util_map_hint_align(size_t len, size_t req_align)
+{
+	size_t align = Mmap_align;
+	if (req_align)
+		align = req_align;
+	else if (len >= 2 * GIGABYTE)
+		align = GIGABYTE;
+	else if (len >= 4 * MEGABYTE)
+		align = 2 * MEGABYTE;
+	return align;
+}
 
 /*
  * set of macros for determining the alignment descriptor

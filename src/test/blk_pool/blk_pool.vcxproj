@@ -25,10 +25,8 @@
     <None Include="out12.log.match" />
     <None Include="out13.log.match" />
     <None Include="out14.log.match" />
-    <None Include="out15.log.match" />
     <None Include="out15w.log.match" />
     <None Include="out16.log.match" />
-    <None Include="out16w.log.match" />
     <None Include="out2.log.match" />
     <None Include="out20.log.match" />
     <None Include="out21.log.match" />
@@ -40,7 +38,6 @@
     <None Include="out27.log.match" />
     <None Include="out28.log.match" />
     <None Include="out29.log.match" />
-    <None Include="out29w.log.match" />
     <None Include="out3.log.match" />
     <None Include="out30.log.match" />
     <None Include="out30w.log.match" />
@@ -59,7 +56,7 @@
     <None Include="TEST13.PS1" />
     <None Include="TEST14.PS1" />
     <None Include="TEST15w.PS1" />
-    <None Include="TEST16w.PS1" />
+    <None Include="TEST16.PS1" />
     <None Include="TEST2.PS1" />
     <None Include="TEST20.PS1" />
     <None Include="TEST21.PS1" />
@@ -70,7 +67,7 @@
     <None Include="TEST26.PS1" />
     <None Include="TEST27.PS1" />
     <None Include="TEST28.PS1" />
-    <None Include="TEST29w.PS1" />
+    <None Include="TEST29.PS1" />
     <None Include="TEST3.PS1" />
     <None Include="TEST30w.PS1" />
     <None Include="TEST4.PS1" />

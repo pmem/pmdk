@@ -40,8 +40,8 @@ Param(
     $DIR = ""
     )
 
-$Env:UNITTEST_NAME = "blk_pool\TEST16w"
-$Env:UNITTEST_NUM = "16w"
+$Env:UNITTEST_NAME = "blk_pool\TEST16"
+$Env:UNITTEST_NUM = "16"
 # XXX:  bash has a few calls to tools that we don't have on
 # windows (yet) that set PMEM_IS_PMEM and NON_PMEM_IS_PMEM based
 # on their output
@@ -57,17 +57,16 @@ setup
 # TEST16 non-existing file, poolsize >= min required size, bsize > min bsize
 #        (pool set with replica section)
 #
-# XXX need to figure out issues with mapping poolsets with windows
 
-echo "XXX" > out16w.log
+# XXX - implement support for providing size with K/M/G units
 
-#create_poolset $DIR\testset 20M:$DIR\testfile1:x R 20M:$DIR\testfile2:x
+create_poolset $DIR\testset 20971520:$DIR\testfile1:x R 20971520:$DIR\testfile2:x
 
-#expect_normal_exit ..\..\x64\debug\blk_pool$Env:EXESUFFIX `
-#    c $DIR\testfile 100 0 0640
+expect_normal_exit ..\..\x64\debug\blk_pool$Env:EXESUFFIX `
+    c $DIR\testset 100 0 0600
 
-#check_files $DIR\testset
-#check_no_files $DIR\testfile1 $DIR\testfile2
+check_files $DIR\testset
+check_no_files $DIR\testfile1 $DIR\testfile2
 
 # check will print the appropriate pass/fail message
 check

@@ -56,6 +56,9 @@
 /* library-wide page size */
 unsigned long long Pagesize;
 
+/* allocation/mmap granularity */
+unsigned long long Mmap_align;
+
 int Mmap_no_random;
 void *Mmap_hint;
 
@@ -94,8 +97,20 @@ void
 util_init(void)
 {
 	LOG(3, NULL);
+
+	/* XXX - replace sysconf() with util_get_sys_xxx() */
 	if (Pagesize == 0)
 		Pagesize = (unsigned long) sysconf(_SC_PAGESIZE);
+
+#ifndef _WIN32
+	Mmap_align = Pagesize;
+#else
+	if (Mmap_align == 0) {
+		SYSTEM_INFO si;
+		GetSystemInfo(&si);
+		Mmap_align = si.dwAllocationGranularity;
+	}
+#endif
 
 	/*
 	 * For testing, allow overriding the default mmap() hint address.
