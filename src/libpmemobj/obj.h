@@ -169,6 +169,7 @@ struct pmemobjpool {
 
 	PMEMmutex rootlock;	/* root object lock */
 	int is_master_replica;
+	int has_remote_replicas;
 
 	/* remote replica section */
 	void *remote;	/* RPMEMpool opaque handle if it is a remote replica */
