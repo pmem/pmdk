@@ -1210,18 +1210,14 @@ constructor_alloc_bytype(PMEMobjpool *pop, void *ptr,
 	pobj->type_num = carg->user_type;
 	pobj->size = 0;
 	memset(pobj->unused, 0, sizeof(pobj->unused));
-	pop->flush(pop, pobj, sizeof(*pobj));
-
-	VALGRIND_DO_MAKE_MEM_NOACCESS(pop, pobj->unused, sizeof(pobj->unused));
 
 	if (carg->zero_init)
 		pop->memset_persist(pop, ptr, 0, usable_size);
-	else
-		pop->drain(pop);
 
 	int ret = 0;
 	if (carg->constructor)
 		ret = carg->constructor(pop, ptr, carg->arg);
+
 	return ret;
 }
 
@@ -1344,13 +1340,6 @@ constructor_realloc(PMEMobjpool *pop, void *ptr, size_t usable_size, void *arg)
 		pobj->undo_entry_offset = 0;
 		pobj->type_num = carg->user_type;
 		pobj->size = 0;
-		VALGRIND_DO_MAKE_MEM_NOACCESS(pop, pobj->unused,
-			sizeof(pobj->unused));
-
-		pop->flush(pop, &pobj->undo_entry_offset,
-			sizeof(pobj->undo_entry_offset) +
-			sizeof(pobj->type_num) +
-			sizeof(pobj->size));
 	}
 
 	if (!carg->zero_init)
@@ -1446,7 +1435,6 @@ constructor_zrealloc_root(PMEMobjpool *pop, void *ptr,
 	constructor_realloc(pop, ptr, usable_size, arg);
 	if (ptr != carg->ptr) {
 		pobj->size = carg->new_size | OBJ_INTERNAL_OBJECT_MASK;
-		pop->flush(pop, &pobj->size, sizeof(pobj->size));
 	}
 
 	int ret = 0;
