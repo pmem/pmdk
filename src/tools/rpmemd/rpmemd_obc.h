@@ -33,49 +33,33 @@
 /*
  * rpmemd_obc.h -- rpmemd out-of-band connection declarations
  */
-
+#include <stdint.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 
 struct rpmemd_obc;
-struct rpmemd_obc_client;
 
-struct rpmemd_obc_client_requests {
-	int (*create)(struct rpmemd_obc_client *client, void *arg,
+struct rpmemd_obc_requests {
+	int (*create)(struct rpmemd_obc *obc, void *arg,
 			const struct rpmem_req_attr *req,
 			const struct rpmem_pool_attr *pool_attr);
-	int (*open)(struct rpmemd_obc_client *client, void *arg,
+	int (*open)(struct rpmemd_obc *obc, void *arg,
 			const struct rpmem_req_attr *req);
-	int (*close)(struct rpmemd_obc_client *client, void *arg);
-	int (*remove)(struct rpmemd_obc_client *client, void *arg,
-			const char *pool_desc);
+	int (*close)(struct rpmemd_obc *obc, void *arg);
 };
 
-struct rpmemd_obc *rpmemd_obc_init(void);
-void rpmemd_obc_fini(struct rpmemd_obc *rpdc);
+struct rpmemd_obc *rpmemd_obc_init(int fd_in, int fd_out);
+void rpmemd_obc_fini(struct rpmemd_obc *obc);
 
-int rpmemd_obc_listen(struct rpmemd_obc *rpdc, int backlog,
-		const char *node, const char *service);
-int rpmemd_obc_close(struct rpmemd_obc *rpdc);
+int rpmemd_obc_status(struct rpmemd_obc *obc, uint32_t status);
 
-struct rpmemd_obc_client *rpmemd_obc_accept(struct rpmemd_obc *rpdc);
-void rpmemd_obc_client_fini(struct rpmemd_obc_client *client);
+int rpmemd_obc_process(struct rpmemd_obc *obc,
+		struct rpmemd_obc_requests *req_cb, void *arg);
 
-int rpmemd_obc_client_close(struct rpmemd_obc_client *client);
-int rpmemd_obc_client_process(struct rpmemd_obc_client *client,
-		struct rpmemd_obc_client_requests *req_cb, void *arg);
-int rpmemd_obc_client_is_connected(struct rpmemd_obc_client *client);
-int rpmemd_obc_client_getname(struct rpmemd_obc_client *client,
-		struct sockaddr *addr, socklen_t *addrlen);
-int rpmemd_obc_client_getpeer(struct rpmemd_obc_client *client,
-		struct sockaddr *addr, socklen_t *addrlen);
-
-int rpmemd_obc_client_create_resp(struct rpmemd_obc_client *client,
+int rpmemd_obc_create_resp(struct rpmemd_obc *obc,
 		int status, const struct rpmem_resp_attr *res);
-int rpmemd_obc_client_open_resp(struct rpmemd_obc_client *client,
+int rpmemd_obc_open_resp(struct rpmemd_obc *obc,
 		int status, const struct rpmem_resp_attr *res,
 		const struct rpmem_pool_attr *pool_attr);
-int rpmemd_obc_client_close_resp(struct rpmemd_obc_client *client,
-		int status);
-int rpmemd_obc_client_remove_resp(struct rpmemd_obc_client *client,
+int rpmemd_obc_close_resp(struct rpmemd_obc *obc,
 		int status);

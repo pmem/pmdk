@@ -56,7 +56,6 @@ librpmem \- remote persistent memory library
 .BI "		void *" pool_addr ", size_t " pool_size ", unsigned *" nlanes ",
 .BI "		struct rpmem_pool_attr *" create_attr ");
 .BI
-.BI "int rpmem_remove(const char *" target ", const char *" pool_set_name );
 .BI "int rpmem_close(RPMEMpool *" rpp );
 .BI
 .BI "int rpmem_persist(RPMEMpool *" rpp ", size_t " offset ", size_t " length ", unsigned " lane );

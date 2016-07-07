@@ -46,8 +46,6 @@ void rpmem_obc_fini(struct rpmem_obc *rpc);
 
 int rpmem_obc_connect(struct rpmem_obc *rpc, const char *target);
 int rpmem_obc_disconnect(struct rpmem_obc *rpc);
-int rpmem_obc_get_addr(struct rpmem_obc *rpc,
-		struct sockaddr *addr, socklen_t *addrlen);
 
 int rpmem_obc_monitor(struct rpmem_obc *rpc, int nonblock);
 

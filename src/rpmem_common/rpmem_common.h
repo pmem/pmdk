@@ -48,6 +48,14 @@
  */
 #define RPMEM_TCP_KEEPINTVL	1
 
+
+#define RPMEM_CMD_ENV	"RPMEM_CMD"
+#define RPMEM_SSH_ENV	"RPMEM_SSH"
+#define RPMEM_DEF_CMD	"rpmemd"
+#define RPMEM_DEF_SSH	"ssh"
+#define RPMEM_PROV_SOCKET_ENV	"RPMEM_ENABLE_SOCKETS"
+#define RPMEM_PROV_VERBS_ENV	"RPMEM_ENABLE_VERBS"
+
 #include <sys/socket.h>
 
 /*
@@ -116,13 +124,10 @@ struct rpmem_resp_attr {
 	enum rpmem_persist_method persist_method;
 };
 
-int rpmem_obc_send(int sockfd, const void *buf, size_t len);
-int rpmem_obc_recv(int sockfd, void *buf, size_t len);
-int rpmem_obc_keepalive(int fd);
+int rpmem_b64_write(int sockfd, const void *buf, size_t len, int flags);
+int rpmem_b64_read(int sockfd, void *buf, size_t len, int flags);
 const char *rpmem_get_ip_str(const struct sockaddr *addr);
 int rpmem_target_split(const char *target, char **user,
 		char **node, char **service);
-int rpmem_xread(int fd, void *buf, size_t len);
-int rpmem_xwrite(int fd, const void *buf, size_t len);
-int rpmem_xsend(int fd, const void *buf, size_t len, int flags);
-int rpmem_xrecv(int fd, void *buf, size_t len, int flags);
+int rpmem_xwrite(int fd, const void *buf, size_t len, int flags);
+int rpmem_xread(int fd, void *buf, size_t len, int flags);

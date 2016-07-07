@@ -43,6 +43,7 @@
 #include "rpmem_common.h"
 #include "rpmem_util.h"
 #include "rpmem_obc.h"
+#include "base64.h"
 
 #define POOL_SIZE	1024
 #define NLANES		32
@@ -78,17 +79,16 @@
 static const struct rpmem_pool_attr POOL_ATTR = POOL_ATTR_INIT;
 
 struct server {
-	int fd;
-	int cfd;
+	int fd_in;
+	int fd_out;
 };
 
-struct server *srv_listen(unsigned short port);
-void srv_disconnect(struct server *s);
-void srv_stop(struct server *s);
-void srv_accept(struct server *s);
+void set_rpmem_cmd(const char *fmt, ...);
+
+struct server *srv_init(void);
+void srv_fini(struct server *s);
 void srv_recv(struct server *s, void *buff, size_t len);
 void srv_send(struct server *s, const void *buff, size_t len);
-unsigned short srv_get_port(const char *str_port);
 void srv_wait_disconnect(struct server *s);
 
 void client_connect_wait(struct rpmem_obc *rpc, char *target);
@@ -98,13 +98,7 @@ void client_connect_wait(struct rpmem_obc *rpc, char *target);
  * from the client's perspective, execute the test in a loop so
  * the moment when the connection is closed will be possibly different.
  */
-#define ECONNRESET_LOOP 1
-
-/*
- * Number of cases for ECONNRESET. Must be kept in sync with the
- * server_create_econnreset function.
- */
-#define ECONNRESET_COUNT 2
+#define ECONNRESET_LOOP 10
 
 void server_econnreset(struct server *s, const void *msg, size_t len);
 
@@ -113,11 +107,21 @@ TEST_CASE_DECLARE(client_connect);
 TEST_CASE_DECLARE(client_monitor);
 TEST_CASE_DECLARE(server_monitor);
 TEST_CASE_DECLARE(server_wait);
+
 TEST_CASE_DECLARE(client_create);
 TEST_CASE_DECLARE(server_create);
+TEST_CASE_DECLARE(server_create_econnreset);
+TEST_CASE_DECLARE(server_create_eproto);
+TEST_CASE_DECLARE(server_create_error);
+
 TEST_CASE_DECLARE(client_open);
 TEST_CASE_DECLARE(server_open);
+TEST_CASE_DECLARE(server_open_econnreset);
+TEST_CASE_DECLARE(server_open_eproto);
+TEST_CASE_DECLARE(server_open_error);
+
 TEST_CASE_DECLARE(client_close);
 TEST_CASE_DECLARE(server_close);
-TEST_CASE_DECLARE(client_remove);
-TEST_CASE_DECLARE(server_remove);
+TEST_CASE_DECLARE(server_close_econnreset);
+TEST_CASE_DECLARE(server_close_eproto);
+TEST_CASE_DECLARE(server_close_error);

@@ -32,7 +32,7 @@
 #
 
 #
-# src/test/rpmemd_obc/TEST0 -- unit test for rpmemd_obc_accept
+# src/test/rpmemd_obc/TEST0 -- unit test for rpmemd_obc_process
 #
 
 export UNITTEST_NAME=rpmemd_obc/TEST0
@@ -47,21 +47,17 @@ require_build_type nondebug debug
 setup
 
 require_nodes 2
-require_node_log_files 0 $RPMEMD_LOG_FILE
-require_node_log_files 1 $RPMEMD_LOG_FILE
+require_node_log_files 1 $RPMEM_LOG_FILE
 
-SRV=srv${UNITTEST_NUM}.pid
-clean_remote_node 0 $SRV
+RPMEM_CMD="\"cd ${NODE_TEST_DIR[0]} && UNITTEST_FORCE_QUIET=1"
+RPMEM_CMD="$RPMEM_CMD RPMEMD_LOG_FILE=$RPMEMD_LOG_FILE"
+RPMEM_CMD="$RPMEM_CMD RPMEMD_LOG_LEVEL=$RPMEMD_LOG_LEVEL"
+RPMEM_CMD="$RPMEM_CMD LD_LIBRARY_PATH=.:${NODE_LD_LIBRARY_PATH[0]}"
+RPMEM_CMD="$RPMEM_CMD ./rpmemd_obc$EXESUFFIX\""
 
-expect_normal_exit run_on_node_background 0 $SRV\
-	./rpmemd_obc$EXESUFFIX server_accept_seq\
-	${NODE_ADDR[0]} $RPMEM_PORT
-
-expect_normal_exit wait_on_node_port 0 $SRV $RPMEM_PORT
+export_vars_node 1 RPMEM_CMD
 
 expect_normal_exit run_on_node 1 ./rpmemd_obc$EXESUFFIX\
-	client_accept_seq ${NODE_ADDR[0]}:${RPMEM_PORT}
-
-expect_normal_exit wait_on_node 0 $SRV
+	client_bad_msg_hdr ${NODE_ADDR[0]}
 
 pass

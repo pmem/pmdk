@@ -162,7 +162,8 @@ OTHER_TESTS = \
 	util_is_absolute \
 	util_is_poolset\
 	util_poolset_size\
-	util_poolset_foreach
+	util_poolset_foreach\
+	base64
 
 PMEM_TESTS = \
 	pmem_is_pmem\
@@ -192,7 +193,8 @@ RPMEM_TESTS =\
 	rpmemd_obc\
 	rpmem_obc_int\
 	rpmemd_db\
-	rpmem_fip
+	rpmem_fip\
+	rpmem_basic
 
 VMEM_TESTS = \
 	vmem_aligned_alloc\

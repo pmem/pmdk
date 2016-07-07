@@ -37,16 +37,21 @@
 
 #include "rpmem_obc_test_common.h"
 
+static const struct rpmem_msg_close_resp CLOSE_RESP = {
+	.hdr = {
+		.type = RPMEM_MSG_TYPE_CLOSE_RESP,
+		.size = sizeof(struct rpmem_msg_close_resp),
+		.status = 0,
+	},
+};
+
 /*
  * client_enotconn -- check if ENOTCONN error is returned after
  * calling rpmem_obc API without connecting to the server.
  */
-void
+int
 client_enotconn(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc != 0)
-		UT_FATAL("usage: %s", tc->name);
-
 	struct rpmem_obc *rpc = rpmem_obc_init();
 	UT_ASSERTne(rpc, NULL);
 
@@ -74,10 +79,6 @@ client_enotconn(const struct test_case *tc, int argc, char *argv[])
 	UT_ASSERTne(ret, 0);
 	UT_ASSERTeq(errno, ENOTCONN);
 
-	ret = rpmem_obc_remove(rpc, POOL_DESC);
-	UT_ASSERTne(ret, 0);
-	UT_ASSERTeq(errno, ENOTCONN);
-
 	ret = rpmem_obc_close(rpc);
 	UT_ASSERTne(ret, 0);
 	UT_ASSERTeq(errno, ENOTCONN);
@@ -87,30 +88,14 @@ client_enotconn(const struct test_case *tc, int argc, char *argv[])
 	UT_ASSERTeq(errno, ENOTCONN);
 
 	rpmem_obc_fini(rpc);
-}
 
-/*
- * server_wait -- accept a connection from a client and wait until one
- * disconnects
- */
-void
-server_wait(const struct test_case *tc, int argc, char *argv[])
-{
-	if (argc != 1)
-		UT_FATAL("usage: %s 0|<port>", tc->name);
-
-	unsigned short port = srv_get_port(argv[0]);
-
-	struct server *s = srv_listen(port);
-	srv_accept(s);
-	srv_wait_disconnect(s);
-	srv_stop(s);
+	return 0;
 }
 
 /*
  * client_connect -- try to connect to the server at specified address and port
  */
-void
+int
 client_connect(const struct test_case *tc, int argc, char *argv[])
 {
 	if (argc < 1)
@@ -131,71 +116,44 @@ client_connect(const struct test_case *tc, int argc, char *argv[])
 
 		rpmem_obc_fini(rpc);
 	}
+
+	return argc;
 }
 
 /*
- * client_ctrl_connect -- establish auxiliary socket connection
+ * server_monitor -- test case for rpmem_obc_create function - server side
  */
-static int
-client_ctrl_connect(char *target)
+int
+server_monitor(const struct test_case *tc, int argc, char *argv[])
 {
-	char *node = STRDUP(target);
-	char *service;
-	char *colon = strrchr(node, ':');
-	if (colon) {
-		service = colon + 1;
-		*colon = '\0';
-	} else {
-		service = RPMEM_SERVICE;
-	}
+	struct server *s = srv_init();
+	struct rpmem_msg_close close;
+	struct rpmem_msg_close_resp resp = CLOSE_RESP;
+	rpmem_hton_msg_close_resp(&resp);
 
-	int sockfd = -1;
-	struct addrinfo *addrinfo;
-	struct addrinfo hints;
-	memset(&hints, 0, sizeof(hints));
-	hints.ai_family = AF_UNSPEC;
-	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_protocol = 0;
-	int ret = getaddrinfo(node, service, &hints, &addrinfo);
-	UT_ASSERTeq(ret, 0);
+	srv_recv(s, &close, sizeof(close));
+	srv_send(s, &resp, sizeof(resp));
 
-	for (struct addrinfo *ai = addrinfo; ai; ai = ai->ai_next) {
-		sockfd = socket(ai->ai_family, ai->ai_socktype,
-				ai->ai_protocol);
+	srv_fini(s);
 
-		if (sockfd == -1)
-			continue;
-
-		if (!connect(sockfd, ai->ai_addr, ai->ai_addrlen))
-			break;
-
-		close(sockfd);
-		sockfd = -1;
-	}
-
-	freeaddrinfo(addrinfo);
-
-	FREE(node);
-
-	return sockfd;
+	return 0;
 }
 
 /*
- * client_monitor -- test case for rpmem_obc_monitor function - client side
+ * server_monitor -- test case for rpmem_obc_monitor function - server side
  */
-void
+int
 client_monitor(const struct test_case *tc, int argc, char *argv[])
 {
 	if (argc < 1)
-		UT_FATAL("usage: %s <addr>[:<port>]...", tc->name);
+		UT_FATAL("usage: %s <addr>[:<port>]", tc->name);
 
 	char *target = argv[0];
 
-	int ctrl = client_ctrl_connect(target);
-	int buff = 0;
-	UT_ASSERTne(ctrl, -1);
+	set_rpmem_cmd("server_monitor");
 
 	{
+
 		/*
 		 * Connect to target node, check connection state before
 		 * and after disconnecting.
@@ -232,100 +190,16 @@ client_monitor(const struct test_case *tc, int argc, char *argv[])
 		ret = rpmem_obc_monitor(rpc, 1);
 		UT_ASSERTeq(ret, 1);
 
-		ssize_t wr = write(ctrl, &buff, sizeof(buff));
-		UT_ASSERTeq(wr, sizeof(buff));
-
-		ret = rpmem_obc_monitor(rpc, 0);
-		UT_ASSERTne(ret, 1);
-
-		rpmem_obc_fini(rpc);
-	}
-
-	{
-		/*
-		 * Connect to target node and expect that server will
-		 * disconnect.
-		 */
-		struct rpmem_obc *rpc = rpmem_obc_init();
-		UT_ASSERTne(rpc, NULL);
-
-		int ret = rpmem_obc_connect(rpc, target);
+		ret = rpmem_obc_close(rpc);
 		UT_ASSERTeq(ret, 0);
 
-		ret = rpmem_obc_monitor(rpc, 1);
-		UT_ASSERTeq(ret, 1);
-
-		ssize_t wr = write(ctrl, &buff, sizeof(buff));
-		UT_ASSERTeq(wr, sizeof(buff));
-
 		ret = rpmem_obc_monitor(rpc, 0);
 		UT_ASSERTne(ret, 1);
+
+		rpmem_obc_disconnect(rpc);
 
 		rpmem_obc_fini(rpc);
 	}
 
-
-	close(ctrl);
-}
-
-/*
- * server_monitor -- test case for rpmem_obc_monitor function - server side
- */
-void
-server_monitor(const struct test_case *tc, int argc, char *argv[])
-{
-	if (argc != 1)
-		UT_FATAL("usage: %s 0|<port>", tc->name);
-
-	unsigned short port = srv_get_port(argv[0]);
-	struct server *s = srv_listen(port);
-	/*
-	 * First connection is a control connection for
-	 * synchronization of client and server.
-	 */
-	srv_accept(s);
-	int ctrl = s->cfd;
-	int buff = 0;
-
-	{
-		/*
-		 * Accept a connection and wait for the client to disconnect.
-		 */
-		srv_accept(s);
-		srv_wait_disconnect(s);
-	}
-
-	{
-		/*
-		 * Accept a connection and wait for the signal on ctrl
-		 * connection from client and then disconnect.
-		 */
-		srv_accept(s);
-
-		ssize_t rd = read(ctrl, &buff, sizeof(buff));
-		UT_ASSERTeq(rd, sizeof(buff));
-
-		srv_disconnect(s);
-
-	}
-
-	{
-		/*
-		 * Accept a connection and wait for the signal on ctrl
-		 * connection from client and then send some data to client
-		 * and disconnect.
-		 */
-		srv_accept(s);
-
-		ssize_t rd = read(ctrl, &buff, sizeof(buff));
-		UT_ASSERTeq(rd, sizeof(buff));
-
-		srv_send(s, &buff, sizeof(buff));
-		srv_disconnect(s);
-
-	}
-
-	close(ctrl);
-	srv_stop(s);
-
+	return 1;
 }

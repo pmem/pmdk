@@ -37,6 +37,15 @@
 struct rpmemd_db;
 struct rpmem_pool_attr;
 
+/*
+ * struct rpmemd_db_pool -- remote pool context
+ */
+struct rpmemd_db_pool {
+	void *pool_addr;
+	size_t pool_size;
+	struct pool_set *set;
+};
+
 struct rpmemd_db *rpmemd_db_init(const char *root_dir, mode_t mode);
 struct rpmemd_db_pool *rpmemd_db_pool_create(struct rpmemd_db *db,
 	const char *pool_desc, size_t pool_size,

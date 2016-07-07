@@ -39,13 +39,8 @@
 
 #include "librpmem.h"
 
-#define __STR(s)	#s
-#define _STR(s)		__STR(s)
-
 #define PACKED	__attribute__((packed))
 
-#define RPMEM_PORT		7636
-#define RPMEM_SERVICE		_STR(RPMEM_PORT)
 #define RPMEM_PROTO		"tcp"
 #define RPMEM_PROTO_MAJOR	0
 #define RPMEM_PROTO_MINOR	1
@@ -64,8 +59,6 @@ enum rpmem_msg_type {
 	RPMEM_MSG_TYPE_OPEN_RESP	= 4, /* open request response */
 	RPMEM_MSG_TYPE_CLOSE		= 5, /* close request */
 	RPMEM_MSG_TYPE_CLOSE_RESP	= 6, /* close request response */
-	RPMEM_MSG_TYPE_REMOVE		= 7, /* remove request */
-	RPMEM_MSG_TYPE_REMOVE_RESP	= 8, /* remove request response */
 
 	MAX_RPMEM_MSG_TYPE,
 };
@@ -192,31 +185,6 @@ struct rpmem_msg_close {
  * The size of message must be set to sizeof(struct rpmem_msg_close_resp)
  */
 struct rpmem_msg_close_resp {
-	struct rpmem_msg_hdr_resp hdr;	/* message header */
-	/* no more fields */
-} PACKED;
-
-/*
- * rpmem_msg_remove -- remove request message
- *
- * The type of message must be set to RPMEM_MSG_TYPE_REMOVE.
- * The size of message must be set to
- *     sizeof(struct rpmem_msg_remove) + pool_desc_size
- */
-struct rpmem_msg_remove {
-	struct rpmem_msg_hdr hdr;	/* message header */
-	uint16_t major;			/* protocol version major number */
-	uint16_t minor;			/* protocol version minor number */
-	struct rpmem_msg_pool_desc pool_desc;	/* pool descriptor */
-} PACKED;
-
-/*
- * rpmem_msg_remove_resp -- remove request response message
- *
- * The type of message must be set to RPMEM_MSG_TYPE_REMOVE_RESP
- * The size of message must be set to sizeof(struct rpmem_msg_remove_resp)
- */
-struct rpmem_msg_remove_resp {
 	struct rpmem_msg_hdr_resp hdr;	/* message header */
 	/* no more fields */
 } PACKED;
@@ -397,47 +365,6 @@ static inline void
 rpmem_hton_msg_open_resp(struct rpmem_msg_open_resp *msg)
 {
 	rpmem_ntoh_msg_open_resp(msg);
-}
-
-/*
- * rpmem_ntoh_msg_remove -- convert rpmem_msg_remove to host byte order
- */
-static inline void
-rpmem_ntoh_msg_remove(struct rpmem_msg_remove *msg)
-{
-	rpmem_ntoh_msg_hdr(&msg->hdr);
-	msg->major = be16toh(msg->major);
-	msg->minor = be16toh(msg->minor);
-	rpmem_ntoh_msg_pool_desc(&msg->pool_desc);
-}
-
-/*
- * rpmem_hton_msg_remove -- convert rpmem_msg_remove to network byte order
- */
-static inline void
-rpmem_hton_msg_remove(struct rpmem_msg_remove *msg)
-{
-	rpmem_ntoh_msg_remove(msg);
-}
-
-/*
- * rpmem_ntoh_msg_remove_resp -- convert rpmem_msg_remove_resp to host byte
- * order
- */
-static inline void
-rpmem_ntoh_msg_remove_resp(struct rpmem_msg_remove_resp *msg)
-{
-	rpmem_ntoh_msg_hdr_resp(&msg->hdr);
-}
-
-/*
- * rpmem_hton_msg_remove_resp -- convert rpmem_msg_remove_resp to network byte
- * order
- */
-static inline void
-rpmem_hton_msg_remove_resp(struct rpmem_msg_remove_resp *msg)
-{
-	rpmem_ntoh_msg_remove_resp(msg);
 }
 
 /*

@@ -46,7 +46,8 @@ OBJS = rpmemd.o\
        rpmemd_db.o\
        rpmemd_fip.o\
        rpmemd_fip_worker.o\
-       rpmem_fip_common.o
+       rpmem_fip_common.o\
+       base64.o
 
 LIBPMEM=y
 TOOLS_COMMON=y

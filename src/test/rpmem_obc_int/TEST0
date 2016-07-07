@@ -48,27 +48,17 @@ require_build_type nondebug debug
 setup
 
 require_nodes 2
-require_node_log_files 0 $RPMEM_LOG_FILE $RPMEMD_LOG_FILE
-require_node_log_files 1 $RPMEM_LOG_FILE $RPMEMD_LOG_FILE
+require_node_log_files 0 $RPMEMD_LOG_FILE
+require_node_log_files 1 $RPMEM_LOG_FILE
 
-SRV=srv${UNITTEST_NUM}.pid
-clean_remote_node 0 $SRV
+RPMEM_CMD="\"cd ${NODE_TEST_DIR[0]} && UNITTEST_FORCE_QUIET=1 ./rpmem_obc_int$EXESUFFIX server\""
 
-expect_normal_exit run_on_node_background 0 $SRV\
-	./rpmem_obc_int$EXESUFFIX server_seq\
-	${NODE_ADDR[0]} $RPMEM_PORT
-
-expect_normal_exit wait_on_node_port 0 $SRV $RPMEM_PORT
+export_vars_node 1 RPMEM_CMD
 
 expect_normal_exit run_on_node 1 ./rpmem_obc_int$EXESUFFIX\
-	client_create ${NODE_ADDR[0]}:${RPMEM_PORT}
+	client_create ${NODE_ADDR[0]}
 
 expect_normal_exit run_on_node 1 ./rpmem_obc_int$EXESUFFIX\
-	client_open ${NODE_ADDR[0]}:${RPMEM_PORT}
-
-expect_normal_exit run_on_node 1 ./rpmem_obc_int$EXESUFFIX\
-	client_remove ${NODE_ADDR[0]}:${RPMEM_PORT}
-
-expect_normal_exit wait_on_node 0 $SRV
+	client_open ${NODE_ADDR[0]}
 
 pass

@@ -39,70 +39,64 @@
 
 #include "rpmem_obc_test_common.h"
 
-/*
- * srv_listen -- allocate a server and start listening on specified port
- */
-struct server *
-srv_listen(unsigned short port)
-{
-	struct server *s = CALLOC(1, sizeof(*s));
-	s->fd = socket(AF_INET, SOCK_STREAM, 0);
-	if (s->fd == -1)
-		UT_FATAL("!socket");
-
-	int ret;
-
-	int x = 1;
-	ret = setsockopt(s->fd, SOL_SOCKET, SO_REUSEADDR, &x, sizeof(x));
-	if (ret)
-		UT_FATAL("!setsockopt");
-
-	struct sockaddr_in addr;
-	memset(&addr, 0, sizeof(addr));
-	addr.sin_family = AF_INET;
-	addr.sin_port = htons(port);
-
-	ret = bind(s->fd, (struct sockaddr *)&addr, sizeof(addr));
-	if (ret)
-		UT_FATAL("!bind %u", port);
-
-	ret = listen(s->fd, 1);
-	if (ret)
-		UT_FATAL("!listen");
-
-	return s;
-}
+#define CMD_BUFF_SIZE	4096
+static const char *rpmem_cmd;
 
 /*
- * srv_disconnect -- disconnect from a client
+ * set_rpmem_cmd -- set RPMEM_CMD variable
  */
 void
-srv_disconnect(struct server *s)
+set_rpmem_cmd(const char *fmt, ...)
 {
-	CLOSE(s->cfd);
+	static char cmd_buff[CMD_BUFF_SIZE];
+
+	if (!rpmem_cmd) {
+		char *cmd = getenv(RPMEM_CMD_ENV);
+		UT_ASSERTne(cmd, NULL);
+		rpmem_cmd = STRDUP(cmd);
+	}
+
+	ssize_t ret;
+	size_t cnt = 0;
+
+	va_list ap;
+	va_start(ap, fmt);
+	ret = snprintf(&cmd_buff[cnt], CMD_BUFF_SIZE - cnt,
+			"%s ", rpmem_cmd);
+	UT_ASSERT(ret > 0);
+	cnt += (size_t)ret;
+
+	ret = vsnprintf(&cmd_buff[cnt], CMD_BUFF_SIZE - cnt, fmt, ap);
+	UT_ASSERT(ret > 0);
+	cnt += (size_t)ret;
+
+	va_end(ap);
+
+	ret = setenv(RPMEM_CMD_ENV, cmd_buff, 1);
+	UT_ASSERTeq(ret, 0);
+}
+
+struct server *
+srv_init(void)
+{
+	struct server *s = MALLOC(sizeof(*s));
+
+	s->fd_in = STDIN_FILENO;
+	s->fd_out = STDOUT_FILENO;
+
+	uint32_t status = 0;
+	srv_send(s, &status, sizeof(status));
+
+	return s;
 }
 
 /*
  * srv_stop -- close the server
  */
 void
-srv_stop(struct server *s)
+srv_fini(struct server *s)
 {
-	CLOSE(s->fd);
 	FREE(s);
-}
-
-/*
- * srv_accept -- accept connection from a client
- */
-void
-srv_accept(struct server *s)
-{
-	struct sockaddr_in client_addr;
-	socklen_t client_len = sizeof(client_addr);
-	s->cfd = accept(s->fd, (struct sockaddr *)&client_addr,
-			&client_len);
-	UT_ASSERTne(s->cfd, -1);
 }
 
 /*
@@ -112,12 +106,21 @@ void
 srv_recv(struct server *s, void *buff, size_t len)
 {
 	size_t rd = 0;
-	uint8_t *cbuf = buff;
+	size_t b64_len;
+	void *b64_buff = base64_buff(len, &b64_len);
+	UT_ASSERTne(b64_buff, NULL);
+
+	uint8_t *cbuf = b64_buff;
 	while (rd < len) {
-		ssize_t ret = read(s->cfd, &cbuf[rd], len - rd);
+		ssize_t ret = read(s->fd_in, &cbuf[rd], b64_len - rd);
 		UT_ASSERT(ret > 0);
 		rd += (size_t)ret;
 	}
+
+	int ret = base64_decode(b64_buff, b64_len, buff, len);
+	UT_ASSERTeq(ret, 0);
+
+	free(b64_buff);
 }
 
 /*
@@ -127,39 +130,21 @@ void
 srv_send(struct server *s, const void *buff, size_t len)
 {
 	size_t wr = 0;
-	const uint8_t *cbuf = buff;
+	size_t b64_len;
+	void *b64_buff = base64_buff(len, &b64_len);
+	UT_ASSERTne(b64_buff, NULL);
+
+	int ret = base64_encode(buff, len, b64_buff, b64_len);
+	UT_ASSERTeq(ret, 0);
+
+	const uint8_t *cbuf = b64_buff;
 	while (wr < len) {
-		ssize_t ret = write(s->cfd, &cbuf[wr], len - wr);
+		ssize_t ret = write(s->fd_out, &cbuf[wr], b64_len - wr);
 		UT_ASSERT(ret > 0);
 		wr += (size_t)ret;
 	}
-}
 
-/*
- * srv_get_port -- parse a port number
- */
-unsigned short
-srv_get_port(const char *str_port)
-{
-	unsigned short port = RPMEM_PORT;
-
-	if (strcmp(str_port, "0") != 0)
-		port = atoi(str_port);
-
-	return port;
-}
-
-/*
- * srv_wait_disconnect -- wait for a client to disconnect
- */
-void
-srv_wait_disconnect(struct server *s)
-{
-	int buff;
-	ssize_t rret = read(s->cfd, &buff, sizeof(buff));
-	UT_ASSERT(rret <= 0);
-
-	srv_disconnect(s);
+	free(b64_buff);
 }
 
 /*
@@ -180,20 +165,6 @@ void
 server_econnreset(struct server *s, const void *msg, size_t len)
 {
 	for (int i = 0; i < ECONNRESET_LOOP; i++) {
-		/*
-		 * Update the ECONNRESET_COUNT macro if a number
-		 * of the following cases has been changed.
-		 */
-		{
-			/* 1. disconnect immediately */
-			srv_accept(s);
-			srv_disconnect(s);
-		}
-		{
-			/* 2. disconnect after sending a half of message */
-			srv_accept(s);
-			srv_send(s, msg, len);
-			srv_disconnect(s);
-		}
+		srv_send(s, msg, len);
 	}
 }

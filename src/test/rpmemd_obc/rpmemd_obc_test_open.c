@@ -54,7 +54,7 @@ client_bad_msg_open(const char *ctarget)
 	struct rpmem_msg_open *msg = MALLOC(msg_size);
 
 	for (int i = 0; i < BAD_MSG_OPEN_COUNT; i++) {
-		int fd = clnt_connect_wait(target);
+		struct rpmem_ssh *ssh = clnt_connect(target);
 		*msg = OPEN_MSG;
 		msg->hdr.size = msg_size;
 		memcpy(msg->pool_desc.desc, POOL_DESC, POOL_DESC_SIZE);
@@ -103,9 +103,9 @@ client_bad_msg_open(const char *ctarget)
 
 		rpmem_hton_msg_open(msg);
 
-		clnt_send(fd, msg, msg_size);
-		clnt_wait_disconnect(fd);
-		clnt_close(fd);
+		clnt_send(ssh, msg, msg_size);
+		clnt_wait_disconnect(ssh);
+		clnt_close(ssh);
 	}
 
 	FREE(msg);
@@ -123,7 +123,7 @@ client_msg_open_noresp(const char *ctarget)
 	size_t msg_size = sizeof(OPEN_MSG) + POOL_DESC_SIZE;
 	struct rpmem_msg_open *msg = MALLOC(msg_size);
 
-	int fd = clnt_connect_wait(target);
+	struct rpmem_ssh *ssh = clnt_connect(target);
 
 	*msg = OPEN_MSG;
 	msg->hdr.size = msg_size;
@@ -131,9 +131,9 @@ client_msg_open_noresp(const char *ctarget)
 
 	rpmem_hton_msg_open(msg);
 
-	clnt_send(fd, msg, msg_size);
-	clnt_wait_disconnect(fd);
-	clnt_close(fd);
+	clnt_send(ssh, msg, msg_size);
+	clnt_wait_disconnect(ssh);
+	clnt_close(ssh);
 
 	FREE(msg);
 	FREE(target);
@@ -152,7 +152,7 @@ client_msg_open_resp(const char *ctarget, int status)
 	struct rpmem_msg_open *msg = MALLOC(msg_size);
 	struct rpmem_msg_open_resp resp;
 
-	int fd = clnt_connect_wait(target);
+	struct rpmem_ssh *ssh = clnt_connect(target);
 
 	*msg = OPEN_MSG;
 	msg->hdr.size = msg_size;
@@ -160,8 +160,8 @@ client_msg_open_resp(const char *ctarget, int status)
 
 	rpmem_hton_msg_open(msg);
 
-	clnt_send(fd, msg, msg_size);
-	clnt_recv(fd, &resp, sizeof(resp));
+	clnt_send(ssh, msg, msg_size);
+	clnt_recv(ssh, &resp, sizeof(resp));
 	rpmem_ntoh_msg_open_resp(&resp);
 
 	if (status) {
@@ -177,7 +177,7 @@ client_msg_open_resp(const char *ctarget, int status)
 		UT_ASSERTeq(resp.ibc.persist_method, PERSIST_METHOD);
 	}
 
-	clnt_close(fd);
+	clnt_close(ssh);
 
 	FREE(msg);
 	FREE(target);
@@ -186,52 +186,25 @@ client_msg_open_resp(const char *ctarget, int status)
 /*
  * client_open -- test case for open request message - client side
  */
-void
+int
 client_open(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc != 1)
+	if (argc < 1)
 		UT_FATAL("usage: %s <addr>[:<port>]", tc->name);
 
 	char *target = argv[0];
 
+	set_rpmem_cmd("server_bad_msg");
 	client_bad_msg_open(target);
 
+	set_rpmem_cmd("server_msg_noresp %d", RPMEM_MSG_TYPE_OPEN);
 	client_msg_open_noresp(target);
 
+	set_rpmem_cmd("server_msg_resp %d %d", RPMEM_MSG_TYPE_OPEN, 0);
 	client_msg_open_resp(target, 0);
+
+	set_rpmem_cmd("server_msg_resp %d %d", RPMEM_MSG_TYPE_OPEN, 1);
 	client_msg_open_resp(target, 1);
-}
 
-/*
- * server_open -- test case for open request message - server side
- */
-void
-server_open(const struct test_case *tc, int argc, char *argv[])
-{
-	if (argc != 2)
-		UT_FATAL("usage: %s <addr> <port>", tc->name);
-
-	char *node = argv[0];
-	char *service = argv[1];
-
-	struct rpmemd_obc *rpdc;
-	int ret;
-
-	rpdc = rpmemd_obc_init();
-	UT_ASSERTne(rpdc, NULL);
-
-	ret = rpmemd_obc_listen(rpdc, 1, node, service);
-	UT_ASSERTeq(ret, 0);
-
-	server_bad_msg(rpdc, BAD_MSG_OPEN_COUNT);
-
-	server_msg_noresp(rpdc, RPMEM_MSG_TYPE_OPEN);
-
-	server_msg_resp(rpdc, RPMEM_MSG_TYPE_OPEN, 0);
-	server_msg_resp(rpdc, RPMEM_MSG_TYPE_OPEN, 1);
-
-	ret = rpmemd_obc_close(rpdc);
-	UT_ASSERTeq(ret, 0);
-
-	rpmemd_obc_fini(rpdc);
+	return 1;
 }

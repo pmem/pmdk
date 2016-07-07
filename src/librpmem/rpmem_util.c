@@ -63,7 +63,7 @@ static struct rpmem_err_str_errno {
 		.str	= "Invalid pool descriptor",
 	},
 	[RPMEM_ERR_BADSIZE] = {
-		.err	= ENOMEM,
+		.err	= EFBIG,
 		.str	= "Invalid pool size",
 	},
 	[RPMEM_ERR_BADNLANES] = {

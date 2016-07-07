@@ -47,11 +47,11 @@ client_msg_close_noresp(const char *ctarget)
 	struct rpmem_msg_close msg = CLOSE_MSG;
 	rpmem_hton_msg_close(&msg);
 
-	int fd = clnt_connect_wait(target);
+	struct rpmem_ssh *ssh = clnt_connect(target);
 
-	clnt_send(fd, &msg, sizeof(msg));
-	clnt_wait_disconnect(fd);
-	clnt_close(fd);
+	clnt_send(ssh, &msg, sizeof(msg));
+	clnt_wait_disconnect(ssh);
+	clnt_close(ssh);
 
 	FREE(target);
 }
@@ -69,16 +69,16 @@ client_msg_close_resp(const char *ctarget, int status)
 	rpmem_hton_msg_close(&msg);
 	struct rpmem_msg_close_resp resp;
 
-	int fd = clnt_connect_wait(target);
+	struct rpmem_ssh *ssh = clnt_connect(target);
 
-	clnt_send(fd, &msg, sizeof(msg));
-	clnt_recv(fd, &resp, sizeof(resp));
+	clnt_send(ssh, &msg, sizeof(msg));
+	clnt_recv(ssh, &resp, sizeof(resp));
 	rpmem_ntoh_msg_close_resp(&resp);
 
 	if (status)
 		UT_ASSERTeq(resp.hdr.status, (uint32_t)status);
 
-	clnt_close(fd);
+	clnt_close(ssh);
 
 	FREE(target);
 }
@@ -86,48 +86,22 @@ client_msg_close_resp(const char *ctarget, int status)
 /*
  * client_close -- test case for close request message - client side
  */
-void
+int
 client_close(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc != 1)
+	if (argc < 1)
 		UT_FATAL("usage: %s <addr>[:<port>]", tc->name);
 
 	char *target = argv[0];
 
+	set_rpmem_cmd("server_msg_noresp %d", RPMEM_MSG_TYPE_CLOSE);
 	client_msg_close_noresp(target);
 
+	set_rpmem_cmd("server_msg_resp %d %d", RPMEM_MSG_TYPE_CLOSE, 0);
 	client_msg_close_resp(target, 0);
+
+	set_rpmem_cmd("server_msg_resp %d %d", RPMEM_MSG_TYPE_CLOSE, 1);
 	client_msg_close_resp(target, 1);
-}
 
-/*
- * server_close -- test case for close request message - server side
- */
-void
-server_close(const struct test_case *tc, int argc, char *argv[])
-{
-	if (argc != 2)
-		UT_FATAL("usage: %s <addr> <port>", tc->name);
-
-	char *node = argv[0];
-	char *service = argv[1];
-
-	struct rpmemd_obc *rpdc;
-	int ret;
-
-	rpdc = rpmemd_obc_init();
-	UT_ASSERTne(rpdc, NULL);
-
-	ret = rpmemd_obc_listen(rpdc, 1, node, service);
-	UT_ASSERTeq(ret, 0);
-
-	server_msg_noresp(rpdc, RPMEM_MSG_TYPE_CLOSE);
-
-	server_msg_resp(rpdc, RPMEM_MSG_TYPE_CLOSE, 0);
-	server_msg_resp(rpdc, RPMEM_MSG_TYPE_CLOSE, 1);
-
-	ret = rpmemd_obc_close(rpdc);
-	UT_ASSERTeq(ret, 0);
-
-	rpmemd_obc_fini(rpdc);
+	return 1;
 }

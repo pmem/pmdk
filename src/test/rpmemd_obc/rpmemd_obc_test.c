@@ -40,31 +40,18 @@
  * test_cases -- available test cases
  */
 static struct test_case test_cases[] = {
-	TEST_CASE(server_accept_seq),
-	TEST_CASE(server_accept_seq_fork),
-	TEST_CASE(client_accept_seq),
+	TEST_CASE(server_bad_msg),
+	TEST_CASE(server_msg_noresp),
+	TEST_CASE(server_msg_resp),
 
-	TEST_CASE(server_accept_sim),
-	TEST_CASE(server_accept_sim_fork),
-	TEST_CASE(client_accept_sim),
+	TEST_CASE(client_bad_msg_hdr),
 
 	TEST_CASE(server_econnreset),
 	TEST_CASE(client_econnreset),
 
-	TEST_CASE(server_bad_msg_hdr),
-	TEST_CASE(client_bad_msg_hdr),
-
-	TEST_CASE(server_create),
 	TEST_CASE(client_create),
-
-	TEST_CASE(server_open),
 	TEST_CASE(client_open),
-
-	TEST_CASE(server_close),
 	TEST_CASE(client_close),
-
-	TEST_CASE(server_remove),
-	TEST_CASE(client_remove),
 };
 
 #define NTESTS	(sizeof(test_cases) / sizeof(test_cases[0]))
@@ -72,8 +59,13 @@ static struct test_case test_cases[] = {
 int
 main(int argc, char *argv[])
 {
+	base64_init();
+
 	START(argc, argv, "rpmemd_obc");
 
+	out_init("rpmemd_obc",
+		"RPMEM_LOG_LEVEL",
+		"RPMEM_LOG_FILE", 0, 0);
 	rpmemd_log_init("rpmemd", getenv("RPMEMD_LOG_FILE"), 0);
 	rpmemd_log_level = rpmemd_log_level_from_str(
 			getenv("RPMEMD_LOG_LEVEL"));
@@ -82,5 +74,6 @@ main(int argc, char *argv[])
 
 	rpmemd_log_close();
 
+	out_fini();
 	DONE(NULL);
 }

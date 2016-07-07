@@ -66,7 +66,7 @@ int
 main(int argc, char *argv[])
 {
 	if (argc < 4) {
-		fprintf(stderr, "usage: %s [create|remove|open]"
+		fprintf(stderr, "usage: %s [create|open]"
 			" <target> <pool_set> [options]\n", argv[0]);
 		return 1;
 	}
@@ -114,14 +114,6 @@ main(int argc, char *argv[])
 		int ret = rpmem_close(rpp);
 		if (ret)
 			fprintf(stderr, "rpmem_close: %s\n",
-					rpmem_errormsg());
-
-		return ret;
-	} else if (strcmp(op, "remove") == 0) {
-		int ret = rpmem_remove(target, pool_set);
-
-		if (ret)
-			fprintf(stderr, "rpmem_remove: %s\n",
 					rpmem_errormsg());
 
 		return ret;

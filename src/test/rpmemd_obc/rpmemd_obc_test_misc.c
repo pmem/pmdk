@@ -37,35 +37,28 @@
 #include "rpmemd_obc_test_common.h"
 
 /*
- * Number of scenarios for closing connection when operation on server
- * is in progress. This value must be kept in sync with client_econnreset
- * function.
- */
-#define ECONNRESET_COUNT 4
-
-/*
  * client_send_disconnect -- connect, send specified number of bytes and
  * disconnect
  */
 static void
 client_send_disconnect(char *target, void *msg, size_t size)
 {
-	int fd = clnt_connect_wait(target);
+	struct rpmem_ssh *ssh = clnt_connect(target);
 
 	if (size)
-		clnt_send(fd, msg, size);
+		clnt_send(ssh, msg, size);
 
-	clnt_close(fd);
+	clnt_close(ssh);
 }
 
 /*
  * client_econnreset -- test case for closing connection when operation on
  * server is in progress - client side
  */
-void
+int
 client_econnreset(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc != 1)
+	if (argc < 1)
 		UT_FATAL("usage: %s <addr>[:<port>]", tc->name);
 
 	char *target = argv[0];
@@ -77,6 +70,8 @@ client_econnreset(const struct test_case *tc, int argc, char *argv[])
 	msg->hdr.size = msg_size;
 	memcpy(msg->pool_desc.desc, POOL_DESC, POOL_DESC_SIZE);
 	rpmem_hton_msg_create(msg);
+
+	set_rpmem_cmd("server_econnreset");
 
 	{
 		/*
@@ -111,46 +106,30 @@ client_econnreset(const struct test_case *tc, int argc, char *argv[])
 	}
 
 	FREE(msg);
+
+	return 1;
 }
 
 /*
  * server_econnreset -- test case for closing connection when operation on
  * server is in progress - server side
  */
-void
+int
 server_econnreset(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc != 2)
-		UT_FATAL("usage: %s <addr> <port>", tc->name);
-
-	char *node = argv[0];
-	char *service = argv[1];
-
 	struct rpmemd_obc *rpdc;
-	struct rpmemd_obc_client *client;
 	int ret;
 
-	rpdc = rpmemd_obc_init();
+	rpdc = rpmemd_obc_init(STDIN_FILENO, STDOUT_FILENO);
 	UT_ASSERTne(rpdc, NULL);
 
-	ret = rpmemd_obc_listen(rpdc, 1, node, service);
+	ret = rpmemd_obc_status(rpdc, 0);
 	UT_ASSERTeq(ret, 0);
 
-	for (int i = 0; i < ECONNRESET_COUNT; i++) {
-		client = rpmemd_obc_accept(rpdc);
-		UT_ASSERTne(client, NULL);
-
-		ret = rpmemd_obc_client_process(client, &REQ_CB, NULL);
-		UT_ASSERTne(ret, 0);
-
-		ret = rpmemd_obc_client_close(client);
-		UT_ASSERTeq(ret, 0);
-
-		rpmemd_obc_client_fini(client);
-	}
-
-	ret = rpmemd_obc_close(rpdc);
-	UT_ASSERTeq(ret, 0);
+	ret = rpmemd_obc_process(rpdc, &REQ_CB, NULL);
+	UT_ASSERTne(ret, 0);
 
 	rpmemd_obc_fini(rpdc);
+
+	return 0;
 }

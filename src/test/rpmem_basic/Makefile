@@ -1,4 +1,3 @@
-#!/bin/bash -e
 #
 # Copyright 2016, Intel Corporation
 #
@@ -32,36 +31,35 @@
 #
 
 #
-# src/test/rpmemd_obc/TEST9 -- unit test for rpmemd_obc_process
+# src/test/rpmem_basic/Makefile -- build rpmem_basic test
 #
+include ../../common.inc
 
-export UNITTEST_NAME=rpmemd_obc/TEST9
-export UNITTEST_NUM=9
+vpath %.c ../../common
+vpath %.c ../../rpmem_common
 
-# standard unit test setup
-. ../unittest/unittest.sh
+HAS_LIBFABRIC=$(call check_package, libfabric)
 
-require_fs_type none
-require_build_type nondebug debug
+ifeq ($(HAS_LIBFABRIC), y)
+TARGET = rpmem_basic
+OBJS = rpmem_basic.o\
+       rpmem_fip_common.o\
+       rpmem_common.o\
+       base64.o\
+       util.o\
+       util_linux.o\
+       out.o set.o set_linux.o
 
-setup
+LIBRPMEM=y
+LIBPMEM=y
+endif
 
-require_nodes 2
-require_node_log_files 0 $RPMEMD_LOG_FILE
-require_node_log_files 1 $RPMEMD_LOG_FILE
+include ../Makefile.inc
 
-SRV=srv${UNITTEST_NUM}.pid
-clean_remote_node 0 $SRV
-
-expect_normal_exit run_on_node_background 0 $SRV\
-	./rpmemd_obc$EXESUFFIX server_close\
-	${NODE_ADDR[0]} $RPMEM_PORT
-
-expect_normal_exit wait_on_node_port 0 $SRV $RPMEM_PORT
-
-expect_normal_exit run_on_node 1 ./rpmemd_obc$EXESUFFIX\
-	client_close ${NODE_ADDR[0]}:${RPMEM_PORT}
-
-expect_normal_exit wait_on_node 0 $SRV
-
-pass
+out.o: CFLAGS += -DDEBUG -DSRCVERSION=\"utversion\"
+ifeq ($(HAS_LIBFABRIC), y)
+LIBS += $(shell $(PKG_CONFIG) --libs libfabric)
+CFLAGS += $(shell $(PKG_CONFIG) --cflags libfabric)
+INCS += -I../../common
+INCS += -I../../rpmem_common
+endif

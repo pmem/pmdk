@@ -32,34 +32,45 @@
 #
 
 #
-# src/test/rpmem_obc/TEST7 -- unit test for rpmem_obc_monitor function
+# src/test/rpmem_basic/TEST4 -- unit test for rpmem_persist
 #
-export UNITTEST_NAME=rpmem_obc/TEST7
-export UNITTEST_NUM=7
+export UNITTEST_NAME=rpmem_basic/TEST4
+export UNITTEST_NUM=4
 
 # standard unit test setup
 . ../unittest/unittest.sh
 
-require_fs_type none
+require_fs_type any
 require_build_type nondebug debug
+
+rpmem_foreach_provider
+rpmem_foreach_persist
 
 setup
 
-require_nodes 2
-require_node_log_files 0 $RPMEM_LOG_FILE
-require_node_log_files 1 $RPMEM_LOG_FILE
+. setup.sh
 
-SRV=srv${UNITTEST_NUM}.pid
-clean_remote_node 0 $SRV
+cat > $DIR/pool0.set << EOF
+PMEMPOOLSET
+8M $PART_DIR/pool0.part0
+8M $PART_DIR/pool0.part1
+EOF
 
-expect_normal_exit run_on_node_background 0 $SRV\
-	./rpmem_obc$EXESUFFIX server_monitor ${RPMEM_PORT}
+expect_normal_exit run_on_node 0 mkdir -p $POOLS_DIR
+expect_normal_exit run_on_node 0 mkdir -p $POOLS_PART
+expect_normal_exit copy_file_to_node 0 $DIR/pool0.set $POOLS_DIR
+expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
+	test_create 0 pool0.set ${NODE_ADDR[0]} mem 8M test_close 0
 
-expect_normal_exit wait_on_node_port 0 $SRV $RPMEM_PORT
+expect_normal_exit run_on_node 0 ./rpmem_basic$EXESUFFIX\
+	fill_pool $POOLS_DIR/pool0.set 1234
 
-expect_normal_exit run_on_node 1 ./rpmem_obc$EXESUFFIX\
-	client_monitor ${NODE_ADDR[0]}:${RPMEM_PORT}
+expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
+	test_open 0 pool0.set ${NODE_ADDR[0]} pool 8M\
+	test_persist 0 4321 8 8\
+	test_close 0
 
-expect_normal_exit wait_on_node 0 $SRV
+expect_normal_exit run_on_node 0 ./rpmem_basic$EXESUFFIX\
+	check_pool $POOLS_DIR/pool0.set 4321 8M
 
 pass

@@ -32,34 +32,48 @@
 #
 
 #
-# src/test/rpmem_obc/TEST6 -- unit test for rpmem_obc_open function
+# src/test/rpmem_basic/setup.sh -- common part for TEST* scripts
 #
-export UNITTEST_NAME=rpmem_obc/TEST6
-export UNITTEST_NUM=6
-
-# standard unit test setup
-. ../unittest/unittest.sh
-
-require_fs_type none
-require_build_type nondebug debug
-
-setup
 
 require_nodes 2
-require_node_log_files 0 $RPMEM_LOG_FILE
+require_node_libfabric 0 $RPMEM_PROVIDER
+require_node_libfabric 1 $RPMEM_PROVIDER
+require_node_log_files 0 $RPMEMD_LOG_FILE
 require_node_log_files 1 $RPMEM_LOG_FILE
+require_node_log_files 1 $PMEM_LOG_FILE
 
-SRV=srv${UNITTEST_NUM}.pid
-clean_remote_node 0 $SRV
+POOLS_DIR=pools
+POOLS_PART=pool_parts
+PART_DIR=${NODE_TEST_DIR[0]}/$POOLS_PART
+POOLS_DIR_NODE=${NODE_TEST_DIR[0]}/$POOLS_DIR
 
-expect_normal_exit run_on_node_background 0 $SRV\
-	./rpmem_obc$EXESUFFIX server_remove $RPMEM_PORT
+RPMEM_CMD="\"cd ${NODE_TEST_DIR[0]} && "
+RPMEM_CMD="$RPMEM_CMD LD_LIBRARY_PATH=.:${NODE_LD_LIBRARY_PATH[0]}"
+RPMEM_CMD="$RPMEM_CMD ./rpmemd"
+RPMEM_CMD="$RPMEM_CMD --log-file=$RPMEMD_LOG_FILE"
+RPMEM_CMD="$RPMEM_CMD --poolset-dir=$POOLS_DIR_NODE"
 
-expect_normal_exit wait_on_node_port 0 $SRV $RPMEM_PORT
+if [ "$RPMEM_PM" == "APM" ]; then
+	RPMEM_CMD="$RPMEM_CMD --persist-apm"
+fi
 
-expect_normal_exit run_on_node 1 ./rpmem_obc$EXESUFFIX\
-	client_remove ${NODE_ADDR[0]}:${RPMEM_PORT}
+RPMEM_CMD="$RPMEM_CMD \""
 
-expect_normal_exit wait_on_node 0 $SRV
+RPMEM_ENABLE_SOCKETS=0
+RPMEM_ENABLE_VERBS=0
 
-pass
+case $RPMEM_PROVIDER in
+	sockets)
+		RPMEM_ENABLE_SOCKETS=1
+		;;
+	verbs)
+		RPMEM_ENABLE_VERBS=1
+		;;
+esac
+
+export_vars_node 1 RPMEM_CMD
+export_vars_node 1 RPMEM_ENABLE_SOCKETS
+export_vars_node 1 RPMEM_ENABLE_VERBS
+export_vars_node 1 RPMEM_LOG_LEVEL
+export_vars_node 1 RPMEM_LOG_FILE
+

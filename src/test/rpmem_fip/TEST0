@@ -43,6 +43,7 @@ export UNITTEST_NUM=0
 
 require_fs_type none
 require_build_type nondebug debug
+require_rpmem_port
 
 rpmem_foreach_provider
 rpmem_foreach_persist

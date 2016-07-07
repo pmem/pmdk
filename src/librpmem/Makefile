@@ -45,6 +45,9 @@ SOURCE = $(COMMON)/util.c\
 	librpmem.c\
 	rpmem.c\
 	rpmem_obc.c\
+	base64.c\
+	rpmem_cmd.c\
+	rpmem_ssh.c\
 	rpmem_common.c\
 	rpmem_util.c\
 	rpmem_fip_common.c\
@@ -56,5 +59,9 @@ endif
 
 include ../Makefile.inc
 
+ifeq ($(call check_package, libfabric),y)
+LIBS += $(shell $(PKG_CONFIG) --libs libfabric)
+CFLAGS += $(shell $(PKG_CONFIG) --cflags libfabric)
 CFLAGS += -I. -I../rpmem_common
 CFLAGS += -DRPMEMC_LOG_RPMEM
+endif

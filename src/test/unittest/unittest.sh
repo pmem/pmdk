@@ -40,6 +40,7 @@
 [ "$CHECK_POOL" ] || export CHECK_POOL=0
 [ "$VERBOSE" ] || export VERBOSE=0
 
+
 TOOLS=../tools
 # Paths to some useful tools
 [ "$PMEMPOOL" ] || PMEMPOOL=../../tools/pmempool/pmempool
@@ -66,12 +67,10 @@ DIR_SRC="../.."
 FILES_COMMON_DIR="$DIR_SRC/test/*.supp"
 FILES_CURRTEST_DIR="\
 $DIR_SRC/test/tools/ctrld/ctrld \
+$DIR_SRC/tools/rpmemd/rpmemd \
 $DIR_SRC/tools/pmempool/pmempool"
 OPT_FILES_CURRTEST_DIR="
 $DIR_SRC/test/tools/fip/fip"
-
-[ -z "$RPMEM_PORT" ] && RPMEM_PORT=$(cat $DIR_SRC/rpmem_common/rpmem_proto.h |\
-	grep '#define\sRPMEM_PORT' | grep -o '[0-9]\+')
 
 # array of lists of PID files to be cleaned in case of an error
 NODE_PID_FILES[0]=""
@@ -1166,7 +1165,16 @@ function require_node_libfabric() {
 		echo "NODE $N: require_libfabric $*: $fip_out"
 		exit 1
 	fi
+}
 
+# require_rpmem_port -- only allow script to continue if RPMEM_PORT variable
+#                       is set.
+#
+function require_rpmem_port() {
+	if [ -z "$RPMEM_PORT" ]; then
+		echo "$UNITTEST_NAME: SKIP: requires RPMEM_PORT"
+		exit 0
+	fi
 }
 
 #
@@ -1211,6 +1219,7 @@ function require_nodes() {
 
 		# clear the list of PID files for each node
 		NODE_PID_FILES[$N]=""
+		NODE_TEST_DIR[$N]=${NODE_WORKING_DIR[$N]}/$curtestdir
 
 		require_node_log_files $N err$UNITTEST_NUM.log out$UNITTEST_NUM.log trace$UNITTEST_NUM.log
 
@@ -1268,6 +1277,23 @@ function require_nodes() {
 
 	# register function to clean all remote nodes in case of an error or SIGINT
 	trap clean_all_remote_nodes ERR SIGINT
+
+	return 0
+}
+
+#
+# copy_file_to_node -- copy file to the given remote node
+#
+function copy_file_to_node() {
+
+	validate_node_number $1
+
+	local N=$1
+	shift
+
+	# copy all required files
+	local DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
+	run_command scp $SCP_OPTS $1 ${NODE[$N]}:$DIR/$2
 
 	return 0
 }

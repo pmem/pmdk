@@ -63,41 +63,38 @@ static void
 server_close_handle(struct server *s, const struct rpmem_msg_close_resp *resp)
 {
 	struct rpmem_msg_close msg;
-	srv_accept(s);
+
 	srv_recv(s, &msg, sizeof(msg));
 	rpmem_ntoh_msg_close(&msg);
 	check_close_msg(&msg);
 	srv_send(s, resp, sizeof(*resp));
-	srv_disconnect(s);
 }
 
 /*
  * client_close_errno -- perform close request operation and expect
- * specified errno, repeat the operation specified number of times
+ * specified errno
  */
 static void
-client_close_errno(char *target, int ex_errno, int count)
+client_close_errno(char *target, int ex_errno)
 {
 	int ret;
 
-	for (int i = 0; i < count; i++) {
-		struct rpmem_obc *rpc = rpmem_obc_init();
-		UT_ASSERTne(rpc, NULL);
+	struct rpmem_obc *rpc = rpmem_obc_init();
+	UT_ASSERTne(rpc, NULL);
 
-		client_connect_wait(rpc, target);
+	client_connect_wait(rpc, target);
 
-		ret = rpmem_obc_close(rpc);
-		if (ex_errno) {
-			UT_ASSERTne(ret, 0);
-			UT_ASSERTeq(errno, ex_errno);
-		} else {
-			UT_ASSERTeq(ret, 0);
-		}
-
-		rpmem_obc_disconnect(rpc);
-
-		rpmem_obc_fini(rpc);
+	ret = rpmem_obc_close(rpc);
+	if (ex_errno) {
+		UT_ASSERTne(ret, 0);
+		UT_ASSERTeq(errno, ex_errno);
+	} else {
+		UT_ASSERTeq(ret, 0);
 	}
+
+	rpmem_obc_disconnect(rpc);
+
+	rpmem_obc_fini(rpc);
 }
 
 /*
@@ -109,37 +106,46 @@ client_close_errno(char *target, int ex_errno, int count)
 /*
  * server_close_eproto -- send invalid create request responses to a client
  */
-static void
-server_close_eproto(struct server *s)
+int
+server_close_eproto(const struct test_case *tc, int argc, char *argv[])
 {
-	for (int i = 0; i < CLOSE_EPROTO_COUNT; i++) {
-		struct rpmem_msg_close_resp resp = CLOSE_RESP;
+	if (argc < 1)
+		UT_FATAL("usage: %s 0-%d", tc->name, CLOSE_EPROTO_COUNT);
 
-		switch (i) {
-		case 0:
-			resp.hdr.type = MAX_RPMEM_MSG_TYPE;
-			break;
-		case 1:
-			resp.hdr.type = RPMEM_MSG_TYPE_OPEN_RESP;
-			break;
-		case 2:
-			resp.hdr.size -= 1;
-			break;
-		case 3:
-			resp.hdr.size += 1;
-			break;
-		case 4:
-			resp.hdr.status = MAX_RPMEM_ERR;
-			break;
-		default:
-			UT_ASSERT(0);
-			break;
-		}
+	int i = atoi(argv[0]);
 
-		rpmem_hton_msg_close_resp(&resp);
+	struct server *s = srv_init();
 
-		server_close_handle(s, &resp);
+	struct rpmem_msg_close_resp resp = CLOSE_RESP;
+
+	switch (i) {
+	case 0:
+		resp.hdr.type = MAX_RPMEM_MSG_TYPE;
+		break;
+	case 1:
+		resp.hdr.type = RPMEM_MSG_TYPE_OPEN_RESP;
+		break;
+	case 2:
+		resp.hdr.size -= 1;
+		break;
+	case 3:
+		resp.hdr.size += 1;
+		break;
+	case 4:
+		resp.hdr.status = MAX_RPMEM_ERR;
+		break;
+	default:
+		UT_ASSERT(0);
+		break;
 	}
+
+	rpmem_hton_msg_close_resp(&resp);
+
+	server_close_handle(s, &resp);
+
+	srv_fini(s);
+
+	return 1;
 }
 
 /*
@@ -151,6 +157,8 @@ client_close_error(char *target)
 	int ret;
 
 	for (enum rpmem_err e = 1; e < MAX_RPMEM_ERR; e++) {
+		set_rpmem_cmd("server_close_error %d", e);
+
 		int ex_errno = rpmem_util_proto_errno(e);
 		struct rpmem_obc *rpc = rpmem_obc_init();
 		UT_ASSERTne(rpc, NULL);
@@ -170,7 +178,7 @@ client_close_error(char *target)
 /*
  * client_close -- test case for close request operation - client side
  */
-void
+int
 client_close(const struct test_case *tc, int argc, char *argv[])
 {
 	if (argc < 1)
@@ -178,52 +186,88 @@ client_close(const struct test_case *tc, int argc, char *argv[])
 
 	char *target = argv[0];
 
-	for (int i = 0; i < ECONNRESET_LOOP; i++)
-		client_close_errno(target, ECONNRESET, ECONNRESET_COUNT);
+	for (int i = 0; i < ECONNRESET_LOOP; i++) {
+		set_rpmem_cmd("server_close_econnreset %d", i % 2);
 
-	client_close_errno(target, EPROTO, CLOSE_EPROTO_COUNT);
+		client_close_errno(target, ECONNRESET);
+	}
+
+	for (int i = 0; i < CLOSE_EPROTO_COUNT; i++) {
+		set_rpmem_cmd("server_close_eproto %d", i);
+
+		client_close_errno(target, EPROTO);
+	}
 
 	client_close_error(target);
 
-	client_close_errno(target, 0, 1);
+	set_rpmem_cmd("server_close");
+
+	client_close_errno(target, 0);
+
+	return 1;
 }
 
 /*
  * server_close_error -- return error status in close response message
  */
-static void
-server_close_error(struct server *s)
+int
+server_close_error(const struct test_case *tc, int argc, char *argv[])
 {
-	for (enum rpmem_err e = 1; e < MAX_RPMEM_ERR; e++) {
-		struct rpmem_msg_close_resp resp = CLOSE_RESP;
-		resp.hdr.status = e;
-		rpmem_hton_msg_close_resp(&resp);
-		server_close_handle(s, &resp);
-	}
+	if (argc < 1)
+		UT_FATAL("usage: %s 0-%d", tc->name, MAX_RPMEM_ERR);
+
+	enum rpmem_err e = (enum rpmem_err)atoi(argv[0]);
+
+	struct server *s = srv_init();
+
+	struct rpmem_msg_close_resp resp = CLOSE_RESP;
+	resp.hdr.status = e;
+	rpmem_hton_msg_close_resp(&resp);
+	server_close_handle(s, &resp);
+
+	srv_fini(s);
+
+	return 1;
+}
+
+/*
+ * server_close_econnreset -- test case for closing connection - server size
+ */
+int
+server_close_econnreset(const struct test_case *tc, int argc, char *argv[])
+{
+	if (argc < 1)
+		UT_FATAL("usage: %s 0|1", tc->name);
+
+	int do_send = atoi(argv[0]);
+
+	struct server *s = srv_init();
+
+	struct rpmem_msg_close_resp resp = CLOSE_RESP;
+	rpmem_hton_msg_close_resp(&resp);
+
+	if (do_send)
+		srv_send(s, &resp, sizeof(resp) / 2);
+
+	srv_fini(s);
+
+	return 1;
 }
 
 /*
  * server_close -- test case for close request operation - server side
  */
-void
+int
 server_close(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc != 1)
-		UT_FATAL("usage: %s 0|<port>", tc->name);
-
-	unsigned short port = srv_get_port(argv[0]);
-	struct server *s = srv_listen(port);
+	struct server *s = srv_init();
 
 	struct rpmem_msg_close_resp resp = CLOSE_RESP;
 	rpmem_hton_msg_close_resp(&resp);
 
-	server_econnreset(s, &resp, sizeof(resp) / 2);
-
-	server_close_eproto(s);
-
-	server_close_error(s);
-
 	server_close_handle(s, &resp);
 
-	srv_stop(s);
+	srv_fini(s);
+
+	return 0;
 }
