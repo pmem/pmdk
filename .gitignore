@@ -13,3 +13,6 @@ rpm/
 dpkg/
 .deps
 .vscode
+*.user
+~*
+*.db
