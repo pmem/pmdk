@@ -41,7 +41,7 @@ function usage {
 	echo "Usage:"
 	echo "    build-image.sh <OS:VER>"
 	echo "where <OS:VER>, for example, can be 'ubuntu:16.04', provided a Dockerfile " \
-		"named 'Dockerfile.ubuntu:16.04' exists in the current directory."
+		"named 'Dockerfile.ubuntu-16.04' exists in the current directory."
 }
 
 if [[ -z "$1" ]]; then
@@ -49,7 +49,9 @@ if [[ -z "$1" ]]; then
 	exit 1
 fi
 
-if [[ ! -f "Dockerfile.$1" ]]; then
+os_ver=${1/\:/-}
+
+if [[ ! -f "Dockerfile.$os_ver" ]]; then
 	echo "ERROR: wrong argument."
 	usage
 	exit 1
@@ -59,4 +61,4 @@ tag=nvml/$1
 docker build -t $tag \
 	--build-arg http_proxy=$http_proxy \
 	--build-arg https_proxy=$https_proxy \
-	-f Dockerfile.$1 .
+	-f Dockerfile.$os_ver .
