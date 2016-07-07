@@ -742,7 +742,7 @@ util_parse_add_remote_replica(struct pool_set **setp, char *node_addr,
 }
 
 /*
- * util_poolset_parse -- (internal) parse pool set config file
+ * util_poolset_parse -- parse pool set config file
  *
  * Returns 1 if the file is a valid pool set config file, 0 if the file
  * is not a pool set header, and -1 in case of any error.

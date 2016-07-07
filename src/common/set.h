@@ -158,6 +158,7 @@ int util_pool_open_remote(struct pool_set **setp, const char *path, int rdonly,
 	unsigned char *poolset_uuid, unsigned char *first_part_uuid,
 	unsigned char *prev_repl_uuid, unsigned char *next_repl_uuid,
 	unsigned char *arch_flags);
+int util_poolset_parse(const char *path, int fd, struct pool_set **setp);
 
 void util_remote_init(void);
 void util_remote_fini(void);

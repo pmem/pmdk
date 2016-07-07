@@ -55,6 +55,9 @@
 #include "set.h"
 #include "check_util.h"
 
+/* arbitrary size of a maximum file part being read / write at once */
+#define RW_BUFFERING_SIZE (128 * 1024 * 1024)
+
 /*
  * pool_btt_lseek -- (internal) perform lseek in BTT file mode
  */
@@ -406,6 +409,28 @@ err:
 }
 
 /*
+ * pool_set_parse -- parse poolset file
+ */
+int
+pool_set_parse(const char *path, struct pool_set **setp)
+{
+	int fd = open(path, O_RDONLY);
+	int ret = 0;
+
+	if (fd < 0)
+		return 1;
+
+	if (util_poolset_parse(path, fd, setp)) {
+		ret = 1;
+		goto err_close;
+	}
+
+err_close:
+	close(fd);
+	return ret;
+}
+
+/*
  * pool_data_alloc -- allocate pool data and open set_file
  */
 struct pool_data *
@@ -541,9 +566,6 @@ pool_write(struct pool_data *pool, const void *buff, size_t nbytes,
 	return 0;
 }
 
-/* arbitrary size of a buffer used to read and write to / from files */
-#define READ_WRITE_BUFFER_SIZE (128 * 1024 * 1024)
-
 /*
  * pool_copy -- make a copy of the pool
  */
@@ -580,7 +602,7 @@ pool_copy(struct pool_data *pool, const char *dst_path)
 		goto out_unmap;
 	}
 
-	void *buf = malloc(READ_WRITE_BUFFER_SIZE);
+	void *buf = malloc(RW_BUFFERING_SIZE);
 	if (buf == NULL) {
 		ERR("!malloc");
 		result = -1;
@@ -590,7 +612,7 @@ pool_copy(struct pool_data *pool, const char *dst_path)
 	pool_btt_lseek(pool, 0, SEEK_SET);
 	ssize_t buf_read = 0;
 	void *dst = daddr;
-	while ((buf_read = pool_btt_read(pool, buf, READ_WRITE_BUFFER_SIZE))) {
+	while ((buf_read = pool_btt_read(pool, buf, RW_BUFFERING_SIZE))) {
 		if (buf_read == -1)
 			break;
 
@@ -601,6 +623,68 @@ pool_copy(struct pool_data *pool, const char *dst_path)
 	free(buf);
 out_unmap:
 	munmap(daddr, file->size);
+out_close:
+	if (dfd >= 0)
+		close(dfd);
+	return result;
+}
+
+/*
+ * pool_set_part_copy -- make a copy of the poolset part
+ */
+int
+pool_set_part_copy(struct pool_set_part *spart, struct pool_set_part *dpart)
+{
+	int dfd = util_file_create(dpart->path, dpart->filesize, 0);
+	if (dfd < 0)
+		return -1;
+
+	int result = 0;
+	struct stat stat_buf;
+	if (fstat(spart->fd, &stat_buf)) {
+		result = -1;
+		goto out_close;
+	}
+
+	if (fchmod(dfd, stat_buf.st_mode)) {
+		result = -1;
+		goto out_close;
+	}
+
+	const size_t size = dpart->filesize & ~(Pagesize - 1);
+	char *saddr = mmap(NULL, size, PROT_READ, MAP_SHARED, spart->fd, 0);
+	if (saddr == MAP_FAILED) {
+		result = -1;
+		goto out_close;
+	}
+	char *daddr =
+		mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, dfd, 0);
+	if (daddr == MAP_FAILED) {
+		result = -1;
+		goto out_unmap_source;
+	}
+
+	size_t offset = 0;
+	size_t to_copy = size;
+	while (to_copy >= RW_BUFFERING_SIZE) {
+		memcpy(daddr + offset, saddr + offset, RW_BUFFERING_SIZE);
+		if (msync(daddr + offset, RW_BUFFERING_SIZE, MS_SYNC)) {
+			result = -1;
+			goto out_unmap_destination;
+		}
+		offset += RW_BUFFERING_SIZE;
+		to_copy -= RW_BUFFERING_SIZE;
+	}
+
+	if (to_copy > 0) {
+		memcpy(daddr + offset, saddr + offset, to_copy);
+		if (msync(daddr + offset, to_copy, MS_SYNC))
+			result = -1;
+	}
+out_unmap_destination:
+	munmap(daddr, size);
+out_unmap_source:
+	munmap(saddr, size);
 out_close:
 	if (dfd >= 0)
 		close(dfd);
@@ -619,7 +703,7 @@ pool_memset(struct pool_data *pool, uint64_t off, int c, size_t count)
 		memset((char *)off, 0, count);
 	else {
 		pool_btt_lseek(pool, (off_t)off, SEEK_SET);
-		size_t zero_size = min(count, READ_WRITE_BUFFER_SIZE);
+		size_t zero_size = min(count, RW_BUFFERING_SIZE);
 		void *buf = malloc(zero_size);
 		if (!buf) {
 			ERR("!malloc");
