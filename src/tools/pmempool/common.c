@@ -525,7 +525,7 @@ util_poolset_map(const char *fname, struct pool_set **poolset, int rdonly)
 	struct pool_set *set = NULL;
 
 	/* parse poolset file */
-	if (util_poolset_parse(fname, fd, &set)) {
+	if (util_poolset_parse(&set, fname, fd)) {
 		outv_err("parsing poolset file failed\n");
 		ret = -1;
 		goto err_close;

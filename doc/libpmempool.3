@@ -176,6 +176,29 @@ to
 .B PMEMPOOL_POOL_TYPE_DETECT.
 Pool type detection fail ends check.
 .IP
+.I backup_path
+can either be:
+.IP
+* NULL. It indicates no backup will be performed.
+.IP
+* a non existing file. It is valid only in case
+.I path
+is a single file
+.IR pool .
+It indicates a
+.I backup_path
+file will be created and backup will be performed.
+.IP
+* a existing
+.I poolset
+file of the same structure (the same number of parts with exactly the same size)
+as the source
+.IR poolset .
+It is valid only in case
+.IR path " is a " poolset .
+It indicates backup will be performed in a form described by the
+.IR backup_path " " poolset .
+.IP
 This is an example of a
 .I check context
 initialization:
