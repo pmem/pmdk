@@ -211,7 +211,7 @@ pool_hdr_checksum(PMEMpoolcheck *ppc, union location *loc)
 
 	if (!pool_supported(ppc->pool->params.type)) {
 		ppc->result = CHECK_RESULT_CANNOT_REPAIR;
-		return CHECK_ERR(ppc, "unsupported pool type '%s'",
+		return CHECK_ERR(ppc, "the repair of %s pools is not supported",
 			check_get_pool_type_str(ppc->pool->params.type));
 	}
 

@@ -652,11 +652,11 @@ check_get_pool_type_str(enum pool_type type)
 	case POOL_TYPE_BTT:
 		return "btt";
 	case POOL_TYPE_LOG:
-		return "log";
+		return "pmemlog";
 	case POOL_TYPE_BLK:
-		return "blk";
+		return "pmemblk";
 	case POOL_TYPE_OBJ:
-		return "obj";
+		return "pmemobj";
 	default:
 		return "unknown";
 	}
