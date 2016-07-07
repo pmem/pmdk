@@ -40,7 +40,7 @@
 
 #include "libpmemobj.h"
 
-#include "util.h"
+#include "set.h"
 #include "log.h"
 #include "blk.h"
 #include "btt_layout.h"
@@ -120,12 +120,15 @@ void pool_data_free(struct pool_data *pool);
 void pool_params_from_header(struct pool_params *params,
 	const struct pool_hdr *hdr);
 
+int pool_set_parse(struct pool_set **setp, const char *path);
 void *pool_set_file_map(struct pool_set_file *file, uint64_t offset);
 int pool_read(struct pool_data *pool, void *buff, size_t nbytes,
 	uint64_t off);
 int pool_write(struct pool_data *pool, const void *buff, size_t nbytes,
 	uint64_t off);
 int pool_copy(struct pool_data *pool, const char *dst_path);
+int pool_set_part_copy(struct pool_set_part *dpart,
+	struct pool_set_part *spart);
 int pool_memset(struct pool_data *pool, uint64_t off, int c, size_t count);
 
 unsigned pool_set_files_count(struct pool_set_file *file);

@@ -65,7 +65,7 @@ main(int argc, char *argv[])
 
 		fd = OPEN(path, O_RDWR);
 
-		int ret = util_poolset_parse(path, fd, &set);
+		int ret = util_poolset_parse(&set, path, fd);
 		if (ret == 0)
 			util_poolset_free(set);
 

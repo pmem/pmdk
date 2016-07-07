@@ -1,0 +1,17 @@
+libpmempool_backup/TEST7: START: libpmempool_test
+ ../libpmempool_api/libpmempool_test$(nW) $(nW)/pool.set -b $(nW)/pool.set_backup -t obj -r 1
+only the first replica will be backed up
+creating backup file: $(nW)/pool.part1_backup
+creating backup file: $(nW)/pool.part2_backup
+creating backup file: $(nW)/pool.part3_backup
+creating backup file: $(nW)/pool.part4_backup
+replica 0 part 0: checking pool header
+replica 0 part 0: pool header checksum correct
+replica 0 part 1: checking pool header
+replica 0 part 1: pool header checksum correct
+replica 0 part 2: checking pool header
+replica 0 part 2: pool header checksum correct
+replica 0 part 3: checking pool header
+replica 0 part 3: pool header checksum correct
+status = consistent
+libpmempool_backup/TEST7: Done
