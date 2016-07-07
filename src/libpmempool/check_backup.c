@@ -36,6 +36,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <unistd.h>
 
 #include "out.h"
 #include "libpmempool.h"
@@ -57,9 +58,73 @@ check_backup(PMEMpoolcheck *ppc)
 	if (ppc->backup_path == NULL)
 		return;
 
-	CHECK_INFO(ppc, "creating backup file: %s", ppc->backup_path);
-	if (pool_copy(ppc->pool, ppc->backup_path)) {
-		CHECK_ERR(ppc, "unable to create backup file");
-		ppc->result = CHECK_RESULT_ERROR;
+	if (ppc->pool->params.is_poolset) {
+		if (ppc->pool->set_file->poolset->nreplicas > 1) {
+			CHECK_INFO(ppc, "only the first replica will be backed "
+				"up");
+		}
+
+		struct pool_set *set = NULL;
+		if (pool_set_parse(&set, ppc->backup_path)) {
+			CHECK_INFO(ppc, "invalid poolset backup file: %s",
+				ppc->backup_path);
+			goto err_poolset;
+		}
+
+		if (set->nreplicas > 1) {
+			CHECK_INFO(ppc, "backup to a poolset with multiple "
+				"replicas is not supported");
+			goto err_poolset;
+		}
+
+		ASSERTeq(set->nreplicas, 1);
+		struct pool_replica *srep =
+			ppc->pool->set_file->poolset->replica[0];
+		struct pool_replica *drep = set->replica[0];
+		if (srep->nparts != drep->nparts) {
+			CHECK_INFO(ppc, "number of parts in the backup poolset "
+				"must match number of parts in the source "
+				"poolset");
+			goto err_poolset;
+		}
+
+		for (unsigned p = 0; p < srep->nparts; p++) {
+			if (srep->part[p].filesize != drep->part[p].filesize) {
+				CHECK_INFO(ppc, "size of the part %u of the "
+					"backup poolset does not match source "
+					"poolset", p);
+				goto err_poolset;
+			}
+
+			if (!access(drep->part[p].path, F_OK)) {
+				CHECK_INFO(ppc, "unable to backup to the "
+					"poolset with already existing parts");
+				goto err_poolset;
+			}
+
+			errno = 0;
+		}
+
+		for (unsigned p = 0; p < srep->nparts; p++) {
+			CHECK_INFO(ppc, "creating backup file: %s",
+				drep->part[p].path);
+			if (pool_set_part_copy(
+					&drep->part[p], &srep->part[p])) {
+				CHECK_INFO(ppc, "unable to create backup file");
+				goto err_poolset;
+			}
+		}
+	} else {
+		CHECK_INFO(ppc, "creating backup file: %s", ppc->backup_path);
+		if (pool_copy(ppc->pool, ppc->backup_path)) {
+			CHECK_ERR(ppc, "unable to create backup file");
+			ppc->result = CHECK_RESULT_ERROR;
+		}
 	}
+
+	return;
+
+err_poolset:
+	CHECK_ERR(ppc, "unable to backup poolset");
+	ppc->result = CHECK_RESULT_ERROR;
 }
