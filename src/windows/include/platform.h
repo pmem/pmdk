@@ -41,6 +41,8 @@
 #ifndef PLATFORM_H
 #define PLATFORM_H 1
 
+#define _CRT_RAND_S
+
 /*
  * Define off_t before windows.h is included!
  * XXX - make sure it has no side-effects
@@ -239,5 +241,16 @@ const void (WINAPI *_##func)(void) = func;
 void func(void); \
 static void _##func##_reg(void) { atexit(func); }; \
 MSVC_CONSTR(_##func##_reg)
+
+/*
+ * If multi-threaded version of CRT is used (which should be the
+ * case always now-a-days), we can define the thread safe version
+ * of few CRT functions to be their regular versions, if an explicit
+ * thread safe version is not available in windows.
+ */
+
+#ifdef _MT
+#define rand_r rand_s
+#endif /* _MT */
 
 #endif /* PLATFORM_H */

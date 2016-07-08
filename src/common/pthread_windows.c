@@ -435,7 +435,7 @@ pthread_start_routine_wrapper(void *arg)
 	pthread_once(&Pthread_self_index_initialized, pthread_init);
 	TlsSetValue(Pthread_self_index, thread_info);
 
-	thread_info->start_routine(thread_info->arg);
+	thread_info->result = thread_info->start_routine(thread_info->arg);
 
 	return 0;
 }
