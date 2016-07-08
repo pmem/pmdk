@@ -582,5 +582,12 @@ main(int argc, char *argv[])
 
 	pmemobj_close(pop);
 
+	if ((pop = pmemobj_open(path, POBJ_LAYOUT_NAME(basic))) == NULL)
+		UT_FATAL("!pmemobj_open: %s", path);
+	pmemobj_close(pop);
+
+	if (pmemobj_check(path, POBJ_LAYOUT_NAME(basic)) != 1)
+		UT_FATAL("!pmemobj_check: %s", path);
+
 	DONE(NULL);
 }
