@@ -303,13 +303,15 @@ rpmemd_req_open(struct rpmemd_obc *obc, void *arg,
 	struct rpmem_resp_attr resp;
 	memset(&resp, 0, sizeof(resp));
 
+	struct rpmem_pool_attr pool_attr;
+	memset(&pool_attr, 0, sizeof(pool_attr));
+
 	if (rpmemd->pool) {
 		RPMEMD_LOG(ERR, "pool already opened");
 		status = RPMEM_ERR_FATAL;
 		goto err_pool_opened;
 	}
 
-	struct rpmem_pool_attr pool_attr;
 	rpmemd->pool = rpmemd_db_pool_open(rpmemd->db,
 			req->pool_desc, 0, &pool_attr);
 	if (!rpmemd->pool) {
@@ -433,36 +435,42 @@ main(int argc, char *argv[])
 		goto err_obc;
 	}
 
-	uint32_t status = 0;
-
 	struct rpmemd *rpmemd = calloc(1, sizeof(*rpmemd));
 	if (!rpmemd) {
 		RPMEMD_LOG(ERR, "!calloc");
-		status = (uint32_t)errno;
-		goto err_status;
+		ret = rpmemd_obc_status(obc, (uint32_t)errno);
+		if (ret)
+			RPMEMD_LOG(ERR, "writing status failed");
+		goto err_rpmemd;
 	}
 
 	rpmemd->persist = pmem_persist;
 	rpmemd->persist_method = rpmemd_get_pm(&config);
 	rpmemd->nthreads = rpmemd_get_nthreads();
 	if (!rpmemd->nthreads) {
-		status = (uint32_t)errno;
-		goto err_status;
+		RPMEMD_LOG(ERR, "invalid number of threads -- '%lu'",
+				rpmemd->nthreads);
+		ret = rpmemd_obc_status(obc, (uint32_t)errno);
+		if (ret)
+			RPMEMD_LOG(ERR, "writing status failed");
+		goto err_nthreads;
 	}
 
 	rpmemd->db = rpmemd_db_init(config.poolset_dir, 0666);
 	if (!rpmemd->db) {
 		RPMEMD_LOG(ERR, "!pool set db initialization");
-		status = (uint32_t)errno;
-		goto err_status;
+		ret = rpmemd_obc_status(obc, (uint32_t)errno);
+		if (ret)
+			RPMEMD_LOG(ERR, "writing status failed");
+		goto err_db_init;
 	}
 
 	rpmemd->obc = obc;
 
-	ret = rpmemd_obc_status(obc, status);
+	ret = rpmemd_obc_status(obc, 0);
 	if (ret) {
 		RPMEMD_LOG(ERR, "writing status failed");
-		goto err;
+		goto err_status;
 	}
 
 	while (!ret) {
@@ -484,12 +492,13 @@ main(int argc, char *argv[])
 	rpmemd_config_free(&config);
 
 	return 0;
-err_status:
-	ret = rpmemd_obc_status(obc, status);
-	if (ret)
-		RPMEMD_LOG(ERR, "writing status failed");
 err:
-	ret = 1;
+err_status:
+err_db_init:
+	free(rpmemd);
+err_nthreads:
+err_rpmemd:
+	rpmemd_obc_fini(obc);
 err_obc:
 	rpmemd_log_close();
 	rpmemd_config_free(&config);
