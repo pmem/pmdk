@@ -59,8 +59,6 @@
 #include <stdint.h>
 
 /* XXX - dummy */
-typedef int pthread_t;
-typedef int pthread_attr_t;
 typedef long pthread_once_t;
 typedef DWORD pthread_key_t;
 
@@ -151,5 +149,21 @@ int pthread_cond_timedwait(pthread_cond_t *__restrict cond,
 	pthread_mutex_t *__restrict mutex, const struct timespec *abstime);
 int pthread_cond_wait(pthread_cond_t *__restrict cond,
 	pthread_mutex_t *__restrict mutex);
+
+/* threading */
+
+typedef struct {
+	HANDLE thread_handle;
+	void *arg;
+	void *(*start_routine)(void *);
+	void *result;
+} pthread_info, * pthread_t;
+
+typedef void pthread_attr_t;
+
+int pthread_create(pthread_t *thread, const pthread_attr_t *attr,
+	void *(*start_routine)(void *), void *arg);
+
+int pthread_join(pthread_t thread, void **result);
 
 #endif /* PTHREAD_H */
