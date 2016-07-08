@@ -18,6 +18,7 @@
     <ClCompile Include="out.c" />
     <ClCompile Include="pool_hdr.c" />
     <ClCompile Include="pool_hdr_windows.c" />
+    <ClCompile Include="pthread_windows.c" />
     <ClCompile Include="set.c" />
     <ClCompile Include="util.c" />
     <ClCompile Include="uuid.c" />

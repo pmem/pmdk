@@ -44,6 +44,9 @@
     <ClCompile Include="uuid_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="pthread_windows.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="dlsym.h">
