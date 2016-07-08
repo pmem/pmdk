@@ -2,6 +2,8 @@
 layout: manual
 Content-Style: 'text/css'
 title: librpmem(3)
+header: NVM Library
+date: rpmem API version 1.0.0
 ...
 
 [comment]: <> (Copyright 2016, Intel Corporation)
@@ -33,11 +35,11 @@ title: librpmem(3)
 
 [comment]: <> (librpmem.3 -- man page for librpmem)
 
-### NAME ###
+# NAME #
 
 **librpmem** - remote persistent memory support library
 
-### SYNOPSIS ###
+# SYNOPSIS #
 
 ```c
 #include <librpmem.h>
@@ -75,7 +77,7 @@ const char *rpmem_check_version(unsigned major_required,
 const char *rpmem_errormsg(void);
 ```
 
-### DESCRIPTION ###
+# DESCRIPTION #
 
 **librpmem**
 provides low-level support for remote access to *persistent memory* (pmem)
@@ -93,7 +95,7 @@ available and are recommended for most applications, see:
  + **libpmemobj**(3), a general use persistent memory API, providing memory
 allocation and transactional operations on variable-sized objects.
 
-### MOST COMMONLY USED FUNCTIONS ###
+# MOST COMMONLY USED FUNCTIONS #
 
 ```c
 RPMEMpool *rpmem_create(const char *target, const char *pool_set_name,
@@ -177,7 +179,7 @@ int rpmem_read(RPMEMpool *rpp, void *buff, size_t offset, size_t length);
   appropriately. The *rpp* must point to a remote pool opened or created
   previously by **rpmem_open**() or **rpmem_create**() functions respectively.
 
-### LANES ###
+# LANES #
 
 The term *lane* means an isolated path of execution. Due to a limited resources
 provided by underlying hardware utilized by both local and remote nodes the
@@ -192,7 +194,7 @@ lanes in parallel. The **rpmem_persist** does not provide any locking mechanism
 thus the serialization of the calls shall be performed by the application if
 required.
 
-### TARGET NODE ADDRESS FORMAT ###
+# TARGET NODE ADDRESS FORMAT #
 
 ```
 [<user>@]<hostname>[:<port>]
@@ -204,7 +206,7 @@ to authenticate to the remote machine without querying for password/passphrase.
 The optional *port* number is used to establish the SSH connection. The default
 port number is 22.
 
-### REMOTE POOL ATTRIBUTES ###
+# REMOTE POOL ATTRIBUTES #
 
 The *rpmem_pool_attr* structure describes a remote pool and is stored in remote
 pool's metadata. This structure must be passed to the **rpmem_create**()
@@ -259,7 +261,7 @@ pools in a list.
 
 The *user_flags* field is a 16-byte user-defined flags.
 
-### SSH ###
+# SSH #
 
 The **librpmem** utilizes **ssh**(1) client to login and execute the
 **rpmemd(1)** process on remote node. By default the **ssh** process
@@ -269,15 +271,14 @@ The SSH command executed by **librpmem** can be overwritten by
 can be overwritten by **RPMEM_CMD** variable. See **ENVIRONMENT VARIABLES**
 section for details.
 
-**WARNING:**
-
+>**WARNING:**
 The **ssh** process is executed
 by **rpmem_open**() and **rpmem_create**() after forking a child process.
 The application must take into account this fact when using **wait(3)**
 and **waitpid(3)** functions which may return a PID of the **ssh** process
 executed by **librpmem**.
 
-### LIBRARY API VERSIONING ###
+# LIBRARY API VERSIONING #
 
 This section describes how the library API is versioned, allowing
 applications to work with an evolving API.
@@ -319,7 +320,7 @@ static string describing the reason for failing the version check. The
 string returned by **rpmem_check_version**() must not be modified or
 freed.
 
-### DEBUGGING AND ERROR HANDLING ###
+# DEBUGGING AND ERROR HANDLING #
 
 Two versions of **librpmem** are typically available on a development
 system. The normal version, accessed when a program is linked using the
@@ -374,7 +375,7 @@ the logging output goes to stderr.
 Setting the environment variable *RPMEM_LOG_LEVEL* has no effect on
 the non-debug version of **librpmem**.
 
-### ENVIRONMENT VARIABLES ###
+# ENVIRONMENT VARIABLES #
 
 **librpmem** can change its default behavior based on the following
 environment variables. These are largely intended for testing and are
@@ -459,13 +460,13 @@ main(int argc, char *argv[])
 }
 ```
 
-### ACKNOWLEDGEMENTS ###
+# ACKNOWLEDGEMENTS #
 
 **librpmem** builds on the persistent memory programming model
 recommended by the SNIA NVM Programming Technical Work Group:
 [http://snia.org/nvmp](http://snia.org/nvmp)
 
-### SEE ALSO ###
+# SEE ALSO #
 
 **libpmemobj**(3),
 **libpmemblk**(3),
