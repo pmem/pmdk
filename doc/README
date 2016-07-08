@@ -69,11 +69,11 @@ The following two files are initial man pages for experimental components
 still under development:
 
 librpmem(3) -- remote access to persistent memory
-    Man page source is in librmpem.3
+    Man page source is in librmpem.3.md
     HTML formatted version: http://pmem.io/nvml/rpmem/librpmem.3.html
 
 rpmemd(1) -- remote persistent memory daemon
-    Man page source is in rpmemd.1
+    Man page source is in rpmemd.1.md
     HTML formatted version: http://pmem.io/nvml/rpmem/rpmemd.1.html
 
 To create more readable text files from the source, use:
