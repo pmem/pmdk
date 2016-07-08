@@ -175,7 +175,7 @@ main(int argc, char *argv[])
 		switch (argv[1][0]) {
 		case 'c':
 			ret = util_pool_create(&set, fname, 0, minsize,
-				SIG, 1, 0, 0, 0);
+				SIG, 1, 0, 0, 0, NULL);
 			if (ret == -1)
 				UT_OUT("!%s: util_pool_create", fname);
 			else {
@@ -186,7 +186,7 @@ main(int argc, char *argv[])
 			break;
 		case 'o':
 			ret = util_pool_open(&set, fname, 0 /* rdonly */,
-				minsize, SIG, 1, 0, 0, 0);
+				minsize, SIG, 1, 0, 0, 0, NULL);
 			if (ret == -1)
 				UT_OUT("!%s: util_pool_open", fname);
 			else {

@@ -190,11 +190,13 @@ rpmemd_db_pool_create(struct rpmemd_db *db, const char *pool_desc,
 					attr->compat_features,
 					attr->incompat_features,
 					attr->ro_compat_features,
+					NULL,
 					attr->poolset_uuid,
 					attr->uuid,
 					attr->prev_uuid,
 					attr->next_uuid,
-					attr->user_flags);
+					attr->user_flags,
+					POOL_REMOTE);
 	if (ret) {
 		RPMEMD_LOG(ERR, "!cannot create pool set -- '%s'", path);
 		goto err_free_path;
