@@ -104,7 +104,9 @@ Format: HTML
 Index: /usr/share/doc/${OBJ_CPP_DOC_DIR}/index.html
 Files: /usr/share/doc/${OBJ_CPP_DOC_DIR}/*
 EOF
+}
 
+function rpmem_install_triggers_overrides() {
 cat << EOF > debian/librpmem.install
 usr/lib/librpmem.so.*
 EOF
@@ -139,6 +141,20 @@ postrm-has-useless-call-to-ldconfig
 # We do not want to compile with -O2 for debug version
 hardening-no-fortify-functions usr/lib/nvml_dbg/*
 EOF
+
+cat << EOF > debian/rpmemd.install
+usr/bin/rpmemd
+usr/share/man/man1/rpmemd.1.gz
+EOF
+
+cat << EOF > debian/rpmemd.triggers
+interest man-db
+EOF
+
+cat << EOF > debian/rpmemd.lintian-overrides
+$ITP_BUG_EXCUSE
+new-package-should-close-itp-bug
+EOF
 }
 
 function append_experimental_control() {
@@ -150,12 +166,25 @@ Architecture: any
 Depends: libpmemobj-dev (=\${binary:Version}), \${shlibs:Depends}, \${misc:Depends}
 Description: C++ bindings for libpmemobj (EXPERIMENTAL)
  Headers-only C++ library for libpmemobj.
+EOF
+}
+
+function append_rpmem_control() {
+cat << EOF >> $CONTROL_FILE
 
 Package: librpmem
 Architecture: any
 Depends: \${shlibs:Depends}, \${misc:Depends}
 Description: NVML librpmem library
  NVML library for Remote Persistent Memory support
+
+Package: rpmemd
+Section: misc
+Architecture: any
+Priority: optional
+Depends: \${shlibs:Depends}, \${misc:Depends}
+Description: rpmem daemon
+ Daemon for Remote Persistent Memory support
 EOF
 }
 
@@ -643,6 +672,12 @@ if [ "${EXPERIMENTAL}" = "y" ]
 then
 	append_experimental_control;
 	experimental_install_triggers_overrides;
+fi
+
+if [ "${RPMEM_DPKG}" = "y" ]
+then
+	append_rpmem_control;
+	rpmem_install_triggers_overrides;
 fi
 
 # Convert ChangeLog to debian format

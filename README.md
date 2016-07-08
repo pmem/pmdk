@@ -195,6 +195,15 @@ If you want to build/install experimental packages run:
 ```
 	$ make EXPERIMENTAL=y [install,rpm,dpkg]
 ```
+**NOTE:**
+The **libfabric** package required to build the **librpmem** and **rpmemd** is
+not yet available on stable debian-based distributions. This makes it
+impossible to create debian packages.
+
+If you want to build debian packages of **librpmem** and **rpmemd** run:
+```
+	$ make EXPERIMENTAL=y RPMEM_DPKG=y dpkg
+```
 
 ### Contacts ###
 
