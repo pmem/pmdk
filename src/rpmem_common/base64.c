@@ -157,13 +157,13 @@ base64_decode(const uint8_t *in, size_t in_len, uint8_t *out, size_t out_len)
 
 	size_t j = 0;
 	for (size_t i = 0; i < in_len; ) {
-		uint32_t a = in[i] == BASE64_PAD ? 0 : Base64_dec[in[i]];
+		uint32_t a = in[i] == BASE64_PAD ? 0U : Base64_dec[in[i]];
 		i++;
-		uint32_t b = in[i] == BASE64_PAD ? 0 : Base64_dec[in[i]];
+		uint32_t b = in[i] == BASE64_PAD ? 0U : Base64_dec[in[i]];
 		i++;
-		uint32_t c = in[i] == BASE64_PAD ? 0 : Base64_dec[in[i]];
+		uint32_t c = in[i] == BASE64_PAD ? 0U : Base64_dec[in[i]];
 		i++;
-		uint32_t d = in[i] == BASE64_PAD ? 0 : Base64_dec[in[i]];
+		uint32_t d = in[i] == BASE64_PAD ? 0U : Base64_dec[in[i]];
 		i++;
 
 		uint32_t p = base64_pack6(a, b, c, d);
