@@ -57,6 +57,7 @@
 #include <time.h>
 #include <sys/types.h>
 #include <sys/timeb.h>
+#include <assert.h>
 
 int
 pthread_mutexattr_init(pthread_mutexattr_t *attr)
@@ -362,4 +363,85 @@ void *
 pthread_getspecific(pthread_key_t key)
 {
 	return TlsGetValue(key);
+}
+
+/* threading */
+pthread_once_t pthread_self_index_initialized;
+DWORD pthread_self_index;
+
+/*
+ * pthread_init is called once before the first POSIX thread is spawned i.e.
+ * before the start_routine of the first POSIX thread is executed.  Here
+ * we make sure:
+ *
+ *  - we have an entry allocated in thread local storage, where we will store
+ *    the address of the pthread_v structure for each thread
+ */
+void
+pthread_init(void)
+{
+	pthread_self_index = TlsAlloc();
+	if (pthread_self_index == TLS_OUT_OF_INDEXES) abort();
+}
+
+/*
+ * pthread_start_routine_wrapper is a start routine for _beginthreadex() and
+ * it helps:
+ *
+ *  - wrap the pthread_create's start function
+ *  - do the necessary initialization for POSIX threading implementation
+ */
+unsigned __stdcall
+pthread_start_routine_wrapper(void *arg)
+{
+	pthread_t thread_info = (pthread_info *)arg;
+
+	pthread_once(&pthread_self_index_initialized, pthread_init);
+	TlsSetValue(pthread_self_index, thread_info);
+
+	thread_info->startRoutine(thread_info->arg);
+
+	return 0;
+}
+
+int
+pthread_create(pthread_t *thread, const pthread_attr_t *attr,
+	void *(*start_routine)(void *), void *arg)
+{
+	pthread_t thread_info;
+
+	assert(attr == NULL);
+
+	if ((thread_info = malloc(sizeof(pthread_info))) == NULL)
+		return EAGAIN;
+
+	thread_info->startRoutine = start_routine;
+	thread_info->arg = arg;
+
+	thread_info->threadHandle = (HANDLE)_beginthreadex(NULL, 0,
+		pthread_start_routine_wrapper, thread_info, CREATE_SUSPENDED,
+		NULL);
+	if (thread_info->threadHandle == 0)
+		return errno;
+
+	if (ResumeThread(thread_info->threadHandle) == -1)
+		return EAGAIN;
+
+	*thread = thread_info;
+
+	return 0;
+}
+
+int
+pthread_join(pthread_t thread, void **result)
+{
+	WaitForSingleObject(thread->threadHandle, INFINITE);
+	CloseHandle(thread->threadHandle);
+
+	if (result != NULL)
+		*result = thread->result;
+
+	free(thread);
+
+	return 0;
 }
