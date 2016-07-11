@@ -1561,6 +1561,11 @@ pmemobj_tx_add_common(struct tx_add_range_args *args)
 {
 	LOG(15, NULL);
 
+	if (args->size > PMEMOBJ_MAX_ALLOC_SIZE) {
+		ERR("snapshot size too large");
+		return pmemobj_tx_abort_err(EINVAL);
+	}
+
 	if (args->offset < args->pop->heap_offset ||
 		(args->offset + args->size) >
 		(args->pop->heap_offset + args->pop->heap_size)) {
