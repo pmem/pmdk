@@ -186,21 +186,29 @@ $(PMEMBLK_PRIV_OBJ):
 	$(MAKE) -C $(LIBSDIR) libpmemblk
 
 install: all
+ifneq ($(LIBRARY_NAME),)
 	$(INSTALL) -d $(LIBS_DESTDIR)
 	$(INSTALL) -p -m 0755 $(TARGET_LIBS) $(LIBS_DESTDIR)
 	$(CP) -d $(TARGET_LINKS) $(LIBS_DESTDIR)
+endif
 
 uninstall:
+ifneq ($(LIBRARY_NAME),)
 	$(foreach f, $(TARGET_LIBS), $(RM) $(LIBS_DESTDIR)/$(notdir $(f)))
 	$(foreach f, $(TARGET_LINKS), $(RM) $(LIBS_DESTDIR)/$(notdir $(f)))
+endif
 
 clean: $(EXTRA_TARGETS_CLEAN)
+ifneq ($(LIBRARY_NAME),)
 	$(RM) $(OBJS)
 	$(RM) $(LIB_AR_ALL) $(LIB_AR_UNSCOPED)
+endif
 
 clobber: clean $(EXTRA_TARGETS_CLOBBER)
+ifneq ($(LIBRARY_NAME),)
 	$(RM) $(LIB_AR) $(LIB_SO_SONAME) $(LIB_SO_REAL) $(LIB_SO)
 	$(RM) -r $(objdir)/.deps
+endif
 
 $(eval $(cstyle-rule))
 

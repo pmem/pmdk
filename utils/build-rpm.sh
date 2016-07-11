@@ -90,6 +90,11 @@ Development files for NVML C++ libpmemobj bindings - EXPERIMENTAL
 %{_includedir}/libpmemobj/detail/*.hpp
 %{_docdir}/${OBJ_CPP_NAME}-%{version}/*
 
+EOF
+}
+
+function add_rpmem_packages() {
+cat << EOF >> $RPM_SPEC_FILE
 %package -n librpmem
 Summary: librpmem library
 Group: %{package_group}/Libraries
@@ -468,6 +473,10 @@ EOF
 if [ "${EXPERIMENTAL}" = "y" ]
 then
 	add_experimental_packages;
+	if [ "${BUILD_RPMEM}" = "y" ]
+	then
+		add_rpmem_packages;
+	fi
 fi
 
 [ -f $CHANGELOG_FILE ] && create_changelog $CHANGELOG_FILE >> $RPM_SPEC_FILE

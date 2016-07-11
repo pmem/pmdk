@@ -35,7 +35,7 @@ include ../common.inc
 
 vpath %.c ../rpmem_common
 
-ifeq ($(call check_package, libfabric),y)
+ifeq ($(BUILD_RPMEM),y)
 LIBRARY_NAME = rpmem
 LIBRARY_SO_VERSION = 1
 LIBRARY_VERSION = 0.0
@@ -59,7 +59,7 @@ endif
 
 include ../Makefile.inc
 
-ifeq ($(call check_package, libfabric),y)
+ifeq ($(BUILD_RPMEM),y)
 LIBS += $(shell $(PKG_CONFIG) --libs libfabric)
 CFLAGS += $(shell $(PKG_CONFIG) --cflags libfabric)
 CFLAGS += -I. -I../rpmem_common
