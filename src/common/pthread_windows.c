@@ -302,7 +302,7 @@ pthread_cond_signal(pthread_cond_t *__restrict cond)
 	return 0;
 }
 
-static time_t
+static DWORD
 get_rel_wait(const struct timespec *abstime)
 {
 	struct __timeb64 t;
@@ -311,7 +311,7 @@ get_rel_wait(const struct timespec *abstime)
 	time_t ms = (time_t)(abstime->tv_sec * 1000 +
 		abstime->tv_nsec / 1000000);
 
-	time_t rel_wait = ms - now_ms;
+	DWORD rel_wait = (DWORD)(ms - now_ms);
 
 	return rel_wait < 0 ? 0 : rel_wait;
 }
