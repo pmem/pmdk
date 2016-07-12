@@ -838,6 +838,16 @@ pmemobj_replica_init_remote(PMEMobjpool *rep, struct pool_set *set,
 }
 
 /*
+ * redo_log_check_offset -- (internal) check if offset is valid
+ */
+static int
+redo_log_check_offset(void *ctx, uint64_t offset)
+{
+	PMEMobjpool *pop = ctx;
+	return OBJ_OFF_IS_VALID(pop, offset);
+}
+
+/*
  * pmemobj_replica_init -- (internal) initialize runtime part of the replica
  */
 static int
@@ -876,21 +886,26 @@ pmemobj_replica_init(PMEMobjpool *rep, struct pool_set *set, unsigned repidx,
 		rep->memset_persist = NULL;
 	}
 
+	int ret;
 	if (repset->remote)
-		return pmemobj_replica_init_remote(rep, set, repidx,
+		ret = pmemobj_replica_init_remote(rep, set, repidx,
 							runtime_nlanes, create);
 	else
-		return pmemobj_replica_init_local(rep, repset->is_pmem);
-}
+		ret = pmemobj_replica_init_local(rep, repset->is_pmem);
+	if (ret)
+		return ret;
 
-/*
- * redo_log_check_offset -- (internal) check if offset is valid
- */
-static int
-redo_log_check_offset(void *ctx, uint64_t offset)
-{
-	PMEMobjpool *pop = ctx;
-	return OBJ_OFF_IS_VALID(pop, offset);
+	rep->redo = redo_log_config_new(rep->addr,
+			(redo_persist_fn)rep->persist,
+			(redo_flush_fn)rep->flush,
+			redo_log_check_offset,
+			rep,
+			rep,
+			REDO_NUM_ENTRIES);
+	if (!rep->redo)
+		return -1;
+
+	return 0;
 }
 
 /*
@@ -915,16 +930,6 @@ pmemobj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 	pop->rdonly = rdonly;
 
 	pop->uuid_lo = pmemobj_get_uuid_lo(pop);
-
-	pop->redo = redo_log_config_new(pop->addr,
-			(redo_persist_fn)pop->persist,
-			(redo_flush_fn)pop->flush,
-			redo_log_check_offset,
-			pop,
-			pop,
-			REDO_NUM_ENTRIES);
-	if (!pop->redo)
-		return -1;
 
 	pop->lanes_desc.runtime_nlanes = nlanes;
 
@@ -1017,9 +1022,10 @@ pmemobj_create(const char *path, const char *layout, size_t poolsize,
 		struct pool_replica *repset = set->replica[r];
 		PMEMobjpool *rep = repset->part[0].addr;
 
-		VALGRIND_REMOVE_PMEM_MAPPING(&rep->addr,
-				sizeof(struct pmemobjpool) -
-				((uintptr_t)&rep->addr - (uintptr_t)&rep->hdr));
+		size_t rt_size = (uintptr_t)(rep + 1) - (uintptr_t)&rep->addr;
+		VALGRIND_REMOVE_PMEM_MAPPING(&rep->addr, rt_size);
+
+		memset(&rep->addr, 0, rt_size);
 
 		rep->addr = rep;
 		rep->size = repset->repsize;
@@ -1225,9 +1231,11 @@ pmemobj_open_common(const char *path, const char *layout, int cow, int boot)
 		struct pool_replica *repset = set->replica[r];
 		PMEMobjpool *rep = repset->part[0].addr;
 
-		VALGRIND_REMOVE_PMEM_MAPPING(&rep->addr,
-			sizeof(struct pmemobjpool) -
-			((uintptr_t)&rep->addr - (uintptr_t)&rep->hdr));
+		size_t rt_size = (uintptr_t)(rep + 1) - (uintptr_t)&rep->addr;
+
+		VALGRIND_REMOVE_PMEM_MAPPING(&rep->addr, rt_size);
+
+		memset(&rep->addr, 0, rt_size);
 
 		rep->addr = rep;
 		rep->size = repset->repsize;
@@ -1355,6 +1363,9 @@ pmemobj_unmap_replicas(PMEMobjpool *pop)
 
 	while (pop) {
 		PMEMobjpool *next_replica = pop->replica;
+
+		redo_log_config_delete(pop->redo);
+
 		if (pop->remote == NULL) {
 			VALGRIND_REMOVE_PMEM_MAPPING(pop->addr, pop->size);
 			util_unmap(pop->addr, pop->size);
@@ -1385,9 +1396,6 @@ pmemobj_cleanup(PMEMobjpool *pop)
 	heap_cleanup(pop);
 
 	lane_cleanup(pop);
-
-	redo_log_config_delete(pop->redo);
-	pop->redo = NULL;
 
 	VALGRIND_DO_DESTROY_MEMPOOL(pop);
 
