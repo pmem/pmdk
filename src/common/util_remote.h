@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016, Intel Corporation
+ * Copyright 2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,35 +31,16 @@
  */
 
 /*
- * pmalloc.h -- internal definitions for persistent malloc
+ * util_remote.h -- remote replicas support definitions for util module
  */
 
-typedef int (*pmalloc_constr)(PMEMobjpool *pop, void *ptr,
-		size_t usable_size, void *arg);
+extern void util_remote_unload(void);
 
-int heap_boot(PMEMobjpool *pop);
-int heap_init(PMEMobjpool *pop);
-void heap_vg_open(PMEMobjpool *pop);
-void heap_cleanup(PMEMobjpool *pop);
-int heap_check(PMEMobjpool *pop);
-int heap_check_remote(PMEMobjpool *pop);
+extern void util_remote_init(void);
+extern void util_remote_fini(void);
 
-int pmalloc(PMEMobjpool *pop, uint64_t *off, size_t size);
-int pmalloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
-	pmalloc_constr constructor, void *arg);
-int
-palloc_operation(PMEMobjpool *pop,
-	uint64_t off, uint64_t *dest_off, size_t size,
-	pmalloc_constr constructor,
-	void *arg, struct operation_entry *entries, size_t nentries);
-
-
-int prealloc(PMEMobjpool *pop, uint64_t *off, size_t size);
-int prealloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
-	pmalloc_constr constructor, void *arg);
-
-uint64_t pmalloc_first(PMEMobjpool *pop);
-uint64_t pmalloc_next(PMEMobjpool *pop, uint64_t off);
-
-size_t pmalloc_usable_size(PMEMobjpool *pop, uint64_t off);
-void pfree(PMEMobjpool *pop, uint64_t *off);
+extern int (*Rpmem_persist)(RPMEMpool *rpp, size_t offset, size_t length,
+								unsigned lane);
+extern int (*Rpmem_read)(RPMEMpool *rpp, void *buff, size_t offset,
+								size_t length);
+extern int util_pool_close_remote(RPMEMpool *rpp);

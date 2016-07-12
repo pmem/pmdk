@@ -45,12 +45,16 @@
  */
 #define LANE_JUMP (64 / sizeof(uint64_t))
 
+#define RLANE_DEFAULT 0
+
 enum lane_section_type {
 	LANE_SECTION_ALLOCATOR,
 	LANE_SECTION_LIST,
 	LANE_SECTION_TRANSACTION,
 
-	MAX_LANE_SECTION
+	MAX_LANE_SECTION,
+
+	LANE_ID = MAX_LANE_SECTION
 };
 
 struct lane_section_layout {
@@ -74,6 +78,12 @@ struct lane {
 };
 
 struct lane_descriptor {
+	/*
+	 * Number of lanes available at runtime must be <= total number of lanes
+	 * available in the pool. Number of lanes can be limited by shortage of
+	 * other resources e.g. available RNIC's submission queue sizes.
+	 */
+	unsigned runtime_nlanes;
 	unsigned next_lane_idx;
 	uint64_t *lane_locks;
 	struct lane *lane;
@@ -110,7 +120,7 @@ void lane_cleanup(PMEMobjpool *pop);
 int lane_recover_and_section_boot(PMEMobjpool *pop);
 int lane_check(PMEMobjpool *pop);
 
-void lane_hold(PMEMobjpool *pop, struct lane_section **section,
+unsigned lane_hold(PMEMobjpool *pop, struct lane_section **section,
 	enum lane_section_type type);
 void lane_release(PMEMobjpool *pop);
 

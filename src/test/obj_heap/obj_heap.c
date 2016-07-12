@@ -63,6 +63,14 @@ obj_heap_persist(PMEMobjpool *pop, const void *ptr, size_t sz)
 	pmem_msync(ptr, sz);
 }
 
+static void *
+obj_heap_memset_persist(PMEMobjpool *pop, void *ptr, int c, size_t sz)
+{
+	memset(ptr, c, sz);
+	pmem_msync(ptr, sz);
+	return ptr;
+}
+
 static void
 test_heap()
 {
@@ -73,6 +81,7 @@ test_heap()
 	pop->heap_size = MOCK_POOL_SIZE - sizeof(PMEMobjpool);
 	pop->heap_offset = (uint64_t)((uint64_t)&mpop->heap - (uint64_t)mpop);
 	pop->persist = obj_heap_persist;
+	pop->memset_persist = obj_heap_memset_persist;
 
 	UT_ASSERT(heap_check(pop) != 0);
 	UT_ASSERT(heap_init(pop) == 0);

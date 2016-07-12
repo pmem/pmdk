@@ -39,6 +39,7 @@
 #endif
 
 #include <errno.h>
+#include <limits.h>
 
 #include "libpmemobj.h"
 #include "cuckoo.h"
@@ -405,11 +406,23 @@ get_lane_info_record(PMEMobjpool *pop)
 /*
  * lane_hold -- grabs a per-thread lane in a round-robin fashion
  */
-void
+unsigned
 lane_hold(PMEMobjpool *pop, struct lane_section **section,
 	enum lane_section_type type)
 {
-	ASSERTne(section, NULL);
+	if (section == NULL)
+		ASSERTeq(type, LANE_ID);
+
+	/*
+	 * Before runtime lane initialization all remote operations are
+	 * executed using RLANE_DEFAULT.
+	 */
+	if (unlikely(!pop->lanes_desc.runtime_nlanes)) {
+		ASSERT(pop->has_remote_replicas);
+		if (section != NULL)
+			FATAL("cannot obtain section before lane's init");
+		return RLANE_DEFAULT;
+	}
 
 	struct lane_info *lane = get_lane_info_record(pop);
 	while (unlikely(lane->lane_idx == UINT64_MAX)) {
@@ -419,11 +432,17 @@ lane_hold(PMEMobjpool *pop, struct lane_section **section,
 	} /* handles wraparound */
 
 	uint64_t *llocks = pop->lanes_desc.lane_locks;
-	/* grab next free lane */
+	/* grab next free lane from lanes available at runtime */
 	if (!lane->nest_count++)
-		get_lane(llocks, &lane->lane_idx, pop->nlanes);
+		get_lane(llocks, &lane->lane_idx,
+			pop->lanes_desc.runtime_nlanes);
 
-	*section = &pop->lanes_desc.lane[lane->lane_idx].sections[type];
+	if (section) {
+		ASSERT(type < MAX_LANE_SECTION);
+		*section = &pop->lanes_desc.lane[lane->lane_idx].sections[type];
+	}
+
+	return (unsigned)lane->lane_idx;
 }
 
 /*
@@ -432,6 +451,11 @@ lane_hold(PMEMobjpool *pop, struct lane_section **section,
 void
 lane_release(PMEMobjpool *pop)
 {
+	if (unlikely(!pop->lanes_desc.runtime_nlanes)) {
+		ASSERT(pop->has_remote_replicas);
+		return;
+	}
+
 	struct lane_info *lane = get_lane_info_record(pop);
 
 	ASSERTne(lane, NULL);

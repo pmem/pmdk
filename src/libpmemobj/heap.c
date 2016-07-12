@@ -1692,19 +1692,14 @@ heap_init(PMEMobjpool *pop)
 
 	struct heap_layout *layout = heap_get_layout(pop);
 	heap_write_header(&layout->header, pop->heap_size);
-	pmem_msync(&layout->header, sizeof(struct heap_header));
+	pop->persist(pop, &layout->header, sizeof(struct heap_header));
 
 	unsigned zones = heap_max_zone(pop->heap_size);
 	for (unsigned i = 0; i < zones; ++i) {
-		memset(&ZID_TO_ZONE(layout, i)->header, 0,
-				sizeof(struct zone_header));
-		memset(&ZID_TO_ZONE(layout, i)->chunk_headers, 0,
-				sizeof(struct chunk_header));
-
-		pmem_msync(&ZID_TO_ZONE(layout, i)->header,
-				sizeof(struct zone_header));
-		pmem_msync(&ZID_TO_ZONE(layout, i)->chunk_headers,
-				sizeof(struct zone_header));
+		pop->memset_persist(pop, &ZID_TO_ZONE(layout, i)->header,
+				0, sizeof(struct zone_header));
+		pop->memset_persist(pop, &ZID_TO_ZONE(layout, i)->chunk_headers,
+				0, sizeof(struct chunk_header));
 
 		/* only explicitly allocated chunks should be accessible */
 		VALGRIND_DO_MAKE_MEM_NOACCESS(pop,
@@ -1869,6 +1864,52 @@ heap_check(PMEMobjpool *pop)
 
 	for (unsigned i = 0; i < heap_max_zone(layout->header.size); ++i) {
 		if (heap_verify_zone(ZID_TO_ZONE(layout, i)))
+			return -1;
+	}
+
+	return 0;
+}
+
+/*
+ * heap_check_remote -- verifies if the heap of a remote pool is consistent
+ *                      and can be opened properly
+ *
+ * If successful function returns zero. Otherwise an error number is returned.
+ */
+int
+heap_check_remote(PMEMobjpool *pop)
+{
+	if (pop->heap_size < HEAP_MIN_SIZE) {
+		ERR("heap: invalid heap size");
+		return -1;
+	}
+
+	struct heap_layout *layout = heap_get_layout(pop);
+
+	struct heap_header header;
+	if (obj_read_remote(pop, &header, &layout->header,
+						sizeof(struct heap_header))) {
+		ERR("heap: obj_read_remote error");
+		return -1;
+	}
+
+	if (pop->heap_size != header.size) {
+		ERR("heap: heap size mismatch");
+		return -1;
+	}
+
+	if (heap_verify_header(&header))
+		return -1;
+
+	for (unsigned i = 0; i < heap_max_zone(header.size); ++i) {
+		struct zone zone_buff;
+		if (obj_read_remote(pop, &zone_buff, ZID_TO_ZONE(layout, i),
+							sizeof(struct zone))) {
+			ERR("heap: obj_read_remote error");
+			return -1;
+		}
+
+		if (heap_verify_zone(&zone_buff))
 			return -1;
 	}
 

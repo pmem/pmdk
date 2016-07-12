@@ -181,6 +181,9 @@ int util_is_absolute_path(const char *path);
 #define POOLSET_REPLICA_SIG "REPLICA"
 #define POOLSET_REPLICA_SIG_LEN 7	/* does NOT include '\0' */
 
+#define POOL_LOCAL 0
+#define POOL_REMOTE 1
+
 struct pool_set_part {
 	/* populated by a pool set file parser */
 	const char *path;
@@ -198,8 +201,10 @@ struct pool_set_part {
 };
 
 struct remote_replica {
+	void *rpp;		/* RPMEMpool opaque handle */
 	char *node_addr;	/* address of a remote node */
-	char *pool_desc;	/* descriptor of a poolset */
+	/* poolset descriptor is a pool set file name on a remote node */
+	char *pool_desc;	/* poolset descriptor */
 };
 
 struct pool_replica {
@@ -276,14 +281,18 @@ int util_uuid_generate(uuid_t uuid);
 
 int util_pool_create(struct pool_set **setp, const char *path, size_t poolsize,
 	size_t minsize, const char *sig,
-	uint32_t major, uint32_t compat, uint32_t incompat, uint32_t ro_compat);
+	uint32_t major, uint32_t compat, uint32_t incompat, uint32_t ro_compat,
+	unsigned *nlanes);
 int util_pool_create_uuids(struct pool_set **setp, const char *path,
 	size_t poolsize, size_t minsize, const char *sig,
 	uint32_t major, uint32_t compat, uint32_t incompat, uint32_t ro_compat,
-	const unsigned char *poolset_uuid, const unsigned char *first_part_uuid,
+	unsigned *nlanes,
+	const unsigned char *poolset_uuid,
+	const unsigned char *first_part_uuid,
 	const unsigned char *prev_repl_uuid,
 	const unsigned char *next_repl_uuid,
-	const unsigned char *arch_flags);
+	const unsigned char *arch_flags,
+	int remote);
 
 int util_poolset_file(struct pool_set_part *part, size_t minsize, int create);
 int util_replica_open(struct pool_set *set, unsigned repidx, int flags);
@@ -300,10 +309,10 @@ int util_map_hdr(struct pool_set_part *part, int flags);
 int util_unmap_hdr(struct pool_set_part *part);
 
 int util_pool_open_nocheck(struct pool_set **setp, const char *path,
-		int rdonly);
+	int rdonly);
 int util_pool_open(struct pool_set **setp, const char *path, int rdonly,
-	size_t minsize, const char *sig,
-	uint32_t major, uint32_t compat, uint32_t incompat, uint32_t ro_compat);
+	size_t minsize, const char *sig, uint32_t major, uint32_t compat,
+	uint32_t incompat, uint32_t ro_compat, unsigned *nlanes);
 int util_pool_open_remote(struct pool_set **setp, const char *path, int rdonly,
 	size_t minsize, char *sig, uint32_t *major,
 	uint32_t *compat, uint32_t *incompat, uint32_t *ro_compat,
@@ -394,3 +403,11 @@ typedef struct _stat64 util_stat_t;
 #define ATTR_CONSTRUCTOR
 #define ATTR_DESTRUCTOR
 #endif
+
+#ifdef __GNUC__
+#define CHECK_FUNC_COMPATIBLE(func1, func2)\
+	COMPILE_ERROR_ON(!__builtin_types_compatible_p(typeof(func1),\
+								typeof(func2)))
+#else
+#define CHECK_FUNC_COMPATIBLE(func1, func2) do {} while (0)
+#endif /* __GNUC__ */

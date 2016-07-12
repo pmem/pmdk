@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016, Intel Corporation
+ * Copyright 2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,35 +31,95 @@
  */
 
 /*
- * pmalloc.h -- internal definitions for persistent malloc
+ * util_dl.h -- dynamic linking utilities with library-specific implementation
  */
 
-typedef int (*pmalloc_constr)(PMEMobjpool *pop, void *ptr,
-		size_t usable_size, void *arg);
+#if defined(USE_LIBDL) && !defined(_WIN32)
 
-int heap_boot(PMEMobjpool *pop);
-int heap_init(PMEMobjpool *pop);
-void heap_vg_open(PMEMobjpool *pop);
-void heap_cleanup(PMEMobjpool *pop);
-int heap_check(PMEMobjpool *pop);
-int heap_check_remote(PMEMobjpool *pop);
+#include <dlfcn.h>
 
-int pmalloc(PMEMobjpool *pop, uint64_t *off, size_t size);
-int pmalloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
-	pmalloc_constr constructor, void *arg);
-int
-palloc_operation(PMEMobjpool *pop,
-	uint64_t off, uint64_t *dest_off, size_t size,
-	pmalloc_constr constructor,
-	void *arg, struct operation_entry *entries, size_t nentries);
+/*
+ * util_dlopen -- calls real dlopen()
+ */
+static inline void *
+util_dlopen(const char *filename)
+{
+	LOG(3, "filename %s", filename);
 
+	return dlopen(filename, RTLD_NOW);
+}
 
-int prealloc(PMEMobjpool *pop, uint64_t *off, size_t size);
-int prealloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
-	pmalloc_constr constructor, void *arg);
+/*
+ * util_dlerror -- calls real dlerror()
+ */
+static inline char *
+util_dlerror(void)
+{
+	return dlerror();
+}
 
-uint64_t pmalloc_first(PMEMobjpool *pop);
-uint64_t pmalloc_next(PMEMobjpool *pop, uint64_t off);
+/*
+ * util_dlsym -- calls real dlsym()
+ */
+static inline void *
+util_dlsym(void *handle, const char *symbol)
+{
+	LOG(3, "handle %p symbol %s", handle, symbol);
 
-size_t pmalloc_usable_size(PMEMobjpool *pop, uint64_t off);
-void pfree(PMEMobjpool *pop, uint64_t *off);
+	return dlsym(handle, symbol);
+}
+
+/*
+ * util_dlclose -- calls real dlclose()
+ */
+static inline int
+util_dlclose(void *handle)
+{
+	LOG(3, "handle %p", handle);
+
+	return dlclose(handle);
+}
+
+#else /* empty functions */
+
+/*
+ * util_dlopen -- empty function
+ */
+static inline void *
+util_dlopen(const char *filename)
+{
+	errno = ENOSYS;
+	return NULL;
+}
+
+/*
+ * util_dlerror -- empty function
+ */
+static inline char *
+util_dlerror(void)
+{
+	errno = ENOSYS;
+	return NULL;
+}
+
+/*
+ * util_dlsym -- empty function
+ */
+static inline void *
+util_dlsym(void *handle, const char *symbol)
+{
+	errno = ENOSYS;
+	return NULL;
+}
+
+/*
+ * util_dlclose -- empty function
+ */
+static inline int
+util_dlclose(void *handle)
+{
+	errno = ENOSYS;
+	return 0;
+}
+
+#endif

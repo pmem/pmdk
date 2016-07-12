@@ -54,11 +54,194 @@
 #include <linux/limits.h>
 
 #include "libpmem.h"
+#include "librpmem.h"
 #include "util.h"
+#include "util_remote.h"
 #include "out.h"
 #include "valgrind_internal.h"
+#include "sys_util.h"
+#include "util_dl.h"
 
 extern unsigned long long Pagesize;
+
+#define LIBRARY_REMOTE "librpmem.so.1"
+
+static void *Rpmem_handle_remote;
+static RPMEMpool *(*Rpmem_create)(const char *target, const char *pool_set_name,
+			void *pool_addr, size_t pool_size, unsigned *nlanes,
+			const struct rpmem_pool_attr *rpmem_attr);
+static RPMEMpool *(*Rpmem_open)(const char *target, const char *pool_set_name,
+			void *pool_addr, size_t pool_size, unsigned *nlanes,
+			struct rpmem_pool_attr *rpmem_attr);
+static int (*Rpmem_close)(RPMEMpool *rpp);
+int (*Rpmem_persist)(RPMEMpool *rpp, size_t offset, size_t length,
+			unsigned lane);
+int (*Rpmem_read)(RPMEMpool *rpp, void *buff, size_t offset, size_t length);
+
+static int Remote_replication_available;
+static pthread_mutex_t Remote_lock;
+static int Remote_usage_counter;
+
+/*
+ * util_remote_init -- initialize remote replication
+ */
+void
+util_remote_init()
+{
+	LOG(3, NULL);
+
+	util_mutex_init(&Remote_lock, NULL);
+	Remote_replication_available = 1;
+}
+
+/*
+ * util_remote_fini -- finalize remote replication
+ */
+void
+util_remote_fini()
+{
+	LOG(3, NULL);
+
+	Remote_replication_available = 0;
+	util_mutex_destroy(&Remote_lock);
+}
+
+/*
+ * util_dl_check_error -- check libdl error
+ */
+static int
+util_dl_check_error(void *handle, const char *func)
+{
+	LOG(15, "handle %p func %s", handle, func);
+
+	if (handle == NULL) {
+		char *errstr = util_dlerror();
+		if (errstr)
+			ERR("%s(): %s", func, errstr);
+		errno = ELIBACC;
+		return -1;
+	}
+	return 0;
+}
+
+/*
+ * util_remote_unload_core -- (internal) unload remote library (core function)
+ */
+static void
+util_remote_unload_core()
+{
+	if (Rpmem_handle_remote != NULL) {
+		util_dlclose(Rpmem_handle_remote);
+		Rpmem_handle_remote = NULL;
+	}
+	Rpmem_create = NULL;
+	Rpmem_open = NULL;
+	Rpmem_close = NULL;
+	Rpmem_persist = NULL;
+	Rpmem_read = NULL;
+}
+
+/*
+ * util_remote_unload -- unload remote library
+ */
+void
+util_remote_unload()
+{
+	LOG(3, NULL);
+
+	if (!Remote_replication_available)
+		return;
+
+	util_mutex_lock(&Remote_lock);
+
+	if (Remote_usage_counter == 0)
+		goto end_unlock;
+
+	if (Remote_usage_counter > 1)
+		goto end_dec;
+
+	/* Remote_usage_counter == 1 */
+	util_remote_unload_core();
+
+end_dec:
+	Remote_usage_counter--;
+end_unlock:
+	util_mutex_unlock(&Remote_lock);
+}
+
+/*
+ * util_remote_load -- load remote library
+ */
+static int
+util_remote_load()
+{
+	LOG(3, NULL);
+
+	if (!Remote_replication_available) {
+		ERR("remote replication is not available");
+		return -1;
+	}
+
+	CHECK_FUNC_COMPATIBLE(rpmem_create, *Rpmem_create);
+	CHECK_FUNC_COMPATIBLE(rpmem_open, *Rpmem_open);
+	CHECK_FUNC_COMPATIBLE(rpmem_close, *Rpmem_close);
+	CHECK_FUNC_COMPATIBLE(rpmem_persist, *Rpmem_persist);
+	CHECK_FUNC_COMPATIBLE(rpmem_read, *Rpmem_read);
+
+	util_mutex_lock(&Remote_lock);
+
+	if (Remote_usage_counter > 0)
+		goto end;
+
+	Rpmem_handle_remote = util_dlopen(LIBRARY_REMOTE);
+	if (util_dl_check_error(Rpmem_handle_remote, "dlopen")) {
+		ERR("the pool set requires a remote replica, "
+		    "but the '%s' library cannot be loaded",
+		    LIBRARY_REMOTE);
+		goto err;
+	}
+
+	Rpmem_create = util_dlsym(Rpmem_handle_remote, "rpmem_create");
+	if (util_dl_check_error(Rpmem_create, "dlsym")) {
+		ERR("symbol 'rpmem_create' not found");
+		goto err;
+	}
+
+	Rpmem_open = util_dlsym(Rpmem_handle_remote, "rpmem_open");
+	if (util_dl_check_error(Rpmem_open, "dlsym")) {
+		ERR("symbol 'rpmem_open' not found");
+		goto err;
+	}
+
+	Rpmem_close = util_dlsym(Rpmem_handle_remote, "rpmem_close");
+	if (util_dl_check_error(Rpmem_close, "dlsym")) {
+		ERR("symbol 'rpmem_close' not found");
+		goto err;
+	}
+
+	Rpmem_persist = util_dlsym(Rpmem_handle_remote, "rpmem_persist");
+	if (util_dl_check_error(Rpmem_persist, "dlsym")) {
+		ERR("symbol 'rpmem_persist' not found");
+		goto err;
+	}
+
+	Rpmem_read = util_dlsym(Rpmem_handle_remote, "rpmem_read");
+	if (util_dl_check_error(Rpmem_read, "dlsym")) {
+		ERR("symbol 'rpmem_read' not found");
+		goto err;
+	}
+
+end:
+	Remote_usage_counter++;
+	util_mutex_unlock(&Remote_lock);
+	return 0;
+
+err:
+	LOG(4, "error clean up");
+	util_remote_unload_core();
+	util_mutex_unlock(&Remote_lock);
+	return -1;
+}
 
 /* reserve space for size, path and some whitespace and/or comment */
 #define PARSER_MAX_LINE (PATH_MAX + 1024)
@@ -253,19 +436,33 @@ util_poolset_close(struct pool_set *set, int del)
 
 	for (unsigned r = 0; r < set->nreplicas; r++) {
 		struct pool_replica *rep = set->replica[r];
-		/* it's enough to unmap part[0] only */
-		util_unmap_part(&rep->part[0]);
-		for (unsigned p = 0; p < rep->nparts; p++) {
-			if (rep->part[p].fd != -1)
-				(void) close(rep->part[p].fd);
-			if (del && rep->part[p].created) {
-				LOG(4, "unlink %s", rep->part[p].path);
-				unlink(rep->part[p].path);
+		if (rep->remote == NULL) {
+			/* it's enough to unmap part[0] only */
+			util_unmap_part(&rep->part[0]);
+			for (unsigned p = 0; p < rep->nparts; p++) {
+				if (rep->part[p].fd != -1)
+					(void) close(rep->part[p].fd);
+				if (del && rep->part[p].created) {
+					LOG(4, "unlink %s", rep->part[p].path);
+					unlink(rep->part[p].path);
+				}
 			}
+		} else {
+			LOG(4, "freeing volatile header of remote "
+				"replica #%u", r);
+			Free(rep->part[0].addr);
+			rep->part[0].addr = NULL;
+			rep->part[0].size = 0;
+
+			LOG(4, "closing remote replica #%u", r);
+			Rpmem_close(rep->remote->rpp);
+			rep->remote->rpp = NULL;
 		}
 	}
 
 	util_poolset_free(set);
+	util_remote_unload();
+
 	errno = oerrno;
 }
 
@@ -525,8 +722,11 @@ util_parse_add_remote_replica(struct pool_set **setp, char *node_addr,
 	if (ret != 0)
 		return ret;
 
-	/* a remote replica has one 'fake' part */
-	ret = util_parse_add_part(*setp, NULL, 0);
+	/*
+	 * A remote replica has one fake part of size equal twice pool header
+	 * size for storing pool header and pool descriptor.
+	 */
+	ret = util_parse_add_part(*setp, NULL, 2 * POOL_HDR_SIZE);
 	if (ret != 0)
 		return ret;
 
@@ -720,10 +920,10 @@ err:
  * pool set structure.  Otherwise, NULL is returned.
  */
 static struct pool_set *
-util_poolset_single(const char *path, size_t filesize, int fd, int create)
+util_poolset_single(const char *path, size_t filesize, int create)
 {
-	LOG(3, "path %s filesize %zu fd %d create %d",
-			path, filesize, fd, create);
+	LOG(3, "path %s filesize %zu create %d",
+			path, filesize, create);
 
 	struct pool_set *set;
 	set = Zalloc(sizeof(struct pool_set) +
@@ -746,7 +946,7 @@ util_poolset_single(const char *path, size_t filesize, int fd, int create)
 
 	rep->part[0].filesize = filesize;
 	rep->part[0].path = Strdup(path);
-	rep->part[0].fd = fd;
+	rep->part[0].fd = -1;	/* will be filled out by util_poolset_file() */
 	rep->part[0].created = create;
 	rep->part[0].hdr = NULL;
 	rep->part[0].addr = NULL;
@@ -811,26 +1011,165 @@ util_poolset_file(struct pool_set_part *part, size_t minsize, int create)
 }
 
 /*
- * util_poolset_files -- (internal) open or create all the part files
- *                       of a pool set and replica sets
+ * util_remote_create_attr -- (internal) create attributes for remote replica
+ */
+static void
+util_remote_create_attr(const struct pool_hdr *hdrp,
+				struct rpmem_pool_attr *rpmem_attr)
+{
+	LOG(4, "hdrp %p rpmem_attr %p", hdrp, rpmem_attr);
+
+	memcpy(rpmem_attr->signature, hdrp->signature, POOL_HDR_SIG_LEN);
+	rpmem_attr->major = hdrp->major;
+	rpmem_attr->compat_features = hdrp->compat_features;
+	rpmem_attr->incompat_features = hdrp->incompat_features;
+	rpmem_attr->ro_compat_features = hdrp->ro_compat_features;
+	memcpy(rpmem_attr->poolset_uuid, hdrp->poolset_uuid,
+							POOL_HDR_UUID_LEN);
+	memcpy(rpmem_attr->uuid, hdrp->uuid, POOL_HDR_UUID_LEN);
+	memcpy(rpmem_attr->next_uuid, hdrp->next_repl_uuid, POOL_HDR_UUID_LEN);
+	memcpy(rpmem_attr->prev_uuid, hdrp->prev_repl_uuid, POOL_HDR_UUID_LEN);
+	memcpy(rpmem_attr->user_flags, &hdrp->arch_flags,
+						sizeof(struct arch_flags));
+}
+
+/*
+ * util_remote_store_attr -- (internal) store attributes read from remote
+ *                           replica in the local volatile pool header
+ */
+static void
+util_remote_store_attr(const struct rpmem_pool_attr *rpmem_attr,
+				struct pool_hdr *hdrp)
+{
+	LOG(4, "rpmem_attr %p hdrp %p", rpmem_attr, hdrp);
+
+	memcpy(hdrp->signature, rpmem_attr->signature, POOL_HDR_SIG_LEN);
+	hdrp->major = rpmem_attr->major;
+	hdrp->compat_features = rpmem_attr->compat_features;
+	hdrp->incompat_features = rpmem_attr->incompat_features;
+	hdrp->ro_compat_features = rpmem_attr->ro_compat_features;
+	memcpy(hdrp->poolset_uuid, rpmem_attr->poolset_uuid,
+						POOL_HDR_UUID_LEN);
+	memcpy(hdrp->uuid, rpmem_attr->uuid, POOL_HDR_UUID_LEN);
+	memcpy(hdrp->prev_part_uuid, rpmem_attr->uuid, POOL_HDR_UUID_LEN);
+	memcpy(hdrp->next_part_uuid, rpmem_attr->uuid, POOL_HDR_UUID_LEN);
+	memcpy(hdrp->next_repl_uuid, rpmem_attr->next_uuid, POOL_HDR_UUID_LEN);
+	memcpy(hdrp->prev_repl_uuid, rpmem_attr->prev_uuid, POOL_HDR_UUID_LEN);
+	memcpy(&hdrp->arch_flags, rpmem_attr->user_flags,
+						sizeof(struct arch_flags));
+}
+
+/*
+ * util_pool_close_remote -- close a remote replica
+ */
+int
+util_pool_close_remote(RPMEMpool *rpp)
+{
+	LOG(3, "rpp %p", rpp);
+
+	return Rpmem_close(rpp);
+}
+
+/*
+ * util_poolset_remote_open -- (internal) open or create a remote replica
  */
 static int
-util_poolset_files(struct pool_set *set, size_t minsize, int create)
+util_poolset_remote_open(struct pool_replica *rep, unsigned repidx,
+			size_t minsize, int create, void *pool_addr,
+			size_t pool_size, unsigned *nlanes)
+{
+	LOG(3, "rep %p repidx %u minsize %zu create %d "
+		"pool_addr %p pool_size %zu nlanes %p",
+		rep, repidx, minsize, create,
+		pool_addr, pool_size, nlanes);
+
+	ASSERTne(nlanes, NULL);
+
+	unsigned remote_nlanes = *nlanes;
+
+	if (create) {
+		struct rpmem_pool_attr rpmem_attr_create;
+		util_remote_create_attr(rep->part[0].addr, &rpmem_attr_create);
+
+		rep->remote->rpp = Rpmem_create(rep->remote->node_addr,
+						rep->remote->pool_desc,
+						pool_addr,
+						pool_size,
+						&remote_nlanes,
+						&rpmem_attr_create);
+		if (rep->remote->rpp == NULL) {
+			ERR("creating remote replica #%u failed", repidx);
+			return -1;
+		}
+	} else { /* open */
+		struct rpmem_pool_attr rpmem_attr_open;
+
+		rep->remote->rpp = Rpmem_open(rep->remote->node_addr,
+						rep->remote->pool_desc,
+						pool_addr,
+						pool_size,
+						&remote_nlanes,
+						&rpmem_attr_open);
+		if (rep->remote->rpp == NULL) {
+			ERR("opening remote replica #%u failed", repidx);
+			return -1;
+		}
+
+		util_remote_store_attr(&rpmem_attr_open, rep->part[0].addr);
+	}
+
+	if (remote_nlanes < *nlanes)
+		*nlanes = remote_nlanes;
+
+	return 0;
+}
+
+/*
+ * util_poolset_files_local -- (internal) open or create all the local
+ *                              part files of a pool set and replica sets
+ */
+static int
+util_poolset_files_local(struct pool_set *set, size_t minsize, int create)
 {
 	LOG(3, "set %p minsize %zu create %d", set, minsize, create);
 
 	for (unsigned r = 0; r < set->nreplicas; r++) {
 		struct pool_replica *rep = set->replica[r];
-		/*
-		 * Skip remote replicas - they should be created
-		 * by the upper layer.
-		 */
-		if (rep->remote) {
-			LOG(3, "replica %d is a remote one - skipping...", r);
-			continue;
+		if (!rep->remote) {
+			for (unsigned p = 0; p < rep->nparts; p++) {
+				if (util_poolset_file(&rep->part[p], minsize,
+							create))
+					return -1;
+			}
 		}
-		for (unsigned p = 0; p < rep->nparts; p++) {
-			if (util_poolset_file(&rep->part[p], minsize, create))
+	}
+
+	return 0;
+}
+
+/*
+ * util_poolset_files_remote -- (internal) open or create all the remote
+ *                              part files of a pool set and replica sets
+ */
+static int
+util_poolset_files_remote(struct pool_set *set, size_t minsize,
+				unsigned *nlanes, int create)
+{
+	LOG(3, "set %p minsize %zu nlanes %p create %d",
+		set, minsize, nlanes, create);
+
+	/*
+	 * The pool header is not visible on the remote node from the local host
+	 * perspective, so we replicate the pool without the pool header.
+	 */
+	void *pool_addr = (void *)((uintptr_t)set->replica[0]->part[0].addr +
+								POOL_HDR_SIZE);
+	size_t pool_size = set->poolsize - POOL_HDR_SIZE;
+	for (unsigned r = 0; r < set->nreplicas; r++) {
+		struct pool_replica *rep = set->replica[r];
+		if (rep->remote) {
+			if (util_poolset_remote_open(rep, r, minsize, create,
+						pool_addr, pool_size, nlanes))
 				return -1;
 		}
 	}
@@ -865,14 +1204,14 @@ util_poolset_read(struct pool_set **setp, const char *path)
 }
 
 /*
- * util_poolset_create -- (internal) create a new memory pool set
+ * util_poolset_create_set -- (internal) create a new pool set structure
  *
  * On success returns 0 and a pointer to a newly allocated structure
  * containing the info of all the parts of the pool set and replicas.
  */
 static int
-util_poolset_create(struct pool_set **setp, const char *path, size_t poolsize,
-	size_t minsize)
+util_poolset_create_set(struct pool_set **setp, const char *path,
+				size_t poolsize, size_t minsize)
 {
 	LOG(3, "setp %p path %s poolsize %zu minsize %zu",
 		setp, path, poolsize, minsize);
@@ -883,19 +1222,10 @@ util_poolset_create(struct pool_set **setp, const char *path, size_t poolsize,
 	size_t size = 0;
 
 	if (poolsize != 0) {
-		/* create a new file */
-		fd = util_file_create(path, poolsize, minsize);
-		if (fd == -1)
+		*setp = util_poolset_single(path, poolsize, 1);
+		if (*setp == NULL)
 			return -1;
 
-		/* close the file and open with O_RDWR */
-		*setp = util_poolset_single(path, poolsize, fd, 1);
-		if (*setp == NULL) {
-			ret = -1;
-			goto err;
-		}
-
-		/* do not close the file */
 		return 0;
 	}
 
@@ -926,11 +1256,8 @@ util_poolset_create(struct pool_set **setp, const char *path, size_t poolsize,
 		}
 
 		(void) close(fd);
-		size = 0;
-		if ((fd = util_file_open(path, &size, 0, O_RDWR)) == -1)
-			return -1;
 
-		*setp = util_poolset_single(path, size, fd, 0);
+		*setp = util_poolset_single(path, size, 0);
 		if (*setp == NULL) {
 			ret = -1;
 			goto err;
@@ -941,85 +1268,20 @@ util_poolset_create(struct pool_set **setp, const char *path, size_t poolsize,
 	}
 
 	ret = util_poolset_parse(path, fd, setp);
-	if (ret != 0)
+
+#ifdef _WIN32
+	if (ret)
 		goto err;
 
-	ret = util_poolset_files(*setp, minsize, 1);
-	if (ret != 0)
-		util_poolset_close(*setp, 1);
-
-err:
-	oerrno = errno;
-	(void) close(fd);
-	errno = oerrno;
-	return ret;
-}
-
-/*
- * util_poolset_open -- (internal) open memory pool set
- *
- * On success returns 0 and a pointer to a newly allocated structure
- * containing the info of all the parts of the pool set and replicas.
- */
-static int
-util_poolset_open(struct pool_set **setp, const char *path, size_t minsize)
-{
-	LOG(3, "setp %p path %s minsize %zu", setp, path, minsize);
-
-	int oerrno;
-	int ret = 0;
-	int fd;
-	size_t size = 0;
-
-	/* do not check minsize */
-	if ((fd = util_file_open(path, &size, 0, O_RDONLY)) == -1)
-		return -1;
-
-	char signature[POOLSET_HDR_SIG_LEN];
-	/*
-	 * read returns ssize_t, but we know it will return value between -1
-	 * and POOLSET_HDR_SIG_LEN (11), so we can safely cast it to int
-	 */
-	ret = (int)read(fd, signature, POOLSET_HDR_SIG_LEN);
-	if (ret < 0) {
-		ERR("!read %d", fd);
+	/* remote replication is not supported on Windows */
+	if ((*setp)->remote) {
+		util_poolset_free(*setp);
+		ERR("remote replication is not supported on Windows");
+		errno = ENOTSUP;
+		ret = -1;
 		goto err;
 	}
-
-	if (ret < POOLSET_HDR_SIG_LEN ||
-	    strncmp(signature, POOLSET_HDR_SIG, POOLSET_HDR_SIG_LEN)) {
-		LOG(4, "not a pool set header");
-
-		if (size < minsize) {
-			ERR("size %zu smaller than %zu", size, minsize);
-			errno = EINVAL;
-			ret = -1;
-			goto err;
-		}
-
-		/* close the file and open with O_RDWR */
-		(void) close(fd);
-		size = 0;
-		if ((fd = util_file_open(path, &size, 0, O_RDWR)) == -1)
-			return -1;
-
-		*setp = util_poolset_single(path, size, fd, 0);
-		if (*setp == NULL) {
-			ret = -1;
-			goto err;
-		}
-
-		/* do not close the file */
-		return 0;
-	}
-
-	ret = util_poolset_parse(path, fd, setp);
-	if (ret != 0)
-		goto err;
-
-	ret = util_poolset_files(*setp, minsize, 0);
-	if (ret != 0)
-		util_poolset_close(*setp, 0);
+#endif /* _WIN32 */
 
 err:
 	oerrno = errno;
@@ -1139,7 +1401,8 @@ util_header_check(struct pool_set *set, unsigned repidx, unsigned partidx,
 
 	memcpy(&hdr, hdrp, sizeof(hdr));
 
-	if (!util_convert_hdr(&hdr)) {
+	/* local copy of a remote header does not need to be converted */
+	if (rep->remote == NULL && !util_convert_hdr(&hdr)) {
 		errno = EINVAL;
 		return -1;
 	}
@@ -1152,11 +1415,10 @@ util_header_check(struct pool_set *set, unsigned repidx, unsigned partidx,
 	}
 
 	if (hdr.major != major) {
-		ERR("pool version %d (library expects %d)",
-			hdr.major, major);
+		ERR("pool version %d (library expects %d)", hdr.major, major);
 		if (hdr.major < major) {
 			ERR("Please run the pmempool convert utility to "
-			"upgrade the pool.");
+				"upgrade the pool.");
 		}
 		errno = EINVAL;
 		return -1;
@@ -1207,7 +1469,8 @@ util_header_check(struct pool_set *set, unsigned repidx, unsigned partidx,
 	int retval = util_feature_check(&hdr, incompat, ro_compat, compat);
 	if (retval < 0)
 		return -1;
-	else if (retval == 0)
+
+	if (retval == 0)
 		rep->part[partidx].rdonly = 1;
 
 	return 0;
@@ -1250,26 +1513,26 @@ util_header_check_remote(struct pool_replica *rep, unsigned partidx)
 	/* check compatibility features */
 	if (HDR(rep, 0)->compat_features != hdrp->compat_features) {
 		ERR("'may have' compatibility flags mismatch in part %d",
-			partidx);
+								partidx);
 		errno = EINVAL;
 		return -1;
 	}
 	if (HDR(rep, 0)->incompat_features != hdrp->incompat_features) {
 		ERR("'must support' compatibility flags mismatch in part %d",
-			partidx);
+								partidx);
 		errno = EINVAL;
 		return -1;
 	}
 	if (HDR(rep, 0)->ro_compat_features != hdrp->ro_compat_features) {
 		ERR("'force read-only' compatibility flags mismatch in part %d",
-			partidx);
+								partidx);
 		errno = EINVAL;
 		return -1;
 	}
 
 	/* check pool set UUID */
 	if (memcmp(HDR(rep, 0)->poolset_uuid, hdrp->poolset_uuid,
-						POOL_HDR_UUID_LEN)) {
+							POOL_HDR_UUID_LEN)) {
 		ERR("wrong pool set UUID in part %d", partidx);
 		errno = EINVAL;
 		return -1;
@@ -1277,7 +1540,7 @@ util_header_check_remote(struct pool_replica *rep, unsigned partidx)
 
 	/* check previous replica UUID */
 	if (memcmp(HDR(rep, 0)->prev_repl_uuid, hdrp->prev_repl_uuid,
-						POOL_HDR_UUID_LEN)) {
+							POOL_HDR_UUID_LEN)) {
 		ERR("wrong previous replica UUID in part %d", partidx);
 		errno = EINVAL;
 		return -1;
@@ -1300,9 +1563,9 @@ util_header_check_remote(struct pool_replica *rep, unsigned partidx)
 
 	/* check pool set linkage */
 	if (memcmp(HDR(rep, partidx - 1)->uuid, hdrp->prev_part_uuid,
-						POOL_HDR_UUID_LEN) ||
+							POOL_HDR_UUID_LEN) ||
 	    memcmp(HDR(rep, partidx + 1)->uuid, hdrp->next_part_uuid,
-						POOL_HDR_UUID_LEN)) {
+							POOL_HDR_UUID_LEN)) {
 		ERR("wrong part UUID in part %d", partidx);
 		errno = EINVAL;
 		return -1;
@@ -1314,10 +1577,11 @@ util_header_check_remote(struct pool_replica *rep, unsigned partidx)
 }
 
 /*
- * util_replica_create -- (internal) create a new memory pool replica
+ * util_replica_create_local -- (internal) create a new memory pool
+ *                              for local replica
  */
 static int
-util_replica_create(struct pool_set *set, unsigned repidx, int flags,
+util_replica_create_local(struct pool_set *set, unsigned repidx, int flags,
 	const char *sig, uint32_t major, uint32_t compat, uint32_t incompat,
 	uint32_t ro_compat, const unsigned char *prev_repl_uuid,
 	const unsigned char *next_repl_uuid, const unsigned char *arch_flags)
@@ -1341,7 +1605,7 @@ util_replica_create(struct pool_set *set, unsigned repidx, int flags,
 	/* map the first part and reserve space for remaining parts */
 	/* XXX investigate this idea of reserving space on Windows */
 	if (util_map_part(&rep->part[0], addr, rep->repsize, 0, flags) != 0) {
-		LOG(2, "pool mapping failed - part #0");
+		LOG(2, "pool mapping failed - replica #%u part #0", repidx);
 		return -1;
 	}
 
@@ -1400,7 +1664,7 @@ util_replica_create(struct pool_set *set, unsigned repidx, int flags,
 
 	ASSERTeq(mapsize, rep->repsize);
 
-	LOG(3, "replica addr %p", rep->part[0].addr);
+	LOG(3, "replica #%u addr %p", repidx, rep->part[0].addr);
 
 	return 0;
 
@@ -1415,6 +1679,97 @@ err:
 }
 
 /*
+ * util_replica_create_remote -- (internal) create a new memory pool
+ *                               for remote replica
+ */
+static int
+util_replica_create_remote(struct pool_set *set, unsigned repidx, int flags,
+	const char *sig, uint32_t major, uint32_t compat, uint32_t incompat,
+	uint32_t ro_compat, const unsigned char *prev_repl_uuid,
+	const unsigned char *next_repl_uuid)
+{
+	LOG(3, "set %p repidx %u flags %d sig %.8s major %u "
+		"compat %#x incompat %#x ro_comapt %#x "
+		"prev_repl_uuid %p next_repl_uuid %p",
+		set, repidx, flags, sig, major,
+		compat, incompat, ro_compat,
+		prev_repl_uuid, next_repl_uuid);
+
+	struct pool_replica *rep = set->replica[repidx];
+
+	ASSERTne(rep->remote, NULL);
+	ASSERTne(rep->part, NULL);
+	ASSERTeq(rep->nparts, 1);
+
+	struct pool_set_part *part = rep->part;
+
+	/*
+	 * A remote replica has one fake part of size equal twice pool header
+	 * size for storing pool header and pool descriptor.
+	 */
+	part->size = rep->repsize;
+	part->addr = Zalloc(part->size);
+	if (part->addr == NULL) {
+		ERR("!Malloc");
+		return -1;
+	}
+
+	/* util_header_create() needs part->hdr to be set */
+	part->hdr = part->addr;
+	part->hdrsize = POOL_HDR_SIZE;
+
+	/* create header, set UUID's */
+	if (util_header_create(set, repidx, 0, sig, major,
+				compat, incompat, ro_compat,
+				prev_repl_uuid, next_repl_uuid, NULL) != 0) {
+		LOG(2, "header creation failed - part #0");
+		Free(part->addr);
+		return -1;
+	}
+
+	/* hdr & hdrsize will not be needed any more */
+	part->hdr = NULL;
+	part->hdrsize = 0;
+
+	LOG(3, "replica #%u addr %p", repidx, rep->part[0].addr);
+
+	return 0;
+}
+
+/*
+ * util_replica_create -- (internal) create a new memory pool replica
+ */
+static int
+util_replica_create(struct pool_set *set, unsigned repidx, int flags,
+	const char *sig, uint32_t major, uint32_t compat, uint32_t incompat,
+	uint32_t ro_compat, const unsigned char *prev_repl_uuid,
+	const unsigned char *next_repl_uuid, const unsigned char *arch_flags)
+{
+	LOG(3, "set %p repidx %u flags %d sig %.8s major %u "
+		"compat %#x incompat %#x ro_comapt %#x"
+		"prev_repl_uuid %p next_repl_uuid %p arch_flags %p",
+		set, repidx, flags, sig, major,
+		compat, incompat, ro_compat,
+		prev_repl_uuid, next_repl_uuid, arch_flags);
+
+	if (set->replica[repidx]->remote == NULL) {
+		/* local replica */
+		if (util_replica_create_local(set, repidx, flags, sig, major,
+					compat, incompat, ro_compat,
+					prev_repl_uuid, next_repl_uuid,
+					arch_flags) != 0)
+			return -1;
+	} else {
+		/* remote replica */
+		if (util_replica_create_remote(set, repidx, flags, sig, major,
+					compat, incompat, ro_compat,
+					prev_repl_uuid, next_repl_uuid) != 0)
+			return -1;
+	}
+	return 0;
+}
+
+/*
  * util_replica_close -- close a memory pool replica
  *
  * This function unmaps all mapped memory regions.
@@ -1425,10 +1780,16 @@ util_replica_close(struct pool_set *set, unsigned repidx)
 	LOG(3, "set %p repidx %u", set, repidx);
 	struct pool_replica *rep = set->replica[repidx];
 
-	for (unsigned p = 0; p < rep->nparts; p++)
-		util_unmap_hdr(&rep->part[p]);
-
-	util_unmap_part(&rep->part[0]);
+	if (rep->remote == NULL) {
+		for (unsigned p = 0; p < rep->nparts; p++)
+			util_unmap_hdr(&rep->part[p]);
+		util_unmap_part(&rep->part[0]);
+	} else {
+		LOG(4, "freeing volatile header of remote replica #%u", repidx);
+		Free(rep->part[0].addr);
+		rep->part[0].addr = NULL;
+		rep->part[0].size = 0;
+	}
 
 	return 0;
 }
@@ -1515,31 +1876,58 @@ int
 util_pool_create_uuids(struct pool_set **setp, const char *path,
 	size_t poolsize, size_t minsize, const char *sig,
 	uint32_t major, uint32_t compat, uint32_t incompat, uint32_t ro_compat,
-	const unsigned char *poolset_uuid, const unsigned char *first_part_uuid,
+	unsigned *nlanes,
+	const unsigned char *poolset_uuid,
+	const unsigned char *first_part_uuid,
 	const unsigned char *prev_repl_uuid,
 	const unsigned char *next_repl_uuid,
-	const unsigned char *arch_flags)
+	const unsigned char *arch_flags,
+	int remote)
 {
 	LOG(3, "setp %p path %s poolsize %zu minsize %zu "
 		"sig %.8s major %u compat %#x incompat %#x ro_comapt %#x "
-		"poolset_uuid %p first_part_uuid %p"
-		"prev_repl_uuid %p next_repl_uuid %p arch_flags %p",
+		"nlanes %p poolset_uuid %p first_part_uuid %p"
+		"prev_repl_uuid %p next_repl_uuid %p arch_flags %p remote %i",
 		setp, path, poolsize, minsize,
-		sig, major, compat, incompat, ro_compat,
+		sig, major, compat, incompat, ro_compat, nlanes,
 		poolset_uuid, first_part_uuid, prev_repl_uuid, next_repl_uuid,
-		arch_flags);
+		arch_flags, remote);
 
 	int flags = MAP_SHARED;
+	int oerrno;
 
-	int ret = util_poolset_create(setp, path, poolsize, minsize);
+	/* check if file exists */
+	if (poolsize > 0 && access(path, F_OK) == 0) {
+		ERR("file %s already exists", path);
+		errno = EEXIST;
+		return -1;
+	}
+
+	int ret = util_poolset_create_set(setp, path, poolsize, minsize);
 	if (ret < 0) {
-		LOG(2, "cannot create pool set");
+		LOG(2, "cannot create pool set -- '%s'", path);
 		return -1;
 	}
 
 	struct pool_set *set = *setp;
 
 	ASSERT(set->nreplicas > 0);
+
+	if (remote) {
+		/* it is a remote replica - it cannot have replicas */
+		if (set->nreplicas != 1) {
+			LOG(2, "remote pool set cannot have replicas");
+			errno = EINVAL;
+			return -1;
+		}
+	}
+
+	if (set->remote && util_remote_load()) {
+		ERR("the pool set requires a remote replica, "
+			"but the '%s' library cannot be loaded",
+			LIBRARY_REMOTE);
+		return -1;
+	}
 
 	set->zeroed = 1;
 
@@ -1550,8 +1938,7 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 		ret = util_uuid_generate(set->uuid);
 		if (ret < 0) {
 			LOG(2, "cannot generate pool set UUID");
-			util_poolset_close(*setp, 1);
-			return -1;
+			goto err_remote;
 		}
 	}
 
@@ -1562,8 +1949,7 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 			ret = util_uuid_generate(rep->part[i].uuid);
 			if (ret < 0) {
 				LOG(2, "cannot generate pool set part UUID");
-				util_poolset_close(*setp, 1);
-				return -1;
+				goto err_remote;
 			}
 		}
 	}
@@ -1574,34 +1960,49 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 			POOL_HDR_UUID_LEN);
 	}
 
-	if (set->nreplicas == 1 && prev_repl_uuid && next_repl_uuid) {
-		if (util_replica_create(set, 0, flags, sig,
-					major, compat, incompat, ro_compat,
-					prev_repl_uuid, next_repl_uuid,
-					arch_flags) != 0) {
-			LOG(2, "replica creation failed");
-			goto err;
+	ret = util_poolset_files_local(set, minsize, 1);
+	if (ret != 0)
+		goto err_poolset;
+
+	if (remote) {
+		if (util_replica_create(set, 0, flags, sig, major, compat,
+					incompat, ro_compat, prev_repl_uuid,
+					next_repl_uuid, arch_flags) != 0) {
+			LOG(2, "replica #0 creation failed");
+			goto err_create;
 		}
 	} else {
 		for (unsigned r = 0; r < set->nreplicas; r++) {
-			if (util_replica_create(set, r, flags, sig,
-						major, compat,
-						incompat, ro_compat,
+			if (util_replica_create(set, r, flags, sig, major,
+						compat, incompat, ro_compat,
 						NULL, NULL, NULL) != 0) {
-				LOG(2, "replica creation failed");
-				goto err;
+				LOG(2, "replica #%u creation failed", r);
+				goto err_create;
 			}
 		}
 	}
 
+	if (set->remote) {
+		ret = util_poolset_files_remote(set, minsize, nlanes, 1);
+		if (ret != 0)
+			goto err_create;
+	}
+
 	return 0;
 
-err:
-	LOG(4, "error clean up");
-	int oerrno = errno;
+err_create:
+	oerrno = errno;
 	for (unsigned r = 0; r < set->nreplicas; r++)
 		util_replica_close(set, r);
+	errno = oerrno;
+err_poolset:
+	oerrno = errno;
 	util_poolset_close(set, 1);
+	errno = oerrno;
+	return -1;
+err_remote:
+	oerrno = errno;
+	util_remote_unload();
 	errno = oerrno;
 	return -1;
 }
@@ -1615,24 +2016,25 @@ err:
 int
 util_pool_create(struct pool_set **setp, const char *path, size_t poolsize,
 	size_t minsize, const char *sig, uint32_t major, uint32_t compat,
-	uint32_t incompat, uint32_t ro_compat)
+	uint32_t incompat, uint32_t ro_compat, unsigned *nlanes)
 {
 	LOG(3, "setp %p path %s poolsize %zu minsize %zu "
 		"sig %.8s major %u compat %#x incompat %#x "
-		"ro_comapt %#x",
+		"ro_comapt %#x nlanes %p",
 		setp, path, poolsize, minsize,
-		sig, major, compat, incompat, ro_compat);
+		sig, major, compat, incompat, ro_compat, nlanes);
 
-	return util_pool_create_uuids(setp, path, poolsize, minsize, sig,
-					major, compat, incompat, ro_compat,
-					NULL, NULL, NULL, NULL, NULL);
+	return util_pool_create_uuids(setp, path, poolsize, minsize, sig, major,
+					compat, incompat, ro_compat, nlanes,
+					NULL, NULL, NULL, NULL, NULL,
+					POOL_LOCAL);
 }
 
 /*
- * util_replica_open -- open a memory pool replica
+ * util_replica_open_local -- (internal) open a memory pool local replica
  */
-int
-util_replica_open(struct pool_set *set, unsigned repidx, int flags)
+static int
+util_replica_open_local(struct pool_set *set, unsigned repidx, int flags)
 {
 	LOG(3, "set %p repidx %u flags %d", set, repidx, flags);
 
@@ -1707,6 +2109,113 @@ err:
 }
 
 /*
+ * util_replica_open_remote -- (internal) open a memory pool for remote replica
+ */
+static int
+util_replica_open_remote(struct pool_set *set, unsigned repidx, int flags)
+{
+	LOG(3, "set %p repidx %u flags %d", set, repidx, flags);
+
+	struct pool_replica *rep = set->replica[repidx];
+
+	ASSERTne(rep->remote, NULL);
+	ASSERTne(rep->part, NULL);
+	ASSERTeq(rep->nparts, 1);
+
+	struct pool_set_part *part = rep->part;
+
+	part->size = rep->repsize;
+	part->addr = Zalloc(part->size);
+	if (part->addr == NULL) {
+		ERR("!Malloc");
+		return -1;
+	}
+
+	/* hdr & hdrsize are set only for util_header_check() */
+	part->hdrsize = POOL_HDR_SIZE;
+	part->hdr = part->addr;
+
+	LOG(3, "replica #%u addr %p", repidx, rep->part[0].addr);
+
+	return 0;
+}
+
+/*
+ * util_replica_open -- open a memory pool replica
+ */
+int
+util_replica_open(struct pool_set *set, unsigned repidx, int flags)
+{
+	LOG(3, "set %p repidx %u flags %d", set, repidx, flags);
+
+	if (set->replica[repidx]->remote == NULL)
+		return util_replica_open_local(set, repidx, flags);
+	else
+		return util_replica_open_remote(set, repidx, flags);
+}
+
+/*
+ * util_unmap_all_hdrs -- unmap all pool set headers
+ */
+static void
+util_unmap_all_hdrs(struct pool_set *set)
+{
+	LOG(3, "set %p", set);
+
+	for (unsigned r = 0; r < set->nreplicas; r++) {
+		struct pool_replica *rep = set->replica[r];
+		if (rep->remote == NULL) {
+			for (unsigned p = 0; p < rep->nparts; p++)
+				util_unmap_hdr(&rep->part[p]);
+		} else {
+			/*
+			 * hdr & hdrsize were set only for util_header_check(),
+			 * they will not be used any more. The memory will be
+			 * freed by util_replica_close()
+			 */
+			rep->part[0].hdr = NULL;
+			rep->part[0].hdrsize = 0;
+		}
+	}
+}
+
+/*
+ * util_replica_check -- check headers, check UUID's, check replicas linkage
+ */
+static int
+util_replica_check(struct pool_set *set, const char *sig, uint32_t major,
+			uint32_t compat, uint32_t incompat, uint32_t ro_compat)
+{
+	LOG(3, "set %p sig %.8s major %u compat %#x incompat %#x ro_comapt %#x",
+		set, sig, major, compat, incompat, ro_compat);
+
+	for (unsigned r = 0; r < set->nreplicas; r++) {
+		struct pool_replica *rep = set->replica[r];
+		for (unsigned p = 0; p < rep->nparts; p++) {
+			if (util_header_check(set, r, p, sig, major,
+					compat, incompat, ro_compat) != 0) {
+				LOG(2, "header check failed - part #%d", p);
+				return -1;
+			}
+			set->rdonly |= rep->part[p].rdonly;
+		}
+
+		if (memcmp(HDR(REP(set, r - 1), 0)->uuid,
+					HDR(REP(set, r), 0)->prev_repl_uuid,
+					POOL_HDR_UUID_LEN) ||
+		    memcmp(HDR(REP(set, r + 1), 0)->uuid,
+					HDR(REP(set, r), 0)->next_repl_uuid,
+					POOL_HDR_UUID_LEN)) {
+			ERR("wrong replica UUID");
+			errno = EINVAL;
+			return -1;
+		}
+	}
+
+	return 0;
+}
+
+/*
  * util_pool_open_nocheck -- open a memory pool (set or a single file)
  *
  * This function opens opens a pool set without checking the header values.
@@ -1714,13 +2223,14 @@ err:
 int
 util_pool_open_nocheck(struct pool_set **setp, const char *path, int rdonly)
 {
-	LOG(3, "setp %p path %s", setp, path);
+	LOG(3, "setp %p path %s rdonly %i", setp, path, rdonly);
 
 	int flags = rdonly ? MAP_PRIVATE|MAP_NORESERVE : MAP_SHARED;
+	int oerrno;
 
-	int ret = util_poolset_open(setp, path, 0);
+	int ret = util_poolset_create_set(setp, path, 0, 0);
 	if (ret < 0) {
-		LOG(2, "cannot open pool set");
+		LOG(2, "cannot open pool set -- '%s'", path);
 		return -1;
 	}
 
@@ -1728,30 +2238,43 @@ util_pool_open_nocheck(struct pool_set **setp, const char *path, int rdonly)
 
 	ASSERT(set->nreplicas > 0);
 
+	if (set->remote && util_remote_load()) {
+		ERR("the pool set requires a remote replica, "
+			"but the '%s' library cannot be loaded",
+			LIBRARY_REMOTE);
+		return -1;
+	}
+
+	ret = util_poolset_files_local(set, 0, 0);
+	if (ret != 0)
+		goto err_poolset;
+
 	set->rdonly = 0;
 
-	for (unsigned r = 0; r < set->nreplicas; r++) {
+	for (unsigned r = 0; r < set->nreplicas; r++)
 		if (util_replica_open(set, r, flags) != 0) {
-			LOG(2, "replica open failed");
-			goto err;
+			LOG(2, "replica #%u open failed", r);
+			goto err_replica;
 		}
+
+	if (set->remote) {
+		ret = util_poolset_files_remote(set, 0, NULL, 0);
+		if (ret != 0)
+			goto err_replica;
 	}
 
-	/* unmap all headers */
-	for (unsigned r = 0; r < set->nreplicas; r++) {
-		struct pool_replica *rep = set->replica[r];
-		for (unsigned p = 0; p < rep->nparts; p++)
-			util_unmap_hdr(&rep->part[p]);
-	}
+	util_unmap_all_hdrs(set);
 
 	return 0;
 
-err:
+err_replica:
 	LOG(4, "error clean up");
-	int oerrno = errno;
+	oerrno = errno;
 	for (unsigned r = 0; r < set->nreplicas; r++)
 		util_replica_close(set, r);
-
+	errno = oerrno;
+err_poolset:
+	oerrno = errno;
 	util_poolset_close(set, 0);
 	errno = oerrno;
 	return -1;
@@ -1766,18 +2289,20 @@ err:
 int
 util_pool_open(struct pool_set **setp, const char *path, int rdonly,
 	size_t minsize, const char *sig,
-	uint32_t major, uint32_t compat, uint32_t incompat, uint32_t ro_compat)
+	uint32_t major, uint32_t compat, uint32_t incompat, uint32_t ro_compat,
+	unsigned *nlanes)
 {
-	LOG(3, "setp %p path %s rdonly %d minsize %zu "
-		"sig %.8s major %u compat %#x incompat %#x ro_comapt %#x",
-		setp, path, rdonly, minsize,
-		sig, major, compat, incompat, ro_compat);
+	LOG(3, "setp %p path %s rdonly %d minsize %zu sig %.8s major %u "
+		"compat %#x incompat %#x ro_comapt %#x nlanes %p",
+		setp, path, rdonly, minsize, sig, major,
+		compat, incompat, ro_compat, nlanes);
 
 	int flags = rdonly ? MAP_PRIVATE|MAP_NORESERVE : MAP_SHARED;
+	int oerrno;
 
-	int ret = util_poolset_open(setp, path, minsize);
+	int ret = util_poolset_create_set(setp, path, 0, minsize);
 	if (ret < 0) {
-		LOG(2, "cannot open pool set");
+		LOG(2, "cannot open pool set -- '%s'", path);
 		return -1;
 	}
 
@@ -1785,53 +2310,46 @@ util_pool_open(struct pool_set **setp, const char *path, int rdonly,
 
 	ASSERT(set->nreplicas > 0);
 
-	for (unsigned r = 0; r < set->nreplicas; r++) {
+	if (set->remote && util_remote_load()) {
+		ERR("the pool set requires a remote replica, "
+			"but the '%s' library cannot be loaded",
+			LIBRARY_REMOTE);
+		return -1;
+	}
+
+	ret = util_poolset_files_local(set, minsize, 0);
+	if (ret != 0)
+		goto err_poolset;
+
+	for (unsigned r = 0; r < set->nreplicas; r++)
 		if (util_replica_open(set, r, flags) != 0) {
-			LOG(2, "replica open failed");
-			goto err;
+			LOG(2, "replica #%u open failed", r);
+			goto err_replica;
 		}
+
+	if (set->remote) {
+		ret = util_poolset_files_remote(set, minsize, nlanes, 0);
+		if (ret != 0)
+			goto err_replica;
 	}
 
 	/* check headers, check UUID's, check replicas linkage */
-	for (unsigned r = 0; r < set->nreplicas; r++) {
-		struct pool_replica *rep = set->replica[r];
-		for (unsigned p = 0; p < rep->nparts; p++) {
-			if (util_header_check(set, r, p,  sig, major,
-					compat, incompat, ro_compat) != 0) {
-				LOG(2, "header check failed - part #%d", p);
-				goto err;
-			}
-
-			set->rdonly |= rep->part[p].rdonly;
-		}
-
-		if (memcmp(HDR(REP(set, r - 1), 0)->uuid,
-					HDR(REP(set, r), 0)->prev_repl_uuid,
-					POOL_HDR_UUID_LEN) ||
-		    memcmp(HDR(REP(set, r + 1), 0)->uuid,
-					HDR(REP(set, r), 0)->next_repl_uuid,
-					POOL_HDR_UUID_LEN)) {
-			ERR("wrong replica UUID");
-			errno = EINVAL;
-			goto err;
-		}
-	}
+	if (util_replica_check(set, sig, major, compat, incompat, ro_compat))
+		goto err_replica;
 
 	/* unmap all headers */
-	for (unsigned r = 0; r < set->nreplicas; r++) {
-		struct pool_replica *rep = set->replica[r];
-		for (unsigned p = 0; p < rep->nparts; p++)
-			util_unmap_hdr(&rep->part[p]);
-	}
+	util_unmap_all_hdrs(set);
 
 	return 0;
 
-err:
+err_replica:
 	LOG(4, "error clean up");
-	int oerrno = errno;
+	oerrno = errno;
 	for (unsigned r = 0; r < set->nreplicas; r++)
 		util_replica_close(set, r);
-
+	errno = oerrno;
+err_poolset:
+	oerrno = errno;
 	util_poolset_close(set, 0);
 	errno = oerrno;
 	return -1;
@@ -1861,10 +2379,11 @@ util_pool_open_remote(struct pool_set **setp, const char *path, int rdonly,
 		arch_flags);
 
 	int flags = rdonly ? MAP_PRIVATE|MAP_NORESERVE : MAP_SHARED;
+	int oerrno;
 
-	int ret = util_poolset_open(setp, path, minsize);
+	int ret = util_poolset_create_set(setp, path, 0, minsize);
 	if (ret < 0) {
-		LOG(2, "cannot open pool set");
+		LOG(2, "cannot open pool set -- '%s'", path);
 		return -1;
 	}
 
@@ -1872,12 +2391,16 @@ util_pool_open_remote(struct pool_set **setp, const char *path, int rdonly,
 
 	if (set->nreplicas > 1) {
 		LOG(2, "remote pool set cannot have replicas");
-		goto err;
+		goto err_poolset;
 	}
+
+	ret = util_poolset_files_local(set, minsize, 0);
+	if (ret != 0)
+		goto err_poolset;
 
 	if (util_replica_open(set, 0, flags) != 0) {
 		LOG(2, "replica open failed");
-		goto err;
+		goto err_replica;
 	}
 
 	struct pool_replica *rep = set->replica[0];
@@ -1889,7 +2412,7 @@ util_pool_open_remote(struct pool_set **setp, const char *path, int rdonly,
 	for (unsigned p = 0; p < rep->nparts; p++) {
 		if (util_header_check_remote(rep, p) != 0) {
 			LOG(2, "header check failed - part #%d", p);
-			goto err;
+			goto err_replica;
 		}
 		set->rdonly |= rep->part[p].rdonly;
 	}
@@ -1911,10 +2434,13 @@ util_pool_open_remote(struct pool_set **setp, const char *path, int rdonly,
 
 	return 0;
 
-err:
+err_replica:
 	LOG(4, "error clean up");
-	int oerrno = errno;
+	oerrno = errno;
 	util_replica_close(set, 0);
+	errno = oerrno;
+err_poolset:
+	oerrno = errno;
 	util_poolset_close(set, 0);
 	errno = oerrno;
 	return -1;

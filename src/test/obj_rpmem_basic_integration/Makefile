@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,23 +31,8 @@
 #
 
 #
-# src/test/obj_pmalloc_mt/Makefile -- build obj_pmalloc_mt unit test
+# src/test/obj_rpmem_basic_integration/Makefile -- unit test for LIBPMEMOBJ
+# basic operations using remote replication (LIBRPMEM)
 #
-TOP = ../../..
 
-vpath %.c $(TOP)/src/libpmemobj
-vpath %.c $(TOP)/src/common
-
-TARGET = obj_pmalloc_mt
-OBJS = obj_pmalloc_mt.o pmalloc.o bucket.o redo.o heap.o lane.o ctree.o\
-    util.o util_linux.o set.o set_linux.o out.o obj.o cuckoo.o\
-    list.o sync.o tx.o memops.o libpmemobj.o memblock.o pvector.o
-
-LIBPMEM=y
-
-out.o: CFLAGS += -DSRCVERSION=\"utversion\"
-
-include ../Makefile.inc
-
-INCS += -I$(TOP)/src/libpmemobj/ -I$(TOP)/src/common/
-LIBS += -ldl
+include ../obj_basic_integration/Makefile.inc

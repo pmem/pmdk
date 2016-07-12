@@ -113,6 +113,14 @@ obj_memcpy(PMEMobjpool *pop, void *dest, const void *src, size_t len)
 	return dest;
 }
 
+static void *
+obj_memset(PMEMobjpool *pop, void *ptr, int c, size_t sz)
+{
+	memset(ptr, c, sz);
+	pmem_msync(ptr, sz);
+	return ptr;
+}
+
 static void
 test_oom_allocs(size_t size)
 {
@@ -192,6 +200,7 @@ test_mock_pool_allocs()
 	mock_pop->flush = obj_flush;
 	mock_pop->drain = obj_drain;
 	mock_pop->memcpy_persist = obj_memcpy;
+	mock_pop->memset_persist = obj_memset;
 	mock_pop->redo = redo_log_config_new(addr,
 			(redo_persist_fn)mock_pop->persist,
 			(redo_flush_fn)mock_pop->flush,
@@ -203,6 +212,8 @@ test_mock_pool_allocs()
 	heap_init(mock_pop);
 	heap_boot(mock_pop);
 
+	/* initialize runtime lanes structure */
+	mock_pop->lanes_desc.runtime_nlanes = mock_pop->nlanes;
 	lane_boot(mock_pop);
 
 	UT_ASSERTne(mock_pop->heap, NULL);

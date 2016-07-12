@@ -1,5 +1,6 @@
+#!/bin/bash -e
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -29,25 +30,65 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
 #
-# src/test/obj_pmalloc_mt/Makefile -- build obj_pmalloc_mt unit test
+# obj_rpmem_basic_integration/TEST0 -- rpmem replication to single remote
+#       replica
 #
-TOP = ../../..
+export UNITTEST_NAME=obj_rpmem_basic_integration/TEST0
+export UNITTEST_NUM=0
 
-vpath %.c $(TOP)/src/libpmemobj
-vpath %.c $(TOP)/src/common
+# standard unit test setup
+. ../unittest/unittest.sh
 
-TARGET = obj_pmalloc_mt
-OBJS = obj_pmalloc_mt.o pmalloc.o bucket.o redo.o heap.o lane.o ctree.o\
-    util.o util_linux.o set.o set_linux.o out.o obj.o cuckoo.o\
-    list.o sync.o tx.o memops.o libpmemobj.o memblock.o pvector.o
+# covered by TEST5
+configure_valgrind memcheck force-disable
 
-LIBPMEM=y
+rpmem_foreach_provider
+rpmem_foreach_persist
 
-out.o: CFLAGS += -DSRCVERSION=\"utversion\"
+setup
 
-include ../Makefile.inc
+require_nodes 2
 
-INCS += -I$(TOP)/src/libpmemobj/ -I$(TOP)/src/common/
-LIBS += -ldl
+require_node_libfabric 0 $RPMEM_PROVIDER
+require_node_libfabric 1 $RPMEM_PROVIDER
+
+init_rpmem_on_node 1 0
+
+# upload test
+EXE=obj_basic_integration
+copy_files_to_node 1 ../$EXE/$EXE$EXESUFFIX
+
+# define files and directories
+TEST_SET_LOCAL="testset_local"
+TEST_SET_REMOTE="testset_remote"
+
+TEST_FILE_LOCAL="testfile_local"
+TEST_FILE_REMOTE="testfile_remote"
+
+NODE_DIRS=($(get_node_dir 0) $(get_node_dir 1))
+
+# TODO: Make sum of all parts and replicas sizes equal
+# create and upload poolset files
+create_poolset $DIR/$TEST_SET_LOCAL 8M:${NODE_DIRS[1]}/$TEST_FILE_LOCAL:x \
+        m ${NODE_ADDR[0]}:$TEST_SET_REMOTE
+create_poolset $DIR/$TEST_SET_REMOTE 9M:${NODE_DIRS[0]}/$TEST_FILE_REMOTE:x
+
+copy_files_to_node 0 $DIR/$TEST_SET_REMOTE
+copy_files_to_node 1 $DIR/$TEST_SET_LOCAL
+
+# execute test
+expect_normal_exit run_on_node 1 ./$EXE$EXESUFFIX $TEST_SET_LOCAL
+
+check
+
+# download pools and compare them
+copy_files_from_node 0 $DIR $TEST_FILE_REMOTE
+copy_files_from_node 1 $DIR $TEST_FILE_LOCAL
+
+compare_replicas "-soOaAb -l -Z -H -C" \
+	$DIR/$TEST_FILE_LOCAL $DIR/$TEST_FILE_REMOTE > diff$UNITTEST_NUM.log
+
+check_local
+
+pass

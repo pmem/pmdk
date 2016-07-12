@@ -131,6 +131,9 @@ __sync_synchronize()
  * missing definitions
  */
 
+/* errno.h */
+#define ELIBACC 79 /* cannot access a needed shared library */
+
 /* sys/stat.h */
 #define S_IRUSR S_IREAD
 #define S_IWUSR S_IWRITE
