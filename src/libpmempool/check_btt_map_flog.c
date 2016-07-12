@@ -36,6 +36,7 @@
 
 #include <stdint.h>
 #include <sys/param.h>
+#include <endian.h>
 
 #include "out.h"
 #include "btt.h"

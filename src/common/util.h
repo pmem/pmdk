@@ -322,6 +322,8 @@ int util_pool_open_remote(struct pool_set **setp, const char *path, int rdonly,
 
 int util_parse_size(const char *str, size_t *sizep);
 
+char util_get_printable_ascii(char c);
+
 /*
  * util_setbit -- setbit macro substitution which properly deals with types
  */

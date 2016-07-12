@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016, Intel Corporation
+ * Copyright 2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,31 +31,26 @@
  */
 
 /*
- * endian.h -- convert values between host and big-/little-endian byte order
+ * libpmempool_main.c -- entry point for libpmempool.dll
+ *
+ * XXX - This is a placeholder.  All the library initialization/cleanup
+ * that is done in library ctors/dtors, as well as TLS initialization
+ * should be moved here.
  */
 
-#ifndef ENDIAN_H
-#define ENDIAN_H 1
+int APIENTRY
+DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
+{
+	switch (dwReason) {
+	case DLL_PROCESS_ATTACH:
+		break;
 
-/*
- * On Windows we can assume little-endian archtecture
- */
-#include <intrin.h>
+	case DLL_THREAD_ATTACH:
+	case DLL_THREAD_DETACH:
+		break;
 
-#define htole16(a) (a)
-#define htole32(a) (a)
-#define htole64(a) (a)
-
-#define le16toh(a) (a)
-#define le32toh(a) (a)
-#define le64toh(a) (a)
-
-#define htobe16(x) _byteswap_ushort(x)
-#define htobe32(x) _byteswap_ulong(x)
-#define htobe64(x) _byteswap_uint64(x)
-
-#define be16toh(x)  _byteswap_ushort(x)
-#define be32toh(x)  _byteswap_ulong(x)
-#define be64toh(x)  _byteswap_uint64(x)
-
-#endif /* ENDIAN_H */
+	case DLL_PROCESS_DETACH:
+		break;
+	}
+	return TRUE;
+}

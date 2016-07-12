@@ -48,6 +48,7 @@
 #include <endian.h>
 #include <errno.h>
 #include <stddef.h>
+#include <ctype.h>
 
 #include "util.h"
 #include "out.h"
@@ -601,6 +602,10 @@ util_file_open(const char *path, size_t *size, size_t minsize, int flags)
 
 	int oerrno;
 	int fd;
+#ifdef _WIN32
+	flags |= O_BINARY;
+#endif
+
 	if ((fd = open(path, flags)) < 0) {
 		ERR("!open %s", path);
 		return -1;
@@ -645,4 +650,17 @@ err:
 	(void) close(fd);
 	errno = oerrno;
 	return -1;
+}
+
+/*
+ * util_get_printable_ascii -- convert non-printable ascii to dot '.'
+ */
+char
+util_get_printable_ascii(char c)
+{
+#ifndef _WIN32
+	return isprint(c) ? c : '.';
+#else
+	return isprint((unsigned char)c) ? c : '.';
+#endif
 }

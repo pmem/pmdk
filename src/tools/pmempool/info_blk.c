@@ -38,6 +38,7 @@
 #include <string.h>
 #include <err.h>
 #include <sys/param.h>
+#include <endian.h>
 
 #include "common.h"
 #include "output.h"
