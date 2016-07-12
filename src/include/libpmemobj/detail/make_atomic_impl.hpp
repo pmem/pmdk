@@ -41,8 +41,8 @@
 #include <new>
 
 #include "libpmemobj/detail/array_traits.hpp"
-#include "libpmemobj/detail/destroyer.hpp"
 #include "libpmemobj/detail/integer_sequence.hpp"
+#include "libpmemobj/detail/life.hpp"
 
 namespace nvml
 {
@@ -100,7 +100,7 @@ array_constructor(PMEMobjpool *pop, void *ptr, void *arg)
 	T *tptr = static_cast<T *>(ptr);
 	try {
 		for (std::size_t i = 0; i < N; ++i)
-			::new (tptr + i) T();
+			detail::create<T>(tptr + i);
 	} catch (...) {
 		return -1;
 	}

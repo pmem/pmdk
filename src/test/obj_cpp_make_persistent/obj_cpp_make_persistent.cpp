@@ -175,7 +175,7 @@ test_additional_delete(nvobj::pool<struct root> &pop)
 
 			nvobj::transaction::abort(EINVAL);
 		});
-	} catch (nvml::manual_tx_abort &ma) {
+	} catch (nvml::manual_tx_abort &) {
 		exception_thrown = true;
 	} catch (...) {
 		UT_ASSERT(0);

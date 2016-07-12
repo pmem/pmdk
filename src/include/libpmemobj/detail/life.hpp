@@ -87,6 +87,30 @@ struct if_size_array<T[N]> {
 };
 
 /*
+ * Calls object's constructor.
+ */
+template <typename T>
+void
+create(typename if_not_array<T>::type *args)
+{
+	::new (args) T();
+}
+
+/*
+ * Recursively calls array's elements' constructors.
+ */
+template <typename T>
+void
+create(typename if_size_array<T>::type *args)
+{
+	typedef typename detail::pp_array_type<T>::type I;
+	enum { N = pp_array_elems<T>::elems };
+
+	for (std::size_t i = 0; i < N; ++i)
+		create<I>(&(*args)[i]);
+}
+
+/*
  * Calls object's destructor.
  */
 template <typename T>

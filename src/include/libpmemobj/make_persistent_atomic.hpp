@@ -47,6 +47,8 @@
 #include "libpmemobj/detail/pexceptions.hpp"
 #include "libpmemobj/pool.hpp"
 
+#include <tuple>
+
 namespace nvml
 {
 

@@ -215,7 +215,7 @@ void ut_err(const char *file, int line, const char *func,
 #else /* _MSC_VER */
 #define UT_COMPILE_ERROR_ON(cond) C_ASSERT(!(cond))
 /* XXX - can't be done with C_ASSERT() unless we have __builtin_constant_p() */
-#define UT_ASSERT_COMPILE_ERROR_ON(cond)
+#define UT_ASSERT_COMPILE_ERROR_ON(cond) (void)(cond)
 #endif /* _MSC_VER */
 
 /* assert a condition is true */
