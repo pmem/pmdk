@@ -1,29 +1,42 @@
-nvml: Linux NVM Library
+nvml: Non-Volatile Memory Library
 =======================
 
 [![Build Status](https://travis-ci.org/pmem/nvml.svg)](https://travis-ci.org/pmem/nvml)
 [![Build status](https://ci.appveyor.com/api/projects/status/1f5jwqpqs89itr2k?svg=true)](https://ci.appveyor.com/project/krzycz/nvml-10qrw)
 [![NVML release version](https://img.shields.io/github/release/pmem/nvml.svg)](https://github.com/pmem/nvml/releases/latest)
 
-This is the top-level README.md the Linux NVM Library.
+This is the top-level README.md the Non-Volatile Memory Library.
 For more information, see http://pmem.io.
 
 ### The Libraries ###
 
-Please see the file [LICENSE](https://github.com/pmem/nvml/blob/master/LICENSE) for information on how this library is licensed.
+Please see the file [LICENSE](https://github.com/pmem/nvml/blob/master/LICENSE)
+for information on how this library is licensed.
 
 This tree contains a collection of libraries for using Non-Volatile Memory
-(NVM).  There are currently six libraries:
+(NVM).  There are currently seven libraries:
 
 * **libpmem** -- basic pmem operations like flushing
 * **libpmemblk**, **libpmemlog**, **libpmemobj** -- pmem transactions
 * **libvmem**, **libvmmalloc** -- volatile use of pmem
+* **libpmempool** -- persistent memory pool management
 
 These libraries are described in more detail on the
 [pmem web site](http://pmem.io).  There you'll find man pages, examples,
 and tutorials.
 
 **Currently, these libraries only work on 64-bit Linux.**
+
+>**NOTE: Porting NVML to Windows is in progress.**
+>
+>The source tree contains MS Visual Studio solution and project files
+_(to be replaced with CMake-based solution)_, allowing to compile _libpmem_,
+_libpmemlog_, _libpmemblk_ and _libpmemobj_ on Windows, **but the libraries
+are not fully functional yet, and most of the test are not enabled.**
+We expect to complete porting all the basic features to Windows and provide
+an "early access" version as a part of NVML 1.3 release.
+Current progress of this work is tracked on
+[NVML for Windows Trello Board](https://trello.com/b/IMPSJ4Iu/nvml-for-windows).
 
 ### Pre-Built Packages ###
 
@@ -52,11 +65,15 @@ The source tree is organized as follows:
 * **utils** -- utilities used during build & test
 * **CONTRIBUTING.md** -- instructions for people wishing to contribute
 
-To build this library, you may need to install the following required packages
-on the build system:
+To build this library on Linux, you may need to install the following
+required packages on the build system:
 
 * **autoconf**
 * **pkg-config**
+
+On Windows, to build NVML and run the tests you need to have:
+* **MS Visual Studio 2015** (or later)
+* **perl** (i.e. ActivePerl)
 
 Some tests and example applications require additional packages, but they
 do not interrupt building if they are missing. An appropriate message is
@@ -67,9 +84,9 @@ See the **before_install:** rules in the
 [.travis.yml](https://github.com/pmem/nvml/blob/master/.travis.yml)
 file at the top level of the repository to get an idea what packages
 were required to build on the _travis-ci_ systems. Currently our travis
-systems are running Ubuntu 12.04 so there may be some differences
-between what is specified in travis.yml and what is needed for your
-OS distribution and version.
+systems are running Ubuntu 16.04 and Fedora 23 so there may be some
+differences between what is specified in travis.yml and what is needed
+for your OS distribution and version.
 
 To build the latest development version, just clone this tree and build the master branch:
 ```
