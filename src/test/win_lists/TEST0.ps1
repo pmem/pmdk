@@ -1,4 +1,4 @@
-﻿#
+#
 # Copyright 2015-2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
@@ -43,7 +43,7 @@ $DIR = ""
 # standard unit test setup
 . ..\unittest\unittest.ps1
 
-require_fs_type any
+require_fs_type none
 
 setup
 
