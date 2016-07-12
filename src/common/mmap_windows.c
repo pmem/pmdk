@@ -73,6 +73,7 @@ unsigned long long Pagesize;
 typedef struct FILE_MAPPING_TRACKER {
 	LIST_ENTRY(FILE_MAPPING_TRACKER) ListEntry;
 	HANDLE FileHandle;
+	HANDLE FileHandleDup;
 	HANDLE FileMappingHandle;
 	PVOID *BaseAddress;
 	PVOID *EndAddress;
@@ -130,6 +131,9 @@ mmap_fini(void)
 
 		if (mt->BaseAddress != NULL)
 			UnmapViewOfFile(mt->BaseAddress);
+
+		if (mt->FileHandleDup != NULL)
+			CloseHandle(mt->FileHandleDup);
 
 		if (mt->FileMappingHandle != NULL)
 			CloseHandle(mt->FileMappingHandle);
@@ -219,6 +223,7 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 	/* XXX - MAP_NORESERVE */
 
 	HANDLE fh;
+	HANDLE fhDup = NULL;
 	if (flags & MAP_ANON) {
 		/* XXX - require 'fd' to be '-1'? */
 		fh = INVALID_HANDLE_VALUE;
@@ -231,20 +236,14 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 			return MAP_FAILED;
 		}
 		fh = (HANDLE)_get_osfhandle(fd);
-#if 0
-		/*
-		 * XXX - We need to keep file handle open for proper
-		 * implementation of msync() and to hold the file lock.
-		 * Need to verify if duplicate handle is enough.
-		 */
+
 		if (DuplicateHandle(GetCurrentProcess(),
-				(HANDLE)_get_osfhandle(fd),
-				GetCurrentProcess(), &fh,
+				fh,
+				GetCurrentProcess(), &fhDup,
 				0, FALSE, DUPLICATE_SAME_ACCESS) == FALSE) {
-				errno = EINVAL; /* XXX */
+				errno = EINVAL;
 			return MAP_FAILED;
 		}
-#endif
 	}
 
 	HANDLE fileMapping = CreateFileMapping(fh,
@@ -305,6 +304,7 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 
 	mt->FileHandle = fh;
 	mt->FileMappingHandle = fileMapping;
+	mt->FileHandleDup = fhDup;
 	mt->BaseAddress = base;
 	mt->EndAddress = (PVOID *)((char *)base + roundup(len, Mmap_align));
 	mt->Access = access;
@@ -359,8 +359,11 @@ mmap_split(PFILE_MAPPING_TRACKER mt, PVOID *begin, PVOID *end)
 	if (UnmapViewOfFile(mt->BaseAddress) == FALSE)
 		goto err;
 
-	if (!mtb && !mte)
+	if (!mtb && !mte) {
 		CloseHandle(fmh);
+		if (mt->FileHandleDup != NULL)
+			CloseHandle(mt->FileHandleDup);
+	}
 
 	LIST_REMOVE(mt, ListEntry);
 	free(mt);
@@ -401,6 +404,8 @@ err_close:
 	 * we can do...
 	 */
 	CloseHandle(fmh);
+	if (mt->FileHandleDup != NULL)
+		CloseHandle(mt->FileHandleDup);
 
 err:
 	free(mtb);
