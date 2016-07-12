@@ -550,7 +550,7 @@ line: while (<$filehandle>) {
 		err("missing space before * operator");
 	}
 	if (/\*[^ =\*\w\(,]/ && !/\(.+ \*+\)/ && !/\*\[\]/ &&
-	    !/\*\-\-\w/ && !/\*\+\+\w/) {
+	    !/\*\-\-\w/ && !/\*\+\+\w/ && !/\*\)/) {
 		err("missing space after * operator");
 	}
 	if (/[^<>\s][!<>=]=/ || /[^<>][!<>=]=[^\s,]/ ||
