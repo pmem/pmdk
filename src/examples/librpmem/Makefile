@@ -36,9 +36,7 @@
 TOP := ../../..
 include $(TOP)/src/common.inc
 
-HAS_LIBRABRIC=$(call check_package, libfabric)
-
-ifeq ($(HAS_LIBRABRIC), y)
+ifeq ($(BUILD_RPMEM), y)
 PROGS = basic manpage
 
 LIBS = -lrpmem -pthread $(shell $(PKG_CONFIG) --libs libfabric)

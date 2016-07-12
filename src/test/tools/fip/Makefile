@@ -37,8 +37,7 @@ include $(TOP)/src/common.inc
 
 vpath %.c $(TOP)/src/rpmem_common/
 
-HAS_LIBFABRIC=$(call check_package, libfabric)
-ifeq ($(HAS_LIBFABRIC),y)
+ifeq ($(BUILD_RPMEM),y)
 TARGET = fip
 
 OBJS = fip.o rpmem_fip_common.o rpmem_common.o base64.o
@@ -50,7 +49,7 @@ endif
 
 include $(TOP)/src/tools/Makefile.inc
 
-ifeq ($(HAS_LIBFABRIC),y)
+ifeq ($(BUILD_RPMEM),y)
 CFLAGS += -I$(TOP)/src/rpmem_common
 CFLAGS += $(shell $(PKG_CONFIG) --cflags libfabric)
 LIBS += $(shell $(PKG_CONFIG) --libs libfabric)
