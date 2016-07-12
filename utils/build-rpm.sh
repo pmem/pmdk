@@ -336,6 +336,19 @@ Development files for NVML libpmemobj library
 %{_libdir}/nvml_debug/libpmemobj.so.*
 %{_libdir}/nvml_debug/libpmemobj.a
 %{_includedir}/libpmemobj.h
+%{_includedir}/libpmemobj/atomic_base.h
+%{_includedir}/libpmemobj/atomic.h
+%{_includedir}/libpmemobj/base.h
+%{_includedir}/libpmemobj/iterator_base.h
+%{_includedir}/libpmemobj/iterator.h
+%{_includedir}/libpmemobj/lists_atomic_base.h
+%{_includedir}/libpmemobj/lists_atomic.h
+%{_includedir}/libpmemobj/pool_base.h
+%{_includedir}/libpmemobj/pool.h
+%{_includedir}/libpmemobj/thread.h
+%{_includedir}/libpmemobj/tx_base.h
+%{_includedir}/libpmemobj/tx.h
+%{_includedir}/libpmemobj/types.h
 %{_mandir}/man3/libpmemobj.3.gz
 
 %package -n libpmempool

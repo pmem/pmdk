@@ -33,6 +33,8 @@
 #ifndef LIBPMEMOBJ_INTEGER_SEQUENCE_HPP
 #define LIBPMEMOBJ_INTEGER_SEQUENCE_HPP
 
+#include <stddef.h>
+
 /**
  * @file
  * Create c++14 style index sequence.

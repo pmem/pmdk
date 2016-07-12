@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2014-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -30,65 +30,45 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * @file
- * Libpmemobj C++ utils.
+/*
+ * libpmemobj/atomic.h -- definitions of libpmemobj atomic macros
  */
-#ifndef LIBPMEMOBJ_UTILS_HPP
-#define LIBPMEMOBJ_UTILS_HPP
 
-#include "libpmemobj/base.h"
-#include "libpmemobj++/detail/pexceptions.hpp"
-#include "libpmemobj++/persistent_ptr.hpp"
+#ifndef LIBPMEMOBJ_ATOMIC_H
+#define LIBPMEMOBJ_ATOMIC_H 1
 
-namespace nvml
-{
+#include <libpmemobj/atomic_base.h>
+#include <libpmemobj/types.h>
 
-namespace obj
-{
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-/**
- * Retrieve pool handle for the given pointer.
- *
- * @param[in] that pointer to an object from a persistent memory pool.
- *
- * @return handle to the pool containing the object.
- *
- * @throw `pool_error` if the given pointer does not belong to an open pool.
- */
-template <typename T>
-inline pool_base
-pool_by_vptr(const T *that)
-{
-	auto pop = pmemobj_pool_by_ptr(that);
-	if (!pop)
-		throw pool_error("Object not in an open pool.");
+#define POBJ_NEW(pop, o, t, constr, arg)\
+pmemobj_alloc((pop), (PMEMoid *)(o), sizeof(t), TOID_TYPE_NUM(t),\
+	(constr), (arg))
 
-	return pool_base(pop);
+#define POBJ_ALLOC(pop, o, t, size, constr, arg)\
+pmemobj_alloc((pop), (PMEMoid *)(o), (size), TOID_TYPE_NUM(t),\
+	(constr), (arg))
+
+#define POBJ_ZNEW(pop, o, t)\
+pmemobj_zalloc((pop), (PMEMoid *)(o), sizeof(t), TOID_TYPE_NUM(t))
+
+#define POBJ_ZALLOC(pop, o, t, size)\
+pmemobj_zalloc((pop), (PMEMoid *)(o), (size), TOID_TYPE_NUM(t))
+
+#define POBJ_REALLOC(pop, o, t, size)\
+pmemobj_realloc((pop), (PMEMoid *)(o), (size), TOID_TYPE_NUM(t))
+
+#define POBJ_ZREALLOC(pop, o, t, size)\
+pmemobj_zrealloc((pop), (PMEMoid *)(o), (size), TOID_TYPE_NUM(t))
+
+#define POBJ_FREE(o)\
+pmemobj_free((PMEMoid *)(o))
+
+#ifdef __cplusplus
 }
+#endif
 
-/**
- * Retrieve pool handle for the given persistent_ptr.
- *
- * @param[in] ptr pointer to an object from a persistent memory pool.
- *
- * @return handle to the pool containing the object.
- *
- * @throw `pool_error` if the given pointer does not belong to an open pool.
- */
-template <typename T>
-inline pool_base
-pool_by_pptr(const persistent_ptr<T> ptr)
-{
-	auto pop = pmemobj_pool_by_oid(ptr.raw());
-	if (!pop)
-		throw pool_error("Object not in an open pool.");
-
-	return pool_base(pop);
-}
-
-} /* namespace obj */
-
-} /* namespace nvml */
-
-#endif /* LIBPMEMOBJ_UTILS_HPP */
+#endif	/* libpmemobj/atomic.h */

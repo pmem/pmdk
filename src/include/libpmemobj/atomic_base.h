@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2014-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -30,65 +30,66 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * @file
- * Libpmemobj C++ utils.
+/*
+ * libpmemobj/atomic_base.h -- definitions of libpmemobj atomic entry points
  */
-#ifndef LIBPMEMOBJ_UTILS_HPP
-#define LIBPMEMOBJ_UTILS_HPP
 
-#include "libpmemobj/base.h"
-#include "libpmemobj++/detail/pexceptions.hpp"
-#include "libpmemobj++/persistent_ptr.hpp"
+#ifndef LIBPMEMOBJ_ATOMIC_BASE_H
+#define LIBPMEMOBJ_ATOMIC_BASE_H 1
 
-namespace nvml
-{
+#include <libpmemobj/base.h>
 
-namespace obj
-{
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-/**
- * Retrieve pool handle for the given pointer.
+/*
+ * Non-transactional atomic allocations
  *
- * @param[in] that pointer to an object from a persistent memory pool.
- *
- * @return handle to the pool containing the object.
- *
- * @throw `pool_error` if the given pointer does not belong to an open pool.
+ * Those functions can be used outside transactions. The allocations are always
+ * aligned to the cache-line boundary.
  */
-template <typename T>
-inline pool_base
-pool_by_vptr(const T *that)
-{
-	auto pop = pmemobj_pool_by_ptr(that);
-	if (!pop)
-		throw pool_error("Object not in an open pool.");
 
-	return pool_base(pop);
+/*
+ * Allocates a new object from the pool and calls a constructor function before
+ * returning. It is guaranteed that allocated object is either properly
+ * initialized, or if it's interrupted before the constructor completes, the
+ * memory reserved for the object is automatically reclaimed.
+ */
+int pmemobj_alloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
+	uint64_t type_num, pmemobj_constr constructor, void *arg);
+
+/*
+ * Allocates a new zeroed object from the pool.
+ */
+int pmemobj_zalloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
+	uint64_t type_num);
+
+/*
+ * Resizes an existing object.
+ */
+int pmemobj_realloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
+	uint64_t type_num);
+
+/*
+ * Resizes an existing object, if extended new space is zeroed.
+ */
+int pmemobj_zrealloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
+	uint64_t type_num);
+
+/*
+ * Allocates a new object with duplicate of the string s.
+ */
+int pmemobj_strdup(PMEMobjpool *pop, PMEMoid *oidp, const char *s,
+	uint64_t type_num);
+
+/*
+ * Frees an existing object.
+ */
+void pmemobj_free(PMEMoid *oidp);
+
+#ifdef __cplusplus
 }
+#endif
 
-/**
- * Retrieve pool handle for the given persistent_ptr.
- *
- * @param[in] ptr pointer to an object from a persistent memory pool.
- *
- * @return handle to the pool containing the object.
- *
- * @throw `pool_error` if the given pointer does not belong to an open pool.
- */
-template <typename T>
-inline pool_base
-pool_by_pptr(const persistent_ptr<T> ptr)
-{
-	auto pop = pmemobj_pool_by_oid(ptr.raw());
-	if (!pop)
-		throw pool_error("Object not in an open pool.");
-
-	return pool_base(pop);
-}
-
-} /* namespace obj */
-
-} /* namespace nvml */
-
-#endif /* LIBPMEMOBJ_UTILS_HPP */
+#endif	/* libpmemobj/atomic_base.h */
