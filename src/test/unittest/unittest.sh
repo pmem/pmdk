@@ -1328,6 +1328,35 @@ function copy_files_to_node() {
 }
 
 #
+# copy_files_from_node -- copy all required files from the given remote node
+#    usage: copy_files_from_node <node> <destination dir> <file_1> [<file_2>] ...
+#
+function copy_files_from_node() {
+
+	validate_node_number $1
+
+	local N=$1
+	local DIR=$2
+	shift 2
+	[ "$*" == "" ] &&\
+		echo "error: copy_files_from_node(): no files provided" >&2 && exit 1
+
+	# copy all required files
+	local REMOTE_DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
+
+	if [ $# -ne 1 ]; then
+		FILE_STRING=$(printf ",%s" "$@")
+		FILE_STRING=\{${FILE_STRING:1}\}
+	else
+		FILE_STRING=$1
+	fi
+
+	run_command scp $SCP_OPTS ${NODE[$N]}:$REMOTE_DIR/$FILE_STRING $DIR
+
+	return 0
+}
+
+#
 # copy_log_files -- copy log files from remote node
 #
 function copy_log_files() {
@@ -1502,6 +1531,26 @@ function kill_on_node() {
 }
 
 #
+# create_holey_file_on_node -- create holey files of a given length in megs
+#   usage: create_holey_file_on_node <node> <size>
+#
+# example, to create two files, each 1GB in size on node 0:
+#	create_holey_file_on_node 0 1024 testfile1 testfile2
+#
+function create_holey_file_on_node() {
+
+	validate_node_number $1
+
+	local N=$1
+	size=$2
+	shift 2
+	for file in $*
+	do
+		run_on_node $N truncate -s ${size}M $file >> prep$UNITTEST_NUM.log
+	done
+}
+
+#
 # setup -- print message that test setup is commencing
 #
 function setup() {
@@ -1546,11 +1595,18 @@ function setup() {
 }
 
 #
-# check -- check test results (using .match files)
+# check_local -- check local test results (using .match files)
+#
+function check_local() {
+	../match $(find . -regex "[^0-9w]*${UNITTEST_NUM}\.log\.match" | xargs)
+}
+
+#
+# check -- check local or remote test results (using .match files)
 #
 function check() {
 	if [ $NODES_MAX -lt 0 ]; then
-		../match $(find . -regex "[^0-9w]*${UNITTEST_NUM}\.log\.match" | xargs)
+		check_local
 	else
 		FILES=$(find . -regex "./node_[0-9]+_[^0-9w]*${UNITTEST_NUM}\.log\.match" | xargs)
 		for file in $FILES; do
@@ -1803,4 +1859,77 @@ function rpmem_foreach_persist() {
 	else
 		return 0
 	fi
+}
+
+#
+# get_node_dir -- returns node dir for current test
+#    usage: get_node_dir <node>
+#
+function get_node_dir() {
+	validate_node_number $1
+	echo ${NODE_WORKING_DIR[$1]}/$curtestdir
+}
+
+#
+# init_rpmem_on_node -- prepare rpmem environment variables on node
+#    usage: init_rpmem_on_node <master node> <slave node> [<slave poolset dir>]
+#
+# example:
+#    The following command initialize rpmem environment variables on the node 1
+#    to perform replication to the node 0. rpmemd on node 0 would use
+#    /custom/poolset-dir/on/node0/ as poolset directory instead of
+#    $NODE_TEST_DIR value used by default.
+#
+#       init_rpmem_on_node 1 0 /custom/poolset-dir/on/node0/
+#
+function init_rpmem_on_node() {
+	local NODE=$1
+	local TARGET=$2
+	shift 2
+
+	validate_node_number $NODE
+	validate_node_number $TARGET
+
+	local POOLS_DIR_NODE=${NODE_TEST_DIR[$TARGET]}
+	if [ $# -gt 0 ]; then
+		POOLS_DIR_NODE=$1
+	fi
+
+	RPMEM_CMD="\"cd ${NODE_TEST_DIR[$TARGET]} && "
+	RPMEM_CMD="$RPMEM_CMD LD_LIBRARY_PATH=.:${NODE_LD_LIBRARY_PATH[$TARGET]}"
+	RPMEM_CMD="$RPMEM_CMD ./rpmemd"
+	RPMEM_CMD="$RPMEM_CMD --log-file=$RPMEMD_LOG_FILE"
+	RPMEM_CMD="$RPMEM_CMD --poolset-dir=$POOLS_DIR_NODE"
+
+	if [ "$RPMEM_PM" == "APM" ]; then
+		RPMEM_CMD="$RPMEM_CMD --persist-apm"
+	fi
+
+	RPMEM_CMD="$RPMEM_CMD \""
+
+	RPMEM_ENABLE_SOCKETS=0
+	RPMEM_ENABLE_VERBS=0
+
+	case $RPMEM_PROVIDER in
+	sockets)
+		RPMEM_ENABLE_SOCKETS=1
+		;;
+	verbs)
+		RPMEM_ENABLE_VERBS=1
+		;;
+	esac
+
+	export_vars_node $NODE RPMEM_CMD
+	export_vars_node $NODE RPMEM_ENABLE_SOCKETS
+	export_vars_node $NODE RPMEM_ENABLE_VERBS
+	export_vars_node $NODE RPMEM_LOG_LEVEL
+	export_vars_node $NODE RPMEM_LOG_FILE
+
+	# Workaround for SIGSEGV in the infinipath-psm during abort
+	# The infinipath-psm is registering a signal handler and do not unregister
+	# it when rpmem handle is dlclosed. SIGABRT (potentially any other signal)
+	# would try to call the signal handler which does not exist after dlclose.
+	# Issue require a fix in the infinipath-psm or the libfabric.
+	IPATH_NO_BACKTRACE=1
+	export_vars_node $NODE IPATH_NO_BACKTRACE
 }
