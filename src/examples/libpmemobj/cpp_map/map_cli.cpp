@@ -33,7 +33,7 @@
 #include "ctree_map_transient.hpp"
 #include <ctree_map_persistent.hpp>
 #include <iostream>
-#include <libpmemobj/pool.hpp>
+#include <libpmemobj++/pool.hpp>
 #include <memory>
 #include <unistd.h>
 

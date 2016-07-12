@@ -32,13 +32,15 @@
 
 /**
  * @file
- * Functions for destroying arrays.
+ * Commonly used functionality.
  */
 
-#ifndef LIBPMEMOBJ_DESTROYER_HPP
-#define LIBPMEMOBJ_DESTROYER_HPP
+#ifndef PMEMOBJ_COMMON_HPP
+#define PMEMOBJ_COMMON_HPP
 
-#include "libpmemobj/detail/array_traits.hpp"
+#include "libpmemobj.h"
+#include "libpmemobj++/detail/pexceptions.hpp"
+#include <typeinfo>
 
 namespace nvml
 {
@@ -47,95 +49,41 @@ namespace detail
 {
 
 /*
- * Template for checking if T is not an array.
+ * Conditionally add an object to a transaction.
+ *
+ * Adds `*that` to the transaction if it is within a pmemobj pool and
+ * there is an active transaction. Does nothing otherwise.
+ *
+ * @param[in] that pointer to the object being added to the transaction.
  */
 template <typename T>
-struct if_not_array {
-	typedef T type;
-};
-
-/*
- * Template for checking if T is not an array.
- */
-template <typename T>
-struct if_not_array<T[]>;
-
-/*
- * Template for checking if T is not an array.
- */
-template <typename T, size_t N>
-struct if_not_array<T[N]>;
-
-/*
- * Template for checking if T is an array.
- */
-template <typename T>
-struct if_size_array;
-
-/*
- * Template for checking if T is an array.
- */
-template <typename T>
-struct if_size_array<T[]>;
-
-/*
- * Template for checking if T is an array.
- */
-template <typename T, size_t N>
-struct if_size_array<T[N]> {
-	typedef T type[N];
-};
-
-/*
- * Calls object's constructor.
- */
-template <typename T>
-void
-create(typename if_not_array<T>::type *args)
+inline void
+conditional_add_to_tx(const T *that)
 {
-	::new (args) T();
+	/* 'that' is not in any open pool */
+	if (!pmemobj_pool_by_ptr(that))
+		return;
+
+	if (pmemobj_tx_stage() != TX_STAGE_WORK)
+		return;
+
+	if (pmemobj_tx_add_range_direct(that, sizeof(*that)))
+		throw transaction_error("Could not add an object to the"
+					" transaction.");
 }
 
 /*
- * Recursively calls array's elements' constructors.
+ * Return type number for given type.
  */
 template <typename T>
-void
-create(typename if_size_array<T>::type *args)
+constexpr uint64_t
+type_num()
 {
-	typedef typename detail::pp_array_type<T>::type I;
-	enum { N = pp_array_elems<T>::elems };
-
-	for (std::size_t i = 0; i < N; ++i)
-		create<I>(&(*args)[i]);
-}
-
-/*
- * Calls object's destructor.
- */
-template <typename T>
-void
-destroy(typename if_not_array<T>::type &arg)
-{
-	arg.~T();
-}
-
-/*
- * Recursively calls array's elements' destructors.
- */
-template <typename T>
-void
-destroy(typename if_size_array<T>::type &arg)
-{
-	typedef typename detail::pp_array_type<T>::type I;
-	enum { N = pp_array_elems<T>::elems };
-
-	for (std::size_t i = 0; i < N; ++i)
-		destroy<I>(arg[N - 1 - i]);
+	return typeid(T).hash_code();
 }
 
 } /* namespace detail */
 
 } /* namespace nvml */
 
-#endif /* LIBPMEMOBJ_DESTROYER_HPP */
+#endif /* PMEMOBJ_COMMON_HPP */

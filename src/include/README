@@ -26,6 +26,6 @@ libvmmalloc.h -- definitions of libvmmalloc entry points (see libvmmalloc(3))
 
 Experimental libraries:
 
-libpmemobj/*.hpp -- definitions of libpmemobj C++ bindings
+libpmemobj++/*.hpp -- definitions of libpmemobj C++ bindings
 
 librpmem.h -- definitions of librpmem entry points (see librpmem(3))

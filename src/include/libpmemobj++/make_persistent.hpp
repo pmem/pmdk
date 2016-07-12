@@ -41,9 +41,9 @@
 #define PMEMOBJ_MAKE_PERSISTENT_HPP
 
 #include "libpmemobj.h"
-#include "libpmemobj/detail/check_persistent_ptr_array.hpp"
-#include "libpmemobj/detail/common.hpp"
-#include "libpmemobj/detail/pexceptions.hpp"
+#include "libpmemobj++/detail/check_persistent_ptr_array.hpp"
+#include "libpmemobj++/detail/common.hpp"
+#include "libpmemobj++/detail/pexceptions.hpp"
 
 #include <new>
 

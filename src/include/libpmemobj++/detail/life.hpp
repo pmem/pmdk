@@ -32,13 +32,13 @@
 
 /**
  * @file
- * Compile time type check for make_persistent.
+ * Functions for destroying arrays.
  */
 
-#ifndef LIBPMEMOBJ_CHECK_PERSISTENT_PTR_ARRAY_HPP
-#define LIBPMEMOBJ_CHECK_PERSISTENT_PTR_ARRAY_HPP
+#ifndef LIBPMEMOBJ_DESTROYER_HPP
+#define LIBPMEMOBJ_DESTROYER_HPP
 
-#include "libpmemobj/persistent_ptr.hpp"
+#include "libpmemobj++/detail/array_traits.hpp"
 
 namespace nvml
 {
@@ -47,57 +47,95 @@ namespace detail
 {
 
 /*
- * Typedef checking if given type is not an array.
+ * Template for checking if T is not an array.
  */
 template <typename T>
-struct pp_if_not_array {
-	typedef obj::persistent_ptr<T> type;
+struct if_not_array {
+	typedef T type;
 };
 
 /*
- * Typedef checking if given type is not an array.
+ * Template for checking if T is not an array.
  */
 template <typename T>
-struct pp_if_not_array<T[]> {
-};
+struct if_not_array<T[]>;
 
 /*
- * Typedef checking if given type is not an array.
+ * Template for checking if T is not an array.
  */
 template <typename T, size_t N>
-struct pp_if_not_array<T[N]> {
-};
+struct if_not_array<T[N]>;
 
 /*
- * Typedef checking if given type is an array.
+ * Template for checking if T is an array.
  */
 template <typename T>
-struct pp_if_array;
+struct if_size_array;
 
 /*
- * Typedef checking if given type is an array.
+ * Template for checking if T is an array.
  */
 template <typename T>
-struct pp_if_array<T[]> {
-	typedef obj::persistent_ptr<T[]> type;
-};
+struct if_size_array<T[]>;
 
 /*
- * Typedef checking if given type is an array.
- */
-template <typename T>
-struct pp_if_size_array;
-
-/*
- * Typedef checking if given type is an array.
+ * Template for checking if T is an array.
  */
 template <typename T, size_t N>
-struct pp_if_size_array<T[N]> {
-	typedef obj::persistent_ptr<T[N]> type;
+struct if_size_array<T[N]> {
+	typedef T type[N];
 };
+
+/*
+ * Calls object's constructor.
+ */
+template <typename T>
+void
+create(typename if_not_array<T>::type *args)
+{
+	::new (args) T();
+}
+
+/*
+ * Recursively calls array's elements' constructors.
+ */
+template <typename T>
+void
+create(typename if_size_array<T>::type *args)
+{
+	typedef typename detail::pp_array_type<T>::type I;
+	enum { N = pp_array_elems<T>::elems };
+
+	for (std::size_t i = 0; i < N; ++i)
+		create<I>(&(*args)[i]);
+}
+
+/*
+ * Calls object's destructor.
+ */
+template <typename T>
+void
+destroy(typename if_not_array<T>::type &arg)
+{
+	arg.~T();
+}
+
+/*
+ * Recursively calls array's elements' destructors.
+ */
+template <typename T>
+void
+destroy(typename if_size_array<T>::type &arg)
+{
+	typedef typename detail::pp_array_type<T>::type I;
+	enum { N = pp_array_elems<T>::elems };
+
+	for (std::size_t i = 0; i < N; ++i)
+		destroy<I>(arg[N - 1 - i]);
+}
 
 } /* namespace detail */
 
 } /* namespace nvml */
 
-#endif /* LIBPMEMOBJ_CHECK_PERSISTENT_PTR_ARRAY_HPP */
+#endif /* LIBPMEMOBJ_DESTROYER_HPP */

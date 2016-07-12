@@ -54,7 +54,7 @@ check_flag = $(shell echo "int main(){return 0;}" |\
 
 # Check for issues with older clang compilers which assert on delete persistent<[][]>.
 check_clang_template_bug = $(shell echo "using namespace nvml::obj; int main() { delete_persistent<int[][3]>(make_persistent<int[][3]>(2), 2); return 0; }" |\
-	$(CXX) --std=c++11 -x c++ -I$(TOP)/src/include/ -include libpmemobj/make_persistent_array.hpp -L$(TOP)/src/debug/ -c -o /dev/null - 2>/dev/null && echo y || echo n)
+	$(CXX) --std=c++11 -x c++ -I$(TOP)/src/include/ -include libpmemobj++/make_persistent_array.hpp -L$(TOP)/src/debug/ -c -o /dev/null - 2>/dev/null && echo y || echo n)
 
 # Check for issues with older gcc compilers which do not expand variadic template
 # variables in lambda expressions.
