@@ -38,7 +38,6 @@
 #ifndef PMEMOBJ_P_HPP
 #define PMEMOBJ_P_HPP
 
-#include "libpmemobj.h"
 #include <memory>
 
 #include "libpmemobj++/detail/common.hpp"

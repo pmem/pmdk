@@ -42,7 +42,6 @@
 #include <memory>
 #include <ostream>
 
-#include "libpmemobj.h"
 #include "libpmemobj++/detail/common.hpp"
 #include "libpmemobj++/detail/specialization.hpp"
 #include "libpmemobj++/pool.hpp"

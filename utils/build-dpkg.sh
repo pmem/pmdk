@@ -518,6 +518,19 @@ usr/lib/nvml_debug/libpmemobj.so.* usr/lib/nvml_dbg/
 usr/lib/libpmemobj.so
 usr/lib/pkgconfig/libpmemobj.pc
 usr/include/libpmemobj.h
+usr/include/libpmemobj/atomic_base.h
+usr/include/libpmemobj/atomic.h
+usr/include/libpmemobj/base.h
+usr/include/libpmemobj/iterator_base.h
+usr/include/libpmemobj/iterator.h
+usr/include/libpmemobj/lists_atomic_base.h
+usr/include/libpmemobj/lists_atomic.h
+usr/include/libpmemobj/pool_base.h
+usr/include/libpmemobj/pool.h
+usr/include/libpmemobj/thread.h
+usr/include/libpmemobj/tx_base.h
+usr/include/libpmemobj/tx.h
+usr/include/libpmemobj/types.h
 usr/share/man/man3/libpmemobj.3.gz
 EOF
 

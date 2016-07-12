@@ -38,6 +38,8 @@
 #ifndef LIBPMEMOBJ_CHECK_PERSISTENT_PTR_ARRAY_HPP
 #define LIBPMEMOBJ_CHECK_PERSISTENT_PTR_ARRAY_HPP
 
+#include <stddef.h>
+
 #include "libpmemobj++/persistent_ptr.hpp"
 
 namespace nvml

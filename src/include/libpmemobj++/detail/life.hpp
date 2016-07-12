@@ -38,6 +38,8 @@
 #ifndef LIBPMEMOBJ_DESTROYER_HPP
 #define LIBPMEMOBJ_DESTROYER_HPP
 
+#include <stddef.h>
+
 #include "libpmemobj++/detail/array_traits.hpp"
 
 namespace nvml

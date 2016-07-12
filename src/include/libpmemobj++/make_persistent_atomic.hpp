@@ -40,7 +40,7 @@
 #ifndef PMEMOBJ_MAKE_PERSISTENT_ATOMIC_HPP
 #define PMEMOBJ_MAKE_PERSISTENT_ATOMIC_HPP
 
-#include "libpmemobj.h"
+#include "libpmemobj/atomic_base.h"
 #include "libpmemobj++/detail/check_persistent_ptr_array.hpp"
 #include "libpmemobj++/detail/common.hpp"
 #include "libpmemobj++/detail/make_atomic_impl.hpp"

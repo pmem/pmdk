@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2014-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -30,65 +30,17 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * @file
- * Libpmemobj C++ utils.
+/*
+ * libpmemobj/pool.h -- definitions of libpmemobj pool macros
  */
-#ifndef LIBPMEMOBJ_UTILS_HPP
-#define LIBPMEMOBJ_UTILS_HPP
 
-#include "libpmemobj/base.h"
-#include "libpmemobj++/detail/pexceptions.hpp"
-#include "libpmemobj++/persistent_ptr.hpp"
+#ifndef LIBPMEMOBJ_POOL_H
+#define LIBPMEMOBJ_POOL_H 1
 
-namespace nvml
-{
+#include <libpmemobj/pool_base.h>
+#include <libpmemobj/types.h>
 
-namespace obj
-{
+#define POBJ_ROOT(pop, t) (\
+(TOID(t))pmemobj_root((pop), sizeof(t)))
 
-/**
- * Retrieve pool handle for the given pointer.
- *
- * @param[in] that pointer to an object from a persistent memory pool.
- *
- * @return handle to the pool containing the object.
- *
- * @throw `pool_error` if the given pointer does not belong to an open pool.
- */
-template <typename T>
-inline pool_base
-pool_by_vptr(const T *that)
-{
-	auto pop = pmemobj_pool_by_ptr(that);
-	if (!pop)
-		throw pool_error("Object not in an open pool.");
-
-	return pool_base(pop);
-}
-
-/**
- * Retrieve pool handle for the given persistent_ptr.
- *
- * @param[in] ptr pointer to an object from a persistent memory pool.
- *
- * @return handle to the pool containing the object.
- *
- * @throw `pool_error` if the given pointer does not belong to an open pool.
- */
-template <typename T>
-inline pool_base
-pool_by_pptr(const persistent_ptr<T> ptr)
-{
-	auto pop = pmemobj_pool_by_oid(ptr.raw());
-	if (!pop)
-		throw pool_error("Object not in an open pool.");
-
-	return pool_base(pop);
-}
-
-} /* namespace obj */
-
-} /* namespace nvml */
-
-#endif /* LIBPMEMOBJ_UTILS_HPP */
+#endif	/* libpmemobj/pool.h */

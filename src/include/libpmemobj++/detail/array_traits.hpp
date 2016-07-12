@@ -38,6 +38,8 @@
 #ifndef LIBPMEMOBJ_ARRAY_TRAITS_HPP
 #define LIBPMEMOBJ_ARRAY_TRAITS_HPP
 
+#include <stddef.h>
+
 namespace nvml
 {
 
