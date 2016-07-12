@@ -2,7 +2,10 @@
 layout: manual
 Content-Style: 'text/css'
 title: rpmemd(1)
+header: NVM Library
+date: version 1.0.0
 ...
+
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
@@ -16,7 +19,7 @@ title: rpmemd(1)
 
 ### NAME ###
 
-**rpmemd** − librpmem target node process
+**rpmemd** -- librpmem target node process
 
 ### SYNOPSIS ###
 
