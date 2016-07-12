@@ -38,8 +38,8 @@
 #define LIBPMEMOBJ_UTILS_HPP
 
 #include "libpmemobj.h"
-#include "libpmemobj/detail/pexceptions.hpp"
-#include "libpmemobj/persistent_ptr.hpp"
+#include "libpmemobj++/detail/pexceptions.hpp"
+#include "libpmemobj++/persistent_ptr.hpp"
 
 namespace nvml
 {

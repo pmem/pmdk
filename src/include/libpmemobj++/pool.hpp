@@ -41,8 +41,8 @@
 #include <sys/stat.h>
 
 #include "libpmemobj.h"
-#include "libpmemobj/detail/pexceptions.hpp"
-#include "libpmemobj/p.hpp"
+#include "libpmemobj++/detail/pexceptions.hpp"
+#include "libpmemobj++/p.hpp"
 
 namespace nvml
 {

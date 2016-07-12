@@ -39,7 +39,7 @@
 #define PMEMOBJ_MUTEX_HPP
 
 #include "libpmemobj.h"
-#include "libpmemobj/detail/pexceptions.hpp"
+#include "libpmemobj++/detail/pexceptions.hpp"
 
 namespace nvml
 {

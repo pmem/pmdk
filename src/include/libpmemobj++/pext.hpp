@@ -38,7 +38,7 @@
 #ifndef PMEMOBJ_PEXT_HPP
 #define PMEMOBJ_PEXT_HPP
 
-#include "libpmemobj/p.hpp"
+#include "libpmemobj++/p.hpp"
 #include <iostream>
 
 namespace nvml
