@@ -40,9 +40,9 @@
 
 #include <new>
 
-#include "libpmemobj/detail/array_traits.hpp"
-#include "libpmemobj/detail/integer_sequence.hpp"
-#include "libpmemobj/detail/life.hpp"
+#include "libpmemobj++/detail/array_traits.hpp"
+#include "libpmemobj++/detail/integer_sequence.hpp"
+#include "libpmemobj++/detail/life.hpp"
 
 namespace nvml
 {

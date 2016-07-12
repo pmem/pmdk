@@ -42,8 +42,8 @@
 #include <string>
 
 #include "libpmemobj.h"
-#include "libpmemobj/detail/pexceptions.hpp"
-#include "libpmemobj/pool.hpp"
+#include "libpmemobj++/detail/pexceptions.hpp"
+#include "libpmemobj++/pool.hpp"
 
 namespace nvml
 {

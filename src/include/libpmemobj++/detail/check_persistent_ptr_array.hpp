@@ -32,15 +32,13 @@
 
 /**
  * @file
- * Commonly used functionality.
+ * Compile time type check for make_persistent.
  */
 
-#ifndef PMEMOBJ_COMMON_HPP
-#define PMEMOBJ_COMMON_HPP
+#ifndef LIBPMEMOBJ_CHECK_PERSISTENT_PTR_ARRAY_HPP
+#define LIBPMEMOBJ_CHECK_PERSISTENT_PTR_ARRAY_HPP
 
-#include "libpmemobj.h"
-#include "libpmemobj/detail/pexceptions.hpp"
-#include <typeinfo>
+#include "libpmemobj++/persistent_ptr.hpp"
 
 namespace nvml
 {
@@ -49,41 +47,57 @@ namespace detail
 {
 
 /*
- * Conditionally add an object to a transaction.
- *
- * Adds `*that` to the transaction if it is within a pmemobj pool and
- * there is an active transaction. Does nothing otherwise.
- *
- * @param[in] that pointer to the object being added to the transaction.
+ * Typedef checking if given type is not an array.
  */
 template <typename T>
-inline void
-conditional_add_to_tx(const T *that)
-{
-	/* 'that' is not in any open pool */
-	if (!pmemobj_pool_by_ptr(that))
-		return;
-
-	if (pmemobj_tx_stage() != TX_STAGE_WORK)
-		return;
-
-	if (pmemobj_tx_add_range_direct(that, sizeof(*that)))
-		throw transaction_error("Could not add an object to the"
-					" transaction.");
-}
+struct pp_if_not_array {
+	typedef obj::persistent_ptr<T> type;
+};
 
 /*
- * Return type number for given type.
+ * Typedef checking if given type is not an array.
  */
 template <typename T>
-constexpr uint64_t
-type_num()
-{
-	return typeid(T).hash_code();
-}
+struct pp_if_not_array<T[]> {
+};
+
+/*
+ * Typedef checking if given type is not an array.
+ */
+template <typename T, size_t N>
+struct pp_if_not_array<T[N]> {
+};
+
+/*
+ * Typedef checking if given type is an array.
+ */
+template <typename T>
+struct pp_if_array;
+
+/*
+ * Typedef checking if given type is an array.
+ */
+template <typename T>
+struct pp_if_array<T[]> {
+	typedef obj::persistent_ptr<T[]> type;
+};
+
+/*
+ * Typedef checking if given type is an array.
+ */
+template <typename T>
+struct pp_if_size_array;
+
+/*
+ * Typedef checking if given type is an array.
+ */
+template <typename T, size_t N>
+struct pp_if_size_array<T[N]> {
+	typedef obj::persistent_ptr<T[N]> type;
+};
 
 } /* namespace detail */
 
 } /* namespace nvml */
 
-#endif /* PMEMOBJ_COMMON_HPP */
+#endif /* LIBPMEMOBJ_CHECK_PERSISTENT_PTR_ARRAY_HPP */
