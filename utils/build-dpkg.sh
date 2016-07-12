@@ -518,6 +518,7 @@ usr/lib/nvml_debug/libpmemobj.so.* usr/lib/nvml_dbg/
 usr/lib/libpmemobj.so
 usr/lib/pkgconfig/libpmemobj.pc
 usr/include/libpmemobj.h
+usr/include/libpmemobj/*.h
 usr/share/man/man3/libpmemobj.3.gz
 EOF
 

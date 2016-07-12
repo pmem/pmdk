@@ -30,65 +30,10 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * @file
- * Libpmemobj C++ utils.
- */
-#ifndef LIBPMEMOBJ_UTILS_HPP
-#define LIBPMEMOBJ_UTILS_HPP
-
-#include "libpmemobj/base.h"
-#include "libpmemobj++/detail/pexceptions.hpp"
-#include "libpmemobj++/persistent_ptr.hpp"
-
-namespace nvml
+#ifdef BUILD_MAIN
+int
+main()
 {
-
-namespace obj
-{
-
-/**
- * Retrieve pool handle for the given pointer.
- *
- * @param[in] that pointer to an object from a persistent memory pool.
- *
- * @return handle to the pool containing the object.
- *
- * @throw `pool_error` if the given pointer does not belong to an open pool.
- */
-template <typename T>
-inline pool_base
-pool_by_vptr(const T *that)
-{
-	auto pop = pmemobj_pool_by_ptr(that);
-	if (!pop)
-		throw pool_error("Object not in an open pool.");
-
-	return pool_base(pop);
+	return 0;
 }
-
-/**
- * Retrieve pool handle for the given persistent_ptr.
- *
- * @param[in] ptr pointer to an object from a persistent memory pool.
- *
- * @return handle to the pool containing the object.
- *
- * @throw `pool_error` if the given pointer does not belong to an open pool.
- */
-template <typename T>
-inline pool_base
-pool_by_pptr(const persistent_ptr<T> ptr)
-{
-	auto pop = pmemobj_pool_by_oid(ptr.raw());
-	if (!pop)
-		throw pool_error("Object not in an open pool.");
-
-	return pool_base(pop);
-}
-
-} /* namespace obj */
-
-} /* namespace nvml */
-
-#endif /* LIBPMEMOBJ_UTILS_HPP */
+#endif

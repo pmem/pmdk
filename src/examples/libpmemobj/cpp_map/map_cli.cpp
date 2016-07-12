@@ -35,6 +35,7 @@
 #include <iostream>
 #include <libpmemobj++/pool.hpp>
 #include <memory>
+#include <string.h>
 #include <unistd.h>
 
 namespace

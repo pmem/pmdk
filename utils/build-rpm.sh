@@ -336,6 +336,7 @@ Development files for NVML libpmemobj library
 %{_libdir}/nvml_debug/libpmemobj.so.*
 %{_libdir}/nvml_debug/libpmemobj.a
 %{_includedir}/libpmemobj.h
+%{_includedir}/libpmemobj/*.h
 %{_mandir}/man3/libpmemobj.3.gz
 
 %package -n libpmempool

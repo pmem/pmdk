@@ -56,6 +56,8 @@ HEADERS_INSTALL = include/libpmem.h include/libvmem.h\
 		include/libpmemblk.h include/libpmemlog.h\
 		include/libvmmalloc.h
 
+OBJ_HEADERS_INSTALL = include/libpmemobj/*.h
+
 CPP_HEADERS_DESTDIR = $(DESTDIR)$(includedir)/libpmemobj++
 
 MAKE_PKG_CONFIG = $(TOP)/utils/make-pkg-config.sh
@@ -153,6 +155,8 @@ endif
 install: all
 	install -d $(HEADERS_DESTDIR)
 	install -p -m 0644 $(HEADERS_INSTALL) $(HEADERS_DESTDIR)
+	install -d $(HEADERS_DESTDIR)/libpmemobj
+	install -p -m 0644 $(OBJ_HEADERS_INSTALL) $(HEADERS_DESTDIR)/libpmemobj
 	install -d $(PKG_CONFIG_DESTDIR)
 	install -p -m 0644 $(PKG_CONFIG_FILES) $(PKG_CONFIG_DESTDIR)
 
@@ -164,12 +168,14 @@ uninstall:
 # [!q] to skip windows/include/sys/queue.h
 cstyle:
 	$(STYLE_CHECK) check include/*.h
+	$(STYLE_CHECK) check include/libpmemobj/*.h
 	$(STYLE_CHECK) check include/libpmemobj++/*.hpp
 	$(STYLE_CHECK) check include/libpmemobj++/detail/*.hpp
 	$(STYLE_CHECK) check windows/include/*.h
 	$(STYLE_CHECK) check windows/include/*/[!q]*.h
 
 format:
+	$(STYLE_CHECK) format include/libpmemobj/*.h
 	$(STYLE_CHECK) format include/libpmemobj++/*.hpp
 	$(STYLE_CHECK) format include/libpmemobj++/detail/*.hpp
 

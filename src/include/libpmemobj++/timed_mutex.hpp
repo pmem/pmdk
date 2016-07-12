@@ -40,7 +40,7 @@
 
 #include <chrono>
 
-#include "libpmemobj.h"
+#include "libpmemobj/thread.h"
 #include "libpmemobj++/detail/conversions.hpp"
 
 namespace nvml

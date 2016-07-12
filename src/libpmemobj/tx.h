@@ -34,8 +34,8 @@
  * tx.h -- internal definitions for transactions
  */
 
-#ifndef LIBPMEMOBJ_TX_H
-#define LIBPMEMOBJ_TX_H 1
+#ifndef LIBPMEMOBJ_INTERNAL_TX_H
+#define LIBPMEMOBJ_INTERNAL_TX_H 1
 
 #include <stdint.h>
 #include "pvector.h"

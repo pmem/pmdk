@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2014-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -30,65 +30,40 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * @file
- * Libpmemobj C++ utils.
+/*
+ * libpmemobj/iterator_base.h -- definitions of libpmemobj iterator entry points
  */
-#ifndef LIBPMEMOBJ_UTILS_HPP
-#define LIBPMEMOBJ_UTILS_HPP
 
-#include "libpmemobj/base.h"
-#include "libpmemobj++/detail/pexceptions.hpp"
-#include "libpmemobj++/persistent_ptr.hpp"
+#ifndef LIBPMEMOBJ_ITERATOR_BASE_H
+#define LIBPMEMOBJ_ITERATOR_BASE_H 1
 
-namespace nvml
-{
+#include <libpmemobj/base.h>
 
-namespace obj
-{
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-/**
- * Retrieve pool handle for the given pointer.
+/*
+ * The following functions allow access to the entire collection of objects.
  *
- * @param[in] that pointer to an object from a persistent memory pool.
- *
- * @return handle to the pool containing the object.
- *
- * @throw `pool_error` if the given pointer does not belong to an open pool.
+ * Use with conjunction with non-transactional allocations. Pmemobj pool acts
+ * as a generic container (list) of objects that are not assigned to any
+ * user-defined data structures.
  */
-template <typename T>
-inline pool_base
-pool_by_vptr(const T *that)
-{
-	auto pop = pmemobj_pool_by_ptr(that);
-	if (!pop)
-		throw pool_error("Object not in an open pool.");
 
-	return pool_base(pop);
+/*
+ * Returns the first object of the specified type number.
+ */
+PMEMoid pmemobj_first(PMEMobjpool *pop);
+
+/*
+ * Returns the next object of the same type.
+ */
+PMEMoid pmemobj_next(PMEMoid oid);
+
+
+#ifdef __cplusplus
 }
+#endif
 
-/**
- * Retrieve pool handle for the given persistent_ptr.
- *
- * @param[in] ptr pointer to an object from a persistent memory pool.
- *
- * @return handle to the pool containing the object.
- *
- * @throw `pool_error` if the given pointer does not belong to an open pool.
- */
-template <typename T>
-inline pool_base
-pool_by_pptr(const persistent_ptr<T> ptr)
-{
-	auto pop = pmemobj_pool_by_oid(ptr.raw());
-	if (!pop)
-		throw pool_error("Object not in an open pool.");
-
-	return pool_base(pop);
-}
-
-} /* namespace obj */
-
-} /* namespace nvml */
-
-#endif /* LIBPMEMOBJ_UTILS_HPP */
+#endif	/* libpmemobj/iterator_base.h */

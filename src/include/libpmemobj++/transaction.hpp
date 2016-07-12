@@ -41,7 +41,7 @@
 #include <functional>
 #include <string>
 
-#include "libpmemobj.h"
+#include "libpmemobj/tx_base.h"
 #include "libpmemobj++/detail/pexceptions.hpp"
 #include "libpmemobj++/pool.hpp"
 

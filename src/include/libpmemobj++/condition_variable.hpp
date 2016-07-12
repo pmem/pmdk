@@ -41,7 +41,7 @@
 #include <chrono>
 #include <condition_variable>
 
-#include "libpmemobj.h"
+#include "libpmemobj/thread.h"
 #include "libpmemobj++/detail/conversions.hpp"
 #include "libpmemobj++/mutex.hpp"
 
