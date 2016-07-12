@@ -58,8 +58,6 @@
 #include "sync.h"
 #include "valgrind_internal.h"
 
-#define RLANE_DEFAULT 0
-
 static struct cuckoo *pools_ht; /* hash table used for searching by UUID */
 static struct ctree *pools_tree; /* tree used for searching by address */
 
@@ -338,6 +336,11 @@ obj_rep_memcpy_persist(PMEMobjpool *pop, void *dest, const void *src,
 {
 	LOG(15, "pop %p dest %p src %p len %zu", pop, dest, src, len);
 
+	unsigned lane = UINT_MAX;
+
+	if (pop->has_remote_replicas)
+		lane = lane_hold(pop, NULL, LANE_ID);
+
 	void *ret = pop->memcpy_persist_local(dest, src, len);
 
 	PMEMobjpool *rep = pop->replica;
@@ -346,12 +349,15 @@ obj_rep_memcpy_persist(PMEMobjpool *pop, void *dest, const void *src,
 		if (rep->remote == NULL) {
 			rep->memcpy_persist_local(rdest, src, len);
 		} else {
-			if (rep->persist_remote(rep, rdest, len,
-							RLANE_DEFAULT) == NULL)
+			if (rep->persist_remote(rep, rdest, len, lane) == NULL)
 				obj_handle_remote_persist_error(pop);
 		}
 		rep = rep->replica;
 	}
+
+	if (pop->has_remote_replicas)
+		lane_release(pop);
+
 	return ret;
 }
 
@@ -363,6 +369,11 @@ obj_rep_memset_persist(PMEMobjpool *pop, void *dest, int c, size_t len)
 {
 	LOG(15, "pop %p dest %p c 0x%02x len %zu", pop, dest, c, len);
 
+	unsigned lane = UINT_MAX;
+
+	if (pop->has_remote_replicas)
+		lane = lane_hold(pop, NULL, LANE_ID);
+
 	void *ret = pop->memset_persist_local(dest, c, len);
 
 	PMEMobjpool *rep = pop->replica;
@@ -371,12 +382,15 @@ obj_rep_memset_persist(PMEMobjpool *pop, void *dest, int c, size_t len)
 		if (rep->remote == NULL) {
 			rep->memset_persist_local(rdest, c, len);
 		} else {
-			if (rep->persist_remote(rep, rdest, len,
-							RLANE_DEFAULT) == NULL)
+			if (rep->persist_remote(rep, rdest, len, lane) == NULL)
 				obj_handle_remote_persist_error(pop);
 		}
 		rep = rep->replica;
 	}
+
+	if (pop->has_remote_replicas)
+		lane_release(pop);
+
 	return ret;
 }
 
@@ -388,6 +402,11 @@ obj_rep_persist(PMEMobjpool *pop, const void *addr, size_t len)
 {
 	LOG(15, "pop %p addr %p len %zu", pop, addr, len);
 
+	unsigned lane = UINT_MAX;
+
+	if (pop->has_remote_replicas)
+		lane = lane_hold(pop, NULL, LANE_ID);
+
 	pop->persist_local(addr, len);
 
 	PMEMobjpool *rep = pop->replica;
@@ -396,12 +415,14 @@ obj_rep_persist(PMEMobjpool *pop, const void *addr, size_t len)
 		if (rep->remote == NULL) {
 			rep->memcpy_persist_local(raddr, addr, len);
 		} else {
-			if (rep->persist_remote(rep, raddr, len,
-							RLANE_DEFAULT) == NULL)
+			if (rep->persist_remote(rep, raddr, len, lane) == NULL)
 				obj_handle_remote_persist_error(pop);
 		}
 		rep = rep->replica;
 	}
+
+	if (pop->has_remote_replicas)
+		lane_release(pop);
 }
 
 /*
@@ -412,6 +433,11 @@ obj_rep_flush(PMEMobjpool *pop, const void *addr, size_t len)
 {
 	LOG(15, "pop %p addr %p len %zu", pop, addr, len);
 
+	unsigned lane = UINT_MAX;
+
+	if (pop->has_remote_replicas)
+		lane = lane_hold(pop, NULL, LANE_ID);
+
 	pop->flush_local(addr, len);
 
 	PMEMobjpool *rep = pop->replica;
@@ -421,12 +447,14 @@ obj_rep_flush(PMEMobjpool *pop, const void *addr, size_t len)
 			memcpy(raddr, addr, len);
 			rep->flush_local(raddr, len);
 		} else {
-			if (rep->persist_remote(rep, raddr, len,
-							RLANE_DEFAULT) == NULL)
+			if (rep->persist_remote(rep, raddr, len, lane) == NULL)
 				obj_handle_remote_persist_error(pop);
 		}
 		rep = rep->replica;
 	}
+
+	if (pop->has_remote_replicas)
+		lane_release(pop);
 }
 
 /*
@@ -821,6 +849,7 @@ pmemobj_replica_init(PMEMobjpool *rep, struct pool_set *set, unsigned repidx,
 	if (repidx == 0) {
 		/* master replica */
 		rep->is_master_replica = 1;
+		rep->has_remote_replicas = set->remote;
 
 		if (set->nreplicas > 1) {
 			rep->persist = obj_rep_persist;
@@ -838,6 +867,7 @@ pmemobj_replica_init(PMEMobjpool *rep, struct pool_set *set, unsigned repidx,
 	} else {
 		/* non-master replicas */
 		rep->is_master_replica = 0;
+		rep->has_remote_replicas = 0;
 
 		rep->persist = NULL;
 		rep->flush = NULL;
