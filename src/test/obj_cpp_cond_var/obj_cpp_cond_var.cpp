@@ -76,6 +76,13 @@ const int limit = 7000;
 const std::chrono::milliseconds wait_time(150);
 
 /*
+ * Premature wakeup tolerance.
+ * XXX Windows - this needs to be investigated, it shouldn't timeout this long
+ * before the actual timeout.
+ */
+const auto epsilon = std::chrono::milliseconds(16);
+
+/*
  * write_notify -- (internal) bump up the counter up to a limit and notify
  */
 void
@@ -163,7 +170,6 @@ reader_mutex_until(nvobj::persistent_ptr<struct root> proot)
 
 	auto now = std::chrono::system_clock::now();
 	if (ret == std::cv_status::timeout) {
-		auto epsilon = std::chrono::milliseconds(10);
 		auto diff =
 			std::chrono::duration_cast<std::chrono::milliseconds>(
 				until - now);
@@ -190,7 +196,6 @@ reader_mutex_until_pred(nvobj::persistent_ptr<struct root> proot)
 
 	auto now = std::chrono::system_clock::now();
 	if (ret == false) {
-		auto epsilon = std::chrono::milliseconds(10);
 		auto diff =
 			std::chrono::duration_cast<std::chrono::milliseconds>(
 				until - now);
@@ -215,7 +220,6 @@ reader_lock_until(nvobj::persistent_ptr<struct root> proot)
 
 	auto now = std::chrono::system_clock::now();
 	if (ret == std::cv_status::timeout) {
-		auto epsilon = std::chrono::milliseconds(10);
 		auto diff =
 			std::chrono::duration_cast<std::chrono::milliseconds>(
 				until - now);
@@ -242,7 +246,6 @@ reader_lock_until_pred(nvobj::persistent_ptr<struct root> proot)
 
 	auto now = std::chrono::system_clock::now();
 	if (ret == false) {
-		auto epsilon = std::chrono::milliseconds(10);
 		auto diff =
 			std::chrono::duration_cast<std::chrono::milliseconds>(
 				until - now);
@@ -267,7 +270,6 @@ reader_mutex_for(nvobj::persistent_ptr<struct root> proot)
 
 	auto now = std::chrono::system_clock::now();
 	if (ret == std::cv_status::timeout) {
-		auto epsilon = std::chrono::milliseconds(10);
 		auto diff =
 			std::chrono::duration_cast<std::chrono::milliseconds>(
 				until - now);
@@ -294,7 +296,6 @@ reader_mutex_for_pred(nvobj::persistent_ptr<struct root> proot)
 
 	auto now = std::chrono::system_clock::now();
 	if (ret == false) {
-		auto epsilon = std::chrono::milliseconds(10);
 		auto diff =
 			std::chrono::duration_cast<std::chrono::milliseconds>(
 				until - now);
@@ -319,7 +320,6 @@ reader_lock_for(nvobj::persistent_ptr<struct root> proot)
 
 	auto now = std::chrono::system_clock::now();
 	if (ret == std::cv_status::timeout) {
-		auto epsilon = std::chrono::milliseconds(10);
 		auto diff =
 			std::chrono::duration_cast<std::chrono::milliseconds>(
 				until - now);
@@ -346,7 +346,6 @@ reader_lock_for_pred(nvobj::persistent_ptr<struct root> proot)
 
 	auto now = std::chrono::system_clock::now();
 	if (ret == false) {
-		auto epsilon = std::chrono::milliseconds(10);
 		auto diff =
 			std::chrono::duration_cast<std::chrono::milliseconds>(
 				until - now);
