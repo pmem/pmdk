@@ -16,13 +16,13 @@
     <ClCompile Include="util_is_absolute.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\common\util_windows.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\common\out.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\common\pthread_windows.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\common\file_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
