@@ -74,6 +74,9 @@ set_rpmem_cmd(const char *fmt, ...)
 
 	ret = setenv(RPMEM_CMD_ENV, cmd_buff, 1);
 	UT_ASSERTeq(ret, 0);
+
+	rpmem_util_cmds_fini();
+	rpmem_util_cmds_init();
 }
 
 struct server *

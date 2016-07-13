@@ -331,9 +331,11 @@ main(int argc, char *argv[])
 	rpmemd_log_init("rpmemd", getenv("RPMEMD_LOG_FILE"), 0);
 	rpmemd_log_level = rpmemd_log_level_from_str(
 			getenv("RPMEMD_LOG_LEVEL"));
+	rpmem_util_cmds_init();
 
 	TEST_CASE_PROCESS(argc, argv, test_cases, NTESTS);
 
+	rpmem_util_cmds_fini();
 	common_fini();
 	rpmemd_log_close();
 	DONE(NULL);

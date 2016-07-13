@@ -76,8 +76,12 @@ main(int argc, char *argv[])
 		"RPMEM_LOG_LEVEL",
 		"RPMEM_LOG_FILE", 0, 0);
 
+	rpmem_util_cmds_init();
+
 	TEST_CASE_PROCESS(argc, argv, test_cases, NTESTS);
 
+	rpmem_util_cmds_fini();
 	common_fini();
+
 	DONE(NULL);
 }

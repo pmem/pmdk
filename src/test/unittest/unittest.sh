@@ -1977,40 +1977,45 @@ function get_node_dir() {
 
 #
 # init_rpmem_on_node -- prepare rpmem environment variables on node
-#    usage: init_rpmem_on_node <master node> <slave node> [<slave poolset dir>]
+#    usage: init_rpmem_on_node <master-node> <slave-node-1> [<slave-node-2> ...]
 #
 # example:
 #    The following command initialize rpmem environment variables on the node 1
-#    to perform replication to the node 0. rpmemd on node 0 would use
-#    /custom/poolset-dir/on/node0/ as poolset directory instead of
-#    $NODE_TEST_DIR value used by default.
+#    to perform replication to the node 0.
 #
-#       init_rpmem_on_node 1 0 /custom/poolset-dir/on/node0/
+#       init_rpmem_on_node 1 0
 #
 function init_rpmem_on_node() {
-	local NODE=$1
-	local TARGET=$2
-	shift 2
+	local master=$1
+	shift
 
-	validate_node_number $NODE
-	validate_node_number $TARGET
+	validate_node_number $master
 
-	local POOLS_DIR_NODE=${NODE_TEST_DIR[$TARGET]}
-	if [ $# -gt 0 ]; then
-		POOLS_DIR_NODE=$1
-	fi
+	RPMEM_CMD=""
+	local SEPARATOR="|"
+	for slave in "$@"
+	do
+		validate_node_number $slave
 
-	RPMEM_CMD="\"cd ${NODE_TEST_DIR[$TARGET]} && "
-	RPMEM_CMD="$RPMEM_CMD LD_LIBRARY_PATH=.:${NODE_LD_LIBRARY_PATH[$TARGET]}"
-	RPMEM_CMD="$RPMEM_CMD ./rpmemd"
-	RPMEM_CMD="$RPMEM_CMD --log-file=$RPMEMD_LOG_FILE"
-	RPMEM_CMD="$RPMEM_CMD --poolset-dir=$POOLS_DIR_NODE"
+		CMD="cd ${NODE_TEST_DIR[$slave]} && "
+		CMD="$CMD LD_LIBRARY_PATH=.:${NODE_LD_LIBRARY_PATH[$slave]}"
+		CMD="$CMD ./rpmemd"
+		CMD="$CMD --log-file=$RPMEMD_LOG_FILE"
+		CMD="$CMD --poolset-dir=${NODE_TEST_DIR[$slave]}"
 
-	if [ "$RPMEM_PM" == "APM" ]; then
-		RPMEM_CMD="$RPMEM_CMD --persist-apm"
-	fi
+		if [ "$RPMEM_PM" == "APM" ]; then
+			CMD="$CMD --persist-apm"
+		fi
 
-	RPMEM_CMD="$RPMEM_CMD \""
+		if [ "$RPMEM_CMD" ]; then
+			RPMEM_CMD="$RPMEM_CMD$SEPARATOR$CMD"
+		else
+			RPMEM_CMD=$CMD
+		fi
+
+		require_node_log_files $slave rpmemd$UNITTEST_NUM.log
+	done
+	RPMEM_CMD="\"$RPMEM_CMD\""
 
 	RPMEM_ENABLE_SOCKETS=0
 	RPMEM_ENABLE_VERBS=0
@@ -2024,14 +2029,13 @@ function init_rpmem_on_node() {
 		;;
 	esac
 
-	export_vars_node $NODE RPMEM_CMD
-	export_vars_node $NODE RPMEM_ENABLE_SOCKETS
-	export_vars_node $NODE RPMEM_ENABLE_VERBS
-	export_vars_node $NODE RPMEM_LOG_LEVEL
-	export_vars_node $NODE RPMEM_LOG_FILE
+	export_vars_node $master RPMEM_CMD
+	export_vars_node $master RPMEM_ENABLE_SOCKETS
+	export_vars_node $master RPMEM_ENABLE_VERBS
+	export_vars_node $master RPMEM_LOG_LEVEL
+	export_vars_node $master RPMEM_LOG_FILE
 
-	require_node_log_files $NODE rpmem$UNITTEST_NUM.log
-	require_node_log_files $TARGET rpmemd$UNITTEST_NUM.log
+	require_node_log_files $master rpmem$UNITTEST_NUM.log
 
 	# Workaround for SIGSEGV in the infinipath-psm during abort
 	# The infinipath-psm is registering a signal handler and do not unregister
@@ -2039,5 +2043,5 @@ function init_rpmem_on_node() {
 	# would try to call the signal handler which does not exist after dlclose.
 	# Issue require a fix in the infinipath-psm or the libfabric.
 	IPATH_NO_BACKTRACE=1
-	export_vars_node $NODE IPATH_NO_BACKTRACE
+	export_vars_node $master IPATH_NO_BACKTRACE
 }

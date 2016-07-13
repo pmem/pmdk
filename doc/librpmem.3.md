@@ -390,6 +390,12 @@ default command executed on remote node using **ssh**. Setting this
 variable shall not be required normally, but it can be used for testing
 and debugging purposes.
 
+**RPMEM_CMD** can contain multiple commands separated by vertical bar (`|`).
+Each consecutive command is executed on remote node in order read from a
+poolset file. This environment variable is read when library is initialized so
+**RPMEM_CMD** must be set prior to application launch or prior to **dlopen***(3)
+of **librpmem** in case of using dynamic linking loader.
+
 * `RPMEM_SSH`
 
 Setting this environment variable makes it possible to override the

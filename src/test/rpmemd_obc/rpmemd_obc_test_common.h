@@ -40,6 +40,7 @@
 #include "rpmem_proto.h"
 #include "rpmem_common.h"
 #include "rpmem_ssh.h"
+#include "rpmem_util.h"
 #include "rpmemd_log.h"
 #include "rpmemd_obc.h"
 

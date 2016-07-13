@@ -49,3 +49,7 @@ enum {
 
 const char *rpmem_util_proto_errstr(enum rpmem_err err);
 int rpmem_util_proto_errno(enum rpmem_err err);
+
+void rpmem_util_cmds_init(void);
+void rpmem_util_cmds_fini(void);
+const char *rpmem_util_cmd_get(void);
