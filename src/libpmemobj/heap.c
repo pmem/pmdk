@@ -581,7 +581,7 @@ heap_get_create_bucket_idx_by_unit_size(struct pmalloc_heap *h,
 		bucket_idx = heap_create_alloc_class_buckets(h, unit_size,
 			RUN_UNIT_MAX);
 
-		if (unit_size == MAX_BUCKETS) {
+		if (bucket_idx == MAX_BUCKETS) {
 			ERR("Failed to allocate new bucket class");
 			return MAX_BUCKETS;
 		}
@@ -599,6 +599,7 @@ heap_get_create_bucket_idx_by_unit_size(struct pmalloc_heap *h,
 			supported_block, supported_block);
 	}
 
+	ASSERTne(bucket_idx, MAX_BUCKETS);
 	return bucket_idx;
 }
 
@@ -627,6 +628,12 @@ heap_register_active_run(struct pmalloc_heap *h, struct chunk_run *run,
 
 	uint8_t bucket_idx = heap_get_create_bucket_idx_by_unit_size(h,
 		run->block_size);
+
+	if (bucket_idx == MAX_BUCKETS) {
+		ASSERT(0);
+		return;
+	}
+
 	SLIST_INSERT_HEAD(&h->active_runs[bucket_idx], arun, run);
 }
 
