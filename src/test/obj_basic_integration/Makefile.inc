@@ -31,8 +31,9 @@
 #
 
 #
-# src/test/obj_basic_integration/Makefile.inc -- build obj_basic_integration and
-#       obj_rpmem_basic_integration unit tests
+# src/test/obj_basic_integration/Makefile.inc -- build obj_basic_integration,
+#    obj_rpmem_basic_integration and obj_rpmem_basic_integration_multiple
+#    unit tests
 #
 
 ../obj_basic_integration/obj_basic_integration:

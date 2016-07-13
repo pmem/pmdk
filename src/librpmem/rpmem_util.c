@@ -103,6 +103,11 @@ static struct rpmem_err_str_errno {
 	},
 };
 
+static char *Rpmem_cmds;
+static char *Rpmem_current_cmd;
+
+#define RPMEM_CMD_SEPARATOR '|'
+
 /*
  * rpmem_util_proto_errstr -- return error string for error code
  */
@@ -126,4 +131,58 @@ rpmem_util_proto_errno(enum rpmem_err err)
 	RPMEM_ASSERT(err < MAX_RPMEM_ERR);
 
 	return rpmem_err_str_errno[err].err;
+}
+
+/*
+ * rpmem_util_cmds_init -- read a RPMEM_CMD from the environment variable
+ */
+void
+rpmem_util_cmds_init(void)
+{
+	char *cmd = getenv(RPMEM_CMD_ENV);
+	if (!cmd)
+		cmd = RPMEM_DEF_CMD;
+
+	Rpmem_cmds = strdup(cmd);
+	if (!Rpmem_cmds)
+		RPMEM_FATAL("!strdup");
+
+	Rpmem_current_cmd = Rpmem_cmds;
+}
+
+/*
+ * rpmem_util_env_fini -- release RPMEM_CMD copy
+ */
+void
+rpmem_util_cmds_fini(void)
+{
+	RPMEM_ASSERT(Rpmem_cmds);
+
+	free(Rpmem_cmds);
+	Rpmem_cmds = NULL;
+	Rpmem_current_cmd = NULL;
+}
+
+/*
+ * rpmem_util_cmd_get -- get a next command from RPMEM_CMD
+ *
+ * RPMEM_CMD can contain multiple commands separated by RPMEM_CMD_SEPARATOR.
+ * Commands from RPMEM_CMD are read sequentially and used to establish out of
+ * band connections to remote nodes in the order read from a poolset file.
+ *
+ */
+const char *
+rpmem_util_cmd_get(void)
+{
+	RPMEM_ASSERT(Rpmem_cmds);
+	RPMEM_ASSERT(Rpmem_current_cmd);
+
+	char *eol = strchr(Rpmem_current_cmd, RPMEM_CMD_SEPARATOR);
+	char *ret = Rpmem_current_cmd;
+	if (eol) {
+		*eol = '\0';
+		Rpmem_current_cmd = eol + 1;
+	}
+
+	return ret;
 }
