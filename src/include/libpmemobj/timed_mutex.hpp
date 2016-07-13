@@ -99,8 +99,7 @@ public:
 	 * Tries to lock the mutex, returns regardless if the lock
 	 * succeeds.
 	 *
-	 * Returns `true` if locking succeeded, false otherwise.  If
-	 * the same thread tries to lock a mutex it already owns,
+	 * If the same thread tries to lock a mutex it already owns,
 	 * the behavior is undefined.
 	 *
 	 * @return `true` on successful lock acquisition, `false`
@@ -129,6 +128,9 @@ public:
 	 * Makes the current thread block until the lock is acquired or a
 	 * specific time is reached.
 	 *
+	 * If the same thread tries to lock a mutex it already owns,
+	 * the behavior is undefined.
+	 *
 	 * @param[in] timeout_time a specific point in time, which when
 	 * reached unblocks the thread.
 	 *
@@ -150,6 +152,9 @@ public:
 	/**
 	 * Makes the current thread block until the lock is acquired or a
 	 * specified amount of time passes.
+	 *
+	 * If the same thread tries to lock a mutex it already owns,
+	 * the behavior is undefined.
 	 *
 	 * @param[in] timeout_duration a specific duration, which when
 	 * expired unblocks the thread.
