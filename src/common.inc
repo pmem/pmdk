@@ -145,3 +145,5 @@ export includedir := $(prefix)/$(INC_PREFIX)
 export pkgconfigdir := $(libdir)/pkgconfig
 export bindir := $(exec_prefix)/bin
 export bashcompdir := $(sysconfdir)/bash_completion.d
+
+export BUILD_RPMEM := $(call check_package, libfabric)

@@ -49,8 +49,10 @@ MANPAGES_1 = pmempool.1 pmempool-info.1 pmempool-create.1 \
 	pmempool-check.1 pmempool-dump.1 pmempool-rm.1 pmempool-convert.1 \
 	$(MANPAGES_1_GROFF)
 
+ifeq ($(BUILD_RPMEM),y)
 MANPAGES_3_MD_EXP = librpmem.3.md
 MANPAGES_1_MD_EXP = rpmemd.1.md
+endif
 
 MANPAGES_3_GROFF_EXP = $(MANPAGES_3_MD_EXP:.3.md=.3)
 MANPAGES_1_GROFF_EXP = $(MANPAGES_1_MD_EXP:.1.md=.1)

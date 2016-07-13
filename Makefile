@@ -62,6 +62,8 @@
 # You can override the prefix within DESTDIR using prefix variable
 # e.g.: "make install prefix=/usr"
 
+include src/common.inc
+
 export SRCVERSION = $(shell git describe 2>/dev/null ||\
 			cat .version 2>/dev/null ||\
 			git log -1 --format=%h 2>/dev/null)

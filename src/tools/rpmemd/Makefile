@@ -36,7 +36,7 @@ vpath %.c ../../rpmem_common/
 TOP = ../../..
 include $(TOP)/src/common.inc
 
-ifeq ($(call check_package, libfabric),y)
+ifeq ($(BUILD_RPMEM),y)
 TARGET = rpmemd
 OBJS = rpmemd.o\
        rpmemd_log.o\

@@ -38,9 +38,7 @@ include ../../common.inc
 vpath %.c ../../common
 vpath %.c ../../rpmem_common
 
-HAS_LIBFABRIC=$(call check_package, libfabric)
-
-ifeq ($(HAS_LIBFABRIC), y)
+ifeq ($(BUILD_RPMEM), y)
 TARGET = rpmem_basic
 OBJS = rpmem_basic.o\
        rpmem_fip_common.o\
@@ -56,8 +54,8 @@ endif
 
 include ../Makefile.inc
 
+ifeq ($(BUILD_RPMEM), y)
 out.o: CFLAGS += -DDEBUG -DSRCVERSION=\"utversion\"
-ifeq ($(HAS_LIBFABRIC), y)
 LIBS += $(shell $(PKG_CONFIG) --libs libfabric)
 CFLAGS += $(shell $(PKG_CONFIG) --cflags libfabric)
 INCS += -I../../common
