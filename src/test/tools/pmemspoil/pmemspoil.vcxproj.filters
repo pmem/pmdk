@@ -45,6 +45,9 @@
     <ClCompile Include="..\..\..\libpmemblk\btt.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\common\file_windows.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\tools\pmempool\common.h">

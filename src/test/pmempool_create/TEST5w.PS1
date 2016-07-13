@@ -63,5 +63,4 @@ expect_abnormal_exit $PMEMPOOL$EXESUFFIX create blk 4294967296 $POOL2 2>> err5w.
 # depends on terminal size.
 
 # check
-
 pass

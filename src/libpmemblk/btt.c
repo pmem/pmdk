@@ -364,7 +364,7 @@ map_entry_is_error(uint32_t map_entry)
 /*
  * map_entry_is_initial -- checks if map_entry is in initial state
  */
-inline int
+int
 map_entry_is_initial(uint32_t map_entry)
 {
 	return (map_entry & ~BTT_MAP_ENTRY_LBA_MASK) == 0;
