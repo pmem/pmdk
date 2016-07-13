@@ -442,10 +442,21 @@ function check {
     #	../match $(find . -regex "[^0-9]*${UNITTEST_NUM}\.log\.match" | xargs)
     [string]$listing = Get-ChildItem -File | Where-Object  {$_.Name -match "[^0-9]${Env:UNITTEST_NUM}.log.match"}
     if ($listing) {
-        $p = start-process -PassThru -Wait -NoNewWindow -FilePath perl -ArgumentList '..\..\..\src\test\match', $listing
+        $pinfo = New-Object System.Diagnostics.ProcessStartInfo
+        $pinfo.FileName = "perl"
+        $pinfo.RedirectStandardError = $true
+        $pinfo.RedirectStandardOutput = $true
+        $pinfo.UseShellExecute = $false
+        $pinfo.Arguments = "..\..\..\src\test\match $listing"
+        $p = New-Object System.Diagnostics.Process
+        $p.StartInfo = $pinfo
+        $p.Start() | Out-Null
+        $p.WaitForExit()
+
         if ($p.ExitCode -eq 0) {
             pass
         } else {
+            $p.StandardError.ReadToEnd()
             fail $p.ExitCode
         }
     } else {
