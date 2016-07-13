@@ -217,6 +217,13 @@ function runtest {
             $Env:TEST = $testtype
             $Env:FS = $fs
             $Env:BUILD = $build
+
+            $pinfo = New-Object System.Diagnostics.ProcessStartInfo
+            $pinfo.FileName = "powershell.exe"
+            $pinfo.RedirectStandardError = $true
+            $pinfo.RedirectStandardOutput = $true
+            $pinfo.UseShellExecute = $false
+
             # for each TEST script found...
             Foreach ($runscript in $runscripts.split(" ")) {
                 if ($verbose) {
@@ -224,9 +231,15 @@ function runtest {
                 }
                 if ($dryrun -eq "1") {
                     Write-Host "(in ./$testName) TEST=$testtype FS=$fs BUILD=$build .\$runscript"
-                } ElseIf ($use_timeout -And $testtype -eq "check") {
+                    break
+                }
+                $pinfo.Arguments = ".\$runscript"
+                $pinfo.WorkingDirectory = $(pwd).Path
+                $p = New-Object System.Diagnostics.Process
+                $p.StartInfo = $pinfo
+                $p.Start() | Out-Null
+                If ($use_timeout -And $testtype -eq "check") {
                     # execute with timeout
-                    $p = Start-Process -NoNewWindow -PassThru -FilePath powershell.exe -ArgumentList ".\$runscript"
                     sv -Name msg "FAILED"
                     try {
                         $p | Wait-Process -Timeout $time -ErrorAction Stop
@@ -234,18 +247,23 @@ function runtest {
                         $p | Stop-Process -Force
                         sv -Name msg "TIMED OUT"
                     }
-                    if ($p.ExitCode -ne 0) {
-                        Write-Error "RUNTESTS: stopping: $testName/$runscript $msg, TEST=$testtype FS=$fs BUILD=$build"
-                        cd ..
-                        exit $p.ExitCode
-                    }
+
                 } Else {
-                    $p = Start-Process -Wait -NoNewWindow -PassThru -FilePath powershell.exe -ArgumentList ".\$runscript"
-                    if ($p.ExitCode -ne 0) {
-                        Write-Error "RUNTESTS: stopping: $testName/$runscript FAILED, TEST=$testtype FS=$fs BUILD=$build"
-                        cd ..
-                        exit $p.ExitCode
-                    }
+                    $p.WaitForExit()
+                }
+                
+                if($p.StandardOutput.EndOfStream -eq $false) {
+                    $output = $p.StandardOutput.ReadToEnd();
+                    Write-Host -NoNewline $output
+                }
+                if($p.StandardError.EndOfStream -eq $false) {
+                    $error = $p.StandardError.ReadToEnd();
+                    Write-Host -NoNewline $error
+                }
+                if ($p.ExitCode -ne 0) {
+                    Write-Error "RUNTESTS: stopping: $testName/$runscript FAILED, TEST=$testtype FS=$fs BUILD=$build"
+                    cd ..
+                    exit $p.ExitCode
                 }
             } # for runscripts
         } # for builds
