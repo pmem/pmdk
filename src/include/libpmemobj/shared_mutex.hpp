@@ -121,10 +121,11 @@ public:
 	 * Try to lock the mutex for exclusive access, returns
 	 * regardless if the lock succeeds.
 	 *
-	 * If a different thread already locked this mutex, the calling
-	 * thread will return `false`. If the same thread tries to lock
-	 * a mutex it already owns, either in exclusive or shared mode,
-	 * the behavior is undefined.
+	 * If the same thread tries to lock a mutex it already owns
+	 * either in exclusive or shared mode, the behavior is undefined.
+	 *
+	 * @return `true` on successful lock acquisition, `false`
+	 * otherwise.
 	 *
 	 * @throw lock_error when an error occurs, this includes all
 	 * system related errors with the underlying implementation of
@@ -152,7 +153,8 @@ public:
 	 *
 	 * The mutex can be locked for shared access multiple times
 	 * by the same thread. If so, the same number of unlocks must be
-	 * made to unlock the mutex.
+	 * made to unlock the mutex. If the calling thread already owns
+	 * the mutex in any mode, the behavior is undefined.
 	 *
 	 * @return `false` if a different thread already locked the
 	 * mutex for exclusive access, `true` otherwise.

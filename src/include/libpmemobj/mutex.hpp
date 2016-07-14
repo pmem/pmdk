@@ -95,8 +95,7 @@ public:
 	 * Tries to lock the mutex, returns regardless if the lock
 	 * succeeds.
 	 *
-	 * Returns `true` if locking succeeded, false otherwise.  If
-	 * the same thread tries to lock a mutex it already owns,
+	 * If the same thread tries to lock a mutex it already owns,
 	 * the behavior is undefined.
 	 *
 	 * @return `true` on successful lock acquisition, `false`
