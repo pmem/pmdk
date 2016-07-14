@@ -50,11 +50,11 @@ clobber : TARGET = clobber
 cstyle  : TARGET = cstyle
 format  : TARGET = format
 
-all cstyle clean clobber format: $(DIRS)
+all test cstyle clean clobber format: $(DIRS)
 
 $(DIRS):
 	$(MAKE) -C $@ $(TARGET)
 
-test check pcheck:
+check pcheck:
 
 .PHONY: all clean clobber cstyle format check pcheck $(DIRS)
