@@ -65,7 +65,8 @@ struct section_operations *Section_ops[MAX_LANE_SECTION];
 inline void
 lane_info_destroy()
 {
-	ASSERTne(Lane_info_ht, NULL);
+	if (unlikely(Lane_info_ht == NULL))
+		return;
 
 	cuckoo_delete(Lane_info_ht);
 	struct lane_info *record;
@@ -137,7 +138,8 @@ lane_info_ht_boot()
 static inline void
 lane_info_cleanup(PMEMobjpool *pop)
 {
-	ASSERTne(Lane_info_ht, NULL);
+	if (unlikely(Lane_info_ht == NULL))
+		return;
 
 	struct lane_info *info = cuckoo_remove(Lane_info_ht, pop->uuid_lo);
 	if (likely(info != NULL)) {
