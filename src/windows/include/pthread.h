@@ -80,6 +80,7 @@ typedef struct {
 
 typedef struct {
 	unsigned attr;
+	char is_write;
 	SRWLOCK lock;
 } pthread_rwlock_t;
 
