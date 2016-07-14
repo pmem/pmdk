@@ -222,6 +222,7 @@ int
 pthread_rwlock_rdlock(pthread_rwlock_t *__restrict rwlock)
 {
 	AcquireSRWLockShared(&rwlock->lock);
+	rwlock->is_write = 0;
 	return 0;
 }
 
@@ -229,19 +230,30 @@ int
 pthread_rwlock_wrlock(pthread_rwlock_t *__restrict rwlock)
 {
 	AcquireSRWLockExclusive(&rwlock->lock);
+	rwlock->is_write = 1;
 	return 0;
 }
 
 int
 pthread_rwlock_tryrdlock(pthread_rwlock_t *__restrict rwlock)
 {
-	return (TryAcquireSRWLockShared(&rwlock->lock) == FALSE) ? EBUSY : 0;
+	if (TryAcquireSRWLockShared(&rwlock->lock) == FALSE) {
+		return EBUSY;
+	} else {
+		rwlock->is_write = 0;
+		return 0;
+	}
 }
 
 int
 pthread_rwlock_trywrlock(pthread_rwlock_t *__restrict rwlock)
 {
-	return (TryAcquireSRWLockExclusive(&rwlock->lock) == FALSE) ? EBUSY : 0;
+	if (TryAcquireSRWLockExclusive(&rwlock->lock) == FALSE) {
+		return EBUSY;
+	} else {
+		rwlock->is_write = 1;
+		return 0;
+	}
 }
 
 int
@@ -261,9 +273,10 @@ pthread_rwlock_timedwrlock(pthread_rwlock_t *__restrict rwlock,
 int
 pthread_rwlock_unlock(pthread_rwlock_t *__restrict rwlock)
 {
-	/* XXX - distinguish between shared/exclusive lock */
-	/* XXX - ReleaseSRWLockShared(rwlock); */
-	ReleaseSRWLockExclusive(&rwlock->lock);
+	if (rwlock->is_write)
+		ReleaseSRWLockExclusive(&rwlock->lock);
+	else
+		ReleaseSRWLockShared(&rwlock->lock);
 	return 0;
 }
 
