@@ -278,17 +278,131 @@ test_lane_sizes(void)
 				LANE_SECTION_LEN);
 }
 
+enum thread_work_type {
+	LANE_INFO_DESTROY,
+	LANE_CLEANUP
+};
+
+struct thread_data {
+	enum thread_work_type work;
+};
+
+/*
+ * test_separate_thread -- child thread input point for multithreaded
+ *	scenarios
+ */
+static void *
+test_separate_thread(void *arg)
+{
+	UT_ASSERTne(arg, NULL);
+
+	struct thread_data *data = arg;
+
+	switch (data->work) {
+	case LANE_INFO_DESTROY:
+		lane_info_destroy();
+		break;
+	case LANE_CLEANUP:
+		UT_ASSERTne(base_ptr, NULL);
+		lane_cleanup(base_ptr);
+		break;
+	default:
+		UT_FATAL("Unimplemented thread work type: %d", data->work);
+	}
+
+	return NULL;
+}
+
+/*
+ * test_lane_info_destroy_in_separate_thread -- lane info boot from one thread
+ *	and lane info destroy from another
+ */
+static void
+test_lane_info_destroy_in_separate_thread(void)
+{
+	lane_info_boot();
+
+	struct thread_data data;
+	data.work = LANE_INFO_DESTROY;
+	pthread_t thread;
+
+	pthread_create(&thread, NULL, test_separate_thread, &data);
+	pthread_join(thread, NULL);
+
+	lane_info_destroy();
+}
+
+/*
+ * test_lane_cleanup_in_separate_thread -- lane boot from one thread and lane
+ *	cleanup from another
+ */
+static void
+test_lane_cleanup_in_separate_thread(void)
+{
+	struct mock_pop pop = {
+		.p = {
+			.nlanes = MAX_MOCK_LANES
+		}
+	};
+	base_ptr = &pop.p;
+
+	pop.p.lanes_offset = (uint64_t)&pop.l - (uint64_t)&pop.p;
+
+	lane_info_boot();
+	UT_ASSERTeq(lane_boot(&pop.p), 0);
+
+	for (int i = 0; i < MAX_MOCK_LANES; ++i) {
+		for (int j = 0; j < MAX_LANE_SECTION; ++j) {
+			struct lane_section *section =
+				&pop.p.lanes_desc.lane[i].sections[j];
+			UT_ASSERTeq(section->layout, &pop.l[i].sections[j]);
+			UT_ASSERTeq(section->runtime, MOCK_RUNTIME);
+		}
+	}
+
+	struct thread_data data;
+	data.work = LANE_CLEANUP;
+	pthread_t thread;
+
+	pthread_create(&thread, NULL, test_separate_thread, &data);
+	pthread_join(thread, NULL);
+
+	UT_ASSERTeq(pop.p.lanes_desc.lane, NULL);
+	UT_ASSERTeq(pop.p.lanes_desc.lane_locks, NULL);
+}
+
+static void
+usage(const char *app)
+{
+	UT_FATAL("usage: %s [scenario: s/m]", app);
+}
+
 int
 main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_lane");
 
-	test_lane_boot_cleanup_ok();
-	test_lane_boot_fail();
-	test_lane_recovery_check_ok();
-	test_lane_recovery_check_fail();
-	test_lane_hold_release();
-	test_lane_sizes();
+	if (argc != 2)
+		usage(argv[0]);
+
+	switch (argv[1][0]) {
+	case 's':
+		/* single thread scenarios */
+		test_lane_boot_cleanup_ok();
+		test_lane_boot_fail();
+		test_lane_recovery_check_ok();
+		test_lane_recovery_check_fail();
+		test_lane_hold_release();
+		test_lane_sizes();
+		break;
+	case 'm':
+		/* multithreaded scenarios */
+		test_lane_info_destroy_in_separate_thread();
+		test_lane_cleanup_in_separate_thread();
+		break;
+	default:
+		usage(argv[0]);
+	}
 
 	DONE(NULL);
 }
