@@ -34,7 +34,7 @@
  * heap.h -- internal definitions for heap
  */
 
-#define MAX_BUCKETS (UINT8_MAX - 1)
+#define MAX_BUCKETS (UINT8_MAX)
 #define RUN_UNIT_MAX 8U
 
 /*
