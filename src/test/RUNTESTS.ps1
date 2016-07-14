@@ -251,7 +251,7 @@ function runtest {
                 } Else {
                     $p.WaitForExit()
                 }
-                
+
                 if($p.StandardOutput.EndOfStream -eq $false) {
                     $output = $p.StandardOutput.ReadToEnd();
                     Write-Host -NoNewline $output
