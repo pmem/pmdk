@@ -475,9 +475,13 @@ palloc_operation(PMEMobjpool *pop,
 		!MEMORY_BLOCK_IS_EMPTY(new_block)) {
 		size_t old_size = alloc->size;
 		size_t to_cpy = old_size > sizeh ? sizeh : old_size;
+		VALGRIND_ADD_TO_TX(OBJ_OFF_TO_PTR(pop, offset_value),
+			to_cpy - ALLOC_OFF);
 		pop->memcpy_persist(pop,
 			OBJ_OFF_TO_PTR(pop, offset_value),
 			OBJ_OFF_TO_PTR(pop, off),
+			to_cpy - ALLOC_OFF);
+		VALGRIND_REMOVE_FROM_TX(OBJ_OFF_TO_PTR(pop, offset_value),
 			to_cpy - ALLOC_OFF);
 	}
 
