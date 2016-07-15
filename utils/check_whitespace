@@ -103,7 +103,7 @@ sub check_whitespace_with_exc {
 
 	$_ = basename($full);
 
-	return 0 unless /^(README.*|LICENSE.*|Makefile.*|.gitignore|TEST.*|RUNTESTS|check_whitespace|.*\.([chp13]|sh|map|cpp|hpp|inc))$/;
+	return 0 unless /^(README.*|LICENSE.*|Makefile.*|.gitignore|TEST.*|RUNTESTS|check_whitespace|.*\.([chp13]|sh|map|cpp|hpp|inc|PS1|ps1))$/;
 	return 0 if -z;
 
 	check_whitespace($full, $_);
