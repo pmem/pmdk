@@ -471,6 +471,36 @@ test_mmap_prot(int fd, int fd_ro)
 }
 
 /*
+ * test_mmap_prot_anon -- test R/W protection on anonymous mappings
+ */
+static void
+test_mmap_prot_anon()
+{
+	char *ptr1;
+
+	/* read/write */
+	ptr1 = mmap(NULL, FILE_SIZE, PROT_READ|PROT_WRITE,
+			MAP_SHARED|MAP_ANON, -1, 0);
+	UT_ASSERTne(ptr1, MAP_FAILED);
+	check_mapping(-1, ptr1, FILE_SIZE, PROT_READ|PROT_WRITE, 0, 0);
+
+	/* read-only */
+	ptr1 = mmap(NULL, FILE_SIZE, PROT_READ, MAP_SHARED|MAP_ANON, -1, 0);
+	UT_ASSERTne(ptr1, MAP_FAILED);
+	check_mapping(-1, ptr1, FILE_SIZE, PROT_READ, 0, 0);
+
+	/* no access */
+	ptr1 = mmap(NULL, FILE_SIZE, PROT_NONE, MAP_SHARED|MAP_ANON, -1, 0);
+#ifndef _WIN32
+	UT_ASSERTne(ptr1, MAP_FAILED);
+	check_mapping(-1, ptr1, FILE_SIZE, PROT_NONE, 0, 0);
+#else
+	/* XXX - not supported yet */
+	UT_ASSERTeq(ptr1, MAP_FAILED);
+#endif
+}
+
+/*
  * test_mmap_shared -- test shared mappings
  */
 static void
@@ -760,6 +790,136 @@ test_mprotect(int fd, int fd_ro)
 	UT_ASSERTeq(errno, EACCES);
 }
 
+/*
+ * test_mprotect_anon -- test memory protection on anonymous mappings
+ */
+static void
+test_mprotect_anon()
+{
+	char *ptr1;
+	char *ptr2;
+
+	/* unknown PROT flag - should succeed */
+	ptr1 = mmap(NULL, MMAP_SIZE, PROT_READ|PROT_WRITE,
+			MAP_PRIVATE|MAP_ANON, -1, 0);
+	UT_ASSERTne(ptr1, MAP_FAILED);
+	UT_ASSERTeq(mprotect(ptr1, MMAP_SIZE, PROT_ALL + 1), 0);
+	check_access(ptr1, MMAP_SIZE, PROT_NONE);
+	UT_ASSERTeq(munmap(ptr1, MMAP_SIZE), 0);
+
+	/* len == 0 - should succeed */
+	ptr1 = mmap(NULL, MMAP_SIZE, PROT_READ|PROT_WRITE,
+			MAP_SHARED|MAP_ANON, -1, 0);
+	UT_ASSERTne(ptr1, MAP_FAILED);
+	UT_ASSERTeq(mprotect(ptr1, 0, PROT_READ), 0);
+	check_access(ptr1, MMAP_SIZE, PROT_READ|PROT_WRITE);
+	UT_ASSERTeq(munmap(ptr1, MMAP_SIZE), 0);
+
+	/* change protection: R/O => R/W */
+	ptr1 = mmap(NULL, MMAP_SIZE, PROT_READ, MAP_PRIVATE|MAP_ANON, -1, 0);
+	UT_ASSERTne(ptr1, MAP_FAILED);
+#ifndef _WIN32
+	UT_ASSERTeq(mprotect(ptr1, MMAP_SIZE, PROT_READ|PROT_WRITE), 0);
+	check_access(ptr1, MMAP_SIZE, PROT_READ|PROT_WRITE);
+	UT_ASSERTeq(munmap(ptr1, MMAP_SIZE), 0);
+#else
+	/* XXX - not supported yet */
+	UT_ASSERTne(mprotect(ptr1, MMAP_SIZE, PROT_READ|PROT_WRITE), 0);
+	check_access(ptr1, MMAP_SIZE, PROT_READ);
+	UT_ASSERTeq(munmap(ptr1, MMAP_SIZE), 0);
+#endif
+
+	/* change protection; R/W => R/O */
+	ptr1 = mmap(NULL, MMAP_SIZE, PROT_READ|PROT_WRITE,
+			MAP_SHARED|MAP_ANON, -1, 0);
+	UT_ASSERTne(ptr1, MAP_FAILED);
+	UT_ASSERTeq(mprotect(ptr1, MMAP_SIZE, PROT_READ), 0);
+	check_access(ptr1, MMAP_SIZE, PROT_READ);
+	UT_ASSERTeq(munmap(ptr1, MMAP_SIZE), 0);
+
+	/* change protection; R/W => none */
+	ptr1 = mmap(NULL, MMAP_SIZE, PROT_READ|PROT_WRITE,
+			MAP_PRIVATE|MAP_ANON, -1, 0);
+	UT_ASSERTne(ptr1, MAP_FAILED);
+	UT_ASSERTeq(mprotect(ptr1, MMAP_SIZE, PROT_NONE), 0);
+	check_access(ptr1, MMAP_SIZE, PROT_NONE);
+	UT_ASSERTeq(munmap(ptr1, MMAP_SIZE), 0);
+
+	/* unaligned pointer - should fail */
+	ptr1 = mmap(NULL, MMAP_SIZE, PROT_READ|PROT_WRITE,
+			MAP_SHARED|MAP_ANON, -1, 0);
+	UT_ASSERTne(ptr1, MAP_FAILED);
+	errno = 0;
+	UT_ASSERTne(mprotect(ptr1 + 100, MMAP_SIZE, PROT_READ), 0);
+	UT_ASSERTeq(errno, EINVAL);
+	check_access(ptr1, MMAP_SIZE, PROT_READ|PROT_WRITE);
+	UT_ASSERTeq(munmap(ptr1, MMAP_SIZE), 0);
+
+	/* invalid pointer - should fail */
+	errno = 0;
+	UT_ASSERTne(mprotect(ptr1, MMAP_SIZE, PROT_READ), 0);
+	UT_ASSERTeq(errno, ENOMEM);
+
+	/* unaligned len - should succeed */
+	ptr1 = mmap(NULL, FILE_SIZE, PROT_READ|PROT_WRITE,
+			MAP_PRIVATE|MAP_ANON, -1, 0);
+	UT_ASSERTne(ptr1, MAP_FAILED);
+	UT_ASSERTeq(mprotect(ptr1, PAGE_SIZE + 100, PROT_READ), 0);
+	check_access(ptr1, PAGE_SIZE * 2, PROT_READ);
+	check_access(ptr1 + PAGE_SIZE * 2, FILE_SIZE - PAGE_SIZE * 2,
+			PROT_READ|PROT_WRITE);
+	UT_ASSERTeq(munmap(ptr1, FILE_SIZE), 0);
+
+	/* partial protection change (on page boundary) */
+	ptr1 = mmap(NULL, FILE_SIZE, PROT_READ|PROT_WRITE,
+			MAP_SHARED|MAP_ANON, -1, 0);
+	UT_ASSERTne(ptr1, MAP_FAILED);
+	UT_ASSERTeq(mprotect(ptr1 + PAGE_SIZE, PAGE_SIZE, PROT_READ), 0);
+	UT_ASSERTeq(mprotect(ptr1 + PAGE_SIZE * 2, PAGE_SIZE, PROT_NONE), 0);
+	check_access(ptr1, PAGE_SIZE, PROT_READ|PROT_WRITE);
+	check_access(ptr1 + PAGE_SIZE, PAGE_SIZE, PROT_READ);
+	check_access(ptr1 + PAGE_SIZE * 2, PAGE_SIZE, PROT_NONE);
+	check_access(ptr1 + PAGE_SIZE * 3, FILE_SIZE - PAGE_SIZE * 3,
+			PROT_READ|PROT_WRITE);
+	UT_ASSERTeq(munmap(ptr1, FILE_SIZE), 0);
+
+	/* range includes invalid addresses - should fail */
+	ptr1 = mmap(NULL, FILE_SIZE, PROT_READ|PROT_WRITE,
+			MAP_SHARED|MAP_ANON, -1, 0);
+	UT_ASSERTne(ptr1, MAP_FAILED);
+	UT_ASSERTeq(munmap(ptr1 + MMAP_SIZE, MMAP_SIZE), 0);
+	UT_ASSERTeq(munmap(ptr1 + MMAP_SIZE * 3, MMAP_SIZE), 0);
+	check_access(ptr1 + MMAP_SIZE, MMAP_SIZE, PROT_NONE);
+	check_access(ptr1 + MMAP_SIZE * 3, MMAP_SIZE, PROT_NONE);
+
+	errno = 0;
+	UT_ASSERTne(mprotect(ptr1, MMAP_SIZE * 4, PROT_READ), 0);
+	UT_ASSERTeq(errno, ENOMEM);
+#ifndef _WIN32
+	/* protection changed for all the pages up to the first invalid */
+	check_access(ptr1, MMAP_SIZE, PROT_READ);
+	check_access(ptr1 + MMAP_SIZE * 2, MMAP_SIZE, PROT_READ|PROT_WRITE);
+#else
+	/* XXX - protection changed for all the valid pages */
+	check_access(ptr1, MMAP_SIZE, PROT_READ);
+	check_access(ptr1 + MMAP_SIZE * 2, MMAP_SIZE, PROT_READ);
+#endif
+	UT_ASSERTeq(munmap(ptr1, FILE_SIZE), 0);
+
+	/* change protection on two adjacent mappings */
+	ptr1 = mmap(ptr1, MMAP_SIZE * 2, PROT_READ|PROT_WRITE,
+			MAP_SHARED|MAP_ANON, -1, 0);
+	UT_ASSERTne(ptr1, MAP_FAILED);
+	ptr2 = mmap(ptr1 + MMAP_SIZE * 2, MMAP_SIZE * 2, PROT_READ|PROT_WRITE,
+			MAP_SHARED|MAP_ANON, -1, MMAP_SIZE * 2);
+	UT_ASSERTeq(ptr2, ptr1 + MMAP_SIZE * 2);
+	UT_ASSERTeq(mprotect(ptr1 + MMAP_SIZE, MMAP_SIZE * 2, PROT_NONE), 0);
+	check_access(ptr1, MMAP_SIZE, PROT_READ|PROT_WRITE);
+	check_access(ptr1 + MMAP_SIZE, MMAP_SIZE * 2, PROT_NONE);
+	check_access(ptr1 + MMAP_SIZE * 3, MMAP_SIZE, PROT_READ|PROT_WRITE);
+	UT_ASSERTeq(munmap(ptr1, MMAP_SIZE * 4), 0);
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -780,9 +940,11 @@ main(int argc, char *argv[])
 	test_mmap_anon(fd);
 	test_mmap_shared(fd);
 	test_mmap_prot(fd, fd_ro);
+	test_mmap_prot_anon();
 	test_munmap(fd);
 	test_msync(fd);
 	test_mprotect(fd, fd_ro);
+	test_mprotect_anon();
 
 	CLOSE(fd_ro);
 	CLOSE(fd);
