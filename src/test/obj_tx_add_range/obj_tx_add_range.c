@@ -557,7 +557,22 @@ do_tx_add_range_reopen(char *path)
 
 		pmemobj_close(pop);
 	}
+}
 
+static void
+do_tx_add_range_too_large(PMEMobjpool *pop)
+{
+	TOID(struct object) obj;
+	TOID_ASSIGN(obj, do_tx_zalloc(pop, TYPE_OBJ));
+
+	TX_BEGIN(pop) {
+		pmemobj_tx_add_range(obj.oid, 0,
+			PMEMOBJ_MAX_ALLOC_SIZE + 1);
+	} TX_ONCOMMIT {
+		UT_ASSERT(0);
+	} TX_END
+
+	UT_ASSERTne(errno, 0);
 }
 
 int
@@ -599,6 +614,8 @@ main(int argc, char *argv[])
 		do_tx_add_range_alloc_abort(pop);
 		VALGRIND_WRITE_STATS;
 		do_tx_add_range_overlapping(pop);
+		VALGRIND_WRITE_STATS;
+		do_tx_add_range_too_large(pop);
 		VALGRIND_WRITE_STATS;
 		pmemobj_close(pop);
 	}
