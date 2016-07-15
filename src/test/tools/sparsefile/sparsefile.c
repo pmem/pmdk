@@ -55,7 +55,7 @@ static int Opt_force;
 static void
 out_err_vargs(const char *fmt, va_list ap)
 {
-	WCHAR errmsg[MAXPRINT];
+	char errmsg[MAXPRINT];
 	DWORD lasterr = GetLastError();
 
 	vfprintf(stderr, fmt, ap);
@@ -64,7 +64,7 @@ out_err_vargs(const char *fmt, va_list ap)
 				NULL, lasterr,
 				MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
 				errmsg, MAXPRINT, NULL);
-		fprintf(stderr, ": %ws", errmsg);
+		fprintf(stderr, ": %s", errmsg);
 	} else {
 		fprintf(stderr, "\n");
 	}
