@@ -82,7 +82,7 @@ create_holey_file 2048 $DIR\testfile2.1073741824
 create_holey_file 2048 $DIR\testfile2.2147483648
 create_holey_file 2048 $DIR\testfile2.-1
 
-expect_normal_exit ..\..\x64\debug\blk_nblock$Env:EXESUFFIX `
+expect_normal_exit $Env:EXE_DIR\blk_nblock$Env:EXESUFFIX `
     2096896:$DIR\testfile1.2096896 `
     2096897:$DIR\testfile1.2096897 0:$DIR\testfile2.0 `
     1:$DIR\testfile2.1 17:$DIR\testfile2.17 `

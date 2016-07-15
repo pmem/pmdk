@@ -59,7 +59,7 @@ create_nonzeroed_file 17 0 $DIR\testfile
 # TEST7 existing file, file length >= min required size, poolsize == 0
 #       (file contains garbage)
 #
-expect_normal_exit ..\..\x64\debug\blk_pool$Env:EXESUFFIX `
+expect_normal_exit $Env:EXE_DIR\blk_pool$Env:EXESUFFIX `
     c $DIR\testfile 4096 0 0640
 
 check_files $DIR\testfile

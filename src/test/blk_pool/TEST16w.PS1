@@ -63,7 +63,7 @@ echo "XXX" > out16w.log
 
 #create_poolset $DIR\testset 20M:$DIR\testfile1:x R 20M:$DIR\testfile2:x
 
-#expect_normal_exit ..\..\x64\debug\blk_pool$Env:EXESUFFIX `
+#expect_normal_exit $Env:EXE_DIR\blk_pool$Env:EXESUFFIX `
 #    c $DIR\testfile 100 0 0640
 
 #check_files $DIR\testset

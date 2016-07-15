@@ -56,7 +56,7 @@ setup
 #
 # TEST12 non-existing file, poolsize >= min required size, bsize == 0
 #
-expect_normal_exit ..\..\x64\debug\blk_pool$Env:EXESUFFIX `
+expect_normal_exit $Env:EXE_DIR\blk_pool$Env:EXESUFFIX `
     c $DIR\testfile 0 20 0640
 
 check_no_files $DIR\testfile

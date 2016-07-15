@@ -57,13 +57,13 @@ setup
 # TEST22 existing file, file size < min required size, bsize == 0
 #        (valid pool header)
 #
-expect_normal_exit ..\..\x64\debug\blk_pool$Env:EXESUFFIX `
+expect_normal_exit $Env:EXE_DIR\blk_pool$Env:EXESUFFIX `
     c $DIR/testfile 512 20 0640
 
 rm $DIR\testfile
 create_holey_file 1 $DIR\testfile
 
-expect_normal_exit ..\..\x64\debug\blk_pool$Env:EXESUFFIX `
+expect_normal_exit $Env:EXE_DIR\blk_pool$Env:EXESUFFIX `
     o $DIR/testfile 0
 
 # check will print the appropriate pass/fail message

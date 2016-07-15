@@ -57,7 +57,7 @@ setup
 # single arena write case
 create_nonzeroed_file 1024 $((824 * 1024)) $DIR\testfile1
 
-expect_normal_exit ..\..\x64\debug\blk_non_zero$EXESUFFIX 512 $DIR\testfile1 c 0 `
+expect_normal_exit $Env:EXE_DIR\blk_non_zero$EXESUFFIX 512 $DIR\testfile1 c 0 `
 w:0 r:1 r:0 w:1 r:0 r:1 r:2
 
 # check will print the appropriate pass/fail message

@@ -95,7 +95,7 @@ create_holey_file $MIN_POOL_SIZE $DIR\testfile7.4224
 # should fail:
 #   512:$DIR\testfile1 (file is too small)
 #   4096:$DIR\testfile2.512 (bsize doesn't match pool)
-expect_normal_exit ..\..\x64\debug\blk_nblock$Env:EXESUFFIX `
+expect_normal_exit $Env:EXE_DIR\blk_nblock$Env:EXESUFFIX `
     512:$DIR\testfile1 `
     512:$DIR\testfile2.512 `
     4096:$DIR\testfile2.512 `

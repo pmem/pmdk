@@ -61,10 +61,10 @@ setup
 echo "XXX" > out29w.log
 #create_poolset $DIR\testset 20M:$DIR\testfile1 20M:$DIR\testfile2
 
-#expect_normal_exit ..\..\x64\debug\blk_pool$Env:EXESUFFIX `
+#expect_normal_exit $Env:EXE_DIR\blk_pool$Env:EXESUFFIX `
 #    c $DIR\testset 300 20 0640
 
-#expect_normal_exit ..\..\x64\debug\blk_pool$Env:EXESUFFIX `
+#expect_normal_exit $Env:EXE_DIR\blk_pool$Env:EXESUFFIX `
 #    o $DIR\testset 300
 
 # check will print the appropriate pass/fail message

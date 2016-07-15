@@ -56,7 +56,7 @@ setup
 #
 # TEST0
 #
-expect_normal_exit ..\..\x64\debug\obj_cpp_shared_mutex$Env:EXESUFFIX `
+expect_normal_exit $Env:EXE_DIR\obj_cpp_shared_mutex$Env:EXESUFFIX `
     $DIR/testfile
 
 # pass will print the appropriate pass/fail message

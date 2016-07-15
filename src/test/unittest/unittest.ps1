@@ -926,3 +926,7 @@ if (! $UT_DUMP_LINES) {
 }
 
 $Env:CHECK_POOL_LOG_FILE = "check_pool_${Env:BUILD}_${Env:UNITTEST_NUM}.log"
+
+if ($Env:EXE_DIR -eq $null) {
+	$Env:EXE_DIR = "..\..\x64\debug"
+}

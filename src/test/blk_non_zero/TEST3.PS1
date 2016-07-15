@@ -57,7 +57,7 @@ setup
 # mix writes with set_zero and set_error and check results
 create_nonzeroed_file 1024 $((824 * 1024)) $DIR\testfile1
 
-expect_normal_exit ..\..\x64\debug\blk_non_zero$EXESUFFIX 512 $DIR\testfile1 c 0 `
+expect_normal_exit $Env:EXE_DIR\blk_non_zero$EXESUFFIX 512 $DIR\testfile1 c 0 `
 w:100 w:200 w:300 w:400 `
 r:100 r:200 r:300 r:400 `
 w:100 z:200 w:300 z:400 `
