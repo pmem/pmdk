@@ -15,19 +15,20 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\common\cpu.c" />
     <ClCompile Include="..\..\src\common\out.c" />
     <ClCompile Include="..\..\src\common\util.c" />
-    <ClCompile Include="..\..\src\common\util_windows.c" />
     <ClCompile Include="..\..\src\libpmem\libpmem.c" />
     <ClCompile Include="..\..\src\libpmem\pmem.c" />
     <ClCompile Include="..\..\src\libpmem\pmem_windows.c" />
     <ClCompile Include="..\common\file_windows.c" />
+    <ClCompile Include="..\common\mmap.c" />
     <ClCompile Include="..\common\mmap_windows.c" />
     <ClCompile Include="..\common\pthread_windows.c" />
     <ClCompile Include="..\libpmem\libpmem_main.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Static-Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="..\windows\win_mmap.c" />
+    <ClCompile Include="cpu.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\common\out.h" />
@@ -35,6 +36,8 @@
     <ClInclude Include="..\..\src\common\valgrind_internal.h" />
     <ClInclude Include="..\..\src\include\libpmem.h" />
     <ClInclude Include="..\..\src\libpmem\pmem.h" />
+    <ClInclude Include="..\common\file.h" />
+    <ClInclude Include="cpu.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="libpmem.def" />
@@ -118,7 +121,7 @@
       <SubSystem>Windows</SubSystem>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
-      <AdditionalDependencies>$(WindowsSDK_LibraryPath)\$(PlatformTarget)\kernel32.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(WindowsSDK_LibraryPath)\$(PlatformTarget)\kernel32.lib;liblinux.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ModuleDefinitionFile>libpmem.def</ModuleDefinitionFile>
       <GenerateMapFile>true</GenerateMapFile>
       <EntryPointSymbol>
@@ -156,7 +159,7 @@
       <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
     </ProjectReference>
     <Lib>
-      <AdditionalDependencies>shlwapi.lib</AdditionalDependencies>
+      <AdditionalDependencies>liblinux.lib;shlwapi.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
@@ -178,7 +181,7 @@
       <SubSystem>Windows</SubSystem>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
-      <AdditionalDependencies>$(WindowsSDK_LibraryPath)\$(PlatformTarget)\kernel32.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(WindowsSDK_LibraryPath)\$(PlatformTarget)\kernel32.lib;liblinux.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ModuleDefinitionFile>libpmem.def</ModuleDefinitionFile>
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
       <AdditionalLibraryDirectories>$(OutDir)/../Static-Release</AdditionalLibraryDirectories>

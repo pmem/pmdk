@@ -37,6 +37,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
+#include <endian.h>
 
 #include "out.h"
 #include "pool_hdr.h"
