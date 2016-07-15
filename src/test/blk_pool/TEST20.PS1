@@ -56,7 +56,7 @@ setup
 #
 # TEST20 non-existing file, bsize == 0
 #
-expect_normal_exit ..\..\x64\debug\blk_pool$Env:EXESUFFIX `
+expect_normal_exit $Env:EXE_DIR\blk_pool$Env:EXESUFFIX `
     o $DIR/testfile 0
 
 # check will print the appropriate pass/fail message

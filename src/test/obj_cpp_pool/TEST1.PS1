@@ -56,10 +56,10 @@ setup
 #
 # TEST1
 #
-expect_normal_exit ..\..\x64\debug\obj_cpp_pool$Env:EXESUFFIX `
+expect_normal_exit $Env:EXE_DIR\obj_cpp_pool$Env:EXESUFFIX `
     c $DIR/testfile "test" 20 0600
 
-expect_normal_exit ..\..\x64\debug\obj_cpp_pool$Env:EXESUFFIX `
+expect_normal_exit $Env:EXE_DIR\obj_cpp_pool$Env:EXESUFFIX `
     o $DIR/testfile "test"
 
 # check will print the appropriate pass/fail message

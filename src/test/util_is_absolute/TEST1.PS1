@@ -55,7 +55,7 @@ require_fs_type none
 
 setup
 
-expect_normal_exit ..\..\x64\debug\util_is_absolute$Env:EXESUFFIX `
+expect_normal_exit $Env:EXE_DIR\util_is_absolute$Env:EXESUFFIX `
     C:\foo\bar `
     \foo\bar `
     foo\bar `

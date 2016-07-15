@@ -62,7 +62,7 @@ create_holey_file 20 $DIR\testfile
 # TEST11 existing file, file length >= min required size, poolsize > 0
 #        (no write permissions)
 #
-expect_normal_exit ..\..\x64\debug\blk_pool$Env:EXESUFFIX `
+expect_normal_exit $Env:EXE_DIR\blk_pool$Env:EXESUFFIX `
     c $DIR\testfile 4096 20 0640
 
 check_files $DIR\testfile
