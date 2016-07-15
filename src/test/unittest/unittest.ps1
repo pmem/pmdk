@@ -810,7 +810,7 @@ if (! $Env:TEST_LD_LIBRARY_PATH) {
 # defined in testconfig.sh, the test is skipped.
 #
 # This behavior can be overridden by passin in DIR with -d.  Example:
-#	.\TEST0 -d \force\test\dir 
+#	.\TEST0 -d \force\test\dir
 #
 
 sv -Name curtestdir (Get-Item -Path ".\").BaseName
