@@ -62,7 +62,7 @@ setup
 
 create_poolset $DIR\testset 20971520:$DIR\testfile1:x R 20971520:$DIR\testfile2:x
 
-expect_normal_exit ..\..\x64\debug\blk_pool$Env:EXESUFFIX `
+expect_normal_exit $Env:EXE_DIR\blk_pool$Env:EXESUFFIX `
     c $DIR\testset 100 0 0600
 
 check_files $DIR\testset

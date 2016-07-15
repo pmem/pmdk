@@ -57,7 +57,7 @@ setup
 #
 # TEST0
 #
-expect_normal_exit ..\..\x64\debug\obj_cpp_make_persistent_array_atomic$Env:EXESUFFIX `
+expect_normal_exit $Env:EXE_DIR\obj_cpp_make_persistent_array_atomic$Env:EXESUFFIX `
     $DIR\testfile
 
 # pass will print the appropriate pass/fail message

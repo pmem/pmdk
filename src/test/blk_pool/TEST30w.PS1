@@ -60,7 +60,7 @@ setup
 # XXX fix one we figure out windows poolsets and $PMEMSPOIL tool(?)
 echo "XXX" > out30w.log
 
-#expect_normal_exit ..\..\x64\debug\blk_pool$Env:EXESUFFIX `
+#expect_normal_exit $Env:EXE_DIR\blk_pool$Env:EXESUFFIX `
 #    c $DIR\testfile1 300 20 0640
 
 #cp $DIR\testfile1 $DIR\testfile2
@@ -81,7 +81,7 @@ echo "XXX" > out30w.log
 
 #create_poolset $DIR\testset 20971520:$DIR\testfile1 R 20971520:$DIR\testfile2
 
-#expect_normal_exit ..\..\x64\debug\blk_pool$Env:EXESUFFIX `
+#expect_normal_exit $Env:EXE_DIR\blk_pool$Env:EXESUFFIX `
 #    c $DIR\testset 300
 
 # check will print the appropriate pass/fail message

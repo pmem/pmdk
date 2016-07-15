@@ -56,7 +56,7 @@ setup
 #
 # TEST0
 #
-expect_normal_exit ..\..\x64\debug\obj_cpp_ptr$Env:EXESUFFIX `
+expect_normal_exit $Env:EXE_DIR\obj_cpp_ptr$Env:EXESUFFIX `
     $DIR\testfile
 
 check_files $DIR\testfile

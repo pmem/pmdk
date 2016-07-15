@@ -57,10 +57,10 @@ setup
 # TEST24 existing file, file size >= min required size, bsize == 1024
 #        (bsize doesn't match the value from pool header)
 #
-expect_normal_exit ..\..\x64\debug\blk_pool$Env:EXESUFFIX `
+expect_normal_exit $Env:EXE_DIR\blk_pool$Env:EXESUFFIX `
     c $DIR/testfile 512 20 0640
 
-expect_normal_exit ..\..\x64\debug\blk_pool$Env:EXESUFFIX `
+expect_normal_exit $Env:EXE_DIR\blk_pool$Env:EXESUFFIX `
     o $DIR/testfile 1024
 
 # check will print the appropriate pass/fail message

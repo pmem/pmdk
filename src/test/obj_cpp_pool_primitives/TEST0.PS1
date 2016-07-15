@@ -56,7 +56,7 @@ setup
 #
 # TEST0
 #
-expect_normal_exit ..\..\x64\debug\obj_cpp_pool_primitives$Env:EXESUFFIX `
+expect_normal_exit $Env:EXE_DIR\obj_cpp_pool_primitives$Env:EXESUFFIX `
     $DIR/testfile
 
 check_file $DIR/testfile

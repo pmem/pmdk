@@ -62,10 +62,10 @@ setup
 
 create_poolset $DIR\testset 20971520:$DIR\testfile1 20971520:$DIR\testfile2
 
-expect_normal_exit ..\..\x64\debug\blk_pool$Env:EXESUFFIX `
+expect_normal_exit $Env:EXE_DIR\blk_pool$Env:EXESUFFIX `
     c $DIR\testset 300 0 0600
 
-expect_normal_exit ..\..\x64\debug\blk_pool$Env:EXESUFFIX `
+expect_normal_exit $Env:EXE_DIR\blk_pool$Env:EXESUFFIX `
     o $DIR\testset 300
 
 # check will print the appropriate pass/fail message

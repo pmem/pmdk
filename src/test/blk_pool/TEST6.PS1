@@ -59,7 +59,7 @@ echo $null >> $DIR\testfile
 # TEST6 existing file, file length < min required size, poolsize == 0,
 #       bsize == 0
 #
-expect_normal_exit ..\..\x64\debug\blk_pool$Env:EXESUFFIX `
+expect_normal_exit $Env:EXE_DIR\blk_pool$Env:EXESUFFIX `
     c \NULL\testfile 0 0 0640
 
 check_files $DIR\testfile
