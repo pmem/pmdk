@@ -10,6 +10,7 @@ before_build:
 - ps: >-
     if ($env:CONFIGURATION -eq "Debug") {
         utils/CSTYLE.ps1
+        utils/CHECK_WHITESPACE.ps1
     }
 build:
   project: src/NVML.sln
