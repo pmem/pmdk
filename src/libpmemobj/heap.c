@@ -496,11 +496,11 @@ heap_run_is_empty(struct chunk_run *run)
 static uint8_t
 heap_find_first_free_bucket_slot(struct pmalloc_heap *h)
 {
-	uint8_t n;
+	int n;
 	for (n = 0; n < MAX_BUCKETS; ++n)
 		if (__sync_bool_compare_and_swap(&h->buckets[n],
 			NULL, BUCKET_RESERVED))
-			return n;
+			return (uint8_t)n;
 
 	return MAX_BUCKETS;
 }
@@ -902,9 +902,11 @@ heap_drain_to_auxiliary(PMEMobjpool *pop, struct bucket *auxb,
 
 	struct memory_block m;
 	struct bucket *b;
-	int b_id = auxb->id;
+	uint8_t b_id = auxb->id;
 
+	ASSERTne(b_id, MAX_BUCKETS);
 	ASSERTeq(auxb->type, BUCKET_RUN);
+
 	struct bucket_run *auxr = (struct bucket_run *)auxb;
 
 	/* max units drained from a single bucket cache */
@@ -999,9 +1001,8 @@ static int
 heap_buckets_init(PMEMobjpool *pop)
 {
 	struct pmalloc_heap *h = pop->heap;
-	size_t i;
 
-	for (i = 0; i < MAX_BUCKETS; ++i)
+	for (size_t i = 0; i < MAX_BUCKETS; ++i)
 		SLIST_INIT(&h->active_runs[i]);
 
 	h->last_run_max_size = MAX_RUN_SIZE;
