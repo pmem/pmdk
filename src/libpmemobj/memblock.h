@@ -40,9 +40,9 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "libpmemobj.h"
 #include "heap_layout.h"
 #include "memops.h"
+#include "pmalloc.h"
 
 struct memory_block {
 	uint32_t chunk_id; /* index of the memory block in its zone */
@@ -166,12 +166,12 @@ enum memory_block_type memblock_autodetect_type(struct memory_block *m,
 
 struct memory_block_ops {
 	size_t (*block_size)(struct memory_block *m, struct heap_layout *h);
-	uint16_t (*block_offset)(struct memory_block *m, PMEMobjpool *pop,
-		void *ptr);
-	void (*prep_hdr)(struct memory_block *m, PMEMobjpool *pop,
+	uint16_t (*block_offset)(struct memory_block *m,
+			struct palloc_heap *heap, void *ptr);
+	void (*prep_hdr)(struct memory_block *m, struct palloc_heap *heap,
 		enum memblock_hdr_op, struct operation_context *ctx);
-	void (*lock)(struct memory_block *m, PMEMobjpool *pop);
-	void (*unlock)(struct memory_block *m, PMEMobjpool *pop);
+	void (*lock)(struct memory_block *m, struct palloc_heap *heap);
+	void (*unlock)(struct memory_block *m, struct palloc_heap *heap);
 };
 
 extern const struct memory_block_ops mb_ops[MAX_MEMORY_BLOCK];
@@ -188,6 +188,6 @@ extern const struct memory_block_ops mb_ops[MAX_MEMORY_BLOCK];
 #define MEMBLOCK_OPS_ MEMBLOCK_OPS_AUTO
 
 #define MEMBLOCK_OPS(type, memblock)\
-MEMBLOCK_OPS_##type(memblock, pop->hlayout)
+MEMBLOCK_OPS_##type(memblock, heap->layout)
 
 #endif

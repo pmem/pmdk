@@ -31,7 +31,7 @@
  */
 
 /*
- * pmalloc.h -- internal definitions for persistent malloc
+ * palloc.h -- internal definitions for persistent allocator
  */
 
 #ifndef LIBPMEMOBJ_PALLOC_H
@@ -40,21 +40,47 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "libpmemobj.h"
 #include "memops.h"
+#include "redo.h"
 
-typedef int (*pmalloc_constr)(PMEMobjpool *pop, void *ptr,
+/*
+ * Number of bytes between end of allocation header and beginning of user data.
+ */
+#define PALLOC_DATA_OFF 48
+
+struct palloc_heap {
+	struct pmem_ops p_ops;
+	struct heap_layout *layout;
+	struct heap_rt *rt;
+	uint64_t size;
+
+	void *base;
+};
+
+typedef int (*palloc_constr)(void *base, void *ptr,
 		size_t usable_size, void *arg);
 
-int
-palloc_operation(PMEMobjpool *pop,
-	uint64_t off, uint64_t *dest_off, size_t size,
-	pmalloc_constr constructor,
-	void *arg, struct operation_entry *entries, size_t nentries);
+int palloc_operation(struct palloc_heap *heap, uint64_t off, uint64_t *dest_off,
+	size_t size, palloc_constr constructor, void *arg,
+	struct operation_context *ctx);
 
-uint64_t pmalloc_first(PMEMobjpool *pop);
-uint64_t pmalloc_next(PMEMobjpool *pop, uint64_t off);
+uint64_t palloc_first(struct palloc_heap *heap);
+uint64_t palloc_next(struct palloc_heap *heap, uint64_t off);
 
-size_t pmalloc_usable_size(PMEMobjpool *pop, uint64_t off);
+size_t palloc_usable_size(struct palloc_heap *heap, uint64_t off);
+
+int palloc_boot(struct palloc_heap *heap, void *heap_start,
+		uint64_t heap_size, void *base, struct pmem_ops *p_ops);
+
+int palloc_init(void *heap_start, uint64_t heap_size, struct pmem_ops *p_ops);
+void *palloc_heap_end(struct palloc_heap *h);
+int palloc_heap_check(void *heap_start, uint64_t heap_size);
+int palloc_heap_check_remote(void *heap_start, uint64_t heap_size,
+		struct remote_ops *ops);
+void palloc_heap_cleanup(struct palloc_heap *heap);
+
+void palloc_vg_register_object(struct palloc_heap *heap, PMEMoid oid,
+		size_t size);
+void palloc_heap_vg_open(void *heap_start, uint64_t heap_size);
 
 #endif

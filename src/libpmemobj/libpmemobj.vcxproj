@@ -63,6 +63,7 @@
     <ClInclude Include="..\..\src\libpmemobj\obj.h" />
     <ClInclude Include="..\..\src\libpmemobj\palloc.h" />
     <ClInclude Include="..\..\src\libpmemobj\pmalloc.h" />
+    <ClInclude Include="..\..\src\libpmemobj\pmemops.h" />
     <ClInclude Include="..\..\src\libpmemobj\redo.h" />
     <ClInclude Include="..\common\dlsym.h" />
     <ClInclude Include="..\common\file.h" />

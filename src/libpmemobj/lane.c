@@ -173,26 +173,26 @@ lane_init(PMEMobjpool *pop, struct lane *lane, struct lane_layout *layout)
 {
 	ASSERTne(lane, NULL);
 
-	int err;
-
 	int i;
+	int oerrno;
+
 	for (i = 0; i < MAX_LANE_SECTION; ++i) {
-		lane->sections[i].runtime = NULL;
 		lane->sections[i].layout = &layout->sections[i];
-		err = Section_ops[i]->construct(pop, &lane->sections[i]);
-		if (err != 0) {
+		errno = 0;
+		lane->sections[i].runtime = Section_ops[i]->construct_rt(pop);
+		if (lane->sections[i].runtime == NULL && errno) {
 			ERR("!lane_construct_ops %d", i);
 			goto error_section_construct;
 		}
 	}
-
 	return 0;
 
 error_section_construct:
+	oerrno = errno;
 	for (i = i - 1; i >= 0; --i)
-		Section_ops[i]->destruct(pop, &lane->sections[i]);
-
-	return err;
+		Section_ops[i]->destroy_rt(pop, &lane->sections[i].runtime);
+	errno = oerrno;
+	return -1;
 }
 
 /*
@@ -202,7 +202,7 @@ static void
 lane_destroy(PMEMobjpool *pop, struct lane *lane)
 {
 	for (int i = 0; i < MAX_LANE_SECTION; ++i)
-		Section_ops[i]->destruct(pop, &lane->sections[i]);
+		Section_ops[i]->destroy_rt(pop, lane->sections[i].runtime);
 }
 
 /*
@@ -237,8 +237,7 @@ lane_boot(PMEMobjpool *pop)
 	for (i = 0; i < pop->nlanes; ++i) {
 		struct lane_layout *layout = lane_get_layout(pop, i);
 
-		if ((err = lane_init(pop, &pop->lanes_desc.lane[i],
-				layout)) != 0) {
+		if ((err = lane_init(pop, &pop->lanes_desc.lane[i], layout))) {
 			ERR("!lane_init");
 			goto error_lane_init;
 		}
@@ -249,7 +248,6 @@ lane_boot(PMEMobjpool *pop)
 error_lane_init:
 	for (; i >= 1; --i)
 		lane_destroy(pop, &pop->lanes_desc.lane[i - 1]);
-
 	Free(pop->lanes_desc.lane_locks);
 	pop->lanes_desc.lane_locks = NULL;
 error_locks_malloc:
@@ -290,8 +288,8 @@ lane_recover_and_section_boot(PMEMobjpool *pop)
 	for (i = 0; i < MAX_LANE_SECTION; ++i) {
 		for (j = 0; j < pop->nlanes; ++j) {
 			layout = lane_get_layout(pop, j);
-			err = Section_ops[i]->recover(pop,
-				&layout->sections[i]);
+			err = Section_ops[i]->recover(pop, &layout->sections[i],
+				sizeof(layout->sections[i]));
 
 			if (err != 0) {
 				LOG(2, "section_ops->recover %d %ju %d",
@@ -323,7 +321,8 @@ lane_check(PMEMobjpool *pop)
 	for (i = 0; i < MAX_LANE_SECTION; ++i) {
 		for (j = 0; j < pop->nlanes; ++j) {
 			layout = lane_get_layout(pop, j);
-			err = Section_ops[i]->check(pop, &layout->sections[i]);
+			err = Section_ops[i]->check(pop, &layout->sections[i],
+					sizeof(layout->sections[i]));
 
 			if (err) {
 				LOG(2, "section_ops->check %d %ju %d",

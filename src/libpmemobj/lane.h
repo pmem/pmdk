@@ -98,15 +98,14 @@ struct lane_descriptor {
 	struct lane *lane;
 };
 
-typedef int (*section_layout_op)(PMEMobjpool *pop,
-	struct lane_section_layout *layout);
-typedef int (*section_constr)(PMEMobjpool *pop, struct lane_section *section);
-typedef void (*section_destr)(PMEMobjpool *pop, struct lane_section *section);
+typedef int (*section_layout_op)(PMEMobjpool *pop, void *data, unsigned length);
+typedef void *(*section_constr)(PMEMobjpool *pop);
+typedef void (*section_destr)(PMEMobjpool *pop, void *rt);
 typedef int (*section_global_op)(PMEMobjpool *pop);
 
 struct section_operations {
-	section_constr construct;
-	section_destr destruct;
+	section_constr construct_rt;
+	section_destr destroy_rt;
 	section_layout_op check;
 	section_layout_op recover;
 	section_global_op boot;

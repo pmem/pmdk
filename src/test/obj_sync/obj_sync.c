@@ -314,7 +314,7 @@ cleanup(char test_type)
 }
 
 static void
-obj_sync_persist(PMEMobjpool *pop, const void *ptr, size_t sz)
+obj_sync_persist(void *ctx, const void *ptr, size_t sz)
 {
 	pmem_msync(ptr, sz);
 }
@@ -365,7 +365,8 @@ main(int argc, char *argv[])
 
 	/* first pool open */
 	mock_open_pool(&Mock_pop);
-	Mock_pop.persist = obj_sync_persist;
+	Mock_pop.p_ops.persist = obj_sync_persist;
+	Mock_pop.p_ops.base = &Mock_pop;
 	Test_obj = MALLOC(sizeof(struct mock_obj));
 	/* zero-initialize the test object */
 	pmemobj_mutex_zero(&Mock_pop, &Test_obj->mutex);

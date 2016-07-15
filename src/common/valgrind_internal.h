@@ -381,43 +381,43 @@ extern unsigned _On_valgrind;
 		VALGRIND_ENABLE_ERROR_REPORTING;\
 } while (0)
 
-#define VALGRIND_DO_CREATE_MEMPOOL(pool, rzB, is_zeroed) do {\
+#define VALGRIND_DO_CREATE_MEMPOOL(heap, rzB, is_zeroed) do {\
 	if (On_valgrind)\
-		VALGRIND_CREATE_MEMPOOL(pool, rzB, is_zeroed);\
+		VALGRIND_CREATE_MEMPOOL(heap, rzB, is_zeroed);\
 } while (0)
 
-#define VALGRIND_DO_DESTROY_MEMPOOL(pool) do {\
+#define VALGRIND_DO_DESTROY_MEMPOOL(heap) do {\
 	if (On_valgrind)\
-		VALGRIND_DESTROY_MEMPOOL(pool);\
+		VALGRIND_DESTROY_MEMPOOL(heap);\
 } while (0)
 
-#define VALGRIND_DO_MEMPOOL_ALLOC(pool, addr, size) do {\
-	if (On_valgrind && pool->is_master_replica)\
-		VALGRIND_MEMPOOL_ALLOC(pool, addr, size);\
+#define VALGRIND_DO_MEMPOOL_ALLOC(heap, addr, size) do {\
+	if (On_valgrind)\
+		VALGRIND_MEMPOOL_ALLOC(heap, addr, size);\
 } while (0)
 
-#define VALGRIND_DO_MEMPOOL_FREE(pool, addr) do {\
-	if (On_valgrind && pool->is_master_replica)\
-		VALGRIND_MEMPOOL_FREE(pool, addr);\
+#define VALGRIND_DO_MEMPOOL_FREE(heap, addr) do {\
+	if (On_valgrind)\
+		VALGRIND_MEMPOOL_FREE(heap, addr);\
 } while (0)
 
-#define VALGRIND_DO_MEMPOOL_CHANGE(pool, addrA, addrB, size) do {\
-	if (On_valgrind && pool->is_master_replica)\
-		VALGRIND_MEMPOOL_CHANGE(pool, addrA, addrB, size);\
+#define VALGRIND_DO_MEMPOOL_CHANGE(heap, addrA, addrB, size) do {\
+	if (On_valgrind)\
+		VALGRIND_MEMPOOL_CHANGE(heap, addrA, addrB, size);\
 } while (0)
 
-#define VALGRIND_DO_MAKE_MEM_DEFINED(pool, addr, len) do {\
-	if (On_valgrind && pool->is_master_replica)\
+#define VALGRIND_DO_MAKE_MEM_DEFINED(addr, len) do {\
+	if (On_valgrind)\
 		VALGRIND_MAKE_MEM_DEFINED(addr, len);\
 } while (0)
 
-#define VALGRIND_DO_MAKE_MEM_UNDEFINED(pool, addr, len) do {\
-	if (On_valgrind && pool->is_master_replica)\
+#define VALGRIND_DO_MAKE_MEM_UNDEFINED(addr, len) do {\
+	if (On_valgrind)\
 		VALGRIND_MAKE_MEM_UNDEFINED(addr, len);\
 } while (0)
 
-#define VALGRIND_DO_MAKE_MEM_NOACCESS(pool, addr, len) do {\
-	if (On_valgrind && pool->is_master_replica)\
+#define VALGRIND_DO_MAKE_MEM_NOACCESS(addr, len) do {\
+	if (On_valgrind)\
 		VALGRIND_MAKE_MEM_NOACCESS(addr, len);\
 } while (0)
 
@@ -432,31 +432,31 @@ extern unsigned _On_valgrind;
 
 #define VALGRIND_DO_ENABLE_ERROR_REPORTING do {} while (0)
 
-#define VALGRIND_DO_CREATE_MEMPOOL(pool, rzB, is_zeroed)\
-	do { (void) (pool); (void) (rzB); (void) (is_zeroed); } while (0)
+#define VALGRIND_DO_CREATE_MEMPOOL(heap, rzB, is_zeroed)\
+	do { (void) (heap); (void) (rzB); (void) (is_zeroed); } while (0)
 
-#define VALGRIND_DO_DESTROY_MEMPOOL(pool)\
-	do { (void) (pool); } while (0)
+#define VALGRIND_DO_DESTROY_MEMPOOL(heap)\
+	do { (void) (heap); } while (0)
 
-#define VALGRIND_DO_MEMPOOL_ALLOC(pool, addr, size)\
-	do { (void) (pool); (void) (addr); (void) (size); } while (0)
+#define VALGRIND_DO_MEMPOOL_ALLOC(heap, addr, size)\
+	do { (void) (heap); (void) (addr); (void) (size); } while (0)
 
-#define VALGRIND_DO_MEMPOOL_FREE(pool, addr)\
-	do { (void) (pool); (void) (addr); } while (0)
+#define VALGRIND_DO_MEMPOOL_FREE(heap, addr)\
+	do { (void) (heap); (void) (addr); } while (0)
 
-#define VALGRIND_DO_MEMPOOL_CHANGE(pool, addrA, addrB, size)\
+#define VALGRIND_DO_MEMPOOL_CHANGE(heap, addrA, addrB, size)\
 	do {\
-		(void) (pool); (void) (addrA); (void) (addrB); (void) (size);\
+		(void) (heap); (void) (addrA); (void) (addrB); (void) (size);\
 	} while (0)
 
-#define VALGRIND_DO_MAKE_MEM_DEFINED(pool, addr, len)\
-	do { (void) (pool); (void) (addr); (void) (len); } while (0)
+#define VALGRIND_DO_MAKE_MEM_DEFINED(addr, len)\
+	do { (void) (addr); (void) (len); } while (0)
 
-#define VALGRIND_DO_MAKE_MEM_UNDEFINED(pool, addr, len)\
-	do { (void) (pool); (void) (addr); (void) (len); } while (0)
+#define VALGRIND_DO_MAKE_MEM_UNDEFINED(addr, len)\
+	do { (void) (addr); (void) (len); } while (0)
 
-#define VALGRIND_DO_MAKE_MEM_NOACCESS(pool, addr, len)\
-	do { (void) (pool); (void) (addr); (void) (len); } while (0)
+#define VALGRIND_DO_MAKE_MEM_NOACCESS(addr, len)\
+	do { (void) (addr); (void) (len); } while (0)
 
 #define VALGRIND_DO_CHECK_MEM_IS_ADDRESSABLE(addr, len)\
 	do { (void) (addr); (void) (len); } while (0)

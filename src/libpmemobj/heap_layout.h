@@ -40,8 +40,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "redo.h"
-
 #define HEAP_MAJOR 1
 #define HEAP_MINOR 0
 
@@ -54,13 +52,6 @@
 #define ZONE_MIN_SIZE (sizeof(struct zone) + sizeof(struct chunk))
 #define ZONE_MAX_SIZE (sizeof(struct zone) + sizeof(struct chunk) * MAX_CHUNK)
 #define HEAP_MIN_SIZE (sizeof(struct heap_layout) + ZONE_MIN_SIZE)
-
-/*
- * The maximum number of entries in redo log used by the allocator. The common
- * case is to use two, one for modification of the object destination memory
- * location and the second for applying the chunk metadata modifications.
- */
-#define ALLOC_REDO_LOG_SIZE 10
 
 #define BITS_PER_VALUE 64U
 #define MAX_CACHELINE_ALIGNMENT 40 /* run alignment, 5 cachelines */
@@ -138,10 +129,6 @@ struct allocation_header {
 	uint32_t zone_id;
 	uint32_t chunk_id;
 	uint64_t size;
-};
-
-struct lane_alloc_layout {
-	struct redo_log redo[ALLOC_REDO_LOG_SIZE];
 };
 
 #endif

@@ -45,7 +45,6 @@
 #include "bucket.h"
 #include "ctree.h"
 #include "heap.h"
-#include "obj.h"
 #include "out.h"
 #include "sys_util.h"
 #include "valgrind_internal.h"
@@ -79,13 +78,13 @@ struct block_container_ctree {
  * bucket_vg_mark_noaccess -- (internal) marks memory block as no access for vg
  */
 static void
-bucket_vg_mark_noaccess(PMEMobjpool *pop, struct block_container *bc,
+bucket_vg_mark_noaccess(struct palloc_heap *heap, struct block_container *bc,
 	struct memory_block m)
 {
 	if (On_valgrind) {
 		size_t rsize = m.size_idx * bc->unit_size;
-		void *block_data = heap_get_block_data(pop, m);
-		VALGRIND_DO_MAKE_MEM_NOACCESS(pop, block_data, rsize);
+		void *block_data = heap_get_block_data(heap, m);
+		VALGRIND_MAKE_MEM_NOACCESS(block_data, rsize);
 	}
 }
 #endif
@@ -95,7 +94,7 @@ bucket_vg_mark_noaccess(PMEMobjpool *pop, struct block_container *bc,
  *	into the container
  */
 static int
-bucket_tree_insert_block(struct block_container *bc, PMEMobjpool *pop,
+bucket_tree_insert_block(struct block_container *bc, struct palloc_heap *heap,
 	struct memory_block m)
 {
 	/*
@@ -117,7 +116,7 @@ bucket_tree_insert_block(struct block_container *bc, PMEMobjpool *pop,
 	struct block_container_ctree *c = (struct block_container_ctree *)bc;
 
 #ifdef USE_VG_MEMCHECK
-	bucket_vg_mark_noaccess(pop, bc, m);
+	bucket_vg_mark_noaccess(heap, bc, m);
 #endif
 
 	uint64_t key = CHUNK_KEY_PACK(m.zone_id, m.chunk_id, m.block_off,

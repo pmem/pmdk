@@ -38,13 +38,73 @@
  * in a reasonable time and with an acceptable common-case fragmentation.
  */
 
-#include "heap_layout.h"
 #include "heap.h"
 #include "lane.h"
+#include "memops.h"
 #include "obj.h"
 #include "out.h"
+#include "palloc.h"
 #include "pmalloc.h"
 #include "valgrind_internal.h"
+
+/*
+ *
+ */
+struct redo_log *
+pmalloc_redo_hold(PMEMobjpool *pop)
+{
+	struct lane_section *lane;
+	lane_hold(pop, &lane, LANE_SECTION_ALLOCATOR);
+
+	struct lane_alloc_layout *sec = (void *)lane->layout;
+	return sec->redo;
+}
+
+/*
+ *
+ */
+void
+pmalloc_redo_release(PMEMobjpool *pop)
+{
+	lane_release(pop);
+}
+
+/*
+ *
+ */
+int
+pmalloc_operation(struct palloc_heap *heap, uint64_t off, uint64_t *dest_off,
+	size_t size, palloc_constr constructor, void *arg,
+	struct operation_context *ctx)
+{
+#ifdef USE_VG_MEMCHECK
+	uint64_t tmp;
+	if (size && On_valgrind && dest_off == NULL)
+		dest_off = &tmp;
+#endif
+
+	int ret = palloc_operation(heap, off, dest_off, size, constructor, arg,
+			ctx);
+	if (ret)
+		return ret;
+
+#ifdef USE_VG_MEMCHECK
+	if (size && On_valgrind) {
+		struct oob_header *pobj =
+			OOB_HEADER_FROM_PTR((char *)heap->base + *dest_off);
+
+		/*
+		 * The first few bytes of the oobh are unused and double as
+		 * an object guard which will cause valgrind to issue an error
+		 * whenever the unused memory is accessed.
+		 */
+		VALGRIND_DO_MAKE_MEM_NOACCESS(pobj->unused,
+				sizeof(pobj->unused));
+	}
+#endif
+
+	return 0;
+}
 
 /*
  * pmalloc -- allocates a new block of memory
@@ -56,7 +116,16 @@
 int
 pmalloc(PMEMobjpool *pop, uint64_t *off, size_t size)
 {
-	return palloc_operation(pop, 0, off, size, NULL, NULL, NULL, 0);
+	struct redo_log *redo = pmalloc_redo_hold(pop);
+
+	struct operation_context ctx;
+	operation_init(&ctx, pop, pop->redo, redo);
+
+	int ret = pmalloc_operation(&pop->heap, 0, off, size, NULL, NULL, &ctx);
+
+	pmalloc_redo_release(pop);
+
+	return ret;
 }
 
 /*
@@ -69,9 +138,19 @@ pmalloc(PMEMobjpool *pop, uint64_t *off, size_t size)
  */
 int
 pmalloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
-	pmalloc_constr constructor, void *arg)
+	palloc_constr constructor, void *arg)
 {
-	return palloc_operation(pop, 0, off, size, constructor, arg, NULL, 0);
+	struct redo_log *redo = pmalloc_redo_hold(pop);
+	struct operation_context ctx;
+
+	operation_init(&ctx, pop, pop->redo, redo);
+
+	int ret = pmalloc_operation(&pop->heap, 0, off, size, constructor, arg,
+			&ctx);
+
+	pmalloc_redo_release(pop);
+
+	return ret;
 }
 
 /*
@@ -84,7 +163,16 @@ pmalloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
 int
 prealloc(PMEMobjpool *pop, uint64_t *off, size_t size)
 {
-	return palloc_operation(pop, *off, off, size, NULL, 0, NULL, 0);
+	struct redo_log *redo = pmalloc_redo_hold(pop);
+	struct operation_context ctx;
+
+	operation_init(&ctx, pop, pop->redo, redo);
+
+	int ret = pmalloc_operation(&pop->heap, *off, off, size, NULL, 0, &ctx);
+
+	pmalloc_redo_release(pop);
+
+	return ret;
 }
 
 /*
@@ -97,10 +185,19 @@ prealloc(PMEMobjpool *pop, uint64_t *off, size_t size)
  */
 int
 prealloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
-	pmalloc_constr constructor, void *arg)
+	palloc_constr constructor, void *arg)
 {
-	return palloc_operation(pop, *off, off, size, constructor, arg,
-		NULL, 0);
+	struct redo_log *redo = pmalloc_redo_hold(pop);
+	struct operation_context ctx;
+
+	operation_init(&ctx, pop, pop->redo, redo);
+
+	int ret = pmalloc_operation(&pop->heap, *off, off, size, constructor,
+			arg, &ctx);
+
+	pmalloc_redo_release(pop);
+
+	return ret;
 }
 
 /*
@@ -113,36 +210,43 @@ prealloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
 void
 pfree(PMEMobjpool *pop, uint64_t *off)
 {
-	int ret = palloc_operation(pop, *off, off, 0, NULL, NULL, NULL, 0);
+	struct redo_log *redo = pmalloc_redo_hold(pop);
+	struct operation_context ctx;
+
+	operation_init(&ctx, pop, pop->redo, redo);
+
+	int ret = pmalloc_operation(&pop->heap, *off, off, 0, NULL, NULL, &ctx);
 	ASSERTeq(ret, 0);
+
+	pmalloc_redo_release(pop);
 }
 
 /*
  * lane_allocator_construct -- create allocator lane section
  */
-static int
-lane_allocator_construct(PMEMobjpool *pop, struct lane_section *section)
+static void *
+pmalloc_construct_rt(PMEMobjpool *pop)
 {
-	return 0;
+	return NULL;
 }
 
 /*
  * lane_allocator_destruct -- destroy allocator lane section
  */
 static void
-lane_allocator_destruct(PMEMobjpool *pop, struct lane_section *section)
+pmalloc_destroy_rt(PMEMobjpool *pop, void *rt)
 {
 	/* nop */
 }
 
 /*
- * lane_allocator_recovery -- recovery of allocator lane section
+ * pmalloc_recovery -- recovery of allocator lane section
  */
 static int
-lane_allocator_recovery(PMEMobjpool *pop, struct lane_section_layout *section)
+pmalloc_recovery(PMEMobjpool *pop, void *data, unsigned length)
 {
-	struct lane_alloc_layout *sec =
-		(struct lane_alloc_layout *)section;
+	struct lane_alloc_layout *sec = data;
+	ASSERT(sizeof(*sec) <= length);
 
 	redo_log_recover(pop->redo, sec->redo, ALLOC_REDO_LOG_SIZE);
 
@@ -150,15 +254,14 @@ lane_allocator_recovery(PMEMobjpool *pop, struct lane_section_layout *section)
 }
 
 /*
- * lane_allocator_check -- consistency check of allocator lane section
+ * pmalloc_check -- consistency check of allocator lane section
  */
 static int
-lane_allocator_check(PMEMobjpool *pop, struct lane_section_layout *section)
+pmalloc_check(PMEMobjpool *pop, void *data, unsigned length)
 {
-	LOG(3, "allocator lane %p", section);
+	LOG(3, "allocator lane %p", data);
 
-	struct lane_alloc_layout *sec =
-		(struct lane_alloc_layout *)section;
+	struct lane_alloc_layout *sec = data;
 
 	int ret = redo_log_check(pop->redo, sec->redo, ALLOC_REDO_LOG_SIZE);
 	if (ret != 0)
@@ -171,17 +274,21 @@ lane_allocator_check(PMEMobjpool *pop, struct lane_section_layout *section)
  * lane_allocator_init -- initializes allocator section
  */
 static int
-lane_allocator_boot(PMEMobjpool *pop)
+pmalloc_boot(PMEMobjpool *pop)
 {
-	return heap_boot(pop);
+	COMPILE_ERROR_ON(PALLOC_DATA_OFF != OBJ_OOB_SIZE);
+	COMPILE_ERROR_ON(ALLOC_BLOCK_SIZE != _POBJ_CL_ALIGNMENT);
+
+	return palloc_boot(&pop->heap, (char *)pop + pop->heap_offset,
+			pop->heap_size, pop, &pop->p_ops);
 }
 
 static struct section_operations allocator_ops = {
-	.construct = lane_allocator_construct,
-	.destruct = lane_allocator_destruct,
-	.recover = lane_allocator_recovery,
-	.check = lane_allocator_check,
-	.boot = lane_allocator_boot
+	.construct_rt = pmalloc_construct_rt,
+	.destroy_rt = pmalloc_destroy_rt,
+	.recover = pmalloc_recovery,
+	.check = pmalloc_check,
+	.boot = pmalloc_boot
 };
 
 SECTION_PARM(LANE_SECTION_ALLOCATOR, &allocator_ops);

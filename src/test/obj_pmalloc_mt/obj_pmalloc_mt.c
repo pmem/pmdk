@@ -35,6 +35,7 @@
  */
 #include <stdint.h>
 
+#include "obj.h"
 #include "pmalloc.h"
 #include "unittest.h"
 

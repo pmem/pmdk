@@ -62,7 +62,7 @@ struct block_container {
 };
 
 struct block_container_ops {
-	int (*insert)(struct block_container *c, PMEMobjpool *pop,
+	int (*insert)(struct block_container *c, struct palloc_heap *heap,
 		struct memory_block m);
 	int (*get_rm_exact)(struct block_container *c, struct memory_block m);
 	int (*get_rm_bestfit)(struct block_container *c,

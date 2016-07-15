@@ -33,6 +33,7 @@
 /*
  * obj_persist_count.c -- counting number of persists
  */
+#include "obj.h"
 #include "pmalloc.h"
 #include "unittest.h"
 

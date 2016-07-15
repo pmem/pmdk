@@ -45,9 +45,10 @@
  * method implementation is chosen at runtime.
  */
 
+#include <string.h>
+
 #include "heap.h"
 #include "memblock.h"
-#include "obj.h"
 #include "out.h"
 #include "sys_util.h"
 #include "valgrind_internal.h"
@@ -105,7 +106,7 @@ run_block_size(struct memory_block *m, struct heap_layout *h)
  *	memory blocks and must always be zeroed.
  */
 static uint16_t
-huge_block_offset(struct memory_block *m, PMEMobjpool *pop, void *ptr)
+huge_block_offset(struct memory_block *m, struct palloc_heap *heap, void *ptr)
 {
 	return 0;
 }
@@ -120,11 +121,11 @@ huge_block_offset(struct memory_block *m, PMEMobjpool *pop, void *ptr)
  * pointer or the allocation algorithm created an invalid allocation block.
  */
 static uint16_t
-run_block_offset(struct memory_block *m, PMEMobjpool *pop, void *ptr)
+run_block_offset(struct memory_block *m, struct palloc_heap *heap, void *ptr)
 {
-	size_t block_size = MEMBLOCK_OPS(RUN, &m)->block_size(m, pop->hlayout);
+	size_t block_size = MEMBLOCK_OPS(RUN, &m)->block_size(m, heap->layout);
 
-	void *data = heap_get_block_data(pop, *m);
+	void *data = heap_get_block_data(heap, *m);
 	uintptr_t diff = (uintptr_t)ptr - (uintptr_t)data;
 	ASSERT(diff <= RUNSIZE);
 	ASSERT((size_t)diff / block_size <= UINT16_MAX);
@@ -157,10 +158,10 @@ chunk_get_chunk_hdr_value(uint16_t type, uint32_t size_idx)
  *	be set after the operation concludes.
  */
 static void
-huge_prep_operation_hdr(struct memory_block *m, PMEMobjpool *pop,
+huge_prep_operation_hdr(struct memory_block *m, struct palloc_heap *heap,
 	enum memblock_hdr_op op, struct operation_context *ctx)
 {
-	struct zone *z = ZID_TO_ZONE(pop->hlayout, m->zone_id);
+	struct zone *z = ZID_TO_ZONE(heap->layout, m->zone_id);
 	struct chunk_header *hdr = &z->chunk_headers[m->chunk_id];
 
 	/*
@@ -173,7 +174,7 @@ huge_prep_operation_hdr(struct memory_block *m, PMEMobjpool *pop,
 
 	operation_add_entry(ctx, hdr, val, OPERATION_SET);
 
-	VALGRIND_DO_MAKE_MEM_NOACCESS(pop, hdr + 1,
+	VALGRIND_DO_MAKE_MEM_NOACCESS(hdr + 1,
 			(hdr->size_idx - 1) *
 			sizeof(struct chunk_header));
 
@@ -185,7 +186,7 @@ huge_prep_operation_hdr(struct memory_block *m, PMEMobjpool *pop,
 		return;
 
 	struct chunk_header *footer = hdr + m->size_idx - 1;
-	VALGRIND_DO_MAKE_MEM_UNDEFINED(pop, footer, sizeof(*footer));
+	VALGRIND_DO_MAKE_MEM_UNDEFINED(footer, sizeof(*footer));
 
 	val = chunk_get_chunk_hdr_value(CHUNK_TYPE_FOOTER, m->size_idx);
 
@@ -211,10 +212,10 @@ huge_prep_operation_hdr(struct memory_block *m, PMEMobjpool *pop,
  * is called and before the operation is processed.
  */
 static void
-run_prep_operation_hdr(struct memory_block *m, PMEMobjpool *pop,
+run_prep_operation_hdr(struct memory_block *m, struct palloc_heap *heap,
 	enum memblock_hdr_op op, struct operation_context *ctx)
 {
-	struct zone *z = ZID_TO_ZONE(pop->hlayout, m->zone_id);
+	struct zone *z = ZID_TO_ZONE(heap->layout, m->zone_id);
 
 	struct chunk_run *r = (struct chunk_run *)&z->chunks[m->chunk_id];
 	/*
@@ -249,7 +250,7 @@ run_prep_operation_hdr(struct memory_block *m, PMEMobjpool *pop,
  *	bucket there's no reason to lock them - the bucket itself is protected.
  */
 static void
-huge_lock(struct memory_block *m, PMEMobjpool *pop)
+huge_lock(struct memory_block *m, struct palloc_heap *heap)
 {
 	/* no-op */
 }
@@ -259,16 +260,16 @@ huge_lock(struct memory_block *m, PMEMobjpool *pop)
  *
  */
 static void
-run_lock(struct memory_block *m, PMEMobjpool *pop)
+run_lock(struct memory_block *m, struct palloc_heap *heap)
 {
-	util_mutex_lock(heap_get_run_lock(pop, m->chunk_id));
+	util_mutex_lock(heap_get_run_lock(heap, m->chunk_id));
 }
 
 /*
  * huge_unlock -- do nothing, explanation above in huge_lock.
  */
 static void
-huge_unlock(struct memory_block *m, PMEMobjpool *pop)
+huge_unlock(struct memory_block *m, struct palloc_heap *heap)
 {
 	/* no-op */
 }
@@ -277,9 +278,9 @@ huge_unlock(struct memory_block *m, PMEMobjpool *pop)
  * run_unlock -- gets the runtime mutex from the heap and unlocks it.
  */
 static void
-run_unlock(struct memory_block *m, PMEMobjpool *pop)
+run_unlock(struct memory_block *m, struct palloc_heap *heap)
 {
-	util_mutex_unlock(heap_get_run_lock(pop, m->chunk_id));
+	util_mutex_unlock(heap_get_run_lock(heap, m->chunk_id));
 }
 
 const struct memory_block_ops mb_ops[MAX_MEMORY_BLOCK] = {

@@ -40,21 +40,14 @@
 
 #include "heap_layout.h"
 #include "heap.h"
-#include "lane.h"
-#include "obj.h"
 #include "out.h"
 #include "palloc.h"
 #include "valgrind_internal.h"
 
 /*
- * Number of bytes between end of allocation header and beginning of user data.
- */
-#define DATA_OFF OBJ_OOB_SIZE
-
-/*
  * Number of bytes between beginning of memory block and beginning of user data.
  */
-#define ALLOC_OFF (DATA_OFF + sizeof(struct allocation_header))
+#define ALLOC_OFF (PALLOC_DATA_OFF + sizeof(struct allocation_header))
 
 #define USABLE_SIZE(_a)\
 ((_a)->size - sizeof(struct allocation_header))
@@ -62,14 +55,18 @@
 #define MEMORY_BLOCK_IS_EMPTY(_m)\
 ((_m).size_idx == 0)
 
-#define ALLOC_GET_HEADER(_pop, _off) (struct allocation_header *)\
-((char *)OBJ_OFF_TO_PTR((_pop), (_off)) - ALLOC_OFF)
+#define PMALLOC_OFF_TO_PTR(heap, off) ((void *)((char *)((heap)->base) + (off)))
+#define PMALLOC_PTR_TO_OFF(heap, ptr)\
+	((uintptr_t)(ptr) - (uintptr_t)(heap->base))
+
+#define ALLOC_GET_HEADER(_heap, _off) (struct allocation_header *)\
+((char *)PMALLOC_OFF_TO_PTR((_heap), (_off)) - ALLOC_OFF)
 
 /*
  * alloc_write_header -- (internal) creates allocation header
  */
 static void
-alloc_write_header(PMEMobjpool *pop, struct allocation_header *alloc,
+alloc_write_header(struct palloc_heap *heap, struct allocation_header *alloc,
 	struct memory_block m, uint64_t size)
 {
 	VALGRIND_ADD_TO_TX(alloc, sizeof(*alloc));
@@ -83,7 +80,8 @@ alloc_write_header(PMEMobjpool *pop, struct allocation_header *alloc,
  * get_mblock_from_alloc -- (internal) returns allocation memory block
  */
 static struct memory_block
-get_mblock_from_alloc(PMEMobjpool *pop, struct allocation_header *alloc)
+get_mblock_from_alloc(struct palloc_heap *heap,
+		struct allocation_header *alloc)
 {
 	struct memory_block m = {
 		alloc->chunk_id,
@@ -92,9 +90,9 @@ get_mblock_from_alloc(PMEMobjpool *pop, struct allocation_header *alloc)
 		0
 	};
 
-	uint64_t unit_size = MEMBLOCK_OPS(AUTO, &m)->block_size(&m,
-		pop->hlayout);
-	m.block_off = MEMBLOCK_OPS(AUTO, &m)->block_offset(&m, pop, alloc);
+	uint64_t unit_size = MEMBLOCK_OPS(AUTO, &m)->
+			block_size(&m, heap->layout);
+	m.block_off = MEMBLOCK_OPS(AUTO, &m)->block_offset(&m, heap, alloc);
 	m.size_idx = CALC_SIZE_IDX(unit_size, alloc->size);
 
 	return m;
@@ -125,9 +123,10 @@ get_mblock_from_alloc(PMEMobjpool *pop, struct allocation_header *alloc)
  * part of the heap during the allocation process.
  */
 static int
-alloc_reserve_block(PMEMobjpool *pop, struct memory_block *m, size_t sizeh)
+alloc_reserve_block(struct palloc_heap *heap, struct memory_block *m,
+		size_t sizeh)
 {
-	struct bucket *b = heap_get_best_bucket(pop, sizeh);
+	struct bucket *b = heap_get_best_bucket(heap, sizeh);
 
 	/*
 	 * The caller provided size in bytes, but buckets operate in
@@ -138,7 +137,7 @@ alloc_reserve_block(PMEMobjpool *pop, struct memory_block *m, size_t sizeh)
 	 */
 	m->size_idx = b->calc_units(b, sizeh);
 
-	int err = heap_get_bestfit_block(pop, b, m);
+	int err = heap_get_bestfit_block(heap, b, m);
 
 	if (err == ENOMEM && b->type == BUCKET_HUGE)
 		return ENOMEM; /* there's only one huge bucket */
@@ -148,8 +147,8 @@ alloc_reserve_block(PMEMobjpool *pop, struct memory_block *m, size_t sizeh)
 		 * There's no more available memory in the common heap and in
 		 * this lane cache, fallback to the auxiliary (shared) bucket.
 		 */
-		b = heap_get_auxiliary_bucket(pop, sizeh);
-		err = heap_get_bestfit_block(pop, b, m);
+		b = heap_get_auxiliary_bucket(heap, sizeh);
+		err = heap_get_bestfit_block(heap, b, m);
 	}
 
 	if (err == ENOMEM) {
@@ -157,8 +156,8 @@ alloc_reserve_block(PMEMobjpool *pop, struct memory_block *m, size_t sizeh)
 		 * The auxiliary bucket cannot satisfy our request, borrow
 		 * memory from other caches.
 		 */
-		heap_drain_to_auxiliary(pop, b, m->size_idx);
-		err = heap_get_bestfit_block(pop, b, m);
+		heap_drain_to_auxiliary(heap, b, m->size_idx);
+		err = heap_get_bestfit_block(heap, b, m);
 	}
 
 	if (err == ENOMEM) {
@@ -181,29 +180,31 @@ alloc_reserve_block(PMEMobjpool *pop, struct memory_block *m, size_t sizeh)
  * of a crash the memory will be back in the free blocks collection.
  */
 static int
-alloc_prep_block(PMEMobjpool *pop, struct memory_block m,
-	pmalloc_constr constructor, void *arg, uint64_t *offset_value)
+alloc_prep_block(struct palloc_heap *heap, struct memory_block m,
+	palloc_constr constructor, void *arg, uint64_t *offset_value)
 {
-	void *block_data = heap_get_block_data(pop, m);
+	void *block_data = heap_get_block_data(heap, m);
 	void *userdatap = (char *)block_data + ALLOC_OFF;
 
-	uint64_t unit_size = MEMBLOCK_OPS(AUTO, &m)->block_size(&m,
-		pop->hlayout);
+	uint64_t unit_size = MEMBLOCK_OPS(AUTO, &m)->
+			block_size(&m, heap->layout);
 
 	uint64_t real_size = unit_size * m.size_idx;
 
 	ASSERT((uint64_t)block_data % _POBJ_CL_ALIGNMENT == 0);
+	ASSERT((uint64_t)userdatap % _POBJ_CL_ALIGNMENT == 0);
 
 	/* mark everything (including headers) as accessible */
-	VALGRIND_DO_MAKE_MEM_UNDEFINED(pop, block_data, real_size);
+	VALGRIND_DO_MAKE_MEM_UNDEFINED(block_data, real_size);
 	/* mark space as allocated */
-	VALGRIND_DO_MEMPOOL_ALLOC(pop, userdatap, real_size - ALLOC_OFF);
+	VALGRIND_DO_MEMPOOL_ALLOC(heap->layout, userdatap,
+			real_size - ALLOC_OFF);
 
-	alloc_write_header(pop, block_data, m, real_size);
+	alloc_write_header(heap, block_data, m, real_size);
 
-	int ret = 0;
+	int ret;
 	if (constructor != NULL &&
-		(ret = constructor(pop, userdatap,
+		(ret = constructor(heap->base, userdatap,
 			real_size - ALLOC_OFF, arg)) != 0) {
 
 		/*
@@ -212,8 +213,8 @@ alloc_prep_block(PMEMobjpool *pop, struct memory_block m,
 		 * the user data, the allocation header is made inaccessible
 		 * in a separate call.
 		 */
-		VALGRIND_DO_MEMPOOL_FREE(pop, userdatap);
-		VALGRIND_DO_MAKE_MEM_NOACCESS(pop, block_data, ALLOC_OFF);
+		VALGRIND_DO_MEMPOOL_FREE(heap->layout, userdatap);
+		VALGRIND_DO_MAKE_MEM_NOACCESS(block_data, ALLOC_OFF);
 
 		/*
 		 * During this method there are several stores to pmem that are
@@ -226,22 +227,7 @@ alloc_prep_block(PMEMobjpool *pop, struct memory_block m,
 	}
 
 	/* flushes both the alloc and oob headers */
-	pop->persist(pop, block_data, ALLOC_OFF);
-
-#ifdef USE_VG_MEMCHECK
-	if (On_valgrind) {
-		struct oob_header *pobj = (struct oob_header *)
-			((char *)block_data + sizeof(struct allocation_header));
-
-		/*
-		 * The first few bytes of the oobh are unused and double as
-		 * an object guard which will cause valgrind to issue an error
-		 * whenever the unused memory is accessed.
-		 */
-		VALGRIND_DO_MAKE_MEM_NOACCESS(pop, pobj->unused,
-			sizeof(pobj->unused));
-	}
-#endif
+	pmemops_persist(&heap->p_ops, block_data, ALLOC_OFF);
 
 	/*
 	 * To avoid determining the user data pointer twice this method is also
@@ -249,9 +235,9 @@ alloc_prep_block(PMEMobjpool *pop, struct memory_block m,
 	 * will be used to set the offset destination pointer provided by the
 	 * caller.
 	 */
-	*offset_value = OBJ_PTR_TO_OFF(pop, userdatap);
+	*offset_value = PMALLOC_PTR_TO_OFF(heap, userdatap);
 
-	return ret;
+	return 0;
 }
 
 /*
@@ -287,10 +273,10 @@ alloc_prep_block(PMEMobjpool *pop, struct memory_block m,
  * of copying the old content in the meantime.
  */
 int
-palloc_operation(PMEMobjpool *pop,
+palloc_operation(struct palloc_heap *heap,
 	uint64_t off, uint64_t *dest_off, size_t size,
-	pmalloc_constr constructor, void *arg,
-	struct operation_entry *entries, size_t nentries)
+	palloc_constr constructor, void *arg,
+	struct operation_context *ctx)
 {
 	struct bucket *b = NULL;
 	struct allocation_header *alloc = NULL;
@@ -300,20 +286,6 @@ palloc_operation(PMEMobjpool *pop,
 
 	size_t sizeh = size + sizeof(struct allocation_header);
 
-	int ret = 0;
-
-	/*
-	 * The lane is always held for the entire duration of the process.
-	 * This might seem a bit excessive at first glance, because the actual
-	 * lane usage is limited to the scope in which operation_context
-	 * exists, and in fact could be entirely omitted in some cases.
-	 *
-	 * The reason here is the potential ordering problem between lane locks
-	 * and run locks, which in some fringe cases could result in a deadlock.
-	 */
-	struct lane_section *lane;
-	lane_hold(pop, &lane, LANE_SECTION_ALLOCATOR);
-
 	/*
 	 * The offset of an existing block can be nonzero which means this
 	 * operation is either free or a realloc - either way the offset of the
@@ -321,7 +293,7 @@ palloc_operation(PMEMobjpool *pop,
 	 * methods operate in.
 	 */
 	if (off != 0) {
-		alloc = ALLOC_GET_HEADER(pop, off);
+		alloc = ALLOC_GET_HEADER(heap, off);
 		/*
 		 * The memory block must return back to the originating bucket,
 		 * otherwise coalescing of neighbouring blocks will be rendered
@@ -334,40 +306,22 @@ palloc_operation(PMEMobjpool *pop,
 		 * necessary volatile heap modifications won't be performed for
 		 * this memory block.
 		 */
-		b = heap_get_chunk_bucket(pop, alloc->chunk_id, alloc->zone_id);
-		existing_block = get_mblock_from_alloc(pop, alloc);
+		b = heap_get_chunk_bucket(heap, alloc->chunk_id,
+				alloc->zone_id);
+		existing_block = get_mblock_from_alloc(heap, alloc);
 	}
 
 	/* if allocation or reallocation, reserve new memory */
 	if (size != 0) {
 		/* reallocation to exactly the same size, which is a no-op */
 		if (alloc != NULL && alloc->size == sizeh)
-			goto out;
+			return 0;
 
-		if ((errno = alloc_reserve_block(pop,
-			&new_block, sizeh)) != 0) {
-			ret = -1;
-			goto out;
-		}
+		errno = alloc_reserve_block(heap, &new_block, sizeh);
+		if (errno != 0)
+			return -1;
 	}
 
-	struct lane_alloc_layout *sec =
-		(struct lane_alloc_layout *)lane->layout;
-
-	/*
-	 * The operation collects all of the required memory modifications that
-	 * need to happen in an atomic way (all of them or none), and abstracts
-	 * away the storage type (transient/persistent) and the underlying
-	 * implementation of how it's actually performed - in some cases using
-	 * the redo log is unnecessary and the allocation process can be sped up
-	 * a bit by completely omitting that whole machinery.
-	 *
-	 * The modifications are not visible until the context is processed.
-	 */
-	struct operation_context ctx;
-	operation_init(pop, &ctx, sec->redo);
-
-	operation_add_entries(&ctx, entries, nentries);
 
 	/*
 	 * The offset value which is to be written to the destination pointer
@@ -378,7 +332,7 @@ palloc_operation(PMEMobjpool *pop,
 	/* lock and persistently free the existing memory block */
 	if (!MEMORY_BLOCK_IS_EMPTY(existing_block)) {
 #ifdef DEBUG
-		if (!heap_block_is_allocated(pop, existing_block)) {
+		if (!heap_block_is_allocated(heap, existing_block)) {
 			ERR("Double free or heap corruption");
 			ASSERT(0);
 		}
@@ -389,7 +343,8 @@ palloc_operation(PMEMobjpool *pop,
 		 * successfully, because other threads might operate on the
 		 * same bitmap value.
 		 */
-		MEMBLOCK_OPS(AUTO, &existing_block)->lock(&existing_block, pop);
+		MEMBLOCK_OPS(AUTO, &existing_block)->
+				lock(&existing_block, heap);
 
 		/*
 		 * This method will insert new entries into the operation
@@ -403,25 +358,25 @@ palloc_operation(PMEMobjpool *pop,
 		 * resulted in, to prevent volatile memory leak it needs to be
 		 * inserted into the corresponding bucket.
 		 */
-		reclaimed_block = heap_free_block(pop, b, existing_block, &ctx);
+		reclaimed_block = heap_free_block(heap, b, existing_block, ctx);
 		offset_value = 0;
 	}
 
 	if (!MEMORY_BLOCK_IS_EMPTY(new_block)) {
 #ifdef DEBUG
-		if (heap_block_is_allocated(pop, new_block)) {
+		if (heap_block_is_allocated(heap, new_block)) {
 			ERR("heap corruption");
 			ASSERT(0);
 		}
 #endif /* DEBUG */
 
-		if (alloc_prep_block(pop, new_block, constructor,
+		if (alloc_prep_block(heap, new_block, constructor,
 				arg, &offset_value) != 0) {
 			/*
 			 * Constructor returned non-zero value which means
 			 * the memory block reservation has to be rolled back.
 			 */
-			struct bucket *new_bucket = heap_get_chunk_bucket(pop,
+			struct bucket *new_bucket = heap_get_chunk_bucket(heap,
 				new_block.chunk_id, new_block.zone_id);
 			ASSERTne(new_bucket, NULL);
 
@@ -430,17 +385,16 @@ palloc_operation(PMEMobjpool *pop,
 			 * coalescing of blocks without affecting the persistent
 			 * heap state.
 			 */
-			new_block = heap_free_block(pop, new_bucket,
+			new_block = heap_free_block(heap, new_bucket,
 					new_block, NULL);
-			CNT_OP(new_bucket, insert, pop, new_block);
+			CNT_OP(new_bucket, insert, heap, new_block);
 
 			if (new_bucket->type == BUCKET_RUN)
-				heap_degrade_run_if_empty(pop,
+				heap_degrade_run_if_empty(heap,
 					new_bucket, new_block);
 
-			ret = -1;
 			errno = ECANCELED;
-			goto out;
+			return -1;
 		}
 
 		/*
@@ -450,7 +404,7 @@ palloc_operation(PMEMobjpool *pop,
 		 * thread might operate on the same 8-byte value of the run
 		 * bitmap and override allocation performed by this thread.
 		 */
-		MEMBLOCK_OPS(AUTO, &new_block)->lock(&new_block, pop);
+		MEMBLOCK_OPS(AUTO, &new_block)->lock(&new_block, heap);
 
 		/*
 		 * The actual required metadata modifications are chunk-type
@@ -459,7 +413,7 @@ palloc_operation(PMEMobjpool *pop,
 		 * changing a chunk type from free to used.
 		 */
 		MEMBLOCK_OPS(AUTO, &new_block)->prep_hdr(&new_block,
-				pop, HDR_OP_ALLOC, &ctx);
+				heap, HDR_OP_ALLOC, ctx);
 	}
 
 	/* not in-place realloc */
@@ -467,9 +421,9 @@ palloc_operation(PMEMobjpool *pop,
 		!MEMORY_BLOCK_IS_EMPTY(new_block)) {
 		size_t old_size = alloc->size;
 		size_t to_cpy = old_size > sizeh ? sizeh : old_size;
-		pop->memcpy_persist(pop,
-			OBJ_OFF_TO_PTR(pop, offset_value),
-			OBJ_OFF_TO_PTR(pop, off),
+		pmemops_memcpy_persist(&heap->p_ops,
+			PMALLOC_OFF_TO_PTR(heap, offset_value),
+			PMALLOC_OFF_TO_PTR(heap, off),
 			to_cpy - ALLOC_OFF);
 	}
 
@@ -480,10 +434,9 @@ palloc_operation(PMEMobjpool *pop,
 	 * The actual offset value depends on whether the operation type.
 	 */
 	if (dest_off != NULL)
-		operation_add_entry(&ctx, dest_off,
-			offset_value, OPERATION_SET);
+		operation_add_entry(ctx, dest_off, offset_value, OPERATION_SET);
 
-	operation_process(&ctx);
+	operation_process(ctx);
 
 	/*
 	 * After the operation succeeded, the persistent state is all in order
@@ -493,16 +446,16 @@ palloc_operation(PMEMobjpool *pop,
 
 	if (!MEMORY_BLOCK_IS_EMPTY(new_block)) {
 		/* new block run lock */
-		MEMBLOCK_OPS(AUTO, &new_block)->unlock(&new_block, pop);
+		MEMBLOCK_OPS(AUTO, &new_block)->unlock(&new_block, heap);
 	}
 
 	if (!MEMORY_BLOCK_IS_EMPTY(existing_block)) {
 		/* existing (freed) run lock */
-		MEMBLOCK_OPS(AUTO, &existing_block)->unlock(
-			&existing_block, pop);
+		MEMBLOCK_OPS(AUTO, &existing_block)->
+				unlock(&existing_block, heap);
 
-		VALGRIND_DO_MEMPOOL_FREE(pop,
-			(char *)heap_get_block_data(pop, existing_block)
+		VALGRIND_DO_MEMPOOL_FREE(heap->layout,
+			(char *)heap_get_block_data(heap, existing_block)
 			+ ALLOC_OFF);
 
 		/* we might have been operating on inactive run */
@@ -515,9 +468,9 @@ palloc_operation(PMEMobjpool *pop,
 			 * whereas the existing block reflects the state from
 			 * before this operation started.
 			 */
-			CNT_OP(b, insert, pop, reclaimed_block);
+			CNT_OP(b, insert, heap, reclaimed_block);
 #ifdef DEBUG
-			if (heap_block_is_allocated(pop, reclaimed_block)) {
+			if (heap_block_is_allocated(heap, reclaimed_block)) {
 				ERR("heap corruption");
 				ASSERT(0);
 			}
@@ -532,24 +485,21 @@ palloc_operation(PMEMobjpool *pop,
 			 * leaving unused data around.
 			 */
 			if (b->type == BUCKET_RUN)
-				heap_degrade_run_if_empty(pop, b,
+				heap_degrade_run_if_empty(heap, b,
 					reclaimed_block);
 		}
 	}
 
-out:
-	lane_release(pop);
-
-	return ret;
+	return 0;
 }
 
 /*
- * pmalloc_usable_size -- returns the number of bytes in the memory block
+ * palloc_usable_size -- returns the number of bytes in the memory block
  */
 size_t
-pmalloc_usable_size(PMEMobjpool *pop, uint64_t off)
+palloc_usable_size(struct palloc_heap *heap, uint64_t off)
 {
-	return USABLE_SIZE(ALLOC_GET_HEADER(pop, off));
+	return USABLE_SIZE(ALLOC_GET_HEADER(heap, off));
 }
 
 /*
@@ -576,15 +526,15 @@ pmalloc_search_cb(uint64_t off, void *arg)
 }
 
 /*
- * pmalloc_first -- returns the first object from the heap.
+ * palloc_first -- returns the first object from the heap.
  */
 uint64_t
-pmalloc_first(PMEMobjpool *pop)
+palloc_first(struct palloc_heap *heap)
 {
 	uint64_t off_search = UINT64_MAX;
 	struct memory_block m = {0, 0, 0, 0};
 
-	heap_foreach_object(pop, pmalloc_search_cb, &off_search, m);
+	heap_foreach_object(heap, pmalloc_search_cb, &off_search, m);
 
 	if (off_search == UINT64_MAX)
 		return 0;
@@ -593,17 +543,17 @@ pmalloc_first(PMEMobjpool *pop)
 }
 
 /*
- * pmalloc_next -- returns the next object relative to 'off'.
+ * palloc_next -- returns the next object relative to 'off'.
  */
 uint64_t
-pmalloc_next(PMEMobjpool *pop, uint64_t off)
+palloc_next(struct palloc_heap *heap, uint64_t off)
 {
-	struct allocation_header *alloc = ALLOC_GET_HEADER(pop, off);
-	struct memory_block m = get_mblock_from_alloc(pop, alloc);
+	struct allocation_header *alloc = ALLOC_GET_HEADER(heap, off);
+	struct memory_block m = get_mblock_from_alloc(heap, alloc);
 
 	uint64_t off_search = off - ALLOC_OFF;
 
-	heap_foreach_object(pop, pmalloc_search_cb, &off_search, m);
+	heap_foreach_object(heap, pmalloc_search_cb, &off_search, m);
 
 	if (off_search == (off - ALLOC_OFF) ||
 		off_search == 0 ||
@@ -612,3 +562,83 @@ pmalloc_next(PMEMobjpool *pop, uint64_t off)
 
 	return off_search + sizeof(struct allocation_header);
 }
+
+/*
+ * palloc_boot -- initializes allocator section
+ */
+int
+palloc_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
+		void *base, struct pmem_ops *p_ops)
+{
+	return heap_boot(heap, heap_start, heap_size, base, p_ops);
+}
+
+/*
+ * palloc_init -- initializes palloc heap
+ */
+int
+palloc_init(void *heap_start, uint64_t heap_size, struct pmem_ops *p_ops)
+{
+	return heap_init(heap_start, heap_size, p_ops);
+}
+
+/*
+ * palloc_heap_end -- returns first address after heap
+ */
+void *
+palloc_heap_end(struct palloc_heap *h)
+{
+	return heap_end(h);
+}
+
+/*
+ * palloc_heap_check -- verifies heap state
+ */
+int
+palloc_heap_check(void *heap_start, uint64_t heap_size)
+{
+	return heap_check(heap_start, heap_size);
+}
+
+/*
+ * palloc_heap_check_remote -- verifies state of remote replica
+ */
+int
+palloc_heap_check_remote(void *heap_start, uint64_t heap_size,
+		struct remote_ops *ops)
+{
+	return heap_check_remote(heap_start, heap_size, ops);
+}
+
+/*
+ * palloc_heap_cleanup -- cleanups the volatile heap state
+ */
+void
+palloc_heap_cleanup(struct palloc_heap *heap)
+{
+	heap_cleanup(heap);
+}
+
+#ifdef USE_VG_MEMCHECK
+/*
+ * palloc_vg_register_object -- registers object in Valgrind
+ */
+void
+palloc_vg_register_object(struct palloc_heap *heap, PMEMoid oid, size_t size)
+{
+	void *addr = pmemobj_direct(oid);
+	size_t headers = sizeof(struct allocation_header) + PALLOC_DATA_OFF;
+
+	VALGRIND_DO_MEMPOOL_ALLOC(heap->layout, addr, size);
+	VALGRIND_DO_MAKE_MEM_DEFINED((char *)addr - headers, size + headers);
+}
+
+/*
+ * palloc_heap_vg_open -- notifies Valgrind about heap layout
+ */
+void
+palloc_heap_vg_open(void *heap_start, uint64_t heap_size)
+{
+	heap_vg_open(heap_start, heap_size);
+}
+#endif
