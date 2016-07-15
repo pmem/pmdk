@@ -34,23 +34,27 @@
  * pmalloc.h -- internal definitions for persistent malloc
  */
 
-#ifndef LIBPMEMOBJ_PMALLOC_H
-#define LIBPMEMOBJ_PMALLOC_H 1
+#ifndef LIBPMEMOBJ_PALLOC_H
+#define LIBPMEMOBJ_PALLOC_H 1
 
 #include <stddef.h>
 #include <stdint.h>
 
 #include "libpmemobj.h"
-#include "palloc.h"
+#include "memops.h"
 
-int pmalloc(PMEMobjpool *pop, uint64_t *off, size_t size);
-int pmalloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
-	pmalloc_constr constructor, void *arg);
+typedef int (*pmalloc_constr)(PMEMobjpool *pop, void *ptr,
+		size_t usable_size, void *arg);
 
-int prealloc(PMEMobjpool *pop, uint64_t *off, size_t size);
-int prealloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
-	pmalloc_constr constructor, void *arg);
+int
+palloc_operation(PMEMobjpool *pop,
+	uint64_t off, uint64_t *dest_off, size_t size,
+	pmalloc_constr constructor,
+	void *arg, struct operation_entry *entries, size_t nentries);
 
-void pfree(PMEMobjpool *pop, uint64_t *off);
+uint64_t pmalloc_first(PMEMobjpool *pop);
+uint64_t pmalloc_next(PMEMobjpool *pop, uint64_t off);
+
+size_t pmalloc_usable_size(PMEMobjpool *pop, uint64_t off);
 
 #endif

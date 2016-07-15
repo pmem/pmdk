@@ -102,6 +102,7 @@ OBJS += $(TOP)/src/debug/libpmemobj/bucket.o\
 	$(TOP)/src/debug/libpmemobj/memblock.o\
 	$(TOP)/src/debug/libpmemobj/memops.o\
 	$(TOP)/src/debug/libpmemobj/obj.o\
+	$(TOP)/src/debug/libpmemobj/palloc.o\
 	$(TOP)/src/debug/libpmemobj/pmalloc.o\
 	$(TOP)/src/debug/libpmemobj/pvector.o\
 	$(TOP)/src/debug/libpmemobj/redo.o\
@@ -125,6 +126,7 @@ OBJS += $(TOP)/src/nondebug/libpmemobj/bucket.o\
 	$(TOP)/src/nondebug/libpmemobj/memblock.o\
 	$(TOP)/src/nondebug/libpmemobj/memops.o\
 	$(TOP)/src/nondebug/libpmemobj/obj.o\
+	$(TOP)/src/nondebug/libpmemobj/palloc.o\
 	$(TOP)/src/nondebug/libpmemobj/pmalloc.o\
 	$(TOP)/src/nondebug/libpmemobj/pvector.o\
 	$(TOP)/src/nondebug/libpmemobj/redo.o\
