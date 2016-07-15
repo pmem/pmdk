@@ -234,6 +234,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_cpp_transaction", "test
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "liblinux", "windows\liblinux.vcxproj", "{B3FF772D-F2FF-4E6E-ABD8-763407BB6A5C}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libpmemcommon", "common\libpmemcommon.vcxproj", "{492BAA3D-0D5D-478E-9765-500463AE69AA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -514,6 +516,14 @@ Global
 		{B3FF772D-F2FF-4E6E-ABD8-763407BB6A5C}.Static-Debug|x64.Build.0 = Static-Debug|x64
 		{B3FF772D-F2FF-4E6E-ABD8-763407BB6A5C}.Static-Release|x64.ActiveCfg = Static-Release|x64
 		{B3FF772D-F2FF-4E6E-ABD8-763407BB6A5C}.Static-Release|x64.Build.0 = Static-Release|x64
+		{492BAA3D-0D5D-478E-9765-500463AE69AA}.Debug|x64.ActiveCfg = Static-Debug|x64
+		{492BAA3D-0D5D-478E-9765-500463AE69AA}.Debug|x64.Build.0 = Static-Debug|x64
+		{492BAA3D-0D5D-478E-9765-500463AE69AA}.Release|x64.ActiveCfg = Static-Release|x64
+		{492BAA3D-0D5D-478E-9765-500463AE69AA}.Release|x64.Build.0 = Static-Release|x64
+		{492BAA3D-0D5D-478E-9765-500463AE69AA}.Static-Debug|x64.ActiveCfg = Static-Debug|x64
+		{492BAA3D-0D5D-478E-9765-500463AE69AA}.Static-Debug|x64.Build.0 = Static-Debug|x64
+		{492BAA3D-0D5D-478E-9765-500463AE69AA}.Static-Release|x64.ActiveCfg = Static-Release|x64
+		{492BAA3D-0D5D-478E-9765-500463AE69AA}.Static-Release|x64.Build.0 = Static-Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -555,5 +565,6 @@ Global
 		{A2DEA0DC-04F3-4384-BCC2-F7EE2CFD6EE7} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 		{A5DF0746-5496-4C29-9CCD-5FA76604BF8B} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 		{B3FF772D-F2FF-4E6E-ABD8-763407BB6A5C} = {853D45D8-980C-4991-B62A-DAC6FD245402}
+		{492BAA3D-0D5D-478E-9765-500463AE69AA} = {853D45D8-980C-4991-B62A-DAC6FD245402}
 	EndGlobalSection
 EndGlobal
