@@ -440,6 +440,11 @@ function require_binary() {
 #
 function check {
     #	../match $(find . -regex "[^0-9]*${UNITTEST_NUM}\.log\.match" | xargs)
+    $perl = Get-Command -Name perl -ErrorAction SilentlyContinue
+    If ($perl -eq $null) {
+        Write-Error "Perl is missing, cannot check test results"
+        fail 1
+    }
     [string]$listing = Get-ChildItem -File | Where-Object  {$_.Name -match "[^0-9]${Env:UNITTEST_NUM}.log.match"}
     if ($listing) {
         $pinfo = New-Object System.Diagnostics.ProcessStartInfo
