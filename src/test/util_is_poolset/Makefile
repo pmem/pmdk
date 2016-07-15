@@ -34,18 +34,10 @@
 # src/test/util_is_poolset/Makefile -- build util_is_poolset unit test
 #
 #
-TOP = ../../..
-
-vpath %.c $(TOP)/src/common
-
 TARGET = util_is_poolset
-OBJS = util_is_poolset.o util.o util_linux.o set.o set_linux.o out.o
-
-out.o: CFLAGS += -DDEBUG -DSRCVERSION=\"utversion\"
-util.o util_linux.o: CFLAGS += -DDEBUG
-set.o set_linux.o: CFLAGS += -DDEBUG
+OBJS = util_is_poolset.o
 
 LIBPMEM=y
+LIBPMEMCOMMON=y
 
 include ../Makefile.inc
-INCS += -I$(TOP)/src/common

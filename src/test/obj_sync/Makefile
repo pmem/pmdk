@@ -36,18 +36,16 @@
 TOP = ../../..
 
 vpath %.c $(TOP)/src/libpmemobj
-vpath %.c $(TOP)/src/common
 
 TARGET = obj_sync
-OBJS = obj_sync.o sync.o util.o util_linux.o out.o
+OBJS = obj_sync.o sync.o
 LIBS = -lrt
 
-out.o: CFLAGS += -DSRCVERSION=\"utversion\"
-
+LIBPMEMCOMMON=y
 LIBPMEM=y
 
 include ../Makefile.inc
 
 LDFLAGS += $(call extract_funcs, obj_sync.c)
 
-INCS += -I$(TOP)/src/libpmemobj/ -I$(TOP)/src/common/
+INCS += -I$(TOP)/src/libpmemobj/

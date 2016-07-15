@@ -37,7 +37,8 @@
  */
 
 #include "unittest.h"
-#include "util.h"
+#include "pmemcommon.h"
+#include "set.h"
 #include <errno.h>
 
 #define LOG_PREFIX "ut"
@@ -50,17 +51,6 @@
 const char *Open_path = "";
 off_t Fallocate_len = -1;
 size_t Is_pmem_len = 0;
-
-/*
- * Declaration of out_init and out_fini functions because it is not
- * possible to include both unittest.h and out.h headers due to
- * redeclaration of some macros.
- */
-void out_init(const char *log_prefix, const char *log_level_var,
-		const char *log_file_var, int major_version,
-		int minor_version);
-void out_fini(void);
-
 
 /*
  * poolset_info -- (internal) dumps poolset info and checks its integrity
@@ -154,9 +144,8 @@ main(int argc, char *argv[])
 {
 	START(argc, argv, "util_poolset");
 
-	out_init(LOG_PREFIX, LOG_LEVEL_VAR, LOG_FILE_VAR,
+	common_init(LOG_PREFIX, LOG_LEVEL_VAR, LOG_FILE_VAR,
 			MAJOR_VERSION, MINOR_VERSION);
-	util_init();
 
 	if (argc < 5)
 		UT_FATAL("usage: %s cmd minlen hdrsize [mockopts] setfile ...",
@@ -197,7 +186,7 @@ main(int argc, char *argv[])
 		}
 	}
 
-	out_fini();
+	common_fini();
 
 	DONE(NULL);
 }

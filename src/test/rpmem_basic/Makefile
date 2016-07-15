@@ -43,19 +43,16 @@ TARGET = rpmem_basic
 OBJS = rpmem_basic.o\
        rpmem_fip_common.o\
        rpmem_common.o\
-       base64.o\
-       util.o\
-       util_linux.o\
-       out.o set.o set_linux.o
+       base64.o
 
 LIBRPMEM=y
 LIBPMEM=y
+LIBPMEMCOMMON=y
 endif
 
 include ../Makefile.inc
 
 ifeq ($(BUILD_RPMEM), y)
-out.o: CFLAGS += -DDEBUG -DSRCVERSION=\"utversion\"
 LIBS += $(shell $(PKG_CONFIG) --libs libfabric)
 CFLAGS += $(shell $(PKG_CONFIG) --cflags libfabric)
 INCS += -I../../common

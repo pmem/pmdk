@@ -41,6 +41,7 @@
 #include <dlfcn.h>
 #include "unittest.h"
 #include "util.h"
+#include "mmap.h"
 
 #define MEGABYTE ((uintptr_t)1 << 20)
 #define GIGABYTE ((uintptr_t)1 << 30)
@@ -76,6 +77,7 @@ main(int argc, char *argv[])
 	START(argc, argv, "util_map_proc");
 
 	util_init();
+	util_mmap_init();
 
 	if (argc < 3)
 		UT_FATAL("usage: %s maps_file len [len]...", argv[0]);

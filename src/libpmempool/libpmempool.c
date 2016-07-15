@@ -39,7 +39,7 @@
 #include <errno.h>
 #include <sys/param.h>
 
-#include "out.h"
+#include "pmemcommon.h"
 #include "libpmempool.h"
 #include "pmempool.h"
 #include "pool.h"
@@ -54,11 +54,10 @@ __attribute__((constructor))
 static void
 libpmempool_init(void)
 {
-	out_init(PMEMPOOL_LOG_PREFIX, PMEMPOOL_LOG_LEVEL_VAR,
+	common_init(PMEMPOOL_LOG_PREFIX, PMEMPOOL_LOG_LEVEL_VAR,
 		PMEMPOOL_LOG_FILE_VAR, PMEMPOOL_MAJOR_VERSION,
 		PMEMPOOL_MINOR_VERSION);
 	LOG(3, NULL);
-	util_init();
 }
 
 /*
@@ -71,7 +70,7 @@ static void
 libpmempool_fini(void)
 {
 	LOG(3, NULL);
-	out_fini();
+	common_fini();
 }
 
 /*

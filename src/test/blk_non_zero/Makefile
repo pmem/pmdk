@@ -41,4 +41,4 @@ LIBPMEMBLK=y
 
 include ../Makefile.inc
 
-INCS += -I../../common -I../../libpmemblk -I../../include
+INCS += -I../../common -I../../libpmemblk

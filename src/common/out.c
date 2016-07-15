@@ -160,7 +160,7 @@ getexecname(void)
 
 	if ((cc = readlink(procpath, namepath, PATH_MAX)) < 0)
 #else
-	if ((cc = GetModuleFileName(NULL, namepath, PATH_MAX)) == 0)
+	if ((cc = GetModuleFileNameA(NULL, namepath, PATH_MAX)) == 0)
 #endif
 		strcpy(namepath, "unknown");
 	else

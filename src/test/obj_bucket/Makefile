@@ -33,22 +33,12 @@
 #
 # src/test/obj_bucket/Makefile -- build bucket unit test
 #
-TOP = ../../..
-
-vpath %.c $(TOP)/src/libpmemobj
-vpath %.c $(TOP)/src/common
-
 TARGET = obj_bucket
-OBJS = obj_bucket.o pmalloc.o bucket.o redo.o heap.o lane.o ctree.o\
-    util.o util_linux.o set.o set_linux.o out.o obj.o cuckoo.o\
-    list.o sync.o tx.o memops.o libpmemobj.o memblock.o pvector.o
+OBJS = obj_bucket.o
 
 LIBPMEM=y
-LIBPMEMOBJ=y
-
-out.o: CFLAGS += -DSRCVERSION=\"utversion\"
+LIBPMEMOBJ=internal-debug
 
 include ../Makefile.inc
 
 LDFLAGS += $(call extract_funcs, obj_bucket.c)
-INCS += -I$(TOP)/src/libpmemobj/ -I$(TOP)/src/common/

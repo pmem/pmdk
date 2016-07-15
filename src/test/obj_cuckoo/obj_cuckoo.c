@@ -39,7 +39,6 @@
 #include "unittest.h"
 #include "cuckoo.h"
 #include "libpmemobj.h"
-#include "util.h"
 
 #define TEST_INSERTS 100
 #define TEST_VAL(x) ((void *)((uintptr_t)(x)))

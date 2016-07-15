@@ -39,8 +39,7 @@
 
 #include "libpmemblk.h"
 
-#include "util.h"
-#include "out.h"
+#include "pmemcommon.h"
 #include "blk.h"
 
 /*
@@ -52,11 +51,10 @@ ATTR_CONSTRUCTOR
 void
 libpmemblk_init(void)
 {
-	out_init(PMEMBLK_LOG_PREFIX, PMEMBLK_LOG_LEVEL_VAR,
+	common_init(PMEMBLK_LOG_PREFIX, PMEMBLK_LOG_LEVEL_VAR,
 			PMEMBLK_LOG_FILE_VAR, PMEMBLK_MAJOR_VERSION,
 			PMEMBLK_MINOR_VERSION);
 	LOG(3, NULL);
-	util_init();
 }
 
 /*
@@ -69,7 +67,7 @@ void
 libpmemblk_fini(void)
 {
 	LOG(3, NULL);
-	out_fini();
+	common_fini();
 }
 
 /*

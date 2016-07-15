@@ -43,10 +43,11 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+#include "set.h"
+#include "pool_hdr.h"
 #include "btt.h"
 #include "btt_layout.h"
-#include "out.h"
-#include "util.h"
+#include "pmemcommon.h"
 
 #define BTT_CREATE_DEF_SIZE	(20 * 1UL << 20) /* 20 MB */
 #define BTT_CREATE_DEF_BLK_SIZE	512UL
@@ -203,7 +204,7 @@ print_result(struct bbtcreate_options *opts)
 int
 main(int argc, char *argv[])
 {
-	out_init(0, 0, 0, 0, 0);
+	common_init(0, 0, 0, 0, 0);
 
 	int opt;
 	size_t size;
@@ -366,7 +367,7 @@ main(int argc, char *argv[])
 error_btt:
 	btt_fini(bttp);
 error_map:
-	out_fini();
+	common_fini();
 error:
 	close(fd);
 

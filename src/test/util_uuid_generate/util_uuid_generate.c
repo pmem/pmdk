@@ -37,7 +37,7 @@
  */
 
 #include "unittest.h"
-#include "util.h"
+#include "uuid.h"
 #include <unistd.h>
 #include <string.h>
 

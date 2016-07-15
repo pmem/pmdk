@@ -44,6 +44,7 @@
 #include "output.h"
 #include <libpmemlog.h>
 #include <libpmemblk.h>
+#include "mmap.h"
 
 /*
  * pmemwrite -- context and arguments
@@ -55,7 +56,7 @@ struct pmemwrite
 	char **args;	/* list of arguments */
 };
 
-static struct pmemwrite pwrite = {
+static struct pmemwrite pmemwrite = {
 	.fname = NULL,
 	.nargs = 0,
 	.args = NULL,
@@ -198,10 +199,10 @@ main(int argc, char *argv[])
 	}
 
 	if (optind + 1 < argc) {
-		pwrite.fname = argv[optind];
+		pmemwrite.fname = argv[optind];
 		optind++;
-		pwrite.nargs = argc - optind;
-		pwrite.args = &argv[optind];
+		pmemwrite.nargs = argc - optind;
+		pmemwrite.args = &argv[optind];
 	} else {
 		print_usage(appname);
 		exit(EXIT_FAILURE);
@@ -211,13 +212,13 @@ main(int argc, char *argv[])
 
 	struct pmem_pool_params params;
 	/* parse pool type from file */
-	pmem_pool_parse_params(pwrite.fname, &params, 1);
+	pmem_pool_parse_params(pmemwrite.fname, &params, 1);
 
 	switch (params.type) {
 	case PMEM_POOL_TYPE_BLK:
-		return pmemwrite_blk(&pwrite);
+		return pmemwrite_blk(&pmemwrite);
 	case PMEM_POOL_TYPE_LOG:
-		return pmemwrite_log(&pwrite);
+		return pmemwrite_log(&pmemwrite);
 	default:
 		break;
 	}

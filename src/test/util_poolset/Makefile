@@ -33,21 +33,13 @@
 #
 # src/test/util_poolset/Makefile -- build util_poolset unit test
 #
-TOP = ../../..
-
-vpath %.c $(TOP)/src/common
-
 TARGET = util_poolset
-OBJS = util_poolset.o mocks.o util.o util_linux.o set.o set_linux.o out.o
+OBJS = util_poolset.o mocks.o
 
-out.o: CFLAGS += -DDEBUG -DSRCVERSION=\"utversion\"
-util.o util_linux.o: CFLAGS += -DDEBUG
-set.o set_linux.o: CFLAGS += -DDEBUG
-
+LIBPMEMCOMMON=y
 LIBPMEM=y
 
 USE_PMEMSPOIL=y
 
 include ../Makefile.inc
 LDFLAGS += $(call extract_funcs, mocks.c)
-INCS += -I$(TOP)/src/common

@@ -35,10 +35,33 @@
 LIBRARY_NAME = pmemobj
 LIBRARY_SO_VERSION = 1
 LIBRARY_VERSION = 0.0
-SOURCE = libpmemobj.c obj.c redo.c pmalloc.c lane.c list.c ctree.c bucket.c\
-	heap.c cuckoo.c sync.c tx.c memops.c memblock.c pvector.c\
-	$(COMMON)/util.c $(COMMON)/util_linux.c $(COMMON)/set.c\
-	$(COMMON)/set_linux.c $(COMMON)/out.c
+SOURCE =\
+	$(COMMON)/file.c\
+	$(COMMON)/file_linux.c\
+	$(COMMON)/mmap.c\
+	$(COMMON)/mmap_linux.c\
+	$(COMMON)/out.c\
+	$(COMMON)/pool_hdr.c\
+	$(COMMON)/pool_hdr_linux.c\
+	$(COMMON)/set.c\
+	$(COMMON)/util.c\
+	$(COMMON)/uuid.c\
+	$(COMMON)/uuid_linux.c\
+	bucket.c\
+	ctree.c\
+	cuckoo.c\
+	heap.c\
+	lane.c\
+	libpmemobj.c\
+	list.c\
+	memblock.c\
+	memops.c\
+	obj.c\
+	pmalloc.c\
+	pvector.c\
+	redo.c\
+	sync.c\
+	tx.c
 
 include ../Makefile.inc
 

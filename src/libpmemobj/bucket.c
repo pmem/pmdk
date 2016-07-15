@@ -47,7 +47,6 @@
 
 #include "libpmem.h"
 #include "libpmemobj.h"
-#include "util.h"
 #include "out.h"
 #include "sys_util.h"
 #include "redo.h"

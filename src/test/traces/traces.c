@@ -42,7 +42,7 @@
 
 #include <sys/types.h>
 #include <stdarg.h>
-#include "out.h"
+#include "pmemcommon.h"
 #include "unittest.h"
 
 int
@@ -51,7 +51,7 @@ main(int argc, char *argv[])
 	START(argc, argv, "traces");
 
 	/* Execute test */
-	out_init(LOG_PREFIX, LOG_LEVEL_VAR, LOG_FILE_VAR,
+	common_init(LOG_PREFIX, LOG_LEVEL_VAR, LOG_FILE_VAR,
 			MAJOR_VERSION, MINOR_VERSION);
 	LOG(0, "Log level NONE");
 	LOG(1, "Log level ERROR");
@@ -60,7 +60,7 @@ main(int argc, char *argv[])
 	LOG(4, "Log level DEBUG");
 
 	/* Cleanup */
-	out_fini();
+	common_fini();
 
 	DONE(NULL);
 }

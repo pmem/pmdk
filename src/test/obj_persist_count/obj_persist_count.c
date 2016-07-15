@@ -37,6 +37,7 @@
 #include "redo.h"
 #include "memops.h"
 #include "pmalloc.h"
+#include "util.h"
 
 static struct {
 	int n_persist;
@@ -100,6 +101,7 @@ struct foo {
 	uint64_t dest;
 
 	PMEMoid bar;
+	PMEMoid bar2;
 };
 
 int
@@ -146,8 +148,8 @@ main(int argc, char *argv[])
 	print_reset_counters("tx_alloc");
 
 	TX_BEGIN(pop) {
-		f->bar = pmemobj_tx_alloc(sizeof(struct foo), 0);
-		UT_ASSERT(!OID_IS_NULL(f->bar));
+		f->bar2 = pmemobj_tx_alloc(sizeof(struct foo), 0);
+		UT_ASSERT(!OID_IS_NULL(f->bar2));
 	} TX_END
 	print_reset_counters("tx_alloc_next");
 
@@ -157,7 +159,7 @@ main(int argc, char *argv[])
 	print_reset_counters("tx_free");
 
 	TX_BEGIN(pop) {
-		pmemobj_tx_free(f->bar);
+		pmemobj_tx_free(f->bar2);
 	} TX_END
 	print_reset_counters("tx_free_next");
 

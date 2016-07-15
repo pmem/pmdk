@@ -36,8 +36,9 @@
  * usage: obj_pool_sets_parser set-file ...
  */
 
+#include "set.h"
 #include "unittest.h"
-#include "util.h"
+#include "pmemcommon.h"
 
 #define LOG_PREFIX "parser"
 #define LOG_LEVEL_VAR "PARSER_LOG_LEVEL"
@@ -45,22 +46,12 @@
 #define MAJOR_VERSION 1
 #define MINOR_VERSION 0
 
-/*
- * Declaration of out_init and out_fini functions because it is not
- * possible to include both unittest.h and out.h headers due to
- * redeclaration of some macros.
- */
-void out_init(const char *log_prefix, const char *log_level_var,
-		const char *log_file_var, int major_version,
-		int minor_version);
-void out_fini(void);
-
 int
 main(int argc, char *argv[])
 {
 	START(argc, argv, "util_poolset_parse");
 
-	out_init(LOG_PREFIX, LOG_LEVEL_VAR, LOG_FILE_VAR,
+	common_init(LOG_PREFIX, LOG_LEVEL_VAR, LOG_FILE_VAR,
 			MAJOR_VERSION, MINOR_VERSION);
 
 	if (argc < 2)
@@ -81,7 +72,7 @@ main(int argc, char *argv[])
 		CLOSE(fd);
 	}
 
-	out_fini();
+	common_fini();
 
 	DONE(NULL);
 }

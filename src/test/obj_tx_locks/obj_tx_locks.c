@@ -34,8 +34,6 @@
  * obj_tx_locks.c -- unit test for transaction locks
  */
 #include "unittest.h"
-#include "libpmemobj.h"
-#include "util.h"
 
 #define LAYOUT_NAME "direct"
 

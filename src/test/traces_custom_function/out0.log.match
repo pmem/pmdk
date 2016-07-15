@@ -4,7 +4,7 @@ CUSTOM_PRINT: <trace_func>: <1> [$(nW):$(N) out_init]$(W)pid $(N): program: $(nW
 
 CUSTOM_PRINT: <trace_func>: <1> [$(nW):$(N) out_init]$(W)trace_func version $(S)
 
-CUSTOM_PRINT: <trace_func>: <1> [$(nW):$(N) out_init]$(W)src version SRCVERSION:utversion
+CUSTOM_PRINT: <trace_func>: <1> [$(nW):$(N) out_init]$(W)src version SRCVERSION:$(nW)
 
 $(OPT)CUSTOM_PRINT: <trace_func>: <1> [$(nW):$(N) out_init]$(W)compiled with support for Valgrind pmemcheck
 $(OPT)
@@ -14,6 +14,8 @@ $(OPT)CUSTOM_PRINT: <trace_func>: <1> [$(nW):$(N) out_init]$(W)compiled with sup
 $(OPT)
 $(OPT)CUSTOM_PRINT: <trace_func>: <1> [$(nW):$(N) out_init]$(W)compiled with support for Valgrind drd
 $(OPT)
+CUSTOM_PRINT: <trace_func>: <3> [$(nW):$(N) util_mmap_init] 
+
 CUSTOM_PRINT: <trace_func>: <0> [$(nW):$(N) main]$(W)Log level NONE
 
 CUSTOM_PRINT: <trace_func>: <1> [$(nW):$(N) main]$(W)Log level ERROR

@@ -131,7 +131,7 @@
 #include <endian.h>
 
 #include "out.h"
-#include "util.h"
+#include "uuid.h"
 #include "btt.h"
 #include "btt_layout.h"
 #include "sys_util.h"

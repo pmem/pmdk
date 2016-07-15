@@ -75,10 +75,10 @@
 #include "libvmmalloc.h"
 
 #include "jemalloc.h"
-#include "util.h"
+#include "pmemcommon.h"
+#include "file.h"
 #include "vmem.h"
 #include "vmmalloc.h"
-#include "out.h"
 #include "valgrind_internal.h"
 
 #define HUGE (2 * 1024 * 1024)
@@ -611,12 +611,11 @@ libvmmalloc_init(void)
 		abort();
 	}
 
-	out_init(VMMALLOC_LOG_PREFIX, VMMALLOC_LOG_LEVEL_VAR,
+	common_init(VMMALLOC_LOG_PREFIX, VMMALLOC_LOG_LEVEL_VAR,
 			VMMALLOC_LOG_FILE_VAR, VMMALLOC_MAJOR_VERSION,
 			VMMALLOC_MINOR_VERSION);
 	out_set_vsnprintf_func(je_vmem_navsnprintf);
 	LOG(3, NULL);
-	util_init();
 
 	/* set up jemalloc messages to a custom print function */
 	je_vmem_malloc_message = print_jemalloc_messages;
@@ -704,5 +703,5 @@ libvmmalloc_fini(void)
 	je_vmem_pool_malloc_stats_print(
 		(pool_t *)((uintptr_t)Vmp + Header_size),
 		print_jemalloc_stats, NULL, "gba");
-	out_fini();
+	common_fini();
 }

@@ -38,7 +38,8 @@
 #include <link.h>
 
 #include "unittest.h"
-#include "util.h"
+#include "pool_hdr.h"
+#include "pmemcommon.h"
 
 #define ELF_FILE_NAME "/proc/self/exe"
 #define FATAL_USAGE()\
@@ -68,16 +69,6 @@ int Open_fake_ret;
  * Open_fake_path -- do fake path in open syscall
  */
 int Open_fake_path;
-
-/*
- * Declaration of out_init and out_fini functions because it is not
- * possible to include both unittest.h and out.h headers due to
- * redeclaration of some macros.
- */
-void out_init(const char *log_prefix, const char *log_level_var,
-		const char *log_file_var, int major_version,
-		int minor_version);
-void out_fini(void);
 
 /*
  * open -- open syscall mock
@@ -161,7 +152,7 @@ main(int argc, char *argv[])
 {
 	START(argc, argv, "arch_flags");
 
-	out_init(ARCH_FLAGS_LOG_PREFIX,
+	common_init(ARCH_FLAGS_LOG_PREFIX,
 		ARCH_FLAGS_LOG_LEVEL_VAR,
 		ARCH_FLAGS_LOG_FILE_VAR,
 		ARCH_FLAGS_LOG_MAJOR,
@@ -187,7 +178,7 @@ main(int argc, char *argv[])
 		}
 	}
 
-	out_fini();
+	common_fini();
 
 	DONE(NULL);
 }

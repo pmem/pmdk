@@ -36,17 +36,15 @@
 TOP = ../../..
 
 vpath %.c $(TOP)/src/libpmemobj
-vpath %.c $(TOP)/src/common
 
 TARGET = obj_cuckoo
-OBJS = obj_cuckoo.o cuckoo.o util.o util_linux.o out.o
+OBJS = obj_cuckoo.o cuckoo.o
 
+LIBPMEMCOMMON=y
 LIBPMEM=y
-
-out.o: CFLAGS += -DSRCVERSION=\"utversion\"
 
 include ../Makefile.inc
 
 LDFLAGS += $(call extract_funcs, obj_cuckoo.c)
 
-INCS += -I$(TOP)/src/libpmemobj/ -I$(TOP)/src/common/
+INCS += -I$(TOP)/src/libpmemobj/

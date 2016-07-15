@@ -33,22 +33,12 @@
 #
 # src/test/obj_heap/Makefile -- build heap unit test
 #
-TOP = ../../..
-
-vpath %.c $(TOP)/src/libpmemobj
-vpath %.c $(TOP)/src/common
-
 TARGET = obj_heap
-OBJS = obj_heap.o pmalloc.o bucket.o redo.o heap.o lane.o ctree.o\
-    util.o util_linux.o set.o set_linux.o out.o obj.o cuckoo.o\
-    list.o sync.o tx.o memops.o libpmemobj.o memblock.o pvector.o
+OBJS = obj_heap.o
 
 LIBPMEM=y
-
-out.o: CFLAGS += -DSRCVERSION=\"utversion\"
+LIBPMEMOBJ=internal-debug
 
 include ../Makefile.inc
 
 LDFLAGS += $(call extract_funcs, obj_heap.c)
-INCS += -I$(TOP)/src/libpmemobj/ -I$(TOP)/src/common/
-LIBS += -ldl

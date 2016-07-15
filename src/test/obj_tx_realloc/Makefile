@@ -33,19 +33,11 @@
 #
 # src/test/obj_tx_realloc/Makefile -- build obj_tx_realloc unit test
 #
-TOP = ../../..
-
-vpath %.c $(TOP)/src/libpmemobj
-vpath %.c $(TOP)/src/common
-
 TARGET = obj_tx_realloc
-OBJS = obj_tx_realloc.o util.o util_linux.o out.o
+OBJS = obj_tx_realloc.o
 
+LIBPMEMCOMMON=y
 LIBPMEM=y
 LIBPMEMOBJ=y
 
-out.o: CFLAGS += -DSRCVERSION=\"utversion\"
-
 include ../Makefile.inc
-
-INCS += -I$(TOP)/src/libpmemobj/ -I$(TOP)/src/common/

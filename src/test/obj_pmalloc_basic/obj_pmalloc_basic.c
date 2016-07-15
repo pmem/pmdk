@@ -253,14 +253,11 @@ int
 main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_pmalloc_basic");
-	util_init();
-	lane_info_boot();
 
 	for (int i = 0; i < TEST_RUNS; ++i)
 		test_mock_pool_allocs();
 
 	test_spec_compliance();
 
-	lane_info_destroy();
 	DONE(NULL);
 }

@@ -45,7 +45,6 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <errno.h>
-#include "util.h"
 #include "out.h"
 #include "sys_util.h"
 #include "ctree.h"
