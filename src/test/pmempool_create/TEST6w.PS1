@@ -65,11 +65,11 @@ setup
 #$REPS="$REPL1 $REPL2 $REPL3"
 #
 #rm $POOLSET -Force
-#create_poolset $POOLSET 32:"$POOL1":z 32:"$POOL2":z 32:"$POOL3":z
+#create_poolset $POOLSET 32M:"$POOL1":z 32M:"$POOL2":z 32M:"$POOL3":z
 #check_file $POOLSET
 #
 #rm  $POOLREP -Force
-#create_poolset $POOLREP 32:"$POOL1":x 32:"$POOL2":x 32:"$POOL3":x	R 32:"$REPL1":z 32:"$REPL2":z 32:"$REPL3":z
+#create_poolset $POOLREP 32M:"$POOL1":x 32M:"$POOL2":x 32M:"$POOL3":x	R 32M:"$REPL1":z 32M:"$REPL2":z 32M:"$REPL3":z
 #check_file $POOLREP
 #
 ## PMEMBLK

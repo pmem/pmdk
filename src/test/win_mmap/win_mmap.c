@@ -1,5 +1,6 @@
 /*
  * Copyright 2016, Intel Corporation
+ * Copyright (c) Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -220,17 +221,8 @@ test_mmap_len(int fd)
 	/* len > file_size */
 	ptr = mmap(NULL, FILE_SIZE + MMAP_SIZE, PROT_READ|PROT_WRITE,
 			MAP_PRIVATE, fd, 0);
-#ifndef _WIN32
 	UT_ASSERTne(ptr, MAP_FAILED);
 	check_mapping(fd, ptr, FILE_SIZE, PROT_READ|PROT_WRITE, CHECK_PRIV, 0);
-#else
-	/*
-	 * XXX - not supported yet
-	 * MSFT claims the file should be expanded automatically,
-	 * but apparently it is not.  Also, this is not what we want actually.
-	 */
-	UT_ASSERTeq(ptr, MAP_FAILED);
-#endif
 
 	/* offset == 0 */
 	ptr = mmap(NULL, MMAP_SIZE, PROT_READ|PROT_WRITE,
@@ -262,12 +254,16 @@ test_mmap_len(int fd)
 	/* offset + len > file_size */
 	ptr = mmap(NULL, FILE_SIZE, PROT_READ|PROT_WRITE,
 			MAP_PRIVATE, fd, MMAP_SIZE);
-#ifndef _WIN32
 	UT_ASSERTne(ptr, MAP_FAILED);
 	check_mapping(fd, ptr, FILE_SIZE - MMAP_SIZE, PROT_READ|PROT_WRITE,
 			CHECK_PRIV, MMAP_SIZE);
+
+	/* offset beyond file_size */
+	ptr = mmap(NULL, MMAP_SIZE, PROT_READ, MAP_SHARED, fd, FILE_SIZE + MMAP_SIZE);
+#ifndef _WIN32
+	UT_ASSERTne(ptr, MAP_FAILED);
+	munmap(ptr, 0);
 #else
-	/* XXX - as above */
 	UT_ASSERTeq(ptr, MAP_FAILED);
 #endif
 }
@@ -455,7 +451,7 @@ test_mmap_prot(int fd, int fd_ro)
 	UT_ASSERTne(ptr1, MAP_FAILED);
 	check_mapping(fd, ptr1, FILE_SIZE, PROT_NONE, 0, 0);
 #else
-	/* XXX - not supported yet */
+	/* XXX - PROT_NONE not supported yet */
 	UT_ASSERTeq(ptr1, MAP_FAILED);
 #endif
 
@@ -465,7 +461,7 @@ test_mmap_prot(int fd, int fd_ro)
 	UT_ASSERTne(ptr1, MAP_FAILED);
 	check_mapping(fd_ro, ptr1, FILE_SIZE, PROT_NONE, CHECK_RO, 0);
 #else
-	/* XXX - not supported yet */
+	/* XXX - PROT_NONE not supported yet */
 	UT_ASSERTeq(ptr1, MAP_FAILED);
 #endif
 }
@@ -495,7 +491,7 @@ test_mmap_prot_anon()
 	UT_ASSERTne(ptr1, MAP_FAILED);
 	check_mapping(-1, ptr1, FILE_SIZE, PROT_NONE, 0, 0);
 #else
-	/* XXX - not supported yet */
+	/* XXX - PROT_NONE not supported yet */
 	UT_ASSERTeq(ptr1, MAP_FAILED);
 #endif
 }
