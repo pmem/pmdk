@@ -72,7 +72,7 @@ main(int argc, char *argv[])
 	if (vmp == NULL)
 		UT_FATAL("!vmem_create_in_region");
 
-	ptr = vmem_malloc(vmp, sizeof(long long int));
+	ptr = vmem_malloc(vmp, sizeof(long long));
 	if (ptr == NULL)
 		UT_ERR("!vmem_malloc");
 	vmem_delete(vmp);
@@ -113,7 +113,7 @@ main(int argc, char *argv[])
 		case 'm':
 			UT_OUT("Testing vmem_malloc...");
 			if (!sigsetjmp(Jmp, 1)) {
-				ptr = vmem_malloc(vmp, sizeof(long long int));
+				ptr = vmem_malloc(vmp, sizeof(long long));
 				if (ptr != NULL)
 					UT_OUT("\tvmem_malloc succeeded");
 				else

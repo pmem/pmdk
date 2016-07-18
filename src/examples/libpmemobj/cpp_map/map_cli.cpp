@@ -48,7 +48,7 @@ using nvml::obj::pool;
 using nvml::obj::pool_base;
 
 /* convenience typedefs */
-typedef long long int value_t;
+typedef long long value_t;
 typedef uint64_t key_type;
 typedef examples::ctree_map_p<key_type, value_t> pmap;
 typedef examples::ctree_map_transient<key_type, value_t> vmap;

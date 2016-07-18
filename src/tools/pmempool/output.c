@@ -66,7 +66,7 @@
 static char out_indent_str[MAX_INDENT + 1];
 static int out_indent_level;
 static int out_vlevel;
-static unsigned int out_column_width = 20;
+static unsigned out_column_width = 20;
 static FILE *out_fh;
 static const char *out_prefix;
 
@@ -87,7 +87,7 @@ outv_check(int vlevel)
  * See: outv_field() function
  */
 void
-out_set_col_width(unsigned int col_width)
+out_set_col_width(unsigned col_width)
 {
 	out_column_width = col_width;
 }

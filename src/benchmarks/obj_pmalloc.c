@@ -66,7 +66,7 @@
 struct prog_args {
 	size_t minsize;		/* minimum size for random allocation size */
 	bool use_random_size;	/* if set, use random size allocations */
-	unsigned int seed;	/* PRNG seed */
+	unsigned seed;		/* PRNG seed */
 };
 
 POBJ_LAYOUT_BEGIN(pmalloc_layout);

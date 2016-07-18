@@ -48,8 +48,8 @@
 #define RRAND(max, min) (rand() % ((max) - (min)) + (min))
 
 struct vmem_bench;
-typedef int (*operation) (struct vmem_bench *vb, unsigned int worker_idx,
-							unsigned int info_idx);
+typedef int (*operation) (struct vmem_bench *vb, unsigned worker_idx,
+							unsigned info_idx);
 
 /*
  * vmem_args -- additional properties set as arguments opts
@@ -75,7 +75,7 @@ struct item
 	void *buf;			/* buffer for operations */
 
 	/* number of pool to which object is assigned */
-	unsigned int pool_num;
+	unsigned pool_num;
 };
 
 /*
@@ -85,7 +85,7 @@ struct vmem_worker
 {
 	/* array to store objects used in operations performed by worker */
 	struct item *objs;
-	unsigned int pool_number;	/* number of pool used by worker */
+	unsigned pool_number;		/* number of pool used by worker */
 };
 
 /*
@@ -96,10 +96,10 @@ struct vmem_bench
 	VMEM **pools;			/* handle for VMEM pools */
 	struct vmem_worker *workers;	/* array with private workers data */
 	size_t pool_size;		/* size of each pool */
-	unsigned int npools;		/* number of created pools */
-	unsigned int *alloc_sizes;	/* array with allocation sizes */
-	unsigned int *realloc_sizes;	/* array with reallocation sizes */
-	unsigned int *mix_ops;		/* array with random indexes */
+	unsigned npools;		/* number of created pools */
+	unsigned *alloc_sizes;		/* array with allocation sizes */
+	unsigned *realloc_sizes;	/* array with reallocation sizes */
+	unsigned *mix_ops;		/* array with random indexes */
 	bool rand_alloc;		/* use range mode in allocation */
 	bool rand_realloc;		/* use range mode in reallocation */
 	int lib_mode;			/* library mode - vmem or stdlib */
@@ -205,8 +205,8 @@ enum lib_mode {
  * vmem_malloc_op -- malloc operation using vmem
  */
 static int
-vmem_malloc_op(struct vmem_bench *vb, unsigned int worker_idx,
-							unsigned int info_idx)
+vmem_malloc_op(struct vmem_bench *vb, unsigned worker_idx,
+							unsigned info_idx)
 {
 	struct item *item = &vb->workers[worker_idx].objs[info_idx];
 	item->buf = vmem_malloc(vb->pools[item->pool_num],
@@ -222,8 +222,8 @@ vmem_malloc_op(struct vmem_bench *vb, unsigned int worker_idx,
  * stdlib_malloc_op -- malloc operation using stdlib
  */
 static int
-stdlib_malloc_op(struct vmem_bench *vb, unsigned int worker_idx,
-							unsigned int info_idx)
+stdlib_malloc_op(struct vmem_bench *vb, unsigned worker_idx,
+							unsigned info_idx)
 {
 	struct item *item = &vb->workers[worker_idx].objs[info_idx];
 	item->buf = malloc(vb->alloc_sizes[info_idx]);
@@ -238,8 +238,8 @@ stdlib_malloc_op(struct vmem_bench *vb, unsigned int worker_idx,
  * vmem_free_op -- free operation using vmem
  */
 static int
-vmem_free_op(struct vmem_bench *vb, unsigned int worker_idx,
-							unsigned int info_idx)
+vmem_free_op(struct vmem_bench *vb, unsigned worker_idx,
+							unsigned info_idx)
 {
 	struct item *item = &vb->workers[worker_idx].objs[info_idx];
 	if (item->buf != NULL)
@@ -252,8 +252,8 @@ vmem_free_op(struct vmem_bench *vb, unsigned int worker_idx,
  * stdlib_free_op -- free operation using stdlib
  */
 static int
-stdlib_free_op(struct vmem_bench *vb, unsigned int worker_idx,
-							unsigned int info_idx)
+stdlib_free_op(struct vmem_bench *vb, unsigned worker_idx,
+							unsigned info_idx)
 {
 	struct item *item = &vb->workers[worker_idx].objs[info_idx];
 	if (item->buf != NULL)
@@ -266,8 +266,8 @@ stdlib_free_op(struct vmem_bench *vb, unsigned int worker_idx,
  * vmem_realloc_op -- realloc operation using vmem
  */
 static int
-vmem_realloc_op(struct vmem_bench *vb, unsigned int worker_idx,
-							unsigned int info_idx)
+vmem_realloc_op(struct vmem_bench *vb, unsigned worker_idx,
+							unsigned info_idx)
 {
 	struct item *item = &vb->workers[worker_idx].objs[info_idx];
 	item->buf = vmem_realloc(vb->pools[item->pool_num], item->buf,
@@ -283,8 +283,8 @@ vmem_realloc_op(struct vmem_bench *vb, unsigned int worker_idx,
  * stdlib_realloc_op -- realloc operation using stdlib
  */
 static int
-stdlib_realloc_op(struct vmem_bench *vb, unsigned int worker_idx,
-							unsigned int info_idx)
+stdlib_realloc_op(struct vmem_bench *vb, unsigned worker_idx,
+							unsigned info_idx)
 {
 	struct item *item = &vb->workers[worker_idx].objs[info_idx];
 	item->buf = realloc(item->buf, vb->realloc_sizes[info_idx]);
@@ -339,10 +339,10 @@ err:
  * random_values -- calculates values for random sizes
  */
 static void
-random_values(unsigned int *alloc_sizes, struct benchmark_args *args,
+random_values(unsigned *alloc_sizes, struct benchmark_args *args,
 						size_t max, size_t min)
 {
-	unsigned int i;
+	unsigned i;
 	if (args->seed != 0)
 		srand(args->seed);
 
@@ -354,9 +354,9 @@ random_values(unsigned int *alloc_sizes, struct benchmark_args *args,
  * static_values -- fulls array with the same value
  */
 static void
-static_values(unsigned int *alloc_sizes, size_t dsize, unsigned int nops)
+static_values(unsigned *alloc_sizes, size_t dsize, unsigned nops)
 {
-	unsigned int i;
+	unsigned i;
 	for (i = 0; i < nops; i++)
 		alloc_sizes[i] = dsize;
 }
@@ -420,7 +420,7 @@ static int
 vmem_mix_op(struct benchmark *bench, struct operation_info *info)
 {
 	struct vmem_bench *vb = pmembench_get_priv(bench);
-	unsigned int idx = vb->mix_ops[info->index];
+	unsigned idx = vb->mix_ops[info->index];
 	free_op[vb->lib_mode](vb, info->worker->index, idx);
 	return malloc_op[vb->lib_mode](vb, info->worker->index, idx);
 }
@@ -532,7 +532,7 @@ vmem_exit(struct benchmark *bench, struct benchmark_args *args)
 static int
 vmem_exit_free(struct benchmark *bench, struct benchmark_args *args)
 {
-	unsigned int i, j;
+	unsigned i, j;
 	struct vmem_bench *vb = pmembench_get_priv(bench);
 	for (i = 0; i < args->n_threads; i++) {
 		for (j = 0; j < args->n_ops_per_thread; j++) {
@@ -601,7 +601,7 @@ vmem_init(struct benchmark *bench, struct benchmark_args *args)
 			vw->objs[j].pool_num = vw->pool_number;
 	}
 
-	if ((vb->alloc_sizes = malloc(sizeof(unsigned int)
+	if ((vb->alloc_sizes = malloc(sizeof(unsigned)
 			* args->n_ops_per_thread)) == NULL) {
 		perror("malloc");
 		goto err_free_buf;
@@ -656,7 +656,7 @@ vmem_realloc_init(struct benchmark *bench, struct benchmark_args *args)
 		goto err;
 	}
 	if ((vb->realloc_sizes = calloc(args->n_ops_per_thread,
-				sizeof(unsigned int))) == NULL) {
+				sizeof(unsigned))) == NULL) {
 		perror("calloc");
 		goto err;
 	}
@@ -681,10 +681,10 @@ vmem_mix_init(struct benchmark *bench, struct benchmark_args *args)
 	if (vmem_init(bench, args) != 0)
 		return -1;
 
-	unsigned int i, idx, tmp;
+	unsigned i, idx, tmp;
 	struct vmem_bench *vb = pmembench_get_priv(bench);
 	if ((vb->mix_ops = calloc(args->n_ops_per_thread,
-				sizeof(unsigned int))) == NULL) {
+				sizeof(unsigned))) == NULL) {
 		perror("calloc");
 		goto err;
 	}

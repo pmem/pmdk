@@ -86,7 +86,7 @@ env_get_bool(const char *name, int *valp)
 
 	char *endptr;
 	errno = 0;
-	long int val = strtol(env, &endptr, 10);
+	long val = strtol(env, &endptr, 10);
 	if (*endptr != '\0' || errno)
 		goto err;
 

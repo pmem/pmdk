@@ -172,7 +172,7 @@ alloc_argv(unsigned argc, char *argv[], unsigned off)
  * do_run -- execute the 'run' command
  */
 static int
-do_run(const char *pid_file, char *cmd, char *argv[], unsigned int timeout)
+do_run(const char *pid_file, char *cmd, char *argv[], unsigned timeout)
 {
 	int rv = -1;
 
@@ -641,7 +641,7 @@ log_run(const char *pid_file, char *cmd, char *argv[])
  *                    to unsigned integer: 's' for seconds (the default),
  *                    'm' for minutes, 'h' for hours or 'd' for days.
  */
-static unsigned int
+static unsigned
 convert_timeout(char *str)
 {
 	char *endptr;
@@ -657,7 +657,7 @@ convert_timeout(char *str)
 		ftimeout *= S_DAY;
 		break;
 	}
-	return (unsigned int)ftimeout;
+	return (unsigned)ftimeout;
 }
 
 int
@@ -687,7 +687,7 @@ main(int argc, char *argv[])
 		if (argc < 5)
 			usage();
 
-		unsigned int timeout = convert_timeout(argv[3]);
+		unsigned timeout = convert_timeout(argv[3]);
 		char *command = argv[4];
 		char **nargv = alloc_argv((unsigned)argc, argv, 4);
 		if (!nargv) {

@@ -69,7 +69,7 @@
  */
 struct pmempool_info_args {
 	char *file;		/* input file */
-	unsigned int col_width;	/* column width for printing fields */
+	unsigned col_width;	/* column width for printing fields */
 	bool human;		/* sizes in human-readable formats */
 	bool force;		/* force parsing pool */
 	pmem_pool_type_t type;	/* forced pool type */

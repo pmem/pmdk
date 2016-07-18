@@ -59,9 +59,9 @@ struct pobj_worker;
 typedef int (*fn_type_num) (struct pobj_bench *ob, int worker_idx,
 								int op_idx);
 
-typedef unsigned int (*fn_size) (struct pobj_bench *ob, unsigned int idx);
+typedef unsigned (*fn_size) (struct pobj_bench *ob, unsigned idx);
 
-typedef unsigned int (*fn_num) (unsigned int idx);
+typedef unsigned (*fn_num) (unsigned idx);
 
 /*
  * Enumeration used to determine the mode of the assigning type_number
@@ -97,8 +97,8 @@ enum type_mode {
 struct pobj_args {
 	char *type_num;
 	bool range;
-	unsigned int min_size;
-	unsigned int n_objs;
+	unsigned min_size;
+	unsigned n_objs;
 	bool one_pool;
 	bool one_obj;
 	size_t obj_size;
@@ -276,8 +276,8 @@ type_mode_rand(struct pobj_bench *bench_priv, int worker_idx, int op_idx)
 /*
  * range_size -- returns size of object allocation from rand_sizes array.
  */
-static unsigned int
-range_size(struct pobj_bench *bench_priv, unsigned int idx)
+static unsigned
+range_size(struct pobj_bench *bench_priv, unsigned idx)
 {
 	return bench_priv->rand_sizes[idx];
 }
@@ -285,8 +285,8 @@ range_size(struct pobj_bench *bench_priv, unsigned int idx)
 /*
  * static_size -- returns always the same size of object allocation.
  */
-static unsigned int
-static_size(struct pobj_bench *bench_priv, unsigned int idx)
+static unsigned
+static_size(struct pobj_bench *bench_priv, unsigned idx)
 {
 	return bench_priv->args_priv->obj_size;
 }
@@ -294,8 +294,8 @@ static_size(struct pobj_bench *bench_priv, unsigned int idx)
 /*
  * diff_num -- returns given index
  */
-static unsigned int
-diff_num(unsigned int idx)
+static unsigned
+diff_num(unsigned idx)
 {
 	return idx;
 }
@@ -303,8 +303,8 @@ diff_num(unsigned int idx)
 /*
  * one_num -- returns always the same index.
  */
-static unsigned int
-one_num(unsigned int idx)
+static unsigned
+one_num(unsigned idx)
 {
 	return 0;
 }
@@ -332,7 +332,7 @@ parse_type_mode(const char *arg)
  * sizes for each object. Used only when range flag set.
  */
 static size_t *
-rand_sizes(unsigned int min, unsigned int max, unsigned int n_ops)
+rand_sizes(unsigned min, unsigned max, unsigned n_ops)
 {
 	size_t *rand_sizes = malloc(n_ops * sizeof(size_t));
 	if (rand_sizes == NULL) {
@@ -577,7 +577,7 @@ pobj_init_worker(struct benchmark *bench, struct benchmark_args
 	PMEMobjpool *pop = bench_priv->pop[bench_priv->pool(idx)];
 	for (i = 0; i < bench_priv->args_priv->n_objs; i++) {
 		size_t size = bench_priv->fn_size(bench_priv, i);
-		unsigned int type = bench_priv->fn_type_num(bench_priv, idx, i);
+		unsigned type = bench_priv->fn_type_num(bench_priv, idx, i);
 		if (pmemobj_alloc(pop,	&pw->oids[i], size, type, NULL, NULL)
 									!= 0) {
 			perror("pmemobj_alloc");
@@ -601,7 +601,7 @@ pobj_direct_op(struct benchmark *bench, struct operation_info *info)
 {
 	struct pobj_bench *bench_priv = pmembench_get_priv(bench);
 	struct pobj_worker *pw = info->worker->priv;
-	unsigned int idx = bench_priv->obj(info->index);
+	unsigned idx = bench_priv->obj(info->index);
 	if (pmemobj_direct(pw->oids[idx]) == NULL)
 		return -1;
 	return 0;
@@ -614,7 +614,7 @@ static int
 pobj_open_op(struct benchmark *bench, struct operation_info *info)
 {
 	struct pobj_bench *bench_priv = pmembench_get_priv(bench);
-	unsigned int idx = bench_priv->pool(info->worker->index);
+	unsigned idx = bench_priv->pool(info->worker->index);
 	pmemobj_close(bench_priv->pop[idx]);
 	bench_priv->pop[idx] = pmemobj_open(bench_priv->sets[idx], LAYOUT_NAME);
 	if (bench_priv->pop[idx] == NULL)
