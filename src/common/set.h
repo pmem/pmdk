@@ -139,6 +139,8 @@ int util_replica_close(struct pool_set *set, unsigned repidx);
 int util_map_part(struct pool_set_part *part, void *addr, size_t size,
 	size_t offset, int flags);
 int util_unmap_part(struct pool_set_part *part);
+int util_unmap_parts(struct pool_replica *rep, unsigned start_index,
+	unsigned end_index);
 int util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 	const char *sig, uint32_t major, uint32_t compat, uint32_t incompat,
 	uint32_t ro_compat, const unsigned char *prev_repl_uuid,

@@ -59,7 +59,7 @@ setup
 
 # XXX - implement support for providing size with K/M/G units
 
-create_poolset $DIR\testset 20971520:$DIR\testfile1:x 20971520:$DIR\testfile2:x
+create_poolset $DIR\testset 20M:$DIR\testfile1:x 20M:$DIR\testfile2:x
 
 expect_normal_exit $Env:EXE_DIR\blk_pool$Env:EXESUFFIX `
     c $DIR\testset 100 0 0640

@@ -1,5 +1,6 @@
 #
 # Copyright 2015-2016, Intel Corporation
+# Copyright (c) Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -68,34 +69,6 @@ if ($VerbosePreference -ne 'SilentlyContinue') {
     $verbose = 0
 }
 
-if (-Not ("debug nondebug static-debug static-nondebug all" -match $buildtype)) {
-    usage "bad build-type: $buildtype"
-}
-if (-Not ("check short long" -match $testtype)) {
-    usage "bad test-type: $testtype"
-}
-if (-Not ("none pmem non-pmem any all" -match $fstype)) {
-    usage "bad fs-type: $fstype"
-}
-
-# XXX :missing some logic here that's in the bash script
-# having to do with force-enable and memcheck, pmemcheck.
-# don't really get whats going on there but we don't support
-# either in windows right now so will just save the params
-if (-Not ("auto" -match $mreceivetype)) {
-    usage "bad memcheck: $mreceivetype"
-}
-if (-Not ("auto" -match $preceivetype)) {
-    usage "bad pmemcheck: $preceivetype"
-}
-if (-Not ("auto" -match $ereceivetype)) {
-    usage "bad helgrind: $ereceivetype"
-}
-if (-Not ("auto" -match $dreceivetype)) {
-    usage "bad drd: $dreceivetype"
-}
-sv -Name receivetype $mreceivetype
-
 #
 # usage -- print usage message and exit
 #
@@ -139,6 +112,34 @@ function usage {
         -c      check pool files with pmempool check utility"
     exit 1
 }
+
+if (-Not ("debug nondebug static-debug static-nondebug all" -match $buildtype)) {
+    usage "bad build-type: $buildtype"
+}
+if (-Not ("check short long" -match $testtype)) {
+    usage "bad test-type: $testtype"
+}
+if (-Not ("none pmem non-pmem any all" -match $fstype)) {
+    usage "bad fs-type: $fstype"
+}
+
+# XXX :missing some logic here that's in the bash script
+# having to do with force-enable and memcheck, pmemcheck.
+# don't really get whats going on there but we don't support
+# either in windows right now so will just save the params
+if (-Not ("auto" -match $mreceivetype)) {
+    usage "bad memcheck: $mreceivetype"
+}
+if (-Not ("auto" -match $preceivetype)) {
+    usage "bad pmemcheck: $preceivetype"
+}
+if (-Not ("auto" -match $ereceivetype)) {
+    usage "bad helgrind: $ereceivetype"
+}
+if (-Not ("auto" -match $dreceivetype)) {
+    usage "bad drd: $dreceivetype"
+}
+sv -Name receivetype $mreceivetype
 
 #
 # runtest -- given the test directory name, run tests found inside it
