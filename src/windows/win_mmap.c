@@ -1,6 +1,6 @@
 /*
  * Copyright 2015-2016, Intel Corporation
- * Copyright 2015, Microsoft Corporation
+ * Copyright (c) Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -62,6 +62,10 @@
 #include "out.h"
 
 #define roundup(x, y)	((((x) + ((y) - 1)) / (y)) * (y))
+
+NTSTATUS
+NtFreeVirtualMemory(_In_ HANDLE ProcessHandle, _Inout_ PVOID *BaseAddress,
+	_Inout_ PSIZE_T RegionSize, _In_ ULONG FreeType);
 
 /* allocation/mmap granularity */
 unsigned long long Mmap_align;
@@ -143,6 +147,48 @@ mmap_fini(void)
 #define PROT_ALL (PROT_READ|PROT_WRITE|PROT_EXEC)
 
 /*
+ * mfree_reservation -- (internal) frees the range that's previously reserved
+ */
+static int
+mfree_reservation(void *addr, size_t len)
+{
+	size_t bytes_returned;
+	MEMORY_BASIC_INFORMATION basic_info;
+
+	bytes_returned = VirtualQuery(addr, &basic_info, sizeof(basic_info));
+
+	if (bytes_returned != sizeof(basic_info)) {
+		ERR("cannot query the virtual address properties of the range "
+			"- addr: %p, len: %d", addr, len);
+		errno = EINVAL;
+		return -1;
+	}
+
+	if (basic_info.State == MEM_RESERVE) {
+		DWORD nt_status;
+		void *release_addr = addr;
+		size_t release_size = len;
+		nt_status = NtFreeVirtualMemory(GetCurrentProcess(),
+			&release_addr, &release_size, MEM_RELEASE);
+		if (nt_status != 0) {
+			ERR("cannot release the reserved virtual space - "
+				"addr: %p, len: %d, nt_status: 0x%08x", addr,
+				len, nt_status);
+			errno = EINVAL;
+			return -1;
+		}
+		ASSERTeq(release_addr, addr);
+		ASSERTeq(release_size, len);
+		LOG(3, "freed reservation - addr: %p, size: %d", release_addr,
+			release_size);
+	} else {
+		LOG(4, "range not reserved - addr: %p, size: %d", addr, len);
+	}
+
+	return 0;
+}
+
+/*
  * mmap -- map file into memory
  *
  * XXX - If read-only mapping was created initially, it is not possible
@@ -214,7 +260,15 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 	}
 
 	if ((flags & MAP_FIXED) != 0) {
-		/* make space for a new mapping */
+		/*
+		 * free any reservations that the caller might have, also we
+		 * have to unmap any existing mappings in this region as per
+		 * mmap's manual.
+		 * XXX - Ideally we should unmap only if the prot and flags
+		 * are similar, we are deferring it as we don't rely on it
+		 * yet.
+		 */
+
 		munmap(addr, len);
 	}
 
@@ -222,17 +276,77 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 
 	HANDLE fh;
 	if (flags & MAP_ANON) {
-		/* XXX - require 'fd' to be '-1'? */
+		/*
+		 * in our implementation we are choosing to ignore fd when
+		 * MAP_ANON is set, instead of failing.
+		 */
 		fh = INVALID_HANDLE_VALUE;
 
 		/* ignore/override offset */
 		offset = 0;
 	} else {
+		LARGE_INTEGER filesize;
+
 		if (fd == -1) {
 			errno = EBADF;
 			return MAP_FAILED;
 		}
 		fh = (HANDLE)_get_osfhandle(fd);
+
+		/*
+		 * if we are asked to map more than the file size, map till the
+		 * file size and reserve the following.
+		 */
+
+		if (!GetFileSizeEx(fh, &filesize)) {
+			ERR("cannot query the file size - fh: %d, "
+				"win32error: %d", fd, GetLastError());
+			return MAP_FAILED;
+		}
+
+		if (offset > (off_t)filesize.QuadPart) {
+			errno = EINVAL;
+			ERR("offset is beyond the file size");
+			return MAP_FAILED;
+		}
+
+		if ((offset + len) > (size_t)filesize.QuadPart) {
+			/*
+			 * reserve virtual address for the rest of range we need
+			 * to map, and free a portion in the beginning for this
+			 * allocation
+			 */
+			void *reserved_addr = VirtualAlloc(addr, len,
+						MEM_RESERVE, PAGE_NOACCESS);
+			if (reserved_addr == NULL) {
+				ERR("cannot find a contiguous region - "
+					"addr: %p, len: %lx, gle: 0x%08x", addr,
+					len, GetLastError());
+				errno = ENOMEM;
+				return MAP_FAILED;
+			}
+
+			if (addr != NULL && addr != reserved_addr &&
+				(flags & MAP_FIXED) != 0) {
+				ERR("cannot find a contiguous region - "
+					"addr: %p, len: %lx, gle: 0x%08x", addr,
+					len, GetLastError());
+				if (mfree_reservation(reserved_addr, 0) != 0) {
+					ASSERT(FALSE);
+					ERR("cannot free reserved region");
+				}
+				errno = ENOMEM;
+				return MAP_FAILED;
+			}
+
+			addr = reserved_addr;
+			len = (size_t)filesize.QuadPart - offset;
+			if (mfree_reservation(reserved_addr, len) != 0) {
+				ASSERT(FALSE);
+				ERR("cannot free reserved region");
+				return MAP_FAILED;
+			}
+		}
 	}
 
 	HANDLE fileMapping = CreateFileMapping(fh,
@@ -259,6 +373,7 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 
 	if (base == NULL) {
 		if (addr == NULL || (flags & MAP_FIXED) != 0) {
+			errno = EINVAL;
 			CloseHandle(fileMapping);
 			return MAP_FAILED;
 		}
@@ -273,6 +388,17 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 	}
 
 	if (base == NULL) {
+		CloseHandle(fileMapping);
+		return MAP_FAILED;
+	}
+
+	/*
+	 * if we can't map at the address given by the caller, fail
+	 * the call if MAP_FIXED is set
+	 */
+	if (addr != NULL && base != addr && (flags & MAP_FIXED)) {
+		UnmapViewOfFile(addr);
+		errno = EINVAL;
 		CloseHandle(fileMapping);
 		return MAP_FAILED;
 	}
@@ -322,7 +448,7 @@ mmap_split(PFILE_MAPPING_TRACKER mt, PVOID *begin, PVOID *end)
 			goto err;
 
 		mtb->FileHandle = mt->FileHandle;
-		mtb->FileMappingHandle = mt->FileMappingHandle;
+		mtb->FileMappingHandle = fmh;
 		mtb->BaseAddress = mt->BaseAddress;
 		mtb->EndAddress = begin;
 		mtb->Access = mt->Access;
@@ -336,7 +462,12 @@ mmap_split(PFILE_MAPPING_TRACKER mt, PVOID *begin, PVOID *end)
 			goto err;
 
 		mte->FileHandle = mt->FileHandle;
-		mte->FileMappingHandle = mt->FileMappingHandle;
+		if (!mtb)
+			mte->FileMappingHandle = fmh;
+		else if (!DuplicateHandle(GetCurrentProcess(), fmh,
+				GetCurrentProcess(), &mte->FileMappingHandle,
+				0, FALSE, DUPLICATE_SAME_ACCESS))
+			goto err;
 		mte->BaseAddress = end;
 		mte->EndAddress = mt->EndAddress;
 		mte->Access = mt->Access;
@@ -441,6 +572,16 @@ munmap(void *addr, size_t len)
 		len -= len2;
 		mt = next;
 	}
+
+	/*
+	 * if we didn't find any mapped regions in our list attempt to free
+	 * if the entire range is reserved.
+	 *
+	 * XXX: we don't handle a range having few mapped regions and few
+	 * reserved regions
+	 */
+	if (len > 0)
+		mfree_reservation(addr, len);
 
 	retval = 0;
 
