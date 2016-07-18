@@ -64,7 +64,7 @@ timepoint_to_timespec(const std::chrono::time_point<Clock, Duration> &timepoint)
 		std::chrono::duration_cast<std::chrono::seconds>(rel_duration);
 
 	ts.tv_sec = sec.count();
-	ts.tv_nsec = static_cast<long int>(
+	ts.tv_nsec = static_cast<long>(
 		std::chrono::duration_cast<std::chrono::nanoseconds>(
 			rel_duration - sec)
 			.count());

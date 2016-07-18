@@ -77,7 +77,7 @@ static const struct {
 #define MAP_TYPES_NUM	(sizeof(map_types) / sizeof(map_types[0]))
 
 struct map_bench_args {
-	unsigned int seed;
+	unsigned seed;
 	uint64_t max_key;
 	char *type;
 	bool ext_tx;
@@ -199,10 +199,10 @@ mutex_unlock_nofail(pthread_mutex_t *lock)
  * get_key -- return 64-bit random key
  */
 static uint64_t
-get_key(unsigned int *seed, uint64_t max_key)
+get_key(unsigned *seed, uint64_t max_key)
 {
-	unsigned int key_lo = rand_r(seed);
-	unsigned int key_hi = rand_r(seed);
+	unsigned key_lo = rand_r(seed);
+	unsigned key_hi = rand_r(seed);
 	uint64_t key = ((uint64_t)key_hi << 32) | key_lo;
 
 	if (max_key)

@@ -62,7 +62,7 @@ struct memset_args
 	bool no_warmup;		/* do not do warmup */
 	size_t chunk_size;	/* elementary chunk size */
 	size_t dest_off;	/* destination address offset */
-	unsigned int seed;	/* seed for random numbers */
+	unsigned seed;		/* seed for random numbers */
 };
 
 /*
@@ -187,7 +187,7 @@ init_offsets(struct benchmark_args *args, struct memset_bench *mb,
 		return -1;
 	}
 
-	unsigned int seed = mb->pargs->seed;
+	unsigned seed = mb->pargs->seed;
 
 	for (uint64_t i = 0; i < n_threads; i++) {
 		for (uint64_t j = 0; j < n_ops; j++) {

@@ -84,11 +84,11 @@ struct benchmark_args
 	size_t fsize;			/* size of test file */
 	bool is_poolset;		/* test file is a poolset */
 	mode_t fmode;			/* test file's permissions */
-	unsigned int n_threads;		/* number of working threads */
+	unsigned n_threads;		/* number of working threads */
 	uint64_t n_ops_per_thread;	/* number of operations per thread */
 	size_t dsize;			/* data size */
-	unsigned int seed;		/* PRNG seed */
-	unsigned int repeats;		/* number of repeats of one scenario */
+	unsigned seed;			/* PRNG seed */
+	unsigned repeats;		/* number of repeats of one scenario */
 	bool help;			/* print help for benchmark */
 	void *opts;			/* benchmark specific arguments */
 };
@@ -197,7 +197,7 @@ struct benchmark_clo
  */
 struct worker_info
 {
-	unsigned int index;		/* index of worker thread */
+	unsigned index;			/* index of worker thread */
 	struct operation_info *opinfo;	/* operation info structure */
 	size_t nops;			/* number of operations */
 	void *priv;			/* worker's private data */
@@ -210,7 +210,7 @@ struct operation_info
 {
 	struct worker_info *worker;	/* worker's info */
 	struct benchmark_args *args;	/* benchmark arguments */
-	unsigned int index;		/* operation's index */
+	unsigned index;			/* operation's index */
 	benchmark_time_t t_diff;	/* timestamp of start */
 };
 

@@ -389,7 +389,7 @@ exit_bench_rwlock(struct mutex_bench *mb)
 {
 	if (mb->pa->use_pthread) {
 		/* deinitialize pthread mutex objects */
-		for (unsigned int i = 0; i < mb->pa->n_locks; i++) {
+		for (unsigned i = 0; i < mb->pa->n_locks; i++) {
 			pthread_rwlock_t *p = (pthread_rwlock_t *)&mb->locks[i];
 			pthread_rwlock_destroy(p);
 		}

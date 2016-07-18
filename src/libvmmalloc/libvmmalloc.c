@@ -635,7 +635,7 @@ libvmmalloc_init(void)
 				VMMALLOC_POOL_SIZE_VAR);
 		abort();
 	} else {
-		long long int v = atoll(env_str);
+		long long v = atoll(env_str);
 		if (v < 0) {
 			out_log(NULL, 0, NULL, 0,
 				"Error (libvmmalloc): negative %s",

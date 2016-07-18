@@ -126,8 +126,8 @@ struct benchmark_opts
 
 static struct version_s
 {
-	unsigned int major;
-	unsigned int minor;
+	unsigned major;
+	unsigned minor;
 } version = {1, 0};
 
 
@@ -993,7 +993,7 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 							sizeof(double));
 		assert(workers_times != NULL);
 
-		for (unsigned int i = 0; i < args->repeats; i++) {
+		for (unsigned i = 0; i < args->repeats; i++) {
 			if (bench->info->rm_file) {
 				ret = pmembench_remove_file(args->fname);
 				if (ret != 0) {
@@ -1025,7 +1025,7 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 				goto out;
 			}
 
-			unsigned int j;
+			unsigned j;
 			for (j = 0; j < args->n_threads; j++) {
 				benchmark_worker_run(workers[j]);
 			}

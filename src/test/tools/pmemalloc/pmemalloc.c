@@ -55,7 +55,7 @@ main(int argc, char *argv[])
 	long long tmpl;
 	size_t size = 0;
 	size_t root_size = 0;
-	unsigned int type_num = 0;
+	unsigned type_num = 0;
 	char exit_at = '\0';
 	int do_set = 0;
 	int do_free = 0;

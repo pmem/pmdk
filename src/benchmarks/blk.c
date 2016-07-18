@@ -63,7 +63,7 @@ struct blk_args {
 	bool file_io;		/* use file-io */
 	size_t fsize;		/* file size */
 	bool no_warmup;		/* don't do warmup */
-	unsigned int seed;	/* seed for randomization */
+	unsigned seed;		/* seed for randomization */
 	bool rand;		/* random blocks */
 };
 
@@ -84,7 +84,7 @@ struct blk_bench {
 struct blk_worker {
 	off_t *blocks;			/* array with block numbers */
 	unsigned char *buff;		/* buffer for read/write */
-	unsigned int seed;		/* worker seed */
+	unsigned seed;			/* worker seed */
 };
 
 static struct benchmark_clo blk_clo[] = {

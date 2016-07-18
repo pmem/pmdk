@@ -41,7 +41,7 @@
 void out_set_vlevel(int vlevel);
 void out_set_stream(FILE *stream);
 void out_set_prefix(const char *prefix);
-void out_set_col_width(unsigned int col_width);
+void out_set_col_width(unsigned col_width);
 void outv_err(const char *fmt, ...);
 void out_err(const char *file, int line, const char *func,
 		const char *fmt, ...);

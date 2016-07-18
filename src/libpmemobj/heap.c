@@ -510,7 +510,7 @@ heap_find_first_free_bucket_slot(struct pmalloc_heap *h)
  */
 static uint8_t
 heap_create_alloc_class_buckets(struct pmalloc_heap *h,
-	size_t unit_size, unsigned int unit_max)
+	size_t unit_size, unsigned unit_max)
 {
 	uint8_t slot = heap_find_first_free_bucket_slot(h);
 	if (slot == MAX_BUCKETS)

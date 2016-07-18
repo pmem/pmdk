@@ -55,7 +55,7 @@
  */
 struct prog_args
 {
-	unsigned int seed;	/* seed for pseudo-random generator */
+	unsigned seed;		/* seed for pseudo-random generator */
 	bool rand;		/* use random numbers */
 	int vec_size;		/* vector size */
 	size_t el_size;		/* size of single append */
@@ -68,7 +68,7 @@ struct prog_args
  * thread_info - thread specific data
  */
 struct log_worker_info {
-	unsigned int seed;
+	unsigned seed;
 	struct iovec *iov;		/* io vector */
 	char *buf;			/* buffer for write/read operations */
 	size_t buf_size;		/* buffer size */
@@ -86,7 +86,7 @@ struct log_bench
 	PMEMlogpool *plp;	/* pmemlog handle */
 	struct prog_args *args;	/* benchmark specific arguments */
 	int fd;			/* file descriptor for file io mode */
-	unsigned int seed;
+	unsigned seed;
 	/*
 	 * Pointer to the main benchmark operation. The appropriate function
 	 * will be assigned depending on the benchmark specific arguments.
@@ -423,7 +423,7 @@ log_init_worker(struct benchmark *bench, struct benchmark_args *args,
 
 	if (lb->args->rand) {
 		/* each thread has random seed */
-		worker_info->seed = (unsigned int)rand_r(&lb->seed);
+		worker_info->seed = (unsigned)rand_r(&lb->seed);
 
 		/* each vector element has its own random size */
 		uint64_t n_sizes = args->n_ops_per_thread * lb->args->vec_size;

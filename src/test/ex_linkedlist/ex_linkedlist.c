@@ -257,7 +257,7 @@ init_slist(PMEMobjpool *pop, struct slisthead *head)
 int
 main(int argc, char *argv[])
 {
-	unsigned int res = 0;
+	unsigned res = 0;
 	PMEMobjpool *pop;
 	const char *path;
 

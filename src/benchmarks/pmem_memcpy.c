@@ -115,7 +115,7 @@ struct pmem_args
 struct pmem_bench
 {
 	/* random offsets */
-	unsigned int *rand_offsets;
+	unsigned *rand_offsets;
 
 	/* number of elements in randoms array */
 	size_t n_rand_offsets;
