@@ -1,5 +1,6 @@
 /*
  * Copyright 2015-2016, Intel Corporation
+ * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -385,6 +386,22 @@ util_unmap_part(struct pool_set_part *part)
 		part->addr = NULL;
 		part->size = 0;
 	}
+
+	return 0;
+}
+
+/*
+ * util_unmap_parts -- unmap parts from start_index to the end_index
+ */
+int
+util_unmap_parts(struct pool_replica *rep, unsigned start_index,
+	unsigned end_index)
+{
+	LOG(3, "rep: %p, start_index: %u, end_index: %u", rep, start_index,
+		end_index);
+
+	for (unsigned p = start_index; p <= end_index; p++)
+		util_unmap_part(&rep->part[p]);
 
 	return 0;
 }
@@ -1585,77 +1602,117 @@ util_replica_create_local(struct pool_set *set, unsigned repidx, int flags,
 		compat, incompat, ro_compat,
 		prev_repl_uuid, next_repl_uuid, arch_flags);
 
+	/*
+	 * XXX: Like we reserve space for all parts in this replica when we map
+	 * the first part, we need to reserve the space for all replicas
+	 * upfront.  It is not necessary that the replicas are contiguous but
+	 * that way we would not fragment the memory much.  I think we should
+	 * leave this to MM, but let's have a note as per our collective minds.
+	 */
+
+#ifndef _WIN32
+	int remaining_retries = 0;
+#else
+	int remaining_retries = 10;
+#endif
+	int retry_for_contiguous_addr;
+	size_t mapsize;
+	void *addr;
 	struct pool_replica *rep = set->replica[repidx];
 
-	/* determine a hint address for mmap() */
-	void *addr = util_map_hint(rep->repsize, 0);
-	if (addr == MAP_FAILED) {
-		ERR("cannot find a contiguous region of given size");
-		return -1;
-	}
+	do {
+		retry_for_contiguous_addr = 0;
+		mapsize = rep->part[0].filesize & ~(Mmap_align - 1);
 
-	size_t mapsize = rep->part[0].filesize & ~(Mmap_align - 1);
+		/* determine a hint address for mmap() */
+		addr = util_map_hint(rep->repsize, 0);
+		if (addr == MAP_FAILED) {
+			ERR("cannot find a contiguous region of given size");
+			return -1;
+		}
 
-	/* map the first part and reserve space for remaining parts */
-#ifndef _WIN32
-	if (util_map_part(&rep->part[0], addr, rep->repsize, 0, flags) != 0) {
-#else
-	if (util_map_part(&rep->part[0], addr, mapsize, 0, flags) != 0) {
-#endif
-		LOG(2, "pool mapping failed - replica #%u part #0", repidx);
-		return -1;
-	}
+		/* map the first part and reserve space for remaining parts */
+		if (util_map_part(&rep->part[0], addr, rep->repsize, 0,
+			flags) != 0) {
+			LOG(2, "pool mapping failed - replica #%u part #0",
+				repidx);
+			return -1;
+		}
 
-	VALGRIND_REGISTER_PMEM_MAPPING(rep->part[0].addr, rep->part[0].size);
-	VALGRIND_REGISTER_PMEM_FILE(rep->part[0].fd,
+		VALGRIND_REGISTER_PMEM_MAPPING(rep->part[0].addr,
+				rep->part[0].size);
+		VALGRIND_REGISTER_PMEM_FILE(rep->part[0].fd,
 				rep->part[0].addr, rep->part[0].size, 0);
 
-	/* map all headers - don't care about the address */
-	for (unsigned p = 0; p < rep->nparts; p++) {
-		if (util_map_hdr(&rep->part[p], flags) != 0) {
-			LOG(2, "header mapping failed - part #%d", p);
-			goto err;
-		}
-	}
-
-	/* create headers, set UUID's */
-	for (unsigned p = 0; p < rep->nparts; p++) {
-		if (util_header_create(set, repidx, p, sig, major,
-				compat, incompat, ro_compat,
-				prev_repl_uuid, next_repl_uuid,
-				arch_flags) != 0) {
-			LOG(2, "header creation failed - part #%d", p);
-			goto err;
-		}
-	}
-
-	/* unmap all headers */
-	for (unsigned p = 0; p < rep->nparts; p++)
-		util_unmap_hdr(&rep->part[p]);
-
-	set->zeroed &= rep->part[0].created;
-
-	addr = (char *)rep->part[0].addr + mapsize;
-
-	/*
-	 * map the remaining parts of the usable pool space
-	 * (aligned to memory mapping granularity)
-	 */
-	for (unsigned p = 1; p < rep->nparts; p++) {
-		/* map data part */
-		if (util_map_part(&rep->part[p], addr, 0, Mmap_align,
-				flags | MAP_FIXED) != 0) {
-			LOG(2, "usable space mapping failed - part #%d", p);
-			goto err;
+		/* map all headers - don't care about the address */
+		for (unsigned p = 0; p < rep->nparts; p++) {
+			if (util_map_hdr(&rep->part[p], flags) != 0) {
+				LOG(2, "header mapping failed - part #%d", p);
+				goto err;
+			}
 		}
 
-		VALGRIND_REGISTER_PMEM_FILE(rep->part[p].fd,
-			rep->part[p].addr, rep->part[p].size, Mmap_align);
+		/* create headers, set UUID's */
+		for (unsigned p = 0; p < rep->nparts; p++) {
+			if (util_header_create(set, repidx, p, sig, major,
+					compat, incompat, ro_compat,
+					prev_repl_uuid, next_repl_uuid,
+					arch_flags) != 0) {
+				LOG(2, "header creation failed - part #%d", p);
+				goto err;
+			}
+		}
 
-		mapsize += rep->part[p].size;
-		set->zeroed &= rep->part[p].created;
-		addr = (char *)addr + rep->part[p].size;
-	}
+		/* unmap all headers */
+		for (unsigned p = 0; p < rep->nparts; p++)
+			util_unmap_hdr(&rep->part[p]);
+
+		set->zeroed &= rep->part[0].created;
+
+		addr = (char *)rep->part[0].addr + mapsize;
+
+		/*
+		 * map the remaining parts of the usable pool space
+		 * (aligned to memory mapping granularity)
+		 */
+		for (unsigned p = 1; p < rep->nparts; p++) {
+			/* map data part */
+			if (util_map_part(&rep->part[p], addr, 0, Mmap_align,
+					flags | MAP_FIXED) != 0) {
+				/*
+				 * if we can't map the part at the address we
+				 * asked for, unmap all the parts that are
+				 * mapped and remap at a different address.
+				 */
+				if ((errno == EINVAL) &&
+				    (remaining_retries > 0)) {
+					LOG(2, "usable space mapping failed - "
+						"part #%d - retrying", p);
+					retry_for_contiguous_addr = 1;
+					remaining_retries--;
+
+					util_unmap_parts(rep, 0, p - 1);
+
+					/* release rest of the VA reserved */
+					ASSERTne(addr, NULL);
+					ASSERTne(addr, MAP_FAILED);
+					munmap(addr, rep->repsize - mapsize);
+					break;
+				}
+				LOG(2, "usable space mapping failed - part #%d",
+					p);
+				goto err;
+			}
+
+			VALGRIND_REGISTER_PMEM_FILE(rep->part[p].fd,
+				rep->part[p].addr, rep->part[p].size,
+				Mmap_align);
+
+			mapsize += rep->part[p].size;
+			set->zeroed &= rep->part[p].created;
+			addr = (char *)addr + rep->part[p].size;
+		}
+	} while (retry_for_contiguous_addr);
 
 	rep->is_pmem = pmem_is_pmem(rep->part[0].addr, rep->part[0].size);
 
@@ -1668,9 +1725,15 @@ util_replica_create_local(struct pool_set *set, unsigned repidx, int flags,
 err:
 	LOG(4, "error clean up");
 	int oerrno = errno;
-	for (unsigned p = 0; p < rep->nparts; p++)
+	if (mapsize < rep->repsize) {
+		ASSERTne(addr, NULL);
+		ASSERTne(addr, MAP_FAILED);
+		munmap(addr, rep->repsize - mapsize);
+	}
+	for (unsigned p = 0; p < rep->nparts; p++) {
 		util_unmap_hdr(&rep->part[p]);
-	util_unmap_part(&rep->part[0]);
+		util_unmap_part(&rep->part[p]);
+	}
 	errno = oerrno;
 	return -1;
 }
@@ -1964,59 +2027,87 @@ util_replica_open_local(struct pool_set *set, unsigned repidx, int flags)
 {
 	LOG(3, "set %p repidx %u flags %d", set, repidx, flags);
 
+	int remaining_retries = 10;
+	int retry_for_contiguous_addr;
+	size_t mapsize;
+	void *addr;
 	struct pool_replica *rep = set->replica[repidx];
 
-	/* determine a hint address for mmap() */
-	void *addr = util_map_hint(rep->repsize, 0);
-	if (addr == MAP_FAILED) {
-		ERR("cannot find a contiguous region of given size");
-		return -1;
-	}
-
-	size_t mapsize = rep->part[0].filesize & ~(Mmap_align - 1);
-
-	/* map the first part and reserve space for remaining parts */
-#ifndef _WIN32
-	if (util_map_part(&rep->part[0], addr, rep->repsize, 0, flags) != 0) {
-#else
-	if (util_map_part(&rep->part[0], addr, mapsize, 0, flags) != 0) {
-#endif
-		LOG(2, "pool mapping failed - part #0");
-		return -1;
-	}
-
-	VALGRIND_REGISTER_PMEM_MAPPING(rep->part[0].addr, rep->part[0].size);
-	VALGRIND_REGISTER_PMEM_FILE(rep->part[0].fd,
-				rep->part[0].addr, rep->part[0].size, 0);
-
-	/* map all headers - don't care about the address */
-	for (unsigned p = 0; p < rep->nparts; p++) {
-		if (util_map_hdr(&rep->part[p], flags) != 0) {
-			LOG(2, "header mapping failed - part #%d", p);
-			goto err;
-		}
-	}
-
-	addr = (char *)rep->part[0].addr + mapsize;
-
-	/*
-	 * map the remaining parts of the usable pool space
-	 * (aligned to memory mapping granularity)
-	 */
-	for (unsigned p = 1; p < rep->nparts; p++) {
-		/* map data part */
-		if (util_map_part(&rep->part[p], addr, 0, Mmap_align,
-				flags | MAP_FIXED) != 0) {
-			LOG(2, "usable space mapping failed - part #%d", p);
-			goto err;
+	do {
+		retry_for_contiguous_addr = 0;
+		/* determine a hint address for mmap() */
+		addr = util_map_hint(rep->repsize, 0);
+		if (addr == MAP_FAILED) {
+			ERR("cannot find a contiguous region of given size");
+			return -1;
 		}
 
-		VALGRIND_REGISTER_PMEM_FILE(rep->part[p].fd,
-			rep->part[p].addr, rep->part[p].size, Mmap_align);
+		mapsize = rep->part[0].filesize & ~(Mmap_align - 1);
 
-		mapsize += rep->part[p].size;
-		addr = (char *)addr + rep->part[p].size;
-	}
+		/* map the first part and reserve space for remaining parts */
+		if (util_map_part(&rep->part[0], addr, rep->repsize, 0,
+			flags) != 0) {
+			LOG(2, "pool mapping failed - replica #%u part #0",
+				repidx);
+			return -1;
+		}
+
+		VALGRIND_REGISTER_PMEM_MAPPING(rep->part[0].addr,
+			rep->part[0].size);
+		VALGRIND_REGISTER_PMEM_FILE(rep->part[0].fd,
+			rep->part[0].addr, rep->part[0].size, 0);
+
+		/* map all headers - don't care about the address */
+		for (unsigned p = 0; p < rep->nparts; p++) {
+			if (util_map_hdr(&rep->part[p], flags) != 0) {
+				LOG(2, "header mapping failed - part #%d", p);
+				goto err;
+			}
+		}
+
+		addr = (char *)rep->part[0].addr + mapsize;
+
+		/*
+		 * map the remaining parts of the usable pool space
+		 * (aligned to memory mapping granularity)
+		 */
+		for (unsigned p = 1; p < rep->nparts; p++) {
+			/* map data part */
+			if (util_map_part(&rep->part[p], addr, 0, Mmap_align,
+					flags | MAP_FIXED) != 0) {
+				/*
+				 * if we can't map the part at the address we
+				 * asked for, unmap all the parts that are
+				 * mapped and remap at a different address.
+				 */
+				if ((errno == EINVAL) &&
+				    (remaining_retries > 0)) {
+					LOG(2, "usable space mapping failed - "
+						"part #%d - retrying", p);
+					retry_for_contiguous_addr = 1;
+					remaining_retries--;
+
+					util_unmap_parts(rep, 0, p - 1);
+
+					/* release rest of the VA reserved */
+					ASSERTne(addr, NULL);
+					ASSERTne(addr, MAP_FAILED);
+					munmap(addr, rep->repsize - mapsize);
+					break;
+				}
+				LOG(2, "usable space mapping failed - part #%d",
+					p);
+				goto err;
+			}
+
+			VALGRIND_REGISTER_PMEM_FILE(rep->part[p].fd,
+				rep->part[p].addr, rep->part[p].size,
+				Mmap_align);
+
+			mapsize += rep->part[p].size;
+			addr = (char *)addr + rep->part[p].size;
+		}
+	} while (retry_for_contiguous_addr);
 
 	rep->is_pmem = pmem_is_pmem(rep->part[0].addr, rep->part[0].size);
 
@@ -2032,9 +2123,15 @@ util_replica_open_local(struct pool_set *set, unsigned repidx, int flags)
 err:
 	LOG(4, "error clean up");
 	int oerrno = errno;
-	for (unsigned p = 0; p < rep->nparts; p++)
+	if (mapsize < rep->repsize) {
+		ASSERTne(addr, NULL);
+		ASSERTne(addr, MAP_FAILED);
+		munmap(addr, rep->repsize - mapsize);
+	}
+	for (unsigned p = 0; p < rep->nparts; p++) {
 		util_unmap_hdr(&rep->part[p]);
-	util_unmap_part(&rep->part[0]);
+		util_unmap_part(&rep->part[p]);
+	}
 	errno = oerrno;
 	return -1;
 }

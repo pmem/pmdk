@@ -85,6 +85,9 @@
     <ClCompile Include="..\common\uuid_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\libpmemobj\palloc.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\libpmemobj\heap_layout.h">
@@ -160,6 +163,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\common\uuid.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libpmemobj\palloc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libpmemobj\pmemops.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

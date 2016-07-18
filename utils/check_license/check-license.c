@@ -1,5 +1,6 @@
 /*
  * Copyright 2016, Intel Corporation
+ * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -45,6 +46,8 @@
 #define LICENSE_MAX_LEN		2048
 #define COPYRIGHT		"Copyright "
 #define COPYRIGHT_LEN		10
+#define COPYRIGHT_SYMBOL	"(c) "
+#define COPYRIGHT_SYMBOL_LEN	4
 #define YEAR_MIN		1900
 #define YEAR_MAX		9999
 #define YEAR_INIT_MIN		9999
@@ -342,6 +345,11 @@ verify_license(const char *path_to_check, char *pattern)
 	copyright = buffer;
 	while ((copyright = strstr(copyright, COPYRIGHT)) != NULL) {
 		copyright += COPYRIGHT_LEN;
+
+		/* skip the copyright symbol '(c)' if any */
+		if (strncmp(copyright, COPYRIGHT_SYMBOL,
+			COPYRIGHT_SYMBOL_LEN) == 0)
+			copyright += COPYRIGHT_SYMBOL_LEN;
 
 		/* look for the first year */
 		if (!isdigit(*copyright)) {

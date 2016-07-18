@@ -95,7 +95,7 @@
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <AdditionalDependencies>libut.lib;libpmem.lib;libpmemobj.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libut.lib;libpmem.lib;libpmemobj.lib;ntdll.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
