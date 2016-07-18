@@ -49,6 +49,7 @@
 #include <assert.h>
 #include <getopt.h>
 #include <unistd.h>
+#include <endian.h>
 
 #include "common.h"
 #include "output.h"
@@ -226,12 +227,22 @@ util_range_limit(struct range *rangep, struct range limit)
 static int
 util_parse_range_from_to(char *str, struct range *rangep, struct range entire)
 {
-	char *str1 = NULL;
+	char *str1;
 	char sep;
-	char *str2 = NULL;
+	char *str2;
 
 	int ret = 0;
-	if (sscanf(str, "%m[^-]%c%m[^-]", &str1, &sep, &str2) == 3 &&
+
+	str1 = malloc(strlen(str) + 1);
+	if (str1 == NULL) {
+		ret = -1;
+		goto end;
+	}
+	str2 = malloc(strlen(str) + 1);
+	if (str2 == NULL) {
+		goto nomem;
+	}
+	if (sscanf(str, "%[^-]%c%[^-]", str1, &sep, str2) == 3 &&
 			sep == '-' &&
 			strlen(str) == (strlen(str1) + 1 + strlen(str2))) {
 		if (util_parse_size(str1, &rangep->first) != 0)
@@ -250,11 +261,11 @@ util_parse_range_from_to(char *str, struct range *rangep, struct range entire)
 		ret = -1;
 	}
 
-	if (str1)
-		free(str1);
-	if (str2)
-		free(str2);
 
+	free(str2);
+nomem:
+	free(str1);
+end:
 	return ret;
 }
 
@@ -264,11 +275,14 @@ util_parse_range_from_to(char *str, struct range *rangep, struct range entire)
 static int
 util_parse_range_from(char *str, struct range *rangep, struct range entire)
 {
-	char *str1 = NULL;
 	char sep;
-
 	int ret = 0;
-	if (sscanf(str, "%m[^-]%c", &str1, &sep) == 2 &&
+
+	char *str1 = malloc(strlen(str) + 1);
+	if (str1 == NULL)
+		return -1;
+
+	if (sscanf(str, "%s[^-]%c", str1, &sep) == 2 &&
 			sep == '-' &&
 			strlen(str) == (strlen(str1) + 1)) {
 		if (util_parse_size(str1, &rangep->first) == 0) {
@@ -293,11 +307,14 @@ util_parse_range_from(char *str, struct range *rangep, struct range entire)
 static int
 util_parse_range_to(char *str, struct range *rangep, struct range entire)
 {
-	char *str1 = NULL;
 	char sep;
-
 	int ret = 0;
-	if (sscanf(str, "%c%m[^-]", &sep, &str1) == 2 &&
+
+	char *str1 = malloc(strlen(str) + 1);
+	if (str1 == NULL)
+		return -1;
+
+	if (sscanf(str, "%c%s[^-]", &sep, str1) == 2 &&
 			sep == '-' &&
 			strlen(str) == (1 + strlen(str1))) {
 		if (util_parse_size(str1, &rangep->last) == 0) {
@@ -310,9 +327,7 @@ util_parse_range_to(char *str, struct range *rangep, struct range entire)
 		ret = -1;
 	}
 
-	if (str1)
-		free(str1);
-
+	free(str1);
 	return ret;
 }
 
@@ -1250,7 +1265,7 @@ pool_set_file_open(const char *fname,
 
 		/* get modification time from the first part of first replica */
 		const char *path = file->poolset->replica[0]->part[0].path;
-		if (stat(path, &buf)) {
+		if (util_stat(path, &buf)) {
 			warn("%s", path);
 			goto err_close_poolset;
 		}
