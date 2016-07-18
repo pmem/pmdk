@@ -288,5 +288,7 @@ main(int argc, char *argv[])
 	pool_test_memcpy(pop);
 	pool_test_memset(pop);
 
+	pop.close();
+
 	DONE(NULL);
 }

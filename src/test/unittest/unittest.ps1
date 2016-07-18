@@ -200,15 +200,15 @@ function require_pmem {
 #
 #
 function create_poolset {
-    sv -Name psfile $args[0]
+    $psfile = $args[0]
     echo "PMEMPOOLSET" | out-file -encoding ASCII $psfile
     for ($i=1;$i -lt $args.count;$i++) {
         if ($args[$i] -eq "M" -Or $args[$i] -eq 'm') { # remote replica
             $i++
-            sv -Name cmd $args[$i]
-            sv -Name fparms ($cmd.Split("{:}"))
-            sv -Name node $fparms[0]
-            sv -Name desc $fparms[1]
+            $cmd = $args[$i]
+            $fparms = ($cmd.Split("{:}"))
+            $node = $fparms[0]
+            $desc = $fparms[1]
             echo "REPLICA $node $desc" | out-file -Append -encoding ASCII $psfile
             continue
         }
@@ -216,37 +216,38 @@ function create_poolset {
             echo "REPLICA" | out-file -Append -encoding ASCII $psfile
             continue
         }
-        sv -Name cmd $args[$i]
+        $cmd = $args[$i]
         # need to strip out a drive letter if included because we use :
         # as a delimeter in the arguement
-        sv -Name driveLetter ""
-        if ($cmd -match "([a-zA-Z]):\\") {
-            sv -Name tmp ($cmd.Split("{:\\}",2,[System.StringSplitOptions]::RemoveEmptyEntries))
+        $driveLetter = ""
+        if ($cmd -match "([a-zA-Z]):\\\\") {
+            $tmp = ($cmd.Split("{:\\\\}",2,[System.StringSplitOptions]::RemoveEmptyEntries))
             $cmd = $tmp[0] + ":" + $tmp[1].SubString(2)
             $driveLetter = $tmp[1].SubString(0,2)
         }
-        sv -Name fparms ($cmd.Split("{:}"))
-        sv -Name fsize $fparms[0]
+        $fparms = ($cmd.Split("{:}"))
+        $fsize = $fparms[0]
 
         # XXX: unclear how to follow a symlink
         # like linux "fpath=`readlink -mn ${fparms[1]}`" but I've not tested
         # that it works with a symlink or shortcut
-        sv -Name fpath $fparms[1]
+        $fpath = $fparms[1]
         if (-Not $driveLetter -eq "") {
             $fpath = $driveLetter + $fpath
         }
-        sv -Name cmd $fparms[2]
-        sv -Name asize $fparms[3]
-        sv -Name mode $fparms[4]
+        $cmd = $fparms[2]
+        $asize = $fparms[3]
+        $mode = $fparms[4]
 
         if ($asize) {
             $asize = $asize -replace ".{1}$"
         } else {
-            sv -Name asize $fsize
+            $asize = $fsize
         }
 
-        [int64] $asize *= 1024 * 1024
-        [int64] $fsize *= 1024 * 1024
+        # XXX - do not assume size is in megabytes
+        #[int64] $asize *= 1024 * 1024
+        #[int64] $fsize *= 1024 * 1024
 
         switch -regex ($cmd) {
             # do nothing

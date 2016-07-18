@@ -21,15 +21,13 @@
     <None Include="err0.log.match" />
     <None Include="err1.log.match" />
     <None Include="err2.log.match" />
-    <None Include="out0.log.match" />
     <None Include="out0w.log.match" />
     <None Include="out1.log.match" />
-    <None Include="out2.log.match" />
     <None Include="out2w.log.match" />
     <None Include="README" />
     <None Include="TEST0w.ps1" />
     <None Include="TEST1.ps1" />
-    <None Include="TEST2w.ps1" />
+    <None Include="TEST2w.PS1" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{A38EFCDB-53D6-4474-97F3-0DDC6CE70D76}</ProjectGuid>

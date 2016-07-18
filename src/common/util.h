@@ -41,6 +41,7 @@
 #include <stdint.h>
 
 extern unsigned long long Pagesize;
+extern unsigned long long Mmap_align;
 
 /*
  * overridable names for malloc & friends used by this library

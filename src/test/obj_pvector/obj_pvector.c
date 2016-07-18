@@ -139,5 +139,7 @@ main(int argc, char *argv[])
 
 	pvector_delete(ctx);
 
+	pmemobj_close(pop);
+
 	DONE(NULL);
 }

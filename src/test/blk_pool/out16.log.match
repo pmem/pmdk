@@ -1,4 +1,4 @@
 blk_pool$(nW)TEST16: START: blk_pool
  $(nW)blk_pool$(nW) c $(nW)testset 100 0 0600
-$(nW)testset: pmemblk_create: Operation not supported
+$(nW)testset: pmemblk_create: $(*)
 blk_pool$(nW)TEST16: Done

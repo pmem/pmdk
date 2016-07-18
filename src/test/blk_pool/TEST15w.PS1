@@ -56,17 +56,15 @@ setup
 #
 # TEST15 non-existing file, poolsize >= min required size, bsize > min bsize
 #        (pool set)
-#
-# XXX need to figure out issues with mapping poolsets with windows
 
-echo "XXX" > out15w.log
+# XXX - implement support for providing size with K/M/G units
 
-#create_poolset $DIR\testset 20M:$DIR\testfile1:x 20M:$DIR\testfile2:x
+create_poolset $DIR\testset 20971520:$DIR\testfile1:x 20971520:$DIR\testfile2:x
 
-#expect_normal_exit ..\..\x64\debug\blk_pool$Env:EXESUFFIX `
-#    c $DIR\testset 100 0 0640
+expect_normal_exit ..\..\x64\debug\blk_pool$Env:EXESUFFIX `
+    c $DIR\testset 100 0 0640
 
-#check_files $DIR\testset $DIR\testfile1 $DIR\testfile2
+check_files $DIR\testset $DIR\testfile1 $DIR\testfile2
 
 # check will print the appropriate pass/fail message
 check

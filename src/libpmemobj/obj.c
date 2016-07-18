@@ -143,7 +143,7 @@ obj_init(void)
 {
 	LOG(3, NULL);
 
-	COMPILE_ERROR_ON(sizeof(struct pmemobjpool) != 8192);
+	COMPILE_ERROR_ON(sizeof(struct pmemobjpool) != POOL_HDR_SIZE + 4096);
 
 #ifdef USE_COW_ENV
 	char *env = getenv("PMEMOBJ_COW");
@@ -311,7 +311,7 @@ obj_norep_drain(PMEMobjpool *pop)
 	pop->drain_local();
 }
 
-static void pmemobj_cleanup(PMEMobjpool *pop);
+static void obj_pool_cleanup(PMEMobjpool *pop);
 
 /*
  * obj_handle_remote_persist_error -- (internal) handle remote persist
@@ -323,7 +323,7 @@ obj_handle_remote_persist_error(PMEMobjpool *pop)
 	LOG(1, "pop %p", pop);
 
 	ERR("error clean up...");
-	pmemobj_cleanup(pop);
+	obj_pool_cleanup(pop);
 
 	FATAL("Fatal error of remote persist. Aborting...");
 }
@@ -1045,6 +1045,8 @@ pmemobj_create(const char *path, const char *layout, size_t poolsize,
 			rep->replica = set->replica[r + 1]->part[0].addr;
 	}
 
+	pop->set = set;
+
 	/* create pool descriptor */
 	if (pmemobj_descr_create(pop, layout, set->poolsize) != 0) {
 		LOG(2, "creation of pool descriptor failed");
@@ -1062,10 +1064,6 @@ pmemobj_create(const char *path, const char *layout, size_t poolsize,
 
 	if (util_poolset_chmod(set, mode))
 		goto err;
-
-	util_poolset_fdclose(set);
-
-	util_poolset_free(set);
 
 	LOG(3, "pop %p", pop);
 
@@ -1261,6 +1259,8 @@ pmemobj_open_common(const char *path, const char *layout, int cow, int boot)
 			rep->replica = set->replica[r + 1]->part[0].addr;
 	}
 
+	pop->set = set;
+
 	if (boot) {
 		/* check consistency of 'master' replica */
 		if (pmemobj_check_basic(pop) == 0) {
@@ -1320,9 +1320,6 @@ pmemobj_open_common(const char *path, const char *layout, int cow, int boot)
 		goto err;
 	}
 
-	util_poolset_fdclose(set);
-	util_poolset_free(set);
-
 #ifdef USE_VG_MEMCHECK
 	if (boot)
 		pmemobj_vg_boot(pop);
@@ -1354,25 +1351,21 @@ pmemobj_open(const char *path, const char *layout)
 }
 
 /*
- * pmemobj_unmap_replicas -- (internal) unmap all the local replicas,
- *                           close remote ones and free their headers
+ * obj_replicas_cleanup -- (internal) free resources allocated for replicas
  */
 static void
-pmemobj_unmap_replicas(PMEMobjpool *pop)
+obj_replicas_cleanup(struct pool_set *set)
 {
-	LOG(3, "pop %p", pop);
+	LOG(3, "set %p", set);
 
-	while (pop) {
-		PMEMobjpool *next_replica = pop->replica;
+	for (unsigned r = 0; r < set->nreplicas; r++) {
+		struct pool_replica *rep = set->replica[r];
 
+		PMEMobjpool *pop = rep->part[0].addr;
 		redo_log_config_delete(pop->redo);
 
-		if (pop->remote == NULL) {
-			VALGRIND_REMOVE_PMEM_MAPPING(pop->addr, pop->size);
-			util_unmap(pop->addr, pop->size);
-		} else {
+		if (pop->remote != NULL) {
 			LOG(4, "closing remote replica %p", pop->remote);
-			util_pool_close_remote(pop->remote);
 			pop->remote = NULL;
 
 			Free(pop->node_addr);
@@ -1381,16 +1374,14 @@ pmemobj_unmap_replicas(PMEMobjpool *pop)
 			LOG(4, "freeing remote pool's header %p", pop->addr);
 			Free(pop->addr);
 		}
-		pop = next_replica;
 	}
-	util_remote_unload();
 }
 
 /*
- * pmemobj_cleanup -- (internal) cleanup the pool and unmap
+ * obj_pool_cleanup -- (internal) cleanup the pool and unmap
  */
 static void
-pmemobj_cleanup(PMEMobjpool *pop)
+obj_pool_cleanup(PMEMobjpool *pop)
 {
 	LOG(3, "pop %p", pop);
 
@@ -1400,7 +1391,9 @@ pmemobj_cleanup(PMEMobjpool *pop)
 
 	VALGRIND_DO_DESTROY_MEMPOOL(pop);
 
-	pmemobj_unmap_replicas(pop);
+	/* unmap all the replicas */
+	obj_replicas_cleanup(pop->set);
+	util_poolset_close(pop->set, 0);
 }
 
 /*
@@ -1440,7 +1433,7 @@ pmemobj_close(PMEMobjpool *pop)
 
 #endif /* _WIN32 */
 
-	pmemobj_cleanup(pop);
+	obj_pool_cleanup(pop);
 }
 
 /*
@@ -1470,9 +1463,11 @@ pmemobj_check(const char *path, const char *layout)
 	}
 
 	if (consistent) {
-		pmemobj_cleanup(pop);
+		obj_pool_cleanup(pop);
 	} else {
-		pmemobj_unmap_replicas(pop);
+		/* unmap all the replicas */
+		obj_replicas_cleanup(pop->set);
+		util_poolset_close(pop->set, 0);
 	}
 
 	if (consistent)

@@ -40,8 +40,8 @@ Param(
     $DIR = ""
     )
 
-$Env:UNITTEST_NAME = "blk_pool\TEST29w"
-$Env:UNITTEST_NUM = "29w"
+$Env:UNITTEST_NAME = "blk_pool\TEST29"
+$Env:UNITTEST_NUM = "29"
 # XXX:  bash has a few calls to tools that we don't have on
 # windows (yet) that set PMEM_IS_PMEM and NON_PMEM_IS_PMEM based
 # on their output
@@ -57,15 +57,16 @@ setup
 # TEST29 existing file, file size >= min required size, bsize == 300
 #        (pool set)
 #
-# XXX fix one we figure out windows poolsets
-echo "XXX" > out29w.log
-#create_poolset $DIR\testset 20M:$DIR\testfile1 20M:$DIR\testfile2
 
-#expect_normal_exit ..\..\x64\debug\blk_pool$Env:EXESUFFIX `
-#    c $DIR\testset 300 20 0640
+# XXX - implement support for providing size with K/M/G units
 
-#expect_normal_exit ..\..\x64\debug\blk_pool$Env:EXESUFFIX `
-#    o $DIR\testset 300
+create_poolset $DIR\testset 20971520:$DIR\testfile1 20971520:$DIR\testfile2
+
+expect_normal_exit ..\..\x64\debug\blk_pool$Env:EXESUFFIX `
+    c $DIR\testset 300 0 0600
+
+expect_normal_exit ..\..\x64\debug\blk_pool$Env:EXESUFFIX `
+    o $DIR\testset 300
 
 # check will print the appropriate pass/fail message
 check

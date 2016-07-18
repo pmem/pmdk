@@ -436,6 +436,7 @@ pmemblk_create(const char *path, size_t bsize, size_t poolsize,
 
 	pbp->addr = pbp;
 	pbp->size = rep->repsize;
+	pbp->set = set;
 
 	if (set->nreplicas > 1) {
 		errno = ENOTSUP;
@@ -457,10 +458,6 @@ pmemblk_create(const char *path, size_t bsize, size_t poolsize,
 
 	if (util_poolset_chmod(set, mode))
 		goto err;
-
-	util_poolset_fdclose(set);
-
-	util_poolset_free(set);
 
 	LOG(3, "pbp %p", pbp);
 	return pbp;
@@ -509,6 +506,7 @@ pmemblk_open_common(const char *path, size_t bsize, int cow)
 
 	pbp->addr = pbp;
 	pbp->size = rep->repsize;
+	pbp->set = set;
 
 	if (set->nreplicas > 1) {
 		errno = ENOTSUP;
@@ -527,10 +525,6 @@ pmemblk_open_common(const char *path, size_t bsize, int cow)
 		ERR("pool initialization failed");
 		goto err;
 	}
-
-	util_poolset_fdclose(set);
-
-	util_poolset_free(set);
 
 	LOG(3, "pbp %p", pbp);
 	return pbp;
@@ -574,8 +568,7 @@ pmemblk_close(PMEMblkpool *pbp)
 	pthread_mutex_destroy(&pbp->write_lock);
 #endif
 
-	VALGRIND_REMOVE_PMEM_MAPPING(pbp->addr, pbp->size);
-	util_unmap(pbp->addr, pbp->size);
+	util_poolset_close(pbp->set, 0);
 }
 
 /*
