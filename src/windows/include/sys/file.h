@@ -51,4 +51,6 @@
 
 int flock(int fd, int operation);
 
+int ftruncate(int fd, off_t length);
+
 #endif /* SYS_FILE_H */

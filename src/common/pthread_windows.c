@@ -57,6 +57,8 @@
 #include <time.h>
 #include <sys/types.h>
 #include <sys/timeb.h>
+#include "util.h"
+#include "out.h"
 
 int
 pthread_mutexattr_init(pthread_mutexattr_t *attr)
@@ -396,4 +398,90 @@ void *
 pthread_getspecific(pthread_key_t key)
 {
 	return TlsGetValue(key);
+}
+
+/* threading */
+pthread_once_t Pthread_self_index_initialized;
+DWORD Pthread_self_index;
+
+/*
+ * pthread_init is called once before the first POSIX thread is spawned i.e.
+ * before the start_routine of the first POSIX thread is executed.  Here
+ * we make sure:
+ *
+ *  - we have an entry allocated in thread local storage, where we will store
+ *    the address of the pthread_v structure for each thread
+ */
+void
+pthread_init(void)
+{
+	Pthread_self_index = TlsAlloc();
+	if (Pthread_self_index == TLS_OUT_OF_INDEXES)
+		abort();
+}
+
+/*
+ * pthread_start_routine_wrapper is a start routine for _beginthreadex() and
+ * it helps:
+ *
+ *  - wrap the pthread_create's start function
+ *  - do the necessary initialization for POSIX threading implementation
+ */
+unsigned __stdcall
+pthread_start_routine_wrapper(void *arg)
+{
+	pthread_t thread_info = (pthread_info *)arg;
+
+	pthread_once(&Pthread_self_index_initialized, pthread_init);
+	TlsSetValue(Pthread_self_index, thread_info);
+
+	thread_info->result = thread_info->start_routine(thread_info->arg);
+
+	return 0;
+}
+
+int
+pthread_create(pthread_t *thread, const pthread_attr_t *attr,
+	void *(*start_routine)(void *), void *arg)
+{
+	pthread_info *thread_info;
+
+	ASSERT(attr == NULL);
+
+	if ((thread_info = malloc(sizeof(pthread_info))) == NULL)
+		return EAGAIN;
+
+	thread_info->start_routine = start_routine;
+	thread_info->arg = arg;
+
+	thread_info->thread_handle = (HANDLE)_beginthreadex(NULL, 0,
+		pthread_start_routine_wrapper, thread_info, CREATE_SUSPENDED,
+		NULL);
+	if (thread_info->thread_handle == 0) {
+		free(thread_info);
+		return errno;
+	}
+
+	if (ResumeThread(thread_info->thread_handle) == -1) {
+		free(thread_info);
+		return EAGAIN;
+	}
+
+	*thread = (pthread_t)thread_info;
+
+	return 0;
+}
+
+int
+pthread_join(pthread_t thread, void **result)
+{
+	WaitForSingleObject(thread->thread_handle, INFINITE);
+	CloseHandle(thread->thread_handle);
+
+	if (result != NULL)
+		*result = thread->result;
+
+	free(thread);
+
+	return 0;
 }

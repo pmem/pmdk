@@ -82,12 +82,12 @@ check(unsigned char *buf)
 static void *
 worker(void *arg)
 {
-	long mytid = (long)arg;
+	long mytid = (long)(intptr_t)arg;
 	unsigned myseed = Seed + mytid;
-	unsigned char buf[Bsize];
+	unsigned char *buf = MALLOC(Bsize);
 	int ord = 1;
 
-	for (int i = 0; i < Nops; i++) {
+	for (unsigned i = 0; i < Nops; i++) {
 		off_t lba = rand_r(&myseed) % Nblock;
 
 		if (rand_r(&myseed) % 2) {
@@ -103,6 +103,8 @@ worker(void *arg)
 				UT_OUT("!write     lba %zu", lba);
 		}
 	}
+
+	FREE(buf);
 
 	return NULL;
 }
@@ -131,16 +133,17 @@ main(int argc, char *argv[])
 
 	UT_OUT("%s block size %zu usable blocks %zu", argv[1], Bsize, Nblock);
 
-	pthread_t threads[Nthread];
+	pthread_t *threads = MALLOC(Nthread * sizeof(pthread_t));
 
 	/* kick off nthread threads */
-	for (int i = 0; i < Nthread; i++)
-		PTHREAD_CREATE(&threads[i], NULL, worker, (void *)(long)i);
+	for (unsigned i = 0; i < Nthread; i++)
+		PTHREAD_CREATE(&threads[i], NULL, worker, (void *)(intptr_t)i);
 
 	/* wait for all the threads to complete */
-	for (int i = 0; i < Nthread; i++)
+	for (unsigned i = 0; i < Nthread; i++)
 		PTHREAD_JOIN(threads[i], NULL);
 
+	FREE(threads);
 	pmemblk_close(Handle);
 
 	/* XXX not ready to pass this part of the test yet */
