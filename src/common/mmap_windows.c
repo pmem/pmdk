@@ -1,6 +1,6 @@
 /*
  * Copyright 2015-2016, Intel Corporation
- * Copyright 2015, Microsoft Corporation
+ * Copyright (c) Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -51,8 +51,11 @@ util_map_hint(size_t len, size_t req_align)
 	/*
 	 * XXX - for large mappings, we can end up with error
 	 * ERROR_COMMITMENT_LIMIT (0x5AF) - The paging file is too small
-	 * for this operation to complete.
-	 * Need to find an equivalent of Linux memory overcommit feature.
+	 * for this operation to complete.  So we should use VirtualAlloc(
+	 * MEM_RESERVE) to see if the virtual address is available.
+	 *
+	 * XXX - Windows doesn't support large DAX pages yet, so there is
+	 * no point in aligning for the same.
 	 */
 
 	/* choose the desired alignment based on the requested length */
