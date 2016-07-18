@@ -1,5 +1,6 @@
 #
 # Copyright 2015-2016, Intel Corporation
+# Copyright (c) Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -54,10 +55,8 @@ require_fs_type any
 
 setup
 
-# XXX - implement support for providing size with K/M/G units
-
-create_poolset $DIR\testset1 67108864:$DIR\testfile11:x
-create_poolset $DIR\testset2 67108864:$DIR\testfile21:x 67108864:$DIR\testfile22:x
+create_poolset $DIR\testset1 64M:$DIR\testfile11:x
+create_poolset $DIR\testset2 64M:$DIR\testfile21:x 64M:$DIR\testfile22:x
 
 expect_normal_exit $Env:EXE_DIR\blk_nblock$Env:EXESUFFIX `
     512:$DIR\testset1 `

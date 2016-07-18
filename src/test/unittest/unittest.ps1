@@ -1,5 +1,6 @@
 #
 # Copyright 2015-2016, Intel Corporation
+# Copyright (c) Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -56,6 +57,68 @@ function getLineCount {
     $buff = New-Object IO.StreamReader $args[0]
     while ($buff.ReadLine() -ne $null){ $numLines++ }
     return $numLines
+}
+
+#
+# convert_to_bytes -- converts the string with K, M, G or T suffixes
+# to bytes
+#
+# example:
+#   "1G" --> "1073741824"
+#   "2T" --> "2199023255552"
+#   "3k" --> "3072"
+#   "1K" --> "1024"
+#   "10" --> "10"
+#
+
+function convert_to_bytes() {
+
+    param([string]$size)
+
+    if ($size.ToLower().EndsWith("kib")) {
+        $size = [int64]($size.Substring(0, $size.Length - 3)) * 1kb
+    } elseif ($size.ToLower().EndsWith("mib")) {
+        $size = [int64]($size.Substring(0, $size.Length - 3)) * 1mb
+    } elseif ($size.ToLower().EndsWith("gib")) {
+        $size = [int64]($size.Substring(0, $size.Length - 3)) * 1gb
+    } elseif ($size.ToLower().EndsWith("tib")) {
+        $size = [int64]($size.Substring(0, $size.Length - 3)) * 1tb
+    } elseif ($size.ToLower().EndsWith("pib")) {
+        $size = [int64]($size.Substring(0, $size.Length - 3)) * 1pb
+    } elseif ($size.ToLower().EndsWith("kb")) {
+        $size = [int64]($size.Substring(0, $size.Length - 2)) * 1000
+    } elseif ($size.ToLower().EndsWith("mb")) {
+        $size = [int64]($size.Substring(0, $size.Length - 2)) * 1000 * 1000
+    } elseif ($size.ToLower().EndsWith("gb")) {
+        $size = [int64]($size.Substring(0, $size.Length - 2)) * 1000 * 1000 * 1000
+    } elseif ($size.ToLower().EndsWith("tb")) {
+        $size = [int64]($size.Substring(0, $size.Length - 2)) * 1000 * 1000 * 1000 * 1000
+    } elseif ($size.ToLower().EndsWith("pb")) {
+        $size = [int64]($size.Substring(0, $size.Length - 2)) * 1000 * 1000 * 1000 * 1000 * 1000
+    } elseif ($size.ToLower().EndsWith("b")) {
+        $size = [int64]($size.Substring(0, $size.Length - 1))
+    } elseif ($size.ToLower().EndsWith("k")) {
+        $size = [int64]($size.Substring(0, $size.Length - 1)) * 1kb
+    } elseif ($size.ToLower().EndsWith("m")) {
+        $size = [int64]($size.Substring(0, $size.Length - 1)) * 1mb
+    } elseif ($size.ToLower().EndsWith("g")) {
+        $size = [int64]($size.Substring(0, $size.Length - 1)) * 1gb
+    } elseif ($size.ToLower().EndsWith("t")) {
+        $size = [int64]($size.Substring(0, $size.Length - 1)) * 1tb
+    } elseif ($size.ToLower().EndsWith("p")) {
+        $size = [int64]($size.Substring(0, $size.Length - 1)) * 1pb
+    } elseif (($size -match "^[0-9]*$") -and ([int64]$size -gt 1023)) {
+        #
+        # Because powershell converts 1kb to 1024, and we convert it to 1000, we
+        # catch byte values greater than 1023 to be suspicious that caller might
+        # not be aware of the silent conversion by powershell.  If the caller
+        # knows what she is doing, she can always append 'b' to the number.
+        #
+        Write-Error "Error suspicious byte value to convert_to_bytes"
+        exit 1
+    }
+
+    return $size
 }
 
 #
@@ -221,8 +284,8 @@ function create_poolset {
         # as a delimeter in the arguement
 
         $driveLetter = ""
-        if ($cmd -match "([a-zA-Z]):\\\\") {
-            $tmp = ($cmd.Split("{:\\\\}",2,[System.StringSplitOptions]::RemoveEmptyEntries))
+        if ($cmd -match ":([a-zA-Z]):\\") {
+            $tmp = ($cmd.Split("{:\\}",2,[System.StringSplitOptions]::RemoveEmptyEntries))
             $cmd = $tmp[0] + ":" + $tmp[1].SubString(2)
             $driveLetter = $tmp[1].SubString(0,2)
         }
@@ -246,9 +309,7 @@ function create_poolset {
             $asize = $fsize
         }
 
-         # XXX - do not assume size is in megabytes
-         #[int64] $asize *= 1024 * 1024
-         #[int64] $fsize *= 1024 * 1024
+        $asize = convert_to_bytes($asize)
 
         switch -regex ($cmd) {
             # do nothing
@@ -369,6 +430,7 @@ function check_pools {
 #
 function require_unlimited_vm {
     Write-Host "${Env:UNITTEST_NAME}: SKIP required: overcommit_memory enabled and unlimited virtual memory"
+    exit 0
 }
 
 #
@@ -377,7 +439,7 @@ function require_unlimited_vm {
 # XXX: not sure how to translate
 #
 function require_no_superuser {
-    Write-Host "${Env:UNITTEST_NAME}: SKIP required: run without superuser rightsy"
+    Write-Host "${Env:UNITTEST_NAME}: SKIP required: run without superuser rights"
     exit 0
 }
 
@@ -480,7 +542,7 @@ function check {
         $pinfo.RedirectStandardOutput = $true
         $pinfo.UseShellExecute = $false
         $pinfo.Arguments = "..\..\..\src\test\match $listing"
-        $pinfo.WorkingDirectory = pwd
+        $pinfo.WorkingDirectory = $PWD
         $p = New-Object System.Diagnostics.Process
         $p.StartInfo = $pinfo
         $p.Start() | Out-Null
