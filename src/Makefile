@@ -56,20 +56,7 @@ HEADERS_INSTALL = include/libpmem.h include/libvmem.h\
 		include/libpmemblk.h include/libpmemlog.h\
 		include/libvmmalloc.h
 
-OBJ_HEADERS_INSTALL=\
-		include/libpmemobj/atomic_base.h\
-		include/libpmemobj/atomic.h\
-		include/libpmemobj/base.h\
-		include/libpmemobj/iterator_base.h\
-		include/libpmemobj/iterator.h\
-		include/libpmemobj/lists_atomic_base.h\
-		include/libpmemobj/lists_atomic.h\
-		include/libpmemobj/pool_base.h\
-		include/libpmemobj/pool.h\
-		include/libpmemobj/thread.h\
-		include/libpmemobj/tx_base.h\
-		include/libpmemobj/tx.h\
-		include/libpmemobj/types.h
+OBJ_HEADERS_INSTALL = include/libpmemobj/*.h
 
 CPP_HEADERS_DESTDIR = $(DESTDIR)$(includedir)/libpmemobj++
 
