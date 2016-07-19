@@ -1365,14 +1365,13 @@ obj_replicas_cleanup(struct pool_set *set)
 		redo_log_config_delete(pop->redo);
 
 		if (pop->rpp != NULL) {
-			LOG(4, "closing remote replica %p", pop->rpp);
+			/*
+			 * remote replica will be closed in util_poolset_close
+			 */
 			pop->rpp = NULL;
 
 			Free(pop->node_addr);
 			Free(pop->pool_desc);
-
-			LOG(4, "freeing remote pool's header %p", pop->addr);
-			Free(pop->addr);
 		}
 	}
 }
