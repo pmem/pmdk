@@ -496,8 +496,8 @@ main(int argc, char *argv[])
 err:
 err_status:
 err_db_init:
-	free(rpmemd);
 err_nthreads:
+	free(rpmemd);
 err_rpmemd:
 	rpmemd_obc_fini(obc);
 err_obc:
