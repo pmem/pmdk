@@ -30,8 +30,10 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifdef BUILD_MAIN
 int
 main()
 {
 	return 0;
 }
+#endif
