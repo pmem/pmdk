@@ -278,7 +278,6 @@ constructor_tx_add_range(PMEMobjpool *pop, void *ptr,
 				+ OBJ_OOB_SIZE);
 
 	oobh->size = OBJ_INTERNAL_OBJECT_MASK;
-	pop->flush(pop, &oobh->size, sizeof(oobh->size));
 
 	range->offset = args->offset;
 	range->size = args->size;
@@ -630,16 +629,14 @@ tx_pre_commit_alloc(PMEMobjpool *pop, struct tx_undo_runtime *tx_rt)
 		struct oob_header *oobh = OOB_HEADER_FROM_OFF(pop, offset);
 		SET_TX_VAR(pop, oobh->undo_entry_offset, 0);
 
-		size_t size = pmalloc_usable_size(pop, offset);
-		pop->flush(pop, oobh, size);
-
 		/*
-		 * The first few bytes of the oobh are unused and double as
-		 * an object guard which will cause valgrind to issue an error
-		 * whenever the unused memory is accessed.
+		 * Flush the entire object with the exception of the unused part
+		 * of the OOB header. This code is very reliant on the object
+		 * header layout so be careful when modifying.
 		 */
-		VALGRIND_DO_MAKE_MEM_NOACCESS(pop, oobh->unused,
-			sizeof(oobh->unused));
+		size_t size = pmalloc_usable_size(pop, offset) -
+			sizeof(oobh->unused);
+		pop->flush(pop, &oobh->undo_entry_offset, size);
 	}
 }
 

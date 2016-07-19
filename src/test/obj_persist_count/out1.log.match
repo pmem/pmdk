@@ -3,7 +3,7 @@ obj_persist_count/TEST1: START: obj_persist_count
 persist	;msync	;flush	;drain	;task
 6	;2	;0	;0	;pool_create
 6	;0	;1	;0	;root_alloc
-2	;0	;1	;1	;atomic_alloc
+2	;0	;0	;0	;atomic_alloc
 1	;0	;0	;0	;atomic_free
 9	;0	;2	;1	;tx_alloc
 8	;0	;2	;1	;tx_alloc_next

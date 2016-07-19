@@ -85,7 +85,6 @@ alloc_write_header(PMEMobjpool *pop, struct allocation_header *alloc,
 	alloc->size = size;
 	alloc->zone_id = m.zone_id;
 	VALGRIND_REMOVE_FROM_TX(alloc, sizeof(*alloc));
-	pop->persist(pop, alloc, sizeof(*alloc));
 }
 
 /*
@@ -194,8 +193,7 @@ alloc_prep_block(PMEMobjpool *pop, struct memory_block m,
 	pmalloc_constr constructor, void *arg, uint64_t *offset_value)
 {
 	void *block_data = heap_get_block_data(pop, m);
-	void *datap = (char *)block_data + sizeof(struct allocation_header);
-	void *userdatap = (char *)datap + DATA_OFF;
+	void *userdatap = (char *)block_data + ALLOC_OFF;
 
 	uint64_t unit_size = MEMBLOCK_OPS(AUTO, &m)->block_size(&m,
 		pop->hlayout);
@@ -225,8 +223,33 @@ alloc_prep_block(PMEMobjpool *pop, struct memory_block m,
 		VALGRIND_DO_MEMPOOL_FREE(pop, userdatap);
 		VALGRIND_DO_MAKE_MEM_NOACCESS(pop, block_data, ALLOC_OFF);
 
+		/*
+		 * During this method there are several stores to pmem that are
+		 * not immediately flushed and in case of a cancelation those
+		 * stores are no longer relevant anyway.
+		 */
+		VALGRIND_SET_CLEAN(block_data, ALLOC_OFF);
+
 		return ret;
 	}
+
+	/* flushes both the alloc and oob headers */
+	pop->persist(pop, block_data, ALLOC_OFF);
+
+#ifdef USE_VG_MEMCHECK
+	if (On_valgrind) {
+		struct oob_header *pobj = (struct oob_header *)
+			((char *)block_data + sizeof(struct allocation_header));
+
+		/*
+		 * The first few bytes of the oobh are unused and double as
+		 * an object guard which will cause valgrind to issue an error
+		 * whenever the unused memory is accessed.
+		 */
+		VALGRIND_DO_MAKE_MEM_NOACCESS(pop, pobj->unused,
+			sizeof(pobj->unused));
+	}
+#endif
 
 	/*
 	 * To avoid determining the user data pointer twice this method is also
@@ -235,7 +258,6 @@ alloc_prep_block(PMEMobjpool *pop, struct memory_block m,
 	 * caller.
 	 */
 	*offset_value = OBJ_PTR_TO_OFF(pop, userdatap);
-
 
 	return ret;
 }
