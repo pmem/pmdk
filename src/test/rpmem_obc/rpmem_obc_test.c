@@ -71,8 +71,6 @@ static struct test_case test_cases[] = {
 int
 main(int argc, char *argv[])
 {
-	base64_init();
-
 	START(argc, argv, "rpmem_obc");
 	common_init("rpmem_obc",
 		"RPMEM_LOG_LEVEL",

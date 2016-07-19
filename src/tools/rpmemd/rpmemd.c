@@ -50,7 +50,6 @@
 #include "rpmemd_fip.h"
 #include "rpmemd_obc.h"
 #include "rpmemd_db.h"
-#include "base64.h"
 #include "pool_hdr.h"
 #include "util.h"
 
@@ -415,7 +414,6 @@ main(int argc, char *argv[])
 {
 	int ret;
 	util_init();
-	base64_init();
 
 	struct rpmemd_config config;
 	rpmemd_log_init(DAEMON_NAME, NULL, 0);

@@ -49,7 +49,6 @@
 #include "rpmem_common.h"
 #include "rpmem_proto.h"
 #include "rpmem_common_log.h"
-#include "base64.h"
 
 /*
  * rpmem_xwrite -- send entire buffer or fail
@@ -109,52 +108,6 @@ rpmem_xread(int fd, void *buf, size_t len, int flags)
 
 	return 0;
 }
-
-/*
- * rpmemd_b64_read -- read entire buffer or fail, decode using base64
- */
-int
-rpmem_b64_read(int fd, void *buff, size_t len, int flags)
-{
-	int ret;
-
-	size_t b64_len;
-	void *b64_buff = base64_buff(len, &b64_len);
-	if (!b64_buff)
-		return -1;
-
-	ret = rpmem_xread(fd, b64_buff, b64_len, flags);
-	if (!ret)
-		ret = base64_decode(b64_buff, b64_len, buff, len);
-
-	free(b64_buff);
-
-	return ret;
-}
-
-/*
- * rpmemd_b64_write -- write entire buffer or fail, encode using base64
- */
-int
-rpmem_b64_write(int fd, const void *buff, size_t len, int flags)
-{
-	int ret;
-
-	size_t b64_len;
-	void *b64_buff = base64_buff(len, &b64_len);
-	if (!b64_buff)
-		return -1;
-	ret = base64_encode(buff, len, b64_buff, b64_len);
-	if (ret)
-		return ret;
-
-	ret = rpmem_xwrite(fd, b64_buff, b64_len, flags);
-
-	free(b64_buff);
-
-	return ret;
-}
-
 
 static const char *provider2str[MAX_RPMEM_PROV] = {
 	[RPMEM_PROV_LIBFABRIC_VERBS] = "verbs",

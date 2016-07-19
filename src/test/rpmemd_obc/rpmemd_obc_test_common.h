@@ -42,7 +42,6 @@
 #include "rpmem_ssh.h"
 #include "rpmemd_log.h"
 #include "rpmemd_obc.h"
-#include "base64.h"
 
 #define PORT		1234
 #define RKEY		0x0123456789abcdef

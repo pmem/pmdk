@@ -50,8 +50,7 @@ OBJS = rpmem_fip_test.o\
        rpmem_fip_common.o\
        rpmemd_fip_worker.o\
        rpmemd_obc.o\
-       rpmemd_log.o\
-       base64.o
+       rpmemd_log.o
 
 endif
 

@@ -43,7 +43,6 @@
 #include "rpmem_common.h"
 #include "rpmem_util.h"
 #include "rpmem_obc.h"
-#include "base64.h"
 
 #define POOL_SIZE	1024
 #define NLANES		32

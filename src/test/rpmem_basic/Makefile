@@ -42,8 +42,7 @@ ifeq ($(BUILD_RPMEM), y)
 TARGET = rpmem_basic
 OBJS = rpmem_basic.o\
        rpmem_fip_common.o\
-       rpmem_common.o\
-       base64.o
+       rpmem_common.o
 
 LIBRPMEM=y
 LIBPMEM=y

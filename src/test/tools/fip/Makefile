@@ -40,7 +40,7 @@ vpath %.c $(TOP)/src/rpmem_common/
 ifeq ($(BUILD_RPMEM),y)
 TARGET = fip
 
-OBJS = fip.o rpmem_fip_common.o rpmem_common.o base64.o
+OBJS = fip.o rpmem_fip_common.o rpmem_common.o
 
 else
 $(info NOTE: Skipping fip because libfabric is missing \

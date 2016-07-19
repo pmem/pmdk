@@ -45,7 +45,6 @@
 #include "rpmem_obc.h"
 #include "rpmemd_obc.h"
 #include "rpmemd_log.h"
-#include "base64.h"
 
 #define POOL_SIZE	1024
 #define NLANES		32
@@ -325,7 +324,6 @@ static struct test_case test_cases[] = {
 int
 main(int argc, char *argv[])
 {
-	base64_init();
 	START(argc, argv, "rpmem_obc");
 	common_init("rpmem_fip",
 		"RPMEM_LOG_LEVEL",
