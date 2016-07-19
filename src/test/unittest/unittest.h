@@ -116,7 +116,11 @@ extern "C" {
 #include <libpmempool.h>
 #include <libvmem.h>
 
+int ut_get_uuid_str(char *);
 #define UT_MAX_ERR_MSG 128
+#define UT_POOL_HDR_UUID_STR_LEN 37 /* uuid string length */
+#define UT_POOL_HDR_UUID_GEN_FILE "/proc/sys/kernel/random/uuid"
+
 /* XXX - fix this temp hack dup'ing util_strerror when we get mock for win */
 void ut_strerror(int errnum, char *buff, size_t bufflen);
 /* XXX - eliminate duplicated definitions in unittest.h and util.h */
