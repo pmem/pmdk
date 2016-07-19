@@ -42,6 +42,18 @@
 #include "unittest.h"
 
 #ifndef _WIN32
+int
+ut_get_uuid_str(char *uu)
+{
+	int fd = OPEN(UT_POOL_HDR_UUID_GEN_FILE, O_RDONLY);
+	size_t num = READ(fd, uu, UT_POOL_HDR_UUID_STR_LEN);
+	UT_ASSERTeq(num, UT_POOL_HDR_UUID_STR_LEN);
+
+	uu[UT_POOL_HDR_UUID_STR_LEN - 1] = '\0';
+	CLOSE(fd);
+	return 0;
+}
+
 /* RHEL5 seems to be missing decls, even though libc supports them */
 extern DIR *fdopendir(int fd);
 extern ssize_t readlinkat(int, const char *restrict, char *__restrict, size_t);
@@ -51,6 +63,21 @@ ut_strerror(int errnum, char *buff, size_t bufflen)
 	strerror_r(errnum, buff, bufflen);
 }
 #else
+#pragma comment(lib, "rpcrt4.lib")
+
+int
+ut_get_uuid_str(char *uuid_str)
+{
+	UUID uuid;
+	char *buff;
+
+	if (UuidCreate(&uuid) == 0)
+		if (UuidToStringA(&uuid, &buff) == RPC_S_OK) {
+			strcpy_s(uuid_str, UT_POOL_HDR_UUID_STR_LEN, buff);
+			return 0;
+		}
+	return -1;
+}
 /* XXX - fix this temp hack dup'ing util_strerror when we get mock for win */
 #define ENOTSUP_STR "Operation not supported"
 #define UNMAPPED_STR "Unmapped error"
