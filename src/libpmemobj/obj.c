@@ -229,7 +229,7 @@ obj_remote_persist(PMEMobjpool *pop, const void *addr, size_t len,
 {
 	LOG(15, "pop %p addr %p len %zu lane %u", pop, addr, len, lane);
 
-	ASSERTne(pop->remote, NULL);
+	ASSERTne(pop->rpp, NULL);
 
 	/*
 	 * The pool header is not visible on remote node from the local host
@@ -238,11 +238,11 @@ obj_remote_persist(PMEMobjpool *pop, const void *addr, size_t len,
 	 */
 	uintptr_t offset = (uintptr_t)addr - pop->pop_desc;
 
-	int rv = Rpmem_persist(pop->remote, offset, len, lane);
+	int rv = Rpmem_persist(pop->rpp, offset, len, lane);
 	if (rv) {
 		ERR("!rpmem_persist(rpp %p offset %zu length %zu lane %u)"
 			" FATAL ERROR (returned value %i)",
-			pop->remote, offset, len, lane, rv);
+			pop->rpp, offset, len, lane, rv);
 		return NULL;
 	}
 
@@ -347,7 +347,7 @@ obj_rep_memcpy_persist(PMEMobjpool *pop, void *dest, const void *src,
 	PMEMobjpool *rep = pop->replica;
 	while (rep) {
 		void *rdest = (char *)rep + (uintptr_t)dest - (uintptr_t)pop;
-		if (rep->remote == NULL) {
+		if (rep->rpp == NULL) {
 			rep->memcpy_persist_local(rdest, src, len);
 		} else {
 			if (rep->persist_remote(rep, rdest, len, lane) == NULL)
@@ -380,7 +380,7 @@ obj_rep_memset_persist(PMEMobjpool *pop, void *dest, int c, size_t len)
 	PMEMobjpool *rep = pop->replica;
 	while (rep) {
 		void *rdest = (char *)rep + (uintptr_t)dest - (uintptr_t)pop;
-		if (rep->remote == NULL) {
+		if (rep->rpp == NULL) {
 			rep->memset_persist_local(rdest, c, len);
 		} else {
 			if (rep->persist_remote(rep, rdest, len, lane) == NULL)
@@ -413,7 +413,7 @@ obj_rep_persist(PMEMobjpool *pop, const void *addr, size_t len)
 	PMEMobjpool *rep = pop->replica;
 	while (rep) {
 		void *raddr = (char *)rep + (uintptr_t)addr - (uintptr_t)pop;
-		if (rep->remote == NULL) {
+		if (rep->rpp == NULL) {
 			rep->memcpy_persist_local(raddr, addr, len);
 		} else {
 			if (rep->persist_remote(rep, raddr, len, lane) == NULL)
@@ -444,7 +444,7 @@ obj_rep_flush(PMEMobjpool *pop, const void *addr, size_t len)
 	PMEMobjpool *rep = pop->replica;
 	while (rep) {
 		void *raddr = (char *)rep + (uintptr_t)addr - (uintptr_t)pop;
-		if (rep->remote == NULL) {
+		if (rep->rpp == NULL) {
 			memcpy(raddr, addr, len);
 			rep->flush_local(raddr, len);
 		} else {
@@ -470,7 +470,7 @@ obj_rep_drain(PMEMobjpool *pop)
 
 	PMEMobjpool *rep = pop->replica;
 	while (rep) {
-		if (rep->remote == NULL)
+		if (rep->rpp == NULL)
 			rep->drain_local();
 		rep = rep->replica;
 	}
@@ -705,7 +705,7 @@ pmemobj_descr_check(PMEMobjpool *pop, const char *layout, size_t poolsize)
 
 	void *dscp = (void *)((uintptr_t)(&pop->hdr) + sizeof(struct pool_hdr));
 
-	if (pop->remote) {
+	if (pop->rpp) {
 		/* read remote descriptor */
 		if (obj_read_remote(pop, dscp, dscp, OBJ_DSC_P_SIZE)) {
 			ERR("!obj_read_remote");
@@ -822,7 +822,7 @@ pmemobj_replica_init_remote(PMEMobjpool *rep, struct pool_set *set,
 		return -1;
 	}
 
-	rep->remote = repset->remote->rpp;
+	rep->rpp = repset->remote->rpp;
 
 	/* pop_desc - beginning of the pool's descriptor */
 	rep->pop_desc = (uintptr_t)rep->addr + sizeof(struct pool_hdr);
@@ -970,10 +970,10 @@ pmemobj_cleanup_remote(PMEMobjpool *pop)
 	LOG(3, "pop %p", pop);
 
 	for (; pop != NULL; pop = pop->replica) {
-		if (pop->remote != NULL) {
+		if (pop->rpp != NULL) {
 			Free(pop->node_addr);
 			Free(pop->pool_desc);
-			pop->remote = NULL;
+			pop->rpp = NULL;
 		}
 	}
 }
@@ -1031,7 +1031,7 @@ pmemobj_create(const char *path, const char *layout, size_t poolsize,
 		rep->addr = rep;
 		rep->size = repset->repsize;
 		rep->replica = NULL;
-		rep->remote = NULL;
+		rep->rpp = NULL;
 
 		/* initialize replica runtime - is_pmem, funcs, ... */
 		if (pmemobj_replica_init(rep, set, r, &runtime_nlanes,
@@ -1088,7 +1088,7 @@ pmemobj_check_basic_local(PMEMobjpool *pop)
 {
 	LOG(3, "pop %p", pop);
 
-	ASSERTeq(pop->remote, NULL);
+	ASSERTeq(pop->rpp, NULL);
 
 	int consistent = 1;
 
@@ -1121,11 +1121,11 @@ obj_read_remote(PMEMobjpool *pop, void *dest, void *addr, size_t length)
 {
 	LOG(3, "pop %p dest %p addr %p length %zu", pop, dest, addr, length);
 
-	ASSERTne(pop->remote, NULL);
+	ASSERTne(pop->rpp, NULL);
 	ASSERT((uintptr_t)addr >= pop->pop_desc);
 
 	uintptr_t offset = (uintptr_t)addr - pop->pop_desc;
-	if (Rpmem_read(pop->remote, dest, offset, length)) {
+	if (Rpmem_read(pop->rpp, dest, offset, length)) {
 		ERR("!rpmem_read");
 		return -1;
 	}
@@ -1142,7 +1142,7 @@ pmemobj_check_basic_remote(PMEMobjpool *pop)
 {
 	LOG(3, "pop %p", pop);
 
-	ASSERTne(pop->remote, NULL);
+	ASSERTne(pop->rpp, NULL);
 
 	int consistent = 1;
 
@@ -1178,7 +1178,7 @@ pmemobj_check_basic(PMEMobjpool *pop)
 {
 	LOG(3, "pop %p", pop);
 
-	if (pop->remote == NULL)
+	if (pop->rpp == NULL)
 		return pmemobj_check_basic_local(pop);
 	else
 		return pmemobj_check_basic_remote(pop);
@@ -1239,7 +1239,7 @@ pmemobj_open_common(const char *path, const char *layout, int cow, int boot)
 		rep->addr = rep;
 		rep->size = repset->repsize;
 		rep->replica = NULL;
-		rep->remote = NULL;
+		rep->rpp = NULL;
 
 		/* initialize replica runtime - is_pmem, funcs, ... */
 		if (pmemobj_replica_init(rep, set, r, &runtime_nlanes,
@@ -1292,7 +1292,7 @@ pmemobj_open_common(const char *path, const char *layout, int cow, int boot)
 			rep = set->replica[r]->part[0].addr;
 			void *dst = (void *)((uintptr_t)rep +
 						pop->lanes_offset);
-			if (rep->remote == NULL) {
+			if (rep->rpp == NULL) {
 				rep->memcpy_persist_local(dst, src, len);
 			} else {
 				if (rep->persist_remote(rep, dst, len,
@@ -1364,9 +1364,9 @@ obj_replicas_cleanup(struct pool_set *set)
 		PMEMobjpool *pop = rep->part[0].addr;
 		redo_log_config_delete(pop->redo);
 
-		if (pop->remote != NULL) {
-			LOG(4, "closing remote replica %p", pop->remote);
-			pop->remote = NULL;
+		if (pop->rpp != NULL) {
+			LOG(4, "closing remote replica %p", pop->rpp);
+			pop->rpp = NULL;
 
 			Free(pop->node_addr);
 			Free(pop->pool_desc);
