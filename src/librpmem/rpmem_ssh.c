@@ -49,9 +49,10 @@
 #include "rpmem_util.h"
 #include "base64.h"
 
-#define ERR_BUFF_SIZE	4096
+#define ERR_BUFF_SIZE	4095
 
-static char error_str[ERR_BUFF_SIZE];
+/* +1 in order to be sure it is always null-terminated */
+static char error_str[ERR_BUFF_SIZE + 1];
 
 struct rpmem_ssh {
 	struct rpmem_cmd *cmd;
