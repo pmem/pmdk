@@ -9,3 +9,4 @@ testfile*
 # ignore static binaries generated for testing
 *.static-debug
 *.static-nondebug
+libs.tar
