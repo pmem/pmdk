@@ -508,7 +508,7 @@ out_log(const char *file, int line, const char *func, int level,
 	va_list ap;
 
 	if (Log_level < level)
-			return;
+		return;
 
 	va_start(ap, fmt);
 	out_common(file, line, func, level, "\n", fmt, ap);

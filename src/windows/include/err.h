@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016, Intel Corporation
+ * Copyright 2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,31 +31,39 @@
  */
 
 /*
- * endian.h -- convert values between host and big-/little-endian byte order
+ * err.h - error and warning messages
  */
 
-#ifndef ENDIAN_H
-#define ENDIAN_H 1
+#ifndef ERR_H
+#define ERR_H 1
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <stdarg.h>
 
 /*
- * On Windows we can assume little-endian archtecture
+ * err - windows implementation of unix err function
  */
-#include <intrin.h>
+static void
+err(int eval, const char *fmt, ...)
+{
+	va_list vl;
+	va_start(vl, fmt);
+	vfprintf(stderr, fmt, vl);
+	va_end(vl);
+	exit(eval);
+}
 
-#define htole16(a) (a)
-#define htole32(a) (a)
-#define htole64(a) (a)
-
-#define le16toh(a) (a)
-#define le32toh(a) (a)
-#define le64toh(a) (a)
-
-#define htobe16(x) _byteswap_ushort(x)
-#define htobe32(x) _byteswap_ulong(x)
-#define htobe64(x) _byteswap_uint64(x)
-
-#define be16toh(x)  _byteswap_ushort(x)
-#define be32toh(x)  _byteswap_ulong(x)
-#define be64toh(x)  _byteswap_uint64(x)
-
-#endif /* ENDIAN_H */
+/*
+ * warn - windows implementation of unix warn function
+ */
+static void
+warn(const char *fmt, ...)
+{
+	va_list vl;
+	va_start(vl, fmt);
+	fprintf(stderr, "Warning: ");
+	vfprintf(stderr, fmt, vl);
+	va_end(vl);
+}
+#endif

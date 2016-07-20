@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016, Intel Corporation
+ * Copyright 2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -30,32 +30,10 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * endian.h -- convert values between host and big-/little-endian byte order
- */
-
-#ifndef ENDIAN_H
-#define ENDIAN_H 1
 
 /*
- * On Windows we can assume little-endian archtecture
+ * elf.h -- fake implementation of ELF macros
  */
-#include <intrin.h>
 
-#define htole16(a) (a)
-#define htole32(a) (a)
-#define htole64(a) (a)
-
-#define le16toh(a) (a)
-#define le32toh(a) (a)
-#define le64toh(a) (a)
-
-#define htobe16(x) _byteswap_ushort(x)
-#define htobe32(x) _byteswap_ulong(x)
-#define htobe64(x) _byteswap_uint64(x)
-
-#define be16toh(x)  _byteswap_ushort(x)
-#define be32toh(x)  _byteswap_ulong(x)
-#define be64toh(x)  _byteswap_uint64(x)
-
-#endif /* ENDIAN_H */
+#define EM_X86_64 PROCESSOR_ARCHITECTURE_AMD64
+#define EM_NUM PROCESSOR_ARCHITECTURE_UNKNOWN

@@ -42,6 +42,7 @@
 #include <getopt.h>
 #include <stdbool.h>
 #include <sys/mman.h>
+#include <endian.h>
 #include "common.h"
 #include "convert.h"
 

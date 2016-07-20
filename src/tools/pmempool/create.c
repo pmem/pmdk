@@ -251,6 +251,7 @@ pmempool_create_log(struct pmempool_create *pcp)
 /*
  * pmempool_get_max_size -- return maximum allowed size of file
  */
+#ifndef _WIN32
 static int
 pmempool_get_max_size(char *fname, uint64_t *sizep)
 {
@@ -268,6 +269,24 @@ pmempool_get_max_size(char *fname, uint64_t *sizep)
 
 	return ret;
 }
+#else
+static int
+pmempool_get_max_size(char *fname, uint64_t *sizep)
+{
+	char *name = strdup(fname);
+	char *dir = dirname(name);
+	int ret = 0;
+	ULARGE_INTEGER freespace;
+	if (GetDiskFreeSpaceExA(dir, &freespace, NULL, NULL))
+		ret = -1;
+	else
+		*sizep = freespace.QuadPart;
+
+	free(name);
+
+	return ret;
+}
+#endif
 
 /*
  * pmempool_create_parse_args -- parse command line args
