@@ -456,7 +456,7 @@ parse_cl_args(int argc, char *argv[], struct rpmemd_config *config,
 		default:
 			if (set_option((enum rpmemd_option)opt, optarg, config)
 					== 0) {
-				*cl_options |= (uint32_t)(1 << opt);
+				*cl_options |= (uint64_t)(1 << opt);
 			} else {
 				print_usage(argv[0]);
 				exit(-1);
