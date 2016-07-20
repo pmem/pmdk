@@ -38,8 +38,8 @@
 
 #include <endian.h>
 #include "unittest.h"
-
 #include "util.h"
+#include <inttypes.h>
 
 /*
  * fletcher64 -- compute a Fletcher64 checksum
@@ -76,7 +76,7 @@ main(int argc, char *argv[])
 	for (int arg = 1; arg < argc; arg++) {
 		int fd = OPEN(argv[arg], O_RDONLY);
 
-		struct stat stbuf;
+		ut_util_stat_t stbuf;
 		FSTAT(fd, &stbuf);
 
 		void *addr =
@@ -131,8 +131,7 @@ main(int argc, char *argv[])
 			 * verify the checksum matched the gold version
 			 */
 			UT_ASSERTeq(csum, gold_csum);
-
-			UT_OUT("%s:%lu 0x%lx", argv[arg],
+			UT_OUT("%s:%" PRIu64 " 0x%" PRIx64, argv[arg],
 				(char *)ptr - (char *)addr, csum);
 
 			ptr++;

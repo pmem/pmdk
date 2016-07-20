@@ -293,6 +293,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmemspoil", "test\tools\pme
 		{492BAA3D-0D5D-478E-9765-500463AE69AA} = {492BAA3D-0D5D-478E-9765-500463AE69AA}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "checksum", "test\checksum\checksum.vcxproj", "{AF0B7480-EBE3-486B-B0C8-134910BC9324}"
+	ProjectSection(ProjectDependencies) = postProject
+		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681} = {CE3F2DFB-8470-4802-AD37-21CAF6CB2681}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -645,6 +650,14 @@ Global
 		{11E158AE-C85A-4A6E-B66A-ED2994709276}.Static-Debug|x64.Build.0 = Static-Debug|x64
 		{11E158AE-C85A-4A6E-B66A-ED2994709276}.Static-Release|x64.ActiveCfg = Release|x64
 		{11E158AE-C85A-4A6E-B66A-ED2994709276}.Static-Release|x64.Build.0 = Release|x64
+		{AF0B7480-EBE3-486B-B0C8-134910BC9324}.Debug|x64.ActiveCfg = Debug|x64
+		{AF0B7480-EBE3-486B-B0C8-134910BC9324}.Debug|x64.Build.0 = Debug|x64
+		{AF0B7480-EBE3-486B-B0C8-134910BC9324}.Release|x64.ActiveCfg = Release|x64
+		{AF0B7480-EBE3-486B-B0C8-134910BC9324}.Release|x64.Build.0 = Release|x64
+		{AF0B7480-EBE3-486B-B0C8-134910BC9324}.Static-Debug|x64.ActiveCfg = Debug|x64
+		{AF0B7480-EBE3-486B-B0C8-134910BC9324}.Static-Debug|x64.Build.0 = Debug|x64
+		{AF0B7480-EBE3-486B-B0C8-134910BC9324}.Static-Release|x64.ActiveCfg = Release|x64
+		{AF0B7480-EBE3-486B-B0C8-134910BC9324}.Static-Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -699,5 +712,6 @@ Global
 		{9186EAC4-2F34-4F17-B940-6585D7869BCD} = {95FAF291-03D1-42FC-9C10-424D551D475D}
 		{779425B1-2211-499B-A7CC-4F9EC6CB0D25} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 		{11E158AE-C85A-4A6E-B66A-ED2994709276} = {F09A0864-9221-47AD-872F-D4538104D747}
+		{AF0B7480-EBE3-486B-B0C8-134910BC9324} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 	EndGlobalSection
 EndGlobal
