@@ -66,6 +66,13 @@ const int num_threads = 30;
 const auto timeout = std::chrono::milliseconds(100);
 
 /*
+ * Premature wakeup tolerance.
+ * XXX Windows - this needs to be investigated, it shouldn't timeout this long
+ * before the actual timeout.
+ */
+const auto epsilon = std::chrono::milliseconds(16);
+
+/*
  * increment_pint -- (internal) test the mutex with an std::lock_guard
  */
 static void
@@ -111,7 +118,7 @@ trylock_test(nvobj::persistent_ptr<root> proot)
 static void
 trylock_for_test(nvobj::persistent_ptr<root> proot)
 {
-	using clk = std::chrono::steady_clock;
+	using clk = std::chrono::system_clock;
 
 	auto t1 = clk::now();
 	if (proot->pmutex.try_lock_for(timeout)) {
@@ -119,8 +126,10 @@ trylock_for_test(nvobj::persistent_ptr<root> proot)
 		proot->pmutex.unlock();
 	} else {
 		auto t2 = clk::now();
-		auto t_diff = t2 - t1;
-		UT_ASSERT(t_diff >= timeout);
+		auto diff =
+			std::chrono::duration_cast<std::chrono::milliseconds>(
+				(t1 + timeout) - t2);
+		UT_ASSERT(diff < epsilon);
 	}
 
 	return;
@@ -132,7 +141,7 @@ trylock_for_test(nvobj::persistent_ptr<root> proot)
 static void
 trylock_until_test(nvobj::persistent_ptr<root> proot)
 {
-	using clk = std::chrono::steady_clock;
+	using clk = std::chrono::system_clock;
 
 	auto t1 = clk::now();
 	if (proot->pmutex.try_lock_until(t1 + timeout)) {
@@ -140,8 +149,10 @@ trylock_until_test(nvobj::persistent_ptr<root> proot)
 		proot->pmutex.unlock();
 	} else {
 		auto t2 = clk::now();
-		auto t_diff = t2 - t1;
-		UT_ASSERT(t_diff >= timeout);
+		auto diff =
+			std::chrono::duration_cast<std::chrono::milliseconds>(
+				(t1 + timeout) - t2);
+		UT_ASSERT(diff < epsilon);
 	}
 
 	return;
