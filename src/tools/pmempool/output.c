@@ -136,21 +136,6 @@ outv_err(const char *fmt, ...)
 	va_end(ap);
 }
 
-/* on windows this method is not required */
-#ifndef _WIN32
-
-/*
- * out_err -- for src/common
- */
-void
-out_err(const char *file, int line, const char *func,
-	const char *fmt, ...)
-{
-	/* stub */
-}
-
-#endif
-
 /*
  * outv_err_vargs -- print error message
  */
