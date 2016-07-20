@@ -147,8 +147,6 @@ OTHER_TESTS = \
 	pmemobjcli\
 	pmemspoil\
 	bttdevice\
-	remote_basic\
-	remote_obj_basic\
 	scope\
 	set_funcs\
 	traces\
@@ -246,48 +244,57 @@ EXAMPLES_TESTS = \
 CPP_EXAMPLE_TESTS = \
 	ex_libpmemobj_cpp
 
-REMOTE_TESTS = \
-	remote_basic\
-	remote_obj_basic\
-	$(OBJ_REMOTE_TESTS)\
-	$(RPMEM_TESTS)
-
 LIBPMEMPOOL_DEPS = libpmempool_api
 
 LIBPMEMPOOL_TESTS = \
 	libpmempool_bttdev\
 	libpmempool_map_flog
 
-TESTS = \
+LOCAL_TESTS = \
 	$(OBJ_TESTS)\
 	$(BLK_TESTS)\
 	$(LOG_TESTS)\
 	$(OTHER_TESTS)\
 	$(PMEM_TESTS)\
-	$(RPMEM_TESTS)\
 	$(PMEMPOOL_TESTS)\
 	$(VMEM_TESTS)\
 	$(VMMALLOC_TESTS)\
 	$(EXAMPLES_TESTS)\
 	$(LIBPMEMPOOL_TESTS)
 
+REMOTE_TESTS = \
+	remote_basic\
+	remote_obj_basic\
+	$(OBJ_REMOTE_TESTS)\
+	$(RPMEM_TESTS)
+
 ifeq ($(filter n,$(call check_cxx_flags, -std=c++11) $(call check_clang_template_bug)),)
-TESTS += $(OBJ_CPP_TESTS)
+LOCAL_TESTS += $(OBJ_CPP_TESTS)
 
 ifeq ($(call cxx_ok), y)
-TESTS += $(CPP_EXAMPLE_TESTS)
+LOCAL_TESTS += $(CPP_EXAMPLE_TESTS)
 else
 $(info NOTE: Skipping C++ tests because of compiler issues)
 endif
 
 ifeq ($(call check_cxx_chrono), y)
-TESTS += $(CHRONO_TESTS)
+LOCAL_TESTS += $(CHRONO_TESTS)
 else
 $(info NOTE: Skipping C++ chrono tests because of compiler/stdc++ issues)
 endif
 else
 $(info NOTE: Skipping C++ tests because the compiler does not support C++11)
 endif
+
+TESTS = \
+	$(LOCAL_TESTS)\
+	$(REMOTE_TESTS)
+
+LOCAL_TESTS_BUILD = \
+	$(TEST_DEPS)\
+	$(OBJ_DEPS)\
+	$(LIBPMEMPOOL_DEPS)\
+	$(LOCAL_TESTS)
 
 TESTS_BUILD = \
 	$(TEST_DEPS)\
@@ -344,7 +351,7 @@ check-remote: test
 	@./RUNTESTS -b $(TEST_BUILD) -t $(TEST_TYPE) -f $(TEST_FS) -o $(TEST_TIME) -m $(MEMCHECK) $(CHECK_POOL_OPT) $(REMOTE_TESTS)
 	@echo "No failures."
 
-pcheck: $(TESTS_BUILD)
+pcheck: $(LOCAL_TESTS_BUILD) check-remote
 	@echo "No failures."
 
 pcheck_blk: TARGET = pcheck
@@ -365,10 +372,6 @@ pcheck_other: $(OTHER_TESTS)
 
 pcheck_pmem: TARGET = pcheck
 pcheck_pmem: $(PMEM_TESTS)
-	@echo "No failures."
-
-pcheck_rpmem: TARGET = pcheck
-pcheck_rpmem: $(RPMEM_TESTS)
 	@echo "No failures."
 
 pcheck_pmempool: TARGET = pcheck
