@@ -40,10 +40,9 @@ MAINTAINER wojciech.uss@intel.com
 
 # Install basic tools
 RUN dnf install -y git gcc clang openssh-server autoconf automake make \
-	wget tar lbzip2 passwd sudo pkgconfig procps-ng net-tools jemalloc \
-	findutils man libunwind-devel file rpm-build rpm-build-libs which \
-	fuse fuse-devel ncurses-devel libuv-devel glib2-devel libtool \
-	pandoc doxygen
+	wget tar lbzip2 passwd sudo pkgconfig findutils man libunwind-devel \
+	file rpm-build rpm-build-libs which fuse fuse-devel ncurses-devel \
+	libuv-devel glib2-devel libtool pandoc doxygen
 
 # Install valgrind
 COPY install-valgrind.sh install-valgrind.sh
@@ -67,5 +66,4 @@ ENV OS_VER 23
 ENV START_SSH_COMMAND /usr/sbin/sshd
 ENV PACKAGE_MANAGER rpm
 ENV NOTTY 1
-
 

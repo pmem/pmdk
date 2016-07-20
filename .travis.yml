@@ -1,6 +1,10 @@
 before_install:
   - export HOST_WORKDIR=`pwd`
-  - cd utils/docker && ./prepare-environment.sh
+  - cd utils/docker
+  - ./prepare-environment.sh
+  - ./pull-or-rebuild-image.sh
+  - if [[ -f push_image_to_repo_flag ]]; then PUSH_THE_IMAGE=1; fi
+  - rm -f push_image_to_repo_flag
 
 script:
   - ./build.sh
@@ -12,3 +16,6 @@ env:
   - MAKE_PKG=0 EXTRA_CFLAGS=-DUSE_VALGRIND REMOTE_TESTS=1 CC=clang OS=ubuntu OS_VER=16.04
   - MAKE_PKG=1 CC=gcc OS=fedora OS_VER=23 EXPERIMENTAL=y
   - MAKE_PKG=0 EXTRA_CFLAGS=-DUSE_VALGRIND REMOTE_TESTS=1 CC=clang OS=fedora OS_VER=23
+
+after_success:
+  - if [[ $PUSH_THE_IMAGE -eq 1 ]]; then images/push-image.sh $OS:$OS_VER; fi

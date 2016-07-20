@@ -40,6 +40,3 @@ sudo sh -c "echo deb https://apt.dockerproject.org/repo ubuntu-precise main >> /
 sudo apt-get update
 sudo apt-get install --force-yes docker-engine apt-transport-https ca-certificates
 
-# Pull the Docker image with environment for building nvml
-sudo docker pull nvml/${OS}:${OS_VER}
-
