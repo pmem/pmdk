@@ -221,7 +221,7 @@ check_is_end(struct check_data *data)
 /*
  * check_status_get -- extract pmempool_check_status from check_status
  */
-inline struct pmempool_check_status *
+struct pmempool_check_status *
 check_status_get(struct check_status *status)
 {
 	return check_status_get_util(status);

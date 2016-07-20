@@ -189,7 +189,7 @@ check_get_step_data(struct check_data *data)
 /*
  * check_end -- mark check as ended
  */
-inline void
+void
 check_end(struct check_data *data)
 {
 	LOG(3, NULL);
@@ -541,7 +541,7 @@ pop_answer(struct check_data *data)
 /*
  * check_status_get_util -- extract pmempool_check_status from check_status
  */
-inline struct pmempool_check_status *
+struct pmempool_check_status *
 check_status_get_util(struct check_status *status)
 {
 	return &status->status;

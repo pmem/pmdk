@@ -466,7 +466,7 @@ static void
 info_obj_lane_section(struct pmem_info *pip, int v, struct lane_layout *lane,
 	enum lane_section_type type)
 {
-	if (!(pip->args.obj.lane_sections & (1U << type)))
+	if (!(pip->args.obj.lane_sections & (1ULL << type)))
 		return;
 
 	outv_nl(v);
@@ -766,7 +766,7 @@ info_obj_zone_chunks(struct pmem_info *pip, struct zone *zone,
 		enum chunk_type type = zone->chunk_headers[c].type;
 		uint64_t size_idx = zone->chunk_headers[c].size_idx;
 		if (util_ranges_contain(&pip->args.obj.chunk_ranges, c)) {
-			if (pip->args.obj.chunk_types & (1U << type)) {
+			if (pip->args.obj.chunk_types & (1ULL << type)) {
 				stats->n_chunks++;
 				stats->n_chunks_type[type]++;
 
@@ -1135,7 +1135,7 @@ info_obj_stats(struct pmem_info *pip)
 }
 
 static struct pmem_info *Pip;
-
+#ifndef _WIN32
 static void
 info_obj_sa_sigaction(int signum, siginfo_t *info, void *context)
 {
@@ -1148,6 +1148,22 @@ static struct sigaction info_obj_sigaction = {
 	.sa_sigaction = info_obj_sa_sigaction,
 	.sa_flags = SA_SIGINFO
 };
+#else
+#define CALL_FIRST 1
+
+static LONG CALLBACK
+exception_handler(_In_ PEXCEPTION_POINTERS ExceptionInfo)
+{
+	PEXCEPTION_RECORD record = ExceptionInfo->ExceptionRecord;
+	if (record->ExceptionCode != EXCEPTION_ACCESS_VIOLATION) {
+		return EXCEPTION_CONTINUE_SEARCH;
+	}
+	uintptr_t offset = (uintptr_t)record->ExceptionInformation[1] -
+		(uintptr_t)Pip->obj.pop;
+	outv_err("Invalid offset 0x%lx\n", offset);
+	exit(EXIT_FAILURE);
+}
+#endif
 
 /*
  * info_obj -- print information about obj pool type
@@ -1162,10 +1178,16 @@ pmempool_info_obj(struct pmem_info *pip)
 	pip->obj.size = pip->pfile->size;
 
 	Pip = pip;
+#ifndef _WIN32
 	if (sigaction(SIGSEGV, &info_obj_sigaction, NULL)) {
+#else
+	if (AddVectoredExceptionHandler(CALL_FIRST, exception_handler) ==
+		NULL) {
+#endif
 		perror("sigaction");
 		return -1;
 	}
+
 
 	pip->obj.uuid_lo = pmemobj_get_uuid_lo(pip->obj.pop);
 

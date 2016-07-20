@@ -57,6 +57,7 @@
 #define PTHREAD_H 1
 
 #include <stdint.h>
+#include <time.h>
 
 /* XXX - dummy */
 typedef long pthread_once_t;

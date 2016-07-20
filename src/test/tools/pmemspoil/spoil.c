@@ -50,6 +50,7 @@
 #include <libgen.h>
 #include <err.h>
 #include <assert.h>
+#include <endian.h>
 #include "common.h"
 #include "output.h"
 #include "btt.h"
@@ -116,13 +117,13 @@ default:\
 	break;\
 }
 
-#define PROCESS(_name, _arg, _max) do {\
+#define PROCESS(_name, _arg, _max, _type) do {\
 if (pmemspoil_check_field(_pfp, STR(_name))) {\
 	PROCESS_STATE = PROCESS_STATE_FOUND;\
 	if (_pfp->cur->index >= (_max)) {\
 		PROCESS_STATE = PROCESS_STATE_ERROR_MSG;\
 	} else {\
-		typeof(_arg) a = _arg;\
+		_type a = _arg;\
 		pmemspoil_next_field(_pfp);\
 		if (pmemspoil_process_##_name(_psp, _pfp, a))\
 			PROCESS_STATE = PROCESS_STATE_ERROR;\
@@ -137,9 +138,8 @@ if (pmemspoil_check_field(_pfp, (_name))) {\
 	if (_pfp->cur->index >= (_max)) {\
 		PROCESS_STATE = PROCESS_STATE_ERROR_MSG;\
 	} else {\
-		typeof(_arg) a = _arg;\
 		pmemspoil_next_field(_pfp);\
-		if (pmemspoil_process_##_func(_psp, _pfp, a))\
+		if (pmemspoil_process_##_func(_psp, _pfp, _arg))\
 			PROCESS_STATE = PROCESS_STATE_ERROR;\
 	}\
 	goto _process_end;\
@@ -373,20 +373,19 @@ pmemspoil_parse_field(char *str, struct field *fieldp)
 		*f = '\0';
 		size_t len = 0;
 		ssize_t ret;
-		char *secstr = NULL;
+		char *secstr = malloc(strlen(str) + 1);
 		uint32_t secind;
 		/* search for pattern: <field_name>(<index>) */
-		if ((ret = sscanf(str, "%m[^\(](%d)", &secstr, &secind) == 2)) {
+		if (secstr == NULL)
+			err(1, NULL);
+		if ((ret = sscanf(str, "%[^(](%d)", secstr, &secind) == 2)) {
 			len = strlen(secstr);
 			str[len] = '\0';
 			fieldp->index = secind;
 		}
 
 		fieldp->name = str;
-
-		if (secstr)
-			free(secstr);
-
+		free(secstr);
 		if (fieldp->is_func)
 			return f + 2;
 		return f + 1;
@@ -676,7 +675,7 @@ static int
 pmemspoil_process_checksum_gen(struct pmemspoil *psp,
 		struct pmemspoil_list *pfp, struct checksum_args args)
 {
-	util_checksum(args.ptr, args.len, args.checksum, 1);
+	util_checksum(args.ptr, args.len, (uint64_t *)args.checksum, 1);
 	return 0;
 }
 
@@ -934,11 +933,13 @@ pmemspoil_process_arena(struct pmemspoil *psp,
 	psp->arena_offset = arena_offset;
 
 	PROCESS_BEGIN(psp, pfp) {
-		PROCESS(btt_info, PROCESS_INDEX, 1);
-		PROCESS(btt_info_backup, PROCESS_INDEX, 1);
-		PROCESS(btt_map, PROCESS_INDEX, btt_info.external_nlba);
-		PROCESS(btt_flog, PROCESS_INDEX, btt_info.nfree);
-		PROCESS(btt_flog_prime, PROCESS_INDEX, btt_info.nfree);
+		PROCESS(btt_info, PROCESS_INDEX, 1, uint32_t);
+		PROCESS(btt_info_backup, PROCESS_INDEX, 1, uint32_t);
+		PROCESS(btt_map, PROCESS_INDEX, btt_info.external_nlba,
+			uint32_t);
+		PROCESS(btt_flog, PROCESS_INDEX, btt_info.nfree, uint32_t);
+		PROCESS(btt_flog_prime, PROCESS_INDEX, btt_info.nfree,
+			uint32_t);
 	} PROCESS_END
 
 	return PROCESS_RET;
@@ -961,7 +962,7 @@ pmemspoil_process_pmemblk(struct pmemspoil *psp,
 		PROCESS(arena,
 			pmemspoil_get_arena_offset(psp, PROCESS_INDEX,
 				2 * BTT_ALIGNMENT),
-			UINT32_MAX);
+			UINT32_MAX, uint64_t);
 	} PROCESS_END
 
 	if (PROCESS_STATE == PROCESS_STATE_FIELD) {
@@ -983,7 +984,7 @@ pmemspoil_process_bttdevice(struct pmemspoil *psp,
 		PROCESS(arena,
 			pmemspoil_get_arena_offset(psp, PROCESS_INDEX,
 					BTT_ALIGNMENT),
-			UINT32_MAX);
+			UINT32_MAX, uint64_t);
 	} PROCESS_END
 	return PROCESS_RET;
 }
@@ -1051,7 +1052,7 @@ pmemspoil_process_chunk(struct pmemspoil *psp, struct pmemspoil_list *pfp,
 		PROCESS_FIELD(chdr, flags, uint16_t);
 		PROCESS_FIELD(chdr, size_idx, uint32_t);
 
-		PROCESS(run, cpair, 1);
+		PROCESS(run, cpair, 1, struct chunk_pair);
 	} PROCESS_END
 
 	return PROCESS_RET;
@@ -1076,7 +1077,7 @@ pmemspoil_process_zone(struct pmemspoil *psp, struct pmemspoil_list *pfp,
 		PROCESS_FIELD(zhdr, size_idx, uint32_t);
 		PROCESS_FIELD(zhdr, reserved, char);
 
-		PROCESS(chunk, cpair, zhdr->size_idx);
+		PROCESS(chunk, cpair, zhdr->size_idx, struct chunk_pair);
 	} PROCESS_END
 
 	return PROCESS_RET;
@@ -1102,7 +1103,7 @@ pmemspoil_process_heap(struct pmemspoil *psp, struct pmemspoil_list *pfp,
 		PROCESS_FIELD(hdr, checksum, uint64_t);
 
 		PROCESS(zone, ZID_TO_ZONE(hlayout, PROCESS_INDEX),
-			util_heap_max_zone(psp->size));
+			util_heap_max_zone(psp->size), struct zone *);
 
 	} PROCESS_END
 
@@ -1133,7 +1134,7 @@ pmemspoil_process_sec_allocator(struct pmemspoil *psp,
 {
 	PROCESS_BEGIN(psp, pfp) {
 		PROCESS(redo_log, &sec->redo[PROCESS_INDEX],
-			ALLOC_REDO_LOG_SIZE);
+			ALLOC_REDO_LOG_SIZE, struct redo_log *);
 	} PROCESS_END
 
 	return PROCESS_RET;
@@ -1185,7 +1186,8 @@ pmemspoil_process_sec_list(struct pmemspoil *psp,
 	size_t redo_size = REDO_NUM_ENTRIES;
 	PROCESS_BEGIN(psp, pfp) {
 		PROCESS_FIELD(sec, obj_offset, uint64_t);
-		PROCESS(redo_log, &sec->redo[PROCESS_INDEX], redo_size);
+		PROCESS(redo_log, &sec->redo[PROCESS_INDEX], redo_size,
+			struct redo_log *);
 	} PROCESS_END
 
 	return PROCESS_RET;
@@ -1244,8 +1246,9 @@ pmemspoil_process_pmemobj(struct pmemspoil *psp,
 
 		PROCESS_FUNC("checksum_gen", checksum_gen, checksum_args);
 
-		PROCESS(heap, hlayout, 1);
-		PROCESS(lane, &lanes[PROCESS_INDEX], pop->nlanes);
+		PROCESS(heap, hlayout, 1, struct heap_layout *);
+		PROCESS(lane, &lanes[PROCESS_INDEX], pop->nlanes,
+			struct lane_layout *);
 	} PROCESS_END
 
 	return PROCESS_RET;
@@ -1259,11 +1262,11 @@ pmemspoil_process(struct pmemspoil *psp,
 		struct pmemspoil_list *pfp)
 {
 	PROCESS_BEGIN(psp, pfp) {
-		PROCESS(pool_hdr, NULL, 1);
-		PROCESS(pmemlog, NULL, 1);
-		PROCESS(pmemblk, NULL, 1);
-		PROCESS(pmemobj, NULL, 1);
-		PROCESS(bttdevice, NULL, 1);
+		PROCESS(pool_hdr, NULL, 1, void *);
+		PROCESS(pmemlog, NULL, 1, void *);
+		PROCESS(pmemblk, NULL, 1, void *);
+		PROCESS(pmemobj, NULL, 1, void *);
+		PROCESS(bttdevice, NULL, 1, void *);
 	} PROCESS_END
 
 	return PROCESS_RET;

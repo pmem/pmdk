@@ -294,7 +294,7 @@ pmempool_dump_func(char *appname, int argc, char *argv[])
 {
 	struct pmempool_dump pd = pmempool_dump_default;
 	LIST_INIT(&pd.ranges.head);
-
+	struct range entire_uint64 = ENTIRE_UINT64;
 	out_set_vlevel(VERBOSE_DEFAULT);
 
 	int ret = 0;
@@ -311,7 +311,7 @@ pmempool_dump_func(char *appname, int argc, char *argv[])
 			break;
 		case 'r':
 			if (util_parse_ranges(optarg, &pd.ranges,
-						ENTIRE_UINT64)) {
+				entire_uint64)) {
 				outv_err("invalid range value specified"
 						" -- '%s'\n", optarg);
 				exit(EXIT_FAILURE);
