@@ -32,17 +32,17 @@
 #
 
 #
-# src/test/obj_lane/TEST0 -- single thread unit test for lanes
+# src/test/obj_lane/TEST1 -- multithreaded unit test for lanes
 #
-export UNITTEST_NAME=obj_lane/TEST0
-export UNITTEST_NUM=0
+export UNITTEST_NAME=obj_lane/TEST1
+export UNITTEST_NUM=1
 
 # standard unit test setup
 . ../unittest/unittest.sh
 
 setup
 
-expect_normal_exit ./obj_lane$EXESUFFIX s
+expect_normal_exit ./obj_lane$EXESUFFIX m
 
 check
 

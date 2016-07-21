@@ -1,0 +1,33 @@
+obj_lane/TEST1: START: obj_lane
+ ./obj_lane$(nW) m
+lane_noop_construct
+lane_noop_construct
+lane_noop_construct
+lane_noop_construct
+lane_noop_construct
+lane_noop_construct
+lane_noop_construct
+lane_noop_construct
+lane_noop_construct
+lane_noop_construct
+lane_noop_construct
+lane_noop_construct
+lane_noop_construct
+lane_noop_construct
+lane_noop_construct
+lane_noop_destruct
+lane_noop_destruct
+lane_noop_destruct
+lane_noop_destruct
+lane_noop_destruct
+lane_noop_destruct
+lane_noop_destruct
+lane_noop_destruct
+lane_noop_destruct
+lane_noop_destruct
+lane_noop_destruct
+lane_noop_destruct
+lane_noop_destruct
+lane_noop_destruct
+lane_noop_destruct
+obj_lane/TEST1: Done
