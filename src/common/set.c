@@ -442,9 +442,11 @@ util_poolset_close(struct pool_set *set, int del)
 				}
 			}
 		} else {
-			LOG(4, "closing remote replica #%u", r);
-			Rpmem_close(rep->remote->rpp);
-			rep->remote->rpp = NULL;
+			if (rep->remote->rpp) {
+				LOG(4, "closing remote replica #%u", r);
+				Rpmem_close(rep->remote->rpp);
+				rep->remote->rpp = NULL;
+			}
 		}
 	}
 
