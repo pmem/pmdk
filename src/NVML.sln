@@ -245,6 +245,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "blk_pool_lock", "test\blk_p
 		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681} = {CE3F2DFB-8470-4802-AD37-21CAF6CB2681}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "checksum", "test\checksum\checksum.vcxproj", "{AF0B7480-EBE3-486B-B0C8-134910BC9324}"
+	ProjectSection(ProjectDependencies) = postProject
+		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681} = {CE3F2DFB-8470-4802-AD37-21CAF6CB2681}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -549,6 +554,14 @@ Global
 		{779425B1-2211-499B-A7CC-4F9EC6CB0D25}.Static-Debug|x64.Build.0 = Static-Debug|x64
 		{779425B1-2211-499B-A7CC-4F9EC6CB0D25}.Static-Release|x64.ActiveCfg = Release|x64
 		{779425B1-2211-499B-A7CC-4F9EC6CB0D25}.Static-Release|x64.Build.0 = Release|x64
+		{AF0B7480-EBE3-486B-B0C8-134910BC9324}.Debug|x64.ActiveCfg = Debug|x64
+		{AF0B7480-EBE3-486B-B0C8-134910BC9324}.Debug|x64.Build.0 = Debug|x64
+		{AF0B7480-EBE3-486B-B0C8-134910BC9324}.Release|x64.ActiveCfg = Release|x64
+		{AF0B7480-EBE3-486B-B0C8-134910BC9324}.Release|x64.Build.0 = Release|x64
+		{AF0B7480-EBE3-486B-B0C8-134910BC9324}.Static-Debug|x64.ActiveCfg = Debug|x64
+		{AF0B7480-EBE3-486B-B0C8-134910BC9324}.Static-Debug|x64.Build.0 = Debug|x64
+		{AF0B7480-EBE3-486B-B0C8-134910BC9324}.Static-Release|x64.ActiveCfg = Release|x64
+		{AF0B7480-EBE3-486B-B0C8-134910BC9324}.Static-Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -593,5 +606,6 @@ Global
 		{B3FF772D-F2FF-4E6E-ABD8-763407BB6A5C} = {853D45D8-980C-4991-B62A-DAC6FD245402}
 		{492BAA3D-0D5D-478E-9765-500463AE69AA} = {853D45D8-980C-4991-B62A-DAC6FD245402}
 		{779425B1-2211-499B-A7CC-4F9EC6CB0D25} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
+		{AF0B7480-EBE3-486B-B0C8-134910BC9324} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 	EndGlobalSection
 EndGlobal
