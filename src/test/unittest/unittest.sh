@@ -1929,6 +1929,9 @@ function init_rpmem_on_node() {
 	export_vars_node $NODE RPMEM_LOG_LEVEL
 	export_vars_node $NODE RPMEM_LOG_FILE
 
+	require_node_log_files $NODE rpmem$UNITTEST_NUM.log
+	require_node_log_files $TARGET rpmemd$UNITTEST_NUM.log
+
 	# Workaround for SIGSEGV in the infinipath-psm during abort
 	# The infinipath-psm is registering a signal handler and do not unregister
 	# it when rpmem handle is dlclosed. SIGABRT (potentially any other signal)
