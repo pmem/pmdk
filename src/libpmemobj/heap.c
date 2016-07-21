@@ -97,11 +97,21 @@
  * as: step/size. So for step == 1 the acceptable fragmentation is 0% and so on.
  */
 #define MAX_ALLOC_CATEGORIES 5
+
+/*
+ * The first size (in alloc blocks) which is actually used in the allocation
+ * class generation algorithm. All smaller sizes use the first predefined bucket
+ * with the smallest run unit size.
+ */
+#define FIRST_GENERATED_CLASS_SIZE 2
+
 static struct {
 	size_t size;
 	size_t step;
 } categories[MAX_ALLOC_CATEGORIES] = {
-	{2, 0}, /* dummy category - the first allocation class is predefined */
+	/* dummy category - the first allocation class is predefined */
+	{FIRST_GENERATED_CLASS_SIZE, 0},
+
 	{16, 1},
 	{64, 2},
 	{256, 4}
@@ -534,18 +544,6 @@ error_bucket_new:
 }
 
 /*
- * heap_register_bucket_range -- (internal) assigns given range of memory to the
- *	bucket allocation class
- */
-static void
-heap_register_bucket_range(struct heap_rt *h, uint8_t bucket,
-	size_t start, size_t end)
-{
-	for (; start <= end; ++start)
-		h->bucket_map[start] = bucket;
-}
-
-/*
  * heap_get_create_bucket_idx_by_unit_size -- (internal) retrieves or creates
  *	the memory bucket index that points to buckets that are responsible
  *	for allocations with the given unit size.
@@ -579,8 +577,7 @@ heap_get_create_bucket_idx_by_unit_size(struct heap_rt *h, uint64_t unit_size)
 		 * will get freed.
 		 */
 		size_t supported_block = unit_size / ALLOC_BLOCK_SIZE;
-		heap_register_bucket_range(h, bucket_idx,
-			supported_block, supported_block);
+		h->bucket_map[supported_block] = bucket_idx;
 	}
 
 	ASSERTne(bucket_idx, MAX_BUCKETS);
@@ -952,11 +949,12 @@ heap_drain_to_auxiliary(struct palloc_heap *heap, struct bucket *auxb,
 }
 
 /*
- * heap_find_or_create_best_alloc_class -- (internal) searches for the biggest
- *	bucket allocation class for which unit_size is evenly divisible by n.
+ * heap_find_or_create_alloc_class -- (internal) searches for the
+ * biggest bucket allocation class for which unit_size is evenly divisible by n.
+ * If no such class exists, create one.
  */
 static uint8_t
-heap_find_or_create_best_alloc_class(struct palloc_heap *heap, size_t n)
+heap_find_or_create_alloc_class(struct palloc_heap *heap, size_t n)
 {
 	struct heap_rt *h = heap->rt;
 	COMPILE_ERROR_ON(MAX_BUCKETS > UINT8_MAX);
@@ -979,7 +977,59 @@ heap_find_or_create_best_alloc_class(struct palloc_heap *heap, size_t n)
 		n += ALLOC_BLOCK_SIZE;
 	}
 
+	/*
+	 * Now that the desired unit size is found the existing classes need
+	 * to be searched for possible duplicates. If a class with the
+	 * calculated unit size already exists, simply return that.
+	 */
+	for (int i = MAX_BUCKETS - 1; i >= 0; --i) {
+		if (h->buckets[i] == NULL)
+			continue;
+		if (h->buckets[i]->unit_size == n)
+			return (uint8_t)i;
+	}
+
 	return heap_create_alloc_class_buckets(h, n, RUN_UNIT_MAX);
+}
+
+/*
+ * heap_find_min_frag_alloc_class -- searches for an existing allocation
+ * class that will provide the smallest internal fragmentation for the given
+ * size.
+ */
+static uint8_t
+heap_find_min_frag_alloc_class(struct palloc_heap *h, size_t n)
+{
+	uint8_t best_bucket = MAX_BUCKETS;
+	size_t best_frag = SIZE_MAX;
+	/*
+	 * Start from the largest buckets in order to minimze unit size of
+	 * allocated memory blocks.
+	 */
+	for (int i = MAX_BUCKETS - 1; i >= 0; --i) {
+		if (h->rt->buckets[i] == NULL)
+			continue;
+
+		struct bucket_run *run = (struct bucket_run *)h->rt->buckets[i];
+
+		size_t frag = n % run->super.unit_size;
+
+		/* can't exceed the maximum allowed run unit max */
+		if (run->super.calc_units((struct bucket *)run, n) >
+			run->unit_max)
+			break;
+
+		if (frag == 0)
+			return (uint8_t)i;
+
+		if (frag < best_frag) {
+			best_bucket = (uint8_t)i;
+			best_frag = frag;
+		}
+	}
+
+	ASSERTne(best_bucket, MAX_BUCKETS);
+	return best_bucket;
 }
 
 /*
@@ -1016,22 +1066,33 @@ heap_buckets_init(struct palloc_heap *heap)
 	if (slot == MAX_BUCKETS)
 		goto error_bucket_create;
 
-	heap_register_bucket_range(h, slot, 0, 2);
+	/*
+	 * The first couple of bucket map slots are predefined and use the
+	 * smallest bucket available.
+	 */
+	for (size_t i = 0; i < FIRST_GENERATED_CLASS_SIZE; ++i)
+		h->bucket_map[i] = slot;
 
+	/*
+	 * Based on the defined categories, a set of allocation classes is
+	 * created. The unit size of those classes is depended on the category
+	 * initial size and step.
+	 */
 	for (int c = 1; c < MAX_ALLOC_CATEGORIES; ++c) {
 		for (size_t i = categories[c - 1].size + 1;
 			i <= categories[c].size; i += categories[c].step) {
 
 			size = i + (categories[c].step - 1);
-			if ((slot = heap_find_or_create_best_alloc_class(heap,
+			if ((slot = heap_find_or_create_alloc_class(heap,
 				size * ALLOC_BLOCK_SIZE)) == MAX_BUCKETS)
 				goto error_bucket_create;
-
-			heap_register_bucket_range(h, slot, i, size);
 		}
 	}
 
-	/* pick the largest bucket and fill the rest of the map */
+	/*
+	 * Find the largest bucket and use it's unit size as run allocation
+	 * threshold.
+	 */
 	for (slot = MAX_BUCKETS - 1;
 			slot > 0 && h->buckets[slot] == NULL;
 			--slot)
@@ -1051,8 +1112,31 @@ heap_buckets_init(struct palloc_heap *heap)
 	h->last_run_max_size = MAX_RUN_SIZE > theoretical_run_max_size ?
 		theoretical_run_max_size : MAX_RUN_SIZE;
 
-	heap_register_bucket_range(h, slot, size,
-		h->last_run_max_size / ALLOC_BLOCK_SIZE);
+	/*
+	 * Now that the alloc classes are created, the bucket with the minimal
+	 * internal fragmentation for that size is chosen.
+	 */
+	for (size_t i = FIRST_GENERATED_CLASS_SIZE;
+		i <= h->last_run_max_size / ALLOC_BLOCK_SIZE; ++i) {
+		uint8_t bucket = heap_find_min_frag_alloc_class(heap,
+			i * ALLOC_BLOCK_SIZE);
+		h->bucket_map[i] = bucket;
+	}
+
+#ifdef DEBUG
+	/*
+	 * Verify that each bucket's unit size points back to the bucket by the
+	 * bucket map. This must be true for the default allocation classes,
+	 * otherwise duplicate buckets will be created.
+	 */
+	for (size_t i = 0; i < MAX_BUCKETS; ++i) {
+		if (h->buckets[i] != NULL) {
+			struct bucket *b = h->buckets[i];
+			size_t b_id = SIZE_TO_BID(h, b->unit_size);
+			ASSERTeq(b_id, i);
+		}
+	}
+#endif
 
 	heap_populate_buckets(heap);
 

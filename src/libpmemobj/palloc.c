@@ -421,9 +421,13 @@ palloc_operation(struct palloc_heap *heap,
 		!MEMORY_BLOCK_IS_EMPTY(new_block)) {
 		size_t old_size = alloc->size;
 		size_t to_cpy = old_size > sizeh ? sizeh : old_size;
+		VALGRIND_ADD_TO_TX(PMALLOC_OFF_TO_PTR(heap, offset_value),
+			to_cpy - ALLOC_OFF);
 		pmemops_memcpy_persist(&heap->p_ops,
 			PMALLOC_OFF_TO_PTR(heap, offset_value),
 			PMALLOC_OFF_TO_PTR(heap, off),
+			to_cpy - ALLOC_OFF);
+		VALGRIND_REMOVE_FROM_TX(PMALLOC_OFF_TO_PTR(heap, offset_value),
 			to_cpy - ALLOC_OFF);
 	}
 
