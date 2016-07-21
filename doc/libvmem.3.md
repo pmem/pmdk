@@ -2,6 +2,8 @@
 layout: manual
 Content-Style: 'text/css'
 title: libvmem(3)
+header: NVM Library
+date: vmem API version 1.0.0
 ...
 
 [comment]: <> (Copyright 2016, Intel Corporation)
@@ -45,11 +47,11 @@ title: libvmem(3)
 [ACKNOWLEDGEMENTS](#acknowledgements)<br />
 [SEE ALSO](#see-also)<br />
 
-### NAME ###
+# NAME #
 
 **libvmem** -- volatile memory allocation library
 
-### SYNOPSIS ###
+# SYNOPSIS #
 
 ```c
 #include <libvmem.h>
@@ -60,13 +62,9 @@ cc ... -lvmem
 
 ```c
 VMEM *vmem_create(const char *dir, size_t size);
-
 VMEM *vmem_create_in_region(void *addr, size_t size);
-
 void vmem_delete(VMEM *vmp);
-
 int vmem_check(VMEM *vmp);
-
 void vmem_stats_print(VMEM *vmp, const char *opts);
 ```
 
@@ -74,25 +72,20 @@ void vmem_stats_print(VMEM *vmp, const char *opts);
 
 ```c
 void *vmem_malloc(VMEM *vmp, size_t size);
-
 void vmem_free(VMEM *vmp, void *ptr);
-
 void *vmem_calloc(VMEM *vmp, size_t nmemb, size_t size);
-
 void *vmem_realloc(VMEM *vmp, void *ptr, size_t size);
-
 void *vmem_aligned_alloc(VMEM *vmp, size_t alignment, size_t size);
-
 char *vmem_strdup(VMEM *vmp, const char *s);
-
 size_t vmem_malloc_usable_size(VMEM *vmp, void *ptr);
 ```
 
 ##### Managing overall library behavior: #####
 
 ```c
-const char *vmem_check_version(unsigned major_required, unsigned minor_required);
-
+const char *vmem_check_version(
+	unsigned major_required,
+	unsigned minor_required);
 void vmem_set_funcs(
 	void *(*malloc_func)(size_t size),
 	void (*free_func)(void *ptr),
@@ -107,7 +100,7 @@ void vmem_set_funcs(
 const char *vmem_errormsg(void);
 ```
 
-### DESCRIPTION ###
+# DESCRIPTION #
 
 **libvmem** provides common *malloc-like* interfaces to memory pools built on memory-mapped files. These interfaces are for traditional **volatile** memory allocation but, unlike the functions described in **malloc**(3), the memory managed by **libvmem** may have different attributes, depending on the file system containing the memory-mapped files. In particular, **libvmem** is part of the *Non-Volatile Memory Library* because it is sometimes useful to use non-volatile memory as a volatile memory pool, leveraging its capacity, cost, or performance characteristics.
 
@@ -117,7 +110,7 @@ Under normal usage, **libvmem** will never print messages or intentionally cause
 
 **libvmem** interfaces are grouped into three categories: those that manage memory pools, those providing the basic memory allocation functions, and those interfaces less commonly used for managing the overall library behavior. These groups of interfaces are described in the following three sections.
 
-### MANAGING MEMORY POOLS ###
+# MANAGING MEMORY POOLS #
 
 To use **libvmem**, a *memory pool* is first created. This is most commonly done with the `vmem_create()` function described in this section. The other functions described in this section are for less common cases, where applications have special needs for creating pools or examining library state.
 
@@ -153,7 +146,7 @@ void vmem_stats_print(VMEM *vmp, const char *opts);
 
   The `vmem_stats_print()` function produces messages containing statistics about the given memory pool. The output is printed using **libvmem**'s internal *print_func* function (see `vmem_set_funcs()` below). That means the output typically appears on *stderr* unless the caller supplies a replacement *print_func* or sets the environment variable `VMEM_LOG_FILE` to direct output elsewhere. The `opts` string can either be `NULL` or it can contain a list of options that change the stats printed. General information that never changes during execution can be omitted by specifying “g” as a character within the opts string. The characters “m” and “a” can be specified to omit merged arena and per arena statistics, respectively; “b” and “l” can be specified to omit per size class statistics for bins and large objects, respectively. Unrecognized characters are silently ignored. Note that thread caching may prevent some statistics from being completely up to date. See **jemalloc**(3) for more detail (the description of the available `opts` above was taken from that man page).
 
-### MEMORY ALLOCATION ###
+# MEMORY ALLOCATION #
 
 This section describes the *malloc-like* API provided by **libvmem**. These functions provide the same semantics as their libc namesakes,
 but operate on the memory pools specified by their first arguments.
@@ -200,13 +193,15 @@ size_t vmem_malloc_usable_size(VMEM *vmp, void *ptr);
 
   The `vmem_malloc_usable_size()` function provides the same semantics as **malloc_usable_size**(3), but operates on the memory pool `vmp` instead of the process heap supplied by the system. It returns the number of usable bytes in the block of allocated memory pointed to by `ptr`, a pointer to a block of memory allocated by `vmem_malloc()` or a related function. If `ptr` is `NULL`, 0 is returned.
 
-### MANAGING LIBRARY BEHAVIOR ###
+# MANAGING LIBRARY BEHAVIOR #
 
 The library entry points described in this section are less commonly used than the previous section. These entry points expose library information or alter the default library behavior.
 
 
 ```c
-const char *vmem_check_version(unsigned major_required, unsigned minor_required);
+const char *vmem_check_version(
+	unsigned major_required,
+	unsigned minor_required);
 ```
 
   The `vmem_check_version()` function is used to see if the installed **libvmem** supports the version of the library API required by an application. The easiest way to do this is for the application to supply the compile-time version information, supplied by defines in `<libvmem.h>`, like this:
@@ -239,7 +234,7 @@ void vmem_set_funcs(
 The `vmem_set_funcs()` function allows an application to override some interfaces used internally by **libvmem**. Passing in `NULL` for any of the handlers will cause the **libvmem** default function to be used. The library does not make heavy use of the system malloc functions, but it does allocate approximately 4-8 kilobytes for each memory pool in use. The only functions in the malloc family used by the library are represented by the first four arguments to `vmem_set_funcs()`. The *print_func* function is called by **libvmem** when the `vmem_stats_print()` entry point is used, or when additional tracing is enabled in the debug version of the library as described in the **DEBUGGING AND ERROR HANDLING** section below. The default *print_func* used by the library prints to the file specified by the `VMEM_LOG_FILE` environment variable, or to *stderr* if that variable is not set.
 
 
-### DEBUGGING AND ERROR HANDLING ###
+# DEBUGGING AND ERROR HANDLING #
 
 Two versions of **libvmem** are typically available on a development system. The normal version, accessed when a program is linked using the `-lvmem` option, is optimized for performance. That version skips checks that impact performance and never logs any trace information or performs any run-time assertions. If an error is detected during the call to **libvmem** function, an application may retrieve an error message describing the reason of failure using the following function:
 
@@ -267,7 +262,7 @@ The environment variable `VMEM_LOG_FILE` specifies a file name where all logging
 Setting the environment variable `VMEM_LOG_LEVEL` has no effect on the non-debug version of **libvmem**.
 
 
-### EXAMPLE ###
+# EXAMPLE #
 
 The following example creates a memory pool, allocates some memory
 to contain the string "hello, world", and then frees that memory.
@@ -304,29 +299,28 @@ main()
 }
 ```
 
-See [http://pmem.io/nvml/libvmem](http://pmem.io/nvml/libvmem)
-for more examples using the **libvmem** API.
+See <http://pmem.io/nvml/libvmem> for more examples using the **libvmem** API.
 
 
-### BUGS ###
+# BUGS #
 
 Unlike the normal **malloc**(), which asks the system for additional
 memory when it runs out, **libvmem** allocates the size it is told
 to and never attempts to grow or shrink that memory pool.
 
 
-### ACKNOWLEDGEMENTS ###
+# ACKNOWLEDGEMENTS #
 
 **libvmem** depends on jemalloc, written by Jason Evans, to do the heavy
 lifting of managing dynamic memory allocation. See:
-[http://www.canonware.com/jemalloc/](http://www.canonware.com/jemalloc/)
+<http://www.canonware.com/jemalloc>
 
 **libvmem** builds on the persistent memory programming model recommended
 by the SNIA NVM Programming Technical Work Group:
-[http://snia.org/nvmp](http://snia.org/nvmp)
+<http://snia.org/nvmp>
 
 
-### SEE ALSO ###
+# SEE ALSO #
 
 **malloc**(3), **posix_memalign**(3), **strdup**(3), **mmap**(2),
 **strerror**(3), **jemalloc**(3), **libpmem**(3).

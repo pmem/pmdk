@@ -2,6 +2,8 @@
 layout: manual
 Content-Style: 'text/css'
 title: pmempool(1)
+header: NVM Library
+date: pmem Tools version 1.0.1
 ...
 
 [comment]: <> (Copyright 2016, Intel Corporation)
@@ -40,18 +42,17 @@ title: pmempool(1)
 [COMMANDS](#commands)<br />
 [SEE ALSO](#see-also)<br />
 
-
-### NAME ###
+# NAME #
 
 **pmempool** -- Persistent Memory Pool Management Tool
 
-### SYNOPSIS ###
+# SYNOPSIS #
 
 ```
 pmempool [--help] [--version] <command> [<args>]
 ```
 
-### DESCRIPTION ###
+# DESCRIPTION #
 
 The **pmempool** is a management tool for *Persistent Memory* pool files
 created by **NVML** libraries.
@@ -66,7 +67,7 @@ The **pmempool** may be useful for troubleshooting by system administrators
 and for software developers who work on applications based on **NVML** library.
 The latter may find these tools useful for testing and debugging purposes also.
 
-### OPTIONS ###
+# OPTIONS #
 
 `-V, --version`
 
@@ -76,7 +77,7 @@ The latter may find these tools useful for testing and debugging purposes also.
 
 : Prints synopsis and list of commands.
 
-### COMMANDS ###
+# COMMANDS #
 
 Currently there is a following set of commands available:
 
@@ -106,6 +107,6 @@ Currently there is a following set of commands available:
 
 In order to get more information about specific *command* you can use **pmempool help <command>.**
 
-### SEE ALSO ###
+# SEE ALSO #
 
 **libpmemlog(3) libpmemblk(3) libpmemobj(3)**

@@ -2,6 +2,8 @@
 layout: manual
 Content-Style: 'text/css'
 title: pmempool-rm(1)
+header: NVM Library
+date: pmem Tools version 1.0.1
 ...
 
 [comment]: <> (Copyright 2016, Intel Corporation)
@@ -38,19 +40,18 @@ title: pmempool-rm(1)
 [DESCRIPTION](#description)<br />
 [EXAMPLES](#examples)<br />
 [SEE ALSO](#see-also)<br />
-[PMEMPOOL](#pmempool)<br />
 
-### NAME ###
+# NAME #
 
 **pmempool-rm** -- Remove (unlink) poolset files
 
-### SYNOPSIS ###
+# SYNOPSIS #
 
 ```
 pmempool rm [<options>] <file>..
 ```
 
-### DESCRIPTION ###
+# DESCRIPTION #
 
 The **pmempool** invoked with `rm` command removes (unlinks) all files specified
 in command line arguments. If the specified file is a poolset file all parts will
@@ -84,7 +85,7 @@ usage of the `rm` command.
 : Prompt before removing every single file.
 
 
-### EXAMPLES ###
+# EXAMPLES #
 
 `pmempool rm pool.obj pool.blk`
 
@@ -95,11 +96,6 @@ usage of the `rm` command.
 : Remove all pool files from the pool.set, do not remove `pool.set` itself.
 
 
-### SEE ALSO ###
+# SEE ALSO #
 
 **pmempool(1)**, **pmempool-create(1)**
-
-
-### PMEMPOOL ###
-
-Part of the **pmempool(1)** suite.

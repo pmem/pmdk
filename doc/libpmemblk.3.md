@@ -2,6 +2,8 @@
 layout: manual
 Content-Style: 'text/css'
 title: libpmemblk(3)
+header: NVM Library
+date: pmemblk API version 1.0.3
 ...
 
 [comment]: <> (Copyright 2016, Intel Corporation)
@@ -46,15 +48,14 @@ title: libpmemblk(3)
 [SEE ALSO](#see-also)<br />
 
 
-### NAME ###
+# NAME #
 
 **libpmemblk** -- persistent memory resident array of blocks
 
-### SYNOPSIS ###
+# SYNOPSIS #
 
 ```c
 #include <ibpmemblk.h>
-
 cc ... -lpmemblk -lpmem
 ```
 
@@ -63,28 +64,23 @@ cc ... -lpmemblk -lpmem
 
 ```c
 PMEMblkpool *pmemblk_open(const char *path, size_t bsize);
-
-PMEMblkpool *pmemblk_create(const char *path, size_t bsize, size_t poolsize, mode_t mode);
-
+PMEMblkpool *pmemblk_create(const char *path, size_t bsize, size_t poolsize,
+	mode_t mode);
 void pmemblk_close(PMEMblkpool *pbp);
-
 size_t pmemblk_bsize(PMEMblkpool *pbp);
-
 size_t pmemblk_nblock(PMEMblkpool *pbp);
-
 int pmemblk_read(PMEMblkpool *pbp, void *buf, long long blockno);
-
 int pmemblk_write(PMEMblkpool *pbp, const void *buf, long long blockno);
-
 int pmemblk_set_zero(PMEMblkpool *pbp, long long blockno);
-
 int pmemblk_set_error(PMEMblkpool *pbp, long long blockno);
 ```
 
 ##### Library API versioning: #####
 
 ```c
-const char *pmemblk_check_version(unsigned major_required, unsigned minor_required);
+const char *pmemblk_check_version(
+	unsigned major_required,
+	unsigned minor_required);
 ```
 
 ##### Managing library behavior: #####
@@ -95,7 +91,6 @@ void pmemblk_set_funcs(
 	void (*free_func)(void *ptr),
 	void *(*realloc_func)(void *ptr, size_t size),
 	char *(*strdup_func)(const char *s));
-
 int pmemblk_check(const char *path, size_t bsize);
 ```
 
@@ -105,7 +100,7 @@ int pmemblk_check(const char *path, size_t bsize);
 const char *pmemblk_errormsg(void);
 ```
 
-### DESCRIPTION ###
+# DESCRIPTION #
 
 **libpmemblk**
 provides an array of blocks in *persistent memory* (pmem) such that updates
@@ -136,7 +131,7 @@ cause the process to exit. The only exception to this is the debugging
 information, when enabled, as described under **DEBUGGING AND ERROR HANDLING**
 below.
 
-### MOST COMMONLY USED FUNCTIONS ###
+# MOST COMMONLY USED FUNCTIONS #
 
 To use the atomic block arrays supplied by **libpmemblk**, a *memory pool*
 is first created. This is done with the `pmemblk_create()` function described
@@ -168,10 +163,7 @@ PMEMblkpool *pmemblk_open(const char *path, size_t bsize);
   being set to `EINVAL`.
 
 ```c
-PMEMblkpool *pmemblk_create(
-	const char *path,
-	size_t bsize,
-	size_t poolsize,
+PMEMblkpool *pmemblk_create(const char *path, size_t bsize, size_t poolsize,
 	mode_t mode);
 ```
 
@@ -302,12 +294,14 @@ int pmemblk_set_error(PMEMblkpool *pbp, long long blockno);
   On success, zero is returned. On error, -1 is returned and `errno` is set.
 
 
-### LIBRARY API VERSIONING ###
+# LIBRARY API VERSIONING #
 
 This section describes how the library API is versioned, allowing applications to work with an evolving API.
 
 ```c
-const char *pmemblk_check_version(unsigned major_required, unsigned minor_required);
+const char *pmemblk_check_version(
+	unsigned major_required,
+	unsigned minor_required);
 ```
 
   The `pmemblk_check_version()` function is used to see if the installed **libpmemblk**
@@ -337,7 +331,7 @@ if (reason != NULL)
   the reason for failing the version check. The string returned by `pmemblk_check_version()` must not be modified or freed.
 
 
-### MANAGING LIBRARY BEHAVIOR ###
+# MANAGING LIBRARY BEHAVIOR #
 
 The library entry points described in this section are less commonly used than the previous sections.
 
@@ -359,7 +353,7 @@ int pmemblk_check(const char *path, size_t bsize);
 
   The `pmemblk_check()` function performs a consistency check of the file indicated by *path* and returns 1 if the memory pool is found to be consistent. Any inconsistencies found will cause `pmemblk_check()` to return 0, in which case the use of the file with **libpmemblk** will result in undefined behavior. The debug version of **libpmemblk** will provide additional details on inconsistencies when `PMEMBLK_LOG_LEVEL` is at least 1, as described in the **DEBUGGING AND ERROR HANDLING** section below. When `bsize` is non-zero `pmemblk_check()` will compare it to the block size of the pool and return 0 when they don’t match. `pmemblk_check()` will return -1 and set `errno` if it cannot perform the consistency check due to other errors. `pmemblk_check()` opens the given `path` read-only so it never makes any changes to the file.
 
-### DEBUGGING AND ERROR HANDLING ###
+# DEBUGGING AND ERROR HANDLING #
 
 Two versions of **libpmemblk** are typically available on a development system. The normal version, accessed when a program is linked using the `-lpmemblk` option, is optimized for performance. That version skips checks that impact performance and never logs any trace information or performs any run-time assertions. If an error is detected during the call to **libpmemblk** function, an application may retrieve an error message describing the reason of failure using the following function:
 
@@ -385,7 +379,7 @@ file is created. If `PMEMBLK_LOG_FILE` is not set, the logging output goes to st
 Setting the environment variable `PMEMBLK_LOG_LEVEL` has no effect on the non-debug version of **libpmemblk**.
 See also **libpmem**(3) to get information about other environment variables affecting **libpmemblk** behavior.
 
-### EXAMPLES ###
+# EXAMPLES #
 
 The following example illustrates how the **libpmemblk** API is used.
 
@@ -450,21 +444,21 @@ main(int argc, char *argv[])
     pmemblk_close(pbp);
 }
 ```
-See http://pmem.io/nvml/libpmemblk for more examples using the **libpmemblk** API.
+See <http://pmem.io/nvml/libpmemblk> for more examples using the **libpmemblk** API.
 
-### BUGS ###
+# BUGS #
 
 Unlike **libpmemobj**, data replication is not supported in **libpmemblk**.
 Thus, it is not allowed to specify replica sections in pool set files.
 
-### ACKNOWLEDGEMENTS ###
+# ACKNOWLEDGEMENTS #
 
 **libpmemblk** builds on the persistent memory programming model recommended
 by the SNIA NVM Programming Technical Work Group:
-[http://snia.org/nvmp](http://snia.org/nvmp)
+<http://snia.org/nvmp>
 
-### SEE ALSO ###
+# SEE ALSO #
 
 **mmap**(2), **munmap**(2), **msync**(2), **strerror**(3), **libpmemobj**(3),
 **libpmemlog**(3), **libpmem**(3), **libvmem**(3)
-and **[http://pmem.io](http://pmem.io)**
+and **<http://pmem.io>**
