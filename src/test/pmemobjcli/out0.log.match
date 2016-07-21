@@ -18,7 +18,7 @@ pmemobj_type_num(r.1): type num = 4
 pmemobj_alloc_usable_size(r.0): size = $(nW)
 pmemobj_alloc_usable_size(r.1): size = $(nW)
 pmemobj_first: off = $(nW) uuid = $(nW)
-pmemobj_next($(nW)): off = 0x382ac0 uuid = $(nW)
+pmemobj_next($(nW)): off = $(nW) uuid = $(nW)
 pmemobj_memset_persist($(nW), 255, 128): ptr = $(nW)
 pmemobj_memset_persist($(nW), 0, 128): ptr = $(nW)
 pmemobj_memcpy_persist($(nW), $(nW), 128): ptr = $(nW)
