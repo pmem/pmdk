@@ -23,5 +23,5 @@ test_script:
         echo "`$NON_PMEM_FS_DIR = '\temp'" > testconfig.ps1
         echo "`$PMEM_FS_DIR = '\temp'" >> testconfig.ps1
         echo "`$PMEM_FS_DIR_FORCE_PMEM = 1" >> testconfig.ps1
-        ./RUNTESTS.ps1 -b debug -o 60s
+        ./RUNTESTS.ps1 -b debug -o 3m
     }

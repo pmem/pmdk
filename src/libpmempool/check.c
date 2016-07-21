@@ -212,7 +212,7 @@ check_fini(PMEMpoolcheck *ppc)
 /*
  * check_is_end -- return if check has ended
  */
-inline int
+int
 check_is_end(struct check_data *data)
 {
 	return check_is_end_util(data);

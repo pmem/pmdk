@@ -1,0 +1,16 @@
+$(*): error: blk pool requires <bsize> argument
+$(*)
+$(*)
+$(*)
+$(*)
+$(*)
+$(*)
+$(*)Invalid block size 4294967296
+$(*)
+$(*)
+$(*)
+$(*)
+$(*)
+$(*)
+error: creating pool file failed
+

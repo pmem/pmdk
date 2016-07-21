@@ -219,6 +219,7 @@ function create_poolset {
         $cmd = $args[$i]
         # need to strip out a drive letter if included because we use :
         # as a delimeter in the arguement
+
         $driveLetter = ""
         if ($cmd -match "([a-zA-Z]):\\\\") {
             $tmp = ($cmd.Split("{:\\\\}",2,[System.StringSplitOptions]::RemoveEmptyEntries))
@@ -245,9 +246,9 @@ function create_poolset {
             $asize = $fsize
         }
 
-        # XXX - do not assume size is in megabytes
-        #[int64] $asize *= 1024 * 1024
-        #[int64] $fsize *= 1024 * 1024
+         # XXX - do not assume size is in megabytes
+         #[int64] $asize *= 1024 * 1024
+         #[int64] $fsize *= 1024 * 1024
 
         switch -regex ($cmd) {
             # do nothing
@@ -279,13 +280,18 @@ function expect_normal_exit {
 
     #XXX:  bash sets up LD_PRELOAD and other gcc options here
     # that we can't do, investigating how to address API hooking...
+    sv -Name command $args[0]
 
-    [string]$expression =  @($Args)
-    #$expression = $expression -replace " ", " ; "
-    Invoke-Expression $expression
+    foreach ($param in $Args[1 .. $Args.Count]) {
+        [string]$params += -join(" '", $param, "' ")
+    }
+
+    Invoke-Expression "$command $params"
+    sv -Name ret $LASTEXITCODE
 
     if ($LASTEXITCODE -ne 0) {
         sv -Name msg "failed with exit code $LASTEXITCODE"
+
 
         if (Test-Path ("err" + $Env:UNITTEST_NUM + ".log")) {
             if ($Env:UNITTEST_QUIET) {
@@ -322,12 +328,15 @@ function expect_abnormal_exit {
     #XXX:  bash sets up LD_PRELOAD and other gcc options here
     # that we can't do, investigating how to address API hooking...
 
-    [string]$expression =  @($Args)
-    $expression = $expression -replace " ", " ; "
-    Invoke-Expression $expression
-    sv -Name ret $?
+    sv -Name command $args[0]
 
-    if ($ret) {
+    foreach ($param in $Args[1 .. $Args.Count]) {
+        [string]$params += -join(" '", $param, "' ")
+    }
+
+    Invoke-Expression "$command $params"
+
+    if ($ret -eq 0) {
         sv -Name msg "succeeded"
         Write-Error "${Env:UNITTEST_NAME}: command $msg unexpectedly."
         #XXX:  bash just has a one-liner "false" here, does that
@@ -433,6 +442,19 @@ function require_binary() {
 }
 
 #
+# converts file to UTF8 w/o bom encoding
+#
+function convert_files_to_utf8_wo_bom {
+    sv -Name files $args[0]
+    foreach($file in $files) {
+        $content = Get-Content $file
+        $path = (Get-Item -Path ".\" -Verbose).FullName | Join-Path -ChildPath $file
+        if($content -ne $null) {
+            [IO.File]::WriteAllLines($path, $content)
+        }
+    }
+}
+#
 # check -- check test results (using .match files)
 #
 # note: win32 version slightly different since the caller can't as
@@ -447,12 +469,18 @@ function check {
     }
     [string]$listing = Get-ChildItem -File | Where-Object  {$_.Name -match "[^0-9]${Env:UNITTEST_NUM}.log.match"}
     if ($listing) {
+        $outputs = $listing.Split(' ')
+        for($i=0; $i -lt $outputs.Count; $i++) {
+            $outputs[$i] = ([io.fileinfo]$outputs[$i]).basename # remove .match extension
+        }
+        convert_files_to_utf8_wo_bom $outputs
         $pinfo = New-Object System.Diagnostics.ProcessStartInfo
         $pinfo.FileName = "perl"
         $pinfo.RedirectStandardError = $true
         $pinfo.RedirectStandardOutput = $true
         $pinfo.UseShellExecute = $false
         $pinfo.Arguments = "..\..\..\src\test\match $listing"
+        $pinfo.WorkingDirectory = pwd
         $p = New-Object System.Diagnostics.Process
         $p.StartInfo = $pinfo
         $p.Start() | Out-Null
@@ -467,7 +495,6 @@ function check {
     } else {
         fail "No match file found for test $Env:UNITTEST_NAME"
     }
-    Write-Host ""
 
 }
 
@@ -494,6 +521,7 @@ function pass {
              rm -Force -Recurse $DIR
         }
     }
+    Write-Host ""
 }
 
 #
@@ -515,7 +543,7 @@ function fail {
 function check_file {
     if (-Not (Test-Path $Args[0])) {
         Write-Error "Missing File: " $Args[0]
-        exit 1
+        fail 1
     }
 }
 
@@ -576,14 +604,14 @@ function check_size {
 
     if ($file_size -ne $size) {
         Write-Error "error: wrong size $file_size != $size"
-        return $false
+        fail 1
     }
-    return $true
 }
 
 #
 # check_mode -- validate file mode
 #
+# XXX: get_mode return diffrent value on appveyor
 function check_mode {
     sv -Name mode -Scope "Local" $args[0]
     sv -Name file -Scope "Local" $args[1]
@@ -591,9 +619,8 @@ function check_mode {
 
     if ($file_mode -ne $mode) {
         Write-Error "error: wrong mode $file_mode != $mode"
-        return $false
+        fail 1
     }
-    return $true
 }
 
 #
@@ -601,17 +628,18 @@ function check_mode {
 #
 function check_signature {
     sv -Name sig -Scope "Local" $args[0]
-    sv -Name file -Scope "Local" ((Get-Location).path + "\" + $Args[1])
+    sv -Name file -Scope "Local" ($args[1])
     sv -Name file_sig -Scope "Local" ""
     $stream = [System.IO.File]::OpenRead($file)
     $buff = New-Object Byte[] $SIG_LEN
-    $stream.Read($buff, 0, $SIG_LEN)
+    # you must assign return value otherwise PS will print it to stdout
+    $num = $stream.Read($buff, 0, $SIG_LEN)
     $file_sig = [System.Text.Encoding]::Ascii.GetString($buff)
+    $stream.Close()
     if ($file_sig -ne $sig) {
         Write-Error "error: $file signature doesn't match $file_sig != $sig"
-        return $false
+        fail 1
     }
-    return $true
 }
 
 #
@@ -619,11 +647,8 @@ function check_signature {
 #
 function check_signatures {
 	for ($i=0;$i -lt $args.count;$i+=2) {
-        if (-Not (check_signature $args[$i] $args[$i+1])) {
-            return $false
-        }
+        check_signature $args[$i] $args[$i+1]
     }
-    return $true
 }
 
 #
@@ -631,38 +656,40 @@ function check_signatures {
 #
 function check_layout {
     sv -Name layout -Scope "Local" $args[0]
-    sv -Name file -Scope "Local" ((Get-Location).path + "\" + $Args[1])
+    sv -Name file -Scope "Local" ($args[1])
 
     # XXX: not fully tested
     $stream = [System.IO.File]::OpenRead($file)
     $stream.Position = $LAYOUT_OFFSET
     $buff = New-Object Byte[] $LAYOUT_LEN
-    $stream.Read($buff, 0, $LAYOUT_LEN)
-
-    if ($buff -ne $layout) {
-        Write-Error "error: layout doesn't match $buff != $layout"
-        return $false
+    # you must assign return value otherwise PS will print it to stdout
+    $num = $stream.Read($buff, 0, $LAYOUT_LEN)
+    $enc = [System.Text.Encoding]::ASCII.GetString($buff)
+    $stream.Close()
+    if ($enc -ne $layout) {
+        Write-Error "error: layout doesn't match $enc != $layout"
+        fail 1
     }
-    return $true
 }
 
 #
 # check_arena -- check if file contains specified arena signature
 #
 function check_arena {
-    sv -Name file -Scope "Local" ((Get-Location).path + "\" + $Args[0])
+    sv -Name file -Scope "Local" ($args[0])
 
     # XXX: not fully tested
     $stream = [System.IO.File]::OpenRead($file)
-    $stream.Position = $ARENA_OFFSET
+    $stream.Position = $ARENA_OFF
     $buff = New-Object Byte[] $ARENA_SIG_LEN
-    $stream.Read($buff, 0, $ARENA_SIG_LEN)
-
-    if ($buff -ne $ARENA_SIG) {
+    # you must assign return value otherwise PS will print it to stdout
+    $num = $stream.Read($buff, 0, $ARENA_SIG_LEN)
+    $enc = [System.Text.Encoding]::ASCII.GetString($buff)
+    $stream.Close()
+    if ($enc -ne $ARENA_SIG) {
         Write-Error "error: can't find arena signature"
-        return $false
+        fail 1
     }
-    return $true
 }
 
 #
@@ -930,3 +957,7 @@ $Env:CHECK_POOL_LOG_FILE = "check_pool_${Env:BUILD}_${Env:UNITTEST_NUM}.log"
 if ($Env:EXE_DIR -eq $null) {
 	$Env:EXE_DIR = "..\..\x64\debug"
 }
+$PMEMPOOL="$Env:EXE_DIR\pmempool"
+$PMEMSPOIL="$Env:EXE_DIR\pmemspoil"
+$PMEMWRITE="$Env:EXE_DIR\pmemwrite"
+$PMEMALLOC="$Env:EXE_DIR\pmemalloc"

@@ -89,12 +89,6 @@
     <ClCompile Include="..\common\util.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\util_windows.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\common\cpu.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\common\file_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -104,13 +98,31 @@
     <ClCompile Include="..\common\set.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\set_windows.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\libpmemlog\log.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\libpmemlog\libpmemlog.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\file.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\mmap.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\pool_hdr.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\pool_hdr_windows.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\uuid.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\uuid_windows.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\windows\win_file.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

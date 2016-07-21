@@ -200,7 +200,7 @@ check_end(struct check_data *data)
 /*
  * check_is_end_util -- return if check has ended
  */
-inline int
+int
 check_is_end_util(struct check_data *data)
 {
 	return data->step == CHECK_END;

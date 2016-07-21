@@ -82,11 +82,6 @@
 #define min(a, b) ((a) < (b) ? (a) : (b))
 #endif
 
-#define ENTIRE_UINT64 {\
-	.first = 0,\
-	.last = UINT64_MAX\
-}
-
 #define FOREACH_RANGE(range, ranges)\
 	LIST_FOREACH(range, &(ranges)->head, next)
 
@@ -252,3 +247,7 @@ util_count_ones(uint64_t val)
 {
 	return (uint32_t)__builtin_popcountll(val);
 }
+
+static const struct range ENTIRE_UINT64 = { .first = 0,
+.last = UINT64_MAX
+};

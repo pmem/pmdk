@@ -253,7 +253,7 @@ pmempool_create_log(struct pmempool_create *pcp)
  */
 #ifndef _WIN32
 static int
-pmempool_get_max_size(char *fname, uint64_t *sizep)
+pmempool_get_max_size(const char *fname, uint64_t *sizep)
 {
 	struct statvfs buf;
 	char *name = strdup(fname);
@@ -271,7 +271,7 @@ pmempool_get_max_size(char *fname, uint64_t *sizep)
 }
 #else
 static int
-pmempool_get_max_size(char *fname, uint64_t *sizep)
+pmempool_get_max_size(const char *fname, uint64_t *sizep)
 {
 	char *name = strdup(fname);
 	char *dir = dirname(name);
