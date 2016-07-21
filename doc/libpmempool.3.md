@@ -2,6 +2,8 @@
 layout: manual
 Content-Style: 'text/css'
 title: libpmempool(3)
+header: NVM Library
+date: pmempool API version 1.0.1
 ...
 
 [comment]: <> (Copyright 2016, Intel Corporation)
@@ -43,11 +45,11 @@ title: libpmempool(3)
 [SEE ALSO](#see-also)<br />
 
 
-### NAME ###
+# NAME #
 
 **libpmempool** -- pool management library
 
-### SYNOPSIS ###
+# SYNOPSIS #
 
 ```c
 #include <libpmempool.h>
@@ -58,9 +60,7 @@ cc -std=gnu99 ... -lpmempool -lpmem
 
 ```c
 PMEMpoolcheck *pmempool_check_init(struct pmempool_check_args *args, size_t args_size);
-
 struct pmempool_check_status *pmempool_check(PMEMpoolcheck *ppc);
-
 enum pmempool_check_result pmempool_check_end(PMEMpoolcheck *ppc);
 ```
 
@@ -78,7 +78,7 @@ const char *pmempool_check_version(
 const char *pmempool_errormsg(void);
 ```
 
-### DESCRIPTION ###
+# DESCRIPTION #
 
 **libpmempool**
 provides a set of utilities for off-line analysis and
@@ -98,7 +98,7 @@ Currently **libpmempool** implements only consistency check and
 repair functions.
 
 
-### POOL CHECKING FUNCTIONS ###
+# POOL CHECKING FUNCTIONS #
 
 To perform check provided by **libpmempool**, a *check context*
 must be first initialized using `pmempool_check_init()`
@@ -256,15 +256,15 @@ enum pmempool_check_result pmempool_check_end(PMEMpoolcheck* ppc);
   + `PMEMPOOL_CHECK_RESULT_ERROR` - the *pool* has errors or the check encountered issue
 
 
-### LIBRARY API VERSIONING ###
+# LIBRARY API VERSIONING #
 
 This section describes how the library API is versioned, allowing
 applications to work with an evolving API.
 
 ```c
 const char *pmempool_check_version(
-unsigned major_required,
-unsigned minor_required);
+	unsigned major_required,
+	unsigned minor_required);
 ```
 
 The `pmempool_check_version()` function is used to see if
@@ -304,7 +304,7 @@ if (reason != NULL)
   `pmempool_check_version()` must not be modified or freed.
 
 
-### DEBUGGING AND ERROR HANDLING ###
+# DEBUGGING AND ERROR HANDLING #
 
 Two versions of libpmempool are typically available on a development
 system. The normal version, accessed when a program is
@@ -367,7 +367,7 @@ Setting the environment variable `PMEMPOOL_LOG_FILE` has no effect
 on the non-debug version of **libpmempool**.
 
 
-### EXAMPLES ###
+# EXAMPLES #
 
 The following example illustrates how the **libpmempool** API is used.
 The program detects the type and checks consistency of given pool.
@@ -436,19 +436,18 @@ main(int argc, char *argv[])
 }
 ```
 
-See [http://pmem.io/nvml/libpmempool](http://pmem.io/nvml/libpmempool)
-for more examples using the **libpmempool** API.
+See <http://pmem.io/nvml/libpmempool> for more examples using the **libpmempool** API.
 
 
-### ACKNOWLEDGEMENTS ###
+# ACKNOWLEDGEMENTS #
 
 **libpmempool** builds on the persistent memory programming model
 recommended by the SNIA NVM Programming Technical Work Group:
-[http://snia.org/nvmp](http://snia.org/nvmp)
+<http://snia.org/nvmp>
 
 
-### SEE ALSO ###
+# SEE ALSO #
 
 **mmap**(2), **munmap**(2), **msync**(2), **strerror**(3),
 **libpmemobj**(3), **libpmemblk**(3), **libpmemlog**(3), **libpmem**(3)
-and **[http://pmem.io](http://pmem.io)**
+and **<http://pmem.io>**

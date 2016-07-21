@@ -2,6 +2,8 @@
 layout: manual
 Content-Style: 'text/css'
 title: pmempool-check(1)
+header: NVM Library
+date: pmem Tools version 1.0.0
 ...
 
 [comment]: <> (Copyright 2016, Intel Corporation)
@@ -38,19 +40,18 @@ title: pmempool-check(1)
 [DESCRIPTION](#description)<br />
 [EXAMPLES](#examples)<br />
 [SEE ALSO](#see-also)<br />
-[PMEMPOOL](#pmempool)<br />
 
-### NAME ###
+# NAME #
 
 **pmempool-check** -- Check and repair Persistent Memory Pool
 
-### SYNOPSIS ###
+# SYNOPSIS #
 
 ```
 pmempool check [<options>] <file>
 ```
 
-### DESCRIPTION ###
+# DESCRIPTION #
 
 The **pmempool** invoked with `check` command checks consistency of a given pool file. If the pool file is consistent **pmempool** exits with 0 value. If the pool file is not consistent non-zero error code is returned.
 
@@ -89,7 +90,7 @@ possible to create a backup file. This option requires `-r` option.
 
 : Display help message and exit.
 
-### EXAMPLES ###
+# EXAMPLES #
 
 `pmempool check pool.bin`
 
@@ -105,10 +106,6 @@ if necessary.
 : Check consistency of pool.bin pool file, print what would be repaired with
 increased verbosity level.
 
-### SEE ALSO ###
+# SEE ALSO #
 
 **libpmemblk(3)**, **libpmemlog(3)**, **pmempool(1)**
-
-### PMEMPOOL ###
-
-Part of the **pmempool(1)** suite.

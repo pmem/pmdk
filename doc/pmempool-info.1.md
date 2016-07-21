@@ -2,6 +2,8 @@
 layout: manual
 Content-Style: 'text/css'
 title: pmempool-info(1)
+header: NVM Library
+date: pmem Tools version 1.0.1
 ...
 
 [comment]: <> (Copyright 2016, Intel Corporation)
@@ -40,20 +42,19 @@ title: pmempool-info(1)
 [STATISTICS](#statistics)<br />
 [EXAMPLES](#examples)<br />
 [SEE ALSO](#see-also)<br />
-[PMEMPOOL](#pmempool)<br />
 
-### NAME ###
+# NAME #
 
 **pmempool-info** -- print basic information about Persistent Memory Pool file
 
 
-### SYNOPSIS ###
+# SYNOPSIS #
 
 ```
 pmempool info [<options>] <file>
 ```
 
-### DESCRIPTION ###
+# DESCRIPTION #
 
 The **pmempool** invoked with `info` command analyzes an existing pool created by **NVML** libraries.
 The main task of this command is to print all usable information from pool headers and user data in human readable format. It automatically recognizes pool type by parsing and analyzing pool header. The recognition is done by checking the signature in pool header. The main job of `info` command is to present internal data structures as they are stored in file but *not* for checking consistency. For this purpose there is the **pmempool-check(1)** command available.
@@ -233,7 +234,7 @@ specified range of chunks within a zone. This option requires `-O, --object-stor
 : Print information from `<num>` replica. The 0 value means the master pool file.
 
 
-### RANGE ###
+# RANGE #
 
 Using `-r, --range` option it is possible to dump only a range of user data. This section describes valid format of `<range>` string.
 
@@ -256,7 +257,7 @@ You can specify multiple ranges separated by commas.
 : Only `<number>` block/byte/data chunk will be dumped.
 
 
-### STATISTICS ###
+# STATISTICS #
 
 Below is the description of statistical measures for specific pool types.
 
@@ -359,7 +360,7 @@ Below is the description of statistical measures for specific pool types.
     : Total number of used bytes of all classes.
 
 
-### EXAMPLES ###
+# EXAMPLES #
 
 `pmempool info ./pmemblk`
 
@@ -378,11 +379,6 @@ Below is the description of statistical measures for specific pool types.
 : Print information from pmemblk file. Dump data blocks from 10 to 100, skip blocks marked with error flag and not marked with any flag.
 
 
-### SEE ALSO ###
+# SEE ALSO #
 
 **libpmemblk(3)**, **libpmemlog(3)**, **pmempool(1)**
-
-
-### PMEMPOOL ###
-
-Part of the **pmempool(1)** suite.

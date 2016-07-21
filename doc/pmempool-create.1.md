@@ -2,6 +2,8 @@
 layout: manual
 Content-Style: 'text/css'
 title: pmempool-create(1)
+header: NVM Library
+date: pmem Tools version 1.0.1
 ...
 
 [comment]: <> (Copyright 2016, Intel Corporation)
@@ -38,19 +40,18 @@ title: pmempool-create(1)
 [DESCRIPTION](#description)<br />
 [EXAMPLES](#examples)<br />
 [SEE ALSO](#see-also)<br />
-[PMEMPOOL](#pmempool)<br />
 
-### NAME ###
+# NAME #
 
 **pmempool-create** -- Create Persistent Memory Pool of specified type
 
-### SYNOPSIS ###
+# SYNOPSIS #
 
 ```
 pmempool create [<options>] [<type>] [<bsize>] <file>
 ```
 
-### DESCRIPTION ###
+# DESCRIPTION #
 
 The **pmempool** invoked with `create` command creates a pool file
 of specified type. Depending on a pool type it is possible to provide more properties of pool.
@@ -123,7 +124,7 @@ the **libpmemobj** library is an empty string. Please refer to
 : Layout name of the **pmemobj** pool.
 
 
-### EXAMPLES ###
+# EXAMPLES #
 
 `pmempool create blk 512 pool.blk`
 
@@ -146,10 +147,6 @@ the **libpmemobj** library is an empty string. Please refer to
 : Create a pool file based on pool.log file
 
 
-### SEE ALSO ###
+# SEE ALSO #
 
 **libpmemblk(3)**, **libpmemlog(3)**, **pmempool(1)**
-
-### PMEMPOOL ###
-
-Part of the **pmempool(1)** suite.

@@ -2,6 +2,8 @@
 layout: manual
 Content-Style: 'text/css'
 title: pmempool-convert(1)
+header: NVM Library
+date: pmem Tools version 1.0.0
 ...
 
 [comment]: <> (Copyright 2016, Intel Corporation)
@@ -38,22 +40,21 @@ title: pmempool-convert(1)
 [DESCRIPTION](#description)<br />
 [EXAMPLES](#examples)<br />
 [SEE ALSO](#see-also)<br />
-[PMEMPOOL](#pmempool)<br />
 
-### NAME ###
+# NAME #
 
 **pmempool-convert** - Convert pool files from old layout versions to the
 newest one.
 
 
-### SYNOPSIS ###
+# SYNOPSIS #
 
 ```
 pmempool convert <file>
 ```
 
 
-### DESCRIPTION ###
+# DESCRIPTION #
 
 The **pmempool** invoked with the `convert` command
 performs a conversion of the specified pool to the newest
@@ -64,18 +65,13 @@ process is not fail-safe - power interruption may damage the
 pool.
 
 
-### EXAMPLES ###
+# EXAMPLES #
 
 `pmempool convert pool.obj`
 
 Updates pool.obj to the latest layout version.
 
 
-### SEE ALSO ###
+# SEE ALSO #
 
 **pmempool**(1), **pmempool-info**(1), **libpmemobj**(3)
-
-
-### PMEMPOOL ###
-
-Part of the **pmempool**(1) suite.

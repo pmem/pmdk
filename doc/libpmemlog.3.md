@@ -2,6 +2,8 @@
 layout: manual
 Content-Style: 'text/css'
 title: libpmemlog(3)
+header: NVM Library
+date: pmemlog API version 1.0.3
 ...
 
 [comment]: <> (Copyright 2016, Intel Corporation)
@@ -45,15 +47,14 @@ title: libpmemlog(3)
 [ACKNOWLEDGEMENTS](#acknowledgements)<br />
 [SEE ALSO](#see-also)
 
-### NAME ###
+# NAME #
 
 **libpmemlog** -- persistent memory resident log file
 
-### SYNOPSIS ###
+# SYNOPSIS #
 
 ```c
 #include <libpmemlog.h>
-
 cc ... -lpmemlog -lpmem
 ```
 
@@ -61,32 +62,24 @@ cc ... -lpmemlog -lpmem
 
 ```c
 PMEMlogpool *pmemlog_open(const char *path);
-
 PMEMlogpool *pmemlog_create(const char *path, size_t poolsize, mode_t mode);
-
 void pmemlog_close(PMEMlogpool *plp);
-
 size_t pmemlog_nbyte(PMEMlogpool *plp);
-
 intpmemlog_append(PMEMlogpool *plp, const void *buf, size_t count);
-
 int pmemlog_appendv(PMEMlogpool *plp, const struct iovec *iov, int iovcnt);
-
 long long pmemlog_tell(PMEMlogpool *plp);
-
 void pmemlog_rewind(PMEMlogpool *plp);
-
-void pmemlog_walk(
-      PMEMlogpool *plp,
-      size_t chunksize,
-      int (*process_chunk)(const void *buf, size_t len, void *arg),
-      void *arg);
+void pmemlog_walk(PMEMlogpool *plp, size_t chunksize,
+	int (*process_chunk)(const void *buf, size_t len, void *arg),
+	void *arg);
 ```
 
 ##### Library API versioning: #####
 
 ```c
-const char *pmemlog_check_version(unsigned major_required, unsigned minor_required);
+const char *pmemlog_check_version(
+	unsigned major_required,
+	unsigned minor_required);
 ```
 
 ##### Managing library behavior: #####
@@ -97,7 +90,6 @@ void pmemlog_set_funcs(
       void (*free_func)(void *ptr),
       void *(*realloc_func)(void *ptr, size_t size),
       char *(*strdup_func)(const char *s));
-
 int pmemlog_check(const char *path);
 ```
 
@@ -107,7 +99,7 @@ int pmemlog_check(const char *path);
 const char *pmemlog_errormsg(void);
 ```
 
-### DESCRIPTION ###
+# DESCRIPTION #
 
 **libpmemlog**
 provides a log file in *persistent memory* (pmem) such that additions to the log are appended atomically. This library is intended for applications using direct access storage (DAX), which is storage that supports load/store access without paging blocks from a block storage device. Some types of *non-volatile memory DIMMs* (NVDIMMs) provide this type of byte addressable access to storage. A *persistent memory aware file system* is typically used to expose the direct access to applications. Memory mapping a file from this type of file system results in the load/store, non-paged access to pmem. **libpmemlog** builds on this type of memory mapped file.
@@ -124,7 +116,7 @@ This library is for applications that need a persistent log file, updated atomic
 
 Under normal usage, **libpmemlog** will never print messages or intentionally cause the process to exit. The only exception to this is the debugging information, when enabled, as described under **DEBUGGING AND ERROR HANDLING** below.
 
-### MOST COMMONLY USED FUNCTIONS ###
+# MOST COMMONLY USED FUNCTIONS #
 
 To use the pmem-resident log file provided by **libpmemlog**, a *memory pool* is first created. This is done with the `pmemlog_create()` function described in this section. The other functions described in this section then operate on the resulting log memory pool.
 
@@ -146,7 +138,7 @@ Depending on the configuration of the system, the available space of non-volatil
 
 Creation of all the parts of the pool set can be done with the `pmemlog_create()` function. However, the recommended method for creating pool sets is to do it by using the **pmempool**(1) utility.
 
-When creating the pool set consisting of multiple files, the`path` argument passed to `pmemlog_create()` must point to the special *set* file that defines the pool layout and the location of all the parts of the pool set. The `poolsize` argument must be 0. The meaning of `layout` and `mode` arguments doesn’t change, except that the same `mode` is used for creation of all the parts of the pool set. If the error prevents any of the pool set files from being created, `pmemlog_create()` returns `NULL` and sets `errno` appropriately.
+When creating the pool set consisting of multiple files, the`path` argument passed to `pmemlog_create()` must point to the special *set* file that defines the pool layout and the location of all the parts of the pool set. The `poolsize` argument must be 0. The meaning of `layout` and `mode` arguments doesn't change, except that the same `mode` is used for creation of all the parts of the pool set. If the error prevents any of the pool set files from being created, `pmemlog_create()` returns `NULL` and sets `errno` appropriately.
 
 When opening the pool set consisting of multiple files, the `path` argument passed to `pmemlog_open()` must not point to the pmemlog memory pool file, but to the same *set* file that was used for the pool set creation. If an error prevents any of the pool set files from being opened, or if the actual size of any file does not match the corresponding part size defined in *set* file `pmemlog_open()` returns `NULL` and sets `errno` appropriately.
 
@@ -208,21 +200,21 @@ void pmemlog_rewind(PMEMlogpool *plp);
   The `pmemlog_rewind()` function resets the current write point for the log to zero. After this call, the next append adds to the beginning of the log.
 
 ```c
-void pmemlog_walk(
-	PMEMlogpool *plp,
-	size_t chunksize,
+void pmemlog_walk(PMEMlogpool *plp, size_t chunksize,
 	int (*process_chunk)(const void *buf, size_t len, void *arg),
 	void *arg);
 ```
 
   The `pmemlog_walk()` function walks through the log `plp`, from beginning to end, calling the callback function `process_chunk` for each `chunksize` block of data found. The argument `arg` is also passed to the callback to help avoid the need for global state. The `chunksize` argument is useful for logs with fixed-length records and may be specified as 0 to cause a single call to the callback with the entire log contents passed as the `buf` argument. The `len` argument tells the `process_chunk` function how much data buf is holding. The callback function should return 1 if `pmemlog_walk()` should continue walking through the log, or 0 to terminate the walk. The callback function is called while holding **libpmemlog** internal locks that make calls atomic, so the callback function must not try to append to the log itself or deadlock will occur.
 
-### LIBRARY API VERSIONING ###
+# LIBRARY API VERSIONING #
 
 This section describes how the library API is versioned, allowing applications to work with an evolving API.
 
 ```c
-const char *pmemlog_check_version(unsigned major_required, unsigned minor_required);
+const char *pmemlog_check_version(
+	unsigned major_required,
+	unsigned minor_required);
 ```
 
   The `pmemlog_check_version()` function is used to see if the installed **libpmemlog** supports the version of the library API required by an application. The easiest way to do this is for the application to supply the compile-time version information, supplied by defines in `<libpmemlog.h`>, like this:
@@ -242,7 +234,7 @@ An application can also check specifically for the existence of an interface by 
 
 When the version check performed by `pmemlog_check_version()` is successful, the return value is `NULL`. Otherwise the return value is a static string describing the reason for failing the version check. The string returned by `pmemlog_check_version()` must not be modified or freed.
 
-### MANAGING LIBRARY BEHAVIOR ###
+# MANAGING LIBRARY BEHAVIOR #
 
 The library entry points described in this section are less commonly used than the previous sections.
 
@@ -262,7 +254,7 @@ int pmemlog_check(const char *path);
 
   The `pmemlog_check()` function performs a consistency check of the file indicated by `path` and returns 1 if the memory pool is found to be consistent. Any inconsistencies found will cause `pmemlog_check()` to return 0, in which case the use of the file with **libpmemlog** will result in undefined behavior. The debug version of **libpmemlog** will provide additional details on inconsistencies when `PMEMLOG_LOG_LEVEL` is at least 1, as described in the **DEBUGGING AND ERROR HANDLING** section below. `pmemlog_check()` will return -1 and set `errno` if it cannot perform the consistency check due to other errors. `pmemlog_check()` opens the given `path` read-only so it never makes any changes to the file.
 
-### DEBUGGING AND ERROR HANDLING ###
+# DEBUGGING AND ERROR HANDLING #
 
 Two versions of **libpmemlog** are typically available on a development system. The normal version, accessed when a program is linked using the `-lpmemlog` option, is optimized for performance. That version skips checks that impact performance and never logs any trace information or performs any run-time assertions. If an error is detected during the call to **libpmemlog** function, an application may retrieve an error message describing the reason of failure using the following function:
 
@@ -289,7 +281,7 @@ The environment variable `PMEMLOG_LOG_FILE` specifies a file name where all logg
 Setting the environment variable `PMEMLOG_LOG_LEVEL` has no effect on the non-debug version of **libpmemlog**.
 See also **libpmem**(3) to get information about other environment variables affecting **libpmemlog** behavior.
 
-### EXAMPLES ###
+# EXAMPLES #
 
 The following example illustrates how the **libpmemlog** API is used.
 
@@ -358,22 +350,22 @@ main(int argc, char *argv[])
 }
 ```
 
-See [http://pmem.io/nvml/libpmemlog](http://pmem.io/nvml/libpmemlog)
+See <http://pmem.io/nvml/libpmemlog>
 for more examples using the **libpmemlog** API.
 
-### BUGS ###
+# BUGS #
 
 Unlike **libpmemobj**, data replication is not supported in **libpmemlog**.
 Thus, it is not allowed to specify replica sections in pool set files.
 
-### ACKNOWLEDGEMENTS ###
+# ACKNOWLEDGEMENTS #
 
 **libpmemlog** builds on the persistent memory programming model recommended
 by the SNIA NVM Programming Technical Work Group:
-[http://snia.org/nvmp](http://snia.org/nvmp)
+<http://snia.org/nvmp>
 
-### SEE ALSO ###
+# SEE ALSO #
 
 **mmap**(2), **munmap**(2), **msync**(2), **strerror**(3), **libpmemobj**(3),
 **libpmemblk**(3), **libpmem**(3), **libvmem**(3)
-and **[http://pmem.io](http://pmem.io)**
+and **<http://pmem.io>**

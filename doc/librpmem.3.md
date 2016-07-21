@@ -50,25 +50,23 @@ cc ... -lrpmem
 
 ```c
 RPMEMpool *rpmem_create(const char *target, const char *pool_set_name,
-		void *pool_addr, size_t pool_size, unsigned *nlanes,
-		const struct rpmem_pool_attr *create_attr);
-
+	void *pool_addr, size_t pool_size, unsigned *nlanes,
+	const struct rpmem_pool_attr *create_attr);
 RPMEMpool *rpmem_open(const char *target, const char *pool_set_name,
-		void *pool_addr, size_t pool_size, unsigned *nlanes,
-		struct rpmem_pool_attr *open_attr);
-
+	void *pool_addr, size_t pool_size, unsigned *nlanes,
+	struct rpmem_pool_attr *open_attr);
 int rpmem_close(RPMEMpool *rpp);
 
-int rpmem_persist(RPMEMpool *rpp, size_t offset, size_t length,
-		unsigned lane);
+int rpmem_persist(RPMEMpool *rpp, size_t offset, size_t length, unsigned lane);
 int rpmem_read(RPMEMpool *rpp, void *buff, size_t offset, size_t length);
 ```
 
 ##### Library API versioning: #####
 
 ```c
-const char *rpmem_check_version(unsigned major_required,
-		unsigned minor_required);
+const char *rpmem_check_version(
+	unsigned major_required,
+	unsigned minor_required);
 ```
 
 ##### Error handling: #####
@@ -99,8 +97,8 @@ allocation and transactional operations on variable-sized objects.
 
 ```c
 RPMEMpool *rpmem_create(const char *target, const char *pool_set_name,
-		void *pool_addr, size_t pool_size, unsigned *nlanes,
-		const struct rpmem_pool_attr *create_attr);
+	void *pool_addr, size_t pool_size, unsigned *nlanes,
+	const struct rpmem_pool_attr *create_attr);
 ```
 
   The **rpmem_create**() creates a remote pool on a given *target* node.
@@ -122,8 +120,8 @@ RPMEMpool *rpmem_create(const char *target, const char *pool_set_name,
 
 ```c
 RPMEMpool *rpmem_open(const char *target, const char *pool_set_name,
-		void *pool_addr, size_t pool_size, unsigned *nlanes,
-		struct rpmem_pool_attr *open_attr);
+	void *pool_addr, size_t pool_size, unsigned *nlanes,
+	struct rpmem_pool_attr *open_attr);
 ```
 
   The **rpmem_open**() opens an existing remote pool on a given *target* node.
@@ -284,8 +282,9 @@ This section describes how the library API is versioned, allowing
 applications to work with an evolving API.
 
 ```c
-const char *rpmem_check_version(unsigned major_required,
-			unsigned minor_required);
+const char *rpmem_check_version(
+	unsigned major_required,
+	unsigned minor_required);
 ```
 
   The *rpmem_check_version()* function is used to see if the installed
@@ -404,7 +403,7 @@ RDMA connection. By default the *sockets* provider is disabled.
 Setting this variable to 0 disables using **fi_verbs(7)** provider for in-band
 RDMA connection. The *verbs* provider is enabled by default.
 
-### EXAMPLES ###
+# EXAMPLES #
 
 The following example uses **librpmem** to create a remote pool on given
 target node identified by given pool set name. The associated local memory
@@ -464,13 +463,9 @@ main(int argc, char *argv[])
 
 **librpmem** builds on the persistent memory programming model
 recommended by the SNIA NVM Programming Technical Work Group:
-[http://snia.org/nvmp](http://snia.org/nvmp)
+<http://snia.org/nvmp>
 
 # SEE ALSO #
 
-**libpmemobj**(3),
-**libpmemblk**(3),
-**libpmemlog**(3),
-**libvmem**(3),
-**strerror**(3)
-and **[http://pmem.io](http://pmem.io)**
+**libpmemobj**(3), **libpmemblk**(3), **libpmemlog**(3),
+**libvmem**(3), **strerror**(3) and **<http://pmem.io>**
