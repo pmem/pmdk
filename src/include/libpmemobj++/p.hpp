@@ -38,11 +38,10 @@
 #ifndef PMEMOBJ_P_HPP
 #define PMEMOBJ_P_HPP
 
-#include "libpmemobj.h"
 #include <memory>
 
-#include "libpmemobj/detail/common.hpp"
-#include "libpmemobj/detail/specialization.hpp"
+#include "libpmemobj++/detail/common.hpp"
+#include "libpmemobj++/detail/specialization.hpp"
 
 namespace nvml
 {

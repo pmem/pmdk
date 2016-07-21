@@ -36,13 +36,13 @@
 #include <functional>
 #include <stdlib.h>
 
-#include <libpmemobj/make_persistent.hpp>
-#include <libpmemobj/make_persistent_atomic.hpp>
-#include <libpmemobj/p.hpp>
-#include <libpmemobj/persistent_ptr.hpp>
-#include <libpmemobj/pool.hpp>
-#include <libpmemobj/transaction.hpp>
-#include <libpmemobj/utils.hpp>
+#include <libpmemobj++/make_persistent.hpp>
+#include <libpmemobj++/make_persistent_atomic.hpp>
+#include <libpmemobj++/p.hpp>
+#include <libpmemobj++/persistent_ptr.hpp>
+#include <libpmemobj++/pool.hpp>
+#include <libpmemobj++/transaction.hpp>
+#include <libpmemobj++/utils.hpp>
 
 #define BIT_IS_SET(n, i) (!!((n) & (1ULL << (i))))
 

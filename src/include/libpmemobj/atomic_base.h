@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2014-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,54 +31,65 @@
  */
 
 /*
- * tx.h -- internal definitions for transactions
+ * libpmemobj/atomic_base.h -- definitions of libpmemobj atomic entry points
  */
 
-#ifndef LIBPMEMOBJ_INTERNAL_TX_H
-#define LIBPMEMOBJ_INTERNAL_TX_H 1
+#ifndef LIBPMEMOBJ_ATOMIC_BASE_H
+#define LIBPMEMOBJ_ATOMIC_BASE_H 1
 
-#include <stdint.h>
-#include "pvector.h"
+#include <libpmemobj/base.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /*
- * To make sure that the range cache does not needlessly waste memory in the
- * allocator, the values set here must very closely match allocation class
- * sizes. A good value to aim for is multiples of 1024 bytes.
+ * Non-transactional atomic allocations
+ *
+ * Those functions can be used outside transactions. The allocations are always
+ * aligned to the cache-line boundary.
  */
-#define MAX_CACHED_RANGE_SIZE 32
-#define MAX_CACHED_RANGES 169
 
-enum tx_state {
-	TX_STATE_NONE = 0,
-	TX_STATE_COMMITTED = 1,
-};
+/*
+ * Allocates a new object from the pool and calls a constructor function before
+ * returning. It is guaranteed that allocated object is either properly
+ * initialized, or if it's interrupted before the constructor completes, the
+ * memory reserved for the object is automatically reclaimed.
+ */
+int pmemobj_alloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
+	uint64_t type_num, pmemobj_constr constructor, void *arg);
 
-struct tx_range {
-	uint64_t offset;
-	uint64_t size;
-	uint8_t data[];
-};
+/*
+ * Allocates a new zeroed object from the pool.
+ */
+int pmemobj_zalloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
+	uint64_t type_num);
 
-struct tx_range_cache {
-	struct { /* compatible with struct tx_range */
-		uint64_t offset;
-		uint64_t size;
-		uint8_t data[MAX_CACHED_RANGE_SIZE];
-	} range[MAX_CACHED_RANGES];
-};
+/*
+ * Resizes an existing object.
+ */
+int pmemobj_realloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
+	uint64_t type_num);
 
-enum undo_types {
-	UNDO_ALLOC,
-	UNDO_FREE,
-	UNDO_SET,
-	UNDO_SET_CACHE,
+/*
+ * Resizes an existing object, if extended new space is zeroed.
+ */
+int pmemobj_zrealloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
+	uint64_t type_num);
 
-	MAX_UNDO_TYPES
-};
+/*
+ * Allocates a new object with duplicate of the string s.
+ */
+int pmemobj_strdup(PMEMobjpool *pop, PMEMoid *oidp, const char *s,
+	uint64_t type_num);
 
-struct lane_tx_layout {
-	uint64_t state;
-	struct pvector undo_log[MAX_UNDO_TYPES];
-};
+/*
+ * Frees an existing object.
+ */
+void pmemobj_free(PMEMoid *oidp);
 
+#ifdef __cplusplus
+}
 #endif
+
+#endif	/* libpmemobj/atomic_base.h */

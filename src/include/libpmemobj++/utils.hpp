@@ -30,69 +30,65 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef LIBPMEMOBJ_INTEGER_SEQUENCE_HPP
-#define LIBPMEMOBJ_INTEGER_SEQUENCE_HPP
-
 /**
  * @file
- * Create c++14 style index sequence.
+ * Libpmemobj C++ utils.
  */
+#ifndef LIBPMEMOBJ_UTILS_HPP
+#define LIBPMEMOBJ_UTILS_HPP
+
+#include "libpmemobj/base.h"
+#include "libpmemobj++/detail/pexceptions.hpp"
+#include "libpmemobj++/persistent_ptr.hpp"
 
 namespace nvml
 {
 
-namespace detail
+namespace obj
 {
 
-/*
- * Base index type template.
- */
-template <typename T, T...>
-struct integer_sequence {
-};
-
-/*
- * Size_t specialization of the integer sequence.
- */
-template <size_t... Indices>
-using index_sequence = integer_sequence<size_t, Indices...>;
-
-/*
- * Empty base class.
+/**
+ * Retrieve pool handle for the given pointer.
  *
- * Subject of empty base optimization.
+ * @param[in] that pointer to an object from a persistent memory pool.
+ *
+ * @return handle to the pool containing the object.
+ *
+ * @throw `pool_error` if the given pointer does not belong to an open pool.
  */
-template <typename T, T I, typename... Types>
-struct make_integer_seq_impl;
+template <typename T>
+inline pool_base
+pool_by_vptr(const T *that)
+{
+	auto pop = pmemobj_pool_by_ptr(that);
+	if (!pop)
+		throw pool_error("Object not in an open pool.");
 
-/*
- * Class ending recursive variadic template peeling.
+	return pool_base(pop);
+}
+
+/**
+ * Retrieve pool handle for the given persistent_ptr.
+ *
+ * @param[in] ptr pointer to an object from a persistent memory pool.
+ *
+ * @return handle to the pool containing the object.
+ *
+ * @throw `pool_error` if the given pointer does not belong to an open pool.
  */
-template <typename T, T I, T... Indices>
-struct make_integer_seq_impl<T, I, integer_sequence<T, Indices...>> {
-	typedef integer_sequence<T, Indices...> type;
-};
+template <typename T>
+inline pool_base
+pool_by_pptr(const persistent_ptr<T> ptr)
+{
+	auto pop = pmemobj_pool_by_oid(ptr.raw());
+	if (!pop)
+		throw pool_error("Object not in an open pool.");
 
-/*
- * Recursively create index while peeling off the types.
- */
-template <typename N, N I, N... Indices, typename T, typename... Types>
-struct make_integer_seq_impl<N, I, integer_sequence<N, Indices...>, T,
-			     Types...> {
-	typedef typename make_integer_seq_impl<
-		N, I + 1, integer_sequence<N, Indices..., I>, Types...>::type
-		type;
-};
+	return pool_base(pop);
+}
 
-/*
- * Make index sequence entry point.
- */
-template <typename... Types>
-using make_index_sequence =
-	make_integer_seq_impl<size_t, 0, integer_sequence<size_t>, Types...>;
-
-} /* namespace detail */
+} /* namespace obj */
 
 } /* namespace nvml */
 
-#endif /* LIBPMEMOBJ_INTEGER_SEQUENCE_HPP */
+#endif /* LIBPMEMOBJ_UTILS_HPP */

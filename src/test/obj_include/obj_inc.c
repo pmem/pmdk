@@ -30,55 +30,10 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * tx.h -- internal definitions for transactions
- */
-
-#ifndef LIBPMEMOBJ_INTERNAL_TX_H
-#define LIBPMEMOBJ_INTERNAL_TX_H 1
-
-#include <stdint.h>
-#include "pvector.h"
-
-/*
- * To make sure that the range cache does not needlessly waste memory in the
- * allocator, the values set here must very closely match allocation class
- * sizes. A good value to aim for is multiples of 1024 bytes.
- */
-#define MAX_CACHED_RANGE_SIZE 32
-#define MAX_CACHED_RANGES 169
-
-enum tx_state {
-	TX_STATE_NONE = 0,
-	TX_STATE_COMMITTED = 1,
-};
-
-struct tx_range {
-	uint64_t offset;
-	uint64_t size;
-	uint8_t data[];
-};
-
-struct tx_range_cache {
-	struct { /* compatible with struct tx_range */
-		uint64_t offset;
-		uint64_t size;
-		uint8_t data[MAX_CACHED_RANGE_SIZE];
-	} range[MAX_CACHED_RANGES];
-};
-
-enum undo_types {
-	UNDO_ALLOC,
-	UNDO_FREE,
-	UNDO_SET,
-	UNDO_SET_CACHE,
-
-	MAX_UNDO_TYPES
-};
-
-struct lane_tx_layout {
-	uint64_t state;
-	struct pvector undo_log[MAX_UNDO_TYPES];
-};
-
+#ifdef BUILD_MAIN
+int
+main()
+{
+	return 0;
+}
 #endif

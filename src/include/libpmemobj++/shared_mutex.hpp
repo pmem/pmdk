@@ -38,7 +38,8 @@
 #ifndef PMEMOBJ_SHARED_MUTEX_HPP
 #define PMEMOBJ_SHARED_MUTEX_HPP
 
-#include "libpmemobj.h"
+#include "libpmemobj/thread.h"
+#include "libpmemobj/tx_base.h"
 
 namespace nvml
 {

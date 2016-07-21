@@ -32,15 +32,18 @@
 
 /**
  * @file
- * Commonly used functionality.
+ * Implementation details of atomic allocation and construction.
  */
 
-#ifndef PMEMOBJ_COMMON_HPP
-#define PMEMOBJ_COMMON_HPP
+#ifndef LIBPMEMOBJ_MAKE_ATOMIC_IMPL_HPP
+#define LIBPMEMOBJ_MAKE_ATOMIC_IMPL_HPP
 
-#include "libpmemobj.h"
-#include "libpmemobj/detail/pexceptions.hpp"
-#include <typeinfo>
+#include <new>
+#include <stddef.h>
+
+#include "libpmemobj++/detail/array_traits.hpp"
+#include "libpmemobj++/detail/integer_sequence.hpp"
+#include "libpmemobj++/detail/life.hpp"
 
 namespace nvml
 {
@@ -49,41 +52,67 @@ namespace detail
 {
 
 /*
- * Conditionally add an object to a transaction.
+ * Calls the objects constructor.
  *
- * Adds `*that` to the transaction if it is within a pmemobj pool and
- * there is an active transaction. Does nothing otherwise.
- *
- * @param[in] that pointer to the object being added to the transaction.
+ * Unpacks the tuple to get constructor's parameters.
  */
-template <typename T>
-inline void
-conditional_add_to_tx(const T *that)
+template <typename T, size_t... Indices, typename... Args>
+void
+create_object(void *ptr, index_sequence<Indices...>, std::tuple<Args...> &tuple)
 {
-	/* 'that' is not in any open pool */
-	if (!pmemobj_pool_by_ptr(that))
-		return;
-
-	if (pmemobj_tx_stage() != TX_STAGE_WORK)
-		return;
-
-	if (pmemobj_tx_add_range_direct(that, sizeof(*that)))
-		throw transaction_error("Could not add an object to the"
-					" transaction.");
+	new (ptr) T(std::get<Indices>(tuple)...);
 }
 
 /*
- * Return type number for given type.
+ * C-style function called by the allocator.
+ *
+ * The arg is a tuple containing constructor parameters.
+ */
+template <typename T, typename... Args>
+int
+obj_constructor(PMEMobjpool *pop, void *ptr, void *arg)
+{
+	auto *arg_pack = static_cast<std::tuple<Args...> *>(arg);
+
+	typedef typename make_index_sequence<Args...>::type index;
+	try {
+		create_object<T>(ptr, index(), *arg_pack);
+	} catch (...) {
+		return -1;
+	}
+
+	pmemobj_persist(pop, ptr, sizeof(T));
+
+	return 0;
+}
+
+/*
+ * Constructor used for atomic array allocations.
+ *
+ * Returns -1 if an exception was thrown during T's construction,
+ * 0 otherwise.
  */
 template <typename T>
-constexpr uint64_t
-type_num()
+int
+array_constructor(PMEMobjpool *pop, void *ptr, void *arg)
 {
-	return typeid(T).hash_code();
+	std::size_t N = *static_cast<std::size_t *>(arg);
+
+	T *tptr = static_cast<T *>(ptr);
+	try {
+		for (std::size_t i = 0; i < N; ++i)
+			detail::create<T>(tptr + i);
+	} catch (...) {
+		return -1;
+	}
+
+	pmemobj_persist(pop, ptr, sizeof(T) * N);
+
+	return 0;
 }
 
 } /* namespace detail */
 
 } /* namespace nvml */
 
-#endif /* PMEMOBJ_COMMON_HPP */
+#endif /* LIBPMEMOBJ_MAKE_ATOMIC_IMPL_HPP */

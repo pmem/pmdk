@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2014-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,54 +31,39 @@
  */
 
 /*
- * tx.h -- internal definitions for transactions
+ * libpmemobj/iterator_base.h -- definitions of libpmemobj iterator entry points
  */
 
-#ifndef LIBPMEMOBJ_INTERNAL_TX_H
-#define LIBPMEMOBJ_INTERNAL_TX_H 1
+#ifndef LIBPMEMOBJ_ITERATOR_BASE_H
+#define LIBPMEMOBJ_ITERATOR_BASE_H 1
 
-#include <stdint.h>
-#include "pvector.h"
+#include <libpmemobj/base.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /*
- * To make sure that the range cache does not needlessly waste memory in the
- * allocator, the values set here must very closely match allocation class
- * sizes. A good value to aim for is multiples of 1024 bytes.
+ * The following functions allow access to the entire collection of objects.
+ *
+ * Use with conjunction with non-transactional allocations. Pmemobj pool acts
+ * as a generic container (list) of objects that are not assigned to any
+ * user-defined data structures.
  */
-#define MAX_CACHED_RANGE_SIZE 32
-#define MAX_CACHED_RANGES 169
 
-enum tx_state {
-	TX_STATE_NONE = 0,
-	TX_STATE_COMMITTED = 1,
-};
+/*
+ * Returns the first object of the specified type number.
+ */
+PMEMoid pmemobj_first(PMEMobjpool *pop);
 
-struct tx_range {
-	uint64_t offset;
-	uint64_t size;
-	uint8_t data[];
-};
+/*
+ * Returns the next object of the same type.
+ */
+PMEMoid pmemobj_next(PMEMoid oid);
 
-struct tx_range_cache {
-	struct { /* compatible with struct tx_range */
-		uint64_t offset;
-		uint64_t size;
-		uint8_t data[MAX_CACHED_RANGE_SIZE];
-	} range[MAX_CACHED_RANGES];
-};
 
-enum undo_types {
-	UNDO_ALLOC,
-	UNDO_FREE,
-	UNDO_SET,
-	UNDO_SET_CACHE,
-
-	MAX_UNDO_TYPES
-};
-
-struct lane_tx_layout {
-	uint64_t state;
-	struct pvector undo_log[MAX_UNDO_TYPES];
-};
-
+#ifdef __cplusplus
+}
 #endif
+
+#endif	/* libpmemobj/iterator_base.h */

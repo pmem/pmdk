@@ -30,55 +30,76 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * tx.h -- internal definitions for transactions
+/**
+ * @file
+ * Compile time type check for make_persistent.
  */
 
-#ifndef LIBPMEMOBJ_INTERNAL_TX_H
-#define LIBPMEMOBJ_INTERNAL_TX_H 1
+#ifndef LIBPMEMOBJ_CHECK_PERSISTENT_PTR_ARRAY_HPP
+#define LIBPMEMOBJ_CHECK_PERSISTENT_PTR_ARRAY_HPP
 
-#include <stdint.h>
-#include "pvector.h"
+#include <stddef.h>
+
+#include "libpmemobj++/persistent_ptr.hpp"
+
+namespace nvml
+{
+
+namespace detail
+{
 
 /*
- * To make sure that the range cache does not needlessly waste memory in the
- * allocator, the values set here must very closely match allocation class
- * sizes. A good value to aim for is multiples of 1024 bytes.
+ * Typedef checking if given type is not an array.
  */
-#define MAX_CACHED_RANGE_SIZE 32
-#define MAX_CACHED_RANGES 169
-
-enum tx_state {
-	TX_STATE_NONE = 0,
-	TX_STATE_COMMITTED = 1,
+template <typename T>
+struct pp_if_not_array {
+	typedef obj::persistent_ptr<T> type;
 };
 
-struct tx_range {
-	uint64_t offset;
-	uint64_t size;
-	uint8_t data[];
+/*
+ * Typedef checking if given type is not an array.
+ */
+template <typename T>
+struct pp_if_not_array<T[]> {
 };
 
-struct tx_range_cache {
-	struct { /* compatible with struct tx_range */
-		uint64_t offset;
-		uint64_t size;
-		uint8_t data[MAX_CACHED_RANGE_SIZE];
-	} range[MAX_CACHED_RANGES];
+/*
+ * Typedef checking if given type is not an array.
+ */
+template <typename T, size_t N>
+struct pp_if_not_array<T[N]> {
 };
 
-enum undo_types {
-	UNDO_ALLOC,
-	UNDO_FREE,
-	UNDO_SET,
-	UNDO_SET_CACHE,
+/*
+ * Typedef checking if given type is an array.
+ */
+template <typename T>
+struct pp_if_array;
 
-	MAX_UNDO_TYPES
+/*
+ * Typedef checking if given type is an array.
+ */
+template <typename T>
+struct pp_if_array<T[]> {
+	typedef obj::persistent_ptr<T[]> type;
 };
 
-struct lane_tx_layout {
-	uint64_t state;
-	struct pvector undo_log[MAX_UNDO_TYPES];
+/*
+ * Typedef checking if given type is an array.
+ */
+template <typename T>
+struct pp_if_size_array;
+
+/*
+ * Typedef checking if given type is an array.
+ */
+template <typename T, size_t N>
+struct pp_if_size_array<T[N]> {
+	typedef obj::persistent_ptr<T[N]> type;
 };
 
-#endif
+} /* namespace detail */
+
+} /* namespace nvml */
+
+#endif /* LIBPMEMOBJ_CHECK_PERSISTENT_PTR_ARRAY_HPP */

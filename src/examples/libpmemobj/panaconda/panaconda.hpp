@@ -37,10 +37,10 @@
 #ifndef PANACONDA_HPP
 #define PANACONDA_HPP
 
-#include <libpmemobj/make_persistent_array.hpp>
-#include <libpmemobj/p.hpp>
-#include <libpmemobj/pool.hpp>
-#include <libpmemobj/transaction.hpp>
+#include <libpmemobj++/make_persistent_array.hpp>
+#include <libpmemobj++/p.hpp>
+#include <libpmemobj++/pool.hpp>
+#include <libpmemobj++/transaction.hpp>
 
 #include "list.hpp"
 

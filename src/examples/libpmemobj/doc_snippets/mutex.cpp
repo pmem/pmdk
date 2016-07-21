@@ -35,9 +35,9 @@
  */
 
 //! [unique_guard_example]
-#include <libpmemobj/mutex.hpp>
-#include <libpmemobj/persistent_ptr.hpp>
-#include <libpmemobj/pool.hpp>
+#include <libpmemobj++/mutex.hpp>
+#include <libpmemobj++/persistent_ptr.hpp>
+#include <libpmemobj++/pool.hpp>
 #include <mutex>
 
 namespace nvobj = nvml::obj;
@@ -63,9 +63,9 @@ unique_guard_example()
 //! [unique_guard_example]
 
 //! [shared_mutex_example]
-#include <libpmemobj/persistent_ptr.hpp>
-#include <libpmemobj/pool.hpp>
-#include <libpmemobj/shared_mutex.hpp>
+#include <libpmemobj++/persistent_ptr.hpp>
+#include <libpmemobj++/pool.hpp>
+#include <libpmemobj++/shared_mutex.hpp>
 #include <mutex>
 
 namespace nvobj = nvml::obj;
@@ -92,9 +92,9 @@ shared_mutex_example()
 
 //! [timed_mutex_example]
 #include <chrono>
-#include <libpmemobj/persistent_ptr.hpp>
-#include <libpmemobj/pool.hpp>
-#include <libpmemobj/timed_mutex.hpp>
+#include <libpmemobj++/persistent_ptr.hpp>
+#include <libpmemobj++/pool.hpp>
+#include <libpmemobj++/timed_mutex.hpp>
 
 namespace nvobj = nvml::obj;
 
@@ -122,10 +122,10 @@ timed_mutex_example()
 //! [timed_mutex_example]
 
 //! [cond_var_example]
-#include <libpmemobj/condition_variable.hpp>
-#include <libpmemobj/mutex.hpp>
-#include <libpmemobj/persistent_ptr.hpp>
-#include <libpmemobj/pool.hpp>
+#include <libpmemobj++/condition_variable.hpp>
+#include <libpmemobj++/mutex.hpp>
+#include <libpmemobj++/persistent_ptr.hpp>
+#include <libpmemobj++/pool.hpp>
 #include <mutex>
 #include <thread>
 

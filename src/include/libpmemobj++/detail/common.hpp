@@ -30,55 +30,60 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * tx.h -- internal definitions for transactions
+/**
+ * @file
+ * Commonly used functionality.
  */
 
-#ifndef LIBPMEMOBJ_INTERNAL_TX_H
-#define LIBPMEMOBJ_INTERNAL_TX_H 1
+#ifndef PMEMOBJ_COMMON_HPP
+#define PMEMOBJ_COMMON_HPP
 
-#include <stdint.h>
-#include "pvector.h"
+#include "libpmemobj/tx_base.h"
+#include "libpmemobj++/detail/pexceptions.hpp"
+#include <typeinfo>
+
+namespace nvml
+{
+
+namespace detail
+{
 
 /*
- * To make sure that the range cache does not needlessly waste memory in the
- * allocator, the values set here must very closely match allocation class
- * sizes. A good value to aim for is multiples of 1024 bytes.
+ * Conditionally add an object to a transaction.
+ *
+ * Adds `*that` to the transaction if it is within a pmemobj pool and
+ * there is an active transaction. Does nothing otherwise.
+ *
+ * @param[in] that pointer to the object being added to the transaction.
  */
-#define MAX_CACHED_RANGE_SIZE 32
-#define MAX_CACHED_RANGES 169
+template <typename T>
+inline void
+conditional_add_to_tx(const T *that)
+{
+	/* 'that' is not in any open pool */
+	if (!pmemobj_pool_by_ptr(that))
+		return;
 
-enum tx_state {
-	TX_STATE_NONE = 0,
-	TX_STATE_COMMITTED = 1,
-};
+	if (pmemobj_tx_stage() != TX_STAGE_WORK)
+		return;
 
-struct tx_range {
-	uint64_t offset;
-	uint64_t size;
-	uint8_t data[];
-};
+	if (pmemobj_tx_add_range_direct(that, sizeof(*that)))
+		throw transaction_error("Could not add an object to the"
+					" transaction.");
+}
 
-struct tx_range_cache {
-	struct { /* compatible with struct tx_range */
-		uint64_t offset;
-		uint64_t size;
-		uint8_t data[MAX_CACHED_RANGE_SIZE];
-	} range[MAX_CACHED_RANGES];
-};
+/*
+ * Return type number for given type.
+ */
+template <typename T>
+constexpr uint64_t
+type_num()
+{
+	return typeid(T).hash_code();
+}
 
-enum undo_types {
-	UNDO_ALLOC,
-	UNDO_FREE,
-	UNDO_SET,
-	UNDO_SET_CACHE,
+} /* namespace detail */
 
-	MAX_UNDO_TYPES
-};
+} /* namespace nvml */
 
-struct lane_tx_layout {
-	uint64_t state;
-	struct pvector undo_log[MAX_UNDO_TYPES];
-};
-
-#endif
+#endif /* PMEMOBJ_COMMON_HPP */

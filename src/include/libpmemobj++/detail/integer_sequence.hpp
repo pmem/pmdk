@@ -30,15 +30,15 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifndef LIBPMEMOBJ_INTEGER_SEQUENCE_HPP
+#define LIBPMEMOBJ_INTEGER_SEQUENCE_HPP
+
+#include <stddef.h>
+
 /**
  * @file
- * Functions for destroying arrays.
+ * Create c++14 style index sequence.
  */
-
-#ifndef LIBPMEMOBJ_DESTROYER_HPP
-#define LIBPMEMOBJ_DESTROYER_HPP
-
-#include "libpmemobj/detail/array_traits.hpp"
 
 namespace nvml
 {
@@ -47,95 +47,54 @@ namespace detail
 {
 
 /*
- * Template for checking if T is not an array.
+ * Base index type template.
  */
-template <typename T>
-struct if_not_array {
-	typedef T type;
+template <typename T, T...>
+struct integer_sequence {
 };
 
 /*
- * Template for checking if T is not an array.
+ * Size_t specialization of the integer sequence.
  */
-template <typename T>
-struct if_not_array<T[]>;
+template <size_t... Indices>
+using index_sequence = integer_sequence<size_t, Indices...>;
 
 /*
- * Template for checking if T is not an array.
+ * Empty base class.
+ *
+ * Subject of empty base optimization.
  */
-template <typename T, size_t N>
-struct if_not_array<T[N]>;
+template <typename T, T I, typename... Types>
+struct make_integer_seq_impl;
 
 /*
- * Template for checking if T is an array.
+ * Class ending recursive variadic template peeling.
  */
-template <typename T>
-struct if_size_array;
-
-/*
- * Template for checking if T is an array.
- */
-template <typename T>
-struct if_size_array<T[]>;
-
-/*
- * Template for checking if T is an array.
- */
-template <typename T, size_t N>
-struct if_size_array<T[N]> {
-	typedef T type[N];
+template <typename T, T I, T... Indices>
+struct make_integer_seq_impl<T, I, integer_sequence<T, Indices...>> {
+	typedef integer_sequence<T, Indices...> type;
 };
 
 /*
- * Calls object's constructor.
+ * Recursively create index while peeling off the types.
  */
-template <typename T>
-void
-create(typename if_not_array<T>::type *args)
-{
-	::new (args) T();
-}
+template <typename N, N I, N... Indices, typename T, typename... Types>
+struct make_integer_seq_impl<N, I, integer_sequence<N, Indices...>, T,
+			     Types...> {
+	typedef typename make_integer_seq_impl<
+		N, I + 1, integer_sequence<N, Indices..., I>, Types...>::type
+		type;
+};
 
 /*
- * Recursively calls array's elements' constructors.
+ * Make index sequence entry point.
  */
-template <typename T>
-void
-create(typename if_size_array<T>::type *args)
-{
-	typedef typename detail::pp_array_type<T>::type I;
-	enum { N = pp_array_elems<T>::elems };
-
-	for (std::size_t i = 0; i < N; ++i)
-		create<I>(&(*args)[i]);
-}
-
-/*
- * Calls object's destructor.
- */
-template <typename T>
-void
-destroy(typename if_not_array<T>::type &arg)
-{
-	arg.~T();
-}
-
-/*
- * Recursively calls array's elements' destructors.
- */
-template <typename T>
-void
-destroy(typename if_size_array<T>::type &arg)
-{
-	typedef typename detail::pp_array_type<T>::type I;
-	enum { N = pp_array_elems<T>::elems };
-
-	for (std::size_t i = 0; i < N; ++i)
-		destroy<I>(arg[N - 1 - i]);
-}
+template <typename... Types>
+using make_index_sequence =
+	make_integer_seq_impl<size_t, 0, integer_sequence<size_t>, Types...>;
 
 } /* namespace detail */
 
 } /* namespace nvml */
 
-#endif /* LIBPMEMOBJ_DESTROYER_HPP */
+#endif /* LIBPMEMOBJ_INTEGER_SEQUENCE_HPP */

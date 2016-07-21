@@ -39,10 +39,11 @@
 #define PMEMOBJ_POOL_HPP
 
 #include <sys/stat.h>
+#include <stddef.h>
 
-#include "libpmemobj.h"
-#include "libpmemobj/detail/pexceptions.hpp"
-#include "libpmemobj/p.hpp"
+#include "libpmemobj/pool_base.h"
+#include "libpmemobj++/detail/pexceptions.hpp"
+#include "libpmemobj++/p.hpp"
 
 namespace nvml
 {

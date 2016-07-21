@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2014-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,54 +31,38 @@
  */
 
 /*
- * tx.h -- internal definitions for transactions
+ * libpmemobj/lists_atomic_base.h -- definitions of libpmemobj atomic lists
  */
 
-#ifndef LIBPMEMOBJ_INTERNAL_TX_H
-#define LIBPMEMOBJ_INTERNAL_TX_H 1
+#ifndef LIBPMEMOBJ_LISTS_ATOMIC_BASE_H
+#define LIBPMEMOBJ_LISTS_ATOMIC_BASE_H 1
 
-#include <stdint.h>
-#include "pvector.h"
+#include <libpmemobj/base.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /*
- * To make sure that the range cache does not needlessly waste memory in the
- * allocator, the values set here must very closely match allocation class
- * sizes. A good value to aim for is multiples of 1024 bytes.
+ * Non-transactional persistent atomic circular doubly-linked list
  */
-#define MAX_CACHED_RANGE_SIZE 32
-#define MAX_CACHED_RANGES 169
 
-enum tx_state {
-	TX_STATE_NONE = 0,
-	TX_STATE_COMMITTED = 1,
-};
+int pmemobj_list_insert(PMEMobjpool *pop, size_t pe_offset, void *head,
+	PMEMoid dest, int before, PMEMoid oid);
 
-struct tx_range {
-	uint64_t offset;
-	uint64_t size;
-	uint8_t data[];
-};
+PMEMoid pmemobj_list_insert_new(PMEMobjpool *pop, size_t pe_offset, void *head,
+	PMEMoid dest, int before, size_t size, uint64_t type_num,
+	pmemobj_constr constructor, void *arg);
 
-struct tx_range_cache {
-	struct { /* compatible with struct tx_range */
-		uint64_t offset;
-		uint64_t size;
-		uint8_t data[MAX_CACHED_RANGE_SIZE];
-	} range[MAX_CACHED_RANGES];
-};
+int pmemobj_list_remove(PMEMobjpool *pop, size_t pe_offset, void *head,
+	PMEMoid oid, int free);
 
-enum undo_types {
-	UNDO_ALLOC,
-	UNDO_FREE,
-	UNDO_SET,
-	UNDO_SET_CACHE,
+int pmemobj_list_move(PMEMobjpool *pop, size_t pe_old_offset,
+	void *head_old, size_t pe_new_offset, void *head_new,
+	PMEMoid dest, int before, PMEMoid oid);
 
-	MAX_UNDO_TYPES
-};
-
-struct lane_tx_layout {
-	uint64_t state;
-	struct pvector undo_log[MAX_UNDO_TYPES];
-};
-
+#ifdef __cplusplus
+}
 #endif
+
+#endif	/* libpmemobj/lists_atomic_base.h */

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2014-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -30,60 +30,17 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * @file
- * Common array traits.
- */
-
-#ifndef LIBPMEMOBJ_ARRAY_TRAITS_HPP
-#define LIBPMEMOBJ_ARRAY_TRAITS_HPP
-
-namespace nvml
-{
-
-namespace detail
-{
-
 /*
- * Returns the number of array elements.
+ * libpmemobj/pool.h -- definitions of libpmemobj pool macros
  */
-template <typename T>
-struct pp_array_elems {
-	enum { elems = 1 };
-};
 
-/*
- * Returns the number of array elements.
- */
-template <typename T, size_t N>
-struct pp_array_elems<T[N]> {
-	enum { elems = N };
-};
+#ifndef LIBPMEMOBJ_POOL_H
+#define LIBPMEMOBJ_POOL_H 1
 
-/*
- * Returns the type of elements in an array.
- */
-template <typename T>
-struct pp_array_type;
+#include <libpmemobj/pool_base.h>
+#include <libpmemobj/types.h>
 
-/*
- * Returns the type of elements in an array.
- */
-template <typename T>
-struct pp_array_type<T[]> {
-	typedef T type;
-};
+#define POBJ_ROOT(pop, t) (\
+(TOID(t))pmemobj_root((pop), sizeof(t)))
 
-/*
- * Returns the type of elements in an array.
- */
-template <typename T, size_t N>
-struct pp_array_type<T[N]> {
-	typedef T type;
-};
-
-} /* namespace detail */
-
-} /* namespace nvml */
-
-#endif /* LIBPMEMOBJ_ARRAY_TRAITS_HPP */
+#endif	/* libpmemobj/pool.h */

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2014-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -30,74 +30,45 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * @file
- * Compile time type check for make_persistent.
- */
-
-#ifndef LIBPMEMOBJ_CHECK_PERSISTENT_PTR_ARRAY_HPP
-#define LIBPMEMOBJ_CHECK_PERSISTENT_PTR_ARRAY_HPP
-
-#include "libpmemobj/persistent_ptr.hpp"
-
-namespace nvml
-{
-
-namespace detail
-{
-
 /*
- * Typedef checking if given type is not an array.
+ * libpmemobj/atomic.h -- definitions of libpmemobj atomic macros
  */
-template <typename T>
-struct pp_if_not_array {
-	typedef obj::persistent_ptr<T> type;
-};
 
-/*
- * Typedef checking if given type is not an array.
- */
-template <typename T>
-struct pp_if_not_array<T[]> {
-};
+#ifndef LIBPMEMOBJ_ATOMIC_H
+#define LIBPMEMOBJ_ATOMIC_H 1
 
-/*
- * Typedef checking if given type is not an array.
- */
-template <typename T, size_t N>
-struct pp_if_not_array<T[N]> {
-};
+#include <libpmemobj/atomic_base.h>
+#include <libpmemobj/types.h>
 
-/*
- * Typedef checking if given type is an array.
- */
-template <typename T>
-struct pp_if_array;
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-/*
- * Typedef checking if given type is an array.
- */
-template <typename T>
-struct pp_if_array<T[]> {
-	typedef obj::persistent_ptr<T[]> type;
-};
+#define POBJ_NEW(pop, o, t, constr, arg)\
+pmemobj_alloc((pop), (PMEMoid *)(o), sizeof(t), TOID_TYPE_NUM(t),\
+	(constr), (arg))
 
-/*
- * Typedef checking if given type is an array.
- */
-template <typename T>
-struct pp_if_size_array;
+#define POBJ_ALLOC(pop, o, t, size, constr, arg)\
+pmemobj_alloc((pop), (PMEMoid *)(o), (size), TOID_TYPE_NUM(t),\
+	(constr), (arg))
 
-/*
- * Typedef checking if given type is an array.
- */
-template <typename T, size_t N>
-struct pp_if_size_array<T[N]> {
-	typedef obj::persistent_ptr<T[N]> type;
-};
+#define POBJ_ZNEW(pop, o, t)\
+pmemobj_zalloc((pop), (PMEMoid *)(o), sizeof(t), TOID_TYPE_NUM(t))
 
-} /* namespace detail */
+#define POBJ_ZALLOC(pop, o, t, size)\
+pmemobj_zalloc((pop), (PMEMoid *)(o), (size), TOID_TYPE_NUM(t))
 
-} /* namespace nvml */
+#define POBJ_REALLOC(pop, o, t, size)\
+pmemobj_realloc((pop), (PMEMoid *)(o), (size), TOID_TYPE_NUM(t))
 
-#endif /* LIBPMEMOBJ_CHECK_PERSISTENT_PTR_ARRAY_HPP */
+#define POBJ_ZREALLOC(pop, o, t, size)\
+pmemobj_zrealloc((pop), (PMEMoid *)(o), (size), TOID_TYPE_NUM(t))
+
+#define POBJ_FREE(o)\
+pmemobj_free((PMEMoid *)(o))
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif	/* libpmemobj/atomic.h */

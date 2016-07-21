@@ -36,12 +36,12 @@
 
 #include "unittest.h"
 
-#include "libpmemobj/make_persistent.hpp"
-#include "libpmemobj/mutex.hpp"
-#include "libpmemobj/p.hpp"
-#include "libpmemobj/persistent_ptr.hpp"
-#include "libpmemobj/pool.hpp"
-#include "libpmemobj/shared_mutex.hpp"
+#include "libpmemobj++/make_persistent.hpp"
+#include "libpmemobj++/mutex.hpp"
+#include "libpmemobj++/p.hpp"
+#include "libpmemobj++/persistent_ptr.hpp"
+#include "libpmemobj++/pool.hpp"
+#include "libpmemobj++/shared_mutex.hpp"
 
 namespace
 {
@@ -68,7 +68,7 @@ uncaught_exceptions() noexcept
 #endif /* __cpp_lib_uncaught_exceptions */
 #endif /* _MSC_VER */
 
-#include "libpmemobj/transaction.hpp"
+#include "libpmemobj++/transaction.hpp"
 
 #define LAYOUT "cpp"
 
