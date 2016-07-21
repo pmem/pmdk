@@ -40,6 +40,11 @@ export UNITTEST_NUM=0
 # standard unit test setup
 . ../unittest/unittest.sh
 
+# XXX: Requirements imposed only to limit an execution time.
+# When an execution time would be shortened it should be revoked.
+require_fs_type pmem
+require_build_type debug nondebug
+
 # covered by TEST5
 configure_valgrind memcheck force-disable
 
@@ -68,7 +73,7 @@ TEST_FILE_REMOTE="testfile_remote"
 
 NODE_DIRS=($(get_node_dir 0) $(get_node_dir 1))
 
-# TODO: Make sum of all parts and replicas sizes equal
+# XXX: Make sum of all parts and replicas sizes equal
 # create and upload poolset files
 create_poolset $DIR/$TEST_SET_LOCAL 8M:${NODE_DIRS[1]}/$TEST_FILE_LOCAL:x \
         m ${NODE_ADDR[0]}:$TEST_SET_REMOTE
