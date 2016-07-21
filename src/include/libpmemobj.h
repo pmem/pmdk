@@ -57,6 +57,7 @@ extern "C" {
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
+#include <time.h>
 
 /*
  * opaque type internal to libpmemobj
