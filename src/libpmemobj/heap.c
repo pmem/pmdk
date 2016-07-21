@@ -1718,7 +1718,7 @@ heap_init(PMEMobjpool *pop)
 }
 
 /*
- * heap_boot -- cleanups the volatile heap state
+ * heap_cleanup -- cleanups the volatile heap state
  *
  * If successful function returns zero. Otherwise an error number is returned.
  */
