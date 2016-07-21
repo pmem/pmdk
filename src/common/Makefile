@@ -47,3 +47,5 @@ SOURCE =\
 	uuid_linux.c
 
 include ../Makefile.inc
+
+CFLAGS += -DUSE_LIBDL
