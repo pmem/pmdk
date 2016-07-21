@@ -54,33 +54,6 @@
     <ClCompile Include="rm.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\common\cpu.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\common\file_windows.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\common\mmap_windows.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\common\out.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\common\pthread_windows.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\common\set.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\common\set_windows.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\common\util.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\common\util_windows.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\libpmemblk\btt.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -118,6 +91,27 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\libpmemobj\cuckoo.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libpmemobj\obj.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libpmemobj\list.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libpmemobj\libpmemobj.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libpmemobj\tx.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\windows\win_file.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\windows\win_mmap.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libpmemobj\sync.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -15,15 +15,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\common\cpu.c" />
-    <ClCompile Include="..\..\common\file_windows.c" />
-    <ClCompile Include="..\..\common\mmap_windows.c" />
-    <ClCompile Include="..\..\common\out.c" />
-    <ClCompile Include="..\..\common\pthread_windows.c" />
-    <ClCompile Include="..\..\common\set.c" />
-    <ClCompile Include="..\..\common\set_windows.c" />
-    <ClCompile Include="..\..\common\util.c" />
-    <ClCompile Include="..\..\common\util_windows.c" />
     <ClCompile Include="..\..\libpmemblk\btt.c" />
     <ClCompile Include="..\..\libpmemlog\libpmemlog.c" />
     <ClCompile Include="..\..\libpmemlog\log.c" />
@@ -32,11 +23,18 @@
     <ClCompile Include="..\..\libpmemobj\cuckoo.c" />
     <ClCompile Include="..\..\libpmemobj\heap.c" />
     <ClCompile Include="..\..\libpmemobj\lane.c" />
+    <ClCompile Include="..\..\libpmemobj\libpmemobj.c" />
+    <ClCompile Include="..\..\libpmemobj\list.c" />
     <ClCompile Include="..\..\libpmemobj\memblock.c" />
     <ClCompile Include="..\..\libpmemobj\memops.c" />
+    <ClCompile Include="..\..\libpmemobj\obj.c" />
     <ClCompile Include="..\..\libpmemobj\pmalloc.c" />
     <ClCompile Include="..\..\libpmemobj\pvector.c" />
     <ClCompile Include="..\..\libpmemobj\redo.c" />
+    <ClCompile Include="..\..\libpmemobj\sync.c" />
+    <ClCompile Include="..\..\libpmemobj\tx.c" />
+    <ClCompile Include="..\..\windows\win_file.c" />
+    <ClCompile Include="..\..\windows\win_mmap.c" />
     <ClCompile Include="check.c" />
     <ClCompile Include="common.c" />
     <ClCompile Include="convert.c" />
@@ -136,8 +134,8 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;WINAPI_PARTITION_SYSTEM;%(PreprocessorDefinitions);SRCVERSION="0.1"</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\windows\include;$(ProjectDir)..\..\include;$(ProjectDir)..\..\common;$(ProjectDir)..\..\windows\getopt_port;$(ProjectDir)..\..\libpmemblk;$(ProjectDir)..\..\libpmemlog;$(ProjectDir)..\..\libpmemobj;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_DEBUG;DEBUG;_CONSOLE;WINAPI_PARTITION_SYSTEM;%(PreprocessorDefinitions);SRCVERSION="0.1"</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\windows\include;$(ProjectDir)..\..\include;$(ProjectDir)..\..\common;$(ProjectDir)..\..\windows\getopt;$(ProjectDir)..\..\libpmemblk;$(ProjectDir)..\..\libpmemlog;$(ProjectDir)..\..\libpmemobj;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>platform.h</ForcedIncludeFiles>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
       <CompileAs>CompileAsC</CompileAs>
@@ -146,7 +144,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <AdditionalLibraryDirectories>$(OutDir);$(OutDir)/../Static-Debug</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libpmem.lib;libpmemobj.lib;libpmempool.lib;Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libpmem.lib;libpmemobj.lib;libpmempool.lib;liblinux.lib;Shlwapi.lib;libpmemcommon.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Static-Debug|x64'">
@@ -162,7 +160,7 @@
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <AdditionalDependencies>libpmem.lib;libpmemobj.lib;libpmempool.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libpmem.lib;libpmemobj.lib;libpmempool.lib;liblinux.lib;Shlwapi.lib;libpmemcommon.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -172,7 +170,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;WINAPI_PARTITION_SYSTEM;%(PreprocessorDefinitions);SRCVERSION="0.1"</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\windows\include;$(ProjectDir)..\..\include;$(ProjectDir)..\..\common;$(ProjectDir)..\..\windows\getopt_port;$(ProjectDir)..\..\libpmemblk;$(ProjectDir)..\..\libpmemlog;$(ProjectDir)..\..\libpmemobj;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\windows\include;$(ProjectDir)..\..\include;$(ProjectDir)..\..\common;$(ProjectDir)..\..\windows\getopt;$(ProjectDir)..\..\libpmemblk;$(ProjectDir)..\..\libpmemlog;$(ProjectDir)..\..\libpmemobj;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAs>CompileAsC</CompileAs>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
       <ForcedIncludeFiles>platform.h</ForcedIncludeFiles>
@@ -181,7 +179,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <AdditionalLibraryDirectories>$(OutDir);$(OutDir)/../Static-Release</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libpmem.lib;libpmemobj.lib;libpmempool.lib;Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libpmem.lib;libpmemobj.lib;libpmempool.lib;liblinux.lib;Shlwapi.lib;libpmemcommon.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
