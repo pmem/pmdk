@@ -38,12 +38,8 @@
 
 #include "unittest.h"
 
-#include "memops.h"
-#include "redo.h"
 #include "heap_layout.h"
-#include "memblock.h"
 #include "heap.h"
-#include "lane.h"
 #include "obj.h"
 #include "util.h"
 

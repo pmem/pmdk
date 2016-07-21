@@ -34,10 +34,15 @@
  * obj.h -- internal definitions for obj module
  */
 
+#ifndef LIBPMEMOBJ_OBJ_H
+#define LIBPMEMOBJ_OBJ_H 1
+
 #include <stddef.h>
 #include <stdint.h>
 
+#include "lane.h"
 #include "pool_hdr.h"
+#include "pmalloc.h"
 #include "redo.h"
 
 #define PMEMOBJ_LOG_PREFIX "libpmemobj"
@@ -59,14 +64,6 @@
 #define OBJ_LANES_OFFSET	8192	/* lanes offset (8kB) */
 #define OBJ_NLANES		1024	/* number of lanes */
 
-/*
- * To make sure that the range cache does not needlessly waste memory in the
- * allocator, the values set here must very closely match allocation class
- * sizes. A good value to aim for is multiples of 1024 bytes.
- */
-#define MAX_CACHED_RANGE_SIZE 32
-#define MAX_CACHED_RANGES 169
-
 #define OBJ_OOB_SIZE		(sizeof(struct oob_header))
 #define OBJ_OFF_TO_PTR(pop, off) ((void *)((uintptr_t)(pop) + (off)))
 #define OBJ_PTR_TO_OFF(pop, ptr) ((uintptr_t)(ptr) - (uintptr_t)(pop))
@@ -80,9 +77,13 @@
 	(off) < (pop)->lanes_offset +\
 	(pop)->nlanes * sizeof(struct lane_layout))
 
+#define OBJ_PTR_FROM_POOL(pop, ptr)\
+	((uintptr_t)(ptr) >= (uintptr_t)(pop) &&\
+	(uintptr_t)(ptr) < (uintptr_t)(pop) + (pop)->size)
+
 #define OBJ_OFF_IS_VALID(pop, off)\
 	((OBJ_OFF_FROM_HEAP(pop, off) ||\
-	(OBJ_PTR_TO_OFF(pop, &pop->root_offset) == off)) ||\
+	(OBJ_PTR_TO_OFF(pop, &(pop)->root_offset) == (off))) ||\
 	(OBJ_OFF_FROM_LANES(pop, off)))
 
 #define OBJ_PTR_IS_VALID(pop, ptr)\
@@ -103,21 +104,11 @@
 #define OOB_OFFSET_OF(oid, field)\
 	((oid).off - OBJ_OOB_SIZE + offsetof(struct oob_header, field))
 
-#define OBJ_STORE_ITEM_PADDING\
-	(_POBJ_CL_ALIGNMENT - (sizeof(struct list_head) % _POBJ_CL_ALIGNMENT))
-
 typedef void (*persist_local_fn)(const void *, size_t);
 typedef void (*flush_local_fn)(const void *, size_t);
 typedef void (*drain_local_fn)(void);
 typedef void *(*memcpy_local_fn)(void *dest, const void *src, size_t len);
 typedef void *(*memset_local_fn)(void *dest, int c, size_t len);
-
-typedef void (*persist_fn)(PMEMobjpool *pop, const void *, size_t);
-typedef void (*flush_fn)(PMEMobjpool *pop, const void *, size_t);
-typedef void (*drain_fn)(PMEMobjpool *pop);
-typedef void *(*memcpy_fn)(PMEMobjpool *pop, void *dest, const void *src,
-					size_t len);
-typedef void *(*memset_fn)(PMEMobjpool *pop, void *dest, int c, size_t len);
 
 typedef void *(*persist_remote_fn)(PMEMobjpool *pop, const void *addr,
 					size_t len, unsigned lane);
@@ -148,8 +139,7 @@ struct pmemobjpool {
 	size_t size;		/* size of mapped region */
 	int is_pmem;		/* true if pool is PMEM */
 	int rdonly;		/* true if pool is opened read-only */
-	struct heap_layout *hlayout;
-	struct pmalloc_heap *heap; /* allocator heap */
+	struct palloc_heap heap;
 	struct lane_descriptor lanes_desc;
 	uint64_t uuid_lo;
 
@@ -165,11 +155,7 @@ struct pmemobjpool {
 	memset_local_fn memset_persist_local; /* persistent memset function */
 
 	/* for 'master' replica: with or without data replication */
-	persist_fn persist;	/* persist function */
-	flush_fn flush;		/* flush function */
-	drain_fn drain;		/* drain function */
-	memcpy_fn memcpy_persist; /* persistent memcpy function */
-	memset_fn memset_persist; /* persistent memset function */
+	struct pmem_ops p_ops;
 
 	PMEMmutex rootlock;	/* root object lock */
 	int is_master_replica;
@@ -177,7 +163,7 @@ struct pmemobjpool {
 
 	/* remote replica section */
 	void *rpp;	/* RPMEMpool opaque handle if it is a remote replica */
-	uintptr_t pop_desc;	/* beginning of the pool's descriptor */
+	uintptr_t remote_base;	/* beginning of the pool's descriptor */
 	char *node_addr;	/* address of a remote node */
 	char *pool_desc;	/* descriptor of a poolset */
 
@@ -185,7 +171,7 @@ struct pmemobjpool {
 
 	/* padding to align size of this structure to page boundary */
 	/* sizeof(unused2) == 8192 - offsetof(struct pmemobjpool, unused2) */
-	char unused2[1742];
+	char unused2[1606];
 };
 
 /*
@@ -250,4 +236,7 @@ OBJ_OID_IS_VALID(PMEMobjpool *pop, PMEMoid oid)
 
 void obj_init(void);
 void obj_fini(void);
-int obj_read_remote(PMEMobjpool *pop, void *dest, void *addr, size_t length);
+int obj_read_remote(void *ctx, uintptr_t base, void *dest, void *addr,
+		size_t length);
+
+#endif

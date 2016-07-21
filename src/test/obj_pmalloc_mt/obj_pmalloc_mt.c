@@ -35,9 +35,7 @@
  */
 #include <stdint.h>
 
-#include "libpmemobj.h"
-#include "redo.h"
-#include "memops.h"
+#include "obj.h"
 #include "pmalloc.h"
 #include "unittest.h"
 

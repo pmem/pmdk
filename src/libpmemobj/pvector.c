@@ -34,14 +34,10 @@
  * pvector.c -- persistent vector implementation
  */
 
-#include "libpmemobj.h"
-#include "out.h"
-#include "redo.h"
-#include "pvector.h"
-#include "memops.h"
-#include "pmalloc.h"
-#include "lane.h"
 #include "obj.h"
+#include "out.h"
+#include "pmalloc.h"
+#include "pvector.h"
 #include "valgrind_internal.h"
 
 struct pvector_context {
@@ -184,10 +180,11 @@ pvector_get_array_spec(uint64_t idx)
  * vector values.
  */
 static int
-pvector_array_constr(PMEMobjpool *pop, void *ptr, size_t usable_size, void *arg)
+pvector_array_constr(void *ctx, void *ptr, size_t usable_size, void *arg)
 {
+	PMEMobjpool *pop = ctx;
 	VALGRIND_ADD_TO_TX(ptr, usable_size);
-	pop->memset_persist(pop, ptr, 0, usable_size);
+	pmemops_memset_persist(&pop->p_ops, ptr, 0, usable_size);
 	VALGRIND_REMOVE_FROM_TX(ptr, usable_size);
 
 	return 0;
@@ -208,6 +205,7 @@ pvector_push_back(struct pvector_context *ctx)
 		ERR("Exceeded maximum number of entries in persistent vector");
 		return NULL;
 	}
+	PMEMobjpool *pop = ctx->pop;
 
 	/*
 	 * If the destination array does not exist, calculate its size
@@ -223,16 +221,16 @@ pvector_push_back(struct pvector_context *ctx)
 			ASSERTeq(util_is_zeroed(ctx->vec,
 				sizeof(*ctx->vec)), 1);
 
-			ctx->vec->arrays[0] = OBJ_PTR_TO_OFF(ctx->pop,
+			ctx->vec->arrays[0] = OBJ_PTR_TO_OFF(pop,
 				&ctx->vec->embedded);
 
-			ctx->pop->persist(ctx->pop, &ctx->vec->arrays[0],
+			pmemops_persist(&pop->p_ops, &ctx->vec->arrays[0],
 				sizeof(ctx->vec->arrays[0]));
 		} else {
 			size_t arr_size = sizeof(uint64_t) *
 				(1ULL << (s.idx + PVECTOR_INIT_SHIFT));
 
-			if (pmalloc_construct(ctx->pop,
+			if (pmalloc_construct(pop,
 				&ctx->vec->arrays[s.idx],
 				arr_size, pvector_array_constr, NULL) != 0)
 					return NULL;
@@ -240,7 +238,7 @@ pvector_push_back(struct pvector_context *ctx)
 	}
 
 	ctx->nvalues++;
-	uint64_t *arrp = OBJ_OFF_TO_PTR(ctx->pop, ctx->vec->arrays[s.idx]);
+	uint64_t *arrp = OBJ_OFF_TO_PTR(pop, ctx->vec->arrays[s.idx]);
 
 	return &arrp[s.pos];
 }

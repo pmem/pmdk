@@ -55,14 +55,9 @@
 #include <sys/mman.h>
 #include <fcntl.h>
 
-#include "libpmemobj.h"
-#include "util.h"
-#include "lane.h"
-#include "redo.h"
-#include "memops.h"
-#include "pmalloc.h"
-#include "list.h"
 #include "obj.h"
+#include "redo.h"
+#include "util.h"
 #include "valgrind_internal.h"
 
 #include "unittest.h"
@@ -81,8 +76,9 @@ pmem_drain_nop(void)
  * obj_persist -- pmemobj version of pmem_persist w/o replication
  */
 static void
-obj_persist(PMEMobjpool *pop, const void *addr, size_t len)
+obj_persist(void *ctx, const void *addr, size_t len)
 {
+	PMEMobjpool *pop = ctx;
 	pop->persist_local(addr, len);
 }
 
@@ -90,8 +86,9 @@ obj_persist(PMEMobjpool *pop, const void *addr, size_t len)
  * obj_flush -- pmemobj version of pmem_flush w/o replication
  */
 static void
-obj_flush(PMEMobjpool *pop, const void *addr, size_t len)
+obj_flush(void *ctx, const void *addr, size_t len)
 {
+	PMEMobjpool *pop = ctx;
 	pop->flush_local(addr, len);
 }
 
@@ -99,8 +96,9 @@ obj_flush(PMEMobjpool *pop, const void *addr, size_t len)
  * obj_drain -- pmemobj version of pmem_drain w/o replication
  */
 static void
-obj_drain(PMEMobjpool *pop)
+obj_drain(void *ctx)
 {
+	PMEMobjpool *pop = ctx;
 	pop->drain_local();
 }
 
@@ -142,17 +140,13 @@ pmemobj_open_mock(const char *fname)
 		pop->drain_local = pmem_drain_nop;
 	}
 
-	pop->persist = obj_persist;
-	pop->flush = obj_flush;
-	pop->drain = obj_drain;
+	pop->p_ops.persist = obj_persist;
+	pop->p_ops.flush = obj_flush;
+	pop->p_ops.drain = obj_drain;
+	pop->p_ops.base = pop;
 
-	pop->redo = redo_log_config_new(pop->addr,
-			(redo_persist_fn)pop->persist,
-			(redo_flush_fn)pop->flush,
-			redo_log_check_offset,
-			pop,
-			pop,
-			REDO_NUM_ENTRIES);
+	pop->redo = redo_log_config_new(pop->addr, &pop->p_ops,
+			redo_log_check_offset, pop, REDO_NUM_ENTRIES);
 
 	return pop;
 }

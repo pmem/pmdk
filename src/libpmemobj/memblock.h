@@ -34,6 +34,16 @@
  * memblock.h -- internal definitions for memory block
  */
 
+#ifndef LIBPMEMOBJ_MEMBLOCK_H
+#define LIBPMEMOBJ_MEMBLOCK_H 1
+
+#include <stddef.h>
+#include <stdint.h>
+
+#include "heap_layout.h"
+#include "memops.h"
+#include "pmalloc.h"
+
 struct memory_block {
 	uint32_t chunk_id; /* index of the memory block in its zone */
 	uint32_t zone_id; /* index of this block zone in the heap */
@@ -151,34 +161,17 @@ enum memblock_hdr_op {
 	MAX_MEMBLOCK_HDR_OP
 };
 
-size_t huge_block_size(struct memory_block *m, struct heap_layout *h);
-size_t run_block_size(struct memory_block *m, struct heap_layout *h);
-
-uint16_t huge_block_offset(struct memory_block *m, PMEMobjpool *pop, void *ptr);
-uint16_t run_block_offset(struct memory_block *m, PMEMobjpool *pop, void *ptr);
-
-void huge_prep_operation_hdr(struct memory_block *m, PMEMobjpool *pop,
-	enum memblock_hdr_op op, struct operation_context *ctx);
-void run_prep_operation_hdr(struct memory_block *m, PMEMobjpool *pop,
-	enum memblock_hdr_op op, struct operation_context *ctx);
-
-void huge_lock(struct memory_block *m, PMEMobjpool *pop);
-void run_lock(struct memory_block *m, PMEMobjpool *pop);
-
-void huge_unlock(struct memory_block *m, PMEMobjpool *pop);
-void run_unlock(struct memory_block *m, PMEMobjpool *pop);
-
 enum memory_block_type memblock_autodetect_type(struct memory_block *m,
 	struct heap_layout *h);
 
 struct memory_block_ops {
 	size_t (*block_size)(struct memory_block *m, struct heap_layout *h);
-	uint16_t (*block_offset)(struct memory_block *m, PMEMobjpool *pop,
-		void *ptr);
-	void (*prep_hdr)(struct memory_block *m, PMEMobjpool *pop,
+	uint16_t (*block_offset)(struct memory_block *m,
+			struct palloc_heap *heap, void *ptr);
+	void (*prep_hdr)(struct memory_block *m, struct palloc_heap *heap,
 		enum memblock_hdr_op, struct operation_context *ctx);
-	void (*lock)(struct memory_block *m, PMEMobjpool *pop);
-	void (*unlock)(struct memory_block *m, PMEMobjpool *pop);
+	void (*lock)(struct memory_block *m, struct palloc_heap *heap);
+	void (*unlock)(struct memory_block *m, struct palloc_heap *heap);
 };
 
 extern const struct memory_block_ops mb_ops[MAX_MEMORY_BLOCK];
@@ -195,4 +188,6 @@ extern const struct memory_block_ops mb_ops[MAX_MEMORY_BLOCK];
 #define MEMBLOCK_OPS_ MEMBLOCK_OPS_AUTO
 
 #define MEMBLOCK_OPS(type, memblock)\
-MEMBLOCK_OPS_##type(memblock, pop->hlayout)
+MEMBLOCK_OPS_##type(memblock, heap->layout)
+
+#endif

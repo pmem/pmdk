@@ -36,10 +36,9 @@
 #include <string.h>
 #include <stddef.h>
 
+#include "tx.h"
 #include "unittest.h"
 #include "util.h"
-#include "lane.h"
-#include "obj.h"
 #include "valgrind_internal.h"
 
 #define LAYOUT_NAME "tx_add_range_direct"

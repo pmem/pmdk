@@ -57,6 +57,7 @@ SOURCE =\
 	memblock.c\
 	memops.c\
 	obj.c\
+	palloc.c\
 	pmalloc.c\
 	pvector.c\
 	redo.c\

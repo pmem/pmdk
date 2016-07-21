@@ -34,6 +34,19 @@
  * heap.h -- internal definitions for heap
  */
 
+#ifndef LIBPMEMOBJ_HEAP_H
+#define LIBPMEMOBJ_HEAP_H 1
+
+#include <pthread.h>
+#include <stddef.h>
+#include <stdint.h>
+
+#include "bucket.h"
+#include "heap_layout.h"
+#include "memblock.h"
+#include "memops.h"
+#include "pmalloc.h"
+
 #define MAX_BUCKETS (UINT8_MAX)
 #define RUN_UNIT_MAX 8U
 
@@ -41,54 +54,61 @@
  * Every allocation has to be a multiple of a cacheline because we need to
  * ensure proper alignment of every pmem structure.
  */
-#define ALLOC_BLOCK_SIZE _POBJ_CL_ALIGNMENT
+#define ALLOC_BLOCK_SIZE 64
 
 /*
  * Converts size (in bytes) to number of allocation blocks.
  */
 #define SIZE_TO_ALLOC_BLOCKS(_s) (1 + (((_s) - 1) / ALLOC_BLOCK_SIZE))
 
-/*
- * Converts size (in bytes) to bucket index.
- */
-#define SIZE_TO_BID(_h, _s) ((_h)->bucket_map[SIZE_TO_ALLOC_BLOCKS(_s)])
+int heap_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
+		void *base, struct pmem_ops *p_ops);
+int heap_init(void *heap_start, uint64_t heap_size, struct pmem_ops *p_ops);
+void heap_vg_open(void *heap_start, uint64_t heap_size);
+void heap_cleanup(struct palloc_heap *heap);
+int heap_check(void *heap_start, uint64_t heap_size);
+int heap_check_remote(void *heap_start, uint64_t heap_size,
+		struct remote_ops *ops);
 
-struct bucket_cache;
-
-struct bucket *heap_get_best_bucket(PMEMobjpool *pop, size_t size);
-struct bucket *heap_get_chunk_bucket(PMEMobjpool *pop,
+struct bucket *heap_get_best_bucket(struct palloc_heap *heap, size_t size);
+struct bucket *heap_get_chunk_bucket(struct palloc_heap *heap,
 		uint32_t chunk_id, uint32_t zone_id);
-struct bucket *heap_get_auxiliary_bucket(PMEMobjpool *pop, size_t size);
-void heap_drain_to_auxiliary(PMEMobjpool *pop, struct bucket *auxb,
+struct bucket *heap_get_auxiliary_bucket(struct palloc_heap *heap,
+		size_t size);
+void heap_drain_to_auxiliary(struct palloc_heap *heap, struct bucket *auxb,
 	uint32_t size_idx);
-void *heap_get_block_data(PMEMobjpool *pop, struct memory_block m);
-struct memory_block heap_coalesce(PMEMobjpool *pop,
+void *heap_get_block_data(struct palloc_heap *heap, struct memory_block m);
+struct memory_block heap_coalesce(struct palloc_heap *heap,
 	struct memory_block *blocks[], int n, enum memblock_hdr_op op,
 	struct operation_context *ctx);
 
-int heap_get_adjacent_free_block(PMEMobjpool *pop, struct bucket *b,
+int heap_get_adjacent_free_block(struct palloc_heap *heap, struct bucket *b,
 	struct memory_block *m, struct memory_block cnt, int prev);
-void heap_chunk_write_footer(PMEMobjpool *pop, struct chunk_header *hdr,
-		uint32_t size_idx);
+void heap_chunk_write_footer(struct chunk_header *hdr, uint32_t size_idx);
 
-int heap_get_bestfit_block(PMEMobjpool *pop, struct bucket *b,
+int heap_get_bestfit_block(struct palloc_heap *heap, struct bucket *b,
 	struct memory_block *m);
-int heap_get_exact_block(PMEMobjpool *pop, struct bucket *b,
+int heap_get_exact_block(struct palloc_heap *heap, struct bucket *b,
 	struct memory_block *m, uint32_t new_size_idx);
-void heap_degrade_run_if_empty(PMEMobjpool *pop, struct bucket *b,
-	struct memory_block m);
+void heap_degrade_run_if_empty(struct palloc_heap *heap, struct bucket *b,
+		struct memory_block m);
 
-pthread_mutex_t *heap_get_run_lock(PMEMobjpool *pop, uint32_t chunk_id);
+pthread_mutex_t *heap_get_run_lock(struct palloc_heap *heap,
+		uint32_t chunk_id);
 
-struct memory_block heap_free_block(PMEMobjpool *pop, struct bucket *b,
+struct memory_block heap_free_block(struct palloc_heap *heap, struct bucket *b,
 	struct memory_block m, struct operation_context *ctx);
 
 /* foreach callback, terminates iteration if return value is non-zero */
 typedef int (*object_callback)(uint64_t off, void *arg);
 
-void heap_foreach_object(PMEMobjpool *pop, object_callback cb,
+void heap_foreach_object(struct palloc_heap *heap, object_callback cb,
 	void *arg, struct memory_block start);
 
 #ifdef DEBUG
-int heap_block_is_allocated(PMEMobjpool *pop, struct memory_block m);
+int heap_block_is_allocated(struct palloc_heap *heap, struct memory_block m);
 #endif /* DEBUG */
+
+void *heap_end(struct palloc_heap *heap);
+
+#endif

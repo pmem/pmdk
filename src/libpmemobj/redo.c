@@ -48,10 +48,7 @@
 struct redo_ctx {
 	void *base;
 
-	redo_persist_fn persist;
-	redo_flush_fn flush;
-
-	void *flush_ctx;
+	struct pmem_ops p_ops;
 
 	redo_check_offset_fn check_offset;
 	void *check_offset_ctx;
@@ -64,10 +61,8 @@ struct redo_ctx {
  */
 struct redo_ctx *
 redo_log_config_new(void *base,
-		redo_persist_fn persist,
-		redo_flush_fn flush,
+		const struct pmem_ops *p_ops,
 		redo_check_offset_fn check_offset,
-		void *flush_ctx,
 		void *check_offset_ctx,
 		unsigned redo_num_entries)
 {
@@ -78,10 +73,8 @@ redo_log_config_new(void *base,
 	}
 
 	cfg->base = base;
-	cfg->persist = persist;
-	cfg->flush = flush;
+	cfg->p_ops = *p_ops;
 	cfg->check_offset = check_offset;
-	cfg->flush_ctx = flush_ctx;
 	cfg->check_offset_ctx = check_offset_ctx;
 	cfg->redo_num_entries = redo_num_entries;
 
@@ -101,7 +94,7 @@ redo_log_config_delete(struct redo_ctx *ctx)
  * redo_log_nflags -- (internal) get number of finish flags set
  */
 size_t
-redo_log_nflags(struct redo_log *redo, size_t nentries)
+redo_log_nflags(const struct redo_log *redo, size_t nentries)
 {
 	size_t ret = 0;
 	size_t i;
@@ -120,7 +113,7 @@ redo_log_nflags(struct redo_log *redo, size_t nentries)
  * redo_log_store -- (internal) store redo log entry at specified index
  */
 void
-redo_log_store(struct redo_ctx *ctx, struct redo_log *redo, size_t index,
+redo_log_store(const struct redo_ctx *ctx, struct redo_log *redo, size_t index,
 		uint64_t offset, uint64_t value)
 {
 	LOG(15, "redo %p index %zu offset %ju value %ju",
@@ -137,69 +130,69 @@ redo_log_store(struct redo_ctx *ctx, struct redo_log *redo, size_t index,
  * redo_log_store_last -- (internal) store last entry at specified index
  */
 void
-redo_log_store_last(struct redo_ctx *ctx, struct redo_log *redo, size_t index,
-		uint64_t offset, uint64_t value)
+redo_log_store_last(const struct redo_ctx *ctx, struct redo_log *redo,
+		size_t index, uint64_t offset, uint64_t value)
 {
 	LOG(15, "redo %p index %zu offset %ju value %ju",
 			redo, index, offset, value);
 
 	ASSERTeq(offset & REDO_FINISH_FLAG, 0);
 	ASSERT(index < ctx->redo_num_entries);
+	const struct pmem_ops *p_ops = &ctx->p_ops;
 
 	/* store value of last entry */
 	redo[index].value = value;
 
-	void *fctx = ctx->flush_ctx;
-
 	/* persist all redo log entries */
-	ctx->persist(fctx, redo, (index + 1) * sizeof(struct redo_log));
+	pmemops_persist(p_ops, redo, (index + 1) * sizeof(struct redo_log));
 
 	/* store and persist offset of last entry */
 	redo[index].offset = offset | REDO_FINISH_FLAG;
-	ctx->persist(fctx, &redo[index].offset, sizeof(redo[index].offset));
+	pmemops_persist(p_ops, &redo[index].offset, sizeof(redo[index].offset));
 }
 
 /*
  * redo_log_set_last -- (internal) set finish flag in specified entry
  */
 void
-redo_log_set_last(struct redo_ctx *ctx, struct redo_log *redo, size_t index)
+redo_log_set_last(const struct redo_ctx *ctx, struct redo_log *redo,
+		size_t index)
 {
 	LOG(15, "redo %p index %zu", redo, index);
 
 	ASSERT(index < ctx->redo_num_entries);
-
-	void *fctx = ctx->flush_ctx;
+	const struct pmem_ops *p_ops = &ctx->p_ops;
 
 	/* persist all redo log entries */
-	ctx->persist(fctx, redo, (index + 1) * sizeof(struct redo_log));
+	pmemops_persist(p_ops, redo, (index + 1) * sizeof(struct redo_log));
 
 	/* set finish flag of last entry and persist */
 	redo[index].offset |= REDO_FINISH_FLAG;
-	ctx->persist(fctx, &redo[index].offset, sizeof(redo[index].offset));
+	pmemops_persist(p_ops, &redo[index].offset, sizeof(redo[index].offset));
 }
 
 /*
  * redo_log_process -- (internal) process redo log entries
  */
 void
-redo_log_process(struct redo_ctx *ctx, struct redo_log *redo, size_t nentries)
+redo_log_process(const struct redo_ctx *ctx, struct redo_log *redo,
+		size_t nentries)
 {
 	LOG(15, "redo %p nentries %zu", redo, nentries);
 
 #ifdef DEBUG
 	ASSERTeq(redo_log_check(ctx, redo, nentries), 0);
 #endif
+	const struct pmem_ops *p_ops = &ctx->p_ops;
 
 	uint64_t *val;
-	void *fctx = ctx->flush_ctx;
 	while ((redo->offset & REDO_FINISH_FLAG) == 0) {
 		val = (uint64_t *)((uintptr_t)ctx->base + redo->offset);
 		VALGRIND_ADD_TO_TX(val, sizeof(*val));
 		*val = redo->value;
 		VALGRIND_REMOVE_FROM_TX(val, sizeof(*val));
 
-		ctx->flush(fctx, val, sizeof(uint64_t));
+		pmemops_flush(p_ops, val, sizeof(uint64_t));
 
 		redo++;
 	}
@@ -210,11 +203,11 @@ redo_log_process(struct redo_ctx *ctx, struct redo_log *redo, size_t nentries)
 	*val = redo->value;
 	VALGRIND_REMOVE_FROM_TX(val, sizeof(*val));
 
-	ctx->persist(fctx, val, sizeof(uint64_t));
+	pmemops_persist(p_ops, val, sizeof(uint64_t));
 
 	redo->offset = 0;
 
-	ctx->persist(fctx, &redo->offset, sizeof(redo->offset));
+	pmemops_persist(p_ops, &redo->offset, sizeof(redo->offset));
 }
 
 /*
@@ -223,7 +216,8 @@ redo_log_process(struct redo_ctx *ctx, struct redo_log *redo, size_t nentries)
  * The redo_log_recover shall be preceded by redo_log_check call.
  */
 void
-redo_log_recover(struct redo_ctx *ctx, struct redo_log *redo, size_t nentries)
+redo_log_recover(const struct redo_ctx *ctx, struct redo_log *redo,
+		size_t nentries)
 {
 	LOG(15, "redo %p nentries %zu", redo, nentries);
 	ASSERTne(ctx, NULL);
@@ -239,7 +233,8 @@ redo_log_recover(struct redo_ctx *ctx, struct redo_log *redo, size_t nentries)
  * redo_log_check -- (internal) check consistency of redo log entries
  */
 int
-redo_log_check(struct redo_ctx *ctx, struct redo_log *redo, size_t nentries)
+redo_log_check(const struct redo_ctx *ctx, struct redo_log *redo,
+		size_t nentries)
 {
 	LOG(15, "redo %p nentries %zu", redo, nentries);
 	ASSERTne(ctx, NULL);
@@ -277,7 +272,7 @@ redo_log_check(struct redo_ctx *ctx, struct redo_log *redo, size_t nentries)
  * redo_log_offset -- returns offset
  */
 uint64_t
-redo_log_offset(struct redo_log *redo)
+redo_log_offset(const struct redo_log *redo)
 {
 	return redo->offset & REDO_FLAG_MASK;
 }
@@ -286,7 +281,16 @@ redo_log_offset(struct redo_log *redo)
  * redo_log_is_last -- returns 1/0
  */
 int
-redo_log_is_last(struct redo_log *redo)
+redo_log_is_last(const struct redo_log *redo)
 {
 	return redo->offset & REDO_FINISH_FLAG;
+}
+
+/*
+ * redo_get_pmem_ops -- returns pmem_ops
+ */
+const struct pmem_ops *
+redo_get_pmem_ops(const struct redo_ctx *ctx)
+{
+	return &ctx->p_ops;
 }

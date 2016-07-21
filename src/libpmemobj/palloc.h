@@ -31,65 +31,56 @@
  */
 
 /*
- * list.h -- internal definitions for persistent atomic lists module
+ * palloc.h -- internal definitions for persistent allocator
  */
 
-#ifndef LIBPMEMOBJ_LIST_H
-#define LIBPMEMOBJ_LIST_H 1
+#ifndef LIBPMEMOBJ_PALLOC_H
+#define LIBPMEMOBJ_PALLOC_H 1
 
 #include <stddef.h>
 #include <stdint.h>
-#include <sys/types.h>
 
-#include "libpmemobj.h"
-#include "lane.h"
-#include "pmalloc.h"
+#include "memops.h"
 #include "redo.h"
 
 /*
- * lane_list_layout -- structure of list section in lane
- *
- * obj_offset - offset to object which should be freed
- * redo       - redo log
+ * Number of bytes between end of allocation header and beginning of user data.
  */
-struct lane_list_layout {
-	uint64_t obj_offset;
-	struct redo_log redo[REDO_NUM_ENTRIES];
+#define PALLOC_DATA_OFF 48
+
+struct palloc_heap {
+	struct pmem_ops p_ops;
+	struct heap_layout *layout;
+	struct heap_rt *rt;
+	uint64_t size;
+
+	void *base;
 };
 
-struct list_entry {
-	PMEMoid pe_next;
-	PMEMoid pe_prev;
-};
+typedef int (*palloc_constr)(void *base, void *ptr,
+		size_t usable_size, void *arg);
 
-struct list_head {
-	PMEMoid pe_first;
-	PMEMmutex lock;
-};
+int palloc_operation(struct palloc_heap *heap, uint64_t off, uint64_t *dest_off,
+	size_t size, palloc_constr constructor, void *arg,
+	struct operation_context *ctx);
 
-int list_insert_new_user(PMEMobjpool *pop,
-	size_t pe_offset, struct list_head *user_head, PMEMoid dest, int before,
-	size_t size, palloc_constr constructor, void *arg, PMEMoid *oidp);
+uint64_t palloc_first(struct palloc_heap *heap);
+uint64_t palloc_next(struct palloc_heap *heap, uint64_t off);
 
-int list_insert(PMEMobjpool *pop,
-	ssize_t pe_offset, struct list_head *head, PMEMoid dest, int before,
-	PMEMoid oid);
+size_t palloc_usable_size(struct palloc_heap *heap, uint64_t off);
 
-int list_remove_free_user(PMEMobjpool *pop,
-	size_t pe_offset, struct list_head *user_head,
-	PMEMoid *oidp);
+int palloc_boot(struct palloc_heap *heap, void *heap_start,
+		uint64_t heap_size, void *base, struct pmem_ops *p_ops);
 
-int list_remove(PMEMobjpool *pop,
-	ssize_t pe_offset, struct list_head *head,
-	PMEMoid oid);
+int palloc_init(void *heap_start, uint64_t heap_size, struct pmem_ops *p_ops);
+void *palloc_heap_end(struct palloc_heap *h);
+int palloc_heap_check(void *heap_start, uint64_t heap_size);
+int palloc_heap_check_remote(void *heap_start, uint64_t heap_size,
+		struct remote_ops *ops);
+void palloc_heap_cleanup(struct palloc_heap *heap);
 
-int list_move(PMEMobjpool *pop,
-	size_t pe_offset_old, struct list_head *head_old,
-	size_t pe_offset_new, struct list_head *head_new,
-	PMEMoid dest, int before, PMEMoid oid);
-
-void list_move_oob(PMEMobjpool *pop,
-	struct list_head *head_old, struct list_head *head_new,
-	PMEMoid oid);
+void palloc_vg_register_object(struct palloc_heap *heap, PMEMoid oid,
+		size_t size);
+void palloc_heap_vg_open(void *heap_start, uint64_t heap_size);
 
 #endif

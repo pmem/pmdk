@@ -32,25 +32,36 @@
 
 /*
  * memops.c -- aggregated memory operations helper implementation
+ *
+ * The operation collects all of the required memory modifications that
+ * need to happen in an atomic way (all of them or none), and abstracts
+ * away the storage type (transient/persistent) and the underlying
+ * implementation of how it's actually performed - in some cases using
+ * the redo log is unnecessary and the allocation process can be sped up
+ * a bit by completely omitting that whole machinery.
+ *
+ * The modifications are not visible until the context is processed.
  */
 
-#include "libpmemobj.h"
-#include "out.h"
-#include "redo.h"
 #include "memops.h"
-#include "lane.h"
-#include "obj.h"
+#include "out.h"
 #include "valgrind_internal.h"
 
 /*
  * operation_init -- initializes a new palloc operation
  */
 void
-operation_init(PMEMobjpool *pop, struct operation_context *ctx,
-	struct redo_log *redo)
+operation_init(struct operation_context *ctx, const void *base,
+	const struct redo_ctx *redo_ctx, struct redo_log *redo)
 {
-	ctx->pop = pop;
+	ctx->base = base;
+	ctx->redo_ctx = redo_ctx;
 	ctx->redo = redo;
+	if (redo_ctx)
+		ctx->p_ops = redo_get_pmem_ops(redo_ctx);
+	else
+		ctx->p_ops = NULL;
+
 	ctx->nentries[ENTRY_PERSISTENT] = 0;
 	ctx->nentries[ENTRY_TRANSIENT] = 0;
 }
@@ -124,9 +135,14 @@ void
 operation_add_entry(struct operation_context *ctx, void *ptr, uint64_t value,
 	enum operation_type type)
 {
+	const struct pmem_ops *p_ops = ctx->p_ops;
+
+	int from_pool = ((uintptr_t)ptr >= (uintptr_t)p_ops->base &&
+			(uintptr_t)ptr < (uintptr_t)p_ops->base +
+				p_ops->pool_size);
+
 	operation_add_typed_entry(ctx, ptr, value, type,
-		OBJ_PTR_IS_VALID(ctx->pop, ptr) ?
-		ENTRY_PERSISTENT : ENTRY_TRANSIENT);
+		from_pool ? ENTRY_PERSISTENT : ENTRY_TRANSIENT);
 }
 
 /*
@@ -149,14 +165,15 @@ static void
 operation_process_persistent_redo(struct operation_context *ctx)
 {
 	struct operation_entry *e;
-	struct redo_ctx *redo = ctx->pop->redo;
+	const struct redo_ctx *redo = ctx->redo_ctx;
 
 	size_t i;
 	for (i = 0; i < ctx->nentries[ENTRY_PERSISTENT]; ++i) {
 		e = &ctx->entries[ENTRY_PERSISTENT][i];
 
 		redo_log_store(redo, ctx->redo, i,
-			OBJ_PTR_TO_OFF(ctx->pop, e->ptr), e->value);
+				(uintptr_t)e->ptr - (uintptr_t)ctx->base,
+				e->value);
 	}
 
 	redo_log_set_last(redo, ctx->redo, i - 1);
@@ -187,7 +204,8 @@ operation_process(struct operation_context *ctx)
 		VALGRIND_ADD_TO_TX(e->ptr, sizeof(uint64_t));
 
 		*e->ptr = e->value;
-		pmemobj_persist(ctx->pop, e->ptr, sizeof(uint64_t));
+		pmemops_persist(ctx->p_ops, e->ptr,
+				sizeof(uint64_t));
 
 		VALGRIND_REMOVE_FROM_TX(e->ptr, sizeof(uint64_t));
 	} else if (ctx->nentries[ENTRY_PERSISTENT] != 0) {

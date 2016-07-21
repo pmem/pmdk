@@ -34,32 +34,42 @@
  * pmalloc.h -- internal definitions for persistent malloc
  */
 
-typedef int (*pmalloc_constr)(PMEMobjpool *pop, void *ptr,
-		size_t usable_size, void *arg);
+#ifndef LIBPMEMOBJ_PMALLOC_H
+#define LIBPMEMOBJ_PMALLOC_H 1
 
-int heap_boot(PMEMobjpool *pop);
-int heap_init(PMEMobjpool *pop);
-void heap_vg_open(PMEMobjpool *pop);
-void heap_cleanup(PMEMobjpool *pop);
-int heap_check(PMEMobjpool *pop);
-int heap_check_remote(PMEMobjpool *pop);
+#include <stddef.h>
+#include <stdint.h>
+
+#include "libpmemobj.h"
+#include "memops.h"
+#include "palloc.h"
+
+/*
+ * The maximum number of entries in redo log used by the allocator. The common
+ * case is to use two, one for modification of the object destination memory
+ * location and the second for applying the chunk metadata modifications.
+ */
+#define ALLOC_REDO_LOG_SIZE 10
+struct lane_alloc_layout {
+	struct redo_log redo[ALLOC_REDO_LOG_SIZE];
+};
+
+int pmalloc_operation(struct palloc_heap *heap,
+	uint64_t off, uint64_t *dest_off, size_t size,
+	palloc_constr constructor, void *arg,
+	struct operation_context *ctx);
 
 int pmalloc(PMEMobjpool *pop, uint64_t *off, size_t size);
 int pmalloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
-	pmalloc_constr constructor, void *arg);
-int
-palloc_operation(PMEMobjpool *pop,
-	uint64_t off, uint64_t *dest_off, size_t size,
-	pmalloc_constr constructor,
-	void *arg, struct operation_entry *entries, size_t nentries);
-
+	palloc_constr constructor, void *arg);
 
 int prealloc(PMEMobjpool *pop, uint64_t *off, size_t size);
 int prealloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
-	pmalloc_constr constructor, void *arg);
+	palloc_constr constructor, void *arg);
 
-uint64_t pmalloc_first(PMEMobjpool *pop);
-uint64_t pmalloc_next(PMEMobjpool *pop, uint64_t off);
-
-size_t pmalloc_usable_size(PMEMobjpool *pop, uint64_t off);
 void pfree(PMEMobjpool *pop, uint64_t *off);
+
+struct redo_log *pmalloc_redo_hold(PMEMobjpool *pop);
+void pmalloc_redo_release(PMEMobjpool *pop);
+
+#endif

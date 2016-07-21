@@ -30,15 +30,17 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef LIBPMEMOBJ_REDO_H
-#define LIBPMEMOBJ_REDO_H
-
 /*
  * redo.h -- redo log public interface
  */
 
+#ifndef LIBPMEMOBJ_REDO_H
+#define LIBPMEMOBJ_REDO_H 1
+
 #include <stddef.h>
 #include <stdint.h>
+
+#include "pmemops.h"
 
 struct redo_ctx;
 
@@ -50,35 +52,33 @@ struct redo_log {
 	uint64_t value;
 };
 
-typedef void (*redo_persist_fn)(void *ctx, const void *, size_t);
-typedef void (*redo_flush_fn)(void *ctx, const void *, size_t);
 typedef int  (*redo_check_offset_fn)(void *ctx, uint64_t offset);
 
 struct redo_ctx *redo_log_config_new(void *base,
-		redo_persist_fn persist,
-		redo_flush_fn flush,
+		const struct pmem_ops *p_ops,
 		redo_check_offset_fn check_offset,
-		void *flush_ctx,
 		void *check_offset_ctx,
 		unsigned redo_num_entries);
 
 void redo_log_config_delete(struct redo_ctx *ctx);
 
-void redo_log_store(struct redo_ctx *ctx, struct redo_log *redo, size_t index,
-		uint64_t offset, uint64_t value);
-void redo_log_store_last(struct redo_ctx *ctx, struct redo_log *redo,
+void redo_log_store(const struct redo_ctx *ctx, struct redo_log *redo,
 		size_t index, uint64_t offset, uint64_t value);
-void redo_log_set_last(struct redo_ctx *ctx, struct redo_log *redo,
+void redo_log_store_last(const struct redo_ctx *ctx, struct redo_log *redo,
+		size_t index, uint64_t offset, uint64_t value);
+void redo_log_set_last(const struct redo_ctx *ctx, struct redo_log *redo,
 		size_t index);
-void redo_log_process(struct redo_ctx *ctx, struct redo_log *redo,
+void redo_log_process(const struct redo_ctx *ctx, struct redo_log *redo,
 		size_t nentries);
-void redo_log_recover(struct redo_ctx *ctx, struct redo_log *redo,
+void redo_log_recover(const struct redo_ctx *ctx, struct redo_log *redo,
 		size_t nentries);
-int redo_log_check(struct redo_ctx *ctx, struct redo_log *redo,
+int redo_log_check(const struct redo_ctx *ctx, struct redo_log *redo,
 		size_t nentries);
 
-size_t redo_log_nflags(struct redo_log *redo, size_t nentries);
-uint64_t redo_log_offset(struct redo_log *redo);
-int redo_log_is_last(struct redo_log *redo);
+size_t redo_log_nflags(const struct redo_log *redo, size_t nentries);
+uint64_t redo_log_offset(const struct redo_log *redo);
+int redo_log_is_last(const struct redo_log *redo);
+
+const struct pmem_ops *redo_get_pmem_ops(const struct redo_ctx *ctx);
 
 #endif

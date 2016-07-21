@@ -33,6 +33,15 @@
 /*
  * lane.h -- internal definitions for lanes
  */
+
+#ifndef LIBPMEMOBJ_LANE_H
+#define LIBPMEMOBJ_LANE_H 1
+
+#include <stdint.h>
+
+#include "libpmemobj.h"
+#include "redo.h"
+
 #define LANE_SECTION_LEN 1024
 
 #define REDO_NUM_ENTRIES \
@@ -89,15 +98,14 @@ struct lane_descriptor {
 	struct lane *lane;
 };
 
-typedef int (*section_layout_op)(PMEMobjpool *pop,
-	struct lane_section_layout *layout);
-typedef int (*section_constr)(PMEMobjpool *pop, struct lane_section *section);
-typedef void (*section_destr)(PMEMobjpool *pop, struct lane_section *section);
+typedef int (*section_layout_op)(PMEMobjpool *pop, void *data, unsigned length);
+typedef void *(*section_constr)(PMEMobjpool *pop);
+typedef void (*section_destr)(PMEMobjpool *pop, void *rt);
 typedef int (*section_global_op)(PMEMobjpool *pop);
 
 struct section_operations {
-	section_constr construct;
-	section_destr destruct;
+	section_constr construct_rt;
+	section_destr destroy_rt;
 	section_layout_op check;
 	section_layout_op recover;
 	section_global_op boot;
@@ -136,5 +144,7 @@ __attribute__((constructor)) static void _section_parm_##n(void)\
 static void _section_parm_##n(void)\
 { Section_ops[n] = ops; }\
 MSVC_CONSTR(_section_parm_##n)
+
+#endif
 
 #endif

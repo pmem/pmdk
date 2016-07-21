@@ -34,6 +34,20 @@
  * tx.h -- internal definitions for transactions
  */
 
+#ifndef LIBPMEMOBJ_TX_H
+#define LIBPMEMOBJ_TX_H 1
+
+#include <stdint.h>
+#include "pvector.h"
+
+/*
+ * To make sure that the range cache does not needlessly waste memory in the
+ * allocator, the values set here must very closely match allocation class
+ * sizes. A good value to aim for is multiples of 1024 bytes.
+ */
+#define MAX_CACHED_RANGE_SIZE 32
+#define MAX_CACHED_RANGES 169
+
 enum tx_state {
 	TX_STATE_NONE = 0,
 	TX_STATE_COMMITTED = 1,
@@ -66,3 +80,5 @@ struct lane_tx_layout {
 	uint64_t state;
 	struct pvector undo_log[MAX_UNDO_TYPES];
 };
+
+#endif

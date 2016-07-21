@@ -34,12 +34,6 @@
  * sync.c -- persistent memory resident synchronization primitives
  */
 
-#include <errno.h>
-#include <time.h>
-
-#include "libpmem.h"
-#include "libpmemobj.h"
-#include "lane.h"
 #include "obj.h"
 #include "out.h"
 #include "sync.h"
@@ -132,7 +126,7 @@ pmemobj_mutex_zero(PMEMobjpool *pop, PMEMmutex *mutexp)
 
 	PMEMmutex_internal *mutexip = (PMEMmutex_internal *)mutexp;
 	mutexip->pmemmutex.runid = 0;
-	pop->persist(pop, &mutexip->pmemmutex.runid,
+	pmemops_persist(&pop->p_ops, &mutexip->pmemmutex.runid,
 				sizeof(mutexip->pmemmutex.runid));
 }
 
@@ -252,7 +246,7 @@ pmemobj_rwlock_zero(PMEMobjpool *pop, PMEMrwlock *rwlockp)
 
 	PMEMrwlock_internal *rwlockip = (PMEMrwlock_internal *)rwlockp;
 	rwlockip->pmemrwlock.runid = 0;
-	pop->persist(pop, &rwlockip->pmemrwlock.runid,
+	pmemops_persist(&pop->p_ops, &rwlockip->pmemrwlock.runid,
 				sizeof(rwlockip->pmemrwlock.runid));
 }
 
@@ -403,7 +397,7 @@ pmemobj_cond_zero(PMEMobjpool *pop, PMEMcond *condp)
 
 	PMEMcond_internal *condip = (PMEMcond_internal *)condp;
 	condip->pmemcond.runid = 0;
-	pop->persist(pop, &condip->pmemcond.runid,
+	pmemops_persist(&pop->p_ops, &condip->pmemcond.runid,
 			sizeof(condip->pmemcond.runid));
 }
 

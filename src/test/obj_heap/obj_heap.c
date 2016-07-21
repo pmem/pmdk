@@ -33,18 +33,10 @@
 /*
  * obj_heap.c -- unit test for bucket
  */
+#include "heap.h"
+#include "obj.h"
 #include "unittest.h"
 #include "util.h"
-#include "redo.h"
-#include "memops.h"
-#include "heap_layout.h"
-#include "memblock.h"
-#include "heap.h"
-#include "bucket.h"
-#include "lane.h"
-#include "pmalloc.h"
-#include "list.h"
-#include "obj.h"
 
 #define MOCK_POOL_SIZE PMEMOBJ_MIN_POOL
 
@@ -56,13 +48,13 @@ struct mock_pop {
 };
 
 static void
-obj_heap_persist(PMEMobjpool *pop, const void *ptr, size_t sz)
+obj_heap_persist(void *ctx, const void *ptr, size_t sz)
 {
 	pmem_msync(ptr, sz);
 }
 
 static void *
-obj_heap_memset_persist(PMEMobjpool *pop, void *ptr, int c, size_t sz)
+obj_heap_memset_persist(void *ctx, void *ptr, int c, size_t sz)
 {
 	memset(ptr, c, sz);
 	pmem_msync(ptr, sz);
@@ -78,20 +70,27 @@ test_heap()
 	pop->size = MOCK_POOL_SIZE;
 	pop->heap_size = MOCK_POOL_SIZE - sizeof(PMEMobjpool);
 	pop->heap_offset = (uint64_t)((uint64_t)&mpop->heap - (uint64_t)mpop);
-	pop->persist = obj_heap_persist;
-	pop->memset_persist = obj_heap_memset_persist;
+	pop->p_ops.persist = obj_heap_persist;
+	pop->p_ops.memset_persist = obj_heap_memset_persist;
+	pop->p_ops.base = pop;
+	pop->p_ops.pool_size = pop->size;
 
-	UT_ASSERT(heap_check(pop) != 0);
-	UT_ASSERT(heap_init(pop) == 0);
-	UT_ASSERT(heap_boot(pop) == 0);
-	UT_ASSERT(pop->heap != NULL);
+	void *heap_start = (char *)pop + pop->heap_offset;
+	uint64_t heap_size = pop->heap_size;
+	struct palloc_heap *heap = &pop->heap;
+	struct pmem_ops *p_ops = &pop->p_ops;
 
-	struct bucket *b_small = heap_get_best_bucket(pop, 1);
-	struct bucket *b_big = heap_get_best_bucket(pop, 2048);
+	UT_ASSERT(heap_check(heap_start, heap_size) != 0);
+	UT_ASSERT(heap_init(heap_start, heap_size, p_ops) == 0);
+	UT_ASSERT(heap_boot(heap, heap_start, heap_size, pop, p_ops) == 0);
+	UT_ASSERT(pop->heap.rt != NULL);
+
+	struct bucket *b_small = heap_get_best_bucket(heap, 1);
+	struct bucket *b_big = heap_get_best_bucket(heap, 2048);
 
 	UT_ASSERT(b_small->unit_size < b_big->unit_size);
 
-	struct bucket *b_def = heap_get_best_bucket(pop, CHUNKSIZE);
+	struct bucket *b_def = heap_get_best_bucket(heap, CHUNKSIZE);
 	UT_ASSERT(b_def->unit_size == CHUNKSIZE);
 
 	/* new small buckets should be empty */
@@ -105,39 +104,40 @@ test_heap()
 	};
 
 	for (int i = 0; i < MAX_BLOCKS; ++i) {
-		heap_get_bestfit_block(pop, b_def, &blocks[i]);
+		heap_get_bestfit_block(heap, b_def, &blocks[i]);
 		UT_ASSERT(blocks[i].block_off == 0);
 	}
 
 	struct memory_block *blocksp[MAX_BLOCKS] = {NULL};
 
 	struct memory_block prev;
-	heap_get_adjacent_free_block(pop, b_def, &prev, blocks[1], 1);
+	heap_get_adjacent_free_block(heap, b_def, &prev, blocks[1], 1);
 	UT_ASSERT(prev.chunk_id == blocks[0].chunk_id);
 	blocksp[0] = &prev;
 
 	struct memory_block cnt;
-	heap_get_adjacent_free_block(pop, b_def, &cnt, blocks[0], 0);
+	heap_get_adjacent_free_block(heap, b_def, &cnt, blocks[0], 0);
 	UT_ASSERT(cnt.chunk_id == blocks[1].chunk_id);
 	blocksp[1] = &cnt;
 
 	struct memory_block next;
-	heap_get_adjacent_free_block(pop, b_def, &next, blocks[1], 0);
+	heap_get_adjacent_free_block(heap, b_def, &next, blocks[1], 0);
 	UT_ASSERT(next.chunk_id == blocks[2].chunk_id);
 	blocksp[2] = &next;
 
 	struct operation_context ctx;
-	operation_init(pop, &ctx, NULL);
+	operation_init(&ctx, pop, NULL, NULL);
+	ctx.p_ops = &pop->p_ops;
 	struct memory_block result =
-		heap_coalesce(pop, blocksp, MAX_BLOCKS, HDR_OP_FREE, &ctx);
+		heap_coalesce(heap, blocksp, MAX_BLOCKS, HDR_OP_FREE, &ctx);
 	operation_process(&ctx);
 
 	UT_ASSERT(result.size_idx == 3);
 	UT_ASSERT(result.chunk_id == prev.chunk_id);
 
-	UT_ASSERT(heap_check(pop) == 0);
-	heap_cleanup(pop);
-	UT_ASSERT(pop->heap == NULL);
+	UT_ASSERT(heap_check(heap_start, heap_size) == 0);
+	heap_cleanup(heap);
+	UT_ASSERT(heap->rt == NULL);
 
 	Free(mpop);
 }

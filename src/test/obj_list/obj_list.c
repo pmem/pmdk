@@ -37,15 +37,10 @@
 #include <stddef.h>
 #include <sys/param.h>
 
+#include "list.h"
+#include "obj.h"
 #include "unittest.h"
 #include "util.h"
-#include "lane.h"
-#include "redo.h"
-#include "memops.h"
-#include "pmalloc.h"
-#include "list.h"
-#include "pvector.h"
-#include "obj.h"
 
 /* offset to "in band" item */
 #define OOB_OFF	 (sizeof(struct oob_header))
@@ -141,8 +136,9 @@ pmem_drain_nop(void)
  * obj_persist -- pmemobj version of pmem_persist w/o replication
  */
 static void
-obj_persist(PMEMobjpool *pop, const void *addr, size_t len)
+obj_persist(void *ctx, const void *addr, size_t len)
 {
+	PMEMobjpool *pop = ctx;
 	pop->persist_local(addr, len);
 }
 
@@ -150,8 +146,9 @@ obj_persist(PMEMobjpool *pop, const void *addr, size_t len)
  * obj_flush -- pmemobj version of pmem_flush w/o replication
  */
 static void
-obj_flush(PMEMobjpool *pop, const void *addr, size_t len)
+obj_flush(void *ctx, const void *addr, size_t len)
 {
+	PMEMobjpool *pop = ctx;
 	pop->flush_local(addr, len);
 }
 
@@ -159,8 +156,9 @@ obj_flush(PMEMobjpool *pop, const void *addr, size_t len)
  * obj_drain -- pmemobj version of pmem_drain w/o replication
  */
 static void
-obj_drain(PMEMobjpool *pop)
+obj_drain(void *ctx)
 {
+	PMEMobjpool *pop = ctx;
 	pop->drain_local();
 }
 
@@ -217,9 +215,11 @@ FUNC_MOCK_RUN_DEFAULT {
 		Pop->drain_local = pmem_drain_nop;
 	}
 
-	Pop->persist = obj_persist;
-	Pop->flush = obj_flush;
-	Pop->drain = obj_drain;
+	Pop->p_ops.persist = obj_persist;
+	Pop->p_ops.flush = obj_flush;
+	Pop->p_ops.drain = obj_drain;
+	Pop->p_ops.base = Pop;
+	struct pmem_ops *p_ops = &Pop->p_ops;
 
 	Pop->heap_offset = HEAP_OFFSET;
 	Pop->heap_size = Pop->size - Pop->heap_offset;
@@ -253,25 +253,20 @@ FUNC_MOCK_RUN_DEFAULT {
 			linear_alloc(&heap_offset, sizeof(*Item)));
 	Item->oid.pool_uuid_lo = Pop->uuid_lo;
 	Item->oid.off = linear_alloc(&heap_offset, sizeof(struct oob_item));
-	Pop->persist(Pop, Item, sizeof(*Item));
+	pmemops_persist(p_ops, Item, sizeof(*Item));
 
 	if (*Heap_offset == 0) {
 		*Heap_offset = heap_offset;
-		Pop->persist(Pop, Heap_offset, sizeof(*Heap_offset));
+		pmemops_persist(p_ops, Heap_offset, sizeof(*Heap_offset));
 	}
 
-	Pop->persist(Pop, Pop, HEAP_OFFSET);
+	pmemops_persist(p_ops, Pop, HEAP_OFFSET);
 
 	Pop->run_id += 2;
-	Pop->persist(Pop, &Pop->run_id, sizeof(Pop->run_id));
+	pmemops_persist(p_ops, &Pop->run_id, sizeof(Pop->run_id));
 
-	Pop->redo = redo_log_config_new(Pop->addr,
-			(redo_persist_fn)Pop->persist,
-			(redo_flush_fn)Pop->flush,
-			redo_log_check_offset,
-			Pop,
-			Pop,
-			REDO_NUM_ENTRIES);
+	Pop->redo = redo_log_config_new(Pop->addr, p_ops, redo_log_check_offset,
+			Pop, REDO_NUM_ENTRIES);
 
 	return Pop;
 }
@@ -340,7 +335,7 @@ FUNC_MOCK(pmemobj_alloc, PMEMoid, PMEMobjpool *pop, PMEMoid *oidp,
 		pmalloc(NULL, &oid.off, size);
 		if (oidp) {
 			*oidp = oid;
-			Pop->persist(Pop, oidp, sizeof(*oidp));
+			pmemops_persist(&Pop->p_ops, oidp, sizeof(*oidp));
 		}
 	return oid; }
 FUNC_MOCK_END
@@ -353,28 +348,29 @@ FUNC_MOCK_END
  */
 FUNC_MOCK(pmalloc, int, PMEMobjpool *pop, uint64_t *ptr, size_t size)
 	FUNC_MOCK_RUN_DEFAULT {
+		struct pmem_ops *p_ops = &Pop->p_ops;
 		size = 2 * (size - OOB_OFF) + OOB_OFF;
 		uint64_t *alloc_size = (uint64_t *)((uintptr_t)Pop
 				+ *Heap_offset);
 		*alloc_size = size;
-		Pop->persist(Pop, alloc_size, sizeof(*alloc_size));
+		pmemops_persist(p_ops, alloc_size, sizeof(*alloc_size));
 
 		*ptr = *Heap_offset + sizeof(uint64_t);
-		Pop->persist(Pop, ptr, sizeof(*ptr));
+		pmemops_persist(p_ops, ptr, sizeof(*ptr));
 
 		struct oob_item *item =
 			(struct oob_item *)((uintptr_t)Pop + *ptr);
 
 		*ptr += OOB_OFF;
 		item->item.id = *Id;
-		Pop->persist(Pop, &item->item.id, sizeof(item->item.id));
+		pmemops_persist(p_ops, &item->item.id, sizeof(item->item.id));
 
 		(*Id)++;
-		Pop->persist(Pop, Id, sizeof(*Id));
+		pmemops_persist(p_ops, Id, sizeof(*Id));
 
 		*Heap_offset = *Heap_offset + sizeof(uint64_t) +
 			size + OOB_OFF;
-		Pop->persist(Pop, Heap_offset, sizeof(*Heap_offset));
+		pmemops_persist(p_ops, Heap_offset, sizeof(*Heap_offset));
 
 		UT_OUT("pmalloc(id = %d)", item->item.id);
 		return 0;
@@ -392,7 +388,7 @@ FUNC_MOCK(pfree, int, PMEMobjpool *pop, uint64_t *ptr)
 			(struct oob_item *)((uintptr_t)Pop + *ptr - OOB_OFF);
 		UT_OUT("pfree(id = %d)", item->item.id);
 		*ptr = 0;
-		Pop->persist(Pop, ptr, sizeof(*ptr));
+		pmemops_persist(&Pop->p_ops, ptr, sizeof(*ptr));
 
 		return 0;
 	}
@@ -408,17 +404,18 @@ FUNC_MOCK(pmalloc_construct, int, PMEMobjpool *pop, uint64_t *off,
 	size_t size, void (*constructor)(PMEMobjpool *pop, void *ptr,
 	size_t usable_size, void *arg), void *arg)
 	FUNC_MOCK_RUN_DEFAULT {
+		struct pmem_ops *p_ops = &Pop->p_ops;
 		size = 2 * (size - OOB_OFF) + OOB_OFF;
 		uint64_t *alloc_size = (uint64_t *)((uintptr_t)Pop +
 				*Heap_offset);
 		*alloc_size = size;
-		Pop->persist(Pop, alloc_size, sizeof(*alloc_size));
+		pmemops_persist(p_ops, alloc_size, sizeof(*alloc_size));
 
 		*off = *Heap_offset + sizeof(uint64_t) + OOB_OFF;
-		Pop->persist(Pop, off, sizeof(*off));
+		pmemops_persist(p_ops, off, sizeof(*off));
 
 		*Heap_offset = *Heap_offset + sizeof(uint64_t) + size;
-		Pop->persist(Pop, Heap_offset, sizeof(*Heap_offset));
+		pmemops_persist(p_ops, Heap_offset, sizeof(*Heap_offset));
 
 		void *ptr = (void *)((uintptr_t)Pop + *off);
 		constructor(pop, ptr, size, arg);
@@ -438,7 +435,8 @@ FUNC_MOCK(prealloc, int, PMEMobjpool *pop, uint64_t *off, size_t size)
 				*off + OOB_OFF);
 		if (*alloc_size >= size) {
 			*alloc_size = size;
-			Pop->persist(Pop, alloc_size, sizeof(*alloc_size));
+			pmemops_persist(&Pop->p_ops, alloc_size,
+					sizeof(*alloc_size));
 
 			UT_OUT("prealloc(id = %d, size = %zu) = true",
 				item->id,
@@ -472,7 +470,7 @@ FUNC_MOCK_END
 /*
  * pmalloc_usable_size -- pmalloc_usable_size mock
  */
-FUNC_MOCK(pmalloc_usable_size, size_t, PMEMobjpool *pop, uint64_t off)
+FUNC_MOCK(palloc_usable_size, size_t, PMEMobjpool *pop, uint64_t off)
 	FUNC_MOCK_RUN_DEFAULT {
 		uint64_t *alloc_size = (uint64_t *)((uintptr_t)Pop +
 				off - sizeof(uint64_t));
@@ -482,7 +480,7 @@ FUNC_MOCK_END
 
 FUNC_MOCK(pmemobj_alloc_usable_size, size_t, PMEMoid oid)
 	FUNC_MOCK_RUN_DEFAULT {
-		size_t size = pmalloc_usable_size(Pop, oid.off - OOB_OFF);
+		size_t size = palloc_usable_size(&Pop->heap, oid.off - OOB_OFF);
 		return size - OOB_OFF;
 	}
 FUNC_MOCK_END
@@ -493,7 +491,8 @@ FUNC_MOCK_END
 FUNC_MOCK(lane_recover_and_section_boot, int, PMEMobjpool *pop)
 	FUNC_MOCK_RUN_DEFAULT {
 		return Section_ops[LANE_SECTION_LIST]->recover(Pop,
-				Lane_section.layout);
+				Lane_section.layout,
+				sizeof(*Lane_section.layout));
 	}
 FUNC_MOCK_END
 
@@ -666,12 +665,13 @@ do_print_reverse(PMEMobjpool *pop, const char *arg)
  * new value
  */
 static int
-item_constructor(PMEMobjpool *pop, void *ptr, size_t usable_size, void *arg)
+item_constructor(void *ctx, void *ptr, size_t usable_size, void *arg)
 {
+	PMEMobjpool *pop = ctx;
 	int id = *(int *)arg;
 	struct item *item = (struct item *)ptr;
 	item->id = id;
-	pop->persist(Pop, &item->id, sizeof(item->id));
+	pmemops_persist(&pop->p_ops, &item->id, sizeof(item->id));
 	UT_OUT("constructor(id = %d)", id);
 
 	return 0;

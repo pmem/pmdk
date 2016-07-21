@@ -34,6 +34,15 @@
  * bucket.h -- internal definitions for bucket
  */
 
+#ifndef LIBPMEMOBJ_BUCKET_H
+#define LIBPMEMOBJ_BUCKET_H 1
+
+#include <pthread.h>
+#include <stddef.h>
+#include <stdint.h>
+
+#include "memblock.h"
+
 #define RUN_NALLOCS(_bs)\
 ((RUNSIZE / ((_bs))))
 
@@ -53,7 +62,7 @@ struct block_container {
 };
 
 struct block_container_ops {
-	int (*insert)(struct block_container *c, PMEMobjpool *pop,
+	int (*insert)(struct block_container *c, struct palloc_heap *heap,
 		struct memory_block m);
 	int (*get_rm_exact)(struct block_container *c, struct memory_block m);
 	int (*get_rm_bestfit)(struct block_container *c,
@@ -127,3 +136,5 @@ struct bucket *bucket_new(uint8_t id, enum bucket_type type,
 	enum block_container_type ctype, size_t unit_size, unsigned unit_max);
 
 void bucket_delete(struct bucket *b);
+
+#endif

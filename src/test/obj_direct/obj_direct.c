@@ -33,9 +33,8 @@
 /*
  * obj_direct.c -- unit test for direct
  */
-#include "unittest.h"
-#include "lane.h"
 #include "obj.h"
+#include "unittest.h"
 
 #define MAX_PATH_LEN 255
 #define LAYOUT_NAME "direct"

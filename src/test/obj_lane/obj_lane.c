@@ -40,17 +40,10 @@
 #include <pthread.h>
 #include <errno.h>
 
-#include "unittest.h"
-#include "libpmemobj.h"
-#include "lane.h"
-#include "redo.h"
-#include "heap_layout.h"
-#include "memops.h"
-#include "pmalloc.h"
 #include "list.h"
 #include "obj.h"
-#include "pvector.h"
 #include "tx.h"
+#include "unittest.h"
 
 #define MAX_MOCK_LANES 5
 #define MOCK_RUNTIME (void *)(0xABC)
@@ -66,20 +59,20 @@ struct mock_pop {
 
 static int construct_fail;
 
-static int
-lane_noop_construct(PMEMobjpool *pop, struct lane_section *section)
+static void *
+lane_noop_construct_rt(PMEMobjpool *pop)
 {
 	UT_OUT("lane_noop_construct");
-	if (construct_fail)
-		return EINVAL;
+	if (construct_fail) {
+		errno = EINVAL;
+		return NULL;
+	}
 
-	section->runtime = MOCK_RUNTIME;
-
-	return 0;
+	return MOCK_RUNTIME;
 }
 
 static void
-lane_noop_destruct(PMEMobjpool *pop, struct lane_section *section)
+lane_noop_destroy_rt(PMEMobjpool *pop, void *rt)
 {
 	UT_OUT("lane_noop_destruct");
 }
@@ -87,10 +80,9 @@ lane_noop_destruct(PMEMobjpool *pop, struct lane_section *section)
 static int recovery_check_fail;
 
 static int
-lane_noop_recovery(PMEMobjpool *pop,
-	struct lane_section_layout *section)
+lane_noop_recovery(PMEMobjpool *pop, void *data, unsigned length)
 {
-	UT_OUT("lane_noop_recovery %p", RPTR(section));
+	UT_OUT("lane_noop_recovery %p", RPTR(data));
 	if (recovery_check_fail)
 		return EINVAL;
 
@@ -98,10 +90,9 @@ lane_noop_recovery(PMEMobjpool *pop,
 }
 
 static int
-lane_noop_check(PMEMobjpool *pop,
-	struct lane_section_layout *section)
+lane_noop_check(PMEMobjpool *pop, void *data, unsigned length)
 {
-	UT_OUT("lane_noop_check %p", RPTR(section));
+	UT_OUT("lane_noop_check %p", RPTR(data));
 	if (recovery_check_fail)
 		return EINVAL;
 
@@ -117,8 +108,8 @@ lane_noop_boot(PMEMobjpool *pop)
 }
 
 struct section_operations noop_ops = {
-	.construct = lane_noop_construct,
-	.destruct = lane_noop_destruct,
+	.construct_rt = lane_noop_construct_rt,
+	.destroy_rt = lane_noop_destroy_rt,
 	.recover = lane_noop_recovery,
 	.check = lane_noop_check,
 	.boot = lane_noop_boot
