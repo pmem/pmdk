@@ -49,8 +49,8 @@ test_process(const char *path, int sleep)
 {
 	STARTUPINFO statusInfo;
 	PROCESS_INFORMATION procInfo;
-	TCHAR cmd[200] = TEXT("..\\..\\x64\\debug\\blk_pool_lock.exe ");
-	TCHAR parm[100] = TEXT("");
+	TCHAR cmd[MAX_PATH] = TEXT("..\\..\\x64\\debug\\blk_pool_lock.exe ");
+	TCHAR parm[MAX_PATH] = TEXT("");
 
 	/* build the cmd to start a 2nd test process */
 	int nChars = MultiByteToWideChar(CP_ACP, 0, path, -1, NULL, 0);
