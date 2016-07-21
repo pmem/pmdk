@@ -151,6 +151,27 @@ util_set_alloc_funcs(void *(*malloc_func)(size_t size),
 	Strdup = (strdup_func == NULL) ? strdup : strdup_func;
 }
 
+/*
+ * util_fgets -- fgets wrapper with conversion CRLF to LF
+ */
+char *
+util_fgets(char *buffer, int max, FILE *stream)
+{
+	char *str = fgets(buffer, max, stream);
+	if (str == NULL)
+		goto end;
+
+	int len = (int)strlen(str);
+	if (len < 2)
+		goto end;
+	if (str[len - 2] == '\r' && str[len - 1] == '\n') {
+		str[len - 2] = '\n';
+		str[len - 1] = '\0';
+	}
+end:
+	return str;
+}
+
 struct suff {
 	const char *suff;
 	uint64_t mag;

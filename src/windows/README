@@ -15,5 +15,5 @@ that are not available under VC++.  When building NVML with Visual Studio,
 "platform.h" file is included to each source file using "/FI" (forced include)
 option.
 
-The subdirectory "getopt_port" contains a windows implementation of getopt and
+The subdirectory "getopt" contains a windows implementation of getopt and
 getopt_long

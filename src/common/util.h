@@ -39,6 +39,8 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
+#include <ctype.h>
 
 extern unsigned long long Pagesize;
 extern unsigned long long Mmap_align;
@@ -61,6 +63,7 @@ void util_init(void);
 int util_is_zeroed(const void *addr, size_t len);
 int util_checksum(void *addr, size_t len, uint64_t *csump, int insert);
 int util_parse_size(const char *str, size_t *sizep);
+char *util_fgets(char *buffer, int max, FILE *stream);
 
 void util_set_alloc_funcs(
 		void *(*malloc_func)(size_t size),
@@ -98,6 +101,15 @@ util_clrbit(uint8_t *b, uint32_t i)
 
 #define util_flag_isset(a, f) ((a) & (f))
 #define util_flag_isclr(a, f) (((a) & (f)) == 0)
+
+/*
+ * util_get_printable_ascii -- convert non-printable ascii to dot '.'
+ */
+static inline char
+util_get_printable_ascii(char c)
+{
+	return isprint((unsigned char)c) ? c : '.';
+}
 
 #if !defined(likely)
 #if defined(__GNUC__)

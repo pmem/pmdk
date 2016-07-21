@@ -341,7 +341,7 @@ parse_args(char *appname, int argc, char *argv[],
 		struct options *opts)
 {
 	int opt;
-	struct range entire_uint64 = ENTIRE_UINT64;
+
 	if (argc == 1) {
 		print_usage(appname);
 
@@ -385,7 +385,7 @@ parse_args(char *appname, int argc, char *argv[],
 			break;
 		case 'r':
 			if (util_parse_ranges(optarg, rangesp,
-					entire_uint64)) {
+					ENTIRE_UINT64)) {
 				outv_err("'%s' -- cannot parse range(s)\n",
 						optarg);
 				return -1;
@@ -477,7 +477,7 @@ parse_args(char *appname, int argc, char *argv[],
 			break;
 		case 't':
 			if (util_parse_ranges(optarg,
-				&argsp->obj.type_ranges, entire_uint64)) {
+				&argsp->obj.type_ranges, ENTIRE_UINT64)) {
 				outv_err("'%s' -- cannot parse range(s)\n",
 						optarg);
 				return -1;
@@ -511,19 +511,19 @@ parse_args(char *appname, int argc, char *argv[],
 	}
 
 	if (!argsp->use_range)
-		util_ranges_add(&argsp->ranges, entire_uint64);
+		util_ranges_add(&argsp->ranges, ENTIRE_UINT64);
 
 	if (util_ranges_empty(&argsp->obj.type_ranges))
-		util_ranges_add(&argsp->obj.type_ranges, entire_uint64);
+		util_ranges_add(&argsp->obj.type_ranges, ENTIRE_UINT64);
 
 	if (util_ranges_empty(&argsp->obj.lane_ranges))
-		util_ranges_add(&argsp->obj.lane_ranges, entire_uint64);
+		util_ranges_add(&argsp->obj.lane_ranges, ENTIRE_UINT64);
 
 	if (util_ranges_empty(&argsp->obj.zone_ranges))
-		util_ranges_add(&argsp->obj.zone_ranges, entire_uint64);
+		util_ranges_add(&argsp->obj.zone_ranges, ENTIRE_UINT64);
 
 	if (util_ranges_empty(&argsp->obj.chunk_ranges))
-		util_ranges_add(&argsp->obj.chunk_ranges, entire_uint64);
+		util_ranges_add(&argsp->obj.chunk_ranges, ENTIRE_UINT64);
 
 	return 0;
 }

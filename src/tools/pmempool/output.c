@@ -136,21 +136,6 @@ outv_err(const char *fmt, ...)
 	va_end(ap);
 }
 
-/* on windows this method is not required */
-#ifndef _WIN32
-
-/*
- * out_err -- for src/common
- */
-void
-out_err(const char *file, int line, const char *func,
-	const char *fmt, ...)
-{
-	/* stub */
-}
-
-#endif
-
 /*
  * outv_err_vargs -- print error message
  */
@@ -766,7 +751,7 @@ out_get_ei_data_str(uint8_t ei_data)
 	}
 #else
 	/*
-	 * XXX - on windows ei_data is hardcoded to 0 but we can assume litte
+	 * XXX - on windows ei_data is hardcoded to 0 but we can assume little
 	 * endian architecture
 	 */
 	return "little endian";

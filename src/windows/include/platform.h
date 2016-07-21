@@ -59,6 +59,7 @@ typedef long _off_t;		/* NOTE: _off_t must be defined as 'long'! */
 #include <sys/types.h>
 #include <malloc.h>
 #include <signal.h>
+#include <intrin.h>
 
 /* use uuid_t definition from util.h */
 #ifdef uuid_t
@@ -100,7 +101,7 @@ __builtin_clzll(uint64_t val)
 }
 
 __inline int
-__builtin_ffsll(unsigned long val)
+__builtin_ffsll(long long val)
 {
 	unsigned long ret;
 	return _BitScanForward64(&ret, val) ? ret + 1 : 0;

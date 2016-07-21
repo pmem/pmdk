@@ -64,18 +64,20 @@ util_file_create(const char *path, size_t size, size_t minsize)
 	}
 
 	int fd;
-	int flags;
+	int mode;
+	int flags = O_RDWR | O_CREAT | O_EXCL;
 #ifndef _WIN32
-	flags = 0;
+	mode = 0;
 #else
-	flags = S_IWRITE | S_IREAD;
+	mode = S_IWRITE | S_IREAD;
+	flags |= O_BINARY;
 #endif
 
 	/*
 	 * Create file without any permission. It will be granted once
 	 * initialization completes.
 	 */
-	if ((fd = open(path, O_RDWR | O_CREAT | O_EXCL, flags)) < 0) {
+	if ((fd = open(path, flags, mode)) < 0) {
 		ERR("!open %s", path);
 		return -1;
 	}
@@ -114,6 +116,10 @@ util_file_open(const char *path, size_t *size, size_t minsize, int flags)
 
 	int oerrno;
 	int fd;
+
+#ifdef _WIN32
+	flags |= O_BINARY;
+#endif
 	if ((fd = open(path, flags)) < 0) {
 		ERR("!open %s", path);
 		return -1;

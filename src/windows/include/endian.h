@@ -38,7 +38,7 @@
 #define ENDIAN_H 1
 
 /*
- * On Windows we can assume little-endian archtecture
+ * XXX: On Windows we can assume little-endian archtecture
  */
 #include <intrin.h>
 
