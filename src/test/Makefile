@@ -115,7 +115,10 @@ OBJ_TESTS = \
 	obj_constructor
 
 OBJ_REMOTE_TESTS = \
-	obj_rpmem_basic_integration
+	obj_rpmem_basic_integration\
+	obj_rpmem_constructor\
+	obj_rpmem_heap_interrupt\
+	obj_rpmem_heap_state
 
 OBJ_CPP_TESTS = \
 	obj_cpp_ptr\

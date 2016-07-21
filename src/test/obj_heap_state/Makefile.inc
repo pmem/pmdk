@@ -1,4 +1,5 @@
-# Copyright 2014-2016, Intel Corporation
+#
+# Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -27,25 +28,16 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-#
-# src/common/Makefile -- Makefile for common
 #
 
-LIBRARY_NAME = pmemcommon
-SOURCE =\
-	file.c\
-	file_linux.c\
-	mmap.c\
-	mmap_linux.c\
-	out.c\
-	pool_hdr.c\
-	pool_hdr_linux.c\
-	set.c\
-	util.c\
-	uuid.c\
-	uuid_linux.c
+#
+# src/test/obj_heap_state/Makefile.inc -- build obj_heap_state and
+#       obj_rpmem_heap_state unittest
+#
+
+../obj_heap_state/obj_heap_state:
+	$(MAKE) -C ../obj_heap_state all
+
+all: ../obj_heap_state/obj_heap_state
 
 include ../Makefile.inc
-
-CFLAGS += -DUSE_LIBDL

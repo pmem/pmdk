@@ -1,4 +1,5 @@
-# Copyright 2014-2016, Intel Corporation
+#
+# Copyright 2015-2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -27,25 +28,10 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-#
-# src/common/Makefile -- Makefile for common
 #
 
-LIBRARY_NAME = pmemcommon
-SOURCE =\
-	file.c\
-	file_linux.c\
-	mmap.c\
-	mmap_linux.c\
-	out.c\
-	pool_hdr.c\
-	pool_hdr_linux.c\
-	set.c\
-	util.c\
-	uuid.c\
-	uuid_linux.c
+#
+# src/test/obj_rpmem_constructor/Makefile -- build obj_rpmem_constructor test
+#
 
-include ../Makefile.inc
-
-CFLAGS += -DUSE_LIBDL
+include ../obj_constructor/Makefile.inc

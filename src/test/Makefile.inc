@@ -133,7 +133,6 @@ OBJS += $(TOP)/src/nondebug/libpmemobj/bucket.o\
 	$(TOP)/src/nondebug/libpmemobj/sync.o\
 	$(TOP)/src/nondebug/libpmemobj/tx.o
 
-LIBS += -ldl
 INCS += -I$(TOP)/src/libpmemobj
 LIBPMEM=y
 LIBPMEMCOMMON=y
@@ -142,6 +141,7 @@ endif
 ifeq ($(LIBPMEMCOMMON), y)
 OBJS += $(LIBS_DIR)/debug/libpmemcommon.a
 INCS += -I$(TOP)/src/common
+LIBS += -ldl
 LIBPMEM=y
 endif
 

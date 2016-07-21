@@ -102,6 +102,7 @@ DYNAMIC_LIBS += $(LIBSDIR_DEBUG)/libpmemcommon.a
 STATIC_DEBUG_LIBS += $(LIBSDIR_DEBUG)/libpmemcommon.a
 STATIC_NONDEBUG_LIBS += $(LIBSDIR_NONDEBUG)/libpmemcommon.a
 CFLAGS += -I$(TOP)/src/common
+LIBS += -ldl
 endif
 
 ifeq ($(LIBPMEMPOOL), y)
@@ -223,7 +224,7 @@ $(TARGET_STATIC_NONDEBUG): $(STATIC_NONDEBUG_LIBS)
 	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(STATIC_NONDEBUG_LIBS) $(LIBS)
 
 $(TARGET):
-	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LIBS) $(DYNAMIC_LIBS)
+	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(DYNAMIC_LIBS) $(LIBS)
 
 $(PMEMLOG_PRIV_OBJ):
 	$(MAKE) -C $(LIBSDIR) libpmemlog
