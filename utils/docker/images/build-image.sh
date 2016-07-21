@@ -36,29 +36,34 @@
 #                           to the Dockerfile.<OS:VER> file located
 #                           in the same directory.
 #
+# The script can be run locally.
+#
 
 function usage {
 	echo "Usage:"
 	echo "    build-image.sh <OS:VER>"
-	echo "where <OS:VER>, for example, can be 'ubuntu:16.04', provided a Dockerfile " \
-		"named 'Dockerfile.ubuntu-16.04' exists in the current directory."
+	echo "where <OS:VER>, for example, can be 'ubuntu:16.04', provided " \
+		"a Dockerfile named 'Dockerfile.ubuntu-16.04' exists in the " \
+		"current directory."
 }
 
+# Check if the first argument is nonempty
 if [[ -z "$1" ]]; then
 	usage
 	exit 1
 fi
 
+# Check if the file Dockerfile.OS-VER exists
 os_ver=${1/\:/-}
-
 if [[ ! -f "Dockerfile.$os_ver" ]]; then
 	echo "ERROR: wrong argument."
 	usage
 	exit 1
 fi
 
+# Build a Docker image tagged with nvml/OS:VER
 tag=nvml/$1
-docker build -t $tag \
+sudo docker build -t $tag \
 	--build-arg http_proxy=$http_proxy \
 	--build-arg https_proxy=$https_proxy \
 	-f Dockerfile.$os_ver .

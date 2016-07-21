@@ -31,49 +31,39 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #
-# build.sh - runs a Docker container from a Docker image with environment
-#            prepared for building NVML project.
+# push-image.sh <OS:VER> - pushes the Docker image tagged with $OS:$OS_VER
+#                          to the Docker Hub
+#
+# The script utilizes $DOCKER_PASSWORD variable to log in to the Docker Hub.
+# It can be set in the Travis project's configuration for automated builds.
+# If it is not set, the user will be asked to provide the password.
 #
 
-if [[ -z "$OS" || -z "$OS_VER" ]]; then
-	echo "ERROR: The variables OS and OS_VER have to be set properly " \
-             "(eg. OS=ubuntu, OS_VER=16.04)."
+function usage {
+	echo "Usage:"
+	echo "    push-image.sh <OS:VER>"
+	echo "where <OS:VER>, for example, can be 'ubuntu:16.04', provided " \
+		"a Docker image tagged with nvml/ubuntu:16.04 exists locally."
+}
+
+# Check if the first argument is nonempty
+if [[ -z "$1" ]]; then
+	usage
 	exit 1
 fi
 
-if [[ -z "$HOST_WORKDIR" ]]; then
-	echo "ERROR: The variable HOST_WORKDIR has to contain a path to " \
-		"the root of the nvml project on the host machine"
+# Check if the image tagged with nvml/OS:VER exists locally
+if [[ ! $(sudo docker images -a | awk -v pattern="^nvml/$1\$" \
+	'$1":"$2 ~ pattern') ]]
+then
+	echo "ERROR: wrong argument."
+	usage
 	exit 1
 fi
 
-imageName=nvml/${OS}:${OS_VER}
-containerName=nvml-${OS}-${OS_VER}
+# Log in to the Docker Hub
+sudo docker login -u="nvml" -p="$DOCKER_PASSWORD"
 
-if [[ $CC == "clang" ]]; then export CXX="clang++"; else export CXX="g++"; fi
-if [[ $MAKE_PKG -eq 0 ]] ; then command="/bin/bash ./run-build.sh"; fi
-if [[ $MAKE_PKG -eq 1 ]] ; then command="/bin/bash ./run-build-package.sh"; fi
-
-if [ -n "$DNS_SERVER" ]; then DNS_SETTING=" --dns=$DNS_SERVER "; fi
-
-WORKDIR=/nvml
-SCRIPTSDIR=$WORKDIR/utils/docker
-
-# Run a container with
-#  - environment variables set (--env)
-#  - host directory containing nvml source mounted (-v)
-#  - working directory set (-w)
-sudo docker run --rm --privileged=true --name=$containerName -ti \
-	$DNS_SETTING \
-	--env http_proxy=$http_proxy \
-	--env https_proxy=$https_proxy \
-	--env CC=$CC \
-	--env CXX=$CXX \
-	--env EXTRA_CFLAGS=$EXTRA_CFLAGS \
-	--env REMOTE_TESTS=$REMOTE_TESTS \
-	--env WORKDIR=$WORKDIR \
-	--env SCRIPTSDIR=$SCRIPTSDIR \
-	-v $HOST_WORKDIR:$WORKDIR \
-	-w $SCRIPTSDIR \
-	$imageName $command
+# Push the image to the repository
+sudo docker push nvml/$1
 
