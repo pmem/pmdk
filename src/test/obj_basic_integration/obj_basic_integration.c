@@ -526,6 +526,12 @@ test_tx_api(PMEMobjpool *pop)
 		} TX_END
 		UT_ASSERT(errno == EINVAL);
 	} TX_END
+
+	UT_OUT("%s", pmemobj_errormsg());
+	TX_BEGIN(pop) {
+		pmemobj_tx_abort(ECANCELED);
+	} TX_END
+	UT_OUT("%s", pmemobj_errormsg());
 }
 
 static void
