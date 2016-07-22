@@ -200,7 +200,7 @@ out_init(const char *log_prefix, const char *log_level_var,
 		}
 	}
 
-	if ((log_file = getenv(log_file_var)) != NULL) {
+	if ((log_file = getenv(log_file_var)) != NULL && strlen(log_file)) {
 		size_t cc = strlen(log_file);
 
 		/* reserve more than enough space for a PID + '\0' */
