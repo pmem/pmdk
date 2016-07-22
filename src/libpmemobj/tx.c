@@ -117,6 +117,9 @@ enum tx_clr_flag {
 	TX_CLR_FLAG_VG_TX_REMOVE = 1 << 2, /* remove from valgrind tx */
 };
 
+static void
+obj_tx_abort(int errnum, int user);
+
 /*
  * pmemobj_tx_abort_err -- (internal) pmemobj_tx_abort variant that returns
  * error code
@@ -124,7 +127,7 @@ enum tx_clr_flag {
 static inline int
 pmemobj_tx_abort_err(int errnum)
 {
-	pmemobj_tx_abort(errnum);
+	obj_tx_abort(errnum, 0);
 	return errnum;
 }
 
@@ -135,7 +138,7 @@ pmemobj_tx_abort_err(int errnum)
 static inline PMEMoid
 pmemobj_tx_abort_null(int errnum)
 {
-	pmemobj_tx_abort(errnum);
+	obj_tx_abort(errnum, 0);
 	return OID_NULL;
 }
 
@@ -1208,7 +1211,7 @@ pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...)
 
 err_abort:
 	if (tx.stage == TX_STAGE_WORK)
-		pmemobj_tx_abort(err);
+		obj_tx_abort(err, 0);
 	else
 		tx.stage = TX_STAGE_ONABORT;
 	return err;
@@ -1240,10 +1243,10 @@ pmemobj_tx_stage()
 }
 
 /*
- * pmemobj_tx_abort -- aborts current transaction
+ * obj_tx_abort -- aborts current transaction
  */
-void
-pmemobj_tx_abort(int errnum)
+static void
+obj_tx_abort(int errnum, int user)
 {
 	LOG(3, NULL);
 
@@ -1270,10 +1273,24 @@ pmemobj_tx_abort(int errnum)
 	}
 
 	tx.last_errnum = errnum;
+	if (user)
+		ERR("explicit transaction abort");
+
 	if (!util_is_zeroed(txd->env, sizeof(jmp_buf)))
 		longjmp(txd->env, errnum);
 	else
 		errno = errnum;
+}
+
+/*
+ * pmemobj_tx_abort -- aborts current transaction
+ *
+ * Note: this function should not be called from inside of pmemobj.
+ */
+void
+pmemobj_tx_abort(int errnum)
+{
+	obj_tx_abort(errnum, 1);
 }
 
 /*
@@ -1381,7 +1398,7 @@ pmemobj_tx_end()
 
 		/* abort called within inner transaction, waterfall the error */
 		if (tx.last_errnum)
-			pmemobj_tx_abort(tx.last_errnum);
+			obj_tx_abort(tx.last_errnum, 0);
 	}
 
 	return tx.last_errnum;
