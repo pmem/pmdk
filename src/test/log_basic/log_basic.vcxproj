@@ -17,6 +17,15 @@
   <ItemGroup>
     <ClCompile Include="..\..\..\src\test\log_basic\log_basic.c" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="TEST0.PS1" />
+    <None Include="TEST1.PS1" />
+    <None Include="TEST2.PS1" />
+    <None Include="TEST3.PS1" />
+    <None Include="TEST4.PS1" />
+    <None Include="TEST5.PS1" />
+    <None Include="TEST6w.PS1" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{FBB77433-639E-42DC-9355-EA94CAE294D2}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>

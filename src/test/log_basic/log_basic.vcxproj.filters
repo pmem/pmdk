@@ -9,10 +9,36 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Test Scripts">
+      <UniqueIdentifier>{be9f59bd-3dd9-4c45-8726-809fcdf7520f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\test\log_basic\log_basic.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="TEST0.PS1">
+      <Filter>Test Scripts</Filter>
+    </None>
+    <None Include="TEST1.PS1">
+      <Filter>Test Scripts</Filter>
+    </None>
+    <None Include="TEST2.PS1">
+      <Filter>Test Scripts</Filter>
+    </None>
+    <None Include="TEST3.PS1">
+      <Filter>Test Scripts</Filter>
+    </None>
+    <None Include="TEST4.PS1">
+      <Filter>Test Scripts</Filter>
+    </None>
+    <None Include="TEST5.PS1">
+      <Filter>Test Scripts</Filter>
+    </None>
+    <None Include="TEST6w.PS1">
+      <Filter>Test Scripts</Filter>
+    </None>
   </ItemGroup>
 </Project>
