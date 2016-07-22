@@ -901,7 +901,7 @@ add_to_tx_and_lock(struct lane_tx_runtime *lane, enum pobj_tx_lock type,
 	/* check if the lock is already on the list */
 	SLIST_FOREACH(txl, &(lane->tx_locks), tx_lock) {
 		if (memcmp(&txl->lock, &lock, sizeof(lock)) == 0)
-			return retval;
+			return 0;
 	}
 
 	txl = Malloc(sizeof(*txl));
@@ -914,11 +914,19 @@ add_to_tx_and_lock(struct lane_tx_runtime *lane, enum pobj_tx_lock type,
 			txl->lock.mutex = lock;
 			retval = pmemobj_mutex_lock(lane->pop,
 				txl->lock.mutex);
+			if (retval) {
+				errno = retval;
+				ERR("!pmemobj_mutex_lock");
+			}
 			break;
 		case TX_LOCK_RWLOCK:
 			txl->lock.rwlock = lock;
 			retval = pmemobj_rwlock_wrlock(lane->pop,
 				txl->lock.rwlock);
+			if (retval) {
+				errno = retval;
+				ERR("!pmemobj_rwlock_wrlock");
+			}
 			break;
 		default:
 			ERR("Unrecognized lock type");
@@ -1134,8 +1142,10 @@ pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...)
 	struct lane_tx_runtime *lane = NULL;
 	if (tx.stage == TX_STAGE_WORK) {
 		lane = tx.section->runtime;
-		if (lane->pop != pop)
+		if (lane->pop != pop) {
+			ERR("nested transaction for different pool");
 			return pmemobj_tx_abort_err(EINVAL);
+		}
 
 		VALGRIND_START_TX;
 	} else if (tx.stage == TX_STAGE_NONE) {
@@ -1166,6 +1176,7 @@ pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...)
 	struct tx_data *txd = Malloc(sizeof(*txd));
 	if (txd == NULL) {
 		err = errno;
+		ERR("!Malloc");
 		goto err_abort;
 	}
 
