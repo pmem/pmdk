@@ -48,7 +48,8 @@
 #include "valgrind_internal.h"
 
 /*
- *
+ * pmalloc_redo_hold -- acquires allocator lane section and returns a pointer to
+ * it's redo log
  */
 struct redo_log *
 pmalloc_redo_hold(PMEMobjpool *pop)
@@ -61,7 +62,7 @@ pmalloc_redo_hold(PMEMobjpool *pop)
 }
 
 /*
- *
+ * pmalloc_redo_release -- releases allocator lane section
  */
 void
 pmalloc_redo_release(PMEMobjpool *pop)
@@ -70,7 +71,9 @@ pmalloc_redo_release(PMEMobjpool *pop)
 }
 
 /*
+ * pmalloc_operation -- higher level wrapper for basic allocator API
  *
+ * If successful function returns zero. Otherwise an error number is returned.
  */
 int
 pmalloc_operation(struct palloc_heap *heap, uint64_t off, uint64_t *dest_off,
