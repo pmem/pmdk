@@ -739,7 +739,7 @@ util_parse_add_remote_replica(struct pool_set **setp, char *node_addr,
 }
 
 /*
- * util_poolset_parse -- (internal) parse pool set config file
+ * util_poolset_parse -- parse pool set config file
  *
  * Returns 1 if the file is a valid pool set config file, 0 if the file
  * is not a pool set header, and -1 in case of any error.
@@ -747,9 +747,9 @@ util_parse_add_remote_replica(struct pool_set **setp, char *node_addr,
  * XXX: use memory mapped file
  */
 int
-util_poolset_parse(const char *path, int fd, struct pool_set **setp)
+util_poolset_parse(struct pool_set **setp, const char *path, int fd)
 {
-	LOG(3, "path %s fd %d setp %p", path, fd, setp);
+	LOG(3, "setp %p path %s fd %d", setp, path, fd);
 
 	struct pool_set *set;
 	enum parser_codes result;
@@ -1187,7 +1187,7 @@ util_poolset_read(struct pool_set **setp, const char *path)
 	if ((fd = open(path, O_RDONLY)) < 0)
 		return -1;
 
-	ret = util_poolset_parse(path, fd, setp);
+	ret = util_poolset_parse(setp, path, fd);
 
 	oerrno = errno;
 	(void) close(fd);
@@ -1259,7 +1259,7 @@ util_poolset_create_set(struct pool_set **setp, const char *path,
 		return 0;
 	}
 
-	ret = util_poolset_parse(path, fd, setp);
+	ret = util_poolset_parse(setp, path, fd);
 
 #ifdef _WIN32
 	if (ret)
@@ -2425,7 +2425,7 @@ util_poolset_foreach_part(const char *path,
 		return -1;
 
 	struct pool_set *set;
-	int ret = util_poolset_parse(path, fd, &set);
+	int ret = util_poolset_parse(&set, path, fd);
 	if (ret)
 		goto err_close;
 
@@ -2456,7 +2456,7 @@ util_poolset_size(const char *path)
 
 	size_t size = 0;
 	struct pool_set *set;
-	if (util_poolset_parse(path, fd, &set))
+	if (util_poolset_parse(&set, path, fd))
 		goto err_close;
 
 	size = set->poolsize;

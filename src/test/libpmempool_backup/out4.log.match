@@ -1,0 +1,18 @@
+libpmempool_backup/TEST4: START: libpmempool_test
+ ../libpmempool_api/libpmempool_test$(nW) $(nW)/pool.set -b $(nW)/pool.set_backup -t blk -r 1
+number of parts in the backup poolset must match number of parts in the source poolset
+unable to backup poolset
+status = fatal
+libpmempool_backup/TEST4: Done
+libpmempool_backup/TEST4: START: libpmempool_test
+ ../libpmempool_api/libpmempool_test$(nW) $(nW)/pool.set -b $(nW)/pool.set_backup -t log -r 1
+number of parts in the backup poolset must match number of parts in the source poolset
+unable to backup poolset
+status = fatal
+libpmempool_backup/TEST4: Done
+libpmempool_backup/TEST4: START: libpmempool_test
+ ../libpmempool_api/libpmempool_test$(nW) $(nW)/pool.set -b $(nW)/pool.set_backup -t obj -r 1
+number of parts in the backup poolset must match number of parts in the source poolset
+unable to backup poolset
+status = fatal
+libpmempool_backup/TEST4: Done

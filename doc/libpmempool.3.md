@@ -167,6 +167,19 @@ struct pmempool_check_args
   detection by setting `pool_type` to `PMEMPOOL_POOL_TYPE_DETECT`.
   Pool type detection fail ends check.
 
+  `backup_path` argument can either be:
+
+  + NULL. It indicates no backup will be performed.
+
+  + a non existing file. It is valid only in case `path` is a single file
+  *pool*. It indicates a `backup_path` file will be created and backup will be
+  performed.
+
+  + an existing `poolset` file of the same structure (the same number of parts
+  with exactly the same size) as the source *poolset*. It is valid only in case
+  `path` is a *poolset*. It indicates backup will be performed in a form
+  described by the `backup_path` *poolset*.
+
   This is an example of a *check context* initialization:
 
 ```c

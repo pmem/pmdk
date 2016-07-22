@@ -1,0 +1,18 @@
+libpmempool_backup/TEST6: START: libpmempool_test
+ ../libpmempool_api/libpmempool_test$(nW) $(nW)/pool.set -b $(nW)/pool.set_backup -t blk -r 1
+unable to backup to the poolset with already existing parts
+unable to backup poolset
+status = fatal
+libpmempool_backup/TEST6: Done
+libpmempool_backup/TEST6: START: libpmempool_test
+ ../libpmempool_api/libpmempool_test$(nW) $(nW)/pool.set -b $(nW)/pool.set_backup -t log -r 1
+unable to backup to the poolset with already existing parts
+unable to backup poolset
+status = fatal
+libpmempool_backup/TEST6: Done
+libpmempool_backup/TEST6: START: libpmempool_test
+ ../libpmempool_api/libpmempool_test$(nW) $(nW)/pool.set -b $(nW)/pool.set_backup -t obj -r 1
+unable to backup to the poolset with already existing parts
+unable to backup poolset
+status = fatal
+libpmempool_backup/TEST6: Done
