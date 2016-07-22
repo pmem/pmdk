@@ -341,6 +341,7 @@ parse_args(char *appname, int argc, char *argv[],
 		struct options *opts)
 {
 	int opt;
+
 	if (argc == 1) {
 		print_usage(appname);
 
@@ -383,7 +384,8 @@ parse_args(char *appname, int argc, char *argv[],
 			argsp->blk.skip_no_flag = true;
 			break;
 		case 'r':
-			if (util_parse_ranges(optarg, rangesp, ENTIRE_UINT64)) {
+			if (util_parse_ranges(optarg, rangesp,
+					ENTIRE_UINT64)) {
 				outv_err("'%s' -- cannot parse range(s)\n",
 						optarg);
 				return -1;

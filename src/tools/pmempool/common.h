@@ -78,13 +78,9 @@
 #define OPT_REQ6(c) _OPT_REQ(c, 6)
 #define OPT_REQ7(c) _OPT_REQ(c, 7)
 
+#ifndef min
 #define min(a, b) ((a) < (b) ? (a) : (b))
-#define ENTIRE_UINT64 (\
-{\
-struct range _entire_uint64 = {\
-	.first = 0,\
-	.last = UINT64_MAX\
-}; _entire_uint64; })
+#endif
 
 #define FOREACH_RANGE(range, ranges)\
 	LIST_FOREACH(range, &(ranges)->head, next)
@@ -251,3 +247,7 @@ util_count_ones(uint64_t val)
 {
 	return (uint32_t)__builtin_popcountll(val);
 }
+
+static const struct range ENTIRE_UINT64 = { .first = 0,
+.last = UINT64_MAX
+};

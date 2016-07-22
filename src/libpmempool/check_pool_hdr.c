@@ -37,6 +37,7 @@
 #include <stdio.h>
 #include <inttypes.h>
 #include <sys/mman.h>
+#include <endian.h>
 
 #include "out.h"
 #include "libpmempool.h"

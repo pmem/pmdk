@@ -37,10 +37,13 @@
 #ifndef UNISTD_H
 #define UNISTD_H 1
 
-#define F_OK 0
-
 #define _SC_PAGESIZE 0
 #define _SC_NPROCESSORS_ONLN 1
+
+#define R_OK 04
+#define W_OK 02
+#define X_OK 00 /* execute permission doesn't exist on Windows */
+#define F_OK 00
 
 static __inline long
 sysconf(int p)
@@ -60,8 +63,68 @@ sysconf(int p)
 	default:
 		return 0;
 	}
+
 }
 
 #define getpid _getpid
 
+/*
+ * pread - windows port of pread function
+ */
+static ssize_t
+pread(int fd, void *buf, size_t count, off_t offset)
+{
+	__int64 postion = _lseeki64(fd, 0, SEEK_CUR);
+	_lseeki64(fd, offset, SEEK_SET);
+	int ret = _read(fd, buf, (unsigned int)count);
+	_lseeki64(fd, postion, SEEK_SET);
+	return ret;
+}
+
+/*
+ * pwrite - windows port of pwrite function
+ */
+static ssize_t
+pwrite(int fd, const void *buf, size_t count, off_t offset)
+{
+	__int64 postion = _lseeki64(fd, 0, SEEK_CUR);
+	_lseeki64(fd, offset, SEEK_SET);
+	int ret = _write(fd, buf, (unsigned int)count);
+	_lseeki64(fd, postion, SEEK_SET);
+	return ret;
+}
+
+#define S_ISBLK(x) 0 /* BLK devices not exist on Windows */
+
+/*
+ * basename - windows implementation of basename function
+ */
+static char *
+basename(char *path)
+{
+	char fname[_MAX_FNAME];
+	char ext[_MAX_EXT];
+	_splitpath(path, NULL, NULL, fname, ext);
+
+	sprintf(path, "%s%s", fname, ext);
+
+	return path;
+}
+
+/*
+ * dirname - windows implementation of dirname function
+ */
+static char *
+dirname(char *path)
+{
+	char drive[_MAX_DRIVE];
+	char dir[_MAX_DIR];
+
+	_splitpath(path, drive, dir, NULL, NULL);
+	sprintf(path, "%s%s", drive, dir);
+
+	return path;
+}
+
+#define ftruncate _chsize_s
 #endif /* UNISTD_H */

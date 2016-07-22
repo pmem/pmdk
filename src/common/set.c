@@ -784,7 +784,7 @@ util_poolset_parse(const char *path, int fd, struct pool_set **setp)
 	unsigned nparts = 0; /* number of parts in current replica */
 
 	/* read the first line */
-	s = fgets(line, PARSER_MAX_LINE, fs);
+	s = util_fgets(line, PARSER_MAX_LINE, fs);
 	nlines++;
 
 	set = Zalloc(sizeof(struct pool_set));
@@ -811,7 +811,7 @@ util_poolset_parse(const char *path, int fd, struct pool_set **setp)
 
 	while (result == PARSER_CONTINUE) {
 		/* read next line */
-		s = fgets(line, PARSER_MAX_LINE, fs);
+		s = util_fgets(line, PARSER_MAX_LINE, fs);
 		nlines++;
 
 		if (s) {

@@ -1,0 +1,222 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Static-Debug|x64">
+      <Configuration>Static-Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\common\cpu.h" />
+    <ClInclude Include="..\common\out.h" />
+    <ClInclude Include="..\common\sys_util.h" />
+    <ClInclude Include="..\common\util.h" />
+    <ClInclude Include="..\common\valgrind_internal.h" />
+    <ClInclude Include="check.h" />
+    <ClInclude Include="check_util.h" />
+    <ClInclude Include="pmempool.h" />
+    <ClInclude Include="pool.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\common\file.c" />
+    <ClCompile Include="..\common\file_windows.c" />
+    <ClCompile Include="..\common\mmap.c" />
+    <ClCompile Include="..\common\mmap_windows.c" />
+    <ClCompile Include="..\common\out.c" />
+    <ClCompile Include="..\common\pool_hdr.c" />
+    <ClCompile Include="..\common\pool_hdr_windows.c" />
+    <ClCompile Include="..\common\pthread_windows.c" />
+    <ClCompile Include="..\common\set.c" />
+    <ClCompile Include="..\common\util.c" />
+    <ClCompile Include="..\common\uuid.c" />
+    <ClCompile Include="..\common\uuid_windows.c" />
+    <ClCompile Include="..\libpmemblk\btt.c" />
+    <ClCompile Include="..\libpmemlog\libpmemlog.c" />
+    <ClCompile Include="..\libpmemlog\log.c" />
+    <ClCompile Include="..\windows\win_file.c" />
+    <ClCompile Include="check.c" />
+    <ClCompile Include="check_backup.c" />
+    <ClCompile Include="check_btt_info.c" />
+    <ClCompile Include="check_btt_map_flog.c" />
+    <ClCompile Include="check_log_blk.c" />
+    <ClCompile Include="check_pool_hdr.c" />
+    <ClCompile Include="check_util.c" />
+    <ClCompile Include="check_write.c" />
+    <ClCompile Include="libpmempool.c" />
+    <ClCompile Include="libpmempool_main.c" />
+    <ClCompile Include="pool.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="libpmempool.def" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\libpmemblk\libpmemblk.vcxproj">
+      <Project>{f7c6c6b6-4142-4c82-8699-4a9d8183181b}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\libpmemlog\libpmemlog.vcxproj">
+      <Project>{0b1818eb-bdc8-4865-964f-db8bf05cfd86}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\libpmemobj\libpmemobj.vcxproj">
+      <Project>{1baa1617-93ae-4196-8a1a-bd492fb18aef}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\libpmem\libpmem.vcxproj">
+      <Project>{9e9e3d25-2139-4a5d-9200-18148ddead45}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{CF9A0883-6334-44C7-AC29-349468C78E27}</ProjectGuid>
+    <Keyword>DynamicLibrary</Keyword>
+    <ProjectName>libpmempool</ProjectName>
+    <RootNamespace>libpmempool</RootNamespace>
+    <DefaultLanguage>en-US</DefaultLanguage>
+    <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
+    <ApplicationType>Windows Store</ApplicationType>
+    <WindowsTargetPlatformVersion>10.0.10240.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformMinVersion>10.0.10240.0</WindowsTargetPlatformMinVersion>
+    <ApplicationTypeRevision>10.0</ApplicationTypeRevision>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Static-Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Static-Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <GenerateManifest>false</GenerateManifest>
+    <IgnoreImportLibrary>false</IgnoreImportLibrary>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Static-Debug|x64'">
+    <GenerateManifest>false</GenerateManifest>
+    <IgnoreImportLibrary>false</IgnoreImportLibrary>
+    <TargetExt>.lib</TargetExt>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <GenerateManifest>false</GenerateManifest>
+    <IgnoreImportLibrary>false</IgnoreImportLibrary>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <ForcedIncludeFiles>platform.h</ForcedIncludeFiles>
+      <ExceptionHandling>false</ExceptionHandling>
+      <CompileAs>CompileAsC</CompileAs>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\src\windows\include;$(ProjectDir)..\..\src\include;$(ProjectDir)..\..\src\common;$(ProjectDir)..\include;$(ProjectDir)..\libpmemblk;$(ProjectDir)..\libpmemlog;$(ProjectDir)..\libpmemobj;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>SRCVERSION="1.0";_CRT_SECURE_NO_WARNINGS;DEBUG;_CRT_USE_WINAPI_FAMILY_DESKTOP_APP;WINAPI_PARTITION_SYSTEM;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4996</DisableSpecificWarnings>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <BrowseInformation>true</BrowseInformation>
+      <ForcedUsingFiles />
+      <CompileAsWinRT>false</CompileAsWinRT>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+      <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
+      <AdditionalDependencies>$(WindowsSDK_LibraryPath)\$(PlatformTarget)\kernel32.lib;shlwapi.lib;libpmem.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ModuleDefinitionFile>libpmempool.def</ModuleDefinitionFile>
+      <GenerateMapFile>true</GenerateMapFile>
+      <EntryPointSymbol>
+      </EntryPointSymbol>
+      <AdditionalLibraryDirectories>$(OutDir);$(OutDir)/../Static-Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+    <ProjectReference>
+      <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Static-Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <ForcedIncludeFiles>platform.h</ForcedIncludeFiles>
+      <ExceptionHandling>false</ExceptionHandling>
+      <CompileAs>CompileAsC</CompileAs>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\src\windows\include;$(ProjectDir)..\..\src\include;$(ProjectDir)..\..\src\common;$(ProjectDir)..\include;$(ProjectDir)..\libpmemblk;$(ProjectDir)..\libpmemlog;$(ProjectDir)..\libpmemobj;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>SRCVERSION="1.0";_CRT_SECURE_NO_WARNINGS;DEBUG;_CRT_USE_WINAPI_FAMILY_DESKTOP_APP;WINAPI_PARTITION_SYSTEM;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4996</DisableSpecificWarnings>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <BrowseInformation>true</BrowseInformation>
+      <CompileAsWinRT>false</CompileAsWinRT>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+      <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
+      <AdditionalDependencies>$(WindowsSDK_LibraryPath)\$(PlatformTarget)\kernel32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ModuleDefinitionFile>libpmem.def</ModuleDefinitionFile>
+      <GenerateMapFile>true</GenerateMapFile>
+      <EntryPointSymbol>
+      </EntryPointSymbol>
+    </Link>
+    <ProjectReference>
+      <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
+    </ProjectReference>
+    <Lib>
+      <AdditionalDependencies>shlwapi.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <CompileAs>CompileAsC</CompileAs>
+      <BrowseInformation>true</BrowseInformation>
+      <ForcedUsingFiles />
+      <DisableSpecificWarnings>4996</DisableSpecificWarnings>
+      <ExceptionHandling>false</ExceptionHandling>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\src\windows\include;$(ProjectDir)..\..\src\include;$(ProjectDir)..\..\src\common;$(ProjectDir)..\include;$(ProjectDir)..\libpmemblk;$(ProjectDir)..\libpmemlog;$(ProjectDir)..\libpmemobj;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>SRCVERSION="1.0";_CRT_SECURE_NO_WARNINGS;_CRT_USE_WINAPI_FAMILY_DESKTOP_APP;WINAPI_PARTITION_SYSTEM;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ForcedIncludeFiles>platform.h</ForcedIncludeFiles>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
+      <CompileAsWinRT>false</CompileAsWinRT>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+      <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
+      <AdditionalDependencies>$(WindowsSDK_LibraryPath)\$(PlatformTarget)\kernel32.lib;shlwapi.lib;libpmem.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ModuleDefinitionFile>libpmempool.def</ModuleDefinitionFile>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
+      <AdditionalLibraryDirectories>$(OutDir);$(OutDir)/../Static-Relese;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

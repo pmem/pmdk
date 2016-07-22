@@ -43,7 +43,8 @@
 #include <ctype.h>
 #include <err.h>
 #include <elf.h>
-
+#include <endian.h>
+#include <inttypes.h>
 #include "common.h"
 #include "output.h"
 
@@ -298,7 +299,7 @@ out_get_size_str(uint64_t size, int human)
 	const int nunits = sizeof(units) / sizeof(units[0]);
 
 	if (!human) {
-		snprintf(str_buff, STR_MAX, "%ld", size);
+		snprintf(str_buff, STR_MAX, "%"PRIu64, size);
 	} else {
 		int i = -1;
 		double dsize = (double)size;
@@ -315,10 +316,10 @@ out_get_size_str(uint64_t size, int human)
 				snprintf(str_buff, STR_MAX, "%.1f%c",
 					dsize, units[i]);
 			else
-				snprintf(str_buff, STR_MAX, "%.1f%c [%lu]",
-					dsize, units[i], size);
+				snprintf(str_buff, STR_MAX, "%.1f%c [%"
+					PRIu64"]", dsize, units[i], size);
 		else
-			snprintf(str_buff, STR_MAX, "%ld",
+			snprintf(str_buff, STR_MAX, "%"PRIu64,
 					size);
 	}
 
@@ -359,19 +360,10 @@ out_get_time_str(time_t time)
 }
 
 /*
- * out_get_printable_ascii -- convert non-printable ascii to dot '.'
- */
-static char
-out_get_printable_ascii(char c)
-{
-	return isprint(c) ? c : '.';
-}
-
-/*
  * out_get_ascii_str -- get string with printable ASCII dump buffer
  *
  * Convert non-printable ASCII characters to dot '.'
- * See: out_get_printable_ascii() function.
+ * See: util_get_printable_ascii() function.
  */
 static int
 out_get_ascii_str(char *str, size_t str_len, const uint8_t *datap, size_t len)
@@ -384,7 +376,7 @@ out_get_ascii_str(char *str, size_t str_len, const uint8_t *datap, size_t len)
 		return -1;
 
 	for (i = 0; i < len; i++) {
-		pch = out_get_printable_ascii((char)datap[i]);
+		pch = util_get_printable_ascii((char)datap[i]);
 		int t = snprintf(str + c, str_len - (size_t)c, "%c", pch);
 		if (t < 0)
 			return -1;
@@ -474,7 +466,7 @@ outv_hexdump(int vlevel, const void *addr, size_t len, size_t offset, int sep)
 				HEXDUMP_ROW_ASCII_LEN, datap + curr, curr_len);
 
 			if (ra && rh)
-				n = fprintf(out_fh, "%08lx  %-*s|%-*s|\n",
+				n = fprintf(out_fh, "%08"PRIx64"  %-*s|%-*s|\n",
 					curr + offset,
 					HEXDUMP_ROW_HEX_LEN, row_hex_str,
 					HEXDUMP_ROW_WIDTH, row_ascii_str);
@@ -683,7 +675,7 @@ out_get_pmemoid_str(PMEMoid oid, uint64_t uuid_lo)
 	int free_cor = 0;
 	char *correct = "OK";
 	if (oid.pool_uuid_lo && oid.pool_uuid_lo != uuid_lo) {
-		snprintf(str_buff, STR_MAX, "wrong! should be 0x%016lx",
+		snprintf(str_buff, STR_MAX, "wrong! should be 0x%016"PRIx64,
 				uuid_lo);
 		correct = strdup(str_buff);
 		if (!correct)
@@ -691,8 +683,8 @@ out_get_pmemoid_str(PMEMoid oid, uint64_t uuid_lo)
 		free_cor = 1;
 	}
 
-	snprintf(str_buff, STR_MAX, "off: 0x%016lx pool_uuid_lo: 0x%016lx [%s]",
-			oid.off, oid.pool_uuid_lo, correct);
+	snprintf(str_buff, STR_MAX, "off: 0x%016"PRIx64" pool_uuid_lo: 0x%016"
+			PRIx64" [%s]", oid.off, oid.pool_uuid_lo, correct);
 
 	if (free_cor)
 		free(correct);
@@ -722,6 +714,8 @@ out_get_internal_type_str(enum internal_type type)
 const char *
 out_get_ei_class_str(uint8_t ei_class)
 {
+
+#ifndef _WIN32
 	switch (ei_class) {
 	case ELFCLASSNONE:
 		return "none";
@@ -732,6 +726,10 @@ out_get_ei_class_str(uint8_t ei_class)
 	default:
 		return "unknown";
 	}
+#else
+	return "none"; /* XXX - on windows ei_class is hardcoded to 0 */
+#endif
+
 }
 
 /*
@@ -740,6 +738,7 @@ out_get_ei_class_str(uint8_t ei_class)
 const char *
 out_get_ei_data_str(uint8_t ei_data)
 {
+#ifndef _WIN32
 	switch (ei_data) {
 	case ELFDATANONE:
 		return "none";
@@ -750,6 +749,13 @@ out_get_ei_data_str(uint8_t ei_data)
 	default:
 		return "unknown";
 	}
+#else
+	/*
+	 * XXX - on windows ei_data is hardcoded to 0 but we can assume little
+	 * endian architecture
+	 */
+	return "little endian";
+#endif
 }
 
 /*
@@ -760,8 +766,10 @@ out_get_e_machine_str(uint16_t e_machine)
 {
 	static char str_buff[STR_MAX] = {0, };
 	switch (e_machine) {
+#ifndef _WIN32 /* equivalent of EM_NONE not exist on Windows */
 	case EM_NONE:
 		return "none";
+#endif
 	case EM_X86_64:
 		return "AMD X86-64";
 	default:
@@ -783,10 +791,10 @@ out_get_alignment_desc_str(uint64_t ad, uint64_t valid_ad)
 	static char str_buff[STR_MAX] = {0, };
 
 	if (ad == valid_ad)
-		snprintf(str_buff, STR_MAX, "0x%016lx [OK]", ad);
+		snprintf(str_buff, STR_MAX, "0x%016"PRIx64"[OK]", ad);
 	else
-		snprintf(str_buff, STR_MAX, "0x%016lx "
-			"[wrong! should be 0x%016lx]", ad, valid_ad);
+		snprintf(str_buff, STR_MAX, "0x%016"PRIx64" "
+			"[wrong! should be 0x%016"PRIx64"]", ad, valid_ad);
 
 	return str_buff;
 }

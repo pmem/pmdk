@@ -40,6 +40,7 @@
 #include <sys/mman.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <endian.h>
 
 #include "libpmemlog.h"
 #include "libpmemblk.h"
@@ -262,7 +263,7 @@ pool_params_parse(const PMEMpoolcheck *ppc, struct pool_params *params,
 	LOG(3, NULL);
 
 	int is_btt = ppc->args.pool_type == PMEMPOOL_POOL_TYPE_BTT;
-	struct stat stat_buf;
+	util_stat_t stat_buf;
 	int ret = 0;
 
 	params->type = POOL_TYPE_UNKNOWN;
@@ -273,7 +274,7 @@ pool_params_parse(const PMEMpoolcheck *ppc, struct pool_params *params,
 
 	if (!params->is_poolset) {
 		/* get file size and mode */
-		if (fstat(fd, &stat_buf)) {
+		if (util_fstat(fd, &stat_buf)) {
 			ret = -1;
 			goto out_close;
 		}
@@ -383,8 +384,8 @@ pool_set_file_open(const char *fname, struct pool_params *params, int rdonly)
 		file->size = params->size;
 	}
 
-	struct stat buf;
-	if (stat(path, &buf)) {
+	util_stat_t buf;
+	if (util_stat(path, &buf)) {
 		ERR("%s", path);
 		goto err_close_poolset;
 	}

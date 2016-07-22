@@ -59,6 +59,7 @@ typedef long _off_t;		/* NOTE: _off_t must be defined as 'long'! */
 #include <sys/types.h>
 #include <malloc.h>
 #include <signal.h>
+#include <intrin.h>
 
 /* use uuid_t definition from util.h */
 #ifdef uuid_t
@@ -70,6 +71,15 @@ typedef long _off_t;		/* NOTE: _off_t must be defined as 'long'! */
 #define __thread __declspec(thread)
 #define __func__ __FUNCTION__
 #define __typeof__ decltype
+
+/*
+ * The inline keyword is available only in VC++.
+ * https://msdn.microsoft.com/en-us/library/bw1hbe6y.aspx
+ */
+#ifndef __cplusplus
+#define inline __inline
+#endif
+
 
 /* XXX - no equivalents in VC++ */
 #define __attribute__(a)
@@ -89,6 +99,15 @@ __builtin_clzll(uint64_t val)
 	else
 		return 64;
 }
+
+__inline int
+__builtin_ffsll(long long val)
+{
+	unsigned long ret;
+	return _BitScanForward64(&ret, val) ? ret + 1 : 0;
+}
+
+#define __builtin_popcountll(val) __popcnt64(val)
 
 __inline uint32_t
 __sync_fetch_and_or(volatile uint32_t *a, uint32_t val)
