@@ -72,6 +72,7 @@ sudo docker run --rm --privileged=true --name=$containerName -ti \
 	--env EXTRA_CFLAGS=$EXTRA_CFLAGS \
 	--env REMOTE_TESTS=$REMOTE_TESTS \
 	--env WORKDIR=$WORKDIR \
+	--env EXPERIMENTAL=$EXPERIMENTAL \
 	--env SCRIPTSDIR=$SCRIPTSDIR \
 	-v $HOST_WORKDIR:$WORKDIR \
 	-w $SCRIPTSDIR \
