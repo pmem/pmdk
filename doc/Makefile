@@ -36,18 +36,17 @@
 
 include ../src/common.inc
 
-MANPAGES_3_MD =
-MANPAGES_1_MD =
+MANPAGES_3_MD = libpmem.3.md libpmemblk.3.md libpmemlog.3.md \
+	libpmemobj.3.md libpmempool.3.md libvmem.3.md libvmmalloc.3.md
+MANPAGES_1_MD = pmempool.1.md pmempool-info.1.md pmempool-create.1.md \
+	pmempool-check.1.md pmempool-dump.1.md pmempool-rm.1.md \
+	pmempool-convert.1.md
 
 MANPAGES_3_GROFF = $(MANPAGES_3_MD:.3.md=.3)
 MANPAGES_1_GROFF = $(MANPAGES_1_MD:.1.md=.1)
 
-MANPAGES_3 = libpmem.3 libpmemblk.3 libpmemlog.3 libpmemobj.3 libpmempool.3 \
-	libvmem.3 libvmmalloc.3 \
-	$(MANPAGES_3_GROFF)
-MANPAGES_1 = pmempool.1 pmempool-info.1 pmempool-create.1 \
-	pmempool-check.1 pmempool-dump.1 pmempool-rm.1 pmempool-convert.1 \
-	$(MANPAGES_1_GROFF)
+MANPAGES_3 = $(MANPAGES_3_GROFF)
+MANPAGES_1 = $(MANPAGES_1_GROFF)
 
 ifeq ($(BUILD_RPMEM),y)
 MANPAGES_3_MD_EXP = librpmem.3.md
@@ -65,7 +64,10 @@ MANPAGES_3_NOINSTALL += $(MANPAGES_3_GROFF_EXP)
 MANPAGES_1_NOINSTALL += $(MANPAGES_1_GROFF_EXP)
 endif
 
-MANPAGES = $(MANPAGES_1) $(MANPAGES_3)\
+MANPAGES_GROFF_3 = $(MANPAGES_3:.3.md=.3)
+MANPAGES_GROFF_1 = $(MANPAGES_1:.1.md=.1)
+
+MANPAGES = $(MANPAGES_GROFF_1) $(MANPAGES_GROFF_3)\
 	   $(MANPAGES_1_NOINSTALL) $(MANPAGES_3_NOINSTALL)
 
 HTMLFILES = $(MANPAGES:=.html)
