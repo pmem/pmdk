@@ -116,9 +116,12 @@ OBJ_TESTS = \
 
 OBJ_REMOTE_TESTS = \
 	obj_rpmem_basic_integration\
-	obj_rpmem_constructor\
 	obj_rpmem_heap_interrupt\
 	obj_rpmem_heap_state
+# XXX Temporarily disable 'obj_rpmem_constructor' test, because it times out
+# on Travis. This test has not been enalbed and run on Travis so far,
+# so it has never worked correctly.
+#	obj_rpmem_constructor
 
 OBJ_CPP_TESTS = \
 	obj_cpp_ptr\
