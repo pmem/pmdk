@@ -436,7 +436,7 @@ heap_create_run(struct palloc_heap *heap, struct bucket *b,
 }
 
 /*
- * heap_populate_run_bucket -- (internal) split bitmap into memory blocks
+ * heap_reuse_run -- (internal) reuses existing run
  */
 static void
 heap_reuse_run(struct palloc_heap *heap, struct bucket *b,

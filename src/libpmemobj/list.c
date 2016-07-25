@@ -1069,7 +1069,7 @@ lane_list_check(PMEMobjpool *pop, void *data, unsigned length)
 }
 
 /*
- * lane_list_construct -- (internal) create list lane section
+ * lane_list_construct_rt -- (internal) construct runtime part of list section
  */
 static void *
 lane_list_construct_rt(PMEMobjpool *pop)
@@ -1078,7 +1078,7 @@ lane_list_construct_rt(PMEMobjpool *pop)
 }
 
 /*
- * lane_list_destruct -- (internal) destroy list lane section
+ * lane_list_destroy_rt -- (internal) destroy runtime part of list section
  */
 static void
 lane_list_destroy_rt(PMEMobjpool *pop, void *rt)
@@ -1087,7 +1087,7 @@ lane_list_destroy_rt(PMEMobjpool *pop, void *rt)
 }
 
 /*
- * lane_list_init -- initializes list section
+ * lane_list_boot -- initializes list section
  */
 static int
 lane_list_boot(PMEMobjpool *pop)
