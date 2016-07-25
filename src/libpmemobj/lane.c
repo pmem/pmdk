@@ -90,7 +90,7 @@ lane_info_ht_destroy(void *ht)
 }
 
 /*
- * lane_info_create -- (internal) destructor for thread shared data
+ * lane_info_create -- (internal) constructor for thread shared data
  */
 static inline void
 lane_info_create()

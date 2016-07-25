@@ -1872,7 +1872,8 @@ pmemobj_tx_free(PMEMoid oid)
 }
 
 /*
- * lane_transaction_construct -- create transaction lane section
+ * lane_transaction_construct_rt -- construct runtime part of transaction
+ * section
  */
 static void *
 lane_transaction_construct_rt(PMEMobjpool *pop)
@@ -1886,7 +1887,7 @@ lane_transaction_construct_rt(PMEMobjpool *pop)
 }
 
 /*
- * lane_transaction_destruct -- destroy transaction lane section
+ * lane_transaction_destroy_rt -- destroy runtime part of transaction section
  */
 static void
 lane_transaction_destroy_rt(PMEMobjpool *pop, void *rt)
@@ -1942,7 +1943,7 @@ lane_transaction_check(PMEMobjpool *pop, void *data, unsigned length)
 }
 
 /*
- * lane_transaction_init -- initializes transaction section
+ * lane_transaction_boot -- initializes transaction section
  */
 static int
 lane_transaction_boot(PMEMobjpool *pop)

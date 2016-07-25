@@ -225,7 +225,7 @@ pfree(PMEMobjpool *pop, uint64_t *off)
 }
 
 /*
- * lane_allocator_construct -- create allocator lane section
+ * pmalloc_construct_rt -- construct runtime part of allocator section
  */
 static void *
 pmalloc_construct_rt(PMEMobjpool *pop)
@@ -234,7 +234,7 @@ pmalloc_construct_rt(PMEMobjpool *pop)
 }
 
 /*
- * lane_allocator_destruct -- destroy allocator lane section
+ * pmalloc_destroy_rt -- destroy runtime part of allocator section
  */
 static void
 pmalloc_destroy_rt(PMEMobjpool *pop, void *rt)
@@ -274,7 +274,7 @@ pmalloc_check(PMEMobjpool *pop, void *data, unsigned length)
 }
 
 /*
- * lane_allocator_init -- initializes allocator section
+ * pmalloc_boot -- initializes allocator section
  */
 static int
 pmalloc_boot(PMEMobjpool *pop)
