@@ -60,3 +60,5 @@ expect_normal_exit $PMEMWRITE$EXESUFFIX $POOL TEST
 expect_normal_exit $PMEMPOOL$EXESUFFIX info -d $POOL >> $LOG
 
 check
+
+pass

@@ -68,3 +68,5 @@ check_pools $DIR\testset1 `
 
 # check will print the appropriate pass/fail message
 check
+
+pass

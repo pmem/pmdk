@@ -67,3 +67,5 @@ w:6 z:6 e:6 r:6
 
 # check will print the appropriate pass/fail message
 check
+
+pass

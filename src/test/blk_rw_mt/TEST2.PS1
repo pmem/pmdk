@@ -65,3 +65,5 @@ expect_normal_exit $Env:EXE_DIR\blk_rw_mt$EXESUFFIX 4096 $DIR/testfile1 789 300 
 
 check
 
+pass
+

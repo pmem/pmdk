@@ -64,3 +64,5 @@ r:100 r:200 r:300 r:400
 
 # check will print the appropriate pass/fail message
 check
+
+pass

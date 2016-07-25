@@ -59,3 +59,5 @@ expect_normal_exit $PMEMPOOL$EXESUFFIX create log $POOL
 expect_normal_exit $PMEMPOOL$EXESUFFIX info $POOL >> $LOG
 
 check
+
+pass

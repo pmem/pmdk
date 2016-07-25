@@ -79,3 +79,5 @@ expect_normal_exit $PMEMPOOL$EXESUFFIX check -vyr $POOL >> $LOG
 expect_normal_exit $PMEMPOOL$EXESUFFIX check -v $POOL >> $LOG
 
 check
+
+pass

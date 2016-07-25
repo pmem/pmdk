@@ -63,3 +63,5 @@ cat dump.log | findstr "^00000000" | out-file -encoding ASCII -append $LOG
 expect_normal_exit $PMEMPOOL$EXESUFFIX dump -r0 $POOL | findstr "^00000000" | out-file -encoding ASCII -append $LOG
 
 check
+
+pass

@@ -106,3 +106,5 @@ expect_normal_exit $Env:EXE_DIR\blk_nblock$Env:EXESUFFIX `
 
 # check will print the appropriate pass/fail message
 check
+
+pass

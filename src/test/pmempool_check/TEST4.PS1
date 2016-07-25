@@ -63,3 +63,5 @@ check_file $POOL
 expect_normal_exit $PMEMPOOL$EXESUFFIX check -vry $POOL >> $LOG
 
 check
+
+pass

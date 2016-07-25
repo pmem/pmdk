@@ -60,3 +60,5 @@ expect_normal_exit $PMEMPOOL$EXESUFFIX --version >> $LOG
 expect_normal_exit $PMEMPOOL$EXESUFFIX --help >> $LOG
 
 check
+
+pass

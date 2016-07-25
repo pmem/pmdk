@@ -62,3 +62,5 @@ echo "" >> $LOG
 expect_normal_exit $PMEMPOOL$EXESUFFIX info -o -A -a $POOL >> $LOG
 
 check
+
+pass

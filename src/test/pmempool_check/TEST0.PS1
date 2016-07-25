@@ -92,3 +92,5 @@ Invoke-Expression "$PMEMSPOIL -v $POOL pool_hdr.signature=ERROR >> $LOG"
 expect_abnormal_exit $PMEMPOOL$EXESUFFIX check $POOL >> $LOG
 
 check
+
+pass

@@ -65,3 +65,5 @@ expect_normal_exit $PMEMPOOL$EXESUFFIX create blk 512 $POOL
 expect_normal_exit $PMEMPOOL$EXESUFFIX info -x $POOL >> $LOG
 
 check
+
+pass

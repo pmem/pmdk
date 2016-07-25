@@ -61,3 +61,5 @@ r:0 r:1 r:34217 r:34218 z:0 z:1 r:0 e:3 r:4
 
 # check will print the appropriate pass/fail message
 check
+
+pass

@@ -66,3 +66,5 @@ check_files $DIR\testfile
 
 # check will print the appropriate pass/fail message
 check
+
+pass

@@ -63,3 +63,5 @@ echo "" | out-file -encoding ASCII -append $LOG
 expect_normal_exit $PMEMPOOL$EXESUFFIX dump -b $POOL | out-file -encoding ASCII -append $LOG
 
 check
+
+pass

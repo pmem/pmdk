@@ -486,9 +486,7 @@ function check {
         $p.Start() | Out-Null
         $p.WaitForExit()
 
-        if ($p.ExitCode -eq 0) {
-            pass
-        } else {
+        if ($p.ExitCode -ne 0) {
             $p.StandardError.ReadToEnd()
             fail $p.ExitCode
         }

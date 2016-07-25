@@ -86,3 +86,5 @@ echo "XXX" > out30w.log
 
 # check will print the appropriate pass/fail message
 check
+
+pass

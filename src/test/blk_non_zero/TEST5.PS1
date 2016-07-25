@@ -67,3 +67,5 @@ c $MIN_POOL_SIZE r:0 r:1 r:32312 r:32313 z:0 z:1 r:0
 
 # check will print the appropriate pass/fail message
 check
+
+pass

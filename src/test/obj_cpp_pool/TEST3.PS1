@@ -61,3 +61,5 @@ expect_normal_exit $Env:EXE_DIR\obj_cpp_pool$Env:EXESUFFIX `
 
 # check will print the appropriate pass/fail message
 check
+
+pass

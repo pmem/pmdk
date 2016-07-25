@@ -83,3 +83,5 @@ Invoke-Expression "$PMEMSPOIL -v $POOL pool_hdr.signature=ERROR pmemblk.bsize=0 
 expect_normal_exit $PMEMPOOL$EXESUFFIX check -vry $POOL >> $LOG
 
 check
+
+pass

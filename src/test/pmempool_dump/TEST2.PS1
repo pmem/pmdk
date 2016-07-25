@@ -62,3 +62,5 @@ expect_normal_exit $PMEMPOOL$EXESUFFIX dump '-r5,6,7,8' -o $LOG $POOL
 expect_normal_exit $PMEMPOOL$EXESUFFIX dump '-r5-8' $POOL| out-file -encoding ASCII -append $LOG
 
 check
+
+pass

@@ -70,3 +70,5 @@ check_no_files $DIR\testfile1 $DIR\testfile2
 
 # check will print the appropriate pass/fail message
 check
+
+pass
