@@ -82,9 +82,12 @@ See the [pmempool page](pmempool) for available commands and documentation.
 
 #### libpmempool
 
-The **libpmempool** provides  a  set  of  utilities for off-line analysis and manipulation of a pool.
-By pool in this context we mean pmemobj pool, pmemblk pool, pmemlog pool or BTT layout, independent of the underlying storage.
-The **libpmempool** is for applications that need high reliability or built-in troubleshooting.
+The **libpmempool** provides  a  set  of  utilities for off-line analysis
+and manipulation of a pool.
+By pool in this context we mean pmemobj pool, pmemblk pool, pmemlog pool
+or BTT layout, independent of the underlying storage.
+The **libpmempool** is for applications that need high reliability or
+built-in troubleshooting.
 It may be useful for testing and debugging purposes also.
 
 See the [libpmempool page](libpmempool) for documentation and examples.

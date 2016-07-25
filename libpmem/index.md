@@ -16,9 +16,10 @@ developers will find higher level libraries like
 
 Man pages that contains a list of the interfaces provided:
 
-* Man page for [libpmem current master](master/libpmem.3.html)
+* Man page for [libpmem current master](../manpages/master/libpmem.3.html)
 * Latest releases:
-   * [libpmem version 1.0](v1.0/libpmem.3.html)
+   * [libpmem version 1.1](../manpages/v1.1/libpmem.3.html)
+   * [libpmem version 1.0](../manpages/v1.0/libpmem.3.html)
 
 #### libpmem Examples
 
