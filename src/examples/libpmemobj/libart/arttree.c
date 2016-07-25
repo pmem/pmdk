@@ -83,7 +83,7 @@ struct ds_context
 	size_t psize;		/* size of pool */
 	PMEMobjpool *pop;	/* pmemobj handle */
 	bool fileio;
-	unsigned int fmode;
+	unsigned fmode;
 	int fd;			/* file descriptor for file io mode */
 	unsigned char *key;	/* for SEARCH, INSERT and REMOVE */
 	uint32_t key_len;

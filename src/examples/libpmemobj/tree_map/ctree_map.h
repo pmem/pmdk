@@ -52,7 +52,7 @@ int ctree_map_delete(PMEMobjpool *pop, TOID(struct ctree_map) *map);
 int ctree_map_insert(PMEMobjpool *pop, TOID(struct ctree_map) map,
 	uint64_t key, PMEMoid value);
 int ctree_map_insert_new(PMEMobjpool *pop, TOID(struct ctree_map) map,
-		uint64_t key, size_t size, unsigned int type_num,
+		uint64_t key, size_t size, unsigned type_num,
 		void (*constructor)(PMEMobjpool *pop, void *ptr, void *arg),
 		void *arg);
 PMEMoid ctree_map_remove(PMEMobjpool *pop, TOID(struct ctree_map) map,

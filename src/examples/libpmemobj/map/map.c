@@ -132,7 +132,7 @@ map_insert(struct map_ctx *mapc, TOID(struct map) map,
  */
 int
 map_insert_new(struct map_ctx *mapc, TOID(struct map) map,
-		uint64_t key, size_t size, unsigned int type_num,
+		uint64_t key, size_t size, unsigned type_num,
 		void (*constructor)(PMEMobjpool *pop, void *ptr, void *arg),
 		void *arg)
 {

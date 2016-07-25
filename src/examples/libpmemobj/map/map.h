@@ -57,7 +57,7 @@ struct map_ops {
 			uint64_t key, PMEMoid value);
 	int (*insert_new)(PMEMobjpool *pop, TOID(struct map) map,
 			uint64_t key, size_t size,
-		unsigned int type_num,
+		unsigned type_num,
 		void (*constructor)(PMEMobjpool *pop, void *ptr, void *arg),
 		void *arg);
 	PMEMoid (*remove)(PMEMobjpool *pop, TOID(struct map) map,
@@ -93,7 +93,7 @@ int map_insert(struct map_ctx *mapc, TOID(struct map) map,
 		uint64_t key, PMEMoid value);
 int map_insert_new(struct map_ctx *mapc, TOID(struct map) map,
 		uint64_t key, size_t size,
-		unsigned int type_num,
+		unsigned type_num,
 		void (*constructor)(PMEMobjpool *pop, void *ptr, void *arg),
 		void *arg);
 PMEMoid map_remove(struct map_ctx *mapc, TOID(struct map) map, uint64_t key);

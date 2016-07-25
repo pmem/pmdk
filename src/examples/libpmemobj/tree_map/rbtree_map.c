@@ -518,7 +518,7 @@ rbtree_map_check(PMEMobjpool *pop, TOID(struct rbtree_map) map)
  */
 int
 rbtree_map_insert_new(PMEMobjpool *pop, TOID(struct rbtree_map) map,
-		uint64_t key, size_t size, unsigned int type_num,
+		uint64_t key, size_t size, unsigned type_num,
 		void (*constructor)(PMEMobjpool *pop, void *ptr, void *arg),
 		void *arg)
 {

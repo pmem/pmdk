@@ -110,7 +110,7 @@ struct ds_context
 	VMEM *vmp;		/* handle to vmem pool */
 	art_tree *art_tree;	/* art_tree root */
 	bool fileio;
-	unsigned int fmode;
+	unsigned fmode;
 	FILE *input;
 	FILE *output;
 	uint64_t address;

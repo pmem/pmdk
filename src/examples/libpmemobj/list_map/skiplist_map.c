@@ -109,7 +109,7 @@ skiplist_map_delete(PMEMobjpool *pop, TOID(struct skiplist_map_node) *map)
  */
 int
 skiplist_map_insert_new(PMEMobjpool *pop, TOID(struct skiplist_map_node) map,
-	uint64_t key, size_t size, unsigned int type_num,
+	uint64_t key, size_t size, unsigned type_num,
 	void (*constructor)(PMEMobjpool *pop, void *ptr, void *arg),
 	void *arg)
 {
@@ -133,7 +133,7 @@ static void
 skiplist_map_insert_node(TOID(struct skiplist_map_node) new_node,
 	TOID(struct skiplist_map_node) path[SKIPLIST_LEVELS_NUM])
 {
-	unsigned int current_level = 0;
+	unsigned current_level = 0;
 	do {
 		TX_ADD_FIELD(path[current_level], next[current_level]);
 		D_RW(new_node)->next[current_level] =

@@ -54,7 +54,7 @@ int skiplist_map_insert(PMEMobjpool *pop, TOID(struct skiplist_map_node) map,
 		uint64_t key, PMEMoid value);
 int skiplist_map_insert_new(PMEMobjpool *pop,
 		TOID(struct skiplist_map_node) map, uint64_t key, size_t size,
-		unsigned int type_num,
+		unsigned type_num,
 		void (*constructor)(PMEMobjpool *pop, void *ptr, void *arg),
 		void *arg);
 PMEMoid skiplist_map_remove(PMEMobjpool *pop,

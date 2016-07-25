@@ -1910,7 +1910,7 @@ pmemobjfs_fuse_flush(const char *path, struct fuse_file_info *fi)
  */
 static int
 pmemobjfs_fuse_ioctl(const char *path, int cmd, void *arg,
-		struct fuse_file_info *fi, unsigned int flags, void *data)
+		struct fuse_file_info *fi, unsigned flags, void *data)
 {
 	log("%s cmd %d", path, _IOC_NR(cmd));
 

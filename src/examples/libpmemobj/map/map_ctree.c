@@ -92,7 +92,7 @@ map_ctree_insert(PMEMobjpool *pop, TOID(struct map) map,
 static int
 map_ctree_insert_new(PMEMobjpool *pop, TOID(struct map) map,
 		uint64_t key, size_t size,
-		unsigned int type_num,
+		unsigned type_num,
 		void (*constructor)(PMEMobjpool *pop, void *ptr, void *arg),
 		void *arg)
 {

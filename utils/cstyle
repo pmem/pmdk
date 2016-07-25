@@ -685,6 +685,14 @@ line: while (<$filehandle>) {
 	if (/typedef[\S\s]+\*\s*\w+\s*;/) {
 		err("typedefed pointer type");
 	}
+	if (/unsigned\s+int/) {
+		err("'unsigned int' instead of just 'unsigned'");
+	}
+	if (/long\s+long\s+int/) {
+		err("'long long int' instead of just 'long long'");
+	} elsif (/long\s+int/) {
+		err("'long int' instead of just 'long'");
+	}
 
 	#
 	# We completely ignore, for purposes of indentation:
