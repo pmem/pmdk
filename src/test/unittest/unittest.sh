@@ -1584,7 +1584,19 @@ function setup() {
 
 	echo "$UNITTEST_NAME: SETUP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM)"
 
-	rm -f check_pool_${BUILD}_${UNITTEST_NUM}.log
+	rm -f check_pool_${BUILD}_${UNITTEST_NUM}.log\
+		prep$UNITTEST_NUM.log\
+		out$UNITTEST_NUM.log\
+		err$UNITTEST_NUM.log\
+		trace$UNITTEST_NUM.log\
+		$PMEM_LOG_FILE\
+		$PMEMBLK_LOG_FILE\
+		$PMEMLOG_LOG_FILE\
+		$PMEMOBJ_LOG_FILE\
+		$VMEM_LOG_FILE\
+		$VMMALLOC_LOG_FILE\
+		$RPMEM_LOG_FILE\
+		$RPMEMD_LOG_FILE
 
 	if [ "$FS" != "none" ]; then
 		if [ -d "$DIR" ]; then
