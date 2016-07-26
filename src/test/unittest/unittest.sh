@@ -1464,10 +1464,15 @@ function copy_files_from_node() {
 # copy_log_files -- copy log files from remote node
 #
 function copy_log_files() {
+	local NODE_SCP_LOG_FILES[0]=""
 	for (( N=$NODES_MAX ; $(($N + 1)) ; N=$(($N - 1)) )); do
 		local DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
-		for f in ${NODE_LOG_FILES[$N]}; do
-			run_command scp $SCP_OPTS ${NODE[$N]}:$DIR/${f} node_${N}_$f 2>/dev/null
+		for file in ${NODE_LOG_FILES[$N]}; do
+			NODE_SCP_LOG_FILES[$N]="${NODE_SCP_LOG_FILES[$N]} ${NODE[$N]}:$DIR/${file}"
+		done
+		[ "${NODE_SCP_LOG_FILES[$N]}" ] && run_command scp $SCP_OPTS ${NODE_SCP_LOG_FILES[$N]} . 2>/dev/null
+		for file in ${NODE_LOG_FILES[$N]}; do
+			[ -f $file ] && mv $file node_${N}_${file}
 		done
 	done
 }
@@ -1714,14 +1719,25 @@ function check() {
 		check_local
 	else
 		FILES=$(get_files "node_[0-9]+_[^0-9w]*${UNITTEST_NUM}\.log\.match")
+
+		local NODE_MATCH_FILES[0]=""
+		local NODE_SCP_MATCH_FILES[0]=""
 		for file in $FILES; do
 			local N=`echo $file | cut -d"_" -f2`
 			local DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
 			local FILE=`echo $file | cut -d"_" -f3 | sed "s/\.match$//g"`
-			local NEW_FILE=node\_$N\_$FILE
 			validate_node_number $N
-			run_command scp $SCP_OPTS ${NODE[$N]}:$DIR/$FILE $NEW_FILE
+			NODE_MATCH_FILES[$N]="${NODE_MATCH_FILES[$N]} $FILE"
+			NODE_SCP_MATCH_FILES[$N]="${NODE_SCP_MATCH_FILES[$N]} ${NODE[$N]}:$DIR/$FILE"
 		done
+
+		for (( N=$NODES_MAX ; $(($N + 1)) ; N=$(($N - 1)) )); do
+			[ "${NODE_SCP_MATCH_FILES[$N]}" ] && run_command scp $SCP_OPTS ${NODE_SCP_MATCH_FILES[$N]} .
+			for file in ${NODE_MATCH_FILES[$N]}; do
+				mv $file node_${N}_${file}
+			done
+		done
+
 		../match $(get_files "node_[0-9]+_[^0-9]*${UNITTEST_NUM}\.log\.match")
 	fi
 }
