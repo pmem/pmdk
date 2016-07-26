@@ -1584,7 +1584,7 @@ function setup() {
 
 	echo "$UNITTEST_NAME: SETUP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM)"
 
-	rm -f check_pool_${BUILD}_${UNITTEST_NUM}.log
+	find . -maxdepth 1 -name "*[a-zA-Z_]${UNITTEST_NUM}.log" -exec rm -f "{}" \;
 
 	if [ "$FS" != "none" ]; then
 		if [ -d "$DIR" ]; then
