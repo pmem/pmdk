@@ -350,11 +350,14 @@ check: test
 	@./RUNTESTS -b $(TEST_BUILD) -t $(TEST_TYPE) -f $(TEST_FS) -o $(TEST_TIME) -m $(MEMCHECK) $(CHECK_POOL_OPT) $(TESTS)
 	@echo "No failures."
 
-check-remote: test
+check-remote-quiet: test
 	@./RUNTESTS -b $(TEST_BUILD) -t $(TEST_TYPE) -f $(TEST_FS) -o $(TEST_TIME) -m $(MEMCHECK) $(CHECK_POOL_OPT) $(REMOTE_TESTS)
+
+check-remote: check-remote-quiet
 	@echo "No failures."
 
-pcheck: $(TESTS_BUILD)
+# XXX remote tests do not work in parallel mode
+pcheck: pcheck-local-quiet check-remote-quiet
 	@echo "No failures."
 
 pcheck-blk: TARGET = pcheck
@@ -397,8 +400,10 @@ pcheck-vmmalloc: TARGET = pcheck
 pcheck-vmmalloc: $(VMMALLOC_TESTS)
 	@echo "No failures."
 
-pcheck-local: TARGET = pcheck
-pcheck-local: $(LOCAL_TESTS)
+pcheck-local-quiet: TARGET = pcheck
+pcheck-local-quiet: $(LOCAL_TESTS)
+
+pcheck-local: pcheck-local-quiet
 	@echo "No failures."
 
 pcheck-remote: TARGET = pcheck
