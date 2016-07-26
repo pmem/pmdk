@@ -82,3 +82,5 @@ if ($NSUM -ne $INFO_NLBA ) {
 expect_normal_exit $PMEMPOOL$EXESUFFIX info -dz $POOL >> $LOG
 
 check
+
+pass

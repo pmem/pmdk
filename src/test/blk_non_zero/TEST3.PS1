@@ -65,5 +65,6 @@ r:100 r:200 r:300 r:400 `
 e:100 w:200 e:300 w:400 `
 r:100 r:200 r:300 r:400
 
-# check will print the appropriate pass/fail message
 check
+
+pass

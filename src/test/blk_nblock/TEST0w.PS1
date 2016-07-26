@@ -104,5 +104,6 @@ expect_normal_exit $Env:EXE_DIR\blk_nblock$Env:EXESUFFIX `
     4096:$DIR\testfile2.4096 `
     4160:$DIR\testfile2.4160 `
 
-# check will print the appropriate pass/fail message
 check
+
+pass

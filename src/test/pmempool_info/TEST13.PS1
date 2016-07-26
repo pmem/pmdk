@@ -61,3 +61,5 @@ expect_normal_exit $PMEMALLOC$EXESUFFIX -o 16 -t 2 $POOL
 expect_normal_exit $PMEMPOOL$EXESUFFIX info -O -E -a -A -H -Z -Cr0 -s $POOL >> $LOG
 
 check
+
+pass

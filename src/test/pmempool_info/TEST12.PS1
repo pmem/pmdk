@@ -62,3 +62,5 @@ expect_normal_exit $PMEMPOOL$EXESUFFIX info -O -E -a -A -H -Z -C -s $POOL >> $LO
 
 
 check
+
+pass

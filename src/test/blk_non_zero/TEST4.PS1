@@ -65,5 +65,6 @@ e:4 z:4 r:4 `
 w:5 e:5 z:5 r:5 `
 w:6 z:6 e:6 r:6
 
-# check will print the appropriate pass/fail message
 check
+
+pass

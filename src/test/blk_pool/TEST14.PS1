@@ -62,5 +62,6 @@ expect_normal_exit $Env:EXE_DIR\blk_pool$Env:EXESUFFIX `
 
 check_no_files $DIR\testfile
 
-# check will print the appropriate pass/fail message
 check
+
+pass

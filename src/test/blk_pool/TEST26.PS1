@@ -69,5 +69,6 @@ expect_normal_exit $Env:EXE_DIR\blk_pool$Env:EXESUFFIX `
 # grant full permissions so test code can cleanup
 & icacls $DIR\testfile /grant ${Env:USERNAME}:F >$null
 
-# check will print the appropriate pass/fail message
 check
+
+pass
