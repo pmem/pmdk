@@ -357,55 +357,55 @@ check-remote: test
 pcheck: $(TESTS_BUILD)
 	@echo "No failures."
 
-pcheck_blk: TARGET = pcheck
-pcheck_blk: $(BLK_TESTS)
+pcheck-blk: TARGET = pcheck
+pcheck-blk: $(BLK_TESTS)
 	@echo "No failures."
 
-pcheck_log: TARGET = pcheck
-pcheck_log: $(LOG_TESTS)
+pcheck-log: TARGET = pcheck
+pcheck-log: $(LOG_TESTS)
 	@echo "No failures."
 
-pcheck_obj: TARGET = pcheck
-pcheck_obj: $(OBJ_TESTS)
+pcheck-obj: TARGET = pcheck
+pcheck-obj: $(OBJ_TESTS)
 	@echo "No failures."
 
-pcheck_other: TARGET = pcheck
-pcheck_other: $(OTHER_TESTS)
+pcheck-other: TARGET = pcheck
+pcheck-other: $(OTHER_TESTS)
 	@echo "No failures."
 
-pcheck_pmem: TARGET = pcheck
-pcheck_pmem: $(PMEM_TESTS)
+pcheck-pmem: TARGET = pcheck
+pcheck-pmem: $(PMEM_TESTS)
 	@echo "No failures."
 
-pcheck_rpmem: TARGET = pcheck
-pcheck_rpmem: $(RPMEM_TESTS)
+pcheck-rpmem: TARGET = pcheck
+pcheck-rpmem: $(RPMEM_TESTS)
 	@echo "No failures."
 
-pcheck_pmempool: TARGET = pcheck
-pcheck_pmempool: $(PMEMPOOL_TESTS)
+pcheck-pmempool: TARGET = pcheck
+pcheck-pmempool: $(PMEMPOOL_TESTS)
 	@echo "No failures."
 
-pcheck_libpmempool: TARGET = pcheck
-pcheck_libpmempool: $(LIBPMEMPOOL_TESTS)
+pcheck-libpmempool: TARGET = pcheck
+pcheck-libpmempool: $(LIBPMEMPOOL_TESTS)
 	@echo "No failures."
 
-pcheck_vmem: TARGET = pcheck
-pcheck_vmem: $(VMEM_TESTS)
+pcheck-vmem: TARGET = pcheck
+pcheck-vmem: $(VMEM_TESTS)
 	@echo "No failures."
 
-pcheck_vmmalloc: TARGET = pcheck
-pcheck_vmmalloc: $(VMMALLOC_TESTS)
+pcheck-vmmalloc: TARGET = pcheck
+pcheck-vmmalloc: $(VMMALLOC_TESTS)
 	@echo "No failures."
 
-pcheck_local: TARGET = pcheck
-pcheck_local: $(LOCAL_TESTS)
+pcheck-local: TARGET = pcheck
+pcheck-local: $(LOCAL_TESTS)
 	@echo "No failures."
 
-pcheck_remote: TARGET = pcheck
-pcheck_remote: $(REMOTE_TESTS)
+pcheck-remote: TARGET = pcheck
+pcheck-remote: $(REMOTE_TESTS)
 	@echo "No failures."
 
-.PHONY: all check clean clobber cstyle pcheck pcheck_blk pcheck_log pcheck_obj\
-	 pcheck_other pcheck_pmem pcheck_pmempool pcheck_vmem pcheck_vmmalloc\
-	 test unittest tools check-remote format pcheck_libpmempool\
-	 pcheck_rpmem pcheck_local pcheck_remote $(TESTS_BUILD)
+.PHONY: all check clean clobber cstyle pcheck pcheck-blk pcheck-log pcheck-obj\
+	 pcheck-other pcheck-pmem pcheck-pmempool pcheck-vmem pcheck-vmmalloc\
+	 test unittest tools check-remote format pcheck-libpmempool\
+	 pcheck-rpmem pcheck-local pcheck-remote $(TESTS_BUILD)
