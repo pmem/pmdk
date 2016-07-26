@@ -196,7 +196,7 @@ override_dh_auto_test:
 	else\
 	        cp src/test/testconfig.sh.example src/test/testconfig.sh;\
 	fi
-	make check
+	make pcheck $PCHECK_OPTS
 "
 
 if [ "${BUILD_PACKAGE_CHECK}" != "y" ]

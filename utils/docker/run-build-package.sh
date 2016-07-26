@@ -40,5 +40,6 @@
 
 # Build all and run tests
 cd $WORKDIR
+export PCHECK_OPTS=-j2
 make -j2 $PACKAGE_MANAGER
 
