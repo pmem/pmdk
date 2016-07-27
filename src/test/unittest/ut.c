@@ -352,6 +352,15 @@ ut_start(const char *file, int line, const char *func,
 
 	va_start(ap, fmt);
 
+#ifdef _WIN32
+	if (getenv("UNITTEST_NO_ABORT_MSG") != NULL) {
+		/* disable windows error message boxes */
+		DWORD dwMode = GetErrorMode();
+		SetErrorMode(dwMode | SEM_NOGPFAULTERRORBOX |
+			SEM_FAILCRITICALERRORS);
+		_set_abort_behavior(0, _WRITE_ABORT_MSG | _CALL_REPORTFAULT);
+	}
+#endif
 	if (getenv("UNITTEST_NO_SIGHANDLERS") == NULL)
 		ut_register_sighandlers();
 
