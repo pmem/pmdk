@@ -675,7 +675,7 @@ then
 	experimental_install_triggers_overrides;
 fi
 
-if [ "${BUILD_RPMEM}" = "y" && "${RPMEM_DPKG}" = "y" ]
+if [ "${BUILD_RPMEM}" = "y" -a "${RPMEM_DPKG}" = "y" ]
 then
 	append_rpmem_control;
 	rpmem_install_triggers_overrides;
