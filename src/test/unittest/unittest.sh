@@ -68,12 +68,11 @@ SCP_OPTS="-o BatchMode=yes -r -p"
 
 # list of common files to be copied to all remote nodes
 DIR_SRC="../.."
-FILES_COMMON_DIR="$DIR_SRC/test/*.supp"
-FILES_CURRTEST_DIR="\
-$DIR_SRC/test/tools/ctrld/ctrld \
+FILES_COMMON_DIR="\
+$DIR_SRC/test/*.supp \
 $DIR_SRC/tools/rpmemd/rpmemd \
-$DIR_SRC/tools/pmempool/pmempool"
-OPT_FILES_CURRTEST_DIR="
+$DIR_SRC/tools/pmempool/pmempool \
+$DIR_SRC/test/tools/ctrld/ctrld \
 $DIR_SRC/test/tools/fip/fip"
 
 # array of lists of PID files to be cleaned in case of an error
@@ -1194,8 +1193,8 @@ function clean_remote_node() {
 		require_ctrld_err $N $pidfile
 		run_command ssh $SSH_OPTS ${NODE[$N]} "\
 			cd $DIR && [ -f $pidfile ] && \
-			./ctrld $pidfile kill SIGINT && \
-			./ctrld $pidfile wait 1 ; \
+			../ctrld $pidfile kill SIGINT && \
+			../ctrld $pidfile wait 1 ; \
 			rm -f $pidfile"
 	done;
 	set -e
@@ -1217,8 +1216,8 @@ function clean_all_remote_nodes() {
 		for pidfile in ${NODE_PID_FILES[$N]}; do
 			run_command ssh $SSH_OPTS ${NODE[$N]} "\
 				cd $DIR && [ -f $pidfile ] && \
-				./ctrld $pidfile kill SIGINT && \
-				./ctrld $pidfile wait 1 ; \
+				../ctrld $pidfile kill SIGINT && \
+				../ctrld $pidfile wait 1 ; \
 				rm -f $pidfile"
 		done
 	done
@@ -1253,7 +1252,7 @@ function require_node_libfabric() {
 	require_node_pkg $N libfabric
 
 	local DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
-	local COMMAND="$COMMAND LD_LIBRARY_PATH=.:${NODE_LD_LIBRARY_PATH[$N]} ./fip $*"
+	local COMMAND="$COMMAND LD_LIBRARY_PATH=.:${NODE_LD_LIBRARY_PATH[$N]} ../fip $*"
 
 	set +e
 	fip_out=$(ssh $SSH_OPTS ${NODE[$N]} "cd $DIR && $COMMAND" 2>&1)
@@ -1340,7 +1339,7 @@ function require_nodes() {
 	done
 
 	# files to be copied to all remote nodes
-	local FILES_TO_COPY=$FILES_CURRTEST_DIR
+	local FILES_TO_COPY=""
 
 	# add debug or nondebug libraries to the 'to-copy' list
 	local BUILD_TYPE=$(echo $BUILD | cut -d"-" -f1)
@@ -1351,12 +1350,6 @@ function require_nodes() {
 	tar -cf $LIBS_TAR_DIR *.so*
 	cd - > /dev/null
 	FILES_TO_COPY="$FILES_TO_COPY $LIBS_TAR"
-
-	for f in $OPT_FILES_CURRTEST_DIR; do
-		if [ -f $f ]; then
-			FILES_TO_COPY="$FILES_TO_COPY $f"
-		fi
-	done
 
 	# copy a binary if it exists
 	local TEST_NAME=`echo $UNITTEST_NAME | cut -d"/" -f1`
@@ -1553,7 +1546,7 @@ function run_on_node_background() {
 	COMMAND="$COMMAND UNITTEST_QUIET=1"
 	COMMAND="$COMMAND ${NODE_ENV[$N]}"
 	COMMAND="$COMMAND LD_LIBRARY_PATH=.:${NODE_LD_LIBRARY_PATH[$N]}"
-	COMMAND="$COMMAND ./ctrld $PID_FILE run $RUNTEST_TIMEOUT $*"
+	COMMAND="$COMMAND ../ctrld $PID_FILE run $RUNTEST_TIMEOUT $*"
 
 	# register the PID file to be cleaned in case of an error
 	NODE_PID_FILES[$N]="${NODE_PID_FILES[$N]} $PID_FILE"
@@ -1582,7 +1575,7 @@ function wait_on_node() {
 	local TIMEOUT=$3
 	local DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
 
-	run_command ssh $SSH_OPTS ${NODE[$N]} "cd $DIR && ./ctrld $PID_FILE wait $TIMEOUT"
+	run_command ssh $SSH_OPTS ${NODE[$N]} "cd $DIR && ../ctrld $PID_FILE wait $TIMEOUT"
 	ret=$?
 	if [ "$ret" -ne "0" ]; then
 		copy_log_files
@@ -1606,7 +1599,7 @@ function wait_on_node_port() {
 	local PORTNO=$3
 	local DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
 
-	run_command ssh $SSH_OPTS ${NODE[$N]} "cd $DIR && ./ctrld $PID_FILE wait_port $PORTNO"
+	run_command ssh $SSH_OPTS ${NODE[$N]} "cd $DIR && ../ctrld $PID_FILE wait_port $PORTNO"
 	ret=$?
 	if [ "$ret" -ne "0" ]; then
 		copy_log_files
@@ -1630,7 +1623,7 @@ function kill_on_node() {
 	local SIGNO=$3
 	local DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
 
-	run_command ssh $SSH_OPTS ${NODE[$N]} "cd $DIR && ./ctrld $PID_FILE kill $SIGNO"
+	run_command ssh $SSH_OPTS ${NODE[$N]} "cd $DIR && ../ctrld $PID_FILE kill $SIGNO"
 	ret=$?
 	if [ "$ret" -ne "0" ]; then
 		copy_log_files
@@ -2015,7 +2008,7 @@ function init_rpmem_on_node() {
 
 		CMD="cd ${NODE_TEST_DIR[$slave]} && "
 		CMD="$CMD LD_LIBRARY_PATH=.:${NODE_LD_LIBRARY_PATH[$slave]}"
-		CMD="$CMD ./rpmemd"
+		CMD="$CMD ../rpmemd"
 		CMD="$CMD --log-file=$RPMEMD_LOG_FILE"
 		CMD="$CMD --poolset-dir=${NODE_TEST_DIR[$slave]}"
 
