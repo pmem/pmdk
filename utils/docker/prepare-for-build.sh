@@ -37,7 +37,7 @@
 #
 
 # Mount filesystem for tests
-echo $USERPASS | sudo -S mount -t tmpfs none /tmp -osize=4G
+echo $USERPASS | sudo -S mount -t tmpfs none /tmp -osize=6G
 
 # Configure tests (e.g. ssh for remote tests)
 ./configure-tests.sh
