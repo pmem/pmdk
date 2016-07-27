@@ -89,9 +89,11 @@ NODE_PID_FILES[0]=""
 	in
 	debug)
 		TEST_LD_LIBRARY_PATH=../../debug
+		REMOTE_LD_LIBRARY_PATH=../debug
 		;;
 	nondebug)
 		TEST_LD_LIBRARY_PATH=../../nondebug
+		REMOTE_LD_LIBRARY_PATH=../nondebug
 		;;
 	esac
 }
@@ -1279,15 +1281,13 @@ function require_nodes() {
 	# files to be copied to all remote nodes
 	local FILES_TO_COPY=""
 
-	# add debug or nondebug libraries to the 'to-copy' list
-	local BUILD_TYPE=$(echo $BUILD | cut -d"-" -f1)
-	[ "$BUILD_TYPE" == "static" ] && BUILD_TYPE=$(echo $BUILD | cut -d"-" -f2)
+	# add all libraries to the 'to-copy' list
 	local LIBS_TAR=libs.tar
 	local LIBS_TAR_DIR=$(pwd)/$LIBS_TAR
-	cd $DIR_SRC/$BUILD_TYPE
-	tar -cf $LIBS_TAR_DIR *.so*
+	cd $DIR_SRC
+	tar -cf $LIBS_TAR_DIR ./debug/*.so* ./nondebug/*.so*
 	cd - > /dev/null
-	FILES_TO_COPY="$FILES_TO_COPY $LIBS_TAR"
+	FILES_COMMON_DIR="$FILES_COMMON_DIR $LIBS_TAR"
 
 	# copy a binary if it exists
 	local TEST_NAME=`echo $UNITTEST_NAME | cut -d"/" -f1`
@@ -1300,11 +1300,11 @@ function require_nodes() {
 		local DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
 		run_command ssh $SSH_OPTS ${NODE[$N]} "rm -rf $DIR && mkdir -p $DIR"
 		run_command scp $SCP_OPTS $FILES_COMMON_DIR ${NODE[$N]}:${NODE_WORKING_DIR[$N]}
+		run_command ssh $SSH_OPTS ${NODE[$N]} "cd ${NODE_WORKING_DIR[$N]} && tar -xf $LIBS_TAR && rm -f $LIBS_TAR"
 
 		# copy all required files
 		if [ "$FILES_TO_COPY" != "" ]; then
 			run_command scp $SCP_OPTS $FILES_TO_COPY ${NODE[$N]}:$DIR
-			run_command ssh $SSH_OPTS ${NODE[$N]} "cd $DIR && tar -xf $LIBS_TAR && rm -f $LIBS_TAR"
 		fi
 
 		export_vars_node $N $REMOTE_VARS
@@ -1451,7 +1451,7 @@ function run_on_node() {
 	local COMMAND="UNITTEST_NUM=$UNITTEST_NUM UNITTEST_NAME=$UNITTEST_NAME"
 	COMMAND="$COMMAND UNITTEST_QUIET=1"
 	COMMAND="$COMMAND ${NODE_ENV[$N]}"
-	COMMAND="$COMMAND LD_LIBRARY_PATH=.:${NODE_LD_LIBRARY_PATH[$N]} $*"
+	COMMAND="$COMMAND LD_LIBRARY_PATH=$REMOTE_LD_LIBRARY_PATH:${NODE_LD_LIBRARY_PATH[$N]} $*"
 
 	run_command ssh $SSH_OPTS ${NODE[$N]} "cd $DIR && $COMMAND"
 	ret=$?
@@ -1483,7 +1483,7 @@ function run_on_node_background() {
 	local COMMAND="UNITTEST_NUM=$UNITTEST_NUM UNITTEST_NAME=$UNITTEST_NAME"
 	COMMAND="$COMMAND UNITTEST_QUIET=1"
 	COMMAND="$COMMAND ${NODE_ENV[$N]}"
-	COMMAND="$COMMAND LD_LIBRARY_PATH=.:${NODE_LD_LIBRARY_PATH[$N]}"
+	COMMAND="$COMMAND LD_LIBRARY_PATH=$REMOTE_LD_LIBRARY_PATH:${NODE_LD_LIBRARY_PATH[$N]}"
 	COMMAND="$COMMAND ../ctrld $PID_FILE run $RUNTEST_TIMEOUT $*"
 
 	# register the PID file to be cleaned in case of an error
@@ -1949,7 +1949,7 @@ function init_rpmem_on_node() {
 	fi
 
 	RPMEM_CMD="\"cd ${NODE_TEST_DIR[$TARGET]} && "
-	RPMEM_CMD="$RPMEM_CMD LD_LIBRARY_PATH=.:${NODE_LD_LIBRARY_PATH[$TARGET]}"
+	RPMEM_CMD="$RPMEM_CMD LD_LIBRARY_PATH=$REMOTE_LD_LIBRARY_PATH:${NODE_LD_LIBRARY_PATH[$TARGET]}"
 	RPMEM_CMD="$RPMEM_CMD ../rpmemd"
 	RPMEM_CMD="$RPMEM_CMD --log-file=$RPMEMD_LOG_FILE"
 	RPMEM_CMD="$RPMEM_CMD --poolset-dir=$POOLS_DIR_NODE"
