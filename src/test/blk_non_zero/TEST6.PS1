@@ -58,5 +58,6 @@ $FILE_SIZE = $((1024*1024*1024))
 expect_normal_exit $Env:EXE_DIR\blk_non_zero$EXESUFFIX 512 `
 $DIR\testfile1 c $FILE_SIZE	w:0 r:1 r:0 w:1 r:0 r:1 r:2
 
-# check will print the appropriate pass/fail message
 check
+
+pass

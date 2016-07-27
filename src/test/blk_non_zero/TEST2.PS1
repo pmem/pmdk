@@ -63,5 +63,6 @@ w:0 w:1 w:2 w:3 w:4 r:4 r:3 r:2 r:1 r:0
 expect_normal_exit $Env:EXE_DIR\blk_non_zero$EXESUFFI 512 $DIR\testfile1 o `
 w:0 r:4 r:3 r:2 r:1 r:0 w:0 r:0
 
-# check will print the appropriate pass/fail message
 check
+
+pass

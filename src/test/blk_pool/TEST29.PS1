@@ -68,5 +68,6 @@ expect_normal_exit $Env:EXE_DIR\blk_pool$Env:EXESUFFIX `
 expect_normal_exit $Env:EXE_DIR\blk_pool$Env:EXESUFFIX `
     o $DIR\testset 300
 
-# check will print the appropriate pass/fail message
 check
+
+pass

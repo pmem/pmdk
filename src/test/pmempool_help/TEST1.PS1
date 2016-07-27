@@ -66,3 +66,5 @@ foreach($cmd in "info","dump","create","check") {
 expect_normal_exit $PMEMPOOL$EXESUFFIX help help >> $LOG
 
 check
+
+pass

@@ -62,5 +62,6 @@ expect_normal_exit $Env:EXE_DIR\obj_cpp_pool$Env:EXESUFFIX `
 expect_normal_exit $Env:EXE_DIR\obj_cpp_pool$Env:EXESUFFIX `
     o $DIR/testfile "test"
 
-# check will print the appropriate pass/fail message
 check
+
+pass

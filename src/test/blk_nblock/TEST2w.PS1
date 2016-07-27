@@ -66,5 +66,6 @@ expect_normal_exit $Env:EXE_DIR\blk_nblock$Env:EXESUFFIX `
 check_pools $DIR\testset1 `
 	$DIR\testset2
 
-# check will print the appropriate pass/fail message
 check
+
+pass

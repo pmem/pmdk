@@ -84,5 +84,6 @@ echo "XXX" > out30w.log
 #expect_normal_exit $Env:EXE_DIR\blk_pool$Env:EXESUFFIX `
 #    c $DIR\testset 300
 
-# check will print the appropriate pass/fail message
 check
+
+pass

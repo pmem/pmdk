@@ -65,5 +65,6 @@ $MIN_POOL_SIZE = $((16*1024*1024 + 64*1024))
 expect_normal_exit $Env:EXE_DIR\blk_non_zero$EXESUFFIX 512 $DIR\testfile1 `
 c $MIN_POOL_SIZE r:0 r:1 r:32312 r:32313 z:0 z:1 r:0
 
-# check will print the appropriate pass/fail message
 check
+
+pass

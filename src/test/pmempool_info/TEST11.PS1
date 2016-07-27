@@ -59,3 +59,5 @@ expect_normal_exit $PMEMPOOL$EXESUFFIX create --layout "pmempool" obj $POOL
 expect_normal_exit $PMEMPOOL$EXESUFFIX info -H $POOL >> $LOG
 
 check
+
+pass
