@@ -6,13 +6,14 @@ The *mapcli* application is a simple CLI application which uses:
  ** hashmap_atomic	- hashmap using atomic API of libpmemobj
  ** hashmap_tx		- hashmap using tx API of libpmemobj
 
- * three implementations of tree maps:
+ * four implementations of tree maps:
  ** ctree		- Crit-Bit using tx API of libpmemobj
  ** btree		- B-tree using tx API of libpmemobj
+ ** rtree		- Radix-tree using tx API of libpmemobj
  ** rbtree		- red-black tree using tx API of libpmemobj
 
 Usage:
-$ ./mapcli ctree|btree|rbtree|hashmap_atomic|hashmap_tx <file> [<RNG seed>]
+$ ./mapcli ctree|btree|rtree|rbtree|hashmap_atomic|hashmap_tx <file> [<RNG seed>]
 
 The first argument specifies which map should be used.
 

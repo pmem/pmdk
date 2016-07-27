@@ -43,6 +43,7 @@
 #include "map.h"
 #include "map_ctree.h"
 #include "map_btree.h"
+#include "map_rtree.h"
 #include "map_rbtree.h"
 #include "map_hashmap_atomic.h"
 #include "map_hashmap_tx.h"
@@ -203,7 +204,8 @@ main(int argc, char *argv[])
 {
 	if (argc < 3 || argc > 4) {
 		printf("usage: %s "
-			"hashmap_tx|hashmap_atomic|ctree|btree|rbtree|skiplist"
+			"hashmap_tx|hashmap_atomic|"
+			"ctree|btree|rtree|rbtree|skiplist"
 				" file-name [<seed>]\n", argv[0]);
 		return 1;
 	}
@@ -219,6 +221,8 @@ main(int argc, char *argv[])
 		ops = MAP_CTREE;
 	} else if (strcmp(type, "btree") == 0) {
 		ops = MAP_BTREE;
+	} else if (strcmp(type, "rtree") == 0) {
+		ops = MAP_RTREE;
 	} else if (strcmp(type, "rbtree") == 0) {
 		ops = MAP_RBTREE;
 	} else if (strcmp(type, "skiplist") == 0) {
