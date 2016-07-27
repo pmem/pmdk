@@ -76,7 +76,7 @@ static struct foo *canceled_ptr;
 static int
 vg_test_save_ptr(PMEMobjpool *pop, void *ptr, void *arg)
 {
-	canceled_ptr = ptr;
+	canceled_ptr = (struct foo *)ptr;
 	return 1;
 }
 
