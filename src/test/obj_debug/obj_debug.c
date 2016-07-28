@@ -142,8 +142,8 @@ test_lists(const char *path)
 static int
 int3_constructor(PMEMobjpool *pop, void *ptr, void *arg)
 {
-	struct int3_s *args = arg;
-	struct int3_s *val = ptr;
+	struct int3_s *args = (struct int3_s *)arg;
+	struct int3_s *val = (struct int3_s *)ptr;
 
 	val->i1 = args->i1;
 	val->i2 = args->i2;
@@ -190,7 +190,12 @@ test_double_free(const char *path)
 	UT_ASSERT(!OID_IS_NULL(oid));
 
 	oid2 = oid;
-
+#ifdef _WIN32
+	/* disable windows error message boxes */
+	DWORD dwMode = GetErrorMode();
+	SetErrorMode(dwMode | SEM_NOGPFAULTERRORBOX | SEM_FAILCRITICALERRORS);
+	_set_abort_behavior(0, _WRITE_ABORT_MSG | _CALL_REPORTFAULT);
+#endif
 	pmemobj_free(&oid);
 	pmemobj_free(&oid2);
 }
