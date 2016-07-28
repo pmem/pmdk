@@ -79,9 +79,8 @@ PMEMPOOLSET
 8M $PART_DIR/pool4.part1
 EOF
 
-expect_normal_exit run_on_node 0 mkdir -p $POOLS_DIR
-expect_normal_exit run_on_node 0 mkdir -p $POOLS_DIR/subdir
-expect_normal_exit run_on_node 0 mkdir -p $POOLS_PART
+run_on_node 0 "rm -rf $POOLS_DIR $POOLS_PART && mkdir -p $POOLS_DIR/subdir && mkdir -p $POOLS_PART"
+
 expect_normal_exit copy_file_to_node 0 $DIR/pool0.set $POOLS_DIR
 expect_normal_exit copy_file_to_node 0 $DIR/pool0.set $POOLS_DIR/pool0r.set
 # Remove read permission

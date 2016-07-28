@@ -56,8 +56,8 @@ PMEMPOOLSET
 8M $PART_DIR/pool0.part1
 EOF
 
-expect_normal_exit run_on_node 0 mkdir -p $POOLS_DIR
-expect_normal_exit run_on_node 0 mkdir -p $POOLS_PART
+run_on_node 0 "rm -rf $POOLS_DIR $POOLS_PART && mkdir -p $POOLS_DIR && mkdir -p $POOLS_PART"
+
 expect_normal_exit copy_file_to_node 0 $DIR/pool0.set $POOLS_DIR
 expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
 	test_create 0 pool0.set ${NODE_ADDR[0]} mem 8M test_close 0

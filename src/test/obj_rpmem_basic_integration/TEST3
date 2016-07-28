@@ -83,6 +83,9 @@ create_poolset $DIR/$TEST_SET_REMOTE \
 copy_files_to_node 0 $DIR/$TEST_SET_REMOTE
 copy_files_to_node 1 $DIR/$TEST_SET_LOCAL
 
+rm_files_from_node 0 ${TEST_FILE_REMOTE}0 ${TEST_FILE_REMOTE}1
+rm_files_from_node 1 ${TEST_FILE_LOCAL}0 ${TEST_FILE_LOCAL}1
+
 # execute test
 expect_normal_exit run_on_node 1 ./$EXE$EXESUFFIX $TEST_SET_LOCAL
 
