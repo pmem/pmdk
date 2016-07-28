@@ -71,12 +71,12 @@ struct foo {
 	int bar;
 };
 
-static struct foo *canceled_ptr;
+static struct foo *Canceled_ptr;
 
 static int
 vg_test_save_ptr(PMEMobjpool *pop, void *ptr, void *arg)
 {
-	canceled_ptr = ptr;
+	Canceled_ptr = (struct foo *)ptr;
 	return 1;
 }
 
@@ -152,10 +152,10 @@ main(int argc, char *argv[])
 
 	pmemobj_alloc(pop, &oid, sizeof(struct foo), 1,
 		vg_test_save_ptr, NULL);
-	UT_ASSERTne(canceled_ptr, NULL);
+	UT_ASSERTne(Canceled_ptr, NULL);
 
 	/* this should generate a valgrind memcheck warning */
-	canceled_ptr->bar = 5;
+	Canceled_ptr->bar = 5;
 
 	pmemobj_close(pop);
 
