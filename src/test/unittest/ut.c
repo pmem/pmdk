@@ -40,6 +40,7 @@
  */
 
 #include "unittest.h"
+#include "util.h"
 
 #ifndef _WIN32
 /* RHEL5 seems to be missing decls, even though libc supports them */
@@ -117,7 +118,7 @@ vout(int flags, const char *prepend, const char *fmt, va_list ap)
 		if (*fmt == '!') {
 			fmt++;
 			sep = ": ";
-			errstr = strerror(errno);
+			errstr = os_strerror(errno);
 		}
 		sn = vsnprintf(&buf[cc], MAXPRINT - cc, fmt, ap);
 		if (sn < 0)
