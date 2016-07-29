@@ -62,9 +62,11 @@ posix_memalign_wrap(size_t alignment, size_t size)
 	int err = posix_memalign(&ptr, alignment, size);
 	/* ignore OOM */
 	if (err) {
+		char buff[PATH_MAX];
 		ptr = NULL;
+		ut_strerror(buff, err);
 		if (err != ENOMEM)
-			UT_OUT("posix_memalign: %s", strerror(err));
+			UT_OUT("posix_memalign: %s", buff);
 	}
 	return ptr;
 }

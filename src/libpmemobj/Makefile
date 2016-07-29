@@ -47,6 +47,7 @@ SOURCE =\
 	$(COMMON)/util.c\
 	$(COMMON)/uuid.c\
 	$(COMMON)/uuid_linux.c\
+	$(COMMON)/util_linux.c\
 	bucket.c\
 	ctree.c\
 	cuckoo.c\

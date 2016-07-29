@@ -45,6 +45,26 @@
 /* RHEL5 seems to be missing decls, even though libc supports them */
 extern DIR *fdopendir(int fd);
 extern ssize_t readlinkat(int, const char *restrict, char *__restrict, size_t);
+void
+ut_strerror(char *buff, int errnum)
+{
+	strcpy(buff, strerror(errnum));
+}
+#else
+/* XXX - fix this temp hack dup'ing util_strerror when we get mock for win */
+#define ENOTSUP_STR "Operation not supported"
+void
+ut_strerror(char *buff, int errnum)
+{
+	switch (errnum) {
+		case ENOTSUP:
+			strcpy(buff, ENOTSUP_STR);
+			break;
+		default:
+			if (_strerror_s(buff, 80, NULL))
+				strcpy(buff, "Unmapped error");
+	}
+}
 #endif
 
 #define MAXLOGNAME 100		/* maximum expected .log file name length */
@@ -82,7 +102,7 @@ vout(int flags, const char *prepend, const char *fmt, va_list ap)
 	int sn;
 	int quiet = Quiet;
 	const char *sep = "";
-	const char *errstr = "";
+	char errstr[PATH_MAX] = "";
 	const char *nl = "\n";
 
 	if (Force_quiet)
@@ -117,7 +137,7 @@ vout(int flags, const char *prepend, const char *fmt, va_list ap)
 		if (*fmt == '!') {
 			fmt++;
 			sep = ": ";
-			errstr = strerror(errno);
+			ut_strerror(errstr, errno);
 		}
 		sn = vsnprintf(&buf[cc], MAXPRINT - cc, fmt, ap);
 		if (sn < 0)

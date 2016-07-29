@@ -18,5 +18,8 @@
     <ClCompile Include="obj_locks.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\common\util_windows.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
