@@ -10,5 +10,8 @@
     <ClCompile Include="..\win_file.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\win_signal.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

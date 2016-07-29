@@ -307,7 +307,6 @@ ut_munmap(const char *file, int line, const char *func, void *addr,
 	return retval;
 }
 
-#ifndef _WIN32
 /*
  * ut_mprotect -- a mprotect call that cannot return -1
  */
@@ -325,6 +324,7 @@ ut_mprotect(const char *file, int line, const char *func, void *addr,
 	return retval;
 }
 
+#ifndef _WIN32
 /*
  * ut_symlink -- a symlink that cannot return -1
  */

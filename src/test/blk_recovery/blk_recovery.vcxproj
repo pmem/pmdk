@@ -18,28 +18,11 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="obj_locks.c" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\common\libpmemcommon.vcxproj">
-      <Project>{492baa3d-0d5d-478e-9765-500463ae69aa}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\libpmemobj\libpmemobj.vcxproj">
-      <Project>{1baa1617-93ae-4196-8a1a-bd492fb18aef}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\libpmem\libpmem.vcxproj">
-      <Project>{9e9e3d25-2139-4a5d-9200-18148ddead45}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\unittest\libut.vcxproj">
-      <Project>{ce3f2dfb-8470-4802-ad37-21caf6cb2681}</Project>
-    </ProjectReference>
-  </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{2DE6B085-3C19-49B1-894A-AD9376000E09}</ProjectGuid>
+    <ProjectGuid>{DB68AB21-510B-4BA1-9E6F-E5731D8647BC}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>obj_locks</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.10240.0</WindowsTargetPlatformVersion>
+    <RootNamespace>blk_recovery</RootNamespace>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -58,14 +41,14 @@
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
-    <WholeProgramOptimization>false</WholeProgramOptimization>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Static-Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
-    <WholeProgramOptimization>false</WholeProgramOptimization>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
@@ -87,83 +70,115 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\test\unittest;$(SolutionDir)\windows\include;$(SolutionDir)\include;$(IncludePath);$(SolutionDir)\libpmemblk;$(SolutionDir)\common;</IncludePath>
     <GenerateManifest>false</GenerateManifest>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Static-Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\test\unittest;$(SolutionDir)\windows\include;$(SolutionDir)\include;$(IncludePath);$(SolutionDir)\libpmemblk;$(SolutionDir)\common;</IncludePath>
     <GenerateManifest>false</GenerateManifest>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\test\unittest;$(SolutionDir)\windows\include;$(SolutionDir)\include;$(IncludePath);$(SolutionDir)\libpmemblk;$(SolutionDir)\common;</IncludePath>
     <GenerateManifest>false</GenerateManifest>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Static-Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\test\unittest;$(SolutionDir)\windows\include;$(SolutionDir)\include;$(IncludePath);$(SolutionDir)\libpmemblk;$(SolutionDir)\common;</IncludePath>
     <GenerateManifest>false</GenerateManifest>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;WINAPI_PARTITION_SYSTEM;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)\..\unittest;$(ProjectDir)\..\..\windows\include;$(ProjectDir)\..\..\include;$(ProjectDir)\..\..\libpmemobj\;$(ProjectDir)\..\..\common\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <ForcedIncludeFiles>platform.h</ForcedIncludeFiles>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <CompileAs>CompileAsC</CompileAs>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
-      <CompileAs>CompileAsCpp</CompileAs>
+      <ForcedIncludeFiles>platform.h</ForcedIncludeFiles>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <AdditionalLibraryDirectories>$(OutDir);$(OutDir)/../Static-Debug</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libpmemcommon.lib;Shlwapi.lib;libut.lib;libpmem.lib;libpmemobj.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies />
+      <GenerateDebugInformation>Debug</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Static-Debug|x64'">
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;WINAPI_PARTITION_SYSTEM;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)\..\unittest;$(ProjectDir)\..\..\windows\include;$(ProjectDir)\..\..\include;$(ProjectDir)\..\..\libpmemobj\;$(ProjectDir)\..\..\common\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <ForcedIncludeFiles>platform.h</ForcedIncludeFiles>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <CompileAs>CompileAsC</CompileAs>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
-      <CompileAs>CompileAsCpp</CompileAs>
+      <ForcedIncludeFiles>platform.h</ForcedIncludeFiles>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <AdditionalDependencies>libpmemcommon.lib;libut.lib;ntdll.lib;libpmem.lib;libpmemobj.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
+      <GenerateDebugInformation>Debug</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;WINAPI_PARTITION_SYSTEM;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)\..\unittest;$(ProjectDir)\..\..\windows\include;$(ProjectDir)\..\..\include;$(ProjectDir)\..\..\libpmemobj\;$(ProjectDir)\..\..\common\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <CompileAs>CompileAsCpp</CompileAs>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <CompileAs>CompileAsC</CompileAs>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
       <ForcedIncludeFiles>platform.h</ForcedIncludeFiles>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <AdditionalLibraryDirectories>$(OutDir);$(OutDir)/../Static-Release</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libpmemcommon.lib;libut.lib;libpmem.lib;libpmemobj.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies />
+      <GenerateDebugInformation>No</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Static-Release|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;WINAPI_PARTITION_SYSTEM;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)\..\unittest;$(ProjectDir)\..\..\windows\include;$(ProjectDir)\..\..\include;$(ProjectDir)\..\..\libpmemobj\;$(ProjectDir)\..\..\common\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <CompileAs>CompileAsCpp</CompileAs>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <CompileAs>CompileAsC</CompileAs>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
       <ForcedIncludeFiles>platform.h</ForcedIncludeFiles>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <AdditionalLibraryDirectories>$(OutDir);$(OutDir)/../Static-Release</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libpmemcommon.lib;ntdll.lib;Shlwapi.lib;libut.lib;libpmem.lib;libpmemobj.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
+      <GenerateDebugInformation>No</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="blk_recovery.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\libpmemblk\libpmemblk.vcxproj">
+      <Project>{f7c6c6b6-4142-4c82-8699-4a9d8183181b}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\libpmem\libpmem.vcxproj">
+      <Project>{9e9e3d25-2139-4a5d-9200-18148ddead45}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\unittest\libut.vcxproj">
+      <Project>{ce3f2dfb-8470-4802-ad37-21caf6cb2681}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
