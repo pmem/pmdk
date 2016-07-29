@@ -1584,7 +1584,10 @@ function setup() {
 
 	echo "$UNITTEST_NAME: SETUP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM)"
 
-	find . -maxdepth 1 -name "*[a-zA-Z_]${UNITTEST_NUM}.log" -exec rm -f "{}" \;
+	find . -maxdepth 1\
+		-ignore_readdir_race \
+		-name "*[a-zA-Z_]${UNITTEST_NUM}.log" \
+		-exec rm -f "{}" \;
 
 	if [ "$FS" != "none" ]; then
 		if [ -d "$DIR" ]; then
