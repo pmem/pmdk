@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\common\util_windows.c" />
     <ClCompile Include="..\unittest\ut.c" />
     <ClCompile Include="..\unittest\ut_alloc.c" />
     <ClCompile Include="..\unittest\ut_file.c" />
