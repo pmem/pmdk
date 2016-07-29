@@ -1,5 +1,6 @@
 #
 # Copyright 2015-2016, Intel Corporation
+# Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -79,7 +80,7 @@ echo "XXX" > out30w.log
 #	pool_hdr.prev_repl_uuid=1111111111111111 \
 #	"pool_hdr.checksum_gen()"
 
-#create_poolset $DIR\testset 20971520:$DIR\testfile1 R 20971520:$DIR\testfile2
+#create_poolset $DIR\testset 20M:$DIR\testfile1 R 20M:$DIR\testfile2
 
 #expect_normal_exit $Env:EXE_DIR\blk_pool$Env:EXESUFFIX `
 #    c $DIR\testset 300
