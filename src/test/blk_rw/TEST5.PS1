@@ -56,7 +56,7 @@ require_fs_type pmem non-pmem
 setup
 
 # mix writes with set_zero and set_error and check results
-create_holey_file 1024 $DIR\testfile1
+create_holey_file 1G $DIR\testfile1
 expect_normal_exit $Env:EXE_DIR\blk_rw$EXESUFFIX 512 $DIR\testfile1 c `
 	w:100 w:200 w:300 w:400 `
 	r:100 r:200 r:300 r:400 `

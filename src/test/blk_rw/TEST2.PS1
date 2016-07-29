@@ -62,7 +62,7 @@ require_unlimited_vm
 setup
 
 # multi-arena case
-create_holey_file (1026*1024) $DIR\testfile1
+create_holey_file 1026G $DIR\testfile1
 #
 # All reads to an unwritten block pool should return zeros.
 # Block 268696551 is out of range and should return EINVAL.

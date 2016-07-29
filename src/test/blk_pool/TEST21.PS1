@@ -1,5 +1,6 @@
 #
 # Copyright 2015-2016, Intel Corporation
+# Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -53,7 +54,7 @@ $Env:NON_PMEM_IS_PMEM = $true
 
 setup
 
-create_holey_file 1 $DIR\testfile
+create_holey_file 1M $DIR\testfile
 
 #
 # TEST21 existing file, file size < min required size, bsize == 0

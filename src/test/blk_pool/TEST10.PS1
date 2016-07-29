@@ -1,5 +1,6 @@
 #
 # Copyright 2015-2016, Intel Corporation
+# Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -53,7 +54,7 @@ $Env:NON_PMEM_IS_PMEM = $true
 
 setup
 
-create_holey_file 20 $DIR\testfile
+create_holey_file 20M $DIR\testfile
 # XXX Doesn't change outcome whether we make it WO or not,
 # same goes for linux test
 & icacls $DIR\testfile /grant ${Env:USERNAME}:W >$null

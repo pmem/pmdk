@@ -1,5 +1,6 @@
 #
 # Copyright 2015-2016, Intel Corporation
+# Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -62,25 +63,25 @@ setup
 # These are holey files, so they actually don't take up
 # any significant space.
 #
-create_holey_file 1024 $DIR\testfile1.2096896
-create_holey_file 1024 $DIR\testfile1.2096897
-create_holey_file 2048 $DIR\testfile2.0
-create_holey_file 2048 $DIR\testfile2.1
-create_holey_file 2048 $DIR\testfile2.17
-create_holey_file 2048 $DIR\testfile2.511
-create_holey_file 2048 $DIR\testfile2.1048576
-create_holey_file 2048 $DIR\testfile2.2097152
-create_holey_file 2048 $DIR\testfile2.4194304
-create_holey_file 2048 $DIR\testfile2.8388608
-create_holey_file 2048 $DIR\testfile2.16777216
-create_holey_file 2048 $DIR\testfile2.33554432
-create_holey_file 2048 $DIR\testfile2.67108864
-create_holey_file 2048 $DIR\testfile2.134217728
-create_holey_file 2048 $DIR\testfile2.268435456
-create_holey_file 2048 $DIR\testfile2.536870912
-create_holey_file 2048 $DIR\testfile2.1073741824
-create_holey_file 2048 $DIR\testfile2.2147483648
-create_holey_file 2048 $DIR\testfile2.-1
+create_holey_file 1024M $DIR\testfile1.2096896
+create_holey_file 1024M $DIR\testfile1.2096897
+create_holey_file 2048M $DIR\testfile2.0
+create_holey_file 2048M $DIR\testfile2.1
+create_holey_file 2048M $DIR\testfile2.17
+create_holey_file 2048M $DIR\testfile2.511
+create_holey_file 2048M $DIR\testfile2.1048576
+create_holey_file 2048M $DIR\testfile2.2097152
+create_holey_file 2048M $DIR\testfile2.4194304
+create_holey_file 2048M $DIR\testfile2.8388608
+create_holey_file 2048M $DIR\testfile2.16777216
+create_holey_file 2048M $DIR\testfile2.33554432
+create_holey_file 2048M $DIR\testfile2.67108864
+create_holey_file 2048M $DIR\testfile2.134217728
+create_holey_file 2048M $DIR\testfile2.268435456
+create_holey_file 2048M $DIR\testfile2.536870912
+create_holey_file 2048M $DIR\testfile2.1073741824
+create_holey_file 2048M $DIR\testfile2.2147483648
+create_holey_file 2048M $DIR\testfile2.-1
 
 expect_normal_exit $Env:EXE_DIR\blk_nblock$Env:EXESUFFIX `
     2096896:$DIR\testfile1.2096896 `

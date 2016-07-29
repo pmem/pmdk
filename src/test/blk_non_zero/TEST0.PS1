@@ -1,5 +1,6 @@
 #
 # Copyright 2015-2016, Intel Corporation
+# Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -54,7 +55,7 @@ require_fs_type non-pmem pmem
 setup
 
 # single arena and minimum pmemblk pool file case
-create_nonzeroed_file 17 8 $DIR\testfile1
+create_nonzeroed_file 17M 8K $DIR\testfile1
 
 expect_normal_exit $Env:EXE_DIR\blk_non_zero$EXESUFFIX 512 $DIR\testfile1 c 0 `
 r:0 r:1 r:34217 r:34218 z:0 z:1 r:0 e:3 r:4
