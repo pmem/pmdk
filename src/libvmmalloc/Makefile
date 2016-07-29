@@ -40,7 +40,8 @@ SOURCE = libvmmalloc.c\
 	$(COMMON)/mmap.c\
 	$(COMMON)/mmap_linux.c\
 	$(COMMON)/out.c\
-	$(COMMON)/util.c
+	$(COMMON)/util.c\
+	$(COMMON)/util_linux.c
 
 default: all
 

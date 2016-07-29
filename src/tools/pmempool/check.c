@@ -318,8 +318,9 @@ pmempool_check_func(char *appname, int argc, char *argv[])
 		ret = -1;
 		break;
 	case CHECK_RESULT_ERROR:
-		if (errno)
+		if (errno) {
 			outv_err("%s\n", strerror(errno));
+		}
 		outv_err("repairing failed\n");
 		ret = -1;
 		break;
