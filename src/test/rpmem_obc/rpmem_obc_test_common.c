@@ -146,8 +146,14 @@ srv_send(struct server *s, const void *buff, size_t len)
 void
 client_connect_wait(struct rpmem_obc *rpc, char *target)
 {
-	while (rpmem_obc_connect(rpc, target))
+	struct rpmem_target_info *info;
+	info = rpmem_target_parse(target);
+	UT_ASSERTne(info, NULL);
+
+	while (rpmem_obc_connect(rpc, info))
 		;
+
+	rpmem_target_free(info);
 }
 
 /*
