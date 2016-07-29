@@ -18,3 +18,4 @@ nondebug/
 .vs/
 x64/
 Generated files/
+srcversion.h
