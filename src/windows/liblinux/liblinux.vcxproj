@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\common\util_windows.c" />
     <ClCompile Include="..\win_file.c" />
     <ClCompile Include="..\win_signal.c" />
   </ItemGroup>

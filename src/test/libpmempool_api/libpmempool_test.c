@@ -69,7 +69,9 @@ check_pool(struct pmempool_check_args *args, size_t args_size)
 
 	PMEMpoolcheck *ppc = pmempool_check_init(args, args_size);
 	if (!ppc) {
-		UT_OUT("Error: %s", strerror(errno));
+		char buff[UT_MAX_ERR_MSG];
+		ut_strerror(errno, buff, UT_MAX_ERR_MSG);
+		UT_OUT("Error: %s", buff);
 		return;
 	}
 

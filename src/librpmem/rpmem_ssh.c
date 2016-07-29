@@ -316,8 +316,10 @@ rpmem_ssh_strerror(struct rpmem_ssh *rps)
 
 	if (ret == 0) {
 		if (errno) {
+			char buff[UTIL_MAX_ERR_MSG];
+			util_strerror(errno, buff, UTIL_MAX_ERR_MSG);
 			snprintf(error_str, ERR_BUFF_SIZE,
-				"%s: %s", rps->node, strerror(errno));
+				"%s: %s", rps->node, buff);
 		} else {
 			snprintf(error_str, ERR_BUFF_SIZE,
 				"%s: unknown error", rps->node);

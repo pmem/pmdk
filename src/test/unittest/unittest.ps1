@@ -32,6 +32,10 @@
 
 . "..\testconfig.ps1"
 
+function touch {
+    Out-File -InputObject $null -Encoding ascii -FilePath $args[0]
+}
+
 function epoch {
     return [int64](([datetime]::UtcNow)-(get-date "1/1/1970")).TotalMilliseconds
 }
