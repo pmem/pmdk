@@ -1,5 +1,6 @@
 #
 # Copyright 2015-2016, Intel Corporation
+# Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -55,7 +56,7 @@ require_test_type long
 setup
 
 # mix writes with set_zero and set_error and check results
-create_nonzeroed_file 1024 $((824 * 1024)) $DIR\testfile1
+create_nonzeroed_file 1G 824M $DIR\testfile1
 
 expect_normal_exit $Env:EXE_DIR\blk_non_zero$EXESUFFIX 512 $DIR\testfile1 c 0 `
 w:100 w:200 w:300 w:400 `

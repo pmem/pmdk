@@ -56,7 +56,7 @@ require_fs_type pmem non-pmem
 
 setup
 
-create_holey_file 1024 $DIR\testfile1
+create_holey_file 1G $DIR\testfile1
 # 100 threads, each doing 100 random I/Os
 expect_normal_exit $Env:EXE_DIR\blk_rw_mt$EXESUFFIX 4096 $DIR\testfile1 456 100 100
 

@@ -122,19 +122,18 @@ function convert_to_bytes() {
 }
 
 #
-# create_file -- create zeroed out files of a given length in megs
+# create_file -- create zeroed out files of a given length
 #
 # example, to create two files, each 1GB in size:
-#	create_file 1024 testfile1 testfile2
+#	create_file 1G testfile1 testfile2
 #
 # Note: this literally fills the file with 0's to make sure its
 # not a sparse file.  Its slow but the fastest method I could find
 #
-# Input unit size is MB
+# Input unit size is in bytes with optional suffixes like k, KB, M, etc.
 #
 function create_file {
-    sv -Name size $args[0]
-    [int64]$size *= 1024 * 1024
+    [int64]$size = (convert_to_bytes $args[0])
     for ($i=1;$i -lt $args.count;$i++) {
         $stream = new-object system.IO.StreamWriter($args[$i], "False", [System.Text.Encoding]::Ascii)
         1..$size | %{ $stream.Write("0") }
@@ -143,24 +142,19 @@ function create_file {
     }
 }
 #
-# create_holey_file -- create holey files of a given length in megs
+# create_holey_file -- create holey files of a given length
 #
-# example, to create two files, each 1GB in size:
-#	create_holey_file 1024 testfile1 testfile2
+# example:
+#	create_holey_file 1024k testfile1 testfile2
+#	create_holey_file 2048M testfile1 testfile2
+#	create_holey_file 234 testfile1
+#	create_holey_file 2340b testfile1
 #
-# Input unit size is MB (unless a string is passed in then its mMB+nKB)
+# Input unit size is in bytes with optional suffixes like k, KB, M, etc.
 #
 function create_holey_file {
-    sv -Name size $args[0]
-    if ($size -is "String" -And $size.contains(“+”)) {
-        # for tests that want to pass in a combo of MB+KB
-        [int64]$MB = $size.split("+")[0]
-        [int64]$KB = $size.split("+")[1]
-        [int64]$size = $MB * 1024 * 1024
-        $size += $KB * 1024
-    } else {
-        [int64]$size *= 1024 * 1024
-    }
+
+    [int64]$size = (convert_to_bytes $args[0])
     for ($i=1;$i -lt $args.count;$i++) {
         # need to call out to sparsefile.exe to create a sparse file, note
         # that initial version of DAX doesn't support sparse
@@ -175,21 +169,22 @@ function create_holey_file {
 }
 
 #
-# create_nonzeroed_file -- create non-zeroed files of a given length in megs
+# create_nonzeroed_file -- create non-zeroed files of a given length
 #
 # A given first kilobytes of the file is zeroed out.
 #
 # example, to create two files, each 1GB in size, with first 4K zeroed
-#	create_nonzeroed_file 1024 4 testfile1 testfile2
+#	create_nonzeroed_file 1G 4K testfile1 testfile2
 #
 # Note: from 0 to offset is sparse, after that filled with Z
-# Input unit size is MB for file size KB for offset
+#
+# Input unit size is in bytes with optional suffixes like k, KB, M, etc.
 #
 function create_nonzeroed_file {
-    sv -Name offset $args[1]
-    $offset *= 1024
-    sv -Name size $args[0]
-    [int64]$size = $(([int64]$size * 1024 * 1024  - $offset))
+
+    [int64]$offset = (convert_to_bytes $args[1])
+    [int64]$size = ((convert_to_bytes $args[0]) - $offset)
+
     [int64]$numz =  $size / 1024
     [string] $z = "Z" * 1024 # using a 1K string to speed up writting
     for ($i=2;$i -lt $args.count;$i++) {
@@ -309,7 +304,7 @@ function create_poolset {
             $asize = $fsize
         }
 
-        $asize = convert_to_bytes($asize)
+        $asize = (convert_to_bytes $asize)
 
         switch -regex ($cmd) {
             # do nothing
@@ -319,7 +314,7 @@ function create_poolset {
             # non-zeroed file
             'n' { create_file $asize $fpath }
             # non-zeroed file, except 4K header
-            'h' { create_nonzeroed_file $asize 4 $fpath }
+            'h' { create_nonzeroed_file $asize 4K $fpath }
         }
         # XXX: didn't convert chmod
         #	if [ $mode ]; then

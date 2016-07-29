@@ -1,5 +1,6 @@
 #
 # Copyright 2015-2016, Intel Corporation
+# Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -53,7 +54,7 @@ $Env:NON_PMEM_IS_PMEM = $true
 
 setup
 
-create_nonzeroed_file 17 8 $DIR\testfile
+create_nonzeroed_file 17M 8K $DIR\testfile
 
 #
 # TEST8 existing file, file length >= min required size, poolsize == 0

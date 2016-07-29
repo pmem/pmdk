@@ -61,7 +61,7 @@ require_test_type long
 setup
 
 # mix writes with set_zero and set_error and check results
-create_holey_file 128 $DIR\testfile1
+create_holey_file 128M $DIR\testfile1
 
 expect_normal_exit $Env:EXE_DIR\blk_rw$EXESUFFIX 512 $DIR\testfile1 c `
 		e:1 r:1 `
