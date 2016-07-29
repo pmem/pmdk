@@ -42,6 +42,7 @@
 #include <stdlib.h>
 
 #include "util.h"
+#include "platform.h"
 
 #ifdef DEBUG
 
