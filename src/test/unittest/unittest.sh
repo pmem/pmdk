@@ -1388,23 +1388,6 @@ function require_nodes() {
 }
 
 #
-# copy_file_to_node -- copy file to the given remote node
-#
-function copy_file_to_node() {
-
-	validate_node_number $1
-
-	local N=$1
-	shift
-
-	# copy all required files
-	local DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
-	run_command scp $SCP_OPTS $1 ${NODE[$N]}:$DIR/$2
-
-	return 0
-}
-
-#
 # copy_files_to_node -- copy all required files to the given remote node
 #
 function copy_files_to_node() {
@@ -1412,14 +1395,14 @@ function copy_files_to_node() {
 	validate_node_number $1
 
 	local N=$1
-	shift
-	local FILES_TO_COPY=$*
-	[ "$FILES_TO_COPY" == "" ] &&\
+	local DEST_DIR=$2
+	shift 2
+	[ "$*" == "" ] &&\
 		echo "error: copy_files_to_node(): no files provided" >&2 && exit 1
 
 	# copy all required files
-	local DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
-	run_command scp $SCP_OPTS $FILES_TO_COPY ${NODE[$N]}:$DIR
+	local REMOTE_DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
+	run_command scp $SCP_OPTS $@ ${NODE[$N]}:$REMOTE_DIR/$DEST_DIR
 
 	return 0
 }
@@ -1433,7 +1416,7 @@ function copy_files_from_node() {
 	validate_node_number $1
 
 	local N=$1
-	local DIR=$2
+	local DEST_DIR=$2
 	shift 2
 	[ "$*" == "" ] &&\
 		echo "error: copy_files_from_node(): no files provided" >&2 && exit 1
@@ -1448,7 +1431,7 @@ function copy_files_from_node() {
 		FILE_STRING=$1
 	fi
 
-	run_command scp $SCP_OPTS ${NODE[$N]}:$REMOTE_DIR/$FILE_STRING $DIR
+	run_command scp $SCP_OPTS ${NODE[$N]}:$REMOTE_DIR/$FILE_STRING $DEST_DIR
 
 	return 0
 }

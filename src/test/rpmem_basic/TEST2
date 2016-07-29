@@ -58,7 +58,8 @@ EOF
 
 run_on_node 0 "rm -rf $POOLS_DIR $POOLS_PART && mkdir -p $POOLS_DIR && mkdir -p $POOLS_PART"
 
-expect_normal_exit copy_file_to_node 0 $DIR/pool0.set $POOLS_DIR
+copy_files_to_node 0 $POOLS_DIR $DIR/pool0.set
+
 expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
 	test_create 0 pool0.set ${NODE_ADDR[0]} mem 8M test_close 0
 
