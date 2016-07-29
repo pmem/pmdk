@@ -43,9 +43,9 @@
 
 #include "util.h"
 #include "out.h"
+#include "rpmem_common.h"
 #include "rpmem_ssh.h"
 #include "rpmem_cmd.h"
-#include "rpmem_common.h"
 #include "rpmem_util.h"
 
 #define ERR_BUFF_SIZE	4095
@@ -55,8 +55,6 @@ static char error_str[ERR_BUFF_SIZE + 1];
 
 struct rpmem_ssh {
 	struct rpmem_cmd *cmd;
-	char *node;		/* target node */
-	char *service;		/* target node service */
 };
 
 /*
@@ -73,24 +71,51 @@ get_ssh(void)
 }
 
 /*
+ * get_user_at_node -- returns string containing user@node
+ */
+static char *
+get_user_at_node(const struct rpmem_target_info *info)
+{
+	char *user_at_node = NULL;
+
+	if (info->flags & RPMEM_HAS_USER) {
+		size_t ulen = strlen(info->user);
+		size_t nlen = strlen(info->node);
+		size_t len = ulen + 1 + nlen + 1;
+		user_at_node = malloc(len);
+		if (!user_at_node)
+			goto err_malloc;
+		int ret = snprintf(user_at_node, len, "%s@%s",
+				info->user, info->node);
+		if (ret < 0 || (size_t)ret + 1 != len)
+			goto err_printf;
+	} else {
+		user_at_node = strdup(info->node);
+		if (!user_at_node)
+			goto err_malloc;
+	}
+
+	return user_at_node;
+err_printf:
+	free(user_at_node);
+err_malloc:
+	return NULL;
+}
+
+/*
  * rpmem_ssh_open -- open ssh connection with specified node
  */
 struct rpmem_ssh *
-rpmem_ssh_open(const char *node, const char *service)
+rpmem_ssh_open(const struct rpmem_target_info *info)
 {
 	struct rpmem_ssh *rps = calloc(1, sizeof(*rps));
 	if (!rps)
 		goto err_zalloc;
 
-	rps->node = strdup(node);
-	if (!rps->node)
-		goto err_strdup_node;
 
-	if (service) {
-		rps->service = strdup(service);
-		if (!rps->service)
-			goto err_strdup_service;
-	}
+	char *user_at_node = get_user_at_node(info);
+	if (!user_at_node)
+		goto err_user_node;
 
 	rps->cmd = rpmem_cmd_init();
 	if (!rps->cmd)
@@ -99,20 +124,15 @@ rpmem_ssh_open(const char *node, const char *service)
 	if (ret)
 		goto err_push;
 
-	if (rps->service) {
+	if (info->flags & RPMEM_HAS_SERVICE) {
 		/* port number is optional */
 		ret = rpmem_cmd_push(rps->cmd, "-p");
 		if (ret)
 			goto err_push;
-		ret = rpmem_cmd_push(rps->cmd, rps->service);
+		ret = rpmem_cmd_push(rps->cmd, info->service);
 		if (ret)
 			goto err_push;
 	}
-
-	/* XXX add support for IPv6 */
-	ret = rpmem_cmd_push(rps->cmd, "-4");
-	if (ret)
-		goto err_push;
 
 	/*
 	 * Disable allocating pseudo-terminal in order to transfer binary
@@ -122,12 +142,18 @@ rpmem_ssh_open(const char *node, const char *service)
 	if (ret)
 		goto err_push;
 
+	if (info->flags & RPMEM_FLAGS_USE_IPV4) {
+		ret = rpmem_cmd_push(rps->cmd, "-4");
+		if (ret)
+			goto err_push;
+	}
+
 	/* fail if password required for authentication */
 	ret = rpmem_cmd_push(rps->cmd, "-oBatchMode=yes");
 	if (ret)
 		goto err_push;
 
-	ret = rpmem_cmd_push(rps->cmd, rps->node);
+	ret = rpmem_cmd_push(rps->cmd, user_at_node);
 	if (ret)
 		goto err_push;
 
@@ -150,15 +176,17 @@ rpmem_ssh_open(const char *node, const char *service)
 		if (ret == 1 || errno == ECONNRESET)
 			ERR("%s", rpmem_ssh_strerror(rps));
 		else
-			ERR("!%s", rps->node);
+			ERR("!%s", info->node);
 		goto err_recv_status;
 	}
 
 	if (status) {
 		ERR("%s: unexpected status received -- '%d'",
-				rps->node, status);
+				info->node, status);
 		goto err_status;
 	}
+
+	free(user_at_node);
 
 	return rps;
 err_status:
@@ -169,10 +197,8 @@ err_run:
 err_push:
 	rpmem_cmd_fini(rps->cmd);
 err_cmd_init:
-	free(rps->service);
-err_strdup_service:
-	free(rps->node);
-err_strdup_node:
+	free(user_at_node);
+err_user_node:
 	free(rps);
 err_zalloc:
 	return NULL;
@@ -189,8 +215,6 @@ rpmem_ssh_close(struct rpmem_ssh *rps)
 	rpmem_cmd_term(rps->cmd);
 	rpmem_cmd_wait(rps->cmd, &ret);
 	rpmem_cmd_fini(rps->cmd);
-	free(rps->node);
-	free(rps->service);
 	free(rps);
 
 	if (WIFEXITED(ret))
@@ -293,10 +317,10 @@ rpmem_ssh_strerror(struct rpmem_ssh *rps)
 			char buff[UTIL_MAX_ERR_MSG];
 			util_strerror(errno, buff, UTIL_MAX_ERR_MSG);
 			snprintf(error_str, ERR_BUFF_SIZE,
-				"%s: %s", rps->node, buff);
+				"%s", buff);
 		} else {
 			snprintf(error_str, ERR_BUFF_SIZE,
-				"%s: unknown error", rps->node);
+				"unknown error");
 		}
 
 		return error_str;

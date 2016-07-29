@@ -105,7 +105,11 @@ client_connect(const struct test_case *tc, int argc, char *argv[])
 		struct rpmem_obc *rpc = rpmem_obc_init();
 		UT_ASSERTne(rpc, NULL);
 
-		int ret = rpmem_obc_connect(rpc, argv[i]);
+		struct rpmem_target_info *info;
+		info = rpmem_target_parse(argv[i]);
+		UT_ASSERTne(info, NULL);
+
+		int ret = rpmem_obc_connect(rpc, info);
 		if (ret) {
 			UT_OUT("not connected: %s: %s", argv[i],
 					out_get_errormsg());
@@ -114,6 +118,7 @@ client_connect(const struct test_case *tc, int argc, char *argv[])
 			rpmem_obc_disconnect(rpc);
 		}
 
+		rpmem_target_free(info);
 		rpmem_obc_fini(rpc);
 	}
 
@@ -161,7 +166,11 @@ client_monitor(const struct test_case *tc, int argc, char *argv[])
 		struct rpmem_obc *rpc = rpmem_obc_init();
 		UT_ASSERTne(rpc, NULL);
 
-		int ret = rpmem_obc_connect(rpc, target);
+		struct rpmem_target_info *info;
+		info = rpmem_target_parse(target);
+		UT_ASSERTne(info, NULL);
+
+		int ret = rpmem_obc_connect(rpc, info);
 		UT_ASSERTeq(ret, 0);
 
 		ret = rpmem_obc_monitor(rpc, 1);
@@ -173,6 +182,7 @@ client_monitor(const struct test_case *tc, int argc, char *argv[])
 		ret = rpmem_obc_monitor(rpc, 1);
 		UT_ASSERTne(ret, 1);
 
+		rpmem_target_free(info);
 		rpmem_obc_fini(rpc);
 	}
 
@@ -184,7 +194,11 @@ client_monitor(const struct test_case *tc, int argc, char *argv[])
 		struct rpmem_obc *rpc = rpmem_obc_init();
 		UT_ASSERTne(rpc, NULL);
 
-		int ret = rpmem_obc_connect(rpc, target);
+		struct rpmem_target_info *info;
+		info = rpmem_target_parse(target);
+		UT_ASSERTne(info, NULL);
+
+		int ret = rpmem_obc_connect(rpc, info);
 		UT_ASSERTeq(ret, 0);
 
 		ret = rpmem_obc_monitor(rpc, 1);
@@ -198,6 +212,7 @@ client_monitor(const struct test_case *tc, int argc, char *argv[])
 
 		rpmem_obc_disconnect(rpc);
 
+		rpmem_target_free(info);
 		rpmem_obc_fini(rpc);
 	}
 

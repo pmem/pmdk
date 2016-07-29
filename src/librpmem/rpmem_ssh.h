@@ -37,7 +37,7 @@
 
 struct rpmem_ssh;
 
-struct rpmem_ssh *rpmem_ssh_open(const char *node, const char *service);
+struct rpmem_ssh *rpmem_ssh_open(const struct rpmem_target_info *info);
 int rpmem_ssh_close(struct rpmem_ssh *rps);
 
 int rpmem_ssh_send(struct rpmem_ssh *rps, const void *buff, size_t len);

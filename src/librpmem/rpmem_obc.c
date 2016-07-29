@@ -57,9 +57,6 @@
  * rpmem_obc -- rpmem out-of-band client connection handle
  */
 struct rpmem_obc {
-	char *node;		/* target node */
-	char *service;		/* target node service */
-
 	struct rpmem_ssh *ssh;
 };
 
@@ -101,31 +98,31 @@ rpmem_obc_check_ibc_attr(struct rpmem_msg_ibc_attr *ibc)
  * rpmem_obc_check_port -- (internal) verify target node port number
  */
 static int
-rpmem_obc_check_port(struct rpmem_obc *rpc)
+rpmem_obc_check_port(const struct rpmem_target_info *info)
 {
-	if (!rpc->service)
+	if (!(info->flags & RPMEM_HAS_SERVICE))
 		return 0;
 
-	if (*rpc->service == '\0') {
-		ERR("invalid port number -- '%s'", rpc->service);
+	if (*info->service == '\0') {
+		ERR("invalid port number -- '%s'", info->service);
 		goto err;
 	}
 
 	errno = 0;
 	char *endptr;
-	long port = strtol(rpc->service, &endptr, 10);
+	long port = strtol(info->service, &endptr, 10);
 	if (errno || *endptr != '\0') {
-		ERR("invalid port number -- '%s'", rpc->service);
+		ERR("invalid port number -- '%s'", info->service);
 		goto err;
 	}
 
 	if (port < 1) {
-		ERR("port number must be positive -- '%s'", rpc->service);
+		ERR("port number must be positive -- '%s'", info->service);
 		goto err;
 	}
 
 	if (port > UINT16_MAX) {
-		ERR("port number too large -- '%s'", rpc->service);
+		ERR("port number too large -- '%s'", info->service);
 		goto err;
 	}
 
@@ -144,8 +141,6 @@ rpmem_obc_close_conn(struct rpmem_obc *rpc)
 	rpmem_ssh_close(rpc->ssh);
 
 	rpc->ssh = NULL;
-	free(rpc->node);
-	rpc->node = NULL;
 }
 
 /*
@@ -373,7 +368,6 @@ rpmem_obc_init(void)
 void
 rpmem_obc_fini(struct rpmem_obc *rpc)
 {
-	ASSERTeq(rpc->node, NULL);
 	free(rpc);
 }
 
@@ -387,40 +381,23 @@ rpmem_obc_fini(struct rpmem_obc *rpc)
  * Returns an error if connection is already established.
  */
 int
-rpmem_obc_connect(struct rpmem_obc *rpc, const char *target)
+rpmem_obc_connect(struct rpmem_obc *rpc, const struct rpmem_target_info *info)
 {
 	if (rpmem_obc_is_connected(rpc)) {
 		errno = EALREADY;
 		goto err_notconnected;
 	}
 
-	rpc->node = strdup(target);
-	if (!rpc->node) {
-		RPMEM_LOG(ERR, "!strdup target failed");
-		goto err_strdup;
-	}
-
-	char *colon = strrchr(rpc->node, ':');
-	if (colon) {
-		rpc->service = colon + 1;
-		*colon = '\0';
-	} else {
-		rpc->service = NULL;
-	}
-
-	if (rpmem_obc_check_port(rpc))
+	if (rpmem_obc_check_port(info))
 		goto err_port;
 
-	rpc->ssh = rpmem_ssh_open(rpc->node, rpc->service);
+	rpc->ssh = rpmem_ssh_open(info);
 	if (!rpc->ssh)
 		goto err_ssh_open;
 
 	return 0;
 err_ssh_open:
 err_port:
-	free(rpc->node);
-	rpc->node = NULL;
-err_strdup:
 err_notconnected:
 	return -1;
 }

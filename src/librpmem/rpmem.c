@@ -55,9 +55,7 @@
 struct rpmem_pool {
 	struct rpmem_obc *obc;		/* out-of-band connection handle */
 	struct rpmem_fip *fip;		/* fabric provider handle */
-	char *user;
-	char *node;
-	char *service;
+	struct rpmem_target_info *info;
 	char fip_service[NI_MAXSERV];
 	enum rpmem_provider provider;
 	pthread_t monitor;
@@ -165,24 +163,30 @@ rpmem_monitor_thread(void *arg)
 static RPMEMpool *
 rpmem_common_init(const char *target)
 {
+	int ret;
+
 	RPMEMpool *rpp = calloc(1, sizeof(*rpp));
 	if (!rpp) {
 		ERR("!calloc");
 		goto err_malloc_rpmem;
 	}
 
-	int ret = rpmem_target_split(target, &rpp->user,
-			&rpp->node, &rpp->service);
-	if (ret) {
-		ERR("!splitting target node address failed");
+	rpp->info = rpmem_target_parse(target);
+	if (!rpp->info) {
+		ERR("!parsing target node address failed");
 		goto err_target_split;
 	}
 
-	rpp->provider = rpmem_get_provider(rpp->node);
+	rpp->provider = rpmem_get_provider(rpp->info->node);
 	if (rpp->provider == RPMEM_PROV_UNKNOWN) {
 		errno = ENOMEDIUM;
 		ERR("cannot find provider");
 		goto err_provider;
+	}
+
+	if (rpp->provider == RPMEM_PROV_LIBFABRIC_SOCKETS) {
+		/* libfabric's sockets provider does not support IPv6 */
+		rpp->info->flags |= RPMEM_FLAGS_USE_IPV4;
 	}
 
 	rpp->obc = rpmem_obc_init();
@@ -191,7 +195,7 @@ rpmem_common_init(const char *target)
 		goto err_obc_init;
 	}
 
-	ret = rpmem_obc_connect(rpp->obc, target);
+	ret = rpmem_obc_connect(rpp->obc, rpp->info);
 	if (ret) {
 		ERR("!out-of-band connection failed");
 		goto err_obc_connect;
@@ -202,9 +206,7 @@ err_obc_connect:
 	rpmem_obc_fini(rpp->obc);
 err_obc_init:
 err_provider:
-	free(rpp->user);
-	free(rpp->node);
-	free(rpp->service);
+	rpmem_target_free(rpp->info);
 err_target_split:
 	free(rpp);
 err_malloc_rpmem:
@@ -228,9 +230,7 @@ rpmem_common_fini(RPMEMpool *rpp, int join)
 	}
 
 	rpmem_obc_fini(rpp->obc);
-	free(rpp->user);
-	free(rpp->node);
-	free(rpp->service);
+	rpmem_target_free(rpp->info);
 	free(rpp);
 }
 
@@ -262,7 +262,7 @@ rpmem_common_fip_init(RPMEMpool *rpp, struct rpmem_req_attr *req,
 		goto err_port;
 	}
 
-	rpp->fip = rpmem_fip_init(rpp->node, rpp->fip_service,
+	rpp->fip = rpmem_fip_init(rpp->info->node, rpp->fip_service,
 			&fip_attr, nlanes);
 	if (!rpp->fip) {
 		ERR("!in-band connection initialization failed");
