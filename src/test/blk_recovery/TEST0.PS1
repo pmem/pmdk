@@ -1,5 +1,6 @@
 #
 # Copyright 2014-2016, Intel Corporation
+# Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -29,44 +30,43 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+
 #
-# pmempool_info/TEST5 -- test for info command with hexadecimal dumps of headers
+# src\test\blk_recovery\TEST0 -- unit test for pmemblk recovery
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "pmempool_info\TEST5w"
-$Env:UNITTEST_NUM = "5w"
+$Env:UNITTEST_NAME="blk_recovery\TEST0"
+$Env:UNITTEST_NUM="0"
 # XXX:  bash has a few calls to tools that we don't have on
-# windows (yet) that set PMEM_IS_PMEM and NON_PMEM_IS_PMEM based
+# Windows (yet) that set PMEM_IS_PMEM and NON_PMEM_IS_PMEM based
 # on their output
 $Env:PMEM_IS_PMEM = $true
 $Env:NON_PMEM_IS_PMEM = $true
 
+# standard unit test setup
 . ..\unittest\unittest.ps1
 
-require_fs_type any
-# pmemblk structure is different (i.e. bigger) in debug and our match
-# file looks for the same so let's not run in release flavors
-require_build_type debug static-debug
+# doesn't make sense to run in local directory
+require_fs_type pmem non-pmem
+require_build_type nondebug static-nondebug
 
 setup
 
-$POOL="$DIR\file.pool"
-$LOG="out$Env:UNITTEST_NUM.log"
-rm $LOG -Force -Recurse -ea si
-# XXX: Consider not printing volatile part of headers
-expect_normal_exit $PMEMPOOL$EXESUFFIX create log $POOL
-expect_normal_exit $PMEMPOOL$EXESUFFIX info -x $POOL >> $LOG
+# single arena case
+create_holey_file 2048 $DIR\testfile1
 
-echo "" >> $LOG
+#
+# Simple case, one write interrupted.  pmemblk_check() should note
+# that testfile1 is consistent (after recovery steps were taken).
+#
+# expect_normal_exit $Env:EXE_DIR\blk_recovery$EXESUFFIX 4096 $DIR\testfile1 5 10
+expect_normal_exit $Env:EXE_DIR\blk_recovery$EXESUFFIX 4096 $DIR\testfile1 5 10
 
-rm $POOL -Force -Recurse -ea si
-expect_normal_exit $PMEMPOOL$EXESUFFIX create blk 512 $POOL
-expect_normal_exit $PMEMPOOL$EXESUFFIX info -x $POOL >> $LOG
+check_pool $DIR\testfile1
 
 check
 
-pass

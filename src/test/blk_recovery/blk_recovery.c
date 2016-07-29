@@ -1,5 +1,6 @@
 /*
  * Copyright 2014-2016, Intel Corporation
+ * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -82,6 +83,7 @@ ident(unsigned char *buf)
 	return descr;
 }
 
+#ifndef _WIN32
 sigjmp_buf Jmp;
 
 /*
@@ -94,6 +96,22 @@ signal_handler(int sig)
 
 	siglongjmp(Jmp, 1);
 }
+#else
+static DWORD
+exception_filter(DWORD exception_code)
+{
+	switch (exception_code) {
+		case STATUS_ACCESS_VIOLATION:
+			UT_OUT("signal: Segmentation fault");
+			break;
+		default:
+			UT_OUT("signal: %d", exception_code);
+			break;
+	}
+
+	return EXCEPTION_EXECUTE_HANDLER;
+}
+#endif
 
 int
 main(int argc, char *argv[])
@@ -116,7 +134,7 @@ main(int argc, char *argv[])
 
 	/* write the first lba */
 	off_t lba = strtoul(argv[3], NULL, 0);
-	unsigned char buf[Bsize];
+	unsigned char *buf = MALLOC(Bsize);
 
 	construct(buf);
 	if (pmemblk_write(handle, buf, lba) < 0)
@@ -135,26 +153,38 @@ main(int argc, char *argv[])
 			(size_t)(flogaddr - mapaddr));
 	MPROTECT(mapaddr, (size_t)(flogaddr - mapaddr), PROT_READ);
 
+#ifndef _WIN32
 	/* arrange to catch SEGV */
 	struct sigaction v;
 	sigemptyset(&v.sa_mask);
 	v.sa_flags = 0;
 	v.sa_handler = signal_handler;
 	SIGACTION(SIGSEGV, &v, NULL);
+#endif
 
 	/* map each file argument with the given map type */
 	lba = strtoul(argv[4], NULL, 0);
 
 	construct(buf);
 
+#ifndef _WIN32
 	if (!sigsetjmp(Jmp, 1)) {
+#else
+	__try {
+#endif
 		if (pmemblk_write(handle, buf, lba) < 0)
 			UT_FATAL("!write     lba %zu", lba);
 		else
 			UT_FATAL("write     lba %zu: %s", lba, ident(buf));
+#ifndef _WIN32
 	}
+#else
+	} __except(exception_filter(GetExceptionCode())) {
+	}
+#endif
 
 	pmemblk_close(handle);
+	FREE(buf);
 
 	int result = pmemblk_check(path, Bsize);
 	if (result < 0)
