@@ -1,5 +1,6 @@
 /*
  * Copyright 2014-2016, Intel Corporation
+ * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -43,6 +44,7 @@
 
 #include "blk.h"
 #include "btt_layout.h"
+#include "endian.h"
 
 size_t Bsize;
 
@@ -82,7 +84,7 @@ ident(unsigned char *buf)
 	return descr;
 }
 
-sigjmp_buf Jmp;
+ut_jmp_buf_t Jmp;
 
 /*
  * signal_handler -- called on SIGSEGV
@@ -92,7 +94,7 @@ signal_handler(int sig)
 {
 	UT_OUT("signal: %s", strsignal(sig));
 
-	siglongjmp(Jmp, 1);
+	ut_siglongjmp(Jmp);
 }
 
 int
@@ -116,7 +118,7 @@ main(int argc, char *argv[])
 
 	/* write the first lba */
 	off_t lba = strtoul(argv[3], NULL, 0);
-	unsigned char buf[Bsize];
+	unsigned char *buf = MALLOC(Bsize);
 
 	construct(buf);
 	if (pmemblk_write(handle, buf, lba) < 0)
@@ -147,7 +149,7 @@ main(int argc, char *argv[])
 
 	construct(buf);
 
-	if (!sigsetjmp(Jmp, 1)) {
+	if (!ut_sigsetjmp(Jmp)) {
 		if (pmemblk_write(handle, buf, lba) < 0)
 			UT_FATAL("!write     lba %zu", lba);
 		else
@@ -155,6 +157,7 @@ main(int argc, char *argv[])
 	}
 
 	pmemblk_close(handle);
+	FREE(buf);
 
 	int result = pmemblk_check(path, Bsize);
 	if (result < 0)

@@ -375,10 +375,10 @@ void *ut_mmap(const char *file, int line, const char *func, void *addr,
 int ut_munmap(const char *file, int line, const char *func, void *addr,
     size_t length);
 
-#ifndef _WIN32
 int ut_mprotect(const char *file, int line, const char *func, void *addr,
     size_t len, int prot);
 
+#ifndef _WIN32
 int ut_symlink(const char *file, int line, const char *func,
     const char *oldpath, const char *newpath);
 
@@ -489,11 +489,9 @@ int ut_closedir(const char *file, int line, const char *func, DIR *dirp);
 #define MUNMAP(addr, length)\
     ut_munmap(__FILE__, __LINE__, __func__, addr, length);
 
-#ifndef _WIN32
 /* a mprotect() that can't return -1 */
 #define MPROTECT(addr, len, prot)\
     ut_mprotect(__FILE__, __LINE__, __func__, addr, len, prot);
-#endif
 
 #define STAT(path, st_bufp)\
     ut_stat(__FILE__, __LINE__, __func__, path, st_bufp)
