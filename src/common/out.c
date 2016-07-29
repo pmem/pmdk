@@ -214,7 +214,7 @@ out_init(const char *log_prefix, const char *log_level_var,
 		if ((Out_fp = fopen(log_file, "w")) == NULL) {
 			fprintf(stderr, "Error (%s): %s=%s: %s\n",
 					log_prefix, log_file_var,
-					log_file, strerror(errno));
+					log_file, os_strerror(errno));
 			abort();
 		}
 	}
@@ -384,7 +384,7 @@ out_common(const char *file, int line, const char *func, int level,
 		if (*fmt == '!') {
 			fmt++;
 			sep = ": ";
-			errstr = strerror(errno);
+			errstr = os_strerror(errno);
 		}
 		ret = Vsnprintf(&buf[cc], MAXPRINT - cc, fmt, ap);
 		if (ret < 0) {
@@ -421,7 +421,7 @@ out_error(const char *file, int line, const char *func,
 		if (*fmt == '!') {
 			fmt++;
 			sep = ": ";
-			errstr = strerror(errno);
+			errstr = os_strerror(errno);
 		}
 		ret = Vsnprintf(&errormsg[cc], MAXPRINT, fmt, ap);
 		if (ret < 0) {

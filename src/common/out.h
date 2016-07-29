@@ -42,6 +42,9 @@
 #include <stdlib.h>
 
 #include "util.h"
+#ifndef _WIN32
+#include "platform.h"
+#endif
 
 #ifdef DEBUG
 

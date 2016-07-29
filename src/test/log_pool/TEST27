@@ -52,6 +52,4 @@ expect_normal_exit ./log_pool$EXESUFFIX c $DIR/testset 0 0640
 
 expect_normal_exit ./log_pool$EXESUFFIX o $DIR/testset
 
-check
-
 pass

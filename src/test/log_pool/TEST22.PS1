@@ -1,5 +1,4 @@
-#!/bin/bash -e
-#
+﻿#
 # Copyright 2015-2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
@@ -30,28 +29,50 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
+# src/test/log_pool/TEST22 -- unit test for pmemlog_open
 #
-# src/test/log_pool/TEST1 -- unit test for pmemlog_create
+# parameter handling
 #
-export UNITTEST_NAME=log_pool/TEST1
-export UNITTEST_NUM=1
+[CmdletBinding(PositionalBinding=$false)]
+Param(
+    [alias("d")]
+    $DIR = ""
+    )
+$Env:UNITTEST_NAME = "log_pool\TEST22"
+$Env:UNITTEST_NUM = "22"
+# XXX:  bash has a few calls to tools that we don't have on
+# windows (yet) that set PMEM_IS_PMEM and NON_PMEM_IS_PMEM based
+# on their output
+$Env:PMEM_IS_PMEM = $true
+$Env:NON_PMEM_IS_PMEM = $true
 
 # standard unit test setup
-. ../unittest/unittest.sh
+. ..\unittest\unittest.ps1
+
+require_fs_type "any"
 
 setup
-umask 0
-
-create_holey_file 40 $DIR/testfile
-chmod 0600 $DIR/testfile
 
 #
-# TEST1 existing file, file length >= min required size, poolsize == 0
+# TEST22 existing file, file size < min required size
+#        (valid pool header)
 #
-expect_normal_exit ./log_pool$EXESUFFIX c $DIR/testfile 0 0600
+# write valid signature to testfile "PMEMPOOLSET"
+$sig = New-Object Byte[] 11
+$sig[0] = 80 # 0x50 P
+$sig[1] = 77 # 0x4d M
+$sig[2] = 69 # 0x45 E
+$sig[3] = 77 # 0x4d M
+$sig[4] = 80 # 0x50 P
+$sig[5] = 79 # 0x4f O 
+$sig[6] = 79 # 0x4f O
+$sig[7] = 76 # 0x4c L 
+$sig[8] = 83 # 0x53 S
+$sig[9] = 69 # 0x45 E
+$sig[10] = 84 # 0x54 T
+Set-Content -Path $DIR\testfile -Value $sig -Encoding Byte
 
-check_files $DIR/testfile
+expect_normal_exit $Env:EXE_DIR\log_pool$EXESUFFIX o $DIR\testfile
 
 check
 

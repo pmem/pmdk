@@ -154,6 +154,19 @@ __sync_synchronize()
 
 /* errno.h */
 #define ELIBACC 79 /* cannot access a needed shared library */
+/* Winddows CRT doesn't support all errors, add unmapped here */
+#define ENOTSUP_STR "Operation not supported"
+static __inline
+char *
+os_strerror(int errnum)
+{
+	switch (errnum) {
+	case ENOTSUP:
+		return ENOTSUP_STR;
+	default:
+		return strtok(_strerror(NULL), "\n");
+	}
+}
 
 /* sys/stat.h */
 #define S_IRUSR S_IREAD

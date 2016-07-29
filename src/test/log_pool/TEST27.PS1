@@ -1,5 +1,4 @@
-#!/bin/bash -e
-#
+﻿#
 # Copyright 2015-2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
@@ -30,29 +29,36 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
+# src/test/log_pool/TEST27 -- unit test for pmemlog_open
 #
-# src/test/log_pool/TEST1 -- unit test for pmemlog_create
+# parameter handling
 #
-export UNITTEST_NAME=log_pool/TEST1
-export UNITTEST_NUM=1
+[CmdletBinding(PositionalBinding=$false)]
+Param(
+    [alias("d")]
+    $DIR = ""
+    )
+$Env:UNITTEST_NAME = "log_pool\TEST27"
+$Env:UNITTEST_NUM = "27"
+# XXX:  bash has a few calls to tools that we don't have on
+# windows (yet) that set PMEM_IS_PMEM and NON_PMEM_IS_PMEM based
+# on their output
+$Env:PMEM_IS_PMEM = $true
+$Env:NON_PMEM_IS_PMEM = $true
 
 # standard unit test setup
-. ../unittest/unittest.sh
+. ..\unittest\unittest.ps1
+
+require_fs_type "any"
 
 setup
-umask 0
-
-create_holey_file 40 $DIR/testfile
-chmod 0600 $DIR/testfile
 
 #
-# TEST1 existing file, file length >= min required size, poolsize == 0
+# TEST27 existing file, file size >= min required size
 #
-expect_normal_exit ./log_pool$EXESUFFIX c $DIR/testfile 0 0600
+create_poolset $DIR\testset 20M:$DIR\testfile1:x 20M:$DIR\testfile2:x
+expect_normal_exit $Env:EXE_DIR\log_pool$EXESUFFIX c $DIR\testfile 20 0600
 
-check_files $DIR/testfile
-
-check
+expect_normal_exit $Env:EXE_DIR\log_pool$EXESUFFIX o $DIR\testfile
 
 pass

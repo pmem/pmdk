@@ -31,6 +31,10 @@
 
 . "..\testconfig.ps1"
 
+function touch {
+    echo $null >> $args[0]
+}
+
 function epoch {
     return [int64](([datetime]::UtcNow)-(get-date "1/1/1970")).TotalMilliseconds
 }
