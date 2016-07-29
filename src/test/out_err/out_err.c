@@ -48,6 +48,8 @@
 int
 main(int argc, char *argv[])
 {
+	char buff[UT_MAX_ERR_MSG];
+
 	START(argc, argv, "out_err");
 
 	/* Execute test */
@@ -67,13 +69,15 @@ main(int argc, char *argv[])
 	UT_OUT("%s", out_get_errormsg());
 
 	errno = EBADF;
+	ut_strerror(errno, buff, UT_MAX_ERR_MSG);
 	out_err(__FILE__, 100, __func__,
-		"ERR1: %s:%d", strerror(errno), 1234);
+		"ERR1: %s:%d", buff, 1234);
 	UT_OUT("%s", out_get_errormsg());
 
 	errno = EBADF;
+	ut_strerror(errno, buff, UT_MAX_ERR_MSG);
 	out_err(NULL, 0, NULL,
-		"ERR2: %s:%d", strerror(errno), 1234);
+		"ERR2: %s:%d", buff, 1234);
 	UT_OUT("%s", out_get_errormsg());
 
 	/* Cleanup */

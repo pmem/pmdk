@@ -21,6 +21,30 @@
   <ItemGroup>
     <ClCompile Include="..\..\..\src\test\log_pool\log_pool.c" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="TEST0.PS1" />
+    <None Include="TEST1.PS1" />
+    <None Include="TEST10.PS1" />
+    <None Include="TEST11w.PS1" />
+    <None Include="TEST12.PS1" />
+    <None Include="TEST2.PS1" />
+    <None Include="TEST20.PS1" />
+    <None Include="TEST21.PS1" />
+    <None Include="TEST22.PS1" />
+    <None Include="TEST23.PS1" />
+    <None Include="TEST24.PS1" />
+    <None Include="TEST25.PS1" />
+    <None Include="TEST26.PS1" />
+    <None Include="TEST27.PS1" />
+    <None Include="TEST28.PS1" />
+    <None Include="TEST3.PS1" />
+    <None Include="TEST4.PS1" />
+    <None Include="TEST5.PS1" />
+    <None Include="TEST6.PS1" />
+    <None Include="TEST7.PS1" />
+    <None Include="TEST8.PS1" />
+    <None Include="TEST9.PS1" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{3CF270CD-0F56-48E3-AD84-82F369C568BF}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>

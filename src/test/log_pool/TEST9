@@ -53,7 +53,7 @@ chmod 0240 $DIR/testfile
 # TEST9 existing file, file length >= min required size, poolsize == 0,
 #       (no read permissions)
 #
-expect_normal_exit ./log_pool$EXESUFFIX c $DIR/testfile 0 0640
+expect_normal_exit ./log_pool$EXESUFFIX c $DIR/testfile 0 0600
 
 check_files $DIR/testfile
 

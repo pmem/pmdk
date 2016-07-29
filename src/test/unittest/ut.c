@@ -45,6 +45,27 @@
 /* RHEL5 seems to be missing decls, even though libc supports them */
 extern DIR *fdopendir(int fd);
 extern ssize_t readlinkat(int, const char *restrict, char *__restrict, size_t);
+void
+ut_strerror(int errnum, char *buff, size_t bufflen)
+{
+	strerror_r(errnum, buff, bufflen);
+}
+#else
+/* XXX - fix this temp hack dup'ing util_strerror when we get mock for win */
+#define ENOTSUP_STR "Operation not supported"
+#define UNMAPPED_STR "Unmapped error"
+void
+ut_strerror(int errnum, char *buff, size_t bufflen)
+{
+	switch (errnum) {
+		case ENOTSUP:
+			strcpy_s(buff, bufflen, ENOTSUP_STR);
+			break;
+		default:
+			if (strerror_s(buff, bufflen, errnum))
+				strcpy_s(buff, bufflen, UNMAPPED_STR);
+	}
+}
 #endif
 
 #define MAXLOGNAME 100		/* maximum expected .log file name length */
@@ -82,7 +103,7 @@ vout(int flags, const char *prepend, const char *fmt, va_list ap)
 	int sn;
 	int quiet = Quiet;
 	const char *sep = "";
-	const char *errstr = "";
+	char errstr[UT_MAX_ERR_MSG] = "";
 	const char *nl = "\n";
 
 	if (Force_quiet)
@@ -117,7 +138,7 @@ vout(int flags, const char *prepend, const char *fmt, va_list ap)
 		if (*fmt == '!') {
 			fmt++;
 			sep = ": ";
-			errstr = strerror(errno);
+			ut_strerror(errno, errstr, UT_MAX_ERR_MSG);
 		}
 		sn = vsnprintf(&buf[cc], MAXPRINT - cc, fmt, ap);
 		if (sn < 0)
