@@ -1,4 +1,4 @@
-﻿#
+#
 # Copyright 2015-2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
@@ -64,9 +64,9 @@ $sig[1] = 77 # 0x4d M
 $sig[2] = 69 # 0x45 E
 $sig[3] = 77 # 0x4d M
 $sig[4] = 80 # 0x50 P
-$sig[5] = 79 # 0x4f O 
+$sig[5] = 79 # 0x4f O
 $sig[6] = 79 # 0x4f O
-$sig[7] = 76 # 0x4c L 
+$sig[7] = 76 # 0x4c L
 $sig[8] = 83 # 0x53 S
 $sig[9] = 69 # 0x45 E
 $sig[10] = 84 # 0x54 T

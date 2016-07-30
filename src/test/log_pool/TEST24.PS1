@@ -1,4 +1,4 @@
-﻿#
+#
 # Copyright 2015-2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
@@ -58,7 +58,7 @@ setup
 #        (no read permissions)
 #
 expect_normal_exit $Env:EXE_DIR\log_pool$EXESUFFIX c $DIR\testfile 20 0600
-# deny read 
+# deny read
 & icacls $DIR\testfile /deny ${Env:USERNAME}:R >$null
 
 expect_normal_exit $Env:EXE_DIR\log_pool$EXESUFFIX o $DIR\testfile

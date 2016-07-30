@@ -1,4 +1,4 @@
-﻿#
+#
 # Copyright 2015-2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
@@ -67,6 +67,6 @@ create_poolset $DIR\testset 20M:$DIR\testfile1 R 20M:$DIR\testfile2
 
 expect_normal_exit $Env:EXE_DIR\log_pool$EXESUFFIX o $DIR\testset
 
-check 
+check
 
 pass
