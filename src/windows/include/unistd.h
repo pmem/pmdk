@@ -37,6 +37,8 @@
 #ifndef UNISTD_H
 #define UNISTD_H 1
 
+#include <stdio.h>
+
 #define _SC_PAGESIZE 0
 #define _SC_NPROCESSORS_ONLN 1
 
@@ -126,5 +128,13 @@ dirname(char *path)
 	return path;
 }
 
-#define ftruncate _chsize_s
+/*
+ * ftruncate -- truncate a file to a specified length
+ */
+static int
+ftruncate(int fd, off_t length)
+{
+	return _chsize_s(fd, length);
+}
+
 #endif /* UNISTD_H */

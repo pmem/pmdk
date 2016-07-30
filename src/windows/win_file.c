@@ -126,12 +126,3 @@ flock(int fd, int operation)
 				systemInfo.dwPageSize : (long)filelen;
 	return _locking(fd, flags, len);
 }
-
-/*
- * ftruncate -- truncate a file to a specified length
- */
-int
-ftruncate(int fd, off_t length)
-{
-	return _chsize_s(fd, length);
-}
