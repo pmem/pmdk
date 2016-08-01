@@ -308,7 +308,7 @@ main(int argc, char *argv[])
 		sscanf(argv[i], "%c:%d:%d", &type, &list_num, &id);
 		switch (type) {
 		case 'P':
-			do_print[list_num](id);
+			do_print[list_num]();
 			break;
 		case 'a':
 			do_alloc[list_num](id);
@@ -317,7 +317,7 @@ main(int argc, char *argv[])
 			do_free[list_num](id);
 			break;
 		case 'f':
-			do_first[list_num](id);
+			do_first[list_num]();
 			break;
 		case 'n':
 			do_next[list_num](id);
