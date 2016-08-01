@@ -121,22 +121,22 @@ static void
 obj_tx_abort(int errnum, int user);
 
 /*
- * pmemobj_tx_abort_err -- (internal) pmemobj_tx_abort variant that returns
+ * obj_tx_abort_err -- (internal) pmemobj_tx_abort variant that returns
  * error code
  */
 static inline int
-pmemobj_tx_abort_err(int errnum)
+obj_tx_abort_err(int errnum)
 {
 	obj_tx_abort(errnum, 0);
 	return errnum;
 }
 
 /*
- * pmemobj_tx_abort_null -- (internal) pmemobj_tx_abort variant that returns
+ * obj_tx_abort_null -- (internal) pmemobj_tx_abort variant that returns
  * null PMEMoid
  */
 static inline PMEMoid
-pmemobj_tx_abort_null(int errnum)
+obj_tx_abort_null(int errnum)
 {
 	obj_tx_abort(errnum, 0);
 	return OID_NULL;
@@ -982,7 +982,7 @@ tx_alloc_common(size_t size, type_num_t type_num, palloc_constr constructor)
 
 	if (size > PMEMOBJ_MAX_ALLOC_SIZE) {
 		ERR("requested size too large");
-		return pmemobj_tx_abort_null(ENOMEM);
+		return obj_tx_abort_null(ENOMEM);
 	}
 
 	struct lane_tx_runtime *lane =
@@ -991,7 +991,7 @@ tx_alloc_common(size_t size, type_num_t type_num, palloc_constr constructor)
 	uint64_t *entry_offset = pvector_push_back(lane->undo.ctx[UNDO_ALLOC]);
 	if (entry_offset == NULL) {
 		ERR("allocation undo log too large");
-		return pmemobj_tx_abort_null(ENOMEM);
+		return obj_tx_abort_null(ENOMEM);
 	}
 
 	struct tx_alloc_args args = {
@@ -1018,7 +1018,7 @@ err_oom:
 	pvector_pop_back(lane->undo.ctx[UNDO_ALLOC], NULL);
 
 	ERR("out of memory");
-	return pmemobj_tx_abort_null(ENOMEM);
+	return obj_tx_abort_null(ENOMEM);
 }
 
 /*
@@ -1032,7 +1032,7 @@ tx_alloc_copy_common(size_t size, type_num_t type_num, const void *ptr,
 
 	if (size > PMEMOBJ_MAX_ALLOC_SIZE) {
 		ERR("requested size too large");
-		return pmemobj_tx_abort_null(ENOMEM);
+		return obj_tx_abort_null(ENOMEM);
 	}
 
 	struct lane_tx_runtime *lane =
@@ -1041,7 +1041,7 @@ tx_alloc_copy_common(size_t size, type_num_t type_num, const void *ptr,
 	uint64_t *entry_offset = pvector_push_back(lane->undo.ctx[UNDO_ALLOC]);
 	if (entry_offset == NULL) {
 		ERR("allocation undo log too large");
-		return pmemobj_tx_abort_null(ENOMEM);
+		return obj_tx_abort_null(ENOMEM);
 	}
 
 	struct tx_alloc_copy_args args = {
@@ -1072,7 +1072,7 @@ err_oom:
 	pvector_pop_back(lane->undo.ctx[UNDO_ALLOC], NULL);
 
 	ERR("out of memory");
-	return pmemobj_tx_abort_null(ENOMEM);
+	return obj_tx_abort_null(ENOMEM);
 }
 
 /*
@@ -1087,7 +1087,7 @@ tx_realloc_common(PMEMoid oid, size_t size, uint64_t type_num,
 
 	if (size > PMEMOBJ_MAX_ALLOC_SIZE) {
 		ERR("requested size too large");
-		return pmemobj_tx_abort_null(ENOMEM);
+		return obj_tx_abort_null(ENOMEM);
 	}
 
 	struct lane_tx_runtime *lane =
@@ -1147,7 +1147,7 @@ pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...)
 		lane = tx.section->runtime;
 		if (lane->pop != pop) {
 			ERR("nested transaction for different pool");
-			return pmemobj_tx_abort_err(EINVAL);
+			return obj_tx_abort_err(EINVAL);
 		}
 
 		VALGRIND_START_TX;
@@ -1583,14 +1583,14 @@ pmemobj_tx_add_common(struct tx_add_range_args *args)
 
 	if (args->size > PMEMOBJ_MAX_ALLOC_SIZE) {
 		ERR("snapshot size too large");
-		return pmemobj_tx_abort_err(EINVAL);
+		return obj_tx_abort_err(EINVAL);
 	}
 
 	if (args->offset < args->pop->heap_offset ||
 		(args->offset + args->size) >
 		(args->pop->heap_offset + args->pop->heap_size)) {
 		ERR("object outside of heap");
-		return pmemobj_tx_abort_err(EINVAL);
+		return obj_tx_abort_err(EINVAL);
 	}
 
 	struct lane_tx_runtime *runtime = tx.section->runtime;
@@ -1656,7 +1656,7 @@ pmemobj_tx_add_common(struct tx_add_range_args *args)
 
 	if (ret != 0) {
 		ERR("out of memory");
-		return pmemobj_tx_abort_err(ENOMEM);
+		return obj_tx_abort_err(ENOMEM);
 	}
 
 	return 0;
@@ -1680,7 +1680,7 @@ pmemobj_tx_add_range_direct(const void *ptr, size_t size)
 	if ((char *)ptr < (char *)lane->pop ||
 			(char *)ptr >= (char *)lane->pop + lane->pop->size) {
 		ERR("object outside of pool");
-		return pmemobj_tx_abort_err(EINVAL);
+		return obj_tx_abort_err(EINVAL);
 	}
 
 	struct tx_add_range_args args = {
@@ -1708,7 +1708,7 @@ pmemobj_tx_add_range(PMEMoid oid, uint64_t hoff, size_t size)
 
 	if (oid.pool_uuid_lo != lane->pop->uuid_lo) {
 		ERR("invalid pool uuid");
-		return pmemobj_tx_abort_err(EINVAL);
+		return obj_tx_abort_err(EINVAL);
 	}
 	ASSERT(OBJ_OID_IS_VALID(lane->pop, oid));
 
@@ -1742,7 +1742,7 @@ pmemobj_tx_alloc(size_t size, uint64_t type_num)
 
 	if (size == 0) {
 		ERR("allocation with size 0");
-		return pmemobj_tx_abort_null(EINVAL);
+		return obj_tx_abort_null(EINVAL);
 	}
 
 	return tx_alloc_common(size, (type_num_t)type_num,
@@ -1762,7 +1762,7 @@ pmemobj_tx_zalloc(size_t size, uint64_t type_num)
 
 	if (size == 0) {
 		ERR("allocation with size 0");
-		return pmemobj_tx_abort_null(EINVAL);
+		return obj_tx_abort_null(EINVAL);
 	}
 
 	return tx_alloc_common(size, (type_num_t)type_num,
@@ -1813,7 +1813,7 @@ pmemobj_tx_strdup(const char *s, uint64_t type_num)
 
 	if (NULL == s) {
 		ERR("cannot duplicate NULL string");
-		return pmemobj_tx_abort_null(EINVAL);
+		return obj_tx_abort_null(EINVAL);
 	}
 
 	size_t len = strlen(s);
@@ -1848,7 +1848,7 @@ pmemobj_tx_free(PMEMoid oid)
 
 	if (pop->uuid_lo != oid.pool_uuid_lo) {
 		ERR("invalid pool uuid");
-		return pmemobj_tx_abort_err(EINVAL);
+		return obj_tx_abort_err(EINVAL);
 	}
 	ASSERT(OBJ_OID_IS_VALID(pop, oid));
 
@@ -1857,7 +1857,7 @@ pmemobj_tx_free(PMEMoid oid)
 		uint64_t *entry = pvector_push_back(lane->undo.ctx[UNDO_FREE]);
 		if (entry == NULL) {
 			ERR("free undo log too large");
-			return pmemobj_tx_abort_err(ENOMEM);
+			return obj_tx_abort_err(ENOMEM);
 		}
 		*entry = oid.off;
 		pmemops_persist(&pop->p_ops, entry, sizeof(*entry));
