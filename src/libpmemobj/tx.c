@@ -665,7 +665,8 @@ tx_post_commit_alloc(PMEMobjpool *pop, struct tx_undo_runtime *tx_rt)
 {
 	LOG(3, NULL);
 
-	tx_clear_undo_log(pop, tx_rt->ctx[UNDO_ALLOC], 0);
+	tx_clear_undo_log(pop, tx_rt->ctx[UNDO_ALLOC],
+			TX_CLR_FLAG_VG_TX_REMOVE);
 }
 
 /*

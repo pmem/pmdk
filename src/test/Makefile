@@ -110,6 +110,7 @@ OBJ_TESTS = \
 	obj_tx_invalid\
 	obj_tx_locks\
 	obj_tx_locks_abort\
+	obj_tx_mt\
 	obj_tx_realloc\
 	obj_tx_strdup\
 	obj_constructor
