@@ -114,7 +114,7 @@
       <BrowseInformation>true</BrowseInformation>
       <CompileAs>CompileAsC</CompileAs>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
-      <ForcedIncludeFiles>platform.h;srcversion.h</ForcedIncludeFiles>
+      <ForcedIncludeFiles>platform.h</ForcedIncludeFiles>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -129,7 +129,8 @@
       <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
     </ProjectReference>
     <PreBuildEvent>
-      <Command>powershell.exe -file $(SolutionDir)..\utils\SRCVERSION.ps1</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -141,7 +142,7 @@
       <BrowseInformation>true</BrowseInformation>
       <CompileAs>CompileAsC</CompileAs>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
-      <ForcedIncludeFiles>platform.h;srcversion.h</ForcedIncludeFiles>
+      <ForcedIncludeFiles>platform.h</ForcedIncludeFiles>
       <ExceptionHandling>false</ExceptionHandling>
     </ClCompile>
     <Link>
@@ -153,7 +154,8 @@
       <AdditionalLibraryDirectories>$(OutDir);$(OutDir)/../Static-Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PreBuildEvent>
-      <Command>powershell.exe -file $(SolutionDir)..\utils\SRCVERSION.ps1</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Static-Release|x64'">
@@ -165,7 +167,7 @@
       <BrowseInformation>true</BrowseInformation>
       <CompileAs>CompileAsC</CompileAs>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
-      <ForcedIncludeFiles>platform.h;srcversion.h</ForcedIncludeFiles>
+      <ForcedIncludeFiles>platform.h</ForcedIncludeFiles>
       <ExceptionHandling>false</ExceptionHandling>
     </ClCompile>
     <Link>
@@ -177,14 +179,15 @@
       <AdditionalLibraryDirectories>$(OutDir);$(OutDir)/../Static-Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PreBuildEvent>
-      <Command>powershell.exe -file $(SolutionDir)..\utils\SRCVERSION.ps1</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Static-Debug|x64'">
     <ClCompile>
       <CompileAs>CompileAsC</CompileAs>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
-      <ForcedIncludeFiles>platform.h;srcversion.h</ForcedIncludeFiles>
+      <ForcedIncludeFiles>platform.h</ForcedIncludeFiles>
       <BrowseInformation>true</BrowseInformation>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <ExceptionHandling>false</ExceptionHandling>
@@ -202,7 +205,8 @@
       <AdditionalDependencies>liblinux.lib;shlwapi.lib;libpmemcommon.lib;</AdditionalDependencies>
     </Lib>
     <PreBuildEvent>
-      <Command>powershell.exe -file $(SolutionDir)..\utils\SRCVERSION.ps1</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -39,9 +39,6 @@
     <ClInclude Include="..\common\sys_util.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\common\cpu.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="check.c">

@@ -19,7 +19,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\common\cpu.h" />
     <ClInclude Include="..\common\out.h" />
     <ClInclude Include="..\common\sys_util.h" />
     <ClInclude Include="..\common\util.h" />
@@ -140,7 +139,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <ForcedIncludeFiles>platform.h;srcversion.h</ForcedIncludeFiles>
+      <ForcedIncludeFiles>platform.h</ForcedIncludeFiles>
       <ExceptionHandling>false</ExceptionHandling>
       <CompileAs>CompileAsC</CompileAs>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\src\windows\include;$(ProjectDir)..\..\src\include;$(ProjectDir)..\..\src\common;$(ProjectDir)..\include;$(ProjectDir)..\libpmemblk;$(ProjectDir)..\libpmemlog;$(ProjectDir)..\libpmemobj;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -166,13 +165,14 @@
       <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
     </ProjectReference>
     <PreBuildEvent>
-      <Command>powershell.exe -file $(SolutionDir)..\utils\SRCVERSION.ps1</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Static-Debug|x64'">
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <ForcedIncludeFiles>platform.h;srcversion.h</ForcedIncludeFiles>
+      <ForcedIncludeFiles>platform.h</ForcedIncludeFiles>
       <ExceptionHandling>false</ExceptionHandling>
       <CompileAs>CompileAsC</CompileAs>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\src\windows\include;$(ProjectDir)..\..\src\include;$(ProjectDir)..\..\src\common;$(ProjectDir)..\include;$(ProjectDir)..\libpmemblk;$(ProjectDir)..\libpmemlog;$(ProjectDir)..\libpmemobj;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -200,7 +200,8 @@
       <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
     </Lib>
     <PreBuildEvent>
-      <Command>powershell.exe -file $(SolutionDir)..\utils\SRCVERSION.ps1</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -213,7 +214,7 @@
       <ExceptionHandling>false</ExceptionHandling>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\src\windows\include;$(ProjectDir)..\..\src\include;$(ProjectDir)..\..\src\common;$(ProjectDir)..\include;$(ProjectDir)..\libpmemblk;$(ProjectDir)..\libpmemlog;$(ProjectDir)..\libpmemobj;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_CRT_USE_WINAPI_FAMILY_DESKTOP_APP;WINAPI_PARTITION_SYSTEM;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ForcedIncludeFiles>platform.h;srcversion.h</ForcedIncludeFiles>
+      <ForcedIncludeFiles>platform.h</ForcedIncludeFiles>
       <CompileAsWinRT>false</CompileAsWinRT>
     </ClCompile>
     <Link>
@@ -226,7 +227,8 @@
       <AdditionalLibraryDirectories>$(OutDir);$(OutDir)/../Static-Relese;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PreBuildEvent>
-      <Command>powershell.exe -file $(SolutionDir)..\utils\SRCVERSION.ps1</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Static-Release|x64'">
@@ -240,7 +242,7 @@
       <ExceptionHandling>false</ExceptionHandling>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\src\windows\include;$(ProjectDir)..\..\src\include;$(ProjectDir)..\..\src\common;$(ProjectDir)..\include;$(ProjectDir)..\libpmemblk;$(ProjectDir)..\libpmemlog;$(ProjectDir)..\libpmemobj;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_CRT_USE_WINAPI_FAMILY_DESKTOP_APP;WINAPI_PARTITION_SYSTEM;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ForcedIncludeFiles>platform.h;srcversion.h</ForcedIncludeFiles>
+      <ForcedIncludeFiles>platform.h</ForcedIncludeFiles>
       <CompileAsWinRT>false</CompileAsWinRT>
     </ClCompile>
     <Link>
@@ -253,7 +255,8 @@
       <AdditionalLibraryDirectories>$(OutDir);$(OutDir)/../Static-Relese;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PreBuildEvent>
-      <Command>powershell.exe -file $(SolutionDir)..\utils\SRCVERSION.ps1</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

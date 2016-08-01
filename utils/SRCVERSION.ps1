@@ -32,13 +32,23 @@
 # SRCVERSION.PS1 -- script to create SCRVERSION macro on windows
 #
 
-$file_path = (pwd).Path + "\srcversion.h"
+$scriptPath = Split-Path -parent $MyInvocation.MyCommand.Definition
+$file_path = $scriptPath + "\..\src\windows\include\srcversion.h"
 $git = Get-Command -Name git -ErrorAction SilentlyContinue
 
-if ($git -eq $null) {
-    $version = "#define SRCVERSION `"1.0`"";
+if (Test-Path $file_path) {
+    $old_version = Get-Content $file_path | Where-Object { $_ -like '#define*' }
 } else {
-    $version = "#define SRCVERSION `"$(git describe)`"";
+    $old_version = ""
 }
 
-echo $version > $file_path
+if ($git -eq $null) {
+    $version = "#define SRCVERSION `"1.0`""
+} else {
+    $version = "#define SRCVERSION `"$(git describe)`""
+}
+
+if ($old_version -ne $version) {
+    echo "updating source version: $version"
+    echo $version > $file_path
+}
