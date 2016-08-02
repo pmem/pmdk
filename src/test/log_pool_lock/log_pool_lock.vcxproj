@@ -110,7 +110,6 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>DebugFastLink</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(OutDir);</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Shlwapi.lib;libut.lib;libpmem.lib;libpmemlog.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -152,6 +151,17 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="TEST0.PS1" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\libpmemlog\libpmemlog.vcxproj">
+      <Project>{0b1818eb-bdc8-4865-964f-db8bf05cfd86}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\libpmem\libpmem.vcxproj">
+      <Project>{9e9e3d25-2139-4a5d-9200-18148ddead45}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\unittest\libut.vcxproj">
+      <Project>{ce3f2dfb-8470-4802-ad37-21caf6cb2681}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
