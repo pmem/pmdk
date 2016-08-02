@@ -38,8 +38,8 @@
 #ifndef PMEMOBJ_COMMON_HPP
 #define PMEMOBJ_COMMON_HPP
 
-#include "libpmemobj/tx_base.h"
 #include "libpmemobj++/detail/pexceptions.hpp"
+#include "libpmemobj/tx_base.h"
 #include <typeinfo>
 
 namespace nvml
