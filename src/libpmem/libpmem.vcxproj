@@ -19,20 +19,14 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\common\out.c" />
-    <ClCompile Include="..\..\src\common\util.c" />
     <ClCompile Include="..\..\src\libpmem\libpmem.c" />
     <ClCompile Include="..\..\src\libpmem\pmem.c" />
-    <ClCompile Include="..\..\src\libpmem\pmem_windows.c" />
-    <ClCompile Include="..\common\file_windows.c" />
-    <ClCompile Include="..\common\mmap.c" />
-    <ClCompile Include="..\common\mmap_windows.c" />
-    <ClCompile Include="..\common\pthread_windows.c" />
     <ClCompile Include="..\libpmem\libpmem_main.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Static-Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\windows\win_mmap.c" />
     <ClCompile Include="cpu.c" />
+    <ClCompile Include="pmem_windows.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\common\out.h" />
@@ -144,11 +138,12 @@
       <SubSystem>Windows</SubSystem>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
-      <AdditionalDependencies>$(WindowsSDK_LibraryPath)\$(PlatformTarget)\kernel32.lib;shlwapi.lib;ntdll.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(WindowsSDK_LibraryPath)\$(PlatformTarget)\kernel32.lib;shlwapi.lib;ntdll.lib;libpmemcommon.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ModuleDefinitionFile>libpmem.def</ModuleDefinitionFile>
       <GenerateMapFile>true</GenerateMapFile>
       <EntryPointSymbol>
       </EntryPointSymbol>
+      <AdditionalLibraryDirectories>$(OutDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <ProjectReference>
       <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
@@ -174,7 +169,7 @@
       <SubSystem>Console</SubSystem>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
-      <AdditionalDependencies>$(WindowsSDK_LibraryPath)\$(PlatformTarget)\kernel32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(WindowsSDK_LibraryPath)\$(PlatformTarget)\kernel32.lib;libpmemcommon.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ModuleDefinitionFile>libpmem.def</ModuleDefinitionFile>
       <GenerateMapFile>true</GenerateMapFile>
       <EntryPointSymbol>
@@ -184,7 +179,7 @@
       <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
     </ProjectReference>
     <Lib>
-      <AdditionalDependencies>liblinux.lib;shlwapi.lib</AdditionalDependencies>
+      <AdditionalDependencies>liblinux.lib;shlwapi.lib;libpmemcommon.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
     </Lib>
     <PreBuildEvent>
@@ -208,9 +203,10 @@
       <SubSystem>Windows</SubSystem>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
-      <AdditionalDependencies>$(WindowsSDK_LibraryPath)\$(PlatformTarget)\kernel32.lib;shlwapi.lib;ntdll.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(WindowsSDK_LibraryPath)\$(PlatformTarget)\kernel32.lib;shlwapi.lib;ntdll.lib;libpmemcommon.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ModuleDefinitionFile>libpmem.def</ModuleDefinitionFile>
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
+      <AdditionalLibraryDirectories>$(OutDir);</AdditionalLibraryDirectories>
     </Link>
     <PreBuildEvent>
       <Command>powershell.exe -file $(SolutionDir)..\utils\SRCVERSION.ps1</Command>

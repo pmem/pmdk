@@ -17,34 +17,16 @@
     <ClCompile Include="..\libpmem\libpmem_main.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\common\out.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\libpmem\pmem.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\common\util.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\libpmem\pmem_windows.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\common\mmap_windows.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\common\pthread_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="cpu.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\mmap.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\common\file_windows.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\windows\win_mmap.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="pmem_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
