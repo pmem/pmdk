@@ -1,4 +1,3 @@
-#!/bin/bash -e
 #
 # Copyright 2015-2016, Intel Corporation
 #
@@ -32,23 +31,32 @@
 #
 
 #
-# src/test/obj_first_next/TEST1 -- unit test for POBJ_FIRST macro
+# src/test/obj_first_next/TEST0 -- unit test for POBJ_NEXT macro
 #
-# Returns first object on the proper list
-#
-export UNITTEST_NAME=obj_first_next/TEST1
-export UNITTEST_NUM=1
+[CmdletBinding(PositionalBinding=$false)]
+Param(
+    [alias("d")]
+    $DIR = ""
+    )
+$Env:UNITTEST_NAME = "obj_first_next/TEST0"
+$Env:UNITTEST_NUM = "0"
+# XXX:  bash has a few calls to tools that we don't have on
+# windows (yet) that set PMEM_IS_PMEM and NON_PMEM_IS_PMEM based
+# on their output
+$Env:PMEM_IS_PMEM = $true
+$Env:NON_PMEM_IS_PMEM = $true
 
 # standard unit test setup
-. ../unittest/unittest.sh
+
+. ..\unittest\unittest.ps1
 
 setup
 
-expect_normal_exit ./obj_first_next$EXESUFFIX $DIR/testfile\
-	a:0:1 a:0:0 a:1:1 a:0:2 a:1:2 P:0 P:1\
-	f:0 f:1 r:0:0 r:1:0 P:0 P:1\
-	f:0 f:1 a:0:3 a:1:3 P:0 P:1\
-	f:0 f:1
+expect_normal_exit $Env:EXE_DIR\obj_first_next$EXESUFFIX $DIR\testfile `
+	a:0:0 a:0:1 a:1:1 a:0:2 a:1:2 a:0:3 a:1:3 P:0 P:1 `
+	n:0:2 n:1:1 r:0:0 r:1:0 P:0 P:1 `
+	n:0:0 n:1:0 a:0:4 a:1:4 P:0 P:1 `
+	n:0:1 n:1:1
 check
 
 pass
