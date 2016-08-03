@@ -38,8 +38,6 @@
     <ClCompile Include="..\..\libpmemobj\redo.c" />
     <ClCompile Include="..\..\libpmemobj\sync.c" />
     <ClCompile Include="..\..\libpmemobj\tx.c" />
-    <ClCompile Include="..\..\windows\win_file.c" />
-    <ClCompile Include="..\..\windows\win_mmap.c" />
     <ClCompile Include="check.c" />
     <ClCompile Include="common.c" />
     <ClCompile Include="convert.c" />
@@ -55,7 +53,6 @@
     <ClCompile Include="rm.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\common\cpu.h" />
     <ClInclude Include="..\..\common\out.h" />
     <ClInclude Include="..\..\common\sys_util.h" />
     <ClInclude Include="..\..\common\util.h" />
@@ -154,7 +151,7 @@
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>_DEBUG;DEBUG;_CONSOLE;WINAPI_PARTITION_SYSTEM;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\windows\include;$(ProjectDir)..\..\include;$(ProjectDir)..\..\common;$(ProjectDir)..\..\windows\getopt;$(ProjectDir)..\..\libpmemblk;$(ProjectDir)..\..\libpmemlog;$(ProjectDir)..\..\libpmemobj;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <ForcedIncludeFiles>platform.h;srcversion.h</ForcedIncludeFiles>
+      <ForcedIncludeFiles>platform.h</ForcedIncludeFiles>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
       <CompileAs>CompileAsC</CompileAs>
       <PreprocessToFile>false</PreprocessToFile>
@@ -165,7 +162,8 @@
       <AdditionalDependencies>libpmem.lib;libpmemobj.lib;libpmempool.lib;liblinux.lib;Shlwapi.lib;libpmemcommon.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
-      <Command>powershell.exe -file $(SolutionDir)..\utils\SRCVERSION.ps1</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Static-Debug|x64'">
@@ -174,7 +172,7 @@
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;WINAPI_PARTITION_SYSTEM;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\windows\include;$(ProjectDir)..\..\include;$(ProjectDir)..\..\common;$(ProjectDir)..\..\windows\getopt;$(ProjectDir)..\..\libpmemblk;$(ProjectDir)..\..\libpmemlog;$(ProjectDir)..\..\libpmemobj;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <ForcedIncludeFiles>platform.h;srcversion.h</ForcedIncludeFiles>
+      <ForcedIncludeFiles>platform.h</ForcedIncludeFiles>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
       <CompileAs>CompileAsC</CompileAs>
       <PreprocessToFile>false</PreprocessToFile>
@@ -185,7 +183,8 @@
       <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
     </Link>
     <PreBuildEvent>
-      <Command>powershell.exe -file $(SolutionDir)..\utils\SRCVERSION.ps1</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -197,7 +196,7 @@
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\windows\include;$(ProjectDir)..\..\include;$(ProjectDir)..\..\common;$(ProjectDir)..\..\windows\getopt;$(ProjectDir)..\..\libpmemblk;$(ProjectDir)..\..\libpmemlog;$(ProjectDir)..\..\libpmemobj;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAs>CompileAsC</CompileAs>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
-      <ForcedIncludeFiles>platform.h;srcversion.h</ForcedIncludeFiles>
+      <ForcedIncludeFiles>platform.h</ForcedIncludeFiles>
       <PreprocessToFile>false</PreprocessToFile>
     </ClCompile>
     <Link>
@@ -206,7 +205,8 @@
       <AdditionalDependencies>libpmem.lib;libpmemobj.lib;libpmempool.lib;liblinux.lib;Shlwapi.lib;libpmemcommon.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
-      <Command>powershell.exe -file $(SolutionDir)..\utils\SRCVERSION.ps1</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Static-Release|x64'">
@@ -218,7 +218,7 @@
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\windows\include;$(ProjectDir)..\..\include;$(ProjectDir)..\..\common;$(ProjectDir)..\..\windows\getopt;$(ProjectDir)..\..\libpmemblk;$(ProjectDir)..\..\libpmemlog;$(ProjectDir)..\..\libpmemobj;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAs>CompileAsC</CompileAs>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
-      <ForcedIncludeFiles>platform.h;srcversion.h</ForcedIncludeFiles>
+      <ForcedIncludeFiles>platform.h</ForcedIncludeFiles>
       <PreprocessToFile>false</PreprocessToFile>
     </ClCompile>
     <Link>
@@ -227,7 +227,8 @@
       <AdditionalDependencies>ntdll.lib;libpmem.lib;libpmemobj.lib;libpmempool.lib;liblinux.lib;Shlwapi.lib;libpmemcommon.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
-      <Command>powershell.exe -file $(SolutionDir)..\utils\SRCVERSION.ps1</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -56,6 +56,11 @@
 #include "heap.h"
 #include "btt_layout.h"
 
+/* XXX - modify Linux makefiles to generate srcversion.h and remove #ifdef */
+#ifdef _WIN32
+#include "srcversion.h"
+#endif
+
 #define COUNT_OF(x) (sizeof(x) / sizeof(0[x]))
 
 #define OPT_SHIFT 12
