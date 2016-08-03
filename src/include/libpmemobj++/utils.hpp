@@ -37,9 +37,9 @@
 #ifndef LIBPMEMOBJ_UTILS_HPP
 #define LIBPMEMOBJ_UTILS_HPP
 
-#include "libpmemobj/base.h"
 #include "libpmemobj++/detail/pexceptions.hpp"
 #include "libpmemobj++/persistent_ptr.hpp"
+#include "libpmemobj/base.h"
 
 namespace nvml
 {
