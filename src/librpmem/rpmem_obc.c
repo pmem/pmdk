@@ -611,14 +611,14 @@ rpmem_obc_close(struct rpmem_obc *rpc)
 	rpmem_hton_msg_close(&msg);
 
 	if (rpmem_ssh_send(rpc->ssh, &msg, sizeof(msg))) {
-		RPMEM_LOG(ERR, "!sending create request failed");
+		RPMEM_LOG(ERR, "!sending close request failed");
 		return -1;
 	}
 
 	struct rpmem_msg_close_resp resp;
 	if (rpmem_ssh_recv(rpc->ssh, &resp,
 			sizeof(resp))) {
-		RPMEM_LOG(ERR, "!receiving create request response failed");
+		RPMEM_LOG(ERR, "!receiving close request response failed");
 		return -1;
 	}
 
