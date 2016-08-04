@@ -39,6 +39,7 @@
 
 #include <pthread.h>
 #include <errno.h>
+#include <inttypes.h>
 
 #include "list.h"
 #include "obj.h"
@@ -50,7 +51,7 @@
 #define MOCK_RUNTIME_2 (void *)(0xBCD)
 
 static void *base_ptr;
-#define RPTR(p) (void *)((char *)p - (char *)base_ptr)
+#define RPTR(p) (uintptr_t)((char *)p - (char *)base_ptr)
 
 struct mock_pop {
 	PMEMobjpool p;
@@ -82,7 +83,7 @@ static int recovery_check_fail;
 static int
 lane_noop_recovery(PMEMobjpool *pop, void *data, unsigned length)
 {
-	UT_OUT("lane_noop_recovery 0x%x", RPTR(data));
+	UT_OUT("lane_noop_recovery 0x%"PRIxPTR, RPTR(data));
 	if (recovery_check_fail)
 		return EINVAL;
 
@@ -92,7 +93,7 @@ lane_noop_recovery(PMEMobjpool *pop, void *data, unsigned length)
 static int
 lane_noop_check(PMEMobjpool *pop, void *data, unsigned length)
 {
-	UT_OUT("lane_noop_check 0x%x", RPTR(data));
+	UT_OUT("lane_noop_check 0x%"PRIxPTR, RPTR(data));
 	if (recovery_check_fail)
 		return EINVAL;
 
@@ -247,18 +248,20 @@ test_lane_hold_release()
 
 	lane_release(&pop.p);
 	lane_release(&pop.p);
-	struct sigaction v;
+	struct sigaction v, old;
 	sigemptyset(&v.sa_mask);
 	v.sa_flags = 0;
 	v.sa_handler = signal_handler;
-	void *old = SIGACTION(SIGABRT, &v, NULL);
+
+	SIGACTION(SIGABRT, &v, &old);
 
 	if (!ut_sigsetjmp(Jmp)) {
 		lane_release(&pop.p); /* only two sections were held */
 		UT_ERR("we should not get here");
 	}
 
-	signal(SIGABRT, old);
+	SIGACTION(SIGABRT, &old, NULL);
+
 	FREE(pop.p.lanes_desc.lane_locks);
 }
 

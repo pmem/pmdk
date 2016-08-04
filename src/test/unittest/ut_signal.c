@@ -88,6 +88,10 @@ ut_sigaction(const char *file, int line, const char *func,
 	_crt_signal_t retval = signal(signum, act->sa_handler);
 	if (retval == SIG_ERR)
 		ut_fatal(file, line, func, "!signal: %d", signum);
+
+	if (oldact != NULL) {
+		oldact->sa_handler = retval;
+	}
 	return 0;
 #endif
 }
