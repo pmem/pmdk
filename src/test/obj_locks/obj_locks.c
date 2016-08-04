@@ -69,7 +69,7 @@ struct thread_args threads[NUM_THREADS];
 static void *
 do_mutex_lock_one(void *arg)
 {
-	struct thread_args *t = arg;
+	struct thread_args *t = (struct thread_args *)arg;
 	struct locks *lock = D_RW(t->lock);
 	for (int i = 0; i < NUM_LOCKS; i++) {
 		pmemobj_mutex_lock(lock->pop, &lock->mtx[i]);
@@ -85,7 +85,7 @@ do_mutex_lock_one(void *arg)
 static void *
 do_mutex_lock_all(void *arg)
 {
-	struct thread_args *t = arg;
+	struct thread_args *t = (struct thread_args *)arg;
 	struct locks *lock = D_RW(t->lock);
 	for (int i = 0; i < NUM_LOCKS; i++) {
 		pmemobj_mutex_lock(lock->pop, &lock->mtx[i]);
@@ -104,7 +104,7 @@ do_mutex_lock_all(void *arg)
 static void *
 do_rwlock_wrlock_one(void *arg)
 {
-	struct thread_args *t = arg;
+	struct thread_args *t = (struct thread_args *)arg;
 	struct locks *lock = D_RW(t->lock);
 	for (int i = 0; i < NUM_LOCKS; i++) {
 		pmemobj_rwlock_wrlock(lock->pop, &lock->rwlk[i]);
@@ -120,7 +120,7 @@ do_rwlock_wrlock_one(void *arg)
 static void *
 do_rwlock_wrlock_all(void *arg)
 {
-	struct thread_args *t = arg;
+	struct thread_args *t = (struct thread_args *)arg;
 	struct locks *lock = D_RW(t->lock);
 	for (int i = 0; i < NUM_LOCKS; i++) {
 		pmemobj_rwlock_wrlock(lock->pop, &lock->rwlk[i]);
@@ -139,7 +139,7 @@ do_rwlock_wrlock_all(void *arg)
 static void *
 do_rwlock_rdlock_one(void *arg)
 {
-	struct thread_args *t = arg;
+	struct thread_args *t = (struct thread_args *)arg;
 	struct locks *lock = D_RW(t->lock);
 	for (int i = 0; i < NUM_LOCKS; i++) {
 		pmemobj_rwlock_rdlock(lock->pop, &lock->rwlk[i]);
@@ -154,7 +154,7 @@ do_rwlock_rdlock_one(void *arg)
 static void *
 do_rwlock_rdlock_all(void *arg)
 {
-	struct thread_args *t = arg;
+	struct thread_args *t = (struct thread_args *)arg;
 	struct locks *lock = D_RW(t->lock);
 	for (int i = 0; i < NUM_LOCKS; i++)
 		pmemobj_rwlock_rdlock(lock->pop, &lock->rwlk[i]);
@@ -172,7 +172,7 @@ do_rwlock_rdlock_all(void *arg)
 static void *
 do_cond_signal(void *arg)
 {
-	struct thread_args *t = arg;
+	struct thread_args *t = (struct thread_args *)arg;
 	struct locks *lock = D_RW(t->lock);
 	if (t->t_id % 2 != 0) {
 		for (int i = 0; i < NUM_LOCKS; i++) {
@@ -213,7 +213,7 @@ do_cond_signal(void *arg)
 static void *
 do_cond_broadcast(void *arg)
 {
-	struct thread_args *t = arg;
+	struct thread_args *t = (struct thread_args *)arg;
 	struct locks *lock = D_RW(t->lock);
 	for (int i = 0; i < NUM_LOCKS && t->t_id != 0; i++) {
 		pmemobj_mutex_lock(lock->pop, &lock->mtx[i]);
