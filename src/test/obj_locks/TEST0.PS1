@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,14 +31,14 @@
 #
 
 #
-# obj_constructor/TEST0 -- test for obj_constructor
+# src/test/obj_locks/TEST0 -- unit test for pmemobj_mutex and pmemobj_rwlock
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "obj_constructor/TEST0"
+$Env:UNITTEST_NAME = "obj_locks\TEST0"
 $Env:UNITTEST_NUM = "0"
 # XXX:  bash has a few calls to tools that we don't have on
 # windows (yet) that set PMEM_IS_PMEM and NON_PMEM_IS_PMEM based
@@ -47,18 +47,10 @@ $Env:PMEM_IS_PMEM = $true
 $Env:NON_PMEM_IS_PMEM = $true
 
 # standard unit test setup
-
 . ..\unittest\unittest.ps1
-
-require_fs_type any
 
 setup
 
-create_holey_file 8 $DIR\testfile1
-
-# This is a pretty length test on non-pmem devices, so force clflushes.
-$Env:PMEM_IS_PMEM_FORCE=1
-
-expect_normal_exit $Env:EXE_DIR\obj_constructor$EXESUFFIX $DIR\testfile1
+expect_normal_exit $Env:EXE_DIR\obj_locks$EXESUFFIX $DIR\testfile1
 
 pass
