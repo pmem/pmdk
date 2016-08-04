@@ -82,14 +82,21 @@ provided others are omitted. See [CONFIGURATION FILES](#configuration-files)
 section for details.
 
 All options described in [CONFIGURATION FILES](#configuration-files) section are
-common for both the configuration file and the command line. An equivalent of a
-following line in the config file: `option = value` is `--option value` in the
-command line.
+common for both the configuration file and the command line: the  equivalent
+of the following line in the config file:
 
-`--persist-apm`, `--persist-general` and `--use-syslog` command line options
-should not be followed by a value. Presence of each of them in the command line
-turns on appropriate option. See [CONFIGURATION FILES](#configuration-files)
-section for details.
+`option = value`
+
+is
+
+`--option value`
+
+in the command line.
+
+The following command line options: `--persist-apm`, `--persist-general`
+and `--use-syslog` should not be followed by any value. Presence of each of them
+in the command line turns on an appropriate option.
+See [CONFIGURATION FILES](#configuration-files) section for details.
 
 # CONFIGURATION FILES #
 
@@ -126,7 +133,7 @@ file
 
     + `err` - error conditions
     + `warn` - warning conditions
-    + `notice` - normal, but significant, condition
+    + `notice` - normal, but significant conditions
     + `info` - informational message
     + `debug` - debug-level message
 
@@ -179,8 +186,8 @@ the platform and can be enabled by administrator using `persist-apm` option.
 This method requires to issue an RDMA READ operation after the RDMA WRITE
 operations performed on requested chunk of memory.
 
-The Non-allocating write requests is the Intel Integrated IO Controller mode
-where all incoming PCIe Writes will utilize non-allocating buffers for the write
+"Non-allocating write requests" is the Intel Integrated IO Controller mode
+where all incoming PCIe writes will utilize non-allocating buffers for the write
 requests. Non-allocating writes are guaranteed to bypass all of the CPU caches
 and force the write requests to flow directly to the Integrated Memory
 Controller without delay.
