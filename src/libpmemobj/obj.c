@@ -784,11 +784,9 @@ pmemobj_replica_init_local(PMEMobjpool *rep, int is_pmem)
  */
 static int
 pmemobj_replica_init_remote(PMEMobjpool *rep, struct pool_set *set,
-				unsigned repidx, unsigned *runtime_nlanes,
-				int create)
+				unsigned repidx, int create)
 {
-	LOG(3, "rep %p set %p repidx %u runtime_nlanes %u",
-		rep, set, repidx, *runtime_nlanes);
+	LOG(3, "rep %p set %p repidx %u", rep, set, repidx);
 
 	struct pool_replica *repset = set->replica[repidx];
 
@@ -840,7 +838,7 @@ redo_log_check_offset(void *ctx, uint64_t offset)
  */
 static int
 pmemobj_replica_init(PMEMobjpool *rep, struct pool_set *set, unsigned repidx,
-			unsigned *runtime_nlanes, int create)
+			int create)
 {
 	struct pool_replica *repset = set->replica[repidx];
 
@@ -881,8 +879,7 @@ pmemobj_replica_init(PMEMobjpool *rep, struct pool_set *set, unsigned repidx,
 
 	int ret;
 	if (repset->remote)
-		ret = pmemobj_replica_init_remote(rep, set, repidx,
-							runtime_nlanes, create);
+		ret = pmemobj_replica_init_remote(rep, set, repidx, create);
 	else
 		ret = pmemobj_replica_init_local(rep, repset->is_pmem);
 	if (ret)
@@ -1031,8 +1028,7 @@ pmemobj_create(const char *path, const char *layout, size_t poolsize,
 		rep->rpp = NULL;
 
 		/* initialize replica runtime - is_pmem, funcs, ... */
-		if (pmemobj_replica_init(rep, set, r, &runtime_nlanes,
-						1 /* create */) != 0) {
+		if (pmemobj_replica_init(rep, set, r, 1 /* create */) != 0) {
 			ERR("initialization of replica #%u failed", r);
 			goto err;
 		}
@@ -1243,8 +1239,7 @@ pmemobj_open_common(const char *path, const char *layout, int cow, int boot)
 		rep->rpp = NULL;
 
 		/* initialize replica runtime - is_pmem, funcs, ... */
-		if (pmemobj_replica_init(rep, set, r, &runtime_nlanes,
-						0 /* open */) != 0) {
+		if (pmemobj_replica_init(rep, set, r, 0 /* open */) != 0) {
 			ERR("initialization of replica #%u failed", r);
 			goto err;
 		}
