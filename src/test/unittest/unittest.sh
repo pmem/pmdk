@@ -229,6 +229,44 @@ RPMEM_LOG_LEVEL"
 export CHECK_POOL_LOG_FILE=check_pool_${BUILD}_${UNITTEST_NUM}.log
 
 #
+# get_files -- print list of files in the current directory matching the given regex to stdout
+#
+# This function has been implemented to workaround a race condition in
+# `find`, which fails if any file disappears in the middle of the operation.
+#
+# example, to list all *.log files in the current directory
+#	get_files ".*\.log"
+function get_files() {
+	set +e
+	ls -1 | grep -E "^$*$"
+	set -e
+}
+
+#
+# get_executables -- print list of executable files in the current directory to stdout
+#
+# This function has been implemented to workaround a race condition in
+# `find`, which fails if any file disappears in the middle of the operation.
+#
+function get_executables() {
+	set +e
+	for c in *
+	do
+		local rights=$(stat -c "%a %F" "$c" 2>/dev/null)
+		if [ "$rights" == "" ]
+		then
+			continue
+		fi
+		local executable=$((${rights:0:1} % 2))
+		if [ "${rights#[0-7]* }" == "regular file" -a $executable -eq 1 ]
+		then
+			echo "$c"
+		fi
+	done
+	set -e
+}
+
+#
 # create_file -- create zeroed out files of a given length in megs
 #
 # example, to create two files, each 1GB in size:
@@ -509,7 +547,7 @@ function expect_normal_exit() {
 
 		# ignore Ctrl-C
 		if [ $ret != 130 ]; then
-			for f in $(find . -name "node_*.log"); do
+			for f in $(get_files "node_.*\.log"); do
 				dump_last_n_lines $f
 			done
 			dump_last_n_lines out$UNITTEST_NUM.log
@@ -815,7 +853,7 @@ function require_valgrind() {
 function require_valgrind_pmemcheck() {
 	require_valgrind
 	local binary=$1
-	[ -n "$binary" ] || binary=`find . -maxdepth 1 -executable -type f`
+	[ -n "$binary" ] || binary=$(get_executables)
         strings ${binary} 2>&1 | \
             grep -q "compiled with support for Valgrind pmemcheck" && true
         if [ $? -ne 0 ]; then
@@ -840,7 +878,7 @@ function require_valgrind_pmemcheck() {
 function require_valgrind_helgrind() {
 	require_valgrind
 	local binary=$1
-	[ -n "$binary" ] || binary=`find . -maxdepth 1 -executable -type f`
+	[ -n "$binary" ] || binary=$(get_executables)
         strings ${binary}.static-debug 2>&1 | \
             grep -q "compiled with support for Valgrind helgrind" && true
         if [ $? -ne 0 ]; then
@@ -865,7 +903,7 @@ function require_valgrind_helgrind() {
 function require_valgrind_memcheck() {
 	require_valgrind
 	local binary=$1
-	[ -n "$binary" ] || binary=`find . -maxdepth 1 -executable -type f`
+	[ -n "$binary" ] || binary=$(get_executables)
 	strings ${binary} 2>&1 | \
 		grep -q "compiled with support for Valgrind memcheck" && true
 	if [ $? -ne 0 ]; then
@@ -883,7 +921,7 @@ function require_valgrind_memcheck() {
 function require_valgrind_drd() {
 	require_valgrind
 	local binary=$1
-	[ -n "$binary" ] || binary=`find . -maxdepth 1 -executable -type f`
+	[ -n "$binary" ] || binary=$(get_executables)
 	strings ${binary} 2>&1 | \
 		grep -q "compiled with support for Valgrind drd" && true
 	if [ $? -ne 0 ]; then
@@ -1283,7 +1321,7 @@ function require_nodes() {
 
 	# remove all log files from required nodes
 	for (( N=$NODES_MAX ; $(($N + 1)) ; N=$(($N - 1)) )); do
-		for f in $(find . -name "node_${N}*.log"); do
+		for f in $(get_files "node_${N}.*\.log"); do
 			rm -f $f
 		done
 	done
@@ -1584,10 +1622,9 @@ function setup() {
 
 	echo "$UNITTEST_NAME: SETUP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM)"
 
-	find . -maxdepth 1\
-		-ignore_readdir_race \
-		-name "*[a-zA-Z_]${UNITTEST_NUM}.log" \
-		-exec rm -f "{}" \;
+	for f in $(get_files ".*[a-zA-Z_]${UNITTEST_NUM}\.log"); do
+		rm -f $f
+	done
 
 	if [ "$FS" != "none" ]; then
 		if [ -d "$DIR" ]; then
@@ -1605,7 +1642,7 @@ function setup() {
 # check_local -- check local test results (using .match files)
 #
 function check_local() {
-	../match $(find . -regex "[^0-9w]*${UNITTEST_NUM}\.log\.match" | xargs)
+	../match $(get_files "[^0-9w]*${UNITTEST_NUM}\.log\.match")
 }
 
 #
@@ -1615,7 +1652,7 @@ function check() {
 	if [ $NODES_MAX -lt 0 ]; then
 		check_local
 	else
-		FILES=$(find . -regex "./node_[0-9]+_[^0-9w]*${UNITTEST_NUM}\.log\.match" | xargs)
+		FILES=$(get_files "node_[0-9]+_[^0-9w]*${UNITTEST_NUM}\.log\.match")
 		for file in $FILES; do
 			local N=`echo $file | cut -d"_" -f2`
 			local DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
@@ -1624,7 +1661,7 @@ function check() {
 			validate_node_number $N
 			run_command scp $SCP_OPTS ${NODE[$N]}:$DIR/$FILE $NEW_FILE
 		done
-		../match $(find . -regex "./node_[0-9]+_[^0-9]*${UNITTEST_NUM}\.log\.match" | xargs)
+		../match $(get_files "node_[0-9]+_[^0-9]*${UNITTEST_NUM}\.log\.match")
 	fi
 }
 
