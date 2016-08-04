@@ -41,7 +41,7 @@ LIBRARIES = map_ctree map_btree map_rbtree map_skiplist\
 	    map_hashmap_atomic map_hashmap_tx\
 	    map
 
-LIBUV := $(call check_package, libuv)
+LIBUV := $(call check_package, libuv --atleast-version 1.0)
 ifeq ($(LIBUV),y)
 PROGS += kv_server
 else
