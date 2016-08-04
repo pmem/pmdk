@@ -95,12 +95,7 @@ test_reopen(const char *path)
 	if (log2)
 		UT_FATAL("pmemlog_open should not succeed");
 
-#ifndef _WIN32
-	int expected_err = EWOULDBLOCK;
-#else
-	int expected_err = EACCES;
-#endif
-	if (errno != expected_err)
+	if (errno != EWOULDBLOCK)
 		UT_FATAL("!pmemlog_open failed but for unexpected reason");
 
 	pmemlog_close(log1);
@@ -201,7 +196,7 @@ main(int argc, char *argv[])
 			UT_FATAL("pmemlog_open after CreateProcess should "
 				"not succeed");
 
-		if (errno != EACCES)
+		if (errno != EWOULDBLOCK)
 			UT_FATAL("!pmemlog_open after CreateProcess failed "
 				"but for unexpected reason");
 	}

@@ -124,5 +124,10 @@ flock(int fd, int operation)
 	/* for our purpose it's enough to lock the first page of the file */
 	long len = (filelen > systemInfo.dwPageSize) ?
 				systemInfo.dwPageSize : (long)filelen;
-	return _locking(fd, flags, len);
+
+	int res = _locking(fd, flags, len);
+	if (res != 0 && errno == EACCES)
+		errno = EWOULDBLOCK; /* for consistency with flock() */
+
+	return res;
 }
