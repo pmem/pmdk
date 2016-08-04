@@ -38,8 +38,8 @@ TOP := $(dir $(lastword $(MAKEFILE_LIST)))../../..
 include $(TOP)/src/common.inc
 
 TARGET = libut.a
-OBJS = ut.o ut_alloc.o ut_file.o ut_pthread.o ut_signal.o ut_backtrace.o $(TOP)/src/common/util_linux.o
-CFLAGS = -I$(TOP)/src/include -I$(TOP)/src/common
+OBJS = ut.o ut_alloc.o ut_file.o ut_pthread.o ut_signal.o ut_backtrace.o
+CFLAGS = -I$(TOP)/src/include
 CFLAGS += -std=gnu99
 CFLAGS += -ggdb
 CFLAGS += -Wall

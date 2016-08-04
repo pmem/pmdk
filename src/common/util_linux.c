@@ -38,7 +38,8 @@
 #include <util.h>
 
 /* pass through for Linux */
-char *os_strerror(int errnum)
+char
+*os_strerror(int errnum)
 {
-        return strerror(errnum);
+	return strerror(errnum);
 }

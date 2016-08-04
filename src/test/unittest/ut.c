@@ -46,6 +46,30 @@
 /* RHEL5 seems to be missing decls, even though libc supports them */
 extern DIR *fdopendir(int fd);
 extern ssize_t readlinkat(int, const char *restrict, char *__restrict, size_t);
+char *
+ut_strerror(int errnum)
+{
+	return strerror(errnum);
+}
+#else
+/* XXX - fix this temp hack dup'ing os_strerror when we get mock for win */
+#define ENOTSUP_STR "Operation not supported"
+char *
+ut_strerror(int errnum)
+{
+	switch (errnum) {
+		case ENOTSUP:
+			return ENOTSUP_STR;
+		default:
+		{
+			static char buffer[MAX_PATH];
+			if (0 == _strerror_s(buffer, 80, NULL))
+				return buffer;
+			else
+				return "Unmapped error";
+		}
+	}
+}
 #endif
 
 #define MAXLOGNAME 100		/* maximum expected .log file name length */
