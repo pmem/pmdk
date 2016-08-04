@@ -82,7 +82,7 @@ static int recovery_check_fail;
 static int
 lane_noop_recovery(PMEMobjpool *pop, void *data, unsigned length)
 {
-	UT_OUT("lane_noop_recovery %p", RPTR(data));
+	UT_OUT("lane_noop_recovery 0x%x", RPTR(data));
 	if (recovery_check_fail)
 		return EINVAL;
 
@@ -92,7 +92,7 @@ lane_noop_recovery(PMEMobjpool *pop, void *data, unsigned length)
 static int
 lane_noop_check(PMEMobjpool *pop, void *data, unsigned length)
 {
-	UT_OUT("lane_noop_check %p", RPTR(data));
+	UT_OUT("lane_noop_check 0x%x", RPTR(data));
 	if (recovery_check_fail)
 		return EINVAL;
 
@@ -203,12 +203,12 @@ test_lane_recovery_check_fail()
 	UT_ASSERTne(lane_check(&pop.p), 0);
 }
 
-sigjmp_buf Jmp;
+ut_jmp_buf_t Jmp;
 
 static void
 signal_handler(int sig)
 {
-	siglongjmp(Jmp, 1);
+	ut_siglongjmp(Jmp);
 }
 
 static void
@@ -247,10 +247,13 @@ test_lane_hold_release()
 
 	lane_release(&pop.p);
 	lane_release(&pop.p);
+	struct sigaction v;
+	sigemptyset(&v.sa_mask);
+	v.sa_flags = 0;
+	v.sa_handler = signal_handler;
+	void *old = SIGACTION(SIGABRT, &v, NULL);
 
-	void *old = signal(SIGABRT, signal_handler);
-
-	if (!sigsetjmp(Jmp, 1)) {
+	if (!ut_sigsetjmp(Jmp)) {
 		lane_release(&pop.p); /* only two sections were held */
 		UT_ERR("we should not get here");
 	}

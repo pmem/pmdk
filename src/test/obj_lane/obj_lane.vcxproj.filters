@@ -15,16 +15,13 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\unittest\ut.c">
+    <ClCompile Include="obj_lane.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\unittest\ut_file.c">
+    <ClCompile Include="..\..\libpmemobj\cuckoo.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\unittest\ut_alloc.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\test\obj_lane\obj_lane.c">
+    <ClCompile Include="..\..\libpmemobj\lane.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
