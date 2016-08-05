@@ -326,9 +326,14 @@ ifeq ($(CHECK_POOL),y)
 CHECK_POOL_OPT="-c"
 endif
 
+DIR_SYNC=$(TOP)/src/test/.sync-dir
+SYNC_EXT=synced
+
 all test cstyle format: $(TESTS_BUILD)
 
 clean clobber: $(TESTS_BUILD)
+	$(RM) -r $(DIR_SYNC)
+	$(RM) *.$(SYNC_EXT)
 
 $(TESTS) $(OBJ_DEPS) $(LIBPMEMPOOL_DEPS): $(TEST_DEPS)
 
@@ -347,18 +352,18 @@ memcheck-summary-errors:
 memcheck-summary-leaks:
 	grep "in use at exit" */memcheck*.log | grep -v " 0 bytes in 0 blocks" || true
 
-check: test
+check: test sync-remotes
 	@./RUNTESTS -b $(TEST_BUILD) -t $(TEST_TYPE) -f $(TEST_FS) -o $(TEST_TIME) -m $(MEMCHECK) $(CHECK_POOL_OPT) $(TESTS)
 	@echo "No failures."
 
-check-remote-quiet: test
+check-remote-quiet: test sync-remotes
 	@./RUNTESTS -b $(TEST_BUILD) -t $(TEST_TYPE) -f $(TEST_FS) -o $(TEST_TIME) -m $(MEMCHECK) $(CHECK_POOL_OPT) $(REMOTE_TESTS)
 
 check-remote: check-remote-quiet
 	@echo "No failures."
 
 # XXX remote tests do not work in parallel mode
-pcheck: pcheck-local-quiet check-remote-quiet
+pcheck: sync-remotes pcheck-local-quiet check-remote-quiet
 	@echo "No failures."
 
 pcheck-blk: TARGET = pcheck
@@ -411,7 +416,23 @@ pcheck-remote: TARGET = pcheck
 pcheck-remote: $(REMOTE_TESTS)
 	@echo "No failures."
 
+SUPP_SYNC_FILES=$(shell echo *.supp | sed s/supp/$(SYNC_EXT)/g)
+
+%.$(SYNC_EXT): %.supp
+	cp $^ $(DIR_SYNC)
+	@touch $@
+
+# sync remote nodes
+sync-remotes:
+	rm -rf $(DIR_SYNC) && mkdir -p $(DIR_SYNC)
+	$(MAKE) $(SUPP_SYNC_FILES)
+	$(MAKE) -C tools $@
+	$(MAKE) -C ../tools $@
+	$(MAKE) -C sync-remotes $@
+	$(foreach test, $(REMOTE_TESTS), $(MAKE) -C $(test) sync-test;)
+	rm -rf $(DIR_SYNC)
+
 .PHONY: all check clean clobber cstyle pcheck pcheck-blk pcheck-log pcheck-obj\
 	 pcheck-other pcheck-pmem pcheck-pmempool pcheck-vmem pcheck-vmmalloc\
 	 test unittest tools check-remote format pcheck-libpmempool\
-	 pcheck-rpmem pcheck-local pcheck-remote $(TESTS_BUILD)
+	 pcheck-rpmem pcheck-local pcheck-remote sync-remotes $(TESTS_BUILD)

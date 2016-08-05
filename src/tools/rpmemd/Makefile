@@ -31,6 +31,8 @@
 # Makefile -- top Makefile for rpmemd
 #
 
+SCP_TO_REMOTE_NODES = yes
+
 vpath %.c ../../rpmem_common/
 
 TOP = ../../..

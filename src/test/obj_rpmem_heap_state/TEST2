@@ -77,7 +77,7 @@ create_poolset $DIR/$TEST_SET_LOCAL 8M:${NODE_DIRS[1]}/$TEST_FILE_LOCAL:x \
 create_poolset $DIR/$TEST_SET_REMOTE 9M:${NODE_DIRS[0]}/$TEST_FILE_REMOTE:x
 
 copy_files_to_node 0 . $DIR/$TEST_SET_REMOTE
-copy_files_to_node 1 . $DIR/$TEST_SET_LOCAL ../$EXE/$EXE$EXESUFFIX
+copy_files_to_node 1 . $DIR/$TEST_SET_LOCAL
 
 PMEM_IS_PMEM_FORCE=1
 export_vars_node 1 PMEM_IS_PMEM_FORCE

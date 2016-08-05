@@ -30,6 +30,8 @@
 #
 # Makefile -- top Makefile for pmempool
 #
+SCP_TO_REMOTE_NODES = yes
+
 vpath %.c ../../libpmemobj/
 
 TARGET = pmempool

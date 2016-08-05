@@ -32,6 +32,8 @@
 # Makefile -- Makefile for fip tool
 #
 
+SCP_TO_REMOTE_NODES = yes
+
 TOP = ../../../..
 include $(TOP)/src/common.inc
 

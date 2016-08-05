@@ -35,9 +35,9 @@
 #       obj_rpmem_basic_integration unit tests
 #
 
+include ../Makefile.inc
+
 ../obj_basic_integration/obj_basic_integration:
 	$(MAKE) -C ../obj_basic_integration all
 
 all: ../obj_basic_integration/obj_basic_integration
-
-include ../Makefile.inc

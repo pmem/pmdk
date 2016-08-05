@@ -223,6 +223,15 @@ TARGET_STATIC_NONDEBUG=$(TARGET).static-nondebug
 endif
 endif
 
+SCP=../sync-remotes/copy-to-remote-nodes.sh
+TESTCONFIG=../testconfig.sh
+SYNC_FILE=.synced
+
+ifdef TARGET
+SCP_TARGET=$(TARGET)
+SCP_SRC_DIR=.
+endif
+
 MAKEFILE_DEPS=Makefile ../Makefile.inc $(TOP)/src/common.inc
 
 all: $(TARGET) $(TARGET_STATIC_DEBUG) $(TARGET_STATIC_NONDEBUG)
@@ -252,19 +261,29 @@ objdir=.
 	$(create-deps)
 
 clean:
-	$(RM) *.o */*.o core a.out *.log testfile*
+	$(RM) *.o */*.o core a.out *.log testfile* $(SYNC_FILE)
 
 clobber: clean
 	$(RM) $(TARGET) $(TARGET_STATIC_DEBUG) $(TARGET_STATIC_NONDEBUG)
 	$(RM) -r .deps
 
+$(TESTCONFIG):
+
+sync-test: all $(SYNC_FILE)
+
+$(SYNC_FILE): $(TARGET) $(TESTCONFIG)
+ifeq ($(SCP_TO_REMOTE_NODES), yes)
+	$(SCP) test $(SCP_SRC_DIR)/$(SCP_TARGET) $(SCP_SRC_DIR)/$(SCP_TARGET).static-debug $(SCP_SRC_DIR)/$(SCP_TARGET).static-nondebug
+	@touch $(SYNC_FILE)
+endif
+
 TST=$(shell basename `pwd`)
 TSTCHECKS=$(shell ls -1 TEST* | grep -v -i -e "\.ps1" | sort -V)
 
-$(TSTCHECKS): all
+$(TSTCHECKS): all sync-test
 	@cd .. && ./RUNTESTS ${TST} -b $(TEST_BUILD) -t $(TEST_TYPE) -f $(TEST_FS) -o $(TEST_TIME) -m $(MEMCHECK) -p $(PMEMCHECK) -e $(HELGRIND) -d $(DRD) -s $@
 
-check: all
+check: all sync-test
 	@cd .. && ./RUNTESTS ${TST} -b $(TEST_BUILD) -t $(TEST_TYPE) -f $(TEST_FS) -o $(TEST_TIME) -m $(MEMCHECK) -p $(PMEMCHECK) -e $(HELGRIND) -d $(DRD)
 
 pcheck: export NOTTY=1
@@ -308,6 +327,6 @@ $(TOOLS)/pmemdetect/pmemdetect.static-nondebug:
 
 all: $(TOOLS)/pmemdetect/pmemdetect.static-nondebug
 
-.PHONY: all check clean clobber pcheck test $(TSTCHECKS)
+.PHONY: all check clean clobber pcheck test sync-test $(TSTCHECKS)
 
 -include .deps/*.P
