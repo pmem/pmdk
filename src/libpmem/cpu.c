@@ -146,18 +146,6 @@ is_cpu_genuine_intel(void)
 }
 
 /*
- * is_cpu_sse2_present -- checks if SSE2 extensions are supported
- */
-int
-is_cpu_sse2_present(void)
-{
-	int ret = is_cpu_feature_present(0x1, EDX_IDX, bit_SSE2);
-	LOG(4, "SSE2 %ssupported", ret == 0 ? "not " : "");
-
-	return ret;
-}
-
-/*
  * is_cpu_clflush_present -- checks if CLFLUSH instruction is supported
  */
 int
