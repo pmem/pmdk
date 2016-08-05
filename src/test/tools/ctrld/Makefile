@@ -31,6 +31,8 @@
 # Makefile -- Makefile for ctrld tool
 #
 
+SCP_TO_REMOTE_NODES = yes
+
 TOP = ../../../..
 
 TARGET = ctrld
