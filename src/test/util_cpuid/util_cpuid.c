@@ -58,19 +58,6 @@ static char Buf[32];
 static void
 check_cpu_features(void)
 {
-	if (is_cpu_sse2_present()) {
-		UT_OUT("SSE2 supported");
-		char Buf[32];
-		__m128i xmm0 = _mm_set1_epi8(0x55);
-		/* align to 16B boundary */
-		void *dest = (void *)(((uintptr_t)Buf + 16 - 1)
-						& ~((uintptr_t)16 - 1));
-		UT_OUT("%p %p", Buf, dest);
-		_mm_stream_si128(dest, xmm0);
-	} else {
-		UT_OUT("SSE2 not supported");
-	}
-
 	if (is_cpu_clflush_present()) {
 		UT_OUT("CLFLUSH supported");
 		_mm_clflush(Buf);
