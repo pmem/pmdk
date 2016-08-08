@@ -227,8 +227,14 @@ run_prep_operation_hdr(struct memory_block *m, struct palloc_heap *heap,
 	 * the block offset are tied 1:1 to the bitmap this operation is
 	 * relatively simple.
 	 */
-	uint64_t bmask = ((1ULL << m->size_idx) - 1ULL) <<
-			(m->block_off % BITS_PER_VALUE);
+	uint64_t bmask;
+	if (m->size_idx == BITS_PER_VALUE) {
+		ASSERTeq(m->block_off % BITS_PER_VALUE, 0);
+		bmask = UINT64_MAX;
+	} else {
+		bmask = ((1ULL << m->size_idx) - 1ULL) <<
+				(m->block_off % BITS_PER_VALUE);
+	}
 
 	/*
 	 * The run bitmap is composed of several 8 byte values, so a proper
