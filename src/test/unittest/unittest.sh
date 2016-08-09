@@ -30,6 +30,9 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+# make sure we have a well defined locale for string operations here
+export LC_ALL="C"
+
 . ../testconfig.sh
 
 # defaults
@@ -1596,9 +1599,6 @@ function create_holey_file_on_node() {
 # setup -- print message that test setup is commencing
 #
 function setup() {
-	# make sure we have a well defined locale for string operations here
-	export LC_ALL="C"
-
 	# fs type "none" must be explicitly enabled
 	if [ "$FS" = "none" -a "$req_fs_type" != "1" ]; then
 		exit 0
