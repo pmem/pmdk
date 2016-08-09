@@ -42,6 +42,8 @@
 #ifndef PLATFORM_H
 #define PLATFORM_H 1
 
+#pragma warning(disable : 4996)
+
 #define _CRT_RAND_S
 
 /*

@@ -7,9 +7,11 @@
     </Filter>
     <Filter Include="Match Files">
       <UniqueIdentifier>{05f2a8a8-59fc-4969-8e86-6ee33c321153}</UniqueIdentifier>
+      <Extensions>match</Extensions>
     </Filter>
-    <Filter Include="Test scripts">
+    <Filter Include="Test Scripts">
       <UniqueIdentifier>{881544fe-d25d-4cf8-8468-86eeb68ab91e}</UniqueIdentifier>
+      <Extensions>ps1</Extensions>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -104,88 +106,88 @@
     </None>
     <None Include="README" />
     <None Include="TEST0.PS1">
-      <Filter>Test scripts</Filter>
+      <Filter>Test Scripts</Filter>
     </None>
     <None Include="TEST1.PS1">
-      <Filter>Test scripts</Filter>
+      <Filter>Test Scripts</Filter>
     </None>
     <None Include="TEST2.PS1">
-      <Filter>Test scripts</Filter>
+      <Filter>Test Scripts</Filter>
     </None>
     <None Include="TEST3.PS1">
-      <Filter>Test scripts</Filter>
+      <Filter>Test Scripts</Filter>
     </None>
     <None Include="TEST4.PS1">
-      <Filter>Test scripts</Filter>
+      <Filter>Test Scripts</Filter>
     </None>
     <None Include="TEST5.PS1">
-      <Filter>Test scripts</Filter>
+      <Filter>Test Scripts</Filter>
     </None>
     <None Include="TEST6.PS1">
-      <Filter>Test scripts</Filter>
+      <Filter>Test Scripts</Filter>
     </None>
     <None Include="TEST7.PS1">
-      <Filter>Test scripts</Filter>
+      <Filter>Test Scripts</Filter>
     </None>
     <None Include="TEST8.PS1">
-      <Filter>Test scripts</Filter>
+      <Filter>Test Scripts</Filter>
     </None>
     <None Include="TEST9.PS1">
-      <Filter>Test scripts</Filter>
+      <Filter>Test Scripts</Filter>
     </None>
     <None Include="TEST10.PS1">
-      <Filter>Test scripts</Filter>
+      <Filter>Test Scripts</Filter>
     </None>
     <None Include="TEST11.PS1">
-      <Filter>Test scripts</Filter>
+      <Filter>Test Scripts</Filter>
     </None>
     <None Include="TEST12.PS1">
-      <Filter>Test scripts</Filter>
+      <Filter>Test Scripts</Filter>
     </None>
     <None Include="TEST13.PS1">
-      <Filter>Test scripts</Filter>
+      <Filter>Test Scripts</Filter>
     </None>
     <None Include="TEST14.PS1">
-      <Filter>Test scripts</Filter>
+      <Filter>Test Scripts</Filter>
     </None>
     <None Include="TEST20.PS1">
-      <Filter>Test scripts</Filter>
+      <Filter>Test Scripts</Filter>
     </None>
     <None Include="TEST21.PS1">
-      <Filter>Test scripts</Filter>
+      <Filter>Test Scripts</Filter>
     </None>
     <None Include="TEST22.PS1">
-      <Filter>Test scripts</Filter>
+      <Filter>Test Scripts</Filter>
     </None>
     <None Include="TEST23.PS1">
-      <Filter>Test scripts</Filter>
+      <Filter>Test Scripts</Filter>
     </None>
     <None Include="TEST24.PS1">
-      <Filter>Test scripts</Filter>
+      <Filter>Test Scripts</Filter>
     </None>
     <None Include="TEST25.PS1">
-      <Filter>Test scripts</Filter>
+      <Filter>Test Scripts</Filter>
     </None>
     <None Include="TEST26.PS1">
-      <Filter>Test scripts</Filter>
+      <Filter>Test Scripts</Filter>
     </None>
     <None Include="TEST27.PS1">
-      <Filter>Test scripts</Filter>
+      <Filter>Test Scripts</Filter>
     </None>
     <None Include="TEST28.PS1">
-      <Filter>Test scripts</Filter>
+      <Filter>Test Scripts</Filter>
     </None>
     <None Include="TEST30w.PS1">
-      <Filter>Test scripts</Filter>
+      <Filter>Test Scripts</Filter>
     </None>
     <None Include="TEST16.PS1">
-      <Filter>Test scripts</Filter>
+      <Filter>Test Scripts</Filter>
     </None>
     <None Include="TEST29.PS1">
-      <Filter>Test scripts</Filter>
+      <Filter>Test Scripts</Filter>
     </None>
     <None Include="TEST15w.PS1">
-      <Filter>Test scripts</Filter>
+      <Filter>Test Scripts</Filter>
     </None>
     <None Include="out15w.log.match">
       <Filter>Match Files</Filter>

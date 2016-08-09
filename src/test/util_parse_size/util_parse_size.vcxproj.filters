@@ -5,8 +5,13 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="Test scripts">
-      <UniqueIdentifier>{595b542f-e7a5-4b59-9af2-2b3b358263ab}</UniqueIdentifier>
+    <Filter Include="Test Scripts">
+      <UniqueIdentifier>{7ba2bd6a-3027-4e13-9e47-6bee01097ef2}</UniqueIdentifier>
+      <Extensions>ps1</Extensions>
+    </Filter>
+    <Filter Include="Match Files">
+      <UniqueIdentifier>{9b073cac-8b99-42fa-b2e2-9b54fdbb4e99}</UniqueIdentifier>
+      <Extensions>match</Extensions>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -19,7 +24,14 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="TEST0.PS1">
-      <Filter>Test scripts</Filter>
+      <Filter>Test Scripts</Filter>
+    </None>
+    <None Include="out0.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="TEST0.PS1">
+      <Filter>Test Scripts</Filter>
+>>>>>>> 5bc1975... win: Add Test Scripts and Match Files filter
     </None>
   </ItemGroup>
 </Project>

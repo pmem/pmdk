@@ -5,11 +5,13 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="Test scripts">
+    <Filter Include="Test Scripts">
       <UniqueIdentifier>{9058564b-41e9-4021-bee4-c045aff7fae5}</UniqueIdentifier>
+      <Extensions>ps1</Extensions>
     </Filter>
     <Filter Include="Match Files">
       <UniqueIdentifier>{32ba9e6c-033c-4b69-a40a-a93a55e1d999}</UniqueIdentifier>
+      <Extensions>match</Extensions>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -19,16 +21,16 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="TEST0.PS1">
-      <Filter>Test scripts</Filter>
+      <Filter>Test Scripts</Filter>
     </None>
     <None Include="TEST1.PS1">
-      <Filter>Test scripts</Filter>
+      <Filter>Test Scripts</Filter>
     </None>
     <None Include="TEST2.PS1">
-      <Filter>Test scripts</Filter>
+      <Filter>Test Scripts</Filter>
     </None>
     <None Include="TEST3.PS1">
-      <Filter>Test scripts</Filter>
+      <Filter>Test Scripts</Filter>
     </None>
     <None Include="out0.log.match">
       <Filter>Match Files</Filter>

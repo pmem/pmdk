@@ -5,6 +5,14 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
+    <Filter Include="Test Scripts">
+      <UniqueIdentifier>{f2d9bebd-8211-4e34-878f-5d72686cac86}</UniqueIdentifier>
+      <Extensions>ps1</Extensions>
+    </Filter>
+    <Filter Include="Match Files">
+      <UniqueIdentifier>{7422cc6d-eb2d-4f1d-b009-830ba9b84a11}</UniqueIdentifier>
+      <Extensions>match</Extensions>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\test\obj_heap_state\obj_heap_state.c">
