@@ -325,6 +325,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_constructor", "test\obj
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_direct", "test\obj_direct\obj_direct.vcxproj", "{14ADCDC1-6DCF-4265-89DA-85F2D05E241F}"
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_heap", "test\obj_heap\obj_heap.vcxproj", "{85D4076B-896B-4EBB-8F3A-8B44C24CD452}"
 	ProjectSection(ProjectDependencies) = postProject
 		{1BAA1617-93AE-4196-8A1A-BD492FB18AEF} = {1BAA1617-93AE-4196-8A1A-BD492FB18AEF}
