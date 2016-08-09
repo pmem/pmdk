@@ -3,7 +3,7 @@ layout: manual
 Content-Style: 'text/css'
 title: libpmemobj(3)
 header: NVM Library
-date: pmemobj API version 1.0.3
+date: pmemobj API version 1.0.4
 ...
 
 [comment]: <> (Copyright 2016, Intel Corporation)
@@ -1599,39 +1599,37 @@ The transaction flow control is governed by the **setjmp**(3)/**longjmp**(3) mac
 The following example illustrates the issue described above.
 
 ```c
-int *bad_example_1 = NULL;
-int *bad_example_2 = NULL;
-int *bad_example_3 = NULL;
-volatile int *good_example = NULL;
+int *bad_example_1 = (int *)0xBAADF00D;
+int *bad_example_2 = (int *)0xBAADF00D;
+int *bad_example_3 = (int *)0xBAADF00D;
+int * volatile good_example = (int *)0xBAADF00D;
 
-TX_BEGIN(Pop) {
-    bad_example_1 = malloc(...);
-    bad_example_2 = malloc(...);
-    bad_example_3 = malloc(...);
-    good_example = malloc(...);
-    /* ... */
-    pmemobj_tx_abort(EINVAL); /* manual or library abort called here */
+TX_BEGIN(pop) {
+	bad_example_1 = malloc(sizeof(int));
+	bad_example_2 = malloc(sizeof(int));
+	bad_example_3 = malloc(sizeof(int));
+	good_example = malloc(sizeof(int));
+
+	/* manual or library abort called here */
+	pmemobj_tx_abort(EINVAL);
 } TX_ONCOMMIT {
-    /*
-     * This section is longjmp-safe
-     */
+	/*
+	 * This section is longjmp-safe
+	 */
 } TX_ONABORT {
-    /*
-     * This section is not longjmp-safe
-     */
-
-    free(bad_example_1); /* undefined behavior */
-    free(good_example); /* OK */
+	/*
+	 * This section is not longjmp-safe
+	 */
+	free(good_example); /* OK */
+	free(bad_example_1); /* undefined behavior */
 } TX_FINALLY {
-    /*
-     * This section is not longjmp-safe on transaction abort only
-     */
-
-    free(bad_example_2); /* undefined behavior */
+	/*
+	 * This section is not longjmp-safe on transaction abort only
+	 */
+	free(bad_example_2); /* undefined behavior */
 } TX_END
 
 free(bad_example_3); /* undefined behavior */
-
 ```
 
 Objects which are not volatile-qualified, are of automatic storage duration and have been changed between the invocations of **setjmp**(3) and **longjmp**(3) (that also means within the work section of the transaction after `TX_BEGIN`) should not be used after a transaction abort or should be used with utmost care. This also includes code after the `TX_END` macro.
