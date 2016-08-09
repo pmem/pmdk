@@ -107,7 +107,7 @@ static void
 test_bucket_bitmap_correctness()
 {
 	struct bucket_run *b = bucket_run_new(1, CONTAINER_CTREE,
-		(RUNSIZE / 10), TEST_MAX_UNIT);
+		(RUNSIZE / 10), TEST_MAX_UNIT, TEST_MAX_UNIT);
 	UT_ASSERT(b != NULL);
 
 	/* 54 set (not available for allocations), and 10 clear (available) */
@@ -138,7 +138,7 @@ static void
 test_bucket_insert_get()
 {
 	struct bucket *b = &(bucket_run_new(1, CONTAINER_CTREE,
-		TEST_UNIT_SIZE, TEST_MAX_UNIT))->super;
+		TEST_UNIT_SIZE, TEST_MAX_UNIT, TEST_MAX_UNIT))->super;
 	UT_ASSERT(b != NULL);
 
 	struct memory_block m = {TEST_CHUNK_ID, TEST_ZONE_ID,
@@ -163,7 +163,7 @@ static void
 test_bucket_remove()
 {
 	struct bucket *b = &(bucket_run_new(1, CONTAINER_CTREE,
-		TEST_UNIT_SIZE, TEST_MAX_UNIT))->super;
+		TEST_UNIT_SIZE, TEST_MAX_UNIT, TEST_MAX_UNIT))->super;
 	UT_ASSERT(b != NULL);
 
 	struct memory_block m = {TEST_CHUNK_ID, TEST_ZONE_ID,

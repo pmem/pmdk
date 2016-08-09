@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016, Intel Corporation
+ * Copyright 2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -42,14 +42,14 @@
 
 #define LAYOUT_NAME "obj_fragmentation"
 #define OBJECT_OVERHEAD 64 /* account for the header added to each object */
-#define MAX_OVERALL_OVERHEAD 0.20f
+#define MAX_OVERALL_OVERHEAD 0.10f
 
 /*
  * For the best accuracy fragmentation should be measured for one full zone
  * because the metadata is preallocated. For reasonable test duration a smaller
  * size must be used.
  */
-#define DEFAULT_FILE_SIZE (1 << 28) /* 256 megabytes */
+#define DEFAULT_FILE_SIZE ((size_t)(1ULL << 28)) /* 256 megabytes */
 
 int
 main(int argc, char *argv[])
@@ -73,15 +73,18 @@ main(int argc, char *argv[])
 	if (pop == NULL)
 		UT_FATAL("!pmemobj_create: %s", path);
 
-	size_t n;
+	size_t allocated = 0;
 	int err = 0;
-	for (n = 0; err == 0; n += alloc_size + OBJECT_OVERHEAD) {
-		err = pmemobj_alloc(pop, NULL, alloc_size, 0, NULL, NULL);
-	}
+	do {
+		PMEMoid oid;
+		err = pmemobj_alloc(pop, &oid, alloc_size, 0, NULL, NULL);
+		allocated += pmemobj_alloc_usable_size(oid) + OBJECT_OVERHEAD;
+	} while (err == 0);
 
-	float allocated_pct = ((float)n / file_size);
+
+	float allocated_pct = ((float)allocated / file_size);
 	float overhead_pct = 1.f - allocated_pct;
-	UT_ASSERT(overhead_pct - MAX_OVERALL_OVERHEAD <= 0.f);
+	UT_ASSERT(overhead_pct <= MAX_OVERALL_OVERHEAD);
 
 	pmemobj_close(pop);
 

@@ -31,8 +31,8 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-export UNITTEST_NAME=obj_fragmentation/TEST0
-export UNITTEST_NUM=0
+export UNITTEST_NAME=obj_fragmentation/TEST1
+export UNITTEST_NUM=1
 
 # standard unit test setup
 . ../unittest/unittest.sh
@@ -42,7 +42,7 @@ require_fs_type pmem
 setup
 
 expect_normal_exit\
-	./obj_fragmentation$EXESUFFIX 1024 \
+	./obj_fragmentation$EXESUFFIX 4096 \
 		$DIR/testfile1
 
 pass

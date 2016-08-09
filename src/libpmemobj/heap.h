@@ -48,7 +48,8 @@
 #include "pmalloc.h"
 
 #define MAX_BUCKETS (UINT8_MAX)
-#define RUN_UNIT_MAX 8U
+#define RUN_UNIT_MAX 64U
+#define RUN_UNIT_MAX_ALLOC 8U
 
 /*
  * Every allocation has to be a multiple of a cacheline because we need to

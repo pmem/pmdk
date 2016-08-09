@@ -266,7 +266,7 @@ bucket_calc_units(struct bucket *b, size_t size)
 }
 
 /*
- * bucket_init -- initializes bucket instance
+ * bucket_init -- (internal) initializes bucket instance
  */
 static int
 bucket_init(struct bucket *b, uint8_t id, enum block_container_type ctype,
@@ -290,7 +290,7 @@ bucket_init(struct bucket *b, uint8_t id, enum block_container_type ctype,
 }
 
 /*
- * bucket_huge_new -- (internal) creates a huge bucket
+ * bucket_huge_new -- creates a huge bucket
  *
  * Huge bucket contains chunks with either free or used types. The only reason
  * there's a separate huge data structure is the bitmap information that is
@@ -315,7 +315,7 @@ bucket_huge_new(uint8_t id, enum block_container_type ctype,
 }
 
 /*
- * bucket_run_new -- (internal) creates a run bucket
+ * bucket_run_new -- creates a run bucket
  *
  * This type of bucket is responsible for holding memory blocks from runs, which
  * means that each object it contains has a representation in a bitmap.
@@ -328,7 +328,7 @@ bucket_huge_new(uint8_t id, enum block_container_type ctype,
  */
 struct bucket_run *
 bucket_run_new(uint8_t id, enum block_container_type ctype,
-	size_t unit_size, unsigned unit_max)
+	size_t unit_size, unsigned unit_max, unsigned unit_max_alloc)
 {
 	struct bucket_run *b = Malloc(sizeof(*b));
 	if (b == NULL)
@@ -341,6 +341,7 @@ bucket_run_new(uint8_t id, enum block_container_type ctype,
 
 	b->super.type = BUCKET_RUN;
 	b->unit_max = unit_max;
+	b->unit_max_alloc = unit_max_alloc;
 
 	/*
 	 * Here the bitmap definition is calculated based on the size of the
