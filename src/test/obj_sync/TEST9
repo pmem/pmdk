@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,20 +32,21 @@
 #
 
 #
-# src/test/obj_sync/TEST0 -- unit test for PMEM-resident locks
+# src/test/obj_sync/TEST7 -- unit test for PMEM-resident locks
 #
-export UNITTEST_NAME=obj_sync/TEST0
-export UNITTEST_NUM=0
+export UNITTEST_NAME=obj_sync/TEST7
+export UNITTEST_NUM=7
 
 # standard unit test setup
 . ../unittest/unittest.sh
 
 require_fs_type none
 require_build_type debug nondebug
+require_test_type long
 
 setup
 
-expect_normal_exit ./obj_sync$EXESUFFIX m 10 300
+expect_normal_exit ./obj_sync$EXESUFFIX t 100 300
 
 check
 

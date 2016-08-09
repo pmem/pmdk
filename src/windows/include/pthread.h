@@ -57,6 +57,7 @@
 #ifndef PTHREAD_H
 #define PTHREAD_H 1
 
+#include <sched.h>
 #include <stdint.h>
 #include <time.h>
 
@@ -167,5 +168,14 @@ int pthread_create(pthread_t *thread, const pthread_attr_t *attr,
 	void *(*start_routine)(void *), void *arg);
 
 int pthread_join(pthread_t thread, void **result);
+
+#ifdef _GNU_SOURCE
+/*
+ * Limit specified thread TH to run only on the processors represented
+ * in CPUSET.
+ */
+int pthread_setaffinity_np(pthread_t __th, size_t __cpusetsize,
+				const cpu_set_t *__cpuset);
+#endif /* _GNU_SOURCE */
 
 #endif /* PTHREAD_H */

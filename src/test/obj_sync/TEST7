@@ -45,7 +45,7 @@ require_build_type debug nondebug
 
 setup
 
-expect_normal_exit ./obj_sync$EXESUFFIX t 50 300
+expect_normal_exit ./obj_sync$EXESUFFIX t 10 300
 
 check
 

@@ -33,7 +33,9 @@
 /*
  * obj_sync.c -- unit test for PMEM-resident locks
  */
+#define _GNU_SOURCE
 #include <pthread.h>
+#include <sched.h>
 
 #include "obj.h"
 #include "sync.h"
@@ -313,10 +315,27 @@ cleanup(char test_type)
 
 }
 
+/*
+ * obj_sync_persist -- (internal) obj persist operation
+ */
 static void
 obj_sync_persist(void *ctx, const void *ptr, size_t sz)
 {
 	pmem_msync(ptr, sz);
+}
+
+/*
+ * run_thread -- (internal) run thread and set CPU affinity
+ */
+static void
+run_thread(pthread_t *th, void *(func)(void *), void *arg, int aff,
+		cpu_set_t *cpuset)
+{
+	PTHREAD_CREATE(th, NULL, func, arg);
+	if (aff != 0)
+		errno = pthread_setaffinity_np(*th, sizeof(cpu_set_t), cpuset);
+		if (errno != 0)
+			UT_OUT("!Error setting thread affinity");
 }
 
 int
@@ -360,6 +379,7 @@ main(int argc, char *argv[])
 
 	unsigned long runs = strtoul(argv[3], NULL, 10);
 
+	num_threads /= 2;
 	pthread_t *write_threads = MALLOC(num_threads * sizeof(pthread_t));
 	pthread_t *check_threads = MALLOC(num_threads * sizeof(pthread_t));
 
@@ -376,6 +396,13 @@ main(int argc, char *argv[])
 	Test_obj->check_data = 0;
 	memset(&Test_obj->data, 0, DATA_SIZE);
 
+	int with_affinity = sysconf(_SC_NPROCESSORS_ONLN);
+	/* in case of error assume 1 CPU */
+	if (with_affinity == -1)
+		with_affinity = 1;
+	/* turn on CPU affinity with at least 2 CPUs */
+	with_affinity -= 1;
+
 	for (int run = 0; run < runs; run++) {
 		if (test_type == 't') {
 			pmemobj_mutex_lock(&Mock_pop,
@@ -383,10 +410,16 @@ main(int argc, char *argv[])
 		}
 
 		for (int i = 0; i < num_threads; i++) {
-			PTHREAD_CREATE(&write_threads[i], NULL, writer,
-				(void *)(uintptr_t)i);
-			PTHREAD_CREATE(&check_threads[i], NULL, checker,
-				(void *)(uintptr_t)i);
+			/* set cpu affinity mask */
+			cpu_set_t cpuset;
+			CPU_ZERO(&cpuset);
+			CPU_SET(i % 2, &cpuset);
+			run_thread(&write_threads[i], writer,
+					(void *)(uintptr_t)i, with_affinity,
+					&cpuset);
+			run_thread(&check_threads[i], checker,
+					(void *)(uintptr_t)i, with_affinity,
+					&cpuset);
 		}
 		for (int i = 0; i < num_threads; i++) {
 			PTHREAD_JOIN(write_threads[i], NULL);

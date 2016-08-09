@@ -42,10 +42,11 @@ export UNITTEST_NUM=0
 
 require_fs_type none
 require_build_type debug nondebug
+require_test_type long
 
 setup
 
-expect_normal_exit ./obj_sync$EXESUFFIX m 10 300
+expect_normal_exit ./obj_sync$EXESUFFIX m 100 300
 
 check
 
