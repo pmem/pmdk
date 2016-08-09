@@ -73,6 +73,7 @@ OBJ_TESTS = \
 	obj_debug\
 	obj_direct\
 	obj_first_next\
+	obj_fragmentation\
 	obj_heap\
 	obj_heap_interrupt\
 	obj_heap_state\
