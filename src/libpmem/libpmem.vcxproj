@@ -41,7 +41,7 @@
     <None Include="libpmem.def" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\windows\liblinux.vcxproj">
+    <ProjectReference Include="..\windows\liblinux\liblinux.vcxproj">
       <Project>{b3ff772d-f2ff-4e6e-abd8-763407bb6a5c}</Project>
     </ProjectReference>
   </ItemGroup>
@@ -123,7 +123,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <ForcedIncludeFiles>platform.h;srcversion.h</ForcedIncludeFiles>
+      <ForcedIncludeFiles>platform.h</ForcedIncludeFiles>
       <ExceptionHandling>false</ExceptionHandling>
       <CompileAs>CompileAsC</CompileAs>
       <AdditionalIncludeDirectories>$(ProjectDir)\..\..\src\windows\include;$(ProjectDir)\..\..\src\include;$(ProjectDir)\..\..\src\common;$(ProjectDir)\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -133,6 +133,7 @@
       <BrowseInformation>true</BrowseInformation>
       <ForcedUsingFiles />
       <CompileAsWinRT>false</CompileAsWinRT>
+      <WarningLevel>Level3</WarningLevel>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -149,13 +150,14 @@
       <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
     </ProjectReference>
     <PreBuildEvent>
-      <Command>powershell.exe -file $(SolutionDir)..\utils\SRCVERSION.ps1</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Static-Debug|x64'">
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <ForcedIncludeFiles>platform.h;srcversion.h</ForcedIncludeFiles>
+      <ForcedIncludeFiles>platform.h</ForcedIncludeFiles>
       <ExceptionHandling>false</ExceptionHandling>
       <CompileAs>CompileAsC</CompileAs>
       <AdditionalIncludeDirectories>$(ProjectDir)\..\..\src\windows\include;$(ProjectDir)\..\..\src\include;$(ProjectDir)\..\..\src\common;$(ProjectDir)\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -164,6 +166,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <BrowseInformation>true</BrowseInformation>
       <CompileAsWinRT>false</CompileAsWinRT>
+      <WarningLevel>Level3</WarningLevel>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -183,7 +186,8 @@
       <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
     </Lib>
     <PreBuildEvent>
-      <Command>powershell.exe -file $(SolutionDir)..\utils\SRCVERSION.ps1</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -196,8 +200,9 @@
       <ExceptionHandling>false</ExceptionHandling>
       <AdditionalIncludeDirectories>$(ProjectDir)\..\..\src\windows\include;$(ProjectDir)\..\..\src\include;$(ProjectDir)\..\..\src\common;$(ProjectDir)\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_CRT_USE_WINAPI_FAMILY_DESKTOP_APP;WINAPI_PARTITION_SYSTEM;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ForcedIncludeFiles>platform.h;srcversion.h</ForcedIncludeFiles>
+      <ForcedIncludeFiles>platform.h</ForcedIncludeFiles>
       <CompileAsWinRT>false</CompileAsWinRT>
+      <WarningLevel>Level3</WarningLevel>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -209,7 +214,8 @@
       <AdditionalLibraryDirectories>$(OutDir);</AdditionalLibraryDirectories>
     </Link>
     <PreBuildEvent>
-      <Command>powershell.exe -file $(SolutionDir)..\utils\SRCVERSION.ps1</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Static-Release|x64'">
@@ -223,9 +229,10 @@
       <ExceptionHandling>false</ExceptionHandling>
       <AdditionalIncludeDirectories>$(ProjectDir)\..\..\src\windows\include;$(ProjectDir)\..\..\src\include;$(ProjectDir)\..\..\src\common;$(ProjectDir)\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_CRT_USE_WINAPI_FAMILY_DESKTOP_APP;WINAPI_PARTITION_SYSTEM;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ForcedIncludeFiles>platform.h;srcversion.h</ForcedIncludeFiles>
+      <ForcedIncludeFiles>platform.h</ForcedIncludeFiles>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <CompileAsWinRT>false</CompileAsWinRT>
+      <WarningLevel>Level3</WarningLevel>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -237,7 +244,8 @@
       <AdditionalLibraryDirectories>$(OutDir)/../Static-Release</AdditionalLibraryDirectories>
     </Link>
     <PreBuildEvent>
-      <Command>powershell.exe -file $(SolutionDir)..\utils\SRCVERSION.ps1</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -102,7 +102,8 @@ RPMEMpool *rpmem_create(const char *target, const char *pool_set_name,
 ```
 
   The **rpmem_create**() creates a remote pool on a given *target* node.
-  The *pool_set_name* uniquely identifies the pool set file on remote node
+  The *pool_set_name* is a relative path in the root config directory on
+  the *target* node that uniquely identifies the pool set file on remote node
   to be used when mapping the remote pool. The *pool_addr* is a pointer to the
   associated local memory pool of a given size specified by the *pool_size*
   argument. The size of the remote pool must be at least *pool_size*. The
@@ -125,7 +126,8 @@ RPMEMpool *rpmem_open(const char *target, const char *pool_set_name,
 ```
 
   The **rpmem_open**() opens an existing remote pool on a given *target* node.
-  The *pool_set_name* uniquely identifies the pool set file on remote node
+  The *pool_set_name* is a relative path in the root config directory on
+  the *target* node that uniquely identifies the pool set file on remote node
   to be used when mapping the remote pool.  The *pool_addr* is a pointer to the
   associated local memory pool of a given size specified by the *pool_size*
   argument. The size of the remote pool must be at least *pool_size*. The
@@ -161,11 +163,12 @@ int rpmem_persist(RPMEMpool *rpp, size_t offset, size_t length, unsigned lane);
   specified in the **rpmem_open**() or **rpmem_create**() function calls. The
   *offset* and *length* combined must not exceed the *pool_size* passed to the
   **rpmem_open**() or **rpmem_create**() function. The **rpmem_persist**
-  operation is performed using given *lane* number. The lane must be at most the
-  value returned by **rpmem_open**() or **rpmem_create**() through the *nlanes*
-  argument. If the entire memory area was made persistent on remote node the
-  **rpmem_persist** returns 0, otherwise it returns non-zero value and sets
-  *errno* appropriately.
+  operation is performed using given *lane* number. The lane must be less than
+  the value returned by **rpmem_open**() or **rpmem_create**() through
+  the *nlanes* argument (so it can take a value from 0 to *nlanes* - 1).
+  If the entire memory area was made persistent on remote node
+  the **rpmem_persist** returns 0, otherwise it returns non-zero value
+  and sets *errno* appropriately.
 
 ```c
 int rpmem_read(RPMEMpool *rpp, void *buff, size_t offset, size_t length);
@@ -185,8 +188,8 @@ maximum number of parallel **rpmem_persist** operations is limited by the
 maximum number of lanes returned from either the **rpmem_open**() or
 **rpmem_create**() function calls. The caller passes the maximum number of lanes
 one would like to utilize. If the pool has been successfully created or opened,
-the lanes value is updated to the minimum of the number of lanes specified by
-the caller and maximum number of lanes supported by underlying hardware.
+the lanes value is updated to the minimum of: the number of lanes requested by
+the caller and the maximum number of lanes supported by underlying hardware.
 The application is obligated to use at most the returned number of
 lanes in parallel. The **rpmem_persist** does not provide any locking mechanism
 thus the serialization of the calls shall be performed by the application if
@@ -244,8 +247,8 @@ The *incompat_features* field is a mask describing compatibility of pool's
 on-media format required features.
 
 The *ro_compat_features* field is a mask describing compatibility of pool's
-on-media format features which if are not available the pool shall be opened in
-read-only mode.
+on-media format features. If these features are not available,
+the pool shall be opened in read-only mode.
 
 The *poolset_uuid* field is an UUID of the pool which the remote pool is
 associated with.
@@ -253,7 +256,7 @@ associated with.
 The *uuid* field is an UUID of a first part of the remote pool. This field can
 be used to connect the remote pool with other pools in a list.
 
-The *next_uuid* and *prev_uuid* fields are an UUID of next and previous replicas
+The *next_uuid* and *prev_uuid* fields are UUIDs of next and previous replicas
 respectively. These fields can be used to connect the remote pool with other
 pools in a list.
 

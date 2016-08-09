@@ -1,5 +1,5 @@
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2015-2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -29,26 +29,32 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# SRCVERSION.PS1 -- script to create SCRVERSION macro on windows
+# src/test/log_pool_lock/TEST0 -- unit test for pmemlog_open
 #
+#
+# parameter handling
+#
+[CmdletBinding(PositionalBinding=$false)]
+Param(
+    [alias("d")]
+    $DIR = ""
+    )
+$Env:UNITTEST_NAME = "log_pool_lock\TEST0"
+$Env:UNITTEST_NUM = "0"
+# XXX:  bash has a few calls to tools that we don't have on
+# windows (yet) that set PMEM_IS_PMEM and NON_PMEM_IS_PMEM based
+# on their output
+$Env:PMEM_IS_PMEM = $true
+$Env:NON_PMEM_IS_PMEM = $true
 
-$scriptPath = Split-Path -parent $MyInvocation.MyCommand.Definition
-$file_path = $scriptPath + "\..\src\windows\include\srcversion.h"
-$git = Get-Command -Name git -ErrorAction SilentlyContinue
+# standard unit test setup
+. ..\unittest\unittest.ps1
 
-if (Test-Path $file_path) {
-    $old_version = Get-Content $file_path | Where-Object { $_ -like '#define*' }
-} else {
-    $old_version = ""
-}
+# doesn't make sense to run in local directory
+require_fs_type any
 
-if ($git -eq $null) {
-    $version = "#define SRCVERSION `"1.0`""
-} else {
-    $version = "#define SRCVERSION `"$(git describe)`""
-}
+setup
 
-if ($old_version -ne $version) {
-    echo "updating source version: $version"
-    echo $version > $file_path
-}
+expect_normal_exit $Env:EXE_DIR\log_pool_lock$EXESUFFIX $DIR\testfile1
+
+pass

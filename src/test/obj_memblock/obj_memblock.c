@@ -154,6 +154,11 @@ test_prep_hdr()
 		.size_idx = 4, .block_off = 0 };
 	struct memory_block mrun_free = { .chunk_id = 2, 0,
 		.size_idx = 4, .block_off = 4 };
+	struct memory_block mrun_large_used = { .chunk_id = 2, 0,
+		.size_idx = 64, .block_off = 64 };
+	struct memory_block mrun_large_free = { .chunk_id = 2, 0,
+		.size_idx = 64, .block_off = 128 };
+
 	struct palloc_heap *heap = &pop->heap;
 	struct heap_layout *layout = heap->layout;
 
@@ -169,6 +174,8 @@ test_prep_hdr()
 	struct chunk_run *run = (struct chunk_run *)&layout->zone0.chunks[2];
 
 	run->bitmap[0] = 0b1111;
+	run->bitmap[1] = ~0ULL;
+	run->bitmap[2] = 0ULL;
 
 	MEMBLOCK_OPS(, &mhuge_used)->prep_hdr(&mhuge_used,
 			heap, HDR_OP_FREE, NULL);
@@ -185,6 +192,14 @@ test_prep_hdr()
 	MEMBLOCK_OPS(, &mrun_free)->prep_hdr(&mrun_free,
 			heap, HDR_OP_ALLOC, NULL);
 	UT_ASSERTeq(run->bitmap[0], 0b11110000);
+
+	MEMBLOCK_OPS(, &mrun_large_used)->prep_hdr(&mrun_large_used,
+			heap, HDR_OP_FREE, NULL);
+	UT_ASSERTeq(run->bitmap[1], 0ULL);
+
+	MEMBLOCK_OPS(, &mrun_large_free)->prep_hdr(&mrun_large_free,
+			heap, HDR_OP_ALLOC, NULL);
+	UT_ASSERTeq(run->bitmap[2], ~0ULL);
 }
 
 int

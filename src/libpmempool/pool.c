@@ -67,7 +67,7 @@ static inline off_t
 pool_btt_lseek(struct pool_data *pool, off_t offset, int whence)
 {
 	off_t result;
-	if ((result = lseek(pool->set_file->fd, offset, whence)) == -1)
+	if ((result = util_lseek(pool->set_file->fd, offset, whence)) == -1)
 		ERR("!lseek");
 
 	return result;
@@ -82,7 +82,7 @@ pool_btt_read(struct pool_data *pool, void *dst, size_t count)
 	size_t total = 0;
 	ssize_t nread;
 	while (count > total &&
-		(nread = read(pool->set_file->fd, dst, count - total))) {
+		(nread = util_read(pool->set_file->fd, dst, count - total))) {
 		if (nread == -1) {
 			ERR("!read");
 			return total ? (ssize_t)total : -1;
@@ -104,7 +104,8 @@ pool_btt_write(struct pool_data *pool, const void *src, size_t count)
 	ssize_t nwrite = 0;
 	size_t total = 0;
 	while (count > total &&
-		(nwrite = write(pool->set_file->fd, src, count - total))) {
+		(nwrite = util_write(pool->set_file->fd, src,
+				count - total))) {
 		if (nwrite == -1) {
 			ERR("!write");
 			return total ? (ssize_t)total : -1;

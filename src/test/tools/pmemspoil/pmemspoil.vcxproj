@@ -118,7 +118,7 @@
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;WINAPI_PARTITION_SYSTEM;%(PreprocessorDefinitions);</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\windows\include;$(ProjectDir)..\..\..\include;$(ProjectDir)..\..\..\windows\getopt;$(ProjectDir)..\..\..\tools\pmempool;$(ProjectDir)..\..\..\common;$(ProjectDir)..\..\..\libpmemblk;$(ProjectDir)..\..\..\libpmemlog;$(ProjectDir)..\..\..\libpmemobj</AdditionalIncludeDirectories>
-      <ForcedIncludeFiles>platform.h;srcversion.h</ForcedIncludeFiles>
+      <ForcedIncludeFiles>platform.h</ForcedIncludeFiles>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
       <CompileAs>CompileAsC</CompileAs>
       <PreprocessToFile>false</PreprocessToFile>
@@ -134,7 +134,8 @@
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
     </ProjectReference>
     <PreBuildEvent>
-      <Command>powershell.exe -file $(SolutionDir)..\utils\SRCVERSION.ps1</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Static-Debug|x64'">
@@ -143,7 +144,7 @@
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;WINAPI_PARTITION_SYSTEM;%(PreprocessorDefinitions);</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\windows\include;$(ProjectDir)..\..\..\include;$(ProjectDir)..\..\..\windows\getopt;$(ProjectDir)..\..\..\tools\pmempool;$(ProjectDir)..\..\..\common;$(ProjectDir)..\..\..\libpmemblk;$(ProjectDir)..\..\..\libpmemlog;$(ProjectDir)..\..\..\libpmemobj</AdditionalIncludeDirectories>
-      <ForcedIncludeFiles>platform.h;srcversion.h</ForcedIncludeFiles>
+      <ForcedIncludeFiles>platform.h</ForcedIncludeFiles>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
       <CompileAs>CompileAsC</CompileAs>
       <PreprocessToFile>false</PreprocessToFile>
@@ -157,7 +158,8 @@
       <LinkLibraryDependencies />
     </ProjectReference>
     <PreBuildEvent>
-      <Command>powershell.exe -file $(SolutionDir)..\utils\SRCVERSION.ps1</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -169,7 +171,7 @@
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\windows\include;$(ProjectDir)..\..\..\include;$(ProjectDir)..\..\..\windows\getopt;$(ProjectDir)..\..\..\tools\pmempool;$(ProjectDir)..\..\..\common;$(ProjectDir)..\..\..\libpmemblk;$(ProjectDir)..\..\..\libpmemlog;$(ProjectDir)..\..\..\libpmemobj</AdditionalIncludeDirectories>
       <CompileAs>CompileAsC</CompileAs>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
-      <ForcedIncludeFiles>platform.h;srcversion.h</ForcedIncludeFiles>
+      <ForcedIncludeFiles>platform.h</ForcedIncludeFiles>
       <PreprocessToFile>false</PreprocessToFile>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
     </ClCompile>
@@ -182,7 +184,8 @@
       <LinkLibraryDependencies />
     </ProjectReference>
     <PreBuildEvent>
-      <Command>powershell.exe -file $(SolutionDir)..\utils\SRCVERSION.ps1</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Static-Release|x64'">
@@ -194,7 +197,7 @@
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\windows\include;$(ProjectDir)..\..\..\include;$(ProjectDir)..\..\..\windows\getopt;$(ProjectDir)..\..\..\tools\pmempool;$(ProjectDir)..\..\..\common;$(ProjectDir)..\..\..\libpmemblk;$(ProjectDir)..\..\..\libpmemlog;$(ProjectDir)..\..\..\libpmemobj</AdditionalIncludeDirectories>
       <CompileAs>CompileAsC</CompileAs>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
-      <ForcedIncludeFiles>platform.h;srcversion.h</ForcedIncludeFiles>
+      <ForcedIncludeFiles>platform.h</ForcedIncludeFiles>
       <PreprocessToFile>false</PreprocessToFile>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
     </ClCompile>
@@ -208,7 +211,8 @@
       </LinkLibraryDependencies>
     </ProjectReference>
     <PreBuildEvent>
-      <Command>powershell.exe -file $(SolutionDir)..\utils\SRCVERSION.ps1</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

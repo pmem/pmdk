@@ -29,26 +29,28 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# SRCVERSION.PS1 -- script to create SCRVERSION macro on windows
+
 #
+# src/test/obj_locks/TEST0 -- unit test for pmemobj_mutex and pmemobj_rwlock
+#
+[CmdletBinding(PositionalBinding=$false)]
+Param(
+    [alias("d")]
+    $DIR = ""
+    )
+$Env:UNITTEST_NAME = "obj_locks\TEST0"
+$Env:UNITTEST_NUM = "0"
+# XXX:  bash has a few calls to tools that we don't have on
+# windows (yet) that set PMEM_IS_PMEM and NON_PMEM_IS_PMEM based
+# on their output
+$Env:PMEM_IS_PMEM = $true
+$Env:NON_PMEM_IS_PMEM = $true
 
-$scriptPath = Split-Path -parent $MyInvocation.MyCommand.Definition
-$file_path = $scriptPath + "\..\src\windows\include\srcversion.h"
-$git = Get-Command -Name git -ErrorAction SilentlyContinue
+# standard unit test setup
+. ..\unittest\unittest.ps1
 
-if (Test-Path $file_path) {
-    $old_version = Get-Content $file_path | Where-Object { $_ -like '#define*' }
-} else {
-    $old_version = ""
-}
+setup
 
-if ($git -eq $null) {
-    $version = "#define SRCVERSION `"1.0`""
-} else {
-    $version = "#define SRCVERSION `"$(git describe)`""
-}
+expect_normal_exit $Env:EXE_DIR\obj_locks$EXESUFFIX $DIR\testfile1
 
-if ($old_version -ne $version) {
-    echo "updating source version: $version"
-    echo $version > $file_path
-}
+pass

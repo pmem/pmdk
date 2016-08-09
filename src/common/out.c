@@ -48,6 +48,11 @@
 #include "out.h"
 #include "valgrind_internal.h"
 
+/* XXX - modify Linux makefiles to generate srcversion.h and remove #ifdef */
+#ifdef _WIN32
+#include "srcversion.h"
+#endif
+
 static char nvml_src_version[] = "SRCVERSION:" SRCVERSION;
 
 static const char *Log_prefix;

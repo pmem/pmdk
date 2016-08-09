@@ -39,7 +39,7 @@ Param(
     $DIR = ""
     )
 $Env:UNITTEST_NAME = "obj_constructor/TEST0"
-$Env:UNITTEST_NUM = "0w"
+$Env:UNITTEST_NUM = "0"
 # XXX:  bash has a few calls to tools that we don't have on
 # windows (yet) that set PMEM_IS_PMEM and NON_PMEM_IS_PMEM based
 # on their output

@@ -38,7 +38,6 @@
  */
 
 int is_cpu_genuine_intel(void);
-int is_cpu_sse2_present(void);
 int is_cpu_clflush_present(void);
 int is_cpu_clflushopt_present(void);
 int is_cpu_clwb_present(void);

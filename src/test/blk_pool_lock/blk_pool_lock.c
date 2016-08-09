@@ -95,12 +95,7 @@ test_reopen(const char *path)
 	if (blk2)
 		UT_FATAL("pmemblk_open should not succeed");
 
-#ifndef _WIN32
-	int expected_err = EWOULDBLOCK;
-#else
-	int expected_err = EACCES;
-#endif
-	if (errno != expected_err)
+	if (errno != EWOULDBLOCK)
 		UT_FATAL("!pmemblk_open failed but for unexpected reason");
 
 	pmemblk_close(blk1);
@@ -200,7 +195,7 @@ main(int argc, char *argv[])
 			UT_FATAL("pmemblk_open after CreateProcess should "
 				"not succeed");
 
-		if (errno != EACCES)
+		if (errno != EWOULDBLOCK)
 			UT_FATAL("!pmemblk_open after CreateProcess failed "
 				"but for unexpected reason");
 	}

@@ -5,19 +5,18 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    <Filter Include="Test scripts">
+      <UniqueIdentifier>{6a5dddce-bc61-4d43-80c6-1f87a9224cb4}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="getopt.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
+    <None Include="TEST0.PS1">
+      <Filter>Test scripts</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="getopt.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
+    <ClCompile Include="log_pool_lock.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

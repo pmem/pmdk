@@ -32,7 +32,7 @@
 #
 
 #
-# src/test/obj_first_next/TEST0 -- unit test for POBJ_FIRST macro
+# src/test/obj_first_next/TEST1 -- unit test for POBJ_FIRST macro
 #
 # Returns first object on the proper list
 #
