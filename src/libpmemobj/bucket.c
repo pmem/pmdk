@@ -254,7 +254,68 @@ static struct {
 };
 
 /*
- * bucket_run_create -- (internal) creates a run bucket
+ * bucket_calc_units -- (internal) calculates the size index of a memory block
+ *	whose size in bytes is equal or exceeds the value 'size' provided
+ *	by the caller.
+ */
+static uint32_t
+bucket_calc_units(struct bucket *b, size_t size)
+{
+	ASSERTne(size, 0);
+	return CALC_SIZE_IDX(b->unit_size, size);
+}
+
+/*
+ * bucket_init -- initializes bucket instance
+ */
+static int
+bucket_init(struct bucket *b, uint8_t id, enum block_container_type ctype,
+	size_t unit_size)
+{
+	b->id = id;
+	b->calc_units = bucket_calc_units;
+
+	b->container = block_containers[ctype].create(unit_size);
+	if (b->container == NULL)
+		return -1;
+
+	b->container->unit_size = unit_size;
+
+	util_mutex_init(&b->lock, NULL);
+
+	b->c_ops = block_containers[ctype].ops;
+	b->unit_size = unit_size;
+
+	return 0;
+}
+
+/*
+ * bucket_huge_new -- (internal) creates a huge bucket
+ *
+ * Huge bucket contains chunks with either free or used types. The only reason
+ * there's a separate huge data structure is the bitmap information that is
+ * required for runs and is not relevant for huge chunks.
+ */
+struct bucket_huge *
+bucket_huge_new(uint8_t id, enum block_container_type ctype,
+	size_t unit_size)
+{
+	struct bucket_huge *b = Malloc(sizeof(*b));
+	if (b == NULL)
+		return NULL;
+
+	if (bucket_init(&b->super, id, ctype, unit_size) != 0) {
+		Free(b);
+		return NULL;
+	}
+
+	b->super.type = BUCKET_HUGE;
+
+	return b;
+}
+
+/*
+ * bucket_run_new -- (internal) creates a run bucket
  *
  * This type of bucket is responsible for holding memory blocks from runs, which
  * means that each object it contains has a representation in a bitmap.
@@ -265,12 +326,18 @@ static struct {
  * only from a single chunk/bitmap - a bucket contains objects from a single
  * TYPE of bitmap run.
  */
-static struct bucket *
-bucket_run_create(size_t unit_size, unsigned unit_max)
+struct bucket_run *
+bucket_run_new(uint8_t id, enum block_container_type ctype,
+	size_t unit_size, unsigned unit_max)
 {
 	struct bucket_run *b = Malloc(sizeof(*b));
 	if (b == NULL)
 		return NULL;
+
+	if (bucket_init(&b->super, id, ctype, unit_size) != 0) {
+		Free(b);
+		return NULL;
+	}
 
 	b->super.type = BUCKET_RUN;
 	b->unit_max = unit_max;
@@ -304,91 +371,7 @@ bucket_run_create(size_t unit_size, unsigned unit_max)
 		(((1ULL << unused_bits) - 1ULL) <<
 			(BITS_PER_VALUE - unused_bits)) : 0;
 
-	return &b->super;
-}
-
-/*
- * bucket_huge_create -- (internal) creates a huge bucket
- *
- * Huge bucket contains chunks with either free or used types. The only reason
- * there's a separate huge data structure is the bitmap information that is
- * required for runs and is not relevant for huge chunks.
- */
-static struct bucket *
-bucket_huge_create(size_t unit_size, unsigned unit_max)
-{
-	struct bucket_huge *b = Malloc(sizeof(*b));
-	if (b == NULL)
-		return NULL;
-
-	b->super.type = BUCKET_HUGE;
-
-	return &b->super;
-}
-
-/*
- * bucket_common_delete -- (internal) deletes a bucket
- */
-static void
-bucket_common_delete(struct bucket *b)
-{
-	Free(b);
-}
-
-static struct {
-	struct bucket *(*create)(size_t unit_size, unsigned unit_max);
-	void (*delete)(struct bucket *b);
-} bucket_types[MAX_BUCKET_TYPE] = {
-	{NULL, NULL},
-	{bucket_huge_create, bucket_common_delete},
-	{bucket_run_create, bucket_common_delete}
-};
-
-/*
- * bucket_calc_units -- (internal) calculates the size index of a memory block
- *	whose size in bytes is equal or exceeds the value 'size' provided
- *	by the caller.
- */
-static uint32_t
-bucket_calc_units(struct bucket *b, size_t size)
-{
-	ASSERTne(size, 0);
-	return CALC_SIZE_IDX(b->unit_size, size);
-}
-
-/*
- * bucket_new -- allocates and initializes bucket instance
- */
-struct bucket *
-bucket_new(uint8_t id, enum bucket_type type, enum block_container_type ctype,
-	size_t unit_size, unsigned unit_max)
-{
-	ASSERT(unit_size > 0);
-
-	struct bucket *b = bucket_types[type].create(unit_size, unit_max);
-	if (b == NULL)
-		goto error_bucket_malloc;
-
-	b->id = id;
-	b->calc_units = bucket_calc_units;
-
-	b->container = block_containers[ctype].create(unit_size);
-	if (b->container == NULL)
-		goto error_container_create;
-
-	b->container->unit_size = unit_size;
-
-	util_mutex_init(&b->lock, NULL);
-
-	b->c_ops = block_containers[ctype].ops;
-	b->unit_size = unit_size;
-
 	return b;
-
-error_container_create:
-	bucket_types[type].delete(b);
-error_bucket_malloc:
-	return NULL;
 }
 
 /*
@@ -400,5 +383,5 @@ bucket_delete(struct bucket *b)
 	util_mutex_destroy(&b->lock);
 
 	block_containers[b->container->type].delete(b->container);
-	bucket_types[b->type].delete(b);
+	Free(b);
 }

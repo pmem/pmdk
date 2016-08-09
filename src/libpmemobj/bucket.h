@@ -132,8 +132,11 @@ struct bucket_run {
 	unsigned unit_max;
 };
 
-struct bucket *bucket_new(uint8_t id, enum bucket_type type,
-	enum block_container_type ctype, size_t unit_size, unsigned unit_max);
+struct bucket_huge *bucket_huge_new(uint8_t id, enum block_container_type ctype,
+	size_t unit_size);
+
+struct bucket_run *bucket_run_new(uint8_t id, enum block_container_type ctype,
+	size_t unit_size, unsigned unit_max);
 
 void bucket_delete(struct bucket *b);
 

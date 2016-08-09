@@ -512,8 +512,8 @@ heap_create_alloc_class_buckets(struct heap_rt *h,
 	if (slot == MAX_BUCKETS)
 		goto out;
 
-	h->buckets[slot] = bucket_new(slot, BUCKET_RUN, CONTAINER_CTREE,
-			unit_size, unit_max);
+	h->buckets[slot] = &(bucket_run_new(slot, CONTAINER_CTREE,
+			unit_size, unit_max)->super);
 
 	if (h->buckets[slot] == NULL)
 		goto error_bucket_new;
@@ -521,8 +521,8 @@ heap_create_alloc_class_buckets(struct heap_rt *h,
 	int i;
 	for (i = 0; i < (int)h->ncaches; ++i) {
 		h->caches[i].buckets[slot] =
-			bucket_new(slot, BUCKET_RUN, CONTAINER_CTREE,
-				unit_size, unit_max);
+			&(bucket_run_new(slot, CONTAINER_CTREE,
+				unit_size, unit_max)->super);
 		if (h->caches[i].buckets[slot] == NULL)
 			goto error_cache_bucket_new;
 	}
@@ -1048,8 +1048,8 @@ heap_buckets_init(struct palloc_heap *heap)
 	if (h->bucket_map == NULL)
 		goto error_bucket_map_malloc;
 
-	h->default_bucket = bucket_new(MAX_BUCKETS, BUCKET_HUGE,
-		CONTAINER_CTREE, CHUNKSIZE, UINT32_MAX);
+	h->default_bucket = &(bucket_huge_new(MAX_BUCKETS,
+		CONTAINER_CTREE, CHUNKSIZE)->super);
 	if (h->default_bucket == NULL)
 		goto error_default_bucket_new;
 
