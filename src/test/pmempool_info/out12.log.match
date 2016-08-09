@@ -119,11 +119,5 @@ Number of used zones     : 1 [100 %]
   Bytes                    : $(*)
   Used bytes               : $(*)
 
-  Unit size                : $(*)
-  Units                    : $(*)
-  Used units               : $(*)
-  Bytes                    : $(*)
-  Used bytes               : $(*)
-
  Total bytes              : $(*)
  Total used bytes         : $(*)
