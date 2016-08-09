@@ -856,7 +856,8 @@ util_poolset_parse(struct pool_set **setp, const char *path, int fd)
 					POOLSET_REPLICA_SIG_LEN) == 0) {
 			if (line[POOLSET_REPLICA_SIG_LEN] != '\0') {
 				/* something more than 'REPLICA' */
-				if (!isblank(line[POOLSET_REPLICA_SIG_LEN])) {
+				char c = line[POOLSET_REPLICA_SIG_LEN];
+				if (!isblank((unsigned char)c)) {
 					result = PARSER_REPLICA;
 					continue;
 				}
