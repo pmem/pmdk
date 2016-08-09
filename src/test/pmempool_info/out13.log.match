@@ -81,11 +81,5 @@ Number of used zones     : 1 [100 %]
 
  Zone's allocation classes:
 
-  Unit size                : $(*)
-  Units                    : $(*)
-  Used units               : $(*)
-  Bytes                    : $(*)
-  Used bytes               : $(*)
-
  Total bytes              : $(*)
  Total used bytes         : $(*)

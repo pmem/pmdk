@@ -127,16 +127,23 @@ struct bucket_run {
 	unsigned bitmap_nallocs;
 
 	/*
-	 * Maximum multiplication factor of unit_size for allocations.
+	 * Maximum multiplication factor of unit_size for memory blocks.
 	 */
 	unsigned unit_max;
+
+	/*
+	 * Maximum multiplication factor of unit_size for allocations.
+	 * If a memory block is larger than the allowed size it is split and the
+	 * remainder is returned back to the bucket.
+	 */
+	unsigned unit_max_alloc;
 };
 
 struct bucket_huge *bucket_huge_new(uint8_t id, enum block_container_type ctype,
 	size_t unit_size);
 
 struct bucket_run *bucket_run_new(uint8_t id, enum block_container_type ctype,
-	size_t unit_size, unsigned unit_max);
+	size_t unit_size, unsigned unit_max, unsigned unit_max_alloc);
 
 void bucket_delete(struct bucket *b);
 

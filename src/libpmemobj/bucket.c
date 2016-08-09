@@ -328,7 +328,7 @@ bucket_huge_new(uint8_t id, enum block_container_type ctype,
  */
 struct bucket_run *
 bucket_run_new(uint8_t id, enum block_container_type ctype,
-	size_t unit_size, unsigned unit_max)
+	size_t unit_size, unsigned unit_max, unsigned unit_max_alloc)
 {
 	struct bucket_run *b = Malloc(sizeof(*b));
 	if (b == NULL)
@@ -341,6 +341,7 @@ bucket_run_new(uint8_t id, enum block_container_type ctype,
 
 	b->super.type = BUCKET_RUN;
 	b->unit_max = unit_max;
+	b->unit_max_alloc = unit_max_alloc;
 
 	/*
 	 * Here the bitmap definition is calculated based on the size of the
