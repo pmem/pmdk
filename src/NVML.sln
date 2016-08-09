@@ -346,6 +346,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "log_pool_lock", "test\log_p
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_locks", "test\obj_locks\obj_locks.vcxproj", "{2DE6B085-3C19-49B1-894A-AD9376000E09}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "blk_recovery", "test\blk_recovery\blk_recovery.vcxproj", "{DB68AB21-510B-4BA1-9E6F-E5731D8647BC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -752,6 +754,14 @@ Global
 		{2DE6B085-3C19-49B1-894A-AD9376000E09}.Static-Debug|x64.Build.0 = Debug|x64
 		{2DE6B085-3C19-49B1-894A-AD9376000E09}.Static-Release|x64.ActiveCfg = Release|x64
 		{2DE6B085-3C19-49B1-894A-AD9376000E09}.Static-Release|x64.Build.0 = Release|x64
+		{DB68AB21-510B-4BA1-9E6F-E5731D8647BC}.Debug|x64.ActiveCfg = Debug|x64
+		{DB68AB21-510B-4BA1-9E6F-E5731D8647BC}.Debug|x64.Build.0 = Debug|x64
+		{DB68AB21-510B-4BA1-9E6F-E5731D8647BC}.Release|x64.ActiveCfg = Release|x64
+		{DB68AB21-510B-4BA1-9E6F-E5731D8647BC}.Release|x64.Build.0 = Release|x64
+		{DB68AB21-510B-4BA1-9E6F-E5731D8647BC}.Static-Debug|x64.ActiveCfg = Static-Debug|x64
+		{DB68AB21-510B-4BA1-9E6F-E5731D8647BC}.Static-Debug|x64.Build.0 = Static-Debug|x64
+		{DB68AB21-510B-4BA1-9E6F-E5731D8647BC}.Static-Release|x64.ActiveCfg = Static-Release|x64
+		{DB68AB21-510B-4BA1-9E6F-E5731D8647BC}.Static-Release|x64.Build.0 = Static-Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -813,5 +823,6 @@ Global
 		{901F04DB-E1A5-4A41-8B81-9D31C19ACD59} = {95FAF291-03D1-42FC-9C10-424D551D475D}
 		{E68DEB59-C709-4945-AF80-EEBCADDED944} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 		{2DE6B085-3C19-49B1-894A-AD9376000E09} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
+		{DB68AB21-510B-4BA1-9E6F-E5731D8647BC} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 	EndGlobalSection
 EndGlobal

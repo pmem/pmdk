@@ -113,6 +113,32 @@ function usage {
     exit 1
 }
 
+#
+# get_build_dir -- returns the directory to pick the test binaries from
+#
+# example, to get release build dir
+#	get_build_dir "nondebug"
+#
+
+function get_build_dir() {
+
+    param([string]$build)
+
+    # default build dir is Debug
+    $build_dir = "..\..\x64\debug"
+
+    if ($build -eq "nondebug") {
+        $build_dir = "..\..\x64\Release"
+    } elseif ($build -eq "static-debug") {
+        $build_dir = "..\..\x64\Static-Debug"
+    } elseif ($build -eq "static-nondebug") {
+        $build_dir = "..\..\x64\Static-Release"
+    }
+
+    return $build_dir
+}
+
+
 if (-Not ("debug nondebug static-debug static-nondebug all" -match $buildtype)) {
     usage "bad build-type: $buildtype"
 }
@@ -218,6 +244,7 @@ function runtest {
             $Env:TEST = $testtype
             $Env:FS = $fs
             $Env:BUILD = $build
+            $Env:EXE_DIR = get_build_dir $build
 
             $pinfo = New-Object System.Diagnostics.ProcessStartInfo
             $pinfo.FileName = "powershell.exe"
