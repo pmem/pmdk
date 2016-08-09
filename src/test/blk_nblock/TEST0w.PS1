@@ -1,5 +1,6 @@
 #
 # Copyright 2015-2016, Intel Corporation
+# Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -69,13 +70,13 @@ setup
 # sparse Windows still won't let you overcommit
 #
 
-create_holey_file 2 $DIR\testfile1
-create_holey_file 2048 $DIR\testfile2.512
-create_holey_file 2048 $DIR\testfile2.520
-create_holey_file 2048 $DIR\testfile2.528
-create_holey_file 2048 $DIR\testfile2.4096
-create_holey_file 2048 $DIR\testfile2.4160
-create_holey_file 2048 $DIR\testfile2.4224
+create_holey_file 2M $DIR\testfile1
+create_holey_file 2048M $DIR\testfile2.512
+create_holey_file 2048M $DIR\testfile2.520
+create_holey_file 2048M $DIR\testfile2.528
+create_holey_file 2048M $DIR\testfile2.4096
+create_holey_file 2048M $DIR\testfile2.4160
+create_holey_file 2048M $DIR\testfile2.4224
 
 #
 # Larger file coverage is provided on the linux side
@@ -84,7 +85,7 @@ create_holey_file 2048 $DIR\testfile2.4224
 #
 
 # MINIMUM POOL SIZE = 16MB + 64KB
-$MIN_POOL_SIZE = "16+64"
+$MIN_POOL_SIZE = ((16*1024*1024 + 64*1024).ToString() + "b")
 create_holey_file $MIN_POOL_SIZE $DIR\testfile7.512
 create_holey_file $MIN_POOL_SIZE $DIR\testfile7.520
 create_holey_file $MIN_POOL_SIZE $DIR\testfile7.528

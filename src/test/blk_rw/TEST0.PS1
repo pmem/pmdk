@@ -57,7 +57,7 @@ setup
 
 # single arena and minimum pmemblk pool file case
 # MIN_POOL_SIZE = 16MB + 64KB
-$MIN_POOL_SIZE="16+64"
+$MIN_POOL_SIZE = ((16*1024*1024 + 64*1024).ToString() + "b")
 create_holey_file $MIN_POOL_SIZE $DIR\testfile1
 #
 # All reads to an unwritten block pool should return zeros.

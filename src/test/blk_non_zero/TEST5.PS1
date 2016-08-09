@@ -1,5 +1,6 @@
 #
 # Copyright 2015-2016, Intel Corporation
+# Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -54,7 +55,7 @@ require_fs_type pmem non-pmem
 setup
 
 # single arena and minimum pmemblk pool file case
-$MIN_POOL_SIZE = $((16*1024*1024 + 64*1024))
+$MIN_POOL_SIZE = ((16*1024*1024 + 64*1024).ToString() + "b")
 
 #
 # All reads to an unwritten block pool should return zeros.

@@ -1,5 +1,6 @@
 #
 # Copyright 2014-2016, Intel Corporation
+# Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -270,51 +271,107 @@ function get_executables() {
 }
 
 #
-# create_file -- create zeroed out files of a given length in megs
+# convert_to_bytes -- converts the string with K, M, G or T suffixes
+# to bytes
+#
+# example:
+#   "1G" --> "1073741824"
+#   "2T" --> "2199023255552"
+#   "3k" --> "3072"
+#   "1K" --> "1024"
+#   "10" --> "10"
+#
+function convert_to_bytes() {
+	size="$(echo $1 | tr '[:upper:]' '[:lower:]')"
+	if [[ $size == *kib ]]
+	then size=$(($(echo $size | tr -d 'kib') * 1024))
+	elif [[ $size == *mib ]]
+	then size=$(($(echo $size | tr -d 'mib') * 1024 * 1024))
+	elif [[ $size == *gib ]]
+	then size=$(($(echo $size | tr -d 'gib') * 1024 * 1024 * 1024))
+	elif [[ $size == *tib ]]
+	then size=$(($(echo $size | tr -d 'tib') * 1024 * 1024 * 1024 * 1024))
+	elif [[ $size == *pib ]]
+	then size=$(($(echo $size | tr -d 'pib') * 1024 * 1024 * 1024 * 1024 * 1024))
+	elif [[ $size == *kb ]]
+	then size=$(($(echo $size | tr -d 'kb') * 1000))
+	elif [[ $size == *mb ]]
+	then size=$(($(echo $size | tr -d 'mb') * 1000 * 1000))
+	elif [[ $size == *gb ]]
+	then size=$(($(echo $size | tr -d 'gb') * 1000 * 1000 * 1000))
+	elif [[ $size == *tb ]]
+	then size=$(($(echo $size | tr -d 'tb') * 1000 * 1000 * 1000 * 1000))
+	elif [[ $size == *pb ]]
+	then size=$(($(echo $size | tr -d 'pb') * 1000 * 1000 * 1000 * 1000 * 1000))
+	elif [[ $size == *b ]]
+	then size=$(($(echo $size | tr -d 'b')))
+	elif [[ $size == *k ]]
+	then size=$(($(echo $size | tr -d 'k') * 1024))
+	elif [[ $size == *m ]]
+	then size=$(($(echo $size | tr -d 'm') * 1024 * 1024))
+	elif [[ $size == *g ]]
+	then size=$(($(echo $size | tr -d 'g') * 1024 * 1024 * 1024))
+	elif [[ $size == *t ]]
+	then size=$(($(echo $size | tr -d 't') * 1024 * 1024 * 1024 * 1024))
+	elif [[ $size == *p ]]
+	then size=$(($(echo $size | tr -d 'p') * 1024 * 1024 * 1024 * 1024 * 1024))
+	fi
+
+	echo "$size"
+}
+
+#
+# create_file -- create zeroed out files of a given length
 #
 # example, to create two files, each 1GB in size:
-#	create_file 1024 testfile1 testfile2
+#	create_file 1G testfile1 testfile2
 #
 function create_file() {
-	size=$1
+	size=$(convert_to_bytes $1)
 	shift
 	for file in $*
 	do
-		dd if=/dev/zero of=$file bs=1M count=$size >> prep$UNITTEST_NUM.log
+		dd if=/dev/zero of=$file bs=1M count=$size iflag=count_bytes >> prep$UNITTEST_NUM.log
 	done
 }
 
 #
-# create_nonzeroed_file -- create non-zeroed files of a given length in megs
+# create_nonzeroed_file -- create non-zeroed files of a given length
 #
 # A given first kilobytes of the file is zeroed out.
 #
 # example, to create two files, each 1GB in size, with first 4K zeroed
-#	create_nonzeroed_file 1024 4 testfile1 testfile2
+#	create_nonzeroed_file 1G 4K testfile1 testfile2
 #
 function create_nonzeroed_file() {
-	offset=$2
-	size=$(($1 * 1024 - $offset))
+	offset=$(convert_to_bytes $2)
+	size=$(($(convert_to_bytes $1) - $offset))
 	shift 2
 	for file in $*
 	do
-		truncate -s ${offset}K $file >> prep$UNITTEST_NUM.log
-		dd if=/dev/zero bs=1K count=${size} 2>>prep$UNITTEST_NUM.log | tr '\0' '\132' >> $file
+		truncate -s ${offset} $file >> prep$UNITTEST_NUM.log
+		dd if=/dev/zero bs=1K count=${size} iflag=count_bytes 2>>prep$UNITTEST_NUM.log | tr '\0' '\132' >> $file
 	done
 }
 
 #
-# create_holey_file -- create holey files of a given length in megs
+# create_holey_file -- create holey files of a given length
 #
-# example, to create two files, each 1GB in size:
-#	create_holey_file 1024 testfile1 testfile2
+# examples:
+#	create_holey_file 1024k testfile1 testfile2
+#	create_holey_file 2048M testfile1 testfile2
+#	create_holey_file 234 testfile1
+#	create_holey_file 2340b testfile1
 #
+# Input unit size is in bytes with optional suffixes like k, KB, M, etc.
+#
+
 function create_holey_file() {
-	size=$1
+	size=$(convert_to_bytes $1)
 	shift
 	for file in $*
 	do
-		truncate -s ${size}M $file >> prep$UNITTEST_NUM.log
+		truncate -s ${size} $file >> prep$UNITTEST_NUM.log
 	done
 }
 
@@ -403,6 +460,8 @@ function create_poolset() {
 		if [ ! $asize ]; then
 			asize=$fsize
 		fi
+
+		asize=$(convert_to_bytes $asize)
 
 		case "$cmd"
 		in
@@ -1576,22 +1635,24 @@ function kill_on_node() {
 }
 
 #
-# create_holey_file_on_node -- create holey files of a given length in megs
+# create_holey_file_on_node -- create holey files of a given length
 #   usage: create_holey_file_on_node <node> <size>
 #
 # example, to create two files, each 1GB in size on node 0:
-#	create_holey_file_on_node 0 1024 testfile1 testfile2
+#	create_holey_file_on_node 0 1G testfile1 testfile2
+#
+# Input unit size is in bytes with optional suffixes like k, KB, M, etc.
 #
 function create_holey_file_on_node() {
 
 	validate_node_number $1
 
 	local N=$1
-	size=$2
+	size=$(convert_to_bytes $2)
 	shift 2
 	for file in $*
 	do
-		run_on_node $N truncate -s ${size}M $file >> prep$UNITTEST_NUM.log
+		run_on_node $N truncate -s ${size} $file >> prep$UNITTEST_NUM.log
 	done
 }
 
