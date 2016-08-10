@@ -2,6 +2,8 @@
 layout: manual
 Content-Style: 'text/css'
 title: libpmempool(3)
+header: NVM Library
+date: pmempool API version 1.0.2
 ...
 
 [comment]: <> (Copyright 2016, Intel Corporation)
@@ -33,26 +35,23 @@ title: libpmempool(3)
 
 [comment]: <> (libpmempool.3 -- man page for libpmempool)
 
-[comment]: <> (Format this man page with:)
-[comment]: <> (   man -l libpmempool.3)
-[comment]: <> (or)
-[comment]: <> (   groff -man -Tascii libpmempool.3)
-
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
 [POOL CHECKING FUNCTIONS](#pool-checking-functions)<br />
-[LIBRARY API VERSIONING](#library-api-versioning)<br />
+[LIBRARY API VERSIONING](#library-api-versioning-1)<br />
 [DEBUGGING AND ERROR HANDLING](#debugging-and-error-handling)<br />
+[EXAMPLE](#example)<br />
 [ACKNOWLEDGEMENTS](#acknowledgements)<br />
 [SEE ALSO](#see-also)<br />
 
 
-### NAME ###
+# NAME #
 
-**libpmempool** - pool management library
+**libpmempool** -- pool management library
 
-### SYNOPSIS ###
+
+# SYNOPSIS #
 
 ```c
 #include <libpmempool.h>
@@ -62,10 +61,9 @@ cc -std=gnu99 ... -lpmempool -lpmem
 ##### Health check functions: #####
 
 ```c
-PMEMpoolcheck *pmempool_check_init(struct pmempool_check_args *args, size_t args_size);
-
+PMEMpoolcheck *pmempool_check_init(struct pmempool_check_args *args,
+	size_t args_size);
 struct pmempool_check_status *pmempool_check(PMEMpoolcheck *ppc);
-
 enum pmempool_check_result pmempool_check_end(PMEMpoolcheck *ppc);
 ```
 
@@ -83,7 +81,8 @@ const char *pmempool_check_version(
 const char *pmempool_errormsg(void);
 ```
 
-### DESCRIPTION ###
+
+# DESCRIPTION #
 
 **libpmempool**
 provides a set of utilities for off-line analysis and
@@ -103,36 +102,36 @@ Currently **libpmempool** implements only consistency check and
 repair functions.
 
 
-### POOL CHECKING FUNCTIONS ###
+# POOL CHECKING FUNCTIONS #
 
 To perform check provided by **libpmempool**, a *check context*
-must be first initialized using `pmempool_check_init()`
+must be first initialized using **pmempool_check_init**()
 function described in this section. Once initialized
 *check context* is represented by an opaque handle, of
-type `PMEMpoolcheck *`, which is passed to all of the
+type *PMEMpoolcheck\**, which is passed to all of the
 other functions described in this section.
 
-To execute check `pmempool_check()` must be called iteratively.
+To execute check **pmempool_check**() must be called iteratively.
 Each call resumes check till new status will be generated.
-Each status is represented by `struct pmempool_check_status *` structure. It may carry various
+Each status is represented by *struct pmempool_check_status\** structure.
+It may carry various
 types of messages described in this section.
 
-When check is completed `pmempool_check()` returns `NULL` pointer.
-Check must be finalized using `pmempool_check_end()`.
-It returns `enum pmempool_check_result` describing
+When check is completed **pmempool_check**() returns NULL pointer.
+Check must be finalized using **pmempool_check_end**().
+It returns *enum pmempool_check_result* describing
 result of the whole check.
 
 ```c
-PMEMpoolcheck *pmempool_check_init(
-struct pmempool_check_args *args,
-size_t args_size);
+PMEMpoolcheck *pmempool_check_init(struct pmempool_check_args *args,
+	size_t args_size);
 ```
 
-  The `pmempool_check_init()` initializes check
-  context. `args` describes parameters of the
-  check context. `args_size` should be equal to
-  the size of the `struct pmempool_check_args`. `struct
-  pmempool_check_args` is defined as follows:
+The **pmempool_check_init**() initializes check
+context. *args* describes parameters of the
+check context. *args_size* should be equal to
+the size of the *struct pmempool_check_args*.
+*struct pmempool_check_args* is defined as follows:
 
 ```c
 struct pmempool_check_args
@@ -151,28 +150,36 @@ struct pmempool_check_args
 };
 ```
 
-  The `flags` argument accepts any combination of the following values (ORed):
+The *flags* argument accepts any combination of the following values (ORed):
 
-  + `PMEMPOOL_CHECK_REPAIR` - perform repairs
++ **PMEMPOOL_CHECK_REPAIR** - perform repairs
++ **PMEMPOOL_CHECK_DRY_RUN** - emulate repairs
++ **PMEMPOOL_CHECK_ADVANCED** - perform hazardous repairs
++ **PMEMPOOL_CHECK_ALWAYS_YES** - do not ask before repairs
++ **PMEMPOOL_CHECK_VERBOSE** - generate info statuses
++ **PMEMPOOL_CHECK_FORMAT_STR** - generate string format statuses
 
-  + `PMEMPOOL_CHECK_DRY_RUN` - emulate repairs
+If provided parameters are invalid or initialization process fails
+**pmempool_check_init**() returns NULL and sets *errno*
+appropriately. *pool_type* has to match type of the
+*pool* being processed. You can turn on pool type
+detection by setting *pool_type* to **PMEMPOOL_POOL_TYPE_DETECT**.
+Pool type detection fail ends check.
 
-  + `PMEMPOOL_CHECK_ADVANCED` - perform hazardous repairs
+*backup_path* argument can either be:
 
-  + `PMEMPOOL_CHECK_ALWAYS_YES` - do not ask before repairs
++ NULL. It indicates no backup will be performed.
 
-  + `PMEMPOOL_CHECK_VERBOSE` - generate info statuses
++ a non existing file. It is valid only in case *path* is a single file
+*pool*. It indicates a *backup_path* file will be created and backup will be
+performed.
 
-  + `PMEMPOOL_CHECK_FORMAT_STR` - generate string format statuses
++ an existing *poolset* file of the same structure (the same number of parts
+with exactly the same size) as the source *poolset*. It is valid only in case
+*path* is a *poolset*. It indicates backup will be performed in a form
+described by the *backup_path* *poolset*.
 
-  If provided parameters are invalid or initialization process fails
-  `pmempool_check_init()` returns `NULL` and sets `errno`
-  appropriately. `pool_type` has to match type of the
-  *pool* being processed. You can turn on pool type
-  detection by setting `pool_type` to `PMEMPOOL_POOL_TYPE_DETECT`.
-  Pool type detection fail ends check.
-
-  This is an example of a *check context* initialization:
+This is an example of a *check context* initialization:
 
 ```c
 struct pmempool_check_args args =
@@ -181,7 +188,7 @@ struct pmempool_check_args args =
 	.backup_path = NULL,
 	.pool_type = PMEMPOOL_POOL_TYPE_BLK,
 	.flags = PMEMPOOL_CHECK_REPAIR | PMEMPOOL_CHECK_DRY_RUN |
-	PMEMPOOL_CHECK_VERBOSE | PMEMPOOL_CHECK_FORMAT_STR
+		PMEMPOOL_CHECK_VERBOSE | PMEMPOOL_CHECK_FORMAT_STR
 };
 ```
 
@@ -189,33 +196,32 @@ struct pmempool_check_args args =
 PMEMpoolcheck *ppc = pmempool_check_init(&args, sizeof(args));
 ```
 
-  The check will process a *pool* of type `PMEMPOOL_POOL_TYPE_BLK`
-  located in the path /path/to/blk.pool. Before check it will
-  not create a backup of the *pool* (`backup_path == NULL`).
-  If the check will find any issues it will try to
-  perform repair steps (`PMEMPOOL_CHECK_REPAIR`), but it
-  will not make any changes to the *pool*
-  (`PMEMPOOL_CHECK_DRY_RUN`) and it will not perform any
-  dangerous repair steps (no `PMEMPOOL_CHECK_ADVANCED`).
-  The check will ask before performing any repair steps (no
-  `PMEMPOOL_CHECK_ALWAYS_YES`). It will also generate
-  detailed information about the check (`PMEMPOOL_CHECK_VERBOSE`).
-  `PMEMPOOL_CHECK_FORMAT_STR` flag indicates string
-  format statuses (`struct pmempool_check_status`).
-  Currently it is the only supported status format so this flag is required.
+The check will process a *pool* of type **PMEMPOOL_POOL_TYPE_BLK**
+located in the path */path/to/blk.pool*. Before check it will
+not create a backup of the *pool* (*backup_path == NULL*).
+If the check will find any issues it will try to
+perform repair steps (**PMEMPOOL_CHECK_REPAIR**), but it
+will not make any changes to the *pool*
+(**PMEMPOOL_CHECK_DRY_RUN**) and it will not perform any
+dangerous repair steps (no **PMEMPOOL_CHECK_ADVANCED**).
+The check will ask before performing any repair steps (no
+**PMEMPOOL_CHECK_ALWAYS_YES**). It will also generate
+detailed information about the check (**PMEMPOOL_CHECK_VERBOSE**).
+**PMEMPOOL_CHECK_FORMAT_STR** flag indicates string
+format statuses (*struct pmempool_check_status*).
+Currently it is the only supported status format so this flag is required.
 
 ```c
 struct pmempool_check_status *pmempool_check(PMEMpoolcheck *ppc);
 ```
 
-  The `pmempool_check()` function starts or resumes the check
-  indicated by `ppc`. When next status will be generated
-  it pauses the check and returns a pointer to the `struct
-  pmempool_check_status` structure:
+The **pmempool_check**() function starts or resumes the check
+indicated by *ppc*. When next status will be generated
+it pauses the check and returns a pointer to the
+*struct pmempool_check_status* structure:
 
 ```c
-struct
-pmempool_check_status
+struct pmempool_check_status
 {
 	enum pmempool_check_msg_type type; /* type of the status */
 	struct
@@ -226,98 +232,95 @@ pmempool_check_status
 };
 ```
 
-  This structure can describe three types of statuses:
+This structure can describe three types of statuses:
 
-  + `PMEMPOOL_CHECK_MSG_TYPE_INFO` - detailed information about the check. Generated only if a `PMEMPOOL_CHECK_VERBOSE` flag was set.
++ **PMEMPOOL_CHECK_MSG_TYPE_INFO** - detailed information about the check.
+  Generated only if a **PMEMPOOL_CHECK_VERBOSE** flag was set.
++ **PMEMPOOL_CHECK_MSG_TYPE_ERROR** - encountered error
++ **PMEMPOOL_CHECK_MSG_TYPE_QUESTION** - question. Generated only if an
+  **PMEMPOOL_CHECK_ALWAYS_YES** flag was not set. It requires *answer* to be
+  set to "yes" or "no" before continuing.
 
-  + `PMEMPOOL_CHECK_MSG_TYPE_ERROR` - encountered error
-
-  + `PMEMPOOL_CHECK_MSG_TYPE_QUESTION` - question. Generated only if an `PMEMPOOL_CHECK_ALWAYS_YES` flag was not set. It requires `answer` to be set to "yes" or "no" before continuing.
-
-  After calling `pmempool_check()` again the previously provided
-  `struct pmempool_check_status *` pointer must be
-  considered invalid. When the check completes
-  `pmempool_check()` returns `NULL` pointer.
+After calling **pmempool_check**() again the previously provided
+*struct pmempool_check_status\** pointer must be
+considered invalid. When the check completes
+**pmempool_check**() returns NULL pointer.
 
 ```c
 enum pmempool_check_result pmempool_check_end(PMEMpoolcheck* ppc);
 ```
 
-  The `pmempool_check_end()` function finalizes the check and
-  releases all related resources. `ppc` is not a valid
-  pointer after calling `pmempool_check_end()`. It
-  returns `enum pmempool_check_result` summarizing result
-  of the finalized check. `pmempool_check_end()` can
-  return one of the following values:
+The **pmempool_check_end**() function finalizes the check and
+releases all related resources. *ppc* is not a valid
+pointer after calling **pmempool_check_end**(). It
+returns *enum pmempool_check_result* summarizing result
+of the finalized check. **pmempool_check_end**() can
+return one of the following values:
 
-  + `PMEMPOOL_CHECK_RESULT_CONSISTENT` - the *pool* is consistent
++ **PMEMPOOL_CHECK_RESULT_CONSISTENT** - the *pool* is consistent
++ **PMEMPOOL_CHECK_RESULT_NOT_CONSISTENT** - the *pool* is not consistent
++ **PMEMPOOL_CHECK_RESULT_REPAIRED** - the *pool* has issues but all repair
+  steps completed succesfully
++ **PMEMPOOL_CHECK_RESULT_CANNOT_REPAIR** - the *pool* has issues which
+  can not be repaired
++ **PMEMPOOL_CHECK_RESULT_ERROR** - the *pool* has errors or the check
+  encountered issue
 
-  + `PMEMPOOL_CHECK_RESULT_NOT_CONSISTENT` - the *pool* is not consistent
 
-  + `PMEMPOOL_CHECK_RESULT_REPAIRED` - the *pool* has issues but all repair steps completed succesfully
-
-  + `PMEMPOOL_CHECK_RESULT_CANNOT_REPAIR` - the *pool* has issues which can not be repaired
-
-  + `PMEMPOOL_CHECK_RESULT_ERROR` - the *pool* has errors or the check encountered issue
-
-
-### LIBRARY API VERSIONING ###
+# LIBRARY API VERSIONING #
 
 This section describes how the library API is versioned, allowing
 applications to work with an evolving API.
 
 ```c
 const char *pmempool_check_version(
-unsigned major_required,
-unsigned minor_required);
+	unsigned major_required,
+	unsigned minor_required);
 ```
 
-The `pmempool_check_version()` function is used to see if
+The **pmempool_check_version**() function is used to see if
 the installed **libpmempool** supports the version of the
 library API required by an application. The easiest way to
 do this for the application is to supply the compile-time
-version information, supplied by defines in `<libpmempool.h>`, like this:
+version information, supplied by defines in **\<libpmempool.h\>**, like this:
 
 ```c
-reason = pmempool_check_version(
-PMEMPOOL_MAJOR_VERSION,
-PMEMPOOL_MINOR_VERSION);
-
-if (reason != NULL)
-{
+reason = pmempool_check_version(PMEMPOOL_MAJOR_VERSION,
+                                PMEMPOOL_MINOR_VERSION);
+if (reason != NULL) {
 	/* version check failed, reason string tells you why */
 }
 ```
 
-  Any mismatch in the major version number is considered a failure, but a
-  library with a newer minor version number will pass this
-  check since increasing minor versions imply backwards compatibility.
+Any mismatch in the major version number is considered a failure, but a
+library with a newer minor version number will pass this
+check since increasing minor versions imply backwards compatibility.
 
-  An application can also check specifically for the existence of an
-  interface by checking for the version where that interface
-  was introduced. These versions are documented in this man
-  page as follows: unless otherwise specified, all interfaces
-  described here are available in version 1.0 of the library.
-  Interfaces added after version 1.0 will contain the text
-  introduced in version x.y in the section of this manual
-  describing the feature.
+An application can also check specifically for the existence of an
+interface by checking for the version where that interface
+was introduced. These versions are documented in this man
+page as follows: unless otherwise specified, all interfaces
+described here are available in version 1.0 of the library.
+Interfaces added after version 1.0 will contain the text
+*introduced in version x.y* in the section of this manual
+describing the feature.
 
-  When the version check performed by `pmempool_check_version()`
-  is successful, the return value is `NULL`. Otherwise the
-  return value is a static string describing the reason for
-  failing the version check. The string returned by
-  `pmempool_check_version()` must not be modified or freed.
+When the version check performed by **pmempool_check_version**()
+is successful, the return value is NULL. Otherwise the
+return value is a static string describing the reason for
+failing the version check. The string returned by
+**pmempool_check_version**() must not be modified or freed.
 
 
-### DEBUGGING AND ERROR HANDLING ###
+# DEBUGGING AND ERROR HANDLING #
 
 Two versions of libpmempool are typically available on a development
 system. The normal version, accessed when a program is
-linked using the `-lpmempool` option, is optimized for
+linked using the **-lpmempool** option, is optimized for
 performance. That version skips checks that impact
 performance and exceptionally logs any trace information or
 performs any run-time assertions. If an error is detected
-during the call to *libpmempool* function, an
+during the call to **libpmempool** function, an
 application may retrieve an error message describing the
 reason of failure using the following function:
 
@@ -325,35 +328,35 @@ reason of failure using the following function:
 const char *pmempool_errormsg(void);
 ```
 
-  The `pmempool_errormsg()` function returns a pointer to a
-  static buffer containing the last error message logged for
-  current thread. The error message may include description of
-  the corresponding error code (if errno was set), as returned
-  by `strerror(3)`. The error message buffer is
-  thread-local; errors encountered in one thread do not affect
-  its value in other threads. The buffer is never cleared by
-  any library function; its content is significant only when
-  the return value of the immediately preceding call to
-  **libpmempool** function indicated an error, or if `errno`
-  was set. The application must not modify or free the error
-  message string, but it may be modified by subsequent calls
-  to other library functions.
+The **pmempool_errormsg**() function returns a pointer to a
+static buffer containing the last error message logged for
+current thread. The error message may include description of
+the corresponding error code (if *errno* was set), as returned
+by **strerror**(3). The error message buffer is
+thread-local; errors encountered in one thread do not affect
+its value in other threads. The buffer is never cleared by
+any library function; its content is significant only when
+the return value of the immediately preceding call to
+**libpmempool** function indicated an error, or if *errno*
+was set. The application must not modify or free the error
+message string, but it may be modified by subsequent calls
+to other library functions.
 
 A second version of **libpmempool**, accessed when a program uses
 the libraries under **/usr/lib/nvml_debug**, contains
 run-time assertions and trace points. The typical way to
 access the debug version is to set the environment variable
-`LD_LIBRARY_PATH` to **/usr/lib/nvml_debug** or
+**LD_LIBRARY_PATH** to **/usr/lib/nvml_debug** or
 **/usr/lib64/nvml_debug** depending on where the debug
 libraries are installed on the system. The trace points in
 the debug version of the library are enabled using the
-environment variable `PMEMPOOL_LOG_LEVEL`, which can be
+environment variable **PMEMPOOL_LOG_LEVEL**, which can be
 set to the following values:
 
++ **0** - This is the default level when **PMEMPOOL_LOG_LEVEL** is not set. No log messages are emitted at this level.
 
-+ **0** - This is the default level when `PMEMPOOL_LOG_LEVEL` is not set. No log messages are emitted at this level.
-
-+ **1** - Additional details on any errors detected are logged (in addition to returning the errno-based errors as usual). The same information may be retrieved using `pmempool_errormsg()`.
++ **1** - Additional details on any errors detected are logged (in addition to returning the *errno*-based errors as usual). The same information may be 
+retrieved using **pmempool_errormsg**().
 
 + **2** - A trace of basic operations is logged.
 
@@ -361,28 +364,99 @@ set to the following values:
 
 + **4** - This level enables voluminous and fairly obscure tracing information that is likely only useful to the libpmempool developers.
 
-The environment variable `PMEMPOOL_LOG_FILE` specifies a file name
+The environment variable **PMEMPOOL_LOG_FILE** specifies a file name
 where all logging information should be written. If the last
 character in the name is "-", the PID of the
 current process will be appended to the file name when the
-log file is created. If `PMEMPOOL_LOG_FILE` is not set,
+log file is created. If **PMEMPOOL_LOG_FILE** is not set,
 the logging output goes to stderr.
 
-Setting the environment variable `PMEMPOOL_LOG_FILE` has no effect
+Setting the environment variable **PMEMPOOL_LOG_FILE** has no effect
 on the non-debug version of **libpmempool**.
 
 
-### ACKNOWLEDGEMENTS ###
+# EXAMPLE #
+
+The following example illustrates how the **libpmempool** API is used.
+The program detects the type and checks consistency of given pool.
+If there are any issues detected, the pool is automatically repaired.
+
+```c
+#include <stddef.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <libpmempool.h>
+
+#define PATH "./pmem-fs/myfile"
+#define CHECK_FLAGS (PMEMPOOL_CHECK_FORMAT_STR|PMEMPOOL_CHECK_REPAIR|\
+                     PMEMPOOL_CHECK_VERBOSE)
+
+int
+main(int argc, char *argv[])
+{
+	PMEMpoolcheck *ppc;
+	struct pmempool_check_status *status;
+	enum pmempool_check_result ret;
+
+	/* arguments for check */
+	struct pmempool_check_args args = {
+		.path		= PATH,
+		.backup_path	= NULL,
+		.pool_type	= PMEMPOOL_POOL_TYPE_DETECT,
+		.flags		= CHECK_FLAGS
+	};
+
+	/* initialize check context */
+	if ((ppc = pmempool_check_init(&args, sizeof(args))) == NULL) {
+		perror("pmempool_check_init");
+		exit(EXIT_FAILURE);
+	}
+
+	/* perform check and repair, answer 'yes' for each question */
+	while ((status = pmempool_check(ppc)) != NULL) {
+		switch (status->type) {
+		case PMEMPOOL_CHECK_MSG_TYPE_ERROR:
+			printf("%s\n", status->str.msg);
+			break;
+		case PMEMPOOL_CHECK_MSG_TYPE_INFO:
+			printf("%s\n", status->str.msg);
+			break;
+		case PMEMPOOL_CHECK_MSG_TYPE_QUESTION:
+			printf("%s\n", status->str.msg);
+			status->str.answer = "yes";
+			break;
+		default:
+			pmempool_check_end(ppc);
+			exit(EXIT_FAILURE);
+		}
+	}
+
+	/* finalize the check and get the result */
+	ret = pmempool_check_end(ppc);
+	switch (ret) {
+		case PMEMPOOL_CHECK_RESULT_CONSISTENT:
+		case PMEMPOOL_CHECK_RESULT_REPAIRED:
+			return 0;
+		default:
+			return 1;
+	}
+}
+```
+
+See <http://pmem.io/nvml/libpmempool> for more examples using the
+**libpmempool** API.
+
+
+# ACKNOWLEDGEMENTS #
 
 **libpmempool** builds on the persistent memory programming model
-recommended by the SNIA NVM Programming Technical Work
-
-Group:
-[http://snia.org/nvmp](http://snia.org/nvmp)
+recommended by the SNIA NVM Programming Technical Work Group:
+<http://snia.org/nvmp>
 
 
-### SEE ALSO ###
+# SEE ALSO #
 
 **mmap**(2), **munmap**(2), **msync**(2), **strerror**(3),
 **libpmemobj**(3), **libpmemblk**(3), **libpmemlog**(3), **libpmem**(3)
-and **[http://pmem.io](http://pmem.io)**
+and **<http://pmem.io>**
