@@ -128,21 +128,6 @@ __sync_fetch_and_add(volatile uint32_t *a, uint32_t val)
 	return InterlockedExchangeAdd(a, val);
 }
 
-__inline uint64_t
-__sync_fetch_and_add64(volatile uint64_t *a, uint64_t val)
-{
-	return InterlockedExchangeAdd64((LONG64 *)a, (LONG64)val);
-}
-
-__inline long
-__sync_bool_compare_and_swap(volatile uint64_t *ptr,
-				uint64_t oldval, uint64_t newval)
-{
-	uint64_t old = InterlockedCompareExchange64((volatile LONG64 *)ptr,
-		(LONG64)newval, (LONG64)oldval);
-	return (old == oldval);
-}
-
 __inline void
 __sync_synchronize()
 {

@@ -42,6 +42,7 @@
 
 #include "heap.h"
 #include "out.h"
+#include "util.h"
 #include "sys_util.h"
 #include "valgrind_internal.h"
 
@@ -71,7 +72,7 @@
 /*
  * Value used to mark a reserved spot in the bucket array.
  */
-#define BUCKET_RESERVED ((void *)0xFFFFFFFF)
+#define BUCKET_RESERVED ((void *)0xFFFFFFFFULL)
 
 /*
  * The last size that is handled by runs.
@@ -493,8 +494,8 @@ heap_find_first_free_bucket_slot(struct heap_rt *h)
 {
 	int n;
 	for (n = 0; n < MAX_BUCKETS; ++n)
-		if (__sync_bool_compare_and_swap(&h->buckets[n],
-			NULL, BUCKET_RESERVED))
+		if (util_bool_compare_and_swap64(&h->buckets[n],
+				NULL, BUCKET_RESERVED))
 			return (uint8_t)n;
 
 	return MAX_BUCKETS;
