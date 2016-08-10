@@ -46,6 +46,7 @@
 #include "cuckoo.h"
 #include "lane.h"
 #include "out.h"
+#include "util.h"
 #include "obj.h"
 #include "valgrind_internal.h"
 
@@ -347,7 +348,7 @@ get_lane(uint64_t *locks, uint64_t *index, uint64_t nlocks)
 	while (1) {
 		do {
 			*index %= nlocks;
-			if (likely(__sync_bool_compare_and_swap(
+			if (likely(util_bool_compare_and_swap64(
 					&locks[*index], 0, 1)))
 				return;
 
@@ -463,10 +464,10 @@ lane_release(PMEMobjpool *pop)
 	if (unlikely(lane->nest_count == 0)) {
 		FATAL("lane_release");
 	} else if (--(lane->nest_count) == 0) {
-		if (unlikely(!__sync_bool_compare_and_swap(
+		if (unlikely(!util_bool_compare_and_swap64(
 				&pop->lanes_desc.lane_locks[lane->lane_idx],
 				1, 0))) {
-			FATAL("__sync_bool_compare_and_swap");
+			FATAL("util_bool_compare_and_swap64");
 		}
 	}
 }
