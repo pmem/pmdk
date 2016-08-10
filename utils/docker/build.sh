@@ -74,6 +74,7 @@ sudo docker run --rm --privileged=true --name=$containerName -ti \
 	--env WORKDIR=$WORKDIR \
 	--env EXPERIMENTAL=$EXPERIMENTAL \
 	--env SCRIPTSDIR=$SCRIPTSDIR \
+	--env CLANG_FORMAT=clang-format-3.8\
 	-v $HOST_WORKDIR:$WORKDIR \
 	-w $SCRIPTSDIR \
 	$imageName $command
