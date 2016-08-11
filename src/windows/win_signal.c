@@ -87,8 +87,11 @@ const char * const sys_siglist[] = {
 
 /*
  * strsignal -- returns a string describing the signal number 'sig'
+ *
+ * XXX: According to POSIX, this one is of type 'char *', but in our
+ * implementation it returns 'const char *'.
  */
-char *
+const char *
 strsignal(int sig)
 {
 	if (sig >= 0 && sig < ARRAYSIZE(sys_siglist))
