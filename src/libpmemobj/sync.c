@@ -36,6 +36,7 @@
 
 #include "obj.h"
 #include "out.h"
+#include "util.h"
 #include "sync.h"
 #include "sys_util.h"
 #include "valgrind_internal.h"
@@ -81,7 +82,7 @@ _get_lock(uint64_t pop_runid, volatile uint64_t *runid, void *lock,
 		if (tmp_runid == pop_runid - 1)
 			continue;
 
-		if (!__sync_bool_compare_and_swap(runid, tmp_runid,
+		if (!util_bool_compare_and_swap64(runid, tmp_runid,
 				pop_runid - 1))
 			continue;
 
@@ -91,7 +92,7 @@ _get_lock(uint64_t pop_runid, volatile uint64_t *runid, void *lock,
 			return NULL;
 		}
 
-		if (__sync_bool_compare_and_swap(runid, pop_runid - 1,
+		if (util_bool_compare_and_swap64(runid, pop_runid - 1,
 				pop_runid) == 0) {
 			ERR("error setting lock runid");
 			return NULL;

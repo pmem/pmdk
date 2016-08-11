@@ -180,6 +180,7 @@
 #include "pmem.h"
 #include "cpu.h"
 #include "out.h"
+#include "util.h"
 #include "mmap.h"
 #include "file.h"
 #include "valgrind_internal.h"
@@ -459,7 +460,7 @@ pmem_is_pmem_init(void)
 	static volatile unsigned init;
 
 	while (init != 2) {
-		if (!__sync_bool_compare_and_swap(&init, 0, 1))
+		if (!util_bool_compare_and_swap32(&init, 0, 1))
 			continue;
 
 		/*
@@ -484,8 +485,8 @@ pmem_is_pmem_init(void)
 			LOG(4, "PMEM_IS_PMEM_FORCE=%d", val);
 		}
 
-		if (!__sync_bool_compare_and_swap(&init, 1, 2))
-			FATAL("__sync_bool_compare_and_swap");
+		if (!util_bool_compare_and_swap32(&init, 1, 2))
+			FATAL("util_bool_compare_and_swap32");
 	}
 }
 
