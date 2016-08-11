@@ -644,9 +644,11 @@ pmembench_get_total_results(struct latency *stats, double *workers_times,
 	qsort(workers_times, nresults, sizeof(double), compare_doubles);
 	total->min = workers_times[0];
 	total->max = workers_times[nresults - 1];
-	total->med = nresults % 2 ? (workers_times[nresults / 2] +
-				workers_times[nresults / 2 + 1]) / 2:
-				workers_times[nresults / 2];
+	if (nresults % 2 == 0)
+		total->med = (workers_times[nresults / 2] +
+		    workers_times[nresults / 2 - 1]) / 2;
+	else
+		total->med = workers_times[nresults / 2];
 
 	for (i = 0; i < repeats; i++) {
 		d = stats[i].std_dev > latency->avg
