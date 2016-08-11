@@ -166,6 +166,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\common\util.c" />
+    <ClCompile Include="..\..\common\util_windows.c" />
     <ClCompile Include="checksum.c" />
   </ItemGroup>
   <ItemGroup>

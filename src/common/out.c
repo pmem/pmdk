@@ -47,6 +47,7 @@
 
 #include "out.h"
 #include "valgrind_internal.h"
+#include "util.h"
 
 /* XXX - modify Linux makefiles to generate srcversion.h and remove #ifdef */
 #ifdef _WIN32
@@ -217,9 +218,11 @@ out_init(const char *log_prefix, const char *log_level_var,
 			log_file = log_file_pid;
 		}
 		if ((Out_fp = fopen(log_file, "w")) == NULL) {
+			char buff[UTIL_MAX_ERR_MSG];
+			util_strerror(errno, buff, UTIL_MAX_ERR_MSG);
 			fprintf(stderr, "Error (%s): %s=%s: %s\n",
 					log_prefix, log_file_var,
-					log_file, strerror(errno));
+					log_file, buff);
 			abort();
 		}
 	}
@@ -365,7 +368,7 @@ out_common(const char *file, int line, const char *func, int level,
 	unsigned cc = 0;
 	int ret;
 	const char *sep = "";
-	const char *errstr = "";
+	char errstr[UTIL_MAX_ERR_MSG] = "";
 
 	if (file) {
 		char *f = strrchr(file, DIR_SEPARATOR);
@@ -389,7 +392,7 @@ out_common(const char *file, int line, const char *func, int level,
 		if (*fmt == '!') {
 			fmt++;
 			sep = ": ";
-			errstr = strerror(errno);
+			util_strerror(errno, errstr, UTIL_MAX_ERR_MSG);
 		}
 		ret = Vsnprintf(&buf[cc], MAXPRINT - cc, fmt, ap);
 		if (ret < 0) {
@@ -418,7 +421,7 @@ out_error(const char *file, int line, const char *func,
 	unsigned cc = 0;
 	int ret;
 	const char *sep = "";
-	const char *errstr = "";
+	char errstr[UTIL_MAX_ERR_MSG] = "";
 
 	char *errormsg = (char *)out_get_errormsg();
 
@@ -426,7 +429,7 @@ out_error(const char *file, int line, const char *func,
 		if (*fmt == '!') {
 			fmt++;
 			sep = ": ";
-			errstr = strerror(errno);
+			util_strerror(errno, errstr, UTIL_MAX_ERR_MSG);
 		}
 		ret = Vsnprintf(&errormsg[cc], MAXPRINT, fmt, ap);
 		if (ret < 0) {

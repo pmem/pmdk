@@ -116,15 +116,18 @@ extern "C" {
 #include <libpmempool.h>
 #include <libvmem.h>
 
+#define UT_MAX_ERR_MSG 128
+/* XXX - fix this temp hack dup'ing util_strerror when we get mock for win */
+void ut_strerror(int errnum, char *buff, size_t bufflen);
 /* XXX - eliminate duplicated definitions in unittest.h and util.h */
 #ifndef _WIN32
 typedef struct stat ut_util_stat_t;
-#define ut_util_fstat	fstat
-#define ut_util_stat	stat
-#define ut_util_lseek	lseek
+#define ut_util_fstat fstat
+#define ut_util_stat stat
+#define ut_util_lseek lseek
 #else
 typedef struct _stat64 ut_util_stat_t;
-#define ut_util_fstat	_fstat64
+#define ut_util_fstat _fstat64
 static inline int ut_util_stat(const char *path,
 	ut_util_stat_t *st_bufp) {
 	int retVal = _stat64(path, st_bufp);
@@ -132,7 +135,7 @@ static inline int ut_util_stat(const char *path,
 	st_bufp->st_mode &= 0600;
 	return retVal;
 }
-#define ut_util_lseek	_lseeki64
+#define ut_util_lseek _lseeki64
 #endif
 
 /*

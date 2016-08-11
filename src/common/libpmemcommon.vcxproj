@@ -29,6 +29,7 @@
     <ClCompile Include="pthread_windows.c" />
     <ClCompile Include="set.c" />
     <ClCompile Include="util.c" />
+    <ClCompile Include="util_windows.c" />
     <ClCompile Include="uuid.c" />
     <ClCompile Include="uuid_windows.c" />
   </ItemGroup>
