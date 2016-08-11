@@ -39,7 +39,7 @@ vpath %.c ../../tools/rpmemd
 
 TARGET = rpmem_obc_int
 OBJS = rpmem_obc_int.o\
-       rpmem_cmd.o rpmem_ssh.o base64.o\
+       rpmem_cmd.o rpmem_ssh.o\
        rpmem_obc.o rpmem_util.o rpmem_common.o\
        rpmemd_obc.o rpmemd_log.o
 

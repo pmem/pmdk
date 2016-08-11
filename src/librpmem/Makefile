@@ -45,7 +45,6 @@ SOURCE = $(COMMON)/util.c\
 	librpmem.c\
 	rpmem.c\
 	rpmem_obc.c\
-	base64.c\
 	rpmem_cmd.c\
 	rpmem_ssh.c\
 	rpmem_common.c\

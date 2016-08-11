@@ -47,7 +47,6 @@
 #include "rpmem_cmd.h"
 #include "rpmem_common.h"
 #include "rpmem_util.h"
-#include "base64.h"
 
 #define ERR_BUFF_SIZE	4095
 
@@ -125,6 +124,14 @@ rpmem_ssh_open(const char *node, const char *service)
 
 	/* XXX add support for IPv6 */
 	ret = rpmem_cmd_push(rps->cmd, "-4");
+	if (ret)
+		goto err_push;
+
+	/*
+	 * Disable allocating pseudo-terminal in order to transfer binary
+	 * data safely.
+	 */
+	ret = rpmem_cmd_push(rps->cmd, "-T");
 	if (ret)
 		goto err_push;
 
@@ -219,24 +226,13 @@ rpmem_ssh_close(struct rpmem_ssh *rps)
 int
 rpmem_ssh_send(struct rpmem_ssh *rps, const void *buff, size_t len)
 {
-	size_t b64_len;
-	void *b64_buff = base64_buff(len, &b64_len);
-	if (!b64_buff)
-		return -1;
-
-	int ret = base64_encode(buff, len, b64_buff, b64_len);
-	if (ret)
-		return ret;
-
-	ret = rpmem_xwrite(rps->cmd->fd_in, b64_buff, b64_len, MSG_NOSIGNAL);
+	int ret = rpmem_xwrite(rps->cmd->fd_in, buff, len, MSG_NOSIGNAL);
 	if (ret == 1) {
 		errno = ECONNRESET;
 	} else if (ret < 0) {
 		if (errno == EPIPE)
 			errno = ECONNRESET;
 	}
-
-	free(b64_buff);
 
 	return ret;
 }
@@ -249,23 +245,14 @@ rpmem_ssh_send(struct rpmem_ssh *rps, const void *buff, size_t len)
 int
 rpmem_ssh_recv(struct rpmem_ssh *rps, void *buff, size_t len)
 {
-	size_t b64_len;
-	void *b64_buff = base64_buff(len, &b64_len);
-	if (!b64_buff)
-		return -1;
-
-	int ret = rpmem_xread(rps->cmd->fd_out, b64_buff,
-			b64_len, MSG_NOSIGNAL);
+	int ret = rpmem_xread(rps->cmd->fd_out, buff,
+			len, MSG_NOSIGNAL);
 	if (ret == 1) {
 		errno = ECONNRESET;
 	} else if (ret < 0) {
 		if (errno == EPIPE)
 			errno = ECONNRESET;
-	} else {
-		ret = base64_decode(b64_buff, b64_len, buff, len);
 	}
-
-	free(b64_buff);
 
 	return ret;
 }

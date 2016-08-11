@@ -46,7 +46,6 @@ OBJS = rpmemd_obc_test.o\
        rpmem_common.o\
        rpmem_ssh.o\
        rpmem_cmd.o\
-       base64.o\
        rpmemd_obc.o\
        rpmemd_obc_test_msg_hdr.o\
        rpmemd_obc_test_misc.o\

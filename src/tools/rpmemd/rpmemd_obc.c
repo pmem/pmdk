@@ -49,7 +49,6 @@
 #include "rpmem_proto.h"
 #include "rpmem_common.h"
 #include "rpmemd_obc.h"
-#include "base64.h"
 
 struct rpmemd_obc {
 	int fd_in;
@@ -288,7 +287,7 @@ static rpmemd_obc_process_fn rpmemd_obc_process_cb[] = {
 static inline int
 rpmemd_obc_recv(struct rpmemd_obc *obc, void *buff, size_t len)
 {
-	return rpmem_b64_read(obc->fd_in, buff, len, 0);
+	return rpmem_xread(obc->fd_in, buff, len, 0);
 }
 
 /*
@@ -297,7 +296,7 @@ rpmemd_obc_recv(struct rpmemd_obc *obc, void *buff, size_t len)
 static inline int
 rpmemd_obc_send(struct rpmemd_obc *obc, const void *buff, size_t len)
 {
-	return rpmem_b64_write(obc->fd_out, buff, len, 0);
+	return rpmem_xwrite(obc->fd_out, buff, len, 0);
 }
 
 /*

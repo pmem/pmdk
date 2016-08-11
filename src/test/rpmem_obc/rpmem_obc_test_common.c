@@ -106,21 +106,13 @@ void
 srv_recv(struct server *s, void *buff, size_t len)
 {
 	size_t rd = 0;
-	size_t b64_len;
-	void *b64_buff = base64_buff(len, &b64_len);
-	UT_ASSERTne(b64_buff, NULL);
 
-	uint8_t *cbuf = b64_buff;
+	uint8_t *cbuf = buff;
 	while (rd < len) {
-		ssize_t ret = read(s->fd_in, &cbuf[rd], b64_len - rd);
+		ssize_t ret = read(s->fd_in, &cbuf[rd], len - rd);
 		UT_ASSERT(ret > 0);
 		rd += (size_t)ret;
 	}
-
-	int ret = base64_decode(b64_buff, b64_len, buff, len);
-	UT_ASSERTeq(ret, 0);
-
-	free(b64_buff);
 }
 
 /*
@@ -130,21 +122,13 @@ void
 srv_send(struct server *s, const void *buff, size_t len)
 {
 	size_t wr = 0;
-	size_t b64_len;
-	void *b64_buff = base64_buff(len, &b64_len);
-	UT_ASSERTne(b64_buff, NULL);
 
-	int ret = base64_encode(buff, len, b64_buff, b64_len);
-	UT_ASSERTeq(ret, 0);
-
-	const uint8_t *cbuf = b64_buff;
+	const uint8_t *cbuf = buff;
 	while (wr < len) {
-		ssize_t ret = write(s->fd_out, &cbuf[wr], b64_len - wr);
+		ssize_t ret = write(s->fd_out, &cbuf[wr], len - wr);
 		UT_ASSERT(ret > 0);
 		wr += (size_t)ret;
 	}
-
-	free(b64_buff);
 }
 
 /*
