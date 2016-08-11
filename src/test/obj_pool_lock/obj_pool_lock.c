@@ -37,6 +37,51 @@
 
 #include "unittest.h"
 
+#ifdef _WIN32
+#include <tchar.h>
+#include <Strsafe.h>
+/*
+ * So this is not like really a fork at all but overloading for testing using
+ * CreateProcess works just fine.
+ */
+int
+test_process(const char *path, int sleep)
+{
+	STARTUPINFO statusInfo;
+	PROCESS_INFORMATION procInfo;
+	TCHAR cmd[MAX_PATH] = TEXT("..\\..\\x64\\debug\\obj_pool_lock.exe ");
+	TCHAR parm[MAX_PATH] = TEXT("");
+
+	/* build the cmd to start a 2nd test process */
+	int nChars = MultiByteToWideChar(CP_ACP, 0, path, -1, NULL, 0);
+	MultiByteToWideChar(CP_ACP, 0, path, -1, parm, nChars);
+	_tcscat(cmd, parm);
+	_tcscat(cmd, L" X");
+
+	ZeroMemory(&statusInfo, sizeof(statusInfo));
+	statusInfo.cb = sizeof(statusInfo);
+	ZeroMemory(&procInfo, sizeof(procInfo));
+
+	/* start the 2nd test process */
+	if (!CreateProcess(NULL,
+		cmd,
+		NULL,
+		NULL,
+		FALSE,
+		0,
+		NULL,
+		NULL,
+		&statusInfo,
+		&procInfo)) {
+		return 0;
+	}
+
+	WaitForSingleObject(procInfo.hProcess, INFINITE);
+	CloseHandle(procInfo.hProcess);
+	CloseHandle(procInfo.hThread);
+	return 1;
+}
+#endif
 #define LAYOUT "layout"
 
 static void
@@ -65,6 +110,7 @@ test_reopen(const char *path)
 	UNLINK(path);
 }
 
+#ifndef _WIN32
 static void
 test_open_in_different_process(const char *path, int sleep)
 {
@@ -108,6 +154,26 @@ test_open_in_different_process(const char *path, int sleep)
 
 	UNLINK(path);
 }
+#else
+static void
+test_open_in_different_process(const char *path, int sleep)
+{
+	PMEMobjpool *pop;
+
+	if (sleep > 0)
+		return;
+
+	/* before starting the 2nd process, create a pool */
+	pop = pmemobj_create(path, LAYOUT, PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR);
+	if (!pop)
+		UT_FATAL("!create");
+
+	if (!test_process(path, sleep))
+		UT_FATAL("CreateProcess failed error: %d", GetLastError());
+
+	pmemobj_close(pop);
+}
+#endif
 
 int
 main(int argc, char *argv[])
@@ -117,11 +183,25 @@ main(int argc, char *argv[])
 	if (argc < 2)
 		UT_FATAL("usage: %s path", argv[0]);
 
-	test_reopen(argv[1]);
+	if (argc == 2) {
+		test_reopen(argv[1]);
 
-	test_open_in_different_process(argv[1], 0);
-	for (int i = 1; i < 100000; i *= 2)
-		test_open_in_different_process(argv[1], i);
+		test_open_in_different_process(argv[1], 0);
+		for (int i = 1; i < 100000; i *= 2)
+			test_open_in_different_process(argv[1], i);
+	} else if (argc == 3) {
+		PMEMobjpool *pop;
+		/* 2nd arg used by windows for 2 process test */
+		pop = pmemobj_open(argv[1], LAYOUT);
+		if (pop)
+			UT_FATAL("pmemobj_open after CreateProcess should "
+				"not succeed");
+
+		if (errno != EWOULDBLOCK)
+			UT_FATAL("!pmemobj_open after CreateProcess failed "
+				"but for unexpected reason");
+	}
+
 
 	DONE(NULL);
 }
