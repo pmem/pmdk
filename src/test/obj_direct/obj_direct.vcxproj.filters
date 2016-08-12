@@ -15,16 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\unittest\ut.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\unittest\ut_file.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\unittest\ut_alloc.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\test\obj_direct\obj_direct.c">
+    <ClCompile Include="obj_direct.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

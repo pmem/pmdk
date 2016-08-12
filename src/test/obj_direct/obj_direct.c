@@ -39,24 +39,30 @@
 #define MAX_PATH_LEN 255
 #define LAYOUT_NAME "direct"
 
-pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
-int flag = 1;
-
+pthread_mutex_t lock1;
+pthread_mutex_t lock2;
+pthread_cond_t sync_cond1;
+pthread_cond_t sync_cond2;
+int cond1;
+int cond2;
 PMEMoid thread_oid;
 
 static void *
 test_worker(void *arg)
 {
-	/* before pool is closed */
+	/* check before pool is closed, then let main continue */
 	UT_ASSERTne(pmemobj_direct(thread_oid), NULL);
+	pthread_mutex_lock(&lock1);
+	cond1 = 1;
+	pthread_cond_signal(&sync_cond1);
+	pthread_mutex_unlock(&lock1);
 
-	flag = 0;
-	pthread_mutex_lock(&lock);
-	/* after pool is closed */
+	/* wait for main thread to free & close, then check */
+	pthread_mutex_lock(&lock2);
+	while (!cond2)
+		pthread_cond_wait(&sync_cond2, &lock2);
+	pthread_mutex_unlock(&lock2);
 	UT_ASSERTeq(pmemobj_direct(thread_oid), NULL);
-
-	pthread_mutex_unlock(&lock);
-
 	return NULL;
 }
 
@@ -72,7 +78,14 @@ main(int argc, char *argv[])
 	const char *dir = argv[1];
 	int r;
 
-	PMEMobjpool *pops[npools];
+	pthread_mutex_init(&lock1, NULL);
+	pthread_mutex_init(&lock2, NULL);
+	pthread_cond_init(&sync_cond1, NULL);
+	pthread_cond_init(&sync_cond2, NULL);
+	cond1 = cond2 = 0;
+
+	PMEMobjpool **pops = MALLOC(npools * sizeof(PMEMobjpool *));
+	UT_ASSERTne(pops, NULL);
 
 	char path[MAX_PATH_LEN];
 	for (int i = 0; i < npools; ++i) {
@@ -84,8 +97,10 @@ main(int argc, char *argv[])
 			UT_FATAL("!pmemobj_create");
 	}
 
-	PMEMoid oids[npools];
-	PMEMoid tmpoids[npools];
+	PMEMoid *oids = MALLOC(npools * sizeof(PMEMoid));
+	UT_ASSERTne(oids, NULL);
+	PMEMoid *tmpoids = MALLOC(npools * sizeof(PMEMoid));
+	UT_ASSERTne(tmpoids, NULL);
 
 	oids[0] = OID_NULL;
 	UT_ASSERTeq(pmemobj_direct(oids[0]), NULL);
@@ -107,14 +122,14 @@ main(int argc, char *argv[])
 	UT_ASSERTeq(r, 0);
 	UT_ASSERTne(pmemobj_direct(thread_oid), NULL);
 
-	pthread_mutex_lock(&lock);
-
 	pthread_t t;
-	pthread_create(&t, NULL, test_worker, NULL);
+	PTHREAD_CREATE(&t, NULL, test_worker, NULL);
 
-	/* wait for the thread to perform the first direct */
-	while (flag)
-		;
+	/* wait for the worker thread to perform the first check */
+	pthread_mutex_lock(&lock1);
+	while (!cond1)
+		pthread_cond_wait(&sync_cond1, &lock1);
+	pthread_mutex_unlock(&lock1);
 
 	for (int i = 0; i < npools; ++i) {
 		UT_ASSERTne(pmemobj_direct(tmpoids[i]), NULL);
@@ -125,9 +140,21 @@ main(int argc, char *argv[])
 		pmemobj_close(pops[i]);
 		UT_ASSERTeq(pmemobj_direct(oids[i]), NULL);
 	}
-	pthread_mutex_unlock(&lock);
 
-	pthread_join(t, NULL);
+	/* signal the worker that we're free and closed */
+	pthread_mutex_lock(&lock2);
+	cond2 = 1;
+	pthread_cond_signal(&sync_cond2);
+	pthread_mutex_unlock(&lock2);
+
+	PTHREAD_JOIN(t, NULL);
+	pthread_cond_destroy(&sync_cond1);
+	pthread_cond_destroy(&sync_cond2);
+	pthread_mutex_destroy(&lock1);
+	pthread_mutex_destroy(&lock2);
+	FREE(pops);
+	FREE(tmpoids);
+	FREE(oids);
 
 	DONE(NULL);
 }
