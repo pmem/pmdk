@@ -48,7 +48,7 @@
 #define ROOT_TAB_SIZE\
 	(((MAX_CACHED_RANGE_SIZE + 16) * MAX_CACHED_RANGES) / sizeof(int))
 
-#define REOPEN_COUNT	(PMEMOBJ_MIN_POOL / ROOT_TAB_SIZE / 2)
+#define REOPEN_COUNT	10
 
 enum type_number {
 	TYPE_OBJ,

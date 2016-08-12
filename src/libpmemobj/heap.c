@@ -507,14 +507,14 @@ heap_find_first_free_bucket_slot(struct heap_rt *h)
  */
 static uint8_t
 heap_create_alloc_class_buckets(struct heap_rt *h,
-	size_t unit_size, unsigned unit_max)
+	size_t unit_size, unsigned unit_max, unsigned unit_max_alloc)
 {
 	uint8_t slot = heap_find_first_free_bucket_slot(h);
 	if (slot == MAX_BUCKETS)
 		goto out;
 
-	h->buckets[slot] = bucket_new(slot, BUCKET_RUN, CONTAINER_CTREE,
-			unit_size, unit_max);
+	h->buckets[slot] = &(bucket_run_new(slot, CONTAINER_CTREE,
+			unit_size, unit_max, unit_max_alloc)->super);
 
 	if (h->buckets[slot] == NULL)
 		goto error_bucket_new;
@@ -522,8 +522,8 @@ heap_create_alloc_class_buckets(struct heap_rt *h,
 	int i;
 	for (i = 0; i < (int)h->ncaches; ++i) {
 		h->caches[i].buckets[slot] =
-			bucket_new(slot, BUCKET_RUN, CONTAINER_CTREE,
-				unit_size, unit_max);
+			&(bucket_run_new(slot, CONTAINER_CTREE,
+				unit_size, unit_max, unit_max_alloc)->super);
 		if (h->caches[i].buckets[slot] == NULL)
 			goto error_cache_bucket_new;
 	}
@@ -562,7 +562,7 @@ heap_get_create_bucket_idx_by_unit_size(struct heap_rt *h, uint64_t unit_size)
 		 * initialization time.
 		 */
 		bucket_idx = heap_create_alloc_class_buckets(h, unit_size,
-			RUN_UNIT_MAX);
+			RUN_UNIT_MAX, RUN_UNIT_MAX_ALLOC);
 
 		if (bucket_idx == MAX_BUCKETS) {
 			ERR("Failed to allocate new bucket class");
@@ -964,8 +964,10 @@ heap_find_or_create_alloc_class(struct palloc_heap *heap, size_t n)
 		if (h->buckets[i] == NULL)
 			continue;
 
-		if (n % h->buckets[i]->unit_size == 0 &&
-			n / h->buckets[i]->unit_size <= RUN_UNIT_MAX)
+		struct bucket_run *run = (struct bucket_run *)h->buckets[i];
+
+		if (n % run->super.unit_size == 0 &&
+			n / run->super.unit_size <= run->unit_max_alloc)
 			return (uint8_t)i;
 	}
 
@@ -990,7 +992,8 @@ heap_find_or_create_alloc_class(struct palloc_heap *heap, size_t n)
 			return (uint8_t)i;
 	}
 
-	return heap_create_alloc_class_buckets(h, n, RUN_UNIT_MAX);
+	return heap_create_alloc_class_buckets(h, n,
+		RUN_UNIT_MAX, RUN_UNIT_MAX_ALLOC);
 }
 
 /*
@@ -1017,7 +1020,7 @@ heap_find_min_frag_alloc_class(struct palloc_heap *h, size_t n)
 
 		/* can't exceed the maximum allowed run unit max */
 		if (run->super.calc_units((struct bucket *)run, n) >
-			run->unit_max)
+			run->unit_max_alloc)
 			break;
 
 		if (frag == 0)
@@ -1049,8 +1052,8 @@ heap_buckets_init(struct palloc_heap *heap)
 	if (h->bucket_map == NULL)
 		goto error_bucket_map_malloc;
 
-	h->default_bucket = bucket_new(MAX_BUCKETS, BUCKET_HUGE,
-		CONTAINER_CTREE, CHUNKSIZE, UINT32_MAX);
+	h->default_bucket = &(bucket_huge_new(MAX_BUCKETS,
+		CONTAINER_CTREE, CHUNKSIZE)->super);
 	if (h->default_bucket == NULL)
 		goto error_default_bucket_new;
 
@@ -1063,7 +1066,7 @@ heap_buckets_init(struct palloc_heap *heap)
 	 */
 	size_t size = 0;
 	uint8_t slot = heap_create_alloc_class_buckets(h,
-		MIN_RUN_SIZE, RUN_UNIT_MAX);
+		MIN_RUN_SIZE, RUN_UNIT_MAX, RUN_UNIT_MAX_ALLOC);
 	if (slot == MAX_BUCKETS)
 		goto error_bucket_create;
 
@@ -1105,8 +1108,8 @@ heap_buckets_init(struct palloc_heap *heap)
 	 * The actual run might contain less unit blocks than the theoretical
 	 * unit max variable. This may be the case for very large unit sizes.
 	 */
-	size_t real_unit_max = b->bitmap_nallocs < b->unit_max ?
-		b->bitmap_nallocs : b->unit_max;
+	size_t real_unit_max = b->bitmap_nallocs < b->unit_max_alloc ?
+		b->bitmap_nallocs : b->unit_max_alloc;
 
 	size_t theoretical_run_max_size = b->super.unit_size * real_unit_max;
 

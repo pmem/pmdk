@@ -8,36 +8,36 @@ constructor(id = 2)
 constructor(id = 3)
 constructor(id = 3)
 type:
-id = 3
 id = 0
 id = 1
 id = 2
-type_sec:
 id = 3
+type_sec:
 id = 1
 id = 2
-next id = 2
-next id = 2
+id = 3
+next id = 3
+next id = 3
 type:
-id = 0
 id = 1
 id = 2
+id = 3
 type_sec:
-id = 1
 id = 2
-next id = 1
+id = 3
 next id = 2
+next id = 3
 constructor(id = 4)
 constructor(id = 4)
 type:
 id = 4
-id = 0
 id = 1
 id = 2
+id = 3
 type_sec:
 id = 4
-id = 1
 id = 2
-next id = 1
+id = 3
 next id = 2
+next id = 3
 obj_first_next$(nW)TEST0: Done

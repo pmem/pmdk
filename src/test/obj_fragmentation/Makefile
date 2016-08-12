@@ -1,6 +1,5 @@
-#!/bin/bash -e
 #
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,28 +29,14 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+
 #
-# pmempool_info/TEST12 -- test for info command
+# src/test/obj_fragmentation/Makefile -- build obj_fragmentation test
 #
-export UNITTEST_NAME=pmempool_info/TEST12
-export UNITTEST_NUM=12
+TARGET = obj_fragmentation
+OBJS = obj_fragmentation.o
 
-. ../unittest/unittest.sh
+LIBPMEM=y
+LIBPMEMOBJ=y
 
-setup
-
-POOL=$DIR/file.pool
-LOG=out${UNITTEST_NUM}.log
-rm -rf $LOG && touch $LOG
-
-rm -rf $POOL
-expect_normal_exit $PMEMPOOL$EXESUFFIX create --layout "pmempool" obj $POOL
-expect_normal_exit $PMEMALLOC$EXESUFFIX -o $((1*1024*1024)) -t 1 $POOL
-expect_normal_exit $PMEMALLOC$EXESUFFIX -o 16 -t 2 $POOL
-expect_normal_exit $PMEMPOOL$EXESUFFIX info -O -E -a -A -H -Z -C -s $POOL >> $LOG
-
-rm -f $POOL
-
-check
-
-pass
+include ../Makefile.inc

@@ -163,7 +163,7 @@ Lane:
    Offset                   : $(*)
 
    Tx range cache:
-    0000000000: Offset: 0x00000000003c2180 Size: 1
+    0000000000: Offset: $(*) Size: 1
 
 POOL Header:
 Signature                : PMEMOBJ
