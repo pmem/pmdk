@@ -99,47 +99,6 @@ rpmemd_get_pm(struct rpmemd_config *config)
 }
 
 /*
- * rpmemd_get_ssh_addr -- returns an address which the ssh connection is
- * established on
- *
- * This function utilizes the SSH_CONNECTION environment variable to retrieve
- * the server IP address. See ssh(1) for details.
- */
-static char *
-rpmemd_get_ssh_addr(void)
-{
-	char *ssh_conn = getenv("SSH_CONNECTION");
-	if (!ssh_conn) {
-		RPMEMD_LOG(ERR, "SSH_CONNECTION variable is not set");
-		return NULL;
-	}
-
-	char *sp = strchr(ssh_conn, ' ');
-	if (!sp) {
-		RPMEMD_LOG(ERR, "invalid format of SSH_CONNECTION variable");
-		return NULL;
-	}
-
-	char *addr = strchr(sp + 1, ' ');
-	if (!addr) {
-		RPMEMD_LOG(ERR, "invalid format of SSH_CONNECTION variable");
-		return NULL;
-	}
-
-	addr++;
-
-	sp = strchr(addr, ' ');
-	if (!sp) {
-		RPMEMD_LOG(ERR, "invalid format of SSH_CONNECTION variable");
-		return NULL;
-	}
-
-	*sp = '\0';
-
-	return addr;
-}
-
-/*
  * rpmemd_db_get_status -- convert error number to status for db operation
  */
 static int
@@ -194,7 +153,7 @@ rpmemd_common_fip_init(struct rpmemd *rpmemd, const struct rpmem_req_attr *req,
 		.persist	= rpmemd->persist,
 	};
 
-	const char *node = rpmemd_get_ssh_addr();
+	const char *node = rpmem_get_ssh_conn_addr();
 	enum rpmem_err err;
 
 	rpmemd->fip = rpmemd_fip_init(node, NULL, &fip_attr, resp, &err);

@@ -31,24 +31,26 @@
  */
 
 /*
- * rpmem_fip_sock.h -- simple socket client-server for exchanging
+ * rpmem_fip_sock.h -- simple oob connection implementation for exchanging
  * required RDMA related data
  */
 
 #include <stdint.h>
 #include <netinet/in.h>
 
-int client_exchange(const char *node, const char *service,
+typedef struct rpmem_ssh client_t;
+
+client_t *client_exchange(struct rpmem_target_info *info,
 		unsigned nlanes,
 		enum rpmem_provider provider,
-		struct rpmem_resp_attr *resp,
-		struct sockaddr_in *addr);
-void client_close(int fd);
+		struct rpmem_resp_attr *resp);
+void client_close(client_t *c);
 
-int server_exchange_begin(const char *node, const char *service,
-		unsigned *lanes, enum rpmem_provider *provider,
-		struct sockaddr_in *addr);
-void server_exchange_end(int fd, struct rpmem_resp_attr resp);
+void server_exchange_begin(unsigned *lanes, enum rpmem_provider *provider,
+		char **addr);
+void server_exchange_end(struct rpmem_resp_attr resp);
 
-void server_close_begin(int fd);
-void server_close_end(int fd);
+void server_close_begin(void);
+void server_close_end(void);
+
+void set_rpmem_cmd(const char *fmt, ...);
