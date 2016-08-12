@@ -411,68 +411,84 @@ end:
 }
 
 /*
- * out_error -- common error output code, all error messages go through here
+ * out_errormsg_vprintf -- (internal) set error message, as returned by
+ * out_get_errormsg()
  */
 static void
-out_error(const char *file, int line, const char *func,
-		const char *suffix, const char *fmt, va_list ap)
+out_errormsg_vprintf(const char *fmt, va_list ap)
 {
+	if (!fmt)
+		return;
+
 	int oerrno = errno;
-	unsigned cc = 0;
-	int ret;
 	const char *sep = "";
 	char errstr[UTIL_MAX_ERR_MSG] = "";
 
 	char *errormsg = (char *)out_get_errormsg();
 
-	if (fmt) {
-		if (*fmt == '!') {
-			fmt++;
-			sep = ": ";
-			util_strerror(errno, errstr, UTIL_MAX_ERR_MSG);
-		}
-		ret = Vsnprintf(&errormsg[cc], MAXPRINT, fmt, ap);
-		if (ret < 0) {
-			strcpy(errormsg, "Vsnprintf failed");
-			goto end;
-		}
-		cc += (unsigned)ret;
-		out_snprintf(&errormsg[cc], MAXPRINT - cc, "%s%s",
-				sep, errstr);
+	if (*fmt == '!') {
+		fmt++;
+		sep = ": ";
+		util_strerror(errno, errstr, UTIL_MAX_ERR_MSG);
+	}
+	int ret = Vsnprintf(errormsg, MAXPRINT, fmt, ap);
+	if (ret < 0) {
+		strcpy(errormsg, "Vsnprintf failed");
+		goto end;
 	}
 
-#ifdef DEBUG
-	if (Log_level >= 1) {
-		char buf[MAXPRINT];
-		cc = 0;
-
-		if (file) {
-			char *f = strrchr(file, DIR_SEPARATOR);
-			if (f)
-				file = f + 1;
-			ret = out_snprintf(&buf[cc], MAXPRINT,
-					"<%s>: <1> [%s:%d %s] ",
-					Log_prefix, file, line, func);
-			if (ret < 0) {
-				Print("out_snprintf failed");
-				goto end;
-			}
-			cc += (unsigned)ret;
-			if (cc < Log_alignment) {
-				memset(buf + cc, ' ', Log_alignment - cc);
-				cc = Log_alignment;
-			}
-		}
-
-		out_snprintf(&buf[cc], MAXPRINT - cc, "%s%s", errormsg,
-				suffix);
-
-		Print(buf);
-	}
-#endif
+	unsigned cc = (unsigned)ret;
+	out_snprintf(&errormsg[cc], MAXPRINT - cc, "%s%s", sep, errstr);
 
 end:
 	errno = oerrno;
+}
+
+/*
+ * out_error_dbg -- dump error information to the log file
+ */
+static void
+out_error_dbg(const char *file, int line, const char *func, const char *suffix)
+{
+#ifdef DEBUG
+	if (Log_level < 1)
+		return;
+
+	int oerrno = errno;
+
+	char buf[MAXPRINT];
+	unsigned cc = 0;
+
+	if (file) {
+		char *f = strrchr(file, DIR_SEPARATOR);
+		if (f)
+			file = f + 1;
+
+		int ret = out_snprintf(&buf[cc], MAXPRINT,
+				"<%s>: <1> [%s:%d %s] ",
+				Log_prefix, file, line, func);
+
+		if (ret < 0) {
+			Print("out_snprintf failed");
+			goto end;
+		}
+
+		cc += (unsigned)ret;
+
+		if (cc < Log_alignment) {
+			memset(buf + cc, ' ', Log_alignment - cc);
+			cc = Log_alignment;
+		}
+	}
+
+	out_snprintf(&buf[cc], MAXPRINT - cc, "%s%s", out_get_errormsg(),
+			suffix);
+
+	Print(buf);
+
+end:
+	errno = oerrno;
+#endif
 }
 
 /*
@@ -545,13 +561,29 @@ out_fatal(const char *file, int line, const char *func,
  * out_err -- output an error message
  */
 void
-out_err(const char *file, int line, const char *func,
-		const char *fmt, ...)
+out_err(const char *file, int line, const char *func, const char *fmt, ...)
 {
 	va_list ap;
 	va_start(ap, fmt);
 
-	out_error(file, line, func, "\n", fmt, ap);
+	out_errormsg_vprintf(fmt, ap);
+
+	out_error_dbg(file, line, func, "\n");
+
+	va_end(ap);
+}
+
+/*
+ * out_errormsg_printf -- set an error message, as returned by
+ * out_get_errormsg()
+ */
+void
+out_errormsg_printf(const char *fmt, ...)
+{
+	va_list ap;
+	va_start(ap, fmt);
+
+	out_errormsg_vprintf(fmt, ap);
 
 	va_end(ap);
 }
