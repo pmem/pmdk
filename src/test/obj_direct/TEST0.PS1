@@ -1,4 +1,4 @@
-#
+﻿#
 # Copyright 2014-2016, Intel Corporation
 # Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
@@ -32,15 +32,15 @@
 #
 
 #
-# src\test\blk_recovery\TEST0 -- unit test for pmemblk recovery
+# src/test/obj_direct/TEST0 -- unit test for direct
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME="blk_recovery\TEST0"
-$Env:UNITTEST_NUM="0"
+$ENV:UNITTEST_NAME = "obj_direct\TEST0"
+$ENV:UNITTEST_NUM = "0"
 # XXX:  bash has a few calls to tools that we don't have on
 # Windows (yet) that set PMEM_IS_PMEM and NON_PMEM_IS_PMEM based
 # on their output
@@ -50,24 +50,10 @@ $Env:NON_PMEM_IS_PMEM = $true
 # standard unit test setup
 . ..\unittest\unittest.ps1
 
-# doesn't make sense to run in local directory
-require_fs_type pmem non-pmem
-require_build_type nondebug static-nondebug
+require_fs_type any
 
 setup
 
-# single arena case
-create_holey_file 2048M $DIR\testfile1
-
-#
-# Simple case, one write interrupted.  pmemblk_check() should note
-# that testfile1 is consistent (after recovery steps were taken).
-#
-expect_normal_exit $Env:EXE_DIR\blk_recovery$EXESUFFIX 4096 $DIR\testfile1 5 10
-
-check_pool $DIR\testfile1
-
-check
+expect_normal_exit $Env:EXE_DIR\obj_direct$EXESUFFIX $DIR 9
 
 pass
-
