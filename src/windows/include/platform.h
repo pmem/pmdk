@@ -162,7 +162,7 @@ int posix_fallocate(int fd, off_t offset, off_t size);
 /* string.h */
 #define strtok_r strtok_s
 
-char *strsignal(int sig);
+const char *strsignal(int sig);
 extern const char * const sys_siglist[];
 
 /* signal.h */

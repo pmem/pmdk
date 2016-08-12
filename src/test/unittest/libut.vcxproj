@@ -113,6 +113,7 @@
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
       <CompileAs>CompileAsC</CompileAs>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -121,8 +122,9 @@
       <AdditionalDependencies>$(ProjectDir)\..\..\$(IntermediateOutputPath)libpmem\libpmem.lib;$(ProjectDir)\..\..\$(IntermediateOutputPath)libpmemblk\libpmemblk.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Lib>
-      <AdditionalDependencies>liblinux.lib;DbgHelp.lib;libpmem.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(OutDir);$(OutDir)\..\Debug</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libpmem.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
+      <TreatLibWarningAsErrors>true</TreatLibWarningAsErrors>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -135,6 +137,7 @@
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
       <CompileAs>CompileAsC</CompileAs>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -143,8 +146,9 @@
       <AdditionalDependencies>$(ProjectDir)\..\..\$(IntermediateOutputPath)libpmem\libpmem.lib;$(ProjectDir)\..\..\$(IntermediateOutputPath)libpmemblk\libpmemblk.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Lib>
-      <AdditionalDependencies>liblinux.lib;DbgHelp.lib;libpmem.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(OutDir);$(OutDir)\..\Debug</AdditionalLibraryDirectories>
+      <AdditionalDependencies>liblinux.lib;libpmem.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
+      <TreatLibWarningAsErrors>true</TreatLibWarningAsErrors>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Static-Release|x64'">
@@ -167,8 +171,9 @@
       <AdditionalDependencies>$(ProjectDir)\..\..\$(IntermediateOutputPath)libpmem\libpmem.lib;$(ProjectDir)\..\..\$(IntermediateOutputPath)libpmemblk\libpmemblk.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Lib>
-      <AdditionalDependencies>liblinux.lib;DbgHelp.lib;libpmem.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(OutDir);$(OutDir)\..\Release</AdditionalLibraryDirectories>
+      <AdditionalDependencies>liblinux.lib;libpmem.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
+      <TreatLibWarningAsErrors>true</TreatLibWarningAsErrors>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -183,6 +188,8 @@
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <Optimization>MaxSpeed</Optimization>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -191,8 +198,9 @@
       <AdditionalDependencies>$(ProjectDir)\..\..\$(IntermediateOutputPath)libpmem\libpmem.lib;$(ProjectDir)\..\..\$(IntermediateOutputPath)libpmemblk\libpmemblk.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Lib>
-      <AdditionalDependencies>liblinux.lib;DbgHelp.lib;libpmem.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(OutDir);$(OutDir)\..\Release</AdditionalLibraryDirectories>
+      <AdditionalDependencies>liblinux.lib;libpmem.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
+      <TreatLibWarningAsErrors>true</TreatLibWarningAsErrors>
     </Lib>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
