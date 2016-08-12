@@ -81,11 +81,7 @@ do_tx_alloc_oom(PMEMobjpool *pop)
 	do {
 		TX_BEGIN(pop) {
 			TOID(struct object) obj = TX_NEW(struct object);
-			if (TOID_IS_NULL(obj)) {
-				pmemobj_tx_abort(-ENOMEM);
-			} else {
-				D_RW(obj)->value = alloc_cnt;
-			}
+			D_RW(obj)->value = alloc_cnt;
 		} TX_ONCOMMIT {
 			alloc_cnt++;
 		} TX_ONABORT {
