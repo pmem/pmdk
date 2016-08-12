@@ -60,9 +60,7 @@ setup
 #
 expect_normal_exit $Env:EXE_DIR\blk_pool$Env:EXESUFFIX `
     c $DIR/testfile 512 20 0640
-
-rm $DIR\testfile
-create_holey_file 1M $DIR\testfile
+truncate -s 1M $DIR\testfile
 
 expect_normal_exit $Env:EXE_DIR\blk_pool$Env:EXESUFFIX `
     o $DIR/testfile 0
