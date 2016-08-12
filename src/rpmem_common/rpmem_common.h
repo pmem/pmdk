@@ -146,3 +146,4 @@ struct rpmem_target_info *rpmem_target_parse(const char *target);
 void rpmem_target_free(struct rpmem_target_info *info);
 int rpmem_xwrite(int fd, const void *buf, size_t len, int flags);
 int rpmem_xread(int fd, void *buf, size_t len, int flags);
+char *rpmem_get_ssh_conn_addr(void);

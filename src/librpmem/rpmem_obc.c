@@ -376,7 +376,7 @@ rpmem_obc_fini(struct rpmem_obc *rpc)
  *
  * Connects to target node, the target must be in the following format:
  * <addr>[:<port>]. If the port number is not specified the default
- * will be used (= RPMEM_PORT). The <addr> is translated into IP address.
+ * ssh port will be used. The <addr> is translated into IP address.
  *
  * Returns an error if connection is already established.
  */

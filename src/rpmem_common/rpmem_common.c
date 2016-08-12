@@ -262,3 +262,41 @@ rpmem_target_free(struct rpmem_target_info *info)
 {
 	free(info);
 }
+
+/*
+ * rpmem_get_ssh_conn_addr -- returns an address which the ssh connection is
+ * established on
+ *
+ * This function utilizes the SSH_CONNECTION environment variable to retrieve
+ * the server IP address. See ssh(1) for details.
+ */
+char *
+rpmem_get_ssh_conn_addr(void)
+{
+	char *ssh_conn = getenv("SSH_CONNECTION");
+	if (!ssh_conn) {
+		RPMEMC_LOG(ERR, "SSH_CONNECTION variable is not set");
+		return NULL;
+	}
+
+	char *sp = strchr(ssh_conn, ' ');
+	if (!sp)
+		goto err_fmt;
+
+	char *addr = strchr(sp + 1, ' ');
+	if (!addr)
+		goto err_fmt;
+
+	addr++;
+
+	sp = strchr(addr, ' ');
+	if (!sp)
+		goto err_fmt;
+
+	*sp = '\0';
+
+	return addr;
+err_fmt:
+	RPMEMC_LOG(ERR, "invalid format of SSH_CONNECTION variable");
+	return NULL;
+}

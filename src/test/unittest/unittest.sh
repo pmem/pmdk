@@ -1282,16 +1282,6 @@ function require_node_libfabric() {
 	fi
 }
 
-# require_rpmem_port -- only allow script to continue if RPMEM_PORT variable
-#                       is set.
-#
-function require_rpmem_port() {
-	if [ -z "$RPMEM_PORT" ]; then
-		echo "$UNITTEST_NAME: SKIP: requires RPMEM_PORT"
-		exit 0
-	fi
-}
-
 #
 # check_if_node_is_reachable -- check if the $1 node is reachable
 #

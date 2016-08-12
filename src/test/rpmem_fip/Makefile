@@ -44,10 +44,12 @@ vpath %.c ../../tools/rpmemd
 ifeq ($(BUILD_RPMEM), y)
 TARGET = rpmem_fip
 OBJS = rpmem_fip_test.o\
-       rpmem_fip_sock.o\
+       rpmem_fip_oob.o\
        rpmem_fip.o\
        rpmemd_fip.o\
        rpmem_util.o\
+       rpmem_ssh.o\
+       rpmem_cmd.o\
        rpmem_common.o\
        rpmem_fip_common.o\
        rpmemd_fip_worker.o\

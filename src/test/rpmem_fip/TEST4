@@ -43,7 +43,6 @@ export UNITTEST_NUM=4
 
 require_fs_type none
 require_build_type nondebug debug
-require_rpmem_port
 
 rpmem_foreach_provider
 rpmem_foreach_persist
@@ -59,16 +58,14 @@ require_node_log_files 1 $RPMEM_LOG_FILE $RPMEMD_LOG_FILE
 SRV=srv${UNITTEST_NUM}.pid
 clean_remote_node 0 $SRV
 
-expect_normal_exit run_on_node_background 0 $SRV\
-	./rpmem_fip$EXESUFFIX server_process ${NODE_ADDR[0]}\
-	$RPMEM_PORT $RPMEM_PM
+RPMEM_CMD="\"cd ${NODE_TEST_DIR[0]} && UNITTEST_FORCE_QUIET=1 \
+	LD_LIBRARY_PATH=$REMOTE_LD_LIBRARY_PATH:${NODE_LD_LIBRARY_PATH[0]} \
+	./rpmem_fip$EXESUFFIX\""
 
-expect_normal_exit wait_on_node_port 0 $SRV $RPMEM_PORT
+export_vars_node 1 RPMEM_CMD
 
 expect_normal_exit run_on_node 1 ./rpmem_fip$EXESUFFIX\
-	client_persist_mt ${NODE_ADDR[0]}:${RPMEM_PORT} $RPMEM_PROVIDER
-
-expect_normal_exit wait_on_node 0 $SRV
+	client_persist_mt ${NODE_ADDR[0]} $RPMEM_PROVIDER $RPMEM_PM
 
 pass
 
