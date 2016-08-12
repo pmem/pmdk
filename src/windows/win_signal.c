@@ -98,4 +98,3 @@ strsignal(int sig)
 	else
 		return STR_UNKNOWN_SIGNAL;
 }
-

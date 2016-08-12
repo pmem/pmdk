@@ -39,8 +39,8 @@
 #define MAX_PATH_LEN 255
 #define LAYOUT_NAME "direct"
 
-pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
-int flag = 1;
+pthread_mutex_t lock;
+volatile int flag = 1;
 
 PMEMoid thread_oid;
 
@@ -72,7 +72,10 @@ main(int argc, char *argv[])
 	const char *dir = argv[1];
 	int r;
 
-	PMEMobjpool *pops[npools];
+	pthread_mutex_init(&lock, NULL);
+
+	PMEMobjpool **pops = MALLOC(npools * sizeof(PMEMobjpool *));
+	UT_ASSERTne(pops, NULL);
 
 	char path[MAX_PATH_LEN];
 	for (int i = 0; i < npools; ++i) {
@@ -84,8 +87,10 @@ main(int argc, char *argv[])
 			UT_FATAL("!pmemobj_create");
 	}
 
-	PMEMoid oids[npools];
-	PMEMoid tmpoids[npools];
+	PMEMoid *oids = MALLOC(npools * sizeof(PMEMoid));
+	UT_ASSERTne(oids, NULL);
+	PMEMoid *tmpoids = MALLOC(npools * sizeof(PMEMoid));
+	UT_ASSERTne(tmpoids, NULL);
 
 	oids[0] = OID_NULL;
 	UT_ASSERTeq(pmemobj_direct(oids[0]), NULL);
@@ -110,7 +115,7 @@ main(int argc, char *argv[])
 	pthread_mutex_lock(&lock);
 
 	pthread_t t;
-	pthread_create(&t, NULL, test_worker, NULL);
+	PTHREAD_CREATE(&t, NULL, test_worker, NULL);
 
 	/* wait for the thread to perform the first direct */
 	while (flag)
@@ -126,8 +131,11 @@ main(int argc, char *argv[])
 		UT_ASSERTeq(pmemobj_direct(oids[i]), NULL);
 	}
 	pthread_mutex_unlock(&lock);
+	PTHREAD_JOIN(t, NULL);
 
-	pthread_join(t, NULL);
+	FREE(pops);
+	FREE(tmpoids);
+	FREE(oids);
 
 	DONE(NULL);
 }
