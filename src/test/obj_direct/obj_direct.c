@@ -72,7 +72,7 @@ main(int argc, char *argv[])
 	const char *dir = argv[1];
 	int r;
 
-	PMEMobjpool *pops[npools];
+	PMEMobjpool **pops = MALLOC(npools * sizeof(PMEMobjpool));
 
 	char path[MAX_PATH_LEN];
 	for (int i = 0; i < npools; ++i) {
@@ -84,8 +84,8 @@ main(int argc, char *argv[])
 			UT_FATAL("!pmemobj_create");
 	}
 
-	PMEMoid oids[npools];
-	PMEMoid tmpoids[npools];
+	PMEMoid *oids = MALLOC(npools * sizeof(PMEMoid));
+	PMEMoid *tmpoids = MALLOC(npools * sizeof(PMEMoid));
 
 	oids[0] = OID_NULL;
 	UT_ASSERTeq(pmemobj_direct(oids[0]), NULL);
@@ -129,5 +129,8 @@ main(int argc, char *argv[])
 
 	pthread_join(t, NULL);
 
+	FREE(pops);
+	FREE(tmpoids);
+	FREE(oids);
 	DONE(NULL);
 }

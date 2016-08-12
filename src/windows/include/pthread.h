@@ -65,7 +65,7 @@ typedef long pthread_once_t;
 typedef DWORD pthread_key_t;
 
 #define PTHREAD_ONCE_INIT 0
-
+#define PTHREAD_MUTEX_INITIALIZER {0, (void *)(-1), -1, 0, 0, 0, 0}
 int pthread_once(pthread_once_t *o, void (*func)(void));
 
 int pthread_key_create(pthread_key_t *key, void (*destructor)(void *));
