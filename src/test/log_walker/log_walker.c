@@ -93,7 +93,7 @@ do_walk(PMEMlogpool *plp)
 	UT_OUT("walk all at once");
 }
 
-sigjmp_buf Jmp;
+ut_jmp_buf_t Jmp;
 
 /*
  * signal_handler -- called on SIGSEGV
@@ -103,7 +103,7 @@ signal_handler(int sig)
 {
 	UT_OUT("signal: %s", strsignal(sig));
 
-	siglongjmp(Jmp, 1);
+	ut_siglongjmp(Jmp);
 }
 
 int
@@ -140,7 +140,7 @@ main(int argc, char *argv[])
 	v.sa_handler = signal_handler;
 	SIGACTION(SIGSEGV, &v, NULL);
 
-	if (!sigsetjmp(Jmp, 1)) {
+	if (!ut_sigsetjmp(Jmp)) {
 		do_walk(plp);
 	}
 
