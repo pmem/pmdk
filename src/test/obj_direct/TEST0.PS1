@@ -34,6 +34,7 @@
 #
 # src/test/obj_direct/TEST0 -- unit test for direct
 #
+
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [alias("d")]
