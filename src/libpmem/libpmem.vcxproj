@@ -134,6 +134,7 @@
       <ForcedUsingFiles />
       <CompileAsWinRT>false</CompileAsWinRT>
       <WarningLevel>Level3</WarningLevel>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -145,6 +146,7 @@
       <EntryPointSymbol>
       </EntryPointSymbol>
       <AdditionalLibraryDirectories>$(OutDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
     </Link>
     <ProjectReference>
       <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
@@ -167,6 +169,7 @@
       <BrowseInformation>true</BrowseInformation>
       <CompileAsWinRT>false</CompileAsWinRT>
       <WarningLevel>Level3</WarningLevel>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -182,8 +185,9 @@
       <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
     </ProjectReference>
     <Lib>
-      <AdditionalDependencies>liblinux.lib;shlwapi.lib;libpmemcommon.lib</AdditionalDependencies>
+      <AdditionalDependencies>liblinux.lib;libpmemcommon.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
+      <TreatLibWarningAsErrors>true</TreatLibWarningAsErrors>
     </Lib>
     <PreBuildEvent>
       <Command>
@@ -203,6 +207,7 @@
       <ForcedIncludeFiles>platform.h</ForcedIncludeFiles>
       <CompileAsWinRT>false</CompileAsWinRT>
       <WarningLevel>Level3</WarningLevel>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -212,6 +217,7 @@
       <ModuleDefinitionFile>libpmem.def</ModuleDefinitionFile>
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
       <AdditionalLibraryDirectories>$(OutDir);</AdditionalLibraryDirectories>
+      <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
     </Link>
     <PreBuildEvent>
       <Command>
@@ -233,6 +239,7 @@
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <CompileAsWinRT>false</CompileAsWinRT>
       <WarningLevel>Level3</WarningLevel>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -247,6 +254,9 @@
       <Command>
       </Command>
     </PreBuildEvent>
+    <Lib>
+      <TreatLibWarningAsErrors>true</TreatLibWarningAsErrors>
+    </Lib>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

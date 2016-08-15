@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
@@ -119,6 +119,7 @@
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
       <ForcedIncludeFiles>platform.h</ForcedIncludeFiles>
       <WarningLevel>Level3</WarningLevel>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -128,6 +129,7 @@
       <ModuleDefinitionFile>libpmemblk.def</ModuleDefinitionFile>
       <GenerateMapFile>true</GenerateMapFile>
       <AdditionalLibraryDirectories>$(OutDir);$(OutDir)/../Static-Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
     </Link>
     <ProjectReference>
       <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
@@ -149,6 +151,7 @@
       <ForcedIncludeFiles>platform.h</ForcedIncludeFiles>
       <ExceptionHandling>false</ExceptionHandling>
       <WarningLevel>Level3</WarningLevel>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -157,6 +160,7 @@
       <AdditionalDependencies>libpmem.lib;$(WindowsSDK_LibraryPath)\$(PlatformTarget)\kernel32.lib;liblinux.lib;shlwapi.lib;libpmemcommon.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ModuleDefinitionFile>libpmemblk.def</ModuleDefinitionFile>
       <AdditionalLibraryDirectories>$(OutDir);$(OutDir)/../Static-Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
     </Link>
     <PreBuildEvent>
       <Command>
@@ -175,6 +179,7 @@
       <ForcedIncludeFiles>platform.h</ForcedIncludeFiles>
       <ExceptionHandling>false</ExceptionHandling>
       <WarningLevel>Level3</WarningLevel>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -188,6 +193,9 @@
       <Command>
       </Command>
     </PreBuildEvent>
+    <Lib>
+      <TreatLibWarningAsErrors>true</TreatLibWarningAsErrors>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Static-Debug|x64'">
     <ClCompile>
@@ -206,10 +214,12 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <CompileAsWinRT>false</CompileAsWinRT>
       <WarningLevel>Level3</WarningLevel>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Lib>
       <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>liblinux.lib;shlwapi.lib;libpmemcommon.lib</AdditionalDependencies>
+      <AdditionalDependencies>liblinux.lib;libpmemcommon.lib</AdditionalDependencies>
+      <TreatLibWarningAsErrors>true</TreatLibWarningAsErrors>
     </Lib>
     <PreBuildEvent>
       <Command>

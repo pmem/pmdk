@@ -57,26 +57,10 @@ setup
 # TEST22 existing file, file size < min required size
 #        (valid pool header)
 #
+expect_normal_exit $Env:EXE_DIR\log_pool$EXESUFFIX c $DIR/testfile 20 0640
+truncate -s 1M $DIR/testfile
 
-# XXX This isn't quite equivalent to the linux test, need
-# to implement linux truncate in our sparsefile tool...
-
-# write valid signature to testfile "PMEMPOOLSET"
-$sig = New-Object Byte[] 11
-$sig[0] = 80 # 0x50 P
-$sig[1] = 77 # 0x4d M
-$sig[2] = 69 # 0x45 E
-$sig[3] = 77 # 0x4d M
-$sig[4] = 80 # 0x50 P
-$sig[5] = 79 # 0x4f O
-$sig[6] = 79 # 0x4f O
-$sig[7] = 76 # 0x4c L
-$sig[8] = 83 # 0x53 S
-$sig[9] = 69 # 0x45 E
-$sig[10] = 84 # 0x54 T
-Set-Content -Path $DIR\testfile -Value $sig -Encoding Byte
-
-expect_normal_exit $Env:EXE_DIR\log_pool$EXESUFFIX o $DIR\testfile
+expect_normal_exit $Env:EXE_DIR\log_pool$EXESUFFIX o $DIR/testfile
 
 check
 

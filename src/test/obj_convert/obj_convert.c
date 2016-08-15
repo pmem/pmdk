@@ -352,10 +352,10 @@ sc6_verify_abort(PMEMobjpool *pop)
 	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
 
 	TX_BEGIN(pop) {
-	/*
-	 * If the free undo log didn't get unrolled then the next
-	 * free would fail due to the object being already freed.
-	 */
+		/*
+		 * If the free undo log didn't get unrolled then the next
+		 * free would fail due to the object being already freed.
+		 */
 		TX_FREE(D_RO(rt)->foo);
 		TX_FREE(D_RO(rt)->bar);
 	} TX_ONABORT {
@@ -368,14 +368,14 @@ sc6_verify_commit(PMEMobjpool *pop)
 {
 	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
 
-	TX_BEGIN(pop) {
-		TOID(struct foo) f = TX_NEW(struct foo);
+	TOID(struct foo) f;
+	POBJ_FOREACH_TYPE(pop, f) {
 		UT_ASSERT(TOID_EQUALS(f, D_RO(rt)->foo));
-		TOID(struct bar) b = TX_NEW(struct bar);
+	}
+	TOID(struct bar) b;
+	POBJ_FOREACH_TYPE(pop, b) {
 		UT_ASSERT(TOID_EQUALS(b, D_RO(rt)->bar));
-	} TX_ONABORT {
-		UT_ASSERT(0);
-	} TX_END
+	}
 }
 
 /*

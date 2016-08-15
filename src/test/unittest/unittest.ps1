@@ -126,6 +126,32 @@ function convert_to_bytes() {
 }
 
 #
+# truncate -- shrink or extend a file to the specified size
+#
+# A file that does not exist is created (holey).
+#
+# XXX: Modify/rename 'sparsefile' to make it work as Linux 'truncate'.
+# Then, this cmdlet is not needed anymore.
+#
+function truncate {
+    [CmdletBinding(PositionalBinding=$true)]
+    Param(
+        [alias("s")][Parameter(Mandatory = $true)][string]$size,
+        [Parameter(Mandatory = $true)][string]$fname
+    )
+
+    [int64]$size_in_bytes = (convert_to_bytes $size)
+
+    if (-Not (Test-Path $fname)) {
+        & '..\..\x64\debug\sparsefile.exe' $fname $size_in_bytes
+    } else {
+        $file = new-object System.IO.FileStream $fname, Open, ReadWrite
+        $file.SetLength($size_in_bytes)
+        $file.Close()
+    }
+}
+
+#
 # create_file -- create zeroed out files of a given length
 #
 # example, to create two files, each 1GB in size:
@@ -145,6 +171,7 @@ function create_file {
         Get-ChildItem $args[$i]* >> ("prep" + $Env:UNITTEST_NUM + ".log")
     }
 }
+
 #
 # create_holey_file -- create holey files of a given length
 #
@@ -515,6 +542,7 @@ function convert_files_to_utf8_wo_bom {
         }
     }
 }
+
 #
 # check -- check test results (using .match files)
 #
@@ -1014,7 +1042,7 @@ if (! $UT_DUMP_LINES) {
 $Env:CHECK_POOL_LOG_FILE = "check_pool_${Env:BUILD}_${Env:UNITTEST_NUM}.log"
 
 if ($Env:EXE_DIR -eq $null) {
-	$Env:EXE_DIR = "..\..\x64\debug"
+    $Env:EXE_DIR = "..\..\x64\debug"
 }
 $PMEMPOOL="$Env:EXE_DIR\pmempool"
 $PMEMSPOIL="$Env:EXE_DIR\pmemspoil"

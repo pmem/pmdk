@@ -86,28 +86,28 @@ FUNC_MOCK_END
 static void
 test_new_delete_bucket()
 {
-	struct bucket *b = NULL;
+	struct bucket_huge *b = NULL;
 
 	/* b malloc fail */
-	b = bucket_new(1, BUCKET_HUGE, CONTAINER_CTREE, 1, 1);
+	b = bucket_huge_new(1, CONTAINER_CTREE, 1);
 	UT_ASSERT(b == NULL);
 
 	/* b->ctree fail */
-	b = bucket_new(2, BUCKET_HUGE, CONTAINER_CTREE, 1, 1);
+	b = bucket_huge_new(2, CONTAINER_CTREE, 1);
 	UT_ASSERT(b == NULL);
 
 	/* all ok */
-	b = bucket_new(4, BUCKET_HUGE, CONTAINER_CTREE, 1, 1);
+	b = bucket_huge_new(4, CONTAINER_CTREE, 1);
 	UT_ASSERT(b != NULL);
 
-	bucket_delete(b);
+	bucket_delete(&b->super);
 }
 
 static void
 test_bucket_bitmap_correctness()
 {
-	struct bucket *b = bucket_new(1, BUCKET_RUN, CONTAINER_CTREE,
-		(RUNSIZE / 10), TEST_MAX_UNIT);
+	struct bucket_run *b = bucket_run_new(1, CONTAINER_CTREE,
+		(RUNSIZE / 10), TEST_MAX_UNIT, TEST_MAX_UNIT);
 	UT_ASSERT(b != NULL);
 
 	/* 54 set (not available for allocations), and 10 clear (available) */
@@ -117,28 +117,28 @@ test_bucket_bitmap_correctness()
 	struct bucket_run *r = (struct bucket_run *)b;
 	UT_ASSERTeq(r->bitmap_lastval, bitmap_lastval);
 
-	bucket_delete(b);
+	bucket_delete(&b->super);
 }
 
 static void
 test_bucket()
 {
-	struct bucket *b = bucket_new(1, BUCKET_HUGE, CONTAINER_CTREE,
-		TEST_UNIT_SIZE, TEST_MAX_UNIT);
+	struct bucket_huge *b = bucket_huge_new(1, CONTAINER_CTREE,
+		TEST_UNIT_SIZE);
 	UT_ASSERT(b != NULL);
 
-	UT_ASSERT(b->unit_size == TEST_UNIT_SIZE);
-	UT_ASSERT(b->type == BUCKET_HUGE);
-	UT_ASSERT(b->calc_units(b, TEST_SIZE) == TEST_SIZE_UNITS);
+	UT_ASSERT(b->super.unit_size == TEST_UNIT_SIZE);
+	UT_ASSERT(b->super.type == BUCKET_HUGE);
+	UT_ASSERT(b->super.calc_units(&b->super, TEST_SIZE) == TEST_SIZE_UNITS);
 
-	bucket_delete(b);
+	bucket_delete(&b->super);
 }
 
 static void
 test_bucket_insert_get()
 {
-	struct bucket *b = bucket_new(1, BUCKET_RUN, CONTAINER_CTREE,
-		TEST_UNIT_SIZE, TEST_MAX_UNIT);
+	struct bucket *b = &(bucket_run_new(1, CONTAINER_CTREE,
+		TEST_UNIT_SIZE, TEST_MAX_UNIT, TEST_MAX_UNIT))->super;
 	UT_ASSERT(b != NULL);
 
 	struct memory_block m = {TEST_CHUNK_ID, TEST_ZONE_ID,
@@ -162,8 +162,8 @@ test_bucket_insert_get()
 static void
 test_bucket_remove()
 {
-	struct bucket *b = bucket_new(1, BUCKET_RUN, CONTAINER_CTREE,
-		TEST_UNIT_SIZE, TEST_MAX_UNIT);
+	struct bucket *b = &(bucket_run_new(1, CONTAINER_CTREE,
+		TEST_UNIT_SIZE, TEST_MAX_UNIT, TEST_MAX_UNIT))->super;
 	UT_ASSERT(b != NULL);
 
 	struct memory_block m = {TEST_CHUNK_ID, TEST_ZONE_ID,
