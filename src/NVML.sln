@@ -360,6 +360,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "util_parse_size", "test\uti
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "log_walker", "test\log_walker\log_walker.vcxproj", "{4FB4FF90-4E92-4CFB-A01F-C73D6861CA03}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_basic_integration", "test\obj_basic_integration\obj_basic_integration.vcxproj", "{58386481-30B7-40FC-96AF-0723A4A7B228}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -798,6 +800,14 @@ Global
 		{4FB4FF90-4E92-4CFB-A01F-C73D6861CA03}.Static-Debug|x64.Build.0 = Debug|x64
 		{4FB4FF90-4E92-4CFB-A01F-C73D6861CA03}.Static-Release|x64.ActiveCfg = Release|x64
 		{4FB4FF90-4E92-4CFB-A01F-C73D6861CA03}.Static-Release|x64.Build.0 = Release|x64
+		{58386481-30B7-40FC-96AF-0723A4A7B228}.Debug|x64.ActiveCfg = Debug|x64
+		{58386481-30B7-40FC-96AF-0723A4A7B228}.Debug|x64.Build.0 = Debug|x64
+		{58386481-30B7-40FC-96AF-0723A4A7B228}.Release|x64.ActiveCfg = Release|x64
+		{58386481-30B7-40FC-96AF-0723A4A7B228}.Release|x64.Build.0 = Release|x64
+		{58386481-30B7-40FC-96AF-0723A4A7B228}.Static-Debug|x64.ActiveCfg = Static-Debug|x64
+		{58386481-30B7-40FC-96AF-0723A4A7B228}.Static-Debug|x64.Build.0 = Static-Debug|x64
+		{58386481-30B7-40FC-96AF-0723A4A7B228}.Static-Release|x64.ActiveCfg = Static-Release|x64
+		{58386481-30B7-40FC-96AF-0723A4A7B228}.Static-Release|x64.Build.0 = Static-Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -863,5 +873,6 @@ Global
 		{63B8184D-85E0-4E6A-9729-558C567D1D1D} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 		{08B62E36-63D2-4FF1-A605-4BBABAEE73FB} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 		{4FB4FF90-4E92-4CFB-A01F-C73D6861CA03} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
+		{58386481-30B7-40FC-96AF-0723A4A7B228} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 	EndGlobalSection
 EndGlobal
