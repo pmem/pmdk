@@ -88,7 +88,7 @@ DOCS_DESTDIR = $(DESTDIR)$(docdir)
 CPP_DOC_DIR ?= libpmemobj++-dev
 CPP_DOCS_DESTDIR = $(DOCS_DESTDIR)/$(CPP_DOC_DIR)
 
-all: $(MANPAGES) $(TXTFILES)
+all:
 
 %.txt: %
 	man ./$< > $@

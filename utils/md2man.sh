@@ -45,6 +45,8 @@
 # - unindent code blocks
 #
 
+set -o pipefail
+
 filename=$1
 license=$2
 title=`sed -n 's/^title:\ *\([a-z]*\).*$/\1/p' $filename`
