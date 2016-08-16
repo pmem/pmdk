@@ -1,5 +1,5 @@
-obj_basic_integration/TEST4: START: obj_basic_integration
- ./obj_basic_integration$(nW) $(nW)/testset1
+obj_basic_integration$(nW)TEST4: START: obj_basic_integration
+ $(nW)obj_basic_integration$(nW) $(nW)testset1
 alloc: 128, size: 128
 realloc: 128 => 655360, size: 786368
 realloc: 655360 => 1, size: 64
@@ -30,4 +30,4 @@ POBJ_LIST_PREV: dummy_node 7
 POBJ_LIST_PREV: dummy_node 5
 nested transaction for different pool
 explicit transaction abort: Operation canceled
-obj_basic_integration/TEST4: Done
+obj_basic_integration$(nW)TEST4: Done

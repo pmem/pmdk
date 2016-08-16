@@ -143,7 +143,7 @@ function truncate {
     [int64]$size_in_bytes = (convert_to_bytes $size)
 
     if (-Not (Test-Path $fname)) {
-        & '..\..\x64\debug\sparsefile.exe' $fname $size_in_bytes
+        & $SPARSEFILE $fname $size_in_bytes
     } else {
         $file = new-object System.IO.FileStream $fname, Open, ReadWrite
         $file.SetLength($size_in_bytes)
@@ -190,7 +190,7 @@ function create_holey_file {
         # need to call out to sparsefile.exe to create a sparse file, note
         # that initial version of DAX doesn't support sparse
         $fname = $args[$i]
-        & '..\..\x64\debug\sparsefile.exe' $fname $size
+        & $SPARSEFILE $fname $size
         if ($LASTEXITCODE -ne 0) {
             Write-Error "Error $LASTEXITCODE with sparsefile create"
             exit $LASTEXITCODE
@@ -733,7 +733,7 @@ function check_signature {
 # check_signatures -- check if multiple files contain specified signature
 #
 function check_signatures {
-	for ($i=0;$i -lt $args.count;$i+=2) {
+    for ($i=0;$i -lt $args.count;$i+=2) {
         check_signature $args[$i] $args[$i+1]
     }
 }
@@ -783,18 +783,31 @@ function check_arena {
 # dump_pool_info -- dump selected pool metadata and/or user data
 #
 function dump_pool_info {
-    #XXX: not yet implemented
-    Write-Error "function dump_pool_info() not yet implemented"
+    $params = ""
+    for ($i=0;$i -lt $args.count;$i++) {
+        [string]$params += -join($args[$i], " ")
+    }
+
     # ignore selected header fields that differ by definition
-    #${PMEMPOOL}.static-nondebug info $* | sed -e "/^UUID/,/^Checksum/d"
+    # XXX: not exactly the same as 'sed -e "/^UUID/,/^Checksum/d"'
+    Invoke-Expression "$PMEMPOOL info $params" | `
+        Select-String -notmatch -Pattern 'UUID' | `
+        Select-String -notmatch -Pattern '^Checksum' | `
+        Select-String -notmatch -Pattern '^Creation Time'
 }
 
 #
 # compare_replicas -- check replicas consistency by comparing `pmempool info` output
 #
 function compare_replicas {
-    Write-Error "function compare_replicas() not yet implemented"
-    #diff <(dump_pool_info $1 $2) <(dump_pool_info $1 $3)
+    $params = ""
+    for ($i=0;$i -lt $args.count - 2;$i++) {
+        [string]$params += -join($args[$i], " ")
+    }
+    $rep1 = $args[$cnt + 1]
+    $rep2 = $args[$cnt + 2]
+
+    diff (dump_pool_info $params $rep1) (dump_pool_info $params $rep2)
 }
 
 #
@@ -1048,3 +1061,5 @@ $PMEMPOOL="$Env:EXE_DIR\pmempool"
 $PMEMSPOIL="$Env:EXE_DIR\pmemspoil"
 $PMEMWRITE="$Env:EXE_DIR\pmemwrite"
 $PMEMALLOC="$Env:EXE_DIR\pmemalloc"
+
+$SPARSEFILE="$Env:EXE_DIR\sparsefile"

@@ -29,7 +29,8 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# src/test/obj_basic_integration/TEST1 -- unit test for
+#
+# src/test/obj_basic_integration/TEST3 -- unit test for
 # pmemobj APIs
 #
 [CmdletBinding(PositionalBinding=$false)]
@@ -37,8 +38,8 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "obj_basic_integration\TEST1"
-$Env:UNITTEST_NUM = "1"
+$Env:UNITTEST_NAME = "obj_basic_integration\TEST4"
+$Env:UNITTEST_NUM = "4"
 # XXX:  bash has a few calls to tools that we don't have on
 # windows (yet) that set PMEM_IS_PMEM and NON_PMEM_IS_PMEM based
 # on their output
@@ -48,17 +49,22 @@ $Env:NON_PMEM_IS_PMEM = $true
 # standard unit test setup
 . ..\unittest\unittest.ps1
 
-# XXX: we don't have valgrind in Windows yet
-#configure_valgrind pmemcheck force-enable
-
 require_fs_type any
 
 setup
 
-create_holey_file 8M $DIR\testfile1
+create_poolset $DIR/testset1 8M:$DIR/testfile1 `
+	r 10M:$DIR/testfile2 `
+	r 12M:$DIR/testfile3
 
-expect_normal_exit $Env:EXE_DIR\obj_basic_integration$Env:EXESUFFIX `
-    $DIR\testfile1 `
+expect_normal_exit `
+    $Env:EXE_DIR\obj_basic_integration$Env:EXESUFFIX $DIR/testset1
+
+compare_replicas "-soOaAb -l -Z -H -C" `
+	$DIR/testfile1 $DIR/testfile2 > diff$Env:UNITTEST_NUM.log
+
+compare_replicas "-soOaAb -l -Z -H -C" `
+	$DIR/testfile1 $DIR/testfile3 >> diff$Env:UNITTEST_NUM.log
 
 check
 

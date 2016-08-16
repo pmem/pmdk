@@ -7,6 +7,9 @@
     <Filter Include="Source Files">
       <UniqueIdentifier>{fdf90df9-299e-4772-9987-80b460bd2573}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Match Files">
+      <UniqueIdentifier>{7782ecac-f1e4-49cb-b06c-0fc343dd3a97}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="obj_basic_integration.c">
@@ -17,14 +20,35 @@
     <None Include="TEST0.PS1">
       <Filter>Test scripts</Filter>
     </None>
-    <None Include="TEST1.PS1">
-      <Filter>Test scripts</Filter>
-    </None>
     <None Include="TEST2.PS1">
       <Filter>Test scripts</Filter>
     </None>
     <None Include="TEST3.PS1">
       <Filter>Test scripts</Filter>
+    </None>
+    <None Include="TEST4.PS1">
+      <Filter>Test scripts</Filter>
+    </None>
+    <None Include="diff3.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="diff4.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="out0.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="out1.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="out2.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="out3.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="out4.log.match">
+      <Filter>Match Files</Filter>
     </None>
   </ItemGroup>
 </Project>

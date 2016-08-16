@@ -57,11 +57,9 @@ create_poolset $DIR\testset1 8M:$DIR\testfile1:x r 8M:$DIR\testfile2:x
 expect_normal_exit $Env:EXE_DIR\obj_basic_integration$Env:EXESUFFIX `
     $DIR\testset1 `
 
-# XXX: Not ready yet in unittest.ps1
-#compare_replicas "-soOaAb -l -Z -H -C" `
-#    $DIR\testfile1 $DIR\testfile2 > diff$UNITTEST_NUM.log
+compare_replicas "-soOaAb -l -Z -H -C" `
+    $DIR\testfile1 $DIR\testfile2 > diff$Env:UNITTEST_NUM.log
 
-# XXX: No diff log yet
-#check
+check
 
-#pass
+pass
