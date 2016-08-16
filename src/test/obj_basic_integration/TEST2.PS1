@@ -58,7 +58,6 @@ create_poolset $DIR\testset1 8M:$DIR\testfile1:x 8M:$DIR\testfile2:x `
 expect_normal_exit $Env:EXE_DIR\obj_basic_integration$Env:EXESUFFIX `
     $DIR\testset1 `
 
-# check will print the appropriate pass/fail message
-#check
+check
 
-#pass
+pass

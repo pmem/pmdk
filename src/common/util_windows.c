@@ -39,13 +39,25 @@
 
 /* Windows CRT doesn't support all errors, add unmapped here */
 #define ENOTSUP_STR "Operation not supported"
+#define ECANCELED_STR "Operation canceled"
 #define UNMAPPED_STR "Unmapped error"
+
+/*
+ * util_strerror -- return string describing error number
+ *
+ * XXX: There are many other POSIX error codes that are not recognized by
+ * strerror_s(), so eventually we may want to implement this in a similar
+ * fashion as strsignal().
+ */
 void
 util_strerror(int errnum, char *buff, size_t bufflen)
 {
 	switch (errnum) {
 	case ENOTSUP:
 		strcpy_s(buff, bufflen, ENOTSUP_STR);
+		break;
+	case ECANCELED:
+		strcpy_s(buff, bufflen, ECANCELED_STR);
 		break;
 	default:
 		if (strerror_s(buff, bufflen, errnum))

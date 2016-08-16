@@ -60,7 +60,6 @@ create_holey_file 8M $DIR\testfile1
 expect_normal_exit $Env:EXE_DIR\obj_basic_integration$Env:EXESUFFIX `
     $DIR\testfile1 `
 
-# check will print the appropriate pass/fail message
-#check
+check
 
-#pass
+pass
