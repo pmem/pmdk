@@ -8,6 +8,9 @@
     <Filter Include="Test scripts">
       <UniqueIdentifier>{595b542f-e7a5-4b59-9af2-2b3b358263ab}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Test scripts">
+      <UniqueIdentifier>{b1050631-754f-41cb-9b74-1aec27be4158}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="util_parse_size.c">
