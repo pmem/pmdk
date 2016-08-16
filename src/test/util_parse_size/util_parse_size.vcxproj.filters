@@ -13,6 +13,9 @@
       <UniqueIdentifier>{9b073cac-8b99-42fa-b2e2-9b54fdbb4e99}</UniqueIdentifier>
       <Extensions>match</Extensions>
     </Filter>
+    <Filter Include="Test scripts">
+      <UniqueIdentifier>{b1050631-754f-41cb-9b74-1aec27be4158}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="util_parse_size.c">
