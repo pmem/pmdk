@@ -57,7 +57,7 @@ require_build_type nondebug static-nondebug
 setup
 
 # single arena case
-create_holey_file 2048 $DIR\testfile1
+create_holey_file 2G $DIR\testfile1
 
 #
 # Simple case, one write interrupted.  pmemblk_check() should note
