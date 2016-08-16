@@ -1,5 +1,5 @@
-util_parse_size/TEST0: START: util_parse_size
- ./util_parse_size$(S)
+util_parse_size$(nW)TEST0: START: util_parse_size
+ $(nW)util_parse_size$(S)
 11K - correct 11264
 11M - correct 11534336
 11G - correct 11811160064
@@ -30,4 +30,4 @@ KiD - incorrect
 10Kboli - incorrect
 10boli - incorrect
 10KiBoli - incorrect
-util_parse_size/TEST0: Done
+util_parse_size$(nW)TEST0: Done
