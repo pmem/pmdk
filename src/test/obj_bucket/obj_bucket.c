@@ -1,5 +1,6 @@
 /*
  * Copyright 2015-2016, Intel Corporation
+ * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -33,6 +34,8 @@
 /*
  * obj_bucket.c -- unit test for bucket
  */
+#include "util.h"
+#include "ctree.h"
 #include "bucket.h"
 #include "unittest.h"
 
@@ -179,6 +182,28 @@ test_bucket_remove()
 int
 main(int argc, char *argv[])
 {
+#ifdef WIN32
+	/*
+	 * Setting Malloc point to __wrap_malloc works in this
+	 * case because all .c files that use Malloc are included
+	 * in Source Files.
+	 */
+	util_set_alloc_funcs(__wrap_malloc, NULL, NULL, NULL);
+	set_ctree_funcs(
+		__wrap_ctree_new,
+		(void(*)(struct ctree *t))__wrap_ctree_delete,
+		(int(*)(struct ctree *t, uint64_t key, uint64_t value))
+		__wrap_ctree_insert,
+		__wrap_ctree_remove);
+
+	/*
+	 * Preset counters because in Linux __wrap_ctree_new()
+	 * and __wrap_malloc() are called before main().
+	 */
+	RCOUNTER(ctree_new) = 1;
+	RCOUNTER(malloc) = 4;
+#endif
+
 	START(argc, argv, "obj_bucket");
 
 	test_new_delete_bucket();

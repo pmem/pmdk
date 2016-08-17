@@ -1,5 +1,6 @@
 /*
  * Copyright 2014-2016, Intel Corporation
+ * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -148,9 +149,9 @@ obj_init(void)
 	if (pools_ht == NULL)
 		FATAL("!cuckoo_new");
 
-	pools_tree = ctree_new();
+	pools_tree = Ctree_new();
 	if (pools_tree == NULL)
-		FATAL("!ctree_new");
+		FATAL("!Ctree_new");
 
 	lane_info_boot();
 
@@ -168,7 +169,7 @@ obj_fini(void)
 	LOG(3, NULL);
 
 	cuckoo_delete(pools_ht);
-	ctree_delete(pools_tree);
+	Ctree_delete(pools_tree);
 	lane_info_destroy();
 	util_remote_fini();
 }
@@ -937,9 +938,9 @@ pmemobj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 			return -1;
 		}
 
-		if ((errno = ctree_insert(pools_tree, (uint64_t)pop, pop->size))
+		if ((errno = Ctree_insert(pools_tree, (uint64_t)pop, pop->size))
 				!= 0) {
-			ERR("!ctree_insert");
+			ERR("!Ctree_insert");
 			return -1;
 		}
 	}
@@ -1401,8 +1402,8 @@ pmemobj_close(PMEMobjpool *pop)
 		ERR("cuckoo_remove");
 	}
 
-	if (ctree_remove(pools_tree, (uint64_t)pop, 1) != (uint64_t)pop) {
-		ERR("ctree_remove");
+	if (Ctree_remove(pools_tree, (uint64_t)pop, 1) != (uint64_t)pop) {
+		ERR("Ctree_remove");
 	}
 
 #ifndef _WIN32

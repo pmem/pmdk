@@ -404,6 +404,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_tx_lock", "test\obj_tx_
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_tx_strdup", "test\obj_tx_strdup\obj_tx_strdup.vcxproj", "{643B82A1-D009-46A9-92A0-2883399B05C2}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_bucket", "test\obj_bucket\obj_bucket.vcxproj", "{7796ECD1-5CF6-42FA-8487-AAE30C8C2077}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -712,6 +714,10 @@ Global
 		{643B82A1-D009-46A9-92A0-2883399B05C2}.Debug|x64.Build.0 = Debug|x64
 		{643B82A1-D009-46A9-92A0-2883399B05C2}.Release|x64.ActiveCfg = Release|x64
 		{643B82A1-D009-46A9-92A0-2883399B05C2}.Release|x64.Build.0 = Release|x64
+		{7796ECD1-5CF6-42FA-8487-AAE30C8C2077}.Debug|x64.ActiveCfg = Debug|x64
+		{7796ECD1-5CF6-42FA-8487-AAE30C8C2077}.Debug|x64.Build.0 = Debug|x64
+		{7796ECD1-5CF6-42FA-8487-AAE30C8C2077}.Release|x64.ActiveCfg = Release|x64
+		{7796ECD1-5CF6-42FA-8487-AAE30C8C2077}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -799,5 +805,6 @@ Global
 		{88D239E4-EB7D-4E0A-BE3A-AD78B9F408FC} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 		{D88187D2-1977-4C5F-B0CD-83C69BD6C1BC} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 		{643B82A1-D009-46A9-92A0-2883399B05C2} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
+		{7796ECD1-5CF6-42FA-8487-AAE30C8C2077} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 	EndGlobalSection
 EndGlobal

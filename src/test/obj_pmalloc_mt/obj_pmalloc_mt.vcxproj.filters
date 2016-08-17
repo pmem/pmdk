@@ -64,6 +64,9 @@
     <ClCompile Include="obj_pmalloc_mt.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\libpmemobj\libpmemobj_func_mock.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="TEST0.PS1">
