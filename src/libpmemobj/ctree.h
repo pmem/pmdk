@@ -41,6 +41,25 @@
 
 struct ctree;
 
+/*
+ * Function pointers of ctree & friends
+ */
+typedef struct ctree *(*Ctree_new_func)(void);
+typedef void (*Ctree_delete_func)(struct ctree *t);
+typedef int (*Ctree_insert_func)(struct ctree *t, uint64_t key, uint64_t value);
+typedef uint64_t (*Ctree_remove_func)(struct ctree *t, uint64_t key, int eq);
+
+extern Ctree_new_func Ctree_new;
+extern Ctree_delete_func Ctree_delete;
+extern Ctree_insert_func Ctree_insert;
+extern Ctree_remove_func Ctree_remove;
+
+void set_ctree_funcs(
+	struct ctree *(*ctree_new_func)(void),
+	void(*ctree_delete_func)(struct ctree *t),
+	int(*ctree_insert_func)(struct ctree *t, uint64_t key, uint64_t value),
+	uint64_t(*ctree_remove_func)(struct ctree *t, uint64_t key, int eq));
+
 struct ctree *ctree_new(void);
 void ctree_delete(struct ctree *t);
 

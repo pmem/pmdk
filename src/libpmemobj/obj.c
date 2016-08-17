@@ -52,6 +52,13 @@ static struct ctree *pools_tree; /* tree used for searching by address */
 
 int _pobj_cache_invalidate;
 
+#ifdef WIN32
+#define ctree_insert Ctree_insert
+#define ctree_remove Ctree_remove
+#define ctree_new Ctree_new
+#define ctree_delete Ctree_delete
+#endif
+
 #ifndef _WIN32
 
 __thread struct _pobj_pcache _pobj_cached_pool;

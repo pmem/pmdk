@@ -43,6 +43,13 @@
 #include "tx.h"
 #include "valgrind_internal.h"
 
+#ifdef WIN32
+#define ctree_insert Ctree_insert
+#define ctree_remove Ctree_remove
+#define ctree_new Ctree_new
+#define ctree_delete Ctree_delete
+#endif
+
 /*
  * A special value that is used to mark previously used, but now invalid, undo
  * log entries - those that are meant to be skipped during processing.
