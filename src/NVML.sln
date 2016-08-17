@@ -362,6 +362,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_basic_integration", "te
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "util_cpuid", "test\util_cpuid\util_cpuid.vcxproj", "{98ACBE5D-1A92-46F9-AA81-533412172952}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "log_recovery", "test\log_recovery\log_recovery.vcxproj", "{E901B756-EA72-4B8D-967F-85F109D0D1DE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -592,6 +594,10 @@ Global
 		{98ACBE5D-1A92-46F9-AA81-533412172952}.Debug|x64.Build.0 = Debug|x64
 		{98ACBE5D-1A92-46F9-AA81-533412172952}.Release|x64.ActiveCfg = Release|x64
 		{98ACBE5D-1A92-46F9-AA81-533412172952}.Release|x64.Build.0 = Release|x64
+		{E901B756-EA72-4B8D-967F-85F109D0D1DE}.Debug|x64.ActiveCfg = Debug|x64
+		{E901B756-EA72-4B8D-967F-85F109D0D1DE}.Debug|x64.Build.0 = Debug|x64
+		{E901B756-EA72-4B8D-967F-85F109D0D1DE}.Release|x64.ActiveCfg = Release|x64
+		{E901B756-EA72-4B8D-967F-85F109D0D1DE}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -658,5 +664,6 @@ Global
 		{4FB4FF90-4E92-4CFB-A01F-C73D6861CA03} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 		{58386481-30B7-40FC-96AF-0723A4A7B228} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 		{98ACBE5D-1A92-46F9-AA81-533412172952} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
+		{E901B756-EA72-4B8D-967F-85F109D0D1DE} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 	EndGlobalSection
 EndGlobal
