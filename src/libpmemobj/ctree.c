@@ -1,5 +1,6 @@
 /*
  * Copyright 2015-2016, Intel Corporation
+ * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -75,6 +76,31 @@ struct ctree {
 	void *root;
 	pthread_mutex_t lock;
 };
+
+Ctree_new_func Ctree_new = ctree_new;
+Ctree_delete_func Ctree_delete = ctree_delete;
+Ctree_insert_func Ctree_insert = ctree_insert;
+Ctree_remove_func Ctree_remove = ctree_remove;
+
+/*
+ * set_alloc_funcs -- allow one to override ctree related functions.
+ */
+void
+set_ctree_funcs(struct ctree *(*ctree_new_func)(void),
+		void(*ctree_delete_func)(struct ctree *t),
+		int(*ctree_insert_func)(
+			struct ctree *t, uint64_t key, ...),
+		uint64_t(*ctree_remove_func)(
+			struct ctree *t, uint64_t key, int eq))
+{
+	Ctree_new = (ctree_new_func == NULL) ? ctree_new : ctree_new_func;
+	Ctree_delete =
+		(ctree_delete_func == NULL) ? ctree_delete : ctree_delete_func;
+	Ctree_insert =
+		(ctree_insert_func == NULL) ? ctree_insert : ctree_insert_func;
+	Ctree_remove =
+		(ctree_remove_func == NULL) ? ctree_remove : ctree_remove_func;
+}
 
 /*
  * find_crit_bit -- (internal) finds the most significant differing bit
