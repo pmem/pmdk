@@ -40,6 +40,7 @@
 #include "unittest.h"
 #include "cpu.h"
 
+#ifndef _MSC_VER
 /*
  * The x86 memory instructions are new enough that the compiler
  * intrinsic functions are not always available.  The intrinsic
@@ -49,6 +50,7 @@
 	asm volatile(".byte 0x66; clflush %0" : "+m" (*(volatile char *)addr));
 #define _mm_clwb(addr)\
 	asm volatile(".byte 0x66; xsaveopt %0" : "+m" (*(volatile char *)addr));
+#endif
 
 static char Buf[32];
 
