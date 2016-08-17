@@ -68,7 +68,7 @@ create_holey_file 1026G $DIR\testfile1
 # Block 268696551 is out of range and should return EINVAL.
 # Attempts to zero uninitialized blocks are nops (should succeed).
 #
-expect_normal_exit $Env:EXE_DIR\blk_rw$EXESUFFIX 4096 $DIR\testfile1 c `
+expect_normal_exit $Env:EXE_DIR\blk_rw$Env:EXESUFFIX 4096 $DIR\testfile1 c `
 	r:0 r:1 r:4161480 r:268696550 r:268696551 z:0 z:4161480
 
 check_pool $DIR\testfile1

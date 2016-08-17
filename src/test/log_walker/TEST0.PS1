@@ -58,7 +58,7 @@ setup
 
 touch $DIR\testfile1
 
-expect_normal_exit $Env:EXE_DIR\log_walker$EXESUFFIX $DIR\testfile1
+expect_normal_exit $Env:EXE_DIR\log_walker$Env:EXESUFFIX $DIR\testfile1
 
 check_pool $DIR\testfile1
 

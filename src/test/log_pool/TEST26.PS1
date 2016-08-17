@@ -56,9 +56,9 @@ setup
 #
 # TEST26 existing file, file size >= min required size
 #
-expect_normal_exit $Env:EXE_DIR\log_pool$EXESUFFIX c $DIR\testfile 20 0600
+expect_normal_exit $Env:EXE_DIR\log_pool$Env:EXESUFFIX c $DIR\testfile 20 0600
 
-expect_normal_exit $Env:EXE_DIR\log_pool$EXESUFFIX o $DIR\testfile
+expect_normal_exit $Env:EXE_DIR\log_pool$Env:EXESUFFIX o $DIR\testfile
 
 check
 

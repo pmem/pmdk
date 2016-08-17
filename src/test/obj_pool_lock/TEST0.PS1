@@ -55,6 +55,6 @@ require_fs_type any
 
 setup
 
-expect_normal_exit $Env:EXE_DIR\obj_pool_lock$EXESUFFIX $DIR\testfile1
+expect_normal_exit $Env:EXE_DIR\obj_pool_lock$Env:EXESUFFIX $DIR\testfile1
 
 pass

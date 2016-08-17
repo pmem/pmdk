@@ -56,7 +56,7 @@ setup
 #
 # TEST20 non-existing file
 #
-expect_normal_exit $Env:EXE_DIR\log_pool$EXESUFFIX o $DIR\testfile
+expect_normal_exit $Env:EXE_DIR\log_pool$Env:EXESUFFIX o $DIR\testfile
 
 check
 

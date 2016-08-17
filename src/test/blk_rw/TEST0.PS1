@@ -64,7 +64,7 @@ create_holey_file $MIN_POOL_SIZE $DIR\testfile1
 # Block 32313 is out of range and should return EINVAL.
 # Attempts to zero uninitialized blocks are nops (should succeed).
 #
-expect_normal_exit $Env:EXE_DIR\blk_rw$EXESUFFIX 512 $DIR\testfile1 c `
+expect_normal_exit $Env:EXE_DIR\blk_rw$Env:EXESUFFIX 512 $DIR\testfile1 c `
 	r:0 r:1 r:32201 r:32313 z:0 z:1 r:0
 
 check_pool $DIR\testfile1

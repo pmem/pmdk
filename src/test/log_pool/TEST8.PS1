@@ -56,7 +56,7 @@ setup
 #
 # TEST8 non-existing file, poolsize < min required size
 #
-expect_normal_exit $Env:EXE_DIR\log_pool$EXESUFFIX c $DIR\testfile 1 0600
+expect_normal_exit $Env:EXE_DIR\log_pool$Env:EXESUFFIX c $DIR\testfile 1 0600
 
 check_no_files $DIR\testfile
 

@@ -62,7 +62,7 @@ create_holey_file 20M $DIR\testfile
 # TEST11 existing file, file length >= min required size, poolsize == 0,
 #        (no write permissions)
 #
-expect_normal_exit $Env:EXE_DIR\log_pool$EXESUFFIX c $DIR\testfile 0 0600
+expect_normal_exit $Env:EXE_DIR\log_pool$Env:EXESUFFIX c $DIR\testfile 0 0600
 
 # restore full permissions
 & icacls $DIR\testfile /grant ${Env:USERNAME}:F >$null

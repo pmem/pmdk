@@ -59,7 +59,7 @@ create_holey_file 20M $DIR\testfile
 # TEST23 existing file, file size >= min required size
 #        (empty pool header)
 #
-expect_normal_exit $Env:EXE_DIR\log_pool$EXESUFFIX o $DIR\testfile
+expect_normal_exit $Env:EXE_DIR\log_pool$Env:EXESUFFIX o $DIR\testfile
 
 check
 

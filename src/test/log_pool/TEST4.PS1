@@ -58,7 +58,7 @@ touch $DIR\testfile
 #
 # TEST4 existing file, file length < min required size, poolsize == 0
 #
-expect_normal_exit $Env:EXE_DIR\log_pool$EXESUFFIX c $DIR\testfile 0 0600
+expect_normal_exit $Env:EXE_DIR\log_pool$Env:EXESUFFIX c $DIR\testfile 0 0600
 
 check_files $DIR\testfile
 

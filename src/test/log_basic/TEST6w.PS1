@@ -60,7 +60,7 @@ setup
 
 create_poolset $DIR\testset1 2M:$DIR\testfile1:x 2M:$DIR\testfile2:x
 
-expect_normal_exit $Env:EXE_DIR\log_basic$EXESUFFIX $DIR\testset1 n
+expect_normal_exit $Env:EXE_DIR\log_basic$Env:EXESUFFIX $DIR\testset1 n
 
 check_pool $DIR\testfile1
 

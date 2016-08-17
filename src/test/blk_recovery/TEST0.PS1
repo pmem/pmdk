@@ -63,7 +63,7 @@ create_holey_file 2G $DIR\testfile1
 # Simple case, one write interrupted.  pmemblk_check() should note
 # that testfile1 is consistent (after recovery steps were taken).
 #
-expect_normal_exit $Env:EXE_DIR\blk_recovery$EXESUFFIX 4096 $DIR\testfile1 5 10
+expect_normal_exit $Env:EXE_DIR\blk_recovery$Env:EXESUFFIX 4096 $DIR\testfile1 5 10
 
 check_pool $DIR\testfile1
 

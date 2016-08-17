@@ -57,7 +57,7 @@ setup
 # single arena and minimum pmemblk pool file case
 create_nonzeroed_file 17M 8K $DIR\testfile1
 
-expect_normal_exit $Env:EXE_DIR\blk_non_zero$EXESUFFIX 512 $DIR\testfile1 c 0 `
+expect_normal_exit $Env:EXE_DIR\blk_non_zero$Env:EXESUFFIX 512 $DIR\testfile1 c 0 `
 r:0 r:1 r:34217 r:34218 z:0 z:1 r:0 e:3 r:4
 
 check

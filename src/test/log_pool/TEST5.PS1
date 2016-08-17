@@ -57,7 +57,7 @@ setup
 # TEST5 non-existing file, poolsize > 0
 #       (path is invalid, directory does not exist)
 #
-expect_normal_exit $Env:EXE_DIR\log_pool$EXESUFFIX c /NULL/testfile 20 0600
+expect_normal_exit $Env:EXE_DIR\log_pool$Env:EXESUFFIX c /NULL/testfile 20 0600
 
 check_no_files $DIR\testfile
 

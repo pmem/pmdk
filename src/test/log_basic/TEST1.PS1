@@ -67,7 +67,7 @@ setup
 
 create_holey_file 2M $DIR\testfile1
 
-expect_normal_exit $Env:EXE_DIR\log_basic$EXESUFFIX $DIR\testfile1 a n t w r t w
+expect_normal_exit $Env:EXE_DIR\log_basic$Env:EXESUFFIX $DIR\testfile1 a n t w r t w
 
 check_pool $DIR\testfile1
 

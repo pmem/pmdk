@@ -57,10 +57,10 @@ setup
 # TEST22 existing file, file size < min required size
 #        (valid pool header)
 #
-expect_normal_exit $Env:EXE_DIR\log_pool$EXESUFFIX c $DIR/testfile 20 0640
+expect_normal_exit $Env:EXE_DIR\log_pool$Env:EXESUFFIX c $DIR/testfile 20 0640
 truncate -s 1M $DIR/testfile
 
-expect_normal_exit $Env:EXE_DIR\log_pool$EXESUFFIX o $DIR/testfile
+expect_normal_exit $Env:EXE_DIR\log_pool$Env:EXESUFFIX o $DIR/testfile
 
 check
 

@@ -60,6 +60,6 @@ create_holey_file 8M $DIR\testfile1
 # This is a pretty length test on non-pmem devices, so force clflushes.
 $Env:PMEM_IS_PMEM_FORCE=1
 
-expect_normal_exit $Env:EXE_DIR\obj_constructor$EXESUFFIX $DIR\testfile1
+expect_normal_exit $Env:EXE_DIR\obj_constructor$Env:EXESUFFIX $DIR\testfile1
 
 pass

@@ -54,7 +54,7 @@ require_fs_type none
 
 setup
 
-expect_normal_exit $Env:EXE_DIR\checksum$EXESUFFIX .\file1 .\file2 `
+expect_normal_exit $Env:EXE_DIR\checksum$Env:EXESUFFIX .\file1 .\file2 `
     .\file3 .\file4 .\file5
 
 check

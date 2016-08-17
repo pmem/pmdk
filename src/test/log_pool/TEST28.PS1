@@ -56,7 +56,7 @@ setup
 #
 # TEST28 existing file, file size >= min required size
 #
-expect_normal_exit $Env:EXE_DIR\log_pool$EXESUFFIX c $DIR\testfile1 20 0600
+expect_normal_exit $Env:EXE_DIR\log_pool$Env:EXESUFFIX c $DIR\testfile1 20 0600
 
 cp $DIR\testfile1 $DIR\testfile2
 
@@ -76,7 +76,7 @@ cp $DIR\testfile1 $DIR\testfile2
 
 create_poolset $DIR\testset 20M:$DIR\testfile1 R 20M:$DIR\testfile2
 
-expect_normal_exit $Env:EXE_DIR\log_pool$EXESUFFIX o $DIR\testset
+expect_normal_exit $Env:EXE_DIR\log_pool$Env:EXESUFFIX o $DIR\testset
 
 check
 
