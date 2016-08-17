@@ -52,8 +52,8 @@ main(int argc, char *argv[])
 	const char *dir = argv[1];
 	int r;
 
-	PMEMobjpool *pops[npools];
-	void *guard_after[npools];
+	PMEMobjpool **pops = MALLOC(npools * sizeof(PMEMobjpool *));
+	void **guard_after = MALLOC(npools * sizeof(void *));
 
 	char path[MAX_PATH_LEN];
 	for (int i = 0; i < npools; ++i) {
@@ -76,7 +76,7 @@ main(int argc, char *argv[])
 			UT_FATAL("!pmemobj_create");
 	}
 
-	PMEMoid oids[npools];
+	PMEMoid *oids = MALLOC(npools * sizeof(PMEMoid));
 
 	for (int i = 0; i < npools; ++i) {
 		r = pmemobj_alloc(pops[i], &oids[i], ALLOC_SIZE, 1, NULL, NULL);
@@ -113,6 +113,9 @@ main(int argc, char *argv[])
 
 		MUNMAP(guard_after[i], Ut_pagesize);
 	}
+	FREE(pops);
+	FREE(guard_after);
+	FREE(oids);
 
 	DONE(NULL);
 }
