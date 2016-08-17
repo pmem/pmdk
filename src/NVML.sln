@@ -362,6 +362,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "log_walker", "test\log_walk
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_basic_integration", "test\obj_basic_integration\obj_basic_integration.vcxproj", "{58386481-30B7-40FC-96AF-0723A4A7B228}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "log_recovery", "test\log_recovery\log_recovery.vcxproj", "{E901B756-EA72-4B8D-967F-85F109D0D1DE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -808,6 +810,14 @@ Global
 		{58386481-30B7-40FC-96AF-0723A4A7B228}.Static-Debug|x64.Build.0 = Static-Debug|x64
 		{58386481-30B7-40FC-96AF-0723A4A7B228}.Static-Release|x64.ActiveCfg = Static-Release|x64
 		{58386481-30B7-40FC-96AF-0723A4A7B228}.Static-Release|x64.Build.0 = Static-Release|x64
+		{E901B756-EA72-4B8D-967F-85F109D0D1DE}.Debug|x64.ActiveCfg = Debug|x64
+		{E901B756-EA72-4B8D-967F-85F109D0D1DE}.Debug|x64.Build.0 = Debug|x64
+		{E901B756-EA72-4B8D-967F-85F109D0D1DE}.Release|x64.ActiveCfg = Release|x64
+		{E901B756-EA72-4B8D-967F-85F109D0D1DE}.Release|x64.Build.0 = Release|x64
+		{E901B756-EA72-4B8D-967F-85F109D0D1DE}.Static-Debug|x64.ActiveCfg = Static-Debug|x64
+		{E901B756-EA72-4B8D-967F-85F109D0D1DE}.Static-Debug|x64.Build.0 = Static-Debug|x64
+		{E901B756-EA72-4B8D-967F-85F109D0D1DE}.Static-Release|x64.ActiveCfg = Static-Release|x64
+		{E901B756-EA72-4B8D-967F-85F109D0D1DE}.Static-Release|x64.Build.0 = Static-Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -874,5 +884,6 @@ Global
 		{08B62E36-63D2-4FF1-A605-4BBABAEE73FB} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 		{4FB4FF90-4E92-4CFB-A01F-C73D6861CA03} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 		{58386481-30B7-40FC-96AF-0723A4A7B228} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
+		{E901B756-EA72-4B8D-967F-85F109D0D1DE} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 	EndGlobalSection
 EndGlobal
