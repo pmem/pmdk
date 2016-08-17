@@ -56,15 +56,9 @@ main(int argc, char *argv[])
 	 * No string passed in.  Generate uuid.
 	 */
 	if (argc == 1) {
-		/*
-		 * Read uuid string from /proc/sys/kernel/random/uuid
-		 * and translate to a uuid_t.
-		 */
-		int fd = OPEN(POOL_HDR_UUID_GEN_FILE, O_RDONLY);
-		ssize_t num = READ(fd, uu, POOL_HDR_UUID_STR_LEN);
-		UT_ASSERTeq(num, POOL_HDR_UUID_STR_LEN);
-
-		uu[POOL_HDR_UUID_STR_LEN - 1] = '\0';
+		/* generate a UUID string */
+		ret = ut_get_uuid_str(uu);
+		UT_ASSERTeq(ret, 0);
 
 		/*
 		 * Convert the the string to a uuid, convert generated
@@ -95,7 +89,6 @@ main(int argc, char *argv[])
 		ret  = util_uuid_from_string(uu, (struct uuid *)&uuid1);
 		UT_ASSERTeq(ret, 0);
 		UT_ASSERT(memcmp(&uuid, &uuid1, sizeof(uuid_t)) == 0);
-		CLOSE(fd);
 	} else {
 		/*
 		 * Caller passed in string.
