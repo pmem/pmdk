@@ -1,5 +1,6 @@
 /*
  * Copyright 2015-2016, Intel Corporation
+ * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -48,6 +49,13 @@
 #include "out.h"
 #include "sys_util.h"
 #include "valgrind_internal.h"
+
+#ifdef WIN32
+#define ctree_insert Ctree_insert
+#define ctree_remove Ctree_remove
+#define ctree_new Ctree_new
+#define ctree_delete Ctree_delete
+#endif
 
 /*
  * The elements in the tree are sorted by the key and it's vital that the
