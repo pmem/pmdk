@@ -125,14 +125,10 @@ function get_build_dir() {
     param([string]$build)
 
     # default build dir is Debug
-    $build_dir = "..\..\x64\debug"
+    $build_dir = "..\..\x64\Debug"
 
     if ($build -eq "nondebug") {
         $build_dir = "..\..\x64\Release"
-    } elseif ($build -eq "static-debug") {
-        $build_dir = "..\..\x64\Static-Debug"
-    } elseif ($build -eq "static-nondebug") {
-        $build_dir = "..\..\x64\Static-Release"
     }
 
     return $build_dir
