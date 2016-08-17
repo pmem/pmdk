@@ -478,7 +478,7 @@ void *
 pmemobj_memcpy_persist(PMEMobjpool *pop, void *dest,
     const void *src, size_t len)
 {
-    void *retval = memcpy(pop, dest, src, len);
+    void *retval = memcpy(dest, src, len);
 
     pmemobj_persist(pop, dest, len);
 
