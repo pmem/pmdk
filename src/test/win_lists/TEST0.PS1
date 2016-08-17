@@ -1,5 +1,5 @@
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2015-2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -29,9 +29,14 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# src/test/win_mmap/TEST0 -- unit test for memory mapping routines
+# src/test/win_lists/TEST0 -- unit test for windows list macros
 #
-$Env:UNITTEST_NAME = "win_mmap/TEST0"
+[CmdletBinding(PositionalBinding=$false)]
+Param(
+    [alias("d")]
+    $DIR = ""
+    )
+$Env:UNITTEST_NAME = "win_lists\TEST0"
 $Env:UNITTEST_NUM = "0"
 # XXX:  bash has a few calls to tools that we don't have on
 # windows (yet) that set PMEM_IS_PMEM and NON_PMEM_IS_PMEM based
@@ -41,16 +46,14 @@ $Env:NON_PMEM_IS_PMEM = $true
 $DIR = ""
 
 # standard unit test setup
-. ../unittest/unittest.ps1
+. ..\unittest\unittest.ps1
 
-require_fs_type any
+require_fs_type none
 
 setup
 
-# create zero-length file
-fsutil file createnew $DIR/testfile 0
+expect_normal_exit $Env:EXE_DIR\win_lists$Env:EXESUFFIX
 
-expect_normal_exit ../../x64/debug/win_mmap$EXESUFFIX $DIR/testfile
+check
 
-# check will print the appropriate pass/fail message
-#check
+pass
