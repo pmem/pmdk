@@ -198,6 +198,7 @@ int pool_set_file_read(struct pool_set_file *file, void *buff,
 int pool_set_file_write(struct pool_set_file *file, void *buff,
 		size_t nbytes, uint64_t off);
 int pool_set_file_set_replica(struct pool_set_file *file, size_t replica);
+size_t pool_set_file_nreplicas(struct pool_set_file *file);
 void *pool_set_file_map(struct pool_set_file *file, uint64_t offset);
 
 struct range {
