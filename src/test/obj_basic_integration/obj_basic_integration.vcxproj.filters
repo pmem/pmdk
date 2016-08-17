@@ -40,9 +40,6 @@
     <None Include="out0.log.match">
       <Filter>Match Files</Filter>
     </None>
-    <None Include="out1.log.match">
-      <Filter>Match Files</Filter>
-    </None>
     <None Include="out2.log.match">
       <Filter>Match Files</Filter>
     </None>
