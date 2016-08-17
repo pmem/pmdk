@@ -179,6 +179,17 @@ test_bucket_remove()
 int
 main(int argc, char *argv[])
 {
+#ifdef WIN32
+	util_set_alloc_funcs(__wrap_malloc, NULL, NULL, NULL);
+	set_ctree_funcs(
+		__wrap_ctree_new,
+		__wrap_ctree_delete,
+		__wrap_ctree_insert,
+		__wrap_ctree_remove);
+	RCOUNTER(ctree_new) = 1;
+	RCOUNTER(malloc) = 4;
+#endif
+
 	START(argc, argv, "obj_bucket");
 
 	test_new_delete_bucket();

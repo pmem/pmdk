@@ -49,6 +49,13 @@
 #include "sys_util.h"
 #include "valgrind_internal.h"
 
+#ifdef WIN32
+#define ctree_insert Ctree_insert
+#define ctree_remove Ctree_remove
+#define ctree_new Ctree_new
+#define ctree_delete Ctree_delete
+#endif // WIN32
+
 /*
  * The elements in the tree are sorted by the key and it's vital that the
  * order is by size, hence the order of the pack arguments.
