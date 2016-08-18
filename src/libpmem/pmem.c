@@ -1,5 +1,6 @@
 /*
  * Copyright 2014-2016, Intel Corporation
+ * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -446,6 +447,12 @@ is_pmem_never(const void *addr, size_t len)
 static int (*Func_is_pmem)(const void *addr, size_t len) = is_pmem_never;
 
 /*
+ * Test flags to force pmem behavior at different levels to test the
+ * code where PMEM is not available.
+ */
+int Pmem_is_pmem_force_test = 0;
+
+/*
  * pmem_is_pmem_init -- (internal) initialize Func_is_pmem pointer
  *
  * This should be done only once - on the first call to pmem_is_pmem().
@@ -483,6 +490,11 @@ pmem_is_pmem_init(void)
 				Func_is_pmem = is_pmem_always;
 
 			LOG(4, "PMEM_IS_PMEM_FORCE=%d", val);
+
+		} else if ((ptr = getenv("PMEM_IS_PMEM_FORCE_TEST"))) {
+			int val = atoi(ptr);
+			Pmem_is_pmem_force_test = (val != 0);
+			LOG(4, "PMEM_IS_PMEM_FORCE_TEST=%d", val);
 		}
 
 		if (!util_bool_compare_and_swap32(&init, 1, 2))

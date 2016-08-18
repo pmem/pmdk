@@ -1,5 +1,4 @@
 /*
- * Copyright 2014-2016, Intel Corporation
  * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,16 +31,48 @@
  */
 
 /*
- * pmem.h -- internal definitions for libpmem
+ * win_common.c -- Our implementation of few missing POSIX APIs or LINUX
+ * system calls in Windows
  */
 
-#define PMEM_LOG_PREFIX "libpmem"
-#define PMEM_LOG_LEVEL_VAR "PMEM_LOG_LEVEL"
-#define PMEM_LOG_FILE_VAR "PMEM_LOG_FILE"
+/*
+ * setenv -- change or add an environment variable
+ */
+int
+setenv(const char *name, const char *value, int overwrite)
+{
+	errno_t err;
 
-extern unsigned long long Pagesize;
-extern int Pmem_is_pmem_force_test;
+	/*
+	 * If caller doesn't want to overwrite make sure that a environment
+	 * variable with the same name doesn't exist.
+	 */
+	if (!overwrite && getenv(name))
+		return 0;
 
-void pmem_init(void);
+	/*
+	 * _putenv_s returns a non-zero error code on failure but setenv
+	 * needs to return -1 on failure, let's translate the error code.
+	 */
+	if ((err = _putenv_s(name, value)) != 0) {
+		errno = err;
+		return -1;
+	}
 
-int is_pmem_proc(const void *addr, size_t len);
+	return 0;
+}
+
+/*
+ * unsetenv -- remove an environment variable
+ */
+int
+unsetenv(const char *name)
+{
+	errno_t err;
+	if ((err = _putenv_s(name, "")) != 0) {
+		errno = err;
+		return -1;
+	}
+
+	return 0;
+}

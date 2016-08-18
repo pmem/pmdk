@@ -1,5 +1,4 @@
 /*
- * Copyright 2014-2016, Intel Corporation
  * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,16 +31,51 @@
  */
 
 /*
- * pmem.h -- internal definitions for libpmem
+ * win_common.c -- test common POSIX or Linux API that were implemented
+ * for Windows by our library.
  */
 
-#define PMEM_LOG_PREFIX "libpmem"
-#define PMEM_LOG_LEVEL_VAR "PMEM_LOG_LEVEL"
-#define PMEM_LOG_FILE_VAR "PMEM_LOG_FILE"
+#include "unittest.h"
 
-extern unsigned long long Pagesize;
-extern int Pmem_is_pmem_force_test;
+/*
+ * test_setunsetenv - test the setenv and unsetenv APIs
+ */
+void
+test_setunsetenv()
+{
+	unsetenv("TEST_SETUNSETENV_ONE");
 
-void pmem_init(void);
+	/* set a new variable without overwriting - expect the new value */
+	UT_ASSERT(setenv("TEST_SETUNSETENV_ONE",
+		"test_setunsetenv_one", 0) == 0);
+	UT_ASSERT(strcmp(getenv("TEST_SETUNSETENV_ONE"),
+		"test_setunsetenv_one") == 0);
 
-int is_pmem_proc(const void *addr, size_t len);
+	/* set an existing variable without overwriting - expect old value */
+	UT_ASSERT(setenv("TEST_SETUNSETENV_ONE",
+		"test_setunsetenv_two", 0) == 0);
+	UT_ASSERT(strcmp(getenv("TEST_SETUNSETENV_ONE"),
+		"test_setunsetenv_one") == 0);
+
+	/* set an existing variable with overwriting - expect the new value */
+	UT_ASSERT(setenv("TEST_SETUNSETENV_ONE",
+		"test_setunsetenv_two", 1) == 0);
+	UT_ASSERT(strcmp(getenv("TEST_SETUNSETENV_ONE"),
+		"test_setunsetenv_two") == 0);
+
+	/* unset our test value - expect it to be empty */
+	UT_ASSERT(unsetenv("TEST_SETUNSETENV_ONE") == 0);
+	UT_ASSERT(getenv("TEST_SETUNSETENV_ONE") == NULL);
+}
+
+int
+main(int argc, char *argv[])
+{
+	START(argc, argv, "win_common - testing %s",
+		(argc > 1) ? argv[1] : "setunsetenv");
+
+	if (argc == 1 || (stricmp(argv[1], "setunsetenv") == 0))
+		test_setunsetenv();
+
+	DONE(NULL);
+}
