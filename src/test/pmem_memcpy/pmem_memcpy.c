@@ -38,6 +38,7 @@
  */
 
 #include "unittest.h"
+#define MAX_LEN 8192
 
 /*
  * swap_mappings - given to mmapped regions swap them.
@@ -82,7 +83,7 @@ do_memcpy(int fd, char *dest, int dest_off, char *src, int src_off,
     size_t bytes, char *file_name)
 {
 	void *ret;
-	char buf[bytes];
+	char buf[MAX_LEN];
 
 	memset(buf, 0, bytes);
 	memset(dest, 0, bytes);
