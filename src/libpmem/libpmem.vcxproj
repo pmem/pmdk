@@ -25,6 +25,7 @@
     <ClInclude Include="..\..\src\include\libpmem.h" />
     <ClInclude Include="..\..\src\libpmem\pmem.h" />
     <ClInclude Include="..\common\file.h" />
+    <ClInclude Include="..\windows\include\win_mmap.h" />
     <ClInclude Include="cpu.h" />
   </ItemGroup>
   <ItemGroup>

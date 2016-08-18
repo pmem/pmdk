@@ -1,6 +1,6 @@
 /*
  * Copyright 2014-2016, Intel Corporation
- * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
+ * Copyright (c) 2015-2016, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -32,12 +32,16 @@
  */
 
 /*
- * pmem_is_pmem.c -- unit test for pmem_is_pmem()
+ * pmem_is_pmem_windows.c -- Windows specific unit test for pmem_is_pmem()
  *
- * usage: pmem_is_pmem file [env]
+ * usage: pmem_is_pmem_windows file [env]
  */
 
 #include "unittest.h"
+
+NTSTATUS
+NtFreeVirtualMemory(_In_ HANDLE ProcessHandle, _Inout_ PVOID *BaseAddress,
+	_Inout_ PSIZE_T RegionSize, _In_ ULONG FreeType);
 
 #define NTHREAD 16
 
@@ -58,13 +62,15 @@ worker(void *arg)
 int
 main(int argc, char *argv[])
 {
-	START(argc, argv, "pmem_is_pmem");
+	SYSTEM_INFO system_info;
+	NTSTATUS nt_status;
+	HANDLE file_map;
+	SIZE_T chunk_length;
 
-	if (argc <  2 || argc > 3)
-		UT_FATAL("usage: %s file [env]", argv[0]);
+	START(argc, argv, "pmem_is_pmem_windows");
 
-	if (argc == 3)
-		UT_ASSERTeq(setenv("PMEM_IS_PMEM_FORCE", argv[2], 1), 0);
+	if (argc !=  2)
+		UT_FATAL("usage: %s file", argv[0]);
 
 	int fd = OPEN(argv[1], O_RDWR);
 
@@ -72,8 +78,43 @@ main(int argc, char *argv[])
 	FSTAT(fd, &stbuf);
 
 	Size = stbuf.st_size;
-	Addr = MMAP(0, stbuf.st_size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
 
+	GetSystemInfo(&system_info);
+	chunk_length = system_info.dwAllocationGranularity;
+
+	file_map = CreateFileMapping((HANDLE)_get_osfhandle(fd), NULL,
+		PAGE_READONLY, 0, 0, NULL);
+	UT_ASSERT(file_map != NULL);
+
+	/*
+	 * let's have multiple mappings in the range we are going to
+	 * test
+	 */
+	Addr = VirtualAlloc(NULL, Size, MEM_RESERVE, PAGE_NOACCESS);
+
+	for (size_t offset = 0;
+		offset < Size;
+		offset += chunk_length) {
+
+		void *base_address = (void *)((char *)Addr + offset);
+		nt_status = NtFreeVirtualMemory(GetCurrentProcess(),
+				&base_address, &chunk_length, MEM_RELEASE);
+		UT_ASSERTeq(nt_status, 0);
+		UT_ASSERTeq(chunk_length, system_info.dwAllocationGranularity);
+		UT_ASSERTeq(base_address, (void *)((char *)Addr + offset));
+
+		if (rand() % 2) {
+			MMAP(base_address, chunk_length, PROT_READ,
+				MAP_SHARED | MAP_FIXED, fd, offset);
+		} else
+			MapViewOfFileEx(file_map, FILE_MAP_READ,
+				offset >> 32,
+				offset & 0x0ffffffff,
+				chunk_length,
+				base_address);
+	}
+
+	CloseHandle(file_map);
 	CLOSE(fd);
 
 	pthread_t threads[NTHREAD];
@@ -92,8 +133,6 @@ main(int argc, char *argv[])
 		UT_ASSERTeq(ret[0], ret[i]);
 
 	UT_OUT("%d", ret[0]);
-
-	UT_ASSERTeq(unsetenv("PMEM_IS_PMEM_FORCE"), 0);
 
 	UT_OUT("%d", pmem_is_pmem(Addr, Size));
 
