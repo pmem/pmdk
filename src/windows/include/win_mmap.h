@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016, Intel Corporation
+ * Copyright 2015-2016, Intel Corporation
  * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,16 +32,45 @@
  */
 
 /*
- * pmem.h -- internal definitions for libpmem
+ * win_mmap.h -- (internal) tracks the regions mapped by mmap
  */
 
-#define PMEM_LOG_PREFIX "libpmem"
-#define PMEM_LOG_LEVEL_VAR "PMEM_LOG_LEVEL"
-#define PMEM_LOG_FILE_VAR "PMEM_LOG_FILE"
+#ifndef WIN_MMAP_H
+#define WIN_MMAP_H 1
 
-extern unsigned long long Pagesize;
-extern int Pmem_is_pmem_force_test;
+#include <sys/queue.h>
 
-void pmem_init(void);
+#define roundup(x, y)	((((x) + ((y) - 1)) / (y)) * (y))
+#define rounddown(x, y)	(((x) / (y)) * (y))
 
-int is_pmem_proc(const void *addr, size_t len);
+/* allocation/mmap granularity */
+extern unsigned long long Mmap_align;
+
+typedef enum FILE_MAPPING_TRACKER_FLAGS {
+	FILE_MAPPING_TRACKER_FLAG_DIRECT_MAPPED = 0x0001,
+
+	/*
+	 * This should hold the value of all flags ORed for debug purpose.
+	 */
+	FILE_MAPPING_TRACKER_FLAGS_MASK =
+		FILE_MAPPING_TRACKER_FLAG_DIRECT_MAPPED
+} FILE_MAPPING_TRACKER_FLAGS;
+
+/*
+ * this structure tracks the file mappings outstanding per file handle
+ */
+typedef struct FILE_MAPPING_TRACKER {
+	SORTEDQ_ENTRY(FILE_MAPPING_TRACKER) ListEntry;
+	HANDLE FileHandle;
+	HANDLE FileMappingHandle;
+	void *BaseAddress;
+	void *EndAddress;
+	DWORD Access;
+	off_t Offset;
+	FILE_MAPPING_TRACKER_FLAGS Flags;
+} FILE_MAPPING_TRACKER, *PFILE_MAPPING_TRACKER;
+
+extern HANDLE FileMappingQMutex;
+extern SORTEDQ_HEAD(FMLHead, FILE_MAPPING_TRACKER) FileMappingQHead;
+
+#endif /* WIN_MMAP_H */
