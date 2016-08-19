@@ -93,3 +93,5 @@ size_t rpmem_fip_cq_size(size_t nlanes, enum rpmem_persist_method pm,
 
 size_t rpmem_fip_max_nlanes(struct fi_info *fi, enum rpmem_persist_method pm,
 	enum rpmem_fip_node node);
+
+void rpmem_fip_print_info(struct fi_info *fi);

@@ -109,11 +109,6 @@ rpmemd_log_level_to_str(enum rpmemd_log_level level)
 int
 rpmemd_log_init(const char *ident, const char *fname, int use_syslog)
 {
-	if (fname && use_syslog) {
-		errno = EINVAL;
-		return -1;
-	}
-
 	rpmemd_use_syslog = use_syslog;
 
 	if (rpmemd_use_syslog) {

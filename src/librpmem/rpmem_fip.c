@@ -209,6 +209,8 @@ rpmem_fip_getinfo(struct rpmem_fip *fip, const char *node, const char *service,
 		goto err_fi_getinfo;
 	}
 
+	rpmem_fip_print_info(fip->fi);
+
 	/* fallback to free the hints */
 err_fi_getinfo:
 	fi_freeinfo(hints);

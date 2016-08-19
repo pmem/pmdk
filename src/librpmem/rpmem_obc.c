@@ -474,19 +474,25 @@ rpmem_obc_create(struct rpmem_obc *rpc,
 	if (!msg)
 		goto err_alloc_msg;
 
+	RPMEM_LOG(INFO, "sending create request message");
+
 	rpmem_hton_msg_create(msg);
 	if (rpmem_ssh_send(rpc->ssh, msg, msg_size)) {
 		RPMEM_LOG(ERR, "!sending create request message failed");
 		goto err_msg_send;
 	}
 
-	struct rpmem_msg_create_resp resp;
+	RPMEM_LOG(NOTICE, "create request message sent");
+	RPMEM_LOG(INFO, "receiving create request response");
 
+	struct rpmem_msg_create_resp resp;
 	if (rpmem_ssh_recv(rpc->ssh, &resp,
 			sizeof(resp))) {
 		RPMEM_LOG(ERR, "!receiving create request response failed");
 		goto err_msg_recv;
 	}
+
+	RPMEM_LOG(NOTICE, "create request response received");
 
 	rpmem_ntoh_msg_create_resp(&resp);
 
@@ -532,18 +538,24 @@ rpmem_obc_open(struct rpmem_obc *rpc,
 	if (!msg)
 		goto err_alloc_msg;
 
-	rpmem_hton_msg_open(msg);
+	RPMEM_LOG(INFO, "sending open request message");
 
+	rpmem_hton_msg_open(msg);
 	if (rpmem_ssh_send(rpc->ssh, msg, msg_size)) {
 		RPMEM_LOG(ERR, "!sending open request message failed");
 		goto err_msg_send;
 	}
+
+	RPMEM_LOG(NOTICE, "open request message sent");
+	RPMEM_LOG(INFO, "receiving create request response");
 
 	struct rpmem_msg_open_resp resp;
 	if (rpmem_ssh_recv(rpc->ssh, &resp, sizeof(resp))) {
 		RPMEM_LOG(ERR, "!receiving open request response failed");
 		goto err_msg_recv;
 	}
+
+	RPMEM_LOG(NOTICE, "open request response received");
 
 	rpmem_ntoh_msg_open_resp(&resp);
 
@@ -585,12 +597,16 @@ rpmem_obc_close(struct rpmem_obc *rpc)
 	struct rpmem_msg_close msg;
 	rpmem_obc_set_msg_hdr(&msg.hdr, RPMEM_MSG_TYPE_CLOSE, sizeof(msg));
 
-	rpmem_hton_msg_close(&msg);
+	RPMEM_LOG(INFO, "sending close request message");
 
+	rpmem_hton_msg_close(&msg);
 	if (rpmem_ssh_send(rpc->ssh, &msg, sizeof(msg))) {
 		RPMEM_LOG(ERR, "!sending close request failed");
 		return -1;
 	}
+
+	RPMEM_LOG(NOTICE, "close request message sent");
+	RPMEM_LOG(INFO, "receiving close request response");
 
 	struct rpmem_msg_close_resp resp;
 	if (rpmem_ssh_recv(rpc->ssh, &resp,
@@ -598,6 +614,8 @@ rpmem_obc_close(struct rpmem_obc *rpc)
 		RPMEM_LOG(ERR, "!receiving close request response failed");
 		return -1;
 	}
+
+	RPMEM_LOG(NOTICE, "close request response received");
 
 	rpmem_ntoh_msg_close_resp(&resp);
 
