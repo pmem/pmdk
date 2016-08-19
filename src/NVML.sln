@@ -370,6 +370,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_pool_lookup", "test\obj
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "util_uuid_generate", "test\util_uuid_generate\util_uuid_generate.vcxproj", "{9A4078F8-B8E4-4EC6-A6FF-4F29DAD9CE48}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmem_memset", "test\pmem_memset\pmem_memset.vcxproj", "{B36F115C-8139-4C35-A3E7-E6BF9F3DA793}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -616,6 +618,10 @@ Global
 		{9A4078F8-B8E4-4EC6-A6FF-4F29DAD9CE48}.Debug|x64.Build.0 = Debug|x64
 		{9A4078F8-B8E4-4EC6-A6FF-4F29DAD9CE48}.Release|x64.ActiveCfg = Release|x64
 		{9A4078F8-B8E4-4EC6-A6FF-4F29DAD9CE48}.Release|x64.Build.0 = Release|x64
+		{B36F115C-8139-4C35-A3E7-E6BF9F3DA793}.Debug|x64.ActiveCfg = Debug|x64
+		{B36F115C-8139-4C35-A3E7-E6BF9F3DA793}.Debug|x64.Build.0 = Debug|x64
+		{B36F115C-8139-4C35-A3E7-E6BF9F3DA793}.Release|x64.ActiveCfg = Release|x64
+		{B36F115C-8139-4C35-A3E7-E6BF9F3DA793}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -686,5 +692,6 @@ Global
 		{F0B613C4-1D9A-4259-BD0E-C1B9FF2AA3A0} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 		{4850F425-9128-4E91-973C-5AE7BD97395B} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 		{9A4078F8-B8E4-4EC6-A6FF-4F29DAD9CE48} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
+		{B36F115C-8139-4C35-A3E7-E6BF9F3DA793} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 	EndGlobalSection
 EndGlobal
