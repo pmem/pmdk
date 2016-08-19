@@ -372,6 +372,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "util_uuid_generate", "test\
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{877E7D1D-8150-4FE5-A139-B6FBCEAEC393}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmem_memmove", "test\pmem_memmove\pmem_memmove.vcxproj", "{5A391A14-8E29-4788-93FC-EDADED31D32F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -618,6 +620,10 @@ Global
 		{9A4078F8-B8E4-4EC6-A6FF-4F29DAD9CE48}.Debug|x64.Build.0 = Debug|x64
 		{9A4078F8-B8E4-4EC6-A6FF-4F29DAD9CE48}.Release|x64.ActiveCfg = Release|x64
 		{9A4078F8-B8E4-4EC6-A6FF-4F29DAD9CE48}.Release|x64.Build.0 = Release|x64
+		{5A391A14-8E29-4788-93FC-EDADED31D32F}.Debug|x64.ActiveCfg = Debug|x64
+		{5A391A14-8E29-4788-93FC-EDADED31D32F}.Debug|x64.Build.0 = Debug|x64
+		{5A391A14-8E29-4788-93FC-EDADED31D32F}.Release|x64.ActiveCfg = Release|x64
+		{5A391A14-8E29-4788-93FC-EDADED31D32F}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -689,5 +695,6 @@ Global
 		{4850F425-9128-4E91-973C-5AE7BD97395B} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 		{9A4078F8-B8E4-4EC6-A6FF-4F29DAD9CE48} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 		{877E7D1D-8150-4FE5-A139-B6FBCEAEC393} = {853D45D8-980C-4991-B62A-DAC6FD245402}
+		{5A391A14-8E29-4788-93FC-EDADED31D32F} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 	EndGlobalSection
 EndGlobal
