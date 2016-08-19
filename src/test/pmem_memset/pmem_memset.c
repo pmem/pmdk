@@ -61,7 +61,7 @@ main(int argc, char *argv[])
 	int dest_off = atoi(argv[2]);
 	size_t bytes = strtoul(argv[3], NULL, 0);
 
-	char buf[bytes];
+	char *buf = MALLOC(bytes);
 
 	memset(dest, 0, bytes);
 	dest1 = malloc(bytes);
@@ -103,6 +103,7 @@ main(int argc, char *argv[])
 
 	pmem_unmap(dest, mapped_len);
 
+	FREE(buf);
 	CLOSE(fd);
 
 	DONE(NULL);
