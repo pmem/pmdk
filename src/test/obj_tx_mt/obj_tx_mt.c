@@ -43,7 +43,7 @@
 
 static PMEMobjpool *pop;
 static PMEMoid tab;
-static pthread_mutex_t mtx = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t mtx;
 
 static void *
 tx_alloc_free(void *arg)
@@ -109,6 +109,8 @@ main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_tx_mt");
 
+	pthread_mutex_init(&mtx, NULL);
+
 	if (argc != 2)
 		UT_FATAL("usage: %s [file]", argv[0]);
 
@@ -129,6 +131,8 @@ main(int argc, char *argv[])
 		PTHREAD_JOIN(threads[--i], NULL);
 
 	pmemobj_close(pop);
+
+	pthread_mutex_destroy(&mtx);
 
 	FREE(threads);
 
