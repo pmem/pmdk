@@ -110,6 +110,43 @@ err_realloc:
 }
 
 /*
+ * rpmem_cmd_log -- print executing command
+ */
+static void
+rpmem_cmd_log(struct rpmem_cmd *cmd)
+{
+	size_t size = 0;
+	for (int i = 0; i < cmd->args.argc; i++) {
+		size += strlen(cmd->args.argv[i]) + 1;
+	}
+
+	char *buff = malloc(size);
+	if (!buff) {
+		RPMEM_LOG(ERR, "allocating log buffer for command");
+		return;
+	}
+
+	size_t pos = 0;
+
+	for (int i = 0; pos < size && i < cmd->args.argc; i++) {
+		int ret = snprintf(&buff[pos], size - pos, "%s%s",
+				cmd->args.argv[i], i == cmd->args.argc - 1 ?
+				"" : " ");
+		if (ret < 0) {
+			RPMEM_LOG(ERR, "printing command's argument failed");
+			goto out;
+		}
+
+		pos += (size_t)ret;
+	}
+
+	RPMEM_LOG(INFO, "executing command '%s'", buff);
+
+out:
+	free(buff);
+}
+
+/*
  * rpmem_cmd_run -- run command and connect with stdin, stdout and stderr
  * using unix sockets.
  *
@@ -125,6 +162,8 @@ rpmem_cmd_run(struct rpmem_cmd *cmd)
 	int fd_in[2];
 	int fd_out[2];
 	int fd_err[2];
+
+	rpmem_cmd_log(cmd);
 
 	/* socketpair for stdin */
 	int ret = socketpair(AF_UNIX, SOCK_STREAM, 0, fd_in);

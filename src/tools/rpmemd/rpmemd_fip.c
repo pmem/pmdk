@@ -176,6 +176,8 @@ rpmemd_fip_getinfo(struct rpmemd_fip *fip, const char *service,
 		goto err_fi_getinfo;
 	}
 
+	rpmem_fip_print_info(fip->fi);
+
 	fi_freeinfo(hints);
 	return 0;
 err_fi_getinfo:

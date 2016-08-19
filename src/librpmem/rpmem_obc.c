@@ -78,14 +78,14 @@ static int
 rpmem_obc_check_ibc_attr(struct rpmem_msg_ibc_attr *ibc)
 {
 	if (ibc->port == 0 || ibc->port > UINT16_MAX) {
-		RPMEM_LOG(ERR, "invalid port number -- %u", ibc->port);
+		RPMEM_LOG(INFO, "invalid port number -- %u", ibc->port);
 		errno = EPROTO;
 		return -1;
 	}
 
 	if (ibc->persist_method != RPMEM_PM_GPSPM &&
 		ibc->persist_method != RPMEM_PM_APM) {
-		RPMEM_LOG(ERR, "invalid persistency method -- %u",
+		RPMEM_LOG(INFO, "invalid persistency method -- %u",
 				ibc->persist_method);
 		errno = EPROTO;
 		return -1;
@@ -225,26 +225,26 @@ rpmem_obc_check_hdr_resp(struct rpmem_msg_hdr_resp *resp,
 	enum rpmem_msg_type type, size_t size)
 {
 	if (resp->type != type) {
-		RPMEM_LOG(ERR, "invalid message type -- %u", resp->type);
+		RPMEM_LOG(INFO, "invalid message type -- %u", resp->type);
 		errno = EPROTO;
 		return -1;
 	}
 
 	if (resp->size != size) {
-		RPMEM_LOG(ERR, "invalid message size -- %lu", resp->size);
+		RPMEM_LOG(INFO, "invalid message size -- %lu", resp->size);
 		errno = EPROTO;
 		return -1;
 	}
 
 	if (resp->status >= MAX_RPMEM_ERR) {
-		RPMEM_LOG(ERR, "invalid status -- %u", resp->status);
+		RPMEM_LOG(INFO, "invalid status -- %u", resp->status);
 		errno = EPROTO;
 		return -1;
 	}
 
 	if (resp->status) {
 		enum rpmem_err status = (enum rpmem_err)resp->status;
-		RPMEM_LOG(ERR, "request failed: %s",
+		RPMEM_LOG(INFO, "request failed: %s",
 			rpmem_util_proto_errstr(status));
 		errno = rpmem_util_proto_errno(status);
 		return -1;
@@ -474,19 +474,25 @@ rpmem_obc_create(struct rpmem_obc *rpc,
 	if (!msg)
 		goto err_alloc_msg;
 
+	RPMEM_LOG(INFO, "sending create request message");
+
 	rpmem_hton_msg_create(msg);
 	if (rpmem_ssh_send(rpc->ssh, msg, msg_size)) {
 		RPMEM_LOG(ERR, "!sending create request message failed");
 		goto err_msg_send;
 	}
 
-	struct rpmem_msg_create_resp resp;
+	RPMEM_LOG(NOTICE, "create request message sent");
+	RPMEM_LOG(INFO, "receiving create request response");
 
+	struct rpmem_msg_create_resp resp;
 	if (rpmem_ssh_recv(rpc->ssh, &resp,
 			sizeof(resp))) {
 		RPMEM_LOG(ERR, "!receiving create request response failed");
 		goto err_msg_recv;
 	}
+
+	RPMEM_LOG(NOTICE, "create request response received");
 
 	rpmem_ntoh_msg_create_resp(&resp);
 
@@ -532,18 +538,24 @@ rpmem_obc_open(struct rpmem_obc *rpc,
 	if (!msg)
 		goto err_alloc_msg;
 
-	rpmem_hton_msg_open(msg);
+	RPMEM_LOG(INFO, "sending open request message");
 
+	rpmem_hton_msg_open(msg);
 	if (rpmem_ssh_send(rpc->ssh, msg, msg_size)) {
 		RPMEM_LOG(ERR, "!sending open request message failed");
 		goto err_msg_send;
 	}
+
+	RPMEM_LOG(NOTICE, "open request message sent");
+	RPMEM_LOG(INFO, "receiving create request response");
 
 	struct rpmem_msg_open_resp resp;
 	if (rpmem_ssh_recv(rpc->ssh, &resp, sizeof(resp))) {
 		RPMEM_LOG(ERR, "!receiving open request response failed");
 		goto err_msg_recv;
 	}
+
+	RPMEM_LOG(NOTICE, "open request response received");
 
 	rpmem_ntoh_msg_open_resp(&resp);
 
@@ -585,12 +597,16 @@ rpmem_obc_close(struct rpmem_obc *rpc)
 	struct rpmem_msg_close msg;
 	rpmem_obc_set_msg_hdr(&msg.hdr, RPMEM_MSG_TYPE_CLOSE, sizeof(msg));
 
-	rpmem_hton_msg_close(&msg);
+	RPMEM_LOG(INFO, "sending close request message");
 
+	rpmem_hton_msg_close(&msg);
 	if (rpmem_ssh_send(rpc->ssh, &msg, sizeof(msg))) {
 		RPMEM_LOG(ERR, "!sending close request failed");
 		return -1;
 	}
+
+	RPMEM_LOG(NOTICE, "close request message sent");
+	RPMEM_LOG(INFO, "receiving close request response");
 
 	struct rpmem_msg_close_resp resp;
 	if (rpmem_ssh_recv(rpc->ssh, &resp,
@@ -598,6 +614,8 @@ rpmem_obc_close(struct rpmem_obc *rpc)
 		RPMEM_LOG(ERR, "!receiving close request response failed");
 		return -1;
 	}
+
+	RPMEM_LOG(NOTICE, "close request response received");
 
 	rpmem_ntoh_msg_close_resp(&resp);
 

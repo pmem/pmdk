@@ -214,12 +214,7 @@ main(int argc, char *argv[])
 		break;
 	}
 
-	/*
-	 * Check an invalid configuration
-	 */
 	int ret;
-	ret = rpmemd_log_init("rpmemd_log", file, 1);
-	UT_ASSERTne(ret, 0);
 
 	switch (type) {
 	case TEST_STDERR:

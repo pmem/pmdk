@@ -56,6 +56,9 @@ LIBPMEMBLK_PRIV=btt_info_convert2h
 
 INCS += -I$(TOP)/src/rpmem_common
 CFLAGS += -DRPMEMC_LOG_RPMEMD
+ifneq ($(DEBUG),)
+CFLAGS += -DDEBUG
+endif
 CFLAGS += $(shell $(PKG_CONFIG) --cflags libfabric)
 LIBS += $(shell $(PKG_CONFIG) --libs libfabric)
 

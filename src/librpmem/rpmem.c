@@ -39,6 +39,7 @@
 #include <pthread.h>
 #include <errno.h>
 #include <limits.h>
+#include <inttypes.h>
 
 #include "librpmem.h"
 #include "out.h"
@@ -184,8 +185,11 @@ rpmem_common_init(const char *target)
 		goto err_provider;
 	}
 
+	RPMEM_LOG(NOTICE, "provider: %s", rpmem_provider_to_str(rpp->provider));
+
 	if (rpp->provider == RPMEM_PROV_LIBFABRIC_SOCKETS) {
 		/* libfabric's sockets provider does not support IPv6 */
+		RPMEM_LOG(NOTICE, "forcing using IPv4");
 		rpp->info->flags |= RPMEM_FLAGS_USE_IPV4;
 	}
 
@@ -195,11 +199,15 @@ rpmem_common_init(const char *target)
 		goto err_obc_init;
 	}
 
+	RPMEM_LOG(INFO, "establishing out-of-band connection");
+
 	ret = rpmem_obc_connect(rpp->obc, rpp->info);
 	if (ret) {
 		ERR("!out-of-band connection failed");
 		goto err_obc_connect;
 	}
+
+	RPMEM_LOG(NOTICE, "out-of-band connection established");
 
 	return rpp;
 err_obc_connect:
@@ -270,17 +278,23 @@ rpmem_common_fip_init(RPMEMpool *rpp, struct rpmem_req_attr *req,
 		goto err_fip_init;
 	}
 
+	RPMEM_LOG(INFO, "establishing in-band connection");
+
 	ret = rpmem_fip_connect(rpp->fip);
 	if (ret) {
-		ERR("!in-band connection failed");
+		ERR("!establishing in-band connection failed");
 		goto err_fip_connect;
 	}
+
+	RPMEM_LOG(NOTICE, "in-band connection established");
 
 	ret = rpmem_fip_process_start(rpp->fip);
 	if (ret) {
 		ERR("!starting in-band connection thread");
 		goto err_fip_process;
 	}
+
+	RPMEM_LOG(NOTICE, "final nlanes: %u", *nlanes);
 
 	return 0;
 err_fip_process:
@@ -298,9 +312,42 @@ err_port:
 static void
 rpmem_common_fip_fini(RPMEMpool *rpp)
 {
+	RPMEM_LOG(INFO, "closing in-band connection");
+
 	rpmem_fip_process_stop(rpp->fip);
 	rpmem_fip_close(rpp->fip);
 	rpmem_fip_fini(rpp->fip);
+
+	RPMEM_LOG(NOTICE, "in-band connection closed");
+}
+
+/*
+ * rpmem_log_args -- log input arguments for rpmem_create and rpmem_open
+ */
+static void
+rpmem_log_args(const char *req, const char *target, const char *pool_set_name,
+	void *pool_addr, size_t pool_size, unsigned nlanes)
+{
+	RPMEM_LOG(NOTICE, "%s request:", req);
+	RPMEM_LOG(NOTICE, "\ttarget: %s", target);
+	RPMEM_LOG(NOTICE, "\tpool set: %s", pool_set_name);
+	RPMEM_LOG(INFO, "\tpool addr: %p", pool_addr);
+	RPMEM_LOG(INFO, "\tpool size: %lu", pool_size);
+	RPMEM_LOG(NOTICE, "\tnlanes: %u", nlanes);
+}
+
+/*
+ * rpmem_log_resp -- log response attributes
+ */
+static void
+rpmem_log_resp(const char *req, const struct rpmem_resp_attr *resp)
+{
+	RPMEM_LOG(NOTICE, "%s request response:", req);
+	RPMEM_LOG(NOTICE, "\tnlanes: %u", resp->nlanes);
+	RPMEM_LOG(NOTICE, "\tport: %u", resp->port);
+	RPMEM_LOG(NOTICE, "\tpersist method: %s",
+			rpmem_persist_method_to_str(resp->persist_method));
+	RPMEM_LOG(NOTICE, "\tremote addr: 0x%" PRIx64, resp->raddr);
 }
 
 /*
@@ -318,6 +365,9 @@ rpmem_create(const char *target, const char *pool_set_name,
 	void *pool_addr, size_t pool_size, unsigned *nlanes,
 	const struct rpmem_pool_attr *create_attr)
 {
+	rpmem_log_args("create", target, pool_set_name,
+			pool_addr, pool_size, *nlanes);
+
 	RPMEMpool *rpp = rpmem_common_init(target);
 	if (!rpp)
 		goto err_common_init;
@@ -336,6 +386,8 @@ rpmem_create(const char *target, const char *pool_set_name,
 		ERR("!create request failed");
 		goto err_obc_create;
 	}
+
+	rpmem_log_resp("create", &resp);
 
 	ret = rpmem_common_fip_init(rpp, &req, &resp,
 			pool_addr, pool_size, nlanes);
@@ -374,6 +426,9 @@ rpmem_open(const char *target, const char *pool_set_name,
 	void *pool_addr, size_t pool_size, unsigned *nlanes,
 	struct rpmem_pool_attr *open_attr)
 {
+	rpmem_log_args("open", target, pool_set_name,
+			pool_addr, pool_size, *nlanes);
+
 	RPMEMpool *rpp = rpmem_common_init(target);
 	if (!rpp)
 		goto err_common_init;
@@ -392,6 +447,8 @@ rpmem_open(const char *target, const char *pool_set_name,
 		ERR("!open request failed");
 		goto err_obc_create;
 	}
+
+	rpmem_log_resp("create", &resp);
 
 	ret = rpmem_common_fip_init(rpp, &req, &resp,
 			pool_addr, pool_size, nlanes);
@@ -421,9 +478,13 @@ err_common_init:
 int
 rpmem_close(RPMEMpool *rpp)
 {
+	RPMEM_LOG(INFO, "closing out-of-band connection");
+
 	int ret = rpmem_obc_close(rpp->obc);
 	if (ret)
 		ERR("!close request failed");
+
+	RPMEM_LOG(NOTICE, "out-of-band connection closed");
 
 	rpmem_common_fip_fini(rpp);
 	rpmem_common_fini(rpp, 1);
