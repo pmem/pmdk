@@ -40,6 +40,8 @@
 /* Windows CRT doesn't support all errors, add unmapped here */
 #define ENOTSUP_STR "Operation not supported"
 #define ECANCELED_STR "Operation canceled"
+#define ENOERROR 0
+#define ENOERROR_STR "Success"
 #define UNMAPPED_STR "Unmapped error"
 
 /*
@@ -53,6 +55,9 @@ void
 util_strerror(int errnum, char *buff, size_t bufflen)
 {
 	switch (errnum) {
+	case ENOERROR:
+		strcpy_s(buff, bufflen, ENOERROR_STR);
+		break;
 	case ENOTSUP:
 		strcpy_s(buff, bufflen, ENOTSUP_STR);
 		break;
