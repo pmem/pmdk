@@ -1,6 +1,5 @@
-#!/bin/bash -e
-#
-# Copyright 2015-2016, Intel Corporation
+﻿#
+# Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,25 +31,40 @@
 #
 
 #
-# src/test/obj_tx_locks/TEST2 -- unit test for transaction locks
+# src/test/obj_tx_locks/TEST1 -- unit test for transaction locks
 #
-export UNITTEST_NAME=obj_tx_locks/TEST2
-export UNITTEST_NUM=2
+
+#
+# parameter handling
+#
+[CmdletBinding(PositionalBinding=$false)]
+Param(
+    [alias("d")]
+    $DIR = ""
+    )
+$Env:UNITTEST_NAME = "obj_tx_locks\TEST1"
+$Env:UNITTEST_NUM = "1"
+# XXX:  bash has a few calls to tools that we don't have on
+# windows (yet) that set PMEM_IS_PMEM and NON_PMEM_IS_PMEM based
+# on their output
+$Env:PMEM_IS_PMEM = $true
+$Env:NON_PMEM_IS_PMEM = $true
 
 # standard unit test setup
-. ../unittest/unittest.sh
+. ..\unittest\unittest.ps1
 
-unset PMEM_LOG_LEVEL
-unset PMEM_LOG_FILE
-unset PMEMOBJ_LOG_LEVEL
-unset PMEMOBJ_LOG_FILE
+$Env:PMEM_LOG_LEVEL = ""
+$Env:PMEM_LOG_FILE = ""
+$Env:PMEMOBJ_LOG_LEVEL = ""
+$Env:PMEMOBJ_LOG_FILE = ""
 
 require_fs_type any
 require_build_type debug nondebug
-require_valgrind_dev_3_10
-configure_valgrind helgrind force-enable
+# XXX no windows equialent for these yet
+#require_valgrind_dev_3_10
+#configure_valgrind drd force-enable
 setup
 
-expect_normal_exit ./obj_tx_locks$EXESUFFIX $DIR/testfile1 m
+expect_normal_exit $Env:EXE_DIR\obj_tx_locks$Env:EXESUFFIX $DIR\testfile1 m
 
 pass
