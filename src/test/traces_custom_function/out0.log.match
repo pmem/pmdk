@@ -1,5 +1,5 @@
-traces_custom_function/TEST0: START: traces_custom_function
- ./traces_custom_function$(nW) p
+traces_custom_function$(nW)TEST0: START: traces_custom_function
+ $(nW)traces_custom_function$(nW) p
 CUSTOM_PRINT: <trace_func>: <1> [$(nW):$(N) out_init]$(W)pid $(N): program: $(nW)
 
 CUSTOM_PRINT: <trace_func>: <1> [$(nW):$(N) out_init]$(W)trace_func version $(S)
@@ -26,4 +26,4 @@ CUSTOM_PRINT: <trace_func>: <3> [$(nW):$(N) main]$(W)Log level INFO
 
 CUSTOM_PRINT: <trace_func>: <4> [$(nW):$(N) main]$(W)Log level DEBUG
 
-traces_custom_function/TEST0: Done
+traces_custom_function$(nW)TEST0: Done

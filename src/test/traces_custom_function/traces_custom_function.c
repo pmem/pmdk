@@ -73,8 +73,9 @@ static int
 vsnprintf_custom_function(char *str, size_t size, const char *format,
 		va_list ap)
 {
-	char format2[strlen(format) * 3];
+	char *format2 = MALLOC(strlen(format) * 3);
 	int i = 0;
+	int ret_val;
 
 	while (*format != '\0') {
 		if (*format == '%') {
@@ -85,7 +86,10 @@ vsnprintf_custom_function(char *str, size_t size, const char *format,
 	}
 	format2[i++] = '\0';
 
-	return vsnprintf(str, size, format2, ap);
+	ret_val = vsnprintf(str, size, format2, ap);
+	FREE(format2);
+
+	return ret_val;
 }
 
 int
