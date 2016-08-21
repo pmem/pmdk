@@ -1,6 +1,5 @@
-#!/bin/bash -e
-#
-# Copyright 2014-2016, Intel Corporation
+﻿#
+# Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -34,27 +33,41 @@
 #
 # src/test/traces_pmem/TEST0 -- unit test traces for libraries pmem
 #
-export UNITTEST_NAME=traces_pmem/TEST0
-export UNITTEST_NUM=0
+
+#
+# parameter handling
+#
+[CmdletBinding(PositionalBinding=$false)]
+Param(
+    [alias("d")]
+    $DIR = ""
+    )
+$Env:UNITTEST_NAME = "traces_pmem\TEST0"
+$Env:UNITTEST_NUM = "0"
+# XXX:  bash has a few calls to tools that we don't have on
+# windows (yet) that set PMEM_IS_PMEM and NON_PMEM_IS_PMEM based
+# on their output
+$Env:PMEM_IS_PMEM = $true
+$Env:NON_PMEM_IS_PMEM = $true
 
 # standard unit test setup
-. ../unittest/unittest.sh
+. ..\unittest\unittest.ps1
 
 require_fs_type none
 require_build_type debug static-debug
 
 setup
 
-export PMEM_LOG_LEVEL=4
-export PMEM_LOG_FILE=./trace_pmem$UNITTEST_NUM.log
-export PMEMBLK_LOG_LEVEL=4
-export PMEMBLK_LOG_FILE=./trace_pmemblk$UNITTEST_NUM.log
-export PMEMLOG_LOG_LEVEL=4
-export PMEMLOG_LOG_FILE=./trace_pmemlog$UNITTEST_NUM.log
-export PMEMOBJ_LOG_LEVEL=4
-export PMEMOBJ_LOG_FILE=./trace_pmemobj$UNITTEST_NUM.log
+$Env:PMEM_LOG_LEVEL = 4
+$Env:PMEM_LOG_FILE = "./trace_pmem$Env:UNITTEST_NUM.log"
+$Env:PMEMBLK_LOG_LEVEL = 4
+$Env:PMEMBLK_LOG_FILE = "./trace_pmemblk$Env:UNITTEST_NUM.log"
+$Env:PMEMLOG_LOG_LEVEL = 4
+$Env:PMEMLOG_LOG_FILE = "./trace_pmemlog$Env:UNITTEST_NUM.log"
+$Env:PMEMOBJ_LOG_LEVEL = 4
+$Env:PMEMOBJ_LOG_FILE = "./trace_pmemobj$Env:UNITTEST_NUM.log"
 
-expect_normal_exit ./traces_pmem$EXESUFFIX
+expect_normal_exit $Env:EXE_DIR\traces_pmem$Env:EXESUFFIX
 
 check
 
