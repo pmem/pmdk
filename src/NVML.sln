@@ -382,6 +382,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmem_memset", "test\pmem_me
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmem_memcpy", "test\pmem_memcpy\pmem_memcpy.vcxproj", "{673277EC-D26B-414D-92E3-84EE873316A8}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_tx_mt", "test\obj_tx_mt\obj_tx_mt.vcxproj", "{0703E813-9CC8-4DEA-AA33-42B099CD172D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -648,6 +650,10 @@ Global
 		{673277EC-D26B-414D-92E3-84EE873316A8}.Debug|x64.Build.0 = Debug|x64
 		{673277EC-D26B-414D-92E3-84EE873316A8}.Release|x64.ActiveCfg = Release|x64
 		{673277EC-D26B-414D-92E3-84EE873316A8}.Release|x64.Build.0 = Release|x64
+		{0703E813-9CC8-4DEA-AA33-42B099CD172D}.Debug|x64.ActiveCfg = Debug|x64
+		{0703E813-9CC8-4DEA-AA33-42B099CD172D}.Debug|x64.Build.0 = Debug|x64
+		{0703E813-9CC8-4DEA-AA33-42B099CD172D}.Release|x64.ActiveCfg = Release|x64
+		{0703E813-9CC8-4DEA-AA33-42B099CD172D}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -724,5 +730,6 @@ Global
 		{6B492754-9F80-44B3-A2A7-1D98AF06F3B2} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 		{B36F115C-8139-4C35-A3E7-E6BF9F3DA793} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 		{673277EC-D26B-414D-92E3-84EE873316A8} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
+		{0703E813-9CC8-4DEA-AA33-42B099CD172D} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 	EndGlobalSection
 EndGlobal
