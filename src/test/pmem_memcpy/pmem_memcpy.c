@@ -82,7 +82,7 @@ do_memcpy(int fd, char *dest, int dest_off, char *src, int src_off,
     size_t bytes, char *file_name)
 {
 	void *ret;
-	char buf[bytes];
+	char *buf = MALLOC(bytes);
 
 	memset(buf, 0, bytes);
 	memset(dest, 0, bytes);
@@ -116,6 +116,8 @@ do_memcpy(int fd, char *dest, int dest_off, char *src, int src_off,
 			UT_ERR("%s: first %zu bytes do not match",
 				file_name, bytes / 2);
 	}
+
+	FREE(buf);
 }
 
 int

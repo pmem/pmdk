@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.24720.0
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{853D45D8-980C-4991-B62A-DAC6FD245402}"
 EndProject
@@ -378,6 +378,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmem_memmove", "test\pmem_m
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmem_memset", "test\pmem_memset\pmem_memset.vcxproj", "{B36F115C-8139-4C35-A3E7-E6BF9F3DA793}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmem_memcpy", "test\pmem_memcpy\pmem_memcpy.vcxproj", "{673277EC-D26B-414D-92E3-84EE873316A8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -636,6 +638,10 @@ Global
 		{B36F115C-8139-4C35-A3E7-E6BF9F3DA793}.Debug|x64.Build.0 = Debug|x64
 		{B36F115C-8139-4C35-A3E7-E6BF9F3DA793}.Release|x64.ActiveCfg = Release|x64
 		{B36F115C-8139-4C35-A3E7-E6BF9F3DA793}.Release|x64.Build.0 = Release|x64
+		{673277EC-D26B-414D-92E3-84EE873316A8}.Debug|x64.ActiveCfg = Debug|x64
+		{673277EC-D26B-414D-92E3-84EE873316A8}.Debug|x64.Build.0 = Debug|x64
+		{673277EC-D26B-414D-92E3-84EE873316A8}.Release|x64.ActiveCfg = Release|x64
+		{673277EC-D26B-414D-92E3-84EE873316A8}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -710,5 +716,6 @@ Global
 		{E648732D-78FA-427A-928C-9A59222D37B7} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 		{5A391A14-8E29-4788-93FC-EDADED31D32F} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 		{B36F115C-8139-4C35-A3E7-E6BF9F3DA793} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
+		{673277EC-D26B-414D-92E3-84EE873316A8} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 	EndGlobalSection
 EndGlobal
