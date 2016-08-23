@@ -1065,7 +1065,7 @@ malloc_tsd_funcs(JEMALLOC_ALWAYS_INLINE, thread_allocated, thread_allocated_t,
 #endif /* JEMALLOC_INTERNAL_H */
 
 # ifdef _MSC_VER
-static inline int
+JEMALLOC_ALWAYS_INLINE int
 msc_clz(unsigned int val)
 {
 	unsigned int res = 0;
