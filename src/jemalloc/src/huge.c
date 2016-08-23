@@ -172,7 +172,7 @@ huge_ralloc_no_move(pool_t *pool, void *ptr, size_t oldsize, size_t size,
 	/* Shrink the allocation in-place. */
 	if (CHUNK_CEILING(oldsize) > CHUNK_CEILING(size)) {
 		extent_node_t *node, key;
-		void* excess_addr;
+		void *excess_addr;
 		size_t excess_size;
 
 		malloc_mutex_lock(&pool->huge_mtx);
@@ -276,7 +276,8 @@ huge_dalloc(pool_t *pool, void *ptr)
 size_t
 huge_salloc(const void *ptr)
 {
-	size_t ret = 0, i;
+	size_t ret = 0;
+	int i;
 	extent_node_t *node, key;
 
 	malloc_mutex_lock(&pools_lock);
