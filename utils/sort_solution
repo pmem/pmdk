@@ -36,10 +36,12 @@
 
 use strict;
 use warnings;
+use Text::Diff;
 
 use Cwd 'abs_path';
 use File::Basename;
 use File::Compare;
+
 
 sub help {
 	print "Usage: sort_solution [check|sort]\n";
@@ -83,7 +85,7 @@ my $tempfile = dirname(abs_path($0)).'/../src/temp.sln';
 
 open(my $temp_fh, '>', $tempfile)
 	or die "Could not open file '$tempfile' $!";
-open(my $solution_fh, '<:encoding(UTF-8)', $filename)
+open(my $solution_fh, '<:crlf', $filename)
 	or die "Could not open file '$filename' $!";
 
 my $line;
@@ -137,10 +139,12 @@ close($temp_fh);
 close($solution_fh);
 
 if($arg eq "check") {
-	if (compare($filename, $tempfile) == 0) {
+	my $diff = diff $filename => $tempfile;
+	if ($diff eq "") {
 		unlink $tempfile;
 		exit;
 	}
+
 	print "NVML solution file is not sorted, " .
 		"please use sort_solution script before pushing your changes\n";
 	unlink $tempfile;
