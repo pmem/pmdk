@@ -58,3 +58,5 @@ setup
 expect_normal_exit $Env:EXE_DIR\vmem_pages_purging$Env:EXESUFFIX -z $DIR `
 
 check
+
+pass

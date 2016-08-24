@@ -30,7 +30,7 @@
 #
 
 #
-# src/test/vmem_check_version/TEST0.PS1 -- unit test for vmem_check_version
+# src/test/vmem_create_error/TEST0.PS1 -- unit test for vmem_create_error
 #
 
 [CmdletBinding(PositionalBinding=$false)]
@@ -38,7 +38,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "vmem_check_version\TEST0"
+$Env:UNITTEST_NAME = "vmem_create_error\TEST0"
 $Env:UNITTEST_NUM = "0"
 
 # XXX:  bash has a few calls to tools that we don't have on
@@ -52,11 +52,10 @@ $Env:NON_PMEM_IS_PMEM = $true
 . ..\unittest\unittest.ps1
 
 require_fs_type none
+require_build_type debug nondebug
 
 setup
 
-expect_normal_exit $Env:EXE_DIR\vmem_check_version$Env:EXESUFFIX `
+expect_normal_exit $Env:EXE_DIR\vmem_create_error$Env:EXESUFFIX `
 
 check
-
-pass

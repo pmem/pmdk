@@ -57,3 +57,5 @@ setup
 expect_normal_exit $Env:EXE_DIR\vmem_calloc$Env:EXESUFFIX $DIR `
 
 check
+
+pass

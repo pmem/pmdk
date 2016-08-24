@@ -318,7 +318,7 @@ How to build jemalloc for Windows
 		EXTRA_CFLAGS="-DJEMALLOC_LIBVMEM""
 
 6. Now the project can be opened and built in Visual Studio:
-	msvc\jemalloc_vc2015.sln
+	src\NVML.sln
 
 === Documentation ==============================================================
 
