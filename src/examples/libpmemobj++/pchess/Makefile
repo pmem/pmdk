@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2018, Intel Corporation
+# Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,10 +31,20 @@
 #
 
 #
-# examples/libpmemobj++/Makefile -- build the libpmemobj++ examples
+# examples/libpmemobj++/pchess/Makefile -- build pchess
 #
-include ../../common.inc
 
-DIRS = queue pman map_cli panaconda pmpong doc_snippets pchess
+TOP := $(dir $(lastword $(MAKEFILE_LIST)))../../../../
+include $(TOP)/src/common.inc
 
-include ../Makefile.inc
+PROGS = pchess
+
+LIBS = -lpmemobj -lpmem
+
+COMPILE_LANG = cpp
+include ../../Makefile.inc
+INCS += -I../
+
+EXTRA_CXXFLAGS=-std=c++14
+
+pchess: pchess.o chess.o position.o state.o chess_game.o search.o eval.o
