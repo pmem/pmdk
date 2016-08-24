@@ -30,33 +30,29 @@
 #
 
 #
-# src/test/vmem_create_error/TEST0.PS1 -- unit test for vmem_create_error
+# src/test/vmem_custom_alloc/TEST4.PS1 -- unit test for vmem_custom_alloc
 #
-
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "vmem_create_error\TEST0"
-$Env:UNITTEST_NUM = "0"
-
+$Env:UNITTEST_NAME = "vmem_custom_alloc\TEST4"
+$Env:UNITTEST_NUM = "4"
 # XXX:  bash has a few calls to tools that we don't have on
 # windows (yet) that set PMEM_IS_PMEM and NON_PMEM_IS_PMEM based
 # on their output
-
 $Env:PMEM_IS_PMEM = $true
 $Env:NON_PMEM_IS_PMEM = $true
 
 # standard unit test setup
 . ..\unittest\unittest.ps1
 
-require_fs_type none
-require_build_type debug nondebug
+require_fs_type any
 
 setup
 
-expect_normal_exit $Env:EXE_DIR\vmem_create_error$Env:EXESUFFIX `
+expect_normal_exit $Env:EXE_DIR\vmem_custom_alloc$Env:EXESUFFIX 1 $DIR `
 
 check
 
