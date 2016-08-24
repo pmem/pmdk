@@ -30,10 +30,36 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifndef _WIN32
+
 #ifdef BUILD_MAIN
 int
 main()
 {
 	return 0;
 }
+#endif
+
+#else
+
+#include "atomic_base.h"
+#include "atomic.h"
+#include "base.h"
+#include "iterator_base.h"
+#include "iterator.h"
+#include "lists_atomic_base.h"
+#include "lists_atomic.h"
+#include "pool_base.h"
+#include "pool.h"
+#include "thread.h"
+#include "tx_base.h"
+#include "tx.h"
+#include "types.h"
+
+int
+main()
+{
+	return 0;
+}
+
 #endif
