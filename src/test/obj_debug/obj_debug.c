@@ -142,8 +142,8 @@ test_lists(const char *path)
 static int
 int3_constructor(PMEMobjpool *pop, void *ptr, void *arg)
 {
-	struct int3_s *args = arg;
-	struct int3_s *val = ptr;
+	struct int3_s *args = (struct int3_s *)arg;
+	struct int3_s *val = (struct int3_s *)ptr;
 
 	val->i1 = args->i1;
 	val->i2 = args->i2;
@@ -175,6 +175,14 @@ test_alloc_construct(const char *path)
 	pmemobj_close(pop);
 }
 
+ut_jmp_buf_t Jmp;
+
+static void
+signal_handler(int sig)
+{
+	ut_siglongjmp(Jmp);
+}
+
 static void
 test_double_free(const char *path)
 {
@@ -190,9 +198,19 @@ test_double_free(const char *path)
 	UT_ASSERT(!OID_IS_NULL(oid));
 
 	oid2 = oid;
-
 	pmemobj_free(&oid);
-	pmemobj_free(&oid2);
+
+	struct sigaction sig;
+	sigemptyset(&sig.sa_mask);
+	sig.sa_flags = 0;
+	sig.sa_handler = signal_handler;
+	SIGACTION(SIGABRT, &sig, NULL);
+
+	if (!ut_sigsetjmp(Jmp)) {
+		pmemobj_free(&oid2);
+		UT_ERR("we should not get here");
+	}
+	pmemobj_close(pop);
 }
 
 int

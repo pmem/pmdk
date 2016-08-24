@@ -5,27 +5,39 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    <Filter Include="Test Scripts">
+      <UniqueIdentifier>{6df50c80-3af3-4cb3-a8f8-3a232d502760}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    <Filter Include="Match Files">
+      <UniqueIdentifier>{0ef62f42-9a38-4ada-8548-87b2d2e4eb8f}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\unittest\ut.c">
+    <ClCompile Include="obj_debug.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\unittest\ut_file.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\unittest\ut_alloc.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\test\obj_debug\obj_debug.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="TEST0.PS1">
+      <Filter>Test Scripts</Filter>
+    </None>
+    <None Include="TEST1.PS1">
+      <Filter>Test Scripts</Filter>
+    </None>
+    <None Include="TEST2.PS1">
+      <Filter>Test Scripts</Filter>
+    </None>
+    <None Include="TEST3.PS1">
+      <Filter>Test Scripts</Filter>
+    </None>
+    <None Include="out0.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="out1.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="out2.log.match">
+      <Filter>Match Files</Filter>
+    </None>
   </ItemGroup>
 </Project>
