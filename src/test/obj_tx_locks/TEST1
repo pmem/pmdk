@@ -53,6 +53,4 @@ setup
 
 expect_normal_exit ./obj_tx_locks$EXESUFFIX $DIR/testfile1 m
 
-check
-
 pass
