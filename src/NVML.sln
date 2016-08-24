@@ -390,6 +390,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_tx_locks", "test\obj_tx
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_lane", "test\obj_lane\obj_lane.vcxproj", "{CCA9B681-D10B-45E4-98CC-531503D2EDE8}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_debug", "test\obj_debug\obj_debug.vcxproj", "{FE0FE011-DF4E-405F-9371-42C7F8972EF7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -672,6 +674,10 @@ Global
 		{CCA9B681-D10B-45E4-98CC-531503D2EDE8}.Debug|x64.Build.0 = Debug|x64
 		{CCA9B681-D10B-45E4-98CC-531503D2EDE8}.Release|x64.ActiveCfg = Release|x64
 		{CCA9B681-D10B-45E4-98CC-531503D2EDE8}.Release|x64.Build.0 = Release|x64
+		{FE0FE011-DF4E-405F-9371-42C7F8972EF7}.Debug|x64.ActiveCfg = Debug|x64
+		{FE0FE011-DF4E-405F-9371-42C7F8972EF7}.Debug|x64.Build.0 = Debug|x64
+		{FE0FE011-DF4E-405F-9371-42C7F8972EF7}.Release|x64.ActiveCfg = Release|x64
+		{FE0FE011-DF4E-405F-9371-42C7F8972EF7}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -752,5 +758,6 @@ Global
 		{C2F94489-A483-4C44-B8A7-11A75F6AEC66} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 		{E9E079D6-25BF-46E3-8075-7D733303DD59} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 		{CCA9B681-D10B-45E4-98CC-531503D2EDE8} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
+		{FE0FE011-DF4E-405F-9371-42C7F8972EF7} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 	EndGlobalSection
 EndGlobal

@@ -423,7 +423,7 @@ function expect_abnormal_exit {
 
     Invoke-Expression "$command $params"
 
-    if ($ret -eq 0) {
+    if ($LASTEXITCODE -eq 0) {
         sv -Name msg "succeeded"
         Write-Error "${Env:UNITTEST_NAME}: command $msg unexpectedly."
         #XXX:  bash just has a one-liner "false" here, does that

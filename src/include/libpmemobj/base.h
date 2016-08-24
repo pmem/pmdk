@@ -206,7 +206,7 @@ void _pobj_debug_notice(const char *func_name, const char *file, int line);
 /*
  * Debug helper function and macros
  */
-#ifdef DEBUG
+#if defined(DEBUG) || defined(_DEBUG)
 
 /*
  * (debug helper macro) logs notice message if used inside a transaction
