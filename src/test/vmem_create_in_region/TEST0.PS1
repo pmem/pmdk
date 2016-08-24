@@ -58,3 +58,4 @@ expect_normal_exit $Env:EXE_DIR\vmem_create_in_region$Env:EXESUFFIX `
 
 check
 
+pass
