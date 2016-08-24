@@ -57,3 +57,4 @@ expect_normal_exit $Env:EXE_DIR\vmem_create$Env:EXESUFFIX $DIR `
 
 check
 
+pass

@@ -25,6 +25,11 @@
   <ItemGroup>
     <None Include="libvmem.def" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\jemalloc\msvc\jemalloc.vcxproj">
+      <Project>{8d6bb292-9e1c-413d-9f98-4864bdc1514a}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{08762559-E9DF-475B-BA99-49F4B5A1D80B}</ProjectGuid>
     <Keyword>DynamicLibrary</Keyword>
@@ -127,6 +132,9 @@
       <Command>
       </Command>
     </PreBuildEvent>
+    <ProjectReference>
+      <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
+    </ProjectReference>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
