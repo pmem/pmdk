@@ -58,6 +58,8 @@ Param(
     $time = "60s",
     [alias("s")]
     $testfile = "all",
+    [alias("i")]
+    $testdir = "all",
     [alias("c")]
     $check_pool = "0"
     )
@@ -77,10 +79,11 @@ function usage {
         Write-Host "Error: $args"
     }
     Write-Host "Usage: $0 [ -hnv ] [ -b build-type ] [ -t test-type ] [ -f fs-type ]
-                [ -o timeout ] [ -s test-file ] [ -m memcheck ] [-p pmemcheck ] [ -e helgrind ] [ -d drd ] [ -c ] [tests...]
+                [ -o timeout ] [ -s test-file ] [ -m memcheck ] [-p pmemcheck ] [ -e helgrind ] [ -d drd ] [ -c ] [ -i testdir ]
         -h      print this help message
         -n      dry run
         -v      be verbose
+        -i test-dir run test(s) from this test directory (default is all)
         -b build-type   run only specified build type
                 build-type: debug, nondebug, static-debug, static-nondebug, all (default)
         -t test-type    run only specified test type
@@ -198,7 +201,7 @@ function runtest {
     if ($testfile -eq "all") {
         sv -Name dirCheck ".\TEST*.ps1"
     } else {
-        sv -Name dirCheck "..\$testName\TEST*.ps1"
+        sv -Name dirCheck "..\$testName\$testfile.ps1"
     }
     sv -Name runscripts ""
     Get-ChildItem $dirCheck | Sort-Object { $_.BaseName -replace "\D+" -as [Int] } | % {
@@ -336,7 +339,7 @@ if ($verbose -eq "1") {
     Write-Host "    check-pool: $check_pool_str"
     Write-Host "Tests: $args"
 }
-if ($testfile -eq "all") {
+if ($testdir -eq "all") {
     Get-ChildItem -Directory | % {
         $LASTEXITCODE = 0
         runtest $_.Name
@@ -347,7 +350,11 @@ if ($testfile -eq "all") {
         }
     }
 } else {
-    ForEach ($test in $testfile.split(" ").trim()) {
-        runtest $test
+    $LASTEXITCODE = 0
+    runtest $testdir
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host ""
+        Write-Error "RUNTESTS FAILED at $test_script"
+        Exit $LASTEXITCODE
     }
 }
