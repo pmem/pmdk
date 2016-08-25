@@ -30,14 +30,14 @@
 #
 
 #
-# src/test/vmem_malloc_usable_size/TEST1.PS1 -- unit test for vmem_malloc_usable_size
+# src/test/vmem_realloc_inplace/TEST1.PS1 -- unit test for vmem_realloc
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "vmem_malloc_usable_size\TEST1"
+$Env:UNITTEST_NAME = "vmem_realloc_inplace\TEST1"
 $Env:UNITTEST_NUM = "1"
 # XXX:  bash has a few calls to tools that we don't have on
 # windows (yet) that set PMEM_IS_PMEM and NON_PMEM_IS_PMEM based
@@ -52,7 +52,7 @@ require_fs_type any
 
 setup
 
-expect_normal_exit $Env:EXE_DIR\vmem_malloc_usable_size$Env:EXESUFFIX $DIR
+expect_normal_exit $Env:EXE_DIR\vmem_realloc_inplace$Env:EXESUFFIX $DIR
 
 check
 

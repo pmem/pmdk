@@ -806,6 +806,12 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vmem_malloc_usable_size", "
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vmem_mix_allocations", "test\vmem_mix_allocations\vmem_mix_allocations.vcxproj", "{537F759B-B617-48D9-A2F3-7FB769A8F9B7}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vmem_out_of_memory", "test\vmem_out_of_memory\vmem_out_of_memory.vcxproj", "{26D24B3D-22CE-44EB-AA21-2BF594F80520}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vmem_realloc", "test\vmem_realloc\vmem_realloc.vcxproj", "{7E0106F8-A597-48D5-B4F2-E0FC4D95EE95}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vmem_realloc_inplace", "test\vmem_realloc_inplace\vmem_realloc_inplace.vcxproj", "{C3A59B21-A287-4631-B4EC-F4A57D26A14F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -1887,6 +1893,18 @@ Global
 		{537F759B-B617-48D9-A2F3-7FB769A8F9B7}.Debug|x64.Build.0 = Debug|x64
 		{537F759B-B617-48D9-A2F3-7FB769A8F9B7}.Release|x64.ActiveCfg = Release|x64
 		{537F759B-B617-48D9-A2F3-7FB769A8F9B7}.Release|x64.Build.0 = Release|x64
+		{26D24B3D-22CE-44EB-AA21-2BF594F80520}.Debug|x64.ActiveCfg = Debug|x64
+		{26D24B3D-22CE-44EB-AA21-2BF594F80520}.Debug|x64.Build.0 = Debug|x64
+		{26D24B3D-22CE-44EB-AA21-2BF594F80520}.Release|x64.ActiveCfg = Release|x64
+		{26D24B3D-22CE-44EB-AA21-2BF594F80520}.Release|x64.Build.0 = Release|x64
+		{7E0106F8-A597-48D5-B4F2-E0FC4D95EE95}.Debug|x64.ActiveCfg = Debug|x64
+		{7E0106F8-A597-48D5-B4F2-E0FC4D95EE95}.Debug|x64.Build.0 = Debug|x64
+		{7E0106F8-A597-48D5-B4F2-E0FC4D95EE95}.Release|x64.ActiveCfg = Release|x64
+		{7E0106F8-A597-48D5-B4F2-E0FC4D95EE95}.Release|x64.Build.0 = Release|x64
+		{C3A59B21-A287-4631-B4EC-F4A57D26A14F}.Debug|x64.ActiveCfg = Debug|x64
+		{C3A59B21-A287-4631-B4EC-F4A57D26A14F}.Debug|x64.Build.0 = Debug|x64
+		{C3A59B21-A287-4631-B4EC-F4A57D26A14F}.Release|x64.ActiveCfg = Release|x64
+		{C3A59B21-A287-4631-B4EC-F4A57D26A14F}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -2145,5 +2163,8 @@ Global
 		{40DC66AD-F66D-4194-B9A4-A3A2222516FE} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 		{C00B4A26-6C57-4968-AED5-B45FD31A22E7} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 		{537F759B-B617-48D9-A2F3-7FB769A8F9B7} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
+		{26D24B3D-22CE-44EB-AA21-2BF594F80520} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
+		{7E0106F8-A597-48D5-B4F2-E0FC4D95EE95} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
+		{C3A59B21-A287-4631-B4EC-F4A57D26A14F} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 	EndGlobalSection
 EndGlobal
