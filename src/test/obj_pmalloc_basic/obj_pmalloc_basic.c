@@ -181,14 +181,15 @@ static void
 test_mock_pool_allocs()
 {
 	void *real_address = ZALLOC(MOCK_POOL_SIZE * 2);
-	addr = (void *)ALIGN_CEILING((uint64_t)real_address, Pagesize);
+	addr = (void *)ALIGN_CEILING((uint64_t)real_address,
+		(uint64_t)Ut_pagesize);
 	mock_pop = &addr->p;
 	mock_pop->addr = addr;
 	mock_pop->size = MOCK_POOL_SIZE;
 	mock_pop->rdonly = 0;
 	mock_pop->is_pmem = 0;
 	mock_pop->heap_offset =
-		ALIGN_CEILING(sizeof(struct mock_pop), Pagesize);
+		ALIGN_CEILING(sizeof(struct mock_pop), Ut_pagesize);
 	mock_pop->heap_size = MOCK_POOL_SIZE - mock_pop->heap_offset;
 	mock_pop->nlanes = 1;
 	mock_pop->lanes_offset = sizeof(PMEMobjpool);
@@ -217,7 +218,7 @@ test_mock_pool_allocs()
 			&mock_pop->p_ops);
 
 	/* initialize runtime lanes structure */
-	mock_pop->lanes_desc.runtime_nlanes = mock_pop->nlanes;
+	mock_pop->lanes_desc.runtime_nlanes = (unsigned)mock_pop->nlanes;
 	lane_boot(mock_pop);
 
 	UT_ASSERTne(mock_pop->heap.rt, NULL);
