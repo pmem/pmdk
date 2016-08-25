@@ -31,14 +31,14 @@
 #
 
 #
-# src/test/obj_pmalloc_mt/TEST0 -- unit test for pmalloc interface
+# src/test/obj_pmalloc_oom_mt/TEST0 -- unit test for pmalloc interface
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "obj_pmalloc_mt/TEST0"
+$Env:UNITTEST_NAME = "obj_pmalloc_oom_mt/TEST0"
 $Env:UNITTEST_NUM = "0"
 # XXX:  bash has a few calls to tools that we don't have on
 # windows (yet) that set PMEM_IS_PMEM and NON_PMEM_IS_PMEM based
@@ -49,15 +49,11 @@ $Env:NON_PMEM_IS_PMEM = $true
 # standard unit test setup
 
 . ..\unittest\unittest.ps1
-# XXX: valgrind
-# require_valgrind_dev_3_10
-require_fs_type pmem non-pmem
-require_test_type long
-# configure_valgrind helgrind force-enable
 
 setup
 
 $Env:PMEM_IS_PMEM_FORCE=1
-expect_normal_exit $Env:EXE_DIR/obj_pmalloc_mt$Env:EXESUFFIX $DIR/testfile
+
+expect_normal_exit $Env:EXE_DIR/obj_pmalloc_oom_mt$Env:EXESUFFIX $DIR/testfile
 
 pass
