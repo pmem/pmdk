@@ -41,7 +41,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{492BAA3D-0D5D-478E-9765-500463AE69AA}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>liblinux</RootNamespace>
+    <RootNamespace>libpmemcommon</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.10240.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
