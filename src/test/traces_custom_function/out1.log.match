@@ -1,5 +1,5 @@
-traces_custom_function/TEST1: START: traces_custom_function
- ./traces_custom_function$(nW) v
+traces_custom_function$(nW)TEST1: START: traces_custom_function
+ $(nW)traces_custom_function$(nW) v
 CUSTOM_PRINT: <trace_func>: <1> [$(nW):$(N) out_init]$(W)pid $(N): program: $(nW)
 
 CUSTOM_PRINT: <trace_func>: <1> [$(nW):$(N) out_init]$(W)trace_func version $(S)
@@ -16,11 +16,11 @@ $(OPT)CUSTOM_PRINT: <trace_func>: <1> [$(nW):$(N) out_init]$(W)compiled with sup
 $(OPT)
 CUSTOM_PRINT: <trace_func>: <3> [$(nW):$(N) util_mmap_init] 
 
-CUSTOM_PRINT: <trace_func>: <3> [$(nW):$(N) out_set_vsnprintf_func]$(W)vsnprintf 0x$(X)
+CUSTOM_PRINT: <trace_func>: <3> [$(nW):$(N) out_set_vsnprintf_func]$(W)vsnprintf $(nW)$(X)
 
 CUSTOM_PRINT: <@@trace_func>: <@@0> [@@$(nW):@@$(N) @@main]$(W)no format@@@@@@
 
-CUSTOM_PRINT: <@@trace_func>: <@@0> [@@$(nW):@@$(N) @@main]$(W)pointer: @@0x12345678@@@@@@
+CUSTOM_PRINT: <@@trace_func>: <@@0> [@@$(nW):@@$(N) @@main]$(W)pointer: @@$(nW)12345678@@@@@@
 
 CUSTOM_PRINT: <@@trace_func>: <@@0> [@@$(nW):@@$(N) @@main]$(W)string: @@Hello world!@@@@@@
 
@@ -28,4 +28,4 @@ CUSTOM_PRINT: <@@trace_func>: <@@0> [@@$(nW):@@$(N) @@main]$(W)number: @@1234567
 
 CUSTOM_PRINT: <@@trace_func>: <@@0> [@@$(nW):@@$(N) @@main]$(W)error@@: @@Invalid argument@@
 
-traces_custom_function/TEST1: Done
+traces_custom_function$(nW)TEST1: Done
