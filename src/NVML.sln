@@ -400,6 +400,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_pmalloc_mt", "test\obj_
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_pmalloc_oom_mt", "test\obj_pmalloc_oom_mt\obj_pmalloc_oom_mt.vcxproj", "{88D239E4-EB7D-4E0A-BE3A-AD78B9F408FC}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_tx_lock", "test\obj_tx_lock\obj_tx_lock.vcxproj", "{D88187D2-1977-4C5F-B0CD-83C69BD6C1BC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -700,6 +702,10 @@ Global
 		{88D239E4-EB7D-4E0A-BE3A-AD78B9F408FC}.Debug|x64.Build.0 = Debug|x64
 		{88D239E4-EB7D-4E0A-BE3A-AD78B9F408FC}.Release|x64.ActiveCfg = Release|x64
 		{88D239E4-EB7D-4E0A-BE3A-AD78B9F408FC}.Release|x64.Build.0 = Release|x64
+		{D88187D2-1977-4C5F-B0CD-83C69BD6C1BC}.Debug|x64.ActiveCfg = Debug|x64
+		{D88187D2-1977-4C5F-B0CD-83C69BD6C1BC}.Debug|x64.Build.0 = Debug|x64
+		{D88187D2-1977-4C5F-B0CD-83C69BD6C1BC}.Release|x64.ActiveCfg = Release|x64
+		{D88187D2-1977-4C5F-B0CD-83C69BD6C1BC}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -785,5 +791,6 @@ Global
 		{65D92D98-97E1-48F7-AEF6-75221CF48EA4} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 		{9FF62356-30B4-42A1-8DC7-45262A18DD44} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 		{88D239E4-EB7D-4E0A-BE3A-AD78B9F408FC} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
+		{D88187D2-1977-4C5F-B0CD-83C69BD6C1BC} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 	EndGlobalSection
 EndGlobal
