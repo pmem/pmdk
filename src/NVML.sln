@@ -392,6 +392,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "traces_pmem", "test\traces_
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "traces_custom_function", "test\traces_custom_function\traces_custom_function.vcxproj", "{02BC3B44-C7F1-4793-86C1-6F36CA8A7F53}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "out_err", "test\out_err\out_err.vcxproj", "{8A0FA780-068A-4534-AA2F-4FF4CF977AF2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -677,6 +679,9 @@ Global
 		{02BC3B44-C7F1-4793-86C1-6F36CA8A7F53}.Debug|x64.ActiveCfg = Debug|x64
 		{02BC3B44-C7F1-4793-86C1-6F36CA8A7F53}.Debug|x64.Build.0 = Debug|x64
 		{02BC3B44-C7F1-4793-86C1-6F36CA8A7F53}.Release|x64.ActiveCfg = Release|x64
+		{8A0FA780-068A-4534-AA2F-4FF4CF977AF2}.Debug|x64.ActiveCfg = Debug|x64
+		{8A0FA780-068A-4534-AA2F-4FF4CF977AF2}.Debug|x64.Build.0 = Debug|x64
+		{8A0FA780-068A-4534-AA2F-4FF4CF977AF2}.Release|x64.ActiveCfg = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -758,5 +763,6 @@ Global
 		{E9E079D6-25BF-46E3-8075-7D733303DD59} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 		{3B23831B-E5DE-4A62-9D0B-27D0D9F293F4} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 		{02BC3B44-C7F1-4793-86C1-6F36CA8A7F53} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
+		{8A0FA780-068A-4534-AA2F-4FF4CF977AF2} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 	EndGlobalSection
 EndGlobal
