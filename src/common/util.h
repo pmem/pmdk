@@ -1,5 +1,6 @@
 /*
  * Copyright 2014-2016, Intel Corporation
+ * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -36,6 +37,10 @@
 
 #ifndef NVML_UTIL_H
 #define NVML_UTIL_H 1
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include <stddef.h>
 #include <stdint.h>
@@ -184,4 +189,8 @@ util_get_printable_ascii(char c)
 #define CHECK_FUNC_COMPATIBLE(func1, func2) do {} while (0)
 #endif /* __GNUC__ */
 
+#ifdef __cplusplus
+}
 #endif
+
+#endif /* util.h */
