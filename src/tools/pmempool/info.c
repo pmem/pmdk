@@ -690,11 +690,28 @@ pmempool_info_file(struct pmem_info *pip, const char *file_name)
 			return -1;
 		}
 
-		if (pip->args.obj.replica &&
-			pool_set_file_set_replica(pip->pfile,
+		if (pip->args.obj.replica) {
+			size_t nreplicas = pool_set_file_nreplicas(pip->pfile);
+			if (nreplicas == 1) {
+				outv_err("only master replica available");
+				ret = -1;
+				goto out_close;
+			}
+
+			if (pip->args.obj.replica >= nreplicas) {
+				outv_err("replica number out of range"
+					" (valid range is: 0-" PRIu64 ")",
+					nreplicas - 1);
+				ret = -1;
+				goto out_close;
+			}
+
+			if (pool_set_file_set_replica(pip->pfile,
 				pip->args.obj.replica)) {
-			outv_err("invalid replica number '%lu'",
-					pip->args.obj.replica);
+				outv_err("setting replica number failed");
+				ret = -1;
+				goto out_close;
+			}
 		}
 
 		/* hdr info is not present in btt device */

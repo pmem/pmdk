@@ -1363,6 +1363,15 @@ pool_set_file_set_replica(struct pool_set_file *file, size_t replica)
 }
 
 /*
+ * pool_set_file_nreplicas -- return number of replicas
+ */
+size_t
+pool_set_file_nreplicas(struct pool_set_file *file)
+{
+	return file->poolset->nreplicas;
+}
+
+/*
  * pool_set_file_map -- return mapped address at given offset
  */
 void *
