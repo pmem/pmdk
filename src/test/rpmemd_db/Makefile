@@ -41,7 +41,7 @@ vpath %.c $(TOP)/src/librpmem
 vpath %.c $(TOP)/src/tools/rpmemd
 
 TARGET = rpmemd_db
-OBJS = rpmemd_db_test.o rpmemd_log.o rpmemd_db.o librpmem.o
+OBJS = rpmemd_db_test.o rpmemd_log.o rpmemd_db.o rpmem_util.o librpmem.o
 
 LIBPMEM=y
 LIBPMEMCOMMON=y

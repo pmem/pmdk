@@ -73,19 +73,6 @@ get_ssh(void)
 }
 
 /*
- * get_cmd -- return command name
- */
-static const char *
-get_cmd(void)
-{
-	char *cmd = getenv(RPMEM_CMD_ENV);
-	if (!cmd)
-		cmd = RPMEM_DEF_CMD;
-
-	return cmd;
-}
-
-/*
  * rpmem_ssh_open -- open ssh connection with specified node
  */
 struct rpmem_ssh *
@@ -144,7 +131,7 @@ rpmem_ssh_open(const char *node, const char *service)
 	if (ret)
 		goto err_push;
 
-	ret = rpmem_cmd_push(rps->cmd, get_cmd());
+	ret = rpmem_cmd_push(rps->cmd, rpmem_util_cmd_get());
 	if (ret)
 		goto err_push;
 

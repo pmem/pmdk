@@ -44,6 +44,7 @@ OBJS = rpmemd_obc_test.o\
        rpmemd_obc_test_common.o\
        rpmemd_log.o\
        rpmem_common.o\
+       rpmem_util.o\
        rpmem_ssh.o\
        rpmem_cmd.o\
        rpmemd_obc.o\

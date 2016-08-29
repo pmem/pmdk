@@ -40,6 +40,8 @@
 #include "librpmem.h"
 
 #include "rpmem.h"
+#include "rpmem_common.h"
+#include "rpmem_util.h"
 #include "util.h"
 #include "out.h"
 
@@ -56,6 +58,7 @@ librpmem_init(void)
 	out_init(RPMEM_LOG_PREFIX, RPMEM_LOG_LEVEL_VAR, RPMEM_LOG_FILE_VAR,
 			RPMEM_MAJOR_VERSION, RPMEM_MINOR_VERSION);
 	LOG(3, NULL);
+	rpmem_util_cmds_init();
 }
 
 /*
@@ -68,6 +71,7 @@ void
 librpmem_fini(void)
 {
 	LOG(3, NULL);
+	rpmem_util_cmds_fini();
 	out_fini();
 }
 

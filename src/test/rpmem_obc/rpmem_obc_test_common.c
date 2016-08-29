@@ -74,6 +74,15 @@ set_rpmem_cmd(const char *fmt, ...)
 
 	ret = setenv(RPMEM_CMD_ENV, cmd_buff, 1);
 	UT_ASSERTeq(ret, 0);
+
+	/*
+	 * Rpmem has internal RPMEM_CMD variable copy and it is assumed
+	 * RPMEMD_CMD will not change its value during execution. To refresh the
+	 * internal copy it must be destroyed and a instance must be initialized
+	 * manually.
+	 */
+	rpmem_util_cmds_fini();
+	rpmem_util_cmds_init();
 }
 
 struct server *
