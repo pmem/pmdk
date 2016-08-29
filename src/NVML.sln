@@ -408,6 +408,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_toid", "test\obj_toid\o
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_tx_realloc", "test\obj_tx_realloc\obj_tx_realloc.vcxproj", "{9AE2DAF9-10C4-4EC3-AE52-AD5EE9C77C55}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_tx_alloc", "test\obj_tx_alloc\obj_tx_alloc.vcxproj", "{4C429783-0B01-449F-A36F-C2019233890B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -724,6 +726,10 @@ Global
 		{9AE2DAF9-10C4-4EC3-AE52-AD5EE9C77C55}.Debug|x64.Build.0 = Debug|x64
 		{9AE2DAF9-10C4-4EC3-AE52-AD5EE9C77C55}.Release|x64.ActiveCfg = Release|x64
 		{9AE2DAF9-10C4-4EC3-AE52-AD5EE9C77C55}.Release|x64.Build.0 = Release|x64
+		{4C429783-0B01-449F-A36F-C2019233890B}.Debug|x64.ActiveCfg = Debug|x64
+		{4C429783-0B01-449F-A36F-C2019233890B}.Debug|x64.Build.0 = Debug|x64
+		{4C429783-0B01-449F-A36F-C2019233890B}.Release|x64.ActiveCfg = Release|x64
+		{4C429783-0B01-449F-A36F-C2019233890B}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -813,5 +819,6 @@ Global
 		{643B82A1-D009-46A9-92A0-2883399B05C2} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 		{296F3C5D-3951-423E-8E2F-FD4A37958C72} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 		{9AE2DAF9-10C4-4EC3-AE52-AD5EE9C77C55} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
+		{4C429783-0B01-449F-A36F-C2019233890B} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 	EndGlobalSection
 EndGlobal
