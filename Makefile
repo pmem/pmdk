@@ -34,6 +34,8 @@
 #
 # Use "make" to build the library.
 #
+# Use "make doc" to build documentation.
+#
 # Use "make test" to build unit tests.
 #
 # Use "make check" to run unit tests.
@@ -78,7 +80,9 @@ rpm dpkg: override prefix=/usr
 
 all:
 	$(MAKE) -C src $@
-	$(MAKE) -C doc $@
+
+doc:
+	$(MAKE) -C doc all
 
 clean:
 	$(MAKE) -C src $@
@@ -132,4 +136,4 @@ install uninstall:
 	$(MAKE) -C doc $@
 
 .PHONY: all clean clobber test check cstyle check-license install uninstall\
-	source rpm dpkg pkg-clean pcheck check-remote format $(SUBDIRS)
+	source rpm dpkg pkg-clean pcheck check-remote format doc $(SUBDIRS)

@@ -115,6 +115,13 @@ DESTDIR variable, e.g.:
 ```
 This will install files to /tmp/usr/lib, /tmp/usr/include /tmp/usr/share/man.
 
+The man pages (groff files) are generated as part of the `install` rule. To
+generate the documentation separately, run:
+```
+	$ make doc
+```
+**DEPENDENCIES:** pandoc
+
 To install a complete copy of the source tree to $(DESTDIR)/nvml:
 ```
 	$ make source DESTDIR=some_path
