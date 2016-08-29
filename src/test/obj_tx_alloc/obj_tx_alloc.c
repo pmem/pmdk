@@ -90,7 +90,7 @@ do_tx_alloc_oom(PMEMobjpool *pop)
 	} while (do_alloc);
 
 	size_t bitmap_size = howmany(alloc_cnt, 8);
-	char *bitmap = malloc(bitmap_size);
+	char *bitmap = (char *)MALLOC(bitmap_size);
 	pmemobj_memset_persist(pop, bitmap, 0, bitmap_size);
 
 	size_t obj_cnt = 0;
@@ -102,7 +102,7 @@ do_tx_alloc_oom(PMEMobjpool *pop)
 		obj_cnt++;
 	}
 
-	free(bitmap);
+	FREE(bitmap);
 
 	UT_ASSERTeq(obj_cnt, alloc_cnt);
 }
