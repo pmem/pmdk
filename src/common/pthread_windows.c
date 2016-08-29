@@ -55,6 +55,7 @@
  */
 
 #include <pthread.h>
+#include <sched.h>
 #include <time.h>
 #include <sys/types.h>
 #include <sys/timeb.h>
@@ -486,3 +487,12 @@ pthread_join(pthread_t thread, void **result)
 
 	return 0;
 }
+
+#ifdef _GNU_SOURCE
+int
+pthread_setaffinity_np(pthread_t __th, size_t __cpusetsize,
+				const cpu_set_t *__cpuset)
+{
+	return !SetThreadAffinityMask(__th->thread_handle, __cpuset->mask);
+}
+#endif /* _GNU_SOURCE */
