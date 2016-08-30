@@ -1,5 +1,5 @@
-obj_heap_state/TEST2: START: obj_heap_state
- ./obj_heap_state$(nW) $(nW)/testset1
+obj_heap_state$(nW)TEST2: START: obj_heap_state
+ $(nW)obj_heap_state$(nW) $(nW)testset1
 0 4195712
 1 4195840
 2 4195968
@@ -100,4 +100,4 @@ obj_heap_state/TEST2: START: obj_heap_state
 97 3946368
 98 3946496
 99 3946624
-obj_heap_state/TEST2: Done
+obj_heap_state$(nW)TEST2: Done
