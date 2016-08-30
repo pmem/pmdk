@@ -1,5 +1,6 @@
 /*
  * Copyright 2015-2016, Intel Corporation
+ * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -122,7 +123,7 @@ bucket_tree_insert_block(struct block_container *bc, struct palloc_heap *heap,
 	uint64_t key = CHUNK_KEY_PACK(m.zone_id, m.chunk_id, m.block_off,
 				m.size_idx);
 
-	return ctree_insert(c->tree, key, 0);
+	return Ctree_insert(c->tree, key, 0);
 }
 
 /*
@@ -138,7 +139,7 @@ bucket_tree_get_rm_block_bestfit(struct block_container *bc,
 
 	struct block_container_ctree *c = (struct block_container_ctree *)bc;
 
-	if ((key = ctree_remove(c->tree, key, 0)) == 0)
+	if ((key = Ctree_remove(c->tree, key, 0)) == 0)
 		return ENOMEM;
 
 	m->chunk_id = CHUNK_KEY_GET_CHUNK_ID(key);
@@ -161,7 +162,7 @@ bucket_tree_get_rm_block_exact(struct block_container *bc,
 
 	struct block_container_ctree *c = (struct block_container_ctree *)bc;
 
-	if ((key = ctree_remove(c->tree, key, 1)) == 0)
+	if ((key = Ctree_remove(c->tree, key, 1)) == 0)
 		return ENOMEM;
 
 	return 0;
@@ -220,7 +221,7 @@ bucket_tree_create(size_t unit_size)
 	bc->super.type = CONTAINER_CTREE;
 	bc->super.unit_size = unit_size;
 
-	bc->tree = ctree_new();
+	bc->tree = Ctree_new();
 	if (bc->tree == NULL)
 		goto error_ctree_new;
 
@@ -240,7 +241,7 @@ static void
 bucket_tree_delete(struct block_container *bc)
 {
 	struct block_container_ctree *c = (struct block_container_ctree *)bc;
-	ctree_delete(c->tree);
+	Ctree_delete(c->tree);
 	Free(bc);
 }
 

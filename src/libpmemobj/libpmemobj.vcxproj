@@ -25,6 +25,7 @@
     <ClCompile Include="..\..\src\libpmemobj\redo.c" />
     <ClCompile Include="..\..\src\libpmemobj\sync.c" />
     <ClCompile Include="..\..\src\libpmemobj\tx.c" />
+    <ClCompile Include="libpmemobj_func_mock.c" />
     <ClCompile Include="libpmemobj_main.c" />
     <ClCompile Include="memblock.c" />
     <ClCompile Include="pvector.c" />

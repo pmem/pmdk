@@ -20,6 +20,7 @@
     <ClCompile Include="..\..\libpmemobj\heap.c" />
     <ClCompile Include="..\..\libpmemobj\lane.c" />
     <ClCompile Include="..\..\libpmemobj\libpmemobj.c" />
+    <ClCompile Include="..\..\libpmemobj\libpmemobj_func_mock.c" />
     <ClCompile Include="..\..\libpmemobj\list.c" />
     <ClCompile Include="..\..\libpmemobj\memblock.c" />
     <ClCompile Include="..\..\libpmemobj\memops.c" />

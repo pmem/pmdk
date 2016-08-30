@@ -32,51 +32,32 @@
  */
 
 /*
- * ctree.h -- internal definitions for crit-bit tree
+ * libpmemobj_func_mock.c -- implementation for FUNC_MOCK utilities for
+ * both Windows and Linux
  */
 
-#ifndef LIBPMEMOBJ_CTREE_H
-#define LIBPMEMOBJ_CTREE_H 1
+#include "ctree.h"
+Ctree_new_func Ctree_new = ctree_new;
+Ctree_delete_func Ctree_delete = ctree_delete;
+Ctree_insert_func Ctree_insert = ctree_insert;
+Ctree_remove_func Ctree_remove = ctree_remove;
 
-#include <stdint.h>
-#include <stddef.h>
 /*
- * Function pointers of ctree & friends
+ * set_ctree_funcs -- allow one to override ctree related functions.
  */
-typedef struct ctree *(*Ctree_new_func)(void);
-typedef void(*Ctree_delete_func)(struct ctree *t);
-typedef int(*Ctree_insert_func)(struct ctree *t, uint64_t key, uint64_t value);
-typedef uint64_t(*Ctree_remove_func)(struct ctree *t, uint64_t key, int eq);
-
-extern Ctree_new_func Ctree_new;
-extern Ctree_delete_func Ctree_delete;
-extern Ctree_insert_func Ctree_insert;
-extern Ctree_remove_func Ctree_remove;
-
-void set_ctree_funcs(
-	struct ctree *(*ctree_new_func)(void),
+void
+set_ctree_funcs(struct ctree *(*ctree_new_func)(void),
 	void(*ctree_delete_func)(struct ctree *t),
-	int(*ctree_insert_func)(struct ctree *t, uint64_t key, uint64_t value),
-	uint64_t(*ctree_remove_func)(struct ctree *t, uint64_t key, int eq));
-
-struct ctree;
-
-struct ctree *ctree_new(void);
-void ctree_delete(struct ctree *t);
-
-int ctree_insert(struct ctree *t, uint64_t key, uint64_t value);
-int ctree_insert_unlocked(struct ctree *t, uint64_t key, uint64_t value);
-
-uint64_t ctree_find(struct ctree *t, uint64_t key);
-uint64_t ctree_find_unlocked(struct ctree *t, uint64_t key);
-
-uint64_t ctree_find_le(struct ctree *t, uint64_t *key);
-uint64_t ctree_find_le_unlocked(struct ctree *t, uint64_t *key);
-
-uint64_t ctree_remove(struct ctree *t, uint64_t key, int eq);
-uint64_t ctree_remove_unlocked(struct ctree *t, uint64_t key, int eq);
-
-int ctree_is_empty(struct ctree *t);
-int ctree_is_empty_unlocked(struct ctree *t);
-
-#endif
+	int(*ctree_insert_func)(
+		struct ctree *t, uint64_t key, uint64_t value),
+	uint64_t(*ctree_remove_func)(
+		struct ctree *t, uint64_t key, int eq))
+{
+	Ctree_new = (ctree_new_func == NULL) ? ctree_new : ctree_new_func;
+	Ctree_delete =
+		(ctree_delete_func == NULL) ? ctree_delete : ctree_delete_func;
+	Ctree_insert =
+		(ctree_insert_func == NULL) ? ctree_insert : ctree_insert_func;
+	Ctree_remove =
+		(ctree_remove_func == NULL) ? ctree_remove : ctree_remove_func;
+}

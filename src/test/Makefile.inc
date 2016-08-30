@@ -107,7 +107,8 @@ OBJS += $(TOP)/src/debug/libpmemobj/bucket.o\
 	$(TOP)/src/debug/libpmemobj/pvector.o\
 	$(TOP)/src/debug/libpmemobj/redo.o\
 	$(TOP)/src/debug/libpmemobj/sync.o\
-	$(TOP)/src/debug/libpmemobj/tx.o
+	$(TOP)/src/debug/libpmemobj/tx.o\
+	$(TOP)/src/debug/libpmemobj/libpmemobj_func_mock.o
 
 LIBS += -ldl
 INCS += -I$(TOP)/src/libpmemobj
@@ -131,7 +132,8 @@ OBJS += $(TOP)/src/nondebug/libpmemobj/bucket.o\
 	$(TOP)/src/nondebug/libpmemobj/pvector.o\
 	$(TOP)/src/nondebug/libpmemobj/redo.o\
 	$(TOP)/src/nondebug/libpmemobj/sync.o\
-	$(TOP)/src/nondebug/libpmemobj/tx.o
+	$(TOP)/src/nondebug/libpmemobj/tx.o\
+	$(TOP)/src/nondebug/libpmemobj/libpmemobj_func_mock.o
 
 INCS += -I$(TOP)/src/libpmemobj
 LIBPMEM=y

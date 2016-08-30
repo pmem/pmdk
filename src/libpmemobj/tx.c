@@ -1,5 +1,6 @@
 /*
  * Copyright 2015-2016, Intel Corporation
+ * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -1159,7 +1160,7 @@ pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...)
 		lane = tx.section->runtime;
 		SLIST_INIT(&lane->tx_entries);
 		SLIST_INIT(&lane->tx_locks);
-		lane->ranges = ctree_new();
+		lane->ranges = Ctree_new();
 		lane->cache_slot = 0;
 
 		struct lane_tx_layout *layout =
@@ -1374,7 +1375,7 @@ pmemobj_tx_end()
 			(struct lane_tx_layout *)tx.section->layout;
 
 		/* cleanup cache */
-		ctree_delete(lane->ranges);
+		Ctree_delete(lane->ranges);
 		lane->cache_slot = 0;
 
 		/* the transaction state and undo log should be clear */

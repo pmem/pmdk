@@ -52,6 +52,9 @@
     <ClCompile Include="..\..\src\libpmemobj\palloc.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="libpmemobj_func_mock.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\libpmemobj\heap_layout.h">

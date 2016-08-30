@@ -1,4 +1,6 @@
-# Copyright 2014-2016, Intel Corporation
+#
+# Copyright 2015-2016, Intel Corporation
+# Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -27,47 +29,35 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-#
-# src/libpmemobj/Makefile -- Makefile for libpmemobj
 #
 
-LIBRARY_NAME = pmemobj
-LIBRARY_SO_VERSION = 1
-LIBRARY_VERSION = 0.0
-SOURCE =\
-	$(COMMON)/file.c\
-	$(COMMON)/file_linux.c\
-	$(COMMON)/mmap.c\
-	$(COMMON)/mmap_linux.c\
-	$(COMMON)/out.c\
-	$(COMMON)/pool_hdr.c\
-	$(COMMON)/pool_hdr_linux.c\
-	$(COMMON)/set.c\
-	$(COMMON)/util.c\
-	$(COMMON)/uuid.c\
-	$(COMMON)/uuid_linux.c\
-	$(COMMON)/util_linux.c\
-	bucket.c\
-	ctree.c\
-	cuckoo.c\
-	heap.c\
-	lane.c\
-	libpmemobj.c\
-	list.c\
-	memblock.c\
-	memops.c\
-	obj.c\
-	palloc.c\
-	pmalloc.c\
-	pvector.c\
-	redo.c\
-	sync.c\
-	tx.c\
-	libpmemobj_func_mock.c
+#
+# src/test/obj_bucket/TEST0 -- unit test for obj_bucket interface
+#
+[CmdletBinding(PositionalBinding=$false)]
+Param(
+    [alias("d")]
+    $DIR = ""
+    )
+$Env:UNITTEST_NAME = "obj_bucket/TEST0"
+$Env:UNITTEST_NUM = "0"
 
-include ../Makefile.inc
+# XXX:  valgrind is not working now with windows
+# mocked allocator does not play well with memcheck
+# configure_valgrind memcheck force-disable
 
-CFLAGS += -DUSE_LIBDL
+# XXX:  bash has a few calls to tools that we don't have on
+# windows (yet) that set PMEM_IS_PMEM and NON_PMEM_IS_PMEM based
+# on their output
+$Env:PMEM_IS_PMEM = $true
+$Env:NON_PMEM_IS_PMEM = $true
 
-LIBS += -pthread -lpmem -ldl
+# standard unit test setup
+
+. ..\unittest\unittest.ps1
+
+setup
+
+expect_normal_exit $Env:EXE_DIR\obj_bucket$EXESUFFIX
+
+pass
