@@ -48,9 +48,8 @@ $Env:NON_PMEM_IS_PMEM = $true
 
 . ..\unittest\unittest.ps1
 
+require_test_type long
 setup
-
-$Env:PMEM_IS_PMEM_FORCE=1
 
 create_poolset $DIR\testset1 16M:$DIR\testfile1 r 16M:$DIR\testfile2
 

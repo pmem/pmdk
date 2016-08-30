@@ -39,6 +39,7 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <string.h>
+#include <float.h>
 
 #include "heap.h"
 #include "out.h"
@@ -1005,7 +1006,7 @@ static uint8_t
 heap_find_min_frag_alloc_class(struct palloc_heap *h, size_t n)
 {
 	uint8_t best_bucket = MAX_BUCKETS;
-	size_t best_frag = SIZE_MAX;
+	float best_frag = FLT_MAX;
 	/*
 	 * Start from the largest buckets in order to minimize unit size of
 	 * allocated memory blocks.
@@ -1016,16 +1017,16 @@ heap_find_min_frag_alloc_class(struct palloc_heap *h, size_t n)
 
 		struct bucket_run *run = (struct bucket_run *)h->rt->buckets[i];
 
-		size_t frag = n % run->super.unit_size;
-
+		size_t units = run->super.calc_units((struct bucket *)run, n);
 		/* can't exceed the maximum allowed run unit max */
-		if (run->super.calc_units((struct bucket *)run, n) >
-			run->unit_max_alloc)
+		if (units > run->unit_max_alloc)
 			break;
 
-		if (frag == 0)
+		float frag = (float)(run->super.unit_size * units) / (float)n;
+		if (frag == 1.f)
 			return (uint8_t)i;
 
+		ASSERT(frag >= 1.f);
 		if (frag < best_frag) {
 			best_bucket = (uint8_t)i;
 			best_frag = frag;

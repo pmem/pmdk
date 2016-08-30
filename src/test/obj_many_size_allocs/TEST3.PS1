@@ -54,9 +54,8 @@ $Env:NON_PMEM_IS_PMEM = $true
 
 $Env:PMEMOBJ_VG_CHECK_UNDEF=1
 
+require_test_type long
 setup
-
-$Env:PMEM_IS_PMEM_FORCE=1
 
 create_holey_file 16M $DIR\testfile1
 
