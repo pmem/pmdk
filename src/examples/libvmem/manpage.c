@@ -63,4 +63,6 @@ main(int argc, char *argv[])
 	vmem_free(vmp, ptr);
 
 	/* ... */
+
+	vmem_delete(vmp);
 }

@@ -362,7 +362,8 @@ to contain the string "hello, world", and then frees that memory.
 #include <string.h>
 #include <libvmem.h>
 
-main()
+int
+main(int argc, char *argv[])
 {
 	VMEM *vmp;
 	char *ptr;
@@ -385,6 +386,8 @@ main()
 	vmem_free(vmp, ptr);
 
 	/* ... */
+
+	vmem_delete(vmp);
 }
 ```
 
