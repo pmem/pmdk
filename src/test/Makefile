@@ -326,9 +326,16 @@ ifeq ($(CHECK_POOL),y)
 CHECK_POOL_OPT="-c"
 endif
 
+DIR_SYNC=$(TOP)/src/test/.sync-dir
+SYNC_EXT=synced
+
 all test cstyle format: $(TESTS_BUILD)
 
+all: sync-remotes
+
 clean clobber: $(TESTS_BUILD)
+	$(RM) -r $(DIR_SYNC)
+	$(RM) *.$(SYNC_EXT)
 
 $(TESTS) $(OBJ_DEPS) $(LIBPMEMPOOL_DEPS): $(TEST_DEPS)
 
@@ -411,7 +418,25 @@ pcheck-remote: TARGET = pcheck
 pcheck-remote: $(REMOTE_TESTS)
 	@echo "No failures."
 
+SUPP_SYNC_FILES=$(shell echo *.supp | sed s/supp/$(SYNC_EXT)/g)
+
+%.$(SYNC_EXT): %.supp
+	cp $^ $(DIR_SYNC)
+	@touch $@
+
+# sync remote nodes
+sync-remotes:
+ifneq ($(SKIP_SYNC_REMOTES),y)
+	rm -rf $(DIR_SYNC) && mkdir -p $(DIR_SYNC)
+	$(MAKE) $(SUPP_SYNC_FILES)
+	$(MAKE) -C tools $@
+	$(MAKE) -C ../tools $@
+	$(MAKE) -C sync-remotes $@
+	$(foreach test, $(REMOTE_TESTS), $(MAKE) -C $(test) sync-test;)
+	rm -rf $(DIR_SYNC)
+endif
+
 .PHONY: all check clean clobber cstyle pcheck pcheck-blk pcheck-log pcheck-obj\
 	 pcheck-other pcheck-pmem pcheck-pmempool pcheck-vmem pcheck-vmmalloc\
 	 test unittest tools check-remote format pcheck-libpmempool\
-	 pcheck-rpmem pcheck-local pcheck-remote $(TESTS_BUILD)
+	 pcheck-rpmem pcheck-local pcheck-remote sync-remotes $(TESTS_BUILD)

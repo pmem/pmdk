@@ -442,6 +442,11 @@ Usefull applications for administration and diagnostic purposes.
 %setup -q -n $PACKAGE_SOURCE
 
 %build
+if [ -f $TEST_CONFIG_FILE ]; then
+	cp $TEST_CONFIG_FILE src/test/testconfig.sh
+else
+	cp src/test/testconfig.sh.example src/test/testconfig.sh
+fi
 %{__make}
 
 %install

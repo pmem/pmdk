@@ -1,5 +1,6 @@
+#!/bin/bash -e
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,34 +31,32 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-#
-# src/test/tools/Makefile -- build unit test helpers
-#
+# copy-to-remote-nodes.sh -- helper script used to sync remote nodes
 
-DIRS = \
-       pmemspoil\
-       pmemwrite\
-       pmemalloc\
-       pmemobjcli\
-       pmemdetect\
-       ctrld\
-       bttcreate\
-       fip
+if [ ! -f ../testconfig.sh ]; then
+	echo "SKIP: testconfig.sh does not exist"
+	exit 0
+fi
 
-all     : TARGET = all
-clean   : TARGET = clean
-clobber : TARGET = clobber
-cstyle  : TARGET = cstyle
-format  : TARGET = format
-sync-remotes : TARGET = sync-remotes
+# defined only to be able to source unittest.sh
+UNITTEST_NAME=0
+UNITTEST_NUM=0
 
-all test cstyle clean clobber format: $(DIRS)
+. ../unittest/unittest.sh
 
-sync-remotes: ctrld fip
+COPY_TYPE=$1
+shift
 
-$(DIRS):
-	$(MAKE) -C $@ $(TARGET)
+case "$COPY_TYPE" in
+	commons)
+		copy_commons_to_remote_nodes $*
+		exit 0
+                ;;
+	test)
+		copy_test_to_remote_nodes $*
+		exit 0
+                ;;
+esac
 
-check pcheck:
-
-.PHONY: all clean clobber cstyle format check pcheck $(DIRS)
+echo "Error: unknown copy type: $COPY_TYPE"
+exit 1

@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,33 +31,13 @@
 #
 
 #
-# src/test/tools/Makefile -- build unit test helpers
+# src/test/sync-remote/Makefile -- copy common files to remote nodes
 #
 
-DIRS = \
-       pmemspoil\
-       pmemwrite\
-       pmemalloc\
-       pmemobjcli\
-       pmemdetect\
-       ctrld\
-       bttcreate\
-       fip
+DIR_SYNC=../.sync-dir
 
-all     : TARGET = all
-clean   : TARGET = clean
-clobber : TARGET = clobber
-cstyle  : TARGET = cstyle
-format  : TARGET = format
-sync-remotes : TARGET = sync-remotes
+# sync remote nodes
+sync-remotes:
+	@./copy-to-remote-nodes.sh commons $(DIR_SYNC)
 
-all test cstyle clean clobber format: $(DIRS)
-
-sync-remotes: ctrld fip
-
-$(DIRS):
-	$(MAKE) -C $@ $(TARGET)
-
-check pcheck:
-
-.PHONY: all clean clobber cstyle format check pcheck $(DIRS)
+.PHONY: sync-remotes
