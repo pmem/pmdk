@@ -62,8 +62,32 @@ ut_strerror(int errnum, char *buff, size_t bufflen)
 {
 	strerror_r(errnum, buff, bufflen);
 }
+void ut_suppress_errmsg() {}
+void ut_unsuppress_errmsg() {}
 #else
 #pragma comment(lib, "rpcrt4.lib")
+
+void
+ut_suppress_errmsg()
+{
+	ErrMode = GetErrorMode();
+	SetErrorMode(ErrMode | SEM_NOGPFAULTERRORBOX |
+		SEM_FAILCRITICALERRORS);
+	AbortBehave = _set_abort_behavior(0, _WRITE_ABORT_MSG |
+		_CALL_REPORTFAULT);
+	Suppressed = TRUE;
+}
+
+void
+ut_unsuppress_errmsg()
+{
+	if (Suppressed) {
+		SetErrorMode(ErrMode);
+		_set_abort_behavior(AbortBehave, _WRITE_ABORT_MSG |
+			_CALL_REPORTFAULT);
+		Suppressed = FALSE;
+	}
+}
 
 int
 ut_get_uuid_str(char *uuid_str)
@@ -403,10 +427,7 @@ ut_start(const char *file, int line, const char *func,
 #ifdef _WIN32
 	if (getenv("UNITTEST_NO_ABORT_MSG") != NULL) {
 		/* disable windows error message boxes */
-		DWORD dwMode = GetErrorMode();
-		SetErrorMode(dwMode | SEM_NOGPFAULTERRORBOX |
-			SEM_FAILCRITICALERRORS);
-		_set_abort_behavior(0, _WRITE_ABORT_MSG | _CALL_REPORTFAULT);
+		ut_suppress_errmsg();
 	}
 #endif
 	if (getenv("UNITTEST_NO_SIGHANDLERS") == NULL)
