@@ -1,6 +1,6 @@
-#!/bin/bash -e
 #
 # Copyright 2015-2016, Intel Corporation
+# Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,18 +32,32 @@
 #
 
 #
-# src/test/obj_tx_strdup/TEST1 -- unit test for pmemobj_tx_strdup
+# src\test\obj_tx_strdup\TEST1 -- unit test for pmemobj_tx_strdup
 #
-export UNITTEST_NAME=obj_tx_strdup/TEST1
-export UNITTEST_NUM=1
+[CmdletBinding(PositionalBinding=$false)]
+Param(
+    [alias("d")]
+    $DIR = ""
+    )
+$ENV:UNITTEST_NAME = "obj_tx_strdup\TEST1"
+$ENV:UNITTEST_NUM = "1"
+
+# XXX:  bash has a few calls to tools that we don't have on
+# Windows (yet) that set PMEM_IS_PMEM and NON_PMEM_IS_PMEM based
+# on their output
+$Env:PMEM_IS_PMEM = $true
+$Env:NON_PMEM_IS_PMEM = $true
+
 
 # standard unit test setup
-. ../unittest/unittest.sh
+. ..\unittest\unittest.ps1
 
-configure_valgrind pmemcheck force-enable
+# XXX: however we don't have valgrind in Windows yet
+# configure_valgrind pmemcheck force-enable
+
 setup
 
-expect_normal_exit ./obj_tx_strdup$EXESUFFIX $DIR/testfile1
+expect_normal_exit $Env:EXE_DIR\obj_tx_strdup$EXESUFFIX $DIR\testfile1
 
 check
 
