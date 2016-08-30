@@ -1484,6 +1484,11 @@ traverse_bucket_run(struct bucket *b, struct memory_block m,
 	uint32_t size_idx_sum = 0;
 
 	while (size_idx_sum != r->bitmap_nallocs) {
+		if (m.block_off + r->unit_max > r->bitmap_nallocs)
+			m.size_idx = r->bitmap_nallocs - m.block_off;
+		else
+			m.size_idx = r->unit_max;
+
 		if (cb(b->container, m) != 0)
 			return 1;
 
@@ -1491,10 +1496,6 @@ traverse_bucket_run(struct bucket *b, struct memory_block m,
 
 		ASSERT((uint32_t)m.block_off + r->unit_max <= UINT16_MAX);
 		m.block_off = (uint16_t)(m.block_off + r->unit_max);
-		if (m.block_off + r->unit_max > r->bitmap_nallocs)
-			m.size_idx = r->bitmap_nallocs - m.block_off;
-		else
-			m.size_idx = r->unit_max;
 	}
 
 	return 0;
