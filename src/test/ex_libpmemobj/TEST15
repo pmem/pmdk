@@ -43,6 +43,7 @@ export UNITTEST_NUM=15
 require_build_type debug nondebug
 require_fs_type pmem
 require_pkg ncurses
+require_tty
 
 setup
 

@@ -1132,6 +1132,16 @@ function require_no_asan() {
 }
 
 #
+# require_tty - continue script execution only if standard output is a terminal
+#
+function require_tty() {
+	if ! tty >/dev/null; then
+		echo "$UNITTEST_NAME: SKIP no terminal"
+		exit 0
+	fi
+}
+
+#
 # require_binary -- continue script execution only if the binary has been compiled
 #
 # In case of conditional compilation, skip this test.
