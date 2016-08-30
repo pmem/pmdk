@@ -74,7 +74,8 @@ main(int argc, char *argv[])
 		UT_FATAL("!pmemobj_create: %s", path);
 
 	/* allocate 1.5*N */
-	TOID(struct root) root = (TOID(struct root))pmemobj_root(pop, 1.5 * N);
+	TOID(struct root) root = (TOID(struct root))pmemobj_root(pop,
+		(size_t)(1.5 * N));
 
 	/* use root object for something */
 	POBJ_NEW(pop, &D_RW(root)->foo, struct foo, NULL, NULL);
@@ -101,7 +102,7 @@ main(int argc, char *argv[])
 		UT_FATAL("!pmemobj_create: %s", path);
 
 	/* try to allocate 0.7*N */
-	root = (TOID(struct root))pmemobj_root(pop, 0.5 * N);
+	root = (TOID(struct root))pmemobj_root(pop, (size_t)(0.5 * N));
 
 	if (TOID_IS_NULL(root))
 		UT_FATAL("couldn't allocate root object");
