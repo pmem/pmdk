@@ -450,6 +450,8 @@ ut_truncate(const char *file, int line, const char *func, const char *path,
 	return retval;
 }
 
+#endif
+
 /*
  * ut_ftruncate -- a ftruncate that cannot return -1
  */
@@ -465,7 +467,6 @@ ut_ftruncate(const char *file, int line, const char *func, int fd,
 
 	return retval;
 }
-#endif
 
 /*
  * ut_chmod -- a chmod that cannot return -1
