@@ -465,6 +465,25 @@ ut_ftruncate(const char *file, int line, const char *func, int fd,
 
 	return retval;
 }
+
+#else
+
+/*
+ * ut_ftruncate -- a ftruncate that cannot return -1
+ */
+int
+ut_ftruncate(const char *file, int line, const char *func, int fd,
+	off_t length)
+{
+	int retval = _chsize_s(fd, length);
+
+	if (retval < 0)
+		ut_fatal(file, line, func, "!_chsize_s: %d %llu",
+			fd, (unsigned long long)length);
+
+	return retval;
+}
+
 #endif
 
 /*
