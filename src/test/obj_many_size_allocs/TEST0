@@ -41,6 +41,8 @@ export UNITTEST_NUM=0
 # covered by TEST3
 configure_valgrind memcheck force-disable
 
+require_test_type long
+
 setup
 
 export PMEM_IS_PMEM_FORCE=1

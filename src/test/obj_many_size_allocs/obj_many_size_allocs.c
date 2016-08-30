@@ -38,6 +38,7 @@
 #include <stddef.h>
 
 #include "unittest.h"
+#include "heap.h"
 
 #define LAYOUT_NAME "many_size_allocs"
 #define TEST_ALLOC_SIZE 2048
@@ -86,7 +87,6 @@ test_allocs(PMEMobjpool *pop, const char *path)
 		UT_ASSERT(OID_IS_NULL(oid[i]));
 	}
 
-	pmemobj_close(pop);
 }
 
 static void
@@ -110,6 +110,26 @@ test_lazy_load(PMEMobjpool *pop, const char *path)
 	UT_ASSERTeq(ret, 0);
 }
 
+#define MAX_BUCKET_MAP_ENTRIES (RUNSIZE / ALLOC_BLOCK_SIZE)
+
+static void
+test_all_classes(PMEMobjpool *pop)
+{
+	for (int i = 1; i <= MAX_BUCKET_MAP_ENTRIES; ++i) {
+		int err;
+		int nallocs = 0;
+		while ((err = pmemobj_alloc(pop, NULL, i * ALLOC_BLOCK_SIZE, 0,
+			NULL, NULL)) == 0) {
+			nallocs++;
+		}
+
+		UT_ASSERT(nallocs > 0);
+		PMEMoid iter, niter;
+		POBJ_FOREACH_SAFE(pop, iter, niter) {
+			pmemobj_free(&iter);
+		}
+	}
+}
 
 int
 main(int argc, char *argv[])
@@ -129,6 +149,9 @@ main(int argc, char *argv[])
 
 	test_lazy_load(pop, path);
 	test_allocs(pop, path);
+	test_all_classes(pop);
+
+	pmemobj_close(pop);
 
 	DONE(NULL);
 }
