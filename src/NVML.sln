@@ -414,6 +414,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_tx_free", "test\obj_tx_
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_tx_locks_abort", "test\obj_tx_locks_abort\obj_tx_locks_abort.vcxproj", "{6F4953DA-FDC3-46CF-BF24-3752CCF2E1CB}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_recreate", "test\obj_recreate\obj_recreate.vcxproj", "{1464398A-100F-4518-BDB9-939A6362B6CF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -742,6 +744,10 @@ Global
 		{6F4953DA-FDC3-46CF-BF24-3752CCF2E1CB}.Debug|x64.Build.0 = Debug|x64
 		{6F4953DA-FDC3-46CF-BF24-3752CCF2E1CB}.Release|x64.ActiveCfg = Release|x64
 		{6F4953DA-FDC3-46CF-BF24-3752CCF2E1CB}.Release|x64.Build.0 = Release|x64
+		{1464398A-100F-4518-BDB9-939A6362B6CF}.Debug|x64.ActiveCfg = Debug|x64
+		{1464398A-100F-4518-BDB9-939A6362B6CF}.Debug|x64.Build.0 = Debug|x64
+		{1464398A-100F-4518-BDB9-939A6362B6CF}.Release|x64.ActiveCfg = Release|x64
+		{1464398A-100F-4518-BDB9-939A6362B6CF}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -834,5 +840,6 @@ Global
 		{4C429783-0B01-449F-A36F-C2019233890B} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 		{7F51CD29-3BCD-4DD8-B327-F384B5A616D1} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 		{6F4953DA-FDC3-46CF-BF24-3752CCF2E1CB} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
+		{1464398A-100F-4518-BDB9-939A6362B6CF} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 	EndGlobalSection
 EndGlobal
