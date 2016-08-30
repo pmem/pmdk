@@ -1,4 +1,3 @@
-#!/bin/bash -e
 #
 # Copyright 2015-2016, Intel Corporation
 # Copyright (c) 2016, Microsoft Corporation. All rights reserved.
@@ -33,20 +32,28 @@
 #
 
 #
-# src/test/obj_tx_realloc/TEST1 -- unit test for pmemobj_tx_realloc
+# src\test\obj_tx_free\TEST0 -- unit test for pmemobj_tx_free
 #
-export UNITTEST_NAME=obj_tx_realloc/TEST1
-export UNITTEST_NUM=1
+[CmdletBinding(PositionalBinding=$false)]
+Param(
+    [alias("d")]
+    $DIR = ""
+    )
+$ENV:UNITTEST_NAME = "obj_tx_free\TEST0"
+$ENV:UNITTEST_NUM = "0"
+
+# XXX:  bash has a few calls to tools that we don't have on
+# Windows (yet) that set PMEM_IS_PMEM and NON_PMEM_IS_PMEM based
+# on their output
+$Env:PMEM_IS_PMEM = $true
+$Env:NON_PMEM_IS_PMEM = $true
 
 # standard unit test setup
-. ../unittest/unittest.sh
+. ..\unittest\unittest.ps1
 
-configure_valgrind pmemcheck force-enable
 setup
 
-create_nonzeroed_file 8M 8K $DIR/testfile1
-
-expect_normal_exit ./obj_tx_realloc$EXESUFFIX $DIR/testfile1
+expect_normal_exit $ENV:EXE_DIR\obj_tx_free$EXESUFFIX $DIR\testfile1
 
 check
 
