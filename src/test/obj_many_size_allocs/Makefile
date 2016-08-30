@@ -37,6 +37,6 @@ TARGET = obj_many_size_allocs
 OBJS = obj_many_size_allocs.o
 
 LIBPMEM=y
-LIBPMEMOBJ=y
+LIBPMEMOBJ=internal-debug
 
 include ../Makefile.inc
