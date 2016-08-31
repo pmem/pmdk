@@ -434,12 +434,12 @@ Setting this environment variable makes it possible to override the
 default **ssh** client command name. Setting this variable shall not
 be required normally.
 
-+ **RPMEM_ENABLE_SOCKETS**=0|1
++ **RPMEM_ENABLE_SOCKETS**=0\|1
 
 Setting this variable to 1 enables using **fi_sockets**(7) provider for
 in-band RDMA connection. By default the *sockets* provider is disabled.
 
-* **RPMEM_ENABLE_VERBS**=0|1
+* **RPMEM_ENABLE_VERBS**=0\|1
 
 Setting this variable to 0 disables using **fi_verbs**(7) provider for
 in-band RDMA connection. The *verbs* provider is enabled by default.
