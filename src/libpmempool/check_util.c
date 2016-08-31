@@ -406,7 +406,7 @@ check_pop_question(struct check_data *data)
 }
 
 /*
- * check_pop_info -- pop single info from informations queue
+ * check_pop_info -- pop single info from information queue
  */
 struct check_status *
 check_pop_info(struct check_data *data)

@@ -34,9 +34,9 @@
 # pull-or-rebuild-image.sh - rebuilds the Docker image used in the
 #                            current Travis build if necessary.
 #
-# The script rebuilds the Docker image if the Dockerfile for the current
+# The script rebuilds the Docker image if the Docker file for the current
 # OS version (Dockerfile.${OS}-${OS_VER}) or any .sh script from the directory
-# with Dockerfiles were modified and commited.
+# with Docker files were modified and committed.
 #
 # If the Travis build is not of the "pull_request" type (i.e. in case of
 # merge after pull_request) and it succeed, the Docker image should be pushed
@@ -74,11 +74,11 @@ files=$(for commit in $commits; do git diff-tree --no-commit-id --name-only \
 echo "Files modified within the commit range:"
 for file in $files; do echo $file; done
 
-# Path to directory with Dockerfiles and image building scripts
+# Path to directory with Docker files and image building scripts
 images_dir_name=images
 base_dir=utils/docker/$images_dir_name
 
-# Check if commited file modifications require the Docker image to be rebuilt
+# Check if committed file modifications require the Docker image to be rebuilt
 for file in $files; do
 	# Check if modified files are relevant to the current build
 	if [[ $file =~ ^($base_dir)\/Dockerfile\.($OS)-($OS_VER)$ ]] \

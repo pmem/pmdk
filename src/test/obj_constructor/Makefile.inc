@@ -32,7 +32,7 @@
 
 #
 # src/test/obj_constructor/Makefile.inc -- build obj_constructor and
-#       obj_rpmem_constructor unittests
+#       obj_rpmem_constructor unit tests
 #
 
 ../obj_constructor/obj_constructor:

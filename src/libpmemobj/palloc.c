@@ -218,7 +218,7 @@ alloc_prep_block(struct palloc_heap *heap, struct memory_block m,
 
 		/*
 		 * During this method there are several stores to pmem that are
-		 * not immediately flushed and in case of a cancelation those
+		 * not immediately flushed and in case of a cancellation those
 		 * stores are no longer relevant anyway.
 		 */
 		VALGRIND_SET_CLEAN(block_data, ALLOC_OFF);

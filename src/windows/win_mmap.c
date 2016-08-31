@@ -668,7 +668,7 @@ err:
  * XXX - If the memory range passed to mprotect() includes invalid pages,
  * returned status will indicate error, and errno is set to ENOMEM.
  * However, the protection change is actually applied to all the valid pages,
- * ingoring the rest.
+ * ignoring the rest.
  * This is different than on Linux, where it stops on the first invalid page.
  */
 int

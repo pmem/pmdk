@@ -31,7 +31,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# libpmempool_api/TEST3 -- test for checking api
+# libpmempool_api/TEST3 -- test for checking API
 #
 export UNITTEST_NAME=libpmempool_api/TEST3
 export UNITTEST_NUM=3

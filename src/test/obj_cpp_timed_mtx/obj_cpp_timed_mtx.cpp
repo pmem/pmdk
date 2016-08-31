@@ -66,7 +66,7 @@ const int num_threads = 30;
 const auto timeout = std::chrono::milliseconds(100);
 
 /*
- * Premature wakeup tolerance.
+ * Premature wake-up tolerance.
  * XXX Windows - this needs to be investigated, it shouldn't timeout this long
  * before the actual timeout.
  */

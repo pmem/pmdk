@@ -52,7 +52,7 @@ namespace
 {
 
 /*
- * Due to premature wakeups with the TIMEDOUT status on the Windows platform,
+ * Due to premature wake-ups with the TIMEDOUT status on the Windows platform,
  * an "epsilon" tolerance has been introduced where appropriate.
  */
 
@@ -76,7 +76,7 @@ const int limit = 7000;
 const std::chrono::milliseconds wait_time(150);
 
 /*
- * Premature wakeup tolerance.
+ * Premature wake-up tolerance.
  * XXX Windows - this needs to be investigated, it shouldn't timeout this long
  * before the actual timeout.
  */

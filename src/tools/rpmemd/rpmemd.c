@@ -160,7 +160,7 @@ rpmemd_db_get_status(int err)
 }
 
 /*
- * rpmemd_check_pool -- verify pool parameteres
+ * rpmemd_check_pool -- verify pool parameters
  */
 static int
 rpmemd_check_pool(struct rpmemd *rpmemd, const struct rpmem_req_attr *req,

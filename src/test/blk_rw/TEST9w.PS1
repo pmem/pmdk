@@ -60,7 +60,7 @@ create_poolset $DIR\testset1 1G:$DIR\testfile1:x 1G:$DIR\testfile2:x
 #
 # XXX: This test would fail with STATUS_CONFLICTING_ADDRESSES, because
 # while mapping multiple files to a contiguous virtual range we don't
-# retry if we the chosen range is already reseved by someone else.
+# retry if we the chosen range is already reserved by someone else.
 #
 expect_normal_exit $Env:EXE_DIR\blk_rw$Env:EXESUFFIX 512 $DIR\testset1 c `
 	w:-1 r:-1 z:-1 e:-1

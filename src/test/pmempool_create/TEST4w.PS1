@@ -51,7 +51,7 @@ require_fs_type any
 
 setup
 
-#XXX: check_mode dont work correctly
+#XXX: check_mode does not work correctly
 
 $POOL="$DIR\file.pool"
 # PMEMBLK

@@ -78,7 +78,7 @@ ut_get_uuid_str(char *uuid_str)
 		}
 	return -1;
 }
-/* XXX - fix this temp hack dup'ing util_strerror when we get mock for win */
+/* XXX - fix this temp hack duping util_strerror when we get mock for win */
 #define ENOTSUP_STR "Operation not supported"
 #define UNMAPPED_STR "Unmapped error"
 void
