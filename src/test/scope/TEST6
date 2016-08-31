@@ -1,5 +1,6 @@
+#!/bin/bash -e
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2014-2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,17 +32,34 @@
 #
 
 #
-# src/test/out_err_mt/Makefile -- build unit test for error messages
+# src/test/scope/TEST6 -- scope test to check libpmempool symbols
 #
-TARGET = out_err_mt
-OBJS = out_err_mt.o
+export UNITTEST_NAME=scope/TEST6
+export UNITTEST_NUM=6
 
-LIBPMEMCOMMON=y
-LIBPMEM=y
-LIBPMEMLOG=y
-LIBPMEMBLK=y
-LIBPMEMOBJ=y
-LIBPMEMPOOL=y
-LIBVMEM=y
+# standard unit test setup
+. ../unittest/unittest.sh
 
-include ../Makefile.inc
+require_fs_type none
+require_build_type debug
+
+setup
+
+parse_lib() {
+	local lib_path=$1
+	echo "$lib_path:" >> out$UNITTEST_NUM.log
+	(nm -g $lib_path |\
+		perl -ne 'print if s/^[0-9a-z]+ T (\w+)/$1/' |\
+		sort >> out$UNITTEST_NUM.log) 2>&1
+
+}
+
+echo "$UNITTEST_NAME:" > out$UNITTEST_NUM.log
+parse_lib "../../debug/libpmempool.so"
+parse_lib "../../nondebug/libpmempool.so"
+parse_lib "../../debug/libpmempool.a"
+parse_lib "../../nondebug/libpmempool.a"
+
+check
+
+pass

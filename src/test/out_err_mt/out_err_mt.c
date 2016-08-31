@@ -52,6 +52,7 @@ print_errors(const char *msg)
 	UT_OUT("PMEMLOG: %s", pmemlog_errormsg());
 	UT_OUT("PMEMBLK: %s", pmemblk_errormsg());
 	UT_OUT("VMEM: %s", vmem_errormsg());
+	UT_OUT("PMEMPOOL: %s", pmempool_errormsg());
 }
 
 static void
@@ -95,6 +96,13 @@ check_errors(int ver)
 	UT_ASSERTeq(ret, 2);
 	UT_ASSERTeq(err_need, ver);
 	UT_ASSERTeq(err_found, VMEM_MAJOR_VERSION);
+
+	ret = sscanf(pmempool_errormsg(),
+		"libpmempool major version mismatch (need %d, found %d)",
+		&err_need, &err_found);
+	UT_ASSERTeq(ret, 2);
+	UT_ASSERTeq(err_need, ver);
+	UT_ASSERTeq(err_found, PMEMBLK_MAJOR_VERSION);
 }
 
 static void *
@@ -107,6 +115,7 @@ do_test(void *arg)
 	pmemlog_check_version(ver, 0);
 	pmemblk_check_version(ver, 0);
 	vmem_check_version(ver, 0);
+	pmempool_check_version(ver, 0);
 	check_errors(ver);
 
 	return NULL;
@@ -151,6 +160,7 @@ main(int argc, char *argv[])
 	pmemlog_check_version(10002, 0);
 	pmemblk_check_version(10003, 0);
 	vmem_check_version(10004, 0);
+	pmempool_check_version(10005, 0);
 	print_errors("version check");
 
 	void *ptr = NULL;
@@ -180,6 +190,12 @@ main(int argc, char *argv[])
 	pmemlog_close(plp);
 	pmemblk_close(pbp);
 	vmem_delete(vmp);
+
+	PMEMpoolcheck *ppc;
+	struct pmempool_check_args args = {0, };
+	ppc = pmempool_check_init(&args, sizeof(args) / 2);
+	UT_ASSERTeq(ppc, NULL);
+	print_errors("pmempool_check_init");
 
 	DONE(NULL);
 }
