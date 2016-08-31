@@ -15,6 +15,8 @@ troubleshooting. It may be useful for testing and debugging purposes also.
 Man pages that contains a list of the interfaces provided:
 
 * Man page for [libpmempool current master](../manpages/master/libpmempool.3.html)
+* Latest releases:
+   * [libpmempool version 1.1](../manpages/v1.1/libpmempool.3.html)
 
 #### libpmempool Examples
 
