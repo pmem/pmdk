@@ -30,42 +30,12 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
 #
-# src/test/rpmem_basic/TEST3 -- unit test for rpmem_persist
+# obj_rpmem_constructor/config.sh -- test configuration
 #
-export UNITTEST_NAME=rpmem_basic/TEST3
-export UNITTEST_NUM=3
 
-# standard unit test setup
-. ../unittest/unittest.sh
+CONF_GLOBAL_FS_TYPE=pmem
+CONF_GLOBAL_BUILD_TYPE="debug nondebug"
 
-setup
-
-. setup.sh
-
-cat > $DIR/pool0.set << EOF
-PMEMPOOLSET
-8M $PART_DIR/pool0.part0
-8M $PART_DIR/pool0.part1
-EOF
-
-run_on_node 0 "rm -rf $POOLS_DIR $POOLS_PART && mkdir -p $POOLS_DIR && mkdir -p $POOLS_PART"
-
-copy_files_to_node 0 $POOLS_DIR $DIR/pool0.set
-
-expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
-	test_create 0 pool0.set ${NODE_ADDR[0]} mem 8M test_close 0
-
-expect_normal_exit run_on_node 0 ./rpmem_basic$EXESUFFIX\
-	fill_pool $POOLS_DIR/pool0.set 1234
-
-expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
-	test_open 0 pool0.set ${NODE_ADDR[0]} pool 8M\
-	test_persist 0 4321 1 1\
-	test_close 0
-
-expect_normal_exit run_on_node 0 ./rpmem_basic$EXESUFFIX\
-	check_pool $POOLS_DIR/pool0.set 4321 8M
-
-pass
+CONF_GLOBAL_RPMEM_PROVIDER=all
+CONF_GLOBAL_RPMEM_PMETHOD=all
