@@ -1007,7 +1007,7 @@ heap_find_min_frag_alloc_class(struct palloc_heap *h, size_t n)
 	uint8_t best_bucket = MAX_BUCKETS;
 	size_t best_frag = SIZE_MAX;
 	/*
-	 * Start from the largest buckets in order to minimze unit size of
+	 * Start from the largest buckets in order to minimize unit size of
 	 * allocated memory blocks.
 	 */
 	for (int i = MAX_BUCKETS - 1; i >= 0; --i) {

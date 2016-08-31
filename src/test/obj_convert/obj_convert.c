@@ -85,7 +85,7 @@ enum operation {
 
 /*
  * A macro that recursively create a nested transactions and save whole object
- * or specific FIELD in the undolog.
+ * or specific FIELD in the undo log.
  */
 #define TEST_GEN(type)\
 static void \

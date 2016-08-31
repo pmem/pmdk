@@ -36,7 +36,7 @@
 #
 # The script rebuilds the Docker image if the Dockerfile for the current
 # OS version (Dockerfile.${OS}-${OS_VER}) or any .sh script from the directory
-# with Dockerfiles were modified and commited.
+# with Dockerfiles were modified and committed.
 #
 # If the Travis build is not of the "pull_request" type (i.e. in case of
 # merge after pull_request) and it succeed, the Docker image should be pushed
@@ -78,7 +78,7 @@ for file in $files; do echo $file; done
 images_dir_name=images
 base_dir=utils/docker/$images_dir_name
 
-# Check if commited file modifications require the Docker image to be rebuilt
+# Check if committed file modifications require the Docker image to be rebuilt
 for file in $files; do
 	# Check if modified files are relevant to the current build
 	if [[ $file =~ ^($base_dir)\/Dockerfile\.($OS)-($OS_VER)$ ]] \

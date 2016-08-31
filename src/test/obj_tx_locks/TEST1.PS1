@@ -60,7 +60,7 @@ $Env:PMEMOBJ_LOG_FILE = ""
 
 require_fs_type any
 require_build_type debug nondebug
-# XXX no windows equialent for these yet
+# XXX no windows equivalent for these yet
 #require_valgrind_dev_3_10
 #configure_valgrind drd force-enable
 setup

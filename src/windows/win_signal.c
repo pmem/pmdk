@@ -31,7 +31,7 @@
  */
 
 /*
- * win_signal.c -- Windows emulation of Linux specific apis
+ * win_signal.c -- Windows emulation of Linux specific APIs
  */
 
 /*
@@ -76,7 +76,7 @@ const char * const sys_siglist[] = {
 /*
  * string constants for strsignal
  * XXX: ideally this should have the signal number as the suffix but then we
- * should use a buffer from thread local storage, so defering the same till
+ * should use a buffer from thread local storage, so deferring the same till
  * we need it
  * NOTE: In Linux strsignal uses TLS for the same reason but if it fails to get
  * a thread local buffer it falls back to using a static buffer trading the

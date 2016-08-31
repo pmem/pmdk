@@ -164,7 +164,7 @@ check_step(PMEMpoolcheck *ppc)
 	LOG(3, NULL);
 
 	struct check_status *status = NULL;
-	/* return if we have informations or questions to ask or check ended */
+	/* return if we have information or questions to ask or check ended */
 	if ((status = status_get(ppc)) || check_is_end(ppc->data))
 		return status;
 
