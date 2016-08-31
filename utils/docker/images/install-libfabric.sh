@@ -31,7 +31,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #
-# install-libfabric.sh - installs a customised version of libfabric
+# install-libfabric.sh - installs a customized version of libfabric
 #
 
 libfabric_ver=8e21233251fad4868b2209de473fe1ed585ec564

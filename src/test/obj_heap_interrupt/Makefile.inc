@@ -32,7 +32,7 @@
 
 #
 # src/test/obj_heap_interrupt/Makefile.inc -- build obj_heap_interrupt and
-#       obj_rpmem_heap_interrupt unittests
+#       obj_rpmem_heap_interrupt unit tests
 #
 
 ../obj_heap_interrupt/obj_heap_interrupt:
