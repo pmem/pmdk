@@ -3,7 +3,7 @@ layout: manual
 Content-Style: 'text/css'
 title: libpmem(3)
 header: NVM Library
-date: pmem API version 1.0.1
+date: pmem API version 1.0.2
 ...
 
 [comment]: <> (Copyright 2016, Intel Corporation)
@@ -38,13 +38,13 @@ date: pmem API version 1.0.1
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
-[MOST COMMONLY USED FUNCTIONS](#most-commonly-used-functions)<br />
-[PARTIAL FLUSHING OPERATIONS](#partial-flushing-operations)<br />
-[COPYING TO PERSISTENT MEMORY](#copying-to-persistent-memory)<br />
-[LIBRARY API VERSIONING](#library-api-versioning)<br />
+[MOST COMMONLY USED FUNCTIONS](#most-commonly-used-functions-1)<br />
+[PARTIAL FLUSHING OPERATIONS](#partial-flushing-operations-1)<br />
+[COPYING TO PERSISTENT MEMORY](#copying-to-persistent-memory-1)<br />
+[LIBRARY API VERSIONING](#library-api-versioning-1)<br />
 [DEBUGGING AND ERROR HANDLING](#debugging-and-error-handling)<br />
 [ENVIRONMENT VARIABLES](#environment-variables)<br />
-[EXAMPLES](#examples)<br />
+[EXAMPLE](#example)<br />
 [ACKNOWLEDGEMENTS](#acknowledgements)<br />
 [SEE ALSO](#see-also)
 
@@ -52,6 +52,7 @@ date: pmem API version 1.0.1
 # NAME #
 
 **libpmem** -- persistent memory support library
+
 
 # SYNOPSIS #
 
@@ -104,6 +105,7 @@ const char *pmem_check_version(
 const char *pmem_errormsg(void);
 ```
 
+
 # DESCRIPTION #
 
 **libpmem** provides low-level *persistent memory* (pmem) support for
@@ -133,6 +135,7 @@ intentionally cause the process to exit.
 The only exception to this is the debugging information, when enabled,
 as described under **DEBUGGING AND ERROR HANDLING** below.
 
+
 # MOST COMMONLY USED FUNCTIONS #
 
 Most pmem-aware applications will take advantage of higher level
@@ -161,7 +164,8 @@ appropriate for flushing changes to persistence. Calling
 **pmem_is_pmem**() each time changes are flushed to persistence will
 not perform well.
 
->WARNING: Using **pmem_persist**() on a range where **pmem_is_pmem**()
+>WARNING:
+Using **pmem_persist**() on a range where **pmem_is_pmem**()
 returns false may not do anything useful -- use **msync**(2) instead.
 
 ```c
@@ -175,7 +179,8 @@ possible. There are no alignment restrictions on the range described by
 *addr* and *len*, but **pmem_persist**() may expand the range as
 necessary to meet platform alignment requirements.
 
->WARNING: Like **msync**(2), there is nothing atomic or transactional
+>WARNING:
+Like **msync**(2), there is nothing atomic or transactional
 about this call. Any unwritten stores in the given range will be
 written, but some stores may have already been written by virtue of
 normal cache eviction/replacement policies. Correctly written code must
@@ -276,6 +281,7 @@ previously mapped region. **pmem_unmap**() will delete the mappings
 using the **munmap**(2), On success, **pmem_unmap**() returns zero. On
 error, -1 is returned, and *errno* is set appropriately.
 
+
 # PARTIAL FLUSHING OPERATIONS #
 
 The functions in this section provide access to the stages of flushing
@@ -322,6 +328,7 @@ function always returns false.  Despite that, programs using
 **pmem_drain**() once to ensure the flushes are complete.  As mentioned above,
 **pmem_persist**() handles calling both **pmem_flush**() and **pmem_drain**().
 
+
 # COPYING TO PERSISTENT MEMORY #
 
 The functions in this section provide optimized copying to persistent
@@ -357,7 +364,8 @@ however, since the **libpmem** implementation may take advantage of the
 fact that *pmemdest* is persistent memory and use instructions such as
 *non-temporal* stores to avoid the need to flush processor caches.
 
->WARNING: Using these functions where **pmem_is_pmem**() returns false
+>WARNING:
+Using these functions where **pmem_is_pmem**() returns false
 may not do anything useful. Use the normal libc functions in that case.
 
 ```c
@@ -387,9 +395,11 @@ pmem_memcpy_nodrain(pmemdest2, src2, len2);
 pmem_drain();
 ```
 
->WARNING: Using **pmem_memmove_nodrain**(), **pmem_memcpy_nodrain**()
+>WARNING:
+Using **pmem_memmove_nodrain**(), **pmem_memcpy_nodrain**()
 or **pmem_memset_nodrain**() on a destination where
 **pmem_is_pmem**() returns false may not do anything useful.
+
 
 # LIBRARY API VERSIONING #
 
@@ -433,6 +443,7 @@ successful, the return value is NULL. Otherwise the return value is a
 static string describing the reason for failing the version check. The
 string returned by **pmem_check_version**() must not be modified or
 freed.
+
 
 # DEBUGGING AND ERROR HANDLING #
 
@@ -493,6 +504,7 @@ the logging output goes to stderr.
 Setting the environment variable **PMEM_LOG_LEVEL** has no effect on
 the non-debug version of **libpmem**.
 
+
 # ENVIRONMENT VARIABLES #
 
 **libpmem** can change its default behavior based on the following
@@ -507,7 +519,8 @@ true. This variable is mostly used for testing but can be used to force
 pmem behavior on a system where a range of pmem is not detectable as
 pmem for some reason.
 
->NOTE: Unlike the other variables, the value of
+>NOTE:
+Unlike the other variables, the value of
 **PMEM_IS_PMEM_FORCE** is not queried (and cached) at the
 library initialization time, but on the first call to
 **pmem_is_pmem**() function. It means that in case of
@@ -546,7 +559,7 @@ for copying larger ranges to persistent memory on platforms that support
 the instructions. This variable is intended for use during library
 testing.
 
-* **PMEM_MOVNT_THRESHOLD**=*val*
++ **PMEM_MOVNT_THRESHOLD**=*val*
 
 This environment variable allows overriding the minimal length of
 **pmem_memcpy\_\***(), **pmem_memmove\_\***() or
@@ -556,7 +569,7 @@ forces **libpmem** to always use the *non-temporal* move instructions if
 available. It has no effect if **PMEM_NO_MOVNT** variable is set to 1.
 This variable is intended for use during library testing.
 
-* **PMEM_MMAP_HINT**=*val*
++ **PMEM_MMAP_HINT**=*val*
 
 This environment variable allows overriding
 the hint address used by **pmem_map_file**(). If set, it also disables
@@ -570,17 +583,20 @@ block, based on its offset in the file. In case of **libpmemobj** it
 simplifies conversion of a persistent object identifier (OID) into a
 direct pointer to the object.
 
->**NOTE: Setting this environment variable
+>NOTE:
+**Setting this environment variable
 affects all the NVM libraries,** disabling mapping address randomization
 and causing the specified address to be used as a hint about where to
 place the mapping.
 
-# EXAMPLES #
+
+# EXAMPLE #
 
 The following example uses **libpmem** to flush changes made to raw,
 memory-mapped persistent memory.
 
->WARNING: there is nothing transactional about the **pmem_persist**() or
+>WARNING:
+There is nothing transactional about the **pmem_persist**() or
 **pmem_msync**() calls in this example. Interrupting the program may
 result in a partial write to pmem. Use a transactional library such as
 **libpmemobj**(3) to avoid torn updates.
@@ -604,44 +620,46 @@ result in a partial write to pmem. Use a transactional library such as
 int
 main(int argc, char *argv[])
 {
-    char *pmemaddr;
-    size_t mapped_len;
-    int is_pmem;
+	char *pmemaddr;
+	size_t mapped_len;
+	int is_pmem;
 
-    /* create a pmem file and memory map it */
+	/* create a pmem file and memory map it */
 
-    if ((pmemaddr = pmem_map_file(PATH, PMEM_LEN, PMEM_FILE_CREATE,
-                0666, &mapped_len, &is_pmem)) == NULL) {
-        perror("pmem_map_file");
-        exit(1);
-    }
+	if ((pmemaddr = pmem_map_file(PATH, PMEM_LEN, PMEM_FILE_CREATE,
+			0666, &mapped_len, &is_pmem)) == NULL) {
+		perror("pmem_map_file");
+		exit(1);
+	}
 
-    /* store a string to the persistent memory */
-    strcpy(pmemaddr, "hello, persistent memory");
+	/* store a string to the persistent memory */
+	strcpy(pmemaddr, "hello, persistent memory");
 
-    /* flush above strcpy to persistence */
-    if (is_pmem)
-        pmem_persist(pmemaddr, mapped_len);
-    else
-        pmem_msync(pmemaddr, mapped_len);
+	/* flush above strcpy to persistence */
+	if (is_pmem)
+		pmem_persist(pmemaddr, mapped_len);
+	else
+		pmem_msync(pmemaddr, mapped_len);
 
-    /*
-     * Delete the mappings. The region is also
-     * automatically unmapped when the process is
-     * terminated.
-     */
-    pmem_unmap(pmemaddr, mapped_len);
+	/*
+	 * Delete the mappings. The region is also
+	 * automatically unmapped when the process is
+	 * terminated.
+	 */
+	pmem_unmap(pmemaddr, mapped_len);
 }
 ```
 
 See <http://pmem.io/nvml/libpmem>
 for more examples using the **libpmem** API.
 
+
 # ACKNOWLEDGEMENTS #
 
 **libpmem** builds on the persistent memory programming model
 recommended by the SNIA NVM Programming Technical Work Group:
 <http://snia.org/nvmp>
+
 
 # SEE ALSO #
 

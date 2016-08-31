@@ -3,7 +3,7 @@ layout: manual
 Content-Style: 'text/css'
 title: pmempool(1)
 header: NVM Library
-date: pmem Tools version 1.0.1
+date: pmem Tools version 1.0.2
 ...
 
 [comment]: <> (Copyright 2016, Intel Corporation)
@@ -42,14 +42,16 @@ date: pmem Tools version 1.0.1
 [COMMANDS](#commands)<br />
 [SEE ALSO](#see-also)<br />
 
+
 # NAME #
 
 **pmempool** -- Persistent Memory Pool Management Tool
 
+
 # SYNOPSIS #
 
 ```
-pmempool [--help] [--version] <command> [<args>]
+$ pmempool [--help] [--version] <command> [<args>]
 ```
 
 # DESCRIPTION #
@@ -64,49 +66,47 @@ purposes. Some of subcommands are required to work *without* any impact
 on processed pool, but some of them *may* create a new or modify an existing one.
 
 The **pmempool** may be useful for troubleshooting by system administrators
-and for software developers who work on applications based on **NVML** library.
+and for software developers who work on applications based on **NVM** Library.
 The latter may find these tools useful for testing and debugging purposes also.
+
 
 # OPTIONS #
 
 `-V, --version`
 
-: Prints the version of **pmempool.**
+Prints the version of **pmempool**.
 
 `-h, --help`
 
-: Prints synopsis and list of commands.
+Prints synopsis and list of commands.
+
 
 # COMMANDS #
 
 Currently there is a following set of commands available:
 
-**pmempool-info(1)**
++ **pmempool-info**(1) -
+Prints information and statistics in human-readable format about specified pool.
 
-: Prints information and statistics in human-readable format about specified pool.
++ **pmempool-check**(1) -
+Checks pool's consistency and repairs pool if it is not consistent.
 
-**pmempool-check(1)**
++ **pmempool-create**(1) -
+Creates a pool of specified type with additional properties specific for this type of pool.
 
-: Checks pool's consistency and repairs pool if it is not consistent.
++ **pmempool-dump**(1) -
+Dumps usable data from pool in hexadecimal or binary format.
 
-**pmempool-create(1)**
++ **pmempool-rm**(1)
+Removes pool file or all pool files listed in poolset configuration file.
 
-: Creates a pool of specified type with additional properties specific for this type of pool.
-
-**pmempool-dump(1)**
-
-: Dumps usable data from pool in hexadecimal or binary format.
-
-**pmempool-rm(1)**
-
-: Removes pool file or all pool files listed in poolset configuration file.
-
-**pmempool-convert(1)**
-
-: Updates the pool to the latest available layout version.
++ **pmempool-convert**(1) -
+Updates the pool to the latest available layout version.
 
 In order to get more information about specific *command* you can use **pmempool help <command>.**
 
+
 # SEE ALSO #
 
-**libpmemlog(3) libpmemblk(3) libpmemobj(3)**
+**libpmemlog**(3), **libpmemblk**(3), **libpmemobj**(3)
+and **<http://pmem.io>**
