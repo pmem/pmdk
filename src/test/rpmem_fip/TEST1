@@ -41,12 +41,7 @@ export UNITTEST_NUM=1
 # standard unit test setup
 . ../unittest/unittest.sh
 
-require_fs_type none
-require_build_type nondebug debug
 require_rpmem_port
-
-rpmem_foreach_provider
-rpmem_foreach_persist
 
 setup
 
@@ -71,4 +66,3 @@ expect_normal_exit run_on_node 1 ./rpmem_fip$EXESUFFIX\
 expect_normal_exit wait_on_node 0 $SRV
 
 pass
-

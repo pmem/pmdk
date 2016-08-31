@@ -30,38 +30,12 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
 #
-# src/test/rpmem_fip/TEST0 -- tests for rpmem_fip and rpmemd_fip modules
+# rpmem_basic/config.sh -- test configuration
 #
 
-export UNITTEST_NAME=rpmem_fip/TEST0
-export UNITTEST_NUM=0
+CONF_GLOBAL_FS_TYPE=any
+CONF_GLOBAL_BUILD_TYPE="debug nondebug"
 
-# standard unit test setup
-. ../unittest/unittest.sh
-
-require_rpmem_port
-
-setup
-
-require_nodes 2
-require_node_libfabric 0 $RPMEM_PROVIDER
-require_node_libfabric 1 $RPMEM_PROVIDER
-require_node_log_files 0 $RPMEM_LOG_FILE $RPMEMD_LOG_FILE
-require_node_log_files 1 $RPMEM_LOG_FILE $RPMEMD_LOG_FILE
-
-SRV=srv${UNITTEST_NUM}.pid
-clean_remote_node 0 $SRV
-
-expect_normal_exit run_on_node_background 0 $SRV\
-	./rpmem_fip$EXESUFFIX server_init ${NODE_ADDR[0]} $RPMEM_PORT $RPMEM_PM
-
-expect_normal_exit wait_on_node_port 0 $SRV $RPMEM_PORT
-
-expect_normal_exit run_on_node 1 ./rpmem_fip$EXESUFFIX\
-	client_init ${NODE_ADDR[0]}:${RPMEM_PORT} $RPMEM_PROVIDER
-
-expect_normal_exit wait_on_node 0 $SRV
-
-pass
+CONF_GLOBAL_PROVIDER=all
+CONF_GLOBAL_PMETHOD=all
