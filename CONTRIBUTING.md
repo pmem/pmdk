@@ -70,7 +70,7 @@ Before contributing please remember to run:
 	$ make cstyle
 ```
 
-This will check all C/C++ files in the tree for style issues. To check C++ 
+This will check all C/C++ files in the tree for style issues. To check C++
 files you have to have clang-format version 3.8+, otherwise they will be
 skipped. There is also a target for automatic C++ code formatting, to do this
 run:
