@@ -57,10 +57,10 @@ $LOG="out$Env:UNITTEST_NUM.log"
 
 rm $LOG -Force -Recurse -ea si
 
-expect_normal_exit $PMEMPOOL$EXESUFFIX create blk 512 $POOL
+expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create blk 512 $POOL
 check_file $POOL
 &$PMEMSPOIL $POOL pool_hdr.signature=ERROR
-expect_abnormal_exit $PMEMPOOL$EXESUFFIX check -b $POOL_BACKUP -r $POOL 2>$1 >$null
+expect_abnormal_exit $PMEMPOOL$Env:EXESUFFIX check -b $POOL_BACKUP -r $POOL 2>$1 >$null
 check_file ${POOL_BACKUP}
 
 pass

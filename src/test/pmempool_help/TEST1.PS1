@@ -58,12 +58,12 @@ rm $LOG -Force -Recurse -ea si
 foreach($cmd in "info","dump","create","check") {
 	rm help_${cmd}.log -Force -ea si
     rm ${cmd}_help.log -Force -ea si
-	expect_normal_exit $PMEMPOOL$EXESUFFIX help $cmd >> help_${cmd}.log
-	expect_normal_exit $PMEMPOOL$EXESUFFIX ${cmd} --help >> ${cmd}_help.log
+	expect_normal_exit $PMEMPOOL$Env:EXESUFFIX help $cmd >> help_${cmd}.log
+	expect_normal_exit $PMEMPOOL$Env:EXESUFFIX ${cmd} --help >> ${cmd}_help.log
 	compare-object (get-content help_${cmd}.log) (get-content ${cmd}_help.log) >> $LOG
 }
 
-expect_normal_exit $PMEMPOOL$EXESUFFIX help help >> $LOG
+expect_normal_exit $PMEMPOOL$Env:EXESUFFIX help help >> $LOG
 
 check
 

@@ -58,16 +58,16 @@ rm $LOG -Force -Recurse -ea si
 #XXX: port poolsets tests
 #
 ## Create pmemlog, pmemblk and pmemobj pools
-#expect_normal_exit $PMEMPOOL$EXESUFFIX create -m400 log $DIR/pool.log
-#expect_normal_exit $PMEMPOOL$EXESUFFIX create -m440 blk 512 $DIR/pool.blk
-#expect_normal_exit $PMEMPOOL$EXESUFFIX create -m444 obj $DIR/pool.obj
+#expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create -m400 log $DIR/pool.log
+#expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create -m440 blk 512 $DIR/pool.blk
+#expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create -m444 obj $DIR/pool.obj
 #
 ## Create poolset with replica
 #create_poolset $DIR/pool.set 32M:$DIR/pool.part1:z 32M:$DIR/pool.part2:z\
 #	R 32M:$DIR/rep.part1:z 32M:$DIR/rep.part2:z
 #
 ## Create pmemobj pools from the poolset
-#expect_normal_exit $PMEMPOOL$EXESUFFIX create -m444 obj $DIR/pool.set
+#expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create -m444 obj $DIR/pool.set
 #
 #chmod 444 $DIR/pool.set $DIR/pool.part1 $DIR/pool.part2 $DIR/rep.part1 $DIR/rep.part2
 #
@@ -82,7 +82,7 @@ rm $LOG -Force -Recurse -ea si
 #	$DIR/rep.part1\
 #	$DIR/rep.part2
 #
-#echo -e "n\nn\nn\ny\ny\ny\ny\n" | expect_normal_exit $PMEMPOOL$EXESUFFIX rm -sv\
+#echo -e "n\nn\nn\ny\ny\ny\ny\n" | expect_normal_exit $PMEMPOOL$Env:EXESUFFIX rm -sv\
 #	$DIR/pool.log\
 #	$DIR/pool.blk\
 #	$DIR/pool.obj\
@@ -100,7 +100,7 @@ rm $LOG -Force -Recurse -ea si
 #	$DIR/rep.part1\
 #	$DIR/rep.part2
 #
-#expect_normal_exit $PMEMPOOL$EXESUFFIX create -m444 obj $DIR/pool.set
+#expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create -m444 obj $DIR/pool.set
 #
 #check_files\
 #	$DIR/pool.log\
@@ -112,7 +112,7 @@ rm $LOG -Force -Recurse -ea si
 #	$DIR/rep.part1\
 #	$DIR/rep.part2
 #
-#expect_normal_exit $PMEMPOOL$EXESUFFIX rm -fv\
+#expect_normal_exit $PMEMPOOL$Env:EXESUFFIX rm -fv\
 #	$DIR/pool.log\
 #	$DIR/pool.blk\
 #	$DIR/pool.obj\

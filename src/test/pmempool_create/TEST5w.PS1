@@ -55,9 +55,9 @@ $POOL="$DIR\file.pool"
 $POOL2="$DIR\file2.pool"
 
 # PMEMBLK
-expect_abnormal_exit $PMEMPOOL$EXESUFFIX create blk $POOL 2> err5w.log
+expect_abnormal_exit $PMEMPOOL$Env:EXESUFFIX create blk $POOL 2> err5w.log
 
-expect_abnormal_exit $PMEMPOOL$EXESUFFIX create blk 4294967296 $POOL2 2>> err5w.log
+expect_abnormal_exit $PMEMPOOL$Env:EXESUFFIX create blk 4294967296 $POOL2 2>> err5w.log
 
 # XXX: checking output is not possible as powershell's error message layout
 # depends on terminal size.

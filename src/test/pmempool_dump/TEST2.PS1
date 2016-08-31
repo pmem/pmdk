@@ -56,10 +56,10 @@ $LOG="out$Env:UNITTEST_NUM.log"
 
 rm $LOG -Force -Recurse -ea si
 
-expect_normal_exit $PMEMPOOL$EXESUFFIX create log $POOL
-expect_normal_exit $PMEMWRITE$EXESUFFIX $POOL TEST_test
-expect_normal_exit $PMEMPOOL$EXESUFFIX dump '-r5,6,7,8' -o $LOG $POOL
-expect_normal_exit $PMEMPOOL$EXESUFFIX dump '-r5-8' $POOL| out-file -encoding ASCII -append $LOG
+expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create log $POOL
+expect_normal_exit $PMEMWRITE$Env:EXESUFFIX $POOL TEST_test
+expect_normal_exit $PMEMPOOL$Env:EXESUFFIX dump '-r5,6,7,8' -o $LOG $POOL
+expect_normal_exit $PMEMPOOL$Env:EXESUFFIX dump '-r5-8' $POOL| out-file -encoding ASCII -append $LOG
 
 check
 

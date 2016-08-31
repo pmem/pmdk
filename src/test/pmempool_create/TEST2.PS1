@@ -55,21 +55,21 @@ $POOL="$DIR\file.pool"
 $SIZE=(1024 + 512) * 1024 * 1024
 
 # PMEMBLK
-expect_normal_exit $PMEMPOOL$EXESUFFIX create -s $SIZE blk 512 $POOL
+expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create -s $SIZE blk 512 $POOL
 check_file $POOL
 check_signature PMEMBLK $POOL
 check_size $SIZE $POOL
 
 # PMEMLOG
 rm $POOL
-expect_normal_exit $PMEMPOOL$EXESUFFIX create -s $SIZE log $POOL
+expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create -s $SIZE log $POOL
 check_file $POOL
 check_signature PMEMLOG $POOL
 check_size $SIZE $POOL
 
 #PMEMOBJ
 rm $POOL
-expect_normal_exit $PMEMPOOL$EXESUFFIX create -s $SIZE obj $POOL
+expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create -s $SIZE obj $POOL
 check_file $POOL
 check_signature PMEMOBJ $POOL
 check_layout "" $POOL

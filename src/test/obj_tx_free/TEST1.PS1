@@ -61,7 +61,7 @@ require_fs_type pmem non-pmem
 
 setup
 
-expect_normal_exit $ENV:EXE_DIR\obj_tx_free$EXESUFFIX $DIR\testfile1
+expect_normal_exit $ENV:EXE_DIR\obj_tx_free$Env:EXESUFFIX $DIR\testfile1
 
 check
 

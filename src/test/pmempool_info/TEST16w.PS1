@@ -81,18 +81,18 @@ setup
 #check_file $POOLREP
 #
 #rm -f $POOLS
-#expect_normal_exit $PMEMPOOL$EXESUFFIX create blk 512 $POOLSET
-#expect_normal_exit $PMEMPOOL$EXESUFFIX info $POOLSET >> $LOG
+#expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create blk 512 $POOLSET
+#expect_normal_exit $PMEMPOOL$Env:EXESUFFIX info $POOLSET >> $LOG
 #
 #rm -f $POOLS
-#expect_normal_exit $PMEMPOOL$EXESUFFIX create log $POOLSET
-#expect_normal_exit $PMEMPOOL$EXESUFFIX info $POOLSET >> $LOG
+#expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create log $POOLSET
+#expect_normal_exit $PMEMPOOL$Env:EXESUFFIX info $POOLSET >> $LOG
 #
 #rm -f $POOLS $REPS
-#expect_normal_exit $PMEMPOOL$EXESUFFIX create obj --layout pmempool $POOLREP
-#expect_normal_exit $PMEMPOOL$EXESUFFIX info $POOLREP >> $LOG
-#expect_normal_exit $PMEMPOOL$EXESUFFIX info --replica 0 $POOLREP | grep 'UUID' > $LOG_REP0
-#expect_normal_exit $PMEMPOOL$EXESUFFIX info --replica 1 $POOLREP | grep 'UUID' > $LOG_REP1
+#expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create obj --layout pmempool $POOLREP
+#expect_normal_exit $PMEMPOOL$Env:EXESUFFIX info $POOLREP >> $LOG
+#expect_normal_exit $PMEMPOOL$Env:EXESUFFIX info --replica 0 $POOLREP | grep 'UUID' > $LOG_REP0
+#expect_normal_exit $PMEMPOOL$Env:EXESUFFIX info --replica 1 $POOLREP | grep 'UUID' > $LOG_REP1
 #
 #echo "DIFF" >> $LOG
 #diff --normal $LOG_REP0 $LOG_REP1 >> $LOG || true

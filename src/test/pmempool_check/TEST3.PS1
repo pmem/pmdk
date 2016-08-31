@@ -55,11 +55,11 @@ $POOL="$DIR\file.pool"
 $LOG="out$Env:UNITTEST_NUM.log"
 
 rm $LOG -Force -Recurse -ea si
-expect_normal_exit $PMEMPOOL$EXESUFFIX create -w blk 512 $POOL
+expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create -w blk 512 $POOL
 check_file $POOL
 & $PMEMSPOIL $POOL pool_hdr.signature=ERROR "pmemblk.arena.btt_map(0)=0xc0000001" "pmemblk.arena.btt_flog(0).seq=5"
 
-expect_normal_exit $PMEMPOOL$EXESUFFIX check -avry $POOL >> $LOG
+expect_normal_exit $PMEMPOOL$Env:EXESUFFIX check -avry $POOL >> $LOG
 
 check
 

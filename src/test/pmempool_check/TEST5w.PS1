@@ -63,11 +63,11 @@ setup
 #
 #create_holey_file $size $POOL
 #sleep 10
-#expect_normal_exit $PMEMPOOL$EXESUFFIX create -v -w blk 512M $POOL >> $LOG
+#expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create -v -w blk 512M $POOL >> $LOG
 #check_file $POOL
 #
 #&$PMEMSPOIL $POOL "pool_hdr.checksum=0x0" "pmemblk.arena(1).btt_info.sig=ERROR" "pmemblk.arena(1).btt_info_backup.sig=ERROR"
 #
-#expect_normal_exit $PMEMPOOL$EXESUFFIX check -vry $POOL >> $LOG
+#expect_normal_exit $PMEMPOOL$Env:EXESUFFIX check -vry $POOL >> $LOG
 
 pass

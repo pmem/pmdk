@@ -75,25 +75,25 @@ setup
 #
 ## PMEMBLK
 #rm -Path $POOLS -Force
-#expect_normal_exit $PMEMPOOL$EXESUFFIX create blk 512 $POOLSET
+#expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create blk 512 $POOLSET
 #check_files $POOLS
 #check_signatures PMEMBLK $POOLS
 #
 ## PMEMLOG
 #rm $POOLS -Force
-#expect_normal_exit $PMEMPOOL$EXESUFFIX create log $POOLSET
+#expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create log $POOLSET
 #check_files $POOLS
 #check_signatures PMEMLOG $POOLS
 #
 ## PMEMOBJ
 #rm $POOLS -Force
-#expect_normal_exit $PMEMPOOL$EXESUFFIX create --layout=LAYOUT_NAME obj $POOLSET
+#expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create --layout=LAYOUT_NAME obj $POOLSET
 #check_files $POOL
 #check_signatures PMEMOBJ $POOLS
 #
 ## PMEMOBJ with replica
 #rm $POOLS -Force
-#expect_normal_exit $PMEMPOOL$EXESUFFIX create --layout=LAYOUT_NAME obj $POOLREP
+#expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create --layout=LAYOUT_NAME obj $POOLREP
 #check_files $POOLS $REPS
 #check_signatures PMEMOBJ $POOLS $REPS
 #

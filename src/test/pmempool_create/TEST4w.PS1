@@ -55,21 +55,21 @@ setup
 
 $POOL="$DIR\file.pool"
 # PMEMBLK
-expect_normal_exit $PMEMPOOL$EXESUFFIX create -m 0600 blk 512 $POOL
+expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create -m 0600 blk 512 $POOL
 check_file $POOL
 check_signature PMEMBLK $POOL
 #check_mode -a--- $POOL
 
 # PMEMLOG
 rm -Force $POOL
-expect_normal_exit $PMEMPOOL$EXESUFFIX create -m 0500 log $POOL
+expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create -m 0500 log $POOL
 check_file $POOL
 check_signature PMEMLOG $POOL
 #check_mode -ar-- $POOL
 
 # PMEMOBJ
 rm -Force $POOL
-expect_normal_exit $PMEMPOOL$EXESUFFIX create -m 0500 --layout=LAYOUT_NAME obj $POOL
+expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create -m 0500 --layout=LAYOUT_NAME obj $POOL
 check_file $POOL
 check_signature PMEMOBJ $POOL
 check_layout LAYOUT_NAME $POOL
