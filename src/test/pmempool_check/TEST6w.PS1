@@ -64,30 +64,30 @@ setup
 #check_file $POOLSET
 #
 #echo "PMEMLOG: pool_hdr" >> $LOG
-#expect_normal_exit $PMEMPOOL$EXESUFFIX create log $POOLSET
+#expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create log $POOLSET
 #check_files $POOLS
 #$PMEMSPOIL -v $POOLSET pool_hdr.signature=ERROR >> $LOG
-#expect_abnormal_exit $PMEMPOOL$EXESUFFIX check $POOLSET >> $LOG
-#expect_abnormal_exit $PMEMPOOL$EXESUFFIX check $POOL_PART1 >> $LOG
-#expect_normal_exit $PMEMPOOL$EXESUFFIX check $POOL_PART2 >> $LOG
+#expect_abnormal_exit $PMEMPOOL$Env:EXESUFFIX check $POOLSET >> $LOG
+#expect_abnormal_exit $PMEMPOOL$Env:EXESUFFIX check $POOL_PART1 >> $LOG
+#expect_normal_exit $PMEMPOOL$Env:EXESUFFIX check $POOL_PART2 >> $LOG
 #
 #echo "PMEMLOG: pmemlog" >> $LOG
 #rm -f $POOLS
-#expect_normal_exit $PMEMPOOL$EXESUFFIX create log $POOLSET
+#expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create log $POOLSET
 #check_files $POOLS
 #$PMEMSPOIL -v $POOLSET pmemlog.start_offset=0 pmemlog.end_offset=0 >> $LOG
-#expect_abnormal_exit $PMEMPOOL$EXESUFFIX check $POOLSET >> $LOG
-#expect_normal_exit $PMEMPOOL$EXESUFFIX check $POOL_PART1 >> $LOG
-#expect_normal_exit $PMEMPOOL$EXESUFFIX check $POOL_PART2 >> $LOG
+#expect_abnormal_exit $PMEMPOOL$Env:EXESUFFIX check $POOLSET >> $LOG
+#expect_normal_exit $PMEMPOOL$Env:EXESUFFIX check $POOL_PART1 >> $LOG
+#expect_normal_exit $PMEMPOOL$Env:EXESUFFIX check $POOL_PART2 >> $LOG
 #
 #echo "PMEMBLK: pool_hdr" >> $LOG
 #rm -f $POOLS
-#expect_normal_exit $PMEMPOOL$EXESUFFIX create blk 512 $POOLSET
+#expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create blk 512 $POOLSET
 #check_files $POOLS
 #$PMEMSPOIL -v $POOLSET pool_hdr.signature=ERROR >> $LOG
-#expect_abnormal_exit $PMEMPOOL$EXESUFFIX check $POOLSET >> $LOG
-#expect_abnormal_exit $PMEMPOOL$EXESUFFIX check $POOL_PART1 >> $LOG
-#expect_normal_exit $PMEMPOOL$EXESUFFIX check $POOL_PART2 >> $LOG
+#expect_abnormal_exit $PMEMPOOL$Env:EXESUFFIX check $POOLSET >> $LOG
+#expect_abnormal_exit $PMEMPOOL$Env:EXESUFFIX check $POOL_PART1 >> $LOG
+#expect_normal_exit $PMEMPOOL$Env:EXESUFFIX check $POOL_PART2 >> $LOG
 #
 #check
 #

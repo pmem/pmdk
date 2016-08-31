@@ -56,11 +56,11 @@ $LOG="out$Env:UNITTEST_NUM.log"
 
 rm $LOG -Force -Recurse -ea si
 
-expect_normal_exit $PMEMPOOL$EXESUFFIX create blk 512 $POOL
-expect_normal_exit $PMEMWRITE$EXESUFFIX $POOL 0:w:TEST0
-expect_normal_exit $PMEMPOOL$EXESUFFIX dump -r-1 -o dump.log $POOL
+expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create blk 512 $POOL
+expect_normal_exit $PMEMWRITE$Env:EXESUFFIX $POOL 0:w:TEST0
+expect_normal_exit $PMEMPOOL$Env:EXESUFFIX dump -r-1 -o dump.log $POOL
 cat dump.log | findstr "^00000000" | out-file -encoding ASCII -append $LOG
-expect_normal_exit $PMEMPOOL$EXESUFFIX dump -r0 $POOL | findstr "^00000000" | out-file -encoding ASCII -append $LOG
+expect_normal_exit $PMEMPOOL$Env:EXESUFFIX dump -r0 $POOL | findstr "^00000000" | out-file -encoding ASCII -append $LOG
 
 check
 

@@ -57,7 +57,7 @@ require_fs_type any
 setup
 
 create_poolset $DIR\pool.set 32K:$DIR\testfile:x
-expect_normal_exit $PMEMPOOL$EXESUFFIX create obj $DIR\pool.obj
+expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create obj $DIR\pool.obj
 
 Set-Content -Path $DIR\not_pool.set -Value "NON_PMEMPOOLSET"
 Set-Content -Path $DIR\too_short.set -Value "PMEMPOOL"

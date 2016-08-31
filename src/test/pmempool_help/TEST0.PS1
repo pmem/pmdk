@@ -55,9 +55,9 @@ $LOG="out$Env:UNITTEST_NUM.log"
 
 rm $LOG -Force -Recurse -ea si
 
-expect_normal_exit $PMEMPOOL$EXESUFFIX >> $LOG
-expect_normal_exit $PMEMPOOL$EXESUFFIX --version >> $LOG
-expect_normal_exit $PMEMPOOL$EXESUFFIX --help >> $LOG
+expect_normal_exit $PMEMPOOL$Env:EXESUFFIX >> $LOG
+expect_normal_exit $PMEMPOOL$Env:EXESUFFIX --version >> $LOG
+expect_normal_exit $PMEMPOOL$Env:EXESUFFIX --help >> $LOG
 
 check
 

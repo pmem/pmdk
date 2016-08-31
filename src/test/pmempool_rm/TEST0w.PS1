@@ -58,16 +58,16 @@ setup
 #rm $LOG -Force -Recurse -ea si
 #
 ## Create pmemlog, pmemblk and pmemobj pools
-#expect_normal_exit $PMEMPOOL$EXESUFFIX create log $DIR\pool.log
-#expect_normal_exit $PMEMPOOL$EXESUFFIX create blk 512 $DIR\pool.blk
-#expect_normal_exit $PMEMPOOL$EXESUFFIX create obj $DIR\pool.obj
+#expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create log $DIR\pool.log
+#expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create blk 512 $DIR\pool.blk
+#expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create obj $DIR\pool.obj
 #
 ## Create poolset with replica
 #create_poolset $DIR/pool.set 32M:$DIR/pool.part1:z 32M:$DIR/pool.part2:z\
 #	R 32M:$DIR/rep.part1 32M:$DIR/rep.part2
 #
 ## Create pmemobj pools from the poolset
-#expect_normal_exit $PMEMPOOL$EXESUFFIX create obj $DIR/pool.set
+#expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create obj $DIR/pool.set
 #
 ## Check if all pools and poolset exist
 #check_files\
@@ -81,7 +81,7 @@ setup
 #	$DIR/rep.part2
 #
 ## Remove all pool files without the poolset
-#expect_normal_exit $PMEMPOOL$EXESUFFIX rm -sv\
+#expect_normal_exit $PMEMPOOL$Env:EXESUFFIX rm -sv\
 #	$DIR/pool.log\
 #	$DIR/pool.blk\
 #	$DIR/pool.obj\
@@ -101,10 +101,10 @@ setup
 #check_file $DIR/pool.set
 #
 ## Create pmemobj pools from the poolset
-#expect_normal_exit $PMEMPOOL$EXESUFFIX create obj $DIR/pool.set
+#expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create obj $DIR/pool.set
 #
 ## Remove all pool files and poolset
-#expect_normal_exit $PMEMPOOL$EXESUFFIX rm -v $DIR/pool.set >> $LOG
+#expect_normal_exit $PMEMPOOL$Env:EXESUFFIX rm -v $DIR/pool.set >> $LOG
 #
 ## Check if all pool files and poolset don't exist
 #check_no_files\

@@ -53,9 +53,9 @@ setup
 
 $POOL="$DIR\file.pool"
 
-expect_normal_exit $PMEMPOOL$EXESUFFIX create -w blk 512 $POOL
-$INFO_NFLOG=((&$PMEMPOOL$EXESUFFIX info $POOL | sls 'Free block').Line | sls -Pattern '\d+').Matches.Value
-$NFLOG=(expect_normal_exit $PMEMPOOL$EXESUFFIX info -g $POOL | sls -Pattern '^\d+:'|measure).count
+expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create -w blk 512 $POOL
+$INFO_NFLOG=((&$PMEMPOOL$Env:EXESUFFIX info $POOL | sls 'Free block').Line | sls -Pattern '\d+').Matches.Value
+$NFLOG=(expect_normal_exit $PMEMPOOL$Env:EXESUFFIX info -g $POOL | sls -Pattern '^\d+:'|measure).count
 
 if ($INFO_NFLOG -ne $NFLOG ) {
     echo "$INFO_NFLOG != $NFLOG"

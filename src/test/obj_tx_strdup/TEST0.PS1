@@ -53,7 +53,7 @@ $Env:NON_PMEM_IS_PMEM = $true
 
 setup
 
-expect_normal_exit $Env:EXE_DIR\obj_tx_strdup$EXESUFFIX $DIR\testfile1
+expect_normal_exit $Env:EXE_DIR\obj_tx_strdup$Env:EXESUFFIX $DIR\testfile1
 
 check
 

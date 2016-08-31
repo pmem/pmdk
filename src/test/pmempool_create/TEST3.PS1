@@ -55,11 +55,11 @@ $POOL="$DIR\file.pool"
 $INHERIT="$DIR\inherit.pool"
 
 # PMEMBLK
-expect_normal_exit $PMEMPOOL$EXESUFFIX create blk 512 $POOL
+expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create blk 512 $POOL
 check_file $POOL
 check_signature PMEMBLK $POOL
 sv -Name SIZE -Scope "Local" (get_size $POOL)
-expect_normal_exit $PMEMPOOL$EXESUFFIX create --inherit $POOL $INHERIT
+expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create --inherit $POOL $INHERIT
 check_file $INHERIT
 check_signature PMEMBLK $INHERIT
 check_size $SIZE $INHERIT
@@ -67,11 +67,11 @@ check_size $SIZE $INHERIT
 # PMEMLOG
 rm $POOL
 rm $INHERIT
-expect_normal_exit $PMEMPOOL$EXESUFFIX create log $POOL
+expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create log $POOL
 check_file $POOL
 check_signature PMEMLOG $POOL
 sv -Name SIZE -Scope "Local" (get_size $POOL)
-expect_normal_exit $PMEMPOOL$EXESUFFIX create --inherit $POOL $INHERIT
+expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create --inherit $POOL $INHERIT
 check_file $INHERIT
 check_signature PMEMLOG $INHERIT
 check_size $SIZE $INHERIT
@@ -79,12 +79,12 @@ check_size $SIZE $INHERIT
 # PMEMOBJ
 rm $POOL
 rm $INHERIT
-expect_normal_exit $PMEMPOOL$EXESUFFIX create --layout=LAYOUT_NAME obj $POOL
+expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create --layout=LAYOUT_NAME obj $POOL
 check_file $POOL
 check_signature PMEMOBJ $POOL
 check_layout LAYOUT_NAME $POOL
 sv -Name SIZE -Scope "Local" (get_size $POOL)
-expect_normal_exit $PMEMPOOL$EXESUFFIX create --inherit $POOL $INHERIT
+expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create --inherit $POOL $INHERIT
 check_file $INHERIT
 check_signature PMEMOBJ $INHERIT
 check_layout LAYOUT_NAME $POOL

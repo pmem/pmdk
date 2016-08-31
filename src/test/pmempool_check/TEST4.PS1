@@ -56,11 +56,11 @@ $LOG="out$Env:UNITTEST_NUM.log"
 
 rm $LOG -Force -Recurse -ea si
 
-expect_normal_exit $PMEMPOOL$EXESUFFIX create -w blk 512 $POOL
+expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create -w blk 512 $POOL
 check_file $POOL
 &$PMEMSPOIL -v $POOL pool_hdr.checksum=0x0 >> $LOG
 
-expect_normal_exit $PMEMPOOL$EXESUFFIX check -vry $POOL >> $LOG
+expect_normal_exit $PMEMPOOL$Env:EXESUFFIX check -vry $POOL >> $LOG
 
 check
 
