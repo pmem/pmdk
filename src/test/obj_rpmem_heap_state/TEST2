@@ -37,14 +37,6 @@ export UNITTEST_NUM=2
 # standard unit test setup
 . ../unittest/unittest.sh
 
-# XXX: Requirements imposed only to limit an execution time.
-# When an execution time would be shortened it should be revoked.
-require_fs_type pmem
-require_build_type debug nondebug
-
-rpmem_foreach_provider
-rpmem_foreach_persist
-
 setup
 
 require_nodes 2

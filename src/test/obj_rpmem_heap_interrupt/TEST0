@@ -42,15 +42,7 @@ export UNITTEST_NUM=0
 # standard unit test setup
 . ../unittest/unittest.sh
 
-# XXX: Requirements imposed only to limit an execution time.
-# When an execution time would be shortened it should be revoked.
-require_fs_type pmem
-require_build_type debug nondebug
-
 configure_valgrind memcheck force-disable
-
-rpmem_foreach_provider
-rpmem_foreach_persist
 
 setup
 

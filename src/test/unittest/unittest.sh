@@ -1934,38 +1934,6 @@ function compare_replicas() {
 }
 
 #
-# rpmem_foreach_provider -- runs the script for each provider
-#
-function rpmem_foreach_provider() {
-	local script=${BASH_SOURCE[1]}
-	local providers="verbs sockets"
-	[ -n "$RPMEM_PROVIDERS" ] && providers=$RPMEM_PROVIDERS
-	if [ -z "$RPMEM_PROVIDER" ]; then
-		for prov in $providers; do
-			eval RPMEM_PROVIDER=$prov $script
-		done
-		exit 0
-	else
-		return 0
-	fi
-}
-
-#
-# rpmem_foreach_persist -- runs the script for each persistency method
-#
-function rpmem_foreach_persist() {
-	local script=${BASH_SOURCE[1]}
-	if [ -z "$RPMEM_PM" ]; then
-		for pm in GPSPM APM; do
-			eval RPMEM_PM=$pm $script
-		done
-		exit 0
-	else
-		return 0
-	fi
-}
-
-#
 # get_node_dir -- returns node dir for current test
 #    usage: get_node_dir <node>
 #
