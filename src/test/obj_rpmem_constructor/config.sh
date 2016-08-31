@@ -30,35 +30,12 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
 #
-# src/test/rpmem_fip/TEST1 -- tests for rpmem_fip and rpmemd_fip modules
+# obj_rpmem_constructor/config.sh -- test configuration
 #
 
-export UNITTEST_NAME=rpmem_fip/TEST1
-export UNITTEST_NUM=1
+CONF_GLOBAL_FS_TYPE=pmem
+CONF_GLOBAL_BUILD_TYPE="debug nondebug"
 
-# standard unit test setup
-. ../unittest/unittest.sh
-
-setup
-
-require_nodes 2
-require_node_libfabric 0 $RPMEM_PROVIDER
-require_node_libfabric 1 $RPMEM_PROVIDER
-require_node_log_files 0 $RPMEM_LOG_FILE $RPMEMD_LOG_FILE
-require_node_log_files 1 $RPMEM_LOG_FILE $RPMEMD_LOG_FILE
-
-SRV=srv${UNITTEST_NUM}.pid
-clean_remote_node 0 $SRV
-
-RPMEM_CMD="\"cd ${NODE_TEST_DIR[0]} && UNITTEST_FORCE_QUIET=1 \
-	LD_LIBRARY_PATH=$REMOTE_LD_LIBRARY_PATH:${NODE_LD_LIBRARY_PATH[0]} \
-	./rpmem_fip$EXESUFFIX\""
-
-export_vars_node 1 RPMEM_CMD
-
-expect_normal_exit run_on_node 1 ./rpmem_fip$EXESUFFIX\
-	client_connect ${NODE_ADDR[0]} $RPMEM_PROVIDER $RPMEM_PM
-
-pass
+CONF_GLOBAL_PROVIDER=all
+CONF_GLOBAL_PMETHOD=all

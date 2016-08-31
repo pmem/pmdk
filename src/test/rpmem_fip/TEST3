@@ -41,12 +41,6 @@ export UNITTEST_NUM=3
 # standard unit test setup
 . ../unittest/unittest.sh
 
-require_fs_type none
-require_build_type nondebug debug
-
-rpmem_foreach_provider
-rpmem_foreach_persist
-
 setup
 
 require_nodes 2
@@ -68,4 +62,3 @@ expect_normal_exit run_on_node 1 ./rpmem_fip$EXESUFFIX\
 	client_read ${NODE_ADDR[0]} $RPMEM_PROVIDER $RPMEM_PM
 
 pass
-
