@@ -43,9 +43,6 @@ export UNITTEST_NUM=5
 require_fs_type any
 require_build_type nondebug debug
 
-rpmem_foreach_provider
-rpmem_foreach_persist
-
 setup
 
 . setup.sh
