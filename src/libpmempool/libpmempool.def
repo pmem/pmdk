@@ -37,6 +37,8 @@ LIBRARY libpmempool
 VERSION 1.0
 
 EXPORTS
+	pmempool_check_version
+	pmempool_errormsg
 	pmempool_check_init
 	pmempool_check
 	pmempool_check_end
