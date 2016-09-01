@@ -101,6 +101,10 @@ and **--use-syslog** should not be followed by any value. Presence of each of th
 in the command line turns on an appropriate option.
 See **CONFIGURATION FILES** section for details.
 
+`-r, --remove <poolset>`
+
+Remove a pool descirbed by given pool set file descriptor. It is interpretted
+as a path to the pool set file relatie to the pool set directory.
 
 # CONFIGURATION FILES #
 
