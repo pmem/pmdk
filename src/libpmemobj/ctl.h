@@ -38,10 +38,29 @@
 #define LIBPMEMOBJ_CTL_H 1
 
 #include "libpmemobj.h"
+#include <sys/queue.h>
 
 struct ctl;
 
-typedef int (*node_callback)(PMEMobjpool *pop, void *arg);
+struct ctl_index {
+	char *name;
+	long value;
+	SLIST_ENTRY(ctl_index) entry;
+};
+
+SLIST_HEAD(ctl_indexes, ctl_index);
+
+typedef int (*node_callback)(PMEMobjpool *pop,
+	void *arg, struct ctl_indexes *indexes);
+
+enum ctl_node_type {
+	CTL_NODE_UNKNOWN,
+	CTL_NODE_NAMED,
+	CTL_NODE_LEAF,
+	CTL_NODE_INDEXED,
+
+	MAX_CTL_NODE
+};
 
 /*
  * CTL Tree node structure, do not use directly. All the necessery functionality
@@ -49,6 +68,8 @@ typedef int (*node_callback)(PMEMobjpool *pop, void *arg);
  */
 struct ctl_node {
 	char *name;
+	enum ctl_node_type type;
+
 	node_callback read_cb;
 	node_callback write_cb;
 
@@ -58,19 +79,24 @@ struct ctl_node {
 struct ctl *ctl_new(void);
 void ctl_delete(struct ctl *stats);
 
+/* Use through CTL_REGISTER_MODULE, never directly */
 void ctl_register_module_node(struct ctl *c,
 	const char *name, struct ctl_node *n);
 
 #define CTL_STR(name) #name
 
-#define CTL_NODE_END {NULL, NULL, NULL, NULL}
+#define CTL_NODE_END {NULL, CTL_NODE_UNKNOWN, NULL, NULL, NULL}
 
 #define CTL_NODE(name)\
 ctl_node_##name
 
 /* Declaration of a new child node */
 #define CTL_CHILD(name)\
-{CTL_STR(name), NULL, NULL, (struct ctl_node *)CTL_NODE(name)}
+{CTL_STR(name), CTL_NODE_NAMED, NULL, NULL, (struct ctl_node *)CTL_NODE(name)}
+
+/* Declaration of a new indexed node */
+#define CTL_INDEXED(name)\
+{CTL_STR(name), CTL_NODE_INDEXED, NULL, NULL, (struct ctl_node *)CTL_NODE(name)}
 
 #define CTL_READ_HANDLER(name)\
 ctl_##name##_read
@@ -83,21 +109,22 @@ ctl_##name##_write
  * must be declared by CTL_READ_HANDLER or CTL_GEN_RO_STAT macros.
  */
 #define CTL_LEAF_RO(name)\
-{CTL_STR(name), CTL_READ_HANDLER(name), NULL, NULL}
+{CTL_STR(name), CTL_NODE_LEAF, CTL_READ_HANDLER(name), NULL, NULL}
 
 /*
  * Declaration of a new write-only leaf. If used the corresponding write
  * function must be declared by CTL_WRITE_HANDLER macro.
  */
 #define CTL_LEAF_WO(name)\
-{CTL_STR(name), NULL, CTL_WRITE_HANDLER(name), NULL}
+{CTL_STR(name), CTL_NODE_LEAF, NULL, CTL_WRITE_HANDLER(name), NULL}
 
 /*
  * Declaration of a new read-write leaf. If used both read and write function
  * must be declared by CTL_READ_HANDLER and CTL_WRITE_HANDLER macros.
  */
 #define CTL_LEAF_RW(name)\
-{CTL_STR(name), CTL_READ_HANDLER(name),	CTL_WRITE_HANDLER(name), NULL}
+{CTL_STR(name), CTL_NODE_LEAF,\
+	CTL_READ_HANDLER(name), CTL_WRITE_HANDLER(name), NULL}
 
 #define CTL_REGISTER_MODULE(_ctl, name)\
 ctl_register_module_node((_ctl), CTL_STR(name),\

@@ -50,6 +50,12 @@ test_ctl_parser(PMEMobjpool *pop)
 	UT_ASSERTne(ret, 0);
 	ret = pmemobj_ctl(pop, "..", NULL, NULL);
 	UT_ASSERTne(ret, 0);
+	ret = pmemobj_ctl(pop, "1.2.3.4", NULL, NULL);
+	UT_ASSERTne(ret, 0);
+	ret = pmemobj_ctl(pop, "debug.1.", NULL, NULL);
+	UT_ASSERTne(ret, 0);
+	ret = pmemobj_ctl(pop, "debug.1.invalid", NULL, NULL);
+	UT_ASSERTne(ret, 0);
 
 	/* test methods set read to 0 and write to 1 if successful */
 	int arg_read = 1;
@@ -87,6 +93,16 @@ test_ctl_parser(PMEMobjpool *pop)
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERTeq(arg_read, 1);
 	UT_ASSERTeq(arg_write, 1);
+
+	long index_value = 0;
+	ret = pmemobj_ctl(pop, "debug.5.index_value", &index_value, NULL);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(index_value, 5);
+
+	ret = pmemobj_ctl(pop, "debug.10.index_value", &index_value, NULL);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(index_value, 10);
+
 }
 
 int
