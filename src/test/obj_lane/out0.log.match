@@ -1,5 +1,5 @@
-obj_lane/TEST0: START: obj_lane
- ./obj_lane$(nW) s
+obj_lane$(nW)TEST0: START: obj_lane
+ $(nW)obj_lane$(nW) s
 lane_noop_construct
 lane_noop_construct
 lane_noop_construct
@@ -66,4 +66,4 @@ lane_noop_check 0x4c00
 lane_noop_check 0x5800
 lane_noop_recovery 0x2000
 lane_noop_check 0x2000
-obj_lane/TEST0: Done
+obj_lane$(nW)TEST0: Done

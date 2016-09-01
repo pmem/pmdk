@@ -423,7 +423,7 @@ function expect_abnormal_exit {
 
     Invoke-Expression "$command $params"
 
-    if ($ret -eq 0) {
+    if ($LASTEXITCODE -eq 0) {
         sv -Name msg "succeeded"
         Write-Error "${Env:UNITTEST_NAME}: command $msg unexpectedly."
         #XXX:  bash just has a one-liner "false" here, does that
@@ -573,10 +573,17 @@ function check {
         $p = New-Object System.Diagnostics.Process
         $p.StartInfo = $pinfo
         $p.Start() | Out-Null
-        $p.WaitForExit()
+
+        while($p.HasExited -eq $false) {
+            # output streams have limited size, we need to read it
+            # during an application runtime to prevent application hang.
+            $p.StandardOutput.ReadToEnd();
+            $p.StandardError.ReadToEnd();
+        }
 
         if ($p.ExitCode -ne 0) {
-            $p.StandardError.ReadToEnd()
+            $p.StandardOutput.ReadToEnd();
+            $p.StandardError.ReadToEnd();
             fail $p.ExitCode
         }
     } else {
