@@ -814,6 +814,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vmem_realloc_inplace", "tes
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vmem_aligned_alloc", "test\vmem_aligned_alloc\vmem_aligned_alloc.vcxproj", "{25B5C601-03D7-4861-9C0F-7F0453B04227}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vmem_multiple_pools", "test\vmem_multiple_pools\vmem_multiple_pools.vcxproj", "{CD7A18D5-55D9-4922-A000-FFAA08ABB006}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -1915,6 +1917,10 @@ Global
 		{25B5C601-03D7-4861-9C0F-7F0453B04227}.Debug|x64.Build.0 = Debug|x64
 		{25B5C601-03D7-4861-9C0F-7F0453B04227}.Release|x64.ActiveCfg = Release|x64
 		{25B5C601-03D7-4861-9C0F-7F0453B04227}.Release|x64.Build.0 = Release|x64
+		{CD7A18D5-55D9-4922-A000-FFAA08ABB006}.Debug|x64.ActiveCfg = Debug|x64
+		{CD7A18D5-55D9-4922-A000-FFAA08ABB006}.Debug|x64.Build.0 = Debug|x64
+		{CD7A18D5-55D9-4922-A000-FFAA08ABB006}.Release|x64.ActiveCfg = Release|x64
+		{CD7A18D5-55D9-4922-A000-FFAA08ABB006}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -2178,5 +2184,6 @@ Global
 		{7E0106F8-A597-48D5-B4F2-E0FC4D95EE95} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 		{C3A59B21-A287-4631-B4EC-F4A57D26A14F} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 		{25B5C601-03D7-4861-9C0F-7F0453B04227} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
+		{CD7A18D5-55D9-4922-A000-FFAA08ABB006} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 	EndGlobalSection
 EndGlobal
