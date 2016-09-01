@@ -537,6 +537,15 @@ test_munmap(int fd)
 	ptr1 = mmap(NULL, FILE_SIZE, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
 	UT_ASSERTne(ptr1, MAP_FAILED);
 
+	/* len == 0 - should fail */
+	errno = 0;
+	UT_ASSERTne(munmap(ptr1, 0), 0);
+	UT_ASSERTeq(errno, EINVAL);
+	check_mapping(fd, ptr1, FILE_SIZE, PROT_READ|PROT_WRITE, 0, 0);
+
+	ptr1 = mmap(NULL, FILE_SIZE, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
+	UT_ASSERTne(ptr1, MAP_FAILED);
+
 	/* delete entire mapping (len > file_size) */
 	UT_ASSERTeq(munmap(ptr1, FILE_SIZE + MMAP_SIZE), 0);
 	check_mapping(fd, ptr1, FILE_SIZE, PROT_NONE, 0, 0);
@@ -610,6 +619,11 @@ test_msync(int fd)
 	/* len == 0 - should succeed */
 	UT_ASSERTeq(msync(ptr1, 0, MS_SYNC), 0);
 
+	/* len == SIZE_MAX - should fail */
+	errno = 0;
+	UT_ASSERTne(msync(ptr1, SIZE_MAX, MS_SYNC), 0);
+	UT_ASSERTeq(errno, ENOMEM);
+
 	/* unaligned pointer - should fail */
 	errno = 0;
 	UT_ASSERTne(msync(ptr1 + 100, FILE_SIZE, MS_SYNC), 0);
@@ -680,6 +694,15 @@ test_mprotect(int fd, int fd_ro)
 	UT_ASSERTne(ptr1, MAP_FAILED);
 	UT_ASSERTeq(mprotect(ptr1, 0, PROT_READ), 0);
 	check_access(ptr1, MMAP_SIZE, PROT_READ|PROT_WRITE);
+	UT_ASSERTeq(munmap(ptr1, MMAP_SIZE), 0);
+
+	/* len == SIZE_MAX - should fail */
+	ptr1 = mmap(NULL, MMAP_SIZE, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
+	UT_ASSERTne(ptr1, MAP_FAILED);
+	errno = 0;
+	UT_ASSERTne(mprotect(ptr1, SIZE_MAX, PROT_READ), 0);
+	UT_ASSERTeq(errno, ENOMEM);
+	check_access(ptr1, MMAP_SIZE, PROT_READ);
 	UT_ASSERTeq(munmap(ptr1, MMAP_SIZE), 0);
 
 	/* change protection: R/O => R/W */
