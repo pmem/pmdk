@@ -34,7 +34,7 @@
     <ProjectGuid>{08762559-E9DF-475B-BA99-49F4B5A1D80B}</ProjectGuid>
     <Keyword>DynamicLibrary</Keyword>
     <ProjectName>libvmem</ProjectName>
-    <RootNamespace>libpmemlog</RootNamespace>
+    <RootNamespace>libvmem</RootNamespace>
     <DefaultLanguage>en-US</DefaultLanguage>
     <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
     <ApplicationType>Windows Store</ApplicationType>

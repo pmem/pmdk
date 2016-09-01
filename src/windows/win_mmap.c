@@ -892,6 +892,17 @@ mprotect(void *addr, size_t len, int prot)
 		void *end2 = end < mt->EndAddress ?
 				end : mt->EndAddress;
 
+		if (mt->Access == FILE_MAP_COPY) {
+			if (protect & PAGE_READWRITE) {
+				protect &= ~PAGE_READWRITE;
+				protect |= PAGE_WRITECOPY;
+			}
+			else if (protect & PAGE_EXECUTE_READWRITE) {
+				protect &= PAGE_EXECUTE_READWRITE;
+				protect |= PAGE_EXECUTE_WRITECOPY;
+			}
+		}
+
 		size_t len2 = (char *)end2 - (char *)begin2;
 
 		DWORD oldprot = 0;
