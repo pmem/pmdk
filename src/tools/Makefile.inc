@@ -176,8 +176,10 @@ else
 all:
 endif
 
+SYNC_FILE=.synced
+
 clean:
-	$(RM) $(OBJS) $(CLEAN_FILES)
+	$(RM) $(OBJS) $(CLEAN_FILES) $(SYNC_FILE)
 
 clobber: clean
 ifneq ($(TARGET),)
@@ -252,6 +254,19 @@ objdir=.
 	$(create-deps)
 
 test check pcheck: all
+
+TESTCONFIG=$(TOP)/src/test/testconfig.sh
+DIR_SYNC=$(TOP)/src/test/.sync-dir
+
+$(TESTCONFIG):
+
+sync-remotes: all $(SYNC_FILE)
+
+$(SYNC_FILE): $(TARGET) $(TESTCONFIG)
+ifeq ($(SCP_TO_REMOTE_NODES), y)
+	cp $(TARGET) $(DIR_SYNC)
+	@touch $(SYNC_FILE)
+endif
 
 .PHONY: all clean clobber install uninstall test check pcheck
 

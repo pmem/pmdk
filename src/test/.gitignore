@@ -10,3 +10,5 @@ testfile*
 *.static-debug
 *.static-nondebug
 libs.tar
+*.synced
+.sync-dir

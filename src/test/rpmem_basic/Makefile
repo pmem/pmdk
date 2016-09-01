@@ -33,6 +33,8 @@
 #
 # src/test/rpmem_basic/Makefile -- build rpmem_basic test
 #
+SCP_TO_REMOTE_NODES = y
+
 include ../../common.inc
 
 vpath %.c ../../common

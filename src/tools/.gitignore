@@ -4,3 +4,4 @@ cscope.po.out
 cscope.out
 *.static-debug
 *.static-nondebug
+.synced

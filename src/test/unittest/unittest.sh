@@ -895,7 +895,7 @@ function require_valgrind() {
 		exit 0
 	fi
 	[ $NODES_MAX -lt 0 ] && return;
-	for (( N=$NODES_MAX ; $(($N + 1)) ; N=$(($N - 1)) )); do
+	for N in $NODES_SEQ; do
 		if [ "${NODE_VALGRINDEXE[$N]}" = "" ]; then
 			set +e
 			NODE_VALGRINDEXE[$N]=$(ssh $SSH_OPTS ${NODE[$N]} "which valgrind 2>/dev/null")
@@ -1014,7 +1014,7 @@ function set_valgrind_exe_name() {
 	fi
 
 	[ $NODES_MAX -lt 0 ] && return;
-	for (( N=$NODES_MAX ; $(($N + 1)) ; N=$(($N - 1)) )); do
+	for N in $NODES_SEQ; do
 		local COMMAND="\
 			[ -x $(dirname ${NODE_VALGRINDEXE[$N]})/valgrind.bin ] && \
 			echo $(dirname ${NODE_VALGRINDEXE[$N]})/valgrind.bin || \
@@ -1213,7 +1213,7 @@ function clean_all_remote_nodes() {
 
 	local N=0
 	set +e
-	for (( N=$NODES_MAX ; $(($N + 1)) ; N=$(($N - 1)) )); do
+	for N in $NODES_SEQ; do
 		local DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
 		for pidfile in ${NODE_PID_FILES[$N]}; do
 			run_command ssh $SSH_OPTS ${NODE[$N]} "\
@@ -1254,7 +1254,7 @@ function require_node_libfabric() {
 	require_node_pkg $N libfabric
 
 	local DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
-	local COMMAND="$COMMAND LD_LIBRARY_PATH=.:${NODE_LD_LIBRARY_PATH[$N]} ../fip $*"
+	local COMMAND="$COMMAND LD_LIBRARY_PATH=$REMOTE_LD_LIBRARY_PATH:${NODE_LD_LIBRARY_PATH[$N]} ../fip $*"
 
 	set +e
 	fip_out=$(ssh $SSH_OPTS ${NODE[$N]} "cd $DIR && $COMMAND" 2>&1)
@@ -1283,6 +1283,17 @@ function require_rpmem_port() {
 }
 
 #
+# check_if_node_is_reachable -- check if the $1 node is reachable
+#
+function check_if_node_is_reachable() {
+	set +e
+	run_command ssh $SSH_OPTS ${NODE[$1]} exit
+	local ret=$?
+	set -e
+	return $ret
+}
+
+#
 # require_nodes -- only allow script to continue for a certain number
 #                  of defined and reachable nodes
 #
@@ -1300,9 +1311,10 @@ function require_nodes() {
 		&& exit 0
 
 	NODES_MAX=$(($N - 1))
+	NODES_SEQ=$(seq -s' ' 0 $NODES_MAX)
 
 	# check if all required nodes are reachable
-	for (( N=$NODES_MAX ; $(($N + 1)) ; N=$(($N - 1)) )); do
+	for N in $NODES_SEQ; do
 		# validate node's address
 		[ "${NODE[$N]}" = "" ] \
 			&& echo "$UNITTEST_NAME: SKIP: address of node #$N is not provided" \
@@ -1314,12 +1326,9 @@ function require_nodes() {
 			&& exit 1
 
 		# check if the node is reachable
-	        set +e
-		run_command ssh $SSH_OPTS ${NODE[$N]} exit
-		local ret=$?
-		set -e
-		[ $ret -ne 0 ] \
-			&& echo "error: host ${NODE[$N]} is unreachable" >&2 \
+		check_if_node_is_reachable $N
+		[ $? -ne 0 ] \
+			&& echo "error: node #$N (${NODE[$N]}) is unreachable" >&2 \
 			&& exit 1
 
 		# clear the list of PID files for each node
@@ -1340,42 +1349,15 @@ function require_nodes() {
 		fi
 	done
 
-	# files to be copied to all remote nodes
-	local FILES_TO_COPY=""
-
-	# add all libraries to the 'to-copy' list
-	local LIBS_TAR=libs.tar
-	local LIBS_TAR_DIR=$(pwd)/$LIBS_TAR
-	cd $DIR_SRC
-	tar -cf $LIBS_TAR_DIR ./debug/*.so* ./nondebug/*.so*
-	cd - > /dev/null
-	FILES_COMMON_DIR="$FILES_COMMON_DIR $LIBS_TAR"
-
-	# copy a binary if it exists
-	local TEST_NAME=`echo $UNITTEST_NAME | cut -d"/" -f1`
-	local BINARY=$TEST_NAME$EXESUFFIX
-	[ -f $BINARY ] && FILES_TO_COPY="$FILES_TO_COPY $BINARY"
-
-	# copy all required files to all required nodes
-	for (( N=$NODES_MAX ; $(($N + 1)) ; N=$(($N - 1)) )); do
-		# create a new test dir
-		local DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
-		run_command ssh $SSH_OPTS ${NODE[$N]} "rm -rf $DIR && mkdir -p $DIR"
-		run_command scp $SCP_OPTS $FILES_COMMON_DIR ${NODE[$N]}:${NODE_WORKING_DIR[$N]}
-		run_command ssh $SSH_OPTS ${NODE[$N]} "cd ${NODE_WORKING_DIR[$N]} && tar -xf $LIBS_TAR && rm -f $LIBS_TAR"
-
-		# copy all required files
-		if [ "$FILES_TO_COPY" != "" ]; then
-			run_command scp $SCP_OPTS $FILES_TO_COPY ${NODE[$N]}:$DIR
-		fi
+	for N in $NODES_SEQ; do
+		# remove all log files from the node N
+		rm -f $(find . -name "node_${N}_*$UNITTEST_NUM.log")
 
 		export_vars_node $N $REMOTE_VARS
 	done
 
-	rm -f $LIBS_TAR
-
 	# remove all log files from required nodes
-	for (( N=$NODES_MAX ; $(($N + 1)) ; N=$(($N - 1)) )); do
+	for N in $NODES_SEQ; do
 		for f in $(get_files "node_${N}.*\.log"); do
 			rm -f $f
 		done
@@ -1389,6 +1371,7 @@ function require_nodes() {
 
 #
 # copy_files_to_node -- copy all required files to the given remote node
+#    usage: copy_files_to_node <node> <destination dir> <file_1> [<file_2>] ...
 #
 function copy_files_to_node() {
 
@@ -1397,7 +1380,7 @@ function copy_files_to_node() {
 	local N=$1
 	local DEST_DIR=$2
 	shift 2
-	[ "$*" == "" ] &&\
+	[ $# -eq 0 ] &&\
 		echo "error: copy_files_to_node(): no files provided" >&2 && exit 1
 
 	# copy all required files
@@ -1418,7 +1401,7 @@ function copy_files_from_node() {
 	local N=$1
 	local DEST_DIR=$2
 	shift 2
-	[ "$*" == "" ] &&\
+	[ $# -eq 0 ] &&\
 		echo "error: copy_files_from_node(): no files provided" >&2 && exit 1
 
 	# copy all required files
@@ -1441,7 +1424,7 @@ function copy_files_from_node() {
 #
 function copy_log_files() {
 	local NODE_SCP_LOG_FILES[0]=""
-	for (( N=$NODES_MAX ; $(($N + 1)) ; N=$(($N - 1)) )); do
+	for N in $NODES_SEQ; do
 		local DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
 		for file in ${NODE_LOG_FILES[$N]}; do
 			NODE_SCP_LOG_FILES[$N]="${NODE_SCP_LOG_FILES[$N]} ${NODE[$N]}:$DIR/${file}"
@@ -1453,6 +1436,28 @@ function copy_log_files() {
 	done
 }
 
+#
+# rm_files_from_node -- removes all listed files from the given remote node
+#    usage: rm_files_from_node <node> <file_1> [<file_2>] ...
+#
+function rm_files_from_node() {
+
+	validate_node_number $1
+
+	local N=$1
+	shift
+	[ $# -eq 0 ] &&\
+		echo "error: rm_files_from_node(): no files provided" >&2 && exit 1
+
+	# copy all required files
+	local REMOTE_DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
+
+	run_command ssh $SSH_OPTS ${NODE[$N]} "cd $REMOTE_DIR && rm -f $@"
+
+	return 0
+}
+
+#
 #
 # require_node_log_files -- store log files which must be copied from
 #                           specified node on failure
@@ -1707,7 +1712,7 @@ function check() {
 			NODE_SCP_MATCH_FILES[$N]="${NODE_SCP_MATCH_FILES[$N]} ${NODE[$N]}:$DIR/$FILE"
 		done
 
-		for (( N=$NODES_MAX ; $(($N + 1)) ; N=$(($N - 1)) )); do
+		for N in $NODES_SEQ; do
 			[ "${NODE_SCP_MATCH_FILES[$N]}" ] && run_command scp $SCP_OPTS ${NODE_SCP_MATCH_FILES[$N]} .
 			for file in ${NODE_MATCH_FILES[$N]}; do
 				mv $file node_${N}_${file}
@@ -2026,8 +2031,12 @@ function init_rpmem_on_node() {
 	export_vars_node $master RPMEM_ENABLE_VERBS
 	export_vars_node $master RPMEM_LOG_LEVEL
 	export_vars_node $master RPMEM_LOG_FILE
+	export_vars_node $master PMEMOBJ_LOG_LEVEL
+	export_vars_node $master PMEMOBJ_LOG_FILE
 
 	require_node_log_files $master rpmem$UNITTEST_NUM.log
+	require_node_log_files $slave rpmemd$UNITTEST_NUM.log
+	require_node_log_files $master $PMEMOBJ_LOG_FILE
 
 	# Workaround for SIGSEGV in the infinipath-psm during abort
 	# The infinipath-psm is registering a signal handler and do not unregister
@@ -2036,4 +2045,97 @@ function init_rpmem_on_node() {
 	# Issue require a fix in the infinipath-psm or the libfabric.
 	IPATH_NO_BACKTRACE=1
 	export_vars_node $master IPATH_NO_BACKTRACE
+}
+
+#
+# pack_all_libs -- put all libraries and their links to one tarball
+#
+function pack_all_libs() {
+	local LIBS_TAR_DIR=$(pwd)/$1
+	cd $DIR_SRC
+	tar -cf $LIBS_TAR_DIR ./debug/*.so* ./nondebug/*.so*
+	cd - > /dev/null
+}
+
+#
+# copy_common_to_remote_nodes -- copy common files to all remote nodes
+#
+function copy_common_to_remote_nodes() {
+
+	local NODES_ALL_MAX=$((${#NODE[@]} - 1))
+	local NODES_ALL_SEQ=$(seq -s' ' 0 $NODES_ALL_MAX)
+
+	DIR_SYNC=$1
+	[ ! -d $DIR_SYNC ] \
+		&& echo "error: $DIR_SYNC does not exist or is not a directory" >&2 \
+		&& exit 1
+
+	# add all libraries to the 'to-copy' list
+	local LIBS_TAR=libs.tar
+	pack_all_libs $LIBS_TAR
+
+	if [ "$(ls $DIR_SYNC)" != "" ]; then
+		FILES_COMMON_DIR="$DIR_SYNC/* $LIBS_TAR"
+	else
+		FILES_COMMON_DIR="$LIBS_TAR"
+	fi
+
+	for N in $NODES_ALL_SEQ; do
+		# validate node's address
+		[ "${NODE[$N]}" = "" ] \
+			&& echo "error: address of node #$N is not provided" >&2 \
+			&& exit 1
+
+		check_if_node_is_reachable $N
+		[ $? -ne 0 ] \
+			&& echo "warning: node #$N (${NODE[$N]}) is unreachable, skipping..." >&2 \
+			&& continue
+
+		# validate the working directory
+		[ "${NODE_WORKING_DIR[$N]}" = "" ] \
+			&& echo ": warning: working directory for node #$N (${NODE[$N]}) is not provided, skipping..." >&2 \
+			&& continue
+
+		# create the working dir if it does not exist
+		run_command ssh $SSH_OPTS ${NODE[$N]} "mkdir -p ${NODE_WORKING_DIR[$N]}"
+		# copy all common files
+		run_command scp $SCP_OPTS $FILES_COMMON_DIR ${NODE[$N]}:${NODE_WORKING_DIR[$N]}
+		# unpack libraries
+		run_command ssh $SSH_OPTS ${NODE[$N]} "cd ${NODE_WORKING_DIR[$N]} \
+			&& tar -xf $LIBS_TAR && rm -f $LIBS_TAR"
+	done
+
+	rm -f $LIBS_TAR
+}
+
+#
+# copy_test_to_remote_nodes -- copy all unit test binaries to all remote nodes
+#
+function copy_test_to_remote_nodes() {
+
+	local NODES_ALL_MAX=$((${#NODE[@]} - 1))
+	local NODES_ALL_SEQ=$(seq -s' ' 0 $NODES_ALL_MAX)
+
+	for N in $NODES_ALL_SEQ; do
+		# validate node's address
+		[ "${NODE[$N]}" = "" ] \
+			&& echo "error: address of node #$N is not provided" >&2 \
+			&& exit 1
+
+		check_if_node_is_reachable $N
+		[ $? -ne 0 ] \
+			&& echo "warning: node #$N (${NODE[$N]}) is unreachable, skipping..." >&2 \
+			&& continue
+
+		# validate the working directory
+		[ "${NODE_WORKING_DIR[$N]}" = "" ] \
+			&& echo ": warning: working directory for node #$N (${NODE[$N]}) is not provided, skipping..." >&2 \
+			&& continue
+
+		local DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
+		# create a new test dir
+		run_command ssh $SSH_OPTS ${NODE[$N]} "rm -rf $DIR && mkdir -p $DIR"
+		# copy all required files
+		[ $# -gt 0 ] && run_command scp $SCP_OPTS $* ${NODE[$N]}:$DIR
+	done
 }

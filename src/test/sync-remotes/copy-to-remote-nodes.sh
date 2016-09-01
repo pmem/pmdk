@@ -1,4 +1,6 @@
-# Copyright 2014-2016, Intel Corporation
+#!/bin/bash -e
+#
+# Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -28,44 +30,33 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# Makefile -- top Makefile for tools
-#
 
-TOP = ../..
+# copy-to-remote-nodes.sh -- helper script used to sync remote nodes
 
-TESTCONFIG=$(TOP)/src/test/testconfig.sh
+if [ ! -f ../testconfig.sh ]; then
+	echo "SKIP: testconfig.sh does not exist"
+	exit 0
+fi
 
-TARGETS = pmempool rpmemd
-SCOPEDIRS=$(TARGETS)
-SCOPEFILES=$(foreach dir, $(SCOPEDIRS), $(shell find $(dir) -name *.[ch] ))
+# defined only to be able to source unittest.sh
+UNITTEST_NAME=0
+UNITTEST_NUM=0
 
-all    : TARGET = all
-check  : TARGET = check
-test   : TARGET = test
-clean  : TARGET = clean
-clobber: TARGET = clobber
-cstyle : TARGET = cstyle
-format : TARGET = format
-install: TARGET = install
-uninstall: TARGET = uninstall
-sync-remotes: TARGET = sync-remotes
+. ../unittest/unittest.sh
 
-all clean clobber cstyle install uninstall check format test: $(TARGETS)
+COPY_TYPE=$1
+shift
 
-$(TESTCONFIG):
+case "$COPY_TYPE" in
+	common)
+		copy_common_to_remote_nodes $*
+		exit 0
+                ;;
+	test)
+		copy_test_to_remote_nodes $*
+		exit 0
+                ;;
+esac
 
-sync-remotes: $(TARGETS) $(TESTCONFIG)
-
-$(TARGETS):
-	$(MAKE) -C $@ $(TARGET)
-
-clean:
-	$(RM) TAGS cscope.in.out cscope.out cscope.po.out
-
-clobber: clean
-
-cscope:
-	cscope -q -b $(SCOPEFILES)
-	ctags -e $(SCOPEFILES)
-
-.PHONY: all clean clobber cstyle format install uninstall common cscope sync-remotes $(TARGETS)
+echo "Error: unknown copy type: $COPY_TYPE"
+exit 1

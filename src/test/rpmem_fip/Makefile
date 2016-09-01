@@ -33,6 +33,8 @@
 #
 # src/test/rpmem_fip/Makefile -- build rpmem_fip test
 #
+SCP_TO_REMOTE_NODES = y
+
 include ../../common.inc
 
 vpath %.c ../../librpmem/
