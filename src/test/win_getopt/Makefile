@@ -29,32 +29,13 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# CSTYLE.ps1 -- script to check coding style
+
 #
-# XXX - integrate with VS projects and execute for each build
+# src/test/win_getopt/Makefile -- win_getopt unit test
 #
+vpath %.c ../../common
 
-$scriptdir = Split-Path -Parent $PSCommandPath
-$rootdir = $scriptdir + "\.."
-$cstyle = $rootdir + "\utils\cstyle"
-$checkdir = $rootdir
+TARGET = win_getopt
+OBJS = win_getopt.o
 
-# XXX - *.cpp/*.hpp files not supported yet
-$include = @( "*.c", "*.h" )
-
-# exclude external files not following NVML coding style
-$exclude = @( "queue.h", "^getopt.*")
-
-If ( Get-Command -Name perl -ErrorAction SilentlyContinue ) {
-	Get-ChildItem -Path $checkdir -Recurse -Include $include -Exclude $exclude | `
-			? { $_.FullName -notlike "*jemalloc*" } | `
-	% {
-		echo $_.FullName
-		& perl $cstyle $_.FullName
-		if ($LASTEXITCODE -ne 0) {
-			Exit $LASTEXITCODE
-		}
-	}
-} else {
-	echo "Cannot execute cstyle - perl is missing"
-}
+include ../Makefile.inc
