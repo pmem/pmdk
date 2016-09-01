@@ -700,7 +700,7 @@ pmempool_info_file(struct pmem_info *pip, const char *file_name)
 
 			if (pip->args.obj.replica >= nreplicas) {
 				outv_err("replica number out of range"
-					" (valid range is: 0-" PRIu64 ")",
+					" (valid range is: 0-%" PRIu64 ")",
 					nreplicas - 1);
 				ret = -1;
 				goto out_close;
