@@ -416,6 +416,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_tx_locks_abort", "test\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_tx_flow", "test\obj_tx_flow\obj_tx_flow.vcxproj", "{8E374371-30E1-4623-8755-2A2F3742170B}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_recreate", "test\obj_recreate\obj_recreate.vcxproj", "{1464398A-100F-4518-BDB9-939A6362B6CF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -748,6 +750,10 @@ Global
 		{8E374371-30E1-4623-8755-2A2F3742170B}.Debug|x64.Build.0 = Debug|x64
 		{8E374371-30E1-4623-8755-2A2F3742170B}.Release|x64.ActiveCfg = Release|x64
 		{8E374371-30E1-4623-8755-2A2F3742170B}.Release|x64.Build.0 = Release|x64
+		{1464398A-100F-4518-BDB9-939A6362B6CF}.Debug|x64.ActiveCfg = Debug|x64
+		{1464398A-100F-4518-BDB9-939A6362B6CF}.Debug|x64.Build.0 = Debug|x64
+		{1464398A-100F-4518-BDB9-939A6362B6CF}.Release|x64.ActiveCfg = Release|x64
+		{1464398A-100F-4518-BDB9-939A6362B6CF}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -841,5 +847,6 @@ Global
 		{7F51CD29-3BCD-4DD8-B327-F384B5A616D1} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 		{6F4953DA-FDC3-46CF-BF24-3752CCF2E1CB} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 		{8E374371-30E1-4623-8755-2A2F3742170B} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
+		{1464398A-100F-4518-BDB9-939A6362B6CF} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 	EndGlobalSection
 EndGlobal
