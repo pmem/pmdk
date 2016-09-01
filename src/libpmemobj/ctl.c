@@ -36,7 +36,6 @@
  */
 
 #include <sys/param.h>
-#include <sys/queue.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
@@ -64,7 +63,8 @@
 #include "heap.h"
 
 static int
-CTL_READ_HANDLER(test_rw)(PMEMobjpool *pop, void *arg)
+CTL_READ_HANDLER(test_rw)(PMEMobjpool *pop, void *arg,
+	struct ctl_indexes *indexes)
 {
 	int *arg_rw = arg;
 	*arg_rw = 0;
@@ -73,7 +73,8 @@ CTL_READ_HANDLER(test_rw)(PMEMobjpool *pop, void *arg)
 }
 
 static int
-CTL_WRITE_HANDLER(test_rw)(PMEMobjpool *pop, void *arg)
+CTL_WRITE_HANDLER(test_rw)(PMEMobjpool *pop, void *arg,
+	struct ctl_indexes *indexes)
 {
 	int *arg_rw = arg;
 	*arg_rw = 1;
@@ -82,7 +83,8 @@ CTL_WRITE_HANDLER(test_rw)(PMEMobjpool *pop, void *arg)
 }
 
 static int
-CTL_WRITE_HANDLER(test_wo)(PMEMobjpool *pop, void *arg)
+CTL_WRITE_HANDLER(test_wo)(PMEMobjpool *pop, void *arg,
+	struct ctl_indexes *indexes)
 {
 	int *arg_wo = arg;
 	*arg_wo = 1;
@@ -91,7 +93,8 @@ CTL_WRITE_HANDLER(test_wo)(PMEMobjpool *pop, void *arg)
 }
 
 static int
-CTL_READ_HANDLER(test_ro)(PMEMobjpool *pop, void *arg)
+CTL_READ_HANDLER(test_ro)(PMEMobjpool *pop, void *arg,
+	struct ctl_indexes *indexes)
 {
 	int *arg_ro = arg;
 	*arg_ro = 0;
@@ -99,10 +102,28 @@ CTL_READ_HANDLER(test_ro)(PMEMobjpool *pop, void *arg)
 	return 0;
 }
 
+static int
+CTL_READ_HANDLER(index_value)(PMEMobjpool *pop, void *arg,
+	struct ctl_indexes *indexes)
+{
+	long *index_value = arg;
+	struct ctl_index *idx = SLIST_FIRST(indexes);
+	ASSERT(strcmp(idx->name, "test_index") == 0);
+	*index_value = idx->value;
+
+	return 0;
+}
+
+static const struct ctl_node CTL_NODE(test_index)[] = {
+	CTL_LEAF_RO(index_value),
+	CTL_NODE_END
+};
+
 static const struct ctl_node CTL_NODE(debug)[] = {
 	CTL_LEAF_RO(test_ro),
 	CTL_LEAF_WO(test_wo),
 	CTL_LEAF_RW(test_rw),
+	CTL_INDEXED(test_index),
 
 	CTL_NODE_END
 };
@@ -131,29 +152,57 @@ struct ctl {
 int
 pmemobj_ctl(PMEMobjpool *pop, const char *name, void *read_arg, void *write_arg)
 {
-	char *parse_str = strdup(name);
-
-	char *sptr;
-	char *node_name = strtok_r(parse_str, ".", &sptr);
-
 	struct ctl_node *nodes = pop->ctl->root;
 	struct ctl_node *n = NULL;
+
+	/*
+	 * All of the indexes are put on this list so that the handlers can
+	 * easily retrieve the index values. The list is cleared once the ctl
+	 * query has been handled.
+	 */
+	struct ctl_indexes indexes;
+	SLIST_INIT(&indexes);
+
+	int ret = -1;
+
+	char *parse_str = Strdup(name);
+	if (parse_str == NULL)
+		goto error_strdup_name;
+
+	char *sptr = NULL;
+	char *node_name = strtok_r(parse_str, ".", &sptr);
 
 	/*
 	 * Go through the string and separate tokens that correspond to nodes
 	 * in the main ctl tree.
 	 */
 	while (node_name != NULL) {
+		char *endptr;
+		long index_value = strtol(node_name, &endptr, 0);
+		struct ctl_index *index_entry = NULL;
+		if (endptr != node_name) { /* a valid index */
+			index_entry = Malloc(sizeof(*index_entry));
+			if (index_entry == NULL)
+				goto error_index_malloc;
+			index_entry->value = index_value;
+		}
+
 		for (n = &nodes[0]; n->name != NULL; ++n) {
-			if (strcmp(n->name, node_name) == 0)
+			if (index_entry && n->type == CTL_NODE_INDEXED)
+				break;
+			else if (strcmp(n->name, node_name) == 0)
 				break;
 		}
 		if (n->name == NULL) {
 			errno = EINVAL;
-			return -1;
+			goto error_invalid_arguments;
 		}
 		nodes = n->children;
 		node_name = strtok_r(NULL, ".", &sptr);
+		if (index_entry) {
+			index_entry->name = n->name;
+			SLIST_INSERT_HEAD(&indexes, index_entry, entry);
+		}
 	}
 
 	/*
@@ -164,25 +213,42 @@ pmemobj_ctl(PMEMobjpool *pop, const char *name, void *read_arg, void *write_arg)
 		(write_arg != NULL && n->write_cb == NULL) ||
 		(write_arg == NULL && read_arg == NULL)) {
 		errno = EINVAL;
-		return -1;
+		goto error_invalid_arguments;
 	}
 
-	int result = 0;
+	ASSERTeq(n->type, CTL_NODE_LEAF);
+
+	ret = 0;
 
 	if (read_arg)
-		result = n->read_cb(pop, read_arg);
+		ret = n->read_cb(pop, read_arg, &indexes);
 
-	if (write_arg && result == 0)
-		result = n->write_cb(pop, write_arg);
+	if (write_arg && ret == 0)
+		ret = n->write_cb(pop, write_arg, &indexes);
 
-	return result;
+error_invalid_arguments:
+	while (!SLIST_EMPTY(&indexes)) {
+		struct ctl_index *index = SLIST_FIRST(&indexes);
+		Free(index);
+		SLIST_REMOVE_HEAD(&indexes, entry);
+	}
+
+error_index_malloc:
+	Free(parse_str);
+
+error_strdup_name:
+	return ret;
 }
 
+/*
+ * ctl_register_module_node -- adds a new node to the CTL tree root.
+ */
 void
 ctl_register_module_node(struct ctl *c, const char *name, struct ctl_node *n)
 {
 	struct ctl_node *nnode = &c->root[c->first_free++];
 	nnode->children = n;
+	nnode->type = CTL_NODE_NAMED;
 	nnode->name = Strdup(name);
 }
 
