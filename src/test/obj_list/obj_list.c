@@ -559,7 +559,7 @@ FUNC_MOCK_END
 /*
  * for each element on list in normal order
  */
-#define LIST_FOREACH(item, list, head, field)\
+#define PLIST_FOREACH(item, list, head, field)\
 for ((item) = \
 	D_RW((list))->head.pe_first;\
 	!TOID_IS_NULL((item));\
@@ -572,7 +572,7 @@ for ((item) = \
 /*
  * for each element on list in reverse order
  */
-#define LIST_FOREACH_REVERSE(item, list, head, field)\
+#define PLIST_FOREACH_REVERSE(item, list, head, field)\
 for ((item) = \
 	TOID_IS_NULL(D_RW((list))->head.pe_first) ? D_RW(list)->head.pe_first :\
 	D_RW(D_RW(list)->head.pe_first)->field.pe_prev;\
@@ -593,13 +593,13 @@ get_item_list(PMEMoid head, int n)
 	TOID_ASSIGN(list, head);
 	TOID(struct item) item;
 	if (n >= 0) {
-		LIST_FOREACH(item, list, head, next) {
+		PLIST_FOREACH(item, list, head, next) {
 			if (n == 0)
 				return item.oid;
 			n--;
 		}
 	} else {
-		LIST_FOREACH_REVERSE(item, list, head, next) {
+		PLIST_FOREACH_REVERSE(item, list, head, next) {
 			n++;
 			if (n == 0)
 				return item.oid;
@@ -622,13 +622,13 @@ do_print(PMEMobjpool *pop, const char *arg)
 	if (L == 2) {
 		TOID(struct item) item;
 		UT_OUT("list:");
-		LIST_FOREACH(item, List, head, next) {
+		PLIST_FOREACH(item, List, head, next) {
 			UT_OUT("id = %d", D_RO(item)->id);
 		}
 	} else if (L == 4) {
 		TOID(struct item) item;
 		UT_OUT("list sec:");
-		LIST_FOREACH(item, List_sec, head, next) {
+		PLIST_FOREACH(item, List_sec, head, next) {
 			UT_OUT("id = %d", D_RO(item)->id);
 		}
 	} else {
@@ -649,13 +649,13 @@ do_print_reverse(PMEMobjpool *pop, const char *arg)
 	if (L == 2) {
 		TOID(struct item) item;
 		UT_OUT("list reverse:");
-		LIST_FOREACH_REVERSE(item, List, head, next) {
+		PLIST_FOREACH_REVERSE(item, List, head, next) {
 			UT_OUT("id = %d", D_RO(item)->id);
 		}
 	} else if (L == 4) {
 		TOID(struct item) item;
 		UT_OUT("list sec reverse:");
-		LIST_FOREACH_REVERSE(item, List_sec, head, next) {
+		PLIST_FOREACH_REVERSE(item, List_sec, head, next) {
 			UT_OUT("id = %d", D_RO(item)->id);
 		}
 	} else {
