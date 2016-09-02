@@ -155,12 +155,12 @@ public:
 	/**
 	 * The type of lock needed for the transaction API.
 	 *
-	 * @return TX_LOCK_MUTEX
+	 * @return TX_PARAM_MUTEX
 	 */
-	enum pobj_tx_lock
+	enum pobj_tx_param
 	lock_type() const noexcept
 	{
-		return TX_LOCK_MUTEX;
+		return TX_PARAM_MUTEX;
 	}
 
 	/**

@@ -66,6 +66,9 @@ static __thread struct {
 	enum pobj_tx_stage stage;
 	int last_errnum;
 	struct lane_section *section;
+
+	pmemobj_tx_callback stage_callback;
+	void *stage_callback_arg;
 } tx;
 
 struct tx_lock_data {
@@ -73,7 +76,7 @@ struct tx_lock_data {
 		PMEMmutex *mutex;
 		PMEMrwlock *rwlock;
 	} lock;
-	enum pobj_tx_lock lock_type;
+	enum pobj_tx_param lock_type;
 	SLIST_ENTRY(tx_lock_data) tx_lock;
 };
 
@@ -895,7 +898,7 @@ tx_abort(PMEMobjpool *pop, struct lane_tx_layout *layout, int recovery)
  * add_to_tx_and_lock -- (internal) add lock to the transaction and acquire it
  */
 static int
-add_to_tx_and_lock(struct lane_tx_runtime *lane, enum pobj_tx_lock type,
+add_to_tx_and_lock(struct lane_tx_runtime *lane, enum pobj_tx_param type,
 	void *lock)
 {
 	LOG(15, NULL);
@@ -913,7 +916,7 @@ add_to_tx_and_lock(struct lane_tx_runtime *lane, enum pobj_tx_lock type,
 
 	txl->lock_type = type;
 	switch (txl->lock_type) {
-		case TX_LOCK_MUTEX:
+		case TX_PARAM_MUTEX:
 			txl->lock.mutex = lock;
 			retval = pmemobj_mutex_lock(lane->pop,
 				txl->lock.mutex);
@@ -922,7 +925,7 @@ add_to_tx_and_lock(struct lane_tx_runtime *lane, enum pobj_tx_lock type,
 				ERR("!pmemobj_mutex_lock");
 			}
 			break;
-		case TX_LOCK_RWLOCK:
+		case TX_PARAM_RWLOCK:
 			txl->lock.rwlock = lock;
 			retval = pmemobj_rwlock_wrlock(lane->pop,
 				txl->lock.rwlock);
@@ -955,11 +958,11 @@ release_and_free_tx_locks(struct lane_tx_runtime *lane)
 		struct tx_lock_data *tx_lock = SLIST_FIRST(&lane->tx_locks);
 		SLIST_REMOVE_HEAD(&lane->tx_locks, tx_lock);
 		switch (tx_lock->lock_type) {
-			case TX_LOCK_MUTEX:
+			case TX_PARAM_MUTEX:
 				pmemobj_mutex_unlock(lane->pop,
 					tx_lock->lock.mutex);
 				break;
-			case TX_LOCK_RWLOCK:
+			case TX_PARAM_RWLOCK:
 				pmemobj_rwlock_unlock(lane->pop,
 					tx_lock->lock.rwlock);
 				break;
@@ -1196,13 +1199,33 @@ pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...)
 	/* handle locks */
 	va_list argp;
 	va_start(argp, env);
-	enum pobj_tx_lock lock_type;
+	enum pobj_tx_param param_type;
 
-	while ((lock_type = va_arg(argp, enum pobj_tx_lock)) != TX_LOCK_NONE) {
-		err = add_to_tx_and_lock(lane, lock_type, va_arg(argp, void *));
-		if (err) {
-			va_end(argp);
-			goto err_abort;
+	while ((param_type = va_arg(argp, enum pobj_tx_param)) !=
+			TX_PARAM_NONE) {
+		if (param_type == TX_PARAM_CB) {
+			pmemobj_tx_callback cb =
+					va_arg(argp, pmemobj_tx_callback);
+			void *arg = va_arg(argp, void *);
+
+			if (tx.stage_callback &&
+					(tx.stage_callback != cb ||
+					tx.stage_callback_arg != arg)) {
+				FATAL("transaction callback is already set, "
+					"old %p new %p old_arg %p new_arg %p",
+					tx.stage_callback, cb,
+					tx.stage_callback_arg, arg);
+			}
+
+			tx.stage_callback = cb;
+			tx.stage_callback_arg = arg;
+		} else {
+			err = add_to_tx_and_lock(lane, param_type,
+					va_arg(argp, void *));
+			if (err) {
+				va_end(argp);
+				goto err_abort;
+			}
 		}
 	}
 	va_end(argp);
@@ -1222,7 +1245,7 @@ err_abort:
  * pmemobj_tx_lock -- get lane from pool and add lock to transaction.
  */
 int
-pmemobj_tx_lock(enum pobj_tx_lock type, void *lockp)
+pmemobj_tx_lock(enum pobj_tx_param type, void *lockp)
 {
 	ASSERT_IN_TX();
 	ASSERT_TX_STAGE_WORK();
@@ -1230,6 +1253,23 @@ pmemobj_tx_lock(enum pobj_tx_lock type, void *lockp)
 	struct lane_tx_runtime *lane = tx.section->runtime;
 
 	return add_to_tx_and_lock(lane, type, lockp);
+}
+
+/*
+ * obj_tx_callback -- (internal) executes callback associated with current stage
+ */
+static void
+obj_tx_callback()
+{
+	if (!tx.stage_callback)
+		return;
+
+	struct lane_tx_runtime *lane = tx.section->runtime;
+	struct tx_data *txd = SLIST_FIRST(&lane->tx_entries);
+
+	/* is this the outermost transaction? */
+	if (SLIST_NEXT(txd, tx_entry) == NULL)
+		tx.stage_callback(lane->pop, tx.stage, tx.stage_callback_arg);
 }
 
 /*
@@ -1278,6 +1318,9 @@ obj_tx_abort(int errnum, int user)
 	if (user)
 		ERR("!explicit transaction abort");
 
+	/* ONABORT */
+	obj_tx_callback();
+
 	if (!util_is_zeroed(txd->env, sizeof(jmp_buf)))
 		longjmp(txd->env, errnum);
 }
@@ -1315,6 +1358,9 @@ pmemobj_tx_commit()
 	ASSERT_IN_TX();
 	ASSERT_TX_STAGE_WORK();
 
+	/* WORK */
+	obj_tx_callback();
+
 	ASSERT(tx.section != NULL);
 
 	struct lane_tx_runtime *lane =
@@ -1344,6 +1390,9 @@ pmemobj_tx_commit()
 	}
 
 	tx.stage = TX_STAGE_ONCOMMIT;
+
+	/* ONCOMMIT */
+	obj_tx_callback();
 }
 
 /*
@@ -1359,6 +1408,13 @@ pmemobj_tx_end()
 
 	if (tx.section == NULL)
 		FATAL("pmemobj_tx_end called without pmemobj_tx_begin");
+
+	if (tx.stage_callback &&
+			(tx.stage == TX_STAGE_ONCOMMIT ||
+			tx.stage == TX_STAGE_ONABORT)) {
+		tx.stage = TX_STAGE_FINALLY;
+		obj_tx_callback();
+	}
 
 	struct lane_tx_runtime *lane = tx.section->runtime;
 	struct tx_data *txd = SLIST_FIRST(&lane->tx_entries);
@@ -1390,8 +1446,19 @@ pmemobj_tx_end()
 
 		tx.stage = TX_STAGE_NONE;
 		release_and_free_tx_locks(lane);
-		lane_release(lane->pop);
+		PMEMobjpool *pop = lane->pop;
+		lane_release(pop);
 		tx.section = NULL;
+
+		if (tx.stage_callback) {
+			pmemobj_tx_callback cb = tx.stage_callback;
+			void *arg = tx.stage_callback_arg;
+
+			tx.stage_callback = NULL;
+			tx.stage_callback_arg = NULL;
+
+			cb(pop, TX_STAGE_NONE, arg);
+		}
 	} else {
 		/* resume the next transaction */
 		tx.stage = TX_STAGE_WORK;
@@ -1420,10 +1487,11 @@ pmemobj_tx_process()
 		break;
 	case TX_STAGE_WORK:
 		pmemobj_tx_commit();
-		return;
+		break;
 	case TX_STAGE_ONABORT:
 	case TX_STAGE_ONCOMMIT:
 		tx.stage = TX_STAGE_FINALLY;
+		obj_tx_callback();
 		break;
 	case TX_STAGE_FINALLY:
 		tx.stage = TX_STAGE_NONE;
