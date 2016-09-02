@@ -57,7 +57,7 @@ struct obj {
 static void
 do_nested_tx(PMEMobjpool *pop, TOID(struct obj) o, int value)
 {
-	TX_BEGIN_LOCK(pop, TX_LOCK_MUTEX, &D_RW(o)->lock, TX_LOCK_NONE) {
+	TX_BEGIN_PARAM(pop, TX_PARAM_MUTEX, &D_RW(o)->lock, TX_PARAM_NONE) {
 		TX_ADD(o);
 		D_RW(o)->data = value;
 		if (!TOID_IS_NULL(D_RO(o)->next)) {
@@ -79,7 +79,7 @@ do_aborted_nested_tx(PMEMobjpool *pop, TOID(struct obj) oid, int value)
 {
 	TOID(struct obj) o = oid;
 
-	TX_BEGIN_LOCK(pop, TX_LOCK_MUTEX, &D_RW(o)->lock, TX_LOCK_NONE) {
+	TX_BEGIN_PARAM(pop, TX_PARAM_MUTEX, &D_RW(o)->lock, TX_PARAM_NONE) {
 		TX_ADD(o);
 		D_RW(o)->data = value;
 		if (!TOID_IS_NULL(D_RO(o)->next)) {
@@ -135,7 +135,7 @@ main(int argc, char *argv[])
 
 	TOID(struct root_obj) root = POBJ_ROOT(pop, struct root_obj);
 
-	TX_BEGIN_LOCK(pop, TX_LOCK_MUTEX, &D_RW(root)->lock) {
+	TX_BEGIN_PARAM(pop, TX_PARAM_MUTEX, &D_RW(root)->lock) {
 		TX_ADD(root);
 		D_RW(root)->head = TX_NEW(struct obj);
 		TOID(struct obj) o;

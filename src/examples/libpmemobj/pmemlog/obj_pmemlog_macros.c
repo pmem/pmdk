@@ -138,7 +138,7 @@ pmemlog_append(PMEMlogpool *plp, const void *buf, size_t count)
 	bp = POBJ_ROOT(pop, struct base);
 
 	/* begin a transaction, also acquiring the write lock for the log */
-	TX_BEGIN_LOCK(pop, TX_LOCK_RWLOCK, &D_RW(bp)->rwlock, TX_LOCK_NONE) {
+	TX_BEGIN_PARAM(pop, TX_PARAM_RWLOCK, &D_RW(bp)->rwlock, TX_PARAM_NONE) {
 
 		/* allocate the new node to be inserted */
 		TOID(struct log) logp;
@@ -180,7 +180,7 @@ pmemlog_appendv(PMEMlogpool *plp, const struct iovec *iov, int iovcnt)
 	bp = POBJ_ROOT(pop, struct base);
 
 	/* begin a transaction, also acquiring the write lock for the log */
-	TX_BEGIN_LOCK(pop, TX_LOCK_RWLOCK, &D_RW(bp)->rwlock, TX_LOCK_NONE) {
+	TX_BEGIN_PARAM(pop, TX_PARAM_RWLOCK, &D_RW(bp)->rwlock, TX_PARAM_NONE) {
 		/* add the base object and tail entry to the undo log */
 		TX_ADD(bp);
 		if (!TOID_IS_NULL(D_RO(bp)->tail))
@@ -238,7 +238,7 @@ pmemlog_rewind(PMEMlogpool *plp)
 	bp = POBJ_ROOT(pop, struct base);
 
 	/* begin a transaction, also acquiring the write lock for the log */
-	TX_BEGIN_LOCK(pop, TX_LOCK_RWLOCK, &D_RW(bp)->rwlock, TX_LOCK_NONE) {
+	TX_BEGIN_PARAM(pop, TX_PARAM_RWLOCK, &D_RW(bp)->rwlock, TX_PARAM_NONE) {
 		/* add the root object to the undo log */
 		TX_ADD(bp);
 		while (!TOID_IS_NULL(D_RO(bp)->head)) {

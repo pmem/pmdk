@@ -232,8 +232,8 @@ pmemblk_write(PMEMblkpool *pbp, const void *buf, long long blockno)
 	if (blockno >= D_RO(bp)->nblocks)
 		return 1;
 
-	TX_BEGIN_LOCK(pop, TX_LOCK_MUTEX,
-		&D_RW(bp)->locks[blockno % MAX_THREADS], TX_LOCK_NONE) {
+	TX_BEGIN_PARAM(pop, TX_PARAM_MUTEX,
+		&D_RW(bp)->locks[blockno % MAX_THREADS], TX_PARAM_NONE) {
 		size_t block_off = blockno * D_RO(bp)->bsize;
 		uint8_t *dst = D_RW(D_RW(bp)->data) + block_off;
 		/* add the modified block to the undo log */
@@ -260,8 +260,8 @@ pmemblk_set_zero(PMEMblkpool *pbp, long long blockno)
 	if (blockno >= D_RO(bp)->nblocks)
 		return 1;
 
-	TX_BEGIN_LOCK(pop, TX_LOCK_MUTEX,
-		&D_RW(bp)->locks[blockno % MAX_THREADS], TX_LOCK_NONE) {
+	TX_BEGIN_PARAM(pop, TX_PARAM_MUTEX,
+		&D_RW(bp)->locks[blockno % MAX_THREADS], TX_PARAM_NONE) {
 		size_t block_off = blockno * D_RO(bp)->bsize;
 		uint8_t *dst = D_RW(D_RW(bp)->data) + block_off;
 		pmemobj_tx_add_range_direct(dst, D_RO(bp)->bsize);

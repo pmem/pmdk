@@ -47,10 +47,10 @@ static struct transaction_data {
 } test_obj;
 
 #define DO_LOCK(mtx, rwlock)\
-	pmemobj_tx_lock(TX_LOCK_MUTEX, &(mtx)[0]);\
-	pmemobj_tx_lock(TX_LOCK_MUTEX, &(mtx)[1]);\
-	pmemobj_tx_lock(TX_LOCK_RWLOCK, &(rwlock)[0]);\
-	pmemobj_tx_lock(TX_LOCK_RWLOCK, &(rwlock)[1])
+	pmemobj_tx_lock(TX_PARAM_MUTEX, &(mtx)[0]);\
+	pmemobj_tx_lock(TX_PARAM_MUTEX, &(mtx)[1]);\
+	pmemobj_tx_lock(TX_PARAM_RWLOCK, &(rwlock)[0]);\
+	pmemobj_tx_lock(TX_PARAM_RWLOCK, &(rwlock)[1])
 
 #define IS_UNLOCKED(pop, mtx, rwlock)\
 	ret = 0;\
