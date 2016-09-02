@@ -420,6 +420,10 @@ function check_exit_code {
         dump_last_n_lines $Env:PMEMBLK_LOG_FILE
         dump_last_n_lines $Env:VMEM_LOG_FILE
         dump_last_n_lines $Env:VMMALLOC_LOG_FILE
+
+        #XXX:  bash just has a one-liner "false" here, does that
+        # set the exit code?
+        fail $LASTEXITCODE
     }
 }
 
