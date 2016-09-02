@@ -43,9 +43,9 @@
 #define TEST_VALUE_B 10
 #define TEST_VALUE_C 15
 
-#define BEGIN_TX(pop, mutexes, rwlocks)	TX_BEGIN_LOCK((pop), TX_LOCK_MUTEX,\
-		&(mutexes)[0], TX_LOCK_MUTEX, &(mutexes)[1], TX_LOCK_RWLOCK,\
-		&(rwlocks)[0], TX_LOCK_RWLOCK, &(rwlocks)[1], TX_LOCK_NONE)
+#define BEGIN_TX(pop, mutexes, rwlocks)	TX_BEGIN_PARAM((pop), TX_PARAM_MUTEX,\
+		&(mutexes)[0], TX_PARAM_MUTEX, &(mutexes)[1], TX_PARAM_RWLOCK,\
+		&(rwlocks)[0], TX_PARAM_RWLOCK, &(rwlocks)[1], TX_PARAM_NONE)
 
 static struct transaction_data {
 	PMEMobjpool *pop;

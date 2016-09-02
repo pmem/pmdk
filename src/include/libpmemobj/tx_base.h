@@ -67,11 +67,22 @@ enum pobj_tx_stage {
  */
 enum pobj_tx_stage pmemobj_tx_stage(void);
 
-enum pobj_tx_lock {
-	TX_LOCK_NONE,
-	TX_LOCK_MUTEX,	/* PMEMmutex */
-	TX_LOCK_RWLOCK	/* PMEMrwlock */
+enum pobj_tx_param {
+	TX_PARAM_NONE,
+	TX_PARAM_MUTEX,	 /* PMEMmutex */
+	TX_PARAM_RWLOCK, /* PMEMrwlock */
+	TX_PARAM_CB,	 /* pmemobj_tx_callback cb, void *arg */
 };
+
+/* deprecated, do not use */
+enum pobj_tx_lock {
+	TX_LOCK_NONE   = TX_PARAM_NONE,
+	TX_LOCK_MUTEX  = TX_PARAM_MUTEX,
+	TX_LOCK_RWLOCK = TX_PARAM_RWLOCK
+};
+
+typedef void (*pmemobj_tx_callback)(PMEMobjpool *pop, enum pobj_tx_stage stage,
+		void *);
 
 /*
  * Starts a new transaction in the current thread.
@@ -86,7 +97,7 @@ int pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...);
 /*
  * Adds lock of given type to current transaction.
  */
-int pmemobj_tx_lock(enum pobj_tx_lock type, void *lockp);
+int pmemobj_tx_lock(enum pobj_tx_param type, void *lockp);
 
 /*
  * Aborts current transaction

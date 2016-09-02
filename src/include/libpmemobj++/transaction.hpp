@@ -107,7 +107,7 @@ public:
 		manual(obj::pool_base &pop, L &... locks)
 		{
 			if (pmemobj_tx_begin(pop.get_handle(), NULL,
-					     TX_LOCK_NONE) != 0)
+					     TX_PARAM_NONE) != 0)
 				throw transaction_error(
 					"failed to start transaction");
 
@@ -204,7 +204,7 @@ public:
 		automatic(obj::pool_base &pop, L &... locks)
 		{
 			if (pmemobj_tx_begin(pop.get_handle(), NULL,
-					     TX_LOCK_NONE) != 0)
+					     TX_PARAM_NONE) != 0)
 				throw transaction_error(
 					"failed to start transaction");
 
@@ -400,7 +400,7 @@ public:
 	static void
 	exec_tx(pool_base &pool, std::function<void()> tx, Locks &... locks)
 	{
-		if (pmemobj_tx_begin(pool.get_handle(), NULL, TX_LOCK_NONE) !=
+		if (pmemobj_tx_begin(pool.get_handle(), NULL, TX_PARAM_NONE) !=
 		    0)
 			throw transaction_error("failed to start transaction");
 

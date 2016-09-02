@@ -200,7 +200,7 @@ pmemlog_append(PMEMlogpool *plp, const void *buf, size_t count)
 	}
 
 	/* begin a transaction, also acquiring the write lock for the log */
-	TX_BEGIN_LOCK(pop, TX_LOCK_RWLOCK, &D_RW(bp)->rwlock, TX_LOCK_NONE) {
+	TX_BEGIN_PARAM(pop, TX_PARAM_RWLOCK, &D_RW(bp)->rwlock, TX_PARAM_NONE) {
 		char *dst = D_RW(logp)->data + D_RO(logp)->hdr.write_offset;
 		/* add hdr to undo log */
 		TX_ADD_FIELD(logp, hdr);
@@ -241,7 +241,7 @@ pmemlog_appendv(PMEMlogpool *plp, const struct iovec *iov, int iovcnt)
 	}
 
 	/* begin a transaction, also acquiring the write lock for the log */
-	TX_BEGIN_LOCK(pop, TX_LOCK_RWLOCK, &D_RW(bp)->rwlock, TX_LOCK_NONE) {
+	TX_BEGIN_PARAM(pop, TX_PARAM_RWLOCK, &D_RW(bp)->rwlock, TX_PARAM_NONE) {
 		TX_ADD(D_RW(bp)->log);
 		/* append the data */
 		for (int i = 0; i < iovcnt; ++i) {
@@ -285,7 +285,7 @@ pmemlog_rewind(PMEMlogpool *plp)
 	bp = POBJ_ROOT(pop, struct base);
 
 	/* begin a transaction, also acquiring the write lock for the log */
-	TX_BEGIN_LOCK(pop, TX_LOCK_RWLOCK, &D_RW(bp)->rwlock, TX_LOCK_NONE) {
+	TX_BEGIN_PARAM(pop, TX_PARAM_RWLOCK, &D_RW(bp)->rwlock, TX_PARAM_NONE) {
 		/* add the hdr to the undo log */
 		TX_ADD_FIELD(D_RW(bp)->log, hdr);
 		/* reset the write offset */

@@ -149,7 +149,7 @@ pmemlog_append(PMEMlogpool *plp, const void *buf, size_t count)
 	}
 
 	/* begin a transaction, also acquiring the write lock for the log */
-	pmemobj_tx_begin(pop, env, TX_LOCK_RWLOCK, &bp->rwlock, TX_LOCK_NONE);
+	pmemobj_tx_begin(pop, env, TX_PARAM_RWLOCK, &bp->rwlock, TX_PARAM_NONE);
 
 	/* allocate the new node to be inserted */
 	PMEMoid log = pmemobj_tx_alloc(count + sizeof(struct log_hdr),
@@ -198,7 +198,7 @@ pmemlog_appendv(PMEMlogpool *plp, const struct iovec *iov, int iovcnt)
 	}
 
 	/* begin a transaction, also acquiring the write lock for the log */
-	pmemobj_tx_begin(pop, env, TX_LOCK_RWLOCK, &bp->rwlock, TX_LOCK_NONE);
+	pmemobj_tx_begin(pop, env, TX_PARAM_RWLOCK, &bp->rwlock, TX_PARAM_NONE);
 
 	/* add the base object to the undo log - once for the transaction */
 	pmemobj_tx_add_range(baseoid, 0, sizeof(struct base));
@@ -275,7 +275,7 @@ pmemlog_rewind(PMEMlogpool *plp)
 	}
 
 	/* begin a transaction, also acquiring the write lock for the log */
-	pmemobj_tx_begin(pop, env, TX_LOCK_RWLOCK, &bp->rwlock, TX_LOCK_NONE);
+	pmemobj_tx_begin(pop, env, TX_PARAM_RWLOCK, &bp->rwlock, TX_PARAM_NONE);
 	/* add the root object to the undo log */
 	pmemobj_tx_add_range(baseoid, 0, sizeof(struct base));
 
