@@ -1224,7 +1224,7 @@ pocli_pmemobj_tx_begin(struct pocli_ctx *ctx, struct pocli_args *args)
 	int r;
 	switch (args->argc) {
 		case 1: {
-			r = pmemobj_tx_begin(ctx->pop, NULL, TX_LOCK_NONE);
+			r = pmemobj_tx_begin(ctx->pop, NULL, TX_PARAM_NONE);
 			if (r != POCLI_RET_OK)
 				return pocli_err(ctx, POCLI_ERR_ARGS,
 					"pmemobj_tx_begin() failed");
@@ -1243,7 +1243,7 @@ pocli_pmemobj_tx_begin(struct pocli_ctx *ctx, struct pocli_args *args)
 				return POCLI_RET_OK;
 			} else {
 				r = pmemobj_tx_begin(ctx->pop, jmp,
-								TX_LOCK_NONE);
+							TX_PARAM_NONE);
 				if (r != POCLI_RET_OK)
 					return pocli_err(ctx, POCLI_ERR_ARGS,
 						"pmemobj_tx_begin() failed");

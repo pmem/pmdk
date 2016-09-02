@@ -104,6 +104,7 @@ OBJ_TESTS = \
 	obj_toid\
 	obj_tx_alloc\
 	obj_tx_add_range\
+	obj_tx_callbacks\
 	obj_tx_lock\
 	obj_tx_add_range_direct\
 	obj_tx_flow\

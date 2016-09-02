@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,16 +31,12 @@
 #
 
 #
-# src/test/obj_tx_locks/Makefile -- build obj_tx_locks unit test
+# src/test/obj_tx_callbacks/Makefile -- build obj_tx_callbacks unit test
 #
-TARGET = obj_tx_locks
-OBJS = obj_tx_locks.o
+TARGET = obj_tx_callbacks
+OBJS = obj_tx_callbacks.o
 
 LIBPMEM=y
 LIBPMEMOBJ=y
 
 include ../Makefile.inc
-
-# one of the functions tests that deprecated functionality still works
-# so we have to disable this warning to let it compile with -Werror
-CFLAGS += -Wno-deprecated-declarations

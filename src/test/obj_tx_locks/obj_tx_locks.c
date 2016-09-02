@@ -43,7 +43,13 @@
 #define TEST_VALUE_B 10
 #define TEST_VALUE_C 15
 
-#define BEGIN_TX(pop, mutexes, rwlocks)	TX_BEGIN_LOCK((pop), TX_LOCK_MUTEX,\
+#define BEGIN_TX(pop, mutexes, rwlocks)\
+		TX_BEGIN_PARAM((pop), TX_PARAM_MUTEX,\
+		&(mutexes)[0], TX_PARAM_MUTEX, &(mutexes)[1], TX_PARAM_RWLOCK,\
+		&(rwlocks)[0], TX_PARAM_RWLOCK, &(rwlocks)[1], TX_PARAM_NONE)
+
+#define BEGIN_TX_OLD(pop, mutexes, rwlocks)\
+		TX_BEGIN_LOCK((pop), TX_LOCK_MUTEX,\
 		&(mutexes)[0], TX_LOCK_MUTEX, &(mutexes)[1], TX_LOCK_RWLOCK,\
 		&(rwlocks)[0], TX_LOCK_RWLOCK, &(rwlocks)[1], TX_LOCK_NONE)
 
@@ -65,6 +71,29 @@ do_tx(void *arg)
 	struct transaction_data *data = arg;
 
 	BEGIN_TX(data->pop, data->mutexes, data->rwlocks) {
+		data->a = TEST_VALUE_A;
+	} TX_ONCOMMIT {
+		UT_ASSERT(data->a == TEST_VALUE_A);
+		data->b = TEST_VALUE_B;
+	} TX_ONABORT { /* not called */
+		data->a = TEST_VALUE_B;
+	} TX_FINALLY {
+		UT_ASSERT(data->b == TEST_VALUE_B);
+		data->c = TEST_VALUE_C;
+	} TX_END
+
+	return NULL;
+}
+
+/*
+ * do_tx_old -- (internal) thread-friendly transaction, tests deprecated macros
+ */
+static void *
+do_tx_old(void *arg)
+{
+	struct transaction_data *data = arg;
+
+	BEGIN_TX_OLD(data->pop, data->mutexes, data->rwlocks) {
 		data->a = TEST_VALUE_A;
 	} TX_ONCOMMIT {
 		UT_ASSERT(data->a == TEST_VALUE_A);
@@ -242,6 +271,22 @@ main(int argc, char *argv[])
 
 	UT_ASSERT(test_obj.a == TEST_VALUE_B);
 	UT_ASSERT(test_obj.b == TEST_VALUE_A);
+	UT_ASSERT(test_obj.c == TEST_VALUE_C);
+
+
+	/* test that deprecated macros still work */
+	UT_COMPILE_ERROR_ON((int)TX_LOCK_NONE != (int)TX_PARAM_NONE);
+	UT_COMPILE_ERROR_ON((int)TX_LOCK_MUTEX != (int)TX_PARAM_MUTEX);
+	UT_COMPILE_ERROR_ON((int)TX_LOCK_RWLOCK != (int)TX_PARAM_RWLOCK);
+	if (multithread) {
+		run_mt_test(do_tx_old, &test_obj);
+	} else {
+		do_tx_old(&test_obj);
+		do_tx_old(&test_obj);
+	}
+
+	UT_ASSERT(test_obj.a == TEST_VALUE_A);
+	UT_ASSERT(test_obj.b == TEST_VALUE_B);
 	UT_ASSERT(test_obj.c == TEST_VALUE_C);
 
 	pmemobj_close(test_obj.pop);
