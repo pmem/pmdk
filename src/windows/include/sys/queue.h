@@ -7,6 +7,7 @@
 /*
  * Copyright (c) 1991, 1993
  *	The Regents of the University of California.  All rights reserved.
+ * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -517,4 +518,38 @@ struct {								\
 #define	CIRCLEQ_LAST(head)		((head)->cqh_last)
 #define	CIRCLEQ_NEXT(elm, field)	((elm)->field.cqe_next)
 #define	CIRCLEQ_PREV(elm, field)	((elm)->field.cqe_prev)
+
+/*
+ * Sorted queue functions.
+ */
+#define SORTEDQ_HEAD(name, type)		CIRCLEQ_HEAD(name, type)
+#define SORTEDQ_HEAD_INITIALIZER(head)		CIRCLEQ_HEAD_INITIALIZER(head)
+#define SORTEDQ_ENTRY(type)			CIRCLEQ_ENTRY(type)
+#define SORTEDQ_INIT(head)			CIRCLEQ_INIT(head)
+#define SORTEDQ_INSERT(head, elm, field, type, comparer) {		\
+	type *_elm_it;							\
+	for (_elm_it = (head)->cqh_first;				\
+		((_elm_it != (void *)(head)) &&				\
+			(comparer(_elm_it, (elm)) < 0));		\
+		_elm_it = _elm_it->field.cqe_next)			\
+		/*NOTHING*/;						\
+	if (_elm_it == (void *)(head))					\
+		CIRCLEQ_INSERT_TAIL(head, elm, field);			\
+	else								\
+		CIRCLEQ_INSERT_BEFORE(head, _elm_it, elm, field);	\
+}
+#define SORTEDQ_REMOVE(head, elm, field)	CIRCLEQ_REMOVE(head, elm, field)
+#define SORTEDQ_FOREACH(var, head, field)	CIRCLEQ_FOREACH(var, head, field)
+#define SORTEDQ_FOREACH_REVERSE(var, head, field)			\
+	CIRCLEQ_FOREACH_REVERSE(var, head, field)
+
+/*
+ * Sorted queue access methods.
+ */
+#define	SORTEDQ_EMPTY(head)			CIRCLEQ_EMPTY(head)
+#define	SORTEDQ_FIRST(head)			CIRCLEQ_FIRST(head)
+#define	SORTEDQ_LAST(head)			CIRCLEQ_LAST(head)
+#define	SORTEDQ_NEXT(elm, field)		CIRCLEQ_NEXT(elm, field)
+#define	SORTEDQ_PREV(elm, field)		CIRCLEQ_PREV(elm, field)
+
 #endif	/* !_SYS_QUEUE_H_ */
