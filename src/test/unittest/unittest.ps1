@@ -403,6 +403,7 @@ function expect_normal_exit {
 
         #XXX:  bash just has a one-liner "false" here, does that
         # set the exit code?
+        fail $LASTEXITCODE
     }
 
     # XXX: if we impement a memcheck thing... set some env vars here
