@@ -843,10 +843,22 @@ out:
  * remove_part_cb -- callback function for removing all pool set part files
  */
 static int
-remove_part_cb(const char *part_file, void *arg)
+remove_part_cb(struct part_file *pf, void *arg)
 {
-	if (access(part_file, F_OK) == 0)
-		return remove(part_file);
+	if (pf->is_remote) {
+		/*
+		 * XXX add support for remote replicas
+		 */
+		err(1, "removing remote poolset files is not supported yet");
+
+		return -1;
+	} else {
+		const char *part_file = pf->path;
+
+		if (access(part_file, F_OK) == 0)
+			return remove(part_file);
+	}
+
 	return 0;
 }
 
