@@ -30,30 +30,37 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# src/test/win_common/TEST0 -- unit test for windows list macros
+
+#
+# src\test\pmem_is_pmem\TEST5 -- unit test for pmem_is_pmem
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "win_common\TEST0"
-$Env:UNITTEST_NUM = "0"
+$ENV:UNITTEST_NAME = "pmem_is_pmem\TEST5"
+$ENV:UNITTEST_NUM = "5"
+
 # XXX:  bash has a few calls to tools that we don't have on
-# windows (yet) that set PMEM_IS_PMEM and NON_PMEM_IS_PMEM based
+# Windows (yet) that set PMEM_IS_PMEM and NON_PMEM_IS_PMEM based
 # on their output
-$Env:PMEM_IS_PMEM = $true
-$Env:NON_PMEM_IS_PMEM = $true
-$DIR = ""
+$ENV:PMEM_IS_PMEM = $true
+$ENV:NON_PMEM_IS_PMEM = $true
 
 # standard unit test setup
 . ..\unittest\unittest.ps1
 
-require_fs_type none
+require_fs_type pmem
 require_test_type medium
 
 setup
 
-expect_normal_exit $Env:EXE_DIR\win_common$Env:EXESUFFIX setunsetenv
+create_holey_file 2M $DIR\testfile1
+$ENV:PMEM_IS_PMEM_FORCE = "1"
+# program would overwrite PMEM_IS_PMEM_FORCE
+expect_normal_exit $ENV:EXE_DIR\pmem_is_pmem$EXESUFFIX $DIR\testfile1 0
+
+check
 
 pass

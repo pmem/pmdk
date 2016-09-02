@@ -174,7 +174,7 @@ OTHER_TESTS = \
 
 PMEM_TESTS = \
 	pmem_is_pmem\
-	pmem_is_pmem_proc\
+	pmem_is_pmem_proc_linux\
 	pmem_map\
 	pmem_memcpy\
 	pmem_memmove\

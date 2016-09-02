@@ -52,6 +52,9 @@
     <ClInclude Include="..\common\file.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\windows\include\win_mmap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="libpmem.def">

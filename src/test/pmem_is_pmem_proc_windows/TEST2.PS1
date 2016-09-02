@@ -30,30 +30,31 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# src/test/win_common/TEST0 -- unit test for windows list macros
+
+#
+# src\test\pmem_is_pmem_proc_windows\TEST2 -- unit test for pmem_is_pmem
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "win_common\TEST0"
-$Env:UNITTEST_NUM = "0"
-# XXX:  bash has a few calls to tools that we don't have on
-# windows (yet) that set PMEM_IS_PMEM and NON_PMEM_IS_PMEM based
-# on their output
-$Env:PMEM_IS_PMEM = $true
-$Env:NON_PMEM_IS_PMEM = $true
-$DIR = ""
+$ENV:UNITTEST_NAME = "pmem_is_pmem_proc_windows\TEST2"
+$ENV:UNITTEST_NUM = "2"
 
 # standard unit test setup
 . ..\unittest\unittest.ps1
 
-require_fs_type none
+require_fs_type non-pmem
 require_test_type medium
 
 setup
 
-expect_normal_exit $Env:EXE_DIR\win_common$Env:EXESUFFIX setunsetenv
+create_holey_file 4M $DIR\testfile1
+
+expect_normal_exit $ENV:EXE_DIR\pmem_is_pmem_proc_windows$EXESUFFIX `
+	$DIR\testfile1 middle
+
+check
 
 pass

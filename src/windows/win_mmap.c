@@ -57,11 +57,9 @@
  */
 
 #include <sys/mman.h>
-#include <sys/queue.h>
 #include "mmap.h"
 #include "out.h"
-
-#define roundup(x, y)	((((x) + ((y) - 1)) / (y)) * (y))
+#include "win_mmap.h"
 
 NTSTATUS
 NtFreeVirtualMemory(_In_ HANDLE ProcessHandle, _Inout_ PVOID *BaseAddress,
@@ -73,22 +71,19 @@ unsigned long long Mmap_align;
 /* page size */
 unsigned long long Pagesize;
 
-/*
- * this structure tracks the file mappings outstanding per file handle
- */
-typedef struct FILE_MAPPING_TRACKER {
-	LIST_ENTRY(FILE_MAPPING_TRACKER) ListEntry;
-	HANDLE FileHandle;
-	HANDLE FileMappingHandle;
-	PVOID *BaseAddress;
-	PVOID *EndAddress;
-	DWORD Access;
-	off_t Offset;
-} *PFILE_MAPPING_TRACKER;
+HANDLE FileMappingQMutex = NULL;
+struct FMLHead FileMappingQHead =
+	SORTEDQ_HEAD_INITIALIZER(FileMappingQHead);
 
-HANDLE FileMappingListMutex = NULL;
-LIST_HEAD(FMLHead, FILE_MAPPING_TRACKER) FileMappingListHead =
-	LIST_HEAD_INITIALIZER(FileMappingListHead);
+/*
+ * mmap_file_mapping_comparer -- (internal) compares the two file mapping
+ * trackers
+ */
+static LONG_PTR
+mmap_file_mapping_comparer(PFILE_MAPPING_TRACKER a, PFILE_MAPPING_TRACKER b)
+{
+	return ((LONG_PTR)a->BaseAddress - (LONG_PTR)b->BaseAddress);
+}
 
 /*
  * mmap_init -- (internal) load-time initialization of file mapping tracker
@@ -98,9 +93,9 @@ LIST_HEAD(FMLHead, FILE_MAPPING_TRACKER) FileMappingListHead =
 static void
 mmap_init(void)
 {
-	LIST_INIT(&FileMappingListHead);
+	SORTEDQ_INIT(&FileMappingQHead);
 
-	FileMappingListMutex = CreateMutex(NULL, FALSE, NULL);
+	FileMappingQMutex = CreateMutex(NULL, FALSE, NULL);
 
 	SYSTEM_INFO si;
 	GetSystemInfo(&si);
@@ -116,7 +111,7 @@ mmap_init(void)
 static void
 mmap_fini(void)
 {
-	if (FileMappingListMutex == NULL)
+	if (FileMappingQMutex == NULL)
 		return;
 
 	/*
@@ -124,15 +119,15 @@ mmap_fini(void)
 	 * list by grabbing the lock.  There is still a race condition
 	 * with someone coming in while we're tearing it down and trying
 	 */
-	WaitForSingleObject(FileMappingListMutex, INFINITE);
-	ReleaseMutex(FileMappingListMutex);
-	CloseHandle(FileMappingListMutex);
+	WaitForSingleObject(FileMappingQMutex, INFINITE);
+	ReleaseMutex(FileMappingQMutex);
+	CloseHandle(FileMappingQMutex);
 
-	while (!LIST_EMPTY(&FileMappingListHead)) {
+	while (!SORTEDQ_EMPTY(&FileMappingQHead)) {
 		PFILE_MAPPING_TRACKER mt;
-		mt = (PFILE_MAPPING_TRACKER)LIST_FIRST(&FileMappingListHead);
+		mt = (PFILE_MAPPING_TRACKER)SORTEDQ_FIRST(&FileMappingQHead);
 
-		LIST_REMOVE(mt, ListEntry);
+		SORTEDQ_REMOVE(&FileMappingQHead, mt, ListEntry);
 
 		if (mt->BaseAddress != NULL)
 			UnmapViewOfFile(mt->BaseAddress);
@@ -432,16 +427,36 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 		return MAP_FAILED;
 	}
 
+	mt->Flags = 0;
 	mt->FileHandle = fh;
 	mt->FileMappingHandle = fmh;
 	mt->BaseAddress = base;
-	mt->EndAddress = (PVOID *)((char *)base + roundup(len, Mmap_align));
+	mt->EndAddress = (void *)((char *)base + roundup(len, Mmap_align));
 	mt->Access = access;
 	mt->Offset = offset;
 
-	WaitForSingleObject(FileMappingListMutex, INFINITE);
-	LIST_INSERT_HEAD(&FileMappingListHead, mt, ListEntry);
-	ReleaseMutex(FileMappingListMutex);
+	/*
+	 * XXX: Use the QueryVirtualMemoryInformation when available in the new
+	 * SDK.  If the file is DAX mapped say so in the FILE_MAPPING_TRACKER
+	 * Flags.
+	 */
+	DWORD filesystemFlags;
+	if (GetVolumeInformationByHandleW(fh, NULL, 0, NULL, NULL,
+			&filesystemFlags, NULL, 0)) {
+		if (filesystemFlags & FILE_DAX_VOLUME) {
+			mt->Flags |= FILE_MAPPING_TRACKER_FLAG_DIRECT_MAPPED;
+		} else {
+			LOG(4, "file is not DAX mapped - handle: %p", fh);
+		}
+	} else {
+		ERR("failed to query volume information : %08x",
+			GetLastError());
+	}
+
+	WaitForSingleObject(FileMappingQMutex, INFINITE);
+	SORTEDQ_INSERT(&FileMappingQHead, mt, ListEntry, FILE_MAPPING_TRACKER,
+		mmap_file_mapping_comparer);
+	ReleaseMutex(FileMappingQMutex);
 
 	return base;
 }
@@ -453,7 +468,7 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
  * mapping, it results in two new mappings and duplicated file/mapping handles.
  */
 static int
-mmap_split(PFILE_MAPPING_TRACKER mt, PVOID *begin, PVOID *end)
+mmap_split(PFILE_MAPPING_TRACKER mt, void *begin, void *end)
 {
 	ASSERTeq((uintptr_t)begin % Mmap_align, 0);
 	ASSERTeq((uintptr_t)end % Mmap_align, 0);
@@ -462,6 +477,14 @@ mmap_split(PFILE_MAPPING_TRACKER mt, PVOID *begin, PVOID *end)
 	PFILE_MAPPING_TRACKER mte = NULL;
 	HANDLE fh = mt->FileHandle;
 	HANDLE fmh = mt->FileMappingHandle;
+
+	/*
+	 * In this routine we copy flags from mt to the two subsets that we
+	 * create.  All flags may not be appropriate to propagate so let's
+	 * assert about the flags we know, if some one adds a new flag in the
+	 * future they would know about this copy and take appropricate action.
+	 */
+	C_ASSERT(FILE_MAPPING_TRACKER_FLAGS_MASK == 1);
 
 	/*
 	 * 1)    b    e           b     e
@@ -483,6 +506,7 @@ mmap_split(PFILE_MAPPING_TRACKER mt, PVOID *begin, PVOID *end)
 			goto err;
 		}
 
+		mtb->Flags = mt->Flags;
 		mtb->FileHandle = fh;
 		mtb->FileMappingHandle = fmh;
 		mtb->BaseAddress = mt->BaseAddress;
@@ -506,6 +530,9 @@ mmap_split(PFILE_MAPPING_TRACKER mt, PVOID *begin, PVOID *end)
 			mte->FileMappingHandle = fmh;
 		} else {
 			/* case #1 - need to duplicate handles */
+			mte->FileHandle = NULL;
+			mte->FileMappingHandle = NULL;
+
 			if (!DuplicateHandle(GetCurrentProcess(), fh,
 					GetCurrentProcess(),
 					&mte->FileHandle,
@@ -521,10 +548,11 @@ mmap_split(PFILE_MAPPING_TRACKER mt, PVOID *begin, PVOID *end)
 					0, FALSE, DUPLICATE_SAME_ACCESS)) {
 				ERR("DuplicateHandle, gle: 0x%08x",
 					GetLastError());
-				CloseHandle(mte->FileHandle);
 				goto err;
 			}
 		}
+
+		mte->Flags = mt->Flags;
 		mte->BaseAddress = end;
 		mte->EndAddress = mt->EndAddress;
 		mte->Access = mt->Access;
@@ -538,11 +566,15 @@ mmap_split(PFILE_MAPPING_TRACKER mt, PVOID *begin, PVOID *end)
 	}
 
 	if (!mtb && !mte) {
+		/* case #4 */
 		CloseHandle(fmh);
 		CloseHandle(fh);
 	}
 
-	LIST_REMOVE(mt, ListEntry);
+	/*
+	 * free entry for the original mapping
+	 */
+	SORTEDQ_REMOVE(&FileMappingQHead, mt, ListEntry);
 	free(mt);
 
 	if (mtb) {
@@ -555,10 +587,11 @@ mmap_split(PFILE_MAPPING_TRACKER mt, PVOID *begin, PVOID *end)
 
 		if (base == NULL) {
 			ERR("MapViewOfFileEx, gle: 0x%08x", GetLastError());
-			goto err_close;
+			goto err;
 		}
 
-		LIST_INSERT_HEAD(&FileMappingListHead, mtb, ListEntry);
+		SORTEDQ_INSERT(&FileMappingQHead, mtb, ListEntry,
+			FILE_MAPPING_TRACKER, mmap_file_mapping_comparer);
 	}
 
 	if (mte) {
@@ -571,23 +604,31 @@ mmap_split(PFILE_MAPPING_TRACKER mt, PVOID *begin, PVOID *end)
 
 		if (base == NULL) {
 			ERR("MapViewOfFileEx, gle: 0x%08x", GetLastError());
-			goto err_close;
+			goto err_mte;
 		}
 
-		LIST_INSERT_HEAD(&FileMappingListHead, mte, ListEntry);
+		SORTEDQ_INSERT(&FileMappingQHead, mte, ListEntry,
+			FILE_MAPPING_TRACKER, mmap_file_mapping_comparer);
 	}
 
 	return 0;
 
-err_close:
-	/*
-	 * Since the original mapping is already deleted, there's not much
-	 * we can do...
-	 */
-	CloseHandle(fmh);
-	CloseHandle(fh);
-
 err:
+	if (mtb) {
+		ASSERTeq(mtb->FileMappingHandle, fmh);
+		ASSERTeq(mtb->FileHandle, fh);
+		CloseHandle(mtb->FileMappingHandle);
+		CloseHandle(mtb->FileHandle);
+	}
+
+err_mte:
+	if (mte) {
+		if (mte->FileMappingHandle)
+			CloseHandle(mte->FileMappingHandle);
+		if (mte->FileHandle)
+			CloseHandle(mte->FileHandle);
+	}
+
 	free(mtb);
 	free(mte);
 	return -1;
@@ -618,29 +659,39 @@ munmap(void *addr, size_t len)
 		len = UINTPTR_MAX - (uintptr_t)addr;
 	}
 
-	PVOID *begin = addr;
-	PVOID *end = (PVOID *)((char *)addr + len);
+	void *begin = addr;
+	void *end = (void *)((char *)addr + len);
 
-	WaitForSingleObject(FileMappingListMutex, INFINITE);
+	WaitForSingleObject(FileMappingQMutex, INFINITE);
 
-	PFILE_MAPPING_TRACKER next;
 	PFILE_MAPPING_TRACKER mt;
-	mt = (PFILE_MAPPING_TRACKER)LIST_FIRST(&FileMappingListHead);
-	while (len > 0 && mt != NULL) {
-		if (begin >= mt->EndAddress || end <= mt->BaseAddress) {
-			/* range not in the mapping */
-			mt = (PFILE_MAPPING_TRACKER)LIST_NEXT(mt, ListEntry);
+	PFILE_MAPPING_TRACKER next;
+	for (mt = SORTEDQ_FIRST(&FileMappingQHead);
+		mt != (void *)&FileMappingQHead;
+		mt = next) {
+
+		/*
+		 * pick the next entry before we split there by delete the
+		 * this one (NOTE: mmap_spilt could delete this entry).
+		 */
+		next = SORTEDQ_NEXT(mt, ListEntry);
+
+		if (mt->BaseAddress >= end) {
+			LOG(3, "ignoring all mapped ranges beyond given range");
+			break;
+		}
+
+		if (mt->EndAddress <= begin) {
+			LOG(3, "skipping a mapped range before given range");
 			continue;
 		}
 
-		PVOID *begin2 = begin > mt->BaseAddress ?
+		void *begin2 = begin > mt->BaseAddress ?
 				begin : mt->BaseAddress;
-		PVOID *end2 = end < mt->EndAddress ?
+		void *end2 = end < mt->EndAddress ?
 				end : mt->EndAddress;
 
 		size_t len2 = (char *)end2 - (char *)begin2;
-
-		next = (PFILE_MAPPING_TRACKER)LIST_NEXT(mt, ListEntry);
 
 		void *align_end = (void *)roundup((uintptr_t)end2, Mmap_align);
 		if (mmap_split(mt, begin2, align_end) != 0) {
@@ -649,12 +700,11 @@ munmap(void *addr, size_t len)
 		}
 
 		len -= len2;
-		mt = next;
 	}
 
 	/*
 	 * if we didn't find any mapped regions in our list attempt to free
-	 * if the entire range is reserved.
+	 * as if the entire range is reserved.
 	 *
 	 * XXX: we don't handle a range having few mapped regions and few
 	 * reserved regions
@@ -665,7 +715,7 @@ munmap(void *addr, size_t len)
 	retval = 0;
 
 err:
-	ReleaseMutex(FileMappingListMutex);
+	ReleaseMutex(FileMappingQMutex);
 
 	if (retval == -1)
 		errno = EINVAL;
@@ -717,23 +767,25 @@ msync(void *addr, size_t len, int flags)
 
 	int retval = -1;
 
-	PVOID *begin = addr;
-	PVOID *end = (PVOID *)((char *)addr + len);
+	void *begin = addr;
+	void *end = (void *)((char *)addr + len);
 
-	WaitForSingleObject(FileMappingListMutex, INFINITE);
+	WaitForSingleObject(FileMappingQMutex, INFINITE);
 
 	PFILE_MAPPING_TRACKER mt;
-	mt = (PFILE_MAPPING_TRACKER)LIST_FIRST(&FileMappingListHead);
-	while (len > 0 && mt != NULL) {
-		if (begin >= mt->EndAddress || end <= mt->BaseAddress) {
-			/* range not in the mapping */
-			mt = (PFILE_MAPPING_TRACKER)LIST_NEXT(mt, ListEntry);
+	SORTEDQ_FOREACH(mt, &FileMappingQHead, ListEntry) {
+		if (mt->BaseAddress >= end) {
+			LOG(3, "ignoring all mapped ranges beyond given range");
+			break;
+		}
+		if (mt->EndAddress <= begin) {
+			LOG(3, "skipping a mapped range before given range");
 			continue;
 		}
 
-		PVOID *begin2 = begin > mt->BaseAddress ?
+		void *begin2 = begin > mt->BaseAddress ?
 			begin : mt->BaseAddress;
-		PVOID *end2 = end < mt->EndAddress ?
+		void *end2 = end < mt->EndAddress ?
 			end : mt->EndAddress;
 
 		size_t len2 = (char *)end2 - (char *)begin2;
@@ -743,18 +795,19 @@ msync(void *addr, size_t len, int flags)
 			if (FlushViewOfFile(begin2, len2) == FALSE) {
 				ERR("FlushViewOfFile, gle: 0x%08x",
 					GetLastError());
+				errno = ENOMEM;
 				goto err;
 			}
 
 			if (FlushFileBuffers(mt->FileHandle) == FALSE) {
 				ERR("FlushFileBuffers, gle: 0x%08x",
 					GetLastError());
+				errno = EINVAL;
 				goto err;
 			}
 		}
 
 		len -= len2;
-		mt = (PFILE_MAPPING_TRACKER)LIST_NEXT(mt, ListEntry);
 	}
 
 	if (len > 0) {
@@ -765,7 +818,7 @@ msync(void *addr, size_t len, int flags)
 	}
 
 err:
-	ReleaseMutex(FileMappingListMutex);
+	ReleaseMutex(FileMappingQMutex);
 	return retval;
 }
 
@@ -815,23 +868,25 @@ mprotect(void *addr, size_t len, int prot)
 
 	int retval = -1;
 
-	PVOID *begin = addr;
-	PVOID *end = (PVOID *)((char *)addr + len);
+	void *begin = addr;
+	void *end = (void *)((char *)addr + len);
 
-	WaitForSingleObject(FileMappingListMutex, INFINITE);
+	WaitForSingleObject(FileMappingQMutex, INFINITE);
 
 	PFILE_MAPPING_TRACKER mt;
-	mt = (PFILE_MAPPING_TRACKER)LIST_FIRST(&FileMappingListHead);
-	while (len > 0 && mt != NULL) {
-		if (begin >= mt->EndAddress || end <= mt->BaseAddress) {
-			/* range not in the mapping */
-			mt = (PFILE_MAPPING_TRACKER)LIST_NEXT(mt, ListEntry);
+	SORTEDQ_FOREACH(mt, &FileMappingQHead, ListEntry) {
+		if (mt->BaseAddress >= end) {
+			LOG(3, "ignoring all mapped ranges beyond given range");
+			break;
+		}
+		if (mt->EndAddress <= begin) {
+			LOG(3, "skipping a mapped range before given range");
 			continue;
 		}
 
-		PVOID *begin2 = begin > mt->BaseAddress ?
+		void *begin2 = begin > mt->BaseAddress ?
 				begin : mt->BaseAddress;
-		PVOID *end2 = end < mt->EndAddress ?
+		void *end2 = end < mt->EndAddress ?
 				end : mt->EndAddress;
 
 		size_t len2 = (char *)end2 - (char *)begin2;
@@ -858,7 +913,6 @@ mprotect(void *addr, size_t len, int prot)
 		}
 
 		len -= len2;
-		mt = (PFILE_MAPPING_TRACKER)LIST_NEXT(mt, ListEntry);
 	}
 
 	if (len > 0) {
@@ -869,7 +923,7 @@ mprotect(void *addr, size_t len, int prot)
 	}
 
 err:
-	ReleaseMutex(FileMappingListMutex);
+	ReleaseMutex(FileMappingQMutex);
 	return retval;
 }
 
