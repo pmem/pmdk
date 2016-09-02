@@ -64,6 +64,8 @@ Param(
     $help= $false
     )
 
+[System.Environment]::OSVersion.Version
+
 # -v is a built in PS thing
 if ($VerbosePreference -ne 'SilentlyContinue') {
     $verbose = 1
@@ -222,15 +224,15 @@ function runtest {
 
     Foreach ($fs in $fss.split(" ").trim()) {
         # don't bother trying when fs-type isn't available...
-        if ($fs -match "pmem" -And (-Not $Env:PMEM_FS_DIR)) {
+        if ($fs -eq "pmem" -And (-Not $Env:PMEM_FS_DIR)) {
             $pmem_skip = 1
             continue
         }
-        if ($fs -match "non-pmem" -And (-Not $Env:NON_PMEM_FS_DIR)) {
+        if ($fs -eq "non-pmem" -And (-Not $Env:NON_PMEM_FS_DIR)) {
             $non_pmem_skip = 1
             continue
         }
-        if ($fs -match "any" -And (-Not $Env:NON_PMEM_FS_DIR) -And (-Not $Env:PMEM_FS_DIR)) {
+        if ($fs -eq "any" -And (-Not $Env:NON_PMEM_FS_DIR) -And (-Not $Env:PMEM_FS_DIR)) {
             continue
         }
 

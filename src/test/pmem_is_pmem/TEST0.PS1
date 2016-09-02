@@ -1,5 +1,6 @@
 #
 # Copyright 2014-2016, Intel Corporation
+# Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,13 +32,38 @@
 #
 
 #
-# src/test/pmem_is_pmem_proc/Makefile -- build pmem_is_pmem_proc unit test
+# src\test\pmem_is_pmem\TEST0 -- unit test for pmem_is_pmem
 #
-TARGET = pmem_is_pmem_proc
-OBJS = pmem_is_pmem_proc.o
+[CmdletBinding(PositionalBinding=$false)]
+Param(
+    [alias("d")]
+    $DIR = ""
+    )
+$ENV:UNITTEST_NAME = "pmem_is_pmem\TEST0"
+$ENV:UNITTEST_NUM = "0"
 
-LIBPMEM=y
+# XXX:  bash has a few calls to tools that we don't have on
+# Windows (yet) that set PMEM_IS_PMEM and NON_PMEM_IS_PMEM based
+# on their output
+$ENV:PMEM_IS_PMEM = $true
+$ENV:NON_PMEM_IS_PMEM = $true
 
-include ../Makefile.inc
+# standard unit test setup
+. ..\unittest\unittest.ps1
 
-LIBS += -ldl
+require_fs_type non-pmem
+
+setup
+
+create_holey_file 2M $DIR\testfile1
+
+$SAVED_PMEM_IS_PMEM_FORCE = $ENV:PMEM_IS_PMEM_FORCE
+$ENV:PMEM_IS_PMEM_FORCE = $null
+
+expect_normal_exit $ENV:EXE_DIR\pmem_is_pmem$EXESUFFIX $DIR\testfile1
+
+$ENV:PMEM_IS_PMEM_FORCE = $SAVED_PMEM_IS_PMEM_FORCE
+
+check
+
+pass

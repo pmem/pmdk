@@ -31,9 +31,9 @@
  */
 
 /*
- * pmem_is_pmem_proc.c -- unit test for pmem_is_pmem() /proc parsing
+ * pmem_is_pmem_proc_linux.c -- unit test for pmem_is_pmem() /proc parsing
  *
- * usage: pmem_is_pmem_proc file addr len [addr len]...
+ * usage: pmem_is_pmem_proc_linux file addr len [addr len]...
  */
 
 #define _GNU_SOURCE
@@ -68,7 +68,7 @@ fopen(const char *path, const char *mode)
 int
 main(int argc, char *argv[])
 {
-	START(argc, argv, "pmem_is_pmem_proc");
+	START(argc, argv, "pmem_is_pmem_proc_linux");
 
 	if (argc < 4 || argc % 2)
 		UT_FATAL("usage: %s file addr len [addr len]...", argv[0]);

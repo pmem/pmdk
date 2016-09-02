@@ -71,6 +71,9 @@ typedef long _off_t;		/* NOTE: _off_t must be defined as 'long'! */
 #include <intrin.h>
 #include <time.h>
 
+/* XXX: define the definitions that will be available soon */
+#define FILE_DAX_VOLUME		0x20000000
+
 /* use uuid_t definition from util.h */
 #ifdef uuid_t
 #undef uuid_t

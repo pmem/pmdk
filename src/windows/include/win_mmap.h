@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016, Intel Corporation
+ * Copyright 2015-2016, Intel Corporation
  * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,70 +32,45 @@
  */
 
 /*
- * pmem_is_pmem.c -- unit test for pmem_is_pmem()
- *
- * usage: pmem_is_pmem file [env]
+ * win_mmap.h -- (internal) tracks the regions mapped by mmap
  */
 
-#include "unittest.h"
+#ifndef WIN_MMAP_H
+#define WIN_MMAP_H 1
 
-#define NTHREAD 16
+#include <sys/queue.h>
 
-void *Addr;
-size_t Size;
+#define roundup(x, y)	((((x) + ((y) - 1)) / (y)) * (y))
+#define rounddown(x, y)	(((x) / (y)) * (y))
+
+/* allocation/mmap granularity */
+extern unsigned long long Mmap_align;
+
+typedef enum FILE_MAPPING_TRACKER_FLAGS {
+	FILE_MAPPING_TRACKER_FLAG_DIRECT_MAPPED = 0x0001,
+
+	/*
+	 * This should hold the value of all flags ORed for debug purpose.
+	 */
+	FILE_MAPPING_TRACKER_FLAGS_MASK =
+		FILE_MAPPING_TRACKER_FLAG_DIRECT_MAPPED
+} FILE_MAPPING_TRACKER_FLAGS;
 
 /*
- * worker -- the work each thread performs
+ * this structure tracks the file mappings outstanding per file handle
  */
-static void *
-worker(void *arg)
-{
-	int *ret = (int *)arg;
-	*ret =  pmem_is_pmem(Addr, Size);
-	return NULL;
-}
+typedef struct FILE_MAPPING_TRACKER {
+	SORTEDQ_ENTRY(FILE_MAPPING_TRACKER) ListEntry;
+	HANDLE FileHandle;
+	HANDLE FileMappingHandle;
+	void *BaseAddress;
+	void *EndAddress;
+	DWORD Access;
+	off_t Offset;
+	FILE_MAPPING_TRACKER_FLAGS Flags;
+} FILE_MAPPING_TRACKER, *PFILE_MAPPING_TRACKER;
 
-int
-main(int argc, char *argv[])
-{
-	START(argc, argv, "pmem_is_pmem");
+extern HANDLE FileMappingQMutex;
+extern SORTEDQ_HEAD(FMLHead, FILE_MAPPING_TRACKER) FileMappingQHead;
 
-	if (argc <  2 || argc > 3)
-		UT_FATAL("usage: %s file [env]", argv[0]);
-
-	if (argc == 3)
-		UT_ASSERTeq(setenv("PMEM_IS_PMEM_FORCE", argv[2], 1), 0);
-
-	int fd = OPEN(argv[1], O_RDWR);
-
-	ut_util_stat_t stbuf;
-	FSTAT(fd, &stbuf);
-
-	Size = stbuf.st_size;
-	Addr = MMAP(0, stbuf.st_size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
-
-	CLOSE(fd);
-
-	pthread_t threads[NTHREAD];
-	int ret[NTHREAD];
-
-	/* kick off NTHREAD threads */
-	for (int i = 0; i < NTHREAD; i++)
-		PTHREAD_CREATE(&threads[i], NULL, worker, &ret[i]);
-
-	/* wait for all the threads to complete */
-	for (int i = 0; i < NTHREAD; i++)
-		PTHREAD_JOIN(threads[i], NULL);
-
-	/* verify that all the threads return the same value */
-	for (int i = 1; i < NTHREAD; i++)
-		UT_ASSERTeq(ret[0], ret[i]);
-
-	UT_OUT("%d", ret[0]);
-
-	UT_ASSERTeq(unsetenv("PMEM_IS_PMEM_FORCE"), 0);
-
-	UT_OUT("%d", pmem_is_pmem(Addr, Size));
-
-	DONE(NULL);
-}
+#endif /* WIN_MMAP_H */

@@ -1,14 +1,16 @@
 Non-Volatile Memory Library
 
-This is src/test/pmem_is_pmem_proc/README.
+This is src/test/pmem_is_pmem_proc_linux/README.
+
+This test is Linux specific.
 
 This directory contains a unit test for pmem_is_pmem().
 
-The program in pmem_is_pmem_proc.c takes a fake /proc/self/smaps file
+The program in pmem_is_pmem_proc_linux.c takes a fake /proc/self/smaps file
 as an argument, along with an address and a length.  It arranges for
 pmem_is_pmem() to open the fake /proc file when looking up the range.
 
-	usage: pmem_is_pmem_proc smaps-file addr len [addr len]...
+	usage: pmem_is_pmem_proc_linux smaps-file addr len [addr len]...
 
 addr is interpreted as a hex value, len as a decimal value unless it
 starts with 0x.  Each addr/len pair is tested against the given smaps-file.
