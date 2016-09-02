@@ -106,7 +106,7 @@ struct zone_header {
 struct zone {
 	struct zone_header header;
 	struct chunk_header chunk_headers[MAX_CHUNK];
-	struct chunk chunks[];
+	struct chunk chunks[1];
 };
 
 struct heap_header {
