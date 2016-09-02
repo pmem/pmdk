@@ -1,6 +1,6 @@
+#!/bin/bash -e
 #
 # Copyright 2014-2016, Intel Corporation
-# Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,30 +30,36 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# src/test/win_common/TEST0 -- unit test for windows list macros
+
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-$Env:UNITTEST_NAME = "win_common\TEST0"
-$Env:UNITTEST_NUM = "0"
-# XXX:  bash has a few calls to tools that we don't have on
-# windows (yet) that set PMEM_IS_PMEM and NON_PMEM_IS_PMEM based
-# on their output
-$Env:PMEM_IS_PMEM = $true
-$Env:NON_PMEM_IS_PMEM = $true
-$DIR = ""
+# src/test/pmem_is_pmem_proc_linux/TEST5 -- unit test for pmem_is_pmem /proc parsing
+#
+export UNITTEST_NAME=pmem_is_pmem_proc_linux/TEST5
+export UNITTEST_NUM=5
 
 # standard unit test setup
-. ..\unittest\unittest.ps1
+. ../unittest/unittest.sh
+
+require_test_type medium
 
 require_fs_type none
-require_test_type medium
 
 setup
 
-expect_normal_exit $Env:EXE_DIR\win_common$Env:EXESUFFIX setunsetenv
+# 7fff77424000 2147479552
+#	exactly matches smaps second mm entry, should produce: 1
+# 7fff77424000 8192
+#	entirely encompassed by smaps second mm entry, should produce: 1
+# 7fff77423000 8192
+#	start at smaps first mm entry, extends into second: should produce: 0
+# 7fff77423000 4096
+#	exactly matches smaps first mm entry, should produce: 0
+expect_normal_exit ./pmem_is_pmem_proc_linux$EXESUFFIX smaps_unexp_vmflags\
+	7fff77424000 2147479552\
+	7fff77424000 8192\
+	7fff77423000 8192\
+	7fff77423000 4096
+
+check
 
 pass
