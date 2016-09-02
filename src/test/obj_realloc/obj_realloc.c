@@ -57,7 +57,7 @@ POBJ_LAYOUT_END(realloc);
 
 struct object {
 	size_t value;
-	char data[];
+	char data[1];
 };
 
 struct root {
@@ -146,7 +146,7 @@ test_realloc(PMEMobjpool *pop, size_t size_from, size_t size_to,
 	} else if (check_integrity) {
 		check_size = size_to >= usable_size_from ?
 				usable_size_from : size_to;
-		checksum = fill_buffer((void *)D_RW(D_RW(root)->obj),
+		checksum = fill_buffer((unsigned char *)D_RW(D_RW(root)->obj),
 				check_size);
 	}
 
@@ -166,7 +166,7 @@ test_realloc(PMEMobjpool *pop, size_t size_from, size_t size_to,
 		UT_ASSERT(util_is_zeroed(D_RO(D_RO(root)->obj), size_to));
 	} else if (check_integrity) {
 		uint16_t checksum2 = ut_checksum(
-				(void *)D_RW(D_RW(root)->obj), check_size);
+				(uint8_t *)D_RW(D_RW(root)->obj), check_size);
 		if (checksum2 != checksum)
 			UT_ASSERTinfo(0, "memory corruption");
 	}
