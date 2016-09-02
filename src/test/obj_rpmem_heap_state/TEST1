@@ -54,9 +54,8 @@ require_node_libfabric 1 $RPMEM_PROVIDER
 
 init_rpmem_on_node 1 0
 
-# upload test
+# binary for this test
 EXE=obj_heap_state
-copy_files_to_node 1 ../$EXE/$EXE$EXESUFFIX
 
 # define files and directories
 TEST_SET_LOCAL="testset_local"
@@ -77,8 +76,11 @@ create_poolset $DIR/$TEST_SET_REMOTE \
 	16M:${NODE_DIRS[0]}/${TEST_FILE_REMOTE}_part1:x \
 	16M:${NODE_DIRS[0]}/${TEST_FILE_REMOTE}_part2:x
 
-copy_files_to_node 0 $DIR/$TEST_SET_REMOTE
-copy_files_to_node 1 $DIR/$TEST_SET_LOCAL
+copy_files_to_node 0 . $DIR/$TEST_SET_REMOTE
+copy_files_to_node 1 . $DIR/$TEST_SET_LOCAL
+
+rm_files_from_node 0 "${TEST_FILE_REMOTE} ${TEST_FILE_REMOTE}_part1 ${TEST_FILE_REMOTE}_part2"
+rm_files_from_node 1 "${TEST_FILE_LOCAL} ${TEST_FILE_LOCAL}_part1 ${TEST_FILE_LOCAL}_part2"
 
 PMEM_IS_PMEM_FORCE=1
 export_vars_node 1 PMEM_IS_PMEM_FORCE

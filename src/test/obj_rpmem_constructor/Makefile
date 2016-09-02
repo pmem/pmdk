@@ -33,5 +33,8 @@
 #
 # src/test/obj_rpmem_constructor/Makefile -- build obj_rpmem_constructor test
 #
+SCP_TO_REMOTE_NODES = y
+SCP_TARGET = obj_constructor
+SCP_SRC_DIR = ../obj_constructor
 
 include ../obj_constructor/Makefile.inc

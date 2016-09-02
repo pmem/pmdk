@@ -65,9 +65,8 @@ init_rpmem_on_node 1 0
 export PMEM_IS_PMEM_FORCE=1
 export_vars_node 1 PMEM_IS_PMEM_FORCE
 
-# upload test
+# binary for this test
 EXE=obj_constructor
-copy_files_to_node 1 ../$EXE/$EXE$EXESUFFIX
 
 # define files and directories
 TEST_SET_LOCAL="testset_local"
@@ -78,14 +77,17 @@ TEST_FILE_REMOTE="testfile_remote"
 
 NODE_DIRS=($(get_node_dir 0) $(get_node_dir 1))
 
+rm_files_from_node 0 $TEST_FILE_REMOTE
+rm_files_from_node 1 $TEST_FILE_LOCAL
+
 # XXX: Make sum of all parts and replicas sizes equal
 # create and upload poolset files
 create_poolset $DIR/$TEST_SET_LOCAL 8M:${NODE_DIRS[1]}/$TEST_FILE_LOCAL:x \
         m ${NODE_ADDR[0]}:$TEST_SET_REMOTE
 create_poolset $DIR/$TEST_SET_REMOTE 9M:${NODE_DIRS[0]}/$TEST_FILE_REMOTE:x
 
-copy_files_to_node 0 $DIR/$TEST_SET_REMOTE
-copy_files_to_node 1 $DIR/$TEST_SET_LOCAL
+copy_files_to_node 0 . $DIR/$TEST_SET_REMOTE
+copy_files_to_node 1 . $DIR/$TEST_SET_LOCAL
 
 # create remote holey pool files
 create_holey_file_on_node 1 8M ${NODE_DIRS[1]}/$TEST_FILE_LOCAL

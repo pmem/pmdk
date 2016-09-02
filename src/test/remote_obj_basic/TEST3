@@ -56,7 +56,7 @@ POOLSET_FILE=pool$UNITTEST_NUM.set
 create_poolset $POOLSET_FILE 10M:$POOL_FILE:x
 
 # copy required files to remote nodes
-copy_files_to_node 0 $POOLSET_FILE
+copy_files_to_node 0 . $POOLSET_FILE
 
 # remove local poolset file
 rm -f $POOLSET_FILE

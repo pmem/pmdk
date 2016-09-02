@@ -34,6 +34,10 @@
 # src/test/tools/Makefile -- build unit test helpers
 #
 
+TOP = ../../..
+
+TESTCONFIG=$(TOP)/src/test/testconfig.sh
+
 DIRS = \
        pmemspoil\
        pmemwrite\
@@ -44,13 +48,22 @@ DIRS = \
        bttcreate\
        fip
 
+REMOTE_TOOLS = \
+	ctrld\
+	fip
+
 all     : TARGET = all
 clean   : TARGET = clean
 clobber : TARGET = clobber
 cstyle  : TARGET = cstyle
 format  : TARGET = format
+sync-remotes : TARGET = sync-remotes
 
 all test cstyle clean clobber format: $(DIRS)
+
+$(TESTCONFIG):
+
+sync-remotes: $(REMOTE_TOOLS) $(TESTCONFIG)
 
 $(DIRS):
 	$(MAKE) -C $@ $(TARGET)

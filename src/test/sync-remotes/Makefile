@@ -1,4 +1,3 @@
-#!/bin/bash -e
 #
 # Copyright 2016, Intel Corporation
 #
@@ -32,30 +31,13 @@
 #
 
 #
-# src/test/rpmem_obc/TEST3 -- unit test for rpmem_obc_create function
+# src/test/sync-remote/Makefile -- copy common files to remote nodes
 #
 
-export UNITTEST_NAME=rpmem_obc/TEST3
-export UNITTEST_NUM=3
+DIR_SYNC=../.sync-dir
 
-# standard unit test setup
-. ../unittest/unittest.sh
+# sync remote nodes
+sync-remotes:
+	@./copy-to-remote-nodes.sh common $(DIR_SYNC)
 
-require_fs_type none
-require_build_type nondebug debug
-
-setup
-
-require_nodes 2
-require_node_log_files 1 $RPMEM_LOG_FILE
-
-RPMEM_CMD="\"cd ${NODE_TEST_DIR[0]} && UNITTEST_FORCE_QUIET=1 \
-	LD_LIBRARY_PATH=$REMOTE_LD_LIBRARY_PATH:${NODE_LD_LIBRARY_PATH[0]} \
-	./rpmem_obc$EXESUFFIX\""
-
-export_vars_node 1 RPMEM_CMD
-
-expect_normal_exit run_on_node 1 ./rpmem_obc$EXESUFFIX\
-	client_create ${NODE_ADDR[0]}
-
-pass
+.PHONY: sync-remotes

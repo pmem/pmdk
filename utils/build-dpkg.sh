@@ -196,12 +196,14 @@ override_dh_auto_test:
 	else\
 	        cp src/test/testconfig.sh.example src/test/testconfig.sh;\
 	fi
-	make pcheck $PCHECK_OPTS
 "
 
-if [ "${BUILD_PACKAGE_CHECK}" != "y" ]
+if [ "${BUILD_PACKAGE_CHECK}" == "y" ]
 then
-	CHECK_CMD=""
+CHECK_CMD="
+${CHECK_CMD}
+	make pcheck ${PCHECK_OPTS}
+"
 fi
 
 check_tool debuild

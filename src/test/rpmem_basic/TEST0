@@ -79,17 +79,15 @@ PMEMPOOLSET
 8M $PART_DIR/pool4.part1
 EOF
 
-expect_normal_exit run_on_node 0 mkdir -p $POOLS_DIR
-expect_normal_exit run_on_node 0 mkdir -p $POOLS_DIR/subdir
-expect_normal_exit run_on_node 0 mkdir -p $POOLS_PART
-expect_normal_exit copy_file_to_node 0 $DIR/pool0.set $POOLS_DIR
-expect_normal_exit copy_file_to_node 0 $DIR/pool0.set $POOLS_DIR/pool0r.set
+cp $DIR/pool0.set $DIR/pool0r.set
+
+run_on_node 0 "rm -rf $POOLS_DIR $POOLS_PART && mkdir -p $POOLS_DIR/subdir && mkdir -p $POOLS_PART"
+
+copy_files_to_node 0 $POOLS_DIR $DIR/{pool0.set,pool0r.set,pool1.set,pool3.set,pool4.set}
+copy_files_to_node 0 $POOLS_DIR/subdir/ $DIR/pool2.set
+
 # Remove read permission
-expect_normal_exit run_on_node 0 chmod a-r $POOLS_DIR/pool0r.set
-expect_normal_exit copy_file_to_node 0 $DIR/pool1.set $POOLS_DIR
-expect_normal_exit copy_file_to_node 0 $DIR/pool2.set $POOLS_DIR/subdir/
-expect_normal_exit copy_file_to_node 0 $DIR/pool3.set $POOLS_DIR
-expect_normal_exit copy_file_to_node 0 $DIR/pool4.set $POOLS_DIR
+run_on_node 0 chmod a-r $POOLS_DIR/pool0r.set
 
 # Create pool from non-existing pool set file
 ARGS="$ARGS test_create 0 poolX.set ${NODE_ADDR[0]} pool 8M"

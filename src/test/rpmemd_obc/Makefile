@@ -33,6 +33,8 @@
 #
 # src/test/rpmemd_obc/Makefile -- build rpmemd_obc test
 #
+SCP_TO_REMOTE_NODES = y
+
 vpath %.c ../../tools/rpmemd
 vpath %.c ../../rpmem_common
 vpath %.c ../../librpmem

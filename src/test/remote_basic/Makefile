@@ -33,6 +33,8 @@
 #
 # src/test/remote_basic/Makefile -- build remote_basic unit test
 #
+SCP_TO_REMOTE_NODES = y
+
 TARGET = remote_basic
 OBJS = remote_basic.o
 
