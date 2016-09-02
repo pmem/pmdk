@@ -17,6 +17,7 @@
     <None Include="err0.log.match" />
     <None Include="out0.log.match" />
     <None Include="TEST0.ps1" />
+    <None Include="TEST1.PS1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\unittest\libut.vcxproj">
@@ -95,6 +96,7 @@
       <AdditionalDependencies>DbgHelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
       <GenerateDebugInformation>DebugFastLink</GenerateDebugInformation>
+      <LinkTimeCodeGeneration>UseFastLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
