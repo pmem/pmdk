@@ -1,3 +1,4 @@
+#!/bin/bash -e
 #
 # Copyright 2016, Intel Corporation
 #
@@ -29,32 +30,26 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# CSTYLE.ps1 -- script to check coding style
+
 #
-# XXX - integrate with VS projects and execute for each build
+# src/test/win_getopt/TEST0 -- unit test for windows getopt implementation
 #
+export UNITTEST_NAME=win_getopt/TEST0
+export UNITTEST_NUM=0
 
-$scriptdir = Split-Path -Parent $PSCommandPath
-$rootdir = $scriptdir + "\.."
-$cstyle = $rootdir + "\utils\cstyle"
-$checkdir = $rootdir
+# standard unit test setup
+. ../unittest/unittest.sh
+$ERR=stderr${UNITTEST_NUM}.log
 
-# XXX - *.cpp/*.hpp files not supported yet
-$include = @( "*.c", "*.h" )
+require_fs_type none
 
-# exclude external files not following NVML coding style
-$exclude = @( "queue.h", "^getopt.*")
+setup
 
-If ( Get-Command -Name perl -ErrorAction SilentlyContinue ) {
-	Get-ChildItem -Path $checkdir -Recurse -Include $include -Exclude $exclude | `
-			? { $_.FullName -notlike "*jemalloc*" } | `
-	% {
-		echo $_.FullName
-		& perl $cstyle $_.FullName
-		if ($LASTEXITCODE -ne 0) {
-			Exit $LASTEXITCODE
-		}
-	}
-} else {
-	echo "Cannot execute cstyle - perl is missing"
-}
+expect_normal_exit ./win_getopt$EXESUFFIX ./win_getopt nonOption -f -3arg \
+-Barg -b --arg_4=a --arg_G -5 -a -A arg --arg_g -d -1 -e nonOption2 --arg_8 \
+nonOption3 --arg_6 -E-a --arg_C=arg -a -7arg --arg_c --arg_D arg -h \
+--arg_H arg -2 nonOption4 2>$ERR
+
+check
+
+pass

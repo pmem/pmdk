@@ -29,32 +29,35 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# CSTYLE.ps1 -- script to check coding style
+
 #
-# XXX - integrate with VS projects and execute for each build
+# src/test/win_getopt/TEST0 -- unit test for windows getopt implementation
 #
+[CmdletBinding(PositionalBinding=$false)]
+Param(
+    [alias("d")]
+    $DIR = ""
+    )
+$Env:UNITTEST_NAME = "win_getopt/TEST0"
+$Env:UNITTEST_NUM = "0"
+# XXX:  bash has a few calls to tools that we don't have on
+# windows (yet) that set PMEM_IS_PMEM and NON_PMEM_IS_PMEM based
+# on their output
+$Env:PMEM_IS_PMEM = $true
+$Env:NON_PMEM_IS_PMEM = $true
+$ERR="stderr$Env:UNITTEST_NUM.log"
 
-$scriptdir = Split-Path -Parent $PSCommandPath
-$rootdir = $scriptdir + "\.."
-$cstyle = $rootdir + "\utils\cstyle"
-$checkdir = $rootdir
+. ../unittest/unittest.ps1
 
-# XXX - *.cpp/*.hpp files not supported yet
-$include = @( "*.c", "*.h" )
+require_fs_type none
 
-# exclude external files not following NVML coding style
-$exclude = @( "queue.h", "^getopt.*")
+setup
 
-If ( Get-Command -Name perl -ErrorAction SilentlyContinue ) {
-	Get-ChildItem -Path $checkdir -Recurse -Include $include -Exclude $exclude | `
-			? { $_.FullName -notlike "*jemalloc*" } | `
-	% {
-		echo $_.FullName
-		& perl $cstyle $_.FullName
-		if ($LASTEXITCODE -ne 0) {
-			Exit $LASTEXITCODE
-		}
-	}
-} else {
-	echo "Cannot execute cstyle - perl is missing"
-}
+expect_normal_exit $Env:EXE_DIR\win_getopt$Env:EXESUFFIX nonOption -f -3arg `
+-Barg -b --arg_4=a --arg_G -5 -a -A arg --arg_g -d -1 -e nonOption2 --arg_8 `
+nonOption3 --arg_6 -E-a --arg_C=arg -a -7arg --arg_c --arg_D arg -h --arg_H `
+arg -2 nonOption4 2> $ERR
+
+check
+
+pass
