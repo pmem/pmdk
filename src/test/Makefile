@@ -342,6 +342,14 @@ $(TESTS) $(OBJ_DEPS) $(LIBPMEMPOOL_DEPS): $(TEST_DEPS)
 $(OBJ_TESTS): $(OBJ_DEPS)
 $(LIBPMEMPOOL_TESTS): $(LIBPMEMPOOL_DEPS)
 
+obj_rpmem_basic_integration: obj_basic_integration
+
+obj_rpmem_constuctor: obj_constructor
+
+obj_rpmem_heap_interrupt: obj_heap_interrupt
+
+obj_rpmem_heap_state: obj_heap_state
+
 $(TESTS_BUILD):
 	$(MAKE) -C $@ $(TARGET)
 
