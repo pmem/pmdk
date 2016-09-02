@@ -38,18 +38,26 @@
 
 #include "unittest.h"
 #include "cuckoo.h"
+#include "util.h"
 #include "libpmemobj.h"
 
 #define TEST_INSERTS 100
 #define TEST_VAL(x) ((void *)((uintptr_t)(x)))
 
-FUNC_MOCK(malloc, void *, size_t size)
-	FUNC_MOCK_RUN(1) /* internal out_err malloc */
-	FUNC_MOCK_RUN_RET_DEFAULT_REAL(malloc, size)
-	FUNC_MOCK_RUN(2) /* tab malloc */
-	FUNC_MOCK_RUN(0) /* cuckoo malloc */
-		return NULL;
-FUNC_MOCK_END
+static int Rcounter;
+
+static void *
+malloc_mock(size_t size)
+{
+	switch (__sync_fetch_and_add(&Rcounter, 1)) {
+		case 1: /* internal out_err malloc */
+		default:
+			return malloc(size);
+		case 2: /* tab malloc */
+		case 0: /* cuckoo malloc */
+			return NULL;
+	}
+}
 
 static void
 test_cuckoo_new_delete()
@@ -150,6 +158,8 @@ int
 main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_cuckoo");
+
+	Malloc = malloc_mock;
 
 	test_cuckoo_new_delete();
 	test_insert_get_remove();

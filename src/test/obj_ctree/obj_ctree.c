@@ -37,6 +37,7 @@
 #include <pthread.h>
 
 #include "ctree.h"
+#include "util.h"
 #include "unittest.h"
 
 enum {
@@ -49,21 +50,27 @@ enum {
 #define TEST_VAL_B 2
 #define TEST_VAL_C 3
 
-FUNC_MOCK(malloc, void *, size_t size)
-	FUNC_MOCK_RUN_RET_DEFAULT_REAL(malloc, size)
-	FUNC_MOCK_RUN(TEST_INSERT + 0) /* leaf malloc */
-	FUNC_MOCK_RUN(TEST_INSERT + 3) /* accessor malloc */
-	FUNC_MOCK_RUN(TEST_NEW_DELETE + 0) { /* t malloc */
-		return NULL;
+static int Rcounter;
+
+static void *
+malloc_mock(size_t size)
+{
+	switch (__sync_fetch_and_add(&Rcounter, 1)) {
+		default:
+			return malloc(size);
+		case TEST_INSERT + 3: /* accessor malloc */
+		case TEST_INSERT + 0: /* leaf malloc */
+		case TEST_NEW_DELETE + 0: /* t malloc */
+			return NULL;
 	}
-FUNC_MOCK_END
+}
 
 static void
 test_ctree_new_delete_empty()
 {
 	struct ctree *t = NULL;
 
-	FUNC_MOCK_RCOUNTER_SET(malloc, TEST_NEW_DELETE);
+	Rcounter = TEST_NEW_DELETE;
 
 	/* t Malloc fail */
 	t = ctree_new();
@@ -82,7 +89,7 @@ test_ctree_insert()
 	struct ctree *t = ctree_new();
 	UT_ASSERT(t != NULL);
 
-	FUNC_MOCK_RCOUNTER_SET(malloc, TEST_INSERT);
+	Rcounter = TEST_INSERT;
 
 	UT_ASSERT(ctree_is_empty(t));
 
@@ -137,7 +144,7 @@ test_ctree_remove()
 	struct ctree *t = ctree_new();
 	UT_ASSERT(t != NULL);
 
-	FUNC_MOCK_RCOUNTER_SET(malloc, TEST_REMOVE);
+	Rcounter = TEST_REMOVE;
 
 	/* remove from empty tree */
 	UT_ASSERT(ctree_remove(t, TEST_VAL_A, 0) == 0);
@@ -162,6 +169,8 @@ int
 main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_ctree");
+
+	Malloc = malloc_mock;
 
 	test_ctree_new_delete_empty();
 	test_ctree_insert();
