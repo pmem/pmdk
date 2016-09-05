@@ -128,6 +128,7 @@ list_mutexes_lock(PMEMobjpool *pop,
 		goto err_unlock;
 
 	return 0;
+
 err_unlock:
 	pmemobj_mutex_unlock(pop, lock1);
 err:
@@ -568,10 +569,10 @@ list_insert_new(PMEMobjpool *pop,
 			next_offset, prev_offset);
 
 	if (oidp != NULL) {
-		if (OBJ_PTR_IS_VALID(pop, oidp))
+		if (OBJ_PTR_IS_VALID(pop, oidp)) {
 			redo_index = list_set_oid_redo_log(pop, redo,
 					redo_index, oidp, obj_doffset, 0);
-		else {
+		} else {
 			oidp->off = obj_doffset;
 			oidp->pool_uuid_lo = pop->uuid_lo;
 		}
@@ -587,6 +588,7 @@ list_insert_new(PMEMobjpool *pop,
 err_pmalloc:
 	lane_release(pop);
 
+	ASSERT(ret == 0 || ret == -1);
 	return ret;
 }
 
@@ -612,8 +614,9 @@ list_insert_new_user(PMEMobjpool *pop,
 {
 	int ret;
 	if ((ret = pmemobj_mutex_lock(pop, &user_head->lock))) {
+		errno = ret;
 		LOG(2, "pmemobj_mutex_lock failed");
-		return ret;
+		return -1;
 	}
 
 	ret = list_insert_new(pop, pe_offset, user_head,
@@ -621,6 +624,7 @@ list_insert_new_user(PMEMobjpool *pop,
 
 	pmemobj_mutex_unlock_nofail(pop, &user_head->lock);
 
+	ASSERT(ret == 0 || ret == -1);
 	return ret;
 }
 
@@ -650,7 +654,9 @@ list_insert(PMEMobjpool *pop,
 	lane_hold(pop, &lane_section, LANE_SECTION_LIST);
 
 	if ((ret = pmemobj_mutex_lock(pop, &head->lock))) {
+		errno = ret;
 		LOG(2, "pmemobj_mutex_lock failed");
+		ret = -1;
 		goto err;
 	}
 
@@ -704,6 +710,7 @@ list_insert(PMEMobjpool *pop,
 err:
 	lane_release(pop);
 
+	ASSERT(ret == 0 || ret == -1);
 	return ret;
 }
 
@@ -797,8 +804,9 @@ list_remove_free_user(PMEMobjpool *pop, size_t pe_offset,
 
 	int ret;
 	if ((ret = pmemobj_mutex_lock(pop, &user_head->lock))) {
+		errno = ret;
 		LOG(2, "pmemobj_mutex_lock failed");
-		return ret;
+		return -1;
 	}
 
 	list_remove_free(pop, pe_offset, user_head, oidp);
@@ -834,7 +842,9 @@ list_remove(PMEMobjpool *pop,
 	ASSERTne(lane_section->layout, NULL);
 
 	if ((ret = pmemobj_mutex_lock(pop, &head->lock))) {
+		errno = ret;
 		LOG(2, "pmemobj_mutex_lock failed");
+		ret = -1;
 		goto err;
 	}
 
@@ -875,6 +885,7 @@ list_remove(PMEMobjpool *pop,
 err:
 	lane_release(pop);
 
+	ASSERT(ret == 0 || ret == -1);
 	return ret;
 }
 
@@ -915,7 +926,9 @@ list_move(PMEMobjpool *pop,
 	 * XXX performance improvement: initialize oob locks at pool opening
 	 */
 	if ((ret = list_mutexes_lock(pop, head_new, head_old))) {
+		errno = ret;
 		LOG(2, "list_mutexes_lock failed");
+		ret = -1;
 		goto err;
 	}
 
@@ -1015,6 +1028,7 @@ unlock:
 err:
 	lane_release(pop);
 
+	ASSERT(ret == 0 || ret == -1);
 	return ret;
 }
 
@@ -1053,12 +1067,12 @@ lane_list_check(PMEMobjpool *pop, void *data, unsigned length)
 	if ((ret = redo_log_check(pop->redo,
 			section->redo, REDO_NUM_ENTRIES)) != 0) {
 		ERR("list lane: redo log check failed");
-
+		ASSERT(ret == 0 || ret == -1);
 		return ret;
 	}
 
 	if (section->obj_offset &&
-		!OBJ_OFF_FROM_HEAP(pop, section->obj_offset)) {
+	    !OBJ_OFF_FROM_HEAP(pop, section->obj_offset)) {
 		ERR("list lane: invalid offset 0x%jx",
 				section->obj_offset);
 
