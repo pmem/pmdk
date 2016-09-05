@@ -113,6 +113,16 @@ LIBS += -lpmemobj -lpmemlog -lpmemblk -lpmem -lvmem -pthread -lm -ldl
 ifeq ($(call check_librt), n)
 LIBS += -lrt
 endif
+
+ifeq ($(BUILD_RPMEM),y)
+SRC += rpmem_persist.c
+LIBS += -lrpmem
+CONFIGS += pmembench_rpmem
+else
+$(info NOTE: Skipping librpmem benchmark because libfabric is missing \
+-- see src/librpmem/README for details.)
+endif
+
 CFLAGS  = -std=gnu99
 CFLAGS += -Wall
 CFLAGS += -Werror
