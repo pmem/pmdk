@@ -152,6 +152,9 @@ mmap_fini(void)
 static int
 mfree_reservation(void *addr, size_t len)
 {
+	ASSERTeq((uintptr_t)addr % Mmap_align, 0);
+	ASSERTeq(len % Mmap_align, 0);
+
 	size_t bytes_returned;
 	MEMORY_BASIC_INFORMATION basic_info;
 
@@ -172,14 +175,14 @@ mfree_reservation(void *addr, size_t len)
 			&release_addr, &release_size, MEM_RELEASE);
 		if (nt_status != 0) {
 			ERR("cannot release the reserved virtual space - "
-				"addr: %p, len: %d, nt_status: 0x%08x", addr,
-				len, nt_status);
+				"addr: %p, len: %d, nt_status: 0x%08x",
+				addr, len, nt_status);
 			errno = EINVAL;
 			return -1;
 		}
 		ASSERTeq(release_addr, addr);
 		ASSERTeq(release_size, len);
-		LOG(3, "freed reservation - addr: %p, size: %d", release_addr,
+		LOG(4, "freed reservation - addr: %p, size: %d", release_addr,
 			release_size);
 	} else {
 		LOG(4, "range not reserved - addr: %p, size: %d", addr, len);
@@ -201,11 +204,13 @@ void *
 mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 {
 	if (len == 0) {
+		ERR("invalid length: %zu", len);
 		errno = EINVAL;
 		return MAP_FAILED;
 	}
 
 	if ((prot & ~PROT_ALL) != 0) {
+		ERR("invalid flags: 0x%08x", flags);
 		/* invalid protection flags */
 		errno = EINVAL;
 		return MAP_FAILED;
@@ -213,7 +218,8 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 
 	if (((flags & MAP_PRIVATE) && (flags & MAP_SHARED)) ||
 	    ((flags & (MAP_PRIVATE | MAP_SHARED)) == 0)) {
-		/* neither MAP_PRIVATE or MAP_SHARED is set, or both are set */
+		ERR("neither MAP_PRIVATE or MAP_SHARED is set, or both: 0x%08x",
+			flags);
 		errno = EINVAL;
 		return MAP_FAILED;
 	}
@@ -245,6 +251,7 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 			protect = PAGE_READONLY;
 	} else {
 		/* XXX - PAGE_NOACCESS is not supported by CreateFileMapping */
+		ERR("PAGE_NOACCESS is not supported");
 		errno = ENOTSUP;
 		return MAP_FAILED;
 	}
@@ -254,6 +261,7 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 			/* ignore invalid hint if no MAP_FIXED flag is set */
 			addr = NULL;
 		} else {
+			ERR("hint address is not well-aligned: %p", addr);
 			errno = EINVAL;
 			return MAP_FAILED;
 		}
@@ -288,6 +296,7 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 		LARGE_INTEGER filesize;
 
 		if (fd == -1) {
+			ERR("invalid file descriptor: %d", fd);
 			errno = EBADF;
 			return MAP_FAILED;
 		}
@@ -299,8 +308,8 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 		 */
 
 		if (!GetFileSizeEx(fh, &filesize)) {
-			ERR("cannot query the file size - fh: %d, "
-				"win32error: %d", fd, GetLastError());
+			ERR("cannot query the file size - fh: %d, gle: 0x%08x",
+				fd, GetLastError());
 			return MAP_FAILED;
 		}
 
@@ -320,8 +329,8 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 						MEM_RESERVE, PAGE_NOACCESS);
 			if (reserved_addr == NULL) {
 				ERR("cannot find a contiguous region - "
-					"addr: %p, len: %lx, gle: 0x%08x", addr,
-					len, GetLastError());
+					"addr: %p, len: %lx, gle: 0x%08x",
+					addr, len, GetLastError());
 				errno = ENOMEM;
 				return MAP_FAILED;
 			}
@@ -329,8 +338,8 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 			if (addr != NULL && addr != reserved_addr &&
 				(flags & MAP_FIXED) != 0) {
 				ERR("cannot find a contiguous region - "
-					"addr: %p, len: %lx, gle: 0x%08x", addr,
-					len, GetLastError());
+					"addr: %p, len: %lx, gle: 0x%08x",
+					addr, len, GetLastError());
 				if (mfree_reservation(reserved_addr, 0) != 0) {
 					ASSERT(FALSE);
 					ERR("cannot free reserved region");
@@ -357,7 +366,9 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 					NULL);
 
 	if (fileMapping == NULL) {
-		if (GetLastError() == ERROR_ACCESS_DENIED)
+		DWORD gle = GetLastError();
+		ERR("CreateFileMapping, gle: 0x%08x", gle);
+		if (gle == ERROR_ACCESS_DENIED)
 			errno = EACCES;
 		else
 			errno = EINVAL; /* XXX */
@@ -373,6 +384,7 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 
 	if (base == NULL) {
 		if (addr == NULL || (flags & MAP_FIXED) != 0) {
+			ERR("MapViewOfFileEx, gle: 0x%08x", GetLastError());
 			errno = EINVAL;
 			CloseHandle(fileMapping);
 			return MAP_FAILED;
@@ -388,6 +400,7 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 	}
 
 	if (base == NULL) {
+		ERR("MapViewOfFileEx, gle: 0x%08x", GetLastError());
 		CloseHandle(fileMapping);
 		return MAP_FAILED;
 	}
@@ -402,6 +415,7 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 		malloc(sizeof(struct FILE_MAPPING_TRACKER));
 
 	if (mt == NULL) {
+		ERR("!malloc");
 		CloseHandle(fileMapping);
 		return MAP_FAILED;
 	}
@@ -426,6 +440,9 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 static int
 mmap_split(PFILE_MAPPING_TRACKER mt, PVOID *begin, PVOID *end)
 {
+	ASSERTeq((uintptr_t)begin % Mmap_align, 0);
+	ASSERTeq((uintptr_t)end % Mmap_align, 0);
+
 	PFILE_MAPPING_TRACKER mtb = NULL;
 	PFILE_MAPPING_TRACKER mte = NULL;
 	HANDLE fmh = mt->FileMappingHandle;
@@ -433,8 +450,10 @@ mmap_split(PFILE_MAPPING_TRACKER mt, PVOID *begin, PVOID *end)
 	if (begin > mt->BaseAddress) {
 		/* new mapping at the beginning */
 		mtb = malloc(sizeof(struct FILE_MAPPING_TRACKER));
-		if (mtb == NULL)
+		if (mtb == NULL) {
+			ERR("!malloc");
 			goto err;
+		}
 
 		mtb->FileHandle = mt->FileHandle;
 		mtb->FileMappingHandle = fmh;
@@ -447,16 +466,20 @@ mmap_split(PFILE_MAPPING_TRACKER mt, PVOID *begin, PVOID *end)
 	if (end < mt->EndAddress) {
 		/* new mapping at the end */
 		mte = malloc(sizeof(struct FILE_MAPPING_TRACKER));
-		if (mte == NULL)
+		if (mte == NULL) {
+			ERR("!malloc");
 			goto err;
+		}
 
 		mte->FileHandle = mt->FileHandle;
 		if (!mtb)
 			mte->FileMappingHandle = fmh;
 		else if (!DuplicateHandle(GetCurrentProcess(), fmh,
 				GetCurrentProcess(), &mte->FileMappingHandle,
-				0, FALSE, DUPLICATE_SAME_ACCESS))
+				0, FALSE, DUPLICATE_SAME_ACCESS)) {
+			ERR("DuplicateHandle, gle: 0x%08x", GetLastError());
 			goto err;
+		}
 		mte->BaseAddress = end;
 		mte->EndAddress = mt->EndAddress;
 		mte->Access = mt->Access;
@@ -464,8 +487,10 @@ mmap_split(PFILE_MAPPING_TRACKER mt, PVOID *begin, PVOID *end)
 			((char *)mte->BaseAddress - (char *)mt->BaseAddress);
 	}
 
-	if (UnmapViewOfFile(mt->BaseAddress) == FALSE)
+	if (UnmapViewOfFile(mt->BaseAddress) == FALSE) {
+		ERR("UnmapViewOfFile, gle: 0x%08x", GetLastError());
 		goto err;
+	}
 
 	if (!mtb && !mte)
 		CloseHandle(fmh);
@@ -481,8 +506,10 @@ mmap_split(PFILE_MAPPING_TRACKER mt, PVOID *begin, PVOID *end)
 			(char *)mtb->EndAddress - (char *)mtb->BaseAddress,
 			mtb->BaseAddress); /* hint address */
 
-		if (base == NULL)
+		if (base == NULL) {
+			ERR("MapViewOfFileEx, gle: 0x%08x", GetLastError());
 			goto err_close;
+		}
 
 		LIST_INSERT_HEAD(&FileMappingListHead, mtb, ListEntry);
 	}
@@ -495,8 +522,10 @@ mmap_split(PFILE_MAPPING_TRACKER mt, PVOID *begin, PVOID *end)
 			(char *)mte->EndAddress - (char *)mte->BaseAddress,
 			mte->BaseAddress); /* hint address */
 
-		if (base == NULL)
+		if (base == NULL) {
+			ERR("MapViewOfFileEx, gle: 0x%08x", GetLastError());
 			goto err_close;
+		}
 
 		LIST_INSERT_HEAD(&FileMappingListHead, mte, ListEntry);
 	}
@@ -523,13 +552,23 @@ int
 munmap(void *addr, size_t len)
 {
 	if (((uintptr_t)addr % Mmap_align) != 0) {
+		ERR("address is not well-aligned: %p", addr);
+		errno = EINVAL;
+		return -1;
+	}
+
+	if (len == 0) {
+		ERR("invalid length: %zu", len);
 		errno = EINVAL;
 		return -1;
 	}
 
 	int retval = -1;
 
-	len = roundup(len, Mmap_align);
+	if (len > UINTPTR_MAX - (uintptr_t)addr) {
+		/* limit len to not get beyond address space */
+		len = UINTPTR_MAX - (uintptr_t)addr;
+	}
 
 	PVOID *begin = addr;
 	PVOID *end = (PVOID *)((char *)addr + len);
@@ -555,8 +594,11 @@ munmap(void *addr, size_t len)
 
 		next = (PFILE_MAPPING_TRACKER)LIST_NEXT(mt, ListEntry);
 
-		if (mmap_split(mt, begin2, end2) != 0)
+		void *align_end = (void *)roundup((uintptr_t)end2, Mmap_align);
+		if (mmap_split(mt, begin2, align_end) != 0) {
+			LOG(2, "mapping split failed");
 			goto err;
+		}
 
 		len -= len2;
 		mt = next;
@@ -570,7 +612,7 @@ munmap(void *addr, size_t len)
 	 * reserved regions
 	 */
 	if (len > 0)
-		mfree_reservation(addr, len);
+		mfree_reservation(addr, roundup(len, Mmap_align));
 
 	retval = 0;
 
@@ -592,6 +634,7 @@ int
 msync(void *addr, size_t len, int flags)
 {
 	if ((flags & ~MS_ALL) != 0) {
+		ERR("invalid flags: 0x%08x", flags);
 		errno = EINVAL;
 		return -1;
 	}
@@ -602,20 +645,27 @@ msync(void *addr, size_t len, int flags)
 	 */
 	if (((flags & MS_SYNC) && (flags & MS_ASYNC)) ||
 	    ((flags & (MS_SYNC | MS_ASYNC)) == 0)) {
-		/* neither MS_SYNC or MS_ASYNC is set, or both are set */
+		ERR("neither MS_SYNC or MS_ASYNC is set, or both: 0x%08x",
+			flags);
 		errno = EINVAL;
 		return -1;
 	}
 
 	if (((uintptr_t)addr % Pagesize) != 0) {
+		ERR("address is not page-aligned: %p", addr);
 		errno = EINVAL;
 		return -1;
 	}
 
-	if (len == 0)
+	if (len == 0) {
+		LOG(4, "zero-length region - do nothing");
 		return 0; /* do nothing */
+	}
 
-	len = roundup(len, Pagesize);
+	if (len > UINTPTR_MAX - (uintptr_t)addr) {
+		/* limit len to not get beyond address space */
+		len = UINTPTR_MAX - (uintptr_t)addr;
+	}
 
 	int retval = -1;
 
@@ -640,20 +690,26 @@ msync(void *addr, size_t len, int flags)
 
 		size_t len2 = (char *)end2 - (char *)begin2;
 
-		if (FlushViewOfFile(begin2, len2) == FALSE)
+		if (FlushViewOfFile(begin2, len2) == FALSE) {
+			ERR("FlushViewOfFile, gle: 0x%08x", GetLastError());
 			goto err;
+		}
 
-		if (FlushFileBuffers(mt->FileHandle) == FALSE)
+		if (FlushFileBuffers(mt->FileHandle) == FALSE) {
+			ERR("FlushFileBuffers, gle: 0x%08x", GetLastError());
 			goto err;
+		}
 
 		len -= len2;
 		mt = (PFILE_MAPPING_TRACKER)LIST_NEXT(mt, ListEntry);
 	}
 
-	if (len > 0)
+	if (len > 0) {
+		ERR("indicated memory (or part of it) was not mapped");
 		errno = ENOMEM;
-	else
+	} else {
 		retval = 0;
+	}
 
 err:
 	ReleaseMutex(FileMappingListMutex);
@@ -676,14 +732,20 @@ mprotect(void *addr, size_t len, int prot)
 {
 
 	if (((uintptr_t)addr % Pagesize) != 0) {
+		ERR("address is not page-aligned: %p", addr);
 		errno = EINVAL;
 		return -1;
 	}
 
-	if (len == 0)
+	if (len == 0) {
+		LOG(4, "zero-length region - do nothing");
 		return 0; /* do nothing */
+	}
 
-	len = roundup(len, Pagesize);
+	if (len > UINTPTR_MAX - (uintptr_t)addr) {
+		/* limit len to not get beyond address space */
+		len = UINTPTR_MAX - (uintptr_t)addr;
+	}
 
 	DWORD protect = 0;
 
@@ -726,8 +788,10 @@ mprotect(void *addr, size_t len, int prot)
 		BOOL ret;
 		ret = VirtualProtect(begin2, len2, protect, &oldprot);
 		if (ret == FALSE) {
+			DWORD gle = GetLastError();
+			ERR("VirtualProtect, gle: 0x%08x", gle);
 			/* translate error code */
-			switch (GetLastError()) {
+			switch (gle) {
 				case ERROR_INVALID_PARAMETER:
 					errno = EACCES;
 					break;
@@ -745,10 +809,12 @@ mprotect(void *addr, size_t len, int prot)
 		mt = (PFILE_MAPPING_TRACKER)LIST_NEXT(mt, ListEntry);
 	}
 
-	if (len > 0)
+	if (len > 0) {
+		ERR("indicated memory (or part of it) was not mapped");
 		errno = ENOMEM;
-	else
+	} else {
 		retval = 0;
+	}
 
 err:
 	ReleaseMutex(FileMappingListMutex);
