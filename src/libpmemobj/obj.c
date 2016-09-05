@@ -116,6 +116,29 @@ pmemobj_direct(PMEMoid oid)
 #endif /* _WIN32 */
 
 /*
+ * obj_pool_init -- (internal) allocate global structs holding all opened pools
+ *
+ * This is invoked on a first call to pmemobj_open() or pmemobj_create().
+ * Memory is released in library destructor.
+ */
+static void
+obj_pool_init(void)
+{
+	LOG(3, NULL);
+
+	if (pools_ht)
+		return;
+
+	pools_ht = cuckoo_new();
+	if (pools_ht == NULL)
+		FATAL("!cuckoo_new");
+
+	pools_tree = ctree_new();
+	if (pools_tree == NULL)
+		FATAL("!ctree_new");
+}
+
+/*
  * User may decide to map all pools with MAP_PRIVATE flag using
  * PMEMOBJ_COW environment variable.
  */
@@ -144,14 +167,6 @@ obj_init(void)
 	pthread_once(&Cached_pool_key_once, _Cached_pool_key_alloc);
 #endif
 
-	pools_ht = cuckoo_new();
-	if (pools_ht == NULL)
-		FATAL("!cuckoo_new");
-
-	pools_tree = ctree_new();
-	if (pools_tree == NULL)
-		FATAL("!ctree_new");
-
 	lane_info_boot();
 
 	util_remote_init();
@@ -167,8 +182,10 @@ obj_fini(void)
 {
 	LOG(3, NULL);
 
-	cuckoo_delete(pools_ht);
-	ctree_delete(pools_tree);
+	if (pools_ht)
+		cuckoo_delete(pools_ht);
+	if (pools_tree)
+		ctree_delete(pools_tree);
 	lane_info_destroy();
 	util_remote_fini();
 }
@@ -931,6 +948,8 @@ pmemobj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 					(void *)pop + pop->size - end);
 		}
 #endif
+
+		obj_pool_init();
 
 		if ((errno = cuckoo_insert(pools_ht, pop->uuid_lo, pop)) != 0) {
 			ERR("!cuckoo_insert");

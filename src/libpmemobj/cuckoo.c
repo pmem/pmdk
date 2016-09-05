@@ -95,7 +95,7 @@ static size_t
  * cuckoo_new -- allocates and initializes cuckoo hash table
  */
 struct cuckoo *
-cuckoo_new()
+cuckoo_new(void)
 {
 	COMPILE_ERROR_ON((size_t)(INITIAL_SIZE * GROWTH_FACTOR)
 		== INITIAL_SIZE);
@@ -126,6 +126,7 @@ error_cuckoo_malloc:
 void
 cuckoo_delete(struct cuckoo *c)
 {
+	ASSERTne(c, NULL);
 	Free(c->tab);
 	Free(c);
 }
@@ -208,6 +209,7 @@ cuckoo_grow(struct cuckoo *c)
 int
 cuckoo_insert(struct cuckoo *c, uint64_t key, void *value)
 {
+	ASSERTne(c, NULL);
 	int err;
 	struct cuckoo_slot src = {key, value};
 	for (int n = 0; n < MAX_GROWS; ++n) {
@@ -242,6 +244,7 @@ cuckoo_find_slot(struct cuckoo *c, uint64_t key)
 void *
 cuckoo_remove(struct cuckoo *c, uint64_t key)
 {
+	ASSERTne(c, NULL);
 	void *ret = NULL;
 	struct cuckoo_slot *s = cuckoo_find_slot(c, key);
 	if (s) {
@@ -258,6 +261,7 @@ cuckoo_remove(struct cuckoo *c, uint64_t key)
 void *
 cuckoo_get(struct cuckoo *c, uint64_t key)
 {
+	ASSERTne(c, NULL);
 	struct cuckoo_slot *s = cuckoo_find_slot(c, key);
 	return s ? s->value : NULL;
 }
@@ -269,5 +273,6 @@ cuckoo_get(struct cuckoo *c, uint64_t key)
 size_t
 cuckoo_get_size(struct cuckoo *c)
 {
+	ASSERTne(c, NULL);
 	return c->size;
 }

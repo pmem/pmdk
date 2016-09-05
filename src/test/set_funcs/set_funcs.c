@@ -81,8 +81,10 @@ test_realloc(void *ptr, size_t size)
 		p = ptr;
 		--p;
 		UT_ASSERTeq(*p, GUARD);
+		p = realloc(p, size + EXTRA);
+	} else {
+		p = malloc(size + EXTRA);
 	}
-	p = realloc(p, size + EXTRA);
 	UT_ASSERTne(p, NULL);
 	return ++p;
 }
@@ -218,6 +220,21 @@ _vmem_strdup(const char *s)
 	return test_strdup(s);
 }
 
+/*
+ * There are a few allocations made at first call to pmemobj_open() or
+ * pmemobj_create().  They are related to some global structures
+ * holding a list of all open pools.  These allocation are not released on
+ * pmemobj_close(), but in the library destructor.  So, we need to take them
+ * into account when detecting memory leaks.
+ *
+ * obj_init/obj_pool_init:
+ *   cuckoo_new  - Malloc + Zalloc
+ *   ctree_new   - Malloc
+ * lane_info_ht_boot/lane_info_create:
+ *   cuckoo_new  - Malloc + Zalloc
+ */
+#define OBJ_EXTRA_NALLOC 5
+
 static void
 test_obj(const char *path)
 {
@@ -252,7 +269,8 @@ test_obj(const char *path)
 		if (cnt[i].mallocs || cnt[i].frees)
 			UT_FATAL("OBJ allocation used %d functions", i);
 	}
-	if (cnt[OBJ].mallocs + cnt[OBJ].strdups != cnt[OBJ].frees)
+	if (cnt[OBJ].mallocs + cnt[OBJ].strdups !=
+					cnt[OBJ].frees + OBJ_EXTRA_NALLOC)
 		UT_FATAL("OBJ memory leak");
 
 	unlink(path);

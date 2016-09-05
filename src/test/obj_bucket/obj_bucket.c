@@ -51,14 +51,14 @@
 
 FUNC_MOCK(malloc, void *, size_t size)
 	FUNC_MOCK_RUN_RET_DEFAULT_REAL(malloc, size)
-	FUNC_MOCK_RUN(4) { /* +4 because of allocs for init, b malloc */
+	FUNC_MOCK_RUN(0) { /* b malloc */
 		return NULL;
 	}
 FUNC_MOCK_END
 
 FUNC_MOCK(ctree_new, struct ctree *, void)
 	FUNC_MOCK_RUN_RET_DEFAULT(MOCK_CRIT)
-	FUNC_MOCK_RUN(1) { /* +1 because of ctree new in init */
+	FUNC_MOCK_RUN(0) {
 		return NULL;
 	}
 FUNC_MOCK_END

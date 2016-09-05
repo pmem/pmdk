@@ -92,7 +92,8 @@ operation_perform(uint64_t *field, uint64_t value,
  *	same ptr address already exists and the operation type is set,
  *	the new value is not added and the function has no effect.
  */
-void operation_add_typed_entry(struct operation_context *ctx,
+void
+operation_add_typed_entry(struct operation_context *ctx,
 	void *ptr, uint64_t value,
 	enum operation_type type, enum operation_entry_type en_type)
 {
