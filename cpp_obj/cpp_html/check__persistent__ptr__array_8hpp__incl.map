@@ -1,8 +1,0 @@
-<map id="nvml/src/include/libpmemobj/detail/check_persistent_ptr_array.hpp" name="nvml/src/include/libpmemobj/detail/check_persistent_ptr_array.hpp">
-<area shape="rect" id="node2" href="$persistent__ptr_8hpp.html" title="Persistent smart pointer. " alt="" coords="293,109,442,151"/>
-<area shape="rect" id="node7" href="$common_8hpp.html" title="Commonly used functionality. " alt="" coords="605,348,807,375"/>
-<area shape="rect" id="node12" href="$specialization_8hpp.html" title="Helper template for persistent ptr specialization. " alt="" coords="147,348,377,375"/>
-<area shape="rect" id="node13" href="$pool_8hpp.html" title="C++ pmemobj pool. " alt="" coords="497,199,638,225"/>
-<area shape="rect" id="node8" href="$pexceptions_8hpp.html" title="Custom exceptions. " alt="" coords="733,423,956,449"/>
-<area shape="rect" id="node15" href="$p_8hpp.html" title="Resides on pmem property template. " alt="" coords="405,273,529,300"/>
-</map>
