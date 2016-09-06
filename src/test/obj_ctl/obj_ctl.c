@@ -35,6 +35,102 @@
  */
 
 #include "unittest.h"
+#include "obj.h"
+#include "ctl.h"
+
+
+static int
+CTL_READ_HANDLER(test_rw)(PMEMobjpool *pop, enum ctl_query_type type,
+	void *arg, struct ctl_indexes *indexes)
+{
+	UT_ASSERTeq(type, CTL_QUERY_PROGRAMMATIC);
+
+	int *arg_rw = arg;
+	*arg_rw = 0;
+
+	return 0;
+}
+
+static int
+CTL_WRITE_HANDLER(test_rw)(PMEMobjpool *pop, enum ctl_query_type type,
+	void *arg, struct ctl_indexes *indexes)
+{
+	UT_ASSERTeq(type, CTL_QUERY_PROGRAMMATIC);
+
+	int *arg_rw = arg;
+	*arg_rw = 1;
+
+	return 0;
+}
+
+static int
+CTL_WRITE_HANDLER(test_wo)(PMEMobjpool *pop, enum ctl_query_type type,
+	void *arg, struct ctl_indexes *indexes)
+{
+	UT_ASSERTeq(type, CTL_QUERY_PROGRAMMATIC);
+
+	int *arg_wo = arg;
+	*arg_wo = 1;
+
+	return 0;
+}
+
+static int test_config_written = 0;
+#define TEST_CONFIG_VALUE "abcd"
+
+static int
+CTL_WRITE_HANDLER(test_config)(PMEMobjpool *pop, enum ctl_query_type type,
+	void *arg, struct ctl_indexes *indexes)
+{
+	UT_ASSERTeq(type, CTL_QUERY_CONFIG_INPUT);
+
+	char *config_value = arg;
+	UT_ASSERTeq(strcmp(config_value, TEST_CONFIG_VALUE), 0);
+	test_config_written = 1;
+
+	return 0;
+}
+
+static int
+CTL_READ_HANDLER(test_ro)(PMEMobjpool *pop, enum ctl_query_type type,
+	void *arg, struct ctl_indexes *indexes)
+{
+	UT_ASSERTeq(type, CTL_QUERY_PROGRAMMATIC);
+
+	int *arg_ro = arg;
+	*arg_ro = 0;
+
+	return 0;
+}
+
+static int
+CTL_READ_HANDLER(index_value)(PMEMobjpool *pop, enum ctl_query_type type,
+	void *arg, struct ctl_indexes *indexes)
+{
+	UT_ASSERTeq(type, CTL_QUERY_PROGRAMMATIC);
+
+	long *index_value = arg;
+	struct ctl_index *idx = SLIST_FIRST(indexes);
+	UT_ASSERT(strcmp(idx->name, "test_index") == 0);
+	*index_value = idx->value;
+
+	return 0;
+}
+
+static const struct ctl_node CTL_NODE(test_index)[] = {
+	CTL_LEAF_RO(index_value),
+	CTL_NODE_END
+};
+
+static const struct ctl_node CTL_NODE(debug)[] = {
+	CTL_LEAF_RO(test_ro),
+	CTL_LEAF_WO(test_wo),
+	CTL_LEAF_RW(test_rw),
+	CTL_INDEXED(test_index),
+	CTL_LEAF_WO(test_config),
+
+	CTL_NODE_END
+};
 
 static void
 test_ctl_parser(PMEMobjpool *pop)
@@ -102,7 +198,91 @@ test_ctl_parser(PMEMobjpool *pop)
 	ret = pmemobj_ctl(pop, "debug.10.index_value", &index_value, NULL);
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERTeq(index_value, 10);
+}
 
+static void
+test_string_query_provider(PMEMobjpool *pop)
+{
+	struct ctl_query_config q = {NULL, NULL};
+	int ret;
+
+	struct ctl_query_provider *p = ctl_string_provider_new("");
+	UT_ASSERTne(p, NULL);
+	ret = p->first(p, &q);
+	UT_ASSERTeq(q.name, NULL);
+	UT_ASSERTeq(q.value, NULL);
+	UT_ASSERTeq(ret, 1);
+	ctl_string_provider_delete(p);
+
+	p = ctl_string_provider_new(";;");
+	UT_ASSERTne(p, NULL);
+	ret = p->first(p, &q);
+	UT_ASSERTeq(ret, 1);
+	ctl_string_provider_delete(p);
+
+	p = ctl_string_provider_new(";=;");
+	UT_ASSERTne(p, NULL);
+	ret = p->first(p, &q);
+	UT_ASSERTeq(ret, -1);
+	ctl_string_provider_delete(p);
+
+	p = ctl_string_provider_new("=");
+	UT_ASSERTne(p, NULL);
+	ret = p->first(p, &q);
+	UT_ASSERTeq(ret, -1);
+	ctl_string_provider_delete(p);
+
+	p = ctl_string_provider_new("a=");
+	UT_ASSERTne(p, NULL);
+	ret = p->first(p, &q);
+	UT_ASSERTeq(ret, -1);
+	ctl_string_provider_delete(p);
+
+	p = ctl_string_provider_new("=b");
+	UT_ASSERTne(p, NULL);
+	ret = p->first(p, &q);
+	UT_ASSERTeq(ret, -1);
+	ctl_string_provider_delete(p);
+
+	p = ctl_string_provider_new("a=b=c");
+	UT_ASSERTne(p, NULL);
+	ret = p->first(p, &q);
+	UT_ASSERTeq(ret, -1);
+	ctl_string_provider_delete(p);
+
+	p = ctl_string_provider_new("a=b;c=d;e=f;");
+	ret = p->first(p, &q);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(strcmp(q.name, "a"), 0);
+	UT_ASSERTeq(strcmp(q.value, "b"), 0);
+
+	ret = p->next(p, &q);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(strcmp(q.name, "c"), 0);
+	UT_ASSERTeq(strcmp(q.value, "d"), 0);
+
+	ret = p->next(p, &q);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(strcmp(q.name, "e"), 0);
+	UT_ASSERTeq(strcmp(q.value, "f"), 0);
+
+	ret = p->next(p, &q);
+	UT_ASSERTeq(ret, 1);
+
+	ctl_string_provider_delete(p);
+}
+
+static void
+test_config_load(PMEMobjpool *pop)
+{
+	struct ctl_query_provider *p = ctl_string_provider_new(
+		"debug.test_config="TEST_CONFIG_VALUE";");
+	UT_ASSERTne(p, NULL);
+
+	ctl_load_config(pop, p);
+	UT_ASSERTeq(test_config_written, 1);
+
+	ctl_string_provider_delete(p);
 }
 
 int
@@ -120,7 +300,11 @@ main(int argc, char *argv[])
 		S_IWUSR | S_IRUSR)) == NULL)
 		UT_FATAL("!pmemobj_create: %s", path);
 
+	CTL_REGISTER_MODULE(pop->ctl, debug);
+
 	test_ctl_parser(pop);
+	test_string_query_provider(pop);
+	test_config_load(pop);
 
 	pmemobj_close(pop);
 
