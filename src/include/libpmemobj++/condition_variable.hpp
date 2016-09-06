@@ -361,7 +361,7 @@ public:
 	std::cv_status
 	wait_for(Lock &lock, const std::chrono::duration<Rep, Period> &rel_time)
 	{
-		return this->wait_until_impl(lock,
+		return this->wait_until_impl(*lock.mutex(),
 					     clock_type::now() + rel_time);
 	}
 
@@ -395,7 +395,8 @@ public:
 	wait_for(Lock &lock, const std::chrono::duration<Rep, Period> &rel_time,
 		 Predicate pred)
 	{
-		return this->wait_until_impl(lock, clock_type::now() + rel_time,
+		return this->wait_until_impl(*lock.mutex(),
+					     clock_type::now() + rel_time,
 					     std::move(pred));
 	}
 

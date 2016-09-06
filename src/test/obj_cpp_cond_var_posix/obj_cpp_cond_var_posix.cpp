@@ -145,7 +145,7 @@ reader_lock(void *arg)
 		static_cast<nvobj::persistent_ptr<struct root> *>(arg);
 	std::unique_lock<nvobj::mutex> lock((*proot)->pmutex);
 	while ((*proot)->counter != limit)
-		(*proot)->cond.wait((*proot)->pmutex);
+		(*proot)->cond.wait(lock);
 
 	UT_ASSERTeq((*proot)->counter, limit);
 	lock.unlock();
@@ -241,7 +241,7 @@ reader_lock_until(void *arg)
 	std::unique_lock<nvobj::mutex> lock((*proot)->pmutex);
 	auto until = std::chrono::system_clock::now();
 	until += wait_time;
-	auto ret = (*proot)->cond.wait_until((*proot)->pmutex, until);
+	auto ret = (*proot)->cond.wait_until(lock, until);
 
 	auto now = std::chrono::system_clock::now();
 	if (ret == std::cv_status::timeout) {
@@ -270,9 +270,8 @@ reader_lock_until_pred(void *arg)
 	std::unique_lock<nvobj::mutex> lock((*proot)->pmutex);
 	auto until = std::chrono::system_clock::now();
 	until += wait_time;
-	auto ret = (*proot)->cond.wait_until((*proot)->pmutex, until, [&]() {
-		return (*proot)->counter == limit;
-	});
+	auto ret = (*proot)->cond.wait_until(
+		lock, until, [&]() { return (*proot)->counter == limit; });
 
 	auto now = std::chrono::system_clock::now();
 	if (ret == false) {
@@ -361,7 +360,7 @@ reader_lock_for(void *arg)
 	std::unique_lock<nvobj::mutex> lock((*proot)->pmutex);
 	auto until = std::chrono::system_clock::now();
 	until += wait_time;
-	auto ret = (*proot)->cond.wait_for((*proot)->pmutex, wait_time);
+	auto ret = (*proot)->cond.wait_for(lock, wait_time);
 
 	auto now = std::chrono::system_clock::now();
 	if (ret == std::cv_status::timeout) {
@@ -390,9 +389,8 @@ reader_lock_for_pred(void *arg)
 	std::unique_lock<nvobj::mutex> lock((*proot)->pmutex);
 	auto until = std::chrono::system_clock::now();
 	until += wait_time;
-	auto ret = (*proot)->cond.wait_for((*proot)->pmutex, wait_time, [&]() {
-		return (*proot)->counter == limit;
-	});
+	auto ret = (*proot)->cond.wait_for(
+		lock, wait_time, [&]() { return (*proot)->counter == limit; });
 
 	auto now = std::chrono::system_clock::now();
 	if (ret == false) {
