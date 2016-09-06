@@ -40,11 +40,7 @@ Param(
     )
 $Env:UNITTEST_NAME = "pmempool_create\TEST6w"
 $Env:UNITTEST_NUM = "6w"
-# XXX:  bash has a few calls to tools that we don't have on
-# windows (yet) that set PMEM_IS_PMEM and NON_PMEM_IS_PMEM based
-# on their output
-$Env:PMEM_IS_PMEM = $true
-$Env:NON_PMEM_IS_PMEM = $true
+
 
 . ..\unittest\unittest.ps1
 

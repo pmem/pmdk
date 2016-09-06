@@ -41,6 +41,9 @@ function epoch {
 }
 
 function isDir {
+    if (-Not $args[0]) {
+        return $false
+    }
     if ((Get-Item $args[0] -ErrorAction SilentlyContinue) -is [System.IO.DirectoryInfo]) {
         return $true
     } Else {
@@ -235,7 +238,8 @@ function create_nonzeroed_file {
 # require_pmem -- only allow script to continue for a real PMEM device
 #
 function require_pmem {
-    if ($Env:PMEM_IS_PMEM) {
+    # note: PMEM_IS_PMEM 0 means it is PMEM, 1 means it is not
+    if ($PMEM_IS_PMEM -eq "0") {
         return $true
     } Else {
         Write-Error "error: PMEM_FS_DIR=$Env:PMEM_FS_DIR does not point to a PMEM device"
@@ -367,25 +371,22 @@ function expect_normal_exit {
 
     #XXX:  bash sets up LD_PRELOAD and other gcc options here
     # that we can't do, investigating how to address API hooking...
-    sv -Name command $args[0]
 
+    sv -Name command $args[0]
+    $params = New-Object System.Collections.ArrayList
     foreach ($param in $Args[1 .. $Args.Count]) {
-	if ($param -is [array]) {
-	    foreach ($param_entry in $param) {
-		[string]$params += -join(" '", $param_entry, "' ")
-	    }
-	} else {
+	    if ($param -is [array]) {
+	        foreach ($param_entry in $param) {
+		        [string]$params += -join(" '", $param_entry, "' ")
+	        }
+	    } else {
             [string]$params += -join(" '", $param, "' ")
-	}
+	    }
     }
 
     Invoke-Expression "$command $params"
-    sv -Name ret $LASTEXITCODE
-
     if ($LASTEXITCODE -ne 0) {
         sv -Name msg "failed with exit code $LASTEXITCODE"
-
-
         if (Test-Path ("err" + $Env:UNITTEST_NUM + ".log")) {
             if ($Env:UNITTEST_QUIET) {
                 echo "${Env:UNITTEST_NAME}: $msg. err$Env:UNITTEST_NUM.log" >> ("err" + $Env:UNITTEST_NUM + ".log")
@@ -406,9 +407,6 @@ function expect_normal_exit {
         dump_last_n_lines $Env:PMEMBLK_LOG_FILE
         dump_last_n_lines $Env:VMEM_LOG_FILE
         dump_last_n_lines $Env:VMMALLOC_LOG_FILE
-
-        #XXX:  bash just has a one-liner "false" here, does that
-        # set the exit code?
     }
 
     # XXX: if we impement a memcheck thing... set some env vars here
@@ -422,18 +420,14 @@ function expect_abnormal_exit {
     # that we can't do, investigating how to address API hooking...
 
     sv -Name command $args[0]
-
+    $params = New-Object System.Collections.ArrayList
     foreach ($param in $Args[1 .. $Args.Count]) {
-        [string]$params += -join(" '", $param, "' ")
+	    $params.add([string]$param) | Out-Null
     }
 
     Invoke-Expression "$command $params"
-
     if ($LASTEXITCODE -eq 0) {
-        sv -Name msg "succeeded"
-        Write-Error "${Env:UNITTEST_NAME}: command $msg unexpectedly."
-        #XXX:  bash just has a one-liner "false" here, does that
-        # set the exit code?
+	Write-Error "${Env:UNITTEST_NAME}: command succeeded unexpectedly."
     }
 }
 
@@ -827,7 +821,7 @@ function compare_replicas {
 # require_non_pmem -- only allow script to continue for a non-PMEM device
 #
 function require_non_pmem {
-    if ($Env:NON_PMEM_IS_PMEM) {
+    if ($NON_PMEM_IS_PMEM -eq "1") {
         return $true
     } Else {
         Write-Error "error: NON_PMEM_FS_DIR=$Env:NON_PMEM_FS_DIR does not point to a non-PMEM device"
@@ -924,6 +918,17 @@ if (! $Env:CHECK_POOL) { $Env:CHECK_POOL = '0'}
 if (! $Env:VERBOSE) { $Env:VERBOSE = '0'}
 $Env:EXESUFFIX = ".exe"
 
+if ($Env:EXE_DIR -eq $null) {
+    $Env:EXE_DIR = "..\..\x64\debug"
+}
+$PMEMPOOL="$Env:EXE_DIR\pmempool"
+$PMEMSPOIL="$Env:EXE_DIR\pmemspoil"
+$PMEMWRITE="$Env:EXE_DIR\pmemwrite"
+$PMEMALLOC="$Env:EXE_DIR\pmemalloc"
+$PMEMDETECT="$Env:EXE_DIR\pmemdetect"
+
+$SPARSEFILE="$Env:EXE_DIR\sparsefile"
+
 #
 # For non-static build testing, the variable TEST_LD_LIBRARY_PATH is
 # constructed so the test pulls in the appropriate library from this
@@ -985,20 +990,20 @@ if ($DIR) {
     $tail = "\" + $curtestdir + $Env:UNITTEST_NUM
     # choose based on FS env variable
     switch ($Env:FS) {
-        'pmem' { sv -Name DIR ($PMEM_FS_DIR + $tail)
-                 if ($PMEM_FS_DIR_FORCE_PMEM) {
-                     $Env:PMEM_IS_PMEM_FORCE = 1
+        'pmem' { sv -Name DIR ($Env:PMEM_FS_DIR + $tail)
+                 if ($Env:PMEM_FS_DIR_FORCE_PMEM -eq "1") {
+                     $Env:PMEM_IS_PMEM_FORCE = "1"
                  }
                }
-        'non-pmem' { sv -Name DIR ($NON_PMEM_FS_DIR + $tail) }
-        'any' { if ($PMEM_FS_DIR) {
-                    sv -Name DIR ($PMEM_FS_DIR + $tail)
+        'non-pmem' { sv -Name DIR ($Env:NON_PMEM_FS_DIR + $tail) }
+        'any' { if ($Env:PMEM_FS_DIR) {
+                    sv -Name DIR ($Env:PMEM_FS_DIR + $tail)
                     $REAL_FS='pmem'
-                    if ($PMEM_FS_DIR_FORCE_PMEM) {
-                        $Env:PMEM_IS_PMEM_FORCE = 1
+                    if ($Env:PMEM_FS_DIR_FORCE_PMEM -eq "1") {
+                        $Env:PMEM_IS_PMEM_FORCE = "1"
                     }
-                } ElseIf ($NON_PMEM_FS_DIR) {
-                    sv -Name DIR ($NON_PMEM_FS_DIR + $tail)
+                } ElseIf ($Env:NON_PMEM_FS_DIR) {
+                    sv -Name DIR ($Env:NON_PMEM_FS_DIR + $tail)
                     $REAL_FS='non-pmem'
                 } Else {
                     Write-Error "${Env:UNITTEST_NAME}: fs-type=any and both env vars are empty"
@@ -1008,7 +1013,7 @@ if ($DIR) {
         'none' {
             sv -Name DIR "/nul/not_existing_dir/${curtestdir}${Env:UNITTEST_NUM}" }
         default {
-            if (! $Env:UNITTEST_QUIET) {
+            if (-Not $Env:UNITTEST_QUIET) {
                 Write-Host "${Env:UNITTEST_NAME}: SKIP fs-type $Env:FS (not configured)"
                 exit 0
             }
@@ -1016,10 +1021,19 @@ if ($DIR) {
     } # switch
 }
 
-# XXX REMOVE THIS WHEN ITS ALL WORKING
-if (! $DIR) {
-    Write-Error -Message 'DIR does not exist'
-    exit 1
+if (isDir($Env:PMEM_FS_DIR)) {
+    if ($Env:PMEM_FS_DIR_FORCE_PMEM -eq "1") {
+        # "0" means there is PMEM
+        $PMEM_IS_PMEM = "0"
+    } else {
+        &$PMEMDETECT $Env:PMEM_FS_DIR
+        $PMEM_IS_PMEM = $LASTEXITCODE
+    }
+}
+
+if (isDir($Env:NON_PMEM_FS_DIR)) {
+    &$PMEMDETECT $Env:NON_PMEM_FS_DIR
+    $NON_PMEM_IS_PMEM = $LASTEXITCODE
 }
 
 # Length of pool file's signature
@@ -1066,13 +1080,3 @@ if (! $UT_DUMP_LINES) {
 }
 
 $Env:CHECK_POOL_LOG_FILE = "check_pool_${Env:BUILD}_${Env:UNITTEST_NUM}.log"
-
-if ($Env:EXE_DIR -eq $null) {
-    $Env:EXE_DIR = "..\..\x64\debug"
-}
-$PMEMPOOL="$Env:EXE_DIR\pmempool"
-$PMEMSPOIL="$Env:EXE_DIR\pmemspoil"
-$PMEMWRITE="$Env:EXE_DIR\pmemwrite"
-$PMEMALLOC="$Env:EXE_DIR\pmemalloc"
-
-$SPARSEFILE="$Env:EXE_DIR\sparsefile"
