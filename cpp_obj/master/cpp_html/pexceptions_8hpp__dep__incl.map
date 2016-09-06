@@ -1,0 +1,16 @@
+<map id="nvml/src/include/libpmemobj++/detail/pexceptions.hpp" name="nvml/src/include/libpmemobj++/detail/pexceptions.hpp">
+<area shape="rect" id="node2" href="$common_8hpp.html" title="Commonly used functionality. " alt="" coords="256,95,460,136"/>
+<area shape="rect" id="node3" href="$make__persistent_8hpp.html" title="Persistent_ptr transactional allocation functions for objects. " alt="" coords="5,563,209,605"/>
+<area shape="rect" id="node4" href="$make__persistent__array_8hpp.html" title="Persistent_ptr allocation functions for arrays. " alt="" coords="857,563,1078,605"/>
+<area shape="rect" id="node5" href="$make__persistent__array__atomic_8hpp.html" title="Atomic persistent_ptr allocation functions for arrays. " alt="" coords="493,556,697,612"/>
+<area shape="rect" id="node6" href="$make__persistent__atomic_8hpp.html" title="Persistent_ptr atomic allocation functions for objects. " alt="" coords="234,563,469,605"/>
+<area shape="rect" id="node9" href="$pool_8hpp.html" title="C++ pmemobj pool. " alt="" coords="624,273,828,315"/>
+<area shape="rect" id="node12" href="$utils_8hpp.html" title="Libpmemobj C++ utils. " alt="" coords="700,459,904,501"/>
+<area shape="rect" id="node13" href="$transaction_8hpp.html" title="C++ pmemobj transactions. " alt="" coords="675,363,879,404"/>
+<area shape="rect" id="node14" href="$mutex_8hpp.html" title="Pmem&#45;resident mutex. " alt="" coords="1107,95,1311,136"/>
+<area shape="rect" id="node7" href="$p_8hpp.html" title="Resides on pmem property template. " alt="" coords="396,184,600,225"/>
+<area shape="rect" id="node10" href="$persistent__ptr_8hpp.html" title="Persistent smart pointer. " alt="" coords="447,363,651,404"/>
+<area shape="rect" id="node8" href="$pext_8hpp.html" title="Convenience extensions for the resides on pmem property template. " alt="" coords="396,273,600,315"/>
+<area shape="rect" id="node11" href="$check__persistent__ptr__array_8hpp.html" title="Compile time type check for make_persistent. " alt="" coords="447,452,651,508"/>
+<area shape="rect" id="node15" href="$condition__variable_8hpp.html" title="Pmem&#45;resident condition variable. " alt="" coords="1107,184,1311,225"/>
+</map>

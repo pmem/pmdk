@@ -1,0 +1,13 @@
+<map id="nvml/src/include/libpmemobj++/detail/specialization.hpp" name="nvml/src/include/libpmemobj++/detail/specialization.hpp">
+<area shape="rect" id="node2" href="$p_8hpp.html" title="Resides on pmem property template. " alt="" coords="233,95,437,136"/>
+<area shape="rect" id="node6" href="$persistent__ptr_8hpp.html" title="Persistent smart pointer. " alt="" coords="439,273,643,315"/>
+<area shape="rect" id="node3" href="$pext_8hpp.html" title="Convenience extensions for the resides on pmem property template. " alt="" coords="5,184,209,225"/>
+<area shape="rect" id="node4" href="$pool_8hpp.html" title="C++ pmemobj pool. " alt="" coords="233,184,437,225"/>
+<area shape="rect" id="node5" href="$make__persistent__atomic_8hpp.html" title="Persistent_ptr atomic allocation functions for objects. " alt="" coords="55,474,290,515"/>
+<area shape="rect" id="node12" href="$transaction_8hpp.html" title="C++ pmemobj transactions. " alt="" coords="211,273,415,315"/>
+<area shape="rect" id="node7" href="$check__persistent__ptr__array_8hpp.html" title="Compile time type check for make_persistent. " alt="" coords="376,363,580,419"/>
+<area shape="rect" id="node11" href="$utils_8hpp.html" title="Libpmemobj C++ utils. " alt="" coords="604,370,808,411"/>
+<area shape="rect" id="node8" href="$make__persistent_8hpp.html" title="Persistent_ptr transactional allocation functions for objects. " alt="" coords="315,474,519,515"/>
+<area shape="rect" id="node9" href="$make__persistent__array_8hpp.html" title="Persistent_ptr allocation functions for arrays. " alt="" coords="543,474,765,515"/>
+<area shape="rect" id="node10" href="$make__persistent__array__atomic_8hpp.html" title="Atomic persistent_ptr allocation functions for arrays. " alt="" coords="789,467,993,523"/>
+</map>
