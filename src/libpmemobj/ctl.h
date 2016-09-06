@@ -50,7 +50,15 @@ struct ctl_index {
 
 SLIST_HEAD(ctl_indexes, ctl_index);
 
-typedef int (*node_callback)(PMEMobjpool *pop,
+enum ctl_query_type {
+	CTL_UNKNOWN_QUERY_TYPE,
+	CTL_QUERY_PROGRAMMATIC,
+	CTL_QUERY_CONFIG_INPUT,
+
+	MAX_CTL_QUERY_TYPE
+};
+
+typedef int (*node_callback)(PMEMobjpool *pop, enum ctl_query_type type,
 	void *arg, struct ctl_indexes *indexes);
 
 enum ctl_node_type {
@@ -76,7 +84,27 @@ struct ctl_node {
 	struct ctl_node *children;
 };
 
+struct ctl_query_config {
+	char *name;
+	char *value;
+};
+
+struct ctl_query_provider {
+	/*
+	 * Both functions return:
+	 *  0 if the query variable has been successfully populated with data.
+	 *  1 if the iteration reached the end of the collection.
+	 * -1 if a parsing error occured.
+	 */
+	int (*first)(struct ctl_query_provider *p, struct ctl_query_config *q);
+	int (*next)(struct ctl_query_provider *p, struct ctl_query_config *q);
+};
+
+struct ctl_query_provider *ctl_string_provider_new(const char *buf);
+void ctl_string_provider_delete(struct ctl_query_provider *p);
+
 struct ctl *ctl_new(void);
+int ctl_load_config(PMEMobjpool *pop, struct ctl_query_provider *p);
 void ctl_delete(struct ctl *stats);
 
 /* Use through CTL_REGISTER_MODULE, never directly */
