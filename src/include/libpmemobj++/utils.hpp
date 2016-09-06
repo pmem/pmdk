@@ -54,7 +54,7 @@ namespace obj
  *
  * @return handle to the pool containing the object.
  *
- * @throw `pool_error` if the given pointer does not belong to an open pool.
+ * @throw pool_error if the given pointer does not belong to an open pool.
  */
 template <typename T>
 inline pool_base
@@ -74,7 +74,7 @@ pool_by_vptr(const T *that)
  *
  * @return handle to the pool containing the object.
  *
- * @throw `pool_error` if the given pointer does not belong to an open pool.
+ * @throw pool_error if the given pointer does not belong to an open pool.
  */
 template <typename T>
 inline pool_base
