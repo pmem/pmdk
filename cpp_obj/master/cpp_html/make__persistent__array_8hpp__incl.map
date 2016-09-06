@@ -1,0 +1,11 @@
+<map id="nvml/src/include/libpmemobj++/make_persistent_array.hpp" name="nvml/src/include/libpmemobj++/make_persistent_array.hpp">
+<area shape="rect" id="node2" href="$array__traits_8hpp.html" title="Common array traits. " alt="" coords="830,199,989,240"/>
+<area shape="rect" id="node4" href="$check__persistent__ptr__array_8hpp.html" title="Compile time type check for make_persistent. " alt="" coords="563,95,722,151"/>
+<area shape="rect" id="node9" href="$common_8hpp.html" title="Commonly used functionality. " alt="" coords="623,437,782,479"/>
+<area shape="rect" id="node10" href="$pexceptions_8hpp.html" title="Custom exceptions. " alt="" coords="370,527,529,568"/>
+<area shape="rect" id="node20" href="$life_8hpp.html" title="Functions for destroying arrays. " alt="" coords="746,102,905,143"/>
+<area shape="rect" id="node5" href="$persistent__ptr_8hpp.html" title="Persistent smart pointer. " alt="" coords="424,199,611,240"/>
+<area shape="rect" id="node15" href="$specialization_8hpp.html" title="Helper template for persistent ptr specialization. " alt="" coords="94,437,253,479"/>
+<area shape="rect" id="node16" href="$pool_8hpp.html" title="C++ pmemobj pool. " alt="" coords="280,288,459,315"/>
+<area shape="rect" id="node18" href="$p_8hpp.html" title="Resides on pmem property template. " alt="" coords="145,363,303,389"/>
+</map>
