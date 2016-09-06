@@ -103,6 +103,9 @@ struct ctl_query_provider {
 struct ctl_query_provider *ctl_string_provider_new(const char *buf);
 void ctl_string_provider_delete(struct ctl_query_provider *p);
 
+struct ctl_query_provider *ctl_file_provider_new(const char *file);
+void ctl_file_provider_delete(struct ctl_query_provider *p);
+
 struct ctl *ctl_new(void);
 int ctl_load_config(PMEMobjpool *pop, struct ctl_query_provider *p);
 void ctl_delete(struct ctl *stats);

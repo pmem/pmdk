@@ -41,6 +41,9 @@
 #include <string.h>
 #include <pthread.h>
 #include <stdio.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 #include "libpmem.h"
 #include "libpmemobj.h"
@@ -63,6 +66,8 @@
 #include "heap.h"
 
 #define CTL_MAX_ENTRIES 100
+
+#define MAX_CONFIG_FILE_LEN (1 << 20) /* 1 megabyte */
 
 #define CTL_STRING_QUERY_SEPARATOR ";"
 #define CTL_NAME_VALUE_SEPARATOR "="
@@ -94,6 +99,15 @@ struct ctl_string_provider {
 
 	char *buf; /* stores the entire string that needs to be parsed */
 	char *sptr; /* for internal use of strtok */
+};
+
+/*
+ * File provider builts on top of the string provider to facilitate reading
+ * query data from a user-provided file.
+ */
+struct ctl_file_provider {
+	struct ctl_string_provider super;
+	FILE *config;
 };
 
 /*
@@ -331,7 +345,85 @@ ctl_string_provider_delete(struct ctl_query_provider *p)
 {
 	struct ctl_string_provider *sp = (struct ctl_string_provider *)p;
 	Free(sp->buf);
-	Free(p);
+	Free(sp);
+}
+
+/*
+ * ctl_string_provider_new --
+ *	creates and initializes a new string query provider
+ *
+ * This function opens up the config file, allocates a buffer of size equal to
+ * the size of the file, reads its content and sanitizes it for the string query
+ * provider pipeline.
+ */
+struct ctl_query_provider *
+ctl_file_provider_new(const char *file)
+{
+	struct ctl_file_provider *fp =
+		Malloc(sizeof(struct ctl_file_provider));
+	if (fp == NULL)
+		goto error_provider_alloc;
+
+	struct ctl_string_provider *sp = &fp->super;
+
+	sp->super.first = ctl_string_provider_first;
+	sp->super.next = ctl_string_provider_next;
+	if ((fp->config = fopen(file, "r")) == NULL)
+		goto error_file_open;
+
+	int err;
+	if ((err = fseek(fp->config, 0, SEEK_END)) != 0)
+		goto error_file_parse;
+
+	long fsize = ftell(fp->config);
+	if (fsize == -1)
+		goto error_file_parse;
+	if (fsize > MAX_CONFIG_FILE_LEN) {
+		ERR("Config file too large");
+		goto error_file_parse;
+	}
+
+	if ((err = fseek(fp->config, 0, SEEK_SET)) != 0)
+		goto error_file_parse;
+
+	sp->buf = Zalloc((size_t)fsize + 1); /* +1 for NULL-termination */
+	if (sp->buf == NULL)
+		goto error_file_parse;
+
+	size_t bufpos = 0;
+
+	int c;
+	int is_comment_section = 0;
+	while ((c = fgetc(fp->config)) != EOF) {
+		if (c == '#')
+			is_comment_section = 1;
+		else if (c == '\n')
+			is_comment_section = 0;
+		else if (!is_comment_section && !isspace(c))
+			sp->buf[bufpos++] = (char)c;
+	}
+
+	(void) fclose(fp->config);
+
+	return &sp->super;
+
+error_file_parse:
+	fclose(fp->config);
+error_file_open:
+	Free(fp);
+error_provider_alloc:
+	return NULL;
+}
+
+/*
+ * ctl_string_provider_delete -- cleanups and deallocates provider instance
+ */
+void
+ctl_file_provider_delete(struct ctl_query_provider *p)
+{
+	struct ctl_file_provider *fp = (struct ctl_file_provider *)p;
+	Free(fp->super.buf);
+	Free(fp);
 }
 
 /*
