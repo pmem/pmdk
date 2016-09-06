@@ -68,6 +68,8 @@ main(int argc, char *argv[])
 		ret = 1;
 
 	util_unmap(addr, SIZE);
-
+#ifdef _WIN32
+	printf("%d", ret);
+#endif
 	return ret;
 }

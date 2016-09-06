@@ -215,23 +215,23 @@ function runtest {
     }
 
     Foreach ($fs in $fss.split(" ").trim()) {
+
         # don't bother trying when fs-type isn't available...
-        if ($fs -match "pmem" -And $PMEM_FS_DIR -eq "") {
+        if ($fs -match "pmem" -And (-Not $Env:PMEM_FS_DIR)) {
             $pmem_skip = 1
             continue
         }
-        if ($fs -match "non-pmem" -And $NON_PMEM_FS_DIR -eq "") {
+        if ($fs -match "non-pmem" -And (-Not $Env:NON_PMEM_FS_DIR)) {
             $non_pmem_skip = 1
             continue
         }
-        if ($fs -match "any" -And $NON_PMEM_FS_DIR -eq "" -And $PMEM_FS_DIR -eq "") {
+        if ($fs -match "any" -And (-Not $Env:NON_PMEM_FS_DIR) -And (-Not $Env:PMEM_FS_DIR)) {
             continue
         }
 
         if ($verbose) {
             Write-Host "RUNTESTS: Testing fs-type: $fs..."
         }
-
         # for each build-type being tested...
         Foreach ($build in $builds.split(" ").trim()) {
             if ($verbose) {
@@ -281,14 +281,16 @@ function runtest {
 
                 if($p.StandardOutput.EndOfStream -eq $false) {
                     $output = $p.StandardOutput.ReadToEnd();
+                    $p.WaitForExit();
                     Write-Host -NoNewline $output
                 }
                 if($p.StandardError.EndOfStream -eq $false) {
                     $error = $p.StandardError.ReadToEnd();
+                    $p.WaitForExit();
                     Write-Host -NoNewline $error
                 }
                 if ($p.ExitCode -ne 0) {
-                    Write-Error "RUNTESTS: stopping: $testName/$runscript FAILED, TEST=$testtype FS=$fs BUILD=$build"
+                    Write-Error "RUNTESTS: stopping: $testName/$runscript FAILED errorcde= $p.ExitCode, TEST=$testtype FS=$fs BUILD=$build"
                     cd ..
                     exit $p.ExitCode
                 }
