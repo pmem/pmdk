@@ -62,73 +62,11 @@
 #include "memblock.h"
 #include "heap.h"
 
-static int
-CTL_READ_HANDLER(test_rw)(PMEMobjpool *pop, void *arg,
-	struct ctl_indexes *indexes)
-{
-	int *arg_rw = arg;
-	*arg_rw = 0;
-
-	return 0;
-}
-
-static int
-CTL_WRITE_HANDLER(test_rw)(PMEMobjpool *pop, void *arg,
-	struct ctl_indexes *indexes)
-{
-	int *arg_rw = arg;
-	*arg_rw = 1;
-
-	return 0;
-}
-
-static int
-CTL_WRITE_HANDLER(test_wo)(PMEMobjpool *pop, void *arg,
-	struct ctl_indexes *indexes)
-{
-	int *arg_wo = arg;
-	*arg_wo = 1;
-
-	return 0;
-}
-
-static int
-CTL_READ_HANDLER(test_ro)(PMEMobjpool *pop, void *arg,
-	struct ctl_indexes *indexes)
-{
-	int *arg_ro = arg;
-	*arg_ro = 0;
-
-	return 0;
-}
-
-static int
-CTL_READ_HANDLER(index_value)(PMEMobjpool *pop, void *arg,
-	struct ctl_indexes *indexes)
-{
-	long *index_value = arg;
-	struct ctl_index *idx = SLIST_FIRST(indexes);
-	ASSERT(strcmp(idx->name, "test_index") == 0);
-	*index_value = idx->value;
-
-	return 0;
-}
-
-static const struct ctl_node CTL_NODE(test_index)[] = {
-	CTL_LEAF_RO(index_value),
-	CTL_NODE_END
-};
-
-static const struct ctl_node CTL_NODE(debug)[] = {
-	CTL_LEAF_RO(test_ro),
-	CTL_LEAF_WO(test_wo),
-	CTL_LEAF_RW(test_rw),
-	CTL_INDEXED(test_index),
-
-	CTL_NODE_END
-};
-
 #define CTL_MAX_ENTRIES 100
+
+#define CTL_STRING_QUERY_SEPARATOR ";"
+#define CTL_NAME_VALUE_SEPARATOR "="
+#define CTL_QUERY_NODE_SEPARATOR "."
 
 /*
  * This is the top level node of the ctl tree structure. Each node can contain
@@ -146,11 +84,25 @@ struct ctl {
 };
 
 /*
- * pmemobj_ctl -- parses the name and calls the appropriate methods from the ctl
- *	tree.
+ * String provider is the simplest, elementary, query provider. It can be used
+ * directly to parse environment variables or in conjuction with other code to
+ * provide more complex behavior. It is initialized with a string containing all
+ * of the queries and tokenizes it into separate structures.
  */
-int
-pmemobj_ctl(PMEMobjpool *pop, const char *name, void *read_arg, void *write_arg)
+struct ctl_string_provider {
+	struct ctl_query_provider super;
+
+	char *buf; /* stores the entire string that needs to be parsed */
+	char *sptr; /* for internal use of strtok */
+};
+
+/*
+ * ctl_query -- (internal) parses the name and calls the appropriate methods
+ *	from the ctl tree.
+ */
+static int
+ctl_query(PMEMobjpool *pop, enum ctl_query_type type,
+	const char *name, void *read_arg, void *write_arg)
 {
 	struct ctl_node *nodes = pop->ctl->root;
 	struct ctl_node *n = NULL;
@@ -170,7 +122,7 @@ pmemobj_ctl(PMEMobjpool *pop, const char *name, void *read_arg, void *write_arg)
 		goto error_strdup_name;
 
 	char *sptr = NULL;
-	char *node_name = strtok_r(parse_str, ".", &sptr);
+	char *node_name = strtok_r(parse_str, CTL_QUERY_NODE_SEPARATOR, &sptr);
 
 	/*
 	 * Go through the string and separate tokens that correspond to nodes
@@ -183,8 +135,9 @@ pmemobj_ctl(PMEMobjpool *pop, const char *name, void *read_arg, void *write_arg)
 		if (endptr != node_name) { /* a valid index */
 			index_entry = Malloc(sizeof(*index_entry));
 			if (index_entry == NULL)
-				goto error_index_malloc;
+				goto error_invalid_arguments;
 			index_entry->value = index_value;
+			SLIST_INSERT_HEAD(&indexes, index_entry, entry);
 		}
 
 		for (n = &nodes[0]; n->name != NULL; ++n) {
@@ -197,12 +150,11 @@ pmemobj_ctl(PMEMobjpool *pop, const char *name, void *read_arg, void *write_arg)
 			errno = EINVAL;
 			goto error_invalid_arguments;
 		}
-		nodes = n->children;
-		node_name = strtok_r(NULL, ".", &sptr);
-		if (index_entry) {
+		if (index_entry)
 			index_entry->name = n->name;
-			SLIST_INSERT_HEAD(&indexes, index_entry, entry);
-		}
+
+		nodes = n->children;
+		node_name = strtok_r(NULL, CTL_QUERY_NODE_SEPARATOR, &sptr);
 	}
 
 	/*
@@ -221,23 +173,32 @@ pmemobj_ctl(PMEMobjpool *pop, const char *name, void *read_arg, void *write_arg)
 	ret = 0;
 
 	if (read_arg)
-		ret = n->read_cb(pop, read_arg, &indexes);
+		ret = n->read_cb(pop, type, read_arg, &indexes);
 
 	if (write_arg && ret == 0)
-		ret = n->write_cb(pop, write_arg, &indexes);
+		ret = n->write_cb(pop, type, write_arg, &indexes);
 
 error_invalid_arguments:
 	while (!SLIST_EMPTY(&indexes)) {
 		struct ctl_index *index = SLIST_FIRST(&indexes);
-		Free(index);
 		SLIST_REMOVE_HEAD(&indexes, entry);
+		Free(index);
 	}
 
-error_index_malloc:
 	Free(parse_str);
 
 error_strdup_name:
 	return ret;
+}
+
+/*
+ * pmemobj_ctl -- programmatically executes a ctl query
+ */
+int
+pmemobj_ctl(PMEMobjpool *pop, const char *name, void *read_arg, void *write_arg)
+{
+	return ctl_query(pop, CTL_QUERY_PROGRAMMATIC,
+		name, read_arg, write_arg);
 }
 
 /*
@@ -253,6 +214,127 @@ ctl_register_module_node(struct ctl *c, const char *name, struct ctl_node *n)
 }
 
 /*
+ * ctl_exec_query_config -- (internal) executes a ctl query from a provider
+ */
+static int
+ctl_exec_query_config(PMEMobjpool *pop, struct ctl_query_config *q)
+{
+	return ctl_query(pop, CTL_QUERY_CONFIG_INPUT, q->name, NULL, q->value);
+}
+
+/*
+ * ctl_load_config -- executes the entire query collection from a provider
+ */
+int
+ctl_load_config(PMEMobjpool *pop, struct ctl_query_provider *p)
+{
+	int r = 0;
+
+	struct ctl_query_config q = {NULL, NULL};
+
+	for (r = p->first(p, &q); r == 0; r = p->next(p, &q))
+		if ((r = ctl_exec_query_config(pop, &q)) != 0)
+			break;
+
+	/* the method 'next' from data provider returns 1 to indicate end */
+	return r >= 0 ? 0 : -1;
+}
+
+/*
+ * ctl_string_provider_parse_query -- (internal) splits an entire query string
+ *	into name and value
+ */
+static int
+ctl_string_provider_parse_query(char *qbuf, struct ctl_query_config *q)
+{
+	if (qbuf == NULL)
+		return 1;
+
+	char *sptr;
+	q->name = strtok_r(qbuf, CTL_NAME_VALUE_SEPARATOR, &sptr);
+	if (q->name == NULL)
+		return -1;
+
+	q->value = strtok_r(NULL, CTL_NAME_VALUE_SEPARATOR, &sptr);
+	if (q->value == NULL)
+		return -1;
+
+	/* the value itself mustn't include CTL_NAME_VALUE_SEPARATOR */
+	char *extra = strtok_r(NULL, CTL_NAME_VALUE_SEPARATOR, &sptr);
+	if (extra != NULL)
+		return -1;
+
+	return 0;
+}
+
+/*
+ * ctl_string_provider_first -- (internal) returns the first query from the
+ *	provider's collection
+ */
+static int
+ctl_string_provider_first(struct ctl_query_provider *p,
+	struct ctl_query_config *q)
+{
+	struct ctl_string_provider *sp = (struct ctl_string_provider *)p;
+
+	char *qbuf = strtok_r(sp->buf, CTL_STRING_QUERY_SEPARATOR, &sp->sptr);
+
+	return ctl_string_provider_parse_query(qbuf, q);
+}
+
+/*
+ * ctl_string_provider_first -- (internal) returns the next in sequence query
+ *	from the provider's collection
+ */
+static int
+ctl_string_provider_next(struct ctl_query_provider *p,
+	struct ctl_query_config *q)
+{
+	struct ctl_string_provider *sp = (struct ctl_string_provider *)p;
+
+	char *qbuf = strtok_r(NULL, CTL_STRING_QUERY_SEPARATOR, &sp->sptr);
+
+	return ctl_string_provider_parse_query(qbuf, q);
+}
+
+/*
+ * ctl_string_provider_new --
+ *	creates and initializes a new string query provider
+ */
+struct ctl_query_provider *
+ctl_string_provider_new(const char *buf)
+{
+	struct ctl_string_provider *sp =
+		Malloc(sizeof(struct ctl_string_provider));
+	if (sp == NULL)
+		goto error_provider_alloc;
+
+	sp->super.first = ctl_string_provider_first;
+	sp->super.next = ctl_string_provider_next;
+	sp->buf = Strdup(buf);
+	if (sp->buf == NULL)
+		goto error_buf_alloc;
+
+	return &sp->super;
+
+error_buf_alloc:
+	Free(sp);
+error_provider_alloc:
+	return NULL;
+}
+
+/*
+ * ctl_string_provider_delete -- cleanups and deallocates provider instance
+ */
+void
+ctl_string_provider_delete(struct ctl_query_provider *p)
+{
+	struct ctl_string_provider *sp = (struct ctl_string_provider *)p;
+	Free(sp->buf);
+	Free(p);
+}
+
+/*
  * ctl_new -- allocates and initalizes ctl data structures
  */
 struct ctl *
@@ -260,7 +342,6 @@ ctl_new(void)
 {
 	struct ctl *c = Zalloc(sizeof(struct ctl));
 	c->first_free = 0;
-	CTL_REGISTER_MODULE(c, debug);
 
 	return c;
 }
