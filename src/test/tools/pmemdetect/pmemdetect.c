@@ -68,6 +68,5 @@ main(int argc, char *argv[])
 		ret = 1;
 
 	util_unmap(addr, SIZE);
-
 	return ret;
 }
