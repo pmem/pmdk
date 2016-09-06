@@ -1,0 +1,9 @@
+digraph "nvml/src/include/libpmemobj++/detail" {
+  compound=true
+  node [ fontsize="10", fontname="Helvetica"];
+  edge [ labelfontsize="10", labelfontname="Helvetica"];
+  subgraph clusterdir_f6ed4968c45e1211b9f2f5d9ccd95cab {
+    graph [ bgcolor="#ddddee", pencolor="black", label="libpmemobj++" fontname="Helvetica", fontsize="10", URL="dir_f6ed4968c45e1211b9f2f5d9ccd95cab.html"]
+  dir_c01e8af04a44226a7ee362604271a6f5 [shape=box, label="detail", style="filled", fillcolor="#eeeeff", pencolor="black", URL="dir_c01e8af04a44226a7ee362604271a6f5.html"];
+  }
+}

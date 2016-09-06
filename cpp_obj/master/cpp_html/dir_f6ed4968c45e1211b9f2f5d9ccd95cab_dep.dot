@@ -1,0 +1,14 @@
+digraph "nvml/src/include/libpmemobj++" {
+  compound=true
+  node [ fontsize="10", fontname="Helvetica"];
+  edge [ labelfontsize="10", labelfontname="Helvetica"];
+  subgraph clusterdir_e102b117873e8277d675ddc9ce96c212 {
+    graph [ bgcolor="#ddddee", pencolor="black", label="include" fontname="Helvetica", fontsize="10", URL="dir_e102b117873e8277d675ddc9ce96c212.html"]
+  subgraph clusterdir_f6ed4968c45e1211b9f2f5d9ccd95cab {
+    graph [ bgcolor="#eeeeff", pencolor="black", label="" URL="dir_f6ed4968c45e1211b9f2f5d9ccd95cab.html"];
+    dir_f6ed4968c45e1211b9f2f5d9ccd95cab [shape=plaintext label="libpmemobj++"];
+    dir_c01e8af04a44226a7ee362604271a6f5 [shape=box label="detail" color="black" fillcolor="white" style="filled" URL="dir_c01e8af04a44226a7ee362604271a6f5.html"];
+  }
+  }
+  dir_f6ed4968c45e1211b9f2f5d9ccd95cab->dir_c01e8af04a44226a7ee362604271a6f5 [headlabel="27", labeldistance=1.5 headhref="dir_000003_000004.html"];
+}

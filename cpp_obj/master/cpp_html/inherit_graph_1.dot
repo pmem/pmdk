@@ -1,0 +1,7 @@
+digraph "Graphical Class Hierarchy"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node1 [label="nvml::manual_tx_abort",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classnvml_1_1manual__tx__abort.html",tooltip="Custom transaction error class. "];
+}
