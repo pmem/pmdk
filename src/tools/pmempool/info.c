@@ -488,9 +488,10 @@ parse_args(char *appname, int argc, char *argv[],
 			break;
 		case 'p':
 		{
-			long long ll = atoll(optarg);
-			if (ll < 0) {
-				outv_err("'%s' -- replica cannot be negative\n",
+			char *endptr;
+			long long ll = strtoll(optarg, &endptr, 10);
+			if ((endptr && *endptr != '\0') || errno) {
+				outv_err("'%s' -- invalid replica number",
 						optarg);
 				return -1;
 			}
