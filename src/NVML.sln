@@ -430,6 +430,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_cuckoo", "test\obj_cuck
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_realloc", "test\obj_realloc\obj_realloc.vcxproj", "{91E19AEB-7B75-43E0-B8B4-D2BB60D839EA}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "traces", "test\traces\traces.vcxproj", "{CA4BBB24-D33E-42E2-A495-F10D80DE8C1D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -790,6 +792,9 @@ Global
 		{91E19AEB-7B75-43E0-B8B4-D2BB60D839EA}.Debug|x64.Build.0 = Debug|x64
 		{91E19AEB-7B75-43E0-B8B4-D2BB60D839EA}.Release|x64.ActiveCfg = Release|x64
 		{91E19AEB-7B75-43E0-B8B4-D2BB60D839EA}.Release|x64.Build.0 = Release|x64
+		{CA4BBB24-D33E-42E2-A495-F10D80DE8C1D}.Debug|x64.ActiveCfg = Debug|x64
+		{CA4BBB24-D33E-42E2-A495-F10D80DE8C1D}.Debug|x64.Build.0 = Debug|x64
+		{CA4BBB24-D33E-42E2-A495-F10D80DE8C1D}.Release|x64.ActiveCfg = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -890,5 +895,6 @@ Global
 		{57FD4D93-BAE1-466F-83AF-0288FAF45006} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 		{0CDCEB97-3270-4939-A290-EA2D3BE34B0C} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 		{91E19AEB-7B75-43E0-B8B4-D2BB60D839EA} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
+		{CA4BBB24-D33E-42E2-A495-F10D80DE8C1D} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 	EndGlobalSection
 EndGlobal
