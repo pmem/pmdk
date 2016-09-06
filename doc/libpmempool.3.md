@@ -355,7 +355,7 @@ set to the following values:
 
 + **0** - This is the default level when **PMEMPOOL_LOG_LEVEL** is not set. No log messages are emitted at this level.
 
-+ **1** - Additional details on any errors detected are logged (in addition to returning the *errno*-based errors as usual). The same information may be 
++ **1** - Additional details on any errors detected are logged (in addition to returning the *errno*-based errors as usual). The same information may be
 retrieved using **pmempool_errormsg**().
 
 + **2** - A trace of basic operations is logged.
