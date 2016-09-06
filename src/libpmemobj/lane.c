@@ -459,7 +459,6 @@ lane_release(PMEMobjpool *pop)
 
 	ASSERTne(lane, NULL);
 	ASSERTne(lane->lane_idx, UINT64_MAX);
-	ASSERTne(lane->nest_count, 0);
 
 	if (unlikely(lane->nest_count == 0)) {
 		FATAL("lane_release");
