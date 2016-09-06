@@ -1,3 +1,4 @@
+#!/bin/bash -e
 #
 # Copyright 2016, Intel Corporation
 #
@@ -30,14 +31,20 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-#
-# src/test/obj_ctl/Makefile -- build obj_ctl test
-#
-TARGET = obj_ctl
-OBJS = obj_ctl.o
+export UNITTEST_NAME=obj_ctl/TEST1
+export UNITTEST_NUM=1
 
-LIBPMEM=y
-LIBPMEMOBJ=y
-LIBPMEMOBJ=internal-debug
+# standard unit test setup
+. ../unittest/unittest.sh
 
-include ../Makefile.inc
+require_build_type debug static-debug
+
+configure_valgrind memcheck force-enable
+export PMEMOBJ_VG_CHECK_UNDEF=1
+
+setup
+
+expect_normal_exit\
+	./obj_ctl$EXESUFFIX $DIR/testfile1
+
+pass
