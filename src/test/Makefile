@@ -433,7 +433,7 @@ $(TESTCONFIG):
 SUPP_SYNC_FILES=$(shell echo *.supp | sed s/supp/$(SYNC_EXT)/g)
 
 %.$(SYNC_EXT): %.supp $(TESTCONFIG)
-	cp $^ $(DIR_SYNC)
+	cp $(shell echo $^ | cut -d" " -f1) $(DIR_SYNC)
 	@touch $@
 
 # sync remote nodes
