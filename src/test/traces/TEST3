@@ -48,7 +48,6 @@ setup
 export TRACE_LOG_LEVEL=2
 expect_normal_exit ./traces$EXESUFFIX 2>redir_stderr$UNITTEST_NUM.log
 
-# check results
-../match redir_stderr$UNITTEST_NUM.log.match
+check
 
 pass
