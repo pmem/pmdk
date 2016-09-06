@@ -20,9 +20,13 @@ test_script:
 - ps: >-
     if ($env:CONFIGURATION -eq "Debug") {
         cd src/test
-        echo "`$NON_PMEM_FS_DIR = '\temp'" > testconfig.ps1
-        echo "`$PMEM_FS_DIR = '\temp'" >> testconfig.ps1
-        echo "`$PMEM_FS_DIR_FORCE_PMEM = 1" >> testconfig.ps1
-        $Env:UNITTEST_NO_ABORT_MSG = 1
+        echo "`$env:NON_PMEM_FS_DIR = `"\temp`"" > testconfig.ps1
+        echo "`$env:PMEM_FS_DIR = `"\temp`"" >> testconfig.ps1
+        echo "`$env:PMEM_FS_DIR_FORCE_PMEM = `"1`"" >> testconfig.ps1
+        cat testconfig.ps1
+        $env:PMEM_FS_DIR
+        $env:PMEM_FS_DIR_FORCE_PMEM
+        $env:UNITTEST_NO_ABORT_MSG = "`"1`""
+        Get-ChildItem Env:
         ./RUNTESTS.ps1 -b debug -o 3m
     }
