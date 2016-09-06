@@ -1,0 +1,20 @@
+digraph "nvml/src/include/libpmemobj++/detail/make_atomic_impl.hpp"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  Node1 [label="nvml/src/include/libpmemobj\l++/detail/make_atomic_impl.hpp",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node1 -> Node2 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node2 [label="new",height=0.2,width=0.4,color="grey75", fillcolor="white", style="filled"];
+  Node1 -> Node3 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node3 [label="stddef.h",height=0.2,width=0.4,color="grey75", fillcolor="white", style="filled"];
+  Node1 -> Node4 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node4 [label="libpmemobj++/detail\l/array_traits.hpp",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$array__traits_8hpp.html",tooltip="Common array traits. "];
+  Node4 -> Node3 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node1 -> Node5 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node5 [label="libpmemobj++/detail\l/integer_sequence.hpp",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$integer__sequence_8hpp.html",tooltip="Create c++14 style index sequence. "];
+  Node5 -> Node3 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node1 -> Node6 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node6 [label="libpmemobj++/detail\l/life.hpp",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$life_8hpp.html",tooltip="Functions for destroying arrays. "];
+  Node6 -> Node3 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node6 -> Node4 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+}

@@ -1,0 +1,13 @@
+digraph "nvml/src/include" {
+  compound=true
+  node [ fontsize="10", fontname="Helvetica"];
+  edge [ labelfontsize="10", labelfontname="Helvetica"];
+  subgraph clusterdir_a640c9d8bbc11bfd8034952d380e07e8 {
+    graph [ bgcolor="#ddddee", pencolor="black", label="src" fontname="Helvetica", fontsize="10", URL="dir_a640c9d8bbc11bfd8034952d380e07e8.html"]
+  subgraph clusterdir_e102b117873e8277d675ddc9ce96c212 {
+    graph [ bgcolor="#eeeeff", pencolor="black", label="" URL="dir_e102b117873e8277d675ddc9ce96c212.html"];
+    dir_e102b117873e8277d675ddc9ce96c212 [shape=plaintext label="include"];
+    dir_f6ed4968c45e1211b9f2f5d9ccd95cab [shape=box label="libpmemobj++" color="red" fillcolor="white" style="filled" URL="dir_f6ed4968c45e1211b9f2f5d9ccd95cab.html"];
+  }
+  }
+}

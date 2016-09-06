@@ -1,0 +1,27 @@
+digraph "nvml/src/include/libpmemobj++/pext.hpp"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  Node1 [label="nvml/src/include/libpmemobj\l++/pext.hpp",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node1 -> Node2 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node2 [label="libpmemobj++/p.hpp",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$p_8hpp.html",tooltip="Resides on pmem property template. "];
+  Node2 -> Node3 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node3 [label="memory",height=0.2,width=0.4,color="grey75", fillcolor="white", style="filled"];
+  Node2 -> Node4 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node4 [label="libpmemobj++/detail\l/common.hpp",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$common_8hpp.html",tooltip="Commonly used functionality. "];
+  Node4 -> Node5 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node5 [label="libpmemobj++/detail\l/pexceptions.hpp",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$pexceptions_8hpp.html",tooltip="Custom exceptions. "];
+  Node5 -> Node6 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node6 [label="stdexcept",height=0.2,width=0.4,color="grey75", fillcolor="white", style="filled"];
+  Node5 -> Node7 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node7 [label="system_error",height=0.2,width=0.4,color="grey75", fillcolor="white", style="filled"];
+  Node4 -> Node8 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node8 [label="libpmemobj/tx_base.h",height=0.2,width=0.4,color="grey75", fillcolor="white", style="filled"];
+  Node4 -> Node9 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node9 [label="typeinfo",height=0.2,width=0.4,color="grey75", fillcolor="white", style="filled"];
+  Node2 -> Node10 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node10 [label="libpmemobj++/detail\l/specialization.hpp",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$specialization_8hpp.html",tooltip="Helper template for persistent ptr specialization. "];
+  Node10 -> Node3 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node1 -> Node11 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node11 [label="iostream",height=0.2,width=0.4,color="grey75", fillcolor="white", style="filled"];
+}

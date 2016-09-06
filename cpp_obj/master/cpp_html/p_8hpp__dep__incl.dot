@@ -1,0 +1,27 @@
+digraph "nvml/src/include/libpmemobj++/p.hpp"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  Node1 [label="nvml/src/include/libpmemobj\l++/p.hpp",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node1 -> Node2 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node2 [label="nvml/src/include/libpmemobj\l++/pext.hpp",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$pext_8hpp.html",tooltip="Convenience extensions for the resides on pmem property template. "];
+  Node1 -> Node3 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node3 [label="nvml/src/include/libpmemobj\l++/pool.hpp",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$pool_8hpp.html",tooltip="C++ pmemobj pool. "];
+  Node3 -> Node4 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node4 [label="nvml/src/include/libpmemobj\l++/make_persistent_atomic.hpp",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$make__persistent__atomic_8hpp.html",tooltip="Persistent_ptr atomic allocation functions for objects. "];
+  Node3 -> Node5 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node5 [label="nvml/src/include/libpmemobj\l++/persistent_ptr.hpp",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$persistent__ptr_8hpp.html",tooltip="Persistent smart pointer. "];
+  Node5 -> Node6 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node6 [label="nvml/src/include/libpmemobj\l++/detail/check_persistent\l_ptr_array.hpp",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$check__persistent__ptr__array_8hpp.html",tooltip="Compile time type check for make_persistent. "];
+  Node6 -> Node7 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node7 [label="nvml/src/include/libpmemobj\l++/make_persistent.hpp",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$make__persistent_8hpp.html",tooltip="Persistent_ptr transactional allocation functions for objects. "];
+  Node6 -> Node8 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node8 [label="nvml/src/include/libpmemobj\l++/make_persistent_array.hpp",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$make__persistent__array_8hpp.html",tooltip="Persistent_ptr allocation functions for arrays. "];
+  Node6 -> Node9 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node9 [label="nvml/src/include/libpmemobj\l++/make_persistent_array\l_atomic.hpp",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$make__persistent__array__atomic_8hpp.html",tooltip="Atomic persistent_ptr allocation functions for arrays. "];
+  Node6 -> Node4 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node5 -> Node10 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node10 [label="nvml/src/include/libpmemobj\l++/utils.hpp",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$utils_8hpp.html",tooltip="Libpmemobj C++ utils. "];
+  Node3 -> Node11 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node11 [label="nvml/src/include/libpmemobj\l++/transaction.hpp",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$transaction_8hpp.html",tooltip="C++ pmemobj transactions. "];
+}
