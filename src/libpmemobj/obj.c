@@ -2251,7 +2251,8 @@ pmemobj_list_insert(PMEMobjpool *pop, size_t pe_offset, void *head,
 
 	if (pe_offset >= pop->size) {
 		ERR("pe_offset (%lu) too big", pe_offset);
-		return EINVAL;
+		errno = EINVAL;
+		return -1;
 	}
 
 	return list_insert(pop, (ssize_t)pe_offset, head, dest, before, oid);
@@ -2316,7 +2317,8 @@ pmemobj_list_remove(PMEMobjpool *pop, size_t pe_offset, void *head,
 
 	if (pe_offset >= pop->size) {
 		ERR("pe_offset (%lu) too big", pe_offset);
-		return EINVAL;
+		errno = EINVAL;
+		return -1;
 	}
 
 	if (free) {
@@ -2348,12 +2350,14 @@ pmemobj_list_move(PMEMobjpool *pop, size_t pe_old_offset, void *head_old,
 
 	if (pe_old_offset >= pop->size) {
 		ERR("pe_old_offset (%lu) too big", pe_old_offset);
-		return EINVAL;
+		errno = EINVAL;
+		return -1;
 	}
 
 	if (pe_new_offset >= pop->size) {
 		ERR("pe_new_offset (%lu) too big", pe_new_offset);
-		return EINVAL;
+		errno = EINVAL;
+		return -1;
 	}
 
 	return list_move(pop, pe_old_offset, head_old,

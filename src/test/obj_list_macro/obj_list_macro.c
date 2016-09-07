@@ -220,22 +220,39 @@ do_insert(PMEMobjpool *pop, const char *arg)
 	TOID(struct item) item;
 	POBJ_NEW(pop, &item, struct item, item_constructor, &ptr);
 	UT_ASSERT(!TOID_IS_NULL(item));
+
+	errno = 0;
 	if (POBJ_LIST_EMPTY(&D_RW(List)->head)) {
-		POBJ_LIST_INSERT_HEAD(pop, &D_RW(List)->head,
+		ret = POBJ_LIST_INSERT_HEAD(pop, &D_RW(List)->head,
 						item, next);
+		if (ret) {
+			UT_ASSERTeq(ret, -1);
+			UT_ASSERTne(errno, 0);
+			UT_FATAL("POBJ_LIST_INSERT_HEAD");
+		}
 		if (POBJ_LIST_EMPTY(&D_RW(List)->head))
 			UT_FATAL("POBJ_LIST_INSERT_HEAD");
 	} else {
 		TOID(struct item) elm = get_item_list(List, n);
 		UT_ASSERT(!TOID_IS_NULL(elm));
 		if (!before) {
-			POBJ_LIST_INSERT_AFTER(pop, &D_RW(List)->head,
+			ret = POBJ_LIST_INSERT_AFTER(pop, &D_RW(List)->head,
 							elm, item, next);
+			if (ret) {
+				UT_ASSERTeq(ret, -1);
+				UT_ASSERTne(errno, 0);
+				UT_FATAL("POBJ_LIST_INSERT_AFTER");
+			}
 			if (!TOID_EQUALS(item, POBJ_LIST_NEXT(elm, next)))
 				UT_FATAL("POBJ_LIST_INSERT_AFTER");
 		} else {
-			POBJ_LIST_INSERT_BEFORE(pop, &D_RW(List)->head,
+			ret = POBJ_LIST_INSERT_BEFORE(pop, &D_RW(List)->head,
 							elm, item, next);
+			if (ret) {
+				UT_ASSERTeq(ret, -1);
+				UT_ASSERTne(errno, 0);
+				UT_FATAL("POBJ_LIST_INSERT_BEFORE");
+			}
 			if (!TOID_EQUALS(item, POBJ_LIST_PREV(elm, next)))
 				UT_FATAL("POBJ_LIST_INSERT_BEFORE");
 		}
@@ -266,9 +283,15 @@ do_remove_free(PMEMobjpool *pop, const char *arg)
 		return;
 	item = get_item_list(tmp_list, n);
 	UT_ASSERT(!TOID_IS_NULL(item));
-	if (POBJ_LIST_REMOVE_FREE(pop, &D_RW(tmp_list)->head,
-						item, next) != 0)
+
+	errno = 0;
+	int ret = POBJ_LIST_REMOVE_FREE(pop, &D_RW(tmp_list)->head,
+						item, next);
+	if (ret) {
+		UT_ASSERTeq(ret, -1);
+		UT_ASSERTne(errno, 0);
 		UT_FATAL("POBJ_LIST_REMOVE_FREE");
+	}
 }
 
 /*
@@ -295,8 +318,14 @@ do_remove(PMEMobjpool *pop, const char *arg)
 		return;
 	item = get_item_list(tmp_list, n);
 	UT_ASSERT(!TOID_IS_NULL(item));
-	if (POBJ_LIST_REMOVE(pop, &D_RW(tmp_list)->head, item, next) != 0)
+
+	errno = 0;
+	int ret = POBJ_LIST_REMOVE(pop, &D_RW(tmp_list)->head, item, next);
+	if (ret) {
+		UT_ASSERTeq(ret, -1);
+		UT_ASSERTne(errno, 0);
 		UT_FATAL("POBJ_LIST_REMOVE");
+	}
 	POBJ_FREE(&item);
 }
 
@@ -312,31 +341,43 @@ do_move(PMEMobjpool *pop, const char *arg)
 	if (sscanf(arg, "m:%d:%d:%d", &n, &before, &d) != 3)
 		FATAL_USAGE_MOVE();
 
+	int ret;
+	errno = 0;
 	if (POBJ_LIST_EMPTY(&D_RW(List)->head))
 		return;
 	if (POBJ_LIST_EMPTY(&D_RW(List_sec)->head)) {
-		if (POBJ_LIST_MOVE_ELEMENT_HEAD(pop, &D_RW(List)->head,
+		ret = POBJ_LIST_MOVE_ELEMENT_HEAD(pop, &D_RW(List)->head,
 				&D_RW(List_sec)->head,
 				get_item_list(List, n),
-				next, next) != 0) {
+				next, next);
+		if (ret) {
+			UT_ASSERTeq(ret, -1);
+			UT_ASSERTne(errno, 0);
 			UT_FATAL("POBJ_LIST_MOVE_ELEMENT_HEAD");
 		}
 	} else {
 		if (before) {
-			if (POBJ_LIST_MOVE_ELEMENT_BEFORE(pop,
+			ret = POBJ_LIST_MOVE_ELEMENT_BEFORE(pop,
 					&D_RW(List)->head,
 					&D_RW(List_sec)->head,
 					get_item_list(List_sec, d),
 					get_item_list(List, n),
-					next, next) != 0) {
+					next, next);
+			if (ret) {
+				UT_ASSERTeq(ret, -1);
+				UT_ASSERTne(errno, 0);
 				UT_FATAL("POBJ_LIST_MOVE_ELEMENT_BEFORE");
 			}
 		} else {
-			if (POBJ_LIST_MOVE_ELEMENT_AFTER(pop, &D_RW(List)->head,
+			ret = POBJ_LIST_MOVE_ELEMENT_AFTER(pop,
+					&D_RW(List)->head,
 					&D_RW(List_sec)->head,
 					get_item_list(List_sec, d),
 					get_item_list(List, n),
-					next, next) != 0) {
+					next, next);
+			if (ret) {
+				UT_ASSERTeq(ret, -1);
+				UT_ASSERTne(errno, 0);
 				UT_FATAL("POBJ_LIST_MOVE_ELEMENT_AFTER");
 			}
 		}
@@ -349,9 +390,13 @@ do_move(PMEMobjpool *pop, const char *arg)
 static void
 do_cleanup(PMEMobjpool *pop, TOID(struct list) list)
 {
+	int ret;
+	errno = 0;
 	while (!POBJ_LIST_EMPTY(&D_RW(list)->head)) {
 		TOID(struct item) tmp = POBJ_LIST_FIRST(&D_RW(list)->head);
-		POBJ_LIST_REMOVE_FREE(pop, &D_RW(list)->head, tmp, next);
+		ret = POBJ_LIST_REMOVE_FREE(pop, &D_RW(list)->head, tmp, next);
+		UT_ASSERTeq(errno, 0);
+		UT_ASSERTeq(ret, 0);
 	}
 	POBJ_FREE(&list);
 }
