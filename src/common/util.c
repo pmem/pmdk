@@ -69,8 +69,7 @@ Zalloc(size_t sz)
 	return memset(ret, 0, sz);
 }
 
-#if defined(USE_VG_PMEMCHECK) || defined(USE_VG_HELGRIND) ||\
-	defined(USE_VG_MEMCHECK)
+#ifdef ANY_VG_TOOL_ENABLED
 /* initialized to true if the process is running inside Valgrind */
 unsigned _On_valgrind;
 #endif
@@ -249,8 +248,7 @@ util_init(void)
 	}
 #endif
 
-#if defined(USE_VG_PMEMCHECK) || defined(USE_VG_HELGRIND) ||\
-	defined(USE_VG_MEMCHECK)
+#ifdef ANY_VG_TOOL_ENABLED
 	_On_valgrind = RUNNING_ON_VALGRIND;
 #endif
 }
