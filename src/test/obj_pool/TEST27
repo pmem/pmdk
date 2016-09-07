@@ -32,7 +32,7 @@
 #
 
 #
-# src/test/obj_pool/TEST26 -- unit test for pmemobj_open
+# src/test/obj_pool/TEST27 -- unit test for pmemobj_open
 #
 export UNITTEST_NAME=obj_pool/TEST27
 export UNITTEST_NUM=27

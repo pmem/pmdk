@@ -45,13 +45,13 @@ setup
 umask 0
 
 create_nonzeroed_file 8M 8K $DIR/testfile
-chmod 0640 $DIR/testfile
+chmod 0600 $DIR/testfile
 
 #
 # TEST8 existing file, file length >= min required size, poolsize == 0
 #       (file contains garbage, except for header)
 #
-expect_normal_exit ./obj_pool$EXESUFFIX c $DIR/testfile "test" 0 0640
+expect_normal_exit ./obj_pool$EXESUFFIX c $DIR/testfile "test" 0 0600
 
 check_files $DIR/testfile
 
