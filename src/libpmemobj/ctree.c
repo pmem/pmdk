@@ -92,7 +92,7 @@ find_crit_bit(uint64_t lhs, uint64_t rhs)
  * ctree_new -- allocates and initializes crit-bit tree instance
  */
 struct ctree *
-ctree_new()
+ctree_new(void)
 {
 	struct ctree *t = Malloc(sizeof(*t));
 	if (t == NULL)

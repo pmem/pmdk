@@ -35,6 +35,9 @@
  */
 #include "unittest.h"
 
+#define GUARD 0x2BEE5AFEULL
+#define EXTRA sizeof(GUARD)
+
 #define OBJ 0
 #define BLK 1
 #define LOG 2
@@ -49,11 +52,62 @@ static struct counters {
 	int strdups;
 } cnt[4];
 
+
+static void *
+test_malloc(size_t size)
+{
+	unsigned long long *p = malloc(size + EXTRA);
+	UT_ASSERTne(p, NULL);
+	*p = GUARD;
+	return ++p;
+}
+
+static void
+test_free(void *ptr)
+{
+	if (ptr == NULL)
+		return;
+	unsigned long long *p = ptr;
+	--p;
+	UT_ASSERTeq(*p, GUARD);
+	free(p);
+}
+
+static void *
+test_realloc(void *ptr, size_t size)
+{
+	unsigned long long *p;
+	if (ptr != NULL) {
+		p = ptr;
+		--p;
+		UT_ASSERTeq(*p, GUARD);
+		p = realloc(p, size + EXTRA);
+	} else {
+		p = malloc(size + EXTRA);
+	}
+	UT_ASSERTne(p, NULL);
+	return ++p;
+}
+
+static char *
+test_strdup(const char *s)
+{
+	if (s == NULL)
+		return NULL;
+	size_t size = strlen(s) + 1;
+	unsigned long long *p = malloc(size + EXTRA);
+	UT_ASSERTne(p, NULL);
+	*p = GUARD;
+	++p;
+	strcpy((char *)p, s);
+	return (char *)p;
+}
+
 static void *
 obj_malloc(size_t size)
 {
 	cnt[OBJ].mallocs++;
-	return malloc(size);
+	return test_malloc(size);
 }
 
 static void
@@ -61,21 +115,21 @@ obj_free(void *ptr)
 {
 	if (ptr)
 		cnt[OBJ].frees++;
-	free(ptr);
+	test_free(ptr);
 }
 
 static void *
 obj_realloc(void *ptr, size_t size)
 {
 	cnt[OBJ].reallocs++;
-	return realloc(ptr, size);
+	return test_realloc(ptr, size);
 }
 
 static char *
 obj_strdup(const char *s)
 {
 	cnt[OBJ].strdups++;
-	return strdup(s);
+	return test_strdup(s);
 }
 
 
@@ -83,7 +137,7 @@ static void *
 blk_malloc(size_t size)
 {
 	cnt[BLK].mallocs++;
-	return malloc(size);
+	return test_malloc(size);
 }
 
 static void
@@ -91,28 +145,28 @@ blk_free(void *ptr)
 {
 	if (ptr)
 		cnt[BLK].frees++;
-	free(ptr);
+	test_free(ptr);
 }
 
 static void *
 blk_realloc(void *ptr, size_t size)
 {
 	cnt[BLK].reallocs++;
-	return realloc(ptr, size);
+	return test_realloc(ptr, size);
 }
 
 static char *
 blk_strdup(const char *s)
 {
 	cnt[BLK].strdups++;
-	return strdup(s);
+	return test_strdup(s);
 }
 
 static void *
 log_malloc(size_t size)
 {
 	cnt[LOG].mallocs++;
-	return malloc(size);
+	return test_malloc(size);
 }
 
 static void
@@ -120,28 +174,28 @@ log_free(void *ptr)
 {
 	if (ptr)
 		cnt[LOG].frees++;
-	free(ptr);
+	test_free(ptr);
 }
 
 static void *
 log_realloc(void *ptr, size_t size)
 {
 	cnt[LOG].reallocs++;
-	return realloc(ptr, size);
+	return test_realloc(ptr, size);
 }
 
 static char *
 log_strdup(const char *s)
 {
 	cnt[LOG].strdups++;
-	return strdup(s);
+	return test_strdup(s);
 }
 
 static void *
 _vmem_malloc(size_t size)
 {
 	cnt[VMEM_].mallocs++;
-	return malloc(size);
+	return test_malloc(size);
 }
 
 static void
@@ -149,22 +203,37 @@ _vmem_free(void *ptr)
 {
 	if (ptr)
 		cnt[VMEM_].frees++;
-	free(ptr);
+	test_free(ptr);
 }
 
 static void *
 _vmem_realloc(void *ptr, size_t size)
 {
 	cnt[VMEM_].reallocs++;
-	return realloc(ptr, size);
+	return test_realloc(ptr, size);
 }
 
 static char *
 _vmem_strdup(const char *s)
 {
 	cnt[VMEM_].strdups++;
-	return strdup(s);
+	return test_strdup(s);
 }
+
+/*
+ * There are a few allocations made at first call to pmemobj_open() or
+ * pmemobj_create().  They are related to some global structures
+ * holding a list of all open pools.  These allocation are not released on
+ * pmemobj_close(), but in the library destructor.  So, we need to take them
+ * into account when detecting memory leaks.
+ *
+ * obj_init/obj_pool_init:
+ *   cuckoo_new  - Malloc + Zalloc
+ *   ctree_new   - Malloc
+ * lane_info_ht_boot/lane_info_create:
+ *   cuckoo_new  - Malloc + Zalloc
+ */
+#define OBJ_EXTRA_NALLOC 5
 
 static void
 test_obj(const char *path)
@@ -200,7 +269,8 @@ test_obj(const char *path)
 		if (cnt[i].mallocs || cnt[i].frees)
 			UT_FATAL("OBJ allocation used %d functions", i);
 	}
-	if (cnt[OBJ].mallocs + cnt[OBJ].strdups != cnt[OBJ].frees)
+	if (cnt[OBJ].mallocs + cnt[OBJ].strdups !=
+					cnt[OBJ].frees + OBJ_EXTRA_NALLOC)
 		UT_FATAL("OBJ memory leak");
 
 	unlink(path);

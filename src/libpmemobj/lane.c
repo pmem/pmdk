@@ -107,8 +107,6 @@ lane_info_create()
 void
 lane_info_boot()
 {
-	lane_info_create();
-
 	int result = pthread_key_create(&Lane_info_key, lane_info_ht_destroy);
 	if (result != 0) {
 		errno = result;
