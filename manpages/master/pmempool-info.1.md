@@ -58,19 +58,19 @@ $ pmempool info [<options>] <file>
 # DESCRIPTION #
 
 The **pmempool** invoked with *info* command analyzes an existing pool created by **NVML** libraries.
-The main task of this command is to print all usable information from pool headers and user data in human readable format. It automatically recognizes pool 
-type by parsing and analyzing pool header. The recognition is done by checking the signature in pool header. The main job of *info* command is to present 
+The main task of this command is to print all usable information from pool headers and user data in human readable format. It automatically recognizes pool
+type by parsing and analyzing pool header. The recognition is done by checking the signature in pool header. The main job of *info* command is to present
 internal data structures as they are stored in file but *not* for checking consistency. For this purpose there is the **pmempool-check**(1) command available.
 
-The **pmempool** with *info* command analyzes pool file as long as it is possible regarding *correctness* of internal meta-data (correct offsets, sizes etc.). 
+The **pmempool** with *info* command analyzes pool file as long as it is possible regarding *correctness* of internal meta-data (correct offsets, sizes etc.).
 If it is *not* possible to analyze the rest of the file, **pmempool** exits with error code and prints appropriate error message.
 
-Currently there is lack of interprocess synchronization for pool files, so the *info* command should be invoked off-line. Using **pmempool** on pool file which 
+Currently there is lack of interprocess synchronization for pool files, so the *info* command should be invoked off-line. Using **pmempool** on pool file which
 may be modified by another process may lead to unexpected errors in pool file.
 
 **pmempool info** opens pool file in *read-only* mode so the file will remain untouched after processing.
 
-The *info* command may collect and print basic statistics about data usage. The statistics are specific to the type of pool. See **STATISTICS** section for 
+The *info* command may collect and print basic statistics about data usage. The statistics are specific to the type of pool. See **STATISTICS** section for
 details.
 
 Although the pool consistency is *not* checked by the *info* command, it prints information about checksum errors and/or offsets errors.
@@ -111,7 +111,7 @@ Print sizes in human-readable format with appropriate units (e.g. 4k, 8M, 16G)
 
 `-x, --headers-hex`
 
-Print pool's internal data in mixed format which consists of hexadecimal dump of header's data and parsed format displayed in human-readable format. This 
+Print pool's internal data in mixed format which consists of hexadecimal dump of header's data and parsed format displayed in human-readable format. This
 allows to see how data is stored in file.
 
 `-s, --stats`
@@ -172,12 +172,12 @@ Skip blocks *not* marked with any flag.
 
 ##### Options for PMEMOBJ: #####
 
-By default the *info* command displays pool header and **pmemobj** pool descriptor. In order to print information about other data structures one of the 
+By default the *info* command displays pool header and **pmemobj** pool descriptor. In order to print information about other data structures one of the
 following options may be used.
 
 `-l, --lanes [<range>]`
 
-Print information about lanes. If range is not specified all lanes are displayed. The range can be specified using **-r** option right after the **-l** option. 
+Print information about lanes. If range is not specified all lanes are displayed. The range can be specified using **-r** option right after the **-l** option.
 See **RANGE** section for details about range format.
 
 `-R, --recovery`
