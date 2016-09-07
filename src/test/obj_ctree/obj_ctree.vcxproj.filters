@@ -13,19 +13,26 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Test Scripts">
+      <UniqueIdentifier>{64a1f08f-887d-4caa-ad50-5b6c8fd653e2}</UniqueIdentifier>
+      <Extensions>ps1</Extensions>
+    </Filter>
+    <Filter Include="Match Files">
+      <UniqueIdentifier>{e7e54eda-4500-4916-9c8e-8060479d0dff}</UniqueIdentifier>
+      <Extensions>match</Extensions>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\unittest\ut.c">
+    <ClCompile Include="obj_ctree.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\unittest\ut_file.c">
+    <ClCompile Include="..\..\libpmemobj\ctree.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\unittest\ut_alloc.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\test\obj_ctree\obj_ctree.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="TEST0.PS1">
+      <Filter>Test Scripts</Filter>
+    </None>
   </ItemGroup>
 </Project>
