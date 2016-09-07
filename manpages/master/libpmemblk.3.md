@@ -356,39 +356,39 @@ The library does not make heavy use of the system malloc functions, but it does 
 int pmemblk_check(const char *path, size_t bsize);
 ```
 
-The **pmemblk_check**() function performs a consistency check of the file indicated by *path* and returns 1 if the memory pool is found to be consistent. Any 
-inconsistencies found will cause **pmemblk_check**() to return 0, in which case the use of the file with **libpmemblk** will result in undefined behavior. The 
-debug version of **libpmemblk** will provide additional details on inconsistencies when **PMEMBLK_LOG_LEVEL** is at least 1, as described in the **DEBUGGING AND 
-ERROR HANDLING** section below. When *bsize* is non-zero **pmemblk_check**() will compare it to the block size of the pool and return 0 when they don't 
-match. **pmemblk_check**() will return -1 and set *errno* if it cannot perform the consistency check due to other errors. **pmemblk_check**() opens the given 
+The **pmemblk_check**() function performs a consistency check of the file indicated by *path* and returns 1 if the memory pool is found to be consistent. Any
+inconsistencies found will cause **pmemblk_check**() to return 0, in which case the use of the file with **libpmemblk** will result in undefined behavior. The
+debug version of **libpmemblk** will provide additional details on inconsistencies when **PMEMBLK_LOG_LEVEL** is at least 1, as described in the **DEBUGGING AND
+ERROR HANDLING** section below. When *bsize* is non-zero **pmemblk_check**() will compare it to the block size of the pool and return 0 when they don't
+match. **pmemblk_check**() will return -1 and set *errno* if it cannot perform the consistency check due to other errors. **pmemblk_check**() opens the given
 *path* read-only so it never makes any changes to the file.
 
 
 # DEBUGGING AND ERROR HANDLING #
 
-Two versions of **libpmemblk** are typically available on a development system. The normal version, accessed when a program is linked using the **-lpmemblk** 
-option, is optimized for performance. That version skips checks that impact performance and never logs any trace information or performs any run-time 
-assertions. If an error is detected during the call to **libpmemblk** function, an application may retrieve an error message describing the reason of failure 
+Two versions of **libpmemblk** are typically available on a development system. The normal version, accessed when a program is linked using the **-lpmemblk**
+option, is optimized for performance. That version skips checks that impact performance and never logs any trace information or performs any run-time
+assertions. If an error is detected during the call to **libpmemblk** function, an application may retrieve an error message describing the reason of failure
 using the following function:
 
 ```c
 const char *pmemblk_errormsg(void);
 ```
 
-The **pmemblk_errormsg**() function returns a pointer to a static buffer containing the last error message logged for current thread. The error message may 
-include description of the corresponding error code (if *errno* was set), as returned by **strerror**(3). The error message buffer is thread-local; errors 
-encountered in one thread do not affect its value in other threads. The buffer is never cleared by any library function; its content is significant only when 
-the return value of the immediately preceding call to **libpmemblk** function indicated an error, or if *errno* was set. The application must not modify or 
+The **pmemblk_errormsg**() function returns a pointer to a static buffer containing the last error message logged for current thread. The error message may
+include description of the corresponding error code (if *errno* was set), as returned by **strerror**(3). The error message buffer is thread-local; errors
+encountered in one thread do not affect its value in other threads. The buffer is never cleared by any library function; its content is significant only when
+the return value of the immediately preceding call to **libpmemblk** function indicated an error, or if *errno* was set. The application must not modify or
 free the error message string, but it may be modified by subsequent calls to other library functions.
 
-A second version of **libpmemblk**, accessed when a program uses the libraries under **/usr/lib/nvml_debug**, contains run-time assertions and trace points. 
-The typical way to access the debug version is to set the environment variable **LD_LIBRARY_PATH** to **/usr/lib/nvml_debug** or **/usr/lib64/nvml_debug** 
-depending on where the debug libraries are installed on the system. The trace points in the debug version of the library are enabled using the environment 
+A second version of **libpmemblk**, accessed when a program uses the libraries under **/usr/lib/nvml_debug**, contains run-time assertions and trace points.
+The typical way to access the debug version is to set the environment variable **LD_LIBRARY_PATH** to **/usr/lib/nvml_debug** or **/usr/lib64/nvml_debug**
+depending on where the debug libraries are installed on the system. The trace points in the debug version of the library are enabled using the environment
 variable **PMEMBLK_LOG_LEVEL**, which can be set to the following values:
 
 + **0** - This is the default level when **PMEMBLK_LOG_LEVEL** is not set. No log messages are emitted at this level.
 
-+ **1** - Additional details on any errors detected are logged (in addition to returning the *errno*-based errors as usual). The same information may be 
++ **1** - Additional details on any errors detected are logged (in addition to returning the *errno*-based errors as usual). The same information may be
 retrieved using **pmemblk_errormsg**().
 
 + **2** - A trace of basic operations is logged.
