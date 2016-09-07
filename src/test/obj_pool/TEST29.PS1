@@ -1,6 +1,6 @@
-#!/bin/bash -e
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2016, Intel Corporation
+# Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,24 +32,35 @@
 #
 
 #
-# src/test/obj_pool/TEST12 -- unit test for pmemobj_create
+# src/test/obj_pool/TEST29 -- unit test for pmemobj_open
 #
-export UNITTEST_NAME=obj_pool/TEST12
-export UNITTEST_NUM=12
+
+[CmdletBinding(PositionalBinding=$false)]
+Param(
+    [alias("d")]
+    $DIR = ""
+    )
+
+$Env:UNITTEST_NAME = "obj_pool\TEST29"
+$Env:UNITTEST_NUM = "29"
+# XXX:  bash has a few calls to tools that we don't have on
+# windows (yet) that set PMEM_IS_PMEM and NON_PMEM_IS_PMEM based
+# on their output
+$Env:PMEM_IS_PMEM = $true
+$Env:NON_PMEM_IS_PMEM = $true
 
 # standard unit test setup
-. ../unittest/unittest.sh
+. ..\unittest\unittest.ps1
 
 setup
-umask 0
 
 #
-# TEST12 non-existing file, poolsize >= min required size
-#        layout is NULL
+# TEST29 existing poolset file, file size >= min required size, layout is NULL
+#        bad format of the poolset file
 #
-expect_normal_exit ./obj_pool$EXESUFFIX c $DIR/testfile NULL 20 0600
 
-check_files $DIR/testfile
+expect_normal_exit $Env:EXE_DIR\obj_pool$Env:EXESUFFIX `
+    o .\pool.set NULL
 
 check
 

@@ -1,6 +1,6 @@
-#!/bin/bash -e
 #
 # Copyright 2015-2016, Intel Corporation
+# Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,24 +32,40 @@
 #
 
 #
-# src/test/obj_pool/TEST12 -- unit test for pmemobj_create
+# src/test/obj_pool/TEST14 -- unit test for pmemobj_create
 #
-export UNITTEST_NAME=obj_pool/TEST12
-export UNITTEST_NUM=12
+[CmdletBinding(PositionalBinding=$false)]
+Param(
+    [alias("d")]
+    $DIR = ""
+    )
+
+$Env:UNITTEST_NAME = "obj_pool\TEST14"
+$Env:UNITTEST_NUM = "14"
+# XXX:  bash has a few calls to tools that we don't have on
+# windows (yet) that set PMEM_IS_PMEM and NON_PMEM_IS_PMEM based
+# on their output
+$Env:PMEM_IS_PMEM = $true
+$Env:NON_PMEM_IS_PMEM = $true
 
 # standard unit test setup
-. ../unittest/unittest.sh
+. ..\unittest\unittest.ps1
 
 setup
-umask 0
 
 #
-# TEST12 non-existing file, poolsize >= min required size
-#        layout is NULL
+# TEST14 non-existing file, poolsize >= min required size
+#        layout string is too long
 #
-expect_normal_exit ./obj_pool$EXESUFFIX c $DIR/testfile NULL 20 0600
+# LAYOUT=`dd if=/dev/urandom bs=1 count=768 2>/dev/null | base64 -w 0`
+# /dev/urandom is not implemented yet in windows
+# $ENV:LAYOUT = "dd if=/dev/urandom bs=1 count=768 2>/dev/null | base64 -w 0"
+$LAYOUT = "x" * 1025
 
-check_files $DIR/testfile
+expect_normal_exit $Env:EXE_DIR\obj_pool$Env:EXESUFFIX `
+    c $DIR\testfile $LAYOUT 20 0640
+
+check_no_files $DIR\testfile
 
 check
 

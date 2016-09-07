@@ -1,4 +1,4 @@
-obj_pool/TEST1: START: obj_pool
- ./obj_pool$(nW) c $(nW)/testfile test 0 0640
-$(nW)/testfile: file size 20971520 mode 0640
-obj_pool/TEST1: Done
+obj_pool$(nW)TEST1: START: obj_pool
+ $(nW)obj_pool$(nW) c $(nW)testfile test 0 0600
+$(nW)testfile: file size 20971520 mode 0600
+obj_pool$(nW)TEST1: Done
