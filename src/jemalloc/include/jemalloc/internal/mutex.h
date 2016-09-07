@@ -97,7 +97,6 @@ malloc_mutex_lock(malloc_mutex_t *mutex)
 {
 	if (isthreaded) {
 #ifdef _WIN32
-		malloc_mutex_init(mutex);
 		EnterCriticalSection(&mutex->lock);
 #elif (defined(JEMALLOC_OSSPIN))
 		OSSpinLockLock(&mutex->lock);
