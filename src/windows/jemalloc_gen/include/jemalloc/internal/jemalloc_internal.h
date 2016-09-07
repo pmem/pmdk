@@ -13,11 +13,11 @@
 #  define JEMALLOC_N(n) jet_##n
 #  include "jemalloc/internal/public_namespace.h"
 #  define JEMALLOC_NO_RENAME
-#  include "jemalloc/jemalloc@install_suffix@.h"
+#  include "jemalloc/jemalloc.h"
 #  undef JEMALLOC_NO_RENAME
 #else
-#  define JEMALLOC_N(n) @private_namespace@##n
-#  include "jemalloc/jemalloc@install_suffix@.h"
+#  define JEMALLOC_N(n) je_vmem_je_##n
+#  include "jemalloc/jemalloc.h"
 #endif
 #include "jemalloc/internal/private_namespace.h"
 
@@ -587,7 +587,7 @@ narenas_total_get(pool_t *pool)
 	return (narenas);
 }
 
-/*
+/* 
  * Choose an arena based on a per-thread value.
  * Arena pointer must be either a valid arena pointer or a dummy arena with
  * pool field filled.

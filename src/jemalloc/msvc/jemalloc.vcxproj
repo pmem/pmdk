@@ -11,50 +11,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\include\jemalloc\internal\arena.h" />
-    <ClInclude Include="..\include\jemalloc\internal\atomic.h" />
-    <ClInclude Include="..\include\jemalloc\internal\base.h" />
-    <ClInclude Include="..\include\jemalloc\internal\bitmap.h" />
-    <ClInclude Include="..\include\jemalloc\internal\chunk.h" />
-    <ClInclude Include="..\include\jemalloc\internal\chunk_dss.h" />
-    <ClInclude Include="..\include\jemalloc\internal\chunk_mmap.h" />
-    <ClInclude Include="..\include\jemalloc\internal\ckh.h" />
-    <ClInclude Include="..\include\jemalloc\internal\ctl.h" />
-    <ClInclude Include="..\include\jemalloc\internal\extent.h" />
-    <ClInclude Include="..\include\jemalloc\internal\hash.h" />
-    <ClInclude Include="..\include\jemalloc\internal\huge.h" />
-    <ClInclude Include="..\include\jemalloc\internal\jemalloc_internal.h" />
-    <ClInclude Include="..\include\jemalloc\internal\jemalloc_internal_decls.h" />
-    <ClInclude Include="..\include\jemalloc\internal\jemalloc_internal_defs.h" />
-    <ClInclude Include="..\include\jemalloc\internal\jemalloc_internal_macros.h" />
-    <ClInclude Include="..\include\jemalloc\internal\mb.h" />
-    <ClInclude Include="..\include\jemalloc\internal\mutex.h" />
-    <ClInclude Include="..\include\jemalloc\internal\pool.h" />
-    <ClInclude Include="..\include\jemalloc\internal\private_namespace.h" />
-    <ClInclude Include="..\include\jemalloc\internal\private_unnamespace.h" />
-    <ClInclude Include="..\include\jemalloc\internal\prng.h" />
-    <ClInclude Include="..\include\jemalloc\internal\prof.h" />
-    <ClInclude Include="..\include\jemalloc\internal\public_namespace.h" />
-    <ClInclude Include="..\include\jemalloc\internal\public_unnamespace.h" />
-    <ClInclude Include="..\include\jemalloc\internal\ql.h" />
-    <ClInclude Include="..\include\jemalloc\internal\qr.h" />
-    <ClInclude Include="..\include\jemalloc\internal\quarantine.h" />
-    <ClInclude Include="..\include\jemalloc\internal\rb.h" />
-    <ClInclude Include="..\include\jemalloc\internal\rtree.h" />
-    <ClInclude Include="..\include\jemalloc\internal\size_classes.h" />
-    <ClInclude Include="..\include\jemalloc\internal\stats.h" />
-    <ClInclude Include="..\include\jemalloc\internal\tcache.h" />
-    <ClInclude Include="..\include\jemalloc\internal\tsd.h" />
-    <ClInclude Include="..\include\jemalloc\internal\util.h" />
-    <ClInclude Include="..\include\jemalloc\internal\vector.h" />
-    <ClInclude Include="..\include\jemalloc\jemalloc.h" />
-    <ClInclude Include="..\include\jemalloc\jemalloc_defs.h" />
-    <ClInclude Include="..\include\jemalloc\jemalloc_macros.h" />
-    <ClInclude Include="..\include\jemalloc\jemalloc_mangle.h" />
-    <ClInclude Include="..\include\jemalloc\jemalloc_protos.h" />
-    <ClInclude Include="..\include\jemalloc\jemalloc_protos_jet.h" />
-    <ClInclude Include="..\include\jemalloc\jemalloc_rename.h" />
-    <ClInclude Include="..\include\jemalloc\jemalloc_typedefs.h" />
     <ClInclude Include="..\include\msvc_compat\C99\stdbool.h" />
     <ClInclude Include="..\include\msvc_compat\C99\stdint.h" />
     <ClInclude Include="..\include\msvc_compat\strings.h" />
@@ -127,14 +83,14 @@
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)</TargetName>
     <ExecutablePath>C:\Program Files %28x86%29\Microsoft Visual Studio 14.0\VC\bin\x86_amd64;$(ExecutablePath)</ExecutablePath>
-    <IncludePath>$(IncludePath);..\..\..\..\include\msvc_compat;</IncludePath>
+    <IncludePath>$(SolutionDir)\windows\jemalloc_gen\include\;$(IncludePath);..\..\..\..\include\msvc_compat</IncludePath>
     <LibraryPath>$(LibraryPath);</LibraryPath>
     <TargetExt>.dll</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <IncludePath>$(SolutionDir)\windows\jemalloc_gen\include\;$(IncludePath);..\..\..\..\include\msvc_compat</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -144,7 +100,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_REENTRANT;_WINDLL;DLLEXPORT;JEMALLOC_DEBUG;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\include;..\include\msvc_compat;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)windows\jemalloc_gen\include\;..\include;..\include\msvc_compat;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4090;4146;4267;4334</DisableSpecificWarnings>
       <ProgramDataBaseFileName>$(OutputPath)$(TargetName).pdb</ProgramDataBaseFileName>
     </ClCompile>
@@ -153,6 +109,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>%(AdditionalDependencies);</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+      <AdditionalOptions>/FORCE:MULTIPLE %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <ProjectReference>
       <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
@@ -166,7 +123,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\include;..\include\msvc_compat;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)windows\jemalloc_gen\include\;..\include;..\include\msvc_compat;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_REENTRANT;_WINDLL;DLLEXPORT;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>4090;4146;4267;4334</DisableSpecificWarnings>
       <ProgramDataBaseFileName>$(OutputPath)$(TargetName).pdb</ProgramDataBaseFileName>

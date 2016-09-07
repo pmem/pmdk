@@ -382,7 +382,6 @@ malloc_init(void)
 static bool
 malloc_init_base_pool(void)
 {
-
 	malloc_mutex_lock(&pool_base_lock);
 
 	if (base_pool_initialized) {
@@ -823,6 +822,9 @@ malloc_init_hard(void)
 	}
 #endif
 	malloc_initializer = INITIALIZER;
+
+	malloc_mutex_init(&pools_lock);
+	malloc_mutex_init(&pool_base_lock);
 
 	malloc_tsd_boot();
 	if (config_prof)
