@@ -1,13 +1,8 @@
 #define	JEMALLOC_POOL_C_
 #include "jemalloc/internal/jemalloc_internal.h"
 
-#ifdef _WIN32
 malloc_mutex_t	pool_base_lock;
 malloc_mutex_t	pools_lock;
-#else
-malloc_mutex_t	pool_base_lock = MALLOC_MUTEX_INITIALIZER;
-malloc_mutex_t	pools_lock = MALLOC_MUTEX_INITIALIZER;
-#endif // _WIN32
 
 /* Initialize pool and create its base arena. */
 bool pool_new(pool_t *pool, unsigned pool_id)

@@ -160,7 +160,6 @@ ut_pagealignmalloc(const char *file, int line, const char *func,
  *                         multiple of page size) alignment and adds guard
  *                         pages around it
  */
-
 void *
 ut_mmap_anon_aligned(const char *file, int line, const char *func,
 	size_t alignment, size_t size)
