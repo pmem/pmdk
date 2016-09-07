@@ -113,6 +113,8 @@ TOID(struct oob_item) *Item;
 	UT_FATAL("usage: obj_list <file> R:<list>")
 #define FATAL_USAGE_INSERT()\
 	UT_FATAL("usage: obj_list <file> i:<where>:<num>")
+#define FATAL_USAGE_INSERT_NEW()\
+	UT_FATAL("usage: obj_list <file> n:<where>:<num>:<value>")
 #define FATAL_USAGE_REMOVE_FREE()\
 	UT_FATAL("usage: obj_list <file> f:<list>:<num>:<from>")
 #define FATAL_USAGE_REMOVE()\
@@ -267,6 +269,7 @@ FUNC_MOCK_RUN_DEFAULT {
 
 	Pop->redo = redo_log_config_new(Pop->addr, p_ops, redo_log_check_offset,
 			Pop, REDO_NUM_ENTRIES);
+	pmemops_persist(p_ops, &Pop->redo, sizeof(Pop->redo));
 
 	return Pop;
 }
@@ -717,13 +720,7 @@ do_insert_new(PMEMobjpool *pop, const char *arg)
 		if (ret)
 			UT_FATAL("list_insert_new(List, List_oob) failed");
 	} else {
-		ret = list_insert_new_user(pop,
-			0, NULL, OID_NULL, 0,
-			sizeof(struct item),
-			NULL, NULL, (PMEMoid *)Item);
-
-		if (ret)
-			UT_FATAL("list_insert_new(List_oob) failed");
+		FATAL_USAGE_INSERT_NEW();
 	}
 }
 

@@ -46,7 +46,7 @@ require_fs_type any
 require_build_type debug nondebug
 require_valgrind_dev_3_8
 set_valgrind_exe_name
-configure_valgrind memcheck force-enable
+configure_valgrind memcheck force-enable $TEST_LD_LIBRARY_PATH/libvmmalloc.so
 setup
 
 unset VMMALLOC_LOG_LEVEL
