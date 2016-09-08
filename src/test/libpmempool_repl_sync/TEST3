@@ -1,0 +1,140 @@
+#!/bin/bash -e
+#
+# Copyright 2016, Intel Corporation
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#
+#     * Redistributions of source code must retain the above copyright
+#       notice, this list of conditions and the following disclaimer.
+#
+#     * Redistributions in binary form must reproduce the above copyright
+#       notice, this list of conditions and the following disclaimer in
+#       the documentation and/or other materials provided with the
+#       distribution.
+#
+#     * Neither the name of the copyright holder nor the names of its
+#       contributors may be used to endorse or promote products derived
+#       from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+# OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+#
+# libpmempool_replica_sync/TEST3 -- test for checking replica sync
+#
+export UNITTEST_NAME=libpmempool_replica_sync/TEST3
+export UNITTEST_NUM=3
+
+. ../unittest/unittest.sh
+. ./common.sh
+
+require_fs_type pmem any
+
+setup
+
+LOG=out${UNITTEST_NUM}.log
+LOG_TEMP=out${UNITTEST_NUM}_part.log
+rm -rf $LOG && touch $LOG
+rm -rf $LOG_TEMP && touch $LOG_TEMP
+
+LAYOUT=OBJ_LAYOUT
+POOLSET=$DIR/pool0.set
+M=$(( 1024 * 1024 ))
+POOL_HEADER_OFFSET=4096
+ADDR_MASK=0xFFFFF000
+
+declare FILES_R1=( "testfile1" "testfile2" "testfile3"
+	"testfile4" "testfile5" )
+declare FILES_R1_SIZE=( "20M" "40M" "20M" "20M" "40M" )
+
+declare FILES_R2=( "testfile6" "testfile7" "testfile8"
+	"testfile9" "testfile10" )
+declare FILES_R2_SIZE=( "25M" "20M" "40M" "25M" "30M" )
+
+# Create poolset
+create_poolset $POOLSET\
+	${FILES_R1_SIZE[0]}:$DIR/${FILES_R1[0]}:z:${FILES_R1_SIZE[0]}:0777\
+		${FILES_R1_SIZE[1]}:$DIR/${FILES_R1[1]}:z:${FILES_R1_SIZE[1]}:0777\
+		${FILES_R1_SIZE[2]}:$DIR/${FILES_R1[2]}:z:${FILES_R1_SIZE[2]}:0777\
+		${FILES_R1_SIZE[3]}:$DIR/${FILES_R1[3]}:z:${FILES_R1_SIZE[3]}:0777\
+		${FILES_R1_SIZE[4]}:$DIR/${FILES_R1[4]}:z:${FILES_R1_SIZE[4]}:0777\
+	R ${FILES_R2_SIZE[0]}:$DIR/${FILES_R2[0]}:z:${FILES_R2_SIZE[0]}:0777\
+		${FILES_R2_SIZE[1]}:$DIR/${FILES_R2[1]}:z:${FILES_R2_SIZE[1]}:0777\
+		${FILES_R2_SIZE[2]}:$DIR/${FILES_R2[2]}:z:${FILES_R2_SIZE[2]}:0777\
+		${FILES_R2_SIZE[3]}:$DIR/${FILES_R2[3]}:z:${FILES_R2_SIZE[3]}:0777\
+		${FILES_R2_SIZE[4]}:$DIR/${FILES_R2[4]}:z:${FILES_R2_SIZE[4]}:0777
+
+expect_normal_exit $PMEMPOOL$EXESUFFIX create --layout=$LAYOUT\
+	obj $POOLSET
+cat $LOG >> $LOG_TEMP
+
+
+# Initilie data, corrupt in second replica, copy to first and check
+part1=0
+off1=0
+
+part2=1
+off2=$((26 * $M))
+
+part3=2
+off3=$((47 * $M))
+off4=$((65 * $M))
+
+# Write some data at offsets
+expect_normal_exit ./libpmempool_repl_sync_mod\
+	-w -s 16 -l $LAYOUT -d "TestInitVal111" -o $off1 $POOLSET
+cat $LOG >> $LOG_TEMP
+expect_normal_exit ./libpmempool_repl_sync_mod\
+	-w -s 16 -l $LAYOUT -d "TestInitVal222" -o $off2 $POOLSET
+cat $LOG >> $LOG_TEMP
+expect_normal_exit ./libpmempool_repl_sync_mod\
+	-w -s 16 -l $LAYOUT -d "TestInitVal333" -o $off3 $POOLSET
+cat $LOG >> $LOG_TEMP
+expect_normal_exit ./libpmempool_repl_sync_mod\
+	-w -s 16 -l $LAYOUT -d "TestInitVal444" -o $off4 $POOLSET
+cat $LOG >> $LOG_TEMP
+
+corrupt_data FILES_R2 $part1 $off1 "ModifiedDataABC" 16
+corrupt_data FILES_R2 $part2 $off2 "ModifiedDataDEF" 16
+corrupt_data FILES_R2 $part3 $off3 "ModifiedDataGHI" 16
+corrupt_data FILES_R2 $part3 $off4 "ModifiedDataJKL" 16
+
+# Copy into part_from = 0; repl 1 -> 0
+expect_normal_exit ./libpmempool_repl_sync$EXESUFFIX -s -g 1 -w 0 -z 0\
+	$POOLSET >> $LOG
+cat $LOG >> $LOG_TEMP
+
+expect_normal_exit ./libpmempool_repl_sync_mod\
+	-l $LAYOUT -s 16 -o $off1 $POOLSET
+cat $LOG >> $LOG_TEMP
+expect_normal_exit ./libpmempool_repl_sync_mod\
+	-l $LAYOUT -s 16 -o $off2 $POOLSET
+cat $LOG >> $LOG_TEMP
+expect_normal_exit ./libpmempool_repl_sync_mod\
+	-l $LAYOUT -s 16 -o $off3 $POOLSET
+cat $LOG >> $LOG_TEMP
+expect_normal_exit ./libpmempool_repl_sync_mod\
+	-l $LAYOUT -s 16 -o $off4 $POOLSET
+cat $LOG >> $LOG_TEMP
+
+# Check metadata by pmempool info
+for name in ${FILES_R1[*]}
+do
+	$PMEMPOOL info $DIR/$name >> $LOG_TEMP
+done
+
+mv $LOG_TEMP $LOG
+check
+
+pass
