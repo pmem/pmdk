@@ -133,6 +133,9 @@ pmemobj_tx_add_range_direct(&(p)->field, sizeof((p)->field))
 #define TX_ZALLOC(t, size)\
 ((TOID(t))pmemobj_tx_zalloc(size, TOID_TYPE_NUM(t)))
 
+#define TX_XALLOC(t, size, flags)\
+((TOID(t))pmemobj_tx_xalloc(size, TOID_TYPE_NUM(t), flags))
+
 /* XXX - not available when compiled with VC++ as C code (/TC) */
 #ifndef _MSC_VER
 
