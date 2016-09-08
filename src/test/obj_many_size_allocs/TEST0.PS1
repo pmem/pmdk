@@ -52,9 +52,8 @@ $Env:NON_PMEM_IS_PMEM = $true
 # XXX: however we don't have valgrind in Windows yet
 # configure_valgrind pmemcheck force-enable
 
+require_test_type long
 setup
-
-$Env:PMEM_IS_PMEM_FORCE=1
 
 create_holey_file 16M $DIR\testfile1
 

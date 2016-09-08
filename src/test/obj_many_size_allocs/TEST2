@@ -37,9 +37,9 @@ export UNITTEST_NUM=2
 # standard unit test setup
 . ../unittest/unittest.sh
 
-setup
+require_test_type long
 
-export PMEM_IS_PMEM_FORCE=1
+setup
 
 create_poolset $DIR/testset1 16M:$DIR/testfile1 r 16M:$DIR/testfile2
 

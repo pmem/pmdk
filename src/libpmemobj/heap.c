@@ -39,6 +39,7 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <string.h>
+#include <float.h>
 
 #include "heap.h"
 #include "out.h"
@@ -1005,7 +1006,7 @@ static uint8_t
 heap_find_min_frag_alloc_class(struct palloc_heap *h, size_t n)
 {
 	uint8_t best_bucket = MAX_BUCKETS;
-	size_t best_frag = SIZE_MAX;
+	float best_frag = FLT_MAX;
 	/*
 	 * Start from the largest buckets in order to minimize unit size of
 	 * allocated memory blocks.
@@ -1016,16 +1017,16 @@ heap_find_min_frag_alloc_class(struct palloc_heap *h, size_t n)
 
 		struct bucket_run *run = (struct bucket_run *)h->rt->buckets[i];
 
-		size_t frag = n % run->super.unit_size;
-
+		size_t units = run->super.calc_units((struct bucket *)run, n);
 		/* can't exceed the maximum allowed run unit max */
-		if (run->super.calc_units((struct bucket *)run, n) >
-			run->unit_max_alloc)
+		if (units > run->unit_max_alloc)
 			break;
 
-		if (frag == 0)
+		float frag = (float)(run->super.unit_size * units) / (float)n;
+		if (frag == 1.f)
 			return (uint8_t)i;
 
+		ASSERT(frag >= 1.f);
 		if (frag < best_frag) {
 			best_bucket = (uint8_t)i;
 			best_frag = frag;
@@ -1484,6 +1485,11 @@ traverse_bucket_run(struct bucket *b, struct memory_block m,
 	uint32_t size_idx_sum = 0;
 
 	while (size_idx_sum != r->bitmap_nallocs) {
+		if (m.block_off + r->unit_max > r->bitmap_nallocs)
+			m.size_idx = r->bitmap_nallocs - m.block_off;
+		else
+			m.size_idx = r->unit_max;
+
 		if (cb(b->container, m) != 0)
 			return 1;
 
@@ -1491,10 +1497,6 @@ traverse_bucket_run(struct bucket *b, struct memory_block m,
 
 		ASSERT((uint32_t)m.block_off + r->unit_max <= UINT16_MAX);
 		m.block_off = (uint16_t)(m.block_off + r->unit_max);
-		if (m.block_off + r->unit_max > r->bitmap_nallocs)
-			m.size_idx = r->bitmap_nallocs - m.block_off;
-		else
-			m.size_idx = r->unit_max;
 	}
 
 	return 0;
