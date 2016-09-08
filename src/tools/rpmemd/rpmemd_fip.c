@@ -169,23 +169,15 @@ rpmemd_fip_getinfo(struct rpmemd_fip *fip, const char *service,
 		goto err_fi_get_hints;
 	}
 
-	ret = fi_getinfo(RPMEM_FIVERSION, node, service, 0,
+	ret = fi_getinfo(RPMEM_FIVERSION, node, service, FI_SOURCE,
 			hints, &fip->fi);
 	if (ret) {
 		RPMEMD_FI_ERR(ret, "getting fabric interface information");
 		goto err_fi_getinfo;
 	}
 
-	if (fip->fi->addr_format != FI_SOCKADDR_IN) {
-		RPMEMD_LOG(ERR, "unsupported address family -- %d",
-				fip->fi->addr_format);
-		goto err_addr_format;
-	}
-
 	fi_freeinfo(hints);
 	return 0;
-err_addr_format:
-	fi_freeinfo(fip->fi);
 err_fi_getinfo:
 	fi_freeinfo(hints);
 err_fi_get_hints:
@@ -199,21 +191,43 @@ static int
 rpmemd_fip_set_resp(struct rpmemd_fip *fip, struct rpmem_resp_attr *resp)
 {
 	int ret;
-	struct sockaddr_in addr_in;
-	size_t addrlen = sizeof(addr_in);
+	if (fip->fi->addr_format == FI_SOCKADDR_IN) {
+		struct sockaddr_in addr_in;
+		size_t addrlen = sizeof(addr_in);
 
-	ret = fi_getname(&fip->pep->fid, &addr_in, &addrlen);
-	if (ret) {
-		RPMEMD_FI_ERR(ret, "getting local endpoint address");
-		goto err_fi_getname;
+		ret = fi_getname(&fip->pep->fid, &addr_in, &addrlen);
+		if (ret) {
+			RPMEMD_FI_ERR(ret, "getting local endpoint address");
+			goto err_fi_getname;
+		}
+
+		if (!addr_in.sin_port) {
+			RPMEMD_LOG(ERR, "dynamic allocation of port failed");
+			goto err_port;
+		}
+
+		resp->port = htons(addr_in.sin_port);
+	} else if (fip->fi->addr_format == FI_SOCKADDR_IN6) {
+		struct sockaddr_in6 addr_in6;
+		size_t addrlen = sizeof(addr_in6);
+
+		ret = fi_getname(&fip->pep->fid, &addr_in6, &addrlen);
+		if (ret) {
+			RPMEMD_FI_ERR(ret, "getting local endpoint address");
+			goto err_fi_getname;
+		}
+
+		if (!addr_in6.sin6_port) {
+			RPMEMD_LOG(ERR, "dynamic allocation of port failed");
+			goto err_port;
+		}
+
+		resp->port = htons(addr_in6.sin6_port);
+	} else {
+		RPMEMD_LOG(ERR, "invalid address format");
+		return -1;
 	}
 
-	if (!addr_in.sin_port) {
-		RPMEMD_LOG(ERR, "dynamic allocation of port failed");
-		goto err_port;
-	}
-
-	resp->port = htons(addr_in.sin_port);
 	resp->rkey = fi_mr_key(fip->mr);
 	resp->persist_method = fip->persist_method;
 	resp->raddr = (uint64_t)fip->addr;

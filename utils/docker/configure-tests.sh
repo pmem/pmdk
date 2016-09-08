@@ -55,7 +55,6 @@ NODE_ADDR[1]=127.0.0.1
 NODE[2]=127.0.0.1
 NODE_WORKING_DIR[2]=/tmp/node2
 NODE_ADDR[2]=127.0.0.1
-RPMEM_PORT=1234
 EOF
 
 	mkdir -p ~/.ssh/cm

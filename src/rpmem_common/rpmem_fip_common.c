@@ -88,8 +88,7 @@ rpmem_fip_get_hints(enum rpmem_provider provider)
 	/* READ-after-WRITE and SEND-after-WRITE message ordering required */
 	hints->tx_attr->msg_order = FI_ORDER_RAW | FI_ORDER_SAW;
 
-	/* IPv4 address format */
-	hints->addr_format = FI_SOCKADDR_IN;
+	hints->addr_format = FI_SOCKADDR;
 
 	if (provider != RPMEM_PROV_UNKNOWN) {
 		const char *prov_name = rpmem_provider_to_str(provider);

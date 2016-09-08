@@ -31,17 +31,26 @@
  */
 
 /*
- * rpmem_ssh.h -- rpmem ssh transport layer header file
+ * rpmem_fip_sock.h -- simple oob connection implementation for exchanging
+ * required RDMA related data
  */
-#include <stddef.h>
 
-struct rpmem_ssh;
+#include <stdint.h>
+#include <netinet/in.h>
 
-struct rpmem_ssh *rpmem_ssh_open(const struct rpmem_target_info *info);
-int rpmem_ssh_close(struct rpmem_ssh *rps);
+typedef struct rpmem_ssh client_t;
 
-int rpmem_ssh_send(struct rpmem_ssh *rps, const void *buff, size_t len);
-int rpmem_ssh_recv(struct rpmem_ssh *rps, void *buff, size_t len);
-int rpmem_ssh_monitor(struct rpmem_ssh *rps, int nonblock);
+client_t *client_exchange(struct rpmem_target_info *info,
+		unsigned nlanes,
+		enum rpmem_provider provider,
+		struct rpmem_resp_attr *resp);
+void client_close(client_t *c);
 
-const char *rpmem_ssh_strerror(struct rpmem_ssh *rps);
+void server_exchange_begin(unsigned *lanes, enum rpmem_provider *provider,
+		char **addr);
+void server_exchange_end(struct rpmem_resp_attr resp);
+
+void server_close_begin(void);
+void server_close_end(void);
+
+void set_rpmem_cmd(const char *fmt, ...);

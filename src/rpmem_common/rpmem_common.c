@@ -151,6 +151,7 @@ rpmem_get_ip_str(const struct sockaddr *addr)
 	static char str[INET6_ADDRSTRLEN + NI_MAXSERV + 1];
 	char ip[INET6_ADDRSTRLEN];
 	struct sockaddr_in *in4;
+	struct sockaddr_in6 *in6;
 
 	switch (addr->sa_family) {
 	case AF_INET:
@@ -162,7 +163,13 @@ rpmem_get_ip_str(const struct sockaddr *addr)
 			return NULL;
 		break;
 	case AF_INET6:
-		/* IPv6 not supported */
+		in6 = (struct sockaddr_in6 *)addr;
+		if (!inet_ntop(AF_INET6, &in6->sin6_addr, ip, sizeof(ip)))
+			return NULL;
+		if (snprintf(str, sizeof(str), "%s:%u",
+				ip, ntohs(in6->sin6_port)) < 0)
+			return NULL;
+		break;
 	default:
 		return NULL;
 	}
@@ -171,71 +178,125 @@ rpmem_get_ip_str(const struct sockaddr *addr)
 }
 
 /*
- * rpmem_target_split -- split target into user, node and service
- *
- * The user, node and service must be freed by the caller.
+ * rpmem_target_parse -- parse target info
  */
-int
-rpmem_target_split(const char *target, char **user,
-	char **node, char **service)
+struct rpmem_target_info *
+rpmem_target_parse(const char *target)
 {
-	if (user)
-		*user = NULL;
-	if (node)
-		*node = NULL;
+	struct rpmem_target_info *info = calloc(1, sizeof(*info));
+	if (!info)
+		return NULL;
 
-	if (service)
-		*service = NULL;
+	char *str = strdup(target);
+	if (!str)
+		goto err_strdup;
 
-	char *target_dup = strdup(target);
-	if (!target_dup)
-		goto err_target_dup;
-
-	char *u = NULL;
-	char *n = strchr(target_dup, '@');
-	if (n) {
-		u = target_dup;
-		*n = '\0';
-		n++;
+	char *tmp = strchr(str, '@');
+	if (tmp) {
+		*tmp = '\0';
+		info->flags |= RPMEM_HAS_USER;
+		strncpy(info->user, str, sizeof(info->user));
+		tmp++;
 	} else {
-		n = target_dup;
+		tmp = str;
 	}
 
-	char *s = strchr(n, ':');
-	if (s) {
-		*s = '\0';
-		s++;
+	if (*tmp == '[') {
+		tmp++;
+		/* IPv6 */
+		char *end = strchr(tmp, ']');
+		if (!end) {
+			errno = EINVAL;
+			goto err_ipv6;
+		}
+
+		*end = '\0';
+		strncpy(info->node, tmp, sizeof(info->node));
+		tmp = end + 1;
+
+		end = strchr(tmp, ':');
+		if (end) {
+			*end = '\0';
+			end++;
+			info->flags |= RPMEM_HAS_SERVICE;
+			strncpy(info->service, end, sizeof(info->service));
+		}
+	} else {
+		char *first = strchr(tmp, ':');
+		char *last = strrchr(tmp, ':');
+		if (first == last) {
+			/* IPv4 - one colon */
+			if (first) {
+				*first = '\0';
+				first++;
+				info->flags |= RPMEM_HAS_SERVICE;
+				strncpy(info->service, first,
+						sizeof(info->service));
+			}
+		}
+
+		strncpy(info->node, tmp, sizeof(info->node));
 	}
 
-	if (node) {
-		*node = strdup(n);
-		if (!(*node))
-			goto err_dup_node;
+	if (*info->node == '\0') {
+		errno = EINVAL;
+		goto err_node;
 	}
 
-	if (u && user) {
-		*user = strdup(u);
-		if (!(*user))
-			goto err_dup_user;
+	free(str);
+
+	return info;
+err_node:
+err_ipv6:
+	free(str);
+err_strdup:
+	free(info);
+	return NULL;
+}
+
+/*
+ * rpmem_target_free -- free target info
+ */
+void
+rpmem_target_free(struct rpmem_target_info *info)
+{
+	free(info);
+}
+
+/*
+ * rpmem_get_ssh_conn_addr -- returns an address which the ssh connection is
+ * established on
+ *
+ * This function utilizes the SSH_CONNECTION environment variable to retrieve
+ * the server IP address. See ssh(1) for details.
+ */
+char *
+rpmem_get_ssh_conn_addr(void)
+{
+	char *ssh_conn = getenv("SSH_CONNECTION");
+	if (!ssh_conn) {
+		RPMEMC_LOG(ERR, "SSH_CONNECTION variable is not set");
+		return NULL;
 	}
 
-	if (s && service) {
-		*service = strdup(s);
-		if (!(*service))
-			goto err_dup_service;
-	}
+	char *sp = strchr(ssh_conn, ' ');
+	if (!sp)
+		goto err_fmt;
 
-	free(target_dup);
+	char *addr = strchr(sp + 1, ' ');
+	if (!addr)
+		goto err_fmt;
 
-	return 0;
-err_dup_service:
-	if (user)
-		free(*user);
-err_dup_user:
-	if (node)
-		free(*node);
-err_dup_node:
-	free(target_dup);
-err_target_dup:
-	return -1;
+	addr++;
+
+	sp = strchr(addr, ' ');
+	if (!sp)
+		goto err_fmt;
+
+	*sp = '\0';
+
+	return addr;
+err_fmt:
+	RPMEMC_LOG(ERR, "invalid format of SSH_CONNECTION variable");
+	return NULL;
 }

@@ -31,13 +31,20 @@
  */
 
 /*
- * rpmem_obc_test_common.c -- common definitions for rpmem_obc tests
+ * rpmem_fip_oob.c -- simple oob connection implementation for exchanging
+ * required RDMA related data
  */
-
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <netdb.h>
+#include <string.h>
 
-#include "rpmem_obc_test_common.h"
+#include "rpmem_common.h"
+#include "rpmem_proto.h"
+#include "rpmem_fip_oob.h"
+#include "rpmem_ssh.h"
+#include "unittest.h"
+#include "rpmem_util.h"
 
 #define CMD_BUFF_SIZE	4096
 static const char *rpmem_cmd;
@@ -85,85 +92,102 @@ set_rpmem_cmd(const char *fmt, ...)
 	rpmem_util_cmds_init();
 }
 
-struct server *
-srv_init(void)
+/*
+ * client_exchange -- connect to remote host and exchange required information
+ */
+client_t *
+client_exchange(struct rpmem_target_info *info,
+	unsigned nlanes,
+	enum rpmem_provider provider,
+	struct rpmem_resp_attr *resp)
 {
-	struct server *s = MALLOC(sizeof(*s));
+	struct rpmem_ssh *ssh = rpmem_ssh_open(info);
+	UT_ASSERTne(ssh, NULL);
 
-	s->fd_in = STDIN_FILENO;
-	s->fd_out = STDOUT_FILENO;
+	int ret;
+
+	ret = rpmem_ssh_send(ssh, &nlanes, sizeof(nlanes));
+	UT_ASSERTeq(ret, 0);
+
+	ret = rpmem_ssh_send(ssh, &provider, sizeof(provider));
+	UT_ASSERTeq(ret, 0);
+
+	ret = rpmem_ssh_recv(ssh, resp, sizeof(*resp));
+	UT_ASSERTeq(ret, 0);
+
+	return ssh;
+}
+
+/*
+ * client_close -- close connection
+ */
+void
+client_close(client_t *c)
+{
+	int cmd = 1;
+	int ret;
+
+	ret = rpmem_ssh_send(c, &cmd, sizeof(cmd));
+	UT_ASSERTeq(ret, 0);
+
+	ret = rpmem_ssh_recv(c, &cmd, sizeof(cmd));
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(cmd, 0);
+
+	rpmem_ssh_close(c);
+}
+
+/*
+ * server_exchange_begin -- accept a connection and read required information
+ */
+void
+server_exchange_begin(unsigned *lanes, enum rpmem_provider *provider,
+	char **addr)
+{
+	UT_ASSERTne(addr, NULL);
+
+	char *conn = rpmem_get_ssh_conn_addr();
+	UT_ASSERTne(conn, NULL);
+
+	*addr = strdup(conn);
+	UT_ASSERTne(*addr, NULL);
 
 	uint32_t status = 0;
-	srv_send(s, &status, sizeof(status));
 
-	return s;
+	WRITE(STDOUT_FILENO, &status, sizeof(status));
+	READ(STDIN_FILENO, lanes, sizeof(*lanes));
+	READ(STDIN_FILENO, provider, sizeof(*provider));
 }
 
 /*
- * srv_stop -- close the server
+ * server_exchange_end -- send response to client
  */
 void
-srv_fini(struct server *s)
+server_exchange_end(struct rpmem_resp_attr resp)
 {
-	FREE(s);
+	WRITE(STDOUT_FILENO, &resp, sizeof(resp));
 }
 
 /*
- * srv_recv -- read a message from the client
+ * server_close_begin -- wait for close command
  */
 void
-srv_recv(struct server *s, void *buff, size_t len)
+server_close_begin(void)
 {
-	size_t rd = 0;
+	int cmd = 0;
 
-	uint8_t *cbuf = buff;
-	while (rd < len) {
-		ssize_t ret = read(s->fd_in, &cbuf[rd], len - rd);
-		UT_ASSERT(ret > 0);
-		rd += (size_t)ret;
-	}
+	READ(STDIN_FILENO, &cmd, sizeof(cmd));
+	UT_ASSERTeq(cmd, 1);
 }
 
 /*
- * srv_send -- send a message to the client
+ * server_close_end -- send close response and wait for disconnect
  */
 void
-srv_send(struct server *s, const void *buff, size_t len)
+server_close_end(void)
 {
-	size_t wr = 0;
+	int cmd = 0;
 
-	const uint8_t *cbuf = buff;
-	while (wr < len) {
-		ssize_t ret = write(s->fd_out, &cbuf[wr], len - wr);
-		UT_ASSERT(ret > 0);
-		wr += (size_t)ret;
-	}
-}
-
-/*
- * client_connect_wait -- wait until client connects to the server
- */
-void
-client_connect_wait(struct rpmem_obc *rpc, char *target)
-{
-	struct rpmem_target_info *info;
-	info = rpmem_target_parse(target);
-	UT_ASSERTne(info, NULL);
-
-	while (rpmem_obc_connect(rpc, info))
-		;
-
-	rpmem_target_free(info);
-}
-
-/*
- * server_econnreset -- disconnect from client during performing an
- * operation
- */
-void
-server_econnreset(struct server *s, const void *msg, size_t len)
-{
-	for (int i = 0; i < ECONNRESET_LOOP; i++) {
-		srv_send(s, msg, len);
-	}
+	WRITE(STDOUT_FILENO, &cmd, sizeof(cmd));
+	READ(STDIN_FILENO, &cmd, sizeof(cmd));
 }

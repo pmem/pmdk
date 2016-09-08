@@ -1,4 +1,3 @@
-#!/bin/bash -e
 #
 # Copyright 2016, Intel Corporation
 #
@@ -32,39 +31,17 @@
 #
 
 #
-# src/test/rpmem_fip/TEST0 -- tests for rpmem_fip and rpmemd_fip modules
+# src/test/rpmem_addr/Makefile -- build rpmem_addr test
 #
+include ../../common.inc
 
-export UNITTEST_NAME=rpmem_fip/TEST0
-export UNITTEST_NUM=0
+vpath %.c ../../common
+vpath %.c ../../rpmem_common
 
-# standard unit test setup
-. ../unittest/unittest.sh
+TARGET = rpmem_addr
+OBJS = rpmem_addr.o\
+       rpmem_common.o
 
-require_fs_type none
-require_build_type nondebug debug
+include ../Makefile.inc
 
-rpmem_foreach_provider
-rpmem_foreach_persist
-
-setup
-
-require_nodes 2
-require_node_libfabric 0 $RPMEM_PROVIDER
-require_node_libfabric 1 $RPMEM_PROVIDER
-require_node_log_files 0 $RPMEM_LOG_FILE $RPMEMD_LOG_FILE
-require_node_log_files 1 $RPMEM_LOG_FILE $RPMEMD_LOG_FILE
-
-SRV=srv${UNITTEST_NUM}.pid
-clean_remote_node 0 $SRV
-
-RPMEM_CMD="\"cd ${NODE_TEST_DIR[0]} && UNITTEST_FORCE_QUIET=1 \
-	LD_LIBRARY_PATH=$REMOTE_LD_LIBRARY_PATH:${NODE_LD_LIBRARY_PATH[0]} \
-	./rpmem_fip$EXESUFFIX\""
-
-export_vars_node 1 RPMEM_CMD
-
-expect_normal_exit run_on_node 1 ./rpmem_fip$EXESUFFIX\
-	client_init ${NODE_ADDR[0]} $RPMEM_PROVIDER $RPMEM_PM
-
-pass
+CFLAGS += -I../../rpmem_common

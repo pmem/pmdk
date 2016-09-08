@@ -31,24 +31,34 @@
  */
 
 /*
- * rpmem_fip_sock.h -- simple socket client-server for exchanging
- * required RDMA related data
+ * rpmem_addr.c -- unit test for parsing target address
  */
 
-#include <stdint.h>
-#include <netinet/in.h>
+#include "unittest.h"
 
-int client_exchange(const char *node, const char *service,
-		unsigned nlanes,
-		enum rpmem_provider provider,
-		struct rpmem_resp_attr *resp,
-		struct sockaddr_in *addr);
-void client_close(int fd);
 
-int server_exchange_begin(const char *node, const char *service,
-		unsigned *lanes, enum rpmem_provider *provider,
-		struct sockaddr_in *addr);
-void server_exchange_end(int fd, struct rpmem_resp_attr resp);
+#include "rpmem_common.h"
 
-void server_close_begin(int fd);
-void server_close_end(int fd);
+int
+main(int argc, char *argv[])
+{
+	START(argc, argv, "rpmem_addr");
+
+	struct rpmem_target_info *info;
+
+	for (int i = 1; i < argc; i++) {
+		info = rpmem_target_parse(argv[i]);
+		if (info) {
+			UT_OUT("'%s': '%s' '%s' '%s'", argv[i],
+				info->flags & RPMEM_HAS_USER ?
+					info->user : "(null)",
+				*info->node ? info->node : "(null)",
+				info->flags & RPMEM_HAS_SERVICE ?
+					info->service : "(null)");
+		} else {
+			UT_OUT("!%s", argv[i]);
+		}
+	}
+
+	DONE(NULL);
+}

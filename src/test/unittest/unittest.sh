@@ -1264,7 +1264,7 @@ function require_node_libfabric() {
 	require_node_pkg $N libfabric
 
 	local DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
-	local COMMAND="$COMMAND LD_LIBRARY_PATH=$REMOTE_LD_LIBRARY_PATH:${NODE_LD_LIBRARY_PATH[$N]} ../fip $*"
+	local COMMAND="$COMMAND LD_LIBRARY_PATH=$REMOTE_LD_LIBRARY_PATH:${NODE_LD_LIBRARY_PATH[$N]} ../fip ${NODE_ADDR[$N]} $*"
 
 	set +e
 	fip_out=$(ssh $SSH_OPTS ${NODE[$N]} "cd $DIR && $COMMAND" 2>&1)
@@ -1279,16 +1279,6 @@ function require_node_libfabric() {
 	else
 		echo "NODE $N: require_libfabric $*: $fip_out"
 		exit 1
-	fi
-}
-
-# require_rpmem_port -- only allow script to continue if RPMEM_PORT variable
-#                       is set.
-#
-function require_rpmem_port() {
-	if [ -z "$RPMEM_PORT" ]; then
-		echo "$UNITTEST_NAME: SKIP: requires RPMEM_PORT"
-		exit 0
 	fi
 }
 

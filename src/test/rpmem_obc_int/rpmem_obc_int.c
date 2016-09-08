@@ -108,16 +108,22 @@ client_create(const struct test_case *tc, int argc, char *argv[])
 
 	int ret;
 	struct rpmem_obc *rpc;
+	struct rpmem_target_info *info;
 	struct rpmem_req_attr req = REQ_ATTR_INIT;
 	struct rpmem_pool_attr pool_attr = POOL_ATTR_INIT;
 	struct rpmem_resp_attr ex_res = RESP_ATTR_INIT;
 	struct rpmem_resp_attr res;
 
+	info = rpmem_target_parse(target);
+	UT_ASSERTne(info, NULL);
+
 	rpc = rpmem_obc_init();
 	UT_ASSERTne(rpc, NULL);
 
-	ret = rpmem_obc_connect(rpc, target);
+	ret = rpmem_obc_connect(rpc, info);
 	UT_ASSERTeq(ret, 0);
+
+	rpmem_target_free(info);
 
 	ret = rpmem_obc_monitor(rpc, 1);
 	UT_ASSERTeq(ret, 1);
@@ -157,17 +163,23 @@ client_open(const struct test_case *tc, int argc, char *argv[])
 
 	int ret;
 	struct rpmem_obc *rpc;
+	struct rpmem_target_info *info;
 	struct rpmem_req_attr req = REQ_ATTR_INIT;
 	struct rpmem_pool_attr ex_pool_attr = POOL_ATTR_INIT;
 	struct rpmem_pool_attr pool_attr;
 	struct rpmem_resp_attr ex_res = RESP_ATTR_INIT;
 	struct rpmem_resp_attr res;
 
+	info = rpmem_target_parse(target);
+	UT_ASSERTne(info, NULL);
+
 	rpc = rpmem_obc_init();
 	UT_ASSERTne(rpc, NULL);
 
-	ret = rpmem_obc_connect(rpc, target);
+	ret = rpmem_obc_connect(rpc, info);
 	UT_ASSERTeq(ret, 0);
+
+	rpmem_target_free(info);
 
 	ret = rpmem_obc_monitor(rpc, 1);
 	UT_ASSERTeq(ret, 1);
