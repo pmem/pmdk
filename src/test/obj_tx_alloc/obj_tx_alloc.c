@@ -54,6 +54,11 @@ enum type_number {
 	TYPE_ABORT,
 	TYPE_ZEROED_COMMIT,
 	TYPE_ZEROED_ABORT,
+	TYPE_XCOMMIT,
+	TYPE_XABORT,
+	TYPE_XZEROED_COMMIT,
+	TYPE_XZEROED_ABORT,
+	TYPE_XNOFLUSHED_COMMIT,
 	TYPE_COMMIT_NESTED1,
 	TYPE_COMMIT_NESTED2,
 	TYPE_ABORT_NESTED1,
@@ -105,6 +110,13 @@ do_tx_alloc_oom(PMEMobjpool *pop)
 	FREE(bitmap);
 
 	UT_ASSERTeq(obj_cnt, alloc_cnt);
+
+	TOID(struct object) o = POBJ_FIRST(pop, struct object);
+	while (!TOID_IS_NULL(o)) {
+		TOID(struct object) next = POBJ_NEXT(o);
+		POBJ_FREE(&o);
+		o = next;
+	}
 }
 
 /*
@@ -486,6 +498,216 @@ do_tx_zalloc_commit(PMEMobjpool *pop)
 }
 
 /*
+ * do_tx_xalloc_abort -- allocates a zeroed object and aborts the transaction
+ */
+static void
+do_tx_xalloc_abort(PMEMobjpool *pop)
+{
+	/* xalloc 0 */
+	TOID(struct object) obj;
+	TX_BEGIN(pop) {
+		TOID_ASSIGN(obj, pmemobj_tx_xalloc(sizeof(struct object),
+				TYPE_XABORT, 0));
+		UT_ASSERT(!TOID_IS_NULL(obj));
+
+		D_RW(obj)->value = TEST_VALUE_1;
+		pmemobj_tx_abort(-1);
+	} TX_ONCOMMIT {
+		UT_ASSERT(0);
+	} TX_ONABORT {
+		TOID_ASSIGN(obj, OID_NULL);
+	} TX_END
+
+	UT_ASSERT(TOID_IS_NULL(obj));
+
+	TOID(struct object) first;
+	TOID_ASSIGN(first, POBJ_FIRST_TYPE_NUM(pop, TYPE_XABORT));
+	UT_ASSERT(TOID_IS_NULL(first));
+
+	/* xalloc ZERO */
+	TX_BEGIN(pop) {
+		TOID_ASSIGN(obj, pmemobj_tx_xalloc(sizeof(struct object),
+				TYPE_XZEROED_ABORT, POBJ_XALLOC_ZERO));
+		UT_ASSERT(!TOID_IS_NULL(obj));
+		UT_ASSERT(util_is_zeroed(D_RO(obj), sizeof(struct object)));
+
+		D_RW(obj)->value = TEST_VALUE_1;
+		pmemobj_tx_abort(-1);
+	} TX_ONCOMMIT {
+		UT_ASSERT(0);
+	} TX_ONABORT {
+		TOID_ASSIGN(obj, OID_NULL);
+	} TX_END
+
+	UT_ASSERT(TOID_IS_NULL(obj));
+
+	TOID_ASSIGN(first, POBJ_FIRST_TYPE_NUM(pop, TYPE_XZEROED_ABORT));
+	UT_ASSERT(TOID_IS_NULL(first));
+}
+
+/*
+ * do_tx_xalloc_zerolen -- allocate an object of zero size to trigger tx abort
+ */
+static void
+do_tx_xalloc_zerolen(PMEMobjpool *pop)
+{
+	/* xalloc 0 */
+	TOID(struct object) obj;
+	TX_BEGIN(pop) {
+		TOID_ASSIGN(obj, pmemobj_tx_xalloc(0, TYPE_XABORT, 0));
+		UT_ASSERT(0); /* should not get to this point */
+	} TX_ONCOMMIT {
+		UT_ASSERT(0);
+	} TX_ONABORT {
+		TOID_ASSIGN(obj, OID_NULL);
+	} TX_END
+
+	UT_ASSERT(TOID_IS_NULL(obj));
+
+	TOID(struct object) first;
+	TOID_ASSIGN(first, POBJ_FIRST_TYPE_NUM(pop, TYPE_XABORT));
+	UT_ASSERT(TOID_IS_NULL(first));
+
+	/* xalloc ZERO */
+	TX_BEGIN(pop) {
+		TOID_ASSIGN(obj, pmemobj_tx_xalloc(0, TYPE_XZEROED_ABORT,
+				POBJ_XALLOC_ZERO));
+		UT_ASSERT(0); /* should not get to this point */
+	} TX_ONCOMMIT {
+		UT_ASSERT(0);
+	} TX_ONABORT {
+		TOID_ASSIGN(obj, OID_NULL);
+	} TX_END
+
+	UT_ASSERT(TOID_IS_NULL(obj));
+
+	TOID_ASSIGN(first, POBJ_FIRST_TYPE_NUM(pop, TYPE_XZEROED_ABORT));
+	UT_ASSERT(TOID_IS_NULL(first));
+}
+
+/*
+ * do_tx_xalloc_huge -- allocates a huge object to trigger tx abort
+ */
+static void
+do_tx_xalloc_huge(PMEMobjpool *pop)
+{
+	/* xalloc 0 */
+	TOID(struct object) obj;
+	TX_BEGIN(pop) {
+		TOID_ASSIGN(obj, pmemobj_tx_xalloc(PMEMOBJ_MAX_ALLOC_SIZE + 1,
+				TYPE_XABORT, 0));
+		UT_ASSERT(0); /* should not get to this point */
+	} TX_ONCOMMIT {
+		UT_ASSERT(0);
+	} TX_ONABORT {
+		TOID_ASSIGN(obj, OID_NULL);
+	} TX_END
+
+	UT_ASSERT(TOID_IS_NULL(obj));
+
+	TOID(struct object) first;
+	TOID_ASSIGN(first, POBJ_FIRST_TYPE_NUM(pop, TYPE_XABORT));
+	UT_ASSERT(TOID_IS_NULL(first));
+
+	/* xalloc ZERO */
+	TX_BEGIN(pop) {
+		TOID_ASSIGN(obj, pmemobj_tx_xalloc(PMEMOBJ_MAX_ALLOC_SIZE + 1,
+				TYPE_XZEROED_ABORT, POBJ_XALLOC_ZERO));
+		UT_ASSERT(0); /* should not get to this point */
+	} TX_ONCOMMIT {
+		UT_ASSERT(0);
+	} TX_ONABORT {
+		TOID_ASSIGN(obj, OID_NULL);
+	} TX_END
+
+	UT_ASSERT(TOID_IS_NULL(obj));
+
+	TOID_ASSIGN(first, POBJ_FIRST_TYPE_NUM(pop, TYPE_XZEROED_ABORT));
+	UT_ASSERT(TOID_IS_NULL(first));
+}
+
+/*
+ * do_tx_xalloc_commit -- allocates zeroed object
+ */
+static void
+do_tx_xalloc_commit(PMEMobjpool *pop)
+{
+	/* xalloc 0 */
+	TOID(struct object) obj;
+	TX_BEGIN(pop) {
+		TOID_ASSIGN(obj, pmemobj_tx_xalloc(sizeof(struct object),
+				TYPE_XCOMMIT, 0));
+		UT_ASSERT(!TOID_IS_NULL(obj));
+
+		D_RW(obj)->value = TEST_VALUE_1;
+	} TX_ONCOMMIT {
+		UT_ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
+	} TX_ONABORT {
+		UT_ASSERT(0);
+	} TX_END
+
+	TOID(struct object) first;
+	TOID_ASSIGN(first, POBJ_FIRST_TYPE_NUM(pop, TYPE_XCOMMIT));
+	UT_ASSERT(TOID_EQUALS(first, obj));
+	UT_ASSERTeq(D_RO(first)->value, D_RO(obj)->value);
+
+	TOID(struct object) next;
+	TOID_ASSIGN(next, pmemobj_next(first.oid));
+	UT_ASSERT(TOID_IS_NULL(next));
+
+	/* xalloc ZERO */
+	TX_BEGIN(pop) {
+		TOID_ASSIGN(obj, pmemobj_tx_xalloc(sizeof(struct object),
+				TYPE_XZEROED_COMMIT, POBJ_XALLOC_ZERO));
+		UT_ASSERT(!TOID_IS_NULL(obj));
+		UT_ASSERT(util_is_zeroed(D_RO(obj), sizeof(struct object)));
+
+		D_RW(obj)->value = TEST_VALUE_1;
+	} TX_ONCOMMIT {
+		UT_ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
+	} TX_ONABORT {
+		UT_ASSERT(0);
+	} TX_END
+
+	TOID_ASSIGN(first, POBJ_FIRST_TYPE_NUM(pop, TYPE_XZEROED_COMMIT));
+	UT_ASSERT(TOID_EQUALS(first, obj));
+	UT_ASSERTeq(D_RO(first)->value, D_RO(obj)->value);
+
+	TOID_ASSIGN(next, pmemobj_next(first.oid));
+	UT_ASSERT(TOID_IS_NULL(next));
+}
+
+/*
+ * do_tx_xalloc_noflush -- allocates zeroed object
+ */
+static void
+do_tx_xalloc_noflush(PMEMobjpool *pop)
+{
+	TOID(struct object) obj;
+	TX_BEGIN(pop) {
+		TOID_ASSIGN(obj, pmemobj_tx_xalloc(sizeof(struct object),
+				TYPE_XNOFLUSHED_COMMIT, POBJ_XALLOC_NO_FLUSH));
+		UT_ASSERT(!TOID_IS_NULL(obj));
+
+		D_RW(obj)->value = TEST_VALUE_1;
+		/* let pmemcheck find we didn't flush it */
+	} TX_ONCOMMIT {
+		UT_ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
+	} TX_ONABORT {
+		UT_ASSERT(0);
+	} TX_END
+
+	TOID(struct object) first;
+	TOID_ASSIGN(first, POBJ_FIRST_TYPE_NUM(pop, TYPE_XNOFLUSHED_COMMIT));
+	UT_ASSERT(TOID_EQUALS(first, obj));
+	UT_ASSERTeq(D_RO(first)->value, D_RO(obj)->value);
+
+	TOID(struct object) next;
+	TOID_ASSIGN(next, pmemobj_next(first.oid));
+	UT_ASSERT(TOID_IS_NULL(next));
+}
+
+/*
  * do_tx_root -- retrieve root inside of transaction
  */
 static void
@@ -519,30 +741,60 @@ main(int argc, char *argv[])
 
 	do_tx_root(pop);
 	VALGRIND_WRITE_STATS;
+
+	/* alloc */
 	do_tx_alloc_commit(pop);
 	VALGRIND_WRITE_STATS;
+
 	do_tx_alloc_abort(pop);
 	VALGRIND_WRITE_STATS;
+
 	do_tx_alloc_zerolen(pop);
 	VALGRIND_WRITE_STATS;
+
 	do_tx_alloc_huge(pop);
 	VALGRIND_WRITE_STATS;
+
+	/* zalloc */
 	do_tx_zalloc_commit(pop);
 	VALGRIND_WRITE_STATS;
+
 	do_tx_zalloc_abort(pop);
 	VALGRIND_WRITE_STATS;
+
 	do_tx_zalloc_zerolen(pop);
 	VALGRIND_WRITE_STATS;
+
 	do_tx_zalloc_huge(pop);
 	VALGRIND_WRITE_STATS;
+
+	/* xalloc */
+	do_tx_xalloc_commit(pop);
+	VALGRIND_WRITE_STATS;
+
+	do_tx_xalloc_abort(pop);
+	VALGRIND_WRITE_STATS;
+
+	do_tx_xalloc_zerolen(pop);
+	VALGRIND_WRITE_STATS;
+
+	do_tx_xalloc_huge(pop);
+	VALGRIND_WRITE_STATS;
+
+	/* alloc */
 	do_tx_alloc_commit_nested(pop);
 	VALGRIND_WRITE_STATS;
+
 	do_tx_alloc_abort_nested(pop);
 	VALGRIND_WRITE_STATS;
+
 	do_tx_alloc_abort_after_nested(pop);
 	VALGRIND_WRITE_STATS;
+
 	do_tx_alloc_oom(pop);
 	VALGRIND_WRITE_STATS;
+
+	do_tx_xalloc_noflush(pop);
 
 	pmemobj_close(pop);
 
