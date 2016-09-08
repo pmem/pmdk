@@ -1628,6 +1628,7 @@ PMEMoid pmemobj_tx_xalloc(size_t size, uint64_t type_num, int flags);
 The **pmemobj_tx_xalloc**() function transactionally allocates a new object of given *size* and *type_num*. The *flags* argument is a bitmask of the following values:
 
 + **PMEMOBJ_FLAG_ZERO** - zero the object (equivalent of pmemobj_tx_zalloc)
++ **PMEMOBJ_FLAG_NO_FLUSH** - skip flush on commit (when application deals with flushing or uses pmemobj_memcpy_persist)
 
 If successful, returns a handle to the newly allocated object. Otherwise, stage changes to **TX_STAGE_ONABORT**, **OID_NULL** is returned, and *errno* is set appropriately. If *size* equals 0, **OID_NULL** is returned and *errno* is set appropriately. This function must be called during **TX_STAGE_WORK**.
 

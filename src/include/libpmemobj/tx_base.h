@@ -172,7 +172,8 @@ int pmemobj_tx_add_range_direct(const void *ptr, size_t size);
 PMEMoid pmemobj_tx_alloc(size_t size, uint64_t type_num);
 
 #define PMEMOBJ_FLAG_ZERO (1 << 0)
-#define PMEMOBJ_VALID_FLAGS (PMEMOBJ_FLAG_ZERO)
+#define PMEMOBJ_FLAG_NO_FLUSH (1 << 1)
+#define PMEMOBJ_VALID_FLAGS (PMEMOBJ_FLAG_ZERO | PMEMOBJ_FLAG_NO_FLUSH)
 
 /*
  * Transactionally allocates a new object.
