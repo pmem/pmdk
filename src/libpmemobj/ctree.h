@@ -43,6 +43,8 @@ struct ctree;
 
 struct ctree *ctree_new(void);
 void ctree_delete(struct ctree *t);
+typedef void (*ctree_destroy_cb)(uint64_t key, uint64_t value, void *ctx);
+void ctree_delete_cb(struct ctree *t, ctree_destroy_cb cb, void *ctx);
 
 int ctree_insert(struct ctree *t, uint64_t key, uint64_t value);
 int ctree_insert_unlocked(struct ctree *t, uint64_t key, uint64_t value);
