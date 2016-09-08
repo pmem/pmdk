@@ -58,6 +58,7 @@ enum type_number {
 	TYPE_XABORT,
 	TYPE_XZEROED_COMMIT,
 	TYPE_XZEROED_ABORT,
+	TYPE_XNOFLUSHED_COMMIT,
 	TYPE_COMMIT_NESTED1,
 	TYPE_COMMIT_NESTED2,
 	TYPE_ABORT_NESTED1,
@@ -109,6 +110,13 @@ do_tx_alloc_oom(PMEMobjpool *pop)
 	FREE(bitmap);
 
 	UT_ASSERTeq(obj_cnt, alloc_cnt);
+
+	TOID(struct object) o = POBJ_FIRST(pop, struct object);
+	while (!TOID_IS_NULL(o)) {
+		TOID(struct object) next = POBJ_NEXT(o);
+		POBJ_FREE(&o);
+		o = next;
+	}
 }
 
 /*
@@ -669,6 +677,36 @@ do_tx_xalloc_commit(PMEMobjpool *pop)
 }
 
 /*
+ * do_tx_xalloc_noflush -- allocates zeroed object
+ */
+static void
+do_tx_xalloc_noflush(PMEMobjpool *pop)
+{
+	TOID(struct object) obj;
+	TX_BEGIN(pop) {
+		TOID_ASSIGN(obj, pmemobj_tx_xalloc(sizeof(struct object),
+				TYPE_XNOFLUSHED_COMMIT, PMEMOBJ_FLAG_NO_FLUSH));
+		UT_ASSERT(!TOID_IS_NULL(obj));
+
+		D_RW(obj)->value = TEST_VALUE_1;
+		/* let pmemcheck find we didn't flush it */
+	} TX_ONCOMMIT {
+		UT_ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
+	} TX_ONABORT {
+		UT_ASSERT(0);
+	} TX_END
+
+	TOID(struct object) first;
+	TOID_ASSIGN(first, POBJ_FIRST_TYPE_NUM(pop, TYPE_XNOFLUSHED_COMMIT));
+	UT_ASSERT(TOID_EQUALS(first, obj));
+	UT_ASSERTeq(D_RO(first)->value, D_RO(obj)->value);
+
+	TOID(struct object) next;
+	TOID_ASSIGN(next, pmemobj_next(first.oid));
+	UT_ASSERT(TOID_IS_NULL(next));
+}
+
+/*
  * do_tx_root -- retrieve root inside of transaction
  */
 static void
@@ -754,6 +792,9 @@ main(int argc, char *argv[])
 
 	do_tx_alloc_oom(pop);
 	VALGRIND_WRITE_STATS;
+
+
+	do_tx_xalloc_noflush(pop);
 
 	pmemobj_close(pop);
 
