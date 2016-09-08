@@ -1,0 +1,10 @@
+NVM Library
+
+This is src/test/rpmemd_log/README.
+
+This test is Linux specific.
+
+This directory contains a unit test for rpmemd_log module.
+
+Usage:
+$ rpmemd_log fatal|log|assert stderr|file|syslog <file>
