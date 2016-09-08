@@ -171,6 +171,19 @@ int pmemobj_tx_add_range_direct(const void *ptr, size_t size);
  */
 PMEMoid pmemobj_tx_alloc(size_t size, uint64_t type_num);
 
+#define PMEMOBJ_FLAG_ZERO (1 << 0)
+#define PMEMOBJ_VALID_FLAGS (PMEMOBJ_FLAG_ZERO)
+
+/*
+ * Transactionally allocates a new object.
+ *
+ * If successful, returns PMEMoid.
+ * Otherwise, state changes to TX_STAGE_ONABORT and an OID_NULL is returned.
+ *
+ * This function must be called during TX_STAGE_WORK.
+ */
+PMEMoid pmemobj_tx_xalloc(size_t size, uint64_t type_num, int flags);
+
 /*
  * Transactionally allocates new zeroed object.
  *

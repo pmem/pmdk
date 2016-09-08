@@ -308,6 +308,7 @@ int pmemobj_tx_add_range_direct(const void *ptr, size_t size);
 
 PMEMoid pmemobj_tx_alloc(size_t size, uint64_t type_num);
 PMEMoid pmemobj_tx_zalloc(size_t size, uint64_t type_num);
+PMEMoid pmemobj_tx_xalloc(size_t size, uint64_t type_num, int flags);
 PMEMoid pmemobj_tx_realloc(PMEMoid oid, size_t size, uint64_t type_num);
 PMEMoid pmemobj_tx_zrealloc(PMEMoid oid, size_t size, uint64_t type_num);
 PMEMoid pmemobj_tx_strdup(const char *s, uint64_t type_num);
@@ -329,6 +330,7 @@ TX_NEW(TYPE)
 TX_ALLOC(TYPE, size_t size)
 TX_ZNEW(TYPE)
 TX_ZALLOC(TYPE, size_t size)
+TX_XALLOC(TYPE, size_t size, int flags)
 TX_REALLOC(TOID o, size_t size)
 TX_ZREALLOC(TOID o, size_t size)
 TX_STRDUP(const char *s, uint64_t type_num)
@@ -1630,9 +1632,17 @@ set appropriately. If *size* equals 0, **OID_NULL** is returned and *errno* is s
 PMEMoid pmemobj_tx_zalloc(size_t size, uint64_t type_num);
 ```
 
-The **pmemobj_tx_zalloc**() function transactionally allocates new zeroed object of given *size* and *type_num*. If successful, returns a handle to the newly
-allocated object. Otherwise, stage changes to **TX_STAGE_ONABORT**, **OID_NULL** is returned, and *errno* is set appropriately. If *size* equals 0, **OID_NULL** is
-returned and *errno* is set appropriately. This function must be called during **TX_STAGE_WORK**.
+The **pmemobj_tx_zalloc**() function transactionally allocates new zeroed object of given *size* and *type_num*. If successful, returns a handle to the newly allocated object. Otherwise, stage changes to **TX_STAGE_ONABORT**, **OID_NULL** is returned, and *errno* is set appropriately. If *size* equals 0, **OID_NULL** is returned and *errno* is set appropriately. This function must be called during **TX_STAGE_WORK**.
+
+```c
+PMEMoid pmemobj_tx_xalloc(size_t size, uint64_t type_num, int flags);
+```
+
+The **pmemobj_tx_xalloc**() function transactionally allocates a new object of given *size* and *type_num*. The *flags* argument is a bitmask of the following values:
+
++ **PMEMOBJ_FLAG_ZERO** - zero the object (equivalent of pmemobj_tx_zalloc)
+
+If successful, returns a handle to the newly allocated object. Otherwise, stage changes to **TX_STAGE_ONABORT**, **OID_NULL** is returned, and *errno* is set appropriately. If *size* equals 0, **OID_NULL** is returned and *errno* is set appropriately. This function must be called during **TX_STAGE_WORK**.
 
 ```c
 PMEMoid pmemobj_tx_realloc(PMEMoid oid, size_t size, uint64_t type_num);
@@ -1819,12 +1829,18 @@ size is determined from the size of the user-defined structure *TYPE*. If succes
 allocated object. Otherwise, stage changes to **TX_STAGE_ONABORT**, **OID_NULL** is returned, and *errno* is set appropriately.
 
 ```c
-TX_ZALLOC(TYPE)
+TX_ZALLOC(TYPE, size_t size)
 ```
 
 The **TX_ZALLOC**() macro transactionally allocates a new zeroed object of given *TYPE* and assigns it a type number read from the typed *OID*. The allocation
 size is passed by *size* argument. If successful and called during **TX_STAGE_WORK** it returns a handle to the newly allocated object. Otherwise, stage changes
 to **TX_STAGE_ONABORT**, **OID_NULL** is returned, and *errno* is set appropriately.
+
+```c
+TX_XALLOC(TYPE, size_t size, int flags)
+```
+
+The **TX_XALLOC**() macro transactionally allocates a new object of given *TYPE* and assigns it a type number read from the typed *OID*. The allocation size is passed by *size* argument. The *flags* argument is a bitmask of values described in **pmemobj_tx_xalloc** section. If successful and called during **TX_STAGE_WORK** it returns a handle to the newly allocated object. Otherwise, stage changes to **TX_STAGE_ONABORT**, **OID_NULL** is returned, and *errno* is set appropriately.
 
 ```c
 TX_REALLOC(TOID o, size_t size)
