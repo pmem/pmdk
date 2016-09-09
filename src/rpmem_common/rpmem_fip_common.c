@@ -163,19 +163,23 @@ rpmem_fip_read_eq(struct fid_eq *eq, struct fi_eq_cm_entry *entry,
 	uint32_t event;
 	struct fi_eq_err_entry err;
 
-	sret = fi_eq_sread(eq, &event, entry, sizeof(*entry), -1, 0);
-	if (timeout != -1 && sret == -FI_ETIMEDOUT)
+	sret = fi_eq_sread(eq, &event, entry, sizeof(*entry), timeout, 0);
+	if (timeout != -1 && sret == -FI_ETIMEDOUT) {
+		errno = ETIMEDOUT;
 		return 1;
+	}
 
 	if (sret < 0 || (size_t)sret != sizeof(*entry)) {
 		ret = (int)sret;
 
 		sret = fi_eq_readerr(eq, &err, 0);
 		if (sret < 0) {
+			errno = EIO;
 			RPMEMC_LOG(ERR, "error reading from event queue: "
 				"cannot read error from event queue: %s",
 				fi_strerror((int)sret));
 		} else {
+			errno = -err.prov_errno;
 			RPMEMC_LOG(ERR, "error reading from event queue: %s",
 					fi_eq_strerror(eq, err.prov_errno,
 						NULL, NULL, 0));
@@ -185,6 +189,7 @@ rpmem_fip_read_eq(struct fid_eq *eq, struct fi_eq_cm_entry *entry,
 	}
 
 	if (event != exp_event || entry->fid != exp_fid) {
+		errno = EIO;
 		RPMEMC_LOG(ERR, "unexpected event received (%u) "
 				"expected (%u)%s", event, exp_event,
 				entry->fid != exp_fid ?
