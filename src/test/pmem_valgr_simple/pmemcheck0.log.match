@@ -9,7 +9,7 @@
 ==$(N)== Stores not made persistent properly:
 ==$(N)== [0]    at 0x$(X): main (pmem_valgr_simple.c:$(N))
 ==$(N)== 	Address: 0x$(X)	size: 4	state: DIRTY
-==$(N)== [1]    at 0x$(X): $(nW)memset ($(*))
+==$(N)== [1]    at 0x$(X): $(nW)memset$(nW) ($(*))
 ==$(N)==    by 0x$(X): main (pmem_valgr_simple.c:$(N))
 ==$(N)== 	Address: 0x$(X)	size: 8	state: DIRTY
 ==$(N)== [2]    at 0x$(X): main (pmem_valgr_simple.c:$(N))
