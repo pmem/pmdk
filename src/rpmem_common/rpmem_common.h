@@ -90,6 +90,8 @@ enum rpmem_persist_method {
 	MAX_RPMEM_PM,
 };
 
+const char *rpmem_persist_method_to_str(enum rpmem_persist_method pm);
+
 /*
  * rpmem_provider -- supported providers
  */

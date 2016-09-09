@@ -109,6 +109,23 @@ rpmem_xread(int fd, void *buf, size_t len, int flags)
 	return 0;
 }
 
+static const char *pm2str[MAX_RPMEM_PM] = {
+	[RPMEM_PM_APM] = "Applicance Persistency Method",
+	[RPMEM_PM_GPSPM] = "General Purpose Server Persistency Method",
+};
+
+/*
+ * rpmem_persist_method_to_str -- convert enum rpmem_persist_method to string
+ */
+const char *
+rpmem_persist_method_to_str(enum rpmem_persist_method pm)
+{
+	if (pm >= MAX_RPMEM_PM)
+		return NULL;
+
+	return pm2str[pm];
+}
+
 static const char *provider2str[MAX_RPMEM_PROV] = {
 	[RPMEM_PROV_LIBFABRIC_VERBS] = "verbs",
 	[RPMEM_PROV_LIBFABRIC_SOCKETS] = "sockets",

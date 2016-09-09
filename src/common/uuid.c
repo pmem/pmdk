@@ -44,7 +44,7 @@
  * util_uuid_to_string -- generate a string form of the uuid
  */
 int
-util_uuid_to_string(uuid_t u, char *buf)
+util_uuid_to_string(const uuid_t u, char *buf)
 {
 	int len; /* size that is returned from sprintf call */
 

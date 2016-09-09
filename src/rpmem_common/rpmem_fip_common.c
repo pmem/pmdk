@@ -286,3 +286,39 @@ rpmem_fip_max_nlanes(struct fi_info *fi, enum rpmem_persist_method pm,
 
 	return min(max_by_sq, max_by_rq);
 }
+
+/*
+ * rpmem_fip_print_info -- print some useful info about fabric interface
+ */
+void
+rpmem_fip_print_info(struct fi_info *fi)
+{
+	RPMEMC_LOG(INFO, "libfabric version: %s",
+			fi_tostr(fi, FI_TYPE_VERSION));
+
+	char *str = fi_tostr(fi, FI_TYPE_INFO);
+	char *buff = strdup(str);
+	if (!buff) {
+		RPMEMC_LOG(ERR, "!allocating string buffer for "
+				"libfabric interface information");
+		return;
+	}
+
+	RPMEMC_LOG(INFO, "libfabric interface info:");
+
+	char *nl = buff;
+	char *last = buff;
+	while (last != NULL) {
+		nl = strchr(last, '\n');
+		if (nl) {
+			*nl = '\0';
+			nl++;
+		}
+
+		RPMEMC_LOG(INFO, "%s", last);
+
+		last = nl;
+	}
+
+	free(buff);
+}

@@ -186,6 +186,8 @@ rpmem_ssh_open(const struct rpmem_target_info *info)
 		goto err_status;
 	}
 
+	RPMEM_LOG(INFO, "received status: %u", status);
+
 	free(user_at_node);
 
 	return rps;

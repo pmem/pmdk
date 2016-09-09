@@ -52,6 +52,7 @@
 #include "rpmemd_db.h"
 #include "pool_hdr.h"
 #include "util.h"
+#include "uuid.h"
 
 /*
  * rpmemd -- rpmem handle
@@ -67,6 +68,44 @@ struct rpmemd {
 	void (*persist)(const void *addr, size_t len); /* used for GPSPM */
 	int closing;		/* set when closing connection */
 };
+
+#ifdef DEBUG
+/*
+ * bool2str -- convert bool to yes/no string
+ */
+static inline const char *
+bool2str(int v)
+{
+	return v ? "yes" : "no";
+}
+#endif
+
+/*
+ * str_or_null -- return null string instead of NULL pointer
+ */
+static inline const char *
+_str(const char *str)
+{
+	if (!str)
+		return "(null)";
+	return str;
+}
+
+/*
+ * uuid2str -- convert uuid to string
+ */
+static const char *
+uuid2str(const uuid_t uuid)
+{
+	static char uuid_str[64] = {0, };
+
+	int ret = util_uuid_to_string(uuid, uuid_str);
+	if (ret != 0) {
+		return "(error)";
+	}
+
+	return uuid_str;
+}
 
 /*
  * rpmemd_get_nthreads -- returns number of threads to use for fabric
@@ -168,6 +207,48 @@ err_fip_init:
 }
 
 /*
+ * rpmemd_print_req_attr -- print request attributes
+ */
+static void
+rpmemd_print_req_attr(const struct rpmem_req_attr *req)
+{
+	RPMEMD_LOG(NOTICE, "\tpool descriptor: '%s'", _str(req->pool_desc));
+	RPMEMD_LOG(NOTICE, "\tpool size: %lu", req->pool_size);
+	RPMEMD_LOG(NOTICE, "\tnlanes: %u", req->nlanes);
+	RPMEMD_LOG(NOTICE, "\tprovider: %s",
+			rpmem_provider_to_str(req->provider));
+}
+
+/*
+ * rpmemd_print_pool_attr -- print pool attributes
+ */
+static void
+rpmemd_print_pool_attr(const struct rpmem_pool_attr *attr)
+{
+	RPMEMD_LOG(INFO, "\tsignature: '%s'", _str(attr->signature));
+	RPMEMD_LOG(INFO, "\tmajor: %u", attr->major);
+	RPMEMD_LOG(INFO, "\tcompat_features: 0x%x", attr->compat_features);
+	RPMEMD_LOG(INFO, "\tincompat_features: 0x%x", attr->incompat_features);
+	RPMEMD_LOG(INFO, "\tro_compat_features: 0x%x",
+			attr->ro_compat_features);
+	RPMEMD_LOG(INFO, "\tpoolset_uuid: %s", uuid2str(attr->poolset_uuid));
+	RPMEMD_LOG(INFO, "\tuuid: %s", uuid2str(attr->uuid));
+	RPMEMD_LOG(INFO, "\tnext_uuid: %s", uuid2str(attr->next_uuid));
+	RPMEMD_LOG(INFO, "\tprev_uuid: %s", uuid2str(attr->prev_uuid));
+}
+
+static void
+rpmemd_print_resp_attr(const struct rpmem_resp_attr *attr)
+{
+	RPMEMD_LOG(NOTICE, "\tport: %u", attr->port);
+	RPMEMD_LOG(NOTICE, "\trkey: 0x%lx", attr->rkey);
+	RPMEMD_LOG(NOTICE, "\traddr: 0x%lx", attr->raddr);
+	RPMEMD_LOG(NOTICE, "\tnlanes: %u", attr->nlanes);
+	RPMEMD_LOG(NOTICE, "\tpersist method: %s",
+			rpmem_persist_method_to_str(attr->persist_method));
+}
+
+/*
  * rpmemd_req_create -- handle create request
  */
 static int
@@ -176,6 +257,10 @@ rpmemd_req_create(struct rpmemd_obc *obc, void *arg,
 	const struct rpmem_pool_attr *pool_attr)
 {
 	RPMEMD_ASSERT(arg != NULL);
+	RPMEMD_LOG(NOTICE, "create request:");
+	rpmemd_print_req_attr(req);
+	RPMEMD_LOG(NOTICE, "pool attributes:");
+	rpmemd_print_pool_attr(pool_attr);
 
 	struct rpmemd *rpmemd = (struct rpmemd *)arg;
 
@@ -194,7 +279,6 @@ rpmemd_req_create(struct rpmemd_obc *obc, void *arg,
 	rpmemd->pool = rpmemd_db_pool_create(rpmemd->db,
 			req->pool_desc,
 			0, (struct rpmem_pool_attr *)pool_attr);
-
 	if (!rpmemd->pool) {
 		status = rpmemd_db_get_status(errno);
 		goto err_pool_create;
@@ -208,17 +292,24 @@ rpmemd_req_create(struct rpmemd_obc *obc, void *arg,
 	if (ret)
 		goto err_fip_init;
 
+	RPMEMD_LOG(NOTICE, "create request response: (status = %u)", status);
+	if (!status)
+		rpmemd_print_resp_attr(&resp);
 	ret = rpmemd_obc_create_resp(rpmemd->obc, status, &resp);
 	if (ret) {
 		err_send = 0;
 		goto err_create_resp;
 	}
 
+	RPMEMD_LOG(INFO, "waiting for in-band connection");
+
 	ret = rpmemd_fip_accept(rpmemd->fip);
 	if (ret) {
 		status = RPMEM_ERR_FATAL_CONN;
 		goto err_accept;
 	}
+
+	RPMEMD_LOG(NOTICE, "in-band connection established");
 
 	ret = rpmemd_fip_process_start(rpmemd->fip);
 	if (ret) {
@@ -253,6 +344,8 @@ rpmemd_req_open(struct rpmemd_obc *obc, void *arg,
 	const struct rpmem_req_attr *req)
 {
 	RPMEMD_ASSERT(arg != NULL);
+	RPMEMD_LOG(NOTICE, "open request:");
+	rpmemd_print_req_attr(req);
 
 	struct rpmemd *rpmemd = (struct rpmemd *)arg;
 
@@ -278,6 +371,9 @@ rpmemd_req_open(struct rpmemd_obc *obc, void *arg,
 		goto err_pool_open;
 	}
 
+	RPMEMD_LOG(NOTICE, "pool attributes:");
+	rpmemd_print_pool_attr(&pool_attr);
+
 	ret = rpmemd_check_pool(rpmemd, req, &status);
 	if (ret)
 		goto err_pool_check;
@@ -286,17 +382,25 @@ rpmemd_req_open(struct rpmemd_obc *obc, void *arg,
 	if (ret)
 		goto err_fip_init;
 
+	RPMEMD_LOG(NOTICE, "open request response: (status = %u)", status);
+	if (!status)
+		rpmemd_print_resp_attr(&resp);
+
 	ret = rpmemd_obc_open_resp(rpmemd->obc, status, &resp, &pool_attr);
 	if (ret) {
 		err_send = 0;
 		goto err_open_resp;
 	}
 
+	RPMEMD_LOG(INFO, "waiting for in-band connection");
+
 	ret = rpmemd_fip_accept(rpmemd->fip);
 	if (ret) {
 		status = RPMEM_ERR_FATAL_CONN;
 		goto err_accept;
 	}
+
+	RPMEMD_LOG(NOTICE, "in-band connection established");
 
 	ret = rpmemd_fip_process_start(rpmemd->fip);
 	if (ret) {
@@ -330,6 +434,7 @@ static int
 rpmemd_req_close(struct rpmemd_obc *obc, void *arg)
 {
 	RPMEMD_ASSERT(arg != NULL);
+	RPMEMD_LOG(NOTICE, "close request");
 
 	struct rpmemd *rpmemd = (struct rpmemd *)arg;
 
@@ -352,6 +457,7 @@ rpmemd_req_close(struct rpmemd_obc *obc, void *arg)
 		status = errno;
 	}
 
+	RPMEMD_LOG(NOTICE, "close request response (status = %u)", status);
 	ret = rpmemd_obc_close_resp(rpmemd->obc, status);
 	if (!ret)
 		rpmemd_fip_wait_close(rpmemd->fip, -1);
@@ -368,71 +474,93 @@ static struct rpmemd_obc_requests rpmemd_req = {
 	.close	= rpmemd_req_close,
 };
 
+/*
+ * rpmemd_print_info -- print basic info and configuration
+ */
+static void
+rpmemd_print_info(struct rpmemd *rpmemd)
+{
+	RPMEMD_LOG(NOTICE, "ssh connection: %s",
+			_str(getenv("SSH_CONNECTION")));
+	RPMEMD_LOG(NOTICE, "user: %s", _str(getenv("USER")));
+	RPMEMD_LOG(NOTICE, "configuration");
+	RPMEMD_LOG(NOTICE, "\tpool set directory: '%s'",
+			_str(rpmemd->config.poolset_dir));
+	RPMEMD_LOG(NOTICE, "\tpersist method: %s",
+			rpmem_persist_method_to_str(rpmemd->persist_method));
+	RPMEMD_LOG(NOTICE, "\tnumber of threads: %lu", rpmemd->nthreads);
+	RPMEMD_DBG("\tpersist APM: %s",
+		bool2str(rpmemd->config.persist_apm));
+	RPMEMD_DBG("\tpersist GPSPM: %s",
+		bool2str(rpmemd->config.persist_general));
+	RPMEMD_DBG("\tuse syslog: %s", bool2str(rpmemd->config.use_syslog));
+	RPMEMD_DBG("\tlog file: %s", _str(rpmemd->config.log_file));
+	RPMEMD_DBG("\tlog level: %s",
+			rpmemd_log_level_to_str(rpmemd->config.log_level));
+}
+
 int
 main(int argc, char *argv[])
 {
-	int ret;
 	util_init();
-
-	struct rpmemd_config config;
-	rpmemd_log_init(DAEMON_NAME, NULL, 0);
-	if (rpmemd_config_read(&config, argc, argv) != 0) {
-		ret = 1;
-		goto err_config;
-	}
-
-	rpmemd_log_level = config.log_level;
-	rpmemd_log_init(DAEMON_NAME, config.log_file, config.use_syslog);
-
-	RPMEMD_LOG(INFO, "%s version %s", DAEMON_NAME, SRCVERSION);
-
-	struct rpmemd_obc *obc = rpmemd_obc_init(STDIN_FILENO, STDOUT_FILENO);
-	if (!obc) {
-		RPMEMD_LOG(ERR, "out-of-band connection intitialization");
-		ret = 1;
-		goto err_obc;
-	}
 
 	struct rpmemd *rpmemd = calloc(1, sizeof(*rpmemd));
 	if (!rpmemd) {
 		RPMEMD_LOG(ERR, "!calloc");
-		ret = rpmemd_obc_status(obc, (uint32_t)errno);
-		if (ret)
-			RPMEMD_LOG(ERR, "writing status failed");
 		goto err_rpmemd;
 	}
 
+	rpmemd->obc = rpmemd_obc_init(STDIN_FILENO, STDOUT_FILENO);
+	if (!rpmemd->obc) {
+		RPMEMD_LOG(ERR, "out-of-band connection intitialization");
+		goto err_obc;
+	}
+
+	if (rpmemd_log_init(DAEMON_NAME, NULL, 0)) {
+		RPMEMD_LOG(ERR, "logging subsystem initialization failed");
+		goto err_log_init;
+	}
+
+	if (rpmemd_config_read(&rpmemd->config, argc, argv) != 0) {
+		RPMEMD_LOG(ERR, "reading configuration failed");
+		goto err_config;
+	}
+
+	rpmemd_log_level = rpmemd->config.log_level;
+	if (rpmemd_log_init(DAEMON_NAME, rpmemd->config.log_file,
+				rpmemd->config.use_syslog)) {
+		RPMEMD_LOG(ERR, "logging subsystem initialization"
+			" failed (%s, %d)", rpmemd->config.log_file,
+			rpmemd->config.use_syslog);
+		goto err_log_init_config;
+	}
+
+	RPMEMD_LOG(INFO, "%s version %s", DAEMON_NAME, SRCVERSION);
 	rpmemd->persist = pmem_persist;
-	rpmemd->persist_method = rpmemd_get_pm(&config);
+	rpmemd->persist_method = rpmemd_get_pm(&rpmemd->config);
 	rpmemd->nthreads = rpmemd_get_nthreads();
 	if (!rpmemd->nthreads) {
 		RPMEMD_LOG(ERR, "invalid number of threads -- '%lu'",
 				rpmemd->nthreads);
-		ret = rpmemd_obc_status(obc, (uint32_t)errno);
-		if (ret)
-			RPMEMD_LOG(ERR, "writing status failed");
 		goto err_nthreads;
 	}
 
-	rpmemd->db = rpmemd_db_init(config.poolset_dir, 0666);
+	rpmemd->db = rpmemd_db_init(rpmemd->config.poolset_dir, 0666);
 	if (!rpmemd->db) {
 		RPMEMD_LOG(ERR, "!pool set db initialization");
-		ret = rpmemd_obc_status(obc, (uint32_t)errno);
-		if (ret)
-			RPMEMD_LOG(ERR, "writing status failed");
 		goto err_db_init;
 	}
 
-	rpmemd->obc = obc;
-
-	ret = rpmemd_obc_status(obc, 0);
+	int ret = rpmemd_obc_status(rpmemd->obc, 0);
 	if (ret) {
 		RPMEMD_LOG(ERR, "writing status failed");
 		goto err_status;
 	}
 
+	rpmemd_print_info(rpmemd);
+
 	while (!ret) {
-		ret = rpmemd_obc_process(obc, &rpmemd_req, rpmemd);
+		ret = rpmemd_obc_process(rpmemd->obc, &rpmemd_req, rpmemd);
 		if (ret) {
 			RPMEMD_LOG(ERR, "out-of-band connection"
 					" process failed");
@@ -447,19 +575,24 @@ main(int argc, char *argv[])
 	rpmemd_db_fini(rpmemd->db);
 	free(rpmemd);
 	rpmemd_log_close();
-	rpmemd_config_free(&config);
+	rpmemd_config_free(&rpmemd->config);
 
 	return 0;
 err:
 err_status:
+	rpmemd_db_fini(rpmemd->db);
 err_db_init:
 err_nthreads:
+err_log_init_config:
+	rpmemd_config_free(&rpmemd->config);
+err_config:
+	rpmemd_log_close();
+err_log_init:
+	if (rpmemd_obc_status(rpmemd->obc, (uint32_t)errno))
+		RPMEMD_LOG(ERR, "writing status failed");
+	rpmemd_obc_fini(rpmemd->obc);
+err_obc:
 	free(rpmemd);
 err_rpmemd:
-	rpmemd_obc_fini(obc);
-err_obc:
-	rpmemd_log_close();
-	rpmemd_config_free(&config);
-err_config:
-	return ret;
+	return 1;
 }
