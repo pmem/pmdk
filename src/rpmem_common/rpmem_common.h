@@ -128,9 +128,9 @@ struct rpmem_resp_attr {
 #define RPMEM_HAS_USER		0x1
 #define RPMEM_HAS_SERVICE	0x2
 #define RPMEM_FLAGS_USE_IPV4	0x4
-#define RPMEM_MAX_USER		32	/* see useradd(8) */
-#define RPMEM_MAX_NODE		255	/* see gethostname(2) */
-#define RPMEM_MAX_SERVICE	NI_MAXSERV
+#define RPMEM_MAX_USER		(32 + 1)   /* see useradd(8) + 1 for '\0' */
+#define RPMEM_MAX_NODE		(255 + 1)  /* see gethostname(2) + 1 for '\0' */
+#define RPMEM_MAX_SERVICE	(NI_MAXSERV + 1)  /* + 1 for '\0' */
 
 struct rpmem_target_info {
 	char user[RPMEM_MAX_USER];
