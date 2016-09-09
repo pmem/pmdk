@@ -714,7 +714,7 @@ valid after closing and reopening the pool. For this reason, if an object contai
 linked data structure - it shall never use memory address of an object, but its *OID*.
 
 ```c
-void pmemobj_direct(PMEMoid oid);
+void *pmemobj_direct(PMEMoid oid);
 ```
 
 The **pmemobj_direct**() function returns a pointer to an object represented by *oid*. If **OID_NULL** is passed as an argument, function returns NULL.
