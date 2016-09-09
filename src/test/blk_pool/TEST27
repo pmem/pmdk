@@ -32,7 +32,7 @@
 #
 
 #
-# src/test/blk_pool/TEST26 -- unit test for pmemblk_open
+# src/test/blk_pool/TEST27 -- unit test for pmemblk_open
 #
 export UNITTEST_NAME=blk_pool/TEST27
 export UNITTEST_NUM=27
