@@ -54,6 +54,7 @@ $Env:NON_PMEM_IS_PMEM = $true
 . ..\unittest\unittest.ps1
 
 require_fs_type none
+require_build_type debug
 
 setup
 
