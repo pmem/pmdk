@@ -64,6 +64,9 @@ const int num_threads = 30;
 /* timeout for try_lock_for and try_lock_until methods */
 const auto timeout = std::chrono::milliseconds(100);
 
+/* loop trylock_for|until tests */
+bool loop = false;
+
 /*
  * increment_pint -- (internal) test the mutex with an std::lock_guard
  */
@@ -121,15 +124,18 @@ trylock_for_test(void *arg)
 	using clk = std::chrono::steady_clock;
 	auto proot = static_cast<nvobj::persistent_ptr<struct root> *>(arg);
 
-	auto t1 = clk::now();
-	if ((*proot)->pmutex.try_lock_for(timeout)) {
-		((*proot)->counter)++;
-		(*proot)->pmutex.unlock();
-	} else {
-		auto t2 = clk::now();
-		auto t_diff = t2 - t1;
-		UT_ASSERT(t_diff >= timeout);
-	}
+	do {
+		auto t1 = clk::now();
+		if ((*proot)->pmutex.try_lock_for(timeout)) {
+			((*proot)->counter)++;
+			(*proot)->pmutex.unlock();
+			break;
+		} else {
+			auto t2 = clk::now();
+			auto t_diff = t2 - t1;
+			UT_ASSERT(t_diff >= timeout);
+		}
+	} while (loop);
 
 	return nullptr;
 }
@@ -143,15 +149,18 @@ trylock_until_test(void *arg)
 	using clk = std::chrono::steady_clock;
 	auto proot = static_cast<nvobj::persistent_ptr<struct root> *>(arg);
 
-	auto t1 = clk::now();
-	if ((*proot)->pmutex.try_lock_until(t1 + timeout)) {
-		--((*proot)->counter);
-		(*proot)->pmutex.unlock();
-	} else {
-		auto t2 = clk::now();
-		auto t_diff = t2 - t1;
-		UT_ASSERT(t_diff >= timeout);
-	}
+	do {
+		auto t1 = clk::now();
+		if ((*proot)->pmutex.try_lock_until(t1 + timeout)) {
+			--((*proot)->counter);
+			(*proot)->pmutex.unlock();
+			break;
+		} else {
+			auto t2 = clk::now();
+			auto t_diff = t2 - t1;
+			UT_ASSERT(t_diff >= timeout);
+		}
+	} while (loop);
 
 	return nullptr;
 }
@@ -203,11 +212,16 @@ main(int argc, char *argv[])
 	timed_mtx_test(pop, trylock_test);
 	UT_ASSERTeq(pop.get_root()->counter, num_threads);
 
+	/* loop the next two tests */
+	loop = true;
+
 	timed_mtx_test(pop, trylock_until_test);
 	UT_ASSERTeq(pop.get_root()->counter, 0);
 
 	timed_mtx_test(pop, trylock_for_test);
 	UT_ASSERTeq(pop.get_root()->counter, num_threads);
+
+	loop = false;
 
 	pop.get_root()->pmutex.lock();
 
