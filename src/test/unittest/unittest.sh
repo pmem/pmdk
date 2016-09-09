@@ -1404,18 +1404,16 @@ function copy_files_from_node() {
 	[ $# -eq 0 ] &&\
 		echo "error: copy_files_from_node(): no files provided" >&2 && exit 1
 
-	# copy all required files
+
+	# compress required files, copy and extract
 	local REMOTE_DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
-
-	if [ $# -ne 1 ]; then
-		FILE_STRING=$(printf ",%s" "$@")
-		FILE_STRING=\{${FILE_STRING:1}\}
-	else
-		FILE_STRING=$1
-	fi
-
-	run_command scp $SCP_OPTS ${NODE[$N]}:$REMOTE_DIR/$FILE_STRING $DEST_DIR
-
+	local temp_file=node_${N}_temp_file.tar
+	run_command ssh $SSH_OPTS ${NODE[$N]} "cd $REMOTE_DIR && tar -czf $temp_file $@"
+	run_command scp $SCP_OPTS ${NODE[$N]}:$REMOTE_DIR/$temp_file $DIR
+	cd $DIR \
+		&& tar -xzf $temp_file \
+		&& rm $temp_file \
+		&& cd - > /dev/null
 	return 0
 }
 

@@ -94,7 +94,12 @@ create_holey_file_on_node 1 8M ${NODE_DIRS[1]}/$TEST_FILE_LOCAL
 create_holey_file_on_node 0 9M ${NODE_DIRS[0]}/$TEST_FILE_REMOTE
 
 # execute test
-expect_normal_exit run_on_node 1 ./$EXE$EXESUFFIX $TEST_SET_LOCAL
+# XXX: --big-alloc is required because remote replication on Travis is too slow
+# to replicate a great number of allocations in assumed timeout. --big-alloc
+# will be obsolete when either Travis speed up significantly or remote
+# replication would require less remote operations to replicate the same number
+# of allocations.
+expect_normal_exit run_on_node 1 ./$EXE$EXESUFFIX $TEST_SET_LOCAL --big-alloc
 
 check
 
