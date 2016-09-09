@@ -370,7 +370,13 @@ function expect_normal_exit {
     sv -Name command $args[0]
 
     foreach ($param in $Args[1 .. $Args.Count]) {
-        [string]$params += -join(" '", $param, "' ")
+	if ($param -is [array]) {
+	    foreach ($param_entry in $param) {
+		[string]$params += -join(" '", $param_entry, "' ")
+	    }
+	} else {
+            [string]$params += -join(" '", $param, "' ")
+	}
     }
 
     Invoke-Expression "$command $params"
