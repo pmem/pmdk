@@ -3,7 +3,7 @@ layout: manual
 Content-Style: 'text/css'
 title: libpmemobj(3)
 header: NVM Library
-date: pmemobj API version 1.0.5
+date: pmemobj API version 1.0.6
 ...
 
 [comment]: <> (Copyright 2016, Intel Corporation)
@@ -182,6 +182,7 @@ size_t pmemobj_alloc_usable_size(PMEMoid oid);
 PMEMobjpool *pmemobj_pool_by_oid(PMEMoid oid);
 PMEMobjpool *pmemobj_pool_by_ptr(const void *addr);
 void *pmemobj_direct(PMEMoid oid);
+PMEMoid pmemobj_oid(const void *addr);
 uint64_t pmemobj_type_num(PMEMoid oid);
 
 POBJ_NEW(PMEMobjpool *pop, TOID *oidp, TYPE,
@@ -718,6 +719,21 @@ void *pmemobj_direct(PMEMoid oid);
 ```
 
 The **pmemobj_direct**() function returns a pointer to an object represented by *oid*. If **OID_NULL** is passed as an argument, function returns NULL.
+
+```c
+PMEMoid pmemobj_oid(const void *addr);
+```
+The **pmemobj_oid**() function returns a PMEMoid to an object pointed to by *addr*. If *addr* is not from within a pmemobj pool, **OID_NULL** is returned. If *addr* is not the start of an object (does not point to the beginning of a valid allocation), the resulting PMEMoid cannot be used for:
++ **pmemobj_tx_free**
++ **pmemobj_tx_realloc**
++ **pmemobj_tx_zrealloc**
++ **pmemobj_next**
++ **pmemobj_alloc_usable_size**
++ **pmemobj_type_num**
++ **pmemobj_free**
++ **pmemobj_realloc**
++ **pmemobj_zrealloc**
+
 
 ```c
 uint64_t pmemobj_type_num(PMEMoid oid);
