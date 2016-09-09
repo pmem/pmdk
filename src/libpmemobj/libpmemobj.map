@@ -62,6 +62,7 @@ LIBPMEMOBJ_1.0 {
 		pmemobj_pool_by_oid;
 		pmemobj_pool_by_ptr;
 		pmemobj_direct;
+		pmemobj_oid;
 		pmemobj_alloc;
 		pmemobj_zalloc;
 		pmemobj_realloc;
