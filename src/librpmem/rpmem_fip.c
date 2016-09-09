@@ -611,7 +611,7 @@ rpmem_fip_persist_apm(struct rpmem_fip *fip, size_t offset,
 	/* WRITE for requested memory region */
 	ret = rpmem_fip_writemsg(fip->ep, &lanep->write, laddr, len, raddr);
 	if (unlikely(ret)) {
-		RPMEM_FI_ERR((int)ret, "RMA write");
+		RPMEM_FI_ERR(ret, "RMA write");
 		return ret;
 	}
 
@@ -619,12 +619,18 @@ rpmem_fip_persist_apm(struct rpmem_fip *fip, size_t offset,
 	ret = rpmem_fip_readmsg(fip->ep, &lanep->read, &fip->raw_buff,
 			sizeof(fip->raw_buff), raddr);
 	if (unlikely(ret)) {
-		RPMEM_FI_ERR((int)ret, "RMA read");
-		return (int)ret;
+		RPMEM_FI_ERR(ret, "RMA read");
+		return ret;
 	}
 
 	/* wait for READ completion */
-	return rpmem_fip_lane_wait(&lanep->lane, FI_READ);
+	ret = rpmem_fip_lane_wait(&lanep->lane, FI_READ);
+	if (unlikely(ret)) {
+		RPMEM_LOG(ERR, "waiting for READ completion failed");
+		return ret;
+	}
+
+	return ret;
 }
 
 /*
@@ -824,8 +830,12 @@ rpmem_fip_process_gpspm(struct rpmem_fip *fip, void *context, uint64_t flags)
 		struct rpmem_msg_persist_resp *msg_resp =
 			rpmem_fip_msg_get_pres(resp);
 
-		if (unlikely(msg_resp->lane >= fip->nlanes))
+		if (unlikely(msg_resp->lane >= fip->nlanes)) {
+			RPMEM_LOG(ERR, "lane number received (%lu) is greater "
+					"than maximum lane number (%u)",
+					msg_resp->lane, fip->nlanes - 1);
 			return -1;
+		}
 
 		struct rpmem_fip_lane *lanep =
 			&fip->lanes.gpspm[msg_resp->lane].lane;
@@ -888,12 +898,19 @@ rpmem_fip_persist_gpspm(struct rpmem_fip *fip, size_t offset,
 
 	ret = rpmem_fip_sendmsg(fip->ep, &gpspm->send);
 	if (unlikely(ret)) {
-		RPMEM_FI_ERR((int)ret, "MSG send");
-		return (int)ret;
+		RPMEM_FI_ERR(ret, "MSG send");
+		return ret;
 	}
 
 	/* wait for persist operation completion */
-	return rpmem_fip_lane_wait(&lanep->lane, FI_RECV);
+	ret = rpmem_fip_lane_wait(&lanep->lane, FI_RECV);
+	if (unlikely(ret)) {
+		RPMEM_LOG(ERR, "waiting for completion of persist operation"
+				" failed");
+		return ret;
+	}
+
+	return ret;
 }
 
 /*
@@ -1014,8 +1031,10 @@ rpmem_fip_process(struct rpmem_fip *fip)
 			/* persist operation */
 			ret = fip->ops->process(fip, comp->op_context,
 					comp->flags);
-			if (unlikely(ret))
+			if (unlikely(ret)) {
+				RPMEM_LOG(ERR, "persist operation failed");
 				goto err;
+			}
 		}
 	}
 
@@ -1242,7 +1261,11 @@ rpmem_fip_persist(struct rpmem_fip *fip, size_t offset, size_t len,
 		return -1;
 	}
 
-	return fip->ops->persist(fip, offset, len, lane);
+	int ret = fip->ops->persist(fip, offset, len, lane);
+	if (ret)
+		ERR("persist operation failed");
+
+	return ret;
 }
 
 /*
