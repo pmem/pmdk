@@ -212,7 +212,7 @@ rpmem_target_parse(const char *target)
 	if (tmp) {
 		*tmp = '\0';
 		info->flags |= RPMEM_HAS_USER;
-		strncpy(info->user, str, sizeof(info->user));
+		strncpy(info->user, str, sizeof(info->user) - 1);
 		tmp++;
 	} else {
 		tmp = str;
@@ -228,7 +228,7 @@ rpmem_target_parse(const char *target)
 		}
 
 		*end = '\0';
-		strncpy(info->node, tmp, sizeof(info->node));
+		strncpy(info->node, tmp, sizeof(info->node) - 1);
 		tmp = end + 1;
 
 		end = strchr(tmp, ':');
@@ -236,7 +236,7 @@ rpmem_target_parse(const char *target)
 			*end = '\0';
 			end++;
 			info->flags |= RPMEM_HAS_SERVICE;
-			strncpy(info->service, end, sizeof(info->service));
+			strncpy(info->service, end, sizeof(info->service) - 1);
 		}
 	} else {
 		char *first = strchr(tmp, ':');
@@ -248,11 +248,11 @@ rpmem_target_parse(const char *target)
 				first++;
 				info->flags |= RPMEM_HAS_SERVICE;
 				strncpy(info->service, first,
-						sizeof(info->service));
+						sizeof(info->service) - 1);
 			}
 		}
 
-		strncpy(info->node, tmp, sizeof(info->node));
+		strncpy(info->node, tmp, sizeof(info->node) - 1);
 	}
 
 	if (*info->node == '\0') {
@@ -261,6 +261,11 @@ rpmem_target_parse(const char *target)
 	}
 
 	free(str);
+
+	/* make sure that user, node and service are NULL-terminated */
+	info->user[sizeof(info->user) - 1] = '\0';
+	info->node[sizeof(info->node) - 1] = '\0';
+	info->service[sizeof(info->service) - 1] = '\0';
 
 	return info;
 err_node:
