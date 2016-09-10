@@ -58,7 +58,7 @@ expect_normal_exit ./traces$EXESUFFIX
 	echo "error: ./custom_file.log-PID not found"
 	exit 1
 }
-mv ./custom_file.log-* custom_file.log
-../match custom_file.log.match
+mv ./custom_file.log-* custom_file$UNITTEST_NUM.log
+check
 
 pass

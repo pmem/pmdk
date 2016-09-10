@@ -1,6 +1,6 @@
-#!/bin/bash -e
 #
 # Copyright 2014-2016, Intel Corporation
+# Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,21 +32,41 @@
 #
 
 #
-# src/test/traces/TEST2 -- unit test for traces
+# src\test\traces\TEST0 -- unit test for traces
 #
-export UNITTEST_NAME=traces/TEST2
-export UNITTEST_NUM=2
+[CmdletBinding(PositionalBinding=$false)]
+Param(
+    [alias("d")]
+    $DIR = ""
+    )
+$Env:UNITTEST_NAME = "traces\TEST0"
+$Env:UNITTEST_NUM = "0"
+# XXX:  bash has a few calls to tools that we don't have on
+# Windows (yet) that set PMEM_IS_PMEM and NON_PMEM_IS_PMEM based
+# on their output
+$Env:PMEM_IS_PMEM = $true
+$Env:NON_PMEM_IS_PMEM = $true
 
 # standard unit test setup
-. ../unittest/unittest.sh
+. ..\unittest\unittest.ps1
 
 require_fs_type none
 require_build_type debug
 
 setup
 
-export TRACE_LOG_LEVEL=1
-expect_normal_exit ./traces$EXESUFFIX 2>redir_stderr$UNITTEST_NUM.log
+rm -Force .\custom_file.log-*
+
+$Env:TRACE_LOG_LEVEL = "4"
+$Env:TRACE_LOG_FILE = ".\custom_file.log-"
+expect_normal_exit $Env:EXE_DIR\traces$Env:EXESUFFIX
+
+# check results
+if (-not (Test-Path .\custom_file.log-*)) {
+	echo "error: .\custom_file.log-PID not found"
+	exit 1
+}
+mv -Force .\custom_file.log-* custom_file$Env:UNITTEST_NUM.log
 
 check
 
