@@ -78,6 +78,19 @@ ut_free(const char *file, int line, const char *func, void *ptr)
 }
 
 /*
+ * ut_aligned_free -- wrapper for aligned memory free
+ */
+void
+ut_aligned_free(const char *file, int line, const char *func, void *ptr)
+{
+#ifndef _WIN32
+	free(ptr);
+#else
+	_aligned_free(ptr);
+#endif
+}
+
+/*
  * ut_realloc -- a realloc that cannot return NULL
  */
 void *
@@ -108,17 +121,6 @@ ut_strdup(const char *file, int line, const char *func,
 	return retval;
 }
 
-#ifndef _WIN32
-/*
- * ut_pagealignmalloc -- like malloc but page-aligned memory
- */
-void *
-ut_pagealignmalloc(const char *file, int line, const char *func,
-    size_t size)
-{
-	return ut_memalign(file, line, func, (size_t)Ut_pagesize, size);
-}
-
 /*
  * ut_memalign -- like malloc but page-aligned memory
  */
@@ -128,11 +130,30 @@ ut_memalign(const char *file, int line, const char *func, size_t alignment,
 {
 	void *retval;
 
+#ifndef _WIN32
 	if ((errno = posix_memalign(&retval, alignment, size)) != 0)
 		ut_fatal(file, line, func,
 		    "!memalign %zu bytes (%zu alignment)", size, alignment);
+#else
+	retval = _aligned_malloc(size, alignment);
+	if (!retval) {
+		ut_fatal(file, line, func,
+			"!memalign %zu bytes (%zu alignment)", size, alignment);
+	}
+#endif
 
 	return retval;
+}
+
+#ifndef _WIN32
+/*
+ * ut_pagealignmalloc -- like malloc but page-aligned memory
+ */
+void *
+ut_pagealignmalloc(const char *file, int line, const char *func,
+    size_t size)
+{
+	return ut_memalign(file, line, func, (size_t)Ut_pagesize, size);
 }
 
 /*
