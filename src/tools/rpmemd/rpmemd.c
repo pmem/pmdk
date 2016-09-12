@@ -504,6 +504,9 @@ main(int argc, char *argv[])
 {
 	util_init();
 
+	int send_status = 1;
+	int ret = 1;
+
 	struct rpmemd *rpmemd = calloc(1, sizeof(*rpmemd));
 	if (!rpmemd) {
 		RPMEMD_LOG(ERR, "!calloc");
@@ -551,7 +554,23 @@ main(int argc, char *argv[])
 		goto err_db_init;
 	}
 
-	int ret = rpmemd_obc_status(rpmemd->obc, 0);
+	if (rpmemd->config.rm_poolset) {
+		RPMEMD_LOG(INFO, "removing '%s'",
+				rpmemd->config.rm_poolset);
+		if (rpmemd_db_pool_remove(rpmemd->db,
+				rpmemd->config.rm_poolset)) {
+			RPMEMD_LOG(ERR, "removing '%s' failed",
+					rpmemd->config.rm_poolset);
+		} else {
+			RPMEMD_LOG(NOTICE, "removed '%s'",
+					rpmemd->config.rm_poolset);
+			ret = 0;
+		}
+		send_status = 0;
+		goto out_rm;
+	}
+
+	ret = rpmemd_obc_status(rpmemd->obc, 0);
 	if (ret) {
 		RPMEMD_LOG(ERR, "writing status failed");
 		goto err_status;
@@ -580,6 +599,7 @@ main(int argc, char *argv[])
 	return 0;
 err:
 err_status:
+out_rm:
 	rpmemd_db_fini(rpmemd->db);
 err_db_init:
 err_nthreads:
@@ -588,11 +608,13 @@ err_log_init_config:
 err_config:
 	rpmemd_log_close();
 err_log_init:
-	if (rpmemd_obc_status(rpmemd->obc, (uint32_t)errno))
-		RPMEMD_LOG(ERR, "writing status failed");
+	if (send_status) {
+		if (rpmemd_obc_status(rpmemd->obc, (uint32_t)errno))
+			RPMEMD_LOG(ERR, "writing status failed");
+	}
 	rpmemd_obc_fini(rpmemd->obc);
 err_obc:
 	free(rpmemd);
 err_rpmemd:
-	return 1;
+	return ret;
 }
