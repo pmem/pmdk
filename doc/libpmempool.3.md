@@ -179,6 +179,8 @@ with exactly the same size) as the source *poolset*. It is valid only in case
 *path* is a *poolset*. It indicates backup will be performed in a form
 described by the *backup_path* *poolset*.
 
+Backup is supported only if the source *poolset* has no defined replicas.
+
 This is an example of a *check context* initialization:
 
 ```c
