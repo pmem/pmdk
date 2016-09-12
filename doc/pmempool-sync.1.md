@@ -1,9 +1,9 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: pmempool(1)
+title: pmempool-sync(1)
 header: NVM Library
-date: pmem Tools version 1.0.2
+date: pmem Tools version 1.0.1
 ...
 
 [comment]: <> (Copyright 2016, Intel Corporation)
@@ -33,86 +33,44 @@ date: pmem Tools version 1.0.2
 [comment]: <> ((INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE)
 [comment]: <> (OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.)
 
-[comment]: <> (pmempool.1 -- man page for pmempool)
+[comment]: <> (pmempool-sync.1 -- man page for pmempool-sync)
 
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
-[OPTIONS](#options)<br />
-[COMMANDS](#commands)<br />
+[EXAMPLES](#examples)<br />
 [SEE ALSO](#see-also)<br />
-
 
 # NAME #
 
-**pmempool** -- Persistent Memory Pool Management Tool
-
+**pmempool-sync** -- Synchronize replicas or their parts within a poolset.
 
 # SYNOPSIS #
 
 ```
-$ pmempool [--help] [--version] <command> [<args>]
+pmempool sync [options] <poolset_file>
 ```
 
 # DESCRIPTION #
 
-The **pmempool** is a management tool for *Persistent Memory* pool files
-created by **NVML** libraries.
+The **pmempool sync** command synchronizes data between replicas within
+a poolset. It checks if metadata of all replicas in a poolset
+are consistent, i.e. all parts are healthy, and if any of them is not,
+the corrupted or missing parts are recreated and filled with data from one of
+the healthy replicas.
 
-The main purpose of **pmempool** is to provide a user with a set of utilities
-for off-line analysis and manipulation of pools created by pmem libraries.
-The pmempool is a generic command which consists of subcommands for specific
-purposes. Some of subcommands are required to work *without* any impact
-on processed pool, but some of them *may* create a new or modify an existing one.
+##### Available options: #####
 
-The **pmempool** may be useful for troubleshooting by system administrators
-and for software developers who work on applications based on **NVM** Library.
-The latter may find these tools useful for testing and debugging purposes also.
+`-d, --dry-run`
 
-
-# OPTIONS #
-
-`-V, --version`
-
-Prints the version of **pmempool**.
+: Enable dry run mode. In this mode no changes are applied, only check for
+viability of synchronization.
 
 `-h, --help`
 
-Prints synopsis and list of commands.
-
-
-# COMMANDS #
-
-Currently there is a following set of commands available:
-
-+ **pmempool-info**(1) -
-Prints information and statistics in human-readable format about specified pool.
-
-+ **pmempool-check**(1) -
-Checks pool's consistency and repairs pool if it is not consistent.
-
-+ **pmempool-create**(1) -
-Creates a pool of specified type with additional properties specific for this type of pool.
-
-+ **pmempool-dump**(1) -
-Dumps usable data from pool in hexadecimal or binary format.
-
-+ **pmempool-rm**(1)
-Removes pool file or all pool files listed in poolset configuration file.
-
-+ **pmempool-convert**(1) -
-Updates the pool to the latest available layout version.
-
-+ **pmempool-sync**(1) -
-Synchronizes replicas within a poolset.
-
-+ **pmempool-transform**(1) -
-Modifies internal structure of a poolset.
-
-In order to get more information about specific *command* you can use **pmempool help <command>.**
+: Display help message and exit.
 
 
 # SEE ALSO #
 
-**libpmemlog**(3), **libpmemblk**(3), **libpmemobj**(3)
-and **<http://pmem.io>**
+**libpmemblk(3)**, **libpmemlog(3)**, **pmempool(1)**

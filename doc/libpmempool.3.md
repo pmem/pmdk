@@ -39,6 +39,7 @@ date: pmempool API version 1.0.2
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
 [POOL CHECKING FUNCTIONS](#pool-checking-functions)<br />
+[POOLSET SYNCHRONIZATION AND TRANSFORMATION](#poolset-synchronization-and-transformation)<br />
 [LIBRARY API VERSIONING](#library-api-versioning-1)<br />
 [DEBUGGING AND ERROR HANDLING](#debugging-and-error-handling)<br />
 [EXAMPLE](#example)<br />
@@ -67,11 +68,19 @@ struct pmempool_check_status *pmempool_check(PMEMpoolcheck *ppc);
 enum pmempool_check_result pmempool_check_end(PMEMpoolcheck *ppc);
 ```
 
+##### Poolset synchronization and transformation: #####
+
+```c
+int pmempool_sync(const char *poolset_file, unsigned flags);
+
+int pmempool_transform(const char *poolset_file_src, const char *poolset_file_dst,
+	unsigned flags);
+```
+
 ##### Library API versioning: #####
 
 ```c
-const char *pmempool_check_version(
-	unsigned major_required,
+const char *pmempool_check_version(unsigned major_required,
 	unsigned minor_required);
 ```
 
@@ -265,6 +274,76 @@ return one of the following values:
   can not be repaired
 + **PMEMPOOL_CHECK_RESULT_ERROR** - the *pool* has errors or the check
   encountered issue
+
+
+# POOLSET SYNCHRONIZATION AND TRANSFORMATION #
+
+### POOLSET SYNC ###
+
+```c
+int pmempool_sync(const char *poolset_file, unsigned flags);
+```
+
+The **pmempool_sync**() function synchronizes data between replicas within
+a poolset.
+
+**pmempool_sync**() accepts two arguments:
+
+* *poolset_file* - a path to a poolset file,
+
+* *flags* - a combination of flags (ORed) which modify the way of synchronization.
+
+The following flags are available:
+
+* **PMEMPOOL_DRY_RUN** - do not apply changes, only check for viability of synchronization.
+
+**pmempool_sync**() function checks if metadata of all replicas in a poolset
+are consistent, i.e. all parts are healthy, and if any of them is not,
+the corrupted or missing parts are recreated and filled with data from one of
+the healthy replicas.
+
+The function returns either 0 on succcess or -1 in case of error
+with proper errno set accordingly.
+
+
+### POOLSET TRANSFORM ###
+
+```c
+int pmempool_transform(const char *poolset_file_src, const char *poolset_file_dst,
+	unsigned flags);
+```
+
+The **pmempool_transform**() function modifies internal structure of a poolset.
+It supports the following operations:
+
+* adding replicas,
+
+* removing replicas.
+
+Currently these operations are allowed only for **libpmemobj(3)** pools.
+
+
+**pmempool_transform**() accepts three arguments:
+
+* *poolset_file_src* - a path to a poolset file which defines the source
+poolset to be changed,
+
+* *poolset_file_dst* - a path to a poolset file which defines the target
+structure of the poolset,
+
+* *flags* - a combination of flags (ORed) which modify the way of synchronization.
+
+The following flags are available:
+
+* **PMEMPOOL_DRY_RUN** - do not apply changes, only check for viability of synchronization.
+
+When adding or deleting replica, the two poolset files can differ only in the
+definitions of replicas which are to be added or deleted.
+Also, to add a replica it is necessary for its size to match or exceed the poolset
+size. Otherwise the whole operation fails and no changes are applied.
+
+The function returns either 0 on succcess or -1 in case of error
+with proper errno set accordingly.
 
 
 # LIBRARY API VERSIONING #

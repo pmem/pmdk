@@ -658,6 +658,8 @@ usr/share/man/man1/pmempool-dump.1.gz
 usr/share/man/man1/pmempool-check.1.gz
 usr/share/man/man1/pmempool-rm.1.gz
 usr/share/man/man1/pmempool-convert.1.gz
+usr/share/man/man1/pmempool-sync.1.gz
+usr/share/man/man1/pmempool-transform.1.gz
 etc/bash_completion.d/pmempool.sh
 EOF
 
