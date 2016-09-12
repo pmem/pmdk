@@ -181,7 +181,7 @@ err_pool_set:
 static int
 pool_set_map(const char *fname, struct pool_set **poolset, int rdonly)
 {
-	if (util_is_poolset(fname) != 1)
+	if (util_is_poolset_file(fname) != 1)
 		return util_pool_open_nocheck(poolset, fname, rdonly);
 
 	struct pool_hdr hdr;
@@ -272,7 +272,8 @@ pool_params_parse(const PMEMpoolcheck *ppc, struct pool_params *params,
 	int ret = 0;
 
 	params->type = POOL_TYPE_UNKNOWN;
-	params->is_poolset = is_btt ? false : util_is_poolset(ppc->path) == 1;
+	params->is_poolset = is_btt ?
+			false : util_is_poolset_file(ppc->path) == 1;
 	int fd = util_file_open(ppc->path, NULL, 0, O_RDONLY);
 	if (fd < 0)
 		return -1;
@@ -842,6 +843,35 @@ pool_hdr_get_type(const struct pool_hdr *hdrp)
 		return POOL_TYPE_OBJ;
 	else
 		return POOL_TYPE_UNKNOWN;
+}
+
+/*
+ * pool_set_type -- get pool type of a poolset
+ */
+enum pool_type
+pool_set_type(struct pool_set *set)
+{
+	struct pool_hdr hdr;
+
+	/* open the first part file to read the pool header values */
+	const struct pool_set_part *part = &PART(REP(set, 0), 0);
+	int fdp = util_file_open(part->path, NULL, 0, O_RDONLY);
+	if (fdp < 0) {
+		ERR("cannot open poolset part file");
+		return POOL_TYPE_UNKNOWN;
+	}
+
+	/* read the pool header from first pool set file */
+	if (read(fdp, &hdr, sizeof(hdr)) != sizeof(hdr)) {
+		ERR("cannot read pool header from poolset");
+		close(fdp);
+		return POOL_TYPE_UNKNOWN;
+	}
+
+	close(fdp);
+	util_convert2h_hdr_nocheck(&hdr);
+	enum pool_type type = pool_hdr_get_type(&hdr);
+	return type;
 }
 
 /*
