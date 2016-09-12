@@ -94,9 +94,7 @@
     <ClCompile Include="util_poolset_parse.c" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="err0.log.match" />
     <None Include="grep0.log.match" />
-    <None Include="out0.log.match" />
     <None Include="pool0w.set" />
     <None Include="pool10w.set" />
     <None Include="pool11w.set" />
