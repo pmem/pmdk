@@ -1,0 +1,4 @@
+PMEMPOOLSET
+100G w:\mountpoint0\myfile.part0
+REPLICA X
+100G w:\mountpoint1\mymirror.part0
