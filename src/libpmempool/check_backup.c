@@ -60,8 +60,9 @@ check_backup(PMEMpoolcheck *ppc)
 
 	if (ppc->pool->params.is_poolset) {
 		if (ppc->pool->set_file->poolset->nreplicas > 1) {
-			CHECK_INFO(ppc, "only the first replica will be backed "
-				"up");
+			CHECK_INFO(ppc, "backup of a poolset with multiple "
+				"replicas is not supported");
+			goto err_poolset;
 		}
 
 		struct pool_set *set = NULL;
