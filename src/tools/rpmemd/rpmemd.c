@@ -571,11 +571,11 @@ main(int argc, char *argv[])
 			break;
 	}
 
-	rpmemd_obc_fini(rpmemd->obc);
 	rpmemd_db_fini(rpmemd->db);
-	free(rpmemd);
-	rpmemd_log_close();
 	rpmemd_config_free(&rpmemd->config);
+	rpmemd_log_close();
+	rpmemd_obc_fini(rpmemd->obc);
+	free(rpmemd);
 
 	return 0;
 err:
