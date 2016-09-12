@@ -707,6 +707,71 @@ pocli_pmemobj_strdup(struct pocli_ctx *ctx, struct pocli_args *args)
 }
 
 /*
+ * pocli_str_root_copy -- copy a string into a root object data
+ */
+static enum pocli_ret
+pocli_str_root_copy(struct pocli_ctx *ctx, struct pocli_args *args)
+{
+	if (args->argc != 3)
+		return POCLI_ERR_ARGS;
+
+	size_t offset = 0;
+	enum pocli_ret ret = pocli_args_size(args, 1, &offset);
+	if (ret)
+		return ret;
+
+	const char *str = args->argv[2];
+	if (str == NULL)
+		return POCLI_ERR_ARGS;
+
+	size_t len = strlen(str);
+
+	size_t root_size = pmemobj_root_size(ctx->pop);
+	if (offset + len > root_size)
+		return POCLI_ERR_ARGS;
+
+	PMEMoid root = pmemobj_root(ctx->pop, root_size);
+	assert(!OID_IS_NULL(root));
+	char *root_data = pmemobj_direct(root);
+	pmemobj_memcpy_persist(ctx->pop, root_data + offset, str, len);
+	return ret;
+}
+
+/*
+ * pocli_str_root_print -- print a string stored in the root object data
+ */
+static enum pocli_ret
+pocli_str_root_print(struct pocli_ctx *ctx, struct pocli_args *args)
+{
+	if (args->argc != 3)
+		return POCLI_ERR_ARGS;
+
+	size_t offset = 0;
+	enum pocli_ret ret = pocli_args_size(args, 1, &offset);
+	if (ret)
+		return ret;
+
+	size_t len = 0;
+	ret = pocli_args_number(args, 2, &len);
+	if (ret)
+		return ret;
+
+	size_t root_size = pmemobj_root_size(ctx->pop);
+	if (offset + len > root_size)
+		return POCLI_ERR_ARGS;
+
+	PMEMoid root = pmemobj_root(ctx->pop, root_size);
+	assert(!OID_IS_NULL(root));
+	char *root_data = pmemobj_direct(root);
+
+	char *buff = malloc(len + 1);
+	memcpy(buff, root_data + offset, len);
+	buff[len] = '\0';
+	printf("%s\n", buff);
+	return ret;
+}
+
+/*
  * pocli_pmemobj_first -- pmemobj_first() command
  */
 static enum pocli_ret
@@ -1897,6 +1962,18 @@ static struct pocli_cmd pocli_commands[] = {
 		.name_short	= "pter",
 		.func		= pocli_pmemobj_tx_errno,
 		.usage		= "",
+	},
+	{
+		.name		= "str_root_copy",
+		.name_short	= "srcp",
+		.func		= pocli_str_root_copy,
+		.usage		= "<size> <string>",
+	},
+	{
+		.name		= "str_root_print",
+		.name_short	= "srpr",
+		.func		= pocli_str_root_print,
+		.usage		= "<size> <size>",
 	}
 };
 
