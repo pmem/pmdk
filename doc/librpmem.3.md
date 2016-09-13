@@ -169,7 +169,8 @@ int rpmem_close(RPMEMpool *rpp);
 The **rpmem_close**() function closes a remote pool indicated by *rpp*.
 All resources are released on both local and remote side. The pool itself lives
 on the remote node and may be re-opened at a later time using **rpmem_open**()
-function as described above.
+function as described above. If any error occured when closing remote pool,
+non-zero value is returned and *errno* value is set.
 
 ```c
 int rpmem_persist(RPMEMpool *rpp, size_t offset, size_t length, unsigned lane);
