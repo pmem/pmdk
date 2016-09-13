@@ -596,6 +596,22 @@ int ut_pthread_join(const char *file, int line, const char *func,
 
 /*
  * mocks...
+ *
+ * NOTE: On Linux, function mocking is implemented using wrapper functions.
+ * See "--wrap" option of the GNU linker.
+ * There is no such feature in VC++, so on Windows we do the mocking at
+ * compile time, by redefining symbol names:
+ * - all the references to <symbol> are replaced with <__wrap_symbol>
+ *   in all the compilation units, except the one where the <symbol> is
+ *   defined and the test source file
+ * - the original definition of <symbol> is replaced with <__real_symbol>
+ * - a wrapper function <__wrap_symbol> must be defined in the test program
+ *   (it may still call the original function via <__real_symbol>)
+ * Such solution seems to be sufficient for the purpose of our tests, even
+ * though it has some limitations.  I.e. it does no work well with malloc/free,
+ * so to wrap the system memory allocator functions, we use the built-in
+ * feature of all the NVML libraries, allowing to override default memory
+ * allocator with the custom one.
  */
 #ifndef _WIN32
 #define _FUNC_REAL_DECL(name, ret_type, ...)\

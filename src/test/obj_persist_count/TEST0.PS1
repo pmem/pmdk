@@ -1,4 +1,3 @@
-#!/bin/bash -e
 #
 # Copyright 2015-2016, Intel Corporation
 #
@@ -34,18 +33,22 @@
 #
 # src/test/obj_persist_count/TEST0 -- unit test for persist count
 #
-export UNITTEST_NAME=obj_persist_count/TEST0
-export UNITTEST_NUM=0
+[CmdletBinding(PositionalBinding=$false)]
+Param(
+    [alias("d")]
+    $DIR = ""
+    )
+$Env:UNITTEST_NAME = "obj_persist_count\TEST0"
+$Env:UNITTEST_NUM = "0"
 
 # standard unit test setup
-. ../unittest/unittest.sh
+. ../unittest/unittest.ps1
 
 require_fs_type non-pmem
-require_build_type debug nondebug
 
 setup
 
-expect_normal_exit ./obj_persist_count$EXESUFFIX $DIR/testfile
+expect_normal_exit $Env:EXE_DIR\obj_persist_count$EXESUFFIX $DIR\testfile
 
 check
 
