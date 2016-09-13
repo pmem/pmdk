@@ -182,10 +182,12 @@ rpmem_fip_set_nlanes(struct rpmem_fip *fip, unsigned nlanes)
 	/*
 	 * Get minimum of maximum supported and number of
 	 * lanes requested caller.
+	 *
+	 * One lane is dedicated for read operation.
 	 */
-	size_t min_nlanes = max_nlanes < nlanes ? max_nlanes : nlanes;
+	size_t min_nlanes = max_nlanes < nlanes + 1 ? max_nlanes : nlanes + 1;
 
-	fip->nlanes = (unsigned)(min_nlanes - 1); /* one for read operation */
+	fip->nlanes = (unsigned)(min_nlanes - 1);
 }
 
 /*
@@ -948,7 +950,8 @@ rpmem_fip_set_attr(struct rpmem_fip *fip, struct rpmem_fip_attr *attr)
 
 	rpmem_fip_set_nlanes(fip, attr->nlanes);
 
-	fip->cq_size = rpmem_fip_cq_size(fip->nlanes,
+	/* one for read operation */
+	fip->cq_size = 1 + rpmem_fip_cq_size(fip->nlanes,
 			fip->persist_method, RPMEM_FIP_NODE_CLIENT);
 
 	fip->ops = &rpmem_fip_ops[fip->persist_method];
