@@ -58,6 +58,9 @@ OBJS = rpmem_fip_test.o\
 
 endif
 
+BUILD_STATIC_DEBUG=n
+BUILD_STATIC_NONDEBUG=n
+
 LIBPMEMCOMMON=y
 LIBPMEM=y
 
