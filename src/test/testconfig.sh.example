@@ -65,8 +65,16 @@ NON_PMEM_FS_DIR=/tmp
 #NODE_WORKING_DIR[2]=/remote/dir2
 
 #
-# LD_LIBRARY_PATH variable for each remote node
+# NODE_LD_LIBRARY_PATH variable for each remote node
 #
 #NODE_LD_LIBRARY_PATH[0]=/usr/local/lib
 #NODE_LD_LIBRARY_PATH[1]=/usr/local/lib
 #NODE_LD_LIBRARY_PATH[2]=/usr/local/lib
+#
+
+#
+# NODE_ENV variable for setting environment variables on specified nodes
+#
+#NODE_ENV[0]="VAR=1"
+#NODE_ENV[1]="VAR=\$VAR:1"
+#NODE_ENV[2]=""
