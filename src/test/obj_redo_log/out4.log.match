@@ -1,5 +1,5 @@
-obj_redo_log/TEST4: START: obj_redo_log
- ./obj_redo_log$(nW) $(nW)pool $(*)
+obj_redo_log$(nW)TEST4: START: obj_redo_log
+ $(nW)obj_redo_log$(nW) $(nW)pool $(*)
 C:0
 R
 s:0:0x00002008:0x01010101
@@ -46,4 +46,4 @@ e:1:0x00002018:0:0x22222222
 e:2:0x00002020:0:0x33333333
 e:3:0x00000000:0:0x44444444
 C:0
-obj_redo_log/TEST4: Done
+obj_redo_log$(nW)TEST4: Done

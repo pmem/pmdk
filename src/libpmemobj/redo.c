@@ -180,9 +180,9 @@ redo_log_process(const struct redo_ctx *ctx, struct redo_log *redo,
 {
 	LOG(15, "redo %p nentries %zu", redo, nentries);
 
-#ifdef DEBUG
-	ASSERTeq(redo_log_check(ctx, redo, nentries), 0);
-#endif
+// #ifdef DEBUG
+// ASSERTeq(redo_log_check(ctx, redo, nentries), 0);
+// #endif
 	const struct pmem_ops *p_ops = &ctx->p_ops;
 
 	uint64_t *val;
