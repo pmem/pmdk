@@ -37,6 +37,9 @@
 TARGET = rpmem_proto
 OBJS = rpmem_proto.o
 
+BUILD_STATIC_DEBUG=n
+BUILD_STATIC_NONDEBUG=n
+
 include ../Makefile.inc
 
 INCS += -I../../rpmem_common

@@ -39,6 +39,7 @@ OBJS = obj_debug.o
 LIBPMEM=y
 LIBPMEMOBJ=y
 
+BUILD_STATIC_DEBUG=n
 BUILD_STATIC_NONDEBUG=n
 
 include ../Makefile.inc

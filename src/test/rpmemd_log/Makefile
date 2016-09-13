@@ -38,6 +38,9 @@ vpath %.c ../../tools/rpmemd
 TARGET = rpmemd_log
 OBJS = rpmemd_log_test.o rpmemd_log.o
 
+BUILD_STATIC_DEBUG=n
+BUILD_STATIC_NONDEBUG=n
+
 include ../Makefile.inc
 
 CFLAGS += -I../../tools/rpmemd

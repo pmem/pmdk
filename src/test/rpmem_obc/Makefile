@@ -50,6 +50,9 @@ OBJS = rpmem_obc_test.o\
        rpmem_obc.o rpmem_util.o rpmem_common.o\
        rpmem_ssh.o rpmem_cmd.o
 
+BUILD_STATIC_DEBUG=n
+BUILD_STATIC_NONDEBUG=n
+
 LIBPMEMCOMMON=y
 include ../Makefile.inc
 

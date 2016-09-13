@@ -39,6 +39,7 @@
 . ../unittest/unittest.sh
 
 require_test_type medium
+require_build_type debug
 
 # exits with locked mutexes
 configure_valgrind helgrind force-disable

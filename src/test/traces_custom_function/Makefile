@@ -36,6 +36,9 @@
 TARGET = traces_custom_function
 OBJS = traces_custom_function.o
 
+BUILD_STATIC_DEBUG=n
+BUILD_STATIC_NONDEBUG=n
+
 LIBPMEMCOMMON=y
 include ../Makefile.inc
 CFLAGS += -DDEBUG
