@@ -195,7 +195,7 @@ main(int argc, char *argv[])
 
 		switch (arg[0]) {
 		case 's':
-			if (sscanf(arg, "s:%ld:0x%lx:0x%lx",
+			if (sscanf(arg, "s:%zd:0x%zx:0x%zx",
 					&index, &offset, &value) != 3)
 				FATAL_USAGE();
 			UT_OUT("s:%ld:0x%08lx:0x%08lx", index, offset, value);
@@ -203,7 +203,7 @@ main(int argc, char *argv[])
 					value);
 			break;
 		case 'f':
-			if (sscanf(arg, "f:%ld:0x%lx:0x%lx",
+			if (sscanf(arg, "f:%zd:0x%zx:0x%zx",
 					&index, &offset, &value) != 3)
 				FATAL_USAGE();
 			UT_OUT("f:%ld:0x%08lx:0x%08lx", index, offset, value);
@@ -211,13 +211,13 @@ main(int argc, char *argv[])
 					value);
 			break;
 		case 'F':
-			if (sscanf(arg, "F:%ld", &index) != 1)
+			if (sscanf(arg, "F:%zd", &index) != 1)
 				FATAL_USAGE();
 			UT_OUT("F:%ld", index);
 			redo_log_set_last(pop->redo, redo, index);
 			break;
 		case 'r':
-			if (sscanf(arg, "r:0x%lx", &offset) != 1)
+			if (sscanf(arg, "r:0x%zx", &offset) != 1)
 				FATAL_USAGE();
 
 			uint64_t *valp = (uint64_t *)((uintptr_t)pop->addr
@@ -225,7 +225,7 @@ main(int argc, char *argv[])
 			UT_OUT("r:0x%08lx:0x%08lx", offset, *valp);
 			break;
 		case 'e':
-			if (sscanf(arg, "e:%ld", &index) != 1)
+			if (sscanf(arg, "e:%zd", &index) != 1)
 				FATAL_USAGE();
 
 			struct redo_log *entry = redo + index;
