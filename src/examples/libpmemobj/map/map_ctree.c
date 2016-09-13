@@ -37,6 +37,8 @@
 #include <map.h>
 #include <ctree_map.h>
 
+#include "map_ctree.h"
+
 /*
  * map_ctree_check -- wrapper for ctree_map_check
  */

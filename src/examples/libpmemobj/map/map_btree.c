@@ -37,6 +37,8 @@
 #include <map.h>
 #include <btree_map.h>
 
+#include "map_btree.h"
+
 /*
  * map_btree_check -- wrapper for btree_map_check
  */
