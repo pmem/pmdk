@@ -1991,12 +1991,15 @@ function init_rpmem_on_node() {
 	for slave in "$@"
 	do
 		validate_node_number $slave
-
+		local poolset_dir=${NODE_TEST_DIR[$slave]}
+		if [ -n "$RPMEM_POOLSET_DIR" ]; then
+			poolset_dir=$RPMEM_POOLSET_DIR
+		fi
 		CMD="cd ${NODE_TEST_DIR[$slave]} && "
 		CMD="$CMD LD_LIBRARY_PATH=$REMOTE_LD_LIBRARY_PATH:${NODE_LD_LIBRARY_PATH[$slave]}"
 		CMD="$CMD ../rpmemd"
 		CMD="$CMD --log-file=$RPMEMD_LOG_FILE"
-		CMD="$CMD --poolset-dir=${NODE_TEST_DIR[$slave]}"
+		CMD="$CMD --poolset-dir=$poolset_dir"
 
 		if [ "$RPMEM_PM" == "APM" ]; then
 			CMD="$CMD --persist-apm"
