@@ -188,6 +188,6 @@ clean:
 
 .NOTPARALLEL: libvmem libvmmalloc
 
-.PHONY: all install uninstall unistall-cpp install-cpp clean clobber cstyle format test check pcheck\
+.PHONY: all install uninstall uninstall-cpp install-cpp clean clobber cstyle format test check pcheck\
 	jemalloc jemalloc-clean jemalloc-test jemalloc-check cscope $(ALL_TARGETS)\
 	pkg-config check-remote
