@@ -822,9 +822,9 @@ function require_node_pkg() {
 	shift
 
 	local DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
-	local COMMAND=""
+	local COMMAND="${NODE_ENV[$N]}"
 	if [ -n "${NODE_LD_LIBRARY_PATH[$N]}" ]; then
-		COMMAND="PKG_CONFIG_PATH=\$PKG_CONFIG_PATH:${NODE_LD_LIBRARY_PATH[$N]}/pkgconfig"
+		COMMAND="$COMMAND PKG_CONFIG_PATH=\$PKG_CONFIG_PATH:${NODE_LD_LIBRARY_PATH[$N]}/pkgconfig"
 	fi
 
 	COMMAND="$COMMAND pkg-config $1"
@@ -1264,7 +1264,9 @@ function require_node_libfabric() {
 	require_node_pkg $N libfabric
 
 	local DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
-	local COMMAND="$COMMAND LD_LIBRARY_PATH=$REMOTE_LD_LIBRARY_PATH:${NODE_LD_LIBRARY_PATH[$N]} ../fip ${NODE_ADDR[$N]} $*"
+	local COMMAND="$COMMAND ${NODE_ENV[$N]}"
+	COMMAND="$COMMAND LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$REMOTE_LD_LIBRARY_PATH:${NODE_LD_LIBRARY_PATH[$N]}"
+	COMMAND="$COMMAND ../fip ${NODE_ADDR[$N]} $*"
 
 	set +e
 	fip_out=$(ssh $SSH_OPTS ${NODE[$N]} "cd $DIR && $COMMAND" 2>&1)
@@ -1499,7 +1501,7 @@ function run_on_node() {
 	local COMMAND="UNITTEST_NUM=$UNITTEST_NUM UNITTEST_NAME=$UNITTEST_NAME"
 	COMMAND="$COMMAND UNITTEST_QUIET=1"
 	COMMAND="$COMMAND ${NODE_ENV[$N]}"
-	COMMAND="$COMMAND LD_LIBRARY_PATH=$REMOTE_LD_LIBRARY_PATH:${NODE_LD_LIBRARY_PATH[$N]} $*"
+	COMMAND="$COMMAND LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$REMOTE_LD_LIBRARY_PATH:${NODE_LD_LIBRARY_PATH[$N]} $*"
 
 	run_command ssh $SSH_OPTS ${NODE[$N]} "cd $DIR && $COMMAND"
 	ret=$?
@@ -1531,7 +1533,7 @@ function run_on_node_background() {
 	local COMMAND="UNITTEST_NUM=$UNITTEST_NUM UNITTEST_NAME=$UNITTEST_NAME"
 	COMMAND="$COMMAND UNITTEST_QUIET=1"
 	COMMAND="$COMMAND ${NODE_ENV[$N]}"
-	COMMAND="$COMMAND LD_LIBRARY_PATH=$REMOTE_LD_LIBRARY_PATH:${NODE_LD_LIBRARY_PATH[$N]}"
+	COMMAND="$COMMAND LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$REMOTE_LD_LIBRARY_PATH:${NODE_LD_LIBRARY_PATH[$N]}"
 	COMMAND="$COMMAND ../ctrld $PID_FILE run $RUNTEST_TIMEOUT $*"
 
 	# register the PID file to be cleaned in case of an error
@@ -1996,7 +1998,8 @@ function init_rpmem_on_node() {
 			poolset_dir=$RPMEM_POOLSET_DIR
 		fi
 		CMD="cd ${NODE_TEST_DIR[$slave]} && "
-		CMD="$CMD LD_LIBRARY_PATH=$REMOTE_LD_LIBRARY_PATH:${NODE_LD_LIBRARY_PATH[$slave]}"
+		CMD="$CMD ${NODE_ENV[$slave]}"
+		CMD="$CMD LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$REMOTE_LD_LIBRARY_PATH:${NODE_LD_LIBRARY_PATH[$slave]}"
 		CMD="$CMD ../rpmemd"
 		CMD="$CMD --log-file=$RPMEMD_LOG_FILE"
 		CMD="$CMD --poolset-dir=$poolset_dir"
