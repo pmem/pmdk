@@ -43,6 +43,8 @@ vpath %.c $(TOP)/src/examples/libpmemobj/hashmap
 
 vpath %.c $(TOP)/src/libpmemobj
 vpath %.c $(TOP)/src/common
+vpath %.c $(TOP)/src/librpmem
+vpath %.c $(TOP)/src/rpmem_common
 
 
 BENCHMARK = pmembench
@@ -76,7 +78,12 @@ SRC=pmembench.c\
     obj_lanes.c\
     map_bench.c\
     pmemobj_tx.c\
-    pmemobj_atomic_lists.c
+    pmemobj_atomic_lists.c\
+    rpmem_ssh.c\
+    rpmem_cmd.c\
+    rpmem_common.c\
+    rpmem_util.c
+
 
 # Configuration file without the .cfg extension
 CONFIGS=pmembench_log\
@@ -117,6 +124,8 @@ CFLAGS += -I../include
 CFLAGS += -I../libpmemobj
 CFLAGS += -I../common
 CFLAGS += -I../examples/libpmemobj/map
+CFLAGS += -I../rpmem_common
+CFLAGS += -I../librpmem
 CFLAGS += -DSRCVERSION='"$(SRCVERSION)"'
 ifeq ($(GLIB),y)
 CFLAGS += $(shell $(PKG_CONFIG) --cflags glib-2.0)
