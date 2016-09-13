@@ -351,6 +351,39 @@ rpmem_log_resp(const char *req, const struct rpmem_resp_attr *resp)
 }
 
 /*
+ * rpmem_check_args -- validate user's arguments
+ */
+static int
+rpmem_check_args(void *pool_addr, size_t pool_size, unsigned *nlanes)
+{
+	if (!pool_addr) {
+		errno = EINVAL;
+		ERR("invalid pool address");
+		return -1;
+	}
+
+	if (!pool_size) {
+		errno = EINVAL;
+		ERR("invalid pool size");
+		return -1;
+	}
+
+	if (!nlanes) {
+		errno = EINVAL;
+		ERR("lanes pointer cannot be NULL");
+		return -1;
+	}
+
+	if (!(*nlanes)) {
+		errno = EINVAL;
+		ERR("number of lanes must be positive");
+		return -1;
+	}
+
+	return 0;
+}
+
+/*
  * rpmem_create -- create remote pool on target node
  *
  * target        -- target node in format [<user>@]<target_name>[:<port>]
@@ -367,6 +400,9 @@ rpmem_create(const char *target, const char *pool_set_name,
 {
 	rpmem_log_args("create", target, pool_set_name,
 			pool_addr, pool_size, *nlanes);
+
+	if (rpmem_check_args(pool_addr, pool_size, nlanes))
+		return NULL;
 
 	RPMEMpool *rpp = rpmem_common_init(target);
 	if (!rpp)
@@ -428,6 +464,9 @@ rpmem_open(const char *target, const char *pool_set_name,
 {
 	rpmem_log_args("open", target, pool_set_name,
 			pool_addr, pool_size, *nlanes);
+
+	if (rpmem_check_args(pool_addr, pool_size, nlanes))
+		return NULL;
 
 	RPMEMpool *rpp = rpmem_common_init(target);
 	if (!rpp)
