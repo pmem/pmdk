@@ -32,23 +32,20 @@
 #
 
 #
-# src/test/rpmemd_obc/TEST1 -- unit test for rpmemd_obc_process
+# src/test/rpmem_fip/setup.sh -- common setup for rpmem_fip tests
 #
 
-export UNITTEST_NAME=rpmemd_obc/TEST1
-export UNITTEST_NUM=1
+require_nodes 2
+require_node_libfabric 0 $RPMEM_PROVIDER
+require_node_libfabric 1 $RPMEM_PROVIDER
+require_node_log_files 0 $RPMEM_LOG_FILE $RPMEMD_LOG_FILE
+require_node_log_files 1 $RPMEM_LOG_FILE $RPMEMD_LOG_FILE
 
-# standard unit test setup
-. ../unittest/unittest.sh
+SRV=srv${UNITTEST_NUM}.pid
+clean_remote_node 0 $SRV
 
-require_fs_type none
-require_build_type nondebug debug
+RPMEM_CMD="\"cd ${NODE_TEST_DIR[0]} && UNITTEST_FORCE_QUIET=1 \
+	LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$REMOTE_LD_LIBRARY_PATH:${NODE_LD_LIBRARY_PATH[0]} \
+	./rpmem_fip$EXESUFFIX\""
 
-setup
-
-. setup.sh
-
-expect_normal_exit run_on_node 1 ./rpmemd_obc$EXESUFFIX\
-	client_create ${NODE_ADDR[0]}
-
-pass
+export_vars_node 1 RPMEM_CMD
