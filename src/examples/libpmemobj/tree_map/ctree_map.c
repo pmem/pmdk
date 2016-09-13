@@ -91,6 +91,9 @@ ctree_map_new(PMEMobjpool *pop, TOID(struct ctree_map) *map, void *arg)
 static void
 ctree_map_clear_node(PMEMoid p)
 {
+	if (OID_IS_NULL(p))
+		return;
+
 	if (OID_INSTANCEOF(p, struct tree_map_node)) {
 		TOID(struct tree_map_node) node;
 		TOID_ASSIGN(node, p);
