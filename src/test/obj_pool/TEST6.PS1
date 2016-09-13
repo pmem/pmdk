@@ -42,11 +42,7 @@ Param(
 
 $Env:UNITTEST_NAME = "obj_pool\TEST6"
 $Env:UNITTEST_NUM = "6"
-# XXX:  bash has a few calls to tools that we don't have on
-# windows (yet) that set PMEM_IS_PMEM and NON_PMEM_IS_PMEM based
-# on their output
-$Env:PMEM_IS_PMEM = $true
-$Env:NON_PMEM_IS_PMEM = $true
+
 
 # standard unit test setup
 . ..\unittest\unittest.ps1
