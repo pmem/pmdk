@@ -31,8 +31,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# libpmempool_backup/TEST7 -- source poolset with replica and valid backup
-#    poolset
+# libpmempool_backup/TEST7 -- backup pool file to the backup poolset
 #
 export UNITTEST_NAME=libpmempool_backup/TEST7
 export UNITTEST_NUM=7
@@ -45,18 +44,23 @@ setup
 
 . ./common.sh
 
-backup_cleanup
+for (( i=0; i<${#POOL_TYPES[@]}; i++ ));
+do
+	backup_cleanup
 
-# prepare poolset files
-create_poolset_variation 2
-create_poolset_variation 1 $BACKUP
+	POOLFILE=$DIR/pool.${POOL_TYPES[$i]}
+	rm -f $POOLFILE
 
-# create source poolset parts
-expect_normal_exit $PMEMPOOL$EXESUFFIX create ${POOL_TYPES[$POOL_OBJ]} \
-	"${POOL_CREATE_PARAMS[$POOL_OBJ]}" $POOLSET
+	# prepare backup poolset file
+	create_poolset_variation 1 $BACKUP
+	mv $POOLSET$BACKUP $POOLFILE$BACKUP
 
-backup_and_compare $POOLSET ${POOL_TYPES[$POOL_OBJ]} \
-	"${POOL_CHECK_PARAMS[$POOL_OBJ]}"
+	# create source poolset
+	expect_normal_exit $PMEMPOOL$EXESUFFIX create ${POOL_TYPES[$i]} \
+		"${POOL_CREATE_PARAMS[$i]}" $POOLFILE
+
+	backup_and_compare $POOLFILE ${POOL_TYPES[$i]}
+done
 
 mv $OUT_TEMP $OUT
 

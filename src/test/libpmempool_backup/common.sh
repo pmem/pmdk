@@ -124,7 +124,7 @@ function backup_and_compare () {
 
 	# compare
 	if [ $# -gt 0 ]; then
-		compare_replicas $1 $poolset $poolset$BACKUP >> $DIFF
+		compare_replicas "$1" $poolset $poolset$BACKUP >> $DIFF
 	fi
 }
 
