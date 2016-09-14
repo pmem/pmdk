@@ -546,7 +546,7 @@ function get_trace() {
 	if [ "$check_type" = "memcheck" -a "$MEMCHECK_DONT_CHECK_LEAKS" != "1" ]; then
 		opts="$opts --leak-check=full"
 	fi
-	opts="$opts --suppressions=../ld.supp"
+	opts="$opts --suppressions=../ld.supp --suppressions=../memcheck-libunwind.supp"
 	if [ "$node" -ne -1 ]; then
 		exe=${NODE_VALGRINDEXE[$node]}
 		opts="$opts"

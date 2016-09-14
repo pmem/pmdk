@@ -157,7 +157,7 @@ make_persistent()
  *
  * @throw transaction_scope_error if called outside of an active
  * transaction
- * @throw transaction_alloc_error on transactional free failure.
+ * @throw transaction_free_error on transactional free failure.
  */
 template <typename T>
 void
@@ -177,8 +177,8 @@ delete_persistent(typename detail::pp_if_array<T>::type ptr, std::size_t N)
 		detail::destroy<I>(ptr[N - 1 - i]);
 
 	if (pmemobj_tx_free(*ptr.raw_ptr()) != 0)
-		throw transaction_alloc_error("failed to delete "
-					      "persistent memory object");
+		throw transaction_free_error("failed to delete "
+					     "persistent memory object");
 }
 
 /**
@@ -193,7 +193,7 @@ delete_persistent(typename detail::pp_if_array<T>::type ptr, std::size_t N)
  *
  * @throw transaction_scope_error if called outside of an active
  * transaction
- * @throw transaction_alloc_error on transactional free failure.
+ * @throw transaction_free_error on transactional free failure.
  */
 template <typename T>
 void
@@ -214,8 +214,8 @@ delete_persistent(typename detail::pp_if_size_array<T>::type ptr)
 		detail::destroy<I>(ptr[N - 1 - i]);
 
 	if (pmemobj_tx_free(*ptr.raw_ptr()) != 0)
-		throw transaction_alloc_error("failed to delete "
-					      "persistent memory object");
+		throw transaction_free_error("failed to delete "
+					     "persistent memory object");
 }
 
 } /* namespace obj */
