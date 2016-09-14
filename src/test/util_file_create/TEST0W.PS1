@@ -69,8 +69,7 @@ expect_normal_exit $Env:EXE_DIR\util_file_create$Env:EXESUFFIX 0x4000 `
     0x1000:$DIR/testfile2 `
     0x4000:$DIR/testfile3
 
-rm -Force -Recurse $DIR/testdir1 
-
+rm -Force -Recurse $DIR/testdir1
 
 check
 

@@ -68,7 +68,7 @@ expect_normal_exit $Env:EXE_DIR\util_file_open$Env:EXESUFFIX 0x4000 `
     $DIR/testlink1 `
     $DIR/testlink2 `
     $DIR/testfile1 `
-    $DIR/testfile2 
+    $DIR/testfile2
 
 # grant full permissions so test code can cleanup
 & icacls $DIR\testfile1 /grant ${Env:USERNAME}:F >$null
