@@ -37,6 +37,7 @@
 #include <assert.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 #include <sys/param.h>
 
@@ -308,14 +309,90 @@ rtree_map_insert_new(PMEMobjpool *pop, TOID(struct rtree_map) map,
 }
 
 /*
+ * is_leaf -- (internal) check a node for zero qty of children
+ */
+static bool
+is_leaf(TOID(struct tree_map_node) node)
+{
+	unsigned j;
+
+	for (j = 0;
+		j < ALPHABET_SIZE &&
+			TOID_IS_NULL(D_RO(node)->slots[j]);
+		j++)
+		;
+
+	return (j == ALPHABET_SIZE);
+}
+
+/*
+ * has_only_one_child -- (internal) check a node for qty of children
+ */
+static bool
+has_only_one_child(TOID(struct tree_map_node) node, unsigned *child_idx)
+{
+	unsigned j, child_qty;
+
+	for (j = 0, child_qty = 0; j < ALPHABET_SIZE; j++)
+		if (!TOID_IS_NULL(D_RO(node)->slots[j])) {
+			child_qty++;
+			*child_idx = j;
+		}
+
+	return (1 == child_qty);
+}
+
+/*
+ * remove_extra_node -- (internal) remove unneeded extra node
+ */
+static void
+remove_extra_node(TOID(struct tree_map_node) *node)
+{
+	unsigned child_idx;
+	TOID(struct tree_map_node) tmp, tmp_child;
+
+	/* Our node has child with only one child. */
+	tmp = *node;
+	has_only_one_child(tmp, &child_idx);
+	tmp_child = D_RO(tmp)->slots[child_idx];
+
+	/*
+	 * That child's incoming label is appended to the our's incoming label
+	 * and the child is removed.
+	 */
+	unsigned new_key_size = D_RO(tmp)->key_size + D_RO(tmp_child)->key_size;
+	unsigned char *new_key = malloc(new_key_size);
+	memcpy(new_key, D_RO(tmp)->key, D_RO(tmp)->key_size);
+	memcpy(new_key + D_RO(tmp)->key_size,
+		D_RO(tmp_child)->key,
+		D_RO(tmp_child)->key_size);
+
+	*node = rtree_new_node(new_key, new_key_size,
+		D_RO(tmp_child)->value, D_RO(tmp_child)->has_value);
+
+	free(new_key);
+	TX_FREE(tmp);
+
+	memcpy(D_RW(*node)->slots,
+			D_RO(tmp_child)->slots,
+			sizeof(D_RO(tmp_child)->slots));
+	TX_FREE(tmp_child);
+}
+
+/*
  * rtree_map_remove_node -- (internal) removes node from tree
  */
 static PMEMoid
 rtree_map_remove_node(TOID(struct rtree_map) map,
 	TOID(struct tree_map_node) *node,
-	const unsigned char *key, uint64_t key_size)
+	const unsigned char *key, uint64_t key_size,
+	bool *check_for_child)
 {
-	unsigned i;
+	bool c4c;
+	unsigned i, child_idx;
+	PMEMoid ret = OID_NULL;
+
+	*check_for_child = false;
 
 	if (TOID_IS_NULL(*node))
 		return OID_NULL;
@@ -327,13 +404,11 @@ rtree_map_remove_node(TOID(struct rtree_map) map,
 		return OID_NULL;
 
 	if (i == key_size) {
-		unsigned j;
-
 		if (0 == D_RO(*node)->has_value)
 			return OID_NULL;
 
 		/* Node is found */
-		PMEMoid ret = D_RO(*node)->value;
+		ret = D_RO(*node)->value;
 
 		/* delete node from tree */
 		TX_ADD_FIELD((*node), value);
@@ -341,27 +416,35 @@ rtree_map_remove_node(TOID(struct rtree_map) map,
 		D_RW(*node)->value = OID_NULL;
 		D_RW(*node)->has_value = 0;
 
-		for (j = 0;
-			j < ALPHABET_SIZE &&
-				TOID_IS_NULL(D_RO(*node)->slots[j]);
-			j++)
-			;
-
-		if (j == ALPHABET_SIZE) {
+		if (is_leaf(*node)) {
 			pmemobj_tx_add_range(node->oid, 0,
 					sizeof(*node) + D_RO(*node)->key_size);
 			TX_FREE(*node);
 			(*node) = TOID_NULL(struct tree_map_node);
-			/* XXX check for parent nodes */
 		}
 
 		return ret;
 	}
 
 	/* Recurse deeply */
-	return rtree_map_remove_node(map,
+	ret = rtree_map_remove_node(map,
 			&D_RW(*node)->slots[key[i]],
-			key + i, key_size - i);
+			key + i, key_size - i,
+			&c4c);
+
+	if (c4c) {
+		/* Our node has child with only one child. Remove. */
+		remove_extra_node(&D_RW(*node)->slots[key[i]]);
+
+		return ret;
+	}
+
+	if (has_only_one_child(*node, &child_idx) &&
+			(0 == D_RO(*node)->has_value)) {
+		*check_for_child = true;
+	}
+
+	return ret;
 }
 
 /*
@@ -372,13 +455,20 @@ rtree_map_remove(PMEMobjpool *pop, TOID(struct rtree_map) map,
 		const unsigned char *key, uint64_t key_size)
 {
 	PMEMoid ret = OID_NULL;
+	bool check_for_child;
 
 	if (TOID_IS_NULL(map))
 		return OID_NULL;
 
 	TX_BEGIN(pop) {
 		ret = rtree_map_remove_node(map,
-				&D_RW(map)->root, key, key_size);
+				&D_RW(map)->root, key, key_size,
+				&check_for_child);
+
+		if (check_for_child) {
+			/* Our root node has only one child. Remove. */
+			remove_extra_node(&D_RW(map)->root);
+		}
 	} TX_END
 
 	return ret;
