@@ -288,7 +288,7 @@ function runtest {
                     Write-Host -NoNewline $error
                 }
                 if ($p.ExitCode -ne 0) {
-                    Write-Error "RUNTESTS: stopping: $testName/$runscript FAILED errorcde= $p.ExitCode, TEST=$testtype FS=$fs BUILD=$build"
+                    Write-Error "RUNTESTS: stopping: $testName/$runscript $msg errorcde= $p.ExitCode, TEST=$testtype FS=$fs BUILD=$build"
                     cd ..
                     exit $p.ExitCode
                 }
