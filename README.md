@@ -231,6 +231,16 @@ To test the libraries with AddressSanitizer and UndefinedBehaviorSanitizer, run:
 	$ make EXTRA_CFLAGS="-fsanitize=address,undefined" EXTRA_LDFLAGS="-fsanitize=address,undefined" clobber all test check
 ```
 
+If you wish to run C++ standard library containers tests, you need to set the
+path to your custom versions of either gcc or libc++. For gcc run:
+```
+	$ make USE_CUSTOM_GCC=1 GCC_INCDIR=/path/to/includes GCC_BINDIR=/path/to/bin GCC_LIBDIR=/path/to/lib check
+```
+If you want to use a custom version of libc++ run:
+```
+	$ make USE_LLVM_LIBCPP=1 LIBCPP_LIBDIR=/path/to/lib LIBCPP_INCDIR=/path/to/includes/ check
+```
+
 
 #### Building NVML on Windows ####
 

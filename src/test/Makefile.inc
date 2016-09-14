@@ -234,6 +234,35 @@ TMP_HEADERS := $(addsuffix tmp, $(HEADERS))
 endif
 endif
 
+ifeq ($(USE_LLVM_LIBCPP),1)
+
+$(call check_defined, LIBCPP_LIBDIR LIBCPP_INCDIR, when using USE_LIBCPP)
+
+ifeq ($(COMPILE_LANG), cpp)
+CXX=clang++
+CXXFLAGS += -nostdinc++
+INCS += -I$(LIBCPP_INCDIR)
+LIBS += -L$(LIBCPP_LIBDIR)
+LIBS += -lc++
+LIBS += -lc++abi
+LDFLAGS += -Wl,-rpath,$(LIBCPP_LIBDIR)
+endif
+endif
+
+ifeq ($(USE_CUSTOM_GCC),1)
+
+$(call check_defined, GCC_LIBDIR GCC_INCDIR GCC_BINDIR,\
+		when using USE_CUSTOM_GCC)
+
+ifeq ($(COMPILE_LANG), cpp)
+CC = $(GCC_BINDIR)/gcc
+CXX = $(GCC_BINDIR)/g++
+INCS += -I$(GCC_INCDIR)
+LIBS += -L$(GCC_LIBDIR)
+LDFLAGS += -Wl,-rpath,$(GCC_LIBDIR)
+endif
+endif
+
 all: $(TARGET) $(TARGET_STATIC_DEBUG) $(TARGET_STATIC_NONDEBUG)
 
 $(UT):
