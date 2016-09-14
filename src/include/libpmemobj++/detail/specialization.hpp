@@ -125,6 +125,12 @@ struct sp_array_access {
 	typedef T &type;
 };
 
+template <>
+struct sp_array_access<void> {
+	typedef struct does_not_exist {
+	} & type;
+};
+
 template <typename T>
 struct sp_array_access<T[]> {
 	typedef T &type;

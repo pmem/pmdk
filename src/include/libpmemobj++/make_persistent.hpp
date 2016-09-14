@@ -107,7 +107,7 @@ make_persistent(Args &&... args)
  *
  * @throw transaction_scope_error if called outside of an active
  * transaction
- * @throw transaction_alloc_error on transactional free failure.
+ * @throw transaction_free_error on transactional free failure.
  */
 template <typename T>
 void
@@ -128,8 +128,8 @@ delete_persistent(typename detail::pp_if_not_array<T>::type ptr)
 	detail::destroy<T>(*ptr);
 
 	if (pmemobj_tx_free(*ptr.raw_ptr()) != 0)
-		throw transaction_alloc_error("failed to delete "
-					      "persistent memory object");
+		throw transaction_free_error("failed to delete "
+					     "persistent memory object");
 }
 
 } /* namespace obj */

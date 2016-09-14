@@ -84,6 +84,10 @@ sudo docker run --rm --privileged=true --name=$containerName -ti \
 	--env CC=$NVML_CC \
 	--env CXX=$NVML_CXX \
 	--env EXTRA_CFLAGS=$EXTRA_CFLAGS \
+	--env EXTRA_CXXFLAGS=$EXTRA_CXXFLAGS \
+	--env USE_LLVM_LIBCPP=$USE_LLVM_LIBCPP \
+	--env LIBCPP_LIBDIR=$LIBCPP_LIBDIR \
+	--env LIBCPP_INCDIR=$LIBCPP_INCDIR \
 	--env REMOTE_TESTS=$REMOTE_TESTS \
 	--env WORKDIR=$WORKDIR \
 	--env EXPERIMENTAL=$EXPERIMENTAL \

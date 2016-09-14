@@ -40,6 +40,7 @@
 
 #include "libpmemobj++/p.hpp"
 #include <iostream>
+#include <limits>
 
 namespace nvml
 {
@@ -333,5 +334,16 @@ operator>>=(p<T> &lhs, const Y &rhs)
 } /* namespace obj */
 
 } /* namespace nvml */
+
+namespace std
+{
+
+template <typename T>
+struct numeric_limits<nvml::obj::p<T>> : public numeric_limits<T> {
+
+	static constexpr bool is_specialized = true;
+};
+
+} /* namespace std */
 
 #endif /* PMEMOBJ_PEXT_HPP */

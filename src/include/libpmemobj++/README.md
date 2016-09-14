@@ -34,6 +34,14 @@ Please remember to take extra care when using _static class members_. They are
 not stored in persistent memory, therefore their value will _not_ always be
 consistent across subsequent executions or compilations of user applications.
 
+The C++ bindings implement an experimental, standard compliant memory allocator
+which can be used in the C++ standard library's containers. This is an
+experimental feature that should work with a custom libc++ implementation found
+here https://github.com/pmem/libcxx. Please refer to the official LLVM
+documentation on how to compile and install libc++. Also please note that the
+allocator along with the changes in the implementation of libc++ are considered
+experimental and are subject to change without prior notice.
+
 If you find any issues or have suggestion about these bindings please file an
 issue in https://github.com/pmem/issues. There are also blog articles in
 http://pmem.io/blog/ which you might find helpful.
@@ -59,3 +67,4 @@ It is recommended to use these or newer versions of GCC or Clang.
  * Persistent memory transactions - [transaction](@ref nvml::obj::transaction)
  * Persistent memory resident mutex - [mutex](@ref nvml::obj::mutex)
  * Persistent memory pool - [pool](@ref nvml::obj::pool)
+ * Persistent memory allocator - [allocator](@ref nvml::obj::allocator)
