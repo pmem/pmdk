@@ -53,7 +53,7 @@
  * private to this file...
  */
 static size_t Header_size;
-
+static pthread_mutex_t vmem_init_lock;
 /*
  * print_jemalloc_messages -- custom print function, for jemalloc
  *
@@ -86,15 +86,14 @@ void
 vmem_init(void)
 {
 	static bool initialized = false;
-	static pthread_mutex_t lock;
-	pthread_mutex_init(&lock, NULL);
+
 	int (*je_vmem_navsnprintf)
 		(char *, size_t, const char *, va_list) = NULL;
 
 	if (initialized)
 		return;
 
-	util_mutex_lock(&lock);
+	util_mutex_lock(&vmem_init_lock);
 
 	if (!initialized) {
 		common_init(VMEM_LOG_PREFIX, VMEM_LOG_LEVEL_VAR,
@@ -110,7 +109,7 @@ vmem_init(void)
 		initialized = true;
 	}
 
-	util_mutex_unlock(&lock);
+	util_mutex_unlock(&vmem_init_lock);
 }
 
 /*
@@ -122,6 +121,7 @@ ATTR_CONSTRUCTOR
 void
 vmem_construct(void)
 {
+	pthread_mutex_init(&vmem_init_lock, NULL);
 	vmem_init();
 }
 
@@ -138,12 +138,22 @@ vmem_fini(void)
 	common_fini();
 }
 
+#ifdef _MSC_VER
+/*
+* libvmem constructor/destructor functions
+*/
+MSVC_CONSTR(vmem_construct)
+MSVC_DESTR(vmem_fini)
+#endif
+
+
 /*
  * vmem_create -- create a memory pool in a temp file
  */
 VMEM *
 vmem_create(const char *dir, size_t size)
 {
+
 	vmem_init();
 
 	LOG(3, "dir \"%s\" size %zu", dir, size);
@@ -182,9 +192,11 @@ vmem_create(const char *dir, size_t size)
 	 * use. It is not considered an error if this fails.
 	 */
 	util_range_none(addr, sizeof(struct pool_hdr));
+	
 
 	LOG(3, "vmp %p", vmp);
 	return vmp;
+
 }
 
 /*

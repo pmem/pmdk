@@ -54,6 +54,7 @@
 #include <sys/stat.h>
 #include <sys/file.h>
 #include <Shlwapi.h>
+#include <time.h>
 
 /*
  * mkstemp -- generate a unique temporary filename from template
@@ -61,6 +62,7 @@
 int
 mkstemp(char *temp)
 {
+
 	/* XXX - limited number of unique file names - 26 per thread */
 	char *path = _mktemp(temp);
 	if (path == NULL)
