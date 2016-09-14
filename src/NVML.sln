@@ -97,14 +97,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_cpp_mutex", "test\obj_c
 		{1BAA1617-93AE-4196-8A1A-BD492FB18AEF} = {1BAA1617-93AE-4196-8A1A-BD492FB18AEF}
 		{9E9E3D25-2139-4A5D-9200-18148DDEAD45} = {9E9E3D25-2139-4A5D-9200-18148DDEAD45}
 		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681} = {CE3F2DFB-8470-4802-AD37-21CAF6CB2681}
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "utils", "utils", "{F8CCA5AE-2D75-4C79-BEAB-2588CD5956C8}"
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Utils", "Utils", "{F8CCA5AE-2D75-4C79-BEAB-2588CD5956C8}"
-	ProjectSection(SolutionItems) = preProject
-		..\appveyor.yml = ..\appveyor.yml
-		..\utils\CHECK_WHITESPACE.PS1 = ..\utils\CHECK_WHITESPACE.PS1
-		..\utils\cstyle = ..\utils\cstyle
-		..\utils\CSTYLE.ps1 = ..\utils\CSTYLE.ps1
 	EndProjectSection
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Utils", "Utils", "{F8CCA5AE-2D75-4C79-BEAB-2588CD5956C8}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "writer", "examples\libpmemobj\string_store_tx_type\writer.vcxproj", "{1EB3DE5B-6357-498D-8CAC-EEC0209EA454}"
 EndProject

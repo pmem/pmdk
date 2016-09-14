@@ -48,6 +48,8 @@
 int Mmap_no_random;
 void *Mmap_hint;
 
+#define MAX_TMPFILE_ATTEMPTS 100
+
 /*
  * util_mmap_init -- initialize the mmap utils
  *
@@ -144,7 +146,10 @@ util_map_tmpfile(const char *dir, size_t size, size_t req_align)
 		return NULL;
 	}
 
-	int fd = util_tmpfile(dir, "/vmem.XXXXXX");
+	int fd = -1;
+	for (int i = 0; i < MAX_TMPFILE_ATTEMPTS && fd == -1; ++i) {
+		fd = util_tmpfile(dir, "/vmem.XXXXXX");
+	}
 	if (fd == -1) {
 		LOG(2, "cannot create temporary file in dir %s", dir);
 		goto err;
