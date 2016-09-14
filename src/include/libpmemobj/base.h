@@ -43,6 +43,9 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#ifdef _WIN32
+#include <pmemcompat.h>
+#endif
 
 #ifdef __cplusplus
 extern "C" {

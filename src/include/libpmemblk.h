@@ -47,6 +47,9 @@
 extern "C" {
 #endif
 
+#ifdef _WIN32
+#include <pmemcompat.h>
+#endif
 #include <sys/types.h>
 
 /*

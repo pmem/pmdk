@@ -46,9 +46,17 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 #include <sys/types.h>
+
+#ifndef _WIN32
 #include <sys/uio.h>
+#else
+#include <pmemcompat.h>
+struct iovec {
+	void  *iov_base;
+	size_t iov_len;
+};
+#endif
 
 /*
  * opaque type, internal to libpmemlog
