@@ -92,6 +92,14 @@ define create-deps
 	$(RM) -f $(objdir)/$*.d
 endef
 
+check_defined = \
+    $(strip $(foreach 1,$1, \
+        $(call __check_defined,$1,$(strip $(value 2)))))
+
+__check_defined = \
+    $(if $(value $1),, \
+      $(error Undefined $1$(if $2, ($2))))
+
 export prefix = /usr/local
 export exec_prefix := $(prefix)
 export sysconfdir := $(prefix)/etc

@@ -137,7 +137,24 @@ OBJ_CPP_TESTS = \
 	obj_cpp_make_persistent_atomic\
 	obj_cpp_make_persistent_array\
 	obj_cpp_make_persistent_array_atomic\
-	obj_cpp_transaction
+	obj_cpp_transaction\
+	obj_cpp_allocator
+
+OBJ_CPP_CONTAINER_TESTS = \
+	obj_cpp_vector\
+	obj_cpp_deque\
+	obj_cpp_list\
+	obj_cpp_set\
+	obj_cpp_multiset\
+	obj_cpp_unordered_multiset\
+	obj_cpp_unordered_set\
+	obj_cpp_map\
+	obj_cpp_multimap\
+	obj_cpp_unordered_map\
+	obj_cpp_unordered_multimap\
+	obj_cpp_queue\
+	obj_cpp_priority_queue\
+	obj_cpp_stack
 
 CHRONO_TESTS = \
 	obj_cpp_mutex\
@@ -304,6 +321,11 @@ $(info NOTE: Skipping C++ chrono tests because of compiler/stdc++ issues)
 endif
 else
 $(info NOTE: Skipping C++ tests because the compiler does not support C++11)
+endif
+
+# enable only when using custom standard libraries
+ifneq (,$(filter 1, $(USE_CUSTOM_GCC) $(USE_LLVM_LIBCPP)))
+LOCAL_TESTS += $(OBJ_CPP_CONTAINER_TESTS)
 endif
 
 TESTS = \
