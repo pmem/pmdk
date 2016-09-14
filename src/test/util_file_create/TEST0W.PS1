@@ -55,13 +55,11 @@ $MIN_POOL=0x4000
 create_holey_file 32K $DIR\testfile1
 
 mkdir $DIR/testdir1 > $null
-ln -s $DIR/testfile0 $DIR/testlink1
 ln -s $DIR/testfile1 $DIR/testlink2
 ln -s $DIR/testdir1 $DIR/testlink3
 
 expect_normal_exit $Env:EXE_DIR\util_file_create$Env:EXESUFFIX 0x4000 `
     0x4000:$DIR/testdir1 `
-    0x4000:$DIR/testlink1 `
     0x4000:$DIR/testlink2 `
     0x4000:$DIR/testlink3 `
     0x4000:$DIR/testlink4 `
