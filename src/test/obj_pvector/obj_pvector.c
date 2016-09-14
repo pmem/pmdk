@@ -67,7 +67,7 @@ main(int argc, char *argv[])
 		UT_FATAL("!pmemobj_create: %s", path);
 
 	PMEMoid root = pmemobj_root(pop, sizeof(struct test_root));
-	struct test_root *r = pmemobj_direct(root);
+	struct test_root *r = (struct test_root *)pmemobj_direct(root);
 	UT_ASSERTne(r, NULL);
 
 	struct pvector_context *ctx = pvector_new(pop, &r->vec);
