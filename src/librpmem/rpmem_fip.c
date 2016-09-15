@@ -978,6 +978,8 @@ rpmem_fip_signal_all(struct rpmem_fip *fip, int ret)
 	default:
 		RPMEM_ASSERT(0);
 	}
+
+	rpmem_fip_lane_sigret(&fip->rd_lane.lane, FI_READ, ret);
 }
 
 /*
