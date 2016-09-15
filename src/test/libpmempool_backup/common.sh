@@ -89,6 +89,8 @@ function create_poolset_variation() {
 		;;
 	4)
 		# no poolset
+		# return without check_file
+		return
 		;;
 	5)
 		# empty
@@ -104,7 +106,7 @@ function create_poolset_variation() {
 		;;
 	esac
 
-	check_file $file
+	check_file $POOLSET$sfx
 }
 
 #
