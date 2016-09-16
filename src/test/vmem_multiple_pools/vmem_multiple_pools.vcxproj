@@ -24,6 +24,7 @@
     <None Include="out0.log.match" />
     <None Include="out1.log.match" />
     <None Include="TEST0.PS1" />
+    <None Include="TEST1.PS1" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="vmem_multiple_pools.c" />
