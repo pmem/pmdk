@@ -125,7 +125,6 @@ clobber: clean
 		$(MANPAGES_1_GROFF_EXP) $(MANPAGES_3_GROFF_EXP) \
 		LICENSE
 
-ifeq ($(EXPERIMENTAL),y)
 install-cpp: doxygen_docs
 	$(call install_recursive,$(DOXYGEN_HTMLDIR),0644,$(CPP_DOCS_DESTDIR))
 
@@ -135,7 +134,6 @@ uninstall-cpp:
 	$(RM) -rf $(CPP_DOCS_DESTDIR)
 
 uninstall: uninstall-cpp
-endif
 
 install: compress
 	install -d $(MANPAGES_DESTDIR_1)
