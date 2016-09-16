@@ -31,14 +31,13 @@
 # Makefile -- top Makefile for rpmemd
 #
 
-SCP_TO_REMOTE_NODES = y
-
 vpath %.c ../../rpmem_common/
 
 TOP = ../../..
 include $(TOP)/src/common.inc
 
 ifeq ($(BUILD_RPMEM),y)
+SCP_TO_REMOTE_NODES = y
 TARGET = rpmemd
 OBJS = rpmemd.o\
        rpmemd_log.o\
