@@ -97,8 +97,10 @@ rpmem_xread(int fd, void *buf, size_t len, int flags)
 		else
 			sret = recv(fd, &cbuf[rd], len - rd, flags);
 
-		if (sret == 0)
+		if (sret == 0) {
+			RPMEMC_DBG(ERR, "recv/read returned 0");
 			return 1;
+		}
 
 		if (sret < 0)
 			return (int)sret;
