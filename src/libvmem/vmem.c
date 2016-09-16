@@ -140,8 +140,8 @@ vmem_fini(void)
 
 #ifdef _MSC_VER
 /*
-* libvmem constructor/destructor functions
-*/
+ * libvmem constructor/destructor functions
+ */
 MSVC_CONSTR(vmem_construct)
 MSVC_DESTR(vmem_fini)
 #endif
@@ -192,7 +192,6 @@ vmem_create(const char *dir, size_t size)
 	 * use. It is not considered an error if this fails.
 	 */
 	util_range_none(addr, sizeof(struct pool_hdr));
-	
 
 	LOG(3, "vmp %p", vmp);
 	return vmp;
