@@ -528,7 +528,7 @@ pmem_pool_get_min_size(pmem_pool_type_t type)
 int
 util_poolset_map(const char *fname, struct pool_set **poolset, int rdonly)
 {
-	if (util_is_poolset(fname) != 1)
+	if (util_is_poolset_file(fname) != 1)
 		return util_pool_open_nocheck(poolset, fname, rdonly);
 
 	int fd = util_file_open(fname, NULL, 0, O_RDONLY);
@@ -616,7 +616,7 @@ pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp,
 	paramsp->type = PMEM_POOL_TYPE_UNKNOWN;
 	char pool_str_addr[POOL_HDR_DESC_SIZE];
 
-	paramsp->is_poolset = util_is_poolset(fname) == 1;
+	paramsp->is_poolset = util_is_poolset_file(fname) == 1;
 	int fd = util_file_open(fname, NULL, 0, O_RDONLY);
 	if (fd < 0)
 		return -1;

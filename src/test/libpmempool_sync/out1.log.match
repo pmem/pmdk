@@ -1,0 +1,10 @@
+pr(57671680): off = 0x382440 uuid = $(nW)
+TestOK111
+TestOK222
+TestOK333
+libpmempool_sync/TEST1: START: libpmempool_sync
+ ./libpmempool_sync$(nW) $(nW)/pool0.set 0
+libpmempool_sync/TEST1: Done: result: 0, errno: 0
+TestOK111
+TestOK222
+TestOK333

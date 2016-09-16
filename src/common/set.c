@@ -434,6 +434,23 @@ util_poolset_free(struct pool_set *set)
 }
 
 /*
+ * util_poolset_open -- open all replicas from a poolset
+ */
+int
+util_poolset_open(struct pool_set *set)
+{
+	for (unsigned r = 0; r < set->nreplicas; ++r) {
+		if (util_replica_open(set, r, MAP_SHARED)) {
+			LOG(2, "replica open failed: replica %u", r);
+			errno = EINVAL;
+			return -1;
+		}
+	}
+
+	return 0;
+}
+
+/*
  * util_poolset_close -- unmap and close all the parts of the pool set
  *
  * Optionally, it also unlinks the newly created pool set files.
@@ -521,18 +538,8 @@ util_poolset_fdclose(struct pool_set *set)
 {
 	LOG(3, "set %p", set);
 
-	for (unsigned r = 0; r < set->nreplicas; r++) {
-		struct pool_replica *rep = set->replica[r];
-
-		for (unsigned p = 0; p < rep->nparts; p++) {
-			struct pool_set_part *part = &rep->part[p];
-
-			if (part->fd != -1) {
-				close(part->fd);
-				part->fd = -1;
-			}
-		}
-	}
+	for (unsigned r = 0; r < set->nreplicas; r++)
+		util_replica_fdclose(set->replica[r]);
 }
 
 /*
@@ -758,8 +765,8 @@ util_parse_add_remote_replica(struct pool_set **setp, char *node_addr,
 /*
  * util_poolset_parse -- parse pool set config file
  *
- * Returns 1 if the file is a valid pool set config file, 0 if the file
- * is not a pool set header, and -1 in case of any error.
+ * Returns 0 if the file is a valid poolset config file,
+ * and -1 in case of any error.
  *
  * XXX: use memory mapped file
  */
@@ -978,10 +985,10 @@ util_poolset_single(const char *path, size_t filesize, int create)
 }
 
 /*
- * util_poolset_file -- open or create a single part file
+ * util_part_open -- open or create a single part file
  */
 int
-util_poolset_file(struct pool_set_part *part, size_t minsize, int create)
+util_part_open(struct pool_set_part *part, size_t minsize, int create)
 {
 	LOG(3, "part %p minsize %zu create %d", part, minsize, create);
 
@@ -989,19 +996,17 @@ util_poolset_file(struct pool_set_part *part, size_t minsize, int create)
 	if (access(part->path, F_OK) == 0)
 		create = 0;
 
-	size_t size;
-
 	part->created = 0;
 	if (create) {
-		size = part->filesize;
-		part->fd = util_file_create(part->path, size, minsize);
+		part->fd = util_file_create(part->path, part->filesize,
+				minsize);
 		if (part->fd == -1) {
 			LOG(2, "failed to create file: %s", part->path);
 			return -1;
 		}
 		part->created = 1;
 	} else {
-		size = 0;
+		size_t size = 0;
 		part->fd = util_file_open(part->path, &size, minsize, O_RDWR);
 		if (part->fd == -1) {
 			LOG(2, "failed to open file: %s", part->path);
@@ -1018,6 +1023,18 @@ util_poolset_file(struct pool_set_part *part, size_t minsize, int create)
 	}
 
 	return 0;
+}
+
+/*
+ * util_part_fdclose -- close part file
+ */
+void
+util_part_fdclose(struct pool_set_part *part)
+{
+	if (part->fd != -1) {
+		close(part->fd);
+		part->fd = -1;
+	}
 }
 
 /*
@@ -1147,7 +1164,7 @@ util_poolset_files_local(struct pool_set *set, size_t minsize, int create)
 		struct pool_replica *rep = set->replica[r];
 		if (!rep->remote) {
 			for (unsigned p = 0; p < rep->nparts; p++) {
-				if (util_poolset_file(&rep->part[p], minsize,
+				if (util_part_open(&rep->part[p], minsize,
 							create))
 					return -1;
 			}
@@ -1343,7 +1360,6 @@ util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 	hdrp->ro_compat_features = ro_compat;
 
 	memcpy(hdrp->poolset_uuid, set->uuid, POOL_HDR_UUID_LEN);
-
 	memcpy(hdrp->uuid, PART(rep, partidx).uuid, POOL_HDR_UUID_LEN);
 
 	/* link parts */
@@ -2476,7 +2492,7 @@ err_poolset:
 }
 
 /*
- * util_is_poolset -- check if specified file is a poolset
+ * util_is_poolset_file -- check if specified file is a poolset file
  *
  * Return value:
  * -1 - error
@@ -2484,20 +2500,21 @@ err_poolset:
  *  1 - is a poolset
  */
 int
-util_is_poolset(const char *path)
+util_is_poolset_file(const char *path)
 {
 	int fd = util_file_open(path, NULL, 0, O_RDONLY);
 	if (fd < 0)
 		return -1;
 
 	int ret = 0;
-	char poolset[POOLSET_HDR_SIG_LEN];
-	if (read(fd, poolset, sizeof(poolset)) != sizeof(poolset)) {
+	char signature[POOLSET_HDR_SIG_LEN];
+	if (read(fd, signature, sizeof(signature)) != sizeof(signature)) {
+		ERR("!read");
 		ret = -1;
 		goto out;
 	}
 
-	if (memcmp(poolset, POOLSET_HDR_SIG, POOLSET_HDR_SIG_LEN) == 0)
+	if (memcmp(signature, POOLSET_HDR_SIG, POOLSET_HDR_SIG_LEN) == 0)
 		ret = 1;
 out:
 	close(fd);
@@ -2563,4 +2580,16 @@ util_poolset_size(const char *path)
 err_close:
 	close(fd);
 	return size;
+}
+
+/*
+ * util_replica_fdclose -- close all parts of given replica
+ */
+void
+util_replica_fdclose(struct pool_replica *rep)
+{
+	for (unsigned p = 0; p < rep->nparts; p++) {
+		struct pool_set_part *part = &rep->part[p];
+		util_part_fdclose(part);
+	}
 }

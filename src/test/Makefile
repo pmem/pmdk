@@ -257,6 +257,12 @@ LIBPMEMPOOL_TESTS = \
 	libpmempool_bttdev\
 	libpmempool_map_flog
 
+LIBPMEMPOOL_MOD_DEPS = \
+	libpmempool_sync
+LIBPMEMPOOL_MOD_TESTS = \
+	libpmempool_transform
+
+
 LOCAL_TESTS = \
 	$(OBJ_TESTS)\
 	$(BLK_TESTS)\
@@ -267,7 +273,8 @@ LOCAL_TESTS = \
 	$(VMEM_TESTS)\
 	$(VMMALLOC_TESTS)\
 	$(EXAMPLES_TESTS)\
-	$(LIBPMEMPOOL_TESTS)
+	$(LIBPMEMPOOL_TESTS)\
+	$(LIBPMEMPOOL_MOD_TESTS)
 
 REMOTE_TESTS = \
 	remote_basic\
@@ -301,6 +308,7 @@ TESTS_BUILD = \
 	$(TEST_DEPS)\
 	$(OBJ_DEPS)\
 	$(LIBPMEMPOOL_DEPS)\
+	$(LIBPMEMPOOL_MOD_DEPS)\
 	$(TESTS)
 
 all     : TARGET = all
@@ -334,10 +342,11 @@ clean clobber: $(TESTS_BUILD)
 	$(RM) -r $(DIR_SYNC)
 	$(RM) *.$(SYNC_EXT)
 
-$(TESTS) $(OBJ_DEPS) $(LIBPMEMPOOL_DEPS): $(TEST_DEPS)
+$(TESTS) $(OBJ_DEPS) $(LIBPMEMPOOL_DEPS) $(LIBPMEMPOOL_MOD_DEPS): $(TEST_DEPS)
 
 $(OBJ_TESTS): $(OBJ_DEPS)
 $(LIBPMEMPOOL_TESTS): $(LIBPMEMPOOL_DEPS)
+$(LIBPMEMPOOL_MOD_TESTS): $(LIBPMEMPOOL_MOD_DEPS)
 
 obj_rpmem_basic_integration: obj_basic_integration
 

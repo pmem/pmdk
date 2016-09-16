@@ -110,11 +110,12 @@ struct pool_set {
 
 int util_poolset_parse(struct pool_set **setp, const char *path, int fd);
 int util_poolset_read(struct pool_set **setp, const char *path);
+int util_poolset_open(struct pool_set *set);
 void util_poolset_close(struct pool_set *set, int del);
 void util_poolset_free(struct pool_set *set);
 int util_poolset_chmod(struct pool_set *set, mode_t mode);
 void util_poolset_fdclose(struct pool_set *set);
-int util_is_poolset(const char *path);
+int util_is_poolset_file(const char *path);
 int util_poolset_foreach_part(const char *path,
 	int (*cb)(const char *part_file, void *arg), void *arg);
 size_t util_poolset_size(const char *path);
@@ -134,7 +135,8 @@ int util_pool_create_uuids(struct pool_set **setp, const char *path,
 	const unsigned char *arch_flags,
 	int remote);
 
-int util_poolset_file(struct pool_set_part *part, size_t minsize, int create);
+int util_part_open(struct pool_set_part *part, size_t minsize, int create);
+void util_part_fdclose(struct pool_set_part *part);
 int util_replica_open(struct pool_set *set, unsigned repidx, int flags);
 int util_replica_close(struct pool_set *set, unsigned repidx);
 int util_map_part(struct pool_set_part *part, void *addr, size_t size,
@@ -169,6 +171,7 @@ void util_remote_init_lock(void);
 void util_remote_destroy_lock(void);
 int util_pool_close_remote(RPMEMpool *rpp);
 void util_remote_unload(void);
+void util_replica_fdclose(struct pool_replica *rep);
 
 extern int (*Rpmem_persist)(RPMEMpool *rpp, size_t offset, size_t length,
 								unsigned lane);

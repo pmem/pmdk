@@ -107,6 +107,12 @@
     <ClCompile Include="..\..\libpmemobj\palloc.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="synchronize.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="transform.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="rm.h">
@@ -140,6 +146,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\common\util.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="synchronize.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="transform.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -49,6 +49,8 @@
 #include "check.h"
 #include "rm.h"
 #include "convert.h"
+#include "synchronize.h"
+#include "transform.h"
 
 #define APPNAME	"pmempool"
 
@@ -145,6 +147,18 @@ static struct command commands[] = {
 		.brief = "perform pool layout conversion",
 		.func = pmempool_convert_func,
 		.help = pmempool_convert_help,
+	},
+	{
+		.name = "sync",
+		.brief = "synchronize data between replicas",
+		.func = pmempool_sync_func,
+		.help = pmempool_sync_help,
+	},
+	{
+		.name = "transform",
+		.brief = "modify internal structure of a poolset",
+		.func = pmempool_transform_func,
+		.help = pmempool_transform_help,
 	},
 	{
 		.name = "help",

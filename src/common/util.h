@@ -50,6 +50,8 @@ extern "C" {
 extern unsigned long long Pagesize;
 extern unsigned long long Mmap_align;
 
+#define PAGE_ALIGNED_DOWN_SIZE(size) (size & ~(Pagesize - 1))
+
 /*
  * overridable names for malloc & friends used by this library
  */
@@ -147,6 +149,8 @@ util_get_printable_ascii(char c)
 {
 	return isprint((unsigned char)c) ? c : '.';
 }
+
+char *util_concat_str(const char *s1, const char *s2);
 
 #if !defined(likely)
 #if defined(__GNUC__)

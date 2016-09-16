@@ -436,6 +436,8 @@ Usefull applications for administration and diagnostic purposes.
 %{_mandir}/man1/pmempool-check.1.gz
 %{_mandir}/man1/pmempool-rm.1.gz
 %{_mandir}/man1/pmempool-convert.1.gz
+%{_mandir}/man1/pmempool-sync.1.gz
+%{_mandir}/man1/pmempool-transform.1.gz
 %{_sysconfdir}/bash_completion.d/pmempool.sh
 
 %prep

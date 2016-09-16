@@ -45,6 +45,7 @@ extern "C" {
 
 #include <stdint.h>
 #include <stddef.h>
+#include <limits.h>
 
 /*
  * pool types
@@ -151,14 +152,37 @@ enum pmempool_check_result pmempool_check_end(PMEMpoolcheck *ppc);
  * used at compile-time by passing these defines to pmempool_check_version().
  */
 #define PMEMPOOL_MAJOR_VERSION 1
-#define PMEMPOOL_MINOR_VERSION 0
+#define PMEMPOOL_MINOR_VERSION 1
 const char *pmempool_check_version(unsigned major_required,
 	unsigned minor_required);
 
 /*
- * get last error message
+ * get the last error message
  */
 const char *pmempool_errormsg(void);
+
+
+/*
+ * LIBPMEMPOOL SYNC & TRANSFORM
+ */
+
+/*
+ * A flag for sync and transform: do not apply changes, only check viability
+ * of conversion
+ */
+#define PMEMPOOL_DRY_RUN (1 << 0)
+
+/*
+ * Synchronize data between replicas within a poolset.
+ */
+int pmempool_sync(const char *poolset_file, unsigned flags);
+
+/*
+ * Modify internal structure of a poolset.
+ */
+int pmempool_transform(const char *poolset_file_src,
+		const char *poolset_file_dst, unsigned flags);
+
 
 #ifdef __cplusplus
 }

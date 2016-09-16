@@ -19,6 +19,7 @@
     <ClInclude Include="check_util.h" />
     <ClInclude Include="pmempool.h" />
     <ClInclude Include="pool.h" />
+    <ClInclude Include="replica.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\libpmemblk\btt.c" />
@@ -35,6 +36,9 @@
     <ClCompile Include="libpmempool.c" />
     <ClCompile Include="libpmempool_main.c" />
     <ClCompile Include="pool.c" />
+    <ClCompile Include="replica.c" />
+    <ClCompile Include="sync.c" />
+    <ClCompile Include="transform.c" />
   </ItemGroup>
   <ItemGroup>
     <None Include="libpmempool.def" />

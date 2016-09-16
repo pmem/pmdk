@@ -222,7 +222,7 @@ pmempool_rm_func(char *appname, int argc, char *argv[])
 			err(1, "cannot remove '%s'", file);
 		}
 
-		int is_poolset = util_is_poolset(file);
+		int is_poolset = util_is_poolset_file(file);
 
 		if (is_poolset)
 			outv(2, "poolset file: %s\n", file);
