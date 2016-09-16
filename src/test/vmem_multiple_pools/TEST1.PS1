@@ -30,24 +30,25 @@
 #
 
 #
-# src/test/vmem_realloc_inplace/TEST1.PS1 -- unit test for vmem_realloc
+# src/test/vmem_multiple_pools/TEST1.PS1 -- unit test for vmem_multiple_pools
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "vmem_realloc_inplace\TEST1"
+$Env:UNITTEST_NAME = "vmem_multiple_pools\TEST1"
 $Env:UNITTEST_NUM = "1"
 
 # standard unit test setup
 . ..\unittest\unittest.ps1
 
 require_fs_type any
+require_build_type debug nondebug
 
 setup
 
-expect_normal_exit $Env:EXE_DIR\vmem_realloc_inplace$Env:EXESUFFIX $DIR
+expect_normal_exit $Env:EXE_DIR\vmem_multiple_pools$Env:EXESUFFIX $DIR 16 16
 
 check
 

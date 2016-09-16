@@ -587,7 +587,7 @@ narenas_total_get(pool_t *pool)
 	return (narenas);
 }
 
-/* 
+/*
  * Choose an arena based on a per-thread value.
  * Arena pointer must be either a valid arena pointer or a dummy arena with
  * pool field filled.

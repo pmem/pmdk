@@ -8,10 +8,6 @@ typedef struct vec_list_s vec_list_t;
 
 #define VECTOR_INITIALIZER	JEMALLOC_ARG_CONCAT({.data = NULL, .size = 0})
 
-#ifndef MAX
-#define MAX(x, y) (((x) > (y)) ? (x) : (y))
-#endif
-
 #endif /* JEMALLOC_H_TYPES */
 /******************************************************************************/
 #ifdef JEMALLOC_H_STRUCTS

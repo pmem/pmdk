@@ -142,8 +142,8 @@ vmem_fini(void)
 
 #ifdef _MSC_VER
 /*
-* libvmem constructor/destructor functions
-*/
+ * libvmem constructor/destructor functions
+ */
 MSVC_CONSTR(vmem_construct)
 MSVC_DESTR(vmem_fini)
 #endif

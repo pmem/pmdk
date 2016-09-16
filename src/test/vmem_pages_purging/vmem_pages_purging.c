@@ -35,7 +35,7 @@
  *
  * usage: vmem_pages_purging [-z] directory
  */
-
+#include <getopt.h>
 #include "unittest.h"
 #include "jemalloc/internal/jemalloc_internal.h"
 #include "jemalloc/internal/size_classes.h"
@@ -57,23 +57,26 @@ main(int argc, char *argv[])
 	int count = DEFAULT_COUNT;
 	int n = DEFAULT_N;
 	VMEM *vmp;
+	int opt;
 	int i, j;
 	int use_calloc = 0;
 
 	START(argc, argv, "vmem_pages_purging");
 
-	for (i = 1; i < argc; i++) {
-		if (strcmp(argv[i], "-z") == 0) {
+	while ((opt = getopt(argc, argv, "z")) != -1) {
+		switch (opt) {
+		case 'z':
 			use_calloc = 1;
-
-			if (i < argc)
-				dir = argv[i + 1];
-			else
-				usage(argv[0]);
 			break;
+		default:
+			usage(argv[0]);
 		}
-		else
-			dir = argv[i];
+	}
+
+	if (optind < argc) {
+		dir = argv[optind];
+	} else {
+		usage(argv[0]);
 	}
 
 	vmp = vmem_create(dir, VMEM_MIN_POOL);
