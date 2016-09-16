@@ -94,3 +94,23 @@ See the [pmempool convert man page](../manpages/master/pmempool-convert.1.html)
 for current master documentation and examples or see older version:
 
 * Man page for [pmempool convert version 1.1](../manpages/v1.1/pmempool-convert.1.html)
+
+##### sync
+
+The **pmempool sync** command synchronizes data between replicas within
+a poolset. It checks if metadata of all replicas in a poolset
+are consistent, i.e. all parts are healthy, and if any of them is not,
+the corrupted or missing parts are recreated and filled with data from one of
+the healthy replicas.
+
+See the [pmempool sync man page](../manpages/master/pmempool-sync.1.html)
+for current master documentation and examples.
+
+##### transform
+
+The **pmempool transform** command modifies internal structure of a poolset
+defined by one poolset file, according to a structure described in
+another poolset file.
+
+See the [pmempool transform man page](../manpages/master/pmempool-transform.1.html)
+for current master documentation and examples.
