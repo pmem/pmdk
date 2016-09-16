@@ -1,4 +1,4 @@
-libpmempool_api/TEST8: START: libpmempool_test
- ./libpmempool_test$(nW) $(nW) -t blk
+libpmempool_api$(nW)TEST8: START: libpmempool_test
+ $(nW)libpmempool_test$(nW) $(nW) -t blk
 Error: Invalid argument
-libpmempool_api/TEST8: Done
+libpmempool_api$(nW)TEST8: Done
