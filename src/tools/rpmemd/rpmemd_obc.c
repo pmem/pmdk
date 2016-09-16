@@ -318,7 +318,7 @@ rpmemd_obc_msg_recv(struct rpmemd_obc *obc,
 
 	ret = rpmemd_obc_recv(obc, &nhdr, sizeof(nhdr));
 	if (ret == 1) {
-		RPMEMD_LOG(NOTICE, "obc disconnected");
+		RPMEMD_LOG(NOTICE, "out-of-band connection disconnected");
 		return 1;
 	}
 

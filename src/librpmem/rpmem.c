@@ -510,6 +510,7 @@ rpmem_persist(RPMEMpool *rpp, size_t offset, size_t length, unsigned lane)
 
 	int ret = rpmem_fip_persist(rpp->fip, offset, length, lane);
 	if (unlikely(ret)) {
+		ERR("persist operation failed");
 		rpp->error = ret;
 		return -1;
 	}
