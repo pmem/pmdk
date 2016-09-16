@@ -985,10 +985,10 @@ util_poolset_single(const char *path, size_t filesize, int create)
 }
 
 /*
- * util_open_part -- open or create a single part file
+ * util_part_open -- open or create a single part file
  */
 int
-util_open_part(struct pool_set_part *part, size_t minsize, int create)
+util_part_open(struct pool_set_part *part, size_t minsize, int create)
 {
 	LOG(3, "part %p minsize %zu create %d", part, minsize, create);
 
@@ -1164,7 +1164,7 @@ util_poolset_files_local(struct pool_set *set, size_t minsize, int create)
 		struct pool_replica *rep = set->replica[r];
 		if (!rep->remote) {
 			for (unsigned p = 0; p < rep->nparts; p++) {
-				if (util_open_part(&rep->part[p], minsize,
+				if (util_part_open(&rep->part[p], minsize,
 							create))
 					return -1;
 			}
@@ -2507,14 +2507,14 @@ util_is_poolset_file(const char *path)
 		return -1;
 
 	int ret = 0;
-	char header[POOLSET_HDR_SIG_LEN];
-	if (read(fd, header, sizeof(header)) != sizeof(header)) {
+	char signature[POOLSET_HDR_SIG_LEN];
+	if (read(fd, signature, sizeof(signature)) != sizeof(signature)) {
 		ERR("!read");
 		ret = -1;
 		goto out;
 	}
 
-	if (memcmp(header, POOLSET_HDR_SIG, POOLSET_HDR_SIG_LEN) == 0)
+	if (memcmp(signature, POOLSET_HDR_SIG, POOLSET_HDR_SIG_LEN) == 0)
 		ret = 1;
 out:
 	close(fd);
@@ -2592,24 +2592,4 @@ util_replica_fdclose(struct pool_replica *rep)
 		struct pool_set_part *part = &rep->part[p];
 		util_part_fdclose(part);
 	}
-}
-
-/*
- * util_close_replica_parts -- close a memory pool replica
- *
- * This function unmaps all mapped memory regions. All parts are checked
- * separately.
- */
-int
-util_close_replica_parts(struct pool_set *set, unsigned repidx)
-{
-	LOG(3, "set %p repidx %u", set, repidx);
-	struct pool_replica *rep = set->replica[repidx];
-
-	for (unsigned p = 0; p < rep->nparts; p++) {
-		util_unmap_hdr(&rep->part[p]);
-		util_unmap_part(&rep->part[p]);
-	}
-
-	return 0;
 }

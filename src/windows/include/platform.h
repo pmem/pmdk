@@ -146,6 +146,8 @@ __sync_synchronize()
 /* sys/stat.h */
 #define S_IRUSR S_IREAD
 #define S_IWUSR S_IWRITE
+#define S_IRGRP S_IRUSR
+#define S_IWGRP S_IWUSR
 
 typedef int mode_t;
 

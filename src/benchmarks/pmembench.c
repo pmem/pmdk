@@ -863,7 +863,7 @@ pmembench_remove_file(const char *path)
 	dir = opendir(path);
 	if (dir == NULL) {
 		if (access(path, F_OK) == 0) {
-			ret = util_is_poolset(path);
+			ret = util_is_poolset_file(path);
 			if (ret == 0) {
 				return remove(path);
 			} else if (ret == 1) {
@@ -970,7 +970,7 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 		}
 		args->opts = (void *)((uintptr_t)args +
 				sizeof(struct benchmark_args));
-		args->is_poolset = util_is_poolset(args->fname) == 1;
+		args->is_poolset = util_is_poolset_file(args->fname) == 1;
 		if (args->is_poolset) {
 			if (!bench->info->allow_poolset) {
 				fprintf(stderr, "poolset files "

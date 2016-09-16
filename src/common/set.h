@@ -135,7 +135,7 @@ int util_pool_create_uuids(struct pool_set **setp, const char *path,
 	const unsigned char *arch_flags,
 	int remote);
 
-int util_open_part(struct pool_set_part *part, size_t minsize, int create);
+int util_part_open(struct pool_set_part *part, size_t minsize, int create);
 void util_part_fdclose(struct pool_set_part *part);
 int util_replica_open(struct pool_set *set, unsigned repidx, int flags);
 int util_replica_close(struct pool_set *set, unsigned repidx);
@@ -172,7 +172,6 @@ void util_remote_destroy_lock(void);
 int util_pool_close_remote(RPMEMpool *rpp);
 void util_remote_unload(void);
 void util_replica_fdclose(struct pool_replica *rep);
-int util_close_replica_parts(struct pool_set *set, unsigned repidx);
 
 extern int (*Rpmem_persist)(RPMEMpool *rpp, size_t offset, size_t length,
 								unsigned lane);
