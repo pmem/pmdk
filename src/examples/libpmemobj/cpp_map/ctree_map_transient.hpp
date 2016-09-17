@@ -206,7 +206,7 @@ public:
 	 * @return 0 on
 	 */
 	int
-	lookup(key_type key)
+	lookup(key_type key) const
 	{
 		return get(key) != nullptr;
 	}
@@ -233,7 +233,7 @@ public:
 	 * @return 1 if empty, 0 otherwise.
 	 */
 	int
-	is_empty()
+	is_empty() const
 	{
 		return root->value == nullptr && root->inode == nullptr;
 	}
@@ -244,7 +244,7 @@ public:
 	 * @return 0 on success, negative values on error.
 	 */
 	int
-	check()
+	check() const
 	{
 		return 0;
 	}
