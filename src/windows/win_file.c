@@ -54,7 +54,7 @@
 #include <sys/stat.h>
 #include <sys/file.h>
 #include <Shlwapi.h>
-#include <time.h>
+#include <stdio.h>
 
 /*
  * mkstemp -- generate a unique temporary filename from template
@@ -62,18 +62,24 @@
 int
 mkstemp(char *temp)
 {
-
-	/* XXX - limited number of unique file names - 26 per thread */
+	unsigned rnd;
 	char *path = _mktemp(temp);
+
 	if (path == NULL)
 		return -1;
+
+	char npath[MAX_PATH];
+
+	strcpy(npath, path);
+	rand_s(&rnd);
+	_snprintf(npath + strlen(npath), MAX_PATH, "%d", rnd);
 
 	/*
 	 * Use O_TEMPORARY flag to make sure the file is deleted when
 	 * the last file descriptor is closed.  Also, it prevents opening
 	 * this file from another process.
 	 */
-	return open(path, O_RDWR | O_CREAT | O_EXCL | O_TEMPORARY,
+	return open(npath, O_RDWR | O_CREAT | O_EXCL | O_TEMPORARY,
 		S_IWRITE | S_IREAD);
 }
 

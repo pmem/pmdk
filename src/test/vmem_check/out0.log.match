@@ -1,0 +1,3 @@
+vmem_check$(nW)TEST0: START: vmem_check
+ $(nW)vmem_check$(nW)
+vmem_check$(nW)TEST0: Done

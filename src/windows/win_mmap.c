@@ -898,7 +898,7 @@ mprotect(void *addr, size_t len, int prot)
 				protect |= PAGE_WRITECOPY;
 			}
 			else if (protect & PAGE_EXECUTE_READWRITE) {
-				protect &= PAGE_EXECUTE_READWRITE;
+				protect &= ~PAGE_EXECUTE_READWRITE;
 				protect |= PAGE_EXECUTE_WRITECOPY;
 			}
 		}

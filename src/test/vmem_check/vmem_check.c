@@ -41,11 +41,20 @@
 int
 main(int argc, char *argv[])
 {
+	unsigned long long Ut_mmap_align;
 	char *dir = NULL;
 	void *mem_pool = NULL;
 	VMEM *vmp;
 
 	START(argc, argv, "vmem_check");
+
+#ifdef _WIN32
+	SYSTEM_INFO si;
+	GetSystemInfo(&si);
+	Ut_mmap_align = si.dwAllocationGranularity;
+#else
+	Ut_mmap_align = Ut_pagesize;
+#endif
 
 	if (argc == 2) {
 		dir = argv[1];
@@ -71,7 +80,7 @@ main(int argc, char *argv[])
 	/* create pool in this same memory region */
 	if (dir == NULL) {
 		void *mem_pool2 = (void *)(((uintptr_t)mem_pool +
-			VMEM_MIN_POOL / 2) & ~(Ut_pagesize - 1));
+			VMEM_MIN_POOL / 2) & ~(Ut_mmap_align - 1));
 
 		VMEM *vmp2 = vmem_create_in_region(mem_pool2,
 			VMEM_MIN_POOL);
