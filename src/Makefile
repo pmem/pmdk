@@ -63,10 +63,9 @@ CPP_HEADERS_DESTDIR = $(DESTDIR)$(includedir)/libpmemobj++
 MAKE_PKG_CONFIG = $(TOP)/utils/make-pkg-config.sh
 PKG_CONFIG_DESTDIR = $(DESTDIR)$(pkgconfigdir)
 PKG_CONFIG_FILES = libpmem.pc libvmem.pc libvmmalloc.pc libpmemobj.pc\
-		libpmemlog.pc libpmemblk.pc libpmempool.pc
+		libpmemlog.pc libpmemblk.pc libpmempool.pc libpmemobj++.pc
 
 ifeq ($(EXPERIMENTAL),y)
-	PKG_CONFIG_FILES += libpmemobj++.pc
 ifeq ($(BUILD_RPMEM),y)
 	PKG_CONFIG_FILES += librpmem.pc
 	HEADERS_INSTALL += include/librpmem.h
@@ -140,7 +139,6 @@ ifeq ($(custom_build),)
 	$(MAKE) -C jemalloc -f Makefile.nvml $@ DEBUG=1
 endif
 
-ifeq ($(EXPERIMENTAL),y)
 install-cpp:
 	$(call install_recursive_filter,include/libpmemobj++,*.hpp,0644,$(CPP_HEADERS_DESTDIR))
 
@@ -150,7 +148,6 @@ uninstall-cpp:
 	$(RM) -r $(CPP_HEADERS_DESTDIR)
 
 uninstall: uninstall-cpp
-endif
 
 install: all
 	install -d $(HEADERS_DESTDIR)

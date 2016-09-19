@@ -73,39 +73,6 @@ function convert_changelog() {
 	done < $1
 }
 
-function experimental_install_triggers_overrides() {
-cat << EOF > debian/${OBJ_CPP_NAME}.install
-usr/include/libpmemobj++/*.hpp
-usr/include/libpmemobj++/detail/*.hpp
-usr/share/doc/${OBJ_CPP_DOC_DIR}/*
-EOF
-
-cat << EOF > debian/${OBJ_CPP_NAME}.triggers
-interest doc-base
-EOF
-
-cat << EOF > debian/${OBJ_CPP_NAME}.lintian-overrides
-$ITP_BUG_EXCUSE
-new-package-should-close-itp-bug
-# The following warnings are triggered by a bug in debhelper:
-# http://bugs.debian.org/204975
-postinst-has-useless-call-to-ldconfig
-postrm-has-useless-call-to-ldconfig
-EOF
-
-cat << EOF > debian/${OBJ_CPP_NAME}.doc-base
-Document: ${OBJ_CPP_NAME}
-Title: NVML libpmemobj C++ bindings Manual
-Author: NVML Developers
-Abstract: This is the HTML docs for the C++ bindings for NVML's libpmemobj.
-Section: Programming
-
-Format: HTML
-Index: /usr/share/doc/${OBJ_CPP_DOC_DIR}/index.html
-Files: /usr/share/doc/${OBJ_CPP_DOC_DIR}/*
-EOF
-}
-
 function rpmem_install_triggers_overrides() {
 cat << EOF > debian/librpmem.install
 usr/lib/librpmem.so.*
@@ -154,18 +121,6 @@ EOF
 cat << EOF > debian/rpmemd.lintian-overrides
 $ITP_BUG_EXCUSE
 new-package-should-close-itp-bug
-EOF
-}
-
-function append_experimental_control() {
-cat << EOF >> $CONTROL_FILE
-
-Package: ${OBJ_CPP_NAME}
-Section: libdevel
-Architecture: any
-Depends: libpmemobj-dev (=\${binary:Version}), \${shlibs:Depends}, \${misc:Depends}
-Description: C++ bindings for libpmemobj (EXPERIMENTAL)
- Headers-only C++ library for libpmemobj.
 EOF
 }
 
@@ -250,7 +205,7 @@ Maintainer: $PACKAGE_MAINTAINER
 Section: misc
 Priority: optional
 Standards-version: 3.9.4
-Build-Depends: debhelper (>= 9)
+Build-Depends: debhelper (>= 9), doxygen, pandoc
 
 Package: libpmem
 Architecture: any
@@ -358,6 +313,13 @@ Priority: optional
 Depends: \${shlibs:Depends}, \${misc:Depends}
 Description: Tools for $PACKAGE_NAME
  Utilities for $PACKAGE_NAME.
+
+Package: ${OBJ_CPP_NAME}
+Section: libdevel
+Architecture: any
+Depends: libpmemobj-dev (=\${binary:Version}), \${shlibs:Depends}, \${misc:Depends}
+Description: C++ bindings for libpmemobj
+ Headers-only C++ library for libpmemobj.
 EOF
 
 cp LICENSE debian/copyright
@@ -672,13 +634,38 @@ $ITP_BUG_EXCUSE
 new-package-should-close-itp-bug
 EOF
 
-# Experimental features
-if [ "${EXPERIMENTAL}" = "y" ]
-then
-	append_experimental_control;
-	experimental_install_triggers_overrides;
-fi
+cat << EOF > debian/${OBJ_CPP_NAME}.install
+usr/include/libpmemobj++/*.hpp
+usr/include/libpmemobj++/detail/*.hpp
+usr/share/doc/${OBJ_CPP_DOC_DIR}/*
+EOF
 
+cat << EOF > debian/${OBJ_CPP_NAME}.triggers
+interest doc-base
+EOF
+
+cat << EOF > debian/${OBJ_CPP_NAME}.lintian-overrides
+$ITP_BUG_EXCUSE
+new-package-should-close-itp-bug
+# The following warnings are triggered by a bug in debhelper:
+# http://bugs.debian.org/204975
+postinst-has-useless-call-to-ldconfig
+postrm-has-useless-call-to-ldconfig
+EOF
+
+cat << EOF > debian/${OBJ_CPP_NAME}.doc-base
+Document: ${OBJ_CPP_NAME}
+Title: NVML libpmemobj C++ bindings Manual
+Author: NVML Developers
+Abstract: This is the HTML docs for the C++ bindings for NVML's libpmemobj.
+Section: Programming
+
+Format: HTML
+Index: /usr/share/doc/${OBJ_CPP_DOC_DIR}/index.html
+Files: /usr/share/doc/${OBJ_CPP_DOC_DIR}/*
+EOF
+
+# Experimental features
 if [ "${BUILD_RPMEM}" = "y" -a "${RPMEM_DPKG}" = "y" ]
 then
 	append_rpmem_control;
