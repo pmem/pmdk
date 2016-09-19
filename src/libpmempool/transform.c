@@ -75,6 +75,17 @@ validate_args(struct pool_set *set_in, struct pool_set *set_out)
 	}
 
 	/*
+	 * check if all parts in the target poolset are large enough
+	 */
+	for (unsigned r = 0; r < set_out->nreplicas; ++r) {
+		struct pool_replica *rep = set_out->replica[r];
+		for (unsigned p = 0; p < rep->nparts; ++p) {
+			if (PART(rep, p).filesize < PMEMOBJ_MIN_POOL)
+				goto err;
+		}
+	}
+
+	/*
 	 * check if set_out has enough size, i.e. if the target poolset
 	 * structure has enough capacity to accommodate the effective size of
 	 * the source poolset
