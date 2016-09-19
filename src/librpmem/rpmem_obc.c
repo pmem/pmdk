@@ -563,7 +563,8 @@ rpmem_obc_open(struct rpmem_obc *rpc,
 		goto err_msg_resp;
 
 	rpmem_obc_get_res(res, &resp.ibc);
-	memcpy(pool_attr, &resp.pool_attr, sizeof(*pool_attr));
+	if (pool_attr)
+		memcpy(pool_attr, &resp.pool_attr, sizeof(*pool_attr));
 
 	free(msg);
 	return 0;
