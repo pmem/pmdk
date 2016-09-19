@@ -547,7 +547,7 @@ rpmem_obc_open(struct rpmem_obc *rpc,
 	}
 
 	RPMEM_LOG(NOTICE, "open request message sent");
-	RPMEM_LOG(INFO, "receiving create request response");
+	RPMEM_LOG(INFO, "receiving open request response");
 
 	struct rpmem_msg_open_resp resp;
 	if (rpmem_ssh_recv(rpc->ssh, &resp, sizeof(resp))) {
