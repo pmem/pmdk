@@ -53,7 +53,11 @@
 #define UUID		"UUID0123456789AB"
 #define NEXT_UUID	"NEXT_UUID0123456"
 #define PREV_UUID	"PREV_UUID0123456"
-#define USER_FLAGS	"USER_FLAGS\0\0\0\0\0\0"
+/*
+ * Use default terminal command for terminating
+ * session in order to make sure this is not interpreted by terminal.
+ */
+#define USER_FLAGS	"USER_FLAGS\0\0\0\n~."
 #define POOL_ATTR_INIT {\
 	.signature = SIGNATURE,\
 	.major = MAJOR,\

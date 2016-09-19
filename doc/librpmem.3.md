@@ -126,8 +126,9 @@ The *pool_set_name* is a relative path in the root config directory on
 the *target* node that uniquely identifies the pool set file on remote node
 to be used when mapping the remote pool. The *pool_addr* is a pointer to the
 associated local memory pool of a given size specified by the *pool_size*
-argument. The size of the remote pool must be at least *pool_size*. The
-*nlanes* points to the maximum number of lanes which the caller requests to
+argument. The size of the remote pool must be at least *pool_size*.
+See **REMOTE POOL SIZE** section for details.
+The *nlanes* points to the maximum number of lanes which the caller requests to
 use. Upon successfully opening of the remote pool, the *nlanes* contains the
 maximum number of lanes supported by both local and remote nodes' hardware.
 See **LANES** section for details.
@@ -150,8 +151,9 @@ node. The *pool_set_name* is a relative path in the root config directory on
 the *target* node that uniquely identifies the pool set file on remote node
 to be used when mapping the remote pool. The *pool_addr* is a pointer to the
 associated local memory pool of a given size specified by the *pool_size*
-argument. The size of the remote pool must be at least *pool_size*. The
-*nlanes* points to the maximum number of lanes which the caller requests to
+argument. The size of the remote pool must be at least *pool_size*.
+See **REMOTE POOL SIZE** section for details.
+The *nlanes* points to the maximum number of lanes which the caller requests to
 use. Upon successfully opening of the remote pool, the *nlanes* contains the
 maximum number of lanes supported by both local and remote nodes' hardware.
 See **LANES** section for details.
@@ -169,7 +171,8 @@ int rpmem_close(RPMEMpool *rpp);
 The **rpmem_close**() function closes a remote pool indicated by *rpp*.
 All resources are released on both local and remote side. The pool itself lives
 on the remote node and may be re-opened at a later time using **rpmem_open**()
-function as described above.
+function as described above. If any error occured when closing remote pool,
+non-zero value is returned and *errno* value is set.
 
 ```c
 int rpmem_persist(RPMEMpool *rpp, size_t offset, size_t length, unsigned lane);
@@ -304,6 +307,13 @@ The application must take into account this fact when using **wait**(3)
 and **waitpid**(3) functions which may return a PID of the **ssh** process
 executed by **librpmem**.
 
+# REMOTE POOL SIZE #
+The remote pool size depends on the configuration of pool set file on remote
+node. The remote pool size is a sum of sizes of all part files decreased by 4096
+bytes per each part file. The 4096 bytes of each part file is utilized for
+storing internal metadata of the pool part files. The minimum size of the
+remote pool is 4096 bytes (not including required 4096 bytes per each part
+file).
 
 # LIBRARY API VERSIONING #
 
