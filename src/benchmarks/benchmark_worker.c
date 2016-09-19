@@ -33,10 +33,16 @@
  * benchmark_worker.c -- benchmark_worker module definitions
  */
 
+#define _GNU_SOURCE
+
+#include <features.h>
 #include <err.h>
 #include <assert.h>
+#include <sched.h>
+#include <pthread.h>
 
 #include "benchmark_worker.h"
+
 /*
  * worker_state_wait_for_transition -- wait for transition from and to
  * specified states
@@ -110,7 +116,7 @@ thread_func(void *arg)
  * benchmark_worker_alloc -- allocate benchmark worker
  */
 struct benchmark_worker *
-benchmark_worker_alloc(void)
+benchmark_worker_alloc(int cpu, int no_affinity)
 {
 	struct benchmark_worker *w = calloc(1, sizeof(*w));
 	if (!w)
@@ -125,8 +131,20 @@ benchmark_worker_alloc(void)
 	if (pthread_create(&w->thread, NULL, thread_func, w))
 		goto err_destroy_cond;
 
+	if (!no_affinity) {
+		cpu_set_t cpuset;
+		CPU_ZERO(&cpuset);
+		CPU_SET(cpu, &cpuset);
+
+		if (pthread_setaffinity_np(w->thread, sizeof(cpu_set_t),
+				&cpuset))
+			goto err_thread_cancel;
+	}
+
 	return w;
 
+err_thread_cancel:
+	/* XXX: require handling */
 err_destroy_cond:
 	pthread_cond_destroy(&w->cond);
 err_destroy_mutex:

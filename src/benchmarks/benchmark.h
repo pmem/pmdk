@@ -91,6 +91,7 @@ struct benchmark_args
 	unsigned repeats;		/* number of repeats of one scenario */
 	bool help;			/* print help for benchmark */
 	void *opts;			/* benchmark specific arguments */
+	bool no_affinity;		/* do not set worker threads affinity */
 };
 
 /*
