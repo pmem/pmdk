@@ -103,7 +103,9 @@ main(int argc, char *argv[])
 	mem_pools = MALLOC(mem_pools_size * sizeof(char *));
 	pools = CALLOC(npools * nthreads, sizeof(VMEM *));
 	pthread_t *threads = CALLOC(nthreads, sizeof(pthread_t));
+	UT_ASSERTne(threads, NULL);
 	int *pool_idx = CALLOC(nthreads, sizeof(int));
+	UT_ASSERTne(pool_idx, NULL);
 
 	for (int pool_id = 0; pool_id < mem_pools_size; ++pool_id) {
 		/* allocate memory for function vmem_create_in_region() */

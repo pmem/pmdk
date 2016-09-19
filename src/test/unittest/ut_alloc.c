@@ -218,22 +218,6 @@ ut_mmap_anon_aligned(const char *file, int line, const char *func,
 }
 
 
-/*
- * ut_memalign -- like malloc but page-aligned memory
- */
-void *
-ut_memalign(const char *file, int line, const char *func, size_t alignment,
-	size_t size)
-{
-	void *retval;
-
-	if ((errno = posix_memalign(&retval, alignment, size)) != 0)
-		ut_fatal(file, line, func,
-			"!memalign %zu bytes (%zu alignment)", size, alignment);
-
-	return retval;
-}
-
 #ifndef _WIN32
 
 /*

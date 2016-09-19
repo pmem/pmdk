@@ -76,26 +76,19 @@ JEMALLOC_ATTR(constructor)
 static void WINAPI
 _init_init_lock(void)
 {
+
 	malloc_mutex_init(&init_lock);
+	malloc_mutex_init(&pools_lock);
+	malloc_mutex_init(&pool_base_lock);
 }
 
 #ifdef _MSC_VER
-
-#define MSVC_CONSTR(func) \
-void func(void); \
-__pragma(comment(linker, "/include:_" #func)) \
-__pragma(section(".CRT$XCU", read)) \
-__declspec(allocate(".CRT$XCU")) \
-const void (WINAPI *_##func)(void) = func;
-
-/*
-#  pragma section(".CRT$XCU", read)
+# pragma comment(linker, "/include:__init_init_lock")
+# pragma section(".CRT$XCU", read)
 JEMALLOC_SECTION(".CRT$XCU") JEMALLOC_ATTR(used)
-static const void (WINAPI *init_init_lock)(void) = _init_init_lock;
-#endif*/
-
-MSVC_CONSTR(_init_init_lock);
+const void (WINAPI *__init_init_lock)(void) = _init_init_lock;
 #endif
+
 #else
 static malloc_mutex_t	init_lock = MALLOC_MUTEX_INITIALIZER;
 #endif
@@ -832,9 +825,6 @@ malloc_init_hard(void)
 	}
 #endif
 	malloc_initializer = INITIALIZER;
-
-	malloc_mutex_init(&pools_lock);
-	malloc_mutex_init(&pool_base_lock);
 
 	malloc_tsd_boot();
 	if (config_prof)
