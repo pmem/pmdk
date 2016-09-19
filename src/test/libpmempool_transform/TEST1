@@ -72,16 +72,17 @@ srpr 0 9
 srpr 20M 9
 EOF
 
-# Create poolset
-create_poolset $POOLSET_IN\
-	20M:$DIR/testfile0:z:20M:0777\
-	10M:$DIR/testfile1:z:10M:0777\
-	R\
-	10M:$DIR/testfile2:z:10M:0777\
-	10M:$DIR/testfile3:z:10M:0777\
-	10M:$DIR/testfile4:z:10M:0777\
+# Create poolset files
+cat << EOF > $POOLSET_IN
+PMEMPOOLSET
+20M $DIR/testfile0
+10M $DIR/testfile1
+REPLICA
+10M $DIR/testfile2
+10M $DIR/testfile3
+10M $DIR/testfile4
+EOF
 
-# Create only poolset file
 cat << EOF > $POOLSET_OUT
 PMEMPOOLSET
 20M $DIR/testfile0

@@ -57,17 +57,17 @@ M20=$(( 20 * $M ))
 M40=$(( 40 * $M ))
 POOL_HEADER_OFFSET=4096
 ADDR_MASK=0xFFFFF000
-FILES=(testfile1 testfile2 testfile3 testfile4 testfile5)
 
-echo $DIR/${FILES[0]}
-# Create poolset
-create_poolset $POOLSET\
-	20M:$DIR/${FILES[0]}:z:20M:0777\
-	20M:$DIR/${FILES[1]}:z:20M:0777\
-	21M:$DIR/${FILES[2]}:z:21M:0777\
-	R\
-	40M:$DIR/${FILES[3]}:z:40M:0777\
-	20M:$DIR/${FILES[4]}:z:20M:0777
+# Create poolset file
+cat << EOF > $POOLSET
+PMEMPOOLSET
+20M $DIR/testfile1
+20M $DIR/testfile2
+21M $DIR/testfile3
+REPLICA
+40M $DIR/testfile4
+20M $DIR/testfile5
+EOF
 
 expect_normal_exit $PMEMPOOL$EXESUFFIX create --layout=$LAYOUT\
 	obj $POOLSET
@@ -98,7 +98,7 @@ expect_normal_exit $PMEMOBJCLI$EXESUFFIX -s $WRITE_SCRIPT $POOLSET >> $LOG_TEMP
 expect_normal_exit $PMEMOBJCLI$EXESUFFIX -s $READ_SCRIPT $POOLSET >> $LOG_TEMP
 
 # Delete the second part in the primary replica
-rm -f $DIR/${FILES[1]}
+rm -f $DIR/testfile2
 
 # Synchronize replicas
 FLAGS=0
