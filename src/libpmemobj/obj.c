@@ -1144,6 +1144,8 @@ obj_read_remote(void *ctx, uintptr_t base, void *dest, void *addr,
 		return -1;
 	}
 
+	VALGRIND_DO_MAKE_RMEM_DEFINED(dest, length);
+
 	return 0;
 }
 

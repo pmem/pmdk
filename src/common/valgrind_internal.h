@@ -430,6 +430,11 @@ extern unsigned _On_valgrind;
 		VALGRIND_CHECK_MEM_IS_ADDRESSABLE(addr, len);\
 } while (0)
 
+#define VALGRIND_DO_MAKE_RMEM_DEFINED(addr, len) do {\
+	if (On_valgrind)\
+		VALGRIND_MAKE_MEM_DEFINED(addr, len);\
+} while (0)
+
 #else
 
 #define VALGRIND_DO_DISABLE_ERROR_REPORTING do {} while (0)
@@ -463,6 +468,9 @@ extern unsigned _On_valgrind;
 	do { (void) (addr); (void) (len); } while (0)
 
 #define VALGRIND_DO_CHECK_MEM_IS_ADDRESSABLE(addr, len)\
+	do { (void) (addr); (void) (len); } while (0)
+
+#define VALGRIND_DO_MAKE_RMEM_DEFINED(addr, len) \
 	do { (void) (addr); (void) (len); } while (0)
 
 #endif

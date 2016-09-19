@@ -522,25 +522,65 @@ function ignore_debug_info_errors() {
 }
 
 #
+# get_trace --
+#	usage: get_trace <check type> <log file> [<node>]
+#
+function get_trace() {
+	[ "$1" == "none" ] && return $TRACE
+	local exe=$VALGRINDEXE
+	local check_type=$1
+	local log_file=$2
+	local opts="$VALGRIND_OPTS"
+	local node=-1
+	[ "$#" -eq 3 ] && node=$3
+
+	if [ "$check_type" = "memcheck" -a "$MEMCHECK_DONT_CHECK_LEAKS" != "1" ]; then
+		opts="$opts --leak-check=full"
+	fi
+	opts="$opts --suppressions=../ld.supp"
+	if [ "$node" -ne -1 ]; then
+		exe=${NODE_VALGRINDEXE[$node]}
+		opts="$opts --suppressions=../memcheck-rpmem.supp --gen-suppressions=all"
+	fi
+
+	echo "$exe --tool=$check_type --log-file=$log_file $opts $TRACE"
+	return
+}
+
+#
+# validate_valgrind_log --
+#	usage: validate_valgrind_log <log-file>
+#
+function validate_valgrind_log() {
+	[ "$VALIDATE_VALGRIND_LOG" != "1" ] && return
+	if [ ! -e "$1.match" ] && grep "ERROR SUMMARY: [^0]" $1 >/dev/null; then
+		msg="failed"
+		[ -t 2 ] && command -v tput >/dev/null && msg="$(tput setaf 1)$msg$(tput sgr0)"
+		echo -e "$UNITTEST_NAME $msg with Valgrind. See $1. First 20 lines below." >&2
+		paste -d " " <(yes $UNITTEST_NAME $1 | head -n 20) <(cat $1) >&2
+		false
+	fi
+}
+
+#
 # expect_normal_exit -- run a given command, expect it to exit 0
 #
 function expect_normal_exit() {
-	if [ "$CHECK_TYPE" != "none" ]; then
-		OLDTRACE="$TRACE"
-		VALGRIND_LOG_FILE=${CHECK_TYPE}${UNITTEST_NUM}.log
-		rm -f $VALGRIND_LOG_FILE
-		if [ "$CHECK_TYPE" = "memcheck" -a "$MEMCHECK_DONT_CHECK_LEAKS" != "1" ]; then
-			export OLD_VALGRIND_OPTS="$VALGRIND_OPTS"
-			export VALGRIND_OPTS="$VALGRIND_OPTS --leak-check=full"
+	local VALGRIND_LOG_FILE=${CHECK_TYPE}${UNITTEST_NUM}.log
+	local N=$2
+
+	# in case of a remote execution disable valgrind check if valgrind is not
+	# enabled on node
+	local _CHECK_TYPE=$CHECK_TYPE
+	if [ "$1" == "run_on_node" -o "$1" == "run_on_node_background" ]; then
+		if [ -z $(is_valgrind_enabled_on_node $N) ]; then
+			_CHECK_TYPE="none"
 		fi
-		export VALGRIND_OPTS="$VALGRIND_OPTS --suppressions=../ld.supp"
-		if [ "$1" == "run_on_node" -o "$1" == "run_on_node_background" ]; then
-			local _VALGRINDEXE=${NODE_VALGRINDEXE[$2]}
-		else
-			local _VALGRINDEXE=$VALGRINDEXE
-		fi
-		TRACE="$_VALGRINDEXE --tool=$CHECK_TYPE --log-file=$VALGRIND_LOG_FILE $VALGRIND_OPTS $TRACE"
+	else
+		N=-1
 	fi
+
+	local trace=$(get_trace $_CHECK_TYPE $VALGRIND_LOG_FILE $N)
 
 	if [ "$MEMCHECK_DONT_CHECK_LEAKS" = "1" -a "$CHECK_TYPE" = "memcheck" ]; then
 		export OLD_ASAN_OPTIONS="${ASAN_OPTIONS}"
@@ -549,21 +589,20 @@ function expect_normal_exit() {
 
 	local REMOTE_VALGRIND_LOG=0
 	if [ "$CHECK_TYPE" != "none" ]; then
-		local N=$2
 	        case "$1"
 	        in
 	        run_on_node)
 			REMOTE_VALGRIND_LOG=1
-			TRACE="$1 $2 $TRACE"
+			trace="$1 $2 $trace"
 			[ $# -ge 2  ] && shift 2 || shift $#
 	                ;;
 	        run_on_node_background)
-			TRACE="$1 $2 $3 $TRACE"
+			trace="$1 $2 $3 $trace"
 			[ $# -ge 3  ] && shift 3 || shift $#
 	                ;;
 	        wait_on_node|wait_on_node_port|kill_on_node)
 			[ "$1" = "wait_on_node" ] && REMOTE_VALGRIND_LOG=1
-			TRACE="$1 $2 $3 $4"
+			trace="$1 $2 $3 $4"
 			[ $# -ge 4  ] && shift 4 || shift $#
 	                ;;
 	        esac
@@ -571,16 +610,15 @@ function expect_normal_exit() {
 
 	set +e
 	eval $ECHO LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH LD_PRELOAD=$TEST_LD_PRELOAD \
-	$TRACE $*
+		$trace $*
 	ret=$?
 	if [ $REMOTE_VALGRIND_LOG -eq 1 ]; then
-		validate_node_number $N
-		local REMOTE_DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
-		local NEW_VALGRIND_LOG_FILE=node\_$N\_$VALGRIND_LOG_FILE
-		run_command scp $SCP_OPTS \
-			${NODE[$N]}:$REMOTE_DIR/$VALGRIND_LOG_FILE \
-			$NEW_VALGRIND_LOG_FILE 2>/dev/null
-		VALGRIND_LOG_FILE=$NEW_VALGRIND_LOG_FILE
+		for node in $CHECK_NODES
+		do
+			local new_log_file=node\_$node\_$VALGRIND_LOG_FILE
+			copy_files_from_node $node "." $VALGRIND_LOG_FILE
+			mv $VALGRIND_LOG_FILE $new_log_file
+		done
 	fi
 	set -e
 
@@ -603,9 +641,7 @@ function expect_normal_exit() {
 			echo -e "$UNITTEST_NAME $msg." >&2
 		fi
 		if [ "$CHECK_TYPE" != "none" -a -f $VALGRIND_LOG_FILE ]; then
-			echo "$VALGRIND_LOG_FILE below." >&2
-			ln=`wc -l < $VALGRIND_LOG_FILE`
-			paste -d " " <(yes $UNITTEST_NAME $VALGRIND_LOG_FILE | head -n $ln) <(head -n $ln $VALGRIND_LOG_FILE) >&2
+			dump_last_n_lines $VALGRIND_LOG_FILE
 		fi
 
 		# ignore Ctrl-C
@@ -629,26 +665,22 @@ function expect_normal_exit() {
 		false
 	fi
 	if [ "$CHECK_TYPE" != "none" ]; then
-		TRACE="$OLDTRACE"
-		if [ -f $VALGRIND_LOG_FILE ]; then
-			ignore_debug_info_errors ${VALGRIND_LOG_FILE}
-		fi
-
-		if [ -f $VALGRIND_LOG_FILE -a "${VALIDATE_VALGRIND_LOG}" = "1" ]; then
-			if [ ! -e $CHECK_TYPE$UNITTEST_NUM.log.match ] && grep "ERROR SUMMARY: [^0]" $VALGRIND_LOG_FILE >/dev/null; then
-				msg="failed"
-				[ -t 2 ] && command -v tput >/dev/null && msg="$(tput setaf 1)$msg$(tput sgr0)"
-				echo -e "$UNITTEST_NAME $msg with Valgrind. See $VALGRIND_LOG_FILE. First 20 lines below." >&2
-				paste -d " " <(yes $UNITTEST_NAME $VALGRIND_LOG_FILE | head -n 20) <(head -n 20 $VALGRIND_LOG_FILE) >&2
-				false
+		if [ $REMOTE_VALGRIND_LOG -eq 1 ]; then
+			for node in $CHECK_NODES
+			do
+				local log_file=node\_$node\_$VALGRIND_LOG_FILE
+				ignore_debug_info_errors $new_log_file
+				validate_valgrind_log $new_log_file
+			done
+		else
+			if [ -f $VALGRIND_LOG_FILE ]; then
+				ignore_debug_info_errors $VALGRIND_LOG_FILE
+				validate_valgrind_log $VALGRIND_LOG_FILE
 			fi
 		fi
-
-		if [ "$CHECK_TYPE" = "memcheck" -a "$MEMCHECK_DONT_CHECK_LEAKS" != "1" ]; then
-			export VALGRIND_OPTS="$OLD_VALGRIND_OPTS"
-		fi
 	fi
-	if [ "$CHECK_TYPE" = "memcheck" -a "$MEMCHECK_DONT_CHECK_LEAKS" = "1" ]; then
+
+	if [ "$MEMCHECK_DONT_CHECK_LEAKS" = "1" -a "$CHECK_TYPE" = "memcheck" ]; then
 		export ASAN_OPTIONS="${OLD_ASAN_OPTIONS}"
 	fi
 }
@@ -1411,8 +1443,8 @@ function copy_files_from_node() {
 	local REMOTE_DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
 	local temp_file=node_${N}_temp_file.tar
 	run_command ssh $SSH_OPTS ${NODE[$N]} "cd $REMOTE_DIR && tar -czf $temp_file $@"
-	run_command scp $SCP_OPTS ${NODE[$N]}:$REMOTE_DIR/$temp_file $DIR
-	cd $DIR \
+	run_command scp $SCP_OPTS ${NODE[$N]}:$REMOTE_DIR/$temp_file $DEST_DIR
+	cd $DEST_DIR \
 		&& tar -xzf $temp_file \
 		&& rm $temp_file \
 		&& cd - > /dev/null
@@ -1965,10 +1997,14 @@ function init_rpmem_on_node() {
 		if [ -n "$RPMEM_POOLSET_DIR" ]; then
 			poolset_dir=$RPMEM_POOLSET_DIR
 		fi
+		if [ -n "$(is_valgrind_enabled_on_node $slave)" ]; then
+			log_file=${CHECK_TYPE}${UNITTEST_NUM}.log
+			trace=$(get_trace $CHECK_TYPE $log_file $slave)
+		fi
 		CMD="cd ${NODE_TEST_DIR[$slave]} && "
 		CMD="$CMD ${NODE_ENV[$slave]}"
 		CMD="$CMD LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$REMOTE_LD_LIBRARY_PATH:${NODE_LD_LIBRARY_PATH[$slave]}"
-		CMD="$CMD ../rpmemd"
+		CMD="$CMD $trace ../rpmemd"
 		CMD="$CMD --log-file=$RPMEMD_LOG_FILE"
 		CMD="$CMD --poolset-dir=$poolset_dir"
 
@@ -2017,6 +2053,43 @@ function init_rpmem_on_node() {
 	# Issue require a fix in the infinipath-psm or the libfabric.
 	IPATH_NO_BACKTRACE=1
 	export_vars_node $master IPATH_NO_BACKTRACE
+}
+
+#
+# init_valgrind_on_node -- prepare valgrind on nodes
+#    usage: init_valgrind_on_node <check type> <node list>
+#
+function init_valgrind_on_node() {
+	local UNITTEST_NO_CHECK_OPEN_FILES=1
+	local LD_PRELOAD=librpmem.so
+	export PMEMOBJ_VG_CHECK_UNDEF=1
+	export CHECK_NODES=""
+	export CHECK_TYPE=$1
+	shift
+
+	for node in "$@"
+	do
+		validate_node_number $node
+		export_vars_node $node LD_PRELOAD
+		export_vars_node $node PMEMOBJ_VG_CHECK_UNDEF
+		export_vars_node $node UNITTEST_NO_CHECK_OPEN_FILES
+		export CHECK_NODES="$CHECK_NODES $node"
+	done
+}
+
+#
+# is_valgrind_enabled_on_node --
+#    usage: is_valgrind_enabled_on_node <node>
+#
+function is_valgrind_enabled_on_node() {
+	for node in $CHECK_NODES
+	do
+		if [ "$node" -eq "$1" ]; then
+			echo $1
+			return
+		fi
+	done
+	return
 }
 
 #
