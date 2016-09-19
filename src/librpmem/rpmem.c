@@ -512,6 +512,7 @@ rpmem_persist(RPMEMpool *rpp, size_t offset, size_t length, unsigned lane)
 	if (unlikely(ret)) {
 		ERR("persist operation failed");
 		rpp->error = ret;
+		errno = rpp->error;
 		return -1;
 	}
 
