@@ -34,6 +34,7 @@
  * obj_bucket.c -- unit test for bucket
  */
 #include "bucket.h"
+#include "util.h"
 #include "unittest.h"
 
 #define TEST_UNIT_SIZE 128
@@ -49,12 +50,19 @@
 #define TEST_SIZE_IDX	30
 #define TEST_BLOCK_OFF	40
 
-FUNC_MOCK(malloc, void *, size_t size)
-	FUNC_MOCK_RUN_RET_DEFAULT_REAL(malloc, size)
-	FUNC_MOCK_RUN(0) { /* b malloc */
-		return NULL;
+
+static int Rcounter_malloc;
+
+static void *
+__wrap_malloc(size_t size)
+{
+	switch (__sync_fetch_and_add(&Rcounter_malloc, 1)) {
+		default:
+			return malloc(size);
+		case 0: /* b malloc */
+			return NULL;
 	}
-FUNC_MOCK_END
+}
 
 FUNC_MOCK(ctree_new, struct ctree *, void)
 	FUNC_MOCK_RUN_RET_DEFAULT(MOCK_CRIT)
@@ -180,6 +188,8 @@ int
 main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_bucket");
+
+	Malloc = __wrap_malloc;
 
 	test_new_delete_bucket();
 	test_bucket();

@@ -44,12 +44,12 @@
 #define TEST_INSERTS 100
 #define TEST_VAL(x) ((void *)((uintptr_t)(x)))
 
-static int Rcounter;
+static int Rcounter_malloc;
 
 static void *
-malloc_mock(size_t size)
+__wrap_malloc(size_t size)
 {
-	switch (__sync_fetch_and_add(&Rcounter, 1)) {
+	switch (__sync_fetch_and_add(&Rcounter_malloc, 1)) {
 		case 1: /* internal out_err malloc */
 		default:
 			return malloc(size);
@@ -159,7 +159,7 @@ main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_cuckoo");
 
-	Malloc = malloc_mock;
+	Malloc = __wrap_malloc;
 
 	test_cuckoo_new_delete();
 	test_insert_get_remove();

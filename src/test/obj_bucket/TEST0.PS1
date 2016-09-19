@@ -1,4 +1,3 @@
-#!/bin/bash -e
 #
 # Copyright 2015-2016, Intel Corporation
 #
@@ -32,21 +31,26 @@
 #
 
 #
-# src/test/obj_persist_count/TEST0 -- unit test for persist count
+# src/test/obj_bucket/TEST0 -- unit test for obj_bucket interface
 #
-export UNITTEST_NAME=obj_persist_count/TEST0
-export UNITTEST_NUM=0
+[CmdletBinding(PositionalBinding=$false)]
+Param(
+    [alias("d")]
+    $DIR = ""
+    )
+$Env:UNITTEST_NAME = "obj_bucket\TEST0"
+$Env:UNITTEST_NUM = "0"
 
 # standard unit test setup
-. ../unittest/unittest.sh
+. ../unittest/unittest.ps1
 
-require_fs_type non-pmem
-require_build_type debug nondebug
+# mocked allocator does not play well with memcheck
+# XXX: no memcheck for Windows yet, but whatever tool we'll use, it must
+# be aware we're mocking the system allocator
+#configure_valgrind memcheck force-disable
 
 setup
 
-expect_normal_exit ./obj_persist_count$EXESUFFIX $DIR/testfile
-
-check
+expect_normal_exit $Env:EXE_DIR\obj_bucket$EXESUFFIX
 
 pass

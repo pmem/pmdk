@@ -33,6 +33,8 @@
 /*
  * obj_persist_count.c -- counting number of persists
  */
+#define _GNU_SOURCE
+
 #include "obj.h"
 #include "pmalloc.h"
 #include "unittest.h"
@@ -44,21 +46,21 @@ static struct {
 	int n_drain;
 } ops_counter;
 
-FUNC_MOCK(pmem_persist, void, void *addr, size_t len)
+FUNC_MOCK(pmem_persist, void, const void *addr, size_t len)
 	FUNC_MOCK_RUN_DEFAULT {
 		ops_counter.n_persist++;
 		_FUNC_REAL(pmem_persist)(addr, len);
 	}
 FUNC_MOCK_END
 
-FUNC_MOCK(pmem_msync, int, void *addr, size_t len)
+FUNC_MOCK(pmem_msync, int, const void *addr, size_t len)
 	FUNC_MOCK_RUN_DEFAULT {
 		ops_counter.n_msync++;
 		return _FUNC_REAL(pmem_msync)(addr, len);
 	}
 FUNC_MOCK_END
 
-FUNC_MOCK(pmem_flush, void, void *addr, size_t len)
+FUNC_MOCK(pmem_flush, void, const void *addr, size_t len)
 	FUNC_MOCK_RUN_DEFAULT {
 		ops_counter.n_flush++;
 		_FUNC_REAL(pmem_flush)(addr, len);
@@ -71,6 +73,7 @@ FUNC_MOCK(pmem_drain, void, void)
 		_FUNC_REAL(pmem_drain)();
 	}
 FUNC_MOCK_END
+
 
 /*
  * reset_counters -- zero all counters
