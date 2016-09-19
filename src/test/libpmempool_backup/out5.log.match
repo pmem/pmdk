@@ -1,18 +1,18 @@
-libpmempool_backup/TEST5: START: libpmempool_test
- ../libpmempool_api/libpmempool_test$(nW) $(nW)/pool.set -b $(nW)/pool.set_backup -t blk -r 1
+libpmempool_backup$(nW)TEST5: START: libpmempool_test
+ $(nW)libpmempool_test$(nW) $(nW)pool.set -b $(nW)pool.set_backup -t blk -r 1
 size of the part 3 of the backup poolset does not match source poolset
 unable to backup poolset
 status = fatal
-libpmempool_backup/TEST5: Done
-libpmempool_backup/TEST5: START: libpmempool_test
- ../libpmempool_api/libpmempool_test$(nW) $(nW)/pool.set -b $(nW)/pool.set_backup -t log -r 1
+libpmempool_backup$(nW)TEST5: Done
+libpmempool_backup$(nW)TEST5: START: libpmempool_test
+ $(nW)libpmempool_test$(nW) $(nW)pool.set -b $(nW)pool.set_backup -t log -r 1
 size of the part 3 of the backup poolset does not match source poolset
 unable to backup poolset
 status = fatal
-libpmempool_backup/TEST5: Done
-libpmempool_backup/TEST5: START: libpmempool_test
- ../libpmempool_api/libpmempool_test$(nW) $(nW)/pool.set -b $(nW)/pool.set_backup -t obj -r 1
+libpmempool_backup$(nW)TEST5: Done
+libpmempool_backup$(nW)TEST5: START: libpmempool_test
+ $(nW)libpmempool_test$(nW) $(nW)pool.set -b $(nW)pool.set_backup -t obj -r 1
 size of the part 3 of the backup poolset does not match source poolset
 unable to backup poolset
 status = fatal
-libpmempool_backup/TEST5: Done
+libpmempool_backup$(nW)TEST5: Done
