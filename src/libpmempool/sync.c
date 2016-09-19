@@ -194,7 +194,7 @@ copy_data_to_broken_parts(struct pool_set *set, unsigned healthy_replica,
 
 			/* do not allow copying too much data */
 			if (off >= poolsize)
-				return 0;
+				continue;
 
 			if (off + len > poolsize)
 				len = poolsize - off;
@@ -313,7 +313,6 @@ update_replicas_linkage(struct pool_set *set, unsigned repn)
 	/* set uuids in the previous replica */
 	for (unsigned p = 0; p < prev_r->nparts; ++p) {
 		struct pool_hdr *prev_hdrp = HDR(prev_r, p);
-
 		memcpy(prev_hdrp->next_repl_uuid, PART(rep, 0).uuid,
 				POOL_HDR_UUID_LEN);
 		util_checksum(prev_hdrp, sizeof(*prev_hdrp),
@@ -351,6 +350,9 @@ update_poolset_uuids(struct pool_set *set, unsigned repn,
 		struct pool_hdr *hdrp = HDR(rep, p);
 		memcpy(hdrp->poolset_uuid, set->uuid, POOL_HDR_UUID_LEN);
 		util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum, 1);
+
+		/* store pool's header */
+		pmem_msync(hdrp, sizeof(*hdrp));
 	}
 	return 0;
 }
