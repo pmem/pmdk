@@ -156,9 +156,9 @@ PMEMPOOLSET
 ```
 Then
 
-`pmempool_transform "/poolset_file_src" "/poolset_file_dst");`
+`pmempool_transform "/poolset_file_src" "/poolset_file_dst";`
 
-deletes the second replica from the poolset. The second replica remains
+deletes the second replica from the poolset. The first replica remains
 unchanged and the size of the pool remains(!) 60M.
 
 # SEE ALSO #
