@@ -531,6 +531,7 @@ main(int argc, char *argv[])
 		goto err_config;
 	}
 
+	rpmemd_log_close();
 	rpmemd_log_level = rpmemd->config.log_level;
 	if (rpmemd_log_init(DAEMON_NAME, rpmemd->config.log_file,
 				rpmemd->config.use_syslog)) {

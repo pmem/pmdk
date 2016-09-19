@@ -60,6 +60,7 @@
 #include "rpmemd_log.h"
 
 #include "util.h"
+#include "valgrind_internal.h"
 
 #define FATAL RPMEMD_FATAL
 #include "sys_util.h"
@@ -176,6 +177,10 @@ rpmemd_fip_getinfo(struct rpmemd_fip *fip, const char *service,
 		goto err_fi_getinfo;
 	}
 
+#ifdef USE_VG_MEMCHECK
+	rpmem_fi_vg(fip->fi);
+#endif
+
 	rpmem_fip_print_info(fip->fi);
 
 	fi_freeinfo(hints);
@@ -202,6 +207,7 @@ rpmemd_fip_set_resp(struct rpmemd_fip *fip, struct rpmem_resp_attr *resp)
 			RPMEMD_FI_ERR(ret, "getting local endpoint address");
 			goto err_fi_getname;
 		}
+		VALGRIND_DO_MAKE_RMEM_DEFINED(&addr_in, addrlen);
 
 		if (!addr_in.sin_port) {
 			RPMEMD_LOG(ERR, "dynamic allocation of port failed");
@@ -231,6 +237,8 @@ rpmemd_fip_set_resp(struct rpmemd_fip *fip, struct rpmem_resp_attr *resp)
 	}
 
 	resp->rkey = fi_mr_key(fip->mr);
+	VALGRIND_DO_MAKE_RMEM_DEFINED(&resp->rkey, sizeof(resp->rkey));
+
 	resp->persist_method = fip->persist_method;
 	resp->raddr = (uint64_t)fip->addr;
 	resp->nlanes = fip->nlanes;
@@ -647,7 +655,8 @@ rpmemd_fip_init_gpspm(struct rpmemd_fip *fip)
 	return 0;
 err_lane_init:
 	for (unsigned j = 0; j < i; j++)
-		rpmem_fip_lane_fini(&fip->lanes[i].lane);
+		rpmem_fip_lane_fini(&fip->lanes[j].lane);
+	free(fip->lanes);
 err_alloc_lanes:
 	RPMEMD_FI_CLOSE(fip->pres_mr,
 			"unregistering GPSPM messages response buffer");
@@ -681,6 +690,10 @@ rpmemd_fip_fini_gpspm(struct rpmemd_fip *fip)
 			"unregistering GPSPM messages response buffer");
 	if (ret)
 		lret = ret;
+
+	for (unsigned i = 0; i < fip->nlanes; i++)
+		rpmem_fip_lane_fini(&fip->lanes[i].lane);
+	free(fip->lanes);
 
 	free(fip->pmsg);
 	free(fip->pres);
@@ -735,6 +748,7 @@ rpmemd_fip_worker(void *arg, void *data)
 	struct rpmem_msg_persist *pmsg = rpmem_fip_msg_get_pmsg(&lanep->recv);
 	struct rpmem_msg_persist_resp *pres =
 		rpmem_fip_msg_get_pres(&lanep->send);
+	VALGRIND_DO_MAKE_RMEM_DEFINED(pmsg, sizeof(*pmsg));
 
 	/* verify persist message */
 	ret = rpmemd_fip_check_pmsg(fip, pmsg);
@@ -1080,6 +1094,7 @@ rpmemd_fip_fini(struct rpmemd_fip *fip)
 	rpmemd_fip_fini_memory(fip);
 	rpmemd_fip_fini_fabric_res(fip);
 	fi_freeinfo(fip->fi);
+	free(fip);
 }
 
 /*
