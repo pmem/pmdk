@@ -399,6 +399,10 @@ sync_replica(struct pool_set *set, unsigned flags)
 	if (healthy_replica == UNDEF_REPLICA)
 		goto err;
 
+	/* in dry-run mode we can stop here */
+	if (is_dry_run(flags))
+		goto OK_close;
+
 	/* recreate broken parts */
 	if (recreate_broken_parts(set, set_hs, flags))
 		goto err;
