@@ -281,6 +281,7 @@ void *ut_malloc(const char *file, int line, const char *func, size_t size);
 void *ut_calloc(const char *file, int line, const char *func,
     size_t nmemb, size_t size);
 void ut_free(const char *file, int line, const char *func, void *ptr);
+void ut_aligned_free(const char *file, int line, const char *func, void *ptr);
 void *ut_realloc(const char *file, int line, const char *func,
     void *ptr, size_t size);
 char *ut_strdup(const char *file, int line, const char *func,
@@ -308,6 +309,9 @@ int ut_munmap_anon_aligned(const char *file, int line, const char *func,
 
 #define FREE(ptr)\
     ut_free(__FILE__, __LINE__, __func__, ptr)
+
+#define ALIGNED_FREE(ptr)\
+    ut_aligned_free(__FILE__, __LINE__, __func__, ptr)
 
 /* a realloc() that can't return NULL */
 #define REALLOC(ptr, size)\
