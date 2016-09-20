@@ -2,6 +2,8 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmem_movnt_align", "test\pmem_movnt_align\pmem_movnt_align.vcxproj", "{025E7D51-41F2-4CBA-956E-C37A4443DB1B}"
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "traces_custom_function", "test\traces_custom_function\traces_custom_function.vcxproj", "{02BC3B44-C7F1-4793-86C1-6F36CA8A7F53}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_cpp_ptr_arith", "test\obj_cpp_ptr_arith\obj_cpp_ptr_arith.vcxproj", "{06FCFDE9-8C88-4B7D-B87A-47953DB203C9}"
@@ -464,6 +466,10 @@ Global
 		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{025E7D51-41F2-4CBA-956E-C37A4443DB1B}.Debug|x64.ActiveCfg = Debug|x64
+		{025E7D51-41F2-4CBA-956E-C37A4443DB1B}.Debug|x64.Build.0 = Debug|x64
+		{025E7D51-41F2-4CBA-956E-C37A4443DB1B}.Release|x64.ActiveCfg = Release|x64
+		{025E7D51-41F2-4CBA-956E-C37A4443DB1B}.Release|x64.Build.0 = Release|x64
 		{02BC3B44-C7F1-4793-86C1-6F36CA8A7F53}.Debug|x64.ActiveCfg = Debug|x64
 		{02BC3B44-C7F1-4793-86C1-6F36CA8A7F53}.Debug|x64.Build.0 = Debug|x64
 		{02BC3B44-C7F1-4793-86C1-6F36CA8A7F53}.Release|x64.ActiveCfg = Release|x64
@@ -878,6 +884,7 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
+		{025E7D51-41F2-4CBA-956E-C37A4443DB1B} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 		{02BC3B44-C7F1-4793-86C1-6F36CA8A7F53} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 		{06FCFDE9-8C88-4B7D-B87A-47953DB203C9} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 		{0703E813-9CC8-4DEA-AA33-42B099CD172D} = {746BA101-5C93-42A5-AC7A-64DCEB186572}

@@ -155,8 +155,6 @@ ut_pagealignmalloc(const char *file, int line, const char *func,
 	return ut_memalign(file, line, func, (size_t)Ut_pagesize, size);
 }
 
-#ifndef _WIN32
-
 /*
  * ut_mmap_anon_aligned -- mmaps anonymous memory with specified (power of two,
  *                         multiple of page size) alignment and adds guard
@@ -219,5 +217,8 @@ ut_munmap_anon_aligned(const char *file, int line, const char *func,
 	return ut_munmap(file, line, func, (char *)start - Ut_pagesize,
 			size + 2 * Ut_pagesize);
 }
+
+
+#ifndef _WIN32
 
 #endif
