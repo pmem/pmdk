@@ -94,14 +94,14 @@ viability of the operation is performed.
 
 ##### Example 1. #####
 
-Let us assume that files `/poolset_file_src` and `/poolset_file_dst` have the
-following contents, respectively:
+Let files `/path/poolset_file_src` and `/path/poolset_file_dst` have the
+following contents:
 
 ```
 PMEMPOOLSET
 20M /0/partfile1
 20M /0/partfile2
-21M /0/partfile3
+25M /0/partfile3
 REPLICA
 40M /1/partfile1
 20M /1/partfile2
@@ -109,11 +109,12 @@ REPLICA
 
 ```
 PMEMPOOLSET
-40M /0/partfile4
-21M /0/partfile3
+20M /0/partfile1
+20M /0/partfile2
+25M /0/partfile3
 REPLICA
-30M /1/partfile3
-30M /1/partfile4
+40M /1/partfile1
+20M /1/partfile2
 REPLICA
 50M /2/partfile1
 20M /2/partfile2
@@ -121,28 +122,21 @@ REPLICA
 ```
 Then, the command
 
-`pmempool transform /poolset_file_src /poolset_file_dst`
+`pmempool transform /path/poolset_file_src /path/poolset_file_dst`
 
-yields the following:
-
-* The first two parts of the master replica are joined into one large part.
-The third part of the replica remains unchanged.
-
-* The first regular replica's structure will change from two parts of size
-40M and 20M to two parts of size 30M and 30M.
-
-* The second regular replica consisting of two parts will be created.
-The size of the new replica is 70M, but the size of the pool remains 60M.
+adds a replica to the poolset. All other replicas remain unchanged and
+the size of the pool remains 60M.
 
 ##### Example 2. #####
 
-Now, let `/poolset_file_src` and `/poolset_file_dst` have the
-following contents, respectively:
+Let files `/path/poolset_file_src` and `/path/poolset_file_dst` have the
+following contents:
 
 ```
 PMEMPOOLSET
 20M /0/partfile1
-50M /0/partfile2
+20M /0/partfile2
+25M /0/partfile3
 REPLICA
 40M /1/partfile1
 20M /1/partfile2
@@ -151,15 +145,15 @@ REPLICA
 ```
 PMEMPOOLSET
 20M /0/partfile1
-50M /0/partfile2
-
+20M /0/partfile2
+25M /0/partfile3
 ```
 Then
 
-`pmempool_transform "/poolset_file_src" "/poolset_file_dst");`
+`pmempool_transform /path/poolset_file_src /path/poolset_file_dst`
 
-deletes the second replica from the poolset. The second replica remains
-unchanged and the size of the pool remains(!) 60M.
+deletes the second replica from the poolset. The first replica remains
+unchanged and the size of the pool is still 60M.
 
 # SEE ALSO #
 
