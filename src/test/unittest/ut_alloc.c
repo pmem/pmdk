@@ -145,6 +145,17 @@ ut_memalign(const char *file, int line, const char *func, size_t alignment,
 	return retval;
 }
 
+#ifndef _WIN32
+/*
+ * ut_pagealignmalloc -- like malloc but page-aligned memory
+ */
+void *
+ut_pagealignmalloc(const char *file, int line, const char *func,
+    size_t size)
+{
+	return ut_memalign(file, line, func, (size_t)Ut_pagesize, size);
+}
+
 /*
  * ut_pagealignmalloc -- like malloc but page-aligned memory
  */
