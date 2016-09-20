@@ -110,7 +110,7 @@ redo_log_check_offset(void *ctx, uint64_t offset)
 }
 
 static PMEMobjpool *
-pmemobj_open_mock(const char *fname)
+pmemobj_open_mock(const char *fname, size_t redo_size)
 {
 	size_t size;
 	int is_pmem;
@@ -121,7 +121,7 @@ pmemobj_open_mock(const char *fname)
 		return NULL;
 	}
 
-	UT_ASSERT(size > PMEMOBJ_POOL_HDR_SIZE);
+	UT_ASSERT(size >= PMEMOBJ_POOL_HDR_SIZE + redo_size);
 
 	PMEMobjpool *pop = (PMEMobjpool *)addr;
 	VALGRIND_REMOVE_PMEM_MAPPING((char *)addr + sizeof(pop->hdr), 4096);
@@ -144,6 +144,9 @@ pmemobj_open_mock(const char *fname)
 	pop->p_ops.flush = obj_flush;
 	pop->p_ops.drain = obj_drain;
 	pop->p_ops.base = pop;
+
+	pop->heap_offset = PMEMOBJ_POOL_HDR_SIZE + redo_size;
+	pop->heap_size = pop->size - pop->heap_offset;
 
 	pop->redo = redo_log_config_new(pop->addr, &pop->p_ops,
 			redo_log_check_offset, pop, REDO_NUM_ENTRIES);
@@ -168,21 +171,22 @@ main(int argc, char *argv[])
 	if (argc < 4)
 		FATAL_USAGE();
 
-	PMEMobjpool *pop = pmemobj_open_mock(argv[1]);
+	char *end = NULL;
+	errno = 0;
+	size_t redo_cnt = strtoul(argv[2], &end, 0);
+	if (errno || !end || *end != '\0')
+		FATAL_USAGE();
+
+	size_t redo_size = redo_cnt * sizeof(struct redo_log);
+
+	PMEMobjpool *pop = pmemobj_open_mock(argv[1], redo_size);
 	UT_ASSERTne(pop, NULL);
 
 	UT_ASSERTeq(util_is_zeroed((char *)pop->addr + PMEMOBJ_POOL_HDR_SIZE,
 			pop->size - PMEMOBJ_POOL_HDR_SIZE), 1);
 
-	char *end = NULL;
-	errno = 0;
-	size_t redo_size = strtoul(argv[2], &end, 0);
-	if (errno || !end || *end != '\0')
-		FATAL_USAGE();
-
-	UT_ASSERT(pop->size >= redo_size * sizeof(struct redo_log));
-
-	struct redo_log *redo = (struct redo_log *)pop->addr;
+	struct redo_log *redo =
+		(struct redo_log *)((char *)pop->addr + PMEMOBJ_POOL_HDR_SIZE);
 
 	uint64_t offset;
 	uint64_t value;
@@ -238,19 +242,19 @@ main(int argc, char *argv[])
 					flag, value);
 			break;
 		case 'P':
-			redo_log_process(pop->redo, redo, redo_size);
+			redo_log_process(pop->redo, redo, redo_cnt);
 			UT_OUT("P");
 			break;
 		case 'R':
-			redo_log_recover(pop->redo, redo, redo_size);
+			redo_log_recover(pop->redo, redo, redo_cnt);
 			UT_OUT("R");
 			break;
 		case 'C':
-			ret = redo_log_check(pop->redo, redo, redo_size);
+			ret = redo_log_check(pop->redo, redo, redo_cnt);
 			UT_OUT("C:%d", ret);
 			break;
 		case 'n':
-			UT_OUT("n:%ld", redo_log_nflags(redo, redo_size));
+			UT_OUT("n:%ld", redo_log_nflags(redo, redo_cnt));
 			break;
 		default:
 			FATAL_USAGE();
