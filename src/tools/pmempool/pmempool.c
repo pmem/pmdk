@@ -206,8 +206,11 @@ print_help(char *appname)
 	printf("\n");
 	printf("The available commands are:\n");
 	unsigned i;
-	for (i = 0; i < COMMANDS_NUMBER; i++)
-		printf("%s\t- %s\n", commands[i].name, commands[i].brief);
+	for (i = 0; i < COMMANDS_NUMBER; i++) {
+		const char *format = (strlen(commands[i].name) / 8)
+				? "%s\t- %s\n" : "%s\t\t- %s\n";
+		printf(format, commands[i].name, commands[i].brief);
+	}
 	printf("\n");
 	printf("For complete documentation see %s(1) manual page.\n", appname);
 }
