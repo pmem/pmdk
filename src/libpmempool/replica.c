@@ -96,10 +96,19 @@ replica_get_part_data_offset(struct pool_set *set, unsigned repn,
 int
 replica_remove_part(struct pool_set *set, unsigned repn, unsigned partn)
 {
-	if (unlink(set->replica[repn]->part[partn].path)) {
-		if (errno != ENOENT)
+	struct pool_set_part *part = &PART(REP(set, repn), partn);
+	if (part->fd != -1)
+		close(part->fd);
+
+	if (unlink(part->path)) {
+		if (errno != ENOENT) {
+			ERR("Removing part %u from replica %u failed",
+					partn, repn);
 			return -1;
+		}
 	}
+	LOG(1, "Removed part %s number %u from replica %u", part->path, partn,
+			repn);
 	return 0;
 }
 
@@ -281,21 +290,20 @@ check_and_open_poolset_part_files(struct pool_set *set,
 		struct replica_health_status *rep_hs = set_hs->replica[r];
 		for (unsigned p = 0; p < rep->nparts; ++p) {
 			if (access(rep->part[p].path, F_OK|R_OK|W_OK) != 0) {
+				LOG(1, "Part file %s is not accessible",
+						rep->part[p].path);
 				rep_hs->part[p] |= IS_BROKEN;
 				if (is_dry_run(flags))
 					continue;
 			}
-			int create = !is_dry_run(flags);
-			if (util_part_open(&rep->part[p], 0, create))
-				goto err;
+			if (util_part_open(&rep->part[p], 0, 0)) {
+				LOG(1, "Opening part %s failed",
+						rep->part[p].path);
+				rep_hs->part[p] |= IS_BROKEN;
+			}
 		}
 	}
 	return 0;
-
-err:
-	util_poolset_fdclose(set);
-	errno = EINVAL;
-	return -1;
 }
 
 /*
@@ -626,10 +634,7 @@ replica_check_poolset_health(struct pool_set *set,
 	struct poolset_health_status *set_hs = *set_hsp;
 
 	/* check if part files exist, and if not - create them, and open them */
-	if (check_and_open_poolset_part_files(set, set_hs, flags)) {
-		LOG(1, "Opening poolset part files check failed");
-		goto err_hs;
-	}
+	check_and_open_poolset_part_files(set, set_hs, flags);
 
 	/* map all headers */
 	map_all_unbroken_headers(set, set_hs);
@@ -662,8 +667,6 @@ replica_check_poolset_health(struct pool_set *set,
 err:
 	unmap_all_headers(set);
 	util_poolset_fdclose(set);
-
-err_hs:
 	replica_free_poolset_health_status(set_hs);
 	return -1;
 }
