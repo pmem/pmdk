@@ -765,9 +765,11 @@ pocli_str_root_print(struct pocli_ctx *ctx, struct pocli_args *args)
 	char *root_data = pmemobj_direct(root);
 
 	char *buff = malloc(len + 1);
+	assert(buff != NULL);
 	memcpy(buff, root_data + offset, len);
 	buff[len] = '\0';
 	printf("%s\n", buff);
+	free(buff);
 	return ret;
 }
 

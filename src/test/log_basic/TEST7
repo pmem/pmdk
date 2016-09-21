@@ -32,7 +32,7 @@
 #
 
 #
-# src/test/log_basic/TEST1 -- unit test for:
+# src/test/log_basic/TEST7 -- unit test for:
 # - pmemlog_append
 # and:
 # - pmemlog_nbyte
@@ -44,8 +44,8 @@
 # - pmemlog_open
 # - pmemlog_close
 #
-export UNITTEST_NAME=log_basic/TEST1
-export UNITTEST_NUM=1
+export UNITTEST_NAME=log_basic/TEST7
+export UNITTEST_NUM=7
 
 # standard unit test setup
 . ../unittest/unittest.sh

@@ -917,6 +917,8 @@ pmemobj_replica_init(PMEMobjpool *rep, struct pool_set *set, unsigned repidx,
 		rep->p_ops.pool_size = 0;
 	}
 
+	rep->is_dax = set->replica[repidx]->part[0].is_dax;
+
 	int ret;
 	if (repset->remote)
 		ret = pmemobj_replica_init_remote(rep, set, repidx, create);
@@ -992,7 +994,7 @@ pmemobj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 	 * The prototype PMFS doesn't allow this when large pages are in
 	 * use. It is not considered an error if this fails.
 	 */
-	POOL_RANGE_NONE(pop, pop->addr, sizeof(struct pool_hdr));
+	RANGE_NONE(pop->addr, sizeof(struct pool_hdr), pop->is_dax);
 
 	return 0;
 }

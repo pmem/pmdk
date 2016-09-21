@@ -55,6 +55,7 @@ TOOLS=../tools
 [ "$PMEMOBJCLI" ] || PMEMOBJCLI=$TOOLS/pmemobjcli/pmemobjcli
 [ "$PMEMDETECT" ] || PMEMDETECT=$TOOLS/pmemdetect/pmemdetect.static-nondebug
 [ "$FIP" ] || FIP=$TOOLS/fip/fip
+[ "$DDMAP" ] || DDMAP=$TOOLS/ddmap/ddmap
 
 # force globs to fail if they don't match
 shopt -s failglob
@@ -812,7 +813,7 @@ function require_non_pmem() {
 # require_dax_devices -- only allow script to continue for a dax device
 #
 function require_dax_devices() {
-	for path in ${DEVICE_DAX_PATH}
+	for path in ${DEVICE_DAX_PATH[@]}
 	do
 		if [[ ! -w $path ]]; then
 			[ "$UNITTEST_QUIET" ] || echo "$UNITTEST_NAME: SKIP no access to specified dax devices"
@@ -827,7 +828,7 @@ function require_dax_devices() {
 }
 
 function dax_device_zero() {
-	for path in ${DEVICE_DAX_PATH}
+	for path in ${DEVICE_DAX_PATH[@]}
 	do
 		${PMEMPOOL}.static-debug rm -f $path
 	done
@@ -1983,7 +1984,7 @@ function dump_pool_info() {
 #
 function compare_replicas() {
 	set +e
-	diff <(dump_pool_info $1 $2) <(dump_pool_info $1 $3)
+	diff <(dump_pool_info $1 $2) <(dump_pool_info $1 $3) -I "^path" -I "^size"
 	set -e
 }
 

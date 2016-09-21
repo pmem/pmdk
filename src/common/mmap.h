@@ -58,18 +58,20 @@ void *util_map_tmpfile(const char *dir, size_t size, size_t req_align);
  */
 #ifdef DEBUG
 
-#define RANGE_RO(addr, len) ASSERT(util_range_ro(addr, len) >= 0)
-#define RANGE_RW(addr, len) ASSERT(util_range_rw(addr, len) >= 0)
-#define RANGE_NONE(addr, len) ASSERT(util_range_none(addr, len) >= 0)
+#define RANGE(addr, len, is_dax, type) do {\
+	if (!is_dax) ASSERT(util_range_##type(addr, len) >= 0);\
+} while (0)
 
 #else
 
-/* nondebug version */
-#define RANGE_RO(addr, len)
-#define RANGE_RW(addr, len)
-#define RANGE_NONE(addr, len)
+#define RANGE(addr, len, is_dax, type) do {} while (0)
 
-#endif /* DEBUG */
+#endif
+
+#define RANGE_RO(addr, len, is_dax) RANGE(addr, len, is_dax, ro)
+#define RANGE_RW(addr, len, is_dax) RANGE(addr, len, is_dax, rw)
+#define RANGE_NONE(addr, len, is_dax) RANGE(addr, len, is_dax, none)
+
 
 void util_mmap_init(void);
 
@@ -79,19 +81,6 @@ int util_range_none(void *addr, size_t len);
 
 char *util_map_hint_unused(void *addr, size_t len, size_t align);
 char *util_map_hint(size_t len, size_t req_align);
-
-#ifdef DEBUG
-#define POOL_RANGE(pool, addr, len, type) do {\
-	if (!(pool)->set->replica[0]->part[0].is_dax)\
-		RANGE_##type(addr, len);\
-} while (0)
-#else
-#define POOL_RANGE(pool, addr, len, type) do {} while (0)
-#endif
-
-#define POOL_RANGE_RO(pool, addr, len) POOL_RANGE(pool, addr, len, RO)
-#define POOL_RANGE_RW(pool, addr, len) POOL_RANGE(pool, addr, len, RW)
-#define POOL_RANGE_NONE(pool, addr, len) POOL_RANGE(pool, addr, len, NONE)
 
 #define MEGABYTE ((uintptr_t)1 << 20)
 #define GIGABYTE ((uintptr_t)1 << 30)

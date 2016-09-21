@@ -59,6 +59,8 @@
 #include "btt.h"
 #include "file.h"
 #include "set.h"
+#include "out.h"
+#include "mmap.h"
 
 #define REQ_BUFF_SIZE	2048U
 #define Q_BUFF_SIZE	8192
@@ -529,10 +531,8 @@ pmem_pool_get_min_size(pmem_pool_type_t type)
 int
 util_poolset_map(const char *fname, struct pool_set **poolset, int rdonly)
 {
-	int ret = 0;
-
 	if (util_is_poolset_file(fname) != 1) {
-		ret = util_poolset_create_set(poolset, fname, 0, 0);
+		int ret = util_poolset_create_set(poolset, fname, 0, 0);
 		if (ret < 0) {
 			outv_err("cannot open pool set -- '%s'", fname);
 			return -1;
@@ -540,6 +540,7 @@ util_poolset_map(const char *fname, struct pool_set **poolset, int rdonly)
 		return util_pool_open_nocheck(*poolset, rdonly);
 	}
 
+	/* open poolset file */
 	int fd = util_file_open(fname, NULL, 0, O_RDONLY);
 	if (fd < 0)
 		return -1;
@@ -549,31 +550,21 @@ util_poolset_map(const char *fname, struct pool_set **poolset, int rdonly)
 	/* parse poolset file */
 	if (util_poolset_parse(&set, fname, fd)) {
 		outv_err("parsing poolset file failed\n");
-		ret = -1;
-		goto err_close;
+		close(fd);
+		return -1;
 	}
+	close(fd);
 
-	/* open the first part set file to read the pool header values */
-	int fdp = util_file_open(set->replica[0]->part[0].path,
-			NULL, 0, O_RDONLY);
-	if (fdp < 0) {
-		outv_err("cannot open poolset part file\n");
-		ret = -1;
+	/* read the pool header from first pool set file */
+	const char *part0_path = PART(REP(set, 0), 0).path;
+	struct pool_hdr hdr;
+	if (util_file_pread(part0_path, &hdr, sizeof(hdr), 0) !=
+			sizeof(hdr)) {
+		outv_err("cannot read pool header from poolset\n");
 		goto err_pool_set;
 	}
 
-	struct pool_hdr hdr;
-	/* read the pool header from first pool set file */
-	if (pread(fdp, &hdr, sizeof(hdr), 0)
-			!= sizeof(hdr)) {
-		outv_err("cannot read pool header from poolset\n");
-		ret = -1;
-		goto err_close_part;
-	}
-
-	close(fdp);
 	util_poolset_free(set);
-	close(fd);
 
 	util_convert2h_hdr_nocheck(&hdr);
 
@@ -608,14 +599,10 @@ util_poolset_map(const char *fname, struct pool_set **poolset, int rdonly)
 	}
 
 	return 0;
-err_close_part:
-	close(fdp);
+
 err_pool_set:
 	util_poolset_free(set);
-err_close:
-	close(fd);
-
-	return ret;
+	return -1;
 }
 
 /*
@@ -625,7 +612,6 @@ int
 pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp,
 		int check)
 {
-	util_stat_t stat_buf;
 	paramsp->type = PMEM_POOL_TYPE_UNKNOWN;
 	char pool_str_addr[POOL_HDR_DESC_SIZE];
 
@@ -634,13 +620,14 @@ pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp,
 	if (fd < 0)
 		return -1;
 
-	int ret = 0;
-
 	/* get file size and mode */
+	util_stat_t stat_buf;
 	if (util_fstat(fd, &stat_buf)) {
-		ret = -1;
-		goto out_close;
+		close(fd);
+		return -1;
 	}
+
+	int ret = 0;
 
 	assert(stat_buf.st_size >= 0);
 	paramsp->size = (uint64_t)stat_buf.st_size;
@@ -654,28 +641,43 @@ pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp,
 		fd = -1;
 
 		if (check) {
-			if (util_poolset_map(fname, &set, 1))
-				return -1;
+			if (util_poolset_map(fname, &set, 1)) {
+				ret = -1;
+				goto out_close;
+			}
 		} else {
 			ret = util_poolset_create_set(&set, fname, 0, 0);
 			if (ret < 0) {
 				outv_err("cannot open pool set -- '%s'", fname);
-				return -1;
+				ret = -1;
+				goto out_close;
 			}
-			if (util_pool_open_nocheck(set, 1))
-				return -1;
+			if (util_pool_open_nocheck(set, 1)) {
+				ret = -1;
+				goto out_close;
+			}
 		}
 
 		paramsp->size = set->poolsize;
 		addr = set->replica[0]->part[0].addr;
 	} else {
 		/* read first two pages */
-		ssize_t num = read(fd, pool_str_addr, POOL_HDR_DESC_SIZE);
-		if (num < (ssize_t)POOL_HDR_DESC_SIZE) {
-			ret = -1;
-			goto out_close;
+		if (util_file_is_device_dax(fname)) {
+			addr = util_file_map_whole(fname);
+			if (addr == NULL) {
+				ret = -1;
+				goto out_close;
+			}
+		} else {
+			ssize_t num = read(fd, pool_str_addr,
+					POOL_HDR_DESC_SIZE);
+			if (num < (ssize_t)POOL_HDR_DESC_SIZE) {
+				ERR("!read");
+				ret = -1;
+				goto out_close;
+			}
+			addr = pool_str_addr;
 		}
-		addr = pool_str_addr;
 	}
 
 	struct pool_hdr hdr;
@@ -700,6 +702,7 @@ pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp,
 		paramsp->type = pmem_pool_type_parse_hdr(addr);
 
 	paramsp->is_checksum_ok = pmem_pool_checksum(addr);
+	paramsp->is_part_file = !paramsp->is_poolset && paramsp->is_checksum_ok;
 
 	if (paramsp->type == PMEM_POOL_TYPE_BLK) {
 		struct pmemblk pbp;
