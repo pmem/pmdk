@@ -64,7 +64,7 @@ replicas in the poolset,
 
 * removing replicas - replicas can be removed from the poolset.
 
-Currently these operations are allowed only for **pmemobj** pool (see
+Currently these operations are allowed only for **pmemobj** pools (see
 **libpmemobj**(3)).
 
 
@@ -74,8 +74,8 @@ The *poolset_file_dst* argument points to the target poolset.
 
 When adding or deleting replica, the two poolset files can differ only in the
 definitions of replicas which are to be added or deleted.
-Also, to add a replica it is necessary for its size to match or exceed the poolset
-size. Otherwise the whole operation fails and no changes are applied.
+Also, to add a replica it is necessary for its size to match or exceed the
+poolset size. Otherwise the whole operation fails and no changes are applied.
 
 
 ##### Available options: #####
@@ -89,6 +89,77 @@ viability of the operation is performed.
 
 : Display help message and exit.
 
+
+# EXAMPLES #
+
+##### Example 1. #####
+
+Let us assume that files `/poolset_file_src` and `/poolset_file_dst` have the
+following contents, respectively:
+
+```
+PMEMPOOLSET
+20M /0/partfile1
+20M /0/partfile2
+21M /0/partfile3
+REPLICA
+40M /1/partfile1
+20M /1/partfile2
+```
+
+```
+PMEMPOOLSET
+40M /0/partfile4
+21M /0/partfile3
+REPLICA
+30M /1/partfile3
+30M /1/partfile4
+REPLICA
+50M /2/partfile1
+20M /2/partfile2
+
+```
+Then, the command
+
+`pmempool transform /poolset_file_src /poolset_file_dst`
+
+yields the following:
+
+* The first two parts of the master replica are joined into one large part.
+The third part of the replica remains unchanged.
+
+* The first regular replica's structure will change from two parts of size
+40M and 20M to two parts of size 30M and 30M.
+
+* The second regular replica consisting of two parts will be created.
+The size of the new replica is 70M, but the size of the pool remains 60M.
+
+##### Example 2. #####
+
+Now, let `/poolset_file_src` and `/poolset_file_dst` have the
+following contents, respectively:
+
+```
+PMEMPOOLSET
+20M /0/partfile1
+50M /0/partfile2
+REPLICA
+40M /1/partfile1
+20M /1/partfile2
+```
+
+```
+PMEMPOOLSET
+20M /0/partfile1
+50M /0/partfile2
+
+```
+Then
+
+`pmempool_transform "/poolset_file_src" "/poolset_file_dst");`
+
+deletes the second replica from the poolset. The second replica remains
+unchanged and the size of the pool remains(!) 60M.
 
 # SEE ALSO #
 
