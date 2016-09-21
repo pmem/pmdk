@@ -174,6 +174,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <limits.h>
 
 #include "libpmem.h"
 
@@ -543,9 +544,16 @@ pmem_map_file(const char *path, size_t len, int flags, mode_t mode,
 	int fd;
 	int open_flags = O_RDWR;
 	int delete_on_err = 0;
+	int dax = util_file_is_device_dax(path);
 
 	if (flags & ~(PMEM_FILE_ALL_FLAGS)) {
 		ERR("invalid flag specified %x", flags);
+		errno = EINVAL;
+		return NULL;
+	}
+
+	if (dax && flags != 0) {
+		ERR("no flags are supported on device dax");
 		errno = EINVAL;
 		return NULL;
 	}
@@ -620,20 +628,14 @@ pmem_map_file(const char *path, size_t len, int flags, mode_t mode,
 			}
 		}
 	} else {
-		util_stat_t stbuf;
-
-		if (util_fstat(fd, &stbuf) < 0) {
-			ERR("!fstat %s", path);
-			goto err;
-		}
-
-		if (stbuf.st_size < 0) {
+		ssize_t actual_size = util_file_get_size(path);
+		if (actual_size < 0) {
 			ERR("stat %s: negative size", path);
 			errno = EINVAL;
 			goto err;
 		}
 
-		len = (size_t)stbuf.st_size;
+		len = (size_t)actual_size;
 	}
 
 	void *addr;

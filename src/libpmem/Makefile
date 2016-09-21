@@ -36,6 +36,7 @@ LIBRARY_NAME = pmem
 LIBRARY_SO_VERSION = 1
 LIBRARY_VERSION = 0.0
 SOURCE =\
+	$(COMMON)/file.c\
 	$(COMMON)/file_linux.c\
 	$(COMMON)/out.c\
 	$(COMMON)/util.c\

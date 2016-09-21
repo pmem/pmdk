@@ -45,6 +45,7 @@
 
 #include "set.h"
 #include "out.h"
+#include "file.h"
 #include "sys_util.h"
 
 #include "librpmem.h"
@@ -322,7 +323,7 @@ rm_poolset_cb(struct part_file *pf, void *arg)
 		return -1;
 	}
 
-	unlink(pf->path);
+	util_unlink(pf->path);
 	return 0;
 }
 
@@ -366,7 +367,7 @@ rpmemd_db_pool_remove(struct rpmemd_db *db, const char *pool_desc, int force)
 			for (unsigned p = 0; p < set->replica[r]->nparts; p++) {
 				const char *part_file =
 					set->replica[r]->part[p].path;
-				ret = unlink(part_file);
+				ret = util_unlink(part_file);
 				if (ret) {
 					RPMEMD_LOG(ERR, "!unlink -- '%s'",
 							part_file);
