@@ -38,6 +38,7 @@
 #include <sys/file.h>
 #include <unistd.h>
 
+#include "device_dax.h"
 #include "file.h"
 #include "out.h"
 
@@ -50,6 +51,12 @@ util_file_create(const char *path, size_t size, size_t minsize)
 	LOG(3, "path %s size %zu minsize %zu", path, size, minsize);
 
 	ASSERTne(size, 0);
+
+	if (device_dax_is_dax(path)) {
+		ERR("Cannot create a file on a dax device");
+		errno = EINVAL;
+		return -1;
+	}
 
 	if (size < minsize) {
 		ERR("size %zu smaller than %zu", size, minsize);
@@ -120,6 +127,7 @@ util_file_open(const char *path, size_t *size, size_t minsize, int flags)
 #ifdef _WIN32
 	flags |= O_BINARY;
 #endif
+
 	if ((fd = open(path, flags)) < 0) {
 		ERR("!open %s", path);
 		return -1;
@@ -135,25 +143,33 @@ util_file_open(const char *path, size_t *size, size_t minsize, int flags)
 		if (size)
 			ASSERTeq(*size, 0);
 
-		util_stat_t stbuf;
-		if (util_fstat(fd, &stbuf) < 0) {
-			ERR("!fstat %s", path);
-			goto err;
+		ssize_t actual_size;
+		if (device_dax_is_dax(path)) {
+			actual_size = device_dax_size(path);
+		} else {
+			util_stat_t stbuf;
+			if (util_fstat(fd, &stbuf) < 0) {
+				ERR("!fstat %s", path);
+				goto err;
+			}
+			actual_size = stbuf.st_size;
 		}
-		if (stbuf.st_size < 0) {
+
+		if (actual_size < 0) {
 			ERR("stat %s: negative size", path);
 			errno = EINVAL;
 			goto err;
 		}
-		if ((size_t)stbuf.st_size < minsize) {
+
+		if ((size_t)actual_size < minsize) {
 			ERR("size %zu smaller than %zu",
-					(size_t)stbuf.st_size, minsize);
+					(size_t)actual_size, minsize);
 			errno = EINVAL;
 			goto err;
 		}
 
 		if (size)
-			*size = (size_t)stbuf.st_size;
+			*size = (size_t)actual_size;
 	}
 
 	return fd;

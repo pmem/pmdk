@@ -36,6 +36,7 @@ LIBRARY_NAME = vmem
 LIBRARY_SO_VERSION = 1
 LIBRARY_VERSION = 0.0
 SOURCE = libvmem.c vmem.c\
+	$(COMMON)/device_dax_linux.c\
 	$(COMMON)/file_linux.c\
 	$(COMMON)/mmap.c\
 	$(COMMON)/mmap_linux.c\

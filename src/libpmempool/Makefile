@@ -45,6 +45,7 @@ INCS += -I$(TOP)/src/librpmem
 vpath %.c ../librpmem
 
 SOURCE =\
+	$(COMMON)/device_dax_linux.c\
 	$(COMMON)/file.c\
 	$(COMMON)/file_linux.c\
 	$(COMMON)/mmap.c\
