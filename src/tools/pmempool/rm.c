@@ -44,8 +44,8 @@
 #include "out.h"
 #include "common.h"
 #include "output.h"
+#include "file.h"
 #include "rm.h"
-
 #include "set.h"
 
 #ifdef USE_RPMEM
@@ -134,7 +134,7 @@ rm_file(const char *file)
 
 	const char *pre_msg = write_protected ? "write-protected " : "";
 	if (ask_Yn(cask, "remove %sfile '%s' ?", pre_msg, file) == 'y') {
-		if (unlink(file))
+		if (util_unlink(file))
 			err(1, "cannot remove file '%s'", file);
 		outv(1, "removed '%s'\n", file);
 	}
@@ -309,7 +309,7 @@ pmempool_rm_func(char *appname, int argc, char *argv[])
 			err(1, "cannot remove '%s'", file);
 		}
 
-		int is_poolset = util_is_poolset_file(file);
+		int is_poolset = util_is_poolset_file(file) == 1;
 
 		if (is_poolset)
 			outv(2, "poolset file: %s\n", file);

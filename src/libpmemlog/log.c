@@ -48,10 +48,10 @@
 #include "libpmem.h"
 #include "libpmemlog.h"
 
-#include "mmap.h"
 #include "set.h"
 #include "out.h"
 #include "log.h"
+#include "mmap.h"
 #include "sys_util.h"
 #include "valgrind_internal.h"
 
@@ -72,7 +72,7 @@ pmemlog_descr_create(PMEMlogpool *plp, size_t poolsize)
 	plp->write_offset = plp->start_offset;
 
 	/* store non-volatile part of pool's descriptor */
-	pmem_msync(&plp->start_offset, 3 * sizeof(uint64_t));
+	PERSIST_GENERIC(plp->is_pmem, &plp->start_offset, 3 * sizeof(uint64_t));
 
 	return 0;
 }
@@ -117,9 +117,9 @@ pmemlog_descr_check(PMEMlogpool *plp, size_t poolsize)
  * pmemlog_runtime_init -- (internal) initialize log memory pool runtime data
  */
 static int
-pmemlog_runtime_init(PMEMlogpool *plp, int rdonly, int is_pmem)
+pmemlog_runtime_init(PMEMlogpool *plp, int rdonly)
 {
-	LOG(3, "plp %p rdonly %d is_pmem %d", plp, rdonly, is_pmem);
+	LOG(3, "plp %p rdonly %d", plp, rdonly);
 
 	/* remove volatile part of header */
 	VALGRIND_REMOVE_PMEM_MAPPING(&plp->addr,
@@ -133,7 +133,6 @@ pmemlog_runtime_init(PMEMlogpool *plp, int rdonly, int is_pmem)
 	 * created here, so no need to worry about byte-order.
 	 */
 	plp->rdonly = rdonly;
-	plp->is_pmem = is_pmem;
 
 	if ((plp->rwlockp = Malloc(sizeof(*plp->rwlockp))) == NULL) {
 		ERR("!Malloc for a RW lock");
@@ -152,10 +151,10 @@ pmemlog_runtime_init(PMEMlogpool *plp, int rdonly, int is_pmem)
 	 * The prototype PMFS doesn't allow this when large pages are in
 	 * use. It is not considered an error if this fails.
 	 */
-	util_range_none(plp->addr, sizeof(struct pool_hdr));
+	POOL_RANGE_NONE(plp, plp->addr, sizeof(struct pool_hdr));
 
 	/* the rest should be kept read-only (debug version only) */
-	RANGE_RO((char *)plp->addr + sizeof(struct pool_hdr),
+	POOL_RANGE_RO(plp, (char *)plp->addr + sizeof(struct pool_hdr),
 			plp->size - sizeof(struct pool_hdr));
 
 	return 0;
@@ -192,6 +191,7 @@ pmemlog_create(const char *path, size_t poolsize, mode_t mode)
 	plp->addr = plp;
 	plp->size = rep->repsize;
 	plp->set = set;
+	plp->is_pmem = rep->is_pmem;
 
 	/* create pool descriptor */
 	if (pmemlog_descr_create(plp, rep->repsize) != 0) {
@@ -200,7 +200,7 @@ pmemlog_create(const char *path, size_t poolsize, mode_t mode)
 	}
 
 	/* initialize runtime parts */
-	if (pmemlog_runtime_init(plp, 0, rep->is_pmem) != 0) {
+	if (pmemlog_runtime_init(plp, 0) != 0) {
 		ERR("pool initialization failed");
 		goto err;
 	}
@@ -254,6 +254,7 @@ pmemlog_open_common(const char *path, int cow)
 	plp->addr = plp;
 	plp->size = rep->repsize;
 	plp->set = set;
+	plp->is_pmem = rep->is_pmem;
 
 	if (set->nreplicas > 1) {
 		errno = ENOTSUP;
@@ -268,7 +269,7 @@ pmemlog_open_common(const char *path, int cow)
 	}
 
 	/* initialize runtime parts */
-	if (pmemlog_runtime_init(plp, set->rdonly, rep->is_pmem) != 0) {
+	if (pmemlog_runtime_init(plp, set->rdonly) != 0) {
 		ERR("pool initialization failed");
 		goto err;
 	}
@@ -345,7 +346,7 @@ pmemlog_persist(PMEMlogpool *plp, uint64_t new_write_offset)
 	size_t length = new_write_offset - old_write_offset;
 
 	/* unprotect the log space range (debug version only) */
-	RANGE_RW((char *)plp->addr + old_write_offset, length);
+	POOL_RANGE_RW(plp, (char *)plp->addr + old_write_offset, length);
 
 	/* persist the data */
 	if (plp->is_pmem)
@@ -354,10 +355,10 @@ pmemlog_persist(PMEMlogpool *plp, uint64_t new_write_offset)
 		pmem_msync((char *)plp->addr + old_write_offset, length);
 
 	/* protect the log space range (debug version only) */
-	RANGE_RO((char *)plp->addr + old_write_offset, length);
+	POOL_RANGE_RO(plp, (char *)plp->addr + old_write_offset, length);
 
 	/* unprotect the pool descriptor (debug version only) */
-	RANGE_RW((char *)plp->addr + sizeof(struct pool_hdr),
+	POOL_RANGE_RW(plp, (char *)plp->addr + sizeof(struct pool_hdr),
 			LOG_FORMAT_DATA_ALIGN);
 
 	/* write the metadata */
@@ -370,7 +371,7 @@ pmemlog_persist(PMEMlogpool *plp, uint64_t new_write_offset)
 		pmem_msync(&plp->write_offset, sizeof(plp->write_offset));
 
 	/* set the write-protection again (debug version only) */
-	RANGE_RO((char *)plp->addr + sizeof(struct pool_hdr),
+	POOL_RANGE_RO(plp, (char *)plp->addr + sizeof(struct pool_hdr),
 			LOG_FORMAT_DATA_ALIGN);
 }
 
@@ -421,7 +422,7 @@ pmemlog_append(PMEMlogpool *plp, const void *buf, size_t count)
 	 * unprotect the log space range, where the new data will be stored
 	 * (debug version only)
 	 */
-	RANGE_RW(&data[write_offset], count);
+	POOL_RANGE_RW(plp, &data[write_offset], count);
 
 	if (plp->is_pmem)
 		pmem_memcpy_nodrain(&data[write_offset], buf, count);
@@ -429,7 +430,7 @@ pmemlog_append(PMEMlogpool *plp, const void *buf, size_t count)
 		memcpy(&data[write_offset], buf, count);
 
 	/* protect the log space range (debug version only) */
-	RANGE_RO(&data[write_offset], count);
+	POOL_RANGE_RO(plp, &data[write_offset], count);
 
 	write_offset += count;
 
@@ -502,7 +503,7 @@ pmemlog_appendv(PMEMlogpool *plp, const struct iovec *iov, int iovcnt)
 		 * unprotect the log space range, where the new data will be
 		 * stored (debug version only)
 		 */
-		RANGE_RW(&data[write_offset], count);
+		POOL_RANGE_RW(plp, &data[write_offset], count);
 
 		if (plp->is_pmem)
 			pmem_memcpy_nodrain(&data[write_offset], buf, count);
@@ -512,7 +513,7 @@ pmemlog_appendv(PMEMlogpool *plp, const struct iovec *iov, int iovcnt)
 		/*
 		 * protect the log space range (debug version only)
 		 */
-		RANGE_RO(&data[write_offset], count);
+		POOL_RANGE_RO(plp, &data[write_offset], count);
 
 		write_offset += count;
 	}
@@ -570,7 +571,7 @@ pmemlog_rewind(PMEMlogpool *plp)
 	}
 
 	/* unprotect the pool descriptor (debug version only) */
-	RANGE_RW((char *)plp->addr + sizeof(struct pool_hdr),
+	POOL_RANGE_RW(plp, (char *)plp->addr + sizeof(struct pool_hdr),
 			LOG_FORMAT_DATA_ALIGN);
 
 	plp->write_offset = plp->start_offset;
@@ -580,7 +581,7 @@ pmemlog_rewind(PMEMlogpool *plp)
 		pmem_msync(&plp->write_offset, sizeof(uint64_t));
 
 	/* set the write-protection again (debug version only) */
-	RANGE_RO((char *)plp->addr + sizeof(struct pool_hdr),
+	POOL_RANGE_RO(plp, (char *)plp->addr + sizeof(struct pool_hdr),
 			LOG_FORMAT_DATA_ALIGN);
 
 	util_rwlock_unlock(plp->rwlockp);
