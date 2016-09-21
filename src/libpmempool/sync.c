@@ -171,7 +171,7 @@ static int
 copy_data_to_broken_parts(struct pool_set *set, unsigned healthy_replica,
 		unsigned flags, struct poolset_health_status *set_hs)
 {
-	size_t poolsize = replica_get_pool_size(set);
+	size_t poolsize = replica_get_pool_size(set, healthy_replica);
 	for (unsigned r = 0; r < set_hs->nreplicas; ++r) {
 		/* skip unbroken and consistent replicas */
 		if (!replica_is_replica_broken(r, set_hs) &&
