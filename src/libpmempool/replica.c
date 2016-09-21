@@ -669,12 +669,13 @@ err_hs:
 }
 
 /*
- * replica_get_pool_size -- find the effective size (mapped) of a pool
+ * replica_get_pool_size -- find the effective size (mapped) of a pool based
+ *                          on metadata from given replica
  */
 size_t
-replica_get_pool_size(struct pool_set *set)
+replica_get_pool_size(struct pool_set *set, unsigned repn)
 {
-	struct pool_set_part *part = &PART(REP(set, 0), 0);
+	struct pool_set_part *part = &PART(REP(set, repn), 0);
 	int should_close_part = 0;
 	if (part->fd == -1) {
 		if (util_part_open(part, 0, 0))

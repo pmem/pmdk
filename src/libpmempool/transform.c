@@ -141,7 +141,7 @@ validate_args(struct pool_set *set_in, struct pool_set *set_out)
 	 * structure has enough capacity to accommodate the effective size of
 	 * the source poolset
 	 */
-	if (set_out->poolsize < replica_get_pool_size(set_in)) {
+	if (set_out->poolsize < replica_get_pool_size(set_in, 0)) {
 		ERR("Target poolset is too small");
 		goto err;
 	}
