@@ -9,6 +9,11 @@ man pages.  Developers new to NVML are probably looking for libpmemobj.
 To generate web-based documentation, you need to have groff and doxygen
 installed.
 
+All files in the *generated* directory are automatically generated and updated by the
+nvml-bot. **DO NOT MODIFY THE FILES IN THAT DIRECTORY**. All changes to the
+documentation are to be made by modifying the \*.md files in the main doc
+directory.
+
 libpmem(3) -- low-level persistent memory support
     Man page source is in: libpmem.3.md
     HTML formatted version: http://pmem.io/nvml/manpages/master/libpmem.3.html

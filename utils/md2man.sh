@@ -34,7 +34,7 @@
 #
 # md2man.sh -- convert markdown to groff man pages
 #
-# usage: md2man.sh file license
+# usage: md2man.sh file license outfile
 #
 # This script converts markdown file into groff man page using pandoc.
 # It performs some pre- and post-processing for better results:
@@ -48,15 +48,17 @@
 set -o pipefail
 
 filename=$1
-license=$2
+template=$2
+outfile=$3
 title=`sed -n 's/^title:\ *\([a-z]*\).*$/\1/p' $filename`
 section=`sed -n 's/^title:.*(\([0-9]\)).*$/\1/p' $filename`
 version=`sed -n 's/^date:\ *\(.*\)$/\1/p' $filename`
 
 cat $filename | sed -n -e '/# NAME #/,$p' |\
-pandoc -s -t man -B $license \
+pandoc -s -t man -o $outfile --template=$template \
     -V title=$title -V section=$section \
-    -V description='"NVM Library"' -V date="$version" |\
+    -V description='"NVM Library"' -V version="$version" \
+    -V year=$(date +"%Y") |\
 sed '/^\.IP/{
 N
 /\n\.nf/{
