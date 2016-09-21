@@ -34,15 +34,14 @@
  * file.c -- file utilities
  */
 
- #include <stdio.h>
- #include <stdlib.h>
- #include <string.h>
- #include <errno.h>
- #include <fcntl.h>
- #include <unistd.h>
- #include <limits.h>
- #include <sys/file.h>
-
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <limits.h>
+#include <sys/file.h>
 #include "file.h"
 #include "out.h"
 #include "mmap.h"
@@ -102,6 +101,9 @@ out:
 }
 #endif
 
+/*
+ * util_file_is_device_dax -- checks whether the path points to a device dax
+ */
 int
 util_file_is_device_dax(const char *path)
 {
@@ -135,12 +137,17 @@ util_file_is_device_dax(const char *path)
 #endif
 }
 
+/*
+ * util_file_get_size -- returns size of a file
+ */
 ssize_t
 util_file_get_size(const char *path)
 {
+#ifndef _WIN32
 	if (util_file_is_device_dax(path)) {
 		return device_dax_size(path);
 	}
+#endif
 
 	util_stat_t stbuf;
 	if (util_stat(path, &stbuf) < 0) {
@@ -151,6 +158,9 @@ util_file_get_size(const char *path)
 	return stbuf.st_size;
 }
 
+/*
+ * util_file_map_whole -- maps the entire file into memory
+ */
 void *
 util_file_map_whole(const char *path)
 {
@@ -177,6 +187,9 @@ out:
 	return addr;
 }
 
+/*
+ * util_file_zero_whole -- zeroes the entire file
+ */
 int
 util_file_zero_whole(const char *path)
 {
@@ -210,6 +223,83 @@ out:
 	errno = olderrno;
 
 	return ret;
+}
+
+/*
+ * util_file_pwrite -- writes to a file with an offset
+ */
+ssize_t
+util_file_pwrite(const char *path, const void *buffer, size_t size,
+	off_t offset)
+{
+	if (!util_file_is_device_dax(path)) {
+		int fd = open(path, O_RDWR, 0);
+		if (fd < 0)
+			return -1;
+
+		ssize_t write_len = pwrite(fd, buffer, size, offset);
+		int olderrno = errno;
+		(void) close(fd);
+		errno = olderrno;
+		return write_len;
+	}
+
+	ssize_t file_size = util_file_get_size(path);
+	if (file_size < 0)
+		return -1;
+
+	size_t max_size = (size_t)(file_size - offset);
+	if (size > max_size) {
+		LOG(1, "Requested size of write goes beyond the mapped memory");
+		size = max_size;
+	}
+
+	void *addr = util_file_map_whole(path);
+	if (addr == NULL)
+		return -1;
+
+	memcpy(ADDR_SUM(addr, offset), buffer, size);
+	util_unmap(addr, (size_t)file_size);
+	return (ssize_t)size;
+
+}
+
+/*
+ * util_file_pread -- reads from a file with an offset
+ */
+ssize_t
+util_file_pread(const char *path, void *buffer, size_t size,
+	off_t offset)
+{
+	if (!util_file_is_device_dax(path)) {
+		int fd = open(path, O_RDONLY, 0);
+		if (fd < 0)
+			return -1;
+
+		ssize_t read_len = pread(fd, buffer, size, offset);
+		int olderrno = errno;
+		(void) close(fd);
+		errno = olderrno;
+		return read_len;
+	}
+
+	ssize_t file_size = util_file_get_size(path);
+	if (file_size < 0)
+		return -1;
+
+	size_t max_size = (size_t)(file_size - offset);
+	if (size > max_size) {
+		LOG(1, "Requested size of read goes beyond the mapped memory");
+		size = max_size;
+	}
+
+	void *addr = util_file_map_whole(path);
+	if (addr == NULL)
+		return -1;
+
+	memcpy(buffer, ADDR_SUM(addr, offset), size);
+	util_unmap(addr, (size_t)file_size);
+	return (ssize_t)size;
 }
 
 /*

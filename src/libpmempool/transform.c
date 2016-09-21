@@ -317,7 +317,6 @@ delete_replicas(struct pool_set *set, struct poolset_compare_status *set_s)
 	for (unsigned r = 0; r < set->nreplicas; ++r) {
 		if (!has_counterpart(r, set_s)) {
 			util_replica_close(set, r);
-			replica_open_replica_part_files(set, r);
 			delete_replica_local(set, r);
 		}
 	}

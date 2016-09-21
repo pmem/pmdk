@@ -65,7 +65,9 @@ struct pool_set_part {
 	const char *path;
 	size_t filesize;	/* aligned to page size */
 	int fd;
-	int is_dax;
+	int flags;		/* stores flags used when opening the file */
+				/* valid only if fd >= 0 */
+	int is_dax;		/* indicates if the part is on device dax */
 	int created;		/* indicates newly created (zeroed) file */
 
 	/* util_poolset_open/create */
@@ -74,7 +76,8 @@ struct pool_set_part {
 	size_t hdrsize;		/* size of the header mapping */
 	void *addr;		/* base address of the mapping */
 	size_t size;		/* size of the mapping - page aligned */
-	int rdonly;
+	int rdonly;		/* is set based on compat features, affects */
+				/* the whole poolset */
 	uuid_t uuid;
 };
 

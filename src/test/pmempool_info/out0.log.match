@@ -1,3 +1,8 @@
+Part file:
+path                     : $(nW)file.pool
+type                     : regular file
+size                     : $(nW)
+
 POOL Header:
 Signature                : PMEMBLK
 Major                    : $(*)

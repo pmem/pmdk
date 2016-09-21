@@ -1,0 +1,84 @@
+poolset_in
+PMEMPOOLSET
+20M $(nW)part00
+
+poolset_out
+PMEMPOOLSET
+20M $(nW)part00
+REPLICA
+AUTO $(nW)
+
+pr(1048576): off = 0x382440 uuid = $(nW)
+TestOK111
+TestOK111
+Poolset structure:
+Number of replicas       : 2
+Replica 0 (master) - local, 1 part(s):
+part 0:
+path                     : $(nW)part00
+type                     : regular file
+size                     : $(nW)
+Replica 1 - local, 1 part(s):
+part 0:
+path                     : $(nW)
+type                     : device dax
+size                     : $(nW)
+
+POOL Header:
+Signature                : PMEMOBJ
+Major                    : 2
+Mandatory features       : 0x0
+Not mandatory features   : 0x0
+Forced RO                : 0x0
+Pool set UUID            : $(nW)
+
+PMEM OBJ Header:
+Layout                   : OBJ_LAYOUT
+Lanes offset             : 0x2000
+Number of lanes          : 1024
+Heap offset              : 0x302000
+Heap size                : 17817600
+Checksum                 : 0x315a2e0aafe3fbf0 [OK]
+Root offset              : 0x382440
+Part file:
+path                     : $(nW)part00
+type                     : regular file
+size                     : $(nW)
+
+POOL Header:
+Signature                : PMEMOBJ
+Major                    : 2
+Mandatory features       : 0x0
+Not mandatory features   : 0x0
+Forced RO                : 0x0
+Pool set UUID            : $(nW)
+
+PMEM OBJ Header:
+Layout                   : OBJ_LAYOUT
+Lanes offset             : 0x2000
+Number of lanes          : 1024
+Heap offset              : 0x302000
+Heap size                : 17817600
+Checksum                 : 0x315a2e0aafe3fbf0 [OK]
+Root offset              : 0x382440
+Part file:
+path                     : $(nW)
+type                     : device dax
+size                     : $(nW)
+
+POOL Header:
+Signature                : PMEMOBJ
+Major                    : 2
+Mandatory features       : 0x0
+Not mandatory features   : 0x0
+Forced RO                : 0x0
+Pool set UUID            : $(nW)
+
+PMEM OBJ Header:
+Layout                   : OBJ_LAYOUT
+Lanes offset             : 0x2000
+Number of lanes          : 1024
+Heap offset              : 0x302000
+Heap size                : 17817600
+Checksum                 : 0x315a2e0aafe3fbf0 [OK]
+Root offset              : 0x382440

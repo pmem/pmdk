@@ -151,11 +151,11 @@ pmemlog_runtime_init(PMEMlogpool *plp, int rdonly)
 	 * The prototype PMFS doesn't allow this when large pages are in
 	 * use. It is not considered an error if this fails.
 	 */
-	POOL_RANGE_NONE(plp, plp->addr, sizeof(struct pool_hdr));
+	RANGE_NONE(plp->addr, sizeof(struct pool_hdr), plp->is_dax);
 
 	/* the rest should be kept read-only (debug version only) */
-	POOL_RANGE_RO(plp, (char *)plp->addr + sizeof(struct pool_hdr),
-			plp->size - sizeof(struct pool_hdr));
+	RANGE_RO((char *)plp->addr + sizeof(struct pool_hdr),
+			plp->size - sizeof(struct pool_hdr), plp->is_dax);
 
 	return 0;
 }
@@ -192,6 +192,7 @@ pmemlog_create(const char *path, size_t poolsize, mode_t mode)
 	plp->size = rep->repsize;
 	plp->set = set;
 	plp->is_pmem = rep->is_pmem;
+	plp->is_dax = rep->part[0].is_dax;
 
 	/* create pool descriptor */
 	if (pmemlog_descr_create(plp, rep->repsize) != 0) {
@@ -255,6 +256,7 @@ pmemlog_open_common(const char *path, int cow)
 	plp->size = rep->repsize;
 	plp->set = set;
 	plp->is_pmem = rep->is_pmem;
+	plp->is_dax = rep->part[0].is_dax;
 
 	if (set->nreplicas > 1) {
 		errno = ENOTSUP;
@@ -346,7 +348,7 @@ pmemlog_persist(PMEMlogpool *plp, uint64_t new_write_offset)
 	size_t length = new_write_offset - old_write_offset;
 
 	/* unprotect the log space range (debug version only) */
-	POOL_RANGE_RW(plp, (char *)plp->addr + old_write_offset, length);
+	RANGE_RW((char *)plp->addr + old_write_offset, length, plp->is_dax);
 
 	/* persist the data */
 	if (plp->is_pmem)
@@ -355,11 +357,11 @@ pmemlog_persist(PMEMlogpool *plp, uint64_t new_write_offset)
 		pmem_msync((char *)plp->addr + old_write_offset, length);
 
 	/* protect the log space range (debug version only) */
-	POOL_RANGE_RO(plp, (char *)plp->addr + old_write_offset, length);
+	RANGE_RO((char *)plp->addr + old_write_offset, length, plp->is_dax);
 
 	/* unprotect the pool descriptor (debug version only) */
-	POOL_RANGE_RW(plp, (char *)plp->addr + sizeof(struct pool_hdr),
-			LOG_FORMAT_DATA_ALIGN);
+	RANGE_RW((char *)plp->addr + sizeof(struct pool_hdr),
+			LOG_FORMAT_DATA_ALIGN, plp->is_dax);
 
 	/* write the metadata */
 	plp->write_offset = htole64(new_write_offset);
@@ -371,8 +373,8 @@ pmemlog_persist(PMEMlogpool *plp, uint64_t new_write_offset)
 		pmem_msync(&plp->write_offset, sizeof(plp->write_offset));
 
 	/* set the write-protection again (debug version only) */
-	POOL_RANGE_RO(plp, (char *)plp->addr + sizeof(struct pool_hdr),
-			LOG_FORMAT_DATA_ALIGN);
+	RANGE_RO((char *)plp->addr + sizeof(struct pool_hdr),
+			LOG_FORMAT_DATA_ALIGN, plp->is_dax);
 }
 
 /*
@@ -422,7 +424,7 @@ pmemlog_append(PMEMlogpool *plp, const void *buf, size_t count)
 	 * unprotect the log space range, where the new data will be stored
 	 * (debug version only)
 	 */
-	POOL_RANGE_RW(plp, &data[write_offset], count);
+	RANGE_RW(&data[write_offset], count, plp->is_dax);
 
 	if (plp->is_pmem)
 		pmem_memcpy_nodrain(&data[write_offset], buf, count);
@@ -430,7 +432,7 @@ pmemlog_append(PMEMlogpool *plp, const void *buf, size_t count)
 		memcpy(&data[write_offset], buf, count);
 
 	/* protect the log space range (debug version only) */
-	POOL_RANGE_RO(plp, &data[write_offset], count);
+	RANGE_RO(&data[write_offset], count, plp->is_dax);
 
 	write_offset += count;
 
@@ -503,7 +505,7 @@ pmemlog_appendv(PMEMlogpool *plp, const struct iovec *iov, int iovcnt)
 		 * unprotect the log space range, where the new data will be
 		 * stored (debug version only)
 		 */
-		POOL_RANGE_RW(plp, &data[write_offset], count);
+		RANGE_RW(&data[write_offset], count, plp->is_dax);
 
 		if (plp->is_pmem)
 			pmem_memcpy_nodrain(&data[write_offset], buf, count);
@@ -513,7 +515,7 @@ pmemlog_appendv(PMEMlogpool *plp, const struct iovec *iov, int iovcnt)
 		/*
 		 * protect the log space range (debug version only)
 		 */
-		POOL_RANGE_RO(plp, &data[write_offset], count);
+		RANGE_RO(&data[write_offset], count, plp->is_dax);
 
 		write_offset += count;
 	}
@@ -571,8 +573,8 @@ pmemlog_rewind(PMEMlogpool *plp)
 	}
 
 	/* unprotect the pool descriptor (debug version only) */
-	POOL_RANGE_RW(plp, (char *)plp->addr + sizeof(struct pool_hdr),
-			LOG_FORMAT_DATA_ALIGN);
+	RANGE_RW((char *)plp->addr + sizeof(struct pool_hdr),
+			LOG_FORMAT_DATA_ALIGN, plp->is_dax);
 
 	plp->write_offset = plp->start_offset;
 	if (plp->is_pmem)
@@ -581,8 +583,8 @@ pmemlog_rewind(PMEMlogpool *plp)
 		pmem_msync(&plp->write_offset, sizeof(uint64_t));
 
 	/* set the write-protection again (debug version only) */
-	POOL_RANGE_RO(plp, (char *)plp->addr + sizeof(struct pool_hdr),
-			LOG_FORMAT_DATA_ALIGN);
+	RANGE_RO((char *)plp->addr + sizeof(struct pool_hdr),
+			LOG_FORMAT_DATA_ALIGN, plp->is_dax);
 
 	util_rwlock_unlock(plp->rwlockp);
 }

@@ -46,7 +46,8 @@ DIRS = \
        pmemdetect\
        ctrld\
        bttcreate\
-       fip
+       fip\
+       ddmap
 
 REMOTE_TOOLS = \
 	ctrld\
