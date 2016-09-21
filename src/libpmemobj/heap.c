@@ -1047,7 +1047,7 @@ heap_find_min_frag_alloc_class(struct palloc_heap *h, size_t n)
 /*
  * heap_buckets_init -- (internal) initializes bucket instances
  */
-static int
+int
 heap_buckets_init(struct palloc_heap *heap)
 {
 	struct heap_rt *h = heap->rt;
@@ -1619,14 +1619,8 @@ heap_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
 	for (unsigned i = 0; i < h->ncaches; ++i)
 		bucket_group_init(h->caches[i].buckets);
 
-	if ((err = heap_buckets_init(heap)) != 0)
-		goto error_buckets_init;
-
 	return 0;
 
-error_buckets_init:
-	/* there's really no point in destroying the locks */
-	Free(h->caches);
 error_heap_cache_malloc:
 	Free(h);
 	heap->rt = NULL;
@@ -1654,62 +1648,6 @@ heap_write_header(struct heap_header *hdr, size_t size)
 	util_checksum(&newhdr, sizeof(newhdr), &newhdr.checksum, 1);
 	*hdr = newhdr;
 }
-
-#ifdef USE_VG_MEMCHECK
-/*
- * heap_vg_open -- notifies Valgrind about heap layout
- */
-void
-heap_vg_open(void *heap_start, uint64_t heap_size)
-{
-	VALGRIND_DO_MAKE_MEM_UNDEFINED(heap_start, heap_size);
-
-	struct heap_layout *layout = heap_start;
-
-	VALGRIND_DO_MAKE_MEM_DEFINED(&layout->header, sizeof(layout->header));
-
-	unsigned zones = heap_max_zone(heap_size);
-
-	for (unsigned i = 0; i < zones; ++i) {
-		struct zone *z = ZID_TO_ZONE(layout, i);
-		uint32_t chunks;
-
-		VALGRIND_DO_MAKE_MEM_DEFINED(&z->header, sizeof(z->header));
-
-		if (z->header.magic != ZONE_HEADER_MAGIC)
-			continue;
-
-		chunks = z->header.size_idx;
-
-		for (uint32_t c = 0; c < chunks; ) {
-			struct chunk_header *hdr = &z->chunk_headers[c];
-
-			VALGRIND_DO_MAKE_MEM_DEFINED(hdr, sizeof(*hdr));
-
-			if (hdr->type == CHUNK_TYPE_RUN) {
-				struct chunk_run *run =
-					(struct chunk_run *)&z->chunks[c];
-
-				VALGRIND_DO_MAKE_MEM_DEFINED(run,
-					sizeof(*run));
-			}
-
-			ASSERT(hdr->size_idx > 0);
-
-			/* mark unused chunk headers as not accessible */
-			VALGRIND_DO_MAKE_MEM_NOACCESS(&z->chunk_headers[c + 1],
-					(hdr->size_idx - 1) *
-					sizeof(struct chunk_header));
-
-			c += hdr->size_idx;
-		}
-
-		/* mark all unused chunk headers after last as not accessible */
-		VALGRIND_DO_MAKE_MEM_NOACCESS(&z->chunk_headers[chunks],
-			(MAX_CHUNK - chunks) * sizeof(struct chunk_header));
-	}
-}
-#endif
 
 /*
  * heap_init -- initializes the heap
@@ -1988,10 +1926,10 @@ heap_run_foreach_object(struct palloc_heap *heap, object_callback cb,
 			if (!BIT_IS_CLR(v, j)) {
 				alloc = (struct allocation_header *)
 					(run->data + (block_off + j) * bs);
-				j += (alloc->size / bs);
 				if (cb(PMALLOC_PTR_TO_OFF(heap, alloc), arg)
 						!= 0)
 					return 1;
+				j += (alloc->size / bs);
 			} else {
 				++j;
 			}
@@ -2061,3 +1999,93 @@ heap_foreach_object(struct palloc_heap *heap, object_callback cb, void *arg,
 				ZID_TO_ZONE(layout, i), start) != 0)
 			break;
 }
+
+#ifdef USE_VG_MEMCHECK
+
+/*
+ * heap_vg_open_chunk -- (internal) notifies Valgrind about chunk layout
+ */
+static void
+heap_vg_open_chunk(struct palloc_heap *heap,
+	object_callback cb, void *arg, int objects,
+	struct zone *z, struct chunk_header *hdr, void *chunk)
+{
+	if (hdr->type == CHUNK_TYPE_RUN) {
+		struct chunk_run *run = chunk;
+
+		VALGRIND_DO_MAKE_MEM_NOACCESS(run, sizeof(*run));
+		VALGRIND_DO_MAKE_MEM_DEFINED(run,
+			sizeof(*run) - sizeof(run->data));
+
+		if (objects) {
+			int ret = heap_run_foreach_object(heap, cb, arg, run);
+			ASSERTeq(ret, 0);
+		}
+	} else {
+		void *addr = chunk;
+		size_t size = hdr->size_idx * CHUNKSIZE;
+		VALGRIND_DO_MAKE_MEM_NOACCESS(addr, size);
+
+		if (objects && hdr->type == CHUNK_TYPE_USED) {
+			struct allocation_header *alloc = addr;
+
+			VALGRIND_DO_MAKE_MEM_DEFINED(alloc, sizeof(*alloc));
+			size_t off = PMALLOC_PTR_TO_OFF(heap, alloc);
+
+			int ret = cb(off, arg);
+			ASSERTeq(ret, 0);
+		}
+	}
+}
+
+/*
+ * heap_vg_open -- notifies Valgrind about heap layout
+ */
+void
+heap_vg_open(struct palloc_heap *heap, object_callback cb,
+	void *arg, int objects)
+{
+	ASSERTne(cb, NULL);
+	VALGRIND_DO_MAKE_MEM_UNDEFINED(heap->layout, heap->size);
+
+	struct heap_layout *layout = heap->layout;
+
+	VALGRIND_DO_MAKE_MEM_DEFINED(&layout->header, sizeof(layout->header));
+
+	unsigned zones = heap_max_zone(heap->size);
+
+	for (unsigned i = 0; i < zones; ++i) {
+		struct zone *z = ZID_TO_ZONE(layout, i);
+		uint32_t chunks;
+
+		VALGRIND_DO_MAKE_MEM_DEFINED(&z->header, sizeof(z->header));
+
+		if (z->header.magic != ZONE_HEADER_MAGIC)
+			continue;
+
+		chunks = z->header.size_idx;
+
+		for (uint32_t c = 0; c < chunks; ) {
+			struct chunk_header *hdr = &z->chunk_headers[c];
+
+			VALGRIND_DO_MAKE_MEM_DEFINED(hdr, sizeof(*hdr));
+
+			heap_vg_open_chunk(heap, cb, arg, objects, z,
+					hdr, &z->chunks[c]);
+
+			ASSERT(hdr->size_idx > 0);
+
+			/* mark unused chunk headers as not accessible */
+			VALGRIND_DO_MAKE_MEM_NOACCESS(&z->chunk_headers[c + 1],
+					(hdr->size_idx - 1) *
+					sizeof(struct chunk_header));
+
+			c += hdr->size_idx;
+		}
+
+		/* mark all unused chunk headers after last as not accessible */
+		VALGRIND_DO_MAKE_MEM_NOACCESS(&z->chunk_headers[chunks],
+			(MAX_CHUNK - chunks) * sizeof(struct chunk_header));
+	}
+}
+#endif

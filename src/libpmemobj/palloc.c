@@ -38,12 +38,12 @@
  * in a reasonable time and with an acceptable common-case fragmentation.
  */
 
+#include "valgrind_internal.h"
 #include "heap_layout.h"
 #include "heap.h"
 #include "out.h"
 #include "sys_util.h"
 #include "palloc.h"
-#include "valgrind_internal.h"
 
 /*
  * Number of bytes between beginning of memory block and beginning of user data.
@@ -598,6 +598,15 @@ palloc_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
 }
 
 /*
+ * palloc_buckets_init -- initialize buckets
+ */
+int
+palloc_buckets_init(struct palloc_heap *heap)
+{
+	return heap_buckets_init(heap);
+}
+
+/*
  * palloc_init -- initializes palloc heap
  */
 int
@@ -644,24 +653,42 @@ palloc_heap_cleanup(struct palloc_heap *heap)
 }
 
 #ifdef USE_VG_MEMCHECK
-/*
- * palloc_vg_register_object -- registers object in Valgrind
- */
-void
-palloc_vg_register_object(struct palloc_heap *heap, void *addr, size_t size)
-{
-	size_t headers = sizeof(struct allocation_header) + PALLOC_DATA_OFF;
 
-	VALGRIND_DO_MEMPOOL_ALLOC(heap->layout, addr, size);
-	VALGRIND_DO_MAKE_MEM_DEFINED((char *)addr - headers, size + headers);
+struct palloc_vg_args {
+	object_callback cb;
+	void *arg;
+	struct palloc_heap *heap;
+};
+
+/*
+ * palloc_vg_register_alloc -- (internal) registers allocation header
+ * in Valgrind
+ */
+static int
+palloc_vg_register_alloc(uint64_t off, void *arg)
+{
+	struct palloc_vg_args *args = arg;
+	struct allocation_header *alloc =
+		(void *)((uintptr_t)args->heap->base + off);
+
+	VALGRIND_DO_MAKE_MEM_DEFINED(alloc, sizeof(*alloc));
+
+	return args->cb(off + sizeof(*alloc), args->arg);
 }
 
 /*
  * palloc_heap_vg_open -- notifies Valgrind about heap layout
  */
 void
-palloc_heap_vg_open(void *heap_start, uint64_t heap_size)
+palloc_heap_vg_open(struct palloc_heap *heap, object_callback cb,
+	void *arg, int objects)
 {
-	heap_vg_open(heap_start, heap_size);
+	struct palloc_vg_args args = {
+		.cb = cb,
+		.arg = arg,
+		.heap = heap,
+	};
+
+	heap_vg_open(heap, palloc_vg_register_alloc, &args, objects);
 }
 #endif

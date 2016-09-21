@@ -212,6 +212,7 @@ test_mock_pool_allocs()
 	heap_init(heap_start, heap_size, &mock_pop->p_ops);
 	heap_boot(&mock_pop->heap, heap_start, heap_size, mock_pop,
 			&mock_pop->p_ops);
+	heap_buckets_init(&mock_pop->heap);
 
 	/* initialize runtime lanes structure */
 	mock_pop->lanes_desc.runtime_nlanes = (unsigned)mock_pop->nlanes;

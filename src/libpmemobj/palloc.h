@@ -71,6 +71,7 @@ size_t palloc_usable_size(struct palloc_heap *heap, uint64_t off);
 
 int palloc_boot(struct palloc_heap *heap, void *heap_start,
 		uint64_t heap_size, void *base, struct pmem_ops *p_ops);
+int palloc_buckets_init(struct palloc_heap *heap);
 
 int palloc_init(void *heap_start, uint64_t heap_size, struct pmem_ops *p_ops);
 void *palloc_heap_end(struct palloc_heap *h);
@@ -79,8 +80,12 @@ int palloc_heap_check_remote(void *heap_start, uint64_t heap_size,
 		struct remote_ops *ops);
 void palloc_heap_cleanup(struct palloc_heap *heap);
 
-void palloc_vg_register_object(struct palloc_heap *heap, void *addr,
-		size_t size);
-void palloc_heap_vg_open(void *heap_start, uint64_t heap_size);
+/* foreach callback, terminates iteration if return value is non-zero */
+typedef int (*object_callback)(uint64_t off, void *arg);
+
+#ifdef USE_VG_MEMCHECK
+void palloc_heap_vg_open(struct palloc_heap *heap,
+		object_callback cb, void *arg, int objects);
+#endif
 
 #endif

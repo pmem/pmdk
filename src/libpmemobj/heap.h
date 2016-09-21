@@ -67,11 +67,11 @@
 int heap_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
 		void *base, struct pmem_ops *p_ops);
 int heap_init(void *heap_start, uint64_t heap_size, struct pmem_ops *p_ops);
-void heap_vg_open(void *heap_start, uint64_t heap_size);
 void heap_cleanup(struct palloc_heap *heap);
 int heap_check(void *heap_start, uint64_t heap_size);
 int heap_check_remote(void *heap_start, uint64_t heap_size,
 		struct remote_ops *ops);
+int heap_buckets_init(struct palloc_heap *heap);
 
 struct bucket *heap_get_best_bucket(struct palloc_heap *heap, size_t size);
 struct bucket *heap_get_chunk_bucket(struct palloc_heap *heap,
@@ -99,12 +99,12 @@ pthread_mutex_t *heap_get_run_lock(struct palloc_heap *heap,
 struct memory_block heap_free_block(struct palloc_heap *heap, struct bucket *b,
 	struct memory_block m, struct operation_context *ctx);
 
-/* foreach callback, terminates iteration if return value is non-zero */
-typedef int (*object_callback)(uint64_t off, void *arg);
-
 void heap_foreach_object(struct palloc_heap *heap, object_callback cb,
 	void *arg, struct memory_block start);
 
 void *heap_end(struct palloc_heap *heap);
+
+void heap_vg_open(struct palloc_heap *heap, object_callback cb,
+		void *arg, int objects);
 
 #endif
