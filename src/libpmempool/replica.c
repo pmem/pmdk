@@ -280,9 +280,11 @@ check_and_open_poolset_part_files(struct pool_set *set,
 		struct pool_replica *rep = set->replica[r];
 		struct replica_health_status *rep_hs = set_hs->replica[r];
 		for (unsigned p = 0; p < rep->nparts; ++p) {
-			if (access(rep->part[p].path, F_OK|R_OK|W_OK) != 0)
+			if (access(rep->part[p].path, F_OK|R_OK|W_OK) != 0) {
 				rep_hs->part[p] |= IS_BROKEN;
-
+				if (is_dry_run(flags))
+					continue;
+			}
 			int create = !is_dry_run(flags);
 			if (util_part_open(&rep->part[p], 0, create))
 				goto err;
@@ -314,7 +316,7 @@ map_all_unbroken_headers(struct pool_set *set,
 				continue;
 
 			if (util_map_hdr(&rep->part[p], MAP_SHARED) != 0) {
-				LOG(2, "header mapping failed - part #%d", p);
+				LOG(1, "header mapping failed - part #%d", p);
 				rep_hs->part[p] |= IS_BROKEN;
 			}
 		}
@@ -616,14 +618,18 @@ int
 replica_check_poolset_health(struct pool_set *set,
 		struct poolset_health_status **set_hsp, unsigned flags)
 {
-	if (replica_create_poolset_health_status(set, set_hsp))
+	if (replica_create_poolset_health_status(set, set_hsp)) {
+		LOG(1, "Creating poolset health status failed");
 		return -1;
+	}
 
 	struct poolset_health_status *set_hs = *set_hsp;
 
 	/* check if part files exist, and if not - create them, and open them */
-	if (check_and_open_poolset_part_files(set, set_hs, flags))
+	if (check_and_open_poolset_part_files(set, set_hs, flags)) {
+		LOG(1, "Opening poolset part files check failed");
 		goto err_hs;
+	}
 
 	/* map all headers */
 	map_all_unbroken_headers(set, set_hs);
@@ -632,16 +638,22 @@ replica_check_poolset_health(struct pool_set *set,
 	check_checksums(set, set_hs);
 
 	/* check if uuids in parts across each replica are consistent */
-	if (check_replicas_consistency(set, set_hs))
+	if (check_replicas_consistency(set, set_hs)) {
+		LOG(1, "Replica consistency check failed");
 		goto err;
+	}
 
 	/* check poolset_uuid values between replicas */
-	if (check_poolset_uuids(set, set_hs))
+	if (check_poolset_uuids(set, set_hs)) {
+		LOG(1, "Poolset uuids check failed");
 		goto err;
+	}
 
 	/* check if uuids for adjacent replicas are consistent */
-	if (check_uuids_between_replicas(set, set_hs))
+	if (check_uuids_between_replicas(set, set_hs)) {
+		LOG(1, "Replica uuids check failed");
 		goto err;
+	}
 
 	unmap_all_headers(set);
 	util_poolset_fdclose(set);
@@ -699,7 +711,7 @@ replica_open_replica_part_files(struct pool_set *set, unsigned repn)
 			continue;
 
 		if (util_part_open(&rep->part[p], 0, 0)) {
-			LOG(2, "part files open failed for replica %u, part %u",
+			LOG(1, "part files open failed for replica %u, part %u",
 					repn, p);
 			errno = EINVAL;
 			goto err;
@@ -718,9 +730,12 @@ err:
 int
 replica_open_poolset_part_files(struct pool_set *set)
 {
-	for (unsigned r = 0; r < set->nreplicas; ++r)
-		if (replica_open_replica_part_files(set, r))
+	for (unsigned r = 0; r < set->nreplicas; ++r) {
+		if (replica_open_replica_part_files(set, r)) {
+			LOG(1, "Opening replica %u, part files failed", r);
 			goto err;
+		}
+	}
 
 	return 0;
 
@@ -738,13 +753,17 @@ pmempool_sync(const char *poolset, unsigned flags)
 	ASSERTne(poolset, NULL);
 
 	/* check if poolset has correct signature */
-	if (util_is_poolset_file(poolset) != 1)
+	if (util_is_poolset_file(poolset) != 1) {
+		ERR("File is not a poolset file");
 		goto err;
+	}
 
 	/* open poolset file */
 	int fd = util_file_open(poolset, NULL, 0, O_RDONLY);
-	if (fd < 0)
+	if (fd < 0) {
+		ERR("Cannot open a poolset file");
 		goto err;
+	}
 
 	/* fill up pool_set structure */
 	struct pool_set *set = NULL;
@@ -787,36 +806,50 @@ pmempool_transform(const char *poolset_file_src,
 	ASSERTne(poolset_file_dst, NULL);
 
 	/* check if poolset has correct signature */
-	if (util_is_poolset_file(poolset_file_src) != 1)
+	if (util_is_poolset_file(poolset_file_src) != 1) {
+		ERR("Source file is not a poolset file");
 		goto err;
+	}
 
 	/* check if poolset has correct signature */
-	if (util_is_poolset_file(poolset_file_dst) != 1)
+	if (util_is_poolset_file(poolset_file_dst) != 1) {
+		ERR("Destination file is not a poolset file");
 		goto err;
+	}
 
 	/* open poolset file */
 	int fd_in = util_file_open(poolset_file_src, NULL, 0, O_RDONLY);
-	if (fd_in < 0)
+	if (fd_in < 0) {
+		ERR("Cannot open source poolset file");
 		goto err;
+	}
 
 	/* open poolset file */
 	int fd_out = util_file_open(poolset_file_dst, NULL, 0, O_RDONLY);
-	if (fd_out < 0)
+	if (fd_out < 0) {
+		ERR("Cannot open destination poolset file");
 		goto err_close_fin;
+	}
 
 	struct pool_set *set_in = NULL;
 	struct pool_set *set_out = NULL;
 
 	/* parse input poolset file */
-	if (util_poolset_parse(&set_in, poolset_file_src, fd_in))
+	if (util_poolset_parse(&set_in, poolset_file_src, fd_in)) {
+		ERR("Parsing source poolset failed");
 		goto err_close_fout;
+	}
 
 	/* parse output poolset file */
-	if (util_poolset_parse(&set_out, poolset_file_dst, fd_out))
+	if (util_poolset_parse(&set_out, poolset_file_dst, fd_out)) {
+		ERR("Parsing destination poolset failed");
 		goto err_free_poolin;
+	}
 
-	if (pool_set_type(set_in) != POOL_TYPE_OBJ)
+	if (pool_set_type(set_in) != POOL_TYPE_OBJ) {
+		ERR("Source poolset is of a wrong type");
 		goto err_free_poolout;
+	}
 
 	/* transform poolset */
 	if (transform_replica(set_in, set_out, flags)) {
