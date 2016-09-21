@@ -1,26 +1,23 @@
 poolset_in
 PMEMPOOLSET
-20M $(nW)/testfile00
+AUTO $(nW)
+REPLICA
+AUTO $(nW)
 
 poolset_out
 PMEMPOOLSET
-20M $(nW)/testfile00
-REPLICA
-20M $(nW)/testfile10
-1M $(nW)/testfile11
+AUTO $(nW)
 
-pr($(nW)): off = 0x382440 uuid = $(nW)
+pr(1048576): off = 0x382440 uuid = $(nW)
 TestOK111
-error: Invalid argument
-error: failed to transform $(nW)/poolset.in -> $(nW)/poolset.out: Transformation failed
 TestOK111
 Poolset structure:
 Number of replicas       : 1
 Replica 0 (master) - local, 1 part(s):
 part 0:
-path                     : $(nW)/testfile00
-type                     : regular file
-size                     : 20971520
+path                     : $(nW)
+type                     : device dax
+size                     : $(nW)
 
 POOL Header:
 Signature                : PMEMOBJ
@@ -35,14 +32,14 @@ Layout                   : OBJ_LAYOUT
 Lanes offset             : 0x2000
 Number of lanes          : 1024
 Heap offset              : 0x302000
-Heap size                : 17817600
-Checksum                 : $(nW) [OK]
+Heap size                : 1051713536
+Checksum                 : 0x5f9a2e0aed83fbf0 [OK]
 Root offset              : 0x382440
 
 Poolset part:
-path                     : $(nW)/testfile00
-type                     : regular file
-size                     : 20971520
+path                     : $(nW)
+type                     : device dax
+size                     : $(nW)
 
 POOL Header:
 Signature                : PMEMOBJ
@@ -57,6 +54,6 @@ Layout                   : OBJ_LAYOUT
 Lanes offset             : 0x2000
 Number of lanes          : 1024
 Heap offset              : 0x302000
-Heap size                : 17817600
-Checksum                 : $(nW) [OK]
+Heap size                : 1051713536
+Checksum                 : 0x5f9a2e0aed83fbf0 [OK]
 Root offset              : 0x382440

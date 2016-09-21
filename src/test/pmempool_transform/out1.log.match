@@ -3,6 +3,12 @@ TestOK111
 TestOK222
 TestOK111
 TestOK222
+
+Poolset part:
+path                     : $(nW)/testfile0
+type                     : regular file
+size                     : 20971520
+
 POOL Header:
 Signature                : PMEMOBJ [part file]
 Major                    : 2
@@ -10,6 +16,12 @@ Mandatory features       : 0x0
 Not mandatory features   : 0x0
 Forced RO                : 0x0
 Pool set UUID            : $(nW)
+
+Poolset part:
+path                     : $(nW)/testfile1
+type                     : regular file
+size                     : 10485760
+
 POOL Header:
 Signature                : PMEMOBJ [part file]
 Major                    : 2
@@ -17,6 +29,12 @@ Mandatory features       : 0x0
 Not mandatory features   : 0x0
 Forced RO                : 0x0
 Pool set UUID            : $(nW)
+
+Poolset part:
+path                     : $(nW)/testfile2
+type                     : regular file
+size                     : 10485760
+
 POOL Header:
 Signature                : PMEMOBJ [part file]
 Major                    : 2
@@ -24,6 +42,12 @@ Mandatory features       : 0x0
 Not mandatory features   : 0x0
 Forced RO                : 0x0
 Pool set UUID            : $(nW)
+
+Poolset part:
+path                     : $(nW)/testfile3
+type                     : regular file
+size                     : 10485760
+
 POOL Header:
 Signature                : PMEMOBJ [part file]
 Major                    : 2
@@ -31,6 +55,12 @@ Mandatory features       : 0x0
 Not mandatory features   : 0x0
 Forced RO                : 0x0
 Pool set UUID            : $(nW)
+
+Poolset part:
+path                     : $(nW)/testfile4
+type                     : regular file
+size                     : 10485760
+
 POOL Header:
 Signature                : PMEMOBJ [part file]
 Major                    : 2
@@ -38,6 +68,12 @@ Mandatory features       : 0x0
 Not mandatory features   : 0x0
 Forced RO                : 0x0
 Pool set UUID            : $(nW)
+
+Poolset part:
+path                     : $(nW)/testfile5
+type                     : regular file
+size                     : 10485760
+
 POOL Header:
 Signature                : PMEMOBJ [part file]
 Major                    : 2
@@ -45,6 +81,12 @@ Mandatory features       : 0x0
 Not mandatory features   : 0x0
 Forced RO                : 0x0
 Pool set UUID            : $(nW)
+
+Poolset part:
+path                     : $(nW)/testfile6
+type                     : regular file
+size                     : 20971520
+
 POOL Header:
 Signature                : PMEMOBJ [part file]
 Major                    : 2

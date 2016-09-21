@@ -1,26 +1,28 @@
 poolset_in
 PMEMPOOLSET
-20M $(nW)/testfile00
+20M $(nW)/part00
 
 poolset_out
 PMEMPOOLSET
-20M $(nW)/testfile00
+20M $(nW)/part00
 REPLICA
-20M $(nW)/testfile10
-1M $(nW)/testfile11
+AUTO $(nW)
 
-pr($(nW)): off = 0x382440 uuid = $(nW)
+pr(1048576): off = 0x382440 uuid = $(nW)
 TestOK111
-error: Invalid argument
-error: failed to transform $(nW)/poolset.in -> $(nW)/poolset.out: Transformation failed
 TestOK111
 Poolset structure:
-Number of replicas       : 1
+Number of replicas       : 2
 Replica 0 (master) - local, 1 part(s):
 part 0:
-path                     : $(nW)/testfile00
+path                     : $(nW)/part00
 type                     : regular file
 size                     : 20971520
+Replica 1 - local, 1 part(s):
+part 0:
+path                     : $(nW)
+type                     : device dax
+size                     : $(nW)
 
 POOL Header:
 Signature                : PMEMOBJ
@@ -36,11 +38,11 @@ Lanes offset             : 0x2000
 Number of lanes          : 1024
 Heap offset              : 0x302000
 Heap size                : 17817600
-Checksum                 : $(nW) [OK]
+Checksum                 : 0x315a2e0aafe3fbf0 [OK]
 Root offset              : 0x382440
 
 Poolset part:
-path                     : $(nW)/testfile00
+path                     : $(nW)/part00
 type                     : regular file
 size                     : 20971520
 
@@ -58,5 +60,27 @@ Lanes offset             : 0x2000
 Number of lanes          : 1024
 Heap offset              : 0x302000
 Heap size                : 17817600
-Checksum                 : $(nW) [OK]
+Checksum                 : 0x315a2e0aafe3fbf0 [OK]
+Root offset              : 0x382440
+
+Poolset part:
+path                     : $(nW)
+type                     : device dax
+size                     : $(nW)
+
+POOL Header:
+Signature                : PMEMOBJ
+Major                    : 2
+Mandatory features       : 0x0
+Not mandatory features   : 0x0
+Forced RO                : 0x0
+Pool set UUID            : $(nW)
+
+PMEM OBJ Header:
+Layout                   : OBJ_LAYOUT
+Lanes offset             : 0x2000
+Number of lanes          : 1024
+Heap offset              : 0x302000
+Heap size                : 17817600
+Checksum                 : 0x315a2e0aafe3fbf0 [OK]
 Root offset              : 0x382440

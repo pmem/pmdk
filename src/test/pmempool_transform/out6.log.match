@@ -21,6 +21,27 @@ REPLICA
 
 error: Invalid argument
 error: failed to transform $(nW)/poolset.in -> $(nW)/poolset.out2: Source poolset is broken
+Poolset structure:
+Number of replicas       : 2
+Replica 0 (master) - local, 2 part(s):
+part 0:
+path                     : $(nW)/testfile00
+type                     : regular file
+size                     : 20971520
+part 1:
+path                     : $(nW)/testfile01
+type                     : regular file
+size                     : 20971520
+Replica 1 - local, 2 part(s):
+part 0:
+path                     : $(nW)/testfile10
+type                     : regular file
+size                     : 20971520
+part 1:
+path                     : $(nW)/testfile11
+type                     : regular file
+size                     : 20971520
+
 POOL Header:
 Signature                : PMEMOBJ
 Major                    : 2

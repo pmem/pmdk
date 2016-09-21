@@ -781,6 +781,7 @@ function require_dax_devices() {
 	do
 		if [[ ! -w $path ]]; then
 			[ "$UNITTEST_QUIET" ] || echo "$UNITTEST_NAME: SKIP no access to specified dax devices"
+			echo "aaa"
 			exit 0
 		fi
 	done
@@ -1999,7 +2000,7 @@ function dump_pool_info() {
 #
 function compare_replicas() {
 	set +e
-	diff <(dump_pool_info $1 $2) <(dump_pool_info $1 $3)
+	diff <(dump_pool_info $1 $2) <(dump_pool_info $1 $3) -I "^path" -I "^size"
 	set -e
 }
 

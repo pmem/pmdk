@@ -1,6 +1,12 @@
 pr(47185920): off = 0x382440 uuid = $(nW)
 TestOK111
 TestOK222
+
+Poolset part:
+path                     : $(nW)/testfile00
+type                     : regular file
+size                     : 20971520
+
 POOL Header:
 Signature                : PMEMOBJ [part file]
 Major                    : 2
@@ -8,6 +14,12 @@ Mandatory features       : 0x0
 Not mandatory features   : 0x0
 Forced RO                : 0x0
 Pool set UUID            : $(nW)
+
+Poolset part:
+path                     : $(nW)/testfile10
+type                     : regular file
+size                     : 31457280
+
 POOL Header:
 Signature                : PMEMOBJ [part file]
 Major                    : 2
@@ -15,6 +27,12 @@ Mandatory features       : 0x0
 Not mandatory features   : 0x0
 Forced RO                : 0x0
 Pool set UUID            : $(nW)
+
+Poolset part:
+path                     : $(nW)/testfile11
+type                     : regular file
+size                     : 20971520
+
 POOL Header:
 Signature                : PMEMOBJ [part file]
 Major                    : 2

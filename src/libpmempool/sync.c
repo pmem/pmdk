@@ -45,13 +45,12 @@
 #include "libpmem.h"
 #include "replica.h"
 #include "out.h"
+#include "util.h"
 
 #ifdef USE_RPMEM
 #include "rpmem_common.h"
 #include "rpmem_ssh.h"
 #endif
-
-#define ADDR_SUM(vp, lp) ((void *)((char *)(vp) + lp))
 
 /*
  * recreate_broken_parts -- (internal) create parts in place of the broken ones

@@ -55,6 +55,7 @@ extern unsigned long long Mmap_align;
 	PAGE_ALIGNED_DOWN_SIZE((size) + (Pagesize - 1))
 #define IS_PAGE_ALIGNED(size) (((size) & (Pagesize - 1)) == 0)
 #define PAGE_ALIGN_UP(addr) ((void *)PAGE_ALIGNED_UP_SIZE((uintptr_t)(addr)))
+#define ADDR_SUM(vp, lp) ((void *)((char *)(vp) + lp))
 
 /*
  * overridable names for malloc & friends used by this library
