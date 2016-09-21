@@ -101,7 +101,7 @@ int replica_is_poolset_healthy(struct poolset_health_status *set_hs);
 int replica_is_replica_inconsistent(unsigned repn,
 		struct poolset_health_status *set_hs);
 unsigned replica_find_healthy_replica(struct poolset_health_status *set_hs);
-size_t replica_get_pool_size(struct pool_set *set);
+size_t replica_get_pool_size(struct pool_set *set, unsigned repn);
 
 
 int replica_open_replica_part_files(struct pool_set *set, unsigned repn);
