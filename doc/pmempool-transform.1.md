@@ -85,6 +85,10 @@ poolset size. Otherwise the whole operation fails and no changes are applied.
 : Enable dry run mode. In this mode no changes are applied, only check for
 viability of the operation is performed.
 
+`-v, --verbose`
+
+: Increase verbosity level.
+
 `-h, --help`
 
 : Display help message and exit.
