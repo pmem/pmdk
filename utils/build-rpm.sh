@@ -197,7 +197,7 @@ Source0:	$PACKAGE_TARBALL
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildRequires:	gcc glibc-devel
-BuildRequires:	autoconf, automake, make, pandoc, doxygen
+BuildRequires:	autoconf, automake, make, doxygen
 BuildArch:	x86_64
 
 %description
