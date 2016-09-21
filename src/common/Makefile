@@ -34,6 +34,7 @@
 
 LIBRARY_NAME = pmemcommon
 SOURCE =\
+	device_dax_linux.c\
 	file.c\
 	file_linux.c\
 	mmap.c\

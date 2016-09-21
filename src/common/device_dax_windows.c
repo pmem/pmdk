@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016, Intel Corporation
+ * Copyright 2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,38 +31,44 @@
  */
 
 /*
- * file.h -- internal definitions for file module
+ * device_dax_windows.h -- windows implementation of device dax helper methods
  */
 
-#ifndef NVML_FILE_H
-#define NVML_FILE_H 1
+#include "device_dax.h"
+#include <stdio.h>
 
-#include <stddef.h>
-#include <sys/stat.h>
-#include <sys/types.h>
+/*
+ * device_dax_is_dax -- not supported on windows
+ */
+int
+device_dax_is_dax(const char *path)
+{
+	return 0;
+}
 
-int util_tmpfile(const char *dir, const char *templ);
-int util_is_absolute_path(const char *path);
+/*
+ * device_dax_size -- not supported on windows
+ */
+ssize_t
+device_dax_size(const char *path)
+{
+	return -1;
+}
 
-int util_file_create(const char *path, size_t size, size_t minsize);
-int util_file_open(const char *path, size_t *size, size_t minsize, int flags);
+/*
+ * device_dax_zero -- not supported on windows
+ */
+int
+device_dax_zero(const char *path)
+{
+	return -1;
+}
 
-#ifndef _WIN32
-typedef struct stat util_stat_t;
-#define util_fstat	fstat
-#define util_stat	stat
-#define util_lseek	lseek
-#define util_read	read
-#define util_write	write
-#else
-typedef struct _stat64 util_stat_t;
-#define util_fstat	_fstat64
-#define util_stat	_stat64
-#define util_lseek	_lseeki64
-/* XXX - consider adding an assertion on (count <= UINT_MAX) */
-#define util_read(fd, buf, count)	read(fd, buf, (unsigned)(count))
-#define util_write(fd, buf, count)	write(fd, buf, (unsigned)(count))
-#define S_ISCHR(m)	(((m) & S_IFMT) == S_IFCHR)
-#endif
-
-#endif
+/*
+ * device_dax_map -- not supported on windows
+ */
+void *
+device_dax_map(const char *path)
+{
+	return NULL;
+}

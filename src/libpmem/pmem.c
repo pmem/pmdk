@@ -174,6 +174,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <limits.h>
 
 #include "libpmem.h"
 
@@ -183,6 +184,7 @@
 #include "util.h"
 #include "mmap.h"
 #include "file.h"
+#include "device_dax.h"
 #include "valgrind_internal.h"
 
 #ifndef _MSC_VER
@@ -543,9 +545,16 @@ pmem_map_file(const char *path, size_t len, int flags, mode_t mode,
 	int fd;
 	int open_flags = O_RDWR;
 	int delete_on_err = 0;
+	int dax = device_dax_is_dax(path);
 
 	if (flags & ~(PMEM_FILE_ALL_FLAGS)) {
 		ERR("invalid flag specified %x", flags);
+		errno = EINVAL;
+		return NULL;
+	}
+
+	if (dax && (flags & (PMEM_FILE_TMPFILE | PMEM_FILE_CREATE)) != 0) {
+		ERR("Cannot create new files on device dax");
 		errno = EINVAL;
 		return NULL;
 	}
@@ -620,20 +629,25 @@ pmem_map_file(const char *path, size_t len, int flags, mode_t mode,
 			}
 		}
 	} else {
-		util_stat_t stbuf;
+		ssize_t actual_size = -1;
+		if (dax) {
+			actual_size = device_dax_size(path);
+		} else {
+			util_stat_t stbuf;
 
-		if (util_fstat(fd, &stbuf) < 0) {
-			ERR("!fstat %s", path);
-			goto err;
+			if (util_fstat(fd, &stbuf) < 0) {
+				ERR("!fstat %s", path);
+				goto err;
+			}
 		}
 
-		if (stbuf.st_size < 0) {
+		if (actual_size < 0) {
 			ERR("stat %s: negative size", path);
 			errno = EINVAL;
 			goto err;
 		}
 
-		len = (size_t)stbuf.st_size;
+		len = (size_t)actual_size;
 	}
 
 	void *addr;

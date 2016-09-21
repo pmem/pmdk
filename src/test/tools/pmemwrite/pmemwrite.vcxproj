@@ -34,6 +34,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\common\pmem_provider_file.c" />
     <ClCompile Include="..\..\..\common\set.c" />
     <ClCompile Include="..\..\..\libpmemblk\btt.c" />
     <ClCompile Include="..\..\..\tools\pmempool\common.c" />

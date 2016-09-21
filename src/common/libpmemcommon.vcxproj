@@ -16,6 +16,7 @@
     <ClCompile Include="mmap.c" />
     <ClCompile Include="mmap_windows.c" />
     <ClCompile Include="out.c" />
+    <ClCompile Include="device_dax_windows.c" />
     <ClCompile Include="pool_hdr.c" />
     <ClCompile Include="pool_hdr_windows.c" />
     <ClCompile Include="pthread_windows.c" />
@@ -31,6 +32,7 @@
     <ClInclude Include="mmap.h" />
     <ClInclude Include="out.h" />
     <ClInclude Include="pmemcommon.h" />
+    <ClInclude Include="device_dax.h" />
     <ClInclude Include="pool_hdr.h" />
     <ClInclude Include="set.h" />
     <ClInclude Include="sys_util.h" />

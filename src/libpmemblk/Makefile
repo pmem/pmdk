@@ -36,6 +36,7 @@ LIBRARY_NAME = pmemblk
 LIBRARY_SO_VERSION = 1
 LIBRARY_VERSION = 0.0
 SOURCE =\
+	$(COMMON)/device_dax_linux.c\
 	$(COMMON)/file.c\
 	$(COMMON)/file_linux.c\
 	$(COMMON)/mmap.c\
