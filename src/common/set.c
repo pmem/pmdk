@@ -1517,7 +1517,7 @@ util_header_check_remote(struct pool_replica *rep, unsigned partidx)
 
 	memcpy(&hdr, hdrp, sizeof(hdr));
 
-	if (!util_convert_hdr(&hdr)) {
+	if (!util_convert_hdr_remote(&hdr)) {
 		errno = EINVAL;
 		return -1;
 	}
