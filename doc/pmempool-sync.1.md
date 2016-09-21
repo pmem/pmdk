@@ -66,6 +66,10 @@ the healthy replicas.
 : Enable dry run mode. In this mode no changes are applied, only check for
 viability of synchronization.
 
+`-v, --verbose`
+
+: Increase verbosity level.
+
 `-h, --help`
 
 : Display help message and exit.
