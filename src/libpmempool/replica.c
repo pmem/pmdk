@@ -204,13 +204,25 @@ replica_is_replica_broken(unsigned repn, struct poolset_health_status *set_hs)
 }
 
 /*
- * replica_is_replica_inconsistent -- check if replica is marked as inconsistent
+ * replica_is_replica_consistent -- check if replica is not marked as
+ *                                  inconsistent
  */
 int
-replica_is_replica_inconsistent(unsigned repn,
+replica_is_replica_consistent(unsigned repn,
 		struct poolset_health_status *set_hs)
 {
-	return REP(set_hs, repn)->flags & IS_INCONSISTENT;
+	return !(REP(set_hs, repn)->flags & IS_INCONSISTENT);
+}
+
+/*
+ * replica_is_replica_healthy -- check if replica is unbroken and consistent
+ */
+int
+replica_is_replica_healthy(unsigned repn,
+		struct poolset_health_status *set_hs)
+{
+	return !replica_is_replica_broken(repn, set_hs) &&
+			replica_is_replica_consistent(repn, set_hs);
 }
 
 /*
@@ -222,8 +234,7 @@ int
 replica_is_poolset_healthy(struct poolset_health_status *set_hs)
 {
 	for (unsigned r = 0; r < set_hs->nreplicas; ++r) {
-		if (replica_is_replica_broken(r, set_hs) ||
-				replica_is_replica_inconsistent(r, set_hs))
+		if (!replica_is_replica_healthy(r, set_hs))
 			return 0;
 	}
 	return 1;
@@ -237,7 +248,7 @@ static unsigned
 find_consistent_replica(struct poolset_health_status *set_hs)
 {
 	for (unsigned r = 0; r < set_hs->nreplicas; ++r) {
-		if (!replica_is_replica_inconsistent(r, set_hs))
+		if (replica_is_replica_consistent(r, set_hs))
 			return r;
 	}
 	return UNDEF_REPLICA;
@@ -247,8 +258,8 @@ find_consistent_replica(struct poolset_health_status *set_hs)
  * find_unbroken_part -- (internal) find a part number in a given replica,
  *                       which is not marked as broken in the helping structure
  */
-static unsigned
-find_unbroken_part(unsigned repn, struct poolset_health_status *set_hs)
+unsigned
+replica_find_unbroken_part(unsigned repn, struct poolset_health_status *set_hs)
 {
 	for (unsigned p = 0; p < REP(set_hs, repn)->nparts; ++p) {
 		if (!replica_is_part_broken(repn, p, set_hs))
@@ -268,8 +279,7 @@ replica_find_healthy_replica(struct poolset_health_status *set_hs)
 		return replica_is_replica_broken(0, set_hs) ? UNDEF_REPLICA : 0;
 	} else {
 		for (unsigned r = 0; r < set_hs->nreplicas; ++r) {
-			if (!replica_is_replica_broken(r, set_hs) &&
-				!replica_is_replica_inconsistent(r, set_hs))
+			if (replica_is_replica_healthy(r, set_hs))
 				return r;
 		}
 		return UNDEF_REPLICA;
@@ -545,7 +555,7 @@ check_poolset_uuids(struct pool_set *set,
 
 	for (unsigned r = 0; r < set->nreplicas; ++r) {
 		/* skip inconsistent replicas */
-		if (replica_is_replica_inconsistent(r, set_hs) || r == r_h)
+		if (!replica_is_replica_consistent(r, set_hs) || r == r_h)
 			continue;
 
 		check_replica_poolset_uuids(set, r, poolset_uuid, set_hs);
@@ -563,8 +573,8 @@ check_uuids_between_replicas(struct pool_set *set,
 {
 	for (unsigned r = 0; r < set->nreplicas; ++r) {
 		/* skip comparing inconsistent pairs of replicas */
-		if (replica_is_replica_inconsistent(r, set_hs) ||
-				replica_is_replica_inconsistent(r + 1, set_hs))
+		if (!replica_is_replica_consistent(r, set_hs) ||
+				!replica_is_replica_consistent(r + 1, set_hs))
 			continue;
 
 		struct pool_replica *rep = REP(set, r);
@@ -573,8 +583,8 @@ check_uuids_between_replicas(struct pool_set *set,
 		struct replica_health_status *rep_n_hs = REP(set_hs, r + 1);
 
 		/* check adjacent replica uuids for yet unbroken parts */
-		unsigned p = find_unbroken_part(r, set_hs);
-		unsigned p_n = find_unbroken_part(r + 1, set_hs);
+		unsigned p = replica_find_unbroken_part(r, set_hs);
+		unsigned p_n = replica_find_unbroken_part(r + 1, set_hs);
 
 		/* if the first part is broken, cannot compare replica uuids */
 		if (p > 0) {
