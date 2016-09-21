@@ -525,7 +525,7 @@ rpmem_open(const char *target, const char *pool_set_name,
 		goto err_obc_create;
 	}
 
-	rpmem_log_resp("create", &resp);
+	rpmem_log_resp("open", &resp);
 
 	ret = rpmem_common_fip_init(rpp, &req, &resp,
 			pool_addr, pool_size, nlanes);
