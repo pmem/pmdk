@@ -1,6 +1,6 @@
-#!/bin/bash -e
 #
 # Copyright 2015-2016, Intel Corporation
+# Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,46 +32,50 @@
 #
 
 #
-# src/test/obj_redo_log/TEST5 -- unit test for redo_log_set_last function
+# src/test/obj_redo_log/TEST1 -- unit test for redo_log_store_last function
 #
-export UNITTEST_NAME=obj_redo_log/TEST5
-export UNITTEST_NUM=5
+[CmdletBinding(PositionalBinding=$false)]
+Param(
+    [alias("d")]
+    $DIR = ""
+    )
+$Env:UNITTEST_NAME = "obj_redo_log\TEST1"
+$Env:UNITTEST_NUM = "1"
+
 
 # standard unit test setup
-. ../unittest/unittest.sh
+. ..\unittest\unittest.ps1
 
 require_build_type debug
 
 setup
 
-FILE=${DIR}/pool
-AREASIZE=4096
-FSIZE=$(($AREASIZE + 16384))
-RSIZE=$(($AREASIZE / 16))
+$FILE=$DIR+"\pool"
+$AREASIZE=4096
+$FSIZE=$AREASIZE + 16384
+$RSIZE=$AREASIZE / 16
 
-truncate -s $FSIZE $FILE
+create_holey_file ($FSIZE.ToString() + "b") $FILE
 
-expect_normal_exit ./obj_redo_log$EXESUFFIX $FILE $RSIZE\
-	s:0:0x10000000:0x11111111\
-	s:1:0x20000000:0x22222222\
-	s:2:0x30000000:0x33333333\
-	s:3:0x40000000:0x44444444\
-	F:0\
-	F:1\
-	e:0\
-	e:1\
-	e:2\
-	e:3\
-	s:3:0x50000000:0x55555555\
-	s:2:0x60000000:0x66666666\
-	s:1:0x70000000:0x77777777\
-	s:0:0x80000000:0x88888888\
-	F:3\
-	F:2\
-	e:0\
-	e:1\
-	e:2\
-	e:3
+expect_normal_exit $Env:EXE_DIR\obj_redo_log$Env:EXESUFFIX $FILE $RSIZE `
+	f:0:0x10000000:0x11111111 `
+	f:1:0x20000000:0x22222222 `
+	s:2:0x30000000:0x33333333 `
+	s:3:0x40000000:0x44444444 `
+	n `
+	e:0 `
+	e:1 `
+	e:2 `
+	e:3 `
+	f:3:0x50000000:0x55555555 `
+	f:2:0x60000000:0x66666666 `
+	s:1:0x70000000:0x77777777 `
+	s:0:0x80000000:0x88888888 `
+	e:0 `
+	e:1 `
+	e:2 `
+	e:3 `
+	n
 
 check
 

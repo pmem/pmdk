@@ -40,9 +40,13 @@ vpath %.c $(TOP)/src/libpmemobj
 TARGET = obj_redo_log
 OBJS = obj_redo_log.o redo.o
 
+BUILD_STATIC_DEBUG=n
+BUILD_STATIC_NONDEBUG=n
+
 LIBPMEM=y
 LIBPMEMCOMMON=y
 
 include ../Makefile.inc
 
 INCS += -I$(TOP)/src/libpmemobj/
+CFLAGS += -DDEBUG

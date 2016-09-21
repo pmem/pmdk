@@ -1,6 +1,6 @@
-#!/bin/bash -e
 #
 # Copyright 2015-2016, Intel Corporation
+# Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,46 +32,57 @@
 #
 
 #
-# src/test/obj_redo_log/TEST5 -- unit test for redo_log_set_last function
+# src/test/obj_redo_log/TEST6 -- unit test for redo log with valgrind
+# pmemcheck tool
 #
-export UNITTEST_NAME=obj_redo_log/TEST5
-export UNITTEST_NUM=5
+[CmdletBinding(PositionalBinding=$false)]
+Param(
+    [alias("d")]
+    $DIR = ""
+    )
+$Env:UNITTEST_NAME = "obj_redo_log\TEST6"
+$Env:UNITTEST_NUM = "6"
+
 
 # standard unit test setup
-. ../unittest/unittest.sh
+. ..\unittest\unittest.ps1
 
 require_build_type debug
 
+# XXX: we don't have valgrind in Windows yet
+# configure_valgrind pmemcheck force-enable
+# export VALGRIND_OPTS="--mult-stores=yes"
+
 setup
 
-FILE=${DIR}/pool
-AREASIZE=4096
-FSIZE=$(($AREASIZE + 16384))
-RSIZE=$(($AREASIZE / 16))
+$FILE=$DIR+"\pool"
+$FSIZE=1024 * 1024
+$RSIZE=4
 
-truncate -s $FSIZE $FILE
+create_holey_file ($FSIZE.ToString() + "b") $FILE
 
-expect_normal_exit ./obj_redo_log$EXESUFFIX $FILE $RSIZE\
-	s:0:0x10000000:0x11111111\
-	s:1:0x20000000:0x22222222\
-	s:2:0x30000000:0x33333333\
-	s:3:0x40000000:0x44444444\
-	F:0\
-	F:1\
-	e:0\
-	e:1\
-	e:2\
-	e:3\
-	s:3:0x50000000:0x55555555\
-	s:2:0x60000000:0x66666666\
-	s:1:0x70000000:0x77777777\
-	s:0:0x80000000:0x88888888\
-	F:3\
-	F:2\
-	e:0\
-	e:1\
-	e:2\
-	e:3
+expect_normal_exit $Env:EXE_DIR\obj_redo_log$Env:EXESUFFIX $FILE $RSIZE `
+	C `
+	s:0:0x00004200:0x11111111 `
+	s:1:0x00004208:0x22222222 `
+	s:2:0x00004210:0x33333333 `
+	f:3:0x00004218:0x44444444 `
+	P `
+	r:0x00004200 `
+	r:0x00004208 `
+	r:0x00004210 `
+	r:0x000004218 `
+	s:0:0x00004300:0x55555555 `
+	s:1:0x00004308:0x66666666 `
+	s:2:0x00004310:0x77777777 `
+	s:3:0x00004318:0x88888888 `
+	F:3 `
+	R `
+	r:0x00004300 `
+	r:0x00004308 `
+	r:0x00004310 `
+	r:0x00004318 `
+	C
 
 check
 
