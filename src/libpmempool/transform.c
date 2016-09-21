@@ -300,9 +300,9 @@ are_poolsets_transformable(struct poolset_compare_status *set_in_s,
 			LOG(2, "Replica %u has no counterpar", r);
 		}
 	}
-
 	return 0;
 }
+
 /*
  * delete_replica_local -- (internal) delete all part files from a given
  *                         replica
@@ -311,13 +311,9 @@ static int
 delete_replica_local(struct pool_set *set, unsigned repn)
 {
 	struct pool_replica *rep = set->replica[repn];
-	for (unsigned p = 0; p < rep->nparts; ++p) {
-		if (rep->part[p].fd != -1) {
-			close(rep->part[p].fd);
-			LOG(4, "unlink %s", rep->part[p].path);
-			unlink(rep->part[p].path);
-		}
-	}
+	for (unsigned p = 0; p < rep->nparts; ++p)
+		replica_remove_part(set, repn, p);
+
 	return 0;
 }
 
