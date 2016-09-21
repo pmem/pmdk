@@ -11,6 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\common\device_dax_windows.c" />
     <ClCompile Include="..\..\libpmemblk\btt.c" />
     <ClCompile Include="..\..\libpmemlog\libpmemlog.c" />
     <ClCompile Include="..\..\libpmemlog\log.c" />

@@ -1,7 +1,6 @@
 #!/bin/bash -e
 #
 # Copyright 2015-2016, Intel Corporation
-# Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,24 +30,19 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+#
+# pmempool_rm/TEST3 -- test for pmempool rm
+#
+export UNITTEST_NAME=pmempool_rm/TEST3
+export UNITTEST_NUM=3
 
-export UNITTEST_NAME=obj_basic_integration/TEST0
-export UNITTEST_NUM=0
-
-# standard unit test setup
 . ../unittest/unittest.sh
 
 require_test_type medium
-
-# covered by TEST5
-configure_valgrind memcheck force-disable
+require_dax_devices 1
 
 setup
 
-create_holey_file 8M $DIR/testfile1
-
-expect_normal_exit ./obj_basic_integration$EXESUFFIX $DIR/testfile1
-
-check
+expect_normal_exit $PMEMPOOL$EXESUFFIX rm -f $DEVICE_DAX_PATH
 
 pass

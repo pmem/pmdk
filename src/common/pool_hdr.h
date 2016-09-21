@@ -112,6 +112,8 @@ struct pool_hdr {
 
 #define POOL_HDR_SIZE	(sizeof(struct pool_hdr))
 
+#define POOL_DESC_SIZE 4096
+
 void util_convert2le_hdr(struct pool_hdr *hdrp);
 void util_convert2h_hdr_nocheck(struct pool_hdr *hdrp);
 int util_convert_hdr(struct pool_hdr *hdrp);

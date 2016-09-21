@@ -66,6 +66,7 @@
 #include "sys_util.h"
 
 #define LIBRARY_REMOTE "librpmem.so.1"
+#define SIZE_AUTODETECT_STR "AUTO"
 
 static void *Rpmem_handle_remote;
 static RPMEMpool *(*Rpmem_create)(const char *target, const char *pool_set_name,
@@ -291,15 +292,31 @@ util_map_hdr(struct pool_set_part *part, int flags)
 	COMPILE_ERROR_ON(POOL_HDR_SIZE == 0);
 	ASSERTeq(POOL_HDR_SIZE % Pagesize, 0);
 
-	void *hdrp = mmap(NULL, POOL_HDR_SIZE,
-		PROT_READ|PROT_WRITE, flags, part->fd, 0);
+	void *hdrp;
+	if (part->is_dax) {
+		/*
+		 * Workaround for dax device not allowing an mmap only of a
+		 * part of the device. This means that currently only one device
+		 * is allowed to be a part of a poolset.
+		 */
+		hdrp = mmap(NULL, part->filesize,
+			PROT_READ|PROT_WRITE, flags, part->fd, 0);
+		if (hdrp == MAP_FAILED) {
+			ERR("!mmap: %s", part->path);
+			return -1;
+		}
+		part->hdrsize = part->filesize;
+	} else {
+		hdrp = mmap(NULL, POOL_HDR_SIZE,
+			PROT_READ|PROT_WRITE, flags, part->fd, 0);
 
-	if (hdrp == MAP_FAILED) {
-		ERR("!mmap: %s", part->path);
-		return -1;
+		if (hdrp == MAP_FAILED) {
+			ERR("!mmap: %s", part->path);
+			return -1;
+		}
+		part->hdrsize = POOL_HDR_SIZE;
 	}
 
-	part->hdrsize = POOL_HDR_SIZE;
 	part->hdr = hdrp;
 
 	VALGRIND_REGISTER_PMEM_MAPPING(part->hdr, part->hdrsize);
@@ -543,6 +560,20 @@ util_poolset_fdclose(struct pool_set *set)
 }
 
 /*
+ * util_autodetect_size -- (internal) retrieves size of an existing file
+ */
+static ssize_t
+util_autodetect_size(const char *path)
+{
+	if (!util_file_is_device_dax(path)) {
+		ERR("size autodetection is supported only for device dax");
+		return -1;
+	}
+
+	return util_file_get_size(path);
+}
+
+/*
  * parser_read_line -- (internal) read line and validate size and path
  *                      from a pool set file
  */
@@ -572,16 +603,32 @@ parser_read_line(char *line, size_t *size, char **path)
 	if (!util_is_absolute_path(path_str))
 		return PARSER_ABSOLUTE_PATH_EXPECTED;
 
-	ret = util_parse_size(size_str, size);
-	if (ret != 0 || *size == 0) {
-		return PARSER_WRONG_SIZE;
-	}
-
 	*path = Strdup(path_str);
 	if (!(*path)) {
 		ERR("!Strdup");
 		return PARSER_OUT_OF_MEMORY;
 	}
+
+	if (strcmp(SIZE_AUTODETECT_STR, size_str) == 0) {
+		/*
+		 * XXX: this should be done after the parsing completes, but
+		 * currently this operation is performed in simply too many
+		 * places in the code to move this someplace else.
+		 */
+		ssize_t s = util_autodetect_size(path_str);
+		if (s < 0)
+			return PARSER_WRONG_SIZE;
+
+		*size = (size_t)s;
+
+		return PARSER_CONTINUE;
+	}
+
+	ret = util_parse_size(size_str, size);
+	if (ret != 0 || *size == 0) {
+		return PARSER_WRONG_SIZE;
+	}
+
 
 	return PARSER_CONTINUE;
 }
@@ -652,6 +699,7 @@ util_parse_add_part(struct pool_set *set, const char *path, size_t filesize)
 	rep->part[p].path = path;
 	rep->part[p].filesize = filesize;
 	rep->part[p].fd = -1;
+	rep->part[p].is_dax = util_file_is_device_dax(path);
 	rep->part[p].created = 0;
 	rep->part[p].hdr = NULL;
 	rep->part[p].addr = NULL;
@@ -964,6 +1012,7 @@ util_poolset_single(const char *path, size_t filesize, int create)
 	rep->part[0].filesize = filesize;
 	rep->part[0].path = Strdup(path);
 	rep->part[0].fd = -1;	/* will be filled out by util_poolset_file() */
+	rep->part[0].is_dax = util_file_is_device_dax(path);
 	rep->part[0].created = create;
 	rep->part[0].hdr = NULL;
 	rep->part[0].addr = NULL;
@@ -1264,7 +1313,13 @@ util_poolset_create_set(struct pool_set **setp, const char *path,
 	int fd;
 	size_t size = 0;
 
+	int device_dax = util_file_is_device_dax(path);
+
 	if (poolsize != 0) {
+		if (device_dax) {
+			ERR("size must be zero for device dax");
+			return -1;
+		}
 		*setp = util_poolset_single(path, poolsize, 1);
 		if (*setp == NULL)
 			return -1;
@@ -1277,17 +1332,20 @@ util_poolset_create_set(struct pool_set **setp, const char *path,
 		return -1;
 
 	char signature[POOLSET_HDR_SIG_LEN];
-	/*
-	 * read returns ssize_t, but we know it will return value between -1
-	 * and POOLSET_HDR_SIG_LEN (11), so we can safely cast it to int
-	 */
-	ret = (int)read(fd, signature, POOLSET_HDR_SIG_LEN);
-	if (ret < 0) {
-		ERR("!read %d", fd);
-		goto err;
+	if (!device_dax) {
+		/*
+		 * read returns ssize_t, but we know it will return value
+		 * between -1 and POOLSET_HDR_SIG_LEN (11), so we can safely
+		 * cast it to int
+		 */
+		ret = (int)read(fd, signature, POOLSET_HDR_SIG_LEN);
+		if (ret < 0) {
+			ERR("!read %d", fd);
+			goto err;
+		}
 	}
 
-	if (ret < POOLSET_HDR_SIG_LEN ||
+	if (device_dax || ret < POOLSET_HDR_SIG_LEN ||
 	    strncmp(signature, POOLSET_HDR_SIG, POOLSET_HDR_SIG_LEN)) {
 		LOG(4, "not a pool set header");
 
@@ -1360,14 +1418,6 @@ util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 		return -1;
 	}
 
-	/*
-	 * Zero out the pool descriptor - just in case we fail right after
-	 * header checksum is stored.
-	 */
-	void *descp = (void *)((uintptr_t)hdrp + sizeof(*hdrp));
-	memset(descp, 0, POOL_HDR_SIZE - sizeof(*hdrp));
-	pmem_msync(descp, POOL_HDR_SIZE - sizeof(*hdrp));
-
 	/* create pool's header */
 	memcpy(hdrp->signature, sig, POOL_HDR_SIG_LEN);
 	hdrp->major = major;
@@ -1418,7 +1468,7 @@ util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 	util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum, 1);
 
 	/* store pool's header */
-	pmem_msync(hdrp, sizeof(*hdrp));
+	PERSIST_GENERIC_AUTO(hdrp, sizeof(*hdrp));
 
 	return 0;
 }
@@ -2515,6 +2565,9 @@ err_poolset:
 int
 util_is_poolset_file(const char *path)
 {
+	if (util_file_is_device_dax(path))
+		return 0;
+
 	int fd = util_file_open(path, NULL, 0, O_RDONLY);
 	if (fd < 0)
 		return -1;

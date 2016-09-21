@@ -65,6 +65,7 @@ struct pool_set_part {
 	const char *path;
 	size_t filesize;	/* aligned to page size */
 	int fd;
+	int is_dax;
 	int created;		/* indicates newly created (zeroed) file */
 
 	/* util_poolset_open/create */

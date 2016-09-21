@@ -547,6 +547,16 @@ Lines starting with "#" character are ignored. A replica can be local or remote.
 string only and it has to be followed by at least one line defining a part of the local replica. The format of such line is the same as the format of the line
 defining a part of the PMEMOBJ pool as described above.
 
+The path of a part can point to a device DAX and in such case the size
+argument can be set to an "AUTO" string, which means that the size of the device
+will be automatically resolved at pool creation time. When using device DAX
+there's also one additional restriction, that a pool set can consist only of a
+single part.
+
+Device DAX is the device-centric analogue of Filesystem DAX. It allows memory
+ranges to be allocated and mapped without need of an intervening file system.
+For more information please see **ndctl-create-namespace**(1).
+
 In case of a remote replica, the *REPLICA* keyword has to be followed by an address of a remote host (in the format recognized by the **ssh**(1) remote login client)
 and a relative path to a remote pool set file (located in the root config directory on the target node - see **librpmem**(3)):
 
@@ -2138,5 +2148,5 @@ by the SNIA NVM Programming Technical Work Group:
 
 **mmap**(2), **munmap**(2), **msync**(2), **pthread_mutex**(3),
 **pthread_rwlock**(3), **pthread_cond**(3), **strerror**(3), **libpmemblk**(3),
-**libpmemlog**(3), **libpmem**(3), **libvmem**(3)
+**libpmemlog**(3), **libpmem**(3), **libvmem**(3), **ndctl-create-namespace**(1)
 and **<http://pmem.io>**
