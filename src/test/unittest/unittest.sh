@@ -2000,7 +2000,7 @@ function dump_pool_info() {
 #
 function compare_replicas() {
 	set +e
-	diff <(dump_pool_info $1 $2) <(dump_pool_info $1 $3)
+	diff <(dump_pool_info $1 $2) <(dump_pool_info $1 $3) -I "^path" -I "^size"
 	set -e
 }
 

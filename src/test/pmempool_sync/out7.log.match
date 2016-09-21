@@ -1,14 +1,57 @@
-pr(23068672): off = 0x382440 uuid = $(nW)
+pr(26214400): off = 0x382440 uuid = $(nW)
 TestOK111
 TestOK222
-libpmempool_transform/TEST0: START: libpmempool_transform
- ./libpmempool_transform$(nW) $(nW)/poolset.in $(nW)/poolset.out 0
-libpmempool_transform/TEST0: Done: result: 0, errno: 0
 TestOK111
 TestOK222
+Poolset structure:
+Number of replicas       : 2
+Replica 0 (master) - local, 1 part(s):
+part 0:
+path                     : $(nW)
+type                     : device dax
+size                     : $(nW)
+Replica 1 - local, 2 part(s):
+part 0:
+path                     : $(nW)/part10
+type                     : regular file
+size                     : $(nW)
+part 1:
+path                     : $(nW)/part11
+type                     : regular file
+size                     : $(nW)
+
+POOL Header:
+Signature                : PMEMOBJ
+Major                    : 2
+Mandatory features       : 0x0
+Not mandatory features   : 0x0
+Forced RO                : 0x0
+Pool set UUID            : $(nW)
+
+PMEM OBJ Header:
+Layout                   : OBJ_LAYOUT
+Lanes offset             : 0x2000
+Number of lanes          : 1024
+Heap offset              : $(nW)
+Heap size                : $(nW)
+Checksum                 : 0x69ca8e0ab123ebf0 [OK]
+Root offset              : $(nW)
 
 Poolset part:
-path                     : $(nW)
+path                     : $(nW)/part10
+type                     : regular file
+size                     : $(nW)
+
+POOL Header:
+Signature                : PMEMOBJ [part file]
+Major                    : 2
+Mandatory features       : 0x0
+Not mandatory features   : 0x0
+Forced RO                : 0x0
+Pool set UUID            : $(nW)
+
+Poolset part:
+path                     : $(nW)/part11
 type                     : regular file
 size                     : $(nW)
 
@@ -22,52 +65,22 @@ Pool set UUID            : $(nW)
 
 Poolset part:
 path                     : $(nW)
-type                     : regular file
+type                     : device dax
 size                     : $(nW)
 
 POOL Header:
-Signature                : PMEMOBJ [part file]
+Signature                : PMEMOBJ
 Major                    : 2
 Mandatory features       : 0x0
 Not mandatory features   : 0x0
 Forced RO                : 0x0
 Pool set UUID            : $(nW)
 
-Poolset part:
-path                     : $(nW)
-type                     : regular file
-size                     : $(nW)
-
-POOL Header:
-Signature                : PMEMOBJ [part file]
-Major                    : 2
-Mandatory features       : 0x0
-Not mandatory features   : 0x0
-Forced RO                : 0x0
-Pool set UUID            : $(nW)
-
-Poolset part:
-path                     : $(nW)
-type                     : regular file
-size                     : $(nW)
-
-POOL Header:
-Signature                : PMEMOBJ [part file]
-Major                    : 2
-Mandatory features       : 0x0
-Not mandatory features   : 0x0
-Forced RO                : 0x0
-Pool set UUID            : $(nW)
-
-Poolset part:
-path                     : $(nW)
-type                     : regular file
-size                     : $(nW)
-
-POOL Header:
-Signature                : PMEMOBJ [part file]
-Major                    : 2
-Mandatory features       : 0x0
-Not mandatory features   : 0x0
-Forced RO                : 0x0
-Pool set UUID            : $(nW)
+PMEM OBJ Header:
+Layout                   : OBJ_LAYOUT
+Lanes offset             : 0x2000
+Number of lanes          : 1024
+Heap offset              : $(nW)
+Heap size                : $(nW)
+Checksum                 : 0x69ca8e0ab123ebf0 [OK]
+Root offset              : $(nW)

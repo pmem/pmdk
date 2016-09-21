@@ -1,17 +1,21 @@
-pr(23068672): off = 0x382440 uuid = $(nW)
+poolset_in
+PMEMPOOLSET
+20M $(nW)/part00
+REPLICA
+AUTO $(nW)
+
+poolset_out
+PMEMPOOLSET
+20M $(nW)/part00
+
+pr(1048576): off = 0x382440 uuid = $(nW)
 TestOK111
-TestOK222
 TestOK111
-TestOK222
 Poolset structure:
 Number of replicas       : 1
-Replica 0 (master) - local, 2 part(s):
+Replica 0 (master) - local, 1 part(s):
 part 0:
-path                     : $(nW)/testfile0
-type                     : regular file
-size                     : 20971520
-part 1:
-path                     : $(nW)/testfile1
+path                     : $(nW)/part00
 type                     : regular file
 size                     : 20971520
 
@@ -28,32 +32,28 @@ Layout                   : OBJ_LAYOUT
 Lanes offset             : 0x2000
 Number of lanes          : 1024
 Heap offset              : 0x302000
-Heap size                : 38785024
-Checksum                 : 0x69ca8e0ab123ebf0 [OK]
+Heap size                : 17817600
+Checksum                 : 0x315a2e0aafe3fbf0 [OK]
 Root offset              : 0x382440
 
 Poolset part:
-path                     : $(nW)/testfile0
+path                     : $(nW)/part00
 type                     : regular file
 size                     : 20971520
 
 POOL Header:
-Signature                : PMEMOBJ [part file]
+Signature                : PMEMOBJ
 Major                    : 2
 Mandatory features       : 0x0
 Not mandatory features   : 0x0
 Forced RO                : 0x0
 Pool set UUID            : $(nW)
 
-Poolset part:
-path                     : $(nW)/testfile1
-type                     : regular file
-size                     : 20971520
-
-POOL Header:
-Signature                : PMEMOBJ [part file]
-Major                    : 2
-Mandatory features       : 0x0
-Not mandatory features   : 0x0
-Forced RO                : 0x0
-Pool set UUID            : $(nW)
+PMEM OBJ Header:
+Layout                   : OBJ_LAYOUT
+Lanes offset             : 0x2000
+Number of lanes          : 1024
+Heap offset              : 0x302000
+Heap size                : 17817600
+Checksum                 : 0x315a2e0aafe3fbf0 [OK]
+Root offset              : 0x382440

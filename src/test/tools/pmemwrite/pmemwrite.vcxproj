@@ -34,7 +34,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\common\device_dax_windows.c" />
     <ClCompile Include="..\..\..\common\set.c" />
     <ClCompile Include="..\..\..\libpmemblk\btt.c" />
     <ClCompile Include="..\..\..\tools\pmempool\common.c" />

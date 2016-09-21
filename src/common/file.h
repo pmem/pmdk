@@ -45,6 +45,10 @@ int util_file_is_device_dax(const char *path);
 ssize_t util_file_get_size(const char *path);
 void *util_file_map_whole(const char *path);
 int util_file_zero_whole(const char *path);
+ssize_t util_file_pread(const char *path, void *buffer, size_t size,
+	off_t offset);
+ssize_t util_file_pwrite(const char *path, const void *buffer, size_t size,
+	off_t offset);
 
 int util_tmpfile(const char *dir, const char *templ);
 int util_is_absolute_path(const char *path);
